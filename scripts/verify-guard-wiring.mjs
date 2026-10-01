@@ -148,7 +148,6 @@ const UNWIRED_BY_DESIGN = [
   //    적고 있으면 그 문서가 틀린 것이다(2026-08-13 에 SERVICE_STRUCTURE·PAYMENT_AND_ACCESS 정정).
   ["verify:animal-totem-reading", "배선 후보(미승인) — 동물 토템 판정"],
   ["verify:no-timestamp-conflict", "배선 후보(미승인) — 현재 worker/payments 3건 오탐 상태라 배선 전 수정 필요"],
-  ["verify:today-hub-gate", "배선 후보(미승인) — 오늘 허브 게이트"],
 ];
 
 /**

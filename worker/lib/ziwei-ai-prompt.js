@@ -74,12 +74,27 @@ const ZIWEI_CORE_ANGLES = Object.freeze([
   "현실 선택(직업/관계/자원배분)으로 연결되는 실행 전략",
 ]);
 
+// 별 강약 7등급(정본 lib/ziwei-star-strength.js). 접지 않는다(묘≠왕, 불≠평≠함).
+// 길흉이 아니라 그 별의 성질이 얼마나 또렷하게 드러나는가다. glyph 는 화면 표기와 같은 한자 한 글자.
 const ZIWEI_STRENGTH_META = Object.freeze({
-  "◎": { name: "묘", meaning: "가장 강함" },
-  "O": { name: "득", meaning: "강함" },
-  "▲": { name: "리", meaning: "이로움" },
-  "△": { name: "평", meaning: "보통 중간" },
-  "X": { name: "함", meaning: "약함" },
+  묘: { name: "묘", glyph: "廟", meaning: "성질이 가장 또렷함" },
+  왕: { name: "왕", glyph: "旺", meaning: "힘 있게 드러남" },
+  득: { name: "득", glyph: "得", meaning: "무난히 드러남" },
+  리: { name: "리", glyph: "利", meaning: "한 단계 덜함" },
+  평: { name: "평", glyph: "平", meaning: "중간, 동궁·사화 영향 큼" },
+  불: { name: "불", glyph: "不", meaning: "힘이 약함" },
+  함: { name: "함", glyph: "陷", meaning: "막히거나 비틀리기 쉬움" },
+});
+// 하나로 정해지는 표기만 받는다. 옛 5기호(◎O▲△X)는 셸 밖 경로(관리자 프롬프트 실험·심층 리포트)가
+// 아직 보내므로 받아들인다 — 옛 기호는 묘왕·불평을 접었으므로 원래 이름(◎=묘, O=득, △=평, X=함)으로 읽는다.
+const ZIWEI_STRENGTH_GRADE_BY_TOKEN = Object.freeze({
+  묘: "묘", 廟: "묘", "◎": "묘",
+  왕: "왕", 旺: "왕",
+  득: "득", 得: "득", 得地: "득", O: "득", "○": "득", "◉": "득",
+  리: "리", 利: "리", "▲": "리",
+  평: "평", 平: "평", "△": "평",
+  불: "불", 不: "불", 不得地: "불",
+  함: "함", 陷: "함", X: "함", "×": "함",
 });
 
 const ZIWEI_ACTION_TERMS = Object.freeze([
@@ -191,10 +206,9 @@ function starLabel(star) {
   if (!star || typeof star !== "object") return "";
   const name = toText(star.name, "");
   if (!name) return "";
-  const strength = normalizeStrengthSymbolToken(star.strengthSymbol || star.symbol || "", star.strengthName || "");
-  if (!strength) return name;
-  const meta = ZIWEI_STRENGTH_META[strength];
-  return meta ? `${name}${strength}(${meta.name})` : `${name}${strength}`;
+  const grade = normalizeStrengthSymbolToken(star.strengthSymbol || star.symbol || "", star.strengthName || "");
+  const meta = grade ? ZIWEI_STRENGTH_META[grade] : null;
+  return meta ? `${name}${meta.glyph}(${meta.name})` : name;
 }
 
 function starsToText(stars) {
@@ -209,11 +223,11 @@ function normalizeStar(star) {
   if (star && typeof star === "object") {
     const name = toText(star.name, "");
     if (!name) return null;
-    const strengthSymbol = normalizeStrengthSymbolToken(star.strengthSymbol || star.symbol, star.strengthName || star.strength || star.brightness || "");
-    const strengthMeta = strengthSymbol ? ZIWEI_STRENGTH_META[strengthSymbol] : null;
+    const grade = normalizeStrengthSymbolToken(star.strengthSymbol || star.symbol, star.strengthName || star.strength || star.brightness || "");
+    const strengthMeta = grade ? ZIWEI_STRENGTH_META[grade] : null;
     return {
       name,
-      strengthSymbol,
+      strengthSymbol: strengthMeta?.glyph || "",
       strengthName: strengthMeta?.name || "",
       strengthMeaning: strengthMeta?.meaning || "",
     };
@@ -223,36 +237,38 @@ function normalizeStar(star) {
     .replace(/\s+/g, " ")
     .trim();
   if (!raw) return null;
-  const symbolMatch = raw.match(/◎|○|▲|△|×|X|O|함/);
-  const strengthSymbol = normalizeStrengthSymbolToken(symbolMatch ? symbolMatch[0] : "", raw);
-  const strengthMeta = strengthSymbol ? ZIWEI_STRENGTH_META[strengthSymbol] : null;
+  const symbolMatch = raw.match(/◎|○|▲|△|×|X|O|함|[廟旺得利平不陷]/);
+  const grade = normalizeStrengthSymbolToken(symbolMatch ? symbolMatch[0] : "", raw);
+  const strengthMeta = grade ? ZIWEI_STRENGTH_META[grade] : null;
   const name = raw
-    .replace(/◎|○|▲|△|×|X|O|함/g, "")
-    .replace(/묘|득|왕|리|평|실/g, "")
+    .replace(/◎|○|▲|△|×|X|O|함|[廟旺得利平不陷]/g, "")
+    .replace(/묘|득|왕|리|평|불|실/g, "")
     .replace(/\(차성\)/g, "")
     .trim();
   if (!name) return null;
   return {
     name,
-    strengthSymbol,
+    strengthSymbol: strengthMeta?.glyph || "",
     strengthName: strengthMeta?.name || "",
     strengthMeaning: strengthMeta?.meaning || "",
   };
 }
 
+// 강약 표기를 7등급 이름(묘·왕·득·리·평·불·함)으로 돌려준다. 모르면 '' — 없는 강약을 만들지 않는다.
 function normalizeStrengthSymbolToken(rawSymbol, rawStrengthName = "") {
   const symbol = String(rawSymbol == null ? "" : rawSymbol).trim();
   const name = String(rawStrengthName == null ? "" : rawStrengthName).trim();
-  if (symbol === "◎") return "◎";
-  if (symbol === "○" || symbol === "O" || symbol === "◉") return "O";
-  if (symbol === "▲") return "▲";
-  if (symbol === "△") return "△";
-  if (symbol === "함" || symbol === "×" || symbol === "X") return "X";
-  if (/묘|廟/.test(name)) return "◎";
-  if (/득|왕|旺/.test(name)) return "O";
-  if (/리|利|이로|유리|득/.test(name)) return "▲";
-  if (/평|平|보통/.test(name)) return "△";
-  if (/함|실|陷|약|쇠/.test(name)) return "X";
+  if (ZIWEI_STRENGTH_GRADE_BY_TOKEN[symbol]) return ZIWEI_STRENGTH_GRADE_BY_TOKEN[symbol];
+  if (ZIWEI_STRENGTH_GRADE_BY_TOKEN[name]) return ZIWEI_STRENGTH_GRADE_BY_TOKEN[name];
+  // 문장 속 표기: 不得地 를 得 보다 먼저 본다.
+  if (/不得地|불득지/.test(name)) return "불";
+  if (/묘|廟/.test(name)) return "묘";
+  if (/왕|旺/.test(name)) return "왕";
+  if (/득|得/.test(name)) return "득";
+  if (/리|利|이로|유리/.test(name)) return "리";
+  if (/평|平|보통/.test(name)) return "평";
+  if (/불|不/.test(name)) return "불";
+  if (/함|실|陷|약|쇠/.test(name)) return "함";
   return "";
 }
 
@@ -263,11 +279,9 @@ function starsStrengthEvidenceToText(stars) {
       if (!star || typeof star !== "object") return "";
       const name = toText(star.name, "");
       if (!name) return "";
-      const symbol = normalizeStrengthSymbolToken(star.strengthSymbol || star.symbol || "", star.strengthName || "");
-      if (!symbol) return name;
-      const meta = ZIWEI_STRENGTH_META[symbol];
-      if (!meta) return `${name}${symbol}`;
-      return `${name}${symbol}(${meta.meaning})`;
+      const grade = normalizeStrengthSymbolToken(star.strengthSymbol || star.symbol || "", star.strengthName || "");
+      const meta = grade ? ZIWEI_STRENGTH_META[grade] : null;
+      return meta ? `${name}${meta.glyph}(${meta.meaning})` : name;
     })
     .filter(Boolean)
     .slice(0, 10);
@@ -711,7 +725,7 @@ export function buildZiweiAIPromptWithDomain({ question, chartResult, domain }) 
     `요청 도메인: ${domainTemplate.domainKo} (${resolvedDomain})`,
     `질문 유형: ${questionTypeLabel}`,
     `상황별 가중 키워드:\n${buildKeywordWeightLines(domainTemplate.keywordWeights).join("\n")}`,
-    "강약 판정 기준: ◎=묘(가장 강함), O=득(강함), ▲=리(이로움), △=평(보통 중간), X=함/실(약함)",
+    "강약 판정 기준(7등급, 길흉 아님): 廟=묘, 旺=왕, 得=득, 利=리, 平=평, 不=불, 陷=함 — 앞쪽일수록 그 별의 성질이 또렷하게 드러나는 자리. 글자가 없는 별은 강약을 매기지 않는다.",
     `명궁/신궁: ${normalizedChart.mingGong} / ${normalizedChart.shenGong}`,
     `명궁 주성/신궁 주성: ${normalizedChart.mingMainStars} / ${normalizedChart.shenMainStars}`,
     `강세궁/약세궁: ${normalizedChart.strongestPalace} / ${normalizedChart.weakestPalace}`,

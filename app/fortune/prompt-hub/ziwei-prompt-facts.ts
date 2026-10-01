@@ -79,7 +79,7 @@ function resolvePalace(palaces: ZiweiPalace[], label: string): ZiweiPalace | nul
   return palaces.find((palace) => palace.name === wanted || palace.normalizedName === wanted) || null;
 }
 
-/** "태음△" · 사화가 붙은 별은 "파군◎(화권)". 강약 기호가 없으면 이름만(추정 금지). */
+/** "태음平" · 사화가 붙은 별은 "파군旺(화권)". 강약 글자가 없으면 이름만(추정 금지). */
 function starText(star: ZiweiStarMeta) {
   const name = text(star?.name);
   if (!name) return "";
@@ -91,7 +91,7 @@ function starList(stars: ZiweiStarMeta[] | undefined) {
   return (stars || []).map(starText).filter(Boolean).join(" ");
 }
 
-/** "· 명궁(묘): 주성 태음△ / 보좌 … / 흉성 …" — 워커 formatZiweiChartForPrompt 의 행 서식. */
+/** "· 명궁(묘): 주성 태음平 / 보좌 … / 흉성 …" — 워커 formatZiweiChartForPrompt 의 행 서식. */
 function palaceRow(palace: ZiweiPalace) {
   const main = starList(palace.mainStars);
   const aux = starList(palace.auxiliaryStars);
@@ -152,7 +152,7 @@ export function buildZiweiPromptFacts(input: ZiweiFactsInput): string {
     if (sihua) lines.push(`- 생년사화(四化): ${sihua}`);
 
     lines.push(
-      "- 강약 표기 범례: ◎=묘(최상) · O=득(득지) · ▲=리(이로움) · △=평(균형) · X=함(주의). 기호가 없는 별은 강약 미표기(추정 금지).",
+      "- 강약 표기 범례(7등급, 길흉 아님): 廟=묘 · 旺=왕 · 得=득 · 利=리 · 平=평 · 不=불 · 陷=함 — 앞쪽일수록 그 별의 성질이 또렷하게 드러나는 자리. 글자가 없는 별은 강약을 매기지 않는다(추정 금지).",
     );
 
     lines.push("- 12궁 배치(강약 포함):");

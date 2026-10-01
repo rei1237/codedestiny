@@ -432,15 +432,17 @@ export function describePalaceFocus(id: ZiweiPalaceId): string {
 
 export function normalizeStrengthBandFromStar(star: ZiweiStarMeta): ZiweiBrightnessBand | "" {
   const strength = String(star?.strength || "").trim();
+  // 다섯 밝기 띠로 읽는다: 왕은 묘 쪽, 불은 함 쪽으로 접는다(7등급 → 5띠).
   if (strength === "왕") return "묘";
+  if (strength === "불") return "함";
   if (["묘", "득", "리", "평", "함"].includes(strength)) return strength as ZiweiBrightnessBand;
 
   const symbol = String(star?.strengthSymbol || star?.symbol || "").trim();
-  if (symbol === "◎") return "묘";
-  if (symbol === "O" || symbol === "○") return "득";
-  if (symbol === "▲") return "리";
-  if (symbol === "△") return "평";
-  if (symbol === "X" || symbol === "×") return "함";
+  if (symbol === "廟" || symbol === "旺" || symbol === "◎") return "묘";
+  if (symbol === "得" || symbol === "O" || symbol === "○") return "득";
+  if (symbol === "利" || symbol === "▲") return "리";
+  if (symbol === "平" || symbol === "△") return "평";
+  if (symbol === "不" || symbol === "陷" || symbol === "X" || symbol === "×") return "함";
   return "";
 }
 
@@ -949,7 +951,7 @@ export function buildZiweiFoundationReading(
             : `신궁이 놓인 ${body.palace.name}에서는 ${body.reality} ${body.strengths} 마음의 기준과 행동이 어긋날 때에는 어느 쪽이 틀렸다고 보기보다, ${life.palace.name}이 원하는 방향과 ${body.palace.name}이 익숙하게 움직이는 방식을 따로 적어보는 편이 좋습니다.`,
         ],
         evidence: [
-          "별 뒤 기호는 밝기를 뜻합니다. ◎은 가장 힘이 잘 살아나는 자리, O는 안정적으로 힘을 쓰는 자리, ▲는 상황을 타지만 이로운 자리, △는 균형이 필요한 자리, X는 힘이 눌려 조율이 필요한 자리입니다.",
+          "별 뒤 한자는 강약입니다. 廟·旺·得·利·平·不·陷 순으로, 앞쪽일수록 그 별의 성질이 또렷하게 드러나는 자리입니다. 길흉을 뜻하지 않으며, 글자가 없는 별은 강약을 매기지 않습니다.",
           ...buildPalaceEvidenceLines(life),
           ...(sameCorePalace ? [] : buildPalaceEvidenceLines(body).slice(0, 4)),
         ],

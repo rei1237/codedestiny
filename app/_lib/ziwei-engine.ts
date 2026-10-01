@@ -17,10 +17,9 @@ import {
   ZIWEI_ENGINE_VERSION,
 } from "./ziwei-advanced-normalization";
 import {
-  getZiweiClassicalStrength,
   normalizeZiweiClassicStrength,
-  ziweiClassicStrengthFromSymbol,
   ziweiClassicStrengthToSymbol,
+  ziweiStarStrength,
   type ZiweiClassicStrength,
   type ZiweiStrengthSymbol,
 } from "./ziwei-strength";
@@ -69,30 +68,10 @@ function normalizePalaceIndex(index: number): number {
   return ((index % 12) + 12) % 12;
 }
 
-function normalizeStrengthLabel(raw: string | undefined): string {
-  return normalizeZiweiClassicStrength(raw);
-}
-
-function normalizeStrengthSymbol(raw: string | undefined): ZiweiStrengthSymbol {
-  return ziweiClassicStrengthToSymbol(ziweiClassicStrengthFromSymbol(raw));
-}
-
-function symbolFromStrength(strength: string | undefined): ZiweiStrengthSymbol {
-  return ziweiClassicStrengthToSymbol(normalizeStrengthLabel(strength));
-}
-
-function normalizeStarStrength(strength: string | undefined, symbol: string | undefined): { strength: string; symbol: ZiweiStrengthSymbol } {
-  const normalizedStrength = normalizeStrengthLabel(strength) as ZiweiClassicStrength;
-  const normalizedSymbol = normalizeStrengthSymbol(symbol);
-  const symbolStrength = ziweiClassicStrengthFromSymbol(normalizedSymbol || symbol);
-  const resolvedStrength = normalizedStrength || symbolStrength;
-  const resolvedSymbol = normalizedSymbol || symbolFromStrength(resolvedStrength);
-
-  if (!resolvedStrength || !resolvedSymbol) {
-    return { strength: "", symbol: "" };
-  }
-
-  return { strength: resolvedStrength, symbol: resolvedSymbol };
+// 강약 표기(등급 이름·한자·옛 5기호)를 7등급 이름과 한자 한 글자로 맞춘다. 모르는 표기는 빈 값.
+function normalizeStarStrength(strength: string | undefined, symbol: string | undefined): { strength: ZiweiClassicStrength; symbol: ZiweiStrengthSymbol } {
+  const grade = normalizeZiweiClassicStrength(strength) || normalizeZiweiClassicStrength(symbol);
+  return grade ? { strength: grade, symbol: ziweiClassicStrengthToSymbol(grade) } : { strength: "", symbol: "" };
 }
 
 /** 
@@ -182,7 +161,7 @@ export function calcZiweiPalaces(
   const addStar = (pIdx: number, name: string, type: "main" | "aux" | "bad") => {
     const normalizedIndex = normalizePalaceIndex(pIdx);
     const target = palaceStarData[normalizedIndex];
-    const profile = getBrightness(name, normalizedIndex, type);
+    const profile = getBrightness(name, normalizedIndex);
     const normalized = normalizeStarStrength(profile.strength, profile.symbol);
     const star = { name, symbol: normalized.symbol, strength: normalized.strength };
     if (type === "main") target.stars.push(star);
@@ -279,30 +258,9 @@ export function calcZiweiPalaces(
   };
 }
 
-/** 묘/득/리/평/함/실 canonical 간략화 로직 */
-function getBrightness(star: string, branch: number, starType: "main" | "aux" | "bad"): { strength: string; symbol: ZiweiStrengthSymbol } {
-  const zhiHan = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"][(branch % 12 + 12) % 12];
-  const classical = getZiweiClassicalStrength(star, zhiHan);
-  if (classical) {
-    return normalizeStarStrength(classical, symbolFromStrength(classical));
-  }
-
-  // 고전표에 없는 별은 기존 branch 기반 프로파일을 보수적으로 사용한다.
-  const miao = [0, 4, 8];
-  const li = [1, 5, 9];
-  const weak = [2, 6, 10];
-
-  if (starType === "bad") {
-    if (miao.includes(branch)) return normalizeStarStrength("묘", "◎");
-    if (li.includes(branch)) return normalizeStarStrength("득", "O");
-    if (weak.includes(branch)) return normalizeStarStrength("함", "X");
-    return normalizeStarStrength("평", "△");
-  }
-
-  if (miao.includes(branch)) return normalizeStarStrength("묘", "◎");
-  if (li.includes(branch)) return normalizeStarStrength("득", "O");
-  if (weak.includes(branch)) return normalizeStarStrength("평", "△");
-  return normalizeStarStrength("리", "▲");
+/** 별 강약은 정본 표(lib/ziwei-star-strength.js)에서 읽는다. 표에 없는 별·앉지 못하는 자리는 빈 값 — 지지로 지어내지 않는다. */
+function getBrightness(star: string, branch: number): { strength: ZiweiClassicStrength; symbol: ZiweiStrengthSymbol } {
+  return ziweiStarStrength(star, branch);
 }
 
 const PALACE_LABEL_TO_ID: Record<string, ZiweiPalaceId> = {
@@ -427,20 +385,22 @@ function dedupeStars(stars: ZiweiStarMeta[]): ZiweiStarMeta[] {
   return result;
 }
 
+// 강한 쪽은 묘·왕·득, 약한 쪽은 평·불·함. 리는 어느 쪽에도 넣지 않는다.
+const STRONG_GRADES: ReadonlySet<ZiweiClassicStrength> = new Set(["묘", "왕", "득"]);
+const WEAK_GRADES: ReadonlySet<ZiweiClassicStrength> = new Set(["평", "불", "함"]);
+
+function starGrade(star: ZiweiStarMeta): ZiweiClassicStrength {
+  return normalizeZiweiClassicStrength(star.strength) || normalizeZiweiClassicStrength(starSymbol(star));
+}
+
 function buildStrengthSummary(stars: ZiweiStarMeta[]) {
-  const strongestStars = stars.filter((star) => {
-    const symbol = starSymbol(star);
-    return symbol === "◎" || symbol === "O";
-  });
-  const weakStars = stars.filter((star) => {
-    const symbol = starSymbol(star);
-    return symbol === "△" || symbol === "X";
-  });
+  const strongestStars = stars.filter((star) => STRONG_GRADES.has(starGrade(star)));
+  const weakStars = stars.filter((star) => WEAK_GRADES.has(starGrade(star)));
   return {
     strongestStars,
     weakStars,
     hasMiaoWang: strongestStars.length > 0,
-    hasXianRuo: weakStars.some((star) => starSymbol(star) === "X"),
+    hasXianRuo: weakStars.some((star) => starGrade(star) === "불" || starGrade(star) === "함"),
   };
 }
 

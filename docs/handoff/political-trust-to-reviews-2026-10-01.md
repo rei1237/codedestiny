@@ -2,7 +2,7 @@
 status: done
 implementationStatus: shipped-to-main
 updated: 2026-10-01
-next: 후속 과제 2(유명인 데이터 속 정치인), 3(Play 콘솔 수동 반영)
+next: 후기 채팅형 UI·후기 확대(docs/handoff/review-chat-ui-2026-10-01.md), 후속 과제 3(Play 콘솔 수동 반영)
 ---
 
 # 정치 적중 주장 제거 → 실제 1:1 상담 후기·방법론 (2026-10-01)
@@ -50,7 +50,7 @@ next: 후속 과제 2(유명인 데이터 속 정치인), 3(Play 콘솔 수동 �
    - `<details>` 기본 접힘, `siteLocale==='ko'` 이고 `visibleReviews()` 가 1건 이상일 때만. 고지 "네오가 사람 1:1 상담에서 받은 후기예요. 여기서 고르는 상담은 AI가 작성해요." 가 카드보다 먼저 나온다. 금액·블로그 링크 없음.
    - `CustomerReviews` `variant="inline"`: 제목·"더 보기" 없음, 1열. 기본 `section` 은 그대로라 FounderTrust 무변경.
    - 설계안 문구 "계산 엔진과 AI 해설" 대신 "AI가 작성해요" — 타로 상품에도 맞게.
-2. **유명인 데이터 속 정치인(그룹 B)** — `app/saju/destiny-bias/lib/celebrityProfiles.ts`, `i18n/authored/shellRuntime-05/12/15/17/18.json`(가드 허용목록, 개수 고정), `js/saju-engine.js`, `lib/famous-saju/celebrity-data.ts`, `js/inline/saju-core-bootstrap.js`, `public/famous/`. 정리하면 가드 허용목록 숫자도 같이 내린다.
+2. ~~**유명인 데이터 속 정치인(그룹 B)**~~ — **하지 않음(2026-10-01 사용자 결정).** 정치인은 신뢰 문구가 아니라 인물 데이터라 유지한다. 가드 허용목록 6파일·32건은 그대로 고정하고 사유만 "인물 데이터, 유지"로 바꿨다. 조사 기록(다시 열 때 출발점): 정치인은 `js/saju-engine.js` 37명(+ `se_23285~23300_prop_label`), destiny-bias '정치인' 10명, bootstrap 4명(박정희·김대중·마오쩌둥·오바마), famous-saju 8명(모두 noindex, sitemap 미등재), `public/famous/` 오바마 카드, `AnalysisEngine.js` 관상 예시 1명. 현대 정치인만 지우면 허용목록은 3파일·5건(마윈 es `expresidente` 1, 김구 임시정부 주석 3, "class president" 1)이 된다.
 3. **Play 콘솔** — `store-assets/google-play/yeongnyangi-20260930/{short,full}-description-ko.txt` 를 콘솔에 수동 반영.
 4. **블로그 원문 글** 224032671570 의 "세계에서 유일/100%/대통령" 문구 수정 권장(사용자 판단). about 의 '원문 모음' 링크가 이 글을 가리킨다.
 5. **"1회 30만원" 근거 보관** — 표시광고법상 실제 판매 근거(입금·상담 기록)를 보관해야 한다. 검색 제목에는 고지문을 붙일 수 없다.

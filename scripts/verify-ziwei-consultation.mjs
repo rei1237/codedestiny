@@ -10,13 +10,15 @@ const fixtures = [
   { name:'시각미상', birthYear:1978, birthMonth:2, birthDay:14, birthHour:12, birthMinute:0, gender:'F', calendarType:'solar', isLeapMonth:false, unknownHour:true, timezone:'Asia/Seoul' },
 ];
 // SHA 90b36b7d009b0d88deeaa8bd61a2383f9f696da2의 해석 정본으로 계산한 비문장 필드 SHA256.
+// 2026-10-01 S4: 별 강약을 정본 7등급(lib/ziwei-star-strength.js)으로 바꿔 다시 계산했다. 바뀐 필드는
+// 별의 symbol·strength·strengthSymbol 과 strengthSummary 뿐이고, 별 배치·최강/최약궁·키워드·궁 매트릭스는 같다.
 // shallow CI checkout에서도 기준 계산을 검증한다. 문구 5필드는 facts()에서 제외한다.
 const BASELINE_FACT_HASHES = [
-  "418eced96240dd18ab8067a94b16f1fa0125484fefaac8679705a167c017f036",
-  "d77fd3f694f0ef9b7846f90c0f6af0130296492f531199fbdee595bac52da5a1",
-  "ec062563935ca5d605888f43d668fe33a51828fdc50e45263014a9ad4b091212",
-  "e1b09090a2d5715ba573124f765a61b600ac5d08cae5095df8bffe47bf345484",
-  "e0bfbfd730ef9c785b0c8fe2ed288bd4f4c47f040dbad419ba4a70782204b699"
+  "016a08b3bb00962300613967a1bf33f5acda8f5066070e1a8c09ab705a45d4e1",
+  "307c02e501f04a0e5610108148f5b81bfd2e46ebf4f812b704eb70172e1b4b2f",
+  "482e2848ba5418d31c354b5e0f7600b1543638fd7c49c91d474dff961ef89b57",
+  "9a1c6c3ed4120c09d799d3d05bc8060ba94df8df1fd33b83dd4702b477ac6ef2",
+  "6e5f7b017c603693740b10774e28d5222b10f489c8dc0939da90aa8198e39f0b"
 ];
 const engine = loadTsModule('app/_lib/ziwei-engine.ts');
 const { normalizeZiweiInput } = loadTsModule('app/_lib/normalize-ziwei-input.ts');

@@ -260,14 +260,8 @@ const ZIWEI_STRENGTH_SYMBOL_KEY: Record<string, keyof AdvancedZiweiCopy["strengt
   X: "ham",
 };
 
-// 별 세기 기호(◎ O ▲ △ X)별 색 토큰
-const ZIWEI_STRENGTH_TONE: Record<string, string> = {
-  "◎": "text-emerald-300",
-  O: "text-sky-300",
-  "▲": "text-amber-300",
-  "△": "text-slate-300",
-  X: "text-rose-300",
-};
+// 별 강약 글자(廟旺得利平不陷) 색 — 강약은 길흉이 아니므로 등급마다 색을 나누지 않는다(꿀꿀 셸과 같은 색).
+const ZIWEI_STRENGTH_TONE = "text-amber-200";
 
 // 사화 pill 색 위계 — 록=록빛/권=권세/과=명예/기=주의(기본 명반과 동일 의미)
 const ZIWEI_SIHUA_PILL: Record<string, string> = {
@@ -1060,7 +1054,7 @@ export default function AdvancedZiweiSectionV2({
                           <span key={`${star.name}-${i}`} className="flex items-baseline gap-0.5 text-xs font-bold leading-tight text-amber-50">
                             {star.name}
                             {star.strengthSymbol ? (
-                              <span className={`text-xs font-black ${ZIWEI_STRENGTH_TONE[star.strengthSymbol] || "text-slate-200"}`}>{star.strengthSymbol}</span>
+                              <span className={`text-xs font-black ${ZIWEI_STRENGTH_TONE}`}>{star.strengthSymbol}</span>
                             ) : null}
                           </span>
                         ))
@@ -1087,6 +1081,9 @@ export default function AdvancedZiweiSectionV2({
               )}
             />
             <p className="mt-3 text-xs leading-6 text-slate-300">{copy.centerPanelDesc}</p>
+            <p className="mt-1 break-keep text-xs leading-6 text-slate-300">
+              {copy.strengthLegend.label}: <b className="font-black tracking-[0.12em] text-amber-200">廟 旺 得 利 平 不 陷</b> — {copy.strengthLegend.note}
+            </p>
           </StagePanel>
           </section>
 

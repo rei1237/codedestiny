@@ -1055,7 +1055,7 @@ function normalizeJamidusuBrightness(value) {
   if (!raw) return 'ping';
   if (raw.includes('묘') || raw.includes('miao')) return 'miao';
   if (raw.includes('왕') || raw.includes('wang')) return 'wang';
-  // 🔴 계산기(js/saju-engine.js zwNumericToStrength)가 내는 표기는 '리' 다. '이' 로 찾던 탓에
+  // 🔴 계산기(js/saju-engine.js zwComputeStarStrength)가 내는 표기는 '리' 다. '이' 로 찾던 탓에
   //    이 등급이 한 번도 안 잡히고 전부 'ping' 으로 떨어졌다(2026-08-23 실측).
   if (raw.includes('리') || raw.includes('이') || raw === 'li' || raw.includes('bright')) return 'li';
   if (raw.includes('득') || raw.includes('de')) return 'de';

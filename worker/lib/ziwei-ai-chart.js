@@ -35,7 +35,8 @@ export const TRANSFORMATION_LABELS = {
   huaJi: "화기",
 };
 
-// 정통 자미두수 명암표(廟旺利平陷) — js/saju-engine.js의 ZW_CLASSICAL_STATE와 동일한 원자료(28성×12지지)를
+// 정통 자미두수 명암표(廟旺利平陷) — 옛 js/saju-engine.js ZW_CLASSICAL_STATE(2026-10-01 S4 에서 정본
+// lib/ziwei-star-strength.js 사본으로 교체)와 동일한 원자료(28성×12지지)를
 // 한글 지지 키로 변환한 값. LLM 상담에 가짜 근거를 넣지 않기 위해 반드시 이 표만 사용한다.
 const ZIWEI_BRIGHTNESS_TABLE = {
   "자미":{"자":"평","축":"묘","인":"왕","묘":"왕","진":"묘","사":"평","오":"묘","미":"묘","신":"평","유":"평","술":"묘","해":"평"},

@@ -48,6 +48,8 @@ export interface AdvancedZiweiCopy {
   birthPlacePlaceholder: string;
   actionPlanTitles: { start: string; reduce: string; maintain: string };
   strengthDescriptions: { miao: string; deuk: string; li: string; ping: string; ham: string };
+  /** 명반 아래 강약 범례. 글자(廟…陷)는 화면에서 넣는다. */
+  strengthLegend: { label: string; note: string };
 
   introTitle: string;
   introDesc: string;
@@ -230,6 +232,7 @@ const ADVANCED_ZIWEI_COPY_EN: AdvancedZiweiCopy = {
   namePlaceholder: "e.g. Alex Kim",
   birthPlacePlaceholder: "e.g. Seoul, South Korea",
   actionPlanTitles: { start: "Actions to Try Now", reduce: "Actions to Reduce or Moderate", maintain: "Standards to Maintain" },
+  strengthLegend: { label: "Star strength", note: "further left, the star's nature shows more clearly · not good or bad luck · stars without a glyph are not rated" },
   strengthDescriptions: {
     miao: "The star's power flourishes at its most brilliant",
     deuk: "The star's nature is expressed in a stable flow",
@@ -418,6 +421,7 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     namePlaceholder: "예: 홍길동",
     birthPlacePlaceholder: "예: 대한민국 서울",
     actionPlanTitles: { start: "지금 시도할 행동", reduce: "줄이거나 조절할 행동", maintain: "유지할 기준" },
+    strengthLegend: { label: "강약", note: "왼쪽일수록 별의 성질이 또렷한 자리 · 길흉 아님 · 글자 없는 별은 강약을 매기지 않음" },
     strengthDescriptions: {
       miao: "별의 힘이 가장 찬란하게 살아나는 상태",
       deuk: "별의 본성이 안정적으로 발휘되는 흐름",
@@ -604,6 +608,7 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     namePlaceholder: "例：山田太郎",
     birthPlacePlaceholder: "例：韓国 ソウル",
     actionPlanTitles: { start: "今試すべき行動", reduce: "減らす・調整する行動", maintain: "維持すべき基準" },
+    strengthLegend: { label: "星の強弱", note: "左ほど星の性質がはっきり表れる位置 · 吉凶ではありません · 文字のない星は強弱を付けません" },
     strengthDescriptions: {
       miao: "星の力が最も輝かしく生きる状態",
       deuk: "星の本性が安定的に発揮される流れ",
@@ -790,6 +795,7 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     namePlaceholder: "例：李小龙",
     birthPlacePlaceholder: "例：韩国首尔",
     actionPlanTitles: { start: "现在可以尝试的行动", reduce: "需要减少或调节的行动", maintain: "需要维持的准则" },
+    strengthLegend: { label: "星曜亮度", note: "越靠左，星曜本性越鲜明 · 不代表吉凶 · 没有标字的星不评亮度" },
     strengthDescriptions: {
       miao: "星曜之力最灿烂发挥的状态",
       deuk: "星曜本性稳定发挥的流转",
@@ -976,6 +982,7 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     namePlaceholder: "例：李小龍",
     birthPlacePlaceholder: "例：韓國首爾",
     actionPlanTitles: { start: "現在可以嘗試的行動", reduce: "需要減少或調節的行動", maintain: "需要維持的準則" },
+    strengthLegend: { label: "星曜亮度", note: "越靠左，星曜本性越鮮明 · 不代表吉凶 · 沒有標字的星不評亮度" },
     strengthDescriptions: {
       miao: "星曜之力最燦爛發揮的狀態",
       deuk: "星曜本性穩定發揮的流轉",

@@ -8,6 +8,7 @@ import {
   ZiweiStarMeta,
 } from "./ziwei-types";
 import { SIHUA_INTERPRETATIONS } from "./ziwei-star-interpretations";
+import { normalizeZiweiClassicStrength, ziweiClassicStrengthToSymbol, type ZiweiClassicStrength } from "./ziwei-strength";
 import { ZIWEI_PALACE_TEMPLATES } from "./ziwei-deep-templates";
 import { transformationTypeToLabel } from "./ziwei-advanced-normalization";
 import {
@@ -29,15 +30,15 @@ const ZIWEI_DEEP_CHAPTER_TEXT_TRANSLATIONS = {
   },
 } as const;
 
-type StrengthSymbol = "◎" | "O" | "▲" | "△" | "X" | "";
-
-// 기호만으로는 의미를 알기 어려우므로, 뱃지에 짧은 한글 설명을 함께 표기한다(강약 기호 옆 인라인 설명).
-const SYMBOL_SHORT_MEANING: Record<Exclude<StrengthSymbol, "">, string> = {
-  "◎": "최상",
-  "O": "득지",
-  "▲": "이로움",
-  "△": "균형",
-  "X": "함몰 주의",
+// 한자만으로는 뜻을 알기 어려우므로, 뱃지에 짧은 한글 설명을 함께 적는다(꿀꿀 셸 명반과 같은 말).
+const GRADE_SHORT_MEANING: Record<Exclude<ZiweiClassicStrength, "">, string> = {
+  묘: "가장 또렷",
+  왕: "힘 있게 드러남",
+  득: "무난히 드러남",
+  리: "한 단계 덜함",
+  평: "중간",
+  불: "힘이 약함",
+  함: "막히기 쉬움",
 };
 
 const SIHUA_BADGE: Record<string, string> = {
@@ -52,25 +53,12 @@ function palaceById(chart: ZiweiDeepChart, id?: string): ZiweiPalace | null {
   return chart.palaces.find((p) => p.id === id) || null;
 }
 
-function normalizeSymbol(symbol?: string): StrengthSymbol {
-  const raw = String(symbol || "").trim();
-  if (raw === "◎") return "◎";
-  if (raw === "○" || raw === "O") return "O";
-  if (raw === "▲") return "▲";
-  if (raw === "△") return "△";
-  if (raw === "×" || raw.toUpperCase() === "X") return "X";
-  return "";
-}
-
-function symbolOf(star: ZiweiStarMeta): StrengthSymbol {
-  return normalizeSymbol(star.strengthSymbol || star.symbol);
-}
-
+// 강약을 매기지 않는 별은 이름만 적는다 — 없는 강약을 "미확인"으로 남기지 않는다.
 function starBadge(star: ZiweiStarMeta): string {
-  const symbol = symbolOf(star);
-  const symbolText = symbol ? `${symbol}·${SYMBOL_SHORT_MEANING[symbol]}` : "강약 미확인";
+  const grade = normalizeZiweiClassicStrength(star.strength) || normalizeZiweiClassicStrength(star.strengthSymbol || star.symbol);
+  const symbolText = grade ? `(${ziweiClassicStrengthToSymbol(grade)}·${GRADE_SHORT_MEANING[grade]})` : "";
   const transform = star.transformation ? ` ${star.transformation}` : "";
-  return `${star.name}(${symbolText})${transform}`;
+  return `${star.name}${symbolText}${transform}`;
 }
 
 function groupBadge(stars: ZiweiStarMeta[]): string {
