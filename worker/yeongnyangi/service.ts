@@ -292,10 +292,11 @@ export async function submitQuestionSkyFollowup(env:Record<string,unknown>,userI
   return row;
 }
 
-export async function activateFortune(env: Record<string, unknown>, userId: string, requestId: string) {
+/** `access` is the buyer's choice for a fortune-chat consultation (per-use-access.js); Yeongnyangi requests ignore it. */
+export async function activateFortune(env: Record<string, unknown>, userId: string, requestId: string, {access}:{access?:string}={}) {
   const request=await readRequest(env,userId,requestId);
   const currentProduct=resolveStoredProduct(request.productId);
-  const row=await attachPayment(env,userId,requestId,resolveChargeAmountKRW(env,request.amountKRW),{currentAmountKRW:currentProduct.priceKRW});
+  const row=await attachPayment(env,userId,requestId,resolveChargeAmountKRW(env,request.amountKRW),{currentAmountKRW:currentProduct.priceKRW,access});
   await enqueueConsultation(env,row);
   return row;
 }

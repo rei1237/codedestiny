@@ -5,7 +5,7 @@ import { createHttpError } from '../lib/http.js';
 
 import { YeongnyangiRequest } from '../lib/yeongnyangi-models.js';
 import { scopeConnection } from '../lib/db-scope-connection.js';
-import { CHAT_FEATURE_KEY } from './access-methods.js';
+import { CHAT_FEATURE_KEY, chatPaymentRequestId } from './access-methods.js';
 export { YeongnyangiRequest };
 
 const paidStatuses = ['paid','success','fulfilled'];
@@ -24,8 +24,8 @@ export const GENERATION_FIX_EPOCH = 2;
 const FIX_RESUMABLE = ['MANUAL_RECOVERY_LIMIT_REACHED','ATTEMPT_LIMIT_REACHED','SYSTEM_RECOVERY_EXHAUSTED'];
 // A rejected draft is not an outage: retry it almost at once. Provider and storage failures keep 30s, then 120s.
 const QUALITY_RETRY_MS = 5000;
-const failure = (status, code) => {
-  const error=createHttpError(status, code, {code});
+const failure = (status, code, payload = {}) => {
+  const error=createHttpError(status, code, {...payload,code});
   error.code=code;
   return error;
 };
@@ -35,6 +35,7 @@ const readOptions={retries:1,retryOnOperationTimeout:true,retryAdmissionOnOverlo
 
 export function requestAccessMethod(row = {}) {
   if (row.accessMethod === 'PER_USE') return 'PER_USE';
+  if (row.accessMethod === 'ACCOUNT_FREE_TRIAL') return 'ACCOUNT_FREE_TRIAL';
   if (row.accessMethod === 'SERVICE_PACK' || row.packEntitlementId) return 'SERVICE_PACK';
   if (row.accessMethod === 'MOONLIGHT_STONE' || row.moonstoneLedgerId) return 'MOONLIGHT_STONE';
   if (row.accessMethod === 'FAMILY' || row.passEvidenceId) return 'FAMILY';
@@ -105,6 +106,12 @@ export async function findNonCashEvidence(row, userId, session = null, commitMar
   if(requestAccessMethod(row)==='PER_USE') {
     const {findPerUseEvidence}=await import('./per-use-access.js');
     return findPerUseEvidence(row,ownerId(userId),session,commitMarker);
+  }
+  // No commit marker: the free use only comes back through restoreFreeTrial, which rewrites this request in the
+  // same transaction, so a claim racing it conflicts on the request document instead.
+  if(requestAccessMethod(row)==='ACCOUNT_FREE_TRIAL') {
+    const {findGuardianFortuneFreeTrial}=await import('../lib/guardian-fortune-usage.js');
+    return findGuardianFortuneFreeTrial({userId:ownerId(userId),requestId:chatPaymentRequestId(id),session});
   }
   if(requestAccessMethod(row)==='SERVICE_PACK') {
     const {findYeongnyangiServicePackEvidence}=await loadFamilyLedger();
@@ -237,15 +244,69 @@ function assertCurrentPrice(current, expectedCharge, options) {
   return currentAmountKRW;
 }
 
+const unattachedChat=(requestId,userId)=>({_id:requestId,userId:ownerId(userId),featureKey:CHAT_FEATURE_KEY,paymentId:null,
+  $or:[{accessMethod:null},{accessMethod:{$exists:false}}]});
+
 // Fortune-chat consultations never take a Yeongnyangi payment, moonlight-stone or Family path: only the
-// per-use proof the fortune-chat route already accepts, pinned to the request (per-use-access.js).
+// per-use proof the fortune-chat route already accepts, pinned to the request (per-use-access.js), or the
+// account's one free consultation shared with the legacy fortune-chat route (guardian-fortune-usage.js).
 async function attachChatAccess(env, userId, requestId, current, expectedCharge, options) {
   const currentAmountKRW=assertCurrentPrice(current,expectedCharge,options);
   const {proveChatAccess}=await import('./per-use-access.js');
-  const access=await proveChatAccess(env,{row:current,userId:String(userId),owner:ownerId(userId),coinPrice:Math.floor(currentAmountKRW/100)});
-  const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:ownerId(userId),featureKey:CHAT_FEATURE_KEY,paymentId:null,
-    $or:[{accessMethod:null},{accessMethod:{$exists:false}}]},{$set:{accessMethod:'PER_USE',...access,state:'PAID'}},{new:true}).lean());
+  const {accessMethod,consumeTrial,...access}=await proveChatAccess(env,{row:current,userId:String(userId),owner:ownerId(userId),
+    coinPrice:Math.floor(currentAmountKRW/100),choice:String(options?.access || '')});
+  if(accessMethod==='ACCOUNT_FREE_TRIAL')return attachFreeTrial(env,userId,requestId,consumeTrial);
+  const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate(unattachedChat(requestId,userId),
+    {$set:{accessMethod:'PER_USE',...access,state:'PAID'}},{new:true}).lean());
   return row || readRequest(env,userId,requestId);
+}
+
+// The free use and the request change together: a request that already gained other access aborts the spend.
+async function attachFreeTrial(env, userId, requestId, consume) {
+  const usage=await import('../lib/guardian-fortune-usage.js');
+  const owner=ownerId(userId),trial={userId:owner,requestId:chatPaymentRequestId(requestId)};
+  if(consume)await usage.createMongoGuardianFortuneStore({env}).ensureDaily(String(userId),'',new Date());
+  const attached=await withMongoRetry(env,async()=>{
+    const session=await (scopeConnection() || mongoose).startSession();
+    try{
+      let row=null;
+      await session.withTransaction(async()=>{
+        row=null;
+        const spent=(consume?await usage.consumeGuardianFortuneFreeTrial({...trial,session}):null)
+          || await usage.findGuardianFortuneFreeTrial({...trial,session});
+        if(!spent)throw failure(402,'FREE_TRIAL_USED',{paidFeatureKey:CHAT_FEATURE_KEY,paymentRequestId:trial.requestId});
+        row=await YeongnyangiRequest.findOneAndUpdate(unattachedChat(requestId,userId),
+          {$set:{accessMethod:'ACCOUNT_FREE_TRIAL',state:'PAID'}},{new:true,session}).lean();
+        if(!row)throw failure(409,'ACCESS_ALREADY_ATTACHED');
+      },mongoTransactionOptions());
+      return row;
+    }catch(error){if(error?.code==='ACCESS_ALREADY_ATTACHED')return null;throw error;}
+    finally{await session.endSession();}
+  });
+  return attached || readRequest(env,userId,requestId);
+}
+
+// A free consultation that delivered nothing gives the account's free use back, exactly once.
+async function restoreFreeTrial(env,userId,requestId) {
+  const {restoreGuardianFortuneFreeTrial}=await import('../lib/guardian-fortune-usage.js');
+  return withMongoRetry(env,async()=>{
+    const session=await (scopeConnection() || mongoose).startSession();
+    try{
+      let restored=false;
+      await session.withTransaction(async()=>{
+        restored=false;
+        const request=await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:ownerId(userId),accessMethod:'ACCOUNT_FREE_TRIAL',
+          state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0},
+        {$set:{state:'REFUNDED',errorCode:'FREE_TRIAL_RESTORED',leaseToken:'',leaseUntil:null}},{new:true,session}).lean();
+        if(!request)return;
+        if(!await restoreGuardianFortuneFreeTrial({userId:ownerId(userId),requestId:chatPaymentRequestId(requestId),session}))
+          throw failure(409,'FREE_TRIAL_NOT_RESTORED');
+        restored=true;
+      },mongoTransactionOptions());
+      return restored;
+    }catch(error){if(error?.code==='FREE_TRIAL_NOT_RESTORED')return false;throw error;}
+    finally{await session.endSession();}
+  });
 }
 
 export async function attachPayment(env, userId, requestId, expectedCharge, options = {}) {
@@ -529,6 +590,9 @@ export async function finishChapter(env, userId, requestId, token, ordinal, body
 
 async function refundTerminalFamilyQuota(env,userId,requestId) {
   const owner=ownerId(userId);
+  const trial=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:'ACCOUNT_FREE_TRIAL',
+    state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0}).lean(),readOptions);
+  if(trial)return restoreFreeTrial(env,userId,requestId);
   const pack=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:'SERVICE_PACK',
     $or:[{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0},
       {state:'REFUNDED',errorCode:'SERVICE_PACK_USE_RESTORED'}]}).lean(),readOptions);

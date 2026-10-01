@@ -8,10 +8,14 @@ import { withMongoRetry } from '../lib/db.js';
 import { verifyPerUsePayment } from '../lib/nakshatra-paid-access.js';
 import { findMoonstoneSpendEvidence, moonstoneSpendRefundFilter } from '../lib/moonstone-spend-proof.js';
 import { calculatePaidFeatureMembershipCreditCost } from '../lib/paid-feature-registry.js';
+import { findGuardianFortuneFreeTrial } from '../lib/guardian-fortune-usage.js';
 import { chatPaymentRequestId } from './access-methods.js';
 export { PER_USE_SOURCES } from './access-methods.js';
 
 const paidStatuses = ['paid','success','fulfilled'];
+// What the buyer chose on the consultation screen. Only `pass` lets the server spend pass quota
+// (payment-gating: pass coverage only on an explicit pass command); `checkout` follows a payment window.
+export const CHAT_ACCESS_CHOICES = Object.freeze(['free_trial','pass','checkout']);
 const readOptions = { retries: 1, retryOnOperationTimeout: true, retryAdmissionOnOverload: true };
 
 const failure = (status, code, payload = {}) => {
@@ -55,19 +59,38 @@ export async function findPerUseEvidence(row, owner, session = null, commitMarke
   return null;
 }
 
+// A card payment window for this consultation that has not failed yet can still approve; spending a pass or
+// the free use meanwhile would charge twice. Same rule as the Yeongnyangi funding claim (payment-funding.js).
+async function assertNoOpenCheckout(env, owner, rid, featureKey) {
+  const open = await withMongoRetry(env, () => Payment.findOne({ userId: owner, requestId: rid, paymentType: 'digital_content',
+    $nor: [{ status: 'failed', failureStage: 'pg-retry-check', failureCode: { $in: ['PG_PAYMENT_FAILED','PG_PAYMENT_CANCELLED'] } }] }).select('_id').lean(), readOptions);
+  if (open) throw failure(409, 'PG_PAYMENT_NOT_PAID', { paidFeatureKey: featureKey, paymentRequestId: rid });
+}
+
 /**
- * Proves access for a fortune-chat consultation and returns the record to store on it.
- * An existing payment, coin, moonlight-stone or pass use under `fc-<id>` wins; otherwise an eligible pass is
- * consumed here once (idempotent per request id). Outages answer 503, never 402.
+ * Proves access for a fortune-chat consultation and returns what to store on it.
+ * An existing payment, coin, moonlight-stone or pass use under `fc-<id>` wins, then a free use this request
+ * already spent. Otherwise only the buyer's choice spends anything: `free_trial` asks the caller to spend the
+ * account's free use (`consumeTrial`), `pass` consumes pass quota once (idempotent per request id).
+ * Outages answer 503, never 402.
  */
-export async function proveChatAccess(env, { row, userId, owner, coinPrice }) {
+export async function proveChatAccess(env, { row, userId, owner, coinPrice, choice = '' }) {
   const rid = chatPaymentRequestId(String(row._id)), featureKey = row.featureKey;
   const input = { userId, featureKey, coinPrice, requestId: rid };
+  const required = () => failure(402, 'PAYMENT_REQUIRED', { paidFeatureKey: featureKey, paymentRequestId: rid });
   let proof = await verifyPerUsePayment(env, { ...input, requireExisting: true });
-  if (proof?.proven === false) proof = await verifyPerUsePayment(env, input);
   if (proof?.proven === null) throw failure(503, 'PAYMENT_EVIDENCE_PENDING');
   if (proof?.proven !== true) {
-    throw failure(402, 'PAYMENT_REQUIRED', { paidFeatureKey: featureKey, paymentRequestId: rid, reason: String(proof?.reason || '') });
+    if (await withMongoRetry(env, () => findGuardianFortuneFreeTrial({ userId: owner, requestId: rid }), readOptions)) {
+      return { accessMethod: 'ACCOUNT_FREE_TRIAL', consumeTrial: false };
+    }
+    if (choice === 'checkout') throw failure(503, 'PAYMENT_EVIDENCE_PENDING');
+    if (choice !== 'free_trial' && choice !== 'pass') throw required();
+    await assertNoOpenCheckout(env, owner, rid, featureKey);
+    if (choice === 'free_trial') return { accessMethod: 'ACCOUNT_FREE_TRIAL', consumeTrial: true };
+    proof = await verifyPerUsePayment(env, input);
+    if (proof?.proven === null) throw failure(503, 'PAYMENT_EVIDENCE_PENDING');
+    if (proof?.proven !== true) throw required();
   }
   const passRefund = proof.passRefund ? { cycleKey: proof.passRefund.cycleKey, cost: proof.passRefund.cost } : undefined;
   let stored;
@@ -87,5 +110,5 @@ export async function proveChatAccess(env, { row, userId, owner, coinPrice }) {
   const evidence = stored.perUseSource === 'admin' || stored.perUseEvidenceId
     ? await withMongoRetry(env, () => findPerUseEvidence({ ...row, ...stored }, owner), readOptions) : null;
   if (!evidence) throw failure(503, 'PAYMENT_EVIDENCE_PENDING');
-  return { ...stored, ...(passRefund ? { perUsePassRefund: passRefund } : {}) };
+  return { accessMethod: 'PER_USE', ...stored, ...(passRefund ? { perUsePassRefund: passRefund } : {}) };
 }

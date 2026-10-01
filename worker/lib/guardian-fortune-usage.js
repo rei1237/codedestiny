@@ -427,6 +427,34 @@ function leanQuery(query) {
   return query?.lean ? query.lean() : query;
 }
 
+// 계정 무료 1회가 아직 남았는가 — 박제된 freeLimit 이 아니라 정책 상수가 상한이다(파일 머리 주석).
+const accountFreeUseOpen = Object.freeze({ $expr: { $lt: [{ $add: [{ $ifNull: ["$freeUsed", 0] }, { $ifNull: ["$reserved", 0] }] }, { $min: [{ $ifNull: ["$freeLimit", GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT] }, GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT] }] } });
+
+// 공통 상담 파이프라인(worker/yeongnyangi)의 연이·네오 상담도 이 계정 무료 1회를 함께 쓴다.
+// 요청 id 를 trialRequestIds 에 남겨 활성화 재시도는 멱등이고, 한 장도 전달하지 못한 상담만 정확히 한 번 되돌린다.
+// 말단 쿼리만 돌려준다 — 호출자가 자기 트랜잭션(session) 안에서 withMongoRetry 로 감싼다(중첩 금지).
+const trialQuery = (query, session) => (session ? query.session(session) : query).lean();
+
+export function consumeGuardianFortuneFreeTrial({ userId, requestId, session = null, now = new Date() }) {
+  return trialQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
+    { userId: objectIdOrString(userId), trialRequestIds: { $ne: String(requestId) }, ...accountFreeUseOpen },
+    { $inc: { freeUsed: 1 }, $addToSet: { trialRequestIds: String(requestId) }, $set: { updatedAt: now } },
+    { new: true },
+  ), session);
+}
+
+export function findGuardianFortuneFreeTrial({ userId, requestId, session = null }) {
+  return trialQuery(GuardianFortuneAccountUsage.findOne({ userId: objectIdOrString(userId), trialRequestIds: String(requestId) }), session);
+}
+
+export function restoreGuardianFortuneFreeTrial({ userId, requestId, session = null, now = new Date() }) {
+  return trialQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
+    { userId: objectIdOrString(userId), trialRequestIds: String(requestId), freeUsed: { $gt: 0 } },
+    { $inc: { freeUsed: -1 }, $pull: { trialRequestIds: String(requestId) }, $set: { updatedAt: now } },
+    { new: true },
+  ), session);
+}
+
 export function createMongoGuardianFortuneStore({ env } = {}) {
   /**
    * 개별 Mongo 호출을 커밋 0ea717329 가 세운 정본 패턴대로 감싼다 — admission 제어, 12초 시도
@@ -509,7 +537,7 @@ export function createMongoGuardianFortuneStore({ env } = {}) {
     async reserveDaily(userId, dateKey, now = new Date()) {
       await store.ensureDaily(userId, dateKey, now);
       return run(() => leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
-        { userId: objectIdOrString(userId), $expr: { $lt: [{ $add: [{ $ifNull: ["$freeUsed", 0] }, { $ifNull: ["$reserved", 0] }] }, { $min: [{ $ifNull: ["$freeLimit", GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT] }, GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT] }] } },
+        { userId: objectIdOrString(userId), ...accountFreeUseOpen },
         { $inc: { reserved: 1 }, $set: { reservationUpdatedAt: now, updatedAt: now } },
         { new: true },
       )));

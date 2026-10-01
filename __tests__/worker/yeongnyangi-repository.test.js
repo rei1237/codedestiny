@@ -2,11 +2,24 @@ import {jest} from '@jest/globals';
 import mongoose from 'mongoose';
 const owner='507f1f77bcf86cd799439011', other='507f1f77bcf86cd799439022';
 let loseStoredDraftAtClaim=false;
-let requests=[],payments=[],evidences=[],familyUser=null,failWrite=false,failFinalRead=false,failFinalComplete=false,refundBeforeFinalization=false,tail=Promise.resolve(),activeOperations=0;
+let requests=[],payments=[],evidences=[],accounts=[],familyUser=null,failWrite=false,failFinalRead=false,failFinalComplete=false,refundBeforeFinalization=false,tail=Promise.resolve(),activeOperations=0;
 const consumePass=jest.fn(),refundPass=jest.fn(),verifyPerUse=jest.fn();
 const get=(row,key)=>key.split('.').reduce((v,k)=>v?.[k],row);
+function expr(row,e) {
+  if(typeof e==='string'&&e.startsWith('$'))return get(row,e.slice(1));
+  if(!e||typeof e!=='object')return e;
+  const [[op,args]]=Object.entries(e),v=args.map(a=>expr(row,a));
+  if(op==='$lt')return v[0]<v[1];
+  if(op==='$add')return v.reduce((a,b)=>a+b,0);
+  if(op==='$min')return Math.min(...v);
+  if(op==='$ifNull')return v[0]??v[1];
+  throw new Error(`unsupported expr ${op}`);
+}
+const same=(value,want)=>Array.isArray(value)?value.map(String).includes(String(want)):String(value)===String(want);
 function matches(row,query) {
   return Object.entries(query).every(([key,want])=>{
+    if(key==='$expr') return expr(row,want);
+    if(key==='$nor') return !want.some(q=>matches(row,q));
     if(key==='$or') return want.some(q=>matches(row,q));
     if(key==='$and') return want.every(q=>matches(row,q));
     const value=get(row,key);
@@ -16,7 +29,8 @@ function matches(row,query) {
         if(op==='$nin')return !target.includes(value);
         if(op==='$gte')return value>=target;
         if(op==='$size')return Array.isArray(value)&&value.length===target;
-        if(op==='$ne')return String(value)!==String(target);
+        if(op==='$ne')return !same(value,target);
+        if(op==='$gt')return value>target;
         if(op==='$exists')return (value!==undefined)===target;
         if(op==='$lte')return value<=target;
         if(op==='$lt')return value<target;
@@ -24,7 +38,7 @@ function matches(row,query) {
         throw new Error(`unsupported ${op}`);
       });
     }
-    return want===null?value==null:String(value)===String(want);
+    return want===null?value==null:same(value,want);
   });
 }
 function set(row,key,value) {
@@ -54,6 +68,8 @@ function model(source,kind) {
       for(const [key,value] of Object.entries(update.$set||{}))set(row,key,value);
       for(const [key,value] of Object.entries(update.$inc||{}))set(row,key,(get(row,key)||0)+value);
       for(const [key,value] of Object.entries(update.$push||{}))(row[key]??=[]).push(value);
+      for(const [key,value] of Object.entries(update.$addToSet||{}))if(!(row[key]??=[]).includes(value))row[key].push(value);
+      for(const [key,value] of Object.entries(update.$pull||{}))row[key]=(row[key]||[]).filter(item=>item!==value);
       return {...row,chapters:row.chapters?[...row.chapters]:undefined};
     }),
     updateOne:(filter,update)=>query(()=>{
@@ -75,8 +91,8 @@ const startSession=async()=>{
   return {endSession:async()=>{expect(activeOperations).toBeGreaterThan(0);},withTransaction:async(callback,options)=>{
   expect(options).toEqual(txOptions);
   const previous=tail;let release;tail=new Promise(r=>{release=r;});await previous;
-  const backup=JSON.parse(JSON.stringify({requests,payments}));
-  try{return await callback();}catch(error){requests=backup.requests;payments=backup.payments;throw error;}finally{release();}
+  const backup=JSON.parse(JSON.stringify({requests,payments,accounts}));
+  try{return await callback();}catch(error){requests=backup.requests;payments=backup.payments;accounts=backup.accounts;throw error;}finally{release();}
 }};};
 jest.unstable_mockModule('../../worker/lib/db.js',()=>({
   mongoose:{...mongoose,models:{YeongnyangiRequest:RequestModel},startSession},
@@ -85,7 +101,9 @@ jest.unstable_mockModule('../../worker/lib/db.js',()=>({
   },mongoTransactionOptions:()=>txOptions,
   isTransientMongoError:()=>false,
 }));
-jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment,User,PointHistory,MonthlyCreditLedger:model(()=>[],'monthly-ledger')}));
+const AccountUsage=model(()=>accounts,'account'),unused=model(()=>[],'unused');
+jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment,User,PointHistory,MonthlyCreditLedger:model(()=>[],'monthly-ledger'),
+  GuardianFortuneAccountUsage:AccountUsage,GuardianFortuneAnonymousMerge:unused,GuardianFortuneGenerationAttempt:unused,GuardianFortuneGuestUsage:unused}));
 jest.unstable_mockModule('../../worker/lib/entitlement-policy.js',()=>({resolveCanonicalEntitlement:user=>user?.profileSubscription || {}}));
 jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({consumePassForFeature:consumePass,refundPassCoverage:refundPass}));
 jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:verifyPerUse}));
@@ -123,7 +141,7 @@ test('tuna stops at item 9 of 15 and resumes from item 9 under concurrent recove
 });
 beforeEach(()=>{
   loseStoredDraftAtClaim=false;requests=[];payments=[{_id:'pay1',requestId:'yn-id',userId:owner,featureKey:values.featureKey,paymentType:'digital_content',status:'paid',paymentAmount:1000,metadata:{}}];
-  evidences=[];familyUser=null;consumePass.mockReset();refundPass.mockReset();verifyPerUse.mockReset();
+  evidences=[];accounts=[];familyUser=null;consumePass.mockReset();refundPass.mockReset();verifyPerUse.mockReset();
   failWrite=false;failFinalRead=false;failFinalComplete=false;refundBeforeFinalization=false;tail=Promise.resolve();
 });
 test('ask generation evidence is stored separately and an intent replay cannot replace it',async()=>{
@@ -599,7 +617,7 @@ describe('fortune-chat per-use access',()=>{
   const chat={...values,productId:'chat_saju',featureKey:'fortune-chat-consultation',amountKRW:3000,persona:'yeoni'};
   const chatPayment={_id:'pay-fc',requestId:'fc-id',userId:owner,featureKey:chat.featureKey,status:'paid',metadata:{}};
   const passReceipt={_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:chat.featureKey,kind:'deduct',metadata:{requestId:'fc-id',accessMethod:'FAMILY'}};
-  const activate=()=>repo.attachPayment({},owner,'id',3000,{currentAmountKRW:3000});
+  const activate=(access,id='id')=>repo.attachPayment({},owner,id,3000,{currentAmountKRW:3000,...(access?{access}:{})});
 
   test('an existing fc- payment is pinned, generates, and a later refund stops it',async()=>{
     payments.push({...chatPayment});
@@ -621,10 +639,10 @@ describe('fortune-chat per-use access',()=>{
     verifyPerUse.mockResolvedValueOnce({proven:false,source:'',reason:'NO_EXISTING_CONSUMPTION'})
       .mockImplementationOnce(async()=>{evidences.push({...passReceipt,metadata:{...passReceipt.metadata}});return {proven:true,source:'pass',reason:'',passRefund:{cycleKey:'c1',cost:30}};});
     await repo.createRequest({},owner,'id',chat);
-    expect(await activate()).toMatchObject({accessMethod:'PER_USE',perUseSource:'point',perUseEvidenceId:passReceipt._id,perUsePassRefund:{cycleKey:'c1',cost:30}});
+    expect(await activate('pass')).toMatchObject({accessMethod:'PER_USE',perUseSource:'point',perUseEvidenceId:passReceipt._id,perUsePassRefund:{cycleKey:'c1',cost:30}});
     expect(verifyPerUse.mock.calls.map(([,input])=>input.requireExisting)).toEqual([true,undefined]);
     expect(consumePass).not.toHaveBeenCalled();
-    expect((await activate()).accessMethod).toBe('PER_USE');
+    expect((await activate('pass')).accessMethod).toBe('PER_USE');
     expect(verifyPerUse).toHaveBeenCalledTimes(2);
     evidences[0].metadata.refundedForServiceExecution=true;
     await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
@@ -656,5 +674,86 @@ describe('fortune-chat per-use access',()=>{
     await repo.createRequest({},owner,'id',chat);
     await expect(repo.attachPayment({},owner,'id',3000,{currentAmountKRW:5000})).rejects.toMatchObject({status:409,code:'PRICE_CHANGED'});
     expect(verifyPerUse).not.toHaveBeenCalled();
+  });
+
+  const nothingYet=()=>verifyPerUse.mockResolvedValue({proven:false,source:'',reason:'NO_EXISTING_CONSUMPTION'});
+  const onlyExistingChecks=()=>verifyPerUse.mock.calls.every(([,input])=>input.requireExisting===true);
+
+  test('without the pass choice nothing is spent: no choice asks for payment, checkout waits for its record',async()=>{
+    familyUser={_id:owner,profileSubscription:{tier:'family',passTier:'family',isActive:true}};
+    nothingYet();
+    await repo.createRequest({},owner,'id',chat);
+    await expect(activate()).rejects.toMatchObject({status:402,code:'PAYMENT_REQUIRED'});
+    await expect(activate('checkout')).rejects.toMatchObject({status:503,code:'PAYMENT_EVIDENCE_PENDING'});
+    expect(onlyExistingChecks()).toBe(true);
+    expect(requests[0].accessMethod).toBeFalsy();
+    expect(accounts).toHaveLength(0);
+  });
+
+  test.each(['pass','free_trial'])('an open card payment window for the consultation blocks spending by %s',async access=>{
+    payments.push({_id:'pay-open',requestId:'fc-id',userId:owner,featureKey:chat.featureKey,paymentType:'digital_content',status:'pending',metadata:{}});
+    nothingYet();
+    await repo.createRequest({},owner,'id',chat);
+    await expect(activate(access)).rejects.toMatchObject({status:409,code:'PG_PAYMENT_NOT_PAID'});
+    expect(onlyExistingChecks()).toBe(true);
+    expect(accounts[0]?.freeUsed || 0).toBe(0);
+    expect(requests[0].accessMethod).toBeFalsy();
+  });
+
+  test('the free consultation is spent once per account, shared with the legacy route, and reused by its own retry',async()=>{
+    nothingYet();
+    await repo.createRequest({},owner,'id',chat);
+    expect(await activate('free_trial')).toMatchObject({accessMethod:'ACCOUNT_FREE_TRIAL',state:'PAID'});
+    expect(accounts).toHaveLength(1);
+    expect(accounts[0]).toMatchObject({freeUsed:1,reserved:0,trialRequestIds:['fc-id']});
+    // The access write was lost: a retry without a choice finds the use this request already spent.
+    requests[0].accessMethod=undefined;requests[0].state='CREATED';
+    expect((await activate()).accessMethod).toBe('ACCOUNT_FREE_TRIAL');
+    expect(accounts[0].freeUsed).toBe(1);
+    expect(onlyExistingChecks()).toBe(true);
+    expect((await repo.claimChapter({},owner,'id')).token).toBeTruthy();
+    await repo.createRequest({},owner,'id2',chat);
+    const error=await activate('free_trial','id2').catch(e=>e);
+    expect(error).toMatchObject({status:402,code:'FREE_TRIAL_USED'});
+    expect(error.payload).toMatchObject({paidFeatureKey:chat.featureKey,paymentRequestId:'fc-id2'});
+    expect(requests[1].accessMethod).toBeFalsy();
+    expect(accounts[0]).toMatchObject({freeUsed:1,trialRequestIds:['fc-id']});
+  });
+
+  test('a legacy fortune-chat reservation in flight holds the same free use',async()=>{
+    accounts.push({userId:owner,freeLimit:3,freeUsed:0,reserved:1});
+    nothingYet();
+    await repo.createRequest({},owner,'id',chat);
+    await expect(activate('free_trial')).rejects.toMatchObject({status:402,code:'FREE_TRIAL_USED'});
+    expect(accounts[0]).toMatchObject({freeUsed:0,reserved:1});
+    expect(accounts[0].trialRequestIds).toBeUndefined();
+  });
+
+  test('a free consultation that delivered nothing gives the free use back exactly once',async()=>{
+    nothingYet();
+    await repo.createRequest({},owner,'id',chat);
+    await activate('free_trial');
+    const claim=await repo.claimChapter({},owner,'id');
+    await repo.failChapter({},owner,'id',claim.token,'GENERATION_REVIEW_REQUIRED',1,'quality');
+    expect(requests[0]).toMatchObject({state:'REFUNDED',errorCode:'FREE_TRIAL_RESTORED'});
+    expect(accounts[0]).toMatchObject({freeUsed:0,trialRequestIds:[]});
+    await repo.failChapter({},owner,'id',claim.token,'GENERATION_REVIEW_REQUIRED',1,'quality');
+    expect(accounts[0].freeUsed).toBe(0);
+    await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
+    await repo.createRequest({},owner,'id2',chat);
+    expect((await activate('free_trial','id2')).accessMethod).toBe('ACCOUNT_FREE_TRIAL');
+    expect(accounts[0]).toMatchObject({freeUsed:1,trialRequestIds:['fc-id2']});
+  });
+
+  test('a free consultation that delivered a chapter keeps the free use spent',async()=>{
+    nothingYet();
+    await repo.createRequest({},owner,'id',chat);
+    await activate('free_trial');
+    const first=await repo.claimChapter({},owner,'id');
+    await repo.finishChapter({},owner,'id',first.token,0,{summary:'delivered'},2);
+    const second=await repo.claimChapter({},owner,'id');
+    await repo.failChapter({},owner,'id',second.token,'GENERATION_REVIEW_REQUIRED',1,'quality');
+    expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
+    expect(accounts[0]).toMatchObject({freeUsed:1,trialRequestIds:['fc-id']});
   });
 });
