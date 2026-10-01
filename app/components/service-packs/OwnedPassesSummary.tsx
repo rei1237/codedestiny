@@ -31,7 +31,7 @@ export function OwnedPassesSummary({locale,flower,packs}:{locale:LoadingLocale;f
   <h2 id="owned-passes-title" className="text-lg font-black text-white">{copy.passesTitle}</h2>
   <div className="mt-3 grid gap-3 sm:grid-cols-2">
    <div className={tile} data-owned-pass="flower" data-applied={flower.active?'true':'false'}>
-    {flower.active?<Stamped stamp={APPLIED_STAMP_IMAGES.flower}><HoneyPassArtwork tier={flower.tier} className="h-16 w-16" sizes="64px"/></Stamped>:<div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(244,114,182,0.12)] text-2xl" aria-hidden="true">🌸</div>}
+    {flower.active?<Stamped stamp={APPLIED_STAMP_IMAGES.flower}><HoneyPassArtwork tier={flower.tier} className="h-16 w-16" sizes="64px"/></Stamped>:<HoneyPassArtwork tier="standard" className="h-16 w-16 opacity-45 grayscale" sizes="64px"/>}
     <div className="min-w-0">
      <p className="text-xs font-black text-[color:var(--moon-mist)]">{copy.flowerPass}</p>
      {flower.active?<>

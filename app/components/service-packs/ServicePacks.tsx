@@ -4,6 +4,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {useAuthStore} from '@/app/_lib/auth-store';
+import {readSubscriptionSnapshotForUser,type SubscriptionSnapshot} from '@/app/_lib/billing-client';
+import HoneyPassArtwork from '@/components/yeon/HoneyPassArtwork';
+import {getPassTierLabel} from '@/lib/payment/pass-eligibility';
 import {isMobileAppRuntime} from '@/app/_lib/auth-client';
 import type {LoadingLocale} from '@/constants/loadingMessages';
 import {paymentAllianceCopy} from '@/app/checkout/payment-alliance-copy';
@@ -308,10 +311,32 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
  </section>;
 }
 
+// 상담 결제 화면의 '내 이용권' 두 칸. 표시 전용 — 달빛 이용권은 결제 진입 로컬 스냅샷, 세트는 이 상담 quote 후보로만 그린다.
+// 어느 수단이 실제로 차감되는지는 서버가 판정하므로 Family 가 아니면 '적용 중'을 단정하지 않는다.
+function CheckoutPassSummary({locale,flower,pack,applied}:{locale:LoadingLocale;flower:SubscriptionSnapshot|null;pack?:OwnedServicePack;applied:number|null}){
+ const copy=servicePackCopy(locale),owned=!!flower&&flower.state==='active'&&flower.tier!=='free',family=owned&&flower.tier==='family';
+ if(!owned&&!pack)return null;
+ return <section className={styles.passes} aria-labelledby="checkout-passes-title" data-checkout-passes>
+  <h2 id="checkout-passes-title">{copy.passesTitle}</h2>
+  <div className={styles.passGrid}>
+   <div className={styles.passTile} data-checkout-pass="flower" data-applied={family?'true':'false'}>
+    <div className={styles.passArt}>{owned?<><HoneyPassArtwork tier={flower.tier} className="h-14 w-14" sizes="56px"/>{family&&<Image src={APPLIED_STAMP_IMAGES.flower} alt="" width={120} height={120} sizes="36px" data-applied-stamp className={styles.passStamp}/>}</>:<HoneyPassArtwork tier="standard" className={`h-14 w-14 ${styles.passMuted}`} sizes="56px"/>}</div>
+    <div><p className={styles.passKind}>{copy.flowerPass}</p>{owned?<><strong>{getPassTierLabel(flower.tier,locale)||flower.tier}</strong>{family&&<p className={styles.passOn}>{copy.applied}</p>}<p>{family?copy.flowerFamilyApply:copy.flowerFamilyOnly}</p></>:<p>{copy.flowerNone}</p>}</div>
+   </div>
+   <div className={styles.passTile} data-checkout-pass="yeongnyangi" data-applied={pack?'true':'false'}>
+    <div className={styles.passArt}>{pack?<><Image src={SERVICE_PACK_IMAGES[pack.fishId]} alt="" width={240} height={240} sizes="56px"/><Image src={APPLIED_STAMP_IMAGES.yeongnyangi} alt="" width={120} height={120} sizes="36px" data-applied-stamp className={styles.passStamp}/></>:<Image src={SERVICE_PACK_IMAGES.mackerel} alt="" width={240} height={240} sizes="56px" className={styles.passMuted}/>}</div>
+    <div><p className={styles.passKind}>{copy.packPass}</p>{pack?<><strong>{pack.label}</strong><p className={styles.passOn}>{applied===null?copy.applied:packText(copy.packApplied,{remaining:applied})}</p>{applied===null&&<><p>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</p><p>{copy.packUsable}</p></>}</>:<p>{copy.packNone}</p>}</div>
+   </div>
+  </div>
+ </section>;
+}
+
 export function ServicePackCheckout({requestId,featureKey,locale,disabled,onBusyChange,onPaid}:{requestId:string;featureKey:string;locale:LoadingLocale;disabled:boolean;onBusyChange:(busy:boolean)=>void;onPaid:()=>void}){
  const copy=servicePackCopy(locale),fundingId=`yn-${requestId}`;
  const [quote,setQuote]=useState<PackQuote|null>(null),[failed,setFailed]=useState(false),[checking,setChecking]=useState(true),[selected,setSelected]=useState(''),[busy,setBusy]=useState(false);
  const lock=useRef(false),callbacks=useRef({onBusyChange,onPaid});callbacks.current={onBusyChange,onPaid};
+ const [flower,setFlower]=useState<SubscriptionSnapshot|null>(null),[applied,setApplied]=useState<number|null>(null);
+ useEffect(()=>{setFlower(readSubscriptionSnapshotForUser());},[]);
  const refresh=useCallback(async()=>{
   setChecking(true);setFailed(false);
   try{const next=await quoteServicePack(fundingId,featureKey);setQuote(next);setSelected(value=>next.candidates.some(pack=>pack.entitlementId===value&&pack.available)?value:next.candidates.find(pack=>pack.available)?.entitlementId||'');
@@ -328,18 +353,22 @@ export function ServicePackCheckout({requestId,featureKey,locale,disabled,onBusy
    if(current.status==='processing'){return;}
    if(current.status!=='available')throw new ServicePackError('PACK_NO_LONGER_AVAILABLE');
    if(!current.candidates.some(pack=>pack.entitlementId===selected&&pack.available))throw new ServicePackError('PACK_NO_LONGER_AVAILABLE');
-   await consumeServicePack(fundingId,selected);callbacks.current.onPaid();
+   // 차감이 끝나면 '적용됨'을 잠깐 보여 주고 돌아간다. 그 사이에도 lock 이 잡혀 있어 이중 차감 클릭을 막는다.
+   const result=await consumeServicePack(fundingId,selected);setApplied(result.remainingUses);
+   await new Promise(resolve=>setTimeout(resolve,1200));callbacks.current.onPaid();
   }catch(error){loginIfNeeded(error);setFailed(true);}
   finally{lock.current=false;}
  };
- if(!checking&&!failed&&!busy&&!quote?.candidates.length)return null;
- return <section className={styles.checkout} aria-labelledby="service-pack-choice-title">
+ const usable=quote?.status==='available'?quote.candidates.filter(pack=>pack.available&&pack.remainingUses>0):[];
+ const summary=<CheckoutPassSummary locale={locale} flower={flower} pack={usable.find(pack=>pack.entitlementId===selected)||usable[0]} applied={applied}/>;
+ if(!checking&&!failed&&!busy&&!quote?.candidates.length)return summary;
+ return <>{summary}<section className={styles.checkout} aria-labelledby="service-pack-choice-title">
   <h2 id="service-pack-choice-title">{copy.checkout}</h2>
   {checking&&<p role="status">{copy.loading}</p>}
   {failed&&<p role="alert">{copy.unavailable}</p>}
-  {busy&&<p role="status">{copy.working}</p>}
+  {applied!==null?<p role="status" className={styles.passOn} data-pack-applied>{packText(copy.packApplied,{remaining:applied})}</p>:busy&&<p role="status">{copy.working}</p>}
   {!checking&&!busy&&!failed&&quote&&['restored','unavailable'].includes(quote.status)&&<p>{copy.inactive}</p>}
-  {(failed||busy)&&<button type="button" onClick={()=>void refresh()} disabled={checking||lock.current}>{copy.retry}</button>}
+  {(failed||busy)&&applied===null&&<button type="button" onClick={()=>void refresh()} disabled={checking||lock.current}>{copy.retry}</button>}
   {!failed&&!busy&&quote?.status==='available'&&quote.candidates.some(pack=>pack.available)&&<>
    <fieldset className={styles.choices}><legend>{copy.owned}</legend>{quote.candidates.filter(pack=>pack.available).map(pack=><label key={pack.entitlementId}>
     <input type="radio" name="service-pack-entitlement" value={pack.entitlementId} checked={selected===pack.entitlementId} onChange={()=>setSelected(pack.entitlementId)} disabled={disabled||checking}/>
@@ -347,5 +376,5 @@ export function ServicePackCheckout({requestId,featureKey,locale,disabled,onBusy
    </label>)}</fieldset>
    <button type="button" onClick={()=>void consume()} disabled={disabled||checking||!selected}>{copy.use}</button>
   </>}
- </section>;
+ </section></>;
 }
