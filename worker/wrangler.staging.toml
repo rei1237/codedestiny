@@ -172,6 +172,10 @@ ADMIN_MONTHLY_CREDIT_GRANT_ENABLED = "true"
 # route silently falls back to the mock generator).
 ENABLE_GUARDIAN_FORTUNE_API = "true"
 ENABLE_GUARDIAN_FORTUNE_SHARE = "true"
+# 연이·네오 상담 엔진(/api/fortune-chat/consultations)의 새 상담 만들기·열기 스위치. 켜지면 로그인
+# 사용자의 /fortune-chat 이 새 상담실로 열린다(app/fortune-chat/FortuneChatEntry.tsx). 읽기·이어 쓰기는
+# 이 값과 무관하다. 프로덕션 승격은 별도 결정이라 STAGING_ONLY_KEYS 에 선언돼 있다.
+ENABLE_FORTUNE_CHAT_CONSULTATIONS = "true"
 # 정적 셸(타로·사주) 결과 공유 스냅샷의 킬 스위치 — POST /api/fortune/share 와
 # GET /api/fortune/share/{sr_id} 가 이 한 줄에 달려 있다. 이 엔드포인트는 레포에서 유일하게
 # 서명 없이 클라이언트 본문을 받는 공개 쓰기 경로라, 소비자(정적 셸 공유 버튼)가 붙기 전까지
