@@ -60,6 +60,8 @@ try {
   if (iphone) page.on('console', message => { if (message.type()==='error') console.error('WebKit console: '+message.text()); });
   page.on('dialog', dialog => { console.log('Dismissed fixture dialog: '+dialog.message()); return dialog.dismiss(); });
   await page.goto(origin, {waitUntil:'domcontentloaded'});
+  // 무료 사주 카드(퀵 서비스)는 연이의 정원 안이다 — 사용자처럼 정원을 먼저 연다.
+  if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
   const entryLink=page.locator('#cdQuickServices a[href*="cdOneStepFreeSajuEntry"]');
   if (iphone) await entryLink.tap(); else await entryLink.click();
   await page.locator('#nameInput').fill(profile.name);

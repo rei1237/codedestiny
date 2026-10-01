@@ -76,6 +76,8 @@ try {
   const page = await context.newPage();
   page.on('dialog', dialog => dialog.dismiss());
   await page.goto(origin + (remoteBase ? '/ggulggul/' : ''), {waitUntil:'domcontentloaded'});
+  // 무료 사주 카드(퀵 서비스)는 연이의 정원 안이다 — 사용자처럼 정원을 먼저 연다.
+  if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
   await page.locator('#cdQuickServices a[href*="cdOneStepFreeSajuEntry"]').click();
   await page.locator('#nameInput').fill('검증용 프로필');
   await page.locator('#birthDate').fill('1990-05-15');

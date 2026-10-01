@@ -46,6 +46,8 @@ try{
     page.on('dialog',dialog=>dialog.dismiss());
     page.on('pageerror',error=>{if(!/^(?:Error:\s*)?google_translate_script_failed$/.test(error.message))errors.push(error.message);});
     await page.goto(origin,{waitUntil:'domcontentloaded'});
+    // 무료 사주 카드(퀵 서비스)는 연이의 정원 안이다 — 사용자처럼 정원을 먼저 연다.
+    if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
     await page.locator('#cdQuickServices a[href*="cdOneStepFreeSajuEntry"]').click();
     await page.locator('#nameInput').fill('대운검증');
     await page.locator('#birthDate').fill('1990-05-15');

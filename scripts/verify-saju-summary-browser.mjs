@@ -99,6 +99,8 @@ try {
   page.on('pageerror', error => { browserErrors.push({ case: activeCase, error: error.message }); console.log('PAGE ERROR:', error.message); });
   page.on('console', message => { if (message.type() === 'error' && /Summary|renderSummary/.test(message.text())) console.log(message.text()); });
   await page.goto(origin, {waitUntil:'domcontentloaded'});
+  // 무료 사주 카드(퀵 서비스)는 연이의 정원 안이다 — 사용자처럼 정원을 먼저 연다.
+  if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
   await page.locator('#cdQuickServices a[href*="cdOneStepFreeSajuEntry"]').click();
   await page.locator('#nameInput').fill('회귀검증');
   await page.locator('#birthDate').fill('1990-05-15');
