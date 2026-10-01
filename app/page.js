@@ -108,6 +108,7 @@ export default function HomePage() {
         {/* /ggulggul/ is a static HTML shell without a Next RSC payload. */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a href="/ggulggul/">연이의 정원에서 시작하기</a>
+        <Link href="/fortune-chat/">연이와 네오에게 내 고민 상담하기</Link>
         <Link href="/today/">오늘의 무료 운세 보기</Link>
         <Link href="/today/#daily-tarot">무료 타로 세 장 펼치기</Link>
         <Link href="/saju/">무료 사주·만세력 알아보기</Link>

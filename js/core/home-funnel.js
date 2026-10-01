@@ -56,12 +56,13 @@
     });
   }
 
-  // 대화형 상담 문은 지금 홈 테마(연이·네오)의 상담 캐릭터로 연다. 정적 href(/fortune-chat/)는 그대로 둔다.
-  var chatDoor = document.querySelector('#fortuneGatewayEntry .fortune-gateway__door--chat');
+  // 대화형 상담 입구(상담 문·히어로 보조 진입점)는 지금 홈 테마(연이·네오)의 상담 캐릭터로 연다. 정적 href(/fortune-chat/)는 그대로 둔다.
+  var chatDoors = document.querySelectorAll('#fortuneGatewayEntry .fortune-gateway__door--chat, [data-cdh-chat-entry]');
   function syncChatDoor() {
-    if (chatDoor) chatDoor.setAttribute('href', '/fortune-chat/?character=' + (doc.classList.contains('neo-mode') ? 'neo' : 'yeoni'));
+    var href = '/fortune-chat/?character=' + (doc.classList.contains('neo-mode') ? 'neo' : 'yeoni');
+    for (var i = 0; i < chatDoors.length; i += 1) chatDoors[i].setAttribute('href', href);
   }
-  if (chatDoor) {
+  if (chatDoors.length) {
     syncChatDoor();
     if (window.MutationObserver) new MutationObserver(syncChatDoor).observe(doc, { attributes: true, attributeFilter: ['class'] });
   }
