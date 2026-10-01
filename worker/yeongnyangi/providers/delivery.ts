@@ -1,10 +1,10 @@
 import type {ChapterBody} from '../fortune/book-contracts';
 import type {ChapterRequest} from './chapter';
-import {validateChapter} from './chapter';
+import {correctChapterProse,validateChapter} from './chapter';
 import {FortuneError} from '../fortune/shared/contracts';
 import {salvageTruncatedJsonObject} from '../../../lib/llm-text.js';
 import {readingLocale,validateReadingLanguage} from '../fortune/reading-locale';
-import {alignRelativeYears,redactInternalEvidence} from '../fortune/consultation';
+import {alignRelativeYears} from '../fortune/consultation';
 import {selectChapterFacts} from '../fortune/chapter-facts';
 import {attachTarotSafetyNotice} from '../fortune/tarot/master-reading';
 import {nearDuplicate,splitSectionParagraph} from '../fortune/reading-quality';
@@ -64,7 +64,7 @@ export function deliverChapter(raw:unknown,input:ChapterRequest):ChapterBody {
     ...(Array.isArray(value.followUpSuggestions)?{followUpSuggestions:list(value.followUpSuggestions)}:{}),
     ...(value.visualSlots&&typeof value.visualSlots==='object'&&!Array.isArray(value.visualSlots)?{visualSlots:value.visualSlots}:{}),
   },input.chapter);
-  body=redactInternalEvidence(body,input.analysis.question,Object.values(input.analysis.contexts).flatMap(c=>c.facts.map(f=>f.label)),input.locale).body;
+  body=correctChapterProse(body,input);
   if(input.analysis.consultation)body=alignRelativeYears(body,input.analysis.consultation.asOf,input.locale).body;
   validateReadingLanguage(body,readingLocale(input.locale));
   return sanitizeBlockAnchors(attachTarotSafetyNotice(body,input.analysis.question,readingLocale(input.locale),input.chapter.ordinal),blockAnchorNames(input.analysis,input.chapter.systems));

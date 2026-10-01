@@ -1,5 +1,5 @@
 import type { ChapterBody, ChapterSpec } from './book-contracts';
-import { FortuneError } from './shared/contracts';
+import { FortuneError, type DomainContext } from './shared/contracts';
 import { topicLabel } from './topics';
 
 export interface Consultation {
@@ -182,10 +182,25 @@ const CITATION_LABEL = /^(?:근거|출처|참고|데이터|자료|sources?|evide
 const PARTICLES: [string, string][] = [['으로','로'],['은','는'],['을','를'],['과','와'],['이','가']];
 const finalConsonant = (s: string) => { const c = s.charCodeAt(s.length - 1) - 0xAC00; return c >= 0 && c <= 11171 ? c % 28 : 0; };
 
-export function redactInternalEvidence(body: ChapterBody, question = '', factLabels: string[] = [], locale = 'ko'): { body: ChapterBody; count: number } {
-  const keys = exposedKeys(factLabels, locale);
+/** Tarot position keys of the drawn cards (inner_vocation → '마음의 소명'); a key without a stored label maps to ''. */
+export function tarotPositionNames(context?: DomainContext): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const fact of context?.facts || []) {
+    const cards = fact.label === 'cards' ? fact.value : fact.label === 'tarotConsultation' ? (fact.value as { cards?: unknown })?.cards : undefined;
+    if (Array.isArray(cards)) for (const card of cards) {
+      const key = String(card?.positionKey || '');
+      if (/^[a-z][a-z0-9_]*$/.test(key)) out[key] = out[key] || String(card.positionLabel || '');
+    }
+  }
+  return out;
+}
+
+export function redactInternalEvidence(body: ChapterBody, question = '', factLabels: string[] = [], locale = 'ko', positions: Record<string, string> = {}): { body: ChapterBody; count: number } {
+  // A one-word position key ('calling', 'current') is ordinary English outside Korean prose.
+  const positionKeys = Object.keys(positions).filter(k => locale === 'ko' || k.includes('_'));
+  const keys = [...exposedKeys(factLabels, locale), ...positionKeys];
   const isInternal = (token: string) => new RegExp(`^${EVIDENCE_ID.source}$`).test(token) || keys.includes(token);
-  const shortName = (key: string) => professionalEvidenceNames[key]?.split(' — ')[0];
+  const shortName = (key: string) => positions[key] || professionalEvidenceNames[key]?.split(' — ')[0];
   let count = 0;
   const particle = (name: string, found?: string) => {
     if (!found) return '';
@@ -193,7 +208,7 @@ export function redactInternalEvidence(body: ChapterBody, question = '', factLab
     return pair[0] === '으로' ? (fc && fc !== 8 ? '으로' : '로') : fc ? pair[0] : pair[1];
   };
   const PARTICLE = '(?:(?<particle>으로|로|은|는|을|를|과|와|이|가)(?=[\\s.,!?·)\\]」』]|$))?';
-  const names = Object.keys(professionalEvidenceNames).filter(k => keys.includes(k));
+  const names = [...Object.keys(professionalEvidenceNames).filter(k => keys.includes(k)), ...positionKeys.filter(k => positions[k])];
   const renames = [new RegExp(`\\b(?:saju|ziwei|vedic|astrology|sukuyo|tarot)\\.(?<key>[A-Za-z][\\w[\\]-]*(?:\\.[A-Za-z0-9][\\w[\\]-]*)*)${PARTICLE}`, 'g'),
     ...(names.length ? [new RegExp(`\\b(?<key>${names.join('|')})\\b${PARTICLE}`, 'g')] : [])];
   const fix = (value: unknown) => {
@@ -227,6 +242,36 @@ export function redactInternalEvidence(body: ChapterBody, question = '', factLab
       { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string }) } : {}),
   };
   if (body.title === undefined) delete (out as {title?: string}).title;
+  return count ? { body: out, count } : { body, count: 0 };
+}
+
+// Principle 17: the counselor's own name used as the reader's ('연이님은', '연이님,') is corrected, not regenerated.
+// The prompt never carries the reader's name, so '<counselor>님/씨' is always a mis-address. A vocative is dropped;
+// any other use becomes '당신' with the particle refitted. Korean prose only.
+export function correctPersonaAddress(body: ChapterBody, name: string, locale = 'ko'): { body: ChapterBody; count: number } {
+  if (locale !== 'ko' || !name) return { body, count: 0 };
+  const who = `(?<![가-힣])${name}\\s?(?:님|씨)`;
+  const lead = new RegExp(`${who}\\s*[,，!]\\s*`, 'g'), tail = new RegExp(`\\s*[,，]\\s*${who}(?=\\s*[.!?。]|$)`, 'g');
+  // '님' already takes the consonant particle; only '씨' + a vowel-form particle (씨는·씨로서) needs refitting.
+  const rest = new RegExp(`${who}(?<particle>는|를|와|가|로)?`, 'g');
+  const fit: Record<string, string> = { 는: '은', 를: '을', 와: '과', 가: '이', 로: '으로' };
+  let count = 0;
+  const fix = (value: unknown) => {
+    if (typeof value !== 'string' || !value.includes(name)) return value;
+    const next = value.replace(lead, () => (count++, '')).replace(tail, () => (count++, ''))
+      .replace(rest, (...args) => { count++; const p = (args[args.length - 1] as { particle?: string }).particle; return '당신' + (p ? fit[p] : ''); });
+    return next.trim() ? next : value;
+  };
+  const out: ChapterBody = { ...body, summary: fix(body.summary) as string, example: fix(body.example) as string,
+    advice: fix(body.advice) as string, persona: fix(body.persona) as string,
+    analysis: Array.isArray(body.analysis) ? body.analysis.map(fix) as string[] : body.analysis,
+    highlights: Array.isArray(body.highlights) ? body.highlights.map(fix) as string[] : body.highlights,
+    ...(body.title === undefined ? {} : { title: fix(body.title) as string }),
+    ...(Array.isArray(body.blocks) ? { blocks: body.blocks.map(b => !b || typeof b !== 'object' ? b : { ...b, title: fix(b.title) as string,
+      paragraphs: Array.isArray(b.paragraphs) ? b.paragraphs.map(fix) as string[] : b.paragraphs }) } : {}),
+    ...(Array.isArray(body.questionAnswers) ? { questionAnswers: body.questionAnswers.map(a => !a || typeof a !== 'object' ? a :
+      { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string }) } : {}),
+  };
   return count ? { body: out, count } : { body, count: 0 };
 }
 

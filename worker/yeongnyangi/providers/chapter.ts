@@ -15,7 +15,7 @@ import {validateAskChapter} from '../fortune/ask/validate';
 import {blockAnchorNames,sanitizeBlockAnchors,withBlockAnchorsSchema} from '../fortune/block-anchors';
 import {escapeAskData, type AskAnalysis} from '../fortune/ask/analysis';
 import type {EvidencePacket} from '../fortune/ask/contracts';
-import {alignRelativeYears, assertProfessionalProse, redactInternalEvidence, validateConsultationAnswers, validatePreciseTiming, professionalEvidenceNames, yearGanji} from '../fortune/consultation';
+import {alignRelativeYears, assertProfessionalProse, correctPersonaAddress, redactInternalEvidence, tarotPositionNames, validateConsultationAnswers, validatePreciseTiming, professionalEvidenceNames, yearGanji} from '../fortune/consultation';
 import {
   ChapterBody,
   ChapterSpec,
@@ -51,6 +51,18 @@ export type ChatPersona = "yeoni" | "neo";
 /** The speaking voice only. Facts, manifest, schema and validators never depend on it. */
 export function personaPrompt(id?: ChatPersona): string {
   return id === "yeoni" ? yeoniPersona : id === "neo" ? neoPersona : yeongnyangiPersona;
+}
+const PERSONA_NAMES: Record<ChatPersona, string> = { yeoni: "연이", neo: "네오" };
+/** Deterministic prose fixes shared by validateChapter and deliverChapter: internal keys (incl. tarot positions), then the chat voice's address. */
+export function correctChapterProse(v: ChapterBody, input: ChapterRequest): ChapterBody {
+  const factLabels=Object.values(input.analysis.contexts).flatMap(c=>c.facts.map(f=>f.label));
+  // An internal ID in the prose is corrected before any length or language check reads it, not regenerated (principle 17).
+  const redacted=redactInternalEvidence(v,input.analysis.question,factLabels,input.locale,tarotPositionNames(input.analysis.contexts.tarot));
+  if(redacted.count){v=redacted.body;console.log('[yeongnyangi-redaction]',JSON.stringify({chapter:input.chapter.ordinal,count:redacted.count}));}
+  const name=input.persona?PERSONA_NAMES[input.persona]:undefined;
+  const addressed=name?correctPersonaAddress(v,name,input.locale):{body:v,count:0};
+  if(addressed.count){v=addressed.body;console.log('[yeongnyangi-persona-address]',JSON.stringify({chapter:input.chapter.ordinal,count:addressed.count}));}
+  return v;
 }
 export interface FortuneChapterProvider {
   receipt?: { provider: string; model: string };
@@ -99,9 +111,7 @@ export function validateChapter(
   // string fields become paragraphs inside that same field, never new content.
   const splitField=(s:string)=>s.split(/\n\s*\n/u).flatMap(p=>splitSectionParagraph(p,5000)).join('\n\n');
   const factLabels=Object.values(input.analysis.contexts).flatMap(c=>c.facts.map(f=>f.label));
-  // An internal ID in the prose is corrected before any length or language check reads it, not regenerated (principle 17).
-  const redacted=redactInternalEvidence(v,input.analysis.question,factLabels,input.locale);
-  if(redacted.count){v=redacted.body;console.log('[yeongnyangi-redaction]',JSON.stringify({chapter:input.chapter.ordinal,count:redacted.count}));}
+  v=correctChapterProse(v,input);
   // '올해(2025년)' against a 2026 consultation: the word follows the year, never a paid regeneration (principle 17).
   const aligned=input.analysis.consultation?alignRelativeYears(v,input.analysis.consultation.asOf,input.locale):{body:v,count:0};
   if(aligned.count){v=aligned.body;console.log('[yeongnyangi-year-alignment]',JSON.stringify({chapter:input.chapter.ordinal,count:aligned.count}));}

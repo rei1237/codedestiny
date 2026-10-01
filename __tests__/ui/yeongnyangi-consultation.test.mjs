@@ -7,7 +7,7 @@ import path from 'node:path';
 const require=createRequire(import.meta.url), Module=require('node:module');
 const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/consultation'; export {questionFactSelectors,readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {buildAskFirstChapterPrompt} from './worker/yeongnyangi/fortune/ask/prompt'; export {products} from './worker/yeongnyangi/payments/catalog';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const loaded=new Module(path.resolve('consultation-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,loaded.id);
-const {consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,assertProfessionalProse,redactInternalEvidence,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
+const {consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,assertProfessionalProse,redactInternalEvidence,tarotPositionNames,correctPersonaAddress,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
 const clock=consultationClock('Asia/Seoul',new Date('2026-09-21T23:00:00Z'));
 const manifest=readingManifest(products.find(p=>p.id==='saju_mackerel'));
 const make=(q='',topic='general')=>createConsultation(q,topic,clock,manifest);
@@ -56,6 +56,31 @@ test('an exposed internal ID is corrected in place instead of discarding the pai
  assert.throws(()=>assertProfessionalProse(english.body,'',labels,'en'),{detail:'key:dayMaster'});
  const untouched={summary:'saju.dayMaster가 뭐예요?'};
  assert.equal(fix(untouched,'ko','saju.dayMaster가 뭐예요?').body,untouched);
+});
+test('a tarot position key in the prose becomes its spread label, a lone key in brackets is dropped',()=>{
+ const tarot={facts:[{label:'cards',value:[{positionKey:'inner_vocation',positionLabel:'마음의 소명'},{positionKey:'action_steps',positionLabel:'현실로 여는 첫 행동'},{positionKey:'calling'}]}]};
+ const positions=tarotPositionNames(tarot);
+ assert.deepEqual(positions,{inner_vocation:'마음의 소명',action_steps:'현실로 여는 첫 행동',calling:''});
+ // C-2 live output, chapter 5 of Neo's tarot reading.
+ const out=redactInternalEvidence({summary:'마음의 소명(inner_vocation)인 포용력, 첫 행동(action_steps)으로 협력을 다지세요.',blocks:[{title:'흐름',paragraphs:['action_steps는 작게, 일의 결(calling)은 지키세요.']}]},'',['cards'],'ko',positions);
+ assert.equal(out.count,4);
+ assert.equal(out.body.summary,'마음의 소명인 포용력, 첫 행동으로 협력을 다지세요.');
+ assert.equal(out.body.blocks[0].paragraphs[0],'현실로 여는 첫 행동은 작게, 일의 결은 지키세요.');
+ // Outside Korean only a snake_case key is internal; 'calling' is an English word there.
+ const en=redactInternalEvidence({summary:'Follow your calling (calling) and the inner vocation (inner_vocation).'},'',['cards'],'en',positions);
+ assert.equal(en.body.summary,'Follow your calling (calling) and the inner vocation.');
+});
+test('the counselor name used as the reader address is corrected to 당신 in Korean only',()=>{
+ // C-2 live output, chapter 5 of Yeoni's saju reading.
+ const out=correctPersonaAddress({summary:'연이님, 올해 이직을 준비하신다면 함께 살펴볼게요.',analysis:['팀장님이 연이님에게 역할을 맡기면 연이님은 반갑지만 연이님의 마음은 흔들려요.'],blocks:[{title:'연이 씨로서',paragraphs:['안녕하세요, 연이님. 연이 씨는 차분해요. 연이가 곁에서 함께할게요.']}]},'연이');
+ assert.equal(out.count,7);
+ assert.equal(out.body.summary,'올해 이직을 준비하신다면 함께 살펴볼게요.');
+ assert.equal(out.body.analysis[0],'팀장님이 당신에게 역할을 맡기면 당신은 반갑지만 당신의 마음은 흔들려요.');
+ assert.equal(out.body.blocks[0].title,'당신으로서');
+ assert.equal(out.body.blocks[0].paragraphs[0],'안녕하세요. 당신은 차분해요. 연이가 곁에서 함께할게요.');
+ const english={summary:'연이님 is your counselor.'};
+ assert.equal(correctPersonaAddress(english,'연이','en').body,english);
+ assert.equal(correctPersonaAddress({summary:'김연이님'},'연이').count,0);
 });
 test('an invented event date is rejected while supplied dates and reference date remain usable',()=>{
  const body={summary:'2027년 5월 17일에 기회가 생깁니다.',analysis:[]};
