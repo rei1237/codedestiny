@@ -9,7 +9,8 @@ export const PALACE_NAMES = ["명궁", "형제궁", "부부궁", "자녀궁", "�
 // 궁 강도 점수 구성 요소 (0~100 클램프)
 export const BASE_SCORE = 30;
 export const MAIN_STAR_SCORE = 10;
-export const BRIGHTNESS_SCORE = { 묘: 8, 득: 5, 리: 2, 평: 0, 함: -6 };
+// 강약 7등급(lib/ziwei-star-strength.js, 접지 않음). 2026-10-01 S5 에서 왕·불을 넣었다 — 예전엔 차트가 왕→묘, 불→평 으로 접어 넘겼다.
+export const BRIGHTNESS_SCORE = { 묘: 8, 왕: 7, 득: 5, 리: 2, 평: 0, 불: -3, 함: -6 };
 export const ASSIST_SCORE_DEFAULT = 4;
 export const ASSIST_SCORE_OVERRIDES = { 함지: 1, 천요: 1 }; // 도화성은 소폭만 가점
 export const MALEFIC_SCORE = -7;

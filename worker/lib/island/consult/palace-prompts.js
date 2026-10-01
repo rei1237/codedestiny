@@ -87,7 +87,9 @@ export function buildSystemPrompt({ detailed = false } = {}) {
 }
 
 function clean(v, max = 0) { const t = String(v ?? "").trim(); return max > 0 ? t.slice(0, max) : t; }
-function brightnessMark(level) { return { "묘": "◎", "득": "O", "리": "▲", "평": "△", "함": "X" }[level] || ""; }
+// 강약 7등급을 워커 사실 블록과 같은 `자미(묘)` 꼴로 붙인다(worker/lib/ziwei-ai-chart.js formatStarWithBrightness).
+const STRENGTH_GRADES = new Set(["묘", "왕", "득", "리", "평", "불", "함"]);
+function brightnessMark(level) { return STRENGTH_GRADES.has(level) ? `(${level})` : ""; }
 
 export function palaceFactsBlock(palaceKey, chart) {
   const palaces = Array.isArray(chart?.palaces) ? chart.palaces : [];
