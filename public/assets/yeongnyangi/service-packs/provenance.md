@@ -33,3 +33,8 @@ A refined pale-jade and warm champagne-gold shallow square gift chest with an op
 ### Tuna
 
 A distinguished midnight-indigo hexagonal presentation gift box with open raised lid, rich violet satin lining and a large elegant violet ribbon with gold lotus clasp. A thick tasteful fan of indigo-and-ivory moonlit consultation tickets peeks from within. Front centerpiece is a beautifully illustrated deep-blue TUNA with streamlined robust body, forked tail and small golden finlets, cute polished illustration. Fine gold crescent and constellation embossing. Most premium, substantial special-occasion gift of the collection without excessive glitter. Predominant indigo, violet and muted gold. Package silhouette is a tall hexagonal jewel box.
+
+## 2026-10-01 additions
+
+- `{mackerel,salmon,flounder,tuna}-gift-set-v2.webp`: the v1 768px originals re-encoded with sharp to 360px webp (≤40KB, alpha kept). Same artwork; v1 files are kept.
+- `recommend-badge-v1.webp`: generated with codex image_gen (gpt-image, 1024², high quality). Subject: the canonical Yeongnyangi (white long fur, navy-violet→gold gradient eyes, dark navy wizard hat and cape with gold trim, collar jewel, ~2 heads tall) giving a "recommend" gesture with a small fish gift. No text. Chroma background keyed out, sharp trim + 8% transparent padding, 360×360 webp q84. Decorative overlay on the middle (10-use) pack card.
