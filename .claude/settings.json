@@ -109,6 +109,23 @@
             "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/sync-main-freshness.mjs\"",
             "timeout": 10,
             "statusMessage": "Refreshing local main from origin"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-state.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Locating session state file"
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-state.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Restoring session state after compaction"
           }
         ]
       }

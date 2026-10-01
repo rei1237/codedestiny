@@ -140,6 +140,8 @@ reports/
 # 그대로 남아 있는데 정확히 이 확장자만 빠져서 git add -A 에 딸려 들어간다.
 .claude/settings.local.json*
 .claude/worktrees/
+# 세션 상태 파일 — .claude/hooks/session-state.mjs 가 경로를 알려 주고 모델이 쓴다(세션마다 1개).
+.claude/state/
 
 # 외부 에이전트/도구의 로컬 스크래치
 .codex-tmp/
