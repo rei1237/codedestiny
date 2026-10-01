@@ -1,8 +1,8 @@
 ---
 status: active
-implementationStatus: shipped-to-main (6단계 B 카드 점유·활성화 알림 완료 · 스테이징 플래그 ON · 프로덕션 OFF)
+implementationStatus: shipped-to-main (6단계 C-1 타로 통합 완료 · 스테이징 플래그 ON · 프로덕션 OFF)
 updated: 2026-10-01
-next: 6단계 C — 타로 통합 범위와 구 guardian 경로 은퇴 판단(실 LLM 품질 검증은 별도 승인).
+next: 6단계 C-2 — 실 LLM 품질 1회 검증(정확한 1회 승인 필요). guardian 은퇴는 그 뒤 조건부.
 ---
 
 # 연이·네오 대화형 상담 → 영냥이 질문형 엔진 공유 (1단계: 공통 엔진·결제 연결)
@@ -232,6 +232,46 @@ next: 6단계 C — 타로 통합 범위와 구 guardian 경로 은퇴 판단(�
 - 월정석 코인 게이트(`fc-`)는 점유 대상이 아니다.
 - `yn-` 활성화 영구 오류는 여전히 알림이 없다.
 
+## 6단계 C-1 결과 (2026-10-01, 커밋)
+
+- `0dcb352b5` 연이·네오 타로 상담(`chat_tarot`, 3,000원, featureKey `fortune-chat-consultation`):
+  - 영냥이 타로 v2 파이프라인을 그대로 쓴다. 카드는 prepare 때 서버가 뽑고, `profileId` 는 `'tarot-question'`, 생년월일 프로필이 없다.
+  - 고민 종류는 8개다(`choice·love·feelings·contact·reunion·career·money·healing`, `catalog.ts` `chatTarotKinds`). 영냥이 9종 중 **`compatibility` 는 뺐다**. 참여자 이름 입력이 필요하고 관계 규칙에 영냥이 말투가 박혀 있어서다. 그 밖의 kind 는 `INVALID_CONSULTATION_KIND`(400)로 막는다(`service.ts`).
+  - 페르소나 말투: `consultation-contract.ts` `chatTarotRules`·`consultation-evidence.ts` `withChatTarotVoice` 가 증거 사실 규칙과 장 focus 의 "영냥이 상담 문체"를 "상담자의 말투"로 바꾼다. 페르소나 지시는 기존 상담 프롬프트가 붙인다.
+  - 타로 의도 digest 에 `persona` 를 넣어, 같은 질문이 영냥이 요청과 같은 id 로 겹치지 않는다.
+  - 화면(`ConsultationRoom.tsx`): 운세 칩 "타로" → 프로필 칸 숨김·안내 문구 → 고민 종류 8칩(기본 "지금의 선택", 칩마다 placeholder 변경) → 열기 패널 "질문에 맞춰 카드를 펼쳐 두었어요." 결과의 자료 접기 제목은 "펼친 카드 다시 보기"다.
+  - 에셋: `public/images/fortune-chat/{yeoni,neo}/tarot-640.webp`(codex 이미지 생성, 640×427 q80, 메타 json 동봉).
+  - `config/sitemap-lastmod.json` 라우트 서명 17개 갱신(lastmod 그대로, 전이 import 해시).
+- `fd0757457` 상담실 차트 카드 레이아웃: 영냥이 차트 CSS 는 `.book` 아래에서만 카드 버튼을 세로로 쌓는다. 그래서 상담실에서는 자리 라벨과 카드 이름이 붙고, 연이 차트 제목 대비가 1.51:1 이었다. `consultation.module.css` 의 `.charts` 범위 규칙으로 고쳤다(연이 제목 rgb(179,25,85), 네오 rgb(233,196,106) 실측). 따로 되돌릴 수 있다.
+
+검증 (전부 mock — 실 LLM·실결제 없음):
+- node --test: persona 11·world 5·reading-invariance/tarot-consultation-v2/tarot-master/consultation-access 16 통과.
+- jest: fortune-chat-consultations-route + yeongnyangi-repository 91 통과. `check:fast`(critical, 전체 jest 328 스위트 4915) 통과.
+- 정적 검사: eslint 0 error, `tsc --noEmit` 0.
+- 변이 6회는 모두 잡혔다(digest persona, kind 화이트리스트, evidence 말투, manifest 말투, chat 도메인, 화면 kind).
+- verify: payment-freeze·billing-pass-policy·paid-feature-billing-policy·per-use-never-unlocks·guard-wiring·worker-no-undef 통과. `sitemap:generate --check` 는 머지 후 main 에서 OK.
+- Playwright 스텁(390·1280 × 연이·네오):
+  - POST 본문은 `domain:tarot`·`consultationKind:career` 이고 profileId 가 없다.
+  - 무료 열기 뒤 결제 버튼 0개, 카드 이미지 3장이다.
+  - 가로 넘침 0, 페이지 오류 0.
+- visual-checker: 시작·열기 화면 PASS. 결과 카드는 CSS 수정 뒤 PASS였고, 제목 대비는 computed color 로만 다시 확인했다.
+- paid-gate-auditor: PASS(다른 chat_* 와 같은 게이팅, 영냥이 상품과 교차 없음, 동결 파일 무변경).
+
+6단계 C-1 남은 위험(수용·후속):
+- 실 LLM 출력은 미검증이다. 페르소나 말투가 증거 규칙 치환만으로 충분한지는 C-2 에서 본다.
+- 차트 CSS 수정은 사주 등 다른 상담 차트의 버튼 배치에도 적용된다(영냥이와 같은 배치로 맞춰짐). 타로 외 차트는 화면으로 확인하지 않았다.
+- 연이 소개 문구 "명식을 바탕으로 질문 하나에 깊게 답해요"가 타로와 맞지 않는다.
+- 새 상담 경로는 로그인 필수다. 구 guardian 타로는 게스트도 썼다(게스트 정책 미정).
+
+### 구 guardian 경로 은퇴 판단: 지금은 은퇴하지 않는다
+
+아래 조건을 순서대로 충족한 뒤 은퇴한다. 각 단계는 따로 승인받는다.
+1. ✅ 타로 통합(C-1).
+2. 실 LLM 품질 1회 검증(C-2, 정확한 1회 승인).
+3. 게스트 정책 결정: 새 상담실은 로그인 필수, 구 경로는 게스트 3회.
+4. 프로덕션 플래그 `ENABLE_FORTUNE_CHAT_CONSULTATIONS` ON(운영 승격 1회 승인).
+5. 관찰 기간 뒤 구 guardian 생성·대화 경로 삭제. 삭제는 3면 grep 후 별도 변경으로 한다.
+
 ## 남은 위험·후속 (우선순위순)
 
 0. ✅ CI 픽스처(6단계 A `95945a6ae`).
@@ -248,7 +288,9 @@ next: 6단계 C — 타로 통합 범위와 구 guardian 경로 은퇴 판단(�
 - guardian 서버 문구 "1회 5,000원"(`guardian-fortune-usage.js`, `guardian-fortune-generate.js`)이 실제 3,000원과 다르다.
 - 계정 usage 스키마 기본값·최대값이 3이다(가드는 min(…,1)로 막는다).
 - paid attempt 에 `source` 가 표기되지 않는다.
-- `/guardian/chat` SSE 를 쓰지 않는다.
+- `/guardian/chat` SSE 를 쓰지 않는다. `includeGuardian` 도 쓰이지 않는다.
+- `paid-flow-gates.yml:308` 이 "무료 3회 이후 회당 5,000원"이라고 적는다(실제 3,000원·무료 1회).
+- 구 일일 타로 시드는 주제·날짜가 같으면 같은 카드다(추정, 미검증).
 - 영냥이 팩이 부분 전달 뒤 복원되지 않는다.
 - `retry.js` `hasRequestAccess` 공백이 있다.
 - `MAX_FIX_RESUMES=0` 이라 죽은 경로가 남는다.
@@ -271,8 +313,9 @@ next: 6단계 C — 타로 통합 범위와 구 guardian 경로 은퇴 판단(�
 5. ✅ 메인 히어로 보조 진입점("연이와 네오에게, 지금 가장 궁금한 한 가지" / "내 고민 상담하기")과 sitemap (2026-10-01 완료, 위 5단계 결과).
 6. A ✅ 결제 복귀·중복·복구 E2E(mock), 후속 0·1·3 (2026-10-01, 위 6단계 A 결과).
    B ✅ 후속 2·4 (2026-10-01, 위 6단계 B 결과).
-   C 타로 통합, 구 guardian 경로 은퇴 판단, 실 LLM 품질 1회 검증(별도 승인).
+   C-1 ✅ 타로 통합(2026-10-01, 위 6단계 C-1 결과). guardian 은퇴는 조건부 보류.
+   C-2 실 LLM 품질 1회 검증(별도 승인). 그 뒤 게스트 정책 → 프로덕션 플래그 ON → 관찰 → guardian 은퇴.
 
 ## 다음 세션 첫 문장
 
-> docs/handoff/fortune-chat-engine-unification-2026-10-01.md 를 읽고 로드맵 6단계 C 중 타로 통합의 범위와 구 guardian 경로 은퇴 여부를 먼저 조사해 추천안을 내 줘(코드 수정 전 보고). 실 LLM 호출은 하지 마.
+> docs/handoff/fortune-chat-engine-unification-2026-10-01.md 를 읽고 로드맵 6단계 C-2 실 LLM 품질 1회 검증의 계획(대상 상품·페르소나·호출 수·예상 비용·검수 파일 위치)을 먼저 보고해 줘. 승인 전에는 실 LLM 호출을 하지 마.
