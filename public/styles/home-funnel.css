@@ -34,6 +34,31 @@ html.neo-mode .cdh-services--luxe [aria-label="가격대로 좁히기"] [aria-pr
 .cdh-services--luxe .cdh-catalog-link{margin-top:28px;border-color:color-mix(in srgb,var(--cdh-gold) 60%,var(--cdh-line))}
 .cdh-services--luxe .fortune-gateway__status{border-top-color:color-mix(in srgb,var(--cdh-gold) 35%,var(--cdh-line))}
 @media(max-width:640px){.cdh-services--luxe{padding:22px 18px 28px;border-radius:22px}.cdh-services__vine{width:110px;height:70px;top:-14px;right:-14px}}
+/* 전체 서비스 검색 — 달빛 예화 패널(2026-10-01): 아이보리 달빛 면에 금선 두 겹, 머리에는 달 원반 앞에서 책 읽는 연이.
+   색은 --sv-* 토큰으로만 칠하고 네오는 같은 구조를 샴페인 금선으로 다시 칠한다. #cdFinder 마크업·자리표시 문구는 그대로다. */
+#cdHomeFunnel .cdh-services--luxe{--sv-line:#d4af7a;--sv-line-soft:rgba(212,175,122,.5);--sv-face:#fdf6f0;--sv-face-top:#fffaf3;--sv-face-low:#fbefe9;--sv-glow:rgba(255,236,206,.95);--sv-blush:rgba(244,214,224,.5);--sv-shadow:rgba(122,74,30,.5);--sv-field:linear-gradient(180deg,#fffefb,#fff8ef);--sv-chip:#fffdf8;--sv-icon:#a97b3e;--sv-label:#7a5020;--sv-focus:#b31955;--sv-ring:rgba(179,25,85,.18);--sv-moon:radial-gradient(circle at 50% 40%,#fffdf6 0 38%,#fcefd6 62%,#f3dcb4 76%,rgba(212,175,122,0) 80%);--sv-moon-halo:rgba(255,226,180,.7);border-color:var(--sv-line);background:radial-gradient(80% 56% at 50% -6%,var(--sv-glow),transparent 64%),radial-gradient(60% 42% at 100% 100%,var(--sv-blush),transparent 72%),linear-gradient(180deg,var(--sv-face-top),var(--sv-face) 56%,var(--sv-face-low));box-shadow:0 28px 64px -38px var(--sv-shadow),inset 0 0 0 6px color-mix(in srgb,var(--sv-face) 88%,transparent),inset 0 0 0 7px var(--sv-line-soft)}
+html.neo-mode #cdHomeFunnel .cdh-services--luxe{--sv-line:rgba(232,213,163,.62);--sv-line-soft:rgba(232,213,163,.3);--sv-face:#171126;--sv-face-top:#1e1732;--sv-face-low:#130e22;--sv-glow:rgba(196,181,253,.2);--sv-blush:rgba(232,213,163,.08);--sv-shadow:rgba(0,0,0,.7);--sv-field:linear-gradient(180deg,#241c36,#1d1630);--sv-chip:#211931;--sv-icon:#e8d5a3;--sv-label:#e8d5a3;--sv-focus:#c4b5fd;--sv-ring:rgba(196,181,253,.28);--sv-moon:radial-gradient(circle at 50% 40%,#fffbf0 0 46%,#f4e6c0 66%,#d9c28c 77%,rgba(232,213,163,0) 80%);--sv-moon-halo:rgba(232,213,163,.32)}
+#cdHomeFunnel .cdh-services__head{display:flex;flex-direction:column;align-items:center;text-align:center!important}
+.cdh-services__moon{position:relative;display:block;flex:0 0 auto;width:128px;height:128px;margin:0 auto 12px;border-radius:50%;background:var(--sv-moon);box-shadow:0 0 0 1px var(--sv-line-soft),0 0 0 6px color-mix(in srgb,var(--sv-face) 80%,transparent),0 0 0 7px var(--sv-line-soft),0 0 38px 4px var(--sv-moon-halo)}
+.cdh-services__yeoni{display:block;width:100%;height:100%;object-fit:contain;background:transparent!important}
+/* 🔴 .cdh-services--luxe>* 가 덩굴까지 relative 인라인으로 바꿔 크기 0 으로 사라졌다 — 절대 배치를 되돌린다. */
+#cdHomeFunnel .cdh-services--luxe>.cdh-services__vine{position:absolute;left:auto;z-index:0;display:block;transform:none}
+#cdHomeFunnel .cdh-services__divider::after{border-color:var(--sv-line);background:radial-gradient(circle at 40% 36%,#fff8e6,#e3c48e 70%,#c9a46a);opacity:1}
+html.neo-mode #cdHomeFunnel .cdh-services__divider::before{background:linear-gradient(90deg,#cdb57e,#f4e6c0 50%,#cdb57e);opacity:.6}
+#cdHomeFunnel .cdh-services--luxe .fortune-gateway__search-input{text-overflow:ellipsis}
+html:not(.neo-mode) #cdHomeFunnel .cdh-services--luxe .fortune-gateway__search-input::placeholder{color:#7d566b!important}
+#cdHomeFunnel .cdh-services__head :is(h2,.cdh-lead){text-wrap:balance}
+#cdHomeFunnel .cdh-services__divider{width:min(520px,100%);height:32px;margin:16px auto 0}
+#cdHomeFunnel .cdh-services--luxe .cd-finder{margin-top:8px!important}
+#cdHomeFunnel .cdh-services--luxe .fortune-gateway__search{min-height:58px;padding:0 10px 0 20px;border:1px solid var(--sv-line)!important;border-radius:999px;background:var(--sv-field)!important;box-shadow:inset 0 0 0 3px color-mix(in srgb,var(--sv-face) 90%,transparent),inset 0 0 0 4px var(--sv-line-soft),0 12px 26px -18px var(--sv-shadow)!important}
+#cdHomeFunnel .cdh-services--luxe .fortune-gateway__search:focus-within{border-color:var(--sv-focus)!important;box-shadow:0 0 0 3px var(--sv-ring),0 12px 26px -18px var(--sv-shadow)!important}
+#cdHomeFunnel .cdh-services--luxe .fortune-gateway__search-icon{color:var(--sv-icon)}
+#cdHomeFunnel .cdh-services--luxe :is(.fortune-gateway__group-title,.fortune-gateway__filter-label){color:var(--sv-label);letter-spacing:.08em}
+#cdHomeFunnel .cdh-services--luxe :is(.fortune-gateway__chip,.fortune-gateway__fchip,.fortune-gateway__filter-toggle):not([aria-pressed=true]){border-color:var(--sv-line-soft);border-radius:999px;background:var(--sv-chip)}
+#cdHomeFunnel .cdh-services--luxe :is(.fortune-gateway__chip,.fortune-gateway__fchip){padding-inline:16px;border-radius:999px}
+#cdHomeFunnel .cdh-services--luxe :is(.fortune-gateway__chip,.fortune-gateway__fchip,.fortune-gateway__filter-toggle):not([aria-pressed=true]):hover{border-color:var(--sv-line);box-shadow:0 6px 14px -10px var(--sv-shadow)}
+#cdHomeFunnel .cdh-services--luxe .cdh-catalog-link{border-color:var(--sv-line);border-radius:999px;background:color-mix(in srgb,var(--sv-chip) 70%,transparent)}
+@media(max-width:640px){.cdh-services__moon{width:88px;height:88px;margin-bottom:8px}#cdHomeFunnel .cdh-services__head h2{font-size:1.16rem!important}#cdHomeFunnel .cdh-services__head .cdh-lead{font-size:.9rem!important;line-height:1.6!important}#cdHomeFunnel .cdh-services--luxe .fortune-gateway__search-input::placeholder{font-size:14px}#cdHomeFunnel .cdh-services__divider{height:26px;margin-top:10px}#cdHomeFunnel .cdh-services--luxe .fortune-gateway__search{min-height:54px;padding-left:16px}}
 #cdHomeFunnel .cd-diary-planner-entry__action{color:#fff1f7}
 html.neo-mode #cdHomeFunnel .cd-diary-planner-entry__action{color:#17102f}
 @media(max-width:640px){
