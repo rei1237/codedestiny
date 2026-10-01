@@ -1,8 +1,8 @@
 ---
 status: active
-implementationStatus: shipped-to-main (3단계 네오 세계 완료 · 스테이징 플래그 ON · 프로덕션 OFF)
+implementationStatus: shipped-to-main (4단계 에셋·포즈·순간 완료 · 스테이징 플래그 ON · 프로덕션 OFF)
 updated: 2026-10-01
-next: 4단계 — 운세별 에셋·포즈, 로딩·빈 기록·오류 에셋.
+next: 5단계 — 메인 히어로 보조 진입점과 sitemap.
 ---
 
 # 연이·네오 대화형 상담 → 영냥이 질문형 엔진 공유 (1단계: 공통 엔진·결제 연결)
@@ -116,6 +116,58 @@ next: 4단계 — 운세별 에셋·포즈, 로딩·빈 기록·오류 에셋.
 - 보이지 않는 상담자 칸이 생성 중이면 폴링하지 않는다. 그쪽으로 돌아오면 그때 폴링을 다시 시작한다(서버 생성은 계속 진행된다).
 - 연이(밝은 테마)에서 ProfileForm·ReadingCharts 의 영냥이 어두운 스타일이 밝은 글자를 밝은 바탕에 그릴 수 있다. 2단계부터 있던 상태이고, 이번에는 확인하지 않았다.
 
+## 4단계 결과 (2026-10-01, 커밋)
+
+- `7a46d8a43` 운세별 에셋·포즈·로딩/빈 기록/오류 순간.
+  - `consultation-world.ts`:
+    - `DOMAIN_ART`: 상담자 × 운세 축 5종 그림과 alt.
+      - 연이는 검증된 운세 입구 그림 `public/images/consultation/*-yeoni-entry-*-640.webp` 를 재사용했다(자산 규칙: 기존 검증 자산 우선).
+      - 네오는 새로 그렸다: `public/images/fortune-chat/neo/{saju,ziwei,sukuyo,vedic,astrology}-640.webp`, 640×427, 44–59KB.
+    - `MOMENT_ART`: 상담자 × loading·empty·error. 파일은 `public/images/fortune-chat/moments/{yeoni,neo}-{loading,empty,error}.webp`, 320×320, 13–23KB. 장식 그림이라 `alt=""` 이고, 의미는 옆 글이 전한다.
+    - `poseFor(row, {failed, drafting})`: 헤더 아바타 표정을 정한다.
+      - 오류 → think
+      - 질문 전 → greet, 질문 입력 중 → listen
+      - 결제 전 → listen, 생성 중 → read
+      - 완료 → cheer, 환불 → think
+  - `ConsultationRoom.tsx`:
+    - `DomainArt`(`data-consultation-domain-art`): 시작 화면의 운세 축 패널과, 장이 아직 없는 현재 상담 패널에 보인다.
+    - `Moment`(`data-consultation-moment`): 생성 중 점 말풍선, 오류 문구, 빈 기록 패널("지난 상담", 상담자별 문구)에 붙는다.
+    - 빈 기록 패널은 그 상담자의 기록 목록을 실제로 받아 온 뒤(`historyFor === persona`) 0건일 때만 보인다. 게스트·로딩 전에는 보이지 않는다.
+  - `consultation.module.css`:
+    - `.domainArt`: 3:2, 최대 390×260, 패널 가운데.
+    - `.moment`·`.momentArt`: 96px, 560px 이하 76px.
+    - 색은 세계 토큰만 쓴다.
+  - 각 webp 옆의 `.webp.json` 에 프롬프트·생성기(codex-image, gpt-image-2)·생성 시각을 남겼다. 네오 참조 이미지는 `persona/neo-world-greet.webp` 다. 참고로 `neo-operation-room-hero-v2.webp` 는 사람 그림이라 마스코트가 아니다.
+  - 테스트 `__tests__/ui/fortune-chat-consultation-world.test.js`: 2건을 추가해 5건이다.
+    - 모든 상담자 × 축·순간에 그림이 있고, 파일이 실제로 있고, alt 가 비어 있지 않다.
+    - 표정 매핑.
+
+해석·가정:
+- "운세별 에셋" = 상담자마다 운세 축 하나당 그림 한 장이다. 결과 화면(장이 생긴 뒤)에는 그림을 넣지 않았다.
+- "포즈" = 기존 `PersonaMood` 5종을 단계에 매핑한 것이다. 새 스프라이트는 만들지 않았다.
+
+검증(전부 mock, 실 LLM·실결제 없음):
+- node --test 세계 5/5. tsc 의 fortune-chat 오류 0건, eslint 변경 파일 0건.
+- 화면: next dev + playwright `page.route` 스텁(스크래치, 커밋 안 함)으로 390·1280 을 확인했다.
+  - 시나리오(연이·네오 각각): 결제 전 상담, 생성 중, 불러오기 오류, 시작 화면(빈 기록·운세 축 전환).
+  - 가로 넘침 0, 깨진 이미지 0, 페이지 오류 0.
+- visual-checker:
+  - 대비: 네오 본문 8.90:1, 연이 본문 7.86:1, 오류 빨강 5.30:1.
+  - 순간 그림의 가장자리가 카드와 같아 상자로 보이지 않는다.
+  - 1차 지적 "데스크톱에서 그림이 왼쪽으로 쏠림"은 `justify-self:center; width:min(100%,390px)` 로 고쳤다. 재판정에서 좌우 169/169px 로 대칭이다.
+- check:fast: `--committed-head`(7a46d8a43 단독). critical 등급 34단계 전부 통과했다. 3단계 때 실패하던 `verify:sitemap-drift`·test:node 도 이번에는 통과했다(옆 세션 d5b90e1bc 원장 재생성 이후로 보임, 원인 미확정). test:jest 328 스위트·4893건 통과.
+- 미검증: 스테이징 실화면, 실 카드 결제 복귀 중의 순간 그림.
+
+4단계 남은 위험(결함 아님, 수용):
+- 그림 내용:
+  - 네오 숙요 그림의 별 표식은 약 17개다(27개가 아님).
+  - 네오 사주 책장에 아주 작은 가짜 한자가 있으나 표시 크기에서는 보이지 않는다.
+  - 네오 오류 그림은 "오류" 느낌이 약하다. 옆 문구가 전한다.
+  - 연이 오류 그림 왼쪽 가장자리에 그림 내용이 닿아 세로 선처럼 보인다.
+- 연이 순간 그림은 테두리 없는 비네트이고, 네오는 둥근 타일이다. 의도적으로 그대로 두었다.
+- 오류 시나리오에서는 상담을 못 불러오므로 기본 연이 세계가 보인다(스텁 확인). 네오의 오류 순간 그림은 네오 칸에서 오류가 날 때만 보인다.
+- 장이 생긴 뒤 결과 화면에는 운세 축 그림이 없다. 결과 위계(핵심 답변 우선)를 흐리지 않으려는 선택이다.
+
 ## 남은 위험·후속 (우선순위순)
 
 0. 🔴 **main CI `Critical checks` 가 2단계 `6cb20649c` 부터 실패한다**(로컬 재현: `node scripts/verify-worker-config-parity.mjs --self-test`).
@@ -157,10 +209,10 @@ next: 4단계 — 운세별 에셋·포즈, 로딩·빈 기록·오류 에셋.
    - 기록과 새로고침 복구
    - 스테이징에서 플래그 ON(vars 는 참조 문서 예외 절차)
 3. ✅ 네오 상담 세계(별빛 전략실): 정보 위계와 모드 전환 때 결과 보존 (2026-10-01 완료, 위 3단계 결과).
-4. 운세별 에셋, 포즈, 로딩·빈 기록·오류 에셋.
+4. ✅ 운세별 에셋, 포즈, 로딩·빈 기록·오류 에셋 (2026-10-01 완료, 위 4단계 결과).
 5. 메인 히어로 보조 진입점("연이와 네오에게, 지금 가장 궁금한 한 가지" / "내 고민 상담하기")과 sitemap.
 6. 결제 복귀·중복·복구 E2E(mock), 위 후속 1·3, 타로 통합, 구 guardian 경로 은퇴 판단, 실 LLM 품질 1회 검증(별도 승인).
 
 ## 다음 세션 첫 문장
 
-> docs/handoff/fortune-chat-engine-unification-2026-10-01.md 를 읽고 4단계(운세별 에셋·포즈·로딩/빈 기록/오류 에셋)를 시작해 줘. 3단계 상담실(app/fortune-chat/ConsultationRoom.tsx·consultation-world.ts)을 기준으로 삼아.
+> docs/handoff/fortune-chat-engine-unification-2026-10-01.md 를 읽고 5단계(메인 히어로 보조 진입점 "연이와 네오에게, 지금 가장 궁금한 한 가지" / "내 고민 상담하기"와 sitemap)를 시작해 줘. 영냥이 홈 app/page.js 의 기존 상담 진입 구현과 /fortune-chat/?character= 동작을 먼저 읽어.
