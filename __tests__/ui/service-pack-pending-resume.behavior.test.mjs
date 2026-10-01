@@ -98,3 +98,5 @@ await test('still ungranted after 3 rechecks hands back to the manual button',as
 for(const code of ['PG_PAYMENT_NOT_PAID','UNAUTHORIZED'])await test(code+' never rechecks',async()=>{const r=await recheck(1,{error:code});await assert.rejects(r.result,e=>e.code===code);assert.equal(r.confirms(),1);});
 await test('cancel stops the pending timers',async()=>{const r=await recheck(99,{abortAfter:1});assert.equal(await r.result,false);assert.equal(r.confirms(),1);});
 await test('purchase path skips the duplicate immediate confirm',async()=>{const r=await recheck(1,{immediate:false});assert.equal(await r.result,true);assert.equal(r.confirms(),1);});
+// 만료 토큰 401은 바로 로그인으로 보내지 않고 authFetch의 refresh 회복을 거친다.
+await test('pack requests opt into the authFetch 401 refresh',async()=>{let options;globalThis.__packFetch=async(path,init,opts)=>{options=opts;return new Response(JSON.stringify({ok:true,plans:[catalog],giftEnabled:false}),{status:200,headers:{'Content-Type':'application/json'}});};await api.readPackCatalog();assert.equal(options?.retryOn401,true);});

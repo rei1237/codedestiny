@@ -36,10 +36,12 @@ export function parseOwnedPacks(packs:unknown):OwnedServicePack[]{
   return pack as OwnedServicePack;
  });
 }
+// 만료된 액세스 토큰의 401은 authFetch가 refresh 후 1회 다시 보낸다. 재요청은 모두 멱등이다(prepare는 idempotencyKey, consume은 requestId).
+// refresh까지 실패한 401만 호출부로 올라가 로그인으로 보낸다.
 export async function packRequest<T>(path:string,body?:object):Promise<T>{
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),25000);
  try{
-  const response=await authFetch(`/api/payments/${path}`,{cache:'no-store',signal:controller.signal,...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})},{retryOn401:false});
+  const response=await authFetch(`/api/payments/${path}`,{cache:'no-store',signal:controller.signal,...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})},{retryOn401:true});
   const payload=await response.json();
   if(!response.ok||payload.ok===false)throw new ServicePackError(payload.code||'REQUEST_FAILED',response.status);
   return payload as T;
