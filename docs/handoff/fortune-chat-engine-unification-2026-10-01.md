@@ -1,8 +1,8 @@
 ---
 status: active
-implementationStatus: shipped-to-main (2단계 UI 완료 · 스테이징 플래그 ON · 프로덕션 OFF)
+implementationStatus: shipped-to-main (3단계 네오 세계 완료 · 스테이징 플래그 ON · 프로덕션 OFF)
 updated: 2026-10-01
-next: 3단계 — 네오 상담 세계(별빛 전략실): 정보 위계와 모드 전환 때 결과 보존.
+next: 4단계 — 운세별 에셋·포즈, 로딩·빈 기록·오류 에셋.
 ---
 
 # 연이·네오 대화형 상담 → 영냥이 질문형 엔진 공유 (1단계: 공통 엔진·결제 연결)
@@ -85,6 +85,37 @@ next: 3단계 — 네오 상담 세계(별빛 전략실): 정보 위계와 모�
 - 로그인 사용자는 `/fortune-chat` 방문마다 기록 GET 1회(Mongo 조회 1회)가 늘고, 첫 방문은 탐침 응답 전까지 기존 상담방이 잠깐 보였다가 바뀐다(`/api/fortune-chat/bootstrap` GET 1회 발생). 두 번째 방문부터는 sessionStorage 힌트로 바로 상담실.
 - 가격 배지는 서비스 등록 키 `fortune-chat-consultation` 로 표시한다(표시 전용). 실제 결제 금액은 서버 `fc-<id>` 판정이 정본.
 
+## 3단계 결과 (2026-10-01, 커밋)
+
+- `6062d83b4` 네오 세계(별빛 전략실)와 상담자별 결과 보존.
+  - `app/fortune-chat/consultation-world.ts`: 결과 순서·라벨(`RESULT_ORDER`·`SECTION_LABEL`)과 상담자별 칸(`PersonaRows`·`showRow`·`refreshRow`).
+    - 연이: 핵심 답변 → 요약 카드 → 근거 → 흐름 → 시기 → 행동 → 마무리(2단계 그대로).
+    - 네오: 핵심 판단 → 지금 할 일 → 시기 → 판단 근거 → 판세 → 장별 브리핑 → 마무리. 내용은 같고 순서·제목만 다르다.
+  - `ConsultationResult.tsx`: 섹션을 순서표대로 그린다. 루트에 `data-persona`.
+  - `ConsultationRoom.tsx`: 헤더에 연이/네오 전환(`data-consultation-mode`). 보던 상담은 상담자별 칸에 남고, 다른 쪽에 남은 상담이 있으면 점과 aria-label("… 보던 상담이 있어요")로 알린다. 전환하면 URL `?consultation=` 이 그 칸의 상담 id(없으면 제거)로 바뀐다.
+    - 사용자가 연 상담(기록·새로 만들기·결제 복귀)은 `showRow`, 뒤늦은 응답(폴링·활성화·무료·이어 쓰기·결제 복귀 대기)은 `refreshRow` — 그 칸이 같은 id 일 때만 바꾼다.
+    - 생성·결제 중(`busy`·`isPaying`)에는 전환을 막는다. 결제 흐름 자체는 바꾸지 않았다.
+  - `consultation.module.css`: `main.starlight` 토큰 한 세트(남색 #050713 계열 표면·금색 강조·밝은 글자), 핵심 판단 금색 세로선, 전환 버튼·점.
+  - 테스트 `__tests__/ui/fortune-chat-consultation-world.test.js`(3건). 순서·칸 보존·낡은 응답 차단에 변이 3개를 넣어 모두 실패하는 것을 확인했다.
+
+해석·가정:
+- "정보 위계" = 네오는 판단 → 할 일 → 시기를 앞에 둔다. 서버·프롬프트는 그대로이고 화면 순서만 바꿨다.
+- "결과 보존" = 한 탭 안의 메모리 보존이다. 새로고침 뒤에는 URL 에 있는 활성 상담 하나만 복구되고, 다른 상담자 상담은 기록 목록에서 다시 연다.
+- 질문 입력·운세 축·프로필 선택은 두 상담자가 공유한다.
+
+검증(전부 mock):
+- node --test 세계 3/3 + 접근 판정 4/4, tsc 전체 0건, eslint 변경 파일 0건.
+- 화면: next dev + playwright `page.route` 스텁(스크래치, 커밋 안 함)으로 390·1280 확인.
+  - 연이 결과 → 네오 전환(URL 제거, 연이에 점) → 네오 기록 열기 → 연이 복귀(추가 GET 0회, URL 복원) → 네오 복귀.
+  - 순서 일치, 가로 넘침 0, 페이지 오류 0.
+  - visual-checker: 별빛 화면 대비 전부 4.5:1 이상(금색 버튼 글자 10.91:1). 연이 화면의 점은 금색이 1.5:1 이라 로즈로 바꿔 6.59:1.
+- check:fast: `--committed-head --base=d0cf372fd --head=6062d83b4`(옆 세션 커밋 제외). critical 등급 33단계 중 실패 2건, 둘 다 기존 실패다. ① `verify:sitemap-drift`(아래 범위 밖 결함 — 제 커밋 전후 생성 결과 동일) ② test:node 의 `sitemap-volatile-lastmod-kst` 1건(2단계부터 있던 실패). 사이트맵 다음 단계는 하나씩 따로 돌렸고 typecheck·결제 verify 20종·build:worker·test:jest 를 포함해 나머지는 전부 통과했다.
+- 미검증: 스테이징 실화면, 실 카드 결제 복귀 중 전환, 실 LLM 결과.
+
+3단계 남은 위험:
+- 보이지 않는 상담자 칸이 생성 중이면 폴링하지 않는다. 그쪽으로 돌아오면 그때 폴링을 다시 시작한다(서버 생성은 계속 진행된다).
+- 연이(밝은 테마)에서 ProfileForm·ReadingCharts 의 영냥이 어두운 스타일이 밝은 글자를 밝은 바탕에 그릴 수 있다. 2단계부터 있던 상태이고, 이번에는 확인하지 않았다.
+
 ## 남은 위험·후속 (우선순위순)
 
 1. 🔴 **카드 결제 prepare 측 가드가 없다.**
@@ -109,6 +140,7 @@ next: 3단계 — 네오 상담 세계(별빛 전략실): 정보 위계와 모�
 - `MAX_FIX_RESUMES=0` 이라 죽은 경로가 남는다.
 - `content-assets.md:9` 가 낡았다.
 - main CI `CI required` 가 e88d22ae5 부터 Static guards 의 `sitemap-volatile-lastmod-kst.test.js`("주간 허브가 주 시작일을 쓰지 않습니다", 실제 2026-10-15 / 기대 2026-10-12)로 실패한다. clean HEAD 에서도 재현된다.
+- 2026-10-01 `verify:sitemap-drift` 가 로컬 clean 워크트리(d0cf372fd·e1f2174e0·6062d83b4)에서 모두 실패한다. 재생성하면 원장 294개 라우트의 서명·lastmod 가 바뀌고, 세 커밋의 생성 결과는 서로 같다. 그래서 3단계 변경 탓이 아니다. `/fortune-chat` 은 사이트맵에 없다. 날짜 롤링 또는 윈도우 CRLF 체크아웃 탓으로 보이나 원인은 확정하지 않았다.
 
 ## 로드맵
 
@@ -118,11 +150,11 @@ next: 3단계 — 네오 상담 세계(별빛 전략실): 정보 위계와 모�
    - 결과(핵심 답변 → 요약 카드 → 근거 → 흐름 → 시기 → 행동 → 마무리)
    - 기록과 새로고침 복구
    - 스테이징에서 플래그 ON(vars 는 참조 문서 예외 절차)
-3. 네오 상담 세계(별빛 전략실): 정보 위계와 모드 전환 때 결과 보존.
+3. ✅ 네오 상담 세계(별빛 전략실): 정보 위계와 모드 전환 때 결과 보존 (2026-10-01 완료, 위 3단계 결과).
 4. 운세별 에셋, 포즈, 로딩·빈 기록·오류 에셋.
 5. 메인 히어로 보조 진입점("연이와 네오에게, 지금 가장 궁금한 한 가지" / "내 고민 상담하기")과 sitemap.
 6. 결제 복귀·중복·복구 E2E(mock), 위 후속 1·3, 타로 통합, 구 guardian 경로 은퇴 판단, 실 LLM 품질 1회 검증(별도 승인).
 
 ## 다음 세션 첫 문장
 
-> docs/handoff/fortune-chat-engine-unification-2026-10-01.md 를 읽고 3단계(네오 상담 세계 — 별빛 전략실 정보 위계, 모드 전환 때 결과 보존)를 시작해 줘. 2단계 상담실(app/fortune-chat/ConsultationRoom.tsx)을 기준으로 삼아.
+> docs/handoff/fortune-chat-engine-unification-2026-10-01.md 를 읽고 4단계(운세별 에셋·포즈·로딩/빈 기록/오류 에셋)를 시작해 줘. 3단계 상담실(app/fortune-chat/ConsultationRoom.tsx·consultation-world.ts)을 기준으로 삼아.
