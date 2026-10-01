@@ -149,10 +149,25 @@ assert.deepStrictEqual(amountsIn("a $35 consultation"), [], "추출기가 달러
 
 // ── 3) 예외 — 정본 집합에 없어도 되는 금액 ────────────────────────────────────
 // 🔴 여기에 넣는 것은 **검사 대상 목록이 아니라 예외**다. 대상은 위에서 전수 발견한다.
-//    조합 합계처럼 정본 두 값의 산술 결과인 문구만 사유와 함께 넣는다. 낡은 가격을 덮는 데
-//    쓰지 말 것. 아래 ④ 단언이 더는 등장하지 않는 예외를 실패시킨다.
+//    넣을 수 있는 것은 두 종류뿐이고, 사유를 함께 적는다:
+//      ① 조합 합계처럼 정본 두 값의 산술 결과인 문구
+//      ② 앱이 파는 상품이 아닌 실제 거래 금액 — 사용자가 지정한 사실 문구만(2026-10-01: 네오 1:1 사람 상담 1회 30만원)
+//    낡은 가격을 덮는 데 쓰지 말 것. 아래 ④ 단언이 더는 등장하지 않는 예외를 실패시킨다.
 const ALLOWED_NON_CANONICAL = [
   // ["app/_lib/serviceSections.js", 40000, "단품 30,000 + 궁합 10,000 합계"],
+  ["index.html", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
+  ["i18n/authored/shellCopy-11.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
+  ["public/i18n/de.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
+  ["public/i18n/en.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
+  ["public/i18n/es.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
+  ["public/i18n/hi.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
+  ["public/i18n/ja.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
+  ["public/i18n/ko.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
+  ["public/i18n/ms.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
+  ["public/i18n/nl.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
+  ["public/i18n/vi.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
+  ["public/i18n/zh-cn.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
+  ["public/i18n/zh-tw.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
 ];
 
 // ── 4) 코퍼스 A — 사전 ────────────────────────────────────────────────────────
