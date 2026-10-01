@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import {useCallback,useEffect,useRef,useState} from 'react';
+import {Fragment,useCallback,useEffect,useRef,useState} from 'react';
 import {useAuthStore} from '@/app/_lib/auth-store';
 import {readSubscriptionSnapshotForUser,type SubscriptionSnapshot} from '@/app/_lib/billing-client';
 import HoneyPassArtwork from '@/components/yeon/HoneyPassArtwork';
@@ -35,7 +35,8 @@ const ghost='btn-moonlight-ghost inline-flex min-h-11 items-center justify-cente
 
 const won=(amount:number,locale:LoadingLocale)=>new Intl.NumberFormat(locale,{style:'currency',currency:'KRW',maximumFractionDigits:0}).format(amount);
 const date=(value:string,locale:LoadingLocale)=>new Intl.DateTimeFormat(locale,{dateStyle:'medium'}).format(new Date(value));
-const eligibleNames=(keys:string[],locale:LoadingLocale)=>[...new Set(products.filter(item=>keys.includes(item.cdFeatureKey)).map(item=>localizedSystem(item.domain,locale)))].join(' · ');
+// 이름 안의 공백("서양 점성술")에서 줄이 꺾이지 않도록 이름마다 묶고, 줄바꿈은 구분자에서만 일어나게 한다.
+const eligibleNames=(keys:string[],locale:LoadingLocale)=>[...new Set(products.filter(item=>keys.includes(item.cdFeatureKey)).map(item=>localizedSystem(item.domain,locale)))].map((name,index)=><Fragment key={name}>{index?' · ':''}<span className="whitespace-nowrap">{name}</span></Fragment>);
 const isPaidQuote=(quote:PackQuote)=>quote.status==='paid'||quote.status==='used'&&quote.accessMethod==='SERVICE_PACK'&&Boolean(quote.existingUse?.evidenceId);
 function loginIfNeeded(error:unknown){if(error instanceof ServicePackError&&error.status===401)loginForCurrentPage();}
 
