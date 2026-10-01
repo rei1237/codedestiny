@@ -5,7 +5,7 @@ import type {ReactNode} from 'react';
 import HoneyPassArtwork from '@/components/yeon/HoneyPassArtwork';
 import type {LoadingLocale} from '@/constants/loadingMessages';
 import type {OwnedServicePack} from './service-pack-client';
-import {packText,servicePackCopy} from './service-pack-copy';
+import {packName,packText,servicePackCopy} from './service-pack-copy';
 import {APPLIED_STAMP_IMAGES,SERVICE_PACK_IMAGES} from './service-pack-images';
 
 // 🔴 표시 전용. 꽃돼지 달빛 이용권과 영냥이 전용 이용권은 따로 보유·적용되며, 상담 한 건의 차감 수단 판정은 서버(funding claim)가 한다.
@@ -48,7 +48,7 @@ export function OwnedPassesSummary({locale,flower,packs}:{locale:LoadingLocale;f
     <div className="min-w-0">
      <p className="text-xs font-black text-[color:var(--moon-mist)]">{copy.packPass}</p>
      {first?<>
-      <h3 className="mt-0.5 text-base font-black leading-snug text-white">{first.label}</h3>
+      <h3 className="mt-0.5 text-base font-black leading-snug text-white">{packName(first,locale)}</h3>
       <p className={appliedLine}>{dot}<span>{copy.applied}</span></p>
       <p className="mt-0.5 text-xs font-bold text-[color:var(--moon-mist)] [word-break:keep-all]"><span className="whitespace-nowrap text-[color:var(--moon-teal)]">{packText(copy.remaining,{total:first.totalUses,remaining:first.remainingUses})}</span> · <span className="whitespace-nowrap">{packText(copy.expires,{date:date(first.expiresAt,locale)})}</span>{usable.length>1&&<> · <span className="whitespace-nowrap">{packText(copy.packOthers,{count:usable.length-1})}</span></>}</p>
      </>:packs==='loading'?<p role="status" className="mt-0.5 text-sm text-[color:var(--moon-mist)]">{copy.loading}</p>:packs==='error'?<>

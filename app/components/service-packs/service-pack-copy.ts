@@ -1,4 +1,5 @@
 import type {LoadingLocale} from '@/constants/loadingMessages';
+import {localizedTier} from '@/app/yeongnyangi/_lib/consultation-locale-copy';
 
 const COPY={
   "ko": {
@@ -45,6 +46,7 @@ const COPY={
     "giftComplete": "선물 결제 확인 후 링크를 준비해요.",
     "durationLabel": "이용 기간 {days}일",
     "previewSet": "{fish} 세트",
+    "packName": "{fish} 세트 {total}회",
     "resumePayment": "기존 주문 결제 이어가기",
     "resumeNotice": "먼저 결제 상태를 확인해요. 아직 결제되지 않은 같은 주문만 단건 결제로 이어가요.",
     "resumeConsent": "같은 주문의 이용 조건과 환불 정책을 다시 확인하고 동의해요.",
@@ -134,6 +136,7 @@ const COPY={
     "giftComplete": "Your gift link is prepared after payment is verified.",
     "durationLabel": "{days}-day usage period",
     "previewSet": "{fish} set",
+    "packName": "{total}-use {fish} set",
     "resumePayment": "Continue this order payment",
     "resumeNotice": "We check payment first. Only the same unpaid order can continue with a one-time payment.",
     "resumeConsent": "I have reviewed and agree again to this order’s terms and refund policy.",
@@ -223,6 +226,7 @@ const COPY={
     "giftComplete": "決済確認後にギフトリンクを準備します。",
     "durationLabel": "利用期間{days}日",
     "previewSet": "{fish}セット",
+    "packName": "{fish}セット {total}回",
     "resumePayment": "同じ注文の支払いを続ける",
     "resumeNotice": "先に決済状況を確認します。未払いの同じ注文のみ、都度払いで続けられます。",
     "resumeConsent": "この注文の利用条件と返金規定を再確認し、同意します。",
@@ -312,6 +316,7 @@ const COPY={
     "giftComplete": "付款验证后准备礼物链接。",
     "durationLabel": "使用期{days}天",
     "previewSet": "{fish}套餐",
+    "packName": "{fish}套餐 {total}次",
     "resumePayment": "继续支付原订单",
     "resumeNotice": "先确认支付状态。仅未付款的同一订单可继续单次付款。",
     "resumeConsent": "我已重新阅读并同意此订单的使用条款和退款政策。",
@@ -401,6 +406,7 @@ const COPY={
     "giftComplete": "付款驗證後準備禮物連結。",
     "durationLabel": "使用期{days}天",
     "previewSet": "{fish}套餐",
+    "packName": "{fish}套餐 {total}次",
     "resumePayment": "繼續支付原訂單",
     "resumeNotice": "先確認付款狀態。僅未付款的同一訂單可繼續單次付款。",
     "resumeConsent": "我已重新閱讀並同意此訂單的使用條款與退款政策。",
@@ -490,6 +496,7 @@ const COPY={
     "giftComplete": "Liên kết quà được chuẩn bị sau khi xác minh thanh toán.",
     "durationLabel": "Thời hạn sử dụng {days} ngày",
     "previewSet": "Bộ {fish}",
+    "packName": "Bộ {fish} {total} lượt",
     "resumePayment": "Tiếp tục thanh toán đơn này",
     "resumeNotice": "Chúng tôi kiểm tra thanh toán trước. Chỉ đơn cũ chưa thanh toán mới được tiếp tục bằng thanh toán một lần.",
     "resumeConsent": "Tôi đã xem lại và đồng ý với điều khoản cùng chính sách hoàn tiền của đơn này.",
@@ -579,6 +586,7 @@ const COPY={
     "giftComplete": "भुगतान की पुष्टि के बाद उपहार लिंक तैयार होगा।",
     "durationLabel": "{days} दिन की उपयोग अवधि",
     "previewSet": "{fish} सेट",
+    "packName": "{fish} सेट ({total} उपयोग)",
     "resumePayment": "इसी ऑर्डर का भुगतान जारी रखें",
     "resumeNotice": "पहले भुगतान की स्थिति जाँची जाएगी। केवल इसी अवैतनिक ऑर्डर का एकमुश्त भुगतान आगे बढ़ सकता है।",
     "resumeConsent": "मैंने इस ऑर्डर की शर्तें और वापसी नीति फिर से पढ़ी हैं और सहमत हूँ।",
@@ -668,6 +676,7 @@ const COPY={
     "giftComplete": "El enlace del regalo se prepara tras verificar el pago.",
     "durationLabel": "Periodo de uso de {days} días",
     "previewSet": "Lote {fish}",
+    "packName": "Lote {fish} de {total} usos",
     "resumePayment": "Continuar el pago de este pedido",
     "resumeNotice": "Primero comprobamos el pago. Solo este mismo pedido pendiente puede continuar con un pago único.",
     "resumeConsent": "He revisado y acepto de nuevo las condiciones y la política de reembolso de este pedido.",
@@ -757,6 +766,7 @@ const COPY={
     "giftComplete": "Le lien cadeau est préparé après vérification du paiement.",
     "durationLabel": "Durée d’utilisation de {days} jours",
     "previewSet": "Lot {fish}",
+    "packName": "Lot {fish} de {total} utilisations",
     "resumePayment": "Reprendre le paiement de cette commande",
     "resumeNotice": "Nous vérifions d’abord le paiement. Seule cette même commande non payée peut continuer par paiement unique.",
     "resumeConsent": "J’ai relu et j’accepte à nouveau les conditions et la politique de remboursement de cette commande.",
@@ -846,6 +856,7 @@ const COPY={
     "giftComplete": "Der Geschenklink wird nach der Zahlungsprüfung vorbereitet.",
     "durationLabel": "Nutzungsdauer: {days} Tage",
     "previewSet": "{fish}-Set",
+    "packName": "{fish}-Set mit {total} Nutzungen",
     "resumePayment": "Zahlung dieser Bestellung fortsetzen",
     "resumeNotice": "Wir prüfen zuerst den Zahlungsstatus. Nur dieselbe unbezahlte Bestellung kann mit einer Einmalzahlung fortgesetzt werden.",
     "resumeConsent": "Ich habe die Bedingungen und Erstattungsrichtlinie dieser Bestellung erneut gelesen und stimme zu.",
@@ -935,6 +946,7 @@ const COPY={
     "giftComplete": "De cadeaulink wordt na betaalcontrole klaargezet.",
     "durationLabel": "Gebruiksduur: {days} dagen",
     "previewSet": "{fish}-set",
+    "packName": "{fish}-set van {total} keer",
     "resumePayment": "Betaling van deze bestelling hervatten",
     "resumeNotice": "We controleren eerst de betaling. Alleen dezelfde onbetaalde bestelling kan doorgaan met een eenmalige betaling.",
     "resumeConsent": "Ik heb de voorwaarden en het terugbetalingsbeleid van deze bestelling opnieuw gelezen en ga akkoord.",
@@ -1024,6 +1036,7 @@ const COPY={
     "giftComplete": "Pautan hadiah disediakan selepas pembayaran disahkan.",
     "durationLabel": "Tempoh penggunaan {days} hari",
     "previewSet": "Set {fish}",
+    "packName": "Set {fish} {total} penggunaan",
     "resumePayment": "Sambung bayaran pesanan ini",
     "resumeNotice": "Kami menyemak bayaran dahulu. Hanya pesanan sama yang belum dibayar boleh diteruskan dengan bayaran sekali sahaja.",
     "resumeConsent": "Saya telah menyemak dan bersetuju semula dengan syarat serta dasar bayaran balik pesanan ini.",
@@ -1073,4 +1086,5 @@ const COPY={
 export type PackCopy=typeof COPY.ko;
 export function servicePackCopy(locale:LoadingLocale):PackCopy{return COPY[locale]||COPY.en;}
 export function packText(template:string,values:Record<string,string|number>){return template.replace(/\{(\w+)\}/g,(token,key)=>String(values[key]??token));}
-
+// 세트 이름은 서버 정책표의 한국어 고정값(label)이다. ko 는 그대로, 다른 로케일은 어종·회수로 다시 짓는다(표시 전용 — 주문·스냅샷 비교는 label 원문).
+export function packName(pack:{label:string;fishId:string;totalUses:number},locale:LoadingLocale){return locale==='ko'?pack.label:packText(servicePackCopy(locale).packName,{fish:localizedTier(pack.fishId,locale),total:pack.totalUses});}
