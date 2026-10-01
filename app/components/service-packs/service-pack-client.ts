@@ -1,6 +1,7 @@
 import {authFetch,isMobileAppRuntime} from '@/app/_lib/auth-client';
 import {getApiBaseUrl} from '@/app/_lib/api-config';
 import {requestPortOneSinglePayment,type PortOneCustomer} from '@/lib/payment/portone';
+import checkoutEntry from '@/js/core/checkout-entry.js';
 
 export const PACK_FISH_IDS=['mackerel','salmon','flounder','tuna'] as const;
 export type PackFishId=typeof PACK_FISH_IDS[number];
@@ -69,27 +70,53 @@ export async function confirmPackOrder(orderId:string){
  const confirmed=await packRequest<{entitlementStatus?:string}>(path+'/confirm',{});
  return confirmed.entitlementStatus==='granted';
 }
-export async function preparePackPurchase(planId:string,idempotencyKey:string,refundConsent:boolean,purchaseType:PackPurchaseType='SELF',gift?:PackGiftDraft,expectedOrderId?:string):Promise<PackOrder>{
+// 결제수단은 꽃돼지 결제창과 같은 표(js/core/checkout-entry.js DIRECT_PAY_METHODS)가 정본이다 — 값을 여기 베끼지 않는다.
+// 카드는 종전 그대로(config payMethod·이니시스 채널, 주문 기록 card_general)이고, 카카오페이만 표에서 전용 채널을 받는다.
+export type PackPayMethod='CARD'|'KAKAOPAY';
+export const PACK_PAY_METHODS:readonly PackPayMethod[]=['CARD','KAKAOPAY'];
+/** 저장된 수단이 지금 꺼져 있으면(전용 채널키 없음 등) 카드로 이어간다. 확정 시 서버가 PG 결과로 수단을 바로잡는다. */
+export const packPayMethod=(value:unknown):PackPayMethod=>value==='KAKAOPAY'&&checkoutEntry.isDirectPayMethodEnabled('KAKAOPAY')?'KAKAOPAY':'CARD';
+function packPayFields(method:PackPayMethod):{orderMethod:string;payFields?:{payMethod:string;channelKeyName:string}}{
+ if(method==='CARD')return {orderMethod:'card_general'};
+ if(!checkoutEntry.setSelectedDirectPayMethod(method))throw new ServicePackError('PAY_METHOD_UNAVAILABLE');
+ try{
+  const fields=checkoutEntry.resolveDirectPayFields('');
+  // 🔴 전용 채널이 없는 간편결제는 이니시스 카드창으로 새지 않게 주문 전에 멈춘다.
+  if(!fields.channelKeyName||!fields.orderMethod)throw new ServicePackError('PAY_METHOD_UNAVAILABLE');
+  return {orderMethod:fields.orderMethod,payFields:{payMethod:fields.payMethod,channelKeyName:fields.channelKeyName}};
+ }finally{checkoutEntry.clearSelectedDirectPayMethod();}
+}
+/** 모달을 열 때 전용 채널키가 없는 수단을 미리 내린다. 모르면 막지 않는다(빈 목록). */
+export function loadPackPayMethodAvailability(){
+ return checkoutEntry.ensureDirectPayMethodAvailability(()=>packRequest<Record<string,unknown>>('config')).catch(()=>[]);
+}
+export async function preparePackPurchase(planId:string,idempotencyKey:string,refundConsent:boolean,purchaseType:PackPurchaseType='SELF',gift?:PackGiftDraft,expectedOrderId?:string,payMethod:PackPayMethod='CARD'):Promise<PackOrder>{
  if(isMobileAppRuntime())throw new ServicePackError('APP_PACK_NOT_AVAILABLE');
- const {order}=await packRequest<{order:PackOrder}>('service-packs/prepare',{planId,idempotencyKey,paymentMethod:'card_general',refundConsent,purchaseType,...(purchaseType==='GIFT'?{gift}:{}),...(expectedOrderId?{expectedOrderId}:{})});
+ const {orderMethod}=packPayFields(payMethod);
+ const {order}=await packRequest<{order:PackOrder}>('service-packs/prepare',{planId,idempotencyKey,paymentMethod:orderMethod,refundConsent,purchaseType,...(purchaseType==='GIFT'?{gift}:{}),...(expectedOrderId?{expectedOrderId}:{})});
  if(!order||!text(order.merchantUid)||!positive(order.paymentAmount)||!text(order.productName)||order.packSnapshot?.planId!==planId||order.purchaseType!==purchaseType||(purchaseType==='GIFT'&&!text(order.giftId)))throw new ServicePackError('INVALID_ORDER');
  parsePackPlans({plans:[{...order.packSnapshot,autoRenew:false}]});
  return order;
 }
-export async function payPackOrder(order:PackOrder){
+export async function payPackOrder(order:PackOrder,payMethod:PackPayMethod='CARD'){
  if(isMobileAppRuntime())throw new ServicePackError('APP_PACK_NOT_AVAILABLE');
  const giftReturn=`/gift/complete/?orderId=${encodeURIComponent(order.merchantUid)}`;
  if(order.entitlementGranted||order.status?.toUpperCase()==='PAID'){if(order.purchaseType==='GIFT'){window.location.assign(giftReturn);return false;}return confirmPackOrder(order.merchantUid);}
- const response=await requestPortOneSinglePayment({apiBase:getApiBaseUrl(),paymentId:order.merchantUid,orderName:order.productName,totalAmount:order.paymentAmount,
+ const {payFields}=packPayFields(payMethod);
+ const response=await requestPortOneSinglePayment({...(payFields?{payFields}:{}),apiBase:getApiBaseUrl(),paymentId:order.merchantUid,orderName:order.productName,totalAmount:order.paymentAmount,
   redirectPath:order.purchaseType==='GIFT'?giftReturn:`/points/?service_pack_return=1&orderId=${encodeURIComponent(order.merchantUid)}#fish-packs`,customer:order.customer,storeId:order.storeId,channelKey:order.channelKey,
   customData:{productType:'service_pack',planId:order.packSnapshot.planId}});
- if(!response.ok)throw new ServicePackError(response.code||'PAYMENT_UNCERTAIN');
+ if(!response.ok){
+  // 채널키가 비어 창을 못 연 수단은 이 페이지에서 내린다 — 같은 주문은 카드로 이어갈 수 있다.
+  if(response.code==='PAY_METHOD_UNAVAILABLE'&&payMethod!=='CARD')checkoutEntry.markDirectPayMethodUnavailable(payMethod);
+  throw new ServicePackError(response.code||'PAYMENT_UNCERTAIN');
+ }
  if(response.paymentId!==order.merchantUid)throw new ServicePackError('ORDER_MISMATCH');
  if(order.purchaseType==='GIFT'){window.location.assign(giftReturn);return false;}
  return confirmPackOrder(order.merchantUid);
 }
 
-export type PendingPackOrder={planId:string;idempotencyKey:string;orderId?:string;purchaseType?:PackPurchaseType;gift?:PackGiftDraft;packSnapshot?:PackOrder['packSnapshot']};
+export type PendingPackOrder={planId:string;idempotencyKey:string;orderId?:string;payMethod?:PackPayMethod;purchaseType?:PackPurchaseType;gift?:PackGiftDraft;packSnapshot?:PackOrder['packSnapshot']};
 const storageKey=(userId:string)=>`cd_service_pack_pending_v1:${userId}`;
 export function readPendingPack(userId:string):PendingPackOrder|null{
  try{const value=JSON.parse(sessionStorage.getItem(storageKey(userId))||'null');return value&&text(value.planId)&&text(value.idempotencyKey)?value:null;}catch{return null;}
@@ -133,9 +160,10 @@ export async function resumePendingPackPurchase(ownerId:string,refundConsent:boo
  const plan=catalog.plans.find(item=>item.planId===pending.planId);
  if(!plan||!samePackSnapshot(plan,pending.packSnapshot)||(pending.purchaseType==='GIFT'&&!catalog.giftEnabled))
   throw new ServicePackError('PENDING_ORDER_UNAVAILABLE');
- const order=await preparePackPurchase(pending.planId,pending.idempotencyKey,true,pending.purchaseType,pending.gift,pending.orderId);
+ const payMethod=packPayMethod(pending.payMethod);
+ const order=await preparePackPurchase(pending.planId,pending.idempotencyKey,true,pending.purchaseType,pending.gift,pending.orderId,payMethod);
  assertCurrent();
  if(order.merchantUid!==pending.orderId||!samePackSnapshot(order.packSnapshot,pending.packSnapshot)
   ||!['PENDING','PAID'].includes(String(order.status||'').toUpperCase()))throw new ServicePackError('ORDER_MISMATCH');
- return payPackOrder(order);
+ return payPackOrder(order,payMethod);
 }

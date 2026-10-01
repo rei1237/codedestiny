@@ -12,12 +12,13 @@ import {localizedSystem,localizedTier} from '@/app/yeongnyangi/_lib/consultation
 import {loginForCurrentPage} from '@/app/yeongnyangi/_lib/api';
 import {products} from '@/worker/yeongnyangi/payments/catalog';
 import {resolveServerFeaturePricing} from '@/lib/payment/server-feature-pricing';
-import {confirmPackOrder,consumeServicePack,payPackOrder,preparePackPurchase,quoteServicePack,readPackCatalog,readPackWallet,readPendingPack,savePendingPack,resumePendingPackPurchase,samePackSnapshot,ServicePackError,type OwnedServicePack,type PackQuote,type ServicePackPlan} from './service-pack-client';
+import checkoutEntry from '@/js/core/checkout-entry.js';
+import {confirmPackOrder,consumeServicePack,loadPackPayMethodAvailability,PACK_PAY_METHODS,payPackOrder,preparePackPurchase,quoteServicePack,readPackCatalog,readPackWallet,readPendingPack,savePendingPack,resumePendingPackPurchase,samePackSnapshot,ServicePackError,type OwnedServicePack,type PackQuote,type ServicePackPlan} from './service-pack-client';
 import {packText,servicePackCopy} from './service-pack-copy';
 import styles from './service-packs.module.css';
 import {SERVICE_PACK_IMAGES} from './service-pack-images';
 import ServicePackShowcase from './ServicePackShowcase';
-import type {PackGiftDraft,PackPurchaseType} from './service-pack-client';
+import type {PackGiftDraft,PackPayMethod,PackPurchaseType} from './service-pack-client';
 import {ShopPigImage} from '@/app/points/MoonShopFrame';
 
 // 화면 구조·클래스는 /points 달빛 이용권 카드·결제 모달(PointsClient MoonlightShopPlans)과 맞춘다.
@@ -51,7 +52,7 @@ export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLoca
  const [catalog,setCatalog]=useState<{plans:ServicePackPlan[];error:boolean;loading:boolean;giftEnabled:boolean}>({plans:[],error:false,loading:true,giftEnabled:false});
  const [wallet,setWallet]=useState<{ownerId:string;packs:OwnedServicePack[];nextCursor:string|null;error:boolean;loading:boolean}>({ownerId:'',packs:[],nextCursor:null,error:false,loading:true});
  const [selected,setSelected]=useState<string>(''),[consent,setConsent]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[pendingOrder,setPendingOrder]=useState('');
- const [resumeConsent,setResumeConsent]=useState(false);
+ const [resumeConsent,setResumeConsent]=useState(false),[,setPayMethodRevision]=useState(0);
  const [purchaseType,setPurchaseType]=useState<PackPurchaseType>('SELF'),[gift,setGift]=useState<PackGiftDraft>({senderName:'',recipientName:'',giftMessage:''});
  const lock=useRef(false),scope=useRef(ownerId),purchaseRef=useRef<HTMLHeadingElement>(null),triggerRef=useRef<HTMLElement|null>(null),catalogRef=useRef(catalog);scope.current=ownerId;catalogRef.current=catalog;
  const refreshCatalog=useCallback(async()=>{setCatalog(value=>({...value,loading:true,error:false}));try{const data=await readPackCatalog();setCatalog({...data,error:false,loading:false});}catch{setCatalog({plans:[],giftEnabled:false,error:true,loading:false});}},[]);
@@ -88,7 +89,7 @@ export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLoca
   if(providerId&&providerId!==orderId){setMessage(copy.unavailable);return;}
   void checkOrder(orderId);
  },[ownerId,checkOrder,copy]);
- const buy=async()=>{
+ const buy=async(payMethod:PackPayMethod)=>{
   if(!ownerId){loginForCurrentPage();return;}if(lock.current||!consent)return;
   const plan=catalog.plans.find(item=>item.planId===selected);if(!plan)return;
   lock.current=true;setBusy(true);setMessage(copy.confirm);
@@ -96,14 +97,14 @@ export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLoca
    const previous=readPendingPack(ownerId);if(previous?.orderId){setPendingOrder(previous.orderId);return;}
    if(previous&&(previous.planId!==plan.planId||(previous.purchaseType||'SELF')!==purchaseType||(purchaseType==='GIFT'&&JSON.stringify(previous.gift)!==JSON.stringify(gift))))throw new ServicePackError('PENDING_OTHER_PLAN');
    if(purchaseType==='GIFT'&&!catalog.giftEnabled)throw new ServicePackError('GIFT_NOT_AVAILABLE');
-   const pending=previous||{planId:plan.planId,idempotencyKey:`service-pack-${crypto.randomUUID()}`,purchaseType,...(purchaseType==='GIFT'?{gift}:{})};
+   const pending={...(previous||{planId:plan.planId,idempotencyKey:`service-pack-${crypto.randomUUID()}`,purchaseType,...(purchaseType==='GIFT'?{gift}:{})}),payMethod};
    savePendingPack(ownerId,pending);
-   const order=await preparePackPurchase(plan.planId,pending.idempotencyKey,consent,purchaseType,purchaseType==='GIFT'?gift:undefined);
+   const order=await preparePackPurchase(plan.planId,pending.idempotencyKey,consent,purchaseType,purchaseType==='GIFT'?gift:undefined,undefined,payMethod);
    if(scope.current!==ownerId)throw new ServicePackError('AUTH_SCOPE_CHANGED');
    savePendingPack(ownerId,{...pending,orderId:order.merchantUid,packSnapshot:order.packSnapshot});setPendingOrder(order.merchantUid);
-   const granted=await payPackOrder(order);if(scope.current!==ownerId)return;
+   const granted=await payPackOrder(order,payMethod);if(scope.current!==ownerId)return;
    if(granted){savePendingPack(ownerId,null);setPendingOrder('');setSelected('');setConsent(false);setMessage(copy.complete);await refreshWallet();}
-  }catch(error){loginIfNeeded(error);setMessage(error instanceof ServicePackError&&error.code==='APP_PACK_NOT_AVAILABLE'?copy.webOnly:copy.confirm);}
+  }catch(error){loginIfNeeded(error);if(error instanceof ServicePackError&&error.code==='PAY_METHOD_UNAVAILABLE')setPayMethodRevision(value=>value+1);setMessage(error instanceof ServicePackError&&error.code==='APP_PACK_NOT_AVAILABLE'?copy.webOnly:copy.confirm);}
   finally{lock.current=false;setBusy(false);}
  };
 
@@ -128,6 +129,8 @@ export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLoca
  const closePurchase=()=>{if(lock.current)return;setSelected('');setConsent(false);};
  useEffect(()=>{
   if(!modalOpen)return;purchaseRef.current?.focus();
+  // 전용 채널키가 없는 수단(스테이징 카카오페이 등)을 주문 전에 '준비 중'으로 내린다. config 왕복은 페이지당 1회를 꽃돼지 결제창과 나눠 쓴다.
+  void loadPackPayMethodAvailability().then(closed=>{if(closed.length)setPayMethodRevision(value=>value+1);});
   const onKey=(event:KeyboardEvent)=>{if(event.key==='Escape'&&!lock.current){setSelected('');setConsent(false);}};
   document.addEventListener('keydown',onKey);
   return()=>{document.removeEventListener('keydown',onKey);triggerRef.current?.focus?.();};
@@ -243,14 +246,19 @@ export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLoca
      <input type="checkbox" checked={consent} onChange={event=>setConsent(event.currentTarget.checked)} disabled={busy} className="mt-0.5 h-4 w-4 flex-shrink-0 accent-amber-300"/>
      <span>{copy.consent}</span>
     </label>
-    {/* 🔴 영냥이 세트는 서버 prepare 가 card_general 고정이라 타일이 하나다. 환불 동의 전에는 잠근다(꽃돼지 모달과 같은 순서). */}
+    {/* 🔴 결제수단은 카드(card_general·이니시스)와 카카오페이(전용 채널)다. 이름·아이콘·활성 여부는 checkout-entry 표가 정본이다.
+        환불 동의 전에는 잠근다(꽃돼지 모달과 같은 순서). */}
     <div className="mt-4">
      <p className="text-[12px] font-black text-slate-200">{copy.payPrompt}</p>
      <div className="mt-2 grid grid-cols-2 gap-2">
-      <button type="button" data-pack-pay-method="card" disabled={busy||!consent||isMobileAppRuntime()} onClick={()=>void buy()} className="flex min-h-[76px] flex-col items-start justify-center gap-1 rounded-[14px] border border-amber-200/45 bg-amber-200/12 px-3.5 py-3 text-left text-amber-50 transition hover:bg-amber-200/20 disabled:cursor-not-allowed disabled:opacity-50">
-       <span aria-hidden="true" className="text-lg leading-none">💳</span>
-       <span className="text-[13px] font-black leading-snug">{copy.cardPay}</span>
-      </button>
+      {PACK_PAY_METHODS.map(method=>{
+       const card=method==='CARD',open=card||checkoutEntry.isDirectPayMethodEnabled(method);
+       return <button key={method} type="button" data-pack-pay-method={card?'card':'kakaopay'} disabled={busy||!consent||!open||isMobileAppRuntime()} onClick={()=>void buy(method)} className="flex min-h-[76px] flex-col items-start justify-center gap-1 rounded-[14px] border border-amber-200/45 bg-amber-200/12 px-3.5 py-3 text-left text-amber-50 transition hover:bg-amber-200/20 disabled:cursor-not-allowed disabled:opacity-50">
+        <span aria-hidden="true" className="text-lg leading-none">{card?'💳':checkoutEntry.directPayMethodMeta(method)?.glyph}</span>
+        <span className="text-[13px] font-black leading-snug">{card?copy.cardPay:checkoutEntry.directPayMethodLabel(method)}</span>
+        {!open&&<span className="text-[11px] font-bold text-amber-100/80">{checkoutEntry.directPayMethodComingSoonText()}</span>}
+       </button>;
+      })}
      </div>
      {isMobileAppRuntime()&&<p className="mt-2 text-[12px] font-bold text-amber-100">{copy.webOnly}</p>}
      {message&&<p role="status" className="mt-2 text-[12px] font-bold text-slate-200">{message}</p>}

@@ -8,7 +8,7 @@ const root=fileURLToPath(new URL('../../',import.meta.url)).replaceAll('\\','/')
 const require=createRequire(root+'/package.json'),{build}=require('esbuild');
 require(root+'/scripts/lib/mock-network-guard.cjs');
 const source=await readFile(root+'/app/components/service-packs/service-pack-client.ts','utf8');
-const result=await build({stdin:{contents:source,loader:'ts',resolveDir:root},bundle:true,format:'esm',platform:'node',write:false,plugins:[{name:'mock-boundaries',setup(b){b.onResolve({filter:/^@\//},args=>({path:args.path,namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path.endsWith('auth-client')?'export const authFetch=(...args)=>globalThis.__packFetch(...args);export const isMobileAppRuntime=()=>false;':args.path.endsWith('api-config')?'export const getApiBaseUrl=()=>"";':'export const requestPortOneSinglePayment=(order)=>globalThis.__packSdk(order);',loader:'js'}));}}]});
+const result=await build({stdin:{contents:source,loader:'ts',resolveDir:root},bundle:true,format:'esm',platform:'node',write:false,plugins:[{name:'mock-boundaries',setup(b){b.onResolve({filter:/^@\//},args=>args.path.endsWith('checkout-entry.js')?{path:root+'/js/core/checkout-entry.js'}:{path:args.path,namespace:'mock'});b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path.endsWith('auth-client')?'export const authFetch=(...args)=>globalThis.__packFetch(...args);export const isMobileAppRuntime=()=>false;':args.path.endsWith('api-config')?'export const getApiBaseUrl=()=>"";':'export const requestPortOneSinglePayment=(order)=>globalThis.__packSdk(order);',loader:'js'}));}}]});
 const api=await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'));
 const catalog={planId:'qa-mackerel',label:'QA 고등어 세트',fishId:'mackerel',policyVersion:'qa-only',priceKRW:4100,totalUses:7,validityDays:37,unitPriceKRW:1000,eligibleFeatureKeys:['saju','ziwei','sukuyo','astrology','vedic','tarot'].map(system=>'yeongnyangi-'+system+'-mackerel'),autoRenew:false};
 const {autoRenew,...snapshot}=catalog;
@@ -17,9 +17,9 @@ async function scenario(name,options={},run){
  return test(name,async()=>{
  const storage=new Map(),calls=[],sdk=[],redirects=[];let current=true,paid=Boolean(options.paid),prepareAttempts=0;
  globalThis.sessionStorage={getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)};
- globalThis.window={location:{assign:url=>redirects.push(url)}};
+ globalThis.window={location:{assign:url=>redirects.push(url)},...(options.kakaoClosed?{__cdDirectPayMethodAvailability:{KAKAOPAY:false}}:{})};
  const purchaseType=options.gift?'GIFT':'SELF';
- const pending={planId:catalog.planId,idempotencyKey:'original-key',orderId:'original-order',purchaseType,packSnapshot:snapshot,...(options.gift?{gift:{senderName:'보낸이',recipientName:'받는이',giftMessage:'선물'}}:{})};
+ const pending={planId:catalog.planId,idempotencyKey:'original-key',orderId:'original-order',purchaseType,...(options.method?{payMethod:options.method}:{}),packSnapshot:snapshot,...(options.gift?{gift:{senderName:'보낸이',recipientName:'받는이',giftMessage:'선물'}}:{})};
  if(options.corruptKey)pending.idempotencyKey='damaged-key';
  if(options.noSnapshot)delete pending.packSnapshot;
  api.savePendingPack('owner-a',pending);
@@ -35,7 +35,7 @@ async function scenario(name,options={},run){
   }
   if(path.endsWith('/catalog'))return reply({ok:true,plans:options.planRemoved?[]:[{...catalog,...(options.catalogDrift?{totalUses:8}:{})}],giftEnabled:!options.giftDisabled});
   if(path.endsWith('/prepare')){
-   prepareAttempts++;assert.equal(body.idempotencyKey,options.corruptKey?'damaged-key':'original-key');assert.equal(body.expectedOrderId,options.newPurchase?undefined:'original-order');assert.equal(body.paymentMethod,'card_general');assert.equal(body.refundConsent,true);assert.equal(body.purchaseType,purchaseType);assert.equal(body.planId,catalog.planId);
+   prepareAttempts++;assert.equal(body.idempotencyKey,options.corruptKey?'damaged-key':'original-key');assert.equal(body.expectedOrderId,options.newPurchase?undefined:'original-order');assert.equal(body.paymentMethod,options.method==='KAKAOPAY'&&!options.kakaoClosed?'kakaopay':'card_general');assert.equal(body.refundConsent,true);assert.equal(body.purchaseType,purchaseType);assert.equal(body.planId,catalog.planId);
    assert.deepEqual(Object.keys(body).sort(),['planId','idempotencyKey','paymentMethod','refundConsent','purchaseType',...(options.gift?['gift']:[]),...(options.newPurchase?[]:['expectedOrderId'])].sort());
    if(options.corruptKey)return reply({ok:false,code:'ORDER_NOT_CONFIRMABLE'},409);
    if(options.prepareLoss&&prepareAttempts===1)throw new TypeError('mock prepare response lost');
@@ -76,3 +76,6 @@ const start=copySource.indexOf('const COPY=')+11,end=copySource.indexOf('\n};',s
 const copies=JSON.parse(copySource.slice(start,end));
 assert.equal(Object.keys(copies).length,12);for(const copy of Object.values(copies))for(const key of ['resumePayment','resumeNotice','resumeConsent','resumeAtShop'])assert.ok(copy[key]);
 });
+// 카카오페이는 checkout-entry 표에서 EASY_PAY·전용 채널 필드 이름을 받고, 꺼져 있으면 같은 주문을 카드(종전 경로)로 이어간다.
+await scenario('KakaoPay resume uses the table channel and never the Inicis fallback',{method:'KAKAOPAY'},async({resume,sdk})=>{assert.equal(await resume(),true);assert.deepEqual(sdk[0].payFields,{payMethod:'EASY_PAY',channelKeyName:'kakaopayChannelKey'});assert.equal(globalThis.window.__cdSelectedDirectPayMethod??null,null);});
+await scenario('closed KakaoPay resumes the same order on the card path',{method:'KAKAOPAY',kakaoClosed:true},async({resume,sdk})=>{assert.equal(await resume(),true);assert.equal(sdk[0].payFields,undefined);assert.equal(sdk[0].paymentId,'original-order');});

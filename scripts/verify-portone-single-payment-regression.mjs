@@ -402,8 +402,9 @@ function runPgWindowLocaleTests() {
   // ⑥ 🔴 채널 격리. 셸·독립·이용권 상점은 사용자가 다른 PG 를 고를 수 있고, 그 채널에
   //    inicis_v2 키를 실었을 때의 동작은 미문서다 — 거절이라면 결제창이 아예 안 뜬다.
   //    방어가 조용히 사라지는 것을 막기 위해 '같은 표현식 안'을 고정한다.
-  //    🔴 lib/payment/portone.ts 는 여기 없다 — 그 경로는 수단 선택이 없어 항상 이니시스 채널이다.
+  //    lib/payment/portone.ts 도 영냥이 이용권 세트의 카카오페이(payFields.channelKeyName)부터 여기 든다(2026-10-01).
   for (const [label, source, marker] of [
+    ["lib/payment/portone.ts", portoneClientSource, "if (!dedicatedChannelKeyName) requestData.bypass = checkoutEntry.portoneBypass();"],
     ["index.html", indexSource, "directPayFields.channelKeyName ? null : _cdPortoneBypass(order && order.foreignCard)"],
     ["js/destiny-profile.js", destinyProfileSource, "directPayFields.channelKeyName ? null : _dpPortoneBypass()"],
     ["app/points/PointsClient.tsx", pointsClientSource, "directPayFields.channelKeyName ? null : checkoutEntry.portoneBypass(order.foreignCard)"],

@@ -23,6 +23,11 @@ type PortOnePaymentRequestOptions = {
   customData: Record<string, unknown>;
   storeId?: string;
   channelKey?: string;
+  /**
+   * 결제수단 표(checkout-entry resolveDirectPayFields)의 결과. 없으면 config 의 payMethod·이니시스 채널 그대로다.
+   * 🔴 channelKeyName 이 있으면 그 config 필드의 채널키만 쓴다 — 비었으면 이니시스로 폴백하지 않고 실패한다.
+   */
+  payFields?: { payMethod?: string; channelKeyName?: string };
 };
 
 export type PortOneCustomer = {
@@ -282,6 +287,7 @@ async function fetchConfig(apiBase: string) {
     noticeUrl: payload.noticeUrl,
     currency: normalizeCurrency(payload.currency || PORTONE_CURRENCY),
     payMethod: normalizePayMethod(payload.payMethod),
+    raw: payload as unknown as Record<string, unknown>,
   };
 }
 
@@ -373,7 +379,9 @@ export async function requestPortOneSinglePayment(
     customData,
     storeId: manualStoreId,
     channelKey: manualChannelKey,
+    payFields,
   } = options;
+  const dedicatedChannelKeyName = String(payFields?.channelKeyName || "").trim();
 
   const hasOrderName = Boolean(String(orderName || "").trim());
   const hasCustomerEmail = Boolean(customer?.email);
@@ -406,10 +414,15 @@ export async function requestPortOneSinglePayment(
     // SDK 로드와 config 조회는 상호 독립이라 병렬로 진행해 단건결제 창 오픈 지연을 줄인다(순차 2왕복 → 병렬).
     const [, config] = await Promise.all([ensurePortoneSdk(), fetchConfig(apiBase)]);
     const storeId = manualStoreId?.trim() || config.storeId;
-    const channelKey = manualChannelKey?.trim() || config.channelKey;
+    const channelKey = dedicatedChannelKeyName
+      ? normalizeId(String(config.raw[dedicatedChannelKeyName] || ""))
+      : manualChannelKey?.trim() || config.channelKey;
 
     if (!storeId) {
       return { ok: false, message: portoneText("configMissing") };
+    }
+    if (!channelKey && dedicatedChannelKeyName) {
+      return { ok: false, code: "PAY_METHOD_UNAVAILABLE", message: portoneText("channelMissing") };
     }
     if (!channelKey) {
       return { ok: false, message: portoneText("channelMissing") };
@@ -422,7 +435,7 @@ export async function requestPortOneSinglePayment(
       orderName: String(orderName).trim(),
       totalAmount: amount,
       currency: config.currency || PORTONE_CURRENCY,
-      payMethod: config.payMethod || "CARD",
+      payMethod: normalizePayMethod(payFields?.payMethod || config.payMethod),
       // 🔴 안 보내면 PG 가 한국어 결제창을 연다 — 결제창까지 영어로 온 사용자가
       //    마지막 화면에서 한국어를 만난다. 값의 범위는 PG 가 정한다(pgWindowLocale 머리주석).
       locale: checkoutEntry.pgWindowLocale(),
@@ -431,9 +444,9 @@ export async function requestPortOneSinglePayment(
       customData,
     };
     if (config.noticeUrl) requestData.noticeUrls = [config.noticeUrl];
-    // 이 경로는 이니시스 단일 채널이라 채널 분기 없이 붙인다(셸·독립은 사용자가 2단계에서
-    // 다른 PG 를 고를 수 있어 channelKeyName 으로 게이팅한다).
-    requestData.bypass = checkoutEntry.portoneBypass();
+    // bypass 는 이니시스 전용 페이로드다. 전용 채널(카카오페이)에 실으면 창이 안 열리거나 무시된다 —
+    // 셸·독립·PointsClient 와 같은 channelKeyName 게이팅을 쓴다.
+    if (!dedicatedChannelKeyName) requestData.bypass = checkoutEntry.portoneBypass();
 
     console.info("[portone] requestPayment params", {
       hasStoreId: Boolean(requestData.storeId),
