@@ -52,7 +52,7 @@ export function ServicePackShop({locale}:{locale:LoadingLocale}){
  const [selected,setSelected]=useState<string>(''),[consent,setConsent]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[pendingOrder,setPendingOrder]=useState('');
  const [resumeConsent,setResumeConsent]=useState(false);
  const [purchaseType,setPurchaseType]=useState<PackPurchaseType>('SELF'),[gift,setGift]=useState<PackGiftDraft>({senderName:'',recipientName:'',giftMessage:''});
- const lock=useRef(false),scope=useRef(ownerId),purchaseRef=useRef<HTMLHeadingElement>(null),triggerRef=useRef<HTMLElement|null>(null);scope.current=ownerId;
+ const lock=useRef(false),scope=useRef(ownerId),purchaseRef=useRef<HTMLHeadingElement>(null),triggerRef=useRef<HTMLElement|null>(null),catalogRef=useRef(catalog);scope.current=ownerId;catalogRef.current=catalog;
  const refreshCatalog=useCallback(async()=>{setCatalog(value=>({...value,loading:true,error:false}));try{const data=await readPackCatalog();setCatalog({...data,error:false,loading:false});}catch{setCatalog({plans:[],giftEnabled:false,error:true,loading:false});}},[]);
  const refreshWallet=useCallback(async(cursor?:string)=>{
   if(!ownerId)return;
@@ -62,15 +62,27 @@ export function ServicePackShop({locale}:{locale:LoadingLocale}){
  },[ownerId]);
  useEffect(()=>{void refreshCatalog();},[refreshCatalog]);
  useEffect(()=>{setSelected('');setConsent(false);setResumeConsent(false);setMessage('');setPendingOrder('');if(ownerId){void refreshWallet();setPendingOrder(readPendingPack(ownerId)?.orderId||'');}},[ownerId,refreshWallet]);
+ // 🔴 PG 가 방금 미결제라고 답했는데 이 화면에서 같은 주문을 이어갈 수 없으면(다른 탭 복귀·카탈로그에서 빠진 구성) 구매 잠금을 푼다.
+ //    FAILED·CANCELLED 는 서버가 주문을 실패로 닫아 이어가기도 막히므로 항상 푼다. 다음 구매는 새 키·새 주문이다.
+ const releaseUnpaid=useCallback((orderId:string,error:unknown)=>{
+  if(!(error instanceof ServicePackError)||scope.current!==ownerId)return false;
+  const stored=readPendingPack(ownerId),own=stored?.orderId===orderId?stored:null,list=catalogRef.current;
+  const resumable=Boolean(own?.packSnapshot&&(list.loading||(own.purchaseType!=='GIFT'||list.giftEnabled)&&list.plans.some(item=>samePackSnapshot(item,own.packSnapshot))));
+  if(!['PG_PAYMENT_FAILED','PG_PAYMENT_CANCELLED'].includes(error.code)&&!(error.code==='PG_PAYMENT_NOT_PAID'&&!resumable))return false;
+  if(own)savePendingPack(ownerId,null);setPendingOrder('');setMessage(copy.notPaid);
+  if(new URLSearchParams(location.search).has('service_pack_return'))history.replaceState({},'',location.pathname+'#fish-packs');
+  return true;
+ },[ownerId,copy]);
  const checkOrder=useCallback(async(orderId:string)=>{
   if(!ownerId||lock.current)return;if(readPendingPack(ownerId)?.purchaseType==='GIFT'){window.location.assign(`/gift/complete/?orderId=${encodeURIComponent(orderId)}`);return;}lock.current=true;setBusy(true);setMessage(copy.confirm);
   try{const granted=await confirmPackOrder(orderId);if(scope.current!==ownerId)return;if(granted){savePendingPack(ownerId,null);setPendingOrder('');setMessage(copy.complete);await refreshWallet();const query=new URLSearchParams(location.search);if(query.has('service_pack_return'))history.replaceState({},'',location.pathname+'#fish-packs');}else setMessage(copy.confirm);}
-  catch(error){loginIfNeeded(error);setMessage(copy.confirm);}finally{lock.current=false;setBusy(false);}
- },[ownerId,copy,refreshWallet]);
+  catch(error){loginIfNeeded(error);if(!releaseUnpaid(orderId,error))setMessage(copy.confirm);}finally{lock.current=false;setBusy(false);}
+ },[ownerId,copy,refreshWallet,releaseUnpaid]);
  useEffect(()=>{
   if(!ownerId)return;const query=new URLSearchParams(location.search);if(query.get('service_pack_return')!=='1')return;
   const orderId=query.get('orderId')||'';if(!orderId||orderId.length>160)return;setPendingOrder(orderId);
-  if(query.get('code')||query.get('imp_success')==='false'){setMessage(copy.confirm);return;}
+  // 같은 탭의 취소·실패는 저장된 주문으로 이어가기를 띄운다. 다른 탭 복귀는 저장본이 없으니 아래 확인에서 미결제면 잠금을 푼다.
+  if((query.get('code')||query.get('imp_success')==='false')&&readPendingPack(ownerId)?.orderId===orderId){setMessage(copy.confirm);return;}
   const providerId=query.get('paymentId')||query.get('payment_id')||query.get('imp_uid');
   if(providerId&&providerId!==orderId){setMessage(copy.unavailable);return;}
   void checkOrder(orderId);
@@ -101,7 +113,7 @@ export function ServicePackShop({locale}:{locale:LoadingLocale}){
    const granted=await resumePendingPackPurchase(ownerId,resumeConsent,()=>scope.current===ownerId);
    if(scope.current!==ownerId)return;
    if(granted){savePendingPack(ownerId,null);setPendingOrder('');setMessage(copy.complete);await refreshWallet();}
-  }catch(error){if(scope.current===ownerId){loginIfNeeded(error);setMessage(error instanceof ServicePackError&&error.code==='APP_PACK_NOT_AVAILABLE'?copy.webOnly:copy.confirm);}}
+  }catch(error){if(scope.current===ownerId&&!releaseUnpaid(pendingOrder,error)){loginIfNeeded(error);setMessage(error instanceof ServicePackError&&error.code==='APP_PACK_NOT_AVAILABLE'?copy.webOnly:copy.confirm);}}
   finally{lock.current=false;setBusy(false);setResumeConsent(false);}
  };
  const pending=ownerId&&pendingOrder?readPendingPack(ownerId):null;

@@ -69,7 +69,8 @@ const COPY={
     "payPrompt": "결제 수단",
     "cardPay": "카드 결제",
     "contentValue": "콘텐츠 가치는 원화로 표시되며 보안 결제창에서 결제합니다.",
-    "close": "닫기"
+    "close": "닫기",
+    "notPaid": "결제가 완료되지 않은 주문이에요. 이용권을 다시 골라 주세요."
   },
   "en": {
     "scope": "{fish} consultations only · {days} days · {total} uses",
@@ -139,7 +140,8 @@ const COPY={
     "payPrompt": "Payment method",
     "cardPay": "Card",
     "contentValue": "Prices are shown in KRW and paid in a secure payment window.",
-    "close": "Close"
+    "close": "Close",
+    "notPaid": "This order was not paid. Please choose a pack again."
   },
   "ja": {
     "scope": "{fish}の相談専用 · {days}日 · 全{total}回",
@@ -209,7 +211,8 @@ const COPY={
     "payPrompt": "決済手段",
     "cardPay": "カード決済",
     "contentValue": "価格はウォンで表示され、安全な決済画面で支払います。",
-    "close": "閉じる"
+    "close": "閉じる",
+    "notPaid": "この注文は決済が完了していません。もう一度利用券をお選びください。"
   },
   "zh-CN": {
     "scope": "仅限{fish}咨询 · {days}天 · 共{total}次",
@@ -279,7 +282,8 @@ const COPY={
     "payPrompt": "付款方式",
     "cardPay": "银行卡付款",
     "contentValue": "价格以韩元显示，并在安全付款窗口中支付。",
-    "close": "关闭"
+    "close": "关闭",
+    "notPaid": "该订单未完成付款，请重新选择咨询券。"
   },
   "zh-TW": {
     "scope": "僅限{fish}諮詢 · {days}天 · 共{total}次",
@@ -349,7 +353,8 @@ const COPY={
     "payPrompt": "付款方式",
     "cardPay": "信用卡付款",
     "contentValue": "價格以韓元顯示，並在安全付款視窗中支付。",
-    "close": "關閉"
+    "close": "關閉",
+    "notPaid": "此訂單尚未完成付款，請重新選擇諮詢券。"
   },
   "vi": {
     "scope": "Chỉ tư vấn {fish} · {days} ngày · {total} lượt",
@@ -419,7 +424,8 @@ const COPY={
     "payPrompt": "Payment method",
     "cardPay": "Card",
     "contentValue": "Prices are shown in KRW and paid in a secure payment window.",
-    "close": "Close"
+    "close": "Close",
+    "notPaid": "This order was not paid. Please choose a pack again."
   },
   "hi": {
     "scope": "केवल {fish} परामर्श · {days} दिन · {total} उपयोग",
@@ -489,7 +495,8 @@ const COPY={
     "payPrompt": "Payment method",
     "cardPay": "Card",
     "contentValue": "Prices are shown in KRW and paid in a secure payment window.",
-    "close": "Close"
+    "close": "Close",
+    "notPaid": "This order was not paid. Please choose a pack again."
   },
   "es": {
     "scope": "Solo consultas {fish} · {days} días · {total} usos",
@@ -559,7 +566,8 @@ const COPY={
     "payPrompt": "Payment method",
     "cardPay": "Card",
     "contentValue": "Prices are shown in KRW and paid in a secure payment window.",
-    "close": "Close"
+    "close": "Close",
+    "notPaid": "This order was not paid. Please choose a pack again."
   },
   "fr": {
     "scope": "Consultations {fish} uniquement · {days} jours · {total} utilisations",
@@ -629,7 +637,8 @@ const COPY={
     "payPrompt": "Payment method",
     "cardPay": "Card",
     "contentValue": "Prices are shown in KRW and paid in a secure payment window.",
-    "close": "Close"
+    "close": "Close",
+    "notPaid": "This order was not paid. Please choose a pack again."
   },
   "de": {
     "scope": "Nur {fish}-Beratungen · {days} Tage · {total} Nutzungen",
@@ -699,7 +708,8 @@ const COPY={
     "payPrompt": "Payment method",
     "cardPay": "Card",
     "contentValue": "Prices are shown in KRW and paid in a secure payment window.",
-    "close": "Close"
+    "close": "Close",
+    "notPaid": "This order was not paid. Please choose a pack again."
   },
   "nl": {
     "scope": "Alleen {fish}-consulten · {days} dagen · {total} keer",
@@ -769,7 +779,8 @@ const COPY={
     "payPrompt": "Payment method",
     "cardPay": "Card",
     "contentValue": "Prices are shown in KRW and paid in a secure payment window.",
-    "close": "Close"
+    "close": "Close",
+    "notPaid": "This order was not paid. Please choose a pack again."
   },
   "ms": {
     "scope": "Konsultasi {fish} sahaja · {days} hari · {total} penggunaan",
@@ -839,7 +850,8 @@ const COPY={
     "payPrompt": "Payment method",
     "cardPay": "Card",
     "contentValue": "Prices are shown in KRW and paid in a secure payment window.",
-    "close": "Close"
+    "close": "Close",
+    "notPaid": "This order was not paid. Please choose a pack again."
   }
 };
 export type PackCopy=typeof COPY.ko;
