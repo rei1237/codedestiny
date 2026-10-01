@@ -9,6 +9,7 @@ import {selectChapterFacts} from '../fortune/chapter-facts';
 import {attachTarotSafetyNotice} from '../fortune/tarot/master-reading';
 import {nearDuplicate,splitSectionParagraph} from '../fortune/reading-quality';
 import {sanitizeQuestionSkyBody} from '../fortune/question-sky-reading';
+import {sanitizeBlockPalaces,ziweiBlockPalaceNames} from '../fortune/ziwei/block-palaces';
 
 // The strict validator remains a diagnostic contract. Delivery accepts the
 // provider's useful text after local editing; it never invents missing insights.
@@ -44,6 +45,7 @@ export function deliverChapter(raw:unknown,input:ChapterRequest):ChapterBody {
   const sources=(items:unknown)=>[...new Set(list(items).filter(id=>allowed.has(id)))];
   const blocks:NonNullable<ChapterBody['blocks']>=(Array.isArray(value.blocks)?value.blocks:[]).filter((b:any)=>b&&typeof b==='object').map((b:any)=>({
     ...(typeof b.id==='string'?{id:b.id}:{}),title:prose(b.title)||input.chapter.title,paragraphs:paragraphs(b.paragraphs),sources:sources(b.sources),
+    ...(Array.isArray(b.palaces)?{palaces:b.palaces}:{}),
   })).filter((b:any)=>b.paragraphs.length);
   const analysis=paragraphs(value.analysis);
   const answers:NonNullable<ChapterBody['questionAnswers']>=(Array.isArray(value.questionAnswers)?value.questionAnswers:[]).filter((a:any)=>a&&typeof a==='object').map((a:any)=>({
@@ -65,5 +67,5 @@ export function deliverChapter(raw:unknown,input:ChapterRequest):ChapterBody {
   body=redactInternalEvidence(body,input.analysis.question,Object.values(input.analysis.contexts).flatMap(c=>c.facts.map(f=>f.label)),input.locale).body;
   if(input.analysis.consultation)body=alignRelativeYears(body,input.analysis.consultation.asOf,input.locale).body;
   validateReadingLanguage(body,readingLocale(input.locale));
-  return attachTarotSafetyNotice(body,input.analysis.question,readingLocale(input.locale),input.chapter.ordinal);
+  return sanitizeBlockPalaces(attachTarotSafetyNotice(body,input.analysis.question,readingLocale(input.locale),input.chapter.ordinal),ziweiBlockPalaceNames(input.analysis,input.chapter.systems));
 }

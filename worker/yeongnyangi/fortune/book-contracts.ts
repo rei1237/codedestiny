@@ -47,7 +47,10 @@ export interface ChapterSpec {
 export interface ChapterBody {
   title?: string;
   questionAnswers?: { questionId: string; answer: string; reason: string; timing: string; action: string; mode?: 'normal' | 'limited' | 'care' }[];
-  blocks?: { id?: string; title: string; paragraphs: string[]; sources?: string[] }[];
+  // palaces: 자미 궁 강조용 선택 필드(fortune/ziwei/block-palaces.ts). 옛 결과에는 없다.
+  blocks?: { id?: string; title: string; paragraphs: string[]; sources?: string[]; palaces?: string[] }[];
+  // Server-only ask citations kept from validateAskChapter. presentFortune strips it before any client sees the chapter.
+  internalBasis?: { questionAnswers: { questionId: string; factIds: string[]; timingIds: string[]; evidenceStatus: 'grounded' | 'limited'; sources: string[] }[] };
   summary: string;
   analysis: string[];
   example: string;

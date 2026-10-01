@@ -408,7 +408,7 @@ export function presentFortune(row: any) {
     ...(correctionApplied?{correction:{reason:row.correction.reason,appliedAt:row.correction.appliedAt}}:{}),
     paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
     consultation:row.snapshot.analysis.consultation || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
-    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots,sources:[]})) : row.chapters,
+    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots,sources:[]})) : row.chapters.map(({internalBasis:_serverOnly,...chapter}:any)=>chapter),
     followup:row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION?{status:row.generationCheckpoint?.followup?.status || (awaitingFollowup?'available':'unavailable'),used:Boolean(row.generationCheckpoint?.followup?.used),suggestions:row.generationCheckpoint?.followup?.suggestions || row.chapters?.[0]?.followUpSuggestions || []}:undefined,
     recovery,errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
 }
