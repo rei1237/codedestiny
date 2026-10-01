@@ -43,7 +43,7 @@ function contrast(foreground, background) {
   };
   const results = [];
   try {
-    for (const [width, height] of [[360, 760], [390, 844], [430, 932], [768, 960], [1280, 900], [1440, 960]]) {
+    for (const [width, height] of [[320, 640], [360, 760], [375, 812], [390, 844], [430, 932], [768, 960], [1280, 900], [1440, 960]]) {
       const page = await browser.newPage({ viewport: { width, height }, reducedMotion: 'reduce' });
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
@@ -56,18 +56,31 @@ function contrast(foreground, background) {
       assert.equal(await page.locator('#cdhDiarySlot #cdDiaryPlannerEntry').isVisible(), false, 'diary waits behind one tap');
       assert.ok(await page.locator('#cdhPass .cdh-pass__btn').isVisible(), 'pass stays in the primary flow');
       assert.ok(await page.locator('#cdhFeedbackSlot .cd-feedback__cta').isVisible(), 'slim bug report row stays in the primary flow');
-      await page.locator('#cdhMore > summary').click();
+      const gardenSummary = page.locator('#cdhMore > summary');
+      assert.equal(await gardenSummary.getAttribute('aria-controls'), 'cdhGardenBody', 'garden summary controls its body');
+      assert.equal(await gardenSummary.getAttribute('aria-expanded'), 'false', 'garden summary reports closed');
+      assert.ok(await page.locator('#cdhMore .cdh-more__on').isVisible(), 'closed label offers to open the garden');
+      await gardenSummary.click();
+      assert.equal(await gardenSummary.getAttribute('aria-expanded'), 'true', 'garden summary reports open');
+      assert.ok(await page.locator('#cdhMore .cdh-more__off').isVisible(), 'open label offers to close the garden');
+      assert.equal(await page.locator('#cdhMore .cdh-more__on').isVisible(), false, 'only one garden label shows');
       assert.ok(await page.locator('#cdhDiarySlot #cdDiaryPlannerEntry').isVisible(), 'diary restored');
       assert.ok(await page.locator('#cdhExpertsSlot #cdAiFeatures').isVisible(), 'experts restored');
-      await page.locator('#cdHomeExpandToggle').click();
-      assert.ok(await page.locator('#cdhCollections').isVisible(), 'collections expand inline');
-      assert.ok(await page.locator('#cdhCollections > .feature-card-grid').count(), 'existing cards live below trigger');
-      assert.equal(await page.locator('#fortuneGatewaySearch').isVisible(), false, 'collections do not open search');
-      await page.locator('#cdHomeExpandToggle').click();
+      assert.equal(await page.locator('#cdHomeExpandToggle').count(), 0, 'the garden is the only home fold');
+      assert.ok(await page.locator('#cdhCollections').isVisible(), 'collections open with the garden');
+      assert.ok(await page.locator('#cdhCollections > .feature-card-grid').count(), 'existing cards live inside the garden');
       await page.locator('#cdhFinderDisclosure summary').click();
       assert.ok(await page.locator('#fortuneGatewaySearch').isVisible(), 'search opens on request');
       await page.locator('#cdhFinderDisclosure summary').click();
       assert.equal(await page.locator('#fortuneGatewaySearch').isVisible(), false, 'search closes again');
+      const closeButton = page.locator('#cdhMore [data-cdh-garden-close]');
+      await closeButton.focus();
+      await closeButton.click();
+      assert.equal(await page.locator('#cdhMore').evaluate((more) => more.open), false, 'garden close button folds the garden');
+      assert.equal(await gardenSummary.getAttribute('aria-expanded'), 'false', 'garden summary reports closed again');
+      assert.ok(await gardenSummary.evaluate((node) => document.activeElement === node), 'closing returns focus to the garden summary');
+      const summaryBox = await gardenSummary.boundingBox();
+      assert.ok(summaryBox && summaryBox.y >= 0 && summaryBox.y + summaryBox.height <= height + 1, 'garden summary stays on screen after closing');
       if (width <= 430) {
         await page.locator('#cdMobileBottomNav [data-nav-key="fortunes"]').click();
         await page.locator('#cdMobileFortuneOverview.is-open').waitFor();
@@ -132,6 +145,8 @@ function contrast(foreground, background) {
       }
 
       if (width === 390) {
+        // 대표 상담은 연이의 정원 안이다 — 위 접기 단계가 정원을 닫았으므로 다시 연다.
+        await page.locator('#cdhMore > summary').click();
         await page.locator('#cdSignatureConsult').scrollIntoViewIfNeeded();
         await page.waitForTimeout(250);
         const fusionImage = page.locator('.cd-sig-card--fusion .cd-sig-card__img');

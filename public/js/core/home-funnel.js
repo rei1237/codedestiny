@@ -19,11 +19,46 @@
     ['home.gardenCopy.bubble3', '타로 세 장부터 가볍게 펼쳐 봐요!'],
     ['home.gardenCopy.bubble4', '고민은 천천히, 끝까지 들을게요.']
   ] : [];
-  var collectionToggle = document.getElementById('cdHomeExpandToggle');
-  if (collectionToggle) collectionToggle.setAttribute('aria-controls', 'cdhCollections');
   if (finderDisclosure) finderDisclosure.addEventListener('toggle', function () {
     if (finderDisclosure.open) document.dispatchEvent(new Event('cd:home-finder-open'));
   });
+
+  // 홈의 유일한 접기는 "연이의 정원"(<details id="cdhMore">)이다. 상태는 details.open 하나뿐이고
+  // 저장하지 않는다 — 재방문은 늘 닫힌 채 시작한다. 정원을 여닫는 다른 코드는 이 두 함수를 부른다.
+  var gardenSummary = more ? more.querySelector(':scope > summary') : null;
+  function syncGarden() {
+    if (!gardenSummary) return;
+    gardenSummary.setAttribute('aria-expanded', more.open ? 'true' : 'false');
+  }
+  function openGarden() {
+    if (!more) return;
+    if (!more.open) more.open = true;
+    syncGarden();
+  }
+  function closeGarden() {
+    if (!more || !more.open) return;
+    var focusInside = more.contains(document.activeElement) && document.activeElement !== gardenSummary;
+    more.open = false;
+    syncGarden();
+    if (!gardenSummary) return;
+    // 닫힌 정원 안에 포커스를 남기지 않는다. 내용이 접혀 문서가 줄어든 뒤 요약 줄이 화면 밖이면
+    // 가장 가까운 가장자리로만 맞춘다(맨 위로 튀지 않게).
+    if (focusInside) {
+      try { gardenSummary.focus({ preventScroll: true }); } catch (_) { gardenSummary.focus(); }
+    }
+    var rect = gardenSummary.getBoundingClientRect();
+    if (rect.top < 0 || rect.bottom > window.innerHeight) gardenSummary.scrollIntoView({ block: 'nearest' });
+  }
+  window.__cdOpenGarden = openGarden;
+  window.__cdCloseGarden = closeGarden;
+  if (more) {
+    if (gardenSummary) gardenSummary.setAttribute('aria-controls', 'cdhGardenBody');
+    syncGarden();
+    more.addEventListener('toggle', syncGarden);
+    more.addEventListener('click', function (event) {
+      if (event.target instanceof Element && event.target.closest('[data-cdh-garden-close]')) closeGarden();
+    });
+  }
 
   function move(selector, slotId) {
     var node = document.querySelector(selector);
@@ -49,9 +84,6 @@
   move('#cdMobileHeader .theme-switch-wrapper--appbar', 'cdhThemeSlot');
   move('#dpKakaoReferralShareBtn', 'cdhShareControls');
   move('#dpKakaoReferralNote', 'cdhShareControls');
-  var reviews = document.getElementById('cdReviews');
-  var reviewSlot = document.getElementById('cdhReviewsSlot');
-  if (reviews && reviewSlot && (reviews.hidden || reviews.getAttribute('aria-hidden') === 'true')) reviewSlot.hidden = true;
 
   function revealInput() {
     doc.classList.add('cdh-input-open');
@@ -77,9 +109,9 @@
     // 검색 섹션(#cdFinder)은 홈 안에 있다. 홈을 숨기면 해시 진입이 빈 화면이 된다.
     home.hidden = false;
     var folded = document.getElementById(isFinder ? 'cdFinder' : hash);
-    // "더 둘러보기" 접힘 안의 앵커(#cdhFeatured 등)로 들어오면 접힘을 열고 대상으로 이동한다.
+    // 정원 안의 앵커(#cdhPass 등)로 들어오면 정원만 열고 대상으로 이동한다. 검색은 정원 밖이다.
     if (more && folded && more.contains(folded) && !more.open) {
-      more.open = true;
+      openGarden();
       if (!isFinder) requestAnimationFrame(function () { folded.scrollIntoView({ block: 'start' }); });
     }
     if (isFinder) {
@@ -105,7 +137,6 @@
       doc.classList.remove('cdh-input-open');
       services.hidden = false;
       if (finderDisclosure) finderDisclosure.open = false;
-      if (window.__cdCollapseHome) window.__cdCollapseHome();
       window.scrollTo(0, 0);
     } else if (hash === 'destinyCardForm') {
       revealInput();

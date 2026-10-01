@@ -67,12 +67,7 @@ async function boot() {
   const { window } = dom;
   window.Element.prototype.scrollIntoView = function () {};
   window.alert = () => {};
-  // 셸 인라인 스크립트는 jsdom 이 실행하지 않으므로 펼치기 전역을 스파이로 심는다.
-  const expandCalls = [];
-  window.__cdExpandHome = () => {
-    expandCalls.push(1);
-    window.document.documentElement.classList.add("cd-home-expanded");
-  };
+  // 셸 인라인 스크립트는 jsdom 이 실행하지 않으므로 폼 패널 전역을 스파이로 심는다.
   const openFormCalls = [];
   window.__cdOpenDestinyForm = () => {
     openFormCalls.push(1);
@@ -85,15 +80,18 @@ async function boot() {
   if (window.document.readyState === "loading") {
     await new Promise((r) => window.addEventListener("DOMContentLoaded", r, { once: true }));
   }
-  return { window, doc: window.document, expandCalls, openFormCalls };
+  return { window, doc: window.document, openFormCalls };
 }
 
 const fire = (window, el, type) => el.dispatchEvent(new window.Event(type, { bubbles: true }));
 
-test("셸이 펼치기 함수를 전역으로 노출한다", () => {
-  // dpScrollToForm 이 이것들을 부른다. 이름이 바뀌면 폼이 다시 안 보이게 된다.
-  assert.match(shell, /window\.__cdExpandHome = expand;/);
+test("셸이 폼 패널 열기 함수를 전역으로 노출하고, 홈 이중 접기는 없다", () => {
+  // dpScrollToForm 이 이것을 부른다. 이름이 바뀌면 폼이 다시 안 보이게 된다.
   assert.match(shell, /window\.__cdOpenDestinyForm = open;/);
+  // 2026-10-01: 홈의 유일한 접기는 연이의 정원(#cdhMore)이다. "모두 펼치기" 축(html.cd-home-expanded)은
+  // 지웠다 — 폼(#destinyCardForm)은 정원 밖이라 dpScrollToForm 의 typeof 가드 호출은 아무 일도 하지 않는다.
+  assert.doesNotMatch(shell, /window\.__cdExpandHome =/);
+  assert.doesNotMatch(shell, /id="cdHomeExpandToggle"/);
 });
 
 test("프로필 카드는 홈 초기 화면에 보이고 입력폼만 접혀 있다", () => {
@@ -124,17 +122,14 @@ test("생년월일 입력은 달력이 아니라 텍스트다", () => {
   assert.match(input[0], /inputmode="numeric"/, "모바일에서 숫자 키패드가 안 뜬다");
 });
 
-test("dpScrollToForm 은 스크롤 전에 홈과 폼 패널을 함께 연다", async () => {
-  const { window, doc, expandCalls, openFormCalls } = await boot();
+test("dpScrollToForm 은 스크롤 전에 폼 패널을 연다", async () => {
+  const { window, doc, openFormCalls } = await boot();
   assert.equal(typeof window.dpScrollToForm, "function");
-  assert.equal(expandCalls.length, 0);
   assert.equal(openFormCalls.length, 0);
 
   window.dpScrollToForm();
 
-  assert.equal(expandCalls.length, 1, "펼치지 않고 스크롤했다 — 사용자는 빈 화면을 본다");
   assert.equal(openFormCalls.length, 1, "폼 패널을 열지 않고 스크롤했다 — 카드만 보이고 폼은 계속 접혀 있다");
-  assert.ok(doc.documentElement.classList.contains("cd-home-expanded"));
   assert.ok(doc.getElementById("dpDestinyPanel").classList.contains("is-form-open"));
   assert.ok(doc.querySelector(".input-section"), "스크롤 대상 폼이 없다");
 });

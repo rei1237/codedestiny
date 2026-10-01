@@ -37,7 +37,6 @@ const nodes = {
   music: byId('moonMusicEntry'),
   reviews: byId('cdReviews'),
   guide: byClass('cd-home-guide'),
-  homeMore: byClass('cd-home-more'),
   feedback: byId('cdFeedbackGate'),
   finder: byId('cdFinder'),
   diary: byId('cdDiaryPlannerEntry'),

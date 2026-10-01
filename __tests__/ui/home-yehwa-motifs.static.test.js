@@ -181,19 +181,14 @@ test('PR-3 placements are generated, ordered by width, and repainted for neo', (
   }
 });
 
-// ── 홈 펼치기 알약 (2026-09-04) — 가지 띠가 구분선을 겸한다 ─────────────────────
-// 알약은 branch-h 마스크의 빈 가운데(76/640)에 앉는다. 띠가 알약 위로 올라오면 꽃가지가 글자를 지나고,
-// 호스트의 z-index:1 이 빠지면 띠가 .feature-card-grid::before(z-index:0) 뒤로 통째로 사라진다.
+// ── 가지 띠 (2026-09-04) ───────────────────────────────────────────────────────
+// 2026-10-01: 홈 "모두 펼치기" 알약(.cd-home-more)은 지웠다 — 홈의 접기는 연이의 정원 하나뿐이다.
+// 가지 띠 마스크는 검색 섹션 장식(.cdh-services__vine)으로 남는다.
 
-test('the home expand pill sits in the gap of a branch band', () => {
+test('the retired expand pill is gone and the branch band stays a generated motif', () => {
   const html = read('index.html');
-  assert.match(
-    html,
-    /<div class="cd-home-more">\s*<span class="cd-yehwa-vine" aria-hidden="true"><\/span>\s*<button type="button" class="cd-home-more__btn"/,
-    '펼치기 알약 앞에 가지 띠가 없다',
-  );
-  assert.equal((html.match(/class="cd-yehwa-vine"/g) || []).length, 1, '가지 띠는 펼치기 알약 1개뿐이어야 한다');
-  assert.ok(html.includes('html body .cd-home-more{position:relative;z-index:1;'), '펼치기 행의 스태킹 컨텍스트가 없다');
+  assert.doesNotMatch(html, /class="cd-home-more/, '지운 "모두 펼치기" 알약이 되살아났다');
+  assert.doesNotMatch(html, /html body \.cd-home-more\{/, '지운 알약의 스타일이 남았다');
 
   const css = read('styles/yehwa-motifs.css');
   assert.ok(css.includes('.cd-yehwa-vine,'), '마스크 변수 호스트 목록에 가지 띠가 없다');

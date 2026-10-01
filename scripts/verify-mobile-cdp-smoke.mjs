@@ -121,7 +121,7 @@ try {
   if (!focusAllFortunes) {
     assert(initial.membershipBelowPrimaryCta, "membership guidance begins below the primary CTA", initial);
     // 홈 축약(cd-home-secondary-v20260817): 이용권 안내는 첫 구매 결정을 방해하지 않도록
-    // 첫 화면에서 접혀 있어야 한다. 지운 것이 아니라 "모두 펼치기"로 되찾을 수 있다.
+    // 첫 화면에서 접혀 있어야 한다. 지운 것이 아니라 연이의 정원 안 이용권 카드(#cdhPass)로 되찾을 수 있다.
     assert(initial.membershipFolded, "membership guidance stays folded on first view", initial);
   }
   assert(initial.noHorizontalOverflow, "no horizontal overflow", initial);
@@ -250,11 +250,8 @@ try {
 
     await navigate(cdp, totemHomeUrl);
     await delay(400);
-    // 🔴 홈 축약(cd-home-secondary-v20260817)이 이 블록(2026-08-15)보다 뒤에 들어오면서
-    // .fg-group--animal 이 [data-cd-home-secondary] 로 접혔다 — 토글이 0×0 이 되어 이 스모크는
-    // 그 뒤로 계속 실패해 왔다(verify:guard-wiring 상 미배선이라 CI 가 못 잡았다. 2026-09-01
-    // 실측: HEAD 에서도 같은 자리에서 같은 오류). 아래 이용권 블록과 같은 방식으로, 가드를
-    // 낮추지 않고 사용자와 같은 경로("모두 펼치기")로 먼저 펼친 뒤에 잰다.
+    // 🔴 .fg-group--animal 은 컬렉션 묶음(#cdhCollections)과 함께 닫힌 연이의 정원(<details id="cdhMore">)
+    // 안이다 — 닫힌 채로는 토글이 0×0 이다. 가드를 낮추지 않고 사용자와 같은 경로(정원 열기)로 연 뒤에 잰다.
     await expandHomeFolds(cdp);
     // 컬렉션은 접힌 채 시작한다 — 열어야 타일이 히트 테스트를 받는다.
     // 셸이 로드 직후 스크롤 위치를 복원하므로(index.html 의 window.scrollTo(0, savedScrollY)),
@@ -697,15 +694,14 @@ try {
   if (!focusAllFortunes) {
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
-  // 홈 축약(cd-home-secondary-v20260817) 이후 이용권 섹션은 첫 화면에서 접혀 있다.
-  // 가드를 낮추지 않고, 사용자와 같은 경로("모두 펼치기")로 먼저 펼친 뒤에 잰다.
+  // 이용권 섹션은 연이의 정원 안이다. 가드를 낮추지 않고, 사용자와 같은 경로(정원 열기)로 연 뒤에 잰다.
   await expandHomeFolds(cdp);
   const homeExpandedState = await evaluate(
     cdp,
-    "({ expanded: document.documentElement.classList.contains('cd-home-expanded') })",
-    "home expanded after toggle",
+    "(() => { const d = document.getElementById('cdhMore'); return { expanded: !!d && d.open, label: d && d.querySelector(':scope > summary') ? d.querySelector(':scope > summary').getAttribute('aria-expanded') : null }; })()",
+    "garden open after summary tap",
   );
-  assert(homeExpandedState.expanded === true, "home expand toggle reveals the folded sections", homeExpandedState);
+  assert(homeExpandedState.expanded === true && homeExpandedState.label === "true", "garden summary reveals the folded sections", homeExpandedState);
 
   // 🔴 계약은 "모바일에서 눌리는 이용권 안내 CTA 가 하나는 있고, 결제가 아니라 안내로 간다"이다.
   // 2026-09-08 홈 재조립부터 옛 #honeyMembershipMini 는 홈에서 통째로 숨고
@@ -1333,10 +1329,9 @@ async function dismissCookieConsent(cdp) {
   return state;
 }
 
-// 🔴 꽃정원 개편(2026-09-24)이 2차 패널과 "모두 펼치기"(#cdHomeExpandToggle)를 접힘
-// <details id="cdhMore"> 안으로 옮겼다. 닫힌 details 안의 토글은 좌표 히트 테스트에 걸리지 않아
-// tapSelector 가 가림으로 실패한다(실측). 가드를 낮추지 않고 사용자와 같은 경로 —
-// 정원 summary 탭 → 모두 펼치기 탭 — 로 연다. 정원이 없는 옛 셸은 두 번째 단계만 탄다.
+// 🔴 홈의 접기는 연이의 정원(<details id="cdhMore">) 하나뿐이다(2026-10-01, "모두 펼치기" 제거).
+// 닫힌 details 안은 좌표 히트 테스트에 걸리지 않아 tapSelector 가 가림으로 실패한다(실측).
+// 가드를 낮추지 않고 사용자와 같은 경로 — 정원 summary 탭 — 로 연다.
 async function expandHomeFolds(cdp, press = tapSelector) {
   await dismissCookieConsent(cdp);
   const gardenClosed = await evaluate(
@@ -1346,10 +1341,8 @@ async function expandHomeFolds(cdp, press = tapSelector) {
   );
   if (gardenClosed) {
     await press(cdp, "#cdhMore > summary");
-    await delay(300);
+    await delay(400);
   }
-  await press(cdp, "#cdHomeExpandToggle");
-  await delay(400);
 }
 
 async function tapSelector(cdp, selector) {
@@ -1526,8 +1519,9 @@ function scrollSelectorIntoViewExpression(selector) {
     //    내용이 렌더 트리에 없어서 스크롤이 통째로 무시되고, 호출부는 \"뷰포트 밖\"으로 죽는다.
     //    실제 사용자도 <summary> 를 눌러 펼친 뒤에 만지므로 그 한 단계를 여기서 밟는다.
     //    단언은 그대로다 — 펼치기는 대상 도달 수단이지 검사 완화가 아니다.
+    //    대상이 그 details 자신의 <summary> 면 열지 않는다 — 열어 두면 이어지는 탭이 도로 닫는다(실측).
     for (let node = el.parentElement; node; node = node.parentElement) {
-      if (node.tagName === 'DETAILS' && !node.open) node.open = true;
+      if (node.tagName === 'DETAILS' && !node.open && !(el.tagName === 'SUMMARY' && el.parentElement === node)) node.open = true;
     }
     el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });
     return true;
