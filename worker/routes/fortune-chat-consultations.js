@@ -2,6 +2,7 @@
 // chapter generation, validation and recovery as Yeongnyangi, at the fortune-chat per-use price with the
 // account's one free consultation. Creating and activating are gated by ENABLE_FORTUNE_CHAT_CONSULTATIONS;
 // reading, continuing and listing stay open so a consultation already started is never stranded by the flag.
+// Every consultation needs an account; guests only read the flag (/consultations/status) and log in to start.
 import { requireUserFromRequest } from '../lib/auth.js';
 import { withMongoRetry } from '../lib/db.js';
 import { json, readJson, createHttpError, handleRouteError, notFound } from '../lib/http.js';
@@ -86,6 +87,10 @@ async function list(env, userId, chosen) {
 export async function handleFortuneChatConsultations(request, env, path) {
   try {
     const url = new URL(request.url), method = request.method.toUpperCase();
+    // Guests pick the room before they log in, so only the flag is public here — never a consultation.
+    if (/^\/consultations\/status\/?$/.test(path)) {
+      return method === 'GET' ? json({ ok: true, enabled: enabled(env) }) : notFound();
+    }
     const match = path.match(/^\/consultations(?:\/([a-f0-9]{64})(?:\/(activate|generate))?)?\/?$/);
     if (!match) return notFound();
     const [, id, action] = match;

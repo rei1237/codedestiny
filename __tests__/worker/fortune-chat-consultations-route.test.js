@@ -71,3 +71,12 @@ test('history is per persona and limited to fortune-chat consultations',async()=
   expect(await (await handleFortuneChatRoutes(request('?persona=yeoni'),{})).json()).toMatchObject({enabled:false});
   expect(find).toHaveBeenCalledWith({userId,persona:'neo',featureKey:'fortune-chat-consultation'});
 });
+test('guests read only the flag: status needs no login and touches no consultation',async()=>{
+  auth.mockRejectedValue(createHttpError(401,'AUTH_REQUIRED',{code:'AUTH_REQUIRED'}));
+  const on_=await handleFortuneChatRoutes(request('/status'),on);
+  expect(on_.status).toBe(200);expect(on_.headers.get('Cache-Control')).toMatch(/no-store/);expect(await on_.json()).toEqual({ok:true,enabled:true});
+  expect(await (await handleFortuneChatRoutes(request('/status'),{})).json()).toEqual({ok:true,enabled:false});
+  expect((await handleFortuneChatRoutes(request('/status','POST',{}),on)).status).toBe(404);
+  expect(auth).not.toHaveBeenCalled();expect(find).not.toHaveBeenCalled();expect(prepare).not.toHaveBeenCalled();
+  expect((await handleFortuneChatRoutes(request('?persona=yeoni'),on)).status).toBe(401);
+});

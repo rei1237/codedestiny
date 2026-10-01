@@ -192,3 +192,25 @@ test("the free reading closes with the product the server picked for that topic"
   assert.match(css, /\.actions button,\.actions a,\.input button\{/);
   assert.match(css, /\.actions a\+button\{/);
 });
+
+test("guests open the new room from the public flag and keep their question through login", () => {
+  // 게스트 정책 A(2026-10-01): 생성은 로그인 필수, 화면은 게스트에게도 연다.
+  const entry = read("app/fortune-chat/FortuneChatEntry.tsx");
+  const api = read("app/fortune-chat/consultation-api.ts");
+  const room = read("app/fortune-chat/ConsultationRoom.tsx");
+  // 탐침은 로그인 없는 공개 status 다. 계정 API(list)로 탐침하면 비로그인 401 이 logout 이벤트로 번진다.
+  assert.ok(entry.includes("consultationApi.status()"));
+  assert.doesNotMatch(entry, /consultationApi.list|!auth.isAuthenticated/);
+  const status = api.slice(api.indexOf("status: async"), api.indexOf("list:"));
+  assert.ok(status.includes("/api/fortune-chat/consultations/status"));
+  assert.doesNotMatch(status, /authFetch/);
+  // 게스트는 계정 기록을 부르지 않는다.
+  assert.ok(room.includes("if (signedIn) void loadHistory(persona)"));
+  // 프로필 없는 게스트의 버튼이 아무 일 없이 끝나지 않는다 — 로그인 분기가 프로필 검사보다 먼저다.
+  const create = room.slice(room.indexOf("const create = async"), room.indexOf("const openFreeTrial"));
+  assert.ok(create.indexOf("if (guest) { toLogin(); return; }") < create.indexOf("if (!tarot && !profileId) return;"));
+  // 로그인 왕복 뒤 질문을 되살리고, 상담을 만들면 지운다.
+  assert.ok(room.includes("sessionStorage.setItem(DRAFT_KEY"));
+  assert.ok(create.includes("sessionStorage.removeItem(DRAFT_KEY)"));
+  assert.doesNotMatch(room, /onClick={loginForCurrentPage}/);
+});
