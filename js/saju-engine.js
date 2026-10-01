@@ -17700,7 +17700,12 @@ function renderZiwei(p, natal, targetId) {
       var mainStars = asCanonicalStars(row && row.stars);
       var auxStars = asCanonicalStars(row && row.auxStars);
       var maleficStars = asCanonicalStars(row && row.badStars);
-      var fallbackDahan = (Array.isArray(cur.daHanList) && cur.daHanList[safeIdx]) ? cur.daHanList[safeIdx] : null;
+      // 대한 목록은 순서(order)대로 쌓이고 그 궁의 지지는 .idx 에 있다 — 궁 행 번호로 꺼내면 다른 궁의 대한이 붙는다.
+      var rowBranchIdx = ZHI_LIST.indexOf(String((row && row.branch) || '').trim());
+      if (rowBranchIdx < 0) rowBranchIdx = safeIdx;
+      var fallbackDahan = Array.isArray(cur.daHanList)
+        ? (cur.daHanList.filter(function (d) { return d && d.idx === rowBranchIdx; })[0] || null)
+        : null;
       var decadeLuck = parseDahan(row && row.dahan, fallbackDahan);
 
       return {
@@ -21764,7 +21769,7 @@ function renderZiwei(p, natal, targetId) {
         idx: idx,
         palace: (row && row.palace) || ((pd.palacesByIndex && pd.palacesByIndex[idx]) || ('제' + (idx + 1) + '궁')),
         branch: (row && row.branch) || (ZHI_LIST[idx] || ''),
-        dahan: (row && row.dahan) || ((pd.daHanList && pd.daHanList[idx]) || ''),
+        dahan: (row && row.dahan) || ((pd.daHanList || []).filter(function(d) { return d && d.idx === idx; })[0] || ''),
         mainStars: mainStars,
         auxStars: auxStars,
         badStars: badStars,
@@ -21796,7 +21801,7 @@ function renderZiwei(p, natal, targetId) {
     })[0] || '화록';
 
     var decadeFlow = (Array.isArray(pd.daHanList) ? pd.daHanList : []).slice(0, 8).map(function(period, idx) {
-      var row = rows[idx % rows.length];
+      var row = rows[(period && Number.isInteger(period.idx)) ? period.idx : (idx % rows.length)];
       return {
         period: period,
         palace: row ? row.palace : '',
