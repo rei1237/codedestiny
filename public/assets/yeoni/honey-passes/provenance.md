@@ -33,3 +33,7 @@ VVIP: a refined tall lavender-and-deep-plum presentation chest housing an elegan
 ### Family
 
 FAMILY: a welcoming broad woven cream picnic gift basket lined in soft mint cloth with a large blush-pink bow, containing a large amber honey jar surrounded by several charming smaller honey jars with different pastel fabric lids, a few little wooden honey dippers and a fan of cream lotus-moon consultation tickets. Tiny current Yeoni pig-face charm hangs on the handle. Warm sharing, togetherness, generous family gift without human figures. Primary colors warm honey, cream, mint and blush. Wide handled-basket silhouette, cozy rather than royal.
+
+## 2026-10-01 additions
+
+- `recommend-badge-v1.webp`: generated with codex image_gen (gpt-image, 1024², high quality). Subject: Yeoni the pink piglet with a flower accessory proudly holding up a glowing golden moonlight pass card, cheerful recommending expression. No text. Chroma background keyed out, sharp trim + 8% transparent padding, 360×360 webp q84. Decorative overlay on the /points Premium card.

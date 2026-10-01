@@ -2834,7 +2834,13 @@ function MoonlightShopPlans({
           return (
             <article key={plan.id} className={`moon-plan-card rounded-[22px] p-4 ${isHighlighted ? "ring-2 ring-[color:var(--moon-glow)]" : ""} ${lowerTierBlocked ? "opacity-60" : ""}`}>
               <div className="grid gap-4 sm:grid-cols-[128px_1fr_auto] sm:items-center">
-                <HoneyPassArtwork tier={plan.tier} className="h-28 w-28 sm:h-32 sm:w-32" sizes="(min-width: 640px) 128px, 112px" />
+                <div className="relative h-28 w-28 sm:h-32 sm:w-32">
+                  <HoneyPassArtwork tier={plan.tier} className="h-28 w-28 sm:h-32 sm:w-32" sizes="(min-width: 640px) 128px, 112px" />
+                  {/* 추천 등급 강조용 장식 이미지 — 텍스트 배지가 의미를 전달하므로 alt 는 비운다. */}
+                  {plan.badge === "recommended" && !isCurrentActive ? (
+                    <Image src="/assets/yeoni/honey-passes/recommend-badge-v1.webp" alt="" width={120} height={120} sizes="64px" loading="lazy" className="absolute -bottom-2 -right-4 h-16 w-16 object-contain drop-shadow-[0_4px_8px_rgba(3,4,18,0.42)]" />
+                  ) : null}
+                </div>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-lg font-black text-white">{currentPassPlan(plan.tier)?.name || copy.planTitles[plan.tier]}</h3>
