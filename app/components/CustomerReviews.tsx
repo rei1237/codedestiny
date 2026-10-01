@@ -17,13 +17,15 @@ function ReviewCard({review}: {review: Review}) {
 }
 
 // 후기가 없으면 아무것도 그리지 않는다(빈 섹션 금지).
-export default function CustomerReviews({limit = 3, titleId}: {limit?: number; titleId: string}) {
+// inline: 좁은 자리(결제 전 가이드 패널)용 — 제목·"더 보기" 없이 대표 후기만 1열로.
+export default function CustomerReviews({limit = 3, titleId, variant = 'section'}: {limit?: number; titleId?: string; variant?: 'section' | 'inline'}) {
  const {lead, rest} = splitReviews(limit);
  if (lead.length === 0) return null;
- return <div className={styles.reviews} id="founder-reviews">
-  <h3 id={titleId} className={styles.title}>네오 1:1 상담 실제 후기</h3>
+ const inline = variant === 'inline';
+ return <div className={inline ? `${styles.reviews} ${styles.inline}` : styles.reviews} id={inline ? undefined : 'founder-reviews'}>
+  {!inline && <h3 id={titleId} className={styles.title}>네오 1:1 상담 실제 후기</h3>}
   <div className={styles.grid}>{lead.map(review => <ReviewCard key={review.id} review={review}/>)}</div>
-  {rest.length > 0 && <details className={styles.more}>
+  {!inline && rest.length > 0 && <details className={styles.more}>
    <summary>후기 {rest.length}개 더 보기</summary>
    <div className={styles.grid}>{rest.map(review => <ReviewCard key={review.id} review={review}/>)}</div>
   </details>}

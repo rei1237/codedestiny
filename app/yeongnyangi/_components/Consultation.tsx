@@ -21,6 +21,8 @@ import {fortuneApi,FortuneApiError,loginForCurrentPage,resultPath,checkoutPath,t
 import ProfilePicker from './ProfilePicker';
 import {profileKey,useProfiles} from '../_lib/use-profiles';
 import styles from '../yeongnyangi.module.css';
+import CustomerReviews from '@/app/components/CustomerReviews';
+import {visibleReviews} from '@/lib/brand/customer-reviews.mjs';
 import {trackEvent} from '@/lib/analytics';
 import {readingLocale,readingLocales,readingLanguageNames} from '@/worker/yeongnyangi/fortune/reading-locale';
 import ReadingLanguageSelect from './ReadingLanguageSelect';
@@ -37,6 +39,7 @@ import {jongCheckApplies} from '@/worker/yeongnyangi/fortune/saju/jong-check-pol
 import type {JongCheck,JongReply} from '@/worker/yeongnyangi/fortune/saju/jong-check';
 import {tarotConsultation} from '@/worker/yeongnyangi/fortune/tarot/consultation-contract';
 const loginDraftKey='yeongnyangi:consultation-login-draft';
+const hasReviews=visibleReviews().length>0;
 export default function Consultation(){
  const [relationshipStage,setRelationshipStage]=useState(''),[relationshipQuestionId,setRelationshipQuestionId]=useState('');
  const [participants,setParticipants]=useState({self:'',partner:''});
@@ -224,6 +227,7 @@ export default function Consultation(){
     <h2>{ui.guideTitle}</h2><p>{ui.guideIntro}</p>
     <dl className={styles.consultationSummary}><div><dt>{ui.summary}</dt><dd>{kindLabel(kind.id)} · {tierLabel(product)}</dd></div><div><dt>{ui.profile}</dt><dd>{tarotOnly?localizedSystem('tarot',siteLocale):selectedProfile?.name||inputCopy.pickerPrompt}</dd></div><div><dt>{ui.structure}</dt><dd>{preview.length} {ui.chapters}</dd></div><div><dt>{ui.methodTitle}</dt><dd>{siteLocale==='ko'?readingFeatures[domain]:localizedSystem(domain,siteLocale)}</dd></div><div><dt>{ui.paymentTitle}</dt><dd>{ui.payment} · {price(product.priceKRW)}</dd></div></dl>
     <p className={styles.guideNote}><Sparkles size={16} aria-hidden="true"/>{ui.about}</p>
+    {siteLocale==='ko'&&hasReviews&&<details className={styles.consultationReviews}><summary>네오 1:1 상담 실제 후기 보기</summary><p>네오가 사람 1:1 상담에서 받은 후기예요. 여기서 고르는 상담은 AI가 작성해요.</p><CustomerReviews limit={2} variant="inline"/></details>}
    </aside>
    <div className={`${styles.form} ${styles.consultationForm}`}>
    {relationship&&tarotOnly&&<><label>{relationshipCopy.self}<input maxLength={40} value={participants.self} onChange={e=>setParticipants({...participants,self:e.target.value})}/></label><label>{relationshipCopy.partner}<input maxLength={40} value={participants.partner} onChange={e=>setParticipants({...participants,partner:e.target.value})}/></label><p>{relationshipCopy.symbolism}</p></>}

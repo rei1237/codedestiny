@@ -15,12 +15,13 @@ const REVIEWS_SHA256='3d016255d76987f19ea703ea6eee5aa5d2975a573130aceda4f309360c
 const BANNED=/유일|100%|정확히 적중|항상 맞는|최고|대통령/;
 const base={id:'kakao-x',source:'kakao',service:'neo-1on1',postedAt:'2025-03-30',consent:true,visible:true,featured:false,bubbles:['감사합니다']};
 
-async function renderFounderTrust(){
- const bundle=await build({stdin:{contents:"export {default} from './app/components/FounderTrust';",resolveDir:process.cwd(),loader:'tsx'},bundle:true,platform:'node',format:'cjs',write:false,jsx:'automatic',loader:{'.css':'empty','.module.css':'empty'},external:['react','react/jsx-runtime','react-dom']});
+async function renderComponent(entry,props={}){
+ const bundle=await build({stdin:{contents:`export {default} from '${entry}';`,resolveDir:process.cwd(),loader:'tsx'},bundle:true,platform:'node',format:'cjs',write:false,jsx:'automatic',loader:{'.css':'empty','.module.css':'empty'},external:['react','react/jsx-runtime','react-dom']});
  const loaded=new Module(path.resolve('founder-trust-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
  const React=require('react'),{renderToStaticMarkup}=require('react-dom/server');
- return renderToStaticMarkup(React.createElement(loaded.exports.default));
+ return renderToStaticMarkup(React.createElement(loaded.exports.default,props));
 }
+const renderFounderTrust=()=>renderComponent('./app/components/FounderTrust');
 
 test('review texts stay byte-identical to the verified originals',()=>{
  const digest=createHash('sha256').update(JSON.stringify(CUSTOMER_REVIEWS.map(r=>[r.id,r.postedAt,r.bubbles]))).digest('hex');
@@ -72,4 +73,17 @@ test('founder trust renders every review once with disclaimers and no evidence l
  assert.equal(html.match(/<li>/g).length,EXPERTISE_FACTS.length);
  assert.doesNotMatch(html,/neosaju|blog\.naver|founder-timeline|target="_blank"/);
  assert.doesNotMatch(html.replace(/<[^>]+>/g,''),BANNED);
+});
+
+test('consultation shows two featured reviews, collapsed and ko-only, with the human-vs-AI notice',async()=>{
+ const html=await renderComponent('./app/components/CustomerReviews',{limit:2,variant:'inline'});
+ assert.equal(html.match(/<article/g).length,2);
+ assert.doesNotMatch(html,/<h3|<details|더 보기|founder-reviews|neosaju|target="_blank"/);
+ assert.match(html,/개인 경험에 따른 후기이며 결과를 보장하지 않습니다/);
+ const block=readFileSync('app/yeongnyangi/_components/Consultation.tsx','utf8').match(/\{siteLocale==='ko'&&hasReviews&&<details[^\n]+?<\/details>\}/)?.[0];
+ assert.ok(block,'review block is gated to ko');
+ assert.match(block,/<CustomerReviews limit=\{2\} variant="inline"\/>/);
+ assert.match(block,/사람 1:1 상담에서 받은 후기예요\. 여기서 고르는 상담은 AI가 작성해요\./);
+ assert.doesNotMatch(block,/<details[^>]*\bopen\b|\d[\d,]*원|천원|만원|neosaju/);
+ assert.doesNotMatch(block.replace(/<[^>]+>/g,''),BANNED);
 });

@@ -250,6 +250,11 @@
 .consultationSummary dd { color:var(--yn-ivory); margin:0; font-size:.95rem; overflow-wrap:anywhere; }
 .consultationGuide .guideNote { display:flex; align-items:flex-start; gap:10px; padding-top:16px; border-top:1px solid var(--yn-line); font-size:.8rem; }
 .guideNote svg { flex-shrink:0; margin-top:6px; }
+.consultationReviews { grid-column:1/-1; margin-top:18px; padding:0 14px; border:1px solid var(--yn-line); border-radius:16px; background:var(--yn-night); word-break:keep-all; overflow-wrap:break-word; }
+.consultationReviews[open] { padding-bottom:14px; }
+.consultationReviews > summary { min-height:44px; padding:12px 2px; line-height:1.4; color:var(--yn-gold); font-size:.88rem; font-weight:800; cursor:pointer; }
+.consultationReviews > summary:focus-visible { outline:2px solid var(--yn-gold); outline-offset:2px; border-radius:8px; }
+.consultationReviews > p { margin:0 2px; color:var(--yn-muted); font-size:.8rem; line-height:1.7; }
 .consultationForm { padding:30px; }
 .birthDetails { padding:2px 0 20px; }
 .questionSection { border-top:1px solid var(--yn-line); padding-top:24px; }
