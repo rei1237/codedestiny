@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { buildSeoMetadata } from "../../lib/seo";
-import FortuneChatClient from "./FortuneChatClient";
+import FortuneChatEntry from "./FortuneChatEntry";
 
 export const metadata = buildSeoMetadata({
   path: "/fortune-chat",
@@ -14,7 +14,7 @@ export default function FortuneChatPage() {
   // 경계를 두지 않으므로(app/layout.js 주석) 이 경계를 빼면 next build 가 실패한다.
   return (
     <Suspense>
-      <FortuneChatClient />
+      <FortuneChatEntry />
     </Suspense>
   );
 }
