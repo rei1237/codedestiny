@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const owner='507f1f77bcf86cd799439011', other='507f1f77bcf86cd799439022';
 let loseStoredDraftAtClaim=false;
 let requests=[],payments=[],evidences=[],accounts=[],familyUser=null,failWrite=false,failFinalRead=false,failFinalComplete=false,refundBeforeFinalization=false,tail=Promise.resolve(),activeOperations=0;
-const consumePass=jest.fn(),refundPass=jest.fn(),verifyPerUse=jest.fn();
+const consumePass=jest.fn(),refundPass=jest.fn(),refundMoonstone=jest.fn(),verifyPerUse=jest.fn();
 const get=(row,key)=>key.split('.').reduce((v,k)=>v?.[k],row);
 function expr(row,e) {
   if(typeof e==='string'&&e.startsWith('$'))return get(row,e.slice(1));
@@ -105,7 +105,7 @@ const AccountUsage=model(()=>accounts,'account'),unused=model(()=>[],'unused');
 jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment,User,PointHistory,MonthlyCreditLedger:model(()=>[],'monthly-ledger'),
   GuardianFortuneAccountUsage:AccountUsage,GuardianFortuneAnonymousMerge:unused,GuardianFortuneGenerationAttempt:unused,GuardianFortuneGuestUsage:unused}));
 jest.unstable_mockModule('../../worker/lib/entitlement-policy.js',()=>({resolveCanonicalEntitlement:user=>user?.profileSubscription || {}}));
-jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({consumePassForFeature:consumePass,refundPassCoverage:refundPass}));
+jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({consumePassForFeature:consumePass,refundPassCoverage:refundPass,refundYeongnyangiMoonstone:refundMoonstone}));
 jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:verifyPerUse}));
 jest.unstable_mockModule('../../worker/payments/passes.js',()=>({passUsageEvidenceId:()=> '507f1f77bcf86cd799439099'}));
 let repo;
@@ -141,7 +141,7 @@ test('tuna stops at item 9 of 15 and resumes from item 9 under concurrent recove
 });
 beforeEach(()=>{
   loseStoredDraftAtClaim=false;requests=[];payments=[{_id:'pay1',requestId:'yn-id',userId:owner,featureKey:values.featureKey,paymentType:'digital_content',status:'paid',paymentAmount:1000,metadata:{}}];
-  evidences=[];accounts=[];familyUser=null;consumePass.mockReset();refundPass.mockReset();verifyPerUse.mockReset();
+  evidences=[];accounts=[];familyUser=null;consumePass.mockReset();refundPass.mockReset();refundMoonstone.mockReset();verifyPerUse.mockReset();
   failWrite=false;failFinalRead=false;failFinalComplete=false;refundBeforeFinalization=false;tail=Promise.resolve();
 });
 test('ask generation evidence is stored separately and an intent replay cannot replace it',async()=>{
@@ -646,6 +646,61 @@ describe('fortune-chat per-use access',()=>{
     expect(verifyPerUse).toHaveBeenCalledTimes(2);
     evidences[0].metadata.refundedForServiceExecution=true;
     await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
+  });
+
+  test('a retry that finds the pass already spent rebuilds its restore record from the use record',async()=>{
+    evidences.push({...passReceipt,metadata:{...passReceipt.metadata,passCycleKey:'c1',coinCost:30}});
+    verifyPerUse.mockResolvedValue({proven:true,source:'pass',reason:''});
+    await repo.createRequest({},owner,'id',chat);
+    expect(await activate()).toMatchObject({accessMethod:'PER_USE',perUseSource:'point',perUsePassRefund:{cycleKey:'c1',cost:30}});
+    expect(verifyPerUse.mock.calls.every(([,input])=>input.requireExisting===true)).toBe(true);
+  });
+
+  const failEmpty=async()=>{
+    const claim=await repo.claimChapter({},owner,'id');
+    await repo.failChapter({},owner,'id',claim.token,'GENERATION_REVIEW_REQUIRED',1,'quality');
+  };
+  test('a pass consultation that delivered nothing restores the quota once and closes the request',async()=>{
+    evidences.push({...passReceipt,metadata:{...passReceipt.metadata,passCycleKey:'c1',coinCost:30}});
+    verifyPerUse.mockResolvedValue({proven:true,source:'pass',reason:''});
+    refundPass.mockResolvedValue({refunded:true});
+    await repo.createRequest({},owner,'id',chat);
+    await activate();
+    await failEmpty();
+    expect(refundPass).toHaveBeenCalledTimes(1);
+    expect(refundPass.mock.calls[0][0]).toMatchObject({userId:owner,cycleKey:'c1',cost:30,refundId:'yeongnyangi:id',restorePass:null});
+    expect(requests[0]).toMatchObject({state:'REFUNDED',errorCode:'PASS_QUOTA_RESTORED',accessMethod:'PER_USE'});
+    expect(evidences[0].metadata.refundedForServiceExecution).toBe(true);
+    await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
+  });
+
+  test('a pass consultation with a delivered chapter keeps the quota spent',async()=>{
+    evidences.push({...passReceipt,metadata:{...passReceipt.metadata,passCycleKey:'c1',coinCost:30}});
+    verifyPerUse.mockResolvedValue({proven:true,source:'pass',reason:''});
+    await repo.createRequest({},owner,'id',chat);
+    await activate();
+    const first=await repo.claimChapter({},owner,'id');
+    await repo.finishChapter({},owner,'id',first.token,0,{summary:'delivered'},2);
+    await failEmpty();
+    expect(refundPass).not.toHaveBeenCalled();
+    expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
+  });
+
+  test('a moonlight-stone consultation that delivered nothing goes to the stone restore',async()=>{
+    requests.push({_id:'id',userId:owner,...chat,state:'GENERATING',accessMethod:'PER_USE',perUseSource:'ledger',perUseEvidenceId:'ledger1',
+      completedChapters:0,chapters:[],leaseToken:'lease'});
+    refundMoonstone.mockResolvedValue({refunded:true});
+    await repo.failChapter({},owner,'id','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
+    expect(refundMoonstone).toHaveBeenCalledWith({userId:owner,requestId:'id',perUse:true});
+    expect(refundPass).not.toHaveBeenCalled();
+  });
+
+  test.each(['payment','admin'])('a %s consultation that delivered nothing stays for support review',async source=>{
+    requests.push({_id:'id',userId:owner,...chat,state:'GENERATING',accessMethod:'PER_USE',perUseSource:source,perUseEvidenceId:'pay-fc',
+      completedChapters:0,chapters:[],leaseToken:'lease'});
+    await repo.failChapter({},owner,'id','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
+    expect(refundPass).not.toHaveBeenCalled();expect(refundMoonstone).not.toHaveBeenCalled();
+    expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
   });
 
   test.each([

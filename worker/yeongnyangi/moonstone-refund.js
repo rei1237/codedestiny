@@ -8,12 +8,13 @@ import { restoreMonthlyCreditLot } from '../lib/monthly-credit-store.js';
 import { toObjectId } from '../payments/db.js';
 
 const failure=code=>Object.assign(new Error(code),{code,status:503});
-export async function refundTerminalMoonstone(db,{userId,requestId}={}) {
-  const owner=toObjectId(userId),id=String(requestId || '').replace(/^yn-/,'');
+// perUse: a fortune-chat consultation paid with moonlight stones (PER_USE ledger proof under fc-<id>).
+export async function refundTerminalMoonstone(db,{userId,requestId,perUse=false}={}) {
+  const owner=toObjectId(userId),id=String(requestId || '').replace(/^(yn|fc)-/,''),rid=(perUse?'fc-':'yn-')+id;
   if(!owner||!/^[a-f0-9]{64}$/.test(id))return {refunded:false};
   const sourceId='service-exec-refund:exec:yeongnyangi:'+id;
   return db.transaction(async tx=>{
-    const identity={_id:id,userId:owner,accessMethod:'MOONLIGHT_STONE'};
+    const identity=perUse?{_id:id,userId:owner,accessMethod:'PER_USE',perUseSource:'ledger'}:{_id:id,userId:owner,accessMethod:'MOONLIGHT_STONE'};
     const row=await tx.findOne(YeongnyangiRequest,identity);
     if(!row)return {refunded:false};
     const receiptFilter={userId:owner,type:'MONTHLY_CREDIT_GRANT',sourceId};
@@ -32,7 +33,7 @@ export async function refundTerminalMoonstone(db,{userId,requestId}={}) {
       {returnDocument:'after'});
     if(!reserved)return {refunded:false};
     const proof=await findMoonstoneSpendEvidence(null,{db:tx,userId:owner,featureKeys:[row.featureKey],
-      tokens:[row.moonstoneLedgerId,'yn-'+id,id],
+      tokens:perUse?[row.perUseEvidenceId,rid]:[row.moonstoneLedgerId,rid,id],
       minimumAmount:calculatePaidFeatureMembershipCreditCost(row.featureKey,Number(row.amountKRW)/100),
       claimRequestId:id,commitMarker:'refund:'+id});
     if(!proof)throw failure('PAYMENT_NOT_ACTIVE');
@@ -42,8 +43,8 @@ export async function refundTerminalMoonstone(db,{userId,requestId}={}) {
     if(!restored?.added)throw failure('MONTHLY_CREDIT_REFUND_PENDING');
     const receipt=await tx.findOneAndUpdate(MonthlyCreditLedger,receiptFilter,{$setOnInsert:{
       ...receiptFilter,amount:proof.amount,beforeBalance:restored.beforeBalance,afterBalance:restored.afterBalance,
-      serviceKey:row.featureKey,reason:'영냥이 상담 결과 미생성 월정석 복원',
-      metadata:{requestId:'yn-'+id,originalLedgerId:proof.ledgerId,executionId:'yeongnyangi:'+id},
+      serviceKey:row.featureKey,reason:perUse?'사주 상담 결과 미생성 월정석 복원':'영냥이 상담 결과 미생성 월정석 복원',
+      metadata:{requestId:rid,originalLedgerId:proof.ledgerId,executionId:'yeongnyangi:'+id},
       createdAt:now,updatedAt:now,settledAt:now}},{upsert:true,returnDocument:'after'});
     if(!receipt?._id)throw failure('MONTHLY_CREDIT_REFUND_EVIDENCE_PENDING');
     const marked=await tx.findOneAndUpdate(MonthlyCreditLedger,{
