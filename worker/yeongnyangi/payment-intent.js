@@ -84,6 +84,21 @@ export async function assertFortunePaymentIntent(db, {env, userId, requestId, pr
   return fortune;
 }
 
+// A fortune-chat consultation (fc-<id>) opens one card window only while nothing has opened it yet: a free use,
+// pass, stones or an earlier paid order already attached means a stale tab, never a second charge.
+// No pass lookup here — card prepare reads only this consultation and its card orders (billing-pass-policy).
+export async function assertChatPaymentIntent(db,{userId,requestId,product}) {
+  if(!/^fc-[a-f0-9]{64}$/.test(String(requestId || '')))throw paymentError('INVALID_REQUEST','상담 내용을 먼저 확인해 주세요.');
+  const id=requestId.slice(3);
+  const chat=await db.findOne(YeongnyangiRequest,{_id:id,userId:toObjectId(userId)});
+  if(!chat || chat.featureKey!==product.featureKey)throw paymentError('INVALID_REQUEST','상담 주문과 상품을 확인하지 못했어요.');
+  const paid=hasRequestAccess(chat) || await db.findOne(Payment,{
+    userId:toObjectId(userId),requestId,paymentType:'digital_content',status:{$in:['paid','success','fulfilled']},
+  },{projection:{_id:1}});
+  if(paid || chat.state!=='CREATED')throw paymentError('FORTUNE_ALREADY_PAID','이미 열린 상담이에요. 결제 없이 상담방에서 이어 주세요.',{fortuneRequestId:id});
+  return chat;
+}
+
 // Prepare reserves the very same consultation row before creating any PG order.
 export async function reserveFortuneDirectFunding(db,{userId,requestId,featureKey,orderId,generation}) {
   const row=await db.findOneAndUpdate(YeongnyangiRequest,{

@@ -107,3 +107,43 @@ test('more than three cancelled attempts still have one deterministic next order
  const [a,b]=await Promise.all([createPayableOrder(db,input),createPayableOrder(db,input)]);
  expect(a.merchantUid).toBe(b.merchantUid);expect(db.rows).toHaveLength(9);
 });
+
+describe('fortune-chat consultation card prepare (fc-)',()=>{
+ const chat={productId:'fortune-chat-consultation',featureKey:'fortune-chat-consultation',priceKRW:3000,priceCoins:30,monthlyCost:300,billingType:'per_use'};
+ const chatSetup=overrides=>{
+  const fixture=setup({featureKey:chat.featureKey,amountKRW:3000,...overrides});
+  const models=[],read=fixture.db.findOne;
+  fixture.db.findOne=async(Model,...rest)=>{models.push(Model.modelName);return read(Model,...rest);};
+  return {...fixture,models,input:{...fixture.input,product:chat,requestId:`fc-${id}`,idempotencyKey:'chat-first'}};
+ };
+ test('an unopened consultation gets one card order and the guard reads no pass state',async()=>{
+  const {db,input,models}=chatSetup();
+  const order=await createPayableOrder(db,input);
+  expect(order).toMatchObject({requestId:`fc-${id}`,status:'pending'});
+  expect([...new Set(models)].sort()).toEqual(['Payment','YeongnyangiRequest']);
+ });
+ test.each([
+  ['the free use',{accessMethod:'ACCOUNT_FREE_TRIAL',state:'PAID'}],
+  ['a pass or stones',{accessMethod:'PER_USE',perUseSource:'point',state:'GENERATING'}],
+  ['a finished consultation',{accessMethod:'PER_USE',perUseSource:'payment',state:'COMPLETED'}],
+ ])('a consultation already opened by %s never opens another card window',async(_label,overrides)=>{
+  const {db,input}=chatSetup(overrides);
+  await expect(createPayableOrder(db,input)).rejects.toMatchObject({code:'FORTUNE_ALREADY_PAID'});
+  expect(db.rows).toHaveLength(0);
+ });
+ test('a paid card order under another browser key blocks a second one',async()=>{
+  const {db,input}=chatSetup();
+  const first=await createPayableOrder(db,input);
+  await markOrderPaid(db,{orderId:first.merchantUid,order:first,pg:{summary:{}}});
+  await expect(createPayableOrder(db,{...input,idempotencyKey:'chat-second'})).rejects.toMatchObject({code:'FORTUNE_ALREADY_PAID'});
+  expect(db.rows).toHaveLength(1);
+ });
+ test.each([
+  ['another owner',{userId:'507f1f77bcf86cd799439022'}],
+  ['a malformed id',{requestId:'fc-not-a-consultation'}],
+ ])('%s cannot prepare a consultation order',async(_label,change)=>{
+  const {db,input}=chatSetup();
+  await expect(createPayableOrder(db,{...input,...change})).rejects.toMatchObject({code:'INVALID_REQUEST'});
+  expect(db.rows).toHaveLength(0);
+ });
+});
