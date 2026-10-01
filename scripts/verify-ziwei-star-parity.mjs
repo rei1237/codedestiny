@@ -83,8 +83,8 @@ const SHARED_STARS = Object.freeze([
 /**
  * 워커에만 있는 별. 셸·앱은 이 둘을 배치하지 않는다.
  * 🔴 지우거나 다른 엔진에 옮기는 판단은 이 가드의 몫이 아니다 — 여기서는 "알고 있는 차이"로만 둔다.
- * 두 별은 앱의 고전 명암표(app/_lib/ziwei-strength.ts)에도 행이 없어서, 앱에 넣으면
- * 지지 인덱스 폴백으로 떨어진다. 넣으려면 명암표부터 세워야 한다.
+ * 두 별은 정본 강약표(lib/ziwei-star-strength.js)에도 행이 없어서, 앱에 넣으면
+ * 강약 글자 없이 그려진다. 강약을 붙이려면 정본 표부터 세워야 한다.
  */
 const WORKER_ONLY_STARS = Object.freeze(["함지", "천요"]);
 

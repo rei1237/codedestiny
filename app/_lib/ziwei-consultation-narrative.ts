@@ -91,7 +91,7 @@ export function buildQuestionReading(chart: Pick<ZiweiDeepChart, 'palaces' | 'ma
   const voice = first ? palaceVoice(first) : FALLBACK;
   const stars = first?.mainStars.length ? first.mainStars : first?.oppositePalace?.mainStars || [];
   const secondVoice = stars[1] ? VOICES[stars[1].name] : undefined;
-  const constrained = stars.some(s => ['X', '함', '陷'].includes(s.strengthSymbol || s.symbol || s.strength || ''));
+  const constrained = stars.some(s => ['X', '함', '陷', '불', '不'].includes(s.strengthSymbol || s.symbol || s.strength || ''));
   const transforms = [...(first?.fourTransformations || []), ...(first?.incomingFourTransformations || [])];
   const burden = transforms.some(t => t.type === '기')
     ? '마음에 걸린 일을 되짚는 시간이 길어질 수 있습니다. 당장 해결할 수 있는 부분과 기다려야 하는 부분을 나누면 부담을 덜 수 있습니다.'

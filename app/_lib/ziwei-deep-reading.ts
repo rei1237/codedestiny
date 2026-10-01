@@ -1,5 +1,6 @@
 import { palaceVoice } from "./ziwei-consultation-narrative";
 import { transformationTypeToLabel } from "./ziwei-advanced-normalization";
+import { normalizeZiweiClassicStrength, ziweiClassicStrengthToSymbol, type ZiweiClassicStrength } from "./ziwei-strength";
 import {
   AUXILIARY_STAR_INTERPRETATIONS,
   MALEFIC_STAR_INTERPRETATIONS,
@@ -381,16 +382,24 @@ const PALACE_COUNSELING_LENSES: Record<ZiweiPalaceId, PalaceCounselingLens> = {
   },
 };
 
+function starGrade(star?: ZiweiStarMeta): ZiweiClassicStrength {
+  return normalizeZiweiClassicStrength(star?.strength) || normalizeZiweiClassicStrength(star?.strengthSymbol || star?.symbol);
+}
+
+// 풀이 표(STRENGTH_SPECIFIC_STAR_HINTS·normalizeStrengthWord)는 옛 5기호로 짜여 있어, 7등급을 접어 그 열쇠로 찾는다.
+// 화면에 찍는 글자는 starBadge 의 한자 한 글자다.
+const LEGACY_HINT_KEY: Record<Exclude<ZiweiClassicStrength, "">, "◎" | "O" | "▲" | "△" | "X"> = {
+  묘: "◎", 왕: "◎", 득: "O", 리: "▲", 평: "△", 불: "X", 함: "X",
+};
+
 function normalizeSymbol(star?: ZiweiStarMeta): string {
-  const raw = String(star?.strengthSymbol || star?.symbol || "").trim();
-  if (raw === "○") return "O";
-  if (raw === "×") return "X";
-  return raw;
+  const grade = starGrade(star);
+  return grade ? LEGACY_HINT_KEY[grade] : "";
 }
 
 function starBadge(star: ZiweiStarMeta): string {
-  const symbol = normalizeSymbol(star);
-  return `${star.name}${symbol ? ` ${symbol}` : ""}`.trim();
+  const glyph = ziweiClassicStrengthToSymbol(starGrade(star));
+  return `${star.name}${glyph ? ` ${glyph}` : ""}`.trim();
 }
 
 function unique(items: string[], limit = items.length): string[] {
@@ -841,7 +850,7 @@ export function describeStarInPalaceContext(
   const parts = [
     `${starBadge(star)} — ${base}.`,
     `${palace.name}에서는 ${withJosa(context, "으로")} 이어집니다.`,
-    symbol ? `밝기 ${symbol}은 ${normalizeStrengthWord(symbol)}입니다.` : "",
+    symbol ? `밝기는 ${ziweiClassicStrengthToSymbol(starGrade(star))}(${starGrade(star)}), ${normalizeStrengthWord(symbol)}입니다.` : "",
     transform ? `여기에 ${withJosa(transform, "이")} 겹칩니다.` : "",
     hint ? String(hint) : "",
   ].filter(Boolean);
