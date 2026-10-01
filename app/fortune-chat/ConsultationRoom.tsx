@@ -94,8 +94,9 @@ async function readWithEvidence(id: string) {
   }
 }
 
-export default function ConsultationRoom({ initialId = "" }: { initialId?: string }) {
-  const [persona, setPersona] = useState<ChatPersona>("yeoni");
+export default function ConsultationRoom({ initialId = "", initialPersona = "yeoni" }: { initialId?: string; initialPersona?: ChatPersona }) {
+  // 시작 상담자. ?consultation= 으로 연 상담은 불러온 뒤 그 상담의 상담자로 바뀐다(show).
+  const [persona, setPersona] = useState<ChatPersona>(initialPersona);
   // 상담자별로 보던 상담을 따로 둔다 — 연이·네오를 오가도 각자의 결과가 그대로 남는다.
   const [rows, setRows] = useState<PersonaRows>(EMPTY_ROWS);
   const row = rows[persona];

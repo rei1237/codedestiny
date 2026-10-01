@@ -26,6 +26,11 @@ test("a ?character= link opens that consultant and the saved session does not ov
     'useState<Message[]>(() => welcome(requestedCharacter(params) || "yeoni"))',
     "if (payload.session?.characterId && !requested) setCharacter(storedCharacter)",
   ]) assert.ok(client.includes(snippet), snippet);
+  // 플래그가 켜진 로그인 사용자의 새 상담실도 같은 값으로 시작한다.
+  const entry = read("app/fortune-chat/FortuneChatEntry.tsx");
+  assert.ok(entry.includes('character === "neo" || character === "yeoni" ? character : undefined'));
+  assert.ok(entry.includes("initialPersona={requested}"));
+  assert.ok(read("app/fortune-chat/ConsultationRoom.tsx").includes("useState<ChatPersona>(initialPersona)"));
   const funnel = read("js/core/home-funnel.js");
   assert.ok(funnel.includes("'/fortune-chat/?character=' + (doc.classList.contains('neo-mode') ? 'neo' : 'yeoni')"));
 });
