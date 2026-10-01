@@ -20,7 +20,8 @@ test('the five other traditions retain their own prompt scope and versions',()=>
   for(const domain of ['ziwei','sukuyo','vedic','astrology','tarot']){
     const request=buildPrompt(input,context(domain),'tuna',domain,['해석']);
     assert.doesNotMatch(request.system,/비겁쟁재|식신생재|식신제살|월령|통근/);
-    assert.equal(request.promptVersion,domain+'-v1.0.0');
+    // Ziwei moved to palace-strength facts on 2026-10-01; the other four keep v1.0.0.
+    assert.equal(request.promptVersion,domain==='ziwei'?'ziwei-v1.1.0-palace-strength':domain+'-v1.0.0');
     assert.equal(request.calculatedData.domain,domain);
   }
 });

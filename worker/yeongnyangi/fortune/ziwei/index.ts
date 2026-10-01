@@ -2,11 +2,15 @@ import { calculateZiweiAiChart } from "../../../lib/ziwei-ai-chart.js";
 import { context, domain } from "../shared/domain";
 import {koreanCivilProfile} from '../shared/korean-time';
 import {calculateRelationshipZiwei} from '../relationship-calculation';
-export const ziwei = domain(
+import type { FortuneDomain } from "../shared/contracts";
+import { ZIWEI_READING_FRAME } from "./reading-rules";
+import { enrichZiweiContext } from "./reading-facts";
+const base = domain(
   "ziwei",
-  `한국 음력으로 계산된 자미두수 명반이다. 명궁·신궁·12궁과 주성/보조성/살성의 명암, 사화, 삼방사정을 함께 읽는다.
+  `한국 음력으로 계산된 자미두수 명반이다. 명궁·신궁·12궁과 주성/보조성/살성의 강약, 사화, 대궁·삼합(삼방사정)을 함께 읽는다.
 생년사화·대한사화·유년사화를 구분하고 궁간과 시기를 섞지 않는다. 빈 궁을 불운이라고 단정하지 않는다.
-살성/화기는 두려움의 근거가 아니라 긴장과 과제를 설명하는 단서다. 궁과 별 이름 나열로 끝내지 말고 왜 그런 행동 패턴이 나타날 수 있는지 말한다.`,
+살성/화기는 두려움의 근거가 아니라 긴장과 과제를 설명하는 단서다. 궁과 별 이름 나열로 끝내지 말고 왜 그런 행동 패턴이 나타날 수 있는지 말한다.
+${ZIWEI_READING_FRAME}`,
   [
     "삶의 중심과 기질",
     "관계의 방식",
@@ -38,3 +42,5 @@ export const ziwei = domain(
     );
   },
 );
+// 저장 context 는 그대로 두고 프롬프트에 넣을 때만 궁 강약·관계·판단 문장을 붙인다(reading-facts.ts 머리말).
+export const ziwei: FortuneDomain = { ...base, buildPrompt: (i, c, f) => base.buildPrompt(i, enrichZiweiContext(c), f) };

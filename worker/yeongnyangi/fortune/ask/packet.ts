@@ -5,6 +5,7 @@ import { ASK_EVIDENCE_VERSION, type AskCategory, type AskFact, type AskTiming, t
   type EvidencePacket, type EvidenceResolution, type EvidenceSystem, type PacketInput } from './contracts';
 import { tagsForEvidence } from './categories';
 import { evidenceWindow, periodOverlaps } from './window';
+import { enrichZiweiContext } from '../ziwei/reading-facts';
 
 const fields: Record<DomainId, readonly string[]> = {
   saju: ['pillars','dayMaster','pillarDetails','fiveElements','tenGods','tenGodsByPillar','seasonalBalance',
@@ -104,7 +105,8 @@ export function buildEvidencePacket(input: PacketInput): EvidencePacket {
   const atoms: (Omit<AskFact,'id'> | Omit<AskTiming,'id'>)[]=[];
   const engines=Object.keys(input.contexts).sort() as DomainId[];
   for(const domain of engines) {
-    const ctx=input.contexts[domain]!;
+    // Ziwei palaces gain strength, relations and reading notes here; the stored context stays untouched.
+    const ctx=enrichZiweiContext(input.contexts[domain]!);
     if(ctx.domain!==domain || !fields[domain] || new Set(ctx.facts.map(f=>f.id)).size!==ctx.facts.length)
       throw new FortuneError('INVALID_CONTEXT',500);
     if(ctx.limitations.length) note('ENGINE_LIMITATIONS',domain);

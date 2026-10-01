@@ -4,6 +4,7 @@ import {isStructuredReading,READING_V6_VERSION,READING_V7_VERSION} from './readi
 import {selectV7Facts} from './reading-v7-ledger';
 import {preventionFacts,hasPrevention} from './prevention';
 import type {ChapterSpecV7} from './reading-v7';
+import {enrichZiweiContext} from './ziwei/reading-facts';
 
 export function relationshipSignals(value:unknown) {
  const data=value as {byName?:Record<string,{present?:boolean;hits?:unknown[];state?:string}>};
@@ -60,6 +61,8 @@ const filters:Record<string,RegExp>={
  luck:/Luck|Timeline|dasha|transit|timing|year|decade|cards|reading/i,
 };
 export function selectChapterFacts(context:DomainContext,chapter:ChapterSpec,topic='general'){
+ // 자미 궁 강약·관계·판단 문장은 저장 context 가 아니라 여기서 붙인다 — v6·v7·주의점·옛 주제 경로가 모두 이 입구를 지난다.
+ context=enrichZiweiContext(context);
  const prevention=preventionFacts(context,chapter);
  if(hasPrevention(chapter)&&chapter.key==='prevention')return prevention;
  // v7 replaces selectors with the fact ledger: a chapter sees exactly the IDs it owns plus the ones it may reference.
