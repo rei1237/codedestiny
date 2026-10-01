@@ -2,7 +2,7 @@
 status: done
 implementationStatus: shipped-to-main
 updated: 2026-10-01
-next: 후속 과제 1·2·3·4·6·7 완료. #5(간편결제, RED)만 남았고 사용자 결정 뒤에만 착수한다.
+next: 후속 과제 1~7 모두 완료. #5 카카오페이는 mock 검증만 했다. 실결제 확인은 사용자의 1회 승인이 있을 때만 한다.
 ---
 
 # 영냥이 전용 이용권 리뉴얼 (2026-10-01)
@@ -17,11 +17,11 @@ next: 후속 과제 1·2·3·4·6·7 완료. #5(간편결제, RED)만 남았고 
 
 - 히어로: `yeoni-alliance-v1.webp`와 `paymentAllianceCopy`를 재사용한다. 월정석 카드의 1/N과 예시 줄은 `resolveServerFeaturePricing('yeongnyangi-saju-mackerel')`에서 계산한다(하드코딩 없음).
 - 카드: 전역 `moon-plan-card`, `btn-moonlight`를 쓴다. 10회(가운데) 카드에는 "영냥이 추천" 배지와 `recommend-badge-v1.webp` 오버레이가 붙는다.
-- 구매 모달: 꽃돼지 모달 순서를 따른다. 조건 → 선물 입력과 안내 → 환불 동의 → 카드 타일 1개 → 닫기.
-  - 영냥이 세트는 prepare가 `card_general` 고정이라 결제 타일이 하나뿐이다.
+- 구매 모달: 꽃돼지 모달 순서를 따른다. 조건 → 선물 입력과 안내 → 환불 동의 → 결제수단 타일(카드·카카오페이) → 닫기.
+  - 카카오페이는 후속 #5(965b09ee6)에서 붙였다.
   - Esc와 배경 클릭으로 닫는다. 결제 중에는 닫히지 않는다. 열면 제목으로 포커스가 가고, 닫으면 트리거로 돌아온다.
   - z-index는 `z-[1000]`이다. 하단 탭바 `.cd-mnav`가 z 960이다.
-- 결제 실행 코드(`buy`/`resume`/`checkOrder`, `service-pack-client.ts`)는 변경하지 않았다.
+- 리뉴얼 커밋 3개는 결제 실행 코드(`buy`/`resume`/`checkOrder`, `service-pack-client.ts`)를 바꾸지 않았다. 결제 실행은 #3·#5에서 바뀌었다.
 - 이미지:
   - 생선 세트는 360px `-v2`로 다시 인코딩했다.
   - 추천 배지 2장은 codex image_gen으로 생성했다. 영냥이는 정본 외형(흰 장모·마법사 모자)이다. 출처는 각 폴더 `provenance.md`에 있다.
@@ -42,7 +42,7 @@ next: 후속 과제 1·2·3·4·6·7 완료. #5(간편결제, RED)만 남았고 
   - 통과: 구조 일치, 오버레이, 줄바꿈, 자가·선물 모달, 가로 넘침 없음.
   - 실결제는 하지 않았다.
 
-## 후속 과제 (#5만 미착수)
+## 후속 과제 (전부 완료)
 
 1. ~~꽃돼지 결제 모달이 하단 탭바(z 960)에 가려질 수 있다.~~ **완료(2026-10-01)**
    - 재현: 360×640에서 모달 맨 아래 "닫기"를 누르면 탭바의 "모든 운세" 링크가 눌렸다.
@@ -58,9 +58,26 @@ next: 후속 과제 1·2·3·4·6·7 완료. #5(간편결제, RED)만 남았고 
 4. ~~`-v1` 미완료 주문은 "이어가기"가 막히고 버튼이 잠긴다.~~ **완료(같은 커밋)**
    - 이어가기는 여전히 막혀 있다. 카탈로그에 없는 플랜이라 의도한 동작이다. 대신 "결제 확인"에서 NOT_PAID가 오면 잠금이 풀려 새 세트를 고를 수 있다.
    - 검증: 임시 jsdom 시나리오 6개가 모두 통과했다(#3·#4 각각, 서버 불통, 같은 탭 유지 2개, CANCELLED). `service-pack-pending-resume` 22/22.
-5. 영냥이 세트 결제수단은 카드만 된다. 간편결제를 붙이려면 결제 실행을 바꿔야 한다(RED, **미착수**).
-   - 현재 구조: 모달에 `data-pack-pay-method="card"` 타일 하나만 있다(ServicePacks.tsx). 서버(`worker/payments/service-packs.js`)는 결제수단을 구분하지 않는다.
-   - 결정 필요: 붙일 간편결제 종류(카카오·네이버·토스 등)와, 꽃돼지 결제창의 수단 선택을 재사용할지 여부. 실결제 검증은 승인 대상이다.
+5. ~~영냥이 세트 결제수단은 카드만 된다.~~ **카카오페이 추가 완료(2026-10-01, 965b09ee6, mock 검증만)**
+   - 사용자 결정: 수단은 카카오페이다. 기존 `kakaopayChannelKey` 채널을 쓰고, 꽃돼지와 같은 표를 재사용한다. 검증은 mock만 한다.
+   - 구조:
+     - 수단 값의 정본은 `js/core/checkout-entry.js`의 `DIRECT_PAY_METHODS` 표다(EASY_PAY, kakaopayChannelKey, orderMethod `kakaopay`). `service-pack-client.ts`는 `setSelectedDirectPayMethod` → `resolveDirectPayFields` → `clear`로 값을 꺼낸다. 값을 베끼지 않는다.
+     - `lib/payment/portone.ts`에 `payFields` 옵션을 더했다. 전용 채널이면 `config[channelKeyName]`만 쓰고, 비어 있으면 `PAY_METHOD_UNAVAILABLE`로 실패한다(이니시스로 폴백하지 않음). 그때는 bypass도 싣지 않는다. 동결 매니페스트도 같은 커밋에서 갱신했다.
+     - 카드는 종전 경로 그대로다(`card_general`, payFields 없음).
+     - 서버는 바꾸지 않았다. prepare가 `kakaopay`를 pg 계열로 받는다.
+   - 모달 동작:
+     - 모달을 열면 `ensureDirectPayMethodAvailability`(`/api/payments/config`)로 채널키가 없는 수단을 미리 '준비 중'으로 내린다.
+     - 결제창에서 `PAY_METHOD_UNAVAILABLE`이 오면 그 수단을 내린다.
+     - 이어가기에서 저장된 수단이 꺼져 있으면 같은 주문을 카드로 잇는다.
+   - 검증(mock):
+     - `service-pack-pending-resume` 24/24(카카오 2개 추가), 세트 jest 115/115.
+     - verify 7종: payment-freeze, portone-single-payment(⑥ 채널 격리 목록에 portone.ts 추가), billing-pass-policy, checkout-pass-card, payment-choice-parity, paid-gate-ui, pg-window-no-conflict.
+     - 임시 jsdom에 실제 `ServicePackShop`을 렌더해 3개 시나리오를 확인했다. 카카오 타일은 prepare `kakaopay`와 PortOne EASY_PAY·전용 채널로 간다. 카드는 `card_general`이다. 키가 없으면 주문 전에 타일이 잠긴다.
+     - 실제 `portone.ts` 번들 3개 시나리오: 카카오 채널 사용·bypass 없음, 키 없으면 창을 열지 않음, 카드는 그대로.
+     - `check:fast`(critical): jest 4893/4893이 통과했다. node 단계의 sitemap lastmod 테스트 1개가 병렬 실행에서만 실패했다. 단독 실행은 6/6 통과이고, 이 변경과 무관하다.
+   - 미검증과 남은 위험:
+     - 실제 카카오페이 결제창 동작(스테이징 채널 포함)은 확인하지 않았다. 실결제 확인은 사용자의 1회 승인이 필요하다.
+     - orderId 없이 남은 대기 기록(prepare 응답 유실)을 다른 수단으로 다시 사면, 서버는 처음 기록한 수단을 유지한다(`$setOnInsert`). 확정 시 `resolveConfirmedPaymentMethod`가 PG 결과로 바로잡는다.
 6. ~~해외 원화 환산 안내가 세트 카드에 없다.~~ **완료(2026-10-01, 4b36b99b5)**
    - PointsPage가 기존 `useOverseasCharge()` 결과를 `ServicePackShop`의 `overseasCharge` prop으로 넘긴다. 카드 가격 아래에 "약 … 상당"을, 목록 끝에 원화 승인 고지를 꽃돼지 카드와 같은 마크업으로 표시한다.
    - 문구 정본은 checkout-entry 그대로이고, `verify:overseas-payment-notice`의 호출 파일 목록도 바뀌지 않았다. 한국어 화면에서는 null이라 기존과 같다.
@@ -74,5 +91,5 @@ next: 후속 과제 1·2·3·4·6·7 완료. #5(간편결제, RED)만 남았고 
 ## 재개 정보
 
 ~~~text
-D:\Development\code-destiny에서 docs\handoff\yeongnyangi-pack-ui-renewal-2026-10-01.md를 읽고, git status와 e46626df3 이후 커밋을 확인한 뒤, 남은 후속 과제 #5(간편결제, RED)는 사용자가 결제수단과 검증 승인을 정한 경우에만 진행하라.
+D:\Development\code-destiny에서 docs\handoff\yeongnyangi-pack-ui-renewal-2026-10-01.md를 읽고 git status와 965b09ee6 이후 커밋을 확인하라. 후속 과제는 모두 끝났다. 영냥이 세트 카카오페이의 실결제(스테이징) 확인은 사용자가 정확한 1회 승인을 준 경우에만 진행하라.
 ~~~
