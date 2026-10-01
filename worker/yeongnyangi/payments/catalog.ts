@@ -1,6 +1,7 @@
 import { getBillingFeaturePricing } from '../../lib/billing-feature-registry.js';
 import {READING_V5_VERSION,READING_V6_VERSION,readingChapterCount} from '../fortune/reading-policy';
 import {DomainId,FishId,PackageId,FortuneError} from '../fortune/shared/contracts';
+import {CHAT_FEATURE_KEY} from '../access-methods.js';
 export const MANIFEST_VERSION=READING_V6_VERSION;
 export const packages={
  mackerel:{name:'고등어'},salmon:{name:'연어'},flounder:{name:'광어'},tuna:{name:'참치'},
@@ -16,7 +17,7 @@ export const products:Product[]=(Object.keys(systemNames) as DomainId[]).flatMap
 export function getProduct(id:unknown):Product{const p=products.find(p=>p.id===id);if(!p)throw new FortuneError('PRODUCT_NOT_FOUND',404);return {...p,systems:[...p.systems]};}
 // Fortune-chat (Yeoni/Neo) consultations reuse the mackerel reading depth at their own per-use price.
 // They are kept out of `products`, so the Yeongnyangi shop, packs, moonlight stones and Family never offer them.
-export const CHAT_FEATURE_KEY='fortune-chat-consultation';
+export {CHAT_FEATURE_KEY};
 export const chatDomains:DomainId[]=['saju','ziwei','sukuyo','vedic','astrology'];
 export function getChatProduct(domain:unknown):Product{
  if(!chatDomains.includes(domain as DomainId))throw new FortuneError('PRODUCT_NOT_FOUND',404);

@@ -5,6 +5,7 @@ import { createHttpError } from '../lib/http.js';
 
 import { YeongnyangiRequest } from '../lib/yeongnyangi-models.js';
 import { scopeConnection } from '../lib/db-scope-connection.js';
+import { CHAT_FEATURE_KEY } from './access-methods.js';
 export { YeongnyangiRequest };
 
 const paidStatuses = ['paid','success','fulfilled'];
@@ -33,6 +34,7 @@ const failure = (status, code) => {
 const readOptions={retries:1,retryOnOperationTimeout:true,retryAdmissionOnOverload:true};
 
 export function requestAccessMethod(row = {}) {
+  if (row.accessMethod === 'PER_USE') return 'PER_USE';
   if (row.accessMethod === 'SERVICE_PACK' || row.packEntitlementId) return 'SERVICE_PACK';
   if (row.accessMethod === 'MOONLIGHT_STONE' || row.moonstoneLedgerId) return 'MOONLIGHT_STONE';
   if (row.accessMethod === 'FAMILY' || row.passEvidenceId) return 'FAMILY';
@@ -100,6 +102,10 @@ async function loadFamilyLedger() {
 
 export async function findNonCashEvidence(row, userId, session = null, commitMarker = '') {
   const id=String(row._id);
+  if(requestAccessMethod(row)==='PER_USE') {
+    const {findPerUseEvidence}=await import('./per-use-access.js');
+    return findPerUseEvidence(row,ownerId(userId),session,commitMarker);
+  }
   if(requestAccessMethod(row)==='SERVICE_PACK') {
     const {findYeongnyangiServicePackEvidence}=await loadFamilyLedger();
     return findYeongnyangiServicePackEvidence({row,userId,session,commitMarker});
@@ -222,16 +228,33 @@ async function attachDirectPayment(env, userId, requestId, expectedCharge) {
   });
 }
 
-export async function attachPayment(env, userId, requestId, expectedCharge, options = {}) {
-  const current=await readRequest(env,userId,requestId);
-  if(hasRequestAccess(current))return current;
-  try{return await attachDirectPayment(env,userId,requestId,expectedCharge);}
-  catch(error){if(error?.code!=='PAYMENT_REQUIRED'&&error?.payload?.code!=='PAYMENT_REQUIRED')throw error;}
-  // 재가격 판정은 PG 테스트 청구가가 아니라 저장 당시/현재의 정상 판매가끼리 비교한다.
-  // staging에서는 30,000원과 50,000원이 모두 1,000원으로 내려갈 수 있어 청구가 비교만으로는 낡은 요청이 열린다.
+// 재가격 판정은 PG 테스트 청구가가 아니라 저장 당시/현재의 정상 판매가끼리 비교한다.
+// staging에서는 30,000원과 50,000원이 모두 1,000원으로 내려갈 수 있어 청구가 비교만으로는 낡은 요청이 열린다.
+function assertCurrentPrice(current, expectedCharge, options) {
   const storedAmountKRW=Math.max(0,Math.floor(Number(current.amountKRW || expectedCharge)));
   const currentAmountKRW=Math.max(0,Math.floor(Number(options?.currentAmountKRW || storedAmountKRW)));
   if(currentAmountKRW!==storedAmountKRW)throw failure(409,'PRICE_CHANGED');
+  return currentAmountKRW;
+}
+
+// Fortune-chat consultations never take a Yeongnyangi payment, moonlight-stone or Family path: only the
+// per-use proof the fortune-chat route already accepts, pinned to the request (per-use-access.js).
+async function attachChatAccess(env, userId, requestId, current, expectedCharge, options) {
+  const currentAmountKRW=assertCurrentPrice(current,expectedCharge,options);
+  const {proveChatAccess}=await import('./per-use-access.js');
+  const access=await proveChatAccess(env,{row:current,userId:String(userId),owner:ownerId(userId),coinPrice:Math.floor(currentAmountKRW/100)});
+  const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:ownerId(userId),featureKey:CHAT_FEATURE_KEY,paymentId:null,
+    $or:[{accessMethod:null},{accessMethod:{$exists:false}}]},{$set:{accessMethod:'PER_USE',...access,state:'PAID'}},{new:true}).lean());
+  return row || readRequest(env,userId,requestId);
+}
+
+export async function attachPayment(env, userId, requestId, expectedCharge, options = {}) {
+  const current=await readRequest(env,userId,requestId);
+  if(hasRequestAccess(current))return current;
+  if(current.featureKey===CHAT_FEATURE_KEY)return attachChatAccess(env,userId,requestId,current,expectedCharge,options);
+  try{return await attachDirectPayment(env,userId,requestId,expectedCharge);}
+  catch(error){if(error?.code!=='PAYMENT_REQUIRED'&&error?.payload?.code!=='PAYMENT_REQUIRED')throw error;}
+  const currentAmountKRW=assertCurrentPrice(current,expectedCharge,options);
   const {findMoonstoneSpendEvidence}=await import('../lib/moonstone-spend-proof.js');
   const {calculatePaidFeatureMembershipCreditCost}=await import('../lib/paid-feature-registry.js');
   const coinCost=Math.max(0,Math.floor(currentAmountKRW/100));

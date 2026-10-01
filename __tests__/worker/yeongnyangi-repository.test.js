@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const owner='507f1f77bcf86cd799439011', other='507f1f77bcf86cd799439022';
 let loseStoredDraftAtClaim=false;
 let requests=[],payments=[],evidences=[],familyUser=null,failWrite=false,failFinalRead=false,failFinalComplete=false,refundBeforeFinalization=false,tail=Promise.resolve(),activeOperations=0;
-const consumePass=jest.fn(),refundPass=jest.fn();
+const consumePass=jest.fn(),refundPass=jest.fn(),verifyPerUse=jest.fn();
 const get=(row,key)=>key.split('.').reduce((v,k)=>v?.[k],row);
 function matches(row,query) {
   return Object.entries(query).every(([key,want])=>{
@@ -20,6 +20,7 @@ function matches(row,query) {
         if(op==='$exists')return (value!==undefined)===target;
         if(op==='$lte')return value<=target;
         if(op==='$lt')return value<target;
+        if(op==='$regex')return target.test(String(value));
         throw new Error(`unsupported ${op}`);
       });
     }
@@ -67,7 +68,7 @@ function model(source,kind) {
   };
 }
 const RequestModel=model(()=>requests,'request'), Payment=model(()=>payments,'payment');
-const User={findById:()=>query(()=>familyUser),collection:{}}, PointHistory=model(()=>evidences,'history');
+const User={findById:()=>query(()=>familyUser),findOne:filter=>query(()=>familyUser&&matches(familyUser,filter)?familyUser:null),collection:{}}, PointHistory=model(()=>evidences,'history');
 const txOptions={maxCommitTimeMS:12000};
 const startSession=async()=>{
   expect(activeOperations).toBeGreaterThan(0);
@@ -87,6 +88,7 @@ jest.unstable_mockModule('../../worker/lib/db.js',()=>({
 jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment,User,PointHistory,MonthlyCreditLedger:model(()=>[],'monthly-ledger')}));
 jest.unstable_mockModule('../../worker/lib/entitlement-policy.js',()=>({resolveCanonicalEntitlement:user=>user?.profileSubscription || {}}));
 jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({consumePassForFeature:consumePass,refundPassCoverage:refundPass}));
+jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:verifyPerUse}));
 jest.unstable_mockModule('../../worker/payments/passes.js',()=>({passUsageEvidenceId:()=> '507f1f77bcf86cd799439099'}));
 let repo;
 beforeAll(async()=>{repo=await import('../../worker/yeongnyangi/repository.js');});
@@ -121,7 +123,7 @@ test('tuna stops at item 9 of 15 and resumes from item 9 under concurrent recove
 });
 beforeEach(()=>{
   loseStoredDraftAtClaim=false;requests=[];payments=[{_id:'pay1',requestId:'yn-id',userId:owner,featureKey:values.featureKey,paymentType:'digital_content',status:'paid',paymentAmount:1000,metadata:{}}];
-  evidences=[];familyUser=null;consumePass.mockReset();refundPass.mockReset();
+  evidences=[];familyUser=null;consumePass.mockReset();refundPass.mockReset();verifyPerUse.mockReset();
   failWrite=false;failFinalRead=false;failFinalComplete=false;refundBeforeFinalization=false;tail=Promise.resolve();
 });
 test('ask generation evidence is stored separately and an intent replay cannot replace it',async()=>{
@@ -591,4 +593,68 @@ test('stored-only completion keeps the existing paid proof and does not claim an
   requests[0].leaseUntil=new Date(0);
   const restored=await repo.claimChapter({},owner,'id','scheduled',{storedOnly:true});
   expect(restored.token).toBeNull();expect(restored.row.state).toBe('COMPLETED');expect(restored.row.attempts).toBe(1);
+});
+
+describe('fortune-chat per-use access',()=>{
+  const chat={...values,productId:'chat_saju',featureKey:'fortune-chat-consultation',amountKRW:3000,persona:'yeoni'};
+  const chatPayment={_id:'pay-fc',requestId:'fc-id',userId:owner,featureKey:chat.featureKey,status:'paid',metadata:{}};
+  const passReceipt={_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:chat.featureKey,kind:'deduct',metadata:{requestId:'fc-id',accessMethod:'FAMILY'}};
+  const activate=()=>repo.attachPayment({},owner,'id',3000,{currentAmountKRW:3000});
+
+  test('an existing fc- payment is pinned, generates, and a later refund stops it',async()=>{
+    payments.push({...chatPayment});
+    verifyPerUse.mockResolvedValue({proven:true,source:'payment',reason:'',transactionId:'pay-fc'});
+    await repo.createRequest({},owner,'id',chat);
+    const row=await activate();
+    expect(row).toMatchObject({accessMethod:'PER_USE',perUseSource:'payment',perUseEvidenceId:'pay-fc',state:'PAID'});
+    expect(row.paymentId).toBeFalsy();
+    expect(verifyPerUse).toHaveBeenCalledTimes(1);
+    expect(verifyPerUse).toHaveBeenCalledWith({},{userId:owner,featureKey:chat.featureKey,coinPrice:30,requestId:'fc-id',requireExisting:true});
+    expect((await repo.claimChapter({},owner,'id')).token).toBeTruthy();
+    expect(payments.find(p=>p._id==='pay1').metadata.consumedBy).toBeUndefined();
+    payments.find(p=>p._id==='pay-fc').status='refunded';
+    await expect(repo.readRequest({},owner,'id')).rejects.toMatchObject({status:409});
+  });
+
+  test('a pass is consumed once at activation and its restore record is kept; Family Yeongnyangi paths stay untouched',async()=>{
+    familyUser={_id:owner,profileSubscription:{tier:'family',passTier:'family',isActive:true}};
+    verifyPerUse.mockResolvedValueOnce({proven:false,source:'',reason:'NO_EXISTING_CONSUMPTION'})
+      .mockImplementationOnce(async()=>{evidences.push({...passReceipt,metadata:{...passReceipt.metadata}});return {proven:true,source:'pass',reason:'',passRefund:{cycleKey:'c1',cost:30}};});
+    await repo.createRequest({},owner,'id',chat);
+    expect(await activate()).toMatchObject({accessMethod:'PER_USE',perUseSource:'point',perUseEvidenceId:passReceipt._id,perUsePassRefund:{cycleKey:'c1',cost:30}});
+    expect(verifyPerUse.mock.calls.map(([,input])=>input.requireExisting)).toEqual([true,undefined]);
+    expect(consumePass).not.toHaveBeenCalled();
+    expect((await activate()).accessMethod).toBe('PER_USE');
+    expect(verifyPerUse).toHaveBeenCalledTimes(2);
+    evidences[0].metadata.refundedForServiceExecution=true;
+    await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
+  });
+
+  test.each([
+    [null,503,'PAYMENT_EVIDENCE_PENDING'],
+    [false,402,'PAYMENT_REQUIRED'],
+  ])('proof %s answers %s without storing access; the Yeongnyangi payment never applies',async(proven,status,code)=>{
+    familyUser={_id:owner,profileSubscription:{tier:'family',passTier:'family',isActive:true}};
+    verifyPerUse.mockResolvedValue({proven,source:'',reason:'NO_RECORD'});
+    await repo.createRequest({},owner,'id',chat);
+    const error=await activate().catch(e=>e);
+    expect(error).toMatchObject({status,code});
+    if(status===402)expect(error.payload).toMatchObject({paidFeatureKey:chat.featureKey,paymentRequestId:'fc-id'});
+    expect(requests[0].accessMethod).toBeFalsy();
+    expect(payments.find(p=>p._id==='pay1').metadata.consumedBy).toBeUndefined();
+    expect(consumePass).not.toHaveBeenCalled();
+  });
+
+  test('proof without a readable durable record stays retryable and grants nothing',async()=>{
+    verifyPerUse.mockResolvedValue({proven:true,source:'payment',reason:'',transactionId:'pay-missing'});
+    await repo.createRequest({},owner,'id',chat);
+    await expect(activate()).rejects.toMatchObject({status:503,code:'PAYMENT_EVIDENCE_PENDING'});
+    expect(requests[0].accessMethod).toBeFalsy();
+  });
+
+  test('a changed chat price is confirmed before any proof is read',async()=>{
+    await repo.createRequest({},owner,'id',chat);
+    await expect(repo.attachPayment({},owner,'id',3000,{currentAmountKRW:5000})).rejects.toMatchObject({status:409,code:'PRICE_CHANGED'});
+    expect(verifyPerUse).not.toHaveBeenCalled();
+  });
 });

@@ -1,6 +1,6 @@
 import { mongoose } from './db.js';
 import { scopedModel } from './db-scope-connection.js';
-import { ACCESS_METHODS } from '../yeongnyangi/access-methods.js';
+import { ACCESS_METHODS, PER_USE_SOURCES } from '../yeongnyangi/access-methods.js';
 
 // One immutable purchase intent also owns the chart snapshot and completed chapters.
 // Users, profiles and PG orders remain in the existing CD collections.
@@ -18,6 +18,9 @@ const schema = new mongoose.Schema({
   // Fortune-chat consultations only: the counsellor voice, and the per-use payment or pass usage that unlocked them.
   persona: { type: String, enum: ['yeoni','neo'], default: undefined },
   perUseEvidenceId: { type: String, default: undefined },
+  perUseSource: { type: String, enum: PER_USE_SOURCES, default: undefined },
+  // Pass budget consumed at activation, kept so a later restore knows the cycle and amount.
+  perUsePassRefund: { type: mongoose.Schema.Types.Mixed, default: undefined },
   packEntitlementId: { type: mongoose.Schema.Types.ObjectId, ref: 'PurchaseEntitlement', default: null },
   passEvidenceId: { type: mongoose.Schema.Types.ObjectId, ref: 'PointHistory', default: null },
   moonstoneLedgerId: { type: mongoose.Schema.Types.ObjectId, ref: 'MonthlyCreditLedger', default: null },
