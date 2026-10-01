@@ -1,8 +1,8 @@
 ---
 status: active
-implementationStatus: diagnosed
+implementationStatus: in-progress
 updated: 2026-10-01
-next: 원인 진단 완료(저장소 수정 없음). 검증기 갱신은 아래 권장 순서대로 한 세션에 하나씩.
+next: 1번 today-hub-gate 수정 완료(29a8c4f6f). 다음은 2번 review-anytime-ui 스크린샷 출력 경로 이전. 한 세션에 하나씩.
 ---
 
 # 변경 전부터 실패하던 verify 4종 — 원인 진단 (2026-10-01)
@@ -13,7 +13,7 @@ next: 원인 진단 완료(저장소 수정 없음). 검증기 갱신은 아래 
 
 ## 권장 순서
 
-1. today-hub-gate — 원인·수정안 확정, 검증기만 고치면 끝(가장 싸다).
+1. ~~today-hub-gate~~ — **완료**(29a8c4f6f, 2026-10-01).
 2. review-anytime-ui — 스크린샷 출력 경로만 옮기면 안정화.
 3. saju-reading-personas — 로그인 mock + 높이 예산 결정 필요.
 4. feature-popup-journey — 현재 팝업 계약을 먼저 정해야 다시 쓸 수 있다.
@@ -23,6 +23,7 @@ next: 원인 진단 완료(저장소 수정 없음). 검증기 갱신은 아래 
 - 948eee737(09-02, #1472)이 `#cdTodayHub` `<section>` 을 홈 퍼널(`#cdHomeFunnel` › `#cdhTodaySlot`)로 올렸고 `<style id="cd-today-hub-v20260808">`·인라인 스크립트는 제자리에 남겼다. 검증기는 `<style id=…>` 부터 `<!-- 대표 운명 상담` 까지만 잘라 jsdom 에 올리므로 마크업이 빠진다.
 - 실측: 0fc7ada8e(직전 커밋) PASS / 948eee737 FAIL. HEAD 에서 section 을 따로 잘라 블록 앞에 붙이면 시나리오 6개와 7셸 미러 검사가 모두 PASS.
 - 수정 방향: `extractBlock` 이 `id="cdTodayHub"` section 을 `<section`/`</section>` 깊이 매칭으로 따로 잘라 붙인다.
+- **완료(29a8c4f6f)**: 위 방향대로 `extractSection` 을 추가해 section 을 블록 앞에 붙였다(section 이 블록 안에 있으면 그대로 블록만). 7셸 미러 비교에 section 도 포함된다. 실측: HEAD 에서 PASS. 저장소 밖 사본 변이로 무는 것 확인 — en section 1곳 변경 → 미러 FAIL, zh section id 제거 → 경계 FAIL, 7셸 모두 `cdTodayHubGate` id 변경 → 시나리오 6개 FAIL. CI 배선은 여전히 `verify-guard-wiring` 의 "배선 후보(미승인)" 그대로다(지시 없이 배선하지 않음).
 
 ## 2. verify-feature-popup-journey — 09-12 디자인 계약을 단언 (확정, 계약 결정 필요)
 
@@ -55,4 +56,4 @@ next: 원인 진단 완료(저장소 수정 없음). 검증기 갱신은 아래 
 
 ## 다음 세션 첫 문장
 
-"docs/handoff/stale-verifiers-2026-10-01.md 를 읽고, 권장 순서 1번 verify-today-hub-gate 의 추출 경계부터 검증기만 고쳐줘."
+"docs/handoff/stale-verifiers-2026-10-01.md 를 읽고, 권장 순서 2번 verify-review-anytime-ui 의 스크린샷 출력 경로를 저장소 밖으로 옮겨 검증기만 고쳐줘."
