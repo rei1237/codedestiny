@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-01
-next: S3 — 사주·점성·베다·숙요에도 설명마다 명반을 붙인다(선례: 이번 S2 의 ZiweiBlockHint·block palaces). S0(사용자 캡처)이 먼저 오면 그것부터 반영한다.
+next: S4 — 꿀꿀 셸·앱 자미 강약을 정본 모듈로 통일한다(아래 S4 항목, regression-scout 먼저). S0(사용자 캡처)이 먼저 오면 그것부터 반영한다.
 ---
 
 # 영냥이 자미두수 — 정확한 강약표 위에서 강약을 읽는 상담 + 설명마다 명반
@@ -14,11 +14,36 @@ next: S3 — 사주·점성·베다·숙요에도 설명마다 명반을 붙인�
 - 설명할 때마다 해당 명반을 보여 준다. 모든 운세에 해당한다.
 - 2026-10-01 추가 요구: "정확한 데이터를 기반으로 해야해 그리고 강약도 반드시 반영이 되어야한다". 다른 사이트 캡처로 사용자가 직접 확인해 줄 수 있다고 했다.
 
-## 지금 상태 (S1·S2 완료)
+## 지금 상태 (S1·S2·S3 완료)
 
 S1(강약표·상담 사실·프롬프트·단계 정책)은 main 에 머지됐다. 커밋은 `git log --oneline --grep=ziwei -8` 로 확인한다.
 
-S2(영냥이·연이/네오 명반 화면)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="ziwei" --grep="palaces" -8` 로 확인한다. S3~S5 와 S0 이 남아 있다.
+S2(영냥이·연이/네오 명반 화면)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="ziwei" --grep="palaces" -8` 로 확인한다.
+
+S3(사주·점성·베다·숙요 소절마다 명반)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="chart points" --grep="each section reads" -4` 로 확인한다. S4·S5 와 S0 이 남아 있다.
+
+### S3 에서 바꾼 것
+
+- **선례**: 선례는 S2 의 `palaces` 장치를 그대로 넓힌 것이다. 남은 작업에 적혀 있던 휴먼 디자인 `chartSlotFor` 는 쓰지 않았다. 그것은 장 단위 슬롯이고, 요구는 소절마다이기 때문이다.
+- **서버** `worker/yeongnyangi/fortune/block-anchors.ts`: 블록 선택 필드 넷을 추가했다. 이름 목록은 저장 context 에서 만들고, 화면 차트 그룹 라벨과 같은 글자를 쓴다.
+
+  | 필드 | 운세 | 최대 | 이름 예 |
+  |---|---|---|---|
+  | `pillars` | 사주 | 4 | 일주, 상대 일주 |
+  | `astroPoints` | 점성 | 3 | 태양, 상승점 |
+  | `vedicPoints` | 베다 | 3 | 토성, 라그나 |
+  | `mansions` | 숙요 | 2 | 나의 본명숙, 상대의 본명숙 |
+
+  - 스키마에는 장의 `systems` 에 든 운세의 필드만 enum 으로 들어간다. required 는 그대로다.
+  - 정리 방식은 S2 와 같다. 모르는 값·중복·빈 값은 버리고 최대 개수로 자른다. 거부하지 않는다.
+  - chapter·delivery 두 경로 모두 `sanitizeBlockAnchors` 를 거친다. 자미 `palaces` 도 이 함수가 처리한다.
+- **화면** `app/yeongnyangi/_components/BlockChartHints.tsx`(+ `block-chart-hints.module.css`, 문구 `_lib/block-chart-copy.ts`): 영냥이 `ReadingBook` 과 연이/네오 `ConsultationResult` 가 같이 쓴다. 자미 궁은 기존 `ZiweiBlockHint` 가 그대로 맡는다.
+  - 사주: 시·일·월·년 4칸 간지 격자. 강조 칸은 테두리 2px + 옅은 바탕이다.
+  - 점성: 바퀴 위 행성 점과 상승점 선. 방향은 큰 차트(`ReadingCharts`)와 같아서 황경 0° 가 위, 시계 방향이다. 상승점이 3시 쪽에 올 수 있다.
+  - 베다: 양자리→물고기자리 4×3 칸. 큰 차트 `.palaces` 와 같은 순서다. 라그나 칸에는 빗금을 친다. 강조된 라그나는 통째로 칠하지 않고 테두리 + 빗금으로 그린다. 칠하면 행성 칸과 구분되지 않는다.
+  - 숙요: 27 눈금 원 위에 두 사람의 본명숙 점.
+  - 캡션은 항목마다 한 덩어리로 줄을 바꾼다(inline-block). 괄호 안에서 끊기거나 줄 첫머리에 "·" 가 오지 않게 하려는 것이다.
+- 옛 결과(필드 없음)는 강조 없이 예전처럼 보인다. 저장값은 바꾸지 않는다.
 
 ### S2 에서 바꾼 것
 
@@ -133,7 +158,7 @@ S2(영냥이·연이/네오 명반 화면)도 main 에 머지됐다. 커밋은 `
     - ask `factIds` 를 `ask/validate.ts` 에서 지우지 말고 서버 전용 `internalBasis` 로 저장한다. `presentFortune` 에서는 제거한다.
     - 기존 결과는 저장 명반으로 강약을 다시 계산해 표시만 한다. LLM 재생성은 하지 않는다.
   - 판정 기준: 360·390px visual-checker 통과, 기존 주문 화면에서 재결제 요구 0건.
-- [ ] **S3 다른 운세의 '설명마다 명반'** — 사주·점성·베다·숙요. 선례는 `lib/human-design/report-plan.js` 의 `chartSlotFor` + `ChartFigure`.
+- [x] **S3 다른 운세의 '설명마다 명반'** — 사주·점성·베다·숙요. 2026-10-01 완료. 위 "S3 에서 바꾼 것"과 아래 "S3 검증"을 본다.
 - [ ] **S4 꿀꿀 셸·앱 통일**
   - 셸·앱 강약을 정본 모듈로 바꾼다. 점수 혼합, 차성 ×0.7, 화기 강등을 걷어 내고 관련 가드를 재정의한다.
   - 셸 대한 궁 오인덱스(`js/saju-engine.js:17703`, `:21767`)를 고친다.
@@ -151,6 +176,11 @@ S2(영냥이·연이/네오 명반 화면)도 main 에 머지됐다. 커밋은 `
 - **단계 금지어의 실제 거부 지점은 `reading-quality.ts` 의 `validateReadingQuality`(TIER_SCOPE_VIOLATION)다.** `providers/chapter.ts` 의 `TIER_SCOPED_TERMS` 는 프롬프트 어휘와 교정 문구만 바꾼다. 이 차이는 변이 시험으로 확인했다.
 - **영냥이 파일을 고치면 사이트맵 원장도 바뀐다.** 원장 서명은 import 폐포 해시라서 영냥이 파일을 고치면 라우트 17곳의 서명이 바뀐다. `npm run sitemap:generate` 결과를 같은 커밋에 넣는다.
 - **`zw.xian.support` 는 계획보다 좁다.** 같은 궁의 녹존 + 화록·화권·화과만 센다. 원문 「禄元…化吉」을 엄격히 읽은 것이다. 계획서는 좌보·우필·괴월과 삼방까지 넣었다. 넓힐지는 사용자 판단이다.
+- **블록 선택 필드를 늘리면 invariance 해시표의 requests 열이 바뀐다.**
+  - S3 에서는 사주·점성·베다·숙요가 든 행만 바뀌었다(93행). 자미 단독·타로 행은 그대로다.
+  - `YEONGNYANGI_INVARIANCE_PRINT=1` 로 다시 출력한다. 파일은 CRLF 이므로 붙여 넣은 뒤 줄바꿈을 맞춘다.
+- **화면 차트에 없는 이름을 enum 에 넣지 않는다.** 앵커 이름은 `readingCharts` 그룹 라벨과 같아야 강조가 맞는다. 테스트 `__tests__/ui/yeongnyangi-block-anchors.test.mjs` 가 이것을 대조한다.
+- **ReadingBook·ConsultationResult 는 사이트맵 라우트의 import 폐포 밖이다.** 이 둘만 고치면 `sitemap:generate` 원장이 바뀌지 않는다(갱신 0, 실측).
 - **자화(selfTransformations)는 생년사화와 섞지 않는다.**
 - **롤백은 커밋 단위로 한다.**
   - 단계 정책 커밋(`fix(yeongnyangi): let every ziwei tier name 삼방사정 …`)만 되돌리면 invariance 해시표가 어긋난다. `YEONGNYANGI_INVARIANCE_PRINT=1` 로 다시 출력해 같은 revert 에 넣는다.
@@ -185,9 +215,26 @@ node scripts/run-mock-tests.mjs node __tests__/ui/yeongnyangi-ziwei-palace-stren
 - visual-checker 1차 판정에서 P2 2건(조건 목록 어절 끊김, 상담 화면 궁 이름 위계)이 나와 고쳤다. 2차 판정 결과는 아래 남은 P3 를 본다.
 - 남은 P3: 상담 두 테마의 칸 테두리가 옅다(1.3~1.6:1). 엔진 궁 조건 notes 는 한다체라 해요체 설명과 섞인다. 등급 설명 줄이 대시로 시작하기도 한다.
 
+## S3 검증 (2026-10-01, 전부 mock — 실 LLM·결제·DB 0회)
+
+```
+node --test __tests__/ui/yeongnyangi-block-anchors.test.mjs   # 4/4 (차트 라벨 대조·스키마·정리·validateChapter)
+npm run check:fast                                            # 서버 커밋·화면 커밋 각각 exit 0 (화면 커밋 때 node 2182/2182)
+```
+
+화면 검증은 S2 와 같은 방식으로 했다.
+- 환경: next dev(워크트리, 127.0.0.1:18122)에 Playwright 를 붙였다. 커밋하지 않은 임시 페이지와 fusion_all 픽스처를 썼다. 픽스처는 실제 계산 차트 5종에 블록 앵커를 넣은 것이다.
+- 범위: 영냥이 책 ko·en, 연이·네오를 각각 360·390px 에서 봤다.
+- 결과: 넘침 0, 12px 미만 글자 0, 콘솔 오류 0, `/api/`·결제 호출 0.
+- visual-checker 1차: 강조된 라그나 칸이 통째로 칠해져 빗금이 묻혔고, 캡션이 괄호 안에서 끊겼다. 둘 다 고쳤다. 2차는 통과다.
+- 남은 P3:
+  - 비강조 뼈대(칸 테두리·바퀴 원·눈금)의 대비가 연이 1.3:1, 네오 1.6:1 이다. 자미 힌트와 같은 토큰이다.
+  - 사주 격자가 다른 힌트보다 29px 넓다. 그래서 한 소절에 자미·사주가 같이 붙으면 캡션 시작 위치가 어긋난다.
+  - 베다 라그나 캡션 "쌍둥이자리 · 라그나" 의 가운뎃점이 항목 구분점과 같은 글리프다. 큰 차트 라벨을 그대로 쓴 것이다.
+
 ## 모르는 것
 
-- **실 LLM 상담 품질은 미검증이다.** mock 은 입력이 바뀐 것만 보여 준다. Gemini 가 선택 필드 `palaces` 를 얼마나 채울지도 실호출 전에는 모른다. 비어도 화면은 강조만 빠진다.
+- **실 LLM 상담 품질은 미검증이다.** mock 은 입력이 바뀐 것만 보여 준다. Gemini 가 선택 필드 `palaces`·`pillars`·`astroPoints`·`vedicPoints`·`mansions` 를 얼마나 채울지도 실호출 전에는 모른다. 비어도 화면은 강조만 빠진다.
   - 실호출 검수는 정확한 1회 승인이 있어야 한다.
   - 승인되면 연어 1건을 생성하고 본문 전체를 사용자에게 전달한다.
 - **보충 54칸은 현대 출처 1개(iztro)에만 기대고 있다.** S0 전까지는 단일 출처다.
