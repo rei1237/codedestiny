@@ -2,7 +2,7 @@
 status: active
 implementationStatus: in-progress
 updated: 2026-10-01
-next: 1번 today-hub-gate 수정 완료(29a8c4f6f). 다음은 2번 review-anytime-ui 스크린샷 출력 경로 이전. 한 세션에 하나씩.
+next: 1번 today-hub-gate·2번 review-anytime-ui 완료. 다음은 3번 saju-reading-personas(로그인 mock + 게이트 대기 + 출력 이전, 480 예산은 사용자 결정). 한 세션에 하나씩.
 ---
 
 # 변경 전부터 실패하던 verify 4종 — 원인 진단 (2026-10-01)
@@ -14,7 +14,7 @@ next: 1번 today-hub-gate 수정 완료(29a8c4f6f). 다음은 2번 review-anytim
 ## 권장 순서
 
 1. ~~today-hub-gate~~ — **완료**(29a8c4f6f, 2026-10-01).
-2. review-anytime-ui — 스크린샷 출력 경로만 옮기면 안정화.
+2. ~~review-anytime-ui~~ — **완료**(2026-10-01, 아래 3절).
 3. saju-reading-personas — 로그인 mock + 높이 예산 결정 필요.
 4. feature-popup-journey — 현재 팝업 계약을 먼저 정해야 다시 쓸 수 있다.
 
@@ -39,6 +39,7 @@ next: 1번 today-hub-gate 수정 완료(29a8c4f6f). 다음은 2번 review-anytim
 - 실측: 출력이 저장소 안이면 1/3 PASS, 저장소 밖으로 옮기면 3/3 PASS. 같은 체크아웃에서 옆 세션이 편집해도 같은 HMR 이 난다.
 - `app/reviews` 는 검증기 작성(883c0d5fa, 09-29) 이후 바뀌지 않았다.
 - 수정 방향: 출력 기본값을 저장소 밖(OS temp) 또는 env 로 옮긴다.
+- **완료(2026-10-01)**: 출력을 `os.tmpdir()/code-destiny-review-anytime` 로 옮겼다(`verify-feature-popup-journey` 와 같은 관례, env 는 추가 안 함). PASS 줄 끝에 스크린샷 경로를 찍는다. 단언은 그대로다. 실측: mock dev(3107)에서 연속 3/3 PASS, dev 로그 재컴파일 줄 수는 1회차 5(라우트 최초 컴파일)·2회차 0·3회차 0. 서버 필요(a)와 CI 미배선은 그대로다. 예전 출력 폴더 `.integration/review-anytime`(git 제외)은 로컬에 남아 있으나 더는 쓰지 않는다.
 
 ## 4. verify-saju-reading-personas — 서버 필요 + 실패 2건 (확정)
 
@@ -56,4 +57,4 @@ next: 1번 today-hub-gate 수정 완료(29a8c4f6f). 다음은 2번 review-anytim
 
 ## 다음 세션 첫 문장
 
-"docs/handoff/stale-verifiers-2026-10-01.md 를 읽고, 권장 순서 2번 verify-review-anytime-ui 의 스크린샷 출력 경로를 저장소 밖으로 옮겨 검증기만 고쳐줘."
+"docs/handoff/stale-verifiers-2026-10-01.md 를 읽고, 권장 순서 3번 verify-saju-reading-personas 를 고쳐줘 — mock 로그인 세션·cd-boot-gate 종료 대기·스크린샷 출력 저장소 밖 이전은 검증기만 고치고, 360px 480 높이 예산(안내문 문구 vs 예산)은 먼저 나에게 물어봐."
