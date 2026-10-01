@@ -16,7 +16,8 @@ import checkoutEntry from '@/js/core/checkout-entry.js';
 import {confirmPackOrder,consumeServicePack,loadPackPayMethodAvailability,PACK_PAY_METHODS,payPackOrder,preparePackPurchase,quoteServicePack,readPackCatalog,readPackWallet,readPendingPack,savePendingPack,resumePendingPackPurchase,samePackSnapshot,ServicePackError,type OwnedServicePack,type PackQuote,type ServicePackPlan} from './service-pack-client';
 import {packText,servicePackCopy} from './service-pack-copy';
 import styles from './service-packs.module.css';
-import {SERVICE_PACK_IMAGES} from './service-pack-images';
+import {APPLIED_STAMP_IMAGES,SERVICE_PACK_IMAGES} from './service-pack-images';
+import {usablePacks,type PackWalletView} from './OwnedPassesSummary';
 import ServicePackShowcase from './ServicePackShowcase';
 import type {PackGiftDraft,PackPayMethod,PackPurchaseType} from './service-pack-client';
 import {ShopPigImage} from '@/app/points/MoonShopFrame';
@@ -46,15 +47,18 @@ export function PackRows({packs,locale}:{packs:OwnedServicePack[];locale:Loading
 }
 
 // 해외 원화 청구 고지는 PointsClient useOverseasCharge 가 만든 값을 받는다. 한국어 화면에서는 null 이다.
-export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLocale;overseasCharge?:{notice:string;approx:(krw:number)=>string}|null}){
- const auth=useAuthStore(),ownerId=String(auth.user?.id||auth.user?._id||'');
- const copy=servicePackCopy(locale),policy=getCheckoutCopy(locale),alliance=paymentAllianceCopy(locale),links=resolveCheckoutPolicyHrefs(locale);
+// onWalletChange 는 이 컴포넌트가 이미 읽은 보유 목록을 상단 '내 이용권' 요약에 넘긴다(추가 요청 없음).
+export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{locale:LoadingLocale;overseasCharge?:{notice:string;approx:(krw:number)=>string}|null;onWalletChange?:(packs:PackWalletView)=>void}){
+ const auth=useAuthStore(),ownerId=String(auth.user?.id||auth.user?._id||''); const copy=servicePackCopy(locale),policy=getCheckoutCopy(locale),alliance=paymentAllianceCopy(locale),links=resolveCheckoutPolicyHrefs(locale);
  const [catalog,setCatalog]=useState<{plans:ServicePackPlan[];error:boolean;loading:boolean;giftEnabled:boolean}>({plans:[],error:false,loading:true,giftEnabled:false});
  const [wallet,setWallet]=useState<{ownerId:string;packs:OwnedServicePack[];nextCursor:string|null;error:boolean;loading:boolean}>({ownerId:'',packs:[],nextCursor:null,error:false,loading:true});
  const [selected,setSelected]=useState<string>(''),[consent,setConsent]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[pendingOrder,setPendingOrder]=useState('');
  const [resumeConsent,setResumeConsent]=useState(false),[,setPayMethodRevision]=useState(0);
  const [purchaseType,setPurchaseType]=useState<PackPurchaseType>('SELF'),[gift,setGift]=useState<PackGiftDraft>({senderName:'',recipientName:'',giftMessage:''});
+ // 결제가 확정된 주문. 섹션 상단 완료 패널이 갱신된 보유 목록에서 남은 횟수·만료일을 찾는다.
+ const [completed,setCompleted]=useState<{orderId:string;planId:string}|null>(null);
  const lock=useRef(false),scope=useRef(ownerId),purchaseRef=useRef<HTMLHeadingElement>(null),triggerRef=useRef<HTMLElement|null>(null),catalogRef=useRef(catalog);scope.current=ownerId;catalogRef.current=catalog;
+ const completedRef=useRef<HTMLDivElement>(null),ownedRef=useRef<HTMLDivElement>(null),walletCallback=useRef(onWalletChange);walletCallback.current=onWalletChange;
  const refreshCatalog=useCallback(async()=>{setCatalog(value=>({...value,loading:true,error:false}));try{const data=await readPackCatalog();setCatalog({...data,error:false,loading:false});}catch{setCatalog({plans:[],giftEnabled:false,error:true,loading:false});}},[]);
  const refreshWallet=useCallback(async(cursor?:string)=>{
   if(!ownerId)return;
@@ -63,7 +67,9 @@ export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLoca
   catch{if(scope.current===ownerId)setWallet(value=>({...value,ownerId,error:true,loading:false}));}
  },[ownerId]);
  useEffect(()=>{void refreshCatalog();},[refreshCatalog]);
- useEffect(()=>{setSelected('');setConsent(false);setResumeConsent(false);setMessage('');setPendingOrder('');if(ownerId){void refreshWallet();setPendingOrder(readPendingPack(ownerId)?.orderId||'');}},[ownerId,refreshWallet]);
+ useEffect(()=>{walletCallback.current?.(!ownerId?[]:wallet.ownerId!==ownerId?'loading':wallet.packs.length?wallet.packs:wallet.loading?'loading':wallet.error?'error':[]);},[ownerId,wallet]);
+ useEffect(()=>{if(completed)completedRef.current?.scrollIntoView({behavior:'smooth',block:'center'});},[completed]);
+ useEffect(()=>{setSelected('');setConsent(false);setResumeConsent(false);setMessage('');setPendingOrder('');setCompleted(null);if(ownerId){void refreshWallet();setPendingOrder(readPendingPack(ownerId)?.orderId||'');}},[ownerId,refreshWallet]);
  // 🔴 PG 가 방금 미결제라고 답했는데 이 화면에서 같은 주문을 이어갈 수 없으면(다른 탭 복귀·카탈로그에서 빠진 구성) 구매 잠금을 푼다.
  //    FAILED·CANCELLED 는 서버가 주문을 실패로 닫아 이어가기도 막히므로 항상 푼다. 다음 구매는 새 키·새 주문이다.
  const releaseUnpaid=useCallback((orderId:string,error:unknown)=>{
@@ -77,7 +83,8 @@ export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLoca
  },[ownerId,copy]);
  const checkOrder=useCallback(async(orderId:string)=>{
   if(!ownerId||lock.current)return;if(readPendingPack(ownerId)?.purchaseType==='GIFT'){window.location.assign(`/gift/complete/?orderId=${encodeURIComponent(orderId)}`);return;}lock.current=true;setBusy(true);setMessage(copy.confirm);
-  try{const granted=await confirmPackOrder(orderId);if(scope.current!==ownerId)return;if(granted){savePendingPack(ownerId,null);setPendingOrder('');setMessage(copy.complete);await refreshWallet();const query=new URLSearchParams(location.search);if(query.has('service_pack_return'))history.replaceState({},'',location.pathname+'#fish-packs');}else setMessage(copy.confirm);}
+  const stored=readPendingPack(ownerId);
+  try{const granted=await confirmPackOrder(orderId);if(scope.current!==ownerId)return;if(granted){savePendingPack(ownerId,null);setPendingOrder('');setMessage('');setCompleted({orderId,planId:stored?.orderId===orderId?stored.planId:''});await refreshWallet();const query=new URLSearchParams(location.search);if(query.has('service_pack_return'))history.replaceState({},'',location.pathname+'#fish-packs');}else setMessage(copy.confirm);}
   catch(error){loginIfNeeded(error);if(!releaseUnpaid(orderId,error))setMessage(copy.confirm);}finally{lock.current=false;setBusy(false);}
  },[ownerId,copy,refreshWallet,releaseUnpaid]);
  useEffect(()=>{
@@ -103,7 +110,7 @@ export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLoca
    if(scope.current!==ownerId)throw new ServicePackError('AUTH_SCOPE_CHANGED');
    savePendingPack(ownerId,{...pending,orderId:order.merchantUid,packSnapshot:order.packSnapshot});setPendingOrder(order.merchantUid);
    const granted=await payPackOrder(order,payMethod);if(scope.current!==ownerId)return;
-   if(granted){savePendingPack(ownerId,null);setPendingOrder('');setSelected('');setConsent(false);setMessage(copy.complete);await refreshWallet();}
+   if(granted){savePendingPack(ownerId,null);setPendingOrder('');setSelected('');setConsent(false);setMessage('');setCompleted({orderId:order.merchantUid,planId:plan.planId});await refreshWallet();}
   }catch(error){loginIfNeeded(error);if(error instanceof ServicePackError&&error.code==='PAY_METHOD_UNAVAILABLE')setPayMethodRevision(value=>value+1);setMessage(error instanceof ServicePackError&&error.code==='APP_PACK_NOT_AVAILABLE'?copy.webOnly:copy.confirm);}
   finally{lock.current=false;setBusy(false);}
  };
@@ -111,10 +118,11 @@ export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLoca
  const resume=async()=>{
   if(!ownerId||lock.current||!resumeConsent)return;
   lock.current=true;setBusy(true);setMessage(copy.confirm);
+  const stored=readPendingPack(ownerId);
   try{
    const granted=await resumePendingPackPurchase(ownerId,resumeConsent,()=>scope.current===ownerId);
    if(scope.current!==ownerId)return;
-   if(granted){savePendingPack(ownerId,null);setPendingOrder('');setMessage(copy.complete);await refreshWallet();}
+   if(granted){savePendingPack(ownerId,null);setPendingOrder('');setMessage('');setCompleted({orderId:stored?.orderId||pendingOrder,planId:stored?.planId||''});await refreshWallet();}
   }catch(error){if(scope.current===ownerId&&!releaseUnpaid(pendingOrder,error)){loginIfNeeded(error);setMessage(error instanceof ServicePackError&&error.code==='APP_PACK_NOT_AVAILABLE'?copy.webOnly:copy.confirm);}}
   finally{lock.current=false;setBusy(false);setResumeConsent(false);}
  };
@@ -125,7 +133,12 @@ export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLoca
  const currentWallet=wallet.ownerId===ownerId?wallet:null,plan=catalog.plans.find(item=>item.planId===selected);
  // 결제 진행 중에는 모달을 유지하고, 결제가 끝나지 않은 주문이 남으면 닫아 아래 재확인·이어가기로 넘긴다(기존 패널과 같은 조건).
  const modalOpen=Boolean(plan&&(busy||!pendingOrder));
- const openPurchase=(planId:string,type:PackPurchaseType)=>{triggerRef.current=document.activeElement as HTMLElement|null;setSelected(planId);setPurchaseType(type);setConsent(false);};
+ const openPurchase=(planId:string,type:PackPurchaseType)=>{triggerRef.current=document.activeElement as HTMLElement|null;setSelected(planId);setPurchaseType(type);setConsent(false);setCompleted(null);};
+ const usable=usablePacks(currentWallet?.packs||[]);
+ const completedPack=completed?currentWallet?.packs.find(pack=>pack.orderId===completed.orderId):undefined;
+ const completedPlan=completed?catalog.plans.find(item=>item.planId===(completedPack?.planId||completed.planId)):undefined;
+ const completedFish=completedPack?.fishId||completedPlan?.fishId;
+ const completedName=completedPack?.label||completedPlan?.label||'';
  const closePurchase=()=>{if(lock.current)return;setSelected('');setConsent(false);};
  useEffect(()=>{
   if(!modalOpen)return;purchaseRef.current?.focus();
@@ -145,7 +158,7 @@ export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLoca
    <button type="button" className="btn-moonlight mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto" disabled={busy||!resumeConsent||isMobileAppRuntime()} onClick={()=>void resume()}>{copy.resumePayment}</button>
   </div>}
   {message&&!modalOpen&&<p role="status" className="mt-3 text-sm font-bold text-[color:var(--moon-silver)]">{message}</p>}
-  <div className="mt-6 border-t border-[color:var(--moon-rim)] pt-5">
+  <div ref={ownedRef} className="mt-6 scroll-mt-24 border-t border-[color:var(--moon-rim)] pt-5">
    <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-lg font-black text-white">{copy.owned}</h3><Link className="text-sm font-bold" href="/gift/box/" prefetch={false}>{copy.giftBox}</Link></div>
    {!ownerId?<button type="button" className={`mt-3 ${ghost}`} onClick={loginForCurrentPage}>{copy.login}</button>:!currentWallet||currentWallet.loading&&!currentWallet.packs.length?<p role="status" className="mt-3 text-sm text-[color:var(--moon-mist)]">{copy.loading}</p>:<>
     {currentWallet.error&&<p role="alert" className="mt-3 text-sm text-[color:var(--moon-mist)]">{copy.unavailable} <button type="button" className={ghost} onClick={()=>void refreshWallet()}>{copy.retry}</button></p>}
@@ -170,6 +183,23 @@ export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLoca
     <p className="mt-3 text-[13px] leading-relaxed text-[color:var(--moon-silver)]"><strong className="text-white">{alliance.title}</strong> · {alliance.story}</p>
    </div>
   </div>
+  {completed&&<div ref={completedRef} role="status" data-pack-completed className="mt-5 rounded-[22px] border border-[rgba(94,234,212,0.45)] bg-[rgba(94,234,212,0.08)] p-4 shadow-[0_0_28px_rgba(94,234,212,0.16)]">
+   <div className="flex items-center gap-4">
+    <div className="relative h-20 w-20 flex-shrink-0">
+     {completedFish&&<Image src={SERVICE_PACK_IMAGES[completedFish]} alt="" width={240} height={240} sizes="80px" className="h-full w-full object-contain"/>}
+     <Image src={APPLIED_STAMP_IMAGES.yeongnyangi} alt="" width={120} height={120} sizes="48px" data-applied-stamp className="absolute -bottom-2 -right-3 h-12 w-12 object-contain drop-shadow-[0_4px_8px_rgba(3,4,18,0.42)]"/>
+    </div>
+    <div className="min-w-0">
+     <p className="text-base font-black leading-snug text-white [word-break:keep-all] [text-wrap:balance]">{completedName?packText(copy.appliedDone,{name:completedName}):copy.complete}</p>
+     {completedName&&<p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">{copy.complete}</p>}
+     {completedPack&&<p className="mt-1 flex flex-wrap gap-x-2 text-sm font-bold text-[color:var(--moon-teal)]"><span>{packText(copy.remaining,{total:completedPack.totalUses,remaining:completedPack.remainingUses})}</span><span className="text-[color:var(--moon-mist)]">{packText(copy.expires,{date:date(completedPack.expiresAt,locale)})}</span></p>}
+    </div>
+   </div>
+   <div className="mt-3 flex flex-wrap gap-2">
+    <Link href="/yeongnyangi/fortune/" prefetch={false} className="btn-moonlight inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black !text-white">{copy.goConsult}</Link>
+    <button type="button" className={ghost} onClick={()=>ownedRef.current?.scrollIntoView({behavior:'smooth',block:'start'})}>{copy.viewOwned}</button>
+   </div>
+  </div>}
   <section className="moon-plan-card mt-5 rounded-[22px] p-4" aria-labelledby="fish-packs-moon" data-pack-moonstone>
    <h3 id="fish-packs-moon" className="text-base font-black text-white"><span aria-hidden="true">🌙 </span>{copy.moonTitle}</h3>
    <ul className="mt-3 grid gap-3 text-sm leading-relaxed text-[color:var(--moon-mist)] sm:grid-cols-3">
@@ -184,16 +214,18 @@ export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLoca
     <h3 id={`fish-pack-${fishId}`} className="mb-3 text-lg font-black text-white">{localizedTier(fishId,locale)}</h3>
     <div className="grid gap-4">{plans.map((item,index)=>{
      const savings=item.unitPriceKRW*item.totalUses-item.priceKRW,recommended=plans.length===3&&index===1;
+     const owned=usable.filter(pack=>pack.planId===item.planId),ownedLeft=owned.reduce((sum,pack)=>sum+pack.remainingUses,0);
      return <article key={item.planId} data-pack-plan={item.planId} className={`moon-plan-card rounded-[22px] p-4 ${recommended?'ring-2 ring-[color:var(--moon-glow)]':''}`}>
       <div className="grid gap-4 sm:grid-cols-[128px_1fr_auto] sm:items-center">
        <div className="relative h-28 w-28 sm:h-32 sm:w-32">
         <Image src={SERVICE_PACK_IMAGES[item.fishId]} alt="" width={240} height={240} sizes="(min-width: 640px) 128px, 112px" loading="lazy" className="h-full w-full object-contain"/>
-        {recommended&&<Image src={RECOMMEND_IMAGE} alt="" width={120} height={120} sizes="64px" loading="lazy" className="absolute -bottom-2 -right-4 h-16 w-16 object-contain drop-shadow-[0_4px_8px_rgba(3,4,18,0.42)]"/>}
+        {owned.length?<Image src={APPLIED_STAMP_IMAGES.yeongnyangi} alt="" width={120} height={120} sizes="64px" loading="lazy" data-applied-stamp className="absolute -bottom-2 -right-4 h-16 w-16 object-contain drop-shadow-[0_4px_8px_rgba(3,4,18,0.42)]"/>:recommended&&<Image src={RECOMMEND_IMAGE} alt="" width={120} height={120} sizes="64px" loading="lazy" className="absolute -bottom-2 -right-4 h-16 w-16 object-contain drop-shadow-[0_4px_8px_rgba(3,4,18,0.42)]"/>}
        </div>
        <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
          <h4 className="text-lg font-black text-white">{item.label}</h4>
          {recommended&&<span className="rounded-full bg-[rgba(129,140,248,0.16)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-family)]">{copy.recommend}</span>}
+         {owned.length>0&&<span data-pack-owned className="rounded-full bg-[rgba(94,234,212,0.14)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-teal)]">{packText(copy.ownedBadge,{remaining:ownedLeft})}</span>}
         </div>
         <p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">{packText(copy.cardSubtitle,{days:item.validityDays})}</p>
         <div className="mt-3 flex flex-wrap gap-2">
