@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-01
-next: S5 — 남은 자미 경로(워커 ziwei-ai·deep report·island·master-love-codex)를 정본 7등급으로 옮긴다(아래 S5 항목, regression-scout 먼저). S0(사용자 캡처)이 먼저 오면 그것부터 반영한다.
+next: S0 — 사용자가 다른 사이트 캡처로 아래 56칸(보충 54 + 이견 2)을 확인해 주면 정본 표에 반영한다. S1~S5 는 끝났다. 캡처가 오기 전에는 할 일이 없다.
 ---
 
 # 영냥이 자미두수 — 정확한 강약표 위에서 강약을 읽는 상담 + 설명마다 명반
@@ -14,7 +14,7 @@ next: S5 — 남은 자미 경로(워커 ziwei-ai·deep report·island·master-l
 - 설명할 때마다 해당 명반을 보여 준다. 모든 운세에 해당한다.
 - 2026-10-01 추가 요구: "정확한 데이터를 기반으로 해야해 그리고 강약도 반드시 반영이 되어야한다". 다른 사이트 캡처로 사용자가 직접 확인해 줄 수 있다고 했다.
 
-## 지금 상태 (S1·S2·S3·S4 완료)
+## 지금 상태 (S1~S5 완료, S0 대기)
 
 S1(강약표·상담 사실·프롬프트·단계 정책)은 main 에 머지됐다. 커밋은 `git log --oneline --grep=ziwei -8` 로 확인한다.
 
@@ -22,7 +22,9 @@ S2(영냥이·연이/네오 명반 화면)도 main 에 머지됐다. 커밋은 `
 
 S3(사주·점성·베다·숙요 소절마다 명반)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="chart points" --grep="each section reads" -4` 로 확인한다.
 
-S4(꿀꿀 셸·앱·워커 프롬프트 강약 통일)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="canonical 7" --grep="major period by branch" -4` 로 확인한다. 아래 "S4 검증"을 본다. S5 와 S0 이 남아 있다.
+S4(꿀꿀 셸·앱·워커 프롬프트 강약 통일)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="canonical 7" --grep="major period by branch" -4` 로 확인한다. 아래 "S4 검증"을 본다.
+
+S5(남은 워커 자미 경로·섬)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="7 strength grades" -2` 로 확인한다. 아래 "S5 검증"을 본다. 이제 S0 만 남았다.
 
 ### S3 에서 바꾼 것
 
@@ -165,7 +167,7 @@ S4(꿀꿀 셸·앱·워커 프롬프트 강약 통일)도 main 에 머지됐다.
   - 셸·앱 강약을 정본 모듈로 바꾼다. 점수 혼합, 차성 ×0.7, 화기 강등을 걷어 내고 관련 가드를 재정의한다.
   - 셸 대한 궁 오인덱스(`js/saju-engine.js:17703`, `:21767`)를 고친다.
   - `worker/lib/ziwei-ai-prompt.js` 를 바꾸고 `sync:public` 미러를 갱신한다.
-- [ ] **S5 나머지 자미 경로**
+- [x] **S5 나머지 자미 경로** — 2026-10-01 완료. 아래 "S5 검증"을 본다.
   - `worker/routes/ziwei-ai.js`, deep report, island(점수 영향이 있으므로 regression-scout 먼저), master-love-codex.
   - 워커에 남은 옛 5기호: `worker/lib/ziwei-ai-chart.js`(옛 표 행, 테스트가 정본과 비교용으로 고정), `worker/lib/ziwei-deep-report-prompt.mjs:183` 범례, `__tests__/worker/admin-prompt-lab-engines.test.js` 의 옛 기호 허용, `scripts/lib/ziwei-deep-chart-fixture.cjs`.
   - (해소) 앱 `mapZiweiStrengthSymbol` 의 빈 값 → △ 결함은 S4 앱 커밋이 함수째 걷어 내면서 사라졌다.
@@ -270,7 +272,56 @@ npm run verify:sitemap-drift                         # OK (원장은 같은 커�
 - 앱 '불'은 약한 쪽으로 읽었다: 5단 밝기 읽기에서 함, 옛 힌트 키에서 X, `weakStars`·`hasXianRuo` 에 포함. 원전 不得地 를 '힘을 얻지 못함'으로 읽은 가정이다.
 - 죽은 코드(보고만): `AdvancedZiweiSectionV2.tsx` 의 `ZIWEI_STRENGTH_SYMBOL_KEY`·`zPatternStrengthDescription`·copy 의 `strengthDescriptions`, `advanced-ziwei-reading.ts` 의 `BRIGHTNESS_RULES[].symbol`, `scripts/verify-ziwei-brightness-constraints.cjs`(배선 없음·낡음).
 
+## S5 검증 (2026-10-01, 전부 mock — 실 LLM·결제·DB 0회)
+
+워커 표기는 `자미(묘)`(프롬프트 사실 블록)와 한자 한 글자(네오 압축 표기, 섬 화면)다. 셸·앱(S4)과 마찬가지로 일곱 등급을 접지 않는다.
+
+- 커밋 둘(워크트리에서 만들어 main 에 머지):
+  - 워커 차트·프롬프트 커밋은 다음을 바꿨다.
+    - `worker/lib/ziwei-ai-chart.js`: 옛 28성 표와 5단 접기(왕→묘, 약→리, 불·한→평)를 걷었다. 이제 `lib/ziwei-star-strength.js` 의 `starStrength` 를 읽는다.
+    - 범례 한 줄 `ZIWEI_STRENGTH_LEGEND` 를 정본 모듈에 두었다. ziwei-ai 와 심층 리포트가 같은 문장을 싣고, master-love-codex 는 심층 리포트의 명반 포맷을 그대로 쓴다. 범례를 차트 빌더가 아니라 정본 모듈에 둔 이유는 차트 빌더를 목으로 바꾸는 jest 스위트가 많기 때문이다.
+    - ziwei-ai 근거 검사(`BRIGHTNESS_TERMS`)는 7등급과 "강약·묘왕·함약·득지", 그리고 "묘 자리"·"(묘)" 꼴을 센다. 출력 규칙은 강약을 문장으로 쓰게 한다("자미가 묘 자리에"). 괄호를 붙이면 `annotateZiweiHanja` 가 한자 주석을 건너뛰기 때문이다.
+    - 옛 ◎O▲△X 를 다음 다섯 곳에서 걷었다: 심층 범례·규칙, 네오 상담방 범례·규칙, master-love-codex 규칙·품질 교정 문구, admin 테스트 허용 집합, 심층 픽스처. 픽스처는 기호만 한자로 바꾸고 등급 다섯은 그대로 두었다.
+  - 섬 커밋은 다음을 바꿨다.
+    - `BRIGHTNESS_SCORE` 에 왕 7, 불 -3 을 더했다(묘 8·득 5·리 2·평 0·함 -6 은 그대로).
+    - 별 해설 문구(`BRIGHTNESS_FACET`)에 왕·불을 더했다.
+    - 상담 프롬프트는 `(묘)` 꼴로 쓴다.
+    - `destiny-island.html` 표시는 한자 한 글자다. `public/` 미러도 같은 커밋에 넣었다.
+
+```
+npm run check:fast                                       # critical 승격, jest 4916/4916, 가드 87 통과 / 1 헛실패 → exit 1 (아래)
+npm run verify:ziwei-worker-chart-facts                  # 통과 122건
+node --test __tests__/ui/ziwei-star-strength.test.mjs    # 5/5
+npm run verify:ziwei-island && npm run verify:island-star-copy   # 픽스처 14건 통과, 별 문구 10건 통과
+```
+
+check:fast 의 실패 1건은 `__tests__/ui/yeongnyangi-reading-v7-golden.test.mjs` 의 헛실패다.
+- 증상: 전체 스위트 안에서 두 번 다른 모양으로 깨졌다(`15 !== 14`, 하위 스크립트 `node:fs` 오류).
+- 판정: 같은 파일만 `node --test` 로 두 번 돌리니 둘 다 통과했다(각 18초). 동시 스위트가 Windows 임시 checkpoint rename 을 막는 알려진 현상이다. 최종 판정은 CI 로 했다.
+
+섬 점수 변화는 무작위 300명반으로 실측했다. 옛 경로(옛 표 + 5단 접기)와 새 경로의 궁 기본 점수를 비교했고, 스크립트는 커밋하지 않았다.
+- 결과: 명반 300개 중 276개(92%)에서 궁 하나 이상의 티어가 바뀐다. 궁 단위로는 3600칸 중 687칸(19%)이다.
+- 원인: 변화 대부분은 가중치가 아니라 표가 정본으로 바뀐 데서 온다. 옛 표는 원전과 126칸 중 49칸만 일치했다.
+- 주성 등급 분포(새 경로, 4200): 묘 1316, 왕 966, 득 462, 평 478, 리 268, 불 186, 함 524.
+- 골든 고정값이 없어서 섬 검증기는 이 변화와 무관하게 통과한다.
+
+### S5 의 가정과 배포 영향
+
+- **섬 가중치 왕 7·불 -3 은 가정이다.** 두 값은 각각 위아래 등급 사이에 두었다. 대안은 예전 접기와 같은 점수(왕 8, 불 0)다. 바꾸려면 `worker/lib/island/island-weights.js` 한 줄만 고치면 된다.
+- **배포하면 모든 사용자의 섬 배치가 한 번 바뀐다.** 섬 레이아웃 서명(`hashSignature`)에 강약이 들어 있기 때문이다.
+- **배포 당일에는 옛 청사진이 보일 수 있다.** `cdIsland:blueprint:v2` 로컬 캐시의 키가 프로필과 KST 날짜이기 때문이다. 다음 날부터 새 청사진이 나온다.
+- **저장된 스냅샷의 옛 5단 값은 그대로 읽힌다.** 정규화가 옛 이름을 받아들이기 때문이다. 다만 옛 '묘'에는 접혀 들어간 왕이 섞여 있다.
+- **영냥이는 영향이 없다.** 영냥이는 `brightness` 를 지우고 정본 모듈을 직접 읽는다.
+
+### S5 에서 고치지 않은 것 (후속)
+
+- 앱 `app/_lib/ziwei-deep-reading.ts` 의 `LEGACY_HINT_KEY` 와 `app/_lib/ziwei-star-interpretations.ts` 의 옛 기호 힌트 키는 남겼다. 둘은 S4 앱 범위이며 저장된 옛 명반을 읽는 호환 장치다.
+- `__tests__/worker/neo-operation-room.sections.test.js` 의 픽스처 "자미◎" 도 남겼다. 이것은 모델 출력 예시 문자열이다.
+- 꽃 엔진의 '불' 접기는 S4 후속에 이미 적혀 있다.
+
 ## 모르는 것
+
+- **S5 근거 어휘의 실 LLM 통과율은 미검증이다.** `ziwei-ai` 의 강약 근거 검사가 새 어휘("묘 자리" 등)로 통과·재시도되는 비율은 mock 에서 알 수 없다.
 
 - **실 LLM 상담 품질은 미검증이다.** mock 은 입력이 바뀐 것만 보여 준다. Gemini 가 선택 필드 `palaces`·`pillars`·`astroPoints`·`vedicPoints`·`mansions` 를 얼마나 채울지도 실호출 전에는 모른다. 비어도 화면은 강조만 빠진다.
   - 실호출 검수는 정확한 1회 승인이 있어야 한다.

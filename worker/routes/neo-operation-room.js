@@ -734,7 +734,7 @@ function summarizeZiwei(chart) {
       bodyPalaceName ? `신궁: ${bodyPalaceName}` : "",
       transformationLine ? `생년 사화 — ${transformationLine}` : "",
       yearlyLuck?.year ? `올해(${yearlyLuck.year}년) 유년궁: ${yearlyLuck.palaceName || yearlyLuck.earthlyBranch || ""}${safeArray(yearlyLuck.mainStars).length ? ` (주성: ${safeArray(yearlyLuck.mainStars).join(", ")})` : ""}` : "",
-      brightnessSummaryLine ? `12궁 강약(◎묘·O득·▲리·△평·X함): ${brightnessSummaryLine}` : "",
+      brightnessSummaryLine ? `12궁 강약(廟묘·旺왕·得득·利리·平평·不불·陷함 — 길흉 아님, 별의 성질이 드러나는 정도): ${brightnessSummaryLine}` : "",
     ].filter(Boolean).join("\n") || "자미두수 명반 계산 결과를 근거로 삼는다.",
     mingGong: lifePalaceName || null,
     shenGong: bodyPalaceName || null,

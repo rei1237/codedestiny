@@ -27,6 +27,7 @@ import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
+import { ZIWEI_STRENGTH_LEGEND } from "../../lib/ziwei-star-strength.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
 import {
   buildDomainAnalysisRuleLines,
@@ -168,7 +169,7 @@ const SECTION_RULES = Object.freeze({
   personality_profile: "personality_profile은 [핵심 성향 Context]에 따라 이 명반 전체를 종합해 '이 사람은 기본적으로 어떤 사람인가'를 서술하는 자리입니다. 명궁·신궁·삼방사정·사화에서 반복되는 성향을 우선하여, 핵심 성격 → 겉과 속의 차이 → 장점과 그림자 → 인간관계를 맺는 방식과 화났을 때·상처받을 때의 반응 → 사고방식(직관형/분석형, 결정 속도) 순으로 자연스럽게 엮으세요. 이후 essence 이하 섹션들이 참조할 전제이므로, 개별 별의 사전적 정의 나열이 아니라 통합된 사람의 모습으로 마무리하세요.",
   essence: "essence는 personality_profile에서 정리한 핵심 성향을 전제로, 명궁 주성과 강약을 첫 흐름에 자연스럽게 밝히고 신궁·보성·살성의 영향까지 통합하세요.",
   flow: "flow는 화록·화권·화과·화기 네 별을 모두 별 이름으로 직접 언급하고, 계산 확정값의 궁 위치 그대로 각 사화가 놓인 궁의 욕망, 힘, 인정, 막힘을 현실적인 언어로 풀어주세요.",
-  triad_axis: "triad_axis는 질문과 가장 가까운 궁의 삼방사정, 대궁, 협조궁을 함께 읽어 에너지가 들어오고 새는 길을 밝히세요. [계산 확정값]의 '삼방사정 회조' 줄에 적힌 궁과 별을 이름으로 인용하고, 회조하는 별의 강약 표기(◎최상·O득지·▲이로움·△균형·X함몰)를 근거로 그 축이 실제로 힘을 들여보내는지 새게 하는지 판정하세요.",
+  triad_axis: "triad_axis는 질문과 가장 가까운 궁의 삼방사정, 대궁, 협조궁을 함께 읽어 에너지가 들어오고 새는 길을 밝히세요. [계산 확정값]의 '삼방사정 회조' 줄에 적힌 궁과 별을 이름으로 인용하고, 회조하는 별의 강약 표기(별 이름 뒤 괄호의 묘·왕·득·리·평·불·함)를 근거로 그 축이 실제로 힘을 들여보내는지 새게 하는지 판정하세요.",
   twelve_palaces: "twelve_palaces는 12궁 전체를 단순 나열하지 말고 명궁·재백궁·관록궁·부부궁·복덕궁·질액궁의 상호작용을 중심으로 연결해 주세요. 각 궁의 강약 표기를 근거로 삼고, [계산 확정값]에 '자화' 줄이 있으면 그 궁은 힘이 밖으로 비입하지 않고 제자리에서 흩어진다는 뜻으로 구분해 읽으세요.",
   career: "career는 관록궁의 주성 강약과 삼방사정, 대운·세운 흐름을 질문 주제와 연결해 일의 성질과 지속 가능성을 밝히세요.",
   wealth: "wealth는 재백궁을 복덕궁·전택궁과 함께 읽어 버는 힘과 새는 통로를 나누어 말하세요.",
@@ -1062,7 +1063,7 @@ function buildSystemPrompt() {
     "",
     "그 밖의 원칙:",
     "1. 보고서처럼 딱딱하게 쓰지 말고, 실제 상담사가 명반을 놓고 설명하듯 자연스럽게 답변합니다.",
-    "2. 명반 데이터의 각 궁에는 별의 강약(묘·왕·득·리·평·함) 값이 brightness로 함께 제공됩니다. 이 값을 반드시 해석의 핵심 근거로 사용하고([아래 계산 확정값]의 강약 표기를 그대로 인용), 표에 없는 별은 강약을 지어내지 말고 궁의 조합·사화·삼방사정으로만 근거를 세웁니다.",
+    "2. 명반 데이터의 각 궁에는 별의 강약(묘·왕·득·리·평·불·함 7등급 — 길흉이 아니라 그 별의 성질이 얼마나 또렷하게 드러나는가) 값이 brightness로 함께 제공됩니다. 이 값을 반드시 해석의 핵심 근거로 사용하고([아래 계산 확정값]의 강약 표기를 그대로 인용), 표에 없는 별은 강약을 지어내지 말고 궁의 조합·사화·삼방사정으로만 근거를 세웁니다.",
     "3. 사화는 화록·화권·화과·화기가 어느 궁에 떨어지는지에 따라 확장, 장악력, 인정, 집착과 차질의 흐름으로 구분합니다.",
     "4. 보성은 도움과 보완으로, 살성은 위험 단정이 아니라 긴장, 압박, 돌파력, 반복되는 시험으로 해석합니다.",
     "5. 현재 대운과 세운은 지금 사용자가 실제로 선택할 타이밍 언어로 연결합니다.",
@@ -1152,7 +1153,7 @@ function buildCanonicalZiweiFacts(chart) {
   }
 
   if (palaces.length) {
-    lines.push("12궁 강약(◎=묘·최상, O=득·안정, ▲=리·이로움, △=평·보통, X=함·주의):");
+    lines.push(`12궁 강약 — ${ZIWEI_STRENGTH_LEGEND}`);
     for (const palace of palaces) {
       const allStars = [...(palace.mainStars || []), ...(palace.assistantStars || []), ...(palace.maleficStars || [])];
       if (!allStars.length) continue;
@@ -1226,7 +1227,7 @@ function buildZiweiAnalysisBasis(chart, birthInfo = {}) {
     groups: [
       basisGroup("core", "명궁과 신궁", coreItems, { hint: "명반을 읽는 첫 자리입니다. 명궁이 타고난 결, 신궁이 살면서 매달리게 되는 자리입니다." }),
       basisGroup("sihua", "사화가 앉은 자리", sihuaItems, { hint: "네 가지 변화가 어느 궁에 놓였는지가 힘이 실리는 방향과 막히는 지점을 정합니다." }),
-      basisGroup("palaces", "12궁 강약", palaceItems, { hint: "◎묘 · O득 · ▲리 · △평 · X함. 강한 자리는 확장으로, 약한 자리는 관리로 읽습니다." }),
+      basisGroup("palaces", "12궁 강약", palaceItems, { hint: "괄호 안이 별의 강약입니다(묘·왕·득·리·평·불·함 순). 길흉이 아니라 그 별의 성질이 얼마나 또렷하게 드러나는가입니다." }),
       basisGroup("luck", "지금의 흐름", luckItems, { hint: "타고난 배치 위에 현재 어떤 조명이 들어와 있는지를 봅니다." }),
     ],
     stages: [
@@ -1242,10 +1243,14 @@ function buildZiweiAnalysisBasis(chart, birthInfo = {}) {
 // 삼방사정을 실제로 엮어 읽었는지 가르는 개념어.
 const TRIAD_TERMS = Object.freeze(["삼방사정", "회조", "삼방", "대궁"]);
 
-// 묘왕함약(강약)을 근거로 삼았는지 가르는 표기. 확정값 블록이 내보내는 기호와 뜻풀이를 그대로 쓴다
-// (BRIGHTNESS_SYMBOL / BRIGHTNESS_MEANING — worker/lib/ziwei-ai-chart.js).
-// 🔴 'O'·'X' 는 라틴 문자라 한국어 본문에서 우연히 걸릴 수 있어 넣지 않는다.
-const BRIGHTNESS_TERMS = Object.freeze(["◎", "▲", "△", "최상", "득지", "이로움", "균형", "함몰", "묘왕", "함약", "강약"]);
+// 묘왕함약(강약)을 근거로 삼았는지 가르는 표기. 확정값 블록은 `자미(묘)` 처럼 7등급 이름을 괄호로 싣고,
+// 본문 규칙은 괄호 대신 '자미가 묘 자리에'처럼 문장으로 풀게 한다(괄호를 열면 annotateZiweiHanja 가 앞 별의 한자 병기를 건너뛴다).
+// 🔴 등급 한 글자만으로는 찾지 않는다 — '묘'·'리'·'불'은 지지·일반 낱말과 겹친다. '<등급> 자리'·'(<등급>)' 꼴만 센다.
+const ZIWEI_STRENGTH_GRADES = Object.freeze(["묘", "왕", "득", "리", "평", "불", "함"]);
+const BRIGHTNESS_TERMS = Object.freeze([
+  "강약", "묘왕", "함약", "득지",
+  ...ZIWEI_STRENGTH_GRADES.flatMap((grade) => [`${grade} 자리`, `(${grade})`]),
+]);
 
 // 그라운딩 이슈를 고칠 수 있는 섹션 그룹(SECTION_GROUP_SPECS 의 id).
 // 🔴 이슈 종류를 새로 만들면 반드시 여기 등록한다 — 미등록 이슈는 재시도 대상이 없어
@@ -1333,7 +1338,7 @@ function enforceZiweiChartFacts(text, chart) {
   if (bodyText && chart?.sanFangSiZheng?.byPalace && !TRIAD_TERMS.some((term) => bodyText.includes(term))) {
     issues.push("TRIAD_UNSTATED");
   }
-  // 묘왕함약(강약)을 근거로 삼았는가. 확정값 블록이 기호와 뜻풀이를 함께 주므로 둘 중 하나만 나와도 통과시킨다.
+  // 묘왕함약(강약)을 근거로 삼았는가. 등급 이름이 '자리'·괄호와 함께 나오거나 강약이라는 말이 나오면 통과시킨다.
   if (bodyText && palaces.some((item) => Object.keys(item.brightness || {}).length) && !BRIGHTNESS_TERMS.some((term) => bodyText.includes(term))) {
     issues.push("BRIGHTNESS_UNSTATED");
   }
@@ -1353,7 +1358,7 @@ function describeZiweiGroundingIssues(issues, chart) {
     lines.push("- 삼방사정(본궁·대궁·삼합 두 궁)을 궁 이름으로 묶어 회조를 밝히고, 그 회조가 무엇을 들여보내고 무엇을 새게 하는지 서술하라.");
   }
   if (issues.includes("BRIGHTNESS_UNSTATED")) {
-    lines.push("- 별의 묘왕함약(강약)을 근거로 삼아라. 아래 확정값의 강약 표기(◎최상·O득지·▲이로움·△균형·X함몰)를 그대로 인용해 어느 별이 어느 궁에서 어떤 힘인지 밝혀라.");
+    lines.push("- 별의 묘왕함약(강약)을 근거로 삼아라. 아래 확정값의 강약 등급(별 이름 뒤 괄호의 묘·왕·득·리·평·불·함)을 근거로, '자미가 묘 자리에 있어'처럼 어느 별이 어느 궁에서 성질을 얼마나 또렷하게 드러내는지 문장으로 밝혀라.");
   }
   lines.push("아래 계산 확정값과 다르게 서술하는 것은 금지한다:");
   lines.push(...buildCanonicalZiweiFacts(chart));
@@ -1399,10 +1404,10 @@ function buildSharedSectionRuleLines(chart) {
     "- 리딩의 논리 사슬을 문장에 드러내세요: 명궁 주성과 강약 → 신궁이 실어 주는 후천의 힘 → 해당 주제의 궁 → 삼방사정 회조 → 사화의 비입·자화 순으로 근거를 이어 말합니다.",
     "- 별 하나만 보고 길흉을 단정하지 마세요. 6길성(좌보·우필·문창·문곡·천괴·천월)의 부조와 6흉성(경양·타라·화성·영성·지공·지겁)의 충파를 명반에 실제로 있는 것만 근거로 함께 녹이세요.",
     "- 사전식 별 정의를 나열하지 마세요('자미는 제왕의 별입니다' 같은 문장 금지). 그 근거가 이 사람의 삶에서 어떤 성향·사건 패턴·선택 습관으로 나타나는지로 풀어냅니다.",
-    "- [계산 확정값]의 '12궁 강약' 표기(◎묘·O득·▲리·△평·X함)를 모든 궁 해석의 핵심 근거로 사용하세요. 각 섹션은 추상적 서술에 그치지 말고 최소 한 번은 이 명반의 구체적 강약 표기·실제 별 이름·궁 위치를 근거로 인용하세요. 강한 별(◎/O)은 확장·기회로, 약한 별(△/X)은 관리·주의가 필요한 지점으로 명시적으로 연결하고, 표에 없는 별의 강약은 지어내지 마세요.",
+    "- [계산 확정값]의 '12궁 강약' 등급(별 이름 뒤 괄호의 묘·왕·득·리·평·불·함)을 모든 궁 해석의 핵심 근거로 사용하세요. 각 섹션은 추상적 서술에 그치지 말고 최소 한 번은 이 명반의 구체적 강약 등급·실제 별 이름·궁 위치를 근거로 인용하세요. 강약은 길흉이 아닙니다 — 묘·왕은 그 별의 성질이 또렷하게 드러나는 자리로, 불·함은 성질이 흐려져 동궁·사화·삼방사정의 보완 조건을 함께 봐야 하는 자리로 연결하고, 괄호 등급이 없는 별의 강약은 지어내지 마세요.",
     // 🔴 한자 금지 — 규칙으로 "빈 괄호 금지"를 두 번 못 박았는데도 운영 화면에 `천이궁( )` 이 나왔다.
     //    병기는 서버가 결정론적으로 붙인다. 모델이 괄호를 열 이유 자체를 없앤다.
-    "- 한자를 쓰지 마세요. 궁 이름·별 이름·전문 용어는 모두 한글로만 적습니다(예: '명궁', '자미', '화기'). 괄호를 열어 한자나 병기를 넣지 마세요. 강약 표기 괄호(예: 최상(◎))만 예외입니다.",
+    "- 한자를 쓰지 마세요. 궁 이름·별 이름·전문 용어는 모두 한글로만 적습니다(예: '명궁', '자미', '화기'). 괄호를 열어 한자나 병기를 넣지 마세요. 강약도 괄호 없이 '자미가 묘 자리에 있어', '태양이 함 자리라'처럼 문장으로 풀어 쓰세요.",
     "- 초심자도 읽히게, 전문 용어를 처음 쓴 자리에서 한 번은 쉬운 말로 풀어 주세요.",
     "- 전체 문체는 전문적이고 신비롭되, 개발 문서나 기능 안내처럼 들리면 안 됩니다.",
     "- 결과를 소개하거나 화면을 설명하는 도입어, 서비스나 기능 안내처럼 들리는 표현을 쓰지 마세요.",

@@ -219,14 +219,14 @@ ok(
 
   // 🔴 삼방사정 회조 줄은 요약본의 flatMap(강약 소실)이 아니라 궁별 brightness 를 다시 읽어야 한다.
   const triadLine = lines.find((line) => line.startsWith("삼방사정 회조")) || "";
-  ok("⑨ 회조 줄에 강약 표기가 붙는다", /[◎▲△OX]\(/.test(triadLine), triadLine);
+  ok("⑨ 회조 줄에 강약 표기가 붙는다", /\((묘|왕|득|리|평|불|함)\)/.test(triadLine), triadLine);
 
-  // 🔴 명암표에 없는 별에는 강약을 붙이지 않는다(가짜 근거 생성 금지 — ziwei-ai-chart.js 주석).
+  // 🔴 강약 등급이 없는 별에는 강약을 붙이지 않는다(가짜 근거 생성 금지 — ziwei-ai-chart.js 주석).
   const brightnessLess = chart.palaces
     .flatMap((palace) => [...palace.mainStars, ...palace.assistantStars, ...palace.maleficStars]
       .filter((star) => !palace.brightness[star]));
   for (const star of new Set(brightnessLess)) {
-    ok(`⑨ 명암표에 없는 별 "${star}" 에 강약이 붙지 않는다`, !new RegExp(`${star}[◎▲△OX]`).test(text));
+    ok(`⑨ 강약 등급이 없는 별 "${star}" 에 강약이 붙지 않는다`, !new RegExp(`${star}\\((묘|왕|득|리|평|불|함)\\)`).test(text));
   }
 }
 
@@ -239,8 +239,8 @@ ok(
   ).issues;
 
   const groundedBody = [
-    "명궁의 자미△와 칠살△가 사궁에서 만난다.",
-    "삼방사정으로 관록궁·재백궁·천이궁이 회조하며, 재백궁의 무곡◎(최상)이 힘을 들여보낸다.",
+    "명궁의 자미와 칠살이 사궁에서 만나는데, 자미가 왕 자리에 있다.",
+    "삼방사정으로 관록궁·재백궁·천이궁이 회조하며, 묘 자리에 앉은 재백궁의 무곡이 힘을 들여보낸다.",
     "화록 무곡, 화권 탐랑, 화과 천량, 화기 문곡이 각각 자리를 잡았다.",
     "형제궁·부부궁·자녀궁·질액궁·노복궁·전택궁·복덕궁·부모궁까지 함께 읽는다.",
   ].join("\n");
@@ -249,7 +249,7 @@ ok(
   const noTriad = groundedBody.replace("삼방사정으로 관록궁·재백궁·천이궁이 회조하며", "관록궁·재백궁·천이궁을 보며");
   ok("⑩ 삼방사정 미언급을 잡는다", issuesFor(noTriad).includes("TRIAD_UNSTATED"), JSON.stringify(issuesFor(noTriad)));
 
-  const noBrightness = groundedBody.replace(/[◎▲△]/g, "").replace("(최상)", "");
+  const noBrightness = groundedBody.replace(", 자미가 왕 자리에 있다", "").replace("묘 자리에 앉은 ", "");
   ok(
     "⑩ 명암 미언급을 잡는다",
     issuesFor(noBrightness).includes("BRIGHTNESS_UNSTATED"),

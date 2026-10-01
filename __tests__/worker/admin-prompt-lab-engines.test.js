@@ -96,8 +96,8 @@ describe("자미두수 실험실 명반", () => {
     expect(chart.palaces.some((palace) => palace.id === "friends")).toBe(true);
   });
 
-  test("강약 심볼은 엔진 표에 있는 값만 붙는다(없는 근거를 지어내지 않는다)", () => {
-    const allowed = new Set(["◎", "O", "▲", "△", "X"]);
+  test("강약 심볼은 정본 7등급 한자 한 글자만 붙는다(없는 근거를 지어내지 않는다)", () => {
+    const allowed = new Set(["廟", "旺", "得", "利", "平", "不", "陷"]);
     buildChart().palaces
       .flatMap((palace) => [...palace.mainStars, ...palace.auxiliaryStars, ...palace.strengthSummary.weakStars])
       .forEach((star) => {

@@ -18,6 +18,7 @@
  */
 
 import { formatStarWithBrightness } from "./ziwei-ai-chart.js";
+import { ZIWEI_STRENGTH_LEGEND } from "../../lib/ziwei-star-strength.js";
 
 export const ZIWEI_DEEP_PDF_META = Object.freeze({
   featureKey: "ziwei-deep-pdf",
@@ -180,7 +181,7 @@ export function formatZiweiChartForPrompt(chart) {
     .map(([type, star]) => `${type}:${star || "-"}`)
     .join(", ");
   if (ftText) lines.push(`- 생년사화(四化): ${ftText}`);
-  lines.push("- 강약 표기 범례: ◎=묘(최상) · O=득(득지) · ▲=리(이로움) · △=평(균형) · X=함(주의). 표에 없는 별은 강약 미표기(추정 금지).");
+  lines.push(`- 강약 표기 범례: ${ZIWEI_STRENGTH_LEGEND}`);
   lines.push("- 12궁 배치(강약 포함):");
   for (const p of palaces) {
     if (!p || !p.name) continue;
@@ -219,7 +220,7 @@ export function buildZiweiDeepSystemGuide() {
     "3. 추상적 미사여구만 나열하지 말고, 일상·관계·일·돈의 구체적 장면과 실행 조언으로 연결하라.",
     "4. 존댓말, 따뜻하지만 명료한 문체. 한국어. 소제목(●)으로 단락을 구조화하라.",
     "5. 좋은 별/나쁜 별을 단순 이분하지 말고, 자리·밝기·삼방사정·시간의 흐름 속에서 강약이 켜지는 순서를 읽어라.",
-    "6. [명반 데이터]의 각 별 뒤에 표기된 강약 기호(◎묘·O득·▲리·△평·X함)를 반드시 해석 근거로 삼아라. 강한 별(◎/O)은 그 궁의 힘이 실제로 살아나는 지점으로, 약한 별(△/X)은 관리·보완이 필요한 지점으로 명시적으로 구분해 서술하라. 기호가 없는 별의 강약은 지어내지 마라.",
+    "6. [명반 데이터]의 각 별 뒤 괄호의 강약 등급(묘·왕·득·리·평·불·함)을 반드시 해석 근거로 삼아라. 강약은 길흉이 아니다 — 묘·왕은 그 별의 성질이 또렷하게 살아나는 지점으로, 불·함은 성질이 흐려져 동궁·사화·삼방사정의 보완 조건을 함께 봐야 하는 지점으로 명시적으로 구분해 서술하라. 괄호 등급이 없는 별의 강약은 지어내지 마라.",
   ].join("\n");
 }
 

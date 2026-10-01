@@ -4,13 +4,15 @@
 // verify:ziwei-deep-counseling-quality(챕터 산문) 와 verify:ziwei-chart-customer-copy(화면 해석 빌더) 가
 // 같은 명반을 넣어 검사하므로, 별·사화·공궁 배치를 바꾸면 두 가드의 하한·금지어 판정이 같이 움직인다.
 // ZIWEI_PALACE_NAME 은 app/_lib/ziwei-types.ts 의 것을 호출자가 로드해 넘긴다(여기서 TS 를 로드하지 않는다).
+// strengthSymbol 은 엔진(app/_lib/ziwei-engine.ts)이 내는 한자 한 글자다 — 2026-10-01 S5 에서 옛 5기호(◎O▲△X)를 걷었다.
+// 등급은 예전과 같은 다섯(묘·득·리·평·함)만 쓴다 — 두 가드의 하한·금지어 판정을 움직이지 않으려고.
 
 function createStar(name, symbol, transformation = null) {
   return {
     name,
     symbol,
     strengthSymbol: symbol,
-    strength: symbol === "◎" ? "묘" : symbol === "O" ? "득" : symbol === "▲" ? "리" : symbol === "△" ? "평" : symbol === "X" ? "함" : "",
+    strength: { 廟: "묘", 得: "득", 利: "리", 平: "평", 陷: "함" }[symbol] || "",
     transformation,
   };
 }
@@ -31,7 +33,7 @@ function buildSampleChart(variant, ZIWEI_PALACE_NAME) {
     ["태양", "문창", "지겁"],
     ["천상", "문곡", "타라"],
   ];
-  const symbols = variant === "A" ? ["◎", "O", "▲", "△", "X"] : ["O", "▲", "△", "X", "◎"];
+  const symbols = variant === "A" ? ["廟", "得", "利", "平", "陷"] : ["得", "利", "平", "陷", "廟"];
   const transforms = [null, "화록", "화권", "화과", "화기"];
 
   const palaces = palaceIds.map((id, index) => {
@@ -71,10 +73,10 @@ function buildSampleChart(variant, ZIWEI_PALACE_NAME) {
       luckyStars,
       isEmptyMainStarPalace: isEmpty,
       strengthSummary: {
-        strongestStars: [...mainStars, ...auxiliaryStars].filter((s) => ["◎", "O", "▲"].includes(s.strengthSymbol || "")),
-        weakStars: [...mainStars, ...auxiliaryStars, ...maleficStars].filter((s) => ["△", "X"].includes(s.strengthSymbol || "")),
-        hasMiaoWang: [...mainStars, ...auxiliaryStars].some((s) => s.strengthSymbol === "◎"),
-        hasXianRuo: [...mainStars, ...auxiliaryStars, ...maleficStars].some((s) => ["△", "X"].includes(s.strengthSymbol || "")),
+        strongestStars: [...mainStars, ...auxiliaryStars].filter((s) => ["廟", "得", "利"].includes(s.strengthSymbol || "")),
+        weakStars: [...mainStars, ...auxiliaryStars, ...maleficStars].filter((s) => ["平", "陷"].includes(s.strengthSymbol || "")),
+        hasMiaoWang: [...mainStars, ...auxiliaryStars].some((s) => s.strengthSymbol === "廟"),
+        hasXianRuo: [...mainStars, ...auxiliaryStars, ...maleficStars].some((s) => ["平", "陷"].includes(s.strengthSymbol || "")),
       },
       fourTransformations,
       incomingFourTransformations,
