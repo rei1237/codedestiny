@@ -42,7 +42,7 @@ Last curated: `2026-09-24`
 ### 4. Static shell and runtime sync
 
 - Source files: `index.html`, `js/core/index-inline-runtime.js`, `js/core/uiBindings.js`
-- Why it matters now: the root shell is the source of truth for `/ggulggul/` and the legacy locale shells — not for `/`, which has been `app/page.js` + `app/yeongnyangi/_components/` since 2026-09-21 (`3a9a0378d`; see `CLAUDE.md`). Mirror sync remains a recurring regression risk.
+- Why it matters now: the root shell is the source of truth for `/ggulggul/` and the legacy locale shells — not for `/`, which is `app/page.js` (the 꿀꿀 운세 search-facing guide; `LegacyHomeEntry` sends browsers on to `/ggulggul/`). Yeongnyangi lives at `/yeongnyangi/` (`app/yeongnyangi/`): the 2026-09-21 Yeongnyangi-root switch (`3a9a0378d`) was reversed on 2026-09-30 (`5687ea634`; see `CLAUDE.md`). Mirror sync remains a recurring regression risk.
 
 ### 5. main 단독 전달 안전장치
 
@@ -89,7 +89,7 @@ Last curated: `2026-09-24`
 
 ### 8. 경쟁력 로드맵 — 측정 정합 → 모수 확대 → 공유 루프 → 속도 → 비용 (2026-09-23 — 현재 최우선 축)
 
-- 세션 순서와 진행 상태의 정본은 [`docs/handoff/competitiveness-roadmap-20260923.md`](handoff/competitiveness-roadmap-20260923.md) 하나다(1 세션 = 1행) — 여기에 행별 상세를 복제하지 않는다. 병목은 전환율이 아니라 **모수**라서 전환 UI 는 실제 결함 제거만 한다.
+- 세션 순서와 진행 상태의 정본은 [`docs/handoff/competitiveness-roadmap-20260923.md`](handoff/competitiveness-roadmap-20260923.md) 하나다(1 작업 = 1행) — 여기에 행별 상세를 복제하지 않는다. 병목은 전환율이 아니라 **모수**라서 전환 UI 는 실제 결함 제거만 한다.
 - 2026-08-30 성장 계획([`docs/handoff/growth-plan-2026-08-30.md`](handoff/growth-plan-2026-08-30.md))은 선행 기록이다. 그 기간의 "PR 머지마다 프로덕션 승격 위임"은 PR 폐지(2026-09-12)로 대상이 없어졌다 — 운영 승격은 명시적인 1회 승인 때만 한다.
 
 ## Working Rules For Current Tasks

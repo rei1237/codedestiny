@@ -1,6 +1,6 @@
 # Session Workflow
 
-긴 Claude Code/Codex 작업은 한 세션에 모든 맥락을 쌓지 않는다. 작업 상태는 `docs/handoff/<주제 이름>.md`에 남기고, 새 세션은 그 문서와 최신 `origin/main`에서만 시작한다. 완료한 변경은 로컬에만 남겨두지 않고 반드시 커밋·push로 인계한다.
+**2026-10-01부터 긴 작업도 한 세션에서 끝까지 진행한다(자동 압축 허용).** 진행 상태는 세션 상태 파일에 적는다 — Claude Code 는 시작 훅(`.claude/hooks/session-state.mjs`)이 경로를 알려 주고, 자동 압축 뒤 본문과 git 상태를 다시 넣어 준다. `docs/handoff/<주제 이름>.md`는 사용자가 요청하거나 외부 차단(승인 대기·과금·장애·사용자 결정 필요)으로 멈출 때만 쓴다. 완료한 변경은 로컬에만 남겨두지 않고 반드시 커밋·push로 전달한다.
 
 **2026-09-12부터 브랜치와 PR을 만들지 않는다.** 모든 작업은 `main` 체크아웃에서 직접 한다. 안전장치는 격리가 아니라 작은 커밋과 빠른 롤백이다.
 
@@ -20,6 +20,7 @@ git pull --ff-only
 ## 작업 중
 
 - 5줄 이상 또는 고위험 변경 전에는 변경 단계와 검증 방법을 요약한다.
+- 여러 단계 작업이면 세션 상태 파일에 목표·요청 원문·체크리스트·실측·실패한 시도를 적고 단계마다 갱신한다. 압축 뒤 수치·경로는 기억이 아니라 파일과 코드로 다시 확인한다.
 - 결제/권한/이용권/월정석/로그인/배포 코드는 최소 범위로 변경한다.
 - LLM·결제·외부 API 검증은 mock/stub/fake만 사용한다.
 - 불필요한 전체 리팩터링을 하지 않는다.
@@ -29,26 +30,27 @@ git pull --ff-only
 - 회귀가 나면 조건·try/catch·CSS 오버라이드를 덧대지 않는다. 미커밋은 `git reset --hard HEAD`, 나쁜 커밋은 그 커밋만 되돌린다. 이미 커밋된 다른 정상 작업까지 날리지 않는다.
 - 되돌린 뒤에는 같은 구조로 재시도하지 않는다. 실패 원인·회귀 영역·새 접근을 보고한 다음 다르게 구현한다.
 
-## 세션 종료 전
+## 작업 완료·중단 시
 
 ```bash
 git status
 git diff --stat
 npm run check:fast -- --plan
 npm run check:fast
-npm run handoff
-npm run verify:handoff-contract
 # 검증한 변경만 논리 단위로 commit한 뒤
 git push origin main
+# 사용자 요청·외부 차단으로 멈출 때만
+npm run handoff
+npm run verify:handoff-contract
 ```
 
 - `git add .` 전에 `git status`와 `git diff --stat`을 반드시 본다. `.env`·secret·API key·credential·개인 설정·로그·임시 파일·빌드 산출물·대형 파일은 제외한다.
 - 주요 diff를 파일별로 확인한다.
 - 실행한 테스트 명령과 실제 결과를 기록한다.
 - 남은 위험과 TODO를 우선순위로 적는다.
-- `docs/handoff/<주제 이름>.md`를 업데이트하고 같은 push에 포함한다. 완료 회고보다 현재 상태와 다음 행동을 우선한다.
-- 검증 → commit → push → 인수인계까지 끝나기 전에는 세션을 완료로 표시하지 않는다.
-- 다음 세션 시작 프롬프트에 실제 handoff 경로와 첫 TODO를 넣는다.
+- 멈출 때만 `docs/handoff/<주제 이름>.md`를 쓰거나 업데이트하고 같은 push에 포함한다. 완료 회고보다 현재 상태와 다음 행동을 우선한다.
+- 검증 → commit → push까지 끝나기 전에는 작업을 완료로 표시하지 않는다(멈출 때는 인수인계까지).
+- 멈출 때는 다음 세션 시작 프롬프트에 실제 handoff 경로와 첫 TODO를 넣는다.
 - production deploy, secret 변경, 실제 결제·환불·정산, 과금 LLM 호출은 사용자 승인 항목으로 분리한다.
 
 ## push와 CI 운영

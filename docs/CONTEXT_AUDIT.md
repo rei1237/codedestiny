@@ -248,3 +248,15 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
   - `960`: `app/yeongnyangi` 에서는 이미지 크기와 폰트 unicode-range 만 나온다. 레이아웃 규칙은 0건이다.
   - `sajuAdapter|normalizeSaju|kasi`(대소문자 무시): `worker/yeongnyangi` 에서 import 는 0건이다. 이름은 `fortune/saju-runtime.mjs:51` 의 야자시 규칙 주석 한 곳에만 나온다.
   - `destiny-book-v7|chapter-v7`: 0건이라 새 이름이 충돌하지 않는다.
+
+## 2026-10-01 인수인계 중심 흐름 → 한 세션 연속 작업(자동 압축 + 세션 상태 파일)
+
+- **요청(원문)**: "현재 인수 인계 방식으로 하니까 너무 작업이 느린데 그냥 한 세션에서 계속 자동 압축하면서 한번에 끝까지 작업하도록 설정을 최적화해줄 계획을 세워줘"
+- **충돌**: 절대 규칙 7("완료 세션은 검증→commit→push→인수인계")·코딩 원칙 12("컨텍스트 부족 전 인수인계")·예산 훅(100k `/clear` 권고 · 200k 인수인계 지시 · 300k 새 작업 금지)·메모리 3건이 자동 압축이 오기 전에 세션을 끊게 했다. 자동 압축은 이미 켜져 있었다 — 사용자 설정 autoCompactWindow 200k 라 약 187k 에서 돌고, 실측 6회 168k → 8~15k(회당 62~106초)였다. 그래서 200k·300k 구간은 사실상 실행되지 않았고, 느린 원인은 설정이 아니라 사람이 끼어드는 인계(문서 작성·/clear·재개 명령 붙여넣기·재검증)였다.
+- **해소**: 인수인계가 지키던 두 축을 각각 대체했다. 요청당 컨텍스트 상한은 200k 창 자동 압축이, 기억 연속성은 `.claude/hooks/session-state.mjs`(SessionStart — 시작 때 상태 파일 경로 안내, 압축 뒤 본문 앞 6,000자와 git 브랜치·상태·로그 재주입)가 맡는다. `.claude/hooks/session-context-budget.mjs` 는 150k 에서 상태 파일 갱신만 알리고, 300k 는 압축이 안 돌 때의 안전망이다. `CLAUDE.md` 절대 규칙 7·코딩 원칙 12 를 연속 진행과 상태 파일로 바꾸고 압축 요약 지침(Compact Instructions)을 더했다.
+- **좁아진 결정**: 위 2026-09-12 "인수인계 형식"(주제별 `docs/handoff/*.md` + done 즉시 삭제)은 유지한다. 다만 쓰는 때가 "사용자 요청 또는 외부 차단(승인 대기·과금·장애·사용자 결정 필요)으로 멈출 때"로 좁아졌다. 보고 형식(`AGENTS.md` 21행, `docs/context/delivery-and-ci.md` 전달 완료 규칙)은 그대로다.
+- **같이 고친 곳**: `docs/context/coding-principles.md` 13항과 세션 경제 절, `docs/context/delivery-and-ci.md`(전달 완료 규칙 두 줄, `/clear` 줄), `docs/dev/SESSION_WORKFLOW.md`, `docs/CURRENT_DEV_BASELINE.md`(로드맵 "1 작업 = 1행"). 위 2026-09-04 항목의 "훅 테스트가 `/원칙 12/` 를 단언한다"는 이제 사실이 아니다 — `.claude/hooks/session-context-budget.test.mjs` 는 원칙 번호 대신 "어느 구간도 /clear·인수인계를 시키지 않는다"를 단언한다.
+- **상태 파일 위치**: 세션마다 1개, gitignore 대상(.claude 아래 state 디렉터리, 파일명은 session_id 앞 8자). CI 체크아웃에 없는 경로라 이 문서와 `CLAUDE.md` 에는 백틱이나 링크로 쓰지 않는다 — `scripts/verify-doc-freshness.mjs` 참조 무결성 검사에 걸린다.
+- **같은 날 고친 사실 드리프트**: `/` 는 다시 꿀꿀 운세다(`5687ea634`, 2026-09-30 — `app/page.js` 가 검색용 안내를 그리고 LegacyHomeEntry 가 브라우저를 `/ggulggul/` 로 보낸다). 영냥이는 `/yeongnyangi/` 다. 위 2026-09-24 절의 "`/` = 영냥이"는 그 커밋 전까지의 사실이다. `CLAUDE.md` 홈 문장과 `docs/CURRENT_DEV_BASELINE.md` 4절을 고쳤다.
+- **검색 범위**: `docs/handoff/**`·`marketing/**`·`public/**` 밖 `git grep` — `원칙 12`, `/clear`(식별자 제외), `한 세션에 한`·`1 세션`·`세션 전환`. 남은 것은 역사 기록뿐이다(`docs/code-destiny-audit.md` 213행, 이 문서 122행, 예산 훅 머리 주석의 2026-08 근거). 이 문구들을 단언하는 테스트·검증기는 0건이다.
+- **롤백**: `.claude/settings.json` 훅 등록 커밋을 먼저 되돌리고, 규칙 문서 커밋을 되돌리면 옛 흐름으로 돌아간다.

@@ -18,7 +18,7 @@ GREEN은 관련 파일부터 수정하고, RED는 위험·검증·롤백을 먼�
 4. 수정 금지: .env*, package-lock.json, .wrangler/, dist/, out/, 마이그레이션 결과물, worker/wrangler.toml 구조. vars 예외는 참조 문서.
 5. 비밀정보 출력·저장·커밋 금지. 승인 연락처 예외는 참조 문서.
 6. 요청 밖 기능·라우트·콘텐츠 삭제 금지. 삭제는 소스·테스트·검증기 참조 확인 후 별도 변경으로 다룬다.
-7. 완료 세션은 검증→commit→push→인수인계 순서를 지킨다. 다음 세션은 `git branch --show-current`와 `git status`로 main·clean을 확인하고 `git pull --ff-only` 후 시작한다.
+7. 한 세션에서 요청을 끝까지 진행한다(자동 압축 허용). 단계마다 검증→commit, 안정 시점에 push. 인수인계 문서는 사용자 요청이나 외부 차단으로 멈출 때만 쓴다. 세션 시작 시 `git branch --show-current`와 `git status`로 main·clean을 확인하고 `git pull --ff-only` 한다.
 
 ## 코딩 원칙 (번호 유지)
 
@@ -33,7 +33,7 @@ GREEN은 관련 파일부터 수정하고, RED는 위험·검증·롤백을 먼�
 9. 삭제·리네임은 git grep으로 소스·테스트·verify 3면 확인. 미러도 포함한다.
 10. 가드는 fail-closed. 새 소스·검사 미분류를 조용히 통과시키지 않는다.
 11. 실행 명령과 출력 확인까지 완료한다.
-12. 컨텍스트 부족 전 작업 상태를 짧게 인수인계한다.
+12. 여러 단계 작업은 세션 상태 파일(경로는 시작 훅이 알려 준다)에 목표·요청 원문·체크리스트·실측·실패한 시도를 적고 단계마다 갱신한다. 압축 뒤 수치와 경로는 기억에 기대지 말고 파일과 코드로 다시 확인한다.
 13. 판단은 주력 모델, 단순 위치 조회는 code-locator. effort는 위험도에 맞춘다.
 14. 범위 밖 결함은 보고만 한다. 외부 규칙 충돌은 명시적으로 해소한다.
 15. 새 기능은 가장 가까운 기존 구현을 먼저 읽는다.
@@ -49,7 +49,7 @@ npm run check:fast로 변경 기반 검사를 한 번 실행한다. 계획은 --
 로컬 Pages 빌드는 기존 --skip-build 계약을 유지한다. CI build 조건을 줄이려면 이 근거도 함께 갱신한다.
 CI 선택 실행은 10회 push 비교 전까지 shadow다. 기존 검사를 삭제하지 않는다.
 결과: 수정 파일·의도·유지 정책·명령/출력·남은 위험. 실제 미실행은 미검증.
-검증한 변경 파일만 커밋한다. `git add .` 전에 `git status`와 `git diff --stat`을 반드시 본다. 인수인계 문서만 남기고 로컬 변경을 방치하지 않는다. [전달 완료 필수 규칙](docs/context/delivery-and-ci.md#전달-완료-필수-규칙)을 따른다.
+검증한 변경 파일만 커밋한다. `git add .` 전에 `git status`와 `git diff --stat`을 반드시 본다. 멈출 때도 인수인계 문서만 남기고 로컬 변경을 방치하지 않는다. [전달 완료 필수 규칙](docs/context/delivery-and-ci.md#전달-완료-필수-규칙)을 따른다.
 push를 배포 승인으로 확대 해석하지 않는다. push는 스테이징까지이며, 프로덕션 승격은 명시적 1회 승인 때만 진행한다.
 
 ## 작업별 필독 (해당 축만)
@@ -66,7 +66,7 @@ push를 배포 승인으로 확대 해석하지 않는다. push는 스테이징�
 - 검색·삭제: [search-discipline](docs/context/search-discipline.md)
 - 명령·예외: [reference-basics](docs/context/reference-basics.md)
 
-영냥이 홈 `/` 정본은 app/page.js와 영냥이 컴포넌트다. 꽃돼지 `/ggulggul/` 및 기존 로케일 정적 셸 정본은 index.html이며 public 미러는 sync:public으로 생성한다. Pages 준비 단계에서 영냥이 루트를 정적 셸로 덮어쓰지 않는다.
+홈 `/` 정본은 app/page.js다(꿀꿀 운세 — 검색용 안내를 그리고 LegacyHomeEntry가 브라우저를 `/ggulggul/`로 보낸다). 꽃돼지 `/ggulggul/` 및 기존 로케일 정적 셸 정본은 index.html이며 public 미러는 sync:public으로 생성한다. 영냥이는 `/yeongnyangi/`(app/yeongnyangi/)다. Pages 준비 단계에서 `/`를 정적 셸로 덮어쓰지 않는다.
 결제 진입은 로컬 스냅샷, 서버 이용권 판정은 결제창에서. 단건은 사용자의 선택 후에만.
 이용권·월정석·단건 결제 용어와 정책을 유지한다. 동결 파일 변경은 payment-freeze 절차를 따른다.
 Claude 훅은 Codex 훅이 아니다. 도구별 규칙 적용을 구분한다.
@@ -84,3 +84,7 @@ Claude 훅은 Codex 훅이 아니다. 도구별 규칙 적용을 구분한다.
 
 Do not wait for or manually verify staging deployment after every push. Once CI passes, continue to the next task. Verify staging only when explicitly requested, when deployment infrastructure changed, or during a final release verification.
 Do not poll staging URLs, deployment status, commit SHA, or freshness markers after routine pushes.
+
+## Compact Instructions
+
+자동 압축 요약에 남길 것: 사용자 요청 원문, 결정과 그 이유, 현재 단계와 다음 단계, 실측 수치와 재현 명령, 🔴 실패·기각한 시도와 그 반증, 미커밋 파일과 소유(내 것인지 옆 세션 것인지), 마지막 커밋 SHA와 push 여부, 받은 승인의 범위. 버릴 것: 파일 본문과 도구 출력 원문 — 경로·줄 번호·명령으로 대신한다. 요약과 세션 상태 파일이 다르면 상태 파일을 따른다.
