@@ -6,7 +6,7 @@ export type VisualDetail = {
   heroVariants?: { src: string; width: number }[];
   imageAlt?: string; theme?: string; edition?: string; cardImage?: string; catalogImage?: string; ogImage?: string;
   material?: 'book' | 'letter'; imageWidth?: number; imageHeight?: number;
-  founder?: { credential: string; headline: string; description: string; method: string; records: { date: string; title: string; url: string }[] };
+  founder?: { credential: string; method: string };
   benefits?: string[]; contents?: { title: string; detail?: string }[];
   method?: { title: string; text: string; inputs?: string[] };
   sample?: { title: string; text: string; evidence?: string[]; action?: string; note?: string };
