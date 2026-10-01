@@ -1,0 +1,75 @@
+/* FounderTrust 안에서 쓰는 메신저 캡처형 후기. 색은 부모의 --ft-* (영냥이 토큰)를 그대로 받는다. 새 색 없음. */
+.reviews {
+  --cr-gold: var(--ft-gold, #e9c78d);
+  --cr-ivory: var(--ft-ivory, #fff3e2);
+  --cr-deep: var(--ft-deep, #18132b);
+  --cr-muted: var(--ft-muted, #c7b5ce);
+  margin-top: 32px;
+  scroll-margin-top: 80px;
+}
+.reviews .title { margin: 0 0 14px; color: var(--cr-ivory); font-family: inherit; font-size: 17px; line-height: 1.5; }
+.grid { display: grid; gap: 14px; align-items: start; }
+.card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(233, 199, 141, 0.28);
+  border-radius: 20px;
+  background: rgba(24, 19, 43, 0.6);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.18);
+  overflow: hidden;
+}
+.bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(233, 199, 141, 0.18);
+  color: var(--cr-gold);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.thread { display: flex; flex-direction: column; gap: 6px; padding: 16px 16px 6px; }
+.reviews .bubble {
+  align-self: flex-start;
+  max-width: 82%;
+  margin: 0;
+  padding: 8px 11px;
+  border-radius: 4px 16px 16px 16px;
+  background: var(--cr-ivory);
+  color: var(--cr-deep);
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-line;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 12px;
+  padding: 10px 16px 14px;
+  color: var(--cr-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.more { margin-top: 14px; }
+.more > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--cr-gold);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.more > summary:focus-visible { outline: 2px solid var(--cr-gold); outline-offset: 3px; }
+.more[open] > summary { margin-bottom: 10px; }
+.reviews .fine { margin: 14px 0 0; color: var(--cr-muted); font-size: 12.5px; line-height: 1.6; }
+@media (min-width: 640px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 960px) {
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
