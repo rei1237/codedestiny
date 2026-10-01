@@ -278,3 +278,9 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **뺀 것**: 계획 초안의 "정치 용어 금지"는 커밋된 근거 문서가 없어 정본에 넣지 않았다.
 - **검색 범위**: `__tests__`·`scripts`·`.github` 에서 PRODUCT·DESIGN·design-and-ui·content-assets·design-canon 문장을 단언하는 테스트·검증기는 0건이다(주석 인용뿐). `scripts/measure-mobile-routes.mjs` 4행이 인용하는 design-and-ui 19행(인체공학)은 줄 위치를 유지했다.
 - **롤백**: 이 커밋 하나를 되돌리면 된다.
+
+## 2026-10-02 BASELINE 큐레이션 — 남은 홈 드리프트 1건과 낡은 실측
+
+- Working Rule 3 이 `/` 홈 시작점으로 `app/yeongnyangi/_components/` 를 함께 가리켰다. `app/page.js` 는 영냥이 컴포넌트를 import 하지 않는다(실측) → `/` 는 `app/page.js`, 영냥이는 `app/yeongnyangi/` 로 나눴다.
+- 워커 번들 실측을 23.9%(08-23) → 35.8%(10-01 main CI `01a6a2ecf`, gzip 3.58 MiB)로 갱신했다. 09-24 이후 공통 변경 2건뿐인 연간 타로를 현재 축에서 빼고, 커밋이 가장 많이 몰린 영냥이·연이·네오 상담방 축을 넣었다(연간 타로 작업 규칙은 Working Rule 5 에 남김).
+- **롤백**: 이 커밋 하나를 되돌리면 된다.

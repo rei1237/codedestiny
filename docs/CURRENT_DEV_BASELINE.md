@@ -1,6 +1,6 @@
 # Current Dev Baseline
 
-Last curated: `2026-09-24`
+Last curated: `2026-10-02`
 
 ## Curation Rules
 
@@ -32,12 +32,14 @@ Last curated: `2026-09-24`
 
 - Source files: `app/_lib/auth-client.ts`, `app/_lib/auth-store.ts`, `app/_lib/user-session-cache.ts`, `app/_lib/consultationResultPolling.ts`, `js/destiny-profile.js`, `app/points/PointsClient.tsx`, `app/points/history/PointHistoryClient.tsx`, `worker/lib/auth.js`, `worker/lib/db.js`
 - Why it matters now: sign-in state, profile hydration, points history, and client/server state repair are still active regression areas.
-- Profile card CRUD lives only in the static shell (`js/destiny-profile.js`, mirrored to `public/js/`). The React `/me` duplicate was removed; `/points` and `/points/history` own subscription and payment history, and the mobile "마이" tab routes to the shell via `/?action=dpOpenList`.
+- Profile card CRUD lives only in the static shell (`js/destiny-profile.js`, mirrored to `public/js/`). The React `/me` duplicate was removed; `/points` and `/points/history` own subscription and payment history, and the mobile "마이" tab routes to the shell via `/?action=dpOpenList` (`app/_lib/mobile-tabs.ts`; `LegacyHomeEntry` carries the query on to `/ggulggul/`).
 
-### 3. Premium tarot yearly experience
+### 3. 영냥이 달빛 점술방 + 연이·네오 상담방 (2026-10-02 — 09-24 이후 커밋이 가장 많이 몰린 축)
 
-- Source files: `lib/tarot/tarot-year-premium.mjs`, `worker/routes/tarot.js`, `app/tarot/year/page.tsx`, `js/tarot-year-fortune-experience.js`, `styles/tarot-year-fortune.css`, `__tests__/worker/tarot-year-premium.test.js`
-- Why it matters now: the yearly tarot premium flow spans content generation, UI entry, server response shape, and regression tests as one active surface.
+- Source files: `app/yeongnyangi/`, `worker/yeongnyangi/`, `app/fortune-chat/`, `worker/routes/fortune-chat-consultations.js`
+- 질문 근거·단계별 구현 규칙의 정본은 [docs/context/yeongnyangi-ask.md](context/yeongnyangi-ask.md)다. 상담방(`/fortune-chat/`)은 영냥이의 결제·이용권·복구 경로(`worker/yeongnyangi/`)를 함께 쓴다 — 결제창·이용권 차감 전에 상담을 먼저 잡고(claim), 산출물 없이 끝나면 이용권·월정석을 되돌린다.
+- 상담방 생성·활성화는 `ENABLE_FORTUNE_CHAT_CONSULTATIONS` 가 켜진 곳에서만 된다. 지금은 스테이징(`worker/wrangler.staging.toml`)만 켜져 있고, 프로덕션에서 켜는 것은 운영 승격 1회 승인 사항이다 → [docs/handoff/fortune-chat-engine-unification-2026-10-01.md](handoff/fortune-chat-engine-unification-2026-10-01.md)
+- 자미두수 7단계 강약 정본 표: S1~S5 완료, S0 은 사용자 캡처 대기 → [docs/handoff/2026-10-01-ziwei-strength-consultation.md](handoff/2026-10-01-ziwei-strength-consultation.md)
 
 ### 4. Static shell and runtime sync
 
@@ -61,15 +63,15 @@ Last curated: `2026-09-24`
 
 **SEO — 자동으로 지켜지는 것과 아닌 것**
 
-- 🔴 **SEO 게이트 목록의 정본은 워크플로 파일이다 — 여기서 개수를 세지 않는다**(예전 "둘뿐"·"넷"이 매번 낡았다). 2026-09-24 기준 push 를 막는 것: `pr-ci.yml`(main push 마다 — `verify:sitemap-drift`·`verify:seo-heading-integrity`·`verify:internal-link-depth`·`verify:editor-notes` 등) · postbuild 의 `verify-adsense-readiness`(라우트별 렌더 텍스트 분량 + 사이트맵 라우트의 유입 링크) · 배포 워크플로의 `verify:sitemap`. 다시 셀 때: `grep -n -i -E "adsense|sitemap|seo" .github/workflows/*.yml scripts/run-postbuild.mjs`.
+- 🔴 **SEO 게이트 목록의 정본은 워크플로 파일이다 — 여기서 개수를 세지 않는다**(예전 "둘뿐"·"넷"이 매번 낡았다). 2026-10-02 재확인 기준 push 를 막는 것: `pr-ci.yml`(main push 마다 — `verify:sitemap-drift`·`verify:seo-heading-integrity`·`verify:internal-link-depth`·`verify:editor-notes` 등) · postbuild 의 `verify-adsense-readiness`(라우트별 렌더 텍스트 분량 + 사이트맵 라우트의 유입 링크) · 배포 워크플로의 `verify:sitemap`. 다시 셀 때: `grep -n -i -E "adsense|sitemap|seo" .github/workflows/*.yml scripts/run-postbuild.mjs`.
 - `seo:check`(프로덕션 URL 200 확인, 매일) · `seo:audit --crawl-sitemap`(매월)은 2026-09-08(`6f6493c91`)부터 `seo-operations.yml` 예약 실행이다 — push 를 막지 않는 운영 감시다. `verify:seo-entity-registry` 는 아직 어느 워크플로에도 없고 `scripts/verify-guard-wiring.mjs` 에서 "수동"으로 선언돼 있다. 배선은 게이트 추가이므로 사용자 승인 사항이다.
-- **`scripts/seo-audit.mjs` 의 색인 대상 정본은 배열이 아니라 사이트맵이다** (2026-08-14 에 전환됨, 2026-08-15 재확인). 예전에는 하드코딩 목록이 판정을 지배해 **이슈 11건 중 10건이 거짓**이었고, 그래서 목록을 고치는 대신 사이트맵에서 유도하도록 바꿨다. 남은 `seedIndexablePaths`(`:26~`)는 **판정 기준이 아니라** ①사이트맵을 못 읽었을 때의 폴백 ②사이트맵과 어긋나면 이슈로 신고해 목록이 다시 썩지 않게 하는 장치다. 🔴 그 seed 를 "색인 대상 정본"으로 다시 취급하지 말 것.
+- **`scripts/seo-audit.mjs` 의 색인 대상 정본은 배열이 아니라 사이트맵이다** (2026-08-14 에 전환됨, 2026-08-15 재확인). 예전에는 하드코딩 목록이 판정을 지배해 **이슈 11건 중 10건이 거짓**이었고, 그래서 목록을 고치는 대신 사이트맵에서 유도하도록 바꿨다. 남은 `seedIndexablePaths`는 **판정 기준이 아니라** ①사이트맵을 못 읽었을 때의 폴백 ②사이트맵과 어긋나면 이슈로 신고해 목록이 다시 썩지 않게 하는 장치다. 🔴 그 seed 를 "색인 대상 정본"으로 다시 취급하지 말 것.
 - 라우트를 추가할 때는 `canLoadAdsense()` 기준 게재 가능 여부에 따라 sitemap self-canonical 정합과 최소 렌더 텍스트 분량이 배포를 막는다는 점을 먼저 본다(CLAUDE.md "SEO 콘텐츠 게이트" 절).
 
 **안정성 — 지금 가장 얇은 곳**
 
-- **워커 번들: 예산의 23.9%**(gzip 2.39 MiB / **10 MiB**, 2026-08-23 실측). 🔴 **예산은 유료 플랜 한도 10 MiB 다** — 예전 서술의 "3 MiB · 78.7%"는 무료 플랜 기준이라 폐기했다(정본은 `scripts/verify-worker-size-budget.mjs` 의 `CF_PAID_LIMIT_BYTES`). `worker/` 에 무언가 더하기 전에 `npm run build:worker && npm run verify:worker-size` 로 다시 잰다(가드는 예산의 90% 부터 경고).
-  - `worker/wrangler.toml` 의 `minify = true` 는 켜 둔 채로 둔다 — 끄면 gzip 이 즉시 2.9 MiB 대로 돌아간다.
+- **워커 번들: 예산의 35.8%**(gzip 3.58 MiB / **10 MiB**, 2026-10-01 main CI `01a6a2ecf` 실측 — 08-23 의 2.39 MiB 에서 +1.19 MiB. 무료 플랜 한도 3 MiB 는 이미 넘었다). 🔴 **예산은 유료 플랜 한도 10 MiB 다** — 예전 서술의 "3 MiB · 78.7%"는 무료 플랜 기준이라 폐기했다(정본은 `scripts/verify-worker-size-budget.mjs` 의 `CF_PAID_LIMIT_BYTES`). `worker/` 에 무언가 더하기 전에 `npm run build:worker && npm run verify:worker-size` 로 다시 잰다(가드는 예산의 90% 부터 경고).
+  - `worker/wrangler.toml` 의 `minify = true` 는 켜 둔 채로 둔다 — 끄면 gzip 이 즉시 크게 늘어난다(2026-08 실측: 2.39 → 2.9 MiB 대).
   - **다음에 여유가 마르면 볼 곳** (2026-08-14 gzip 한계 기여도 실측): `lib/tarot` 343 KB · `mongoose` 196 KB · `mongodb` 178 KB · `lunar-javascript` 111 KB · `swisseph.wasm` 252 KB. 🔴 **raw 크기로 고르지 말 것** — `@mongodb-js/saslprep` 은 raw 553 KB 인데 gzip 기여는 6 KB 다(반복 유니코드 테이블). 예산이 gzip 이므로 순위가 완전히 뒤바뀐다.
 - 가드 무결성 7건(G-1~G-7)은 모두 조치됐다. 재발 방지는 `verify:guard-wiring`(배선 누락 fail-closed)과 `verify:auth-changed-coverage`(리스너 전수 발견)가 맡는다 — 이 둘을 약화시키는 변경은 하지 않는다.
 - 머지된 작업이 스테이징에 도달하지 못하는 조용한 실패는 `landing-watchdog.yml` 이 이슈 하나로 모은다(스택 PR 좌초 · 릴리스 런 취소 · 드리프트). 🔴 2026-08-20 컷오버 이후 감시 대상은 **스테이징**이다 — 프로덕션은 정상적으로 뒤처져 있으므로 프로덕션 기준으로 보면 영구 red 이슈가 된다.
@@ -82,7 +84,7 @@ Last curated: `2026-09-24`
 - 계측은 이미 있다 — `lib/llm-client.ts` 의 `[llm token_usage]` 로그를 `scripts/report-llm-token-usage.mjs` 가 라우트별로 집계한다(`cacheHit`·`duplicateBlocked`·`providerCallCount`·`cachedContentTokenCount` 포함). **전후 동일 방식 재실행이 이 스크립트의 설계 용도다.**
 - 🔴 **캐시를 새로 배선할 때는 `cache.minChars` 를 함께 준다.** `withLLMCache` 의 저장 조건은 `!truncated` 뿐이라, 잘리지 않았지만 분량 미달인 응답이 TTL 30일 동안 굳는다. 실패 후 재생성이 같은 키에서 같은 미달을 다시 받는다. 직전 시도가 실패였으면 `skipRead` 도 함께(쓰기는 유지 — 성공한 재생성이 스스로 덮어쓴다).
 - 🔴 **사주 그룹 프롬프트의 배열 순서(`worker/routes/fortune.js` `buildSajuAISectionPrompt`)는 불변 접두사 → 가변 접미사다.** Gemini 암묵 캐싱은 공통 **접두사**에만 걸린다. 뒤집으면 6만자가 정가로 돌아간다.
-- 숙요 궁합의 서버측 중복 생성 창은 2026-08-15 #652(`eab74c949`)로 닫혔다(`generationLease` + 낡은 `generating` 판정, `__tests__/worker/sukuyo-compatibility-ai.duplicate-generation.test.js`). 그 인수인계 문서의 `status: active` 는 낡은 표기다.
+- 숙요 궁합의 서버측 중복 생성 창은 2026-08-15 #652(`eab74c949`)로 닫혔다(`generationLease` + 낡은 `generating` 판정, `__tests__/worker/sukuyo-compatibility-ai.duplicate-generation.test.js`).
 - 🟡 **차단**: 프롬프트 JSON 덤프를 섹션이 쓰는 만큼만 싣기(사주 기준 남은 덤프 47,105자). 사주 5그룹에 `evidenceRefs` 선언이 없어 명리 도메인 설계 결정이 먼저이고, **모델이 보는 정보를 줄이는** 작업이라 위험도가 가장 높다 → [`docs/handoff/llm-prompt-json-slicing.md`](handoff/llm-prompt-json-slicing.md)
 - 🟡 **남은 개별 항목**은 로드맵 S18 이 맡는다 → [`docs/handoff/llm-optimization-leftovers.md`](handoff/llm-optimization-leftovers.md): sukuyo 의 `attempts: 2` 와 `capTokens` 불일치 · JSON 스키마를 프롬프트 텍스트로 보내는 것(Gemini 네이티브 `responseSchema` 미사용) · 토큰 집계 사각지대 2곳(`lib/tarot/mindscan-reading.mjs` · `love-reading-llm.mjs` 가 `llm-client` 미경유)
 - 🔴 **thinking 토큰은 이미 전역 OFF다**(`lib/llm-client.ts` 의 `resolveThinkingBudget` — 미지정 = 0, 옵트인 호출자 0건). 여기서 더 아낄 것이 없으니 다시 조사하지 말 것.
@@ -96,7 +98,7 @@ Last curated: `2026-09-24`
 
 1. Start with this file only for what is current right now. If it drifts, update it instead of adding another summary document.
 2. For billing, access, or pass work, read this file together with `docs/PAYMENT_AND_ACCESS.md`.
-3. For static-shell (`/ggulggul/`, legacy locale) entry or runtime work, check `index.html` and `js/core/**` before touching mirrored outputs. For the `/` home, start at `app/page.js` and `app/yeongnyangi/_components/`.
+3. For static-shell (`/ggulggul/`, legacy locale) entry or runtime work, check `index.html` and `js/core/**` before touching mirrored outputs. For the `/` home, start at `app/page.js`; for Yeongnyangi (`/yeongnyangi/`), start at `app/yeongnyangi/`.
 4. Immersive React fortune routes must own their home/back controls and must not render the shared header, footer, or mobile bottom navigation.
 5. For premium tarot yearly work, verify both `lib/tarot/tarot-year-premium.mjs` and `worker/routes/tarot.js` before editing UI copy or flow logic.
 6. Treat historical audit outputs as evidence only, not as active coding instructions.
