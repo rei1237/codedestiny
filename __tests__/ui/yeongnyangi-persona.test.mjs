@@ -11,14 +11,16 @@ globalThis.__personaTest={rows:new Map()};
 const replacements={
   'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={findOne:()=>({lean:async()=>({updatedAt:null,birth:{year:1997,month:2,day:10,hour:12,minute:0,timeUnknown:false,calType:'solar'},gender:'F',location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}})})};`,
   'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
-  'worker/yeongnyangi/repository.js':`export const reserveQuestionSkyFollowup=async()=>{throw new Error('unexpected followup');};export const allowedChapterAttempts=()=>3;export const holdAutoResumes=()=>false;export const userCanRetry=()=>false;export const saveChapterDraft=async()=>{};export const saveAskAnalysis=async()=>{};export const ownerId=x=>x;export const createRequest=async(e,u,id,v)=>{const m=globalThis.__personaTest.rows;if(!m.has(id))m.set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[]});return m.get(id)};export const readRequest=async(e,u,id)=>globalThis.__personaTest.rows.get(id);export const attachPayment=async()=>{};export const claimChapter=async()=>{throw new Error('unexpected claim');};export const finishChapter=async()=>{};export const failChapter=async()=>{};`,
+  'worker/yeongnyangi/repository.js':`export const reserveQuestionSkyFollowup=async()=>{throw new Error('unexpected followup');};export const allowedChapterAttempts=()=>3;export const holdAutoResumes=()=>false;export const userCanRetry=()=>false;export const saveChapterDraft=async()=>{};export const saveAskAnalysis=async()=>{};export const ownerId=x=>x;export const createRequest=async(e,u,id,v)=>{const m=globalThis.__personaTest.rows;if(!m.has(id))m.set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[]});return m.get(id)};export const readRequest=async(e,u,id)=>{const row=globalThis.__personaTest.rows.get(id);if(!row)throw Object.assign(new Error('not found'),{code:'FORTUNE_NOT_FOUND'});return row;};export const attachPayment=async()=>{};export const claimChapter=async()=>{throw new Error('unexpected claim');};export const finishChapter=async()=>{};export const failChapter=async()=>{};`,
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
   'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
 };
-const bundle=await build({stdin:{contents:"export {prepareFortune} from './worker/yeongnyangi/service'; export {StructuredChapterProvider,personaPrompt} from './worker/yeongnyangi/providers/chapter'; export {persona as yeongnyangiPersona} from './worker/yeongnyangi/prompts/persona/yeongnyangi'; export {persona as yeoniPersona} from './worker/yeongnyangi/prompts/persona/yeoni'; export {persona as neoPersona} from './worker/yeongnyangi/prompts/persona/neo';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
+const bundle=await build({stdin:{contents:"export {prepareFortune} from './worker/yeongnyangi/service'; export {products,getChatProduct,resolveStoredProduct,getProduct} from './worker/yeongnyangi/payments/catalog'; export {StructuredChapterProvider,personaPrompt} from './worker/yeongnyangi/providers/chapter'; export {persona as yeongnyangiPersona} from './worker/yeongnyangi/prompts/persona/yeongnyangi'; export {persona as yeoniPersona} from './worker/yeongnyangi/prompts/persona/yeoni'; export {persona as neoPersona} from './worker/yeongnyangi/prompts/persona/neo';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('persona-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const m=loaded.exports;
 const env={GEMINIF_API_KEY:'mock-never-sent',LLM_DRY_RUN:'false'};
+// Calculation timestamps are the only field allowed to differ between two preparations.
+const untimed=value=>JSON.parse(JSON.stringify(value,(k,v)=>k==='calculatedAt'?undefined:v));
 const voices={undefined:m.yeongnyangiPersona,yeoni:m.yeoniPersona,neo:m.neoPersona};
 
 async function capture(input){
@@ -54,4 +56,39 @@ test('every chapter request differs only in the persona segment of the system pr
    assert.doesNotMatch(b,/영냥이/);
   }
  }
+});
+
+// The Yeongnyangi request identities themselves are pinned by yeongnyangi-reading-invariance.
+test('yeoni and neo prepare the same birth data, facts, outline and evidence as a Yeongnyangi mackerel question',async()=>{
+ const ask={profileId:'self',timezone:'Asia/Seoul',topicId:'general',consultationKind:'ask',question:'올해 이직을 준비해도 될까요?'};
+ const base=await m.prepareFortune(env,'parity-owner',{...ask,productId:'saju_mackerel',persona:'yeoni'});
+ const [yeoni,neo]=await Promise.all(['yeoni','neo'].map(persona=>m.prepareFortune(env,'parity-owner',{...ask,domain:'saju',productId:'saju_tuna'},{persona})));
+ assert.equal(base.persona,undefined);assert.equal(base.snapshot.persona,undefined);
+ for(const [row,persona] of [[yeoni,'yeoni'],[neo,'neo']]){
+  assert.equal(row.persona,persona);assert.equal(row.snapshot.persona,persona);
+  assert.deepEqual(row.snapshot.natalInput,base.snapshot.natalInput);
+  assert.deepEqual(untimed(row.snapshot.analysis),untimed(base.snapshot.analysis));
+  assert.deepEqual(row.snapshot.manifest,base.snapshot.manifest);
+  assert.deepEqual(untimed(row.generationCheckpoint),untimed(base.generationCheckpoint));
+  assert.equal(row.productId,'chat_saju');assert.equal(row.featureKey,'fortune-chat-consultation');assert.equal(row.amountKRW,3000);
+  assert.equal(row.snapshot.product.manifestVersion,base.snapshot.product.manifestVersion);
+  assert.equal(row.snapshot.manifest.length,5);
+  assert.doesNotMatch(JSON.stringify(row.snapshot.manifest)+JSON.stringify(row.snapshot.product),/영냥|고등어|yeongnyangi/);
+ }
+ assert.ok(base.generationCheckpoint?.evidence);
+ assert.equal(new Set([base,yeoni,neo].map(r=>r.fingerprint)).size,3);
+ assert.equal(new Set([base,yeoni,neo].map(r=>r._id)).size,3);
+ await assert.rejects(m.prepareFortune(env,'parity-owner',{...ask,domain:'saju',mode:'spirit'},{persona:'neo'}),e=>e.code==='INVALID_READING_MODE');
+});
+
+test('chat products keep their own price and stay out of the Yeongnyangi catalog',()=>{
+ for(const domain of ['saju','ziwei','sukuyo','vedic','astrology']){
+  const chat=m.getChatProduct(domain),fish=m.getProduct(domain+'_mackerel');
+  assert.equal(chat.priceKRW,3000);assert.equal(chat.cdFeatureKey,'fortune-chat-consultation');
+  assert.equal(chat.chapterCount,fish.chapterCount);assert.equal(chat.manifestVersion,fish.manifestVersion);
+  assert.deepEqual(m.resolveStoredProduct('chat_'+domain),chat);
+ }
+ assert.throws(()=>m.getChatProduct('tarot'),e=>e.code==='PRODUCT_NOT_FOUND');
+ assert.throws(()=>m.resolveStoredProduct('chat_tarot'),e=>e.code==='PRODUCT_NOT_FOUND');
+ assert.ok(!m.products.some(p=>p.id.startsWith('chat_')||p.cdFeatureKey==='fortune-chat-consultation'));
 });

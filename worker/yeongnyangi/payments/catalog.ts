@@ -14,3 +14,17 @@ export const products:Product[]=(Object.keys(systemNames) as DomainId[]).flatMap
  product('fusion_saju_ziwei',['saju','ziwei'],'assorted'),product('fusion_sukuyo_vedic',['sukuyo','vedic'],'assorted'),product('fusion_astrology_tarot',['astrology','tarot'],'assorted'),product('fusion_all',['saju','ziwei','sukuyo','vedic','astrology','tarot'],'omakase'),
 ]);
 export function getProduct(id:unknown):Product{const p=products.find(p=>p.id===id);if(!p)throw new FortuneError('PRODUCT_NOT_FOUND',404);return {...p,systems:[...p.systems]};}
+// Fortune-chat (Yeoni/Neo) consultations reuse the mackerel reading depth at their own per-use price.
+// They are kept out of `products`, so the Yeongnyangi shop, packs, moonlight stones and Family never offer them.
+export const CHAT_FEATURE_KEY='fortune-chat-consultation';
+export const chatDomains:DomainId[]=['saju','ziwei','sukuyo','vedic','astrology'];
+export function getChatProduct(domain:unknown):Product{
+ if(!chatDomains.includes(domain as DomainId))throw new FortuneError('PRODUCT_NOT_FOUND',404);
+ const resolved=getBillingFeaturePricing({featureKey:CHAT_FEATURE_KEY});
+ if(!resolved.ok || !resolved.pricing || !(resolved.pricing.amountKRW>0)) throw new FortuneError('PRODUCT_PRICE_UNAVAILABLE',503);
+ return {...getProduct(`${domain}_mackerel`),id:`chat_${domain}`,priceKRW:resolved.pricing.amountKRW,cdFeatureKey:CHAT_FEATURE_KEY,fishName:'',image:'',reactionAsset:''};
+}
+/** The current product of a stored request, either catalog. */
+export function resolveStoredProduct(id:unknown):Product{
+ return typeof id==='string'&&id.startsWith('chat_')?getChatProduct(id.slice(5)):getProduct(id);
+}

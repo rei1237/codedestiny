@@ -25,7 +25,7 @@ import { connectDb, withMongoRetry } from '../lib/db.js';
 import { getEnv } from '../lib/env.js';
 import { resolveChargeAmountKRW } from '../lib/portone.js';
 import { domains } from './fortune';
-import { getProduct } from './payments/catalog';
+import { getProduct, getChatProduct, resolveStoredProduct } from './payments/catalog';
 import { analyze } from './fortune/analysis';
 import { readingManifest, questionFactSelectors } from './fortune/reading-manifest';
 import {withPreventionReading,withPreventionTiming,preventionEligible,PREVENTION_VERSION} from './fortune/prevention';
@@ -43,7 +43,7 @@ import { jongCheckApplies } from './fortune/saju/jong-check-policy';
 import { enqueueConsultation } from './queue.js';
 import { FortuneError, type DomainContext, type DomainId } from './fortune/shared/contracts';
 import { CodeDestinyProvider } from './providers/code-destiny';
-import { StructuredChapterProvider } from './providers/chapter';
+import { StructuredChapterProvider, type ChatPersona } from './providers/chapter';
 import { deliverChapter } from './providers/delivery';
 import { createRequest, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, saveChapterDraft, allowedChapterAttempts, holdAutoResumes, userCanRetry, reserveQuestionSkyFollowup } from './repository.js';
 import { hasRequestAccess } from './access-methods.js';
@@ -84,12 +84,14 @@ function birthFromProfile(profile: any, timeUnknown: boolean, supplement: any = 
   };
 }
 
-export async function prepareFortune(env: Record<string, unknown>, userId: string, body: any) {
+/** `persona` is a server option of the fortune-chat route; a request body never selects it. */
+export async function prepareFortune(env: Record<string, unknown>, userId: string, body: any, {persona}:{persona?:ChatPersona}={}) {
+  if(persona&&body.mode)throw new FortuneError('INVALID_READING_MODE');
   const locale=readingLocale(body.locale);
   // Symbolic modes have separate Korean evidence and safety validators.
   if(body.mode && locale!=='ko')throw new FortuneError('READING_LOCALE_UNAVAILABLE');
   const attempt=consultationAttempt(body);
-  const product=getProduct(body.productId);
+  const product=persona?getChatProduct(body.domain):getProduct(body.productId);
   if(Object.hasOwn(skyModes,body.mode))return prepareQuestionSky(env,userId,body);
   if(body.mode && body.mode!==SPIRIT_MODE)throw new FortuneError('INVALID_READING_MODE');
   const spiritInput=body.mode===SPIRIT_MODE?validateSpiritInput(body):undefined;
@@ -151,7 +153,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const now=new Date();
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
-  const fingerprint=await digest({...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{})});
+  const fingerprint=await digest({...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{}),...(persona?{persona}:{})});
   const id=tarotIntentId||relationshipId||await digest({userId,fingerprint,...attempt,...(relationship?{relationshipVersion:RELATIONSHIP_VERSION}:{}),...(tarotV2?{tarotConsultationVersion:TAROT_CONSULTATION_VERSION}:{})});
   if(askEvidenceEnabled||relationship||tarotV2) {
     // A retry reads the immutable purchase intent before any calculation or card draw.
@@ -233,9 +235,9 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   }) : undefined;
   manifest=conciseReadingManifest(manifest);
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
-    amountKRW:product.priceKRW,fingerprint,
+    amountKRW:product.priceKRW,fingerprint,...(persona?{persona}:{}),
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}});
 }
 
 /** Pre-payment 종격 question: the same profile, supplement and consultation day prepareFortune will use. Read-only, no LLM. */
@@ -292,7 +294,7 @@ export async function submitQuestionSkyFollowup(env:Record<string,unknown>,userI
 
 export async function activateFortune(env: Record<string, unknown>, userId: string, requestId: string) {
   const request=await readRequest(env,userId,requestId);
-  const currentProduct=getProduct(request.productId);
+  const currentProduct=resolveStoredProduct(request.productId);
   const row=await attachPayment(env,userId,requestId,resolveChargeAmountKRW(env,request.amountKRW),{currentAmountKRW:currentProduct.priceKRW});
   await enqueueConsultation(env,row);
   return row;
@@ -346,7 +348,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
         ? row.generationCheckpoint?.followup?.question : undefined;
       if(ordinal===1&&row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION&&!followupQuestion)
         throw new FortuneError('FOLLOWUP_NOT_SUBMITTED',409);
-      const input={locale:readingLocale(row.snapshot.locale),outputContext:row.snapshot.outputContext,chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion};
+      const input={locale:readingLocale(row.snapshot.locale),outputContext:row.snapshot.outputContext,chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion,persona:row.snapshot.persona};
       if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
       const provider=new StructuredChapterProvider(sharedProvider);
       const generated=await provider.generateChapter(input);
