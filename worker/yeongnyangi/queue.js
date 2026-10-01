@@ -1,7 +1,6 @@
 import { connectDb, withMongoRetry } from '../lib/db.js';
 import { YeongnyangiRequest } from './repository.js';
-
-const hasRequestAccess=row=>Boolean(row?.paymentId||['FAMILY','SERVICE_PACK','MOONLIGHT_STONE'].includes(row?.accessMethod)||row?.passEvidenceId||row?.moonstoneLedgerId);
+import { hasRequestAccess } from './access-methods.js';
 
 const terminal = row => !row || ['COMPLETED','REFUNDED','AWAITING_FOLLOWUP'].includes(row.state) || ['PAYMENT_NOT_ACTIVE','GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED'].includes(row.errorCode) ||
   (row.errorCode==='AUTOMATIC_RECOVERY_STOPPED' && !(row.snapshot?.manifest?.length && row.chapters.length===row.snapshot.manifest.length));

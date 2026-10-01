@@ -10,6 +10,7 @@ import { products } from '../yeongnyangi/payments/catalog.ts';
 import { readAndContinueFortune } from '../yeongnyangi/delivery.js';
 import { activateFortune, jongCheckFortune, prepareFortune, presentFortune, providerReady, submitQuestionSkyFollowup } from '../yeongnyangi/service.ts';
 import { ownerId, YeongnyangiRequest, userCanRetry } from '../yeongnyangi/repository.js';
+import { hasRequestAccess } from '../yeongnyangi/access-methods.js';
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
 
 const messages={
@@ -61,7 +62,6 @@ const messages={
   "INVALID_CATEGORY": "선택한 무료 운세를 찾지 못했어요. 목록에서 다시 골라 주세요.",
   "FREE_READING_PENDING": "영냥이가 같은 이야기를 정리하고 있어요. 잠시 후 다시 확인해 주세요."
 };
-const hasRequestAccess=row=>Boolean(row?.paymentId||['FAMILY','SERVICE_PACK','MOONLIGHT_STONE'].includes(row?.accessMethod)||row?.passEvidenceId||row?.moonstoneLedgerId);
 // 멈춤·보류된 결제 상담은 서버가 이어서 완성한다. 목록에서도 '이어보기' 대신 복구 중임을 보여 준다.
 const libraryRecovering=row=>hasRequestAccess(row)&&!['COMPLETED','REFUNDED'].includes(row.state)
   &&['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED'].includes(row.errorCode);

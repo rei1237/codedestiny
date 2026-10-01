@@ -1,6 +1,7 @@
 import { getEnv } from '../lib/env.js';
 import { Payment } from '../lib/models.js';
 import { YeongnyangiRequest } from '../lib/yeongnyangi-models.js';
+import { hasRequestAccess } from './access-methods.js';
 import { resolveChargeAmountKRW } from '../lib/portone.js';
 import { toObjectId } from '../payments/db.js';
 import { paymentError } from '../payments/errors.js';
@@ -71,7 +72,7 @@ export async function assertFortunePaymentIntent(db, {env, userId, requestId, pr
   if (!fortune || fortune.featureKey!==product.featureKey || resolveChargeAmountKRW(env,fortune.amountKRW)!==product.priceKRW) {
     throw paymentError('INVALID_REQUEST','상담 주문과 상품을 확인하지 못했어요.');
   }
-  const paid=fortune.paymentId || ['FAMILY','SERVICE_PACK','MOONLIGHT_STONE'].includes(fortune.accessMethod) || fortune.passEvidenceId || fortune.moonstoneLedgerId || await db.findOne(Payment, {
+  const paid=hasRequestAccess(fortune) || await db.findOne(Payment, {
     userId:toObjectId(userId),requestId,paymentType:'digital_content',status:{$in:['paid','success','fulfilled']},
   }, {projection:{_id:1}});
   if (paid) throw paymentError('FORTUNE_ALREADY_PAID','이미 결제한 상담이에요. 결과 화면에서 이어가 주세요.',{fortuneRequestId:id});

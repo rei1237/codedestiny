@@ -1731,6 +1731,8 @@ const guardianFortuneAccountUsageSchema = new mongoose.Schema({
   reserved: { type: Number, default: 0, min: 0, max: 3 },
   reservationUpdatedAt: { type: Date, default: null },
   legacyMigratedAt: { type: Date, default: null },
+  // Fortune-chat consultation requests that spent the free turn; a request is restored at most once.
+  trialRequestIds: { type: [String], default: undefined },
 }, { timestamps: true, collection: "guardianFortuneAccountUsages" });
 
 const guardianFortuneAnonymousMergeSchema = new mongoose.Schema({

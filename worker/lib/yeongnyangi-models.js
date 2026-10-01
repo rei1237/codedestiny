@@ -1,5 +1,6 @@
 import { mongoose } from './db.js';
 import { scopedModel } from './db-scope-connection.js';
+import { ACCESS_METHODS } from '../yeongnyangi/access-methods.js';
 
 // One immutable purchase intent also owns the chart snapshot and completed chapters.
 // Users, profiles and PG orders remain in the existing CD collections.
@@ -13,7 +14,10 @@ const schema = new mongoose.Schema({
   fingerprint: { type: String, required: true },
   state: { type: String, required: true, enum: ['CREATED','PAID','GENERATING','AWAITING_FOLLOWUP','COMPLETED','FORTUNE_FAILED','REFUNDED'] },
   paymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment', default: null },
-  accessMethod: { type: String, enum: ['DIRECT_KRW','FAMILY','SERVICE_PACK','MOONLIGHT_STONE'], default: null },
+  accessMethod: { type: String, enum: ACCESS_METHODS, default: null },
+  // Fortune-chat consultations only: the counsellor voice, and the per-use payment or pass usage that unlocked them.
+  persona: { type: String, enum: ['yeoni','neo'], default: undefined },
+  perUseEvidenceId: { type: String, default: undefined },
   packEntitlementId: { type: mongoose.Schema.Types.ObjectId, ref: 'PurchaseEntitlement', default: null },
   passEvidenceId: { type: mongoose.Schema.Types.ObjectId, ref: 'PointHistory', default: null },
   moonstoneLedgerId: { type: mongoose.Schema.Types.ObjectId, ref: 'MonthlyCreditLedger', default: null },

@@ -46,8 +46,7 @@ import { CodeDestinyProvider } from './providers/code-destiny';
 import { StructuredChapterProvider } from './providers/chapter';
 import { deliverChapter } from './providers/delivery';
 import { createRequest, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, saveChapterDraft, allowedChapterAttempts, holdAutoResumes, userCanRetry, reserveQuestionSkyFollowup } from './repository.js';
-
-const hasRequestAccess=(row:any)=>Boolean(row?.paymentId||['FAMILY','SERVICE_PACK','MOONLIGHT_STONE'].includes(row?.accessMethod)||row?.passEvidenceId||row?.moonstoneLedgerId);
+import { hasRequestAccess } from './access-methods.js';
 
 /**
  * A v7 snapshot stores its timing matrix once at prepare; every later read re-applies it to the stored
