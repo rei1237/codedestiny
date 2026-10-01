@@ -1495,6 +1495,11 @@
       "shareTerms": "Paid only when a friend completes sign-up through the link you share here · Up to 500 a day · Valid for 30 days",
       "todayGateCta": "Create a profile to see today's fortune",
       "todayGateDesc": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart."
+    },
+    "chatEntry": {
+      "title": "Ask Yeoni and Neo the one thing on your mind right now",
+      "cta": "Talk through my concern",
+      "price": "1 free after signing up · ₩3,000 each after"
     }
   },
   "terms": {

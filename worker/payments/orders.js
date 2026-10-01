@@ -110,6 +110,10 @@ export async function createOrder(db, {
     fortunePaymentGeneration=Number(fortune.paymentGeneration || 0);
     idempotencyKey=generationKey(requestId,fortunePaymentGeneration);
   }
+  if (product.featureKey === 'fortune-chat-consultation' && String(requestId || '').startsWith('fc-')) {
+    const {assertChatPaymentIntent}=await import('../yeongnyangi/payment-intent.js');
+    await assertChatPaymentIntent(db,{userId,requestId,product});
+  }
   const orderId = await deriveOrderId(userId, idempotencyKey);
   if (fortunePaymentGeneration !== undefined) {
     const {reserveFortuneDirectFunding}=await import('../yeongnyangi/payment-intent.js');

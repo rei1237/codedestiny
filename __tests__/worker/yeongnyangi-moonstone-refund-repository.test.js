@@ -20,13 +20,13 @@ function chain(run) {
   lean:run,then:(yes,no)=>Promise.resolve().then(run).then(yes,no)};
  return query;
 }
-async function withFixture(run) {
+async function withFixture(run,chat=null) {
  const db=makeFakePaymentDb({uniqueKeys:[['userId','type','sourceId']]}),saved=[];
  const expiresAt=new Date('2099-10-30');
  db.rows.push({_id:USER,recentConsumeRequestIds:[],profileSubscription:{
   membershipCreditBalance:500,membershipCreditUsed:0,membershipCreditLotsVersion:0,
   membershipCreditLots:[{lotId:'signup',amount:500,remaining:500,grantedAt:new Date(),expiresAt}]}},
- {_id:ID,userId:USER,featureKey:product.featureKey,amountKRW:1000,state:'CREATED',paymentId:null,
+ {_id:ID,userId:USER,featureKey:(chat||product).featureKey,amountKRW:chat?3000:1000,state:'CREATED',paymentId:null,
   accessMethod:null,paymentClaimOrderId:'',chapters:[],completedChapters:0,chapterAttempts:{},attempts:0,
   leaseUntil:null,nextAttemptAt:null,snapshot:{manifest:[{},{}]}});
  active={db,get row(){return db.rows.find(r=>r._id===ID)},get user(){return db.rows.find(r=>String(r._id)===USER)}};
@@ -39,7 +39,8 @@ async function withFixture(run) {
   Model.updateOne=(filter,update)=>chain(()=>db.updateOne(Model,filter,update));
  }
  try {
-  await spendMoonstone(db,{userId:USER,product,purchaseId:RID});
+  const spent=await spendMoonstone(db,{userId:USER,product:chat||product,purchaseId:chat?'fc-'+ID:RID});
+  if(chat)Object.assign(active.row,{accessMethod:'PER_USE',perUseSource:'ledger',perUseEvidenceId:spent.ledgerId});
   return await run(active,await repository);
  }finally{for(const [Model,name,value] of saved)Model[name]=value;active=null;}
 }
@@ -97,3 +98,17 @@ test('terminal update racing chapter transaction rolls back late content before 
  expect(f.row.chapters).toHaveLength(0);
  expect(f.user.profileSubscription.membershipCreditBalance).toBe(500);
 }));
+test('a fortune-chat consultation paid with stones gets them back once when it delivered nothing',()=>withFixture(async f=>{
+ expect(f.user.profileSubscription.membershipCreditBalance).toBe(200);
+ terminal(f);
+ const first=await refundTerminalMoonstone(f.db,{userId:USER,requestId:ID,perUse:true});
+ expect(first).toMatchObject({refunded:true,replayed:false,amount:300});
+ expect(f.row).toMatchObject({state:'REFUNDED',errorCode:'MONTHLY_CREDIT_RESTORED'});
+ expect(f.user.profileSubscription.membershipCreditBalance).toBe(500);
+ const receipt=f.db.rows.find(r=>r.type==='MONTHLY_CREDIT_GRANT');
+ expect(receipt.metadata.requestId).toBe('fc-'+ID);
+ expect((await refundTerminalMoonstone(f.db,{userId:USER,requestId:ID,perUse:true})).replayed).toBe(true);
+ expect(f.user.profileSubscription.membershipCreditBalance).toBe(500);
+ // The Yeongnyangi stone restore never touches a per-use consultation.
+ expect((await refund(f)).refunded).toBe(false);
+},resolveProduct({featureKey:'fortune-chat-consultation'})));

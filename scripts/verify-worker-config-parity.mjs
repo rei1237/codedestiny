@@ -453,6 +453,7 @@ const BASE_STAGING = [
   'CORS_ORIGIN = "https://staging.code-destiny.com"',
   'PAYMENT_TEST_AMOUNT_KRW = "1000"',
   'ENABLE_RESULT_SHARE = "false"',
+  'ENABLE_FORTUNE_CHAT_CONSULTATIONS = "true"',
   'SITE_BASE_URL = "https://staging.code-destiny.com"',
   'AUTH_API_BASE_URL = "https://staging.code-destiny.com"',
   'AUTH_FRONTEND_BASE_URL = "https://staging.code-destiny.com"',

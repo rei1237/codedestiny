@@ -79,3 +79,22 @@ assert.equal(Object.keys(copies).length,12);for(const copy of Object.values(copi
 // 카카오페이는 checkout-entry 표에서 EASY_PAY·전용 채널 필드 이름을 받고, 꺼져 있으면 같은 주문을 카드(종전 경로)로 이어간다.
 await scenario('KakaoPay resume uses the table channel and never the Inicis fallback',{method:'KAKAOPAY'},async({resume,sdk})=>{assert.equal(await resume(),true);assert.deepEqual(sdk[0].payFields,{payMethod:'EASY_PAY',channelKeyName:'kakaopayChannelKey'});assert.equal(globalThis.window.__cdSelectedDirectPayMethod??null,null);});
 await scenario('closed KakaoPay resumes the same order on the card path',{method:'KAKAOPAY',kakaoClosed:true},async({resume,sdk})=>{assert.equal(await resume(),true);assert.equal(sdk[0].payFields,undefined);assert.equal(sdk[0].paymentId,'original-order');});
+// 웹훅 지급이 결제 복귀보다 늦으면 '미지급' 확인만 2·4·8초(여기선 1ms) 간격으로 다시 묻고, 오류·취소에는 바로 멈춘다.
+async function recheck(grantOn,{error,abortAfter,...options}={}){
+ const calls=[],controller=new AbortController(),confirms=()=>calls.filter(path=>path.endsWith('/confirm')).length;
+ const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json'}});
+ globalThis.__packFetch=async path=>{
+  calls.push(path);
+  if(path.endsWith('/status'))return reply({ok:true,verified:false,entitlementGranted:false});
+  if(error)return reply({ok:false,code:error},error==='UNAUTHORIZED'?401:409);
+  if(abortAfter===confirms())controller.abort();
+  return reply({ok:true,entitlementStatus:confirms()>=grantOn?'granted':'pending'});
+ };
+ return {result:api.confirmPackOrderWithRecheck('late-order',controller.signal,{delays:[1,1,1],...options}),confirms};
+}
+await test('recheck schedule stays 2·4·8 seconds',()=>assert.deepEqual(api.PACK_RECHECK_DELAYS,[2000,4000,8000]));
+await test('late webhook grant completes on a recheck',async()=>{const r=await recheck(3);assert.equal(await r.result,true);assert.equal(r.confirms(),3);});
+await test('still ungranted after 3 rechecks hands back to the manual button',async()=>{const r=await recheck(99);assert.equal(await r.result,false);assert.equal(r.confirms(),4);});
+for(const code of ['PG_PAYMENT_NOT_PAID','UNAUTHORIZED'])await test(code+' never rechecks',async()=>{const r=await recheck(1,{error:code});await assert.rejects(r.result,e=>e.code===code);assert.equal(r.confirms(),1);});
+await test('cancel stops the pending timers',async()=>{const r=await recheck(99,{abortAfter:1});assert.equal(await r.result,false);assert.equal(r.confirms(),1);});
+await test('purchase path skips the duplicate immediate confirm',async()=>{const r=await recheck(1,{immediate:false});assert.equal(await r.result,true);assert.equal(r.confirms(),1);});

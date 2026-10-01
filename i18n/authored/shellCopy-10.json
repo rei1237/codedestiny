@@ -362,5 +362,47 @@
     "de": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart.",
     "nl": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart.",
     "ms": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart."
+  },
+  "home.chatEntry.title": {
+    "ko": "연이와 네오에게, 지금 가장 궁금한 한 가지",
+    "en": "Ask Yeoni and Neo the one thing on your mind right now",
+    "ja": "ヨニとネオに、今いちばん気になるひとつを",
+    "zh-CN": "向 Yeoni 和 Neo 问出此刻最想知道的一件事",
+    "zh-TW": "向 Yeoni 和 Neo 問出此刻最想知道的一件事",
+    "vi": "Ask Yeoni and Neo the one thing on your mind right now",
+    "hi": "Ask Yeoni and Neo the one thing on your mind right now",
+    "es": "Ask Yeoni and Neo the one thing on your mind right now",
+    "fr": "Ask Yeoni and Neo the one thing on your mind right now",
+    "de": "Ask Yeoni and Neo the one thing on your mind right now",
+    "nl": "Ask Yeoni and Neo the one thing on your mind right now",
+    "ms": "Ask Yeoni and Neo the one thing on your mind right now"
+  },
+  "home.chatEntry.cta": {
+    "ko": "내 고민 상담하기",
+    "en": "Talk through my concern",
+    "ja": "わたしの悩みを相談する",
+    "zh-CN": "咨询我的烦恼",
+    "zh-TW": "諮詢我的煩惱",
+    "vi": "Talk through my concern",
+    "hi": "Talk through my concern",
+    "es": "Talk through my concern",
+    "fr": "Talk through my concern",
+    "de": "Talk through my concern",
+    "nl": "Talk through my concern",
+    "ms": "Talk through my concern"
+  },
+  "home.chatEntry.price": {
+    "ko": "회원가입 무료 1회 · 이후 1회 3,000원",
+    "en": "1 free after signing up · ₩3,000 each after",
+    "ja": "会員登録で無料1回・以降1回3,000ウォン",
+    "zh-CN": "注册后免费1次 · 之后每次3,000韩元",
+    "zh-TW": "註冊後免費1次 · 之後每次3,000韓元",
+    "vi": "1 free after signing up · ₩3,000 each after",
+    "hi": "1 free after signing up · ₩3,000 each after",
+    "es": "1 free after signing up · ₩3,000 each after",
+    "fr": "1 free after signing up · ₩3,000 each after",
+    "de": "1 free after signing up · ₩3,000 each after",
+    "nl": "1 free after signing up · ₩3,000 each after",
+    "ms": "1 free after signing up · ₩3,000 each after"
   }
 }

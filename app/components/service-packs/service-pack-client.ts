@@ -70,6 +70,22 @@ export async function confirmPackOrder(orderId:string){
  const confirmed=await packRequest<{entitlementStatus?:string}>(path+'/confirm',{});
  return confirmed.entitlementStatus==='granted';
 }
+// 웹훅 지급이 결제 복귀보다 늦으면 확인이 '미지급'으로 끝난다 — 그때만 2·4·8초 뒤 다시 확인한다.
+// 오류(미결제·실패·401 등)는 바로 던져 호출부의 기존 처리로 넘긴다. signal 이 끊기면(계정 전환·언마운트) 조용히 멈춘다.
+export const PACK_RECHECK_DELAYS:readonly number[]=[2000,4000,8000];
+const pause=(ms:number,signal?:AbortSignal)=>new Promise<boolean>(resolve=>{
+ if(signal?.aborted)return resolve(false);
+ const stop=()=>{clearTimeout(timer);resolve(false);},timer=setTimeout(()=>{signal?.removeEventListener('abort',stop);resolve(true);},ms);
+ signal?.addEventListener('abort',stop,{once:true});
+});
+export async function confirmPackOrderWithRecheck(orderId:string,signal?:AbortSignal,{immediate=true,delays=PACK_RECHECK_DELAYS}:{immediate?:boolean;delays?:readonly number[]}={}){
+ if(immediate&&!signal?.aborted&&await confirmPackOrder(orderId))return true;
+ for(const delay of delays){
+  if(!(await pause(delay,signal)))return false;
+  if(await confirmPackOrder(orderId))return true;
+ }
+ return false;
+}
 // 결제수단은 꽃돼지 결제창과 같은 표(js/core/checkout-entry.js DIRECT_PAY_METHODS)가 정본이다 — 값을 여기 베끼지 않는다.
 // 카드는 종전 그대로(config payMethod·이니시스 채널, 주문 기록 card_general)이고, 카카오페이만 표에서 전용 채널을 받는다.
 export type PackPayMethod='CARD'|'KAKAOPAY';

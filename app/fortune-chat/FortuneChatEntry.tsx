@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
 import FortuneChatClient from "./FortuneChatClient";
 import ConsultationRoom from "./ConsultationRoom";
-import { consultationApi, isConsultationId } from "./consultation-api";
+import { consultationApi, isConsultationId, type ChatPersona } from "./consultation-api";
 
 const HINT_KEY = "fortune-chat:consultation-room";
 
@@ -18,7 +18,11 @@ const HINT_KEY = "fortune-chat:consultation-room";
  *    동기화 이벤트가 나가고, 기존 상담방은 그 이벤트(cd:auth-changed)에 대화를 처음으로 되돌린다.
  */
 export default function FortuneChatEntry() {
-  const linked = useSearchParams()?.get("consultation") || "";
+  const params = useSearchParams();
+  const linked = params?.get("consultation") || "";
+  // 홈의 상담 입구는 지금 테마의 상담자를 ?character= 로 넘긴다. 기존 상담방(FortuneChatClient)도 같은 값을 읽는다.
+  const character = params?.get("character");
+  const requested: ChatPersona | undefined = character === "neo" || character === "yeoni" ? character : undefined;
   const auth = useAuthStore();
   const userKey = String(auth.user?.id || auth.user?.userId || "");
   const [room, setRoom] = useState(() => isConsultationId(linked));
@@ -39,5 +43,5 @@ export default function FortuneChatEntry() {
   }, [linked, auth.isAuthenticated, userKey]);
 
   // 계정이 바뀌면 상담실을 새로 연다 — 이전 계정의 기록·상담이 남지 않게.
-  return room ? <ConsultationRoom key={userKey} initialId={isConsultationId(linked) ? linked : ""} /> : <FortuneChatClient />;
+  return room ? <ConsultationRoom key={userKey} initialId={isConsultationId(linked) ? linked : ""} initialPersona={requested} /> : <FortuneChatClient />;
 }

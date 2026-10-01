@@ -27,6 +27,7 @@ import { usePassSaleAvailability } from "@/app/hooks/usePassSaleAvailability";
 import { PASS_MONTHLY_WON } from "@/lib/payment/pass-pricing";
 import { MoonShopMain, MoonShopSkeleton, MoonlightShopHero, ShopPigImage } from "./MoonShopFrame";
 import {ServicePackShop} from "../components/service-packs/ServicePacks";
+import {OwnedPassesSummary, type PackWalletView} from "../components/service-packs/OwnedPassesSummary";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
@@ -2407,7 +2408,7 @@ function MoonlightShopPlans({
   const overseasCharge = useOverseasCharge();
 
   return (
-    <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-label={copy.subscriptionAria}>
+    <section id="moonlight-plans" className="moon-card scroll-mt-24 rounded-[24px] p-5 sm:p-6" aria-label={copy.subscriptionAria}>
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">이용권 상품</p>
@@ -2773,6 +2774,8 @@ export default function PointsPage() {
     cancelRequestedAt: null,
     freeLimit: 0,
   });
+  // ServicePackShop 이 이미 읽은 영냥이 보유 목록을 상단 '내 이용권' 요약에 그대로 쓴다.
+  const [ownedPacks, setOwnedPacks] = useState<PackWalletView>("loading");
 
   // 낙관 이용권을 덮어쓰기 직전의 상태를 보관해 두고, 결제가 취소·실패하면 그대로 되돌린다.
   // 예전에는 취소 시 localStorage 만 지워서 화면은 계속 "이용권 적용됨"으로 남았다.
@@ -4659,6 +4662,16 @@ export default function PointsPage() {
       {/* ── 페이지 콘텐츠 ────────────────────────────────────────── */}
       <div className="relative mx-auto w-full max-w-6xl space-y-5">
         <MoonlightShopHero />
+        <OwnedPassesSummary
+          locale={lang}
+          flower={{
+            active: subscription.isActive && subscription.tier !== "free",
+            tier: subscription.tier,
+            tierLabel: getPassTierLabel(subscription.tier, lang) || subscription.tier,
+            expiresAt: subscription.expiresAt,
+          }}
+          packs={ownedPacks}
+        />
         <MoonlightActivePassCard
           subscription={subscription}
           formatLocale={formatLocale}
@@ -4693,7 +4706,7 @@ export default function PointsPage() {
           hasError={pointStateHasError}
           onRetry={retryPointState}
         />
-        <ServicePackShop locale={lang} overseasCharge={overseasCharge} />
+        <ServicePackShop locale={lang} overseasCharge={overseasCharge} onWalletChange={setOwnedPacks} />
         <MoonlightShopPlans
           subscription={subscription}
           onSubscribe={openSelfPurchase}

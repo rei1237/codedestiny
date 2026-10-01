@@ -30,7 +30,11 @@ const pointFilter = (row, owner, rid) => ({
   ...moonstoneSpendRefundFilter(), 'metadata.coinRefundedForUnlockFailure': { $ne: true },
   ...requestKeys(rid, ['metadata.requestId','metadata.idempotencyKey','metadata.purchaseId','metadata.orderId']),
 });
-const minimumStones = row => calculatePaidFeatureMembershipCreditCost(row.featureKey, Math.floor(Number(row.amountKRW) / 100));
+const passRefundFrom = evidence => {
+  const cycleKey = String(evidence?.metadata?.passCycleKey || ''), cost = Math.floor(Number(evidence?.metadata?.coinCost) || 0);
+  return cycleKey && cost > 0 ? { cycleKey, cost } : undefined;
+};
+const minimumStones = row =>calculatePaidFeatureMembershipCreditCost(row.featureKey, Math.floor(Number(row.amountKRW) / 100));
 
 /**
  * The stored per-use record, still active. Null means it is gone or revoked (the caller answers 409).
@@ -110,5 +114,8 @@ export async function proveChatAccess(env, { row, userId, owner, coinPrice, choi
   const evidence = stored.perUseSource === 'admin' || stored.perUseEvidenceId
     ? await withMongoRetry(env, () => findPerUseEvidence({ ...row, ...stored }, owner), readOptions) : null;
   if (!evidence) throw failure(503, 'PAYMENT_EVIDENCE_PENDING');
-  return { accessMethod: 'PER_USE', ...stored, ...(passRefund ? { perUsePassRefund: passRefund } : {}) };
+  // A retry after the first activation spent the pass is proven by the stored use (requireExisting), which
+  // carries no passRefund. The usage record holds the same cycle and cost, so the restore is not lost.
+  const restore = passRefund || (proof.source === 'pass' ? passRefundFrom(evidence) : undefined);
+  return { accessMethod: 'PER_USE', ...stored, ...(restore ? { perUsePassRefund: restore } : {}) };
 }
