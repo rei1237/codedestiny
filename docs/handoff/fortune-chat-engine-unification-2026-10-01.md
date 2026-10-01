@@ -1,8 +1,8 @@
 ---
 status: active
-implementationStatus: shipped-to-main (4단계 에셋·포즈·순간 완료 · 스테이징 플래그 ON · 프로덕션 OFF)
+implementationStatus: shipped-to-main (5단계 히어로 보조 진입점·sitemap 완료 · 스테이징 플래그 ON · 프로덕션 OFF)
 updated: 2026-10-01
-next: 5단계 — 메인 히어로 보조 진입점과 sitemap.
+next: 6단계 — 결제 복귀·중복·복구 E2E(mock)와 후속 1·3, 타로 통합, 구 guardian 은퇴 판단.
 ---
 
 # 연이·네오 대화형 상담 → 영냥이 질문형 엔진 공유 (1단계: 공통 엔진·결제 연결)
@@ -168,6 +168,35 @@ next: 5단계 — 메인 히어로 보조 진입점과 sitemap.
 - 오류 시나리오에서는 상담을 못 불러오므로 기본 연이 세계가 보인다(스텁 확인). 네오의 오류 순간 그림은 네오 칸에서 오류가 날 때만 보인다.
 - 장이 생긴 뒤 결과 화면에는 운세 축 그림이 없다. 결과 위계(핵심 답변 우선)를 흐리지 않으려는 선택이다.
 
+## 5단계 결과 (2026-10-01, 커밋)
+
+- `14e1a7d7d` — 새 상담실이 `?character=neo|yeoni` 를 무시하던 틈을 메웠다. `FortuneChatEntry` 가 값을 읽어 `ConsultationRoom initialPersona` 로 넘긴다(그 밖의 값은 기본 연이).
+- `47a337789` — 꽃돼지 히어로(`templates/home-funnel.html` → `index.html`·미러 7개) 1차 CTA 아래에 보조 진입점을 넣었다.
+  - 문구: "연이와 네오에게, 지금 가장 궁금한 한 가지" / "내 고민 상담하기" / "회원가입 무료 1회 · 이후 1회 3,000원".
+  - 1차 CTA 계약(`.cdh-copy .cdh-primary`, 첫 화면 안)은 그대로다.
+  - href 는 `js/core/home-funnel.js` 가 상담 문과 함께 홈 테마에 맞춰 `?character=yeoni|neo` 로 바꾼다(`[data-cdh-chat-entry]`).
+  - `/`(app/page.js) SSR 안내 nav 에 `/fortune-chat/` 링크를 하나 더했다.
+  - i18n `home.chatEntry.{title,cta,price}` 를 en·ja·zh-CN·zh-TW 로 저작했다. 나머지 7개는 en 복사다.
+  - sitemap 원장을 재생성했다(서명 486개만 바뀌고 lastmod·URL 은 그대로다).
+- 해석:
+  - 고민 칩은 넣지 않았다(로드맵·요청 문구에 없다). 필요하면 별도 작업이다.
+  - `/fortune-chat` 은 `noindex` 라 사이트맵에 넣지 않았다. 넣으면 "제출된 URL 에 noindex" 오류가 된다. 그래서 "sitemap" 은 원장 재생성으로 해석했다.
+- 검증(전부 mock·로컬):
+  - `node --test` fortune-chat·shell-dictionary-parity 16/16 통과.
+  - `verify-i18n-price-drift`·`verify-krw-copy-canonical` PASS.
+  - `build-home-funnel --check` current. `generate-sitemap --check` OK.
+  - HEAD 단독 clean 워크트리는 sitemap check OK 였고, 내 파일만 얹으면 원장이 메인 체크아웃과 바이트 단위로 같았다. 옆 세션 오염은 없다.
+  - playwright 390·1280 × 연이·네오 렌더:
+    - 1차 CTA 가 보조 진입보다 위에 있고 첫 화면 안이다.
+    - href 가 `?character=yeoni`/`neo` 로 동기화된다.
+    - 가로 넘침이 없다.
+  - visual-checker 판정은 4장 모두 OK 다(텍스트 대비 최저 6.29:1).
+  - `check:fast --committed-head`: 워커 jest 2건이 실패했다(`db.payment-admission-separation` 의 `<100ms` 시간 단언, `auth.signup-phone-backfill`). 둘 다 run-mock-tests 러너 단독 실행에서는 18/18 통과했고, 이 변경은 워커 파일을 건드리지 않는다. 그래서 전체 병렬 부하에서 생기는 타이밍성 실패로 본다.
+- 5단계 남은 위험(수용):
+  - 390 에서 보조 버튼이 1차 CTA 와 폭·높이가 같다. 위계는 채움 대 테두리로만 드러난다.
+  - light 구분선 대비가 1.24:1 로 약하다.
+  - 히어로 보조 진입은 analytics 가 세지 않는다(`data-cd-business-entry` 는 paid/daily 만 집계한다).
+
 ## 남은 위험·후속 (우선순위순)
 
 0. 🔴 **main CI `Critical checks` 가 2단계 `6cb20649c` 부터 실패한다**(로컬 재현: `node scripts/verify-worker-config-parity.mjs --self-test`).
@@ -198,6 +227,8 @@ next: 5단계 — 메인 히어로 보조 진입점과 sitemap.
 - `MAX_FIX_RESUMES=0` 이라 죽은 경로가 남는다.
 - `content-assets.md:9` 가 낡았다.
 - main CI `CI required` 가 e88d22ae5 부터 Static guards 의 `sitemap-volatile-lastmod-kst.test.js`("주간 허브가 주 시작일을 쓰지 않습니다", 실제 2026-10-15 / 기대 2026-10-12)로 실패한다. clean HEAD 에서도 재현된다.
+- 공유 키 `shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n115000` 의 en·ja·zh 번역이 무료 1회 부분을 두 번 싣는다. 5단계는 이 키를 쓰지 않고 `home.chatEntry.price` 를 따로 만들었다.
+- `i18n:merge --namespace shellCopy` 를 돌리면 `public/i18n/ko.json` 의 `home.homeGuide.lead`·`home.searchEntry.title`/`fusion` 이 낡은 저작 ko 로 되돌아간다(저작본과 ko 사전의 기존 드리프트). 5단계에서는 ko 사전에 새 키만 더했다.
 - 2026-10-01 `verify:sitemap-drift` 가 로컬 clean 워크트리(d0cf372fd·e1f2174e0·6062d83b4)에서 모두 실패한다. 재생성하면 원장 294개 라우트의 서명·lastmod 가 바뀌고, 세 커밋의 생성 결과는 서로 같다. 그래서 3단계 변경 탓이 아니다. `/fortune-chat` 은 사이트맵에 없다. 날짜 롤링 또는 윈도우 CRLF 체크아웃 탓으로 보이나 원인은 확정하지 않았다.
 
 ## 로드맵
@@ -210,9 +241,9 @@ next: 5단계 — 메인 히어로 보조 진입점과 sitemap.
    - 스테이징에서 플래그 ON(vars 는 참조 문서 예외 절차)
 3. ✅ 네오 상담 세계(별빛 전략실): 정보 위계와 모드 전환 때 결과 보존 (2026-10-01 완료, 위 3단계 결과).
 4. ✅ 운세별 에셋, 포즈, 로딩·빈 기록·오류 에셋 (2026-10-01 완료, 위 4단계 결과).
-5. 메인 히어로 보조 진입점("연이와 네오에게, 지금 가장 궁금한 한 가지" / "내 고민 상담하기")과 sitemap.
+5. ✅ 메인 히어로 보조 진입점("연이와 네오에게, 지금 가장 궁금한 한 가지" / "내 고민 상담하기")과 sitemap (2026-10-01 완료, 위 5단계 결과).
 6. 결제 복귀·중복·복구 E2E(mock), 위 후속 1·3, 타로 통합, 구 guardian 경로 은퇴 판단, 실 LLM 품질 1회 검증(별도 승인).
 
 ## 다음 세션 첫 문장
 
-> docs/handoff/fortune-chat-engine-unification-2026-10-01.md 를 읽고 5단계(메인 히어로 보조 진입점 "연이와 네오에게, 지금 가장 궁금한 한 가지" / "내 고민 상담하기"와 sitemap)를 시작해 줘. 영냥이 홈 app/page.js 의 기존 상담 진입 구현과 /fortune-chat/?character= 동작을 먼저 읽어.
+> docs/handoff/fortune-chat-engine-unification-2026-10-01.md 를 읽고 먼저 "남은 위험·후속" 0번(main CI `Critical checks` 의 worker-config-parity self-test 픽스처)을 고친 뒤 6단계(결제 복귀·중복·복구 E2E mock, 후속 1·3)를 시작해 줘. 결제는 docs/context/payment-gating.md 를 먼저 읽어.
