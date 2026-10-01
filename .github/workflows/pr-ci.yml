@@ -229,6 +229,12 @@ jobs:
       - name: Verify continuous Sukuyo astronomy core
         run: npm run verify:sukuyo-astronomy
 
+      # 오늘의 운세 허브: 프로필 카드가 없으면 길흉을 그리지 않고, 셸이 일진·27수를 스스로
+      # 계산하지 않는다(fetch 를 막아도 결과가 나오면 실패). 7셸 미러 일치도 본다. jsdom·네트워크 0,
+      # 실측 1.2초. 2026-10-01 사용자 승인으로 배선(운세 로직 축).
+      - name: Verify today fortune hub gate
+        run: npm run verify:today-hub-gate
+
       # 🔴 이것은 **fast 잡**이어야 한다. 사이트맵을 어긋나게 만드는 것은 라우트 추가만이
       # 아니라 글 한 편, 공용 컴포넌트 한 줄이다(lastmod 서명이 소스 파일에서 나온다).
       # build 잡에 두면 티어가 fast 로 잡히는 문구·콘텐츠 변경에서 깨어나지 않는데, 그게 정확히
