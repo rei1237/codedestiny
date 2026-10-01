@@ -1,8 +1,8 @@
 ---
 status: active
-implementationStatus: shipped-to-main (5단계 히어로 보조 진입점·sitemap 완료 · 스테이징 플래그 ON · 프로덕션 OFF)
+implementationStatus: shipped-to-main (6단계 A 결제 복귀·중복·복구 완료 · 스테이징 플래그 ON · 프로덕션 OFF)
 updated: 2026-10-01
-next: 6단계 — 결제 복귀·중복·복구 E2E(mock)와 후속 1·3, 타로 통합, 구 guardian 은퇴 판단.
+next: 6단계 B — 후속 2·4(카드 창 점유 TOCTOU·fc- 영구 오류 알림), 그다음 타로 통합·구 guardian 은퇴 판단.
 ---
 
 # 연이·네오 대화형 상담 → 영냥이 질문형 엔진 공유 (1단계: 공통 엔진·결제 연결)
@@ -197,20 +197,26 @@ next: 6단계 — 결제 복귀·중복·복구 E2E(mock)와 후속 1·3, 타로
   - light 구분선 대비가 1.24:1 로 약하다.
   - 히어로 보조 진입은 analytics 가 세지 않는다(`data-cd-business-entry` 는 paid/daily 만 집계한다).
 
+## 6단계 A 결과 (2026-10-01, 커밋)
+
+- `95945a6ae` 후속 0: worker-config-parity self-test 픽스처 `BASE_STAGING` 에 `ENABLE_FORTUNE_CHAT_CONSULTATIONS = "true"` 추가.
+- `b484c3017` 후속 3·N2:
+  - N2: `proveChatAccess` 가 재시도(`requireExisting`)로 이용권 사용을 찾으면 사용 기록의 `passCycleKey`·`coinCost` 로 `perUsePassRefund` 를 다시 만든다.
+  - 유료 PER_USE 가 0장으로 `GENERATION_REVIEW_REQUIRED` 가 되면 이용권 한도(`PASS_QUOTA_RESTORED`)나 월정석(`MONTHLY_CREDIT_RESTORED`, `refundTerminalMoonstone({perUse:true})`)을 한 번 복원한다. FAMILY 와 같은 헬퍼(`restorePassQuota`)를 쓴다.
+  - 카드(`payment`)·코인·관리자는 자동 복원하지 않고 검수 대기로 남는다(영냥이 DIRECT_KRW 와 같은 정책, 가정).
+  - 이용권 복원은 `restorePass` 없이 사용량만 되돌린다(기존 `runPassQuotaRefund` 와 같다). 소진으로 꺼진 이용권을 다시 켜지는 않는다.
+- `c605ee1ba` 후속 1: `createOrder` 가 `fc-` 상담 카드 주문 전에 `assertChatPaymentIntent` 로 상담 행과 결제된 카드 주문만 읽는다. 이미 열린 상담(무료·이용권·월정석·결제 주문·CREATED 아님)은 `FORTUNE_ALREADY_PAID`, 형식 오류·남의 상담은 `INVALID_REQUEST`. 이용권 조회는 추가하지 않았다(billing-pass-policy).
+- `1ae52a050` 카드 복귀 흐름 테스트: 웹훅 전 복귀는 503 대기, 기록 도착 뒤 동시 활성화 1회, 끝까지 생성, 재활성화는 그대로.
+- 크론 활성화·중복 감지는 4단계 테스트(`yeongnyangi-recovery.test.js` 76·84·95행)가 이미 덮는다.
+
+검증 (전부 mock): 관련 jest 53 스위트 1068 통과. 변이 확인 2회(N2 되돌림 → 2 실패, prepare 가드 제거 → 7 실패). verify billing-pass-policy·paid-feature-billing-policy·per-use-never-unlocks·payment-freeze·payment-concurrency-guards·guard-wiring·worker-no-undef 통과. `check:fast --committed-head` 전체 jest 328 스위트 4908 통과. paid-gate-auditor 는 돌리지 않았다.
+
 ## 남은 위험·후속 (우선순위순)
 
-0. 🔴 **main CI `Critical checks` 가 2단계 `6cb20649c` 부터 실패한다**(로컬 재현: `node scripts/verify-worker-config-parity.mjs --self-test`).
-   - 메시지: "vars.ENABLE_FORTUNE_CHAT_CONSULTATIONS: 스테이징 전용 키인데 스테이징 설정에 없다"(baseline passes 케이스).
-   - 원인: 키를 `STAGING_ONLY_KEYS` 에 선언했지만, self-test 픽스처 `BASE_STAGING` 의 `[vars]` 에는 넣지 않았다.
-   - 고치는 법(추정, 미실행): `BASE_STAGING` 에 `'ENABLE_FORTUNE_CHAT_CONSULTATIONS = "true"',` 한 줄을 넣는다.
-   - 이 job 은 결제·워커 파일이 바뀐 push 에서만 돈다. 그래서 e1f2174e0·d0cf372fd 에서는 skipped 로 가려져 있었다.
-
-1. 🔴 **카드 결제 prepare 측 가드가 없다.**
-   - 무료/이용권으로 연 상담에 낡은 탭이 `fc-` 카드 결제를 또 할 수 있다.
-   - 지금은 크론이 사후에 중복 결제로 감지하고 운영 알림만 보낸다(자동 환불 없음).
-   - 2단계 UI 가드로 낡은 탭은 막았다(위 2단계 결과). 6단계에서 prepare 가 `fc-` 요청의 접근 여부를 확인해야 한다.
-2. `assertNoOpenCheckout` 는 트랜잭션 밖에서 한 번만 읽는다(TOCTOU). 영냥이 `paymentClaimOrderId` 같은 점유 표시가 없다.
-3. 유료 PER_USE 가 0장 실패하면 자동 환불 없이 `GENERATION_REVIEW_REQUIRED` 로 남는다(영냥이 DIRECT_KRW 와 같다). 이용권 환불 정보(`perUsePassRefund`)는 재시도 때 잃을 수 있다(N2). 6단계 과제.
+0. ✅ CI 픽스처(6단계 A `95945a6ae`).
+1. ✅ 카드 prepare 가드(6단계 A `c605ee1ba`). 남은 틈: 서로 다른 브라우저 키로 **결제 대기 중인** 카드 창 둘을 여는 것은 막지 않는다(영냥이 `reserveFortuneDirectFunding` 같은 점유가 없다). 둘 다 승인되면 크론이 중복으로 알린다. 후속 2 와 함께 다룬다.
+2. 🔴 `assertNoOpenCheckout` 는 트랜잭션 밖에서 한 번만 읽는다(TOCTOU). 영냥이 `paymentClaimOrderId` 같은 점유 표시가 없다.
+3. ✅ 이용권·월정석 0장 복원과 N2(6단계 A `b484c3017`). 카드 0장 실패의 자동 환불 여부는 정책 결정 대기(지금은 검수 대기).
 4. `fc-` 활성화가 영구 오류(예: 무료 복원으로 REFUNDED 된 상담에 결제)를 내면 24시간마다 재시도할 뿐 알림이 없다.
 5. 익명 병합이 `freeUsed` 를 절대값으로 `$set` 해서, 복원과 겹치면 무료 1회가 하나 더 생길 수 있다(영향 작음).
 6. `unattachedChat` 이 `state:'CREATED'` 를 고정하지 않는다(기존 PER_USE 동작).
@@ -242,8 +248,9 @@ next: 6단계 — 결제 복귀·중복·복구 E2E(mock)와 후속 1·3, 타로
 3. ✅ 네오 상담 세계(별빛 전략실): 정보 위계와 모드 전환 때 결과 보존 (2026-10-01 완료, 위 3단계 결과).
 4. ✅ 운세별 에셋, 포즈, 로딩·빈 기록·오류 에셋 (2026-10-01 완료, 위 4단계 결과).
 5. ✅ 메인 히어로 보조 진입점("연이와 네오에게, 지금 가장 궁금한 한 가지" / "내 고민 상담하기")과 sitemap (2026-10-01 완료, 위 5단계 결과).
-6. 결제 복귀·중복·복구 E2E(mock), 위 후속 1·3, 타로 통합, 구 guardian 경로 은퇴 판단, 실 LLM 품질 1회 검증(별도 승인).
+6. A ✅ 결제 복귀·중복·복구 E2E(mock), 후속 0·1·3 (2026-10-01, 위 6단계 A 결과).
+   B 후속 2·4, 타로 통합, 구 guardian 경로 은퇴 판단, 실 LLM 품질 1회 검증(별도 승인).
 
 ## 다음 세션 첫 문장
 
-> docs/handoff/fortune-chat-engine-unification-2026-10-01.md 를 읽고 먼저 "남은 위험·후속" 0번(main CI `Critical checks` 의 worker-config-parity self-test 픽스처)을 고친 뒤 6단계(결제 복귀·중복·복구 E2E mock, 후속 1·3)를 시작해 줘. 결제는 docs/context/payment-gating.md 를 먼저 읽어.
+> docs/handoff/fortune-chat-engine-unification-2026-10-01.md 를 읽고 6단계 B 의 "남은 위험·후속" 2·4번(`fc-` 카드 창 점유 TOCTOU, `fc-` 활성화 영구 오류 알림)을 고쳐 줘. 결제는 docs/context/payment-gating.md 를 먼저 읽어.
