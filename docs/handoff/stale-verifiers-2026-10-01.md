@@ -2,7 +2,7 @@
 status: done
 implementationStatus: shipped-to-main
 updated: 2026-10-01
-next: 4종 모두 완료. 남은 것은 CI 배선 여부(사용자 결정)뿐 — 지시 없이 배선하지 않는다.
+next: 4종 모두 완료. CI 배선도 결정됨 — today-hub-gate 만 main CI(38437da0f), 나머지 3종은 수동 유지(사용자 결정 2026-10-01).
 ---
 
 # 변경 전부터 실패하던 verify 4종 — 원인 진단 (2026-10-01)
@@ -68,4 +68,10 @@ next: 4종 모두 완료. 남은 것은 CI 배선 여부(사용자 결정)뿐 �
 
 ## 다음 세션 첫 문장
 
-없음 — 4종 모두 완료. CI 배선을 원하면: "docs/handoff/stale-verifiers-2026-10-01.md 의 검증기 4종 중 무엇을 CI 에 배선할지 정해줘 — 서버가 필요한 2종(review-anytime-ui·saju-reading-personas)은 mock dev 기동이 전제다."
+없음 — 4종 완료, CI 배선 결정 완료.
+
+## CI 배선 결정 (2026-10-01, 사용자 승인)
+
+- `verify:today-hub-gate` — **배선**(38437da0f). `pr-ci.yml` Static guards 잡의 `verify:sukuyo-astronomy` 다음 스텝. 운세 로직 축(카드 없이 길흉 금지·셸 자체 계산 금지·7셸 미러), jsdom·네트워크 0·약 1.2초. `verify-guard-wiring` 미승인 목록에서 뺐다. main CI run 36875979350 에서 OK 확인.
+- `verify-feature-popup-journey` — 미배선. 결제 단언은 2개뿐이고 나머지는 디자인 계약, 약 2분 50초.
+- `verify-review-anytime-ui`·`verify-saju-reading-personas` — 미배선. mock dev 서버 필요, CI 게이트 3축(결제·로그인·운세 로직) 밖.
