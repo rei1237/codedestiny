@@ -194,7 +194,10 @@ for (const [name, block] of [["ko", koBlock], ["en", enBlock]]) {
 
 // ── 3. 격자 폰트 검사 ───────────────────────────────────────────────────────────
 // 격자 블록만 본다 — 히어로 아이브로우 같은 화면 다른 곳의 11px 은 이 사고와 무관하다.
-const GRID_START = 'gridTemplateColumns: "repeat(4, minmax(0, 1fr))"';
+// 격자 배치(행·열 정의)는 공용 ZiweiPalaceGrid 로 옮겼다. 칸 렌더링은 여전히 이 컴포넌트에 있어 여기서부터 자른다.
+const GRID_START = "<ZiweiPalaceGrid";
+const GRID_SOURCE_PATH = "app/components/ziwei/ZiweiPalaceGrid.tsx";
+const gridSource = stripComments(fs.readFileSync(path.join(root, GRID_SOURCE_PATH), "utf8"));
 const GRID_END = "copy.centerPanelDesc";
 const gridBlock = sliceBlock(componentSource, GRID_START, GRID_END);
 check(
@@ -232,8 +235,8 @@ check(
   `정적 검사(${COMPONENT_PATH}): 12궁 격자가 좁은 화면에서도 aspect-square 다 — 정사각은 sm 부터여야 한다.`,
 );
 check(
-  gridBlock.includes('gridTemplateRows: "repeat(4, minmax(min-content, 1fr))"'),
-  `정적 검사(${COMPONENT_PATH}): 12궁 격자 행이 minmax(min-content, 1fr) 이 아니다 — 1fr 고정 행은 주성 2줄 궁(염정◎/천상◎)의 둘째 줄을 13.8px 잘라낸다(375px 실측 clientHeight 71 vs scrollHeight 77).`,
+  gridBlock.startsWith(GRID_START) && gridSource.includes('gridTemplateRows: "repeat(4, minmax(min-content, 1fr))"'),
+  `정적 검사(${GRID_SOURCE_PATH}): 12궁 격자 행이 minmax(min-content, 1fr) 이 아니다 — 1fr 고정 행은 주성 2줄 궁(염정◎/천상◎)의 둘째 줄을 13.8px 잘라낸다(375px 실측 clientHeight 71 vs scrollHeight 77).`,
 );
 
 // ── 결과 ─────────────────────────────────────────────────────────────────────

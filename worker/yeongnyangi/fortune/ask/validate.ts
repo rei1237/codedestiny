@@ -71,7 +71,14 @@ export function validateAskChapter(body: ChapterBody, consultation: Consultation
   if (/\b[FT]\d{3}\b|(?:100\s*%|반드시|무조건|guaranteed|definitely).{0,30}(?:재회|결혼|성공|reunion|marriage|success)/iu.test(prose))
     throw new FortuneError('ASK_UNSAFE_CLAIM');
   const categories=new Map(guide.questions.map(question=>[question.questionId,question.category]));
-  return {...body, questionAnswers: answers.map(({factIds: _facts, timingIds: _timing, evidenceStatus, ...answer}) => ({
+  // The citations stay on the stored chapter as server-only internalBasis (packet IDs plus the fact IDs they point at,
+  // which outlive the ask checkpoint). presentFortune removes it; the public answers never carry them.
+  const internalBasis={questionAnswers:answers.map(answer=>{
+    const factIds=answer.factIds as string[],timingIds=answer.timingIds as string[];
+    return {questionId:answer.questionId,factIds:[...factIds],timingIds:[...timingIds],evidenceStatus:answer.evidenceStatus as 'grounded'|'limited',
+      sources:[...new Set([...factIds,...timingIds].map(id=>(facts.get(id)||timing.get(id))!.source.factId))]};
+  })};
+  return {...body, internalBasis, questionAnswers: answers.map(({factIds: _facts, timingIds: _timing, evidenceStatus, ...answer}) => ({
     ...answer,mode:evidenceStatus==='limited'?'limited':categories.get(answer.questionId)==='health'?'care':'normal',
   }))};
 }

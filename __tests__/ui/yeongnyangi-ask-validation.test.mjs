@@ -27,6 +27,8 @@ test('question evidence is validated and private F/T metadata is removed before 
   const original=body(),saved=check(original);
   assert.deepEqual(saved.questionAnswers[0],answer('q1',{mode:'normal'}));
   assert.deepEqual(original.questionAnswers[0].factIds,['F001']);
+  // 근거 ID 는 버리지 않고 서버 전용 internalBasis 로 남긴다(presentFortune 이 화면 전에 지운다).
+  assert.deepEqual(saved.internalBasis.questionAnswers[0],{questionId:'q1',factIds:['F001'],timingIds:['T001'],evidenceStatus:'grounded',sources:['saju.tenGods','saju.yearlyLuck']});
 });
 test('other question evidence, forged IDs and missing source citations fail closed',()=>{
   for(const mutate of [
