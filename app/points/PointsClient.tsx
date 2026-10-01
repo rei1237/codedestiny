@@ -2290,7 +2290,7 @@ function ToastContainer({
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-5 left-1/2 z-[200] -translate-x-1/2 flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none">
+    <div className="fixed top-5 left-1/2 z-[1010] -translate-x-1/2 flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none">
       {toasts.map((toast) => (
         <div
           key={toast.id}
@@ -4923,7 +4923,7 @@ export default function PointsPage() {
 
       {pendingSubscriptionPaymentPlan && (
         <div
-          className="fixed inset-0 z-[180] flex items-center justify-center bg-slate-950/72 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm"
+          className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/72 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="subscriptionPaymentChoiceTitle"
