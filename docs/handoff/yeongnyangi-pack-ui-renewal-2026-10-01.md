@@ -2,7 +2,7 @@
 status: done
 implementationStatus: shipped-to-main
 updated: 2026-10-01
-next: 후속 과제 1~7 모두 완료. #5 카카오페이는 mock 검증만 했다. 실결제 확인은 사용자의 1회 승인이 있을 때만 한다.
+next: 후속 과제 1~7과 '두 이용권 적용 표시'(ffa9abd14·7bac4fed3·e88d2b312·1ebd3d6b7)까지 완료. 스테이징 카카오페이 실결제 1회는 2026-10-01에 사용했다. 다시 결제하려면 새 1회 승인이 필요하다.
 ---
 
 # 영냥이 전용 이용권 리뉴얼 (2026-10-01)
@@ -88,8 +88,54 @@ next: 후속 과제 1~7 모두 완료. #5 카카오페이는 mock 검증만 했�
      - 살아 있는 `/points`에는 위 PDF·일반 유료 서비스 조건 문장이 없다. 필요한 정책 고지인지는 결제 문서 담당의 판단이 필요하다.
      - PointsClient의 `{false && (...)}` 죽은 블록이 아직 남아 있다(②-2 구분선 등). `points-shop-request-budget.static.test.js`의 "월정석으로는 이용권을 구매할 수 없습니다."와 billing-pass-policy의 `<SubscriptionStatusCard subscription={subscription} />` 단언은 이제 그 죽은 블록 안에서만 맞는다. 그 블록을 지우면 두 단언도 같이 손봐야 한다.
 
+## 스테이징 실결제 1회와 '두 이용권 적용 표시' (2026-10-01)
+
+### 실결제 결과 (사용자 승인 1회, 사용 완료)
+- 사용자가 스테이징에서 고등어 5회 세트를 카카오페이로 1,000원 결제했다.
+- `wrangler tail` 실측: 웹훅이 `yeongnyangi-pack-mackerel-small-v2` 주문을 확정했고, `payment_entitlements`에 지급(commit)까지 됐다.
+- tail에는 성공한 prepare 요청이 빠져 있고 401 한 건만 잡혔다. 이벤트 누락이 있어서 클라이언트 쪽 경과는 로그로 확정하지 못했다.
+- 사용자 체감은 "결제 후 화면 변화 없음"이었다. 원인(코드상)은 두 가지다.
+  - 성공 신호가 세트 목록 맨 아래 한 줄뿐이었다.
+  - 웹훅 지급이 복귀보다 늦으면 '미지급'으로 끝나고 다시 확인하지 않았다.
+
+### 이번 커밋 (서버·결제 정책 변경 없음)
+두 이용권은 동시에 보유하고 각각 쓴다. 상담 한 건에는 한 수단만 차감되며, 판정은 서버 funding claim이 한다.
+- `ffa9abd14` 도장 에셋 2장: `public/assets/yeoni/honey-passes/applied-stamp-v1.webp`, `public/assets/yeongnyangi/service-packs/applied-stamp-v1.webp`. 상수는 `APPLIED_STAMP_IMAGES`다.
+- `7bac4fed3` /points 표시 3곳:
+  - 상단 '내 이용권' 두 칸(`OwnedPassesSummary.tsx`).
+  - 구매 직후 완료 패널(`data-pack-completed`).
+  - 세트 카드 '보유 중 · N회 남음' 배지와 도장.
+- `e88d2b312` **RED.** 결제 복귀 뒤 '미지급'일 때만 2·4·8초 간격으로 자동 재확인한다(`confirmPackOrderWithRecheck`).
+  - 재확인하지 않는 경우: NOT_PAID·FAILED·401 같은 오류, GIFT.
+  - 계정이 바뀌거나 언마운트되면 abort한다.
+  - 롤백할 때는 이 커밋만 revert하면 된다.
+- `1ebd3d6b7` 상담 결제창(/checkout) '내 이용권' 두 칸:
+  - 달빛 이용권은 로컬 스냅샷을 읽는다. Family일 때만 '적용 중'과 도장을 붙이고, 다른 등급에는 "Family부터" 안내를 띄운다.
+  - 영냥이 세트는 quote 후보를 쓴다.
+  - 세트 사용 뒤 '적용됨 · N회 남음'을 1.2초 보여 주고 돌아간다.
+  - SoulCat 모드에서는 표시하지 않는다.
+
+### 검증 (실측)
+- `service-pack-pending-resume.behavior` 31/31.
+- 세트 jest 3개 파일 120/120. 이 실행은 `NODE_OPTIONS=--experimental-vm-modules`가 필요하다.
+- verify 4종 통과: paid-gate-ui, checkout-pass-card, billing-pass-policy, payment-choice-parity.
+- `check:fast --committed-head` EXIT=0.
+- visual-checker로 /points와 /checkout을 360·390·768·960 폭에서 판정했고 전부 PASS다. /checkout은 카드 폭 기준 컨테이너 쿼리(≥560px일 때 두 칸 나란히)를 쓴다.
+- 미검증:
+  - 스테이징에서 새 화면을 실제로 결제한 적은 없다(승인 소진).
+  - /checkout 요약이 560px 이상이 되어 두 칸이 나란히 놓이는 배치는 캡처에 없었다.
+
+### 함정
+- 모바일 폭 로그인 스텁: GlobalHeader는 메뉴를 열 때만 AuthWidget(refreshAuth)을 마운트한다. 스텁에서 localStorage `fortune_auth_cache_verified_v1`(`{scope:userId,verifiedAt}`)를 넣지 않으면 ownerId가 비어 로그아웃 화면처럼 보인다. 테스트 산물이고 제품 결함이 아니다.
+- /checkout의 `requestId`는 64자리 hex만 받는다. 아니면 SoulCat 모드로 빠져 세트 칸이 안 뜬다.
+
+### 별건 (보고만, 미해결)
+- `packRequest`가 `retryOn401:false`라서, 상태 확인·prepare가 401이면 토큰 갱신 없이 바로 로그인으로 보낸다. 스테이징 tail의 prepare 401과 같은 결이다.
+- /points 보유 목록(`ServicePacks.tsx`의 wallet 리스트)은 아직 "고등어 · 고등어 세트 5회"처럼 어종이 두 번 나온다.
+- /points 768 폭에서 "서양 / 점성술"이 꺾인다.
+
 ## 재개 정보
 
 ~~~text
-D:\Development\code-destiny에서 docs\handoff\yeongnyangi-pack-ui-renewal-2026-10-01.md를 읽고 git status와 965b09ee6 이후 커밋을 확인하라. 후속 과제는 모두 끝났다. 영냥이 세트 카카오페이의 실결제(스테이징) 확인은 사용자가 정확한 1회 승인을 준 경우에만 진행하라.
+D:\Development\code-destiny에서 docs\handoff\yeongnyangi-pack-ui-renewal-2026-10-01.md를 읽고 git status와 1ebd3d6b7 이후 커밋을 확인하라. 두 이용권 적용 표시까지 끝났다. 남은 것은 '별건' 3개뿐이다. 실결제는 새 1회 승인이 있을 때만 한다.
 ~~~
