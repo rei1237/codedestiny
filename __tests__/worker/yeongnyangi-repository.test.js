@@ -648,6 +648,27 @@ describe('fortune-chat per-use access',()=>{
     await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
   });
 
+  test('card return: checkout waits for the record, then opens once, generates to the end and stays open',async()=>{
+    verifyPerUse.mockImplementation(async()=>payments.some(p=>p._id==='pay-fc')
+      ? {proven:true,source:'payment',reason:'',transactionId:'pay-fc'} : {proven:false,source:'',reason:'NO_RECORD'});
+    await repo.createRequest({},owner,'id',chat);
+    // The browser came back before the webhook stored the payment: nothing opens, nothing is spent.
+    await expect(activate('checkout')).rejects.toMatchObject({status:503,code:'PAYMENT_EVIDENCE_PENDING'});
+    expect(requests[0].accessMethod).toBeFalsy();
+    payments.push({...chatPayment});
+    const [a,b]=await Promise.all([activate('checkout'),activate('checkout')]);
+    expect([a.accessMethod,b.accessMethod]).toEqual(['PER_USE','PER_USE']);
+    expect(requests[0]).toMatchObject({perUseSource:'payment',perUseEvidenceId:'pay-fc'});
+    for(let ordinal=0;ordinal<2;ordinal++){
+      const claim=await repo.claimChapter({},owner,'id');
+      await repo.finishChapter({},owner,'id',claim.token,ordinal,{summary:`saved-${ordinal}`},2);
+    }
+    expect(requests[0].state).toBe('COMPLETED');
+    expect((await activate('checkout')).state).toBe('COMPLETED');
+    expect(consumePass).not.toHaveBeenCalled();expect(accounts).toHaveLength(0);
+    expect(verifyPerUse.mock.calls.every(([,input])=>input.requireExisting===true)).toBe(true);
+  });
+
   test('a retry that finds the pass already spent rebuilds its restore record from the use record',async()=>{
     evidences.push({...passReceipt,metadata:{...passReceipt.metadata,passCycleKey:'c1',coinCost:30}});
     verifyPerUse.mockResolvedValue({proven:true,source:'pass',reason:''});
