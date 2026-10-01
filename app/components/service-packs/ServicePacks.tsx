@@ -13,7 +13,7 @@ import {loginForCurrentPage} from '@/app/yeongnyangi/_lib/api';
 import {products} from '@/worker/yeongnyangi/payments/catalog';
 import {resolveServerFeaturePricing} from '@/lib/payment/server-feature-pricing';
 import checkoutEntry from '@/js/core/checkout-entry.js';
-import {confirmPackOrder,consumeServicePack,loadPackPayMethodAvailability,PACK_PAY_METHODS,payPackOrder,preparePackPurchase,quoteServicePack,readPackCatalog,readPackWallet,readPendingPack,savePendingPack,resumePendingPackPurchase,samePackSnapshot,ServicePackError,type OwnedServicePack,type PackQuote,type ServicePackPlan} from './service-pack-client';
+import {confirmPackOrderWithRecheck,consumeServicePack,loadPackPayMethodAvailability,PACK_PAY_METHODS,payPackOrder,preparePackPurchase,quoteServicePack,readPackCatalog,readPackWallet,readPendingPack,savePendingPack,resumePendingPackPurchase,samePackSnapshot,ServicePackError,type OwnedServicePack,type PackQuote,type ServicePackPlan} from './service-pack-client';
 import {packText,servicePackCopy} from './service-pack-copy';
 import styles from './service-packs.module.css';
 import {APPLIED_STAMP_IMAGES,SERVICE_PACK_IMAGES} from './service-pack-images';
@@ -59,6 +59,9 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
  const [completed,setCompleted]=useState<{orderId:string;planId:string}|null>(null);
  const lock=useRef(false),scope=useRef(ownerId),purchaseRef=useRef<HTMLHeadingElement>(null),triggerRef=useRef<HTMLElement|null>(null),catalogRef=useRef(catalog);scope.current=ownerId;catalogRef.current=catalog;
  const completedRef=useRef<HTMLDivElement>(null),ownedRef=useRef<HTMLDivElement>(null),walletCallback=useRef(onWalletChange);walletCallback.current=onWalletChange;
+ // 웹훅 지급이 늦을 때의 자동 재확인(2·4·8초). 계정 전환·언마운트·새 확인이 시작되면 끊는다.
+ const recheck=useRef<AbortController|null>(null);
+ useEffect(()=>()=>recheck.current?.abort(),[]);
  const refreshCatalog=useCallback(async()=>{setCatalog(value=>({...value,loading:true,error:false}));try{const data=await readPackCatalog();setCatalog({...data,error:false,loading:false});}catch{setCatalog({plans:[],giftEnabled:false,error:true,loading:false});}},[]);
  const refreshWallet=useCallback(async(cursor?:string)=>{
   if(!ownerId)return;
@@ -69,7 +72,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
  useEffect(()=>{void refreshCatalog();},[refreshCatalog]);
  useEffect(()=>{walletCallback.current?.(!ownerId?[]:wallet.ownerId!==ownerId?'loading':wallet.packs.length?wallet.packs:wallet.loading?'loading':wallet.error?'error':[]);},[ownerId,wallet]);
  useEffect(()=>{if(completed)completedRef.current?.scrollIntoView({behavior:'smooth',block:'center'});},[completed]);
- useEffect(()=>{setSelected('');setConsent(false);setResumeConsent(false);setMessage('');setPendingOrder('');setCompleted(null);if(ownerId){void refreshWallet();setPendingOrder(readPendingPack(ownerId)?.orderId||'');}},[ownerId,refreshWallet]);
+ useEffect(()=>{recheck.current?.abort();setSelected('');setConsent(false);setResumeConsent(false);setMessage('');setPendingOrder('');setCompleted(null);if(ownerId){void refreshWallet();setPendingOrder(readPendingPack(ownerId)?.orderId||'');}},[ownerId,refreshWallet]);
  // 🔴 PG 가 방금 미결제라고 답했는데 이 화면에서 같은 주문을 이어갈 수 없으면(다른 탭 복귀·카탈로그에서 빠진 구성) 구매 잠금을 푼다.
  //    FAILED·CANCELLED 는 서버가 주문을 실패로 닫아 이어가기도 막히므로 항상 푼다. 다음 구매는 새 키·새 주문이다.
  const releaseUnpaid=useCallback((orderId:string,error:unknown)=>{
@@ -84,7 +87,8 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
  const checkOrder=useCallback(async(orderId:string)=>{
   if(!ownerId||lock.current)return;if(readPendingPack(ownerId)?.purchaseType==='GIFT'){window.location.assign(`/gift/complete/?orderId=${encodeURIComponent(orderId)}`);return;}lock.current=true;setBusy(true);setMessage(copy.confirm);
   const stored=readPendingPack(ownerId);
-  try{const granted=await confirmPackOrder(orderId);if(scope.current!==ownerId)return;if(granted){savePendingPack(ownerId,null);setPendingOrder('');setMessage('');setCompleted({orderId,planId:stored?.orderId===orderId?stored.planId:''});await refreshWallet();const query=new URLSearchParams(location.search);if(query.has('service_pack_return'))history.replaceState({},'',location.pathname+'#fish-packs');}else setMessage(copy.confirm);}
+  recheck.current?.abort();const controller=recheck.current=new AbortController();
+  try{const granted=await confirmPackOrderWithRecheck(orderId,controller.signal);if(scope.current!==ownerId)return;if(granted){savePendingPack(ownerId,null);setPendingOrder('');setMessage('');setCompleted({orderId,planId:stored?.orderId===orderId?stored.planId:''});await refreshWallet();const query=new URLSearchParams(location.search);if(query.has('service_pack_return'))history.replaceState({},'',location.pathname+'#fish-packs');}else setMessage(copy.confirm);}
   catch(error){loginIfNeeded(error);if(!releaseUnpaid(orderId,error))setMessage(copy.confirm);}finally{lock.current=false;setBusy(false);}
  },[ownerId,copy,refreshWallet,releaseUnpaid]);
  useEffect(()=>{
@@ -109,7 +113,8 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
    const order=await preparePackPurchase(plan.planId,pending.idempotencyKey,consent,purchaseType,purchaseType==='GIFT'?gift:undefined,undefined,payMethod);
    if(scope.current!==ownerId)throw new ServicePackError('AUTH_SCOPE_CHANGED');
    savePendingPack(ownerId,{...pending,orderId:order.merchantUid,packSnapshot:order.packSnapshot});setPendingOrder(order.merchantUid);
-   const granted=await payPackOrder(order,payMethod);if(scope.current!==ownerId)return;
+   let granted=await payPackOrder(order,payMethod);if(scope.current!==ownerId)return;
+   if(!granted&&purchaseType==='SELF'){recheck.current?.abort();const controller=recheck.current=new AbortController();granted=await confirmPackOrderWithRecheck(order.merchantUid,controller.signal,{immediate:false});if(scope.current!==ownerId)return;}
    if(granted){savePendingPack(ownerId,null);setPendingOrder('');setSelected('');setConsent(false);setMessage('');setCompleted({orderId:order.merchantUid,planId:plan.planId});await refreshWallet();}
   }catch(error){loginIfNeeded(error);if(error instanceof ServicePackError&&error.code==='PAY_METHOD_UNAVAILABLE')setPayMethodRevision(value=>value+1);setMessage(error instanceof ServicePackError&&error.code==='APP_PACK_NOT_AVAILABLE'?copy.webOnly:copy.confirm);}
   finally{lock.current=false;setBusy(false);}
