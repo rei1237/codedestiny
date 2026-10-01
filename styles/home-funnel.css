@@ -153,12 +153,15 @@ html:is(:lang(ja), :lang(zh)) .cdh :is(h1, h2, h3, p) {
    마스코트·본문·모란 장식을 다시 보이고, 제목·보상·버튼을 키운다. 색은 기존 --fb-* 토큰(연이·네오)을 그대로 쓴다. */
 #cdhFeedbackSlot .cd-feedback__card{min-height:200px;gap:clamp(18px,3vw,36px);padding:clamp(26px,3.4vw,40px) clamp(22px,3.8vw,44px);border-radius:28px;box-shadow:0 20px 48px rgba(36,8,26,.26),inset 0 0 0 1px rgba(234,208,137,.16)}
 #cdhFeedbackSlot .cd-feedback__mascot{width:clamp(104px,11vw,132px);height:auto;border:0;border-radius:0;background:none;overflow:visible}
-#cdhFeedbackSlot .cd-feedback__mascot img{width:100%;height:auto}
+#cdhFeedbackSlot .cd-feedback__mascot img{width:100%;height:auto;background:none}
 #cdhFeedbackSlot .cd-feedback__copy{gap:8px}
 #cdhFeedbackSlot .cd-feedback__title{font-size:clamp(1.45rem,2.6vw,2rem)}
 #cdhFeedbackSlot .cd-feedback__reward{font-size:1rem}
 #cdhFeedbackSlot .cd-feedback__cta{min-height:58px;padding:0 32px;font-size:1.05rem}
 @media (max-width:720px){#cdhFeedbackSlot .cd-feedback__card{grid-template-columns:88px minmax(0,1fr);min-height:0;row-gap:18px;padding:24px 20px}#cdhFeedbackSlot .cd-feedback__mascot{width:88px}#cdhFeedbackSlot .cd-feedback__reward{font-size:.92rem}#cdhFeedbackSlot .cd-feedback__cta{width:100%}}
+/* 모바일은 마스코트 옆 칸이 118~188px 라 999px 알약 보상 줄이 4~5줄로 접혔다 — 세로로 쌓아 칸을 넓히고,
+   줄이 넘어가도 문장처럼 흐르는 둥근 사각형으로 둔다(금액 묶음은 한 줄). */
+@media (max-width:640px){#cdhFeedbackSlot .cd-feedback__card{grid-template-columns:minmax(0,1fr)}#cdhFeedbackSlot .cd-feedback__reward{display:block;width:fit-content;max-width:100%;border-radius:14px;padding:8px 12px}#cdhFeedbackSlot .cd-feedback__reward strong{white-space:nowrap}}
 @media (min-width: 900px){.cdh-pass__tiers{grid-template-columns:repeat(4,minmax(0,1fr))}.cdh-pass__btn{justify-self:center;min-width:320px}}
 @media (max-width: 640px){.cdh-bubble{top:14px;max-width:54%;font-size:.8rem}.cdh-more__body{padding-inline:6px}.cdh-pass__desc{font-size:.84rem}}
 @media (prefers-reduced-motion: reduce){.cdh-pass__tier-link,.cdh-more__arrow{transition:none}}
