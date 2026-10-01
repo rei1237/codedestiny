@@ -609,23 +609,44 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
     const refunded=await withMongoRetry(env,()=>refundYeongnyangiMoonstone({userId,requestId}));
     return Boolean(refunded.refunded);
   }
+  // A paid fortune-chat consultation gives back only what the server can restore without cash: pass quota and
+  // moonlight stones. Card and coin spends stay with support review, as the Yeongnyangi card path does.
+  const perUse=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:'PER_USE',
+    $or:[{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0},
+      {state:'REFUNDED',errorCode:'MONTHLY_CREDIT_RESTORED'}]}).lean(),readOptions);
+  if(perUse?.perUseSource==='ledger') {
+    const {refundYeongnyangiMoonstone}=await import('../lib/pass-consumption.js');
+    const refunded=await withMongoRetry(env,()=>refundYeongnyangiMoonstone({userId,requestId,perUse:true}));
+    return Boolean(refunded.refunded);
+  }
+  if(perUse?.perUseSource==='point'&&perUse.perUsePassRefund?.cycleKey&&perUse.state==='FORTUNE_FAILED') {
+    return restorePassQuota(env,userId,requestId,{accessMethod:'PER_USE',perUseSource:'point'},{cycleKey:perUse.perUsePassRefund.cycleKey,
+      cost:perUse.perUsePassRefund.cost,evidenceId:perUse.perUseEvidenceId});
+  }
+  if(perUse)return false;
   const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:{$in:['FAMILY']},
     state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0}).lean(),readOptions);
   if(!row)return false;
-  const [{PointHistory},{refundPassCoverage}]=await Promise.all([loadFamilyIdentity(),loadFamilyLedger()]);
-  const refunded=await refundPassCoverage({userId,cycleKey:row.passCycleKey,cost:row.passCoinCost,refundId:`yeongnyangi:${requestId}`,
+  return restorePassQuota(env,userId,requestId,{accessMethod:{$in:['FAMILY']}},{cycleKey:row.passCycleKey,cost:row.passCoinCost,evidenceId:row.passEvidenceId,
     restorePass:{tier:row.passTier || 'family',expiresAt:row.passCycleKey,monthlyLimitCoin:row.passMonthlyLimitCoin,profileLimit:row.passProfileLimit || 0,
       maxCoveredCoin:row.passMaxCoveredCoin || (row.passTier==='family'||!row.passTier?999999999:0),passPolicyVersion:row.passPolicyVersion}});
+}
+
+// Pass quota first (idempotent per request through its receipt), then the use record and the request together.
+async function restorePassQuota(env,userId,requestId,access,{cycleKey,cost,evidenceId,restorePass=null}) {
+  const owner=ownerId(userId);
+  const [{PointHistory},{refundPassCoverage}]=await Promise.all([loadFamilyIdentity(),loadFamilyLedger()]);
+  const refunded=await refundPassCoverage({userId,cycleKey,cost,refundId:`yeongnyangi:${requestId}`,restorePass});
   if(!refunded.refunded)return false;
   return withMongoRetry(env,async()=>{
     const session=await (scopeConnection() || mongoose).startSession();
     try{
       let restored=false;
       await session.withTransaction(async()=>{
-        const evidence=await PointHistory.findOneAndUpdate({_id:row.passEvidenceId,userId:owner,
+        const evidence=await PointHistory.findOneAndUpdate({_id:evidenceId,userId:owner,
           'metadata.refundedForServiceExecution':{$ne:true}},{$set:{'metadata.refundedForServiceExecution':true,'metadata.refundedAt':new Date()}},{new:true,session}).lean();
         if(!evidence)return;
-        const request=await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:owner,accessMethod:{$in:['FAMILY']},
+        const request=await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:owner,...access,
           state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0},
         {$set:{state:'REFUNDED',errorCode:'PASS_QUOTA_RESTORED',leaseToken:'',leaseUntil:null}},{new:true,session}).lean();
         restored=Boolean(request);
