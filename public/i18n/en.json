@@ -1448,14 +1448,31 @@
       "findConcern": "Find by concern",
       "gardenFirst": "Where your story blooms",
       "gardenSecond": "A garden in the moonlight",
-      "reviewed": "10 years in Saju · predicted the fortunes of two presidents",
+      "reviewed": "10 years in Saju · real 1:1 session reviews",
       "perspectives": "Compare perspectives across six traditions",
       "startFree": "Start for free",
       "explore": "Explore more",
       "exploreLead": "Continue the experience with stories and music.",
       "pass": "Passes",
       "login": "Log in",
-      "account": "My account"
+      "account": "My account",
+      "offerTitle": "Saju once read in ₩300,000 one-on-one sessions, now from ₩1,000",
+      "reviewsLead": "Real KakaoTalk messages from Neo's 1:1 clients, quoted in the original Korean. Omissions are marked with ….",
+      "reviewsBar": "Neo 1:1 session · KakaoTalk",
+      "reviewsMeta": "Real client review · shared with consent",
+      "reviewsPosted": "posted on blog",
+      "reviewsFine": "Reviews reflect personal experience and do not guarantee results. Saju readings are for reference only.",
+      "offerNote": "The 1:1 sessions were held by Neo in person; the ₩1,000 reading is delivered by a calculation engine with AI commentary.",
+      "offerCta": "Try the ₩1,000 Saju reading →",
+      "expertiseTitle": "Rules for the calculation, AI for the commentary",
+      "expertise": {
+        "engine": "The natal chart is built with fixed calculation rules, and the AI writes its commentary from that result. If the commentary names a day or hour pillar that differs from the calculation, the server rejects it.",
+        "solarTerms": "Months are divided by the moment each solar term begins, not by lunar calendar dates.",
+        "birthTime": "Birth time is adjusted for the birthplace's longitude and for historical daylight saving time.",
+        "nightZi": "If the adjusted birth time is 23:00 or later, the next day's pillar is used — one rule, applied consistently.",
+        "kasi": "Calculation results are automatically checked against public data from the Korea Astronomy and Space Science Institute (KASI).",
+        "systems": "Saju, Zi Wei Dou Shu, Sukuyo, Vedic astrology, Western astrology and Tarot — six systems, each read by its own rules."
+      }
     },
     "reformActions": {
       "consult": "Explore Yeongnyangi readings",

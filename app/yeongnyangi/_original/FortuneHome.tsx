@@ -262,7 +262,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
             <div className="hero-category-links">
               <a href="/yeongnyangi/library/"><BookOpen size={22}/><span><strong>내 상담 기록</strong><small>맡겨둔 이야기, 다시 펼쳐봐.</small></span><ChevronRight size={17}/></a>
               <a href="/ggulggul/"><Compass size={22}/><span><strong>다른 운세 둘러보기</strong><small>꽃돼지의 점술방도 구경할래?</small></span><ChevronRight size={17}/></a>
-              <a href="#founder-records"><Bookmark size={22}/><span><strong>상담사 경력과 공개 예측 기록</strong><small>어떤 길을 걸어왔는지 들려줄게.</small></span><ChevronRight size={17}/></a>
+              <a href="#founder-records"><Bookmark size={22}/><span><strong>상담사 경력과 실제 상담 후기</strong><small>네오가 1:1로 상담하며 받은 이야기를 보여줄게.</small></span><ChevronRight size={17}/></a>
             </div>
           </nav>
 

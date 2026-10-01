@@ -42,7 +42,7 @@ export default function Room(){
    <RoomInteractions onStory={openStory}/>
    <section className="room-stories" aria-labelledby="room-story-title">
     <div className="room-story-heading"><BookOpen size={19}/><h2 id="room-story-title">내 이름이 네오였던 밤</h2></div>
-    <button ref={storyButton} className="room-prologue-entry" onClick={openStory}><img src={asset('neo-mirror-grief')} width={1440} height={960} alt="" loading="lazy"/><span><strong>두 대통령의 운명을 맞혔다.<br/>그 대가로, 나의 내일을 잃었다.</strong><span>네오에서 영냥이로. 아홉 장면의 이야기와 네가 건네는 위로.</span><b>이야기 펼치기 <ArrowRight size={16}/></b></span></button>
+    <button ref={storyButton} className="room-prologue-entry" onClick={openStory}><img src={asset('neo-mirror-grief')} width={1440} height={960} alt="" loading="lazy"/><span><strong>수많은 사람의 운명을 읽었다.<br/>그 대가로, 나의 내일을 잃었다.</strong><span>네오에서 영냥이로. 아홉 장면의 이야기와 네가 건네는 위로.</span><b>이야기 펼치기 <ArrowRight size={16}/></b></span></button>
    </section>
    <section className="room-small-moment" aria-label="영냥이의 작은 휴식"><CatMotion/><div><Sparkles size={18}/><h2>한숨 끝에도,<br/>네 자리는 남겨둘게.</h2><p>웃는 날에도, 그렇지 못한 날에도.<br/>다른 표정의 영냥이를 만나봐.</p><a className="room-fortune-link" href="/yeongnyangi/fortune/">상담 내용 살펴보기<ArrowRight size={16}/></a><a className="room-fortune-link" href="/yeongnyangi/library/">내 상담 이어보기<BookOpen size={16}/></a></div></section>
    <DailyTarotCard/>

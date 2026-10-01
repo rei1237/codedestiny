@@ -9,7 +9,6 @@ const base = process.env.CONSULTATION_TEST_BASE || 'http://127.0.0.1:14125';
 assert.ok(['localhost', '127.0.0.1'].includes(new URL(base).hostname));
 const output = 'build-cache/premium-detail';
 await mkdir(output, { recursive: true });
-const records = JSON.parse(await readFile('lib/brand/prediction-records.json', 'utf8'));
 const fonts = new Map(), results = [];
 const shell = JSDOM.fragment(await readFile('index.html', 'utf8'));
 const popupFixture = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="/styles/fonts-serif.css">${[...shell.querySelectorAll('style')].map(style => style.outerHTML).join('')}</head><body>${shell.querySelector('#tilePvwOverlayTemplate').innerHTML}</body></html>`;
@@ -51,9 +50,7 @@ try {
       const ratio = await image.evaluate(async el => { await el.decode(); return { painted: el.clientWidth / el.clientHeight, natural: el.naturalWidth / el.naturalHeight }; });
       assert.ok(Math.abs(ratio.painted - ratio.natural) < .01, 'Whole cover keeps its aspect ratio');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
-      const sourceLinks = article.locator('.fortuneFounder li a');
-      assert.deepEqual(await sourceLinks.evaluateAll(links => links.map(link => link.href)), records.map(record => record.url));
-      assert.deepEqual(await article.locator('.fortuneFounder time').allTextContents(), records.map(record => record.date));
+      assert.deepEqual(await article.locator('.fortuneFounder a').evaluateAll(links => links.map(link => link.getAttribute('href'))), ['/yeongnyangi/#founder-records', '/about/#author']);
       const action = article.locator('.fortuneAction a');
       assert.equal(await action.getAttribute('href'), detail.href);
       assert.ok((await action.boundingBox()).height >= 44);
@@ -86,7 +83,7 @@ try {
         await dialog.locator(`[data-fortune-material="${material}"]`).waitFor();
         await page.evaluate(async () => { await document.fonts.ready; });
         await dialog.locator('.fortuneObject img').evaluate(async el => { await el.decode(); });
-        assert.equal(await dialog.locator('.fortuneFounder li').count(), 3);
+        assert.equal(await dialog.locator('.fortuneFounder a[href="/yeongnyangi/#founder-records"]').count(), 1);
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
         await page.screenshot({ path: `${output}/${stem}-dialog.png`, caret: 'initial' });
         await dialog.locator('.fortuneAction button').click();

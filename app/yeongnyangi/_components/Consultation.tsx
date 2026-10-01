@@ -21,8 +21,6 @@ import {fortuneApi,FortuneApiError,loginForCurrentPage,resultPath,checkoutPath,t
 import ProfilePicker from './ProfilePicker';
 import {profileKey,useProfiles} from '../_lib/use-profiles';
 import styles from '../yeongnyangi.module.css';
-import predictionRecords from '@/lib/brand/prediction-records.json';
-import {predictionTimeline} from '@/lib/brand/prediction-timeline';
 import {trackEvent} from '@/lib/analytics';
 import {readingLocale,readingLocales,readingLanguageNames} from '@/worker/yeongnyangi/fortune/reading-locale';
 import ReadingLanguageSelect from './ReadingLanguageSelect';
@@ -39,11 +37,6 @@ import {jongCheckApplies} from '@/worker/yeongnyangi/fortune/saju/jong-check-pol
 import type {JongCheck,JongReply} from '@/worker/yeongnyangi/fortune/saju/jong-check';
 import {tarotConsultation} from '@/worker/yeongnyangi/fortune/tarot/consultation-contract';
 const loginDraftKey='yeongnyangi:consultation-login-draft';
-const predictionProofRecords=predictionRecords.map(record=>{
- const entry=predictionTimeline[record.url];
- if(!entry) throw new Error(`prediction-timeline missing ${record.url}`);
- return {...record,...entry};
-});
 export default function Consultation(){
  const [relationshipStage,setRelationshipStage]=useState(''),[relationshipQuestionId,setRelationshipQuestionId]=useState('');
  const [participants,setParticipants]=useState({self:'',partner:''});
@@ -231,7 +224,6 @@ export default function Consultation(){
     <h2>{ui.guideTitle}</h2><p>{ui.guideIntro}</p>
     <dl className={styles.consultationSummary}><div><dt>{ui.summary}</dt><dd>{kindLabel(kind.id)} · {tierLabel(product)}</dd></div><div><dt>{ui.profile}</dt><dd>{tarotOnly?localizedSystem('tarot',siteLocale):selectedProfile?.name||inputCopy.pickerPrompt}</dd></div><div><dt>{ui.structure}</dt><dd>{preview.length} {ui.chapters}</dd></div><div><dt>{ui.methodTitle}</dt><dd>{siteLocale==='ko'?readingFeatures[domain]:localizedSystem(domain,siteLocale)}</dd></div><div><dt>{ui.paymentTitle}</dt><dd>{ui.payment} · {price(product.priceKRW)}</dd></div></dl>
     <p className={styles.guideNote}><Sparkles size={16} aria-hidden="true"/>{ui.about}</p>
-    <details className={styles.predictionRecords}><summary><span className={styles.predictionRecordsSeal} aria-hidden="true">原</span><span><strong>{ui.trust}</strong><small>{ui.source}</small></span></summary><div className={styles.predictionRecordsBody}><figure className={styles.predictionRecordsArt}><img src="/assets/yeongnyangi/original/records-scroll-2d-480.webp" width={480} height={320} alt="" loading="lazy" decoding="async"/></figure><p>{ui.trustHint}</p><ol>{predictionProofRecords.map(record=><li key={record.url}><a href={record.url} target="_blank" rel="noopener noreferrer"><time dateTime={record.date}>{record.date}</time>{siteLocale==='ko'&&<><strong>{record.title}</strong><span>{record.after}</span></>}<em>{ui.source}</em></a></li>)}</ol></div></details>
    </aside>
    <div className={`${styles.form} ${styles.consultationForm}`}>
    {relationship&&tarotOnly&&<><label>{relationshipCopy.self}<input maxLength={40} value={participants.self} onChange={e=>setParticipants({...participants,self:e.target.value})}/></label><label>{relationshipCopy.partner}<input maxLength={40} value={participants.partner} onChange={e=>setParticipants({...participants,partner:e.target.value})}/></label><p>{relationshipCopy.symbolism}</p></>}

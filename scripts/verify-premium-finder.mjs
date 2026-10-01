@@ -11,7 +11,6 @@ assert.ok(['localhost', '127.0.0.1'].includes(new URL(base).hostname));
 const output = 'build-cache/premium-finder';
 await mkdir(output, { recursive: true });
 const results = [], fonts = new Map();
-const records = JSON.parse(await readFile('lib/brand/prediction-records.json', 'utf8'));
 const browser = await chromium.launch();
 try {
   for (const [width, colorScheme] of [[360, 'light'], [390, 'light'], [430, 'light'], [1280, 'light'], [390, 'dark']]) {
@@ -94,7 +93,7 @@ try {
         throw error;
       }
       await expect(dialog.locator('.fortuneAction')).toContainText(amount);
-      assert.deepEqual(await dialog.locator('.fortuneFounder li a').evaluateAll(nodes => nodes.map(node => node.href)), records.map(record => record.url));
+      assert.deepEqual(await dialog.locator('.fortuneFounder a').evaluateAll(nodes => nodes.map(node => node.getAttribute('href'))), ['/yeongnyangi/#founder-records', '/about/#author']);
       await dialog.locator('.fortuneObject img').evaluate(el => el.decode());
       await page.screenshot({ path: `${output}/${stem}-detail.png` });
       if (width < 500) await page.locator('#tilePvwClose').tap();
