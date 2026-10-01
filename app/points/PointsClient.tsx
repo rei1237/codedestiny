@@ -2829,7 +2829,10 @@ function MoonlightShopPlans({
           const planTierRank = getSubscriptionTierRank(plan.tier);
           const lowerTierBlocked = activeTierRank > 0 && planTierRank < activeTierRank;
           const ctaDisabled = isProcessing || lowerTierBlocked || !saleReady[plan.tier] || (subscription.isActive && subscription.passPolicyVersion !== CURRENT_PASS_POLICY_VERSION);
-          const features = plan.features.slice(0, 4).map((feature) => formatSalePlanFeature(plan.tier, feature, copy, formatLocale));
+          // under* 는 위 정책 칩과 같은 "일반 N원 이하 이용 가능" 문구라 중복으로 보인다.
+          const features = plan.features.slice(0, 4)
+            .filter((feature) => !feature.startsWith("under"))
+            .map((feature) => formatSalePlanFeature(plan.tier, feature, copy, formatLocale));
 
           return (
             <article key={plan.id} className={`moon-plan-card rounded-[22px] p-4 ${isHighlighted ? "ring-2 ring-[color:var(--moon-glow)]" : ""} ${lowerTierBlocked ? "opacity-60" : ""}`}>
