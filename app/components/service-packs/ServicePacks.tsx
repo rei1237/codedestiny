@@ -43,7 +43,7 @@ export function PackRows({packs,locale}:{packs:OwnedServicePack[];locale:Loading
  const copy=servicePackCopy(locale);
  return <ul className={styles.wallet}>{packs.map(pack=><li key={pack.entitlementId} data-pack-entitlement={pack.entitlementId}>
   <Image src={SERVICE_PACK_IMAGES[pack.fishId]} width={240} height={240} sizes="100px" alt="" loading="lazy"/>
-  <div><h4>{localizedTier(pack.fishId,locale)} · {pack.label}</h4><strong>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</strong><p>{packText(copy.expires,{date:date(pack.expiresAt,locale)})}</p>
+  <div><h4>{pack.label}</h4><strong>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</strong><p>{packText(copy.expires,{date:date(pack.expiresAt,locale)})}</p>
    <p>{eligibleNames(pack.eligibleFeatureKeys,locale)}</p>{!pack.available&&<p>{copy.inactive}</p>}</div>
   {pack.available&&<Link href="/yeongnyangi/fortune/" prefetch={false}>{copy.chooseConsultation}</Link>}
  </li>)}</ul>;
