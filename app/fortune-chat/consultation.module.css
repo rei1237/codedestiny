@@ -1,0 +1,197 @@
+/* 연이·네오 상담 엔진(ConsultationRoom·ConsultationResult). 색은 fortune-chat.module.css 의 .room 토큰
+   (--ink·--muted·--rose·--rose-soft·--line·--bubble)만 쓴다 — 표면과 글자색이 한 세트로 바뀌어야 한다. */
+
+.panel {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--bubble);
+  padding: 16px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  box-shadow: 0 10px 22px rgba(150, 72, 104, .07);
+}
+
+.sectionTitle { margin: 0; font-size: 1rem; letter-spacing: -.02em; color: var(--ink); }
+.kicker { margin: 0; color: var(--rose); font-size: .76rem; font-weight: 900; letter-spacing: .04em; }
+.muted { margin: 0; color: var(--muted); font-size: .86rem; line-height: 1.6; }
+
+.personaPicker { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.personaPicker button {
+  min-width: 0;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bubble);
+  padding: 10px 12px;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.personaPicker button > span:last-child { display: grid; min-width: 0; }
+.personaPicker strong { font-size: .9rem; }
+.personaPicker small { color: var(--muted); font-size: .74rem; }
+.personaPicker button[aria-pressed=true] { border-color: var(--rose); box-shadow: 0 0 0 3px var(--halo); }
+
+/* 대화 입력줄의 가로 스크롤 칩을 패널 안에서는 줄바꿈으로 — 넓은 화면에서 잘리지 않게. */
+.panel .chipWrap { flex-wrap: wrap; overflow: visible; padding-bottom: 0; }
+.panel .chipWrap button { white-space: normal; text-align: left; }
+
+.profileRow { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.profileRow select {
+  min-width: 0;
+  min-height: 46px;
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bubble);
+  padding: 0 12px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+.linkButton {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  padding: 0 14px;
+  color: var(--rose);
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--rose) 28%, transparent);
+  border-radius: 16px;
+  background: var(--bubble);
+  padding: 12px 14px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.6;
+  resize: vertical;
+}
+.textarea:focus { outline: none; border-color: var(--rose); box-shadow: 0 0 0 3px var(--focus-ring); }
+
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.actions button {
+  min-height: 46px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--rose);
+  padding: 0 18px;
+  color: var(--bubble-mine-ink);
+  font: inherit;
+  font-size: .88rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.actions button + button { border: 1px solid var(--line); background: transparent; color: var(--ink); }
+.actions button:disabled { opacity: .55; cursor: not-allowed; }
+
+.accessPanel {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.accessPanel p { margin: 0; color: var(--ink); line-height: 1.6; }
+
+.question {
+  margin: 0;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--rose-soft) 16%, var(--bubble));
+  padding: 9px 12px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.history { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.history button {
+  width: 100%;
+  display: grid;
+  gap: 3px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: transparent;
+  padding: 11px 13px;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.history strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .9rem; }
+.history small { color: var(--muted); font-size: .76rem; }
+
+/* 결과: 핵심 답변 → 요약 카드 → 근거 → 흐름 → 시기 → 행동 → 마무리 */
+.result { display: grid; gap: 14px; min-width: 0; word-break: keep-all; overflow-wrap: anywhere; }
+.result > section {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--bubble);
+  padding: 16px;
+  line-height: 1.75;
+}
+.result p { margin: 0; }
+.core { background: linear-gradient(135deg, var(--bubble), color-mix(in srgb, var(--rose-soft) 22%, var(--bubble))) !important; }
+.coreAnswer { font-size: 1.08rem; font-weight: 700; color: var(--ink); line-height: 1.7; }
+.modeNote {
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--gold) 26%, var(--bubble));
+  padding: 8px 11px;
+  color: var(--ink);
+  font-size: .84rem;
+}
+
+.summaryCards { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.summaryCards li { border-radius: 14px; background: color-mix(in srgb, var(--rose-soft) 14%, var(--bubble)); padding: 10px 12px; }
+.summaryCards strong { display: block; margin-bottom: 3px; font-size: .86rem; color: var(--rose); }
+.summaryCards p { font-size: .9rem; color: var(--ink); }
+
+.highlights { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+.charts summary { color: var(--rose); font-size: .84rem; font-weight: 900; cursor: pointer; }
+.charts[open] summary { margin-bottom: 10px; }
+
+.chapter { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; }
+.chapter:first-of-type { border-top: 0; padding-top: 0; }
+.chapter h4, .block h4 { margin: 0; font-size: .92rem; color: var(--ink); }
+.block { display: grid; gap: 6px; }
+.example { color: var(--muted); font-size: .9rem; }
+.callout {
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--rose-soft) 18%, var(--bubble));
+  padding: 10px 12px;
+  font-weight: 700;
+}
+
+.progress {
+  justify-self: center;
+  margin: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gold) 34%, var(--bubble));
+  padding: 7px 12px;
+  color: var(--ink);
+  font-size: .8rem;
+  font-weight: 800;
+}
+.closingLine { display: flex; gap: 10px; align-items: flex-start; }
+
+@media (max-width: 560px) {
+  .panel, .result > section { padding: 14px 13px; border-radius: 18px; }
+  .coreAnswer { font-size: 1rem; }
+}
