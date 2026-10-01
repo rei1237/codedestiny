@@ -1,8 +1,8 @@
 ---
 status: active
-implementationStatus: shipped-to-main (플래그 OFF, 사용자 노출 없음)
+implementationStatus: shipped-to-main (2단계 UI 완료 · 스테이징 플래그 ON · 프로덕션 OFF)
 updated: 2026-10-01
-next: 2단계 — 연이 상담 UI를 새 API(/api/fortune-chat/consultations)에 연결하고 스테이징에서 플래그를 켠다.
+next: 3단계 — 네오 상담 세계(별빛 전략실): 정보 위계와 모드 전환 때 결과 보존.
 ---
 
 # 연이·네오 대화형 상담 → 영냥이 질문형 엔진 공유 (1단계: 공통 엔진·결제 연결)
@@ -58,12 +58,39 @@ next: 2단계 — 연이 상담 UI를 새 API(/api/fortune-chat/consultations)�
   - 실 LLM 상담 품질(별도 1회 승인 필요)
   - 스테이징 화면
 
+## 2단계 결과 (2026-10-01, 커밋)
+
+- `05c853a03` 기록 응답(`GET ?persona=`)이 `enabled`(플래그)를 함께 돌려준다.
+- `a660192ea` 결제 버튼 판정 `app/fortune-chat/consultation-access.ts` + `__tests__/ui/fortune-chat-consultation-access.test.js`(4건, 가드 줄 제거 변이로 1건 실패 확인).
+  - 렌더: `state===CREATED`·`paid!==true`·`accessMethod` 없음일 때만 결제·무료 버튼을 그린다.
+  - 클릭: 결제창 직전 `activate()`(증빙만 붙이고 아무것도 쓰지 않음)로 다시 읽어 같은 판정을 한 번 더 한다. 다시 읽기 실패면 결제창을 열지 않는다(fail-closed).
+- `c8c706947` 상담실 `ConsultationRoom.tsx`·결과 `ConsultationResult.tsx`·API 클라이언트 `consultation-api.ts`·`consultation.module.css`.
+  - 시작: 연이/네오 → 프로필(`useProfiles`, 새 프로필은 ProfileForm) → 운세 축 → 질문.
+  - 열기: 무료 1회(`free_trial`) 또는 카드(`ensurePaidAccess`, featureKey 는 서버가 준 `fc-<id>`, requestId 는 `paymentRequestId`, 복귀는 `usePaidResume(fortune-chat-consultation:engine)`).
+  - 결과 순서: 핵심 답변 → 요약 카드 → 근거 → 흐름 → 시기 → 행동 → 마무리.
+  - 복구: `?consultation=<id>` 로 새로고침해도 다시 열린다. 생성 중이면 1.5초(보류 코드면 30초) 폴링, `recovery.canRetryNow` 면 "이어서 쓰기".
+- `479b5a86a` `/fortune-chat` 진입 분기 `FortuneChatEntry.tsx`: 로그인 + `enabled` 면 새 상담실, 그 밖은 기존 대화형 상담. `?consultation=<id>` 는 플래그와 무관하게 상담실.
+  - 🔴 탐침은 로그인 확정 뒤에만 보낸다(비로그인 401 → 갱신 실패 → logout 이벤트 → 기존 상담방 초기화).
+- `6cb20649c` 스테이징 `ENABLE_FORTUNE_CHAT_CONSULTATIONS="true"` + `STAGING_ONLY_KEYS` 선언(프로덕션 유입 차단). 롤백은 이 커밋 revert.
+
+검증(전부 mock):
+- tsc 전체 0건, eslint 0건(새 파일 6개), node --test 접근 판정 4/4·fortune-chat 정적 22/22, 라우트 jest 12/12, 설정을 읽는 테스트 23/23, verify-worker-config-parity·verify:env-parity 통과.
+- 화면: next dev + playwright `page.route` 스텁(스크래치, 커밋 안 함)으로 390·1280 — 시작 → 상담 준비 → 열기 패널(결제 1·무료 1) → 무료로 열기 → 결과. 결과·새로고침 뒤 결제 버튼 0개, 섹션 순서 일치, 가로 넘침 0. visual-checker 6장 통과(줄바꿈·칩 잘림·가격 배지·질문 중복 인용을 고친 뒤).
+- `npm run check:fast`: 2143 중 1건 실패 — `__tests__/release/sitemap-volatile-lastmod-kst.test.js`. clean HEAD(e88d22ae5) 워크트리에서도 같은 실패라 이번 변경과 무관(아래 범위 밖 결함).
+- 미검증: 스테이징 실화면(플래그 ON 배포 뒤), 실 카드 결제 복귀, 실 LLM 결과.
+
+2단계 남은 위험:
+- 서버 prepare 가드는 여전히 없다(후속 1). UI 가드는 낡은 탭은 막지만, 다른 탭에 아직 결제 대기 중인 카드 창이 열려 있는 경우는 막지 못한다.
+- 타로는 새 상담실에 없다(6단계 타로 통합). 플래그가 켜진 로그인 사용자는 기존 타로 대화에 들어갈 수 없다.
+- 로그인 사용자는 `/fortune-chat` 방문마다 기록 GET 1회(Mongo 조회 1회)가 늘고, 첫 방문은 탐침 응답 전까지 기존 상담방이 잠깐 보였다가 바뀐다(`/api/fortune-chat/bootstrap` GET 1회 발생). 두 번째 방문부터는 sessionStorage 힌트로 바로 상담실.
+- 가격 배지는 서비스 등록 키 `fortune-chat-consultation` 로 표시한다(표시 전용). 실제 결제 금액은 서버 `fc-<id>` 판정이 정본.
+
 ## 남은 위험·후속 (우선순위순)
 
 1. 🔴 **카드 결제 prepare 측 가드가 없다.**
    - 무료/이용권으로 연 상담에 낡은 탭이 `fc-` 카드 결제를 또 할 수 있다.
    - 지금은 크론이 사후에 중복 결제로 감지하고 운영 알림만 보낸다(자동 환불 없음).
-   - 2단계 UI 는 연 상담에 결제 버튼을 내지 않아야 하고, 6단계에서 prepare 가 `fc-` 요청의 접근 여부를 확인해야 한다.
+   - 2단계 UI 가드로 낡은 탭은 막았다(위 2단계 결과). 6단계에서 prepare 가 `fc-` 요청의 접근 여부를 확인해야 한다.
 2. `assertNoOpenCheckout` 는 트랜잭션 밖에서 한 번만 읽는다(TOCTOU). 영냥이 `paymentClaimOrderId` 같은 점유 표시가 없다.
 3. 유료 PER_USE 가 0장 실패하면 자동 환불 없이 `GENERATION_REVIEW_REQUIRED` 로 남는다(영냥이 DIRECT_KRW 와 같다). 이용권 환불 정보(`perUsePassRefund`)는 재시도 때 잃을 수 있다(N2). 6단계 과제.
 4. `fc-` 활성화가 영구 오류(예: 무료 복원으로 REFUNDED 된 상담에 결제)를 내면 24시간마다 재시도할 뿐 알림이 없다.
@@ -81,10 +108,11 @@ next: 2단계 — 연이 상담 UI를 새 API(/api/fortune-chat/consultations)�
 - `retry.js` `hasRequestAccess` 공백이 있다.
 - `MAX_FIX_RESUMES=0` 이라 죽은 경로가 남는다.
 - `content-assets.md:9` 가 낡았다.
+- main CI `CI required` 가 e88d22ae5 부터 Static guards 의 `sitemap-volatile-lastmod-kst.test.js`("주간 허브가 주 시작일을 쓰지 않습니다", 실제 2026-10-15 / 기대 2026-10-12)로 실패한다. clean HEAD 에서도 재현된다.
 
 ## 로드맵
 
-2. 연이 상담 UI:
+2. ✅ 연이 상담 UI (2026-10-01 완료, 위 2단계 결과):
    - 프로필 카드 생성
    - 질문 입력
    - 결과(핵심 답변 → 요약 카드 → 근거 → 흐름 → 시기 → 행동 → 마무리)
@@ -97,4 +125,4 @@ next: 2단계 — 연이 상담 UI를 새 API(/api/fortune-chat/consultations)�
 
 ## 다음 세션 첫 문장
 
-> docs/handoff/fortune-chat-engine-unification-2026-10-01.md 를 읽고 2단계(연이 상담 UI를 /api/fortune-chat/consultations 에 연결)를 시작해 줘. 카드 결제 prepare 가드(후속 1)는 UI 에서 연 상담에 결제 버튼을 내지 않는 것으로 먼저 막아.
+> docs/handoff/fortune-chat-engine-unification-2026-10-01.md 를 읽고 3단계(네오 상담 세계 — 별빛 전략실 정보 위계, 모드 전환 때 결과 보존)를 시작해 줘. 2단계 상담실(app/fortune-chat/ConsultationRoom.tsx)을 기준으로 삼아.
