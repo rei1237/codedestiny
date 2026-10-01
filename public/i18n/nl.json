@@ -1448,14 +1448,31 @@
       "findConcern": "Zoeken op vraag",
       "gardenFirst": "Waar jouw verhaal tot bloei komt",
       "gardenSecond": "Een tuin in het maanlicht",
-      "reviewed": "10 jaar Saju · juiste voorspellingen over twee presidenten",
+      "reviewed": "10 jaar Saju · echte reviews van 1-op-1-consulten",
       "perspectives": "Vergelijk perspectieven uit zes tradities",
       "startFree": "Gratis beginnen",
       "explore": "Ontdek meer",
       "exploreLead": "Geniet verder met verhalen en muziek.",
       "pass": "Passen",
       "login": "Inloggen",
-      "account": "Mijn account"
+      "account": "Mijn account",
+      "offerTitle": "Saju uit 1-op-1-consulten van ₩300.000, nu vanaf ₩1.000",
+      "reviewsLead": "Echte KakaoTalk-berichten van Neo’s 1-op-1-cliënten, geciteerd in het oorspronkelijke Koreaans. Weglatingen zijn gemarkeerd met ….",
+      "reviewsBar": "1-op-1-consult met Neo · KakaoTalk",
+      "reviewsMeta": "Echte review · gepubliceerd met toestemming",
+      "reviewsPosted": "op de blog geplaatst",
+      "reviewsFine": "Reviews weerspiegelen persoonlijke ervaringen en garanderen geen resultaat. Saju-lezingen zijn alleen ter referentie.",
+      "offerNote": "De 1-op-1-consulten deed Neo zelf; de lezing van ₩1.000 komt van een rekenengine met AI-toelichting.",
+      "offerCta": "Bekijk de Saju-lezing van ₩1.000 →",
+      "expertiseTitle": "Berekening volgens vaste regels, toelichting door AI",
+      "expertise": {
+        "engine": "De geboortekaart wordt met vaste rekenregels opgesteld en de AI schrijft de toelichting op basis van dat resultaat. Noemt de toelichting een dag- of uurpilaar die afwijkt van de berekening, dan wijst de server die af.",
+        "solarTerms": "Maanden worden ingedeeld naar het moment waarop elke zonneterm begint, niet naar de maankalender.",
+        "birthTime": "Het geboortetijdstip wordt gecorrigeerd voor de lengtegraad van de geboorteplaats en historische zomertijd.",
+        "nightZi": "Valt het gecorrigeerde tijdstip om 23:00 of later, dan geldt de dagpilaar van de volgende dag – één regel, consequent toegepast.",
+        "kasi": "De uitkomsten worden automatisch vergeleken met openbare gegevens van het Korea Astronomy and Space Science Institute (KASI).",
+        "systems": "Saju, Zi Wei Dou Shu, Sukuyo, Vedische astrologie, westerse astrologie en tarot – zes systemen, elk gelezen volgens de eigen regels."
+      }
     },
     "reformActions": {
       "consult": "Ontdek consulten met Yeongnyangi",

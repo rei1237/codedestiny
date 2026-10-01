@@ -1448,14 +1448,31 @@
       "findConcern": "Tìm theo điều bạn quan tâm",
       "gardenFirst": "Nơi câu chuyện của bạn nở hoa",
       "gardenSecond": "Khu vườn dưới ánh trăng",
-      "reviewed": "10 năm luận Tứ trụ · dự đoán đúng vận số hai tổng thống",
+      "reviewed": "10 năm luận Tứ trụ · đánh giá thật từ buổi tư vấn 1:1",
       "perspectives": "So sánh góc nhìn từ sáu truyền thống",
       "startFree": "Bắt đầu miễn phí",
       "explore": "Khám phá thêm",
       "exploreLead": "Tiếp nối trải nghiệm bằng những câu chuyện và âm nhạc.",
       "pass": "Gói sử dụng",
       "login": "Đăng nhập",
-      "account": "Tài khoản của tôi"
+      "account": "Tài khoản của tôi",
+      "offerTitle": "Lá số Tứ trụ từng được luận trong buổi tư vấn 1:1 giá 300.000 won, nay chỉ từ 1.000 won",
+      "reviewsLead": "Tin nhắn KakaoTalk thật từ khách tư vấn 1:1 của Neo, giữ nguyên tiếng Hàn. Phần lược bỏ được đánh dấu bằng ….",
+      "reviewsBar": "Tư vấn 1:1 với Neo · KakaoTalk",
+      "reviewsMeta": "Đánh giá thật · đã đồng ý đăng",
+      "reviewsPosted": "đăng trên blog",
+      "reviewsFine": "Đánh giá dựa trên trải nghiệm cá nhân và không đảm bảo kết quả. Luận giải Tứ trụ chỉ mang tính tham khảo.",
+      "offerNote": "Buổi tư vấn 1:1 do Neo trực tiếp thực hiện; gói 1.000 won được cung cấp bằng công cụ tính toán và lời giải của AI.",
+      "offerCta": "Xem gói Tứ trụ 1.000 won →",
+      "expertiseTitle": "Tính toán theo quy tắc, AI viết lời giải",
+      "expertise": {
+        "engine": "Lá số được lập theo quy tắc tính cố định, AI viết lời giải dựa trên kết quả đó. Nếu lời giải ghi trụ ngày hoặc trụ giờ khác với kết quả tính, máy chủ sẽ loại bỏ.",
+        "solarTerms": "Tháng được chia theo thời điểm chuyển tiết khí, không theo ngày âm lịch.",
+        "birthTime": "Giờ sinh được hiệu chỉnh theo kinh độ nơi sinh và giờ mùa hè trong quá khứ.",
+        "nightZi": "Nếu giờ sinh sau hiệu chỉnh từ 23:00 trở đi, trụ ngày được tính theo ngày hôm sau — một quy tắc duy nhất, áp dụng nhất quán.",
+        "kasi": "Kết quả tính được tự động đối chiếu với dữ liệu công khai của Viện Thiên văn và Vũ trụ Hàn Quốc (KASI).",
+        "systems": "Tứ trụ, Tử Vi Đẩu Số, Sukuyo, chiêm tinh Vệ Đà, chiêm tinh phương Tây và Tarot — sáu hệ thống, mỗi hệ được luận theo quy tắc riêng."
+      }
     },
     "reformActions": {
       "consult": "Tìm hiểu tư vấn Yeongnyangi",

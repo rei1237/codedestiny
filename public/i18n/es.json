@@ -1448,14 +1448,31 @@
       "findConcern": "Buscar por inquietud",
       "gardenFirst": "Donde florece tu historia",
       "gardenSecond": "Un jardín a la luz de la luna",
-      "reviewed": "10 años de Saju · predicciones acertadas sobre dos presidentes",
+      "reviewed": "10 años de Saju · opiniones reales de consultas 1:1",
       "perspectives": "Compara perspectivas de seis tradiciones",
       "startFree": "Empieza gratis",
       "explore": "Explora más",
       "exploreLead": "Continúa la experiencia con historias y música.",
       "pass": "Pases",
       "login": "Iniciar sesión",
-      "account": "Mi cuenta"
+      "account": "Mi cuenta",
+      "offerTitle": "El Saju que se leía en consultas 1:1 de ₩300.000, ahora desde ₩1.000",
+      "reviewsLead": "Mensajes reales de KakaoTalk de clientes de las consultas 1:1 de Neo, citados en el coreano original. Las omisiones se marcan con ….",
+      "reviewsBar": "Consulta 1:1 con Neo · KakaoTalk",
+      "reviewsMeta": "Opinión real · publicada con consentimiento",
+      "reviewsPosted": "publicado en el blog",
+      "reviewsFine": "Las opiniones reflejan experiencias personales y no garantizan resultados. La lectura Saju es solo orientativa.",
+      "offerNote": "Las consultas 1:1 las hacía Neo en persona; la lectura de ₩1.000 se ofrece con un motor de cálculo y comentarios de IA.",
+      "offerCta": "Ver la lectura Saju de ₩1.000 →",
+      "expertiseTitle": "Cálculo con reglas fijas, comentario con IA",
+      "expertise": {
+        "engine": "La carta natal se construye con reglas de cálculo fijas y la IA redacta el comentario a partir de ese resultado. Si el comentario cita un pilar del día o de la hora distinto del calculado, el servidor lo descarta.",
+        "solarTerms": "Los meses se dividen por el momento en que empieza cada término solar, no por las fechas del calendario lunar.",
+        "birthTime": "La hora de nacimiento se ajusta según la longitud del lugar de nacimiento y el horario de verano histórico.",
+        "nightZi": "Si la hora corregida es a partir de las 23:00, se usa el pilar del día siguiente: una sola regla, aplicada siempre igual.",
+        "kasi": "Los resultados se contrastan automáticamente con los datos públicos del Instituto Coreano de Astronomía y Ciencias Espaciales (KASI).",
+        "systems": "Saju, Zi Wei Dou Shu, Sukuyo, astrología védica, astrología occidental y tarot: seis sistemas, cada uno leído con sus propias reglas."
+      }
     },
     "reformActions": {
       "consult": "Conoce las consultas de Yeongnyangi",

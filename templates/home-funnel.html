@@ -28,7 +28,7 @@
       <img id="honeypigLogo" data-character="yeoni" data-lcp-candidate="1" src="/icons/app-logo-512.webp" alt="연꽃을 단 꽃돼지 연이" width="512" height="512" fetchpriority="high" decoding="async">
       <button type="button" class="cdh-bubble" data-cdh-bubble aria-live="polite" data-cd-trans="home.gardenCopy.bubble1" data-cd-trans-attr="aria-label:home.gardenCopy.bubbleAria" aria-label="연이에게 한마디 더 듣기">안녕하세요! 꽃돼지 연이예요.</button>
     </div>
-    <ul class="cdh-trust"><li data-cd-trans="home.funnelCopy.reviewed">10년 경력 명리학자 · 두 대통령 운세 적중</li><li data-cd-trans="home.funnelCopy.perspectives">여섯 운세 체계 관점 비교</li><li data-cd-trans="home.funnelCopy.startFree">무료 시작 가능</li></ul>
+    <ul class="cdh-trust"><li data-cd-trans="home.funnelCopy.reviewed">10년 경력 명리학자 · 1:1 상담 후기 공개</li><li data-cd-trans="home.funnelCopy.perspectives">여섯 운세 체계 관점 비교</li><li data-cd-trans="home.funnelCopy.startFree">무료 시작 가능</li></ul>
   </section>
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
@@ -85,7 +85,14 @@
     </section>
     <section class="cdh-records" aria-labelledby="cdhRecordsTitle">
       {{pressCoverage}}
-      <div class="cdh-prediction-records" lang="ko"><h2 id="cdhRecordsTitle">두 대통령 적중 기록 원문</h2><p>운영자의 공개 사주 해석 기록입니다. 표시된 날짜는 블로그 게시일입니다.</p><ul>{{predictionRecords}}</ul></div>
+      <div class="cdh-trust-offer">
+        <h2 id="cdhRecordsTitle" data-cd-trans="home.funnelCopy.offerTitle">1회 30만원 1:1 상담으로 풀던 사주를, 이제 1,000원부터</h2>
+        {{customerReviews}}
+        <h3 data-cd-trans="home.funnelCopy.expertiseTitle">계산은 규칙대로, 해설은 AI가</h3>
+        <ul class="cdh-expertise">{{expertiseFacts}}</ul>
+        <p class="cdh-trust-offer__note" data-cd-trans="home.funnelCopy.offerNote">1:1 상담은 네오가 직접 진행한 상담이고, 1,000원 상담은 계산 엔진과 AI 해설로 제공돼요.</p>
+        <a class="cdh-trust-offer__cta" href="/yeongnyangi/1000-won-fortune/" data-cd-trans="home.funnelCopy.offerCta">영냥이 1,000원 사주 보기 →</a>
+      </div>
     </section>
     <div class="cdh-slot cdh-slot--guide" id="cdhGuideSlot">{{guide}}</div>
     <button type="button" class="cdh-more__close" data-cdh-garden-close data-cd-trans="home.gardenCopy.moreClose">연이의 정원 접기</button>

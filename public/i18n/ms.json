@@ -1448,14 +1448,31 @@
       "findConcern": "Cari mengikut persoalan",
       "gardenFirst": "Tempat kisah anda berkembang",
       "gardenSecond": "Taman di bawah cahaya bulan",
-      "reviewed": "10 tahun Saju · ramalan tepat nasib dua presiden",
+      "reviewed": "10 tahun Saju · ulasan sebenar sesi 1:1",
       "perspectives": "Bandingkan perspektif enam tradisi",
       "startFree": "Mula secara percuma",
       "explore": "Terokai lagi",
       "exploreLead": "Teruskan pengalaman melalui cerita dan muzik.",
       "pass": "Pas",
       "login": "Log masuk",
-      "account": "Akaun saya"
+      "account": "Akaun saya",
+      "offerTitle": "Saju yang dahulu dibaca dalam sesi 1:1 bernilai ₩300,000, kini dari ₩1,000",
+      "reviewsLead": "Mesej KakaoTalk sebenar daripada pelanggan sesi 1:1 Neo, dipetik dalam bahasa Korea asal. Bahagian yang ditinggalkan ditanda dengan ….",
+      "reviewsBar": "Sesi 1:1 bersama Neo · KakaoTalk",
+      "reviewsMeta": "Ulasan sebenar · disiarkan dengan persetujuan",
+      "reviewsPosted": "disiarkan di blog",
+      "reviewsFine": "Ulasan berdasarkan pengalaman peribadi dan tidak menjamin hasil. Bacaan Saju hanya sebagai rujukan.",
+      "offerNote": "Sesi 1:1 dikendalikan sendiri oleh Neo; bacaan ₩1,000 disediakan oleh enjin pengiraan dengan ulasan AI.",
+      "offerCta": "Lihat bacaan Saju ₩1,000 →",
+      "expertiseTitle": "Pengiraan ikut peraturan, ulasan oleh AI",
+      "expertise": {
+        "engine": "Carta kelahiran dibina dengan peraturan pengiraan tetap, dan AI menulis ulasan berdasarkan hasil itu. Jika ulasan menyebut tiang hari atau jam yang berbeza daripada pengiraan, pelayan akan menolaknya.",
+        "solarTerms": "Bulan dibahagikan mengikut saat setiap terma suria bermula, bukan mengikut tarikh kalendar lunar.",
+        "birthTime": "Waktu lahir diselaraskan mengikut garis bujur tempat lahir dan waktu musim panas terdahulu.",
+        "nightZi": "Jika waktu lahir selepas pelarasan ialah 23:00 atau lewat, tiang hari esoknya digunakan — satu peraturan, digunakan secara konsisten.",
+        "kasi": "Hasil pengiraan disemak secara automatik dengan data awam Institut Astronomi dan Sains Angkasa Korea (KASI).",
+        "systems": "Saju, Zi Wei Dou Shu, Sukuyo, astrologi Veda, astrologi Barat dan Tarot — enam sistem, setiap satu dibaca mengikut peraturannya sendiri."
+      }
     },
     "reformActions": {
       "consult": "Kenali konsultasi Yeongnyangi",

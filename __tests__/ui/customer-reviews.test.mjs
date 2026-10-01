@@ -54,6 +54,14 @@ test('trust copy has no superlatives, guarantees or political claims',()=>{
  assert.doesNotMatch(founder,BANNED);
 });
 
+test('static home shell carries the featured reviews verbatim and no evidence link',()=>{
+ const shell=readFileSync('index.html','utf8'),{lead}=splitReviews(3);
+ assert.equal(shell.match(/class="cdh-kakao__card"/g)?.length,lead.length);
+ const escape=text=>text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/\n/g,'<br>');
+ for(const review of lead) for(const text of review.bubbles) assert.ok(shell.includes('<p>'+escape(text)+'</p>'),review.id);
+ assert.doesNotMatch(shell,/neosaju|cdh-prediction-records/);
+});
+
 test('founder trust renders every review once with disclaimers and no evidence link',async()=>{
  const html=await renderFounderTrust();
  assert.match(html,/1회 30만원 1:1 상담으로 풀던 사주를, 이제 천원에/);

@@ -1448,14 +1448,31 @@
       "findConcern": "按烦恼查找",
       "gardenFirst": "让你的故事",
       "gardenSecond": "在月光花园里绽放",
-      "reviewed": "十年命理经验 · 预测两位总统运势应验",
+      "reviewed": "十年命理经验 · 公开一对一咨询真实评价",
       "perspectives": "比较六种占术的不同视角",
       "startFree": "可免费开始",
       "explore": "继续探索",
       "exploreLead": "用故事与音乐，延续解读后的余韵。",
       "pass": "使用券",
       "login": "登录",
-      "account": "我的账户"
+      "account": "我的账户",
+      "offerTitle": "曾以每次300,000韩元一对一咨询解读的四柱，现在1,000韩元起",
+      "reviewsLead": "这是尼奥一对一咨询时收到的真实 KakaoTalk 评价，按韩文原文照录，省略处以…标示。",
+      "reviewsBar": "尼奥一对一咨询 · KakaoTalk",
+      "reviewsMeta": "真实用户评价 · 已获发布同意",
+      "reviewsPosted": "博客发布",
+      "reviewsFine": "评价基于个人体验，不保证结果。四柱解读仅供参考。",
+      "offerNote": "一对一咨询由尼奥亲自进行；1,000韩元咨询由计算引擎与 AI 解读提供。",
+      "offerCta": "查看1,000韩元四柱咨询 →",
+      "expertiseTitle": "命盘按规则计算，解读交给 AI",
+      "expertise": {
+        "engine": "命盘按固定计算规则排出，AI 根据计算结果撰写解读。若解读中出现与计算不符的日柱或时柱，服务器会将其拦下。",
+        "solarTerms": "月份不按农历日期，而按节气交接的时刻划分。",
+        "birthTime": "根据出生地经度与历史夏令时校正出生时间。",
+        "nightZi": "按校正后的时间，23点以后出生即按次日日柱计算，始终采用这一条规则。",
+        "kasi": "计算结果会自动与韩国天文研究院的公开数据比对验证。",
+        "systems": "四柱、紫微斗数、宿曜占星术、吠陀占星、西洋占星与塔罗，六种体系各按其规则分别解读。"
+      }
     },
     "reformActions": {
       "consult": "了解Yeongnyangi咨询",
