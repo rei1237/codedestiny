@@ -2,7 +2,7 @@
 status: active
 implementationStatus: shipped-to-main (6단계 C-1 타로 통합 완료 · 스테이징 플래그 ON · 프로덕션 OFF)
 updated: 2026-10-01
-next: 6단계 C-2 — 실 LLM 품질 1회 검증(정확한 1회 승인 필요). guardian 은퇴는 그 뒤 조건부.
+next: 6단계 C-2 실호출 1회 — 계획 해시 2ba6046e… 정확 승인 대기(준비·mock 완료).
 ---
 
 # 연이·네오 대화형 상담 → 영냥이 질문형 엔진 공유 (1단계: 공통 엔진·결제 연결)
@@ -263,6 +263,20 @@ next: 6단계 C-2 — 실 LLM 품질 1회 검증(정확한 1회 승인 필요). 
 - 연이 소개 문구 "명식을 바탕으로 질문 하나에 깊게 답해요"가 타로와 맞지 않는다.
 - 새 상담 경로는 로그인 필수다. 구 guardian 타로는 게스트도 썼다(게스트 정책 미정).
 
+## 6단계 C-2 준비 (2026-10-01, 실 LLM 0회)
+
+사용자 선택: 최소안 A — 연이 사주(`chat_saju`, kind `ask`) + 네오 타로(`chat_tarot`, kind `career`) 2권.
+
+- `d034451ed` 실행기 `scripts/fortune-chat-c2-quality.mjs`: 고등어 벤치마크의 예산(`BenchmarkBudget`)·운영 호출 경계(`runProductionBenchmarkCall`)를 재사용하고, 저장된 `snapshot.persona` 를 장마다 넘긴다. 11회·$0.40 상한, 재시도 0. `--live` 는 승인 해시·READY 상태·고정 경로·실행 번들·실행기 소스 해시가 모두 맞아야 돈다.
+- 계획(커밋 안 함, gitignore): `build-cache/fortune-chat-c2-live-20261001/plan/plan.json`, 준비 스크립트 `build-cache/fortune-chat-c2-live-20261001/prepare-plan.mjs`.
+  - 계획 SHA-256 `2ba6046ee627e2101a224dcf1f26a2f9b21267745d84db9f7da628eec223636f`, 상태 READY_FOR_SEPARATE_APPROVAL, codeHead fa2dbc389.
+  - 최대 생성 11회(사주 질문 분석 1 + 장 5, 타로 장 5) + 토큰 계산 11회. 예약 최대 $0.333445(≈467원), 하드 $0.40. 예상 실측 약 165원(9/30 파일럿 단가 기준 추정).
+  - 합성 프로필 1997-02-10 12:00 F 서울, 기준 2026-10-01T03:00Z. 질문 분해 수: 사주 2·타로 1.
+- 검증(mock): prepare 단계에서 장 요청 5개마다 해당 페르소나 프롬프트 포함·영냥이 페르소나 없음·타로에 "영냥이 상담 문체" 없음을 단언(통과). 실행기 mock 2회(DRAFT·READY 계획) 모두 11회·5/5+5/5, 유료 0. 틀린 해시의 `--live` 는 키를 읽기 전에 거부하고 출력 폴더도 만들지 않는다.
+- 실행(승인 뒤 1회): `node scripts/fortune-chat-c2-quality.mjs --live --plan-file <저장소>/build-cache/fortune-chat-c2-live-20261001/plan/plan.json --out <저장소>/build-cache/fortune-chat-c2-live-20261001/live-approved-1 --approved-plan-sha256 <위 해시> --env-file <저장소>/.env.local` (경로는 모두 절대 경로).
+- 🔴 실행기·runtime·budget 파일이나 워커 코드가 바뀌면 해시 불일치로 실행이 거부된다. 그때는 prepare-plan 을 다시 돌려 새 해시로 다시 승인받는다(옛 승인 재사용 금지). 실행기 파일이 CRLF 로 다시 체크아웃돼도 소스 해시가 바뀐다.
+- 실행 뒤: 권별 전체 원문 `live-approved-1/readings/*.md` 와 `quality-review.md` 를 만들어 사용자에게 절대 경로로 전달한다.
+
 ### 구 guardian 경로 은퇴 판단: 지금은 은퇴하지 않는다
 
 아래 조건을 순서대로 충족한 뒤 은퇴한다. 각 단계는 따로 승인받는다.
@@ -314,8 +328,8 @@ next: 6단계 C-2 — 실 LLM 품질 1회 검증(정확한 1회 승인 필요). 
 6. A ✅ 결제 복귀·중복·복구 E2E(mock), 후속 0·1·3 (2026-10-01, 위 6단계 A 결과).
    B ✅ 후속 2·4 (2026-10-01, 위 6단계 B 결과).
    C-1 ✅ 타로 통합(2026-10-01, 위 6단계 C-1 결과). guardian 은퇴는 조건부 보류.
-   C-2 실 LLM 품질 1회 검증(별도 승인). 그 뒤 게스트 정책 → 프로덕션 플래그 ON → 관찰 → guardian 은퇴.
+   C-2 실 LLM 품질 1회 검증(별도 승인). 준비·mock 완료(위 6단계 C-2 준비), 실호출 승인 대기. 그 뒤 게스트 정책 → 프로덕션 플래그 ON → 관찰 → guardian 은퇴.
 
 ## 다음 세션 첫 문장
 
-> docs/handoff/fortune-chat-engine-unification-2026-10-01.md 를 읽고 로드맵 6단계 C-2 실 LLM 품질 1회 검증의 계획(대상 상품·페르소나·호출 수·예상 비용·검수 파일 위치)을 먼저 보고해 줘. 승인 전에는 실 LLM 호출을 하지 마.
+> docs/handoff/fortune-chat-engine-unification-2026-10-01.md 의 "6단계 C-2 준비" 를 읽고, 계획 해시가 아직 유효한지(실행기·워커 변경 없음) 확인한 뒤 승인받은 경우에만 C-2 실호출 1회를 실행해 줘.

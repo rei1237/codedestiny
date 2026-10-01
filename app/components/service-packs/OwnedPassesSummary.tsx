@@ -33,10 +33,10 @@ export function OwnedPassesSummary({locale,flower,packs}:{locale:LoadingLocale;f
    <div className={tile} data-owned-pass="flower" data-applied={flower.active?'true':'false'}>
     {flower.active?<Stamped stamp={APPLIED_STAMP_IMAGES.flower}><HoneyPassArtwork tier={flower.tier} className="h-16 w-16" sizes="64px"/></Stamped>:<HoneyPassArtwork tier="standard" className="h-16 w-16 opacity-45 grayscale" sizes="64px"/>}
     <div className="min-w-0">
-     <p className="text-xs font-black text-[color:var(--moon-mist)]">{copy.flowerPass}</p>
+     <p className="text-xs font-black text-[color:var(--moon-silver)]">{copy.flowerPass}</p>
      {flower.active?<>
       <h3 className="mt-0.5 text-base font-black leading-snug text-white">{flower.tierLabel}</h3>
-      <p className={appliedLine}>{dot}<span>{copy.applied}</span>{flower.expiresAt&&Number.isFinite(Date.parse(flower.expiresAt))&&<span className="text-[color:var(--moon-mist)]">{packText(copy.expires,{date:date(flower.expiresAt,locale)})}</span>}</p>
+      <p className={appliedLine}>{dot}<span>{copy.applied}</span>{flower.expiresAt&&Number.isFinite(Date.parse(flower.expiresAt))&&<span className="text-[color:var(--moon-silver)]">{packText(copy.expires,{date:date(flower.expiresAt,locale)})}</span>}</p>
      </>:<>
       <p className="mt-0.5 text-sm font-bold text-[color:var(--moon-silver)]">{copy.flowerNone}</p>
       <a href="#moonlight-plans" className="mt-1 inline-flex min-h-11 items-center text-sm font-black text-[color:var(--moon-glow)]">{copy.flowerBrowse} →</a>
@@ -46,12 +46,12 @@ export function OwnedPassesSummary({locale,flower,packs}:{locale:LoadingLocale;f
    <div className={tile} data-owned-pass="yeongnyangi" data-applied={first?'true':'false'}>
     {first?<Stamped src={SERVICE_PACK_IMAGES[first.fishId]} stamp={APPLIED_STAMP_IMAGES.yeongnyangi}/>:<Image src={SERVICE_PACK_IMAGES.mackerel} alt="" width={240} height={240} sizes="64px" className="h-16 w-16 flex-shrink-0 object-contain opacity-45 grayscale"/>}
     <div className="min-w-0">
-     <p className="text-xs font-black text-[color:var(--moon-mist)]">{copy.packPass}</p>
+     <p className="text-xs font-black text-[color:var(--moon-silver)]">{copy.packPass}</p>
      {first?<>
       <h3 className="mt-0.5 text-base font-black leading-snug text-white">{packName(first,locale)}</h3>
       <p className={appliedLine}>{dot}<span>{copy.applied}</span></p>
-      <p className="mt-0.5 text-xs font-bold text-[color:var(--moon-mist)] [word-break:keep-all]"><span className="whitespace-nowrap text-[color:var(--moon-teal)]">{packText(copy.remaining,{total:first.totalUses,remaining:first.remainingUses})}</span> · <span className="whitespace-nowrap">{packText(copy.expires,{date:date(first.expiresAt,locale)})}</span>{usable.length>1&&<> · <span className="whitespace-nowrap">{packText(copy.packOthers,{count:usable.length-1})}</span></>}</p>
-     </>:packs==='loading'?<p role="status" className="mt-0.5 text-sm text-[color:var(--moon-mist)]">{copy.loading}</p>:packs==='error'?<>
+      <p className="mt-0.5 text-xs font-bold text-[color:var(--moon-silver)] [word-break:keep-all]"><span className="whitespace-nowrap text-[color:var(--moon-teal)]">{packText(copy.remaining,{total:first.totalUses,remaining:first.remainingUses})}</span> · <span className="whitespace-nowrap">{packText(copy.expires,{date:date(first.expiresAt,locale)})}</span>{usable.length>1&&<> · <span className="whitespace-nowrap">{packText(copy.packOthers,{count:usable.length-1})}</span></>}</p>
+     </>:packs==='loading'?<p role="status" className="mt-0.5 text-sm text-[color:var(--moon-silver)]">{copy.loading}</p>:packs==='error'?<>
       <p className="mt-0.5 text-sm font-bold text-[color:var(--moon-silver)]">{copy.unavailable}</p>
       <a href="#fish-packs" className="mt-1 inline-flex min-h-11 items-center text-sm font-black text-[color:var(--moon-glow)]">{copy.packBrowse} →</a>
      </>:<>
