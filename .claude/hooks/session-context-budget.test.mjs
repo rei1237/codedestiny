@@ -9,8 +9,9 @@
  * 훅 자신이 매 프롬프트마다 토큰을 쓰면 최적화가 그대로 역전되기 때문이다. 그래서 임계
  * 미만 케이스는 stdout 길이를 0 으로 못박는다.
  *
- * 경계는 전수로 본다(원칙 10 의 취지 — 미분류를 통과시키지 않는다). 구간이 4개면
- * 경계도 4쌍 전부 단언한다.
+ * 경계는 전수로 본다(원칙 10 의 취지 — 미분류를 통과시키지 않는다). 구간이 3개
+ * (침묵·압축 직전·안전망)면 경계도 전부 단언한다. 2026-10-01 연속 세션 전환 뒤로는
+ * 어느 구간도 /clear·인수인계를 시키지 않는다 — 그것도 전수로 단언한다.
  */
 
 import test from "node:test";
@@ -83,58 +84,47 @@ function runWithTokens(total) {
 // ─────────────────────────────────────────── 구간 경계 (전수)
 
 test("임계 미만은 출력이 0바이트다 — 훅 자신이 토큰을 쓰면 안 된다", () => {
-  for (const tokens of [0, 1_000, 50_000, 99_999]) {
+  for (const tokens of [0, 1_000, 50_000, 99_999, 100_000, 149_999]) {
     const { status, stdout } = runWithTokens(tokens);
     assert.equal(status, 0, `${tokens}: exit 0 이어야 한다`);
     assert.equal(stdout.length, 0, `${tokens}: stdout 이 0바이트여야 하는데 ${stdout.length}바이트`);
   }
 });
 
-test("100k 경계 — 100,000 부터 주의 문구가 뜬다", () => {
-  assert.equal(runWithTokens(99_999).stdout.length, 0);
+test("150k 경계 — 150,000 부터 압축 직전 상태 파일 갱신 알림이 뜬다", () => {
+  assert.equal(runWithTokens(149_999).stdout.length, 0);
 
-  const ctx = contextOf(runWithTokens(100_000).stdout);
-  assert.ok(ctx, "100,000 에서는 문구가 있어야 한다");
-  assert.match(ctx, /\/clear/);
-  assert.match(ctx, /100k/);
+  const ctx = contextOf(runWithTokens(150_000).stdout);
+  assert.ok(ctx, "150,000 에서는 문구가 있어야 한다");
+  assert.match(ctx, /곧 자동 압축/);
+  assert.match(ctx, /상태 파일/);
+  assert.match(ctx, /150k/);
 });
 
-test("200k 경계 — 인수인계 착수 지시로 승격된다", () => {
-  const notice = contextOf(runWithTokens(199_999).stdout);
-  assert.doesNotMatch(notice, /docs\/handoff/, "199,999 는 아직 주의 구간이다");
-
-  const handoff = contextOf(runWithTokens(200_000).stdout);
-  assert.match(handoff, /docs\/handoff/);
-  assert.match(handoff, /원칙 12/);
-  assert.match(handoff, /detail-sheet-copy-rewrite\.md/);
-  assert.doesNotMatch(handoff, /새 작업 착수 금지/, "200k 는 아직 하드 구간이 아니다");
-});
-
-test("300k 경계 — 하드 구간은 새 작업 착수를 금지한다", () => {
-  const handoff = contextOf(runWithTokens(299_999).stdout);
-  assert.doesNotMatch(handoff, /새 작업 착수 금지/);
+test("300k 경계 — 압축이 안 돌면 /compact 요청으로 승격된다", () => {
+  const notice = contextOf(runWithTokens(299_999).stdout);
+  assert.doesNotMatch(notice, /\/compact/, "299,999 는 아직 압축 직전 구간이다");
 
   const hard = contextOf(runWithTokens(300_000).stdout);
-  assert.match(hard, /새 작업 착수 금지/);
-  assert.match(hard, /docs\/handoff/);
+  assert.match(hard, /\/compact/);
+  assert.match(hard, /상태 파일/);
 });
 
-test("모든 구간이 분류된다 — 미분류가 없다", () => {
+test("모든 구간이 분류되고, 어느 구간도 /clear·인수인계를 시키지 않는다", () => {
   const buckets = new Map([
     ["silent", 0],
     ["notice", 0],
-    ["handoff", 0],
     ["hard", 0],
   ]);
-  for (const tokens of [50_000, 99_999, 100_000, 150_000, 199_999, 200_000, 250_000, 299_999, 300_000, 999_999]) {
+  for (const tokens of [50_000, 100_000, 149_999, 150_000, 199_999, 200_000, 250_000, 299_999, 300_000, 999_999]) {
     const ctx = contextOf(runWithTokens(tokens).stdout);
     let bucket;
     if (ctx === null) bucket = "silent";
-    else if (/새 작업 착수 금지/.test(ctx)) bucket = "hard";
-    else if (/docs\/handoff/.test(ctx)) bucket = "handoff";
-    else if (/\/clear/.test(ctx)) bucket = "notice";
+    else if (/\/compact/.test(ctx)) bucket = "hard";
+    else if (/곧 자동 압축/.test(ctx)) bucket = "notice";
     else bucket = null;
     assert.ok(bucket, `${tokens} 토큰이 어느 구간에도 분류되지 않았다: ${ctx}`);
+    if (ctx) assert.doesNotMatch(ctx, /\/clear|docs\/handoff|인수인계/, `${tokens}: 연속 세션 방침을 거스른다`);
     buckets.set(bucket, buckets.get(bucket) + 1);
   }
   for (const [name, count] of buckets) {
@@ -142,14 +132,12 @@ test("모든 구간이 분류된다 — 미분류가 없다", () => {
   }
 });
 
-test("NOTICE 문구는 200자 미만이다 — 훅 자신이 토큰을 쓰면 최적화가 역전된다", () => {
-  // 100k 는 대부분의 세션에서 뜬다. 0바이트 축만으로는 이 축이 안 지켜진다.
-  const ctx = contextOf(runWithTokens(100_000).stdout);
-  assert.ok(ctx, "100,000 에서는 문구가 있어야 한다");
-  assert.ok(
-    ctx.length < 200,
-    `NOTICE 문구가 ${ctx.length}자다 — 자주 뜨는 구간이므로 200자 미만이어야 한다`
-  );
+test("모든 문구는 200자 미만이다 — 훅 자신이 토큰을 쓰면 최적화가 역전된다", () => {
+  // 150k 는 압축 주기마다 뜬다. 0바이트 축만으로는 이 축이 안 지켜진다.
+  for (const tokens of [150_000, 300_000]) {
+    const ctx = contextOf(runWithTokens(tokens).stdout);
+    assert.ok(ctx && ctx.length < 200, `${tokens}: 문구가 ${ctx?.length}자다 — 200자 미만이어야 한다`);
+  }
 });
 
 // ─────────────────────────────────────────── 서브에이전트 줄
@@ -165,7 +153,7 @@ test("isSidechain 줄은 건너뛴다 — 서브에이전트가 메인 컨텍스
     runHook({ hook_event_name: "UserPromptSubmit", transcript_path: transcript }).stdout
   );
   assert.ok(ctx, "메인 세션 900k 가 잡혀야 한다");
-  assert.match(ctx, /새 작업 착수 금지/, "서브에이전트 줄에 가려 경고가 죽었다");
+  assert.match(ctx, /\/compact/, "서브에이전트 줄에 가려 경고가 죽었다");
 });
 
 test("가장 최근 메인 줄을 쓴다 — 오래된 큰 값이 아니라", () => {
@@ -191,7 +179,7 @@ test("한 줄이 256KB 를 넘어도 찾아낸다", () => {
     runHook({ hook_event_name: "UserPromptSubmit", transcript_path: transcript }).stdout
   );
   assert.ok(ctx, "확장 재시도로 usage 줄을 찾아야 한다");
-  assert.match(ctx, /새 작업 착수 금지/);
+  assert.match(ctx, /\/compact/);
 });
 
 // ─────────────────────────────────────────── fail-open (조용히 통과)
