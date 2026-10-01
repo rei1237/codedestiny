@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import Image from "next/image";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { usePaidResume } from "@/app/hooks/usePaidResume";
@@ -12,7 +13,7 @@ import {
   type ChatConsultation, type ChatConsultationSummary, type ChatDomain, type ChatPersona,
 } from "./consultation-api";
 import ConsultationResult from "./ConsultationResult";
-import { EMPTY_ROWS, refreshRow, showRow, type PersonaRows } from "./consultation-world";
+import { DOMAIN_ART, EMPTY_ROWS, MOMENT_ART, poseFor, refreshRow, showRow, type PersonaRows, type RoomMoment } from "./consultation-world";
 import { PersonaAvatar } from "./PersonaAvatar";
 import base from "./fortune-chat.module.css";
 import styles from "./consultation.module.css";
@@ -49,6 +50,26 @@ const STATE_LABEL: Record<string, string> = {
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const message = (error: unknown, fallback: string) => (error instanceof Error && error.message ? error.message : fallback);
 
+/** 운세 축 그림. 상담자마다 같은 운세를 자기 세계에서 그린다(consultation-world.ts). */
+function DomainArt({ persona, domain }: { persona: ChatPersona; domain: ChatDomain }) {
+  const art = DOMAIN_ART[persona][domain];
+  return (
+    <figure className={styles.domainArt} data-consultation-domain-art={domain}>
+      <Image key={art.src} src={art.src} alt={art.alt} width={640} height={427} sizes="(max-width: 760px) 100vw, 728px" />
+    </figure>
+  );
+}
+
+/** 기다림·빈 기록·오류 순간. 그림은 장식이고 의미는 옆의 글이 전한다. */
+function Moment({ persona, moment, children }: { persona: ChatPersona; moment: RoomMoment; children: ReactNode }) {
+  return (
+    <div className={styles.moment} data-consultation-moment={moment}>
+      <Image src={MOMENT_ART[persona][moment]} alt="" width={320} height={320} className={styles.momentArt} />
+      <div className={styles.momentText}>{children}</div>
+    </div>
+  );
+}
+
 function setConsultationParam(id: string) {
   try {
     const url = new URL(window.location.href);
@@ -79,6 +100,8 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
   const [rows, setRows] = useState<PersonaRows>(EMPTY_ROWS);
   const row = rows[persona];
   const [history, setHistory] = useState<ChatConsultationSummary[]>([]);
+  // 빈 기록 그림은 그 상담자의 기록을 실제로 읽은 뒤에만 보인다(읽기 전·실패는 빈 기록이 아니다).
+  const [historyFor, setHistoryFor] = useState<ChatPersona | null>(null);
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [domain, setDomain] = useState<ChatDomain>("saju");
   const [question, setQuestion] = useState("");
@@ -117,6 +140,7 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
       const data = await consultationApi.list(who);
       if (!mounted.current) return;
       setHistory(data.consultations || []);
+      setHistoryFor(who);
       setEnabled(data.enabled === true);
     } catch (reason) {
       if (reason instanceof ConsultationApiError && reason.status === 401) { setHistory([]); return; }
@@ -322,13 +346,14 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
   const offerCheckout = canOfferCheckout(row);
   const writing = !!row?.paid && row.state !== "COMPLETED" && row.state !== "REFUNDED";
   const held = writing && HELD.includes(row?.errorCode || "");
+  const rowDomain = row?.product?.systems?.[0];
 
   return (
     <main className={`${base.room}${persona === "neo" ? ` ${styles.starlight}` : ""}`} data-consultation-room data-persona={persona}>
       <header className={base.header}>
         <button type="button" className={`${base.backButton} ${styles.backButton}`} aria-label="뒤로" onClick={() => (row ? startNew() : window.history.back())}>←</button>
         <div className={base.brand}>
-          <PersonaAvatar persona={persona} mood={row ? "read" : "greet"} size="sm" decorative />
+          <PersonaAvatar persona={persona} mood={poseFor(row, { failed: !!error, drafting: !!question.trim() })} size="sm" decorative />
           <div><strong>{world.title}</strong><span>{world.sub}</span></div>
         </div>
         <div className={styles.modeSwitch} role="group" aria-label="상담자 바꾸기" data-consultation-mode>
@@ -382,6 +407,7 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
               <div className={`${base.chips} ${styles.chipWrap}`}>
                 {DOMAINS.map((d) => <button key={d.id} type="button" aria-pressed={domain === d.id} onClick={() => setDomain(d.id)}>{d.label}</button>)}
               </div>
+              <DomainArt persona={persona} domain={domain} />
             </section>
 
             <section className={styles.panel} aria-labelledby="consultation-question">
@@ -404,6 +430,7 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
         {row && (
           <section className={styles.panel} aria-labelledby="consultation-current">
             <p className={styles.kicker} id="consultation-current">{DOMAINS.find((d) => d.id === row.product?.systems?.[0])?.label || "운명 상담"} · {STATE_LABEL[row.state] || row.state}</p>
+            {!writing && !row.chapters?.length && DOMAINS.some((d) => d.id === rowDomain) && <DomainArt persona={row.persona} domain={rowDomain as ChatDomain} />}
             {row.consultation?.question && !row.chapters?.length && <blockquote className={styles.question}>{row.consultation.question}</blockquote>}
 
             {offerCheckout && (
@@ -425,7 +452,9 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
             )}
 
             {writing && !row.chapters?.length && (
-              <p className={base.typing} role="status"><i /><i /><i /><span>{held ? "남은 이야기를 이어 쓰는 중이에요. 저장된 상담은 그대로 있어요." : `${personaName}가 답을 쓰고 있어요`}</span></p>
+              <Moment persona={row.persona} moment="loading">
+                <p className={base.typing} role="status"><i /><i /><i /><span>{held ? "남은 이야기를 이어 쓰는 중이에요. 저장된 상담은 그대로 있어요." : `${personaName}가 답을 쓰고 있어요`}</span></p>
+              </Moment>
             )}
             {writing && row.recovery?.canRetryNow && (
               <div className={styles.actions}><button type="button" disabled={busy} onClick={() => void retryGeneration()}>이어서 쓰기</button></div>
@@ -436,7 +465,20 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
         {row && <ConsultationResult row={row} onNew={startNew} />}
 
         {notice && <p className={base.ticketStatus} role="status">{notice}</p>}
-        {error && <p className={base.error} role="alert">{error}</p>}
+        {error && (
+          <Moment persona={persona} moment="error">
+            <p className={base.error} role="alert">{error}</p>
+          </Moment>
+        )}
+
+        {!row && !guest && historyFor === persona && history.length === 0 && (
+          <section className={styles.panel} aria-labelledby="consultation-history-empty">
+            <Moment persona={persona} moment="empty">
+              <h2 id="consultation-history-empty" className={styles.sectionTitle}>지난 상담</h2>
+              <p className={styles.muted}>{persona === "neo" ? "아직 함께 짚은 판이 없어요. 정해야 할 것 하나부터 시작해요." : "아직 나눈 상담이 없어요. 마음에 걸리는 질문 하나로 시작해 볼까요?"}</p>
+            </Moment>
+          </section>
+        )}
 
         {!row && history.length > 0 && (
           <section className={styles.panel} aria-labelledby="consultation-history">

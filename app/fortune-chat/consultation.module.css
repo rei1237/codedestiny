@@ -196,6 +196,32 @@
   .coreAnswer { font-size: 1rem; }
 }
 
+/* ── 4단계 에셋: 운세 축 그림과 기다림·빈 기록·오류 순간. 그림은 테두리·그림자만 세계 토큰을 따른다. ── */
+.domainArt {
+  justify-self: center;
+  width: min(100%, 390px);
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  aspect-ratio: 3 / 2;
+  max-height: 260px;
+  background: color-mix(in srgb, var(--rose-soft) 18%, var(--bubble));
+}
+.domainArt img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.moment { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.momentArt {
+  flex: 0 0 auto;
+  width: 96px;
+  height: 96px;
+  border-radius: 18px;
+  object-fit: cover;
+  background: color-mix(in srgb, var(--rose-soft) 18%, var(--bubble));
+}
+.momentText { display: grid; gap: 6px; min-width: 0; flex: 1; }
+.momentText > p { margin: 0; }
+
 /* ── 모드 전환(연이 ⇄ 네오). 보던 상담은 각자 칸에 남는다 — 다른 쪽에 보던 상담이 있으면 점으로 알린다. ── */
 .modeSwitch {
   flex: 0 0 auto;
@@ -270,5 +296,6 @@ main.starlight [role=alert] { color: #ffb8a8; }
 .starlight .core { border-left: 3px solid var(--rose); }
 
 @media (max-width: 560px) {
+  .momentArt { width: 76px; height: 76px; border-radius: 14px; }
   .modeSwitch button { min-width: 44px; padding: 0 8px; font-size: .76rem; }
 }
