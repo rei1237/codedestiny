@@ -1,5 +1,6 @@
 "use client";
 import { authFetch } from "@/app/_lib/auth-client";
+import { getApiBaseUrl } from "@/app/_lib/api-config";
 import type { FortuneRecord } from "@/app/yeongnyangi/_lib/api";
 
 /** 연이·네오 상담 엔진(/api/fortune-chat/consultations) 클라이언트. 서버 계약은 worker/routes/fortune-chat-consultations.js. */
@@ -77,6 +78,19 @@ async function call<T>(path: string, body?: object): Promise<T> {
 type One = { ok: true; consultation: ChatConsultation };
 
 export const consultationApi = {
+  /**
+   * 새 상담 열기 플래그. 로그인 없이 읽는 공개 값이라 authFetch 를 쓰지 않는다 — 비로그인 401 이
+   * 토큰 갱신 실패 → logout 이벤트로 번지지 않게. 실패는 false(기존 상담방)로 닫는다.
+   */
+  status: async () => {
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/api/fortune-chat/consultations/status`, { cache: "no-store" });
+      const payload = response.ok ? await response.json() : null;
+      return payload?.enabled === true;
+    } catch {
+      return false;
+    }
+  },
   list: (persona: ChatPersona) => call<{ ok: true; enabled?: boolean; consultations: ChatConsultationSummary[] }>(`?persona=${persona}`),
   create: ({ tarotKind, ...input }: CreateConsultationInput) => call<One>("", {
     ...input,

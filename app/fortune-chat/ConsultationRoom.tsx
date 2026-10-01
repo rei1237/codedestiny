@@ -4,6 +4,7 @@ import Image from "next/image";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { usePaidResume } from "@/app/hooks/usePaidResume";
+import { useAuthStore } from "@/app/_lib/auth-store";
 import { loginForCurrentPage } from "@/app/yeongnyangi/_lib/api";
 import { profileKey, useProfiles } from "@/app/yeongnyangi/_lib/use-profiles";
 import ProfileForm from "@/app/yeongnyangi/_components/ProfileForm";
@@ -29,6 +30,9 @@ const HELD_POLL_MS = 30000;
 // 결제창이 닫힌 뒤 서버가 결제 증빙을 확인할 때까지 기다리는 상한(약 3분). 영냥이 결과 화면과 같다.
 const ACTIVATION_TRIES = Math.ceil(180000 / POLL_MS);
 const HELD = ["GENERATION_REVIEW_REQUIRED", "AUTOMATIC_RECOVERY_STOPPED", "ASK_LIMITED_REVIEW_REQUIRED"];
+// 게스트가 적은 질문은 로그인 왕복(같은 탭) 뒤에 되살린다. 상담을 만들면 지운다.
+const DRAFT_KEY = "fortune-chat:consultation-draft";
+const DRAFT_TTL_MS = 30 * 60 * 1000;
 
 // 상담자마다 세계가 다르다 — 연이는 마음부터, 네오(별빛 전략실)는 판단부터. 결과 순서는 consultation-world.ts.
 const PERSONAS: { id: ChatPersona; name: string; line: string; title: string; sub: string; placeholder: string }[] = [
@@ -115,15 +119,41 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
   const [notice, setNotice] = useState("");
   const [addingProfile, setAddingProfile] = useState(false);
   const { profiles, profileId, select, saved, guest, loading: profilesLoading, refresh: refreshProfiles } = useProfiles();
+  // 게스트는 계정 기록을 부르지 않는다(401 이 토큰 갱신 실패 → logout 이벤트로 번진다).
+  const signedIn = useAuthStore().isAuthenticated;
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const attempt = useRef<Record<ChatPersona, string>>({ yeoni: "", neo: "" });
   const mounted = useRef(true);
   const rowRef = useRef<ChatConsultation | null>(null);
   rowRef.current = row;
+  const draft = useRef({ persona, domain, tarotKind, question });
+  draft.current = { persona, domain, tarotKind, question };
 
   useEffect(() => {
     mounted.current = true;
     return () => { mounted.current = false; };
+  }, []);
+
+  useEffect(() => {
+    if (isConsultationId(initialId)) return;
+    let saved: { persona?: unknown; domain?: unknown; tarotKind?: unknown; question?: unknown; at?: unknown } | null = null;
+    try { saved = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || "null"); } catch { /* 초안은 보조 수단이다. */ }
+    if (!saved || typeof saved.question !== "string" || !saved.question.trim() || !(Date.now() - Number(saved.at) < DRAFT_TTL_MS)) return;
+    if (saved.persona === "yeoni" || saved.persona === "neo") setPersona(saved.persona);
+    const savedDomain = DOMAINS.find((d) => d.id === saved?.domain);
+    if (savedDomain) setDomain(savedDomain.id);
+    const savedKind = TAROT_KINDS.find((k) => k.id === saved?.tarotKind);
+    if (savedKind) setTarotKind(savedKind.id);
+    setQuestion(saved.question.slice(0, QUESTION_MAX));
+  }, [initialId]);
+
+  /** 로그인으로 보낸다. 적던 질문은 돌아와서 이어 쓸 수 있게 남긴다. */
+  const toLogin = useCallback(() => {
+    const { question: text, ...rest } = draft.current;
+    if (text.trim()) {
+      try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ ...rest, question: text, at: Date.now() })); } catch { /* 초안은 보조 수단이다. */ }
+    }
+    loginForCurrentPage();
   }, []);
 
   /** 사용자가 연 상담: 그 상담자 칸에 놓고 그 세계로 간다. */
@@ -136,9 +166,9 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
 
   const fail = useCallback((reason: unknown, fallback: string) => {
     if (!mounted.current) return;
-    if (reason instanceof ConsultationApiError && reason.status === 401) { loginForCurrentPage(); return; }
+    if (reason instanceof ConsultationApiError && reason.status === 401) { toLogin(); return; }
     setError(message(reason, fallback));
-  }, []);
+  }, [toLogin]);
 
   const loadHistory = useCallback(async (who: ChatPersona) => {
     try {
@@ -153,7 +183,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
     }
   }, []);
 
-  useEffect(() => { void loadHistory(persona); }, [persona, loadHistory]);
+  useEffect(() => { if (signedIn) void loadHistory(persona); }, [persona, loadHistory, signedIn]);
 
   const open = useCallback(async (id: string) => {
     setBusy(true); setError(""); setNotice("");
@@ -249,8 +279,10 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
 
   const create = async () => {
     const text = question.trim();
-    if (busy || !text || (!tarot && !profileId)) return;
-    if (guest) { loginForCurrentPage(); return; }
+    if (busy || !text) return;
+    // 게스트는 프로필이 없다 — 프로필 검사보다 먼저 로그인으로 보내야 버튼이 아무 일 없이 끝나지 않는다.
+    if (guest) { toLogin(); return; }
+    if (!tarot && !profileId) return;
     setBusy(true); setError(""); setNotice("");
     try {
       if (!attempt.current[persona]) attempt.current[persona] = crypto.randomUUID();
@@ -258,6 +290,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
         ? { persona, domain, tarotKind, question: text, consultationAttemptId: attempt.current[persona] }
         : { persona, domain, profileId, question: text, consultationAttemptId: attempt.current[persona] });
       attempt.current[persona] = "";
+      try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* 초안은 보조 수단이다. */ }
       if (!mounted.current) return;
       show(next); setConsultationParam(next.id); setQuestion("");
       void loadHistory(persona);
@@ -404,7 +437,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
               <section className={styles.panel} aria-labelledby="consultation-profile">
                 <h2 id="consultation-profile" className={styles.sectionTitle}>누구의 명식으로 볼까요?</h2>
                 {guest ? (
-                  <div className={styles.actions}><button type="button" onClick={loginForCurrentPage}>로그인하고 상담 시작하기</button></div>
+                  <div className={styles.actions}><button type="button" onClick={toLogin}>로그인하고 상담 시작하기</button></div>
                 ) : profilesLoading && !profiles.length ? (
                   <p className={styles.muted} role="status">프로필을 불러오는 중이에요.</p>
                 ) : !profiles.length || addingProfile ? (
