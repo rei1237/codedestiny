@@ -180,6 +180,8 @@ S5(남은 워커 자미 경로·섬)도 main 에 머지됐다. 커밋은 `git lo
 - **v7 매니페스트는 그대로 쓰면 안 된다.** `readingManifestV7` 은 owns/refs 패턴이므로 `resolveV7Ledger(...).chapters` 를 거쳐야 `selectChapterFacts` 가 사실을 찾는다. 고등어는 v6 만 된다.
 - **단계 금지어의 실제 거부 지점은 `reading-quality.ts` 의 `validateReadingQuality`(TIER_SCOPE_VIOLATION)다.** `providers/chapter.ts` 의 `TIER_SCOPED_TERMS` 는 프롬프트 어휘와 교정 문구만 바꾼다. 이 차이는 변이 시험으로 확인했다.
 - **영냥이 파일을 고치면 사이트맵 원장도 바뀐다.** 원장 서명은 import 폐포 해시라서 영냥이 파일을 고치면 라우트 17곳의 서명이 바뀐다. `npm run sitemap:generate` 결과를 같은 커밋에 넣는다.
+  - `lib/ziwei-star-strength.js` 도 폐포 안이다. `/ziwei/chart/`·`/ziwei/animal-destiny/`·`/destiny-compass/`·`/fortune/prompt-hub/` 가 이 파일을 읽는다.
+  - S5 에서는 이 파일에 범례 export 를 더하고 원장을 빠뜨려 main CI `Static guards` 가 실패했다. check:fast 는 이 드리프트를 보지 않으므로, 이 파일을 고친 뒤 push 전에 `npm run verify:sitemap-drift` 를 직접 돌린다.
 - **`zw.xian.support` 는 계획보다 좁다.** 같은 궁의 녹존 + 화록·화권·화과만 센다. 원문 「禄元…化吉」을 엄격히 읽은 것이다. 계획서는 좌보·우필·괴월과 삼방까지 넣었다. 넓힐지는 사용자 판단이다.
 - **블록 선택 필드를 늘리면 invariance 해시표의 requests 열이 바뀐다.**
   - S3 에서는 사주·점성·베다·숙요가 든 행만 바뀌었다(93행). 자미 단독·타로 행은 그대로다.
@@ -293,6 +295,7 @@ npm run check:fast                                       # critical 승격, jest
 npm run verify:ziwei-worker-chart-facts                  # 통과 122건
 node --test __tests__/ui/ziwei-star-strength.test.mjs    # 5/5
 npm run verify:ziwei-island && npm run verify:island-star-copy   # 픽스처 14건 통과, 별 문구 10건 통과
+npm run verify:sitemap-drift                             # 첫 push 때 실패 → 원장 재생성 커밋 뒤 OK (함정 참고)
 ```
 
 check:fast 의 실패 1건은 `__tests__/ui/yeongnyangi-reading-v7-golden.test.mjs` 의 헛실패다.
