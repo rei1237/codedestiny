@@ -77,7 +77,16 @@ async function assertEssentials(page, label) {
       assert.equal(await page.locator('#cdhMore').evaluate((more) => more.open), false, 'secondary garden starts folded');
       assert.equal(await page.locator('#cdhDiarySlot #cdDiaryPlannerEntry').isVisible(), false, 'diary waits behind one tap');
       assert.equal(await page.locator('#cdhPass .cdh-pass__btn').isVisible(), false, 'pass lives in the garden');
-      assert.ok(await page.locator('#cdhFeedbackSlot .cd-feedback__cta').isVisible(), 'slim bug report row stays in the primary flow');
+      assert.ok(await page.locator('#cdhFeedbackSlot .cd-feedback__cta').isVisible(), 'bug report card stays in the primary flow');
+      // 버그 제보실은 한 줄 행이 아니라 마스코트·본문이 보이는 큰 카드다(2026-10-01).
+      const bugCard = await page.locator('#cdhFeedbackSlot .cd-feedback__card').evaluate((card) => ({
+        height: card.getBoundingClientRect().height,
+        cta: card.querySelector('.cd-feedback__cta').getBoundingClientRect().height,
+        mascot: card.querySelector('.cd-feedback__mascot img').getBoundingClientRect().width,
+        body: getComputedStyle(card.querySelector('.cd-feedback__body')).display,
+      }));
+      assert.ok(bugCard.height >= (width > 720 ? 160 : 200), `${width}px bug report card is a full card (${bugCard.height}px)`);
+      assert.ok(bugCard.cta >= 48 && bugCard.mascot >= 80 && bugCard.body !== 'none', `${width}px bug report card shows its mascot, body and a large CTA`);
       // 닫힌 정원 안은 Tab 순회에 걸리지 않는다.
       assert.equal(await page.evaluate(() => {
         const body = document.getElementById('cdhGardenBody');
@@ -107,7 +116,8 @@ async function assertEssentials(page, label) {
       assert.equal(await gardenSummary.getAttribute('aria-expanded'), 'false', 'garden summary reports closed again');
       assert.ok(await gardenSummary.evaluate((node) => document.activeElement === node), 'closing returns focus to the garden summary');
       const summaryBox = await gardenSummary.boundingBox();
-      assert.ok(summaryBox && summaryBox.y >= 0 && summaryBox.y + summaryBox.height <= height + 1, 'garden summary stays on screen after closing');
+      // scrollIntoView 는 정수 스크롤로 맞추므로 소수 위치의 요약 줄은 위로 1px 미만 넘칠 수 있다(1280 실측 -0.469).
+      assert.ok(summaryBox && summaryBox.y >= -1 && summaryBox.y + summaryBox.height <= height + 1, 'garden summary stays on screen after closing');
       if (width <= 430) {
         await page.locator('#cdMobileBottomNav [data-nav-key="fortunes"]').click();
         await page.locator('#cdMobileFortuneOverview.is-open').waitFor();

@@ -28,20 +28,6 @@
     "nl": "het beste bij je.",
     "ms": "paling sesuai untuk anda."
   },
-  "home.reviews.empty": {
-    "ko": "아직 등록된 후기가 없어요. 상담을 이용하고 첫 후기를 남겨보세요.",
-    "en": "No reviews yet. Try a reading and leave the first one.",
-    "ja": "まだ登録されたレビューがありません。相談を利用して、最初のレビューを残してみてください。",
-    "zh-CN": "还没有评价。体验一次咨询，来留下第一则吧。",
-    "zh-TW": "還沒有評價。體驗一次諮詢，來留下第一則吧。",
-    "vi": "Chưa có đánh giá nào. Hãy thử một buổi luận giải và để lại đánh giá đầu tiên.",
-    "hi": "अभी कोई समीक्षा नहीं है। एक रीडिंग लें और पहली समीक्षा लिखें।",
-    "es": "Aún no hay reseñas. Prueba una consulta y deja la primera.",
-    "fr": "Pas encore d'avis. Essayez une consultation et laissez le premier.",
-    "de": "Noch keine Bewertungen. Probiere eine Beratung und schreibe die erste.",
-    "nl": "Nog geen reviews. Probeer een consult en schrijf de eerste.",
-    "ms": "Belum ada ulasan. Cuba satu sesi bacaan dan tinggalkan yang pertama."
-  },
   "home.feedback.rewardPrefix": {
     "ko": "실제 버그로 확인된 제보 1건당",
     "en": "Per bug report confirmed as genuine",

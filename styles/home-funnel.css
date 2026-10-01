@@ -34,6 +34,31 @@ html.neo-mode .cdh-services--luxe [aria-label="가격대로 좁히기"] [aria-pr
 .cdh-services--luxe .cdh-catalog-link{margin-top:28px;border-color:color-mix(in srgb,var(--cdh-gold) 60%,var(--cdh-line))}
 .cdh-services--luxe .fortune-gateway__status{border-top-color:color-mix(in srgb,var(--cdh-gold) 35%,var(--cdh-line))}
 @media(max-width:640px){.cdh-services--luxe{padding:22px 18px 28px;border-radius:22px}.cdh-services__vine{width:110px;height:70px;top:-14px;right:-14px}}
+/* 전체 서비스 검색 — 달빛 예화 패널(2026-10-01): 아이보리 달빛 면에 금선 두 겹, 머리에는 달 원반 앞에서 책 읽는 연이.
+   색은 --sv-* 토큰으로만 칠하고 네오는 같은 구조를 샴페인 금선으로 다시 칠한다. #cdFinder 마크업·자리표시 문구는 그대로다. */
+#cdHomeFunnel .cdh-services--luxe{--sv-line:#d4af7a;--sv-line-soft:rgba(212,175,122,.5);--sv-face:#fdf6f0;--sv-face-top:#fffaf3;--sv-face-low:#fbefe9;--sv-glow:rgba(255,236,206,.95);--sv-blush:rgba(244,214,224,.5);--sv-shadow:rgba(122,74,30,.5);--sv-field:linear-gradient(180deg,#fffefb,#fff8ef);--sv-chip:#fffdf8;--sv-icon:#a97b3e;--sv-label:#7a5020;--sv-focus:#b31955;--sv-ring:rgba(179,25,85,.18);--sv-moon:radial-gradient(circle at 50% 40%,#fffdf6 0 38%,#fcefd6 62%,#f3dcb4 76%,rgba(212,175,122,0) 80%);--sv-moon-halo:rgba(255,226,180,.7);border-color:var(--sv-line);background:radial-gradient(80% 56% at 50% -6%,var(--sv-glow),transparent 64%),radial-gradient(60% 42% at 100% 100%,var(--sv-blush),transparent 72%),linear-gradient(180deg,var(--sv-face-top),var(--sv-face) 56%,var(--sv-face-low));box-shadow:0 28px 64px -38px var(--sv-shadow),inset 0 0 0 6px color-mix(in srgb,var(--sv-face) 88%,transparent),inset 0 0 0 7px var(--sv-line-soft)}
+html.neo-mode #cdHomeFunnel .cdh-services--luxe{--sv-line:rgba(232,213,163,.62);--sv-line-soft:rgba(232,213,163,.3);--sv-face:#171126;--sv-face-top:#1e1732;--sv-face-low:#130e22;--sv-glow:rgba(196,181,253,.2);--sv-blush:rgba(232,213,163,.08);--sv-shadow:rgba(0,0,0,.7);--sv-field:linear-gradient(180deg,#241c36,#1d1630);--sv-chip:#211931;--sv-icon:#e8d5a3;--sv-label:#e8d5a3;--sv-focus:#c4b5fd;--sv-ring:rgba(196,181,253,.28);--sv-moon:radial-gradient(circle at 50% 40%,#fffbf0 0 46%,#f4e6c0 66%,#d9c28c 77%,rgba(232,213,163,0) 80%);--sv-moon-halo:rgba(232,213,163,.32)}
+#cdHomeFunnel .cdh-services__head{display:flex;flex-direction:column;align-items:center;text-align:center!important}
+.cdh-services__moon{position:relative;display:block;flex:0 0 auto;width:128px;height:128px;margin:0 auto 12px;border-radius:50%;background:var(--sv-moon);box-shadow:0 0 0 1px var(--sv-line-soft),0 0 0 6px color-mix(in srgb,var(--sv-face) 80%,transparent),0 0 0 7px var(--sv-line-soft),0 0 38px 4px var(--sv-moon-halo)}
+.cdh-services__yeoni{display:block;width:100%;height:100%;object-fit:contain;background:transparent!important}
+/* 🔴 .cdh-services--luxe>* 가 덩굴까지 relative 인라인으로 바꿔 크기 0 으로 사라졌다 — 절대 배치를 되돌린다. */
+#cdHomeFunnel .cdh-services--luxe>.cdh-services__vine{position:absolute;left:auto;z-index:0;display:block;transform:none}
+#cdHomeFunnel .cdh-services__divider::after{border-color:var(--sv-line);background:radial-gradient(circle at 40% 36%,#fff8e6,#e3c48e 70%,#c9a46a);opacity:1}
+html.neo-mode #cdHomeFunnel .cdh-services__divider::before{background:linear-gradient(90deg,#cdb57e,#f4e6c0 50%,#cdb57e);opacity:.6}
+#cdHomeFunnel .cdh-services--luxe .fortune-gateway__search-input{text-overflow:ellipsis}
+html:not(.neo-mode) #cdHomeFunnel .cdh-services--luxe .fortune-gateway__search-input::placeholder{color:#7d566b!important}
+#cdHomeFunnel .cdh-services__head :is(h2,.cdh-lead){text-wrap:balance}
+#cdHomeFunnel .cdh-services__divider{width:min(520px,100%);height:32px;margin:16px auto 0}
+#cdHomeFunnel .cdh-services--luxe .cd-finder{margin-top:8px!important}
+#cdHomeFunnel .cdh-services--luxe .fortune-gateway__search{min-height:58px;padding:0 10px 0 20px;border:1px solid var(--sv-line)!important;border-radius:999px;background:var(--sv-field)!important;box-shadow:inset 0 0 0 3px color-mix(in srgb,var(--sv-face) 90%,transparent),inset 0 0 0 4px var(--sv-line-soft),0 12px 26px -18px var(--sv-shadow)!important}
+#cdHomeFunnel .cdh-services--luxe .fortune-gateway__search:focus-within{border-color:var(--sv-focus)!important;box-shadow:0 0 0 3px var(--sv-ring),0 12px 26px -18px var(--sv-shadow)!important}
+#cdHomeFunnel .cdh-services--luxe .fortune-gateway__search-icon{color:var(--sv-icon)}
+#cdHomeFunnel .cdh-services--luxe :is(.fortune-gateway__group-title,.fortune-gateway__filter-label){color:var(--sv-label);letter-spacing:.08em}
+#cdHomeFunnel .cdh-services--luxe :is(.fortune-gateway__chip,.fortune-gateway__fchip,.fortune-gateway__filter-toggle):not([aria-pressed=true]){border-color:var(--sv-line-soft);border-radius:999px;background:var(--sv-chip)}
+#cdHomeFunnel .cdh-services--luxe :is(.fortune-gateway__chip,.fortune-gateway__fchip){padding-inline:16px;border-radius:999px}
+#cdHomeFunnel .cdh-services--luxe :is(.fortune-gateway__chip,.fortune-gateway__fchip,.fortune-gateway__filter-toggle):not([aria-pressed=true]):hover{border-color:var(--sv-line);box-shadow:0 6px 14px -10px var(--sv-shadow)}
+#cdHomeFunnel .cdh-services--luxe .cdh-catalog-link{border-color:var(--sv-line);border-radius:999px;background:color-mix(in srgb,var(--sv-chip) 70%,transparent)}
+@media(max-width:640px){.cdh-services__moon{width:88px;height:88px;margin-bottom:8px}#cdHomeFunnel .cdh-services__head h2{font-size:1.16rem!important}#cdHomeFunnel .cdh-services__head .cdh-lead{font-size:.9rem!important;line-height:1.6!important}#cdHomeFunnel .cdh-services--luxe .fortune-gateway__search-input::placeholder{font-size:14px}#cdHomeFunnel .cdh-services__divider{height:26px;margin-top:10px}#cdHomeFunnel .cdh-services--luxe .fortune-gateway__search{min-height:54px;padding-left:16px}}
 #cdHomeFunnel .cd-diary-planner-entry__action{color:#fff1f7}
 html.neo-mode #cdHomeFunnel .cd-diary-planner-entry__action{color:#17102f}
 @media(max-width:640px){
@@ -124,15 +149,19 @@ html:is(:lang(ja), :lang(zh)) .cdh :is(h1, h2, h3, p) {
 .cdh-more__close:focus-visible,.cdh-more__summary:focus-visible{outline:2px solid var(--cdh-accent);outline-offset:3px}
 #cdhReviewsSlot:has(#cdReviews[hidden]){display:none}
 .cdh-more__body{display:grid;gap:clamp(48px,7vw,88px);padding:16px clamp(10px,2vw,24px) clamp(24px,3vw,40px)}
-#cdhFeedbackSlot .cd-feedback__card{display:flex;align-items:center;gap:12px;min-height:0;padding:12px 16px;border:1px solid var(--cdh-line);border-radius:18px;background:var(--cdh-card);box-shadow:none}
-#cdhFeedbackSlot .cd-feedback__card::before,#cdhFeedbackSlot :is(.cd-feedback__body,.cd-yehwa-peony){display:none}
-#cdhFeedbackSlot .cd-feedback__icon{width:auto;height:auto;border:0;background:none;box-shadow:none;font-size:1.3rem}
-#cdhFeedbackSlot .cd-feedback__copy{flex:1;gap:2px}
-#cdhFeedbackSlot .cd-feedback__title{color:var(--cdh-ink);font-size:.95rem}
-#cdhFeedbackSlot .cd-feedback__reward{padding:0;border:0;background:none;color:var(--cdh-muted);font-size:.8rem}
-#cdhFeedbackSlot .cd-feedback__reward>span[aria-hidden]{display:none}
-#cdhFeedbackSlot .cd-feedback__reward strong{color:var(--cdh-accent)}
-#cdhFeedbackSlot .cd-feedback__cta{flex:none;width:auto;min-height:44px;padding:0 16px;border:1px solid var(--cdh-accent);border-radius:999px;background:transparent;box-shadow:none;color:var(--cdh-accent);font-size:.84rem}
+/* 버그 제보실(2026-10-01): 한 줄 행으로 줄였던 것을 원래의 3열 다크 카드로 되돌리고 더 크게 둔다 —
+   마스코트·본문·모란 장식을 다시 보이고, 제목·보상·버튼을 키운다. 색은 기존 --fb-* 토큰(연이·네오)을 그대로 쓴다. */
+#cdhFeedbackSlot .cd-feedback__card{min-height:200px;gap:clamp(18px,3vw,36px);padding:clamp(26px,3.4vw,40px) clamp(22px,3.8vw,44px);border-radius:28px;box-shadow:0 20px 48px rgba(36,8,26,.26),inset 0 0 0 1px rgba(234,208,137,.16)}
+#cdhFeedbackSlot .cd-feedback__mascot{width:clamp(104px,11vw,132px);height:auto;border:0;border-radius:0;background:none;overflow:visible}
+#cdhFeedbackSlot .cd-feedback__mascot img{width:100%;height:auto;background:none}
+#cdhFeedbackSlot .cd-feedback__copy{gap:8px}
+#cdhFeedbackSlot .cd-feedback__title{font-size:clamp(1.45rem,2.6vw,2rem)}
+#cdhFeedbackSlot .cd-feedback__reward{font-size:1rem}
+#cdhFeedbackSlot .cd-feedback__cta{min-height:58px;padding:0 32px;font-size:1.05rem}
+@media (max-width:720px){#cdhFeedbackSlot .cd-feedback__card{grid-template-columns:88px minmax(0,1fr);min-height:0;row-gap:18px;padding:24px 20px}#cdhFeedbackSlot .cd-feedback__mascot{width:88px}#cdhFeedbackSlot .cd-feedback__reward{font-size:.92rem}#cdhFeedbackSlot .cd-feedback__cta{width:100%}}
+/* 모바일은 마스코트 옆 칸이 118~188px 라 999px 알약 보상 줄이 4~5줄로 접혔다 — 세로로 쌓아 칸을 넓히고,
+   줄이 넘어가도 문장처럼 흐르는 둥근 사각형으로 둔다(금액 묶음은 한 줄). */
+@media (max-width:640px){#cdhFeedbackSlot .cd-feedback__card{grid-template-columns:minmax(0,1fr)}#cdhFeedbackSlot .cd-feedback__reward{display:block;width:fit-content;max-width:100%;border-radius:14px;padding:8px 12px}#cdhFeedbackSlot .cd-feedback__reward strong{white-space:nowrap}}
 @media (min-width: 900px){.cdh-pass__tiers{grid-template-columns:repeat(4,minmax(0,1fr))}.cdh-pass__btn{justify-self:center;min-width:320px}}
 @media (max-width: 640px){.cdh-bubble{top:14px;max-width:54%;font-size:.8rem}.cdh-more__body{padding-inline:6px}.cdh-pass__desc{font-size:.84rem}}
 @media (prefers-reduced-motion: reduce){.cdh-pass__tier-link,.cdh-more__arrow{transition:none}}
@@ -141,7 +170,7 @@ html:is(:lang(ja), :lang(zh)) .cdh :is(h1, h2, h3, p) {
 :is(html,body).neo-mode .cdh-pass__eyebrow{color:var(--cdh-gold)}
 .cdh-more__copy small{word-break:keep-all}
 @media (min-width: 641px){.cdh-garden{flex-direction:column;gap:14px}.cdh-bubble{position:relative;top:auto;left:auto;order:-1;max-width:280px;border-radius:20px 20px 20px 4px;transform:rotate(-1.5deg)}}
-@media (max-width: 640px){.cdh-bubble{max-width:calc(100% - 100px)}#cdhFeedbackSlot .cd-feedback__icon{display:none}#cdhFeedbackSlot .cd-feedback__reward{font-size:.76rem}#cdhFeedbackSlot .cd-feedback__cta{padding:0 12px}}
+@media (max-width: 640px){.cdh-bubble{max-width:calc(100% - 100px)}}
 @media (max-width: 640px){.cdh-garden>img{width:88px}.cdh-bubble{top:10px;max-width:calc(100% - 100px);padding:10px 12px}}
 /* 2026-10-01 홈 개편 — 대표 상담은 세로 목록, 공유 이벤트·후기 초대는 짧게. */
 #cdHomeFunnel .cd-sig__viewport{display:contents}
@@ -151,5 +180,42 @@ html:is(:lang(ja), :lang(zh)) .cdh :is(h1, h2, h3, p) {
 @media (max-width:767px){#cdHomeFunnel .cd-sig__grid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;width:auto;padding-inline:0}#cdHomeFunnel .cd-sig-card{flex:none;max-width:none;display:grid;grid-template-columns:96px minmax(0,1fr);border-radius:18px;transform:none;opacity:1}#cdHomeFunnel .cd-sig-card__media{aspect-ratio:auto;min-height:100%}#cdHomeFunnel .cd-sig-card__img{position:absolute;inset:0;height:100%}#cdHomeFunnel .cd-sig-card__body{gap:4px;padding:12px 14px}#cdHomeFunnel .cd-sig-card__title{font-size:15px}#cdHomeFunnel .cd-sig-card__desc{display:-webkit-box;overflow:hidden;font-size:12.5px;line-height:1.5;-webkit-line-clamp:2;-webkit-box-orient:vertical}#cdHomeFunnel .cd-sig-card__price{margin-top:2px}}
 @media (max-width:380px){#cdHomeFunnel .fortune-gateway__doors--single .fortune-gateway__door{grid-template-columns:minmax(0,1fr) 76px}#cdHomeFunnel .fortune-gateway__doors--single .fortune-gateway__door-art{width:76px;height:76px}#cdHomeFunnel .fortune-gateway__door-title{word-break:keep-all;overflow-wrap:anywhere}}
 @media (min-width:541px){.cdh .cd-review-invite{grid-template-columns:minmax(0,1fr) 120px;gap:18px;padding:20px 26px}}
+/* 오늘의 운세 — 달빛 예화 카드(2026-10-01): 아이보리 면에 금선 두 겹, 머리에는 찻잔 연이를 담은 달문(아치) 창, 날짜는 금빛 명조.
+   진입 버튼은 꽃돼지 메달(앱 로고 — 히어로가 이미 받은 이미지)을 단 장미 알약이다. 색은 --td-* 토큰만 쓰고 네오는 재도색만 한다.
+   `.cdh a{color:inherit}`(0,1,1)가 단일 클래스 버튼 색을 이기던 결함도 #cdHomeFunnel 범위로 함께 막는다. JS·API 는 그대로다. */
+#cdHomeFunnel #cdTodayHub{--td-line:#d4af7a;--td-line-soft:rgba(212,175,122,.5);--td-face:#fdf6f0;--td-face-top:#fffaf3;--td-glow:rgba(255,236,206,.9);--td-card:#fffdf9;--td-blush:#fff3f1;--td-track:#f7ece2;--td-gold-ink:#7a5020;--td-shadow:rgba(122,74,30,.45);--td-cta:linear-gradient(135deg,#c2245f 0%,#b31955 52%,#8f1445 100%);--td-cta-ink:#fff;--td-cta-glow:rgba(143,20,69,.62);--td-art-w:184px;position:relative;overflow:hidden;padding:clamp(28px,3.6vw,42px) clamp(18px,3.6vw,44px) clamp(26px,3.6vw,40px);border:1px solid var(--td-line);border-radius:28px;background:radial-gradient(70% 46% at 50% -4%,var(--td-glow),transparent 66%),linear-gradient(180deg,var(--td-face-top),var(--td-face));box-shadow:0 28px 64px -40px var(--td-shadow),inset 0 0 0 6px color-mix(in srgb,var(--td-face) 88%,transparent),inset 0 0 0 7px var(--td-line-soft)}
+html.neo-mode #cdHomeFunnel #cdTodayHub{--td-line:rgba(232,213,163,.62);--td-line-soft:rgba(232,213,163,.28);--td-face:#171126;--td-face-top:#1e1732;--td-glow:rgba(196,181,253,.18);--td-card:#211931;--td-blush:#2a2140;--td-track:#1b1530;--td-gold-ink:#e8d5a3;--td-shadow:rgba(0,0,0,.7);--td-cta:linear-gradient(135deg,#ddd3ff 0%,#c4b5fd 52%,#a996f5 100%);--td-cta-ink:#13102a;--td-cta-glow:rgba(196,181,253,.4)}
+#cdHomeFunnel #cdTodayHub:before{content:"";position:absolute;top:-18px;left:-22px;z-index:0;width:170px;height:100px;background:var(--td-line);opacity:.3;pointer-events:none;transform:scaleX(-1);-webkit-mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat;mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat}
+#cdHomeFunnel #cdTodayHub>*{position:relative;z-index:1}
+#cdHomeFunnel #cdTodayHub .cd-today__head{display:flex;flex-direction:column;align-items:center}
+.cd-today__art{display:block;width:var(--td-art-w);height:calc(var(--td-art-w)*.8);margin:0 auto 14px;padding:5px;border-radius:calc(var(--td-art-w)/2) calc(var(--td-art-w)/2) 20px 20px;background:linear-gradient(180deg,var(--td-face-top),var(--td-track));box-shadow:0 0 0 1px var(--td-line),0 16px 30px -18px var(--td-shadow)}
+.cd-today__art img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 48%;border-radius:calc(var(--td-art-w)/2 - 5px) calc(var(--td-art-w)/2 - 5px) 15px 15px;background:transparent!important}
+html body #cdHomeFunnel #cdTodayHub .cd-today__date{gap:10px;font-family:"CodeDestinySerifLatin","CodeDestinySerifKR","Nanum Myeongjo","Noto Serif KR",serif;font-weight:700;letter-spacing:.06em;color:var(--td-gold-ink)}
+html body #cdHomeFunnel #cdTodayHub .cd-today__date:before,html body #cdHomeFunnel #cdTodayHub .cd-today__date:after{content:"";flex:0 0 22px;height:1px;background:var(--td-line)}
+#cdHomeFunnel #cdTodayHub .cd-today__tabs{padding:5px;border:1px solid var(--td-line-soft);border-radius:999px;background:var(--td-track)}
+#cdHomeFunnel #cdTodayHub .cd-today__tab{border-radius:999px}
+#cdHomeFunnel #cdTodayHub .cd-today__tab[aria-selected="true"]{color:var(--td-cta-ink);background:var(--td-cta);box-shadow:inset 0 0 0 1px var(--td-line-soft),0 8px 18px -10px var(--td-cta-glow)}
+#cdHomeFunnel #cdTodayHub .cd-today-card{border-color:var(--td-line-soft);border-radius:22px;background:linear-gradient(180deg,var(--td-blush),var(--td-card) 42%);box-shadow:0 16px 34px -28px var(--td-shadow)}
+#cdHomeFunnel #cdTodayHub .cd-today-card:before{content:"";position:absolute;top:0;left:22px;right:22px;height:2px;background:linear-gradient(90deg,transparent,var(--td-line) 22%,var(--td-line) 78%,transparent)}
+html body #cdHomeFunnel #cdTodayHub .cd-today-card__anchor{border-color:var(--td-line-soft);background:var(--td-card);color:var(--td-gold-ink)}
+#cdHomeFunnel #cdTodayHub .cd-today__gate{border-color:var(--td-line-soft);border-radius:22px;background:linear-gradient(180deg,var(--td-blush),var(--td-card) 60%)}
+#cdHomeFunnel #cdTodayHub :is(.cd-today__cta,.cd-today__gate-cta){gap:10px;min-height:52px;padding:7px 24px 7px 8px;border:1px solid var(--td-line);border-radius:999px;background:var(--td-cta);color:var(--td-cta-ink);font-size:15px;font-weight:800;text-decoration:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.26),0 14px 28px -16px var(--td-cta-glow)}
+#cdHomeFunnel #cdTodayHub :is(.cd-today__cta,.cd-today__gate-cta):hover{background:var(--td-cta);filter:brightness(1.06)}
+.cd-today__pig{display:block;flex:0 0 38px;width:38px;height:38px;border-radius:50%;object-fit:cover;background:transparent!important;box-shadow:0 0 0 2px var(--td-face-top),0 0 0 3px var(--td-line)}
+#cdHomeFunnel #cdTodayHub .cd-today__share{min-height:52px;padding-inline:24px;border-color:var(--td-line);border-radius:999px;background:var(--td-card);color:var(--td-gold-ink)}
+/* 🔴 홈 공용 img{height:auto} 가 아치 창 이미지를 원본 비율로 되돌려 창 아래 18% 가 비었다. */
+#cdHomeFunnel #cdTodayHub .cd-today__art img{width:100%;height:100%;max-width:none}
+/* 메달리온은 늘 왼쪽 끝, 글자는 남은 칸 가운데 — 한 단어만 줄을 넘기지 않게 어절로 고르게 나눈다. */
+#cdHomeFunnel #cdTodayHub :is(.cd-today__cta,.cd-today__gate-cta){justify-content:flex-start}
+#cdHomeFunnel #cdTodayHub :is(.cd-today__cta,.cd-today__gate-cta)>span{flex:1 1 auto;text-align:center;word-break:keep-all;text-wrap:balance}
+html.neo-mode #cdHomeFunnel #cdTodayHub .cd-today__pig{box-shadow:0 0 0 2px #f4e6c0,0 0 0 3px var(--td-line)}
+@media(max-width:560px){#cdHomeFunnel #cdTodayHub{--td-art-w:140px;padding:24px 16px 22px;border-radius:22px}#cdHomeFunnel #cdTodayHub:before{width:120px;height:72px;top:-12px;left:-16px}#cdHomeFunnel #cdTodayHub .cd-today__actions>*{flex:1 1 100%}#cdHomeFunnel #cdTodayHub .cd-today__gate{padding:18px 12px 18px}#cdHomeFunnel #cdTodayHub .cd-today__gate-cta{display:flex;width:100%;padding-right:18px;font-size:14px}}
+/* 홈 제목은 R2 나눔명조 700 하나로 맞춘다(2026-10-01). Mulmaru 는 400 한 굵기뿐이라 740·800·950 을 주면
+   데스크톱에서 가짜 굵게가 됐다. 본문·카드 소제목(h3)은 기기 글꼴 그대로, 히어로 h1 은 손대지 않는다.
+   🔴 #inputPage … .moon-section-head h2{font-family:var(--font-display)!important} 를 이겨야 해서 id 두 개 + !important.
+   🔴 전역 *{font-family:var(--font-body)} 때문에 제목 안 번역 span 은 상속을 못 받는다 — span 도 직접 지정한다. */
+html body #inputPage #cdHomeFunnel :is(#cdhServicesTitle,#cdConcernPickTitle,#fortuneGatewayTitle,#cdQuickTitle,#cdhPassTitle,#cdDiaryPlannerTitle,#cdhExploreTitle,#cdPressTitle,#cdhRecordsTitle,#cdHomeGuideTitle,#cdFeedbackGateTitle,.cd-reviews__title,.cd-review-invite__copy h2,.feat-collection__title,.tarot-collection__title,:is(#fortuneGatewayTitle,#cdDiaryPlannerTitle)>span){font-family:"CodeDestinySerifKR","CodeDestinySerifLatin","Nanum Myeongjo","Noto Serif KR",serif!important;font-weight:700!important;font-synthesis-weight:none}
+/* 영문 키커는 Cinzel — 한글이 섞이면 그 글자만 본문 글꼴로 떨어진다. */
+html body #inputPage #cdHomeFunnel :is(.moon-section-kicker,.fortune-gateway__door-kicker,.moon-music-entry__kicker,.moon-story-entry__kicker){font-family:"CodeDestinySerifLatin",var(--font-body,sans-serif)!important;font-weight:700;letter-spacing:.14em!important}
 .cdh-ask{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:22px;padding-top:18px;border-top:1px solid var(--cdh-line)}.cdh-ask__title{flex:1 1 100%;color:var(--cdh-ink);font-size:.95rem;font-weight:760;word-break:keep-all}.cdh-ask__meta{color:var(--cdh-muted);font-size:.78rem}
 @media (max-width:640px){.cdh-ask{display:grid;gap:8px;margin-top:14px;padding-top:12px}.cdh-ask__title{font-size:.86rem}.cdh-ask__meta{font-size:.72rem;text-align:center}}
