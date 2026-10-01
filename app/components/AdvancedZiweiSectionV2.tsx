@@ -13,6 +13,7 @@ import { ZiweiConsultationHero, ZiweiFoundationReading, ZiweiQuestionSections } 
 import { buildQuestionReading } from "../_lib/ziwei-consultation-narrative";
 // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 PDF 리포트 패널
 import ZiweiDeepPdfPanel, { type ZiweiDeepBirthInput } from "./ziwei/ZiweiDeepPdfPanel";
+import ZiweiPalaceGrid from "./ziwei/ZiweiPalaceGrid";
 import {
   calculateZiweiChart,
   normalizeZiweiForAdvancedReport,
@@ -257,15 +258,6 @@ const ZIWEI_STRENGTH_SYMBOL_KEY: Record<string, keyof AdvancedZiweiCopy["strengt
   "▲": "li",
   "△": "ping",
   X: "ham",
-};
-
-// 12궁 전통 명반 배치 — 지지(한글)를 4×4 격자 위치로 매핑(기본 명반 saju-engine.js zw-cell-N과 동일 배열).
-// 중앙 2×2(2/2~4/4)는 자미 성도 패널. ZHI_LIST(app/_lib/ziwei-engine.ts)는 한글 지지를 쓴다.
-const ZIWEI_BRANCH_GRID_AREA: Record<string, string> = {
-  사: "1 / 1", 오: "1 / 2", 미: "1 / 3", 신: "1 / 4",
-  진: "2 / 1", 유: "2 / 4",
-  묘: "3 / 1", 술: "3 / 4",
-  인: "4 / 1", 축: "4 / 2", 자: "4 / 3", 해: "4 / 4",
 };
 
 // 별 세기 기호(◎ O ▲ △ X)별 색 토큰
@@ -1026,14 +1018,12 @@ export default function AdvancedZiweiSectionV2({
                 (scripts/verify-ziwei-chart-customer-copy.mjs 검사 3이 잠근다).
                 🔴 행은 minmax(min-content, 1fr) 이고 정사각은 sm 부터다 — 좁은 화면에서 1fr 고정 행은
                 주성 2줄 궁(염정◎/천상◎ · 자미◎/천부◎)의 둘째 줄을 13.8px 잘라낸다(같은 날 실측:
-                clientHeight 71 vs scrollHeight 77). 검사 4가 잠근다. */}
-            <div
+                clientHeight 71 vs scrollHeight 77). 행 정의는 공용 ZiweiPalaceGrid 에 있고 검사 4가 잠근다. */}
+            <ZiweiPalaceGrid
               className="relative mx-auto mt-5 w-full max-w-[38rem] gap-1.5 sm:aspect-square"
-              style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gridTemplateRows: "repeat(4, minmax(min-content, 1fr))" }}
-            >
-              {chart.palaces.map((palace) => {
-                const area = ZIWEI_BRANCH_GRID_AREA[palace.earthlyBranch];
-                if (!area) return null;
+              cells={chart.palaces}
+              branchOf={(palace) => palace.earthlyBranch}
+              renderCell={(palace, area) => {
                 const active = palace.id === orbitActivePalaceId;
                 const isMeng = palace.id === "ming";
                 const isShen = !!chart.shenGong && palace.earthlyBranch === chart.shenGong && !isMeng;
@@ -1055,7 +1045,7 @@ export default function AdvancedZiweiSectionV2({
                     key={palace.id}
                     type="button"
                     onClick={() => loadSection(palace.id)}
-                    style={{ gridArea: area }}
+                    style={area}
                     aria-pressed={active}
                     aria-label={`${palace.name} ${palace.earthlyBranch}`}
                     className={`group flex min-h-0 flex-col gap-0.5 overflow-hidden rounded-xl border p-2 text-left transition duration-200 ${roleClass}`}
@@ -1080,9 +1070,10 @@ export default function AdvancedZiweiSectionV2({
                     </div>
                   </button>
                 );
-              })}
+              }}
+              center={(area) => (
               <div
-                style={{ gridArea: "2 / 2 / 4 / 4" }}
+                style={area}
                 className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-200/35 bg-[radial-gradient(circle_at_50%_28%,rgba(232,213,163,0.2),transparent_58%),radial-gradient(circle_at_30%_80%,rgba(167,139,250,0.2),transparent_56%),linear-gradient(160deg,rgba(40,28,84,0.85),rgba(15,13,42,0.92))] p-3 text-center shadow-[inset_0_0_28px_rgba(232,213,163,0.18)]"
               >
                 <p className="text-xs font-black tracking-[0.16em] text-amber-100/90">紫微星圖</p>
@@ -1093,7 +1084,8 @@ export default function AdvancedZiweiSectionV2({
                   <span className="rounded-full border border-violet-300/45 bg-violet-300/12 px-2 py-0.5 text-xs font-bold text-violet-100">{copy.statJuLabel} {chart.juInfo}</span>
                 </div>
               </div>
-            </div>
+              )}
+            />
             <p className="mt-3 text-xs leading-6 text-slate-300">{copy.centerPanelDesc}</p>
           </StagePanel>
           </section>
