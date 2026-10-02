@@ -12,6 +12,9 @@ export const CHUNK_DIR = resolve(OUTPUT_DIR, "episodes");
 export const MANIFEST_PATH = resolve(OUTPUT_DIR, "manifest.json");
 export const READER_OUTPUT_PATH = resolve(ROOT, "lib/stories/vn/episodes.generated.json");
 export const SCENE_MATRIX_PATH = resolve(ROOT, "content/novel/scene-matrix.generated.json");
+// 옛 책갈피(rev 없음)의 비트 위치표 — 2026-10-02 개편 직전 manifest 에서 얼렸다. 다시 쓴 화(rev 2+)는
+// 비트 ID 를 새로 매기므로 계산값이 옛 위치를 잃는다. 그래서 이 표만 manifest 에 싣고, 표에 없는 새 화는 [].
+export const LEGACY_RANGES_PATH = resolve(ROOT, "content/novel/legacy-ranges.v1.json");
 
 const SPEAKERS = new Set(["n", "sys", "yeon", "neo", "mu", "moka", "luna", "rab", "baek", "crow", "geo", "god", "ln", "lns", "pje", "tiger"]);
 const CAST_IDS = new Set(["baek", "crow", "ln", "lns", "mirror", "moka", "mu", "neo", "pje", "rab", "yeon", "tiger"]);
@@ -35,6 +38,12 @@ function namedKeysFromLegacyShell(variableName) {
   const match = source.match(new RegExp(`var ${variableName}=\\{([\\s\\S]*?)\\n\\};`));
   if (!match) throw new Error(`${variableName} 에셋 맵을 정적 플레이어에서 찾지 못했습니다.`);
   return new Set([...match[1].matchAll(/(?:^|[,\n])\s*([A-Za-z][\w]*)\s*:/g)].map((entry) => entry[1]));
+}
+
+export function readLegacyRanges() {
+  const frozen = JSON.parse(readFileSync(LEGACY_RANGES_PATH, "utf8"));
+  if (frozen?.version !== 1 || !frozen.episodes || typeof frozen.episodes !== "object") throw new Error("얼린 책갈피 범위표의 형식이 맞지 않습니다.");
+  return frozen.episodes;
 }
 
 function inferScene(beat, priorScene) {
@@ -101,9 +110,14 @@ export function buildNovelPayload() {
     if (!episode.no || !episode.tag || !episode.title || !Array.isArray(episode.beats) || episode.beats.length === 0) {
       throw new Error(`에피소드 ${episodeIndex + 1}: no/tag/title/beats가 필요합니다.`);
     }
+    // rev 는 화를 통째로 다시 쓸 때 올린다. 저장된 rev 와 다르면 플레이어가 그 화의 처음에서 연다.
+    const rev = episode.rev ?? 1;
+    if (!Number.isInteger(rev) || rev < 1) throw new Error(`${episode.no}: rev 는 1 이상의 정수여야 합니다.`);
     let priorScene = { background: null, tone: "natural" };
     const beats = episode.beats.map((sourceBeat, beatIndex) => {
       const context = `${episode.no} #${beatIndex + 1}`;
+      // 다시 쓴 화가 자동 번호에 기대면 옛 ID 와 겹쳐 엉뚱한 문장으로 이어 읽힌다.
+      if (rev >= 2 && !String(sourceBeat?.id ?? "").startsWith(`${id}:`)) throw new Error(`${context}: 다시 쓴 화(rev ${rev})의 비트는 '${id}:' 로 시작하는 ID 를 직접 가져야 합니다.`);
       const rawBeat = sourceBeat.bg && BACKGROUND_FALLBACKS[sourceBeat.bg]
         ? { ...sourceBeat, bg: BACKGROUND_FALLBACKS[sourceBeat.bg], backgroundIntent: sourceBeat.bg }
         : sourceBeat;
@@ -123,8 +137,11 @@ export function buildNovelPayload() {
       if (scene) priorScene = scene;
       return beat;
     });
-    return { id, no: episode.no, tag: episode.tag, title: episode.title, beats };
+    return { id, no: episode.no, tag: episode.tag, title: episode.title, ...(rev > 1 ? { rev } : {}), beats };
   });
+  for (const slug of Object.keys(readLegacyRanges())) {
+    if (!episodeIds.has(slug)) throw new Error(`얼린 책갈피 범위표의 화 '${slug}'가 정본에 없습니다. 화 주소는 바꾸거나 지우지 않습니다.`);
+  }
   const sourceHash = sha256(sourceRaw);
   const beatCount = episodes.reduce((total, episode) => total + episode.beats.length, 0);
   return { version: 2, sourceHash, episodeCount: episodes.length, beatCount, episodes };
@@ -205,6 +222,7 @@ export function writeNovelRuntime(runtime = buildNovelPayload()) {
   for (const file of readdirSync(CHUNK_DIR)) {
     if (file.endsWith(".json") && !wantedChunks.has(file)) rmSync(resolve(CHUNK_DIR, file));
   }
+  const legacyRanges = readLegacyRanges();
   const manifest = {
     version: runtime.version,
     sourceHash: runtime.sourceHash,
@@ -215,11 +233,9 @@ export function writeNovelRuntime(runtime = buildNovelPayload()) {
       no: episode.no,
       tag: episode.tag,
       title: episode.title,
+      ...(episode.rev ? { rev: episode.rev } : {}),
       beatCount: episode.beats.length,
-      legacyRanges: [...new Set(episode.beats.map(beat => beat.id.split(":")[0]))].map(id => {
-        const positions = episode.beats.filter(beat => beat.id.startsWith(id + ":") && /^\d+$/.test(beat.id.split(":")[1])).map(beat => Number(beat.id.split(":")[1]));
-        return positions.length ? { id, first: Math.min(...positions), last: Math.max(...positions) } : null;
-      }).filter(Boolean),
+      legacyRanges: legacyRanges[episode.id] ?? [],
       path: `/data/novel/episodes/${episode.id}.json`,
     })),
   };

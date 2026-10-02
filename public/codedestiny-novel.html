@@ -934,14 +934,14 @@ if(reduceMQ&&typeof reduceMQ.addEventListener==="function"){
 var BOOKMARK_KEY="cd_novel_bookmark";
 function loadBookmark(){
   try{var raw=localStorage.getItem(BOOKMARK_KEY);if(!raw)return;var o=JSON.parse(raw);
-    if(o&&typeof o.bi==="number"&&(typeof o.ep==="number"||typeof o.episodeId==="string"))S.save={ep:o.ep,bi:o.bi,episodeId:o.episodeId,beatId:o.beatId,bookmarkVersion:o.bookmarkVersion};}catch(e){}
+    if(o&&typeof o.bi==="number"&&(typeof o.ep==="number"||typeof o.episodeId==="string"))S.save={ep:o.ep,bi:o.bi,episodeId:o.episodeId,beatId:o.beatId,bookmarkVersion:o.bookmarkVersion,rev:o.rev};}catch(e){}
 }
 var _bmT=null;
 function saveBookmark(ep,bi){
-  var episode=EPISODES[ep],beat=episode&&episode.beats&&episode.beats[bi];
-  S.save={ep:ep,bi:bi,bookmarkVersion:2,episodeId:episode&&episode.id,beatId:beat&&beat.id};
+  var episode=EPISODES[ep],beat=episode&&episode.beats&&episode.beats[bi],rev=(episode&&episode.rev)||1;
+  S.save={ep:ep,bi:bi,bookmarkVersion:2,episodeId:episode&&episode.id,beatId:beat&&beat.id,rev:rev};
   clearTimeout(_bmT);
-  _bmT=setTimeout(function(){try{localStorage.setItem(BOOKMARK_KEY,JSON.stringify({ep:ep,bi:bi,bookmarkVersion:2,episodeId:episode&&episode.id,beatId:beat&&beat.id,at:Date.now()}));}catch(e){}},450);
+  _bmT=setTimeout(function(){try{localStorage.setItem(BOOKMARK_KEY,JSON.stringify({ep:ep,bi:bi,bookmarkVersion:2,episodeId:episode&&episode.id,beatId:beat&&beat.id,rev:rev,at:Date.now()}));}catch(e){}},450);
 }
 function clearBookmark(){S.save=null;try{localStorage.removeItem(BOOKMARK_KEY);}catch(e){}}
 
@@ -2133,7 +2133,7 @@ function retainEpisode(index,episode){
   }
   return episode;
 }
-function episodeMeta(meta){return {id:meta.id,no:meta.no,tag:meta.tag,title:meta.title,beatCount:meta.beatCount,chunkPath:meta.path,legacyRanges:meta.legacyRanges||[],beats:null};}
+function episodeMeta(meta){return {id:meta.id,no:meta.no,tag:meta.tag,title:meta.title,rev:meta.rev||1,beatCount:meta.beatCount,chunkPath:meta.path,legacyRanges:meta.legacyRanges||[],beats:null};}
 function initNovelData(){
   if(NOVEL_DATA_READY)return NOVEL_DATA_READY;
   NOVEL_DATA_READY=fetch("/data/novel/manifest.json",{cache:"no-cache"}).then(function(response){
@@ -2151,8 +2151,10 @@ function legacyBeatId(save){
   var id=save.episodeId||(save.ep===0?"prologue":"ep-"+String(save.ep).padStart(2,"0"));
   return id+":"+(Math.max(0,save.bi||0)+1);
 }
+/* rev 가 있는 저장은 개편 뒤의 것이라 episodeId 로만 찾는다 — 얼린 옛 범위는 rev 없는 옛 저장 전용이다.
+   저장 rev 와 화 rev 가 다르면 그 화를 다시 쓴 것이라 같은 ID 라도 다른 문장이다 → 화의 처음. */
 function resolveSavedEpisode(save){
-  var old=legacyBeatId(save);
+  var old=save&&save.rev?null:legacyBeatId(save);
   if(old&&NOVEL_MANIFEST){var parts=old.split(":"),pos=Number(parts[1]);
     for(var j=0;j<NOVEL_MANIFEST.episodes.length;j++){var ranges=NOVEL_MANIFEST.episodes[j].legacyRanges||[];
       if(ranges.some(function(r){return r.id===parts[0]&&pos>=r.first&&pos<=r.last;}))return j;
@@ -2163,6 +2165,7 @@ function resolveSavedEpisode(save){
   return 0;
 }
 function resolveSavedBeat(ep,save){
+  if(((save&&save.rev)||1)!==((EPISODES[ep]&&EPISODES[ep].rev)||1))return 0;
   var beats=EPISODES[ep]&&EPISODES[ep].beats||[];
   var id=legacyBeatId(save);
   if(id){for(var i=0;i<beats.length;i++)if(beats[i].id===id)return i;}

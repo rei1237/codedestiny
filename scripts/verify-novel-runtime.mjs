@@ -1,7 +1,7 @@
 // 정적 VN 엔진이 정본 청크 구조와 핵심 회귀 방지 장치를 계속 보유하는지 검사한다.
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH } from "./build-novel-runtime.mjs";
+import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges } from "./build-novel-runtime.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const PLAYER_PATH = resolve(ROOT, "public/codedestiny-novel.html");
@@ -28,6 +28,9 @@ const requiredRuntimeHooks = [
   "function warmNextEpisode(index)",
   "function resolveSavedEpisode(save)",
   "function resolveSavedBeat(ep,save)",
+  // 다른 개정(rev)의 책갈피는 그 화 처음에서 연다 — 다시 쓴 화에서 엉뚱한 대사에 떨어지지 않게.
+  "if(((save&&save.rev)||1)!==((EPISODES[ep]&&EPISODES[ep].rev)||1))return 0;",
+  "rev:meta.rev||1",
   "function showNovelDataError(error)",
   "typeof window.matchMedia===\"function\"",
   "episodeId:episode&&episode.id",
@@ -117,6 +120,15 @@ if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 60 |
 if (matrix.sourceHash !== runtime.sourceHash || matrix.episodes?.length !== runtime.episodeCount || matrix.episodes.some((episode) => !Array.isArray(episode.emotionPath) || episode.emotionPath.length < 3 || !episode.visualCues?.every((cue) => cue.accessibility))) {
   fail("scene matrix is stale or missing its three-stage emotion/accessibility cues");
 }
+/* 옛 책갈피 범위는 얼린 표(content/novel/legacy-ranges.v1.json)가 정본이다. 빌드마다 다시 계산하면 개편 뒤
+   옛 위치가 엉뚱한 화로 옮겨 간다. manifest 의 화 순서·rev·범위가 정본·얼린 표와 같아야 한다. */
+const frozenRanges = readLegacyRanges();
+manifest.episodes.forEach((meta, index) => {
+  const episode = runtime.episodes[index];
+  if (meta.id !== episode?.id) fail(`manifest episode ${index} is ${meta.id}, canonical is ${episode?.id}`);
+  if ((meta.rev ?? 1) !== (episode.rev ?? 1)) fail(`${meta.id}: manifest rev ${meta.rev ?? 1} does not match the canonical rev ${episode.rev ?? 1}`);
+  if (JSON.stringify(meta.legacyRanges) !== JSON.stringify(frozenRanges[meta.id] ?? [])) fail(`${meta.id}: manifest legacyRanges drifted from the frozen table`);
+});
 
 /* 연이의 모습(사람↔꽃돼지) 마커표는 셸에 손으로 적혀 있다 — 진입 즉시 결정해야 해서 청크 로드를
    기다릴 수 없다. 그 표가 정본과 어긋나면 "쭉 읽으면 사람, 목차로 들어가면 꽃돼지"가 되므로,
@@ -146,15 +158,9 @@ const shellFormKeys = shellFormMarks.map((mark) => {
 if (shellFormKeys.join("|") !== canonicalFormMarks.join("|")) {
   fail(`FORM_MARKS in the player shell is out of sync with the canonical source. 정본에 변신을 더하거나 옮겼다면 셸의 표를 같은 커밋에서 갱신할 것.\n  shell:     ${shellFormKeys.join(", ")}\n  canonical: ${canonicalFormMarks.join(", ")}`);
 }
-const expectedVisualCues = [
-  [36, 20, "memoryVault"],
-  [41, 24, "clearMoonWater"],
-  [43, 8, "cherryMoonPortal"],
-];
-for (const [episodeIndex, beatIndex, background] of expectedVisualCues) {
-  if (runtime.episodes.flatMap(e => e.beats).find(b => b.id === `${episodeIndex === 0 ? "prologue" : "ep-" + String(episodeIndex).padStart(2, "0")}:${beatIndex + 1}`)?.bg !== background) {
-    fail(`event background is not bound to its canonical beat: ${background}`);
-  }
+// 이벤트 배경은 개편 때 자리가 옮겨 갈 수 있다 — 고정 컷 대신 정본에서 한 번 이상 쓰이는지만 요구한다.
+for (const background of ["memoryVault", "clearMoonWater", "cherryMoonPortal"]) {
+  if (!runtime.episodes.some(e => e.beats.some(b => b.bg === background))) fail(`event background is no longer used by any canonical beat: ${background}`);
 }
 const preservedEarlyVisualCues = [
   [0, 63, "tarotDoor"],
