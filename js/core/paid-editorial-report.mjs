@@ -1,4 +1,4 @@
-import {reportGuideCopy, buildExternalImagePrompt, reportGuideAssets} from './fortune-report-content.mjs?v=build-3f60ad5a5bec';
+import {reportGuideCopy, buildExternalImagePrompt, reportGuideAssets, chatgptUrl} from './fortune-report-content.mjs?v=build-3f60ad5a5bec';
 
 // Presentation only: callers supply an already authorized, completed result.
 function node(tag, cls, value) {
@@ -43,12 +43,21 @@ function mount(options) {
   textarea.setAttribute('aria-label',text.prompt); textarea.spellcheck = false; details.appendChild(textarea);
   const actions = node('div','cd-editorial-actions'), button = node('button','',text.copy), asset = node('a','',text.asset), status = node('p','cd-editorial-status');
   status.setAttribute('role','status'); status.setAttribute('aria-live','polite'); button.type = 'button';
-  button.addEventListener('click',async () => {
-    try {await navigator.clipboard.writeText(textarea.value);status.textContent=text.copied;}
+  const copyPrompt = async done => {
+    try {await navigator.clipboard.writeText(textarea.value);status.textContent=done;}
     catch {details.open=true;textarea.focus();textarea.select();status.textContent=text.error;}
-  });
+  };
+  button.addEventListener('click',() => {void copyPrompt(text.copied);});
+  // Copy inside the same click; the link opens ChatGPT without putting private text in a URL.
+  const card = node('div','cd-editorial-recommend'), head = node('p','cd-editorial-recommend-head'), steps = node('ol','cd-editorial-steps'), open = node('a','cd-editorial-open');
+  head.append(node('span','cd-editorial-chip',text.chip),node('strong','',text.recommend));
+  text.steps.forEach(step => steps.appendChild(node('li','',step)));
+  open.href = chatgptUrl; open.target = '_blank'; open.rel = 'noopener noreferrer'; open.appendChild(node('span','',text.open));
+  open.insertAdjacentHTML('beforeend','<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M8 4h8v8M16 4 5 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+  open.addEventListener('click',() => {void copyPrompt(text.copiedOpen);});
+  card.append(head,node('p','cd-editorial-why',text.why),steps,open);
   asset.href = art.download; asset.download = 'ggulggul-character.png';
-  actions.append(button,asset); prompt.append(details,actions,status); root.append(evidence,reading,prompt);
+  actions.append(button,asset); prompt.append(card,details,actions,status); root.append(evidence,reading,prompt);
   host.appendChild(root); return true;
 }
 window.CDPaidEditorialReport = {mount};
