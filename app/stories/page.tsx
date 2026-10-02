@@ -14,9 +14,9 @@ import {
 
 export const metadata = buildSeoMetadata({
   path: "/stories",
-  title: "연이의 운명 노벨 — 사주로 걷는 60화 판타지 | Code Destiny",
+  title: "연이의 운명 노벨 — 사주로 걷는 70화 판타지 | Code Destiny",
   description:
-    "평범한 회사원이 꽃돼지가 되어 십성의 섬, 자미두수의 궁, 숙요의 붉은 실을 건너는 60화 완결 창작 소설. 등장인물과 세계관, 화별 줄거리를 한자리에서 볼 수 있습니다.",
+    "평범한 대학생이 꽃돼지가 되어 십성의 섬과 자미두수·점성술·베다·타로의 네 하늘을 건너는 70화 완결 창작 소설. 등장인물과 세계관, 화별 줄거리를 한자리에서 볼 수 있습니다.",
   keywords: ["연이의 운명 노벨", "사주 소설", "운세 웹소설", "십성 판타지", "코드데스티니 스토리"],
 });
 
@@ -24,17 +24,18 @@ const TOTAL_KOREAN = STORY_EPISODES.reduce((sum, episode) => sum + countKorean(e
 const TOTAL_MINUTES = STORY_EPISODES.reduce((sum, episode) => sum + readingMinutes(episode), 0);
 
 const CHARACTERS = [
-  { key: "yeon", role: "주인공. 꽃돼지의 몸으로 운세 세계에 떨어진 평범한 회사원." },
+  { key: "yeon", role: "주인공. 꽃돼지의 몸으로 운세 세계에 떨어진 평범한 대학생." },
   { key: "neo", role: "갈기 달린 고양이를 자처하는 안내자. 에두르지 않고 짚어야 할 것을 짚는다." },
   { key: "geo", role: "거울 너머의 또 다른 연이. 스스로에게 묻는 질문을 대신 던진다." },
-  { key: "moka", role: "식상의 섬에서 만나는 요리사. 재능을 나누는 법을 보여 준다." },
-  { key: "rab", role: "청토끼 금융그룹의 얼굴. 재성의 섬을 계약서로 다스린다." },
-  { key: "baek", role: "인성의 도서관을 지키는 사서. 오래된 상처를 품고 있다." },
-  { key: "mu", role: "무성. 이름을 잃은 자리에서 이야기를 이어 간다." },
-  { key: "crow", role: "검은 깃털의 주인. 여러 아크에 걸쳐 정체가 드러난다." },
-  { key: "luna", role: "루나블룸. 별들의 궁으로 이어지는 문을 여는 존재." },
-  { key: "pje", role: "서한비. 붉은 실 저편에서 불리는 이름." },
-  { key: "god", role: "운명의 신. 읽는 쪽과 쓰는 쪽을 가르는 마지막 관문." },
+  { key: "moka", role: "식상의 섬의 마지막 불씨. 몰래 랩을 하는 독설가 수달 요리사." },
+  { key: "yun", role: "사람 점술가 윤달. 태어난 시를 잃어 집에 못 가는 선배 사용자." },
+  { key: "rab", role: "청토끼 금융의 주인. 남의 시간을 사고파는 자칭 최약체." },
+  { key: "mu", role: "무성. 노래를 비웃음받던 소년. 검은 깃털을 받고 섬을 침묵시켰다." },
+  { key: "crow", role: "검은 깃털의 재판관. 가면 아래의 얼굴이 별들의 궁에서 드러난다." },
+  { key: "ln", role: "재성의 섬 빵집의 막내. 언니는 빵집을 지키려고 자기 시간을 팔아 왔다." },
+  { key: "pje", role: "서한비. 장부를 든 검은 호랑이. 첫 번째 봄을 기억하는 회귀자." },
+  { key: "heuk", role: "흑월. 운명 코드를 먹는 몸 없는 일식. 남의 얼굴을 쓰고 이간질한다." },
+  { key: "god", role: "고객센터 우주. 앱 너머에서 끝까지 전화를 받지 않던 목소리." },
 ];
 
 // 회차 페이지(app/stories/[episode]/page.tsx)와 같은 계층을 허브에서도 내보낸다.
@@ -58,9 +59,9 @@ export default function StoriesHubPage() {
         </h1>
         <p className="mt-4 break-keep text-sm leading-8 text-slate-300 md:text-base">
           알람 세 개를 다 끄고도 일어나지 못하던 아침, 깔린 적 없는 앱 하나가 화면에 떠 있었습니다.
-          평범한 회사원이던 연이는 그 앱을 열고 꽃돼지의 몸으로 낯선 세계에 떨어집니다. 이 이야기는
-          그가 십성의 섬과 자미두수의 궁, 숙요의 붉은 실을 차례로 건너며 자기 이름을 되찾는
-          60화 완결 창작 소설입니다.
+          평범한 대학생 연이는 그 앱을 열고 꽃돼지의 몸으로 낯선 세계에 떨어집니다. 이 이야기는
+          그가 십성의 섬과 자미두수·점성술·베다·타로의 네 하늘을 차례로 건너며 자기 이름을 되찾는
+          70화 완결 창작 소설입니다.
         </p>
         <p className="mt-4 break-keep text-sm leading-8 text-slate-300 md:text-base">
           전체 분량은 한글 약 {Math.round(TOTAL_KOREAN / 10000)}만 자, 처음부터 끝까지 읽는 데
@@ -82,9 +83,9 @@ export default function StoriesHubPage() {
           셈이라, 연이가 어느 섬에서 헤매는지가 곧 그가 지금 무엇을 배우는 중인지를 말해 줍니다.
         </p>
         <p className="mt-4 break-keep text-sm leading-8 text-slate-300 md:text-base">
-          후반부에는 무대가 넓어집니다. 자미두수의 열두 궁이 별들의 궁으로, 숙요 27수가 사람과
-          사람을 잇는 붉은 실의 세계로 등장합니다. 세 체계가 각각 자기 자신·삶의 영역·관계라는
-          다른 층위를 맡고 있어, 이야기가 진행될수록 보는 범위가 나에게서 세상으로 넓어집니다.
+          후반부에는 무대가 네 개의 하늘로 넓어집니다. 자미두수의 열두 궁, 점성술의 열두 집,
+          베다의 스물일곱 낙샤트라, 타로의 스물두 장이 차례로 열리고, 그 모든 하늘을 먹어 드는
+          일식 흑월과의 싸움이 이어집니다. 이야기가 진행될수록 보는 범위가 나에게서 세상으로 넓어집니다.
         </p>
         <p className="mt-4 break-keep text-sm leading-8 text-slate-300 md:text-base">
           다만 작품 속 설정은 서사를 위해 각색한 것입니다. 각 체계의 실제 해석 규칙이 궁금하다면{" "}
@@ -112,7 +113,7 @@ export default function StoriesHubPage() {
       </section>
 
       <section id="arcs" className="mt-8 rounded-3xl border border-white/10 bg-[#0f172a] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">7부 구성</h2>
+        <h2 className="text-xl font-semibold text-amber-100">{STORY_ARCS.length}개 아크 구성</h2>
         <div className="mt-4 space-y-4">
           {STORY_ARCS.map((arc) => {
             const episodes = STORY_EPISODES.slice(arc.from, arc.to + 1);

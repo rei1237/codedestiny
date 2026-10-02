@@ -2,7 +2,7 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { runInNewContext } from "node:vm";
-import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS, SPEAKERS, REWRITE_PENDING, VOCAL_TRACKS } from "./build-novel-runtime.mjs";
+import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS, SPEAKERS, VOCAL_TRACKS } from "./build-novel-runtime.mjs";
 import { FORBIDDEN_STORY_NAMES } from "./lib/novel-constraints.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
@@ -154,7 +154,7 @@ for (const [index, source] of inlineScripts.entries()) {
 }
 
 // 정본(content/novel/episodes.source.json)의 총 비트 수. 비트를 더하거나 빼는 개편마다 같은 커밋에서 갱신한다.
-const EXPECTED_BEAT_COUNT = 6605;
+const EXPECTED_BEAT_COUNT = 7674;
 const runtime = buildNovelPayload();
 const mobileAssets = JSON.parse(readFileSync(resolve(ROOT, "content/novel/mobile-assets.json"), "utf8"));
 const mobileSpriteMap = JSON.parse(html.match(/var MOBILE_SPRITES=(\{[^\n]+\});/)?.[1] || "{}");
@@ -206,8 +206,8 @@ for (const expr of yunExprs) {
 if (runtime.episodes.some(episode => episode.beats.some(beat => !beat.id))) fail("stable story IDs are required");
 const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8"));
 const matrix = JSON.parse(readFileSync(SCENE_MATRIX_PATH, "utf8"));
-if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 60 || manifest.beatCount !== EXPECTED_BEAT_COUNT) {
-  fail(`manifest is not synchronized with the 60-episode canonical source (expected ${EXPECTED_BEAT_COUNT} beats, canonical source has ${runtime.beatCount}). 정본에 비트를 더하거나 뺐다면 이 파일의 EXPECTED_BEAT_COUNT 를 같은 커밋에서 갱신할 것.`);
+if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 70 || manifest.beatCount !== EXPECTED_BEAT_COUNT) {
+  fail(`manifest is not synchronized with the 70-episode canonical source (expected ${EXPECTED_BEAT_COUNT} beats, canonical source has ${runtime.beatCount}). 정본에 비트를 더하거나 뺐다면 이 파일의 EXPECTED_BEAT_COUNT 를 같은 커밋에서 갱신할 것.`);
 }
 // 🔴 emotionPath 가 아예 없으면 undefined < 3 이 false 라 통과했다(fail-open). 배열 여부를 먼저 본다.
 if (matrix.sourceHash !== runtime.sourceHash || matrix.episodes?.length !== runtime.episodeCount || matrix.episodes.some((episode) => !Array.isArray(episode.emotionPath) || episode.emotionPath.length < 3 || !episode.visualCues?.every((cue) => cue.accessibility))) {
@@ -293,10 +293,9 @@ for (const [index, meta] of manifest.episodes.entries()) {
   for (const beat of chunk.beats) {
     const name = FORBIDDEN_STORY_NAMES.find((forbidden) => String(beat.t ?? "").includes(forbidden));
     if (name) fail(`${beat.id}: 대본에 쓰지 않는 이름 '${name}'`);
-    if (REWRITE_PENDING.has(chunk.id)) continue;
-    if (VOCAL_TRACKS.has(beat.bgm)) fail(`${beat.id}: 보컬곡 '${beat.bgm}' (재작성 대기 목록 밖)`);
+    if (VOCAL_TRACKS.has(beat.bgm)) fail(`${beat.id}: 보컬곡 '${beat.bgm}'`);
     if (beat.tone && !beat.bg) fail(`${beat.id}: bg 없는 tone 은 그려지지 않는다`);
-    if (beat.s === "baek" || ["l", "c", "r"].some((slot) => beat[slot]?.who === "baek")) fail(`${beat.id}: 백문(baek) 등장 (재작성 대기 목록 밖)`);
+    if (beat.s === "baek" || ["l", "c", "r"].some((slot) => beat[slot]?.who === "baek")) fail(`${beat.id}: 백문(baek) 등장`);
   }
 }
 
