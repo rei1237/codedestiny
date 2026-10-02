@@ -22,14 +22,29 @@ test('declared output allowance is honored without shrinking large answers or lo
 test('every catalog chapter keeps its full goal, header, eight-question and thinking allowances',()=>{
  let chapters=0;
  for(const product of products)for(const kind of [undefined,...consultationKinds[consultationDomain(product)].filter(k=>supportsKind(product,k))]){
-  for(const chapter of consultationManifest(product,kind))for(const questions of [0,8]){
-   const requested=v7OutputTokens(chapter,questions);
-   const minimum=tokensRequiredForChars((chapter.targetChars?.[1]||0)+600+questions*480)+CHAPTER_THINKING_BUDGET;
-   assert.ok(chapterOutputTokenBudget(requested)>=minimum,`${product.id}/${kind?.id}/${chapter.id}/${questions}`);
+  for(const chapter of consultationManifest(product,kind))for(const [questions,answerChars] of [[0,480],[8,480],[8,700]]){
+   const requested=v7OutputTokens(chapter,questions,answerChars);
+   const minimum=tokensRequiredForChars((chapter.targetChars?.[1]||0)+600+questions*answerChars)+CHAPTER_THINKING_BUDGET;
+   assert.ok(chapterOutputTokenBudget(requested)>=minimum,`${product.id}/${kind?.id}/${chapter.id}/${questions}/${answerChars}`);
    chapters++;
   }
  }
  assert.ok(chapters>2000);
+});
+test('a period ask first chapter with eight 700-char answers stays under the reading-section budget ceiling',()=>{
+ // chapter.ts refuses a reading-section chapter above 24576 output tokens; the period answers must never reach it.
+ let cases=0;
+ for(const product of products){
+  const ask=consultationKinds[consultationDomain(product)].find(k=>k.id==='ask'&&supportsKind(product,k));
+  if(!ask)continue;
+  const [first]=consultationManifest(product,ask);
+  const [compact]=conciseReadingManifest(consultationManifest(product,ask));
+  const raw=first.version==='destiny-book-v7'?v7OutputTokens(first,8,700):tokensRequiredForChars((first.targetChars?.[1]||0)+600+8*700);
+  assert.ok(raw<=24576,`${product.id}/${first.version}/${raw}`);
+  assert.ok(conciseOutputTokens(compact,8,700)<=24576,`${product.id}/concise`);
+  cases++;
+ }
+ assert.ok(cases>0);
 });
 test('question analysis uses a short deterministic single provider call',async()=>{
  setResponse({ok:true,text:'{"questions":[]}'});
@@ -142,11 +157,11 @@ test('every concise catalog chapter preserves sections, evidence ownership and f
    assert.deepEqual(chapter.sections.map(s=>[s.id,s.title,s.role,s.instruction]),old.sections.map(s=>[s.id,s.title,s.role,s.instruction]));
    for(const field of ['id','key','version','systems','factSelectors','owns','refs','mustCover','minInsightUnits','scene','decision'])assert.deepEqual(chapter[field],old[field]);
    for(const target of [0,1])assert.ok(Math.abs(chapter.targetChars[target]/old.targetChars[target]-.88)<.005);
-   for(const questions of [0,8]){
-    const output=chapterOutputTokenBudget(conciseOutputTokens(chapter,questions),chapter.outputBudgetVersion);
-    assert.ok(output>=tokensRequiredForChars(chapter.targetChars[1]+600+questions*480)+CHAPTER_THINKING_BUDGET);
+   for(const [questions,answerChars] of [[0,480],[8,480],[8,700]]){
+    const output=chapterOutputTokenBudget(conciseOutputTokens(chapter,questions,answerChars),chapter.outputBudgetVersion);
+    assert.ok(output>=tokensRequiredForChars(chapter.targetChars[1]+600+questions*answerChars)+CHAPTER_THINKING_BUDGET);
     const sectionUpper=chapter.sections.reduce((n,s)=>n+s.targetChars[1],0);
-    assert.ok(output>=tokensRequiredForChars(sectionUpper+600+questions*480)+CHAPTER_THINKING_BUDGET);
+    assert.ok(output>=tokensRequiredForChars(sectionUpper+600+questions*answerChars)+CHAPTER_THINKING_BUDGET);
     cases++;
    }
   });

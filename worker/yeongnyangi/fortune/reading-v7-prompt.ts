@@ -72,11 +72,11 @@ export function v7Carry(previous:readonly V7Previous[],budgetChars=V7_CARRY_CHAR
 
 /**
  * Output budget. withV7Sections already sets outputTokens for the chapter target; assigned questions add
- * their own room on top (same 480 chars per answer as v5/v6) so a long chapter never loses its ending
+ * their own room on top (same per-answer chars as v5/v6: 480, or 700 for a period ask) so a long chapter never loses its ending
  * to the question block (principle 17: a missing result is the worst outcome).
  */
-export const v7OutputTokens=(chapter:Pick<V7PromptChapter,'outputTokens'|'targetChars'>,questionCount=0)=>
-  Math.max(chapter.outputTokens||0,tokensRequiredForChars((chapter.targetChars?.[1]||0)+600+questionCount*480));
+export const v7OutputTokens=(chapter:Pick<V7PromptChapter,'outputTokens'|'targetChars'>,questionCount=0,answerChars=480)=>
+  Math.max(chapter.outputTokens||0,tokensRequiredForChars((chapter.targetChars?.[1]||0)+600+questionCount*answerChars));
 
 /**
  * Schema overrides merged into the shared chapter schema. One block per section, id and sources required.
@@ -105,6 +105,7 @@ export interface V7PromptInput{
   previous:readonly V7Previous[];
   askFirstChapter?:boolean;
   questionCount?:number;
+  answerChars?:number;
   carryChars?:number;
 }
 export interface V7PromptParts{
@@ -154,6 +155,6 @@ export function buildV7ChapterPrompt(input:V7PromptInput):V7PromptParts{
       previousExamples:undefined,
     },
     outputSchema:v7OutputSchema(chapter,sourceIds),
-    maxOutputTokens:v7OutputTokens(chapter,input.questionCount||0),
+    maxOutputTokens:v7OutputTokens(chapter,input.questionCount||0,input.answerChars),
   };
 }

@@ -3093,8 +3093,10 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
   // 사이트 사주 공개 방법론(보정 시각 23시 이후는 다음 날)이 같다. 『全書』 卷三의 子時 설명
   // ("上午刻属昨夜亥时，下午刻属今日子时")은 모호해 유파 선택으로 기록한다.
   // 음력 변환에 넣는 날짜만 민다 — 소한 기준 연도 탐색과 씨앗 연도는 입력 날짜 그대로 쓴다.
-  var zwDay = new Date(Date.UTC(year, month - 1, day + (hour === 23 ? 1 : 0)));
-  var baseParts = _kasiPartsOf(zwDay.getUTCFullYear(), zwDay.getUTCMonth() + 1, zwDay.getUTCDate(), hour || 0, minute || 0, 0);
+  // 🔴 시프트는 _kasiPartsOf 정규화 뒤에 한다. 출생 전 자리표시 {year:0,month:0,day:0}(renderZiwei
+  // 기본값)은 정규화가 1900-01-01 로 받는데, 날짜를 먼저 더하면 1899년이 되어 음양력 코어 범위를 벗어난다.
+  var baseParts = _kasiPartsOf(year, month, day, hour || 0, minute || 0, 0);
+  if (baseParts && hour === 23) baseParts = _kasiShiftPartsByDays(baseParts, 1);
   var kasiLunar = null;
   try {
     if (KasiEngine && typeof KasiEngine.solarToLunarFromParts === 'function') {

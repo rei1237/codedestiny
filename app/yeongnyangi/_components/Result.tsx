@@ -7,6 +7,7 @@ import {resolveCheckoutPolicyHrefs} from '@/app/checkout/checkout-copy';
 import {readingCopy} from '../_lib/reading-copy';
 import {resultStateCopy} from '../_lib/result-state-copy';
 import {readingLanguageNames} from '@/worker/yeongnyangi/fortune/reading-locale';
+import {formatAskRange} from '@/worker/yeongnyangi/fortune/ask/period';
 import ReadingBook from './ReadingBook';
 import ReadingIdentity from './ReadingIdentity';
 import SpiritResult from './SpiritResult';
@@ -165,7 +166,7 @@ export default function Result(){
  const copy=readingCopy(locale);
  const stateCopy=resultStateCopy(locale);
  const consultationLabel=row&&locale==='ko'?(row.consultation?.kindLabel||row.consultation?.topicLabel||stateCopy.consultation):row?.consultation?.consultationKind?localizedKind(row.consultation.consultationKind,locale):stateCopy.consultation;
- const periodLabel=row?.consultation?.period?(locale==='ko'?row.consultation.period.label:row.consultation.period.years?.map(value=>value.year).join('–')||[row.consultation.period.start,row.consultation.period.end].filter(Boolean).join('–')||stateCopy.periodHint):'';
+ const periodLabel=row?.consultation?.period?(locale==='ko'?row.consultation.period.label+(row.consultation.period.ranges?.length?` (${row.consultation.period.ranges.map(formatAskRange).join(', ')})`:''):row.consultation.period.years?.map(value=>value.year).join('–')||[row.consultation.period.start,row.consultation.period.end].filter(Boolean).join('–')||stateCopy.periodHint):'';
  const needsSupport=!!row?.paid&&row.state!=='COMPLETED'&&row.state!=='REFUNDED'&&!row.recovery?.canRetryNow&&['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'');
  const supportLink=needsSupport?<p><a href={resolveCheckoutPolicyHrefs(row?.locale||'ko').support}>{locale==='ko'?'주문번호로 상담 문의하기':chromeCopy(locale).contact}</a></p>:null;
   const askReading=!!row?.consultation?.questions?.length;
