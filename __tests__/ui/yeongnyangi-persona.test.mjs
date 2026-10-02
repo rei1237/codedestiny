@@ -40,6 +40,10 @@ test('persona selector falls back to Yeongnyangi and the chat voices stay free o
   assert.match(voice,/결론의 방향을 바꾸지 않는다/);
   assert.match(voice,/확정 예언은 금지/);
  }
+ // Yeongnyangi speaks 반말 under the same evidence rules as the chat voices.
+ assert.match(m.yeongnyangiPersona,/반말/);
+ assert.match(m.yeongnyangiPersona,/결론의 방향을 바꾸지 않는다/);
+ assert.match(m.yeongnyangiPersona,/확정 예언은 금지/);
 });
 
 test('every chapter request differs only in the persona segment of the system prompt',async()=>{
@@ -48,6 +52,9 @@ test('every chapter request differs only in the persona segment of the system pr
  for(const chapter of row.snapshot.manifest){
   const base={locale:'ko',chapter,analysis:row.snapshot.analysis,previous:[]};
   const sent=Object.fromEntries(await Promise.all(Object.keys(voices).map(async id=>[id,await capture(id==='undefined'?base:{...base,persona:id})])));
+  // The shared Korean directive asks for 존댓말; the reading contract must leave the register to the persona.
+  assert.doesNotMatch(sent.undefined.system,/존댓말로 작성/,chapter.id);
+  assert.match(sent.undefined.system,/말투는 상담자 페르소나 지시를 따르십시오/,chapter.id);
   for(const id of ['yeoni','neo']){
    const {system:a,...restA}=sent.undefined,{system:b,...restB}=sent[id];
    assert.deepEqual(restB,restA,`${chapter.id}/${id}`);
