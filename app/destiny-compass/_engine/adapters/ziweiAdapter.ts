@@ -9,6 +9,7 @@ import type { CompassInput, DirectionKey, EngineContribution, Evidence } from ".
 import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import type { ZiweiUserInput } from "@/app/_lib/ziwei-types";
 import { calculateZiweiChart } from "@/app/_lib/ziwei-engine";
+import { lunarToSolar } from "@/lib/korean-calendar";
 import { parseBirthDate, parseBirthTime } from "@/app/saju/animal-destiny/lib/sajuAdapter";
 import { ZIWEI_PALACE_DIRECTION, ZIWEI_STUDY_STARS, DIRECTION_KEYS } from "../constants";
 
@@ -25,8 +26,16 @@ function starNames(stars: unknown): string[] {
 }
 
 function toZiweiInput(birth: AnimalDestinyInput): ZiweiUserInput {
-  const { year, month, day } = parseBirthDate(birth.birthDate);
+  let { year, month, day } = parseBirthDate(birth.birthDate);
   const { hour, minute, hasTime } = parseBirthTime(birth.birthTime);
+  // calculateZiweiChart 는 양력 날짜만 받는다(앱 진입점은 normalizeZiweiInput 이 미리 옮긴다).
+  // 예전에는 음력 숫자를 양력으로 그대로 넣었다. 변환은 숙요·베다 어댑터와 같은 한국 음양력 코어로 하고,
+  // 실패 시 상위 try/catch 가 흡수한다.
+  if (birth.calendarType === "lunar") {
+    const solar = lunarToSolar(year, month, day, Boolean(birth.lunarLeap));
+    if (!solar) throw new RangeError("음력 생년월일을 양력으로 옮기지 못했습니다(지원 1900~2100).");
+    ({ year, month, day } = solar);
+  }
   return {
     name: birth.name || "",
     birthYear: year,

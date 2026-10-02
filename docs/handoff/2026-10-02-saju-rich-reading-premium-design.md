@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-10-02
+next: "docs/handoff/2026-10-02-saju-rich-reading-premium-design.md 를 읽고 남은 작업 1번(\"달라진 게 없다\" 원인 실측)부터 진행해줘"
+---
+
 # 사주 결과 화면 — 풍부한 해석 복원 2차: "달라진 게 없다" 해소 + 고급 디자인
 
 작성 2026-10-02. 이전 세션 db9a5faf (상태 파일 `.claude/state/db9a5faf.md`).

@@ -63,3 +63,11 @@ test('the worker engine corrects by default and skips an already corrected clock
   const unknown=calculateZiweiAiChart({birthInfo:{...info,birthTime:'',birthTimeUnknown:true}},{year:2026});
   assert.equal(unknown.uncertainty.birthTimeUnknown,true);
 });
+
+test('the profile notation lunar_leap charts as the leap month, not as a solar date', () => {
+  const chart=extra=>calculateZiweiAiChart({birthInfo:{birthDate:'2020-04-20',birthTime:'10:00',gender:'female',...extra}},{year:2026});
+  const leap=chart({calendarType:'lunar',isLeapMonth:true});
+  assert.deepEqual(chart({calendarType:'lunar_leap'}).palaces,leap.palaces);
+  assert.equal(chart({calendarType:'lunar_leap'}).lunar.isLeapMonth,true);
+  assert.notDeepEqual(chart({calendarType:'lunar'}).palaces,leap.palaces);
+});
