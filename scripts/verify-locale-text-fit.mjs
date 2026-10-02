@@ -246,49 +246,13 @@ const ACCEPTED = new Map([
   [".cd-direct-payment-modal.is-open::before|fixed-width", { why: "위와 같은 장식 의사요소." }],
   [".cd-direct-payment-modal.is-open::after|fixed-height", { why: "위와 같은 장식 의사요소." }],
   [".cd-direct-payment-modal.is-open::after|fixed-width", { why: "위와 같은 장식 의사요소." }],
-  [".cd-mnav__chevron|fixed-height", { why: "펼침 화살표 아이콘 — 글자를 담지 않는다." }],
-  [".cd-mnav__chevron|fixed-width", { why: "펼침 화살표 아이콘." }],
-  [
-    ".cd-mnav__handle|fixed-height",
-    {
-      why:
-        "탭바 접기/펼치기 손잡이 — 안에 aria-hidden 인 chevron span 하나뿐이고 보이는 글자가 " +
-        "없다. 접근성 이름은 aria-label 이라 높이를 차지하지 않는다(셸 짝인 " +
-        ".cd-mobile-bottom-nav__toggle 과 같은 사유).",
-    },
-  ],
-  [".cd-mnav__handle|fixed-width", { why: "탭바 드래그 핸들 — 글자를 담지 않는다." }],
-  [
-    ".cd-mnav__handle::before|fixed-height",
-    { why: "손잡이 가운데 달 14x14 — 장식 의사요소라 글자를 담지 않는다." },
-  ],
-  [".cd-mnav__handle::before|fixed-width", { why: "위와 같은 달 장식." }],
   [".cd-mnav__icon|fixed-height", { why: "탭 아이콘 24x24 — 글자를 담지 않는다." }],
   [".cd-mnav__icon|fixed-width", { why: "탭 아이콘 24x24." }],
-  [
-    ".cd-mobile-bottom-nav__chevron|fixed-height",
-    { why: "셸 탭바 접기 화살표 — 글자를 담지 않는다." },
-  ],
-  [".cd-mobile-bottom-nav__chevron|fixed-width", { why: "셸 탭바 접기 화살표." }],
   [
     ".cd-mobile-bottom-nav__item::before|fixed-height",
     { why: "선택 상태 배경 장식 의사요소 — 글자를 담지 않는다." },
   ],
   [".cd-mobile-bottom-nav__item::before|fixed-width", { why: "위와 같은 장식 의사요소." }],
-  [
-    ".cd-mobile-bottom-nav__toggle|fixed-height",
-    {
-      why:
-        "탭바 접기/펼치기 손잡이 — 안에 aria-hidden 인 chevron span 하나뿐이고 보이는 글자가 " +
-        "없다. 접근성 이름은 aria-label 이라 폭을 차지하지 않는다.",
-    },
-  ],
-  [".cd-mobile-bottom-nav__toggle|fixed-width", { why: "위와 같은 손잡이." }],
-  [
-    ".cd-mobile-bottom-nav__toggle::before|fixed-height",
-    { why: "손잡이 가운데 달 14x14 — 장식 의사요소라 글자를 담지 않는다." },
-  ],
-  [".cd-mobile-bottom-nav__toggle::before|fixed-width", { why: "위와 같은 달 장식." }],
   [".saju-loader-progress|fixed-height", { why: "진행 막대 — 글자를 담지 않는다." }],
   [".saju-loader-visual|fixed-height", { why: "로고·연이 스프라이트 자리 — 이미지다." }],
   [".saju-loader-visual|fixed-width", { why: "로고·연이 스프라이트 자리 — 이미지다." }],

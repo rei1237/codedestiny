@@ -622,7 +622,7 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
 <link rel="stylesheet" href="/styles/theme-tokens.css?v=build-fbdf215eadf6">
 <link rel="stylesheet" href="/styles/core-ui.css?v=build-cf34c271f073">
 <link rel="stylesheet" href="/styles/yehwa-motifs.css?v=build-7e8472800354">
-<link rel="stylesheet" href="/styles/yehwa-motifs-nav.css?v=build-f27ddf89f28c">
+<link rel="stylesheet" href="/styles/yehwa-motifs-nav.css?v=build-c2de81bfc8c4">
  <!-- fortune-ui.css(583KB, brotli 127KB)는 셸에서 가장 큰 렌더 차단 자원이었고
       모바일 FCP 의 최대 단일 원인이었다. 렌더는 막지 않되 높은 우선순위로 받는다.
       바로 아래 cd-fortune-ui-critical 블록은 그 파일에서 이 홈 문서에 실제로 매칭되는
@@ -944,7 +944,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="通过四柱命理、紫微斗数、宿曜占星术与塔罗认识自己的行为和关系。阅读公开解说，了解AI解读的用途与局限，并在各功能页面确认使用条件。">
 <meta property="og:url" content="https://code-destiny.com/zh/">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-4046e42e544c">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-dc3a75a86fe8">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="蜜豚运势 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡">
@@ -953,7 +953,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="CODE DESTINY | 免费四柱八字·塔罗·紫微斗数·合婚 — 每日运势">
 <meta name="twitter:description" content="通过四柱命理、紫微斗数、宿曜占星术与塔罗认识自己的行为和关系。阅读公开解说，了解AI解读的用途与局限，并在各功能页面确认使用条件。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-4046e42e544c">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-dc3a75a86fe8">
 <meta name="twitter:image:alt" content="蜜豚运势 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡">
 <script type="application/ld+json">
 {
@@ -1143,7 +1143,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-4046e42e544c",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-dc3a75a86fe8",
       "width": 1200,
       "height": 630
     },
@@ -3137,79 +3137,8 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
 .cd-mobile-bottom-nav__item:active{transform:scale(.96)}
 .cd-mobile-bottom-nav__item:focus-visible{outline:2px solid #b31955;outline-offset:2px}
 @media (prefers-reduced-motion: reduce) {
-  #cdMobileBottomNav,.cd-mobile-bottom-nav__item,.cd-mobile-bottom-nav__toggle,.cd-mobile-bottom-nav__chevron{transition:none}
+  #cdMobileBottomNav,.cd-mobile-bottom-nav__item{transition:none}
   .cd-mobile-bottom-nav__item[aria-current="page"],.cd-mobile-bottom-nav__item.is-active{transform:none}
-}
-/* 하단 탭바 접기 — 손잡이 하나로 탭바를 접었다 편다. 상태 정본은 localStorage 'cd.mnavCollapsed.v1'
-   이고 React 쪽(styles/mobile-bottom-nav.css 의 .cd-mnav)과 같은 키·같은 body 클래스를 쓴다.
-   🔴 2026-09-03 전환: 예전에는 실제로 감추는 규칙이 전부 @media (min-width:769px) 안에 있어서
-      "접은 채 창을 좁히면 탭바가 저절로 돌아온다"가 모바일 사용자의 안전장치였다. 이제 모바일·앱에서도
-      접히므로 그 안전장치는 없다 — 대신 접힌 상태에서도 손잡이가 항상 보이고 높이가 44px(터치 타겟)다.
-      모바일에서 이 탭바는 유일한 내비이므로(.result-home-shortcut{display:none}) 손잡이를 줄이거나
-      감추는 변경을 하지 말 것.
-   🔴 접힌 바 선언에 #cdMobileBottomNav 을 두 번 쓴 이유: 같은 요소의 배경·테두리·그림자를
-      !important 로 덮는 규칙이 최소 다섯이고(이 파일 5208 · 5209 · 7532 · 7538,
-      styles/mobile-lite.css 의 html.cd-mobile-runtime body #cdMobileBottomNav) 특이도가
-      (1,1,1)~(1,1,2) 라 한 번만 쓰면 문서 순서에 기대게 된다. 두 번 쓰면 (2,1,1) 이라 순서와
-      무관하게 이긴다 — 스킨이 하나 더 늘어도 접힘이 조용히 반쯤 풀리지 않는다. */
-/* 달빛 예화 장식용 선/달 색. 로즈골드·샴페인은 styles/theme-tokens.css 의 --cd-yehwa-* 정본을 쓰고
-   여기서는 알파만 표면별로 잡는다(색상축을 바꾸지 않으므로 One Accent / Hue-Stays 무영향).
-   🔴 알파는 DESIGN.md 의 선 대비 창 1.3~1.7:1 계산값이다 — #c9a46a 는 크림 위 불투명 2.22:1 이라
-      55% 에서 ~1.52:1, #e8d5a3 는 미드나잇 위 14.5:1 이라 20% 에서 ~1.5:1. 산술이므로 픽셀로 확정할 것. */
-#cdMobileBottomNav{--cd-mnav-hairline:color-mix(in srgb,var(--cd-yehwa-line,#c9a46a) 55%,transparent);--cd-mnav-moon-edge:color-mix(in srgb,var(--cd-yehwa-line,#c9a46a) 78%,transparent);--cd-mnav-moon-glow:rgba(179,25,85,.18)}
-body.neo-mode #cdMobileBottomNav{--cd-mnav-hairline:color-mix(in srgb,var(--cd-yehwa-line,#e8d5a3) 20%,transparent);--cd-mnav-moon-edge:color-mix(in srgb,var(--cd-yehwa-line,#e8d5a3) 62%,transparent);--cd-mnav-moon-glow:rgba(255,214,232,.28)}
-/* 🔴 상단 전폭 1px 헤어라인은 없앴다 — 손잡이 줄과 다른 행이라 달과 선이 따로 놀았고, 바
-   padding 이 스킨마다 달라 정렬이 계속 어긋났다. 지금 그 자리의 장식은 손잡이 ::after 의
-   달빛 예화 가지 띠이고, 기하·마스크 전부 styles/yehwa-motifs-nav.css(생성물)가 소유한다.
-   바와 본문을 가르는 기능선은 원래대로 border-top 이다 — 그건 건드리지 않았다. */
-/* 손잡이. 펼침은 바 상단 안쪽 16px 줄, 접힘은 44px 터치 pill 이다(데스크탑만 바 위 nub).
-   🔴 min-height/min-width 를 0 으로 되돌린다 — 전역 button{min-height:48px;min-width:48px}
-      (index.html:699 · 1517)가 손잡이를 48px 로 부풀려 바 안쪽까지 밀고 들어왔다(2026-09-02 실측).
-   🔴 가로 중앙은 margin 으로만 잡는다 — transform 으로 잡으면 styles/fortune-ui.css:1508 의
-      button:active{transform:scale(.97)!important} 이 누르는 순간 그 translate 를 지워 손잡이가
-      옆으로 튀고, mouseup 이 아래 요소에 떨어져 click 이 아예 안 난다(2026-09-02 실측). */
-.cd-mobile-bottom-nav__toggle{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:20px;min-width:0;min-height:0;margin:0;padding:0;border:0;background:none;color:#8e2354;font:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-/* 달 — styles/yehwa-motifs.css 의 .cd-yehwa-divider::after 미니 달 레시피를 그대로 쓴다(마크업 추가 없음).
-   🔴 아이보리는 두 모드 다 불투명이어야 한다(DESIGN.md) — 반투명이면 흐린 유리 원이 된다. */
-.cd-mobile-bottom-nav__toggle::before{content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border:1px solid var(--cd-mnav-moon-edge);border-radius:50%;background:radial-gradient(circle at 40% 36%,#fffdf7,var(--cd-yehwa-ivory,#fdf6f0) 100%);box-shadow:0 0 10px var(--cd-mnav-moon-glow);pointer-events:none}
-/* 셰브런 — 펼침은 ∨(눌러서 내린다), 접힘은 ∧(눌러서 올린다).
-   🔴 잉크가 currentColor 가 아니라 고정 어두운 색인 이유: 이제 아이보리 달 위에 앉으므로
-      네오의 밝은 글리프색(#dcd4f7)을 물려받으면 달 위에서 사라진다. */
-.cd-mobile-bottom-nav__chevron{position:relative;display:block;width:6px;height:6px;margin-top:-2px;border-right:1.5px solid #4a3520;border-bottom:1.5px solid #4a3520;transform:rotate(45deg);transition:transform 180ms ease}
-.cd-mobile-bottom-nav__toggle:focus-visible{outline:2px solid #b31955;outline-offset:2px}
-body.neo-mode .cd-mobile-bottom-nav__toggle:focus-visible{outline-color:#a78bfa}
-/* 접힘: 탭을 감추고 바를 손잡이만 남은 투명 스트립으로 줄인다(이동이 아니라 축소 — 이동시키면
-   손잡이까지 화면 밖으로 나간다). 실측 높이는 ResizeObserver 가 --cd-mobile-nav-h 로 흘리므로
-   클리어런스(위 #inputPage·테마 토글·푸터)는 따로 접힘 전용 값을 두지 않아도 따라 줄어든다.
-   🔴 border 는 top 만이 아니라 통째로 0 이다 — 모바일 pill 스킨은 4면 border 를 준다. */
-body.cd-mnav-collapsed #cdMobileBottomNav#cdMobileBottomNav{padding-top:0!important;padding-bottom:env(safe-area-inset-bottom,0px)!important;background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;pointer-events:none}
-body.cd-mnav-collapsed .cd-mobile-bottom-nav__main{display:none}
-body.cd-mnav-collapsed .cd-mobile-bottom-nav__toggle{position:relative;width:88px;height:44px;margin:0 auto;border:1px solid rgba(179,25,85,.65);border-radius:999px;background:#fffaf7;box-shadow:0 -2px 10px rgba(179,25,85,.14);pointer-events:auto}
-body.cd-mnav-collapsed .cd-mobile-bottom-nav__chevron{margin-top:2px;transform:rotate(-135deg)}
-body.neo-mode.cd-mnav-collapsed .cd-mobile-bottom-nav__toggle{border-color:rgba(196,181,253,.24);background:#120c24;box-shadow:0 -2px 10px rgba(0,0,0,.34)}
-@media (max-width: 768px), (hover: none) and (pointer: coarse) {
-  /* The visual chevron is small, but its mobile control remains thumb-sized. */
-  .cd-mobile-bottom-nav__toggle{min-height:44px;height:44px}
-  /* 🔴 모바일 pill 스킨(cd-mobile-shortcut-polish-v20260702)은 bottom 에서 이미 safe-area 를
-     빼 두었다 — 여기서 padding 으로 또 더하면 두 번 센다. */
-  body.cd-mnav-collapsed #cdMobileBottomNav#cdMobileBottomNav{padding-bottom:6px!important}
-}
-@media (min-width:769px){
-  /* 펼침: 바 위쪽 모서리에 올라탄 nub. 바 높이는 건드리지 않는다. */
-  .cd-mobile-bottom-nav__toggle{position:absolute;left:50%;top:-22px;width:72px;height:22px;margin:0 0 0 -36px;border:1px solid rgba(179,25,85,.65);border-bottom:0;border-radius:10px 10px 0 0;background:#fffaf7;box-shadow:0 -2px 6px rgba(179,25,85,.1);transition:background-color 180ms ease,color 180ms ease}
-  /* 🔴 테두리 알파는 .14 가 아니라 .65 다 — .14 는 손잡이 면 대비 1.28:1, 뒤 배경 대비
-     1.09:1 이라 폭 72px 짜리 판이 눈에 전혀 안 잡히고 셰브런만 떠 보였다. .65 가 면 대비
-     3.18:1 로 3:1 을 넘긴다(2026-09-02 sharp 픽셀 실측). 그림자는 형태 보강용. */
-  .cd-mobile-bottom-nav__toggle:hover{background:#fff3f7}
-  body.neo-mode .cd-mobile-bottom-nav__toggle{border-color:rgba(196,181,253,.24);background:#120c24}
-  body.neo-mode .cd-mobile-bottom-nav__toggle:hover{background:#1c1440}
-  /* 접힘 nub — 위 모바일 pill 이 덮은 형태 속성만 되돌린다(그림자는 pill 값 그대로 쓴다). */
-  /* 🔴 left·top 을 함께 푼다 — 위 펼침 규칙의 `left:50%`·`top:-22px` 은 absolute 일 때만
-     margin-left:-36px 과 짝이 되어 가운데를 잡는다. 접힘이 position 을 relative 로 바꾸면 그
-     50% 가 **상대 이동량**이 되어 손잡이가 바 폭의 절반만큼 오른쪽으로 밀려 잘렸고(1280px
-     접힘에서 26px 밖으로, 2026-09-04 실측) 그 상태에서는 다시 펼 수가 없었다. App Router 짝인
-     styles/mobile-bottom-nav.css:334-345 는 같은 사유로 이미 left:auto·top:auto 를 쓴다. */
-  body.cd-mnav-collapsed .cd-mobile-bottom-nav__toggle{left:auto;top:auto;width:72px;height:44px;border-bottom:0;border-radius:10px 10px 0 0}
 }
 </style>
 
@@ -6236,14 +6165,11 @@ html.neo-mode .cd-sheet,body.neo-mode .cd-sheet{--cd-sheet-bg:#171126;--cd-sheet
     body.cd-mobile-nav-hidden .cd-cookie-consent{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
   }
   /* 데스크탑에도 같은 겹침이 있다 — 위 보정이 max-width:768px 안에만 있어서 1440x900 에서는
-     배너가 탭바를 그대로 덮는다. 2026-09-02 실측: 접기 손잡이 좌표에서 elementFromPoint 가
+     배너가 탭바를 그대로 덮는다. 2026-09-02 실측: 탭바 좌표에서 elementFromPoint 가
      .cd-cookie-consent__actions 를 돌려줬고 클릭이 배너에 먹혔다(탭 5개도 같은 상태였다).
-     데스크탑에는 safe-area 가 없으므로 실측 높이 + 여백이면 된다. 🔴 펼친 상태에서는 접기
-     손잡이가 바 위로 22px 더 튀어나오므로 그만큼을 더 띄운다(접으면 손잡이가 바 안으로
-     들어가므로 다시 8px). */
+     데스크탑에는 safe-area 가 없으므로 실측 높이 + 여백이면 된다. */
   @media (min-width: 769px) {
-    body:not(.cd-mobile-nav-hidden) .cd-cookie-consent{bottom:calc(var(--cd-mobile-nav-h,91px) + 30px)}
-    body.cd-mnav-collapsed:not(.cd-mobile-nav-hidden) .cd-cookie-consent{bottom:calc(var(--cd-mobile-nav-h,50px) + 8px)}
+    body:not(.cd-mobile-nav-hidden) .cd-cookie-consent{bottom:calc(var(--cd-mobile-nav-h,91px) + 8px)}
   }
   .cd-cookie-consent__panel{position:relative;width:min(640px,calc(100vw - 28px));overflow:hidden;border:1px solid rgba(232,223,200,.22);border-radius:22px;background:radial-gradient(circle at 12% 0%,rgba(201,168,76,.18),transparent 32%),radial-gradient(circle at 92% 10%,rgba(74,111,165,.22),transparent 38%),linear-gradient(145deg,rgba(10,11,26,.96),rgba(15,16,53,.94) 52%,rgba(26,21,80,.9));box-shadow:0 24px 70px rgba(4,5,18,.54),0 0 28px rgba(201,168,76,.12),inset 0 1px 0 rgba(240,238,232,.13);color:#E8DFC8;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
   .cd-cookie-consent__panel::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1px 1px at 14% 24%,rgba(240,238,232,.72),transparent),radial-gradient(1px 1px at 78% 18%,rgba(201,168,76,.62),transparent),radial-gradient(1px 1px at 92% 72%,rgba(168,184,216,.58),transparent);opacity:.72}
@@ -13818,11 +13744,6 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
         <a class="cd-mobile-bottom-nav__chip" data-nav-key="music" href="/music/" role="tab" data-cd-trans="shell.cdMobileBottomNav.cdMobileBottomNavQuick.kyzcp">음악</a>
         <button type="button" class="cd-mobile-bottom-nav__chip" data-nav-key="vvip" data-cd-mobile-open-collection="premiumVvipCollection" role="tab">VVIP</button>
       </div>
-      <!-- 접기 손잡이. 🔴 .cd-mobile-bottom-nav__main 의 **형제**로 둔다 —
-           verify-mobile-bottom-nav-sync 가 그 div 안쪽을 첫 </div> 까지 비탐욕 매칭하므로
-           안에 넣으면 파싱이 끊기고, 그리드도 repeat(5,...) 로 5열 고정이다.
-           데스크탑은 바 위로 튀어나온 nub, 모바일·앱은 바 안쪽 손잡이 줄(달)이다 — 표현은 전부 CSS. -->
-      <button type="button" class="cd-mobile-bottom-nav__toggle" id="cdMobileBottomNavToggle" aria-expanded="true" aria-controls="cdMobileBottomNav" aria-label="하단 메뉴 접기/펼치기" data-cd-trans-attr="aria-label:shell.cdMobileBottomNav.k13uxius.ariaLabel"><span class="cd-mobile-bottom-nav__chevron" aria-hidden="true"></span></button>
       <!-- 탭 정의 정본은 app/_lib/mobile-tabs.ts. 라벨·href·순서를 바꾸면 그쪽도 함께 고칠 것
            (정합성 강제: npm run verify:mobile-bottom-nav-sync). -->
       <div class="cd-mobile-bottom-nav__main">
@@ -13855,31 +13776,6 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
           nav.__cdNavHeightRO.observe(nav);
         }
         window.addEventListener('orientationchange', function(){ window.requestAnimationFrame(apply); });
-      })();
-    </script>
-
-    <script data-marker="cd-mnav-collapse-v20260902">
-      /* 하단 탭바 접기. 상태는 localStorage 에 남고 App Router 쪽
-         (app/_lib/mobile-tabs.ts 의 MNAV_COLLAPSED_KEY)과 키·값 표현('1'/'0')을 공유한다.
-         🔴 여기서 폭을 재지 않는다 — 클래스만 붙이고 표현은 CSS 가 정한다. 2026-09-03 부터
-            감추는 규칙이 미디어쿼리 밖에 있어 모바일·앱에서도 접힌다(그전에는 데스크탑 전용이었다).
-         파서 차단 인라인이라 첫 페인트 전에 돌고, 그래서 펼쳤다 접히는 깜빡임이 없다. */
-      (function(){
-        var KEY = 'cd.mnavCollapsed.v1';
-        var toggle = document.getElementById('cdMobileBottomNavToggle');
-        if (!toggle) return;
-        var apply = function(collapsed){
-          document.body.classList.toggle('cd-mnav-collapsed', collapsed);
-          toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-        };
-        var collapsed = false;
-        try { collapsed = window.localStorage.getItem(KEY) === '1'; } catch (_) {}
-        apply(collapsed);
-        toggle.addEventListener('click', function(){
-          collapsed = !collapsed;
-          apply(collapsed);
-          try { window.localStorage.setItem(KEY, collapsed ? '1' : '0'); } catch (_) {}
-        });
       })();
     </script>
 
@@ -17297,7 +17193,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu/"
                    aria-label="핀란드 주석점 시작" data-cd-trans-attr="aria-label:home.tiles.sikojenAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-4046e42e544c" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-dc3a75a86fe8" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
@@ -21044,7 +20940,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             content: {
               title: tr('kakaoReferral.kakaoTitle', 'Code Destiny 별빛 운세 초대'),
               description: tr('kakaoReferral.kakaoDescription', '이 카카오 공유 링크로 친구를 초대할 수 있어요.'),
-              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-4046e42e544c',
+              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-dc3a75a86fe8',
               link: { mobileWebUrl: shareUrl, webUrl: shareUrl }
             },
             buttons: [
@@ -34427,7 +34323,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-4046e42e544c',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-dc3a75a86fe8',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp',fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:'/fuctionassets/naming.webp',fallbackCta:'작명 시작하기'},
@@ -34472,7 +34368,7 @@ function updateBadge() {
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',fallbackTitle:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'5,000원',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',fallbackTitle:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'5,000원',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',fallbackTitle:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎의 징조를 살폈습니다 — 왕실의 찻잎 문양이 오늘의 운명을 전합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'3,000원',ct:'paid',img:'/fuctionassets/london.webp'},
-    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-4046e42e544c'},
+    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-dc3a75a86fe8'},
     '/destiny-poker.html':{cat:'데스티니 포커',fallbackTitle:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',fallbackTitle:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🔒 잠금 해제 10,000원',ct:'paid',img:'/fuctionassets/love code.webp'},
     openAstroModal:{cat:'점성술 · 기본 출생차트',fallbackTitle:'✨ 서양 점성술 기본 출생차트',tagline:'태양 별자리·달 별자리·상승궁과 MC로 나를 이해하는 5분 기본 리딩입니다.',feats:['출생 정보 신뢰도와 계산 기준 표시','태양 별자리·달 별자리·상승궁 3축 통합 해석','MC·10하우스·6하우스 기반 역할 조건','상대 차트 교차 분석은 시너스트리 궁합으로 확장'],cost:'✨ 기본 무료 · 시너스트리 궁합 3,000원',ct:'free',img:'/fuctionassets/jumsung.webp'},
@@ -42544,17 +42440,7 @@ body.neo-mode #cdMobileBottomNav .cd-mobile-bottom-nav__item{
     background:linear-gradient(180deg,rgba(24,20,52,.96),rgba(13,10,30,.98))!important;
     box-shadow:0 18px 44px -18px rgba(0,0,0,.6),inset 0 1px 0 rgba(228,214,255,.08)!important;
   }
-  /* 패널 상단 가름선은 두지 않는다 — 패널이 이미 4면 테두리를 갖고, 달빛 예화 장식은 그 위에
-     올라탄 nub 의 가지 띠가 맡는다(가지는 z-index:-1 이라 불투명한 nub 뒤로 지나가고 좌우로만
-     삐져나온다 — '가지 위의 달'). */
-  /* 컨테이너가 pointer-events:none 이라 손잡이에서 되살린다(접힘 토글은 기능이다 — 유지). */
-  #cdMobileBottomNav .cd-mobile-bottom-nav__toggle{pointer-events:auto}
-  /* 🔴 가지 띠는 nub 한가운데가 아니라 **패널 윗변**에 앉힌다 — nub 중심(패널 위 11px)에
-     두면 받침 없이 허공에 떠서 끊긴 잔가지로 읽혔다(2026-09-04 픽셀 실측: 패널 테두리 y=106 인데
-     가지가 y=92~97). top:100% 는 손잡이 아래변(=패널 윗변)이고 margin-top:-10px 이 띠를 그 위에
-     반씩 걸치므로, 아래 절반은 z-index:-1 로 불투명한 패널 뒤에 숨고 위 절반만 남아 가지가
-     패널에서 자라 나온 것처럼 보인다. */
-  #cdMobileBottomNav .cd-mobile-bottom-nav__toggle::after{top:100%}
+  /* 패널 상단 가름선은 두지 않는다 — 패널이 이미 4면 테두리를 갖는다. */
   /* 🔴 우하단 테마 토글의 탭바 회피 여백을 도크 구간에서만 되돌린다 — 도크는 가운데 620px 이라
      우하단과 가로로 겹칠 수가 없는데도 위 무조건 규칙(#cdMobileBottomNav 옆 .theme-switch-wrapper
      bottom:calc(6px + --cd-mobile-nav-h))이 84px 를 들어 올려 히어로 CTA('바로 시작 →')를
@@ -42583,8 +42469,6 @@ body.neo-mode #cdMobileBottomNav .cd-mobile-bottom-nav__item{
     background:rgba(196,181,253,.14);
     border-color:rgba(196,181,253,.3);
   }
-  /* 접힘 여백은 위 무조건 블록의 body.cd-mnav-collapsed 규칙(특이도 동일·!important)이
-     이미 safe-area 로 되돌린다 — 여기서 다시 쓰지 않는다. */
 }
 
 /* ── 모바일: 무료 운세 CTA + 탭바를 한 패널로 ──
@@ -42624,18 +42508,6 @@ body.neo-mode #cdMobileBottomNav .cd-mobile-bottom-nav__item{
   }
 }
 
-/* ── 접으면 CTA 도 함께 접힌다 ──
-   🔴 접힘은 '하단 크롬을 치운다'는 뜻인데 CTA 만 남으면 받침 없는 색면이 화면 아래에 떠 있는
-      꼴이 된다(사용자 지적 2026-09-04). .is-visible 이 켜 둔 값을 기본값으로 되돌리기만 하므로
-      전이(transform 380ms · opacity 220ms)를 그대로 타고 탭바와 같이 사라진다.
-   🔴 .is-visible 클래스 자체는 건드리지 않는다 — 스크롤 관측자가 소유한 상태라, 다시 펴면
-      그대로 돌아온다. JS 를 한 줄도 안 늘리는 이유가 이것이다.
-   미디어 쿼리 밖에 둔다: 접기 손잡이는 데스크탑 도크에도 있다. */
-html body.cd-mnav-collapsed .cd-sticky-cta.is-visible{
-  transform:translateY(200%);
-  opacity:0;
-  pointer-events:none;
-}
 </style>
 </body>
 

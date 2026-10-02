@@ -9,8 +9,7 @@ export const MOBILE_NAV_SSR_COPY: Record<string, Record<string, string>> = {
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.library": "保管箱",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.libraryTab.ariaLabel": "マイ保管箱",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.kwp0s": "マイ",
-    "shell.cdMobileBottomNav.cdMobileBottomNavMain.k164wabc.ariaLabel": "マイページ",
-    "shell.cdMobileBottomNav.k13uxius.ariaLabel": "下部メニューの折りたたみ/展開"
+    "shell.cdMobileBottomNav.cdMobileBottomNavMain.k164wabc.ariaLabel": "マイページ"
   },
   "en": {
     "home.nav.home": "Home",
@@ -21,8 +20,7 @@ export const MOBILE_NAV_SSR_COPY: Record<string, Record<string, string>> = {
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.library": "Library",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.libraryTab.ariaLabel": "My library",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.kwp0s": "My",
-    "shell.cdMobileBottomNav.cdMobileBottomNavMain.k164wabc.ariaLabel": "My page",
-    "shell.cdMobileBottomNav.k13uxius.ariaLabel": "Collapse/expand bottom menu"
+    "shell.cdMobileBottomNav.cdMobileBottomNavMain.k164wabc.ariaLabel": "My page"
   },
   "zh": {
     "home.nav.home": "首页",
@@ -33,8 +31,7 @@ export const MOBILE_NAV_SSR_COPY: Record<string, Record<string, string>> = {
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.library": "收藏夹",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.libraryTab.ariaLabel": "我的收藏夹",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.kwp0s": "我的",
-    "shell.cdMobileBottomNav.cdMobileBottomNavMain.k164wabc.ariaLabel": "我的页面",
-    "shell.cdMobileBottomNav.k13uxius.ariaLabel": "折叠/展开底部菜单"
+    "shell.cdMobileBottomNav.cdMobileBottomNavMain.k164wabc.ariaLabel": "我的页面"
   },
   "zh-TW": {
     "home.nav.home": "首頁",
@@ -45,7 +42,6 @@ export const MOBILE_NAV_SSR_COPY: Record<string, Record<string, string>> = {
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.library": "收藏夾",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.libraryTab.ariaLabel": "我的收藏夾",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.kwp0s": "我的",
-    "shell.cdMobileBottomNav.cdMobileBottomNavMain.k164wabc.ariaLabel": "我的頁面",
-    "shell.cdMobileBottomNav.k13uxius.ariaLabel": "摺疊/展開底部選單"
+    "shell.cdMobileBottomNav.cdMobileBottomNavMain.k164wabc.ariaLabel": "我的頁面"
   }
 };
