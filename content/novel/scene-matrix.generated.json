@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "sourceHash": "7bf4a47199653c0e8729782a0f1b0109b662b1b0a9ebbb559c76868f089fd758",
+  "sourceHash": "279fb3edd09255ef07539ae67068852e251880c5cdadd509307b9a4e4028e4f3",
   "note": "정본 비트에서 생성한 연출 검수 매트릭스입니다. 목적과 갈등은 각 화 제목/사건 신호를 보존하며, 장면·감정 호흡·접근성 큐를 한 곳에서 검수합니다.",
   "episodes": [
     {
@@ -7720,9 +7720,9 @@
     },
     {
       "id": "ep-28",
-      "title": "돌아가는 문",
-      "purpose": "돌아가는 문",
-      "conflictBeatId": "ep-28:3",
+      "title": "돌아온 방",
+      "purpose": "돌아온 방",
+      "conflictBeatId": "ep-28:6",
       "emotionPath": [
         {
           "phase": "진입",
@@ -7731,723 +7731,98 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-28:83",
-          "pacing": "impact"
+          "beatId": "ep-28:36",
+          "pacing": "normal"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-28:200",
-          "pacing": "impact"
+          "beatId": "ep-28:101",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-28:1",
-          "background": "jae",
+          "background": "room",
           "transition": "crossfade",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
+          "accessibility": "room 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-28:3",
-          "background": "jae",
+          "beatId": "ep-28:6",
+          "background": "room",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 서술"
+          "accessibility": "room 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-28:4",
-          "background": "jae",
+          "beatId": "ep-28:17",
+          "background": "room",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-28:7",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-28:19",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:21",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
+          "accessibility": "room 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-28:23",
-          "background": "river",
+          "background": "roomNight",
           "transition": "crossfade",
           "tone": "natural",
           "ambient": "moonlight",
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
+          "accessibility": "roomNight 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-28:25",
-          "background": "river",
+          "beatId": "ep-28:28",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "stars",
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28:31",
+          "background": "roomNight",
           "transition": "hold",
           "tone": "natural",
           "ambient": "moonlight",
           "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28:36",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "heart",
           "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
+          "accessibility": "roomNight 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-28:37",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "river 배경에서 진행되는 lns의 대사"
-        },
-        {
-          "beatId": "ep-28:47",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "river 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-28:50",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "river 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-28:51",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "river 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-28:58",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:59",
-          "background": "tarotDoor",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "tarotDoor 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:64",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "tarotDoor 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-28:67",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "tarotDoor 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-28:70",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "tarotDoor 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-28:71",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "tarotDoor 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:78",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "tarotDoor 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:80",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "tarotDoor 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:83",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "tarotDoor 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:85",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "flash",
-          "camera": "focus",
-          "accessibility": "tarotDoor 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:91",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "tarotDoor 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:97",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "tarotDoor 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:98",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "tarotDoor 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:99",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "tarotDoor 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:100",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "tarotDoor 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-28:101",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "tarot",
-          "camera": "focus",
-          "accessibility": "tarotDoor 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:102",
-          "background": "room",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:103",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:105",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-28:112",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:114",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:115",
-          "background": "bench",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:119",
-          "background": "bench",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:121",
-          "background": "bench",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:125",
-          "background": "bench",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:128",
-          "background": "bench",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:138",
-          "background": "room",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:141",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-28:144",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:147",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:148",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-28:152",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:158",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-28:162",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:163",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-28:166",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-28:169",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:170",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:172",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:175",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:176",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-28:179",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:180",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-28:181",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:183",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:185",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:186",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-28:187",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:188",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-28:189",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:191",
-          "background": "roomNight",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "roomNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:192",
           "background": "roomNight",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": "moonlight",
           "eventEffect": null,
           "camera": "focus",
           "accessibility": "roomNight 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-28:194",
-          "background": "roomNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "roomNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:195",
-          "background": "roomNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "roomNight 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-28:199",
-          "background": "roomNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "roomNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28:200",
-          "background": "roomNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "roomNight 배경에서 진행되는 시스템 메시지"
-        }
-      ]
-    },
-    {
-      "id": "ep-28a",
-      "title": "붉은 귀걸이의 여자",
-      "purpose": "붉은 귀걸이의 여자",
-      "conflictBeatId": "ep-28a:17",
-      "emotionPath": [
-        {
-          "phase": "진입",
-          "beatId": "ep-28a:1",
-          "pacing": "normal"
-        },
-        {
-          "phase": "압력·전환",
-          "beatId": "ep-28a:17",
-          "pacing": "normal"
-        },
-        {
-          "phase": "정리·다음 걸음",
-          "beatId": "ep-28a:32",
-          "pacing": "normal"
-        }
-      ],
-      "visualCues": [
-        {
-          "beatId": "ep-28a:1",
+          "beatId": "ep-28:44",
           "background": "campus",
           "transition": "crossfade",
           "tone": "natural",
@@ -8457,62 +7832,47 @@
           "accessibility": "campus 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-28a:5",
-          "background": "foundation",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "foundation 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28a:6",
-          "background": "foundation",
+          "beatId": "ep-28:51",
+          "background": "campus",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "foundation 배경에서 진행되는 서술"
+          "accessibility": "campus 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-28a:32",
-          "background": "foundation",
+          "beatId": "ep-28:59",
+          "background": "campus",
           "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "water",
+          "camera": "focus",
+          "accessibility": "campus 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28:66",
+          "background": "aptHall",
+          "transition": "crossfade",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "foundation 배경에서 진행되는 서술"
-        }
-      ]
-    },
-    {
-      "id": "ep-28b",
-      "title": "안전한 내일의 가격",
-      "purpose": "안전한 내일의 가격",
-      "conflictBeatId": "ep-28b:17",
-      "emotionPath": [
-        {
-          "phase": "진입",
-          "beatId": "ep-28b:1",
-          "pacing": "normal"
+          "accessibility": "aptHall 배경에서 진행되는 서술"
         },
         {
-          "phase": "압력·전환",
-          "beatId": "ep-28b:17",
-          "pacing": "normal"
+          "beatId": "ep-28:77",
+          "background": "aptHall",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "shake",
+          "camera": "focus",
+          "accessibility": "aptHall 배경에서 진행되는 서술"
         },
         {
-          "phase": "정리·다음 걸음",
-          "beatId": "ep-28b:33",
-          "pacing": "normal"
-        }
-      ],
-      "visualCues": [
-        {
-          "beatId": "ep-28b:1",
+          "beatId": "ep-28:82",
           "background": "room",
           "transition": "crossfade",
           "tone": "natural",
@@ -8522,34 +7882,324 @@
           "accessibility": "room 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-28b:11",
-          "background": "foundation",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "foundation 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28b:17",
-          "background": "foundation",
+          "beatId": "ep-28:89",
+          "background": "room",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "foundation 배경에서 진행되는 pje의 대사"
+          "accessibility": "room 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-28b:31",
-          "background": "foundation",
+          "beatId": "ep-28:99",
+          "background": "room",
           "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "veil",
+          "camera": "focus",
+          "accessibility": "room 배경에서 진행되는 서술"
+        }
+      ]
+    },
+    {
+      "id": "ep-28a",
+      "title": "옆집의 검은 우산",
+      "purpose": "옆집의 검은 우산",
+      "conflictBeatId": "ep-28a:21",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-28a:1",
+          "pacing": "normal"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-28a:30",
+          "pacing": "impact"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-28a:71",
+          "pacing": "normal"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-28a:1",
+          "background": "aptHall",
+          "transition": "crossfade",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "foundation 배경에서 진행되는 서술"
+          "accessibility": "aptHall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28a:21",
+          "background": "aptHall",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "aptHall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28a:24",
+          "background": "bench",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "bench 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28a:30",
+          "background": "bench",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "bench 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28a:37",
+          "background": "bench",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "heart",
+          "camera": "drift",
+          "accessibility": "bench 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28a:38",
+          "background": "bench",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "bench 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-28a:39",
+          "background": "roomNight",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28a:45",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28a:50",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "script",
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28a:55",
+          "background": "aptHall",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "aptHall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28a:59",
+          "background": "aptHall",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "flash",
+          "camera": "focus",
+          "accessibility": "aptHall 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-28a:67",
+          "background": "aptHall",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "aptHall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28a:70",
+          "background": "aptHall",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "aptHall 배경에서 진행되는 서술"
+        }
+      ]
+    },
+    {
+      "id": "ep-28b",
+      "title": "안전한 내일의 가격",
+      "purpose": "안전한 내일의 가격",
+      "conflictBeatId": "ep-28b:22",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-28b:1",
+          "pacing": "normal"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-28b:30",
+          "pacing": "impact"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-28b:74",
+          "pacing": "normal"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-28b:1",
+          "background": "roomNight",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28b:22",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28b:26",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 pje의 대사"
+        },
+        {
+          "beatId": "ep-28b:30",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "script",
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28b:42",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28b:45",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "shake",
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28b:49",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28b:52",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "claw",
+          "camera": "drift",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28b:58",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28b:59",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-28b:66",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "water",
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28b:71",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
         }
       ]
     },
@@ -8557,7 +8207,7 @@
       "id": "ep-28c",
       "title": "비 오는 정류장의 약속",
       "purpose": "비 오는 정류장의 약속",
-      "conflictBeatId": "ep-28c:11",
+      "conflictBeatId": "ep-28c:13",
       "emotionPath": [
         {
           "phase": "진입",
@@ -8566,18 +8216,28 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-28c:19",
-          "pacing": "normal"
+          "beatId": "ep-28c:24",
+          "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-28c:33",
+          "beatId": "ep-28c:71",
           "pacing": "normal"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-28c:1",
+          "background": "campus",
+          "transition": "crossfade",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "campus 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28c:10",
           "background": "rainStop",
           "transition": "crossfade",
           "tone": "natural",
@@ -8587,27 +8247,7 @@
           "accessibility": "rainStop 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-28c:11",
-          "background": "rainStop",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "script",
-          "camera": "drift",
-          "accessibility": "rainStop 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28c:19",
-          "background": "rainStop",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "metal",
-          "camera": "steady",
-          "accessibility": "rainStop 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-28c:20",
+          "beatId": "ep-28c:13",
           "background": "rainStop",
           "transition": "hold",
           "tone": "natural",
@@ -8617,13 +8257,23 @@
           "accessibility": "rainStop 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-28c:29",
+          "beatId": "ep-28c:24",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": "flash",
+          "camera": "focus",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28c:27",
           "background": "rainStop",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "water",
-          "camera": "drift",
+          "eventEffect": null,
+          "camera": "focus",
           "accessibility": "rainStop 배경에서 진행되는 서술"
         },
         {
@@ -8633,16 +8283,96 @@
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
-          "camera": "drift",
+          "camera": "focus",
           "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28c:40",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28c:48",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28c:49",
+          "background": "aptHall",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "aptHall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28c:51",
+          "background": "aptHall",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "reveal",
+          "camera": "focus",
+          "accessibility": "aptHall 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-28c:65",
+          "background": "aptHall",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "heart",
+          "camera": "drift",
+          "accessibility": "aptHall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28c:66",
+          "background": "aptHall",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "aptHall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28c:68",
+          "background": "aptHall",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "ink",
+          "camera": "focus",
+          "accessibility": "aptHall 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-28c:70",
+          "background": "aptHall",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "aptHall 배경에서 진행되는 서술"
         }
       ]
     },
     {
       "id": "ep-28d",
-      "title": "문을 닫는 사람",
-      "purpose": "문을 닫는 사람",
-      "conflictBeatId": "ep-28d:18",
+      "title": "먼저 알아본 사람",
+      "purpose": "먼저 알아본 사람",
+      "conflictBeatId": "ep-28d:9",
       "emotionPath": [
         {
           "phase": "진입",
@@ -8651,65 +8381,155 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-28d:18",
-          "pacing": "normal"
+          "beatId": "ep-28d:27",
+          "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-28d:35",
-          "pacing": "normal"
+          "beatId": "ep-28d:72",
+          "pacing": "impact"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-28d:1",
-          "background": "rainStop",
+          "background": "roomNight",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28d:9",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "stars",
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-28d:20",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28d:22",
+          "background": "aptHall",
           "transition": "crossfade",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "rainStop 배경에서 진행되는 서술"
+          "accessibility": "aptHall 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-28d:25",
-          "background": "rainStop",
+          "beatId": "ep-28d:27",
+          "background": "aptHall",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "rainStop 배경에서 진행되는 서술"
+          "accessibility": "aptHall 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-28d:28",
-          "background": "rainStop",
+          "beatId": "ep-28d:33",
+          "background": "aptHall",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "rainStop 배경에서 진행되는 서술"
+          "camera": "focus",
+          "accessibility": "aptHall 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-28d:29",
-          "background": "roomNight",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "roomNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-28d:35",
-          "background": "roomNight",
+          "beatId": "ep-28d:36",
+          "background": "aptHall",
           "transition": "hold",
           "tone": "natural",
-          "ambient": "moonlight",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "aptHall 배경에서 진행되는 pje의 대사"
+        },
+        {
+          "beatId": "ep-28d:45",
+          "background": "hands",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "hands",
+          "camera": "focus",
+          "accessibility": "hands 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28d:53",
+          "background": "hands",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "transform",
+          "camera": "focus",
+          "accessibility": "hands 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28d:55",
+          "background": "hands",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "claw",
+          "camera": "drift",
+          "accessibility": "hands 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28d:61",
+          "background": "hands",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "suck",
+          "camera": "focus",
+          "accessibility": "hands 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28d:62",
+          "background": "aptHall",
+          "transition": "crossfade",
+          "tone": "desat",
+          "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "roomNight 배경에서 진행되는 서술"
+          "accessibility": "aptHall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28d:67",
+          "background": "aptHall",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": "reveal",
+          "camera": "focus",
+          "accessibility": "aptHall 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-28d:72",
+          "background": "aptHall",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "aptHall 배경에서 진행되는 서술"
         }
       ]
     },
