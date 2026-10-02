@@ -1,4 +1,4 @@
-// Threads 🌸 오늘의 사주 — 08:30 KST.
+// Threads 🌸 오늘의 사주 — 12:00 KST. 2026-10-02 부터 반말 직설체(CASUAL_RULES).
 //
 // 재료는 전부 기존 정본이다: 역법 코어 ganji(세·월·일주), today-saju-detail.js 의 buildTodaySajuPublic
 // (today 허브 공개 카드와 같은 함수), saju-shinsal.js 의 도화·역마·화개·합충 판정.
@@ -17,7 +17,8 @@ import {
   getYeokmaBranch,
 } from "../saju-shinsal.js";
 import {
-  COMMON_RULES,
+  CASUAL_RULES,
+  SCOPE_LINE,
   situationHook,
   situationTip,
   generateJsonCopy,
@@ -29,7 +30,7 @@ import {
 export const TYPE = "saju";
 export const PATH = "/saju/";
 export const HASHTAG = "오늘의사주";
-export const CTA = "무료 원국으로 내 성향부터 살펴보기";
+export const CTA = "내 사주 원국 무료로 까 보기";
 
 const ELEMENTS = ["목", "화", "토", "금", "수"];
 const BRANCH_ANIMAL = { 子: "쥐", 丑: "소", 寅: "호랑이", 卯: "토끼", 辰: "용", 巳: "뱀", 午: "말", 未: "양", 申: "원숭이", 酉: "닭", 戌: "개", 亥: "돼지" };
@@ -124,14 +125,19 @@ function allowedTerms(facts) {
   ];
 }
 
+const ELEMENT_FEEL = { 목: "밀고 나가는 힘", 화: "말과 표현", 토: "버티는 힘", 금: "자르고 정리하는 힘", 수: "눈치와 생각" };
+
 function fallbackCopy(facts, recent = []) {
-  return {hook:situationHook(TYPE,facts,recent),body:`오늘 날짜의 세운·월주·일주 여섯 글자에는 ${facts.dominantElements.join("·")} 기운이 두드러져요. 오행의 많고 적음은 개인의 능력 점수가 아니에요.`,tip:situationTip(TYPE,facts,recent)};
+  const strong = facts.dominantElements.map((element) => `${element}(${ELEMENT_FEEL[element]})`).join("·");
+  // 조사는 마지막 오행 글자 받침으로 — 목·금은 "이", 화·토·수는 "가".
+  const particle = /[목금]$/.test(facts.dominantElements.at(-1) || "") ? "이" : "가";
+  return {hook:situationHook(TYPE,facts,recent),body:`오늘은 ${facts.dayPillar.ko}일. 날짜 글자 여섯 개 중에 ${strong}${particle} 제일 세. 그쪽으로 밀면 잘 풀리고, 거꾸로 가면 괜히 힘만 빠짐.`,tip:situationTip(TYPE,facts,recent)};
 }
 
 const SYSTEM_PROMPT = [
-  "당신은 계산 근거를 쉬운 말로 설명하는 콘텐츠 에디터이자 한국의 사주 명리학자다. 자평명리를 따른다.",
+  "당신은 사주 잘 보는 30대 친구다. 자평명리를 알지만 용어 자랑은 안 하고, 친구한테 하듯 반말로 툭 던진다.",
   "오늘은 특정인의 명식이 아니라 날짜 자체의 기운(일진·월주·세운)만 다룬다. 개인의 길흉을 말하지 않는다.",
-  COMMON_RULES,
+  CASUAL_RULES,
 ].join("\n");
 
 export function buildPrompt(facts) {
@@ -141,9 +147,9 @@ export function buildPrompt(facts) {
     "",
     "다음 JSON 하나만 출력하라. 설명·코드펜스를 붙이지 마라.",
     "{",
-    '  "hook": "facts의 해석과 이어지는 구체적인 일상 상황을 질문한다. 전문용어 나열 없이 45자 이내.",',
-    '  "body": "오행 분포(dominantElements·missingElements)와 일간·월간 관계(stemRelation)를 녹인 두 문장. 140자 이내.",',
-    '  "tip": "branchStar 를 근거로 오늘 해 볼 만한 행동 하나. 55자 이내."',
+    '  "hook": "facts의 해석과 이어지는 찔리는 일상 상황을 반말로 찌른다(예: 벌여 놓은 일만 다섯 개지?). 전문용어 없이 45자 이내.",',
+    '  "body": "오행 분포(dominantElements·missingElements)와 일간·월간 관계(stemRelation)를 쉬운 말로 푼 반말 두 문장. 오행 이름 뒤엔 뜻을 붙인다. 140자 이내.",',
+    '  "tip": "branchStar 를 근거로 오늘 해 볼 행동 하나를 반말 명령형으로. 55자 이내."',
     "}",
   ].join("\n");
 }
@@ -163,22 +169,24 @@ export async function writeCopy(env, facts, { generateImpl, recent = [] } = {}) 
   return mergeCopy(generated, copyRules(facts), fallbackCopy(facts, recent));
 }
 
+const STAR_PLAIN = { 도화: "도화, 눈에 띄는 날", 역마: "역마, 움직이는 날", 화개: "화개, 혼자 파고드는 날" };
+
 export function format(facts, copy, url) {
-  const { dayPillar: dp, elementTally: tally } = facts;
-  const tallyLine = Object.entries(tally).filter(([, n]) => n > 0).map(([element, n]) => `${element}${n}`).join(" · ");
+  const { dayPillar: dp } = facts;
+  // 오행 집계 줄("목1 · 화3")은 읽히지 않아 뺐다(2026-10-02). 띠 줄은 남긴다 — 독자가 자기 얘기를 찾는 곳이다.
   const lines = [
     copy.hook,
+    "",
     copy.body,
     copy.tip,
-    "날짜 공통 해설 · 개인 예측 아님",
-    `🌸 ${facts.dateLabel} 오늘의 사주`,
+    SCOPE_LINE,
     "",
-    `· 일진 ${dp.ko}(${dp.hanja}) — 천간 ${dp.stemElement} · 지지 ${dp.branchElement}(${dp.animal})`,
-    `· 오행(${facts.yearPillar.ko}년·${facts.monthPillar.ko}월·${dp.ko}일) ${tallyLine}`,
+    `🌸 ${facts.dateLabel} 오늘 일진 ${dp.ko}일(${dp.animal}날)`,
   ];
-  if (facts.branchStar) lines.push(`· ${facts.branchStar.animals.join("·")}에게 오늘은 ${facts.branchStar.name}`);
-  const pair = [facts.harmonyAnimals && `합 ${facts.harmonyAnimals}`, facts.clashAnimals && `충 ${facts.clashAnimals}`].filter(Boolean);
-  if (pair.length) lines.push(`· ${pair.join(" / ")}`);
+  // 길이가 넘치면 renderPost 가 아래 줄부터 뺀다 — 띠 줄이 맨 뒤라 범위 고지·본문이 먼저 살아남는다.
+  if (facts.branchStar) lines.push(`· ${facts.branchStar.animals.join("·")}: ${STAR_PLAIN[facts.branchStar.name] || facts.branchStar.name}`);
+  if (facts.harmonyAnimals) lines.push(`· 손발 맞는 띠: ${facts.harmonyAnimals}`);
+  if (facts.clashAnimals) lines.push(`· 부딪히기 쉬운 띠: ${facts.clashAnimals}`);
 
   return renderPost({ head: lines.join("\n"),  cta: CTA, url, hashtag: HASHTAG });
 }
