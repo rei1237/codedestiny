@@ -29,7 +29,7 @@ const cellLabel=(z:ReadingZiweiPalace,copy:Copy)=>{
 
 function Star({s,copy,lang}:{s:ReadingZiweiStar;copy:Copy;lang?:string}){
  const grade=gradeText(copy,s.grade),hua=huaText(copy,s.hua);
- return <li><div className={styles.star}><b lang={lang}>{s.name}</b>{s.hanja&&<small>{s.hanja}</small>}{s.gradeHanja&&<strong className={styles.grade}>{s.gradeHanja}{lang?'':` · ${s.grade}`}</strong>}{hua&&<em className={styles.tag}>{hua}</em>}{s.basis==='modern-single'&&<em className={styles.tag}>{copy.modern}</em>}</div>
+ return <li><div className={styles.star}><b lang={lang}>{s.name}</b>{s.hanja&&<small>{s.hanja}</small>}{s.gradeHanja&&<strong className={styles.grade}>{s.gradeHanja}{lang?'':` · ${s.grade}`}</strong>}{hua&&<em className={styles.tag}>{hua}</em>}{s.basis&&s.basis!=='classical'&&<em className={styles.tag}>{copy.modern}</em>}</div>
   {grade&&<p>{grade}</p>}</li>;
 }
 

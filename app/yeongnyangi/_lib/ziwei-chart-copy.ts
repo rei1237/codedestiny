@@ -19,7 +19,7 @@ const ko:Copy={chart:'명반',select:'궁 선택',legend:'왼쪽일수록 별의
  hua:{화록:'化祿 화록',화권:'化權 화권',화과:'化科 화과',화기:'化忌 화기'},
  howTitle:'이 별의 강약을 어떻게 읽었나',
  how:['별 옆 글자는 그 별이 이 궁의 지지에서 얼마나 또렷하게 드러나는지를 『紫微斗數全書』 권3의 별 줄에서 옮긴 거예요. 廟가 가장 또렷하고, 陷이 가장 막힌 자리예요.',
-  '원전이 적지 않은 칸은 현대 표(iztro)로 채우고 "현대 표"라고 따로 적었어요. 출처가 하나뿐이라는 뜻이에요. 어느 표에도 없는 별은 글자를 비워 두었어요.',
+  '원전이 적지 않은 칸은 현대 표(iztro)로 채우고 "현대 표"라고 따로 적었어요. 다른 현대 표(紫微人生)도 같은 값이지만, 두 표가 같은 계열일 수 있어 원전만큼 단단하지는 않아요. 어느 표에도 없는 별은 글자를 비워 두었어요.',
   `강약은 길흉 점수가 아니에요. 원전도 ${QUOTE}(묘에 들어도 길성이 더하지 않으면 평범하다)이라 해서, 강한 자리만으로 좋다고 보지 않아요. 같은 궁의 다른 별·사화·마주 보는 궁과 함께 읽어요.`,
   '명반은 구매 때 저장한 계산값으로 화면을 열 때마다 다시 그려요. 이미 받은 풀이 글은 바뀌지 않아요.'],
  notes:'이 궁에서 함께 본 조건',hint:'이 소절이 짚은 궁'};
@@ -30,7 +30,7 @@ const en:Copy={chart:'Chart',select:'Select a palace',legend:'Further left, the 
  hua:{화록:'化祿 Lu (prosperity)',화권:'化權 Quan (authority)',화과:'化科 Ke (recognition)',화기:'化忌 Ji (obstruction)'},
  howTitle:'How this star’s strength was read',
  how:['The character beside each star records how clearly that star shows in this palace’s earthly branch, taken from the star rows in volume 3 of the classical 紫微斗數全書. 廟 is the clearest and 陷 the most blocked.',
-  'Where the classic gives no entry, the gap is filled from a modern table (iztro) and marked “modern table”, meaning there is only one source. Stars that neither table rates are left without a character.',
+  'Where the classic gives no entry, the gap is filled from a modern table (iztro) and marked “modern table”. A second modern table (紫微人生) gives the same values, but the two may share a lineage, so these cells are not as firm as the classic. Stars that neither table rates are left without a character.',
   `Strength is not a score of good or bad fortune. The classic itself says ${QUOTE} — entering 廟 without auspicious stars is ordinary — so a strong position alone is not read as good. Each star is read with its companions, transformations and the opposite palace.`,
   'The chart is redrawn from the values saved at purchase each time you open it. The reading you already received does not change.'],
  notes:'Conditions read in this palace',hint:'Palaces this section reads'};
@@ -41,7 +41,7 @@ const ja:Copy={chart:'命盤',select:'宮を選択',legend:'左ほど星の性�
  hua:{화록:'化禄',화권:'化権',화과:'化科',화기:'化忌'},
  howTitle:'この星の強弱をどう読んだか',
  how:['星の横の文字は、その星がこの宮の地支でどれだけはっきり現れるかを『紫微斗數全書』巻三の星の行から写したものです。廟が最もはっきりし、陷が最も詰まった位置です。',
-  '原典に記載のない欄は現代の表(iztro)で補い、「現代の表」と別に記しました。出典が一つだけという意味です。どちらの表にもない星は文字を空けています。',
+  '原典に記載のない欄は現代の表(iztro)で補い、「現代の表」と別に記しました。別の現代の表(紫微人生)も同じ値ですが、同じ系統の可能性があり、原典ほど確かではありません。どちらの表にもない星は文字を空けています。',
   `強弱は吉凶の点数ではありません。原典も${QUOTE}(廟に入っても吉星が加わらなければ平凡)と述べ、強い位置だけで良いとは見ません。同宮の星・四化・対宮と合わせて読みます。`,
   '命盤は購入時に保存した計算値から、開くたびに描き直します。受け取った鑑定文は変わりません。'],
  notes:'この宮で合わせて見た条件',hint:'この節が読んだ宮'};
@@ -52,7 +52,7 @@ const zhCN:Copy={chart:'命盘',select:'选择宫位',legend:'越靠左，星性
  hua:{화록:'化禄',화권:'化权',화과:'化科',화기:'化忌'},
  howTitle:'这颗星的强弱是怎么读的',
  how:['星旁的字记录该星在此宫地支显现得多鲜明，取自《紫微斗數全書》卷三的星曜条目。廟最鲜明，陷最受阻。',
-  '原典未载的格子用现代表（iztro）补上，并另标“现代表”，表示只有一个出处。两张表都没有的星不标字。',
+  '原典未载的格子用现代表（iztro）补上，并另标“现代表”。另一张现代表（紫微人生）给出相同的值，但两者可能同出一系，不如原典确定。两张表都没有的星不标字。',
   `强弱不是吉凶分数。原典也说${QUOTE}（入庙而无吉星相加则平常），不以位置强就论好。要与同宫星曜、四化及对宫一起看。`,
   '命盘每次打开时都按购买时保存的计算值重新绘制，已收到的解读文字不会改变。'],
  notes:'此宫一并参考的条件',hint:'本节解读的宫位'};
@@ -63,7 +63,7 @@ const zhTW:Copy={chart:'命盤',select:'選擇宮位',legend:'越靠左，星性
  hua:{화록:'化祿',화권:'化權',화과:'化科',화기:'化忌'},
  howTitle:'這顆星的強弱是怎麼讀的',
  how:['星旁的字記錄該星在此宮地支顯現得多鮮明，取自《紫微斗數全書》卷三的星曜條目。廟最鮮明，陷最受阻。',
-  '原典未載的格子用現代表（iztro）補上，並另標「現代表」，表示只有一個出處。兩張表都沒有的星不標字。',
+  '原典未載的格子用現代表（iztro）補上，並另標「現代表」。另一張現代表（紫微人生）給出相同的值，但兩者可能同出一系，不如原典確定。兩張表都沒有的星不標字。',
   `強弱不是吉凶分數。原典也說${QUOTE}（入廟而無吉星相加則平常），不以位置強就論好。要與同宮星曜、四化及對宮一起看。`,
   '命盤每次打開時都依購買時保存的計算值重新繪製，已收到的解讀文字不會改變。'],
  notes:'此宮一併參考的條件',hint:'本節解讀的宮位'};

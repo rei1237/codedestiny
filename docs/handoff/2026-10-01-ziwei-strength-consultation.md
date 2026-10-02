@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-10-01
-next: S0 — 사용자가 다른 사이트 캡처로 아래 56칸(보충 54 + 이견 2)을 확인해 주면 정본 표에 반영한다. S1~S5 는 끝났다. 캡처가 오기 전에는 할 일이 없다.
+status: done
+updated: 2026-10-02
+next: 할 일 없음 — S0~S5 가 모두 끝났다(S0 은 2026-10-02). 남은 것은 아래 "모르는 것"의 실 LLM 상담 품질 검수뿐이고, 정확한 1회 승인이 있어야 한다.
 ---
 
 # 영냥이 자미두수 — 정확한 강약표 위에서 강약을 읽는 상담 + 설명마다 명반
@@ -14,7 +14,7 @@ next: S0 — 사용자가 다른 사이트 캡처로 아래 56칸(보충 54 + �
 - 설명할 때마다 해당 명반을 보여 준다. 모든 운세에 해당한다.
 - 2026-10-01 추가 요구: "정확한 데이터를 기반으로 해야해 그리고 강약도 반드시 반영이 되어야한다". 다른 사이트 캡처로 사용자가 직접 확인해 줄 수 있다고 했다.
 
-## 지금 상태 (S1~S5 완료, S0 대기)
+## 지금 상태 (S0~S5 완료)
 
 S1(강약표·상담 사실·프롬프트·단계 정책)은 main 에 머지됐다. 커밋은 `git log --oneline --grep=ziwei -8` 로 확인한다.
 
@@ -24,7 +24,9 @@ S3(사주·점성·베다·숙요 소절마다 명반)도 main 에 머지됐다.
 
 S4(꿀꿀 셸·앱·워커 프롬프트 강약 통일)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="canonical 7" --grep="major period by branch" -4` 로 확인한다. 아래 "S4 검증"을 본다.
 
-S5(남은 워커 자미 경로·섬)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="7 strength grades" -2` 로 확인한다. 아래 "S5 검증"을 본다. 이제 S0 만 남았다.
+S5(남은 워커 자미 경로·섬)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="7 strength grades" -2` 로 확인한다. 아래 "S5 검증"을 본다.
+
+S0(보충 54칸·이견 2칸의 독립 출처 대조)은 2026-10-02 에 끝났다. 커밋은 `git log --oneline --grep="cross-check the strength table" -2` 로 확인한다. 아래 "S0 검증"을 본다.
 
 ### S3 에서 바꾼 것
 
@@ -78,8 +80,8 @@ S5(남은 워커 자미 경로·섬)도 main 에 머지됐다. 커밋은 `git lo
 | 층위 | 칸 | 출처 |
 |---|---|---|
 | 원전 (classical) | 주성 126, 6성 52 | 『紫微斗數全書』 권3 별머리 줄, [위키문헌 rev 2268626](https://zh.wikisource.org/w/index.php?title=%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%B8%89&oldid=2268626). 원문 줄을 그대로 싣고 파싱했다(탈자 `贪狠` 도 유지). |
-| 현대 보충 (modern-single) | 주성 42, 6성 12 | [iztro](https://github.com/SylarLong/iztro/blob/bb1781cc5da481b1e741ec4da4e4936e91ab6a36/src/data/stars.ts) MIT `src/data/stars.ts` @ `bb1781c` |
-| 이견 | 2칸 | 천기 辰(원전 旺 / iztro 利), 文曲 寅(원전 陷 / iztro 平). 원전 값을 채택했다. |
+| 현대 보충 (S1 modern-single → S0 modern-confirmed) | 주성 42, 6성 12 | [iztro](https://github.com/SylarLong/iztro/blob/bb1781cc5da481b1e741ec4da4e4936e91ab6a36/src/data/stars.ts) MIT `src/data/stars.ts` @ `bb1781c` 값을 쓴다. S0 에서 紫微人生 「甲級星廟旺利陷表」도 54칸 모두 같은 값임을 확인했다. 두 표는 같은 계열일 수 있다(아래 "S0 검증"). |
+| 이견 | 2칸 | 천기 辰(원전 旺 / iztro·紫微人生 利), 文曲 寅(원전 陷 / iztro·紫微人生 平). 원전 값을 채택했고 2026-10-02 사용자 결정으로 유지한다. `dissent` 에 두 현대 표를 모두 적는다. |
 | 구조상 불가 | 8칸 | 경양 寅巳申亥, 타라 子卯午酉 (`impossible`, 등급 없음) |
 
 등급은 7단계(묘·왕·득·리·평·불·함)이고 서로 접지 않는다. 모르는 표기는 `null`(unmapped)로 둔다.
@@ -130,11 +132,14 @@ S5(남은 워커 자미 경로·섬)도 main 에 머지됐다. 커밋은 `git lo
 
 ## 남은 작업
 
-- [ ] **S0 (사용자)** — 독립 출처로 아래 56칸(보충 54 + 이견 2)을 확인한다.
-  - 받을 것: 14주성 묘왕리함 전체 표 1장(14×12)과 6성 표, 출처(책 제목·판·쪽 또는 앱 이름·화면 경로).
-  - 출처 조건: iztro 를 베끼지 않은 독립 출처여야 한다. 후보는 문묵천기(文墨天機) 앱의 성요 묘왕표, 왕정지 중주파 강의서, 국내 자미두수 서적이다.
-  - 반영 방법: `lib/ziwei-star-strength.js` 에 출처 열을 추가한다. 같은 값이면 `modern-confirmed`, 다르면 `disputed` 로 두 값을 모두 보존한다. 테스트 `__tests__/ui/ziwei-star-strength.test.mjs` 의 칸 수를 갱신한다.
-  - 판정 기준: 56칸 모두 `modern-single` 이 아니게 된다(`modern-confirmed` 또는 `disputed`, 이견 2칸은 확인 결과를 `dissent` 에 추가).
+- [x] **S0 독립 출처 대조** — 2026-10-02 완료. 아래 56칸(보충 54 + 이견 2)을 확인했다. 아래 "S0 검증"을 본다.
+  - 출처: 캡처 대신 iztro(2023)보다 앞선 웹 표를 찾았다. 紫微人生 「甲級星廟旺利陷表」(big5)이고, [웨이백 2011-11-09 스냅샷](https://web.archive.org/web/20111109010440/http://211-75-223-181.hinet-ip.hinet.net/tzyy_wei/ji_been/02.htm)이 현재 페이지와 12행 모두 같다.
+  - 사용자가 권한 kimsaju.com 은 쓰지 못했다. 무료 명반 도구가 없고 보고서가 유료다(결제 금지).
+  - 반영: `lib/ziwei-star-strength.js` 에 출처 `rensheng`, 원문 12행, 파서 `parseRenshengStrengthRows` 를 두었다. 채택 규칙은 `resolveZiweiStrengthCell` 한곳이다.
+    - 원전 칸은 그대로 `classical` 이다. 두 현대 표가 같으면 `confirmedBy`, 다르면 `dissent` 에 적는다.
+    - 원전 공란 칸은 iztro 값을 쓴다. 紫微人生이 같으면 `modern-confirmed`, 다르면 `disputed`(iztro 값 유지, 紫微人生은 `dissent`), 없으면 `modern-single` 이다.
+  - 판정 기준 충족: 54칸 모두 `modern-confirmed` 이고 `modern-single`·`disputed` 는 0칸이다. 이견 2칸의 `dissent` 에는 두 현대 표를 모두 적었다.
+  - 🔴 단서: 紫微人生은 iztro 와 240칸이 전부 같다. 같은 계열일 수 있어(추정) 두 표의 일치는 독립 유도의 증거가 아니다. 화면 설명 문구도 그렇게 적었다.
 
   | 별 | 확인할 지지 (현재 채택 등급) | 이견 |
   |---|---|---|
@@ -322,6 +327,34 @@ check:fast 의 실패 1건은 `__tests__/ui/yeongnyangi-reading-v7-golden.test.m
 - `__tests__/worker/neo-operation-room.sections.test.js` 의 픽스처 "자미◎" 도 남겼다. 이것은 모델 출력 예시 문자열이다.
 - 꽃 엔진의 '불' 접기는 S4 후속에 이미 적혀 있다.
 
+## S0 검증 (2026-10-02, 전부 mock — 실 LLM·결제·DB 0회)
+
+등급은 한 칸도 바뀌지 않았다. 240칸의 status·raw·rawKo·rawHanja·grade·rank·label·sourceId 를 바꾸기 전 HEAD 와 비교했고 차이는 0이다. 그래서 셸 `ZW_STAR_STRENGTH`·워커·앱·LLM 사실 블록은 그대로다. 바뀐 것은 `basis`·`confirmedBy`·`dissent`·`note` 와 화면 설명 문구뿐이다.
+
+- 칸 수: 주성은 classical 126·modern-confirmed 42, 6성은 classical 52·modern-confirmed 12, impossible 8 이다. modern-single 과 disputed 는 0이다.
+- 원전 칸 대조: 紫微人生은 원전 178칸 중 176칸과 같다. 다른 2칸이 이견 2칸이고, 두 칸 모두 iztro 와 같은 값이다. 원전 칸 125+51 칸에는 `confirmedBy` 로 두 현대 표를 적었다.
+- 불가 8칸은 紫微人生에서도 빈칸이다.
+- `dissent` 는 단일 객체에서 `{sourceId, raw, grade}` 배열로 바뀌었다. 이 필드를 읽는 소비처는 0이다(git grep).
+- 소비처 셋:
+  - `worker/yeongnyangi/fortune/reading-presentation.ts` 의 basis 타입에 `modern-confirmed`·`disputed` 를 더했다.
+  - `ZiweiReadingChart.tsx` 의 "현대 표" 태그 조건을 `basis!=='classical'` 로 넓혔다. 54칸에 태그가 그대로 붙는다.
+  - `ziwei-chart-copy.ts` 설명 문구를 5개 로케일 모두 "다른 현대 표도 같은 값이지만 같은 계열일 수 있어 원전만큼 단단하지 않다"로 바꿨다.
+- 파서는 fail-closed 다. 모르는 글자와 같은 행 중복을 보고하고, 테스트가 둘 다 빈 배열임을 단언한다. 祿(녹존)은 not-rated 라 명시적으로 건너뛴다.
+- 변이 확인: 원문 행에 모르는 글자나 중복 별을 넣으면 파서가 보고했다. 합성 입력에서 두 현대 표가 다르면 `disputed` 경로를 탔다.
+
+```
+npm run check:fast                                       # exit 0 — node --test 2203/2203, jest 328 스위트 4916/4916
+node --test __tests__/ui/ziwei-star-strength.test.mjs    # 7/7
+npm run verify:ziwei-borrowed-strength                   # ok
+npm run verify:ziwei-star-parity                         # 통과
+npm run verify:sitemap-drift                             # OK — 원장 4칸(lastmod 2026-10-02)을 같은 커밋에 넣었다
+```
+
+### S0 에서 고치지 않은 것 (후속)
+
+- **녹존(祿)**: 紫微人生은 녹존이 앉는 8자리(子寅卯巳午申酉亥)를 모두 廟로 적는다. 원전에 녹존의 강약 줄이 없어 not-rated 를 유지했다.
+- **서적·앱 대조**: 왕정지 중주파 강의서, 문묵천기(文墨天機) 앱과는 대조하지 않았다.
+
 ## 모르는 것
 
 - **S5 근거 어휘의 실 LLM 통과율은 미검증이다.** `ziwei-ai` 의 강약 근거 검사가 새 어휘("묘 자리" 등)로 통과·재시도되는 비율은 mock 에서 알 수 없다.
@@ -329,5 +362,5 @@ check:fast 의 실패 1건은 `__tests__/ui/yeongnyangi-reading-v7-golden.test.m
 - **실 LLM 상담 품질은 미검증이다.** mock 은 입력이 바뀐 것만 보여 준다. Gemini 가 선택 필드 `palaces`·`pillars`·`astroPoints`·`vedicPoints`·`mansions` 를 얼마나 채울지도 실호출 전에는 모른다. 비어도 화면은 강조만 빠진다.
   - 실호출 검수는 정확한 1회 승인이 있어야 한다.
   - 승인되면 연어 1건을 생성하고 본문 전체를 사용자에게 전달한다.
-- **보충 54칸은 현대 출처 1개(iztro)에만 기대고 있다.** S0 전까지는 단일 출처다.
+- **보충 54칸의 두 현대 출처가 서로 독립인지 모른다.** iztro 와 紫微人生은 240칸이 전부 같아 같은 계열일 수 있다(추정). 원전과 다른 계열의 서적으로 확인하기 전까지 54칸은 원전 칸만큼 단단하지 않다.
 - **v7 장의 `promptVersion` 은 `chapter-v7` 그대로다.** 장 경로의 버전 체계를 따로 올릴지는 정하지 않았다.

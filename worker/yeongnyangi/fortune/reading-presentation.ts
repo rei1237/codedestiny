@@ -11,7 +11,7 @@ import { enrichZiweiPalaces } from './ziwei/reading-facts';
 import { PLANET_KO } from './block-anchors';
 
 /** 자미 명반 한 칸. 저장 명반으로 표시할 때마다 다시 계산한다 — 강약 정본(lib/ziwei-star-strength.js)이 바뀌면 옛 결과 화면도 따라온다. */
-export interface ReadingZiweiStar{name:string;hanja:string|null;kind:'main'|'assistant'|'malefic';grade:string|null;gradeHanja:string|null;basis:'classical'|'modern-single'|null;hua?:string}
+export interface ReadingZiweiStar{name:string;hanja:string|null;kind:'main'|'assistant'|'malefic';grade:string|null;gradeHanja:string|null;basis:'classical'|'modern-confirmed'|'disputed'|'modern-single'|null;hua?:string}
 export interface ReadingZiweiPalace{name:string;hanja:string|null;branch:number;body:boolean;stars:ReadingZiweiStar[];notes:string[]}
 export interface ReadingChart extends ChartView {
   relationship?: boolean;
