@@ -325,6 +325,58 @@
       "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
       "maxBytes": 370000,
       "bytes": 335806
+    },
+    {
+      "id": "pje-cry-v1",
+      "file": "pje/cry.webp",
+      "type": "character-sprite",
+      "character": "pje",
+      "expression": "cry",
+      "dimensions": "342x627",
+      "source": "codex-image (gpt-image-2) 2x2 green-screen sheet, refs = existing R2 pje sprites (public); green key + 1px erosion, scaled 0.8 and padded to the existing 627px frame (top 45 / bottom 80); visual-checker ACCEPT 2026-10-02",
+      "usage": "서한비 사람 — 울음(개심·속죄 장면)",
+      "rules": "transparent, same head scale and floor gap as the R2 pje sprites, <=80KB",
+      "maxBytes": 80000,
+      "bytes": 30398
+    },
+    {
+      "id": "pje-sad-v1",
+      "file": "pje/sad.webp",
+      "type": "character-sprite",
+      "character": "pje",
+      "expression": "sad",
+      "dimensions": "342x627",
+      "source": "codex-image (gpt-image-2) 2x2 green-screen sheet, refs = existing R2 pje sprites (public); green key + 1px erosion, scaled 0.8 and padded to the existing 627px frame (top 45 / bottom 80); visual-checker ACCEPT 2026-10-02",
+      "usage": "서한비 사람 — 슬픔",
+      "rules": "transparent, same head scale and floor gap as the R2 pje sprites, <=80KB",
+      "maxBytes": 80000,
+      "bytes": 30264
+    },
+    {
+      "id": "pje-smile-v1",
+      "file": "pje/smile.webp",
+      "type": "character-sprite",
+      "character": "pje",
+      "expression": "smile",
+      "dimensions": "339x627",
+      "source": "codex-image (gpt-image-2) 2x2 green-screen sheet, refs = existing R2 pje sprites (public); green key + 1px erosion, scaled 0.8 and padded to the existing 627px frame (top 45 / bottom 80); visual-checker ACCEPT 2026-10-02",
+      "usage": "서한비 사람 — 옅은 미소(수용 뒤)",
+      "rules": "transparent, same head scale and floor gap as the R2 pje sprites, <=80KB",
+      "maxBytes": 80000,
+      "bytes": 29482
+    },
+    {
+      "id": "pje-resolve-v1",
+      "file": "pje/resolve.webp",
+      "type": "character-sprite",
+      "character": "pje",
+      "expression": "resolve",
+      "dimensions": "339x627",
+      "source": "codex-image (gpt-image-2) 2x2 green-screen sheet, refs = existing R2 pje sprites (public); green key + 1px erosion, scaled 0.8 and padded to the existing 627px frame (top 45 / bottom 80); visual-checker ACCEPT 2026-10-02",
+      "usage": "서한비 사람 — 결의(고리를 끊는 선택)",
+      "rules": "transparent, same head scale and floor gap as the R2 pje sprites, <=80KB",
+      "maxBytes": 80000,
+      "bytes": 30096
     }
   ]
 }

@@ -186,6 +186,12 @@ for (const pose of ["base", "talk", "surprise", "angry", "sad", "water"]) {
   const file = resolve(ROOT, `public/images/novel/hanbi/${pose}.webp`);
   if (!existsSync(file) || statSync(file).size > 80_000) fail(`tiger sprite missing or over budget: ${pose}`);
 }
+// 서한비 사람 컷 중 레포에 둔 것(개편 2026-10). 별칭이 다시 광기 그림으로 돌아가면 울음 장면이 깨진다.
+for (const expr of ["cry", "sad", "smile", "resolve"]) {
+  const file = resolve(ROOT, `public/images/novel/remaster/pje/${expr}.webp`);
+  if (!existsSync(file) || statSync(file).size === 0 || statSync(file).size > 80_000) fail(`Seo Hanbi sprite missing or over budget: ${expr}`);
+  if (!html.includes(`PJE.${expr}="/images/novel/remaster/pje/${expr}.webp"`)) fail(`player does not bind PJE.${expr} to the local sprite`);
+}
 if (runtime.episodes.some(episode => episode.beats.some(beat => !beat.id))) fail("stable story IDs are required");
 const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8"));
 const matrix = JSON.parse(readFileSync(SCENE_MATRIX_PATH, "utf8"));
