@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "sourceHash": "86b1e18a2ad89a1869b0cd43a5fa062a80edc817a9a8c51bcf025cb88abaa9f1",
+  "sourceHash": "28003382266cbb803f7caca677f8d3577d8e2767269f6dbb4d6a37600cbcee88",
   "note": "정본 비트에서 생성한 연출 검수 매트릭스입니다. 목적과 갈등은 각 화 제목/사건 신호를 보존하며, 장면·감정 호흡·접근성 큐를 한 곳에서 검수합니다.",
   "episodes": [
     {
@@ -11440,9 +11440,9 @@
     },
     {
       "id": "ep-41",
-      "title": "사랑의 힘",
-      "purpose": "사랑의 힘",
-      "conflictBeatId": "ep-41:3",
+      "title": "바보의 여행",
+      "purpose": "바보의 여행",
+      "conflictBeatId": "ep-41:5",
       "emotionPath": [
         {
           "phase": "진입",
@@ -11451,735 +11451,165 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-41:42",
-          "pacing": "normal"
+          "beatId": "ep-41:36",
+          "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-41:116",
+          "beatId": "ep-41:102",
           "pacing": "normal"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-41:1",
-          "background": "sukuyo",
+          "background": "tarotHall",
           "transition": "crossfade",
-          "tone": "dark",
-          "ambient": null,
+          "tone": "natural",
+          "ambient": "moonlight",
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:3",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "stars",
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:5",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:6",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-41:7",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 ln의 대사"
-        },
-        {
-          "beatId": "ep-41:9",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:10",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-41:11",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-41:13",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-41:15",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
+          "background": "fateTarot",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
+          "camera": "drift",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-41:16",
-          "background": "sukuyo",
+          "beatId": "ep-41:21",
+          "background": "fateTarot",
           "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-41:20",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "vortex",
+          "camera": "focus",
+          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
         },
         {
           "beatId": "ep-41:25",
-          "background": "clearMoonWater",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "focus",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:26",
-          "background": "clearMoonWater",
+          "background": "fateTarot",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 ln의 대사"
-        },
-        {
-          "beatId": "ep-41:27",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "water",
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 ln의 대사"
+          "eventEffect": "fire",
+          "camera": "drift",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-41:28",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "water",
-          "camera": "focus",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:30",
-          "background": "clearMoonWater",
-          "transition": "hold",
+          "background": "tarotHall",
+          "transition": "crossfade",
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-41:31",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "water",
           "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:32",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 ln의 대사"
-        },
-        {
-          "beatId": "ep-41:34",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:35",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-41:36",
-          "background": "clearMoonWater",
+          "background": "tarotHall",
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
+          "camera": "focus",
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-41:37",
-          "background": "clearMoonWater",
+          "beatId": "ep-41:47",
+          "background": "tarotHall",
           "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:39",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": "moonlight",
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:40",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:42",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:43",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:45",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:46",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:48",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:49",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-41:51",
-          "background": "clearMoonWater",
+          "background": "tarotHall",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": "moonlight",
-          "eventEffect": "root",
+          "eventEffect": null,
           "camera": "focus",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-41:52",
-          "background": "clearMoonWater",
+          "beatId": "ep-41:71",
+          "background": "tarotHall",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:53",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:55",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:56",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:57",
-          "background": "library",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "library 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:59",
-          "background": "library",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "library 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:61",
-          "background": "library",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "library 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:63",
-          "background": "sukuyo",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:65",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:66",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:69",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:70",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:72",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
+          "camera": "focus",
+          "accessibility": "tarotHall 배경에서 진행되는 yeon의 대사"
         },
         {
           "beatId": "ep-41:73",
-          "background": "sukuyo",
+          "background": "tarotHall",
           "transition": "hold",
           "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-41:74",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:77",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:80",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:82",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
+          "ambient": "moonlight",
+          "eventEffect": "tarot",
           "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-41:83",
-          "background": "sukuyo",
+          "beatId": "ep-41:75",
+          "background": "tarotHall",
           "transition": "hold",
           "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
+          "ambient": "moonlight",
+          "eventEffect": "veil",
+          "camera": "focus",
+          "accessibility": "tarotHall 배경에서 진행되는 neo의 대사"
         },
         {
-          "beatId": "ep-41:84",
-          "background": "sukuyo",
+          "beatId": "ep-41:78",
+          "background": "tarotHall",
           "transition": "hold",
           "tone": "dark",
-          "ambient": null,
+          "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
+          "camera": "focus",
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-41:85",
-          "background": "sukuyo",
-          "transition": "hold",
+          "background": "tarotDoor",
+          "transition": "crossfade",
           "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:86",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
+          "ambient": "moonlight",
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:87",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:89",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:90",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:92",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "claw",
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:93",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "water",
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:94",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 lns의 대사"
-        },
-        {
-          "beatId": "ep-41:95",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-41:97",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "script",
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
+          "accessibility": "tarotDoor 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-41:99",
-          "background": "sukuyo",
+          "background": "tarotDoor",
           "transition": "hold",
           "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:103",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:104",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:106",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "heart",
+          "ambient": "moonlight",
+          "eventEffect": "reveal",
           "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
+          "accessibility": "tarotDoor 배경에서 진행되는 heuk의 대사"
         },
         {
-          "beatId": "ep-41:107",
-          "background": "sukuyo",
+          "beatId": "ep-41:100",
+          "background": "tarotDoor",
           "transition": "hold",
           "tone": "dark",
-          "ambient": null,
+          "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:109",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:111",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:112",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-41:114",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:115",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
+          "camera": "focus",
+          "accessibility": "tarotDoor 배경에서 진행되는 서술"
         }
       ]
     },
@@ -12187,492 +11617,192 @@
       "id": "ep-41a",
       "title": "물이 맑아진 뒤",
       "purpose": "물이 맑아진 뒤",
-      "conflictBeatId": "ep-41:117",
+      "conflictBeatId": "ep-41a:2",
       "emotionPath": [
         {
           "phase": "진입",
-          "beatId": "ep-41:117",
-          "pacing": "impact"
-        },
-        {
-          "phase": "압력·전환",
-          "beatId": "ep-41:144",
+          "beatId": "ep-41a:1",
           "pacing": "normal"
         },
         {
+          "phase": "압력·전환",
+          "beatId": "ep-41a:28",
+          "pacing": "impact"
+        },
+        {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-41:204",
+          "beatId": "ep-41a:79",
           "pacing": "impact"
         }
       ],
       "visualCues": [
         {
-          "beatId": "ep-41:117",
-          "background": "clearMoonWater",
+          "beatId": "ep-41a:1",
+          "background": "tarotDoor",
           "transition": "crossfade",
           "tone": "dark",
           "ambient": "moonlight",
-          "eventEffect": "fuse",
+          "eventEffect": null,
           "camera": "focus",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
+          "accessibility": "tarotDoor 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-41a:city-return-1",
-          "background": "clearMoonWater",
+          "beatId": "ep-41a:2",
+          "background": "tarotDoor",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "veil",
+          "camera": "focus",
+          "accessibility": "tarotDoor 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-41a:7",
+          "background": "tarotDoor",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "fire",
+          "camera": "focus",
+          "accessibility": "tarotDoor 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-41a:10",
+          "background": "tarotHall",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-41a:16",
+          "background": "tarotHall",
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
+          "accessibility": "tarotHall 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-41a:city-return-3",
-          "background": "clearMoonWater",
+          "beatId": "ep-41a:18",
+          "background": "tarotHall",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "tarotHall 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-41a:28",
+          "background": "tarotHall",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "water",
+          "camera": "focus",
+          "accessibility": "tarotHall 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-41a:35",
+          "background": "tarotHall",
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-41:118",
-          "background": "clearMoonWater",
+          "beatId": "ep-41a:42",
+          "background": "tarotHall",
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
+          "camera": "focus",
+          "accessibility": "tarotHall 배경에서 진행되는 pje의 대사"
         },
         {
-          "beatId": "ep-41:119",
-          "background": "clearMoonWater",
+          "beatId": "ep-41a:49",
+          "background": "tarotHall",
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
+          "camera": "focus",
+          "accessibility": "tarotHall 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-41:120",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-41:121",
-          "background": "clearMoonWater",
+          "beatId": "ep-41a:53",
+          "background": "tarotHall",
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "heart",
           "camera": "focus",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
+          "accessibility": "tarotHall 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-41:125",
+          "beatId": "ep-41a:61",
           "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:126",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:129",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:130",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
+          "transition": "crossfade",
+          "tone": "natural",
           "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-41:131",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
           "camera": "focus",
           "accessibility": "clearMoonWater 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-41:133",
-          "background": "clearMoonWater",
-          "transition": "hold",
+          "beatId": "ep-41a:62",
+          "background": "tarotHall",
+          "transition": "crossfade",
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-41:135",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "focus",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:136",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-41:137",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-41:138",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-41:139",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-41:140",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-41:142",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:143",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-41:144",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
           "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-41:146",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:148",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:150",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-41:151",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:156",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-41:161",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:170",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-41:171",
-          "background": "clearMoonWater",
+          "beatId": "ep-41a:74",
+          "background": "tarotHall",
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-41:173",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-41:175",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-41:176",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:178",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 ln의 대사"
-        },
-        {
-          "beatId": "ep-41:179",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-41:180",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:184",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-41:189",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:191",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:193",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:194",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-41:197",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-41:199",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-41:201",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-41:202",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-41:204",
-          "background": "clearMoonWater",
+          "beatId": "ep-41a:77",
+          "background": "tarotHall",
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "clearMoonWater 배경에서 진행되는 시스템 메시지"
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-41a:79",
+          "background": "tarotHall",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "reveal",
+          "camera": "focus",
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
         }
       ]
     },
     {
       "id": "ep-42",
-      "title": "읽는 이름, 쓰는 운명",
-      "purpose": "읽는 이름, 쓰는 운명",
-      "conflictBeatId": "ep-42:12",
+      "title": "연인",
+      "purpose": "연인",
+      "conflictBeatId": "ep-42:5",
       "emotionPath": [
         {
           "phase": "진입",
@@ -12681,143 +11811,323 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-42:47",
+          "beatId": "ep-42:35",
           "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-42:71",
-          "pacing": "impact"
+          "beatId": "ep-42:99",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-42:1",
-          "background": "sukuyo",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:12",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:14",
-          "background": "ziwei2",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "ziwei2 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:23",
-          "background": "ziwei2",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "stars",
-          "camera": "focus",
-          "accessibility": "ziwei2 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:25",
-          "background": "sukuyo",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:47",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "reveal",
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:48",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:51",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-42:71",
           "background": "tarotDoor",
           "transition": "crossfade",
-          "tone": "natural",
+          "tone": "dark",
           "ambient": "moonlight",
-          "eventEffect": "tarot",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "tarotDoor 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42:5",
+          "background": "tarotDoor",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "wood",
           "camera": "focus",
           "accessibility": "tarotDoor 배경에서 진행되는 서술"
-        }
-      ]
-    },
-    {
-      "id": "ep-42a",
-      "title": "너와 나의 평범한 봄",
-      "purpose": "너와 나의 평범한 봄",
-      "conflictBeatId": "ep-42:82",
-      "emotionPath": [
-        {
-          "phase": "진입",
-          "beatId": "ep-42:72",
-          "pacing": "normal"
         },
         {
-          "phase": "압력·전환",
-          "beatId": "ep-42:128",
-          "pacing": "impact"
+          "beatId": "ep-42:11",
+          "background": "tarotDoor",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "tarotDoor 배경에서 진행되는 heuk의 대사"
         },
         {
-          "phase": "정리·다음 걸음",
-          "beatId": "ep-42:202",
-          "pacing": "impact"
-        }
-      ],
-      "visualCues": [
+          "beatId": "ep-42:19",
+          "background": "tarotDoor",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "suck",
+          "camera": "focus",
+          "accessibility": "tarotDoor 배경에서 진행되는 서술"
+        },
         {
-          "beatId": "ep-42:72",
-          "background": "room",
+          "beatId": "ep-42:21",
+          "background": "tarotDoor",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "tarotDoor 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42:28",
+          "background": "tarotDoor",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "tarotDoor 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-42:29",
+          "background": "tarotDoor",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "reveal",
+          "camera": "focus",
+          "accessibility": "tarotDoor 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42:30",
+          "background": "neoBound2",
           "transition": "crossfade",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
+          "accessibility": "neoBound2 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-42:95",
+          "beatId": "ep-42:35",
+          "background": "neoBound2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "stars",
+          "camera": "focus",
+          "accessibility": "neoBound2 배경에서 진행되는 neo의 대사"
+        },
+        {
+          "beatId": "ep-42:38",
+          "background": "neoBound2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "neoBound2 배경에서 진행되는 neo의 대사"
+        },
+        {
+          "beatId": "ep-42:46",
+          "background": "neoBound2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "neoBound2 배경에서 진행되는 neo의 대사"
+        },
+        {
+          "beatId": "ep-42:50",
+          "background": "neoBound2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "neoBound2 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-42:63",
+          "background": "fateTarot",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42:70",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "thread",
+          "camera": "focus",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42:72",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "fateTarot 배경에서 진행되는 neo의 대사"
+        },
+        {
+          "beatId": "ep-42:79",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42:83",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "burst",
+          "camera": "focus",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42:90",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42:98",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
+        }
+      ]
+    },
+    {
+      "id": "ep-42a",
+      "title": "평범한 봄",
+      "purpose": "평범한 봄",
+      "conflictBeatId": "ep-42a:3",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-42a:1",
+          "pacing": "normal"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-42a:25",
+          "pacing": "impact"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-42a:69",
+          "pacing": "normal"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-42a:1",
+          "background": "roomNight",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42a:7",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 neo의 대사"
+        },
+        {
+          "beatId": "ep-42a:9",
+          "background": "aptHall",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "aptHall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42a:11",
+          "background": "aptHall",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "hands",
+          "camera": "focus",
+          "accessibility": "aptHall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42a:19",
+          "background": "rainStop",
+          "transition": "crossfade",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42a:25",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": "water",
+          "camera": "focus",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42a:31",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "rainStop 배경에서 진행되는 neo의 대사"
+        },
+        {
+          "beatId": "ep-42a:32",
+          "background": "bench",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "bench 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42a:41",
+          "background": "bench",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "bench 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42a:42",
           "background": "campus",
           "transition": "crossfade",
           "tone": "natural",
@@ -12827,132 +12137,62 @@
           "accessibility": "campus 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-42:103",
-          "background": "bench",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:107",
-          "background": "bench",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:111",
-          "background": "bench",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:114",
-          "background": "bench",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:128",
-          "background": "bench",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:129",
+          "beatId": "ep-42a:49",
           "background": "campus",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "campus 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:143",
-          "background": "bench",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:161",
-          "background": "room",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:181",
-          "background": "bench",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:185",
-          "background": "bench",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:199",
-          "background": "bench",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:202",
-          "background": "bench",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 시스템 메시지"
+          "accessibility": "campus 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-42a:51",
+          "background": "cherryMoonPortal",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42a:55",
+          "background": "cherryMoonPortal",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "stars",
+          "camera": "focus",
+          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42a:56",
+          "background": "fateTarot",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-42a:68",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
         }
       ]
     },
     {
       "id": "ep-43",
-      "title": "벚꽃 강가의 약속",
-      "purpose": "벚꽃 강가의 약속",
-      "conflictBeatId": "ep-43:9",
+      "title": "탑",
+      "purpose": "탑",
+      "conflictBeatId": "ep-43:17",
       "emotionPath": [
         {
           "phase": "진입",
@@ -12961,185 +12201,165 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-43:25",
+          "beatId": "ep-43:34",
           "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-43:46",
+          "beatId": "ep-43:95",
           "pacing": "impact"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-43:1",
-          "background": "bench",
+          "background": "towerFall",
           "transition": "crossfade",
-          "tone": "natural",
+          "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "bench 배경에서 진행되는 서술"
+          "accessibility": "towerFall 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-43:9",
-          "background": "cherryMoonPortal",
+          "beatId": "ep-43:14",
+          "background": "towerFall",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "towerFall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-43:17",
+          "background": "towerFall",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "shake",
+          "camera": "focus",
+          "accessibility": "towerFall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-43:33",
+          "background": "eclipseSky",
           "transition": "crossfade",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "focus",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-43:11",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "focus",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-43:18",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
+          "tone": "dark",
+          "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-43:22",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-43:23",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-43:24",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-43:25",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "heart",
-          "camera": "focus",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-43:28",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-43:31",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "heart",
-          "camera": "focus",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
+          "accessibility": "eclipseSky 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-43:34",
-          "background": "cherryMoonPortal",
+          "background": "eclipseSky",
           "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "heart",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "vortex",
           "camera": "focus",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
+          "accessibility": "eclipseSky 배경에서 진행되는 heuk의 대사"
         },
         {
-          "beatId": "ep-43:35",
-          "background": "river",
+          "beatId": "ep-43:49",
+          "background": "eclipseSky",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "transform",
+          "camera": "focus",
+          "accessibility": "eclipseSky 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-43:56",
+          "background": "eclipseSky",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "claw",
+          "camera": "focus",
+          "accessibility": "eclipseSky 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-43:60",
+          "background": "towerFall",
           "transition": "crossfade",
-          "tone": "natural",
-          "ambient": "moonlight",
+          "tone": "dark",
+          "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
+          "accessibility": "towerFall 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-43:38",
-          "background": "river",
+          "beatId": "ep-43:64",
+          "background": "towerFall",
           "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "hands",
+          "camera": "focus",
+          "accessibility": "towerFall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-43:70",
+          "background": "towerFall",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "suck",
+          "camera": "focus",
+          "accessibility": "towerFall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-43:71",
+          "background": "towerFall",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
+          "accessibility": "towerFall 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-43:39",
-          "background": "river",
+          "beatId": "ep-43:74",
+          "background": "towerFall",
           "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-43:42",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-43:45",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-43:46",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
+          "tone": "desat",
+          "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "river 배경에서 진행되는 시스템 메시지"
+          "accessibility": "towerFall 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-43:83",
+          "background": "towerFall",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "towerFall 배경에서 진행되는 yun의 대사"
+        },
+        {
+          "beatId": "ep-43:89",
+          "background": "towerFall",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "towerFall 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-43:95",
+          "background": "towerFall",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "towerFall 배경에서 진행되는 yeon의 대사"
         }
       ]
     }

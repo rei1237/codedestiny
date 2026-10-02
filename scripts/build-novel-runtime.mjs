@@ -33,9 +33,7 @@ export const INSTRUMENTAL_TRACKS = new Set([
 /* 재작성 대기 목록 — 2026-10-02 개편에서 다시 쓸 옛 화(EP.07~EP.43). 여기 든 화만 옛 규칙의 예외를
    받는다: bg 없는 tone, 백문(baek), 보컬곡. 다시 쓴 화는 rev 2 로 올리며 목록에서 뺀다(남겨 두면 빌드 실패).
    새 이야기가 다 들어가면 목록과 예외를 함께 지운다. */
-export const REWRITE_PENDING = new Set([
-  "ep-41", "ep-41a", "ep-42", "ep-42a", "ep-43",
-]);
+export const REWRITE_PENDING = new Set([]);
 const BARE_DIALOGUE = new Set(["그래.", "응.", "알겠어.", "좋아."]);
 // 작가가 레거시 정본에 남긴 의미값 중, 실물 파일명이 바뀐 경우에만 고정 매핑한다.
 // 무작위 선택은 하지 않으며 BG에 없는 값은 검증에서 실패한다.
