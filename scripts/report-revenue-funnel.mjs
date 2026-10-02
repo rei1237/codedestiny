@@ -26,6 +26,8 @@ const windows=[
   {label:'previous',since:new Date(todayKst-(2*days-1)*DAY),until:new Date(todayKst-(days-1)*DAY)},
 ];
 const PAID=['paid','success','fulfilled'];
+// yeongnyangi_requests.state values written by worker/yeongnyangi; anything else lands in reading_other_state (never dropped).
+const KNOWN_REQUEST_STATES=['CREATED','PAID','GENERATING','AWAITING_FOLLOWUP','COMPLETED','FORTUNE_FAILED','REFUNDED'];
 const percentile=(values,p)=>values.length?[...values].sort((a,b)=>a-b)[Math.ceil(values.length*p)-1]:null;
 const family=key=>{
   const k=String(key||'');
@@ -50,7 +52,7 @@ try{
       'metadata.paymentAttempt.provider':1},maxTimeMS:12000}).limit(20001).toArray();
     if(rows.length>20000)throw Error('Narrow --days: more than 20000 payment rows');
     const excluded={adminRows:0,adminPaidKRW:0};
-    const attemptsUsers=new Set(), buyers=new Map(), buyerIds=new Map(), byFamily=new Map(), byMethod=new Map(), byProduct=new Map(), byType=new Map(), byPrice=new Map();
+    const attemptsUsers=new Set(), buyers=new Map(), buyerIds=new Map(), byFamily=new Map(), byMethod=new Map(), byProduct=new Map(), byType=new Map(), byPrice=new Map(), byFailure=new Map();
     let attempts=0, paid=0, gross=0, refunded=0, refundedKRW=0, failed=0, cancelled=0, pending=0;
     const verifyLagMs=[];
     for(const row of rows){
@@ -72,8 +74,8 @@ try{
         bump(byPrice,band,'paid');bump(byPrice,band,'grossKRW',amount);
         if(row.paidAt&&row.createdAt)verifyLagMs.push(new Date(row.paidAt)-new Date(row.createdAt));
         if(row.status==='refunded'){refunded++;refundedKRW+=amount;}
-      } else if(row.status==='failed')failed++;
-      else if(row.status==='cancelled')cancelled++;
+      } else if(row.status==='failed'){failed++;bump(byFailure,`failed:${row.failureCode||'none'}`,'n');}
+      else if(row.status==='cancelled'){cancelled++;bump(byFailure,`cancelled:${row.failureCode||'none'}`,'n');}
       else pending++;
     }
     const returning=buyers.size?await db.collection('payments').distinct('userId',{userId:{$in:[...buyerIds.values()]},
@@ -90,6 +92,8 @@ try{
     const completeMs=requests.filter(r=>r._id.paid==='paid').flatMap(r=>r.completeMs);
     const signups=await db.collection('users').countDocuments({createdAt:range,role:{$ne:'admin'}},{maxTimeMS:12000});
     const net=gross-refundedKRW;
+    const paidRequests=requests.filter(r=>r._id.paid==='paid');
+    const requestCount=states=>paidRequests.filter(r=>states.includes(r._id.state)).reduce((a,r)=>a+r.n,0);
     // Concentration without identities: how much of paid/refunded volume sits with the top 1 and top 3 buyers.
     const perBuyer=[...buyers.values()].sort((a,b)=>b-a);
     const refundsPerUser=new Map();for(const row of rows)if(row.status==='refunded'&&!admins.has(String(row.userId)))refundsPerUser.set(String(row.userId),(refundsPerUser.get(String(row.userId))||0)+1);
@@ -105,7 +109,14 @@ try{
         attemptToPaidUserRate:attemptsUsers.size?+(buyers.size/attemptsUsers.size).toFixed(3):null,
         createdToPaidMs:{n:verifyLagMs.length,p50:percentile(verifyLagMs,.5),p95:percentile(verifyLagMs,.95)}},
       byFamily:Object.fromEntries(byFamily),byMethod:Object.fromEntries(byMethod),byPriceBand:Object.fromEntries(byPrice),
-      byPaymentType:Object.fromEntries(byType),
+      byPaymentType:Object.fromEntries(byType),byFailureCode:Object.fromEntries([...byFailure].map(([k,v])=>[k,v.n])),
+      // Funnel steps that the server ledger answers directly (no client event, so no consent/ad-block loss).
+      serverEvents:{payment_verified:paid,payment_failed:failed,payment_cancelled:cancelled,refund:refunded,
+        reading_started_yeongnyangi:paidRequests.reduce((a,r)=>a+r.n,0),reading_completed_yeongnyangi:requestCount(['COMPLETED']),
+        reading_failed_yeongnyangi:requestCount(['FORTUNE_FAILED']),reading_refunded_yeongnyangi:requestCount(['REFUNDED']),
+        reading_in_progress_yeongnyangi:requestCount(['PAID','GENERATING','AWAITING_FOLLOWUP','CREATED']),
+        reading_other_state_yeongnyangi:paidRequests.filter(r=>!KNOWN_REQUEST_STATES.includes(r._id.state)).reduce((a,r)=>a+r.n,0),
+        repeat_purchase_buyers:new Set([...[...buyers].filter(([,n])=>n>=2).map(([u])=>u),...returning.map(String)]).size},
       topProducts:Object.fromEntries([...byProduct].sort((a,b)=>(b[1].attempts||0)-(a[1].attempts||0)).slice(0,15)),
       yeongnyangiRequests:{byStatePaid:requests.map(r=>({state:r._id.state,errorCode:r._id.errorCode||null,paid:r._id.paid,n:r.n})),
         paidCreatedToCompletedMs:{n:completeMs.length,p50:percentile(completeMs,.5),p95:percentile(completeMs,.95)}},

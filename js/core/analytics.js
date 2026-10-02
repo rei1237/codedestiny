@@ -377,7 +377,8 @@
       /* 계측 실패는 무시한다 */
     }
     var businessEntry = anchor.getAttribute('data-cd-business-entry');
-    if (businessEntry === 'paid' || businessEntry === 'daily') {
+    // question = 영냥이 첫 화면의 고민 질문 진입(NightHero). 버려지던 축을 퍼널의 concern 단계로 받는다(2026-10-02).
+    if (businessEntry === 'paid' || businessEntry === 'daily' || businessEntry === 'question') {
       global.cdTrack('home_business_entry', { destination: businessEntry });
     }
 
