@@ -1,0 +1,9 @@
+{
+  "source": "user-supplied reference illustration (2026-10-02 attachment, lotus-holding Yeoni)",
+  "sourceSha256": "bbe1426355c7d6e8e05f5d55abe19bccd3281d5cbc2e726cf7ce18d4724b9f8d",
+  "sourceSize": "1024x1536",
+  "transform": "sharp resize width=480, webp q78 alpha q90",
+  "width": 480,
+  "height": 720,
+  "createdAt": "2026-10-02T11:22:38.774Z"
+}
