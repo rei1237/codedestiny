@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { BEAT_FORMS, BEAT_MAX_LENGTH, BEAT_TONES } from "./lib/novel-constraints.mjs";
+import { BEAT_FORMS, BEAT_MAX_LENGTH, BEAT_TONES, FORBIDDEN_STORY_NAMES } from "./lib/novel-constraints.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 export const SOURCE_PATH = resolve(ROOT, "content/novel/episodes.source.json");
@@ -21,7 +21,7 @@ const CAST_IDS = new Set(["baek", "crow", "ln", "lns", "mirror", "moka", "mu", "
 export const EFFECTS = new Set(["burst", "claw", "fire", "flash", "fuse", "hands", "heart", "ink", "metal", "net", "reveal", "root", "script", "shake", "stars", "suck", "tarot", "thread", "transform", "veil", "vortex", "water", "wood"]);
 /* 곡 분류(fail-closed). 가사 판정 근거는 가사 등록부 app/music/_data/musicLyrics.ts 다 — musicManifest 의
    hasLyrics 추정은 거의 모두 참이라 근거가 못 된다. TRK 에 새 키를 더하면 둘 중 하나에 반드시 넣는다.
-   보컬곡은 다시 쓴 화(rev≥2)에서 쓰지 않는다(2026-10-02 사용자 요청: 명상·가사 없는 곡). */
+   보컬곡은 재작성 대기 목록 밖의 화에서 쓰지 않는다(2026-10-02 사용자 요청: 명상·가사 없는 곡). */
 export const VOCAL_TRACKS = new Set(["novaFlex", "novaSoda", "novaTitle", "novaRider", "novaFlame", "lunaGuest", "teaMoonlight"]);
 export const INSTRUMENTAL_TRACKS = new Set([
   "main", "daily", "room", "gloom", "gloom2", "crisis", "crisis2", "neo", "neo2", "riverEnter", "riverEnter2", "siksangEnter", "stillLake",
@@ -29,6 +29,15 @@ export const INSTRUMENTAL_TRACKS = new Set([
   "crystalGarden", "templeDawn", "fireFestival", "flowingLight", "focusFlow", "innerFlame", "midnightPulse", "moonDawn", "forestTemple",
   "glassBox", "riverReturn", "sacredFlame", "starDrift", "lakeDawn", "drumCircle", "warDream", "warCommand", "warRoom", "whiteLion",
   "fortuneReveal", "orientalGirl", "destinyRoom", "none",
+]);
+/* 재작성 대기 목록 — 2026-10-02 개편에서 다시 쓸 옛 화(EP.07~EP.43). 여기 든 화만 옛 규칙의 예외를
+   받는다: bg 없는 tone, 백문(baek), 보컬곡. 다시 쓴 화는 rev 2 로 올리며 목록에서 뺀다(남겨 두면 빌드 실패).
+   새 이야기가 다 들어가면 목록과 예외를 함께 지운다. */
+export const REWRITE_PENDING = new Set([
+  "ep-07", "ep-08", "ep-09", "ep-10", "ep-11", "ep-12", "ep-12a", "ep-13", "ep-14", "ep-14a", "ep-15", "ep-16", "ep-17",
+  "ep-18", "ep-19", "ep-20", "ep-21", "ep-21a", "ep-22", "ep-23", "ep-24", "ep-25", "ep-26", "ep-27", "ep-27a", "ep-27b",
+  "ep-28", "ep-28a", "ep-28b", "ep-28c", "ep-28d", "ep-29", "ep-30", "ep-31", "ep-32", "ep-32a", "ep-33", "ep-34", "ep-35",
+  "ep-36", "ep-36a", "ep-37", "ep-38", "ep-38a", "ep-39", "ep-40", "ep-41", "ep-41a", "ep-42", "ep-42a", "ep-43",
 ]);
 const BARE_DIALOGUE = new Set(["그래.", "응.", "알겠어.", "좋아."]);
 // 작가가 레거시 정본에 남긴 의미값 중, 실물 파일명이 바뀐 경우에만 고정 매핑한다.
@@ -59,7 +68,8 @@ export function readLegacyRanges() {
 
 function inferScene(beat, priorScene) {
   const background = beat.bg ?? priorScene.background;
-  const tone = beat.tone ?? priorScene.tone ?? "natural";
+  // 플레이어는 배경을 그릴 때만 톤을 바꾸고, 같은 배경을 tone 없이 다시 쓰면 원래 색으로 돌린다.
+  const tone = beat.bg ? (beat.tone ?? "natural") : priorScene.tone;
   const ambient = background && /night|moon|river|star|tarot/i.test(background) ? "moonlight" : null;
   const eventEffect = beat.fx ?? null;
   return {
@@ -130,6 +140,8 @@ export function buildNovelPayload() {
     // rev 는 화를 통째로 다시 쓸 때 올린다. 저장된 rev 와 다르면 플레이어가 그 화의 처음에서 연다.
     const rev = episode.rev ?? 1;
     if (!Number.isInteger(rev) || rev < 1) throw new Error(`${episode.no}: rev 는 1 이상의 정수여야 합니다.`);
+    const pending = REWRITE_PENDING.has(id);
+    if (pending && rev >= 2) throw new Error(`${episode.no}: 다시 쓴 화(rev ${rev})는 재작성 대기 목록(REWRITE_PENDING)에서 빼야 합니다.`);
     let priorScene = { background: null, tone: "natural" };
     const beats = episode.beats.map((sourceBeat, beatIndex) => {
       const context = `${episode.no} #${beatIndex + 1}`;
@@ -139,7 +151,12 @@ export function buildNovelPayload() {
         ? { ...sourceBeat, bg: BACKGROUND_FALLBACKS[sourceBeat.bg], backgroundIntent: sourceBeat.bg }
         : sourceBeat;
       validateBeat(rawBeat, context, bgKeys, trackKeys, sfxKeys);
-      if (rev >= 2 && VOCAL_TRACKS.has(rawBeat.bgm)) throw new Error(`${context}: 다시 쓴 화에는 보컬곡 '${rawBeat.bgm}' 를 쓰지 않습니다. 연주곡을 고르세요.`);
+      for (const name of FORBIDDEN_STORY_NAMES) if (rawBeat.t.includes(name)) throw new Error(`${context}: 대본에 쓰지 않는 이름 '${name}'이 있습니다.`);
+      if (!pending) {
+        if (VOCAL_TRACKS.has(rawBeat.bgm)) throw new Error(`${context}: 보컬곡 '${rawBeat.bgm}' 는 쓰지 않습니다. 연주곡을 고르세요.`);
+        if (rawBeat.tone && !rawBeat.bg) throw new Error(`${context}: tone 은 bg 가 있는 비트에서만 그려집니다. 지금 배경 키를 함께 적으세요.`);
+        if (rawBeat.s === "baek" || ["l", "c", "r"].some((slot) => rawBeat[slot]?.who === "baek")) throw new Error(`${context}: 백문(baek)은 새 이야기에 나오지 않습니다(윤달 yun 으로 대체).`);
+      }
       const hasSceneDirection = Boolean(rawBeat.shot || rawBeat.bg || rawBeat.bgm || rawBeat.fx || rawBeat.tone || rawBeat.im);
       const scene = hasSceneDirection ? inferScene(rawBeat, priorScene) : undefined;
       const beat = {
@@ -159,6 +176,9 @@ export function buildNovelPayload() {
   });
   for (const slug of Object.keys(readLegacyRanges())) {
     if (!episodeIds.has(slug)) throw new Error(`얼린 책갈피 범위표의 화 '${slug}'가 정본에 없습니다. 화 주소는 바꾸거나 지우지 않습니다.`);
+  }
+  for (const slug of REWRITE_PENDING) {
+    if (!episodeIds.has(slug)) throw new Error(`재작성 대기 목록의 화 '${slug}'가 정본에 없습니다. 목록에서 빼세요.`);
   }
   const sourceHash = sha256(sourceRaw);
   const beatCount = episodes.reduce((total, episode) => total + episode.beats.length, 0);

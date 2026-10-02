@@ -8,6 +8,10 @@
 export const BEAT_MAX_LENGTH = 250;
 export const FORBIDDEN_IN_BEAT = ["\"", "\\", "</script"];
 export const MIN_KOREAN_PER_EPISODE = 1800;
+// 대본에 다시 나오면 안 되는 이름(2026-10-02 사용자 결정). R2 그림 파일명과 플레이어의 pje 키는
+// 대본이 아니라서 여기 걸리지 않는다. 금지 문자(FORBIDDEN_IN_BEAT)와 따로 두는 이유: 그쪽은 CMS
+// 동등성 검사(verify-cms-registry)가 값을 그대로 비교한다.
+export const FORBIDDEN_STORY_NAMES = ["박지은"];
 
 // 플레이어가 실제로 그리는 값만 허용한다. public/codedestiny-novel.html 의 톤 처리는 "dark"·"desat"
 // 두 가지만 클래스로 바꾸고 나머지는 조용히 무시하므로, 오타 난 tone 은 화면이 멀쩡한 채 연출만

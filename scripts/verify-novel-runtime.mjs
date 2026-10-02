@@ -1,7 +1,8 @@
 // 정적 VN 엔진이 정본 청크 구조와 핵심 회귀 방지 장치를 계속 보유하는지 검사한다.
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS, SPEAKERS } from "./build-novel-runtime.mjs";
+import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS, SPEAKERS, REWRITE_PENDING, VOCAL_TRACKS } from "./build-novel-runtime.mjs";
+import { FORBIDDEN_STORY_NAMES } from "./lib/novel-constraints.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const PLAYER_PATH = resolve(ROOT, "public/codedestiny-novel.html");
@@ -254,6 +255,15 @@ for (const [index, meta] of manifest.episodes.entries()) {
   // 새 ID 저장과 기존 숫자 저장이 같은 위치를 가리키는지 확인한다.
   const saved = { ep: index, bi: Math.min(2, chunk.beats.length - 1), episodeId: chunk.id, beatId: chunk.beats[Math.min(2, chunk.beats.length - 1)].id };
   if (saved.episodeId !== manifest.episodes[index].id || !chunk.beats.some(beat => beat.id === saved.beatId)) fail(`bookmark mapping failed for ${chunk.id}`);
+  // 빌드 규칙이 실제 배포 청크에도 지켜졌는지 다시 본다(빌드를 건너뛴 손 편집·CMS 오버라이드 대비).
+  for (const beat of chunk.beats) {
+    const name = FORBIDDEN_STORY_NAMES.find((forbidden) => String(beat.t ?? "").includes(forbidden));
+    if (name) fail(`${beat.id}: 대본에 쓰지 않는 이름 '${name}'`);
+    if (REWRITE_PENDING.has(chunk.id)) continue;
+    if (VOCAL_TRACKS.has(beat.bgm)) fail(`${beat.id}: 보컬곡 '${beat.bgm}' (재작성 대기 목록 밖)`);
+    if (beat.tone && !beat.bg) fail(`${beat.id}: bg 없는 tone 은 그려지지 않는다`);
+    if (beat.s === "baek" || ["l", "c", "r"].some((slot) => beat[slot]?.who === "baek")) fail(`${beat.id}: 백문(baek) 등장 (재작성 대기 목록 밖)`);
+  }
 }
 
 console.log(`[novel-runtime] OK: shell ${statSync(PLAYER_PATH).size.toLocaleString("ko-KR")} bytes · ${runtime.episodeCount} episodes · ${runtime.beatCount.toLocaleString("ko-KR")} beats · ID bookmark migration ready`);
