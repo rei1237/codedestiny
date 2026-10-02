@@ -67,7 +67,14 @@ test('vision mock is rejected and failed photo analysis does not offer payment',
   ai = { ok: false, error: 'MOCK_PROVIDER_FAILURE' };
   expect(await vision({}, 'data:image/png;base64,AAAAAAAA', 'left')).toBeNull();
   const response = await route(new Request('https://mock.test/api/palm/analyze', { method: 'POST', body: JSON.stringify({ requestId: 'palm-original', leftPalmImage: 'data:image/png;base64,' + 'A'.repeat(80), dominantHand: 'right', analysisPurpose: 'general' }) }), {});
-  expect(response.status).toBe(422); expect(docs).toHaveLength(0); expect(payment).not.toHaveBeenCalled();
+  // Model failure is a retryable outage, not a photo without a palm.
+  expect(response.status).toBe(503); expect(await response.json()).toMatchObject({ code: 'PALM_VISION_UNAVAILABLE', retryable: true });
+  expect(docs).toHaveLength(0); expect(payment).not.toHaveBeenCalled();
+});
+test('explicit palmDetected=false still answers PALM_NOT_DETECTED', async () => {
+  visionReply.text = JSON.stringify({ palmDetected: false, notPalmReason: '손바닥이 아닌 사진입니다.' });
+  const response = await route(new Request('https://mock.test/api/palm/analyze', { method: 'POST', body: JSON.stringify({ requestId: 'palm-original', leftPalmImage: 'data:image/png;base64,' + 'A'.repeat(80), dominantHand: 'right', analysisPurpose: 'general' }) }), {});
+  expect(response.status).toBe(422); expect(await response.json()).toMatchObject({ code: 'PALM_NOT_DETECTED', reason: '손바닥이 아닌 사진입니다.' });
 });
 test('actual analysis saves before payment and missing deep text stops readiness', async () => {
   const request = () => new Request('https://mock.test/api/palm/analyze', { method: 'POST', body: JSON.stringify({ requestId: 'palm-original', leftPalmImage: 'data:image/png;base64,' + 'A'.repeat(80), dominantHand: 'right', analysisPurpose: 'general' }) });

@@ -173,10 +173,13 @@ describe("Palm UI requirements", () => {
     const generic = mapPalmAnalyzeError({ status: 503, code: "AUTH_TEMPORARILY_UNAVAILABLE", message: "" });
     const incomplete = mapPalmAnalyzeError({ status: 503, code: "PALM_INTERPRETATION_INCOMPLETE", message: "" });
     const storage = mapPalmAnalyzeError({ status: 503, code: "RESULT_STORAGE_UNAVAILABLE", message: "" });
+    const vision = mapPalmAnalyzeError({ status: 503, code: "PALM_VISION_UNAVAILABLE", message: "" });
 
     expect(incomplete).not.toBe(generic);
     expect(storage).not.toBe(generic);
     expect(incomplete).not.toBe(storage);
+    expect(vision).not.toBe(generic);
+    expect(vision).toContain("같은 사진");
     expect(incomplete).toContain("다시 시도");
     expect(storage).toContain("다시 시도");
   });
