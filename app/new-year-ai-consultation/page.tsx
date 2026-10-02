@@ -13,7 +13,7 @@ import { buildKrwOffer } from "@/lib/seo/paid-offer";
 const PAGE_PATH = "/new-year-ai-consultation/";
 const PAGE_TITLE = "신년운세 보는 곳 | 새해 월별 운세·재물운·연애운 풀이";
 const PAGE_DESCRIPTION =
-  "올해 나에게 가장 중요한 일은 뭘까? 생년월일로 새해의 큰 흐름을 미리 읽는 신년운세 상담입니다. 그해 세운이 내 명식과 만나는 자리를 보고 재물·연애·커리어와 월별 체크포인트를 짚습니다.";
+  "올해 나에게 가장 중요한 일은 뭘까? 그해 세운이 내 명식과 만나는 자리와 재물·연애·월별 흐름을 짚는 신년운세입니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
