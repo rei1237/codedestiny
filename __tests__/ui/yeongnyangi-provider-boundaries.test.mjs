@@ -92,7 +92,29 @@ test('provider transport pins the purchase language instead of ambient HTTP loca
  for(const locale of ['en','ja',undefined]){
   await new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-sent',LLM_DRY_RUN:'false'}).generate({...request,locale});
   assert.equal(getOptions().locale,locale || 'ko');
+  assert.equal(getOptions().outputRegister,'persona');
  }
+});
+
+test('the real Gemini path leaves the Korean speech level to the persona only for chapter calls',async()=>{
+ const {callGeminiText}=await import('../../worker/lib/gemini.js');
+ const originalFetch=globalThis.fetch;const sent=[];
+ globalThis.fetch=async(url,init)=>{
+  if(String(url).includes(':countTokens'))return new Response(JSON.stringify({totalTokens:100}),{status:200});
+  sent.push(JSON.parse(init.body));
+  return new Response(JSON.stringify({candidates:[{content:{parts:[{text:'{}'}]},finishReason:'STOP'}]}),{status:200});
+ };
+ const wire=body=>[...(body.systemInstruction?.parts||[]),...body.contents.flatMap(c=>c.parts)].map(p=>p.text||'').join('\n');
+ try{
+  await callGeminiText({GEMINIF_API_KEY:'fixture-key'},'payload',{systemPrompt:'SYSTEM',locale:'ko',outputRegister:'persona',fallbackToWorkersAI:false});
+  await callGeminiText({GEMINIF_API_KEY:'fixture-key'},'payload',{systemPrompt:'SYSTEM',locale:'ko',fallbackToWorkersAI:false});
+ }finally{globalThis.fetch=originalFetch;}
+ assert.equal(sent.length,2);
+ const [persona,plain]=sent.map(wire);
+ assert.doesNotMatch(persona,/존댓말로 작성|한국어 존댓말/);
+ assert.match(persona,/말투는 상담자 페르소나 지시를 따르십시오/);
+ assert.match(persona,/Korean only/);
+ assert.match(plain,/한국어 존댓말로 작성하십시오/);
 });
 
 test('chapter transport sends fixed evidence once and keeps system instructions separate',async()=>{

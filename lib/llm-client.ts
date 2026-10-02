@@ -19,6 +19,11 @@ export interface LLMRequest {
    * 워커 경로는 worker/lib/gemini.js 가 앰비언트 로케일을 채워 넣는다.
    */
   locale?: string;
+  /**
+   * "persona" 이면 출력 언어 지시가 ko 말투(존댓말)를 강제하지 않고 상담자 페르소나에 맡긴다.
+   * 언어 고정은 그대로다. 고정 enum 이라 호출부가 언어 지시 자체를 없앨 수는 없다.
+   */
+  outputRegister?: "persona";
   maxTokens?: number;
   temperature?: number;
   taskType?: "pdf" | "fortune" | "healing" | "general";
@@ -1247,7 +1252,9 @@ async function callLLMUncached(
  *    안에 있고, 모델은 user 턴의 마지막 지시를 강하게 가중한다.
  */
 function applyOutputLocale(request: LLMRequest): LLMRequest {
-  const directive = buildOutputLanguageDirective(toAiLocale(request.locale));
+  const directive = buildOutputLanguageDirective(toAiLocale(request.locale), {
+    register: request.outputRegister === "persona" ? "persona" : undefined,
+  });
   if (!directive) return request;
   return {
     ...request,
