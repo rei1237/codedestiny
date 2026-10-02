@@ -648,6 +648,61 @@
       "bytes": 216430,
       "width": 1280,
       "height": 853
+    },
+    {
+      "key": "zwPalace",
+      "source": "/images/novel/remaster/ziwei-palace-v1.webp",
+      "sourceBytes": 272538,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/zwPalace.webp",
+      "bytes": 135690,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "zwMarket",
+      "source": "/images/novel/remaster/ziwei-lantern-market-v1.webp",
+      "sourceBytes": 296288,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/zwMarket.webp",
+      "bytes": 160432,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "zwRoom",
+      "source": "/images/novel/remaster/ziwei-mirror-room-v1.webp",
+      "sourceBytes": 212702,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/zwRoom.webp",
+      "bytes": 105256,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "zwForge",
+      "source": "/images/novel/remaster/ziwei-iron-temple-v1.webp",
+      "sourceBytes": 169122,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/zwForge.webp",
+      "bytes": 80920,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "zwThrone",
+      "source": "/images/novel/remaster/ziwei-throne-hall-v1.webp",
+      "sourceBytes": 199074,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/zwThrone.webp",
+      "bytes": 99848,
+      "width": 1280,
+      "height": 853
     }
   ],
   "sprites": {

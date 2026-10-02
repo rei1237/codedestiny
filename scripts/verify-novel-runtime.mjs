@@ -2,7 +2,7 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { runInNewContext } from "node:vm";
-import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS, SPEAKERS, REWRITE_PENDING, VOCAL_TRACKS } from "./build-novel-runtime.mjs";
+import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS, SPEAKERS, INSTRUMENTAL_TRACKS } from "./build-novel-runtime.mjs";
 import { FORBIDDEN_STORY_NAMES } from "./lib/novel-constraints.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
@@ -154,7 +154,7 @@ for (const [index, source] of inlineScripts.entries()) {
 }
 
 // 정본(content/novel/episodes.source.json)의 총 비트 수. 비트를 더하거나 빼는 개편마다 같은 커밋에서 갱신한다.
-const EXPECTED_BEAT_COUNT = 9124;
+const EXPECTED_BEAT_COUNT = 7674;
 const runtime = buildNovelPayload();
 const mobileAssets = JSON.parse(readFileSync(resolve(ROOT, "content/novel/mobile-assets.json"), "utf8"));
 const mobileSpriteMap = JSON.parse(html.match(/var MOBILE_SPRITES=(\{[^\n]+\});/)?.[1] || "{}");
@@ -196,6 +196,8 @@ for (const expr of ["cry", "sad", "smile", "resolve"]) {
 const yunExprMatch = html.match(/var YUN_EXPR=\[([^\]]*)\];/);
 const yunExprs = yunExprMatch ? [...yunExprMatch[1].matchAll(/"([a-z]+)"/g)].map(m => m[1]) : [];
 if (yunExprs.length < 8 || !yunExprs.includes("base")) fail("player YUN_EXPR list is missing or incomplete");
+// nm(이름 모르는 인물의 표시명)은 대사창·로그·텍스트 리더가 모두 화자 이름보다 먼저 읽어야 한다 — 하나라도 빠지면 정체가 미리 드러난다.
+if (!html.includes("spkName.textContent=b.nm||NAME[spk]") || !html.includes("escapeHtml(r.nm||NAME[r.s]") || !readFileSync(resolve(ROOT, "app/stories/[episode]/page.tsx"), "utf8").includes("beat.nm ?? STORY_SPEAKERS")) fail("beat display-name override (nm) is not honoured by the player, log, or text reader");
 if (!html.includes('if(who==="yun")return {url:"/images/novel/remaster/yun/"+(YUN_EXPR.indexOf(expr)>=0?expr:"base")+".webp",cls:"yun"};')) fail("player does not route yun to the local sprites");
 for (const expr of yunExprs) {
   const file = resolve(ROOT, `public/images/novel/remaster/yun/${expr}.webp`);
@@ -204,8 +206,8 @@ for (const expr of yunExprs) {
 if (runtime.episodes.some(episode => episode.beats.some(beat => !beat.id))) fail("stable story IDs are required");
 const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8"));
 const matrix = JSON.parse(readFileSync(SCENE_MATRIX_PATH, "utf8"));
-if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 60 || manifest.beatCount !== EXPECTED_BEAT_COUNT) {
-  fail(`manifest is not synchronized with the 60-episode canonical source (expected ${EXPECTED_BEAT_COUNT} beats, canonical source has ${runtime.beatCount}). 정본에 비트를 더하거나 뺐다면 이 파일의 EXPECTED_BEAT_COUNT 를 같은 커밋에서 갱신할 것.`);
+if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 70 || manifest.beatCount !== EXPECTED_BEAT_COUNT) {
+  fail(`manifest is not synchronized with the 70-episode canonical source (expected ${EXPECTED_BEAT_COUNT} beats, canonical source has ${runtime.beatCount}). 정본에 비트를 더하거나 뺐다면 이 파일의 EXPECTED_BEAT_COUNT 를 같은 커밋에서 갱신할 것.`);
 }
 // 🔴 emotionPath 가 아예 없으면 undefined < 3 이 false 라 통과했다(fail-open). 배열 여부를 먼저 본다.
 if (matrix.sourceHash !== runtime.sourceHash || matrix.episodes?.length !== runtime.episodeCount || matrix.episodes.some((episode) => !Array.isArray(episode.emotionPath) || episode.emotionPath.length < 3 || !episode.visualCues?.every((cue) => cue.accessibility))) {
@@ -291,10 +293,9 @@ for (const [index, meta] of manifest.episodes.entries()) {
   for (const beat of chunk.beats) {
     const name = FORBIDDEN_STORY_NAMES.find((forbidden) => String(beat.t ?? "").includes(forbidden));
     if (name) fail(`${beat.id}: 대본에 쓰지 않는 이름 '${name}'`);
-    if (REWRITE_PENDING.has(chunk.id)) continue;
-    if (VOCAL_TRACKS.has(beat.bgm)) fail(`${beat.id}: 보컬곡 '${beat.bgm}' (재작성 대기 목록 밖)`);
+    if (beat.bgm && !INSTRUMENTAL_TRACKS.has(beat.bgm)) fail(`${beat.id}: 연주곡 목록 밖의 곡 '${beat.bgm}'`);
     if (beat.tone && !beat.bg) fail(`${beat.id}: bg 없는 tone 은 그려지지 않는다`);
-    if (beat.s === "baek" || ["l", "c", "r"].some((slot) => beat[slot]?.who === "baek")) fail(`${beat.id}: 백문(baek) 등장 (재작성 대기 목록 밖)`);
+    if (beat.s && !SPEAKERS.has(beat.s)) fail(`${beat.id}: 등록되지 않은 화자 '${beat.s}'`);
   }
 }
 

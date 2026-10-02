@@ -4,7 +4,7 @@ type Copy={sharedTopics:string;tiers:Record<Tier,string>};
 // Describes the tierDepth writing contract in concise-reading-prompt.ts.
 // Depth is reasoning within each chapter's evidence, not a per-chapter length guarantee.
 const copies:Record<ReadingLocale,Copy>={
- ko:{sharedTopics:'같은 주제도 상위 상담에서는 원인·조건·선택을 더 세밀하게 풀어봐요. 상담 종류에 따라 별도 심화 장이 더해져요.',tiers:{mackerel:'핵심 판단과 근거, 먼저 해볼 행동을 간결하게.',salmon:'왜 그런 흐름이 생기는지, 생활에서 어떻게 드러나는지까지.',flounder:'서로 다른 근거와 조건을 비교하고 상황별 대안까지.',tuna:'근거의 우선순위, 조건별 선택과 행동 후 점검할 신호까지.'}},
+ ko:{sharedTopics:'같은 주제도 상위 상담에서는 원인·조건·선택을 더 세밀하게 풀어봐요. 상담 종류에 따라 별도 심화 장이 더해져요.',tiers:{mackerel:'핵심 판단과 근거, 먼저 해볼 행동을 간결하게.',salmon:'고등어에 더해, 왜 그런 흐름이 생기고 생활에서 어떻게 드러나는지까지.',flounder:'연어에 더해, 서로 다른 근거와 조건을 비교하고 상황별 대안까지.',tuna:'광어에 더해, 근거의 우선순위와 조건별 선택, 행동 뒤 점검할 신호까지.'}},
  en:{sharedTopics:'Higher tiers explore the causes, conditions and choices within shared topics in more detail. Additional specialist chapters depend on the reading type.',tiers:{mackerel:'A clear conclusion, its basis and a first step.',salmon:'Why the pattern arises and how it may appear in daily life.',flounder:'Contrasting evidence, changing conditions and practical alternatives.',tuna:'Which evidence takes priority, choices by situation and signs to review after acting.'}},
  ja:{sharedTopics:'共通するテーマも、上位の鑑定では原因・条件・選択をより細かく読み解きます。鑑定の種類に応じて専門的な章が加わります。',tiers:{mackerel:'中心となる判断と根拠、まず試せる行動を簡潔に。',salmon:'その流れが生まれる理由と、日常での表れ方まで。',flounder:'異なる根拠や条件を比べ、状況に応じた選択肢まで。',tuna:'根拠の優先順位、条件別の選択と行動後に確かめる兆候まで。'}},
  'zh-CN':{sharedTopics:'同样的主题，在更深入的档位中会细分原因、条件与选择。不同咨询类型还会增加专项章节。',tiers:{mackerel:'简明说明核心判断、依据与第一步行动。',salmon:'进一步解释形成原因，以及日常生活中可能的表现。',flounder:'比较不同依据与适用条件，梳理各情境下的替代选择。',tuna:'说明依据的优先顺序、条件对应的选择，以及行动后需观察的信号。'}},

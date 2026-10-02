@@ -473,7 +473,7 @@ const LOCALE_SHELL_SEO = {
       "四柱推命、紫微斗数、宿曜占星術、タロットから自分の傾向と選択を見つめる占いサービス。公開解説とAI鑑定の違い、各機能の利用条件をご案内します。",
     keywords:
       "四柱推命 無料, 占い 無料, タロット占い 無料, 今日の運勢, 相性占い, 紫微斗数, 宿曜占星術, 誕生日占い, 恋愛占い, 韓国 占い, 無料鑑定",
-    appTitle: "Saju Moonlight Garden",
+    appTitle: "Ggulggul Fortune",
     imageAlt:
       "ハニーピッグ占い HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード",
     dictionaryFile: "ja.json",
@@ -487,7 +487,7 @@ const LOCALE_SHELL_SEO = {
       "通过四柱命理、紫微斗数、宿曜占星术与塔罗认识自己的行为和关系。阅读公开解说，了解AI解读的用途与局限，并在各功能页面确认使用条件。",
     keywords:
       "免费算命, 八字算命, 生辰八字, 塔罗牌占卜, 今日运势, 合婚配对, 紫微斗数, 宿曜占星, 星座运势, 姻缘测算",
-    appTitle: "Saju Moonlight Garden",
+    appTitle: "Ggulggul Fortune",
     imageAlt:
       "蜜豚运势 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡",
     dictionaryFile: "zh-cn.json",
@@ -503,7 +503,7 @@ const LOCALE_SHELL_SEO = {
       "透過四柱命理、紫微斗數、宿曜占星術與塔羅認識自己的行為和關係。閱讀公開解說，了解AI解讀的用途與局限，並在各功能頁面確認使用條件。",
     keywords:
       "免費算命, 八字算命, 生辰八字, 塔羅牌占卜, 今日運勢, 合婚配對, 紫微斗數, 宿曜占星, 星座運勢, 姻緣測算",
-    appTitle: "Saju Moonlight Garden",
+    appTitle: "Ggulggul Fortune",
     imageAlt:
       "蜜豚運勢 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡",
     dictionaryFile: "zh-tw.json",
@@ -517,7 +517,7 @@ const LOCALE_SHELL_SEO = {
       "Explore Saju, tarot, Zi Wei Dou Shu and Sukuyo for self-reflection. Read public guides and understand AI readings, their limits and each feature’s access terms.",
     keywords:
       "free fortune telling, saju reading, four pillars of destiny, free tarot reading, daily horoscope, zi wei dou shu, compatibility test, korean astrology, birth chart",
-    appTitle: "Saju Moonlight Garden",
+    appTitle: "Ggulggul Fortune",
     imageAlt:
       "Honey Pig Fortune HONEY FORTUNE — a CODE DESTINY calling card with a cameo of Yeoni the flower pig and an overview of the service",
     dictionaryFile: "en.json",
@@ -551,8 +551,8 @@ function resolveLocaleShellTitle(seo) {
  */
 const LOCALE_MANIFEST = {
   "/ja": {
-    name: "Saju Moonlight Garden — Code Destiny",
-    short_name: "Moonlight Garden",
+    name: "Ggulggul Fortune — Code Destiny",
+    short_name: "Ggulggul Fortune",
     description: "今日の運勢と四柱推命、相性とタロットの流れが静かに開きます。",
     lang: "ja",
     shortcut: {
@@ -562,8 +562,8 @@ const LOCALE_MANIFEST = {
     },
   },
   "/zh": {
-    name: "Saju Moonlight Garden — Code Destiny",
-    short_name: "Moonlight Garden",
+    name: "Ggulggul Fortune — Code Destiny",
+    short_name: "Ggulggul Fortune",
     description: "今日运势与八字命理、合婚配对和塔罗的流向静静展开。",
     lang: "zh-CN",
     shortcut: {
@@ -574,8 +574,8 @@ const LOCALE_MANIFEST = {
   },
   // 기존 public/manifest.zh-tw.json 의 문구를 그대로 유지한다(재생성해도 값이 바뀌지 않게).
   "/zh-tw": {
-    name: "Saju Moonlight Garden — Code Destiny",
-    short_name: "Moonlight Garden",
+    name: "Ggulggul Fortune — Code Destiny",
+    short_name: "Ggulggul Fortune",
     description: "今日運勢與四柱八字、合婚配對和塔羅的流向靜靜展開。",
     lang: "zh-TW",
     shortcut: {
@@ -585,8 +585,8 @@ const LOCALE_MANIFEST = {
     },
   },
   "/en": {
-    name: "Saju Moonlight Garden — Code Destiny",
-    short_name: "Moonlight Garden",
+    name: "Ggulggul Fortune — Code Destiny",
+    short_name: "Ggulggul Fortune",
     description: "Today's fortune, Four Pillars, compatibility, and tarot — read with a calm, steady hand.",
     lang: "en",
     shortcut: {

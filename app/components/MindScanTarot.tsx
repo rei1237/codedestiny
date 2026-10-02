@@ -375,8 +375,9 @@ function IntroStage({ onStart, copy }: { onStart: () => void; copy: MindScanTaro
             <span className="px-2.5 py-1 rounded-full border border-fuchsia-300/30 bg-fuchsia-400/10 text-[10px] tracking-[0.22em] text-fuchsia-100/85 uppercase">{copy.introBadgeMindScan}</span>
           </div>
           <p className="text-[11px] tracking-[0.55em] text-purple-300/70 uppercase">Between Words Tarot</p>
-          <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight drop-shadow-[0_0_20px_rgba(192,132,252,0.42)]" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>
-            {copy.introTitleLine1}<br />
+          <h1 className="break-keep text-3xl sm:text-4xl font-black text-white leading-tight [text-wrap:balance] drop-shadow-[0_0_20px_rgba(192,132,252,0.42)]" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>
+            {/* 질문 우선(2026-10-02): line1 은 키워드 눈썹, line2 가 고객 질문 */}
+            <span className="mb-2 block text-base font-semibold text-purple-100/85 drop-shadow-none sm:text-lg">{copy.introTitleLine1}</span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-fuchsia-300 to-pink-400">
               {copy.introTitleLine2}
             </span>

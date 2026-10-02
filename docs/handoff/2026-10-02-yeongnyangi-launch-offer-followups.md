@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-10-02
-next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 4번(Yeongnyangi Browser Shadow 실패)만 진행해줘. RED 이니 위험·검증·롤백을 먼저 보고하고 바로 착수해"
+updated: 2026-10-03
+next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 7번(생선 버튼 스크린리더 문장)만 진행해줘"
 ---
 
 # 영냥이 체험가 표기 — 범위 밖 후속 6건
@@ -14,7 +14,7 @@ next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 4번(Ye
 ## 지금 상태
 
 - 체험가 표기 본작업은 main 09ae18c2c 에 머지·push, PR CI success. 표시 정본 `lib/brand/launch-offer.ts`.
-- 1번 완료(0d06de996), 2번 완료(fc4e92005, main PR CI success), 3번 완료(f642cef8d), 4번 완료(4ac1601df). 5~7번 미착수. 다음은 **5번**(RED — 착수 전 위험·검증·롤백 선보고). 항목 하나 = 커밋 하나(되돌리기 단위). 끝나면 여기 `[x]` + 커밋 SHA 를 적는다.
+- 1번 완료(0d06de996), 2번 완료(fc4e92005, main PR CI success), 3번 완료(f642cef8d), 4번 완료(4ac1601df, 96318447a — main Browser Shadow 108/108 success), 5번 완료(3bb25ea95). 6·7번 미착수. 6번은 숫자를 사용자가 정해야 하므로 다음은 **7번**(GREEN). 항목 하나 = 커밋 하나(되돌리기 단위). 끝나면 여기 `[x]` + 커밋 SHA 를 적는다.
 
 ## 남은 작업 (위에서부터 하나씩)
 
@@ -30,11 +30,11 @@ next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 4번(Ye
   추정(미검증): v7 매니페스트 길이와 카탈로그 숫자가 갈라졌다. 실제로 전달되는 쪽(=생성 매니페스트)이 정본일 가능성이 크다 → 가격표가 그 값을 쓰게 바꾼다.
   🔴 `catalog.ts` 는 결제 축 파일 — 값을 바꾸면 check:fast 가 전체 jest 로 승격(~500s), paid-gate-auditor 로 동결 매니페스트 확인. 표시만 고치는 쪽(가격표가 manifest 길이를 쓰게)이 더 안전하다.
   완료 기준: 두 화면이 같은 수를 보이고, 그 수가 실제 생성 챕터 수와 같다는 테스트 1개.
-- [x] **4. Yeongnyangi Browser Shadow 실패 (RED: CI 검증기)** — 완료 4ac1601df. quote mock 은 `quoteServicePack` 분기 미러(팩 없음 → `unavailable`, 결제 끝난 행 → `paid`). 첫 케이스에 가려 있던 실패 3종도 함께: room 링크 문구(c5bbf9f0d 에서 "상담 내용 살펴보기"), WebKit 이동 취소 읽기 허용 목록에 `/api/auth/me`·quote·`/version.json?t=` 추가, home-profile-catalog 가 결제창 렌더 뒤 이동. unknown 단언은 그대로. 로컬 최종 코드 108/108. 남은 관찰(범위 밖): WebKit 취소 읽기 허용 목록은 케이스마다 경로를 덧붙이는 구조라 새 읽기 요청이 생길 때마다 다시 깨질 수 있다; 같은 fixture 를 import 하는 다른 verify-yeongnyangi-* 15개는 이번에 돌리지 않았다(라우트 추가만이라 약화는 없음). — `scripts/lib/yeongnyangi-mobile-payment.mjs:286` 단언 "Unrecognised API must not silently succeed" 가 `POST /api/payments/service-packs/quote` 2회로 실패. mock 라우트(`:59-160`)에 service-packs/** 가 하나도 없다. 호출원 `app/components/service-packs/service-pack-client.ts:57`.
+- [x] **4. Yeongnyangi Browser Shadow 실패 (RED: CI 검증기)** — 완료 4ac1601df. quote mock 은 `quoteServicePack` 분기 미러(팩 없음 → `unavailable`, 결제 끝난 행 → `paid`). 첫 케이스에 가려 있던 실패 3종도 함께: room 링크 문구(c5bbf9f0d 에서 "상담 내용 살펴보기"), WebKit 이동 취소 읽기 허용 목록에 `/api/auth/me`·quote·`/version.json?t=` 추가, home-profile-catalog 가 결제창 렌더 뒤 이동. unknown 단언은 그대로. 로컬 최종 코드 108/108. 후속 96318447a: CI WebKit 의 generation-interrupted 에서 `goto` 이동이 청크와 `?cdcb=` 재시도를 함께 끊어 ChunkLoadError — WebKit 에서 그 청크가 200 으로 서빙될 때만 허용(없는 청크는 404 로 실패 유지). 같은 run 첫 시도의 `page.reload: WebKit encountered an internal error`(webkit-390-CARD-redirect)는 재실행에서 재현 안 됨 = 러너 일시 오류로 판단, 손대지 않음. 남은 관찰(범위 밖): WebKit 취소 읽기 허용 목록은 케이스마다 경로를 덧붙이는 구조라 새 읽기 요청이 생길 때마다 다시 깨질 수 있다; 같은 fixture 를 import 하는 다른 verify-yeongnyangi-* 15개는 이번에 돌리지 않았다(라우트 추가만이라 약화는 없음). — `scripts/lib/yeongnyangi-mobile-payment.mjs:286` 단언 "Unrecognised API must not silently succeed" 가 `POST /api/payments/service-packs/quote` 2회로 실패. mock 라우트(`:59-160`)에 service-packs/** 가 하나도 없다. 호출원 `app/components/service-packs/service-pack-client.ts:57`.
   174b8a41a 이전부터 실패(체험가 작업 무관). shadow 라 게이트는 아님.
   방향: quote 를 실제 워커 응답 형태(`worker/payments/` 의 service-packs quote 핸들러)대로 mock 에 추가. 단언은 약화하지 않는다(fail-closed 유지).
   완료 기준: 로컬 `node scripts/verify-yeongnyangi-browser.mjs` 통과 + push 후 그 워크플로 success.
-- [ ] **5. 결제 게이트 트리거 공백 (RED: CI)** — `.github/workflows/paid-flow-gates.yml` paths 와 `scripts/lib/change-risk.mjs:92-156` 에 `yeongnyangi` 0건. `app/components/service-packs/**`, `app/yeongnyangi/_components/Consultation.tsx`, `worker/yeongnyangi/payments/**` 를 바꿔도 결제 게이트가 안 돈다.
+- [x] **5. 결제 게이트 트리거 공백 (RED: CI)** — 완료 3bb25ea95 (main 머지 807b80f73). `deepVerificationRules` 에 3줄(service-packs 디렉터리 전체·Consultation.tsx·worker/yeongnyangi/payments)과 YAML paths 3줄을 추가. 자체 테스트에 참 3건·거짓 1건(NightHero) 고정, 72/72. 가짜 diff `--plan` 은 tier=critical, deep 사유 "영냥이 생선 단계 결제창"·"영냥이 상품 가격 카탈로그". 가정: service-packs 는 CSS 까지 포함(가격 숨김도 결제 표시 회귀라서). 남은 관찰(범위 밖): 다른 영냥이 결제 진입(QuestionSky·Spirit 상담, 채팅 가격)은 여전히 게이트 밖이다. — `.github/workflows/paid-flow-gates.yml` paths 와 `scripts/lib/change-risk.mjs:92-156` 에 `yeongnyangi` 0건. `app/components/service-packs/**`, `app/yeongnyangi/_components/Consultation.tsx`, `worker/yeongnyangi/payments/**` 를 바꿔도 결제 게이트가 안 돈다.
   🔴 메모리 "CI gate scope": 결제 게이트 범위 안이지만 **착수 전 사용자에게 위험·검증·롤백을 먼저 알리고** 진행. 기존 검사 삭제 금지, 경로 추가만.
   완료 기준: `npm run check:fast -- --plan` 에서 위 경로 변경이 결제 고위험으로 분류됨(가짜 diff 로 확인) + 변경 커밋의 CI 에서 paid-flow-gates 가 실제로 돈다.
 - [ ] **6. 표시 범위 확장 (선택 — 사용자에게 먼저 물을 것)** — ProductGuide 단계 버튼, QuestionSky(`QuestionSkyConsultation.tsx:62`)·Spirit(`SpiritConsultation.tsx:53`)·연이/네오 채팅 가격에는 예정가가 없다. 생선 단계가 아니라 예정가 표가 없으므로 숫자는 사용자 결정. 팩 상점 1280px 대비는 별도 판정 안 함(390px 는 6.7:1).

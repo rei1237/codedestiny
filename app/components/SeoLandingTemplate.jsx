@@ -249,7 +249,13 @@ export default function SeoLandingTemplate({ page, hero = null }) {
             <span className="font-[family-name:var(--font-serif)] tracking-[0.02em]">Code Destiny</span>
           </p>
           <h1 className="mt-5 max-w-[20ch] break-keep font-[family-name:var(--font-serif)] text-[clamp(2.15rem,6vw,4rem)] font-bold leading-[1.16] tracking-[-0.02em] text-[#292431] [text-wrap:balance]">
-            {page.h1}
+            {/* h1Question 이 있으면 키워드 H1 은 눈썹으로 내리고 고객 질문을 주인공으로 둔다(질문 우선 2026-10-02). */}
+            {page.h1Question ? (
+              <>
+                <span className="mb-3 block text-[0.42em] font-semibold leading-snug tracking-[0.01em] text-[#6f3fa6]">{page.h1}</span>
+                {page.h1Question}
+              </>
+            ) : page.h1}
           </h1>
           <p className="mt-7 max-w-[62ch] break-keep text-[1.02rem] leading-[1.9] text-[#51475c] [text-wrap:pretty]">
             {page.intro || page.description}

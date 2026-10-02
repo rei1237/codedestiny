@@ -88,7 +88,7 @@ export default function StoryEpisodePage({ params }: { params: { episode: string
 
       <article className="mt-8">
         {episode.beats.map((beat, beatIndex) => {
-          const speaker = STORY_SPEAKERS[beat.s] ?? "";
+          const speaker = beat.nm ?? STORY_SPEAKERS[beat.s] ?? "";
           return (
             <div key={`${episode.slug}-${beatIndex}`}>
               {beat.sceneBreak ? (

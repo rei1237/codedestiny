@@ -169,6 +169,21 @@ describe("Palm UI requirements", () => {
     expect(msg).toContain("지원하지 않는 이미지 형식");
   });
 
+  test("Test E-3: 503 해설 미완료·저장 실패는 접속 문제 문구로 덮이지 않는다", () => {
+    const generic = mapPalmAnalyzeError({ status: 503, code: "AUTH_TEMPORARILY_UNAVAILABLE", message: "" });
+    const incomplete = mapPalmAnalyzeError({ status: 503, code: "PALM_INTERPRETATION_INCOMPLETE", message: "" });
+    const storage = mapPalmAnalyzeError({ status: 503, code: "RESULT_STORAGE_UNAVAILABLE", message: "" });
+    const vision = mapPalmAnalyzeError({ status: 503, code: "PALM_VISION_UNAVAILABLE", message: "" });
+
+    expect(incomplete).not.toBe(generic);
+    expect(storage).not.toBe(generic);
+    expect(incomplete).not.toBe(storage);
+    expect(vision).not.toBe(generic);
+    expect(vision).toContain("같은 사진");
+    expect(incomplete).toContain("다시 시도");
+    expect(storage).toContain("다시 시도");
+  });
+
   test("Test F: hasPalm=false면 결과 표시 조건이 false다", () => {
     expect(shouldShowPalmResult({ validation: { hasPalm: false } })).toBe(false);
     expect(shouldShowPalmResult({ validation: { hasPalm: true } })).toBe(true);

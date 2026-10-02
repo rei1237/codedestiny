@@ -410,10 +410,15 @@
     try {
       var section = anchor.closest("[data-cd-funnel-section]");
       if (section) {
-        global.cdTrack("home_section_click", {
+        var sectionPayload = {
           section: String(section.getAttribute("data-cd-funnel-section") || ""),
           destination: String(anchor.getAttribute("href") || "")
-        });
+        };
+        /* 질문 카드(#cdConcernPick)는 같은 목적지를 여러 질문이 가리킬 수 있어 질문 키를 함께 싣는다.
+           값은 마크업의 카탈로그 키뿐이다 — 질문 원문·사용자 입력은 싣지 않는다. */
+        var questionId = anchor.getAttribute("data-cd-question");
+        if (questionId) sectionPayload.question_id = String(questionId);
+        global.cdTrack("home_section_click", sectionPayload);
       }
     } catch (_homeSectionError) {
       /* 계측 실패는 무시한다 */

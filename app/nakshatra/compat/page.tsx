@@ -18,7 +18,7 @@ export default function NakshatraCompatPage() {
         </nav>
         <header className="mb-7 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">{copy.compatPageEyebrow}</p>
-          <h1 className="mt-3 break-keep text-3xl font-bold leading-tight text-slate-50 md:text-4xl">{copy.compatPageHeading}</h1>
+          <h1 className="mt-3 break-keep text-3xl font-bold leading-tight text-slate-50 md:text-4xl">{copy.compatPageQuestion ? <><span className="mb-2 block text-base font-semibold text-amber-100/85 md:text-lg">{copy.compatPageHeading}</span>{copy.compatPageQuestion}</> : copy.compatPageHeading}</h1>
           <p className="mx-auto mt-4 max-w-md break-keep text-sm leading-7 text-slate-300">
             {copy.compatPageSub}
           </p>

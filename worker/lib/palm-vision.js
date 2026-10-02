@@ -17,9 +17,15 @@ import { normalizeNarrativeBody } from "./paid-narrative-candidate.js";
 
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { callGeminiText } from "./gemini.js";
+import { tokensRequiredForChars } from "./llm-budget.js";
 
-// 심층 해석의 최소 분량. Workers AI 폴백 문턱은 관례대로 이 값 × 0.4.
-export const PALM_CONSULT_MIN_CHARS = 1200;
+// 심층 해석의 쓰기 목표(공백 포함). 합격선이 아니다 — 프롬프트에 목표로만 싣는다.
+// 18개 ■ 항목 × 3~5문장 기준이라 기존 "항목당 최소 3문장"과 같은 분량대다(상향 아님).
+export const PALM_CONSULT_MIN_CHARS = 3000;
+export const PALM_CONSULT_MAX_CHARS = 4000;
+// 출력 토큰은 목표 상한 + 완충 이상(llm-budget). thinking 은 공통 기본값 0(OFF)이라 따로 더하지 않는다.
+const PALM_CONSULT_MAX_OUTPUT_TOKENS = tokensRequiredForChars(PALM_CONSULT_MAX_CHARS);
+// 합격선: 읽을 만한 최소 전달 분량(공백 제외). 목표 하한의 80% 보다 훨씬 낮게 둬 결과가 안 나오는 상황을 만들지 않는다.
 const PALM_CONSULT_FALLBACK_MIN_CHARS = 120; // Minimum readable delivery, separate from the writing target.
 
 // 손당 비전 타임아웃. 양손이면 병렬 2회이므로 기본 30초를 그대로 쓰면 예산을 넘긴다.
@@ -191,6 +197,23 @@ function asArr(v) {
   return Array.isArray(v) ? v : [];
 }
 
+// 모델이 뺀 필드를 표시용 기본값으로 채우되, 채웠다는 사실을 defaultedFields 에 남긴다.
+// 비교·품질 판정은 이 목록의 필드를 "모름"으로 취급한다 — 기본값이 판정을 정하면 안 된다.
+function measuredFields(raw, defaults) {
+  const o = asObj(raw);
+  const values = {};
+  const defaultedFields = [];
+  for (const [key, fallback] of Object.entries(defaults)) {
+    const value = str(o[key], "");
+    if (value) values[key] = value;
+    else {
+      values[key] = fallback;
+      defaultedFields.push(key);
+    }
+  }
+  return { values, defaultedFields };
+}
+
 function majorLine(raw, defaults) {
   const o = asObj(raw);
   const detected = bool(o.detected, false);
@@ -215,6 +238,7 @@ function minorLine(raw, defaultSummary) {
     confidence: detected ? unit(o.confidence) : 0,
     strength: detected ? str(o.strength, "medium") : "none",
     summary: str(o.summary, defaultSummary),
+    defaultedFields: detected && !str(o.strength, "") ? ["strength"] : [],
   };
 }
 
@@ -255,6 +279,7 @@ function mount(raw) {
   return {
     fullness: str(o.fullness, "medium"),
     summary: str(o.summary, ""),
+    defaultedFields: str(o.fullness, "") ? [] : ["fullness"],
   };
 }
 
@@ -282,6 +307,20 @@ export function geminiResultToHandReading(g) {
     summary: "운명선을 판독했습니다.",
     advice: "꾸준한 노력이 결실을 맺습니다.",
   });
+  const lifeShape = measuredFields(ml.lifeLine, { length: "medium", depth: "medium", curvature: "normal" });
+  const headShape = measuredFields(ml.headLine, {
+    length: "medium",
+    depth: "medium",
+    direction: "straight",
+    startRelationWithLifeLine: "joined",
+  });
+  const heartShape = measuredFields(ml.heartLine, {
+    length: "medium",
+    depth: "medium",
+    curvature: "soft",
+    endingArea: "underMiddle",
+  });
+  const fateShape = measuredFields(ml.fateLine, { strength: "medium", startArea: "wrist", endArea: "saturnMount" });
 
   return {
     handShape: {
@@ -292,31 +331,16 @@ export function geminiResultToHandReading(g) {
       summary: str(hs.summary, "손 형태를 분석했습니다."),
     },
     majorLines: {
-      lifeLine: {
-        ...lifeLine,
-        length: str(asObj(ml.lifeLine).length, "medium"),
-        depth: str(asObj(ml.lifeLine).depth, "medium"),
-        curvature: str(asObj(ml.lifeLine).curvature, "normal"),
-      },
-      headLine: {
-        ...headLine,
-        length: str(asObj(ml.headLine).length, "medium"),
-        depth: str(asObj(ml.headLine).depth, "medium"),
-        direction: str(asObj(ml.headLine).direction, "straight"),
-        startRelationWithLifeLine: str(asObj(ml.headLine).startRelationWithLifeLine, "joined"),
-      },
-      heartLine: {
-        ...heartLine,
-        length: str(asObj(ml.heartLine).length, "medium"),
-        depth: str(asObj(ml.heartLine).depth, "medium"),
-        curvature: str(asObj(ml.heartLine).curvature, "soft"),
-        endingArea: str(asObj(ml.heartLine).endingArea, "underMiddle"),
-      },
+      lifeLine: { ...lifeLine, ...lifeShape.values, defaultedFields: lifeShape.defaultedFields },
+      headLine: { ...headLine, ...headShape.values, defaultedFields: headShape.defaultedFields },
+      heartLine: { ...heartLine, ...heartShape.values, defaultedFields: heartShape.defaultedFields },
       fateLine: {
         ...fateLine,
-        strength: fateLine.detected ? str(asObj(ml.fateLine).strength, "medium") : "none",
-        startArea: str(asObj(ml.fateLine).startArea, "wrist"),
-        endArea: str(asObj(ml.fateLine).endArea, "saturnMount"),
+        ...fateShape.values,
+        strength: fateLine.detected ? fateShape.values.strength : "none",
+        defaultedFields: fateLine.detected
+          ? fateShape.defaultedFields
+          : fateShape.defaultedFields.filter((key) => key !== "strength"),
       },
     },
     minorLines: {
@@ -400,12 +424,15 @@ function qualityLabelToScore(value, kind) {
 export function computeQualityScore(input) {
   const imageQuality = input.imageQuality || {};
   const lineCount = Math.max(0, Number(input.detectedLineKeys?.length || 0));
-  const coverage = Math.max(0, Math.min(1, Number(imageQuality.palmCoverage || 0)));
+  // 모름(null)인 coverage 는 0점도 기본점도 주지 않고 가중치에서 뺀다.
+  const coverageKnown = imageQuality.palmCoverage != null && Number.isFinite(Number(imageQuality.palmCoverage));
+  const coverage = coverageKnown ? Math.max(0, Math.min(1, Number(imageQuality.palmCoverage))) : 0;
   const brightnessScore = qualityLabelToScore(String(imageQuality.brightness || "normal"), "brightness");
   const sharpnessScore = qualityLabelToScore(String(imageQuality.sharpness || "normal"), "sharpness");
   const lineScore = Math.min(1, lineCount / 4);
   const detectedBonus = input.palmDetected ? 0.08 : 0;
-  const score = coverage * 0.34 + brightnessScore * 0.2 + sharpnessScore * 0.2 + lineScore * 0.26 + detectedBonus;
+  const weighted = brightnessScore * 0.2 + sharpnessScore * 0.2 + lineScore * 0.26;
+  const score = (coverageKnown ? coverage * 0.34 + weighted : weighted / 0.66) + detectedBonus;
   return Math.max(0, Math.min(1, Number(score.toFixed(4))));
 }
 
@@ -470,7 +497,7 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
   const ai = await callGeminiJsonWithRetry(env, userPrompt, {
     attempts: 2,
     baseTokens: 8192,
-    capTokens: 12288,
+    capTokens: Math.round(8192 * 1.3), // 실제 최대: 2회차만 baseTokens×1.3 으로 오른다(structured-consultation.js).
     temperature: 0.2,
     taskType: "fortune",
     timeoutMs: VISION_TIMEOUT_MS,
@@ -511,10 +538,14 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
     handSide: str(parsed.handSide, declaredSide),
     brightness: str(iq.brightness, "normal"),
     sharpness: str(iq.sharpness, "normal"),
-    palmCoverage: num(iq.palmCoverage, detectedLineKeys.length > 0 ? 0.58 : 0.36),
+    // 모델이 coverage 를 빼면 모름(null)이다. 예전 기본값 0.58/0.36 은 품질 문턱 0.42 양쪽에 걸려
+    // 판정을 "선이 하나라도 잡혔나"로 바꿔 버렸다. null 은 품질 문턱을 통과하지 못하고(fail-closed)
+    // 판정은 선 검출 근거가 맡는다.
+    palmCoverage: iq.palmCoverage == null || iq.palmCoverage === "" || !Number.isFinite(Number(iq.palmCoverage)) ? null : unit(iq.palmCoverage),
     rotation: 0,
     notes: str(iq.notes, ""),
     warnings: [],
+    defaultedFields: ["brightness", "sharpness", "palmCoverage"].filter((key) => iq[key] == null || iq[key] === ""),
   };
 
   const purposeAnalysis = asObj(parsed.purposeAnalysis);
@@ -572,8 +603,9 @@ const DEEP_CONSULT_SYSTEM_PROMPT = `당신은 30년 경력의 손금 상담 전�
 2. detected=false 인 선과 문양은 "이번 사진에서는 확인되지 않았다"고 쓰거나 아예 언급하지 마세요. 있는 것처럼 쓰지 마세요.
 3. 사람이 쓴 조언처럼 직설적이고 구체적으로 쓰세요. "~할 수도 있습니다" 같은 애매한 표현 대신 "~하세요"로 쓰세요.
 4. 건강·수명·질병·사고를 단정하지 마세요. 의학적 진단 금지.
-5. 각 항목은 최소 3문장 이상, 추상적 덕담이 아니라 이 사람의 판독 결과에 붙는 내용이어야 합니다.
-6. 마크다운 제목(#) 없이, 아래 형식의 일반 텍스트로 쓰세요.
+5. 각 항목은 3~5문장, 추상적 덕담이 아니라 이 사람의 판독 결과에 붙는 내용이어야 합니다.
+6. 마크다운 제목(#) 없이, 아래 형식의 일반 텍스트로 쓰세요. ■ 제목 줄 바로 다음 줄부터 본문을 쓰고, 빈 줄은 항목 사이에만 두세요.
+7. 전체 분량은 공백 포함 ${PALM_CONSULT_MIN_CHARS.toLocaleString("en-US")}~${PALM_CONSULT_MAX_CHARS.toLocaleString("en-US")}자를 목표로 하세요.
 
 [출력 형식]
 ■ 한 문장 요약
@@ -634,7 +666,7 @@ ${context}`;
 
   const ai = await callGeminiText(env, userPrompt, {
     systemPrompt: DEEP_CONSULT_SYSTEM_PROMPT,
-    maxOutputTokens: 8192,
+    maxOutputTokens: PALM_CONSULT_MAX_OUTPUT_TOKENS,
     temperature: 0.75,
     taskType: "fortune",
     timeoutMs: CONSULT_TIMEOUT_MS,
@@ -648,6 +680,8 @@ ${context}`;
     return null;
   }
 
-  const text = normalizeNarrativeBody(String(ai.text || "").trim());
+  // "■ 제목" 줄이 빈 줄로 떨어져 단독 문단이 되면 문장부호가 없어 normalizeNarrativeBody 가 버린다.
+  // 거부 대신 결정적으로 교정한다: 제목 문단을 다음 문단에 붙인다.
+  const text = normalizeNarrativeBody(String(ai.text || "").trim().replace(/^(■[^\n]*)\n\s*\n/gmu, "$1\n"));
   return text.replace(/\s/g, '').length >= PALM_CONSULT_FALLBACK_MIN_CHARS && /[.!?。？！]["'”’)]?\s*$/u.test(text) ? { text, rawText: ai.rawText || ai.text, provider: ai.provider, model: ai.model } : null;
 }
