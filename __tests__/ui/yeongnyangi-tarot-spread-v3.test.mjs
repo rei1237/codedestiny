@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import {tarotEvalCases,deckFor,scoreReading} from '../fixtures/yeongnyangi-tarot-eval/cases.mjs';
 const require=createRequire(import.meta.url),Module=require('node:module');
 globalThis.__spreadTest={rows:new Map()};
 // The repository mock keeps the two state rules under test: the initial AWAITING_DRAW state and the one-shot draw CAS.
@@ -144,4 +145,56 @@ test('the v3 prompt reads positions in read order, resolves link groups to the d
  assert.throws(()=>validateTarotChapter(body(`${second.positionLabel}에 놓인 ${first.name} 카드는 조건을 보여 준다냥.`),ctx),e=>e.code==='TAROT_POSITION_MISMATCH');
  const flipped=first.orientation==='reversed'?'정방향':'역방향';
  assert.throws(()=>validateTarotChapter(body(`${first.name} ${flipped}`),ctx),e=>e.code==='TAROT_ORIENTATION_MISMATCH');
+});
+
+// Evaluation cases (docs/design/yeongnyangi-tarot/interpretation-eval.md): fixed cards on the real prepare → draw path, prompt only.
+async function evalPrompt(evalCase){
+ const row=await prepareFortune(env,'owner',order({productId:evalCase.productId,tarotSpreadId:evalCase.spreadId,question:evalCase.question,...(evalCase.inputs?{tarotInputs:evalCase.inputs}:{})}));
+ row.snapshot.tarotDeck=deckFor(evalCase.cards);
+ const drawn=await drawTarotSpread(env,'owner',row._id,{picks:evalCase.cards.map((_,i)=>i)});
+ return {drawn,prompt:buildTarotMasterContract(drawn.snapshot.analysis.contexts.tarot,evalCase.question,drawn.snapshot.manifest[1])};
+}
+
+test('evaluation cases put each fixed card on its intended position and carry what the rubric reads',async()=>{
+ const prompts=new Map();
+ for(const evalCase of tarotEvalCases){
+  const {drawn,prompt}=await evalPrompt(evalCase);prompts.set(evalCase.id,prompt);
+  assert.equal(prompt.methodVersion,'yeongnyangi-tarot-consultation-v3');
+  [...drawn.snapshot.tarotSpread.positions].sort((a,b)=>a.drawOrder-b.drawOrder).forEach((position,i)=>{
+   const card=prompt.savedCardsOnly.find(item=>item.positionKey===position.id);
+   assert.equal(card.cardId,evalCase.cards[i][0],evalCase.id);assert.equal(card.orientation,evalCase.cards[i][1]?'reversed':'upright',evalCase.id);
+  });
+ }
+ const at=(id,code)=>prompts.get(id).savedCardsOnly.find(card=>card.cardId===code);
+ assert.notEqual(at('tower-at-knot','M16').positionQuestion,at('tower-at-action','M16').positionQuestion,'the same card is asked a different question in another position');
+ const up=at('wheel-upright','M10'),down=at('wheel-reversed','M10');
+ assert.equal(up.positionKey,down.positionKey);assert.notEqual(up.orientation,down.orientation);
+ assert.ok(prompts.get('stay-or-leave').symmetry);assert.deepEqual(prompts.get('stay-or-leave').userInputs.options,{a:'지금 회사',b:'새 회사'});
+ assert.match(JSON.stringify(prompts.get('refused-contact').userInputs),/연락을 원하지 않는다/);
+ assert.match(prompts.get('refused-contact').interpretationContract.join('\n'),/반복 연락이나 우회 연락을 권하지 않는다/);
+ assert.match(prompts.get('coin-buy').interpretationContract.join('\n'),/건강·법률·투자/);
+});
+
+test('the automated rubric flags missing positions and forbidden claims',async()=>{
+ const refused=tarotEvalCases.find(item=>item.id==='refused-contact');
+ const {prompt}=await evalPrompt(refused);
+ const good=prompt.savedCardsOnly.map(card=>`${card.positionLabel}의 ${card.name}는 지금 조건을 비춘다냥.`).join('\n');
+ assert.deepEqual(scoreReading(good,prompt,refused),{pass:true,findings:[]});
+ const rules=text=>scoreReading(text,prompt,refused).findings.map(f=>f.rule);
+ assert.ok(rules(`${good}\n그래도 한 번 더 연락해 봐.`).includes('refused-contact-advice'));
+ assert.ok(rules(`${good}\n재회 확률은 70%야.`).includes('probability'));
+ assert.ok(rules(`${good}\n3월 5일에 답이 온다.`).includes('fixed-date'));
+ assert.ok(rules(good.split('\n').slice(1).join('\n')).includes('position-missing'));
+ assert.ok(scoreReading(good,prompt,tarotEvalCases.find(item=>item.id==='health-worry')).findings.some(f=>f.rule==='professional-help'));
+});
+
+test('v3 adds position questions, link groups and inputs that v2 never had',async()=>{
+ const question='헤어진 사람에게 내가 먼저 연락해도 될까?';
+ const v2=await prepareFortune(env,'owner',{productId:'tarot_mackerel',profileId:'self',timezone:'Asia/Seoul',consultationKind:'contact',question,consultationAttemptId:attemptId()});
+ const before=buildTarotMasterContract(v2.snapshot.analysis.contexts.tarot,question,v2.snapshot.manifest[1]);
+ const {prompt:after}=await evalPrompt(tarotEvalCases.find(item=>item.id==='refused-contact'));
+ assert.equal(before.methodVersion,'yeongnyangi-tarot-consultation-v2');
+ for(const key of ['readingOrder','linkGroups','userInputs']){assert.equal(before[key],undefined,key);assert.ok(after[key],key);}
+ assert.ok(before.savedCardsOnly.every(card=>card.positionQuestion===undefined));
+ assert.ok(after.savedCardsOnly.every(card=>card.positionQuestion));
 });
