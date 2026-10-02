@@ -1,4 +1,4 @@
-import {reportGuideCopy, buildExternalImagePrompt, reportGuideAssets} from './fortune-report-content.mjs?v=build-326a8c5fb8c0';
+import {reportGuideCopy, buildExternalImagePrompt, reportGuideAssets} from './fortune-report-content.mjs?v=build-3f60ad5a5bec';
 
 // Presentation only: callers supply an already authorized, completed result.
 function node(tag, cls, value) {
