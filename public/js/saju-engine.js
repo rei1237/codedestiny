@@ -3106,6 +3106,11 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
   var lmonth = Math.abs(Number(kasiLunar.month));
   var lday = Number(kasiLunar.day);
   var isLeap = !!kasiLunar.isLeap;
+  // 윤달 배치 월 — 윤달 15일까지는 그 달, 16일부터는 다음 달로 친다(15일 분할).
+  // 『紫微斗數全書』 安身命例는 윤달 전체를 다음 달로 보고("闰月正月生者要在二月内起安身命"),
+  // iztro 2.6.1 기본값(fixLeap)은 15일 분할이다. 16일 이후는 두 출처가 함께 다음 달이라 고치고,
+  // 15일까지는 출처가 갈려 기존 값(그 달)을 유지한다. 보고하는 음력 날짜(월·윤달 여부)는 그대로다.
+  var zwPlaceMonth = (isLeap && lday > 15) ? (lmonth % 12) + 1 : lmonth;
   // 🔴 자미두수의 년간지는 **음력 프레임**이다 — 세차가 설날에 바뀐다. 사주(자평)의 입춘 경계와
   // 다르며, 두 프레임을 섞으면 그 사이에 태어난 사람의 사화·녹존·경양·타라가 통째로 어긋난다.
   //
@@ -3124,7 +3129,7 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
   var hourIdx = (h === 23 || h === 0) ? 0 : Math.floor((h + 1) / 2);
   var hourBranch = ZHI_LIST[hourIdx];
 
-  var mengBaseIdx = (2 + lmonth - 1) % 12;
+  var mengBaseIdx = (2 + zwPlaceMonth - 1) % 12;
   // 명궁: 월궁 기점에서 시지를 역행 반영 (전통 자미두수 배궁)
   var mengIdx = (mengBaseIdx - hourIdx + 12) % 12;
   // 신궁: 월궁 기점에서 시지를 순행 반영
@@ -3193,8 +3198,8 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
 
   stars[(10 - hourIdx + 12) % 12].aux.push('문창');
   stars[(4 + hourIdx) % 12].aux.push('문곡');
-  stars[(4 + lmonth - 1) % 12].aux.push('좌보');
-  stars[(10 - (lmonth - 1) + 12) % 12].aux.push('우필');
+  stars[(4 + zwPlaceMonth - 1) % 12].aux.push('좌보');
+  stars[(10 - (zwPlaceMonth - 1) + 12) % 12].aux.push('우필');
 
   var yangMap = {'甲':3,'乙':4,'丙':6,'丁':7,'戊':6,'己':7,'庚':9,'辛':10,'壬':0,'癸':1};
   var tuoMap = {'甲':1,'乙':2,'丙':4,'丁':5,'戊':4,'己':5,'庚':7,'辛':8,'壬':10,'癸':11};

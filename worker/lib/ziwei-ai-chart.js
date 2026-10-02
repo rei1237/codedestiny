@@ -132,6 +132,16 @@ function getLunarDate(parts, calendarType, isLeapMonth) {
   };
 }
 
+/**
+ * 윤달 배치 월 — 윤달 15일까지는 그 달, 16일부터는 다음 달로 친다(15일 분할).
+ * 『紫微斗數全書』 安身命例는 윤달 전체를 다음 달로 보고("闰月正月生者要在二月内起安身命"),
+ * iztro 2.6.1 기본값(fixLeap)은 15일 분할이다. 16일 이후는 두 출처가 함께 다음 달이라 고치고,
+ * 15일까지는 출처가 갈려 기존 값(그 달)을 유지한다. 보고하는 음력 날짜(월·윤달 여부)는 그대로다.
+ */
+function placementMonth({ lunarMonth, lunarDay, isLeapMonth }) {
+  return isLeapMonth && lunarDay > 15 ? (lunarMonth % 12) + 1 : lunarMonth;
+}
+
 function hourIndex(hour) {
   return hour === 23 || hour === 0 ? 0 : Math.floor((hour + 1) / 2);
 }
@@ -460,7 +470,8 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
   const stemIndex = STEMS.indexOf(yearStem);
   const branchIndex = BRANCHES.indexOf(yearBranch);
   const hIdx = hourIndex(timeParts.hour);
-  const baseIndex = mod(2 + lunarInfo.lunarMonth - 1);
+  const placeMonth = placementMonth(lunarInfo);
+  const baseIndex = mod(2 + placeMonth - 1);
   const mingIndex = mod(baseIndex - hIdx);
   const shenIndex = mod(baseIndex + hIdx);
   const palaceStems = computePalaceStems(stemIndex);
@@ -470,7 +481,7 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
 
   placePalaces(mingIndex, shells);
   placeMainStars(shells, lunarInfo.lunarDay, bureau);
-  placeAssistantAndMaleficStars(shells, lunarInfo.lunarMonth, hIdx, stemIndex, branchIndex);
+  placeAssistantAndMaleficStars(shells, placeMonth, hIdx, stemIndex, branchIndex);
   const fourTransformations = FOUR_TRANSFORMATIONS[yearStem] || {};
   applyTransformations(shells, fourTransformations);
   applyMajorLuck(shells, mingIndex, stemIndex, gender, bureau);
