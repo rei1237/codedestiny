@@ -215,7 +215,7 @@ const shellFormKeys = shellFormMarks.map((mark) => {
   return `${mark.ep}:${mark.bi}:${mark.form}`;
 });
 if (shellFormKeys.join("|") !== canonicalFormMarks.join("|")) {
-  fail(`FORM_MARKS in the player shell is out of sync with the canonical source. 정본에 변신을 더하거나 옮겼다면 셸의 표를 같은 커밋에서 갱신할 것.\n  shell:     ${shellFormKeys.join(", ")}\n  canonical: ${canonicalFormMarks.join(", ")}`);
+  fail(`FORM_MARKS in the player shell is out of sync with the canonical source. npm run novel:build 로 셸의 표를 다시 쓰고 같은 커밋에 넣을 것.\n  shell:     ${shellFormKeys.join(", ")}\n  canonical: ${canonicalFormMarks.join(", ")}`);
 }
 // 이벤트 배경은 개편 때 자리가 옮겨 갈 수 있다 — 고정 컷 대신 정본에서 한 번 이상 쓰이는지만 요구한다.
 for (const background of ["memoryVault", "clearMoonWater", "cherryMoonPortal"]) {

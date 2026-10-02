@@ -932,11 +932,11 @@ function bgUrl(key){return mobileArt()&&BG[key]?"/images/novel/mobile/"+key+".we
    ============================================================ */
 var S={screen:"enter",ep:0,bi:0,auto:false,skip:false,bgmOn:true,bgmKey:null,form:"human",
        typing:false,reduce:false,speed:30,save:null,bgSlot:"A",curBg:null,cast:{},active:null,slotWho:{l:null,c:null,r:null},started:false};
-/* 연이의 모습(사람↔꽃돼지)은 화 경계를 넘어 유지되는 유일한 상태다. 8,844비트 중 변신 마커는 2개뿐이라
+/* 연이의 모습(사람↔꽃돼지)은 화 경계를 넘어 유지되는 유일한 상태다. 변신 마커는 몇 개뿐이라
    "마커를 지나야 바뀐다"로 두면 컷 0으로 들어온 세션(이어읽기·⏮⏭·처음부터)이 사람 모습인 채로 꽃돼지
    구간을 통째로 읽는다. 그래서 모습은 상태가 아니라 (화, 컷)에서 정해지는 값으로 다루고, 모든 진입
    경로가 formAt() 하나만 쓴다. 정본 마커 위치 — scripts/verify-novel-runtime.mjs 가 정본 비트를 전수
-   스캔해 이 표와 대조하므로, 변신이 늘거나 옮겨지면 여기서 잡힌다. */
+   스캔해 이 표와 대조한다. 표는 npm run novel:build 가 정본에서 다시 쓴다(손으로 고치지 말 것). */
 var FORM_MARKS=[{"ep":1,"bi":0,"form":"pig"},{"ep":31,"bi":59,"form":"human"}];
 function formAt(ep,bi){
   var form="human";
@@ -1691,7 +1691,7 @@ function showDialogue(b){
   fullText=b.t||"";shownLen=0;dlgBody.replaceChildren(document.createTextNode(""));
   dlg.dataset.done="false";dlg.dataset.typing="true";S.typing=true;
   // log + 자동 책갈피
-  /* 로그는 openLog 가 마지막 60줄만 그린다 — 8,844비트를 통째로 들고 있을 이유가 없어 상한을 둔다. */
+  /* 로그는 openLog 가 마지막 60줄만 그린다 — 전체 비트를 통째로 들고 있을 이유가 없어 상한을 둔다. */
   LOG.push({s:spk,t:fullText});
   if(LOG.length>LOG_MAX)LOG.splice(0,LOG.length-LOG_MAX);
   saveBookmark(S.ep,S.bi);

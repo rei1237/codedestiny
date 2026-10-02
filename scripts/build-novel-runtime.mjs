@@ -285,7 +285,26 @@ export function writeNovelRuntime(runtime = buildNovelPayload()) {
   }));
   writeJson(READER_OUTPUT_PATH, readerPayload(runtime));
   writeJson(SCENE_MATRIX_PATH, sceneMatrix(runtime), true);
+  syncShellFormMarks(runtime);
   return manifest;
+}
+
+// 플레이어의 연이 모습 표(FORM_MARKS)는 (화 색인, 컷 색인)이라 화를 다시 쓰면 손으로 맞추기 어렵다.
+// 정본의 form 마커에서 그 한 줄만 다시 쓴다. verify-novel-runtime 이 같은 표를 다시 대조한다.
+export function formMarks(runtime) {
+  const marks = [];
+  runtime.episodes.forEach((episode, ep) => episode.beats.forEach((beat, bi) => {
+    if (beat.form) marks.push({ ep, bi, form: beat.form });
+  }));
+  return marks;
+}
+
+function syncShellFormMarks(runtime) {
+  const shell = readFileSync(LEGACY_SHELL_PATH, "utf8");
+  const pattern = /var FORM_MARKS=\[[^\]]*\];/;
+  if (!pattern.test(shell)) throw new Error("플레이어 셸에서 'var FORM_MARKS=[...];' 한 줄을 찾지 못했습니다.");
+  const next = shell.replace(pattern, `var FORM_MARKS=${JSON.stringify(formMarks(runtime))};`);
+  if (next !== shell) writeFileSync(LEGACY_SHELL_PATH, next);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
