@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-20
-next: "최종 main CI 확인 후 별도 승인된 운영 릴리스에서 결제·결과 제공과 검색 수집 검증"
+status: done
+updated: 2026-10-02
+next: "완료 — competitiveness-roadmap-20260923.md:13 근거로 보존 (28일 비교는 docs/seo/SERVICE_REFORM_MEASUREMENT.md)"
 ---
 
 # 서비스 개편 실행 기록

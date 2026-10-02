@@ -39,7 +39,7 @@ const PREPARE = "/api/ziwei-island-ai/prepare";
 const GENERATE = "/api/ziwei-island-ai/generate";
 const RESULT = "/api/ziwei-island-ai/result";
 
-// ── ₩5,000 12궁 전체 심층 리포트(영구 해금) — 위 ₩20,000 상담과는 별개 상품 ──
+// ── 12궁 전체 심층 리포트(영구 해금) — 위 궁 상담과는 별개 상품, 가격은 둘 다 레지스트리 ──
 // 상담이 "한 궁을 지금 고민에 맞춰 AI가 새로 쓰는 것"이라면, 리포트는 "열두 궁 전체를
 // 명반에서 정밀 판독한 고정 콘텐츠"다. 그래서 회당 결제가 아니라 1회 해금이다.
 const REPORT_FEATURE_KEY = "ziwei-island-deep-report";
@@ -248,7 +248,7 @@ function useIslandConsultCopy(): IslandConsultCopy {
 type Gender = "female" | "male" | "unknown" | "";
 type CalendarType = "solar" | "lunar";
 type Phase = "hub" | "form" | "checking" | "payment" | "reading" | "ready";
-type SeedLike = { name?: string; gender?: string; birthDate?: string; birthTime?: string; birthTimeUnknown?: boolean; calendarType?: string; isLeapMonth?: boolean };
+type SeedLike = { name?: string; gender?: string; birthDate?: string; birthTime?: string; birthTimeUnknown?: boolean; calendarType?: string; isLeapMonth?: boolean; question?: string };
 function calLabel(f: { calendarType: CalendarType; isLeapMonth: boolean }) { return f.calendarType === "lunar" ? (f.isLeapMonth ? "윤달" : "음력") : "양력"; }
 
 interface Palace {
@@ -271,6 +271,33 @@ const PALACES: Palace[] = [
 
 const ISLAND_ASSET_ROOT = "/images/destiny-island";
 const CONSULT_HERO = `${ISLAND_ASSET_ROOT}/consult-hero.webp`;
+// 12궁 수호자 — 섬 화면(destiny-island.html PALACES)과 같은 캐스트·질문 예시. docs/design/destiny-island/CAST.md
+// 결과 끝 보조 링크 — /ziwei-ai 의 ziweiIslandPreset 리더(ZiweiAiClient.tsx)가 읽는 focusArea 값. 결제·생성 로직과 무관
+const PALACE_FOCUS: Record<string, string> = {
+  "명궁": "personality", "형제궁": "relationship", "부부궁": "love", "자녀궁": "children", "재백궁": "money", "질액궁": "health",
+  "천이궁": "move", "노복궁": "relationship", "관록궁": "career", "전택궁": "property", "복덕궁": "overall", "부모궁": "family",
+};
+function rememberZiweiAiPreset(palaceKey: string, question: string) {
+  try {
+    sessionStorage.setItem("ziweiIslandPreset", JSON.stringify({ focusArea: PALACE_FOCUS[palaceKey] || "overall", question: String(question || "").slice(0, 400) }));
+  } catch {
+    // 저장 실패 시 프리셋 없이 이동
+  }
+}
+const GUARDIANS: Record<string, { slug: string; name: string; questions: string[] }> = {
+  "명궁": { slug: "ming", name: "성주 백호", questions: ["요즘 나답게 사는 방향이 맞는지 궁금해요","내 강점을 어디에 써야 가장 빛날까요?","올해 내가 집중하면 좋을 한 가지는?"] },
+  "형제궁": { slug: "siblings", name: "숲지기 다람쥐", questions: ["형제·가까운 친구와의 거리감을 어떻게 잡을까요?","곁에 오래 남을 인연은 어떤 사람일까요?","가족과 서운한 일이 생겼을 때 먼저 할 일은?"] },
+  "부부궁": { slug: "spouse", name: "정원지기 원앙", questions: ["나와 잘 맞는 연인은 어떤 사람일까요?","지금 관계를 더 편안하게 만드는 방법은?","연애할 때 내가 반복하는 패턴이 궁금해요"] },
+  "자녀궁": { slug: "children", name: "놀이터지기 수달", questions: ["아이(또는 키우는 일)와 나는 어떤 관계일까요?","새로 시작한 일을 잘 키우려면?","후배·제자에게 나는 어떤 사람일까요?"] },
+  "재백궁": { slug: "wealth", name: "광산지기 금두꺼비", questions: ["나에게 맞는 돈 버는 방식은 무엇일까요?","돈이 새는 습관을 줄이려면?","올해 재물 흐름에서 챙길 점은?"] },
+  "질액궁": { slug: "health", name: "성소지기 거북", questions: ["지치기 쉬운 때와 회복하는 방법이 궁금해요","내 몸과 마음이 보내는 신호를 어떻게 읽을까요?","무리하지 않는 생활 리듬은?"] },
+  "천이궁": { slug: "travel", name: "항구의 전령 제비", questions: ["이직·이사·유학 같은 이동이 나에게 맞을까요?","밖에서 만나는 기회를 잘 잡으려면?","새 환경에 적응하는 나만의 방법은?"] },
+  "노복궁": { slug: "friends", name: "광장지기 진돗개", questions: ["직장 동료·친구 관계에서 나의 역할은?","도움을 주고받기 좋은 사람은 어떤 사람일까요?","사람 때문에 지칠 때 어떻게 할까요?"] },
+  "관록궁": { slug: "career", name: "전략가 부엉이", questions: ["나에게 맞는 일과 일하는 방식은?","지금 커리어에서 다음 한 수는 무엇일까요?","승진·평가 시기에 무엇을 챙길까요?"] },
+  "전택궁": { slug: "home", name: "집지기 반달곰", questions: ["나에게 편안한 집과 공간은 어떤 곳일까요?","집·부동산 결정을 할 때 기준은?","가정의 분위기를 따뜻하게 하려면?"] },
+  "복덕궁": { slug: "fortune", name: "사서 두루미", questions: ["마음이 편해지는 나만의 방법이 궁금해요","내가 진짜 즐거워하는 것은 무엇일까요?","생각이 많을 때 마음을 정리하는 법은?"] },
+  "부모궁": { slug: "parents", name: "신전지기 흰 사슴", questions: ["부모님과의 관계를 더 편하게 하려면?","윗사람·상사와 잘 지내는 방법은?","내가 물려받은 기질은 어떤 걸까요?"] },
+};
 const CONSULT_READING = `${ISLAND_ASSET_ROOT}/consult-reading.webp`;
 const CONSULT_REPORT_COVER = `${ISLAND_ASSET_ROOT}/consult-report-cover.webp`;
 const PALACE_BADGES = `${ISLAND_ASSET_ROOT}/palace-badges.webp`;
@@ -429,7 +456,7 @@ export default function IslandConsultClient() {
 
   const { seed: profileSeed, seedVersion } = useAiProfileSeed();
 
-  // ── ₩5,000 심층 리포트 상태 ──
+  // ── 심층 리포트 상태 ──
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const { unlocked, status: unlockStatus, refetch: refetchUnlocks, markOptimisticallyUnlocked } = useContentUnlock([REPORT_FEATURE_KEY]);
   // 원장을 먼저 읽어 첫 페인트에서 잠금 화면이 번쩍이지 않게 한다(LoveSimulationClient 선례).
@@ -474,6 +501,7 @@ export default function IslandConsultClient() {
       birthTime: seed.birthTimeUnknown ? "" : (seed.birthTime || f.birthTime),
       calendarType: (seed.calendarType === "lunar" ? "lunar" : "solar"),
       isLeapMonth: seed.calendarType === "lunar" ? (seed.isLeapMonth ?? f.isLeapMonth) : false,
+      question: seed.question ? String(seed.question).slice(0, 400) : f.question,
     }));
   }
 
@@ -603,7 +631,7 @@ export default function IslandConsultClient() {
     void refetchUnlocks({ force: true });
   }
 
-  // ₩5,000 12궁 리포트 PDF — 잠금 필터는 이 버튼의 렌더 조건(reportUnlocked && report)이다.
+  // 12궁 리포트 PDF — 잠금 필터는 이 버튼의 렌더 조건(reportUnlocked && report)이다.
   // 뷰어가 '한 장씩' 모드면 나머지 장이 display:none 이라 빈 캔버스가 되므로,
   // 뷰어가 이미 가진 expandForExport 로 전부 펼친 뒤(2×rAF+120ms) 장 단위로 캡처한다.
   async function saveReportPdf() {
@@ -633,7 +661,7 @@ export default function IslandConsultClient() {
     }
   }
 
-  // ₩20,000 궁 상담 PDF — 캡처 대상은 본문 섹션(.ic-sec)뿐이다. 히어로 이미지는 마커를 안 붙여
+  // 궁 상담 PDF — 캡처 대상은 본문 섹션(.ic-sec)뿐이다. 히어로 이미지는 마커를 안 붙여
   // 캡처에서 빠지고, 궁 이름·대운은 표지 페이지가 대신 싣는다. 접힌 영역이 없어 펼치기가 필요 없다.
   async function saveConsultPdf() {
     if (!result || consultPdfBusy) return;
@@ -1010,6 +1038,20 @@ export default function IslandConsultClient() {
               {birthComplete && <button type="button" className="ic-change ic-change--done" onClick={() => setBirthEditing(false)}>✓ 이 정보로 확인</button>}
             </>
           )}
+          {GUARDIANS[palace.name] && (
+            <div className="ic-guardian">
+              <img className="ic-guardian__portrait" src={`${ISLAND_ASSET_ROOT}/guardians/${GUARDIANS[palace.name].slug}-v1.webp`} alt="" width={64} height={64} loading="lazy" decoding="async" />
+              <div className="ic-guardian__body">
+                <p className="ic-guardian__name">{GUARDIANS[palace.name].name} <span>· {palace.name} 수호자</span></p>
+                <p className="ic-guardian__hint">이렇게 물어봐도 좋아요</p>
+                <div className="ic-guardian__qs">
+                  {GUARDIANS[palace.name].questions.map((q) => (
+                    <button type="button" key={q} className={form.question === q ? "on" : ""} aria-pressed={form.question === q} onClick={() => patchForm({ question: q })}>{q}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           <label className="ic-field"><span>이 궁에 묻고 싶은 것 (선택)</span><textarea value={form.question} maxLength={400} rows={2} placeholder={`${palace.name}과 관련해 지금 가장 궁금한 점을 적어주세요`} onChange={(e) => setForm({ ...form, question: e.target.value })} /></label>
           {error && <p className="ic-err" role="alert">{error}</p>}
           <button type="submit" className="ic-primary" disabled={isPaying}>🔮 {palace.name} 심층 상담 시작 · {FEATURE_AMOUNT_KRW.toLocaleString("ko-KR")}원</button>
@@ -1046,6 +1088,7 @@ export default function IslandConsultClient() {
           <div className="ic-result__foot">
             <button type="button" className="ic-back-btn" onClick={saveConsultPdf} disabled={consultPdfBusy || pendingConsult}>{consultPdfBusy ? "PDF 만드는 중…" : "📄 PDF로 소장하기"}</button>
             <button type="button" className="ic-back-btn" disabled={pendingConsult} onClick={() => { setResult(null); setPhase("hub"); setPalace(null); }}>다른 궁도 상담하기</button>
+            <a className="ic-back" href="/ziwei-ai/" onClick={() => rememberZiweiAiPreset(result.palaceKey, form.question)}>명반 전체로 더 묻기 · 전문가 상담</a>
             <a className="ic-back" href="/destiny-island">← 운명의 섬으로</a>
           </div>
           {consultPdfError && <p className="ic-err" role="alert">{consultPdfError}</p>}
@@ -1088,7 +1131,7 @@ const CSS = `
 .ic-form{max-width:440px;margin:0 auto;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   border:1px solid rgba(255,255,255,.7);border-radius:22px;padding:20px;box-shadow:0 16px 40px rgba(70,48,130,.2)}
 .ic-picked{font-weight:700;color:#2a1f5e;margin-bottom:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-/* ── 3단 스택: 궁 헤더 → ₩5,000 12궁 리포트 → ₩20,000 상담 폼 ── */
+/* ── 3단 스택: 궁 헤더 → 12궁 리포트 → 궁 상담 폼 ── */
 .ic-stack{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 .ic-stack .ic-picked{max-width:440px;width:100%;margin:0 auto}
 .ic-stack .ic-form{width:100%}
@@ -1191,6 +1234,14 @@ const CSS = `
 .ic-card__title{color:#f1d99a}.ic-card__theme{color:#c9bae9}.ic-card__cta{color:#f2d994}
 .ic-picked{color:#fff4d9}.ic-picked .ic-palace-art--small{margin-right:2px}
 .ic-change{color:#e6d59b;border-color:rgba(232,213,163,.4);background:rgba(232,213,163,.06)}
+.ic-guardian{display:flex;gap:12px;align-items:flex-start;margin:4px 0 12px;padding:12px;border:1px solid rgba(232,213,163,.24);border-radius:16px;background:rgba(11,8,28,.36)}
+.ic-guardian__portrait{flex:none;width:64px;height:64px;border-radius:50%;object-fit:cover;border:1px solid rgba(232,213,163,.5)}
+.ic-guardian__body{min-width:0;flex:1}
+.ic-guardian__name{margin:0;font-weight:800;color:#fff4d9;font-size:.92rem}.ic-guardian__name span{font-weight:600;color:#cbbde8;font-size:.8rem;white-space:nowrap}
+.ic-guardian__hint{margin:4px 0 8px;font-size:.78rem;color:#cbbde8}
+.ic-guardian__qs{display:flex;flex-direction:column;gap:6px}
+.ic-guardian__qs button{text-align:left;min-height:44px;padding:8px 12px;border-radius:12px;border:1px solid rgba(210,196,255,.26);background:rgba(11,8,28,.42);color:#e9e1fb;font-size:.84rem;line-height:1.5;word-break:keep-all;cursor:pointer}
+.ic-guardian__qs button.on{background:rgba(167,139,250,.24);border-color:#bca5ff;color:#fff4d9}
 .ic-form,.ic-report,.ic-result{color:#f3edff;background:linear-gradient(165deg,rgba(42,32,82,.96),rgba(24,18,51,.98));border-color:rgba(232,213,163,.3);box-shadow:0 20px 54px rgba(5,3,18,.34),0 1px 0 rgba(255,255,255,.08) inset}
 .ic-lead__tag,.ic-report__tag,.ic-confirm__badge{color:#f2d994;background:rgba(232,213,163,.1)}
 .ic-lead__desc,.ic-report__lead,.ic-report__list li,.ic-report__hint,.ic-note,.ic-confirm__note{color:#cbbde8}.ic-lead__desc strong,.ic-report__lead strong{color:#fff4d9}

@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-08
-next: PR #1810의 CI 결과를 확인하고 스테이징 Atlas 인덱스를 READY까지 적용한다.
+updated: 2026-10-02
+next: "승인 뒤 스테이징 Atlas 에 npm run migrate:insight-public-read-indexes -- --apply 1회 → verify:insight-public-read-indexes READY·/api/insights?q=사주 200 확인"
 ---
 
 # Worker CPU와 Atlas Search 적용

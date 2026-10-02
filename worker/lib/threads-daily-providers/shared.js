@@ -129,10 +129,11 @@ export function findUnsupportedTerm(text, vocabulary, allowed) {
 /**
  * 모델이 쓴 한 필드를 받아들일지. 받아들이면 정리된 문자열, 아니면 "".
  * @param {unknown} value
- * @param {{min:number, max:number, vocabulary?:Array<string|RegExp>, allowed?:string[], forbidden?:string[], validate?:(text:string)=>boolean}} rule
+ * @param {{min:number, max:number, vocabulary?:Array<string|RegExp>, allowed?:string[], forbidden?:string[], validate?:(text:string)=>boolean, casual?:boolean}} rule
  *   validate — 용어 단위로는 못 잡는 조합 검사(예: 자미두수 "별 ↔ 사화" 짝). false 면 버린다.
+ *   casual — 반말 슬롯. 존댓말로 끝나는 문장이 하나라도 있으면 버린다(폴백은 반말이다).
  */
-export function acceptCopyField(value, { min, max, vocabulary = [], allowed = [], forbidden = [], validate }) {
+export function acceptCopyField(value, { min, max, vocabulary = [], allowed = [], forbidden = [], validate, casual = false }) {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
   if (text.length < min || text.length > max) return "";
   if (hasForbiddenMarkup(text)) return "";
@@ -141,7 +142,19 @@ export function acceptCopyField(value, { min, max, vocabulary = [], allowed = []
   if (forbidden.some((word) => text.includes(word))) return "";
   if (findUnsupportedTerm(text, vocabulary, allowed)) return "";
   if (typeof validate === "function" && !validate(text)) return "";
+  if (casual && hasPoliteEnding(text)) return "";
   return text;
+}
+
+/**
+ * 존댓말로 끝나는 문장이 있는지. 2026-10-02 Gemini 실호출에서 반말 지시를 받고도 띠별 12줄과 사주 본문이
+ * "~거예요/~있나요?" 로 나왔다 — 프롬프트만으로는 안 지켜져 결정적으로 거른다.
+ */
+export function hasPoliteEnding(text) {
+  return String(text ?? "")
+    .split(/[.!?…~\n]+/)
+    .map((sentence) => sentence.replace(/[\s"'”’)\]]+$/, ""))
+    .some((sentence) => /(?:요|니다|니까|시죠|세용)$/.test(sentence));
 }
 
 /** 코드펜스로 감싸 오는 경우가 있어 JSON 본체만 뽑는다. 실패하면 null. */
@@ -172,6 +185,7 @@ export const COMMON_RULES = [
 export const CASUAL_RULES = [
   "지켜야 할 것:",
   "- 친한 친구한테 카톡하듯 반말로 쓴다(~해, ~임, ~거든, ~지 마). 존댓말·'~습니다'·'~하세요' 금지.",
+  "- 모든 문장 끝이 반말이어야 한다. '~요'·'~니다'·'~나요?'로 끝나는 문장이 하나라도 있으면 그 필드는 통째로 버려진다(예: '무난하게 흘러갈 거예요' ✗ → '무난하게 흘러감' ○).",
   "- 사람이 쓴 것처럼: 짧고 세게, 한 문장에 한 가지만. '오늘은 ~한 날입니다' 식 안내문, 나열식 요약, 교과서 말투를 쓰지 않는다.",
   "- 직설·과장 농담은 괜찮다(예: '진짜 입 닫아', '카드 지갑에 넣어 둬'). 하지만 공포 조장·저주·불운 단정은 안 된다.",
   ...baseRules(),

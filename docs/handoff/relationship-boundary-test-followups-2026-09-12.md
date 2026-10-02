@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-12
-next: 1번(scoreBoundary 의 죽은 gender 인자)은 삭제로 종료했다. 남은 것 중 유일한 RED 는 2번(verifyPerUsePayment 의 monthlySpendCoin 미복구)이고 이 기능 밖이라 별건으로 다룬다. 3~7번은 저위험 정리다.
+updated: 2026-10-02
+next: "6번(GREEN): worker/routes/love-secret-ai.js:1565 주석을 동기 경로에 맞게 정정 → 5번: scripts/build-worker-dry-run.mjs:6 레포 루트 탐색"
 ---
 
 # 「그 사람의 바람끼는?」 — PR #1949 이후 남은 것

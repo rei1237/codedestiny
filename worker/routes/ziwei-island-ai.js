@@ -1,5 +1,5 @@
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
-// 운명의 섬 12궁 심층 유료 상담 (₩20,000) — 독립 신규 상품.
+// 운명의 섬 12궁 심층 유료 상담(가격은 레지스트리 ziwei-island-palace-consult) — 독립 신규 상품.
 // 결제/게이트/환불 배선은 검증된 worker/routes/ziwei-ai.js에서 "상수만 바꿔" 그대로 복제했다.
 // (기존 ziwei-ai 상품/라우트는 무수정 — 회귀 0). 상담 내용만 궁별 프롬프트(palace-prompts)로 대체.
 import { createHash } from "node:crypto";
@@ -28,6 +28,7 @@ import { stripEmptyParens } from "../lib/ziwei-hanja.js";
 import { buildSystemPrompt, getPalaceConfig, isValidPalace } from "../lib/island/consult/palace-prompts.js";
 import { palaceParts, palaceEvidence, palaceAnchorStars, palacePartPrompt, validPalacePart, palaceResult } from "../lib/island/consult/palace-delivery.js";
 import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
+import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 
 // ── 상품 상수(ziwei-ai와 유일하게 다른 부분) ──
 const SERVICE_KEY = "ziwei-island-ai";
@@ -423,6 +424,35 @@ async function applyUsageOnce({ userId, sessionId, accessType, paymentId, pricin
   if (!confirmed?.usageAppliedAt) throw storageUnavailable(sessionId);
   return true;
 }
+// 카드 단건 결제로 연 섬 상담이 품질 실패(generation_failed)로 끝났을 때의 자동 환불. 위 restorePrepaidAccessOnFailure 는
+// coin·monthly_credit·pass 만 되돌려 카드는 과금만 되고 환불이 없었다. ziwei-ai.js refundCardPaymentOnFailure 이식
+// (2026-10-02 사용자 승인, payment-gating.md 같은 날짜 절) — 같은 식별자(merchantUid == access.paymentId), 같은 트레이드오프:
+// 환불하면 같은 결제 문서로의 무료 재시도가 닫힌다.
+async function refundCardPaymentOnFailure(env, auth, access, error) {
+  if (access?.accessType !== "paid" || !access?.paymentId || ["coin", "monthly_credit", "pass"].includes(access?.evidenceType)) {
+    return { refunded: false, skipped: true, reason: "NOT_CARD_PAYMENT" };
+  }
+  try {
+    const payment = await Payment.findOne({
+      userId: auth.userId,
+      merchantUid: access.paymentId,
+      featureKey: FEATURE_KEY,
+      status: { $in: ["paid", "success", "fulfilled"] },
+    }).lean();
+    if (!payment) return { refunded: false, reason: "PAYMENT_NOT_FOUND" };
+
+    return await autoRefundSinglePaymentDeliveryFailure(
+      env,
+      payment,
+      clean(error?.code || "LLM_GENERATION_FAILED", 80),
+      clean(error?.message, 300) || MESSAGES.llmFailed,
+      "ziwei_island_generation",
+    );
+  } catch (refundError) {
+    logZiweiIsland("Card auto-refund failed", { message: clean(refundError?.message || refundError, 300) }, "warn");
+    return { refunded: false, refundFailed: true, reason: clean(refundError?.message || refundError, 300) };
+  }
+}
 async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyKey = "", pricing = getPricing(), error = null }) {
   if (!access?.prepaid) return false;
   const evidenceType = clean(access.evidenceType, 80);
@@ -761,7 +791,10 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       // Refund only a confirmed empty quality failure. Lost provider/checkpoint responses are uncertain.
       if (meta.exhausted && !Object.keys(meta.parts).length && Object.entries(meta.attempts).every(([key, count]) => meta.invalidAttempts[key] === count)) {
         doc = await saveIsland(filter, { status: "generation_failed", generationLease: "", llmMeta: meta });
-        await restorePrepaidAccessOnFailure({ userId, access, idempotencyKey, pricing, error: new Error("LLM quality failed") });
+        const qualityError = new Error("LLM quality failed");
+        const restored = await restorePrepaidAccessOnFailure({ userId, access, idempotencyKey, pricing, error: qualityError });
+        const refund = await refundCardPaymentOnFailure(env, auth, access, qualityError);
+        logZiweiIsland("Refund Or Restore", { requestId: idempotencyKey, restored, refunded: refund.refunded === true });
         return json({ ok: false, retryable: false, reason: "LLM_ERROR", resultId, message: MESSAGES.llmFailed }, { status: 503 });
       }
       doc = await saveIsland(filter, { status: Object.keys(meta.parts).length ? "partial" : "generating", llmMeta: meta });

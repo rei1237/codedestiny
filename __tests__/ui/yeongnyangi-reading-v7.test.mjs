@@ -7,7 +7,7 @@ import path from 'node:path';
 import {build} from 'esbuild';
 // Design §6-2 static guards: v7 manifests are checked against the real engines, with the flag OFF and no LLM.
 const Module=createRequire(import.meta.url)('node:module');
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-v7'; export * from './worker/yeongnyangi/fortune/reading-v7-cost'; export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {domains} from './worker/yeongnyangi/fortune/index';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-v7'; export * from './worker/yeongnyangi/fortune/reading-v7-cost'; export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationManifest,supportsKind,consultationChapterCounts} from './worker/yeongnyangi/fortune/consultation-kinds'; export {domains} from './worker/yeongnyangi/fortune/index';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const filename=path.resolve('yeongnyangi-reading-v7.test.cjs');
 const loaded=new Module(filename);
 loaded.filename=filename;
@@ -156,4 +156,16 @@ test('contract: approved v7 flag keeps tier and kind boundaries; v7 chapters car
    assert.deepEqual(Object.keys(c.factSelectors),[domain]);
   }
  }
+});
+
+test('tier price tables count the chapters the consultation buttons promise',()=>{
+ // The tables print min~max over consultationChapterCounts; the fish buttons print consultationManifest(...).length.
+ for(const tier of ['mackerel',...TIERS]){
+  const counts=singles.filter(p=>p.fishId===tier).flatMap(m.consultationChapterCounts);
+  for(const p of singles.filter(p=>p.fishId===tier))for(const k of m.consultationKinds[p.domain].filter(k=>m.supportsKind(p,k)))
+   assert.ok(counts.includes(m.consultationManifest(p,k).length),`${p.id}:${k.id}`);
+ }
+ assert.ok(m.consultationChapterCounts(productFor('saju','tuna')).includes(manifest('saju','tuna','personal').length));
+ for(const file of ['app/yeongnyangi/1000-won-fortune/page.tsx','app/yeongnyangi/_components/YeongnyangiGuide.tsx'])
+  assert.match(readFileSync(file,'utf8'),/const chapterRange=\(items:Product\[\]\)=>\{const counts=items\.flatMap\(consultationChapterCounts\);/,file);
 });

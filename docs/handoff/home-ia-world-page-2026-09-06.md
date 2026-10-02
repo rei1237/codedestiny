@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-06
-next: Phase 3 `/world/` 구현 완료 — PR #1637 CI 전부 통과, **사용자 머지만 남았다**. 머지 뒤 Phase 4(시각 디테일) → Phase 5(검증) 순서. 목업 승인은 끝났으니 다시 묻지 말 것.
+updated: 2026-10-02
+next: "lib/i18n/siteFooterHubCopy.ts:226·341 '꿀꿀 만세력' 표기 정리부터 — Phase 4·5 는 현재 홈 기준으로 다시 정할지 사용자에게 묻는다"
 ---
 
 # 홈 IA 재설계 + 캐릭터·세계관 페이지(`/world/`) 신설

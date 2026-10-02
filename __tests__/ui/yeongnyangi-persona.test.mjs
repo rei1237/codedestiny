@@ -44,6 +44,9 @@ test('persona selector falls back to Yeongnyangi and the chat voices stay free o
  assert.match(m.yeongnyangiPersona,/반말/);
  assert.match(m.yeongnyangiPersona,/결론의 방향을 바꾸지 않는다/);
  assert.match(m.yeongnyangiPersona,/확정 예언은 금지/);
+ // Blunt first: each section opens on a judgment, and directness never trims the required length.
+ assert.match(m.yeongnyangiPersona,/첫 문장은[^\n]*판단으로 시작한다/);
+ assert.match(m.yeongnyangiPersona,/직설은 분량을 줄이라는 뜻이 아니다/);
 });
 
 test('every chapter request differs only in the persona segment of the system prompt',async()=>{

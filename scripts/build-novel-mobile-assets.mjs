@@ -16,6 +16,34 @@ const registry = runInNewContext(`({${map[1]}})`, {
 });
 const output = resolve(root, "public/images/novel/mobile");
 await mkdir(output, { recursive: true });
+
+// --keys=a,b — re-derive only these backgrounds from local masters (public/...) and replace
+// their rows; everything else in the inventory, and the sprite step, is left untouched.
+// Use it for newly drawn art so a single background never re-fetches all of R2.
+const keysArg = process.argv.find((arg) => arg.startsWith("--keys="));
+if (keysArg) {
+  const keys = keysArg.slice("--keys=".length).split(",").filter(Boolean);
+  const inventoryPath = resolve(root, "content/novel/mobile-assets.json");
+  const current = JSON.parse(await readFile(inventoryPath, "utf8"));
+  for (const key of keys) {
+    const url = registry[key];
+    if (!url) throw new Error(`${key}: not in the BG registry`);
+    if (!url.startsWith("/")) throw new Error(`${key}: --keys only reads local masters, got ${url}`);
+    const bytes = await readFile(resolve(root, "public", url.slice(1)));
+    const meta = await sharp(bytes).metadata();
+    const result = await sharp(bytes).resize({ width: 1280, height: 960, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 78, effort: 6 }).toBuffer({ resolveWithObject: true });
+    await writeFile(resolve(output, `${key}.webp`), result.data);
+    const row = { key, source: url, sourceBytes: bytes.length, sourceWidth: meta.width, sourceHeight: meta.height,
+      path: `/images/novel/mobile/${key}.webp`, bytes: result.data.length, width: result.info.width, height: result.info.height };
+    const at = current.backgrounds.findIndex((entry) => entry.key === key);
+    if (at >= 0) current.backgrounds[at] = row; else current.backgrounds.push(row);
+    console.log(`${key}: ${bytes.length} -> ${result.data.length} bytes (${result.info.width}x${result.info.height})`);
+  }
+  await writeFile(inventoryPath, JSON.stringify(current, null, 2) + "\n");
+  process.exit(0);
+}
+
 const inventory = [];
 for (const [key, url] of Object.entries(registry)) {
   const bytes = url.startsWith("/") ? await readFile(resolve(root, "public", url.slice(1))) : await (async () => {

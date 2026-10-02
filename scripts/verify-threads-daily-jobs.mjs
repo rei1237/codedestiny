@@ -434,16 +434,17 @@ await check("사주 — 범용 문구·facts 밖 신살은 그 필드만 버린�
   const env = { SNS_THREADS_AI_ENABLED: "1" };
   const other = ["도화", "역마", "화개"].find((name) => name !== facts.branchStar.name);
   const written = await saju.writeCopy(env, facts, {
-    generateImpl: fields({ hook: "갑오일, 새로운 기회가 열리는 날입니다.", body: `오늘은 ${other}의 기운이 강해 멀리 움직이기 좋습니다. 계획을 넓게 잡아 보세요.`, tip: "오전에 미뤄 둔 연락 하나를 먼저 정리해 보세요." }),
+    generateImpl: fields({ hook: "갑오일, 새로운 기회가 열리는 날이야.", body: `오늘은 ${other} 기운이 세서 멀리 움직이기 좋아. 계획 넓게 잡아.`, tip: "오전에 미뤄 둔 연락 하나부터 정리해." }),
   });
   assert.deepEqual(written.rejected, ["hook", "body"]);
-  assert.equal(written.copy.tip, "오전에 미뤄 둔 연락 하나를 먼저 정리해 보세요.");
+  assert.equal(written.copy.tip, "오전에 미뤄 둔 연락 하나부터 정리해.");
   assert.equal(written.model, "stub-model");
   assert.equal(written.copy.hook, shared.situationHook("saju", facts));
 });
 await check("띠별 — 띠 관계와 길흉이 어긋난 줄·facts 밖 용어만 버리고 나머지는 쓴다", async () => {
   const facts = zodiac.buildFacts({}, kst(2026, 9, 20, 8, 30));
-  const lines = Object.fromEntries(facts.animals.map((a) => [a.name, "오늘은 그냥 평소처럼 가."]));
+  // 띠마다 다른 문장 — 같은 문장 복붙은 둘째 띠부터 버린다.
+  const lines = Object.fromEntries(facts.animals.map((a, i) => [a.name, `평소처럼 가${"!".repeat(i)}`]));
   lines.토끼 = "오늘 완전 대박 나는 날!"; // 충인데 대박 → 버림
   lines.용 = "입 닫고 조심해, 싸움 남."; // 육합인데 경고 → 버림
   lines.쥐 = "천을귀인 들어와서 든든함."; // facts 밖 신살 → 버림
@@ -454,8 +455,28 @@ await check("띠별 — 띠 관계와 길흉이 어긋난 줄·facts 밖 용어�
   assert.equal(written.copy.tip, "토끼띠는 오늘 말 한 번 참아.");
   assert.equal(written.model, "stub-model");
   const idx = facts.animals.findIndex((a) => a.name === "말");
-  assert.equal(written.copy.lines[idx], "오늘은 그냥 평소처럼 가.");
+  assert.equal(written.copy.lines[idx], lines.말);
   assert.equal(zodiac.matchesKinds("말 한마디 조심해.", facts), true, "띠 접미사 없는 '말' 을 말띠로 읽었다");
+});
+await check("반말 슬롯 — 존댓말로 끝나는 필드·복붙한 띠 줄은 버린다(2026-10-02 실호출 회귀), 결정론 문안은 366일 존댓말 0", async () => {
+  assert.equal(shared.hasPoliteEnding("오늘은 무난하게 흘러갈 거예요."), true);
+  assert.equal(shared.hasPoliteEnding("요즘 끝맺지 못한 일 쌓여 있나요?"), true);
+  assert.equal(shared.hasPoliteEnding("필요하면 연락해. 답 빨리 옴."), false);
+  const env = { SNS_THREADS_AI_ENABLED: "1" };
+  const facts = zodiac.buildFacts({}, kst(2026, 10, 3, 8, 30));
+  const lines = Object.fromEntries(facts.animals.map((a, i) => [a.name, i % 2 ? "오늘은 무난하게 흘러갈 거예요." : "할 일 하나만 끝내."]));
+  const written = await zodiac.writeCopy(env, facts, { generateImpl: fields({ hook: "용띠, 오늘 좀 부딪히는 날인데 괜찮음?", lines, tip: "용띠는 오늘 욱해도 한 번만 참아봐요." }) });
+  assert.ok(written.rejected.includes("tip"), "존댓말 tip 통과");
+  for (const [i, a] of facts.animals.entries()) if (i % 2) assert.ok(written.rejected.includes(`line:${a.name}`), a.name);
+  const kept = facts.animals.filter((a, i) => !(i % 2) && !written.rejected.includes(`line:${a.name}`));
+  assert.equal(kept.length, 1, "같은 문장은 첫 띠만 남아야 한다");
+  const sajuFacts = saju.buildFacts({}, kst(2026, 10, 3, 12, 0));
+  const s = await saju.writeCopy(env, sajuFacts, { generateImpl: fields({ hook: "혹시 요즘 시작만 하고 끝맺지 못한 일들이 쌓여 있나요?", body: "오늘은 불(화) 기운이 강하고 나무(목) 기운이 부족한 날이에요. 뭔가 정리하고 매듭짓는 기운이 흐른다고 하네요.", tip: "평소 담아 둔 생각을 글로 써 보세요." }) });
+  assert.deepEqual(s.rejected, ["hook", "body", "tip"]);
+  for (let i = 0; i < 366; i += 1) for (const p of [zodiac, saju, karma]) {
+    const { copy } = await p.writeCopy({}, p.buildFacts({}, SEP17(12, 0) + i * 86400000));
+    for (const v of [copy.hook, copy.body, copy.tip, ...(copy.lines || [])]) assert.equal(shared.hasPoliteEnding(v), false, `${p.TYPE}+${i}: ${v}`);
+  }
 });
 await check("카르마 — 카드에 없는 경전·업보 단정은 버린다, 카드의 인용은 통과", async () => {
   const quoted = karma.THEMES.findIndex((t) => t.source === "바가바드 기타");

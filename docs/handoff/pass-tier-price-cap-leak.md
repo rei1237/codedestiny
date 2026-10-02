@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-02
-next: 5천원 초과 유료 기능의 진입 게이트가 스냅샷 판정에 넣는 coinCost 실값을 추적해 누수 지점을 확정한다
+updated: 2026-10-02
+next: "사용자에게 열린 기능명 확인 → resolveLegacyPricingResult 가격 출처 확인 → legacy·v3 standard 로 건당 상한 초과 진입을 mock 재현"
 ---
 
 # 이용권 티어 가격 상한 누수 (9,900원권이 5천원 초과 서비스를 연다)

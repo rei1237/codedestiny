@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-24
-next: "§4 \"남은 작업 — 우선순위\" 첫 항목부터"
+updated: 2026-10-02
+next: "§3(LocaleFooterHub 환불 섹션)·§5-2(famous-saju-aliases)·§5-4(geomancy-oracle-v4 인라인 스크립트) 3건만 git grep 으로 확인해 닫는다"
 ---
 
 # 서비스 노출 감사 — 인수인계 (2026-08-24)

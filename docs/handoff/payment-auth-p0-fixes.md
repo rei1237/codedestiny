@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-15
-next: "\"아직 안 본 파일\" 절의 파일부터 연다 — P0-1·P0-2·P1-2 는 이미 착륙했고 나머지가 미착수다"
+updated: 2026-10-02
+next: "P0-4c: app/_lib/auth-client.ts:397 sessionStorage.clear() 를 인증 키만 지우게 변경(RED 선보고) — withMongoRetry·P1·[vars] 는 PAYMENT_AUTH_RELIABILITY_PLAN_2026-08-15.md 근거로 사용자 결정"
 ---
 
 # 인수인계 — 결제 409/503 · 재로그인 실패 P0 수정

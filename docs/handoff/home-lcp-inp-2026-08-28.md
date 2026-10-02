@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-02
-next: "\"다음 세션은 여기서 시작한다\" → §9-6 다음 착수점(`activateNavItem` 519~542ms)"
+updated: 2026-10-02
+next: "로드맵 S11 에서 activateNavItem 2회 실행 비용을 perf:recalc-origin --url=/ggulggul/ 로 측정 (§9-6 1·2번은 #1412 로 종결)"
 ---
 
 # 홈 LCP · INP — 실측과 남은 선택지 (2026-08-28)
