@@ -955,7 +955,7 @@ var S={screen:"enter",ep:0,bi:0,auto:false,skip:false,bgmOn:true,bgmKey:null,for
    구간을 통째로 읽는다. 그래서 모습은 상태가 아니라 (화, 컷)에서 정해지는 값으로 다루고, 모든 진입
    경로가 formAt() 하나만 쓴다. 정본 마커 위치 — scripts/verify-novel-runtime.mjs 가 정본 비트를 전수
    스캔해 이 표와 대조한다. 표는 npm run novel:build 가 정본에서 다시 쓴다(손으로 고치지 말 것). */
-var FORM_MARKS=[{"ep":1,"bi":0,"form":"pig"},{"ep":31,"bi":59,"form":"human"}];
+var FORM_MARKS=[{"ep":1,"bi":0,"form":"pig"},{"ep":31,"bi":81,"form":"human"}];
 function formAt(ep,bi){
   var form="human";
   for(var i=0;i<FORM_MARKS.length;i++){
