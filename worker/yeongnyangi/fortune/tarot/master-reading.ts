@@ -83,7 +83,7 @@ export function validateTarotChapter(body:ChapterBody,context:DomainContext){
   return [model?.nameKo||card.nameKo||card.nameKr||card.name||'',card.orientation==='reversed'?'역방향':'정방향'];
  }).filter(([name])=>Boolean(name)) as [string,string][]);
  const v2=savedTarotConsultation(context);
- const positions=v2?new Map(v2.cards.map(card=>[card.positionLabel,card.name])):new Map<string,string>();
+ const positions=v2?new Map((v2.cards as {positionLabel:string;name:string}[]).map(card=>[card.positionLabel,card.name] as [string,string])):new Map<string,string>();
  for(const card of TAROT_CARDS){
   const escaped=card.nameKo.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   const mention=new RegExp(`${escaped}\\s*(?:카드|정방향|역방향)`,'u').exec(content);

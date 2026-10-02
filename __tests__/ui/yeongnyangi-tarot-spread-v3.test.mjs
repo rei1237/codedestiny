@@ -21,9 +21,9 @@ export const commitTarotDraw=async(e,u,id,{context,draw})=>{const row=await read
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
   'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
 };
-const bundle=await build({stdin:{contents:"export * from './worker/yeongnyangi/service'; export {products} from './worker/yeongnyangi/payments/catalog'; export {getYeongnyangiSpread} from './lib/tarot/yeongnyangi-spread-catalog.mjs'",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
+const bundle=await build({stdin:{contents:"export * from './worker/yeongnyangi/service'; export {products} from './worker/yeongnyangi/payments/catalog'; export {getYeongnyangiSpread} from './lib/tarot/yeongnyangi-spread-catalog.mjs'; export {buildTarotMasterContract,validateTarotChapter} from './worker/yeongnyangi/fortune/tarot/master-reading';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('tarot-spread-v3-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
-const {prepareFortune,presentFortune,drawTarotSpread,products}=loaded.exports;
+const {prepareFortune,presentFortune,drawTarotSpread,products,buildTarotMasterContract,validateTarotChapter}=loaded.exports;
 
 const env={GEMINIF_API_KEY:'mock-never-sent',LLM_DRY_RUN:'false'};
 let attempt=0;
@@ -102,4 +102,33 @@ test('auto draw uses the same committed deck with distinct slots; v2 orders cann
  const v2=await prepareFortune(env,'owner',{productId:'tarot_mackerel',profileId:'self',timezone:'Asia/Seoul',consultationKind:'contact',question:'연락해도 될까?'});
  assert.equal(v2.state,'CREATED');
  await assert.rejects(()=>drawTarotSpread(env,'owner',v2._id,{auto:true}),e=>e.code==='TAROT_DRAW_NOT_AVAILABLE');
+});
+
+test('the v3 prompt reads positions in read order, resolves link groups to the drawn cards and keeps the system paragraph verbatim',async()=>{
+ const row=await prepareFortune(env,'owner',order({productId:'tarot_salmon',tarotSpreadId:'yn_ab_seven',question:'두 학원 중 어디로 갈까?',tarotInputs:{options:{a:'강남 학원',b:'분당 학원'}}}));
+ const drawn=await drawTarotSpread(env,'owner',row._id,{picks:[9,8,7,6,5,4,3]});
+ const ctx=drawn.snapshot.analysis.contexts.tarot,manifest=drawn.snapshot.manifest;
+ assert.equal(manifest[1].sections.filter(s=>s.role==='interpretation').length,7,'one section per position');
+ assert.match(manifest[0].focus,/yeongnyangi-tarot-consultation-v3/);
+ const prompt=buildTarotMasterContract(ctx,'두 학원 중 어디로 갈까?',manifest[1]);
+ assert.equal(prompt.methodVersion,'yeongnyangi-tarot-consultation-v3');
+ const spread=drawn.snapshot.tarotSpread;
+ assert.deepEqual(prompt.readingOrder,[...spread.positions].sort((x,y)=>x.readOrder-y.readOrder).map(p=>p.id));
+ assert.deepEqual(prompt.savedCardsOnly.map(c=>c.positionKey),prompt.readingOrder);
+ assert.ok(prompt.savedCardsOnly.every(c=>c.positionQuestion&&c.positionMeaning));
+ assert.equal(prompt.linkGroups.length,spread.links.length);
+ prompt.linkGroups.forEach((group,i)=>{
+  assert.deepEqual(group.cards.map(c=>c.positionKey),spread.links[i].ids);
+  group.cards.forEach(c=>assert.equal(c.cardId,prompt.savedCardsOnly.find(x=>x.positionKey===c.positionKey).cardId));
+ });
+ assert.ok(prompt.symmetry&&prompt.symmetry.a.length===prompt.symmetry.b.length&&prompt.symmetry.a.length>0);
+ assert.deepEqual(prompt.userInputs,{options:{a:'강남 학원',b:'분당 학원'}});
+ assert.ok(prompt.interpretationContract[0].startsWith('너는 영냥이 타로 상담가다. 사용자의 질문 목적을 먼저 파악하고,'));
+ assert.ok(!JSON.stringify(prompt).includes('tarotDeck'));
+ const [first,second]=prompt.savedCardsOnly;
+ const body=text=>({title:'',summary:text,persona:'',analysis:[],highlights:[],topics:[]});
+ assert.doesNotThrow(()=>validateTarotChapter(body(`${first.positionLabel}에 놓인 ${first.name} 카드는 조건을 보여 준다냥.`),ctx));
+ assert.throws(()=>validateTarotChapter(body(`${second.positionLabel}에 놓인 ${first.name} 카드는 조건을 보여 준다냥.`),ctx),e=>e.code==='TAROT_POSITION_MISMATCH');
+ const flipped=first.orientation==='reversed'?'정방향':'역방향';
+ assert.throws(()=>validateTarotChapter(body(`${first.name} ${flipped}`),ctx),e=>e.code==='TAROT_ORIENTATION_MISMATCH');
 });
