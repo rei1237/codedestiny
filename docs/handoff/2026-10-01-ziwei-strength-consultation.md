@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-10-02
-next: 할 일 없음 — S0~S5 가 모두 끝났다(S0 은 2026-10-02). 남은 것은 아래 "모르는 것"의 실 LLM 상담 품질 검수뿐이고, 정확한 1회 승인이 있어야 한다.
+next: 할 일 없음 — S0~S5 와 2026-10-02 계산법 통일·운명의 섬 개편이 끝났다. 남은 것은 아래 "모르는 것"의 실 LLM 상담 품질 검수뿐이고, 정확한 1회 승인이 있어야 한다.
 ---
 
 # 영냥이 자미두수 — 정확한 강약표 위에서 강약을 읽는 상담 + 설명마다 명반
@@ -354,6 +354,62 @@ npm run verify:sitemap-drift                             # OK — 원장 4칸(la
 
 - **녹존(祿)**: 紫微人生은 녹존이 앉는 8자리(子寅卯巳午申酉亥)를 모두 廟로 적는다. 원전에 녹존의 강약 줄이 없어 not-rated 를 유지했다.
 - **서적·앱 대조**: 왕정지 중주파 강의서, 문묵천기(文墨天機) 앱과는 대조하지 않았다.
+
+## 2026-10-02 추가 작업 — 계산법 통일·운명의 섬 개편 (전부 mock — 실 LLM·결제·DB 0회)
+
+요청 원문: "니가 가능하다면 직접 정확한 계산법을 찾아서 자미두수 서비스들에 적용시켜주면 좋을것 같다 그리고 운명의 섬 기능 자미두수 ui/ux와 진입 이미지를 좀 더 바꿔주고 캐릭터들도 새롭게 만들어주면 좋겠고 상담을 하고싶게끔 만들어줘야해 가격은 더 낮추도록하고 기존 자미두수 상담 로직을 활용한다."
+
+### 사용자 결정 (2026-10-02)
+
+| 항목 | 결정 |
+|---|---|
+| 섬 12궁 상담 가격 | 10,000 → 5,000원. 전문가 상담 30,000·심층 리포트 3,000 은 유지 |
+| 카드 단건 실패 자동 환불 | 섬 상담에 이식 |
+| 자미 출생 시각 | 경도·서머타임 보정(사주 공개 방법론과 같음) |
+| 그림 | Codex image_gen, 최대 30회 승인. 19회 사용 |
+
+### 계산법 (2단계)
+
+커밋: c88774713 천요 · 3bebaa5fe 윤달 · 3b6362939·bb55c6d66·1cda03696 23시 · 5674948fb reference verify · 2a5028929 시각 통일 · 4ead0d55a 유파 기록 · 097102a02 미러 해시
+
+- 외부 기준: iztro 2.6.1(MIT) 대조 fixture `scripts/fixtures/ziwei-iztro-reference.json`, 검증 `verify:ziwei-reference`(세 엔진 × fixture). iztro 는 레포에 설치하지 않았다.
+- 고친 것:
+  - 워커 천요(`lunarMonth+1` 한 달 밀림)
+  - 윤달 15일 분할
+  - 23시 다음 날 子
+  - 모든 진입점 경도·서머타임 보정 시각
+- 유파 기록: `scripts/fixtures/README-ziwei-iztro-reference.md` "유파 선택 기록". 辛년 괴월은 『全書』「六辛逢虎马」와 iztro 가 갈려 값을 유지했다.
+
+### 운명의 섬 (3단계)
+
+- 가격 5,000원(레지스트리만)과 `payment-gating.md` 승인 절: 54d040f42.
+- 카드 단건 품질 실패 자동 환불 이식: de330b5c4.
+- 화면·캐릭터·이미지: 04cf078b4.
+  - 12궁 수호자 초상 12장 `public/images/destiny-island/guardians/*-v1.webp`. 캐스트·규칙은 `docs/design/destiny-island/CAST.md`, 원장은 `art.jsonl` 이다.
+  - 게이트 히어로 `gate-hero-{desktop,mobile}-v2.webp`(312→186KB, 193→107KB), 홈 카드 `home-card-480.webp`.
+  - 궁 대화 끝 질문 칩 → `goPalaceConsult(pal, question)` → `/island-consult/` 에 질문·출생 정보 씨앗. 출생 정보 재입력이 0이고 대화에서 1탭이다.
+  - 상담 화면 수호자 블록, 결과 끝 "명반 전체로 더 묻기 · 전문가 상담" → `/ziwei-ai/` 프리셋(`ziweiIslandPreset`).
+  - 검증: 390·1440 실제 클릭 흐름, visual-checker 통과, scrollWidth 390.
+
+### 고치지 않은 것 (후속)
+
+- 결제:
+  - 50코인 가격이면 Standard 이용권도 섬 상담을 덮는다(가격 기반 일반 규칙).
+  - 인하 전 PENDING 10,000원 주문은 금액 불일치가 날 수 있다.
+  - Play tier_02 매핑은 콘솔에서 확인하지 않았다.
+  - 낡은 가격 문서: `payment-inventory.md:149`, `PRICING_AUDIT.md:253/324`, `PRICING_TIERS.md:62`.
+- 섬 결제 도우미 23개가 ziwei-ai.js 와 갈라져 있다(결제 동작 변경이라 범위 밖).
+- 수호자 질문 문구가 셸(`destiny-island.html` PALACES)과 앱(`IslandConsultClient.tsx` GUARDIANS)에 중복돼 있다.
+- 시각 보정 뒤 남은 경로:
+  - island-report 는 볼 때 다시 계산한다(기존 구매자 시진 이동 가능).
+  - 궁합 자정 넘김.
+  - compass·diary 의 음력 입력을 양력으로 처리한다.
+  - karma·guardian isLeapMonth, admin calendarType, worker lunar_leap.
+- 기존 화면 결함:
+  - 네오 아바타는 로컬에서만 404(운영 R2 경로).
+  - "▼ 탭해서 계속" 깜빡임 프레임 대비가 낮다.
+  - 상담 설명 들여쓰기.
+  - 상담 textarea 줄바꿈이 단어 중간에서 끊긴다.
 
 ## 모르는 것
 
