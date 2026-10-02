@@ -317,6 +317,7 @@
     "verify:prompt-hub-facts-wiring": "node scripts/verify-prompt-hub-facts-wiring.mjs",
     "verify:ziwei-sohan": "node scripts/verify-ziwei-sohan.mjs",
     "verify:ziwei-star-parity": "node scripts/verify-ziwei-star-parity.mjs",
+    "verify:ziwei-reference": "node scripts/verify-ziwei-reference.mjs",
     "verify:ziwei-borrowed-strength": "node scripts/verify-ziwei-borrowed-star-strength.mjs",
     "verify:ziwei-chart-detail-view": "node scripts/verify-ziwei-chart-detail-view.mjs",
     "verify:sukuyo-reading-house": "node scripts/verify-sukuyo-reading-house.mjs",

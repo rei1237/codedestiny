@@ -436,6 +436,13 @@ jobs:
       - name: Verify ziwei star placement parity (셸·워커·앱)
         run: npm run verify:ziwei-star-parity
 
+      # 🔴 이것도 **fast 잡**이어야 한다 — 위 parity 와 같은 세 엔진 입력이다. parity 는 셋이 서로 같은지만 봐서
+      # 셋이 나란히 틀리면 못 잡는다. 이 가드는 셸·워커·앱 명반을 외부 기준(iztro 2.6.1 대조 명반 838명,
+      # scripts/fixtures/ziwei-iztro-reference.json)과 칸 단위로 맞춘다 — 60갑자·12시·남녀·윤달·23시·월말·섣달그믐.
+      # 네트워크·LLM 없이 커밋된 fixture 만 읽는다(iztro 는 레포 의존성이 아니다).
+      - name: Verify ziwei charts against the iztro reference (셸·워커·앱)
+        run: npm run verify:ziwei-reference
+
       # 🔴 이것도 **fast 잡**이어야 한다 — 입력이 js/saju-engine.js 하나라 티어가 fast/standard 다.
       # 공궁(空宮)에 빌려 오는 차성(借星)의 밝기를 지킨다. 이 값은 **틀려도 화면이 조용하다** —
       # 등급 기호(◎/O/▲/△/X)가 그럴듯하게 계속 나오기 때문에 뒤집혀도 아무도 모른다.
