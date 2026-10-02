@@ -27,6 +27,8 @@ test('question input and answer modes have complete 12-language copy',()=>{
  }
  assert.match(askPhase5Copy('de').input.question,/Frage/);
  assert.match(askPhase5Copy('hi').answer.careHint,/विशेषज्ञ/);
+ // The after-period review label follows the reading language like the other answer labels.
+ assert.equal(askPhase5Copy('ko').answer.review,'이 기간이 지나면 돌아볼 질문');assert.match(askPhase5Copy('ja').answer.review,/振り返/);
 });
 test('input and recovery copy preserve payment and retry cautions for each purchase language',()=>{
  for(const locale of ['ko','en','ja']){

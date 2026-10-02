@@ -8,9 +8,9 @@ export const CONCISE_READING_RATIO=.88;
 export const CONCISE_MIN_OUTPUT_TOKENS=4096;
 export const isConciseReading=(chapter:Pick<ChapterSpec,'outputBudgetVersion'>)=>chapter.outputBudgetVersion===CONCISE_READING_VERSION;
 const scaled=(chars:number)=>Math.max(1,Math.round(chars*CONCISE_READING_RATIO));
-export function conciseOutputTokens(chapter:Pick<ChapterSpec,'targetChars'|'sections'>,questions=0):number {
+export function conciseOutputTokens(chapter:Pick<ChapterSpec,'targetChars'|'sections'>,questions=0,answerChars=480):number {
   const upper=Math.max(chapter.targetChars?.[1]||0,chapter.sections?.reduce((sum,section)=>sum+section.targetChars[1],0)||0);
-  return Math.max(CONCISE_MIN_OUTPUT_TOKENS,tokensRequiredForChars(upper+600+questions*480));
+  return Math.max(CONCISE_MIN_OUTPUT_TOKENS,tokensRequiredForChars(upper+600+questions*answerChars));
 }
 
 export function conciseReadingManifest<T extends ChapterSpec>(manifest:readonly T[]):T[]{

@@ -19,3 +19,22 @@ test('question results present one answer flow and polling repairs delivery auto
  assert.match(delivery,/row\.errorCode==='AUTOMATIC_RECOVERY_STOPPED'\)row=await repository\.escalateStopped/);
  assert.match(delivery,/await enqueueConsultation\(env,row\)/);
 });
+
+test('the ask period picker only rewrites the question text and previews the same resolution the server stores',()=>{
+ const form=read('app/yeongnyangi/_components/Consultation.tsx');
+ const picker=read('app/yeongnyangi/_components/AskPeriodPicker.tsx');
+ const book=read('app/yeongnyangi/_components/ReadingBook.tsx');
+ const result=read('app/yeongnyangi/_components/Result.tsx');
+ // Korean ask only; the picker hands back question text, so the request body and checkout stay unchanged.
+ assert.match(form,/kind\.id==='ask'&&siteLocale==='ko'&&<AskPeriodPicker question=\{question\} onQuestion=\{setQuestion\}/);
+ assert.doesNotMatch(form,/askPeriod|periodChip/);
+ // The preview resolves with the browser timezone the request sends, through the server's own resolver.
+ assert.match(form,/timezone:Intl\.DateTimeFormat\(\)\.resolvedOptions\(\)\.timeZone \|\| 'Asia\/Seoul'/);
+ assert.match(picker,/resolveAskPeriods\(question,consultationClock\(Intl\.DateTimeFormat\(\)\.resolvedOptions\(\)\.timeZone\|\|'Asia\/Seoul'\)\.asOf,resolveQuestionYears\)/);
+ assert.match(picker,/applyAskPeriodChip\(question,chip\)/);
+ assert.match(picker,/ranges\.length>1&&/);
+ // The review appears only when the stored answer has one; older readings render as before.
+ assert.match(book,/\{firstAnswer\.review&&/);
+ assert.match(book,/\{answer\.review&&/);
+ assert.match(result,/period\.ranges\?\.length\?/);
+});

@@ -20,7 +20,7 @@ const rules: [AskCategory, RegExp][] = [
 export function ruleAnalysis(consultation: Consultation): AskAnalysis {
   return {version:ASK_ANALYSIS_VERSION,source:'rules',questions:consultation.questions.map(q=>({
     questionId:q.id, category:rules.find(([,pattern])=>pattern.test(q.text))?.[0] || canonicalAskCategory(consultation.topicId),
-    needsTiming:/언제|올해|내년|개월|시기|when|next year|いつ/i.test(q.text),
+    needsTiming:/언제|올해|내년|개월|시기|이번\s*주|다음\s*주|차주|이번\s*달|이달|다음\s*달|내달|\d{1,2}\s*월|when|next year|this (?:week|month)|next (?:week|month)|いつ/i.test(q.text),
   }))};
 }
 export function parseAskAnalysis(raw: string, consultation: Consultation): AskAnalysis {
