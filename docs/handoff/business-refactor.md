@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-23
-next: "웹 이용권 판매와 실제 변동비를 7일 관찰하고, Play는 v3 SKU가 준비될 때까지 차단을 유지한다"
+updated: 2026-10-02
+next: "1a1bf0e3d 이후 이용권 구성 기준으로 웹 주문·상품별 LLM 변동비 관찰을 다시 잡아 로드맵 U5 판정 (Play 는 cd_pass_*_30d_v3 생성 전까지 APP_SKU_NOT_VERIFIED 유지)"
 ---
 # 사업 리팩토링 인수인계
 

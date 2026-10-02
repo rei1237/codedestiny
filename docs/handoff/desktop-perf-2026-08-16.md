@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-16
-next: "§7-1 \"PR #716 이후 남은 것\" 순서대로 — 인라인 46블록 분리가 첫 항목이다"
+updated: 2026-10-02
+next: "§7-1 ① cosmic-main.css 렌더블로킹 분리 — 8fc05dd53 CLS 기각부터 재현, 측정은 --url /ggulggul/"
 ---
 
 # 인수인계 — 데스크탑 홈 성능 (2026-08-16)

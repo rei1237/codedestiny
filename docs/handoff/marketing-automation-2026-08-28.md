@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-10-02
-next: "대체됨 — 후속은 threads-daily-split-2026-09-17.md·reengagement-email-blocked-2026-08-28.md. worker/lib/sns-daily-post-task.js 운영 메시지가 Threads 토큰 회전 런북으로 인용해 보존한다(2026-10-02 정리)."
+next: "대체됨 — 후속은 threads-daily-split-2026-09-17.md(10-02 재판정 삭제, git 이력)·reengagement-email-blocked-2026-08-28.md. worker/lib/sns-daily-post-task.js 운영 메시지가 Threads 토큰 회전 런북으로 인용해 보존한다(2026-10-02 정리)."
 ---
 # 마케팅 자동화 엔진 — 인수인계 (2026-08-28)
 

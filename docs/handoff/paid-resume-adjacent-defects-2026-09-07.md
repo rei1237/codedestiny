@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-07
-next: **PR #1740 머지 여부부터 확인한다**(`gh pr view 1740 --json state,mergedAt`). 머지됐으면 아래 "남은 작업" 4건 중 **① music_track 이용권 카드 정책**부터 — 이건 코드가 아니라 **사용자 결정**이 먼저다. 코드로 바로 갈 수 있는 것은 ④(설계급 5건) 중 "복귀 화면 기전 이중화" 하나뿐이다.
+updated: 2026-10-02
+next: "①music 이용권 카드·③인증 선워밍 이중·⑤dp deepRequired 를 사용자에게 한 번에 묻고, 코드로는 ④ 복귀 화면 기전(cd_checkout_return_v1) 통합 설계부터"
 ---
 
 # 결제 후 자동 재개 — 남은 인접 결함

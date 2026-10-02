@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-08-28
-next: "§2-4(몰입형 셸에 가리는 블록) · §3-3(정적 셸 CSS 결정 하나). §1-4 (b)는 사용자가 보류했다"
+status: done
+updated: 2026-10-02
+next: "보류 종료(10-02 사용자 결정) — home-lcp-inp-2026-08-28.md·seo-naver-diagnostic-2026-08-16.md·메모리 serp-title-length-is-pixel-width 가 재시도 금지 근거로 인용해 보존"
 ---
 
 # SEO 렌더 감사 — 남은 작업 인수인계 (2026-08-27)

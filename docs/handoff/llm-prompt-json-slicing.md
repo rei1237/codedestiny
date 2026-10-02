@@ -1,7 +1,7 @@
 ---
 status: blocked
-updated: 2026-08-15
-next: "사주 5그룹의 `evidenceRefs` 설계가 명리 도메인 판단이라 사용자 확인이 먼저다"
+updated: 2026-10-02
+next: "사주는 대상에서 빼고(캐싱으로 해소) vedic·astrology·신년 프롬프트 크기를 먼저 잰 뒤 계속할지 사용자와 정한다"
 ---
 
 # 인수인계 — 프롬프트 JSON 덤프를 섹션이 쓰는 만큼만 싣기

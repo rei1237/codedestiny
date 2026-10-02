@@ -1,7 +1,7 @@
 ---
 status: blocked
-updated: 2026-09-13
-next: 프로덕션 워커 로그 표본 확보가 선행 조건. 그 전에는 코드를 켜지 않는다.
+updated: 2026-10-02
+next: "사용자 승인 뒤 운영 tail/Logpush 로 [nakshatra-paid-access] 표본 수집 — 정상 결제 3종이 proven:true 면 체크리스트 2~6 실행"
 ---
 
 # 회당결제 2단계(PER_USE_ENFORCE) 승격 — 근거와 절차

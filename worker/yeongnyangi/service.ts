@@ -108,6 +108,9 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const participants=product.domain==='tarot'&&(relationship||tarotV2&&body.participants)?relationshipAliases(body.participants):undefined;
   // Fail-closed: false unless READING_V7_ENABLED, a single-system v6 tier product and a v7 consultation kind.
   const v7=!tarotV2&&v7Applies(product,kind);
+  // 존댓말 is an order-form choice for Yeongnyangi's Korean readings. Chat personas and spirit readings keep their own
+  // voice; anything else is 반말. Only 'honorific' enters the identity, so existing orders keep their fingerprints.
+  const voiceStyle=!persona&&!body.mode&&locale==='ko'&&body.voiceStyle==='honorific'?'honorific' as const:undefined;
   const askEvidenceEnabled=Boolean(kind?.question&&!spiritInput&&!relationship&&!tarotV2);
   // Only tiers that keep 종격 evidence ask; an answer sent anywhere else is dropped, not stored.
   const jongAnswer=jongCheckApplies(product)&&!spiritInput?parseJongAnswer(body.jongCheck):undefined;
@@ -127,7 +130,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   }
   let tarotIntentId:string|undefined;
   if(tarotV2&&attempt.consultationAttemptId){
-    tarotIntentId=await digest({userId,version:TAROT_CONSULTATION_VERSION,...attempt,locale,productId:product.id,kind:kind!.id,question:body.question,participants,...(persona?{persona}:{})});
+    tarotIntentId=await digest({userId,version:TAROT_CONSULTATION_VERSION,...attempt,locale,productId:product.id,kind:kind!.id,question:body.question,participants,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{})});
     await connectDb(env);
     try{return await readRequest(env,userId,tarotIntentId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
@@ -156,7 +159,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const now=new Date();
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
-  const fingerprint=await digest({...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{}),...(persona?{persona}:{})});
+  const fingerprint=await digest({...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{}),...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{})});
   const id=tarotIntentId||relationshipId||await digest({userId,fingerprint,...attempt,...(relationship?{relationshipVersion:RELATIONSHIP_VERSION}:{}),...(tarotV2?{tarotConsultationVersion:TAROT_CONSULTATION_VERSION}:{})});
   if(askEvidenceEnabled||relationship||tarotV2) {
     // A retry reads the immutable purchase intent before any calculation or card draw.
@@ -173,10 +176,10 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   for(const system of product.systems) contexts[system]=domains[system].buildContext(
     tarotV2&&system==='tarot'?calculateTarotConsultation(kind!.id as TarotConsultationId):
     (askEvidenceEnabled||relationship)&&system==='tarot' ? calculateAskTarot(normalized[system],product.readingKind!=='single')
-      : await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,relationshipReading:relationship,tarotFusion:product.readingKind!=='single',...(system==='saju'&&jongAnswer?{jongAnswer}:{})}));
+      : await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,asOfInstant:now.toISOString(),relationshipReading:relationship,tarotFusion:product.readingKind!=='single',...(system==='saju'&&jongAnswer?{jongAnswer}:{})}));
   if(relationship&&product.domain!=='tarot'){
     const system=product.domain,input=normalized[system];
-    const other=input.personB?await domains[system].calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},{runtimeEnv:env,asOf:date,relationshipReading:true}):undefined;
+    const other=input.personB?await domains[system].calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},{runtimeEnv:env,asOf:date,asOfInstant:now.toISOString(),relationshipReading:true}):undefined;
     contexts[system]=extendRelationshipContext(contexts[system]!,other,date);
   }
   if(!spiritInput&&preventionEligible(product.fishId)&&contexts.saju)contexts.saju=withPreventionTiming(contexts.saju);
@@ -193,12 +196,12 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     // fact to exactly one chapter, and the summary line is frozen into the manifest. Generation only re-applies
     // the stored matrix, so it never recomputes a period or resolves a different owner.
     const context=contexts[product.domain]!;
-    v7Timing=await buildV7TimingMatrix(context,normalized[product.domain],date);
+    v7Timing=await buildV7TimingMatrix(context,normalized[product.domain],date,now);
     if(preventionEligible(product.fishId)){
       const enriched=withPreventionTiming(withV7Timing(context,v7Timing));
       v7Timing.facts=v7Timing.facts.map(f=>enriched.facts.find(x=>x.label===f.label)||f);
     }
-    manifest=v7TimingSummaries(resolveV7Ledger(manifest as ChapterSpecV7[],withV7Timing(context,v7Timing)));
+    manifest=v7TimingSummaries(resolveV7Ledger(manifest as ChapterSpecV7[],withV7Timing(context,v7Timing)),date);
     product.manifestVersion=READING_V7_VERSION;
     product.chapterCount=manifest.length;
   }
@@ -242,7 +245,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,...(persona?{persona}:{}),
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}});
 }
 
 /** Pre-payment 종격 question: the same profile, supplement and consultation day prepareFortune will use. Read-only, no LLM. */
@@ -354,14 +357,15 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
         ? row.generationCheckpoint?.followup?.question : undefined;
       if(ordinal===1&&row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION&&!followupQuestion)
         throw new FortuneError('FOLLOWUP_NOT_SUBMITTED',409);
-      const input={locale:readingLocale(row.snapshot.locale),outputContext:row.snapshot.outputContext,chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion,persona:row.snapshot.persona};
+      const input={locale:readingLocale(row.snapshot.locale),outputContext:row.snapshot.outputContext,chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion,persona:row.snapshot.persona,voiceStyle:row.snapshot.voiceStyle};
       if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
       const provider=new StructuredChapterProvider(sharedProvider);
       const generated=await provider.generateChapter(input);
       stage='quality';
       result=deliverChapter(generated,input);
       const natalFacts=input.analysis.contexts?.saju?.facts.find(f=>f.label==='pillars')?.value;
-      if(natalFacts)assertSajuPillarClaims(result,natalFacts);
+      // chapter.ts corrects the reader's pillars first; a claim left here keeps a quality code so the one repair can name it.
+      if(natalFacts)try{assertSajuPillarClaims(result,natalFacts);}catch{throw new FortuneError('SAJU_PILLAR_CONTRADICTION');}
       stage='storage';
       await saveChapterDraft(env,userId,requestId,token,ordinal,{raw:generated,body:result});
     }

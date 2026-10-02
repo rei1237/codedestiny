@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-08-16
-next: "§1 남은 주제 2개 — `/compare/astrology-vs-myeongri` · `/compare/tarot-vs-saju` (1·2호는 완료)"
+status: done
+updated: 2026-10-02
+next: "보류 종료(10-02 사용자 결정, 남은 2편은 insights 글이 대신) — app/compare/sukuyo-vs-vedic/page.tsx:8 인용으로 보존"
 ---
 
 # 체계 간 비교 문서 — 인수인계 (2026-08-16)

@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-05
-next: PR #1590 이 머지되면 스테이징 `/ziwei/chart` 결과 화면을 375px 로 재확인하고(아래 3가지), 이상 없으면 이 문서를 지운다
+updated: 2026-10-02
+next: "스테이징 /ziwei/chart 375px 에서 칩 1·2 elementFromPoint·천이·복덕 2줄 잘림·뒤 페이지 비침 확인 — 통과하면 삭제(인바운드 0)"
 ---
 
 # 심화 자미두수(`/ziwei/chart`) 고객 문구·모바일 UX 개편

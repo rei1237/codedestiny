@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-12
-next: master-love-codex.js/fortune.js(ziwei-ai)/ziwei-island-ai.js/payments/index.js 에 human-design-report.js 와 동일한 환급 패턴 적용
+updated: 2026-10-02
+next: "master-love-codex.js refundPassCoverage 패턴을 ziwei-ai.js:2308 → ziwei-island-ai.js:404 → payments/index.js:1552 순으로 이식 — 그룹 2(tarot·fusion·animal-totem) 범위는 사용자 결정"
 ---
 
 # 이용권 월간 사용한도(monthlySpendCoin) 미복구 — 후속 과제

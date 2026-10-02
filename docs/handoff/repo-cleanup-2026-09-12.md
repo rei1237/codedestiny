@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-12
-next: 4) 완료 — 자산 중복(PR-9, 125 → 63개, 2.3MB), 루트 생성 보고서 3개 `reports/` 이동(PR-10), 배포·SEO 체크리스트 6개 → `docs/deploy-checklist.md`·`docs/seo/checklists.md` 병합까지 전부 끝났다. CSS 축은 29KB 실측으로 제외. 남은 것은 로케일 3.8MB뿐이며 `lib/i18n/dictionary.ts:150-169` 의 en 폴백 분기 선행이 먼저다. 3) 은 크론 축소(사용자 결정)·ai-locale-gate shadow 원장만 남았다. 5) 룰셋 `CI required` 등록은 2026-09-12 완료·검증됨
+updated: 2026-10-02
+next: "로케일 en 폴백 규약(lib/i18n/dictionary.ts·scripts/i18n-check.mjs:16)부터 세운 뒤 loveSimulationScenes.json 8개 사본 삭제 — 크론 축소·ai-locale shadow 원장은 사용자 결정"
 ---
 
 # 레포 정리 (쓰레기 수거) 후속

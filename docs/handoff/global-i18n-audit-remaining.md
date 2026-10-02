@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-25
-next: "\"다음 세션 시작 순서 제안\" 절부터 — Wave 6(`useT()` 미해결 키 정밀 타격)이 첫 착수점"
+updated: 2026-10-02
+next: "NewYearAiClient.tsx·SukuyoCompatibilityAiClient.tsx 본문 텍스트 로케일화(지금은 aria/title 만) 또는 §4 no-fallback-baseline +11 원인 추적부터"
 ---
 
 # 글로벌 다국어 현지화 — 남은 작업 (갱신: 2026-08-22, 4차 세션)

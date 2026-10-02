@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-07
-next: PR #1738(/points) 머지 → 아래 "남은 작업" 1번(#iljuCard). 다음 세션 첫 문장: "docs/handoff/home-perf-cwv-2026-09-07.md 를 읽고 #iljuCard CLS 구조 수정을 진행해".
+updated: 2026-10-02
+next: "#iljuCard CLS 구조 수정(index.html:19392 display:none → visibility+높이 예약) — RED 사전 보고 먼저"
 ---
 
 # 프로덕션 CWV 개선 — 홈·`/points`·결과 카드

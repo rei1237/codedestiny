@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-29
-next: main CI 확인 후 승인된 ref만 운영 승격; 실제 모바일 OAuth 복귀 확인
+updated: 2026-10-02
+next: "운영 SHA 에 932a22824 포함 여부 확인 — 미포함이면 1회 승인 승격 뒤 실기기 모바일 OAuth 복귀 확인"
 ---
 
 # 무료 사주 결과 직전 가입·로그인

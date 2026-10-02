@@ -20,6 +20,13 @@
 - index.html이 /ggulggul/ 및 로케일 셸 정본. sync:public으로 public 미러 생성.
 - saju-engine.js calculate → G_PILLARS/G_NATAL/G_JOHU/G_POWER/G_JONG. 기존 계산·시기·권한 유지.
 - reading-personas.js는 계산된 값의 표시 모델. 모드 전환에서 calculate/LLM/결제/일월운 API 재호출 없음.
+- 한국어(ko)는 reading-rich.js(`SajuReadingRich`, 2026-10-02)가 그래프·표가 있는 풍부한 판을 그린다. 순수 표시 함수(사실+모드 → HTML)이며 fetch·storage·재계산 금지. 엔진 표(CD_JANGGAN·cdTwelveStage·cdGongMangBranches·CD_PALACE·getTenGod·GAEUN_DB)만 읽는다. 비한국어와 자료 부족 시에는 위 짧은 블록 그대로.
+  - 조후: 온도·조습 게이지, 글자별 기여 표, 한난조습 설명·처방. 억부: 강약 게이지(기준 30), 득령·득지·득세 표, 단계 이름, 용신·희신·기신 칩, 종격.
+  - 🔴 fail-closed: 표시층이 풀어 쓴 점수 구성(powerParts·johuParts)의 합이 엔진 G_POWER·G_JOHU와 다르면 구성표를 숨기고 게이지만 그린다. calcPower·analyzeJohu 본문은 워커 런타임 추출 대상이라 건드리지 않는다.
+  - 십성: #tsGrid 위 #sajuTenOverview(계열 막대·겉/지장간 분포 표·과다/부재·조합), 카드 `[data-saju-god]`, 모달 4단(성격·원국 자리·일과 적성·관계·조언 / 네오의 진단·근거·행동 기준).
+  - 일주: renderIlju 의 ILJU_DB 목록(요약·상세·조언)을 덮어쓰지 않고, 카드 끝 #sajuIljuRich 에 원국 네 기둥 표(지장간·12운성·궁위)·일간 물상·일지 배우자궁·12운성·공망·연이의 한마디.
+  - 현재 흐름: setFlow 행(score·label·summary·age·end·year·relations)으로 점수 게이지·간지 표·합충 칩·세운 개운 4칸(GAEUN_DB, 두 모드 공통). 오늘·이달: setDaily 결과로 에너지 게이지·키워드·간지 표·십성 조언·챙길 것·행운의 부스터.
+  - 두 모드는 같은 수치(`--pos`)와 같은 섹션 수를 그리고 문장만 다르다. 출생시간 미상이면 시주를 "미상"/"정오 대입"으로 표시한다.
 - fortuneThemeModeStateV1 기존 설정 유지. 입력 체크박스 컨트롤러를 통해 동작.
 - 정적 section_daewun/section_summary 가격은 billing-feature-registry resolver에서 생성. 실제 두 상품 모두 3,000원. 오래된 셸 표시만 정본에 맞춘다.
 - 샘플은 고정된 가상 명식이며 잠긴 사용자 결과와 별개. 기존 해금/복구 구조 유지.

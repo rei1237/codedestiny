@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-02
-next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 남은 작업 중 체크 안 된 첫 항목 하나만 진행해줘"
+next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 4번(Yeongnyangi Browser Shadow 실패)만 진행해줘. RED 이니 위험·검증·롤백을 먼저 보고하고 바로 착수해"
 ---
 
 # 영냥이 체험가 표기 — 범위 밖 후속 6건
@@ -14,7 +14,7 @@ next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 남은 
 ## 지금 상태
 
 - 체험가 표기 본작업은 main 09ae18c2c 에 머지·push, PR CI success. 표시 정본 `lib/brand/launch-offer.ts`.
-- 1번 완료(0d06de996), 2번 완료(fc4e92005, main PR CI success), 3번 완료(f642cef8d). 4~7번 미착수. 다음은 **4번**. 항목 하나 = 커밋 하나(되돌리기 단위). 끝나면 여기 `[x]` + 커밋 SHA 를 적는다.
+- 1번 완료(0d06de996), 2번 완료(fc4e92005, main PR CI success), 3번 완료(f642cef8d). 4~7번 미착수. 다음은 **4번** — 아래 "4번 착수 메모" 를 먼저 읽는다. 항목 하나 = 커밋 하나(되돌리기 단위). 끝나면 여기 `[x]` + 커밋 SHA 를 적는다.
 
 ## 남은 작업 (위에서부터 하나씩)
 
@@ -41,6 +41,22 @@ next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 남은 
 - [ ] **7. 생선 버튼 스크린리더 문장 (GREEN, a11y)** — 2번에서 발견. `Consultation.tsx` 생선 버튼의 `<span className={styles.fishPrice}>` 가 "정식 오픈 예정가 9,900원 1,000원" 으로 읽힌다(합계만 고쳤음).
   방향: 2번과 같은 방식 — 예정가가 있을 때만 `styles.srOnly` ", 체험가 " 를 실가 앞에. 시각 표시 불변, 비한국어 불변.
   완료 기준: 2번 테스트(`checkout total reads …`)처럼 소스에서 `fishPrice` span 을 뽑아 렌더하고 읽히는 텍스트를 단언하는 테스트 1개.
+
+## 4번 착수 메모 (2026-10-02 실측, origin/main 805c59cf8 기준)
+
+다음 세션 첫 문장(복사):
+
+```
+docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 4번(Yeongnyangi Browser Shadow 실패)만 진행해줘. RED 이니 위험·검증·롤백을 먼저 보고하고 바로 착수해
+```
+
+- 실패 위치: `scripts/lib/yeongnyangi-mobile-payment.mjs:286` `assert.deepEqual(f.state.unknown,[],...)`. 알 수 없는 API 는 `:158` 에서 `state.unknown` 에 쌓인다. mock 분기는 `:59` `context.route('**/*')` 안.
+- 워커 정본: `worker/payments/service-pack-routes.js:22` `POST /service-packs/quote` → `quoteServicePack`(`worker/payments/service-packs.js`, 반환 `:218-230`). 팩이 없는 일반 요청의 응답은 `{ok:true,requestId,featureKey,accessMethod:null,status:'unavailable',existingUse:null,candidates:[]}`.
+- 클라이언트 검증: `app/components/service-packs/service-pack-client.ts:56-61` — `requestId`·`featureKey` 가 요청과 같고 `status` 가 허용 6종이어야 한다. mock 은 요청 body 의 `requestId` 와 해당 fortune 의 `featureKey`(`product.cdFeatureKey`)를 그대로 돌려줘야 한다. 하드코딩 값이면 `INVALID_QUOTE` 로 다른 실패가 난다.
+- 위험(선보고용): shadow 워크플로(`.github/workflows/yeongnyangi-browser-shadow.yml`)라 required 게이트가 아님 → 머지 차단 위험 낮음. 바뀌는 것은 QA 스크립트 mock 뿐이고 워커·결제 코드는 그대로다. 함정: quote 를 고치면 그 뒤 단계의 다른 service-packs 호출(wallet·catalog 등)이 새로 `unknown` 에 잡힐 수 있다 — 단언을 약화하지 말고 실제 워커 응답 형태로 하나씩 추가한다.
+- 검증: 로컬 `node scripts/verify-yeongnyangi-browser.mjs`(실패 시 리포트의 `unknown` 목록 확인) → `npm run check:fast` → push 후 해당 커밋의 "Yeongnyangi Browser Shadow" success. 결과는 `gh run list --commit <SHA> --json name,conclusion` 로 확인.
+- 롤백: 이 커밋 하나 `git revert`. 워커·결제 코드를 건드리지 않으므로 운영 영향 없음.
+- 시작 전: 공유 체크아웃에 옆 세션의 미push 커밋·미커밋 파일이 있으면(2026-10-02 실측: ziwei 커밋 2개, `js/saju-engine.js` 등) `scripts/create-safe-worktree.ps1 -Slug yn-shadow-quote` 로 워크트리에서 작업하고 origin/main 에 머지·push 한다.
 
 ## 정본 예시
 

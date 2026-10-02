@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-07
-next: F1(#1736 머지) · F2(#1742 머지 대기) 끝. 다음은 F3 — 아래 F3 절의 실측을 근거로 사전 보고 7항목부터 낸다.
+updated: 2026-10-02
+next: "F3: /coin-gate/deferred/cancel 복원 로직을 worker/lib 헬퍼로 빼고 karma·new-year·love-secret 증빙 상태를 정본 4개로 통일 — RED 사전 보고·billing.js 동결 상한 재측정부터"
 ---
 
 # 결제 차감 후 결과 미전달 — 잔여 결함 (F1·F2 수정 완료, F3~F5 미착수)

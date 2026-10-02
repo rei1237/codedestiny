@@ -95,6 +95,15 @@ function blockShapeIssue(body:ChapterBody,chapter:ChapterSpec,v5:boolean):string
  }
  return 'unknown';
 }
+// Words reserved for premium tiers (tuna·assorted·omakase). The flounder prevention chapter may name 용신.
+// Shared by validateReadingQuality and the lenient delivery path, which drops the sentence instead.
+export function hasOutOfTierTerm(text:string,chapter:ChapterSpec,locale='ko'):boolean{
+ if(!isStructuredReading(chapter.version)||['tuna','assorted','omakase'].includes(chapter.tier||''))return false;
+ const scoped=allowsPreventionBalance(chapter)?text.replace(/용신|用神|\byongshin\b/gi,''):text;
+ return /(?:용신|희신|대운|마하다샤|안타르다샤)/.test(scoped)||
+  (locale!=='ko'&&/\b(?:yongshin|heeshin|daewoon|mahadasha|antardasha)\b|用神|喜神|大運|マハーダシャー|アンタルダシャー/i.test(scoped));
+}
+
 export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,previous:Partial<ChapterBody>[],locale='ko',{lengthRepair=false}:{lengthRepair?:boolean}={}){
  if(!isStructuredReading(chapter.version))return;
  const v5=hasReadingSections(chapter.version);
@@ -127,9 +136,7 @@ export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,prev
  if(hasPrevention(chapter)&&hasUnsupportedPreventionClaim(content))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
  if(/(?:외도|바람기|바람끼).{0,12}\d+\s*%|(?:반드시|무조건|100%).{0,15}(?:재회|결혼|성공)|(?:암|질병|장기 이상)을?\s*(?:진단|확정)|(?:오행|명식).{0,20}(?:치료할 수|치료됩니다)/.test(content))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
  if(locale!=='ko'&&/(?:guaranteed|100%|definitely).{0,35}(?:reunion|marriage|success)|(?:必ず|絶対|100%).{0,15}(?:復縁|結婚|成功)|(?:diagnos\w*|確定|診断).{0,20}(?:cancer|disease|癌|病気)/i.test(content))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
- const scopedContent=allowsPreventionBalance(chapter)?content.replace(/용신|用神|\byongshin\b/gi,''):content;
- if(!['tuna','assorted','omakase'].includes(chapter.tier||'')&&/(?:용신|희신|대운|마하다샤|안타르다샤)/.test(scopedContent))throw new FortuneError('TIER_SCOPE_VIOLATION');
- if(locale!=='ko'&&!['tuna','assorted','omakase'].includes(chapter.tier||'')&&/\b(?:yongshin|heeshin|daewoon|mahadasha|antardasha)\b|用神|喜神|大運|マハーダシャー|アンタルダシャー/i.test(scopedContent))throw new FortuneError('TIER_SCOPE_VIOLATION');
+ if(hasOutOfTierTerm(content,chapter,locale))throw new FortuneError('TIER_SCOPE_VIOLATION');
  const chapterCount=bodyCharacterCount(body),floor=chapterFloor(chapter);
  if(!lengthRepair&&chapterCount<floor)throw new FortuneError('CHAPTER_TOO_SHORT',400,`chapter:${chapterCount}/${floor}`);
  if(!v5&&chapter.requiredSections?.some(title=>!body.blocks!.some(b=>b.title===title)))throw new FortuneError('CHAPTER_DEPTH_INCOMPLETE');
