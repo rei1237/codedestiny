@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "sourceHash": "357a0f192bc8d838480bee4ae3c1cdb7a1e6419b96231cc2a8fa53c7cf2d97aa",
+  "sourceHash": "60caf81728cab81a1cf5424684a0368353929103dc25bf92095a57f85a4779d9",
   "note": "정본 비트에서 생성한 연출 검수 매트릭스입니다. 목적과 갈등은 각 화 제목/사건 신호를 보존하며, 장면·감정 호흡·접근성 큐를 한 곳에서 검수합니다.",
   "episodes": [
     {
@@ -757,7 +757,7 @@
           "accessibility": "islandIn 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-03:52",
+          "beatId": "ep-03:53",
           "background": "islandIn",
           "transition": "hold",
           "tone": "desat",
@@ -905,6 +905,16 @@
           "eventEffect": null,
           "camera": "drift",
           "accessibility": "islandIn 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-03:159",
+          "background": "islandIn",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "islandIn 배경에서 진행되는 neo의 대사"
         },
         {
           "beatId": "ep-03:172",
@@ -1487,6 +1497,16 @@
           "accessibility": "islandIn 배경에서 진행되는 서술"
         },
         {
+          "beatId": "ep-05:35",
+          "background": "islandIn",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "islandIn 배경에서 진행되는 서술"
+        },
+        {
           "beatId": "ep-05:42",
           "background": "islandIn",
           "transition": "hold",
@@ -1523,6 +1543,16 @@
           "tone": "desat",
           "ambient": null,
           "eventEffect": "ink",
+          "camera": "drift",
+          "accessibility": "islandIn 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-05:63",
+          "background": "islandIn",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
           "camera": "drift",
           "accessibility": "islandIn 배경에서 진행되는 서술"
         },
@@ -1577,7 +1607,27 @@
           "accessibility": "islandIn 배경에서 진행되는 서술"
         },
         {
+          "beatId": "ep-05:100",
+          "background": "islandIn",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "islandIn 배경에서 진행되는 서술"
+        },
+        {
           "beatId": "ep-05:103",
+          "background": "islandIn",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "islandIn 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-05:106",
           "background": "islandIn",
           "transition": "hold",
           "tone": "dark",
@@ -1707,6 +1757,16 @@
           "accessibility": "islandIn 배경에서 진행되는 geo의 대사"
         },
         {
+          "beatId": "ep-05:164",
+          "background": "islandIn",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "islandIn 배경에서 진행되는 yeon의 대사"
+        },
+        {
           "beatId": "ep-05:167",
           "background": "islandIn",
           "transition": "hold",
@@ -1802,6 +1862,16 @@
           "accessibility": "islandIn 배경에서 진행되는 서술"
         },
         {
+          "beatId": "ep-06:38",
+          "background": "islandIn",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "islandIn 배경에서 진행되는 yeon의 대사"
+        },
+        {
           "beatId": "ep-06:40",
           "background": "islandIn",
           "transition": "hold",
@@ -1813,6 +1883,16 @@
         },
         {
           "beatId": "ep-06:49",
+          "background": "islandIn",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "islandIn 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-06:54",
           "background": "islandIn",
           "transition": "hold",
           "tone": "dark",
@@ -1933,53 +2013,53 @@
         },
         {
           "beatId": "ep-06:163",
-          "background": "siksangCrisis",
+          "background": "island",
           "transition": "crossfade",
           "tone": "desat",
           "ambient": null,
           "eventEffect": "vortex",
           "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
+          "accessibility": "island 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-06:196",
-          "background": "siksang",
+          "background": "river",
           "transition": "crossfade",
           "tone": "desat",
-          "ambient": null,
+          "ambient": "moonlight",
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
+          "accessibility": "river 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-06:197",
-          "background": "siksang",
+          "background": "river",
           "transition": "hold",
           "tone": "dark",
-          "ambient": null,
+          "ambient": "moonlight",
           "eventEffect": "veil",
           "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
+          "accessibility": "river 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-06:200",
-          "background": "siksang",
+          "background": "river",
           "transition": "hold",
           "tone": "dark",
-          "ambient": null,
+          "ambient": "moonlight",
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
+          "accessibility": "river 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-06:209",
-          "background": "siksang",
+          "background": "river",
           "transition": "hold",
           "tone": "dark",
-          "ambient": null,
+          "ambient": "moonlight",
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksang 배경에서 진행되는 시스템 메시지"
+          "accessibility": "river 배경에서 진행되는 시스템 메시지"
         }
       ]
     },
