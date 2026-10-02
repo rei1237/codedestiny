@@ -42,7 +42,10 @@ export async function buildZiweiAdapter(input, options = {}) {
       birthTime: input.birthTime,
       birthTimeUnknown: false,
       calendarType: input.calendarType,
+      isLeapMonth: input.isLeapMonth === true,
       gender: input.gender,
+      // 명반 시각은 출생지 경도·과거 서머타임으로 보정한다(lib/ziwei-birth-clock.js). 예전에는 출생지를 넘기지 않아 늘 서울 기준이었다.
+      birthPlace: input.birthPlace,
     },
   }, { year: Number(input.targetDate.slice(0, 4)) });
 
