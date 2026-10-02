@@ -1,0 +1,72 @@
+{
+  "home.gardenCopy.sheetClose": {
+    "ko": "닫기",
+    "en": "Close",
+    "ja": "閉じる",
+    "zh-CN": "关闭",
+    "zh-TW": "關閉",
+    "vi": "Close",
+    "hi": "Close",
+    "es": "Close",
+    "fr": "Close",
+    "de": "Close",
+    "nl": "Close",
+    "ms": "Close"
+  },
+  "home.gardenCopy.sheetPass": {
+    "ko": "이용권 확인",
+    "en": "Check my pass",
+    "ja": "利用券を確認",
+    "zh-CN": "查看使用券",
+    "zh-TW": "查看使用券",
+    "vi": "Check my pass",
+    "hi": "Check my pass",
+    "es": "Check my pass",
+    "fr": "Check my pass",
+    "de": "Check my pass",
+    "nl": "Check my pass",
+    "ms": "Check my pass"
+  },
+  "home.gardenCopy.sheetProfile": {
+    "ko": "내 프로필 카드",
+    "en": "My profile cards",
+    "ja": "マイプロフィールカード",
+    "zh-CN": "我的资料卡",
+    "zh-TW": "我的資料卡",
+    "vi": "My profile cards",
+    "hi": "My profile cards",
+    "es": "My profile cards",
+    "fr": "My profile cards",
+    "de": "My profile cards",
+    "nl": "My profile cards",
+    "ms": "My profile cards"
+  },
+  "home.gardenCopy.sheetPayments": {
+    "ko": "결제 내역",
+    "en": "Payment history",
+    "ja": "決済履歴",
+    "zh-CN": "付款记录",
+    "zh-TW": "付款紀錄",
+    "vi": "Payment history",
+    "hi": "Payment history",
+    "es": "Payment history",
+    "fr": "Payment history",
+    "de": "Payment history",
+    "nl": "Payment history",
+    "ms": "Payment history"
+  },
+  "home.gardenCopy.sheetSupport": {
+    "ko": "고객센터",
+    "en": "Help center",
+    "ja": "カスタマーセンター",
+    "zh-CN": "客服中心",
+    "zh-TW": "客服中心",
+    "vi": "Help center",
+    "hi": "Help center",
+    "es": "Help center",
+    "fr": "Help center",
+    "de": "Help center",
+    "nl": "Help center",
+    "ms": "Help center"
+  }
+}

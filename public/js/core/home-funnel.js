@@ -86,7 +86,15 @@
     });
   }
   move('#cdCookieConsent', 'cdhCookieSlot');
-  move('#authQuickLinks', 'cdhAccountSlot');
+  var authCard = move('#authQuickLinks', 'cdAccountSheetCard');
+  // 헤더 계정 버튼 글자(로그인/내 계정)는 시트 안 로그인 카드가 회원 카드인지로 정한다.
+  var accountBtn = document.getElementById('cdhAccountBtn');
+  function syncAccountState() {
+    if (!accountBtn || !authCard) return;
+    accountBtn.setAttribute('data-auth', authCard.querySelector('.cd-user-card') ? 'member' : 'guest');
+  }
+  syncAccountState();
+  if (authCard && window.MutationObserver) new MutationObserver(syncAccountState).observe(authCard, { childList: true, subtree: true });
   move('#langWrap', 'cdhLanguageSlot');
   move('#cdMobileHeader .theme-switch-wrapper--appbar', 'cdhThemeSlot');
   move('#dpKakaoReferralShareBtn', 'cdhShareControls');

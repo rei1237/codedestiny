@@ -1512,7 +1512,12 @@
       "shareReward": "好友注册即得100颗月定石",
       "shareTerms": "好友须通过此按钮分享的链接完成注册才会发放 · 每天最多500颗 · 发放后30天内有效",
       "todayGateCta": "创建档案，查看今日运势",
-      "todayGateDesc": "根据出生日期，按你的命盘计算四柱日辰、宿曜二十七宿与吠陀月亮星座。"
+      "todayGateDesc": "根据出生日期，按你的命盘计算四柱日辰、宿曜二十七宿与吠陀月亮星座。",
+      "sheetClose": "关闭",
+      "sheetPass": "查看使用券",
+      "sheetProfile": "我的资料卡",
+      "sheetPayments": "付款记录",
+      "sheetSupport": "客服中心"
     },
     "chatEntry": {
       "title": "向 Yeoni 和 Neo 问出此刻最想知道的一件事",

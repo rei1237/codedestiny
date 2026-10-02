@@ -1359,7 +1359,12 @@
       "shareReward": "친구가 가입하면 월정석 100개",
       "shareTerms": "이 버튼으로 공유한 링크로 친구가 회원가입을 완료해야 지급돼요 · 하루 최대 500개 · 지급일부터 30일 사용",
       "todayGateCta": "프로필 만들고 오늘의 운세 보기",
-      "todayGateDesc": "생년월일로 사주 일진·숙요 27수·베다 달자리를 내 명식에 맞춰 계산해요."
+      "todayGateDesc": "생년월일로 사주 일진·숙요 27수·베다 달자리를 내 명식에 맞춰 계산해요.",
+      "sheetClose": "닫기",
+      "sheetPass": "이용권 확인",
+      "sheetProfile": "내 프로필 카드",
+      "sheetPayments": "결제 내역",
+      "sheetSupport": "고객센터"
     },
     "chatEntry": {
       "title": "연이와 네오에게, 지금 가장 궁금한 한 가지",

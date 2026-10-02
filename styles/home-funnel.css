@@ -270,3 +270,33 @@ html body #inputPage #cdHomeFunnel :is(#cdhServicesTitle,#cdConcernPickTitle,#fo
 html body #inputPage #cdHomeFunnel :is(.moon-section-kicker,.fortune-gateway__door-kicker,.moon-music-entry__kicker,.moon-story-entry__kicker){font-family:"CodeDestinySerifLatin",var(--font-body,sans-serif)!important;font-weight:700;letter-spacing:.14em!important}
 .cdh-ask{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:22px;padding-top:18px;border-top:1px solid var(--cdh-line)}.cdh-ask__title{flex:1 1 100%;color:var(--cdh-ink);font-size:.95rem;font-weight:760;word-break:keep-all}.cdh-ask__meta{color:var(--cdh-muted);font-size:.78rem}
 @media (max-width:640px){.cdh-ask{display:grid;gap:8px;margin-top:14px;padding-top:12px}.cdh-ask__title{font-size:.86rem}.cdh-ask__meta{font-size:.72rem;text-align:center}}
+/* 계정 시트(cd-account-sheet-v20261002) — js/core/shell-sheet.js 가 body 직속 <dialog> 를 showModal 로 띄운다.
+   옛 헤더 패널은 가운데 정렬된 nav 안의 absolute 상자라 모바일에서 왼쪽이 화면 밖으로 나가 잘렸다(390px left −102px 실측).
+   최상위 레이어라 조상 overflow 에 갇히지 않으므로 위치를 음수 여백·transform 으로 보정하지 않는다.
+   .cdh 밖으로 옮겨지므로 토큰을 시트에 직접 둔다. */
+.cdh-account-btn[data-auth="guest"] .cdh-account-btn__member,.cdh-account-btn[data-auth="member"] .cdh-account-btn__guest{display:none}
+.cd-sheet{--cd-sheet-bg:#fff9f4;--cd-sheet-surface:#f8e4ea;--cd-sheet-ink:#402a38;--cd-sheet-muted:#6b4d5e;--cd-sheet-accent:#b53660;--cd-sheet-line:rgba(181,54,96,.2);position:fixed;inset:auto 12px calc(12px + env(safe-area-inset-bottom,0px));box-sizing:border-box;width:auto;max-width:480px;max-height:calc(100vh - 24px);max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 24px);margin:0 auto;padding:0;border:1px solid var(--cd-sheet-line);border-radius:20px;background:var(--cd-sheet-bg);color:var(--cd-sheet-ink);box-shadow:0 12px 32px rgba(64,42,56,.18);overflow:hidden}
+.cd-sheet:not([open]){display:none}
+.cd-sheet[open]{display:flex;flex-direction:column}
+.cd-sheet::backdrop{background:rgba(64,42,56,.42)}
+html.neo-mode .cd-sheet,body.neo-mode .cd-sheet{--cd-sheet-bg:#171126;--cd-sheet-surface:#211931;--cd-sheet-ink:#f4eeff;--cd-sheet-muted:#d8c8ea;--cd-sheet-accent:#c4b5fd;--cd-sheet-line:rgba(196,181,253,.28)}
+.cd-sheet__panel{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
+.cd-sheet__head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 8px 8px 20px;border-bottom:1px solid var(--cd-sheet-line)}
+.cd-sheet__head h2{margin:0;color:var(--cd-sheet-ink);font-size:1.05rem;font-weight:800;line-height:1.3}
+.cd-sheet__close{display:inline-flex;align-items:center;justify-content:center;flex:none;width:44px;height:44px;padding:0;border:0;border-radius:12px;background:transparent;color:var(--cd-sheet-muted);font-size:1.6rem;line-height:1;cursor:pointer}
+.cd-sheet__close:hover,.cd-sheet__close:focus-visible{background:var(--cd-sheet-surface);color:var(--cd-sheet-ink)}
+.cd-sheet__close:focus-visible,.cd-sheet__menu a:focus-visible{outline:2px solid var(--cd-sheet-accent);outline-offset:2px}
+.cd-sheet__body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.cd-sheet__card{min-width:0}
+#cdAccountSheetCard #authQuickLinks{display:block!important;margin:0!important;min-height:0}
+#cdAccountSheetCard .cd-user-card{margin-top:0}
+/* 모바일 셸 규칙(index.html 7495 overflow:visible!important)이 카드 장식 원(::before/::after right:-170px)을
+   카드 밖으로 내보내 시트 본문 가로 스크롤을 만든다(320px +33px 실측). 이름은 말줄임 대신 줄바꿈한다(4257 nowrap). */
+#cdAccountSheetCard #authQuickLinks .cd-user-card{overflow:hidden!important}
+#cdAccountSheetCard #authQuickLinks .cd-user-card__name{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+#cdAccountSheetCard .cd-user-card *{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+#cdAccountSheetCard .cd-user-star{display:none}
+.cd-sheet__menu{display:grid;gap:4px;margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--cd-sheet-line);list-style:none}
+.cd-sheet__menu a{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:12px;color:var(--cd-sheet-ink);font-size:.95rem;font-weight:700;text-decoration:none}
+.cd-sheet__menu a:hover{background:var(--cd-sheet-surface)}
+@media (min-width:760px){.cd-sheet{inset:0;width:min(400px,calc(100vw - 48px));max-width:none;height:fit-content;max-height:min(640px,calc(100vh - 48px));max-height:min(640px,calc(100dvh - 48px));margin:auto}}

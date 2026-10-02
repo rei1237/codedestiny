@@ -4,12 +4,28 @@
     <a href="/" class="cdh-brand"><span aria-hidden="true">月花</span><span>꿀꿀 운세<small>CODE DESTINY</small></span></a>
     <nav class="cdh-nav" aria-label="홈 주요 메뉴">
       <a href="/points/" data-cd-trans="home.funnelCopy.pass">이용권</a>
-      <a class="cdh-login" href="/login/" data-cd-trans="home.funnelCopy.login">로그인</a>
-      <details class="cdh-account"><summary data-cd-trans="home.funnelCopy.account">내 계정</summary><div id="cdhAccountSlot"></div></details>
+      <a class="cdh-account-btn" href="/login/" id="cdhAccountBtn" data-cd-sheet-open="cdAccountSheet" data-cd-account-open data-auth="guest" role="button" aria-haspopup="dialog" aria-controls="cdAccountSheet" aria-expanded="false"><span class="cdh-account-btn__guest" data-cd-trans="home.funnelCopy.login">로그인</span><span class="cdh-account-btn__member" data-cd-trans="home.funnelCopy.account">내 계정</span></a>
       <a href="/?action=dpOpenList" data-action="dpOpenList" aria-label="마이 · 내 프로필 카드 열기">마이</a>
     </nav>
     <div class="cdh-tools"><div id="cdhLanguageSlot"></div><div id="cdhThemeSlot"></div></div>
   </header>
+  <dialog class="cd-sheet" id="cdAccountSheet" data-cd-sheet aria-labelledby="cdAccountSheetTitle">
+    <div class="cd-sheet__panel">
+      <div class="cd-sheet__head">
+        <h2 id="cdAccountSheetTitle" data-cd-trans="home.funnelCopy.account">내 계정</h2>
+        <button type="button" class="cd-sheet__close" data-cd-sheet-close aria-label="닫기" data-cd-trans-attr="aria-label:home.gardenCopy.sheetClose"><span aria-hidden="true">×</span></button>
+      </div>
+      <div class="cd-sheet__body">
+        <div class="cd-sheet__card" id="cdAccountSheetCard"></div>
+        <ul class="cd-sheet__menu">
+          <li><a href="/points/" data-cd-trans="home.gardenCopy.sheetPass">이용권 확인</a></li>
+          <li><a href="/?action=dpOpenList" data-action="dpOpenList" data-cd-trans="home.gardenCopy.sheetProfile">내 프로필 카드</a></li>
+          <li><a href="/points/history/" data-cd-trans="home.gardenCopy.sheetPayments">결제 내역</a></li>
+          <li><a href="/contact/" data-cd-trans="home.gardenCopy.sheetSupport">고객센터</a></li>
+        </ul>
+      </div>
+    </div>
+  </dialog>
   <section class="cdh-hero" aria-labelledby="cdhTitle">
     <div class="cdh-copy">
       <h1 id="cdhTitle"><span data-cd-trans="home.searchEntry.title">꿀꿀 운세</span><br><em data-cd-trans="home.searchEntry.fusion">오늘의 나를 읽는 시간</em></h1>
