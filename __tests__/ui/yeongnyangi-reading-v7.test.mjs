@@ -39,8 +39,9 @@ test('ownership: no two chapters own overlapping facts; owns come from the chapt
    assert.ok(c.owns.length,`${where}/${c.key} owns nothing`);
    const inputs=new Set(c.evidenceInputs.map(label));
    for(const o of c.owns)assert.ok(inputs.has(sourceLabel(o)),`${where}/${c.key}: ${o} outside evidenceInputs`);
-   assert.deepEqual(c.refs,c===anchor?[]:m.V7_ANCHOR_REFS[domain]);
-   for(const r of c.refs)assert.ok(anchor.owns.includes(r),`${where}: ref ${r} not owned by anchor`);
+   assert.deepEqual(c.refs,c===anchor?[]:m.V7_ANCHOR_REFS[domain].filter(ref=>!c.owns.includes(ref)));
+   // saju seasonalBalance (조후) is the one shared ref the anchor does not own; the health chapter owns it.
+   for(const r of c.refs)assert.ok(anchor.owns.includes(r)||(domain==='saju'&&r==='seasonalBalance'),`${where}: ref ${r} not owned by anchor`);
   }
  }
  // Higher tiers split chapters but never drop a fact family.

@@ -22969,10 +22969,39 @@ function renderZiwei(p, natal, targetId) {
       var correctedTotal = ((ph * 60 + pmin - cityLngOffset) % 1440 + 1440) % 1440;
       correctedHour = Math.floor(correctedTotal / 60);
       correctedMinute = correctedTotal % 60;
+      var correctedYear = py;
+      var correctedMonth = pm;
+      var correctedDay = pdm;
+      var lngMsgMinutes = -cityLngOffset;
+      var dstMsgMinutes = tzResolved.dstMinutes;
+      // 상대 명반도 내 명반(calculate·computeProfileForModal)과 같은 정본 시각(경도·과거 서머타임,
+      // lib/ziwei-birth-clock.js)을 쓴다. 예전 식은 날짜를 그대로 두고 시각만 %1440 으로 감아
+      // 자정을 넘기는 보정(예: 서울 00:15 → 전날 23:43)이 하루 뒤 子時로 계산됐다. 정본 실패 시 예전 식 유지.
+      try {
+        var partnerClockMeta = _koreanCalendar().calculateNatalSaju({
+          birthDate: py + '-' + z2(pm) + '-' + z2(pdm), calendarType: 'solar',
+          birthTime: z2(ph) + ':' + z2(pmin),
+          birthPlace: { name: cityLabel, longitude: cityLong, latitude: cityLat, timezone: cityTz }
+        }).calculationMeta;
+        var partnerClock = partnerClockMeta && partnerClockMeta.corrected;
+        if (partnerClock) {
+          correctedYear = partnerClock.year;
+          correctedMonth = partnerClock.month;
+          correctedDay = partnerClock.day;
+          correctedHour = partnerClock.hour;
+          correctedMinute = partnerClock.minute;
+          lngMsgMinutes = Math.round(partnerClockMeta.correction.longitudeCorrectionMinutes);
+          dstMsgMinutes = partnerClockMeta.correction.dstMinutes;
+        }
+      } catch (clockErr) {
+        console.warn('[ZiweiCompat] canonical birth clock fallback:', clockErr);
+      }
+      var shiftedDay = correctedYear !== py || correctedMonth !== pm || correctedDay !== pdm;
       var correctionMsg = '진태양시 보정 적용: '
         + z2(ph) + ':' + z2(pmin)
-        + ' → ' + z2(correctedHour) + ':' + z2(correctedMinute)
-        + ' (경도 ' + cityLngOffset + '분, DST ' + tzResolved.dstMinutes + '분, UTC'
+        + ' → ' + (shiftedDay ? correctedYear + '-' + z2(correctedMonth) + '-' + z2(correctedDay) + ' ' : '')
+        + z2(correctedHour) + ':' + z2(correctedMinute)
+        + ' (경도 ' + lngMsgMinutes + '분, DST ' + dstMsgMinutes + '분, UTC'
         + (tzResolved.tzOffsetHours >= 0 ? '+' : '') + tzResolved.tzOffsetHours + ')';
       if (corrEl) {
         corrEl.innerHTML = '🌍 ' + cityLabel + ' · ' + (partnerGender === 'M' ? '남성' : (partnerGender === 'F' ? '여성' : '기타')) + '<br><span style="font-size:0.75rem;color:#c4b5fd;">' + correctionMsg + '</span>';
@@ -22991,7 +23020,7 @@ function renderZiwei(p, natal, targetId) {
 
       var partnerData = null;
       try {
-        partnerData = calcZiweiPalaces(py, pm, pdm, correctedHour, correctedMinute);
+        partnerData = calcZiweiPalaces(correctedYear, correctedMonth, correctedDay, correctedHour, correctedMinute);
       } catch (e) {
         outEl.innerHTML = '<div style="color:#fda4af;font-size:0.9rem;">상대 정보 계산 중 오류가 발생했습니다. 입력값을 확인해 주세요.</div>';
         return;

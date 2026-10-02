@@ -244,6 +244,18 @@ describe("individual guardian adapters", () => {
     })).rejects.toMatchObject({ code: "BIRTH_TIME_UNKNOWN" });
   });
 
+  it("keeps the leap month for lunar births and hands it and the birth place to the ziwei chart", async () => {
+    const now = { now: new Date("2026-08-02T00:00:00+09:00") };
+    const leap = contextModule.normalizeGuardianFortuneInput({ ...fixtures.baseInput, calendarType: "lunar", isLeapMonth: true, birthPlace: fixtures.birthPlace }, now);
+    expect(leap.isLeapMonth).toBe(true);
+    expect(contextModule.normalizeGuardianFortuneInput({ ...fixtures.baseInput, isLeapMonth: true }, now).isLeapMonth).toBe(false);
+    let seen;
+    await adapterModules.ziwei.buildZiweiAdapter(leap, {
+      calculator: async (request) => { seen = request.birthInfo; return { palaces: [{ name: "명궁", mainStars: ["synthetic-star"], assistantStars: [] }] }; },
+    });
+    expect(seen).toMatchObject({ calendarType: "lunar", isLeapMonth: true, birthPlace: { longitude: leap.birthPlace.longitude, timezone: leap.birthPlace.timezone } });
+  });
+
   it("keeps vedic lagna optional and uses moon data when time is unknown", async () => {
     const result = await adapterModules.vedic.buildVedicAdapter({
       ...fixtures.birthTimeUnknownInput,

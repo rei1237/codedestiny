@@ -62,7 +62,7 @@ export interface FortuneLLMResponse {
 export interface LLMProvider {
   generate(request: FortuneLLMRequest): Promise<FortuneLLMResponse>;
 }
-export interface CalculationOptions { runtimeEnv?: Record<string, unknown>; asOf?: string; tarotFusion?: boolean; relationshipReading?: boolean; jongAnswer?: import('../saju/jong-check').JongAnswer; }
+export interface CalculationOptions { runtimeEnv?: Record<string, unknown>; asOf?: string; /** Order instant (ISO); saju compares 입춘·절입 with it. */ asOfInstant?: string; tarotFusion?: boolean; relationshipReading?: boolean; jongAnswer?: import('../saju/jong-check').JongAnswer; }
 
 export interface FortuneDomain {
   id: DomainId;

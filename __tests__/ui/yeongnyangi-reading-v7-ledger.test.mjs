@@ -63,7 +63,9 @@ test('ownership: every chapter owns a concrete fact, no fact has two owners, ref
   assert.deepEqual(anchor.refs,[]);
   for(const c of chapters.slice(1)){
    assert.ok(c.refs.length,`${where}/${c.key} has no anchor refs`);
-   for(const id of c.refs)assert.equal(owner.get(id),'anchor',`${where}/${c.key}: ref ${id} is not anchor-owned`);
+   // saju.seasonalBalance is the one shared ref owned outside the anchor (by health, or nobody in tiers without it).
+   for(const id of c.refs)if(id!=='saju.seasonalBalance')assert.equal(owner.get(id),'anchor',`${where}/${c.key}: ref ${id} is not anchor-owned`);
+   else assert.notEqual(owner.get(id),c.key,`${where}/${c.key}: owns and refs ${id}`);
   }
  }
 });

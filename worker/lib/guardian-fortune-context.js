@@ -106,6 +106,8 @@ export function normalizeGuardianFortuneInput(input = {}, options = {}) {
     birthTime,
     hasBirthTime: Boolean(birthTime),
     calendarType,
+    // 윤달은 음력일 때만 뜻이 있다. 사주 어댑터는 이미 읽는데 여기서 버려 평달로 계산됐다.
+    isLeapMonth: calendarType === "lunar" && (input.isLeapMonth === true || input.leapMonth === true),
     gender,
     birthPlace,
     hasBirthPlace: Boolean(birthPlace),

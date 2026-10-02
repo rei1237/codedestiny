@@ -15,7 +15,7 @@ strength/usefulGod는 휴리스틱이므로 조후·월령·통근 근거와 대
     "현실적인 조언",
   ],
   async (input, options = {}) => {
-    const r = calculateScreenSaju(input.personA!,new Date(options.asOf || Date.now()),options.jongAnswer);
+    const r = calculateScreenSaju(input.personA!,new Date(options.asOfInstant || options.asOf || Date.now()),options.jongAnswer);
     const limitations = [
       "강약·용신은 월령·통근·조후와 함께 읽는 참고 판단입니다.",
       "절입은 실제 출생 순간으로 비교하며 일주·시주는 지역 평균시 보정 후 함께 계산합니다.",

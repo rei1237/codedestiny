@@ -14,7 +14,7 @@ next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 4번(Ye
 ## 지금 상태
 
 - 체험가 표기 본작업은 main 09ae18c2c 에 머지·push, PR CI success. 표시 정본 `lib/brand/launch-offer.ts`.
-- 1번 완료(0d06de996), 2번 완료(fc4e92005, main PR CI success), 3번 완료(f642cef8d). 4~7번 미착수. 다음은 **4번** — 아래 "4번 착수 메모" 를 먼저 읽는다. 항목 하나 = 커밋 하나(되돌리기 단위). 끝나면 여기 `[x]` + 커밋 SHA 를 적는다.
+- 1번 완료(0d06de996), 2번 완료(fc4e92005, main PR CI success), 3번 완료(f642cef8d), 4번 완료(4ac1601df). 5~7번 미착수. 다음은 **5번**(RED — 착수 전 위험·검증·롤백 선보고). 항목 하나 = 커밋 하나(되돌리기 단위). 끝나면 여기 `[x]` + 커밋 SHA 를 적는다.
 
 ## 남은 작업 (위에서부터 하나씩)
 
@@ -30,7 +30,7 @@ next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 4번(Ye
   추정(미검증): v7 매니페스트 길이와 카탈로그 숫자가 갈라졌다. 실제로 전달되는 쪽(=생성 매니페스트)이 정본일 가능성이 크다 → 가격표가 그 값을 쓰게 바꾼다.
   🔴 `catalog.ts` 는 결제 축 파일 — 값을 바꾸면 check:fast 가 전체 jest 로 승격(~500s), paid-gate-auditor 로 동결 매니페스트 확인. 표시만 고치는 쪽(가격표가 manifest 길이를 쓰게)이 더 안전하다.
   완료 기준: 두 화면이 같은 수를 보이고, 그 수가 실제 생성 챕터 수와 같다는 테스트 1개.
-- [ ] **4. Yeongnyangi Browser Shadow 실패 (RED: CI 검증기)** — `scripts/lib/yeongnyangi-mobile-payment.mjs:286` 단언 "Unrecognised API must not silently succeed" 가 `POST /api/payments/service-packs/quote` 2회로 실패. mock 라우트(`:59-160`)에 service-packs/** 가 하나도 없다. 호출원 `app/components/service-packs/service-pack-client.ts:57`.
+- [x] **4. Yeongnyangi Browser Shadow 실패 (RED: CI 검증기)** — 완료 4ac1601df. quote mock 은 `quoteServicePack` 분기 미러(팩 없음 → `unavailable`, 결제 끝난 행 → `paid`). 첫 케이스에 가려 있던 실패 3종도 함께: room 링크 문구(c5bbf9f0d 에서 "상담 내용 살펴보기"), WebKit 이동 취소 읽기 허용 목록에 `/api/auth/me`·quote·`/version.json?t=` 추가, home-profile-catalog 가 결제창 렌더 뒤 이동. unknown 단언은 그대로. 로컬 최종 코드 108/108. 남은 관찰(범위 밖): WebKit 취소 읽기 허용 목록은 케이스마다 경로를 덧붙이는 구조라 새 읽기 요청이 생길 때마다 다시 깨질 수 있다; 같은 fixture 를 import 하는 다른 verify-yeongnyangi-* 15개는 이번에 돌리지 않았다(라우트 추가만이라 약화는 없음). — `scripts/lib/yeongnyangi-mobile-payment.mjs:286` 단언 "Unrecognised API must not silently succeed" 가 `POST /api/payments/service-packs/quote` 2회로 실패. mock 라우트(`:59-160`)에 service-packs/** 가 하나도 없다. 호출원 `app/components/service-packs/service-pack-client.ts:57`.
   174b8a41a 이전부터 실패(체험가 작업 무관). shadow 라 게이트는 아님.
   방향: quote 를 실제 워커 응답 형태(`worker/payments/` 의 service-packs quote 핸들러)대로 mock 에 추가. 단언은 약화하지 않는다(fail-closed 유지).
   완료 기준: 로컬 `node scripts/verify-yeongnyangi-browser.mjs` 통과 + push 후 그 워크플로 success.

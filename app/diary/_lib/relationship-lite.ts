@@ -6,6 +6,7 @@
  */
 
 import { calcZiweiPalaces, type ZiweiChartData } from "@/app/_lib/ziwei-engine";
+import { ziweiBirthClock } from "@/lib/ziwei-birth-clock";
 import type { DiaryBirthInput, DiaryNatalChart } from "@/lib/diary/fortune-adapter";
 
 export interface DiaryRelationshipLite {
@@ -48,11 +49,23 @@ function overlap(first: string[], second: string[]): number {
 /** 기존 자미 Lite와 같은 다섯 궁·가중치로, 다이어리에서 쓸 한 줄 지표만 만든다. */
 export function computeDiaryZiweiLite(me: DiaryBirthInput, partner: DiaryBirthInput): number | null {
   try {
-    const hour = (value: number | null | undefined) => Number.isInteger(value) ? Number(value) : 12;
-    const minute = (value: number | null | undefined) => Number.isInteger(value) ? Number(value) : 0;
-    // 성별은 대한 방향에만 영향을 주고 이 Lite가 읽는 별 배치에는 영향을 주지 않는다.
-    const mine = calcZiweiPalaces(me.year, me.month, me.day, hour(me.hour), minute(me.minute), "F");
-    const theirs = calcZiweiPalaces(partner.year, partner.month, partner.day, hour(partner.hour), minute(partner.minute), "F");
+    // 시각을 알면 셸·워커·앱 명반과 같은 정본(출생지 경도·과거 서머타임, lib/ziwei-birth-clock.js)으로
+    // 보정한다 — 예전에는 입력 시계 그대로 코어에 넣어 홀수 시 정각~31분 출생의 명궁이 개인 명반과 갈렸다.
+    // 출생지가 없는 상대는 서울 기준이다. 시각 미상은 예전처럼 정오다.
+    const at = (birth: DiaryBirthInput) => Number.isInteger(birth.hour) && birth.birthTimeUnknown !== true
+      ? ziweiBirthClock({
+        year: birth.year, month: birth.month, day: birth.day,
+        hour: Number(birth.hour), minute: Number.isInteger(birth.minute) ? Number(birth.minute) : 0,
+        calendarType: birth.calendarType, isLeapMonth: birth.isLeapMonth, birthPlace: birth.birthPlace,
+      }).corrected
+      : { year: birth.year, month: birth.month, day: birth.day, hour: 12, minute: 0 };
+    const chart = (birth: DiaryBirthInput) => {
+      const clock = at(birth);
+      // 성별은 대한 방향에만 영향을 주고 이 Lite가 읽는 별 배치에는 영향을 주지 않는다.
+      return calcZiweiPalaces(clock.year, clock.month, clock.day, clock.hour, clock.minute, "F");
+    };
+    const mine = chart(me);
+    const theirs = chart(partner);
     const pair = (palace: string, base: number, mainWeight: number, auxWeight: number, badWeight: number) => {
       const a = stars(mine, palace);
       const b = stars(theirs, palace);

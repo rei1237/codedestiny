@@ -1,13 +1,13 @@
 import type {ChapterBody} from '../fortune/book-contracts';
 import type {ChapterRequest} from './chapter';
-import {correctChapterProse,validateChapter} from './chapter';
+import {correctChapterProse,pruneV7Overlap,validateChapter} from './chapter';
 import {FortuneError} from '../fortune/shared/contracts';
 import {salvageTruncatedJsonObject} from '../../../lib/llm-text.js';
 import {readingLocale,validateReadingLanguage} from '../fortune/reading-locale';
 import {alignRelativeYears} from '../fortune/consultation';
 import {selectChapterFacts} from '../fortune/chapter-facts';
 import {attachTarotSafetyNotice} from '../fortune/tarot/master-reading';
-import {nearDuplicate,splitSectionParagraph} from '../fortune/reading-quality';
+import {hasOutOfTierTerm,nearDuplicate,splitSectionParagraph} from '../fortune/reading-quality';
 import {sanitizeQuestionSkyBody} from '../fortune/question-sky-reading';
 import {blockAnchorNames,sanitizeBlockAnchors} from '../fortune/block-anchors';
 
@@ -19,6 +19,8 @@ const list=(value:unknown)=>Array.isArray(value)?value.map(prose).filter(Boolean
 export function deliverChapter(raw:unknown,input:ChapterRequest):ChapterBody {
   try { return validateChapter(raw,input); } catch(error) {
     if(!(error instanceof FortuneError))throw error;
+    // Which strict rule sent this chapter to local editing; the text itself is never logged.
+    console.warn('[yeongnyangi-delivery-fallback]',JSON.stringify({chapter:input.chapter.ordinal,code:error.code,detail:error.detail}));
   }
   let value:any=raw;
   if(typeof value==='string'){
@@ -30,8 +32,8 @@ export function deliverChapter(raw:unknown,input:ChapterRequest):ChapterBody {
   const gramCache=new Map<string,Set<string>>();
   const edit=(text:unknown)=>{
     const clean=prose(text);
-    // Remove only complete offending sentences; retain the remaining answer.
-    return clean.split(/(?<=[.!?。？！])\s+/u).filter(s=>!unsafe.test(s)).join(' ').trim();
+    // Remove only complete offending sentences (unsafe claims, words above the chapter's tier); retain the rest.
+    return clean.split(/(?<=[.!?。？！])\s+/u).filter(s=>!unsafe.test(s)&&!hasOutOfTierTerm(s,input.chapter,input.locale||'ko')).join(' ').trim();
   };
   // Remove the same near-copies rejected by the strict validator locally; do
   // not buy a new generation just to reword an already useful explanation.
@@ -64,7 +66,7 @@ export function deliverChapter(raw:unknown,input:ChapterRequest):ChapterBody {
     ...(Array.isArray(value.followUpSuggestions)?{followUpSuggestions:list(value.followUpSuggestions)}:{}),
     ...(value.visualSlots&&typeof value.visualSlots==='object'&&!Array.isArray(value.visualSlots)?{visualSlots:value.visualSlots}:{}),
   },input.chapter);
-  body=correctChapterProse(body,input);
+  body=pruneV7Overlap(correctChapterProse(body,input),input,'fallback');
   if(input.analysis.consultation)body=alignRelativeYears(body,input.analysis.consultation.asOf,input.locale).body;
   validateReadingLanguage(body,readingLocale(input.locale));
   return sanitizeBlockAnchors(attachTarotSafetyNotice(body,input.analysis.question,readingLocale(input.locale),input.chapter.ordinal),blockAnchorNames(input.analysis,input.chapter.systems));

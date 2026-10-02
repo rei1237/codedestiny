@@ -56,6 +56,8 @@ export class CodeDestinyProvider implements LLMProvider {
     }
     const response=await callGeminiText(this.env, payload, {
       locale:request.locale || 'ko',
+      // The persona sets the speech level; keep the shared Korean directive from forcing 존댓말 over it.
+      outputRegister:'persona',
       // Queue generation owns one chapter and a 180s lease. Leave 30s for validation and persisted reread.
       maxOutputTokens:cap,thinkingBudget:CHAPTER_THINKING_BUDGET,timeoutMs:150000,
       // The durable chapter counter owns retries. Hidden provider retries would
