@@ -1537,7 +1537,17 @@
       "chatNeoTitle": "ネオに相談",
       "chatNeoDesc": "白獅子のネオが情勢から整理します。核心と次の一手を率直に示します。",
       "chatYeoniGo": "ヨニと相談する",
-      "chatNeoGo": "ネオと相談する"
+      "chatNeoGo": "ネオと相談する",
+      "allTitle": "すべての占い",
+      "allSearchLabel": "すべての占いを検索",
+      "allSearchPlaceholder": "転職・復縁・相性などで探してみて",
+      "allClear": "検索語を消す",
+      "allMethodEtc": "その他",
+      "allPurpose": "悩み",
+      "allReset": "条件をリセット",
+      "allBrowse": "カテゴリーから見る",
+      "allEmpty": "該当する占いがありません",
+      "allEmptyHint": "別の言葉で探すか、条件を外してみてください。"
     },
     "chatEntry": {
       "title": "ヨニとネオに、今いちばん気になるひとつを",

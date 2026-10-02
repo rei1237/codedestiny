@@ -527,3 +527,61 @@ test("홈 안의 검색은 입력·칩을 고르기 전에는 결과를 그리�
   assert.equal(panel.hidden, true, "선택 초기화 뒤에도 결과가 남았다");
   assert.equal(count.hidden, true);
 });
+
+// 모든 운세 화면(2026-10-03) — dialog#cdAllFortunes 안의 블록을 같은 엔진으로 띄운다.
+async function bootAllFortunes(saved) {
+  const { window, doc } = await boot([sliceById(shell, "cdAllFortunes")]);
+  if (saved) window.sessionStorage.setItem("cd.allFortunes.v1", JSON.stringify(saved));
+  assert.ok(window.CodeDestinyAllFortunes.attach(doc.querySelector("#cdAllFortunes .cd-sheet__body")));
+  const panel = doc.getElementById("cdAllFortunesResults");
+  const input = doc.getElementById("cdAllFortunesSearch");
+  const search = async (text) => {
+    input.value = text;
+    input.dispatchEvent(new window.Event("input"));
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    return names(panel);
+  };
+  return { window, doc, panel, input, search };
+}
+
+test("모든 운세 검색은 동의어로도 찾는다(이직 → 직장·진로)", async () => {
+  const { search } = await bootAllFortunes();
+  const direct = await search("직장");
+  assert.ok(direct.length > 0, "직장 검색 결과가 없다");
+  const viaSynonym = await search("이직");
+  for (const name of direct) assert.ok(viaSynonym.includes(name), `이직 검색에 ${name} 이 빠졌다`);
+  assert.ok((await search("나크샤트라")).includes("베다점"), "나크샤트라로 베다점을 못 찾는다");
+});
+
+test("모든 운세의 '기타' 방식은 레지스트리 밖 컬렉션 타일만 보인다", async () => {
+  const { doc, panel } = await bootAllFortunes();
+  doc.querySelector('#cdAllFortunesRoot [data-method="etc"]').click();
+  const hits = names(panel);
+  assert.ok(hits.includes("따뜻한 태양 회복 타로"), `기타에 컬렉션 타일이 없다: ${hits.join(", ")}`);
+  assert.ok(!hits.includes("마스터 인연의 서"), "기타에 레지스트리 항목이 섞였다");
+});
+
+test("모든 운세는 결과가 없으면 빈 상태와 초기화를 보이고, 초기화하면 전체 목록으로 돌아온다", async () => {
+  const { window, doc, panel, input, search } = await bootAllFortunes();
+  const all = names(panel).length;
+  assert.equal(all, window.__cdServiceRegistry.length, "아무것도 고르지 않았는데 전체 목록이 아니다");
+  assert.equal((await search("없는운세쿼리zz")).length, 0);
+  const reset = panel.querySelector(".cd-af__empty .cd-af__empty-reset");
+  assert.ok(reset, "빈 상태 초기화 버튼이 없다");
+  reset.click();
+  assert.equal(input.value, "");
+  assert.equal(names(panel).length, all);
+  assert.ok(doc.getElementById("cdAllFortunesSummary"), "결과 요약 자리가 없다");
+});
+
+test("모든 운세는 sessionStorage 에 남긴 검색어·칩을 다시 열 때 복원한다", async () => {
+  const { window, doc, panel, input } = await bootAllFortunes({ query: "타로", purposes: ["love"], methods: [] });
+  assert.equal(input.value, "타로");
+  assert.equal(doc.querySelector('#cdAllFortunesRoot [data-purpose="love"]').getAttribute("aria-pressed"), "true");
+  const hits = names(panel);
+  assert.ok(hits.length > 0 && hits.length < window.__cdServiceRegistry.length, `복원한 조건으로 좁히지 못했다: ${hits.length}`);
+  doc.querySelector('#cdAllFortunesRoot [data-purpose="love"]').click();
+  const saved = JSON.parse(window.sessionStorage.getItem("cd.allFortunes.v1"));
+  assert.deepEqual(saved.purposes, [], "칩을 끈 상태가 저장되지 않았다");
+  assert.equal(saved.query, "타로");
+});

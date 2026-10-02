@@ -1537,7 +1537,17 @@
       "chatNeoTitle": "找 Neo 諮詢",
       "chatNeoDesc": "白獅子 Neo 先理清整體局勢，直截了當地點出關鍵與下一步。",
       "chatYeoniGo": "和妍伊聊聊",
-      "chatNeoGo": "和 Neo 聊聊"
+      "chatNeoGo": "和 Neo 聊聊",
+      "allTitle": "全部運勢",
+      "allSearchLabel": "搜尋全部運勢",
+      "allSearchPlaceholder": "試試搜尋「跳槽」「復合」「合盤」",
+      "allClear": "清除搜尋詞",
+      "allMethodEtc": "其他",
+      "allPurpose": "煩惱",
+      "allReset": "重設條件",
+      "allBrowse": "按分類瀏覽",
+      "allEmpty": "沒有找到相應的運勢",
+      "allEmptyHint": "換個說法搜尋，或取消部分條件。"
     },
     "chatEntry": {
       "title": "向 Yeoni 和 Neo 問出此刻最想知道的一件事",

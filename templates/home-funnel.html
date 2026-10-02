@@ -43,6 +43,55 @@
       </div>
     </div>
   </dialog>
+  <dialog class="cd-sheet cd-sheet--all" id="cdAllFortunes" data-cd-sheet aria-labelledby="cdAllFortunesTitle">
+    <div class="cd-sheet__panel">
+      <div class="cd-sheet__head">
+        <h2 id="cdAllFortunesTitle" data-cd-trans="home.gardenCopy.allTitle">모든 운세</h2>
+        <button type="button" class="cd-sheet__close" data-cd-sheet-close aria-label="닫기" data-cd-trans-attr="aria-label:home.gardenCopy.sheetClose"><span aria-hidden="true">×</span></button>
+      </div>
+      <div class="cd-sheet__body">
+        <!-- 모든 운세 검색 블록: 모바일에서는 home-service-finder.js 가 '모든 운세' 개요 패널 맨 위로 옮긴다. -->
+        <div class="cd-af" id="cdAllFortunesRoot">
+          <div class="cd-af__search" role="search">
+            <input type="search" id="cdAllFortunesSearch" class="cd-af__input" placeholder="이직, 재회, 궁합처럼 찾아보세요" autocomplete="off" aria-label="모든 운세 검색" data-cd-trans-attr="aria-label:home.gardenCopy.allSearchLabel,placeholder:home.gardenCopy.allSearchPlaceholder">
+            <button type="button" class="cd-af__clear" data-cd-search-clear aria-label="검색어 지우기" data-cd-trans-attr="aria-label:home.gardenCopy.allClear" hidden><span aria-hidden="true">×</span></button>
+          </div>
+          <div class="cd-af__group">
+            <span class="cd-af__label" id="cdAllFortunesMethodTitle" data-cd-trans="shell.fortuneGatewayFilters.fortuneGatewayFilterRow.kx2ok">방식</span>
+            <div class="cd-af__chips" role="group" aria-labelledby="cdAllFortunesMethodTitle">
+              <button type="button" class="cd-af__fchip" data-method="saju" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.kxvio">사주</button>
+              <button type="button" class="cd-af__fchip" data-method="tarot" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.k10ios">타로</button>
+              <button type="button" class="cd-af__fchip" data-method="ziwei" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.kpyjtww">자미두수</button>
+              <button type="button" class="cd-af__fchip" data-method="sukuyo" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.ktecid">숙요점</button>
+              <button type="button" class="cd-af__fchip" data-method="astrology" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.ku8un3">점성술</button>
+              <button type="button" class="cd-af__fchip" data-method="vedic" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.ksi53g">베다점</button>
+              <button type="button" class="cd-af__fchip" data-method="ai" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.k11zo0b">AI 상담</button>
+              <button type="button" class="cd-af__fchip" data-method="etc" aria-pressed="false" data-cd-trans="home.gardenCopy.allMethodEtc">기타</button>
+            </div>
+          </div>
+          <div class="cd-af__group">
+            <span class="cd-af__label" id="cdAllFortunesPurposeTitle" data-cd-trans="home.gardenCopy.allPurpose">고민</span>
+            <div class="cd-af__chips" role="group" aria-labelledby="cdAllFortunesPurposeTitle">
+              <button type="button" class="cd-af__chip" data-purpose="love" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.k180xm6d">❤️ 연애</button>
+              <button type="button" class="cd-af__chip" data-purpose="money" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kkz7xh9">💰 재물</button>
+              <button type="button" class="cd-af__chip" data-purpose="career" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kkzg05h">💼 직업</button>
+              <button type="button" class="cd-af__chip" data-purpose="compatibility" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kkymdrk">💕 궁합</button>
+              <button type="button" class="cd-af__chip" data-purpose="today" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kl9lspj">🌙 오늘</button>
+              <button type="button" class="cd-af__chip" data-purpose="family" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kfcewzb">🏠 가족/가정</button>
+              <button type="button" class="cd-af__chip" data-purpose="life" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kl5e4s6">🧭 인생</button>
+              <button type="button" class="cd-af__chip" data-purpose="self" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.k17f5hqf">🔮 나 자신</button>
+            </div>
+          </div>
+          <div class="cd-af__status">
+            <p class="cd-af__summary" id="cdAllFortunesSummary" aria-live="polite"></p>
+            <button type="button" class="cd-af__reset" data-cd-finder-reset data-cd-trans="home.gardenCopy.allReset" hidden>조건 초기화</button>
+          </div>
+          <div class="cd-af__results" id="cdAllFortunesResults" aria-live="polite"></div>
+          <button type="button" class="cd-af__browse" data-cd-af-browse data-cd-trans="home.gardenCopy.allBrowse">카테고리로 둘러보기</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
   <section class="cdh cdh-services cdh-services--inline cdh-services--luxe cdh-services--top" id="cdhServices" aria-labelledby="cdhServicesTitle">
     <span class="cd-yehwa-vine cdh-services__vine" aria-hidden="true"></span>
     <div class="cdh-services__head moon-section-head">

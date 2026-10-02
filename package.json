@@ -398,6 +398,7 @@
     "verify:mobile-bottom-nav-sync": "node scripts/verify-mobile-bottom-nav-sync.mjs",
     "verify:mobile-bottom-nav-clearance": "node scripts/verify-mobile-bottom-nav-clearance.mjs",
     "verify:account-sheet": "node scripts/verify-account-sheet-bounds.mjs",
+    "verify:all-fortunes-journey": "node scripts/verify-all-fortunes-journey.mjs",
     "verify:app-bottom-clearance": "node scripts/verify-app-bottom-clearance.mjs",
     "verify:mobile-lazy-mount-openers": "node scripts/verify-mobile-lazy-mount-openers.mjs",
     "mobile:journey-matrix": "node scripts/build-mobile-journey-matrix.mjs",

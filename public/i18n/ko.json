@@ -1384,7 +1384,17 @@
       "chatNeoTitle": "네오 상담",
       "chatNeoDesc": "백사자 네오가 판세부터 정리해요. 핵심과 다음 수순을 직설적으로 짚어 드려요.",
       "chatYeoniGo": "연이와 상담하기",
-      "chatNeoGo": "네오와 상담하기"
+      "chatNeoGo": "네오와 상담하기",
+      "allTitle": "모든 운세",
+      "allSearchLabel": "모든 운세 검색",
+      "allSearchPlaceholder": "이직, 재회, 궁합처럼 찾아보세요",
+      "allClear": "검색어 지우기",
+      "allMethodEtc": "기타",
+      "allPurpose": "고민",
+      "allReset": "조건 초기화",
+      "allBrowse": "카테고리로 둘러보기",
+      "allEmpty": "찾는 운세가 없어요",
+      "allEmptyHint": "다른 말로 찾거나 조건을 풀어 보세요."
     },
     "chatEntry": {
       "title": "연이와 네오에게, 지금 가장 궁금한 한 가지",

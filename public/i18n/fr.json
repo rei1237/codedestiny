@@ -1537,7 +1537,17 @@
       "chatNeoTitle": "Talk with Neo",
       "chatNeoDesc": "White lion Neo maps the whole board first, then points out the key issue and your next move directly.",
       "chatYeoniGo": "Talk with Yeoni",
-      "chatNeoGo": "Talk with Neo"
+      "chatNeoGo": "Talk with Neo",
+      "allTitle": "All readings",
+      "allSearchLabel": "Search all readings",
+      "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
+      "allClear": "Clear search",
+      "allMethodEtc": "Other",
+      "allPurpose": "Worry",
+      "allReset": "Reset filters",
+      "allBrowse": "Browse by category",
+      "allEmpty": "No matching readings",
+      "allEmptyHint": "Try other words or clear some filters."
     },
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",

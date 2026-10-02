@@ -203,7 +203,7 @@ async function assertEssentials(page, label) {
       await page.locator('#fortuneGatewaySearch').fill('검색되지않는없는운세');
       await page.waitForTimeout(250);
       assert.ok(await page.locator('#fortuneGatewayRecs').filter({ hasText: '일치하는 서비스가 없어요' }).isVisible(), 'empty search explains no match');
-      await page.locator('[data-cd-search-clear]').click();
+      await page.locator('#fortuneGatewayDiscover [data-cd-search-clear]').click();
       assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'clearing the query hides results again');
       // 정원 안 컬렉션에만 있는 서비스도 검색된다(타일 스크랩). 검색은 정원을 열지 않는다.
       await page.locator('#fortuneGatewaySearch').fill('나크샤트라');
@@ -215,13 +215,13 @@ async function assertEssentials(page, label) {
       assert.equal(await page.locator('[data-cd-filter-count]').textContent(), '1', 'filter toggle counts active panel filters');
       await page.waitForTimeout(250);
       assert.ok(await page.locator('#fortuneGatewayRecs .fortune-gateway__rec').count() > 0, 'search and free filter');
-      assert.ok(await page.locator('[data-cd-finder-reset]').isVisible(), 'reset appears for active filters');
-      await page.locator('[data-cd-finder-reset]').click();
+      assert.ok(await page.locator('#fortuneGatewayDiscover [data-cd-finder-reset]').isVisible(), 'reset appears for active filters');
+      await page.locator('#fortuneGatewayDiscover [data-cd-finder-reset]').click();
       assert.equal(await page.locator('#fortuneGatewaySearch').inputValue(), '', 'reset clears search');
       await page.locator('[data-price="low"]').click();
       assert.ok(await page.locator('#fortuneGatewayRecs .fortune-gateway__rec').filter({ hasText: '음악' }).count(), '1000 won filter includes music');
       await page.locator('#cdhServices').screenshot({ path: path.join(out, `finder-${width}.png`) });
-      await page.locator('[data-cd-finder-reset]').click();
+      await page.locator('#fortuneGatewayDiscover [data-cd-finder-reset]').click();
       assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'reset returns to the empty search state');
       if (width === 390 || width === 1440) {
         await page.locator('#cdhMore > summary').click();
