@@ -17,9 +17,15 @@ import { normalizeNarrativeBody } from "./paid-narrative-candidate.js";
 
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { callGeminiText } from "./gemini.js";
+import { tokensRequiredForChars } from "./llm-budget.js";
 
-// 심층 해석의 최소 분량. Workers AI 폴백 문턱은 관례대로 이 값 × 0.4.
-export const PALM_CONSULT_MIN_CHARS = 1200;
+// 심층 해석의 쓰기 목표(공백 포함). 합격선이 아니다 — 프롬프트에 목표로만 싣는다.
+// 18개 ■ 항목 × 3~5문장 기준이라 기존 "항목당 최소 3문장"과 같은 분량대다(상향 아님).
+export const PALM_CONSULT_MIN_CHARS = 3000;
+export const PALM_CONSULT_MAX_CHARS = 4000;
+// 출력 토큰은 목표 상한 + 완충 이상(llm-budget). thinking 은 공통 기본값 0(OFF)이라 따로 더하지 않는다.
+const PALM_CONSULT_MAX_OUTPUT_TOKENS = tokensRequiredForChars(PALM_CONSULT_MAX_CHARS);
+// 합격선: 읽을 만한 최소 전달 분량(공백 제외). 목표 하한의 80% 보다 훨씬 낮게 둬 결과가 안 나오는 상황을 만들지 않는다.
 const PALM_CONSULT_FALLBACK_MIN_CHARS = 120; // Minimum readable delivery, separate from the writing target.
 
 // 손당 비전 타임아웃. 양손이면 병렬 2회이므로 기본 30초를 그대로 쓰면 예산을 넘긴다.
@@ -597,8 +603,9 @@ const DEEP_CONSULT_SYSTEM_PROMPT = `당신은 30년 경력의 손금 상담 전�
 2. detected=false 인 선과 문양은 "이번 사진에서는 확인되지 않았다"고 쓰거나 아예 언급하지 마세요. 있는 것처럼 쓰지 마세요.
 3. 사람이 쓴 조언처럼 직설적이고 구체적으로 쓰세요. "~할 수도 있습니다" 같은 애매한 표현 대신 "~하세요"로 쓰세요.
 4. 건강·수명·질병·사고를 단정하지 마세요. 의학적 진단 금지.
-5. 각 항목은 최소 3문장 이상, 추상적 덕담이 아니라 이 사람의 판독 결과에 붙는 내용이어야 합니다.
-6. 마크다운 제목(#) 없이, 아래 형식의 일반 텍스트로 쓰세요.
+5. 각 항목은 3~5문장, 추상적 덕담이 아니라 이 사람의 판독 결과에 붙는 내용이어야 합니다.
+6. 마크다운 제목(#) 없이, 아래 형식의 일반 텍스트로 쓰세요. ■ 제목 줄 바로 다음 줄부터 본문을 쓰고, 빈 줄은 항목 사이에만 두세요.
+7. 전체 분량은 공백 포함 ${PALM_CONSULT_MIN_CHARS.toLocaleString("en-US")}~${PALM_CONSULT_MAX_CHARS.toLocaleString("en-US")}자를 목표로 하세요.
 
 [출력 형식]
 ■ 한 문장 요약
@@ -659,7 +666,7 @@ ${context}`;
 
   const ai = await callGeminiText(env, userPrompt, {
     systemPrompt: DEEP_CONSULT_SYSTEM_PROMPT,
-    maxOutputTokens: 8192,
+    maxOutputTokens: PALM_CONSULT_MAX_OUTPUT_TOKENS,
     temperature: 0.75,
     taskType: "fortune",
     timeoutMs: CONSULT_TIMEOUT_MS,
@@ -673,6 +680,8 @@ ${context}`;
     return null;
   }
 
-  const text = normalizeNarrativeBody(String(ai.text || "").trim());
+  // "■ 제목" 줄이 빈 줄로 떨어져 단독 문단이 되면 문장부호가 없어 normalizeNarrativeBody 가 버린다.
+  // 거부 대신 결정적으로 교정한다: 제목 문단을 다음 문단에 붙인다.
+  const text = normalizeNarrativeBody(String(ai.text || "").trim().replace(/^(■[^\n]*)\n\s*\n/gmu, "$1\n"));
   return text.replace(/\s/g, '').length >= PALM_CONSULT_FALLBACK_MIN_CHARS && /[.!?。？！]["'”’)]?\s*$/u.test(text) ? { text, rawText: ai.rawText || ai.text, provider: ai.provider, model: ai.model } : null;
 }

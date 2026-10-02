@@ -103,3 +103,9 @@ test('vision fields the model omitted are not compared as measured medium values
   expect(body.bothHandsComparison.enabled).toBe(true);
   expect(body.bothHandsComparison.differenceSummary).not.toMatch(/유사/);
 });
+test('heading lines separated by a blank line stay attached to their section', async () => {
+  const body = '사진에서 확인된 선을 토대로 생활 속 선택을 차분히 살펴봅니다. '.repeat(4).trim();
+  ai.text = `■ 한 문장 요약\n\n${body}\n\n■ 타고난 성향\n\n${body}`;
+  const consult = await deep({}, {});
+  expect(consult.text).toBe(`■ 한 문장 요약\n${body}\n\n■ 타고난 성향\n${body}`);
+});
