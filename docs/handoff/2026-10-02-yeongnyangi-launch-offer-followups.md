@@ -14,7 +14,7 @@ next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 남은 
 ## 지금 상태
 
 - 체험가 표기 본작업은 main 09ae18c2c 에 머지·push, PR CI success. 표시 정본 `lib/brand/launch-offer.ts`.
-- 1번 완료(0d06de996), 2번 완료(fc4e92005). 3~6번 미착수. 항목 하나 = 커밋 하나(되돌리기 단위). 끝나면 여기 `[x]` + 커밋 SHA 를 적는다.
+- 1번 완료(0d06de996), 2번 완료(fc4e92005, main PR CI success). 3~7번 미착수. 다음은 **3번**(조사부터). 항목 하나 = 커밋 하나(되돌리기 단위). 끝나면 여기 `[x]` + 커밋 SHA 를 적는다.
 
 ## 남은 작업 (위에서부터 하나씩)
 
@@ -38,6 +38,9 @@ next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 남은 
   🔴 메모리 "CI gate scope": 결제 게이트 범위 안이지만 **착수 전 사용자에게 위험·검증·롤백을 먼저 알리고** 진행. 기존 검사 삭제 금지, 경로 추가만.
   완료 기준: `npm run check:fast -- --plan` 에서 위 경로 변경이 결제 고위험으로 분류됨(가짜 diff 로 확인) + 변경 커밋의 CI 에서 paid-flow-gates 가 실제로 돈다.
 - [ ] **6. 표시 범위 확장 (선택 — 사용자에게 먼저 물을 것)** — ProductGuide 단계 버튼, QuestionSky(`QuestionSkyConsultation.tsx:62`)·Spirit(`SpiritConsultation.tsx:53`)·연이/네오 채팅 가격에는 예정가가 없다. 생선 단계가 아니라 예정가 표가 없으므로 숫자는 사용자 결정. 팩 상점 1280px 대비는 별도 판정 안 함(390px 는 6.7:1).
+- [ ] **7. 생선 버튼 스크린리더 문장 (GREEN, a11y)** — 2번에서 발견. `Consultation.tsx` 생선 버튼의 `<span className={styles.fishPrice}>` 가 "정식 오픈 예정가 9,900원 1,000원" 으로 읽힌다(합계만 고쳤음).
+  방향: 2번과 같은 방식 — 예정가가 있을 때만 `styles.srOnly` ", 체험가 " 를 실가 앞에. 시각 표시 불변, 비한국어 불변.
+  완료 기준: 2번 테스트(`checkout total reads …`)처럼 소스에서 `fishPrice` span 을 뽑아 렌더하고 읽히는 텍스트를 단언하는 테스트 1개.
 
 ## 정본 예시
 
@@ -46,9 +49,12 @@ next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 남은 
 ## 함정
 
 - 영냥이 파일은 CRLF/LF 혼재. node 패치 패턴에 `\n` 을 넣지 말 것(`yeongnyangi.module.css` 만 LF).
-- `app/**` 를 고치면 `npm run sitemap:generate` 결과(원장·sitemap 4개)를 **같은 커밋**에 넣어야 `verify:sitemap-drift` 통과.
+- `app/**` 를 고쳐서 `verify:sitemap-drift` 가 실패하면 `npm run sitemap:generate` 결과(원장·sitemap 4개)를 **같은 커밋**에 넣는다.
 - dev mock 에 `/api/payments/service-packs/catalog` 없음 → 팩 화면 캡처는 playwright `route` 로 `SERVICE_PACK_PLANS` 주입.
 - `__tests__/ui` 는 `node --test`.
+- Bash heredoc 으로 node 패치 스크립트를 만들면 정규식 백슬래시가 한 겹 벗겨진다(2번에서 실측). 스크립트는 Write 도구로 스크래치패드에 쓰고 실행.
+- 공유 체크아웃에 옆 세션의 미커밋 파일(`.tmp/`, `tsconfig.json` 등)이 있으면 `check:fast` 가 critical(전체 test:node+jest, 10분+)로 승격된다. 그 안에서 무관한 node 테스트가 동시 실행 헛실패할 수 있으니 실패 파일은 단독 `node --test` 로 재확인. 출력을 `| tail` 로 자르지 말고 파일로 받아 단계별 결과를 남길 것.
+- sitemap 드리프트는 먼저 `npm run verify:sitemap-drift` 로 확인 — 2번(JSX 한 줄 수정)은 재생성 없이 OK 였다.
 
 ## 검증
 
