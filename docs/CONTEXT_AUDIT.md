@@ -301,3 +301,10 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **가드**: `__tests__/ui/yeongnyangi-persona.test.mjs` 가 ko 계약에 '존댓말로 작성'이 없고 페르소나 위임 문장이 있는지 단언한다. `ai-locale.js` 문구가 바뀌어 치환이 조용히 무효가 되면 실패한다(변이로 확인).
 - **영향**: `yeongnyangi-reading-invariance` 123행 모두 requests 열만 바뀌었다. id·prepare·validated·manifests 는 그대로다. 검증기·분량 하한·스키마·섹션 지시는 바꾸지 않아 새 거부 조건은 없다.
 - **롤백**: 이 커밋 하나를 되돌린다.
+
+## 2026-10-02 영냥이 생활 속 장면 그림 — 장식 없는 독서면 ↔ 장면 그림, `<Image>` 규칙 ↔ 리더의 `<img>`
+
+- **요청(원문)**: "영냥이 상담에서 생활 속 장면이라든지 … 그런 장면 등에 대해서도 고급스럽게 보일 수 있도록 어느정도 이미지 에셋을 직접 만들어서 몰입감 좋게 개선해주면 좋겠고"
+- **충돌 1**: `docs/design/yeongnyangi-night.md` 는 결과를 "장식 없는 남색 독서면"으로 정했다. 사용자 요청이 더 최근이고 구체적이므로 예외 한 줄을 그 문서에 적었다. 생활 속 장면 소절에만, 부마다 한 장, 같은 그림은 리딩당 한 번이다(`sceneArt`, `app/yeongnyangi/_lib/reading-visuals.ts`).
+- **충돌 2**: `docs/context/content-assets.md` 는 Next.js `<Image>` 를 쓰라고 한다. 결과 리더의 그림 컴포넌트(`app/yeongnyangi/_components/ReadingVisuals.tsx`)는 이미 `<img>` 5곳을 쓰고, `next.config.mjs` 는 `images.unoptimized: true` 다. 새 `SceneArt` 는 같은 파일의 실물 패턴(`width`·`height` 지정, `loading="lazy"`, `decoding="async"`)을 따랐다. 규칙과 실물의 차이는 이 기록으로 남기고 기존 5곳은 바꾸지 않았다.
+- **범위**: 그림 8장(`public/assets/yeongnyangi/scenes/`). 계획한 9장 중 휴식(rest)은 만들지 않았다. 구매 가능한 상품×상담 종류 매니페스트 166개를 전수로 돌려 보니, 건강 부(v7)에는 장면 소절이 없고 v5/v6 에는 건강 theme 이 없어 한 번도 쓰이지 않았다. `__tests__/ui/yeongnyangi-reading-visuals.test.mjs` 가 출하한 그림마다 그것을 쓰는 매니페스트가 있는지 단언한다.
