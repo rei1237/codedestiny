@@ -60,9 +60,10 @@ try {
   if (iphone) page.on('console', message => { if (message.type()==='error') console.error('WebKit console: '+message.text()); });
   page.on('dialog', dialog => { console.log('Dismissed fixture dialog: '+dialog.message()); return dialog.dismiss(); });
   await page.goto(origin, {waitUntil:'domcontentloaded'});
-  // 무료 사주 카드(퀵 서비스)는 연이의 정원 안이다 — 사용자처럼 정원을 먼저 연다.
-  if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
-  const entryLink=page.locator('#cdQuickServices a[href*="cdOneStepFreeSajuEntry"]');
+  // 무료 사주는 '모든 운세' 화면의 사주 카드로 들어간다(홈 #cdQuickServices 는 2026-10-03 삭제).
+  await page.waitForFunction(() => typeof window.cdOpenAllFortunes === 'function');
+  await page.evaluate(() => window.cdOpenAllFortunes());
+  const entryLink=page.locator('#cdAllFortunesResults a[data-action="cdOneStepFreeSajuEntry"]').first();
   if (iphone) await entryLink.tap(); else await entryLink.click();
   await page.locator('#nameInput').fill(profile.name);
   await page.locator('#birthDate').fill('1990-05-15');

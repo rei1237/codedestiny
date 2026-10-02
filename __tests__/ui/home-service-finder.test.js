@@ -245,7 +245,7 @@ test("표시 가격은 레지스트리 값을 그대로 쓴다", async () => {
 
 // 회귀 배경: 입력·칩 선택 전에는 `panel.hidden = true` 로 아무것도 렌더하지 않아, 홈에서 가장 강한
 // 탐색 도구가 빈 채로 서 있었다(2026-09-01 진단). 기본 목록을 깔되 **바로 위 두 섹션과 겹치면 안 된다** —
-// #cdSignatureConsult(roles:"recommended") · #cdQuickServices(roles:"quick") 가 탐색기 바로 위에 있다.
+// #cdSignatureConsult(roles:"recommended") 가 홈에 있고, roles:"quick" 허브는 모든 운세·검색으로 들어간다.
 
 test("검색·칩 이전에도 기본 목록을 보여 준다", async () => {
   const { doc } = await boot();
@@ -275,7 +275,7 @@ test("기본 목록은 홈 상단 두 섹션의 카드와 겹치지 않는다", 
   assert.deepEqual(
     dup,
     [],
-    `기본 목록이 #cdQuickServices·#cdSignatureConsult 카드와 중복된다: ${dup.join(", ")}`,
+    `기본 목록이 roles 항목(#cdSignatureConsult·방식 허브)과 중복된다: ${dup.join(", ")}`,
   );
 });
 

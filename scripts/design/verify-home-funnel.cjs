@@ -107,7 +107,6 @@ async function assertEssentials(page, label) {
       assert.ok(await page.locator('#cdhCollections').isVisible(), 'collections open with the garden');
       assert.ok(await page.locator('#cdhCollections > .feature-card-grid').count(), 'existing cards live inside the garden');
       assert.ok(await page.locator('#cdhPass .cdh-pass__btn').isVisible(), 'pass opens with the garden');
-      assert.ok(await page.locator('#cdhQuickSlot [data-cdh-free]').isVisible(), 'free saju entry opens with the garden');
       assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'opening the garden does not touch search');
       const closeButton = page.locator('#cdhMore [data-cdh-garden-close]');
       await closeButton.focus();
@@ -133,12 +132,12 @@ async function assertEssentials(page, label) {
       const layout = await page.evaluate(() => ({
         overflow: document.documentElement.scrollWidth > innerWidth,
         width: document.getElementById('cdHomeFunnel').getBoundingClientRect().width,
-        unique: ['cdQuickServices', 'cdTodayHub', 'cdConcernPick', 'cdSignatureConsult', 'fortuneGatewayEntry', 'cdHomeGuideTitle'].every((id) => document.querySelectorAll('#' + id).length === 1),
+        unique: ['cdTodayHub', 'cdConcernPick', 'cdSignatureConsult', 'fortuneGatewayEntry', 'cdHomeGuideTitle'].every((id) => document.querySelectorAll('#' + id).length === 1),
         neoButton: Boolean(document.querySelector('#cdhThemeSlot [data-theme-mode="neo"]')),
         feedback: Boolean(document.querySelector('#cdhFeedbackSlot #cdFeedbackGate')),
         feedbackCta: Boolean(document.querySelector('#cdhFeedbackSlot .cd-feedback__cta[href="/feedback/"]')),
         feedbackReward: Boolean(document.querySelector('#cdhFeedbackSlot .cd-feedback__reward strong')),
-        moved: Boolean(document.querySelector('#cdhQuickSlot #cdQuickServices') && document.querySelector('#cdhPassSlot .cdh-pass')),
+        moved: Boolean(document.querySelector('#cdhPassSlot .cdh-pass')),
         shareEvent: Boolean(document.querySelector('#cdhShareControls #dpKakaoReferralShareBtn') && document.querySelector('#cdhShareControls #dpKakaoReferralNote')),
         profileCardOnHome: Boolean(document.querySelector('#cdHomeFunnel #dpMasterCard')),
       }));
@@ -295,8 +294,9 @@ async function assertEssentials(page, label) {
     await member.goto(origin + '/static/index.html', { waitUntil: 'domcontentloaded' });
     await member.waitForSelector('#cdAuthLogoutBtn', { state: 'attached' });
     await assertEssentials(member, 'logged in');
-    await member.locator('#cdhMore > summary').click();
-    await member.locator('[data-cdh-free]').first().click();
+    // 무료 사주는 '모든 운세' 화면의 사주 카드로 들어간다(홈 #cdQuickServices 는 2026-10-03 삭제).
+    await member.evaluate(() => window.cdOpenAllFortunes());
+    await member.locator('#cdAllFortunesResults a[data-action="cdOneStepFreeSajuEntry"]').first().click();
     await member.locator('#nameInput').fill('꽃길 테스트');
     await member.locator('#birthDate').fill('1995-05-15');
     await member.locator('#birthDate').dispatchEvent('change');

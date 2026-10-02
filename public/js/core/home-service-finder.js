@@ -143,11 +143,11 @@
      예전에는 입력·칩 선택 전까지 아무것도 렌더하지 않아, 홈에서 가장 강한 탐색 도구가 빈 채로
      서 있고 그 뒤로 타일 62개를 사용자가 직접 훑어야 했다.
 
-     🔴 기본으로 깔 것은 **바로 위 두 섹션이 이미 보여 주지 않는 것**이어야 한다 —
-        #cdSignatureConsult(roles:"recommended" 4개) · #cdQuickServices(roles:"quick" 6개)가
-        탐색기 **바로 위**에 붙어 있어서(index.html 11334 / 11451 / 11493), roles 를 가진 항목을
-        여기 다시 깔면 같은 카드가 한 화면에 두 번 나오고 인터랙티브 요소만 늘어난다.
-     그래서 roles 가 없고(= 상단 미노출) 무료로 시작할 수 있는 앞쪽 6개를 쓴다.
+     🔴 기본으로 깔 것은 roles 를 가진 항목이 아니어야 한다 — roles:"recommended" 4개는
+        #cdSignatureConsult 에 이미 나와 있어 다시 깔면 같은 카드가 한 화면에 두 번 나온다.
+        roles:"quick"(사주·타로·자미두수·숙요·베다·점성술 허브) 6개는 #cdQuickServices 와 함께
+        홈에서 빠졌고(2026-10-03) 모든 운세의 방식 칩·검색으로 들어간다 — 기본 목록 구성은 그대로 둔다.
+     그래서 roles 가 없고 무료로 시작할 수 있는 앞쪽 6개를 쓴다.
      'free' 판정은 bucketsOf() 하나에서만 파생한다 — 가격 문자열을 여기서 다시 해석하지 않는다.
 
      🔴 filterServices() 를 타지 않는다 — 그 안의 ensureCatalogue() 가 DOM 스윕(scrapeTiles)을
@@ -160,14 +160,12 @@
   var TILE_SELECTOR = [
     "#inputPage .moon-preview-card",
     "#inputPage .tarot-tile",
-    "#inputPage .cd-pick-card",
     "#inputPage .prem-card",
     "#inputPage .feature-card"
   ].join(", ");
   var TILE_CLASS_SELECTOR = [
     ".moon-preview-card",
     ".tarot-tile",
-    ".cd-pick-card",
     ".prem-card",
     ".feature-card"
   ].join(", ");

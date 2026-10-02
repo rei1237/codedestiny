@@ -43,8 +43,10 @@ try {
         title: document.querySelector('#cdhTitle').textContent,
         remainingKoreanLeaves: [...document.querySelectorAll('#cdHomeFunnel *')].filter(el => !el.children.length && /[가-힣]/.test(el.textContent)).length,
       }));
-      if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
-      await page.locator('[data-cdh-free]').first().click();
+      // 무료 사주는 '모든 운세' 화면의 사주 카드로 들어간다(홈 #cdQuickServices 는 2026-10-03 삭제).
+      await page.waitForFunction(() => typeof window.cdOpenAllFortunes === 'function');
+      await page.evaluate(() => window.cdOpenAllFortunes());
+      await page.locator('#cdAllFortunesResults a[data-action="cdOneStepFreeSajuEntry"]').first().click();
       await page.locator('#destinyCardForm').waitFor({ state: 'visible' });
       await page.evaluate(() => window.changeLanguage('ko'));
       await page.waitForFunction(() => document.documentElement.lang === 'ko' && window.cdGetCurrentLanguage() === 'ko');

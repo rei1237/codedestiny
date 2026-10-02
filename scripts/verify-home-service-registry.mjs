@@ -266,7 +266,7 @@ function sectionOf(id) {
 
 const byId = new Map(registry.map((item) => [item.id, item]));
 const PLACEMENTS = [
-  { role: "quick", sectionId: "cdQuickServices", label: "빠른 서비스" },
+  // quick(방식 허브 6종)은 홈 섹션 #cdQuickServices 와 함께 배치가 없어졌다(2026-10-03) — 모든 운세 방식 칩·검색이 입구다.
   { role: "recommended", sectionId: "cdSignatureConsult", label: "대표 상담" },
 ];
 

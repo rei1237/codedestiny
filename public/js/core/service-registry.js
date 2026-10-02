@@ -39,7 +39,8 @@
  *   methods    운세 방식 축 (meta.methods)
  *   keys       추가 검색 키워드 (공백 구분)
  *   badge      결과 카드 배지
- *   roles      홈 배치 역할 — 'quick' | 'recommended'
+ *   roles      홈 배치 역할 — 'recommended'(#cdSignatureConsult) | 'quick'(방식 허브 6종, 홈 섹션은
+ *              2026-10-03 삭제 — 지금은 탐색기 기본 목록에서 빠지는 표식으로만 쓴다)
  */
 window.__cdServiceRegistryMeta = {
   purposes: ["love", "money", "career", "family", "life", "today", "compatibility", "self", "etc"],
