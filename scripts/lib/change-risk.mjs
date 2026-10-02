@@ -124,6 +124,12 @@ const deepVerificationRules = [
   //    목록에서 거른다). paid-flow-gates.yml 트리거에는 처음부터 있었는데 이 목록에는 없어서
   //    이 훅만 고친 PR 은 deepRequired 가 아니었다 — access-state.js 와 같은 모양의 구멍이다.
   [/^app\/hooks\/usePaidResume\.ts$/i, "React 결제 후 재개 배선 훅"],
+  // 🔴 영냥이 결제 축이 이 목록에도 paid-flow-gates.yml 트리거에도 0건이었다(2026-10-03 실측).
+  //    service-packs 는 이용권 팩 견적(quote)·구매 클라이언트, Consultation 은 생선 단계 결제창·합계,
+  //    worker/yeongnyangi/payments 는 상품 가격 카탈로그다 — 여기만 고친 커밋은 결제 게이트가 안 돌았다.
+  [/^app\/components\/service-packs\//i, "이용권 팩 견적·구매 UI"],
+  [/^app\/yeongnyangi\/_components\/Consultation\.tsx$/i, "영냥이 생선 단계 결제창"],
+  [/^worker\/yeongnyangi\/payments\//i, "영냥이 상품 가격 카탈로그"],
 
   // ── 유료 기능 UI (정적 계약 테스트가 지키는 곳, preview 스모크는 게스트 경로만 두드린다)
   // 🔴 2026-08-22 실측: app/fusion-fortune/** 가 이 목록에도 paid-flow-gates.yml 트리거에도
@@ -298,11 +304,15 @@ export function selfTest() {
     ["worker/routes/fusion-fortune.js", true],
     ["app/vedic-ai/page.tsx", true],
     ["app/hooks/usePaidResume.ts", true],
+    ["app/components/service-packs/service-pack-client.ts", true],
+    ["app/yeongnyangi/_components/Consultation.tsx", true],
+    ["worker/yeongnyangi/payments/catalog.ts", true],
     // 아래는 level=high 여도 전체 회귀까지는 필요 없다. 이 구분이 두 축의 요점이다.
     ["worker/routes/fortune-tea-house.js", false],
     ["worker/routes/ziwei-ai.js", false],
     ["worker/lib/gemini.js", false],
     ["app/page.tsx", false],
+    ["app/yeongnyangi/_components/NightHero.tsx", false],
     ["components/Button.tsx", false],
     ["styles/site.css", false],
     ["docs/guide.md", false],

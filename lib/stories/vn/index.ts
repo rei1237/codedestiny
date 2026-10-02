@@ -45,7 +45,6 @@ export const STORY_SPEAKERS: Record<string, string> = {
   ln: "루나",
   lns: "루나 언니",
   rab: "청토끼",
-  baek: "백문",
   pje: "서한비",
   tiger: "검은 호랑이",
   god: "운명의 신",
