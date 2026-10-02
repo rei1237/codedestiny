@@ -231,7 +231,7 @@ Glow 는 **상태 변화**의 언어다. 그런데 평상시 표면도 종이 �
   - 배경 `--cd-primary`, 텍스트 `--cd-primary-ink`, 그림자 `--cd-shade-3`. 그라디언트를 쓰지 않는다.
   - 값은 테마 토큰이 들고 있다(연이 `#b31955`/흰 글자 6.6:1, 네오 `#c4b5fd`/잉크 글자 10.0:1) — 그래서 페르소나별 오버라이드가 필요 없고, 밝은 글자만 남는 반쪽 오버라이드가 구조적으로 불가능하다.
   - **Secondary 짝:** `--cd-surface` 흰 표면 + `--cd-line-strong` 경계 + `--cd-text` 글자 + `--cd-shade-1`. 버튼 식별은 15:1 라벨 텍스트가 담당하고 경계는 보강이다(WCAG 1.4.11 — 텍스트 라벨이 있는 컴포넌트는 3:1 경계 대상이 아니다). 바탕 컨테이너는 `--cd-surface-quiet` 를 깔아 채움 차이로도 버튼이 읽히게 한다.
-  - 사용처: 홈 `.cd-concern__free` · `.cd-today__cta` · `.cd-today__gate-cta` · `.cd-pick__cta`.
+  - 사용처: 홈 `.cd-concern__free` · `.cd-today__cta` · `.cd-today__gate-cta`.
 - **Hover / Focus:** 색 자체보다 `Violet Neon Focus` 글로우(네오) 또는 은은한 스케일/투명도 변화(연이)로 상태 표현. Solid Primary 는 `--cd-primary-hover` + `--cd-shade-2`.
 
 ### Toggle / Pill Chips

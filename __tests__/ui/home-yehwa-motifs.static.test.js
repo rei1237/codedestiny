@@ -23,7 +23,8 @@ test('the shell loads yehwa-motifs.css before the hero renders', () => {
 test('section dividers sit between the home sections', () => {
   const html = read('index.html');
   const count = (html.match(/<div class="cd-yehwa-divider" aria-hidden="true"><\/div>/g) || []).length;
-  assert.ok(count >= 5 && count <= 7, `expected 5~7 dividers, got ${count}`);
+  // 2026-10-03 운세 정원 개편에서 #cdWhyUs·#cdTodayPick 과 그 뒤 구분선 2개를 함께 지워 하한을 4로 내렸다.
+  assert.ok(count >= 4 && count <= 7, `expected 4~7 dividers, got ${count}`);
 });
 
 test('hero reuses a quiet garden motif without the retired visual stack', () => {
@@ -109,9 +110,8 @@ test('seal and sparkle placements are generated for every host and repainted for
 
 test('sprigs, concern seals and peonies are child spans on their hosts', () => {
   const html = read('index.html');
-  assert.equal((html.match(/class="cd-yehwa-sprig /g) || []).length, 4, '가지는 왜 우리 2 + AI 카드 2 = 4개');
-  assert.equal((html.match(/<span class="cd-yehwa-sprig cd-yehwa-sprig--(?:tl|tr)" aria-hidden="true"><\/span>/g) || []).length, 4, '가지는 전부 aria-hidden 인 --tl/--tr 이어야 한다');
-  assert.match(html, /<section data-cd-funnel-section="why_us" class="cd-why-us"[^>]*>\s*<span class="cd-yehwa-sprig cd-yehwa-sprig--tl"/, '왜 우리 섹션 첫 자식이 가지가 아니다');
+  assert.equal((html.match(/class="cd-yehwa-sprig /g) || []).length, 2, '가지는 AI 카드 2 = 2개(왜 우리 섹션은 2026-10-03 운세 정원 개편에서 삭제)');
+  assert.equal((html.match(/<span class="cd-yehwa-sprig cd-yehwa-sprig--(?:tl|tr)" aria-hidden="true"><\/span>/g) || []).length, 2, '가지는 전부 aria-hidden 인 --tl/--tr 이어야 한다');
   assert.match(html, /<section class="cd-ai-feats"[^>]*>\s*<span class="cd-yehwa-sprig cd-yehwa-sprig--tl"/, 'AI 카드 첫 자식이 가지가 아니다');
   // 🔴 파인더 가격 행은 단방향 가지(branch-spray)만 받는다 — 좌우 대칭인 구분선 마스크(branch-h)를 여기 두면
   // 방식/가격 행 사이 거터에 미러 쌍이 떠서 "나눌 것 없는 자리의 구분선"으로 읽힌다(2026-09-03 시각 판정).
@@ -136,7 +136,6 @@ test('sprigs, concern seals and peonies are child spans on their hosts', () => {
 test('PR-3 placements are generated, ordered by width, and repainted for neo', () => {
   const css = read('styles/yehwa-motifs.css');
   for (const sel of [
-    '.cd-why-us > .cd-yehwa-sprig',
     '.cd-ai-feats > .cd-yehwa-sprig',
     '.cd-concern__card[aria-expanded="true"] .cd-yehwa-seal--concern',
     '.cd-feedback__copy > .cd-yehwa-peony',

@@ -523,20 +523,6 @@ ${mask('branch-corner')}
   transform: scaleX(-1);
 }
 
-.cd-why-us > .cd-yehwa-sprig {
-  top: -36px;
-  width: 200px;
-  height: 154px;
-}
-
-.cd-why-us > .cd-yehwa-sprig--tl {
-  left: 4px;
-}
-
-.cd-why-us > .cd-yehwa-sprig--tr {
-  right: 4px;
-}
-
 /* 딥 플럼 위에서는 딥 로즈골드가 가라앉는다 — 카드 자체의 금(#ead089)과 같은 계열로 밝게. */
 .cd-ai-feats > .cd-yehwa-sprig {
   top: -28px;
@@ -794,11 +780,6 @@ html.neo-mode body .cd-app-install__copy > .cd-yehwa-peony {
   }
 
   .moon-hero__yehwa--tr {
-    display: none;
-  }
-
-  /* PR-3 — 390px 실측: 왜 우리 제목이 폭을 다 쓴다(x70~245). */
-  .cd-why-us > .cd-yehwa-sprig {
     display: none;
   }
 

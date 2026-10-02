@@ -9,16 +9,6 @@
   var doc = document.documentElement;
   var lastFilter = null;
   var more = document.getElementById('cdhMore');
-  var bubble = home.querySelector('[data-cdh-bubble]');
-  var bubbleIndex = 0;
-  // [사전 키, ko 원문]. 키와 원문을 요소에 같이 옮겨야 언어 전환이 지금 줄을 번역·복원한다.
-  var bubbleLines = bubble ? [
-    ['home.gardenCopy.bubble1', '안녕하세요! 꽃돼지 연이예요.'],
-    ['home.gardenCopy.bubble2', '오늘 마음은 어떤 색이에요?'],
-    ['home.gardenCopy.bubble3', '타로 세 장부터 가볍게 펼쳐 봐요!'],
-    ['home.gardenCopy.bubble4', '고민은 천천히, 끝까지 들을게요.']
-  ] : [];
-
   // 홈의 유일한 접기는 "연이의 정원"(<details id="cdhMore">)이다. 상태는 details.open 하나뿐이고
   // 저장하지 않는다 — 재방문은 늘 닫힌 채 시작한다. 정원을 여닫는 다른 코드는 이 두 함수를 부른다.
   var gardenSummary = more ? more.querySelector(':scope > summary') : null;
@@ -232,13 +222,6 @@
       home.hidden = false;
       services.hidden = false;
       if (location.hash.indexOf('services') !== -1) history.replaceState(null, '', location.pathname + location.search);
-    }
-    if (bubble && target.closest('[data-cdh-bubble], #honeypigLogo')) {
-      bubbleIndex = (bubbleIndex + 1) % bubbleLines.length;
-      var line = bubbleLines[bubbleIndex];
-      bubble.setAttribute('data-cd-trans', line[0]);
-      bubble.setAttribute('data-cd-origin-text', line[1]);
-      bubble.textContent = typeof window.cdTranslate === 'function' ? window.cdTranslate(line[0], null, line[1]) : line[1];
     }
     if (target.closest('[data-cd-service-index-jump]')) {
       event.preventDefault();

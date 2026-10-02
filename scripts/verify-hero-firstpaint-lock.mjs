@@ -80,7 +80,8 @@ if (raw.includes('id="cdHomeFunnel"')) {
   assert.match(css, /\.cdh-garden\s*>\s*img\s*\{[^}]*width:\s*min\(240px,\s*72%\)/);
   assert.match(css, /\.cdh\s*\{[^}]*width:\s*min\(100%,\s*1280px\)/, 'responsive desktop canvas');
   assert.ok(!css.includes('max-width:430px'), 'legacy fixed mobile canvas is removed');
-  assert.match(raw, /class="cdh-trust"/);
+  // 2026-10-03 운세 정원 개편: 신뢰 칩·말풍선은 첫 화면 중복 장식이라 코드째 지웠다 — 되살아나지 않게 막는다.
+  assert.doesNotMatch(raw, /class="cdh-(?:trust|bubble)"/);
   const homeRuntimeCacheKey = raw.match(/<script defer src="\/js\/core\/home-funnel\.js\?v=(build-[a-f0-9]{12})"><\/script>/)?.[1];
   const shellCacheKey = raw.match(/\/js\/core\/home-service-finder\.js\?v=(build-[a-f0-9]{12})/)?.[1];
   assert.ok(homeRuntimeCacheKey, 'Home funnel runtime must have a deploy build key');
@@ -97,7 +98,7 @@ if (raw.includes('id="cdHomeFunnel"')) {
     'home-funnel.js 캐시 키가 파일 내용과 어긋난다 — npm run sync:public 을 돌릴 것');
   assert.equal(shellCacheKey, expectedKey('/js/core/home-service-finder.js'),
     'home-service-finder.js 캐시 키가 파일 내용과 어긋난다 — npm run sync:public 을 돌릴 것');
-  console.log('[hero-firstpaint-lock] PASS: single source compact hero, reserved image geometry, static trust');
+  console.log('[hero-firstpaint-lock] PASS: single source compact hero, reserved image geometry, no trust chips or bubble');
   process.exit(0);
 }
 
