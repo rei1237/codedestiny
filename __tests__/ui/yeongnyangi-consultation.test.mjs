@@ -282,4 +282,6 @@ test('a quick-select chip replaces the leading period phrase and keeps the quest
  assert.equal(applyAskPeriodChip('다음 주 연애는?','이번 주'),'이번 주 연애는?');
  assert.equal(applyAskPeriodChip('연애는?','올해'),'올해 연애는?');
  assert.equal(applyAskPeriodChip('이번달 지출은?','다음 달'),'다음 달 지출은?');
+ assert.equal(applyAskPeriodChip('다음 달에 이직할까?','이번 주'),'이번 주 다음 달에 이직할까?');
+ assert.equal(applyAskPeriodChip('올해','내년'),'내년 ');
 });

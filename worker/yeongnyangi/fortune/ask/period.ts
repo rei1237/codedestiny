@@ -82,8 +82,11 @@ export function formatAskRange(range: Pick<AskPeriodRange, 'start' | 'end' | 'sc
 
 /** The quick-select words. Each one is a phrase the resolver above already understands. */
 export const ASK_PERIOD_CHIPS = ['이번 주', '다음 주', '이번 달', '다음 달', '올해', '내년'] as const;
-const LEADING = new RegExp(`^\\s*(?:${ASK_PERIOD_CHIPS.map(w => w.replace(' ', '\\s*')).join('|')})\\s*`, 'u');
-/** Put a chip's phrase at the start of the question, replacing a chip phrase already there. */
+const LEADING = new RegExp(`^\\s*(?:${ASK_PERIOD_CHIPS.map(w => w.replace(' ', '\\s*')).join('|')})(?:\\s+|$)`, 'u');
+/**
+ * Put a chip's phrase at the start of the question, replacing a chip phrase already there. A typed phrase
+ * with a particle ('다음 달에') is part of the sentence and stays, so the preview shows both periods.
+ */
 export function applyAskPeriodChip(question: string, chip: string) {
   const body = question.replace(LEADING, '');
   return `${chip} ${body}`;
