@@ -246,7 +246,7 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 @media (max-width:760px){.char{height:52vh;width:min(32vw,150px);object-fit:contain;object-position:bottom;bottom:clamp(200px,26vh,252px)}.char.pig{height:38vh}.char.slotL{left:0}.char.slotR{right:0}
   /* 모바일: 대화창(하단 min-height~130px + 패딩/세이프에어리어)이 캐릭터 하반신을 덮던 문제 수정.
      기본 .char 바닥을 대화창 위로 올리고(cast 클래스 없는 인간 연이 포함), 서있는 img 캐스트는 짧은 폰 방어용 px 하한 상향 + 발끝 페이드 마스크로 잔여 겹침을 자연 소멸시킨다. */
-  .char.moka,.char.crow,.char.rab,.char.ln,.char.lns,.char.heal,.char.baek,.char.neoh{-webkit-mask-image:linear-gradient(to bottom,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,#000 90%,transparent 100%)}
+  .char.moka,.char.crow,.char.rab,.char.ln,.char.lns,.char.heal,.char.baek,.char.neoh,.char.yun{-webkit-mask-image:linear-gradient(to bottom,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,#000 90%,transparent 100%)}
   .char.pje,.char.muTrue{-webkit-mask-image:linear-gradient(to bottom,#000 93%,transparent 100%);mask-image:linear-gradient(to bottom,#000 93%,transparent 100%)}
   .char.neo{width:min(31vh,32vw);height:min(31vh,32vw);bottom:clamp(176px,21vh,214px);background-size:418% 418%;background-position:2.306% 3.145%}
   .char.sheet{height:min(38vh,32vw);width:min(38vh,32vw)}
@@ -522,6 +522,7 @@ body.novel-paused *{animation-play-state:paused!important}
 @media(max-width:760px){
   .char.tiger{width:min(39vw,200px);height:auto;bottom:clamp(208px,28vh,260px)}
   .char[data-who="yeon"]:not(.pig):not(.sheet){height:min(47vh,340px);width:min(42vw,180px);bottom:clamp(220px,27vh,280px)}
+  .char.yun{height:min(47vh,340px);width:min(42vw,180px);bottom:clamp(220px,27vh,280px)}
 }
 @media (hover:none) and (pointer:coarse){
   .bgImg{animation:none;transform:scale(1.02)}
@@ -898,9 +899,12 @@ BAEK.lecture=BAEK.read;BAEK.sigh=BAEK.base;BAEK.surprise=BAEK.base;BAEK.shock=BA
 PJE.waver=PJE.blank;PJE.cry="/images/novel/remaster/pje/cry.webp";PJE.sad="/images/novel/remaster/pje/sad.webp";PJE.smile="/images/novel/remaster/pje/smile.webp";PJE.resolve="/images/novel/remaster/pje/resolve.webp";PJE.think=PJE.blank;PJE.surprise=PJE.blank;PJE.serious=PJE.blank;
 /* 꽃돼지 연이(PIG_CELL) 보강 — shock/serious는 시트에 없어 neutral 폴백되던 것 교정 */
 PIG_CELL.shock=PIG_CELL.surprise;PIG_CELL.serious=PIG_CELL.neutral;
+/* 윤달(yun): 개편(2026-10) 사람 점술가. 표정마다 레포 로컬 낱장, 없는 표정은 기본 */
+var YUN_EXPR=["base","sly","serious","surprise","pain","void","laugh","sad"];
 /* who → sprite (form 반영) */
 function spriteMaster(who,expr,form){
   if(who==="tiger")return {url:"/images/novel/hanbi/"+(["base","talk","surprise","angry","sad","water"].indexOf(expr)>=0?expr:"base")+".webp",cls:"tiger"};
+  if(who==="yun")return {url:"/images/novel/remaster/yun/"+(YUN_EXPR.indexOf(expr)>=0?expr:"base")+".webp",cls:"yun"};
   if(who==="neo"){
     /* 표정(x)이 h*(인간 표정 키)면 인간 네오 시트, 아니면 사자 네오 시트 */
     if(expr&&NEOH_CELL[expr])return {url:NEOH,cls:"neoh",sheet:true,size:"400% 200%",pos:NEOH_CELL[expr]};
@@ -1578,12 +1582,12 @@ var charLayer=document.getElementById("charLayer");
    top-level b.x(표정)로 동기화. 엔진이 원래 읽지 않던 표정 데이터를 되살려 "대화 중 화자가
    안 보이는" 버그를 전 에피소드에서 근본 해결. n/sys/luna는 스프라이트 대상이 아니라 제외. */
 var SLOT_PREF={yeon:["l","c","r"],neo:["c","r"],moka:["c","r"],crow:["r","c"],mirror:["r","c"],mu:["c","r"],
-  ln:["r","c","l"],lns:["c","r"],rab:["r","c"],baek:["c","r"],pje:["c","r"],tiger:["r","c"]};
-var EXPR_SYNC={yeon:1,neo:1,moka:1,crow:1,ln:1,lns:1,rab:1,baek:1,pje:1,tiger:1,mu:1}; /* 표정 변형이 있는 캐릭터만 표정 동기화(mirror=형태토글 제외. mu는 x 있을 때만 본모습 컷) */
+  ln:["r","c","l"],lns:["c","r"],rab:["r","c"],baek:["c","r"],pje:["c","r"],tiger:["r","c"],yun:["r","c"]};
+var EXPR_SYNC={yeon:1,neo:1,moka:1,crow:1,ln:1,lns:1,rab:1,baek:1,pje:1,tiger:1,yun:1,mu:1}; /* 표정 변형이 있는 캐릭터만 표정 동기화(mirror=형태토글 제외. mu는 x 있을 때만 본모습 컷) */
 function beatSpeakerWho(b){
   var s=b.s;
   if(s==="geo")return "mirror";
-  if(s==="yeon"||s==="neo"||s==="mu"||s==="moka"||s==="crow"||s==="ln"||s==="lns"||s==="rab"||s==="baek"||s==="pje"||s==="tiger")return s;
+  if(s==="yeon"||s==="neo"||s==="mu"||s==="moka"||s==="crow"||s==="ln"||s==="lns"||s==="rab"||s==="baek"||s==="pje"||s==="tiger"||s==="yun")return s;
   return null;
 }
 function slotOfWho(who){
@@ -1646,7 +1650,7 @@ function stageBeat(b){
   // active = speaker
   var spk=b.s;
   if(spk==="geo")S.active="mirror";
-  else if(spk==="yeon"||spk==="neo"||spk==="mu"||spk==="moka"||spk==="crow"||spk==="ln"||spk==="lns"||spk==="rab"||spk==="baek"||spk==="pje"||spk==="tiger")S.active=spk;
+  else if(spk==="yeon"||spk==="neo"||spk==="mu"||spk==="moka"||spk==="crow"||spk==="ln"||spk==="lns"||spk==="rab"||spk==="baek"||spk==="pje"||spk==="tiger"||spk==="yun")S.active=spk;
   autoStageSpeaker(b); // 화자가 슬롯에 없으면 자동 배치 + 표정 동기화(핵심 가시성 수정)
   updateActive();
 }

@@ -192,6 +192,15 @@ for (const expr of ["cry", "sad", "smile", "resolve"]) {
   if (!existsSync(file) || statSync(file).size === 0 || statSync(file).size > 80_000) fail(`Seo Hanbi sprite missing or over budget: ${expr}`);
   if (!html.includes(`PJE.${expr}="/images/novel/remaster/pje/${expr}.webp"`)) fail(`player does not bind PJE.${expr} to the local sprite`);
 }
+// 윤달(개편 2026-10): 플레이어의 표정 목록과 레포 낱장이 정확히 맞아야 한다. 없는 표정은 깨진 그림이 된다.
+const yunExprMatch = html.match(/var YUN_EXPR=\[([^\]]*)\];/);
+const yunExprs = yunExprMatch ? [...yunExprMatch[1].matchAll(/"([a-z]+)"/g)].map(m => m[1]) : [];
+if (yunExprs.length < 8 || !yunExprs.includes("base")) fail("player YUN_EXPR list is missing or incomplete");
+if (!html.includes('if(who==="yun")return {url:"/images/novel/remaster/yun/"+(YUN_EXPR.indexOf(expr)>=0?expr:"base")+".webp",cls:"yun"};')) fail("player does not route yun to the local sprites");
+for (const expr of yunExprs) {
+  const file = resolve(ROOT, `public/images/novel/remaster/yun/${expr}.webp`);
+  if (!existsSync(file) || statSync(file).size === 0 || statSync(file).size > 80_000) fail(`Yundal sprite missing or over budget: ${expr}`);
+}
 if (runtime.episodes.some(episode => episode.beats.some(beat => !beat.id))) fail("stable story IDs are required");
 const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8"));
 const matrix = JSON.parse(readFileSync(SCENE_MATRIX_PATH, "utf8"));
