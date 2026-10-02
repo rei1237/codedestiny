@@ -1517,7 +1517,12 @@
       "sheetPass": "利用券を確認",
       "sheetProfile": "マイプロフィールカード",
       "sheetPayments": "決済履歴",
-      "sheetSupport": "カスタマーセンター"
+      "sheetSupport": "カスタマーセンター",
+      "sheetLibrary": "保管箱",
+      "libraryLead": "鑑定結果はそれぞれの相談画面に保管されます。ここからすぐに移動できます。",
+      "libraryChat": "ヨニ・ネオの相談記録",
+      "libraryYeongnyangi": "ヨンニャンイのマイ相談",
+      "libraryNote": "記録はログイン中のアカウントに保管されます。"
     },
     "chatEntry": {
       "title": "ヨニとネオに、今いちばん気になるひとつを",

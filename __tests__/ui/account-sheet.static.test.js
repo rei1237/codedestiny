@@ -65,3 +65,11 @@ test("시트 문구 키는 12개 사전에 모두 있다", () => {
     for (const key of keys) assert.ok(dict.home.gardenCopy[key], `${lang} home.gardenCopy.${key}`);
   }
 });
+
+test("보관함 시트와 보관함·마이 액션은 같은 공용 시트로 열린다", () => {
+  assert.match(template, /<dialog class="cd-sheet" id="cdLibrarySheet" data-cd-sheet[^>]*aria-labelledby="cdLibrarySheetTitle"/);
+  assert.match(sheetJs, /window\.cdOpenLibrary = function \(\) \{ return window\.CodeDestinyShellSheet\.open\('cdLibrarySheet'\)/);
+  assert.match(sheetJs, /window\.cdOpenAccount = function \(\) \{ return window\.CodeDestinyShellSheet\.open\('cdAccountSheet'\)/);
+  const runtime = read("js/core/index-inline-runtime.js");
+  assert.match(runtime, /cdOpenLibrary: true,\n\s*cdOpenAccount: true,/);
+});

@@ -1517,7 +1517,12 @@
       "sheetPass": "查看使用券",
       "sheetProfile": "我的资料卡",
       "sheetPayments": "付款记录",
-      "sheetSupport": "客服中心"
+      "sheetSupport": "客服中心",
+      "sheetLibrary": "收藏夹",
+      "libraryLead": "咨询结果保存在各自的咨询页面中，可从这里直接前往。",
+      "libraryChat": "Yeoni·Neo 咨询记录",
+      "libraryYeongnyangi": "灵喵我的咨询",
+      "libraryNote": "记录保存在已登录的账户中。"
     },
     "chatEntry": {
       "title": "向 Yeoni 和 Neo 问出此刻最想知道的一件事",

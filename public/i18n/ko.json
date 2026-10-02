@@ -1364,7 +1364,12 @@
       "sheetPass": "이용권 확인",
       "sheetProfile": "내 프로필 카드",
       "sheetPayments": "결제 내역",
-      "sheetSupport": "고객센터"
+      "sheetSupport": "고객센터",
+      "sheetLibrary": "보관함",
+      "libraryLead": "상담 결과는 각 상담 화면에 보관돼요. 여기서 바로 찾아가세요.",
+      "libraryChat": "연이·네오 상담 기록",
+      "libraryYeongnyangi": "영냥이 나의 상담",
+      "libraryNote": "기록은 로그인한 계정에 보관돼요."
     },
     "chatEntry": {
       "title": "연이와 네오에게, 지금 가장 궁금한 한 가지",

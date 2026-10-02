@@ -1517,7 +1517,12 @@
       "sheetPass": "Check my pass",
       "sheetProfile": "My profile cards",
       "sheetPayments": "Payment history",
-      "sheetSupport": "Help center"
+      "sheetSupport": "Help center",
+      "sheetLibrary": "Library",
+      "libraryLead": "Your readings are kept in each consultation. Jump straight there from here.",
+      "libraryChat": "Yeoni & Neo chats",
+      "libraryYeongnyangi": "My Yeongnyangi readings",
+      "libraryNote": "Records are kept in your signed-in account."
     },
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",

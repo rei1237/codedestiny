@@ -323,3 +323,6 @@ html.neo-mode .cd-sheet,body.neo-mode .cd-sheet{--cd-sheet-bg:#171126;--cd-sheet
 .cd-sheet__menu a{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:12px;color:var(--cd-sheet-ink);font-size:.95rem;font-weight:700;text-decoration:none}
 .cd-sheet__menu a:hover{background:var(--cd-sheet-surface)}
 @media (min-width:760px){.cd-sheet{inset:0;width:min(400px,calc(100vw - 48px));max-width:none;height:fit-content;max-height:min(640px,calc(100vh - 48px));max-height:min(640px,calc(100dvh - 48px));margin:auto}}
+/* 보관함 시트 안내 줄 (연이 정원 P7, 2026-10-02) */
+.cd-sheet__lead{margin:0 0 4px;color:var(--cd-sheet-ink);font-size:.95rem;line-height:1.6}
+.cd-sheet__note{margin:12px 0 0;color:var(--cd-sheet-muted,var(--cd-sheet-ink));font-size:.85rem;line-height:1.5}
