@@ -4,9 +4,14 @@ import {AI_LOCALE_HEADER} from '@/lib/i18n/ai-locale';
 import type {Product} from '@/worker/yeongnyangi/payments/catalog';
 import type {ChapterSpec,ChapterBody} from '@/worker/yeongnyangi/fortune/book-contracts';
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
-export type FortuneRecovery={requestId:string;savedChapters:number;totalChapters:number;providerNeeded:boolean;retryable:boolean;canRetryNow:boolean;nextAction:'reread'|'wait'|'retry'|'support'|'held';autoResume:boolean};
+export type FortuneRecovery={requestId:string;savedChapters:number;totalChapters:number;providerNeeded:boolean;retryable:boolean;canRetryNow:boolean;nextAction:'reread'|'draw'|'wait'|'retry'|'support'|'held';autoResume:boolean};
 export type FortuneFollowup={status:'available'|'submitted'|'unavailable'|string;used:boolean;suggestions:string[]};
-export type FortuneRecord={correction?:{reason:string;appliedAt?:string};locale?:ReadingLocale;charts?:import('@/worker/yeongnyangi/fortune/reading-presentation').ReadingChart[];id:string;profileId:string;productId:string;state:string;paid:boolean;accessMethod?:'DIRECT_KRW'|'FAMILY';product:Product;manifest:ChapterSpec[];chapters:ChapterBody[];consultation?:Partial<import('@/worker/yeongnyangi/fortune/consultation').Consultation>;followup?:FortuneFollowup;recovery?:FortuneRecovery;errorCode?:string;createdAt:string;completedAt?:string};
+export type FortuneRecord={correction?:{reason:string;appliedAt?:string};locale?:ReadingLocale;charts?:import('@/worker/yeongnyangi/fortune/reading-presentation').ReadingChart[];id:string;profileId:string;productId:string;state:string;paid:boolean;accessMethod?:'DIRECT_KRW'|'FAMILY';product:Product;manifest:ChapterSpec[];chapters:ChapterBody[];consultation?:Partial<import('@/worker/yeongnyangi/fortune/consultation').Consultation>;followup?:FortuneFollowup;recovery?:FortuneRecovery;errorCode?:string;createdAt:string;completedAt?:string;tarotSpread?:PublicTarotSpread};
+export type TarotSpreadSlot={id:string;desktop:{col:number;row:number};mobile:{col:number;row:number};cross?:boolean;span?:number};
+export type PublicTarotSpread={id:string;version:number;title:string;purpose:string;summary:string;cardCount:number;
+ positions:{id:string;label:string;question:string;drawOrder:number;readOrder:number}[];
+ layout:{kind:string;slots:TarotSpreadSlot[]};links:{ids:string[];relation:string;note:string}[];source?:string;deckSize:number;
+ symmetry?:{a:string[];b:string[]};drawn:boolean;drawMethod?:'manual'|'auto';picks?:number[];inputs?:{period?:'week'|'month';options?:{a:string;b:string}}};
 export type FortuneSummary=Pick<FortuneRecord,'id'|'product'|'state'|'paid'|'createdAt'|'locale'> & {completedChapters:number;totalChapters?:number;recovering?:boolean;canRetry?:boolean;consultationKind?:string;kindLabel?:string;participants?:{self:string;partner:string}};
 export type FortunePage={fortunes:FortuneSummary[];nextCursor:string|null};
 export class FortuneApiError extends Error {

@@ -249,6 +249,21 @@ test('Family access consumes once, persists proof, and remains readable after pa
   expect((await repo.readRequest({},owner,'id')).accessMethod).toBe('FAMILY');
 });
 
+test('a tarot order awaiting its draw cannot be funded, and the draw commits once',async()=>{
+  familyUser={_id:owner,profileSubscription:{tier:'family',passTier:'family',isActive:true}};
+  const tarot={...values,snapshot:{manifest:[{}],analysis:{contexts:{tarot:{facts:[]}}}}};
+  await repo.createRequest({},owner,'id',tarot,{initialState:'AWAITING_DRAW'});
+  await expect(repo.createRequest({},owner,'x',tarot,{initialState:'PAID'})).rejects.toMatchObject({status:500});
+  for(const charge of [1000,1000])await expect(repo.attachPayment({},owner,'id',charge)).rejects.toMatchObject({status:409,code:'TAROT_DRAW_REQUIRED'});
+  expect(consumePass).not.toHaveBeenCalled();
+  expect(requests[0]).toMatchObject({state:'AWAITING_DRAW'});expect(requests[0].accessMethod).toBeFalsy();
+  const draw={method:'manual',picks:[1]},context={facts:[{label:'cards'}]};
+  const [a,b]=await Promise.all([repo.commitTarotDraw({},owner,'id',{context,draw}),repo.commitTarotDraw({},owner,'id',{context:{facts:[]},draw:{method:'auto',picks:[2]}})]);
+  expect(a.snapshot.tarotDraw).toEqual(draw);expect(b.snapshot.tarotDraw).toEqual(draw);
+  expect(requests[0]).toMatchObject({state:'CREATED',snapshot:{tarotDraw:draw,analysis:{contexts:{tarot:context}}}});
+  await expect(repo.commitTarotDraw({},other,'id',{context,draw})).rejects.toMatchObject({status:404});
+});
+
 test('Family confirmed terminal failure with no chapter restores quota, but a partial result does not',async()=>{
   requests.push({_id:'empty',userId:owner,...values,state:'GENERATING',accessMethod:'FAMILY',passEvidenceId:'507f1f77bcf86cd799439099',passCycleKey:'cycle',passCoinCost:10,completedChapters:0,chapters:[],leaseToken:'lease'});
   evidences.push({_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:values.featureKey,metadata:{requestId:'empty',accessMethod:'FAMILY'}});

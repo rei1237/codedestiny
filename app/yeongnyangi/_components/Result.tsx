@@ -19,6 +19,8 @@ import SummaryReportView from './SummaryReport';
 import FishReceipt from './FishReceipt';
 import {OrderReference} from './OrderRecovery';
 import TarotDrawRitual,{tarotRitualCompleted} from './TarotDrawRitual';
+import TarotCardPick from './tarot/TarotCardPick';
+import TarotSpreadReveal,{spreadCards} from './tarot/TarotSpreadReveal';
 import {useReadingLanguage} from '../_lib/use-reading-language';
 import {localizedSystem,localizedTier,localizedKind} from '../_lib/consultation-locale-copy';
 function RecoveryNotice({message,busy,onRetry,locale}:{message:string;busy:boolean;onRetry:()=>void;locale?:FortuneRecord['locale']}){
@@ -102,7 +104,8 @@ export default function Result(){
    try{
     let {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}`);fortune=sameRequest(fortune,id);
     let notice='';
-    if(!fortune.paid && fortune.state!=='REFUNDED'){
+    // A v3 tarot order waiting for the buyer's card pick is not payable yet, so there is no payment to attach.
+    if(!fortune.paid && fortune.state!=='REFUNDED' && fortune.state!=='AWAITING_DRAW'){
      // 이미 읽은 상담은 결제 연결(activate) 실패로 버리지 않는다. 일시 오류는 아래 결제 대기 폴링이 다시 시도하고,
      // 기다려도 바뀌지 않는 답(가격 변경 등)만 안내한다.
      try{fortune=sameRequest((await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}/activate`,{})).fortune,id);}
@@ -135,7 +138,7 @@ export default function Result(){
   return ()=>{cancelled=true;clearTimeout(timer);};
  },[row]);
  useEffect(()=>{
-  if(!row || row.paid || row.state==='REFUNDED' || !payWatching)return;
+  if(!row || row.paid || row.state==='REFUNDED' || row.state==='AWAITING_DRAW' || !payWatching)return;
   if(payChecks.current>=PAY_CHECK_LIMIT){setPayWatching(false);return;}
   let cancelled=false;
   const timer=setTimeout(async()=>{
@@ -155,6 +158,7 @@ export default function Result(){
  },[row,payWatching]);
  const tarotChart=row?.charts?.find(chart=>chart.domain==='tarot');
  const ritualEligible=!!row?.paid&&row.state!=='REFUNDED'&&!!tarotChart;
+ const spreadReveal=row?.tarotSpread?spreadCards(row.tarotSpread,tarotChart):undefined;
  const ritualRequestId=row?.id;
  useEffect(()=>{
   if(!ritualEligible||!ritualRequestId)return;
@@ -186,8 +190,8 @@ export default function Result(){
   {row&&row.state!=='COMPLETED'&&<OrderReference id={row.id} locale={row.locale}/>}
 
   {!row&&!error&&<ReadingLoading locale={siteLocale}/>}
-  {row&&<>
-   {ritualEligible&&ritualGate?.id!==row.id?<ReadingLoading stage="generating" product={row.product} locale={row.locale}/>:ritualEligible&&!ritualGate?.done&&tarotChart?<TarotDrawRitual requestId={row.id} chart={tarotChart} locale={row.locale} onComplete={finishRitual}/>:<>
+  {row&&row.state==='AWAITING_DRAW'&&row.tarotSpread?<TarotCardPick row={row} spread={row.tarotSpread} siteLocale={siteLocale} onRow={setRow}/>:row&&<>
+   {ritualEligible&&ritualGate?.id!==row.id?<ReadingLoading stage="generating" product={row.product} locale={row.locale}/>:ritualEligible&&!ritualGate?.done&&tarotChart?row.tarotSpread&&spreadReveal?<TarotSpreadReveal requestId={row.id} spread={row.tarotSpread} cards={spreadReveal} onComplete={finishRitual}/>:<TarotDrawRitual requestId={row.id} chart={tarotChart} locale={row.locale} onComplete={finishRitual}/>:<>
    {row.state!=='COMPLETED'&&<details className={styles.questionContext} open>
     <summary>{consultationLabel}</summary>
     {row.consultation?.question?<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>:<p>{stateCopy.context}</p>}

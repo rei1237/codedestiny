@@ -8,6 +8,7 @@ import {askPhase5Copy} from '../_lib/ask-phase5-copy';
 import {journeyCopy} from '../_lib/journey-copy';
 import {v7Label,v7PartHead} from '../_lib/reading-v7-copy';
 import ReadingCharts from './ReadingCharts';
+import {TarotSpreadResult,spreadCards} from './tarot/TarotSpreadReveal';
 import BlockChartHints from './BlockChartHints';
 import {AtAGlance,AnswerTable,Interlude,KeyPoints,MascotBubble,SajuBoard,SceneArt,TimingTimeline,YearFocus} from './ReadingVisuals';
 import {expressionFor,interludes,isRichReading,sajuFacts,sceneArt,timingRows,yearFocus} from '../_lib/reading-visuals';
@@ -49,6 +50,8 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
  const timingAt=timingChapter>=0?timingChapter:ask&&timing.length?0:-1,timingLate=timingChapter<0;
  const saju=visual?sajuFacts(row.charts || []):null;
  const years=yearFocus(row.consultation?.period?.years,row.consultation?.asOf),focus=years.map(y=>y.year);
+ // v3 tarot: the spread map sits between the core answer (chapter 1) and the per-position chapter.
+ const spreadMap=row.tarotSpread?spreadCards(row.tarotSpread,row.charts?.find(chart=>chart.domain==='tarot')):undefined;
  return <div className={styles.book} lang={row.locale || 'ko'}>
   {first&&<section className={styles.overview} aria-labelledby="reading-focus-title" data-reading-focus>
    <h2 id="reading-focus-title">{firstAnswer?focusCopy.answer:copy.intro}</h2>
@@ -84,7 +87,7 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
     {index===timingAt&&timingLate&&<TimingTimeline rows={timing} focus={focus} locale={row.locale}/>}
     {visual&&index===0&&saju&&<SajuBoard pillars={saju.pillars} elements={saju.elements} locale={row.locale}/>}
     {visual&&chapter.persona?<MascotBubble expression={expressionFor(row.manifest[index].theme,index)} text={chapter.persona} locale={row.locale}/>:<blockquote>{chapter.persona}</blockquote>}<a href="#reading-progress">{copy.top}</a>
-   </article>{breaks.has(index)&&<Interlude art={breaks.get(index)!}/>}</Fragment>)}
+   </article>{index===0&&row.tarotSpread&&spreadMap&&<TarotSpreadResult spread={row.tarotSpread} cards={spreadMap}/>}{breaks.has(index)&&<Interlude art={breaks.get(index)!}/>}</Fragment>)}
   </div>
  </div>;
 }
