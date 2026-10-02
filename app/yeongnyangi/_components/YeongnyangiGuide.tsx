@@ -1,5 +1,6 @@
 import {products,systemNames,packages,type Product} from '@/worker/yeongnyangi/payments/catalog';
 import {depthDescriptions} from '@/worker/yeongnyangi/fortune/reading-policy';
+import {consultationChapterCounts} from '@/worker/yeongnyangi/fortune/consultation-kinds';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import SampleExposure from './SampleExposure';
 import styles from './yeongnyangi-guide.module.css';
@@ -11,7 +12,7 @@ const DOMAINS:DomainId[]=['saju','ziwei','sukuyo','vedic','astrology','tarot'];
 const TIERS=['mackerel','salmon','flounder','tuna'] as const;
 const won=(amount:number)=>`${amount.toLocaleString('ko-KR')}원`;
 const single=(domain:DomainId,fish:string)=>{const p=products.find(item=>item.readingKind==='single'&&item.domain===domain&&item.fishId===fish);if(!p)throw new Error(`영냥이 상품 없음: ${domain}_${fish}`);return p;};
-const chapterRange=(items:Product[])=>{const counts=items.map(p=>p.chapterCount);const min=Math.min(...counts),max=Math.max(...counts);return min===max?`${min}개`:`${min}~${max}개`;};
+const chapterRange=(items:Product[])=>{const counts=items.flatMap(consultationChapterCounts);const min=Math.min(...counts),max=Math.max(...counts);return min===max?`${min}개`:`${min}~${max}개`;};
 const tierRows=TIERS.map(tier=>{const items=DOMAINS.map(domain=>single(domain,tier));const prices=[...new Set(items.map(p=>p.priceKRW))];if(prices.length!==1)throw new Error(`영냥이 ${tier} 가격이 체계마다 다르다: ${prices.join(',')}`);return {tier,name:packages[tier].name,price:prices[0],chapters:chapterRange(items),depth:depthDescriptions[tier]};});
 export const LOWEST_PRICE=won(tierRows[0].price);
 const SYSTEMS=DOMAINS.map(domain=>systemNames[domain]).join(', ');
