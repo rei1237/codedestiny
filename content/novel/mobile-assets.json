@@ -527,6 +527,127 @@
       "bytes": 81504,
       "width": 1280,
       "height": 853
+    },
+    {
+      "key": "timeVault",
+      "source": "/images/novel/remaster/time-vault-v1.webp",
+      "sourceBytes": 265310,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/timeVault.webp",
+      "bytes": 137784,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "sunkenStacks",
+      "source": "/images/novel/remaster/sunken-stacks-v1.webp",
+      "sourceBytes": 183408,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/sunkenStacks.webp",
+      "bytes": 88548,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "eclipseSky",
+      "source": "/images/novel/remaster/eclipse-sky-v1.webp",
+      "sourceBytes": 156704,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/eclipseSky.webp",
+      "bytes": 80278,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "aptHall",
+      "source": "/images/novel/remaster/apartment-hall-v1.webp",
+      "sourceBytes": 180362,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/aptHall.webp",
+      "bytes": 91114,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "skyship",
+      "source": "/images/novel/remaster/observatory-skyship-v1.webp",
+      "sourceBytes": 255740,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/skyship.webp",
+      "bytes": 132558,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "nakshatra",
+      "source": "/images/novel/remaster/nakshatra-temple-v1.webp",
+      "sourceBytes": 244548,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/nakshatra.webp",
+      "bytes": 125714,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "tarotHall",
+      "source": "/images/novel/remaster/tarot-corridor-v1.webp",
+      "sourceBytes": 235054,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/tarotHall.webp",
+      "bytes": 122816,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "towerFall",
+      "source": "/images/novel/remaster/falling-tower-v1.webp",
+      "sourceBytes": 164402,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/towerFall.webp",
+      "bytes": 83372,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "gongmang",
+      "source": "/images/novel/remaster/gongmang-void-v1.webp",
+      "sourceBytes": 233342,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/gongmang.webp",
+      "bytes": 123488,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "worldTree",
+      "source": "/images/novel/remaster/world-tree-v1.webp",
+      "sourceBytes": 322950,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/worldTree.webp",
+      "bytes": 175866,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "cherryDay",
+      "source": "/images/novel/remaster/cherry-riverbank-day-v1.webp",
+      "sourceBytes": 335806,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/cherryDay.webp",
+      "bytes": 216430,
+      "width": 1280,
+      "height": 853
     }
   ],
   "sprites": {

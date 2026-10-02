@@ -193,6 +193,138 @@
       "rules": "no people/animals/silhouettes, pictogram-only signs, landmark in middle third, lower centre open",
       "maxBytes": 370000,
       "bytes": 259930
+    },
+    {
+      "id": "time-vault-v1",
+      "file": "time-vault-v1.webp",
+      "type": "story-background",
+      "bgKey": "timeVault",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "재성의 섬 시간 금고 — 시계 톱니 금고실(EP.15 하이스트)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 265310
+    },
+    {
+      "id": "sunken-stacks-v1",
+      "file": "sunken-stacks-v1.webp",
+      "type": "story-background",
+      "bgKey": "sunkenStacks",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "인성의 도서관 물에 잠긴 서고(EP.18)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 183408
+    },
+    {
+      "id": "eclipse-sky-v1",
+      "file": "eclipse-sky-v1.webp",
+      "type": "story-background",
+      "bgKey": "eclipseSky",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "흑월이 드리운 일식 하늘(EP.25 흑월 등장)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 156704
+    },
+    {
+      "id": "apartment-hall-v1",
+      "file": "apartment-hall-v1.webp",
+      "type": "story-background",
+      "bgKey": "aptHall",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "현실 아파트 복도 — 옆집 이웃(EP.28~28D)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 180362
+    },
+    {
+      "id": "observatory-skyship-v1",
+      "file": "observatory-skyship-v1.webp",
+      "type": "story-background",
+      "bgKey": "skyship",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "점성술 하늘 — 천문대 하늘배 갑판(EP.34~36)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 255740
+    },
+    {
+      "id": "nakshatra-temple-v1",
+      "file": "nakshatra-temple-v1.webp",
+      "type": "story-background",
+      "bgKey": "nakshatra",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "베다 하늘 — 스물일곱 달집 사원(EP.37~38)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 244548
+    },
+    {
+      "id": "tarot-corridor-v1",
+      "file": "tarot-corridor-v1.webp",
+      "type": "story-background",
+      "bgKey": "tarotHall",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "타로 하늘 — 카드 회랑(EP.41~45)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 235054
+    },
+    {
+      "id": "falling-tower-v1",
+      "file": "falling-tower-v1.webp",
+      "type": "story-background",
+      "bgKey": "towerFall",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "타로 '탑' — 무너지는 탑(EP.43)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 164402
+    },
+    {
+      "id": "gongmang-void-v1",
+      "file": "gongmang-void-v1.webp",
+      "type": "story-background",
+      "bgKey": "gongmang",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "공망 — 일식 속 빈자리(EP.46~49 결전)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 233342
+    },
+    {
+      "id": "world-tree-v1",
+      "file": "world-tree-v1.webp",
+      "type": "story-background",
+      "bgKey": "worldTree",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "세계수 — 다섯 기운의 핵(EP.49)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 322950
+    },
+    {
+      "id": "cherry-riverbank-day-v1",
+      "file": "cherry-riverbank-day-v1.webp",
+      "type": "story-background",
+      "bgKey": "cherryDay",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "낮의 벚꽃 강가 — 재회(EP.52)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 335806
     }
   ]
 }
