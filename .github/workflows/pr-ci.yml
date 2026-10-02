@@ -90,8 +90,10 @@ jobs:
           node scripts/resolve-ci-tier.mjs --self-test
           node scripts/resolve-ci-tier.mjs
 
+      # runs_fast 가 아니라 markdown_only 로 건다 — medium 경로 문서(docs/ROUTE_MAP.md 등)는
+      # 문서만 바뀌어도 fast lane 을 깨우므로, runs_fast 로 걸면 그때 신선도 검사가 빠진다.
       - name: Verify plain documentation freshness
-        if: steps.tier.outputs.runs_fast != 'true'
+        if: steps.tier.outputs.markdown_only == 'true'
         run: npm run verify:doc-freshness
 
       - name: Compare proposed verification plan (shadow only)
