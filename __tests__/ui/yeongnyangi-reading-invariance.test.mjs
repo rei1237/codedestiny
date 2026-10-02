@@ -14,6 +14,7 @@ import path from 'node:path';
 // The evidence-language writing contract changes all 123 new concise request hashes.
 // The worker 천요 fix (全書 丑起正月) changes the 24 Ziwei-bearing request hashes; ids, prepares, validations and manifests stay.
 // Ziwei now charts the longitude+DST corrected birth clock (lib/ziwei-birth-clock.js) with a new chart note, so the same 24 request hashes change again; ids, prepares, validations and manifests stay.
+// saju.seasonalBalance (조후) joined the saju anchor refs, so the 8 saju v7 rows change prepare, requests and manifests; ids and validations stay.
 // All calls are mocks: providers are stubbed, ask analysis falls back to its rules, time and randomness are fixed.
 // An intended change outside v7 wiring (engine, prompt, catalog) refreshes the table: YEONGNYANGI_INVARIANCE_PRINT=1.
 process.env.TZ='UTC';
@@ -119,27 +120,27 @@ const EXPECTED = {
  "saju_mackerel:money": "cdbe95c856e1 c0bcb52f7ccb 4f47a829554c c4202c21b93e 054738d4280d",
  "saju_mackerel:ask": "f5ee6960f26a 2c71108a4988 0e3a33c52776 475091f8aa6d ac4eb5435ab6",
  "saju_salmon:legacy": "57913d88b470 a93ddc930da5 d09f0da3650a 3693165b1f33 08f01b92e660",
- "saju_salmon:personal": "37f20270d48d 8837df4b405b 27a53c711587 ef7d411955d0 a9108f244a70",
+ "saju_salmon:personal": "37f20270d48d db5d70e556f4 d10379d8563c ef7d411955d0 138f780735b1",
  "saju_salmon:compatibility": "10f81d9a5876 f34b03e0b0c2 581ab4010157 eb7db84b3fbe de55f005535f",
  "saju_salmon:love": "145a385afb0f 6aac210d6b91 2e80d2077ba9 ef1007d4876d 6913aca975af",
  "saju_salmon:work": "6089a129ebde 4570f26e3133 6182ef674635 dc13148a2077 fa41008e9044",
  "saju_salmon:money": "52beec216bf4 f5042de44d43 cfce8c9a4c21 e85058adb05e 6ae138fbccb6",
- "saju_salmon:ask": "de3672b4c9ac 62ad5999f17c 5a37313b0441 fe6794e50d7e a9108f244a70",
+ "saju_salmon:ask": "de3672b4c9ac 51340521d2e7 611c33a30c19 fe6794e50d7e 138f780735b1",
  "saju_flounder:legacy": "55ae6a8298d8 bd50caa83994 cd2e89ac613c 398450b1daee 6d0df7a238c4",
- "saju_flounder:personal": "d287003d59c7 19100f4f7ca5 90e268cd1e72 798d5b253191 61c642e3d72e",
+ "saju_flounder:personal": "d287003d59c7 4f1fe7bf13ab d89af138fa95 798d5b253191 da44adee8773",
  "saju_flounder:compatibility": "3f437d5180e7 1b702b9f3670 00a4ffc13589 8635657f6703 c5bce8f8a3ca",
  "saju_flounder:love": "18057694882d 59eedfcc7ab4 3b4cb5bd00d9 759b63dd861e 45cdf76b8942",
  "saju_flounder:work": "901c2cbf9d64 9e08a6d18596 38cab3e48d5c 4040723f2058 f7f756f6a7c3",
  "saju_flounder:money": "e75aad0e06b3 d4d21c2854c9 d6c5f59b0a3e 5af2ce216b02 6c151b1de8ff",
- "saju_flounder:ask": "b090e65248a1 07d92711cfc7 db90c543d0a3 2c9d15563f30 61c642e3d72e",
+ "saju_flounder:ask": "b090e65248a1 954459eab408 aa96bab69ad5 2c9d15563f30 da44adee8773",
  "saju_tuna:legacy": "c86fa6771aa8 d7c6a9f195c2 71f250fcc8a1 a0c94fb8260a 7266f902c6d4",
- "saju_tuna:personal": "57914638d670 0ef6d197cc46 1f3047fad87a 79c7c564f387 7250e568b2a1",
+ "saju_tuna:personal": "57914638d670 b68881988dad 4c4b4035dab2 79c7c564f387 123cd9c8af01",
  "saju_tuna:compatibility": "b501d4ee1668 eac991d96a26 86cc8f8a1322 0c853e374e37 14b76362baa5",
  "saju_tuna:timing": "33b61ed630d4 14ad807272ff 77478c19d4af 850ca8de7463 d8509d5c00a7",
  "saju_tuna:love": "ca10e3762aa3 242ba3e59def b794827322aa dd60e7c70fc6 7c9b284576de",
  "saju_tuna:work": "0b472b29c308 3e03ba7eb4d8 56a9f8d81bab 9a27d8152ce3 bcc5a192599a",
  "saju_tuna:money": "3864285d3e0a 8bcb66d43958 e2e3551204e8 eddea4a1731b d0bff6c53db5",
- "saju_tuna:ask": "175aa391cc59 c021d94b41e4 d27ec57fe586 6a33fd15613a 7250e568b2a1",
+ "saju_tuna:ask": "175aa391cc59 75387d064f1b 276515ff8029 6a33fd15613a 123cd9c8af01",
  "ziwei_mackerel:legacy": "d57f7a6310e3 abdcf7f8a5b6 f0103884472b e4b382fc07ca f0f57311a50f",
  "ziwei_mackerel:personal": "b09aead75e88 ab479c3d1a62 b01cc448513d 613a593bc74c 575175147460",
  "ziwei_mackerel:money": "99a39543089a 3a77bd3bad32 f17c635a7fe4 2d577b0f5465 a50ae1a95053",
@@ -229,8 +230,8 @@ const EXPECTED = {
  "fusion_all:legacy": "0c0008f54613 2eccc40a7f2e a501d65a78c1 190a0088f6f3 6e8d23af93ea",
  "fusion_all:personal": "6a6de48b2330 3a9156dd0fe0 b3dd2cbb3810 78c18f7b6ec3 d3753452ec82",
  "fusion_all:ask": "3c010b57452b 7784c196650f 76d68888c7e6 631de32565b5 6e8d23af93ea",
- "saju_salmon@timeUnknown": "71627c589411 b4c7c4d8ef79 1cbdc04b341d fc4b9fca2d38 -",
- "saju_salmon@timeUnknown:ask": "b6114fe5862e b7c45ef4652e 8b5afbe4c443 58351944556e -",
+ "saju_salmon@timeUnknown": "71627c589411 c8ef0e197491 a45f16da8ba1 fc4b9fca2d38 -",
+ "saju_salmon@timeUnknown:ask": "b6114fe5862e 430f8c1a29a9 988417010b2a 58351944556e -",
  "ziwei_salmon@noPlace": "4f372ab54262 44ed766a1b54 ee21f98e38fb b43270c880d1 -",
  "ziwei_salmon@noPlace:ask": "71a4244dee5b 34542d8b79c4 5cbcb07b31d3 d3efc6ef4910 -",
  "saju_mackerel@spirit": "b3266c0a3126 d5d82461ce72 776d19cdf40d c3b521dd1883 -"
