@@ -138,5 +138,61 @@
     "de": "Records are kept in your signed-in account.",
     "nl": "Records are kept in your signed-in account.",
     "ms": "Records are kept in your signed-in account."
+  },
+  "shell.cdMobileBottomNav.cdMobileBottomNavMain.library": {
+    "ko": "보관함",
+    "en": "Library",
+    "ja": "保管箱",
+    "zh-CN": "收藏夹",
+    "zh-TW": "收藏夾",
+    "vi": "Library",
+    "hi": "Library",
+    "es": "Library",
+    "fr": "Library",
+    "de": "Library",
+    "nl": "Library",
+    "ms": "Library"
+  },
+  "shell.cdMobileBottomNav.cdMobileBottomNavMain.consultTab.ariaLabel": {
+    "ko": "연이·네오 상담",
+    "en": "Chat with Yeoni & Neo",
+    "ja": "ヨニ・ネオに相談",
+    "zh-CN": "与 Yeoni·Neo 咨询",
+    "zh-TW": "與 Yeoni·Neo 諮詢",
+    "vi": "Chat with Yeoni & Neo",
+    "hi": "Chat with Yeoni & Neo",
+    "es": "Chat with Yeoni & Neo",
+    "fr": "Chat with Yeoni & Neo",
+    "de": "Chat with Yeoni & Neo",
+    "nl": "Chat with Yeoni & Neo",
+    "ms": "Chat with Yeoni & Neo"
+  },
+  "shell.cdMobileBottomNav.cdMobileBottomNavMain.libraryTab.ariaLabel": {
+    "ko": "내 보관함",
+    "en": "My library",
+    "ja": "マイ保管箱",
+    "zh-CN": "我的收藏夹",
+    "zh-TW": "我的收藏夾",
+    "vi": "My library",
+    "hi": "My library",
+    "es": "My library",
+    "fr": "My library",
+    "de": "My library",
+    "nl": "My library",
+    "ms": "My library"
+  },
+  "shell.cdMobileBottomNav.cdMobileBottomNavMain.consult": {
+    "ko": "상담",
+    "en": "Chat",
+    "ja": "相談",
+    "zh-CN": "咨询",
+    "zh-TW": "諮詢",
+    "vi": "Chat",
+    "hi": "Chat",
+    "es": "Chat",
+    "fr": "Chat",
+    "de": "Chat",
+    "nl": "Chat",
+    "ms": "Chat"
   }
 }

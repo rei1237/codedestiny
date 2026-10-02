@@ -5868,7 +5868,15 @@
         },
         "k164wabc": {
           "ariaLabel": "マイページ"
-        }
+        },
+        "library": "保管箱",
+        "consultTab": {
+          "ariaLabel": "ヨニ・ネオに相談"
+        },
+        "libraryTab": {
+          "ariaLabel": "マイ保管箱"
+        },
+        "consult": "相談"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "タロット",

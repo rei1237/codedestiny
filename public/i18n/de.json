@@ -5868,7 +5868,15 @@
         },
         "k164wabc": {
           "ariaLabel": "Mein Bereich"
-        }
+        },
+        "library": "Library",
+        "consultTab": {
+          "ariaLabel": "Chat with Yeoni & Neo"
+        },
+        "libraryTab": {
+          "ariaLabel": "My library"
+        },
+        "consult": "Chat"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "Tarot",

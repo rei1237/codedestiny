@@ -5868,7 +5868,15 @@
         },
         "k164wabc": {
           "ariaLabel": "我的页面"
-        }
+        },
+        "library": "收藏夹",
+        "consultTab": {
+          "ariaLabel": "与 Yeoni·Neo 咨询"
+        },
+        "libraryTab": {
+          "ariaLabel": "我的收藏夹"
+        },
+        "consult": "咨询"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "塔罗",

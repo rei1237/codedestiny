@@ -9,7 +9,7 @@
  */
 import { stripLocalePrefix } from "./localePath";
 
-export type MobileTabKey = "home" | "saju" | "fortunes" | "pass" | "my";
+export type MobileTabKey = "home" | "fortunes" | "consult" | "library" | "my";
 
 export interface MobileTab {
   key: MobileTabKey;
@@ -32,17 +32,21 @@ export interface MobileTab {
   shellAction?: string;
 }
 
-/** 사주 탭 진입점. 기존 게스트/저장 프로필 진입 컨트롤러를 재사용한다. */
+/**
+ * 무료 사주 진입 액션. 2026-10-02 연이 정원 개편으로 사주 탭은 빠졌지만(모든 운세·검색·질문 카드에서
+ * 찾는다) 딥링크와 DiaryTogetherSheet 가 계속 쓰고, 이 URL 은 모든 운세 탭으로 표시한다.
+ */
 export const SAJU_TAB_ACTION = "cdOneStepFreeSajuEntry";
 
 /** 모든 운세 탭이 셸에서 실행하는 ?action= 이름. index.html 의 window.cdOpenAllFortunes 와 짝. */
 export const ALL_FORTUNES_ACTION = "cdOpenAllFortunes";
 
-/**
- * 마이 탭이 셸에서 실행하는 ?action= 이름. js/destiny-profile.js 의 window.dpOpenList 와 짝.
- * 프로필 카드 관리는 셸 하단 시트 하나가 정본이라, React 페이지의 마이 탭도 셸로 넘긴다.
- */
+/** 프로필 카드 시트(js/destiny-profile.js 의 window.dpOpenList). 계정 시트 안에서 열고, 딥링크는 마이 탭으로 표시한다. */
 export const PROFILE_SHEET_ACTION = "dpOpenList";
+
+/** 보관함·마이 탭이 셸에서 여는 시트(js/core/shell-sheet.js). React 페이지에서는 셸로 넘어가 같은 시트를 연다. */
+export const LIBRARY_SHEET_ACTION = "cdOpenLibrary";
+export const ACCOUNT_SHEET_ACTION = "cdOpenAccount";
 
 /** 새로고침·뒤로가기에서 활성 탭을 유지하기 위한 sessionStorage 키. */
 export const MOBILE_TAB_STATE_KEY = "cd.mobileTab.v1";
@@ -63,16 +67,6 @@ export const MNAV_TOGGLE_LABEL_KO = "하단 메뉴 접기/펼치기";
 export const MOBILE_TABS: readonly MobileTab[] = [
   { key: "home", label: "홈", href: "/", ariaLabel: "홈", glyph: "⌂", transKey: "home.nav.home", ariaTransKey: "home.nav.home" },
   {
-    key: "saju",
-    label: "사주",
-    href: `/?action=${SAJU_TAB_ACTION}`,
-    ariaLabel: "사주",
-    transKey: "home.mobileFunnel.freeNav",
-    ariaTransKey: "home.mobileFunnel.freeNavAria",
-    glyph: "☼",
-    shellAction: SAJU_TAB_ACTION,
-  },
-  {
     key: "fortunes",
     label: "모든 운세",
     href: `/?action=${ALL_FORTUNES_ACTION}`,
@@ -82,19 +76,29 @@ export const MOBILE_TABS: readonly MobileTab[] = [
     glyph: "✦",
     shellAction: ALL_FORTUNES_ACTION,
   },
-  { key: "pass", label: "이용권", href: "/points/", ariaLabel: "이용권 상점", glyph: "◈",
-    transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.ku6gdz",
-    ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k16eawmw.ariaLabel" },
-  // 셸에서는 프로필 시트를 열고, React 페이지에서는 셸로 넘어가 같은 시트를 연다(사주·모든 운세 탭과 동일).
+  // 셸에서는 home-funnel.js 가 지금 테마(연이·네오)에 맞춰 ?character= 를 붙인다.
+  { key: "consult", label: "상담", href: "/fortune-chat/", ariaLabel: "연이·네오 상담", glyph: "✿",
+    transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.consult",
+    ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.consultTab.ariaLabel" },
+  {
+    key: "library",
+    label: "보관함",
+    href: `/?action=${LIBRARY_SHEET_ACTION}`,
+    ariaLabel: "내 보관함",
+    transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.library",
+    ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.libraryTab.ariaLabel",
+    glyph: "▤",
+    shellAction: LIBRARY_SHEET_ACTION,
+  },
   {
     key: "my",
     label: "마이",
-    href: `/?action=${PROFILE_SHEET_ACTION}`,
+    href: `/?action=${ACCOUNT_SHEET_ACTION}`,
     ariaLabel: "마이페이지",
     transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.kwp0s",
     ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k164wabc.ariaLabel",
     glyph: "☰",
-    shellAction: PROFILE_SHEET_ACTION,
+    shellAction: ACCOUNT_SHEET_ACTION,
   },
 ] as const;
 
@@ -102,10 +106,12 @@ const TAB_KEYS: readonly MobileTabKey[] = MOBILE_TABS.map((tab) => tab.key);
 
 /** pathname prefix → 탭 key. 위에서부터 먼저 맞는 것을 쓴다(구체적인 것이 앞). */
 const PATH_RULES: ReadonlyArray<{ prefix: string; key: MobileTabKey }> = [
-  { prefix: "/points", key: "pass" },
+  { prefix: "/fortune-chat", key: "consult" },
+  { prefix: "/yeongnyangi/library", key: "library" },
+  { prefix: "/points", key: "my" },
   { prefix: "/login", key: "my" },
   { prefix: "/signup", key: "my" },
-  { prefix: "/saju", key: "saju" },
+  { prefix: "/saju", key: "fortunes" },
   { prefix: "/music", key: "home" },
   { prefix: "/today", key: "home" },
 ];
@@ -132,12 +138,13 @@ function readActionParam(search: string): string {
 export function resolveActiveTabKey(pathname: string, search = ""): MobileTabKey | null {
   const path = stripLocalePrefix(String(pathname || "/").replace(/\/+$/, "") || "/");
 
-  // 사주·모든 운세·마이 탭은 홈(/)과 pathname 이 같으므로 ?action= 으로만 구분된다.
+  // 모든 운세·보관함·마이 탭은 홈(/)과 pathname 이 같으므로 ?action= 으로만 구분된다.
   const action = readActionParam(search);
-  if (action === SAJU_TAB_ACTION || action === "cdSajuTabEntry") return "saju";
+  if (action === SAJU_TAB_ACTION || action === "cdSajuTabEntry") return "fortunes";
   if (new URLSearchParams(search).get("view") === "consultations") return "fortunes";
   if (action === ALL_FORTUNES_ACTION) return "fortunes";
-  if (action === PROFILE_SHEET_ACTION) return "my";
+  if (action === LIBRARY_SHEET_ACTION) return "library";
+  if (action === ACCOUNT_SHEET_ACTION || action === PROFILE_SHEET_ACTION) return "my";
   if (path === "/") return "home";
 
   for (const rule of PATH_RULES) {

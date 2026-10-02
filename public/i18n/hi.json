@@ -6385,7 +6385,15 @@
         },
         "k164wabc": {
           "ariaLabel": "मेरा पेज"
-        }
+        },
+        "library": "Library",
+        "consultTab": {
+          "ariaLabel": "Chat with Yeoni & Neo"
+        },
+        "libraryTab": {
+          "ariaLabel": "My library"
+        },
+        "consult": "Chat"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "टैरो",

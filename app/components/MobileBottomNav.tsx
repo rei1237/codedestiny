@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { memo, useCallback, useEffect, useState, type MouseEvent } from "react";
-import { Gem, Home, Sparkles, UserCircle } from "lucide-react";
+import { Archive, Home, MessageCircleHeart, Sparkles, UserCircle } from "lucide-react";
 import {
   MOBILE_TABS,
   resolveActiveTabKey,
@@ -58,17 +58,12 @@ function TabIcon({ tabKey }: { tabKey: MobileTabKey }) {
       return <Home className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
     case "fortunes":
       return <Sparkles className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
-    case "pass":
-      return <Gem className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
-    case "my":
-      return <UserCircle className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
-    // 사주는 정적 셸과 같은 글리프를 쓴다 — 명(命) 한 글자가 lucide 아이콘보다 뜻이 분명하다.
+    case "consult":
+      return <MessageCircleHeart className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
+    case "library":
+      return <Archive className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
     default:
-      return (
-        <span className={ICON_CLASS} aria-hidden="true">
-          ☼
-        </span>
-      );
+      return <UserCircle className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
   }
 }
 
@@ -169,7 +164,7 @@ function MobileBottomNav() {
       window.location.assign(tab.href);
       return;
     }
-    // React 라우트(/points)는 next/link 기본 이동에 맡기고 대기 표시만 남긴다.
+    // React 라우트(/fortune-chat)는 next/link 기본 이동에 맡기고 대기 표시만 남긴다.
   }, [pendingKey]);
 
   const toggleCollapsed = useCallback(() => {

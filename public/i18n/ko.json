@@ -3671,7 +3671,15 @@
         },
         "k164wabc": {
           "ariaLabel": "마이페이지"
-        }
+        },
+        "library": "보관함",
+        "consultTab": {
+          "ariaLabel": "연이·네오 상담"
+        },
+        "libraryTab": {
+          "ariaLabel": "내 보관함"
+        },
+        "consult": "상담"
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "타로",
