@@ -44,3 +44,39 @@ test('recovered long prose is split for reading without truncating its content',
  assert.ok(result.blocks[0].paragraphs.every(p=>Array.from(p).length<=500));
  assert.equal(result.blocks[0].paragraphs.join('').replace(/\s/gu,''),long.replace(/\s/gu,''));
 });
+
+const V7='destiny-book-v7'; // the fixture above uses a non-production version id
+const capture=(method,run)=>{
+ const original=console[method],lines=[];
+ console[method]=(...args)=>lines.push(args);
+ try{return {result:run(),lines};}finally{console[method]=original;}
+};
+
+test('the fallback is logged once with the strict rule that sent the chapter there',()=>{
+ const {lines}=capture('warn',()=>deliverChapter(body,input));
+ const fallback=lines.filter(args=>args[0]==='[yeongnyangi-delivery-fallback]');
+ assert.equal(fallback.length,1);
+ const entry=JSON.parse(fallback[0][1]);
+ assert.equal(entry.chapter,0);assert.equal(typeof entry.code,'string');
+ assert.ok(!fallback[0][1].includes(paragraph1.slice(0,20))); // codes only, never the text
+});
+
+test('the fallback drops sentences with words above the chapter tier, the strict path\'s TIER_SCOPE_VIOLATION',()=>{
+ const scoped='너의 용신은 수 기운이라 물가에서 쉬는 시간이 좋습니다.';
+ const raw={...body,blocks:[{...body.blocks[0],paragraphs:[paragraph1+' '+scoped,paragraph2]}]};
+ const salmon=capture('warn',()=>deliverChapter(raw,{...input,chapter:{...input.chapter,version:V7,tier:'salmon'}})).result;
+ assert.deepEqual(salmon.blocks[0].paragraphs,[paragraph1,paragraph2]);
+ const tuna=capture('warn',()=>deliverChapter(raw,{...input,chapter:{...input.chapter,version:V7,tier:'tuna'}})).result;
+ assert.ok(tuna.blocks[0].paragraphs[0].includes(scoped));
+});
+
+test('the fallback gets the same v7 repeat prune as the strict path, and the log measures what is left',()=>{
+ const repeated='마음이 급할수록 상대의 속도와 내 기대를 따로 적어 두는 습관이 관계를 지켜 줍니다.';
+ const raw={...body,blocks:[{...body.blocks[0],paragraphs:[paragraph1+' '+repeated,paragraph2+' '+repeated]}]};
+ const v7={...input,chapter:{...input.chapter,version:V7,owns:[],refs:[]}};
+ const {result,lines}=capture('log',()=>capture('warn',()=>deliverChapter(raw,v7)).result);
+ assert.deepEqual(result.blocks[0].paragraphs,[paragraph1+' '+repeated,paragraph2]);
+ const audit=lines.filter(args=>args[0]==='[yeongnyangi-v7-audit]').map(args=>JSON.parse(args[1]));
+ assert.equal(audit.length,1);
+ assert.equal(audit[0].path,'fallback');assert.equal(audit[0].sentences,1);assert.ok(audit[0].remaining>120);
+});
