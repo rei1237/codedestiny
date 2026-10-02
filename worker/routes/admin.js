@@ -799,11 +799,8 @@ function buildAdminSajuJohuProfile(pillars) {
   const seasonMap = { 寅: "봄", 卯: "봄", 辰: "봄", 巳: "여름", 午: "여름", 未: "여름", 申: "가을", 酉: "가을", 戌: "가을", 亥: "겨울", 子: "겨울", 丑: "겨울" };
   const monthBranch = pillars?.m?.j || "";
   const season = seasonMap[monthBranch] || "봄";
-  let score = 0;
-  if (season === "여름") score += 4;
-  else if (season === "봄") score += 2;
-  else if (season === "가을") score -= 2;
-  else score -= 4;
+  const branchTemp = { 子: -4, 丑: -4, 寅: -1, 卯: 1, 辰: 2, 巳: 3, 午: 4, 未: 4, 申: 1, 酉: -1, 戌: -2, 亥: -3 };
+  let score = Object.prototype.hasOwnProperty.call(branchTemp, monthBranch) ? branchTemp[monthBranch] : 2;
 
   let fireCount = 0;
   let waterCount = 0;

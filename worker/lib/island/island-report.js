@@ -2,8 +2,8 @@
 // 이 모듈의 모든 함수는 순수 함수여야 한다: Date.now()/Math.random()/네트워크 금지.
 // (동일 입력 → 항상 동일 출력. 검증: scripts/verify-island-report.mjs)
 //
-// 유료 심층 리포트(₩5,000) 전용. 섬 지도의 무료 궁 요약은 destiny-island.html의 생성기가 정본이라
-// 같은 문장을 여기서 또 만들지 않는다. 섹션 프레임은 PALACE_CONSULT를 재사용해 ₩20,000 상담과 목차를 맞춘다.
+// 유료 심층 리포트(ziwei-island-deep-report, 가격은 레지스트리) 전용. 섬 지도의 무료 궁 요약은 destiny-island.html의 생성기가 정본이라
+// 같은 문장을 여기서 또 만들지 않는다. 섹션 프레임은 PALACE_CONSULT를 재사용해 궁 상담과 목차를 맞춘다.
 //
 // 🔴 chart를 함께 받는 이유
 // blueprint는 무인증·무DB 라우트가 쓰는 계약이라 스키마를 못 늘린다. 그런데 자미두수 판독의 핵심인
@@ -449,7 +449,7 @@ function moveLine(facts) {
 }
 
 /** 도움이 붙은 별을 어떻게 쓸지 — 있으면 활용법, 없으면 대안. */
-function useAssistLine(facts) {
+function pickAssistLine(facts) {
   if (facts.assistantStars.length === 0) {
     return "이 자리에는 도와주는 별이 따로 붙지 않았습니다. 사람이나 운에 기대기보다 습관과 일정에 기대는 편이 확실합니다.";
   }
@@ -521,7 +521,7 @@ function narrativeCaution(facts, seen) {
       "겁을 주려는 말이 아닙니다. 미리 알면 대비되는 자리입니다. 자미두수에서 약한 자리는 피하라는 뜻이 아니라, 먼저 손보라는 표시로 읽습니다.",
       once(seen, moveLine(facts)) || "무리해서 키우기보다 지금 있는 것을 지키는 쪽으로 방향을 잡으세요.",
       `${facts.tier.label} 단계라 무너져도 바닥까지 가지는 않습니다. 다만 같은 자리에서 두 번 걸리면 그때는 우연이 아니라 습관입니다.`,
-      once(seen, useAssistLine(facts)),
+      once(seen, pickAssistLine(facts)),
     ]),
   ]);
 }
@@ -547,7 +547,7 @@ function narrativeAdvice(facts, seen) {
       bright ? `${BRIGHTNESS_FACET[bright].act}.` : "",
     ]),
     join([
-      once(seen, useAssistLine(facts)),
+      once(seen, pickAssistLine(facts)),
       once(seen, supportLine(facts)),
       facts.family ? `${facts.family.name} 계열이라 ${facts.family.detail}.` : "",
     ]),

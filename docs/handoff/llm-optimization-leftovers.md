@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-19
-next: "sukuyo `attempts:2`↔`capTokens` 불일치 · Gemini `responseSchema` 미사용 · 토큰 집계 사각지대 2곳 중 골라 착수"
+updated: 2026-10-02
+next: "worker palm-vision.js:472-473 capTokens 를 base×1.3(10650)으로 맞추고 verify-llm-generation-resilience assertBudget 동반 수정 — F(캐시)는 적중률 실측 뒤 결정"
 ---
 
 # 인수인계 — LLM 토큰 최적화에서 남은 개별 항목 5건

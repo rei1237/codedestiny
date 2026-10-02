@@ -3870,7 +3870,9 @@ function analyzeJohu(p){
   var score=0;
   var seasonMap={'寅':'봄','卯':'봄','辰':'봄','巳':'여름','午':'여름','未':'여름','申':'가을','酉':'가을','戌':'가을','亥':'겨울','子':'겨울','丑':'겨울'};
   var season=seasonMap[mz]||'봄';
-  if(season==='여름')score+=4;else if(season==='봄')score+=2;else if(season==='가을')score-=2;else score-=4;
+  /* 월지별 계절 온도: 寅월의 남은 추위(餘寒)·申월의 남은 더위(餘熱)를 반영한 12단계 */
+  var branchTemp={'子':-4,'丑':-4,'寅':-1,'卯':1,'辰':2,'巳':3,'午':4,'未':4,'申':1,'酉':-1,'戌':-2,'亥':-3};
+  score+=(mz in branchTemp)?branchTemp[mz]:2;
   var fc=0,wc=0,wdc=0,mc=0;
   var moistCnt=0,dryCnt=0;
   [yg,yz,mg,mz,dg,dz,hg,hz].forEach(function(c){
@@ -4254,13 +4256,14 @@ function evalDaewun(ganChar,zhiChar){
   var origZhis=p0 ? [p0.y.j,p0.m.j,p0.d.j,window.__cdSajuTimeUnknown?'':p0.h.j].filter(Boolean) : [];
 
   var finalGanEl = ganEl, finalZhiEl = zhiEl;
+  // 대운 점수는 47030b73d 이전 판정 방식을 따른다: 합의 짝이 있으면 합화 오행으로 평가한다.
   origGans.forEach(function(og){
     var candidate=(GANHE_Q[ganChar]||{})[og];
-    if(candidate && sajuHapAssessment(candidate,'stem',ganChar,og,origGans.concat(ganChar),origZhis.concat(zhiChar),p0&&p0.m.j).transformed) finalGanEl=candidate;
+    if(candidate) finalGanEl=candidate;
   });
   origZhis.forEach(function(oz){
     var candidate=(JIHE_Q[zhiChar]||{})[oz];
-    if(candidate && sajuHapAssessment(candidate,'branch',zhiChar,oz,origGans.concat(ganChar),origZhis.concat(zhiChar),p0&&p0.m.j).transformed) finalZhiEl=candidate;
+    if(candidate) finalZhiEl=candidate;
   });
 
   var johuScore = 0;
@@ -4346,14 +4349,38 @@ function evalDaewun(ganChar,zhiChar){
     return (getJohuScore(el, isZhi, charStr) + getEokbuScore(el, isZhi)) < 0;
   }
 
-  // 庚/辛과 火의 조합만으로 길흉을 확정하지 않는다.
-  // 관성의 작용은 위 조후·억부 점수와 실제 합충 조건으로 평가한다.
+  // 금 일간이 화를 쓰는 중의 수화 충은 단련(가점), 辛 일간의 丁 운은 감점한다.
+  var isMetalDM = p0 && (p0.d.g === '庚' || p0.d.g === '辛');
+  var isFireFavorable = false;
+  if(pw) isFireFavorable = pw.yongshin.indexOf('fire')>=0 || isFavorable('fire', false, '丙');
+  if(jg && jg.isJong) isFireFavorable = isFireFavorable || jg.dominant==='fire' || jg.parEl==='fire';
+  function checkSMFW(srcChar, targetChar) {
+    if(!isMetalDM || !isFireFavorable) return false;
+    var srcEl = (GAN[srcChar] || JI[srcChar] || {}).e;
+    var tgtEl = (GAN[targetChar] || JI[targetChar] || {}).e;
+    return (srcEl === 'fire' && tgtEl === 'water') || (srcEl === 'water' && tgtEl === 'fire');
+  }
+  if (p0 && p0.d.g === '辛' && ganChar === '丁') {
+    var hasWood = (zhiEl === 'wood');
+    if (!hasWood) {
+      origGans.forEach(function(g) { if((GAN[g]||{}).e === 'wood') hasWood = true; });
+      origZhis.forEach(function(z) { if((JI[z]||{}).e === 'wood') hasWood = true; });
+    }
+    chungPenalty -= hasWood ? 55 : 15;
+    hasChungPenalty = true;
+    chungPenaltyText = "<b>辛 일간과 丁 운</b> 다듬어진 금(辛)에게 정화(丁)는 열이 강한 편관으로 작용해 부담이 커지기 쉽습니다. 서둘러 나서기보다 토(土)의 안정 뒤에서 지키는 편이 유리합니다." + (hasWood ? " 목(木) 기운까지 함께 들어와 토(土)의 완충이 약해지니 계약·말·지출을 더 신중히 살피세요." : '');
+  }
 
-  // 실제로 들어오는 충은 기존 합의 성립 조건을 다시 검토하게 한다.
-  if (GAN_CHUNG[ganChar] && origGans.indexOf(GAN_CHUNG[ganChar]) >= 0) {
+  // 원국에서 이미 합으로 묶인 천간은 충의 대상이 아니다(합이 충을 제압).
+  var natalGanHeMerged = (jg && jg.ganHeMerged) ? jg.ganHeMerged : {};
+  if (GAN_CHUNG[ganChar] && origGans.indexOf(GAN_CHUNG[ganChar]) >= 0 && !natalGanHeMerged[GAN_CHUNG[ganChar]]) {
     var tChar = GAN_CHUNG[ganChar];
     var tEl = (GAN[tChar] || {}).e || 'earth';
-    if (ganScore > 0 && isUnfavorable(tEl, false, tChar)) {
+    if (checkSMFW(ganChar, tChar)) {
+      chungBonus += 25;
+      hasChungBonus = true;
+      chungBonusText = "<b>수화(水火) 교차와 금 일간</b> 금 일간이 꼭 필요로 하는 화(火)가 수(水)와 부딪칩니다. 전통 해석은 이를 불이 쇠를 단련하는 장면으로 읽어, 부담 속에서 실력이 다듬어지는 흐름으로 봅니다.";
+    } else if (ganScore > 0 && isUnfavorable(tEl, false, tChar)) {
       chungBonus += 15;
       hasChungBonus = true;
       chungBonusText = "<b>천간충과 기신의 작용</b> 운의 천간과 원국의 " + tChar + "이 충합니다. 기신으로 읽힌 요소를 제어하는 방향이지만, 실제 변화는 통근과 주변 생조에 따라 달라집니다.";
@@ -4372,7 +4399,11 @@ function evalDaewun(ganChar,zhiChar){
     var tChar = ZHI_CHUNG[zhiChar];
     // 지지충은 합>충 원칙 미적용 — 기존 로직 유지
     var tEl = (JI[tChar] || {}).e || 'earth';
-    if (zhiScore > 0 && isUnfavorable(tEl, true, tChar)) {
+    if (checkSMFW(zhiChar, tChar)) {
+      chungBonus += 30;
+      hasChungBonus = true;
+      chungBonusText += (chungBonusText?"<br><br>":"") + "<b>지지의 수화(水火) 교차</b> 지지에서 물과 불이 부딪치며 금 일간의 단련이 이어집니다. 혼란이 큰 만큼 버티며 다듬은 결과가 남기 쉬운 흐름으로 읽습니다.";
+    } else if (zhiScore > 0 && isUnfavorable(tEl, true, tChar)) {
       chungBonus += 20;
       hasChungBonus = true;
       var tJohu = getJohuScore(tEl, true, tChar);
@@ -4405,10 +4436,9 @@ function evalDaewun(ganChar,zhiChar){
   var hasJiheBonus = false;
   var jiheBonusTxt = '';
   if(JIHE_BNS[zhiChar]) {
-    Array.from(new Set(origZhis)).forEach(function(oz){
+    origZhis.forEach(function(oz){
       if(!oz || !JIHE_BNS[zhiChar][oz]) return;
       var heEl = JIHE_BNS[zhiChar][oz];
-      if(!sajuHapAssessment(heEl,'branch',zhiChar,oz,origGans.concat(ganChar),origZhis.concat(zhiChar),p0&&p0.m.j).transformed)return;
       var bs = isFavorable(heEl, true, zhiChar) ? 10 : (isUnfavorable(heEl, true, zhiChar) ? -10 : 0);
       if(bs > 0){
         jiheBonus += bs; hasJiheBonus = true;
@@ -4427,8 +4457,9 @@ function evalDaewun(ganChar,zhiChar){
   var samhapBonusTxt = '';
   SAMHAP.forEach(function(sh){
     if(sh.m.indexOf(zhiChar) < 0) return;
-    var groupState = sajuSamhapState(sh.m,zhiChar,origZhis);
-    if(groupState === 'full') { // 서로 다른 세 지지의 완성
+    var matchCnt = 0;
+    origZhis.forEach(function(oz){ if(oz && sh.m.indexOf(oz) >= 0) matchCnt++; });
+    if(matchCnt >= 2) { // 원국 2개 + 대운 1개
       var bs = isFavorable(sh.el, true, zhiChar) ? 22 : (isUnfavorable(sh.el, true, zhiChar) ? -22 : 0);
       if(bs > 0){
         samhapBonus += bs; hasSamhapBonus = true;
@@ -4437,7 +4468,7 @@ function evalDaewun(ganChar,zhiChar){
         samhapBonus += bs;
         samhapBonusTxt = '⚠️ <b>삼합 기신 강화!</b> 삼합으로 흉신 오행이 집중됩니다.';
       }
-    } else if(groupState === 'half') { // 왕지를 포함한 두 지지
+    } else if(matchCnt >= 1) { // 반합
       var bs2 = isFavorable(sh.el, true, zhiChar) ? 10 : (isUnfavorable(sh.el, true, zhiChar) ? -10 : 0);
       if(bs2 !== 0){
         samhapBonus += bs2;
@@ -22938,10 +22969,39 @@ function renderZiwei(p, natal, targetId) {
       var correctedTotal = ((ph * 60 + pmin - cityLngOffset) % 1440 + 1440) % 1440;
       correctedHour = Math.floor(correctedTotal / 60);
       correctedMinute = correctedTotal % 60;
+      var correctedYear = py;
+      var correctedMonth = pm;
+      var correctedDay = pdm;
+      var lngMsgMinutes = -cityLngOffset;
+      var dstMsgMinutes = tzResolved.dstMinutes;
+      // 상대 명반도 내 명반(calculate·computeProfileForModal)과 같은 정본 시각(경도·과거 서머타임,
+      // lib/ziwei-birth-clock.js)을 쓴다. 예전 식은 날짜를 그대로 두고 시각만 %1440 으로 감아
+      // 자정을 넘기는 보정(예: 서울 00:15 → 전날 23:43)이 하루 뒤 子時로 계산됐다. 정본 실패 시 예전 식 유지.
+      try {
+        var partnerClockMeta = _koreanCalendar().calculateNatalSaju({
+          birthDate: py + '-' + z2(pm) + '-' + z2(pdm), calendarType: 'solar',
+          birthTime: z2(ph) + ':' + z2(pmin),
+          birthPlace: { name: cityLabel, longitude: cityLong, latitude: cityLat, timezone: cityTz }
+        }).calculationMeta;
+        var partnerClock = partnerClockMeta && partnerClockMeta.corrected;
+        if (partnerClock) {
+          correctedYear = partnerClock.year;
+          correctedMonth = partnerClock.month;
+          correctedDay = partnerClock.day;
+          correctedHour = partnerClock.hour;
+          correctedMinute = partnerClock.minute;
+          lngMsgMinutes = Math.round(partnerClockMeta.correction.longitudeCorrectionMinutes);
+          dstMsgMinutes = partnerClockMeta.correction.dstMinutes;
+        }
+      } catch (clockErr) {
+        console.warn('[ZiweiCompat] canonical birth clock fallback:', clockErr);
+      }
+      var shiftedDay = correctedYear !== py || correctedMonth !== pm || correctedDay !== pdm;
       var correctionMsg = '진태양시 보정 적용: '
         + z2(ph) + ':' + z2(pmin)
-        + ' → ' + z2(correctedHour) + ':' + z2(correctedMinute)
-        + ' (경도 ' + cityLngOffset + '분, DST ' + tzResolved.dstMinutes + '분, UTC'
+        + ' → ' + (shiftedDay ? correctedYear + '-' + z2(correctedMonth) + '-' + z2(correctedDay) + ' ' : '')
+        + z2(correctedHour) + ':' + z2(correctedMinute)
+        + ' (경도 ' + lngMsgMinutes + '분, DST ' + dstMsgMinutes + '분, UTC'
         + (tzResolved.tzOffsetHours >= 0 ? '+' : '') + tzResolved.tzOffsetHours + ')';
       if (corrEl) {
         corrEl.innerHTML = '🌍 ' + cityLabel + ' · ' + (partnerGender === 'M' ? '남성' : (partnerGender === 'F' ? '여성' : '기타')) + '<br><span style="font-size:0.75rem;color:#c4b5fd;">' + correctionMsg + '</span>';
@@ -22960,7 +23020,7 @@ function renderZiwei(p, natal, targetId) {
 
       var partnerData = null;
       try {
-        partnerData = calcZiweiPalaces(py, pm, pdm, correctedHour, correctedMinute);
+        partnerData = calcZiweiPalaces(correctedYear, correctedMonth, correctedDay, correctedHour, correctedMinute);
       } catch (e) {
         outEl.innerHTML = '<div style="color:#fda4af;font-size:0.9rem;">상대 정보 계산 중 오류가 발생했습니다. 입력값을 확인해 주세요.</div>';
         return;
@@ -30247,7 +30307,9 @@ function renderCurrentSeasonSummary(bazi){
     parts.push('<div style="font-size:.8rem;color:#999;line-height:1.6;padding:2px 2px 0">※ 여기까지는 무료입니다. 10년 대운의 전체 흐름·연도별 세운 상세·종합 풀이는 아래 프리미엄에서 이어집니다.</div>');
     box.innerHTML=parts.join('');
     card.style.display='block';
-    if (window.SajuReadingPresentation) window.SajuReadingPresentation.setFlow([cur ? {kind:'period',g:cur.g,j:cur.j,score:cEv.score} : null, yg&&yz ? {kind:'year',g:yg,j:yz,score:yEv.score} : null].filter(Boolean));
+    // 풍부한 판(reading-rich.js)은 이미 계산한 평가·합충만 받아 그린다. 재계산하지 않는다.
+    var flowRel=function(g,j){return _getDwHapResults(g,j).map(function(r){return {type:r.type,src:r.src,partner:r.partner,isChung:r.isChung,transformed:r.transformed};});};
+    if (window.SajuReadingPresentation) window.SajuReadingPresentation.setFlow([cur ? {kind:'period',g:cur.g,j:cur.j,score:cEv.score,label:cEv.label,summary:cEv.evalSummary||'',age:cStart,end:cEnd,relations:flowRel(cur.g,cur.j)} : null, yg&&yz ? {kind:'year',g:yg,j:yz,score:yEv.score,label:yEv.label,summary:yEv.evalSummary||'',year:nowYear,relations:flowRel(yg,yz)} : null].filter(Boolean));
   }catch(err){ console.error('올해의 나 요약 오류',err); }
 }
 

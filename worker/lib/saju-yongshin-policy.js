@@ -44,12 +44,18 @@ const GENERATE_TO = Object.freeze({
   water: "wood",
 });
 
-/** 월지 → 계절. js/saju-engine.js:3797 seasonMap 그대로. */
+/** 월지 → 계절. js/saju-engine.js analyzeJohu seasonMap 그대로. */
 const SEASON_BY_BRANCH = Object.freeze({
   寅: "봄", 卯: "봄", 辰: "봄",
   巳: "여름", 午: "여름", 未: "여름",
   申: "가을", 酉: "가을", 戌: "가을",
   亥: "겨울", 子: "겨울", 丑: "겨울",
+});
+
+/** 월지 → 기본 온도. js/saju-engine.js analyzeJohu branchTemp 그대로(12단계). */
+const TEMP_BY_BRANCH = Object.freeze({
+  子: -4, 丑: -4, 寅: -1, 卯: 1, 辰: 2, 巳: 3,
+  午: 4, 未: 4, 申: 1, 酉: -1, 戌: -2, 亥: -3,
 });
 
 /** 지지 중 습토 / 조토. js/saju-engine.js:3809-3810 그대로. */
@@ -85,11 +91,7 @@ function flattenPillarUnits(pillars, includeHour) {
 export function analyzeJohu(pillars, includeHour = true) {
   const monthBranch = String(pillars?.month?.branch || "");
   const season = SEASON_BY_BRANCH[monthBranch] || "봄";
-  let score = 0;
-  if (season === "여름") score += 4;
-  else if (season === "봄") score += 2;
-  else if (season === "가을") score -= 2;
-  else score -= 4;
+  let score = Object.prototype.hasOwnProperty.call(TEMP_BY_BRANCH, monthBranch) ? TEMP_BY_BRANCH[monthBranch] : 2;
 
   let moistCount = 0;
   let dryCount = 0;

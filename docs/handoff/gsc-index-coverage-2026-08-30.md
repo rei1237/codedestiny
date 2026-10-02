@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-08-30
-next: 2026-09-20 전후에 GSC "발견됨 - 미색인" CSV 를 다시 받아 재측정한다 — 🔴 그전까지 색인 목적의 코드 작업을 새로 쌓지 않는다(사용자 결정 2026-08-30)
+status: done
+updated: 2026-10-02
+next: "완료 — 메모리 uncrawled-urls-are-crawl-demand-not-depth 근거로 보존 (/destiny-poker .html 내부 링크는 로드맵 S2 몫)"
 ---
 
 # GSC 색인 커버리지 — 미크롤 173건의 실체

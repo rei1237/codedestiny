@@ -139,11 +139,12 @@ test('삼합은 서로 다른 세 글자, 반합은 왕지를 포함한 두 글�
   }
 });
 
-test('중복된 생지·고지는 삼합 점수를 받지 않고 왕지 반합과 완성 삼합은 별도 가중치를 받는다',()=>{
+test('대운 점수의 삼합은 이전 판정대로 원국 지지 개수(중복 포함)로 센다',()=>{
   const cases=[
-    {original:['申','申','申'],score:50,flag:false},
-    {original:['子','子','子'],score:60,flag:true},
+    {original:['申','申','申'],score:72,flag:true},
+    {original:['子','子','子'],score:72,flag:true},
     {original:['申','子','申'],score:72,flag:true},
+    {original:['申','卯','午'],score:60,flag:true},
   ];
   for(const fixture of cases){
     const pillars={y:{g:'甲',j:fixture.original[0]},m:{g:'戊',j:fixture.original[1]},d:{g:'乙',j:fixture.original[2]},h:{g:'',j:''}};
@@ -226,7 +227,7 @@ test('시주 미상은 시주의 합충·가중치를 제외하고 알려진 3�
   assert.deepEqual(plain(shell._getDwHapResults('丁','午')),unknownRows);
 });
 
-test('辛丁만으로 특별 감점·충·흉운을 만들지 않고 같은 금 일간과 점수가 같다',()=>{
+test('辛 일간의 丁 대운은 이전 판정대로 감점하고 庚 일간은 감점하지 않는다',()=>{
   for(const isStrong of [false,true])for(const type of ['cold','hot','neutral']){
     const outputs=[];
     for(const day of ['辛','庚']){
@@ -235,12 +236,12 @@ test('辛丁만으로 특별 감점·충·흉운을 만들지 않고 같은 금 
       setContext(context);
       const actual=comparable(shell.evalDaewun('丁','丑'));
       assert.deepEqual(actual,comparable(evaluateDaewun('丁','丑',context)));
-      assert.equal(actual.hasChungPenalty,false);
+      assert.equal(actual.hasChungPenalty,day==='辛');
       assert.equal(plain(shell._getDwHapResults('丁','丑')).some((r)=>r.src==='丁'),false);
       outputs.push(actual);
     }
-    assert.deepEqual(outputs[0],outputs[1],String(isStrong)+' / '+type);
-    if(type==='neutral')assert.equal(outputs[0].score,50);
+    assert.ok(outputs[0].score<outputs[1].score,String(isStrong)+' / '+type);
+    if(type==='neutral'){assert.equal(outputs[1].score,50);assert.equal(outputs[0].score,0);}
   }
 });
 

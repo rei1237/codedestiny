@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-29
-next: 구현·main CI 전달은 완료했다. 사용자 요청으로 실제 iPhone Chrome/Safari 검증은 후속으로 남긴다. 실기기 자료가 준비되면 아래 점검표부터 재개한다. 실기기·실결제·새 실 LLM은 미실행이다.
+updated: 2026-10-02
+next: "사용자 iPhone Chrome·Safari 실기기 확인만 남음"
 ---
 
 # 꿀꿀 운세 자체 상담 UX 인수인계

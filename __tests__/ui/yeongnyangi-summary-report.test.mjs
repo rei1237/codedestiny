@@ -59,14 +59,14 @@ test('all six systems preserve saved values without inventing charts or sharing 
   const prompt=buildExternalImagePrompt({brand:'yeongnyangi',domain,locale:'ko',groups:report.chart.groups,passages:report.sections.map(section=>section.body)});
   assert.ok(prompt.includes('辛酉'));assert.ok(prompt.includes(secret));
   assert.match(prompt,/Do not calculate a new chart/);assert.match(prompt,/Do not make a public share image/);
-  assert.match(prompt,/white fluffy cat/);assert.match(prompt,/editable HTML\/SVG/);
+  assert.match(prompt,/white fluffy cat/);assert.match(prompt,/Do not output HTML/);assert.doesNotMatch(prompt,/editable HTML/);
  }
 });
 test('localized guides cover six separate systems in all twelve runtime locales',()=>{
  for(const locale of ['ko','en','ja','zh-CN','zh-TW','vi','hi','es','fr','de','nl','ms']){
   const guides=reportDomains.map(domain=>reportGuideCopy(locale,domain));
   assert.equal(new Set(guides.map(copy=>copy.guide)).size,6);
-  for(const copy of guides){assert.equal(copy.locale,locale);assert.ok(copy.guide.length>50);assert.ok(copy.privacy);}
+  for(const copy of guides){assert.equal(copy.locale,locale);assert.ok(copy.guide.length>50);assert.ok(copy.privacy);assert.ok(copy.recommend&&copy.open&&copy.copiedOpen);assert.equal(copy.steps.filter(Boolean).length,3);}
  }
 });
 test('wrong-system charts are omitted and saved passages are not cut mid-sentence',()=>{

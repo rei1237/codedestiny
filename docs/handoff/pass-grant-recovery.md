@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-05
-next: PR #1577 머지 여부 확인 → 머지됐으면 프로덕션 승격 1회(사용자 요청 있음) → 승격 뒤 10분 크론 로그에서 `[CRON] payments-v2 webhook replay` 가 미지급 이벤트를 processed 로 닫는지 확인
+updated: 2026-10-02
+next: "B-2: PointsClient.tsx confirmSubscriptionWithServer 에서 GRANT_PENDING 이면 pollUrl 3회 재확정 → B-3 지급 로그 → B-4 테스트 (B-1 카카오페이 삭제는 965b09ee6 로 폐기, backfill 5건은 승인 대기)"
 ---
 
 # 이용권 결제 후 미지급(P0) 복구

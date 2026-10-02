@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-06
-next: 개관·마스터플랜 챕터의 ensureMinLength 필러를 없앤다 — 4건 중 유일하게 지금 사용자 화면에 보이는 결함이다.
+updated: 2026-10-02
+next: "2번(GREEN): app/_lib/ziwei-advanced-normalization.ts transformationTypeToLabel 미지 입력을 throw/null 로 바꾸고 호출부 12곳 확인 — 3번 정본은 사용자 결정"
 ---
 
 # 자미두수 심화 — 인접 결함 3건

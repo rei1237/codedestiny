@@ -5,7 +5,7 @@
 export const launchOffer = {
   active: true,
   limit: 1000,
-  plannedPriceKRW: {mackerel: 9900, salmon: 27900, flounder: 43900, tuna: 79000, assorted: 139000, omakase: 290000},
+  plannedPriceKRW: {mackerel: 9900, salmon: 17900, flounder: 23900, tuna: 34900, assorted: 49000, omakase: 99900},
 } as const;
 
 export type LaunchFish = keyof typeof launchOffer.plannedPriceKRW;

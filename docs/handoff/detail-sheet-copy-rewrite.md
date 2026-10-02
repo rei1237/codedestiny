@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-03
-next: "남은 것은 선택 항목 2건뿐. 🔴 미해결 결제 결함 4건은 사용자 판단 대기 중"
+updated: 2026-10-02
+next: "결함 1번(saju-guardian-unlock 영구 해금 누락, worker/routes/fortune.js:2508)부터 사용자 결제 판단을 받는다"
 ---
 
 # 인수인계 — 상세 팝업 문구를 사실 기반으로 재작성

@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-29
-next: PR #1288 머지 → 프로덕션 승격 → 2~3일 뒤 Cloudflare Web Analytics 로 홈 CLS 재측정, 그 결과로 남은 축의 우선순위를 정한다
+updated: 2026-10-02
+next: "남은 CLS 5건(GlobalHeader 메뉴·useHumanDesignLocale·#sySoloAiConsultCard·SeoLandingBirthForm·찻집 배지)을 field 데이터로 재측정해 남는 것을 home-perf-cwv-2026-09-07 로 옮기고 done"
 ---
 
 # 홈 CLS 회귀 + 브랜드 색인 회복

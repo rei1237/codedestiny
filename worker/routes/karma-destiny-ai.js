@@ -587,6 +587,9 @@ function normalizeConsultationInput(body = {}) {
       birthTime,
       birthTimeUnknown,
       calendarType,
+      // 윤달은 음력일 때만 뜻이 있다. 계산부(karma-destiny-ai-calculations.js)는 이미 읽는데 여기서 버려 평달로 계산됐다.
+      // 🔴 윤달일 때만 키를 넣는다 — inputHash(결제 멱등) 가 평달 요청에서 예전과 같아야 진행 중 결제 재개가 깨지지 않는다.
+      ...(calendarType === "lunar" && (body.isLeapMonth === true || birthInfo.isLeapMonth === true) ? { isLeapMonth: true } : {}),
       birthPlace,
     },
     focusArea,

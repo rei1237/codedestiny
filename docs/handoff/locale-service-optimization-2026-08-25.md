@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-25
-next: "\"🔴 남은 것 — 2026-08-25 3차 재측정\" 절부터"
+updated: 2026-10-02
+next: "app/_lib/moonlight-store-snapshot.ts 메시지 4개 로케일화 → animal-destiny Hero·연출 3종을 _lib/copy.ts 키로 이전"
 ---
 
 # 영어·일본어·중국어 서비스 최적화 — 인수인계 (2026-08-25)

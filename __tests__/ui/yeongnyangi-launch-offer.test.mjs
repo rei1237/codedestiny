@@ -46,7 +46,8 @@ test('banner states the limit, planned and trial price, the scoped credential an
  assert.match(html,/<s[^>]*data-launch-planned-price[^>]*>정식 오픈 예정가 9,900원<\/s>/);
  assert.match(text,/체험가 1,000원/);
  assert.match(text,/사주 계산 로직은 10년 경력 명리학자가 직접 설계했어요/);
- assert.match(text,/몇 달 뒤에는 예정가로 바뀔 수 있어요/);
+ assert.match(text,/체험가는 10월 4일까지예요. 10월 5일부터 정식 가격으로 바뀌어요/);
+ assert.doesNotMatch(text,/몇 달 뒤/,'the switch date is fixed, not vague');
  assert.match(text,/생선값이… 너무 비싸냥/);
  assert.match(text,/영냥이 생선 팩도 각자의 정식 오픈 예정가보다 낮은 체험가로 열려 있어요.가격은 상품마다 달라요./);
  assert.doesNotMatch(text,/같은 체험가/,'other tiers are not 1,000 won');

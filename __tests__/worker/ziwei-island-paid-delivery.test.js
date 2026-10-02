@@ -9,7 +9,7 @@ import { palaceParts } from "../../worker/lib/island/consult/palace-delivery.js"
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", palaceKey: "명궁", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation;
+let route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, cardRefund, fetchBlock, lostConfirmation;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 function matches(doc, filter) {
@@ -76,13 +76,14 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/portone.js", () => ({ fetchPortOnePayment: () => { throw new Error("PG blocked"); }, getPortOnePublicConfig: () => { throw new Error("PG blocked"); }, getPortOneConfig: () => { throw new Error("PG blocked"); } }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? { ledgerId: uid } : null }));
   jest.unstable_mockModule("../../worker/lib/structured-consultation.js", () => ({ ...structured, callGeminiJsonWithRetry: (...args) => provider(...args) }));
+  jest.unstable_mockModule("../../worker/lib/payment-refund.js", () => ({ autoRefundSinglePaymentDeliveryFailure: (...args) => cardRefund(...args) }));
   jest.unstable_mockModule("../../worker/lib/ziwei-ai-chart.js", () => ({ calculateZiweiAiChart: (...args) => chart(...args), formatStarWithBrightness: value => value }));
   jest.unstable_mockModule("../../worker/lib/cms-prompts.js", () => ({ cmsPromptText: async (_env, _key, text) => text, cmsPromptModelConfig: async () => ({}) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
   ({ handleZiweiIslandAiRoutes: route } = await import("../../worker/routes/ziwei-island-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({}));
+  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); cardRefund = jest.fn(async () => ({ refunded: true }));
   provider = jest.fn(async (_env, _prompt, options) => {
     expect(options.attempts).toBe(1); expect(options.timeoutMs).toBeLessThanOrEqual(45000); expect(options.fallbackToWorkersAI).toBe(false);
     const id = options.logContext.sectionGroup;
@@ -104,7 +105,7 @@ for (const paid of ["pass", "monthly", "paid"]) it(`${paid}: two bounded waves p
   const partial = await first.json(); expect(partial.consultation.completedParts).toHaveLength(4); expect(usage).not.toHaveBeenCalled();
   const second = await start({ resumeSessionId: partial.sessionId }); expect(second.status).toBe(200);
   expect(await second.json()).toMatchObject({ consultation: { saved: true, status: "completed", id: partial.sessionId } });
-  expect(provider).toHaveBeenCalledTimes(8); expect(chart).toHaveBeenCalledTimes(1); expect(refund).not.toHaveBeenCalled();
+  expect(provider).toHaveBeenCalledTimes(8); expect(chart).toHaveBeenCalledTimes(1); expect(refund).not.toHaveBeenCalled(); expect(cardRefund).not.toHaveBeenCalled();
   expect((await start()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(8);
 });
 for (const status of ["partial", "delivery_pending", "completed"]) for (const kind of ["null", "throw", "confirm"]) it(`${status} ${kind}: storage is never generation failure or refund`, async () => {
@@ -122,6 +123,20 @@ it("short or contradictory parts are not completed, with at most three calls per
   expect(provider).toHaveBeenCalledTimes(8); expect(usage).not.toHaveBeenCalled();
   expect(docs[0].status).toBe("generation_failed");
   expect((await start()).status).toBe(409); expect(provider).toHaveBeenCalledTimes(8);
+});
+// 카드 단건 결제만 품질 실패에서 PG 자동 환불된다(ziwei-ai.js 이식). 이용권·월정석은 선차감 복구 쪽이라 카드 환불 0회.
+for (const paid of ["pass", "monthly", "paid"]) it(`${paid}: generation_failed refunds only a card payment, once`, async () => {
+  mode = paid;
+  provider.mockImplementation(async () => ({ ok: true, provider: "gemini", text: JSON.stringify({ body: prose("contradict", 3500), evidence: { palace: "부부궁", mainStars: [] } }) }));
+  expect((await start()).status).toBe(202);
+  expect((await start()).status).toBe(503);
+  expect(docs[0].status).toBe("generation_failed");
+  if (paid === "paid") {
+    expect(cardRefund).toHaveBeenCalledTimes(1);
+    const [, payment, code, , stage] = cardRefund.mock.calls[0];
+    expect(payment).toMatchObject({ merchantUid: "payment" }); expect(code).toBe("LLM_GENERATION_FAILED"); expect(stage).toBe("ziwei_island_generation");
+  } else expect(cardRefund).not.toHaveBeenCalled();
+  expect((await start()).status).toBe(409); expect(cardRefund).toHaveBeenCalledTimes(paid === "paid" ? 1 : 0);
 });
 for (const store of [0, 1, 2, 3]) it(`revoked ledger ${store} denies same-request replay and result reads`, async () => {
   await start(); blocked = store; const calls = provider.mock.calls.length;

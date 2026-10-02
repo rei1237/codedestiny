@@ -1,7 +1,7 @@
 ---
-status: blocked
-updated: 2026-08-29
-next: "남은 별건 3(MongoDB 박제 간지 값)은 결제 문서라 사용자 판단이 먼저다"
+status: done
+updated: 2026-10-02
+next: "보류 종료(10-02 사용자 결정, 별건-3 미결) — js/core/kasi-calendar-service.js·scripts/verify-ganji-surface-parity.mjs 등 코드 주석이 계획 전문으로 인용해 보존"
 ---
 
 # 간지 경로의 로컬 Date 를 벽시계 부품으로 — 인수인계 (2026-08-28)

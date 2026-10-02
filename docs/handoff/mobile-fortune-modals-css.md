@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-24
-next: 운영 승격은 사용자 1회 명시 승인 대기(범위 c255916e2..main, 이니시스 2차 재실사 결제 커밋 포함). 승인 없으면 아래 후속 과제 중 하나를 고른다
+updated: 2026-10-02
+next: ".tc-question-inp 플레이스홀더 360/390px 잘림 수정 → build-fortune-ui-critical.mjs·sync:public 으로 크리티컬 CSS 재생성"
 ---
 # 기본 운세 모달 모바일 CSS 최적화 (2026-09-24)
 

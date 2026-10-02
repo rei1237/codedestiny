@@ -155,6 +155,14 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
   }
   // Premium saju input asks the server for 종격 check years before checkout; none keeps these payment flows question-free.
   if(path==='/api/yeongnyangi/saju/jong-check'&&request.method()==='POST')return send({ok:true,check:null});
+  // The checkout asks for owned service packs; the fixture user owns none. Branches mirror
+  // quoteServicePack (worker/payments/service-packs.js): a settled row is 'paid', else no candidates.
+  if(path==='/api/payments/service-packs/quote'&&request.method()==='POST'){
+   assert.equal(input.requestId,`yn-${row.id}`);
+   const settled=row.paid||row.state!=='CREATED';
+   return send({ok:true,requestId:input.requestId,featureKey:product.cdFeatureKey,accessMethod:null,candidates:[],existingUse:null,
+    status:row.state==='REFUNDED'?'restored':settled?'paid':'unavailable'});
+  }
   state.unknown.push(`${request.method()} ${path}`);
   return send({ok:false,code:'QA_UNEXPECTED_API'},501);
  });
@@ -287,8 +295,9 @@ export async function verifyMobilePayments({base,products,systemNames}){
    const pageErrors=f.state.errors.filter(message=>{
     if(browser.browserType().name()!=='webkit')return true;
     // WebKit reports these checkout-page reads as access-control errors when the PG return navigation cancels them.
-    const path=message.match(/^\/(?:127\.0\.0\.1|localhost):\d+(\/api\/[^ ]+) due to access control checks\.$/)?.[1];
-    const navigationReads=new Set(['/api/me/access-state','/api/profile','/api/billing/balance']);
+    // AppVersionGuard's cache-busted /version.json read is cancelled the same way and already falls back in its catch.
+    const path=message.match(/^\/(?:127\.0\.0\.1|localhost):\d+(\/api\/[^ ]+|\/version\.json(?=\?t=\d+ ))(?:\?t=\d+)? due to access control checks\.$/)?.[1];
+    const navigationReads=new Set(['/api/auth/me','/api/me/access-state','/api/profile','/api/billing/balance','/api/payments/service-packs/quote','/version.json']);
     return !path||!navigationReads.has(path);
    });
    assert.deepEqual(pageErrors,[],'Browser page errors');
@@ -338,11 +347,13 @@ export async function verifyMobilePayments({base,products,systemNames}){
      await f.page.getByRole('group',{name:'상담 종류'}).getByRole('button',{name:/무엇이든 물어보기/}).click();
      await f.page.getByLabel('영냥이에게 궁금한 이야기').fill('올해의 흐름이 궁금해요.');await f.page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).click();
      await f.page.waitForURL('**/checkout/**');assert.equal(new URL(f.page.url()).searchParams.get('requestId'),f.row.id);assert.equal(f.state.creates,1);
+     // WebKit can report the checkout URL before that document commits; leaving early interrupts the next goto.
+     await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
      await f.page.waitForLoadState('load');
      await f.page.goto(base+'/yeongnyangi/room/#story');await f.page.getByRole('dialog',{name:'영냥이의 프롤로그'}).waitFor();
      // WebKit delivers cancelled errors from the previous documents after this multi-route QA flow has already reached the room.
      if(engine===webkit)f.state.errors.length=0;
-     await f.page.getByRole('button',{name:'닫기',exact:true}).click();assert.equal(await f.page.getByRole('link',{name:/생선 상품과 상담 내용 살펴보기/}).getAttribute('href'),'/yeongnyangi/fortune/');
+     await f.page.getByRole('button',{name:'닫기',exact:true}).click();assert.equal(await f.page.getByRole('link',{name:/상담 내용 살펴보기/}).getAttribute('href'),'/yeongnyangi/fortune/');
      assert.equal(await f.page.getByRole('group',{name:'무료 운세 16종'}).getByRole('button').count(),16);
      await f.page.screenshot({path:`build-cache/yeongnyangi-payment-${engine.name()}-home.png`,fullPage:true});
      assert.equal(f.state.sdk.length,0);assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
