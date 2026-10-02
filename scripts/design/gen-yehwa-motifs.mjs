@@ -896,7 +896,7 @@ html.neo-mode body .cd-app-install__copy > .cd-yehwa-peony {
 // ── 탭바 CSS 템플릿 ──────────────────────────────────────────────────────
 /**
  * 하단 탭바 활성 탭 인장. 선은 seal 마스크의 알파이고 색은 --cd-mnav-seal-ink 가 칠한다.
- * 표면별 잉크는 소비 측이 덮는다(styles/mobile-bottom-nav.css · index.html 의 cd-mnav-yehwa-dock 블록).
+ * 표면별 잉크는 소비 측이 덮는다(styles/mobile-bottom-nav.css · index.html 의 cd-mnav-garden 블록).
  */
 function renderNav() {
   /* 🔴 탭바 마스크는 홈 문양과 **획 굵기가 다른 별도 판**이다. 마스크는 viewBox 크기로 그려져
