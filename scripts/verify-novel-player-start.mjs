@@ -551,6 +551,40 @@ async function verifyExpandedBookmarks() {
     } finally { dom.window.close(); }
   }
 }
+/* 무음 none(2026-10-02): 충격 직후·고백 직전의 정적. 음악 토글·탭 복귀가 이전 곡을 되살리면 정적이 깨진다. */
+async function verifySilentTrack() {
+  const { dom, errors } = createPlayerDom();
+  try {
+    const win = dom.window;
+    await waitFor(() => win.__NOVEL_READY === true, "silent track manifest");
+    let plays = 0;
+    win.HTMLMediaElement.prototype.play = () => { plays += 1; return Promise.resolve(); };
+    win.S.screen = "player";
+    win.S.bgmOn = true;
+    win.playTrack("daily");
+    await wait(700);
+    assert.ok(plays > 0, "a normal track did not start");
+    win.playTrack("none");
+    assert.equal(win.S.bgmKey, "none", "the silent key was not recorded");
+    await wait(700);
+    plays = 0;
+    win.setBgm(false);
+    win.setBgm(true);
+    win.document.dispatchEvent(new win.Event("visibilitychange"));
+    await wait(100);
+    assert.equal(plays, 0, "music toggle or tab return revived the track after none");
+    // 리플레이(hydrateTo)도 지나온 마지막 곡이 none 이면 정적으로 끝나야 한다.
+    win._hydrating = true;
+    win.playTrack("daily");
+    win.playTrack("none");
+    assert.equal(win._hBgm, "none", "hydration did not keep none as the final track");
+    win._hydrating = false;
+    win.playTrack("daily");
+    await wait(700);
+    assert.ok(plays > 0, "a real track after none did not start again");
+    assert.deepEqual(errors, [], "silent track emitted runtime errors");
+  } finally { dom.window.close(); }
+}
 async function verifyMobileAssetsAndCache() {
   const { dom, errors } = createPlayerDom({ mobile: true, staleCache: true });
   try {
@@ -570,6 +604,7 @@ async function verifyMobileAssetsAndCache() {
 }
 await verifyMobileAssetsAndCache();
 await verifyExpandedBookmarks();
+await verifySilentTrack();
 await verifyMobileRendering();
 await verifyDirectStart();
 await verifyMainEntry();

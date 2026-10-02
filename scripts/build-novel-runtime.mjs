@@ -19,6 +19,17 @@ export const LEGACY_RANGES_PATH = resolve(ROOT, "content/novel/legacy-ranges.v1.
 const SPEAKERS = new Set(["n", "sys", "yeon", "neo", "mu", "moka", "luna", "rab", "baek", "crow", "geo", "god", "ln", "lns", "pje", "tiger"]);
 const CAST_IDS = new Set(["baek", "crow", "ln", "lns", "mirror", "moka", "mu", "neo", "pje", "rab", "yeon", "tiger"]);
 export const EFFECTS = new Set(["burst", "claw", "fire", "flash", "fuse", "hands", "heart", "ink", "metal", "net", "reveal", "root", "script", "shake", "stars", "suck", "tarot", "thread", "transform", "veil", "vortex", "water", "wood"]);
+/* 곡 분류(fail-closed). 가사 판정 근거는 가사 등록부 app/music/_data/musicLyrics.ts 다 — musicManifest 의
+   hasLyrics 추정은 거의 모두 참이라 근거가 못 된다. TRK 에 새 키를 더하면 둘 중 하나에 반드시 넣는다.
+   보컬곡은 다시 쓴 화(rev≥2)에서 쓰지 않는다(2026-10-02 사용자 요청: 명상·가사 없는 곡). */
+export const VOCAL_TRACKS = new Set(["novaFlex", "novaSoda", "novaTitle", "novaRider", "novaFlame", "lunaGuest", "teaMoonlight"]);
+export const INSTRUMENTAL_TRACKS = new Set([
+  "main", "daily", "room", "gloom", "gloom2", "crisis", "crisis2", "neo", "neo2", "riverEnter", "riverEnter2", "siksangEnter", "stillLake",
+  "jaeEnter", "riverCross", "warTheme", "templeGate", "memWater", "starsName", "zeroPoint", "rainWindow", "firstLight", "teaHouse", "teaKind",
+  "crystalGarden", "templeDawn", "fireFestival", "flowingLight", "focusFlow", "innerFlame", "midnightPulse", "moonDawn", "forestTemple",
+  "glassBox", "riverReturn", "sacredFlame", "starDrift", "lakeDawn", "drumCircle", "warDream", "warCommand", "warRoom", "whiteLion",
+  "fortuneReveal", "orientalGirl", "destinyRoom", "none",
+]);
 const BARE_DIALOGUE = new Set(["그래.", "응.", "알겠어.", "좋아."]);
 // 작가가 레거시 정본에 남긴 의미값 중, 실물 파일명이 바뀐 경우에만 고정 매핑한다.
 // 무작위 선택은 하지 않으며 BG에 없는 값은 검증에서 실패한다.
@@ -101,6 +112,10 @@ export function buildNovelPayload() {
   if (source.schemaVersion !== 1 || !Array.isArray(source.episodes)) throw new Error("지원하지 않는 VN 정본 스키마입니다.");
   const bgKeys = namedKeysFromLegacyShell("BG");
   const trackKeys = namedKeysFromLegacyShell("TRK");
+  for (const key of trackKeys) {
+    if (VOCAL_TRACKS.has(key) === INSTRUMENTAL_TRACKS.has(key)) throw new Error(`TRK '${key}' 는 연주곡·보컬곡 분류 중 정확히 하나에 들어가야 합니다(build-novel-runtime.mjs).`);
+  }
+  for (const key of [...VOCAL_TRACKS, ...INSTRUMENTAL_TRACKS]) if (!trackKeys.has(key)) throw new Error(`곡 분류의 '${key}' 가 TRK 맵에 없습니다.`);
   const episodeIds = new Set();
   const beatIds = new Set();
   const episodes = source.episodes.map((episode, episodeIndex) => {
@@ -122,6 +137,7 @@ export function buildNovelPayload() {
         ? { ...sourceBeat, bg: BACKGROUND_FALLBACKS[sourceBeat.bg], backgroundIntent: sourceBeat.bg }
         : sourceBeat;
       validateBeat(rawBeat, context, bgKeys, trackKeys);
+      if (rev >= 2 && VOCAL_TRACKS.has(rawBeat.bgm)) throw new Error(`${context}: 다시 쓴 화에는 보컬곡 '${rawBeat.bgm}' 를 쓰지 않습니다. 연주곡을 고르세요.`);
       const hasSceneDirection = Boolean(rawBeat.shot || rawBeat.bg || rawBeat.bgm || rawBeat.fx || rawBeat.tone || rawBeat.im);
       const scene = hasSceneDirection ? inferScene(rawBeat, priorScene) : undefined;
       const beat = {

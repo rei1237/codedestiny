@@ -67,6 +67,26 @@ for (const hook of requiredRuntimeHooks) if (!html.includes(hook)) fail(`require
 // 빌드가 허용하는 fx 는 셸이 모두 그려야 한다 — flash·shake 가 통과만 하고 화면에 안 나오던 회귀(2026-10-02).
 const runFxBody = html.match(/function runFx\(name\)\{([\s\S]*?)\n\}/)?.[1];
 if (!runFxBody) fail("runFx was not found in the player shell");
+/* 로컬 dev 미러에는 NOVEL 호스트 곡과 stillLake 만 있다. 음악 호스트(MUSIC·MED·DCAFE) 곡은 실패하면
+   RIVER_FALLBACK 을 따라 그 로컬 곡에 닿아야 한다 — 체인이 없으면 404 뒤 무음으로 남는다. */
+const trackSource = html.match(/var TRK=\{([\s\S]*?)\n\};/)?.[1];
+const fallbackSource = html.match(/var RIVER_FALLBACK=(\{[\s\S]*?\});/)?.[1];
+if (!trackSource || !fallbackSource) fail("TRK or RIVER_FALLBACK was not found in the player shell");
+const trackHosts = new Map([...trackSource.matchAll(/^\s*([A-Za-z]\w*):(?:([A-Z]+)\+enc\(|"")/gm)].map((m) => [m[1], m[2] ?? ""]));
+let riverFallback;
+try { riverFallback = new Function(`return ${fallbackSource}`)(); } catch (error) { fail(`RIVER_FALLBACK does not parse: ${error.message}`); }
+const isLocalTrack = (key) => trackHosts.get(key) === "NOVEL" || key === "stillLake";
+for (const [key, host] of trackHosts) {
+  if (!["MUSIC", "MED", "DCAFE"].includes(host) || key === "main" || isLocalTrack(key)) continue;
+  const seen = new Set([key]);
+  let cursor = riverFallback[key];
+  while (cursor && !isLocalTrack(cursor) && !seen.has(cursor)) { seen.add(cursor); cursor = riverFallback[cursor]; }
+  if (!cursor || !trackHosts.has(cursor) || !isLocalTrack(cursor)) fail(`BGM '${key}' has no RIVER_FALLBACK chain that ends in a local track`);
+}
+if (trackHosts.get("none") !== "") fail("the silent track key 'none' must map to an empty URL");
+for (const hook of ['if(key==="none"){S.bgmKey="none";fadeOutStop();return;}', 'if(on&&S.bgmKey==="none")return;', 'S.bgmOn&&audio.src&&S.bgmKey!=="none"', 'S.bgmOn&&S.bgmKey!=="none"']) {
+  if (!html.includes(hook)) fail(`silent-track guard missing: ${hook}`);
+}
 for (const effect of EFFECTS) if (!runFxBody.includes(`name==="${effect}"`)) fail(`fx '${effect}' is accepted by the build but runFx has no branch for it`);
 for (const [pattern, why] of forbiddenRuntimePatterns) if (html.includes(pattern)) fail(`forbidden pattern is back: ${pattern} — ${why}`);
 if ((html.match(/bootDirectPlay\(\);/g) ?? []).length !== 1) fail("direct player boot must have exactly one data-ready entry point");
@@ -182,7 +202,8 @@ for (const [episodeIndex, beatIndex, background] of preservedEarlyVisualCues) {
    드러난다. 정본에 화를 더하거나 첫 비트를 갈아 끼울 때 실제로 걸리는 자리다. */
 const openersMissingCues = runtime.episodes.flatMap((episode) => {
   const opener = episode.beats[0];
-  const missing = [!opener?.bg && "bg", !opener?.bgm && "bgm"].filter(Boolean);
+  // 무음 none 은 곡이 아니다 — 목차로 들어오자마자 정적이면 BGM 이 빠진 것과 같다.
+  const missing = [!opener?.bg && "bg", (!opener?.bgm || opener.bgm === "none") && "bgm"].filter(Boolean);
   return missing.length ? [`${episode.id}(${missing.join("·")})`] : [];
 });
 if (openersMissingCues.length > 0) {

@@ -806,14 +806,44 @@ var TRK={
   /* 운명 찻집(DestinyCafe) — 결혼식처럼 밝은 톤이 필요한 장면 전용, 장면 전환마다 다른 곡으로 교체 */
   teaHouse:DCAFE+enc("Moonlit Tea House.mp3"),
   teaKind:DCAFE+enc("Kindness.mp3"),
-  teaMoonlight:DCAFE+enc("Moonlight Tea.mp3")
+  teaMoonlight:DCAFE+enc("Moonlight Tea.mp3"),
+  /* 연주곡(2026-10-02 개편) — 가사 등록부(musicLyrics.ts)에 없는 곡만. 보컬곡은 새로 쓰지 않는다 */
+  crystalGarden:MED+enc("Crystal Garden.mp3"),
+  templeDawn:MED+enc("Dawn in the Temple.mp3"),
+  fireFestival:MED+enc("Fire Festival.mp3"),
+  flowingLight:MED+enc("Flowing Light.mp3"),
+  focusFlow:MED+enc("Focus Flow.mp3"),
+  innerFlame:MED+enc("Inner Flame Awakening.mp3"),
+  midnightPulse:MED+enc("Midnight Pulse.mp3"),
+  moonDawn:MED+enc("Moonlit Dawn.mp3"),
+  forestTemple:MED+enc("Moonlit Forest Temple.mp3"),
+  glassBox:MED+enc("Moonlit Glass Box.mp3"),
+  riverReturn:MED+enc("Moonlit River Return.mp3"),
+  sacredFlame:MED+enc("Sacred Flame.mp3"),
+  starDrift:MED+enc("Starlight Drift.mp3"),
+  lakeDawn:MED+enc("Still Lake Dawn.mp3"),
+  drumCircle:MED+enc("Sunrise Drum Circle.mp3"),
+  warDream:MUSIC+enc("Dream.mp3"),
+  warCommand:MUSIC+enc("Moonlit War Command Chamber.mp3"),
+  warRoom:MUSIC+enc("The Moonlit War Room.mp3"),
+  whiteLion:MUSIC+enc("White Lion.mp3"),
+  fortuneReveal:DCAFE+enc("Fortune Reveal.mp3"),
+  orientalGirl:DCAFE+enc("Gentle Oriental Girl.mp3"),
+  destinyRoom:DCAFE+enc("Moonlit Destiny Room.mp3"),
+  /* 무음 — 충격 직후·고백 직전의 정적. 페이드아웃 뒤 멈추고, 토글·탭 복귀·직진입에서 되살리지 않는다 */
+  none:""
 };
 /* BGM 재생 실패 시 강등 체인(유일한 폴백 레지스트리 — 새 계층 만들지 말 것).
    신규 트랙은 로컬 dev 미러에 없어 404가 나므로 반드시 여기 등록한다. */
 var RIVER_FALLBACK={riverEnter:"riverEnter2",riverEnter2:"stillLake",
   warTheme:"crisis2",templeGate:"stillLake",memWater:"stillLake",
   starsName:"stillLake",zeroPoint:"stillLake",rainWindow:"room",firstLight:"stillLake",lunaGuest:"stillLake",
-  teaHouse:"daily",teaKind:"daily",teaMoonlight:"daily"};
+  teaHouse:"daily",teaKind:"daily",teaMoonlight:"daily",
+  crystalGarden:"stillLake",templeDawn:"stillLake",fireFestival:"siksangEnter",flowingLight:"stillLake",
+  focusFlow:"room",innerFlame:"siksangEnter",midnightPulse:"crisis",moonDawn:"stillLake",forestTemple:"stillLake",
+  glassBox:"room",riverReturn:"riverCross",sacredFlame:"siksangEnter",starDrift:"stillLake",lakeDawn:"stillLake",
+  drumCircle:"siksangEnter",warDream:"gloom",warCommand:"crisis2",warRoom:"crisis",whiteLion:"neo2",
+  fortuneReveal:"stillLake",orientalGirl:"daily",destinyRoom:"room"};
 
 /* 네오 4×4 표정 시트 → 셀 좌표(background-position). 원본 도형 실측 위치 기준으로,
    300px 크롭창(CSS background-size:418%)을 각 프레임에 맞춰 놓은 값이다(균등 % 격자가 아니다). */
@@ -956,12 +986,19 @@ audio.addEventListener("error",function(){
 function playTrack(key,vol){
   if(!key)return;
   if(_hydrating){_hBgm=key;return;} /* 리플레이: 지나온 트랙을 연쇄 페이드하지 않고 최종 1곡만 */
+  if(key==="none"){S.bgmKey="none";fadeOutStop();return;}
   var url=TRK[key]||key;
   if(S.bgmKey===key&&!audio.paused)return;
   S.bgmKey=key;
   var target=(vol==null?0.55:vol);
   if(!S.bgmOn){audio.src=url;return;}
   crossTo(url,target);
+}
+function fadeOutStop(){
+  clearInterval(fadeTimer);
+  if(!S.bgmOn||audio.paused){audio.pause();audio.volume=0;return;}
+  var startV=audio.volume,i=0;
+  fadeTimer=setInterval(function(){i++;audio.volume=Math.max(0,startV*(1-i/12));if(i>=12){clearInterval(fadeTimer);audio.pause();}},40);
 }
 function crossTo(url,target){
   clearInterval(fadeTimer);
@@ -990,6 +1027,7 @@ function fadeInOver(target,ms){
 function setBgm(on){
   S.bgmOn=on;var b=document.getElementById("bgmBtn");b.classList.toggle("muted",!on);
   var sw=document.getElementById("setBgm");if(sw)sw.classList.toggle("on",on);
+  if(on&&S.bgmKey==="none")return;
   if(on){if(!audio.src)audio.src=TRK[S.bgmKey]||TRK.main;var p=audio.play();if(p&&p.catch)p.catch(function(){});fadeInOver(S.screen==="player"?0.5:0.5,1200);}
   else{clearInterval(fadeTimer);audio.pause();audio.volume=0;}
 }
@@ -1155,7 +1193,7 @@ async function bootDirectPlay(){
     warmNextEpisode(0);
     enterEpisode(0,true);
     var once=function(){document.removeEventListener("pointerdown",once);document.removeEventListener("keydown",once);
-      if(S.bgmOn){var url=TRK[S.bgmKey]||TRK.main;if(!audio.src)audio.src=url;var pr=audio.play();if(pr&&pr.catch)pr.catch(function(){});fadeInOver(0.5,1500);}};
+      if(S.bgmOn&&S.bgmKey!=="none"){var url=TRK[S.bgmKey]||TRK.main;if(!audio.src)audio.src=url;var pr=audio.play();if(pr&&pr.catch)pr.catch(function(){});fadeInOver(0.5,1500);}};
     document.addEventListener("pointerdown",once,{once:false});document.addEventListener("keydown",once,{once:false});
   }catch(e){}
 }
@@ -2199,7 +2237,7 @@ document.addEventListener("visibilitychange",function(){
   if(document.hidden){clearTimeout(typeTimer);clearTimeout(autoT);clearTimeout(_skipTimer);clearSceneEffects();audio.pause();}
   else if(S.screen==="player"){
     if(S.typing)typeStep();else if(S.skip)scheduleSkipStep();else if(S.auto)scheduleAuto();
-    if(S.bgmOn&&audio.src)audio.play().catch(function(){});
+    if(S.bgmOn&&audio.src&&S.bgmKey!=="none")audio.play().catch(function(){});
   }
 });
 initNovelData().then(function(){
