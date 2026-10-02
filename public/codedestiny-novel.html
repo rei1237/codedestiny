@@ -1362,7 +1362,7 @@ async function nextEpisode(){
   else{endStory();}
 }
 function endStory(){
-  showBeatText({s:"sys",t:"[ CODE DESTINY — 전 43화 완결. 운명은 읽는 것이 아니라, 쓰는 것이다. 함께해 주셔서 고맙습니다. ]"});
+  showBeatText({s:"sys",t:"[ CODE DESTINY — 전 "+EPISODES.length+"화 완결. 운명은 읽는 것이 아니라, 쓰는 것이다. 함께해 주셔서 고맙습니다. ]"});
   S.save={ep:0,bi:0};
   // simple end: allow back
   dlg.dataset.done="true";

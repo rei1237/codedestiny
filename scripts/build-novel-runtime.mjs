@@ -307,8 +307,35 @@ function syncShellFormMarks(runtime) {
   if (next !== shell) writeFileSync(LEGACY_SHELL_PATH, next);
 }
 
+// 다시 쓴 화(rev≥2)의 분량·연출 밀도 보고. 경고만 하고 빌드는 막지 않는다 — 한글 하한(1,800자)은
+// verify-story-text-sync 가 오류로 지킨다. 알파벳이 붙은 화(EP.12A 등)는 막간이라 기준이 짧다.
+export function lengthWarnings(runtime) {
+  const warnings = [];
+  for (const episode of runtime.episodes) {
+    if (!episode.rev || episode.rev < 2) continue;
+    const interlude = /[A-Z]$/.test(episode.no);
+    const chars = episode.beats.reduce((total, beat) => total + beat.t.length, 0);
+    const images = episode.beats.filter((beat) => beat.im).length;
+    const effects = episode.beats.filter((beat) => beat.fx).length;
+    const [minChars, maxChars] = interlude ? [2000, 4000] : [4000, 8000];
+    const note = (message) => warnings.push(`${episode.no}: ${message}`);
+    if (chars < minChars || chars > maxChars) note(`본문 ${chars.toLocaleString("ko-KR")}자 (기준 ${minChars.toLocaleString("ko-KR")}~${maxChars.toLocaleString("ko-KR")})`);
+    if (!interlude && (images < 8 || images > 12)) note(`im ${images}개 (기준 8~12)`);
+    const perThousand = chars ? (effects * 1000) / chars : 0;
+    if (perThousand < 1 || perThousand > 3) note(`fx 1천 자당 ${perThousand.toFixed(2)}개 (기준 1~3)`);
+    const longBeats = episode.beats.filter((beat) => beat.t.length > 150).map((beat) => beat.id);
+    if (longBeats.length) note(`150자 초과 비트 ${longBeats.join(", ")}`);
+    episode.beats.forEach((beat, index) => {
+      if (beat.fx === "flash" && episode.beats[index - 1]?.fx === "flash") note(`flash 연속 ${beat.id}`);
+    });
+  }
+  return warnings;
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const runtime = buildNovelPayload();
   writeNovelRuntime(runtime);
   console.log(`VN 산출물 생성 완료: ${runtime.episodeCount}화 · ${runtime.beatCount.toLocaleString("ko-KR")}비트`);
+  const warnings = lengthWarnings(runtime);
+  if (warnings.length) console.warn(`[분량 경고 ${warnings.length}건 — 빌드는 통과]\n  ${warnings.join("\n  ")}`);
 }
