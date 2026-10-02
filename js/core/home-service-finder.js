@@ -738,12 +738,36 @@
         afBrowseCollections();
         return;
       }
-      if (!target.closest("#cdAllFortunesResults a[href], #cdAllFortunesResults button")) return;
+      var card = target.closest("#cdAllFortunesResults a[href], #cdAllFortunesResults button");
+      if (!card) return;
       var box = afScroller(root);
       afWrite({ scrollTop: box ? box.scrollTop : 0, returnAt: Date.now() });
+      // 공용 디스패처(document 버블)보다 이 리스너가 먼저 돈다 — 실행 전에 닫는다.
+      afCloseOverviewFor(root, card);
     });
+    // 모바일 터치 브리지(js/mobile-interaction-patch.js)는 일부 액션(MBTI 등)을 document capture 에서
+    // 직접 실행하고 전파를 멈춰 위 리스너까지 오지 않는다. 브리지가 처리한 클릭만 실행 뒤에 닫는다.
+    // 브리지가 막은 고스트·스크롤 클릭은 처리 표시가 없으니 닫지 않는다.
+    window.addEventListener("click", function (event) {
+      var target = event.target instanceof Element ? event.target : null;
+      var card = target && root.contains(target) ? target.closest("#cdAllFortunesResults button[data-action], #cdAllFortunesResults a[href][data-action]") : null;
+      if (!card) return;
+      window.setTimeout(function () {
+        if (event.__cdMobileBridgeHandled) afCloseOverviewFor(root, card);
+      }, 0);
+    }, true);
     allFortunes = { root: root, api: api };
     return allFortunes;
+  }
+
+  // 모바일 오버레이(#cdMobileFortuneOverview, z 965)는 화면 안에서 실행되는 카드(무료 사주 입력 폼·MBTI 모달)를
+  // 가린다. 데스크톱 시트가 링크·액션 클릭에 닫히듯(shell-sheet) 무료 data-action 카드는 오버레이를 닫는다.
+  // 유료 카드는 상세 시트(#tilePvwOverlay)가 오버레이 위에 뜨므로 그대로 둔다.
+  function afCloseOverviewFor(root, card) {
+    if (root.getAttribute("data-cd-af-host") !== "overview") return;
+    if (!card.hasAttribute("data-action") || card.hasAttribute("data-pvw-paid")) return;
+    var overlay = window.cdMobileCollectionFullscreen;
+    if (overlay && overlay.isOpen()) overlay.close();
   }
 
   // 데스크톱 시트의 '카테고리로 둘러보기' — 시트를 닫고 옛 경로(정원 컬렉션으로 스크롤)로 간다.
