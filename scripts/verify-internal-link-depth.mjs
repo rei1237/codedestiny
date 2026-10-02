@@ -67,8 +67,12 @@ const MAX_HOPS = 2;
  */
 const LOCALE_VARIANT_BONUS_HOPS = 1;
 
-/** 시작점. 크롤러가 확실히 매번 가져가는 유일한 페이지다. */
-const START_ROUTE = "/";
+/**
+ * 시작점. 크롤러가 확실히 매번 가져가는 유일한 페이지다.
+ * 2026-10-02 부터 `/` 는 워커 301 → `/ggulggul/` 이라 sitemap 에 없다. 크롤러가 실제로 착지해 링크를 읽는 곳은
+ * `/ggulggul/` 이므로 거리는 거기서 잰다.
+ */
+const START_ROUTE = "/ggulggul";
 
 /**
  * 의도적으로 상한을 넘거나 도달 불가인 라우트를 사유와 함께 선언한다.
