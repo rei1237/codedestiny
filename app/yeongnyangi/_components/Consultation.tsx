@@ -49,7 +49,7 @@ export default function Consultation(){
  const ui=consultationLocaleCopy(siteLocale);
  const kindLabel=(id:string)=>siteLocale==='ko'?consultationKinds[domain].find(k=>k.id===id)?.label||localizedKind(id,siteLocale):localizedKind(id,siteLocale);
  const tierLabel=(item:Product)=>siteLocale==='ko'?(item.readingKind==='single'?item.fishName:consultationTitle(item)):item.readingKind==='single'?localizedTier(item.fishId,siteLocale):item.systems.map(id=>localizedSystem(id,siteLocale)).join(' + ');
- const price=(amount:number)=>readingPrice(amount,siteLocale);
+ const price=(amount:number)=>siteLocale==='ko'?amount.toLocaleString('ko-KR')+'원':readingPrice(amount,siteLocale);
  const [kindId,setKindId]=useState('personal');
  const [domain,setDomain]=useState('saju'),[productId,setProductId]=useState('saju_mackerel');
  const [available,setAvailable]=useState<Product[]>([]),[catalogError,setCatalogError]=useState('');
