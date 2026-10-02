@@ -343,7 +343,7 @@ html.neo-mode #cdHomeFunnel #cdTodayHub .cd-today__tarot{border-color:#c4b5fd;co
 /* 모든 운세 화면(2026-10-03 운세 정원 개편) — 검색·방식·고민 블록 #cdAllFortunesRoot.
    데스크톱은 시트 #cdAllFortunes, 모바일은 home-service-finder.js 가 '모든 운세' 개요 패널 맨 위로 옮긴다. */
 .cd-sheet--all{max-width:none}
-@media (max-width:759px){.cd-sheet--all{inset:0;width:100%;height:100%;height:100dvh;max-height:none;border:0;border-radius:0}}
+@media (max-width:759px){.cd-sheet--all{inset:0;width:100%;height:100%;max-height:none;border:0;border-radius:0}}
 @media (min-width:760px){.cd-sheet--all{width:min(1040px,calc(100vw - 48px));height:min(860px,calc(100vh - 48px));height:min(860px,calc(100dvh - 48px));max-height:none}}
 .cd-af{--cd-af-ink:#402a38;--cd-af-muted:#6b4d5e;--cd-af-accent:#b53660;--cd-af-on-accent:#fff;--cd-af-field:#fff;--cd-af-line:rgba(181,54,96,.24);display:grid;gap:12px;min-width:0;color:var(--cd-af-ink)}
 html.neo-mode .cd-af,body.neo-mode .cd-af{--cd-af-ink:#f4eeff;--cd-af-muted:#d8c8ea;--cd-af-accent:#c4b5fd;--cd-af-on-accent:#171126;--cd-af-field:#211931;--cd-af-line:rgba(196,181,253,.3)}
