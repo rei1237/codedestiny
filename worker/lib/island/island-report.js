@@ -449,7 +449,7 @@ function moveLine(facts) {
 }
 
 /** 도움이 붙은 별을 어떻게 쓸지 — 있으면 활용법, 없으면 대안. */
-function useAssistLine(facts) {
+function pickAssistLine(facts) {
   if (facts.assistantStars.length === 0) {
     return "이 자리에는 도와주는 별이 따로 붙지 않았습니다. 사람이나 운에 기대기보다 습관과 일정에 기대는 편이 확실합니다.";
   }
@@ -521,7 +521,7 @@ function narrativeCaution(facts, seen) {
       "겁을 주려는 말이 아닙니다. 미리 알면 대비되는 자리입니다. 자미두수에서 약한 자리는 피하라는 뜻이 아니라, 먼저 손보라는 표시로 읽습니다.",
       once(seen, moveLine(facts)) || "무리해서 키우기보다 지금 있는 것을 지키는 쪽으로 방향을 잡으세요.",
       `${facts.tier.label} 단계라 무너져도 바닥까지 가지는 않습니다. 다만 같은 자리에서 두 번 걸리면 그때는 우연이 아니라 습관입니다.`,
-      once(seen, useAssistLine(facts)),
+      once(seen, pickAssistLine(facts)),
     ]),
   ]);
 }
@@ -547,7 +547,7 @@ function narrativeAdvice(facts, seen) {
       bright ? `${BRIGHTNESS_FACET[bright].act}.` : "",
     ]),
     join([
-      once(seen, useAssistLine(facts)),
+      once(seen, pickAssistLine(facts)),
       once(seen, supportLine(facts)),
       facts.family ? `${facts.family.name} 계열이라 ${facts.family.detail}.` : "",
     ]),
