@@ -46,7 +46,7 @@ export interface ChapterSpec {
 }
 export interface ChapterBody {
   title?: string;
-  questionAnswers?: { questionId: string; answer: string; reason: string; timing: string; action: string; mode?: 'normal' | 'limited' | 'care' }[];
+  questionAnswers?: { questionId: string; answer: string; reason: string; timing: string; action: string; review?: string; mode?: 'normal' | 'limited' | 'care' }[];
   // palaces: 자미 궁 강조용 선택 필드(fortune/ziwei/block-palaces.ts). 옛 결과에는 없다.
   // pillars·astroPoints·vedicPoints·mansions: 사주·점성·베다·숙요 명반 강조용 선택 필드(fortune/block-anchors.ts). 옛 결과에는 없다.
   blocks?: { id?: string; title: string; paragraphs: string[]; sources?: string[]; palaces?: string[]; pillars?: string[]; astroPoints?: string[]; vedicPoints?: string[]; mansions?: string[] }[];

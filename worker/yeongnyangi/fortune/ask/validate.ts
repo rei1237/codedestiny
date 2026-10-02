@@ -16,6 +16,24 @@ const uniqueIds = (value: unknown, allowed: Set<string>) => Array.isArray(value)
   value.every(id => typeof id === 'string' && allowed.has(id)) &&
   new Set(value).size === value.length;
 
+// A written date the period itself does not supply: anything but a requested range's first or last day (or its month).
+function datesBeyondPeriod(text: string, restated: Set<string>) {
+  return [...text.matchAll(/(20\d{2})[-/.년]\s*(\d{1,2})(?:[-/.월]\s*(\d{1,2}))?/gu)].some(([, y, m, d]) => {
+    const month = `${y}-${m.padStart(2, '0')}`;
+    return !restated.has(d ? `${month}-${d.padStart(2, '0')}` : month);
+  });
+}
+
+// The after-period reflection question is optional output: one that is malformed, leaks an internal key, pushes
+// repeated checking or more consultations, or claims a reminder/record feature is dropped, never regenerated.
+function normalizeReview(value: unknown) {
+  if (typeof value !== 'string') return;
+  const review = value.replace(/\s+/g, ' ').trim();
+  if (review.length < 5 || review.length > 200 || /<\/?[a-z][^>]*>|\b[FT]\d{3}\b|\b(?:saju|ziwei|vedic|astrology|sukuyo|tarot)\.|[a-z][A-Z]/u.test(review) ||
+      /매일|날마다|수시로|다시\s*상담|상담을\s*(?:더|또|다시)|다음\s*상담|알림|기록(?:해|을\s*남겨)\s*(?:드|두)|저장해\s*(?:드|두)|100\s*%|반드시|무조건/u.test(review)) return;
+  return review;
+}
+
 /** Validate private model citations before the public chapter is stored. */
 export function validateAskChapter(body: ChapterBody, consultation: Consultation, analysis: AskAnalysis, packet: EvidencePacket): ChapterBody {
   const guide = buildAskFirstChapterPrompt(consultation, analysis, packet);
@@ -25,6 +43,10 @@ export function validateAskChapter(body: ChapterBody, consultation: Consultation
     throw new FortuneError('ASK_EVIDENCE_INCOMPLETE');
   const facts = new Map(guide.evidence.facts.map(fact => [fact.id, fact]));
   const timing = new Map(guide.evidence.timing.map(period => [period.id, period]));
+  const periodContract = guide.version === 'ask-first-chapter-v3';
+  // v3 answers name their consultation period in absolute dates; restating a range boundary is not a dated claim.
+  const restated = new Set(periodContract ? (guide.requestedPeriod.ranges || [])
+    .flatMap(range => [range.start, range.end, range.start.slice(0, 7), range.end.slice(0, 7)]) : []);
   for (const question of guide.questions) {
     const answer = answers.find(item => item?.questionId === question.questionId);
     if (!answer || !uniqueIds(answer.factIds, new Set(question.factIds)) ||
@@ -39,8 +61,8 @@ export function validateAskChapter(body: ChapterBody, consultation: Consultation
       throw new FortuneError('ASK_EVIDENCE_INCOMPLETE');
     if (!question.needsTiming && timingIds.length)
       throw new FortuneError('ASK_UNSUPPORTED_TIMING');
-    if (answer.evidenceStatus === 'limited' && /20\d{2}[-/.년]\s*\d{1,2}(?:[-/.월]\s*\d{1,2})?/u.test(
-      [answer.answer,answer.reason,answer.timing,answer.action].join('\n')))
+    if (answer.evidenceStatus === 'limited' && datesBeyondPeriod(
+      [answer.answer,answer.reason,answer.timing,answer.action].join('\n'), restated))
       throw new FortuneError('ASK_UNSUPPORTED_TIMING');
     for (const id of [...factIds, ...timingIds]) {
       const source = (facts.get(id) || timing.get(id))?.source.factId;
@@ -48,11 +70,11 @@ export function validateAskChapter(body: ChapterBody, consultation: Consultation
     }
     if (answer.evidenceStatus === 'grounded' && question.needsTiming) {
       if (guide.requestedPeriod.start && guide.requestedPeriod.end &&
-          timingIds.some(id => !periodOverlaps(timing.get(id)!.from,timing.get(id)!.to,
+          timingIds.some(id => timing.get(id)!.relation !== 'in-effect' && !periodOverlaps(timing.get(id)!.from,timing.get(id)!.to,
             {from:guide.requestedPeriod.start!,to:guide.requestedPeriod.end!})))
         throw new FortuneError('ASK_UNSUPPORTED_TIMING');
       const citedPeriods = timingIds.map(id => timing.get(id)!);
-      if (/20\d{2}[-/.년]\s*\d{1,2}/u.test(answer.timing) &&
+      if (datesBeyondPeriod(answer.timing, restated) &&
           citedPeriods.every(period => period.resolution === 'year'))
         throw new FortuneError('ASK_UNSUPPORTED_TIMING');
       const citedYears = new Set(timingIds.flatMap(id => {
@@ -78,7 +100,8 @@ export function validateAskChapter(body: ChapterBody, consultation: Consultation
     return {questionId:answer.questionId,factIds:[...factIds],timingIds:[...timingIds],evidenceStatus:answer.evidenceStatus as 'grounded'|'limited',
       sources:[...new Set([...factIds,...timingIds].map(id=>(facts.get(id)||timing.get(id))!.source.factId))]};
   })};
-  return {...body, internalBasis, questionAnswers: answers.map(({factIds: _facts, timingIds: _timing, evidenceStatus, ...answer}) => ({
-    ...answer,mode:evidenceStatus==='limited'?'limited':categories.get(answer.questionId)==='health'?'care':'normal',
-  }))};
+  return {...body, internalBasis, questionAnswers: answers.map(({factIds: _facts, timingIds: _timing, evidenceStatus, review: rawReview, ...answer}) => {
+    const review = periodContract ? normalizeReview(rawReview) : undefined;
+    return {...answer, ...(review ? {review} : {}), mode:evidenceStatus==='limited'?'limited':categories.get(answer.questionId)==='health'?'care':'normal'};
+  })};
 }
