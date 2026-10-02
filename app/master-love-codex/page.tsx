@@ -13,7 +13,7 @@ import { buildKrwOffer } from "@/lib/seo/paid-offer";
 const PAGE_PATH = "/master-love-codex/";
 const PAGE_TITLE = "사주 연애 리포트 · 자미두수 융합 20장 | 마스터 인연의 서";
 const PAGE_DESCRIPTION =
-  "내 다음 연애는 언제 시작될까? 사주 명식과 자미두수 명반을 함께 펼쳐 연애 성향·끌림의 원리·갈등의 뿌리·재회와 결혼운까지 20장으로 읽는 최상위 프리미엄 연애 리포트입니다.";
+  "사주 명식과 자미두수 명반을 함께 펼쳐 연애 성향·끌림의 원리·갈등의 뿌리·재회와 결혼운까지 20장으로 읽는 최상위 프리미엄 연애 리포트입니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,

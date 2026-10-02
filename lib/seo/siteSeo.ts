@@ -239,7 +239,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/tarot/reunion",
     title: siteSeoText("siteSeo.010"),
     description:
-      "우리, 다시 만날 수 있을까? 재회 타로는 상대와의 현재 거리, 연락 타이밍, 감정의 잔향을 카드 흐름으로 살펴보는 리딩입니다.",
+      "재회 타로는 상대와의 현재 거리, 연락 타이밍, 감정의 잔향을 카드 흐름으로 살펴보는 리딩입니다.",
     h1: "재회 타로 리딩",
     keywords: ["재회 타로", "연애 타로", "상대 마음", "연락 타이밍"],
     changeFrequency: "weekly",
