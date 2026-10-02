@@ -2,9 +2,12 @@
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,BookOpen,PawPrint} from 'lucide-react';
 import {products} from '@/worker/yeongnyangi/payments/catalog';
+import LaunchPlannedPrice from '@/app/components/LaunchPlannedPrice';
+import {launchOffer,plannedPriceFor} from '@/lib/brand/launch-offer';
 import styles from './night-hero.module.css';
 
 const starter=products.find(product=>product.id==='saju_mackerel')!;
+const planned=plannedPriceFor(starter.fishId,starter.priceKRW);
 const greetings=['무슨 고민이야? 편하게 앉아.','쓰다듬는 건… 딱 한 번만이야.','네 속도에 맞춰, 함께 읽어보자.'];
 export default function NightHero(){
  const [greeting,setGreeting]=useState(0),[petted,setPetted]=useState(false);
@@ -19,7 +22,7 @@ export default function NightHero(){
     <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>내 고민부터 골라보기<ArrowRight size={19} aria-hidden="true"/></a>
     <a className={styles.secondary} href="#readings"><BookOpen size={18} aria-hidden="true"/>상담 종류 살펴보기</a>
    </div>
-   <p className={styles.price}>천원 운세부터 · 사주 고등어 {starter.priceKRW.toLocaleString('ko-KR')}원 · {starter.chapterCount}개 챕터</p>
+   <p className={styles.price}>{planned!==null?<>선착순 {launchOffer.limit.toLocaleString('ko-KR')}명 체험가 · <LaunchPlannedPrice amount={planned}/>사주 고등어</>:<>천원 운세부터 · 사주 고등어</>} {starter.priceKRW.toLocaleString('ko-KR')}원 · {starter.chapterCount}개 챕터</p>
    <a className={styles.example} href="/yeongnyangi/1000-won-fortune/#example">결제 전 상담 예시 읽기 →</a>
   </div>
   <div className={styles.character}>

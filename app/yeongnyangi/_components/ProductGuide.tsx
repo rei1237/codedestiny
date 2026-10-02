@@ -8,6 +8,8 @@ import styles from './product-guide.module.css';
 import {useReadingLanguage} from '../_lib/use-reading-language';
 import LocalizedProductGuide from './LocalizedProductGuide';
 import {readingDepthCopy,readingTierDepth} from '../_lib/reading-depth-copy';
+import LaunchPlannedPrice from '@/app/components/LaunchPlannedPrice';
+import {plannedPriceFor} from '@/lib/brand/launch-offer';
 
 export type ProductOffer = {id:string; itemId:string; fish:string; fishName:string; price:number; paymentLabel:string; chapters:string[]; depth:string};
 export type ProductOffers = Record<DomainId, ProductOffer[]>;
@@ -19,12 +21,13 @@ export default function ProductGuide({domain,offers,surface='home_catalog'}:{dom
  const {siteLocale}=useReadingLanguage();
  const [fish,setFish]=useState('mackerel');
  const offer=offers.find(p=>p.fish===fish)||offers[0];
+ const planned=plannedPriceFor(offer.fish,offer.price);
  const copy=productCuriosity[domain];
  const Heading=surface==='product_page'?'h2':'h3';
  useEffect(()=>{trackProductStep('product_detail_view',domain,offers[0].itemId,surface,siteLocale);},[domain,offers,surface,siteLocale]);
  if(siteLocale!=='ko')return <LocalizedProductGuide domain={domain} offers={offers} locale={siteLocale} surface={surface}/>;
  return <div className={styles.guide}>
-  <div className={styles.offer}><p><strong>{offer.price.toLocaleString('ko-KR')}원</strong> · {offer.chapters.length}개 챕터</p><p className={styles.offerHook}>{copy.hook}</p><p>{copy.description}</p><a className={styles.cta} href={`/yeongnyangi/fortune/?domain=${domain}&fish=${offer.fish}`} onClick={()=>trackProductStep('product_start_click',domain,offer.itemId,surface)}>상담 구성과 결제 조건 확인하기</a></div>
+  <div className={styles.offer}><p><LaunchPlannedPrice amount={planned}/><strong>{offer.price.toLocaleString('ko-KR')}원</strong> · {offer.chapters.length}개 챕터</p><p className={styles.offerHook}>{copy.hook}</p><p>{copy.description}</p><a className={styles.cta} href={`/yeongnyangi/fortune/?domain=${domain}&fish=${offer.fish}`} onClick={()=>trackProductStep('product_start_click',domain,offer.itemId,surface)}>상담 구성과 결제 조건 확인하기</a></div>
   <Heading>이런 상황에 잘 맞아요</Heading><p>나의 성향이나 반복되는 선택을 이해하고, 다음 행동의 기준을 정리하고 싶을 때 살펴보세요.</p>
   <Heading>확인할 수 있는 내용</Heading><ul>{offer.chapters.slice(0,3).map(title=><li key={title}>{title}</li>)}</ul>
   <Heading>이런 답을 찾는다면 맞지 않아요</Heading><p>상대의 속마음, 특정 사건의 날짜, 합격·재회·수익을 확정하는 답은 제공하지 않아요.</p>
@@ -42,7 +45,7 @@ export default function ProductGuide({domain,offers,surface='home_catalog'}:{dom
   <a href="/yeongnyangi/library/">이미 구매한 상담 확인하기 →</a>
   {[...questionGuides,...contextualQuestionGuides].filter(q=>q.productId.startsWith(domain+'_')).slice(0,2).map(q=><a key={q.id} href={questionGuideHref(q.id)}>{q.question} — 이 고민에 맞는 상담 보기 →</a>)}
   <a href="/today/">오늘의 무료 흐름 먼저 살펴보기 →</a>
-  <div className={styles.offer}><p><strong>{offer.price.toLocaleString('ko-KR')}원</strong> · {offer.fishName} · {offer.chapters.length}개 챕터</p><p>{offer.paymentLabel}. 다음 화면에서 상담 종류와 프로필을 고르고, 로그인 후 결제창에서 적용 수단과 총액을 확인해요.</p><a className={styles.cta} href={`/yeongnyangi/fortune/?domain=${domain}&fish=${offer.fish}`} onClick={()=>trackProductStep('product_start_click',domain,offer.itemId,surface)}>이 구성으로 상담 준비하기 →</a></div>
+  <div className={styles.offer}><p><LaunchPlannedPrice amount={planned}/><strong>{offer.price.toLocaleString('ko-KR')}원</strong> · {offer.fishName} · {offer.chapters.length}개 챕터</p><p>{offer.paymentLabel}. 다음 화면에서 상담 종류와 프로필을 고르고, 로그인 후 결제창에서 적용 수단과 총액을 확인해요.</p><a className={styles.cta} href={`/yeongnyangi/fortune/?domain=${domain}&fish=${offer.fish}`} onClick={()=>trackProductStep('product_start_click',domain,offer.itemId,surface)}>이 구성으로 상담 준비하기 →</a></div>
   {domain==='saju'&&<a href="/yeongnyangi/#founder-records">네오 1:1 상담 실제 후기 보기 →</a>}
   {surface==='home_catalog'&&<a href={`/yeongnyangi/readings/${domain}/`}>공유할 수 있는 상품 안내 열기 →</a>}
  </div>;

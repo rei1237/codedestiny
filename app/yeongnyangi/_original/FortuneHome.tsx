@@ -6,6 +6,7 @@ import NightHero from "../_components/NightHero";
 import QuestionSkyEntry from "../_components/QuestionSkyEntry";
 import FeedbackInvitation from '../_components/FeedbackInvitation';
 import FounderTrust from "@/app/components/FounderTrust";
+import LaunchOfferBanner from "../_components/LaunchOfferBanner";
 import SessionControls from "./SessionControls";
 import {products} from "@/worker/yeongnyangi/payments/catalog";
 const packages={mackerel:products.find(p=>p.id==='saju_mackerel')!};
@@ -341,6 +342,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
 
             <FeedbackInvitation/>
             <FounderTrust/>
+            <LaunchOfferBanner/>
             <aside className="starter-invitation">
               <h2>{Number(packages.mackerel.priceKRW) === 1000 ? "천원부터 시작하는 운세" : `${packages.mackerel.priceKRW.toLocaleString("ko-KR")}원부터 시작하는 운세`}</h2>
               <p>가볍게 시작해도, 네 이야기는 깊이 있게. 기질과 고민의 흐름을 읽고 오늘 해볼 작은 행동까지 짚어줄게.</p>
