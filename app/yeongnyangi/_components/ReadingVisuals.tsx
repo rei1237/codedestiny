@@ -1,7 +1,7 @@
 import type {ChapterBody,ChapterSpec} from '@/worker/yeongnyangi/fortune/book-contracts';
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {visualCopy,chartTerm} from '../_lib/reading-chart-copy';
-import {artSrc,expressionSrc,type Art,type Expression,type TimingRow,type ElementRow,type YearFocusRow} from '../_lib/reading-visuals';
+import {artSrc,expressionSrc,sceneSrc,type Art,type Expression,type Scene,type TimingRow,type ElementRow,type YearFocusRow} from '../_lib/reading-visuals';
 import {Divider,ElementIcon,Paw,ThemeIcon,elementColor} from './ReadingIcons';
 import styles from './reading-visuals.module.css';
 
@@ -100,4 +100,8 @@ export function MascotBubble({expression,text,locale}:{expression:Expression;tex
 
 export function Interlude({art}:{art:Art}){
  return <figure className={styles.interlude} aria-hidden="true"><img src={artSrc(art)} alt="" width={720} height={480} loading="lazy" decoding="async"/><Divider className={styles.divider}/></figure>;
+}
+
+export function SceneArt({art}:{art:Scene}){
+ return <figure className={styles.scene} aria-hidden="true"><img src={sceneSrc(art)} alt="" width={960} height={640} loading="lazy" decoding="async"/></figure>;
 }
