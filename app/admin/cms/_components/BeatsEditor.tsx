@@ -32,7 +32,10 @@ const SPEAKER_LABELS: Record<string, string> = {
   rab: "청토끼",
   baek: "백문",
   pje: "서한비",
+  tiger: "검은 호랑이",
   god: "운명의 신",
+  yun: "윤달",
+  heuk: "흑월",
 };
 
 function describeProblem(text: string, maxLength: number, forbidden: string[]): string {

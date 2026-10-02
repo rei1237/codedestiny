@@ -1,7 +1,7 @@
 // 정적 VN 엔진이 정본 청크 구조와 핵심 회귀 방지 장치를 계속 보유하는지 검사한다.
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS } from "./build-novel-runtime.mjs";
+import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS, SPEAKERS } from "./build-novel-runtime.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const PLAYER_PATH = resolve(ROOT, "public/codedestiny-novel.html");
@@ -107,6 +107,20 @@ if (!fxSfx) fail("FX_SFX was not found in the player shell");
 for (const [effect, sound] of Object.entries(fxSfx)) if (!EFFECTS.has(effect) || !SFX_KEYS.includes(sound)) fail(`FX_SFX ${effect} -> ${sound} points outside EFFECTS or SFX`);
 for (const hook of ["playSfx(b.sfx||FX_SFX[b.fx]);", "if(!S.bgmOn||S.skip||_hydrating||document.hidden)return;", "if(!c||c.state!==\"running\")return;"]) {
   if (!html.includes(hook)) fail(`sound-effect guard missing: ${hook}`);
+}
+// 빌드가 받는 화자는 플레이어 이름표와 /stories 본문에 모두 이름이 있어야 한다 — 없으면 대사가 이름 없이 뜬다.
+const labelMap = (name) => {
+  const source = html.match(new RegExp(`var ${name}=(\\{[\\s\\S]*?\\});`))?.[1];
+  try { return new Function(`return ${source}`)(); } catch { fail(`${name} label map does not parse`); }
+};
+const playerIcons = labelMap("ICON");
+const playerNames = labelMap("NAME");
+const storySpeakerBlock = readFileSync(resolve(ROOT, "lib/stories/vn/index.ts"), "utf8").match(/export const STORY_SPEAKERS[^{]*\{([\s\S]*?)\n\};/)?.[1] ?? "";
+const storySpeakers = new Set([...storySpeakerBlock.matchAll(/^\s*([a-z]+):/gm)].map(match => match[1]));
+for (const speaker of SPEAKERS) {
+  if (!(speaker in playerIcons) || !(speaker in playerNames)) fail(`speaker '${speaker}' has no ICON/NAME label in the player`);
+  if (!storySpeakers.has(speaker)) fail(`speaker '${speaker}' has no STORY_SPEAKERS label in lib/stories/vn/index.ts`);
+  if (!["n", "sys"].includes(speaker) && !playerNames[speaker] && speaker !== "geo") fail(`speaker '${speaker}' has an empty player name`);
 }
 for (const [pattern, why] of forbiddenRuntimePatterns) if (html.includes(pattern)) fail(`forbidden pattern is back: ${pattern} — ${why}`);
 if ((html.match(/bootDirectPlay\(\);/g) ?? []).length !== 1) fail("direct player boot must have exactly one data-ready entry point");

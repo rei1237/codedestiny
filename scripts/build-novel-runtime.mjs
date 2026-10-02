@@ -16,8 +16,8 @@ export const SCENE_MATRIX_PATH = resolve(ROOT, "content/novel/scene-matrix.gener
 // 비트 ID 를 새로 매기므로 계산값이 옛 위치를 잃는다. 그래서 이 표만 manifest 에 싣고, 표에 없는 새 화는 [].
 export const LEGACY_RANGES_PATH = resolve(ROOT, "content/novel/legacy-ranges.v1.json");
 
-const SPEAKERS = new Set(["n", "sys", "yeon", "neo", "mu", "moka", "luna", "rab", "baek", "crow", "geo", "god", "ln", "lns", "pje", "tiger"]);
-const CAST_IDS = new Set(["baek", "crow", "ln", "lns", "mirror", "moka", "mu", "neo", "pje", "rab", "yeon", "tiger"]);
+export const SPEAKERS = new Set(["n", "sys", "yeon", "neo", "mu", "moka", "luna", "rab", "baek", "crow", "geo", "god", "ln", "lns", "pje", "tiger", "yun", "heuk"]);
+const CAST_IDS = new Set(["baek", "crow", "ln", "lns", "mirror", "moka", "mu", "neo", "pje", "rab", "yeon", "tiger", "yun"]);
 export const EFFECTS = new Set(["burst", "claw", "fire", "flash", "fuse", "hands", "heart", "ink", "metal", "net", "reveal", "root", "script", "shake", "stars", "suck", "tarot", "thread", "transform", "veil", "vortex", "water", "wood"]);
 /* 곡 분류(fail-closed). 가사 판정 근거는 가사 등록부 app/music/_data/musicLyrics.ts 다 — musicManifest 의
    hasLyrics 추정은 거의 모두 참이라 근거가 못 된다. TRK 에 새 키를 더하면 둘 중 하나에 반드시 넣는다.
