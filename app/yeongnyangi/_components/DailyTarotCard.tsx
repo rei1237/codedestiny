@@ -28,7 +28,7 @@ export default function DailyTarotCard(){
   <p className="daily-tarot-progress" role="status">{opened.length===3?'세 장 모두 펼쳤네. 오늘 너에게 필요한 힌트를 골라봐.':`${opened.length} / 3장 펼쳤어. 서두르지 않아도 돼.`}</p>
   <div className="daily-tarot-readings">
    {positions.map((position,index)=>{const card=reading?.[index];return <article id={`daily-tarot-reading-${index}`} key={position} className="daily-tarot-reading" hidden={!opened.includes(index)||!card}>
-    {card&&<><h3>{position} · {card.cardName}</h3><p className="daily-tarot-comment">{index===0?'오늘은 이런 장면에 눈길을 줘봐.':index===1?'마음이 보내는 신호도 놓치지 말자.':'큰 결심 말고, 작은 한 걸음이면 돼.'}</p><p>{card.reading}</p><dl><div><dt>영냥이의 제안</dt><dd>{card.advice}</dd></div></dl></>}
+    {card&&<><h3>{position} · {card.cardName}</h3><p className="daily-tarot-comment">{index===0?'오늘은 이런 장면에 눈길을 줘봐.':index===1?'마음이 보내는 신호도 놓치지 말자.':'큰 결심 말고, 작은 한 걸음이면 돼.'}</p><p>{card.reading}</p><dl><div><dt>카드의 조언</dt><dd>{card.advice}</dd></div></dl></>}
    </article>;})}
   </div>
   {opened.length===3&&reading&&<div className="daily-tarot-luck"><Sparkles size={17}/><span>오늘 해볼 작은 일</span><b>{reading[2].luck.mission}</b><p>세 장 중 마음에 남은 조언 하나만 챙겨가도 충분해.</p></div>}

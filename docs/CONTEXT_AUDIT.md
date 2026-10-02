@@ -292,3 +292,19 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **표시광고법**: 해당 금액에 판매한 적이 없으므로 '정가'라고 쓰지 않고 '정식 오픈 예정가'로만 쓴다. 선착순 1,000명은 자동으로 집계하지 않는다. 판매가 1,000건에 이르면 운영자가 `lib/brand/launch-offer.ts`의 `active`를 `false`로 바꿔 표기를 모두 내린다.
 - **후기**: 영냥이 후기는 새로 만들지 않았다. 네오의 사람 1:1 상담·강의 실제 후기(`lib/brand/customer-reviews.mjs`)로 연결하고, 체험가 상담은 계산 엔진과 AI 해설로 제공된다는 고지를 붙였다. '10년 경력 명리학자'는 사주 계산 로직에 한정한다(`app/fusion-fortune/_lib/expert-labels.ts:27`).
 - **롤백**: 배치 커밋과 데이터 커밋을 되돌리거나 `active:false`로 둔다.
+
+## 2026-10-02 영냥이 말투 — 정본 반말 ↔ 코드의 존댓말 언어 지시
+
+- **요청(원문)**: "영냥이 상담에서 생활 속 장면이라든지 말투가 영냥이 스럽지 않은 부분이 있는데 … 상담 말투도 직설적이면서도 결국 따뜻한 성품인 영냥이 말투로 상담하도록 개선해주면 좋겠다"
+- **충돌**: design-canon §2 와 content-assets 콘텐츠 보이스는 영냥이를 반말로 정했다. 그런데 장 생성 요청의 ko 언어 계약(`lib/i18n/ai-locale.js` 101행, `[OUTPUT LANGUAGE — HIGHEST PRIORITY]`)이 "한국어 존댓말로 작성"을 시스템 앞·뒤와 domainRules 세 곳에 넣고, ko toneProfile 도 "honorific counseling"이었다. 영냥이 페르소나는 반말을 적지 않아 존댓말·보고서체가 이겼다.
+- **해소**: 코드를 정본 문서에 맞췄다. `worker/yeongnyangi/fortune/reading-locale.ts` 의 `readingLanguageInstruction` 안에서만 ko 존댓말 문장을 "말투는 상담자 페르소나 지시를 따르십시오"로 치환하고, ko toneProfile 을 페르소나 기준으로 바꿨다. 영냥이 페르소나 v2 가 반말·직설(핵심 판단 먼저 → 이해 → 작은 행동, 응원은 한마디에)을 직접 적는다. 연이·네오는 페르소나에 존댓말이 적혀 있어 그대로다. 공유 지시 `buildOutputLanguageDirective` 는 테스트 밖 소스 13개 파일이 써서 고치지 않았다.
+- **가드**: `__tests__/ui/yeongnyangi-persona.test.mjs` 가 ko 계약에 '존댓말로 작성'이 없고 페르소나 위임 문장이 있는지 단언한다. `ai-locale.js` 문구가 바뀌어 치환이 조용히 무효가 되면 실패한다(변이로 확인).
+- **영향**: `yeongnyangi-reading-invariance` 123행 모두 requests 열만 바뀌었다. id·prepare·validated·manifests 는 그대로다. 검증기·분량 하한·스키마·섹션 지시는 바꾸지 않아 새 거부 조건은 없다.
+- **롤백**: 이 커밋 하나를 되돌린다.
+
+## 2026-10-02 영냥이 생활 속 장면 그림 — 장식 없는 독서면 ↔ 장면 그림, `<Image>` 규칙 ↔ 리더의 `<img>`
+
+- **요청(원문)**: "영냥이 상담에서 생활 속 장면이라든지 … 그런 장면 등에 대해서도 고급스럽게 보일 수 있도록 어느정도 이미지 에셋을 직접 만들어서 몰입감 좋게 개선해주면 좋겠고"
+- **충돌 1**: `docs/design/yeongnyangi-night.md` 는 결과를 "장식 없는 남색 독서면"으로 정했다. 사용자 요청이 더 최근이고 구체적이므로 예외 한 줄을 그 문서에 적었다. 생활 속 장면 소절에만, 부마다 한 장, 같은 그림은 리딩당 한 번이다(`sceneArt`, `app/yeongnyangi/_lib/reading-visuals.ts`).
+- **충돌 2**: `docs/context/content-assets.md` 는 Next.js `<Image>` 를 쓰라고 한다. 결과 리더의 그림 컴포넌트(`app/yeongnyangi/_components/ReadingVisuals.tsx`)는 이미 `<img>` 5곳을 쓰고, `next.config.mjs` 는 `images.unoptimized: true` 다. 새 `SceneArt` 는 같은 파일의 실물 패턴(`width`·`height` 지정, `loading="lazy"`, `decoding="async"`)을 따랐다. 규칙과 실물의 차이는 이 기록으로 남기고 기존 5곳은 바꾸지 않았다.
+- **범위**: 그림 8장(`public/assets/yeongnyangi/scenes/`). 계획한 9장 중 휴식(rest)은 만들지 않았다. 구매 가능한 상품×상담 종류 매니페스트 166개를 전수로 돌려 보니, 건강 부(v7)에는 장면 소절이 없고 v5/v6 에는 건강 theme 이 없어 한 번도 쓰이지 않았다. `__tests__/ui/yeongnyangi-reading-visuals.test.mjs` 가 출하한 그림마다 그것을 쓰는 매니페스트가 있는지 단언한다.

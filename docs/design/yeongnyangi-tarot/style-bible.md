@@ -197,6 +197,19 @@ m03 에 남은 결함은 Phase 2 장면 프롬프트에서 글로 보완한다.
   - 악마는 CHARACTER 기본 블록의 예외로 영냥이가 그림자로만 등장한다고 명시했다. 실물 고양이에 뿔을 붙이지 않으며 두 조연의 열린 목고리·U자 사슬을 그린다. 털/홍채 정본 색 비교는 불가.
   - 태양은 조랑말 전체가 중앙에 들어오도록 작게 쓰고, 앞발2개 모두 고삐를 잡으며 턱을 괴지 않는다고 명시해 여분 발을 없앴다. 영냥이 단독 키30%·조랑말 포함57%는 장면상 예외다.
   - 별17은 큰별1+작은별7이 a에서만 맞았다(b는6). 12/17/20/21 주변 달·광선·날개끝·상자 하단의 프레임 가림은 남겨 기록했고, 핵심 상징 식별과 구분했다. 세트 전체 승인은 사용자 게이트다.
+- 생활 장면 파일럿(2026-10-02, 가로 1536×1024, 참조 hero-800-ref, self-a1·love-a1 2회): 둘 다 불합격이었다. 고친 점은 「COMPOSITION_SCENE」 블록과 장면 문단에 반영했다.
+  - 키: 거리를 "medium distance" 로만 쓰자 실내(self-a1)는 키가 이미지 높이의 0.57, 야외 다리(love-a1)는 0.36 으로 장면마다 달랐다. 그래서 "wide establishing shot … 키는 높이의 약 1/3, 모자 위·발 아래 빈 공간"을 블록에 넣고, 높이를 장면 물체에 묶었다(self: 모자 끝 = 창 가운데 가로대, love: 난간 기둥 사이 = 키의 약 3배).
+  - 참조의 명찰이 샜다. CHARACTER 블록에 "No name tag" 가 있는데도 love-a1 망토에 흰 태그(768px 폭 기준 6×10px)가 생겼다. 그래서 명찰을 지운 참조 사본(`scenes/refs/hero-800-ref-notag.png`, 둘레 색 조화 보간)을 쓴다.
+  - 두 파일럿 모두 참조 포즈를 따라 관객을 봤다. 블록에 "Unlike the reference image, Yeongnyangi does not look at the viewer; it looks at what the scene describes." 를 넣었다.
+  - 따뜻한 촛불·등불 장면에서 털이 크림색으로 물들었다(self-a1 털 그림자 채도 .07–.22, 정본 .02–.05). 블록에 "털은 순백에 서늘한 라일락 회색 그림자, 따뜻한 빛은 가는 림 라이트로만"을 넣었다.
+  - 창유리 반사가 두 번째 고양이로 읽혔고, 가장자리에 소품이 몰렸다. self 문단을 뒷모습 3/4 와 옆얼굴, 흐리고 반투명한 반사, "There is only one cat in the scene." 으로 바꿨다. 가장자리 10% 는 블록에서 배경만 두게 했다.
+- 생활 장면 v2(2026-10-02, 8장면 1회씩, 명찰 지운 참조): 8/8 불합격이었다. 참조 포즈(관객 응시·턱 괴기) 5/8, 따뜻한 털 5/8(실내 따뜻한 조명 장면만), 가슴 생선 장식 누출 3/8, 키 초과 4/8, 가장자리 소품 7/8.
+  - 참조의 생선 장식도 지워 보았지만 실패했다. 조화 보간이 실루엣 경계(꼬리가 배경으로 튀어나온 곳)를 50×34px 번진 얼룩으로 만들었다. 그래서 명찰만 지운 사본을 계속 쓰고, 생선은 장면 QA 에서 잡는다.
+  - 털 기준을 보정했다. 채택된 타로 카드 4장을 같은 방법(털 픽셀 V≥.50·S≤.35)으로 재니 채도 중앙값 .08–.10, S>.12 비율 21–35% 였다. 그래서 장면 털 기준을 중앙값 ≤.11·S>.12 ≤40% 로 정했다(참조 .028 은 기준으로 쓰지 않는다).
+- 생활 장면 v3(같은 날, 장면당 최대 3회): STYLE_SCENE 의 warm 세 곳을 바꾸고, 조명 블록 「LIGHT_SCENE」(달빛이 주광, 등불은 고양이와 떨어짐, 따뜻한 빛은 림만)을 맨 끝에 두었다. 장면마다 옆모습 방향과 보는 대상을 적고 소품을 줄였다. self 는 반사를 없앴다.
+  - 시선·생선·따뜻한 털은 잡혔다. 대신 털이 서늘한 라일락으로 과채도가 되었다(H≈255–290, 중앙값 .11–.13). 이것은 `scenes/tools/grade.mjs` 로 결정적으로 고친다. 라일락 색상대(250–300°)의 밝은 저채도 픽셀만 채도를 ×(1−0.35w)로 낮추고 마스크는 쓰지 않는다. 보정본을 다시 QA 하고, 방법은 원장 `derived[].method` 에 적는다.
+  - 책상 장면(wealth·work)은 키가 .53–.60 으로 넘쳤다. v3.1 에서 COMPOSITION_SCENE 에 "340px·바닥이 보임"을 넣고, 책상을 "방 건너편에서 본 책상 전체"로 바꿨다.
+  - 채택: home-a2·journey-a2·crossroads-a2·love-a3 원본, people-a2·wealth-a3·self-a3·work-a3 보정본(8장 모두 ADOPT_WITH_NOTES, 상세는 [scenes/README](../../../public/assets/yeongnyangi/scenes/README.md)). 시도는 모두 20회다.
 - 원본 PNG 는 저장소 밖 `D:\Development\yeongnyangi-tarot-art\phase<N>\` 에 둔다. 저장소에는 문서·원장·SVG 만 커밋한다.
 - 원장 [art-ledger.jsonl](art-ledger.jsonl): 생성 1회당 1줄. `scripts/save-fortune-art.mjs` 의 `{slug, file, source, tool, prompt, bytes}` 를 넓혀 `{id, phase, target, prompt, size, quality, referenceImage, source, adopted, reason, qa}` 와 해시·해상도를 담는다. 탈락작도 지우지 않고 `adopted:false` 와 이유를 남긴다.
   - `role` 은 그 생성이 맡은 자리(예: 뒷면 후보 A)다.
@@ -214,6 +227,7 @@ m03 에 남은 결함은 Phase 2 장면 프롬프트에서 글로 보완한다.
 | 조연 시트 | FORMAT_LANDSCAPE → STYLE_SHEET → 캐스트 → NO_TEXT, 참조 없음(영냥이를 닮지 않게) |
 | 모티프 시트 | FORMAT_LANDSCAPE → STYLE_CARD → 모티프 → NO_TEXT |
 | 카드 뒷면 | FORMAT_PORTRAIT → STYLE_CARD → 뒷면 공통 → 뒷면 배치 → NO_TEXT, 생성 뒤 sym2 로 180° 대칭 강제 |
+| 생활 장면 (영냥이 결과 리더) | FORMAT_LANDSCAPE → STYLE_SCENE → CHARACTER → 장면 → COMPOSITION_SCENE → PALETTE_GUARD → NO_TEXT → LIGHT_SCENE, 참조 `-i scenes/refs/hero-800-ref-notag.png`(명찰을 지운 사본). STYLE_SCENE 은 STYLE_CARD 에서 네 곳을 바꾼 것이다: 'storybook tarot illustration'→'storybook illustration', 'a warm glow and bloom around light sources'→'a soft glow around light sources', 'warm ivory (#f3eee5)'→'snow white (#f5f6fa)', 'quiet, mysterious and warm'→'quiet, mysterious and tender'. LIGHT_SCENE 은 털 색 지시가 가장 나중에 읽히도록 맨 끝에 둔다 |
 
 ### FORMAT_PORTRAIT
 
@@ -251,6 +265,18 @@ Style: a clean official character model sheet in polished anime cel style — th
 Composition: a vertical 2:3 portrait artwork that fills the whole canvas edge to edge, with no border, frame or card outline. Keep the top 10% and the bottom 14% of the image as quiet background only (sky, clouds or ground texture) with no faces, paws, key objects or bright highlights, because a frame and a name plate will be overlaid there. Place the main subject in the central band.
 ```
 
+### COMPOSITION_SCENE
+
+```text
+Composition: a horizontal 3:2 landscape artwork that fills the whole canvas edge to edge, with no border, frame or card outline. A wide establishing shot with the camera pulled back, not a medium shot or a close-up: Yeongnyangi is small in the frame, and its whole body from the hat tip to the paws spans only about one third of the image height, with open space above the hat and below the paws. On this 1024-pixel-tall canvas the cat is only about 340 pixels tall, and the floor or ground beneath it and beneath the furniture is visible. The setting is simple and uncluttered: only the objects the scene names, with no extra shelves, books, plants, picture frames, globes or instruments. The outer tenth of every edge is plain background only (dark wall, curtain, night sky, water or ground) with no props, faces, paws or key objects there, and nothing important is cut off by the edges. Place Yeongnyangi and the key objects in the central area so the picture still reads on a small phone screen. Unlike the reference image, Yeongnyangi does not look at the viewer and does not rest its chin on a paw: its head is turned in profile toward what the scene describes, and its front paws rest on what it sits on.
+```
+
+### LIGHT_SCENE
+
+```text
+Lighting and fur: cool silver-blue moonlight is the main light on Yeongnyangi. Lamps, candles and lanterns stand away from the cat, at least one cat-height apart, and their warm glow falls on the objects and the room, not on the cat. Yeongnyangi's face, chest, body and tail stay snow-white with cool lilac-gray and blue-gray shadows, as pale as in the reference image; warm light may touch only one thin outer edge of the fur. Never cream, ivory, beige, peach, pink or golden fur. Unlike the reference image, there is no gold fish-shaped charm anywhere on the cape, collar or chest: only the round indigo orb and its short tassel hang from the choker.
+```
+
 ### NO_TEXT
 
 ```text
@@ -273,3 +299,5 @@ Palette discipline: pink appears only on the ears, nose, paw pads and a very fai
 4. 안전 영역: 위 10%·아래 14% 에 핵심 요소가 없다.
 5. 240px 식별: 썸네일에서 주인공과 핵심 소품이 읽힌다.
 6. 색: 눈 위·아래와 털을 sharp 로 샘플링해 정본과 대조한다.
+
+생활 장면은 4·5 대신 이것을 본다: 가장자리 10% 에 얼굴·발·핵심 소품이 없다, 키(모자 끝~발)가 이미지 높이의 약 1/3 이다, 343px 폭에서 영냥이와 장면 소품이 읽힌다, 사람이 없다, 관객이 아니라 장면 속 대상을 본다. 털은 고양이 털 픽셀(V≥.50, S≤.35) 채도 중앙값 .11 이하, S>.12 비율 40% 이하다. 채택된 타로 카드 4장을 같은 방법으로 잰 값(중앙값 .08–.10, 21–35%)에 맞춘 기준이다. 라일락 색이 너무 진한 것만 문제라면 다시 생성하지 않고 `scenes/tools/grade.mjs`(라일락 대역의 옅고 밝은 픽셀만 채도를 낮추는 매끈한 곡선, 마스크 없음)로 결정적으로 고친 뒤 다시 QA 한다. 그 방법은 원장 `derived[].method` 에 적는다.
