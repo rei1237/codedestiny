@@ -91,3 +91,15 @@ test.each(['truncated','unfinished'])('deep %s keeps complete prose without requ
 test('raw prose is persisted privately and excluded from the paid response',async()=>{
  await save({},owner,'palm-original',result,'provider raw');expect(docs[0].metadata.palmRaw).toBe('provider raw');expect(await read({},owner,'palm-original')).not.toHaveProperty('palmRaw');
 });
+test('vision fields the model omitted are not compared as measured medium values', async () => {
+  // Both hands detected, but depth/length/strength/coverage are all missing from the model reply.
+  visionReply.text = JSON.stringify({ palmDetected: true, imageQuality: { brightness: 'good', sharpness: 'good' }, majorLines: { lifeLine: { detected: true }, heartLine: { detected: true }, fateLine: { detected: true } } });
+  const image = 'data:image/png;base64,' + 'A'.repeat(80);
+  const response = await route(new Request('https://mock.test/api/palm/analyze', { method: 'POST', body: JSON.stringify({ leftPalmImage: image, rightPalmImage: image, dominantHand: 'right', analysisPurpose: 'general' }) }), {});
+  expect(response.status).toBe(200);
+  const body = await response.json();
+  expect(body.leftHandReading.majorLines.lifeLine.defaultedFields).toContain('depth');
+  expect(body.recognitionData.bySide.left.imageQuality.palmCoverage).toBeNull();
+  expect(body.bothHandsComparison.enabled).toBe(true);
+  expect(body.bothHandsComparison.differenceSummary).not.toMatch(/유사/);
+});

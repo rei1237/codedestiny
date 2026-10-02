@@ -191,6 +191,23 @@ function asArr(v) {
   return Array.isArray(v) ? v : [];
 }
 
+// 모델이 뺀 필드를 표시용 기본값으로 채우되, 채웠다는 사실을 defaultedFields 에 남긴다.
+// 비교·품질 판정은 이 목록의 필드를 "모름"으로 취급한다 — 기본값이 판정을 정하면 안 된다.
+function measuredFields(raw, defaults) {
+  const o = asObj(raw);
+  const values = {};
+  const defaultedFields = [];
+  for (const [key, fallback] of Object.entries(defaults)) {
+    const value = str(o[key], "");
+    if (value) values[key] = value;
+    else {
+      values[key] = fallback;
+      defaultedFields.push(key);
+    }
+  }
+  return { values, defaultedFields };
+}
+
 function majorLine(raw, defaults) {
   const o = asObj(raw);
   const detected = bool(o.detected, false);
@@ -215,6 +232,7 @@ function minorLine(raw, defaultSummary) {
     confidence: detected ? unit(o.confidence) : 0,
     strength: detected ? str(o.strength, "medium") : "none",
     summary: str(o.summary, defaultSummary),
+    defaultedFields: detected && !str(o.strength, "") ? ["strength"] : [],
   };
 }
 
@@ -255,6 +273,7 @@ function mount(raw) {
   return {
     fullness: str(o.fullness, "medium"),
     summary: str(o.summary, ""),
+    defaultedFields: str(o.fullness, "") ? [] : ["fullness"],
   };
 }
 
@@ -282,6 +301,20 @@ export function geminiResultToHandReading(g) {
     summary: "운명선을 판독했습니다.",
     advice: "꾸준한 노력이 결실을 맺습니다.",
   });
+  const lifeShape = measuredFields(ml.lifeLine, { length: "medium", depth: "medium", curvature: "normal" });
+  const headShape = measuredFields(ml.headLine, {
+    length: "medium",
+    depth: "medium",
+    direction: "straight",
+    startRelationWithLifeLine: "joined",
+  });
+  const heartShape = measuredFields(ml.heartLine, {
+    length: "medium",
+    depth: "medium",
+    curvature: "soft",
+    endingArea: "underMiddle",
+  });
+  const fateShape = measuredFields(ml.fateLine, { strength: "medium", startArea: "wrist", endArea: "saturnMount" });
 
   return {
     handShape: {
@@ -292,31 +325,16 @@ export function geminiResultToHandReading(g) {
       summary: str(hs.summary, "손 형태를 분석했습니다."),
     },
     majorLines: {
-      lifeLine: {
-        ...lifeLine,
-        length: str(asObj(ml.lifeLine).length, "medium"),
-        depth: str(asObj(ml.lifeLine).depth, "medium"),
-        curvature: str(asObj(ml.lifeLine).curvature, "normal"),
-      },
-      headLine: {
-        ...headLine,
-        length: str(asObj(ml.headLine).length, "medium"),
-        depth: str(asObj(ml.headLine).depth, "medium"),
-        direction: str(asObj(ml.headLine).direction, "straight"),
-        startRelationWithLifeLine: str(asObj(ml.headLine).startRelationWithLifeLine, "joined"),
-      },
-      heartLine: {
-        ...heartLine,
-        length: str(asObj(ml.heartLine).length, "medium"),
-        depth: str(asObj(ml.heartLine).depth, "medium"),
-        curvature: str(asObj(ml.heartLine).curvature, "soft"),
-        endingArea: str(asObj(ml.heartLine).endingArea, "underMiddle"),
-      },
+      lifeLine: { ...lifeLine, ...lifeShape.values, defaultedFields: lifeShape.defaultedFields },
+      headLine: { ...headLine, ...headShape.values, defaultedFields: headShape.defaultedFields },
+      heartLine: { ...heartLine, ...heartShape.values, defaultedFields: heartShape.defaultedFields },
       fateLine: {
         ...fateLine,
-        strength: fateLine.detected ? str(asObj(ml.fateLine).strength, "medium") : "none",
-        startArea: str(asObj(ml.fateLine).startArea, "wrist"),
-        endArea: str(asObj(ml.fateLine).endArea, "saturnMount"),
+        ...fateShape.values,
+        strength: fateLine.detected ? fateShape.values.strength : "none",
+        defaultedFields: fateLine.detected
+          ? fateShape.defaultedFields
+          : fateShape.defaultedFields.filter((key) => key !== "strength"),
       },
     },
     minorLines: {
@@ -400,12 +418,15 @@ function qualityLabelToScore(value, kind) {
 export function computeQualityScore(input) {
   const imageQuality = input.imageQuality || {};
   const lineCount = Math.max(0, Number(input.detectedLineKeys?.length || 0));
-  const coverage = Math.max(0, Math.min(1, Number(imageQuality.palmCoverage || 0)));
+  // 모름(null)인 coverage 는 0점도 기본점도 주지 않고 가중치에서 뺀다.
+  const coverageKnown = imageQuality.palmCoverage != null && Number.isFinite(Number(imageQuality.palmCoverage));
+  const coverage = coverageKnown ? Math.max(0, Math.min(1, Number(imageQuality.palmCoverage))) : 0;
   const brightnessScore = qualityLabelToScore(String(imageQuality.brightness || "normal"), "brightness");
   const sharpnessScore = qualityLabelToScore(String(imageQuality.sharpness || "normal"), "sharpness");
   const lineScore = Math.min(1, lineCount / 4);
   const detectedBonus = input.palmDetected ? 0.08 : 0;
-  const score = coverage * 0.34 + brightnessScore * 0.2 + sharpnessScore * 0.2 + lineScore * 0.26 + detectedBonus;
+  const weighted = brightnessScore * 0.2 + sharpnessScore * 0.2 + lineScore * 0.26;
+  const score = (coverageKnown ? coverage * 0.34 + weighted : weighted / 0.66) + detectedBonus;
   return Math.max(0, Math.min(1, Number(score.toFixed(4))));
 }
 
@@ -511,10 +532,14 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
     handSide: str(parsed.handSide, declaredSide),
     brightness: str(iq.brightness, "normal"),
     sharpness: str(iq.sharpness, "normal"),
-    palmCoverage: num(iq.palmCoverage, detectedLineKeys.length > 0 ? 0.58 : 0.36),
+    // 모델이 coverage 를 빼면 모름(null)이다. 예전 기본값 0.58/0.36 은 품질 문턱 0.42 양쪽에 걸려
+    // 판정을 "선이 하나라도 잡혔나"로 바꿔 버렸다. null 은 품질 문턱을 통과하지 못하고(fail-closed)
+    // 판정은 선 검출 근거가 맡는다.
+    palmCoverage: iq.palmCoverage == null || iq.palmCoverage === "" || !Number.isFinite(Number(iq.palmCoverage)) ? null : unit(iq.palmCoverage),
     rotation: 0,
     notes: str(iq.notes, ""),
     warnings: [],
+    defaultedFields: ["brightness", "sharpness", "palmCoverage"].filter((key) => iq[key] == null || iq[key] === ""),
   };
 
   const purposeAnalysis = asObj(parsed.purposeAnalysis);
