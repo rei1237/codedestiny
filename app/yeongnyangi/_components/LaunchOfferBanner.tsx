@@ -18,7 +18,7 @@ export default function LaunchOfferBanner(){
   <p className={styles.badge}>정식 상담 오픈 전 체험 이벤트</p>
   <h2 id="launch-offer-title" className={styles.title}>선착순 {limit}명 한정 체험가</h2>
   <p className={styles.price}><LaunchPlannedPrice amount={planned}/><span aria-hidden="true">→ </span><strong>체험가 {price}</strong></p>
-  <p className={styles.scope}>고등어 상담 기준이에요. 연어·광어·참치·모둠·오마카세와 영냥이 생선 팩에도 같은 체험가가 적용돼요.</p>
+  <p className={styles.scope}>고등어 상담 기준이에요. 연어·광어·참치·모둠·오마카세와 영냥이 생선 팩도 각자의 정식 오픈 예정가보다 낮은 체험가로 열려 있어요(가격은 상품마다 달라요).</p>
   <p className={styles.quip}><span className={styles.speaker}>영냥이</span>“요즘 생선값이… 너무 비싸냥. 이 가격, 오래는 못 버텨.”</p>
   <ul className={styles.facts}>
    <li>사주 계산 로직은 10년 경력 명리학자가 직접 설계했어요.</li>

@@ -47,7 +47,8 @@ test('banner states the limit, planned and trial price, the scoped credential an
  assert.match(text,/사주 계산 로직은 10년 경력 명리학자가 직접 설계했어요/);
  assert.match(text,/몇 달 뒤에는 예정가로 바뀔 수 있어요/);
  assert.match(text,/생선값이… 너무 비싸냥/);
- assert.match(text,/영냥이 생선 팩에도 같은 체험가/);
+ assert.match(text,/영냥이 생선 팩도 각자의 정식 오픈 예정가보다 낮은 체험가로 열려 있어요.가격은 상품마다 달라요./);
+ assert.doesNotMatch(text,/같은 체험가/,'other tiers are not 1,000 won');
  assert.match(text,/후기는 네오의 사람 1:1 상담·강의 이용자가 남긴 것이고, 체험가 상담은 계산 엔진과 AI 해설로 제공돼요/);
  assert.doesNotMatch(text,BANNED);
 });
