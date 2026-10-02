@@ -13,6 +13,15 @@ test('every spread has exactly as many positions, slots and orders as cards',()=
  }
 });
 
+test('maps keep their shape on every width: orbit centred, celtic staff upright',()=>{
+ const at=(id,slotId)=>getYeongnyangiSpread(id).layout.slots.find(slot=>slot.id===slotId);
+ for(const view of ['desktop','mobile']){
+  assert.deepEqual(at('yn_whole_map_ten','now')[view],{col:2,row:2},'orbit centre');
+  assert.deepEqual(['self','environment','hopes_fears','outcome'].map(id=>at('trad_celtic_cross_ten',id)[view]),
+   [{col:4,row:4},{col:4,row:3},{col:4,row:2},{col:4,row:1}],'celtic staff reads bottom to top in one column');
+ }
+});
+
 test('the requested card counts are kept exactly',()=>{
  const expected={yn_one_word:1,yn_knot_three:3,yn_contact_first:5,yn_crossed_six:6,yn_reunion_seven:7,yn_new_bond_five:5,yn_deepen_seven:7,
   yn_ab_seven:7,yn_stay_leave_nine:9,yn_work_block_six:6,yn_money_pattern_five:5,yn_offer_six:6,yn_repeat_pattern_six:6,yn_recovery_four:4,

@@ -1,5 +1,7 @@
 /* v3 tarot order, pick and spread map. Colors come only from --yn-* (night-tokens.css). */
 .spread { display: grid; gap: 16px; margin-block: 16px; }
+/* Korean prose wraps between words; a word breaks only when it cannot fit a line. */
+.spread p, .planner p, .pick p, .hint, .reason { word-break: keep-all; overflow-wrap: break-word; }
 .map { --cell: 56px; display: grid; grid-template-columns: repeat(var(--cols), var(--cell)); grid-auto-rows: auto; justify-content: center; gap: 10px 12px; padding: 16px 12px; border: 1px solid var(--yn-line); border-radius: var(--yn-radius); background: var(--yn-deep); }
 .map[data-size="full"] { --cell: 96px; }
 .slot { position: relative; grid-column: var(--c) / span var(--span, 1); grid-row: var(--r); display: grid; justify-items: center; align-content: start; gap: 6px; min-width: 0; }
@@ -9,27 +11,33 @@
 /* A reversed card turns only the picture; labels and numbers stay readable. */
 .frame[data-reversed] img { transform: rotate(180deg); }
 .badge { position: absolute; top: -8px; left: calc(50% - var(--cell) / 2 - 8px); display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 11px; background: var(--yn-gold); color: var(--yn-deep); font-size: .75rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-.caption { max-width: calc(var(--cell) + 12px); color: var(--yn-muted); font-size: .75rem; line-height: 1.35; text-align: center; overflow-wrap: anywhere; }
+.caption { max-width: calc(var(--cell) + 12px); color: var(--yn-muted); font-size: .75rem; line-height: 1.35; text-align: center; word-break: keep-all; overflow-wrap: break-word; }
+.map[data-kind="single"] .caption { max-width: 16em; }
 /* Celtic: the crossing card lies across the centre card in the same cell. */
 .slot[data-cross] { z-index: 1; align-self: start; }
-.slot[data-cross] .frame { width: calc(var(--cell) * .9); transform: translateY(calc(var(--cell) * .2)) rotate(90deg); }
+.slot[data-cross] .frame { width: calc(var(--cell) * .8); transform: translateY(calc(var(--cell) * .25)) rotate(90deg); }
 .slot[data-cross] .badge { top: calc(var(--cell) * .55); left: calc(50% + var(--cell) * .45); }
 .slot[data-center] .frame { box-shadow: 0 0 0 2px var(--yn-violet); }
 .slot[data-side="b"] .frame { border-style: dotted; }
 .slot[data-side="b"][data-filled] .frame { border-style: double; border-width: 3px; }
 .slot[data-active] .frame { outline: 2px solid var(--yn-gold); outline-offset: 3px; }
 .map[data-kind="ab-compare"] { column-gap: 28px; }
+/* The crossing card is 1.2 cells long once turned; the wider gap keeps it clear of cards 5 and 6. */
+.map[data-kind="celtic"] { column-gap: calc(var(--cell) * .3); }
 .positions { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .positions li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border: 1px solid var(--yn-line); border-radius: 12px; background: var(--yn-night); }
 .positions li[data-active] { border-color: var(--yn-gold); }
 .positions b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 12px; background: var(--yn-raised); color: var(--yn-gold); font-size: .8rem; font-variant-numeric: tabular-nums; }
 .positions div { display: grid; gap: 2px; min-width: 0; }
 .positions strong { color: var(--yn-ivory); }
-.positions span { color: var(--yn-muted); font-size: .9rem; line-height: 1.55; overflow-wrap: anywhere; }
+.positions span { color: var(--yn-muted); font-size: .9rem; line-height: 1.55; word-break: keep-all; overflow-wrap: break-word; }
 .positions em { color: var(--yn-gold); font-style: normal; font-size: .9rem; }
 @media (max-width: 560px) {
  .map { --cell: 48px; grid-template-columns: repeat(var(--mcols), var(--cell)); gap: 10px; }
  .map[data-size="full"] { --cell: 76px; }
+ .map[data-kind="ab-compare"] { column-gap: 16px; }
+ .map[data-kind="celtic"] { --cell: 44px; }
+ .map[data-kind="celtic"][data-size="full"] { --cell: 54px; }
  .slot { grid-column: var(--mc) / span var(--span, 1); grid-row: var(--mr); }
 }
 
@@ -39,20 +47,21 @@
 .planner p { margin: 0; line-height: 1.7; }
 .hint { color: var(--yn-muted); font-size: .9rem; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chips button { min-height: 44px; padding: 8px 14px; border: 1px solid var(--yn-line); border-radius: 22px; background: var(--yn-night); color: var(--yn-ivory); font: inherit; font-size: .92rem; text-align: left; cursor: pointer; }
-.chips button[aria-pressed="true"] { border-color: var(--yn-gold); background: var(--yn-raised); }
-.chips button:focus-visible, .choice:focus-visible, .deck button:focus-visible, .actions button:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 3px; }
+.planner .chips button { min-height: 44px; padding: 8px 14px; border: 1px solid var(--yn-line); border-radius: 22px; background: var(--yn-night); color: var(--yn-ivory); font: inherit; font-size: .92rem; text-align: left; cursor: pointer; }
+.planner .chips button[aria-pressed="true"] { border-color: var(--yn-gold); background: var(--yn-raised); }
+.planner .chips button:focus-visible, .choices .choice:focus-visible, .pick .deck button:focus-visible, .pick .actions button:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 3px; }
 .planner textarea, .planner input[type="text"] { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--yn-line); border-radius: 12px; background: var(--yn-night); color: var(--yn-ivory); font: inherit; font-size: 16px; box-sizing: border-box; }
 .planner label { display: grid; gap: 6px; }
 .reason { display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: center; padding: 12px; border-radius: var(--yn-radius); background: var(--yn-surface); }
 .reason img { width: 56px; height: 56px; border-radius: 28px; object-fit: cover; }
 .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
-.choice { display: grid; gap: 6px; min-height: 44px; padding: 12px 14px; border: 1px solid var(--yn-line); border-radius: 12px; background: var(--yn-night); color: var(--yn-ivory); font: inherit; text-align: left; cursor: pointer; }
-.choice[aria-pressed="true"] { border-color: var(--yn-gold); background: var(--yn-raised); }
-.choice strong { line-height: 1.4; }
-.choice span { color: var(--yn-muted); font-size: .88rem; line-height: 1.5; }
-.choice i { justify-self: start; padding: 2px 8px; border-radius: 10px; background: var(--yn-violet); color: var(--yn-ivory); font-size: .75rem; font-style: normal; }
-.choice small { color: var(--yn-gold); font-size: .8rem; }
+/* Two classes so the page-wide `.page button` (violet, inline-flex) never repaints these cards. */
+.choices .choice { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; align-content: start; gap: 6px; min-height: 44px; padding: 12px 14px; border: 1px solid var(--yn-line); border-radius: 12px; background: var(--yn-night); color: var(--yn-ivory); font: inherit; font-weight: 400; text-align: left; word-break: keep-all; overflow-wrap: break-word; cursor: pointer; }
+.choices .choice[aria-pressed="true"] { border-color: var(--yn-gold); background: var(--yn-raised); }
+.choices .choice strong { line-height: 1.4; }
+.choices .choice span { color: var(--yn-muted); font-size: .88rem; line-height: 1.5; }
+.choices .choice i { justify-self: start; padding: 2px 8px; border-radius: 10px; background: var(--yn-violet); color: var(--yn-ivory); font-size: .75rem; font-style: normal; }
+.choices .choice small { color: var(--yn-gold); font-size: .8rem; }
 .direct summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--yn-gold); text-decoration: underline; text-underline-offset: .25em; }
 .direct h4 { margin: 16px 0 8px; color: var(--yn-muted); font-size: .9rem; }
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -65,13 +74,16 @@
 .pick header h2 { margin: 0; }
 .progress { color: var(--yn-gold); font-weight: 700; font-variant-numeric: tabular-nums; }
 .deck { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 8px; max-height: min(60vh, 560px); overflow-y: auto; padding: 12px; border: 1px solid var(--yn-line); border-radius: var(--yn-radius); background: var(--yn-deep); overscroll-behavior: contain; }
-.deck button { position: relative; min-width: 44px; min-height: 66px; padding: 0; border: 1px solid var(--yn-line); border-radius: 6px; background: var(--yn-night); cursor: pointer; overflow: hidden; }
-.deck button img { display: block; width: 100%; height: auto; }
-.deck button[aria-pressed="true"] { border-color: var(--yn-gold); transform: translateY(-4px); }
-.deck button[aria-pressed="true"] span { position: absolute; inset: auto 0 0; padding: 2px 0; background: var(--yn-gold); color: var(--yn-deep); font-size: .8rem; font-weight: 700; }
-.deck button:disabled:not([aria-pressed="true"]) { opacity: .55; cursor: default; }
+.pick .deck button { position: relative; min-width: 44px; min-height: 66px; padding: 0; border: 1px solid var(--yn-line); border-radius: 6px; background: var(--yn-night); cursor: pointer; overflow: hidden; }
+.pick .deck button img { display: block; width: 100%; height: auto; }
+.pick .deck button[aria-pressed="true"] { border-color: var(--yn-gold); transform: translateY(-4px); }
+.pick .deck button[aria-pressed="true"] span { position: absolute; inset: auto 0 0; padding: 2px 0; background: var(--yn-gold); color: var(--yn-deep); font-size: .8rem; font-weight: 700; }
+.pick .deck button:disabled:not([aria-pressed="true"]) { opacity: .55; cursor: default; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.actions button, .actions a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--yn-line); border-radius: 12px; background: var(--yn-night); color: var(--yn-ivory); font: inherit; text-decoration: none; cursor: pointer; }
-.actions .primary { border-color: var(--yn-gold); background: var(--yn-gold); color: var(--yn-deep); font-weight: 700; }
-.actions button:disabled { opacity: .55; cursor: default; }
-@media (prefers-reduced-motion: reduce) { .deck button[aria-pressed="true"] { transform: none; } }
+.pick .actions button, .pick .actions a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--yn-line); border-radius: 12px; background: var(--yn-night); color: var(--yn-ivory); font: inherit; text-decoration: none; cursor: pointer; }
+.pick .actions .primary { border-color: var(--yn-gold); background: var(--yn-gold); color: var(--yn-deep); font-weight: 700; }
+.pick .actions button:disabled { opacity: .55; cursor: default; }
+/* Reveal: heading and the next-card button sit on the map's centre line. */
+.reveal header { justify-items: center; text-align: center; }
+.reveal .actions { justify-content: center; }
+@media (prefers-reduced-motion: reduce) { .pick .deck button[aria-pressed="true"] { transform: none; } }

@@ -51,7 +51,7 @@ export default function TarotSpreadReveal({requestId,spread,cards,onComplete}:{r
    <h2>{ritual.focusTitle}</h2><p>{spread.title} · {copy.cards(spread.cardCount)}</p>
    <button type="button" disabled={breath>0} onClick={()=>go('reveal')}>{ritual.ready}</button>
   </div>}
-  {stage==='reveal'&&<div className={spreadStyles.pick}>
+  {stage==='reveal'&&<div className={`${spreadStyles.pick} ${spreadStyles.reveal}`}>
    <header className={styles.ritualHeader}><h2>{copy.revealHeading}</h2><p>{copy.revealIntro}</p><strong role="status">{copy.pickProgress(revealed,order.length)}</strong></header>
    <p className={styles.srOnly} aria-live="polite">{live}</p>
    <TarotSpreadLayout spread={spread} cards={shown} active={next?.id} size="full"/>
