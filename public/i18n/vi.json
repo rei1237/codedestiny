@@ -1324,22 +1324,167 @@
     },
     "concernPick": {
       "title": "Điều bạn băn khoăn nhất lúc này là gì?",
-      "lead": "Chọn một điều bạn đang băn khoăn — chúng tôi sẽ chỉ cách xem miễn phí và đúng một bản luận phù hợp nhất. Lựa chọn đó dựa trên việc xem trước điều băn khoăn ấy nằm ở đâu trong lá số.",
-      "love": "Tình cảm & nhân duyên",
-      "person": "Một người cụ thể",
-      "money": "Tiền bạc",
-      "career": "Công việc & kinh doanh",
-      "year": "Dòng chảy năm nay",
-      "all": "Vận thế tổng thể",
-      "loveWhy": "Chúng tôi nhìn ra cấu trúc lặp lại trong các mối quan hệ của bạn và thời điểm chúng thực sự chuyển động.",
-      "personWhy": "Chúng tôi đọc riêng lá số của hai người, rồi đối chiếu chỗ trùng khớp và chỗ lệch nhau.",
-      "moneyWhy": "Chúng tôi tách rõ thời điểm tiền vào và ra khỏi những gì nên giữ và nên thay đổi lúc này.",
-      "careerWhy": "Chúng tôi xếp thứ tự ưu tiên cho những lựa chọn đang kéo về nhiều hướng, đến tận bước tiếp theo.",
-      "yearWhy": "Chúng tôi tách theo từng tháng xem vận năm nay đè lên chỗ nào trong lá số của bạn.",
-      "allWhy": "Chúng tôi đối chiếu xem sáu hệ thống có cùng chỉ về một chỗ hay không, rồi gộp thành một kết luận.",
+      "lead": "Pick what you're wondering about, and we'll show the readings that answer it, with their prices.",
+      "love": "Love",
+      "money": "Money",
+      "career": "Work",
       "freeCta": "Xem miễn phí trước",
-      "paidCta": "Mở bản luận được đề xuất",
-      "fusionLine": "Nếu muốn đối chiếu cả sáu hệ thống"
+      "fusionLine": "Nếu muốn đối chiếu cả sáu hệ thống",
+      "altLabel": "Another way",
+      "ask": "Ask in your own words",
+      "price": {
+        "free": "Free",
+        "from1000": "From ₩1,000",
+        "w3000": "₩3,000",
+        "w5000": "₩5,000",
+        "w10000": "₩10,000",
+        "from10000": "From ₩10,000",
+        "w30000": "₩30,000",
+        "w50000": "₩50,000"
+      },
+      "chip": {
+        "love": "Their feelings · My next love",
+        "reunion": "A chance to meet again",
+        "marriage": "The one I'll marry",
+        "money": "When money starts to flow",
+        "career": "Should I change jobs?",
+        "future": "My golden years · What matters most this year",
+        "self": "Why do I keep making the same choices?",
+        "people": "Why does getting closer wear me out?"
+      },
+      "reunion": "Reunion",
+      "marriage": "Marriage",
+      "future": "Future",
+      "self": "Myself",
+      "people": "Relationships",
+      "q": {
+        "loveMind": {
+          "t": "Why don't their words match their actions?",
+          "s": "Without claiming to know their heart, it reads the gap between words and actions, and how you can respond",
+          "b": "Words-and-Actions Tarot"
+        },
+        "loveStatus": {
+          "t": "What are we to each other right now?",
+          "s": "Six cards read the warmth left in what you both say and do",
+          "b": "Tarot · What are we to each other?"
+        },
+        "loveNext": {
+          "t": "When will my next relationship begin?",
+          "s": "An in-depth Saju reading of when connections arrive and the love patterns you repeat",
+          "b": "Saju · The Master Book of Bonds"
+        },
+        "reunionAgain": {
+          "t": "Could we get back together?",
+          "s": "No odds or percentages — it looks at whether to reach out, and how",
+          "b": "Reunion Tarot"
+        },
+        "reunionContact": {
+          "t": "Should I reach out again, or wait?",
+          "s": "No contact dates — the cards help you set your own test for reaching out or waiting",
+          "b": "Yeongnyangi · Tarot"
+        },
+        "reunionClosure": {
+          "t": "How do I sort out these feelings?",
+          "s": "Lay out cards and Saju with Yeoni to find the paths open to you now",
+          "b": "Tarot & Saju · The Destiny Tea House"
+        },
+        "marriagePartner": {
+          "t": "What kind of person will I marry?",
+          "s": "Without naming a spouse, Saju shows the kind of person you can comfortably share a long life with",
+          "b": "Yeongnyangi · Saju",
+          "alt": "The Master Book of Bonds"
+        },
+        "marriageClash": {
+          "t": "Where do the two of us keep clashing?",
+          "s": "Compatibility shown as the scenes where you two collide, not as a score sheet",
+          "b": "Saju · LOVE CODE Romance Simulation",
+          "alt": "East–West Compatibility"
+        },
+        "marriageDate": {
+          "t": "When is a good day for this?",
+          "s": "Picks good days for a wedding, an opening or a contract from the next 60 days",
+          "b": "Vedic astrology · Muhurta Date Picker"
+        },
+        "moneyWhen": {
+          "t": "When will money start flowing my way?",
+          "s": "The basic reading covers how money comes and goes; when it arrives is read through Saju in the deeper tiers",
+          "b": "Yeongnyangi · Saju"
+        },
+        "moneyWay": {
+          "t": "What way of earning money suits me?",
+          "s": "See your wealth and work tendencies for free through the twelve palaces of your chart",
+          "b": "Zi Wei Dou Shu Chart"
+        },
+        "moneyMonth": {
+          "t": "Can I see ahead which months money will gather?",
+          "s": "One card for each of the twelve months traces your money flow and turning points month by month",
+          "b": "Tarot · Zodiac Year Tarot"
+        },
+        "careerMove": {
+          "t": "Is it okay to change jobs now?",
+          "s": "Stay or go: seven cards set out what to check before you decide",
+          "b": "Tarot · Career Move Cards"
+        },
+        "careerFit": {
+          "t": "Is there work that truly fits me?",
+          "s": "Your birth chart shows the ways of working and the settings where your talents come alive",
+          "b": "Yeongnyangi · Astrology"
+        },
+        "careerTurn": {
+          "t": "Is now the time to change direction?",
+          "s": "Gauges when a move would cost you least and what to sort out first",
+          "b": "4 systems · Destiny Compass",
+          "alt": "The Straight-Talk War Room"
+        },
+        "futurePrime": {
+          "t": "When will my golden years come?",
+          "s": "Traces your ten-year cycles to show when momentum builds and what to prepare, bound into one book",
+          "b": "Saju decade cycles · Book of Life"
+        },
+        "futureYear": {
+          "t": "What matters most for me this year?",
+          "s": "Breaks the year you pick into its big currents and what to prepare each month",
+          "b": "Saju · New Year Fortune",
+          "alt": "Zodiac Year Tarot"
+        },
+        "futureCross": {
+          "t": "When readings disagree, which should I follow?",
+          "s": "Points out where six systems agree and where they diverge",
+          "b": "Six systems · Deep Fusion Reading"
+        },
+        "selfRepeat": {
+          "t": "Why do I keep making the same choices?",
+          "s": "Saju walks through your innate temperament and the choices you keep repeating",
+          "b": "Yeongnyangi · Saju"
+        },
+        "selfStrength": {
+          "t": "What strengths do I have that others don't see?",
+          "s": "Your day pillar's guardian animal shows who you are in love and at work",
+          "b": "Saju · Twelve-Stage Cycle Animal Reading",
+          "alt": "Human Design"
+        },
+        "selfGrain": {
+          "t": "What kind of person am I, at heart?",
+          "s": "See your innate tendencies and current phase through your Saju, for free",
+          "b": "Saju (Four Pillars)"
+        },
+        "peopleTired": {
+          "t": "Why does getting closer wear me out?",
+          "s": "The 27 lunar mansions show why closeness tires you and what distance feels right",
+          "b": "Yeongnyangi · Sukuyo",
+          "alt": "Sukuyo"
+        },
+        "peopleMatch": {
+          "t": "How compatible are we?",
+          "s": "Overlays India's 36-point match with Eastern Sukuyo to show where you align and where you differ",
+          "b": "Vedic & Sukuyo · East–West Compatibility"
+        },
+        "peopleDistance": {
+          "t": "Should I keep my distance in this relationship?",
+          "s": "Talk it through with Yeoni and Neo, weighing each option in turn",
+          "b": "Conversational Reading"
+        }
+      }
     },
     "pickWhy": {
       "prefix": "Hôm nay,",
@@ -6693,16 +6838,6 @@
         "kw3mf7": {
           "ariaLabel": "Tiếng Hàn"
         }
-      }
-    },
-    "cdConcernCards": {
-      "cdConcernCard": {
-        "k1ozfahx": "Love · Compatibility · Reunion · Fated ties",
-        "k1fatpbc": "Compatibility · Chemistry · Relationship read",
-        "k1mgycgx": "Wealth · Income · Spending flow",
-        "k607hyq": "Career moves · Founding · Scaling up",
-        "k1n3lsfu": "New year outlook · Month by month · Luck cycles",
-        "k5gqwm7": "Four Pillars · Zi Wei Dou Shu · Astrology"
       }
     },
     "cdWhyUs": {
