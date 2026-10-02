@@ -175,6 +175,27 @@ try {
         if (await page.evaluate(() => document.getElementById('cdAllFortunes').open)) fail(tag, 'Escape did not close the sheet');
       }
 
+      // 10) 유료 카드는 상세 시트(#tilePvwOverlay)를 맨 위에 연다 — 데스크톱 모달 시트가 최상위 레이어에 남아 덮으면 안 된다.
+      await page.evaluate(() => window.cdOpenAllFortunes());
+      if (await waitRoot(page, `${tag} paid`, host)) {
+        await typeQuery(page, '');
+        const today = page.locator(`${ROOT} .cd-af__chip[data-purpose="today"][aria-pressed="true"]`);
+        if (await today.count()) await today.click();
+        await page.waitForTimeout(300);
+        const paid = page.locator('#cdAllFortunesResults [data-pvw-paid]').first();
+        if (!(await paid.count())) fail(tag, 'no paid card to open');
+        else {
+          await paid.click();
+          await page.waitForTimeout(1200);
+          const top = await page.evaluate(() => {
+            const o = document.getElementById('tilePvwOverlay');
+            const el = document.elementFromPoint(innerWidth / 2, innerHeight / 2);
+            return { sheetOpen: !!document.getElementById('cdAllFortunes')?.open, overlay: !!o && getComputedStyle(o).display !== 'none', onTop: !!(el && el.closest('#tilePvwOverlay')) };
+          });
+          if (!top.overlay || !top.onTop || top.sheetOpen) fail(tag, `paid card detail not on top ${JSON.stringify(top)}`);
+        }
+      }
+
       if (watch.forbidden.length) fail(tag, `forbidden requests ${JSON.stringify(watch.forbidden)}`);
       if (errors.length) fail(tag, `page errors ${JSON.stringify(errors.slice(0, 3))}`);
       console.log(`[all-fortunes] ${tag}: cards ${full}, tarot ${tarot}, tarot+love ${tarotLove}, etc ${etc}, api ${watch.seen.length}`);

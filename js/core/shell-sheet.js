@@ -102,10 +102,6 @@
     sheet.addEventListener('close', function () { finishClose(sheet); });
     sheet.addEventListener('click', function (event) {
       if (event.target.closest && event.target.closest('[data-cd-sheet-close]')) { close(sheet.id); return; }
-      // 시트 안 링크·셸 액션(dpOpenList 등)은 먼저 시트를 닫는다 — 최상위 레이어에 남으면
-      // 그 액션이 연 화면이나 모달을 덮는다. 기본 동작·다른 처리기는 그대로 진행한다.
-      var go = event.target.closest && event.target.closest('a[href],[data-action]');
-      if (go && sheet.contains(go) && !go.hasAttribute('data-cd-sheet-keep')) { close(sheet.id); return; }
       // 배경(::backdrop) 클릭은 dialog 자신을 target 으로 온다. 패널 밖 좌표일 때만 닫는다.
       if (event.target !== sheet) return;
       var panel = sheet.querySelector('.cd-sheet__panel') || sheet;
@@ -123,6 +119,18 @@
     var sheets = document.querySelectorAll('dialog[data-cd-sheet]');
     for (var i = 0; i < sheets.length; i++) { hoist(sheets[i]); bind(sheets[i]); }
   }
+
+  // 시트 안 링크·셸 액션(dpOpenList 등)·상세 카드는 먼저 시트를 닫는다 — 최상위 레이어에 남으면
+  // 그 액션이 연 화면이나 상세 시트(#tilePvwOverlay)를 덮는다. 상세 시트 처리기(index.html, document
+  // 캡처)는 stopImmediatePropagation 을 하므로 dialog 까지 오지 않는다 → window 캡처에서 먼저 닫는다.
+  // 닫기만 하고 기본 동작·다른 처리기는 그대로 진행한다.
+  window.addEventListener('click', function (event) {
+    var target = event.target;
+    var sheet = target && target.closest && target.closest('dialog[data-cd-sheet][open]');
+    if (!sheet) return;
+    var go = target.closest('a[href],[data-action],[data-pvw-paid],[data-pvw-free]');
+    if (go && sheet.contains(go) && !go.hasAttribute('data-cd-sheet-keep')) close(sheet.id);
+  }, true);
 
   document.addEventListener('click', function (event) {
     var trigger = event.target.closest && event.target.closest('[data-cd-sheet-open]');
