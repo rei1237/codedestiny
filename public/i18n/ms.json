@@ -1472,7 +1472,8 @@
         "nightZi": "Jika waktu lahir selepas pelarasan ialah 23:00 atau lewat, tiang hari esoknya digunakan — satu peraturan, digunakan secara konsisten.",
         "kasi": "Hasil pengiraan disemak secara automatik dengan data awam Institut Astronomi dan Sains Angkasa Korea (KASI).",
         "systems": "Saju, Zi Wei Dou Shu, Sukuyo, astrologi Veda, astrologi Barat dan Tarot — enam sistem, setiap satu dibaca mengikut peraturannya sendiri."
-      }
+      },
+      "reviewsSender": "Pelanggan tanpa nama"
     },
     "reformActions": {
       "consult": "Kenali konsultasi Yeongnyangi",

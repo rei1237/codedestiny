@@ -1472,7 +1472,8 @@
         "nightZi": "Liegt die korrigierte Geburtszeit bei 23 Uhr oder später, gilt die Tagessäule des Folgetags – eine Regel, durchgehend angewandt.",
         "kasi": "Die Ergebnisse werden automatisch mit öffentlichen Daten des Korea Astronomy and Space Science Institute (KASI) abgeglichen.",
         "systems": "Saju, Zi Wei Dou Shu, Sukuyo, vedische Astrologie, westliche Astrologie und Tarot – sechs Systeme, jedes nach seinen eigenen Regeln gedeutet."
-      }
+      },
+      "reviewsSender": "Anonymer Klient"
     },
     "reformActions": {
       "consult": "Yeongnyangi-Beratungen entdecken",

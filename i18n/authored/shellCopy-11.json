@@ -41,6 +41,20 @@
     "nl": "1-op-1-consult met Neo · KakaoTalk",
     "ms": "Sesi 1:1 bersama Neo · KakaoTalk"
   },
+  "home.funnelCopy.reviewsSender": {
+    "ko": "익명 상담 고객",
+    "en": "Anonymous client",
+    "ja": "匿名の相談者",
+    "zh-CN": "匿名咨询客户",
+    "zh-TW": "匿名諮詢客戶",
+    "vi": "Khách tư vấn ẩn danh",
+    "hi": "अनाम परामर्श ग्राहक",
+    "es": "Cliente anónimo",
+    "fr": "Client anonyme",
+    "de": "Anonymer Klient",
+    "nl": "Anonieme cliënt",
+    "ms": "Pelanggan tanpa nama"
+  },
   "home.funnelCopy.reviewsMeta": {
     "ko": "실제 이용자 후기 · 게시 동의",
     "en": "Real client review · shared with consent",

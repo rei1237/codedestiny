@@ -1472,7 +1472,8 @@
         "nightZi": "If the adjusted birth time is 23:00 or later, the next day's pillar is used — one rule, applied consistently.",
         "kasi": "Calculation results are automatically checked against public data from the Korea Astronomy and Space Science Institute (KASI).",
         "systems": "Saju, Zi Wei Dou Shu, Sukuyo, Vedic astrology, Western astrology and Tarot — six systems, each read by its own rules."
-      }
+      },
+      "reviewsSender": "Anonymous client"
     },
     "reformActions": {
       "consult": "Explore Yeongnyangi readings",
