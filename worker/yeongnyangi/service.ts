@@ -361,7 +361,8 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
       stage='quality';
       result=deliverChapter(generated,input);
       const natalFacts=input.analysis.contexts?.saju?.facts.find(f=>f.label==='pillars')?.value;
-      if(natalFacts)assertSajuPillarClaims(result,natalFacts);
+      // chapter.ts corrects the reader's pillars first; a claim left here keeps a quality code so the one repair can name it.
+      if(natalFacts)try{assertSajuPillarClaims(result,natalFacts);}catch{throw new FortuneError('SAJU_PILLAR_CONTRADICTION');}
       stage='storage';
       await saveChapterDraft(env,userId,requestId,token,ordinal,{raw:generated,body:result});
     }
