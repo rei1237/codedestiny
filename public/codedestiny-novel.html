@@ -1027,6 +1027,7 @@ function fadeInOver(target,ms){
 function setBgm(on){
   S.bgmOn=on;var b=document.getElementById("bgmBtn");b.classList.toggle("muted",!on);
   var sw=document.getElementById("setBgm");if(sw)sw.classList.toggle("on",on);
+  if(on)sfxWake();else if(_sfxCtx&&_sfxCtx.state==="running")_sfxCtx.suspend().catch(function(){});
   if(on&&S.bgmKey==="none")return;
   if(on){if(!audio.src)audio.src=TRK[S.bgmKey]||TRK.main;var p=audio.play();if(p&&p.catch)p.catch(function(){});fadeInOver(S.screen==="player"?0.5:0.5,1200);}
   else{clearInterval(fadeTimer);audio.pause();audio.volume=0;}
@@ -1192,7 +1193,7 @@ async function bootDirectPlay(){
     preloadFirstBg(0);
     warmNextEpisode(0);
     enterEpisode(0,true);
-    var once=function(){document.removeEventListener("pointerdown",once);document.removeEventListener("keydown",once);
+    var once=function(){document.removeEventListener("pointerdown",once);document.removeEventListener("keydown",once);sfxWake();
       if(S.bgmOn&&S.bgmKey!=="none"){var url=TRK[S.bgmKey]||TRK.main;if(!audio.src)audio.src=url;var pr=audio.play();if(pr&&pr.catch)pr.catch(function(){});fadeInOver(0.5,1500);}};
     document.addEventListener("pointerdown",once,{once:false});document.addEventListener("keydown",once,{once:false});
   }catch(e){}
@@ -1336,6 +1337,7 @@ function runBeat(){
   stageBeat(b);
   // effect
   if(b.fx)runFx(b.fx);
+  playSfx(b.sfx||FX_SFX[b.fx]);
   // 기술명 카드(오행 호흡)
   if(b.skill)runSkill(b.skill);
   // dialogue
@@ -1716,6 +1718,7 @@ function finishType(){
   if(S.skip&&!_inSkipStep)scheduleSkipStep();
 }
 function advance(){
+  sfxWake();
   if(flushCard())return; /* 챕터 카드 중 클릭 시 beat0을 스킵하지 않고 실행 */
   if(curBeat&&curBeat.end){backToMain();return;}
   if(S.typing){finishType();return;}
@@ -1752,6 +1755,60 @@ function clearSceneEffects(){
   document.getElementById("player").classList.remove("shakeScreen");
   var card=document.getElementById("skillCard");if(card)card.remove();
   if(_skTimer){clearTimeout(_skTimer);_skTimer=0;}
+}
+/* 효과음은 파일 없이 WebAudio 로 합성한다. [파형, 시작Hz, 끝Hz, 길이s, 크기, 반복, 간격s] — 파형 noise 는
+   백색 잡음을 대역 필터로 깎는다. 빌드가 이 맵의 키로 비트의 sfx 를 검사하므로 키는 한 줄에 하나, 닫는 }; 는 따로 둔다. */
+var SFX={
+chime:["sine",880,1320,.6,.1],
+whoosh:["noise",400,2400,.45,.12],
+thud:["sine",120,45,.35,.3],
+slash:["noise",3000,900,.18,.14],
+drum:["triangle",160,60,.3,.28],
+rain:["noise",1800,1600,1.6,.05],
+bell:["sine",660,655,1.4,.1],
+heartbeat:["sine",70,50,.18,.32,2,.22],
+glitch:["square",220,1800,.25,.05],
+page:["noise",2500,4000,.22,.06],
+coin:["triangle",1320,1760,.25,.08,2,.09],
+fire:["noise",600,300,1,.08],
+water:["sine",500,900,.25,.08,3,.12],
+door:["triangle",90,70,.5,.2,2,.18],
+oink:["sawtooth",260,180,.22,.07,2,.2],
+sparkle:["sine",1760,2640,.3,.06,3,.07],
+none:[]
+};
+/* fx 에 따라붙는 기본음. 비트에 sfx:"none" 을 주면 끈다. */
+var FX_SFX={shake:"thud",flash:"whoosh",claw:"slash",metal:"bell",hands:"glitch",water:"water",fire:"fire",tarot:"page",reveal:"chime",transform:"sparkle",heart:"heartbeat"};
+var _sfxCtx=null,_sfxNoise=null;
+function sfxCtx(){
+  if(_sfxCtx)return _sfxCtx;
+  var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
+  try{_sfxCtx=new AC();}catch(e){return null;}
+  return _sfxCtx;
+}
+/* 브라우저는 사용자 동작 안에서만 소리 컨텍스트를 깨운다 — 음악 켜기·첫 입력·대사 넘기기에서 부른다. */
+function sfxWake(){if(!S.bgmOn)return;var c=sfxCtx();if(c&&c.state==="suspended"){var p=c.resume();if(p&&p.catch)p.catch(function(){});}}
+function playSfx(key){
+  var s=key&&SFX[key];if(!s||!s.length)return;
+  if(!S.bgmOn||S.skip||_hydrating||document.hidden)return;
+  var c=sfxCtx();if(!c||c.state!=="running")return;
+  try{
+    var n=s[5]||1,gap=s[6]||0,t0=c.currentTime;
+    for(var k=0;k<n;k++){
+      var t=t0+k*gap,g=c.createGain(),src;
+      g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(s[4],t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+s[3]);
+      if(s[0]==="noise"){
+        if(!_sfxNoise){_sfxNoise=c.createBuffer(1,c.sampleRate,c.sampleRate);var d=_sfxNoise.getChannelData(0);for(var j=0;j<d.length;j++)d[j]=Math.random()*2-1;}
+        src=c.createBufferSource();src.buffer=_sfxNoise;src.loop=true;
+        var f=c.createBiquadFilter();f.type="bandpass";f.frequency.setValueAtTime(s[1],t);f.frequency.exponentialRampToValueAtTime(s[2],t+s[3]);
+        src.connect(f);f.connect(g);
+      }else{
+        src=c.createOscillator();src.type=s[0];src.frequency.setValueAtTime(s[1],t);src.frequency.exponentialRampToValueAtTime(s[2],t+s[3]);
+        src.connect(g);
+      }
+      g.connect(c.destination);src.start(t);src.stop(t+s[3]+.02);
+    }
+  }catch(e){}
 }
 function runFx(name){
   if(S.skip||document.hidden)return;

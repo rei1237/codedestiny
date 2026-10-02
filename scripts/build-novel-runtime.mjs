@@ -86,7 +86,7 @@ function inferPacing(beat) {
   return pauseMs ? { pauseMs, importance: beat.im ? "impact" : "breath" } : undefined;
 }
 
-function validateBeat(beat, context, bgKeys, trackKeys) {
+function validateBeat(beat, context, bgKeys, trackKeys, sfxKeys) {
   if (!beat || typeof beat !== "object") throw new Error(`${context}: 비트가 객체가 아닙니다.`);
   if (!SPEAKERS.has(beat.s)) throw new Error(`${context}: 알 수 없는 화자 '${beat.s}'입니다.`);
   if (typeof beat.t !== "string" || !beat.t.trim()) throw new Error(`${context}: 대사가 비어 있습니다.`);
@@ -96,6 +96,7 @@ function validateBeat(beat, context, bgKeys, trackKeys) {
   if (beat.bg && !bgKeys.has(beat.bg)) throw new Error(`${context}: 배경 '${beat.bg}'이 BG 맵에 없습니다.`);
   if (beat.bgm && !trackKeys.has(beat.bgm)) throw new Error(`${context}: BGM '${beat.bgm}'이 TRK 맵에 없습니다.`);
   if (beat.fx && !EFFECTS.has(beat.fx)) throw new Error(`${context}: 효과 '${beat.fx}'이 허용 목록에 없습니다.`);
+  if (beat.sfx !== undefined && (typeof beat.sfx !== "string" || !sfxKeys.has(beat.sfx))) throw new Error(`${context}: 효과음 '${beat.sfx}'이 SFX 맵에 없습니다.`);
   // form·tone 은 오타가 나도 플레이어가 조용히 무시한다 — 화면은 멀쩡하고 연출만 사라진다.
   if (beat.form && !BEAT_FORMS.has(beat.form)) throw new Error(`${context}: 모습 '${beat.form}'이 허용 목록(${[...BEAT_FORMS].join(", ")})에 없습니다.`);
   if (beat.tone && !BEAT_TONES.has(beat.tone)) throw new Error(`${context}: 톤 '${beat.tone}'이 허용 목록(${[...BEAT_TONES].join(", ")})에 없습니다.`);
@@ -112,6 +113,7 @@ export function buildNovelPayload() {
   if (source.schemaVersion !== 1 || !Array.isArray(source.episodes)) throw new Error("지원하지 않는 VN 정본 스키마입니다.");
   const bgKeys = namedKeysFromLegacyShell("BG");
   const trackKeys = namedKeysFromLegacyShell("TRK");
+  const sfxKeys = namedKeysFromLegacyShell("SFX");
   for (const key of trackKeys) {
     if (VOCAL_TRACKS.has(key) === INSTRUMENTAL_TRACKS.has(key)) throw new Error(`TRK '${key}' 는 연주곡·보컬곡 분류 중 정확히 하나에 들어가야 합니다(build-novel-runtime.mjs).`);
   }
@@ -136,7 +138,7 @@ export function buildNovelPayload() {
       const rawBeat = sourceBeat.bg && BACKGROUND_FALLBACKS[sourceBeat.bg]
         ? { ...sourceBeat, bg: BACKGROUND_FALLBACKS[sourceBeat.bg], backgroundIntent: sourceBeat.bg }
         : sourceBeat;
-      validateBeat(rawBeat, context, bgKeys, trackKeys);
+      validateBeat(rawBeat, context, bgKeys, trackKeys, sfxKeys);
       if (rev >= 2 && VOCAL_TRACKS.has(rawBeat.bgm)) throw new Error(`${context}: 다시 쓴 화에는 보컬곡 '${rawBeat.bgm}' 를 쓰지 않습니다. 연주곡을 고르세요.`);
       const hasSceneDirection = Boolean(rawBeat.shot || rawBeat.bg || rawBeat.bgm || rawBeat.fx || rawBeat.tone || rawBeat.im);
       const scene = hasSceneDirection ? inferScene(rawBeat, priorScene) : undefined;

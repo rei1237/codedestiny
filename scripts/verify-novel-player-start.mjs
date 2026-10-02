@@ -585,6 +585,70 @@ async function verifySilentTrack() {
     assert.deepEqual(errors, [], "silent track emitted runtime errors");
   } finally { dom.window.close(); }
 }
+/* 효과음은 음악이 켜져 있고, 스킵·리플레이·숨은 탭이 아니고, 소리 컨텍스트가 깨어 있을 때만 난다. */
+async function verifySoundEffects() {
+  const { dom, errors } = createPlayerDom();
+  try {
+    const win = dom.window;
+    await waitFor(() => win.__NOVEL_READY === true, "sound effect manifest");
+    let starts = 0;
+    const node = () => ({ connect() {}, start() { starts += 1; }, stop() {}, frequency: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} } });
+    class StubContext {
+      constructor() { this.state = "suspended"; this.currentTime = 0; this.sampleRate = 8000; this.destination = {}; }
+      resume() { this.state = "running"; return Promise.resolve(); }
+      suspend() { this.state = "suspended"; return Promise.resolve(); }
+      createGain() { return node(); }
+      createOscillator() { return node(); }
+      createBufferSource() { return node(); }
+      createBiquadFilter() { return node(); }
+      createBuffer(channels, length) { return { getChannelData: () => new Float32Array(length) }; }
+    }
+    win.AudioContext = StubContext;
+    Object.defineProperty(win.document, "hidden", { configurable: true, get: () => false });
+    win.S.screen = "player";
+    win.S.skip = false;
+    win.S.bgmOn = true;
+    win.playSfx("thud");
+    assert.equal(starts, 0, "a sound played before a user gesture woke the context");
+    win.sfxWake();
+    await wait(0);
+    win.playSfx("thud");
+    assert.equal(starts, 1, "a woken context did not play the sound");
+    win.playSfx("whoosh");
+    assert.equal(starts, 2, "the noise sound did not play");
+    starts = 0;
+    win.playSfx("heartbeat");
+    assert.equal(starts, 2, "a repeated sound did not play every hit");
+    starts = 0;
+    win.playSfx("none");
+    win.S.skip = true;
+    win.playSfx("thud");
+    win.S.skip = false;
+    win._hydrating = true;
+    win.playSfx("thud");
+    win._hydrating = false;
+    Object.defineProperty(win.document, "hidden", { configurable: true, get: () => true });
+    win.playSfx("thud");
+    Object.defineProperty(win.document, "hidden", { configurable: true, get: () => false });
+    win.setBgm(false);
+    assert.equal(win._sfxCtx.state, "suspended", "muting music did not silence the sound context");
+    win.playSfx("thud");
+    assert.equal(starts, 0, "a sound played while muted, skipping, replaying, hidden or set to none");
+    // 이어보기·불러오기 리플레이는 지나온 효과음을 몰아서 내지 않는다.
+    win.setBgm(true);
+    await wait(0);
+    const ep = canonical.findIndex(episode => episode.beats.some(beat => win.FX_SFX[beat.fx]));
+    const bi = canonical[ep].beats.findIndex(beat => win.FX_SFX[beat.fx]);
+    await win.hydrateTo(ep, bi + 1);
+    assert.equal(starts, 0, "bookmark replay played the sounds of the beats it passed");
+    await win.hydrateTo(ep, bi);
+    assert.equal(starts, 0, "bookmark replay played the landing beat's sound");
+    win.S.bi = bi;
+    win.runBeat();
+    assert.equal(starts > 0, true, "a beat with a default-sound fx stayed silent during normal play");
+    assert.deepEqual(errors, [], "sound effects emitted runtime errors");
+  } finally { dom.window.close(); }
+}
 async function verifyMobileAssetsAndCache() {
   const { dom, errors } = createPlayerDom({ mobile: true, staleCache: true });
   try {
@@ -605,6 +669,7 @@ async function verifyMobileAssetsAndCache() {
 await verifyMobileAssetsAndCache();
 await verifyExpandedBookmarks();
 await verifySilentTrack();
+await verifySoundEffects();
 await verifyMobileRendering();
 await verifyDirectStart();
 await verifyMainEntry();

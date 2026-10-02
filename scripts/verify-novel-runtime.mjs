@@ -88,6 +88,26 @@ for (const hook of ['if(key==="none"){S.bgmKey="none";fadeOutStop();return;}', '
   if (!html.includes(hook)) fail(`silent-track guard missing: ${hook}`);
 }
 for (const effect of EFFECTS) if (!runFxBody.includes(`name==="${effect}"`)) fail(`fx '${effect}' is accepted by the build but runFx has no branch for it`);
+// 효과음은 WebAudio 로 합성한다 — 맵이 깨지면 빌드가 키를 못 읽고, 기본음 표가 없는 키를 가리키면 조용히 무음이 된다.
+const SFX_KEYS = ["chime", "whoosh", "thud", "slash", "drum", "rain", "bell", "heartbeat", "glitch", "page", "coin", "fire", "water", "door", "oink", "sparkle"];
+const sfxSource = html.match(/var SFX=(\{[\s\S]*?\n\});/)?.[1];
+let sfxMap = null;
+try { sfxMap = sfxSource && new Function(`return ${sfxSource}`)(); } catch (error) { fail(`SFX map does not parse: ${error.message}`); }
+if (!sfxMap) fail("SFX map was not found in the player shell");
+for (const key of SFX_KEYS) {
+  const sound = sfxMap[key];
+  if (!Array.isArray(sound) || !["sine", "triangle", "square", "sawtooth", "noise"].includes(sound[0]) || !sound.slice(1, 5).every(value => typeof value === "number" && value > 0)) fail(`SFX '${key}' is missing or malformed`);
+}
+if (!Array.isArray(sfxMap.none) || sfxMap.none.length !== 0) fail("SFX 'none' must be an empty array so a beat can mute its default sound");
+for (const key of Object.keys(sfxMap)) if (key !== "none" && !SFX_KEYS.includes(key)) fail(`SFX '${key}' is not in the agreed 16-key list`);
+const fxSfxSource = html.match(/var FX_SFX=(\{[^\n]*\});/)?.[1];
+let fxSfx = null;
+try { fxSfx = fxSfxSource && new Function(`return ${fxSfxSource}`)(); } catch (error) { fail(`FX_SFX does not parse: ${error.message}`); }
+if (!fxSfx) fail("FX_SFX was not found in the player shell");
+for (const [effect, sound] of Object.entries(fxSfx)) if (!EFFECTS.has(effect) || !SFX_KEYS.includes(sound)) fail(`FX_SFX ${effect} -> ${sound} points outside EFFECTS or SFX`);
+for (const hook of ["playSfx(b.sfx||FX_SFX[b.fx]);", "if(!S.bgmOn||S.skip||_hydrating||document.hidden)return;", "if(!c||c.state!==\"running\")return;"]) {
+  if (!html.includes(hook)) fail(`sound-effect guard missing: ${hook}`);
+}
 for (const [pattern, why] of forbiddenRuntimePatterns) if (html.includes(pattern)) fail(`forbidden pattern is back: ${pattern} — ${why}`);
 if ((html.match(/bootDirectPlay\(\);/g) ?? []).length !== 1) fail("direct player boot must have exactly one data-ready entry point");
 if (html.includes("EPISODES.push(")) fail("inline episode data remains in the player; run externalize-novel-episodes.mjs");
