@@ -27,7 +27,8 @@
  *   · 23시대 출생 = 다음 날 子時(사주 공개 방법론과 같은 子初換日) → 기준 = byLunar(다음 날 음력, 子=0).
  *     iztro 기본(晚子 = 음력일만 +1)은 월말에 갈려서 쓰지 않는다.
  *   · 윤달 = 15일까지 그 달, 16일부터 다음 달 — iztro fixLeap 기본값과 같다.
- * 엔진 입력은 **이미 보정된 시계**다. 경도·서머타임 보정은 엔진 밖 진입점의 일이라 이 가드 범위 밖이다.
+ * 엔진 입력은 **이미 보정된 시계**다(워커는 birthClock:"corrected" 로 기본 보정을 끈다). 경도·서머타임
+ *   보정은 lib/ziwei-birth-clock.js 의 일이고 __tests__/ui/ziwei-birth-clock.test.mjs 가 맡는다.
  */
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
@@ -292,11 +293,11 @@ async function loadEngines() {
   const workerInput = (s, birthDate, calendarType, isLeapMonth) => ({
     birthInfo: { birthDate, birthTime: `${pad(s.hour)}:${pad(s.minute)}`, gender: s.gender === "M" ? "male" : "female", calendarType, isLeapMonth },
   });
-  const worker = (s) => workerFrom(calculateZiweiAiChart(workerInput(s, ymd(s), "solar", false), { year: 2026 }), "워커");
+  const worker = (s) => workerFrom(calculateZiweiAiChart(workerInput(s, ymd(s), "solar", false), { year: 2026, birthClock: "corrected" }), "워커");
   // 음력 입력 경로 — 사용자가 고른 음력 날짜(양력 날짜의 한국 음력, 23시 이동 전)를 그대로 넣는다.
   const workerLunar = (s) => {
     const [ly, lm, ld, leap] = koreanLunar(s);
-    return workerFrom(calculateZiweiAiChart(workerInput(s, `${ly}-${pad(lm)}-${pad(ld)}`, "lunar", leap === 1), { year: 2026 }), "워커(음력 입력)");
+    return workerFrom(calculateZiweiAiChart(workerInput(s, `${ly}-${pad(lm)}-${pad(ld)}`, "lunar", leap === 1), { year: 2026, birthClock: "corrected" }), "워커(음력 입력)");
   };
   const app = (s) => {
     const c = calcApp(s.year, s.month, s.day, s.hour, s.minute, s.gender);

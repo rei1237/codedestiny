@@ -3,6 +3,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import {readFileSync} from 'node:fs';
 import {build} from 'esbuild';
 import {SERVICE_PACK_PLANS} from '../../worker/payments/service-pack-policy.js';
 
@@ -52,4 +53,15 @@ test('banner states the limit, planned and trial price, the scoped credential an
  assert.doesNotMatch(text,/같은 체험가/,'other tiers are not 1,000 won');
  assert.match(text,/후기는 네오의 사람 1:1 상담·강의 이용자가 남긴 것이고, 체험가 상담은 계산 엔진과 AI 해설로 제공돼요/);
  assert.doesNotMatch(text,BANNED);
+});
+
+test('checkout total reads the planned price, then the labelled trial price, to a screen reader',async()=>{
+ const strong=readFileSync('app/yeongnyangi/_components/Consultation.tsx','utf8').match(/<div className=\{styles\.checkoutTotal\}>.*?(<strong>.*?<\/strong>)/)?.[1];
+ assert.ok(strong,'checkout total block');
+ const {Total}=await load(`import LaunchPlannedPrice from './app/components/LaunchPlannedPrice';const styles={totalPlanned:'totalPlanned',srOnly:'srOnly'};export function Total({plannedTotal,product,price}){return ${strong};}`);
+ const React=require('react'),{renderToStaticMarkup}=require('react-dom/server'),price=n=>n.toLocaleString('ko-KR')+'원';
+ const html=renderToStaticMarkup(React.createElement(Total,{plannedTotal:mod.plannedPriceFor('mackerel',1000),product:{priceKRW:1000},price}));
+ assert.equal(html.replace(/<[^>]+>/g,''),'정식 오픈 예정가 9,900원, 체험가 1,000원');
+ assert.match(html,/<s[^>]*>정식 오픈 예정가 9,900원<\/s><span class="srOnly">, 체험가 <\/span>1,000원/,'only the trial label is visually hidden');
+ assert.equal(renderToStaticMarkup(React.createElement(Total,{plannedTotal:null,product:{priceKRW:1000},price})),'<strong>1,000원</strong>','no planned price, no trial label');
 });

@@ -13,10 +13,11 @@ const fixtures = [
 // 2026-10-01 S4: 별 강약을 정본 7등급(lib/ziwei-star-strength.js)으로 바꿔 다시 계산했다. 바뀐 필드는
 // 별의 symbol·strength·strengthSymbol 과 strengthSummary 뿐이고, 별 배치·최강/최약궁·키워드·궁 매트릭스는 같다.
 // 2026-10-02: 23시대 출생을 다음 날 子時로 치는 규칙(子初換日, iztro 기본값과 같음) 때문에 23:30 표본(민준)만 바뀌었다.
+// 2026-10-02: 출생 시각을 경도·서머타임으로 보정하면서(lib/ziwei-birth-clock.js, 서울 −32분) 민준 23:30 이 22:58 亥時로 돌아와 다시 바뀌었다. 나머지 4건은 보정해도 시지가 같다.
 // shallow CI checkout에서도 기준 계산을 검증한다. 문구 5필드는 facts()에서 제외한다.
 const BASELINE_FACT_HASHES = [
   "016a08b3bb00962300613967a1bf33f5acda8f5066070e1a8c09ab705a45d4e1",
-  "8bd6cda26906d1dc1bd1e767b5e34c51e26d5d0fbc4d0947d717e4e27e60c795",
+  "b998d8a64712a8adcf4c07380f8c4ef588c22877366f8829911db3cfaa799e26",
   "482e2848ba5418d31c354b5e0f7600b1543638fd7c49c91d474dff961ef89b57",
   "9a1c6c3ed4120c09d799d3d05bc8060ba94df8df1fd33b83dd4702b477ac6ef2",
   "6e5f7b017c603693740b10774e28d5222b10f489c8dc0939da90aa8198e39f0b"

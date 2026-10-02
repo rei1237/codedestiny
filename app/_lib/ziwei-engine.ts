@@ -4,6 +4,7 @@
 import { sexagenaryYearIndexes, solarToLunar } from "@/lib/korean-calendar";
 // 화성·영성 기점은 셸·워커 엔진과 공유한다(lib/ziwei-fire-bell.js 머리말 참고).
 import { placeFireAndBell } from "@/lib/ziwei-fire-bell";
+import { ziweiBirthClock } from "@/lib/ziwei-birth-clock";
 import { generateZiweiDeepSummary } from "./generate-ziwei-deep-summary";
 import {
   calculateFourTransformations,
@@ -640,14 +641,23 @@ function buildCanonicalInput(chart: ZiweiDeepChart): ZiweiDeepAnalysisInput {
 }
 
 export function calculateZiweiChart(input: ZiweiUserInput): ZiweiDeepChart {
-  const base = calcZiweiPalaces(
-    input.birthYear,
-    input.birthMonth,
-    input.birthDay,
-    input.birthHour,
-    input.birthMinute,
-    input.gender,
-  );
+  // 명반에는 출생지 경도·과거 서머타임으로 보정한 시각을 넣는다(lib/ziwei-birth-clock.js, 셸·워커와 같은 정본).
+  // 좌표를 받지 않는 입력이라 한국 시간대는 서울 기본값, 다른 시간대는 입력 시계 그대로다.
+  // 코어 calcZiweiPalaces 는 보정하지 않는다 — verify:ziwei-star-parity 가 같은 시각으로 세 엔진을 맞춘다.
+  // 보정 정본이 받지 않는 날짜(1900~2100 밖 등)는 예전처럼 입력 시계로 그린다 — 화면이 비지 않게.
+  const civil = { year: input.birthYear, month: input.birthMonth, day: input.birthDay, hour: input.birthHour, minute: input.birthMinute };
+  let at = civil;
+  if (!input.unknownHour) {
+    try {
+      at = ziweiBirthClock({
+        ...civil,
+        birthPlace: input.timezone && input.timezone !== "Asia/Seoul" ? { timezone: input.timezone } : undefined,
+      }).corrected;
+    } catch {
+      at = civil;
+    }
+  }
+  const base = calcZiweiPalaces(at.year, at.month, at.day, at.hour, at.minute, input.gender);
 
   const palaces = buildPalaces(base);
   const fourTransformations = calculateFourTransformations({
