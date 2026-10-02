@@ -86,7 +86,9 @@ next: "S1 운영 승격 뒤 셸 경로 UTM 링크 1회(쿠키 동의 후 — Rea
 | 이벤트 | 발화 지점 | 채널 | 분해에 쓸 파라미터 |
 |---|---|---|---|
 | `page_view` | `gtag("config")` 자동 (`js/core/analytics.js:125`) + 라우트 전환 (`app/providers/NavigationProvider.tsx:175`) | GA4 | `page_path` · `page_location`(경로 + `utm_*` 만) |
-| `home_section_click` | `js/core/analytics.js:272` (앵커 위임) | GA4 | `section`(10종) · `destination` |
+| `home_section_click` | `js/core/analytics.js:272` (앵커 위임) | GA4 | `section`(10종) · `destination` · `question_id`(질문 카드 앵커만, 2026-10-02) |
+| `question_select` (홈) | `index.html` `cd-concern-pick-v20260824` 토글 스크립트 (2026-10-02) | GA4 | `surface=home_concern_pick` · `topic_id`·`question_id`(타일 키 8종: love·reunion·marriage·money·career·future·self·people) · `content_version=question-first-v1` |
+| `question_select` (영냥이) | `app/components/QuestionJourney.tsx` | GA4 | `surface` · `topic_id` · `question_id`(guide id) · `item_id` · `content_version=question-journey-v3` — 홈과는 `surface`로 나눈다 |
 | `yeongnyangi_portal_impression` · `yeongnyangi_portal_click` · `yeongnyangi_portal_arrival` | `js/core/analytics.js` + `js/core/home-funnel.js` | GA4 | `from_service` · `to_service` · `placement` · `destination` · `metric_version` |
 | `cross_sell_click` | `js/core/analytics.js:251` | GA4 | `from_service` · `to_service` |
 | `share_receive` | `js/core/analytics.js:294` | GA4 | `referral_channel` |
@@ -190,3 +192,21 @@ GA4 UI 작업이라 레포에서 커밋할 것이 없다. 탐색(자유 형식) 
 GA4 에 안 실리고(위 §2), 유일한 조회기인 `report-pg-window-latency.mjs` 는 `checkout_pg_opened` 의
 `steps`·`dwellMs` 만 본다. §3-2 의 "이용권 경로 비중"을 실제로 재려면 그 조회기를 하나 더 만들어야 한다
 — 이 문서를 쓴 시점에 **미착수**다.
+
+## 7. 질문 우선 전환(2026-10-02) 이벤트 대응
+
+요청서의 이벤트 이름은 새로 만들지 않고 기존 이벤트에 대응시킨다. 같은 행동을 두 이름으로 쏘면 분해가 불가능해지기 때문이다(§5).
+
+| 요청 이름 | 실제 이벤트 | 분해 |
+|---|---|---|
+| question_view | `question_topics_view`(영냥이) · 홈은 `page_view` | `surface` |
+| question_select | `question_select` | `surface` · `question_id` |
+| 질문 카드 클릭 | `home_section_click` section=`concern_pick` | `question_id` · `destination` |
+| product_view | `product_detail_view` / `view_item` | `item_id` |
+| product_start | `product_start_click` / `consultation_start` | `item_id` |
+| checkout_start | `checkout_option_click` / `purchase_attempt` | `feature_key` |
+| payment_success | `purchase` | `item_id` |
+| result_complete | `fortune_result_view` | — |
+| share | `fortune_share_action` | — |
+
+전후 비교는 분할 A/B 가 아니라 순차 비교다(모수 부족). 기준선과 판정 방법은 `docs/design/question-first-catalog-2026-10-02.md`.
