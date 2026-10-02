@@ -1,0 +1,104 @@
+/* Colours come only from the --yn-* night tokens set by .ynOriginal. */
+.guide {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  color: var(--yn-ivory);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  line-height: 1.7;
+}
+.guide > section {
+  padding: 32px 0;
+  border-top: 1px solid rgba(233, 199, 141, 0.18);
+}
+.guide > section:first-child {
+  border-top: 0;
+}
+.guide section[id] {
+  scroll-margin-top: 24px;
+}
+.guide h2 {
+  font-family: "Yeongnyangi Myeongjo", serif;
+  color: var(--yn-gold);
+  font-size: clamp(1.35rem, 2.6vw, 1.8rem);
+  letter-spacing: -0.03em;
+  line-height: 1.35;
+  margin: 0 0 14px;
+}
+.guide h3 {
+  font-size: 1.05rem;
+  margin: 0 0 8px;
+}
+.guide p {
+  margin: 0 0 12px;
+}
+.guide a {
+  color: var(--yn-gold);
+}
+.kicker {
+  color: var(--yn-muted);
+  font-size: 0.9rem;
+}
+.note {
+  color: var(--yn-muted);
+  font-size: 0.92rem;
+}
+.receive {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.receive li {
+  padding: 14px 16px;
+  border: 1px solid var(--yn-line);
+  border-radius: var(--yn-radius);
+  background: var(--yn-surface);
+}
+.receive strong {
+  display: block;
+  color: var(--yn-gold);
+  margin-bottom: 4px;
+}
+.sample {
+  margin: 0 0 12px;
+  padding: 16px 18px;
+  border: 1px solid rgba(233, 199, 141, 0.35);
+  border-radius: var(--yn-radius);
+  background: var(--yn-surface);
+}
+.sample p:last-child {
+  margin-bottom: 0;
+}
+.tableWrap {
+  overflow-x: auto;
+}
+.tableWrap table {
+  width: 100%;
+  min-width: 480px;
+  border-collapse: collapse;
+}
+.tableWrap caption {
+  text-align: left;
+  color: var(--yn-muted);
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+.tableWrap th,
+.tableWrap td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--yn-line);
+  text-align: left;
+  vertical-align: top;
+}
+.faq {
+  display: grid;
+  gap: 18px;
+}
+@media (min-width: 720px) {
+  .receive {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -1,10 +1,39 @@
 ---
 status: active
-updated: 2026-09-24
+updated: 2026-10-02
 next: "S1 운영 승격 뒤 셸 경로 UTM 링크 1회(쿠키 동의 후 — React 경로는 캐시로 최대 7일 옛 analytics.js)로 GA4 실시간 출처를 확인하고, 그 뒤 주간 GA4 purchase ↔ 서버 원장을 아래 S1 대조 규칙으로 맞춘다. §4 베이스라인 전에는 목표치를 정하지 않는다"
 ---
 
 # 애널리틱스 KPI 정의
+
+## 2026-10-02 매출 퍼널 단계 정의 (아래 절들보다 우선)
+
+12단계 퍼널은 새 SDK 없이 기존 GA4 이벤트와 서버 원장으로 잇는다. **결제·결과 단계는 서버 원장이 정본이다** — 클라이언트 이벤트는 동의 거부·광고 차단·탭 닫기로 빠지므로 하한으로만 쓴다.
+
+| 단계 | 꿀꿀 운세 | 영냥이 | 정본 | 분모 |
+|---|---|---|---|---|
+| landing_view | `page_view` | `page_view` · `yeongnyangi_portal_arrival` | GA4(동의 하한) | 세션 |
+| concern_selected | `home_section_click` section=`concern_pick` | `concern_selected`(topic_id·domain) · `home_business_entry` destination=`question` | GA4 | landing_view 세션 |
+| product_view | `checkout_opened` | `view_item` | GA4 | concern_selected |
+| sample_view | — | `sample_view` | GA4 | product_view |
+| checkout_start | `checkout_option_click` | `purchase_attempt` | GA4 + `checkout_funnel_events` | product_view |
+| login_completed | `login` · `signup` | 같음 | GA4 | checkout_start 중 비로그인 |
+| payment_window_opened | `checkout_pg_opened` | 같음 | `checkout_funnel_events` | checkout_start |
+| payment_verified | 서버 `payments` paid(PG 검증) | 같음 | **DB** (GA4 `purchase` 는 귀속용 하한) | payment_window_opened |
+| payment_failed | `payments` failed·cancelled, failureCode 별 | 같음 | **DB** | 결제 시도 행 |
+| reading_started | — | `consultation_start` / 결제된 `yeongnyangi_requests` | **DB** | payment_verified |
+| reading_completed | — | 요청 state=COMPLETED | **DB** | reading_started |
+| reading_failed | — | state=FORTUNE_FAILED(환불은 REFUNDED 따로) | **DB** | reading_started |
+| result_viewed | `fortune_result_view` | 같음 | GA4(브라우저 관찰) | reading_completed |
+| refund | `payments` refunded | 같음 | **DB** | payment_verified |
+| repeat_purchase | 기간 내 2회 이상 결제 + 이전 기간 결제자 (사람 단위 중복 제거) | 같음 | **DB** | 구매자 |
+
+- **리포트:** `node scripts/report-revenue-funnel.mjs --db=code_destiny --exclude-emails=<운영자·테스트 계정>` — KST 최근 28일 대 직전 28일(`--days=1..45`). 읽기 전용이다(쓰기·HTTP 금지). 출력은 건수·원화 합계뿐이고 사용자 ID·이메일·생년월일·질문은 내지 않는다. `serverEvents` 가 위 표의 DB 단계를, `byFailureCode` 가 결제 실패 사유를 준다.
+- **결제 성공 중복 방지:** payment_verified 는 결제 행 하나당 1이다(PG 검증으로 paid 가 된 행, 이후 환불된 행 포함). 클라이언트 클릭이나 `purchase` 이벤트로 세지 않는다.
+- **운영자·테스트 제외:** `users.role=admin` 과 `--exclude-emails` 계정. 제외 건수는 `excluded` 에 따로 보인다(조용히 버리지 않는다). 2026-10-02 실측으로 운영 DB 의 admin 계정은 0개라 이메일 지정이 실질 필터다. 한 사람이 결제·환불을 몰아 낸 경우(`concentration`)는 테스트 의심으로 표시만 하고 자동 제외하지 않는다.
+- **봇:** `checkout_funnel_events` 는 결제창을 연 클릭에서만 나가고(sendBeacon), 서버 원장은 로그인·PG 승인이 필요해 봇이 만들기 어렵다. GA4 는 알려진 봇·스파이더를 자동 제외한다. 수집구(`worker/routes/billing.js` `handleCheckoutFunnelEvent`)는 결제 동결 파일이라 UA 필터를 넣지 않았다 — 이상 급증이 보이면 동결 절차로 다룬다.
+- **동의 거부:** GA4 단계(landing~sample, result_viewed)가 0이거나 적어도 무방문·무매출로 읽지 않는다. 같은 기간 DB 단계가 있으면 GA4 쪽이 하한이다(S1 절 참고).
+- **PII:** 어떤 단계도 이름·생년월일·질문 원문·상담 내용·인증 정보를 싣지 않는다. `concern_selected` 는 주제 카탈로그 키(topic_id)만 보낸다.
 
 ## 2026-09-24 측정 정합(S1) (아래 절들보다 우선)
 

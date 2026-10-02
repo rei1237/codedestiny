@@ -17,7 +17,8 @@ const HOME_SEO = {
   description: HOME_DESCRIPTION,
   ogTitle: HOME_TITLE,
   ogDescription: HOME_DESCRIPTION,
-  url: "https://code-destiny.com/",
+  // 크롤러는 워커의 301(/ → /ggulggul/)만 본다. 이 HTML 이 어쩌다 읽혀도 대표 URL 은 /ggulggul/ 하나다(2026-10-02).
+  url: "https://code-destiny.com/ggulggul/",
   image: "https://code-destiny.com/icons/moonlight-garden-v1-512.png",
 };
 
@@ -98,7 +99,7 @@ const HOME_FREE_SERVICES = [
 
 export default function HomePage() {
   const orgJsonLd = buildOrganizationJsonLd();
-  const webPageJsonLd = buildWebPageJsonLd({title:page.title, description:page.description, path:page.path});
+  const webPageJsonLd = buildWebPageJsonLd({title:page.title, description:page.description, path:"/ggulggul/"});
   return <>
     <LegacyHomeEntry defaultTarget="/ggulggul/" />
     <LocalizedServiceSummary><section className={styles.guide} aria-labelledby="homeGuideTitle">

@@ -1919,6 +1919,10 @@ function verifyIndexableRouteCoverage(baseDir) {
 
     if (sitemapPaths.has(pathname) || sitemapPaths.has(canonicalPath)) continue;
     if (hasXRobotsNoindexHeader(pathname)) continue;
+    // `/` 는 2026-10-02 부터 워커 301 이라 sitemap 에 없다. out 의 `/static` 셸 사본은 아직 홈 canonical 을
+    // 들고 있지만 배포본(dist)에서는 promote-static-shell 이 noindex 로 바꾸고 canonical 을 걷는다 —
+    // 그래서 out 에서만, canonical 이 정확히 `/` 일 때만 넘긴다. dist 는 이 예외 없이 그대로 검사한다.
+    if (baseDir === "out" && pathname === "/static" && canonicalPath === "/") continue;
     assert(
       false,
       `${sitemapPath}: indexable route must be in sitemap, canonicalize to sitemap, or have X-Robots noindex: ${pathname}`,
