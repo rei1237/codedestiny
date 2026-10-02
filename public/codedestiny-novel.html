@@ -233,7 +233,9 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 .char.lns{width:clamp(180px,29vh,340px);height:auto;aspect-ratio:441/705;max-height:none;bottom:clamp(172px,24vh,235px);background-repeat:no-repeat}
 .char.heal{height:clamp(230px,37vh,420px);max-height:none;bottom:clamp(175px,25vh,240px)}
 .char.baek{height:clamp(190px,31vh,350px);max-height:none;bottom:clamp(175px,25vh,240px)}
-.char.pje{height:clamp(360px,62vh,620px);max-height:none;bottom:clamp(150px,22vh,215px)}
+.char.pje{height:clamp(470px,80vh,800px);max-height:none;bottom:clamp(60px,10vh,100px)}
+/* 윤달(개편 2026-10): 허리까지 흉상이라 연이·서한비와 머리 크기를 맞추려 1.45배 키우고, 늘어난 만큼 아래로 내리되 턱이 대사창 위에 오게 둔다(허리는 화면 밖) */
+.char.yun{height:min(119vh,1190px);max-height:none;bottom:max(-21vh,-210px)}
 .char.muTrue{height:clamp(260px,43vh,490px);max-height:none;bottom:clamp(160px,23vh,225px)}
 /* 인간 네오(박병하) — 은발 미남 4×2 표정 시트 크롭(div 배경). 정체 공개 후 결말에 등장 */
 .char.neoh{width:clamp(230px,38vh,430px);height:auto;aspect-ratio:362/543;max-height:none;bottom:clamp(158px,23vh,225px);background-repeat:no-repeat;background-size:400% 200%}
@@ -246,7 +248,7 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 @media (max-width:760px){.char{height:52vh;width:min(32vw,150px);object-fit:contain;object-position:bottom;bottom:clamp(200px,26vh,252px)}.char.pig{height:38vh}.char.slotL{left:0}.char.slotR{right:0}
   /* 모바일: 대화창(하단 min-height~130px + 패딩/세이프에어리어)이 캐릭터 하반신을 덮던 문제 수정.
      기본 .char 바닥을 대화창 위로 올리고(cast 클래스 없는 인간 연이 포함), 서있는 img 캐스트는 짧은 폰 방어용 px 하한 상향 + 발끝 페이드 마스크로 잔여 겹침을 자연 소멸시킨다. */
-  .char.moka,.char.crow,.char.rab,.char.ln,.char.lns,.char.heal,.char.baek,.char.neoh{-webkit-mask-image:linear-gradient(to bottom,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,#000 90%,transparent 100%)}
+  .char.moka,.char.crow,.char.rab,.char.ln,.char.lns,.char.heal,.char.baek,.char.neoh,.char.yun{-webkit-mask-image:linear-gradient(to bottom,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,#000 90%,transparent 100%)}
   .char.pje,.char.muTrue{-webkit-mask-image:linear-gradient(to bottom,#000 93%,transparent 100%);mask-image:linear-gradient(to bottom,#000 93%,transparent 100%)}
   .char.neo{width:min(31vh,32vw);height:min(31vh,32vw);bottom:clamp(176px,21vh,214px);background-size:418% 418%;background-position:2.306% 3.145%}
   .char.sheet{height:min(38vh,32vw);width:min(38vh,32vw)}
@@ -260,7 +262,7 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
   .char.lns{width:min(24vh,30vw);bottom:clamp(198px,26vh,248px)}
   .char.heal{height:min(31vh,36vw);bottom:clamp(198px,26vh,248px)}
   .char.baek{height:min(27vh,33vw);bottom:clamp(198px,26vh,248px)}
-  .char.pje{height:min(42vh,320px);width:min(36vw,180px);bottom:clamp(220px,27vh,280px)}
+  .char.pje{height:min(30vh,236px);width:min(44vw,180px);bottom:clamp(220px,27vh,280px);-webkit-mask-image:linear-gradient(to bottom,#000 74%,transparent 87%);mask-image:linear-gradient(to bottom,#000 74%,transparent 87%)}
   .char.muTrue{height:min(35vh,42vw);bottom:clamp(190px,24vh,238px)}}
 /* L2 effects */
 .fxLayer{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
@@ -522,6 +524,7 @@ body.novel-paused *{animation-play-state:paused!important}
 @media(max-width:760px){
   .char.tiger{width:min(39vw,200px);height:auto;bottom:clamp(208px,28vh,260px)}
   .char[data-who="yeon"]:not(.pig):not(.sheet){height:min(47vh,340px);width:min(42vw,180px);bottom:clamp(220px,27vh,280px)}
+  .char.yun{height:min(52vh,380px);width:min(54vw,220px);bottom:clamp(220px,27vh,280px)}
 }
 @media (hover:none) and (pointer:coarse){
   .bgImg{animation:none;transform:scale(1.02)}
@@ -730,14 +733,14 @@ var BG={
   islandIn:NOVEL+enc("background/비겁의 섬 내부.webp"),
   hands:NOVEL+enc("background/검은 손들.webp"),
   /* 식상의 섬(불규칙 파일명 확정) — 낮 6종·밤 5종·위기·전투 */
-  siksang:NOVEL+enc("background/식상의 섬.webp"),
-  siksang2:NOVEL+enc("background/식상의섬2.webp"),
-  siksang3:NOVEL+enc("background/식상의섬3.webp"),
-  siksang4:NOVEL+enc("background/식상의섬4.webp"),
-  siksang5:NOVEL+enc("background/식상의섬5.webp"),
-  siksangNight:NOVEL+enc("background/식상의 섬밤.webp"),
-  siksangA:NOVEL+enc("background/식상의 섬a.webp"),
-  siksangB:NOVEL+enc("background/식상의섬b.webp"),
+  siksang:"/images/novel/remaster/siksang-festival-street-v1.webp",
+  siksang2:"/images/novel/remaster/siksang-grey-market-v1.webp",
+  siksang3:"/images/novel/remaster/siksang-seaside-hill-v1.webp",
+  siksang4:"/images/novel/remaster/siksang-eclipse-stage-v1.webp",
+  siksang5:"/images/novel/remaster/siksang-noon-stage-v1.webp",
+  siksangNight:"/images/novel/remaster/siksang-lantern-alley-v1.webp",
+  siksangA:"/images/novel/remaster/siksang-underground-stage-v1.webp",
+  siksangB:"/images/novel/remaster/siksang-crow-court-v1.webp",
   siksangC:NOVEL+enc("background/식상의섬c.webp"),
   siksangD:NOVEL+enc("background/식상의섬d.webp"),
   siksangCrisis:NOVEL+enc("background/식상의 섬 위기.webp"),
@@ -763,6 +766,18 @@ var BG={
   bigeopIn4:NOVEL+enc("background/비겁의섬내부4.webp"),
   bigeopIn5:NOVEL+enc("background/비겁의섬내부5.webp"),
   bigeopIn6:NOVEL+enc("background/비겁의섬내부6.webp"),
+  /* 개편(2026-10) 새 배경 — 레포 로컬 원본(public/images/novel/remaster) */
+  timeVault:"/images/novel/remaster/time-vault-v1.webp",
+  sunkenStacks:"/images/novel/remaster/sunken-stacks-v1.webp",
+  eclipseSky:"/images/novel/remaster/eclipse-sky-v1.webp",
+  aptHall:"/images/novel/remaster/apartment-hall-v1.webp",
+  skyship:"/images/novel/remaster/observatory-skyship-v1.webp",
+  nakshatra:"/images/novel/remaster/nakshatra-temple-v1.webp",
+  tarotHall:"/images/novel/remaster/tarot-corridor-v1.webp",
+  towerFall:"/images/novel/remaster/falling-tower-v1.webp",
+  gongmang:"/images/novel/remaster/gongmang-void-v1.webp",
+  worldTree:"/images/novel/remaster/world-tree-v1.webp",
+  cherryDay:"/images/novel/remaster/cherry-riverbank-day-v1.webp",
   /* 결말 확장(EP.39~40) — 네오 구속 2종·운명의 신 선택(타로) 1종. R2 루트 경로(background/ 아님) */
   neoBound2:NOVEL+enc("갇힌 네오2.webp"),
   neoBound3:NOVEL+enc("갇힌 네오3.webp"),
@@ -882,13 +897,16 @@ NEO_CELL.angry=NEO_CELL.shock;NEO_CELL.sad=NEO_CELL.calm;NEO_CELL.think=NEO_CELL
 MU_TRUE.serious=MU_TRUE.calm;MU_TRUE.surprise=MU_TRUE.think;MU_TRUE.smile=MU_TRUE.laugh;MU_TRUE.soft=MU_TRUE.calm;MU_TRUE.shock=MU_TRUE.think;
 /* 백문(BAEK): 강의=독서 포즈, 그 외 무효→기본 */
 BAEK.lecture=BAEK.read;BAEK.sigh=BAEK.base;BAEK.surprise=BAEK.base;BAEK.shock=BAEK.base;BAEK.cry=BAEK.base;BAEK.talk=BAEK.base;
-/* 서한비(PJE): 흔들림=가면 벗겨진 무표정, 울음=붕괴(광기) */
-PJE.waver=PJE.blank;PJE.cry=PJE.mad;PJE.sad=PJE.blank;PJE.think=PJE.blank;PJE.surprise=PJE.blank;PJE.serious=PJE.blank;
+/* 서한비(PJE): 흔들림=가면 벗겨진 무표정. 울음·슬픔·옅은 미소·결의는 개편(2026-10) 레포 로컬 컷 — 울음이 광기 그림으로 나오던 별칭을 대신한다 */
+PJE.waver=PJE.blank;PJE.cry="/images/novel/remaster/pje/cry.webp";PJE.sad="/images/novel/remaster/pje/sad.webp";PJE.smile="/images/novel/remaster/pje/smile.webp";PJE.resolve="/images/novel/remaster/pje/resolve.webp";PJE.think=PJE.blank;PJE.surprise=PJE.blank;PJE.serious=PJE.blank;
 /* 꽃돼지 연이(PIG_CELL) 보강 — shock/serious는 시트에 없어 neutral 폴백되던 것 교정 */
 PIG_CELL.shock=PIG_CELL.surprise;PIG_CELL.serious=PIG_CELL.neutral;
+/* 윤달(yun): 개편(2026-10) 사람 점술가. 표정마다 레포 로컬 낱장, 없는 표정은 기본 */
+var YUN_EXPR=["base","sly","serious","surprise","pain","void","laugh","sad"];
 /* who → sprite (form 반영) */
 function spriteMaster(who,expr,form){
   if(who==="tiger")return {url:"/images/novel/hanbi/"+(["base","talk","surprise","angry","sad","water"].indexOf(expr)>=0?expr:"base")+".webp",cls:"tiger"};
+  if(who==="yun")return {url:"/images/novel/remaster/yun/"+(YUN_EXPR.indexOf(expr)>=0?expr:"base")+".webp",cls:"yun"};
   if(who==="neo"){
     /* 표정(x)이 h*(인간 표정 키)면 인간 네오 시트, 아니면 사자 네오 시트 */
     if(expr&&NEOH_CELL[expr])return {url:NEOH,cls:"neoh",sheet:true,size:"400% 200%",pos:NEOH_CELL[expr]};
@@ -1566,12 +1584,12 @@ var charLayer=document.getElementById("charLayer");
    top-level b.x(표정)로 동기화. 엔진이 원래 읽지 않던 표정 데이터를 되살려 "대화 중 화자가
    안 보이는" 버그를 전 에피소드에서 근본 해결. n/sys/luna는 스프라이트 대상이 아니라 제외. */
 var SLOT_PREF={yeon:["l","c","r"],neo:["c","r"],moka:["c","r"],crow:["r","c"],mirror:["r","c"],mu:["c","r"],
-  ln:["r","c","l"],lns:["c","r"],rab:["r","c"],baek:["c","r"],pje:["c","r"],tiger:["r","c"]};
-var EXPR_SYNC={yeon:1,neo:1,moka:1,crow:1,ln:1,lns:1,rab:1,baek:1,pje:1,tiger:1,mu:1}; /* 표정 변형이 있는 캐릭터만 표정 동기화(mirror=형태토글 제외. mu는 x 있을 때만 본모습 컷) */
+  ln:["r","c","l"],lns:["c","r"],rab:["r","c"],baek:["c","r"],pje:["c","r"],tiger:["r","c"],yun:["r","c"]};
+var EXPR_SYNC={yeon:1,neo:1,moka:1,crow:1,ln:1,lns:1,rab:1,baek:1,pje:1,tiger:1,yun:1,mu:1}; /* 표정 변형이 있는 캐릭터만 표정 동기화(mirror=형태토글 제외. mu는 x 있을 때만 본모습 컷) */
 function beatSpeakerWho(b){
   var s=b.s;
   if(s==="geo")return "mirror";
-  if(s==="yeon"||s==="neo"||s==="mu"||s==="moka"||s==="crow"||s==="ln"||s==="lns"||s==="rab"||s==="baek"||s==="pje"||s==="tiger")return s;
+  if(s==="yeon"||s==="neo"||s==="mu"||s==="moka"||s==="crow"||s==="ln"||s==="lns"||s==="rab"||s==="baek"||s==="pje"||s==="tiger"||s==="yun")return s;
   return null;
 }
 function slotOfWho(who){
@@ -1634,7 +1652,7 @@ function stageBeat(b){
   // active = speaker
   var spk=b.s;
   if(spk==="geo")S.active="mirror";
-  else if(spk==="yeon"||spk==="neo"||spk==="mu"||spk==="moka"||spk==="crow"||spk==="ln"||spk==="lns"||spk==="rab"||spk==="baek"||spk==="pje"||spk==="tiger")S.active=spk;
+  else if(spk==="yeon"||spk==="neo"||spk==="mu"||spk==="moka"||spk==="crow"||spk==="ln"||spk==="lns"||spk==="rab"||spk==="baek"||spk==="pje"||spk==="tiger"||spk==="yun")S.active=spk;
   autoStageSpeaker(b); // 화자가 슬롯에 없으면 자동 배치 + 표정 동기화(핵심 가시성 수정)
   updateActive();
 }
