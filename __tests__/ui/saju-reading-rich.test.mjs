@@ -154,6 +154,7 @@ test('flow: the current cycle and year cards show the engine score, ten gods and
   assert.match(yeon,/31~40세/);assert.match(yeon,/2026년/);assert.match(yeon,/지충\(地支\)/);
   assert.match(yeon,/<b>대인관계<\/b><span>r<\/span>/);assert.match(yeon,/여기까지는 무료/);
   assert.doesNotMatch(yeon+neo,/🌟|⚠️|🙂|냥|돼지/);
+  assert.match(neo,/평가 근거: 충의 부담 · 평운\./);assert.match(neo,/평가 근거: 식상\./);assert.doesNotMatch(yeon+neo,/\[충의|엔진/);
   assert.notEqual(yeon.replace(/<[^>]+>/g,''),neo.replace(/<[^>]+>/g,''));
   assert.equal(rich.flow(factsOf(p,{flow:[]}),'pig'),'');
   delete context.GAEUN_DB;

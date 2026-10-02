@@ -83,10 +83,16 @@
       '<div class="saju-gauge__ends" aria-hidden="true"><span>' + esc(o.ends[0]) + '</span><span>' + esc(o.ends[1]) + '</span></div>' +
       '<figcaption><strong>' + esc(o.names[at]) + '</strong> · ' + esc(o.caption) + '</figcaption></figure>';
   }
+  // 표 칸은 기본 줄바꿈 없음(360px 에서 '금(金)'·'+13' 이 글자 중간에서 끊기던 문제). 긴 문장 칸만 줄바꿈을 허용하되 '수(水)' 같은 한글(한자) 묶음은 붙여 둔다.
+  function cellHtml(cell, i) {
+    var t = String(cell), long = t.length > 12, wrap = long ? ' class="saju-table__wrap"' : '';
+    var body = long ? esc(t).replace(/([가-힣]+\([一-鿿]+\))/g, '<span class="saju-table__keep">$1</span>') : esc(t);
+    return i === 0 ? '<th scope="row"' + wrap + '>' + body + '</th>' : '<td' + wrap + '>' + body + '</td>';
+  }
   function table(caption, head, rows, foot) {
     return '<div class="saju-table-wrap"><table class="saju-table"><caption>' + esc(caption) + '</caption><thead><tr>' + head.map(function (h) { return '<th scope="col">' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
-      rows.map(function (r) { return '<tr>' + r.map(function (cell, i) { return i === 0 ? '<th scope="row">' + esc(cell) + '</th>' : '<td>' + esc(cell) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody>' +
-      (foot ? '<tfoot><tr>' + foot.map(function (cell, i) { return i === 0 ? '<th scope="row">' + esc(cell) + '</th>' : '<td>' + esc(cell) + '</td>'; }).join('') + '</tr></tfoot>' : '') + '</table></div>';
+      rows.map(function (r) { return '<tr>' + r.map(cellHtml).join('') + '</tr>'; }).join('') + '</tbody>' +
+      (foot ? '<tfoot><tr>' + foot.map(cellHtml).join('') + '</tr></tfoot>' : '') + '</table></div>';
   }
   function chips(items) { return '<ul class="saju-chips">' + items.map(function (it) { return '<li class="saju-chip"' + (it.tone ? ' data-tone="' + it.tone + '"' : '') + '>' + (it.tag ? '<b>' + esc(it.tag) + '</b>' : '') + esc(it.text) + (it.note ? '<small>' + esc(it.note) + '</small>' : '') + '</li>'; }).join('') + '</ul>'; }
   function more(summary, body) { return '<details class="saju-rich__more"><summary>' + esc(summary) + '</summary>' + body + '</details>'; }
@@ -414,7 +420,7 @@
     var combos = COMBOS.filter(function (c) { return c.test(m.surface); });
     if (combos.length) html += section(neo ? '구조 조합' : '눈여겨볼 십성의 조합', chips(combos.map(function (c) { return {tag:c.name, text:'', note:c.text[k]}; })));
     html += more('십성(十星) 읽는 법', para('십성은 일간을 기준으로 나머지 글자가 어떤 관계인지 열 가지로 나눈 것이에요. 같은 오행은 비겁, 내가 낳는 오행은 식상, 내가 다스리는 오행은 재성, 나를 다스리는 오행은 관성, 나를 낳는 오행은 인성이고, 음양이 같으면 편(偏)·다르면 정(正)으로 갈라요(비견·겁재만 예외).') +
-      para('천간은 겉으로 드러나는 모습, 지지는 생활의 바탕, 지장간은 아직 드러나지 않은 잠재력으로 읽어요. 지지 십성은 엔진 정본대로 지지의 오행·음양으로 판정해요.'));
+      para('천간은 겉으로 드러나는 모습, 지지는 생활의 바탕, 지장간은 아직 드러나지 않은 잠재력으로 읽어요. 지지 십성은 이 서비스의 기준대로 지지의 오행·음양으로 판정해요.'));
     return wrap(mode, html, facts);
   }
   function tenCards(facts, mode) {
@@ -544,8 +550,9 @@
       var meta = gd.n + ' · ' + jd.a + (year ? '' : (r.age != null ? ' · ' + r.age + '~' + r.end + '세 (세는 나이)' : ''));
       var body = '<p class="saju-rich__note">' + esc(meta) + '</p>' +
         gauge({kind:'score', value:r.score, min:0, max:100, zones:[20, 40, 60, 80], names:FLOW_NAMES, ends:['조율 쪽', '순한 쪽'], caption:'흐름 점수 ' + r.score + '점', aria:(year ? '올해' : '현재 대운') + ' 흐름 점수 ' + r.score + '점'});
-      var summary = plain(r.summary);
-      if (summary) body += para(neo ? '평가 근거: ' + summary + '.' : '엔진이 읽은 이 시기의 성격은 "' + summary + '"이에요.');
+      // 엔진 요약의 [태그]는 근거 이름으로 풀고, 끝의 "대운" 꼬리말은 세운 행에서 틀리므로 뗀다.
+      var summary = plain(r.summary).replace(/\[([^\]]+)\]\s*/g, '$1 · ').replace(/\s*(대운|세운)$/, '');
+      if (summary) body += para(neo ? '평가 근거: ' + summary + '.' : '점수를 매길 때 살펴본 근거를 그대로 옮겨 둘게요: ' + summary + '.');
       body += table((year ? '세운' : '대운') + ' 간지와 내 일간', ['글자', '오행', '십성', '12운성', '억부에서'], [
         ['천간 ' + r.g, EL[gd.e] || '', sg, '—', roleOf(facts, gd.e) || '—'],
         ['지지 ' + r.j, EL[jd.e] || '', bg, stage || '—', roleOf(facts, jd.e) || '—']
