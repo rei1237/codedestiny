@@ -37,8 +37,18 @@ const DYNAMIC_FEED_PATHS = new Set(["/rss.xml", "/insights/rss.xml"]);
 // @routes-include: /yeongnyangi/free-fortune*
 // @routes-include: /fortune/*
 // @routes-include: /insights/famous-saju/*
-// @routes-include: /de-de/high-value*
-// @routes-include: /es-es/high-value*
+// @routes-include: /de-de
+// @routes-include: /de-de/*
+// @routes-include: /es-es
+// @routes-include: /es-es/*
+// @routes-include: /fr-fr
+// @routes-include: /fr-fr/*
+// @routes-include: /hi-in
+// @routes-include: /hi-in/*
+// @routes-include: /ms-my
+// @routes-include: /ms-my/*
+// @routes-include: /nl-nl
+// @routes-include: /nl-nl/*
 //
 // 🔴 살아 있는 라우트를 삼키면 안 된다. `/fortune/`, `/fortune/{period}/`,
 //    `/fortune/{period}/{sign}/` 96개는 사이트맵에 있는 200 페이지다. 아래 두 분기는
@@ -61,9 +71,31 @@ const LEGACY_LOCALE_TARGETS = new Map([
   ["/es-es/high-value", "/guides/"],
 ]);
 
+// 폐지된 6개 로케일 프리픽스. 2026-10-03 실측: 과거 사이트맵에 있던 이 프리픽스 URL 684개가
+// 운영에서 404 였고(GSC 「찾을 수 없음」의 최대 묶음), 프리픽스를 떼면 654개가 실재 페이지에
+// 닿았다. _redirects 의 en-us/ja-jp/zh-cn 규칙과 같은 정책 — 하위 경로는 한국어 원본으로,
+// 루트는 영어 홈으로. _redirects 는 동적 규칙 상한(95/95 근접)이라 워커가 맡는다.
+const RETIRED_LOCALE_PREFIX = /^\/(?:de-de|es-es|fr-fr|hi-in|ms-my|nl-nl)(\/.*)?$/;
+
 function legacyLocaleTarget(pathname) {
   const normalized = String(pathname || "").replace(/\/+$/, "") || "/";
-  return LEGACY_LOCALE_TARGETS.get(normalized) || null;
+  const exact = LEGACY_LOCALE_TARGETS.get(normalized);
+  if (exact) return exact;
+
+  const match = RETIRED_LOCALE_PREFIX.exec(normalized);
+  if (!match) return null;
+  const rest = match[1] || "";
+  if (!rest) return "/en/";
+  // 확장자가 있는 파일(.html 등)은 그대로, 디렉터리형은 정본 슬래시를 붙여 308 한 번을 아낀다.
+  return /\.[a-z0-9]+$/i.test(rest) ? rest : `${rest}/`;
+}
+
+// 날짜별 운세(/fortune/date/<날짜>/<사인>/)는 최근 30일만 생성된다. 창 밖으로 밀려난 날짜는
+// 매일 12개씩 404 가 되어 2026-10-03 실측 252개가 쌓여 있었다. 같은 사인의 오늘 운세로 보낸다.
+// 날짜 창은 사이트맵 생성기가 정하므로 여기서 복제하지 않고, 자산이 404 일 때만 쓴다.
+function expiredFortuneDateTarget(pathname) {
+  const match = /^\/fortune\/date\/[^/]+\/([a-z]+)\/?$/.exec(String(pathname || ""));
+  return match ? `/fortune/today/${match[1]}/` : null;
 }
 
 // 유명인 사주 별칭 → 정본 리다이렉트.
@@ -555,6 +587,14 @@ export default {
     }
 
     const assetResponse = await env.ASSETS.fetch(request);
+    if (assetResponse.status === 404) {
+      const expiredDateTarget = expiredFortuneDateTarget(url.pathname);
+      if (expiredDateTarget) {
+        const target = new URL(expiredDateTarget, url);
+        target.search = url.search;
+        return Response.redirect(target.toString(), 301);
+      }
+    }
     return hardenResponse(request.url, assetResponse);
   },
 };
