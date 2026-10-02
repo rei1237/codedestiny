@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "sourceHash": "0532696be6aefa37405ed38c052e8d30f2af208b84ce7f69d382feea791147ab",
+  "sourceHash": "98f5ee3a04bf26270aa6b5d4f47d4841ddd7e714c610b89463daba68d7487886",
   "note": "정본 비트에서 생성한 연출 검수 매트릭스입니다. 목적과 갈등은 각 화 제목/사건 신호를 보존하며, 장면·감정 호흡·접근성 큐를 한 곳에서 검수합니다.",
   "episodes": [
     {
@@ -3542,7 +3542,7 @@
       "id": "ep-12a",
       "title": "장부의 빈 줄",
       "purpose": "장부의 빈 줄",
-      "conflictBeatId": "ep-12a:11",
+      "conflictBeatId": "ep-12a:10",
       "emotionPath": [
         {
           "phase": "진입",
@@ -3551,12 +3551,12 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-12a:33",
+          "beatId": "ep-12a:31",
           "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-12a:82",
+          "beatId": "ep-12a:79",
           "pacing": "normal"
         }
       ],
@@ -3572,7 +3572,7 @@
           "accessibility": "siksang3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12a:11",
+          "beatId": "ep-12a:10",
           "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
@@ -3582,7 +3582,7 @@
           "accessibility": "siksang3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12a:15",
+          "beatId": "ep-12a:14",
           "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
@@ -3592,7 +3592,7 @@
           "accessibility": "siksang3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12a:17",
+          "beatId": "ep-12a:16",
           "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
@@ -3602,7 +3602,7 @@
           "accessibility": "siksang3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12a:19",
+          "beatId": "ep-12a:18",
           "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
@@ -3612,7 +3612,7 @@
           "accessibility": "siksang3 배경에서 진행되는 tiger의 대사"
         },
         {
-          "beatId": "ep-12a:27",
+          "beatId": "ep-12a:26",
           "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
@@ -3622,7 +3622,7 @@
           "accessibility": "siksang3 배경에서 진행되는 tiger의 대사"
         },
         {
-          "beatId": "ep-12a:33",
+          "beatId": "ep-12a:31",
           "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
@@ -3632,7 +3632,7 @@
           "accessibility": "siksang3 배경에서 진행되는 tiger의 대사"
         },
         {
-          "beatId": "ep-12a:38",
+          "beatId": "ep-12a:36",
           "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
@@ -3642,7 +3642,7 @@
           "accessibility": "siksang3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12a:43",
+          "beatId": "ep-12a:41",
           "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
@@ -3652,7 +3652,7 @@
           "accessibility": "siksang3 배경에서 진행되는 시스템 메시지"
         },
         {
-          "beatId": "ep-12a:44",
+          "beatId": "ep-12a:42",
           "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
@@ -3662,7 +3662,7 @@
           "accessibility": "siksang3 배경에서 진행되는 tiger의 대사"
         },
         {
-          "beatId": "ep-12a:54",
+          "beatId": "ep-12a:51",
           "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
@@ -3672,7 +3672,7 @@
           "accessibility": "siksang3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12a:56",
+          "beatId": "ep-12a:53",
           "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
@@ -3682,7 +3682,7 @@
           "accessibility": "siksang3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12a:66",
+          "beatId": "ep-12a:63",
           "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
@@ -3692,17 +3692,17 @@
           "accessibility": "siksang3 배경에서 진행되는 tiger의 대사"
         },
         {
-          "beatId": "ep-12a:70",
+          "beatId": "ep-12a:67",
           "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "drift",
+          "camera": "focus",
           "accessibility": "siksang3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12a:74",
+          "beatId": "ep-12a:71",
           "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
@@ -3712,7 +3712,7 @@
           "accessibility": "siksang3 배경에서 진행되는 tiger의 대사"
         },
         {
-          "beatId": "ep-12a:80",
+          "beatId": "ep-12a:77",
           "background": "siksang3",
           "transition": "hold",
           "tone": "natural",
@@ -3722,7 +3722,7 @@
           "accessibility": "siksang3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12a:82",
+          "beatId": "ep-12a:79",
           "background": "siksang3",
           "transition": "hold",
           "tone": "natural",
@@ -3735,9 +3735,9 @@
     },
     {
       "id": "ep-13",
-      "title": "맛있는 작별",
-      "purpose": "맛있는 작별",
-      "conflictBeatId": "ep-13:3",
+      "title": "시간을 파는 섬",
+      "purpose": "시간을 파는 섬",
+      "conflictBeatId": "ep-13:7",
       "emotionPath": [
         {
           "phase": "진입",
@@ -3746,253 +3746,203 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-13:104",
+          "beatId": "ep-13:38",
           "pacing": "normal"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-13:236",
-          "pacing": "impact"
+          "beatId": "ep-13:111",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-13:1",
-          "background": "siksang",
+          "background": "jaeEnter",
           "transition": "crossfade",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
+          "accessibility": "jaeEnter 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-13:3",
-          "background": "siksang",
+          "beatId": "ep-13:7",
+          "background": "jaeEnter",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:15",
-          "background": "siksang",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "veil",
+          "eventEffect": "script",
           "camera": "steady",
-          "accessibility": "siksang 배경에서 진행되는 yeon의 대사"
+          "accessibility": "jaeEnter 배경에서 진행되는 시스템 메시지"
         },
         {
-          "beatId": "ep-13:18",
-          "background": "siksang",
+          "beatId": "ep-13:8",
+          "background": "jaeEnter",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:21",
-          "background": "siksang",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:32",
-          "background": "siksang",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:76",
-          "background": "siksang",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:104",
-          "background": "siksang",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:111",
-          "background": "siksang",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "veil",
-          "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:119",
-          "background": "siksang",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "veil",
-          "camera": "steady",
-          "accessibility": "siksang 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-13:127",
-          "background": "siksang3",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksang3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:150",
-          "background": "siksang3",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksang3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:152",
-          "background": "siksang3",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksang3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:172",
-          "background": "siksang3",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksang3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:182",
-          "background": "siksang",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:189",
-          "background": "river",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:194",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:197",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "veil",
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:199",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:205",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "veil",
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:220",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-13:235",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "river 배경에서 진행되는 시스템 메시지"
+          "accessibility": "jaeEnter 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-13:236",
-          "background": "river",
+          "beatId": "ep-13:13",
+          "background": "jae",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-13:31",
+          "background": "jae",
           "transition": "hold",
           "tone": "natural",
-          "ambient": "moonlight",
+          "ambient": null,
+          "eventEffect": "shake",
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-13:35",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "river 배경에서 진행되는 시스템 메시지"
+          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-13:38",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "metal",
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-13:49",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-13:56",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-13:70",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 yun의 대사"
+        },
+        {
+          "beatId": "ep-13:71",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "script",
+          "camera": "steady",
+          "accessibility": "jae 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-13:74",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-13:84",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-13:89",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "veil",
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-13:102",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "suck",
+          "camera": "steady",
+          "accessibility": "jae 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-13:103",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-13:106",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-13:108",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
         }
       ]
     },
     {
       "id": "ep-14",
-      "title": "숨을 세는 법",
-      "purpose": "숨을 세는 법",
-      "conflictBeatId": "ep-14:48",
+      "title": "공망의 손",
+      "purpose": "공망의 손",
+      "conflictBeatId": "ep-14:6",
       "emotionPath": [
         {
           "phase": "진입",
@@ -4001,658 +3951,458 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-14:92",
+          "beatId": "ep-14:53",
           "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-14:173",
-          "pacing": "normal"
+          "beatId": "ep-14:134",
+          "pacing": "impact"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-14:1",
-          "background": "river",
+          "background": "jae",
           "transition": "crossfade",
-          "tone": "natural",
-          "ambient": "moonlight",
+          "tone": "dark",
+          "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14:6",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14:8",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "suck",
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14:9",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "script",
+          "camera": "steady",
+          "accessibility": "jae 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-14:11",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 yun의 대사"
+        },
+        {
+          "beatId": "ep-14:17",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14:25",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "script",
+          "camera": "steady",
+          "accessibility": "jae 배경에서 진행되는 시스템 메시지"
         },
         {
           "beatId": "ep-14:26",
-          "background": "island",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "island 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:35",
-          "background": "islandIn",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:47",
-          "background": "islandIn",
+          "background": "jae",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:48",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "ink",
           "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
+          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-14:81",
-          "background": "islandIn",
+          "beatId": "ep-14:44",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-14:52",
+          "background": "jae",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
+          "accessibility": "jae 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-14:92",
-          "background": "islandIn",
+          "beatId": "ep-14:53",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "shake",
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14:58",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "reveal",
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14:68",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "script",
+          "camera": "steady",
+          "accessibility": "jae 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-14:71",
+          "background": "jae",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 시스템 메시지"
+          "accessibility": "jae 배경에서 진행되는 neo의 대사"
         },
         {
-          "beatId": "ep-14:98",
-          "background": "islandIn",
+          "beatId": "ep-14:77",
+          "background": "jae",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 시스템 메시지"
+          "accessibility": "jae 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-14:99",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-14:100",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-14:122",
-          "background": "islandIn",
+          "beatId": "ep-14:82",
+          "background": "jae",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": "metal",
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14:84",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "claw",
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14:85",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "suck",
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14:87",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
           "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 neo의 대사"
+          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-14:94",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14:105",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14:118",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 yun의 대사"
         },
         {
           "beatId": "ep-14:123",
-          "background": "islandIn",
+          "background": "jae",
           "transition": "hold",
-          "tone": "natural",
+          "tone": "dark",
           "ambient": null,
-          "eventEffect": "metal",
+          "eventEffect": null,
           "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
+          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-14:136",
-          "background": "islandIn",
+          "beatId": "ep-14:130",
+          "background": "jae",
           "transition": "hold",
-          "tone": "natural",
+          "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14:132",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "script",
+          "camera": "steady",
+          "accessibility": "jae 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-14:134",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
         }
       ]
     },
     {
       "id": "ep-14a",
-      "title": "서로의 숨을 받치는 법",
-      "purpose": "서로의 숨을 받치는 법",
-      "conflictBeatId": "ep-14:193",
+      "title": "숨을 받치는 법",
+      "purpose": "숨을 받치는 법",
+      "conflictBeatId": "ep-14a:8",
       "emotionPath": [
         {
           "phase": "진입",
-          "beatId": "ep-14:174",
+          "beatId": "ep-14a:1",
           "pacing": "normal"
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-14:252",
+          "beatId": "ep-14a:33",
           "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-14:402",
+          "beatId": "ep-14a:83",
           "pacing": "impact"
         }
       ],
       "visualCues": [
         {
-          "beatId": "ep-14:174",
-          "background": "islandIn",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "islandIn 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-14:180",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:193",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "fire",
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:194",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "fire",
-          "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:195",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "fire",
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-14:196",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "fire",
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:203",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "fire",
-          "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:228",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "wood",
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:229",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "wood",
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-14:230",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "wood",
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:231",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "fuse",
-          "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:232",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "fuse",
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:233",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-14:250",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:252",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:256",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "metal",
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:259",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "metal",
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:266",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:297",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:300",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "water",
-          "camera": "drift",
-          "accessibility": "islandIn 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:301",
-          "background": "islandIn",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "islandIn 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-14:302",
-          "background": "siksangCrisis",
+          "beatId": "ep-14a:1",
+          "background": "jae",
           "transition": "crossfade",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": "water",
+          "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
+          "accessibility": "jae 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-14:308",
-          "background": "siksangCrisis",
+          "beatId": "ep-14a:8",
+          "background": "jae",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
+          "accessibility": "jae 배경에서 진행되는 moka의 대사"
         },
         {
-          "beatId": "ep-14:315",
-          "background": "siksangCrisis",
+          "beatId": "ep-14a:19",
+          "background": "jae",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": "water",
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:316",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "water",
+          "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
+          "accessibility": "jae 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-14:318",
-          "background": "siksangCrisis",
+          "beatId": "ep-14a:24",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14a:27",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14a:33",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-14a:35",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "wood",
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-14a:37",
+          "background": "jae",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": "metal",
           "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
+          "accessibility": "jae 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-14:323",
-          "background": "siksangCrisis",
+          "beatId": "ep-14a:39",
+          "background": "jae",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 yeon의 대사"
+          "accessibility": "jae 배경에서 진행되는 neo의 대사"
         },
         {
-          "beatId": "ep-14:328",
-          "background": "siksangCrisis",
+          "beatId": "ep-14a:52",
+          "background": "jae",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": "wood",
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-14:329",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "wood",
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:330",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "wood",
+          "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
+          "accessibility": "jae 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-14:332",
-          "background": "siksangCrisis",
+          "beatId": "ep-14a:53",
+          "background": "jae",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
+          "accessibility": "jae 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-14:344",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "fire",
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-14:345",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "fuse",
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:346",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "fuse",
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:347",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-14:348",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "fire",
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:359",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "wood",
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:361",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "metal",
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-14:362",
-          "background": "siksangBattle",
+          "beatId": "ep-14a:67",
+          "background": "jaeEnter",
           "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "metal",
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:363",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:365",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-14:366",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
+          "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
+          "accessibility": "jaeEnter 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-14:381",
-          "background": "siksangBattle",
+          "beatId": "ep-14a:70",
+          "background": "jaeEnter",
           "transition": "hold",
-          "tone": "natural",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "script",
+          "camera": "focus",
+          "accessibility": "jaeEnter 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-14a:78",
+          "background": "jaeEnter",
+          "transition": "hold",
+          "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 시스템 메시지"
+          "accessibility": "jaeEnter 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-14:388",
-          "background": "siksangBattle",
+          "beatId": "ep-14a:83",
+          "background": "jaeEnter",
           "transition": "hold",
-          "tone": "natural",
+          "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:389",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:393",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:401",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-14:402",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 시스템 메시지"
+          "accessibility": "jaeEnter 배경에서 진행되는 서술"
         }
       ]
     },
     {
       "id": "ep-15",
-      "title": "강 건너 황금 냄새",
-      "purpose": "강 건너 황금 냄새",
-      "conflictBeatId": "ep-15:3",
+      "title": "금고 털이",
+      "purpose": "금고 털이",
+      "conflictBeatId": "ep-15:16",
       "emotionPath": [
         {
           "phase": "진입",
@@ -4661,233 +4411,283 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-15:88",
-          "pacing": "impact"
+          "beatId": "ep-15:42",
+          "pacing": "normal"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-15:204",
+          "beatId": "ep-15:111",
           "pacing": "impact"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-15:1",
-          "background": "river",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-15:3",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-15:38",
           "background": "jaeEnter",
           "transition": "crossfade",
-          "tone": "natural",
+          "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
           "accessibility": "jaeEnter 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-15:39",
-          "background": "jaeEnter",
+          "beatId": "ep-15:12",
+          "background": "jaeSlave",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "jaeSlave 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-15:16",
+          "background": "jaeSlave",
           "transition": "hold",
-          "tone": "natural",
+          "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "jaeEnter 배경에서 진행되는 서술"
+          "accessibility": "jaeSlave 배경에서 진행되는 moka의 대사"
         },
         {
-          "beatId": "ep-15:47",
+          "beatId": "ep-15:21",
+          "background": "jaeSlave",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jaeSlave 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-15:25",
+          "background": "jaeSlave",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jaeSlave 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-15:37",
           "background": "jaeEnter2",
           "transition": "crossfade",
-          "tone": "natural",
+          "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
           "accessibility": "jaeEnter2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-15:42",
+          "background": "jaeEnter2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "shake",
+          "camera": "drift",
+          "accessibility": "jaeEnter2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-15:43",
+          "background": "jaeEnter2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "claw",
+          "camera": "drift",
+          "accessibility": "jaeEnter2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-15:45",
+          "background": "jaeEnter2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jaeEnter2 배경에서 진행되는 yun의 대사"
+        },
+        {
+          "beatId": "ep-15:46",
+          "background": "jaeEnter2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "suck",
+          "camera": "drift",
+          "accessibility": "jaeEnter2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-15:52",
+          "background": "jaeEnter2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "jaeEnter2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-15:56",
+          "background": "jaeEnter2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jaeEnter2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-15:59",
+          "background": "timeVault",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "timeVault 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-15:65",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "script",
+          "camera": "steady",
+          "accessibility": "timeVault 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-15:69",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "timeVault 배경에서 진행되는 yun의 대사"
+        },
+        {
+          "beatId": "ep-15:72",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "timeVault 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-15:77",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "timeVault 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-15:78",
-          "background": "jaeEnter2",
+          "background": "timeVault",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jaeEnter2 배경에서 진행되는 서술"
+          "eventEffect": "ink",
+          "camera": "steady",
+          "accessibility": "timeVault 배경에서 진행되는 시스템 메시지"
         },
         {
-          "beatId": "ep-15:79",
-          "background": "jaeEnter2",
+          "beatId": "ep-15:91",
+          "background": "timeVault",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jaeEnter2 배경에서 진행되는 서술"
+          "eventEffect": "script",
+          "camera": "steady",
+          "accessibility": "timeVault 배경에서 진행되는 시스템 메시지"
         },
         {
-          "beatId": "ep-15:81",
-          "background": "jaeEnter2",
+          "beatId": "ep-15:95",
+          "background": "timeVault",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "steady",
-          "accessibility": "jaeEnter2 배경에서 진행되는 neo의 대사"
+          "accessibility": "timeVault 배경에서 진행되는 moka의 대사"
         },
         {
-          "beatId": "ep-15:83",
-          "background": "jaeEnter2",
+          "beatId": "ep-15:96",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "water",
+          "camera": "drift",
+          "accessibility": "timeVault 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-15:98",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "metal",
+          "camera": "drift",
+          "accessibility": "timeVault 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-15:102",
+          "background": "timeVault",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "timeVault 배경에서 진행되는 tiger의 대사"
+        },
+        {
+          "beatId": "ep-15:104",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "vortex",
+          "camera": "drift",
+          "accessibility": "timeVault 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-15:106",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "script",
           "camera": "steady",
-          "accessibility": "jaeEnter2 배경에서 진행되는 neo의 대사"
+          "accessibility": "timeVault 배경에서 진행되는 시스템 메시지"
         },
         {
-          "beatId": "ep-15:86",
-          "background": "jaeEnter2",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jaeEnter2 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-15:88",
-          "background": "jaeEnter2",
+          "beatId": "ep-15:111",
+          "background": "timeVault",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "jaeEnter2 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-15:107",
-          "background": "jae",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-15:108",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-15:112",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-15:172",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-15:173",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-15:176",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-15:179",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-15:189",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-15:203",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-15:204",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 시스템 메시지"
+          "accessibility": "timeVault 배경에서 진행되는 yeon의 대사"
         }
       ]
     },
     {
       "id": "ep-16",
-      "title": "탄 빵의 냄새",
-      "purpose": "탄 빵의 냄새",
-      "conflictBeatId": "ep-16:56",
+      "title": "정재의 무게",
+      "purpose": "정재의 무게",
+      "conflictBeatId": "ep-16:7",
       "emotionPath": [
         {
           "phase": "진입",
@@ -4896,18 +4696,218 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-16:68",
+          "beatId": "ep-16:34",
           "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-16:203",
-          "pacing": "impact"
+          "beatId": "ep-16:101",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-16:1",
+          "background": "timeVault",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "timeVault 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-16:7",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "timeVault 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-16:14",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "timeVault 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-16:18",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "timeVault 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-16:19",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "metal",
+          "camera": "drift",
+          "accessibility": "timeVault 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-16:20",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "script",
+          "camera": "steady",
+          "accessibility": "timeVault 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-16:22",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "burst",
+          "camera": "focus",
+          "accessibility": "timeVault 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-16:26",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "script",
+          "camera": "steady",
+          "accessibility": "timeVault 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-16:30",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "suck",
+          "camera": "drift",
+          "accessibility": "timeVault 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-16:34",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "timeVault 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-16:39",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "timeVault 배경에서 진행되는 tiger의 대사"
+        },
+        {
+          "beatId": "ep-16:45",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "shake",
+          "camera": "drift",
+          "accessibility": "timeVault 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-16:48",
+          "background": "timeVault",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "timeVault 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-16:51",
+          "background": "jaeSlave",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "jaeSlave 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-16:58",
+          "background": "jaeSlave",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jaeSlave 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-16:60",
+          "background": "jaeSlave",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "jaeSlave 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-16:61",
+          "background": "jaeSlave",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "script",
+          "camera": "steady",
+          "accessibility": "jaeSlave 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-16:70",
+          "background": "jaeSlave",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "reveal",
+          "camera": "focus",
+          "accessibility": "jaeSlave 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-16:75",
+          "background": "jaeSlave",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "script",
+          "camera": "steady",
+          "accessibility": "jaeSlave 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-16:76",
+          "background": "jaeSlave",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jaeSlave 배경에서 진행되는 neo의 대사"
+        },
+        {
+          "beatId": "ep-16:80",
           "background": "jae",
           "transition": "crossfade",
           "tone": "natural",
@@ -4915,126 +4915,6 @@
           "eventEffect": null,
           "camera": "drift",
           "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:56",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-16:58",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "jae 배경에서 진행되는 lns의 대사"
-        },
-        {
-          "beatId": "ep-16:61",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-16:68",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:70",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:71",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:73",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "jae 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-16:81",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "jae 배경에서 진행되는 lns의 대사"
-        },
-        {
-          "beatId": "ep-16:82",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:87",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:91",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "jae 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-16:92",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
         },
         {
           "beatId": "ep-16:95",
@@ -5044,10 +4924,10 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
+          "accessibility": "jae 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-16:102",
+          "beatId": "ep-16:98",
           "background": "jae",
           "transition": "hold",
           "tone": "natural",
@@ -5057,263 +4937,13 @@
           "accessibility": "jae 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-16:106",
+          "beatId": "ep-16:99",
           "background": "jae",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:109",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:111",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-16:119",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
+          "eventEffect": "ink",
           "camera": "steady",
-          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-16:120",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:123",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:125",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:128",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:131",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-16:137",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:140",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-16:144",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "jae 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-16:149",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-16:165",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:166",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:167",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:170",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:171",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:174",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:180",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:190",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-16:191",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:199",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:201",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-16:202",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "jae 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-16:203",
-          "background": "jae",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
           "accessibility": "jae 배경에서 진행되는 시스템 메시지"
         }
       ]
