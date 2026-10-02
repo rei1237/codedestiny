@@ -43,7 +43,8 @@ docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 E1(47030b73d �
 
 ### A. 내용 불일치 (먼저)
 
-**A1. 일주 카드: 본문 「금 44%」 vs 막대 「금 50%」** — GREEN 추정(표시 계산만이면). 실측.
+**A1. 일주 카드: 본문 「금 44%」 vs 막대 「금 50%」** — ✅ 완료 2026-10-03 (de87e8a2a). 막대가 월지 가중 없는 8글자 개수를 쓰던 것을 정본 `calcNatalElement(p).ratios` 로 바꿨다(엔진 계산 무변경). 1991-02-20 12:00·08:00 에서 본문·막대 다섯 값 일치 실측.
+- (아래는 원래 기록)
 - 같은 명식에서 본문 문장과 오행 막대가 서로 다른 비율을 보여 준다.
 - 할 일: 두 값의 출처를 찾는다. 후보는 `calcNatalElement` 계열과 막대 렌더의 반올림·분모(시주 포함 여부, 지장간 가중) 차이다. 어느 쪽이 정본인지 정하고 한쪽에 맞춘다.
 - 🔴 운세 엔진 계산(`calcPower`·`analyzeJohu` 등 `scripts/extract-saju-runtime.mjs` 추출 대상)을 바꾸면 RED 다. 그 경우 `--write` 재생성과 `__tests__/ui/yeongnyangi-reading-invariance.test.mjs` 해시 갱신이 따른다. 표시층에서 해결되는지 먼저 본다.

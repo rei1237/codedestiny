@@ -9960,68 +9960,6 @@ function iljuSetBar(barId, valId, value) {
   if (label) label.innerText = v + '%';
 }
 
-function buildIljuElementScores(pillars) {
-  var stemElMap = { '甲':'wood','乙':'wood','丙':'fire','丁':'fire','戊':'earth','己':'earth','庚':'metal','辛':'metal','壬':'water','癸':'water' };
-  var branchElMap = { '子':'water','丑':'earth','寅':'wood','卯':'wood','辰':'earth','巳':'fire','午':'fire','未':'earth','申':'metal','酉':'metal','戌':'earth','亥':'water' };
-  var elements = ['wood', 'fire', 'earth', 'metal', 'water'];
-  var counts = { wood:0, fire:0, earth:0, metal:0, water:0 };
-  var scorePairs = [];
-  var totalCount = 0;
-
-  var stems = [
-    pillars && pillars.y ? pillars.y.g : null,
-    pillars && pillars.m ? pillars.m.g : null,
-    pillars && pillars.d ? pillars.d.g : null,
-    pillars && pillars.h ? pillars.h.g : null
-  ];
-  var branches = [
-    pillars && pillars.y ? pillars.y.j : null,
-    pillars && pillars.m ? pillars.m.j : null,
-    pillars && pillars.d ? pillars.d.j : null,
-    pillars && pillars.h ? pillars.h.j : null
-  ];
-
-  stems.forEach(function(stem) {
-    var el = stemElMap[stem];
-    if (!el) return;
-    counts[el] += 1;
-    totalCount += 1;
-  });
-  branches.forEach(function(branch) {
-    var el = branchElMap[branch];
-    if (!el) return;
-    counts[el] += 1;
-    totalCount += 1;
-  });
-
-  if (!totalCount) {
-    return { wood:0, fire:0, earth:0, metal:0, water:0 };
-  }
-
-  elements.forEach(function(el) {
-    var raw = (counts[el] / totalCount) * 100;
-    scorePairs.push({ key: el, base: Math.floor(raw), frac: raw - Math.floor(raw) });
-  });
-
-  var used = 0;
-  scorePairs.forEach(function(item) { used += item.base; });
-  var remainder = 100 - used;
-
-  // Floor rounding 이후 남은 퍼센트를 큰 소수점 순서대로 배분해 합계 100%를 맞춘다.
-  if (remainder > 0) {
-    scorePairs.sort(function(a, b) { return b.frac - a.frac; });
-    for (var i = 0; i < remainder; i++) {
-      scorePairs[i % scorePairs.length].base += 1;
-    }
-  }
-
-  var result = { wood:0, fire:0, earth:0, metal:0, water:0 };
-  scorePairs.forEach(function(item) {
-    result[item.key] = item.base;
-  });
-  return result;
-}
-
 function buildIljuKeywords(key, data, stem, branch, elementLabel) {
   var animalMap = { '子':'쥐', '丑':'소', '寅':'호랑이', '卯':'토끼', '辰':'용', '巳':'뱀', '午':'말', '未':'양', '申':'원숭이', '酉':'닭', '戌':'개', '亥':'돼지' };
   var stemTraits = {
@@ -10117,7 +10055,8 @@ function renderIlju(p){
     }).join('');
   }
 
-  var scores = buildIljuElementScores(p);
+  // 막대는 본문(원국 오행 비율)과 같은 정본 calcNatalElement 비율을 쓴다 — 월지 가중 포함.
+  var scores = calcNatalElement(p).ratios;
   iljuSetBar('iljuWoodBar', 'iljuWoodVal', scores.wood);
   iljuSetBar('iljuFireBar', 'iljuFireVal', scores.fire);
   iljuSetBar('iljuEarthBar', 'iljuEarthVal', scores.earth);

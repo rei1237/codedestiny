@@ -2,7 +2,7 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { runInNewContext } from "node:vm";
-import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS, SPEAKERS, VOCAL_TRACKS } from "./build-novel-runtime.mjs";
+import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS, SPEAKERS, INSTRUMENTAL_TRACKS } from "./build-novel-runtime.mjs";
 import { FORBIDDEN_STORY_NAMES } from "./lib/novel-constraints.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
@@ -293,9 +293,9 @@ for (const [index, meta] of manifest.episodes.entries()) {
   for (const beat of chunk.beats) {
     const name = FORBIDDEN_STORY_NAMES.find((forbidden) => String(beat.t ?? "").includes(forbidden));
     if (name) fail(`${beat.id}: 대본에 쓰지 않는 이름 '${name}'`);
-    if (VOCAL_TRACKS.has(beat.bgm)) fail(`${beat.id}: 보컬곡 '${beat.bgm}'`);
+    if (beat.bgm && !INSTRUMENTAL_TRACKS.has(beat.bgm)) fail(`${beat.id}: 연주곡 목록 밖의 곡 '${beat.bgm}'`);
     if (beat.tone && !beat.bg) fail(`${beat.id}: bg 없는 tone 은 그려지지 않는다`);
-    if (beat.s === "baek" || ["l", "c", "r"].some((slot) => beat[slot]?.who === "baek")) fail(`${beat.id}: 백문(baek) 등장`);
+    if (beat.s && !SPEAKERS.has(beat.s)) fail(`${beat.id}: 등록되지 않은 화자 '${beat.s}'`);
   }
 }
 

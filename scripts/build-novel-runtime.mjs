@@ -16,13 +16,12 @@ export const SCENE_MATRIX_PATH = resolve(ROOT, "content/novel/scene-matrix.gener
 // 비트 ID 를 새로 매기므로 계산값이 옛 위치를 잃는다. 그래서 이 표만 manifest 에 싣고, 표에 없는 새 화는 [].
 export const LEGACY_RANGES_PATH = resolve(ROOT, "content/novel/legacy-ranges.v1.json");
 
-export const SPEAKERS = new Set(["n", "sys", "yeon", "neo", "mu", "moka", "luna", "rab", "baek", "crow", "geo", "god", "ln", "lns", "pje", "tiger", "yun", "heuk"]);
-const CAST_IDS = new Set(["baek", "crow", "ln", "lns", "mirror", "moka", "mu", "neo", "pje", "rab", "yeon", "tiger", "yun"]);
+export const SPEAKERS = new Set(["n", "sys", "yeon", "neo", "mu", "moka", "luna", "rab", "crow", "geo", "god", "ln", "lns", "pje", "tiger", "yun", "heuk"]);
+const CAST_IDS = new Set(["crow", "ln", "lns", "mirror", "moka", "mu", "neo", "pje", "rab", "yeon", "tiger", "yun"]);
 export const EFFECTS = new Set(["burst", "claw", "fire", "flash", "fuse", "hands", "heart", "ink", "metal", "net", "reveal", "root", "script", "shake", "stars", "suck", "tarot", "thread", "transform", "veil", "vortex", "water", "wood"]);
 /* 곡 분류(fail-closed). 가사 판정 근거는 가사 등록부 app/music/_data/musicLyrics.ts 다 — musicManifest 의
-   hasLyrics 추정은 거의 모두 참이라 근거가 못 된다. TRK 에 새 키를 더하면 둘 중 하나에 반드시 넣는다.
-   보컬곡은 어느 화에서도 쓰지 않는다(2026-10-02 사용자 요청: 명상·가사 없는 곡). */
-export const VOCAL_TRACKS = new Set(["novaFlex", "novaSoda", "novaTitle", "novaRider", "novaFlame", "lunaGuest", "teaMoonlight"]);
+   hasLyrics 추정은 거의 모두 참이라 근거가 못 된다. TRK 의 모든 키는 이 목록에 있어야 한다.
+   보컬곡은 TRK 에 두지 않는다(2026-10-02 사용자 요청: 명상·가사 없는 곡). */
 export const INSTRUMENTAL_TRACKS = new Set([
   "main", "daily", "room", "gloom", "gloom2", "crisis", "crisis2", "neo", "neo2", "riverEnter", "riverEnter2", "siksangEnter", "stillLake",
   "jaeEnter", "riverCross", "warTheme", "templeGate", "memWater", "starsName", "zeroPoint", "rainWindow", "firstLight", "teaHouse", "teaKind",
@@ -118,9 +117,9 @@ export function buildNovelPayload() {
   const trackKeys = namedKeysFromLegacyShell("TRK");
   const sfxKeys = namedKeysFromLegacyShell("SFX");
   for (const key of trackKeys) {
-    if (VOCAL_TRACKS.has(key) === INSTRUMENTAL_TRACKS.has(key)) throw new Error(`TRK '${key}' 는 연주곡·보컬곡 분류 중 정확히 하나에 들어가야 합니다(build-novel-runtime.mjs).`);
+    if (!INSTRUMENTAL_TRACKS.has(key)) throw new Error(`TRK '${key}' 가 연주곡 목록에 없습니다. 가사 등록부로 확인한 연주곡만 INSTRUMENTAL_TRACKS 에 더하세요(보컬곡은 TRK 에 두지 않는다).`);
   }
-  for (const key of [...VOCAL_TRACKS, ...INSTRUMENTAL_TRACKS]) if (!trackKeys.has(key)) throw new Error(`곡 분류의 '${key}' 가 TRK 맵에 없습니다.`);
+  for (const key of INSTRUMENTAL_TRACKS) if (!trackKeys.has(key)) throw new Error(`곡 분류의 '${key}' 가 TRK 맵에 없습니다.`);
   const episodeIds = new Set();
   const beatIds = new Set();
   const episodes = source.episodes.map((episode, episodeIndex) => {
@@ -143,9 +142,7 @@ export function buildNovelPayload() {
         : sourceBeat;
       validateBeat(rawBeat, context, bgKeys, trackKeys, sfxKeys);
       for (const name of FORBIDDEN_STORY_NAMES) if (rawBeat.t.includes(name)) throw new Error(`${context}: 대본에 쓰지 않는 이름 '${name}'이 있습니다.`);
-      if (VOCAL_TRACKS.has(rawBeat.bgm)) throw new Error(`${context}: 보컬곡 '${rawBeat.bgm}' 는 쓰지 않습니다. 연주곡을 고르세요.`);
       if (rawBeat.tone && !rawBeat.bg) throw new Error(`${context}: tone 은 bg 가 있는 비트에서만 그려집니다. 지금 배경 키를 함께 적으세요.`);
-      if (rawBeat.s === "baek" || ["l", "c", "r"].some((slot) => rawBeat[slot]?.who === "baek")) throw new Error(`${context}: 백문(baek)은 새 이야기에 나오지 않습니다(윤달 yun 으로 대체).`);
       const hasSceneDirection = Boolean(rawBeat.shot || rawBeat.bg || rawBeat.bgm || rawBeat.fx || rawBeat.tone || rawBeat.im);
       const scene = hasSceneDirection ? inferScene(rawBeat, priorScene) : undefined;
       const beat = {
