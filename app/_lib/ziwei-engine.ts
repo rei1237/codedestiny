@@ -86,7 +86,12 @@ export function calcZiweiPalaces(
   minute: number,
   gender: "M" | "F"
 ): ZiweiChartData {
-  const lunar = solarToLunar(year, month, day);
+  // 23시대(23:00~23:59) 출생은 다음 날 子時로 친다(子初換日). iztro 2.6.1 기본값(dayDivide forward)과
+  // 사이트 사주 공개 방법론(보정 시각 23시 이후는 다음 날)이 같다. 『全書』 卷三의 子時 설명
+  // ("上午刻属昨夜亥时，下午刻属今日子时")은 모호해 유파 선택으로 기록한다.
+  // 음력 변환에 넣는 날짜만 민다 — 소한 기준 연도 탐색과 씨앗 연도는 입력 날짜 그대로 쓴다.
+  const civil = new Date(Date.UTC(year, month - 1, day + (hour === 23 ? 1 : 0)));
+  const lunar = solarToLunar(civil.getUTCFullYear(), civil.getUTCMonth() + 1, civil.getUTCDate());
   if (!lunar) {
     throw new Error(`ZIWEI_UNSUPPORTED_BIRTH_DATE: ${year}-${month}-${day} (지원 범위 1900~2100)`);
   }

@@ -3089,7 +3089,12 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
   // [Cleanup] lunar-javascript 의 solar/lunar 지역변수는 PR-C 가 폴백을 걷어낸 뒤로 한 번도
   // 읽히지 않았다(이 함수 전체에서 참조 0). 남겨 두면 이 함수가 그 라이브러리 없이는 못 도는
   // 것처럼 보이는데, 실제로는 아래 KasiEngine → 한국 음양력 코어만 있으면 된다.
-  var baseParts = _kasiPartsOf(year, month, day, hour || 0, minute || 0, 0);
+  // 23시대(23:00~23:59) 출생은 다음 날 子時로 친다(子初換日). iztro 2.6.1 기본값(dayDivide forward)과
+  // 사이트 사주 공개 방법론(보정 시각 23시 이후는 다음 날)이 같다. 『全書』 卷三의 子時 설명
+  // ("上午刻属昨夜亥时，下午刻属今日子时")은 모호해 유파 선택으로 기록한다.
+  // 음력 변환에 넣는 날짜만 민다 — 소한 기준 연도 탐색과 씨앗 연도는 입력 날짜 그대로 쓴다.
+  var zwDay = new Date(Date.UTC(year, month - 1, day + (hour === 23 ? 1 : 0)));
+  var baseParts = _kasiPartsOf(zwDay.getUTCFullYear(), zwDay.getUTCMonth() + 1, zwDay.getUTCDate(), hour || 0, minute || 0, 0);
   var kasiLunar = null;
   try {
     if (KasiEngine && typeof KasiEngine.solarToLunarFromParts === 'function') {

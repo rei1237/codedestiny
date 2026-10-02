@@ -100,14 +100,16 @@ function parseTime(timeText, unknown) {
  * 🔴 자미두수의 년간지는 **음력 프레임**이다 — 세차가 설날에 바뀐다. 코어의 ganji() 는
  * 절기 프레임(입춘 경계)이라 여기서 쓰면 안 된다. 음력해에서 직접 유도한다.
  */
-function getLunarDate(parts, calendarType, isLeapMonth) {
+function getLunarDate(parts, calendarType, isLeapMonth, nextDay = false) {
   if (calendarType === "lunar") {
     const leap = Boolean(isLeapMonth);
-    if (!lunarToSolar(parts.year, parts.month, parts.day, leap)) {
+    const solar = lunarToSolar(parts.year, parts.month, parts.day, leap);
+    if (!solar) {
       const error = new Error("INVALID_LUNAR_BIRTH_DATE");
       error.code = "INVALID_INPUT";
       throw error;
     }
+    if (nextDay) return lunarOfSolarDay(solar, true);
     return {
       lunarYear: parts.year,
       lunarMonth: Math.abs(parts.month),
@@ -117,7 +119,18 @@ function getLunarDate(parts, calendarType, isLeapMonth) {
     };
   }
 
-  const lunar = solarToLunar(parts.year, parts.month, parts.day);
+  return lunarOfSolarDay(parts, nextDay);
+}
+
+/**
+ * 23시대(23:00~23:59) 출생은 다음 날 子時로 친다(子初換日). iztro 2.6.1 기본값(dayDivide forward)과
+ * 사이트 사주 공개 방법론(보정 시각 23시 이후는 다음 날)이 같다. 『全書』 卷三의 子時 설명
+ * ("上午刻属昨夜亥时，下午刻属今日子时")은 모호해 유파 선택으로 기록한다.
+ * 음력 변환에 넣는 날짜만 민다 — 소한 기준 연도 탐색과 씨앗 연도는 입력 날짜 그대로 쓴다.
+ */
+function lunarOfSolarDay({ year, month, day }, nextDay) {
+  const civil = new Date(Date.UTC(year, month - 1, day + (nextDay ? 1 : 0)));
+  const lunar = solarToLunar(civil.getUTCFullYear(), civil.getUTCMonth() + 1, civil.getUTCDate());
   if (!lunar) {
     const error = new Error("UNSUPPORTED_BIRTH_DATE");
     error.code = "INVALID_INPUT";
@@ -461,7 +474,7 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
 
   const calendarType = clean(birthInfo.calendarType).toLowerCase() === "lunar" ? "lunar" : "solar";
   const gender = clean(birthInfo.gender).toLowerCase();
-  const lunarInfo = getLunarDate(dateParts, calendarType, birthInfo.isLeapMonth === true);
+  const lunarInfo = getLunarDate(dateParts, calendarType, birthInfo.isLeapMonth === true, timeParts.hour === 23 && !timeParts.unknown);
   // 세차는 음력해에서 바로 나온다(甲=0 / 子=0). 예전에는 lunar-javascript 의 getYearGan/getYearZhi
   // 를 읽고 실패 시 같은 식으로 폴백했다 — 값은 그대로이고 근거만 코어로 옮겼다.
   const yearIndexes = sexagenaryYearIndexes(lunarInfo.lunarYear);
