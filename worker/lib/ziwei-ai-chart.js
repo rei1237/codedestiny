@@ -245,7 +245,9 @@ function placeAssistantAndMaleficStars(shells, lunarMonth, hourIdx, stemIndex, b
 
   const peach = [9, 6, 3, 0][branchIndex % 4] ?? 9;
   addStar(shells, peach, "함지", "assistant");
-  addStar(shells, lunarMonth + 1, "천요", "assistant");
+  // 천요(天姚) — 『紫微斗數全書』 卷二 安天刑天姚星诀 "天姚星从丑上起正月顺至本生月即安之".
+  // 정월이 丑(1)이므로 생월 m 은 지지 인덱스 m 이다. 예전 식 lunarMonth + 1 은 한 달 밀려 있었다(iztro 2.6.1 도 丑起正月).
+  addStar(shells, lunarMonth, "천요", "assistant");
 }
 
 // 오호둔(五虎遁) — 생년간으로 인궁(寅宮)의 천간을 잡고 12지지를 순행으로 채운다.
