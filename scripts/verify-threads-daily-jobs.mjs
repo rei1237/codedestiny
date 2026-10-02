@@ -19,6 +19,8 @@
  *   ⑧ SNS_THREADS_AI_ENABLED 꺼짐 → 모델 호출 0회.
  *   ⑨ 알림은 창의 마지막 틱 실패에서만, 수동 실행(force)은 알리지 않는다.
  *   ⑩ 분할 스위치 on → 07:00 체인의 Threads 는 threads_split_active, 텔레그램 경로는 이 스위치를 모른다.
+ *   ⑫ 2026-10-02 개편 — 띠별 08:30·사주 12:00·카르마 20:30, 자미·베다·수비학 기본 꺼짐. 띠별은 본 글+12띠 답글 체인,
+ *      띠 관계는 정본 getBranchPairRelations, 모델 문장의 길흉 방향이 그 띠 관계와 어긋나면 버린다. 카르마는 카드에 없는 경전 인용 금지.
  *   ⑪ 배선 — 10분 크론 분기, 관리자 수동 실행, 두 wrangler [vars] 같은 값, UTM 링크 경로 실재.
  *
  * 실행: npm run verify:threads-daily-jobs
@@ -38,6 +40,8 @@ const abs = (rel) => JSON.stringify(path.join(ROOT, rel));
 const entry = [
   `export * as jobs from ${abs("worker/lib/threads-daily-jobs.js")};`,
   `export * as shared from ${abs("worker/lib/threads-daily-providers/shared.js")};`,
+  `export * as zodiac from ${abs("worker/lib/threads-daily-providers/zodiac.js")};`,
+  `export * as karma from ${abs("worker/lib/threads-daily-providers/karma.js")};`,
   `export * as saju from ${abs("worker/lib/threads-daily-providers/saju.js")};`,
   `export * as ziwei from ${abs("worker/lib/threads-daily-providers/ziwei.js")};`,
   `export * as vedic from ${abs("worker/lib/threads-daily-providers/vedic.js")};`,
@@ -82,7 +86,7 @@ try {
 } finally {
   fs.rmSync(bundleFile, { force: true });
 }
-const { jobs, shared, saju, ziwei, vedic, numerology, calculateUniversalNumbers, computeTodaySky, getDailyChainThreadsSkipReason, threadsTextWeight, PALACE_FACET } = m;
+const { jobs, shared, zodiac, karma, saju, ziwei, vedic, numerology, calculateUniversalNumbers, computeTodaySky, getDailyChainThreadsSkipReason, threadsTextWeight, PALACE_FACET } = m;
 
 const runJobs=(env,options={})=>jobs.runThreadsDailyJobs(env,{readRecent:async()=>[],...options});
 let passed = 0;
@@ -171,13 +175,13 @@ function harness(overrides = {}) {
 }
 
 console.log("▶ ① 발행 창");
-await check("08:29 는 대상 아님, 08:30·09:29 는 사주만, 09:30 은 아님", async () => {
-  for (const [h, mi, expectSaju] of [[8, 29, false], [8, 30, true], [9, 29, true], [9, 30, false]]) {
+await check("08:29 는 대상 아님, 08:30·09:29 는 띠별만, 09:30 은 아님", async () => {
+  for (const [h, mi, expectZodiac] of [[8, 29, false], [8, 30, true], [9, 29, true], [9, 30, false]]) {
     const { options, lock } = harness();
     const result = await runJobs(BASE_ENV, { ...options, now: SEP17(h, mi) });
-    assert.equal(result.jobs.saju.skipped === "outside_window", !expectSaju, `${h}:${mi} saju`);
-    assert.equal(lock.calls.length, expectSaju ? 1 : 0, `${h}:${mi} lock calls`);
-    assert.equal(result.jobs.ziwei.skipped, "outside_window");
+    assert.equal(result.jobs.zodiac.skipped === "outside_window", !expectZodiac, `${h}:${mi} zodiac`);
+    assert.equal(lock.calls.length, expectZodiac ? 1 : 0, `${h}:${mi} lock calls`);
+    assert.equal(result.jobs.saju.skipped, "outside_window");
   }
 });
 await check("잘못된 시각은 그 Job 만 건너뛰고 기본값으로 돌리지 않는다, 23:00 이후 거부", async () => {
@@ -185,16 +189,18 @@ await check("잘못된 시각은 그 Job 만 건너뛰고 기본값으로 돌리
   assert.equal(jobs.parseJobTime("23:00"), 1380);
   for (const bad of ["8:30", "24:00", "23:30", "12:60", "", "noon"]) assert.equal(jobs.parseJobTime(bad), null, bad);
   const { options, lock } = harness();
-  const env = { ...BASE_ENV, THREADS_SAJU_TIME: "8:30", THREADS_ZIWEI_TIME: "08:30" };
+  const env = { ...BASE_ENV, THREADS_ZODIAC_TIME: "8:30", THREADS_SAJU_TIME: "08:30" };
   const result = await runJobs(env, { ...options, now: SEP17(8, 40) });
-  assert.equal(result.jobs.saju.skipped, "invalid_time");
-  assert.equal(result.jobs.ziwei.ok, true);
-  assert.deepEqual(lock.calls.map((c) => c.keyHash), ["2026-09-17:threads:ziwei"]);
+  assert.equal(result.jobs.zodiac.skipped, "invalid_time");
+  assert.equal(result.jobs.saju.ok, true);
+  assert.deepEqual(lock.calls.map((c) => c.keyHash), ["2026-09-17:threads:saju"]);
   assert.deepEqual(jobs.findCrowdedJobs([{ type: "a", start: 510 }, { type: "b", start: 600 }]), ["a→b 90분"]);
 });
-await check("기본 시각 08:30·12:00·16:00·20:30 과 KST 자정 경계", async () => {
+await check("기본 시각 띠별 08:30·사주 12:00·카르마 20:30(꺼진 Job 14:00·16:00·18:00)과 KST 자정 경계", async () => {
   const starts = Object.fromEntries(jobs.THREADS_DAILY_JOBS.map((job) => [job.type, jobs.resolveJobSchedule({}, job).start]));
-  assert.deepEqual(starts, { saju: 510, ziwei: 720, vedic: 960, numerology: 1230 });
+  assert.deepEqual(starts, { zodiac: 510, saju: 720, karma: 1230, ziwei: 840, vedic: 960, numerology: 1080 });
+  const all = jobs.THREADS_DAILY_JOBS.map((job) => ({ type: job.type, ...jobs.resolveJobSchedule({}, job) }));
+  assert.deepEqual(jobs.findCrowdedJobs(all), [], "전부 켜도 2시간 간격이 지켜져야 한다");
   assert.equal(jobs.kstMinuteOfDay(Date.UTC(2026, 8, 16, 15, 5)), 5); // 00:05 KST
 });
 
@@ -209,24 +215,29 @@ await check("분할 스위치 꺼짐·토큰 없음·창 밖이면 connect 0회"
   const { options } = harness();
   assert.equal((await runJobs({ ...BASE_ENV, SNS_THREADS_POST_ENABLED: "1" }, { ...options, now: SEP17(8, 30) })).skipped, "split_disabled");
 });
-await check("수비학은 var 없이 기본 켜짐(20:30 발행), THREADS_NUMEROLOGY_ENABLED=\"0\" 일 때만 job_disabled", async () => {
+await check("자미·베다·수비학은 var 없이 기본 꺼짐(job_disabled, 잠금 0회), *_ENABLED=\"1\" 이면 제 시각에 발행", async () => {
   const { options, lock, fetch } = harness();
-  const off = await runJobs({ ...BASE_ENV, THREADS_NUMEROLOGY_ENABLED: "0" }, { ...options, now: SEP17(20, 30) });
-  assert.equal(off.jobs.numerology.skipped, "job_disabled");
-  assert.equal(lock.calls.length, 0);
-  const on = await runJobs(BASE_ENV, { ...options, now: SEP17(20, 30) });
+  const off = await runJobs(BASE_ENV, { ...options, force: true, now: SEP17(18, 0) });
+  for (const type of ["ziwei", "vedic", "numerology"]) assert.equal(off.jobs[type].skipped, "job_disabled", type);
+  assert.deepEqual(lock.calls.map((c) => c.keyHash).sort(), ["2026-09-17:threads:karma", "2026-09-17:threads:saju", "2026-09-17:threads:zodiac"]);
+  lock.calls.length = 0;
+  fetch.posted.length = 0;
+  const on = await runJobs({ ...BASE_ENV, THREADS_NUMEROLOGY_ENABLED: "1" }, { ...options, now: SEP17(18, 0) });
   assert.equal(on.jobs.numerology.ok, true, JSON.stringify(on.jobs.numerology));
   assert.deepEqual(lock.calls.map((c) => c.keyHash), ["2026-09-17:threads:numerology"]);
   assert.match(fetch.posted[0], /보편일수\(Universal Day\) 9/);
-  assert.equal(jobs.isJobEnabled({ THREADS_NUMEROLOGY_ENABLED: "1" }, jobs.THREADS_DAILY_JOBS[3]), true);
-  assert.equal(jobs.isJobEnabled({ THREADS_NUMEROLOGY_ENABLED: "off" }, jobs.THREADS_DAILY_JOBS[3]), false);
+  const job = (type) => jobs.THREADS_DAILY_JOBS.find((row) => row.type === type);
+  assert.equal(jobs.isJobEnabled({ THREADS_ZIWEI_ENABLED: "1" }, job("ziwei")), true);
+  assert.equal(jobs.isJobEnabled({ THREADS_VEDIC_ENABLED: "on" }, job("vedic")), true);
+  assert.equal(jobs.isJobEnabled({ THREADS_NUMEROLOGY_ENABLED: "off" }, job("numerology")), false);
+  for (const type of ["zodiac", "saju", "karma"]) assert.equal(jobs.isJobEnabled({}, job(type)), true, type);
 });
 
 console.log("▶ ③ 중복 방지·재시도");
 await check("같은 날 같은 type 재실행은 already_posted, 발행 1회", async () => {
   const { options, fetch, lock } = harness();
-  const first = await runJobs(BASE_ENV, { ...options, now: SEP17(8, 30) });
-  const second = await runJobs(BASE_ENV, { ...options, now: SEP17(8, 40) });
+  const first = await runJobs(BASE_ENV, { ...options, now: SEP17(12, 0) });
+  const second = await runJobs(BASE_ENV, { ...options, now: SEP17(12, 10) });
   assert.equal(first.jobs.saju.ok, true);
   assert.equal(second.jobs.saju.skipped, "already_posted");
   assert.equal(fetch.posted.length, 1);
@@ -246,34 +257,46 @@ await check("실패(발행 0건)는 다음 틱에 재시도되고, 다른 type �
   const r1 = await runJobs(BASE_ENV, { ...base, fetchImpl: failing.impl, now: SEP17(12, 0) });
   assert.equal(r1.ok, false);
   const r2 = await runJobs(BASE_ENV, { ...base, fetchImpl: ok.impl, now: SEP17(12, 10) });
-  assert.equal(r2.jobs.ziwei.ok, true);
+  assert.equal(r2.jobs.saju.ok, true);
   assert.equal(ok.posted.length, 1);
-  const r3 = await runJobs(BASE_ENV, { ...base, fetchImpl: ok.impl, now: SEP17(16, 0), sky: undefined });
-  assert.equal(r3.jobs.vedic.ok, true, JSON.stringify(r3.jobs.vedic));
-  assert.deepEqual([...lock.docs.keys()].sort(), ["cron:sns-threads-daily|2026-09-17:threads:vedic", "cron:sns-threads-daily|2026-09-17:threads:ziwei"]);
+  const r3 = await runJobs(BASE_ENV, { ...base, fetchImpl: ok.impl, now: SEP17(20, 30) });
+  assert.equal(r3.jobs.karma.ok, true, JSON.stringify(r3.jobs.karma));
+  assert.deepEqual([...lock.docs.keys()].sort(), ["cron:sns-threads-daily|2026-09-17:threads:karma", "cron:sns-threads-daily|2026-09-17:threads:saju"]);
+});
+await check("띠별은 본 글(CTA·링크) + 12띠 답글 체인으로 나간다, 잠금은 1건", async () => {
+  const { options, fetch, lock } = harness();
+  const result = await runJobs(BASE_ENV, { ...options, now: SEP17(8, 30) });
+  assert.equal(result.jobs.zodiac.ok, true, JSON.stringify(result.jobs.zodiac));
+  assert.equal(lock.calls.length, 1);
+  assert.equal(fetch.posted.length, 2);
+  assert.match(fetch.posted[0], /utm_campaign=threads_20260917_zodiac/);
+  assert.ok(fetch.posted[0].includes("12띠 한 줄 운세는 답글에"));
+  assert.equal(fetch.posted[1].split("\n").length, 12);
+  assert.ok(!fetch.posted[1].includes("http"), "답글에 링크가 들어갔다");
+  assert.equal(result.jobs.zodiac.ref.posts, 2);
 });
 
 console.log("▶ ④ 격리");
-await check("사주 provider 가 던져도 자미·베다·수비학은 발행된다", async () => {
+await check("사주 provider 가 던져도 띠별·카르마는 발행된다, 꺼진 Job 은 force 여도 꺼짐", async () => {
   const { options, fetch } = harness();
   const providers = { ...jobs.DEFAULT_PROVIDERS, saju: { ...saju, buildFacts: () => { throw new Error("boom"); } } };
   const result = await runJobs(BASE_ENV, { ...options, providers, force: true, now: SEP17(3, 0) });
   assert.equal(result.jobs.saju.ok, false);
   assert.match(result.jobs.saju.error, /facts_threw: boom/);
-  assert.equal(result.jobs.ziwei.ok, true);
-  assert.equal(result.jobs.vedic.ok, true);
-  assert.equal(result.jobs.numerology.ok, true);
-  assert.equal(fetch.posted.length, 3);
+  assert.equal(result.jobs.zodiac.ok, true);
+  assert.equal(result.jobs.karma.ok, true);
+  assert.equal(result.jobs.ziwei.skipped, "job_disabled");
+  assert.equal(fetch.posted.length, 3); // 띠별 2(본 글+답글) + 카르마 1
 });
 await check("facts 가 null 이면 facts_unavailable, connectDb 실패는 due Job 만 connect_db 실패", async () => {
   const { options } = harness();
-  const providers = { ...jobs.DEFAULT_PROVIDERS, ziwei: { ...ziwei, buildFacts: () => null } };
-  const r = await runJobs(BASE_ENV, { ...options, providers, now: SEP17(12, 0) });
-  assert.equal(r.jobs.ziwei.error, "facts_unavailable");
+  const providers = { ...jobs.DEFAULT_PROVIDERS, karma: { ...karma, buildFacts: () => null } };
+  const r = await runJobs(BASE_ENV, { ...options, providers, now: SEP17(20, 30) });
+  assert.equal(r.jobs.karma.error, "facts_unavailable");
   const down = harness({ connectFails: true });
   const d = await runJobs(BASE_ENV, { ...down.options, now: SEP17(8, 30) });
-  assert.equal(d.jobs.saju.stage, "connect_db");
-  assert.equal(d.jobs.ziwei.skipped, "outside_window");
+  assert.equal(d.jobs.zodiac.stage, "connect_db");
+  assert.equal(d.jobs.saju.skipped, "outside_window");
   assert.equal(down.lock.calls.length, 0);
 });
 
@@ -285,6 +308,36 @@ await check("사주 — 갑오일·정유월·병오년, 별점 없음", async (
   assert.equal(facts.yearPillar.ko, "병오");
   assert.equal(facts.dateLabel, "9월 17일(목)");
   assert.ok(!JSON.stringify(facts).match(/score|star(s)?Rating|★/i), "사주 facts 에 점수가 섞였다");
+});
+await check("띠별 — 2026-09-20 정유일: 토끼 충, 용 육합, 소·뱀 삼합, 쥐 파·호랑이 원진·개 해", async () => {
+  const facts = zodiac.buildFacts({}, kst(2026, 9, 20, 8, 30));
+  assert.equal(facts.dayPillar.ko, "정유");
+  const byName = Object.fromEntries(facts.animals.map((a) => [a.name, a]));
+  assert.deepEqual(byName.토끼.relations, ["충"]);
+  assert.ok(byName.용.relations.includes("육합"));
+  assert.ok(byName.소.relations.includes("삼합") && byName.뱀.relations.includes("삼합"));
+  assert.ok(byName.쥐.relations.includes("파") && byName.호랑이.relations.includes("원진") && byName.개.relations.includes("해"));
+  assert.deepEqual(facts.clash, ["토끼"]);
+  assert.deepEqual([...facts.good].sort(), ["뱀", "소", "용"].sort());
+  assert.equal(byName.닭.kind, "same");
+  const plain = await zodiac.writeCopy({}, facts);
+  for (const [i, animal] of facts.animals.entries()) assert.equal(zodiac.matchesKinds(plain.copy.lines[i], facts, animal.kind), true, `${animal.name} 결정론 문장이 kind 와 어긋난다: ${plain.copy.lines[i]}`);
+  assert.equal(zodiac.matchesKinds(plain.copy.hook, facts), true, plain.copy.hook);
+  assert.equal(zodiac.matchesKinds(plain.copy.tip, facts), true, plain.copy.tip);
+});
+await check("카르마 — 날짜마다 같은 카드, 인용은 카드 문장 그대로, 결정론 문안에 금지어 없음", async () => {
+  const a = karma.buildFacts({}, SEP17(20, 30));
+  assert.deepEqual(karma.buildFacts({}, SEP17(21, 0)), a);
+  const ids = new Set();
+  for (let i = 0; i < karma.THEMES.length; i += 1) ids.add(karma.buildFacts({}, SEP17(20, 30) + i * 86400000).themeId);
+  assert.equal(ids.size, karma.THEMES.length, "21일 안에 모든 카드가 한 번씩 돌아야 한다");
+  for (const theme of karma.THEMES) {
+    const text = Object.values(theme.fallback).join(" ");
+    if (theme.quote) assert.ok(text.includes(theme.quote), `${theme.id} 인용이 카드와 다르다`);
+    assert.ok(!/업보|벌 받|저주|천벌|전생에 너|100%|무조건|반드시|절대|죽음/.test(text), theme.id);
+    assert.equal(shared.findGenericPhrase(text), "", theme.id);
+    assert.ok(!/습니다|하세요/.test(text), `${theme.id} 존댓말`);
+  }
 });
 await check("자미두수 — 유일 갑(염정 록·태양 기), 핵심 별 염정·천동·천기, 궁 이름 없음", async () => {
   const facts = ziwei.buildFacts({}, SEP17(12, 0));
@@ -322,14 +375,17 @@ await check("수비학 — 보편일수 9(today 허브와 같은 계산), 개인
 });
 
 console.log("▶ ⑥ 길이 ≤ 480, 유입 경로 보존");
-const LONGEST = { saju: { hook: 50, body: 140, tip: 55 }, ziwei: { hook: 45, body: 120, tip: 50 }, vedic: { hook: 45, body: 110, tip: 50 }, numerology: { hook: 45, body: 110, tip: 50 } };
+const LONGEST = { zodiac: { hook: 40, tip: 40 }, karma: { hook: 40, body: 190, tip: 45 }, saju: { hook: 50, body: 140, tip: 55 }, ziwei: { hook: 45, body: 120, tip: 50 }, vedic: { hook: 45, body: 110, tip: 50 }, numerology: { hook: 45, body: 110, tip: 50 } };
 const maxGenerate = (type) => async () => ({
   ok: true,
   model: "stub-model",
-  text: JSON.stringify(Object.fromEntries(Object.entries(LONGEST[type]).map(([key, n]) => [key, "가".repeat(n - 1) + "."]))),
+  text: JSON.stringify({
+    ...Object.fromEntries(Object.entries(LONGEST[type]).map(([key, n]) => [key, "가".repeat(n - 1) + "."])),
+    ...(type === "zodiac" ? { lines: Object.fromEntries(["쥐", "소", "호랑이", "토끼", "용", "뱀", "말", "양", "원숭이", "닭", "개", "돼지"].map((name) => [name, "가".repeat(21) + "."])) } : {}),
+  }),
 });
-await check("366일 × 4유형 × (결정론/최대 길이 모델 문안)", async () => {
-  const providers = { saju, ziwei, vedic, numerology };
+await check("366일 × 6유형 × (결정론/최대 길이 모델 문안), 띠별은 본 글·답글 각각", async () => {
+  const providers = { zodiac, saju, karma, ziwei, vedic, numerology };
   let worst = 0;
   for (let i = 0; i < 366; i += 1) {
     const now = Date.UTC(2026, 0, 1, 3) + i * 86400000;
@@ -341,14 +397,16 @@ await check("366일 × 4유형 × (결정론/최대 길이 모델 문안)", asyn
       for (const env of [{}, { SNS_THREADS_AI_ENABLED: "1" }]) {
         const written = await provider.writeCopy(env, facts, { generateImpl: maxGenerate(type) });
         if (env.SNS_THREADS_AI_ENABLED) assert.equal(written.model, "stub-model", `${type} ${i} 최대 길이 문안이 검증에서 버려졌다 ${written.rejected}`);
-        const text = provider.format(facts, written.copy, url);
+        const [text, ...replies] = [].concat(provider.format(facts, written.copy, url));
+        for (const reply of replies) assert.ok(threadsTextWeight(reply) <= shared.POST_TEXT_LIMIT, `${type} ${i} 답글 길이`);
+        if (written.copy.lines) for (const line of written.copy.lines) assert.ok(replies.join("\n").includes(line), `${type} ${i} 띠 줄이 빠졌다`);
         const weight = threadsTextWeight(text);
         worst = Math.max(worst, weight);
         assert.ok(weight <= shared.POST_TEXT_LIMIT, `${type} ${i} weight ${weight}`);
         assert.ok(text.endsWith(`→ ${url}\n\n#${provider.HASHTAG}`), `${type} ${i} 꼬리가 잘렸다`);
         assert.ok(text.includes(provider.CTA));
         assert.ok(text.includes(facts.dateLabel), `${type} date missing`);
-        assert.ok(text.includes(written.copy.body), `${type} body missing`);
+        if (!written.copy.lines) assert.ok(text.includes(written.copy.body), `${type} body missing`);
         assert.ok(text.includes("개인 예측 아님"), `${type} scope missing`);
         assert.ok(text.includes(written.copy.tip), `${type} ${i} 팁이 빠졌다 weight=${weight}
 ${text}
@@ -382,6 +440,33 @@ await check("사주 — 범용 문구·facts 밖 신살은 그 필드만 버린�
   assert.equal(written.copy.tip, "오전에 미뤄 둔 연락 하나를 먼저 정리해 보세요.");
   assert.equal(written.model, "stub-model");
   assert.equal(written.copy.hook, shared.situationHook("saju", facts));
+});
+await check("띠별 — 띠 관계와 길흉이 어긋난 줄·facts 밖 용어만 버리고 나머지는 쓴다", async () => {
+  const facts = zodiac.buildFacts({}, kst(2026, 9, 20, 8, 30));
+  const lines = Object.fromEntries(facts.animals.map((a) => [a.name, "오늘은 그냥 평소처럼 가."]));
+  lines.토끼 = "오늘 완전 대박 나는 날!"; // 충인데 대박 → 버림
+  lines.용 = "입 닫고 조심해, 싸움 남."; // 육합인데 경고 → 버림
+  lines.쥐 = "천을귀인 들어와서 든든함."; // facts 밖 신살 → 버림
+  const written = await zodiac.writeCopy({ SNS_THREADS_AI_ENABLED: "1" }, facts, {
+    generateImpl: fields({ hook: "토끼띠 오늘 대박이야, 질러.", lines, tip: "토끼띠는 오늘 말 한 번 참아." }),
+  });
+  assert.deepEqual([...written.rejected].sort(), ["hook", "line:쥐", "line:용", "line:토끼"].sort());
+  assert.equal(written.copy.tip, "토끼띠는 오늘 말 한 번 참아.");
+  assert.equal(written.model, "stub-model");
+  const idx = facts.animals.findIndex((a) => a.name === "말");
+  assert.equal(written.copy.lines[idx], "오늘은 그냥 평소처럼 가.");
+  assert.equal(zodiac.matchesKinds("말 한마디 조심해.", facts), true, "띠 접미사 없는 '말' 을 말띠로 읽었다");
+});
+await check("카르마 — 카드에 없는 경전·업보 단정은 버린다, 카드의 인용은 통과", async () => {
+  const quoted = karma.THEMES.findIndex((t) => t.source === "바가바드 기타");
+  const plainTheme = karma.THEMES.findIndex((t) => !t.source);
+  const at = (index) => { for (let i = 0; i < 40; i += 1) { const f = karma.buildFacts({}, SEP17(20, 30) + i * 86400000); if (f.themeId === karma.THEMES[index].id) return f; } throw new Error("no day"); };
+  const env = { SNS_THREADS_AI_ENABLED: "1" };
+  const body = "같은 장면이 또 오면 그건 운이 아니라 패턴이야. 내가 익숙한 쪽을 계속 고르고 있는 거지. 알아챈 순간 반은 끝난 거야. 오늘은 그 장면에서 한 박자만 늦게 반응해 봐.";
+  const bad = await karma.writeCopy(env, at(plainTheme), { generateImpl: fields({ hook: "결과 안 나와서 억울해?", body: "법구경에 그래. " + body, tip: "업보 끊으려면 오늘 기도해." }) });
+  assert.deepEqual(bad.rejected, ["body", "tip"]);
+  const good = await karma.writeCopy(env, at(quoted), { generateImpl: fields({ hook: "결과 안 나와서 억울해?", body: "기타에 이런 말이 있어. " + body, tip: "오늘 한 행동 하나만 칭찬해 줘." }) });
+  assert.deepEqual(good.rejected, []);
 });
 await check("자미두수 — 궁 이름·facts 밖 별은 버린다", async () => {
   const facts = ziwei.buildFacts({}, SEP17(12, 0));
@@ -439,16 +524,16 @@ await check("SNS_THREADS_AI_ENABLED 꺼짐 → 모델 호출 0회, aiModel null"
   const { options } = harness();
   const result = await runJobs(BASE_ENV, { ...options, generateImpl, force: true, now: SEP17(3, 0) });
   assert.equal(calls, 0);
-  for (const type of ["saju", "ziwei", "vedic", "numerology"]) assert.equal(result.jobs[type].ref.aiModel, null);
+  for (const type of ["zodiac", "saju", "karma"]) assert.equal(result.jobs[type].ref.aiModel, null);
 });
 
 console.log("▶ ⑨ 알림");
 await check("첫 틱 실패는 조용히, 마지막 틱(+50분) 실패만 1통, force 는 0통", async () => {
   const early = harness({ fetch: { fail: true } });
-  await runJobs(BASE_ENV, { ...early.options, now: SEP17(8, 30) });
+  await runJobs(BASE_ENV, { ...early.options, now: SEP17(12, 0) });
   assert.equal(early.counters.notify.length, 0);
   const last = harness({ fetch: { fail: true } });
-  await runJobs(BASE_ENV, { ...last.options, now: SEP17(9, 20) });
+  await runJobs(BASE_ENV, { ...last.options, now: SEP17(12, 50) });
   assert.deepEqual(last.counters.notify.map((f) => f.name), ["threads:daily-saju"]);
   assert.match(last.counters.notify[0].message, /^2026-09-17 stage=send/);
   const manual = harness({ fetch: { fail: true } });
@@ -480,7 +565,7 @@ await check("10분 크론·관리자 수동 실행·두 wrangler [vars]", async 
   assert.match(admin, /runThreadsDailyJobs\(env, \{ only: type, force: true \}\)/);
   // 워커 텍스트 바인딩 예산(128, 여유 2)이 꽉 차 있어 분할 발행은 새 [vars] 를 쓰지 않는다 — 기존 스위치 값 "split" +
   // 코드 기본 시각. THREADS_*_TIME 은 필요할 때만 덮어쓰는 선택 변수다.
-  const vars = ["SNS_THREADS_POST_ENABLED", "SNS_THREADS_SPLIT_ENABLED", "THREADS_SAJU_TIME", "THREADS_ZIWEI_TIME", "THREADS_VEDIC_TIME", "THREADS_NUMEROLOGY_TIME", "THREADS_NUMEROLOGY_ENABLED"];
+  const vars = ["SNS_THREADS_POST_ENABLED", "SNS_THREADS_SPLIT_ENABLED", "THREADS_ZODIAC_TIME", "THREADS_SAJU_TIME", "THREADS_KARMA_TIME", "THREADS_ZIWEI_TIME", "THREADS_VEDIC_TIME", "THREADS_NUMEROLOGY_TIME", "THREADS_ZIWEI_ENABLED", "THREADS_VEDIC_ENABLED", "THREADS_NUMEROLOGY_ENABLED"];
   const read = (file) => {
     const text = fs.readFileSync(path.join(ROOT, file), "utf8");
     return Object.fromEntries(vars.map((key) => [key, (text.match(new RegExp(`^${key} = "([^"]*)"`, "m")) || [])[1]]));
@@ -490,11 +575,15 @@ await check("10분 크론·관리자 수동 실행·두 wrangler [vars]", async 
   assert.deepEqual(prod, staging, "두 wrangler [vars] 값이 다르다");
   assert.equal(prod.SNS_THREADS_POST_ENABLED, "split", "프로덕션 설정이 분할 발행으로 안 켜졌다");
   for (const key of vars.slice(1)) assert.equal(prod[key], undefined, `${key} 가 [vars] 에 들어갔다 — 바인딩 예산 초과`);
-  assert.deepEqual(jobs.THREADS_DAILY_JOBS.map((job) => job.defaultTime), ["08:30", "12:00", "16:00", "20:30"]);
-  // 2단계부터 수비학은 코드 기본 켜짐 — 끄는 var 는 [vars] 에 없고(위 루프) 급할 때만 넣는다.
-  const numerologyJob = jobs.THREADS_DAILY_JOBS.find((job) => job.type === "numerology");
-  assert.equal(numerologyJob.defaultEnabled, true, "수비학 Job 이 기본으로 꺼져 있다");
-  assert.equal(jobs.isJobEnabled({}, numerologyJob), true);
+  assert.deepEqual(jobs.THREADS_DAILY_JOBS.map((job) => job.defaultTime), ["08:30", "12:00", "20:30", "14:00", "16:00", "18:00"]);
+  // 2026-10-02: 자미·베다·수비학은 코드 기본 꺼짐 — 켜는 var 는 [vars] 에 없고(위 루프) 필요할 때만 넣는다.
+  for (const type of ["ziwei", "vedic", "numerology"]) {
+    const job = jobs.THREADS_DAILY_JOBS.find((row) => row.type === type);
+    assert.equal(job.defaultEnabled, false, `${type} Job 이 기본으로 켜져 있다`);
+    assert.equal(jobs.isJobEnabled({}, job), false);
+  }
+  assert.ok(fs.existsSync(path.join(ROOT, "app/fortune/[period]")), "띠별 CTA 경로 /fortune/today/ 가 없다");
+  assert.ok(fs.existsSync(path.join(ROOT, "app/karma-destiny-ai/page.tsx")), "카르마 CTA 경로가 없다");
   assert.deepEqual(Object.keys(jobs.DEFAULT_PROVIDERS), jobs.THREADS_DAILY_JOBS.map((job) => job.type), "Job 과 provider 목록이 어긋났다");
 });
 
