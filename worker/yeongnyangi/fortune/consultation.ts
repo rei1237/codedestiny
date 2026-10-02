@@ -96,7 +96,7 @@ export function alignRelativeYears(body: ChapterBody, asOf: string, locale = 'ko
     ...(Array.isArray(body.blocks) ? { blocks: body.blocks.map(b => !b || typeof b !== 'object' ? b : { ...b,
       paragraphs: Array.isArray(b.paragraphs) ? b.paragraphs.map(fix) as string[] : b.paragraphs }) } : {}),
     ...(Array.isArray(body.questionAnswers) ? { questionAnswers: body.questionAnswers.map(a => !a || typeof a !== 'object' ? a :
-      { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string }) } : {}),
+      { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string, ...(typeof a.review === 'string' ? { review: fix(a.review) as string } : {}) }) } : {}),
   };
   return count ? { body: out, count } : { body, count: 0 };
 }
@@ -245,7 +245,7 @@ export function redactInternalEvidence(body: ChapterBody, question = '', factLab
     ...(Array.isArray(body.blocks) ? { blocks: body.blocks.map(b => !b || typeof b !== 'object' ? b : { ...b, title: fix(b.title) as string,
       paragraphs: Array.isArray(b.paragraphs) ? b.paragraphs.map(fix) as string[] : b.paragraphs }) } : {}),
     ...(Array.isArray(body.questionAnswers) ? { questionAnswers: body.questionAnswers.map(a => !a || typeof a !== 'object' ? a :
-      { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string }) } : {}),
+      { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string, ...(typeof a.review === 'string' ? { review: fix(a.review) as string } : {}) }) } : {}),
   };
   if (body.title === undefined) delete (out as {title?: string}).title;
   return count ? { body: out, count } : { body, count: 0 };
@@ -276,7 +276,7 @@ export function correctPersonaAddress(body: ChapterBody, name: string, locale = 
     ...(Array.isArray(body.blocks) ? { blocks: body.blocks.map(b => !b || typeof b !== 'object' ? b : { ...b, title: fix(b.title) as string,
       paragraphs: Array.isArray(b.paragraphs) ? b.paragraphs.map(fix) as string[] : b.paragraphs }) } : {}),
     ...(Array.isArray(body.questionAnswers) ? { questionAnswers: body.questionAnswers.map(a => !a || typeof a !== 'object' ? a :
-      { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string }) } : {}),
+      { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string, ...(typeof a.review === 'string' ? { review: fix(a.review) as string } : {}) }) } : {}),
   };
   return count ? { body: out, count } : { body, count: 0 };
 }

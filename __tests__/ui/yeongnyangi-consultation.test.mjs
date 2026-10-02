@@ -216,6 +216,10 @@ test('a relative year word that contradicts its explicit year is corrected, neve
  const right={summary:'올해(2026년)와 내년(2027년)을 봐요.',analysis:[],highlights:[]};
  assert.equal(alignRelativeYears(right,'2026-09-27').body,right);
  assert.equal(alignRelativeYears({summary:'this year (2025)',analysis:[]},'2026-09-27','en').count,0);
+ // The after-period review gets the same corrections; an answer without one stays without one.
+ const reviewed=alignRelativeYears({summary:'',analysis:[],questionAnswers:[{...wrong.questionAnswers[0],review:'올해(2025년)에 정한 기준이 지금도 맞나요?'}]},'2026-09-27').body.questionAnswers[0];
+ assert.equal(reviewed.review,'작년(2025년)에 정한 기준이 지금도 맞나요?');
+ assert.equal(Object.hasOwn(a,'review'),false);
 });
 test('a 올해 question only offers this year\'s timing, labelled against the consultation date',async()=>{
  let prompt;
