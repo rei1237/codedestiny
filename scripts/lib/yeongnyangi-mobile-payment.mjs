@@ -292,8 +292,16 @@ export async function verifyMobilePayments({base,products,systemNames}){
    await f.page.waitForLoadState('load');
    await settleApiFixture(f);
    assert.deepEqual(f.state.unknown,[],'Unrecognised API must not silently succeed');
+   // A navigation also cancels an in-flight chunk and its cache-busted retry. Accept that on WebKit only when the
+   // chunk itself is served, so a genuinely missing chunk still fails.
+   const servedChunks=new Set();
+   if(browser.browserType().name()==='webkit')for(const message of f.state.errors){
+    const url=message.match(/^ChunkLoadError: Loading chunk \S+ failed\.\n\(error: (http:\/\/(?:127\.0\.0\.1|localhost):\d+\/_next\/static\/chunks\/[^?)]+)(?:\?cdcb=\d+)?\)$/)?.[1];
+    if(url&&(await f.page.request.get(url)).status()===200)servedChunks.add(message);
+   }
    const pageErrors=f.state.errors.filter(message=>{
     if(browser.browserType().name()!=='webkit')return true;
+    if(servedChunks.has(message))return false;
     // WebKit reports these checkout-page reads as access-control errors when the PG return navigation cancels them.
     // AppVersionGuard's cache-busted /version.json read is cancelled the same way and already falls back in its catch.
     const path=message.match(/^\/(?:127\.0\.0\.1|localhost):\d+(\/api\/[^ ]+|\/version\.json(?=\?t=\d+ ))(?:\?t=\d+)? due to access control checks\.$/)?.[1];
