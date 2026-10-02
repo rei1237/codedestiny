@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "sourceHash": "94a932d624bd3fd4d4d875cc951ccdff710d28e132790714501a76085e7a7b86",
+  "sourceHash": "86b1e18a2ad89a1869b0cd43a5fa062a80edc817a9a8c51bcf025cb88abaa9f1",
   "note": "정본 비트에서 생성한 연출 검수 매트릭스입니다. 목적과 갈등은 각 화 제목/사건 신호를 보존하며, 장면·감정 호흡·접근성 큐를 한 곳에서 검수합니다.",
   "episodes": [
     {
@@ -10575,9 +10575,9 @@
     },
     {
       "id": "ep-37",
-      "title": "박병하",
-      "purpose": "박병하",
-      "conflictBeatId": "ep-37:8",
+      "title": "스물일곱 달집",
+      "purpose": "스물일곱 달집",
+      "conflictBeatId": "ep-37:12",
       "emotionPath": [
         {
           "phase": "진입",
@@ -10586,498 +10586,148 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-37:88",
-          "pacing": "impact"
+          "beatId": "ep-37:41",
+          "pacing": "normal"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-37:200",
-          "pacing": "impact"
+          "beatId": "ep-37:110",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-37:1",
-          "background": "sukuyo",
+          "background": "nakshatra",
           "transition": "crossfade",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-37:5",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:7",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-37:8",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:9",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:10",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-37:12",
-          "background": "sukuyo",
+          "background": "nakshatra",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-37:15",
-          "background": "sukuyo",
+          "beatId": "ep-37:13",
+          "background": "nakshatra",
           "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-37:16",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-37:17",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:19",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:21",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
+          "accessibility": "nakshatra 배경에서 진행되는 yeon의 대사"
         },
         {
           "beatId": "ep-37:22",
-          "background": "sukuyo",
+          "background": "nakshatra",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
+          "eventEffect": "stars",
+          "camera": "drift",
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-37:23",
-          "background": "sukuyo",
+          "beatId": "ep-37:28",
+          "background": "nakshatra",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 mu의 대사"
+          "camera": "drift",
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-37:24",
-          "background": "sukuyo",
+          "beatId": "ep-37:34",
+          "background": "nakshatra",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
+          "camera": "focus",
+          "accessibility": "nakshatra 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-37:26",
-          "background": "sukuyo",
+          "beatId": "ep-37:41",
+          "background": "nakshatra",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:27",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:36",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:37",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
+          "eventEffect": "water",
+          "camera": "drift",
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-37:42",
-          "background": "sukuyo",
+          "background": "nakshatra",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:43",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:44",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:45",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:46",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:47",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:48",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:49",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:50",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:52",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:53",
-          "background": "hands",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "hands 배경에서 진행되는 neo의 대사"
+          "accessibility": "nakshatra 배경에서 진행되는 yun의 대사"
         },
         {
           "beatId": "ep-37:54",
-          "background": "sukuyo",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:56",
-          "background": "sukuyo",
+          "background": "nakshatra",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
+          "camera": "drift",
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-37:57",
-          "background": "sukuyo",
+          "background": "nakshatra",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "reveal",
+          "camera": "focus",
+          "accessibility": "nakshatra 배경에서 진행되는 yun의 대사"
+        },
+        {
+          "beatId": "ep-37:64",
+          "background": "nakshatra",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:63",
-          "background": "river",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "river 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:65",
-          "background": "river",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "river 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:67",
-          "background": "sukuyo",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-37:70",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:71",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:72",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
+          "camera": "focus",
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-37:73",
           "background": "sukuyo",
-          "transition": "hold",
+          "transition": "crossfade",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
+          "camera": "drift",
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-37:74",
+          "beatId": "ep-37:79",
           "background": "sukuyo",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
+          "eventEffect": "thread",
+          "camera": "drift",
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-37:75",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:76",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:78",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:80",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:84",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:85",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:86",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:88",
+          "beatId": "ep-37:83",
           "background": "sukuyo",
           "transition": "hold",
           "tone": "natural",
@@ -11085,674 +10735,44 @@
           "eventEffect": null,
           "camera": "focus",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-37:89",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:91",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
         },
         {
           "beatId": "ep-37:92",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:94",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-37:96",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:98",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:100",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:101",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:105",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:106",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:107",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:110",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:119",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:123",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:124",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:127",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-37:129",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-37:131",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:132",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:133",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:134",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:135",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:137",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:143",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:151",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:153",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:155",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:156",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:157",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:158",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:159",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:160",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:162",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:163",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:164",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:166",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:167",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:168",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:169",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:170",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:171",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-37:172",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:173",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:174",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:176",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:177",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-37:178",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:179",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:180",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:181",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:182",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:183",
-          "background": "handsRush",
+          "background": "nakshatra",
           "transition": "crossfade",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": "thread",
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-37:184",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "hands",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-37:185",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:187",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-37:188",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-37:189",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
           "eventEffect": "hands",
           "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-37:190",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-37:191",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:192",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-37:193",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "hands",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-37:195",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-37:196",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-37:197",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-37:199",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:200",
-          "background": "handsRush",
+          "beatId": "ep-37:102",
+          "background": "nakshatra",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 시스템 메시지"
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-37:109",
+          "background": "nakshatra",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         }
       ]
     },
     {
       "id": "ep-38",
-      "title": "끊을 수 없는 실",
-      "purpose": "끊을 수 없는 실",
-      "conflictBeatId": "ep-38:2",
+      "title": "붉은 실",
+      "purpose": "붉은 실",
+      "conflictBeatId": "ep-38:16",
       "emotionPath": [
         {
           "phase": "진입",
@@ -11761,1498 +10781,348 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-38:30",
+          "beatId": "ep-38:57",
           "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-38:87",
+          "beatId": "ep-38:113",
           "pacing": "normal"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-38:1",
-          "background": "handsRush",
+          "background": "sukuyo",
           "transition": "crossfade",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:2",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:4",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:5",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:7",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-38:8",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "water",
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:9",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:10",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-38:11",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:12",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-38:13",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:15",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "metal",
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-38:16",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "wood",
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:18",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "water",
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-38:19",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "fuse",
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:20",
-          "background": "handsRush",
+          "background": "sukuyo",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
+          "camera": "focus",
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-38:21",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:22",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:23",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:24",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:25",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:26",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:27",
-          "background": "handsRush",
+          "background": "sukuyo",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:28",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:29",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-38:30",
-          "background": "handsRush",
+          "background": "sukuyo",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": "thread",
+          "eventEffect": "claw",
           "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:31",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:32",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:33",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-38:34",
-          "background": "handsRush",
+          "background": "sukuyo",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:36",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:41",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:42",
-          "background": "clearMoonWater",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:43",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:45",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
           "camera": "focus",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:47",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-38:49",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "burst",
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-38:50",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:55",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 mu의 대사"
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-38:57",
-          "background": "clearMoonWater",
+          "background": "sukuyo",
           "transition": "hold",
           "tone": "dark",
-          "ambient": "moonlight",
+          "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:59",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
+          "camera": "focus",
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-38:61",
-          "background": "clearMoonWater",
+          "background": "sukuyo",
           "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:62",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-38:64",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:65",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:66",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:67",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-38:68",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 mu의 대사"
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "thread",
+          "camera": "focus",
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-38:69",
-          "background": "clearMoonWater",
+          "background": "sukuyo",
           "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
+          "tone": "natural",
+          "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:71",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "fuse",
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:72",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:73",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
+          "camera": "focus",
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-38:76",
-          "background": "clearMoonWater",
-          "transition": "hold",
+          "background": "eclipseSky",
+          "transition": "crossfade",
           "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:77",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:78",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
+          "ambient": null,
+          "eventEffect": "hands",
+          "camera": "focus",
+          "accessibility": "eclipseSky 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-38:79",
-          "background": "clearMoonWater",
+          "background": "eclipseSky",
           "transition": "hold",
           "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
+          "ambient": null,
+          "eventEffect": "suck",
           "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
+          "accessibility": "eclipseSky 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-38:80",
-          "background": "clearMoonWater",
-          "transition": "hold",
+          "beatId": "ep-38:94",
+          "background": "sukuyo",
+          "transition": "crossfade",
           "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:81",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:83",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:84",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-38:86",
-          "background": "clearMoonWater",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "thread",
+          "ambient": null,
+          "eventEffect": "shake",
           "camera": "focus",
-          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-38:87",
-          "background": "clearMoonWater",
+          "beatId": "ep-38:100",
+          "background": "sukuyo",
           "transition": "hold",
           "tone": "dark",
-          "ambient": "moonlight",
+          "ambient": null,
+          "eventEffect": "fire",
+          "camera": "drift",
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-38:109",
+          "background": "sukuyo",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
+          "camera": "focus",
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         }
       ]
     },
     {
       "id": "ep-38a",
-      "title": "일곱 개의 손",
-      "purpose": "일곱 개의 손",
-      "conflictBeatId": "ep-38:88",
+      "title": "첫 번째 봄",
+      "purpose": "첫 번째 봄",
+      "conflictBeatId": "ep-38a:6",
       "emotionPath": [
         {
           "phase": "진입",
-          "beatId": "ep-38:88",
-          "pacing": "impact"
+          "beatId": "ep-38a:1",
+          "pacing": "normal"
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-38:126",
+          "beatId": "ep-38a:27",
           "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-38:203",
-          "pacing": "impact"
+          "beatId": "ep-38a:77",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
         {
-          "beatId": "ep-38:88",
-          "background": "handsRush",
+          "beatId": "ep-38a:1",
+          "background": "sukuyo",
           "transition": "crossfade",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:96",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-38:97",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "fire",
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-38:98",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "fire",
           "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-38:99",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-38:100",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:101",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-38:103",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:105",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:107",
-          "background": "handsRush",
+          "beatId": "ep-38a:6",
+          "background": "sukuyo",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
           "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-38:108",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
+          "beatId": "ep-38a:7",
+          "background": "rainStop",
+          "transition": "crossfade",
+          "tone": "desat",
           "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-38:110",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:111",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:112",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "fire",
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-38:113",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "water",
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-38:117",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-38:118",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-38:119",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-38:122",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "fuse",
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:123",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:124",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:126",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "fuse",
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:127",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "fuse",
           "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
+          "accessibility": "rainStop 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-38:131",
-          "background": "handsRush",
+          "beatId": "ep-38a:16",
+          "background": "rainStop",
           "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "fire",
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-38:132",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "fuse",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:133",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
+          "tone": "desat",
           "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-38:134",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 ln의 대사"
-        },
-        {
-          "beatId": "ep-38:135",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "stars",
           "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
+          "accessibility": "rainStop 배경에서 진행되는 tiger의 대사"
         },
         {
-          "beatId": "ep-38:138",
-          "background": "handsRush",
+          "beatId": "ep-38a:17",
+          "background": "roomNight",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-38a:21",
+          "background": "roomNight",
           "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "hands",
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-38a:27",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "roomNight 배경에서 진행되는 tiger의 대사"
+        },
+        {
+          "beatId": "ep-38a:28",
+          "background": "rainStop",
+          "transition": "crossfade",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-38a:35",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": "veil",
+          "camera": "focus",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-38a:39",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-38a:47",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "rainStop 배경에서 진행되는 tiger의 대사"
+        },
+        {
+          "beatId": "ep-38a:48",
+          "background": "hands",
+          "transition": "crossfade",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
+          "camera": "drift",
+          "accessibility": "hands 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-38:139",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:140",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:141",
-          "background": "handsRush",
+          "beatId": "ep-38a:56",
+          "background": "hands",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": "metal",
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:142",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "fire",
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-38:143",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:144",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:145",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:146",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:147",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:148",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:149",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:151",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "stars",
           "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
+          "accessibility": "hands 배경에서 진행되는 heuk의 대사"
         },
         {
-          "beatId": "ep-38:152",
-          "background": "handsRush",
+          "beatId": "ep-38a:61",
+          "background": "hands",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
+          "eventEffect": "transform",
+          "camera": "focus",
+          "accessibility": "hands 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-38:153",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:154",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:155",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-38:156",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "water",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:158",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:159",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:161",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:162",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:163",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:165",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:166",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:167",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:168",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-38:169",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-38:171",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:172",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:173",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:174",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:176",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "wood",
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:177",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:178",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:179",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:180",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:181",
-          "background": "doorSuck",
+          "beatId": "ep-38a:64",
+          "background": "gongmang",
           "transition": "crossfade",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "doorSuck 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:182",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "doorSuck 배경에서 진행되는 moka의 대사"
-        },
-        {
-          "beatId": "ep-38:183",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "doorSuck 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-38:187",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "doorSuck 배경에서 진행되는 서술"
+          "accessibility": "gongmang 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-38:188",
-          "background": "doorSuck",
+          "beatId": "ep-38a:71",
+          "background": "gongmang",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "doorSuck 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:189",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "doorSuck 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:190",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "doorSuck 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:191",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "hands",
+          "eventEffect": "shake",
           "camera": "focus",
-          "accessibility": "doorSuck 배경에서 진행되는 서술"
+          "accessibility": "gongmang 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-38:192",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "doorSuck 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:193",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "doorSuck 배경에서 진행되는 mu의 대사"
-        },
-        {
-          "beatId": "ep-38:194",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "doorSuck 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-38:195",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "doorSuck 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-38:196",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "doorSuck 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:198",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "doorSuck 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:200",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "doorSuck 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-38:201",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "doorSuck 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:202",
-          "background": "doorSuck",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "doorSuck 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-38:203",
-          "background": "doorSuck",
+          "beatId": "ep-38a:74",
+          "background": "gongmang",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "doorSuck 배경에서 진행되는 시스템 메시지"
+          "accessibility": "gongmang 배경에서 진행되는 tiger의 대사"
         }
       ]
     },
     {
       "id": "ep-39",
-      "title": "붙잡힌 파수꾼",
-      "purpose": "붙잡힌 파수꾼",
-      "conflictBeatId": "ep-39:11",
+      "title": "업",
+      "purpose": "업",
+      "conflictBeatId": "ep-39:8",
       "emotionPath": [
         {
           "phase": "진입",
@@ -13261,2500 +11131,310 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-39:84",
+          "beatId": "ep-39:39",
           "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-39:202",
-          "pacing": "impact"
+          "beatId": "ep-39:109",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-39:1",
-          "background": "handsRush",
+          "background": "gongmang",
           "transition": "crossfade",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:2",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:3",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:5",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:6",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:7",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
+          "accessibility": "gongmang 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-39:8",
-          "background": "handsRush",
+          "background": "gongmang",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:10",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:11",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
+          "eventEffect": "metal",
           "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
+          "accessibility": "gongmang 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-39:9",
+          "background": "gongmang",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "burst",
+          "camera": "focus",
+          "accessibility": "gongmang 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-39:13",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:15",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:17",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:18",
-          "background": "handsRush",
-          "transition": "hold",
+          "background": "nakshatra",
+          "transition": "crossfade",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-39:21",
-          "background": "handsRush",
+          "beatId": "ep-39:22",
+          "background": "nakshatra",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 baek의 대사"
-        },
-        {
-          "beatId": "ep-39:23",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:24",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:25",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:26",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:27",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
+          "eventEffect": "thread",
           "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-39:28",
-          "background": "handsRush",
+          "background": "nakshatra",
           "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:29",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:30",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:32",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:33",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:34",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
+          "tone": "desat",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-39:36",
-          "background": "handsRush",
+          "beatId": "ep-39:39",
+          "background": "nakshatra",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "desat",
           "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:37",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:38",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:40",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:41",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:42",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:43",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:44",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:45",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
+          "camera": "focus",
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-39:46",
-          "background": "handsRush",
+          "background": "nakshatra",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "desat",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
+          "eventEffect": "heart",
+          "camera": "focus",
+          "accessibility": "nakshatra 배경에서 진행되는 pje의 대사"
         },
         {
-          "beatId": "ep-39:48",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:51",
-          "background": "handsRush",
+          "beatId": "ep-39:65",
+          "background": "nakshatra",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:52",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:53",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:54",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:55",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:56",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:57",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:58",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:59",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:60",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:61",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:62",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:64",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:66",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:67",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:68",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:69",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:71",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:72",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:73",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:74",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:75",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:78",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-39:79",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:80",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:81",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:83",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:84",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:85",
-          "background": "handsRush",
+          "background": "nakshatra",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:86",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:88",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "metal",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:90",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:92",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "metal",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
+          "accessibility": "nakshatra 배경에서 진행되는 yeon의 대사"
         },
         {
           "beatId": "ep-39:93",
-          "background": "handsRush",
-          "transition": "hold",
+          "background": "eclipseSky",
+          "transition": "crossfade",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:94",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
+          "camera": "drift",
+          "accessibility": "eclipseSky 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-39:95",
-          "background": "handsRush",
+          "background": "eclipseSky",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:96",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:98",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:100",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:102",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
+          "eventEffect": "vortex",
+          "camera": "focus",
+          "accessibility": "eclipseSky 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-39:103",
-          "background": "handsRush",
+          "background": "eclipseSky",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": "thread",
+          "eventEffect": "shake",
           "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:104",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:105",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:106",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:107",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
+          "accessibility": "eclipseSky 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-39:108",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:109",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:113",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:115",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:116",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:118",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:119",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:120",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:121",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 neo의 대사"
-        },
-        {
-          "beatId": "ep-39:122",
-          "background": "neoBound2",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "focus",
-          "accessibility": "neoBound2 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:124",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound2 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:126",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound2 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:128",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound2 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:129",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound2 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:130",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound2 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:131",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound2 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:133",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound2 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:134",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound2 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:136",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound2 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:138",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound2 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:139",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound2 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:140",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound2 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:141",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound2 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:142",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound2 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:143",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound2 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:144",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound2 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:145",
-          "background": "neoBound2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound2 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:146",
-          "background": "neoBound3",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:148",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:149",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:150",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:152",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:153",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:155",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:157",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:158",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:161",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:163",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:164",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:166",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:167",
-          "background": "neoBound3",
+          "background": "eclipseSky",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:168",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:169",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:170",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:171",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:172",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:173",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:174",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:175",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:176",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:177",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:178",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:179",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:180",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:181",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:182",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:183",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:185",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-39:186",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:187",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:188",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:189",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:190",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:191",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "stars",
-          "camera": "focus",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:192",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-39:193",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:196",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:199",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-39:202",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "neoBound3 배경에서 진행되는 시스템 메시지"
+          "accessibility": "eclipseSky 배경에서 진행되는 서술"
         }
       ]
     },
     {
       "id": "ep-40",
-      "title": "운명의 신",
-      "purpose": "운명의 신",
-      "conflictBeatId": "ep-40:1",
+      "title": "단비",
+      "purpose": "단비",
+      "conflictBeatId": "ep-40:8",
       "emotionPath": [
         {
           "phase": "진입",
           "beatId": "ep-40:1",
-          "pacing": "impact"
+          "pacing": "normal"
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-40:71",
+          "beatId": "ep-40:52",
           "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-40:200",
-          "pacing": "impact"
+          "beatId": "ep-40:105",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-40:1",
-          "background": "fateTarot",
+          "background": "eclipseSky",
           "transition": "crossfade",
-          "tone": "natural",
-          "ambient": "moonlight",
+          "tone": "dark",
+          "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:3",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:4",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:7",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "focus",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
+          "camera": "drift",
+          "accessibility": "eclipseSky 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-40:8",
-          "background": "fateTarot",
+          "background": "eclipseSky",
           "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "water",
           "camera": "focus",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:10",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:13",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+          "accessibility": "eclipseSky 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-40:16",
-          "background": "fateTarot",
+          "background": "eclipseSky",
           "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "shake",
           "camera": "focus",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
+          "accessibility": "eclipseSky 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-40:17",
-          "background": "fateTarot",
+          "beatId": "ep-40:22",
+          "background": "eclipseSky",
           "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:18",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "root",
           "camera": "drift",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:23",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+          "accessibility": "eclipseSky 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-40:27",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
+          "background": "nakshatra",
+          "transition": "crossfade",
+          "tone": "desat",
+          "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:29",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+          "camera": "drift",
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-40:31",
-          "background": "fateTarot",
+          "background": "nakshatra",
           "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:33",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:35",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:36",
-          "background": "neoBound3",
-          "transition": "crossfade",
-          "tone": "dark",
+          "tone": "desat",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:37",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:38",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "hands",
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:39",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:40",
-          "background": "fateTarot",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:41",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:46",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:50",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
+          "eventEffect": "script",
           "camera": "focus",
-          "accessibility": "fateTarot 배경에서 진행되는 god의 대사"
+          "accessibility": "nakshatra 배경에서 진행되는 시스템 메시지"
         },
         {
-          "beatId": "ep-40:51",
-          "background": "room",
-          "transition": "crossfade",
-          "tone": "natural",
+          "beatId": "ep-40:45",
+          "background": "nakshatra",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:52",
+          "background": "nakshatra",
+          "transition": "hold",
+          "tone": "desat",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "room 배경에서 진행되는 서술"
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-40:54",
-          "background": "room",
+          "beatId": "ep-40:56",
+          "background": "nakshatra",
           "transition": "hold",
-          "tone": "natural",
+          "tone": "desat",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:55",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:58",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:62",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:63",
-          "background": "room",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "room 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:65",
-          "background": "neoBound3",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
+          "eventEffect": "heart",
           "camera": "focus",
-          "accessibility": "neoBound3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:67",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:68",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:70",
-          "background": "neoBound3",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "neoBound3 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:71",
-          "background": "memoryVault",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "memoryVault 배경에서 진행되는 서술"
+          "accessibility": "nakshatra 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-40:72",
-          "background": "memoryVault",
+          "background": "nakshatra",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "desat",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "memoryVault 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:73",
-          "background": "memoryVault",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "memoryVault 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:77",
-          "background": "memoryVault",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "memoryVault 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:80",
-          "background": "memoryVault",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "memoryVault 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:81",
-          "background": "memoryVault",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "memoryVault 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:82",
-          "background": "ziwei2",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "ziwei2 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:83",
-          "background": "ziwei2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "ziwei2 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:86",
-          "background": "ziwei2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "ziwei2 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:87",
-          "background": "ziwei2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "ziwei2 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:88",
-          "background": "ziwei2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "ziwei2 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:89",
-          "background": "handsRush",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:90",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
+          "accessibility": "nakshatra 배경에서 진행되는 yeon의 대사"
         },
         {
           "beatId": "ep-40:92",
-          "background": "handsRush",
-          "transition": "hold",
+          "background": "tarotHall",
+          "transition": "crossfade",
           "tone": "dark",
-          "ambient": null,
+          "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
+          "camera": "drift",
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-40:94",
-          "background": "cherryMoonPortal",
-          "transition": "crossfade",
-          "tone": "natural",
+          "beatId": "ep-40:93",
+          "background": "tarotHall",
+          "transition": "hold",
+          "tone": "dark",
           "ambient": "moonlight",
-          "eventEffect": "stars",
+          "eventEffect": "tarot",
           "camera": "focus",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:97",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:101",
-          "background": "river",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:102",
-          "background": "river",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "water",
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:103",
-          "background": "river",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-40:104",
-          "background": "river",
+          "background": "tarotHall",
           "transition": "hold",
           "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:105",
-          "background": "fateTarot",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:107",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:108",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:111",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:114",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:125",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
           "ambient": "moonlight",
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "fateTarot 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:126",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:128",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:130",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:131",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:133",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:135",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:136",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:137",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:140",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:142",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:143",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:145",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:147",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:163",
-          "background": "sukuyo",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:164",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:165",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:166",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:167",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:168",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:169",
-          "background": "fateTarot",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "focus",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:171",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:179",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:181",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:183",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:184",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:186",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:188",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "burst",
-          "camera": "focus",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:189",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:190",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "drift",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:194",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:195",
-          "background": "handsRush",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:196",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-40:197",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "thread",
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:198",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
-        },
-        {
-          "beatId": "ep-40:199",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "handsRush 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:200",
-          "background": "handsRush",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 시스템 메시지"
+          "accessibility": "tarotHall 배경에서 진행되는 서술"
         }
       ]
     },
