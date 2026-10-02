@@ -31,7 +31,9 @@ export default function ServiceIntroSection({
       <div
         className={[
           "rounded-3xl border border-white/10 bg-[#10172b] px-3 py-6 sm:px-5 md:px-8 md:py-8",
-          "[&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:leading-tight [&_h1]:text-amber-50 md:[&_h1]:text-3xl",
+          "[&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:leading-tight [&_h1]:text-amber-50 [&_h1]:break-keep [&_h1]:[text-wrap:balance] md:[&_h1]:text-3xl",
+          // 키워드 눈썹: <h1><span>키워드 제목</span>고객 질문</h1> (질문 우선 2026-10-02)
+          "[&_h1>span]:mb-2 [&_h1>span]:block [&_h1>span]:break-keep [&_h1>span]:text-sm [&_h1>span]:font-medium [&_h1>span]:leading-6 [&_h1>span]:text-amber-200/85",
           "[&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-amber-100",
           "[&_h3]:mt-4 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-slate-100",
           "[&_p]:mt-4 [&_p]:break-keep [&_p]:text-sm [&_p]:leading-8 [&_p]:text-slate-300 md:[&_p]:text-base",
