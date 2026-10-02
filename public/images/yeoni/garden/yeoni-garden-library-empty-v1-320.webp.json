@@ -1,0 +1,9 @@
+{
+  "source": "codex-image gpt-image-2 library-empty attempt 1 (docs/design/yeoni-garden-art.jsonl)",
+  "sourceSha256": "ff7977d2a13e968b63413e223b3d03de8e377183c6494c175f04003e97299d20",
+  "sourceSize": "1024x1024",
+  "transform": "sharp resize width=320, webp q76 alpha q90",
+  "width": 320,
+  "height": 320,
+  "createdAt": "2026-10-02T19:11:31.376Z"
+}

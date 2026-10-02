@@ -1,0 +1,9 @@
+{
+  "source": "codex-image hero-garden attempt 1 (ledger docs/design/yeoni-garden-art.jsonl), original kept outside the repo at yeoni-garden-art/source/hero-garden-a1.png",
+  "sourceSha256": "fdc518a57162411050e1e2b142638648becb6419da710d0f4763af8e9bf847b9",
+  "sourceSize": "1536x1024",
+  "transform": "sharp resize width=480, webp q74",
+  "width": 480,
+  "height": 320,
+  "createdAt": "2026-10-02T19:01:42.768Z"
+}

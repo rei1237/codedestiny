@@ -73,11 +73,13 @@ if (raw.includes('id="cdHomeFunnel"')) {
   const css = readFileSync(resolve(root, 'styles/home-funnel.css'), 'utf8');
   const link = raw.indexOf('href="/styles/home-funnel.css');
   assert(link > 0 && link < raw.indexOf('id="cdHomeFunnel"'), 'Home styles must precede first paint');
-  assert.match(raw, /id="honeypigLogo"[^>]*width="512" height="512"/);
+  // 2026-10-03 운세 정원 히어로: 원형 로고 대신 정원 그림(1536x1024). 크기 속성 + CSS 비율로 첫 페인트 자리를 고정한다.
+  assert.match(raw, /id="honeypigLogo"[^>]*srcset="[^"]*yeoni-garden-hero-v1-480\.webp 480w[^"]*"[^>]*width="1536" height="1024" fetchpriority="high"/);
   assert.equal((raw.match(/<link rel="preload" as="image"/g) || []).length, 1, 'Only the shared hero/payment art is preloaded');
   assert.doesNotMatch(raw, /class="moon-hero__(?:visual|zzz|ambient|copy)/);
   assert.doesNotMatch(css, /(?:min-)?height:\s*100(?:d|s)?vh/);
-  assert.match(css, /\.cdh-garden\s*>\s*img\s*\{[^}]*width:\s*min\(240px,\s*72%\)/);
+  assert.match(css, /\.cdh-garden\s*>\s*img\s*\{[^}]*width:\s*100%[^}]*aspect-ratio:\s*4\s*\/\s*3[^}]*object-fit:\s*cover/);
+  assert.match(css, /\.cdh-garden\s*>\s*img\s*\{[^}]*aspect-ratio:\s*16\s*\/\s*7/, 'mobile hero is a fixed 16:7 strip');
   assert.match(css, /\.cdh\s*\{[^}]*width:\s*min\(100%,\s*1280px\)/, 'responsive desktop canvas');
   assert.ok(!css.includes('max-width:430px'), 'legacy fixed mobile canvas is removed');
   // 2026-10-03 운세 정원 개편: 신뢰 칩·말풍선은 첫 화면 중복 장식이라 코드째 지웠다 — 되살아나지 않게 막는다.
