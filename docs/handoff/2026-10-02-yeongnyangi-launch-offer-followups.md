@@ -14,14 +14,14 @@ next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 남은 
 ## 지금 상태
 
 - 체험가 표기 본작업은 main 09ae18c2c 에 머지·push, PR CI success. 표시 정본 `lib/brand/launch-offer.ts`.
-- 1번 완료(0d06de996). 2~6번 미착수. 항목 하나 = 커밋 하나(되돌리기 단위). 끝나면 여기 `[x]` + 커밋 SHA 를 적는다.
+- 1번 완료(0d06de996), 2번 완료(fc4e92005). 3~6번 미착수. 항목 하나 = 커밋 하나(되돌리기 단위). 끝나면 여기 `[x]` + 커밋 SHA 를 적는다.
 
 ## 남은 작업 (위에서부터 하나씩)
 
 - [x] **1. Consultation 가격 표기 통일 (GREEN)** — 완료 0d06de996 (ko 만 `toLocaleString+"원"` 분기, `readingPrice` 는 그대로 — LocalizedProductGuide 영향 없음). — ko 에서 예정가는 "9,900원", 실가는 `price()` 가 "₩1,000" 이라 한 줄에 두 표기가 섞인다.
   `app/yeongnyangi/_components/Consultation.tsx:52` `price` → `readingPrice`(`app/yeongnyangi/_lib/use-reading-language.ts:35`, Intl currency). 다른 영냥이 화면은 전부 "N원"(`NightHero.tsx:25`, `ProductGuide.tsx:30`).
   완료 기준: ko 생선 버튼·결제 합계가 "1,000원", 비한국어 로케일은 지금 그대로(₩/통화 표기). `readingPrice` 를 쓰는 다른 호출부를 grep 해 ko 바뀜이 원치 않는 곳에 번지지 않게 — 바꾸려면 Consultation 의 `price` 만 ko 분기.
-- [ ] **2. 결제 합계 스크린리더 문장 (GREEN, a11y)** — 합계가 "정식 오픈 예정가 9,900원 ₩1,000" 로 읽힌다.
+- [x] **2. 결제 합계 스크린리더 문장 (GREEN, a11y)** — 완료 fc4e92005 (Consultation 에서만 `styles.srOnly` ", 체험가 " 삽입, 예정가가 있을 때만. `LaunchPlannedPrice` 는 그대로 — 배너·NightHero 는 뒤에 이미 "체험가"/"사주 고등어" 가 와서 중복됨). 남은 관찰: 생선 버튼(`fishPrice`)도 "정식 오픈 예정가 9,900원 1,000원" 으로 읽힌다 — 범위 밖, 미수정. — 합계가 "정식 오픈 예정가 9,900원 ₩1,000" 로 읽힌다.
   `Consultation.tsx` checkoutTotal 블록 + `app/components/LaunchPlannedPrice.tsx`. 실가 앞에 시각 숨김 "체험가" 를 붙이는 식으로 "정식 오픈 예정가 9,900원, 체험가 1,000원" 이 되게. 시각 표시는 바꾸지 않는다.
   완료 기준: `__tests__/ui/yeongnyangi-launch-offer.test.mjs` 에 접근성 텍스트 단언 1개 추가.
 - [ ] **3. 챕터 수 불일치 조사→수정 (GREEN 조사, 수정은 결과에 따라 RED)** — `/yeongnyangi/1000-won-fortune/` 가격표는 광어 11·참치 15, 상담 화면 생선 버튼은 광어 13·참치 24.
