@@ -1,6 +1,7 @@
 // 정적 VN 엔진이 정본 청크 구조와 핵심 회귀 방지 장치를 계속 보유하는지 검사한다.
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { runInNewContext } from "node:vm";
 import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS, SPEAKERS, REWRITE_PENDING, VOCAL_TRACKS } from "./build-novel-runtime.mjs";
 import { FORBIDDEN_STORY_NAMES } from "./lib/novel-constraints.mjs";
 
@@ -160,6 +161,22 @@ const mobileSpriteMap = JSON.parse(html.match(/var MOBILE_SPRITES=(\{[^\n]+\});/
 for (const asset of mobileAssets.backgrounds) {
   const file = resolve(ROOT, "public", asset.path.slice(1));
   if (!existsSync(file) || statSync(file).size !== asset.bytes || asset.bytes > 300_000 || asset.width > 1280 || asset.height > 960) fail(`mobile background budget or inventory drift: ${asset.key}`);
+}
+// 휴대폰은 배경을 항상 모바일 사본으로 읽는다(bgUrl). 키를 새 그림으로 옮기고 사본을 다시 만들지
+// 않으면 휴대폰에서만 옛 그림이 나온다 — 모든 BG 키에 같은 원본을 가리키는 행이 있어야 한다.
+const bgRegistry = runInNewContext(`({${html.match(/var BG=\{([\s\S]*?)\n\};/)?.[1] ?? ""}})`, {
+  NOVEL: "https://assets.code-destiny.com/CodeDestinyNovel/",
+  enc: (path) => path.split("/").map(encodeURIComponent).join("/"),
+});
+if (Object.keys(bgRegistry).length === 0) fail("BG registry was not found in the player shell");
+const mobileRows = new Map(mobileAssets.backgrounds.map((asset) => [asset.key, asset]));
+for (const [key, url] of Object.entries(bgRegistry)) {
+  if (mobileRows.get(key)?.source !== url) fail(`mobile background missing or stale for BG '${key}' — node scripts/build-novel-mobile-assets.mjs --keys=${key}`);
+  // 레포에 둔 원본은 데스크톱이 그대로 받는다 — 이벤트 배경과 같은 370KB 예산.
+  if (url.startsWith("/")) {
+    const master = resolve(ROOT, "public", url.slice(1));
+    if (!existsSync(master) || statSync(master).size === 0 || statSync(master).size > 370_000) fail(`local background master missing or over 370KB: BG '${key}' → ${url}`);
+  }
 }
 for (const [key, asset] of Object.entries(mobileAssets.sprites)) {
   const file = resolve(ROOT, "public", asset.path.slice(1));

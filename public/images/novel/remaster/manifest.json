@@ -97,6 +97,102 @@
       "usage": "EP.43 friends arriving through the final tarot portal",
       "parallax": "foreground petals, riverside midground, portal and moonlit world background use camera drift",
       "maxBytes": 370000
+    },
+    {
+      "id": "siksang-festival-street-v1",
+      "file": "siksang-festival-street-v1.webp",
+      "type": "island-background",
+      "bgKey": "siksang",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; siksang5 adds siksang4 as layout ref; visual-checker ACCEPT 2026-10-02",
+      "usage": "식상의 섬 해 질 녘에 멈춘 축제 거리(EP.07 도착)",
+      "rules": "no people/animals/silhouettes, pictogram-only signs, landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 238898
+    },
+    {
+      "id": "siksang-grey-market-v1",
+      "file": "siksang-grey-market-v1.webp",
+      "type": "island-background",
+      "bgKey": "siksang2",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; siksang5 adds siksang4 as layout ref; visual-checker ACCEPT 2026-10-02",
+      "usage": "맛을 잃은 회색 야시장 골목",
+      "rules": "no people/animals/silhouettes, pictogram-only signs, landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 142816
+    },
+    {
+      "id": "siksang-underground-stage-v1",
+      "file": "siksang-underground-stage-v1.webp",
+      "type": "island-background",
+      "bgKey": "siksangA",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; siksang5 adds siksang4 as layout ref; visual-checker ACCEPT 2026-10-02",
+      "usage": "지하 무대(몰래 공연)",
+      "rules": "no people/animals/silhouettes, pictogram-only signs, landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 182474
+    },
+    {
+      "id": "siksang-crow-court-v1",
+      "file": "siksang-crow-court-v1.webp",
+      "type": "island-background",
+      "bgKey": "siksangB",
+      "dimensions": "1440x960",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; siksang5 adds siksang4 as layout ref; visual-checker ACCEPT 2026-10-02",
+      "usage": "까마귀 심판의 검은 깃털 재판정",
+      "rules": "no people/animals/silhouettes, pictogram-only signs, landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 352822
+    },
+    {
+      "id": "siksang-eclipse-stage-v1",
+      "file": "siksang-eclipse-stage-v1.webp",
+      "type": "island-background",
+      "bgKey": "siksang4",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; siksang5 adds siksang4 as layout ref; visual-checker ACCEPT 2026-10-02",
+      "usage": "일식이 걸린 정오 무대",
+      "rules": "no people/animals/silhouettes, pictogram-only signs, landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 185112
+    },
+    {
+      "id": "siksang-noon-stage-v1",
+      "file": "siksang-noon-stage-v1.webp",
+      "type": "island-background",
+      "bgKey": "siksang5",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; siksang5 adds siksang4 as layout ref; visual-checker ACCEPT 2026-10-02",
+      "usage": "해가 돌아온 정오 무대(siksang4 와 같은 구도)",
+      "rules": "no people/animals/silhouettes, pictogram-only signs, landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 345958
+    },
+    {
+      "id": "siksang-lantern-alley-v1",
+      "file": "siksang-lantern-alley-v1.webp",
+      "type": "island-background",
+      "bgKey": "siksangNight",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; siksang5 adds siksang4 as layout ref; visual-checker ACCEPT 2026-10-02",
+      "usage": "등불이 켜진 밤 골목",
+      "rules": "no people/animals/silhouettes, pictogram-only signs, landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 280840
+    },
+    {
+      "id": "siksang-seaside-hill-v1",
+      "file": "siksang-seaside-hill-v1.webp",
+      "type": "island-background",
+      "bgKey": "siksang3",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; siksang5 adds siksang4 as layout ref; visual-checker ACCEPT 2026-10-02",
+      "usage": "바닷가 언덕(소나무·벤치)",
+      "rules": "no people/animals/silhouettes, pictogram-only signs, landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 259930
     }
   ]
 }
