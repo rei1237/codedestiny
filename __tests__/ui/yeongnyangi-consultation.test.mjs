@@ -157,8 +157,28 @@ test('new ask first chapter binds classifier IDs to category evidence and escape
  assert.match(rules.askEvidenceContract,/사건 시점을 예측하지/);
  assert.equal(prompt.promptVersion,'ask-chapter-v1');
  assert.equal(prompt.outputSchema.properties.questionAnswers.minItems,2);
+ // A new consultation carries the period contract: a required after-period review, the counsel principles and answer room.
+ assert.deepEqual(prompt.outputSchema.properties.questionAnswers.items.required,
+  ['questionId','answer','reason','timing','action','factIds','timingIds','evidenceStatus','review']);
+ assert.equal(guide.version,'ask-first-chapter-v3');
+ assert.match(rules.askPeriodContract,/월요일~일요일/);assert.match(rules.askPeriodContract,/유년사화/);assert.match(rules.askPeriodContract,/능범기간/);
+ assert.match(rules.askEvidenceContract,/질문에 대한 답을 먼저/);assert.match(rules.answerLength,/review는/);
+ const periodTokens=prompt.maxOutputTokens;
+ // A stored consultation from before the resolver keeps the v2 contract, schema and budget unchanged.
+ const {resolver:_r,...legacyPeriod}=c.period;
+ await provider.generateChapter({chapter,analysis:{...analysis,consultation:{...c,period:legacyPeriod}},previous:[],ask:{analysis:classification,evidence:packet}});
+ const legacy=JSON.parse(prompt.domainRules);
+ assert.equal(legacy.askFirstChapter.version,'ask-first-chapter-v2');assert.equal(legacy.askPeriodContract,undefined);
+ assert.doesNotMatch(legacy.askEvidenceContract,/영냥이 상담 원칙/);
  assert.deepEqual(prompt.outputSchema.properties.questionAnswers.items.required,
   ['questionId','answer','reason','timing','action','factIds','timingIds','evidenceStatus']);
+ assert.ok(periodTokens>=prompt.maxOutputTokens);
+ // Where the answer room decides the budget (a long chapter target), the period answers get 700 chars each, not 480.
+ const longChapter={...chapter,targetChars:[9000,10000]};
+ await provider.generateChapter({chapter:longChapter,analysis:{...analysis,consultation:{...c,period:legacyPeriod}},previous:[],ask:{analysis:classification,evidence:packet}});
+ const legacyLong=prompt.maxOutputTokens;
+ await provider.generateChapter({chapter:longChapter,analysis,previous:[],ask:{analysis:classification,evidence:packet}});
+ assert.ok(prompt.maxOutputTokens>legacyLong,`${prompt.maxOutputTokens} <= ${legacyLong}`);
  assert.deepEqual(prompt.outputSchema.properties.questionAnswers.items.properties.factIds.items.enum,['F001','F002']);
  assert.deepEqual(prompt.outputSchema.properties.questionAnswers.items.properties.timingIds.items.enum,['T001']);
  await provider.generateChapter({chapter:{...chapter,ordinal:1},analysis,previous:[],ask:{analysis:classification,evidence:packet}});
