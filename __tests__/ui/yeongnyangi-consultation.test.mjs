@@ -5,9 +5,9 @@ import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 const require=createRequire(import.meta.url), Module=require('node:module');
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/consultation'; export {questionFactSelectors,readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {buildAskFirstChapterPrompt} from './worker/yeongnyangi/fortune/ask/prompt'; export {products} from './worker/yeongnyangi/payments/catalog';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/consultation'; export {questionFactSelectors,readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {buildAskFirstChapterPrompt} from './worker/yeongnyangi/fortune/ask/prompt'; export {products} from './worker/yeongnyangi/payments/catalog'; export * from './worker/yeongnyangi/fortune/ask/period';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const loaded=new Module(path.resolve('consultation-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,loaded.id);
-const {consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,assertProfessionalProse,redactInternalEvidence,tarotPositionNames,correctPersonaAddress,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
+const {resolveAskPeriods,formatAskRange,applyAskPeriodChip,resolveQuestionYears,consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,assertProfessionalProse,redactInternalEvidence,tarotPositionNames,correctPersonaAddress,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
 const clock=consultationClock('Asia/Seoul',new Date('2026-09-21T23:00:00Z'));
 const manifest=readingManifest(products.find(p=>p.id==='saju_mackerel'));
 const make=(q='',topic='general')=>createConsultation(q,topic,clock,manifest);
@@ -220,4 +220,42 @@ test('a 올해 question only offers this year\'s timing, labelled against the co
  assert.deepEqual(guide.evidence.timing.map(t=>[t.id,t.relation]),[['T002','current'],['T003','past']]);
  assert.deepEqual(prompt.outputSchema.properties.questionAnswers.items.properties.timingIds.items.enum,['T002','T003']);
  assert.match(rules.timeContract,/기준 연도는 2026년 丙午\(병오\)/);
+});
+test('week, month and year words become absolute Monday-to-Sunday, calendar-month and calendar-year ranges',()=>{
+ const at=(q,asOf)=>resolveAskPeriods(q,asOf,resolveQuestionYears).map(r=>[r.scale,r.start,r.end]);
+ // 2026-10-02 is a Friday.
+ assert.deepEqual(at('이번 주 일정',  '2026-10-02'),[['week','2026-09-28','2026-10-04']]);
+ assert.deepEqual(at('다음주 면접',   '2026-10-02'),[['week','2026-10-05','2026-10-11']]);
+ assert.deepEqual(at('이번 달 연애',  '2026-10-02'),[['month','2026-10-01','2026-10-31']]);
+ assert.deepEqual(at('다음 달 지출',  '2026-10-02'),[['month','2026-11-01','2026-11-30']]);
+ assert.deepEqual(at('올해 이직',     '2026-10-02'),[['year','2026-01-01','2026-12-31']]);
+ assert.deepEqual(at('내년 계획',     '2026-10-02'),[['year','2027-01-01','2027-12-31']]);
+ // A Sunday still belongs to the week that began on Monday; next week and next month cross the year.
+ assert.deepEqual(at('이번 주','2026-12-27'),[['week','2026-12-21','2026-12-27']]);
+ assert.deepEqual(at('다음 주','2026-12-27'),[['week','2026-12-28','2027-01-03']]);
+ assert.deepEqual(at('다음 달','2026-12-27'),[['month','2027-01-01','2027-01-31']]);
+ assert.deepEqual(at('이번 달','2028-02-10'),[['month','2028-02-01','2028-02-29']]);
+ // A month without a year is the next time it comes; '내년 3월' is one month, not also the whole year.
+ assert.deepEqual(at('3월에 시험','2026-10-02'),[['month','2027-03-01','2027-03-31']]);
+ assert.deepEqual(at('10월 5일 미팅','2026-10-02'),[['month','2026-10-01','2026-10-31']]);
+ assert.deepEqual(at('내년 3월에 이사','2026-10-02'),[['month','2027-03-01','2027-03-31']]);
+ assert.deepEqual(at('그냥 고민','2026-10-02'),[]);
+ assert.equal(formatAskRange({scale:'week',start:'2026-12-28',end:'2027-01-03'}),'2026.12.28(월)~2027.1.3(일)');
+ assert.equal(formatAskRange({scale:'year',start:'2027-01-01',end:'2027-12-31'}),'2027.1.1~12.31');
+});
+test('the consultation stores the resolved union, fixed by the user timezone date',()=>{
+ const seoul=make('이번 주와 다음 달에 이직 준비는?').period;
+ assert.equal(seoul.resolver,'ask-period-v1');assert.equal(seoul.start,'2026-09-21');assert.equal(seoul.end,'2026-10-31');
+ assert.deepEqual(seoul.ranges.map(r=>r.scale),['week','month']);
+ // 2026-09-21T23:00Z is Tuesday in Seoul but Monday in Los Angeles: same instant, the user's own week and date.
+ const la=createConsultation('다음 주 면접은?','general',consultationClock('America/Los_Angeles',new Date('2026-09-21T23:00:00Z')),manifest).period;
+ assert.equal(la.start,'2026-09-28');assert.equal(make('다음 주 면접은?').period.start,'2026-09-28');
+ const end=createConsultation('이번 달 운은?','general',consultationClock('America/Los_Angeles',new Date('2026-10-01T03:00:00Z')),manifest).period;
+ assert.deepEqual([end.start,end.end],['2026-09-01','2026-09-30']);
+ assert.equal(make().period.resolver,'ask-period-v1');assert.equal(make().period.ranges,undefined);
+});
+test('a quick-select chip replaces the leading period phrase and keeps the question',()=>{
+ assert.equal(applyAskPeriodChip('다음 주 연애는?','이번 주'),'이번 주 연애는?');
+ assert.equal(applyAskPeriodChip('연애는?','올해'),'올해 연애는?');
+ assert.equal(applyAskPeriodChip('이번달 지출은?','다음 달'),'다음 달 지출은?');
 });

@@ -1,6 +1,7 @@
 import type { ChapterBody, ChapterSpec } from './book-contracts';
 import { FortuneError, type DomainContext } from './shared/contracts';
 import { topicLabel } from './topics';
+import { ASK_PERIOD_RESOLVER, resolveAskPeriods, type AskPeriodRange } from './ask/period';
 
 export interface Consultation {
   tarotConsultation?: {version:string;kind:string};
@@ -17,7 +18,8 @@ export interface Consultation {
   questions: { id: string; text: string; chapterId: string }[];
   asOf: string;
   timezone: string;
-  period: { kind: 'requested' | 'default'; label: string; start?: string; end?: string; years?: QuestionYear[] };
+  period: { kind: 'requested' | 'default'; label: string; start?: string; end?: string; years?: QuestionYear[];
+    ranges?: AskPeriodRange[]; resolver?: typeof ASK_PERIOD_RESOLVER };
 }
 
 export interface QuestionYear { year: number; label: string; ganji: string }
@@ -113,10 +115,13 @@ export function createConsultation(question: string, topicId: string, clock: Ret
   // answer slots, it never asks another model to rewrite the user's intent.
   const units = question.trim().split(/\n+|(?<=[?？])\s*/u).map(s => s.trim()).filter(Boolean);
   const questions = units.length > 8 ? [...units.slice(0, 7), units.slice(7).join('\n')] : units;
-  const requested = question.match(/(?:20\d{2}\s*년(?:\s*\d{1,2}\s*(?:월\s*)?(?:[~～–-]\s*\d{1,2}\s*)?월(?:\s*\d{1,2}\s*일)?)?|\d{1,2}\s*(?:월\s*)?[~～–-]\s*\d{1,2}\s*월|\d{1,2}\s*월(?:\s*\d{1,2}\s*일)?|(?:앞으로|향후)\s*\d+(?:\s*[~～–-]\s*\d+)?\s*(?:개월|달|년|주)|재작년|내후년|작년|지난\s*해|올해|금년|내년|명년|이번\s*달|다음\s*달|상반기|하반기|봄|여름|가을|겨울)/gu);
+  const requested = question.match(/(?:20\d{2}\s*년(?:\s*\d{1,2}\s*(?:월\s*)?(?:[~～–-]\s*\d{1,2}\s*)?월(?:\s*\d{1,2}\s*일)?)?|\d{1,2}\s*(?:월\s*)?[~～–-]\s*\d{1,2}\s*월|\d{1,2}\s*월(?:\s*\d{1,2}\s*일)?|(?:앞으로|향후)\s*\d+(?:\s*[~～–-]\s*\d+)?\s*(?:개월|달|년|주)|재작년|내후년|작년|지난\s*해|올해|금년|내년|명년|이번\s*달|다음\s*달|이번\s*주|다음\s*주|차주|상반기|하반기|봄|여름|가을|겨울)/gu);
   const requestedLabels: string[] = requested ? [...requested] : [];
   // A named year becomes an explicit calendar range, so '올해' can never drift to another year downstream.
   const years = resolveQuestionYears(question, clock.asOf);
+  // Weeks and months become absolute ranges too; the request then spans their union, never the whole window.
+  const ranges = resolveAskPeriods(question, clock.asOf, resolveQuestionYears);
+  const span = ranges.length ? { start: ranges.map(r => r.start).sort()[0], end: ranges.map(r => r.end).sort().at(-1)!, ranges } : undefined;
   const end = new Date(`${clock.asOf}T12:00:00Z`);
   const day=end.getUTCDate();
   end.setUTCDate(1);
@@ -125,10 +130,11 @@ export function createConsultation(question: string, topicId: string, clock: Ret
   end.setUTCDate(Math.min(day,last));
   return { version: 1, topicId, topicLabel: topicLabel(topicId) || '전체 흐름', question,
     questions: questions.map((text, i) => ({ id: `q${i + 1}`, text, chapterId: manifest[0].id })), ...clock,
-    period: requestedLabels.length || years.length ? { kind: 'requested', label: [...new Set([...requestedLabels, ...years.map(y => y.label)
+    period: requestedLabels.length || years.length || span ? { kind: 'requested', label: [...new Set([...requestedLabels, ...years.map(y => y.label)
       .filter(label => !requestedLabels.some(r => r.replace(/\s+/g, ' ').includes(label)))])].join(' · '),
-      ...(years.length ? { start: `${years[0].year}-01-01`, end: `${years[years.length - 1].year}-12-31`, years } : {}) }
-      : { kind: 'default', label: `${clock.asOf}부터 3개월의 흐름과 실천·점검`, start: clock.asOf, end: end.toISOString().slice(0, 10) } };
+      ...(years.length ? { start: `${years[0].year}-01-01`, end: `${years[years.length - 1].year}-12-31`, years } : {}),
+      ...(span || {}), resolver: ASK_PERIOD_RESOLVER }
+      : { kind: 'default', label: `${clock.asOf}부터 3개월의 흐름과 실천·점검`, start: clock.asOf, end: end.toISOString().slice(0, 10), resolver: ASK_PERIOD_RESOLVER } };
 }
 
 export function validateConsultationAnswers(body: ChapterBody, chapter: ChapterSpec, consultation?: Consultation) {
