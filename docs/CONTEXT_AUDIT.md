@@ -308,3 +308,9 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **충돌 1**: `docs/design/yeongnyangi-night.md` 는 결과를 "장식 없는 남색 독서면"으로 정했다. 사용자 요청이 더 최근이고 구체적이므로 예외 한 줄을 그 문서에 적었다. 생활 속 장면 소절에만, 부마다 한 장, 같은 그림은 리딩당 한 번이다(`sceneArt`, `app/yeongnyangi/_lib/reading-visuals.ts`).
 - **충돌 2**: `docs/context/content-assets.md` 는 Next.js `<Image>` 를 쓰라고 한다. 결과 리더의 그림 컴포넌트(`app/yeongnyangi/_components/ReadingVisuals.tsx`)는 이미 `<img>` 5곳을 쓰고, `next.config.mjs` 는 `images.unoptimized: true` 다. 새 `SceneArt` 는 같은 파일의 실물 패턴(`width`·`height` 지정, `loading="lazy"`, `decoding="async"`)을 따랐다. 규칙과 실물의 차이는 이 기록으로 남기고 기존 5곳은 바꾸지 않았다.
 - **범위**: 그림 8장(`public/assets/yeongnyangi/scenes/`). 계획한 9장 중 휴식(rest)은 만들지 않았다. 구매 가능한 상품×상담 종류 매니페스트 166개를 전수로 돌려 보니, 건강 부(v7)에는 장면 소절이 없고 v5/v6 에는 건강 theme 이 없어 한 번도 쓰이지 않았다. `__tests__/ui/yeongnyangi-reading-visuals.test.mjs` 가 출하한 그림마다 그것을 쓰는 매니페스트가 있는지 단언한다.
+
+## 2026-10-02 사주 한난(조후) 계절 기본값 4단계 → 월지별 12단계, 대운 점수 이전 판정 복원
+
+- **요청(원문)**: "양력 1991년 2월 20일 생은 약간 차가운 사주로 판정되어야해"(진시생, 사용자가 월별 12단계 계절 온도 선택) / "추가로 대운 판정도 잘못변경되었는데 원인 파악 후 이전 방식으로 정상적으로 개선해"
+- **충돌 1**: 핸드오프는 `analyzeJohu` 본문 수정을 금지했다. 사용자 지시가 더 최근이고 구체적이므로 고쳤고 추출 런타임을 재생성했다. 월지 기본 온도: 子·丑 −4, 亥 −3, 戌 −2, 寅·酉 −1, 卯·申 +1, 辰 +2, 巳 +3, 午·未 +4(寅월 여한·申월 여열). 판정 문턱과 글자 온도는 그대로다.
+- **충돌 2**: `docs/design/saju-daewun-interpretation-contract.md` 는 대운 점수에서 辛丁 고정 감점을 없애고 합화를 조건부로 했다(47030b73d). 사용자 지시로 점수만 이전 판정으로 되돌리고 그 계약 문서에 근거를 적었다. 관계 표시는 조건부 판정을 유지한다.

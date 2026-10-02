@@ -97,7 +97,9 @@ function analyzeJohu(p){
   var score=0;
   var seasonMap={'寅':'봄','卯':'봄','辰':'봄','巳':'여름','午':'여름','未':'여름','申':'가을','酉':'가을','戌':'가을','亥':'겨울','子':'겨울','丑':'겨울'};
   var season=seasonMap[mz]||'봄';
-  if(season==='여름')score+=4;else if(season==='봄')score+=2;else if(season==='가을')score-=2;else score-=4;
+  /* 월지별 계절 온도: 寅월의 남은 추위(餘寒)·申월의 남은 더위(餘熱)를 반영한 12단계 */
+  var branchTemp={'子':-4,'丑':-4,'寅':-1,'卯':1,'辰':2,'巳':3,'午':4,'未':4,'申':1,'酉':-1,'戌':-2,'亥':-3};
+  score+=(mz in branchTemp)?branchTemp[mz]:2;
   var fc=0,wc=0,wdc=0,mc=0;
   var moistCnt=0,dryCnt=0;
   [yg,yz,mg,mz,dg,dz,hg,hz].forEach(function(c){

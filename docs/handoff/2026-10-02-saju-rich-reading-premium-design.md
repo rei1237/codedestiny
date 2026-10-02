@@ -39,7 +39,7 @@
 
 ## 지켜야 할 것
 
-- `calcPower`·`analyzeJohu` 본문 수정 금지 — `scripts/extract-saju-runtime.mjs` 가 워커 런타임으로 추출·해시 고정. 구성표는 표시층 `powerParts`/`johuParts` + 엔진 결과 대조 fail-closed.
+- `calcPower`·`analyzeJohu` 를 고치면 `node scripts/extract-saju-runtime.mjs --write` 로 워커 런타임을 재생성한다(추출·해시 고정). 2026-10-02 사용자 지시로 `analyzeJohu` 계절 기본값을 월지별 12단계로 바꿨다 — `worker/lib/saju-yongshin-policy.js`·`worker/routes/admin.js`·`reading-rich.js` BRANCH_TEMP 사본도 같이 고친다. 구성표는 표시층 `powerParts`/`johuParts` + 엔진 결과 대조 fail-closed.
 - 비한국어 로케일은 짧은 블록 유지(테스트 "비한국어에 한글 없음").
 - 색은 `--reading-*`/`--cd-*` 토큰만, 새 hex·인라인 색 금지(인라인은 `--pos` 만), 탭 44px, 대비 4.5:1, 360px 가로 넘침 0. '~냥'·확정 예언·사용자를 돼지라 부르기 금지.
 - 결제 게이트·가격·`buildCycle` 9항목·편지·헤더 토글 불변.

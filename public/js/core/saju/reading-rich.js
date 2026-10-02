@@ -9,7 +9,7 @@
   var FAMILY_MEANING = {same:'나와 같은 기운 · 동료와 자기 힘', parent:'나를 돕는 기운 · 배움과 후원', drain:'내가 내보내는 기운 · 표현과 재능', wealth:'내가 다스리는 기운 · 재물과 현실 성과', control:'나를 다스리는 기운 · 책임과 조직'};
   var POS = [['y','g','년간'],['y','j','년지'],['m','g','월간'],['m','j','월지'],['d','g','일간'],['d','j','일지'],['h','g','시간'],['h','j','시지']];
   var SEASON = {'寅':'봄','卯':'봄','辰':'봄','巳':'여름','午':'여름','未':'여름','申':'가을','酉':'가을','戌':'가을','亥':'겨울','子':'겨울','丑':'겨울'};
-  var SEASON_TEMP = {'여름':4,'봄':2,'가을':-2,'겨울':-4};
+  var BRANCH_TEMP = {'子':-4,'丑':-4,'寅':-1,'卯':1,'辰':2,'巳':3,'午':4,'未':4,'申':1,'酉':-1,'戌':-2,'亥':-3};
   var CHAR_TEMP = {fire:1.5, water:-1.5, wood:0.5, metal:-0.5, earth:0};
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (ch) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]; }); }
@@ -52,11 +52,11 @@
     });
     return {rows:rows, total:total, dayEl:dayEl};
   }
-  /* 조후 구성 — 엔진 analyzeJohu 와 같은 규칙(계절 기본값 + 글자별 온도, 습·조 개수). */
+  /* 조후 구성 — 엔진 analyzeJohu 와 같은 규칙(월지별 기본 온도 + 글자별 온도, 습·조 개수). */
   function johuParts(p, L) {
     L = L || root;
     if (!p || !p.m || !p.m.j) return null;
-    var season = SEASON[p.m.j] || '봄', total = SEASON_TEMP[season], moist = 0, dry = 0, rows = [];
+    var season = SEASON[p.m.j] || '봄', base = p.m.j in BRANCH_TEMP ? BRANCH_TEMP[p.m.j] : 2, total = base, moist = 0, dry = 0, rows = [];
     POS.forEach(function (pos) {
       var c = p[pos[0]] && p[pos[0]][pos[1]], el = c ? elOf(L, c) : null;
       if (!c) return;
@@ -65,7 +65,7 @@
       total += t; moist += m; dry += d;
       rows.push({key:pos[0], label:pos[2], char:c, el:el, temp:t, moist:m, dry:d});
     });
-    return {season:season, seasonTemp:SEASON_TEMP[season], rows:rows, total:total, moist:moist, dry:dry};
+    return {season:season, seasonTemp:base, rows:rows, total:total, moist:moist, dry:dry};
   }
   function powerMatches(parts, power) { return !!(parts && power && parts.total === power.score); }
   function johuMatches(parts, johu) { return !!(parts && johu && Math.abs(parts.total - johu.score) < 1e-9 && parts.moist === johu.moistCnt && parts.dry === johu.dryCnt); }
@@ -181,7 +181,7 @@
     var typeName = TEMP_NAMES[TEMP_INDEX[j.type] != null ? TEMP_INDEX[j.type] : 2], moistName = MOIST_NAMES[j.moistType] || MOIST_NAMES.balanced;
     var season = j.season || (parts && parts.season) || '';
     var env = ENV[(Math.max(-6, Math.min(6, j.score)) < 0 ? 'cold' : 'hot') + (diff < 0 ? 'dry' : 'wet')];
-    var html = section(c.lead, hero(env.title, [typeName, '습조 ' + moistName, '온도 점수 ' + num(j.score)]) + para(fmt(c.verdict, {season:season, base:num(SEASON_TEMP[season] || 0), score:num(j.score), type:typeName, wet:j.moistCnt || 0, dry:j.dryCnt || 0, moist:moistName})), 'saju-rich__lead');
+    var html = section(c.lead, hero(env.title, [typeName, '습조 ' + moistName, '온도 점수 ' + num(j.score)]) + para(fmt(c.verdict, {season:season, base:num(parts ? parts.seasonTemp : (BRANCH_TEMP[p.m.j] || 0)), score:num(j.score), type:typeName, wet:j.moistCnt || 0, dry:j.dryCnt || 0, moist:moistName})), 'saju-rich__lead');
     html += '<div class="saju-rich__gauges">' +
       gauge({kind:'temp', value:j.score, min:-9, max:9, zones:[-5, -2, 2, 5], names:TEMP_NAMES, ends:['차가움 寒', '뜨거움 暖'], caption:'온도 점수 ' + num(j.score), aria:'한난 게이지: 온도 점수 ' + num(j.score) + ', ' + typeName}) +
       gauge({kind:'humid', value:diff, min:-6, max:6, zones:[-2.5, 3], names:['건조한 편', '고른 편', '습한 편'], ends:['건조함 燥', '촉촉함 濕'], caption:'습 ' + (j.moistCnt || 0) + ' · 조 ' + (j.dryCnt || 0) + ' (편차 ' + num(diff) + ')', aria:'조습 게이지: 습한 신호 ' + (j.moistCnt || 0) + '개, 건조한 신호 ' + (j.dryCnt || 0) + '개, ' + moistName}) + '</div>';
@@ -195,7 +195,7 @@
     html += section(c.rx, para(c.rxIntro) + tiles([['채울 기운', rx.need, '氣'], ['색', rx.color, '色'], ['방향', rx.dir, '方'], ['활동', rx.act, '動'], ['줄일 것', rx.less, '減'], [c.moistRx + ' (' + mrx.need + ')', mrx.act, j.moistType === 'wet' ? '燥' : '濕']]) + '<p class="saju-rich__note">' + esc(c.notHealth) + '</p>', 'saju-rich__wide');
     html += more('한난조습이란 무엇인가요?', '<p>' + esc(neo ? '한난조습은 원국의 온도(차고 뜨거움)와 습도(건조하고 촉촉함)를 보는 조후의 기준입니다. 어떤 환경에서 힘이 잘 쓰이는지 판단하는 데 씁니다.' : '한난조습은 원국의 온도(차고 뜨거움)와 습도(건조하고 촉촉함)를 살피는 조후의 기준이에요. 자연에 계절과 날씨가 있듯 사람의 기질에도 기후가 있다고 보고, 어떤 환경에서 내가 편안하고 힘이 잘 쓰이는지 알아보는 데 써요.') + '</p>' +
       '<ul class="saju-tiles"><li><b>한(寒) · 차가움</b><span>겨울의 응축된 기운. 차분하고 신중하게 안으로 다지는 힘으로 읽어요.</span></li><li><b>난(暖) · 따뜻함</b><span>여름의 발산하는 기운. 열정과 표현, 밖으로 뻗는 힘으로 읽어요.</span></li><li><b>조(燥) · 건조함</b><span>가을의 단단한 기운. 맺고 끊음이 분명하고 군더더기 없는 결로 읽어요.</span></li><li><b>습(濕) · 촉촉함</b><span>봄의 얽히는 기운. 공감과 친화력, 함께 자라는 결로 읽어요.</span></li></ul>' +
-      para('계산 방식: 월지의 계절이 기본 온도를 정해요(여름 +4, 봄 +2, 가을 −2, 겨울 −4). 여기에 여덟 글자 가운데 화는 +1.5, 목은 +0.5, 금은 −0.5, 수는 −1.5를 더해요. 습은 수·목과 辰·丑, 조는 화·금과 戌·未를 세어 비교해요. 온도 점수 5 이상은 뜨거운 쪽, 2 이상은 따뜻한 쪽, −2 이상은 고른 온도, −5 이상은 서늘한 쪽, 그 아래는 차가운 쪽이에요.'));
+      para('계산 방식: 태어난 달의 지지가 기본 온도를 정해요(子·丑 −4, 亥 −3, 戌 −2, 寅·酉 −1, 卯·申 +1, 辰 +2, 巳 +3, 午·未 +4). 寅월은 입춘 뒤에도 남은 추위를, 申월은 입추 뒤에도 남은 더위를 반영해요. 여기에 여덟 글자 가운데 화는 +1.5, 목은 +0.5, 금은 −0.5, 수는 −1.5를 더해요. 습은 수·목과 辰·丑, 조는 화·금과 戌·未를 세어 비교해요. 온도 점수 5 이상은 뜨거운 쪽, 2 이상은 따뜻한 쪽, −2 이상은 고른 온도, −5 이상은 서늘한 쪽, 그 아래는 차가운 쪽이에요.'));
     return wrap(mode, html, facts);
   }
 
