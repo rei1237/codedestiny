@@ -31,8 +31,9 @@
   text-wrap: balance;
 }
 .offer .price { margin: 0; color: var(--yn-muted); font-size: 17px; line-height: 1.6; font-variant-numeric: tabular-nums; }
+.offer .price .trial { white-space: nowrap; }
 .offer .price strong { color: var(--yn-gold); font-size: 24px; font-weight: 800; }
-.offer .scope { max-width: 46ch; margin: 8px auto 0; color: var(--yn-muted); font-size: 13.5px; line-height: 1.6; text-wrap: pretty; }
+.offer .scope { max-width: 46ch; margin: 8px auto 0; color: var(--yn-muted); font-size: 13.5px; line-height: 1.6; text-wrap: pretty; word-break: keep-all; }
 .offer .quip {
   max-width: 40ch;
   margin: 18px auto 0;

@@ -247,7 +247,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
         <p className="mt-2 text-xs leading-relaxed text-[color:var(--moon-mist)]">{copy.eligible}: {eligibleNames(item.eligibleFeatureKeys,locale)}</p>
        </div>
        <div className="flex flex-col gap-3 sm:min-w-[176px] sm:items-end">
-        {planned!==null&&<p className="text-sm font-bold text-[color:var(--moon-mist)]"><LaunchPlannedPrice amount={planned}/></p>}
+        {planned!==null&&<p className="text-sm font-bold text-[color:var(--moon-silver)]"><LaunchPlannedPrice amount={planned}/></p>}
         <p className="text-2xl font-black text-[color:var(--moon-gold)]">{won(item.priceKRW,locale)}</p>
         {overseasCharge?.approx(item.priceKRW)?<p className="text-xs font-bold text-[color:var(--moon-mist)]">{overseasCharge.approx(item.priceKRW)}</p>:null}
         <button type="button" disabled={busy||Boolean(pendingOrder)} onClick={()=>openPurchase(item.planId,'SELF')} className="btn-moonlight inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">{copy.buyCta}</button>
