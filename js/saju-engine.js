@@ -30247,7 +30247,9 @@ function renderCurrentSeasonSummary(bazi){
     parts.push('<div style="font-size:.8rem;color:#999;line-height:1.6;padding:2px 2px 0">※ 여기까지는 무료입니다. 10년 대운의 전체 흐름·연도별 세운 상세·종합 풀이는 아래 프리미엄에서 이어집니다.</div>');
     box.innerHTML=parts.join('');
     card.style.display='block';
-    if (window.SajuReadingPresentation) window.SajuReadingPresentation.setFlow([cur ? {kind:'period',g:cur.g,j:cur.j,score:cEv.score} : null, yg&&yz ? {kind:'year',g:yg,j:yz,score:yEv.score} : null].filter(Boolean));
+    // 풍부한 판(reading-rich.js)은 이미 계산한 평가·합충만 받아 그린다. 재계산하지 않는다.
+    var flowRel=function(g,j){return _getDwHapResults(g,j).map(function(r){return {type:r.type,src:r.src,partner:r.partner,isChung:r.isChung,transformed:r.transformed};});};
+    if (window.SajuReadingPresentation) window.SajuReadingPresentation.setFlow([cur ? {kind:'period',g:cur.g,j:cur.j,score:cEv.score,label:cEv.label,summary:cEv.evalSummary||'',age:cStart,end:cEnd,relations:flowRel(cur.g,cur.j)} : null, yg&&yz ? {kind:'year',g:yg,j:yz,score:yEv.score,label:yEv.label,summary:yEv.evalSummary||'',year:nowYear,relations:flowRel(yg,yz)} : null].filter(Boolean));
   }catch(err){ console.error('올해의 나 요약 오류',err); }
 }
 

@@ -151,3 +151,52 @@ body.neo-mode .saju-cycle-guide {background:#21182f;color:#f4eafa;border-color:#
 #resultPage .saju-letter .saju-reading__evidence:focus-within {outline:2px solid var(--reading-accent);outline-offset:4px;}
 
 #resultPage .saju-letter[data-reading-mode="neo"] .saju-letter__prose {font-family:inherit;}
+
+/* Rich Korean reading (js/core/saju/reading-rich.js): gauges, tables, chips. Reading tokens only; inline style carries only --pos. */
+.saju-rich {display:grid;gap:22px;}
+.saju-rich__block p + p {margin-top:10px;}
+.saju-rich__title {font-weight:700;color:var(--reading-accent);margin-bottom:6px;}
+.saju-rich .saju-rich__note {margin-top:10px;color:var(--reading-muted);font-size:.875rem;line-height:1.7;}
+.saju-rich__gauges {display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));}
+.saju-gauge {margin:0;}
+.saju-gauge__bar {position:relative;display:grid;gap:2px;height:14px;margin:24px 0 8px;}
+.saju-gauge__bar span {border-radius:4px;background:color-mix(in srgb,var(--reading-line) 75%,transparent);}
+.saju-gauge__bar span[data-on] {background:color-mix(in srgb,var(--reading-accent) 55%,var(--reading-paper));}
+.saju-gauge--temp .saju-gauge__bar {grid-template-columns:4fr 3fr 4fr 3fr 4fr;}
+.saju-gauge--humid .saju-gauge__bar {grid-template-columns:3.5fr 5.5fr 3fr;}
+.saju-gauge--power .saju-gauge__bar {grid-template-columns:51fr 30fr 20fr 20fr 20fr 18fr;}
+.saju-gauge--score .saju-gauge__bar {grid-template-columns:repeat(5,1fr);}
+.saju-gauge--energy .saju-gauge__bar {grid-template-columns:4fr 2fr 2fr 2fr;}
+.saju-gauge__mark {position:absolute;top:-7px;bottom:-7px;left:var(--pos);width:4px;margin-left:-2px;border-radius:2px;background:var(--reading-ink);box-shadow:0 0 0 2px var(--reading-paper);}
+.saju-gauge__base {position:absolute;top:-5px;bottom:-5px;left:var(--pos);border-left:2px dashed var(--reading-muted);}
+.saju-gauge__base::after {content:attr(data-label);position:absolute;bottom:calc(100% + 2px);left:0;transform:translateX(-50%);font-size:.75rem;font-style:normal;white-space:nowrap;color:var(--reading-muted);}
+.saju-gauge__ends {display:flex;justify-content:space-between;gap:8px;font-size:.8125rem;color:var(--reading-muted);}
+.saju-gauge figcaption {margin-top:6px;font-size:.9375rem;line-height:1.6;}
+.saju-gauge figcaption strong {color:var(--reading-accent);}
+.saju-table-wrap {overflow-x:auto;}
+.saju-table {width:100%;border-collapse:collapse;font-size:.9rem;line-height:1.6;font-variant-numeric:tabular-nums;}
+.saju-table caption {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+.saju-table th,.saju-table td {padding:9px 6px;border-bottom:1px solid var(--reading-line);text-align:left;vertical-align:top;color:var(--reading-ink);}
+.saju-table thead th {color:var(--reading-muted);font-weight:600;font-size:.8125rem;}
+.saju-table tbody th {font-weight:600;}
+.saju-table tfoot th,.saju-table tfoot td {font-weight:700;border-bottom:0;border-top:2px solid var(--reading-line);}
+.saju-chips {list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px;}
+.saju-chip {display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px;padding:8px 12px;border:1px solid var(--reading-line);border-radius:12px;font-size:.9375rem;}
+.saju-chip b {color:var(--reading-accent);}
+.saju-chip small {flex-basis:100%;color:var(--reading-muted);font-size:.8125rem;}
+.saju-chip[data-tone="good"] {border:2px solid var(--reading-accent);}
+.saju-chip[data-tone="care"] {border:2px dashed var(--reading-muted);}
+.saju-rich__more {border-top:1px solid var(--reading-line);padding-top:4px;}
+.saju-rich__more summary {min-height:44px;display:list-item;align-content:center;cursor:pointer;color:var(--reading-accent);}
+.saju-rich__more summary:focus-visible {outline:3px solid var(--reading-accent);outline-offset:4px;}
+.saju-rich__more > :not(summary) {margin-top:10px;}
+.saju-tiles {list-style:none;padding:0;margin:12px 0;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));}
+.saju-tiles li {display:grid;gap:4px;padding:12px 14px;border:1px solid var(--reading-line);border-radius:12px;line-height:1.7;}
+.saju-tiles b {color:var(--reading-accent);}
+#sajuTenOverview:not(:empty) {margin-bottom:16px;}
+#sajuIljuRich:not(:empty) {margin-top:20px;}
+.saju-bars {list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px;}
+.saju-bars li {display:grid;grid-template-columns:minmax(6.5em,auto) minmax(0,1fr) 2ch;align-items:center;gap:10px;font-size:.9rem;}
+.saju-bars__track {height:10px;border-radius:999px;background:color-mix(in srgb,var(--reading-line) 60%,transparent);overflow:hidden;}
+.saju-bars__track i {display:block;height:100%;width:var(--pos);border-radius:inherit;background:var(--reading-accent);}
+.saju-bars__value {text-align:right;font-variant-numeric:tabular-nums;}
