@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://code-destiny.com/</loc>
-    <lastmod>2026-10-01</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.00</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/about/</loc>
     <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/about/" />
     <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/about/" />
@@ -4554,7 +4548,7 @@
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/ggulggul/" />
     <lastmod>2026-10-02</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>daily</changefreq>
     <priority>1.00</priority>
   </url>
   <url>
@@ -7062,7 +7056,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/kkul-kkul-unse/</loc>
-    <lastmod>2026-10-01</lastmod>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
@@ -8141,6 +8135,12 @@
     <lastmod>2026-09-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/yeongnyangi/</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/yeongnyangi/1000-won-fortune/</loc>

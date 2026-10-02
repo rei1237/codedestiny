@@ -5,7 +5,7 @@ export function publicNotificationUrl(value, host) {
     if(url.protocol!=='https:' || url.host!==host || url.username || url.password || url.search || url.hash) return false;
     const path=decodeURIComponent(url.pathname);
     if(/(?:^|\/)(?:api|admin|auth|login|signup|profile|profiles|payment|payments|checkout|points|result|results|library|callback|debug|test)(?:\/|$)/i.test(path))return false;
-    if(path.startsWith('/yeongnyangi/') && path!=='/yeongnyangi/1000-won-fortune/')return false;
+    if(path.startsWith('/yeongnyangi/') && !['/yeongnyangi/','/yeongnyangi/1000-won-fortune/'].includes(path))return false;
     return url.href===value;
   }catch{return false;}
 }

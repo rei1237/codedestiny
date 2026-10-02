@@ -28,9 +28,8 @@ test('sitemap and HTML keep the Flower Pig cluster separate from Yeongnyangi roo
   assert.equal(links.find(a=>a.getAttribute('hreflang')==='ko')?.getAttribute('href'),origin+'/ggulggul/');
   for(const href of homes)assert.ok(links.some(a=>a.getAttribute('href')===origin+href),`${path} misses ${href}`);
  }
- const root=rows.find(r=>r.getElementsByTagName('loc')[0]?.textContent===origin+'/');
- assert.ok(root,'preserve the existing root URL');
- assert.equal(root.getElementsByTagName('xhtml:link').length,0);
+ // `/` 는 2026-10-02 부터 `/ggulggul/` 로 301 이라 sitemap 에 두지 않는다(대표 URL 하나).
+ assert.ok(!rows.some(r=>r.getElementsByTagName('loc')[0]?.textContent===origin+'/'),'the 301 root stays out of the sitemap');
 });
 
 test('Flower Pig shell page identities match their canonical URL and localized metadata',()=>{

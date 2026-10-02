@@ -79,7 +79,7 @@ export const metadata:Metadata={
 
 const jsonLd=[
  buildWebPageJsonLd({title:TITLE,description:DESCRIPTION,path:PATH}),
- buildBreadcrumbJsonLd([{name:siteSeo.brandName,path:'/'},{name:'사주보는 고양이 영냥이',path:'/yeongnyangi/'},{name:'천원 운세·천원사주',path:PATH}]),
+ buildBreadcrumbJsonLd([{name:siteSeo.brandName,path:'/ggulggul/'},{name:'사주보는 고양이 영냥이',path:'/yeongnyangi/'},{name:'천원 운세·천원사주',path:PATH}]),
  buildServiceJsonLd({name:'영냥이 천원 운세 상담',description:`사주·타로·자미두수·숙요점·베다점·서양 점성술 중 한 체계의 고등어 상담을 ${PRICE}에 이용하고, 계산이나 카드 상징을 바탕으로 AI가 ${chapterRange(mackerels)} 챕터로 해설하는 서비스`,path:PATH}),
  buildFaqPageJsonLd(FAQS),
 ];
@@ -87,7 +87,7 @@ const serialize=(value:unknown)=>JSON.stringify(value).replace(/</g,'\\u003c');
 
 export default function Page(){
  return <LocalizedGuideScreen><article className={styles.hub}>
-  <nav className={styles.crumbs} aria-label="현재 위치"><a href="/">{siteSeo.brandName}</a><span aria-hidden="true">›</span><a href="/yeongnyangi/">사주보는 고양이 영냥이</a><span aria-hidden="true">›</span><span aria-current="page">천원 운세·천원사주</span></nav>
+  <nav className={styles.crumbs} aria-label="현재 위치"><a href="/ggulggul/">{siteSeo.brandName}</a><span aria-hidden="true">›</span><a href="/yeongnyangi/">사주보는 고양이 영냥이</a><span aria-hidden="true">›</span><span aria-current="page">천원 운세·천원사주</span></nav>
 
   <section className={styles.intro}>
    <div>
