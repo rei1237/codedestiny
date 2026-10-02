@@ -303,7 +303,8 @@ async function assertEssentials(page, label) {
     await member.locator('#dpSaveBtn').click();
     await member.waitForFunction(() => document.getElementById('dpMasterCard')?.textContent.includes('꽃길 테스트'), null, { timeout: 15000 });
     await member.locator('.cdh-input-return').click();
-    await member.locator('.cdh-nav [data-action="dpOpenList"]').click();
+    await member.locator('#cdhAccountBtn').click();
+    await member.locator('#cdAccountSheet [data-action="dpOpenList"]').click();
     await member.waitForFunction(() => document.querySelector('#dpMasterCardHost #dpMasterCard') && document.getElementById('dpListSheet')?.classList.contains('dp-sheet--open'));
     assert.equal(mutations, 1, 'profile creation uses original controller once');
     assert.ok(await member.locator('#dpMasterCardHost #dpMasterCard').isVisible(), 'active profile card and level strip are visible under My');

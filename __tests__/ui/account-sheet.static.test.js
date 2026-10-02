@@ -18,6 +18,8 @@ test("계정 시트는 헤더 nav 밖의 dialog 이고 헤더에는 여는 버�
   const header = template.slice(template.indexOf('<header class="cdh-top"'), template.indexOf("</header>"));
   assert.match(header, /data-cd-sheet-open="cdAccountSheet"[^>]*aria-haspopup="dialog"/);
   assert.doesNotMatch(header, /<dialog|cdAccountSheetCard|<details class="cdh-account"/);
+  // 옛 메뉴(이용권·마이 링크)는 시트로 옮겼다 — 헤더에 다시 생기면 같은 진입이 두 벌이 된다.
+  assert.doesNotMatch(header, /href="\/points\/"|data-action="dpOpenList"/);
   const after = template.slice(template.indexOf("</header>"));
   assert.match(after, /<dialog class="cd-sheet" id="cdAccountSheet" data-cd-sheet[^>]*aria-labelledby="cdAccountSheetTitle"/);
   assert.match(after, /data-cd-sheet-close/);
@@ -42,6 +44,7 @@ test("시트는 공용 스크롤 락·showModal·포커스 복귀만 쓴다", ()
 test("시트 배치는 viewport 기준이고 음수 여백·transform 보정이 없다", () => {
   const rules = css.match(/\.cd-sheet\{[^}]*\}/g) || [];
   assert.ok(rules.length >= 1);
+  assert.doesNotMatch(css, /#cdhAccountSlot|\.cdh-account[{ ,]|\.cdh-login/, "옛 absolute 계정 패널 규칙이 남아 있다");
   for (const rule of rules) {
     assert.doesNotMatch(rule, /transform|margin:-|left:-|right:-/);
   }
