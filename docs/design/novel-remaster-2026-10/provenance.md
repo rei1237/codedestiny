@@ -143,6 +143,66 @@ A huge solar eclipse filling the sky above a dark sea of clouds: a black disk wi
 Painted anime visual-novel BACKGROUND, matching the painterly brushwork, soft luminous lighting and palette of the attached reference images (same series). Landscape 1536x1024. STRICT RULES: absolutely NO people, NO animals, NO creatures, NO characters, NO silhouettes of figures anywhere. NO readable text, letters, numbers or logos; any signs, book spines, cards or dials may show only simple pictograms or abstract glyph-like marks. Put the main landmark within the middle third of the width; keep the lower-center area of the image open and uncluttered (empty ground or floor) so characters can stand there in the foreground. Not a 3D render, not a theme park, not photorealistic. No UI, no frame, no watermark.
 ```
 
+### zwPalace — `remaster/ziwei-palace-v1.webp`
+
+자미두수 — 열두 궁의 궁전(외관)
+
+정확한 생성 프롬프트:
+
+```text
+A celestial palace of stars floating in a deep indigo night sky: a grand East-Asian palace with many layered curved roofs in the center, small glowing stars hanging from every eave like lanterns, a circular outer wall around it pierced by twelve tall gates evenly spaced, each gate topped with a plaque bearing only a simple star pictogram, a smooth dark stone plaza in the foreground that reflects starlight as if a second sky lies beneath the floor, the Milky Way arching overhead. Majestic, mystical, calm.
+
+Painted anime visual-novel BACKGROUND, matching the painterly brushwork, soft luminous lighting and palette of the attached reference images (same series). Landscape 1536x1024. STRICT RULES: absolutely NO people, NO animals, NO creatures, NO characters, NO silhouettes of figures anywhere. NO readable text, letters, numbers or logos; any signs, book spines, cards or dials may show only simple pictograms or abstract glyph-like marks. Put the main landmark within the middle third of the width; keep the lower-center area of the image open and uncluttered (empty ground or floor) so characters can stand there in the foreground. Not a 3D render, not a theme park, not photorealistic. No UI, no frame, no watermark.
+```
+
+### zwMarket — `remaster/ziwei-lantern-market-v1.webp`
+
+자미두수 — 별등 장터 회랑
+
+정확한 생성 프롬프트:
+
+```text
+A starlit night bazaar inside a long open palace corridor in the sky: red-lacquered pillars receding into the distance, rows of small cloth stalls with awnings of pale blue and gold, little stars hanging from poles instead of lanterns, one shabby patched fortune-teller tent with a small table on the left, a skewer grill with faint smoke on the right, glimpses of the Milky Way between the pillars. Warm, lively but quiet, whimsical.
+
+Painted anime visual-novel BACKGROUND, matching the painterly brushwork, soft luminous lighting and palette of the attached reference images (same series). Landscape 1536x1024. STRICT RULES: absolutely NO people, NO animals, NO creatures, NO characters, NO silhouettes of figures anywhere. NO readable text, letters, numbers or logos; any signs, book spines, cards or dials may show only simple pictograms or abstract glyph-like marks. Put the main landmark within the middle third of the width; keep the lower-center area of the image open and uncluttered (empty ground or floor) so characters can stand there in the foreground. Not a 3D render, not a theme park, not photorealistic. No UI, no frame, no watermark.
+```
+
+### zwRoom — `remaster/ziwei-mirror-room-v1.webp`
+
+자미두수 — 命宮 거울의 방
+
+정확한 생성 프롬프트:
+
+```text
+A round inner chamber of a star palace at night: curved walls covered with many tall oval mirrors in thin gold frames, each mirror softly glowing, a single red paper lantern floating in mid-air at the center with a small fierce flame trapped inside behind thin bars, dark polished floor reflecting the lantern, a circular skylight showing stars above. Intimate, solemn, a little eerie.
+
+Painted anime visual-novel BACKGROUND, matching the painterly brushwork, soft luminous lighting and palette of the attached reference images (same series). Landscape 1536x1024. STRICT RULES: absolutely NO people, NO animals, NO creatures, NO characters, NO silhouettes of figures anywhere. NO readable text, letters, numbers or logos; any signs, book spines, cards or dials may show only simple pictograms or abstract glyph-like marks. Put the main landmark within the middle third of the width; keep the lower-center area of the image open and uncluttered (empty ground or floor) so characters can stand there in the foreground. Not a 3D render, not a theme park, not photorealistic. No UI, no frame, no watermark.
+```
+
+### zwForge — `remaster/ziwei-iron-temple-v1.webp`
+
+자미두수 — 쇠로 지은 신전(관록궁)
+
+정확한 생성 프롬프트:
+
+```text
+A vast iron hall inside a star palace, like an ancient celestial forge: tall walls of riveted dark iron streaked with black rust stains, an anvil-like stone dais in the middle distance, two large glowing orbs floating above the dais (one warm earthen amber, one cold steel-silver bound by thin black threads like ink), heaps of dim grey paper lanterns piled along the walls, faint embers drifting, a high narrow window showing a darkened eclipsed sky. Oppressive, solemn, metallic, dim.
+
+Painted anime visual-novel BACKGROUND, matching the painterly brushwork, soft luminous lighting and palette of the attached reference images (same series). Landscape 1536x1024. STRICT RULES: absolutely NO people, NO animals, NO creatures, NO characters, NO silhouettes of figures anywhere. NO readable text, letters, numbers or logos; any signs, book spines, cards or dials may show only simple pictograms or abstract glyph-like marks. Put the main landmark within the middle third of the width; keep the lower-center area of the image open and uncluttered (empty ground or floor) so characters can stand there in the foreground. Not a 3D render, not a theme park, not photorealistic. No UI, no frame, no watermark.
+```
+
+### zwThrone — `remaster/ziwei-throne-hall-v1.webp`
+
+자미두수 — 자미성의 옥좌와 빈 그릇(재백궁)
+
+정확한 생성 프롬프트:
+
+```text
+The throne hall of the emperor star inside a celestial palace at night: a high vaulted hall of deep indigo and pale gold, an empty ornate throne on a raised platform at the far center lit by a cold purple-white star glow, in front of the platform a single enormous empty ceramic bowl resting on the floor, its inside dark and deep, rain falling softly through an open circular roof onto the polished floor making shallow reflective puddles, a dark mist pooling in one corner. Grand, quiet, ominous, sacred.
+
+Painted anime visual-novel BACKGROUND, matching the painterly brushwork, soft luminous lighting and palette of the attached reference images (same series). Landscape 1536x1024. STRICT RULES: absolutely NO people, NO animals, NO creatures, NO characters, NO silhouettes of figures anywhere. NO readable text, letters, numbers or logos; any signs, book spines, cards or dials may show only simple pictograms or abstract glyph-like marks. Put the main landmark within the middle third of the width; keep the lower-center area of the image open and uncluttered (empty ground or floor) so characters can stand there in the foreground. Not a 3D render, not a theme park, not photorealistic. No UI, no frame, no watermark.
+```
+
 ### aptHall — `remaster/apartment-hall-v1.webp`
 
 현실 — 아파트 복도
