@@ -93,6 +93,19 @@ test('a manual pick resolves cards from the committed deck once; later picks nev
  assert.equal(view.charts,undefined,'cards stay hidden until paid');
 });
 
+test('after payment each tarot chart card carries its position id, and the owner view keeps only period and A/B labels',async()=>{
+ const row=await prepareFortune(env,'owner',order({tarotInputs:{relationStatus:'no_contact'}}));
+ const drawn=await drawTarotSpread(env,'owner',row._id,{auto:true});
+ drawn.paymentId='mock-payment';
+ const view=presentFortune(drawn),groups=view.charts.find(c=>c.domain==='tarot').groups.filter(g=>g.positionKey);
+ assert.deepEqual(groups.map(g=>g.positionKey).sort(),drawn.snapshot.tarotSpread.positions.map(p=>p.id).sort());
+ assert.equal(view.tarotSpread.inputs,undefined,'relationship status is never sent back to the screen');
+ assert.ok(!JSON.stringify(view.tarotSpread).includes('no_contact'));
+ const ab=await prepareFortune(env,'owner',order({productId:'tarot_salmon',tarotSpreadId:'yn_ab_seven',question:'남을까 옮길까',tarotInputs:{options:{a:'지금 회사',b:'새 회사'},period:'month',relationStatus:'dating'}}));
+ assert.deepEqual(presentFortune(ab).tarotSpread.inputs,{period:'month',options:{a:'지금 회사',b:'새 회사'}});
+ assert.deepEqual(presentFortune(ab).tarotSpread.symmetry,ab.snapshot.tarotSpread.symmetry);
+});
+
 test('auto draw uses the same committed deck with distinct slots; v2 orders cannot be drawn',async()=>{
  const row=await prepareFortune(env,'owner',order({productId:'tarot_tuna',tarotSpreadId:'yn_whole_map_ten',question:'요즘 일도 관계도 다 복잡해'}));
  const drawn=await drawTarotSpread(env,'owner',row._id,{auto:true});

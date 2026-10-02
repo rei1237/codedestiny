@@ -203,7 +203,9 @@ export function publicTarotSpread(snapshot:any){
  if(!spread)return undefined;
  return {id:spread.id,version:spread.version,title:spread.title,purpose:spread.purpose,summary:spread.summary,cardCount:spread.cardCount,
   positions:spread.positions.map(({id,label,question,drawOrder,readOrder}:any)=>({id,label,question,drawOrder,readOrder})),
-  layout:spread.layout,links:spread.links,source:spread.source?.kind,deckSize:TAROT_DECK_SIZE,
-  drawn:Boolean(snapshot.tarotDraw),...(snapshot.tarotDraw?{drawMethod:snapshot.tarotDraw.method,picks:snapshot.tarotDraw.picks}:{})};
+  layout:spread.layout,links:spread.links,...(spread.symmetry?{symmetry:spread.symmetry}:{}),source:spread.source?.kind,deckSize:TAROT_DECK_SIZE,
+  drawn:Boolean(snapshot.tarotDraw),...(snapshot.tarotDraw?{drawMethod:snapshot.tarotDraw.method,picks:snapshot.tarotDraw.picks}:{}),
+  // Owner view only: the period and A/B labels head the result. Relationship status stays prompt-only, and share/report never read these.
+  ...(snapshot.tarotInputs?.period||snapshot.tarotInputs?.options?{inputs:{...(snapshot.tarotInputs.period?{period:snapshot.tarotInputs.period}:{}),...(snapshot.tarotInputs.options?{options:snapshot.tarotInputs.options}:{})}}:{})};
 }
 export {spreadSnapshot};
