@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-16
-next: 원본 멸치 무료 운세 16종을 MongoDB 기반으로 영냥이 방에 복원하고 상담 선택 화면의 원본 보라색 디자인을 복구한다. DB 보호 수정 CI/스테이징 검증 후 전체 수정본을 승격한다.
+status: done
+updated: 2026-10-02
+next: "완료(2a1ab3e85·2ec297cb2, a3d1b471f 승격). yeongnyangi-mongodb-integration.md 가 먼저 읽을 문서로 인용해 보존한다(2026-10-02 정리)."
 ---
 
 # 영냥이 방 복원 및 Mongo 통합 마무리

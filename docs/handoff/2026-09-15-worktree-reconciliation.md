@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-15
-next: "정리는 완료됐다. 2026-09-15-remaining-ui-i18n-marketing.md의 남은 작업만 이어간다."
+status: done
+updated: 2026-10-02
+next: "완료. 번역 재개는 2026-09-15-remaining-ui-i18n-marketing.md. 그 문서가 재구현 금지 기록으로 인용해 보존한다(2026-10-02 정리)."
 ---
 
 # 현재 서비스 기준 워크트리 정리

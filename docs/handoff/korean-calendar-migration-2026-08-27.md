@@ -1,7 +1,7 @@
 ---
-status: blocked
-updated: 2026-08-29
-next: "\"다음 세션 시작점\" 절 — 마이그레이션은 끝났고 인접 3건 중 1건이 업스트림에 막혀 있다"
+status: done
+updated: 2026-10-02
+next: "완료(#1217·#1218·#1225·#1229). 업스트림에 막혔던 KASI 절기 대조는 solar-term-frame-kasi-verification(완료, git 이력)으로 넘어갔다. js/saju-engine.js·js/sibyl-system.js·js/core/index-inline-runtime.js 주석이 근거로 인용해 보존한다(2026-10-02 정리)."
 ---
 
 # 한국 음양력 코어 마이그레이션 인수인계 — 2026-08-27

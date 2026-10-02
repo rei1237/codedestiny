@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-13
-next: **수렴 설계도 끝났다.** 다음 세션은 docs/refactor/phase-plan.md 의 "Phase 4 의 내용 (2026-09-13) — 수렴 설계"를 읽고 **커밋 1(세션 캐시 계약 가드 신설, GREEN)** 부터 구현한다. 이 문서는 그 앞 단계(보호 테스트)의 기록이며, 아래 "설계 완료" 절이 무엇이 바뀌었는지 적는다.
+status: done
+updated: 2026-10-02
+next: "완료(22e57a3bb..70a56c61c). 남은 항목은 docs/refactor/phase-plan.md. 그 문서가 착수 상태·함정 근거로 인용해 보존한다(2026-10-02 정리)."
 ---
 
 # Phase 4 — 권한·세션 계층 (TOP 4·5·15)

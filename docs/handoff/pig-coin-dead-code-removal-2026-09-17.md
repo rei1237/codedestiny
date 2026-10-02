@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-17
-next: "죽은 코인 차감 코드 제거 — fortune.js:2917-3127 + billing.js:3026-3057,4534-5060, 동반 테스트 2개 재작성"
+status: done
+updated: 2026-10-02
+next: "완료(f2bef4a69). scripts/verify-payment-concurrency-guards.mjs 주석이 근거로 인용해 보존한다(2026-10-02 정리)."
 ---
 
 # pig-coin 코인 차감 데드코드 제거

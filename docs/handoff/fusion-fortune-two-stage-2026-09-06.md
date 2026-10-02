@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-06
-next: 🔴 **후속 ④(공백 폭주) 구현 완료 — 브랜치 `worktree-fusion-whitespace-runaway`, 사용자 머지 대기.** 서버 `normalizeFusionProseWhitespace`(수신 시점, `pickKeys` 뒤 · 검증 앞)와 클라이언트 `tidyFusionProse`(보관본 대비) 짝으로 접는다 — 상세는 §후속 ④ 처리. 🔴 **실호출 재검증은 안 했다**(mock·회귀 테스트만) — 다음 실호출 승인이 나면 `음력·도쿄·일과 돈` 조합을 다시 돌려 `full` 인지 본다. 남은 후속은 **③ 관리자 프롬프트 랩 그룹 수 하드코딩(미검증)** 하나다. 다음 세션 첫 문장: **"`worktree-fusion-whitespace-runaway` PR 이 머지됐는지 확인하고, 됐으면 후속 ③ 을 착수한다."** 8차 실측 수치(5조합 전수)는 아래 §남은 작업에 그대로 있다.
+status: done
+updated: 2026-10-02
+next: "완료(#1706·#1712·#1718·#1881). worker/lib/fusion-fortune-prompt.js 주석과 docs/HANDOFF_FUSION_FORTUNE_UX.md 가 근거로 인용해 보존한다(2026-10-02 정리)."
 ---
 
 # 초융합 운세 개선 — 2단계 생성(Phase 1) 이후

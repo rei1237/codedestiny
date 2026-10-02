@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-27
-next: "진행 상태·결정·다음 작업의 정본은 2026-09-27-yeongnyangi-tarot-deck.md 다. 이 파일은 사용자 브리프 원문 보존용이며 고치지 않는다."
+status: done
+updated: 2026-10-02
+next: "완료 — 정본은 2026-09-27-yeongnyangi-tarot-deck.md. docs/design/yeongnyangi-tarot/style-bible.md 가 결정 출처로 인용해 보존한다(2026-10-02 정리)."
 ---
 
 # 브리프 원문 — 영냥이 전용 타로 (2026-09-27 사용자 붙여넣기)

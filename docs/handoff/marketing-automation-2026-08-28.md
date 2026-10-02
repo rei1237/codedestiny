@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-01
-next: 🔴 **먼저 §C-6 ③** — `GET /api/admin/sns-daily-post/status` 에 `2026-09-02`(telegram) 문서가 생겼는지 본다(일일 크론 발화의 결정적 시험). 그다음 §C-6 을 읽는다(2026-09-02, §C-5 의 후보 2개는 **둘 다 기각**). 🔴 **스코프도 경로도 아니다** — 잠금 문서에 `ids:["18625751125005457"]`·`failedAt:1` 이 있다. **1번째 글은 실제로 발행됐고**, 죽은 것은 `reply_to_id` 를 단 2번째(답글) 요청이다. 그러니 `threads_content_publish` 는 있고 `me` 별칭도 는다. 남은 미지는 Graph 원본 `code` 하나 — 그걸 남기도록 고친 것이 이 브랜치다. 🔴 **크론은 뜬다 — "미등록" 은 기각**(2026-09-02 실측, `wrangler tail` 로 `[CRON] payment reconcile task completed` 를 라이브로 봤다). 남은 것은 `0 22 * * *` 만 안 오는 것이고, 소거법으로 그렇게 좁혀졌다(§C-6 ②). 복구 후보는 `npx wrangler triggers deploy --config worker/wrangler.toml` 1회지만 **자동 모드 분류기가 차단**해 에이전트는 못 돌린다 — 사용자 승인 필요. 🔴 토큰은 **회전 대상이 아니다** — `[토큰 회전 필요]` 는 분류기 고정 라벨이다. 🔴 관리자 라우트는 **에이전트도 실행할 수 있다**(`x-admin-token` 헤더, 콘솔 불필요). 🔴 **손발행은 끝났다**(사용자 결정 2026-09-01) — 실패하는 날은 계정이 비는 날이다.
+status: done
+updated: 2026-10-02
+next: "대체됨 — 후속은 threads-daily-split-2026-09-17.md·reengagement-email-blocked-2026-08-28.md. worker/lib/sns-daily-post-task.js 운영 메시지가 Threads 토큰 회전 런북으로 인용해 보존한다(2026-10-02 정리)."
 ---
 # 마케팅 자동화 엔진 — 인수인계 (2026-08-28)
 

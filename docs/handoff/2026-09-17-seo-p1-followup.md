@@ -1,10 +1,7 @@
 ---
-status: active
-updated: 2026-09-17
-next: P1 4건 + P2(sitemap 중복 제출) + P3(죽은 리다이렉트 스텁 삭제, `a8909dcc1`)
-  + CI 회귀 수정(`4a87c5985`) 완료·push, main tip `65708387b`(다른 세션의 후속
-  커밋 포함) 기준 CI 초록 개별 확정(`gh api check-runs`). 다음은 원 요청 22개
-  중 미착수 항목 — 사용자 확인 후 착수
+status: done
+updated: 2026-10-02
+next: "완료(P1~P9, 579e154dd..bc1cbac49). P10 은 competitiveness-roadmap-20260923.md S10. docs/seo/COMPETITOR-SERP-AUDIT.md·SEO-KEYWORD-MAP.md 가 원 요청 22개 목록으로 인용해 보존한다(2026-10-02 정리)."
 ---
 
 # SEO 개편 요청 — P1 이후 (P0는 완료)

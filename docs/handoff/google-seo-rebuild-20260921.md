@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-21
-next: constants/nakshatra-fusion.js의 27개 융합 해설이 현행 CROSSWALK_OFFSET=11 계산 정렬과 일치하는지 전수 대조하고, 불일치하면 계산 정본을 바꾸지 말고 해설만 교정한다
+status: done
+updated: 2026-10-02
+next: "이관 — 세션 순서 정본은 competitiveness-roadmap-20260923.md(S3·S4). 로드맵이 선행 세부 기록으로 지정해 보존한다(2026-10-02 정리)."
 ---
 
 # Google SEO 구조 개선 재개

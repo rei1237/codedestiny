@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-29
-next: "24장 순차 처리와 중단 뒤 raw 복구·11~24장 이어쓰기의 mock 회귀를 검증한다. 추가 과금 중단·v7 OFF 유지. 참치 실측은 10/24 재검증 가능하며 Phase 4 미완료."
+status: done
+updated: 2026-10-02
+next: "완료(참치 11~24장 생성, v7 활성 0354d9edf). 2026-09-28-yeongnyangi-tier-chapters.md 가 먼저 읽을 문서로 인용해 보존한다(2026-10-02 정리)."
 ---
 
 # LLM 순차 생성 및 v7 Phase 4 부분 실측

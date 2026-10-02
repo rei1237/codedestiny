@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-08-30
-next: "docs/code-destiny-audit.md §5 P4(퍼널 이벤트 계측). P1·P2 완료, P3 는 실측해 보니 이미 끝나 있었다(감사 문서 §5). 홈 '고르는 면' 추가 축소는 아래 '기각' 절을 먼저 읽을 것"
+status: done
+updated: 2026-10-02
+next: "완료(#1298·#1304, P3~P6 닫힘). home-ia-world-page-2026-09-06.md 가 기각 사유 근거로 인용해 보존한다(2026-10-02 정리)."
 ---
 
 # 홈 포지셔닝 · 단순화

@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-01
-next: "사용자만 실행 가능한 확인 2건 — ① 이니시스 카드창에 간편결제가 뜨는지(계약 승인 후) ② 카카오페이 1건 실결제로 리다이렉트 복귀. 둘 다 코드 작업 없음."
+status: done
+updated: 2026-10-02
+next: "대체됨 — 카카오페이 결제·복귀 확인은 yeongnyangi-payment-validation-20260930.md §다음 순서 2·3 으로 이어졌다(이니시스 간편결제 거래는 docs/verification/pass-sale-readiness-20260922.md 에 수수료 관찰 기록). paid-feature-resume-2026-09-06.md 가 스테이징 테스트 채널키 절차·🔴 --only-key 함정 근거로 인용해 보존한다(2026-10-02 정리)."
 ---
 
 # 카카오페이 결제수단 — 프로덕션 라이브

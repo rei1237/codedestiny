@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-13
-next: Phase 3 은 끝났다(refactor-phase3-2026-09-13.md). 다음 세션은 그 문서부터 읽는다 — shadow 41개 차단 승격이 사용자 승인 대기 상태로 넘어가 있다.
+status: done
+updated: 2026-10-02
+next: "완료(817161297·85fa2d10a·1ed96fd78). 잔여는 docs/refactor/structural-issues-top20.md. 그 문서가 착수 전 실측 근거표로 인용해 보존한다(2026-10-02 정리)."
 ---
 
 # 점진 구조 개선 Phase 2 인수인계

@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-01
-next: 사용자가 PR #1397 머지 → vc41 AAB 업로드 + FGS 신고(영상 첨부)
+status: done
+updated: 2026-10-02
+next: "완료(#1397 f24eb2e48). 릴리스 후속은 docs/android-yeongnyangi-release-20260930.md. app-vc43-pass-purchase-rebuild.md 가 R8 크래시·에뮬레이터 함정 근거로 인용해 보존한다(2026-10-02 정리)."
 ---
 
 # Android vc41 R8 크래시 수정과 Play 제출

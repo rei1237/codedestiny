@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-08-28
-next: "§2 \"시작 절차(다음 세션이 제일 먼저 할 것)\" 부터. 이 문서가 틀렸던 네 가지를 먼저 읽을 것"
+status: done
+updated: 2026-10-02
+next: "완료(#1224·#1226·#1227). scripts/verify-adsense-readiness.mjs·verify-hydrated-h1-integrity.mjs·verify-redirects-budget.mjs 주석이 근거로 인용해 보존한다(2026-10-02 정리)."
 ---
 
 # 네이버 서치어드바이저 진단 대응 — 인수인계 (2026-08-16)
