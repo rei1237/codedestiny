@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "sourceHash": "60caf81728cab81a1cf5424684a0368353929103dc25bf92095a57f85a4779d9",
+  "sourceHash": "0532696be6aefa37405ed38c052e8d30f2af208b84ce7f69d382feea791147ab",
   "note": "정본 비트에서 생성한 연출 검수 매트릭스입니다. 목적과 갈등은 각 화 제목/사건 신호를 보존하며, 장면·감정 호흡·접근성 큐를 한 곳에서 검수합니다.",
   "episodes": [
     {
@@ -2130,9 +2130,9 @@
     },
     {
       "id": "ep-07",
-      "title": "먹고 노는 섬, 식상",
-      "purpose": "먹고 노는 섬, 식상",
-      "conflictBeatId": "ep-07:3",
+      "title": "해가 멈춘 축제",
+      "purpose": "해가 멈춘 축제",
+      "conflictBeatId": "ep-07:14",
       "emotionPath": [
         {
           "phase": "진입",
@@ -2141,38 +2141,18 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-07:111",
-          "pacing": "normal"
+          "beatId": "ep-07:50",
+          "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-07:192",
+          "beatId": "ep-07:134",
           "pacing": "impact"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-07:1",
-          "background": "river",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "river 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-07:3",
-          "background": "river",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "river 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-07:46",
           "background": "siksang",
           "transition": "crossfade",
           "tone": "natural",
@@ -2182,72 +2162,212 @@
           "accessibility": "siksang 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-07:59",
-          "background": "siksang2",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksang2 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-07:84",
-          "background": "siksang2",
+          "beatId": "ep-07:14",
+          "background": "siksang",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksang2 배경에서 진행되는 서술"
+          "eventEffect": "veil",
+          "camera": "focus",
+          "accessibility": "siksang 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-07:98",
-          "background": "siksang3",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksang3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-07:111",
-          "background": "siksang3",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksang3 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-07:186",
-          "background": "siksang4",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksang4 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-07:192",
-          "background": "siksang4",
+          "beatId": "ep-07:20",
+          "background": "siksang",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksang4 배경에서 진행되는 시스템 메시지"
+          "accessibility": "siksang 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-07:22",
+          "background": "siksang",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "siksang 배경에서 진행되는 crow의 대사"
+        },
+        {
+          "beatId": "ep-07:24",
+          "background": "siksang",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang 배경에서 진행되는 crow의 대사"
+        },
+        {
+          "beatId": "ep-07:36",
+          "background": "siksang",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "shake",
+          "camera": "drift",
+          "accessibility": "siksang 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-07:43",
+          "background": "siksang",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-07:44",
+          "background": "siksang",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-07:50",
+          "background": "siksang",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-07:55",
+          "background": "siksang",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "claw",
+          "camera": "focus",
+          "accessibility": "siksang 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-07:64",
+          "background": "siksang2",
+          "transition": "crossfade",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksang2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-07:83",
+          "background": "siksang2",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": "shake",
+          "camera": "drift",
+          "accessibility": "siksang2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-07:101",
+          "background": "siksang2",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksang2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-07:102",
+          "background": "siksang2",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang2 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-07:108",
+          "background": "siksangNight",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-07:114",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-07:115",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "fire",
+          "camera": "drift",
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-07:116",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangNight 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-07:119",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "flash",
+          "camera": "drift",
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-07:131",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-07:134",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangNight 배경에서 진행되는 moka의 대사"
         }
       ]
     },
     {
       "id": "ep-08",
-      "title": "노바 전야제",
-      "purpose": "노바 전야제",
-      "conflictBeatId": "ep-08:45",
+      "title": "마지막 불씨",
+      "purpose": "마지막 불씨",
+      "conflictBeatId": "ep-08:7",
       "emotionPath": [
         {
           "phase": "진입",
@@ -2256,12 +2376,12 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-08:101",
-          "pacing": "normal"
+          "beatId": "ep-08:65",
+          "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-08:229",
+          "beatId": "ep-08:131",
           "pacing": "impact"
         }
       ],
@@ -2277,682 +2397,622 @@
           "accessibility": "siksangNight 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-08:46",
-          "background": "siksangA",
-          "transition": "crossfade",
+          "beatId": "ep-08:7",
+          "background": "siksangNight",
+          "transition": "hold",
           "tone": "natural",
-          "ambient": null,
+          "ambient": "moonlight",
+          "eventEffect": "shake",
+          "camera": "drift",
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-08:8",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksangA 배경에서 진행되는 서술"
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-08:21",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "fire",
+          "camera": "drift",
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-08:22",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-08:26",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-08:60",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-08:65",
-          "background": "siksangA",
+          "background": "siksangNight",
           "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangNight 배경에서 진행되는 moka의 대사"
+        },
+        {
+          "beatId": "ep-08:68",
+          "background": "siksangA",
+          "transition": "crossfade",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangA 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-08:76",
-          "background": "siksangA",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
           "camera": "drift",
           "accessibility": "siksangA 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-08:87",
-          "background": "siksangB",
-          "transition": "crossfade",
+          "beatId": "ep-08:82",
+          "background": "siksangA",
+          "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksangB 배경에서 진행되는 서술"
+          "accessibility": "siksangA 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-08:85",
+          "background": "siksangA",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangA 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-08:95",
+          "background": "siksangA",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "thread",
+          "camera": "drift",
+          "accessibility": "siksangA 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-08:101",
-          "background": "siksangB",
+          "background": "siksangA",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksangB 배경에서 진행되는 서술"
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangA 배경에서 진행되는 neo의 대사"
         },
         {
-          "beatId": "ep-08:107",
-          "background": "siksangB",
+          "beatId": "ep-08:109",
+          "background": "siksangA",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "heart",
+          "eventEffect": "shake",
           "camera": "drift",
-          "accessibility": "siksangB 배경에서 진행되는 서술"
+          "accessibility": "siksangA 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-08:110",
+          "background": "siksangA",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "burst",
+          "camera": "focus",
+          "accessibility": "siksangA 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-08:115",
-          "background": "siksangC",
-          "transition": "crossfade",
+          "background": "siksangA",
+          "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangC 배경에서 진행되는 서술"
+          "camera": "focus",
+          "accessibility": "siksangA 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-08:139",
-          "background": "siksangD",
-          "transition": "crossfade",
+          "beatId": "ep-08:121",
+          "background": "siksangA",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "net",
+          "camera": "drift",
+          "accessibility": "siksangA 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-08:127",
+          "background": "siksangA",
+          "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangD 배경에서 진행되는 서술"
+          "camera": "focus",
+          "accessibility": "siksangA 배경에서 진행되는 crow의 대사"
         },
         {
-          "beatId": "ep-08:170",
-          "background": "siksangNight",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-08:191",
-          "background": "siksangNight",
+          "beatId": "ep-08:130",
+          "background": "siksangA",
           "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-08:199",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-08:206",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
+          "tone": "natural",
+          "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
+          "accessibility": "siksangA 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-08:208",
-          "background": "siksangNight",
+          "beatId": "ep-08:131",
+          "background": "siksangA",
           "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-08:209",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "burst",
-          "camera": "focus",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-08:218",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-08:220",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-08:222",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-08:223",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
+          "tone": "natural",
+          "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-08:225",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-08:226",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-08:227",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "ink",
-          "camera": "focus",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-08:229",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangNight 배경에서 진행되는 시스템 메시지"
+          "accessibility": "siksangA 배경에서 진행되는 crow의 대사"
         }
       ]
     },
     {
       "id": "ep-09",
-      "title": "검은 깃털",
-      "purpose": "검은 깃털",
-      "conflictBeatId": "ep-09:1",
+      "title": "검은 깃털 재판",
+      "purpose": "검은 깃털 재판",
+      "conflictBeatId": "ep-09:23",
       "emotionPath": [
         {
           "phase": "진입",
           "beatId": "ep-09:1",
-          "pacing": "impact"
-        },
-        {
-          "phase": "압력·전환",
-          "beatId": "ep-09:86",
           "pacing": "normal"
         },
         {
+          "phase": "압력·전환",
+          "beatId": "ep-09:53",
+          "pacing": "impact"
+        },
+        {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-09:196",
+          "beatId": "ep-09:139",
           "pacing": "impact"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-09:1",
-          "background": "siksangNight",
+          "background": "siksangB",
           "transition": "crossfade",
           "tone": "natural",
-          "ambient": "moonlight",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksangB 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-09:23",
+          "background": "siksangB",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangNight 배경에서 진행되는 시스템 메시지"
+          "accessibility": "siksangB 배경에서 진행되는 crow의 대사"
         },
         {
-          "beatId": "ep-09:17",
-          "background": "siksangNight",
+          "beatId": "ep-09:25",
+          "background": "siksangB",
           "transition": "hold",
           "tone": "natural",
-          "ambient": "moonlight",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "siksangB 배경에서 진행되는 crow의 대사"
+        },
+        {
+          "beatId": "ep-09:46",
+          "background": "siksangB",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "siksangB 배경에서 진행되는 crow의 대사"
+        },
+        {
+          "beatId": "ep-09:53",
+          "background": "siksangB",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangB 배경에서 진행되는 crow의 대사"
+        },
+        {
+          "beatId": "ep-09:60",
+          "background": "siksangB",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangB 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-09:64",
+          "background": "siksangB",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "shake",
+          "camera": "drift",
+          "accessibility": "siksangB 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-09:65",
+          "background": "siksangB",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "siksangB 배경에서 진행되는 crow의 대사"
+        },
+        {
+          "beatId": "ep-09:71",
+          "background": "siksangB",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangB 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-09:75",
+          "background": "siksangB",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "fire",
+          "camera": "focus",
+          "accessibility": "siksangB 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-09:82",
+          "background": "siksangB",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "flash",
+          "camera": "drift",
+          "accessibility": "siksangB 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-09:90",
+          "background": "siksangB",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
+          "accessibility": "siksangB 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-09:78",
-          "background": "siksangNight",
+          "beatId": "ep-09:91",
+          "background": "siksangB",
           "transition": "hold",
           "tone": "natural",
-          "ambient": "moonlight",
+          "ambient": null,
           "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-09:86",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "ink",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
+          "camera": "focus",
+          "accessibility": "siksangB 배경에서 진행되는 moka의 대사"
         },
         {
           "beatId": "ep-09:92",
-          "background": "siksangNight",
+          "background": "siksangB",
           "transition": "hold",
           "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
+          "ambient": null,
+          "eventEffect": "burst",
           "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
+          "accessibility": "siksangB 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-09:126",
-          "background": "siksangCrisis",
+          "beatId": "ep-09:98",
+          "background": "siksangB",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "claw",
+          "camera": "drift",
+          "accessibility": "siksangB 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-09:103",
+          "background": "siksang3",
           "transition": "crossfade",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
+          "camera": "drift",
+          "accessibility": "siksang3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-09:129",
-          "background": "siksangCrisis",
+          "beatId": "ep-09:126",
+          "background": "siksang3",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": "ink",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang3 배경에서 진행되는 moka의 대사"
+        },
+        {
+          "beatId": "ep-09:127",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-09:132",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
+          "accessibility": "siksang3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-09:133",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "water",
+          "camera": "focus",
+          "accessibility": "siksang3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-09:136",
+          "background": "siksangB",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksangB 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-09:139",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "hands",
-          "camera": "steady",
-          "accessibility": "siksangCrisis 배경에서 진행되는 crow의 대사"
-        },
-        {
-          "beatId": "ep-09:140",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "ink",
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-09:154",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "claw",
-          "camera": "steady",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-09:156",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "claw",
-          "camera": "steady",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-09:158",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "claw",
-          "camera": "steady",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-09:160",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "claw",
-          "camera": "steady",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-09:161",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "hands",
-          "camera": "steady",
-          "accessibility": "siksangCrisis 배경에서 진행되는 crow의 대사"
-        },
-        {
-          "beatId": "ep-09:162",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "ink",
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-09:172",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-09:188",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "steady",
-          "accessibility": "siksangCrisis 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-09:191",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "hands",
-          "camera": "steady",
-          "accessibility": "siksangCrisis 배경에서 진행되는 crow의 대사"
-        },
-        {
-          "beatId": "ep-09:192",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-09:196",
-          "background": "siksangCrisis",
+          "background": "siksangB",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
+          "accessibility": "siksangB 배경에서 진행되는 crow의 대사"
         }
       ]
     },
     {
       "id": "ep-10",
-      "title": "데뷔전",
-      "purpose": "데뷔전",
-      "conflictBeatId": "ep-10:1",
+      "title": "정오 공연 작전",
+      "purpose": "정오 공연 작전",
+      "conflictBeatId": "ep-10:20",
       "emotionPath": [
         {
           "phase": "진입",
           "beatId": "ep-10:1",
-          "pacing": "impact"
-        },
-        {
-          "phase": "압력·전환",
-          "beatId": "ep-10:108",
           "pacing": "normal"
         },
         {
+          "phase": "압력·전환",
+          "beatId": "ep-10:55",
+          "pacing": "impact"
+        },
+        {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-10:226",
+          "beatId": "ep-10:135",
           "pacing": "impact"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-10:1",
-          "background": "siksang",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksang 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-10:2",
-          "background": "siksang",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:13",
-          "background": "siksang",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:14",
-          "background": "siksang",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksang 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-10:16",
-          "background": "siksangCrisis",
-          "transition": "crossfade",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:22",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": "ink",
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:27",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:30",
           "background": "siksangNight",
           "transition": "crossfade",
           "tone": "natural",
           "ambient": "moonlight",
-          "eventEffect": "veil",
+          "eventEffect": null,
           "camera": "drift",
           "accessibility": "siksangNight 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-10:34",
+          "beatId": "ep-10:20",
           "background": "siksangNight",
           "transition": "hold",
           "tone": "natural",
           "ambient": "moonlight",
-          "eventEffect": "heart",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangNight 배경에서 진행되는 neo의 대사"
+        },
+        {
+          "beatId": "ep-10:23",
+          "background": "siksang2",
+          "transition": "crossfade",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
+          "accessibility": "siksang2 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-10:36",
-          "background": "siksangCrisis",
+          "background": "siksang2",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-10:44",
+          "background": "siksang2",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": "heart",
+          "camera": "steady",
+          "accessibility": "siksang2 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-10:45",
+          "background": "siksang3",
           "transition": "crossfade",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
+          "accessibility": "siksang3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-10:39",
-          "background": "siksangCrisis",
+          "beatId": "ep-10:55",
+          "background": "siksang3",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
+          "eventEffect": "fire",
+          "camera": "focus",
+          "accessibility": "siksang3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-10:40",
-          "background": "siksangCrisis",
+          "beatId": "ep-10:70",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "claw",
+          "camera": "drift",
+          "accessibility": "siksang3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-10:75",
+          "background": "siksang3",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
+          "accessibility": "siksang3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-10:54",
-          "background": "siksangCrisis",
+          "beatId": "ep-10:82",
+          "background": "siksang3",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "siksang3 배경에서 진행되는 moka의 대사"
         },
         {
-          "beatId": "ep-10:57",
-          "background": "siksangCrisis",
+          "beatId": "ep-10:90",
+          "background": "siksang3",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "ink",
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang3 배경에서 진행되는 moka의 대사"
         },
         {
-          "beatId": "ep-10:59",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:65",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:67",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:71",
+          "beatId": "ep-10:95",
           "background": "siksangNight",
           "transition": "crossfade",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": "moonlight",
           "eventEffect": null,
           "camera": "drift",
           "accessibility": "siksangNight 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-10:108",
+          "beatId": "ep-10:97",
           "background": "siksangNight",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": "moonlight",
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
+          "eventEffect": "veil",
+          "camera": "steady",
+          "accessibility": "siksangNight 배경에서 진행되는 tiger의 대사"
+        },
+        {
+          "beatId": "ep-10:111",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangNight 배경에서 진행되는 yeon의 대사"
         },
         {
           "beatId": "ep-10:119",
           "background": "siksangNight",
           "transition": "hold",
-          "tone": "dark",
+          "tone": "natural",
           "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "drift",
+          "camera": "focus",
           "accessibility": "siksangNight 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-10:121",
+          "beatId": "ep-10:124",
           "background": "siksangNight",
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
-          "eventEffect": "ink",
+          "eventEffect": null,
           "camera": "drift",
           "accessibility": "siksangNight 배경에서 진행되는 서술"
         },
@@ -2962,1057 +3022,527 @@
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
-          "eventEffect": "claw",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangNight 배경에서 진행되는 crow의 대사"
         },
         {
-          "beatId": "ep-10:137",
+          "beatId": "ep-10:131",
           "background": "siksangNight",
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
-          "eventEffect": "burst",
+          "eventEffect": "suck",
           "camera": "drift",
           "accessibility": "siksangNight 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-10:139",
+          "beatId": "ep-10:133",
           "background": "siksangNight",
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "drift",
+          "camera": "focus",
           "accessibility": "siksangNight 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-10:143",
+          "beatId": "ep-10:135",
           "background": "siksangNight",
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
-          "eventEffect": "burst",
-          "camera": "drift",
+          "eventEffect": null,
+          "camera": "focus",
           "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:147",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:148",
-          "background": "siksangBattle",
-          "transition": "crossfade",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:149",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-10:157",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:164",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "siksangBattle 배경에서 진행되는 crow의 대사"
-        },
-        {
-          "beatId": "ep-10:165",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "ink",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:166",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-10:169",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "ink",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:173",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "ink",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:176",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:180",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:185",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:189",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:192",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:197",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:200",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:202",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-10:216",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:225",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-10:226",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 시스템 메시지"
         }
       ]
     },
     {
       "id": "ep-11",
-      "title": "재능을 먹는 그림자",
-      "purpose": "재능을 먹는 그림자",
-      "conflictBeatId": "ep-11:1",
+      "title": "목소리 없는 돼지",
+      "purpose": "목소리 없는 돼지",
+      "conflictBeatId": "ep-11:20",
       "emotionPath": [
         {
           "phase": "진입",
           "beatId": "ep-11:1",
-          "pacing": "impact"
-        },
-        {
-          "phase": "압력·전환",
-          "beatId": "ep-11:77",
           "pacing": "normal"
         },
         {
+          "phase": "압력·전환",
+          "beatId": "ep-11:45",
+          "pacing": "impact"
+        },
+        {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-11:208",
+          "beatId": "ep-11:124",
           "pacing": "impact"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-11:1",
-          "background": "siksangCrisis",
+          "background": "siksangNight",
           "transition": "crossfade",
           "tone": "natural",
-          "ambient": null,
+          "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-11:16",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-11:21",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-11:31",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-11:50",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "ink",
           "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-11:51",
-          "background": "siksangCrisis",
+          "beatId": "ep-11:10",
+          "background": "siksangNight",
           "transition": "hold",
           "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "siksangNight 배경에서 진행되는 moka의 대사"
+        },
+        {
+          "beatId": "ep-11:20",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-11:35",
+          "background": "siksang2",
+          "transition": "crossfade",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksang2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-11:45",
+          "background": "siksang2",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": "fire",
+          "camera": "focus",
+          "accessibility": "siksang2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-11:48",
+          "background": "siksang2",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "siksang2 배경에서 진행되는 moka의 대사"
+        },
+        {
+          "beatId": "ep-11:61",
+          "background": "siksang2",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": "shake",
+          "camera": "drift",
+          "accessibility": "siksang2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-11:68",
+          "background": "siksang2",
+          "transition": "hold",
+          "tone": "desat",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
+          "accessibility": "siksang2 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-11:77",
-          "background": "siksangCrisis",
+          "beatId": "ep-11:71",
+          "background": "siksang2",
           "transition": "hold",
-          "tone": "natural",
+          "tone": "desat",
           "ambient": null,
-          "eventEffect": "ink",
+          "eventEffect": "claw",
           "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
+          "accessibility": "siksang2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-11:75",
+          "background": "siksang2",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-11:76",
+          "background": "siksang2",
+          "transition": "hold",
+          "tone": "desat",
+          "ambient": null,
+          "eventEffect": "veil",
+          "camera": "drift",
+          "accessibility": "siksang2 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-11:78",
-          "background": "siksangCrisis",
+          "background": "siksang2",
           "transition": "hold",
-          "tone": "natural",
+          "tone": "desat",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
+          "accessibility": "siksang2 배경에서 진행되는 crow의 대사"
         },
         {
-          "beatId": "ep-11:93",
-          "background": "siksangCrisis",
+          "beatId": "ep-11:83",
+          "background": "siksang2",
           "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "claw",
-          "camera": "drift",
-          "accessibility": "siksangCrisis 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-11:96",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "natural",
+          "tone": "desat",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
+          "accessibility": "siksang2 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-11:108",
-          "background": "siksangCrisis",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangCrisis 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-11:118",
-          "background": "siksangNight",
+          "beatId": "ep-11:87",
+          "background": "siksang4",
           "transition": "crossfade",
           "tone": "dark",
-          "ambient": "moonlight",
+          "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangNight 배경에서 진행되는 시스템 메시지"
+          "camera": "drift",
+          "accessibility": "siksang4 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-11:125",
-          "background": "siksangNight",
+          "beatId": "ep-11:88",
+          "background": "siksang4",
           "transition": "hold",
           "tone": "dark",
-          "ambient": "moonlight",
+          "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangNight 배경에서 진행되는 시스템 메시지"
+          "accessibility": "siksang4 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-11:128",
-          "background": "siksangNight",
+          "beatId": "ep-11:110",
+          "background": "siksang4",
           "transition": "hold",
           "tone": "dark",
-          "ambient": "moonlight",
+          "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangNight 배경에서 진행되는 시스템 메시지"
+          "accessibility": "siksang4 배경에서 진행되는 neo의 대사"
         },
         {
-          "beatId": "ep-11:131",
-          "background": "siksangNight",
+          "beatId": "ep-11:117",
+          "background": "siksangB",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksangB 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-11:120",
+          "background": "siksangB",
           "transition": "hold",
           "tone": "dark",
-          "ambient": "moonlight",
+          "ambient": null,
           "eventEffect": "hands",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
+          "camera": "focus",
+          "accessibility": "siksangB 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-11:134",
-          "background": "siksangNight",
+          "beatId": "ep-11:124",
+          "background": "siksangB",
           "transition": "hold",
           "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "ink",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-11:138",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-11:139",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
+          "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangNight 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-11:140",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-11:147",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-11:150",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "claw",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-11:159",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-11:164",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "metal",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-11:166",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "metal",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-11:170",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-11:192",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangNight 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-11:193",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "ink",
-          "camera": "steady",
-          "accessibility": "siksangNight 배경에서 진행되는 crow의 대사"
-        },
-        {
-          "beatId": "ep-11:196",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-11:198",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangNight 배경에서 진행되는 시스템 메시지"
-        },
-        {
-          "beatId": "ep-11:208",
-          "background": "siksangNight",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "siksangNight 배경에서 진행되는 시스템 메시지"
+          "accessibility": "siksangB 배경에서 진행되는 heuk의 대사"
         }
       ]
     },
     {
       "id": "ep-12",
-      "title": "첫 줄의 무대",
-      "purpose": "첫 줄의 무대",
-      "conflictBeatId": "ep-12:1",
+      "title": "정오의 노래",
+      "purpose": "정오의 노래",
+      "conflictBeatId": "ep-12:13",
       "emotionPath": [
         {
           "phase": "진입",
           "beatId": "ep-12:1",
-          "pacing": "impact"
+          "pacing": "normal"
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-12:83",
-          "pacing": "normal"
+          "beatId": "ep-12:51",
+          "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-12:242",
-          "pacing": "normal"
+          "beatId": "ep-12:140",
+          "pacing": "impact"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-12:1",
-          "background": "siksangBattle",
+          "background": "siksang4",
           "transition": "crossfade",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "metal",
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksang4 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12:3",
-          "background": "siksangBattle",
+          "beatId": "ep-12:13",
+          "background": "siksang4",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "burst",
+          "eventEffect": "shake",
           "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
+          "accessibility": "siksang4 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12:4",
-          "background": "siksangBattle",
+          "beatId": "ep-12:23",
+          "background": "siksang4",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
+          "accessibility": "siksang4 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12:10",
-          "background": "siksangBattle",
+          "beatId": "ep-12:27",
+          "background": "siksang4",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "metal",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "siksang4 배경에서 진행되는 crow의 대사"
         },
         {
-          "beatId": "ep-12:12",
-          "background": "siksangBattle",
+          "beatId": "ep-12:34",
+          "background": "siksang4",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
+          "accessibility": "siksang4 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12:24",
-          "background": "siksangBattle",
+          "beatId": "ep-12:39",
+          "background": "siksang4",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "claw",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "siksang4 배경에서 진행되는 moka의 대사"
         },
         {
-          "beatId": "ep-12:30",
-          "background": "siksangBattle",
+          "beatId": "ep-12:45",
+          "background": "siksang4",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang4 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12:51",
+          "background": "siksang4",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang4 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12:54",
+          "background": "siksang4",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang4 배경에서 진행되는 crow의 대사"
+        },
+        {
+          "beatId": "ep-12:59",
+          "background": "siksang4",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "thread",
+          "camera": "drift",
+          "accessibility": "siksang4 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12:60",
+          "background": "siksang4",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang4 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-12:66",
+          "background": "siksang4",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
+          "accessibility": "siksang4 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12:40",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:42",
-          "background": "siksangBattle",
+          "beatId": "ep-12:75",
+          "background": "siksang4",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": "fire",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
+          "camera": "focus",
+          "accessibility": "siksang4 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12:44",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "claw",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:48",
-          "background": "siksangBattle",
+          "beatId": "ep-12:78",
+          "background": "siksang4",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": "burst",
           "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
+          "accessibility": "siksang4 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12:55",
-          "background": "siksangBattle",
+          "beatId": "ep-12:79",
+          "background": "siksang4",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "heart",
+          "eventEffect": "hands",
           "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
+          "accessibility": "siksang4 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12:57",
-          "background": "siksangBattle",
+          "beatId": "ep-12:84",
+          "background": "siksang4",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "claw",
+          "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:63",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:66",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:68",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:77",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "claw",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:83",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:85",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
+          "accessibility": "siksang4 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-12:87",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "claw",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:94",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:97",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "wood",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:103",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:105",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "vortex",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:106",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:112",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:116",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:118",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "claw",
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:121",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:130",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:132",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "claw",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:134",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:135",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "vortex",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:138",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:141",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:144",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:149",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "burst",
-          "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:151",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "vortex",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:154",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "vortex",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:160",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:161",
-          "background": "siksangBattle",
+          "background": "siksang4",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangBattle 배경에서 진행되는 시스템 메시지"
+          "accessibility": "siksang4 배경에서 진행되는 crow의 대사"
         },
         {
-          "beatId": "ep-12:164",
-          "background": "siksangBattle",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-12:173",
-          "background": "siksangBattle",
+          "beatId": "ep-12:88",
+          "background": "siksang4",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "siksangBattle 배경에서 진행되는 서술"
+          "camera": "focus",
+          "accessibility": "siksang4 배경에서 진행되는 crow의 대사"
         },
         {
-          "beatId": "ep-12:199",
-          "background": "siksang",
+          "beatId": "ep-12:90",
+          "background": "siksang5",
           "transition": "crossfade",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
+          "accessibility": "siksang5 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12:235",
-          "background": "siksang",
+          "beatId": "ep-12:100",
+          "background": "siksang5",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
-          "eventEffect": "heart",
-          "camera": "drift",
-          "accessibility": "siksang 배경에서 진행되는 서술"
+          "eventEffect": "reveal",
+          "camera": "focus",
+          "accessibility": "siksang5 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12:241",
-          "background": "siksang",
+          "beatId": "ep-12:115",
+          "background": "siksang5",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksang5 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12:132",
+          "background": "siksang5",
           "transition": "hold",
           "tone": "natural",
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksang 배경에서 진행되는 서술"
+          "accessibility": "siksang5 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12:137",
+          "background": "siksang3",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksang3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12:140",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang3 배경에서 진행되는 tiger의 대사"
         }
       ]
     },
     {
       "id": "ep-12a",
-      "title": "칼을 내려놓는 저녁",
-      "purpose": "칼을 내려놓는 저녁",
-      "conflictBeatId": "ep-12a:18",
+      "title": "장부의 빈 줄",
+      "purpose": "장부의 빈 줄",
+      "conflictBeatId": "ep-12a:11",
       "emotionPath": [
         {
           "phase": "진입",
@@ -4021,45 +3551,185 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-12a:18",
-          "pacing": "normal"
+          "beatId": "ep-12a:33",
+          "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-12a:35",
+          "beatId": "ep-12a:82",
           "pacing": "normal"
         }
       ],
       "visualCues": [
         {
           "beatId": "ep-12a:1",
-          "background": "siksangNight",
+          "background": "siksang3",
           "transition": "crossfade",
-          "tone": "natural",
-          "ambient": "moonlight",
+          "tone": "dark",
+          "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
+          "accessibility": "siksang3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-12a:10",
-          "background": "siksangNight",
+          "beatId": "ep-12a:11",
+          "background": "siksang3",
           "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "thread",
+          "camera": "drift",
+          "accessibility": "siksang3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12a:15",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksang3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12a:17",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "hands",
+          "camera": "drift",
+          "accessibility": "siksang3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12a:19",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
+          "accessibility": "siksang3 배경에서 진행되는 tiger의 대사"
         },
         {
-          "beatId": "ep-12a:30",
-          "background": "siksangNight",
+          "beatId": "ep-12a:27",
+          "background": "siksang3",
           "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang3 배경에서 진행되는 tiger의 대사"
+        },
+        {
+          "beatId": "ep-12a:33",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang3 배경에서 진행되는 tiger의 대사"
+        },
+        {
+          "beatId": "ep-12a:38",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "siksangNight 배경에서 진행되는 서술"
+          "accessibility": "siksang3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12a:43",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "script",
+          "camera": "steady",
+          "accessibility": "siksang3 배경에서 진행되는 시스템 메시지"
+        },
+        {
+          "beatId": "ep-12a:44",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang3 배경에서 진행되는 tiger의 대사"
+        },
+        {
+          "beatId": "ep-12a:54",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksang3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12a:56",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12a:66",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang3 배경에서 진행되는 tiger의 대사"
+        },
+        {
+          "beatId": "ep-12a:70",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksang3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12a:74",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang3 배경에서 진행되는 tiger의 대사"
+        },
+        {
+          "beatId": "ep-12a:80",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksang3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12a:82",
+          "background": "siksang3",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "veil",
+          "camera": "drift",
+          "accessibility": "siksang3 배경에서 진행되는 서술"
         }
       ]
     },

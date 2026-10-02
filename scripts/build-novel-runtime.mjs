@@ -34,10 +34,10 @@ export const INSTRUMENTAL_TRACKS = new Set([
    받는다: bg 없는 tone, 백문(baek), 보컬곡. 다시 쓴 화는 rev 2 로 올리며 목록에서 뺀다(남겨 두면 빌드 실패).
    새 이야기가 다 들어가면 목록과 예외를 함께 지운다. */
 export const REWRITE_PENDING = new Set([
-  "ep-07", "ep-08", "ep-09", "ep-10", "ep-11", "ep-12", "ep-12a", "ep-13", "ep-14", "ep-14a", "ep-15", "ep-16", "ep-17",
-  "ep-18", "ep-19", "ep-20", "ep-21", "ep-21a", "ep-22", "ep-23", "ep-24", "ep-25", "ep-26", "ep-27", "ep-27a", "ep-27b",
-  "ep-28", "ep-28a", "ep-28b", "ep-28c", "ep-28d", "ep-29", "ep-30", "ep-31", "ep-32", "ep-32a", "ep-33", "ep-34", "ep-35",
-  "ep-36", "ep-36a", "ep-37", "ep-38", "ep-38a", "ep-39", "ep-40", "ep-41", "ep-41a", "ep-42", "ep-42a", "ep-43",
+  "ep-13", "ep-14", "ep-14a", "ep-15", "ep-16", "ep-17", "ep-18", "ep-19", "ep-20", "ep-21", "ep-21a", "ep-22", "ep-23",
+  "ep-24", "ep-25", "ep-26", "ep-27", "ep-27a", "ep-27b", "ep-28", "ep-28a", "ep-28b", "ep-28c", "ep-28d", "ep-29",
+  "ep-30", "ep-31", "ep-32", "ep-32a", "ep-33", "ep-34", "ep-35", "ep-36", "ep-36a", "ep-37", "ep-38", "ep-38a",
+  "ep-39", "ep-40", "ep-41", "ep-41a", "ep-42", "ep-42a", "ep-43",
 ]);
 const BARE_DIALOGUE = new Set(["그래.", "응.", "알겠어.", "좋아."]);
 // 작가가 레거시 정본에 남긴 의미값 중, 실물 파일명이 바뀐 경우에만 고정 매핑한다.
