@@ -53,13 +53,13 @@ const push = (remote, rel) => items.push([remote, rel]);
   "까마귀 빌런1", "까마귀 빌런2",
 ].forEach((n) => push(`${ASSETS}/CodeDestinyNovel/${enc(n + ".png")}`, `CodeDestinyNovel/${n}.png`));
 
-// 완결부(EP.15~40) 캐릭터 — 루나 자매·청토끼·백문·서한비·무성 본모습 (webp)
+// 완결부(EP.15~40) 캐릭터 — 루나 자매·청토끼·서한비·무성 (백문 도서관은 destiny-island.html 이 쓴다) 본모습 (webp)
 // 🔴 서한비의 파일명은 R2 실물이라 개명 전 「박지은」을 그대로 쓴다. 바꾸면 전 컷 404.
 [
   "루나-Photoroom", "루나 언니-Photoroom",
   "루나 언니 회복1-Photoroom", "루나 언니 회복2-Photoroom", "루나 언니 회복3-Photoroom", "루나 언니 회복4-Photoroom", "루나 언니 회복5-Photoroom", "루나 언니 회복6-Photoroom",
   "빌런 청토끼-Photoroom",
-  "백문 기본-Photoroom", "백문 도서관-Photoroom", "백문 도서관2-Photoroom", "백문 도서관4-Photoroom", "백문 도서관5-Photoroom", "백문 독서-Photoroom", "백문 마법-Photoroom",
+  "백문 도서관-Photoroom",
   "박지은 기본", "박지은 무표정", "박지은 말함", "박지은 말함2", "박지은 냉소", "박지은 조롱", "박지은 유혹", "박지은 화남", "박지은 광기",
   "무성1", "무성2", "무성3", "무성4", "무성5", "무성6", "무성7", "무성8", "무성9", "무성10",
   // 결말 확장(EP.39~40) 배경 — 네오 구속 2종·운명의 신 선택(타로 속 연이)
@@ -100,15 +100,6 @@ const push = (remote, rel) => items.push([remote, rel]);
 // 음악(music 호스트): 메인 화면 + 사주의 강 진입 폴백
 push(`${MUSIC}/DestinyWar/${enc("Moonlit Strategy Map.mp3")}`, "music/DestinyWar/Moonlit Strategy Map.mp3");
 push(`${MUSIC}/Meditation/${enc("Still Lake Mind.mp3")}`, "music/Meditation/Still Lake Mind.mp3");
-
-// DEST1NOVA 공연곡(식상의 섬 노바 스테이지) — 1집 루트 2 + 2집 하위폴더 3
-["오행 FLEX.mp3", "운세 soda pop.mp3"]
-  .forEach((n) => push(`${MUSIC}/DEST1NOVA/${enc(n)}`, `music/DEST1NOVA/${n}`));
-["LUCKY RUSH_Title.mp3", "Fate Rider.mp3", "불꽃의 운명.mp3"]
-  .forEach((n) => push(`${MUSIC}/DEST1NOVA/${enc("DEST1NOVA 2집/" + n)}`, `music/DEST1NOVA/DEST1NOVA 2집/${n}`));
-
-// LunaBloom(귀인 NPC 테마) — 플레이어 TRK 의 lunaGuest 가 가리키는 유일한 곳
-push(`${MUSIC}/lunabloom/${enc("귀인 NPC Key.mp3")}`, "music/lunabloom/귀인 NPC Key.mp3");
 
 const exists = async (p) => { try { await access(p); return true; } catch { return false; } };
 
