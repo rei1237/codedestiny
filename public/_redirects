@@ -73,8 +73,8 @@
 # 로그인 직후 프로필 보완 화면이었으나, 휴대폰 번호 수집 지점을 첫 카드결제 모달 하나로
 # 좁히면서 사라졌다. 색인·사이트맵에는 없었지만 짧게 라이브였으므로 그때 열어 둔 탭이
 # 404 를 보지 않도록 남긴다.
-/onboarding                    /                         301
-/onboarding/*                  /                         301
+/onboarding                    /ggulggul/                301
+/onboarding/*                  /ggulggul/                301
 
 # ── 구 웹소설 리더(/stories/code-destiny/*) → 신 텍스트 리더(/stories/) ────
 # 주의: /stories/* 와일드카드를 쓰면 신규 화 라우트(/stories/ep-01/ 등)까지 삼킨다.
@@ -87,10 +87,10 @@
 # /ggulggul/ is now the flower service home, served from its own static HTML.
 /ggulggul-manse                /manse/                   301
 /ggulggul-manse/*              /manse/                   301
-/code-destiny                  /                         301
-/code-destiny/*                /                         301
-/codedestiny                   /                         301
-/codedestiny/*                 /                         301
+/code-destiny                  /ggulggul/                301
+/code-destiny/*                /ggulggul/                301
+/codedestiny                   /ggulggul/                301
+/codedestiny/*                 /ggulggul/                301
 
 # ── 레거시 locale slug → 신규 locale slug ────────────────────────────────
 # /{locale}/index.html 은 Pages 가 이미 308 로 정규화하므로 규칙을 두지 않는다(실측).

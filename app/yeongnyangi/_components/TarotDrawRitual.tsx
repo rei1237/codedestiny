@@ -19,6 +19,8 @@ function stored(id:string):Stored|null{
  try{const value=JSON.parse(localStorage.getItem(key(id))||'null');return value&&stages.includes(value.stage)&&Array.isArray(value.selected)&&Number.isInteger(value.revealed)?value:null;}catch{return null;}
 }
 export function tarotRitualCompleted(id:string){return stored(id)?.completed===true;}
+// The v3 spread reveal keeps its progress under the same key, so the result page's ritual gate reads both.
+export {stored as storedRitual,save as saveRitual};
 function save(id:string,value:Stored){try{localStorage.setItem(key(id),JSON.stringify(value));}catch{/* The saved cards stay on the server; storage only remembers presentation progress. */}}
 function chime(){
  try{

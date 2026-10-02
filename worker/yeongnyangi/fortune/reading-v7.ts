@@ -202,8 +202,10 @@ export const v7Catalog:Record<string,V7Entry[]>={
 };
 
 // Anchor facts: only the anchor chapter owns them; every other chapter may cite them in one sentence.
+// saju.seasonalBalance (조후, the element the chart needs) is owned by the health chapter, but every chapter cites the
+// same conclusion so no chapter names a different needed element.
 export const V7_ANCHOR_REFS:Record<DomainId,string[]>={
-  saju:['dayMaster','pillars','strengthHeuristic'],
+  saju:['dayMaster','pillars','strengthHeuristic','seasonalBalance'],
   ziwei:['lifePalace','bodyPalace','palaces.명궁','bureau'],
   vedic:['lagna','houses.1'],
   astrology:['ascendant','planets.Sun','houseCusps.1'],
@@ -267,7 +269,8 @@ export function readingManifestV7(p:Product,k:{id:string}):ChapterSpecV7[]{
   return rows.map((r,i)=>{
     const owns=v7TierSelect(r.owns,tier);
     const evidenceInputs=r.inputs.length?v7TierSelect(r.inputs,tier):owns;
-    const refs=r.key==='anchor'?[]:V7_ANCHOR_REFS[p.domain];
+    // A chapter never lists a fact it owns as a one-sentence reference (owns wins).
+    const refs=r.key==='anchor'?[]:V7_ANCHOR_REFS[p.domain].filter(ref=>!owns.includes(ref));
     const theme=r.part==='cards'&&k.id==='love'?'love':V7_PARTS[r.part].theme;
     const timingRef:TimingRef=theme==='timing'?'owner':r.key==='anchor'||!hasTiming?'none':'summary';
     const requires=v7TierSelect(r.requires,tier);

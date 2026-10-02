@@ -24,7 +24,7 @@ const serviceAst=ts.createSourceFile('service.ts',service,ts.ScriptTarget.Latest
 let crossInitializer;
 function findCross(node){if(ts.isVariableDeclaration(node)&&node.name.getText(serviceAst)==='crossDaily')crossInitializer=node.initializer.getText(serviceAst);ts.forEachChild(node,findCross);}
 findCross(serviceAst);assert.ok(crossInitializer);
-const prepareDaily=new Function('product','kind','spiritInput','relationship','tarotV2','env','raw','date','computeCrossDaily','return '+crossInitializer);
+const prepareDaily=new Function('product','kind','spiritInput','relationship','tarotQuestion','env','raw','date','computeCrossDaily','return '+crossInitializer);
 for(const domain of systems)test(domain+': a new single-system request never recalculates hub birth or cross-system evidence',async()=>{
  globalThis.__nativeDailyCalls=[];globalThis.__nativeSajuCalls=0;globalThis.__nativeDailyCards=cards;
  const before=JSON.stringify(cards);

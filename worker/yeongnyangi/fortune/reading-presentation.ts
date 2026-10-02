@@ -15,7 +15,7 @@ export interface ReadingZiweiStar{name:string;hanja:string|null;kind:'main'|'ass
 export interface ReadingZiweiPalace{name:string;hanja:string|null;branch:number;body:boolean;stars:ReadingZiweiStar[];notes:string[]}
 export interface ReadingChart extends ChartView {
   relationship?: boolean;
-  groups: (ChartView['groups'][number] & {id:string;chapterIds:string[];longitude?:number;kind?:'timing';cardCode?:string;ziwei?:ReadingZiweiPalace})[];
+  groups: (ChartView['groups'][number] & {id:string;chapterIds:string[];longitude?:number;kind?:'timing';cardCode?:string;positionKey?:string;ziwei?:ReadingZiweiPalace})[];
   cusps?: number[];
 }
 const ZIWEI_BRANCHES=['자','축','인','묘','진','사','오','미','신','유','술','해'];
@@ -77,10 +77,12 @@ export function readingCharts(analysis:MasterAnalysis,manifest:ChapterSpec[]):Re
       add('ascendant','상승점',[{label:'별자리',value:text(f.ascendant?.signKo ?? f.ascendant?.sign)}]);
       for(const a of f.aspects || [])add('aspects',`${text(a.planet1 || a.p1)} · ${text(a.planet2 || a.p2)}`,[{label:'각',value:text(a.type || a.aspect)},{label:'오브',value:text(a.orb)}]);
     }else{
+      // v3 spread readings key each card to its stored position so the result can draw the spread map; v2 groups stay as they were.
+      const spreadV3=f.tarotConsultation?.version==='yeongnyangi-tarot-consultation-v3';
       for(const card of f.cards || []){
        // 저장된 ID만 정규화한다. 새 카드를 뽑거나 저장된 순서·방향을 바꾸지 않는다.
        const cardCode=getTarotCardByAnyId(card.cardId ?? card.cardCode ?? card.code ?? card.id)?.code;
-       add('cards',card.positionLabel || ({cause:'원인',process:'과정',outcome:'결과',current:'현재',inner:'내면',obstacle:'장애물',external:'주변 영향',choice:'선택',action:'행동',self_view_of_other:'내가 바라보는 상대',other_view_of_relationship:'관계에 대한 상대의 시선',other_feeling_toward_me:'상대 감정의 가능성',other_romantic_will:'다가올 의지의 가능성',core_block:'관계의 핵심 장애물',short_term_outcome:'가까운 선택의 방향'} as Record<string,string>)[card.positionKey] || '카드의 자리',[{label:'카드',value:text(card.nameKr || card.nameKo || card.name)},{label:'방향',value:card.orientation==='reversed'?'역방향':'정방향'}],{cardCode,image:yeongnyangiCardArt(cardCode).src,reversed:card.orientation==='reversed'});
+       add('cards',card.positionLabel || ({cause:'원인',process:'과정',outcome:'결과',current:'현재',inner:'내면',obstacle:'장애물',external:'주변 영향',choice:'선택',action:'행동',self_view_of_other:'내가 바라보는 상대',other_view_of_relationship:'관계에 대한 상대의 시선',other_feeling_toward_me:'상대 감정의 가능성',other_romantic_will:'다가올 의지의 가능성',core_block:'관계의 핵심 장애물',short_term_outcome:'가까운 선택의 방향'} as Record<string,string>)[card.positionKey] || '카드의 자리',[{label:'카드',value:text(card.nameKr || card.nameKo || card.name)},{label:'방향',value:card.orientation==='reversed'?'역방향':'정방향'}],{cardCode,image:yeongnyangiCardArt(cardCode).src,reversed:card.orientation==='reversed',...(spreadV3&&card.positionKey?{positionKey:String(card.positionKey)}:{})});
       }
     }
     // Only expose timing already selected under this purchase's tier policy.

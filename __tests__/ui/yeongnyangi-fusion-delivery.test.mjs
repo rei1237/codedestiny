@@ -13,7 +13,7 @@ const replacements={
   'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
   'worker/yeongnyangi/repository.js':`
   const db=()=>globalThis.__invariance.rows;
-  export const reserveQuestionSkyFollowup=async()=>{throw new Error('unexpected')};
+  export const commitTarotDraw=async()=>{throw new Error('unexpected tarot draw');};export const reserveQuestionSkyFollowup=async()=>{throw new Error('unexpected')};
   export const allowedChapterAttempts=()=>3; export const holdAutoResumes=()=>false;export const userCanRetry=()=>false;export const ownerId=x=>x;
   export const createRequest=async(e,u,id,v)=>{if(!db().has(id))db().set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[],chapterAttempts:{}});return db().get(id)};
   export const readRequest=async(e,u,id)=>{if(!db().has(id))throw Object.assign(new Error('not found'),{code:'FORTUNE_NOT_FOUND'});return db().get(id)};

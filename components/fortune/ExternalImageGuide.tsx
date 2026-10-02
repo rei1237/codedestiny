@@ -1,6 +1,6 @@
 'use client';
 import {useMemo, useState} from 'react';
-import {buildExternalImagePrompt, reportGuideAssets, reportGuideCopy} from '@/js/core/fortune-report-content.mjs';
+import {buildExternalImagePrompt, chatgptUrl, reportGuideAssets, reportGuideCopy} from '@/js/core/fortune-report-content.mjs';
 import styles from './external-image-guide.module.css';
 
 export type ReportEvidence = {label:string; items:{label:string; value:string}[]};
@@ -33,12 +33,22 @@ export default function ExternalImageGuide({brand,domain,locale='ko',groups=[],p
 function PromptEditor({source,text,download,brand}:{source:string;text:ReturnType<typeof reportGuideCopy>;download:string;brand:string}) {
   const [prompt,setPrompt] = useState(source);
   const [status,setStatus] = useState('');
-  async function copy() {
-    try { await navigator.clipboard.writeText(prompt); setStatus(text.copied); }
+  async function copy(done = text.copied) {
+    try { await navigator.clipboard.writeText(prompt); setStatus(done); }
     catch { setStatus(text.error); }
   }
   return <section className={styles.prompt}>
     <h3>{text.prompt}</h3><p>{text.privacy}</p>
+    <div className={styles.recommend} data-chatgpt-recommend>
+      <p className={styles.recommendHead}><span className={styles.chip}>{text.chip}</span><strong>{text.recommend}</strong></p>
+      <p className={styles.why}>{text.why}</p>
+      <ol className={styles.steps}>{text.steps.map((step,index) => <li key={index}>{step}</li>)}</ol>
+      {/* Copy inside the same click so the clipboard keeps the gesture; the link itself opens ChatGPT without putting private text in a URL. */}
+      <a className={styles.openChatgpt} href={chatgptUrl} target="_blank" rel="noopener noreferrer" onClick={()=>void copy(text.copiedOpen)}>
+        <span>{text.open}</span>
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M8 4h8v8M16 4 5 15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </a>
+    </div>
     <details><summary>{text.edit}</summary><textarea aria-label={text.prompt} value={prompt} onChange={event=>setPrompt(event.target.value)} spellCheck={false}/></details>
     <div className={styles.actions}>
       <button type="button" onClick={()=>void copy()}>{text.copy}</button>

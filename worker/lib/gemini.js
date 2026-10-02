@@ -120,6 +120,8 @@ export async function callGeminiText(env, prompt, options = {}) {
       systemPrompt: clean(options.systemPrompt),
       // 명시값 > 앰비언트. 라우트가 직접 넘기면 그게 이기고, 없으면 요청 스코프에서 가져온다.
       locale: clean(options.locale) || getAmbientAiLocale() || undefined,
+      // 상담자 페르소나가 말투를 정하는 호출(영냥이 장 생성)만 ko 존댓말 강제를 끈다.
+      outputRegister: options.outputRegister === "persona" ? "persona" : undefined,
       maxTokens: Number(options.maxOutputTokens || options.maxTokens) || undefined,
       temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : undefined,
       taskType: normalizeTaskType(options),

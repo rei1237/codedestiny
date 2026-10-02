@@ -902,6 +902,21 @@ html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
+/* 질문 우선 카드 — 제목은 고객 질문, 상품명은 작은 이름표로 내린다 */
+.fortune-gateway__rec-q {
+  color: #3c1830;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+.fortune-gateway__rec--q .fortune-gateway__rec-name,
+.cdh-services .fortune-gateway__rec--q .fortune-gateway__rec-name {
+  color: #7d5219;
+  font-size: 12px;
+  font-weight: 700;
+}
+.cdh-services .fortune-gateway__rec-q { color: var(--cdh-ink, #3c1830); font-size: 1.05rem; }
 .fortune-gateway__rec-foot {
   display: flex;
   align-items: center;
@@ -944,6 +959,8 @@ html.neo-mode body .fortune-gateway__rec-name b {
   color: #0a0b1a;
 }
 html.neo-mode body .fortune-gateway__rec-desc { color: #b9b3c9; }
+html.neo-mode body .fortune-gateway__rec-q { color: #f4eeff; }
+html.neo-mode body .fortune-gateway__rec--q .fortune-gateway__rec-name { color: #e8d5a3; }
 html.neo-mode body .fortune-gateway__rec-price { color: #c9a84c; }
 html.neo-mode body .fortune-gateway__rec-go { color: #c9a84c; }
 
@@ -1118,5 +1135,11 @@ html.neo-mode body .fortune-gateway__fchip[aria-pressed="true"] {
   .fortune-gateway__rec-name { grid-column: 2; grid-row: 1; }
   .fortune-gateway__rec-desc { grid-column: 2; grid-row: 2; }
   .fortune-gateway__rec-foot { grid-column: 2; grid-row: 3; }
+  .fortune-gateway__rec--q { grid-template-rows: auto auto auto 1fr; }
+  .fortune-gateway__rec--q .fortune-gateway__rec-media { grid-row: 1 / span 4; }
+  .fortune-gateway__rec--q .fortune-gateway__rec-q { grid-column: 2; grid-row: 1; }
+  .fortune-gateway__rec--q .fortune-gateway__rec-desc { grid-column: 2; grid-row: 2; }
+  .fortune-gateway__rec--q .fortune-gateway__rec-name { grid-column: 2; grid-row: 3; }
+  .fortune-gateway__rec--q .fortune-gateway__rec-foot { grid-row: 4; }
 }
 

@@ -121,10 +121,10 @@ test('sprigs, concern seals and peonies are child spans on their hosts', () => {
   assert.match(html, /<div class="cdh-garden">\s*(?:<span class="cdh-moon" aria-hidden="true"><\/span>)?\s*<span class="cd-yehwa-spray" aria-hidden="true"><\/span>/, '새 홈 장식은 정원 안에서만 재사용한다');
   assert.match(html, /<div class="fortune-gateway__filter-row" role="group" aria-label="가격대로 좁히기"[^>]*>\s*<span class="cd-yehwa-spray" aria-hidden="true"><\/span>/, '가격 행 첫 자식이 가지 스프레이가 아니다');
 
-  // 고민 카드 6장 전부에 인장 span 이 있고 CSS 가 aria-expanded=true 인 카드에서만 켠다.
+  // 질문 타일 8장(2026-10-02) 전부에 인장 span 이 있고 CSS 가 aria-expanded=true 인 카드에서만 켠다.
   const concern = html.match(/<button type="button" class="cd-concern__card"[^>]*>\s*<span class="cd-yehwa-seal cd-yehwa-seal--concern" aria-hidden="true"><\/span>/g) || [];
-  assert.equal(concern.length, 6, `고민 카드 6장 전부에 인장이 있어야 한다 (현재 ${concern.length})`);
-  assert.equal((html.match(/cd-yehwa-seal--concern"/g) || []).length, 6, '고민 인장은 카드 안 6개뿐이어야 한다');
+  assert.equal(concern.length, 8, `질문 타일 8장 전부에 인장이 있어야 한다 (현재 ${concern.length})`);
+  assert.equal((html.match(/cd-yehwa-seal--concern"/g) || []).length, 8, '고민 인장은 타일 안 8개뿐이어야 한다');
 
   assert.ok(html.includes('<div class="cd-feedback__copy"><span class="cd-yehwa-peony" aria-hidden="true"></span>'), '피드백 카드 가운데 열의 모란이 없다');
   assert.ok(html.includes('<div class="cd-footer-shell" data-marker="cd-footer-refine-v20260724"><span class="cd-yehwa-peony" aria-hidden="true"></span>'), '푸터 링크 허브의 모란이 없다');

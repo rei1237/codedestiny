@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-02
-next: "worker palm-vision.js:472-473 capTokens 를 base×1.3(10650)으로 맞추고 verify-llm-generation-resilience assertBudget 동반 수정 — F(캐시)는 적중률 실측 뒤 결정"
+next: "남은 것은 F(캐시, 적중률 실측 뒤 결정) 하나 — 손금 capTokens 정합은 2026-10-02-palm-reading-logic-and-token-cap.md 1번으로 이관"
 ---
 
 # 인수인계 — LLM 토큰 최적화에서 남은 개별 항목 5건

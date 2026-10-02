@@ -466,7 +466,11 @@ function buildSummary(outputPalaces, lifePalace, bodyPalace, fourTransformations
 
 export function calculateZiweiAiChart(input = {}, options = {}) {
   const birthInfo = input.birthInfo && typeof input.birthInfo === "object" ? input.birthInfo : input;
-  const dateParts = parseDate(birthInfo.birthDate, clean(birthInfo.calendarType).toLowerCase() === "lunar");
+  // 프로필 표기 "lunar_leap"(윤달)도 음력이다 — 예전에는 양력으로 조용히 계산했다.
+  const rawCalendar = clean(birthInfo.calendarType).toLowerCase();
+  const calendarType = rawCalendar === "lunar" || rawCalendar === "lunar_leap" ? "lunar" : "solar";
+  const isLeapMonth = calendarType === "lunar" && (birthInfo.isLeapMonth === true || rawCalendar === "lunar_leap");
+  const dateParts = parseDate(birthInfo.birthDate, calendarType === "lunar");
   const timeParts = parseTime(birthInfo.birthTime, birthInfo.birthTimeUnknown === true);
   if (!dateParts || !timeParts) {
     const error = new Error("INVALID_BIRTH_INFO");
@@ -474,7 +478,6 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
     throw error;
   }
 
-  const calendarType = clean(birthInfo.calendarType).toLowerCase() === "lunar" ? "lunar" : "solar";
   const gender = clean(birthInfo.gender).toLowerCase();
   // 입력 시계 → 출생지 경도·과거 서머타임 보정 시계(출생지 미입력 = 서울). 이미 보정한 시계(해외
   // 진태양시·검증 하네스)는 options.birthClock === "corrected" 로 넘겨 이중 보정을 막는다.
@@ -484,7 +487,7 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
     hour: timeParts.hour,
     minute: timeParts.minute,
     calendarType,
-    isLeapMonth: birthInfo.isLeapMonth === true,
+    isLeapMonth,
     birthPlace: birthInfo.birthPlace,
   });
   const chartTime = clock ? { hour: clock.corrected.hour, minute: clock.corrected.minute, unknown: false } : timeParts;
@@ -493,7 +496,7 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
   const dayMoved = clock && (clock.corrected.year !== clock.civil.year || clock.corrected.month !== clock.civil.month || clock.corrected.day !== clock.civil.day);
   const lunarInfo = dayMoved
     ? lunarOfSolarDay(clock.corrected, nightZi)
-    : getLunarDate(dateParts, calendarType, birthInfo.isLeapMonth === true, nightZi);
+    : getLunarDate(dateParts, calendarType, isLeapMonth, nightZi);
   // 세차는 음력해에서 바로 나온다(甲=0 / 子=0). 예전에는 lunar-javascript 의 getYearGan/getYearZhi
   // 를 읽고 실패 시 같은 식으로 폴백했다 — 값은 그대로이고 근거만 코어로 옮겼다.
   const yearIndexes = sexagenaryYearIndexes(lunarInfo.lunarYear);

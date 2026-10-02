@@ -28,6 +28,7 @@ import {plannedPriceFor} from '@/lib/brand/launch-offer';
 import {trackEvent} from '@/lib/analytics';
 import {readingLocale,readingLocales,readingLanguageNames} from '@/worker/yeongnyangi/fortune/reading-locale';
 import ReadingLanguageSelect from './ReadingLanguageSelect';
+import {voiceStyleCopy,type VoiceStyle} from '../_lib/voice-style-copy';
 import TarotConsultationGuide from './TarotConsultationGuide';
 import AskPeriodPicker from './AskPeriodPicker';
 import {useReadingLanguage,browserReadingContext,readingPrice} from '../_lib/use-reading-language';
@@ -41,8 +42,14 @@ import {jongCheckCopy} from '../_lib/jong-check-copy';
 import {jongCheckApplies} from '@/worker/yeongnyangi/fortune/saju/jong-check-policy';
 import type {JongCheck,JongReply} from '@/worker/yeongnyangi/fortune/saju/jong-check';
 import {tarotConsultation} from '@/worker/yeongnyangi/fortune/tarot/consultation-contract';
+import {TAROT_SPREAD_KIND} from '@/worker/yeongnyangi/fortune/tarot/spread-v3';
+import {tierAllowsSpread} from '@/lib/tarot/yeongnyangi-spread-catalog.mjs';
+import TarotSpreadPlanner,{emptyTarotPlan,plannedSpread,plannedInputs,restoreTarotPlan,fishName,type TarotPlan} from './tarot/TarotSpreadPlanner';
+import {tarotSpreadCopy} from '../_lib/tarot-spread-copy';
 const loginDraftKey='yeongnyangi:consultation-login-draft';
 const hasReviews=visibleReviews().length>0;
+// Korean tarot opens on the question-first spread order; other locales fall back to their first kind (koOnly effect below).
+const defaultKind=(domainId:string,site:string)=>domainId==='tarot'&&site==='ko'?consultationKinds.tarot.find(k=>k.id===TAROT_SPREAD_KIND)!:consultationKinds[domainId][0];
 export default function Consultation(){
  const [relationshipStage,setRelationshipStage]=useState(''),[relationshipQuestionId,setRelationshipQuestionId]=useState('');
  const [participants,setParticipants]=useState({self:'',partner:''});
@@ -58,10 +65,12 @@ export default function Consultation(){
  const [partnerId,setPartnerId]=useState(''),[timeUnknown,setTimeUnknown]=useState(false);
  const [topicId,setTopicId]=useState('general'),[question,setQuestion]=useState(''),[error,setError]=useState('');
  const [busy,setBusy]=useState(false),[ready,setReady]=useState(false);
+ const [voiceStyle,setVoiceStyle]=useState<VoiceStyle>('banmal');
  const [currentLocation,setCurrentLocation]=useState<CurrentLocation|null>(null);
  const [extraTime,setExtraTime]=useState(''),[extraPlace,setExtraPlace]=useState('');
  const [jong,setJong]=useState<{key:string;loading:boolean;check:JongCheck|null}>({key:'',loading:false,check:null});
  const [jongReply,setJongReply]=useState<{best?:JongReply;worst?:JongReply}>({});
+ const [tarotPlan,setTarotPlan]=useState<TarotPlan>(emptyTarotPlan),[tierNotice,setTierNotice]=useState('');
  const partnerProfile=profiles.find(p=>profileKey(p)===partnerId);
  const selectedProfile=profiles.find(p=>(p.profileId||p.id)===profileId);
  const lock=useRef(false);
@@ -78,6 +87,7 @@ export default function Consultation(){
  },[ready,product]);
  const kind=consultationKinds[domain].find(k=>k.id===kindId)||consultationKinds[domain][0];
  const tarotSpec=domain==='tarot'?tarotConsultation(kind.id):undefined;
+ const tarotSpread=domain==='tarot'&&kind.id===TAROT_SPREAD_KIND?plannedSpread(tarotPlan,question,product.fishId):undefined;
  const relationship=isRelationshipReading(domain,kind.id);
  useEffect(()=>{
   if(siteLocale==='ko'||!kind.koOnly)return;
@@ -87,10 +97,10 @@ export default function Consultation(){
  const systemCopy=domain==='fusion'?null:getFortuneCopy(domain as 'saju'|'ziwei'|'sukuyo'|'vedic'|'astrology'|'tarot',kind.id);
  const spiritEntryCopy=questionSkyCopyFor().entry;
  const askCopy=askPhase5Copy(siteLocale).input;
- const preview=conciseReadingManifest(consultationManifest(product,kind,topicId));
+ const preview=conciseReadingManifest(consultationManifest(product,kind,topicId,tarotSpread));
  // New purchase previews use the same concise manifest as preparation. Saved results keep their own manifest.
  const targetRange=(item:Product)=>{
-  const rows=conciseReadingManifest(consultationManifest(item,kind,topicId));
+  const rows=conciseReadingManifest(consultationManifest(item,kind,topicId,tarotSpread));
   const target=rows.every(row=>row.targetChars?.every(n=>Number.isFinite(n)&&n>0))
    ?[0,1].map(i=>rows.reduce((sum,row)=>sum+(row.targetChars?.[i]||0),0))
    :policyForReading(item.fishId,item.manifestVersion).target;
@@ -136,7 +146,7 @@ export default function Consultation(){
   const selected=products.find(p=>p.id===params.get('product'))||(requested==='fusion'?products.find(p=>p.readingKind==='pair'):undefined)||products.find(p=>p.domain===requested&&p.fishId===params.get('fish')&&p.readingKind==='single')||products.find(p=>p.domain===requested&&p.readingKind==='single')||products[0];
   setProductId(selected.id);setDomain(selected.readingKind==='single'?selected.domain:'fusion');
   const nextDomain=consultationDomain(selected);
-  const requestedKind=consultationKinds[nextDomain].find(k=>k.id===params.get('consultationKind'))||(params.get('topic')?consultationKinds[nextDomain].find(k=>k.id==='ask'):undefined)||consultationKinds[nextDomain][0];
+  const requestedKind=consultationKinds[nextDomain].find(k=>k.id===params.get('consultationKind'))||(params.get('topic')?consultationKinds[nextDomain].find(k=>k.id==='ask'):undefined)||defaultKind(nextDomain,siteLocale);
   setKindId(requestedKind.id);
   if(requestedKind.koOnly)setLocale('ko');
   const entryQuestion=getQuestionGuide(params.get("questionId"));
@@ -162,6 +172,8 @@ export default function Consultation(){
     if(typeof draft.extraPlace==='string')setExtraPlace(draft.extraPlace);
     if(draft.topicId==='general'||Object.hasOwn(topicCatalog,draft.topicId))setTopicId(draft.topicId);
     if(typeof draft.question==='string')setQuestion(draft.question.slice(0,1000));
+    if(draft.voiceStyle==='honorific')setVoiceStyle('honorific');
+    if(draft.tarotPlan)setTarotPlan(restoreTarotPlan(draft.tarotPlan));
    }
   }catch{/* Login still works when browser storage is unavailable. */}
   let cancelled=false;
@@ -179,10 +191,10 @@ export default function Consultation(){
  },[profileId,profiles,profileState.loading,profileState.select]);
  useEffect(()=>{
   if(!ready||(!relationshipStage&&!relationship))return;
-  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,relationshipStage,relationshipQuestionId,participants,consultationAttemptId:consultationAttemptId.current,savedAt:Date.now()}));}catch{/* Optional draft; paid snapshots remain on the server. */}
- },[ready,relationship,relationshipStage,relationshipQuestionId,participants,locale,productId,kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown]);
+  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,relationshipStage,relationshipQuestionId,participants,voiceStyle,consultationAttemptId:consultationAttemptId.current,savedAt:Date.now()}));}catch{/* Optional draft; paid snapshots remain on the server. */}
+ },[ready,relationship,relationshipStage,relationshipQuestionId,participants,voiceStyle,locale,productId,kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown]);
  function loginWithDraft(){
-  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,relationshipStage,relationshipQuestionId,participants,consultationAttemptId:consultationAttemptId.current,savedAt:Date.now()}));}catch{/* Optional pre-login draft only; paid input is stored on the server. */}
+  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,relationshipStage,relationshipQuestionId,participants,voiceStyle,tarotPlan,consultationAttemptId:consultationAttemptId.current,savedAt:Date.now()}));}catch{/* Optional pre-login draft only; paid input is stored on the server. */}
   loginForCurrentPage();
  }
  async function prepare(){
@@ -201,15 +213,16 @@ export default function Consultation(){
    }
    if(!consultationAttemptId.current)consultationAttemptId.current=crypto.randomUUID();
    try{const draft=JSON.parse(sessionStorage.getItem(loginDraftKey)||'null');if(draft)sessionStorage.setItem(loginDraftKey,JSON.stringify({...draft,consultationAttemptId:consultationAttemptId.current}));}catch{/* Optional intent restoration. */}
-   const data=await fortuneApi<{fortune:FortuneRecord}>('requests',{...(relationshipQuestionId?{relationshipQuestionId}:{}),...((relationship||relationshipStage)&&tarotOnly?{participants}:{}),locale,...browserReadingContext(siteLocale),consultationAttemptId:consultationAttemptId.current,birthDetails:{birthTime:extraTime,birthPlace},productId,consultationKind:kind.id,profileId,topicId:kind.id==='ask'?topicId:kind.topic,question:kind.question||kind.partner&&relationshipQuestionId?question:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',timeUnknown,...(jongCheck&&jongReply.best&&jongReply.worst?{jongCheck:{best:jongReply.best,worst:jongReply.worst,bestYears:jongCheck.best.map(y=>y.year),worstYears:jongCheck.worst.map(y=>y.year)}}:{}),...(kind.partner&&partnerId?{partnerProfileId:partnerId}:{})});
+   const data=await fortuneApi<{fortune:FortuneRecord}>('requests',{...(relationshipQuestionId?{relationshipQuestionId}:{}),...(locale==='ko'&&voiceStyle==='honorific'?{voiceStyle}:{}),...((relationship||relationshipStage)&&tarotOnly?{participants}:{}),locale,...browserReadingContext(siteLocale),consultationAttemptId:consultationAttemptId.current,birthDetails:{birthTime:extraTime,birthPlace},productId,consultationKind:kind.id,profileId,topicId:kind.id==='ask'?topicId:kind.topic,question:kind.question||kind.partner&&relationshipQuestionId?question:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',timeUnknown,...(jongCheck&&jongReply.best&&jongReply.worst?{jongCheck:{best:jongReply.best,worst:jongReply.worst,bestYears:jongCheck.best.map(y=>y.year),worstYears:jongCheck.worst.map(y=>y.year)}}:{}),...(kind.partner&&partnerId?{partnerProfileId:partnerId}:{}),...(tarotSpread?{tarotSpreadId:tarotSpread.id,tarotInputs:plannedInputs(tarotPlan,tarotSpread)}:{})});
    try{sessionStorage.removeItem(loginDraftKey);}catch{/* The server snapshot now owns the consultation input. */}
    trackEvent('consultation_start',{item_id:product.cdFeatureKey,service:'yeongnyangi'});
    consultationAttemptId.current='';
-   window.location.assign(data.fortune.paid?resultPath(data.fortune.id,siteLocale):checkoutPath(data.fortune,siteLocale));
+   // A v3 tarot order is not payable until the buyer picks cards on the result page (AWAITING_DRAW).
+   window.location.assign(data.fortune.paid||data.fortune.state==='AWAITING_DRAW'?resultPath(data.fortune.id,siteLocale):checkoutPath(data.fortune,siteLocale));
   }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginWithDraft();else setError(siteLocale!=='ko'?inputCopy.consultationError:e instanceof Error?e.message:inputCopy.consultationError);}
   finally{lock.current=false;setBusy(false);}
  }
- function chooseDomain(next:string){const first=consultationKinds[next][0];setKindId(first.id);setTopicId('general');setQuestion('');setDomain(next);setProductId(products.find(p=>next==='fusion'?p.readingKind!=='single':p.domain===next&&p.readingKind==='single')!.id);setPartnerId('');setError('');}
+ function chooseDomain(next:string){const first=defaultKind(next,siteLocale);setKindId(first.id);setTopicId('general');setQuestion('');setDomain(next);setProductId(products.find(p=>next==='fusion'?p.readingKind!=='single':p.domain===next&&p.readingKind==='single')!.id);setPartnerId('');setError('');}
  function chooseKind(id:string){const next=consultationKinds[domain].find(k=>k.id===id)!;setKindId(id);if(next.koOnly)setLocale('ko');setPartnerId('');setError('');if(!supportsKind(product,next))setProductId(products.find(p=>consultationDomain(p)===domain&&supportsKind(p,next))!.id);}
  function chooseRelationshipEngine(next:DomainId){const tarotKind=relationshipQuestionId==='contact'?'contact':relationshipQuestionId==='reunion'?'reunion':['feelings','flirting'].includes(relationshipQuestionId)?'feelings':'compatibility';setDomain(next);setKindId(next==='tarot'?tarotKind:'compatibility');setProductId(next+'_mackerel');setLocale('ko');setTopicId('relationship');setRelationshipStage('consultation');setError('');}
  if(relationshipStage&&relationshipStage!=='consultation')return <RelationshipJourney stage={relationshipStage} setStage={setRelationshipStage} questionId={relationshipQuestionId} onQuestion={(id,text)=>{setRelationshipQuestionId(id);setQuestion(text);}} participants={participants} onParticipants={setParticipants} profileState={profileState} partnerId={partnerId} onPartner={setPartnerId} onEngine={chooseRelationshipEngine}/>;
@@ -217,25 +230,27 @@ export default function Consultation(){
   {relationshipStage&&<button onClick={()=>setRelationshipStage('question')}>{relationshipCopy.change}</button>}
   <header className={styles.consultationHeader}><div><h1>{ui.title}</h1><p>{ui.intro}</p></div><Moon size={36} strokeWidth={1} aria-hidden="true"/></header>
   <ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/>
+  {locale==='ko'&&<div className={styles.kindChoices} role="group" aria-label={voiceStyleCopy.heading}>{(['banmal','honorific'] as const).map(value=><button key={value} type="button" aria-pressed={voiceStyle===value} disabled={busy} onClick={()=>setVoiceStyle(value)}><strong>{voiceStyleCopy[value]}</strong><span>{voiceStyleCopy[value==='banmal'?'banmalNote':'honorificNote']}</span></button>)}</div>}
   {siteLocale==='ko'&&<a className={styles.spiritEntry} href="/yeongnyangi/fortune/?mode=spirit"><img src="/assets/yeongnyangi/spirit/eastern-oracle.webp" width={64} height={68} alt=""/><span><strong>{spiritEntryCopy.title}</strong><br/>{spiritEntryCopy.description}</span></a>}
   <div className={styles.tabs} role="group" aria-label={siteLocale==='ko'?'운세 종류':ui.methodTitle}>{[...Object.entries(systemNames),['fusion','복합 운세']].map(([id,label])=><button key={id} aria-pressed={domain===id} onClick={()=>chooseDomain(id)}>{siteLocale==='ko'?label:localizedSystem(id,siteLocale)}</button>)}</div>
-  <div className={styles.kindChoices} role="group" aria-label={siteLocale==='ko'?'상담 종류':ui.summary}>{consultationKinds[domain].filter(item=>!item.koOnly||siteLocale==='ko').map(item=><button key={item.id} aria-pressed={kind.id===item.id} onClick={()=>chooseKind(item.id)}><strong>{kindLabel(item.id)}</strong>{siteLocale==='ko'&&<span>{item.description}</span>}</button>)}</div>
+  <div className={styles.kindChoices} role="group" aria-label={siteLocale==='ko'?'상담 종류':ui.summary}>{consultationKinds[domain].filter(item=>!item.koOnly||siteLocale==='ko').sort((a,b)=>Number(b.id===TAROT_SPREAD_KIND)-Number(a.id===TAROT_SPREAD_KIND)).map(item=><button key={item.id} aria-pressed={kind.id===item.id} onClick={()=>chooseKind(item.id)}><strong>{kindLabel(item.id)}</strong>{siteLocale==='ko'&&<span>{item.description}</span>}</button>)}</div>
 
   {relationship&&<div className={styles.systemDescription}><h2>{kind.label}</h2><p>{relationshipAdvice[domain as DomainId]}</p>{domain==='ziwei'&&<><p>{relationshipCopy.timeHint} <a href="/yeongnyangi/fortune/?domain=tarot&consultationKind=compatibility">타로 궁합 보기</a></p><p>{relationshipCopy.overseas}</p></>}</div>}
   {siteLocale!=='ko'?<div className={styles.systemDescription}><strong>{localizedSystem(domain,siteLocale)}</strong><p>{ui.method}</p></div>:domain==='fusion'?<p className={styles.systemDescription}>{fusionDescription(product)||'서로 다른 운세 체계의 공통점과 차이점을 구분해 깊이 읽어요.'}</p>:<div className={styles.systemDescription}><strong>{systemCopy?.cardTitle}</strong><p>{systemCopy?.description}</p><p>{systemCopy?.detail}</p></div>}
   {domain==='fusion'&&<p className={styles.systemDescription}>{ui.afterPayment}</p>}
-  {siteLocale==='ko'&&tarotOnly&&<TarotConsultationGuide kindId={kind.id} tier={product.fishId} chapterCount={preview.length}/>}
+  {siteLocale==='ko'&&tarotOnly&&!tarotSpread&&<TarotConsultationGuide kindId={kind.id} tier={product.fishId} chapterCount={preview.length}/>}
   <div className={styles.consultationDesk}>
    <aside className={styles.consultationGuide} aria-label={ui.summary}>
     <img className={styles.guideCat} src="/assets/yeongnyangi/profiles/welcome.webp" width={168} height={171} alt="Yeongnyangi"/>
     <h2>{ui.guideTitle}</h2><p>{ui.guideIntro}</p>
-    <dl className={styles.consultationSummary}><div><dt>{ui.summary}</dt><dd>{kindLabel(kind.id)} · {tierLabel(product)}</dd></div><div><dt>{ui.profile}</dt><dd>{tarotOnly?localizedSystem('tarot',siteLocale):selectedProfile?.name||inputCopy.pickerPrompt}</dd></div><div><dt>{ui.structure}</dt><dd>{preview.length} {ui.chapters}</dd></div><div><dt>{ui.methodTitle}</dt><dd>{siteLocale==='ko'?readingFeatures[domain]:localizedSystem(domain,siteLocale)}</dd></div><div><dt>{ui.paymentTitle}</dt><dd>{ui.payment} · {price(product.priceKRW)}</dd></div></dl>
+    <dl className={styles.consultationSummary}><div><dt>{ui.summary}</dt><dd>{tarotSpread?.title||kindLabel(kind.id)} · {tierLabel(product)}</dd></div><div><dt>{ui.profile}</dt><dd>{tarotOnly?localizedSystem('tarot',siteLocale):selectedProfile?.name||inputCopy.pickerPrompt}</dd></div><div><dt>{ui.structure}</dt><dd>{preview.length} {ui.chapters}</dd></div><div><dt>{ui.methodTitle}</dt><dd>{siteLocale==='ko'?readingFeatures[domain]:localizedSystem(domain,siteLocale)}</dd></div><div><dt>{ui.paymentTitle}</dt><dd>{ui.payment} · {price(product.priceKRW)}</dd></div></dl>
     <p className={styles.guideNote}><Sparkles size={16} aria-hidden="true"/>{ui.about}</p>
     {siteLocale==='ko'&&hasReviews&&<details className={styles.consultationReviews}><summary>네오 1:1 상담 실제 후기 보기</summary><p>네오가 사람 1:1 상담에서 받은 후기예요. 여기서 고르는 상담은 AI가 작성해요.</p><CustomerReviews limit={2} variant="inline"/></details>}
    </aside>
    <div className={`${styles.form} ${styles.consultationForm}`}>
    {relationship&&tarotOnly&&<><label>{relationshipCopy.self}<input maxLength={40} value={participants.self} onChange={e=>setParticipants({...participants,self:e.target.value})}/></label><label>{relationshipCopy.partner}<input maxLength={40} value={participants.partner} onChange={e=>setParticipants({...participants,partner:e.target.value})}/></label><p>{relationshipCopy.symbolism}</p></>}
-   {tarotOnly?<section className={styles.questionIntro} lang={siteLocale}><h2>{inputCopy.tarotHeading}</h2><p>{inputCopy.tarotIntro}</p>{guest&&<p>{inputCopy.loginHint}</p>}</section>:<>
+   {tarotSpread?<>{guest&&<p>{inputCopy.loginHint}</p>}<TarotSpreadPlanner question={question} onQuestion={setQuestion} plan={tarotPlan} onPlan={plan=>{setTarotPlan(plan);setTierNotice('');}} tier={product.fishId} disabled={busy} notice={tierNotice}
+    onTier={(fishId,cards)=>{const next=choices.find(item=>item.fishId===fishId);if(next){setProductId(next.id);setTierNotice(tarotSpreadCopy.tierRaised(fishName(fishId),cards));}}}/></>:tarotOnly?<section className={styles.questionIntro} lang={siteLocale}><h2>{inputCopy.tarotHeading}</h2><p>{inputCopy.tarotIntro}</p>{guest&&<p>{inputCopy.loginHint}</p>}</section>:<>
     <ProfilePicker state={profileState} locale={siteLocale}/>
     {!guest&&selectedProfile&&<div className={styles.birthDetails}>
     <label><input type="checkbox" checked={timeUnknown} onChange={e=>setTimeUnknown(e.target.checked)}/> {inputCopy.timeUnknown}</label>
@@ -250,7 +265,7 @@ export default function Consultation(){
     </fieldset>)}
     </section>}
    </>}
-   {(kind.question||kind.partner&&relationshipQuestionId)&&<section className={styles.questionSection} aria-label={askCopy.heading} lang={siteLocale}><h2>{tarotOnly?inputCopy.tarotHeading:askCopy.heading}</h2><p>{askCopy.intro}</p>
+   {!tarotSpread&&(kind.question||kind.partner&&relationshipQuestionId)&&<section className={styles.questionSection} aria-label={askCopy.heading} lang={siteLocale}><h2>{tarotOnly?inputCopy.tarotHeading:askCopy.heading}</h2><p>{askCopy.intro}</p>
    {kind.id==='ask'&&<><label htmlFor="consultation-topic">{askCopy.topic}</label><select id="consultation-topic" value={topicId} onChange={e=>{setTopicId(e.target.value);trackEvent('concern_selected',{service:'yeongnyangi',domain,topic_id:e.target.value});}}><option value="general">{askCopy.general}</option>{Object.keys(topicCatalog).map(id=><option value={id} key={id}>{askCopy.topics[id as keyof typeof topicCatalog]}</option>)}</select></>}
    <label htmlFor="consultation-question">{askCopy.question}</label><textarea id="consultation-question" rows={4} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder={tarotSpec?.prompt||askCopy.placeholder}/>
    {kind.id==='ask'&&siteLocale==='ko'&&<AskPeriodPicker question={question} onQuestion={setQuestion} disabled={busy}/>}
@@ -258,10 +273,10 @@ export default function Consultation(){
   <h2 className={styles.selectionHeading} lang={siteLocale}>{ui.depth}</h2>
   <p lang={siteLocale}>{ui.depthHint} {kind.question&&ui.questionHint}</p>
   {domain!=='fusion'&&<p lang={siteLocale} data-reading-depth-note>{readingDepthCopy(siteLocale).sharedTopics}</p>}
-  <div className={`${styles.fishes} ${domain==='fusion'?styles.fusionChoices:''}`} role="group" aria-label={siteLocale==='ko'?'생선 상품':ui.depth}>{choices.map(item=><button key={item.id} onClick={()=>setProductId(item.id)} aria-pressed={productId===item.id}>
-   <img src={siteLocale==='ko'?item.image:item.reactionAsset} alt="" width={240} height={108}/><strong>{tierLabel(item)}</strong><span className={styles.fishPrice}>{siteLocale==='ko'&&<LaunchPlannedPrice amount={plannedPriceFor(item.fishId,item.priceKRW)}/>}{price(item.priceKRW)}</span><span className={styles.fishScope}>{consultationManifest(item,kind,topicId).length} {ui.chapters}{productId===item.id&&<b>{ui.selected}</b>}</span>{domain!=='fusion'&&<small>{targetRange(item)} {ui.target}</small>}{readingTierDepth(item.fishId,siteLocale)?<small data-reading-tier-depth={item.fishId}>{readingTierDepth(item.fishId,siteLocale)}</small>:siteLocale==='ko'&&<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>}
+  <div className={`${styles.fishes} ${domain==='fusion'?styles.fusionChoices:''}`} role="group" aria-label={siteLocale==='ko'?'생선 상품':ui.depth}>{choices.map(item=><button key={item.id} onClick={()=>{setProductId(item.id);setTierNotice('');}} aria-pressed={productId===item.id} disabled={!!tarotSpread&&!tierAllowsSpread(item.fishId,tarotSpread)}>
+   <img src={siteLocale==='ko'?item.image:item.reactionAsset} alt="" width={240} height={108}/><strong>{tierLabel(item)}</strong><span className={styles.fishPrice}>{siteLocale==='ko'&&<LaunchPlannedPrice amount={plannedPriceFor(item.fishId,item.priceKRW)}/>}{price(item.priceKRW)}</span><span className={styles.fishScope}>{consultationManifest(item,kind,topicId).length} {ui.chapters}{productId===item.id&&<b>{ui.selected}</b>}</span>{domain!=='fusion'&&<small>{targetRange(item)} {ui.target}</small>}{tarotSpread&&!tierAllowsSpread(item.fishId,tarotSpread)&&tarotSpread.minTier&&<small>{tarotSpreadCopy.tierLocked(tarotSpread.cardCount,fishName(tarotSpread.minTier))}</small>}{readingTierDepth(item.fishId,siteLocale)?<small data-reading-tier-depth={item.fishId}>{readingTierDepth(item.fishId,siteLocale)}</small>:siteLocale==='ko'&&<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>}
   </button>)}</div>
-   <details className={styles.manifestPreview}><summary>{kindLabel(kind.id)} · {preview.length} {ui.chapters} · {ui.contents}</summary><ol>{preview.map((chapter,i)=>{
+   <details className={styles.manifestPreview}><summary>{tarotSpread?.title||kindLabel(kind.id)} · {preview.length} {ui.chapters} · {ui.contents}</summary><ol>{preview.map((chapter,i)=>{
     const head=v7PartHead(preview,i,siteLocale);
     return <li key={chapter.id}>{head&&<b className={styles.partHeading}>{head}</b>}{v7Label(chapter.titleKey,siteLocale)||(siteLocale==='ko'?chapter.title:`${localizedKind(kind.id,siteLocale)} · ${i+1}`)}</li>;
    })}</ol></details>

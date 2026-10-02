@@ -119,6 +119,7 @@
     return {
       id: item.id,
       name: item.name,
+      question: item.question || "",
       desc: item.desc || "",
       href: item.href || "",
       action: item.action || "",
@@ -135,7 +136,7 @@
       image: item.image || "",
       imageAlt: item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지"),
       tagged: true,
-      hay: norm([item.name, item.desc, item.price, item.keys].join(" "))
+      hay: norm([item.name, item.question, item.desc, item.price, item.keys].join(" "))
     };
   });
 
@@ -461,6 +462,20 @@
     visibleList.forEach(function (item) {
       var node = openerNode(item, "fortune-gateway__rec");
       appendServiceImage(node, item, "fortune-gateway__rec-media");
+      /* 질문 우선 카드: 제목은 고객 질문, 상품명은 아래 작은 줄로 내린다.
+         상품명([data-pvw-title])은 미리보기 시트 제목이라 그대로 남긴다. */
+      if (item.question) {
+        node.classList.add("fortune-gateway__rec--q");
+        var q = document.createElement("span");
+        q.className = "fortune-gateway__rec-q";
+        var qKey = "home.svcQuestion." + item.id;
+        q.setAttribute("data-cd-trans", "");
+        q.setAttribute("data-key", qKey);
+        q.setAttribute("data-cd-origin-text", item.question);
+        q.classList.add("notranslate");
+        q.textContent = translate(qKey, item.question);
+        node.appendChild(q);
+      }
       var name = document.createElement("span");
       name.className = "fortune-gateway__rec-name";
       /* 시트 제목은 _pvwTileText 가 [data-pvw-title] 의 textContent 로 읽는다. 배지(<b>)를
@@ -491,6 +506,8 @@
         desc.textContent = translate(descKey, item.desc);
         node.appendChild(desc);
       }
+      // 질문 카드는 질문 → 설명 → 상품명(배지) 순서다.
+      if (item.question) node.appendChild(name);
 
       var foot = document.createElement("span");
       foot.className = "fortune-gateway__rec-foot";

@@ -2,7 +2,7 @@ import { connectDb, withMongoRetry } from '../lib/db.js';
 import { YeongnyangiRequest } from './repository.js';
 import { hasRequestAccess } from './access-methods.js';
 
-const terminal = row => !row || ['COMPLETED','REFUNDED','AWAITING_FOLLOWUP'].includes(row.state) || ['PAYMENT_NOT_ACTIVE','GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED'].includes(row.errorCode) ||
+const terminal = row => !row || ['COMPLETED','REFUNDED','AWAITING_FOLLOWUP','AWAITING_DRAW'].includes(row.state) || ['PAYMENT_NOT_ACTIVE','GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED'].includes(row.errorCode) ||
   (row.errorCode==='AUTOMATIC_RECOVERY_STOPPED' && !(row.snapshot?.manifest?.length && row.chapters.length===row.snapshot.manifest.length));
 
 // Payment confirmation only publishes an identifier. The consumer re-reads the

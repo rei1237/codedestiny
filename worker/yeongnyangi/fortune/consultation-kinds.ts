@@ -9,13 +9,17 @@ import {relationshipManifest} from './relationship-manifest';
 import {isRelationshipReading} from './relationship-contract';
 import {tarotConsultations,tarotConsultation,type TarotConsultationId} from './tarot/consultation-contract';
 import {tarotConsultationManifest} from './tarot/consultation-manifest';
+import {TAROT_SPREAD_KIND,tarotSpreadManifest} from './tarot/spread-v3';
+import {getYeongnyangiSpread} from '../../../lib/tarot/yeongnyangi-spread-catalog.mjs';
 
 export type ConsultationKind = {id:string;label:string;description:string;topic:string;partner?:boolean;professional?:boolean;question?:boolean;koOnly?:boolean};
 const ask:ConsultationKind={id:'ask',label:'무엇이든 물어보기',description:'선택한 운세로 궁금한 이야기 살펴보기',topic:'general',question:true};
 const kind=(id:string,label:string,description:string,topic='general',extra:Partial<ConsultationKind>={}):ConsultationKind=>({id,label,description,topic,...extra});
 const compatibility=kind('compatibility','두 사람의 궁합','끌림부터 함께 사는 조건까지','relationship',{partner:true,question:true,koOnly:true});
 const tarotKinds:ConsultationKind[]=(Object.entries(tarotConsultations) as [TarotConsultationId,(typeof tarotConsultations)[TarotConsultationId]][])
- .map(([id,spec])=>kind(id,spec.label,spec.prompt,spec.topic,{question:true,koOnly:spec.koOnly}));
+ .map(([id,spec])=>kind(id,spec.label,spec.prompt,spec.topic,{question:true,koOnly:spec.koOnly}))
+ // Korean v3: the question picks a catalog spread; the order form sends tarotSpreadId with this kind.
+ .concat(kind(TAROT_SPREAD_KIND,'질문으로 고르는 배열','고민에 맞는 카드 배열을 영냥이가 골라 줘요','general',{question:true,koOnly:true}));
 // Menus restored from SoulCat src/data/fortune.ts; calculations and purchases stay in Code Destiny.
 export const consultationKinds:Record<string,ConsultationKind[]>={
  saju:[kind('personal','사주 해석','기질과 삶의 바탕'),kind('compatibility','궁합','두 사람의 명식과 관계의 차이','relationship',{partner:true}),kind('timing','대운','현재 대운과 다음 전환','luck',{professional:true}),kind('love','연애와 인연','마음이 움직이는 방식','love'),kind('work','일과 적성','내 힘이 쓰이는 자리','work'),kind('money','재물','쌓고 지키는 습관','money'),ask],
@@ -45,9 +49,11 @@ const focusedTitles:Record<string,string[]>={
  work:['재능과 일하는 방식','역량이 살아나는 환경','책임과 협력의 방식','반복되는 업무 패턴','강점과 부담','성장에 필요한 조건','선택지별 장단점','변화를 준비하는 방법','소진과 회복','상충하는 신호','현실에서 점검할 기준'],
  money:['수입과 자원의 바탕','일과 재물의 연결','쌓고 지키는 습관','지출이 늘어나는 조건','안정과 확장의 선택','협력과 책임','반복되는 판단 패턴','부담을 줄이는 방법','다른 선택의 가능성','해석의 한계','현실에서 점검할 기준'],
 };
-export function consultationManifest(p:Product,k?:ConsultationKind,topic='general'){
+export function consultationManifest(p:Product,k?:ConsultationKind,topic='general',spread?:Parameters<typeof tarotSpreadManifest>[1]){
  const tarotSpec=p.domain==='tarot'&&p.readingKind==='single'?tarotConsultation(k?.id):undefined;
  if(tarotSpec)return tarotConsultationManifest(p,k!.id as TarotConsultationId);
+ // Without a chosen spread (menus, chapter counts) the plan is the three-card default; prepare passes the real one.
+ if(p.domain==='tarot'&&p.readingKind==='single'&&k?.id===TAROT_SPREAD_KIND)return tarotSpreadManifest(p,spread||getYeongnyangiSpread('yn_knot_three')!);
  if(isRelationshipReading(p.domain,k?.id)&&p.readingKind==='single')return relationshipManifest(p,k!);
  // v7 owns its own titles, focus and fact selectors per kind, so it branches before the v6 topic mapping.
  // v7Applies is fail-closed: it needs READING_V7_ENABLED, a single-system v6 product, a v7 tier and a v7 kind.

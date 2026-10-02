@@ -232,8 +232,7 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 .char.ln{width:clamp(140px,24vh,270px);height:auto;aspect-ratio:1/1;max-height:none;bottom:clamp(180px,26vh,250px);background-repeat:no-repeat}
 .char.lns{width:clamp(180px,29vh,340px);height:auto;aspect-ratio:441/705;max-height:none;bottom:clamp(172px,24vh,235px);background-repeat:no-repeat}
 .char.heal{height:clamp(230px,37vh,420px);max-height:none;bottom:clamp(175px,25vh,240px)}
-.char.baek{height:clamp(190px,31vh,350px);max-height:none;bottom:clamp(175px,25vh,240px)}
-.char.pje{height:clamp(470px,80vh,800px);max-height:none;bottom:clamp(60px,10vh,100px)}
+.char.pje{height:clamp(470px,80vh,800px);max-height:none;bottom:clamp(60px,10vh,100px);-webkit-mask-image:linear-gradient(to bottom,#000 74%,transparent 87%);mask-image:linear-gradient(to bottom,#000 74%,transparent 87%)}
 /* 윤달(개편 2026-10): 허리까지 흉상이라 연이·서한비와 머리 크기를 맞추려 1.45배 키우고, 늘어난 만큼 아래로 내리되 턱이 대사창 위에 오게 둔다(허리는 화면 밖) */
 .char.yun{height:min(119vh,1190px);max-height:none;bottom:max(-21vh,-210px)}
 .char.muTrue{height:clamp(260px,43vh,490px);max-height:none;bottom:clamp(160px,23vh,225px)}
@@ -248,7 +247,7 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 @media (max-width:760px){.char{height:52vh;width:min(32vw,150px);object-fit:contain;object-position:bottom;bottom:clamp(200px,26vh,252px)}.char.pig{height:38vh}.char.slotL{left:0}.char.slotR{right:0}
   /* 모바일: 대화창(하단 min-height~130px + 패딩/세이프에어리어)이 캐릭터 하반신을 덮던 문제 수정.
      기본 .char 바닥을 대화창 위로 올리고(cast 클래스 없는 인간 연이 포함), 서있는 img 캐스트는 짧은 폰 방어용 px 하한 상향 + 발끝 페이드 마스크로 잔여 겹침을 자연 소멸시킨다. */
-  .char.moka,.char.crow,.char.rab,.char.ln,.char.lns,.char.heal,.char.baek,.char.neoh,.char.yun{-webkit-mask-image:linear-gradient(to bottom,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,#000 90%,transparent 100%)}
+  .char.moka,.char.crow,.char.rab,.char.ln,.char.lns,.char.heal,.char.neoh,.char.yun{-webkit-mask-image:linear-gradient(to bottom,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,#000 90%,transparent 100%)}
   .char.pje,.char.muTrue{-webkit-mask-image:linear-gradient(to bottom,#000 93%,transparent 100%);mask-image:linear-gradient(to bottom,#000 93%,transparent 100%)}
   .char.neo{width:min(31vh,32vw);height:min(31vh,32vw);bottom:clamp(176px,21vh,214px);background-size:418% 418%;background-position:2.306% 3.145%}
   .char.sheet{height:min(38vh,32vw);width:min(38vh,32vw)}
@@ -261,7 +260,6 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
   .char.ln{width:min(20vh,26vw);bottom:clamp(200px,26vh,250px)}
   .char.lns{width:min(24vh,30vw);bottom:clamp(198px,26vh,248px)}
   .char.heal{height:min(31vh,36vw);bottom:clamp(198px,26vh,248px)}
-  .char.baek{height:min(27vh,33vw);bottom:clamp(198px,26vh,248px)}
   .char.pje{height:min(30vh,236px);width:min(44vw,180px);bottom:clamp(220px,27vh,280px);-webkit-mask-image:linear-gradient(to bottom,#000 74%,transparent 87%);mask-image:linear-gradient(to bottom,#000 74%,transparent 87%)}
   .char.muTrue{height:min(35vh,42vw);bottom:clamp(190px,24vh,238px)}}
 /* L2 effects */
@@ -321,9 +319,6 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 .dlg[data-spk="rab"] .spk i{background:#14102e;color:#cfc6ff;border:1px solid rgba(150,130,235,.6);border-radius:6px}
 .dlg[data-spk="rab"] .spk b{color:#b9a9ff}
 .dlg[data-spk="rab"] .body{color:rgba(226,221,246,.92)}
-.dlg[data-spk="baek"]{border-color:rgba(170,190,230,.5)}
-.dlg[data-spk="baek"] .spk i{background:#eef3fa;color:#2c3c5c;border:1px solid rgba(170,190,230,.6);border-radius:6px}
-.dlg[data-spk="baek"] .spk b{color:#cfdcf2}
 .dlg[data-spk="pje"]{border-color:rgba(200,40,70,.55);background:linear-gradient(135deg,rgba(30,6,12,.72),rgba(8,2,5,.94))}
 .dlg[data-spk="pje"] .spk i{background:#1a060c;color:#ff9eb0;border:1px solid rgba(220,60,90,.6);border-radius:6px}
 .dlg[data-spk="pje"] .spk b{color:#ff8fa3}
@@ -653,8 +648,6 @@ var CAFE =PROD?"https://assets.code-destiny.com/DestinyCafe/"     :"/codedestiny
 var WAR  =PROD?"https://assets.code-destiny.com/DestinyWar/"      :"/codedestinyassets/DestinyWar/";
 var MUSIC=PROD?"https://music.code-destiny.com/DestinyWar/"       :"/codedestinyassets/music/DestinyWar/";
 var MED  =PROD?"https://music.code-destiny.com/Meditation/"       :"/codedestinyassets/music/Meditation/";
-var DNOVA=PROD?"https://music.code-destiny.com/DEST1NOVA/"        :"/codedestinyassets/music/DEST1NOVA/";
-var LUNA =PROD?"https://music.code-destiny.com/lunabloom/"        :"/codedestinyassets/music/lunabloom/";
 var DCAFE=PROD?"https://music.code-destiny.com/DestinyCafe/"      :"/codedestinyassets/music/DestinyCafe/";
 function enc(p){return p.split("/").map(encodeURIComponent).join("/");}
 
@@ -703,8 +696,6 @@ var RAB_SHEET="/images/novel/rab-sheet.webp";     /* 4×2, 셀 401×555 */
 var LNS_SHEET="/images/novel/lunas-sheet.webp";   /* 3×2, 셀 441×705 */
 var LNS_HEAL={h1:NOVEL+enc("루나 언니 회복1-Photoroom.webp"),h2:NOVEL+enc("루나 언니 회복2-Photoroom.webp"),h3:NOVEL+enc("루나 언니 회복3-Photoroom.webp"),
   h4:NOVEL+enc("루나 언니 회복4-Photoroom.webp"),h5:NOVEL+enc("루나 언니 회복5-Photoroom.webp"),h6:NOVEL+enc("루나 언니 회복6-Photoroom.webp")};
-var BAEK={base:NOVEL+enc("백문 기본-Photoroom.webp"),read:NOVEL+enc("백문 독서-Photoroom.webp"),magic:NOVEL+enc("백문 마법-Photoroom.webp"),
-  lib:NOVEL+enc("백문 도서관-Photoroom.webp"),lib2:NOVEL+enc("백문 도서관2-Photoroom.webp"),lib4:NOVEL+enc("백문 도서관4-Photoroom.webp"),lib5:NOVEL+enc("백문 도서관5-Photoroom.webp")};
 /* PJE = 서한비(徐寒霏). 표시명은 서한비지만 아래 파일명은 R2 실물이라 구명 「박지은」을 유지한다 — 바꾸면 전 컷 404. */
 var PJE={base:NOVEL+enc("박지은 기본.webp"),blank:NOVEL+enc("박지은 무표정.webp"),talk:NOVEL+enc("박지은 말함.webp"),talk2:NOVEL+enc("박지은 말함2.webp"),
   cynic:NOVEL+enc("박지은 냉소.webp"),mock:NOVEL+enc("박지은 조롱.webp"),lure:NOVEL+enc("박지은 유혹.webp"),angry:NOVEL+enc("박지은 화남.webp"),mad:NOVEL+enc("박지은 광기.webp")};
@@ -778,6 +769,11 @@ var BG={
   gongmang:"/images/novel/remaster/gongmang-void-v1.webp",
   worldTree:"/images/novel/remaster/world-tree-v1.webp",
   cherryDay:"/images/novel/remaster/cherry-riverbank-day-v1.webp",
+  zwPalace:"/images/novel/remaster/ziwei-palace-v1.webp",
+  zwMarket:"/images/novel/remaster/ziwei-lantern-market-v1.webp",
+  zwRoom:"/images/novel/remaster/ziwei-mirror-room-v1.webp",
+  zwForge:"/images/novel/remaster/ziwei-iron-temple-v1.webp",
+  zwThrone:"/images/novel/remaster/ziwei-throne-hall-v1.webp",
   /* 결말 확장(EP.39~40) — 네오 구속 2종·운명의 신 선택(타로) 1종. R2 루트 경로(background/ 아님) */
   neoBound2:NOVEL+enc("갇힌 네오2.webp"),
   neoBound3:NOVEL+enc("갇힌 네오3.webp"),
@@ -798,14 +794,6 @@ var TRK={
   riverEnter2:NOVEL+enc("사주의 강 진입2.mp3"),
   siksangEnter:NOVEL+enc("식상의 섬 진입.mp3"),
   stillLake:MED+enc("Still Lake Mind.mp3"),
-  /* DEST1NOVA 공연(식상의 섬 노바 스테이지) — music 호스트, 1집 루트 / 2집 하위폴더 */
-  novaFlex:DNOVA+enc("오행 FLEX.mp3"),
-  novaSoda:DNOVA+enc("운세 soda pop.mp3"),
-  novaTitle:DNOVA+enc("DEST1NOVA 2집/LUCKY RUSH_Title.mp3"),
-  novaRider:DNOVA+enc("DEST1NOVA 2집/Fate Rider.mp3"),
-  novaFlame:DNOVA+enc("DEST1NOVA 2집/불꽃의 운명.mp3"),
-  /* LunaBloom(선배 아티스트·귀인 NPC) — 음악방 lunabloom 폴더 */
-  lunaGuest:LUNA+enc("귀인 NPC Key.mp3"),
   /* 완결부 신규 트랙 */
   jaeEnter:NOVEL+enc("재성의 섬 진입.mp3"),
   riverCross:NOVEL+enc("강을 건너는 두 사람.mp3"),
@@ -821,7 +809,6 @@ var TRK={
   /* 운명 찻집(DestinyCafe) — 결혼식처럼 밝은 톤이 필요한 장면 전용, 장면 전환마다 다른 곡으로 교체 */
   teaHouse:DCAFE+enc("Moonlit Tea House.mp3"),
   teaKind:DCAFE+enc("Kindness.mp3"),
-  teaMoonlight:DCAFE+enc("Moonlight Tea.mp3"),
   /* 연주곡(2026-10-02 개편) — 가사 등록부(musicLyrics.ts)에 없는 곡만. 보컬곡은 새로 쓰지 않는다 */
   crystalGarden:MED+enc("Crystal Garden.mp3"),
   templeDawn:MED+enc("Dawn in the Temple.mp3"),
@@ -852,8 +839,8 @@ var TRK={
    신규 트랙은 로컬 dev 미러에 없어 404가 나므로 반드시 여기 등록한다. */
 var RIVER_FALLBACK={riverEnter:"riverEnter2",riverEnter2:"stillLake",
   warTheme:"crisis2",templeGate:"stillLake",memWater:"stillLake",
-  starsName:"stillLake",zeroPoint:"stillLake",rainWindow:"room",firstLight:"stillLake",lunaGuest:"stillLake",
-  teaHouse:"daily",teaKind:"daily",teaMoonlight:"daily",
+  starsName:"stillLake",zeroPoint:"stillLake",rainWindow:"room",firstLight:"stillLake",
+  teaHouse:"daily",teaKind:"daily",
   crystalGarden:"stillLake",templeDawn:"stillLake",fireFestival:"siksangEnter",flowingLight:"stillLake",
   focusFlow:"room",innerFlame:"siksangEnter",midnightPulse:"crisis",moonDawn:"stillLake",forestTemple:"stillLake",
   glassBox:"room",riverReturn:"riverCross",sacredFlame:"siksangEnter",starDrift:"stillLake",lakeDawn:"stillLake",
@@ -895,8 +882,6 @@ YEON.surprise=YEON.fear;YEON.shock=YEON.fear;YEON.sad=YEON.disappoint;YEON.worry
 NEO_CELL.angry=NEO_CELL.shock;NEO_CELL.sad=NEO_CELL.calm;NEO_CELL.think=NEO_CELL.calm;NEO_CELL.serene=NEO_CELL.calm;NEO_CELL.fear=NEO_CELL.shock;
 /* 무성 본모습(MU_TRUE): 무효 키가 그림자 실루엣으로 되돌아가지 않게 본모습 컷으로 */
 MU_TRUE.serious=MU_TRUE.calm;MU_TRUE.surprise=MU_TRUE.think;MU_TRUE.smile=MU_TRUE.laugh;MU_TRUE.soft=MU_TRUE.calm;MU_TRUE.shock=MU_TRUE.think;
-/* 백문(BAEK): 강의=독서 포즈, 그 외 무효→기본 */
-BAEK.lecture=BAEK.read;BAEK.sigh=BAEK.base;BAEK.surprise=BAEK.base;BAEK.shock=BAEK.base;BAEK.cry=BAEK.base;BAEK.talk=BAEK.base;
 /* 서한비(PJE): 흔들림=가면 벗겨진 무표정. 울음·슬픔·옅은 미소·결의는 개편(2026-10) 레포 로컬 컷 — 울음이 광기 그림으로 나오던 별칭을 대신한다 */
 PJE.waver=PJE.blank;PJE.cry="/images/novel/remaster/pje/cry.webp";PJE.sad="/images/novel/remaster/pje/sad.webp";PJE.smile="/images/novel/remaster/pje/smile.webp";PJE.resolve="/images/novel/remaster/pje/resolve.webp";PJE.think=PJE.blank;PJE.surprise=PJE.blank;PJE.serious=PJE.blank;
 /* 꽃돼지 연이(PIG_CELL) 보강 — shock/serious는 시트에 없어 neutral 폴백되던 것 교정 */
@@ -923,7 +908,6 @@ function spriteMaster(who,expr,form){
     return {url:LNS_SHEET,cls:"lns",sheet:true,size:"300% 200%",pos:(LNS_CELL[expr]||LNS_CELL.tired)};
   }
   if(who==="rab")return {url:RAB_SHEET,cls:"rab",sheet:true,size:"400% 200%",pos:(RAB_CELL[expr]||RAB_CELL.sly)};
-  if(who==="baek")return {url:(BAEK[expr]||BAEK.base),cls:"baek"};
   if(who==="pje")return {url:(PJE[expr]||PJE.base),cls:"pje"};
   if(who==="moka")return {url:MOKA_SHEET,cls:"moka mokaSheet",sheet:true,size:"300% 200%",pos:(MOKA_CELL[expr]||MOKA_CELL.base)};
   if(who==="crow")return {url:(expr==="alt"?CROW.alt:CROW.base),cls:"crow"};
@@ -955,7 +939,7 @@ var S={screen:"enter",ep:0,bi:0,auto:false,skip:false,bgmOn:true,bgmKey:null,for
    구간을 통째로 읽는다. 그래서 모습은 상태가 아니라 (화, 컷)에서 정해지는 값으로 다루고, 모든 진입
    경로가 formAt() 하나만 쓴다. 정본 마커 위치 — scripts/verify-novel-runtime.mjs 가 정본 비트를 전수
    스캔해 이 표와 대조한다. 표는 npm run novel:build 가 정본에서 다시 쓴다(손으로 고치지 말 것). */
-var FORM_MARKS=[{"ep":1,"bi":0,"form":"pig"},{"ep":31,"bi":59,"form":"human"}];
+var FORM_MARKS=[{"ep":1,"bi":0,"form":"pig"},{"ep":31,"bi":81,"form":"human"}];
 function formAt(ep,bi){
   var form="human";
   for(var i=0;i<FORM_MARKS.length;i++){
@@ -1584,12 +1568,12 @@ var charLayer=document.getElementById("charLayer");
    top-level b.x(표정)로 동기화. 엔진이 원래 읽지 않던 표정 데이터를 되살려 "대화 중 화자가
    안 보이는" 버그를 전 에피소드에서 근본 해결. n/sys/luna는 스프라이트 대상이 아니라 제외. */
 var SLOT_PREF={yeon:["l","c","r"],neo:["c","r"],moka:["c","r"],crow:["r","c"],mirror:["r","c"],mu:["c","r"],
-  ln:["r","c","l"],lns:["c","r"],rab:["r","c"],baek:["c","r"],pje:["c","r"],tiger:["r","c"],yun:["r","c"]};
-var EXPR_SYNC={yeon:1,neo:1,moka:1,crow:1,ln:1,lns:1,rab:1,baek:1,pje:1,tiger:1,yun:1,mu:1}; /* 표정 변형이 있는 캐릭터만 표정 동기화(mirror=형태토글 제외. mu는 x 있을 때만 본모습 컷) */
+  ln:["r","c","l"],lns:["c","r"],rab:["r","c"],pje:["c","r"],tiger:["r","c"],yun:["r","c"]};
+var EXPR_SYNC={yeon:1,neo:1,moka:1,crow:1,ln:1,lns:1,rab:1,pje:1,tiger:1,yun:1,mu:1}; /* 표정 변형이 있는 캐릭터만 표정 동기화(mirror=형태토글 제외. mu는 x 있을 때만 본모습 컷) */
 function beatSpeakerWho(b){
   var s=b.s;
   if(s==="geo")return "mirror";
-  if(s==="yeon"||s==="neo"||s==="mu"||s==="moka"||s==="crow"||s==="ln"||s==="lns"||s==="rab"||s==="baek"||s==="pje"||s==="tiger"||s==="yun")return s;
+  if(s==="yeon"||s==="neo"||s==="mu"||s==="moka"||s==="crow"||s==="ln"||s==="lns"||s==="rab"||s==="pje"||s==="tiger"||s==="yun")return s;
   return null;
 }
 function slotOfWho(who){
@@ -1652,7 +1636,7 @@ function stageBeat(b){
   // active = speaker
   var spk=b.s;
   if(spk==="geo")S.active="mirror";
-  else if(spk==="yeon"||spk==="neo"||spk==="mu"||spk==="moka"||spk==="crow"||spk==="ln"||spk==="lns"||spk==="rab"||spk==="baek"||spk==="pje"||spk==="tiger"||spk==="yun")S.active=spk;
+  else if(spk==="yeon"||spk==="neo"||spk==="mu"||spk==="moka"||spk==="crow"||spk==="ln"||spk==="lns"||spk==="rab"||spk==="pje"||spk==="tiger"||spk==="yun")S.active=spk;
   autoStageSpeaker(b); // 화자가 슬롯에 없으면 자동 배치 + 표정 동기화(핵심 가시성 수정)
   updateActive();
 }
@@ -1697,20 +1681,21 @@ function updateActive(){
 
 /* --- dialogue + typewriter --- */
 var ICON={yeon:"연",neo:"NEO",mu:"무",geo:"?",moka:"모카",crow:"까악",luna:"루나",n:"달",sys:"코드",
-  ln:"루나",lns:"언니",rab:"청",baek:"백문",pje:"서",tiger:"虎",god:"運",yun:"윤",heuk:"黑"};
+  ln:"루나",lns:"언니",rab:"청",pje:"서",tiger:"虎",god:"運",yun:"윤",heuk:"黑"};
 var NAME={yeon:"연이",neo:"네오",mu:"무성",geo:"거울 속 연이",moka:"모카",crow:"까마귀",luna:"루나블룸",n:"",sys:"",
-  ln:"루나",lns:"루나 언니",rab:"청토끼",baek:"백문",pje:"서한비",tiger:"검은 호랑이",god:"운명의 신",yun:"윤달",heuk:"흑월"};
+  ln:"루나",lns:"루나 언니",rab:"청토끼",pje:"서한비",tiger:"검은 호랑이",god:"운명의 신",yun:"윤달",heuk:"흑월"};
 function showDialogue(b){
   document.getElementById("player").dataset.shot=b.shot||"medium";
   clearTimeout(typeTimer);
   var spk=b.s||"n";
   dlg.dataset.spk=spk;dlg.classList.toggle("impact",!!b.im);
-  spkIcon.textContent=ICON[spk]||"달";spkName.textContent=NAME[spk]||"";
+  /* nm: 이름을 아직 모르는 인물의 표시명(예: 옆집 여자) — 화자 키·스프라이트는 그대로 */
+  spkIcon.textContent=b.nm?"?":(ICON[spk]||"달");spkName.textContent=b.nm||NAME[spk]||"";
   fullText=b.t||"";shownLen=0;dlgBody.replaceChildren(document.createTextNode(""));
   dlg.dataset.done="false";dlg.dataset.typing="true";S.typing=true;
   // log + 자동 책갈피
   /* 로그는 openLog 가 마지막 60줄만 그린다 — 전체 비트를 통째로 들고 있을 이유가 없어 상한을 둔다. */
-  LOG.push({s:spk,t:fullText});
+  LOG.push({s:spk,t:fullText,nm:b.nm});
   if(LOG.length>LOG_MAX)LOG.splice(0,LOG.length-LOG_MAX);
   saveBookmark(S.ep,S.bi);
   if(S.reduce||S.skip){finishType();return;}
@@ -2204,7 +2189,7 @@ function openLog(){
   var list=document.getElementById("logList");list.innerHTML="";
   LOG.slice(-60).forEach(function(r){
     var d=document.createElement("div");d.className="logRow "+(r.s==="n"||r.s==="sys"?"n":"");
-    d.innerHTML='<span class="who">'+(NAME[r.s]||"")+'</span>'+escapeHtml(r.t);
+    d.innerHTML='<span class="who">'+escapeHtml(r.nm||NAME[r.s]||"")+'</span>'+escapeHtml(r.t);
     list.appendChild(d);
   });
   openOv("logOv");list.scrollTop=list.scrollHeight;

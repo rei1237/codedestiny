@@ -16,7 +16,7 @@ try{
   try{
    f.state.prepareConsultation=(input,row)=>createConsultation(input.question,input.topicId,consultationClock(input.timezone,new Date('2026-09-22T00:00:00Z')),row.manifest);
    await f.page.goto(base+'/');
-   const cta=f.page.getByRole('link',{name:'내 고민부터 골라보기',exact:true});await cta.waitFor();
+   const cta=f.page.getByRole('link',{name:'지금 궁금한 질문 고르기',exact:true});await cta.waitFor();
    const box=await cta.boundingBox();assert.ok(box&&box.y>=0&&box.y+box.height<=844,`CTA is in first viewport at ${width}`);
    assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    await f.page.screenshot({path:`build-cache/yeongnyangi-consultation-ui/home-${width}.png`});

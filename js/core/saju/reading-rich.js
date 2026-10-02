@@ -9,7 +9,7 @@
   var FAMILY_MEANING = {same:'나와 같은 기운 · 동료와 자기 힘', parent:'나를 돕는 기운 · 배움과 후원', drain:'내가 내보내는 기운 · 표현과 재능', wealth:'내가 다스리는 기운 · 재물과 현실 성과', control:'나를 다스리는 기운 · 책임과 조직'};
   var POS = [['y','g','년간'],['y','j','년지'],['m','g','월간'],['m','j','월지'],['d','g','일간'],['d','j','일지'],['h','g','시간'],['h','j','시지']];
   var SEASON = {'寅':'봄','卯':'봄','辰':'봄','巳':'여름','午':'여름','未':'여름','申':'가을','酉':'가을','戌':'가을','亥':'겨울','子':'겨울','丑':'겨울'};
-  var SEASON_TEMP = {'여름':4,'봄':2,'가을':-2,'겨울':-4};
+  var BRANCH_TEMP = {'子':-4,'丑':-4,'寅':-1,'卯':1,'辰':2,'巳':3,'午':4,'未':4,'申':1,'酉':-1,'戌':-2,'亥':-3};
   var CHAR_TEMP = {fire:1.5, water:-1.5, wood:0.5, metal:-0.5, earth:0};
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (ch) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]; }); }
@@ -52,11 +52,11 @@
     });
     return {rows:rows, total:total, dayEl:dayEl};
   }
-  /* 조후 구성 — 엔진 analyzeJohu 와 같은 규칙(계절 기본값 + 글자별 온도, 습·조 개수). */
+  /* 조후 구성 — 엔진 analyzeJohu 와 같은 규칙(월지별 기본 온도 + 글자별 온도, 습·조 개수). */
   function johuParts(p, L) {
     L = L || root;
     if (!p || !p.m || !p.m.j) return null;
-    var season = SEASON[p.m.j] || '봄', total = SEASON_TEMP[season], moist = 0, dry = 0, rows = [];
+    var season = SEASON[p.m.j] || '봄', base = p.m.j in BRANCH_TEMP ? BRANCH_TEMP[p.m.j] : 2, total = base, moist = 0, dry = 0, rows = [];
     POS.forEach(function (pos) {
       var c = p[pos[0]] && p[pos[0]][pos[1]], el = c ? elOf(L, c) : null;
       if (!c) return;
@@ -65,7 +65,7 @@
       total += t; moist += m; dry += d;
       rows.push({key:pos[0], label:pos[2], char:c, el:el, temp:t, moist:m, dry:d});
     });
-    return {season:season, seasonTemp:SEASON_TEMP[season], rows:rows, total:total, moist:moist, dry:dry};
+    return {season:season, seasonTemp:base, rows:rows, total:total, moist:moist, dry:dry};
   }
   function powerMatches(parts, power) { return !!(parts && power && parts.total === power.score); }
   function johuMatches(parts, johu) { return !!(parts && johu && Math.abs(parts.total - johu.score) < 1e-9 && parts.moist === johu.moistCnt && parts.dry === johu.dryCnt); }
@@ -84,17 +84,27 @@
       '<figcaption><strong>' + esc(o.names[at]) + '</strong> · ' + esc(o.caption) + '</figcaption></figure>';
   }
   // 표 칸은 기본 줄바꿈 없음(360px 에서 '금(金)'·'+13' 이 글자 중간에서 끊기던 문제). 긴 문장 칸만 줄바꿈을 허용하되 '수(水)' 같은 한글(한자) 묶음은 붙여 둔다.
-  function cellHtml(cell, i) {
+  function cellHtml(cell, i, label) {
     var t = String(cell), long = t.length > 12, wrap = long ? ' class="saju-table__wrap"' : '';
     var body = long ? esc(t).replace(/([가-힣]+\([一-鿿]+\))/g, '<span class="saju-table__keep">$1</span>') : esc(t);
-    return i === 0 ? '<th scope="row"' + wrap + '>' + body + '</th>' : '<td' + wrap + '>' + body + '</td>';
+    return i === 0 ? '<th scope="row"' + wrap + '>' + body + '</th>' : '<td' + (label ? ' data-label="' + esc(label) + '"' : '') + wrap + '>' + body + '</td>';
   }
+  // 네 칸 이상인 표는 좁은 화면에서 행마다 카드로 쌓는다(칸 이름은 data-label). 360px 에서 오른쪽 칸이 잘리던 문제.
   function table(caption, head, rows, foot) {
-    return '<div class="saju-table-wrap"><table class="saju-table"><caption>' + esc(caption) + '</caption><thead><tr>' + head.map(function (h) { return '<th scope="col">' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
-      rows.map(function (r) { return '<tr>' + r.map(cellHtml).join('') + '</tr>'; }).join('') + '</tbody>' +
-      (foot ? '<tfoot><tr>' + foot.map(cellHtml).join('') + '</tr></tfoot>' : '') + '</table></div>';
+    var stack = head.length >= 4;
+    var row = function (r) { return '<tr>' + r.map(function (c, i) { return cellHtml(c, i, stack ? head[i] : ''); }).join('') + '</tr>'; };
+    return '<div class="saju-table-wrap"><table class="saju-table' + (stack ? ' saju-table--stack' : '') + '"><caption>' + esc(caption) + '</caption><thead><tr>' + head.map(function (h) { return '<th scope="col">' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      rows.map(row).join('') + '</tbody>' + (foot ? '<tfoot>' + row(foot) + '</tfoot>' : '') + '</table></div>';
   }
-  function chips(items) { return '<ul class="saju-chips">' + items.map(function (it) { return '<li class="saju-chip"' + (it.tone ? ' data-tone="' + it.tone + '"' : '') + '>' + (it.tag ? '<b>' + esc(it.tag) + '</b>' : '') + esc(it.text) + (it.note ? '<small>' + esc(it.note) + '</small>' : '') + '</li>'; }).join('') + '</ul>'; }
+  // 섹션 첫머리: 큰 제목 한 줄과 판정 배지. 첫 배지만 강조색(섹션당 지표 하나).
+  function hero(title, badges, ganji) {
+    var list = (badges || []).filter(Boolean);
+    return '<div class="saju-hero' + (ganji ? ' saju-hero--ganji' : '') + '"><p class="saju-hero__title">' + esc(title) + '</p>' +
+      (list.length ? '<ul class="saju-hero__badges">' + list.map(function (b, i) { return '<li' + (i === 0 ? ' data-primary' : '') + '>' + esc(b) + '</li>'; }).join('') + '</ul>' : '') + '</div>';
+  }
+  // 두 칸 표(항목·추천)를 대신하는 카드. 셋째 값은 한자 인장.
+  function tiles(items) { return '<ul class="saju-tiles saju-tiles--seal">' + items.map(function (x) { return '<li><b><i aria-hidden="true">' + esc(x[2]) + '</i>' + esc(x[0]) + '</b><span>' + esc(x[1]) + '</span></li>'; }).join('') + '</ul>'; }
+  function chips(items, cls) { return '<ul class="saju-chips' + (cls ? ' ' + cls : '') + '">' + items.map(function (it) { return '<li class="saju-chip"' + (it.tone ? ' data-tone="' + it.tone + '"' : '') + (it.el ? ' data-el="' + it.el + '"' : '') + '>' + (it.tag ? '<b>' + esc(it.tag) + '</b>' : '') + esc(it.text) + (it.note ? '<small>' + esc(it.note) + '</small>' : '') + '</li>'; }).join('') + '</ul>'; }
   function more(summary, body) { return '<details class="saju-rich__more"><summary>' + esc(summary) + '</summary>' + body + '</details>'; }
   function wrap(mode, body, facts) {
     return '<div class="saju-reading saju-rich" data-reading-mode="' + (mode === 'neo' ? 'neo' : 'pig') + '">' + body + (facts.unknown && facts.warning ? '<p class="saju-reading__uncertain">' + esc(facts.warning) + '</p>' : '') + '</div>';
@@ -170,24 +180,22 @@
     var diff = (j.moistCnt || 0) - (j.dryCnt || 0);
     var typeName = TEMP_NAMES[TEMP_INDEX[j.type] != null ? TEMP_INDEX[j.type] : 2], moistName = MOIST_NAMES[j.moistType] || MOIST_NAMES.balanced;
     var season = j.season || (parts && parts.season) || '';
-    var html = section(c.lead, para(fmt(c.verdict, {season:season, base:num(SEASON_TEMP[season] || 0), score:num(j.score), type:typeName, wet:j.moistCnt || 0, dry:j.dryCnt || 0, moist:moistName})));
+    var env = ENV[(Math.max(-6, Math.min(6, j.score)) < 0 ? 'cold' : 'hot') + (diff < 0 ? 'dry' : 'wet')];
+    var html = section(c.lead, hero(env.title, [typeName, '습조 ' + moistName, '온도 점수 ' + num(j.score)]) + para(fmt(c.verdict, {season:season, base:num(parts ? parts.seasonTemp : (BRANCH_TEMP[p.m.j] || 0)), score:num(j.score), type:typeName, wet:j.moistCnt || 0, dry:j.dryCnt || 0, moist:moistName})), 'saju-rich__lead');
     html += '<div class="saju-rich__gauges">' +
       gauge({kind:'temp', value:j.score, min:-9, max:9, zones:[-5, -2, 2, 5], names:TEMP_NAMES, ends:['차가움 寒', '뜨거움 暖'], caption:'온도 점수 ' + num(j.score), aria:'한난 게이지: 온도 점수 ' + num(j.score) + ', ' + typeName}) +
       gauge({kind:'humid', value:diff, min:-6, max:6, zones:[-2.5, 3], names:['건조한 편', '고른 편', '습한 편'], ends:['건조함 燥', '촉촉함 濕'], caption:'습 ' + (j.moistCnt || 0) + ' · 조 ' + (j.dryCnt || 0) + ' (편차 ' + num(diff) + ')', aria:'조습 게이지: 습한 신호 ' + (j.moistCnt || 0) + '개, 건조한 신호 ' + (j.dryCnt || 0) + '개, ' + moistName}) + '</div>';
-    html += section(c.count, chips([{tag:'화(火)', text:' ' + (j.fc || 0), note:'온기 +1.5'}, {tag:'목(木)', text:' ' + (j.wdc || 0), note:'온기 +0.5'}, {tag:'금(金)', text:' ' + (j.mc || 0), note:'냉기 −0.5'}, {tag:'수(水)', text:' ' + (j.wc || 0), note:'냉기 −1.5'}]));
-    if (ok) {
-      html += section(c.parts, table(c.parts, ['자리', '글자', '오행', '온도', '습·조'],
+    html += section(c.count, chips([{tag:'화(火)', text:' ' + (j.fc || 0), note:'온기 +1.5', el:'fire'}, {tag:'목(木)', text:' ' + (j.wdc || 0), note:'온기 +0.5', el:'wood'}, {tag:'금(金)', text:' ' + (j.mc || 0), note:'냉기 −0.5', el:'metal'}, {tag:'수(水)', text:' ' + (j.wc || 0), note:'냉기 −1.5', el:'water'}]) +
+      (ok ? more(c.parts, table(c.parts, ['자리', '글자', '오행', '온도', '습·조'],
         [['월령 계절', season, '—', num(parts.seasonTemp), '—']].concat(parts.rows.map(function (r) { return [r.label + hourMark(facts, r.key), r.char, EL[r.el] || '—', r.temp ? num(r.temp) : '0', (r.moist ? '습' + (r.moist > 1 ? '×' + r.moist : '') : '') + (r.dry ? '조' + (r.dry > 1 ? '×' + r.dry : '') : '') || '—']; })),
-        ['합계', '', '', num(parts.total), '습 ' + parts.moist + ' · 조 ' + parts.dry]), 'saju-rich__wide');
-    }
-    var env = ENV[(Math.max(-6, Math.min(6, j.score)) < 0 ? 'cold' : 'hot') + (diff < 0 ? 'dry' : 'wet')];
+        ['합계', '', '', num(parts.total), '습 ' + parts.moist + ' · 조 ' + parts.dry])) : ''));
     html += section(c.env, '<p class="saju-rich__title">' + esc(env.title) + '</p>' + para(neo ? env.neo : env.pig));
     html += section(c.versus, climateVersus(facts, neo));
     var rx = TEMP_RX[j.type] || TEMP_RX.neutral, mrx = MOIST_RX[j.moistType] || MOIST_RX.balanced;
-    html += section(c.rx, para(c.rxIntro) + table(c.rx, ['항목', '권하는 쪽'], [['채울 기운', rx.need], ['색', rx.color], ['방향', rx.dir], ['활동', rx.act], ['줄일 것', rx.less], [c.moistRx + ' (' + mrx.need + ')', mrx.act]]) + '<p class="saju-rich__note">' + esc(c.notHealth) + '</p>', 'saju-rich__wide');
+    html += section(c.rx, para(c.rxIntro) + tiles([['채울 기운', rx.need, '氣'], ['색', rx.color, '色'], ['방향', rx.dir, '方'], ['활동', rx.act, '動'], ['줄일 것', rx.less, '減'], [c.moistRx + ' (' + mrx.need + ')', mrx.act, j.moistType === 'wet' ? '燥' : '濕']]) + '<p class="saju-rich__note">' + esc(c.notHealth) + '</p>', 'saju-rich__wide');
     html += more('한난조습이란 무엇인가요?', '<p>' + esc(neo ? '한난조습은 원국의 온도(차고 뜨거움)와 습도(건조하고 촉촉함)를 보는 조후의 기준입니다. 어떤 환경에서 힘이 잘 쓰이는지 판단하는 데 씁니다.' : '한난조습은 원국의 온도(차고 뜨거움)와 습도(건조하고 촉촉함)를 살피는 조후의 기준이에요. 자연에 계절과 날씨가 있듯 사람의 기질에도 기후가 있다고 보고, 어떤 환경에서 내가 편안하고 힘이 잘 쓰이는지 알아보는 데 써요.') + '</p>' +
       '<ul class="saju-tiles"><li><b>한(寒) · 차가움</b><span>겨울의 응축된 기운. 차분하고 신중하게 안으로 다지는 힘으로 읽어요.</span></li><li><b>난(暖) · 따뜻함</b><span>여름의 발산하는 기운. 열정과 표현, 밖으로 뻗는 힘으로 읽어요.</span></li><li><b>조(燥) · 건조함</b><span>가을의 단단한 기운. 맺고 끊음이 분명하고 군더더기 없는 결로 읽어요.</span></li><li><b>습(濕) · 촉촉함</b><span>봄의 얽히는 기운. 공감과 친화력, 함께 자라는 결로 읽어요.</span></li></ul>' +
-      para('계산 방식: 월지의 계절이 기본 온도를 정해요(여름 +4, 봄 +2, 가을 −2, 겨울 −4). 여기에 여덟 글자 가운데 화는 +1.5, 목은 +0.5, 금은 −0.5, 수는 −1.5를 더해요. 습은 수·목과 辰·丑, 조는 화·금과 戌·未를 세어 비교해요. 온도 점수 5 이상은 뜨거운 쪽, 2 이상은 따뜻한 쪽, −2 이상은 고른 온도, −5 이상은 서늘한 쪽, 그 아래는 차가운 쪽이에요.'));
+      para('계산 방식: 태어난 달의 지지가 기본 온도를 정해요(子·丑 −4, 亥 −3, 戌 −2, 寅·酉 −1, 卯·申 +1, 辰 +2, 巳 +3, 午·未 +4). 寅월은 입춘 뒤에도 남은 추위를, 申월은 입추 뒤에도 남은 더위를 반영해요. 여기에 여덟 글자 가운데 화는 +1.5, 목은 +0.5, 금은 −0.5, 수는 −1.5를 더해요. 습은 수·목과 辰·丑, 조는 화·금과 戌·未를 세어 비교해요. 온도 점수 5 이상은 뜨거운 쪽, 2 이상은 따뜻한 쪽, −2 이상은 고른 온도, −5 이상은 서늘한 쪽, 그 아래는 차가운 쪽이에요.'));
     return wrap(mode, html, facts);
   }
 
@@ -229,7 +237,7 @@
   function godChips(L, dayEl, list, tags, tone) {
     return list.filter(Boolean).map(function (e, i) {
       var f = family(L, dayEl, e);
-      return {tag:tags[Math.min(i, tags.length - 1)], text:' ' + EL[e] + (f ? ' · ' + FAMILY[f] : ''), note:f ? FAMILY_MEANING[f] : '', tone:tone};
+      return {tag:tags[Math.min(i, tags.length - 1)], text:' ' + EL[e] + (f ? ' · ' + FAMILY[f] : ''), note:f ? FAMILY_MEANING[f] : '', tone:tone, el:e};
     });
   }
   function strength(facts, mode) {
@@ -243,7 +251,7 @@
     var verified = jg && jg.verifiedText ? '<p class="saju-rich__note">' + esc(jg.verifiedText) + '</p>' : '';
     if (jg && jg.isJong) {
       var dom = EL[jg.dominant] || '';
-      html += section(neo ? '네오의 진단' : '연이가 읽은 힘의 모양', para(neo ? '판정: ' + (jg.name || '종격') + '. ' + dom + ' 기운이 ' + (jg.pct != null ? jg.pct + '%로 ' : '') + '원국을 이끕니다. 일반 신강·신약 공식을 적용하지 않습니다.' : '당신의 원국은 ' + dom + ' 기운이 ' + (jg.pct != null ? jg.pct + '%로 ' : '') + '크게 모인 ' + (jg.name || '종격') + '으로 검토됐어요. 이런 구조는 일반적인 신강·신약 잣대로 재지 않고, 모인 기세를 따르는 쪽으로 읽어요.'));
+      html += section(neo ? '네오의 진단' : '연이가 읽은 힘의 모양', hero(jg.name || '종격', [dom + (jg.pct != null ? ' ' + jg.pct + '%' : ''), '억부 ' + pw.score + '점 (참고)']) + para(neo ? '판정: ' + (jg.name || '종격') + '. ' + dom + ' 기운이 ' + (jg.pct != null ? jg.pct + '%로 ' : '') + '원국을 이끕니다. 일반 신강·신약 공식을 적용하지 않습니다.' : '당신의 원국은 ' + dom + ' 기운이 ' + (jg.pct != null ? jg.pct + '%로 ' : '') + '크게 모인 ' + (jg.name || '종격') + '으로 검토됐어요. 이런 구조는 일반적인 신강·신약 잣대로 재지 않고, 모인 기세를 따르는 쪽으로 읽어요.'), 'saju-rich__lead');
       html += gaugeHtml;
       html += section('종격(從格)이란', para(neo ? '한 오행이 원국 전체를 압도하면 그 기세를 누르지 않고 따르는 것이 해법이라는 이론입니다. 그래서 억부 점수는 참고값으로만 둡니다.' : '한 가지 오행이 원국 전체를 압도할 만큼 강하면, 그 기세를 억지로 누르기보다 따르는 쪽이 자연스럽다고 보는 이론이에요. 그래서 위의 억부 점수는 참고로만 보고, 아래의 격 설명을 중심에 둬요.'));
       html += section(neo ? '격의 종류' : '당신의 격', para((jg.name || '종격') + ' — ' + jongKind(jg.name) + '.'));
@@ -252,7 +260,7 @@
     } else {
       var lead = neo ? '판정: ' + st + '(' + (strong ? '신강' : '신약') + '). 억부 점수 ' + pw.score + '점, 기준선 30점에서 ' + Math.abs(pw.score - 30) + '점 ' + (pw.score >= 30 ? '위' : '아래') + '입니다.' : '억부 점수는 ' + pw.score + '점으로 ' + st + '으로 읽혀요. 신강과 신약을 가르는 기준선은 30점이고, 당신의 ' + dayName + ' 일간은 그 기준선에서 ' + Math.abs(pw.score - 30) + '점 ' + (pw.score >= 30 ? '위' : '아래') + '에 있어요.';
       var tagline = strong ? (neo ? '유형: 스스로 밀고 나가는 주체형.' : '스스로 밀고 나가는 주체형에 가까워요.') : (neo ? '유형: 섬세하게 살피고 함께 가는 공감형.' : '섬세하게 살피고 함께 가는 공감형에 가까워요.');
-      html += section(neo ? '네오의 진단' : '연이가 읽은 힘의 모양', para(lead + ' ' + tagline));
+      html += section(neo ? '네오의 진단' : '연이가 읽은 힘의 모양', hero(st, ['억부 ' + pw.score + '점', '기준 30점', strong ? '주체형' : '공감형']) + para(lead + ' ' + tagline), 'saju-rich__lead');
       html += gaugeHtml;
       var mRow = parts && parts.rows.filter(function (r) { return r.group === 'month'; })[0];
       if (ok) {
@@ -402,11 +410,11 @@
     var max = Math.max.apply(null, fams.map(function (x) { return x.surface; }));
     var top = fams.filter(function (x) { return x.surface === max; }), none = fams.filter(function (x) { return x.surface === 0; });
     var names = function (list) { return list.map(function (x) { return FAMILY[x.f]; }).join(', '); };
-    html += section(neo ? '네오의 진단' : '연이가 본 십성의 무게', para(neo ?
+    html += section(neo ? '네오의 진단' : '연이가 본 십성의 무게', hero(names(top), [(neo ? '우세 ' : '가장 많은 계열 ') + max + '개', none.length ? (neo ? '부재 ' : '비어 있음 ') + names(none) : (neo ? '부재 없음' : '다섯 계열 모두')]) + para(neo ?
       '판정: ' + names(top) + ' 우세(일간 제외 일곱 글자 중 ' + max + '개). ' + (none.length ? '부재: ' + names(none) + '.' : '다섯 계열이 모두 드러나 있습니다.') :
-      '일간을 뺀 일곱 글자 가운데 가장 무게가 실린 것은 ' + names(top) + '이에요. ' + FAMILY_MEANING[top[0].f].split(' · ')[1] + '의 결이 생활 곳곳에서 드러나기 쉬워요. ' + (none.length ? '반면 ' + names(none) + '은 겉으로 드러나지 않았어요.' : '다섯 계열이 모두 겉으로 드러나 있어 쓸 수 있는 도구가 고른 편이에요.')));
+      '일간을 뺀 일곱 글자 가운데 가장 무게가 실린 것은 ' + names(top) + '이에요. ' + FAMILY_MEANING[top[0].f].split(' · ')[1] + '의 결이 생활 곳곳에서 드러나기 쉬워요. ' + (none.length ? '반면 ' + names(none) + '은 겉으로 드러나지 않았어요.' : '다섯 계열이 모두 겉으로 드러나 있어 쓸 수 있는 도구가 고른 편이에요.')), 'saju-rich__lead');
     html += section(neo ? '계열별 분포' : '다섯 계열의 분포',
-      '<ul class="saju-bars">' + fams.map(function (x) { return '<li><span class="saju-bars__label">' + esc(FAMILY[x.f]) + '</span><span class="saju-bars__track" aria-hidden="true"><i style="--pos:' + pct(x.surface, 0, 7) + '%"></i></span><span class="saju-bars__value">' + x.surface + '</span></li>'; }).join('') + '</ul>' +
+      '<ul class="saju-bars">' + fams.map(function (x) { return '<li data-el="' + x.el + '"><span class="saju-bars__label">' + esc(FAMILY[x.f]) + '</span><span class="saju-bars__track" aria-hidden="true"><i style="--pos:' + pct(x.surface, 0, 7) + '%"></i></span><span class="saju-bars__value">' + x.surface + '</span></li>'; }).join('') + '</ul>' +
       table('십성 분포', ['계열', '겉 글자', '지장간', '세부 십성', '억부에서'], fams.map(function (x) {
         return [FAMILY[x.f] + ' · ' + EL[x.el], String(x.surface), String(x.hidden), x.gods.map(function (g) { return g + ' ' + (m.surface[g] || 0); }).join(' · '), x.role || '—'];
       })) + '<p class="saju-rich__note">' + esc(neo ? '겉 글자는 일간을 뺀 천간 3개와 지지 4개, 지장간은 지지 속 천간을 모두 센 값입니다. 개수는 순위나 성공 확률이 아닙니다.' : '겉 글자는 일간을 뺀 천간 3개와 지지 4개, 지장간은 지지 속에 숨은 천간까지 모두 센 값이에요. 개수가 많다고 더 좋거나 나쁜 것은 아니에요.') + (facts.unknown ? ' ' + esc(neo ? '시간·시지는 정오 대입값입니다.' : '시간·시지는 정오를 대입한 값이에요.') : '') + '</p>', 'saju-rich__wide');
@@ -429,7 +437,8 @@
     var k = mode === 'neo' ? 1 : 0;
     return GODS.filter(function (g) { return m.surface[g]; }).map(function (g) {
       var at = m.where[g].map(function (w) { return w.label + hourMark(facts, w.key); }).join('·');
-      return '<button class="saju-ten-button" type="button" data-saju-god="' + esc(g) + '"><strong>' + esc(g + ' · ' + GOD_HANJA[g]) + '</strong><span>' + esc(GOD[g].line[k]) + '</span><small>' + esc(at + ' · 자세히 보기') + '</small></button>';
+      var e = elOf(L, m.where[g][0].char);
+      return '<button class="saju-ten-button" type="button" data-saju-god="' + esc(g) + '"' + (e ? ' data-el="' + e + '"' : '') + '><strong><i class="saju-ten-button__seal" aria-hidden="true">' + esc(GOD_HANJA[g].charAt(0)) + '</i>' + esc(g + ' · ' + GOD_HANJA[g]) + '</strong><span>' + esc(GOD[g].line[k]) + '</span><small>' + esc(at + ' · 자세히 보기') + '</small></button>';
     }).join('');
   }
   function godDetail(key, facts, mode) {
@@ -498,11 +507,11 @@
       return [pal.label, col.g + ' · ' + (pal.key === 'd' ? '일간(나)' : god(col.g)), col.j + ' · ' + god(col.j), hiddenText(L, col.j), twelve(dg, col.j) || '—', span];
     });
     var spouseGod = god(dj), spouseStage = twelve(dg, dj), spouseFam = GOD_FAMILY[spouseGod];
-    html += section(neo ? '네오의 진단' : '연이가 펼쳐 본 네 기둥', para(neo ?
+    html += section(neo ? '네오의 진단' : '연이가 펼쳐 본 네 기둥', hero(dg + dj, [dayName + ' 일간', spouseGod ? '일지 ' + spouseGod : '', spouseStage ? '12운성 ' + spouseStage : ''], true) + para(neo ?
       dayName + '(' + dg + ') 일간, 일지 ' + dj + '(' + (spouseGod || '—') + ' · ' + (spouseStage || '—') + '). 아래 표가 계산 근거입니다.' :
       '당신의 중심은 ' + dayName + '(' + dg + ') 일간이고, 바로 아래 일지 ' + dj + '에는 ' + (spouseGod || '—') + jo(spouseGod || '—', '이', '가') + ' ' + (spouseStage || '—') + '의 자리로 앉아 있어요. 네 기둥을 한눈에 펼쳐 보면 이렇게 읽혀요.') +
       table('원국 네 기둥', ['기둥', '천간 · 십성', '지지 · 십성', '지장간', '12운성', '궁위'], rows) +
-      '<p class="saju-rich__note">' + esc(neo ? '12운성은 일간 기준, 음간은 역행(음생양사) 정본을 따릅니다. 궁위 나이는 전통적인 근묘화실 구분입니다.' : '12운성은 일간을 기준으로 지지마다 기운이 어느 단계인지 본 것이고, 음간은 거꾸로 도는 음생양사 정본을 따라요. 궁위의 나이는 전통적인 근묘화실 구분이에요.') + '</p>', 'saju-rich__wide');
+      '<p class="saju-rich__note">' + esc(neo ? '12운성은 일간 기준, 음간은 역행(음생양사) 정본을 따릅니다. 궁위 나이는 전통적인 근묘화실 구분입니다.' : '12운성은 일간을 기준으로 지지마다 기운이 어느 단계인지 본 것이고, 음간은 거꾸로 도는 음생양사 정본을 따라요. 궁위의 나이는 전통적인 근묘화실 구분이에요.') + '</p>', 'saju-rich__lead saju-rich__wide');
     html += section('일간 ' + dayName + '의 물상', para(neo ? dayName + ' 일간: ' + (STEM_NOTE[dg] || '') + '입니다. 일간은 원국의 기준점이며, 나머지 일곱 글자는 모두 이 글자와의 관계로 읽습니다.' : '일간 ' + dayName + jo(dayName, '은', '는') + ' ' + (STEM_NOTE[dg] || '') + '이에요. 사주의 모든 글자는 이 일간과의 관계로 읽기 때문에, 일간의 결을 아는 것이 해석의 첫걸음이에요.'));
     html += section(neo ? '일지 · 배우자궁' : '일지 배우자궁에 앉은 기운', para(spouseFam ? SPOUSE[spouseFam][k] : '') +
       (spouseStage && STAGE12[spouseStage] ? para(neo ? '일지 12운성 ' + spouseStage + ': ' + STAGE12[spouseStage] + '.' : '일지의 12운성은 ' + spouseStage + jo(spouseStage, '으로', '로') + ', ' + STAGE12[spouseStage].split(' · ')[0] + '예요. 생활 속에서는 ' + STAGE12[spouseStage].split(' · ')[1] + jo(STAGE12[spouseStage].split(' · ')[1], '으로', '로') + ' 드러나기 쉬워요.') : ''));
@@ -548,7 +557,8 @@
       var year = r.kind === 'year', good = r.score >= 60, sg = L.getTenGod(dg, r.g), bg = L.getTenGod(dg, r.j), stage = twelve(dg, r.j);
       var title = year ? (r.year ? r.year + '년 · ' : '') + '올해의 나 (세운) ' + r.g + r.j : '지금 내가 지나는 시기 (현재 대운) ' + r.g + r.j;
       var meta = gd.n + ' · ' + jd.a + (year ? '' : (r.age != null ? ' · ' + r.age + '~' + r.end + '세 (세는 나이)' : ''));
-      var body = '<p class="saju-rich__note">' + esc(meta) + '</p>' +
+      var at = [20, 40, 60, 80].filter(function (z) { return r.score >= z; }).length;
+      var body = hero(r.g + r.j, ['흐름 점수 ' + r.score + '점', FLOW_NAMES[at], year ? '세운 · 한 해' : '대운 · 10년'], true) + '<p class="saju-rich__note">' + esc(meta) + '</p>' +
         gauge({kind:'score', value:r.score, min:0, max:100, zones:[20, 40, 60, 80], names:FLOW_NAMES, ends:['조율 쪽', '순한 쪽'], caption:'흐름 점수 ' + r.score + '점', aria:(year ? '올해' : '현재 대운') + ' 흐름 점수 ' + r.score + '점'});
       // 엔진 요약의 [태그]는 근거 이름으로 풀고, 끝의 "대운" 꼬리말은 세운 행에서 틀리므로 뗀다.
       var summary = plain(r.summary).replace(/\[([^\]]+)\]\s*/g, '$1 · ').replace(/\s*(대운|세운)$/, '');
@@ -567,7 +577,7 @@
         body += '<ul class="saju-tiles">' + GAEUN_LABEL.filter(function (x) { return g[x[0]]; }).map(function (x) { return '<li><b>' + esc(x[1]) + '</b><span>' + esc(g[x[0]]) + '</span></li>'; }).join('') + '</ul>';
       }
       body += para(FLOW_TONE[good ? 'open' : 'care'][k]);
-      return section(title, body, 'saju-flow');
+      return section(title, body, 'saju-rich__lead saju-flow saju-flow--' + (year ? 'year' : 'period'));
     }).join('');
     if (!html) return '';
     return wrap(mode, html + '<p class="saju-rich__note">' + esc('※ 여기까지는 무료입니다. 10년 대운의 전체 흐름·연도별 세운 상세·종합 풀이는 아래 프리미엄에서 이어집니다.') + '</p>', facts);
@@ -597,22 +607,22 @@
     var g = row.gz.g, j = row.gz.j, gEl = row.gEl || (L.GAN[g] || {}).e, jEl = row.jEl || (L.JI[j] || {}).e, bp = row.batteryPercent, good = bp >= 60;
     var lb = row.lb || {}, lt = row.lt || {}, grade = plain(row.grade);
     var html = section((month ? '이달의 월운 ' : '오늘의 일진 ') + g + j,
-      gauge({kind:'energy', value:bp, min:0, max:100, zones:[40, 60, 80], names:['회복을 먼저', '고르게', '무난하게', '힘이 실리는'], ends:['쉬어 가기', '힘 실림'], caption:'에너지 게이지 ' + bp + '%' + (grade ? ' · ' + grade : ''), aria:when + ' 에너지 게이지 ' + bp + '%' + (grade ? ', ' + grade : '')}) +
+      hero(g + j, ['에너지 ' + bp + '%', grade, EL[gEl] && EL[jEl] ? EL[gEl] + ' · ' + EL[jEl] : ''], true) + gauge({kind:'energy', value:bp, min:0, max:100, zones:[40, 60, 80], names:['회복을 먼저', '고르게', '무난하게', '힘이 실리는'], ends:['쉬어 가기', '힘 실림'], caption:'에너지 게이지 ' + bp + '%' + (grade ? ' · ' + grade : ''), aria:when + ' 에너지 게이지 ' + bp + '%' + (grade ? ', ' + grade : '')}) +
       chips([
         {tag:'#', text:bp >= 80 ? '가속' : good ? '균형' : '쉼표'},
         {tag:'#', text:(EL[row.luckyEl] || '균형') + ' 보충'},
         {tag:'#', text:String(lt.action || lb.action || '루틴').split(',')[0].trim()}
-      ]) +
+      ], 'saju-chips--tags') +
       table(when + ' 들어오는 기운과 내 일간', ['글자', '오행', '십성', '12운성', '억부에서'], [
         ['천간 ' + g, EL[gEl] || '', row.gGod || '—', '—', roleOf(facts, gEl) || '—'],
         ['지지 ' + j, EL[jEl] || '', row.jGod || '—', twelve(dg, j) || '—', roleOf(facts, jEl) || '—']
-      ]));
+      ]), 'saju-rich__lead');
     var advice = [row.gGod, row.jGod].filter(function (x, i, a) { return DAY_GOD[x] && a.indexOf(x) === i; }).map(function (x) { return {tag:x, text:DAY_GOD[x][k]}; });
     html += section(neo ? '십성 기준 판단' : '십성으로 읽은 ' + when + '의 결', advice.length ? chips(advice) : para(DAY_TONE[good ? 'open' : 'care'][k]));
     var items = (row.adviceItems || []).slice(0, 3).map(function (a) { return {tag:plain(a.title), text:plain(a.body), tone:a.type === 'warn' ? 'care' : a.type === 'good' ? 'good' : ''}; }).filter(function (a) { return a.text; });
     html += section(neo ? '체크 포인트' : '이건 꼭 챙겨 주세요', items.length ? chips(items) : para(neo ? '특이 관계 없음. 중요한 메시지는 발송 전 한 번 더 확인하세요.' : '원국과 크게 부딪히는 관계는 없어요. 중요한 메시지는 보내기 전에 한 번 더 읽어 보면 좋아요.'));
-    var boost = [['행운 컬러', lb.color], ['장소 · 방향', lt.action], [when + '의 한 끗', lb.item], ['무드 세팅', lb.material]].filter(function (x) { return x[1]; });
-    if (boost.length) html += section('행운의 부스터', table('행운의 부스터', ['항목', '추천'], boost) + '<p class="saju-rich__note">' + esc(neo ? '용신 오행 보충용 생활 팁입니다. 효과를 보장하지 않습니다.' : '부족한 기운을 생활에서 가볍게 더하는 팁이에요. 분위기를 바꾸는 정도로 즐겨 주세요.') + '</p>');
+    var boost = [['행운 컬러', lb.color, '色'], ['장소 · 방향', lt.action, '方'], [when + '의 한 끗', lb.item, '物'], ['무드 세팅', lb.material, '感']].filter(function (x) { return x[1]; });
+    if (boost.length) html += section('행운의 부스터', tiles(boost) + '<p class="saju-rich__note">' + esc(neo ? '용신 오행 보충용 생활 팁입니다. 효과를 보장하지 않습니다.' : '부족한 기운을 생활에서 가볍게 더하는 팁이에요. 분위기를 바꾸는 정도로 즐겨 주세요.') + '</p>');
     html += section(neo ? '네오의 정리' : '연이의 한마디', para(DAY_TONE[good ? 'open' : 'care'][k]));
     return wrap(mode, html, facts);
   }

@@ -59,7 +59,8 @@ check("bottom navigation exists with safe area", includesAll(index, ["id=\"cdMob
 check("bottom navigation covers main slots", includesAll(index, [
   "data-nav-key=\"home\" data-nav-icon=\"⌂\" href=\"/\"",
   "data-nav-key=\"saju\" data-nav-icon=\"☼\" href=\"/?action=cdOneStepFreeSajuEntry\"",
-  "data-nav-key=\"fortunes\" data-nav-icon=\"♡\" href=\"/?view=consultations#cdhFeatured\"",
+  // 모든 운세 탭은 전체 개요 오버레이를 연다(2026-09-08 56932bb53, 정본 app/_lib/mobile-tabs.ts).
+  "data-nav-key=\"fortunes\" data-nav-icon=\"✦\" href=\"/?action=cdOpenAllFortunes\"",
   "data-nav-key=\"pass\" data-nav-icon=\"◈\" href=\"/points/\"",
   // 마이 탭은 라우트가 아니라 셸 프로필 시트를 연다(정본: app/_lib/mobile-tabs.ts 의
   // PROFILE_SHEET_ACTION). React /me 는 중복 구현이라 제거됐고 되살리는 것은
@@ -69,16 +70,18 @@ check("bottom navigation covers main slots", includesAll(index, [
 // 셸에서 모든 운세·마이 탭이 이동 대신 실행하는 인페이지 동작 (오버레이 / 프로필 시트)
 check("bottom navigation keeps shell in-page actions", includesAll(index, [
   "data-action=\"cdOneStepFreeSajuEntry\"",
+  "data-action=\"cdOpenAllFortunes\"",
   "data-action=\"dpOpenList\"",
   "id=\"cdhFeatured\"",
 ]));
 check("profile sheet exposes my-page entry", includesAll(index, ["dp-sheet-foot", "dp-sheet-foot__link"]));
-check("bottom navigation has requested quick categories", includesAny(index, ["꽃/해몽", "꽃·해몽"]) && includesAll(index, ["data-nav-key=\"free\"", "data-nav-key=\"oracle\"", "data-nav-key=\"cosmic\"", "data-nav-key=\"music\"", "data-nav-key=\"vvip\""]));
+check("bottom navigation has requested quick categories", includesAny(index, ["꽃/해몽", "꽃·해몽"]) && includesAll(index, ["cd-mobile-bottom-nav__chip\" data-nav-key=\"saju\"", "data-nav-key=\"oracle\"", "data-nav-key=\"cosmic\"", "data-nav-key=\"music\"", "data-nav-key=\"vvip\""]));
 check("home exposes representative internal features", includesAll(index, ["href=\"/fortune-tea-house/\"", "href=\"/neo-operation-room/\"", "href=\"/music/\"", "data-action=\"openTarotModal\"", "destinyCardForm"]));
 check("global touch targets use 44px and manipulation", includesAll(index, ["min-height:44px", "min-width:44px", "touch-action:manipulation"]));
 check("hidden overlays are pointer-disabled", includesAll(mobilePatch, ["#privacy-modal-overlay[aria-hidden=\"true\"]", "#goldenGrainChargeModalRoot[aria-hidden=\"true\"]", "pointer-events: none !important"]));
 check("bottom sheets use dynamic viewport and safe area", includesAll(index, ["100dvh", "88dvh", "MobileFeatureBottomSheet", "env(safe-area-inset-bottom"]));
-check("payment sheet opens immediately before async balance sync", paymentSheetOpensBeforeAsyncSync(index));
+// 2026-09-21(3a9a0378d)부터 충전은 셸 시트가 아니라 /points/ 상점으로 바로 이동한다 — 이동 전에 잔액 동기화를 기다리면 안 된다.
+check("charge entry navigates to the pass store without awaiting balance sync", chargeEntryNavigatesImmediately(index));
 check("payment plans are collapsed behind mobile toggle", includesAll(index, ["goldenPackageListExpanded", "golden-grain-packages__toggle", "toggleGoldenPackages", "전체 플랜 보기"]));
 check("moonlight pass section exposes working CTAs", includesAll(index, ["id=\"honeyMembershipMini\"", "data-membership-cta=\"benefits\"", "data-membership-toggle"]));
 check("golden grain charge handler and delegation remain intact", includesAll(index, ["if (action === 'openGoldenGrainCharge')", "openGoldenGrainCharge: ['goldenGrainChargeModalRoot', 'sajuLoaderOverlay']"]));
@@ -134,14 +137,12 @@ function includesAny(text, needles) {
   return needles.some((needle) => text.includes(needle));
 }
 
-function paymentSheetOpensBeforeAsyncSync(text) {
+function chargeEntryNavigatesImmediately(text) {
   const openStart = text.indexOf("async function openChargeModal()");
   if (openStart < 0) {
     return false;
   }
-  const openEnd = text.indexOf("window.__cdOpenChargeModal", openStart);
+  const openEnd = text.indexOf("\n  }", openStart);
   const body = text.slice(openStart, openEnd > openStart ? openEnd : openStart + 4000);
-  const renderIndex = body.indexOf("ChargeModal()");
-  const asyncIndex = body.indexOf("syncGoldenMonthlyCreditsFromPaymentsMe(");
-  return renderIndex >= 0 && asyncIndex > renderIndex && body.includes(".catch(") && body.includes(".finally(");
+  return body.includes("window.location.assign('/points/") && !/\bawait\b/.test(body);
 }

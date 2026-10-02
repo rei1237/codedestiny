@@ -580,7 +580,8 @@ async function verifySilentTrack() {
     assert.equal(win._hBgm, "none", "hydration did not keep none as the final track");
     win._hydrating = false;
     win.playTrack("daily");
-    await wait(700);
+    // 페이드 뒤 재생 시점은 부하에 따라 늦는다 — 고정 대기 대신 최대 5초까지 기다린다.
+    for (let t = 0; t < 200 && plays === 0; t += 1) await wait(25);
     assert.ok(plays > 0, "a real track after none did not start again");
     assert.deepEqual(errors, [], "silent track emitted runtime errors");
   } finally { dom.window.close(); }

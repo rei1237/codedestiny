@@ -27,7 +27,9 @@
  *
  * 필드
  *   id         고유 슬러그
- *   name/desc  표시 문구
+ *   name/desc  표시 문구 (name 은 상품명 — 미리보기 시트 제목·검색에 남는다)
+ *   question   카드 제목으로 쓰는 고객 질문 (번역 키 home.svcQuestion.<id>,
+ *              저작 i18n/authored/homeQuestions-02.json). 없으면 카드 제목은 name 이다.
  *   href       라우트 (action 과 둘 중 하나는 필수)
  *   action     href 없이 홈 런타임 액션으로만 열리는 항목
  *   featureKey 결제 정본 키 (유료면 필수). 범위 가격이면 **시작가** 쪽 키다.
@@ -52,6 +54,7 @@ window.__cdServiceRegistry = [
   {
     id: "master-love-codex",
     name: "마스터 인연의 서",
+    question: "내 다음 연애는 언제 시작될까?",
     desc: "인연의 흐름과 만남의 시기를 깊이 읽는 연애 리딩",
     href: "/master-love-codex/",
     featureKey: "master-love-codex",
@@ -66,6 +69,7 @@ window.__cdServiceRegistry = [
   {
     id: "fortune-tea-house",
     name: "운명의 찻집",
+    question: "이 마음, 어떻게 정리하면 좋을까?",
     desc: "따뜻한 연이와 나누는 마음 상담",
     href: "/fortune-tea-house/",
     featureKey: "fortune-tea-house-tarot-consultation",
@@ -79,6 +83,7 @@ window.__cdServiceRegistry = [
   {
     id: "love-secret-ai",
     name: "연애 비책",
+    question: "지금 우리 연애, 어디쯤 와 있을까?",
     desc: "지금 연애의 흐름과 마음을 짚는 AI 상담",
     href: "/love-secret-ai/",
     featureKey: "love-secret-ai-consultation",
@@ -91,6 +96,7 @@ window.__cdServiceRegistry = [
   {
     id: "fortune-chat",
     name: "대화형 운명 상담",
+    question: "내 상황에서는 어느 쪽이 나을까?",
     desc: "연이·네오와 나누는 운명 대화",
     href: "/fortune-chat/",
     featureKey: "fortune-chat-consultation",
@@ -104,6 +110,7 @@ window.__cdServiceRegistry = [
   {
     id: "tarot-love-relationship",
     name: "우리는 무슨 사이?",
+    question: "우리는 지금 어떤 사이일까?",
     desc: "말과 행동 사이에 남은 관계의 온도를 읽는 6장",
     action: "openTarotLoveModal",
     featureKey: "tarot-love-relationship",
@@ -115,6 +122,7 @@ window.__cdServiceRegistry = [
   {
     id: "tarot-reunion",
     name: "재회운 타로",
+    question: "우리, 다시 만날 수 있을까?",
     desc: "멈춘 연락 앞에서 다시 다가가도 되는지 짚는 리딩",
     action: "openTarotReunionModal",
     featureKey: "tarot-reunion-reading",
@@ -126,6 +134,7 @@ window.__cdServiceRegistry = [
   {
     id: "tarot-mindscan",
     name: "말과 행동 사이 타로",
+    question: "그 사람의 말과 행동, 왜 다를까?",
     desc: "겉말과 속마음의 간격을 재는 관계 리딩",
     href: "/tarot/mindscan/",
     featureKey: "tarot-mindscan",
@@ -137,6 +146,7 @@ window.__cdServiceRegistry = [
   {
     id: "love-simulation",
     name: "LOVE CODE 연애 시뮬레이션",
+    question: "우리 둘, 어디서 자꾸 부딪힐까?",
     desc: "궁합을 표가 아니라 장면으로 겪어 보는 LOVE CODE",
     action: "openLoveSimulation",
     featureKey: "love-code",
@@ -148,6 +158,7 @@ window.__cdServiceRegistry = [
   {
     id: "nakshatra-compat",
     name: "동서 통합 궁합",
+    question: "그 사람과 나, 어떤 궁합일까?",
     desc: "인도 아쉬타쿠타 36점과 동양 숙요를 겹쳐 보는 궁합",
     href: "/nakshatra/compat/",
     featureKey: "nakshatra-compat",
@@ -161,6 +172,7 @@ window.__cdServiceRegistry = [
   {
     id: "neo-operation-room",
     name: "팩폭 전략소",
+    question: "여러 고민 중 무엇부터 손대야 할까?",
     desc: "직설적인 네오가 짚는 현실 전략",
     href: "/neo-operation-room/",
     featureKey: "neo-operation-room-consultation",
@@ -174,6 +186,7 @@ window.__cdServiceRegistry = [
   {
     id: "destiny-compass",
     name: "운명의 나침반",
+    question: "지금 방향을 바꿔도 될까?",
     desc: "삶의 방향과 선택을 가늠하는 리딩",
     href: "/destiny-compass/",
     featureKey: "destiny-compass-life-voyage",
@@ -185,6 +198,7 @@ window.__cdServiceRegistry = [
   {
     id: "saju-sibyl",
     name: "사이빌 전문가 상담",
+    question: "내 사주의 핵심은 결국 무엇일까?",
     desc: "전문가가 풀어주는 사주 심층 상담",
     href: "/saju/sibyl/",
     featureKey: "premium-sibyl-dominator",
@@ -196,6 +210,7 @@ window.__cdServiceRegistry = [
   {
     id: "new-year-ai",
     name: "신년운세",
+    question: "올해 나에게 가장 중요한 일은 뭘까?",
     desc: "새해의 큰 흐름과 기회를 미리 보는 운세",
     href: "/new-year-ai-consultation/",
     featureKey: "new-year-ai-consultation",
@@ -209,6 +224,7 @@ window.__cdServiceRegistry = [
   {
     id: "tarot-ijik",
     name: "이직 운명의 카드",
+    question: "지금 이직해도 괜찮을까?",
     desc: "남을지 옮길지, 일의 기준을 읽는 7장",
     href: "/tarot-ijik.html",
     featureKey: "tarot-ijik",
@@ -222,6 +238,7 @@ window.__cdServiceRegistry = [
   {
     id: "life-book-ai",
     name: "인생의 책",
+    question: "내 인생의 황금기는 언제일까?",
     desc: "삶의 이야기를 한 권의 책으로 엮는 리딩",
     href: "/life-book-ai/",
     featureKey: "life-book-ai-consultation",
@@ -234,6 +251,7 @@ window.__cdServiceRegistry = [
   {
     id: "karma-destiny-ai",
     name: "운명의 업",
+    question: "나는 왜 비슷한 사람에게 계속 끌릴까?",
     desc: "지금의 흐름을 만든 업의 흐름을 읽는 상담",
     href: "/karma-destiny-ai/",
     featureKey: "karma-destiny-ai-consultation",
@@ -245,6 +263,7 @@ window.__cdServiceRegistry = [
   {
     id: "saju-guardian",
     name: "사주 가디언 소환진",
+    question: "나를 지켜주는 기운은 어떤 모습일까?",
     desc: "일주·월지·시지로 여는 60갑자 수호 인장",
     action: "openSajuGuardianPage",
     featureKey: "saju-guardian-unlock",
@@ -257,6 +276,7 @@ window.__cdServiceRegistry = [
   {
     id: "naming-ai",
     name: "전문가 작명소",
+    question: "이 이름, 우리 아이와 잘 맞을까?",
     desc: "이름의 기운과 의미를 짚는 작명 상담",
     href: "/naming-ai/",
     featureKey: "premium-naming-prompt",
@@ -268,6 +288,7 @@ window.__cdServiceRegistry = [
   {
     id: "fusion-fortune",
     name: "초융합 심층 리딩",
+    question: "운세마다 말이 다를 때, 무엇을 따를까?",
     desc: "여섯 체계가 겹치는 신호와 엇갈리는 신호를 함께 짚는 최종 교차 판정",
     href: "/fusion-fortune/",
     featureKey: "fusion-fortune-consultation",
@@ -282,6 +303,7 @@ window.__cdServiceRegistry = [
   {
     id: "tarot-year-fortune",
     name: "십이지신 천운 타로",
+    question: "올해 열두 달, 언제 기회가 올까?",
     desc: "열두 달의 흐름과 전환점을 한 장씩 짚는 리딩",
     action: "openTarotYearFortuneModal",
     featureKey: "tarot-year-fortune",
@@ -293,6 +315,7 @@ window.__cdServiceRegistry = [
   {
     id: "tarot-celestial-harmony",
     name: "천체의 선율",
+    question: "지금 나를 가장 흔드는 건 뭘까?",
     desc: "열한 행성 자리에 카드를 놓는 확장형 코즈믹 타로",
     href: "/celestial-harmony.html",
     featureKey: "tarot-celestial-harmony",
@@ -304,6 +327,7 @@ window.__cdServiceRegistry = [
   {
     id: "nakshatra-muhurta",
     name: "택일 무후르타",
+    question: "이 일, 언제 하면 좋을까?",
     desc: "결혼·개업·계약에 좋은 날을 60일 치에서 고르기",
     href: "/nakshatra/muhurta/",
     featureKey: "nakshatra-muhurta",
@@ -317,6 +341,7 @@ window.__cdServiceRegistry = [
   {
     id: "saju",
     name: "사주",
+    question: "나는 어떤 결의 사람일까?",
     desc: "사주팔자로 보는 삶의 큰 흐름",
     href: "/?action=cdOneStepFreeSajuEntry",
     action: "cdOneStepFreeSajuEntry",
@@ -329,6 +354,7 @@ window.__cdServiceRegistry = [
   {
     id: "tarot",
     name: "타로",
+    question: "지금 내 마음은 어떤 상태일까?",
     desc: "카드가 전하는 지금의 마음과 선택",
     href: "/index.html?action=openTarotModal",
     action: "openTarotModal",
@@ -342,6 +368,7 @@ window.__cdServiceRegistry = [
   {
     id: "ziwei",
     name: "자미두수",
+    question: "나에게 맞는 돈 버는 방식은 뭘까?",
     desc: "별자리 궁위로 보는 재물과 직업",
     href: "/ziwei/chart/",
     price: "무료 시작",
@@ -353,6 +380,7 @@ window.__cdServiceRegistry = [
   {
     id: "sukuyo",
     name: "숙요점",
+    question: "이 사람과는 어떤 거리의 인연일까?",
     desc: "숙요로 보는 삶의 리듬",
     href: "/index.html?action=openSukuyoModal",
     action: "openSukuyoModal",
@@ -366,6 +394,7 @@ window.__cdServiceRegistry = [
   {
     id: "vedic",
     name: "베다점",
+    question: "지금의 변화는 우연일까, 전환점일까?",
     desc: "베다 점성술로 보는 운명의 지도",
     href: "/index.html?action=navigateToVedic",
     price: "무료 시작",
@@ -377,6 +406,7 @@ window.__cdServiceRegistry = [
   {
     id: "astrology",
     name: "점성술",
+    question: "나는 왜 이런 사람에게 끌릴까?",
     desc: "별자리로 보는 나와 관계의 흐름",
     href: "/index.html?action=openAstroModal",
     action: "openAstroModal",
@@ -389,6 +419,7 @@ window.__cdServiceRegistry = [
   {
     id: "human-design",
     name: "휴먼 디자인",
+    question: "나는 어떻게 결정해야 덜 지칠까?",
     desc: "출생 데이터로 계산하는 나의 에너지 설계도",
     href: "/human-design/",
     // 🔴 2026-09 무료화. featureKey 는 과거 결제 이력 조회를 위해 남긴 마커일 뿐이고
@@ -405,6 +436,7 @@ window.__cdServiceRegistry = [
   {
     id: "nakshatra",
     name: "나크샤트라 결정판",
+    question: "나의 타고난 결은 어느 별에서 왔을까?",
     desc: "베다 별자리로 보는 나의 본질",
     href: "/nakshatra/",
     price: "무료",
@@ -417,6 +449,7 @@ window.__cdServiceRegistry = [
   {
     id: "maya",
     name: "마야점",
+    question: "오늘은 어떤 기운의 날일까?",
     desc: "마야 달력으로 보는 오늘의 기운",
     href: "/maya/",
     price: "무료 시작",
@@ -429,6 +462,7 @@ window.__cdServiceRegistry = [
   {
     id: "daily-fortune",
     name: "오늘의 운세",
+    question: "오늘, 무엇부터 하면 좋을까?",
     desc: "지금 이 순간의 운세를 빠르게",
     href: "/today/",
     visualHref: "/daily-fortune/",
@@ -441,6 +475,7 @@ window.__cdServiceRegistry = [
   {
     id: "today-hub",
     name: "오늘의 운세 허브",
+    question: "오늘, 무엇부터 하면 좋을까?",
     desc: "사주·숙요점·베다점으로 보는 오늘",
     href: "/today/",
     price: "무료",
@@ -454,6 +489,7 @@ window.__cdServiceRegistry = [
   {
     id: "palm-reading",
     name: "손금",
+    question: "내 손금에서 가장 뚜렷한 길은 뭘까?",
     desc: "손금으로 보는 재물과 직업의 길",
     href: "/palm-reading/",
     price: "무료 시작",
@@ -464,6 +500,7 @@ window.__cdServiceRegistry = [
   {
     id: "physiognomy",
     name: "관상",
+    question: "내 인상은 사람들에게 어떻게 읽힐까?",
     desc: "얼굴의 기운으로 보는 나의 길",
     href: "/physiognomy/",
     action: "openPhysiognomyApp",
@@ -475,6 +512,7 @@ window.__cdServiceRegistry = [
   {
     id: "dream",
     name: "꿈해몽",
+    question: "이 꿈은 무슨 뜻일까?",
     desc: "꿈이 전하는 메시지를 풀어보는 해몽",
     href: "/dream/",
     action: "openDreamModal",
@@ -487,6 +525,7 @@ window.__cdServiceRegistry = [
   {
     id: "psychotest",
     name: "심리테스트",
+    question: "나는 지금 어떤 상태일까?",
     desc: "나를 알아가는 가벼운 심리 탐구",
     href: "/psychotest/",
     price: "무료",
@@ -498,6 +537,7 @@ window.__cdServiceRegistry = [
   {
     id: "manse",
     name: "만세력",
+    question: "내 사주 여덟 글자는 무엇일까?",
     desc: "사주를 직접 계산해 보는 만세력",
     href: "/manse/",
     price: "무료",
@@ -509,6 +549,7 @@ window.__cdServiceRegistry = [
   {
     id: "famous-saju",
     name: "유명인 사주",
+    question: "같은 사주라도 삶은 왜 다를까?",
     desc: "유명인의 사주로 배우는 운명의 원리",
     href: "/insights/famous-saju/",
     price: "무료",
@@ -520,6 +561,7 @@ window.__cdServiceRegistry = [
   {
     id: "animal-destiny",
     name: "십이운성 동물점",
+    question: "남들이 모르는 내 강점은 뭘까?",
     desc: "일주 십이운성으로 만나는 나의 수호 동물",
     href: "/saju/animal-destiny/",
     action: "openAnimalDestinyRoute",
@@ -534,6 +576,7 @@ window.__cdServiceRegistry = [
   {
     id: "kemet-oracle",
     name: "이집트 신탁",
+    question: "이 상황은 어디로 흘러갈까?",
     desc: "케멧 오라클 운세",
     action: "openKemetModal",
     featureKey: "openKemetModal",
@@ -545,6 +588,7 @@ window.__cdServiceRegistry = [
   {
     id: "ifa-oracle",
     name: "IFÀ 오라클",
+    question: "이 일, 지금 진행해도 될까?",
     desc: "요루바 256 오두 신탁",
     href: "/ifa-oracle.html",
     featureKey: "ifa-oracle",
@@ -556,6 +600,7 @@ window.__cdServiceRegistry = [
   {
     id: "juyuk-turtle",
     name: "주역 거북점",
+    question: "지금은 나아갈 때일까, 물러설 때일까?",
     desc: "64괘 · 3000년 지혜",
     href: "/oracle/juyuk/",
     featureKey: "openJuyukModal",
@@ -567,6 +612,7 @@ window.__cdServiceRegistry = [
   {
     id: "neville-meditation",
     name: "네빌 명상 실습",
+    question: "원하는 장면을 어떻게 그려야 할까?",
     desc: "상상 창조 집중 가이드",
     href: "/neville-meditation.html",
     featureKey: "neville-meditation",
@@ -578,6 +624,7 @@ window.__cdServiceRegistry = [
   {
     id: "yoga-guru",
     name: "Divya Yoga",
+    question: "오늘 나에게 맞는 루틴은 뭘까?",
     desc: "맞춤 명상 요가 루틴",
     href: "/yoga-guru.html",
     featureKey: "yoga-guru-per-use",
@@ -589,6 +636,7 @@ window.__cdServiceRegistry = [
   {
     id: "tarot-numerology",
     name: "수비학 타로",
+    question: "오늘 나에게 필요한 태도는 뭘까?",
     desc: "생명수·오늘수 5카드 리딩",
     href: "/tarot/numerology/",
     featureKey: "tarot-numerology-reading",
@@ -600,6 +648,7 @@ window.__cdServiceRegistry = [
   {
     id: "dream-psycho-analysis",
     name: "정신분석 해몽",
+    question: "이 꿈은 내 마음의 무엇을 보여줄까?",
     desc: "프로이트 관점의 꿈 분석 보고서",
     action: "openPsychoDreamModal",
     featureKey: "dream-psycho-analysis",
@@ -611,6 +660,7 @@ window.__cdServiceRegistry = [
   {
     id: "animal-totem",
     name: "애니멀 토템",
+    question: "지금 내 마음에서 먼저 살펴야 할 건?",
     desc: "수호 동물 카드 리딩",
     action: "openAnimalTotemModal",
     featureKey: "animal-totem-basic",
@@ -622,6 +672,7 @@ window.__cdServiceRegistry = [
   {
     id: "mbti-animal-compat",
     name: "MBTI 동물 궁합",
+    question: "우리 MBTI 조합은 어떤 궁합일까?",
     desc: "16가지 토템 궁합",
     action: "openMbtiModal",
     price: "무료",
@@ -633,6 +684,7 @@ window.__cdServiceRegistry = [
   {
     id: "tarot-crystal-soul",
     name: "원석 소울 타로",
+    question: "내가 못 보고 있는 내 모습은 뭘까?",
     desc: "손이 멈추는 원석에서 시작하는 5장 리딩",
     href: "/tarot/crystal-soul/",
     featureKey: "tarot-crystal-soul-reading",
@@ -644,6 +696,7 @@ window.__cdServiceRegistry = [
   {
     id: "royal-tea-oracle",
     name: "영국 홍차점",
+    question: "앞으로 석 달, 무엇이 움직일까?",
     desc: "잔에 남은 찻잎으로 읽는 가까운 석 달의 결",
     action: "openRoyalTeaOracle",
     featureKey: "royal-tea-oracle",
@@ -655,6 +708,7 @@ window.__cdServiceRegistry = [
   {
     id: "geomancy-oracle",
     name: "지오맨시 흙점",
+    question: "이 일의 형세는 유리할까, 불리할까?",
     desc: "16도형 방패 차트로 셈하는 조건의 유불리",
     action: "openGeomancyOracle",
     featureKey: "openGeomancyOracle",
@@ -666,6 +720,7 @@ window.__cdServiceRegistry = [
   {
     id: "stonehenge-runes",
     name: "스톤헨지 룬",
+    question: "나는 지금 어느 지점에 서 있을까?",
     desc: "노른 세 여신의 자리에서 읽는 지나온 길과 다가올 길",
     action: "openRuneOracle",
     featureKey: "stonehenge-runes-single",
@@ -680,6 +735,7 @@ window.__cdServiceRegistry = [
   {
     id: "luck-sync-diary",
     name: "운기 다이어리와 플래너",
+    question: "이번 달 흐름, 기록과 얼마나 맞았을까?",
     desc: "오늘의 흐름 기록 · 월간 플래너",
     /* 셸 모달이 아니라 /diary 앱으로 간다(2026-09-07 컷오버 — window.openLuckSyncDiary 는
        이제 location.assign('/diary/') 다). action 을 함께 남기는 이유는 상세 문안

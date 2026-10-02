@@ -2,7 +2,7 @@ import {jest} from '@jest/globals';
 import {createHttpError,json} from '../../worker/lib/http.js';
 
 const userId='507f1f77bcf86cd799439011', id='a'.repeat(64);
-const auth=jest.fn(),security=jest.fn(),prepare=jest.fn(),jongCheck=jest.fn(),activate=jest.fn(),generate=jest.fn(),read=jest.fn();
+const auth=jest.fn(),security=jest.fn(),prepare=jest.fn(),jongCheck=jest.fn(),activate=jest.fn(),generate=jest.fn(),read=jest.fn(),draw=jest.fn();
 const attendance=jest.fn(),attend=jest.fn(),unlock=jest.fn(),freeRead=jest.fn(),freePrepare=jest.fn();
 const horary=jest.fn(),location=jest.fn();
 jest.unstable_mockModule('../../worker/yeongnyangi/fortune/free/horary.ts',()=>({prepareHoraryPrompt:horary}));
@@ -20,7 +20,7 @@ jest.unstable_mockModule('../../worker/lib/security/index.js',()=>({enforceSensi
 jest.unstable_mockModule('../../worker/routes/yeongnyangi-profiles.js',()=>({handleYeongnyangiProfiles:profilesHandler}));
 jest.unstable_mockModule('../../worker/yeongnyangi/payments/catalog.ts',()=>({products:[{id:'saju_mackerel',priceKRW:1000}]}));
 jest.unstable_mockModule('../../worker/yeongnyangi/service.ts',()=>({
-  submitQuestionSkyFollowup:jest.fn(),prepareFortune:prepare,jongCheckFortune:jongCheck,activateFortune:activate,generateNextChapter:generate,presentFortune:row=>row,
+  submitQuestionSkyFollowup:jest.fn(),prepareFortune:prepare,jongCheckFortune:jongCheck,activateFortune:activate,drawTarotSpread:draw,generateNextChapter:generate,presentFortune:row=>row,
   providerReady:env=>Boolean(env.GEMINIF_API_KEY),
   submitQuestionSkyFollowup:async()=>{throw new Error("unexpected followup in route fixture");},
 }));
@@ -43,7 +43,7 @@ function request(path,method='GET',body){
 beforeEach(()=>{
   jest.clearAllMocks();auth.mockResolvedValue({userId});security.mockResolvedValue({ok:true});
   profilesHandler.mockImplementation(async()=>json({ok:true,profiles:[],canCreateMore:true}));
-  for(const fn of [prepare,activate,generate,read])fn.mockResolvedValue({id,state:'PAID'});
+  for(const fn of [prepare,activate,generate,read,draw])fn.mockResolvedValue({id,state:'PAID'});
   attendance.mockResolvedValue({day:'2026-09-16',balance:1,attended:true,unlocked:false});
   attend.mockResolvedValue({day:'2026-09-16',balance:1,attended:true,unlocked:false,awarded:true});
   unlock.mockResolvedValue({day:'2026-09-16',balance:0,attended:true,unlocked:true,newlyUnlocked:true});
@@ -101,12 +101,20 @@ test.each(['activate','generate'])('repeat %s requests target the same owned con
   expect(action==='activate'?activate:generate).toHaveBeenNthCalledWith(2,env,userId,id);
   if(action==='activate')expect(generate).not.toHaveBeenCalled();
 });
+test('tarot draw passes the authenticated owner and the pick body; malformed bodies never reach the service',async()=>{
+  const body={picks:[0,1,2],userId:'payload-owner'};
+  expect((await handleYeongnyangiRoutes(request(`requests/${id}/tarot-draw`,'POST',body),env)).status).toBe(200);
+  expect(draw).toHaveBeenCalledWith(env,userId,id,body);
+  for(const bad of [null,[],42])expect((await handleYeongnyangiRoutes(request(`requests/${id}/tarot-draw`,'POST',bad),env)).status).toBe(400);
+  expect(draw).toHaveBeenCalledTimes(1);
+  expect((await handleYeongnyangiRoutes(request(`requests/${id}/tarot-draw`),env)).status).toBe(404);
+});
 test('list uses owner filter, bounded projection and stable pagination',async()=>{
   const stamp='2026-09-16T00:00:00.000Z';
   lean.mockResolvedValue(Array.from({length:31},()=>({_id:id,snapshot:{product:{id:'saju_mackerel'}},createdAt:stamp,state:'PAID'})));
   const response=await handleYeongnyangiRoutes(request(`requests?cursor=${stamp}_${id}`),env);
   const body=await response.json();expect(body.fortunes).toHaveLength(30);expect(body.nextCursor).toBe(`${stamp}_${id}`);
-  expect(find).toHaveBeenCalledWith(expect.objectContaining({userId,persona:null,$or:expect.any(Array)}));
+  expect(find).toHaveBeenCalledWith(expect.objectContaining({userId,persona:null,state:{$ne:'AWAITING_DRAW'},$or:expect.any(Array)}));
   expect(limit).toHaveBeenCalledWith(31);expect(select.mock.calls[0][0].split(' ')).not.toEqual(expect.arrayContaining(['chapters','snapshot.analysis']));
   expect(maxTimeMS).toHaveBeenCalledWith(4000);expect(response.headers.get('Server-Timing')).toMatch(/auth;dur=.*db;dur=.*query;dur=/);
 });

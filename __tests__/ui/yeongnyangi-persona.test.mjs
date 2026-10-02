@@ -11,11 +11,11 @@ globalThis.__personaTest={rows:new Map()};
 const replacements={
   'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={findOne:()=>({lean:async()=>({updatedAt:null,birth:{year:1997,month:2,day:10,hour:12,minute:0,timeUnknown:false,calType:'solar'},gender:'F',location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}})})};`,
   'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
-  'worker/yeongnyangi/repository.js':`export const reserveQuestionSkyFollowup=async()=>{throw new Error('unexpected followup');};export const allowedChapterAttempts=()=>3;export const holdAutoResumes=()=>false;export const userCanRetry=()=>false;export const saveChapterDraft=async()=>{};export const saveAskAnalysis=async()=>{};export const ownerId=x=>x;export const createRequest=async(e,u,id,v)=>{const m=globalThis.__personaTest.rows;if(!m.has(id))m.set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[]});return m.get(id)};export const readRequest=async(e,u,id)=>{const row=globalThis.__personaTest.rows.get(id);if(!row)throw Object.assign(new Error('not found'),{code:'FORTUNE_NOT_FOUND'});return row;};export const attachPayment=async()=>{};export const claimChapter=async()=>{throw new Error('unexpected claim');};export const finishChapter=async()=>{};export const failChapter=async()=>{};`,
+  'worker/yeongnyangi/repository.js':`export const commitTarotDraw=async()=>{throw new Error('unexpected tarot draw');};export const reserveQuestionSkyFollowup=async()=>{throw new Error('unexpected followup');};export const allowedChapterAttempts=()=>3;export const holdAutoResumes=()=>false;export const userCanRetry=()=>false;export const saveChapterDraft=async()=>{};export const saveAskAnalysis=async()=>{};export const ownerId=x=>x;export const createRequest=async(e,u,id,v)=>{const m=globalThis.__personaTest.rows;if(!m.has(id))m.set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[]});return m.get(id)};export const readRequest=async(e,u,id)=>{const row=globalThis.__personaTest.rows.get(id);if(!row)throw Object.assign(new Error('not found'),{code:'FORTUNE_NOT_FOUND'});return row;};export const attachPayment=async()=>{};export const claimChapter=async()=>{throw new Error('unexpected claim');};export const finishChapter=async()=>{};export const failChapter=async()=>{};`,
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
   'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
 };
-const bundle=await build({stdin:{contents:"export {prepareFortune} from './worker/yeongnyangi/service'; export {products,getChatProduct,resolveStoredProduct,getProduct,chatTarotKinds} from './worker/yeongnyangi/payments/catalog'; export {tarotConsultations} from './worker/yeongnyangi/fortune/tarot/consultation-contract'; export {TAROT_KINDS} from './app/fortune-chat/consultation-world'; export {StructuredChapterProvider,personaPrompt} from './worker/yeongnyangi/providers/chapter'; export {persona as yeongnyangiPersona} from './worker/yeongnyangi/prompts/persona/yeongnyangi'; export {persona as yeoniPersona} from './worker/yeongnyangi/prompts/persona/yeoni'; export {persona as neoPersona} from './worker/yeongnyangi/prompts/persona/neo';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
+const bundle=await build({stdin:{contents:"export {prepareFortune} from './worker/yeongnyangi/service'; export {products,getChatProduct,resolveStoredProduct,getProduct,chatTarotKinds} from './worker/yeongnyangi/payments/catalog'; export {tarotConsultations} from './worker/yeongnyangi/fortune/tarot/consultation-contract'; export {TAROT_KINDS} from './app/fortune-chat/consultation-world'; export {StructuredChapterProvider,personaPrompt} from './worker/yeongnyangi/providers/chapter'; export {persona as yeongnyangiPersona, honorificPersona as yeongnyangiHonorific} from './worker/yeongnyangi/prompts/persona/yeongnyangi'; export {persona as yeoniPersona} from './worker/yeongnyangi/prompts/persona/yeoni'; export {persona as neoPersona} from './worker/yeongnyangi/prompts/persona/neo';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('persona-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const m=loaded.exports;
 const env={GEMINIF_API_KEY:'mock-never-sent',LLM_DRY_RUN:'false'};
@@ -131,4 +131,41 @@ test('chat tarot reads a v2 question spread in the persona voice without a birth
 test('the room offers exactly the chat tarot kinds with the server labels',()=>{
  assert.deepEqual(m.TAROT_KINDS.map(k=>k.id),[...m.chatTarotKinds]);
  for(const k of m.TAROT_KINDS)assert.equal(k.label,m.tarotConsultations[k.id].label);
+});
+
+test('the 존댓말 voice keeps every Yeongnyangi rule and changes only the register',()=>{
+ const honorific=m.personaPrompt(undefined,'honorific');
+ assert.equal(honorific,m.yeongnyangiHonorific);
+ assert.equal(m.personaPrompt(undefined,'banmal'),m.yeongnyangiPersona);
+ assert.equal(m.personaPrompt('yeoni','honorific'),m.yeoniPersona); // chat voices ignore the order-form choice
+ assert.match(honorific,/해요체/);assert.match(honorific,/반말\(~해, ~야, ~거든, ~지\)[^\n]*쓰지 않는다/);
+ assert.match(honorific,/'손님'이라고 부르고 '너'라고 부르지 않는다/);
+ assert.doesNotMatch(honorific,/'~해 봐'|'A가 아니라 B야'|'너는 ~해'/);
+ const lines=[m.yeongnyangiPersona.split('\n'),honorific.split('\n')];
+ assert.equal(lines[1].length,lines[0].length);
+ for(const n of [0,4,7,8,9,10])assert.equal(lines[1][n],lines[0][n],`line ${n+1} is register-free`);
+ for(const rule of [/결론의 방향을 바꾸지 않는다/,/확정 예언은 금지/,/첫 문장은[^\n]*판단으로 시작한다/,/직설은 분량을 줄이라는 뜻이 아니다/])assert.match(honorific,rule);
+});
+
+test('voiceStyle: only a Korean Yeongnyangi honorific order changes the identity, snapshot and prompt',async()=>{
+ const order={productId:'saju_mackerel',profileId:'self',timezone:'Asia/Seoul',topicId:'general',question:'올해 이직을 준비해도 될까요?'};
+ const base=await m.prepareFortune(env,'voice-owner',order);
+ const [banmal,odd,honorific,english]=await Promise.all([
+  m.prepareFortune(env,'voice-owner',{...order,voiceStyle:'banmal'}),
+  m.prepareFortune(env,'voice-owner',{...order,voiceStyle:'shout'}),
+  m.prepareFortune(env,'voice-owner',{...order,voiceStyle:'honorific'}),
+  m.prepareFortune(env,'voice-owner',{...order,locale:'en',voiceStyle:'honorific'}),
+ ]);
+ for(const row of [base,banmal,odd]){assert.equal(row.fingerprint,base.fingerprint);assert.equal(row.snapshot.voiceStyle,undefined);}
+ assert.notEqual(honorific.fingerprint,base.fingerprint);assert.notEqual(honorific._id,base._id);
+ assert.equal(honorific.snapshot.voiceStyle,'honorific');
+ assert.equal(honorific.amountKRW,base.amountKRW);assert.equal(honorific.productId,base.productId);assert.equal(honorific.persona,undefined);
+ assert.equal(english.snapshot.voiceStyle,undefined);
+ const chat=await m.prepareFortune(env,'voice-owner',{...order,domain:'saju',productId:'saju_tuna',voiceStyle:'honorific'},{persona:'neo'});
+ assert.equal(chat.snapshot.voiceStyle,undefined);
+ const chapter=honorific.snapshot.manifest[0],base0={locale:'ko',chapter,analysis:honorific.snapshot.analysis,previous:[]};
+ const [plain,polite]=await Promise.all([capture(base0),capture({...base0,voiceStyle:honorific.snapshot.voiceStyle})]);
+ const {system:a,...restA}=plain,{system:b,...restB}=polite;
+ assert.deepEqual(restB,restA);
+ assert.equal(b.replace(m.yeongnyangiHonorific,'<persona>'),a.replace(m.yeongnyangiPersona,'<persona>'));
 });

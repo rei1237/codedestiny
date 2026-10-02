@@ -122,7 +122,7 @@ test('ilju: the four-pillar table reads hidden stems and twelve stages from the 
     for(const key of ['y','m','d','h']){
       const j=p[key].j,hidden=context.CD_JANGGAN[j];
       assert.ok(yeon.includes(hidden[hidden.length-1]+'(정기)'),key+j);
-      assert.ok(yeon.includes('<td>'+context.cdTwelveStage(p.d.g,j)+'</td>'),key+j);
+      assert.ok(yeon.includes('<td data-label="12운성">'+context.cdTwelveStage(p.d.g,j)+'</td>'),key+j);
     }
     for(const b of context.cdGongMangBranches(p.d.g,p.d.j))assert.ok(yeon.includes(b));
     assert.match(yeon,/연이의 한마디/);assert.match(neo,/네오의 한 줄 정리/);
@@ -149,8 +149,8 @@ test('flow: the current cycle and year cards show the engine score, ten gods and
   const yeon=rich.flow(facts,'pig'),neo=rich.flow(facts,'neo');
   assert.match(yeon,/--pos:72%/);assert.match(yeon,/--pos:35%/);
   assert.deepEqual(yeon.match(/--pos:[\d.]+%/g),neo.match(/--pos:[\d.]+%/g));
-  assert.ok(yeon.includes('<td>'+context.getTenGod(dg,'甲')+'</td>'));
-  assert.ok(yeon.includes('<td>'+context.cdTwelveStage(dg,'午')+'</td>'));
+  assert.ok(yeon.includes('<td data-label="십성">'+context.getTenGod(dg,'甲')+'</td>'));
+  assert.ok(yeon.includes('<td data-label="12운성">'+context.cdTwelveStage(dg,'午')+'</td>'));
   assert.match(yeon,/31~40세/);assert.match(yeon,/2026년/);assert.match(yeon,/지충\(地支\)/);
   assert.match(yeon,/<b>대인관계<\/b><span>r<\/span>/);assert.match(yeon,/여기까지는 무료/);
   assert.doesNotMatch(yeon+neo,/🌟|⚠️|🙂|냥|돼지/);
@@ -174,4 +174,19 @@ test('daily: the energy gauge, ten-god advice and lucky booster come from the en
   assert.doesNotMatch(yeon+neo,/🛡️|💢|냥|돼지|금지|해라/);
   assert.equal((yeon.match(/<section/g)||[]).length,(neo.match(/<section/g)||[]).length);
   assert.equal(rich.daily({gz:{g:'丙',j:'子'}},0,factsOf(p),'pig'),'');
+});
+
+test('climate base follows the month branch (12 steps) and the worker policy copy agrees',async()=>{
+  const {analyzeJohu:policyJohu}=await import('../../worker/lib/saju-yongshin-policy.js');
+  const p={y:{g:'辛',j:'未'},m:{g:'庚',j:'寅'},d:{g:'辛',j:'酉'},h:{g:'壬',j:'辰'}};
+  const j=analyzeJohu(p);
+  assert.equal(j.score,-4);assert.equal(j.type,'cool');
+  const EL={甲:'wood',乙:'wood',丙:'fire',丁:'fire',戊:'earth',己:'earth',庚:'metal',辛:'metal',壬:'water',癸:'water',
+    寅:'wood',卯:'wood',巳:'fire',午:'fire',辰:'earth',戌:'earth',丑:'earth',未:'earth',申:'metal',酉:'metal',亥:'water',子:'water'};
+  const toPolicy=c=>({stemElement:EL[c.g],branch:c.j,branchElement:EL[c.j]});
+  for(const b of branches){
+    const q={...p,m:{g:'庚',j:b}};
+    const w=policyJohu({year:toPolicy(q.y),month:toPolicy(q.m),day:toPolicy(q.d),hour:toPolicy(q.h)});
+    assert.equal(w.score,analyzeJohu(q).score,b);
+  }
 });
