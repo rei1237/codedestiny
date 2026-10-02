@@ -92,3 +92,31 @@ test('summaries: one deterministic line for timingRef summary chapters only, no 
  assert.match(line('saju','tuna'),/^올해 세운 丙午\(정재가 들어오는 해\) · 지금 대운 乙巳\(식신\) — /);
  if(process.env.YEONGNYANGI_TIMING_PRINT)for(const d of ['saju','ziwei','vedic'])for(const t of TIERS)console.log(d,t,line(d,t));
 });
+
+test('the 세운 turns at 입춘, not on 1 January: Y0 and the summary label follow the pillar in force',async()=>{
+ const {input}=fixtures.saju,engine=m.domains.saju;
+ const at=async date=>engine.buildContext(await engine.calculate(input,{asOf:date}));
+ const yearly=context=>context.facts.find(f=>f.label==='yearlyLuck').value;
+ const line=(context,date)=>m.v7TimingSummaries(m.resolveV7Ledger(manifest('saju','flounder'),context,{asOf:date}),date).find(c=>c.timingSummary)?.timingSummary;
+ const january=await at('2027-01-20'),february=await at('2027-02-10');
+ assert.deepEqual(yearly(january).slice(0,2).map(y=>`${y.year}${y.pillar}`),['2026丙午','2027丁未']);
+ assert.equal(yearly(january).length,10);
+ assert.match(line(january,'2027-01-20'),/^입춘 전 지금 세운 丙午/);
+ assert.equal(yearly(february)[0].pillar,'丁未');
+ assert.match(line(february,'2027-02-10'),/^올해 세운 丁未/);
+ // Before 소한 the 子月 from last year's 대설 is in force, so it leads the monthly rows.
+ const newYear=engine.buildContext(await engine.calculate(input,{asOf:'2027-01-02',asOfInstant:'2027-01-02T03:00:00Z'}));
+ const first=newYear.facts.find(f=>f.label==='monthlyLuck').value[0].start;
+ assert.deepEqual([first.year,first.month],[2026,12]);
+});
+
+test('on a 절입 day the new month starts at the term\'s hour, not at midnight',async()=>{
+ const {context,input}=fixtures.saju;
+ const term=matrices.saju.facts[0].value[0].start; // 백로 2026-09
+ const day=`${term.year}-${String(term.month).padStart(2,'0')}-${String(term.day).padStart(2,'0')}`;
+ const instant=minutes=>new Date(Date.UTC(term.year,term.month-1,term.day,term.hour-9,term.minute+minutes));
+ const first=async when=>months((await m.buildV7TimingMatrix(context,input,day,when)).facts[0].value)[0];
+ assert.equal(await first(instant(-1)),'2026-08');
+ assert.equal(await first(instant(1)),'2026-09');
+ assert.equal(await first(undefined),'2026-09'); // stored snapshots without an instant keep the date rule
+});

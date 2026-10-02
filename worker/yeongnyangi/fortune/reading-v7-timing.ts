@@ -20,7 +20,7 @@ const monthKey=(x:O)=>`${x?.start?.year}-${pad2(x?.start?.month)}`;
  * shrink the engine's 10 years to the 4-year window and empty yearsAhead. Ziwei already carries 10 years; vedic
  * would gain pratyantar rows v7 forbids. Saju without a birth time keeps the time-free path (decision 7).
  */
-export async function buildV7TimingMatrix(context:DomainContext,input:FortuneInput,today:string):Promise<V7TimingMatrix>{
+export async function buildV7TimingMatrix(context:DomainContext,input:FortuneInput,today:string,instant?:Date):Promise<V7TimingMatrix>{
   assertEvidenceDate(today);
   const matrix:V7TimingMatrix={version:V7_TIMING_VERSION,domain:context.domain,today,facts:[]};
   if(context.domain!=='saju'||!input?.personA?.birthTime)return matrix;
@@ -30,7 +30,10 @@ export async function buildV7TimingMatrix(context:DomainContext,input:FortuneInp
   const byMonth=new Map<string,O>();
   for(const row of fact.value as O[])if(!byMonth.has(monthKey(row)))byMonth.set(monthKey(row),row);
   const rows=[...byMonth.entries()].sort(([a],[b])=>a<b?-1:a>b?1:0);
-  const current=rows.reduce((at,[key,row],i)=>`${key}-${pad2(row.start?.day)}`<=today?i:at,0);
+  // On a 절입 day the new month starts at the term's hour and minute; without the order instant, by date.
+  const kst=instant&&new Date(instant.getTime()+9*3600000),now=kst&&`${pad2(kst.getUTCHours())}:${pad2(kst.getUTCMinutes())}`;
+  const started=(day:string,start:O)=>day<today||(day===today&&(!now||typeof start?.hour!=='number'||`${pad2(start.hour)}:${pad2(start.minute??0)}`<=now));
+  const current=rows.reduce((at,[key,row],i)=>started(`${key}-${pad2(row.start?.day)}`,row.start)?i:at,0);
   matrix.facts.push({...fact,value:rows.slice(current,current+MONTHS).map(([,row])=>row)});
   return matrix;
 }
@@ -45,11 +48,11 @@ export function withV7Timing(context:DomainContext,matrix:V7TimingMatrix|undefin
 }
 
 const josa=(word:string,consonant:string,vowel:string)=>{const c=word.charCodeAt(word.length-1)-0xac00;return c>=0&&c<11172&&c%28?consonant:vowel;};
-type Part=(v:O)=>string|null;
+type Part=(v:O,beforeLichun:boolean)=>string|null;
 // Lead facts per domain, read from the tier-filtered ledger so a premium fact never reaches a lower tier's summary.
 const SUMMARY_PARTS:Record<string,[string,Part][]>={
   saju:[
-    ['yearlyLuck.{Y0}',v=>v.pillar?`올해 세운 ${v.pillar}${v.stemTenGod?`(${v.stemTenGod}${josa(v.stemTenGod,'이','가')} 들어오는 해)`:''}`:null],
+    ['yearlyLuck.{Y0}',(v,beforeLichun)=>v.pillar?`${beforeLichun?'입춘 전 지금 세운':'올해 세운'} ${v.pillar}${v.stemTenGod?`(${v.stemTenGod}${josa(v.stemTenGod,'이','가')} 들어오는 해)`:''}`:null],
     ['majorLuck.current',v=>v.cycle?.pillar?`지금 대운 ${v.cycle.pillar}${v.cycle.stemTenGod?`(${v.cycle.stemTenGod})`:''}`:null],
   ],
   ziwei:[
@@ -67,14 +70,16 @@ const oneLine=(s:string)=>s.replace(/\s+/g,' ').trim();
  * Gives every timingRef:'summary' chapter one deterministic line about the current period and the chapter
  * that owns it. Owner and 'none' chapters get nothing; timing facts themselves stay with their owners.
  */
-export function v7TimingSummaries(resolved:ReturnType<typeof resolveV7Ledger>){
+export function v7TimingSummaries(resolved:ReturnType<typeof resolveV7Ledger>,asOf?:string){
   const {ledger,chapters}=resolved;
+  // Saju's Y0 is the 세운 in force (입춘 boundary); before 입춘 it is still last calendar year's pillar.
+  const beforeLichun=ledger.domain==='saju'&&Boolean(asOf)&&Number(asOf!.slice(0,4))>ledger.baseYear;
   const ownerOf=(id:string)=>chapters.find(c=>c.owns.includes(id));
   const parts:string[]=[];
   let owner:(typeof chapters)[number]|undefined;
   for(const [pattern,format] of SUMMARY_PARTS[ledger.domain]||[]){
     const id=`${ledger.domain}.${pattern.replace('{Y0}',String(ledger.baseYear))}`,fact=ledger.facts.get(id);
-    const text=fact&&format(fact.value as O);
+    const text=fact&&format(fact.value as O,beforeLichun);
     if(!text)continue;
     parts.push(text);
     owner??=ownerOf(id);

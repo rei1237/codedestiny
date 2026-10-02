@@ -173,10 +173,10 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   for(const system of product.systems) contexts[system]=domains[system].buildContext(
     tarotV2&&system==='tarot'?calculateTarotConsultation(kind!.id as TarotConsultationId):
     (askEvidenceEnabled||relationship)&&system==='tarot' ? calculateAskTarot(normalized[system],product.readingKind!=='single')
-      : await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,relationshipReading:relationship,tarotFusion:product.readingKind!=='single',...(system==='saju'&&jongAnswer?{jongAnswer}:{})}));
+      : await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,asOfInstant:now.toISOString(),relationshipReading:relationship,tarotFusion:product.readingKind!=='single',...(system==='saju'&&jongAnswer?{jongAnswer}:{})}));
   if(relationship&&product.domain!=='tarot'){
     const system=product.domain,input=normalized[system];
-    const other=input.personB?await domains[system].calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},{runtimeEnv:env,asOf:date,relationshipReading:true}):undefined;
+    const other=input.personB?await domains[system].calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},{runtimeEnv:env,asOf:date,asOfInstant:now.toISOString(),relationshipReading:true}):undefined;
     contexts[system]=extendRelationshipContext(contexts[system]!,other,date);
   }
   if(!spiritInput&&preventionEligible(product.fishId)&&contexts.saju)contexts.saju=withPreventionTiming(contexts.saju);
@@ -193,12 +193,12 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     // fact to exactly one chapter, and the summary line is frozen into the manifest. Generation only re-applies
     // the stored matrix, so it never recomputes a period or resolves a different owner.
     const context=contexts[product.domain]!;
-    v7Timing=await buildV7TimingMatrix(context,normalized[product.domain],date);
+    v7Timing=await buildV7TimingMatrix(context,normalized[product.domain],date,now);
     if(preventionEligible(product.fishId)){
       const enriched=withPreventionTiming(withV7Timing(context,v7Timing));
       v7Timing.facts=v7Timing.facts.map(f=>enriched.facts.find(x=>x.label===f.label)||f);
     }
-    manifest=v7TimingSummaries(resolveV7Ledger(manifest as ChapterSpecV7[],withV7Timing(context,v7Timing)));
+    manifest=v7TimingSummaries(resolveV7Ledger(manifest as ChapterSpecV7[],withV7Timing(context,v7Timing)),date);
     product.manifestVersion=READING_V7_VERSION;
     product.chapterCount=manifest.length;
   }

@@ -20,6 +20,7 @@ import {
 import { buildSajuAdvancedFactors } from "../../../lib/saju-ai-prompt.js";
 import { buildLoveShinsal } from "../../../lib/saju-shinsal.js";
 import { BirthProfile } from "../shared/contracts";
+import { kstWall, sexagenaryYearAt } from './sexagenary-year';
 import { flipStrength, jongCheckYears, resolveJongVerdict, strengthCheckYears, type JongAnswer } from './jong-check';
 
 export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer?: JongAnswer) {
@@ -28,14 +29,21 @@ export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer
   const year = natalChart.calculationMeta.civil.year;
   const civil = { g: pillars.day[0], j: pillars.day[1] };
   const kstYear = new Date(now.getTime() + 9 * 3600000).getUTCFullYear();
+  // The 세운 turns at 입춘: from 1 January until then the previous year's pillar is still in force, so the
+  // yearly rows (and the v7 ledger's Y0) start at that year.
+  const luckYear = sexagenaryYearAt(now);
   const r = calculateLifeBookAiSaju(profile, {
-    now: new Date(Date.UTC(kstYear, 0, 15)),
+    now: new Date(Date.UTC(luckYear, 0, 15)),
   });
   const next = calculateLifeBookAiSaju(profile, {
-    now: new Date(Date.UTC(kstYear + 5, 0, 15)),
+    now: new Date(Date.UTC(luckYear + 5, 0, 15)),
   });
   r.yearlyLuck = [...r.yearlyLuck, ...next.yearlyLuck];
-  const monthlyLuck = nodeTerms(kstYear).map(
+  // Before this year's 소한 the 子月 that began at last year's 대설 is still in force.
+  const terms = nodeTerms(kstYear);
+  const clock = (t: { month: number; day: number; hour: number; minute: number }) => ((t.month * 100 + t.day) * 100 + t.hour) * 100 + t.minute;
+  const beforeFirstTerm = Boolean(terms[0]) && clock(kstWall(now)) < clock(terms[0]);
+  const monthlyLuck = [...(beforeFirstTerm ? nodeTerms(kstYear - 1).slice(-1) : []), ...terms].map(
     (at: {
       year: number;
       month: number;
