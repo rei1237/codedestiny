@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-27
-next: "P3·P5·잔여 재확인 구현 완료. 사용자의 운영 결제 테스트 결과를 받고, 아래 \"보고만\" 항목(기능 질문 한 문단 짧은 답 환불, 섬·관계 조기 retryable:false 등)의 후속 여부를 결정한다."
+status: done
+updated: 2026-10-02
+next: "완료 — docs/context/ai-and-db.md:125·메모리 llm-generation-never-fail 근거로 보존 (보고만 4건은 사용자 질문으로 이관)"
 ---
 
 # 모든 유료 LLM: 분량 미달로 전달이 막히지 않게 (단계 계획)

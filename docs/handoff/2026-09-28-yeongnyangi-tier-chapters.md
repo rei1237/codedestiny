@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-29
-next: "Phase 4 승인 후 사주 personal 3권 검증을 실행했다. 연어 8/8·광어 13/13, 참치 9/24에서 품질 거절로 중단. docs/handoff/2026-09-29-llm-sequential-and-v7-golden.md를 먼저 읽고 저장 raw 원인을 추가 과금 없이 분석한다. Phase 4 미완료, 원가 상수 미교체, Phase 5/v7 OFF 유지."
+status: done
+updated: 2026-10-02
+next: "완료 — docs/CONTEXT_AUDIT.md:231·docs/design/yeongnyangi-v7-chapter-catalog.md 근거로 보존"
 ---
 
 # 영냥이 티어별 챕터 확장·반복 제거 인수인계 (Phase 0 진단·Phase 1 설계 완료)

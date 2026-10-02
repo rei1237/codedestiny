@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-28
-next: "\"남은 것 ③\" — 월간 화면의 앵커가 \"오늘\"인 것을 고친다"
+updated: 2026-10-02
+next: "월 범위 기준일(그 달 1일 vs 절입일)을 사용자가 정한 뒤 lib/fortune/range-data.ts loadMonthRange 수정"
 ---
 
 # /fortune/{weekly,monthly} 색인 복귀 — 남은 것 (2026-08-28)

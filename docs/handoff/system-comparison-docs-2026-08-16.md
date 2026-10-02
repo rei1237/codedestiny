@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-16
-next: "§1 남은 주제 2개 — `/compare/astrology-vs-myeongri` · `/compare/tarot-vs-saju` (1·2호는 완료)"
+updated: 2026-10-02
+next: "남은 2편(astrology-vs-myeongri·tarot-vs-saju)을 insights 가 대신한 것으로 보고 종료할지 사용자 확인 — 종료면 done(app/compare 인용)"
 ---
 
 # 체계 간 비교 문서 — 인수인계 (2026-08-16)

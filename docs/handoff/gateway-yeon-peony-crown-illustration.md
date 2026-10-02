@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-03
-next: 사용자가 만든 연이 일러스트(작약 화관·진주 목걸이) 를 받아 public/images/fortune-tea-house/yeon-peony-crown.webp 를 덮어쓰고 sync:public
+updated: 2026-10-02
+next: "사용자 일러스트(또는 승인 시 codex-image)로 public/images/fortune-tea-house/yeon-peony-crown.webp 교체 → sync:public"
 ---
 
 # 운명의 문 — 연이 화관 일러스트 교체

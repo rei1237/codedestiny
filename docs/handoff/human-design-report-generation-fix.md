@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-08-31
-next: **PR #1372(teardown 을 임계 경로 밖으로)는 머지됐고 스테이징 재측정까지 끝났다(아래 *머지 후 재측정*) — 남은 행동은 프로덕션 승격 하나뿐이다.** 스테이징 `warmResetMs` 1316 → **0**, `startToConnect` 1623 → **≈310**(= ping 예산만 남음)으로 예측이 그대로 맞았다. 🔴 프로덕션은 아직 `1e747a9e5`(#1372 이전)라 요청당 `warmResetMs` **226ms** 를 계속 낸다. 계측은 프로덕션에 승격됐고(run 33326529095 · `1e747a9e5`) 미측정이던 값 넷을 전부 읽었다 — `rttMs=266` · `warmResetMs` 226 · `dnsMs` 2–5 · `helloRttMs` 74–77. 🔴 그 `rttMs 266` 이 `clampTimeoutMs` 하한 300→150 을 **되살릴 근거가 아니라 확정 기각 근거**다(여유 34ms). 갈래는 전부 닫혔다
+status: done
+updated: 2026-10-02
+next: "완료 — worker/lib/auth.js:603·__tests__/worker/auth.require-auth.fallback.test.js:66 인용으로 보존"
 ---
 
 # 휴먼 디자인 유료 리포트 — 생성 복구 · 대기 씬 · 차트 병목

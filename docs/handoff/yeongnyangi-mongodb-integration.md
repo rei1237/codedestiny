@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-16
-next: 최신 사용자 요구와 재개 순서는 yeongnyangi-room-restore.md 참고. 멸치 무료 운세와 보라색 선택 UI 복구가 남아 최종 승격 보류.
+status: done
+updated: 2026-10-02
+next: "완료 — docs/CONTEXT_AUDIT.md:219 근거로 보존 (Gemini 고지는 inicis-overseas-card/10-legal-review-questions.md 가 추적)"
 ---
 
 # 영냥이 MongoDB 통합 출시 기록

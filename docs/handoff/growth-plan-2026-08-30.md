@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-08-31
-next: 라이브 검수(12명 index 중) → 문제 인물은 reviewedAt null 로 되돌리기 → AdSense 재신청 2026-09-14 이후 → T1 2차(해외 인물은 시주 시간대 검증 선행) 또는 3단계 홈 히어로
+status: done
+updated: 2026-10-02
+next: "완료 — docs/CURRENT_DEV_BASELINE.md:95 가 결정 출처로 인용해 보존 (T1 2차는 로드맵 S6, GSC 는 U4 가 이어받음)"
 ---
 
 # 성장 계획 2026-08-30 — 검색 유입·AdSense·첫인상

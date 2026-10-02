@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-28
-next: 스테이징 공유 생성·OG·폐기를 확인하고 사용자 요청에 따라 정식 production workflow를 실행한 뒤 실사용 지표를 관측한다.
+updated: 2026-10-02
+next: "운영 SHA 에 456ea72d6 포함 여부를 release run 으로 확인하고, 포함이면 지표 관측으로 넘어간다"
 ---
 
 # 꿀꿀·영냥이 공유 편지 전달

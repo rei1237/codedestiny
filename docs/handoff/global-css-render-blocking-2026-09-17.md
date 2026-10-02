@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-17
-next: 2-4 ① gtag 주입 지연 적용 완료(3절). 남은 후보는 ② ko 페이지 ko.json 요청 조사 — 사용자 선택 대기
+updated: 2026-10-02
+next: "로드맵 S11 착수 시 ko 페이지에서 ko 사전을 실제로 읽는 useT/useDictionary 호출 컴포넌트부터 실측"
 ---
 
 # 전역 렌더 차단: 루트 Suspense(완료) + 전역 Tailwind CSS(남음)

@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-24
-next: "paid-gate-auditor 로 /checkout/ 두 버튼안(단건 명시·Family 명시)을 먼저 감사하고 위험·검증·롤백을 사용자에게 보고한다 — RED·payment-freeze 인접, 승인 전 구현 금지. 속도 문서 후보 6과 합류."
+updated: 2026-10-02
+next: "app/checkout/CheckoutClient.tsx:251 게이트 호출의 단계 축소안을 mock 결제 케이스로 구현·검증한다(paid-gate-auditor 선행)"
 ---
 
 # 영냥이 결제 확인 단계 줄이기

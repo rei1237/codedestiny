@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-06
-next: webpack 영속 캐시를 PR CI 에만 켰고(#1688 머지됨) main 쪽 캐시 워머 워크플로를 올렸다. 워머가 한 번 돈 뒤 PR 빌드의 next 컴파일 시간을 실측해 효과를 확인할 차례다.
+updated: 2026-10-02
+next: "main push CI 로그로 split-dist-boot-tasks 17.6s 측정·축소 → cron */20 유지·check:critical/deploy:critical 통합 여부는 사용자 결정 (PR 캐시 실측은 PR 폐지로 폐기)"
 ---
 
 # PR CI 최적화 (2026-09-06)
