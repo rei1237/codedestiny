@@ -1472,7 +1472,8 @@
         "nightZi": "Nếu giờ sinh sau hiệu chỉnh từ 23:00 trở đi, trụ ngày được tính theo ngày hôm sau — một quy tắc duy nhất, áp dụng nhất quán.",
         "kasi": "Kết quả tính được tự động đối chiếu với dữ liệu công khai của Viện Thiên văn và Vũ trụ Hàn Quốc (KASI).",
         "systems": "Tứ trụ, Tử Vi Đẩu Số, Sukuyo, chiêm tinh Vệ Đà, chiêm tinh phương Tây và Tarot — sáu hệ thống, mỗi hệ được luận theo quy tắc riêng."
-      }
+      },
+      "reviewsSender": "Khách tư vấn ẩn danh"
     },
     "reformActions": {
       "consult": "Tìm hiểu tư vấn Yeongnyangi",

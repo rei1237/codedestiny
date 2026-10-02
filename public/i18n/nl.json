@@ -1472,7 +1472,8 @@
         "nightZi": "Valt het gecorrigeerde tijdstip om 23:00 of later, dan geldt de dagpilaar van de volgende dag – één regel, consequent toegepast.",
         "kasi": "De uitkomsten worden automatisch vergeleken met openbare gegevens van het Korea Astronomy and Space Science Institute (KASI).",
         "systems": "Saju, Zi Wei Dou Shu, Sukuyo, Vedische astrologie, westerse astrologie en tarot – zes systemen, elk gelezen volgens de eigen regels."
-      }
+      },
+      "reviewsSender": "Anonieme cliënt"
     },
     "reformActions": {
       "consult": "Ontdek consulten met Yeongnyangi",

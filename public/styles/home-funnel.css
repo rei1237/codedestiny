@@ -75,7 +75,58 @@ html:is(:lang(ja), :lang(zh)) .cdh :is(h1, h2, h3, p) {
   overflow-wrap: anywhere;
 }
 
-.cdh-trust-offer{grid-column:1/-1;color:var(--cdh-ink)}.cdh-trust-offer h2{margin:0 0 8px;font-size:clamp(19px,4.8vw,24px);line-height:1.4;word-break:keep-all}.cdh-trust-offer h3{margin:22px 0 8px;font-size:16px;line-height:1.5;word-break:keep-all}.cdh-trust-offer .cdh-kakao-lead{margin:0 0 12px;max-width:65ch;color:var(--cdh-muted);font-size:13.5px;line-height:1.7;word-break:keep-all}.cdh-kakao{display:grid;gap:12px;align-items:start;margin:0;padding:0;list-style:none}.cdh-kakao__card{border:1px solid var(--cdh-line);border-radius:20px;background:var(--cdh-surface);box-shadow:0 10px 30px rgb(39 52 58/.08);overflow:hidden}.cdh-kakao__bar{margin:0;padding:9px 14px;border-bottom:1px solid var(--cdh-line);color:color-mix(in srgb,var(--cdh-gold) 75%,var(--cdh-ink));font-size:12px;font-weight:700}.cdh-kakao__thread{display:flex;flex-direction:column;gap:6px;padding:14px 14px 4px}.cdh-kakao__thread p{align-self:flex-start;max-width:82%;margin:0;padding:8px 11px;border:1px solid var(--cdh-line);border-radius:4px 16px 16px 16px;background:var(--cdh-card);color:var(--cdh-ink);font-size:14px;line-height:1.55;word-break:keep-all;overflow-wrap:anywhere}.cdh-kakao__meta{margin:0;padding:8px 14px 12px;color:var(--cdh-muted);font-size:12px;line-height:1.5}.cdh-kakao__when{white-space:nowrap}.cdh-trust-offer .cdh-kakao-fine,.cdh-trust-offer .cdh-trust-offer__note{margin:12px 0 0;max-width:65ch;color:var(--cdh-muted);font-size:12.5px;line-height:1.6;word-break:keep-all}.cdh-expertise{margin:0;padding-left:20px;max-width:72ch;font-size:13.5px;line-height:1.75;word-break:keep-all}.cdh-expertise li+li{margin-top:4px}.cdh-trust-offer__cta{display:inline-flex;align-items:center;min-height:44px;margin-top:14px;padding:0 18px;border-radius:16px;background:var(--cdh-accent);color:#fff!important;font-size:14px;font-weight:800;text-decoration:none}:is(html,body).neo-mode .cdh-trust-offer__cta{color:#1b1233!important}@media (min-width:640px){.cdh-kakao{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (min-width:960px){.cdh-kakao{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.cdh-trust-offer{grid-column:1/-1;color:var(--cdh-ink)}.cdh-trust-offer h2{margin:0 0 8px;font-size:clamp(19px,4.8vw,24px);line-height:1.4;word-break:keep-all}.cdh-trust-offer h3{margin:22px 0 8px;font-size:16px;line-height:1.5;word-break:keep-all}.cdh-trust-offer .cdh-kakao-lead{margin:0 0 12px;max-width:65ch;color:var(--cdh-muted);font-size:13.5px;line-height:1.7;word-break:keep-all}.cdh-trust-offer .cdh-kakao-fine,.cdh-trust-offer .cdh-trust-offer__note{margin:12px 0 0;max-width:65ch;color:var(--cdh-muted);font-size:12.5px;line-height:1.6;word-break:keep-all}.cdh-expertise{margin:0;padding-left:20px;max-width:72ch;font-size:13.5px;line-height:1.75;word-break:keep-all}.cdh-expertise li+li{margin-top:4px}.cdh-trust-offer__cta{display:inline-flex;align-items:center;min-height:44px;margin-top:14px;padding:0 18px;border-radius:16px;background:var(--cdh-accent);color:#fff!important;font-size:14px;font-weight:800;text-decoration:none}:is(html,body).neo-mode .cdh-trust-offer__cta{color:#1b1233!important}
+/* Consultation reviews: moonlight-yehwa chat cards, the same visual language as app/components/CustomerReviews (quote, bar, avatar, sender, bubbles).
+   The first card spans the row from 640px and splits into quote | thread from 960px; heights follow content. The yehwa sprig and crescent
+   are decorative and take their own space, so they never sit under text. Colors are --cdh-* mixes only (no new hex). */
+.cdh-kakao{--cdh-kakao-gold:color-mix(in srgb,var(--cdh-gold) 75%,var(--cdh-ink));--cdh-kakao-hair:color-mix(in srgb,var(--cdh-gold) 26%,transparent);--cdh-kakao-well:color-mix(in srgb,var(--cdh-gold) 10%,var(--cdh-surface));--cdh-kakao-bubble:var(--cdh-card);--cdh-kakao-bubble-ink:var(--cdh-ink);--cdh-kakao-shadow:color-mix(in srgb,var(--cdh-ink) 12%,transparent);--cdh-kakao-motif:.36;display:grid;gap:14px;margin:0;padding:0;list-style:none}
+html.neo-mode .cdh-kakao,body.neo-mode .cdh-kakao{--cdh-kakao-well:color-mix(in srgb,var(--cdh-bg) 55%,var(--cdh-surface));--cdh-kakao-bubble:color-mix(in srgb,var(--cdh-ink) 86%,var(--cdh-surface));--cdh-kakao-bubble-ink:var(--cdh-bg);--cdh-kakao-shadow:color-mix(in srgb,var(--cdh-bg) 60%,transparent);--cdh-kakao-motif:.2}
+.cdh-kakao>li{display:flex;min-width:0}
+.cdh-kakao__card{position:relative;flex:1;display:flex;flex-direction:column;min-width:0;border:1px solid color-mix(in srgb,var(--cdh-gold) 40%,var(--cdh-line));border-radius:22px;background:linear-gradient(160deg,var(--cdh-card),color-mix(in srgb,var(--cdh-gold) 8%,var(--cdh-surface)));box-shadow:0 20px 48px -30px color-mix(in srgb,var(--cdh-gold) 55%,var(--cdh-ink)),inset 0 1px 0 color-mix(in srgb,var(--cdh-gold-soft) 55%,transparent);overflow:hidden}
+/* Gold sheen on the frame: the .cdh-services--luxe recipe. */
+.cdh-kakao__card:before{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;padding:1px;background:linear-gradient(120deg,var(--cdh-gold),transparent 32%,transparent 68%,var(--cdh-gold));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.55;pointer-events:none}
+.cdh-kakao__card>*{position:relative;z-index:1}
+/* One phrase cut verbatim from the bubbles. The sprig above it is its own line box, so it never overlaps the text. */
+.cdh-kakao__quote{margin:0;padding:16px 16px 12px;color:var(--cdh-kakao-gold);font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:17.5px;line-height:1.5;word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
+.cdh-kakao__quote:before{content:"";display:block;width:112px;height:40px;margin:0 0 8px -6px;background:var(--cdh-gold);opacity:var(--cdh-kakao-motif);-webkit-mask:var(--cd-yehwa-mask-branch-spray) left center/contain no-repeat;mask:var(--cd-yehwa-mask-branch-spray) left center/contain no-repeat}
+.cdh-kakao__bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;padding:10px 16px;border-bottom:1px solid var(--cdh-kakao-hair);color:var(--cdh-kakao-gold);font-size:12px;font-weight:700;letter-spacing:.02em}
+.cdh-kakao__quote+.cdh-kakao__bar{border-top:1px solid var(--cdh-kakao-hair)}
+/* Crescent moon carved by an inset shadow (decorative). */
+.cdh-kakao__bar:after{content:"";flex:none;width:13px;height:13px;border-radius:50%;box-shadow:inset -3px 2px 0 0 var(--cdh-kakao-gold);opacity:.85;transform:rotate(-18deg)}
+.cdh-kakao__thread{flex:1;display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;padding:16px 16px 12px;background:var(--cdh-kakao-well)}
+.cdh-kakao__avatar{display:grid;place-items:center;width:34px;height:34px;border:1px solid color-mix(in srgb,var(--cdh-gold) 55%,transparent);border-radius:50%;background:var(--cdh-card);color:var(--cdh-kakao-gold)}
+.cdh-kakao__bubbles,.cdh-kakao__msgs{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;max-width:100%}
+.cdh-kakao__sender{margin:1px 0 2px;color:var(--cdh-muted);font-size:12px;line-height:1.4}
+.cdh-kakao__msgs p{position:relative;max-width:100%;margin:0;padding:8px 12px;border-radius:16px;background:var(--cdh-kakao-bubble);color:var(--cdh-kakao-bubble-ink);box-shadow:0 1px 2px var(--cdh-kakao-shadow),0 6px 14px -8px var(--cdh-kakao-shadow);font-size:14px;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere;text-wrap:pretty}
+/* Tail on the first bubble only, next to the avatar (KakaoTalk convention). */
+.cdh-kakao__msgs p:first-child{border-top-left-radius:4px}
+.cdh-kakao__msgs p:first-child:before{content:"";position:absolute;top:0;left:-6px;width:8px;height:10px;background:inherit;clip-path:polygon(0 0,100% 0,100% 100%)}
+.cdh-kakao__meta{margin:0;padding:10px 16px 14px;border-top:1px solid var(--cdh-kakao-hair);background:var(--cdh-kakao-well);color:var(--cdh-muted);font-size:12px;line-height:1.5}
+.cdh-kakao__when{white-space:nowrap}
+@media (min-width:640px){
+.cdh-kakao>li:first-child .cdh-kakao__quote{padding:24px 24px 16px;font-size:23px}
+}
+@media (min-width:960px){
+.cdh-kakao{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cdh-kakao>li:first-child{grid-column:1/-1}
+/* Cards side by side share their four rows (subgrid), so bars and threads start on one line. */
+.cdh-kakao>li:not(:first-child):has(>.cdh-kakao__card>.cdh-kakao__quote),.cdh-kakao>li:not(:first-child)>.cdh-kakao__card:has(>.cdh-kakao__quote){display:grid;grid-row:span 4;grid-template-rows:subgrid;row-gap:0}
+.cdh-kakao>li:not(:first-child)>.cdh-kakao__card:has(>.cdh-kakao__quote){flex:none}
+/* Hero: quote left, conversation right, hairline between. A hero without a quote keeps the stacked layout (:has does not match). */
+.cdh-kakao>li:first-child .cdh-kakao__card:has(>.cdh-kakao__quote){display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);grid-template-rows:auto 1fr auto}
+.cdh-kakao>li:first-child .cdh-kakao__quote{grid-column:1;grid-row:1/3;align-self:center;padding:32px 36px;font-size:30px}
+.cdh-kakao>li:first-child .cdh-kakao__quote:before{width:150px;height:54px;margin-bottom:14px}
+.cdh-kakao>li:first-child .cdh-kakao__bar{grid-column:2;grid-row:1;border-top:0;border-left:1px solid var(--cdh-kakao-hair)}
+.cdh-kakao>li:first-child .cdh-kakao__thread{grid-column:2;grid-row:2;padding:20px 24px;border-left:1px solid var(--cdh-kakao-hair)}
+.cdh-kakao>li:first-child .cdh-kakao__meta{grid-column:1/-1;grid-row:3}
+.cdh-kakao>li:first-child .cdh-kakao__msgs p{font-size:15.5px}
+}
+@media (min-width:1200px){.cdh-kakao>li:first-child .cdh-kakao__quote{font-size:34px}}
+/* Neo: translucent gold over violet night reads grey, so the sprig and hairlines use gold at lower lightness (same hue, opaque, line contrast within 1.3–1.7). */
+@supports (color:oklch(from red l c h)){
+html.neo-mode .cdh-kakao,body.neo-mode .cdh-kakao{--cdh-kakao-hair:oklch(from var(--cdh-gold) .42 c h)}
+html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{background:oklch(from var(--cdh-gold) .37 c h);opacity:1}
+}
 /* 2026-09-24 연이의 꽃정원 — 큰 CTA 하나 + 연이 안내 + 이용권 + 접힌 "더 둘러보기" + 한 줄 버그 제보 */
 .cdh-primary{box-shadow:0 12px 26px color-mix(in srgb,var(--cdh-accent) 26%,transparent)}
 

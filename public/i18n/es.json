@@ -1472,7 +1472,8 @@
         "nightZi": "Si la hora corregida es a partir de las 23:00, se usa el pilar del día siguiente: una sola regla, aplicada siempre igual.",
         "kasi": "Los resultados se contrastan automáticamente con los datos públicos del Instituto Coreano de Astronomía y Ciencias Espaciales (KASI).",
         "systems": "Saju, Zi Wei Dou Shu, Sukuyo, astrología védica, astrología occidental y tarot: seis sistemas, cada uno leído con sus propias reglas."
-      }
+      },
+      "reviewsSender": "Cliente anónimo"
     },
     "reformActions": {
       "consult": "Conoce las consultas de Yeongnyangi",
