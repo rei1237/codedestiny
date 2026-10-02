@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-06
-next: "09-06 에 스캐너로 낙샤트라 muhurta·vvip 를 **처음 실측했다**(아래 §낙샤트라 프리미엄 실측). 그 과정에서 🔴 **스캐너 자체의 순회 결함**을 찾아 같은 PR 에서 고쳤다(아래 §순회 결함) — `window.scrollTo(x,y)` 가 전역 `scroll-behavior:smooth` 를 타서 7,854px 문서에서 540px 까지만 훑고 있었다. 이제 즉시 이동 + 도달 검사 + fail-closed 다. 🔴 **09-06 이전에 이 스캐너·같은 형태의 1회용 프로브로 잰 원장 행의 OF·TT·열폭 수치는 전부 첫 화면 표본이다 — 재측정 전까지 미검증으로 읽는다**(재측정한 `/nakshatra/` 와 muhurta·vvip 만 예외). 다음 작업 후보: (가) 원장 상위 행 재측정 — 값이 싼 것부터(정적 셸 20종·콘텐츠 32종은 하네스 없이 바로 돈다), (나) 두 가드(`verify:mobile-cdp-smoke`·`verify:mobile-detail-render`)에 OF-A/B/C + 순회 fail-closed 이식 — 🔴 CI 배선은 사용자 지시가 필요하다(메모리 `ci-gates-scope`), (다) 전역 44px 바닥의 손으로 쓴 클래스 목록 정리(원칙 10 위반 형태 — 이번 `.back` 도 같은 구멍이었다)."
+updated: 2026-10-02
+next: "고친 스캐너로 루트 정적 셸 20종 재측정 — 가드 이식은 CI 배선이라 사용자 지시 필요"
 ---
 
 # 기능별 모바일 순회 원장

@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-25
-next: "슬라이스 3b `loveCharacterStories.ts`(26,723자)를 캐릭터 단위로 쪼개 번역한다"
+updated: 2026-10-02
+next: "3b: LoveCharacterStorySection.tsx 렌더 대상 확인 뒤 캐릭터 N명 단위로 i18n/authored/loveSimulation-04.json 에 저작한다(03 은 사용 중)"
 ---
 
 # 콘텐츠 실제 번역 — 인수인계 (2026-08-25)

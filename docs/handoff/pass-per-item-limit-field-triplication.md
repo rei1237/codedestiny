@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-06
-next: consumePassCoverage 가 maxCoveredCoin 만 갱신하고 passLimit·freeLimit 은 두고 가는 것이 실제 오답을 만드는지부터 확인한다 — 아니면 필드를 지우지 말고 "쓰지 않는다"만 고정한다.
+updated: 2026-10-02
+next: "passLimit·freeLimit 읽기 지점을 소스·__tests__·verify-* 에서 전수 수집해(models.js:1729 동명 제외) '읽기 0 + 가드 고정' 여부만 판단"
 ---
 
 # 건당 상한 3중 저장 (maxCoveredCoin · passLimit · freeLimit)

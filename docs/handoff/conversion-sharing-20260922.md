@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-24
-next: "순서 정본은 docs/handoff/competitiveness-roadmap-20260923.md — 이 문서의 잔여(미연결 상담 저장 결과 공유 = S8·S9, 구매 동선 = S12, SEO 12개 랜딩 = S3·S4·F)는 그 표의 순서로 진행한다. 전체 목표는 미완료다."
+updated: 2026-10-02
+next: "로드맵 S8: 정적 셸 결과 공유 묶음(사주·타로·점성술·숙요·자미, js/share.js·js/share-service.mjs, sync:public 미러 포함)"
 ---
 
 # 경쟁사 대비 전환·신뢰·SEO·상담 공유 후속 작업

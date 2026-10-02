@@ -28,6 +28,8 @@ export const consultationKinds:Record<string,ConsultationKind[]>={
 };
 export const consultationDomain=(p:Product)=>p.readingKind==='single'?p.domain:'fusion';
 export const supportsKind=(p:Product,k:ConsultationKind)=>!k.professional||['tuna','assorted','omakase'].includes(p.fishId);
+// Chapter counts a buyer can actually receive for this product, one per offered kind (v7 lengths differ from Product.chapterCount).
+export const consultationChapterCounts=(p:Product)=>(consultationKinds[consultationDomain(p)]||[]).filter(k=>supportsKind(p,k)).map(k=>consultationManifest(p,k).length);
 export function resolveConsultationKind(p:Product,id:unknown){
  if(id===undefined)return undefined; // Purchased and old-client requests keep their original contract.
  const selected=consultationKinds[consultationDomain(p)]?.find(k=>k.id===id);

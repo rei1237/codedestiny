@@ -409,6 +409,12 @@ on:
       - "scripts/run-mock-tests.mjs"
       - "scripts/lib/mock-network-guard.cjs"
       - "scripts/lib/mock-test-config.mjs"
+      # 🔴 영냥이 결제 축(2026-10-03 추가, change-risk.mjs 의 같은 날 deepVerificationRules 와 짝).
+      #    이용권 팩 견적·구매 UI · 생선 단계 결제창 · 상품 가격 카탈로그가 0건이라 여기만 고친
+      #    커밋은 결제 게이트가 깨어나지 않았다.
+      - "app/components/service-packs/**"
+      - "app/yeongnyangi/_components/Consultation.tsx"
+      - "worker/yeongnyangi/payments/**"
   # ⚠️ 이 게이트의 가드는 트리거 paths 밖 파일도 읽는다(예: verify:nakshatra-premium 은 규약
   #    문서를 읽는다). paths 에 안 걸리는 커밋이 가드를 깨뜨릴 수 있다 — 2026-08-11 에 실제로
   #    그랬다(PR #678, CLAUDE.md 분할). paths 를 넓히면 2026-08-08 에 일부러 좁힌 트리거가

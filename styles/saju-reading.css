@@ -1,10 +1,16 @@
 /* Owned by the static saju surface, never by the shared mobile wrapper. */
-#resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading {
+#resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading,#tsGrid {
   --reading-ink:#54233e;--reading-muted:#774661;--reading-accent:#a52c60;--reading-paper:#fff8fb;--reading-line:#e5c3d2;
+  --reading-card:#fff;--reading-gold:#c9a25e;--reading-on-accent:#fff;
+  --reading-el-wood:rgb(46 125 50);--reading-el-fire:rgb(198 40 40);--reading-el-earth:rgb(141 110 99);--reading-el-metal:rgb(144 164 174);--reading-el-water:rgb(21 101 192);
+}
+#resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading {
   color:var(--reading-ink);background:var(--reading-paper);font-family:var(--font-body, "CodeDestinyBody", sans-serif);
 }
-body.neo-mode #resultPage #letterBox,body.neo-mode #resultPage .saju-reading,body.neo-mode #sajuReadingHeader,body.neo-mode .saju-input-modes,body.neo-mode .saju-static-offer,body.neo-mode #modalBody .saju-reading {
+body.neo-mode #resultPage #letterBox,body.neo-mode #resultPage .saju-reading,body.neo-mode #sajuReadingHeader,body.neo-mode .saju-input-modes,body.neo-mode .saju-static-offer,body.neo-mode #modalBody .saju-reading,body.neo-mode #tsGrid {
   --reading-ink:#f4eafa;--reading-muted:#d6c7e5;--reading-accent:#e8c985;--reading-paper:#21182f;--reading-line:#685277;
+  --reading-card:#2a2040;--reading-gold:#e8c985;--reading-on-accent:#21182f;
+  --reading-el-wood:rgb(129 199 132);--reading-el-fire:rgb(239 154 154);--reading-el-earth:rgb(188 170 164);--reading-el-metal:rgb(207 216 220);--reading-el-water:rgb(144 202 249);
 }
 #sajuReadingHeader {display:flex;align-items:center;gap:24px;padding:32px;border:1px solid var(--reading-line);border-radius:20px;margin:0 0 24px;}
 #sajuReadingHeader img {flex:none;object-fit:contain;}
@@ -28,12 +34,13 @@ body.neo-mode .saju-reading-switch [aria-pressed="true"] {color:#21182f;}
 .saju-reading__evidence summary {min-height:44px;display:list-item;align-content:center;cursor:pointer;color:var(--reading-accent);}
 .saju-reading .saju-reading__uncertain {margin-top:20px;color:var(--reading-muted);font-size:.875rem;}
 #tsGrid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
-#tsGrid .saju-ten-button {display:flex;flex-direction:column;gap:10px;text-align:left;padding:18px;border:1px solid #dfbed1;border-radius:14px;color:#54233e;background:#fff8fb;font:inherit;cursor:pointer;min-height:44px;}
-#tsGrid .saju-ten-button strong {font-size:1rem;}
+#tsGrid .saju-ten-button {display:flex;flex-direction:column;gap:10px;text-align:left;padding:20px;border:1px solid color-mix(in srgb,var(--reading-line) 85%,transparent);border-radius:var(--cd-r-md,16px);color:var(--reading-ink);background:linear-gradient(160deg,color-mix(in srgb,var(--reading-accent) 8%,var(--reading-card)) 0%,var(--reading-card) 58%);box-shadow:var(--cd-shade-1);font:inherit;cursor:pointer;min-height:44px;transition:border-color .18s ease,box-shadow .18s ease;}
+#tsGrid .saju-ten-button:hover {border-color:color-mix(in srgb,var(--reading-accent) 55%,var(--reading-line));box-shadow:var(--cd-shade-3);}
+#tsGrid .saju-ten-button strong {display:flex;align-items:center;gap:12px;font-family:"CodeDestinySerifKR","Noto Serif KR",serif;font-size:1.2rem;font-weight:700;line-height:1.4;}
+#tsGrid .saju-ten-button[data-el] {background:linear-gradient(160deg,color-mix(in srgb,var(--el) 13%,var(--reading-card)) 0%,var(--reading-card) 62%);border-color:color-mix(in srgb,var(--el) 40%,var(--reading-line));}
+#tsGrid .saju-ten-button__seal {display:inline-grid;place-items:center;flex:none;width:44px;height:44px;border:1px solid color-mix(in srgb,var(--el,var(--reading-gold)) 75%,var(--reading-line));border-radius:var(--cd-r-sm,8px);background:color-mix(in srgb,var(--el,var(--reading-gold)) 22%,var(--reading-card));color:var(--reading-ink);font-style:normal;font-size:1.5rem;line-height:1;}
 #tsGrid .saju-ten-button span {font-size:.95rem;line-height:1.75;}
-#tsGrid .saju-ten-button small {color:#a52c60;font-size:.875rem;}
-body.neo-mode #tsGrid .saju-ten-button {color:#f4eafa;background:#21182f;border-color:#685277;}
-body.neo-mode #tsGrid .saju-ten-button small {color:#e8c985;}
+#tsGrid .saju-ten-button small {align-self:flex-start;margin-top:auto;padding:6px 14px;border:1px solid color-mix(in srgb,var(--reading-accent) 45%,var(--reading-line));border-radius:999px;color:var(--reading-accent);font-size:.8125rem;font-weight:600;line-height:1.4;}
 :is(.saju-reading-switch button,.saju-reading-compare,.saju-ten-button,.saju-static-offer summary,.cd-soulcat-entry a):focus-visible {outline:3px solid #b07830;outline-offset:4px;}
 .saju-static-offer {display:flow-root;padding:24px;border:1px solid var(--reading-line);border-radius:16px;line-height:1.75;margin:16px 0;}
 .saju-static-offer h3 {font-size:1.1rem;margin:0 0 8px;color:var(--reading-ink);}
@@ -104,7 +111,7 @@ body.neo-mode #tsGrid .saju-ten-button small {color:#e8c985;}
   .saju-reading[data-reading-mode="neo"] .saju-reading__body {grid-template-columns:1fr;}
   #tsGrid {grid-template-columns:1fr;}
 }
-@media(prefers-reduced-motion:reduce) {.saju-reading,.saju-reading-header,.cd-soulcat-entry {animation:none;transition:none;scroll-behavior:auto;}}
+@media(prefers-reduced-motion:reduce) {.saju-reading,.saju-reading-header,.cd-soulcat-entry,#tsGrid .saju-ten-button {animation:none;transition:none;scroll-behavior:auto;}}
 
 #sajuReadingHeader img {background:transparent;}
 .saju-static-offer__price {display:block;font-size:1.1rem;margin-bottom:12px;}
@@ -151,3 +158,131 @@ body.neo-mode .saju-cycle-guide {background:#21182f;color:#f4eafa;border-color:#
 #resultPage .saju-letter .saju-reading__evidence:focus-within {outline:2px solid var(--reading-accent);outline-offset:4px;}
 
 #resultPage .saju-letter[data-reading-mode="neo"] .saju-letter__prose {font-family:inherit;}
+
+/* Rich Korean reading (js/core/saju/reading-rich.js): hero, gauges, tables, chips, tiles. Reading tokens only; inline style carries only --pos.
+ * 평상시 카드는 shade, 강조색은 섹션 첫머리 배지·게이지 지표에만(Accent Budget). 오행 색은 같은 결과 화면 일주 막대(fortune-ui-home.css)와 같은 값. */
+.saju-rich {display:grid;grid-template-columns:minmax(0,1fr);gap:16px;--hue:var(--reading-accent);}
+#johuContent .saju-rich {--hue:var(--reading-el-water);}
+#ukbuSection .saju-rich {--hue:var(--reading-el-wood);}
+#sajuTenOverview .saju-rich {--hue:var(--reading-gold);}
+#currentSeasonSummary .saju-rich {--hue:color-mix(in srgb,var(--reading-el-earth) 45%,var(--reading-gold));}
+#dailyPanel .saju-rich {--hue:var(--reading-el-fire);}
+#tsGrid [data-el="wood"] {--el:var(--reading-el-wood);}
+#tsGrid [data-el="fire"] {--el:var(--reading-el-fire);}
+#tsGrid [data-el="earth"] {--el:var(--reading-el-earth);}
+#tsGrid [data-el="metal"] {--el:var(--reading-el-metal);}
+#tsGrid [data-el="water"] {--el:var(--reading-el-water);}
+.saju-rich [data-el="wood"] {--el:var(--reading-el-wood);}
+.saju-rich [data-el="fire"] {--el:var(--reading-el-fire);}
+.saju-rich [data-el="earth"] {--el:var(--reading-el-earth);}
+.saju-rich [data-el="metal"] {--el:var(--reading-el-metal);}
+.saju-rich [data-el="water"] {--el:var(--reading-el-water);}
+.saju-rich__block,.saju-rich > .saju-gauge,.saju-rich__gauges .saju-gauge {min-width:0;padding:20px;border:1px solid color-mix(in srgb,var(--reading-line) 70%,transparent);border-radius:var(--cd-r-md,16px);background:var(--reading-card);box-shadow:var(--cd-shade-1);}
+.saju-rich__block {background:linear-gradient(180deg,color-mix(in srgb,var(--hue) 5%,var(--reading-card)) 0%,var(--reading-card) 120px);box-shadow:inset 0 3px 0 color-mix(in srgb,var(--hue) 70%,transparent),var(--cd-shade-1);}
+.saju-rich__block p + p {margin-top:10px;}
+.saju-rich .saju-rich__block > h4 {display:flex;align-items:baseline;gap:10px;margin:0 0 14px;font-family:"CodeDestinySerifKR","Noto Serif KR",serif;font-size:1.0625rem;font-weight:600;line-height:1.45;color:var(--reading-ink);text-wrap:balance;word-break:keep-all;}
+.saju-rich .saju-rich__block > h4::before {content:"";flex:none;width:4px;height:.95em;border-radius:2px;background:linear-gradient(180deg,var(--hue),var(--reading-gold));transform:translateY(.12em);}
+.saju-rich .saju-rich__lead {border-color:color-mix(in srgb,var(--hue) 35%,var(--reading-line));background:radial-gradient(120% 90% at 100% 0%,color-mix(in srgb,var(--reading-gold) 14%,transparent) 0%,transparent 55%),linear-gradient(160deg,color-mix(in srgb,var(--hue) 13%,var(--reading-card)) 0%,var(--reading-card) 64%);box-shadow:inset 0 3px 0 var(--hue),var(--cd-shade-2);}
+.saju-rich .saju-flow--year {border-color:color-mix(in srgb,var(--reading-gold) 50%,var(--reading-line));background:linear-gradient(160deg,color-mix(in srgb,var(--reading-gold) 16%,var(--reading-card)) 0%,var(--reading-card) 62%);}
+.saju-rich__title {font-weight:700;color:var(--reading-ink);margin-bottom:6px;font-family:"CodeDestinySerifKR","Noto Serif KR",serif;}
+.saju-rich .saju-rich__note {margin-top:10px;color:var(--reading-muted);font-size:.875rem;line-height:1.7;}
+.saju-hero {margin:0 0 14px;}
+.saju-rich .saju-hero__title {margin:0;max-width:none;font-family:"CodeDestinySerifKR","Noto Serif KR",serif;font-size:clamp(1.3rem,4.6vw,1.7rem);font-weight:700;line-height:1.35;letter-spacing:-.01em;color:var(--reading-ink);text-wrap:balance;word-break:keep-all;}
+.saju-rich .saju-hero--ganji .saju-hero__title {font-size:clamp(2.1rem,8vw,2.75rem);letter-spacing:.14em;line-height:1.15;}
+.saju-hero__badges {list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px;}
+.saju-hero__badges li {padding:4px 12px;border:1px solid color-mix(in srgb,var(--reading-accent) 30%,var(--reading-line));border-radius:999px;background:color-mix(in srgb,var(--reading-accent) 6%,var(--reading-card));color:var(--reading-ink);font-size:.875rem;font-weight:600;line-height:1.5;font-variant-numeric:tabular-nums;}
+.saju-hero__badges li:nth-child(2) {border-color:color-mix(in srgb,var(--reading-gold) 60%,var(--reading-line));background:color-mix(in srgb,var(--reading-gold) 16%,var(--reading-card));}
+.saju-hero__badges li:nth-child(n+3) {border-color:color-mix(in srgb,var(--hue) 50%,var(--reading-line));background:color-mix(in srgb,var(--hue) 13%,var(--reading-card));}
+.saju-hero__badges li[data-primary] {border-color:var(--reading-accent);background:var(--reading-accent);color:var(--reading-on-accent);}
+.saju-rich__gauges {display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));}
+.saju-gauge {margin:0;--g:linear-gradient(90deg,color-mix(in srgb,var(--hue) 30%,var(--reading-card)),color-mix(in srgb,var(--hue) 70%,var(--reading-accent)));}
+.saju-gauge--temp {--g:linear-gradient(90deg,color-mix(in srgb,var(--reading-el-water) 78%,var(--reading-card)),color-mix(in srgb,var(--reading-el-water) 18%,var(--reading-card)) 42%,color-mix(in srgb,var(--reading-el-fire) 18%,var(--reading-card)) 58%,color-mix(in srgb,var(--reading-el-fire) 78%,var(--reading-card)));}
+.saju-gauge--humid {--g:linear-gradient(90deg,color-mix(in srgb,var(--reading-el-earth) 85%,var(--reading-card)),color-mix(in srgb,var(--reading-el-earth) 20%,var(--reading-card)) 42%,color-mix(in srgb,var(--reading-el-wood) 20%,var(--reading-card)) 58%,color-mix(in srgb,var(--reading-el-wood) 80%,var(--reading-card)));}
+/* 구간 칸은 연속 트랙 위의 가는 눈금으로만 남는다. 표식은 양 끝에서도 트랙 안에 머물도록 좌우 여백 10px. */
+.saju-gauge__bar {position:relative;display:grid;gap:0;height:12px;margin:26px 10px 10px;border-radius:999px;background:var(--g);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--reading-muted) 75%,transparent),inset 0 1px 2px rgb(0 0 0 / .14);}
+.saju-gauge__bar span {background:none;}
+.saju-gauge__bar span + span {box-shadow:inset 2px 0 0 color-mix(in srgb,var(--reading-card) 70%,transparent);}
+.saju-gauge--temp .saju-gauge__bar {grid-template-columns:4fr 3fr 4fr 3fr 4fr;}
+.saju-gauge--humid .saju-gauge__bar {grid-template-columns:3.5fr 5.5fr 3fr;}
+.saju-gauge--power .saju-gauge__bar {grid-template-columns:51fr 30fr 20fr 20fr 20fr 18fr;}
+.saju-gauge--score .saju-gauge__bar {grid-template-columns:repeat(5,1fr);}
+.saju-gauge--energy .saju-gauge__bar {grid-template-columns:4fr 2fr 2fr 2fr;}
+.saju-gauge__mark {position:absolute;top:50%;left:var(--pos);box-sizing:border-box;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:var(--reading-card);border:4px solid var(--reading-ink);box-shadow:var(--cd-shade-2);}
+.saju-gauge__base {position:absolute;top:-6px;bottom:-6px;left:var(--pos);border-left:2px dashed var(--reading-muted);}
+.saju-gauge__base::after {content:attr(data-label);position:absolute;bottom:calc(100% + 2px);left:0;transform:translateX(-50%);font-size:.75rem;font-style:normal;white-space:nowrap;color:var(--reading-muted);}
+.saju-gauge__ends {display:flex;justify-content:space-between;gap:8px;font-size:.8125rem;color:var(--reading-muted);}
+.saju-gauge--temp .saju-gauge__ends > :first-child {color:color-mix(in srgb,var(--reading-el-water) 75%,var(--reading-ink));font-weight:600;}
+.saju-gauge--temp .saju-gauge__ends > :last-child {color:color-mix(in srgb,var(--reading-el-fire) 75%,var(--reading-ink));font-weight:600;}
+.saju-gauge--humid .saju-gauge__ends > :first-child {color:color-mix(in srgb,var(--reading-el-earth) 60%,var(--reading-ink));font-weight:600;}
+.saju-gauge--humid .saju-gauge__ends > :last-child {color:color-mix(in srgb,var(--reading-el-wood) 75%,var(--reading-ink));font-weight:600;}
+.saju-gauge figcaption {margin-top:8px;font-size:.9375rem;line-height:1.6;}
+.saju-gauge figcaption strong {color:var(--reading-accent);font-family:"CodeDestinySerifKR","Noto Serif KR",serif;font-size:1.0625rem;}
+.saju-table-wrap {overflow-x:auto;margin-top:12px;border:1px solid color-mix(in srgb,var(--reading-line) 80%,transparent);border-radius:var(--cd-r-control,12px);background:var(--reading-card);}
+.saju-table {width:100%;border-collapse:collapse;font-size:.9rem;line-height:1.6;font-variant-numeric:tabular-nums;}
+.saju-table caption {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+.saju-table th,.saju-table td {padding:10px 12px;border-bottom:1px solid color-mix(in srgb,var(--reading-line) 70%,transparent);text-align:left;vertical-align:top;color:var(--reading-ink);}
+.saju-table th,.saju-table td {word-break:keep-all;overflow-wrap:normal;white-space:nowrap;}
+.saju-table .saju-table__wrap {white-space:normal;min-width:8em;}
+.saju-table .saju-table__keep {white-space:nowrap;}
+.saju-table thead th {background:color-mix(in srgb,var(--hue) 11%,var(--reading-card));color:var(--reading-muted);font-weight:600;font-size:.8125rem;letter-spacing:.02em;}
+.saju-table tbody tr:last-child > * {border-bottom:0;}
+.saju-table tbody th {font-weight:700;}
+.saju-table tfoot th,.saju-table tfoot td {font-weight:700;border-bottom:0;border-top:1px solid var(--reading-line);background:color-mix(in srgb,var(--reading-gold) 10%,var(--reading-card));}
+@media (max-width:560px) {
+  .saju-table--stack thead {display:none;}
+  .saju-table--stack,.saju-table--stack tbody,.saju-table--stack tfoot,.saju-table--stack tr {display:block;}
+  .saju-table--stack tr {padding:12px 14px;border-bottom:1px solid color-mix(in srgb,var(--reading-line) 70%,transparent);}
+  .saju-table--stack tbody tr:last-child {border-bottom:0;}
+  .saju-table--stack tfoot tr {border-top:1px solid var(--reading-line);background:color-mix(in srgb,var(--reading-gold) 10%,var(--reading-card));}
+  .saju-table--stack th[scope="row"] {display:block;padding:0 0 6px;border:0;font-size:.95rem;white-space:normal;}
+  .saju-table--stack td {display:grid;grid-template-columns:6.5em minmax(0,1fr);gap:8px;padding:3px 0;border:0;white-space:normal;}
+  .saju-table--stack td::before {content:attr(data-label);color:var(--reading-muted);font-size:.8125rem;font-weight:600;}
+  .saju-table--stack td:empty {display:none;}
+  .saju-table--stack tfoot :is(th,td) {background:none;border:0;}
+  .saju-table--stack .saju-table__wrap {min-width:0;}
+}
+.saju-chips {list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:8px;}
+.saju-chips + p,.saju-chips + .saju-rich__more {margin-top:14px;}
+.saju-chip {display:flex;flex-wrap:wrap;align-items:baseline;align-content:flex-start;gap:2px 6px;padding:10px 14px;border:1px solid color-mix(in srgb,var(--reading-line) 85%,transparent);border-radius:var(--cd-r-control,12px);background:var(--reading-card);font-size:.9375rem;line-height:1.6;}
+.saju-chip b {color:var(--reading-ink);font-weight:700;}
+.saju-chip small {flex-basis:100%;color:var(--reading-muted);font-size:.8125rem;line-height:1.6;}
+.saju-chip[data-tone="good"] {border-color:color-mix(in srgb,var(--reading-accent) 45%,var(--reading-line));background:color-mix(in srgb,var(--reading-accent) 7%,var(--reading-card));}
+.saju-chip[data-tone="good"] b {color:var(--reading-accent);}
+.saju-chip[data-tone="care"] {border-style:dashed;border-color:var(--reading-muted);background:color-mix(in srgb,var(--reading-muted) 5%,var(--reading-card));}
+.saju-chip[data-el] {border-color:color-mix(in srgb,var(--el) 45%,var(--reading-line));background:color-mix(in srgb,var(--el) 10%,var(--reading-card));}
+.saju-chip[data-el][data-tone="care"] {border-color:color-mix(in srgb,var(--el) 60%,var(--reading-muted));}
+.saju-chip[data-el]::before {content:"";flex:none;align-self:center;width:10px;height:10px;border-radius:50%;background:var(--el);box-shadow:0 0 0 2px color-mix(in srgb,var(--el) 22%,transparent);}
+.saju-chips--tags {display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 14px;}
+.saju-chips--tags .saju-chip {padding:4px 12px;border-radius:999px;font-size:.875rem;}
+.saju-rich__more {border-top:1px solid color-mix(in srgb,var(--reading-line) 70%,transparent);margin-top:14px;padding-top:2px;}
+.saju-rich > .saju-rich__more {margin-top:0;}
+.saju-rich__more summary {min-height:44px;display:list-item;align-content:center;cursor:pointer;color:var(--reading-accent);font-weight:600;}
+.saju-rich__more summary:focus-visible {outline:3px solid var(--reading-accent);outline-offset:4px;}
+.saju-rich__more > :not(summary) {margin-top:10px;}
+.saju-tiles {list-style:none;padding:0;margin:12px 0;display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr));}
+@media (max-width:520px){.saju-tiles {grid-template-columns:1fr;}}
+.saju-tiles li {display:grid;align-content:start;gap:6px;padding:14px 16px;border:1px solid color-mix(in srgb,var(--reading-line) 80%,transparent);border-radius:var(--cd-r-control,12px);background:var(--reading-card);box-shadow:var(--cd-shade-1);line-height:1.7;}
+.saju-tiles b {color:var(--reading-ink);font-weight:700;}
+.saju-tiles--seal b {display:flex;align-items:center;gap:10px;}
+.saju-tiles--seal li:nth-child(5n+1) {--seal:var(--reading-el-wood);}
+.saju-tiles--seal li:nth-child(5n+2) {--seal:var(--reading-el-fire);}
+.saju-tiles--seal li:nth-child(5n+3) {--seal:var(--reading-el-earth);}
+.saju-tiles--seal li:nth-child(5n+4) {--seal:var(--reading-el-metal);}
+.saju-tiles--seal li:nth-child(5n) {--seal:var(--reading-el-water);}
+.saju-tiles--seal li {background:linear-gradient(160deg,color-mix(in srgb,var(--seal) 9%,var(--reading-card)) 0%,var(--reading-card) 70%);}
+.saju-tiles--seal i {display:inline-grid;place-items:center;flex:none;width:30px;height:30px;border:1px solid color-mix(in srgb,var(--seal,var(--reading-gold)) 75%,var(--reading-line));border-radius:var(--cd-r-sm,8px);background:color-mix(in srgb,var(--seal,var(--reading-gold)) 20%,var(--reading-card));color:var(--reading-ink);font-family:"CodeDestinySerifKR","Noto Serif KR",serif;font-style:normal;font-size:1rem;font-weight:700;line-height:1;}
+#sajuTenOverview:not(:empty) {margin-bottom:16px;}
+#sajuIljuRich:not(:empty) {margin-top:20px;}
+/* 사주 상세 모달은 .wrap(z=1) 쌓임 맥락 안에 있어 전역 하단 내비(z 960~980)가 모달 아래쪽을 덮는다. 길어진 상세의 마지막 줄이 가려지지 않게 모달이 열린 동안만 내비를 숨긴다. */
+body:has(#tsModal.show) #cdMobileBottomNav {visibility:hidden;}
+.saju-bars {list-style:none;margin:0 0 12px;padding:0;display:grid;gap:10px;}
+.saju-bars li {display:grid;grid-template-columns:minmax(6.5em,auto) minmax(0,1fr) 2ch;align-items:center;gap:10px;font-size:.9rem;}
+.saju-bars__track {height:12px;border-radius:999px;background:color-mix(in srgb,var(--reading-line) 55%,transparent);box-shadow:inset 0 1px 2px rgb(0 0 0 / .1);overflow:hidden;}
+.saju-bars__track i {display:block;height:100%;width:var(--pos);border-radius:inherit;background:var(--el,var(--reading-accent));}
+.saju-bars__value {text-align:right;font-variant-numeric:tabular-nums;font-weight:700;}
+/* 모바일: 결과 카드 안에 읽기 종이·블록 카드가 겹쳐 본문 폭이 250px 대로 줄던 것을 되돌린다. */
+@media (max-width:600px) {
+  .saju-reading.saju-rich {padding-inline:0;}
+  .saju-rich__block,.saju-rich > .saju-gauge,.saju-rich__gauges .saju-gauge {padding:16px 14px;}
+  .saju-rich > .saju-rich__more,.saju-rich > .saju-rich__note {padding-inline:14px;}
+}

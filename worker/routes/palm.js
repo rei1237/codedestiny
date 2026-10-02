@@ -277,7 +277,8 @@ export async function handlePalmRoutes(request, env) {
       });
 
     // 이미지가 있는 손은 Gemini Vision 으로 판독한다. 양손이면 병렬.
-    // 실패는 null 로 떨어지고(모듈 내부에서 로깅), 아래에서 결정론 엔진으로 degrade 한다.
+    // 실패는 null 로 떨어진다(모듈 내부에서 로깅). 이미지가 있는 손은 비전 없이 전달하지 않는다 —
+    // 결정론 엔진은 좌표·보조 데이터만 맡고, 비전 장애는 아래에서 재시도 가능한 503 으로 알린다.
     const [leftVision, rightVision] = await Promise.all([
       hasImage(leftInput)
         ? analyzeHandWithGeminiVision(env, leftInput.image, "left", payload.analysisPurpose, trace)
@@ -297,6 +298,8 @@ export async function handlePalmRoutes(request, env) {
       // 결정론 엔진은 조작 랜드마크만으로도 palmDetected 를 내주기 때문에,
       // 이걸 안 막으면 손이 아닌 사진에도 판독이 나온다.
       const visionRejected = Boolean(vision) && vision.palmDetected === false;
+      // 사진은 왔는데 비전이 답을 못 줬다(장애·JSON 파싱 실패). "손이 아니다"와 다르다.
+      const visionFailed = hasImage(input) && !vision;
 
       // Gemini 판독 성공 → Gemini 를 본문으로, 로컬 엔진은 좌표/보조 데이터로 사용.
       if (visionSide?.palmDetected) {
@@ -316,6 +319,7 @@ export async function handlePalmRoutes(request, env) {
           specialMarks: visionSide.specialMarks,
           qualityScore: visionSide.qualityScore,
           notPalmReason: "",
+          visionFailed: false,
         };
       }
 
@@ -333,6 +337,7 @@ export async function handlePalmRoutes(request, env) {
         specialMarks: [],
         qualityScore: 0,
         notPalmReason: visionRejected ? String(vision.notPalmReason || "") : "",
+        visionFailed,
       };
     };
 
@@ -342,6 +347,18 @@ export async function handlePalmRoutes(request, env) {
     ].filter(Boolean);
 
     const palmDetectedAny = analyses.some((a) => a?.recognitionData?.palmDetected);
+    if (!palmDetectedAny && analyses.some((a) => a.visionFailed)) {
+      // 모델 장애를 "손바닥 인식 실패"로 보여 주면 멀쩡한 사진을 다시 찍게 만든다.
+      return json(
+        {
+          ok: false,
+          code: "PALM_VISION_UNAVAILABLE",
+          retryable: true,
+          error: "손금 판독이 잠시 원활하지 않아요. 같은 사진으로 다시 시도해 주세요.",
+        },
+        { status: 503 },
+      );
+    }
     if (!palmDetectedAny) {
       // Gemini 가 이유를 말해줬으면 그대로 전달한다("손이 아닌 사진입니다" 등).
       // 종전에는 어떤 경우든 "손바닥 인식에 실패했습니다" 하나뿐이라 사용자가

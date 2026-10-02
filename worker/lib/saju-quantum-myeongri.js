@@ -1,5 +1,3 @@
-import { sajuHapAssessment, sajuSamhapState } from '../../lib/saju/luck-rules.js';
-
 const STEM_ELEMENT = Object.freeze({
   甲: "wood",
   乙: "wood",
@@ -284,13 +282,14 @@ function evaluateDaewun(ganChar, zhiChar, context = {}) {
   const zhiEl = BRANCH_ELEMENT[zhiChar] || "earth";
 
   let finalGanEl = ganEl, finalZhiEl = zhiEl;
+  // 화면 evalDaewun 과 같은 47030b73d 이전 판정: 합의 짝이 있으면 합화 오행으로 평가한다.
   origGans.forEach((og) => {
     const candidate=GAN_HE[ganChar]?.[og];
-    if(candidate && sajuHapAssessment(candidate,'stem',ganChar,og,[...origGans,ganChar],[...origZhis,zhiChar],pillars.m.j).transformed)finalGanEl=candidate;
+    if(candidate)finalGanEl=candidate;
   });
   origZhis.forEach((oz) => {
     const candidate=ZHI_HE[zhiChar]?.[oz];
-    if(candidate && sajuHapAssessment(candidate,'branch',zhiChar,oz,[...origGans,ganChar],[...origZhis,zhiChar],pillars.m.j).transformed)finalZhiEl=candidate;
+    if(candidate)finalZhiEl=candidate;
   });
 
   const ganJohu = getJohuScore(finalGanEl, false, ganChar, johuType);
@@ -313,12 +312,33 @@ function evaluateDaewun(ganChar, zhiChar, context = {}) {
   let hasChungPenalty = false;
   let chungBonusText = "";
   let chungPenaltyText = "";
-  // 관성의 작용은 조후·억부와 실제 합충 조건으로 읽는다. 辛丁 고정 감점은 없다.
+  const isMetalDayMaster = ["庚", "辛"].includes(pillars.d.g);
+  let isFireFavorable = power.yongshin.includes("fire") || isFavorable("fire", false, "丙");
+  if (jong.isJong) isFireFavorable = isFireFavorable || jong.dominant === "fire" || jong.parEl === "fire";
+  const checkMetalFireWater = (srcChar, targetChar) => {
+    if (!isMetalDayMaster || !isFireFavorable) return false;
+    const srcEl = STEM_ELEMENT[srcChar] || BRANCH_ELEMENT[srcChar] || "";
+    const targetEl = STEM_ELEMENT[targetChar] || BRANCH_ELEMENT[targetChar] || "";
+    return (srcEl === "fire" && targetEl === "water") || (srcEl === "water" && targetEl === "fire");
+  };
 
-  if (GAN_CHUNG[ganChar] && origGans.includes(GAN_CHUNG[ganChar])) {
+  if (pillars.d.g === "辛" && ganChar === "丁") {
+    const hasWood = zhiEl === "wood"
+      || origGans.some((g) => STEM_ELEMENT[g] === "wood")
+      || origZhis.some((z) => BRANCH_ELEMENT[z] === "wood");
+    chungPenalty -= hasWood ? 55 : 15;
+    hasChungPenalty = true;
+    chungPenaltyText = hasWood ? "辛 일간과 丁 운, 목 기운으로 토의 완충 약화" : "辛 일간과 丁 운의 편관 부담";
+  }
+
+  if (GAN_CHUNG[ganChar] && origGans.includes(GAN_CHUNG[ganChar]) && !jong.ganHeMerged[GAN_CHUNG[ganChar]]) {
     const targetChar = GAN_CHUNG[ganChar];
       const targetEl = STEM_ELEMENT[targetChar] || "earth";
-      if (ganScore > 0 && isUnfavorable(targetEl, false, targetChar)) {
+      if (checkMetalFireWater(ganChar, targetChar)) {
+        chungBonus += 25;
+        hasChungBonus = true;
+        chungBonusText = "수화 교차와 금 일간의 단련";
+      } else if (ganScore > 0 && isUnfavorable(targetEl, false, targetChar)) {
         chungBonus += 15;
         hasChungBonus = true;
         chungBonusText = "천간충과 기신의 작용";
@@ -336,7 +356,11 @@ function evaluateDaewun(ganChar, zhiChar, context = {}) {
   if (ZHI_CHUNG[zhiChar] && origZhis.includes(ZHI_CHUNG[zhiChar])) {
     const targetChar = ZHI_CHUNG[zhiChar];
     const targetEl = BRANCH_ELEMENT[targetChar] || "earth";
-    if (zhiScore > 0 && isUnfavorable(targetEl, true, targetChar)) {
+    if (checkMetalFireWater(zhiChar, targetChar)) {
+      chungBonus += 30;
+      hasChungBonus = true;
+      chungBonusText = [chungBonusText, "지지 수화 교차와 금 일간의 단련"].filter(Boolean).join(" / ");
+    } else if (zhiScore > 0 && isUnfavorable(targetEl, true, targetChar)) {
       chungBonus += 20;
       hasChungBonus = true;
       chungBonusText = [chungBonusText, "지지충과 기신의 작용"].filter(Boolean).join(" / ");
@@ -355,9 +379,9 @@ function evaluateDaewun(ganChar, zhiChar, context = {}) {
   let hasJiheBonus = false;
   let jiheBonusText = "";
   if (ZHI_HE[zhiChar]) {
-    [...new Set(origZhis)].forEach((oz) => {
+    origZhis.forEach((oz) => {
       const heEl = ZHI_HE[zhiChar]?.[oz];
-      if (!heEl || !sajuHapAssessment(heEl,'branch',zhiChar,oz,[...origGans,ganChar],[...origZhis,zhiChar],pillars.m.j).transformed) return;
+      if (!heEl) return;
       const bonus = isFavorable(heEl, true, zhiChar) ? 10 : (isUnfavorable(heEl, true, zhiChar) ? -10 : 0);
       jiheBonus += bonus;
       if (bonus > 0) hasJiheBonus = true;
@@ -370,13 +394,13 @@ function evaluateDaewun(ganChar, zhiChar, context = {}) {
   let samhapBonusText = "";
   SAMHAP.forEach((group) => {
     if (!group.members.includes(zhiChar)) return;
-    const groupState = sajuSamhapState(group.members,zhiChar,origZhis);
-    if (groupState === 'full') {
+    const matchCount = origZhis.filter((oz) => group.members.includes(oz)).length;
+    if (matchCount >= 2) {
       const bonus = isFavorable(group.element, true, zhiChar) ? 22 : (isUnfavorable(group.element, true, zhiChar) ? -22 : 0);
       samhapBonus += bonus;
       if (bonus > 0) hasSamhapBonus = true;
       if (bonus) samhapBonusText = bonus > 0 ? `삼합 ${ELEMENT_LABELS[group.element] || group.element} 구성` : "삼합 기신 강화";
-    } else if (groupState === 'half') {
+    } else if (matchCount >= 1) {
       const bonus = isFavorable(group.element, true, zhiChar) ? 10 : (isUnfavorable(group.element, true, zhiChar) ? -10 : 0);
       samhapBonus += bonus;
       if (bonus > 0) {

@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-03
-next: PR-2 머지 후 P1 중 하나를 고른다 — 우선순위는 normalizePaymentOverlayBody(한글 정규식 8개로만 중복 머리줄 판정) > 셸 홈 line-clamp/spill 23건 > PointsClient 하드코딩 14곳
+updated: 2026-10-02
+next: "index.html normalizePaymentOverlayBody 를 i18n 키 동일성 판정으로 교체(결제 셸 — payment-freeze 절차)"
 ---
 
 # 로케일별 텍스트 길이 UI 파손

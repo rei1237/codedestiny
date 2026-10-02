@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-16
-next: "\"아직 안 한 것(다음 라운드 후보)\" 절 — 🔴 수치를 근거로 쓰기 전에 재측정한다"
+updated: 2026-10-02
+next: "db.js C1~C4 승격 뒤 report-pg-window-latency --days 30 재측정 + /points preconnect crossOrigin 을 script 와 맞춘다"
 ---
 
 # PG 결제창 지연 — 실측 기준선 (2026-08-16)

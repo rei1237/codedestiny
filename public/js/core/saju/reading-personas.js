@@ -257,27 +257,38 @@
   function render(section, supplied) {
     state=supplied||snapshot();var model=build(state,mode(),locale());if(!model)return;
     var c=langCopy(locale());
+    // 한국어는 그래프·표가 있는 풍부한 판(reading-rich.js). 그 밖의 로케일과 자료 부족 시에는 기존 짧은 블록.
+    var rich=locale()==='ko'&&root.SajuReadingRich?root.SajuReadingRich:null, facts=Object.assign({},state,{warning:c.unknown});
     if(section==='ilju'||section==='all') {
       var host=document.getElementById('iljuCard');
       if(host&&!document.getElementById('sajuElementReading')){var el=document.createElement('section');el.id='sajuElementReading';host.insertBefore(el,host.querySelector('.ilju-v2-grid')||host.firstChild);}
       write('sajuElementReading',markup(model.elements,model,true));
-      write('iljuSummaryList','<li>'+esc(model.day.blocks[0].text)+'</li>');
-      write('iljuDetailList',(model.mode==='neo'?'':'<li>'+esc(model.day.evidence)+'</li>')+'<li>'+esc(model.day.blocks[1].text)+'</li>');
-      write('iljuAdviceList','<li>'+esc(model.day.blocks[2].text)+'</li>'+(model.unknown?'<li>'+esc(c.unknown)+'</li>':''));
+      if(host&&!document.getElementById('sajuIljuRich')){var box0=document.createElement('section');box0.id='sajuIljuRich';host.appendChild(box0);}
+      var iljuRich=rich?rich.ilju(facts,model.mode):'';
+      write('sajuIljuRich',iljuRich);
+      // 풍부한 판은 renderIlju 가 채운 ILJU_DB 목록(요약·상세·조언)을 그대로 두고 그 아래에 원국 표·연이의 한마디를 덧붙인다.
+      if(!iljuRich){
+        write('iljuSummaryList','<li>'+esc(model.day.blocks[0].text)+'</li>');
+        write('iljuDetailList',(model.mode==='neo'?'':'<li>'+esc(model.day.evidence)+'</li>')+'<li>'+esc(model.day.blocks[1].text)+'</li>');
+        write('iljuAdviceList','<li>'+esc(model.day.blocks[2].text)+'</li>'+(model.unknown?'<li>'+esc(c.unknown)+'</li>':''));
+      }
     }
     if(section==='ten'||section==='all') {
-      write('tsGrid',model.ten.map(function(g){return '<button class="saju-ten-button" type="button" data-saju-god="'+esc(g.key)+'"><strong>'+esc(g.reading.title)+'</strong><span>'+esc(g.reading.blocks[0].text)+'</span><small>'+esc(c.more)+' · '+g.count+'</small></button>';}).join(''));
+      var grid=document.getElementById('tsGrid');
+      if(grid&&!document.getElementById('sajuTenOverview')){var box=document.createElement('section');box.id='sajuTenOverview';grid.parentNode.insertBefore(box,grid);}
+      write('sajuTenOverview',rich?rich.tenOverview(facts,model.mode):'');
+      write('tsGrid',(rich&&rich.tenCards(facts,model.mode))||model.ten.map(function(g){return '<button class="saju-ten-button" type="button" data-saju-god="'+esc(g.key)+'"><strong>'+esc(g.reading.title)+'</strong><span>'+esc(g.reading.blocks[0].text)+'</span><small>'+esc(c.more)+' · '+g.count+'</small></button>';}).join(''));
       if(openGod&&document.getElementById('tsModal')?.classList.contains('show')) showGod(openGod,false);
     }
-    if(section==='climate'||section==='all') write('johuContent',markup(model.climate,model,false));
-    if(section==='strength'||section==='all') write('ukbuSection',markup(model.strength,model,false));
-    if(section==='flow'||section==='all') write('currentSeasonSummary',model.flow.map(function(r){return markup(r,model,true);}).join(''));
+    if(section==='climate'||section==='all') write('johuContent',(rich&&rich.climate(facts,model.mode))||markup(model.climate,model,false));
+    if(section==='strength'||section==='all') write('ukbuSection',(rich&&rich.strength(facts,model.mode))||markup(model.strength,model,false));
+    if(section==='flow'||section==='all') write('currentSeasonSummary',(rich&&rich.flow(facts,model.mode))||model.flow.map(function(r){return markup(r,model,true);}).join(''));
     if(section==='daily'||section==='all') daily.forEach(function(row,i){
       var gi=gods.indexOf(row.gGod), good=row.batteryPercent>=60;
       var title=i===0?c.today:c.month;
       var reading={title:title,evidence:fmt(c.flowBasis,{label:title,stem:row.gz.g,branch:row.gz.j,score:row.batteryPercent}),blocks:[]};
       reading.blocks=model.mode==='neo'?[{label:c.diagnosis,text:good?c.flowOpen:c.flowCare},{label:c.basis,text:reading.evidence},{label:c.action,text:gi>=0?c.godRules[gi]:c.strengthAction}]:[{label:c.observe,text:good?c.flowOpen:c.flowCare},{label:c.life,text:gi>=0?c.godLife[gi]:c.scenes[0]},{label:c.practice,text:gi>=0?c.godRules[gi]:c.strengthAction}];
-      write(i===0?'dailyPanel':'monthlyPanel',markup(reading,model,true));
+      write(i===0?'dailyPanel':'monthlyPanel',(rich&&rich.daily(row,i,facts,model.mode))||markup(reading,model,true));
     });
     if(section==='letter'||section==='all') {write('letterTitle',esc(mode()==='neo'?c.neo:c.yeon)+' · '+esc(model.letter.title));write('letterContent',letterMarkup(model));}
     renderHeader();
@@ -299,7 +310,8 @@
   function showGod(key, open) {
     var data=snapshot(), model=build(data,mode(),locale());if(!model)return false;
     var item=model.ten.find(function(g){return g.key===key;});if(!item)return false;
-    root.ensureSajuDetailModal();openGod=key;write('modalBody',markup(item.reading,model,true));if(open!==false)root.openSajuDetailModal();return true;
+    var rich=locale()==='ko'&&root.SajuReadingRich?root.SajuReadingRich.godDetail(key,Object.assign({},data,{warning:langCopy(locale()).unknown}),model.mode):'';
+    root.ensureSajuDetailModal();openGod=key;write('modalBody',rich||markup(item.reading,model,true));if(open!==false)root.openSajuDetailModal();return true;
   }
   var preserving = false;
   function preserve(callback) {

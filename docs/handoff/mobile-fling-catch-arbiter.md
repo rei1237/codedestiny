@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-15
-next: "하네스가 문서를 실제로 스크롤하게 만들고 그것을 단언으로 고정한다 — 설계는 끝났고 검증 수단이 없다"
+updated: 2026-10-02
+next: "verify-mobile-cdp-smoke 에 synthesizeScrollGesture 뒤 pageYOffset>100 단언을 먼저 넣어 재현한 다음 gesture-arbiter 수정"
 ---
 
 # 인수인계 — 관성 캐치(fling catch) 차단을 제스처 중재자에 추가

@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-09
-next: PR 1850의 최신 머지·스테이징 상태를 확인하고 PG 회신에 따른 해외카드 심사 보완 및 승인 채널 테스트를 이어간다.
+status: done
+updated: 2026-10-02
+next: "완료 — docs/payment/inicis-overseas-card/09-inicis-application-facts.md:13 근거로 보존"
 ---
 
 # 해외결제 심사 진행 기록 — 2026-09-09

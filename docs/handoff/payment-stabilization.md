@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-08
-next: 후속 PR의 최신 검사와 staging SHA를 확인하고, 미검토 1,091개 source/product/call 및 결과 저장 완료 시 복구 입력 삭제 연결부터 계속한다
+updated: 2026-10-02
+next: "node --require ./scripts/lib/mock-network-guard.cjs scripts/payment-inventory.mjs --check 로 잔여 1,091개 검토를 이어간 뒤 결과 저장 시 복구 입력 즉시 삭제 연결"
 ---
 
 # 결제 안정화 구현 계속하기

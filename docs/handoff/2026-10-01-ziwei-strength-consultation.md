@@ -400,11 +400,11 @@ npm run verify:sitemap-drift                             # OK — 원장 4칸(la
   - 낡은 가격 문서: `payment-inventory.md:149`, `PRICING_AUDIT.md:253/324`, `PRICING_TIERS.md:62`.
 - 섬 결제 도우미 23개가 ziwei-ai.js 와 갈라져 있다(결제 동작 변경이라 범위 밖).
 - 수호자 질문 문구가 셸(`destiny-island.html` PALACES)과 앱(`IslandConsultClient.tsx` GUARDIANS)에 중복돼 있다.
-- 시각 보정 뒤 남은 경로:
-  - island-report 는 볼 때 다시 계산한다(기존 구매자 시진 이동 가능).
-  - 궁합 자정 넘김.
-  - compass·diary 의 음력 입력을 양력으로 처리한다.
-  - karma·guardian isLeapMonth, admin calendarType, worker lunar_leap.
+- 시각 보정 뒤 남은 경로 — 2026-10-02 처리(fbee80b62 · 80426f448 · 0adc6adba · 33354f792):
+  - 고침: 워커 엔진 `calendarType: "lunar_leap"` 를 윤달로 계산(예전 양력). compass 자미 어댑터가 음력을 양력으로 옮긴다. diary 관계 Lite 가 정본 보정 시각을 쓴다. 셸 궁합 상대 명반이 정본 `calculationMeta.corrected`(날짜 포함·과거 서머타임)를 쓴다 — 예전엔 서울 00:15 가 다음 날 子時였다. karma·guardian 정규화가 isLeapMonth 를 유지하고(karma 는 윤달일 때만 키 → 평달 inputHash 불변), guardian 자미가 출생지를 넘긴다(예전 늘 서울).
+  - 확인만: admin calendarType 정규화는 정상(`worker/routes/admin.js:1546`).
+  - 고치지 않음: island-report 는 구매 시 명반 스냅샷이 없어(해금은 `User.unlockedFeatures` 만) 볼 때 다시 계산한다. 고정하려면 구매 시 저장이 필요해 결제 흐름 변경이다. 무료 청사진 캐시는 KST 날짜 키(`destiny-island.html:846`)라 하루 안에 갱신된다.
+  - 후속: karma·guardian 폼에 윤달 입력이 없고, 클라이언트가 프로필 씨앗(`app/_lib/ai-prefill-seed.ts:121`)의 isLeapMonth 를 요청에 싣지 않는다 — 서버는 받을 준비가 됐다. admin 자미 호출은 출생지를 넘기지 않는다(서울 기준). diary 점성 Lite 는 KST 고정(`hour - 9`)이라 해외·서머타임 출생이 어긋난다.
 - 기존 화면 결함:
   - 네오 아바타는 로컬에서만 404(운영 R2 경로).
   - "▼ 탭해서 계속" 깜빡임 프레임 대비가 낮다.

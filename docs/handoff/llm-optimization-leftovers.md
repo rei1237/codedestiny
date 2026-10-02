@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-19
-next: "sukuyo `attempts:2`↔`capTokens` 불일치 · Gemini `responseSchema` 미사용 · 토큰 집계 사각지대 2곳 중 골라 착수"
+updated: 2026-10-02
+next: "남은 것은 F(캐시, 적중률 실측 뒤 결정) 하나 — 손금 capTokens 정합은 2026-10-02-palm-reading-logic-and-token-cap.md 1번으로 이관"
 ---
 
 # 인수인계 — LLM 토큰 최적화에서 남은 개별 항목 5건

@@ -67,7 +67,14 @@ test('vision mock is rejected and failed photo analysis does not offer payment',
   ai = { ok: false, error: 'MOCK_PROVIDER_FAILURE' };
   expect(await vision({}, 'data:image/png;base64,AAAAAAAA', 'left')).toBeNull();
   const response = await route(new Request('https://mock.test/api/palm/analyze', { method: 'POST', body: JSON.stringify({ requestId: 'palm-original', leftPalmImage: 'data:image/png;base64,' + 'A'.repeat(80), dominantHand: 'right', analysisPurpose: 'general' }) }), {});
-  expect(response.status).toBe(422); expect(docs).toHaveLength(0); expect(payment).not.toHaveBeenCalled();
+  // Model failure is a retryable outage, not a photo without a palm.
+  expect(response.status).toBe(503); expect(await response.json()).toMatchObject({ code: 'PALM_VISION_UNAVAILABLE', retryable: true });
+  expect(docs).toHaveLength(0); expect(payment).not.toHaveBeenCalled();
+});
+test('explicit palmDetected=false still answers PALM_NOT_DETECTED', async () => {
+  visionReply.text = JSON.stringify({ palmDetected: false, notPalmReason: '손바닥이 아닌 사진입니다.' });
+  const response = await route(new Request('https://mock.test/api/palm/analyze', { method: 'POST', body: JSON.stringify({ requestId: 'palm-original', leftPalmImage: 'data:image/png;base64,' + 'A'.repeat(80), dominantHand: 'right', analysisPurpose: 'general' }) }), {});
+  expect(response.status).toBe(422); expect(await response.json()).toMatchObject({ code: 'PALM_NOT_DETECTED', reason: '손바닥이 아닌 사진입니다.' });
 });
 test('actual analysis saves before payment and missing deep text stops readiness', async () => {
   const request = () => new Request('https://mock.test/api/palm/analyze', { method: 'POST', body: JSON.stringify({ requestId: 'palm-original', leftPalmImage: 'data:image/png;base64,' + 'A'.repeat(80), dominantHand: 'right', analysisPurpose: 'general' }) });
@@ -83,4 +90,22 @@ test.each(['truncated','unfinished'])('deep %s keeps complete prose without requ
 });
 test('raw prose is persisted privately and excluded from the paid response',async()=>{
  await save({},owner,'palm-original',result,'provider raw');expect(docs[0].metadata.palmRaw).toBe('provider raw');expect(await read({},owner,'palm-original')).not.toHaveProperty('palmRaw');
+});
+test('vision fields the model omitted are not compared as measured medium values', async () => {
+  // Both hands detected, but depth/length/strength/coverage are all missing from the model reply.
+  visionReply.text = JSON.stringify({ palmDetected: true, imageQuality: { brightness: 'good', sharpness: 'good' }, majorLines: { lifeLine: { detected: true }, heartLine: { detected: true }, fateLine: { detected: true } } });
+  const image = 'data:image/png;base64,' + 'A'.repeat(80);
+  const response = await route(new Request('https://mock.test/api/palm/analyze', { method: 'POST', body: JSON.stringify({ leftPalmImage: image, rightPalmImage: image, dominantHand: 'right', analysisPurpose: 'general' }) }), {});
+  expect(response.status).toBe(200);
+  const body = await response.json();
+  expect(body.leftHandReading.majorLines.lifeLine.defaultedFields).toContain('depth');
+  expect(body.recognitionData.bySide.left.imageQuality.palmCoverage).toBeNull();
+  expect(body.bothHandsComparison.enabled).toBe(true);
+  expect(body.bothHandsComparison.differenceSummary).not.toMatch(/유사/);
+});
+test('heading lines separated by a blank line stay attached to their section', async () => {
+  const body = '사진에서 확인된 선을 토대로 생활 속 선택을 차분히 살펴봅니다. '.repeat(4).trim();
+  ai.text = `■ 한 문장 요약\n\n${body}\n\n■ 타고난 성향\n\n${body}`;
+  const consult = await deep({}, {});
+  expect(consult.text).toBe(`■ 한 문장 요약\n${body}\n\n■ 타고난 성향\n${body}`);
 });

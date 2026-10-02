@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-11
-next: 해시 진입 복원 PR 머지·staging 확인 후 남은 결함 2(verify-mobile-runtime-readiness main 실패)를 조사한다
+updated: 2026-10-02
+next: "하단 내비 현재 모양(index.html:13404 모든 운세 ✦)에 맞춰 verify-mobile-runtime-readiness.mjs:58-76 기대값을 고칠지 내비를 되돌릴지 정한다 — 결함 3(#1835 감사)은 별도"
 ---
 
 ## 2026-09-11 후속 — 남은 결함 1 복원(브랜치 `fix/home-hash-entry-visibility`, base `origin/main` 5e418282e)

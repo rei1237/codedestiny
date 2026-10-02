@@ -481,6 +481,66 @@
       "rules": "transparent, same head scale and head-top line across all 8 expressions, <=80KB",
       "maxBytes": 80000,
       "bytes": 44302
+    },
+    {
+      "id": "ziwei-palace-v1",
+      "file": "ziwei-palace-v1.webp",
+      "type": "story-background",
+      "bgKey": "zwPalace",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "자미두수 열두 궁의 궁전 외관과 광장(EP.29~30)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 272538
+    },
+    {
+      "id": "ziwei-lantern-market-v1",
+      "file": "ziwei-lantern-market-v1.webp",
+      "type": "story-background",
+      "bgKey": "zwMarket",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "자미두수 별등 장터 회랑(EP.30~32A)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 296288
+    },
+    {
+      "id": "ziwei-mirror-room-v1",
+      "file": "ziwei-mirror-room-v1.webp",
+      "type": "story-background",
+      "bgKey": "zwRoom",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "命宮 거울의 방(EP.30)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 212702
+    },
+    {
+      "id": "ziwei-iron-temple-v1",
+      "file": "ziwei-iron-temple-v1.webp",
+      "type": "story-background",
+      "bgKey": "zwForge",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "관록궁 쇠로 지은 신전, 무곡 化忌(EP.31~32A)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 169122
+    },
+    {
+      "id": "ziwei-throne-hall-v1",
+      "file": "ziwei-throne-hall-v1.webp",
+      "type": "story-background",
+      "bgKey": "zwThrone",
+      "dimensions": "1536x1024",
+      "source": "codex-image (gpt-image-2), style refs river-of-names-v1 + mirror-trial-v1; visual-checker ACCEPT 2026-10-02",
+      "usage": "재백궁 자미성의 옥좌와 빈 그릇(EP.33)",
+      "rules": "no people/animals/silhouettes, no readable text (pictograms only), landmark in middle third, lower centre open",
+      "maxBytes": 370000,
+      "bytes": 199074
     }
   ]
 }

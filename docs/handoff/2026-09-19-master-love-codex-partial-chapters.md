@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-20
-next: "①승격은 완료·실측 확인됐다(운영 Pages·Worker 모두 bd144f4e64a4). 남은 것은 **소진된 10장의 재생성 승인** — `LLM_PARTNER_EVIDENCE_MISSING`·`LLM_OUTPUT_TOO_SHORT` 표본 1건의 원인을 먼저 보고 비용과 함께 사용자에게 확인받는다. ②크론 자가 치유가 남은 117장을 재생성하는 중이므로 몇 시간 뒤 `node scripts/audit-master-love-codex-incomplete.mjs --db code_destiny` 로 진척을 본다(운영 읽기 전용 승인 3회는 모두 소진 — 추가 조회는 재승인 필요). ③20장 완주 실호출은 여전히 미검증이다."
+updated: 2026-10-02
+next: "운영 읽기 1회 승인 뒤 node scripts/audit-master-love-codex-incomplete.mjs --db code_destiny 로 남은 장 수 확인 — 남으면 표본 원인·비용 보고 후 재생성 승인"
 ---
 
 # 마스터 인연의 서 — 부분 생성 장애 근본 수정 · 복구 · 운영 승격

@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-23
-next: "무료 축소·상품 재편·GA4 퍼널이 전부 미착수다 — 어느 것부터 할지 사용자와 정한다"
+updated: 2026-10-02
+next: "사용자가 Tier A / Tier B / free-quota 중 우선순위를 고른다"
 ---
 
 # 무료→유료 경계 재설계 (핸드오프)

@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-08-31
-next: "빌드는 끝났다(2026-08-31 실측) — 남은 것은 Play 업로드뿐이다. AAB 는 Desktop\CodeDestiny-Build\20260830-2147-1.0.40-40-f746f878d\ 에 있다. 그 뒤 로그인이 필요한 기기검증 잔여 항목."
+status: done
+updated: 2026-10-02
+next: "완료 — scripts/verify-mobile-bottom-nav-sync.mjs:151 이 재현 절차로 인용해 보존 (기기 검증은 app-vc43-pass-purchase-rebuild 가 이어받음)"
 ---
 
 # Android 앱 ↔ 웹 동기화 · 가격 동일화 · 릴리스

@@ -24,6 +24,7 @@ const births=[
   {...ordinary,birthTime:'08:30',birthTimeUnknown:true}, // Explicit unknown must override a retained time field.
   {...ordinary,birthTime:'',birthTimeUnknown:true},
   {...ordinary,birthDate:'1995-10-15',birthTime:'06:00',birthPlace:{name:'New York',longitude:-74.006,latitude:40.7128,timezone:'America/New_York'}},
+  {...ordinary,birthDate:'1991-02-20',birthTime:'08:00'}, // 寅월 lingering cold: the 12-step month base reads this as cool.
 ];
 function runtimeFor(birth){
   const natal=calculateNatalSaju(birth);

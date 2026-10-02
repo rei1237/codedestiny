@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-05
-next: 사용자가 Desktop\CodeDestiny-Build\20260905-0826-1.0.45-45-1fe600915 의 AAB+mapping 을 Play 내부 테스트에 올리고, 실기기에서 ① 소셜 로그인 3사 완주 ② Zero-Tap 재설치 자동 로그인 ③ 이용권 1건 구매 를 확인
+updated: 2026-10-02
+next: "Zero-Tap 재설치 자동 로그인 항목을 1.0.46 실기기 검증표(docs/android-yeongnyangi-release-20260930.md:120)에 합치고, Play 앱 서명 SHA-256 으로 assetlinks.json 필요 여부를 사용자가 정한다"
 ---
 
 # 앱 vc43 재빌드 — Google Play 이용권 구매 재개본

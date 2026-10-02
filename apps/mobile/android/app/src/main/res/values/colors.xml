@@ -4,7 +4,7 @@
     <color name="colorPrimary">#B31955</color>
     <color name="colorPrimaryDark">#7D1240</color>
     <color name="colorAccent">#EAD089</color>
-    <!-- Android 시작 화면과 사주 달빛정원의 웹 부팅 일러스트 배경을 맞춘다. -->
+    <!-- Android 시작 화면과 꿀꿀 운세 웹 부팅 일러스트 배경을 맞춘다. -->
     <color name="cd_splash_bg">#1B1028</color>
     <!-- 네오 모드도 같은 통합 브랜드 시작 화면을 사용한다. -->
     <color name="cd_splash_bg_neo">#1B1028</color>
