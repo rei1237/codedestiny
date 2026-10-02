@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-02
-next: "남은 2편(astrology-vs-myeongri·tarot-vs-saju)을 insights 가 대신한 것으로 보고 종료할지 사용자 확인 — 종료면 done(app/compare 인용)"
+next: "보류 종료(10-02 사용자 결정, 남은 2편은 insights 글이 대신) — app/compare/sukuyo-vs-vedic/page.tsx:8 인용으로 보존"
 ---
 
 # 체계 간 비교 문서 — 인수인계 (2026-08-16)

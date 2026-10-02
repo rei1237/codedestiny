@@ -1,7 +1,7 @@
 ---
-status: blocked
+status: done
 updated: 2026-10-02
-next: "사용자에게 별건-3 선택지 1(ziwei-ai·life-book-ai·sukuyo-compatibility-ai 에 calculationVersion+엔진 지문 lock) 승인 여부를 묻는다 — 거절이면 선택지 3 으로 정하고 done"
+next: "보류 종료(10-02 사용자 결정, 별건-3 미결) — js/core/kasi-calendar-service.js·scripts/verify-ganji-surface-parity.mjs 등 코드 주석이 계획 전문으로 인용해 보존"
 ---
 
 # 간지 경로의 로컬 Date 를 벽시계 부품으로 — 인수인계 (2026-08-28)

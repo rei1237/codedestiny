@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-02
-next: "사용자에게 한 번에 묻는다: §2-4 몰입형 셸 7라우트·§1-4(b) 허브 카드 문구·§4 ETag — 셋 다 보류면 done 으로 보존(재시도 금지 근거)"
+next: "보류 종료(10-02 사용자 결정) — home-lcp-inp-2026-08-28.md·seo-naver-diagnostic-2026-08-16.md·메모리 serp-title-length-is-pixel-width 가 재시도 금지 근거로 인용해 보존"
 ---
 
 # SEO 렌더 감사 — 남은 작업 인수인계 (2026-08-27)
