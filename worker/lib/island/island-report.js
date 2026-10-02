@@ -2,8 +2,8 @@
 // 이 모듈의 모든 함수는 순수 함수여야 한다: Date.now()/Math.random()/네트워크 금지.
 // (동일 입력 → 항상 동일 출력. 검증: scripts/verify-island-report.mjs)
 //
-// 유료 심층 리포트(₩5,000) 전용. 섬 지도의 무료 궁 요약은 destiny-island.html의 생성기가 정본이라
-// 같은 문장을 여기서 또 만들지 않는다. 섹션 프레임은 PALACE_CONSULT를 재사용해 ₩20,000 상담과 목차를 맞춘다.
+// 유료 심층 리포트(ziwei-island-deep-report, 가격은 레지스트리) 전용. 섬 지도의 무료 궁 요약은 destiny-island.html의 생성기가 정본이라
+// 같은 문장을 여기서 또 만들지 않는다. 섹션 프레임은 PALACE_CONSULT를 재사용해 궁 상담과 목차를 맞춘다.
 //
 // 🔴 chart를 함께 받는 이유
 // blueprint는 무인증·무DB 라우트가 쓰는 계약이라 스키마를 못 늘린다. 그런데 자미두수 판독의 핵심인

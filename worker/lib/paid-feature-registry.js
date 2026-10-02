@@ -335,7 +335,8 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "master-love-codex": { cost: 100, amountKRW: 10000, reason: "마스터 인연의 서" },
   "master-love-codex-compat": { cost: 300, amountKRW: 30000, reason: "마스터 인연의 서 · 궁합" },
   "ziwei-ai-consultation": { cost: 300, amountKRW: 30000, reason: "자미두수 전문가 상담" },
-  "ziwei-island-palace-consult": { cost: 100, amountKRW: 10000, reason: "운명의 섬 12궁 심층 상담" },
+  // 2026-10-02 10,000 → 5,000원(사용자 승인, docs/context/payment-gating.md 같은 날짜 절).
+  "ziwei-island-palace-consult": { cost: 50, amountKRW: 5000, reason: "운명의 섬 12궁 심층 상담" },
   // 운명의 섬 정적 심층 리포트 — LLM 미사용, 1회 결제 후 계정 단위 영구 해금(UNLOCK)
   "ziwei-island-deep-report": { cost: 30, amountKRW: 3000, reason: "운명의 섬 12궁 심층 리포트 해금" },
   // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 심층 PDF 리포트

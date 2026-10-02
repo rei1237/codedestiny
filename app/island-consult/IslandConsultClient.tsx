@@ -39,7 +39,7 @@ const PREPARE = "/api/ziwei-island-ai/prepare";
 const GENERATE = "/api/ziwei-island-ai/generate";
 const RESULT = "/api/ziwei-island-ai/result";
 
-// ── ₩5,000 12궁 전체 심층 리포트(영구 해금) — 위 ₩20,000 상담과는 별개 상품 ──
+// ── 12궁 전체 심층 리포트(영구 해금) — 위 궁 상담과는 별개 상품, 가격은 둘 다 레지스트리 ──
 // 상담이 "한 궁을 지금 고민에 맞춰 AI가 새로 쓰는 것"이라면, 리포트는 "열두 궁 전체를
 // 명반에서 정밀 판독한 고정 콘텐츠"다. 그래서 회당 결제가 아니라 1회 해금이다.
 const REPORT_FEATURE_KEY = "ziwei-island-deep-report";
@@ -429,7 +429,7 @@ export default function IslandConsultClient() {
 
   const { seed: profileSeed, seedVersion } = useAiProfileSeed();
 
-  // ── ₩5,000 심층 리포트 상태 ──
+  // ── 심층 리포트 상태 ──
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const { unlocked, status: unlockStatus, refetch: refetchUnlocks, markOptimisticallyUnlocked } = useContentUnlock([REPORT_FEATURE_KEY]);
   // 원장을 먼저 읽어 첫 페인트에서 잠금 화면이 번쩍이지 않게 한다(LoveSimulationClient 선례).
@@ -603,7 +603,7 @@ export default function IslandConsultClient() {
     void refetchUnlocks({ force: true });
   }
 
-  // ₩5,000 12궁 리포트 PDF — 잠금 필터는 이 버튼의 렌더 조건(reportUnlocked && report)이다.
+  // 12궁 리포트 PDF — 잠금 필터는 이 버튼의 렌더 조건(reportUnlocked && report)이다.
   // 뷰어가 '한 장씩' 모드면 나머지 장이 display:none 이라 빈 캔버스가 되므로,
   // 뷰어가 이미 가진 expandForExport 로 전부 펼친 뒤(2×rAF+120ms) 장 단위로 캡처한다.
   async function saveReportPdf() {
@@ -633,7 +633,7 @@ export default function IslandConsultClient() {
     }
   }
 
-  // ₩20,000 궁 상담 PDF — 캡처 대상은 본문 섹션(.ic-sec)뿐이다. 히어로 이미지는 마커를 안 붙여
+  // 궁 상담 PDF — 캡처 대상은 본문 섹션(.ic-sec)뿐이다. 히어로 이미지는 마커를 안 붙여
   // 캡처에서 빠지고, 궁 이름·대운은 표지 페이지가 대신 싣는다. 접힌 영역이 없어 펼치기가 필요 없다.
   async function saveConsultPdf() {
     if (!result || consultPdfBusy) return;
@@ -1088,7 +1088,7 @@ const CSS = `
 .ic-form{max-width:440px;margin:0 auto;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   border:1px solid rgba(255,255,255,.7);border-radius:22px;padding:20px;box-shadow:0 16px 40px rgba(70,48,130,.2)}
 .ic-picked{font-weight:700;color:#2a1f5e;margin-bottom:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-/* ── 3단 스택: 궁 헤더 → ₩5,000 12궁 리포트 → ₩20,000 상담 폼 ── */
+/* ── 3단 스택: 궁 헤더 → 12궁 리포트 → 궁 상담 폼 ── */
 .ic-stack{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 .ic-stack .ic-picked{max-width:440px;width:100%;margin:0 auto}
 .ic-stack .ic-form{width:100%}
