@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import {products,systemNames,packages,type Product} from '@/worker/yeongnyangi/payments/catalog';
 import {policyForReading,depthDescriptions} from '@/worker/yeongnyangi/fortune/reading-policy';
 import {readingManifest} from '@/worker/yeongnyangi/fortune/reading-manifest';
+import {consultationChapterCounts} from '@/worker/yeongnyangi/fortune/consultation-kinds';
 import {topicCatalog} from '@/worker/yeongnyangi/fortune/topics';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import {siteSeo} from '@/lib/seo/siteSeo';
@@ -34,7 +35,7 @@ const PRICE=won(mackerels[0].priceKRW);
 const plannedCell=(fish:string,price:number)=>{const planned=plannedPriceFor(fish,price);return planned===null?'-':won(planned);};
 const QUESTION_HREF='/yeongnyangi/fortune/?domain=saju&fish=mackerel&consultationKind=ask';
 const fusions=products.filter(p=>p.readingKind!=='single');
-const chapterRange=(items:Product[])=>{const counts=items.map(p=>p.chapterCount);const min=Math.min(...counts),max=Math.max(...counts);return min===max?`${min}개`:`${min}~${max}개`;};
+const chapterRange=(items:Product[])=>{const counts=items.flatMap(consultationChapterCounts);const min=Math.min(...counts),max=Math.max(...counts);return min===max?`${min}개`:`${min}~${max}개`;};
 const mackerelPolicy=policyForReading('mackerel',mackerels[0].manifestVersion);
 
 // 필수 입력은 worker/yeongnyangi/fortune/shared/input.ts 의 서버 검증을 옮긴 요약이다(화면 설명용).
