@@ -123,7 +123,7 @@ abb0d883d는 옆 세션의 push(79b0b1ec1)로 origin/main에 올라갔다. 그 r
 
 ## 후속 (각각 별도 결정)
 
-1. 정적 셸 `/ggulggul/` 후기 카드 3건(`build-home-funnel.mjs`)은 데이터만 새 대표로 바뀌었고 시각은 옛 카드 그대로다. 채팅형으로 통일하려면 12개 로케일 셸과 sitemap 서명이 함께 움직인다.
+1. ~~정적 셸 `/ggulggul/` 후기 카드 채팅형 통일~~ — 완료(2026-10-02, f0a609223·eda5b4116, 머지 a85d95b02). 달빛 예화 luxe 채팅 카드: 인용+예화 가지, 바+초승달, 아바타·익명 발신자(`home.funnelCopy.reviewsSender`)·말풍선, 960px 이상 히어로 2열·아래 2장 subgrid 정렬, 959px 이하 1열. 네오는 가지·헤어라인을 불투명 저명도 금(oklch relative color, `@supports`)으로 둔다.
 2. `verify-conversion-sharing.mjs` 홈 단언을 FounderTrust가 있는 `/yeongnyangi/`(또는 천원 페이지)로 옮긴다.
 3. 원문 캡처는 임시 폴더에만 있다(블로그 사본 `...\4df55ab9-...\scratchpad\rv\`, 사용자 캡처 `...\17e7b3ed-...\images\1.png`·`2.png`). 사용자가 따로 보관해야 한다. 저장소에는 넣지 않는다(개인정보).
 4. 최상급·비교 원문을 노출하는 법적 판단은 사용자 승인으로 진행했다. 고지 "개인 경험에 따른 후기이며 결과를 보장하지 않습니다"는 유지한다.
