@@ -1006,6 +1006,7 @@ function extractFunctionSource(source, name) {
     { key: "js/core/kasi-calendar-service.js:_partsOf", why: "부품 정규화 정본" },
     { key: "js/saju-engine.js:_kasiPartsOf", why: "같은 정규화의 셸 사본 — ⑮-c 가 동일성을 잡는다" },
     { key: "js/saju-engine.js:_shiftDatePartsByDays", why: "날짜 축만 미는 시프트(시·분 없음)" },
+    { key: "js/saju-engine.js:calcZiweiPalaces", why: "자미 23시대 출생을 다음 날 子時로 — 음력 변환에 넣는 날짜만 하루 민다(시·분 보존)" },
     { key: "js/saju-engine.js:_cdCivilDayPillar", why: "일진 60갑자 — UTC 일련번호" },
     { key: "js/saju-engine.js:_formatUtcFromLocal", why: "디버그 표시용 UTC 문자열" },
     { key: "js/luck-sync-diary.js:_addDaysToParts", why: "부품 시프트(시·분 보존)" },
