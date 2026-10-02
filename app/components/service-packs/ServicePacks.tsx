@@ -24,6 +24,8 @@ import {usablePacks,type PackWalletView} from './OwnedPassesSummary';
 import ServicePackShowcase from './ServicePackShowcase';
 import type {PackGiftDraft,PackPayMethod,PackPurchaseType} from './service-pack-client';
 import {ShopPigImage} from '@/app/points/MoonShopFrame';
+import LaunchPlannedPrice from '@/app/components/LaunchPlannedPrice';
+import {plannedPackPriceFor} from '@/lib/brand/launch-offer';
 
 // 화면 구조·클래스는 /points 달빛 이용권 카드·결제 모달(PointsClient MoonlightShopPlans)과 맞춘다.
 // 🔴 결제 실행(buy/resume/checkOrder)은 영냥이 전용 경로 그대로다 — 꽃돼지 결제 핸들러와 합치지 않는다.
@@ -222,7 +224,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
    return <section key={fishId} className="mt-6" aria-labelledby={`fish-pack-${fishId}`}>
     <h3 id={`fish-pack-${fishId}`} className="mb-3 text-lg font-black text-white">{localizedTier(fishId,locale)}</h3>
     <div className="grid gap-4">{plans.map((item,index)=>{
-     const savings=item.unitPriceKRW*item.totalUses-item.priceKRW,recommended=plans.length===3&&index===1;
+     const savings=item.unitPriceKRW*item.totalUses-item.priceKRW,recommended=plans.length===3&&index===1,planned=locale==='ko'?plannedPackPriceFor(item.fishId,item.unitPriceKRW,item.priceKRW):null;
      const owned=usable.filter(pack=>pack.planId===item.planId),ownedLeft=owned.reduce((sum,pack)=>sum+pack.remainingUses,0);
      return <article key={item.planId} data-pack-plan={item.planId} className={`moon-plan-card rounded-[22px] p-4 ${recommended?'ring-2 ring-[color:var(--moon-glow)]':''}`}>
       <div className="grid gap-4 sm:grid-cols-[128px_1fr_auto] sm:items-center">
@@ -245,6 +247,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
         <p className="mt-2 text-xs leading-relaxed text-[color:var(--moon-mist)]">{copy.eligible}: {eligibleNames(item.eligibleFeatureKeys,locale)}</p>
        </div>
        <div className="flex flex-col gap-3 sm:min-w-[176px] sm:items-end">
+        {planned!==null&&<p className="text-sm font-bold text-[color:var(--moon-silver)]"><LaunchPlannedPrice amount={planned}/></p>}
         <p className="text-2xl font-black text-[color:var(--moon-gold)]">{won(item.priceKRW,locale)}</p>
         {overseasCharge?.approx(item.priceKRW)?<p className="text-xs font-bold text-[color:var(--moon-mist)]">{overseasCharge.approx(item.priceKRW)}</p>:null}
         <button type="button" disabled={busy||Boolean(pendingOrder)} onClick={()=>openPurchase(item.planId,'SELF')} className="btn-moonlight inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">{copy.buyCta}</button>

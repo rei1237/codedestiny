@@ -9,6 +9,8 @@ import {buildBreadcrumbJsonLd,buildFaqPageJsonLd,buildServiceJsonLd,buildWebPage
 import styles from './page.module.css';
 import {SEO_READING_EXAMPLES} from '@/lib/seo-reading-examples';
 import FounderTrust from '@/app/components/FounderTrust';
+import LaunchOfferBanner from '../_components/LaunchOfferBanner';
+import {plannedPriceFor} from '@/lib/brand/launch-offer';
 import SampleExposure from '../_components/SampleExposure';
 import KakaoChannelInvite from '@/app/components/KakaoChannelInvite';
 import LocalizedGuideScreen from '../_components/LocalizedGuideScreen';
@@ -29,6 +31,7 @@ const single=(domain:DomainId,fish:string)=>{const p=products.find(item=>item.re
 const mackerels=DOMAINS.map(domain=>single(domain,'mackerel'));
 for(const p of mackerels)if(p.priceKRW!==1000)throw new Error(`천원사주 허브: ${p.id} 가격이 ${p.priceKRW}원이다. 페이지 이름과 문안을 먼저 고칠 것.`);
 const PRICE=won(mackerels[0].priceKRW);
+const plannedCell=(fish:string,price:number)=>{const planned=plannedPriceFor(fish,price);return planned===null?'-':won(planned);};
 const QUESTION_HREF='/yeongnyangi/fortune/?domain=saju&fish=mackerel&consultationKind=ask';
 const fusions=products.filter(p=>p.readingKind!=='single');
 const chapterRange=(items:Product[])=>{const counts=items.map(p=>p.chapterCount);const min=Math.min(...counts),max=Math.max(...counts);return min===max?`${min}개`:`${min}~${max}개`;};
@@ -113,6 +116,7 @@ export default function Page(){
   </section>
 
   <FounderTrust/>
+  <LaunchOfferBanner/>
   <section aria-labelledby="what">
    <h2 id="what">천원사주·천원운세란</h2>
    <p>천원 운세, 천원운세, 1000원 운세로 찾는 영냥이 상담은 고등어 상품을 가리켜요. 천원사주는 그중 사주 체계의 상담이에요. Family 이용권 한도 또는 단건 결제로 한 번의 상담 결과를 받으며, 자동 결제는 아니에요.</p>
@@ -168,10 +172,10 @@ export default function Page(){
    <p>고등어가 부담 없이 시작하는 천원 상담이라면, 연어부터는 같은 체계를 더 많은 챕터와 분량으로 깊게 읽어요. 타로를 제외한 광어와 참치 상담은 출생시간, 출생지역, 성별이 모두 있어야 해요. 가격은 여섯 체계가 같아요.</p>
    <div className={styles.tableWrap}><table>
     <caption>영냥이 생선별 상담 가격과 구성</caption>
-    <thead><tr><th scope="col">생선</th><th scope="col">가격</th><th scope="col">챕터</th><th scope="col">분량 기준</th><th scope="col">상담 깊이</th></tr></thead>
+    <thead><tr><th scope="col">생선</th><th scope="col">가격</th><th scope="col">정식 오픈 예정가</th><th scope="col">챕터</th><th scope="col">분량 기준</th><th scope="col">상담 깊이</th></tr></thead>
     <tbody>
-     {TIERS.map(tier=>{const items=DOMAINS.map(domain=>single(domain,tier));const prices=[...new Set(items.map(p=>p.priceKRW))];if(prices.length!==1)throw new Error(`영냥이 ${tier} 가격이 체계마다 다르다: ${prices.join(',')}`);return <tr key={tier}><th scope="row">{packages[tier].name}</th><td>{won(prices[0])}</td><td>{chapterRange(items)}</td><td>{policyForReading(tier,items[0].manifestVersion).minimum.toLocaleString('ko-KR')}자 이상</td><td>{depthDescriptions[tier]}</td></tr>;})}
-     {(['assorted','omakase'] as const).map(fish=>{const items=fusions.filter(p=>p.fishId===fish);if(new Set(items.map(p=>p.priceKRW)).size!==1)throw new Error(`영냥이 ${fish} 가격이 상품마다 다르다`);return <tr key={fish}><th scope="row">{packages[fish].name}</th><td>{won(items[0].priceKRW)}</td><td>{chapterRange(items)}</td><td>{policyForReading(fish,items[0].manifestVersion).minimum.toLocaleString('ko-KR')}자 이상</td><td>{depthDescriptions[fish]} ({items.map(p=>p.name).join(' / ')})</td></tr>;})}
+     {TIERS.map(tier=>{const items=DOMAINS.map(domain=>single(domain,tier));const prices=[...new Set(items.map(p=>p.priceKRW))];if(prices.length!==1)throw new Error(`영냥이 ${tier} 가격이 체계마다 다르다: ${prices.join(',')}`);return <tr key={tier}><th scope="row">{packages[tier].name}</th><td>{won(prices[0])}</td><td>{plannedCell(tier,prices[0])}</td><td>{chapterRange(items)}</td><td>{policyForReading(tier,items[0].manifestVersion).minimum.toLocaleString('ko-KR')}자 이상</td><td>{depthDescriptions[tier]}</td></tr>;})}
+     {(['assorted','omakase'] as const).map(fish=>{const items=fusions.filter(p=>p.fishId===fish);if(new Set(items.map(p=>p.priceKRW)).size!==1)throw new Error(`영냥이 ${fish} 가격이 상품마다 다르다`);return <tr key={fish}><th scope="row">{packages[fish].name}</th><td>{won(items[0].priceKRW)}</td><td>{plannedCell(fish,items[0].priceKRW)}</td><td>{chapterRange(items)}</td><td>{policyForReading(fish,items[0].manifestVersion).minimum.toLocaleString('ko-KR')}자 이상</td><td>{depthDescriptions[fish]} ({items.map(p=>p.name).join(' / ')})</td></tr>;})}
     </tbody>
    </table></div>
   </section>

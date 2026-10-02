@@ -266,6 +266,7 @@
 .checkoutTotal > span { color:var(--yn-muted); font-size:.9rem; }
 .checkoutTotal > strong { font-size:1.7rem; font-family:"Yeongnyangi Myeongjo",serif; color:var(--yn-gold); white-space:nowrap; }
 .checkoutTotal small { margin-left:4px; font:400 .9rem "Yeongnyangi Noto",sans-serif; }
+.checkoutTotal .totalPlanned { font:500 .9rem "Yeongnyangi Noto",sans-serif; color:var(--yn-muted); }
 .page .checkoutButton { width:100%; justify-content:space-between; margin-top:10px; min-height:52px; }
 .inputHints { padding-left:20px; font-size:.85rem; color:var(--yn-muted); line-height:1.8; }
 .jongCheck { border-top:1px solid var(--yn-line); padding:22px 0 8px; }
