@@ -25,7 +25,7 @@ next: 셸 ETag(§2)·쿠키 배너(후보 3)·admin 프루닝(후보 5)은 **종
 
 ## 남은 최적화 후보
 
-1. **N3 — 셸 인라인 CSS 외부화**. 조사 완료: [n3-shell-inline-css-externalization.md](n3-shell-inline-css-externalization.md). 소스 `index.html` `<style>` 86블록 816.5KB / dist 85블록 645.8KB. 추천안은 **dist 단계 후처리**(소스 분리는 index.html 을 문자열로 읽는 verify 61개가 깨져 불가).
+1. **N3 — 셸 인라인 CSS 외부화**. ✅ **2026-09-08 구현 완료**(`fe4eb3b74` #1788 — `scripts/externalize-dist-inline-css.mjs`, run-postbuild 배선). 조사 문서는 10-02 정리로 삭제(git 이력). 조사 완료: [n3-shell-inline-css-externalization.md](n3-shell-inline-css-externalization.md). 소스 `index.html` `<style>` 86블록 816.5KB / dist 85블록 645.8KB. 추천안은 **dist 단계 후처리**(소스 분리는 index.html 을 문자열로 읽는 verify 61개가 깨져 불가).
    - **착수 조건 충족** — dist 를 읽는 검증기는 34개가 아니라 10개고, CSS 를 텍스트로 읽는 것은 0건이다(2026-09-02 전수 판정, 그 문서의 "dist 검증기 전수 판정" 절).
    - **이득 실측 완료** (`npm run measure:shell-css`, 프로덕션 실물): 재방문 **−78.9~92.0KB**(셸 전송량의 약 46%), 첫 방문 **+8.8~9.0KB**, 배포당 묶음 무효화 19.2%. 🔴 단 **연속 구간별 묶음**(7개)이어야 한다 — 블록별 86개로 쪼개면 첫 방문이 +44KB 로 뛰고, 전량 1개로 합치면 끼어 있는 `<link rel=stylesheet>` 22개 때문에 캐스케이드가 뒤집힌다.
    - **남은 미지수는 왕복 1회 추가의 LCP 영향 하나뿐**(바이트는 쟀고 시간은 안 쟀다). **실행 여부는 사용자 결정 대기.**

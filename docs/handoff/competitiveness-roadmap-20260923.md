@@ -195,9 +195,10 @@ sitemap 1,284 URL:
 |---|---|
 | 완료 | `checkout-i18n-wiring-20260918`, `inicis-overseas-card-phase2-20260918` |
 | 차단 | `llm-prompt-json-slicing`(사주 `evidenceRefs` 설계 결정 대기) |
-| 활성·유효 | S10·S11 ← `home-perf-cwv-2026-09-07`, `home-lcp-inp-2026-08-28`, `desktop-perf-2026-08-16`, `global-css-render-blocking-2026-09-17`, `mobile-home-perf`, `n3-shell-inline-css-externalization`, `app-optimization-remaining-2026-09-02` · S13 ← `pg-window-latency-2026-08-16`, `payment-503-and-renderer-unification`, `payment-stabilization`, `checkout-soulcat-requestid-gate-p0-20260918`, `yeongnyangi-paid-flow-speed-2026-09-24`(영냥이 우선·U6 배선부터) · S14·S19 ← `paid-llm-service-delivery-20260916` · S16·S17 ← `mongo-m10-phase2-2026-09-06` · S18 ← `llm-optimization-leftovers` · U5 ← `business-refactor` · 인이시스 세션 ← `inicis-security-advisory-2026-09` |
-| `active` 표기지만 낡음 | `llm-explicit-context-caching`(#659 머지), `sukuyo-duplicate-generation-window`(#652 머지), `app-optimization-roadmap-2026-09-02`(remaining 문서로 대체), `inp-round3-2026-08-16`, `desktop-tbt-2026-08-29`, `payments-confirm-v2-cutover`, `kakaopay-golive-2026-08-31`, `devloop-perf-followups`, `music-lounge-perf-2026-09-16`, `payment-mobile-audit-20260909`, `worker-cpu-atlas-search-2026-09-08` |
+| 활성·유효 | S10·S11 ← `home-perf-cwv-2026-09-07`, `home-lcp-inp-2026-08-28`, `desktop-perf-2026-08-16`, `global-css-render-blocking-2026-09-17`, `mobile-home-perf`, `app-optimization-remaining-2026-09-02` · S13 ← `pg-window-latency-2026-08-16`, `payment-stabilization`, `yeongnyangi-paid-flow-speed-2026-09-24`(영냥이 우선·U6 배선부터) · S14·S19 ← `paid-llm-service-delivery-20260916` · S16·S17 ← `mongo-m10-phase2-2026-09-06` · S18 ← `llm-optimization-leftovers` · U5 ← `business-refactor` · 인이시스 세션 ← `inicis-security-advisory-2026-09` |
+| 활성·세션 미배정 (10-02 재판정) | `inp-round3-2026-08-16`(§6-4 최근 이용 기록 버그 등 미완), `worker-cpu-atlas-search-2026-09-08`(인덱스 `migrate --apply` 기록 없음) |
 
+- 2026-10-02 정리: 끝났거나 대체·폐기된 활성·차단 인수인계 64개를 지웠다(위 표의 n3·payment-503·checkout-soulcat-requestid 와 낡음 행 8개 포함). 코드나 남는 문서가 근거로 인용하는 19개는 지우지 않고 `status: done` 으로 바꿨다(낡음 행의 `kakaopay-golive-2026-08-31` 포함). 지운 문서는 `git log --diff-filter=D -- docs/handoff` 로 찾는다.
 - 🔴 문서에 적힌 #1810 `3541904e9`·#1845 `3080b0a02`는 스쿼시 전 SHA다. main 커밋은 `7e221cdfa`(#1810, 09-08)·`8422192d9`(#1845, 09-09).
 
 ## Atlas Flex 메모 (S17 입력)
