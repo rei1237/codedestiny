@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { BEAT_FORMS, BEAT_MAX_LENGTH, BEAT_TONES } from "./lib/novel-constraints.mjs";
+import { BEAT_FORMS, BEAT_MAX_LENGTH, BEAT_TONES, FORBIDDEN_STORY_NAMES } from "./lib/novel-constraints.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 export const SOURCE_PATH = resolve(ROOT, "content/novel/episodes.source.json");
@@ -12,10 +12,33 @@ export const CHUNK_DIR = resolve(OUTPUT_DIR, "episodes");
 export const MANIFEST_PATH = resolve(OUTPUT_DIR, "manifest.json");
 export const READER_OUTPUT_PATH = resolve(ROOT, "lib/stories/vn/episodes.generated.json");
 export const SCENE_MATRIX_PATH = resolve(ROOT, "content/novel/scene-matrix.generated.json");
+// 옛 책갈피(rev 없음)의 비트 위치표 — 2026-10-02 개편 직전 manifest 에서 얼렸다. 다시 쓴 화(rev 2+)는
+// 비트 ID 를 새로 매기므로 계산값이 옛 위치를 잃는다. 그래서 이 표만 manifest 에 싣고, 표에 없는 새 화는 [].
+export const LEGACY_RANGES_PATH = resolve(ROOT, "content/novel/legacy-ranges.v1.json");
 
-const SPEAKERS = new Set(["n", "sys", "yeon", "neo", "mu", "moka", "luna", "rab", "baek", "crow", "geo", "god", "ln", "lns", "pje", "tiger"]);
-const CAST_IDS = new Set(["baek", "crow", "ln", "lns", "mirror", "moka", "mu", "neo", "pje", "rab", "yeon", "tiger"]);
-const EFFECTS = new Set(["burst", "claw", "fire", "flash", "fuse", "hands", "heart", "ink", "metal", "net", "reveal", "root", "script", "shake", "stars", "suck", "tarot", "thread", "transform", "veil", "vortex", "water", "wood"]);
+export const SPEAKERS = new Set(["n", "sys", "yeon", "neo", "mu", "moka", "luna", "rab", "baek", "crow", "geo", "god", "ln", "lns", "pje", "tiger", "yun", "heuk"]);
+const CAST_IDS = new Set(["baek", "crow", "ln", "lns", "mirror", "moka", "mu", "neo", "pje", "rab", "yeon", "tiger", "yun"]);
+export const EFFECTS = new Set(["burst", "claw", "fire", "flash", "fuse", "hands", "heart", "ink", "metal", "net", "reveal", "root", "script", "shake", "stars", "suck", "tarot", "thread", "transform", "veil", "vortex", "water", "wood"]);
+/* 곡 분류(fail-closed). 가사 판정 근거는 가사 등록부 app/music/_data/musicLyrics.ts 다 — musicManifest 의
+   hasLyrics 추정은 거의 모두 참이라 근거가 못 된다. TRK 에 새 키를 더하면 둘 중 하나에 반드시 넣는다.
+   보컬곡은 재작성 대기 목록 밖의 화에서 쓰지 않는다(2026-10-02 사용자 요청: 명상·가사 없는 곡). */
+export const VOCAL_TRACKS = new Set(["novaFlex", "novaSoda", "novaTitle", "novaRider", "novaFlame", "lunaGuest", "teaMoonlight"]);
+export const INSTRUMENTAL_TRACKS = new Set([
+  "main", "daily", "room", "gloom", "gloom2", "crisis", "crisis2", "neo", "neo2", "riverEnter", "riverEnter2", "siksangEnter", "stillLake",
+  "jaeEnter", "riverCross", "warTheme", "templeGate", "memWater", "starsName", "zeroPoint", "rainWindow", "firstLight", "teaHouse", "teaKind",
+  "crystalGarden", "templeDawn", "fireFestival", "flowingLight", "focusFlow", "innerFlame", "midnightPulse", "moonDawn", "forestTemple",
+  "glassBox", "riverReturn", "sacredFlame", "starDrift", "lakeDawn", "drumCircle", "warDream", "warCommand", "warRoom", "whiteLion",
+  "fortuneReveal", "orientalGirl", "destinyRoom", "none",
+]);
+/* 재작성 대기 목록 — 2026-10-02 개편에서 다시 쓸 옛 화(EP.07~EP.43). 여기 든 화만 옛 규칙의 예외를
+   받는다: bg 없는 tone, 백문(baek), 보컬곡. 다시 쓴 화는 rev 2 로 올리며 목록에서 뺀다(남겨 두면 빌드 실패).
+   새 이야기가 다 들어가면 목록과 예외를 함께 지운다. */
+export const REWRITE_PENDING = new Set([
+  "ep-07", "ep-08", "ep-09", "ep-10", "ep-11", "ep-12", "ep-12a", "ep-13", "ep-14", "ep-14a", "ep-15", "ep-16", "ep-17",
+  "ep-18", "ep-19", "ep-20", "ep-21", "ep-21a", "ep-22", "ep-23", "ep-24", "ep-25", "ep-26", "ep-27", "ep-27a", "ep-27b",
+  "ep-28", "ep-28a", "ep-28b", "ep-28c", "ep-28d", "ep-29", "ep-30", "ep-31", "ep-32", "ep-32a", "ep-33", "ep-34", "ep-35",
+  "ep-36", "ep-36a", "ep-37", "ep-38", "ep-38a", "ep-39", "ep-40", "ep-41", "ep-41a", "ep-42", "ep-42a", "ep-43",
+]);
 const BARE_DIALOGUE = new Set(["그래.", "응.", "알겠어.", "좋아."]);
 // 작가가 레거시 정본에 남긴 의미값 중, 실물 파일명이 바뀐 경우에만 고정 매핑한다.
 // 무작위 선택은 하지 않으며 BG에 없는 값은 검증에서 실패한다.
@@ -37,9 +60,16 @@ function namedKeysFromLegacyShell(variableName) {
   return new Set([...match[1].matchAll(/(?:^|[,\n])\s*([A-Za-z][\w]*)\s*:/g)].map((entry) => entry[1]));
 }
 
+export function readLegacyRanges() {
+  const frozen = JSON.parse(readFileSync(LEGACY_RANGES_PATH, "utf8"));
+  if (frozen?.version !== 1 || !frozen.episodes || typeof frozen.episodes !== "object") throw new Error("얼린 책갈피 범위표의 형식이 맞지 않습니다.");
+  return frozen.episodes;
+}
+
 function inferScene(beat, priorScene) {
   const background = beat.bg ?? priorScene.background;
-  const tone = beat.tone ?? priorScene.tone ?? "natural";
+  // 플레이어는 배경을 그릴 때만 톤을 바꾸고, 같은 배경을 tone 없이 다시 쓰면 원래 색으로 돌린다.
+  const tone = beat.bg ? (beat.tone ?? "natural") : priorScene.tone;
   const ambient = background && /night|moon|river|star|tarot/i.test(background) ? "moonlight" : null;
   const eventEffect = beat.fx ?? null;
   return {
@@ -66,7 +96,7 @@ function inferPacing(beat) {
   return pauseMs ? { pauseMs, importance: beat.im ? "impact" : "breath" } : undefined;
 }
 
-function validateBeat(beat, context, bgKeys, trackKeys) {
+function validateBeat(beat, context, bgKeys, trackKeys, sfxKeys) {
   if (!beat || typeof beat !== "object") throw new Error(`${context}: 비트가 객체가 아닙니다.`);
   if (!SPEAKERS.has(beat.s)) throw new Error(`${context}: 알 수 없는 화자 '${beat.s}'입니다.`);
   if (typeof beat.t !== "string" || !beat.t.trim()) throw new Error(`${context}: 대사가 비어 있습니다.`);
@@ -76,6 +106,7 @@ function validateBeat(beat, context, bgKeys, trackKeys) {
   if (beat.bg && !bgKeys.has(beat.bg)) throw new Error(`${context}: 배경 '${beat.bg}'이 BG 맵에 없습니다.`);
   if (beat.bgm && !trackKeys.has(beat.bgm)) throw new Error(`${context}: BGM '${beat.bgm}'이 TRK 맵에 없습니다.`);
   if (beat.fx && !EFFECTS.has(beat.fx)) throw new Error(`${context}: 효과 '${beat.fx}'이 허용 목록에 없습니다.`);
+  if (beat.sfx !== undefined && (typeof beat.sfx !== "string" || !sfxKeys.has(beat.sfx))) throw new Error(`${context}: 효과음 '${beat.sfx}'이 SFX 맵에 없습니다.`);
   // form·tone 은 오타가 나도 플레이어가 조용히 무시한다 — 화면은 멀쩡하고 연출만 사라진다.
   if (beat.form && !BEAT_FORMS.has(beat.form)) throw new Error(`${context}: 모습 '${beat.form}'이 허용 목록(${[...BEAT_FORMS].join(", ")})에 없습니다.`);
   if (beat.tone && !BEAT_TONES.has(beat.tone)) throw new Error(`${context}: 톤 '${beat.tone}'이 허용 목록(${[...BEAT_TONES].join(", ")})에 없습니다.`);
@@ -92,6 +123,11 @@ export function buildNovelPayload() {
   if (source.schemaVersion !== 1 || !Array.isArray(source.episodes)) throw new Error("지원하지 않는 VN 정본 스키마입니다.");
   const bgKeys = namedKeysFromLegacyShell("BG");
   const trackKeys = namedKeysFromLegacyShell("TRK");
+  const sfxKeys = namedKeysFromLegacyShell("SFX");
+  for (const key of trackKeys) {
+    if (VOCAL_TRACKS.has(key) === INSTRUMENTAL_TRACKS.has(key)) throw new Error(`TRK '${key}' 는 연주곡·보컬곡 분류 중 정확히 하나에 들어가야 합니다(build-novel-runtime.mjs).`);
+  }
+  for (const key of [...VOCAL_TRACKS, ...INSTRUMENTAL_TRACKS]) if (!trackKeys.has(key)) throw new Error(`곡 분류의 '${key}' 가 TRK 맵에 없습니다.`);
   const episodeIds = new Set();
   const beatIds = new Set();
   const episodes = source.episodes.map((episode, episodeIndex) => {
@@ -101,13 +137,26 @@ export function buildNovelPayload() {
     if (!episode.no || !episode.tag || !episode.title || !Array.isArray(episode.beats) || episode.beats.length === 0) {
       throw new Error(`에피소드 ${episodeIndex + 1}: no/tag/title/beats가 필요합니다.`);
     }
+    // rev 는 화를 통째로 다시 쓸 때 올린다. 저장된 rev 와 다르면 플레이어가 그 화의 처음에서 연다.
+    const rev = episode.rev ?? 1;
+    if (!Number.isInteger(rev) || rev < 1) throw new Error(`${episode.no}: rev 는 1 이상의 정수여야 합니다.`);
+    const pending = REWRITE_PENDING.has(id);
+    if (pending && rev >= 2) throw new Error(`${episode.no}: 다시 쓴 화(rev ${rev})는 재작성 대기 목록(REWRITE_PENDING)에서 빼야 합니다.`);
     let priorScene = { background: null, tone: "natural" };
     const beats = episode.beats.map((sourceBeat, beatIndex) => {
       const context = `${episode.no} #${beatIndex + 1}`;
+      // 다시 쓴 화가 자동 번호에 기대면 옛 ID 와 겹쳐 엉뚱한 문장으로 이어 읽힌다.
+      if (rev >= 2 && !String(sourceBeat?.id ?? "").startsWith(`${id}:`)) throw new Error(`${context}: 다시 쓴 화(rev ${rev})의 비트는 '${id}:' 로 시작하는 ID 를 직접 가져야 합니다.`);
       const rawBeat = sourceBeat.bg && BACKGROUND_FALLBACKS[sourceBeat.bg]
         ? { ...sourceBeat, bg: BACKGROUND_FALLBACKS[sourceBeat.bg], backgroundIntent: sourceBeat.bg }
         : sourceBeat;
-      validateBeat(rawBeat, context, bgKeys, trackKeys);
+      validateBeat(rawBeat, context, bgKeys, trackKeys, sfxKeys);
+      for (const name of FORBIDDEN_STORY_NAMES) if (rawBeat.t.includes(name)) throw new Error(`${context}: 대본에 쓰지 않는 이름 '${name}'이 있습니다.`);
+      if (!pending) {
+        if (VOCAL_TRACKS.has(rawBeat.bgm)) throw new Error(`${context}: 보컬곡 '${rawBeat.bgm}' 는 쓰지 않습니다. 연주곡을 고르세요.`);
+        if (rawBeat.tone && !rawBeat.bg) throw new Error(`${context}: tone 은 bg 가 있는 비트에서만 그려집니다. 지금 배경 키를 함께 적으세요.`);
+        if (rawBeat.s === "baek" || ["l", "c", "r"].some((slot) => rawBeat[slot]?.who === "baek")) throw new Error(`${context}: 백문(baek)은 새 이야기에 나오지 않습니다(윤달 yun 으로 대체).`);
+      }
       const hasSceneDirection = Boolean(rawBeat.shot || rawBeat.bg || rawBeat.bgm || rawBeat.fx || rawBeat.tone || rawBeat.im);
       const scene = hasSceneDirection ? inferScene(rawBeat, priorScene) : undefined;
       const beat = {
@@ -123,8 +172,14 @@ export function buildNovelPayload() {
       if (scene) priorScene = scene;
       return beat;
     });
-    return { id, no: episode.no, tag: episode.tag, title: episode.title, beats };
+    return { id, no: episode.no, tag: episode.tag, title: episode.title, ...(rev > 1 ? { rev } : {}), beats };
   });
+  for (const slug of Object.keys(readLegacyRanges())) {
+    if (!episodeIds.has(slug)) throw new Error(`얼린 책갈피 범위표의 화 '${slug}'가 정본에 없습니다. 화 주소는 바꾸거나 지우지 않습니다.`);
+  }
+  for (const slug of REWRITE_PENDING) {
+    if (!episodeIds.has(slug)) throw new Error(`재작성 대기 목록의 화 '${slug}'가 정본에 없습니다. 목록에서 빼세요.`);
+  }
   const sourceHash = sha256(sourceRaw);
   const beatCount = episodes.reduce((total, episode) => total + episode.beats.length, 0);
   return { version: 2, sourceHash, episodeCount: episodes.length, beatCount, episodes };
@@ -205,6 +260,7 @@ export function writeNovelRuntime(runtime = buildNovelPayload()) {
   for (const file of readdirSync(CHUNK_DIR)) {
     if (file.endsWith(".json") && !wantedChunks.has(file)) rmSync(resolve(CHUNK_DIR, file));
   }
+  const legacyRanges = readLegacyRanges();
   const manifest = {
     version: runtime.version,
     sourceHash: runtime.sourceHash,
@@ -215,11 +271,9 @@ export function writeNovelRuntime(runtime = buildNovelPayload()) {
       no: episode.no,
       tag: episode.tag,
       title: episode.title,
+      ...(episode.rev ? { rev: episode.rev } : {}),
       beatCount: episode.beats.length,
-      legacyRanges: [...new Set(episode.beats.map(beat => beat.id.split(":")[0]))].map(id => {
-        const positions = episode.beats.filter(beat => beat.id.startsWith(id + ":") && /^\d+$/.test(beat.id.split(":")[1])).map(beat => Number(beat.id.split(":")[1]));
-        return positions.length ? { id, first: Math.min(...positions), last: Math.max(...positions) } : null;
-      }).filter(Boolean),
+      legacyRanges: legacyRanges[episode.id] ?? [],
       path: `/data/novel/episodes/${episode.id}.json`,
     })),
   };
@@ -231,11 +285,57 @@ export function writeNovelRuntime(runtime = buildNovelPayload()) {
   }));
   writeJson(READER_OUTPUT_PATH, readerPayload(runtime));
   writeJson(SCENE_MATRIX_PATH, sceneMatrix(runtime), true);
+  syncShellFormMarks(runtime);
   return manifest;
+}
+
+// 플레이어의 연이 모습 표(FORM_MARKS)는 (화 색인, 컷 색인)이라 화를 다시 쓰면 손으로 맞추기 어렵다.
+// 정본의 form 마커에서 그 한 줄만 다시 쓴다. verify-novel-runtime 이 같은 표를 다시 대조한다.
+export function formMarks(runtime) {
+  const marks = [];
+  runtime.episodes.forEach((episode, ep) => episode.beats.forEach((beat, bi) => {
+    if (beat.form) marks.push({ ep, bi, form: beat.form });
+  }));
+  return marks;
+}
+
+function syncShellFormMarks(runtime) {
+  const shell = readFileSync(LEGACY_SHELL_PATH, "utf8");
+  const pattern = /var FORM_MARKS=\[[^\]]*\];/;
+  if (!pattern.test(shell)) throw new Error("플레이어 셸에서 'var FORM_MARKS=[...];' 한 줄을 찾지 못했습니다.");
+  const next = shell.replace(pattern, `var FORM_MARKS=${JSON.stringify(formMarks(runtime))};`);
+  if (next !== shell) writeFileSync(LEGACY_SHELL_PATH, next);
+}
+
+// 다시 쓴 화(rev≥2)의 분량·연출 밀도 보고. 경고만 하고 빌드는 막지 않는다 — 한글 하한(1,800자)은
+// verify-story-text-sync 가 오류로 지킨다. 알파벳이 붙은 화(EP.12A 등)는 막간이라 기준이 짧다.
+export function lengthWarnings(runtime) {
+  const warnings = [];
+  for (const episode of runtime.episodes) {
+    if (!episode.rev || episode.rev < 2) continue;
+    const interlude = /[A-Z]$/.test(episode.no);
+    const chars = episode.beats.reduce((total, beat) => total + beat.t.length, 0);
+    const images = episode.beats.filter((beat) => beat.im).length;
+    const effects = episode.beats.filter((beat) => beat.fx).length;
+    const [minChars, maxChars] = interlude ? [2000, 4000] : [4000, 8000];
+    const note = (message) => warnings.push(`${episode.no}: ${message}`);
+    if (chars < minChars || chars > maxChars) note(`본문 ${chars.toLocaleString("ko-KR")}자 (기준 ${minChars.toLocaleString("ko-KR")}~${maxChars.toLocaleString("ko-KR")})`);
+    if (!interlude && (images < 8 || images > 12)) note(`im ${images}개 (기준 8~12)`);
+    const perThousand = chars ? (effects * 1000) / chars : 0;
+    if (perThousand < 1 || perThousand > 3) note(`fx 1천 자당 ${perThousand.toFixed(2)}개 (기준 1~3)`);
+    const longBeats = episode.beats.filter((beat) => beat.t.length > 150).map((beat) => beat.id);
+    if (longBeats.length) note(`150자 초과 비트 ${longBeats.join(", ")}`);
+    episode.beats.forEach((beat, index) => {
+      if (beat.fx === "flash" && episode.beats[index - 1]?.fx === "flash") note(`flash 연속 ${beat.id}`);
+    });
+  }
+  return warnings;
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const runtime = buildNovelPayload();
   writeNovelRuntime(runtime);
   console.log(`VN 산출물 생성 완료: ${runtime.episodeCount}화 · ${runtime.beatCount.toLocaleString("ko-KR")}비트`);
+  const warnings = lengthWarnings(runtime);
+  if (warnings.length) console.warn(`[분량 경고 ${warnings.length}건 — 빌드는 통과]\n  ${warnings.join("\n  ")}`);
 }

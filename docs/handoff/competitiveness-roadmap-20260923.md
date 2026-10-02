@@ -193,7 +193,7 @@ sitemap 1,284 URL:
 
 | 판정 | 문서 → 이어받는 세션 |
 |---|---|
-| 완료 | `checkout-i18n-wiring-20260918`, `inicis-overseas-card-phase2-20260918` |
+| 완료 | `inicis-overseas-card-phase2-20260918` (`checkout-i18n-wiring-20260918` 은 10-02 done 정리로 삭제 — git 이력) |
 | 차단 | `llm-prompt-json-slicing`(사주 `evidenceRefs` 설계 결정 대기) |
 | 활성·유효 | S10·S11 ← `home-perf-cwv-2026-09-07`, `home-lcp-inp-2026-08-28`, `desktop-perf-2026-08-16`, `global-css-render-blocking-2026-09-17`, `mobile-home-perf`, `app-optimization-remaining-2026-09-02` · S13 ← `pg-window-latency-2026-08-16`, `payment-stabilization`, `yeongnyangi-paid-flow-speed-2026-09-24`(영냥이 우선·U6 배선부터) · S14·S19 ← `paid-llm-service-delivery-20260916` · S16·S17 ← `mongo-m10-phase2-2026-09-06` · S18 ← `llm-optimization-leftovers` · U5 ← `business-refactor` · 인이시스 세션 ← `inicis-security-advisory-2026-09` |
 | 활성·세션 미배정 (10-02 재판정) | `inp-round3-2026-08-16`(§6-4 최근 이용 기록 버그 등 미완), `worker-cpu-atlas-search-2026-09-08`(인덱스 `migrate --apply` 기록 없음) |

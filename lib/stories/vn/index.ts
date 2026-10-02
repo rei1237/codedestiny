@@ -47,6 +47,8 @@ export const STORY_SPEAKERS: Record<string, string> = {
   pje: "서한비",
   tiger: "검은 호랑이",
   god: "운명의 신",
+  yun: "윤달",
+  heuk: "흑월",
 };
 
 export interface StoryArc {

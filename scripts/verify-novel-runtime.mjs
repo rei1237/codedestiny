@@ -1,7 +1,8 @@
 // 정적 VN 엔진이 정본 청크 구조와 핵심 회귀 방지 장치를 계속 보유하는지 검사한다.
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH } from "./build-novel-runtime.mjs";
+import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS, SPEAKERS, REWRITE_PENDING, VOCAL_TRACKS } from "./build-novel-runtime.mjs";
+import { FORBIDDEN_STORY_NAMES } from "./lib/novel-constraints.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const PLAYER_PATH = resolve(ROOT, "public/codedestiny-novel.html");
@@ -28,6 +29,9 @@ const requiredRuntimeHooks = [
   "function warmNextEpisode(index)",
   "function resolveSavedEpisode(save)",
   "function resolveSavedBeat(ep,save)",
+  // 다른 개정(rev)의 책갈피는 그 화 처음에서 연다 — 다시 쓴 화에서 엉뚱한 대사에 떨어지지 않게.
+  "if(((save&&save.rev)||1)!==((EPISODES[ep]&&EPISODES[ep].rev)||1))return 0;",
+  "rev:meta.rev||1",
   "function showNovelDataError(error)",
   "typeof window.matchMedia===\"function\"",
   "episodeId:episode&&episode.id",
@@ -61,6 +65,64 @@ const forbiddenRuntimePatterns = [
   ['setTimeout(function(){cc.classList.add("hidden");},700)', '추적되지 않는 카드 hide 타이머는 다음 화의 카드를 숨긴다 — closeChapterCard() 를 쓴다'],
 ];
 for (const hook of requiredRuntimeHooks) if (!html.includes(hook)) fail(`required runtime hook missing: ${hook}`);
+// 빌드가 허용하는 fx 는 셸이 모두 그려야 한다 — flash·shake 가 통과만 하고 화면에 안 나오던 회귀(2026-10-02).
+const runFxBody = html.match(/function runFx\(name\)\{([\s\S]*?)\n\}/)?.[1];
+if (!runFxBody) fail("runFx was not found in the player shell");
+/* 로컬 dev 미러에는 NOVEL 호스트 곡과 stillLake 만 있다. 음악 호스트(MUSIC·MED·DCAFE) 곡은 실패하면
+   RIVER_FALLBACK 을 따라 그 로컬 곡에 닿아야 한다 — 체인이 없으면 404 뒤 무음으로 남는다. */
+const trackSource = html.match(/var TRK=\{([\s\S]*?)\n\};/)?.[1];
+const fallbackSource = html.match(/var RIVER_FALLBACK=(\{[\s\S]*?\});/)?.[1];
+if (!trackSource || !fallbackSource) fail("TRK or RIVER_FALLBACK was not found in the player shell");
+const trackHosts = new Map([...trackSource.matchAll(/^\s*([A-Za-z]\w*):(?:([A-Z]+)\+enc\(|"")/gm)].map((m) => [m[1], m[2] ?? ""]));
+let riverFallback;
+try { riverFallback = new Function(`return ${fallbackSource}`)(); } catch (error) { fail(`RIVER_FALLBACK does not parse: ${error.message}`); }
+const isLocalTrack = (key) => trackHosts.get(key) === "NOVEL" || key === "stillLake";
+for (const [key, host] of trackHosts) {
+  if (!["MUSIC", "MED", "DCAFE"].includes(host) || key === "main" || isLocalTrack(key)) continue;
+  const seen = new Set([key]);
+  let cursor = riverFallback[key];
+  while (cursor && !isLocalTrack(cursor) && !seen.has(cursor)) { seen.add(cursor); cursor = riverFallback[cursor]; }
+  if (!cursor || !trackHosts.has(cursor) || !isLocalTrack(cursor)) fail(`BGM '${key}' has no RIVER_FALLBACK chain that ends in a local track`);
+}
+if (trackHosts.get("none") !== "") fail("the silent track key 'none' must map to an empty URL");
+for (const hook of ['if(key==="none"){S.bgmKey="none";fadeOutStop();return;}', 'if(on&&S.bgmKey==="none")return;', 'S.bgmOn&&audio.src&&S.bgmKey!=="none"', 'S.bgmOn&&S.bgmKey!=="none"']) {
+  if (!html.includes(hook)) fail(`silent-track guard missing: ${hook}`);
+}
+for (const effect of EFFECTS) if (!runFxBody.includes(`name==="${effect}"`)) fail(`fx '${effect}' is accepted by the build but runFx has no branch for it`);
+// 효과음은 WebAudio 로 합성한다 — 맵이 깨지면 빌드가 키를 못 읽고, 기본음 표가 없는 키를 가리키면 조용히 무음이 된다.
+const SFX_KEYS = ["chime", "whoosh", "thud", "slash", "drum", "rain", "bell", "heartbeat", "glitch", "page", "coin", "fire", "water", "door", "oink", "sparkle"];
+const sfxSource = html.match(/var SFX=(\{[\s\S]*?\n\});/)?.[1];
+let sfxMap = null;
+try { sfxMap = sfxSource && new Function(`return ${sfxSource}`)(); } catch (error) { fail(`SFX map does not parse: ${error.message}`); }
+if (!sfxMap) fail("SFX map was not found in the player shell");
+for (const key of SFX_KEYS) {
+  const sound = sfxMap[key];
+  if (!Array.isArray(sound) || !["sine", "triangle", "square", "sawtooth", "noise"].includes(sound[0]) || !sound.slice(1, 5).every(value => typeof value === "number" && value > 0)) fail(`SFX '${key}' is missing or malformed`);
+}
+if (!Array.isArray(sfxMap.none) || sfxMap.none.length !== 0) fail("SFX 'none' must be an empty array so a beat can mute its default sound");
+for (const key of Object.keys(sfxMap)) if (key !== "none" && !SFX_KEYS.includes(key)) fail(`SFX '${key}' is not in the agreed 16-key list`);
+const fxSfxSource = html.match(/var FX_SFX=(\{[^\n]*\});/)?.[1];
+let fxSfx = null;
+try { fxSfx = fxSfxSource && new Function(`return ${fxSfxSource}`)(); } catch (error) { fail(`FX_SFX does not parse: ${error.message}`); }
+if (!fxSfx) fail("FX_SFX was not found in the player shell");
+for (const [effect, sound] of Object.entries(fxSfx)) if (!EFFECTS.has(effect) || !SFX_KEYS.includes(sound)) fail(`FX_SFX ${effect} -> ${sound} points outside EFFECTS or SFX`);
+for (const hook of ["playSfx(b.sfx||FX_SFX[b.fx]);", "if(!S.bgmOn||S.skip||_hydrating||document.hidden)return;", "if(!c||c.state!==\"running\")return;"]) {
+  if (!html.includes(hook)) fail(`sound-effect guard missing: ${hook}`);
+}
+// 빌드가 받는 화자는 플레이어 이름표와 /stories 본문에 모두 이름이 있어야 한다 — 없으면 대사가 이름 없이 뜬다.
+const labelMap = (name) => {
+  const source = html.match(new RegExp(`var ${name}=(\\{[\\s\\S]*?\\});`))?.[1];
+  try { return new Function(`return ${source}`)(); } catch { fail(`${name} label map does not parse`); }
+};
+const playerIcons = labelMap("ICON");
+const playerNames = labelMap("NAME");
+const storySpeakerBlock = readFileSync(resolve(ROOT, "lib/stories/vn/index.ts"), "utf8").match(/export const STORY_SPEAKERS[^{]*\{([\s\S]*?)\n\};/)?.[1] ?? "";
+const storySpeakers = new Set([...storySpeakerBlock.matchAll(/^\s*([a-z]+):/gm)].map(match => match[1]));
+for (const speaker of SPEAKERS) {
+  if (!(speaker in playerIcons) || !(speaker in playerNames)) fail(`speaker '${speaker}' has no ICON/NAME label in the player`);
+  if (!storySpeakers.has(speaker)) fail(`speaker '${speaker}' has no STORY_SPEAKERS label in lib/stories/vn/index.ts`);
+  if (!["n", "sys"].includes(speaker) && !playerNames[speaker] && speaker !== "geo") fail(`speaker '${speaker}' has an empty player name`);
+}
 for (const [pattern, why] of forbiddenRuntimePatterns) if (html.includes(pattern)) fail(`forbidden pattern is back: ${pattern} — ${why}`);
 if ((html.match(/bootDirectPlay\(\);/g) ?? []).length !== 1) fail("direct player boot must have exactly one data-ready entry point");
 if (html.includes("EPISODES.push(")) fail("inline episode data remains in the player; run externalize-novel-episodes.mjs");
@@ -117,6 +179,15 @@ if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 60 |
 if (matrix.sourceHash !== runtime.sourceHash || matrix.episodes?.length !== runtime.episodeCount || matrix.episodes.some((episode) => !Array.isArray(episode.emotionPath) || episode.emotionPath.length < 3 || !episode.visualCues?.every((cue) => cue.accessibility))) {
   fail("scene matrix is stale or missing its three-stage emotion/accessibility cues");
 }
+/* 옛 책갈피 범위는 얼린 표(content/novel/legacy-ranges.v1.json)가 정본이다. 빌드마다 다시 계산하면 개편 뒤
+   옛 위치가 엉뚱한 화로 옮겨 간다. manifest 의 화 순서·rev·범위가 정본·얼린 표와 같아야 한다. */
+const frozenRanges = readLegacyRanges();
+manifest.episodes.forEach((meta, index) => {
+  const episode = runtime.episodes[index];
+  if (meta.id !== episode?.id) fail(`manifest episode ${index} is ${meta.id}, canonical is ${episode?.id}`);
+  if ((meta.rev ?? 1) !== (episode.rev ?? 1)) fail(`${meta.id}: manifest rev ${meta.rev ?? 1} does not match the canonical rev ${episode.rev ?? 1}`);
+  if (JSON.stringify(meta.legacyRanges) !== JSON.stringify(frozenRanges[meta.id] ?? [])) fail(`${meta.id}: manifest legacyRanges drifted from the frozen table`);
+});
 
 /* 연이의 모습(사람↔꽃돼지) 마커표는 셸에 손으로 적혀 있다 — 진입 즉시 결정해야 해서 청크 로드를
    기다릴 수 없다. 그 표가 정본과 어긋나면 "쭉 읽으면 사람, 목차로 들어가면 꽃돼지"가 되므로,
@@ -144,17 +215,11 @@ const shellFormKeys = shellFormMarks.map((mark) => {
   return `${mark.ep}:${mark.bi}:${mark.form}`;
 });
 if (shellFormKeys.join("|") !== canonicalFormMarks.join("|")) {
-  fail(`FORM_MARKS in the player shell is out of sync with the canonical source. 정본에 변신을 더하거나 옮겼다면 셸의 표를 같은 커밋에서 갱신할 것.\n  shell:     ${shellFormKeys.join(", ")}\n  canonical: ${canonicalFormMarks.join(", ")}`);
+  fail(`FORM_MARKS in the player shell is out of sync with the canonical source. npm run novel:build 로 셸의 표를 다시 쓰고 같은 커밋에 넣을 것.\n  shell:     ${shellFormKeys.join(", ")}\n  canonical: ${canonicalFormMarks.join(", ")}`);
 }
-const expectedVisualCues = [
-  [36, 20, "memoryVault"],
-  [41, 24, "clearMoonWater"],
-  [43, 8, "cherryMoonPortal"],
-];
-for (const [episodeIndex, beatIndex, background] of expectedVisualCues) {
-  if (runtime.episodes.flatMap(e => e.beats).find(b => b.id === `${episodeIndex === 0 ? "prologue" : "ep-" + String(episodeIndex).padStart(2, "0")}:${beatIndex + 1}`)?.bg !== background) {
-    fail(`event background is not bound to its canonical beat: ${background}`);
-  }
+// 이벤트 배경은 개편 때 자리가 옮겨 갈 수 있다 — 고정 컷 대신 정본에서 한 번 이상 쓰이는지만 요구한다.
+for (const background of ["memoryVault", "clearMoonWater", "cherryMoonPortal"]) {
+  if (!runtime.episodes.some(e => e.beats.some(b => b.bg === background))) fail(`event background is no longer used by any canonical beat: ${background}`);
 }
 const preservedEarlyVisualCues = [
   [0, 63, "tarotDoor"],
@@ -172,7 +237,8 @@ for (const [episodeIndex, beatIndex, background] of preservedEarlyVisualCues) {
    드러난다. 정본에 화를 더하거나 첫 비트를 갈아 끼울 때 실제로 걸리는 자리다. */
 const openersMissingCues = runtime.episodes.flatMap((episode) => {
   const opener = episode.beats[0];
-  const missing = [!opener?.bg && "bg", !opener?.bgm && "bgm"].filter(Boolean);
+  // 무음 none 은 곡이 아니다 — 목차로 들어오자마자 정적이면 BGM 이 빠진 것과 같다.
+  const missing = [!opener?.bg && "bg", (!opener?.bgm || opener.bgm === "none") && "bgm"].filter(Boolean);
   return missing.length ? [`${episode.id}(${missing.join("·")})`] : [];
 });
 if (openersMissingCues.length > 0) {
@@ -189,6 +255,15 @@ for (const [index, meta] of manifest.episodes.entries()) {
   // 새 ID 저장과 기존 숫자 저장이 같은 위치를 가리키는지 확인한다.
   const saved = { ep: index, bi: Math.min(2, chunk.beats.length - 1), episodeId: chunk.id, beatId: chunk.beats[Math.min(2, chunk.beats.length - 1)].id };
   if (saved.episodeId !== manifest.episodes[index].id || !chunk.beats.some(beat => beat.id === saved.beatId)) fail(`bookmark mapping failed for ${chunk.id}`);
+  // 빌드 규칙이 실제 배포 청크에도 지켜졌는지 다시 본다(빌드를 건너뛴 손 편집·CMS 오버라이드 대비).
+  for (const beat of chunk.beats) {
+    const name = FORBIDDEN_STORY_NAMES.find((forbidden) => String(beat.t ?? "").includes(forbidden));
+    if (name) fail(`${beat.id}: 대본에 쓰지 않는 이름 '${name}'`);
+    if (REWRITE_PENDING.has(chunk.id)) continue;
+    if (VOCAL_TRACKS.has(beat.bgm)) fail(`${beat.id}: 보컬곡 '${beat.bgm}' (재작성 대기 목록 밖)`);
+    if (beat.tone && !beat.bg) fail(`${beat.id}: bg 없는 tone 은 그려지지 않는다`);
+    if (beat.s === "baek" || ["l", "c", "r"].some((slot) => beat[slot]?.who === "baek")) fail(`${beat.id}: 백문(baek) 등장 (재작성 대기 목록 밖)`);
+  }
 }
 
 console.log(`[novel-runtime] OK: shell ${statSync(PLAYER_PATH).size.toLocaleString("ko-KR")} bytes · ${runtime.episodeCount} episodes · ${runtime.beatCount.toLocaleString("ko-KR")} beats · ID bookmark migration ready`);

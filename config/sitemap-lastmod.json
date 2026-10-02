@@ -2,10 +2,6 @@
   "version": 1,
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
-    "/": {
-      "signature": "7ad08ff67b1b4635",
-      "lastmod": "2026-10-01"
-    },
     "/about/": {
       "signature": "99e34bc15f4de9cd",
       "lastmod": "2026-10-01"
@@ -1591,8 +1587,8 @@
       "lastmod": "2026-10-01"
     },
     "/kkul-kkul-unse/": {
-      "signature": "779b199609b35c7a",
-      "lastmod": "2026-10-01"
+      "signature": "d42e174cca23ab6c",
+      "lastmod": "2026-10-02"
     },
     "/life-book-ai/": {
       "signature": "82c6e5853009d6f2",
@@ -1879,248 +1875,248 @@
       "lastmod": "2026-10-01"
     },
     "/stories/": {
-      "signature": "6df99ca97869dd79",
-      "lastmod": "2026-10-01"
+      "signature": "357663409a13cb6d",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-01/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-01a/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-02/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-03/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-04/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-05/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-06/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-06a/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-07/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-08/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-09/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-10/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-11/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-12/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-12a/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-13/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-14/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-14a/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-15/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-16/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-17/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-18/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-19/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-20/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-21/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-21a/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-22/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-23/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-24/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-25/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-26/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-27/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-27a/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-27b/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-28/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-28a/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-28b/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-28c/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-28d/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-29/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-30/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-31/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-32/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-32a/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-33/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-34/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-35/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-36/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-36a/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-37/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-38/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-38a/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-39/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-40/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-41/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-41a/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-42/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-42a/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/ep-43/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/stories/prologue/": {
-      "signature": "87acc13a40551d9d",
-      "lastmod": "2026-10-01"
+      "signature": "cbbcfaed52483562",
+      "lastmod": "2026-10-02"
     },
     "/sukuyo-compatibility-ai/": {
       "signature": "e26332ac0a88272e",
@@ -2218,9 +2214,13 @@
       "signature": "913d036ec37e0174",
       "lastmod": "2026-09-30"
     },
+    "/yeongnyangi/": {
+      "signature": "dc72808c912f7858",
+      "lastmod": "2026-10-02"
+    },
     "/yeongnyangi/1000-won-fortune/": {
-      "signature": "407592ee377e0739",
-      "lastmod": "2026-10-01"
+      "signature": "0059ce9c71795e32",
+      "lastmod": "2026-10-02"
     },
     "/zh-tw/": {
       "signature": "f838a8db03865cc5",

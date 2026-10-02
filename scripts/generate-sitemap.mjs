@@ -171,10 +171,13 @@ const staticCanonicalRouteEntries = STATIC_CANONICAL_ROUTES.map((route) => ({
 }));
 
 const coreRoutes = [
-  { path: "/", changefreq: "daily", priority: 1.0 },
-  // 브랜드 별칭("꿀꿀 운세") 의 대표 URL 은 홈 "/" 다. 이 페이지는 그 관계를
-  // 설명하는 보조 안내라 홈보다 우선순위를 낮춰 브랜드 쿼리에서 자기잠식하지 않게 한다.
+  // 🔴 "/" 는 넣지 않는다 — 워커가 /ggulggul/ 로 301 한다(2026-10-02 사용자 결정: /ggulggul/ 단일 대표).
+  //    리다이렉트 URL 을 사이트맵에 내면 대표 URL 신호가 둘로 갈린다.
+  // 브랜드 별칭("꿀꿀 운세") 의 대표 URL 은 /ggulggul/ 다. 이 페이지는 그 관계를
+  // 설명하는 보조 안내라 대표보다 우선순위를 낮춰 브랜드 쿼리에서 자기잠식하지 않게 한다.
   { path: "/kkul-kkul-unse", changefreq: "weekly", priority: 0.85 },
+  // 영냥이 대표("사주 보는 고양이"·"영냥이" 브랜드 검색). 2026-10-02 서버 본문(YeongnyangiGuide)을 싣고 색인으로 전환했다.
+  { path: "/yeongnyangi", changefreq: "weekly", priority: 0.9 },
   // 천원사주 허브. 무료 키워드는 /saju/ 등 무료 랜딩의 몫이고, 이 페이지는 영냥이 고등어(1,000원) 상담만 맡는다.
   { path: "/yeongnyangi/1000-won-fortune", changefreq: "weekly", priority: 0.8 },
   { path: "/human-design/guide", changefreq: "monthly", priority: 0.7 },
@@ -190,7 +193,7 @@ const coreRoutes = [
   // 약속해 "없는 콘텐츠를 약속하는 페이지"가 됐다. 라우트 자체의 noindex 는 app/reviews/page.tsx
   // 의 metadata.robots 에 있고, 광고 대상 제외는 app/components/adsense-route-policy.js 에 있다.
   // 리뷰가 실제로 쌓이면 세 곳을 함께 되돌릴 것.
-  { path: "/ggulggul", changefreq: "weekly", priority: 0.9 },
+  { path: "/ggulggul", changefreq: "daily", priority: 1.0 },
   { path: "/today", changefreq: "daily", priority: 0.97 },
   { path: "/fortune/date", changefreq: "daily", priority: 0.86 },
   { path: "/compatibility", changefreq: "weekly", priority: 0.96 },

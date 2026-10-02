@@ -17,6 +17,19 @@ function originalPoint(episode, position) {
   throw new Error("Original scene was lost: " + id);
 }
 const episodeIndex = (ep) => originalPoint(ep, 0)[0];
+/* originalPoint 는 개편해도 다시 쓰지 않는 구간(프롤로그~EP.06A)의 옛 ID 에만 쓴다. 다시 쓰는 구간을
+   겨누는 검사는 아래 함수로 정본에서 지점을 계산한다 — 화 번호를 박아 두면 개편 때 엉뚱한 화를 겨눈다. */
+function firstBeatWithBackground(key) {
+  for (let ep = 0; ep < canonical.length; ep++) { const bi = canonical[ep].beats.findIndex(b => b.bg === key); if (bi >= 0) return [ep, bi]; }
+  throw new Error("no canonical beat uses the background " + key);
+}
+const canonicalFormMarks = canonical.flatMap((episode, ep) => episode.beats.flatMap((beat, bi) => beat.form ? [{ ep, bi, form: beat.form }] : []));
+/* 셸의 formAt() 과 독립된 기대값 — 정본 마커를 처음부터 따라간다(마커 컷 포함, 기본은 사람). */
+function expectedForm(ep, bi) {
+  let form = "human";
+  for (const mark of canonicalFormMarks) { if (mark.ep > ep || (mark.ep === ep && mark.bi > bi)) break; form = mark.form; }
+  return form;
+}
 const wait = (ms) => new Promise((resolveWait) => setTimeout(resolveWait, ms));
 
 async function waitFor(check, label) {
@@ -114,13 +127,13 @@ async function verifyVisualCueBindings() {
   try {
     const { document } = dom.window;
     const visualCues = [
-      [36, 20, "memoryVault", "memory-vault-release-v1.webp"],
-      [41, 24, "clearMoonWater", "clear-moon-waterway-v1.webp"],
-      [43, 8, "cherryMoonPortal", "cherry-moon-portal-promise-v1.webp"],
+      ["memoryVault", "memory-vault-release-v1.webp"],
+      ["clearMoonWater", "clear-moon-waterway-v1.webp"],
+      ["cherryMoonPortal", "cherry-moon-portal-promise-v1.webp"],
     ];
     await waitFor(() => dom.window.__NOVEL_READY === true, "novel manifest");
-    for (const [episodeIndex, beatIndex, background, asset] of visualCues) {
-      await dom.window.hydrateTo(...originalPoint(episodeIndex, beatIndex));
+    for (const [background, asset] of visualCues) {
+      await dom.window.hydrateTo(...firstBeatWithBackground(background));
       assert.equal(dom.window.S.curBg, background, `${background} was not selected`);
       const visibleAsset = ["bgA", "bgB"].some((id) => document.getElementById(id)?.src.includes(asset));
       assert.equal(visibleAsset, true, `${asset} was not assigned to the background pool`);
@@ -154,10 +167,17 @@ async function verifyBackgroundStability() {
       win.restartKenburns = realRestart;
     };
 
-    // ① EP.23 은 배경이 15번 바뀌는 화다. 그 끝으로 점프해도 배경은 딱 한 번만 갈려야 한다.
-    await win.hydrateTo(...originalPoint(23, 0));
+    // ① 배경이 가장 자주 바뀌는 화의, 인물이 서 있는 마지막 컷으로 점프해도 배경은 딱 한 번만 갈려야 한다.
+    const busiest = canonical.map((episode, ep) => {
+      const bi = episode.beats.findLastIndex((beat) => ["l", "c", "r"].some((slot) => beat[slot]?.who));
+      let changes = 0, shown = null;
+      episode.beats.slice(0, bi + 1).forEach((beat) => { if (beat.bg && beat.bg !== shown) { if (shown) changes += 1; shown = beat.bg; } });
+      return { ep, bi, changes, moved: shown !== episode.beats[0].bg };
+    }).filter((point) => point.bi > 0 && point.moved).sort((a, b) => b.changes - a.changes)[0];
+    assert.ok(busiest && busiest.changes >= 2, "no canonical episode changes its background twice before a staged cut");
+    await win.hydrateTo(busiest.ep, 0);
     countSwaps();
-    await win.hydrateTo(...originalPoint(23, 199));
+    await win.hydrateTo(busiest.ep, busiest.bi);
     stopCounting();
     assert.equal(swaps, 1, `hydrateTo replayed ${swaps} background swaps (must be 1)`);
 
@@ -169,7 +189,7 @@ async function verifyBackgroundStability() {
     }
     assert.ok(staged.length > 0, "no character was staged after the jump");
     countSwaps();
-    await win.hydrateTo(...originalPoint(23, 199));
+    await win.hydrateTo(busiest.ep, busiest.bi);
     stopCounting();
     assert.equal(swaps, 0, "re-jumping to the same beat swapped the background again");
     for (const { slot, el, who } of staged) {
@@ -204,7 +224,7 @@ async function verifyBackgroundStability() {
 }
 
 /* 연이의 모습(사람↔꽃돼지) 연속성 회귀 가드(2026-08-29).
-   변신 마커는 8,844비트 중 2개뿐이라 form 은 화 경계를 넘어 유지되는 상태다. 그 복원 규칙이 진입
+   변신 마커는 몇 개 안 되어 form 은 화 경계를 넘어 유지되는 상태다. 그 복원 규칙이 진입
    경로마다 갈리면 "쭉 읽으면 사람인데 목차로 다시 들어가면 꽃돼지"가 된다 — 실제로 났던 버그다.
    두 경로(enterEpisode / hydrateTo)가 같은 답을 내는지를 지점별로 대조한다. */
 async function verifyFormContinuity() {
@@ -233,47 +253,53 @@ async function verifyFormContinuity() {
   }
 
   // ② ⏮ 로 앞 화로 돌아가기 — 그 화는 로드돼 있지 않다(현재+다음 2개만 유지).
+  //    정본에서 화 첫 컷의 모습이 앞 화와 갈리는 마지막 경계를 고른다(마커를 지나 돌아오는 경로).
   {
+    const boundaries = canonical.map((_, i) => i).filter((i) => i > 0 && expectedForm(i - 1, 0) !== expectedForm(i, 0));
+    assert.ok(boundaries.length > 0, "no canonical episode boundary changes Yeon's form — the backward-skip case has nothing to test");
+    const i = boundaries[boundaries.length - 1];
     const { dom, errors } = createPlayerDom();
     try {
       const win = dom.window;
       await waitFor(() => win.__NOVEL_READY === true, "novel manifest");
-      await win.hydrateTo(...originalPoint(27, 0));
-      assert.equal(win.S.form, "human", "episodes after the EP.26 marker must start human");
-      assert.equal(Array.isArray(win.EPISODES[episodeIndex(26)].beats), false, "EP.26 must be unloaded for this case to mean anything");
+      await win.hydrateTo(i, 0);
+      assert.equal(win.S.form, expectedForm(i, 0), `episode ${i} must start ${expectedForm(i, 0)}`);
+      assert.equal(Array.isArray(win.EPISODES[i - 1].beats), false, `episode ${i - 1} must be unloaded for this case to mean anything`);
+      const target = canonical[i - 1].beats[0].id;
       win.chapSkip(-1);
-      await waitFor(() => win.curBeat?.id?.startsWith("ep-26:"), "backward chapter skip");
-      assert.equal(win.S.ep, episodeIndex(26), "backward chapter skip did not land on EP.26");
-      assert.equal(win.S.form, "pig", "backward chapter skip into the pig arc rendered Yeon as a human");
+      await waitFor(() => win.S.ep === i - 1 && win.curBeat?.id === target, "backward chapter skip");
+      assert.equal(win.S.form, expectedForm(i - 1, 0), "backward chapter skip across a form boundary rendered the wrong form");
       assert.deepEqual(errors, [], "backward chapter skip emitted runtime errors");
     } finally {
       dom.window.close();
     }
   }
 
-  // ③ 두 진입 경로가 같은 지점에서 같은 모습을 내야 한다. 정본 마커는 ep-01:1(→pig) · ep-26:60(→human).
+  // ③ 두 진입 경로가 같은 지점에서 같은 모습을 내야 한다. 지점은 정본 마커마다 그 직전 컷·마커 컷·다음 화 첫 컷.
   {
+    const keys = new Set();
+    const points = [];
+    const add = (ep, bi) => { if (ep < 0 || ep >= canonical.length || bi < 0 || bi >= canonical[ep].beats.length) return; const k = ep + ":" + bi; if (!keys.has(k)) { keys.add(k); points.push([ep, bi]); } };
+    add(0, 0);
+    for (const mark of canonicalFormMarks) {
+      if (mark.bi > 0) add(mark.ep, mark.bi - 1); else if (mark.ep > 0) add(mark.ep - 1, canonical[mark.ep - 1].beats.length - 1);
+      add(mark.ep, mark.bi);
+      add(mark.ep + 1, 0);
+    }
+    assert.ok(canonicalFormMarks.length > 0, "the canonical source has no form markers");
     const { dom, errors } = createPlayerDom();
     try {
       const win = dom.window;
       await waitFor(() => win.__NOVEL_READY === true, "novel manifest");
-      const points = [
-        [0, 0, "human", "the prologue is before the transformation"],
-        [1, 0, "pig", "the EP.01 transformation marker did not take"],
-        [12, 0, "pig", "the middle of the pig arc"],
-        [26, 58, "pig", "EP.26 is still a pig up to its final marker"],
-        [26, 59, "human", "the EP.26 marker back to human did not take"],
-        [27, 0, "human", "episodes after EP.26 start human"],
-      ];
-      for (const [oldEp, oldBi, form, why] of points) {
-        const [ep, bi] = originalPoint(oldEp, oldBi);
+      for (const [ep, bi] of points) {
+        const form = expectedForm(ep, bi);
         await win.hydrateTo(ep, bi);
-        assert.equal(win.S.form, form, `hydrateTo(${ep},${bi}) — ${why}`);
+        assert.equal(win.S.form, form, `hydrateTo(${ep},${bi}) must render ${form}`);
         await win.ensureEpisodeLoaded(ep);
         win.S.bi = bi;
         win.enterEpisode(ep, false);
         await waitFor(() => win.curBeat?.id === win.EPISODES[ep].beats[bi].id, `enterEpisode(${ep}) at cut ${bi}`);
-        assert.equal(win.S.form, form, `enterEpisode(${ep}) at cut ${bi} — ${why}`);
+        assert.equal(win.S.form, form, `enterEpisode(${ep}) at cut ${bi} must render ${form}`);
       }
       assert.deepEqual(errors, [], "entry-path parity emitted runtime errors");
     } finally {
@@ -283,13 +309,16 @@ async function verifyFormContinuity() {
 
   // ④ 설정의 "처음부터" — 프롤로그는 로드돼 있지 않고, 모습도 사람으로 되돌아야 한다.
   {
+    const pigStarts = canonical.map((_, i) => i).filter((i) => i > 1 && expectedForm(i, 0) === "pig");
+    assert.ok(pigStarts.length > 0, "no canonical episode starts in the pig form — the restart case has nothing to test");
+    const middle = pigStarts[Math.floor(pigStarts.length / 2)];
     const { dom, errors } = createPlayerDom();
     try {
       const win = dom.window;
       const { document } = win;
       await waitFor(() => win.__NOVEL_READY === true, "novel manifest");
-      await win.hydrateTo(...originalPoint(20, 0));
-      assert.equal(win.S.form, "pig", "EP.20 is inside the pig arc");
+      await win.hydrateTo(middle, 0);
+      assert.equal(win.S.form, "pig", `episode ${middle} is inside the pig arc`);
       document.getElementById("setRestart").click();
       await waitFor(() => win.curBeat?.id?.startsWith("prologue:"), "restart from the beginning");
       assert.equal(win.S.form, "human", "restarting from the prologue left Yeon as a pig");
@@ -439,12 +468,20 @@ async function verifyMobileRendering() {
     await win.ensureEpisodeLoaded(0);
     win.S.screen = "player";
     win.S.reduce = true;
-    for (const fx of ["hands", "metal", "water", "suck", "thread"]) {
+    for (const fx of ["hands", "metal", "water", "suck", "thread", "flash", "shake"]) {
       win.runFx(fx);
+      assert.equal(win.fxLayer.dataset.still, fx, `reduced motion must mark ${fx} as a still cue`);
+      assert.equal(win.document.getElementById("player").classList.contains("shakeScreen"), false, "reduced motion must not shake the screen");
       assert.equal(win.fxLayer.childElementCount, 0, "reduced motion must not construct animated effects");
       assert.equal(win._fxTimers.length, 0, "reduced motion must not queue effect timers");
     }
     win.S.reduce = false;
+    // flash·shake 는 빌드가 허용하는 fx 인데 셸이 그리지 않던 것이다(2026-10-02).
+    win.runFx("flash");
+    assert.ok(win.fxLayer.childElementCount > 0, "flash did not draw an overlay");
+    win.runFx("shake");
+    assert.ok(win.document.getElementById("player").classList.contains("shakeScreen"), "shake did not shake the screen");
+    win.clearSceneEffects();
     win.runFx("metal");
     assert.ok(win.fxLayer.childElementCount > 0);
     win.clearSceneEffects();
@@ -462,7 +499,10 @@ async function verifyMobileRendering() {
   } finally { dom.window.close(); }
 }
 async function verifyExpandedBookmarks() {
-  for (const bookmark of [{ ep: 41, bi: 160 }, { ep: 41, bi: 160, episodeId: "ep-41", beatId: "ep-41:161" }]) {
+  /* 옛 범위는 content/novel/legacy-ranges.v1.json 에 얼어 있다. 다시 쓴 화(rev≥2)로 옮겨 가는 옛 책갈피는
+     엉뚱한 대사 대신 그 화 처음에서 열린다. rev 가 같은 유지 구간 책갈피는 정확히 이어진다. */
+  const legacy = [{ ep: 41, bi: 160 }, { ep: 41, bi: 160, episodeId: "ep-41", beatId: "ep-41:161" }];
+  for (const bookmark of legacy) {
     const { dom, errors } = createPlayerDom({ bookmark });
     try {
       const win = dom.window;
@@ -471,12 +511,143 @@ async function verifyExpandedBookmarks() {
       await win.ensureEpisodeLoaded(ep);
       const bi = win.resolveSavedBeat(ep, win.S.save);
       assert.equal(win.EPISODES[ep].id, "ep-41a", "legacy bookmark did not migrate to the continuation");
-      assert.equal(win.EPISODES[ep].beats[bi].id, "ep-41:161", "legacy bookmark changed the story sentence");
+      if ((win.EPISODES[ep].rev || 1) === 1) assert.equal(win.EPISODES[ep].beats[bi].id, "ep-41:161", "legacy bookmark changed the story sentence");
+      else assert.equal(bi, 0, "a legacy bookmark into a rewritten episode must open at its first cut");
       await win.hydrateTo(ep, bi);
-      assert.equal(win.curBeat.id, "ep-41:161");
+      assert.equal(win.curBeat.id, win.EPISODES[ep].beats[bi].id);
       assert.deepEqual(errors, []);
     } finally { dom.window.close(); }
   }
+  const cases = [
+    [{ ep: 3, bi: 50, episodeId: "ep-03", beatId: "ep-03:51", rev: 1 }, "ep-03", "ep-03:51", "a same-rev bookmark in the kept zone did not resume exactly"],
+    [{ ep: 3, bi: 50, episodeId: "ep-03", beatId: "ep-03:51", rev: 2 }, "ep-03", 0, "a bookmark from another revision must open the episode at its first cut"],
+    [{ ep: 41, bi: 160, episodeId: "ep-41", beatId: "ep-41:161", rev: 1 }, "ep-41", null, "a bookmark that carries rev must not be moved by the frozen legacy ranges"],
+  ];
+  for (const [bookmark, episodeId, expected, why] of cases) {
+    const { dom, errors } = createPlayerDom({ bookmark });
+    try {
+      const win = dom.window;
+      await waitFor(() => win.__NOVEL_READY, "rev bookmark manifest");
+      const ep = win.resolveSavedEpisode(win.S.save);
+      assert.equal(win.EPISODES[ep].id, episodeId, why);
+      await win.ensureEpisodeLoaded(ep);
+      const bi = win.resolveSavedBeat(ep, win.S.save);
+      if (typeof expected === "string") assert.equal(win.EPISODES[ep].beats[bi].id, expected, why);
+      else if (expected === 0) assert.equal(bi, 0, why);
+      assert.deepEqual(errors, []);
+    } finally { dom.window.close(); }
+  }
+  // 저장할 때 화의 rev 를 함께 적는다 — 다음 개편 때 이 책갈피를 판정할 근거다.
+  {
+    const { dom, errors } = createPlayerDom();
+    try {
+      const win = dom.window;
+      await waitFor(() => win.__NOVEL_READY, "save manifest");
+      await win.hydrateTo(...originalPoint(3, 50));
+      win.saveBookmark(win.S.ep, win.S.bi);
+      assert.equal(win.S.save.rev, win.EPISODES[win.S.ep].rev || 1, "saveBookmark did not record the episode revision");
+      assert.equal(win.S.save.beatId, "ep-03:51");
+      assert.deepEqual(errors, []);
+    } finally { dom.window.close(); }
+  }
+}
+/* 무음 none(2026-10-02): 충격 직후·고백 직전의 정적. 음악 토글·탭 복귀가 이전 곡을 되살리면 정적이 깨진다. */
+async function verifySilentTrack() {
+  const { dom, errors } = createPlayerDom();
+  try {
+    const win = dom.window;
+    await waitFor(() => win.__NOVEL_READY === true, "silent track manifest");
+    let plays = 0;
+    win.HTMLMediaElement.prototype.play = () => { plays += 1; return Promise.resolve(); };
+    win.S.screen = "player";
+    win.S.bgmOn = true;
+    win.playTrack("daily");
+    await wait(700);
+    assert.ok(plays > 0, "a normal track did not start");
+    win.playTrack("none");
+    assert.equal(win.S.bgmKey, "none", "the silent key was not recorded");
+    await wait(700);
+    plays = 0;
+    win.setBgm(false);
+    win.setBgm(true);
+    win.document.dispatchEvent(new win.Event("visibilitychange"));
+    await wait(100);
+    assert.equal(plays, 0, "music toggle or tab return revived the track after none");
+    // 리플레이(hydrateTo)도 지나온 마지막 곡이 none 이면 정적으로 끝나야 한다.
+    win._hydrating = true;
+    win.playTrack("daily");
+    win.playTrack("none");
+    assert.equal(win._hBgm, "none", "hydration did not keep none as the final track");
+    win._hydrating = false;
+    win.playTrack("daily");
+    await wait(700);
+    assert.ok(plays > 0, "a real track after none did not start again");
+    assert.deepEqual(errors, [], "silent track emitted runtime errors");
+  } finally { dom.window.close(); }
+}
+/* 효과음은 음악이 켜져 있고, 스킵·리플레이·숨은 탭이 아니고, 소리 컨텍스트가 깨어 있을 때만 난다. */
+async function verifySoundEffects() {
+  const { dom, errors } = createPlayerDom();
+  try {
+    const win = dom.window;
+    await waitFor(() => win.__NOVEL_READY === true, "sound effect manifest");
+    let starts = 0;
+    const node = () => ({ connect() {}, start() { starts += 1; }, stop() {}, frequency: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} } });
+    class StubContext {
+      constructor() { this.state = "suspended"; this.currentTime = 0; this.sampleRate = 8000; this.destination = {}; }
+      resume() { this.state = "running"; return Promise.resolve(); }
+      suspend() { this.state = "suspended"; return Promise.resolve(); }
+      createGain() { return node(); }
+      createOscillator() { return node(); }
+      createBufferSource() { return node(); }
+      createBiquadFilter() { return node(); }
+      createBuffer(channels, length) { return { getChannelData: () => new Float32Array(length) }; }
+    }
+    win.AudioContext = StubContext;
+    Object.defineProperty(win.document, "hidden", { configurable: true, get: () => false });
+    win.S.screen = "player";
+    win.S.skip = false;
+    win.S.bgmOn = true;
+    win.playSfx("thud");
+    assert.equal(starts, 0, "a sound played before a user gesture woke the context");
+    win.sfxWake();
+    await wait(0);
+    win.playSfx("thud");
+    assert.equal(starts, 1, "a woken context did not play the sound");
+    win.playSfx("whoosh");
+    assert.equal(starts, 2, "the noise sound did not play");
+    starts = 0;
+    win.playSfx("heartbeat");
+    assert.equal(starts, 2, "a repeated sound did not play every hit");
+    starts = 0;
+    win.playSfx("none");
+    win.S.skip = true;
+    win.playSfx("thud");
+    win.S.skip = false;
+    win._hydrating = true;
+    win.playSfx("thud");
+    win._hydrating = false;
+    Object.defineProperty(win.document, "hidden", { configurable: true, get: () => true });
+    win.playSfx("thud");
+    Object.defineProperty(win.document, "hidden", { configurable: true, get: () => false });
+    win.setBgm(false);
+    assert.equal(win._sfxCtx.state, "suspended", "muting music did not silence the sound context");
+    win.playSfx("thud");
+    assert.equal(starts, 0, "a sound played while muted, skipping, replaying, hidden or set to none");
+    // 이어보기·불러오기 리플레이는 지나온 효과음을 몰아서 내지 않는다.
+    win.setBgm(true);
+    await wait(0);
+    const ep = canonical.findIndex(episode => episode.beats.some(beat => win.FX_SFX[beat.fx]));
+    const bi = canonical[ep].beats.findIndex(beat => win.FX_SFX[beat.fx]);
+    await win.hydrateTo(ep, bi + 1);
+    assert.equal(starts, 0, "bookmark replay played the sounds of the beats it passed");
+    await win.hydrateTo(ep, bi);
+    assert.equal(starts, 0, "bookmark replay played the landing beat's sound");
+    win.S.bi = bi;
+    win.runBeat();
+    assert.equal(starts > 0, true, "a beat with a default-sound fx stayed silent during normal play");
+    assert.deepEqual(errors, [], "sound effects emitted runtime errors");
+  } finally { dom.window.close(); }
 }
 async function verifyMobileAssetsAndCache() {
   const { dom, errors } = createPlayerDom({ mobile: true, staleCache: true });
@@ -497,6 +668,8 @@ async function verifyMobileAssetsAndCache() {
 }
 await verifyMobileAssetsAndCache();
 await verifyExpandedBookmarks();
+await verifySilentTrack();
+await verifySoundEffects();
 await verifyMobileRendering();
 await verifyDirectStart();
 await verifyMainEntry();

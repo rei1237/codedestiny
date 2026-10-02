@@ -95,10 +95,17 @@ export function shouldRunStaticGuards(files) {
 
 // Markdown-only PR은 코드 타입체크·lint가 결과를 바꾸지 않는다. 계약 문서는 정적 가드,
 // 평문 문서는 신선도 검사로 각각 필요한 문서 검증을 유지한다. 파일을 못 찾으면 fail-closed 한다.
-export function shouldRunFastChecks(files) {
+export function isMarkdownOnly(files) {
   const list = (files || []).map((file) => String(file || "").replace(/\\/g, "/")).filter(Boolean);
-  if (!list.length) return true;
-  return list.some((file) => !/\.mdx?$/i.test(file));
+  return list.length > 0 && list.every((file) => /\.mdx?$/i.test(file));
+}
+
+// 🔴 문서만 바뀌어도 change-risk 가 medium 이상으로 보는 경로(session·route 로 시작하는 이름,
+// app/·js/·lib/ 아래 README)는 tier 가 build 를 요구한다. verify-ci-required-lanes 의 불변식
+// (tier≠fast ⇒ runs_fast)에 맞춰 fast lane 도 깨운다 — 2026-10-02 0ce7810f1 의 `CI required` 오탐.
+export function shouldRunFastChecks(files) {
+  if (!isMarkdownOnly(files)) return true;
+  return resolveTier(files) !== "fast";
 }
 
 function changedFiles() {
@@ -155,6 +162,16 @@ function selfTest() {
   if (!shouldRunFastChecks([]) || !shouldRunFastChecks(["docs/guide.md", "app/page.tsx"]) || !shouldRunFastChecks(["docs/guide.md", "styles/site.css"])) {
     throw new Error("unknown or code changes must keep fast checks");
   }
+  // tier 가 build 이상을 요구하면 fast lane 도 깨어 있어야 한다(verify-ci-required-lanes 불변식).
+  const mediumDocs = ["docs/handoff/session-recovery-2026-08-31.md", "docs/dev/SESSION_WORKFLOW.md", "docs/ROUTE_MAP.md", "app/README.md"];
+  for (const files of [...cases.map(([caseFiles]) => caseFiles), ...mediumDocs.map((file) => [file])]) {
+    if (resolveTier(files) !== "fast" && !shouldRunFastChecks(files)) {
+      throw new Error(`tier=${resolveTier(files)} 인데 runs_fast=false: ${JSON.stringify(files)}`);
+    }
+  }
+  if (!isMarkdownOnly(["docs/ROUTE_MAP.md"]) || isMarkdownOnly([]) || isMarkdownOnly(["docs/guide.md", "app/page.tsx"])) {
+    throw new Error("markdown-only detection drifted");
+  }
   if (shouldRunStaticGuards(["docs/guide.md"]) || !shouldRunStaticGuards(["docs/context/delivery-and-ci.md"])) {
     throw new Error("plain and contract documentation guard routing drifted");
   }
@@ -175,6 +192,9 @@ function main() {
   const forced = String(process.env.CD_FORCE_CRITICAL || "").trim().toLowerCase() === "true";
   const tier = forced ? "critical" : resolveTier(files);
   const runsFast = forced || shouldRunFastChecks(files);
+  // 문서 신선도 검사는 문서만 바뀐 push 에서 돈다(pr-ci.yml classify). runs_fast 와 분리해 둬야
+  // medium 경로 문서가 fast lane 을 깨워도 신선도 검사가 빠지지 않는다.
+  const markdownOnly = !forced && isMarkdownOnly(files);
   const runsGuards = shouldRunStaticGuards(files);
   const config = TIERS[tier];
   const reasons = forced
@@ -192,6 +212,7 @@ function main() {
       [
         `tier=${tier}`,
         `runs_fast=${runsFast}`,
+        `markdown_only=${markdownOnly}`,
         `runs_build=${config.runsBuild}`,
         `runs_critical=${config.runsCritical}`,
         `runs_guards=${runsGuards}`,
@@ -208,10 +229,11 @@ function main() {
       : tier === "standard"
         ? "typecheck · lint · build"
         : "typecheck · lint";
+    const docs = runsFast && markdownOnly ? " · 문서 신선도" : "";
     const lines = [
       `## 검증 티어: **${config.label}**`,
       "",
-      `변경 파일 ${files.length}건 → 이 PR 에서 도는 검사: ${what}`,
+      `변경 파일 ${files.length}건 → 이 PR 에서 도는 검사: ${what}${docs}`,
       "",
       "| 티어를 정한 파일 | 이유 |",
       "|---|---|",
