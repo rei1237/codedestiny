@@ -1705,12 +1705,13 @@ function showDialogue(b){
   clearTimeout(typeTimer);
   var spk=b.s||"n";
   dlg.dataset.spk=spk;dlg.classList.toggle("impact",!!b.im);
-  spkIcon.textContent=ICON[spk]||"달";spkName.textContent=NAME[spk]||"";
+  /* nm: 이름을 아직 모르는 인물의 표시명(예: 옆집 여자) — 화자 키·스프라이트는 그대로 */
+  spkIcon.textContent=b.nm?"?":(ICON[spk]||"달");spkName.textContent=b.nm||NAME[spk]||"";
   fullText=b.t||"";shownLen=0;dlgBody.replaceChildren(document.createTextNode(""));
   dlg.dataset.done="false";dlg.dataset.typing="true";S.typing=true;
   // log + 자동 책갈피
   /* 로그는 openLog 가 마지막 60줄만 그린다 — 전체 비트를 통째로 들고 있을 이유가 없어 상한을 둔다. */
-  LOG.push({s:spk,t:fullText});
+  LOG.push({s:spk,t:fullText,nm:b.nm});
   if(LOG.length>LOG_MAX)LOG.splice(0,LOG.length-LOG_MAX);
   saveBookmark(S.ep,S.bi);
   if(S.reduce||S.skip){finishType();return;}
@@ -2204,7 +2205,7 @@ function openLog(){
   var list=document.getElementById("logList");list.innerHTML="";
   LOG.slice(-60).forEach(function(r){
     var d=document.createElement("div");d.className="logRow "+(r.s==="n"||r.s==="sys"?"n":"");
-    d.innerHTML='<span class="who">'+(NAME[r.s]||"")+'</span>'+escapeHtml(r.t);
+    d.innerHTML='<span class="who">'+escapeHtml(r.nm||NAME[r.s]||"")+'</span>'+escapeHtml(r.t);
     list.appendChild(d);
   });
   openOv("logOv");list.scrollTop=list.scrollHeight;

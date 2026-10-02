@@ -196,6 +196,8 @@ for (const expr of ["cry", "sad", "smile", "resolve"]) {
 const yunExprMatch = html.match(/var YUN_EXPR=\[([^\]]*)\];/);
 const yunExprs = yunExprMatch ? [...yunExprMatch[1].matchAll(/"([a-z]+)"/g)].map(m => m[1]) : [];
 if (yunExprs.length < 8 || !yunExprs.includes("base")) fail("player YUN_EXPR list is missing or incomplete");
+// nm(이름 모르는 인물의 표시명)은 대사창·로그·텍스트 리더가 모두 화자 이름보다 먼저 읽어야 한다 — 하나라도 빠지면 정체가 미리 드러난다.
+if (!html.includes("spkName.textContent=b.nm||NAME[spk]") || !html.includes("escapeHtml(r.nm||NAME[r.s]") || !readFileSync(resolve(ROOT, "app/stories/[episode]/page.tsx"), "utf8").includes("beat.nm ?? STORY_SPEAKERS")) fail("beat display-name override (nm) is not honoured by the player, log, or text reader");
 if (!html.includes('if(who==="yun")return {url:"/images/novel/remaster/yun/"+(YUN_EXPR.indexOf(expr)>=0?expr:"base")+".webp",cls:"yun"};')) fail("player does not route yun to the local sprites");
 for (const expr of yunExprs) {
   const file = resolve(ROOT, `public/images/novel/remaster/yun/${expr}.webp`);

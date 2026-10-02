@@ -102,6 +102,8 @@ function validateBeat(beat, context, bgKeys, trackKeys, sfxKeys) {
   if (typeof beat.t !== "string" || !beat.t.trim()) throw new Error(`${context}: 대사가 비어 있습니다.`);
   if (beat.t.length > BEAT_MAX_LENGTH) throw new Error(`${context}: 대사가 ${BEAT_MAX_LENGTH}자를 초과합니다. 호흡 단위로 나누어 주세요.`);
   if (beat.s !== "n" && beat.s !== "sys" && BARE_DIALOGUE.has(beat.t.trim())) throw new Error(`${context}: 감정 정보 없는 단답 '${beat.t}'은 보이스에 맞춰 보강해 주세요.`);
+  // nm 은 아직 이름을 모르는 인물의 표시명이다(예: 옆집 여자). 서술·시스템에는 이름표가 없다.
+  if (beat.nm !== undefined && (typeof beat.nm !== "string" || !beat.nm.trim() || beat.nm.length > 12 || beat.s === "n" || beat.s === "sys")) throw new Error(`${context}: 표시명 nm 은 인물 대사에만 12자 이하로 씁니다.`);
   if (beat.shot && !["wide", "close", "impact", "quiet"].includes(beat.shot)) throw new Error(`${context}: invalid shot`);
   if (beat.bg && !bgKeys.has(beat.bg)) throw new Error(`${context}: 배경 '${beat.bg}'이 BG 맵에 없습니다.`);
   if (beat.bgm && !trackKeys.has(beat.bgm)) throw new Error(`${context}: BGM '${beat.bgm}'이 TRK 맵에 없습니다.`);
@@ -203,6 +205,7 @@ export function readerPayload(runtime) {
           return {
             s: beat.s,
             t: beat.t,
+            ...(beat.nm ? { nm: beat.nm } : {}),
             ...(sceneBreak ? { sceneBreak: true } : {}),
             ...(beat.im ? { im: String(beat.im) } : {}),
             ...(beat.skill ? { skill: beat.skill } : {}),

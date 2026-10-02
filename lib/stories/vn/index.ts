@@ -11,6 +11,8 @@ import generated from "./episodes.generated.json";
 export interface StoryBeat {
   s: string;
   t: string;
+  /** 이름을 아직 모르는 인물의 표시명. 있으면 화자 이름 대신 쓴다. */
+  nm?: string;
   sceneBreak?: boolean;
   im?: string;
   skill?: { el?: string; unit?: string; name?: string; han?: string };
