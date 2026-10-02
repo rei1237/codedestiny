@@ -498,8 +498,11 @@ export default {
         : "/ggulggul/";
       // Keep the query verbatim. Browsers inherit the original fragment when
       // Location has none, preserving existing service/result deep links.
+      // 301, not 302: /ggulggul/ is the one canonical ggulggul URL (2026-10-02), so search
+      // engines must consolidate "/" into it instead of keeping "/" indexed with this content.
+      // no-store keeps browsers from pinning the permanent redirect if the home ever changes.
       return new Response(null, {
-        status: 302,
+        status: 301,
         headers: { Location: url.toString(), "Cache-Control": "no-store" },
       });
     }

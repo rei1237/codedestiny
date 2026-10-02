@@ -17,7 +17,7 @@ test("both home entry paths redirect before any intermediate HTML or client Java
       const response = await worker.fetch(new Request(`https://code-destiny.com${path}`, { method }), {
         ASSETS: { fetch() { throw new Error("The intermediate page must never be served"); } },
       });
-      assert.equal(response.status, 302);
+      assert.equal(response.status, 301);
       assert.equal(response.headers.get("Location"), "https://code-destiny.com/ggulggul/");
       assert.equal(response.headers.get("Cache-Control"), "no-store");
       assert.equal(await response.text(), "");
