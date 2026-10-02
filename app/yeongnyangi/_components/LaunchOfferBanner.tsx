@@ -22,8 +22,8 @@ export default function LaunchOfferBanner(){
   <p className={styles.quip}><span className={styles.speaker}>영냥이</span>“요즘 생선값이… 너무 비싸냥. 이 가격, 오래는 못 버텨.”</p>
   <ul className={styles.facts}>
    <li>사주 계산 로직은 10년 경력 명리학자가 직접 설계했어요.</li>
-   <li>정식 상담이 열리는 몇 달 뒤에는 예정가로 바뀔 수 있어요.</li>
-   <li>{limit}명이 채워지면 체험가도 끝나요.</li>
+   <li>체험가는 10월 4일까지예요. 10월 5일부터 정식 가격으로 바뀌어요.</li>
+   <li>그 전에 {limit}명이 채워지면 체험가가 먼저 끝나요.</li>
   </ul>
   <p className={styles.actions}>
    <a className={styles.primary} href="/yeongnyangi/fortune/?domain=saju&fish=mackerel">체험가 {price}으로 시작하기 <span aria-hidden="true">→</span></a>
