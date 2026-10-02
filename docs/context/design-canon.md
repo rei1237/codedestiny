@@ -40,7 +40,7 @@
 | 범위 | 색 토큰 정본 | 비고 |
 |---|---|---|
 | 영냥이(`app/yeongnyangi/`, `/checkout`) | `app/yeongnyangi/night-tokens.css` `--yn-*` | 밤색·금색은 영냥이 범위의 결정(yeongnyangi-night 11행) |
-| 꿀꿀 셸·연이·네오 | `styles/theme-tokens.css` `--cd-*`, Tailwind `cd.*`(`tailwind.config.js:21`) | 연이=핑크 계열, 네오=퍼플 달빛. 가르는 축은 명도가 아니라 색상 계열 |
+| 꿀꿀 셸·연이·네오 | `styles/theme-tokens.css` `--cd-*`, Tailwind `cd.*`(`tailwind.config.js:21`) | 연이=핑크 계열, 네오=퍼플 달빛. 가르는 축은 명도가 아니라 색상 계열. 홈 블록 `.cdh` 는 연이 정원 팔레트(`--cdh-*`, DESIGN.md "연이 정원 홈") |
 | 반경 6단 | `--cd-r-sm`·`control`·`md`·`card`·`section`·`pill` = 8·12·16·20·26·999px | `theme-tokens.css:176-178`, `:348-350` |
 | 간격·타이포·모션·폭·버튼 | DESIGN.md §7 표 | 페이지에 리터럴을 새로 박지 않는다 |
 

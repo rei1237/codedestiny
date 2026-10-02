@@ -308,3 +308,9 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **충돌 1**: `docs/design/yeongnyangi-night.md` 는 결과를 "장식 없는 남색 독서면"으로 정했다. 사용자 요청이 더 최근이고 구체적이므로 예외 한 줄을 그 문서에 적었다. 생활 속 장면 소절에만, 부마다 한 장, 같은 그림은 리딩당 한 번이다(`sceneArt`, `app/yeongnyangi/_lib/reading-visuals.ts`).
 - **충돌 2**: `docs/context/content-assets.md` 는 Next.js `<Image>` 를 쓰라고 한다. 결과 리더의 그림 컴포넌트(`app/yeongnyangi/_components/ReadingVisuals.tsx`)는 이미 `<img>` 5곳을 쓰고, `next.config.mjs` 는 `images.unoptimized: true` 다. 새 `SceneArt` 는 같은 파일의 실물 패턴(`width`·`height` 지정, `loading="lazy"`, `decoding="async"`)을 따랐다. 규칙과 실물의 차이는 이 기록으로 남기고 기존 5곳은 바꾸지 않았다.
 - **범위**: 그림 8장(`public/assets/yeongnyangi/scenes/`). 계획한 9장 중 휴식(rest)은 만들지 않았다. 구매 가능한 상품×상담 종류 매니페스트 166개를 전수로 돌려 보니, 건강 부(v7)에는 장면 소절이 없고 v5/v6 에는 건강 theme 이 없어 한 번도 쓰이지 않았다. `__tests__/ui/yeongnyangi-reading-visuals.test.mjs` 가 출하한 그림마다 그것을 쓰는 매니페스트가 있는지 단언한다.
+
+## 2026-10-02 연이 정원 팔레트 — 전역 Rose Crimson `#b31955` ↔ 요청 주색 `#B53660`
+
+- **요청(원문 요지)**: 꿀꿀 운세를 "마음이 머무는 곳, 꽃돼지 연이의 운세 정원"으로 — 아이보리 `#FFF9F4`·표면 `#F8E4EA`·주색 `#B53660`·본문 `#402A38`, 라일락·절제된 금.
+- **충돌**: DESIGN.md 의 연이 강조색은 `#b31955`(전역 `--cd-*`, App Router·다른 셸 화면 공용)다.
+- **해소**: 새 값은 홈 블록 `.cdh` 의 `--cdh-*` 에만 적용하고 전역 토큰은 바꾸지 않았다. 둘 다 로즈 계열이라 Hue-Stays Rule 안이다. 요청의 금색은 표면 위 대비가 4.13:1 이라 글자용으로 `#7e6028`(4.81:1)로 어둡게 정했다. 정본 기록은 DESIGN.md "연이 정원 홈" 절.
