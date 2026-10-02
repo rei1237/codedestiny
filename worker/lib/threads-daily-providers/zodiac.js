@@ -177,7 +177,7 @@ export async function writeCopy(env, facts, { generateImpl, recent = [] } = {}) 
   if (!generated) return { copy: fallback, model: null, rejected: [] };
 
   const allowed = [...new Set(facts.animals.flatMap((animal) => animal.relations))];
-  const base = { vocabulary: VOCABULARY, allowed };
+  const base = { vocabulary: VOCABULARY, allowed, casual: true };
   const rejected = [];
   let used = 0;
   const take = (key, value, rule) => {
@@ -190,8 +190,11 @@ export async function writeCopy(env, facts, { generateImpl, recent = [] } = {}) 
   const hook = take("hook", generated.fields?.hook, { min: 8, max: 40, validate: (text) => matchesKinds(text, facts) });
   const tip = take("tip", generated.fields?.tip, { min: 6, max: 40, validate: (text) => matchesKinds(text, facts) });
   const modelLines = generated.fields?.lines && typeof generated.fields.lines === "object" ? generated.fields.lines : {};
+  // 같은 문장을 여러 띠에 복붙한 줄은 두 번째부터 버린다 — 실호출에서 12줄 중 같은 문장이 4번 나왔다(2026-10-02).
+  const seen = new Set();
   const lines = facts.animals.map((animal, index) => {
-    const text = take(`line:${animal.name}`, modelLines[animal.name], { min: 4, max: LINE_MAX, validate: (line) => matchesKinds(line, facts, animal.kind) });
+    const text = take(`line:${animal.name}`, modelLines[animal.name], { min: 4, max: LINE_MAX, validate: (line) => matchesKinds(line, facts, animal.kind) && !seen.has(line) });
+    if (text) seen.add(text);
     return text || fallback.lines[index];
   });
 

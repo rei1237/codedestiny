@@ -107,7 +107,7 @@ export function buildPrompt(facts) {
 function copyRules(facts) {
   const allowed = SOURCE_ALIASES[facts.source] || [];
   const quoteOk = (text) => !/['"‘“]/.test(text) || !facts.quote || text.includes(facts.quote.slice(0, 8));
-  const base = { vocabulary: SOURCE_VOCABULARY, allowed, forbidden: FORBIDDEN };
+  const base = { vocabulary: SOURCE_VOCABULARY, allowed, forbidden: FORBIDDEN, casual: true };
   return {
     hook: { ...base, min: 8, max: 40 },
     body: { ...base, min: 60, max: 190, validate: quoteOk },
