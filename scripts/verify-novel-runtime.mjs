@@ -154,7 +154,7 @@ for (const [index, source] of inlineScripts.entries()) {
 }
 
 // 정본(content/novel/episodes.source.json)의 총 비트 수. 비트를 더하거나 빼는 개편마다 같은 커밋에서 갱신한다.
-const EXPECTED_BEAT_COUNT = 7113;
+const EXPECTED_BEAT_COUNT = 6907;
 const runtime = buildNovelPayload();
 const mobileAssets = JSON.parse(readFileSync(resolve(ROOT, "content/novel/mobile-assets.json"), "utf8"));
 const mobileSpriteMap = JSON.parse(html.match(/var MOBILE_SPRITES=(\{[^\n]+\});/)?.[1] || "{}");
