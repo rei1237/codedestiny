@@ -3034,6 +3034,9 @@ window.computeProfileForModal = function(profile) {
       birthPlace:hasBirthLocation?{latitude:lat,longitude:lng,timezone:tzName}:undefined
     });
     window.__cdSajuCalculationMeta = chart.calculationMeta;
+    // 자미 명반도 사주와 같은 보정 시각(경도·과거 서머타임, lib/ziwei-birth-clock.js 와 같은 정본)을 쓴다.
+    var zwClock = chart.calculationMeta.corrected;
+    if (zwClock) { window._ziweiBirth.year = zwClock.year; window._ziweiBirth.month = zwClock.month; window._ziweiBirth.day = zwClock.day; window._ziweiBirth.hour = zwClock.hour; window._ziweiBirth.minute = zwClock.minute; }
     window.__cdSajuTimeUnknown=chart.calculationMeta.timeUnknown===true;
     BIRTH_YEAR=chart.calculationMeta.civil.year;
     CURRENT_AGE=new Date(Date.now()+9*60*60*1000).getUTCFullYear()-BIRTH_YEAR+1;
@@ -5375,7 +5378,9 @@ async function calculate(){
 
   window._astroBirth={year:year,month:month,day:day,hour:hour,minute:minute,lat:bLat,lon:bLong,tz:bTzOff,unknownHour:_birthTimeUnknown,timeDefault:_birthTimeUnknown,minuteDefault:_birthMinuteDefault,locationDefault:!opt};
 
-  window._ziweiBirth={year:correctedYear,month:correctedMonth,day:correctedDay,hour:correctedHour,minute:correctedMinute,lat:bLat,lon:bLong,tz:bTzOff,unknownHour:_birthTimeUnknown,timeDefault:_birthTimeUnknown};
+  // 자미 명반은 사주와 같은 보정 시각(경도·과거 서머타임)을 쓴다. 시각 미상이면 기존 값(정오 기준) 그대로.
+  var zwClock = sajuClock || {year:correctedYear,month:correctedMonth,day:correctedDay,hour:correctedHour,minute:correctedMinute};
+  window._ziweiBirth={year:zwClock.year,month:zwClock.month,day:zwClock.day,hour:zwClock.hour,minute:zwClock.minute,lat:bLat,lon:bLong,tz:bTzOff,unknownHour:_birthTimeUnknown,timeDefault:_birthTimeUnknown};
   window._ziweiInputMeta={
     calType: calType,
     kasiSource: primaryDateCtx && primaryDateCtx.source ? primaryDateCtx.source : 'unknown',

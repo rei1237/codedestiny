@@ -21,7 +21,9 @@ ${ZIWEI_READING_FRAME}`,
   ],
   async (input, options = {}) => {
     if(options.relationshipReading)return calculateRelationshipZiwei(input.personA!,new Date(options.asOf||Date.now()).toISOString().slice(0,10));
-    input={...input,personA:koreanCivilProfile(input.personA!).profile};
+    // 해외 출생 거부(SAJU_KST_REQUIRED)만 여기서 한다. 시계는 원본 그대로 넘기고 엔진이 출생지 경도·과거
+    // 서머타임으로 한 번 보정한다(lib/ziwei-birth-clock.js) — KST 로 미리 바꾸면 서머타임이 두 번 빠진다.
+    koreanCivilProfile(input.personA!);
     const r = calculateZiweiAiChart(input.personA!,{year:new Date(new Date(options.asOf || Date.now()).getTime()+9*3600000).getUTCFullYear()});
     return context(
       "ziwei",
@@ -38,7 +40,7 @@ ${ZIWEI_READING_FRAME}`,
         bureau: r.bureau,
         lunar: r.lunar,
       },
-      ["한국 음력·표준시를 기준으로 계산한 명반입니다."],
+      ["출생지 경도·과거 서머타임으로 보정한 시각과 한국 음력으로 계산한 명반입니다."],
     );
   },
 );

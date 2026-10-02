@@ -8,6 +8,8 @@ import { buildMinorLimitEntries, describeMinorLimit } from "../../lib/ziwei-mino
 import { placeFireAndBell } from "../../lib/ziwei-fire-bell.js";
 // 별 강약은 정본 하나만 읽는다(lib/ziwei-star-strength.js 머리말 참고).
 import { normalizeZiweiStrengthNotation, starStrength } from "../../lib/ziwei-star-strength.js";
+// 출생 시각 보정(경도·과거 서머타임)은 셸·앱 진입점과 같은 정본을 쓴다(lib/ziwei-birth-clock.js 머리말 참고).
+import { ziweiBirthClock } from "../../lib/ziwei-birth-clock.js";
 
 const STEMS = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
 const BRANCHES = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
@@ -474,7 +476,24 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
 
   const calendarType = clean(birthInfo.calendarType).toLowerCase() === "lunar" ? "lunar" : "solar";
   const gender = clean(birthInfo.gender).toLowerCase();
-  const lunarInfo = getLunarDate(dateParts, calendarType, birthInfo.isLeapMonth === true, timeParts.hour === 23 && !timeParts.unknown);
+  // 입력 시계 → 출생지 경도·과거 서머타임 보정 시계(출생지 미입력 = 서울). 이미 보정한 시계(해외
+  // 진태양시·검증 하네스)는 options.birthClock === "corrected" 로 넘겨 이중 보정을 막는다.
+  // 소한 씨앗 연도(seedYear)는 입력 날짜 그대로 둔다 — 보정은 시지·날짜 경계에만 쓴다.
+  const clock = timeParts.unknown || options.birthClock === "corrected" ? null : ziweiBirthClock({
+    ...dateParts,
+    hour: timeParts.hour,
+    minute: timeParts.minute,
+    calendarType,
+    isLeapMonth: birthInfo.isLeapMonth === true,
+    birthPlace: birthInfo.birthPlace,
+  });
+  const chartTime = clock ? { hour: clock.corrected.hour, minute: clock.corrected.minute, unknown: false } : timeParts;
+  const nightZi = chartTime.hour === 23 && !chartTime.unknown;
+  // 보정이 자정을 넘겨 날짜가 바뀐 경우(00:00~00:31 출생 등)만 보정 날짜에서 음력을 다시 찾는다.
+  const dayMoved = clock && (clock.corrected.year !== clock.civil.year || clock.corrected.month !== clock.civil.month || clock.corrected.day !== clock.civil.day);
+  const lunarInfo = dayMoved
+    ? lunarOfSolarDay(clock.corrected, nightZi)
+    : getLunarDate(dateParts, calendarType, birthInfo.isLeapMonth === true, nightZi);
   // 세차는 음력해에서 바로 나온다(甲=0 / 子=0). 예전에는 lunar-javascript 의 getYearGan/getYearZhi
   // 를 읽고 실패 시 같은 식으로 폴백했다 — 값은 그대로이고 근거만 코어로 옮겼다.
   const yearIndexes = sexagenaryYearIndexes(lunarInfo.lunarYear);
@@ -482,7 +501,7 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
   const yearBranch = BRANCHES[yearIndexes.branchIndex];
   const stemIndex = STEMS.indexOf(yearStem);
   const branchIndex = BRANCHES.indexOf(yearBranch);
-  const hIdx = hourIndex(timeParts.hour);
+  const hIdx = hourIndex(chartTime.hour);
   const placeMonth = placementMonth(lunarInfo);
   const baseIndex = mod(2 + placeMonth - 1);
   const mingIndex = mod(baseIndex - hIdx);
