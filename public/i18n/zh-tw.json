@@ -1522,7 +1522,22 @@
       "libraryLead": "諮詢結果保存在各自的諮詢頁面中，可從這裡直接前往。",
       "libraryChat": "Yeoni·Neo 諮詢紀錄",
       "libraryYeongnyangi": "靈喵我的諮詢",
-      "libraryNote": "紀錄保存在已登入的帳戶中。"
+      "libraryNote": "紀錄保存在已登入的帳戶中。",
+      "searchTitle": "你想看什麼運勢？",
+      "searchHint": "可按運勢名稱、煩惱或舊服務名搜尋。",
+      "heroTitle": "心靈停留之處，",
+      "heroTitleEm": "妍伊的運勢花園",
+      "heroLead": "要不要一起解開今天的煩惱？",
+      "heroPrimary": "選擇我的煩惱",
+      "allFortunes": "查看全部運勢",
+      "todayTerms": "免費 · 無需登入 · 依出生日期資料卡計算",
+      "chatLead": "兩位諮詢師風格不同，選一位合你心意的聊聊吧。",
+      "chatYeoniTitle": "找妍伊諮詢",
+      "chatYeoniDesc": "花豬妍伊從細小的心事開始慢慢傾聽，溫柔地和你一起理清現在的走向與下一步選擇。",
+      "chatNeoTitle": "找 Neo 諮詢",
+      "chatNeoDesc": "白獅子 Neo 先理清整體局勢，直截了當地點出關鍵與下一步。",
+      "chatYeoniGo": "和妍伊聊聊",
+      "chatNeoGo": "和 Neo 聊聊"
     },
     "chatEntry": {
       "title": "向 Yeoni 和 Neo 問出此刻最想知道的一件事",

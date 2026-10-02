@@ -1522,7 +1522,22 @@
       "libraryLead": "鑑定結果はそれぞれの相談画面に保管されます。ここからすぐに移動できます。",
       "libraryChat": "ヨニ・ネオの相談記録",
       "libraryYeongnyangi": "ヨンニャンイのマイ相談",
-      "libraryNote": "記録はログイン中のアカウントに保管されます。"
+      "libraryNote": "記録はログイン中のアカウントに保管されます。",
+      "searchTitle": "どんな占いが気になりますか？",
+      "searchHint": "占いの名前・悩み・以前のサービス名で探せます。",
+      "heroTitle": "心がとどまる場所、",
+      "heroTitleEm": "ヨニの占いの庭",
+      "heroLead": "今日の悩み、一緒にほどいてみませんか？",
+      "heroPrimary": "悩みを選ぶ",
+      "allFortunes": "すべての占いを見る",
+      "todayTerms": "無料・ログイン不要・生年月日のプロフィールカードで計算します",
+      "chatLead": "ふたりの相談役は性格が違います。今の気持ちに合う方と話してみてください。",
+      "chatYeoniTitle": "ヨニに相談",
+      "chatYeoniDesc": "花ぶたのヨニが小さな気持ちからゆっくり聞きます。今の流れと次の選択をやさしく一緒に整理します。",
+      "chatNeoTitle": "ネオに相談",
+      "chatNeoDesc": "白獅子のネオが情勢から整理します。核心と次の一手を率直に示します。",
+      "chatYeoniGo": "ヨニと相談する",
+      "chatNeoGo": "ネオと相談する"
     },
     "chatEntry": {
       "title": "ヨニとネオに、今いちばん気になるひとつを",

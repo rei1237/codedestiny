@@ -1369,7 +1369,22 @@
       "libraryLead": "상담 결과는 각 상담 화면에 보관돼요. 여기서 바로 찾아가세요.",
       "libraryChat": "연이·네오 상담 기록",
       "libraryYeongnyangi": "영냥이 나의 상담",
-      "libraryNote": "기록은 로그인한 계정에 보관돼요."
+      "libraryNote": "기록은 로그인한 계정에 보관돼요.",
+      "searchTitle": "어떤 운세가 궁금하세요?",
+      "searchHint": "운세 이름, 고민, 예전 서비스 이름으로 찾아보세요.",
+      "heroTitle": "마음이 머무는 곳,",
+      "heroTitleEm": "연이의 운세 정원",
+      "heroLead": "오늘의 고민을 함께 풀어볼까요?",
+      "heroPrimary": "내 고민 골라보기",
+      "allFortunes": "모든 운세 보기",
+      "todayTerms": "무료 · 로그인 없이 · 생년월일 프로필 카드로 계산해요",
+      "chatLead": "두 상담사는 성격이 달라요. 지금 마음에 맞는 쪽과 대화로 풀어 보세요.",
+      "chatYeoniTitle": "연이 상담",
+      "chatYeoniDesc": "꽃돼지 연이가 작은 마음부터 천천히 들어요. 지금의 흐름과 다음 선택을 다정하게 함께 정리해요.",
+      "chatNeoTitle": "네오 상담",
+      "chatNeoDesc": "백사자 네오가 판세부터 정리해요. 핵심과 다음 수순을 직설적으로 짚어 드려요.",
+      "chatYeoniGo": "연이와 상담하기",
+      "chatNeoGo": "네오와 상담하기"
     },
     "chatEntry": {
       "title": "연이와 네오에게, 지금 가장 궁금한 한 가지",
