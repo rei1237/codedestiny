@@ -261,6 +261,18 @@
 .questionSection h2,.questionIntro h2 { font-size:1.28rem; color:var(--yn-ivory); margin:0 0 10px; }
 .questionSection > p { margin:0 0 22px; }
 .consultationForm textarea { min-height:150px; line-height:1.8; }
+.askPeriod { margin-top:12px; word-break:keep-all; overflow-wrap:anywhere; }
+.periodChips { display:flex; flex-wrap:wrap; gap:8px; }
+.page .periodChips button { min-height:40px; padding:8px 14px; border-radius:999px; background:var(--yn-night); color:var(--yn-muted); border-color:var(--yn-line); font-weight:650; }
+.page .periodChips button[aria-pressed="true"] { background:var(--yn-violet); color:#fff; border-color:var(--yn-gold); }
+.periodHint { margin:8px 2px 0; color:var(--yn-muted); font-size:.8rem; line-height:1.7; }
+.periodPreview { margin:10px 2px 0; color:var(--yn-ivory); font-size:.88rem; line-height:1.7; }
+.periodPreview strong { color:var(--yn-gold); margin-right:4px; }
+.periodLabel { white-space:nowrap; }
+.periodConflict { margin:8px 0 0; padding:10px 12px; border:1px solid var(--yn-line); border-radius:12px; color:var(--yn-ivory); font-size:.84rem; line-height:1.7; }
+.answerReview { margin-top:14px; padding:12px 14px; border-left:3px solid var(--yn-gold); border-radius:4px 12px 12px 4px; background:var(--yn-night); }
+.answerReview h4,.answerReview dt { margin:0 0 4px; color:var(--yn-gold); font-size:.86rem; }
+.answerReview p,.answerReview dd { margin:0; }
 .checkoutSection { padding-top:24px; border-top:1px solid var(--yn-line); margin-top:26px; }
 .checkoutTotal { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .checkoutTotal > span { color:var(--yn-muted); font-size:.9rem; }

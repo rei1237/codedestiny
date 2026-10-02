@@ -4,6 +4,7 @@
 import { sexagenaryYearIndexes, solarToLunar } from "@/lib/korean-calendar";
 // 화성·영성 기점은 셸·워커 엔진과 공유한다(lib/ziwei-fire-bell.js 머리말 참고).
 import { placeFireAndBell } from "@/lib/ziwei-fire-bell";
+import { ziweiBirthClock } from "@/lib/ziwei-birth-clock";
 import { generateZiweiDeepSummary } from "./generate-ziwei-deep-summary";
 import {
   calculateFourTransformations,
@@ -86,7 +87,12 @@ export function calcZiweiPalaces(
   minute: number,
   gender: "M" | "F"
 ): ZiweiChartData {
-  const lunar = solarToLunar(year, month, day);
+  // 23시대(23:00~23:59) 출생은 다음 날 子時로 친다(子初換日). iztro 2.6.1 기본값(dayDivide forward)과
+  // 사이트 사주 공개 방법론(보정 시각 23시 이후는 다음 날)이 같다. 『全書』 卷三의 子時 설명
+  // ("上午刻属昨夜亥时，下午刻属今日子时")은 모호해 유파 선택으로 기록한다.
+  // 음력 변환에 넣는 날짜만 민다 — 소한 기준 연도 탐색과 씨앗 연도는 입력 날짜 그대로 쓴다.
+  const civil = new Date(Date.UTC(year, month - 1, day + (hour === 23 ? 1 : 0)));
+  const lunar = solarToLunar(civil.getUTCFullYear(), civil.getUTCMonth() + 1, civil.getUTCDate());
   if (!lunar) {
     throw new Error(`ZIWEI_UNSUPPORTED_BIRTH_DATE: ${year}-${month}-${day} (지원 범위 1900~2100)`);
   }
@@ -94,6 +100,11 @@ export function calcZiweiPalaces(
   const lYear = lunar.lunarYear;
   const lMonth = lunar.lunarMonth;
   const lDay = lunar.lunarDay;
+  // 윤달 배치 월 — 윤달 15일까지는 그 달, 16일부터는 다음 달로 친다(15일 분할).
+  // 『紫微斗數全書』 安身命例는 윤달 전체를 다음 달로 보고("闰月正月生者要在二月内起安身命"),
+  // iztro 2.6.1 기본값(fixLeap)은 15일 분할이다. 16일 이후는 두 출처가 함께 다음 달이라 고치고,
+  // 15일까지는 출처가 갈려 기존 값(그 달)을 유지한다. 보고하는 음력 날짜(월·윤달 여부)는 그대로다.
+  const placeMonth = lunar.isLeapMonth && lDay > 15 ? (lMonth % 12) + 1 : lMonth;
 
   // 자미두수의 년간지는 **음력 프레임**이다 — 세차가 설날에 바뀐다(사주의 입춘 경계가 아니다).
   // 예전에는 lunar-javascript 의 getYearGan/getYearZhi 를 문자열로 읽고 실패 시 (음력해-4)로
@@ -108,7 +119,7 @@ export function calcZiweiPalaces(
   const hIdx = (hour === 23 || hour === 0) ? 0 : Math.floor((hour + 1) / 2);
 
   // 명궁/신궁 계산
-  const baseIdx = (2 + lMonth - 1) % 12; // 인월 기점
+  const baseIdx = (2 + placeMonth - 1) % 12; // 인월 기점
   const mingIdx = (baseIdx - hIdx + 12) % 12;
   const shenIdx = (baseIdx + hIdx) % 12;
 
@@ -189,8 +200,8 @@ export function calcZiweiPalaces(
   // 보좌성/살성
   addStar(10 - hIdx, "문창", "aux");
   addStar(4 + hIdx, "문곡", "aux");
-  addStar(4 + (lMonth - 1), "좌보", "aux");
-  addStar(10 - (lMonth - 1), "우필", "aux");
+  addStar(4 + (placeMonth - 1), "좌보", "aux");
+  addStar(10 - (placeMonth - 1), "우필", "aux");
   
   const luCunMap = [2, 3, 5, 6, 5, 6, 8, 9, 11, 0];
   const luCunPos = luCunMap[gIdx];
@@ -630,14 +641,23 @@ function buildCanonicalInput(chart: ZiweiDeepChart): ZiweiDeepAnalysisInput {
 }
 
 export function calculateZiweiChart(input: ZiweiUserInput): ZiweiDeepChart {
-  const base = calcZiweiPalaces(
-    input.birthYear,
-    input.birthMonth,
-    input.birthDay,
-    input.birthHour,
-    input.birthMinute,
-    input.gender,
-  );
+  // 명반에는 출생지 경도·과거 서머타임으로 보정한 시각을 넣는다(lib/ziwei-birth-clock.js, 셸·워커와 같은 정본).
+  // 좌표를 받지 않는 입력이라 한국 시간대는 서울 기본값, 다른 시간대는 입력 시계 그대로다.
+  // 코어 calcZiweiPalaces 는 보정하지 않는다 — verify:ziwei-star-parity 가 같은 시각으로 세 엔진을 맞춘다.
+  // 보정 정본이 받지 않는 날짜(1900~2100 밖 등)는 예전처럼 입력 시계로 그린다 — 화면이 비지 않게.
+  const civil = { year: input.birthYear, month: input.birthMonth, day: input.birthDay, hour: input.birthHour, minute: input.birthMinute };
+  let at = civil;
+  if (!input.unknownHour) {
+    try {
+      at = ziweiBirthClock({
+        ...civil,
+        birthPlace: input.timezone && input.timezone !== "Asia/Seoul" ? { timezone: input.timezone } : undefined,
+      }).corrected;
+    } catch {
+      at = civil;
+    }
+  }
+  const base = calcZiweiPalaces(at.year, at.month, at.day, at.hour, at.minute, input.gender);
 
   const palaces = buildPalaces(base);
   const fourTransformations = calculateFourTransformations({

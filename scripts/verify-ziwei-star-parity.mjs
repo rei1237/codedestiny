@@ -199,7 +199,7 @@ function workerPlacement(subject) {
       gender: subject.gender === "M" ? "male" : "female",
       calendarType: "solar",
     },
-  }, { year: 2026 });
+  }, { year: 2026, birthClock: "corrected" });
   const map = new Map();
   for (const palace of chart.palaces) {
     for (const name of [...palace.mainStars, ...palace.assistantStars, ...palace.maleficStars]) {

@@ -44,6 +44,33 @@ export function interludes(chapters:ChapterBody[],manifest:Pick<ChapterSpec,'the
  return out;
 }
 
+// Life-scene pictures: one per part of a reading of any length, under its first scene section's heading.
+export const SCENES=['self','love','home','wealth','work','people','journey','crossroads'] as const;
+export type Scene=typeof SCENES[number];
+export const sceneSrc=(name:Scene)=>`/assets/yeongnyangi/scenes/${name}.webp`;
+// The theme picks the scene; a v7 part ('yeongnyangi.v7.part.<id>') overrides it only where the part reads differently.
+const partScenes:Record<string,Scene>={marriage:'home'};
+const themeScenes:Record<Theme,Scene>={self:'self',love:'love',wealth:'wealth',career:'work',relations:'people',timing:'journey',cross:'crossroads',action:'crossroads'};
+export const sceneFor=(spec:Pick<ChapterSpec,'partKey'|'theme'>):Scene=>partScenes[spec.partKey?.split('.').pop() || '']||themeScenes[spec.theme]||'self';
+// blockId names the scene block; a slot without one belongs to a legacy chapter's example field.
+export interface SceneSlot {art:Scene;blockId?:string}
+export function sceneArt(manifest:Pick<ChapterSpec,'partKey'|'theme'|'sections'>[],chapters:Pick<ChapterBody,'blocks'|'example'>[]):Map<number,SceneSlot>{
+ const out=new Map<number,SceneSlot>(),used=new Set<Scene>();
+ chapters.forEach((chapter,i)=>{
+  const spec=manifest[i];
+  if(!spec)return;
+  const art=sceneFor(spec);
+  if(used.has(art))return;
+  const ids=(spec.sections || []).filter(s=>s.role==='example').map(s=>s.id);
+  const blockId=chapter.blocks?.find(b=>!!b.id&&ids.includes(b.id))?.id;
+  if(blockId)out.set(i,{art,blockId});
+  else if(!spec.sections?.length&&chapter.example?.trim())out.set(i,{art});
+  else return;
+  used.add(art);
+ });
+ return out;
+}
+
 export interface TimingRow {id:string;label:string;start:string;end:string;from?:number;to?:number;now:boolean}
 // Accepts a year ("2024") or a date ("2014-08-31"); ages and missing values stay table-only.
 export function yearValue(value:string):number|undefined{

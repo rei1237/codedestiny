@@ -8,6 +8,8 @@ import { buildMinorLimitEntries, describeMinorLimit } from "../../lib/ziwei-mino
 import { placeFireAndBell } from "../../lib/ziwei-fire-bell.js";
 // 별 강약은 정본 하나만 읽는다(lib/ziwei-star-strength.js 머리말 참고).
 import { normalizeZiweiStrengthNotation, starStrength } from "../../lib/ziwei-star-strength.js";
+// 출생 시각 보정(경도·과거 서머타임)은 셸·앱 진입점과 같은 정본을 쓴다(lib/ziwei-birth-clock.js 머리말 참고).
+import { ziweiBirthClock } from "../../lib/ziwei-birth-clock.js";
 
 const STEMS = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
 const BRANCHES = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
@@ -100,14 +102,16 @@ function parseTime(timeText, unknown) {
  * 🔴 자미두수의 년간지는 **음력 프레임**이다 — 세차가 설날에 바뀐다. 코어의 ganji() 는
  * 절기 프레임(입춘 경계)이라 여기서 쓰면 안 된다. 음력해에서 직접 유도한다.
  */
-function getLunarDate(parts, calendarType, isLeapMonth) {
+function getLunarDate(parts, calendarType, isLeapMonth, nextDay = false) {
   if (calendarType === "lunar") {
     const leap = Boolean(isLeapMonth);
-    if (!lunarToSolar(parts.year, parts.month, parts.day, leap)) {
+    const solar = lunarToSolar(parts.year, parts.month, parts.day, leap);
+    if (!solar) {
       const error = new Error("INVALID_LUNAR_BIRTH_DATE");
       error.code = "INVALID_INPUT";
       throw error;
     }
+    if (nextDay) return lunarOfSolarDay(solar, true);
     return {
       lunarYear: parts.year,
       lunarMonth: Math.abs(parts.month),
@@ -117,7 +121,18 @@ function getLunarDate(parts, calendarType, isLeapMonth) {
     };
   }
 
-  const lunar = solarToLunar(parts.year, parts.month, parts.day);
+  return lunarOfSolarDay(parts, nextDay);
+}
+
+/**
+ * 23시대(23:00~23:59) 출생은 다음 날 子時로 친다(子初換日). iztro 2.6.1 기본값(dayDivide forward)과
+ * 사이트 사주 공개 방법론(보정 시각 23시 이후는 다음 날)이 같다. 『全書』 卷三의 子時 설명
+ * ("上午刻属昨夜亥时，下午刻属今日子时")은 모호해 유파 선택으로 기록한다.
+ * 음력 변환에 넣는 날짜만 민다 — 소한 기준 연도 탐색과 씨앗 연도는 입력 날짜 그대로 쓴다.
+ */
+function lunarOfSolarDay({ year, month, day }, nextDay) {
+  const civil = new Date(Date.UTC(year, month - 1, day + (nextDay ? 1 : 0)));
+  const lunar = solarToLunar(civil.getUTCFullYear(), civil.getUTCMonth() + 1, civil.getUTCDate());
   if (!lunar) {
     const error = new Error("UNSUPPORTED_BIRTH_DATE");
     error.code = "INVALID_INPUT";
@@ -130,6 +145,16 @@ function getLunarDate(parts, calendarType, isLeapMonth) {
     isLeapMonth: lunar.isLeapMonth,
     source: "korean-calendar-core",
   };
+}
+
+/**
+ * 윤달 배치 월 — 윤달 15일까지는 그 달, 16일부터는 다음 달로 친다(15일 분할).
+ * 『紫微斗數全書』 安身命例는 윤달 전체를 다음 달로 보고("闰月正月生者要在二月内起安身命"),
+ * iztro 2.6.1 기본값(fixLeap)은 15일 분할이다. 16일 이후는 두 출처가 함께 다음 달이라 고치고,
+ * 15일까지는 출처가 갈려 기존 값(그 달)을 유지한다. 보고하는 음력 날짜(월·윤달 여부)는 그대로다.
+ */
+function placementMonth({ lunarMonth, lunarDay, isLeapMonth }) {
+  return isLeapMonth && lunarDay > 15 ? (lunarMonth % 12) + 1 : lunarMonth;
 }
 
 function hourIndex(hour) {
@@ -245,7 +270,9 @@ function placeAssistantAndMaleficStars(shells, lunarMonth, hourIdx, stemIndex, b
 
   const peach = [9, 6, 3, 0][branchIndex % 4] ?? 9;
   addStar(shells, peach, "함지", "assistant");
-  addStar(shells, lunarMonth + 1, "천요", "assistant");
+  // 천요(天姚) — 『紫微斗數全書』 卷二 安天刑天姚星诀 "天姚星从丑上起正月顺至本生月即安之".
+  // 정월이 丑(1)이므로 생월 m 은 지지 인덱스 m 이다. 예전 식 lunarMonth + 1 은 한 달 밀려 있었다(iztro 2.6.1 도 丑起正月).
+  addStar(shells, lunarMonth, "천요", "assistant");
 }
 
 // 오호둔(五虎遁) — 생년간으로 인궁(寅宮)의 천간을 잡고 12지지를 순행으로 채운다.
@@ -449,7 +476,24 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
 
   const calendarType = clean(birthInfo.calendarType).toLowerCase() === "lunar" ? "lunar" : "solar";
   const gender = clean(birthInfo.gender).toLowerCase();
-  const lunarInfo = getLunarDate(dateParts, calendarType, birthInfo.isLeapMonth === true);
+  // 입력 시계 → 출생지 경도·과거 서머타임 보정 시계(출생지 미입력 = 서울). 이미 보정한 시계(해외
+  // 진태양시·검증 하네스)는 options.birthClock === "corrected" 로 넘겨 이중 보정을 막는다.
+  // 소한 씨앗 연도(seedYear)는 입력 날짜 그대로 둔다 — 보정은 시지·날짜 경계에만 쓴다.
+  const clock = timeParts.unknown || options.birthClock === "corrected" ? null : ziweiBirthClock({
+    ...dateParts,
+    hour: timeParts.hour,
+    minute: timeParts.minute,
+    calendarType,
+    isLeapMonth: birthInfo.isLeapMonth === true,
+    birthPlace: birthInfo.birthPlace,
+  });
+  const chartTime = clock ? { hour: clock.corrected.hour, minute: clock.corrected.minute, unknown: false } : timeParts;
+  const nightZi = chartTime.hour === 23 && !chartTime.unknown;
+  // 보정이 자정을 넘겨 날짜가 바뀐 경우(00:00~00:31 출생 등)만 보정 날짜에서 음력을 다시 찾는다.
+  const dayMoved = clock && (clock.corrected.year !== clock.civil.year || clock.corrected.month !== clock.civil.month || clock.corrected.day !== clock.civil.day);
+  const lunarInfo = dayMoved
+    ? lunarOfSolarDay(clock.corrected, nightZi)
+    : getLunarDate(dateParts, calendarType, birthInfo.isLeapMonth === true, nightZi);
   // 세차는 음력해에서 바로 나온다(甲=0 / 子=0). 예전에는 lunar-javascript 의 getYearGan/getYearZhi
   // 를 읽고 실패 시 같은 식으로 폴백했다 — 값은 그대로이고 근거만 코어로 옮겼다.
   const yearIndexes = sexagenaryYearIndexes(lunarInfo.lunarYear);
@@ -457,8 +501,9 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
   const yearBranch = BRANCHES[yearIndexes.branchIndex];
   const stemIndex = STEMS.indexOf(yearStem);
   const branchIndex = BRANCHES.indexOf(yearBranch);
-  const hIdx = hourIndex(timeParts.hour);
-  const baseIndex = mod(2 + lunarInfo.lunarMonth - 1);
+  const hIdx = hourIndex(chartTime.hour);
+  const placeMonth = placementMonth(lunarInfo);
+  const baseIndex = mod(2 + placeMonth - 1);
   const mingIndex = mod(baseIndex - hIdx);
   const shenIndex = mod(baseIndex + hIdx);
   const palaceStems = computePalaceStems(stemIndex);
@@ -468,7 +513,7 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
 
   placePalaces(mingIndex, shells);
   placeMainStars(shells, lunarInfo.lunarDay, bureau);
-  placeAssistantAndMaleficStars(shells, lunarInfo.lunarMonth, hIdx, stemIndex, branchIndex);
+  placeAssistantAndMaleficStars(shells, placeMonth, hIdx, stemIndex, branchIndex);
   const fourTransformations = FOUR_TRANSFORMATIONS[yearStem] || {};
   applyTransformations(shells, fourTransformations);
   applyMajorLuck(shells, mingIndex, stemIndex, gender, bureau);

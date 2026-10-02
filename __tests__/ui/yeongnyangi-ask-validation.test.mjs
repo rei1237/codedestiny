@@ -62,3 +62,49 @@ test('health answers use care display mode after evidence validation',()=>{
   const evidence={...packet,facts:[packet.facts[0],{...packet.facts[1],tags:['health']} ]};
   assert.equal(validateAskChapter(body(),consultation,health,evidence).questionAnswers[1].mode,'care');
 });
+// ask-period-v1: '이번 주' (2026-09-28~10-04) against 2026-09-26, a Saturday consultation date.
+const weekRange={scale:'week',label:'다음 주',start:'2026-09-28',end:'2026-10-04'};
+const weekly={...consultation,period:{kind:'requested',label:'다음 주',start:weekRange.start,end:weekRange.end,ranges:[weekRange],resolver:'ask-period-v1'}};
+const weekPacket={...packet,timing:[
+  {id:'T001',label:'yearlyLuck',tags:['career'],from:'2026',to:'2026',resolution:'year',source:source('saju.yearlyLuck')},
+  {id:'T002',label:'monthlyLuck[0]',tags:['career'],from:'2026-08-07T23:41:00+09:00',to:'2026-08-07T23:41:00+09:00',resolution:'instant',source:source('saju.monthlyLuck')},
+  {id:'T003',label:'monthlyLuck[1]',tags:['career'],from:'2026-09-07T23:41:00+09:00',to:'2026-09-07T23:41:00+09:00',resolution:'instant',source:source('saju.monthlyLuck')},
+  {id:'T004',label:'monthlyLuck[2]',tags:['career'],from:'2026-10-08T15:41:00+09:00',to:'2026-10-08T15:41:00+09:00',resolution:'instant',source:source('saju.monthlyLuck')}]};
+const weekBody=()=>({...body(),sources:['saju.tenGods','saju.fiveElements','saju.yearlyLuck','saju.monthlyLuck'],questionAnswers:[
+  answer('q1',{factIds:['F001'],timingIds:['T001','T003'],evidenceStatus:'grounded',timing:'2026.9.28(월)~10.4(일) 한 주는 9월 절입 뒤의 월운 안에 있어요.'}),
+  answer('q2',{factIds:['F002'],timingIds:[],evidenceStatus:'limited',timing:'이 주의 흐름 근거는 따로 없어 실천 조언으로 답해요.'})]});
+test('a period request offers the 월운 already running at its start, not earlier or later terms',async()=>{
+  const {buildAskFirstChapterPrompt}=await import(`data:text/javascript;base64,${Buffer.from((await build({entryPoints:['worker/yeongnyangi/fortune/ask/prompt.ts'],bundle:true,platform:'node',format:'esm',write:false})).outputFiles[0].text).toString('base64')}`);
+  const guide=buildAskFirstChapterPrompt(weekly,analysis,weekPacket);
+  assert.equal(guide.version,'ask-first-chapter-v3');
+  assert.deepEqual(guide.evidence.timing.map(t=>[t.id,t.relation]),[['T001','current'],['T003','in-effect']]);
+  // The requested week makes every question with in-period evidence timing-dependent; one without any stays as analysed.
+  assert.deepEqual(guide.questions.map(q=>[q.questionId,q.needsTiming,q.timingIds]),[['q1',true,['T001','T003']],['q2',false,[]]]);
+  assert.equal(buildAskFirstChapterPrompt({...weekly,period:{kind:'requested',label:'2027년'}},analysis,packet).version,'ask-first-chapter-v2');
+});
+test('a week answer may cite the running 월운 and restate its range, but year evidence never dates a day',()=>{
+  const ok=validateAskChapter(weekBody(),weekly,analysis,weekPacket);
+  assert.equal(ok.questionAnswers[1].mode,'limited');
+  const limited=weekBody();limited.questionAnswers[1].timing='2026.9.28부터 한 주는 실천 조언으로 봐요.';
+  assert.doesNotThrow(()=>validateAskChapter(limited,weekly,analysis,weekPacket));
+  for(const text of ['2026년 10월 1일이 가장 좋은 날이에요.','2026.11.3부터 달라져요.']){
+    const day=weekBody();day.questionAnswers[1].timing=text;
+    assert.throws(()=>validateAskChapter(day,weekly,analysis,weekPacket),{code:'ASK_UNSUPPORTED_TIMING'},text);
+  }
+  const yearOnly=weekBody();Object.assign(yearOnly.questionAnswers[0],{timingIds:['T001'],timing:'2026년 9월 30일에 기회가 와요.'});
+  assert.throws(()=>validateAskChapter(yearOnly,weekly,analysis,weekPacket),{code:'ASK_UNSUPPORTED_TIMING'});
+  // An earlier term than the running one is never offered, so citing it is an unoffered ID.
+  const stale=weekBody();stale.questionAnswers[0].timingIds=['T001','T002'];
+  assert.throws(()=>validateAskChapter(stale,weekly,analysis,weekPacket),{code:'ASK_EVIDENCE_INCOMPLETE'});
+  // The pre-period contract keeps its old date rule.
+  const old=body();old.questionAnswers[0]={...old.questionAnswers[0],timingIds:[],evidenceStatus:'limited',timing:'2027년 1월부터 점검해 봐요.'};
+  assert.throws(()=>check(old),{code:'ASK_UNSUPPORTED_TIMING'});
+});
+test('the after-period reflection question is kept when sound and dropped, never rejected, when not',()=>{
+  const withReview=review=>{const value=weekBody();value.questionAnswers[0].review=review;return validateAskChapter(value,weekly,analysis,weekPacket).questionAnswers[0].review;};
+  assert.equal(withReview('  이번 주에 먼저 꺼낸 대화가\n내 기준을 지켰나요? '),'이번 주에 먼저 꺼낸 대화가 내 기준을 지켰나요?');
+  for(const review of [undefined,'짧음','매일 운세를 확인했나요?','다음 상담에서 다시 물어보세요.','알림으로 알려 드릴게요.','F001 근거를 돌아봐요.','dayMaster가 버텼나요?','<b>돌아봐요</b> 오늘','x'.repeat(201)])
+    assert.equal(withReview(review),undefined,String(review));
+  const old=body();old.questionAnswers[0].review='이번 해의 선택을 돌아볼까요?';
+  assert.equal('review' in check(old).questionAnswers[0],false);
+});

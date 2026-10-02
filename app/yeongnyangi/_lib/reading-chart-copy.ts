@@ -42,6 +42,7 @@ const limitations:Record<string,[string,string]>={
  '출생시간 미상: 시주와 정확한 대운 시작 시점은 해석하지 않습니다.':['Birth time unknown: the hour pillar and exact start of major luck periods are not interpreted.','出生時刻が不明のため、時柱と大運の正確な開始時点は解釈しません。'],
  '종격은 기존 엔진이 찾은 후보입니다. 기존 서비스의 생활 이력 확인을 거치지 않은 용신·종격 해석은 조건부입니다.':['The special chart pattern is a candidate identified by the existing engine. Without confirmation against life history, interpretations of the useful element and pattern are conditional.','特殊格局は既存の計算エンジンが示した候補です。生活履歴との照合を経ていない用神・格局の解釈は条件付きです。'],
  '한국 음력·표준시를 기준으로 계산한 명반입니다.':['This chart was calculated using the Korean lunar calendar and standard time.','この命盤は韓国の旧暦と標準時を基準に計算しています。'],
+ '출생지 경도·과거 서머타임으로 보정한 시각과 한국 음력으로 계산한 명반입니다.':['This chart uses the birth time corrected for birthplace longitude and historical daylight saving time, with the Korean lunar calendar.','この命盤は、出生地の経度と過去のサマータイムで補正した出生時刻と韓国の旧暦で計算しています。'],
  '천문식 27숙 개인 분석입니다. 상대 정보 없이 궁합을 추정하지 않습니다.':['This is an astronomical 27 mansion reading for one person. It does not estimate compatibility without a partner’s details.','天文式の二十七宿による個人鑑定です。相手の情報なしに相性は推定しません。'],
  '천문식 27숙 계산이며 음력 고정표 방식과 구분합니다.':['This uses astronomical 27 mansion calculation, distinct from a fixed lunar table.','天文式の二十七宿計算で、旧暦の固定表による方式とは異なります。'],
  '요가·분할 차트는 원차트와 함께 해석합니다.':['Yogas and divisional charts are interpreted alongside the birth chart.','ヨーガと分割図は元のチャートと合わせて解釈します。'],

@@ -228,6 +228,7 @@ on:
       - "worker/lib/ziwei-ai-*"
       - "lib/ziwei-minor-limit.js"
       - "lib/ziwei-fire-bell.js"
+      - "lib/ziwei-birth-clock.js"
       - "worker/lib/gemini.js"
       - "worker/lib/gemini-client.js"
       - "worker/lib/structured-consultation.js"

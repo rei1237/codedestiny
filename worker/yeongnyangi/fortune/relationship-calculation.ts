@@ -5,7 +5,7 @@ import {aspectBetween,locateHouseByCusps} from '../../lib/swiss-ephemeris.js';
 import {ashtakutaFromMoon} from '../../lib/nakshatra-ashtakuta.js';
 import {nakshatraInfo,buildSubDasha} from '../../lib/vedic-derived-calculations.js';
 import {chartInput} from './shared/time';
-import {koreanCivilProfile} from './shared/korean-time';
+import {ZIWEI_BIRTH_CLOCK_POLICY} from '../../../lib/ziwei-birth-clock.js';
 import {context} from './shared/domain';
 import {FortuneError,type BirthProfile,type DomainContext} from './shared/contracts';
 import {RELATIONSHIP_VERSION} from './relationship-contract';
@@ -23,16 +23,17 @@ export function ziweiRelationshipClock(profile:BirthProfile){
  if(!profile.birthTime)throw new FortuneError('BIRTH_TIME_REQUIRED');
  if(!profile.birthPlace)throw new FortuneError('BIRTH_PLACE_REQUIRED');
  const t=chartInput(profile);
- if(profile.birthPlace.timezone==='Asia/Seoul')return {profile:koreanCivilProfile(profile).profile,audit:{policy:'existing-korean-civil-v1',utc:t.utc.toISOString(),original:profile}};
+ // 한국 출생은 개인 명반과 같은 정본 보정(경도·과거 서머타임, lib/ziwei-birth-clock.js)을 엔진이 한 번 한다.
+ if(profile.birthPlace.timezone==='Asia/Seoul')return {profile,corrected:false,audit:{policy:ZIWEI_BIRTH_CLOCK_POLICY,utc:t.utc.toISOString(),original:profile}};
  const eot=calculateEquationOfTimeMinutes(t.utc.getUTCFullYear(),t.utc.getUTCMonth()+1,t.utc.getUTCDate());
  const solar=new Date(t.utc.getTime()+(t.lon*4+eot)*60000);
- return {profile:{...profile,birthDate:solar.toISOString().slice(0,10),birthTime:solar.toISOString().slice(11,16)},
+ return {profile:{...profile,birthDate:solar.toISOString().slice(0,10),birthTime:solar.toISOString().slice(11,16)},corrected:true,
   audit:{policy:'overseas-true-solar-v1',utc:t.utc.toISOString(),original:profile,longitudeMinutes:t.lon*4,equationOfTimeMinutes:eot,correctedDate:solar.toISOString().slice(0,10),correctedTime:solar.toISOString().slice(11,16),calendar:'korean-lunisolar',precision:'existing-daily-equation-of-time-approximation'}};
 }
 
 export function calculateRelationshipZiwei(profile:BirthProfile,asOf:string){
  const clock=ziweiRelationshipClock(profile),year=Number(asOf.slice(0,4));
- const chart=calculateZiweiAiChart(clock.profile,{year});
+ const chart=calculateZiweiAiChart(clock.profile,clock.corrected?{year,birthClock:'corrected'}:{year});
  const branch=mod(chart.lunar.year-4);
  // 紅鸞: 子年起卯逆行; 天喜: 紅鸞對宮. Source: iztro star/location getLuanXiIndex.
  // Only the relationship copy is enriched; legacy chart output is untouched.
@@ -48,7 +49,7 @@ export function calculateRelationshipZiwei(profile:BirthProfile,asOf:string){
  const basis={lifePalace:chart.lifePalace,bodyPalace:chart.bodyPalace,palaces:chart.palaces.filter((p:any)=>palaceNames.includes(p.name)||p.name===chart.bodyPalace),natalTransformations:chart.fourTransformations,romance};
  return context('ziwei',{...chart,relationshipBasis:{self:basis},relationshipTiming:{asOf,self:{ageConvention:'음력 출생연도 기준 세는나이',decade:decade||null,annual}},birthTimeContext:clock.audit},[
   '부부궁은 부처궁(夫妻宮)과 같은 자리입니다. 자녀궁으로 임신·출산 가능성을 판정하지 않습니다.',
-  clock.audit.policy==='overseas-true-solar-v1'?'해외 출생은 출생지 진태양시와 한국 음양력 코어를 사용합니다. 균시차는 일 단위 근사이며 경계 시각 해석에는 주의가 필요합니다.':'기존 한국 출생시각 계산 기준을 유지합니다.',
+  clock.audit.policy==='overseas-true-solar-v1'?'해외 출생은 출생지 진태양시와 한국 음양력 코어를 사용합니다. 균시차는 일 단위 근사이며 경계 시각 해석에는 주의가 필요합니다.':'출생지 경도·과거 서머타임으로 보정한 시각과 한국 음력으로 계산한 명반입니다.',
  ]);
 }
 

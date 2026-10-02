@@ -28,3 +28,8 @@ test('provider failure falls back without another call; escaping preserves origi
   assert.equal((await analyzeAsk(consultation,async()=>{calls++;throw new Error('timeout');})).source,'rules');
   assert.equal(calls,1);assert.deepEqual(JSON.parse(escapeAskData(consultation)),consultation);
 });
+test('week and month words mark a question as timing-dependent in the rule fallback',async()=>{
+  const ask=text=>analyzeAsk({topicId:'general',questions:[{id:'q1',text,chapterId:'first'}]},async()=>'no JSON').then(r=>r.questions[0].needsTiming);
+  for(const text of ['이번 주 회사 분위기는?','다음주 면접은?','이번 달 지출은?','다음 달 연애는?','3월에 이사할까?'])assert.equal(await ask(text),true,text);
+  assert.equal(await ask('내 성격의 강점은?'),false);
+});

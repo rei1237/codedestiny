@@ -9,8 +9,8 @@ import {journeyCopy} from '../_lib/journey-copy';
 import {v7Label,v7PartHead} from '../_lib/reading-v7-copy';
 import ReadingCharts from './ReadingCharts';
 import BlockChartHints from './BlockChartHints';
-import {AtAGlance,AnswerTable,Interlude,KeyPoints,MascotBubble,SajuBoard,TimingTimeline,YearFocus} from './ReadingVisuals';
-import {expressionFor,interludes,isRichReading,sajuFacts,timingRows,yearFocus} from '../_lib/reading-visuals';
+import {AtAGlance,AnswerTable,Interlude,KeyPoints,MascotBubble,SajuBoard,SceneArt,TimingTimeline,YearFocus} from './ReadingVisuals';
+import {expressionFor,interludes,isRichReading,sajuFacts,sceneArt,timingRows,yearFocus} from '../_lib/reading-visuals';
 import styles from './reading-v5.module.css';
 
 export default function ReadingBook({row}:{row:FortuneRecord}){
@@ -40,6 +40,9 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
  // while the glance table, key points and illustrations stay long-reading only.
  const rich=isRichReading(row.chapters),ask=!!row.consultation?.questions?.length,visual=rich||ask;
  const breaks=rich?interludes(row.chapters,row.manifest):new Map();
+ // One life-scene picture per part, under the heading of its first scene section (any reading length).
+ const scenes=sceneArt(row.manifest,row.chapters);
+ const scene=(index:number,blockId?:string)=>{const slot=scenes.get(index);return slot&&slot.blockId===blockId?<SceneArt art={slot.art}/>:null;};
  const timing=visual?timingRows(row.charts || []):[];
  const timingChapter=timing.length?row.manifest.findIndex((c,i)=>i<row.chapters.length&&c.theme==='timing'):-1;
  // Without a timing chapter a question reading shows the timeline after its first answers.
@@ -56,6 +59,7 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
     <div><dt>{firstAnswer.mode?answerCopy.reason:copy.reason}</dt><dd>{firstAnswer.reason}</dd></div>
     <div><dt>{firstAnswer.mode?answerCopy.timing:copy.timing}</dt><dd>{firstAnswer.timing}</dd></div>
     <div className={styles.focusAction}><dt>{firstAnswer.mode?answerCopy.action:copy.action}</dt><dd>{firstAnswer.action}</dd></div>
+    {firstAnswer.review&&<div className={styles.answerReview}><dt>{answerCopy.review}</dt><dd>{firstAnswer.review}</dd></div>}
    </dl>:first.advice&&<div className={styles.focusAction}><h3>{copy.next}</h3><p>{first.advice}</p></div>}
   </section>}
   <aside className={styles.navigation}><details open={open} onToggle={e=>setOpen(e.currentTarget.open)}><summary>{ask?answerCopy.answer:`${copy.contents} · ${Math.max(1,row.manifest.findIndex(c=>`chapter-${c.id}`===current)+1)} / ${row.manifest.length}`}</summary>
@@ -74,9 +78,9 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
     {index===timingAt&&!timingLate&&<TimingTimeline rows={timing} focus={focus} locale={row.locale}/>}
     {chapter.questionAnswers?.filter(answer=>answer!==firstAnswer).map(answer=><section key={answer.questionId}><h3>{row.consultation?.questions?.find(q=>q.id===answer.questionId)?.text || (answer.mode?answerCopy.answer:copy.answer)}</h3>
      {answer.mode&&<div className={styles.answerStatus} data-mode={answer.mode} role="note"><strong>{answerCopy[answer.mode]}</strong>{answer.mode==='limited'&&<p>{answerCopy.limitedHint}</p>}{answer.mode==='care'&&<p>{answerCopy.careHint}</p>}</div>}
-     <p>{answer.answer}</p>{visual?<AnswerTable label={answer.mode?answerCopy.answer:copy.answer} rows={[[answer.mode?answerCopy.reason:copy.reason,answer.reason],[answer.mode?answerCopy.timing:copy.timing,answer.timing],[answer.mode?answerCopy.action:copy.action,answer.action]]}/>:<><h4>{answer.mode?answerCopy.reason:copy.reason}</h4><p>{answer.reason}</p><h4>{answer.mode?answerCopy.timing:copy.timing}</h4><p>{answer.timing}</p><h4>{answer.mode?answerCopy.action:copy.action}</h4><p>{answer.action}</p></>}</section>)}
-    {chapter.blocks?.length?chapter.blocks.map((block,b)=><section key={block.id || b}><h3>{block.title}</h3><BlockChartHints block={block} charts={row.charts} locale={row.locale}/>{block.paragraphs.map((text,i)=><p key={i}>{text}</p>)}</section>):chapter.analysis.map((text,i)=><p key={i}>{text}</p>)}
-    {chapter.example&&<section><h3>{copy.example}</h3><p>{chapter.example}</p></section>}{chapter.advice&&(index>0||!!firstAnswer)&&<section><h3>{copy.next}</h3><p>{chapter.advice}</p></section>}
+     <p>{answer.answer}</p>{visual?<AnswerTable label={answer.mode?answerCopy.answer:copy.answer} rows={[[answer.mode?answerCopy.reason:copy.reason,answer.reason],[answer.mode?answerCopy.timing:copy.timing,answer.timing],[answer.mode?answerCopy.action:copy.action,answer.action]]}/>:<><h4>{answer.mode?answerCopy.reason:copy.reason}</h4><p>{answer.reason}</p><h4>{answer.mode?answerCopy.timing:copy.timing}</h4><p>{answer.timing}</p><h4>{answer.mode?answerCopy.action:copy.action}</h4><p>{answer.action}</p></>}{answer.review&&<div className={styles.answerReview}><h4>{answerCopy.review}</h4><p>{answer.review}</p></div>}</section>)}
+    {chapter.blocks?.length?chapter.blocks.map((block,b)=><section key={block.id || b}><h3>{block.title}</h3>{block.id?scene(index,block.id):null}<BlockChartHints block={block} charts={row.charts} locale={row.locale}/>{block.paragraphs.map((text,i)=><p key={i}>{text}</p>)}</section>):chapter.analysis.map((text,i)=><p key={i}>{text}</p>)}
+    {chapter.example&&<section><h3>{copy.example}</h3>{scene(index)}<p>{chapter.example}</p></section>}{chapter.advice&&(index>0||!!firstAnswer)&&<section><h3>{copy.next}</h3><p>{chapter.advice}</p></section>}
     {index===timingAt&&timingLate&&<TimingTimeline rows={timing} focus={focus} locale={row.locale}/>}
     {visual&&index===0&&saju&&<SajuBoard pillars={saju.pillars} elements={saju.elements} locale={row.locale}/>}
     {visual&&chapter.persona?<MascotBubble expression={expressionFor(row.manifest[index].theme,index)} text={chapter.persona} locale={row.locale}/>:<blockquote>{chapter.persona}</blockquote>}<a href="#reading-progress">{copy.top}</a>

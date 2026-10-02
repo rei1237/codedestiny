@@ -7,7 +7,7 @@
 //
 //   POST /api/admin/sns-daily-post/run?channel=all|telegram|threads
 //        — 태스크 1회 실행. 🔴 공개 채널에 실제 글이 나간다. 기본값은 all.
-//   POST /api/admin/sns-daily-post/run?channel=threads-job&type=saju|ziwei|vedic|numerology
+//   POST /api/admin/sns-daily-post/run?channel=threads-job&type=zodiac|saju|karma (꺼진 ziwei|vedic|numerology 는 job_disabled)
 //        — Threads 유형별 Job 1회(threads-daily-jobs.js). 발행 창만 무시하고 분할 스위치·토큰·잠금은 그대로다.
 //   GET  /api/admin/sns-daily-post/status — 최근 잠금 문서(keyHash/channel/status/responseRef/updatedAt)
 //        + threadsJobs: 유형별 Job 잠금 문서(cron:sns-threads-daily)

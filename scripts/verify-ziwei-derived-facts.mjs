@@ -65,7 +65,9 @@ const charts = SUBJECTS.map((subject) => ({
   subject,
   chart: calculateZiweiAiChart(
     { birthInfo: { ...subject, calendarType: "solar" } },
-    { year: TARGET_YEAR },
+    // 표본은 명반 모양(공궁 명궁 등)으로 골랐으니 입력 시계를 그대로 쓴다 — 경도·서머타임 보정은
+    // lib/ziwei-birth-clock.js 와 __tests__/ui/ziwei-birth-clock.test.mjs 가 맡는다.
+    { year: TARGET_YEAR, birthClock: "corrected" },
   ),
 }));
 

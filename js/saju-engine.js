@@ -3034,6 +3034,9 @@ window.computeProfileForModal = function(profile) {
       birthPlace:hasBirthLocation?{latitude:lat,longitude:lng,timezone:tzName}:undefined
     });
     window.__cdSajuCalculationMeta = chart.calculationMeta;
+    // 자미 명반도 사주와 같은 보정 시각(경도·과거 서머타임, lib/ziwei-birth-clock.js 와 같은 정본)을 쓴다.
+    var zwClock = chart.calculationMeta.corrected;
+    if (zwClock) { window._ziweiBirth.year = zwClock.year; window._ziweiBirth.month = zwClock.month; window._ziweiBirth.day = zwClock.day; window._ziweiBirth.hour = zwClock.hour; window._ziweiBirth.minute = zwClock.minute; }
     window.__cdSajuTimeUnknown=chart.calculationMeta.timeUnknown===true;
     BIRTH_YEAR=chart.calculationMeta.civil.year;
     CURRENT_AGE=new Date(Date.now()+9*60*60*1000).getUTCFullYear()-BIRTH_YEAR+1;
@@ -3089,7 +3092,14 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
   // [Cleanup] lunar-javascript 의 solar/lunar 지역변수는 PR-C 가 폴백을 걷어낸 뒤로 한 번도
   // 읽히지 않았다(이 함수 전체에서 참조 0). 남겨 두면 이 함수가 그 라이브러리 없이는 못 도는
   // 것처럼 보이는데, 실제로는 아래 KasiEngine → 한국 음양력 코어만 있으면 된다.
+  // 23시대(23:00~23:59) 출생은 다음 날 子時로 친다(子初換日). iztro 2.6.1 기본값(dayDivide forward)과
+  // 사이트 사주 공개 방법론(보정 시각 23시 이후는 다음 날)이 같다. 『全書』 卷三의 子時 설명
+  // ("上午刻属昨夜亥时，下午刻属今日子时")은 모호해 유파 선택으로 기록한다.
+  // 음력 변환에 넣는 날짜만 민다 — 소한 기준 연도 탐색과 씨앗 연도는 입력 날짜 그대로 쓴다.
+  // 🔴 시프트는 _kasiPartsOf 정규화 뒤에 한다. 출생 전 자리표시 {year:0,month:0,day:0}(renderZiwei
+  // 기본값)은 정규화가 1900-01-01 로 받는데, 날짜를 먼저 더하면 1899년이 되어 음양력 코어 범위를 벗어난다.
   var baseParts = _kasiPartsOf(year, month, day, hour || 0, minute || 0, 0);
+  if (baseParts && hour === 23) baseParts = _kasiShiftPartsByDays(baseParts, 1);
   var kasiLunar = null;
   try {
     if (KasiEngine && typeof KasiEngine.solarToLunarFromParts === 'function') {
@@ -3106,6 +3116,11 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
   var lmonth = Math.abs(Number(kasiLunar.month));
   var lday = Number(kasiLunar.day);
   var isLeap = !!kasiLunar.isLeap;
+  // 윤달 배치 월 — 윤달 15일까지는 그 달, 16일부터는 다음 달로 친다(15일 분할).
+  // 『紫微斗數全書』 安身命例는 윤달 전체를 다음 달로 보고("闰月正月生者要在二月内起安身命"),
+  // iztro 2.6.1 기본값(fixLeap)은 15일 분할이다. 16일 이후는 두 출처가 함께 다음 달이라 고치고,
+  // 15일까지는 출처가 갈려 기존 값(그 달)을 유지한다. 보고하는 음력 날짜(월·윤달 여부)는 그대로다.
+  var zwPlaceMonth = (isLeap && lday > 15) ? (lmonth % 12) + 1 : lmonth;
   // 🔴 자미두수의 년간지는 **음력 프레임**이다 — 세차가 설날에 바뀐다. 사주(자평)의 입춘 경계와
   // 다르며, 두 프레임을 섞으면 그 사이에 태어난 사람의 사화·녹존·경양·타라가 통째로 어긋난다.
   //
@@ -3124,7 +3139,7 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
   var hourIdx = (h === 23 || h === 0) ? 0 : Math.floor((h + 1) / 2);
   var hourBranch = ZHI_LIST[hourIdx];
 
-  var mengBaseIdx = (2 + lmonth - 1) % 12;
+  var mengBaseIdx = (2 + zwPlaceMonth - 1) % 12;
   // 명궁: 월궁 기점에서 시지를 역행 반영 (전통 자미두수 배궁)
   var mengIdx = (mengBaseIdx - hourIdx + 12) % 12;
   // 신궁: 월궁 기점에서 시지를 순행 반영
@@ -3193,8 +3208,8 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
 
   stars[(10 - hourIdx + 12) % 12].aux.push('문창');
   stars[(4 + hourIdx) % 12].aux.push('문곡');
-  stars[(4 + lmonth - 1) % 12].aux.push('좌보');
-  stars[(10 - (lmonth - 1) + 12) % 12].aux.push('우필');
+  stars[(4 + zwPlaceMonth - 1) % 12].aux.push('좌보');
+  stars[(10 - (zwPlaceMonth - 1) + 12) % 12].aux.push('우필');
 
   var yangMap = {'甲':3,'乙':4,'丙':6,'丁':7,'戊':6,'己':7,'庚':9,'辛':10,'壬':0,'癸':1};
   var tuoMap = {'甲':1,'乙':2,'丙':4,'丁':5,'戊':4,'己':5,'庚':7,'辛':8,'壬':10,'癸':11};
@@ -5363,7 +5378,9 @@ async function calculate(){
 
   window._astroBirth={year:year,month:month,day:day,hour:hour,minute:minute,lat:bLat,lon:bLong,tz:bTzOff,unknownHour:_birthTimeUnknown,timeDefault:_birthTimeUnknown,minuteDefault:_birthMinuteDefault,locationDefault:!opt};
 
-  window._ziweiBirth={year:correctedYear,month:correctedMonth,day:correctedDay,hour:correctedHour,minute:correctedMinute,lat:bLat,lon:bLong,tz:bTzOff,unknownHour:_birthTimeUnknown,timeDefault:_birthTimeUnknown};
+  // 자미 명반은 사주와 같은 보정 시각(경도·과거 서머타임)을 쓴다. 시각 미상이면 기존 값(정오 기준) 그대로.
+  var zwClock = sajuClock || {year:correctedYear,month:correctedMonth,day:correctedDay,hour:correctedHour,minute:correctedMinute};
+  window._ziweiBirth={year:zwClock.year,month:zwClock.month,day:zwClock.day,hour:zwClock.hour,minute:zwClock.minute,lat:bLat,lon:bLong,tz:bTzOff,unknownHour:_birthTimeUnknown,timeDefault:_birthTimeUnknown};
   window._ziweiInputMeta={
     calType: calType,
     kasiSource: primaryDateCtx && primaryDateCtx.source ? primaryDateCtx.source : 'unknown',
