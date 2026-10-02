@@ -233,7 +233,9 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 .char.lns{width:clamp(180px,29vh,340px);height:auto;aspect-ratio:441/705;max-height:none;bottom:clamp(172px,24vh,235px);background-repeat:no-repeat}
 .char.heal{height:clamp(230px,37vh,420px);max-height:none;bottom:clamp(175px,25vh,240px)}
 .char.baek{height:clamp(190px,31vh,350px);max-height:none;bottom:clamp(175px,25vh,240px)}
-.char.pje{height:clamp(360px,62vh,620px);max-height:none;bottom:clamp(150px,22vh,215px)}
+.char.pje{height:clamp(470px,80vh,800px);max-height:none;bottom:clamp(60px,10vh,100px)}
+/* 윤달(개편 2026-10): 허리까지 흉상이라 연이·서한비와 머리 크기를 맞추려 1.45배 키우고, 늘어난 만큼 아래로 내리되 턱이 대사창 위에 오게 둔다(허리는 화면 밖) */
+.char.yun{height:min(119vh,1190px);max-height:none;bottom:max(-21vh,-210px)}
 .char.muTrue{height:clamp(260px,43vh,490px);max-height:none;bottom:clamp(160px,23vh,225px)}
 /* 인간 네오(박병하) — 은발 미남 4×2 표정 시트 크롭(div 배경). 정체 공개 후 결말에 등장 */
 .char.neoh{width:clamp(230px,38vh,430px);height:auto;aspect-ratio:362/543;max-height:none;bottom:clamp(158px,23vh,225px);background-repeat:no-repeat;background-size:400% 200%}
@@ -260,7 +262,7 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
   .char.lns{width:min(24vh,30vw);bottom:clamp(198px,26vh,248px)}
   .char.heal{height:min(31vh,36vw);bottom:clamp(198px,26vh,248px)}
   .char.baek{height:min(27vh,33vw);bottom:clamp(198px,26vh,248px)}
-  .char.pje{height:min(42vh,320px);width:min(48vw,180px);bottom:clamp(220px,27vh,280px)}
+  .char.pje{height:min(30vh,236px);width:min(44vw,180px);bottom:clamp(220px,27vh,280px);-webkit-mask-image:linear-gradient(to bottom,#000 74%,transparent 87%);mask-image:linear-gradient(to bottom,#000 74%,transparent 87%)}
   .char.muTrue{height:min(35vh,42vw);bottom:clamp(190px,24vh,238px)}}
 /* L2 effects */
 .fxLayer{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
@@ -522,7 +524,7 @@ body.novel-paused *{animation-play-state:paused!important}
 @media(max-width:760px){
   .char.tiger{width:min(39vw,200px);height:auto;bottom:clamp(208px,28vh,260px)}
   .char[data-who="yeon"]:not(.pig):not(.sheet){height:min(47vh,340px);width:min(42vw,180px);bottom:clamp(220px,27vh,280px)}
-  .char.yun{height:min(47vh,340px);width:min(42vw,180px);bottom:clamp(220px,27vh,280px)}
+  .char.yun{height:min(52vh,380px);width:min(54vw,220px);bottom:clamp(220px,27vh,280px)}
 }
 @media (hover:none) and (pointer:coarse){
   .bgImg{animation:none;transform:scale(1.02)}

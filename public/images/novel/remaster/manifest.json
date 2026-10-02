@@ -332,12 +332,12 @@
       "type": "character-sprite",
       "character": "pje",
       "expression": "cry",
-      "dimensions": "342x627",
-      "source": "codex-image (gpt-image-2) 2x2 green-screen sheet, refs = existing R2 pje sprites (public); green key + 1px erosion, scaled 0.8 and padded to the existing 627px frame (top 45 / bottom 80); visual-checker ACCEPT 2026-10-02",
+      "dimensions": "424x627",
+      "source": "codex-image (gpt-image-2) single transparent 1024x1536 sprite per expression (the first 2x2 sheet clipped hair at the cell edges), refs = existing R2 pje sprites (public); scaled so the head top sits at y45 and the figure bottom at y546 of the existing 627px frame, then x1.18 to match the R2 head size and bottom-cropped at y546; visual-checker ACCEPT 2026-10-02",
       "usage": "서한비 사람 — 울음(개심·속죄 장면)",
       "rules": "transparent, same head scale and floor gap as the R2 pje sprites, <=80KB",
       "maxBytes": 80000,
-      "bytes": 30398
+      "bytes": 74336
     },
     {
       "id": "pje-sad-v1",
@@ -345,12 +345,12 @@
       "type": "character-sprite",
       "character": "pje",
       "expression": "sad",
-      "dimensions": "342x627",
-      "source": "codex-image (gpt-image-2) 2x2 green-screen sheet, refs = existing R2 pje sprites (public); green key + 1px erosion, scaled 0.8 and padded to the existing 627px frame (top 45 / bottom 80); visual-checker ACCEPT 2026-10-02",
+      "dimensions": "350x627",
+      "source": "codex-image (gpt-image-2) single transparent 1024x1536 sprite per expression (the first 2x2 sheet clipped hair at the cell edges), refs = existing R2 pje sprites (public); scaled so the head top sits at y45 and the figure bottom at y546 of the existing 627px frame, then x1.18 to match the R2 head size and bottom-cropped at y546; visual-checker ACCEPT 2026-10-02",
       "usage": "서한비 사람 — 슬픔",
       "rules": "transparent, same head scale and floor gap as the R2 pje sprites, <=80KB",
       "maxBytes": 80000,
-      "bytes": 30264
+      "bytes": 61706
     },
     {
       "id": "pje-smile-v1",
@@ -358,12 +358,12 @@
       "type": "character-sprite",
       "character": "pje",
       "expression": "smile",
-      "dimensions": "339x627",
-      "source": "codex-image (gpt-image-2) 2x2 green-screen sheet, refs = existing R2 pje sprites (public); green key + 1px erosion, scaled 0.8 and padded to the existing 627px frame (top 45 / bottom 80); visual-checker ACCEPT 2026-10-02",
+      "dimensions": "420x627",
+      "source": "codex-image (gpt-image-2) single transparent 1024x1536 sprite per expression (the first 2x2 sheet clipped hair at the cell edges), refs = existing R2 pje sprites (public); scaled so the head top sits at y45 and the figure bottom at y546 of the existing 627px frame, then x1.12 to match the R2 head size and bottom-cropped at y546; visual-checker ACCEPT 2026-10-02",
       "usage": "서한비 사람 — 옅은 미소(수용 뒤)",
       "rules": "transparent, same head scale and floor gap as the R2 pje sprites, <=80KB",
       "maxBytes": 80000,
-      "bytes": 29482
+      "bytes": 72874
     },
     {
       "id": "pje-resolve-v1",
@@ -371,12 +371,12 @@
       "type": "character-sprite",
       "character": "pje",
       "expression": "resolve",
-      "dimensions": "339x627",
-      "source": "codex-image (gpt-image-2) 2x2 green-screen sheet, refs = existing R2 pje sprites (public); green key + 1px erosion, scaled 0.8 and padded to the existing 627px frame (top 45 / bottom 80); visual-checker ACCEPT 2026-10-02",
+      "dimensions": "434x627",
+      "source": "codex-image (gpt-image-2) single transparent 1024x1536 sprite per expression (the first 2x2 sheet clipped hair at the cell edges), refs = existing R2 pje sprites (public); scaled so the head top sits at y45 and the figure bottom at y546 of the existing 627px frame, then x1.15 to match the R2 head size and bottom-cropped at y546; visual-checker ACCEPT 2026-10-02",
       "usage": "서한비 사람 — 결의(고리를 끊는 선택)",
       "rules": "transparent, same head scale and floor gap as the R2 pje sprites, <=80KB",
       "maxBytes": 80000,
-      "bytes": 30096
+      "bytes": 73206
     },
     {
       "id": "yun-base-v1",

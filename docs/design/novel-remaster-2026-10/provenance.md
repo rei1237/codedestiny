@@ -241,9 +241,11 @@ Painted anime visual-novel BACKGROUND, matching the painterly brushwork, soft lu
 
 ## 서한비 사람 컷 — `remaster/pje/{cry,sad,smile,resolve}.webp`
 
-1024x1536, 2x2 초록 배경 시트. 참조: 공개 R2 의 기존 서한비 사람 스프라이트 3장(`pje` 키, 읽기 전용 내려받기). 처리: 초록 키 제거 → 가장자리 1px 침식 → 칸 자르기 → 기존 R2 컷과 머리 크기를 맞추려 0.8배 축소 → 위 45px·아래 80px 투명 여백으로 627px 높이 → WebP q90.
+1차는 1024x1536 2x2 초록 배경 시트였으나, 인물이 칸 경계까지 꽉 차 머리카락·소매가 칸 가장자리에서 직선으로 잘려 화면 검수에서 탈락했다(출고하지 않음, 아래에 프롬프트만 남긴다). 최종본은 표정마다 1024x1536 투명 낱장이다(SIZE=1024x1536, NOREF=1).
+참조: 공개 R2 의 기존 서한비 사람 스프라이트 2장(`pje` 키의 기본·무표정, 읽기 전용 내려받기). 참조 안내: `Attachments 1 and 2 (ref-pje-base.png, ref-pje-blank.png) are sprites of the CHARACTER - draw exactly this same woman (face, hair, outfit, colors, art style), but only ONE figure, with the framing and transparent background described below. Their background color is not part of the character.`
+처리: 알파 128 초과 첫 행(머리 꼭대기)이 y45, 캔버스 바닥이 y546 이 되도록 축소한 뒤 기존 R2 컷과 머리 크기를 맞추려 표정별 배율(cry·sad 1.18, smile 1.12, resolve 1.15)을 곱하고, y546 아래는 잘라 기존 627px 틀(아래 80px 투명)에 둔다. 폭은 인물 폭+14px(최소 250), 가운데 정렬. smile 원본의 오른쪽 가장자리 닿음(아래 99행)은 이 아래 자르기로 사라진다. WebP q90·alphaQuality 100(78KB 이하).
 
-정확한 생성 프롬프트:
+### 1차 시트 pjeSheet (탈락, 출고하지 않음)
 
 ```text
 A character EXPRESSION SHEET for a Korean anime visual novel. The attached reference sprites show the character SEO HAN-BI: draw exactly the SAME woman with the same face, hair, outfit, colors and art style (same line weight and shading), just with new expressions.
@@ -258,6 +260,79 @@ bottom-right: resolute and determined, steady gaze straight ahead, chin up, one 
 
 No other people, no animals, no extra props. No text, no numbers, no watermark.
 ```
+
+### cry
+
+```text
+BACKGROUND (most important): fully TRANSPARENT background (alpha 0). No backdrop, no gradient, no glow, no aura, no shadow.
+
+A single character sprite for a Korean anime visual novel. Portrait canvas 1024x1536.
+
+The character: SEO HAN-BI, exactly the same woman as the attached reference sprites - same face, same hair (length, color, style, loose strands), same outfit, same colors, same accessories, and the same art style, line weight and cel shading. Do not redesign her.
+
+Framing: ONE woman, standing, facing the viewer, centered, with the SAME body crop as the reference sprites (cut at the same place on her body). The whole figure including ALL of her hair, both arms, both sleeves and the outfit is at most 640 px wide and stays well inside the canvas, with at least 180 px of empty transparent space on the left and on the right and at least 120 px above the head. Her hair falls close to her body and does not spread out to the sides. The bottom of the figure is cut off cleanly by the bottom canvas edge, no fade. Nothing touches the left, right or top edge.
+
+Expression and pose (her softened, human, repentant side - no madness, no sneer): crying quietly, tears running down her cheeks, eyebrows drawn together, mouth trembling, both hands held together close in front of her chest.
+
+No other people, no animals, no extra props. No text, no numbers, no watermark.
+
+REMINDER: transparent background; at least 180 px of empty space left and right of the figure; hair and arms never clipped at the sides.
+```
+
+### sad
+
+```text
+BACKGROUND (most important): fully TRANSPARENT background (alpha 0). No backdrop, no gradient, no glow, no aura, no shadow.
+
+A single character sprite for a Korean anime visual novel. Portrait canvas 1024x1536.
+
+The character: SEO HAN-BI, exactly the same woman as the attached reference sprites - same face, same hair (length, color, style, loose strands), same outfit, same colors, same accessories, and the same art style, line weight and cel shading. Do not redesign her.
+
+Framing: ONE woman, standing, facing the viewer, centered, with the SAME body crop as the reference sprites (cut at the same place on her body). The whole figure including ALL of her hair, both arms, both sleeves and the outfit is at most 640 px wide and stays well inside the canvas, with at least 180 px of empty transparent space on the left and on the right and at least 120 px above the head. Her hair falls close to her body and does not spread out to the sides. The bottom of the figure is cut off cleanly by the bottom canvas edge, no fade. Nothing touches the left, right or top edge.
+
+Expression and pose (her softened, human, repentant side - no madness, no sneer): sad and remorseful, eyes lowered, lips pressed, one hand lightly holding her other arm close to her body.
+
+No other people, no animals, no extra props. No text, no numbers, no watermark.
+
+REMINDER: transparent background; at least 180 px of empty space left and right of the figure; hair and arms never clipped at the sides.
+```
+
+### smile
+
+```text
+BACKGROUND (most important): fully TRANSPARENT background (alpha 0). No backdrop, no gradient, no glow, no aura, no shadow.
+
+A single character sprite for a Korean anime visual novel. Portrait canvas 1024x1536.
+
+The character: SEO HAN-BI, exactly the same woman as the attached reference sprites - same face, same hair (length, color, style, loose strands), same outfit, same colors, same accessories, and the same art style, line weight and cel shading. Do not redesign her.
+
+Framing: ONE woman, standing, facing the viewer, centered, with the SAME body crop as the reference sprites (cut at the same place on her body). The whole figure including ALL of her hair, both arms, both sleeves and the outfit is at most 640 px wide and stays well inside the canvas, with at least 180 px of empty transparent space on the left and on the right and at least 120 px above the head. Her hair falls close to her body and does not spread out to the sides. The bottom of the figure is cut off cleanly by the bottom canvas edge, no fade. Nothing touches the left, right or top edge.
+
+Expression and pose (her softened, human, repentant side - no madness, no sneer): a small faint gentle smile, eyes soft and slightly wet, shoulders relaxed, arms hanging naturally close to her body.
+
+No other people, no animals, no extra props. No text, no numbers, no watermark.
+
+REMINDER: transparent background; at least 180 px of empty space left and right of the figure; hair and arms never clipped at the sides.
+```
+
+### resolve
+
+```text
+BACKGROUND (most important): fully TRANSPARENT background (alpha 0). No backdrop, no gradient, no glow, no aura, no shadow.
+
+A single character sprite for a Korean anime visual novel. Portrait canvas 1024x1536.
+
+The character: SEO HAN-BI, exactly the same woman as the attached reference sprites - same face, same hair (length, color, style, loose strands), same outfit, same colors, same accessories, and the same art style, line weight and cel shading. Do not redesign her.
+
+Framing: ONE woman, standing, facing the viewer, centered, with the SAME body crop as the reference sprites (cut at the same place on her body). The whole figure including ALL of her hair, both arms, both sleeves and the outfit is at most 640 px wide and stays well inside the canvas, with at least 180 px of empty transparent space on the left and on the right and at least 120 px above the head. Her hair falls close to her body and does not spread out to the sides. The bottom of the figure is cut off cleanly by the bottom canvas edge, no fade. Nothing touches the left, right or top edge.
+
+Expression and pose (her softened, human, repentant side - no madness, no sneer): resolute and determined, steady gaze straight ahead, chin up, one hand closed into a fist at her side, arm close to her body.
+
+No other people, no animals, no extra props. No text, no numbers, no watermark.
+
+REMINDER: transparent background; at least 180 px of empty space left and right of the figure; hair and arms never clipped at the sides.
+```
+
 
 ## 윤달 — `remaster/yun/<표정>.webp`
 
