@@ -308,6 +308,20 @@ test("결과 카드 이미지는 같은 기능의 홈 타일에서 빌리고, �
   assert.equal(img.getAttribute("src"), "/images/home/finder-moon.svg", "R2 도 실패했는데 달 이미지로 떨어지지 않았다");
 });
 
+test("체계 허브(roles:quick)는 홈 타일이 없어도 체계 그림을 쓴다", async () => {
+  const { doc, window } = await boot();
+  const hubs = window.__cdServiceRegistry.filter((i) => (i.roles || []).includes("quick"));
+  assert.ok(hubs.length >= 6, "체계 허브가 레지스트리에 없다(fail-open)");
+  for (const hub of hubs) {
+    assert.ok((await search(window, doc, hub.name)).includes(hub.name), `${hub.name}: 검색 결과가 없다`);
+    const card = Array.from(doc.querySelectorAll("#fortuneGatewayRecs .fortune-gateway__rec"))
+      .find((item) => item.querySelector(".fortune-gateway__rec-name").firstChild.textContent.trim() === hub.name);
+    assert.equal(card?.querySelector(".fortune-gateway__rec-media img")?.getAttribute("src"), `/feature-details/assets/${hub.id}-320.webp`, `${hub.name}: 달 이미지로 떨어졌다`);
+    assert.ok(fs.existsSync(path.join(root, "public/feature-details/assets", `${hub.id}-320.webp`)), `${hub.id}: 그림 파일이 없다`);
+  }
+  window.close();
+});
+
 test("상품명은 띄어쓰기와 관계없이 검색되며 고민·가격 필터를 함께 유지한다", async () => {
   const { doc, window } = await boot();
   for (const [name, purpose, bucket] of [["인생의 책", "life", "premium"], ["연애 비책", "love", "vvip"]]) {

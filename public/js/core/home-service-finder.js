@@ -243,6 +243,12 @@
       (imageHrefKey(item.href) && featureImageIndex["h:" + imageHrefKey(item.href)]) || "";
   }
 
+  /* 체계 허브(roles:quick — 사주·타로·자미두수·숙요점·점성술·베다점)는 홈 #cdQuickServices 타일 그림을 빌렸다.
+     그 타일을 지운 뒤(2026-10-03) 같은 파일을 id 로 직접 가리킨다 — 레지스트리에 값을 저장하지 않는다. */
+  function methodHubImage(item) {
+    return item.roles && item.roles.indexOf("quick") !== -1 && /^[a-z]+$/.test(item.id || "") ? "/feature-details/assets/" + item.id + "-320.webp" : "";
+  }
+
   /* 이미지 판정용 href 키는 쿼리를 남긴다 — normHref 처럼 떼면 /index.html?action=… 항목이
      전부 "/index.html" 하나로 뭉쳐 남의 기능 이미지를 빌린다. */
   function imageHrefKey(href) {
@@ -392,7 +398,7 @@
     var media = document.createElement("span");
     media.className = className;
     var image = document.createElement("img");
-    image.src = item.image || featureTileImage(item) || DEFAULT_SERVICE_IMAGE;
+    image.src = item.image || featureTileImage(item) || methodHubImage(item) || DEFAULT_SERVICE_IMAGE;
     image.alt = item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지");
     image.loading = "lazy";
     image.decoding = "async";
