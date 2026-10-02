@@ -110,7 +110,9 @@ export function consultationClock(timezone: unknown, now = new Date()) {
   } catch { throw new FortuneError('INVALID_TIMEZONE'); }
 }
 
-export function createConsultation(question: string, topicId: string, clock: ReturnType<typeof consultationClock>, manifest: ChapterSpec[]): Consultation {
+// askPeriods: only the '무엇이든 물어보기' kind resolves week/month ranges and carries the period contract;
+// every other product keeps its earlier period output byte for byte.
+export function createConsultation(question: string, topicId: string, clock: ReturnType<typeof consultationClock>, manifest: ChapterSpec[], askPeriods = false): Consultation {
   // Preserve every character of the input in the snapshot; splitting only assigns
   // answer slots, it never asks another model to rewrite the user's intent.
   const units = question.trim().split(/\n+|(?<=[?？])\s*/u).map(s => s.trim()).filter(Boolean);
@@ -120,7 +122,8 @@ export function createConsultation(question: string, topicId: string, clock: Ret
   // A named year becomes an explicit calendar range, so '올해' can never drift to another year downstream.
   const years = resolveQuestionYears(question, clock.asOf);
   // Weeks and months become absolute ranges too; the request then spans their union, never the whole window.
-  const ranges = resolveAskPeriods(question, clock.asOf, resolveQuestionYears);
+  const ranges = askPeriods ? resolveAskPeriods(question, clock.asOf, resolveQuestionYears) : [];
+  const resolver = askPeriods ? { resolver: ASK_PERIOD_RESOLVER } : {};
   const span = ranges.length ? { start: ranges.map(r => r.start).sort()[0], end: ranges.map(r => r.end).sort().at(-1)!, ranges } : undefined;
   const end = new Date(`${clock.asOf}T12:00:00Z`);
   const day=end.getUTCDate();
@@ -133,8 +136,8 @@ export function createConsultation(question: string, topicId: string, clock: Ret
     period: requestedLabels.length || years.length || span ? { kind: 'requested', label: [...new Set([...requestedLabels, ...years.map(y => y.label)
       .filter(label => !requestedLabels.some(r => r.replace(/\s+/g, ' ').includes(label)))])].join(' · '),
       ...(years.length ? { start: `${years[0].year}-01-01`, end: `${years[years.length - 1].year}-12-31`, years } : {}),
-      ...(span || {}), resolver: ASK_PERIOD_RESOLVER }
-      : { kind: 'default', label: `${clock.asOf}부터 3개월의 흐름과 실천·점검`, start: clock.asOf, end: end.toISOString().slice(0, 10), resolver: ASK_PERIOD_RESOLVER } };
+      ...(span || {}), ...resolver }
+      : { kind: 'default', label: `${clock.asOf}부터 3개월의 흐름과 실천·점검`, start: clock.asOf, end: end.toISOString().slice(0, 10), ...resolver } };
 }
 
 export function validateConsultationAnswers(body: ChapterBody, chapter: ChapterSpec, consultation?: Consultation) {
