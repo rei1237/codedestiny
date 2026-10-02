@@ -86,7 +86,7 @@ Last curated: `2026-10-02`
 - 🔴 **사주 그룹 프롬프트의 배열 순서(`worker/routes/fortune.js` `buildSajuAISectionPrompt`)는 불변 접두사 → 가변 접미사다.** Gemini 암묵 캐싱은 공통 **접두사**에만 걸린다. 뒤집으면 6만자가 정가로 돌아간다.
 - 숙요 궁합의 서버측 중복 생성 창은 2026-08-15 #652(`eab74c949`)로 닫혔다(`generationLease` + 낡은 `generating` 판정, `__tests__/worker/sukuyo-compatibility-ai.duplicate-generation.test.js`).
 - 🟡 **차단**: 프롬프트 JSON 덤프를 섹션이 쓰는 만큼만 싣기(사주 기준 남은 덤프 47,105자). 사주 5그룹에 `evidenceRefs` 선언이 없어 명리 도메인 설계 결정이 먼저이고, **모델이 보는 정보를 줄이는** 작업이라 위험도가 가장 높다 → [`docs/handoff/llm-prompt-json-slicing.md`](handoff/llm-prompt-json-slicing.md)
-- 🟡 **남은 개별 항목**은 로드맵 S18 이 맡는다 → [`docs/handoff/llm-optimization-leftovers.md`](handoff/llm-optimization-leftovers.md): sukuyo 의 `attempts: 2` 와 `capTokens` 불일치 · JSON 스키마를 프롬프트 텍스트로 보내는 것(Gemini 네이티브 `responseSchema` 미사용) · 토큰 집계 사각지대 2곳(`lib/tarot/mindscan-reading.mjs` · `love-reading-llm.mjs` 가 `llm-client` 미경유)
+- 🟡 **남은 개별 항목**은 로드맵 S18 이 맡는다 → [`docs/handoff/llm-optimization-leftovers.md`](handoff/llm-optimization-leftovers.md): worker `palm-vision.js` 의 `capTokens`(12288) 가 base×1.3(약 10650)과 어긋나는 것 · F(palm-vision·animal-totem 캐시, 적중률 실측 뒤 결정). 2026-10-02 기준 완료 — 숙요 `attempts`·`capTokens` 정합(`63b7bc03e`) · Gemini 네이티브 `responseSchema` 전환(`f26f2f432`) · 토큰 집계 사각지대 2곳(mindscan·love-reading) 집계 연결 — `lib/tarot/token-usage.mjs`(`3a9a0378d`)
 - 🔴 **thinking 토큰은 이미 전역 OFF다**(`lib/llm-client.ts` 의 `resolveThinkingBudget` — 미지정 = 0, 옵트인 호출자 0건). 여기서 더 아낄 것이 없으니 다시 조사하지 말 것.
 
 ### 8. 경쟁력 로드맵 — 측정 정합 → 모수 확대 → 공유 루프 → 속도 → 비용 (2026-09-23 — 현재 최우선 축)
