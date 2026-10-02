@@ -470,7 +470,7 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
   const ai = await callGeminiJsonWithRetry(env, userPrompt, {
     attempts: 2,
     baseTokens: 8192,
-    capTokens: 12288,
+    capTokens: Math.round(8192 * 1.3), // 실제 최대: 2회차만 baseTokens×1.3 으로 오른다(structured-consultation.js).
     temperature: 0.2,
     taskType: "fortune",
     timeoutMs: VISION_TIMEOUT_MS,
