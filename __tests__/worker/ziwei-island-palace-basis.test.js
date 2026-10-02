@@ -99,6 +99,7 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => null }));
   jest.unstable_mockModule("../../worker/lib/structured-consultation.js", () => ({ ...structured, callGeminiJsonWithRetry: (...args) => provider(...args) }));
   jest.unstable_mockModule("../../worker/lib/cms-prompts.js", () => ({ cmsPromptText: async (_env, _key, text) => text, cmsPromptModelConfig: async () => ({}) }));
+  jest.unstable_mockModule("../../worker/lib/payment-refund.js", () => ({ autoRefundSinglePaymentDeliveryFailure: async () => ({ refunded: false }) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
   ({ handleZiweiIslandAiRoutes: route } = await import("../../worker/routes/ziwei-island-ai.js"));
   ({ calculateZiweiAiChart: chartOf } = await import("../../worker/lib/ziwei-ai-chart.js"));
