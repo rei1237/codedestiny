@@ -14,7 +14,7 @@ next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 남은 
 ## 지금 상태
 
 - 체험가 표기 본작업은 main 09ae18c2c 에 머지·push, PR CI success. 표시 정본 `lib/brand/launch-offer.ts`.
-- 1번 완료(0d06de996), 2번 완료(fc4e92005, main PR CI success). 3~7번 미착수. 다음은 **3번**(조사부터). 항목 하나 = 커밋 하나(되돌리기 단위). 끝나면 여기 `[x]` + 커밋 SHA 를 적는다.
+- 1번 완료(0d06de996), 2번 완료(fc4e92005, main PR CI success), 3번 완료(f642cef8d). 4~7번 미착수. 다음은 **4번**. 항목 하나 = 커밋 하나(되돌리기 단위). 끝나면 여기 `[x]` + 커밋 SHA 를 적는다.
 
 ## 남은 작업 (위에서부터 하나씩)
 
@@ -24,7 +24,7 @@ next: "docs/handoff/2026-10-02-yeongnyangi-launch-offer-followups.md 의 남은 
 - [x] **2. 결제 합계 스크린리더 문장 (GREEN, a11y)** — 완료 fc4e92005 (Consultation 에서만 `styles.srOnly` ", 체험가 " 삽입, 예정가가 있을 때만. `LaunchPlannedPrice` 는 그대로 — 배너·NightHero 는 뒤에 이미 "체험가"/"사주 고등어" 가 와서 중복됨). 남은 관찰: 생선 버튼(`fishPrice`)도 "정식 오픈 예정가 9,900원 1,000원" 으로 읽힌다 — 범위 밖, 미수정. — 합계가 "정식 오픈 예정가 9,900원 ₩1,000" 로 읽힌다.
   `Consultation.tsx` checkoutTotal 블록 + `app/components/LaunchPlannedPrice.tsx`. 실가 앞에 시각 숨김 "체험가" 를 붙이는 식으로 "정식 오픈 예정가 9,900원, 체험가 1,000원" 이 되게. 시각 표시는 바꾸지 않는다.
   완료 기준: `__tests__/ui/yeongnyangi-launch-offer.test.mjs` 에 접근성 텍스트 단언 1개 추가.
-- [ ] **3. 챕터 수 불일치 조사→수정 (GREEN 조사, 수정은 결과에 따라 RED)** — `/yeongnyangi/1000-won-fortune/` 가격표는 광어 11·참치 15, 상담 화면 생선 버튼은 광어 13·참치 24.
+- [x] **3. 챕터 수 불일치 조사→수정 (GREEN 조사, 수정은 결과에 따라 RED)** — 완료 f642cef8d. 실측: `READING_V7_ENABLED=true`(`reading-v7.ts:10`), v7 은 개인 해석·물어보기(타로는 choice·love)에만 적용돼 챕터 수가 체계·종류마다 다르다(예: 광어 사주 13·숙요 8·점성술 10·궁합 11, 참치 사주 24·베다 23·숙요 10). `catalog.ts` 는 건드리지 않고 `consultationChapterCounts(p)`(`consultation-kinds.ts`)를 추가해 천원운세·YeongnyangiGuide 두 표가 제공 종류 전체의 매니페스트 길이 범위를 쓴다 → 연어 6~8·광어 8~13·참치 10~24. 테스트는 `yeongnyangi-reading-v7.test.mjs` 마지막. 남은 관찰(범위 밖, 미수정): 같은 표의 "N자 이상" 열은 여전히 v6 티어 정책 최소치이고 v7 은 챕터당 1,400자×챕터 수다; 천원운세 체계별 목차(`page.tsx:131`)는 `readingManifest(p)`(v5 함수)로 그려 상담 화면의 v6 목차와 제목이 다를 수 있다; `NightHero`·`SpiritConsultation`·Library 의 `chapterCount` 는 고등어라 5 로 일치. — `/yeongnyangi/1000-won-fortune/` 가격표는 광어 11·참치 15, 상담 화면 생선 버튼은 광어 13·참치 24.
   가격표 = `Product.chapterCount`(`worker/yeongnyangi/payments/catalog.ts:13` → `readingChapterCount`, `worker/yeongnyangi/fortune/reading-policy.ts:30`, v5/v6 버전 기준).
   버튼 = `consultationManifest(...).length`(`worker/yeongnyangi/fortune/consultation-kinds.ts:46`, v7 이 켜지면 `readingManifestV7`).
   추정(미검증): v7 매니페스트 길이와 카탈로그 숫자가 갈라졌다. 실제로 전달되는 쪽(=생성 매니페스트)이 정본일 가능성이 크다 → 가격표가 그 값을 쓰게 바꾼다.
