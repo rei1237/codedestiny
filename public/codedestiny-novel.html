@@ -1739,7 +1739,11 @@ function runFx(name){
   else if(name==="script")fxScript();
   else if(name==="thread")fxThread();
   else if(name==="stars")fxStars();
+  else if(name==="flash")fxFlash();
+  else if(name==="shake")fxShake();
 }
+function fxShake(){var p=document.getElementById("player");p.classList.remove("shakeScreen");void p.offsetWidth;p.classList.add("shakeScreen");fxLater(function(){p.classList.remove("shakeScreen");},520);}
+function fxFlash(){var d=mkOverlay();d.style.background="#fff";d.style.opacity="0";d.style.animation="flash .7s ease forwards";cleanup(d,800);}
 function mkOverlay(){var d=document.createElement("div");d.style.cssText="position:absolute;inset:0";fxLayer.appendChild(d);return d;}
 function cleanup(el,ms){fxLater(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);},ms);}
 function fxInk(){var d=mkOverlay();d.style.background="radial-gradient(circle at 50% 60%,#05060c,#05060c)";d.style.animation="inkOut .9s ease forwards";cleanup(d,1000);}
@@ -1769,7 +1773,7 @@ function fxHands(){
   },3600);
 }
 function fxClaw(){
-  var p=document.getElementById("player");p.classList.add("shakeScreen");fxLater(function(){p.classList.remove("shakeScreen");},520);
+  fxShake();
   var d=mkOverlay();
   d.innerHTML='<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%"><g stroke="#fff" stroke-width="1.4" fill="none" opacity=".9" filter="url(#gl)"><defs><filter id="gl"><feGaussianBlur stdDeviation="0.5"/></filter></defs><line x1="18" y1="8" x2="78" y2="86" stroke-dasharray="120" stroke-dashoffset="120" style="animation:dashDraw .25s ease forwards"/><line x1="34" y1="6" x2="92" y2="80" stroke-dasharray="120" stroke-dashoffset="120" style="animation:dashDraw .25s ease .06s forwards"/><line x1="6" y1="20" x2="66" y2="94" stroke-dasharray="120" stroke-dashoffset="120" style="animation:dashDraw .25s ease .12s forwards"/></g></svg>';
   var fade=d.firstChild;fxLater(function(){fade.style.transition="opacity .3s";fade.style.opacity="0";},300);
@@ -1844,7 +1848,7 @@ var EL_HUE={
 function elHue(el){return EL_HUE[el]||EL_HUE.metal;}
 /* 金 — 백금 참격 3선 + 서리 섬광 */
 function fxMetal(){
-  var p=document.getElementById("player");p.classList.add("shakeScreen");fxLater(function(){p.classList.remove("shakeScreen");},520);
+  fxShake();
   var d=mkOverlay();d.style.overflow="hidden";
   var glint=document.createElement("div");
   glint.style.cssText="position:absolute;inset:0;background:radial-gradient(circle at 58% 44%,rgba(230,237,245,.5),transparent 62%);animation:frostGlint .5s ease forwards";
@@ -1958,7 +1962,7 @@ function fxNet(){
 }
 /* 木·뿌리내림 — 화면 아래에서 뿌리 균열이 번지고 흙빛이 맥동한다 */
 function fxRoot(){
-  var p=document.getElementById("player");p.classList.add("shakeScreen");fxLater(function(){p.classList.remove("shakeScreen");},520);
+  fxShake();
   var d=mkOverlay();d.style.overflow="hidden";
   var soil=document.createElement("div");
   soil.style.cssText="position:absolute;left:0;right:0;bottom:0;height:34%;"+

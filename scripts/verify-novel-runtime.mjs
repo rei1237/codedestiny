@@ -1,7 +1,7 @@
 // 정적 VN 엔진이 정본 청크 구조와 핵심 회귀 방지 장치를 계속 보유하는지 검사한다.
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges } from "./build-novel-runtime.mjs";
+import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS } from "./build-novel-runtime.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const PLAYER_PATH = resolve(ROOT, "public/codedestiny-novel.html");
@@ -64,6 +64,10 @@ const forbiddenRuntimePatterns = [
   ['setTimeout(function(){cc.classList.add("hidden");},700)', '추적되지 않는 카드 hide 타이머는 다음 화의 카드를 숨긴다 — closeChapterCard() 를 쓴다'],
 ];
 for (const hook of requiredRuntimeHooks) if (!html.includes(hook)) fail(`required runtime hook missing: ${hook}`);
+// 빌드가 허용하는 fx 는 셸이 모두 그려야 한다 — flash·shake 가 통과만 하고 화면에 안 나오던 회귀(2026-10-02).
+const runFxBody = html.match(/function runFx\(name\)\{([\s\S]*?)\n\}/)?.[1];
+if (!runFxBody) fail("runFx was not found in the player shell");
+for (const effect of EFFECTS) if (!runFxBody.includes(`name==="${effect}"`)) fail(`fx '${effect}' is accepted by the build but runFx has no branch for it`);
 for (const [pattern, why] of forbiddenRuntimePatterns) if (html.includes(pattern)) fail(`forbidden pattern is back: ${pattern} — ${why}`);
 if ((html.match(/bootDirectPlay\(\);/g) ?? []).length !== 1) fail("direct player boot must have exactly one data-ready entry point");
 if (html.includes("EPISODES.push(")) fail("inline episode data remains in the player; run externalize-novel-episodes.mjs");

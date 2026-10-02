@@ -468,12 +468,20 @@ async function verifyMobileRendering() {
     await win.ensureEpisodeLoaded(0);
     win.S.screen = "player";
     win.S.reduce = true;
-    for (const fx of ["hands", "metal", "water", "suck", "thread"]) {
+    for (const fx of ["hands", "metal", "water", "suck", "thread", "flash", "shake"]) {
       win.runFx(fx);
+      assert.equal(win.fxLayer.dataset.still, fx, `reduced motion must mark ${fx} as a still cue`);
+      assert.equal(win.document.getElementById("player").classList.contains("shakeScreen"), false, "reduced motion must not shake the screen");
       assert.equal(win.fxLayer.childElementCount, 0, "reduced motion must not construct animated effects");
       assert.equal(win._fxTimers.length, 0, "reduced motion must not queue effect timers");
     }
     win.S.reduce = false;
+    // flash·shake 는 빌드가 허용하는 fx 인데 셸이 그리지 않던 것이다(2026-10-02).
+    win.runFx("flash");
+    assert.ok(win.fxLayer.childElementCount > 0, "flash did not draw an overlay");
+    win.runFx("shake");
+    assert.ok(win.document.getElementById("player").classList.contains("shakeScreen"), "shake did not shake the screen");
+    win.clearSceneEffects();
     win.runFx("metal");
     assert.ok(win.fxLayer.childElementCount > 0);
     win.clearSceneEffects();
