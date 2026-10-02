@@ -155,7 +155,7 @@ export function buildPrompt(facts) {
 }
 
 function copyRules(facts) {
-  const base = { vocabulary: VOCABULARY, allowed: allowedTerms(facts) };
+  const base = { vocabulary: VOCABULARY, allowed: allowedTerms(facts), casual: true };
   return {
     hook: { ...base, min: 10, max: 50 },
     body: { ...base, min: 30, max: 140 },

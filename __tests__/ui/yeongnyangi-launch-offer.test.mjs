@@ -3,6 +3,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import {readFileSync} from 'node:fs';
 import {build} from 'esbuild';
 import {SERVICE_PACK_PLANS} from '../../worker/payments/service-pack-policy.js';
 
@@ -45,10 +46,22 @@ test('banner states the limit, planned and trial price, the scoped credential an
  assert.match(html,/<s[^>]*data-launch-planned-price[^>]*>정식 오픈 예정가 9,900원<\/s>/);
  assert.match(text,/체험가 1,000원/);
  assert.match(text,/사주 계산 로직은 10년 경력 명리학자가 직접 설계했어요/);
- assert.match(text,/몇 달 뒤에는 예정가로 바뀔 수 있어요/);
+ assert.match(text,/체험가는 10월 4일까지예요. 10월 5일부터 정식 가격으로 바뀌어요/);
+ assert.doesNotMatch(text,/몇 달 뒤/,'the switch date is fixed, not vague');
  assert.match(text,/생선값이… 너무 비싸냥/);
  assert.match(text,/영냥이 생선 팩도 각자의 정식 오픈 예정가보다 낮은 체험가로 열려 있어요.가격은 상품마다 달라요./);
  assert.doesNotMatch(text,/같은 체험가/,'other tiers are not 1,000 won');
  assert.match(text,/후기는 네오의 사람 1:1 상담·강의 이용자가 남긴 것이고, 체험가 상담은 계산 엔진과 AI 해설로 제공돼요/);
  assert.doesNotMatch(text,BANNED);
+});
+
+test('checkout total reads the planned price, then the labelled trial price, to a screen reader',async()=>{
+ const strong=readFileSync('app/yeongnyangi/_components/Consultation.tsx','utf8').match(/<div className=\{styles\.checkoutTotal\}>.*?(<strong>.*?<\/strong>)/)?.[1];
+ assert.ok(strong,'checkout total block');
+ const {Total}=await load(`import LaunchPlannedPrice from './app/components/LaunchPlannedPrice';const styles={totalPlanned:'totalPlanned',srOnly:'srOnly'};export function Total({plannedTotal,product,price}){return ${strong};}`);
+ const React=require('react'),{renderToStaticMarkup}=require('react-dom/server'),price=n=>n.toLocaleString('ko-KR')+'원';
+ const html=renderToStaticMarkup(React.createElement(Total,{plannedTotal:mod.plannedPriceFor('mackerel',1000),product:{priceKRW:1000},price}));
+ assert.equal(html.replace(/<[^>]+>/g,''),'정식 오픈 예정가 9,900원, 체험가 1,000원');
+ assert.match(html,/<s[^>]*>정식 오픈 예정가 9,900원<\/s><span class="srOnly">, 체험가 <\/span>1,000원/,'only the trial label is visually hidden');
+ assert.equal(renderToStaticMarkup(React.createElement(Total,{plannedTotal:null,product:{priceKRW:1000},price})),'<strong>1,000원</strong>','no planned price, no trial label');
 });

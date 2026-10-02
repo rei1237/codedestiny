@@ -69,6 +69,7 @@ export default function Consultation(){
  const viewedProduct=useRef('');
  const restoredDraft=useRef<{profileId?:string;partnerId?:string;extraTime?:string;extraPlace?:string;timeUnknown?:boolean}|null>(null);
  const product=products.find(p=>p.id===productId)!;
+ const plannedTotal=siteLocale==='ko'?plannedPriceFor(product.fishId,product.priceKRW):null;
  const inputCopy=consultationInputCopy(siteLocale),jongCopy=jongCheckCopy(siteLocale);
  useEffect(()=>{
   if(!ready||viewedProduct.current===product.id)return;
@@ -264,7 +265,7 @@ export default function Consultation(){
     const head=v7PartHead(preview,i,siteLocale);
     return <li key={chapter.id}>{head&&<b className={styles.partHeading}>{head}</b>}{v7Label(chapter.titleKey,siteLocale)||(siteLocale==='ko'?chapter.title:`${localizedKind(kind.id,siteLocale)} · ${i+1}`)}</li>;
    })}</ol></details>
-   <div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{tierLabel(product)} · {ui.payment}</span><strong>{siteLocale==='ko'&&<LaunchPlannedPrice className={styles.totalPlanned} amount={plannedPriceFor(product.fishId,product.priceKRW)}/>}{price(product.priceKRW)}</strong></div>
+   <div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{tierLabel(product)} · {ui.payment}</span><strong><LaunchPlannedPrice className={styles.totalPlanned} amount={plannedTotal}/>{plannedTotal!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(product.priceKRW)}</strong></div>
    <p>{ui.afterPayment}</p><p>{askCopy.language}: <b lang={locale}>{readingLanguageNames[locale]}</b> · {ui.languageHint}</p><p>{ui.priceHint}</p>
    <a href={`/yeongnyangi/library/?lang=${siteLocale}`}>{ui.library}</a>
    <p>{ui.about} {ui.limits}</p>
