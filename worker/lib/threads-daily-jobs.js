@@ -1,4 +1,5 @@
-// Threads 유형별 일일 발행 Job — 사주 08:30 / 자미두수 12:00 / 베다 16:00 / 수비학 20:30 KST.
+// Threads 유형별 일일 발행 Job — 띠별 08:30 / 사주 12:00 / 카르마 20:30 KST(2026-10-02 개편).
+// 자미두수·베다·수비학은 용어가 읽히지 않아 조회수가 없어 기본으로 끈다 — 코드는 보존, enableVar 로 재가동.
 //
 // 매 10분 크론(worker/index.js 의 PAYMENT_RECONCILE_CRON 분기)이 부른다. 워커 크론 구조는 그대로 두고
 // Job 마다 [설정 시각, +60분) 발행 창을 연다 — 창 안의 틱(최대 6회)이 곧 자동 재시도다.
@@ -19,6 +20,8 @@ import { getKstDateKey, getSiteBaseUrl } from "./daily-fortune-task.js";
 import { getThreadsPostMode, getThreadsSkipReason, isSwitchOn, runChannel } from "./sns-daily-post-task.js";
 import { postThreadsChain } from "./threads.js";
 import { buildUtmUrl, PROMPT_VERSION, repeatsRecent } from "./threads-daily-providers/shared.js";
+import * as zodiacProvider from "./threads-daily-providers/zodiac.js";
+import * as karmaProvider from "./threads-daily-providers/karma.js";
 import * as sajuProvider from "./threads-daily-providers/saju.js";
 import * as ziweiProvider from "./threads-daily-providers/ziwei.js";
 import * as vedicProvider from "./threads-daily-providers/vedic.js";
@@ -35,16 +38,20 @@ const MIN_GAP_MINUTES = 120;
 const LAST_TICK_OFFSET_MINUTES = WINDOW_MINUTES - 10;
 
 export const THREADS_DAILY_JOBS = Object.freeze([
-  { type: "saju", name: "daily-saju", timeVar: "THREADS_SAJU_TIME", defaultTime: "08:30" },
-  { type: "ziwei", name: "daily-ziwei", timeVar: "THREADS_ZIWEI_TIME", defaultTime: "12:00" },
-  { type: "vedic", name: "daily-vedic", timeVar: "THREADS_VEDIC_TIME", defaultTime: "16:00" },
-  // 수비학은 기본으로 켜진다. 워커 바인딩 예산(126/128) 때문에 켜는 var 를 두지 않고, 급할 때만
-  // THREADS_NUMEROLOGY_ENABLED="0" 을 넣어 이 Job 하나를 끈다(값이 비어 있으면 defaultEnabled).
-  { type: "numerology", name: "daily-tarot-or-numerology", timeVar: "THREADS_NUMEROLOGY_TIME", defaultTime: "20:30", enableVar: "THREADS_NUMEROLOGY_ENABLED", defaultEnabled: true },
+  { type: "zodiac", name: "daily-zodiac", timeVar: "THREADS_ZODIAC_TIME", defaultTime: "08:30" },
+  { type: "saju", name: "daily-saju", timeVar: "THREADS_SAJU_TIME", defaultTime: "12:00" },
+  { type: "karma", name: "daily-karma", timeVar: "THREADS_KARMA_TIME", defaultTime: "20:30" },
+  // 아래 셋은 기본 꺼짐(값이 비어 있으면 defaultEnabled). 워커 바인딩 예산(126/128) 때문에 wrangler 에 var 를
+  // 미리 두지 않는다 — 다시 켜려면 해당 *_ENABLED="1" 을 넣는다. 시각은 켜진 Job 과 2시간 이상 떨어뜨려 둔다.
+  { type: "ziwei", name: "daily-ziwei", timeVar: "THREADS_ZIWEI_TIME", defaultTime: "14:00", enableVar: "THREADS_ZIWEI_ENABLED", defaultEnabled: false },
+  { type: "vedic", name: "daily-vedic", timeVar: "THREADS_VEDIC_TIME", defaultTime: "16:00", enableVar: "THREADS_VEDIC_ENABLED", defaultEnabled: false },
+  { type: "numerology", name: "daily-tarot-or-numerology", timeVar: "THREADS_NUMEROLOGY_TIME", defaultTime: "18:00", enableVar: "THREADS_NUMEROLOGY_ENABLED", defaultEnabled: false },
 ]);
 
 export const DEFAULT_PROVIDERS = Object.freeze({
+  zodiac: zodiacProvider,
   saju: sajuProvider,
+  karma: karmaProvider,
   ziwei: ziweiProvider,
   vedic: vedicProvider,
   numerology: numerologyProvider,
@@ -134,7 +141,12 @@ export async function publishThreadsJob(env, { type, provider, now, fetchImpl, g
     sourceBasis:`canonical_engine:${type}:${base.date}:Asia/Seoul`, recentCompared:recent.length};
   if (repeatsRecent(written.copy, recent)) return {ok:false,status:0,error:"editorial_review_required",
     ref:{...base,...editorial,ids:[],reviewRequired:true}};
-  const result = await postThreadsChain(env, { texts: [text], fetchImpl });
+  // provider 가 [본 글, 답글…] 을 돌려주면 체인으로 낸다(띠별: 티저 + 12띠 답글). 링크·CTA 는 본 글에 있다.
+  const texts = Array.isArray(text) ? text : [text];
+  editorial.text = texts[0];
+  if (texts.length > 1) editorial.replies = texts.slice(1);
+  base.posts = texts.length;
+  const result = await postThreadsChain(env, { texts, fetchImpl });
   const ids = Array.isArray(result.ids) ? result.ids : [];
   const ref = { ...base, ...editorial, publishUncertain: Boolean(result.publishUncertain), containerId: result.containerId || null, ids, postId: ids[0] || null, aiModel: written.model || null, rejected: written.rejected || [] };
   if (!result.ok) {
@@ -186,12 +198,13 @@ export async function runThreadsDailyJobs(env, options = {}) {
 
   for (const job of THREADS_DAILY_JOBS) {
     if (only && job.type !== only) continue;
-    const schedule = { type: job.type, ...resolveJobSchedule(env, job) };
-    schedules.push(schedule);
     if (!isJobEnabled(env, job)) {
       jobs[job.type] = { ok: true, skipped: "job_disabled" };
       continue;
     }
+    // 간격 경고는 켜진 Job 끼리만 본다 — 꺼진 Job 의 기본 시각이 헛경고를 내지 않게.
+    const schedule = { type: job.type, ...resolveJobSchedule(env, job) };
+    schedules.push(schedule);
     if (schedule.invalid) {
       console.error(`[CRON] Threads ${job.name}: ${job.timeVar}="${schedule.value}" 는 HH:MM(00:00~23:00)이 아니다 — 이 Job 만 건너뛴다.`);
       jobs[job.type] = { ok: true, skipped: "invalid_time", value: schedule.value };
