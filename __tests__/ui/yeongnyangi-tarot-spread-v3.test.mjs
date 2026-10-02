@@ -1,0 +1,105 @@
+import '../../scripts/lib/mock-network-guard.cjs';
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+import {createRequire} from 'node:module';
+import path from 'node:path';
+const require=createRequire(import.meta.url),Module=require('node:module');
+globalThis.__spreadTest={rows:new Map()};
+// The repository mock keeps the two state rules under test: the initial AWAITING_DRAW state and the one-shot draw CAS.
+const replacements={
+  'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={findOne:()=>({lean:async()=>({updatedAt:null,birth:{year:1997,month:2,day:10,hour:12,minute:0,timeUnknown:false,calType:'solar'},gender:'F',location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}})})};`,
+  'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
+  'worker/yeongnyangi/repository.js':`const rows=()=>globalThis.__spreadTest.rows;
+export const allowedChapterAttempts=()=>3;export const holdAutoResumes=()=>false;export const userCanRetry=()=>false;export const saveChapterDraft=async()=>{};export const saveAskAnalysis=async()=>{};export const ownerId=x=>x;
+export const reserveQuestionSkyFollowup=async()=>{throw new Error('unexpected followup');};export const attachPayment=async()=>{throw new Error('unexpected payment');};
+export const claimChapter=async()=>{throw new Error('unexpected claim');};export const finishChapter=async()=>{};export const failChapter=async()=>{};
+export const createRequest=async(e,u,id,v,o={})=>{if(!rows().has(id))rows().set(id,structuredClone({...v,_id:id,userId:u,state:o.initialState||'CREATED',chapters:[]}));return rows().get(id);};
+export const readRequest=async(e,u,id)=>{const row=rows().get(id);if(!row||row.userId!==u)throw Object.assign(new Error('not found'),{code:'FORTUNE_NOT_FOUND',status:404});return row;};
+export const commitTarotDraw=async(e,u,id,{context,draw})=>{const row=await readRequest(e,u,id);if(row.state==='AWAITING_DRAW'&&!row.snapshot.tarotDraw){row.state='CREATED';row.snapshot.analysis.contexts.tarot=context;row.snapshot.tarotDraw=draw;return row;}
+ if(row.snapshot.tarotDraw)return row;throw Object.assign(new Error('TAROT_DRAW_NOT_AVAILABLE'),{code:'TAROT_DRAW_NOT_AVAILABLE',status:409});};`,
+  'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
+  'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
+};
+const bundle=await build({stdin:{contents:"export * from './worker/yeongnyangi/service'; export {products} from './worker/yeongnyangi/payments/catalog'; export {getYeongnyangiSpread} from './lib/tarot/yeongnyangi-spread-catalog.mjs'",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
+const loaded=new Module(path.resolve('tarot-spread-v3-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
+const {prepareFortune,presentFortune,drawTarotSpread,products}=loaded.exports;
+
+const env={GEMINIF_API_KEY:'mock-never-sent',LLM_DRY_RUN:'false'};
+let attempt=0;
+const attemptId=()=>`00000000-0000-4000-8000-${String(++attempt).padStart(12,'0')}`;
+const order=(extra={})=>({productId:'tarot_mackerel',profileId:'self',timezone:'Asia/Seoul',consultationKind:'spread',tarotSpreadId:'yn_contact_first',question:'내가 먼저 연락해도 될까?',consultationAttemptId:attemptId(),...extra});
+
+test('a spread order is stored awaiting the draw with a hidden committed deck and the full spread snapshot',async()=>{
+ const row=await prepareFortune(env,'owner',order());
+ assert.equal(row.state,'AWAITING_DRAW');
+ assert.equal(row.snapshot.tarotConsultation.version,'yeongnyangi-tarot-consultation-v3');
+ assert.equal(row.snapshot.tarotSpread.id,'yn_contact_first');assert.equal(row.snapshot.tarotSpread.positions.length,5);
+ assert.equal(new Set(row.snapshot.tarotDeck.order).size,78);assert.equal(row.snapshot.tarotDeck.reversed.length,78);
+ assert.equal(row.snapshot.manifest.length,products.find(p=>p.id==='tarot_mackerel').chapterCount);
+ assert.equal(row.snapshot.analysis.consultation.kindLabel,row.snapshot.tarotSpread.title);
+ const view=presentFortune(row),json=JSON.stringify(view);
+ assert.equal(view.recovery.nextAction,'draw');assert.equal(view.recovery.providerNeeded,false);assert.equal(view.recovery.retryable,false);
+ assert.equal(view.charts,undefined);assert.equal(view.tarotSpread.drawn,false);assert.equal(view.tarotSpread.cardCount,5);
+ assert.ok(!json.includes('tarotDeck')&&!json.includes(row.snapshot.tarotDeck.order.slice(0,6).join('","')),'deck order never leaves the server');
+});
+
+test('spread choice respects the tier card cap and drops inputs the spread does not use',async()=>{
+ await assert.rejects(()=>prepareFortune(env,'owner',order({tarotSpreadId:'yn_stay_leave_nine'})),e=>e.code==='SPREAD_TIER_UNAVAILABLE');
+ await assert.rejects(()=>prepareFortune(env,'owner',order({tarotSpreadId:'trad_celtic_cross_ten',productId:'tarot_flounder'})),e=>e.code==='SPREAD_TIER_UNAVAILABLE');
+ await assert.rejects(()=>prepareFortune(env,'owner',order({tarotSpreadId:'unknown'})),e=>e.code==='INVALID_TAROT_SPREAD');
+ await assert.rejects(()=>prepareFortune(env,'owner',order({locale:'en'})),e=>e.code==='READING_LOCALE_UNAVAILABLE');
+ const nine=await prepareFortune(env,'owner',order({productId:'tarot_flounder',tarotSpreadId:'yn_stay_leave_nine',question:'지금 회사에 남을까, 이직할까?'}));
+ assert.equal(nine.snapshot.tarotSpread.cardCount,9);
+ const row=await prepareFortune(env,'owner',order({tarotInputs:{options:{a:'A',b:'B'},period:'month',relationStatus:'contact_refused',birth:'1990-01-01'}}));
+ assert.deepEqual(row.snapshot.tarotInputs,{period:'month',relationStatus:'contact_refused'});
+ const ab=await prepareFortune(env,'owner',order({productId:'tarot_salmon',tarotSpreadId:'yn_ab_seven',question:'두 학원 중 어디로 갈까?',tarotInputs:{options:{a:' 강남 학원 ',b:'분당 학원'},relationStatus:'dating'}}));
+ assert.deepEqual(ab.snapshot.tarotInputs,{options:{a:'강남 학원',b:'분당 학원'}});
+});
+
+test('the same attempt replays the same order and deck; a different spread is a different order',async()=>{
+ const body=order();
+ const first=await prepareFortune(env,'owner',body);
+ const deck=structuredClone(first.snapshot.tarotDeck);
+ const rng=crypto.getRandomValues;crypto.getRandomValues=()=>{throw new Error('unexpected reshuffle');};
+ try{assert.equal(await prepareFortune(env,'owner',body),first);}finally{crypto.getRandomValues=rng;}
+ assert.deepEqual(first.snapshot.tarotDeck,deck);
+ const other=await prepareFortune(env,'owner',{...body,tarotSpreadId:'yn_knot_three'});
+ assert.notEqual(other._id,first._id);
+});
+
+test('a manual pick resolves cards from the committed deck once; later picks never change them',async()=>{
+ const row=await prepareFortune(env,'owner',order());
+ for(const picks of [[1,2,3,4],[1,2,3,4,4],[1,2,3,4,78],[0,1,2,3,'4'],undefined])
+  await assert.rejects(()=>drawTarotSpread(env,'owner',row._id,{picks}),e=>e.code==='INVALID_TAROT_PICKS');
+ await assert.rejects(()=>drawTarotSpread(env,'intruder',row._id,{picks:[0,1,2,3,4]}),e=>e.code==='FORTUNE_NOT_FOUND');
+ const picks=[70,3,41,12,0];
+ const drawn=await drawTarotSpread(env,'owner',row._id,{picks});
+ assert.equal(drawn.state,'CREATED');assert.equal(drawn.snapshot.tarotDraw.method,'manual');assert.deepEqual(drawn.snapshot.tarotDraw.picks,picks);
+ const cards=drawn.snapshot.analysis.contexts.tarot.facts.find(f=>f.label==='cards').value;
+ const positions=[...drawn.snapshot.tarotSpread.positions].sort((a,b)=>a.drawOrder-b.drawOrder);
+ cards.forEach((card,i)=>{
+  assert.equal(card.cardId,drawn.snapshot.tarotDeck.order[picks[i]]);
+  assert.equal(card.orientation,drawn.snapshot.tarotDeck.reversed[picks[i]]?'reversed':'upright');
+  assert.equal(card.positionKey,positions[i].id);
+ });
+ const evidence=drawn.snapshot.analysis.contexts.tarot.facts.find(f=>f.label==='tarotConsultation').value;
+ assert.equal(evidence.spreadId,'yn_contact_first');assert.equal(evidence.cards.length,5);
+ const before=JSON.stringify(drawn.snapshot);
+ const again=await drawTarotSpread(env,'owner',row._id,{picks:[5,6,7,8,9]});
+ assert.equal(JSON.stringify(again.snapshot),before);
+ const view=presentFortune(again);
+ assert.equal(view.tarotSpread.drawn,true);assert.deepEqual(view.tarotSpread.picks,picks);assert.notEqual(view.recovery.nextAction,'draw');
+ assert.equal(view.charts,undefined,'cards stay hidden until paid');
+});
+
+test('auto draw uses the same committed deck with distinct slots; v2 orders cannot be drawn',async()=>{
+ const row=await prepareFortune(env,'owner',order({productId:'tarot_tuna',tarotSpreadId:'yn_whole_map_ten',question:'요즘 일도 관계도 다 복잡해'}));
+ const drawn=await drawTarotSpread(env,'owner',row._id,{auto:true});
+ assert.equal(drawn.snapshot.tarotDraw.method,'auto');
+ assert.equal(new Set(drawn.snapshot.tarotDraw.picks).size,10);
+ assert.ok(drawn.snapshot.tarotDraw.picks.every(n=>Number.isInteger(n)&&n>=0&&n<78));
+ const v2=await prepareFortune(env,'owner',{productId:'tarot_mackerel',profileId:'self',timezone:'Asia/Seoul',consultationKind:'contact',question:'연락해도 될까?'});
+ assert.equal(v2.state,'CREATED');
+ await assert.rejects(()=>drawTarotSpread(env,'owner',v2._id,{auto:true}),e=>e.code==='TAROT_DRAW_NOT_AVAILABLE');
+});

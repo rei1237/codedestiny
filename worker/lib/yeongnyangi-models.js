@@ -12,7 +12,7 @@ const schema = new mongoose.Schema({
   featureKey: { type: String, required: true },
   amountKRW: { type: Number, required: true },
   fingerprint: { type: String, required: true },
-  state: { type: String, required: true, enum: ['CREATED','PAID','GENERATING','AWAITING_FOLLOWUP','COMPLETED','FORTUNE_FAILED','REFUNDED'] },
+  state: { type: String, required: true, enum: ['AWAITING_DRAW','CREATED','PAID','GENERATING','AWAITING_FOLLOWUP','COMPLETED','FORTUNE_FAILED','REFUNDED'] },
   paymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment', default: null },
   accessMethod: { type: String, enum: ACCESS_METHODS, default: null },
   // Fortune-chat consultations only: the counsellor voice, and the per-use payment or pass usage that unlocked them.

@@ -11,6 +11,8 @@ import {readingLocale,readingOutputContext} from './fortune/reading-locale';
 import {TAROT_CONSULTATION_VERSION,chatTarotRules,tarotConsultation,type TarotConsultationId} from './fortune/tarot/consultation-contract';
 import {calculateTarotConsultation} from './fortune/tarot/consultation-calculation';
 import {withChatTarotVoice} from './fortune/tarot/consultation-evidence';
+import {TAROT_SPREAD_VERSION,TAROT_SPREAD_KIND,TAROT_DECK_VERSION,tarotSpreadOrder,commitTarotDeck,tarotPicks,tarotSpreadContext,spreadSnapshot,publicTarotSpread} from './fortune/tarot/spread-v3';
+import {context as domainContext} from './fortune/shared/domain';
 import {readingCharts} from './fortune/reading-presentation';
 import { READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, READING_V7_VERSION, QUESTION_SKY_TWO_STAGE_VERSION, readingChapterCount } from './fortune/reading-policy';
 import { v7Applies, type ChapterSpecV7 } from './fortune/reading-v7';
@@ -46,7 +48,7 @@ import { FortuneError, type DomainContext, type DomainId } from './fortune/share
 import { CodeDestinyProvider } from './providers/code-destiny';
 import { StructuredChapterProvider, type ChatPersona } from './providers/chapter';
 import { deliverChapter } from './providers/delivery';
-import { createRequest, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, saveChapterDraft, allowedChapterAttempts, holdAutoResumes, userCanRetry, reserveQuestionSkyFollowup } from './repository.js';
+import { createRequest, commitTarotDraw, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, saveChapterDraft, allowedChapterAttempts, holdAutoResumes, userCanRetry, reserveQuestionSkyFollowup } from './repository.js';
 import { hasRequestAccess } from './access-methods.js';
 
 /**
@@ -103,15 +105,19 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const relationship=isRelationshipReading(product.domain,kind?.id)&&product.readingKind==='single';
   const tarotSpec=product.domain==='tarot'&&product.readingKind==='single'?tarotConsultation(kind?.id):undefined;
   const tarotV2=Boolean(tarotSpec);
+  // Korean question-first tarot: a catalog spread, a committed deck and a real pick before payment.
+  const tarotOrder=!persona&&product.domain==='tarot'&&product.readingKind==='single'&&kind?.id===TAROT_SPREAD_KIND?tarotSpreadOrder(body,product.fishId):undefined;
+  const tarotV3=Boolean(tarotOrder);
+  const tarotQuestion=tarotV2||tarotV3;
   if(kind?.koOnly&&locale!=='ko')throw new FortuneError('READING_LOCALE_UNAVAILABLE');
   const relationshipQuestionId=validateRelationshipQuestion(body.relationshipQuestionId);
   const participants=product.domain==='tarot'&&(relationship||tarotV2&&body.participants)?relationshipAliases(body.participants):undefined;
   // Fail-closed: false unless READING_V7_ENABLED, a single-system v6 tier product and a v7 consultation kind.
-  const v7=!tarotV2&&v7Applies(product,kind);
+  const v7=!tarotQuestion&&v7Applies(product,kind);
   // 존댓말 is an order-form choice for Yeongnyangi's Korean readings. Chat personas and spirit readings keep their own
   // voice; anything else is 반말. Only 'honorific' enters the identity, so existing orders keep their fingerprints.
   const voiceStyle=!persona&&!body.mode&&locale==='ko'&&body.voiceStyle==='honorific'?'honorific' as const:undefined;
-  const askEvidenceEnabled=Boolean(kind?.question&&!spiritInput&&!relationship&&!tarotV2);
+  const askEvidenceEnabled=Boolean(kind?.question&&!spiritInput&&!relationship&&!tarotQuestion);
   // Only tiers that keep 종격 evidence ask; an answer sent anywhere else is dropped, not stored.
   const jongAnswer=jongCheckApplies(product)&&!spiritInput?parseJongAnswer(body.jongCheck):undefined;
   if(kind){
@@ -131,6 +137,11 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   let tarotIntentId:string|undefined;
   if(tarotV2&&attempt.consultationAttemptId){
     tarotIntentId=await digest({userId,version:TAROT_CONSULTATION_VERSION,...attempt,locale,productId:product.id,kind:kind!.id,question:body.question,participants,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{})});
+    await connectDb(env);
+    try{return await readRequest(env,userId,tarotIntentId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
+  }
+  if(tarotV3&&attempt.consultationAttemptId){
+    tarotIntentId=await digest({userId,version:TAROT_SPREAD_VERSION,...attempt,locale,productId:product.id,kind:kind!.id,question:body.question,spreadId:tarotOrder!.spread.id,spreadVersion:tarotOrder!.spread.version,inputs:tarotOrder!.inputs,...(voiceStyle?{voiceStyle}:{})});
     await connectDb(env);
     try{return await readRequest(env,userId,tarotIntentId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
@@ -159,9 +170,9 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const now=new Date();
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
-  const fingerprint=await digest({...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{}),...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{})});
-  const id=tarotIntentId||relationshipId||await digest({userId,fingerprint,...attempt,...(relationship?{relationshipVersion:RELATIONSHIP_VERSION}:{}),...(tarotV2?{tarotConsultationVersion:TAROT_CONSULTATION_VERSION}:{})});
-  if(askEvidenceEnabled||relationship||tarotV2) {
+  const fingerprint=await digest({...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{}),...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(tarotV3?{tarotSpread:{id:tarotOrder!.spread.id,version:tarotOrder!.spread.version},tarotInputs:tarotOrder!.inputs}:{})});
+  const id=tarotIntentId||relationshipId||await digest({userId,fingerprint,...attempt,...(relationship?{relationshipVersion:RELATIONSHIP_VERSION}:{}),...(tarotV2?{tarotConsultationVersion:TAROT_CONSULTATION_VERSION}:{}),...(tarotV3?{tarotConsultationVersion:TAROT_SPREAD_VERSION}:{})});
+  if(askEvidenceEnabled||relationship||tarotQuestion) {
     // A retry reads the immutable purchase intent before any calculation or card draw.
     // Storage uncertainty is not permission to recalculate an existing purchase.
     try { return await readRequest(env,userId,id); }
@@ -172,8 +183,10 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const contexts: Partial<Record<DomainId,DomainContext>>={};
   // New single-system requests use their calculated native facts only; the hub has a separate birth-time contract.
   // Fusion keeps cross-system daily evidence, and stored snapshots return before this new preparation path.
-  const crossDaily=product.readingKind!=='single'&&(!kind||kind.question)&&!spiritInput&&!relationship&&!tarotV2?computeCrossDaily(env,raw,date,product.systems):Promise.resolve([]);
+  const crossDaily=product.readingKind!=='single'&&(!kind||kind.question)&&!spiritInput&&!relationship&&!tarotQuestion?computeCrossDaily(env,raw,date,product.systems):Promise.resolve([]);
   for(const system of product.systems) contexts[system]=domains[system].buildContext(
+    // No card exists before the buyer picks; the draw route replaces this placeholder with the drawn context.
+    tarotV3&&system==='tarot'?domainContext('tarot',{spreadId:tarotOrder!.spread.id,drawPending:true}):
     tarotV2&&system==='tarot'?calculateTarotConsultation(kind!.id as TarotConsultationId):
     (askEvidenceEnabled||relationship)&&system==='tarot' ? calculateAskTarot(normalized[system],product.readingKind!=='single')
       : await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,asOfInstant:now.toISOString(),relationshipReading:relationship,tarotFusion:product.readingKind!=='single',...(system==='saju'&&jongAnswer?{jongAnswer}:{})}));
@@ -187,7 +200,8 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const analysis={...analyze(contexts),question:normalized[product.domain].question,topicId:normalized[product.domain].topicId,readingMode:raw.readingMode,asOf:date};
   let manifest=readingManifest(product,analysis.topicId,raw.readingMode,spiritInput?READING_VERSION:product.manifestVersion);
   if(kind)manifest=consultationManifest(product,kind,analysis.topicId);
-  if(tarotV2){product.manifestVersion=READING_V6_VERSION;product.chapterCount=manifest.length;}
+  if(tarotV3)manifest=consultationManifest(product,kind,analysis.topicId,tarotOrder!.spread);
+  if(tarotQuestion){product.manifestVersion=READING_V6_VERSION;product.chapterCount=manifest.length;}
   if(persona&&tarotV2)manifest=manifest.map(c=>c.focus?{...c,focus:chatTarotRules(c.focus)}:c);
   if(spiritInput)manifest=spiritManifest(manifest);
   let v7Timing;
@@ -212,8 +226,9 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   analysis.consultation=createConsultation(body.question || '',analysis.topicId || 'general',clock,manifest,kind?.id==='ask');
   if(relationship||participants||kind?.partner&&relationshipQuestionId)analysis.consultation.relationship={version:RELATIONSHIP_VERSION,questionId:relationshipQuestionId,participants:participants||(partner?{self:String(profile.name||'나').slice(0,40),partner:String(partner.name||'상대').slice(0,40)}:undefined)};
   if(tarotV2)analysis.consultation.tarotConsultation={version:TAROT_CONSULTATION_VERSION,kind:kind!.id};
-  if(kind){analysis.consultation.consultationKind=kind.id;analysis.consultation.kindVersion=1;analysis.consultation.kindLabel=kind.label;if(!kind.question)analysis.consultation.period={kind:'default',label:kind.professional?'저장된 계산 기준의 현재 시기와 다음 전환':'출생 성향과 선택한 상담의 조건'};}
-  if((!kind||kind.question)&&!relationship&&!tarotV2){
+  if(tarotV3)analysis.consultation.tarotConsultation={version:TAROT_SPREAD_VERSION,kind:kind!.id,spreadId:tarotOrder!.spread.id};
+  if(kind){analysis.consultation.consultationKind=kind.id;analysis.consultation.kindVersion=1;analysis.consultation.kindLabel=tarotV3?tarotOrder!.spread.title:kind.label;if(!kind.question)analysis.consultation.period={kind:'default',label:kind.professional?'저장된 계산 기준의 현재 시기와 다음 전환':'출생 성향과 선택한 상담의 조건'};}
+  if((!kind||kind.question)&&!relationship&&!tarotQuestion){
   // Questions are answered before the fixed outline, without reducing paid depth.
   manifest[0].focus='사용자가 입력한 모든 질문에 먼저 직접 답하고 선택 주제와 연결해 해석한다. 질문이 없으면 선택 주제의 핵심 흐름부터 설명한다.';
   manifest[0].excludes=[];
@@ -245,7 +260,20 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,...(persona?{persona}:{}),
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
+}
+
+/** The buyer's pick over the committed deck. A repeat call returns the stored draw unchanged (refresh, retry, return). */
+export async function drawTarotSpread(env: Record<string, unknown>, userId: string, requestId: string, body: any) {
+  await connectDb(env);
+  const row=await readRequest(env,userId,requestId);
+  if(row.snapshot?.tarotConsultation?.version!==TAROT_SPREAD_VERSION)throw new FortuneError('TAROT_DRAW_NOT_AVAILABLE',409);
+  if(row.snapshot.tarotDraw)return row;
+  if(row.state!=='AWAITING_DRAW')throw new FortuneError('TAROT_DRAW_NOT_AVAILABLE',409);
+  const spread=row.snapshot.tarotSpread;
+  const {method,picks}=tarotPicks(body,spread.cardCount);
+  const tarot=domains.tarot.buildContext(tarotSpreadContext(spread,row.snapshot.tarotDeck,picks,row.snapshot.tarotInputs||{}));
+  return commitTarotDraw(env,userId,requestId,{context:tarot,draw:{version:TAROT_DECK_VERSION,method,picks,drawnAt:new Date().toISOString()}});
 }
 
 /** Pre-payment 종격 question: the same profile, supplement and consultation day prepareFortune will use. Read-only, no LLM. */
@@ -403,21 +431,22 @@ export function presentFortune(row: any) {
   const correctionApplied = row !== originalRow;
   const symbolic=Boolean(row.snapshot.analysis.consultation?.spirit||row.snapshot.analysis.consultation?.questionSky);
   const errorCode=row.errorCode==='ASK_LIMITED_REVIEW_REQUIRED'?'GENERATION_REVIEW_REQUIRED':row.errorCode;
-  const complete=row.state==='COMPLETED',awaitingFollowup=row.state==='AWAITING_FOLLOWUP',blocked=row.state==='REFUNDED'||errorCode==='PAYMENT_NOT_ACTIVE';
+  const complete=row.state==='COMPLETED',awaitingFollowup=row.state==='AWAITING_FOLLOWUP',awaitingDraw=row.state==='AWAITING_DRAW',blocked=row.state==='REFUNDED'||errorCode==='PAYMENT_NOT_ACTIVE';
   // A held order is still being recovered server-side: saved chapters stay readable and nothing asks the buyer to pay or chase.
   const held=!complete&&!blocked&&errorCode==='GENERATION_REVIEW_REQUIRED';
   // The buyer may retry a stopped chapter, or a held one whose budget ran out, a capped number of times.
   const canRetryNow=userCanRetry(row);
   const recovery={requestId:String(row._id),savedChapters:row.chapters.length,totalChapters:row.snapshot.manifest.length,
-    providerNeeded:!complete&&!awaitingFollowup&&row.chapters.length<row.snapshot.manifest.length,retryable:!complete&&!awaitingFollowup&&!blocked&&!held,
+    providerNeeded:!complete&&!awaitingFollowup&&!awaitingDraw&&row.chapters.length<row.snapshot.manifest.length,retryable:!complete&&!awaitingFollowup&&!awaitingDraw&&!blocked&&!held,
     canRetryNow,nextAttemptAt:row.nextAttemptAt || null,reviewRequired:held,
-    nextAction:complete?'reread':blocked?'support':canRetryNow?'retry':held?'held':'wait',autoResume:held&&holdAutoResumes(row)};
+    nextAction:complete?'reread':awaitingDraw?'draw':blocked?'support':canRetryNow?'retry':held?'held':'wait',autoResume:held&&holdAutoResumes(row)};
   return {id:row._id,locale:readingLocale(row.snapshot.locale),profileId:row.profileId,productId:row.productId,state:row.state,
     charts:!symbolic && hasRequestAccess(row) && row.state!=='REFUNDED'?readingCharts(snapshotAnalysis(row.snapshot),row.snapshot.manifest).map(chart=>correctionApplied?{...chart,source:"검수된 정정 계산 근거"}:chart):undefined,
     ...(correctionApplied?{correction:{reason:row.correction.reason,appliedAt:row.correction.appliedAt}}:{}),
     paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
     consultation:row.snapshot.analysis.consultation || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
     chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots,sources:[]})) : row.chapters.map(({internalBasis:_serverOnly,...chapter}:any)=>chapter),
+    ...(row.snapshot.tarotSpread?{tarotSpread:publicTarotSpread(row.snapshot)}:{}),
     followup:row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION?{status:row.generationCheckpoint?.followup?.status || (awaitingFollowup?'available':'unavailable'),used:Boolean(row.generationCheckpoint?.followup?.used),suggestions:row.generationCheckpoint?.followup?.suggestions || row.chapters?.[0]?.followUpSuggestions || []}:undefined,
     recovery,errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
 }

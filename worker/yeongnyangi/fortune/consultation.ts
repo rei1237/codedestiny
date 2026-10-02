@@ -4,7 +4,7 @@ import { topicLabel } from './topics';
 import { ASK_PERIOD_RESOLVER, resolveAskPeriods, type AskPeriodRange } from './ask/period';
 
 export interface Consultation {
-  tarotConsultation?: {version:string;kind:string};
+  tarotConsultation?: {version:string;kind:string;spreadId?:string};
   relationship?: {version:string;questionId?:string;participants?:{self:string;partner:string}};
   consultationKind?: string;
   kindVersion?: 1;

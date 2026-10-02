@@ -165,13 +165,18 @@ export async function readRequest(env, userId, requestId) {
   return row;
 }
 
-export async function createRequest(env, userId, id, values) {
+// AWAITING_DRAW is the only other initial state: a tarot order whose buyer has not picked cards yet.
+// Every funding path requires CREATED, so such a request cannot be paid before the draw is committed.
+const initialStates = new Set(['CREATED','AWAITING_DRAW']);
+export async function createRequest(env, userId, id, values, options = {}) {
+  const initialState = options.initialState || 'CREATED';
+  if (!initialStates.has(initialState)) throw failure(500,'INVALID_INITIAL_STATE');
   const filter = {_id:id,userId:ownerId(userId)};
   // Deterministic _id uses Mongo's built-in unique index, including before optional listing indexes exist.
   let row;
   try {
     row = await withMongoRetry(env, () => YeongnyangiRequest.findOneAndUpdate(filter,
-      {$setOnInsert:{...values,...filter,state:'CREATED',chapters:[],completedChapters:0,attempts:0,chapterAttempts:{},manualRecoveryGrants:{},recoveryAudit:[]}}, {upsert:true,new:true,setDefaultsOnInsert:true}).lean());
+      {$setOnInsert:{...values,...filter,state:initialState,chapters:[],completedChapters:0,attempts:0,chapterAttempts:{},manualRecoveryGrants:{},recoveryAudit:[]}}, {upsert:true,new:true,setDefaultsOnInsert:true}).lean());
   } catch (error) {
     // A concurrent upsert won the built-in unique _id index. Return that same intent.
     if(Number(error?.code)!==11000) throw error;
@@ -179,6 +184,17 @@ export async function createRequest(env, userId, id, values) {
   }
   if (row.fingerprint !== values.fingerprint) throw failure(409,'IDEMPOTENCY_CONFLICT');
   return row;
+}
+
+// The buyer's tarot pick is committed once: AWAITING_DRAW -> CREATED with the drawn context.
+// A concurrent or repeated call returns the row that already holds the draw, so cards never change.
+export async function commitTarotDraw(env,userId,requestId,{context,draw}) {
+  const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:ownerId(userId),state:'AWAITING_DRAW','snapshot.tarotDraw':{$exists:false}},
+    {$set:{state:'CREATED','snapshot.analysis.contexts.tarot':context,'snapshot.tarotDraw':draw}}, {new:true}).lean());
+  if(row)return row;
+  const latest=await readRequest(env,userId,requestId);
+  if(latest.snapshot?.tarotDraw)return latest;
+  throw failure(409,'TAROT_DRAW_NOT_AVAILABLE');
 }
 
 // The first question-sky result is an intentional pause, not a failed or
@@ -320,6 +336,8 @@ async function restoreFreeTrial(env,userId,requestId) {
 export async function attachPayment(env, userId, requestId, expectedCharge, options = {}) {
   const current=await readRequest(env,userId,requestId);
   if(hasRequestAccess(current))return current;
+  // No funding path may run before the buyer's cards are committed: Family/월정석 would otherwise consume first.
+  if(current.state==='AWAITING_DRAW')throw failure(409,'TAROT_DRAW_REQUIRED');
   if(current.featureKey===CHAT_FEATURE_KEY)return attachChatAccess(env,userId,requestId,current,expectedCharge,options);
   try{return await attachDirectPayment(env,userId,requestId,expectedCharge);}
   catch(error){if(error?.code!=='PAYMENT_REQUIRED'&&error?.payload?.code!=='PAYMENT_REQUIRED')throw error;}

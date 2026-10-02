@@ -8,12 +8,17 @@ import { json, readJson, createHttpError, handleRouteError, notFound } from '../
 import { enforceSensitiveEndpointSecurity } from '../lib/security/index.js';
 import { products } from '../yeongnyangi/payments/catalog.ts';
 import { readAndContinueFortune } from '../yeongnyangi/delivery.js';
-import { activateFortune, jongCheckFortune, prepareFortune, presentFortune, providerReady, submitQuestionSkyFollowup } from '../yeongnyangi/service.ts';
+import { activateFortune, drawTarotSpread, jongCheckFortune, prepareFortune, presentFortune, providerReady, submitQuestionSkyFollowup } from '../yeongnyangi/service.ts';
 import { ownerId, YeongnyangiRequest, userCanRetry } from '../yeongnyangi/repository.js';
 import { hasRequestAccess } from '../yeongnyangi/access-methods.js';
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
 
 const messages={
+  INVALID_TAROT_SPREAD:'카드 배열을 다시 골라 주세요.',
+  SPREAD_TIER_UNAVAILABLE:'고른 배열은 이 등급에서 볼 수 없어요. 배열이나 등급을 다시 골라 주세요.',
+  INVALID_TAROT_PICKS:'배열에 필요한 장수만큼 서로 다른 카드를 골라 주세요.',
+  TAROT_DRAW_NOT_AVAILABLE:'이 상담은 카드를 새로 고를 수 없어요. 상담 화면을 새로고침해 주세요.',
+  TAROT_DRAW_REQUIRED:'카드를 먼저 골라 주세요. 고른 카드는 결제 뒤에 공개돼요.',
   PARTICIPANT_NAMES_REQUIRED:'두 사람의 이름 또는 별칭을 40자 이내로 입력해 주세요.',
   INVALID_RELATIONSHIP_QUESTION:'궁합 질문을 다시 선택해 주세요.',
   READING_LOCALE_UNAVAILABLE:'선택한 상담은 해당 언어를 지원하지 않아요. 상담 언어를 한국어로 바꾸거나 다른 상담을 선택해 주세요.',
@@ -143,8 +148,9 @@ export async function handleYeongnyangiRoutes(request, env) {
       const queryStart=performance.now();
       const readOptions={retries:1,retryOnOperationTimeout:true,retryAdmissionOnOverload:true};
       const cutoff=new Date(Date.now()-UNPAID_HIDE_AFTER_MS);
+      // 카드를 고르기 전 타로 주문(AWAITING_DRAW)은 결제가 붙을 수 없으므로 항상 숨긴다.
       // keep=null 이면 숨기지 않는다(결제 주문 조회 실패 — 결제한 상담이 사라져 보이는 쪽보다 취소 건이 보이는 쪽이 안전하다).
-      const listPage=keep=>withMongoRetry(env,()=>YeongnyangiRequest.find({userId:ownerId(auth.userId),persona:null,...before,...(keep?{$nor:[staleUnpaid(cutoff,keep)]}:{})})
+      const listPage=keep=>withMongoRetry(env,()=>YeongnyangiRequest.find({userId:ownerId(auth.userId),persona:null,state:{$ne:'AWAITING_DRAW'},...before,...(keep?{$nor:[staleUnpaid(cutoff,keep)]}:{})})
         .select('_id productId state paymentId accessMethod passEvidenceId createdAt completedAt snapshot.product snapshot.manifest.id snapshot.locale snapshot.analysis.consultation.consultationKind snapshot.analysis.consultation.kindLabel snapshot.analysis.consultation.relationship.participants completedChapters errorCode manualRecoveryGrants systemRecoveryGrants hold').sort({createdAt:-1,_id:-1}).limit(31).maxTimeMS(4000).lean(),readOptions);
       const [firstRows,unattached]=await Promise.all([listPage([]),withMongoRetry(env,()=>Payment.find({userId:ownerId(auth.userId),requestId:/^yn-[a-f0-9]{64}$/,
         paymentType:'digital_content',status:{$in:['paid','success','fulfilled']},'metadata.consumedBy':{$in:[null,'']}}).select('requestId').limit(50).maxTimeMS(4000).lean(),readOptions).catch(()=>null)]);
@@ -154,7 +160,7 @@ export async function handleYeongnyangiRoutes(request, env) {
       return json({ok:true,nextCursor:rows.length>30?`${new Date(last.createdAt).toISOString()}_${last._id}`:null,
         fortunes:page.map(row=>({id:row._id,locale:row.snapshot.locale || 'ko',product:row.snapshot.product,state:row.state,paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),completedChapters:row.completedChapters,totalChapters:row.snapshot.manifest?.length,recovering:libraryRecovering(row),canRetry:userCanRetry(row),createdAt:row.createdAt,consultationKind:row.snapshot.analysis?.consultation?.consultationKind,kindLabel:row.snapshot.analysis?.consultation?.kindLabel,participants:row.snapshot.analysis?.consultation?.relationship?.participants}))},{headers:{'Cache-Control':'private, no-store','Server-Timing':`auth;dur=${authMs.toFixed(1)}, db;dur=${dbMs.toFixed(1)}, query;dur=${(performance.now()-queryStart).toFixed(1)}`}});
     }
-    const match=path.match(/^requests\/([a-f0-9]{64})(?:\/(activate|generate|follow-up|correction))?$/);
+    const match=path.match(/^requests\/([a-f0-9]{64})(?:\/(activate|generate|follow-up|correction|tarot-draw))?$/);
     if(!match) return notFound();
     const [,id,action]=match;
     if(action==='correction' && (method==='GET'||method==='POST')) {
@@ -162,6 +168,11 @@ export async function handleYeongnyangiRoutes(request, env) {
       return json({ok:true,correction:await reviewSajuCorrection(env,auth.userId,id,{enqueue:method==='POST'})});
     }
     if(!action && method==='GET') return json({ok:true,fortune:presentFortune(await readAndContinueFortune(env,auth.userId,id))});
+    if(action==='tarot-draw' && method==='POST') {
+      const body=await readJson(request);
+      if(!body || typeof body!=='object' || Array.isArray(body))throw createHttpError(400,'고른 카드 정보를 확인해 주세요.',{code:'INVALID_TAROT_PICKS'});
+      return json({ok:true,fortune:presentFortune(await drawTarotSpread(env,auth.userId,id,body))},{headers:{'Cache-Control':'private, no-store'}});
+    }
     if(action==='activate' && method==='POST') return json({ok:true,fortune:presentFortune(await activateFortune(env,auth.userId,id))});
     if(action==='generate' && method==='POST') {
       const row=await retryFortune(env,auth.userId,id);
