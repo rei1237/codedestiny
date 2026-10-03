@@ -76,3 +76,10 @@ Chrome 공식 로그인 프로필 확인 당시 소개에 ‘천원’ 표현이
 - 이미지 크기·원본 SHA·원고 길이·이미지 로딩·하단 겹침은 v2/validation.json 및 layout-check.json에 기록. 전체 카드를 눈으로 확인.
 - heartbeat 10-5-threads를 최신 v2 자료로 갱신했고 10/5 09:00 KST 유지. 아직 Threads에 게시하지 않음. 가격/할인 운영 확인 및 영냥이 계정 확인 후 실행.
 - 이번 개편에서는 결제 API·가격·인증·DB 및 서비스 기능 코드를 변경하지 않았다. 이전 코드 검증 기록과 이번 홍보물 검증을 구분한다.
+
+## v2 전달 검증 결과
+
+- 홍보물 커밋 d5d1854ae, main 통합·push d3ba3e6d310d4929c0606d57b34ed022e8966356. 원격 직전 main 88cfd91a6와 비교 시 이번 차이는 marketing 및 이 문서뿐이다.
+- GitHub CI 37126103981: Build Pages and Worker, Typecheck and lint 성공. Static guards는 verify:public-mirror-fresh의 기존 index.html 및 public 언어별 미러 8개 불일치로 실패. 전체 CI 통과 아님. Main drift 37126103998도 같은 실패. Secret Scan, AI Locale Gate, Landing Watchdog 성공.
+- 로컬 check:fast는 doc-freshness와 여러 paid gate 통과 뒤 출력 정체로 중단. 이미지/원고/해시/레이아웃 대상 검증과 git diff --check는 통과.
+- 다음 행동: D:\Development\codedestiny-worktrees\moonstone-oct05-20261003-151816에서 이 문서와 가격 전환 문서를 읽고, 기존 public mirror 불일치는 해당 서비스 변경 담당 범위에서 확인한다. 10/5에는 운영 가격·부분 할인 및 실제 영냥이 계정을 확인한 뒤 v2/manifest.json과 posts.json으로 게시·고정한다. 운영 승격 승인 없이 승격하지 않는다.
