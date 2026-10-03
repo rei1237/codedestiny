@@ -1,6 +1,7 @@
 # 훈민정음 작명소 v2 — 결정론 작명 엔진 설계서 (Phase 1)
 
-- 상태: **Phase 1 설계안 — 승인 대기**. 코드 변경 없음. 실데이터·구현은 Phase 2 이후.
+- 상태: **Phase 3 엔진 구현 완료 — 미노출**. `worker/naming-engine/*.ts` 는 아직 어디에서도 import 되지 않는다(라우트·결제·LLM·화면은 Phase 4·5).
+  Phase 1 설계안 본문은 그대로 두고, 구현에서 달라진 값은 §7.1·§8.1 에 적는다(정본은 코드).
 - 작성: 2026-10-03, 기준 커밋 `7c02f3ecf`(origin/main).
 - 근거 보고: Phase 0 진단(세션 a96e4b8d). 아래 "현재"라는 서술은 모두 그 실측이다.
 - 검수용 표: 이 폴더의 `*.csv` — 자문 명리학자가 시트로 열어 `review_*` 열을 채운다(§12).
@@ -33,13 +34,14 @@
 - 기능 전환은 env 플래그가 아니라 코드 상수 `NAMING_ENGINE_VERSION`(바인딩 여유 2) — 롤백은 revert.
 - 결제 로직·가격·`config/payment-freeze.json` 대상 파일 무변경. 기존 `premium-naming-prompt` 게이트에 연결만.
 
-## 3. 모듈 구조 (예정 경로)
+## 3. 모듈 구조
 
 ```
 worker/naming-engine/            ← 순수 TS, Workers·Node 양쪽에서 import (영냥이 TS 선례)
   config/
     weights.ts                   점수 가중치(§7) — 숫자만, 로직 없음
     school-presets.ts            학파 프리셋(§5)
+    negative-meaning.ts          뜻 거르기 목록(첫째 훈 부정 뜻·반대 성별 호칭, §7.1) — 자문 검수 대상
   data/                          생성물(Phase 2) — 손으로 고치지 않는다. build-naming-data.mjs 로만 갱신
     hanja-pool.v1.json           인명용 한자 풀 + 음별 훈 + 원획·필획 + 자원오행 + 분쟁·주의·태그
     surnames.v1.json             성씨 한자·원획(단성·복성) + 2015 인구
@@ -53,7 +55,8 @@ worker/naming-engine/            ← 순수 TS, Workers·Node 양쪽에서 impor
   candidates.ts                  인덱스 탐색 + 하드 필터
   score.ts                       항목 점수 + 근거 키
   diversify.ts                   MMR 다양화
-  engine.ts                      파이프라인 진입점 runNamingEngine(input, preset)
+  engine.ts                      파이프라인 진입점 runNamingEngine(input, { tier, saju?, data? })
+  types.ts · data.ts             공통 타입·FNV 해시 / 생성물 JSON 디코드(아이솔레이트당 1회 메모)
 scripts/naming/
   extract-raw.mjs                내려받은 원천 → data/naming/raw/ 발췌 + manifest.json(상류 sha256)
   build-naming-data.mjs          raw + rules + 검수 CSV → worker/naming-engine/data/*.v1.json + data/naming/review/*.csv.
@@ -223,6 +226,34 @@ interface NamedCandidate {
 - **후보 부족 시 단계적 완화**(원칙 17 — 결과가 안 나오는 것이 최악): 후보가 무료 5 / 유료 12 에 못 미치면 ① 원격·형격 흉 허용(감점 유지) → ② 정격 반길 허용 → ③ 자원오행 신뢰도 하한 해제 순으로 풀고, 완화 단계를 결과에 표시한다. 정격 흉은 끝까지 풀지 않는다.
 - 각 항목은 0~1 로 정규화한 뒤 가중합(0~100). 근거 키(`reasonKeys`)를 항목마다 남긴다.
 
+### 7.1 Phase 3 구현 편차 (정본: `worker/naming-engine/config/weights.ts`)
+
+- **사주 점수**: 글자 하나 = (용신 20·적중 + 보조 10·적중 + 기피 회피 5·(1 − 2·기피 적중)) / 25 → 용신 1 · 보조 0.6 · 중립 0.2 · 기피 −0.2.
+  적중은 자원오행 신뢰도 가중 min(1, confidence / 0.7). 이름 = clamp01(글자 평균 + 분포 보정), 분포 보정 = 원국에 없던 오행(기피 제외)을 채우는 글자 오행 1개당 0.05, 최대 0.1.
+  초안의 분모 35 는 "각 항목 0~1 정규화"와 어긋나 25 로 바꿨다.
+- **어감·실용** = clamp01(1 − 감점 합): 불용 관행 1계열 0.05 · 2계열 이상 0.1, 확장 A 0.3, 확장 B 이상 0.5, 기초한자 밖 0.05,
+  이름 첫 음절 ㄹ 0.1(신규), 같은 음절 반복 0.1, 성·이름 전부 받침 0.05, 동음 블랙리스트 경고 0.5. 발음 난이도·흔한 이름 중복·이니셜은 근거 데이터가 없어 미구현.
+- **뜻 거르기(신규 하드 필터, 자문 검수 대상)**: 그 음의 첫째 훈 뜻풀이 말이 부정 뜻 목록(67어)이면 어느 단계에서도 추천하지 않는다.
+  반대 성별 호칭(남자 이름에서 13어, 여자 이름에서 7어 — 妻·娘·夫 등)도 같다. 성별 미정(N)에는 성별 필터가 없다. 사용자 고정 글자는 면제.
+- **완화 단계**: 0 엄격(정격 길, 원·형격 흉 아님) → 1 원·형격 흉 허용 → 2 정격 반길 허용 → 3 훈 없는 글자 · 자원오행 미분류 또는 신뢰도 0.5 미만 · 무료 티어의 분쟁 글자 허용.
+  앞 단계 후보를 먼저 두고 부족분만 다음 단계에서 채운다. 완화로 들어온 후보에는 `relaxed.stage-N` 키, 결과에는 같은 고지. 정격 흉은 끝까지 막는다.
+  무료는 근거 서술이 없어 분쟁 글자를 엄격 단계에서 뺀다(예: 俊 `jawon-sources-differ`·신뢰 0.5 — 돌림자로 고정하면 쓸 수 있다).
+- **외격**: 단성 외자는 총격 − 인격 = 0 이 되어 `null`(§6.4 출처별 처리 상이).
+- **성씨**: KOSIS 표(509성) 밖 성은 인명용 풀 획수로 계산하고 `surname.pool-strokes` 고지 — §10 "성씨 데이터 안에서만"과 다르다. API 에서 막을지 Phase 4 에서 정한다.
+- **순한글 이름 모드**: `mode-unsupported` 로 거부(Phase 4 결정).
+- **법원 내부 코드 글자**(basis `adjudicated`·`law-basic-edu`, 17자): 점수 영향 없이 `char.<k>.court-code-variant` 태그만.
+- **근거 키**(`<k>` 는 이름 글자 위치, 0부터): `suri.<격>.<등급>` · `samjae.<등급>[.disputed]` · `sound.<k>.<관계>` · `saju.<k>.useful|support|caution|neutral.<오행>` · `saju.<k>.unclassified` ·
+  `char.<k>.low-confidence|disputed|court-code-variant|no-hun` · `practical.<k>.buryong` · `saju.fills-missing` · `yinyang.uniform` · `practical.initial-rieul` ·
+  `practical.blacklist-<등급>` · `sound.school-sensitive`(다른 학파 매핑이면 소리오행 배열이 바뀜) · `relaxed.stage-N`.
+- **결과 고지 키**: `samjae.reference-only`(항상) · `saju.time-unknown` · `saju.jong-conditional` · `surname.pool-strokes` · `sound.school-differs` · `relaxed.stage-N` · `candidates.short`.
+- **오류 코드**: `input-invalid` · `mode-unsupported` · `preset-unknown` · `avoid-too-many` · `fixed-char-unknown` · `fixed-char-avoided` · `fixed-char-reading` · `surname-invalid` · `surname-unknown` · `saju-unavailable` · `data-schema`.
+- **한자 입력 NFC**: 성·돌림자·피할 글자는 NFC 로 맞춘 뒤 찾는다. 한글 IME(KS X 1001)는 金(김)·李(리)를 CJK 호환 한자(U+F90A·U+F9E1)로 내기도 하는데, 풀 키는 통합 한자다(호환 영역 키 0자, 실측). 공개 예시 54건 중 24건이 호환 한자로 적혀 있었다.
+- **골든 편차(잠정 골든 45건에서 뺀 12건)**: 공개 해설 54건(+앵커 3) 중 엔진과 다른 값은 모두 출처끼리 갈리는 값이라 기대값에서 뺐다.
+  - 외자 형·이격: nameclub 3건은 형=姓·이=姓+名(엔진·TAROT·goodnaming 은 형=姓+名·이=姓), 鄭新 1건은 형=이. §6.3 식 유지.
+  - 원획: 泰 9(엔진 10, `won-total-exceeds-formula`)·延 7(엔진 8, 같은 표시)·熙 13(엔진 14, 강희 火部 10획)·貞 8(엔진 9, 출처 오기 추정)·九 2(엔진 9, `numeral-suui` 수의)·奫 15/16 병기(엔진 15).
+  - 金志訓 정격 23 은 출처 산술 오류(8+7+10=25). mbgg 복성 南宮仁洙 인격 23 = 성 합+名1(엔진 §6.4 는 성 끝+名1 = 14).
+  - 자문 검수 때 위 획수 6자를 우선 본다. 月(肉)·罒·耂·犭 부수 이름, 諸葛·鮮于·司空·獨孤 계산 예시는 찾지 못했다.
+
 ## 8. 탐색·성능
 
 1. 성 원획이 정해지면 이름 획수 쌍 (a, b) 중 4격이 모두 하드 필터를 통과하는 쌍만 먼저 계산한다(획수 1~30 기준 최대 900쌍).
@@ -231,6 +262,18 @@ interface NamedCandidate {
 4. 동점은 `hash(inputHash + 후보)` 로 결정론 정렬한다(난수 없음).
 - 예산: 요청당 CPU 50ms 이하 목표(Phase 3 실측). 데이터 번들 증가 gzip 600 KiB 이하(`npm run build:worker && npm run verify:worker-size`).
 - 큐는 쓰지 않는다. 계산은 동기로 하고, LLM 서술은 기존 웨이브 패턴(요청당 1파트 + Mongo 체크포인트 + 리더 + 10분 크론)을 그대로 쓴다.
+
+### 8.1 Phase 3 실측 (2026-10-03, 개발 PC Node 24 — Workers CPU 는 추정)
+
+- 탐색 구현: 2자 이름은 (획수, **소리오행**) 칸마다 rank = 35·사주 − 15·감점 상위 10글자만 조합한다(설계 2단계의 자원오행 인덱스 대신 소리오행 —
+  소리 점수가 칸 단위로 정해지고 자원오행은 rank 에 이미 들어 있다). 칸 쌍 점수 상한으로 가지치기하고, 동음 블랙리스트는 상위 K 에 들 조합에만 늦게 확인한다.
+  상위 200 을 `scoreCandidate` 로 처음부터 재계산하고(빠른 경로와 1e-9 일치를 테스트가 본다) MMR(λ 0.7, 돌림자 자리는 유사도에서 뺌) 후 단계별 총점순으로 놓는다.
+- 동점: 글자 시드 = fnv1a(inputHash | 글자 + 음), 조합 tie = 두 시드 섞기. inputHash 는 티어·로케일을 넣지 않아 무료 → 유료 전환에도 같은 순서다.
+- CPU(63 입력 × 무료·유료 = 124회): 엔진 웜 중앙 21.5ms · p95 34.8ms · 최대 52.0ms(첫 호출). 사주 래퍼 중앙 1.6ms · p95 3.9ms.
+  데이터 디코드 5~15ms(아이솔레이트당 1회). 단계별 중앙: 글자 단위 생성 5.1 · 탐색 7.1 · 재계산 2.1 · MMR 4.6ms.
+  최적화 1회: 첫째 훈 파싱 메모 + FNV 접두 시드 재사용으로 글자 단위 생성 17 → 5ms(출력 동일).
+- **점수 포화(미해결)**: 후보 1,054개 중 728개(69%)가 100점이라 상위 순서가 tie 해시로 정해지고, 뜻은 멀쩡해도 이름으로 어색한 조합(賣錢 매전·辨除 변제 등)이 오른다.
+  원인은 이름 자연스러움(이름 음절 빈도·성별 경향) 데이터 부재다. 화면 노출(Phase 4·5) 전에 정해야 한다.
 
 ## 9. LLM 역할과 환각 방지
 
@@ -285,6 +328,7 @@ interface NamedCandidate {
 - 삼재 등급은 요약기 추출값을 쓰지 않는다. Phase 2 에서 zhouyi.cc 전체표를 원문 전사하고 yishengmi 大吉·大凶 40 + 바이두 표본과 대조한다.
 - 검수 결과는 CSV 를 다시 받아 `scripts/naming/` 빌드가 반영한다. 검수자의 판정이 출처보다 우선하며, `reviewed=true` 와 판정 사유를 남긴다.
 - 골든 테스트: 자문가가 검수한 성명 예시 20건 이상을 `__tests__/` 기대값으로 고정한다(Phase 3).
+  Phase 3 는 자문 검수 전이라 공개 해설 45건(4격 39·획수만 6, 그중 삼재 천인지 3)을 **잠정** 기대값으로 `__tests__/ui/naming-engine.test.mjs` 의 `GOLDEN` 에 고정했다. 출처가 갈려 뺀 12건은 §7.1 골든 편차. 검수 결과가 오면 교체한다.
 
 ## 13. 근거 조사 (출처 교차)
 
