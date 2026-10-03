@@ -675,7 +675,8 @@
     if (consult) area.appendChild(consult);
     area.appendChild(ziweiArticleLibrary(area));
     // The atlas is the sole decorative artwork on this surface. Keep text/captions.
-    area.querySelectorAll('img').forEach(function (img) { img.hidden = true; });
+    // The consultation entry scene is product imagery, not decoration — it must stay visible.
+    area.querySelectorAll('img').forEach(function (img) { if (!img.closest('.fc-entry__scene')) img.hidden = true; });
     cells.forEach(function (cell) {
       cell.setAttribute('aria-label', cell.querySelector('.zw-palace-name').textContent + ' · ' + cell.querySelector('.zw-branch-name').textContent);
     });
