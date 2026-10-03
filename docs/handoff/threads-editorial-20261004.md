@@ -1,12 +1,25 @@
 ---
 status: active
 updated: 2026-10-04
-next: "Check main CI for 433ffb2ed2d93c72f61d37b9979e5935c7551a80, resolve any external gate in its authorized scope, then request explicit production promotion approval before verifying the new Threads format."
+next: "Production release 37138792610 and matching live Pages/Worker SHA are verified. Confirm October 4 normal Threads slots and public reply chains at the existing 21:10 check; compare equal-age engagement without forcing extra posts."
 ---
 
 # Threads 발행 형식과 참여형 편성 인수인계
 
 ## 요청과 전달
+
+### 승인 후속 — 2026-10-04
+
+사용자가 “승인할테니 제대로 사람들의 심리나 스레드 생태까지 고려해서 진행해줘 중요한 작업이야”라고 운영 반영을 승인했다. 이 승인 범위를 다시 묻지 않는다. 배포 전 실측 운영 Pages/Worker는 모두 `323c3450514e6f2b4d8f8873f7bc9c051af4db88`이었다. 해당 SHA에서 릴리스 대상까지 차이를 확인했으며 Threads 코드 외에는 이미 승인된 서비스 소개/오행 표시/캠페인 정적 자산/사이트맵 변경이다. 가격·이용권·인증·DB·운세 계산 변경은 포함되지 않는다. 10월 5일 가격 B는 이 릴리스에 포함되지 않는다.
+
+- 최종 코드 통합 SHA: `4886b9c99eaf10458e61fd38a73ed10f2868c79a`.
+- [동일 SHA의 전체 main CI 37135173946](https://github.com/rei1237/codedestiny/actions/runs/37135173946): success. Critical checks, Typecheck and lint, Build Pages and Worker, Static guards, CI required 통과. 아래 초기 CI 실패 기록은 과거 이력으로 보존한다.
+- 원격 main SHA 일치 확인 후 `gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=production` 실행. [운영 릴리스 37138792610](https://github.com/rei1237/codedestiny/actions/runs/37138792610) **success**, headSha도 위 SHA와 일치한다. 운영 smoke/health check PASS(2026-10-04 02:09 KST).
+- 후속 읽기 전용 `node scripts/verify-deployed-sha.mjs --origin=https://code-destiny.com --sha=4886b9c99eaf10458e61fd38a73ed10f2868c79a --attempts=2 --delay-ms=5000` 결과: Pages PASS, Worker PASS. 새 발행 코드의 운영 반영을 확인했다. 첫 정상 슬롯의 실제 공개 게시 완료와는 구분한다.
+- Chrome 프로필을 새로고침하고 로그인된 공식 계정의 인사이트를 직접 확인했다. 최근 30일 조회수 31,302/조회한 사람 12,000/순 팔로워 +7/반응 199. 원글별 조회수와 GMT+9 활동시간, 표본 한계는 `marketing/threads-editorial-plan-20261004.md`의 02:01 KST 관측표에 기록했다. 새 형식의 개선 성과가 아니다.
+- 첫 새 형식의 정상 예정 슬롯은 10월 4일 08:30 KST 띠별이다. 이 작업에서 시험 게시하지 않는다. 기존 Codex 07:10은 준비, 21:10은 당일 공개 URL·답글 체인·원글 수 확인을 수행한다. 첫 게시 확인과 동일 경과시간 성과 비교는 예정 시각 이후에만 가능하다.
+- 자동화 TOML을 Python tomllib로 읽은 결과 기존 이름과 과거 지침에 U+FFFD 대체문자 2,842개가 저장되어 있었다. 화면 인코딩 문제가 아닌 저장 내용의 손상임을 확인하고 app automation_update로 전체 지침을 `editorial-20261004-v2` 한 문안으로 통합했다. 배포 문안 버전은 v1 그대로다. UTF-8 재조회에서 원문 일치, 대체문자 0, 이름 `CODE DESTINY 일일·콘텐츠 통합 운영`, ACTIVE 및 기존 ID·시간·대상 대화 보존을 확인했다. Instagram 기존 자료 보존/수동 업로드/캐릭터 원본, 신년/월간/별도 소개 일정, 계측·중복 방지 규칙을 유지했다. 별도 자동화를 만들지 않았다.
+- 후속 문서 변경의 `npm run check:fast -- --plan`은 공백·문서 신선도만 선택했고 `npm run check:fast` 통과. `npm run verify:handoff-contract` 145개 통과. 공유 마케팅 로그는 다른 세션의 미커밋 변경 때문에 편집하지 않았고 인사이트 관측을 이 작업 기획서에 남겼다.
 
 사용자는 첨부 예시처럼 대상 띠·출생연도·설명·행동 조언이 이어지는 글과 대중적인 소재로 하루 2~3개의 Threads 글을 운영하도록 요청했다. 계정은 @codedestiny_official이다. 코드 변경 커밋은 `3ba93f7f5`, 원격 main 통합·push SHA는 `433ffb2ed2d93c72f61d37b9979e5935c7551a80`이다. PR은 만들지 않았다.
 
@@ -24,7 +37,7 @@ next: "Check main CI for 433ffb2ed2d93c72f61d37b9979e5935c7551a80, resolve any e
 - 저녁은 관계·연락·소비·일·휴식 등 15개 검수 주제와 질문 하나. 띠별·저녁 홍보 링크 제거, 낮 링크 유지. 브랜드 태그 #꿀꿀운세.
 - 10월 5일 09:00 별도 소개글은 그날 12:00 슬롯 대체. 11월 1일~2027년 1월 3일 일요일 21:10 신년 예약은 20:30 슬롯 대체. 별도 예약은 정지하거나 복제하지 않았다.
 - T03/T05/T07/T10 예비 큐의 깨진 루트 목적지를 실제 관련 페이지로 교정. 13편 검수 통과, 이미 게시된 글 재게시 없음.
-- Codex 자동화 `code-destiny-2027`의 기존 ID·ACTIVE·07:10/21:10 KST·target chat을 보존하고 prompt를 `editorial-20261004-v1`로 갱신한 뒤 저장을 재확인했다. 실행은 준비·점검·계측이며 정상 Worker에 원글을 추가하지 않는다.
+- Codex 자동화 `code-destiny-2027`의 기존 ID·ACTIVE·07:10/21:10 KST·target chat을 보존하고 처음 v1을 적용한 뒤 위 후속 작업에서 `editorial-20261004-v2`로 통합·복구했다. 실행은 준비·점검·계측이며 정상 Worker에 원글을 추가하지 않는다.
 - 자기 연속 답글을 참여에서 제외하고 24h/72h/7d·14일 비교 기준을 저장. 별도 댓글 대응·DM·광고 운영은 추가하지 않았다.
 
 ## 검증과 경계
@@ -35,19 +48,19 @@ next: "Check main CI for 433ffb2ed2d93c72f61d37b9979e5935c7551a80, resolve any e
 - 최종 변경 파일 대상 ESLint와 `git diff --check` 통과.
 - [코드 main CI](https://github.com/rei1237/codedestiny/actions/runs/37134786176). CI 종료 결론은 링크에서 확인하며 로컬 검사 통과와 혼동하지 않는다.
 - 이후 원격 main의 사이트맵·정적 소개 페이지 수정 `d5ae0fddad92e01d08574e468e07b5f42b686f54`를 통합했다. 이 수정은 다른 작업의 변경이며 위 로컬 실패를 소급해 통과로 바꾸지 않는다. 최신 원격 main의 전체 CI를 확인한다.
-- 유료 LLM 0회, 실결제 0회, 실제 게시 0건, 운영 DB 쓰기 0회, 운영 승격 미실행. 결제/인증/가격/DB 스키마/발행 잠금은 유지했다.
-- 브라우저 연결은 timeout으로 실패하여 이번 턴의 최신 프로필·인사이트 실측은 없다. 이전 마케팅 로그는 과거 관측으로만 사용했다.
+- 최초 구현 검증: 유료 LLM 0회, 실결제 0회, 실제 게시 0건, 운영 DB 쓰기 0회, 운영 승격 미실행. 이후 승인된 운영 릴리스는 위 후속 절과 구분한다. 결제/인증/가격/DB 스키마/발행 잠금은 유지했다.
+- 최초 브라우저 연결 timeout 이후 승인 후속에서 연결이 복구되어 최신 프로필·인사이트를 위와 같이 읽기 전용으로 확인했다. 기존 공개 게시물은 수정·삭제하지 않았다.
 
 ## 다음 행동
 
-1. 위 SHA의 main CI 종료 결과를 확인한다. 실패하면 실제 job 로그로 귀책을 구분하고 범위 밖 게이트는 별도 승인 범위에서 해결한다. CI를 생략하거나 낮추지 않는다.
-2. CI가 녹색이어도 운영 승격은 사용자 명시 승인 후 수행한다. 근거: CLAUDE.md 및 docs/context/delivery-and-ci.md의 production 별도 승인 규칙. 승격 전 전체 main 포함 변경이 승인 범위인지 확인한다.
-3. 승인된 릴리스에서 Pages/Worker SHA를 확인하고 다음 정상 Threads 슬롯의 원글·답글 공개 URL을 확인한다. 확인 전 새 형식이 실제 운영 중이라고 기록하지 않는다. 즉시 시험 게시로 중복을 만들지 않는다.
+1. 운영 릴리스와 양쪽 live SHA 결과를 먼저 확인한다. 이미 성공한 동일 변경을 재배포하지 않는다. 운영 승인과 전체 CI는 위와 같이 확보됐다.
+2. 10월 4일 정상 Threads 슬롯의 원글·답글 공개 URL, 12띠 누락·연도·빈 줄·질문·링크·원글 개수를 확인한다. 첫 발행 전에는 형식의 공개 게시까지 완료했다고 기록하지 않는다. 즉시 시험 게시로 중복을 만들지 않는다.
+3. 기존 Codex 21:10 점검에서 공개 이력을 확인하고 이후 24h/72h/7d 지표를 같은 경과시간에 기록한다. 실측 기준선과 14일 비교 원칙은 기획 문서를 따른다. 자기 답글을 독자 참여로 세지 않는다. 낮은 반응만으로 추가 원글을 발행하지 않는다.
 4. 예약 소개글·신년이 원글 4개째가 되지 않는지 확인한다. 수동 원글은 Worker가 자동 계정 한도로 차단하지 않으므로 사전 편성에 포함한다.
 5. 공유 main의 미커밋 변경 소유자가 정리한 뒤 fast-forward하고 원격 main에 포함된 이 worktree를 안전하게 배수한다. node_modules 정션은 공유 디렉터리를 삭제하지 않도록 먼저 링크만 제거한다.
 
 재개 지시:
 
 ```text
-D:\Development\codedestiny-worktrees\threads-editorial-20261004-003257에서 D:\Development\codedestiny-worktrees\threads-editorial-20261004-003257\docs\handoff\threads-editorial-20261004.md를 읽고, 원격 main에 433ffb2ed2d93c72f61d37b9979e5935c7551a80이 포함됐는지와 CI 37134786176의 결과를 확인하라. 미커밋 작업을 보존하고 외부 게이트를 보고한 뒤, 사용자 운영 승격 승인 범위를 확인하는 단계부터 이어가라.
+D:\Development\codedestiny-worktrees\threads-editorial-20261004-003257에서 D:\Development\codedestiny-worktrees\threads-editorial-20261004-003257\docs\handoff\threads-editorial-20261004.md를 읽고, 릴리스 SHA 4886b9c99eaf10458e61fd38a73ed10f2868c79a 및 운영 실행 37138792610의 결과를 확인하라. 운영 승인은 이미 받았다. 정상 슬롯의 공개 URL·원글 수·띠별 답글 체인을 확인하고 자기 답글을 제외한 성과를 기록하라. 다른 세션의 미커밋 작업을 보존하고 시험 글이나 중복 배포를 만들지 마라.
 ```
