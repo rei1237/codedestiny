@@ -65,3 +65,15 @@ test('checkout total reads the planned price, then the labelled trial price, to 
  assert.match(html,/<s[^>]*>정식 오픈 예정가 9,900원<\/s><span class="srOnly">, 체험가 <\/span>1,000원/,'only the trial label is visually hidden');
  assert.equal(renderToStaticMarkup(React.createElement(Total,{plannedTotal:null,product:{priceKRW:1000},price})),'<strong>1,000원</strong>','no planned price, no trial label');
 });
+
+test('fish button price reads the planned price, then the labelled trial price, to a screen reader',async()=>{
+ const span=readFileSync('app/yeongnyangi/_components/Consultation.tsx','utf8').match(/(<span className=\{styles\.fishPrice\}>.*?\{price\(item\.priceKRW\)\}<\/span>)/)?.[1];
+ assert.ok(span,'fish price span');
+ const {Fish}=await load(`import LaunchPlannedPrice from './app/components/LaunchPlannedPrice';import {plannedPriceFor} from './lib/brand/launch-offer';const styles={fishPrice:'fishPrice',srOnly:'srOnly'};export function Fish({siteLocale,item,price}){return ${span};}`);
+ const React=require('react'),{renderToStaticMarkup}=require('react-dom/server'),price=n=>n.toLocaleString('ko-KR')+'원';
+ const render=(siteLocale,item)=>renderToStaticMarkup(React.createElement(Fish,{siteLocale,item,price}));
+ const html=render('ko',{fishId:'mackerel',priceKRW:1000});
+ assert.equal(html.replace(/<[^>]+>/g,''),'정식 오픈 예정가 9,900원, 체험가 1,000원');
+ assert.match(html,/<s[^>]*>정식 오픈 예정가 9,900원<\/s><span class="srOnly">, 체험가 <\/span>1,000원/,'only the trial label is visually hidden');
+ assert.equal(render('en',{fishId:'mackerel',priceKRW:1000}),'<span class="fishPrice">1,000원</span>','non-Korean locale has no trial label');
+});
