@@ -25,11 +25,9 @@ function contrast(foreground, background) {
 async function assertEssentials(page, label) {
   const essentials = [
     ['search', '#cdhServices #fortuneGatewaySearch'],
-    ['today', '#cdhTodaySlot #cdTodayHub'],
+    ['methods', '#cdQuickServices'],
     ['concern', '#cdhConcern #cdConcernPick'],
-    ['chat', '#cdhGatewaySlot #fortuneGatewayEntry a[href^="/fortune-chat/"]'],
-    ['featured', '#cdhFeatured #cdSignatureConsult a[href]'],
-    ['share', '#cdhShareControls #dpKakaoReferralShareBtn'],
+    ['chat', '.cdh-room-link:visible'],
   ];
   for (const [name, selector] of essentials) {
     const node = page.locator(selector).first();
@@ -182,6 +180,7 @@ async function assertEssentials(page, label) {
       }
 
       if (width === 390) {
+        await page.locator('#cdhMore > summary').click();
         await page.locator('#cdSignatureConsult').scrollIntoViewIfNeeded();
         await page.waitForTimeout(250);
         const fusionImage = page.locator('.cd-sig-card--fusion .cd-sig-card__img');
@@ -190,6 +189,7 @@ async function assertEssentials(page, label) {
         assert.ok(await fusionImage.evaluate((image) => image.naturalWidth > 0), 'fusion consultation image loads from the local CDN fixture');
       }
 
+      await page.evaluate(() => { window.__cdCloseGarden(); });
       await page.evaluate(() => { document.documentElement.classList.remove('neo-mode'); document.body.classList.remove('neo-mode'); location.hash = 'services'; });
       await page.waitForFunction(() => document.activeElement && document.activeElement.id === 'fortuneGatewaySearch');
       assert.equal(await page.locator('#cdhMore').evaluate((more) => more.open), false, 'search hash does not open the garden');
@@ -243,7 +243,7 @@ async function assertEssentials(page, label) {
     const deepLink = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
     await deepLink.goto(origin + '/static/index.html#cdhFeatured', { waitUntil: 'domcontentloaded' });
     await deepLink.locator('#cdhFeatured #cdSignatureConsult').waitFor({ state: 'visible', timeout: 10000 });
-    assert.equal(await deepLink.locator('#cdhMore').evaluate((more) => more.open), false, 'featured anchor is outside the garden');
+    assert.equal(await deepLink.locator('#cdhMore').evaluate((more) => more.open), true, 'featured deep link reveals its relocated section');
     for (const anchor of ['cdhPass', 'cdhExpertsSlot']) {
       await deepLink.goto(origin + '/static/index.html#' + anchor, { waitUntil: 'domcontentloaded' });
       await deepLink.waitForFunction(() => document.getElementById('cdhMore')?.open === true, null, { timeout: 10000 });

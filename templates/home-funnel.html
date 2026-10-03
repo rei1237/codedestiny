@@ -5,8 +5,9 @@
     <nav class="cdh-nav" aria-label="홈 주요 메뉴">
       <a class="cdh-account-btn" href="/login/" id="cdhAccountBtn" data-cd-sheet-open="cdAccountSheet" data-cd-account-open data-auth="guest" role="button" aria-haspopup="dialog" aria-controls="cdAccountSheet" aria-expanded="false"><span class="cdh-account-btn__guest" data-cd-trans="home.funnelCopy.login">로그인</span><span class="cdh-account-btn__member" data-cd-trans="home.funnelCopy.account">내 계정</span></a>
     </nav>
-    <div class="cdh-tools"><div id="cdhLanguageSlot"></div><div id="cdhThemeSlot"></div></div>
+    <div class="cdh-tools"><div id="cdhLanguageSlot"></div></div>
   </header>
+  <div class="cdh-mode-row"><div id="cdhThemeSlot"></div></div>
   <dialog class="cd-sheet" id="cdAccountSheet" data-cd-sheet aria-labelledby="cdAccountSheetTitle">
     <div class="cd-sheet__panel">
       <div class="cd-sheet__head">
@@ -94,36 +95,27 @@
       </div>
     </div>
   </dialog>
-  <section class="cdh cdh-services cdh-services--inline cdh-services--luxe cdh-services--top" id="cdhServices" aria-labelledby="cdhServicesTitle">
-    <span class="cd-yehwa-vine cdh-services__vine" aria-hidden="true"></span>
-    <div class="cdh-services__head moon-section-head">
-      <h2 id="cdhServicesTitle" tabindex="-1" data-cd-trans="home.gardenCopy.searchTitle">어떤 운세가 궁금하세요?</h2>
-      <p class="cdh-lead" data-cd-trans="home.gardenCopy.searchHint">운세 이름, 고민, 예전 서비스 이름으로 찾아보세요.</p>
-    </div>
-    <span class="cd-yehwa-divider cdh-services__divider" aria-hidden="true"></span>
-    {{finder}}
-    <a href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" class="cdh-catalog-link">컬렉션 전체 둘러보기 <span aria-hidden="true">↗</span></a>
-  </section>
+
   <section class="cdh-hero" aria-labelledby="cdhTitle">
-    <div class="cdh-copy">
-      <h1 id="cdhTitle"><span data-cd-trans="home.gardenCopy.heroTitle">마음이 머무는 곳,</span><br><em data-cd-trans="home.gardenCopy.heroTitleEm">연이의 운세 정원</em></h1>
-      <p class="cdh-lead" data-cd-trans="home.gardenCopy.heroLead">오늘의 고민을 함께 풀어볼까요?</p>
-      <div class="cdh-actions">
-        <a class="cdh-primary" href="#cdhConcern" data-cd-trans="home.gardenCopy.heroPrimary">내 고민 골라보기</a>
-        <a class="cdh-secondary" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" data-cd-trans="home.gardenCopy.allFortunes">모든 운세 보기</a>
-      </div>
+    <div class="cdh-scene-copy">
+      <h1 id="cdhTitle"><span class="cdh-persona--yeoni"><span data-cd-trans="home.gardenCopy.heroTitle">오늘의 마음을</span><br><span data-cd-trans="home.gardenCopy.heroTitleEm">차근차근 풀어봐요</span></span><span class="cdh-persona--neo"><span data-cd-trans="home.gardenCopy.neoHeroTitle">복잡한 고민,</span><br><span data-cd-trans="home.gardenCopy.neoHeroNext">다음 수를 찾아봐요</span></span></h1>
+      <p class="cdh-scene-lead"><span class="cdh-persona--yeoni" data-cd-trans="home.gardenCopy.heroLead">꽃돼지 연이의 운세 정원</span><span class="cdh-persona--neo" data-cd-trans="home.gardenCopy.neoHeroLead">네오의 별빛 전략실</span></p>
+      <a class="cdh-primary" href="#cdQuickServices" data-cd-trans="home.gardenCopy.heroPrimary">운세 골라보기</a>
     </div>
-    <div class="cdh-garden">
-      <span class="cdh-moon" aria-hidden="true"></span><span class="cd-yehwa-spray" aria-hidden="true"></span><span class="cdh-peony" aria-hidden="true"></span>
-      <img id="honeypigLogo" data-character="yeoni" data-lcp-candidate="1" src="/images/yeoni/garden/yeoni-garden-hero-v1-640.webp" srcset="/images/yeoni/garden/yeoni-garden-hero-v1-480.webp 480w, /images/yeoni/garden/yeoni-garden-hero-v1-640.webp 640w, /images/yeoni/garden/yeoni-garden-hero-v1-960.webp 960w, /images/yeoni/garden/yeoni-garden-hero-v1-1280.webp 1280w" sizes="(max-width: 640px) calc(100vw - 48px), (max-width: 900px) 40vw, 420px" alt="달빛 정원에서 손을 흔드는 꽃돼지 연이" width="1536" height="1024" fetchpriority="high" decoding="async">
+    <div class="cdh-scene-art" aria-hidden="true">
+      <img id="honeypigLogo" class="cdh-persona--yeoni" data-character="yeoni" data-lcp-candidate="1" src="/images/home/illustrated/yeoni-character-480.webp" srcset="/images/home/illustrated/yeoni-character-320.webp 320w, /images/home/illustrated/yeoni-character-480.webp 480w, /images/home/illustrated/yeoni-character-800.webp 800w" sizes="(max-width: 640px) 46vw, 400px" alt="" width="1280" height="1280" fetchpriority="high" decoding="async">
+      <img class="cdh-persona--neo" data-character="neo" src="/images/home/illustrated/neo-character-480.webp" srcset="/images/home/illustrated/neo-character-320.webp 320w, /images/home/illustrated/neo-character-480.webp 480w, /images/home/illustrated/neo-character-800.webp 800w" sizes="(max-width: 640px) 46vw, 400px" alt="" width="1280" height="1280" decoding="async">
     </div>
   </section>
+  <div class="cdh-slot" id="cdhQuickSlot">{{quick}}</div>
+  <section class="cdh cdh-services cdh-search" id="cdhServices" aria-labelledby="cdhServicesTitle"><h2 class="cdh-sr-only" id="cdhServicesTitle" data-cd-trans="home.gardenCopy.searchTitle">어떤 운세가 궁금하세요?</h2>{{finder}}</section>
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
-    <div class="cdh-slot" id="cdhTodaySlot">{{today}}</div>
+
     <div class="cdh-slot" id="cdhConcern" tabindex="-1"><div id="cdhConcernSlot">{{concern}}</div></div>
-    <div class="cdh-slot" id="cdhGatewaySlot">{{gateway}}</div>
-    <div class="cdh-slot" id="cdhFeatured"><span class="cd-yehwa-peony cdh-featured-flower" aria-hidden="true"></span><div id="cdhSignatureSlot">{{signature}}</div><a class="cdh-catalog-link cdh-featured-all" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" data-cd-trans="home.gardenCopy.allFortunes">모든 운세 보기</a></div>
+    <a class="cdh-room-link cdh-persona--yeoni" href="/fortune-tea-house/"><strong data-cd-trans="home.gardenCopy.yeoniRoom">운명의 찻집</strong><span data-cd-trans="home.gardenCopy.yeoniRoomNote">연이와 함께 마음을 차근차근 풀어봐요</span><span aria-hidden="true">→</span></a>
+    <a class="cdh-room-link cdh-persona--neo" href="/neo-operation-room/"><strong data-cd-trans="home.gardenCopy.neoRoom">팩폭 전략실</strong><span data-cd-trans="home.gardenCopy.neoRoomNote">네오와 함께 다음 선택을 정리해요</span><span aria-hidden="true">→</span></a>
+
     <a class="cdh-yn-portal" href="/yeongnyangi/" data-cd-business-entry="paid" data-cd-portal-link data-cd-portal-placement="home_hero" aria-label="영냥이의 달빛 점술방 둘러보기">
       <span class="cdh-yn-portal__door" aria-hidden="true">
         <img src="/assets/yeongnyangi/original/hero-480.webp" alt="" width="480" height="480" loading="lazy" decoding="async">
@@ -136,12 +128,15 @@
     </a>
     <details class="cdh-more" id="cdhMore">
       <summary class="cdh-more__summary" aria-expanded="false" aria-controls="cdhGardenBody">
-        <img src="/images/fortune-chat/persona/yeoni-read.webp" alt="" width="264" height="372" loading="lazy" decoding="async">
-        <span class="cdh-more__copy"><strong><span class="cdh-more__on" data-cd-trans="home.gardenCopy.moreTitle">연이의 정원 더 둘러보기</span><span class="cdh-more__off" data-cd-trans="home.gardenCopy.moreClose">연이의 정원 접기</span></strong><small data-cd-trans="home.gardenCopy.moreItems">여섯 점술 · 이용권 · 다이어리 · 전체 컬렉션 · 이야기와 음악 · 언론과 기록</small></span>
+
+        <span class="cdh-more__copy"><strong><span class="cdh-more__on" data-cd-trans="home.gardenCopy.moreTitle">더 둘러보기</span><span class="cdh-more__off" data-cd-trans="home.gardenCopy.moreClose">접기</span></strong><small data-cd-trans="home.gardenCopy.moreItems">오늘의 운세 · 상담 · 이용권 · 기록과 이야기</small></span>
         <svg class="cdh-more__arrow" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
       </summary>
       <div class="cdh-more__body" id="cdhGardenBody">
-    <div class="cdh-slot" id="cdhQuickSlot"><p class="cdh-says"><img src="/images/fortune-chat/persona/yeoni-greet.webp" alt="" width="264" height="372" loading="lazy" decoding="async"><span><b data-cd-trans="home.gardenCopy.saysName">연이</b><span data-cd-trans="home.gardenCopy.saysLine">어떤 운세부터 볼까요? 하나만 골라도 충분해요.</span></span></p>{{quick}}</div>
+    <div class="cdh-slot" id="cdhGatewaySlot">{{gateway}}</div>
+<div class="cdh-slot" id="cdhTodaySlot">{{today}}</div>
+<div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot">{{signature}}</div></div>
+
     <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
     <div class="cdh-slot" id="cdhDiarySlot">{{diary}}</div>
     <div class="cdh-slot" id="cdhExpertsSlot">{{experts}}</div>
@@ -162,11 +157,8 @@
       </div>
     </section>
     <div class="cdh-slot cdh-slot--guide" id="cdhGuideSlot">{{guide}}</div>
-    <button type="button" class="cdh-more__close" data-cdh-garden-close data-cd-trans="home.gardenCopy.moreClose">연이의 정원 접기</button>
-      </div>
-    </details>
-    <div class="cdh-slot" id="cdhReviewsSlot">{{reviews}}</div>
-    <section class="cd-review-invite" id="cdReviewInvite" aria-label="후기 작성과 월정석 보상 안내">
+<div class="cdh-slot" id="cdhReviewsSlot">{{reviews}}</div>
+<section class="cd-review-invite" id="cdReviewInvite" aria-label="후기 작성과 월정석 보상 안내">
       <div class="cd-review-invite__copy">
         <h2 data-review-copy="title">후기는 나중에 남겨도 괜찮아요</h2>
         <p data-review-copy="description">이용한 상담과 리포트의 경험을 들려주세요.</p>
@@ -176,7 +168,7 @@
       </div>
       <img class="cd-review-invite__image" src="/images/reviews/yeoni-moonstone-gift-v1.webp" width="240" height="240" loading="lazy" alt="후기 편지와 월정석을 건네는 꽃돼지 연이">
     </section>
-    <section class="cdh-share cdh-share--compact" aria-labelledby="cdhShareTitle">
+<section class="cdh-share cdh-share--compact" aria-labelledby="cdhShareTitle">
       <span class="cd-yehwa-spray cdh-share-flower" aria-hidden="true"></span>
       <div class="cdh-share__copy">
         <h2 id="cdhShareTitle" data-cd-trans="home.input.kakaoEvent">카카오 공유 이벤트</h2>
@@ -185,6 +177,12 @@
       </div>
       <div class="cdh-share__controls" id="cdhShareControls"></div>
     </section>
+    <button type="button" class="cdh-more__close" data-cdh-garden-close data-cd-trans="home.gardenCopy.moreClose">접기</button>
+      </div>
+    </details>
+
+
+
     <div class="cdh-slot cdh-slot--feedback" id="cdhFeedbackSlot">{{feedback}}</div>
   </div>
 </div>

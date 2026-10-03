@@ -1,0 +1,16 @@
+{
+  "tool": "built-in image_gen",
+  "original": "exec-8083f118-6e95-4457-8f01-9fbd09ccdea5.png",
+  "cutout": "exec-43073adf-b415-4e74-b316-dfaf155f1f3e.png",
+  "prompt": "Use case: stylized-concept. Create a production game-quality UI illustration sprite sheet with EXACTLY SIX separate small fortune objects, in a strict 3-column by 2-row grid on TRANSPARENT background, landscape 1536x1024. Each object centered inside its equal 512x512 cell with generous 80px empty margin, no overlap, no borders, no labels, NO letters or numbers or text anywhere. Soft storybook 3D painted depth, ivory rose gold and deep midnight plum, coherent set. Top left: upright unfurled cream birth-chart scroll with small geometric square grid in rose ink (Korean saju). Top middle: delicate round midnight purple star palace dial with a central luminous star and twelve tiny star points (ziwei). Top right: elegant golden crescent with two tiny stars (lunar sukuyo). Bottom left: ornate warm golden Indian celestial mandala disc with lotus geometry (vedic). Bottom middle: midnight-purple zodiac globe encircled by a golden orbital ring (western astrology). Bottom right: three fanned midnight-purple tarot card backs with fine gold border and star motif. Must be six distinct centered individual objects in 3x2 grid, full objects not cropped. Clear bold silhouettes recognizable at 56px, sophisticated not overly intricate. Match a Korean cozy illustrated fortune service with pink flower pig garden mode and lion celestial study mode. No characters.",
+  "editPrompt": "Remove ONLY the brown smoky background completely. Preserve the SIX illustrated objects pixel-faithfully in their exact positions on the exact same 1536x1024 canvas: 3 columns and 2 rows. Output genuine transparent alpha everywhere outside the objects, including spaces between objects and all margins. No checkerboard, no color wash, no background shadow blanket. Keep gold edges, tarot cards, celestial globes and scroll intact. This is background extraction for a transparent UI sprite atlas, not a new illustration. No reposition, no labels.",
+  "outputs": [
+    "public/images/home/illustrated/method-saju-160.webp",
+    "public/images/home/illustrated/method-ziwei-160.webp",
+    "public/images/home/illustrated/method-sukuyo-160.webp",
+    "public/images/home/illustrated/method-vedic-160.webp",
+    "public/images/home/illustrated/method-astrology-160.webp",
+    "public/images/home/illustrated/method-tarot-160.webp"
+  ],
+  "optimization": "Extract 3x2 atlas cells with sharp, resize 160x160, WebP quality85 alpha100"
+}

@@ -17,10 +17,11 @@ test("헤더 로고는 연이 얼굴 그림이고 옛 月花 글자 상자가 �
   for (const w of [96, 192]) assert.ok(fs.existsSync(path.join(root, `public/images/yeoni/welcome/yeoni-mark-v1-${w}.webp`)));
 });
 
-test("모드 토글은 두 칸 작은 세그먼트 한 벌이다", () => {
+test("모드 토글은 이름과 터치 영역이 확보된 두 칸 세그먼트다", () => {
   const pill = toggleRules.filter((r) => /#cdhThemeSlot \.theme-switch-pill\{/.test(r) && !/neo-mode/.test(r));
   assert.equal(pill.length, 1, "토글 크기 규칙은 한 벌(화면 폭별 덮어쓰기 없음)");
-  assert.match(pill[0], /width:96px!important;height:36px!important/);
+  assert.match(pill[0], /width:100%!important;height:48px!important/);
   for (const rule of toggleRules) assert.doesNotMatch(rule, /linear-gradient|width:184px|height:50px/);
-  assert.match(css, /#cdhThemeSlot \.tsp-name\{[^}]*clip-path:inset\(50%\)/);
+  assert.match(css, /#cdhThemeSlot \.tsp-name\{[^}]*clip-path:none/);
+  assert.match(template, /<div class="cdh-mode-row"><div id="cdhThemeSlot"><\/div><\/div>/);
 });
