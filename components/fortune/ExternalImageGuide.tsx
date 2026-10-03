@@ -1,6 +1,6 @@
 'use client';
 import {useMemo, useState} from 'react';
-import {buildExternalImagePrompt, chatgptUrl, reportGuideAssets, reportGuideCopy} from '@/js/core/fortune-report-content.mjs';
+import {buildExternalImagePrompt, chatgptUrl, reportGuideAssets, reportGuideChoices, reportGuideChoiceTitle, reportGuideCopy} from '@/js/core/fortune-report-content.mjs';
 import styles from './external-image-guide.module.css';
 
 export type ReportEvidence = {label:string; items:{label:string; value:string}[]};
@@ -26,12 +26,17 @@ export default function ExternalImageGuide({brand,domain,locale='ko',groups=[],p
     {notes.map((note,index) => <p className={styles.source} key={index}>{note}</p>)}
     <section className={styles.reading}><h3>{text.reading}</h3>{passages.slice(0,4).map((passage,index) => <p key={index}>{passage}</p>)}</section>
     {/* A new source remounts the editor, keeping private text tied to its own result. */}
-    <PromptEditor key={sourcePrompt} source={sourcePrompt} text={text} download={art.download} brand={brand}/>
+    <PromptEditor key={sourcePrompt} source={sourcePrompt} text={text} download={art.download} brand={brand} locale={text.locale}/>
     {children}
   </section>;
 }
-function PromptEditor({source,text,download,brand}:{source:string;text:ReturnType<typeof reportGuideCopy>;download:string;brand:string}) {
+function PromptEditor({source,text,download,brand,locale}:{source:string;text:ReturnType<typeof reportGuideCopy>;download:string;brand:string;locale:string}) {
   const [prompt,setPrompt] = useState(source);
+  const choices = brand === 'yeongnyangi' ? reportGuideChoices.yeongnyangi : [];
+  const [choiceId,setChoiceId] = useState(choices[0]?.id);
+  const choice = choices.find(item => item.id === choiceId);
+  const pick = (item:{label:{ko:string;en:string}}) => locale === 'ko' ? item.label.ko : item.label.en;
+  const file = choice ? choice.src : download;
   const [status,setStatus] = useState('');
   async function copy(done = text.copied) {
     try { await navigator.clipboard.writeText(prompt); setStatus(done); }
@@ -49,10 +54,15 @@ function PromptEditor({source,text,download,brand}:{source:string;text:ReturnTyp
         <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M8 4h8v8M16 4 5 15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </a>
     </div>
+    {choice && <div className={styles.choices} data-asset-choices>
+      <p className={styles.choiceTitle}>{locale === 'ko' ? reportGuideChoiceTitle.ko : reportGuideChoiceTitle.en}</p>
+      <img className={styles.choicePreview} src={choice.src} alt={pick(choice)} loading="lazy" data-asset-preview/>
+      <div className={styles.choiceList} role="group" aria-label={reportGuideChoiceTitle.en}>{choices.map(item => <button type="button" key={item.id} aria-pressed={item.id === choiceId} onClick={()=>setChoiceId(item.id)}><img src={item.src} alt="" width={56} height={56} loading="lazy"/><span>{pick(item)}</span></button>)}</div>
+    </div>}
     <details><summary>{text.edit}</summary><textarea aria-label={text.prompt} value={prompt} onChange={event=>setPrompt(event.target.value)} spellCheck={false}/></details>
     <div className={styles.actions}>
       <button type="button" onClick={()=>void copy()}>{text.copy}</button>
-      <a href={download} download={`${brand}-character.png`}>{text.asset}</a>
+      <a href={file} download={choice ? `yeongnyangi-${choice.id}.webp` : `${brand}-character.png`}>{text.asset}</a>
     </div>
     <p className={styles.status} role="status" aria-live="polite">{status}</p>
   </section>;

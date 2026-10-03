@@ -89,3 +89,4 @@
   .ornament {margin: 28px 0;}
   .reading,.prompt {margin-top: 32px; padding-top: 28px;}
 }
+.choices{margin:16px 0}.choiceTitle{margin:0 0 8px;font-weight:700}.choicePreview{display:block;width:100%;max-width:420px;max-height:360px;margin:0 auto 12px;object-fit:contain;border-radius:12px;border:1px solid currentColor;background:rgba(0,0,0,.2)}.choiceList{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}.choiceList button{display:flex;align-items:center;gap:8px;min-height:64px;padding:4px 8px;font:inherit;text-align:left;color:inherit;background:transparent;border:1px solid currentColor;border-radius:10px;cursor:pointer}.choiceList button[aria-pressed=true]{border-width:2px;background:rgba(231,201,147,.18);font-weight:700}.choiceList button img{flex:none;width:56px;height:56px;object-fit:cover;border-radius:8px}.choiceList button:focus-visible{outline:3px solid currentColor;outline-offset:3px}
