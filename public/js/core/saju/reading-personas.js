@@ -255,11 +255,13 @@
     if(form&&!document.getElementById('sajuInputModes')){var host=document.createElement('div');host.id='sajuInputModes';host.className='saju-input-modes';form.prepend(host);}
     write('sajuInputModes',controls()+'<p>'+esc(neo?c.room:c.garden)+'</p>');
   }
+  // 풍부한 판: 한국어는 reading-rich.js, 그 밖의 로케일은 reading-rich-intl.js(없으면 짧은 블록).
+  function richFor(lang){return lang==='ko'?(root.SajuReadingRich||null):(root.SajuReadingRichIntl?root.SajuReadingRichIntl.forLang(lang):null);}
   function render(section, supplied) {
     state=supplied||snapshot();var model=build(state,mode(),locale());if(!model)return;
     var c=langCopy(locale());
     // 한국어는 그래프·표가 있는 풍부한 판(reading-rich.js). 그 밖의 로케일과 자료 부족 시에는 기존 짧은 블록.
-    var rich=locale()==='ko'&&root.SajuReadingRich?root.SajuReadingRich:null, facts=Object.assign({},state,{warning:c.unknown});
+    var rich=richFor(locale()), facts=Object.assign({},state,{warning:c.unknown});
     if(section==='ilju'||section==='all') {
       var host=document.getElementById('iljuCard');
       if(host&&!document.getElementById('sajuElementReading')){var el=document.createElement('section');el.id='sajuElementReading';host.insertBefore(el,host.querySelector('.ilju-v2-grid')||host.firstChild);}
@@ -268,7 +270,8 @@
       var iljuRich=rich?rich.ilju(facts,model.mode):'';
       write('sajuIljuRich',iljuRich);
       // 풍부한 판은 renderIlju 가 채운 ILJU_DB 목록(요약·상세·조언)을 그대로 두고 그 아래에 원국 표·연이의 한마디를 덧붙인다.
-      if(!iljuRich){
+      // 비한국어는 ILJU_DB 목록이 한국어라 풍부한 판이어도 이 세 목록은 짧은 블록으로 덮는다.
+      if(!iljuRich||locale()!=='ko'){
         write('iljuSummaryList','<li>'+esc(model.day.blocks[0].text)+'</li>');
         write('iljuDetailList',(model.mode==='neo'?'':'<li>'+esc(model.day.evidence)+'</li>')+'<li>'+esc(model.day.blocks[1].text)+'</li>');
         write('iljuAdviceList','<li>'+esc(model.day.blocks[2].text)+'</li>'+(model.unknown?'<li>'+esc(c.unknown)+'</li>':''));
@@ -311,7 +314,7 @@
   function showGod(key, open) {
     var data=snapshot(), model=build(data,mode(),locale());if(!model)return false;
     var item=model.ten.find(function(g){return g.key===key;});if(!item)return false;
-    var rich=locale()==='ko'&&root.SajuReadingRich?root.SajuReadingRich.godDetail(key,Object.assign({},data,{warning:langCopy(locale()).unknown}),model.mode):'';
+    var richApi=richFor(locale()),rich=richApi?richApi.godDetail(key,Object.assign({},data,{warning:langCopy(locale()).unknown}),model.mode):'';
     root.ensureSajuDetailModal();openGod=key;write('modalBody',rich||markup(item.reading,model,true));if(open!==false)root.openSajuDetailModal();return true;
   }
   var preserving = false;
