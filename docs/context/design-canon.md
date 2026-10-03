@@ -46,6 +46,7 @@
 
 - 새 색은 토큰으로만 쓴다. 새 하드코딩 hex, 레거시 팔레트, `dark:`, `prefers-color-scheme` 은 들이지 않는다(DESIGN.md §9).
 - `*.module.css` 안에서 `--cd-*` 를 재선언하지 않는다. 사설 네임스페이스를 쓴다(DESIGN.md §7).
+- 영냥이 밤 예화 = `--yn-yehwa-mask-*`(`app/yeongnyangi/yehwa-night.generated.css`, `scripts/design/gen-yehwa-motifs.mjs`의 `renderYnNight()`), 금색(`--yn-gold`) 전용. 홈의 `--cd-yehwa-mask-*`와 분리 유지 — 섞지 않는다.
 
 ## 5. 표면 규칙
 
