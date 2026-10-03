@@ -30734,7 +30734,7 @@ function renderLifeGraph(bazi){
   var minScore=0,maxScore=100;
 
   function xOf(age){return PAD_L+((age-minAge)/(maxAge-minAge))*gW;}
-  function yOf(s){return PAD_T+((maxScore-s)/(maxScore-minScore))*gH;}
+  function yOf(s){return PAD_T+((s-minScore)/(maxScore-minScore))*gH;}
 
   var bg=ctx.createLinearGradient(0,0,0,CH);
   bg.addColorStop(0,'#fffdf8');
@@ -30797,13 +30797,13 @@ function renderLifeGraph(bazi){
     ctx.lineTo(gPts[gPts.length-1].x,yOf(50));
     ctx.closePath();
     if(isPositive){
-      ctx.rect(PAD_L,PAD_T,gW,yOf(50)-PAD_T);
-      var g=ctx.createLinearGradient(0,PAD_T,0,yOf(50));
+      ctx.rect(PAD_L,yOf(50),gW,gH-(yOf(50)-PAD_T));
+      var g=ctx.createLinearGradient(0,PAD_T+gH,0,yOf(50));
       g.addColorStop(0,'rgba(49,163,107,.28)');g.addColorStop(1,'rgba(49,163,107,.02)');
       ctx.fillStyle=g;
     }else{
-      ctx.rect(PAD_L,yOf(50),gW,gH-(yOf(50)-PAD_T));
-      var g2=ctx.createLinearGradient(0,yOf(50),0,PAD_T+gH);
+      ctx.rect(PAD_L,PAD_T,gW,yOf(50)-PAD_T);
+      var g2=ctx.createLinearGradient(0,yOf(50),0,PAD_T);
       g2.addColorStop(0,'rgba(197,83,92,.02)');g2.addColorStop(1,'rgba(197,83,92,.22)');
       ctx.fillStyle=g2;
     }
