@@ -87,14 +87,16 @@
   function cellHtml(cell, i, label) {
     var t = String(cell), long = t.length > 12, wrap = long ? ' class="saju-table__wrap"' : '';
     var body = long ? esc(t).replace(/([가-힣]+\([一-鿿]+\))/g, '<span class="saju-table__keep">$1</span>') : esc(t);
-    return i === 0 ? '<th scope="row"' + wrap + '>' + body + '</th>' : '<td' + (label ? ' data-label="' + esc(label) + '"' : '') + wrap + '>' + body + '</td>';
+    return i === 0 ? '<th scope="row"' + (label === true ? ' role="rowheader"' : '') + wrap + '>' + body + '</th>' : '<td' + (label ? ' data-label="' + esc(label) + '" role="cell"' : '') + wrap + '>' + body + '</td>';
   }
   // 네 칸 이상인 표는 좁은 화면에서 행마다 카드로 쌓는다(칸 이름은 data-label). 360px 에서 오른쪽 칸이 잘리던 문제.
+  // 쌓으면 display:block 이 표 의미를 벗기는 엔진이 있어 table 역할을 명시하고, 열 머리는 숨기지 않고 시각적으로만 감춘다(CSS).
   function table(caption, head, rows, foot) {
     var stack = head.length >= 4;
-    var row = function (r) { return '<tr>' + r.map(function (c, i) { return cellHtml(c, i, stack ? head[i] : ''); }).join('') + '</tr>'; };
-    return '<div class="saju-table-wrap"><table class="saju-table' + (stack ? ' saju-table--stack' : '') + '"><caption>' + esc(caption) + '</caption><thead><tr>' + head.map(function (h) { return '<th scope="col">' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
-      rows.map(row).join('') + '</tbody>' + (foot ? '<tfoot>' + row(foot) + '</tfoot>' : '') + '</table></div>';
+    var row = function (r) { return '<tr' + (stack ? ' role="row"' : '') + '>' + r.map(function (c, i) { return cellHtml(c, i, stack ? (i === 0 ? true : head[i]) : ''); }).join('') + '</tr>'; };
+    var R = function (role) { return stack ? ' role="' + role + '"' : ''; };
+    return '<div class="saju-table-wrap"><table class="saju-table' + (stack ? ' saju-table--stack' : '') + '"' + R('table') + '><caption>' + esc(caption) + '</caption><thead' + R('rowgroup') + '><tr' + R('row') + '>' + head.map(function (h) { return '<th scope="col"' + R('columnheader') + '>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody' + R('rowgroup') + '>' +
+      rows.map(row).join('') + '</tbody>' + (foot ? '<tfoot' + R('rowgroup') + '>' + row(foot) + '</tfoot>' : '') + '</table></div>';
   }
   // 섹션 첫머리: 큰 제목 한 줄과 판정 배지. 첫 배지만 강조색(섹션당 지표 하나).
   function hero(title, badges, ganji) {

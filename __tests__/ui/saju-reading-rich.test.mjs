@@ -122,7 +122,7 @@ test('ilju: the four-pillar table reads hidden stems and twelve stages from the 
     for(const key of ['y','m','d','h']){
       const j=p[key].j,hidden=context.CD_JANGGAN[j];
       assert.ok(yeon.includes(hidden[hidden.length-1]+'(정기)'),key+j);
-      assert.ok(yeon.includes('<td data-label="12운성">'+context.cdTwelveStage(p.d.g,j)+'</td>'),key+j);
+      assert.ok(yeon.includes('<td data-label="12운성" role="cell">'+context.cdTwelveStage(p.d.g,j)+'</td>'),key+j);
     }
     for(const b of context.cdGongMangBranches(p.d.g,p.d.j))assert.ok(yeon.includes(b));
     assert.match(yeon,/연이의 한마디/);assert.match(neo,/네오의 한 줄 정리/);
@@ -135,7 +135,7 @@ test('ilju: the four-pillar table reads hidden stems and twelve stages from the 
 test('ilju: an unknown birth time blanks the hour pillar and keeps the warning',()=>{
   const p={y:{g:'甲',j:'子'},m:{g:'丙',j:'寅'},d:{g:'庚',j:'午'},h:{g:'癸',j:'未'}};
   const html=rich.ilju(factsOf(p,{unknown:true,warning:'출생시간 미상'}),'pig');
-  const hourRow=html.match(/<tr><th scope="row">시주 \(미상\)<\/th>.*?<\/tr>/)[0];
+  const hourRow=html.match(/<tr role="row"><th scope="row" role="rowheader">시주 \(미상\)<\/th>.*?<\/tr>/)[0];
   assert.doesNotMatch(hourRow,/癸|未/);
   assert.match(html,/출생시간 미상/);
   assert.equal(rich.ilju({p:{}},'pig'),'');
@@ -149,8 +149,8 @@ test('flow: the current cycle and year cards show the engine score, ten gods and
   const yeon=rich.flow(facts,'pig'),neo=rich.flow(facts,'neo');
   assert.match(yeon,/--pos:72%/);assert.match(yeon,/--pos:35%/);
   assert.deepEqual(yeon.match(/--pos:[\d.]+%/g),neo.match(/--pos:[\d.]+%/g));
-  assert.ok(yeon.includes('<td data-label="십성">'+context.getTenGod(dg,'甲')+'</td>'));
-  assert.ok(yeon.includes('<td data-label="12운성">'+context.cdTwelveStage(dg,'午')+'</td>'));
+  assert.ok(yeon.includes('<td data-label="십성" role="cell">'+context.getTenGod(dg,'甲')+'</td>'));
+  assert.ok(yeon.includes('<td data-label="12운성" role="cell">'+context.cdTwelveStage(dg,'午')+'</td>'));
   assert.match(yeon,/31~40세/);assert.match(yeon,/2026년/);assert.match(yeon,/지충\(地支\)/);
   assert.match(yeon,/<b>대인관계<\/b><span>r<\/span>/);assert.match(yeon,/여기까지는 무료/);
   assert.doesNotMatch(yeon+neo,/🌟|⚠️|🙂|냥|돼지/);
