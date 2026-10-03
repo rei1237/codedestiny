@@ -25,7 +25,6 @@ A1·A2·A3·B3·C1·E1 은 끝났다(남은 것: B1·B2·C2·D1). 과제마다 �
 ```
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B1(iljuCard 상단 구 컴포넌트 디자인 정리)을 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 C2(비한국어 로케일 풍부한 판)를 진행해줘
-docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 D1(daewun-quality 검증기 타임아웃)을 진행해줘
 ```
 
 여러 세션을 동시에 돌리면 두 번째부터 워크트리를 만든다(`scripts/create-safe-worktree.ps1`). 같은 파일(`js/core/saju/reading-rich.js`)을 건드리는 B3·C2 는 동시에 돌리지 않는다.
@@ -91,7 +90,7 @@ docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 D1(daewun-qual
 
 ### D. 검증기
 
-**D1. `scripts/verify-saju-daewun-quality-browser.mjs` 타임아웃** — GREEN(검증기만).
+**D1. `scripts/verify-saju-daewun-quality-browser.mjs` 타임아웃** — ✅ 완료 2026-10-03 (b9bb39af2). 원인은 `.card`·`.rpt-v2-block` 의 `content-visibility:auto`: 화면 밖이면 하위가 건너뛰어져 innerText 가 비고 max-height 전환이 멈추며, 펼치면 블록이 화면 밖으로 밀린다. 대기 조건 안에서 요소를 뷰포트로 옮기고 같은 평가에서 값을 읽게 했다. `calculate()` 가 iframe 을 교체해 열린 evaluate 가 끊기는 건 완료 플래그로 기다린다. 수정 전 약 55% 실패 → 25/25 통과, 높이 동기화를 무력화하면 여전히 실패(변이 확인). 제품 코드는 무변경. 아래는 원래 기록.
 - `:114` quantumCard `.rpt-v2-detail` 높이 대기에서 멈춘다.
 - base 097102a02 에서도 같은 실패가 나는 선존 결함이다.
 - 할 일: 대기 조건이 현재 DOM(접힘·`content-visibility:auto`)과 맞는지 보고 고친다. 대기를 늘리는 땜질은 하지 않는다.

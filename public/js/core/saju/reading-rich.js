@@ -634,5 +634,7 @@
     return wrap(mode, html, facts);
   }
 
-  root.SajuReadingRich = {daily:daily, flow:flow, powerParts:powerParts, johuParts:johuParts, powerMatches:powerMatches, johuMatches:johuMatches, stage:stage, godMap:godMap, climate:climate, strength:strength, tenOverview:tenOverview, tenCards:tenCards, godDetail:godDetail, ilju:ilju, escape:esc};
+  root.SajuReadingRich = {daily:daily, flow:flow, powerParts:powerParts, johuParts:johuParts, powerMatches:powerMatches, johuMatches:johuMatches, stage:stage, godMap:godMap, climate:climate, strength:strength, tenOverview:tenOverview, tenCards:tenCards, godDetail:godDetail, ilju:ilju, escape:esc,
+    // 비한국어 판(reading-rich-intl.js)이 같은 조각·계산 보조를 재사용한다. 문구는 들어 있지 않다.
+    kit:{esc:esc, fmt:fmt, num:num, pct:pct, lib:lib, elOf:elOf, family:family, section:section, para:para, gauge:gauge, table:table, hero:hero, tiles:tiles, chips:chips, more:more, wrap:wrap, familyEl:familyEl, roleOf:roleOf, SEASON:SEASON, BRANCH_TEMP:BRANCH_TEMP, GOD_FAMILY:GOD_FAMILY, FAMILY_ORDER:FAMILY_ORDER}};
 })(typeof window === 'undefined' ? globalThis : window);

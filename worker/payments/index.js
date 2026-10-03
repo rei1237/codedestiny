@@ -36,6 +36,7 @@ import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credenti
 import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js";
 import { Payment, User } from "../lib/models.js";
 import { prepareResumeContext, readOrderResumeContext } from "./resume-context.js";
+import { preparePaypalCharge, paypalChargeForOrder } from './paypal.js';
 import { fetchPortOnePayment, getPortOnePublicConfig, resolveChargeAmountKRW } from "../lib/portone.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
@@ -530,6 +531,7 @@ function presentMembershipPass(entitlement, coverage = {}) {
 
 async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
   const { plan, paymentMethod, chargeKRW } = resolvePassRequest(env, body);
+  const paypalCharge = await preparePaypalCharge(env, paymentMethod, chargeKRW);
   const purchaseType = body.purchaseType ?? "SELF";
   if (!["SELF", "GIFT"].includes(purchaseType)) throw paymentError("INVALID_REQUEST", "구매 방식이 올바르지 않습니다.");
   /* 결제 전 환불·청약철회 고지에 동의했는가. 🔴 === true 만 동의로 본다 — 없거나 다른 값이면
@@ -570,7 +572,7 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
        정책이 달라진다. 주문에 실리는 금액만 청구가로 바꾼다. */
     if (!gifts && isPassPolicyMix(userDoc?.profileSubscription || {}, plan)) throw paymentError("PASS_POLICY_CONFLICT", "현재 이용권이 종료된 후 새 이용권을 구매해 주세요.");
     const chargePlan = chargeKRW === Number(plan.wonPrice) ? plan : { ...plan, wonPrice: chargeKRW };
-    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft, foreignCard, refundConsent });
+    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft, foreignCard, refundConsent, paypalCharge });
     if (gifts) await gifts.ensureGiftForOrder(db, created);
     return { order: created, user: userDoc };
   });
@@ -596,6 +598,7 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
       profileLimit: plan.profileLimit,
       durationDays: plan.durationDays,
       recurring: false,
+      paypalCharge: paypalChargeForOrder(order),
       purchaseType,
       status: order.status,
       foreignCard: narrowToOrderSnapshot(foreignCard, order.foreignCard),
@@ -839,7 +842,7 @@ async function confirmOrder(env, ctx, { orderId, actorUserId = "" }, options = {
 
   let pg;
   try {
-    pg = await verifyPgPayment(env, { orderId, expectedAmountKRW: Number(begun.order.paymentAmount || 0) }, deps);
+    pg = await verifyPgPayment(env, { orderId, expectedAmountKRW: Number(begun.order.paymentAmount || 0), paypalCharge: paypalChargeForOrder(begun.order) }, deps);
   } catch (error) {
     const contract = classify(error);
     // 사실이 어긋난 것(422)은 주문을 실패로 확정한다. 닿지 못한 것(503)은 상태를 건드리지 않는다 —
@@ -1106,6 +1109,7 @@ const ROUTES = {
         storeId: config.storeId,
         channelKey: config.channelKey,
         kakaopayChannelKey: config.kakaopayChannelKey,
+        paypalChannelKey: config.paypalChannelKey,
         kakaopayConfigured: Boolean(config.kakaopayConfigured),
         currency: config.currency,
         payMethod: config.payMethod,
@@ -1149,11 +1153,15 @@ const ROUTES = {
         productId: body.productId, featureKey: body.featureKey, reason: body.reason,
       }));
       ctx.productId = product.productId;
+      const paymentMethod = String(body.paymentMethod || "card_general");
+      const paypalCharge = await preparePaypalCharge(env, paymentMethod, product.priceKRW);
       const order = await withDb(env, ctx, (db) => createOrder(db, {
         env,
         requestId: body.requestId,
         userId,
         product,
+        paymentMethod,
+        paypalCharge,
         idempotencyKey: String(product.featureKey || '').startsWith('yeongnyangi-') ? body.requestId : body.idempotencyKey,
         profileId: body.profileId,
         contentKey: body.contentKey,
@@ -1221,6 +1229,7 @@ const ROUTES = {
       catch { throw paymentError('INVALID_REQUEST','사용할 월정석 수량을 확인해 주세요. 단건 결제 잔액은 1,000원 이상이어야 해요.'); }
       if (moonstoneDiscount && (product.priceKRW!==moonstoneDiscount.listPriceKRW || /paypal/i.test(paymentMethod)))
         throw paymentError('INVALID_REQUEST','이 결제에서는 월정석 할인을 사용할 수 없어요.');
+      const paypalCharge = await preparePaypalCharge(env, paymentMethod, product.priceKRW);
       /* 결제 전 환불·청약철회 고지에 동의했는가(단건 결제창). 🔴 handlePassPrepare 와 **같은 계약**이다:
          === true 만 동의로 보고, 없거나 다른 값이면 거절이 아니라 "동의 기록 없음"으로 남긴다
          (policy-versions.js buildRefundConsentRecord 머리주석 — 구버전 앱·옛 셸 보호). */
@@ -1271,6 +1280,7 @@ const ROUTES = {
           scope: body.scope,
           returnPath: body.returnPath,
           paymentMethod,
+          paypalCharge,
           foreignCard,
           refundConsent,
           moonstoneDiscount,

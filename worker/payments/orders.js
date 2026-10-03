@@ -27,6 +27,7 @@
  * 신규 코드는 그것들을 **절대 쓰지 않고** 읽을 때만 5상태로 접는다. 그래서 마이그레이션이 필요 없다 —
  * 기존 행 100% 가 그대로 매핑된다.
  */
+import { assertPaypalOrderMatches } from './paypal.js';
 import { Payment } from "../lib/models.js";
 import { resolveConfirmedPaymentMethod } from "../lib/payment-method-label.js";
 import { paymentError } from "./errors.js";
@@ -98,7 +99,7 @@ export async function createOrder(db, {
   userId, product, idempotencyKey, paymentType = "digital_content",
   profileId = "", contentKey = "", scope = "", returnPath = "", paymentMethod = "unknown",
   requestId = "", paidResume = null, env = {}, foreignCard = null, refundConsent = false,
-  purchaseType = "SELF", giftDraft = null, moonstoneDiscount = null,
+  purchaseType = "SELF", giftDraft = null, moonstoneDiscount = null, paypalCharge = null,
 }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
@@ -136,8 +137,9 @@ export async function createOrder(db, {
           // prepare(payments.js)는 이 필드를 썼고 V2 로 넘어오며 빠졌다. 클라이언트가 requestId 와
           // idempotencyKey 를 다른 값으로 보내면 {requestId} 절이 영영 매칭되지 않는다.
           requestId: String(requestId || "").trim(),
-          ...((paidResume || (product.fulfillmentType==='service_pack'&&giftDraft) || String(product.featureKey || '').startsWith('yeongnyangi-')) ? { metadata: {
+          ...((paypalCharge || paidResume || (product.fulfillmentType==='service_pack'&&giftDraft) || String(product.featureKey || '').startsWith('yeongnyangi-')) ? { metadata: {
             ...(paidResume ? {paidResume} : {}),
+            ...(paypalCharge ? {paypalCharge} : {}),
             ...(product.fulfillmentType==='service_pack'&&giftDraft?{giftDraft}:{}),
             ...(product.fulfillmentType!=='service_pack' && String(product.featureKey || '').startsWith('yeongnyangi-') ? {
               productType:'YEONGNYANGI_FORTUNE', paymentType:'ONE_TIME', fortuneRequestId:requestId.slice(3), fortunePaymentGeneration,
@@ -215,6 +217,7 @@ export async function createOrder(db, {
   if (!order) throw paymentError("INTERNAL_ERROR", "주문을 생성하지 못했습니다.", { orderId });
   if (Number(order.pricingSnapshot?.moonstoneDiscount?.quantity || 0) !== Number(moonstoneDiscount?.quantity || 0))
     throw paymentError('IDEMPOTENCY_CONFLICT','진행 중인 주문의 월정석 수량은 바꿀 수 없어요. 기존 결제 상태를 먼저 확인해 주세요.');
+  assertPaypalOrderMatches(order, { paymentMethod, priceKRW: product.priceKRW });
   return order;
 }
 

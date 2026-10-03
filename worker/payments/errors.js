@@ -35,6 +35,9 @@ import { isDbUnavailableError } from "../lib/http.js";
 export const PAYMENT_ERROR_TABLE = Object.freeze({
   // 400 — 요청 자체가 틀렸다. 재시도해도 같다.
   INVALID_REQUEST: { status: 400 },
+  PAYPAL_NOT_CONFIGURED: { status: 409 },
+  PAYPAL_FX_UNAVAILABLE: { status: 409, retryable: true },
+  PAYPAL_ORDER_CONFLICT: { status: 409 },
   PASS_SALE_ENDED: { status: 409 },
   PASS_SALE_NOT_READY: { status: 409 },
   PASS_POLICY_CONFLICT: { status: 409 },

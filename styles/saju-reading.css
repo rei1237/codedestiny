@@ -245,6 +245,7 @@ body.neo-mode .saju-cycle-guide {background:#21182f;color:#f4eafa;border-color:#
 .saju-chips + p,.saju-chips + .saju-rich__more {margin-top:14px;}
 .saju-chip {display:flex;flex-wrap:wrap;align-items:baseline;align-content:flex-start;gap:2px 6px;padding:10px 14px;border:1px solid color-mix(in srgb,var(--reading-line) 85%,transparent);border-radius:var(--cd-r-control,12px);background:var(--reading-card);font-size:.9375rem;line-height:1.6;}
 .saju-chip b {color:var(--reading-ink);font-weight:700;}
+.saju-chip b {word-break:keep-all;}
 .saju-chip small {flex-basis:100%;color:var(--reading-muted);font-size:.8125rem;line-height:1.6;}
 .saju-chip[data-tone="good"] {border-color:color-mix(in srgb,var(--reading-accent) 45%,var(--reading-line));background:color-mix(in srgb,var(--reading-accent) 7%,var(--reading-card));}
 .saju-chip[data-tone="good"] b {color:var(--reading-accent);}

@@ -269,12 +269,12 @@ export async function refundPaymentAsOperator({
     }));
   }
   try {
+    const { paypalCancellationAmounts } = await import('../payments/paypal.js');
     cancelResult = await cancelPortOnePayment(env, {
       impUid: payment.impUid || undefined,
       merchantUid: payment.merchantUid || undefined,
       reason: normalizedReason,
-      amount: requestedAmount,
-      currentCancellableAmount,
+      ...paypalCancellationAmounts(payment, { amount: requestedAmount, currentCancellableAmount }),
       idempotencyKey: `refund-${String(payment.merchantUid || payment.impUid || payment._id)}-${requestedAmount || paidAmount}`,
     });
   } catch (error) {
@@ -444,13 +444,17 @@ export async function autoRefundSinglePaymentDeliveryFailure(env, payment, reaso
   });
 
   try {
+    const { paypalCancellationAmounts } = await import('../payments/paypal.js');
     const canceledPortOne = await cancelPortOnePayment(env, {
       impUid: payment.impUid || payment.merchantUid,
       merchantUid: payment.merchantUid || payment.impUid,
       reason: reasonMessage,
-      checksum: Number(payment.paymentAmount || 0) || undefined,
+      ...paypalCancellationAmounts(payment, { checksum: Number(payment.paymentAmount || 0) || undefined }),
       idempotencyKey: refundIdempotencyKey,
     });
+    if (payment.metadata?.paypalCharge && !isPortOneCancelSucceeded(canceledPortOne)) {
+      throw new Error('PayPal refund is pending. Await cancellation confirmation.');
+    }
 
     const now = new Date();
     const revocation = await revokeSinglePaymentContentAccess(payment, {

@@ -154,7 +154,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
  useEffect(()=>{
   if(!modalOpen)return;purchaseRef.current?.focus();
   // 전용 채널키가 없는 수단(스테이징 카카오페이 등)을 주문 전에 '준비 중'으로 내린다. config 왕복은 페이지당 1회를 꽃돼지 결제창과 나눠 쓴다.
-  void loadPackPayMethodAvailability().then(closed=>{if(closed.length)setPayMethodRevision(value=>value+1);});
+  void loadPackPayMethodAvailability().then(()=>setPayMethodRevision(value=>value+1));
   const onKey=(event:KeyboardEvent)=>{if(event.key==='Escape'&&!lock.current){setSelected('');setConsent(false);}};
   document.addEventListener('keydown',onKey);
   return()=>{document.removeEventListener('keydown',onKey);triggerRef.current?.focus?.();};
@@ -297,7 +297,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
      <div className="mt-2 grid grid-cols-2 gap-2">
       {PACK_PAY_METHODS.map(method=>{
        const card=method==='CARD',open=card||checkoutEntry.isDirectPayMethodEnabled(method);
-       return <button key={method} type="button" data-pack-pay-method={card?'card':'kakaopay'} disabled={busy||!consent||!open||isMobileAppRuntime()} onClick={()=>void buy(method)} className="flex min-h-[76px] flex-col items-start justify-center gap-1 rounded-[14px] border border-amber-200/45 bg-amber-200/12 px-3.5 py-3 text-left text-amber-50 transition hover:bg-amber-200/20 disabled:cursor-not-allowed disabled:opacity-50">
+       return <button key={method} type="button" data-pack-pay-method={method.toLowerCase()} disabled={busy||!consent||!open||isMobileAppRuntime()} onClick={()=>void buy(method)} className="flex min-h-[76px] flex-col items-start justify-center gap-1 rounded-[14px] border border-amber-200/45 bg-amber-200/12 px-3.5 py-3 text-left text-amber-50 transition hover:bg-amber-200/20 disabled:cursor-not-allowed disabled:opacity-50">
         <span aria-hidden="true" className="text-lg leading-none">{card?'💳':checkoutEntry.directPayMethodMeta(method)?.glyph}</span>
         <span className="text-[13px] font-black leading-snug">{card?copy.cardPay:checkoutEntry.directPayMethodLabel(method)}</span>
         {!open&&<span className="text-[11px] font-bold text-amber-100/80">{checkoutEntry.directPayMethodComingSoonText()}</span>}

@@ -2060,6 +2060,12 @@
     "agreeAndViewResult": "同意並查看結果"
   },
   "payment": {
+    "paypal": {
+      "usdHint": "海外付款 · 付款前確認美元金額",
+      "rateNotice": "按現有韓元價格換算。匯率日期：{date} (ECB)。",
+      "close": "關閉並查看付款狀態",
+      "wait": "在PayPal中核准付款後，在此查看付款狀態。"
+    },
     "loader": {
       "eyebrow": "月光付款確認",
       "title": "正在安全確認付款狀態",

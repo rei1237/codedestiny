@@ -791,6 +791,7 @@
     "CARD",
     "TRANSFER",
     "KAKAOPAY",
+    "PAYPAL",
     "MOBILE",
     "GIFT_CULTURELAND",
     "GIFT_BOOKNLIFE",
@@ -810,6 +811,7 @@
     // 표시한다. 값은 서버 라벨표(worker/routes/payments.js resolvePaymentMethodLabel)가 아는 코드와 맞춘다 —
     // 모르는 값을 보내면 그 화면이 코드 원문을 그대로 노출한다.
     KAKAOPAY: { enabled: true, payMethod: "EASY_PAY", channelKeyName: "kakaopayChannelKey", orderMethod: "kakaopay", glyph: "💛" },
+    PAYPAL: { enabled: true, payMethod: "EASY_PAY", channelKeyName: "paypalChannelKey", orderMethod: "paypal", glyph: "P" },
     MOBILE: { enabled: false, payMethod: "MOBILE", glyph: "📱" },
     // 🔴 KG이니시스가 PortOne V2 로 태울 수 있는 상품권은 이 3종뿐이다. 해피머니·CULTURE_GIFT 는
     // 이니시스 상점에 등록돼 있어도 이 경로에 대응 값이 없어 넣을 수 없다.
@@ -850,6 +852,7 @@
   function directPayMethodOpen(id, entry) {
     if (!entry || entry.enabled !== true) return false;
     var map = methodAvailabilityMap();
+    if (id === "PAYPAL") return !!(map && map[id] === true) && !shouldUseAppStoreEntry();
     if (!map) return true;
     return map[id] !== false;
   }
@@ -883,6 +886,20 @@
       if (was && !available) closed.push(id);
     }
     win[METHOD_AVAILABILITY_KEY] = map;
+    // PayPal starts closed until the server explicitly publishes its live configuration.
+    if (map.PAYPAL === true && win.document) {
+      var paypalTiles = win.document.querySelectorAll('[data-pay-method="PAYPAL"].is-disabled');
+      Array.prototype.forEach.call(paypalTiles, function (tile) {
+        if (!isDirectPayMethodEnabled("PAYPAL")) return;
+        tile.classList.remove("is-disabled");
+        tile.removeAttribute("aria-disabled");
+        tile.setAttribute("aria-label", "PayPal");
+        var badge = tile.querySelector(".cd-direct-payment-badge");
+        if (badge) badge.innerHTML = '<span class="cd-direct-payment-glyph" aria-hidden="true">P</span>';
+        var desc = tile.querySelector(".cd-direct-payment-desc");
+        if (desc) desc.textContent = paypalUsdHint();
+      });
+    }
     // 방금 닫힌 수단이 지금 고른 값이면 선택을 비운다 — 안 그러면 resolveDirectPayFields 가 계속
     // 그 수단을 돌려줘 조립부가 다시 채널키 결손으로 던진다.
     if (closed.length) {
@@ -990,6 +1007,7 @@
    * "Translation pending" 을 보게 되고 가드는 초록이다.
    */
   function directPayMethodLabel(id) {
+    if (id === "PAYPAL") return "PayPal";
     if (id === "CARD") return checkoutText("payment.directModal.method.card", "신용카드 · 간편결제");
     if (id === "TRANSFER") return checkoutText("payment.directModal.method.transfer", "실시간 계좌이체");
     if (id === "KAKAOPAY") return checkoutText("payment.directModal.method.kakaopay", "카카오페이");
@@ -1033,6 +1051,7 @@
    */
   function directPayMethodWaitText(id) {
     var key = normalizeDirectPayMethodId(id);
+    if (key === "PAYPAL") return checkoutText("payment.paypal.wait", "PayPal에서 결제를 승인한 뒤 이 화면에서 결제 상태를 확인합니다.");
     if (key === "CARD") return checkoutText("payment.directModal.wait.card", "카드사·간편결제 앱에서 인증을 마친 뒤 이 브라우저로 돌아오면 자동으로 이어집니다.");
     if (key === "TRANSFER") return checkoutText("payment.directModal.wait.transfer", "출금 계좌 인증을 마치면 이 화면으로 자동으로 돌아옵니다.");
     if (key === "KAKAOPAY") return checkoutText("payment.directModal.wait.kakaopay", "카카오톡에서 결제를 승인한 뒤, 이 브라우저로 돌아오면 자동으로 이어집니다.");
@@ -1111,7 +1130,7 @@
         + '<span class="cd-direct-payment-glyph" aria-hidden="true">' + entry.glyph + "</span>"
         + (enabled ? "" : escape(comingSoon)) + "</span></span>"
         + "<strong>" + escape(label) + "</strong>"
-        + '<span class="cd-direct-payment-desc">' + escape(enabled ? activeHint : comingSoon) + "</span>"
+        + '<span class="cd-direct-payment-desc">' + escape(enabled ? (id === "PAYPAL" ? paypalUsdHint() : activeHint) : comingSoon) + "</span>"
         + "</button>"
       );
     }
@@ -1958,8 +1977,115 @@
     }
   }
 
+  function paypalUsdHint() {
+    return checkoutText("payment.paypal.usdHint", "해외 결제 · 결제 전 USD 금액 확인");
+  }
+
+  // SPB is an embedded UI. Its callback only starts the existing server confirmation.
+  // Closing also confirms the same order: an approval can still arrive asynchronously.
+  function requestPaypalPayment(request, charge) {
+    var win = runtimeWindow();
+    var doc = win && win.document;
+    if (!doc || !win.PortOne || typeof win.PortOne.loadPaymentUI !== "function") {
+      return Promise.reject(new Error("PayPal SDK is unavailable."));
+    }
+    if (!charge || charge.currency !== "USD" || !Number.isSafeInteger(charge.totalAmount)
+        || charge.totalAmount <= 0 || Number(charge.priceKRW) !== Number(request.totalAmount)
+        || !request.channelKey || !(request.customer && (request.customer.customerId || request.customer.email)) || shouldUseAppStoreEntry()) {
+      return Promise.reject(new Error("PayPal order is unavailable."));
+    }
+    if (doc.getElementById("cdPaypalCheckout")) return Promise.reject(new Error("PayPal checkout is already open."));
+    if (!doc.getElementById("cdPaypalCheckoutStyle")) {
+      var style = doc.createElement("style");
+      style.id = "cdPaypalCheckoutStyle";
+      style.textContent = PAYMENT_CHOICE_CSS_RULES.join("\n");
+      doc.head.appendChild(style);
+    }
+    var previousFocus = doc.activeElement;
+    var modal = doc.createElement("div");
+    modal.id = "cdPaypalCheckout";
+    modal.className = "cd-direct-payment-modal is-open";
+    var dialog = doc.createElement("div");
+    dialog.className = "cd-direct-payment-dialog";
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.setAttribute("aria-labelledby", "cdPaypalAmount");
+    dialog.style.paddingTop = "24px";
+    var title = doc.createElement("h2");
+    title.id = "cdPaypalAmount";
+    title.className = "cd-direct-payment-title";
+    title.textContent = "PayPal · " + new Intl.NumberFormat(displayLocale(), { style: "currency", currency: "USD" }).format(charge.totalAmount / 100) + " USD";
+    var name = doc.createElement("p");
+    name.className = "cd-direct-payment-sub";
+    name.textContent = text(request.orderName);
+    var notice = doc.createElement("p");
+    notice.className = "cd-direct-payment-note";
+    notice.textContent = checkoutText("payment.paypal.rateNotice", "기존 원화 가격을 환산한 결제 금액입니다. 환율 기준일: {date} (ECB).", { date: charge.rateDate });
+    var container = doc.createElement("div");
+    container.className = "portone-ui-container";
+    container.style.minHeight = "48px";
+    var close = doc.createElement("button");
+    close.type = "button";
+    close.className = "cd-direct-payment-method-back";
+    close.style.minHeight = "44px";
+    close.style.marginTop = "12px";
+    close.textContent = checkoutText("payment.paypal.close", "닫고 결제 상태 확인");
+    dialog.appendChild(title);
+    dialog.appendChild(name);
+    dialog.appendChild(notice);
+    dialog.appendChild(container);
+    dialog.appendChild(close);
+    modal.appendChild(dialog);
+    doc.body.appendChild(modal);
+    close.focus();
+    var data = Object.assign({}, request, { uiType: "PAYPAL_SPB", currency: "USD", totalAmount: charge.totalAmount,
+      products: [{ id: text(request.paymentId), name: text(request.orderName), amount: charge.totalAmount, quantity: 1, type: "DIGITAL" }] });
+    delete data.payMethod;
+    delete data.windowType;
+    delete data.giftCertificate;
+    // Digital-goods STC uses the same buyer identifiers already sent to PayPal.
+    // Do not infer a country, split a name, or reuse the domestic PG bypass.
+    var additionalData = [];
+    if (request.customer.customerId) additionalData.push({ key: "sender_account_id", value: String(request.customer.customerId) });
+    if (request.customer.email) additionalData.push({ key: "sender_email", value: String(request.customer.email) });
+    data.bypass = { paypal_v2: { additional_data: additionalData } };
+    return new Promise(function (resolve, reject) {
+      var settled = false;
+      function finish(response, error) {
+        if (settled) return;
+        settled = true;
+        doc.removeEventListener("keydown", onKey);
+        modal.remove();
+        if (previousFocus && previousFocus.isConnected && typeof previousFocus.focus === "function") previousFocus.focus();
+        if (error) reject(error); else resolve(response);
+      }
+      function checkStatus() { finish({ paymentId: request.paymentId }); }
+      function onKey(event) {
+        if (event.key === "Escape") { event.preventDefault(); checkStatus(); }
+        if (event.key === "Tab") {
+          var controls = Array.prototype.slice.call(dialog.querySelectorAll('button,iframe,a[href],[tabindex="0"]'));
+          var first = controls[0], last = controls[controls.length - 1];
+          if (event.shiftKey && doc.activeElement === first) { event.preventDefault(); last.focus(); }
+          else if (!event.shiftKey && doc.activeElement === last) { event.preventDefault(); first.focus(); }
+        }
+      }
+      close.addEventListener("click", checkStatus);
+      doc.addEventListener("keydown", onKey);
+      Promise.resolve().then(function () {
+        if (settled) return;
+        return win.PortOne.loadPaymentUI(data, {
+          onPaymentSuccess: function (response) { finish(response); },
+          onPaymentFail: function (response) { finish(response); },
+        });
+      }).then(function (result) {
+        if (result && result.code) finish(result);
+      }).catch(function (error) { finish(null, error); });
+    });
+  }
+
   return {
     VERSION: 1,
+    requestPaypalPayment: requestPaypalPayment,
     buildPaidResumeContext: buildPaidResumeContext,
     peekCheckoutReturn: function () { return consumeCheckoutReturn(true); },
     RETURN_KEY: RETURN_KEY,

@@ -5564,14 +5564,14 @@
         throw new Error('구매자 이메일 형식이 올바르지 않습니다.');
       }
 
-      if (!customerPhone) {
+      if (!customerPhone && !order.paypalCharge) {
         // customer.email 이 있으면 서버가 User 문서를 읽고 customer 를 만든 것이므로,
         // 위에서 비어 있던 phoneNumber 는 확정 미보유다 — 재조회 없이 바로 입력창으로 간다.
         customerPhone = await _dpEnsurePaymentPhoneNumber({
           serverConfirmedNoPhone: Boolean(orderCustomer && orderCustomer.email)
         });
       }
-      if (!customerPhone) {
+      if (!customerPhone && !order.paypalCharge) {
         throw new Error('\uC774\uB2C8\uC2DC\uC2A4 \uACB0\uC81C\uB97C \uC9C4\uD589\uD558\uB824\uBA74 \uAD6C\uB9E4\uC790 \uD734\uB300\uD3F0 \uBC88\uD638\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.');
       }
 
@@ -5738,7 +5738,9 @@
       // 차단이 그걸 막지 않도록 이 구간만 예외로 표시한다.
       window.__cdSuppressPaymentUnloadBlock = true;
       _dpSetPaymentPending(false);
-      var rsp = await window.PortOne.requestPayment(requestData);
+      var rsp = directPayFields.orderMethod === 'paypal'
+        ? await _dpCheckoutEntry().requestPaypalPayment(requestData, order.paypalCharge)
+        : await window.PortOne.requestPayment(requestData);
       // 결제창이 이 문서로 정상 반환했다 — 아래 인라인 확정이 주체다. 폴러는 여기서 물러난다.
       _dpStopDirectOrderPoll();
       window.__cdSuppressPaymentUnloadBlock = false;

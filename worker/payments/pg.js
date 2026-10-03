@@ -108,7 +108,7 @@ export function assertPgConfigured(env) {
  *   네 가지 대조는 결제 정확성의 핵심이라 **실제 PG 를 부르지 않고** 전부 검증할 수 있어야 한다.
  * @returns {Promise<{ pgTransactionId: string, paidAt: Date|null, method: string, summary: object }>}
  */
-export async function verifyPgPayment(env, { orderId, expectedAmountKRW }, deps = {}) {
+export async function verifyPgPayment(env, { orderId, expectedAmountKRW, paypalCharge = null }, deps = {}) {
   const config = assertPgConfigured(env);
   const fetchPayment = deps.fetchPayment || fetchPortOnePayment;
 
@@ -151,7 +151,7 @@ export async function verifyPgPayment(env, { orderId, expectedAmountKRW }, deps 
   // ③ 금액. 클라이언트가 보낸 값이 아니라 **우리 주문 문서**의 금액과 댄다.
   //    PortOne V2 공식 검증 예시는 `amount.total` 이다(developers.portone.io v2 checkout, 2026-09-23 확인).
   //    정규화된 pg.amount 는 amount.paid 를 먼저 읽어 PG 즉시할인이 붙으면 정상 결제가 불일치로 떨어진다.
-  const expected = Math.floor(Number(expectedAmountKRW) || 0);
+  const expected = Math.floor(Number(paypalCharge?.totalAmount ?? expectedAmountKRW) || 0);
   const actual = Math.floor(Number(extractTotalAmount(pg)) || 0);
   if (expected <= 0 || actual !== expected) {
     throw paymentError("AMOUNT_MISMATCH", "결제 금액이 주문 금액과 다릅니다.", {
@@ -162,7 +162,7 @@ export async function verifyPgPayment(env, { orderId, expectedAmountKRW }, deps 
   }
 
   // ④ 통화. 원화 상품에 외화 결제가 붙는 것을 막는다.
-  if (String(pg.currency || "").toUpperCase() !== "KRW") {
+  if (String(pg.currency || "").toUpperCase() !== (paypalCharge ? "USD" : "KRW")) {
     throw paymentError("CURRENCY_MISMATCH", "결제 통화가 올바르지 않습니다.", {
       orderId,
       currency: String(pg.currency || ""),
@@ -172,7 +172,7 @@ export async function verifyPgPayment(env, { orderId, expectedAmountKRW }, deps 
   // ⑤ 상점. 응답에 storeId 가 **있을 때만** 우리 상점과 댄다 — 다른 상점의 결제로 우리 주문을 확정하지 않는다.
   //    구 경로(payments.js)는 없어도 불일치로 보지만, 여기서는 실제 응답 형식이 미확인이라 통과시키고 absent 로 남긴다.
   const pgStoreId = extractStoreId(pg);
-  if (pgStoreId && pgStoreId !== String(config.portoneStoreId).trim()) {
+  if ((paypalCharge && !pgStoreId) || (pgStoreId && pgStoreId !== String(config.portoneStoreId).trim())) {
     throw paymentError("STORE_ID_MISMATCH", "결제 정보가 주문과 일치하지 않습니다.", { orderId });
   }
 
@@ -181,7 +181,10 @@ export async function verifyPgPayment(env, { orderId, expectedAmountKRW }, deps 
   //    present-only 인 이유: 운영 응답에서 이 필드가 항상 오는지 아직 실측하지 않았다 — 없는데 엄격하게
   //    막으면 결제 확정 전면 중단이다. absent 비율은 요약의 channelCheck 로 본다.
   const pgChannelKey = extractChannelKey(pg);
-  if (pgChannelKey) {
+  if (paypalCharge && (!pgChannelKey || pgChannelKey !== config.portonePaypalChannelKey)) {
+    throw paymentError("CHANNEL_MISMATCH", "결제 정보가 주문과 일치하지 않습니다.", { orderId });
+  }
+  if (pgChannelKey && !paypalCharge) {
     const allowed = [config.portoneChannelKey, config.portoneKakaopayChannelKey]
       .map((key) => String(key || "").trim())
       .filter(Boolean);
