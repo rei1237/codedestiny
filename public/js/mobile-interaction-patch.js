@@ -280,7 +280,9 @@
       var className = String(img.className || '');
       var isLcp = img.getAttribute('data-lcp-candidate') === '1';
       var isMobileHubLogo = className.indexOf('cd-mobile-hub__logo') !== -1;
-      if (!isLcp && !isMobileHubLogo) {
+      // Consultation scenes render eagerly on purpose: Safari can leave lazy images pending in a reopened modal.
+      var isConsultScene = !!(img.closest && img.closest('.fc-entry__scene'));
+      if (!isLcp && !isMobileHubLogo && !isConsultScene) {
         img.setAttribute('loading', 'lazy');
         if (!img.hasAttribute('fetchpriority')) img.setAttribute('fetchpriority', 'low');
       }
