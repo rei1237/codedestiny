@@ -185,7 +185,9 @@ async function runViewport(browser, width, baseUrl) {
       assert.match(state.requestId, /^palm-reading:general:/, `${width}px: canonical request id`);
       assert.ok(String(body.rightPalmImage || "").startsWith("data:image/"), `${width}px: selected photo reaches analysis request`);
       state.result = makePalmResult(state.requestId);
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(state.result) });
+      // 워커와 같은 계약: 결제 전 응답은 메타만, 본문은 결제 뒤 /api/palm/result 로만.
+      const receipt = { requestId: state.requestId, analysisSaved: true, mode: "full", validation: { hasPalm: true } };
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(receipt) });
     }
     if (url.pathname === "/api/palm/result") {
       const requestedId = url.searchParams.get("requestId") || "";

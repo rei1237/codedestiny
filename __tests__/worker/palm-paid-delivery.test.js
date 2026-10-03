@@ -80,8 +80,18 @@ test('actual analysis saves before payment and missing deep text stops readiness
   const request = () => new Request('https://mock.test/api/palm/analyze', { method: 'POST', body: JSON.stringify({ requestId: 'palm-original', leftPalmImage: 'data:image/png;base64,' + 'A'.repeat(80), dominantHand: 'right', analysisPurpose: 'general' }) });
   ai.text = ''; expect((await route(request(), {})).status).toBe(503); expect(docs).toHaveLength(0);
   ai.text = '사진에서 확인된 선을 토대로 선택을 살펴봅니다. '.repeat(90);
-  const response = await route(request(), {}); expect(response.status).toBe(200); expect(await response.json()).toMatchObject({ analysisSaved: true });
+  const response = await route(request(), {}); expect(response.status).toBe(200);
+  // Pre-payment response is a receipt only; the paid body leaves through GET /result after payment.
+  const receipt = await response.json();
+  expect(receipt).toEqual({ requestId: 'palm-original', analysisSaved: true, mode: expect.any(String), validation: { hasPalm: true } });
+  expect(docs[0].metadata.palmResult.interpretation.consultText).toContain('사진에서 확인된 선');
   expect(JSON.stringify(docs)).not.toContain('data:image'); expect(payment).not.toHaveBeenCalled();
+});
+test('analysis without a requestId is refused before the vision call', async () => {
+  visionReply = null;
+  const response = await route(new Request('https://mock.test/api/palm/analyze', { method: 'POST', body: JSON.stringify({ leftPalmImage: 'data:image/png;base64,' + 'A'.repeat(80), dominantHand: 'right', analysisPurpose: 'general' }) }), {});
+  expect(response.status).toBe(422); expect(await response.json()).toMatchObject({ code: 'REQUEST_ID_REQUIRED' });
+  expect(docs).toHaveLength(0);
 });
 
 test.each(['truncated','unfinished'])('deep %s keeps complete prose without requesting a repair',async kind=>{
@@ -95,9 +105,9 @@ test('vision fields the model omitted are not compared as measured medium values
   // Both hands detected, but depth/length/strength/coverage are all missing from the model reply.
   visionReply.text = JSON.stringify({ palmDetected: true, imageQuality: { brightness: 'good', sharpness: 'good' }, majorLines: { lifeLine: { detected: true }, heartLine: { detected: true }, fateLine: { detected: true } } });
   const image = 'data:image/png;base64,' + 'A'.repeat(80);
-  const response = await route(new Request('https://mock.test/api/palm/analyze', { method: 'POST', body: JSON.stringify({ leftPalmImage: image, rightPalmImage: image, dominantHand: 'right', analysisPurpose: 'general' }) }), {});
+  const response = await route(new Request('https://mock.test/api/palm/analyze', { method: 'POST', body: JSON.stringify({ requestId: 'palm-original', leftPalmImage: image, rightPalmImage: image, dominantHand: 'right', analysisPurpose: 'general' }) }), {});
   expect(response.status).toBe(200);
-  const body = await response.json();
+  const body = docs[0].metadata.palmResult;
   expect(body.leftHandReading.majorLines.lifeLine.defaultedFields).toContain('depth');
   expect(body.recognitionData.bySide.left.imageQuality.palmCoverage).toBeNull();
   expect(body.bothHandsComparison.enabled).toBe(true);
