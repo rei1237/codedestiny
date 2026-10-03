@@ -24,7 +24,6 @@ A1·A2·A3·C1·E1 은 끝났다(남은 것: B1·B2·B3·C2·D1). 과제마다 �
 
 ```
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B1(iljuCard 상단 구 컴포넌트 디자인 정리)을 진행해줘
-docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B2(tsModal 네오 모드 시각 결함)를 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B3(쌓인 표의 스크린리더 의미)를 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 C2(비한국어 로케일 풍부한 판)를 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 D1(daewun-quality 검증기 타임아웃)을 진행해줘
@@ -66,7 +65,7 @@ docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 D1(daewun-qual
 - 기준: `docs/context/design-canon.md` 를 먼저 읽고 `styles/saju-reading.css` 의 `--reading-*` 토큰과 섹션 hue 방식에 맞춘다.
 - 제약(선행 문서 '지켜야 할 것'): 새 hex·인라인 색 금지, 대비 4.5:1(UI 3:1), 탭 44px, 360px 가로 넘침 0, 연이 모드에 파랑 금지.
 
-**B2. tsModal(십성 상세 모달) 네오 모드** — GREEN. 실측.
+**B2. tsModal(십성 상세 모달) 네오 모드** — ✅ 완료 2026-10-03 (b76413f39, 네오 한정 CSS). 상자를 카드 토큰으로, X 는 --reading-ink(약 14:1), 360 모달 여백 12px. `#tsGrid` 의 hex 는 렌더 마크업에 없고 토큰 정의(네오 팔레트)뿐이라 손대지 않았다. 피그 모드의 흰 상자·X #ccc(1.6:1)는 그대로다(범위 밖). 아래는 원래 기록.
 - `.modal-box` 의 흰 바탕과 28px 패딩이 네오 어두운 카드에서 흰 테두리처럼 보인다.
 - 닫기 X 대비가 약 1.5:1 이다.
 - 360px 에서 모달 위에 약 50px 빈칸이 있다.
