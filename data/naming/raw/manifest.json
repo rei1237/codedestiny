@@ -1,0 +1,88 @@
+{
+  "files": {
+    "buryong-sources.json": {
+      "license": "글자 목록(사실)과 출처 id 만 — 사유 문장 미수록",
+      "source": "작명 실무 불용한자 목록 7곳(각 URL 은 파일 안)",
+      "upstreamSha256": {
+        "buryong-lists.json": "5a07828384817a6d92c7e8fd94b39094b80787d54b8d59bb40ef0160ff817ac5"
+      }
+    },
+    "efamily-recrawl.csv": {
+      "crawledAt": "2026-10-03",
+      "license": "공공 조회 결과(사실 정보)",
+      "source": "https://efamily.scourt.go.kr 인명용 한자 조회 — 자체 재수집",
+      "upstreamSha256": {
+        "efamily-recrawl.csv": "ceec2349cd0e65fd2d50096892ec4b068fdb4993d666c3a6537d7b7080e7e477"
+      }
+    },
+    "jawon-sources.json": {
+      "license": "사실 정보(부수→오행 배속)만 발췌 — 원문 문장 미수록",
+      "source": "자원오행 부수·자의 규칙 16곳(각 URL 은 파일 안) — curl 원본 HTML 파싱, 요약기 미사용",
+      "upstreamSha256": {
+        "jawon-radicals.json": "930b806ec56d7e6de7c50b11c5e108409dd537a5f725be73732b5b7ee3efecc0"
+      }
+    },
+    "kosis-surnames-2015.csv": {
+      "citation": "국가데이터처, 「인구총조사」, 2015, 성씨ㆍ본관별 인구(5인 이상) - 전국, 2026.10.03 참조",
+      "license": "KOSIS 통계정보 이용지침 — 상업적 이용·재배포 허용, 출처 명시·임의 변경 금지(https://kosis.kr/serviceInfo/useGuide.do)",
+      "note": "xlsx(유니코드) 내려받기 정리본. CSV 내려받기는 CP949 라 KS X 1001 밖 한자가 ? 로 깨진다",
+      "rows": 533,
+      "source": "https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1IN15SD",
+      "upstreamSha256": {
+        "surnames.csv": "f74e1236b11cbf7bb3db73adf3377b182c6612dd52e5c49e209af85e89315190"
+      }
+    },
+    "libhangul-hanja-single.txt": {
+      "license": "BSD-3-Clause (Copyright (c) 2005,2006 Choe Hwanjin)",
+      "lines": 10009,
+      "source": "https://github.com/libhangul/libhangul/blob/717409ce61524bb3d8426060a384822f21354c62/data/hanja/hanja.txt",
+      "upstreamSha256": {
+        "hanja.txt": "b1004034589f1357daaea3534a6136f6b5ef825afa8779886b20f0b7908bbe3b"
+      }
+    },
+    "rutopio-data-gov.csv": {
+      "license": "MIT (Copyright (c) 2024 ChingRu) — efamily.scourt.go.kr 인명용 한자 조회 크롤(2024)",
+      "rows": 10163,
+      "source": "https://github.com/rutopio/Korean-Name-Hanja-Charset/blob/12df1ba1b4dfaa095813e4ddfba424e816f94c53/data-gov.csv",
+      "upstreamSha256": {
+        "data-gov.csv": "89ff8626f9f5b850acd78cfb7e9d57361817de689567721c8b4d219c4ace95e5"
+      }
+    },
+    "samjae-125-sources.json": {
+      "license": "사실 정보(조합별 길흉 라벨)만 발췌 — 해설 본문 미수록",
+      "source": "삼재(三才) 125조합 길흉표(각 URL 은 파일 안) — curl 원본 HTML 파싱, 요약기 미사용",
+      "upstreamSha256": {
+        "samjae-transcribed.json": "1cf496ecf9d38f2e9bec3d292672445998ed93cd860d5ba30d98870f74516819"
+      }
+    },
+    "suri-81-sources.json": {
+      "license": "사실 정보(수별 길흉 라벨)만 발췌 — 해설 본문 미수록",
+      "source": "성명학 81수리 길흉표 10곳(각 URL 은 파일 안) — curl 원본 HTML 파싱, 요약기 미사용",
+      "upstreamSha256": {
+        "suri-transcribed.json": "23174803927dfcd44ff8cd831b88590af8e8021970a0381e0b1f147f67ed450e"
+      }
+    },
+    "unihan-extract.tsv": {
+      "fields": [
+        "kRSUnicode",
+        "kTotalStrokes",
+        "kHangul",
+        "kKoreanName",
+        "kDefinition"
+      ],
+      "license": "Unicode License v3",
+      "source": "https://www.unicode.org/Public/18.0.0/ucd/Unihan.zip",
+      "upstreamSha256": {
+        "Unihan.zip": "4c93ea9c1f636451729a840978f1667a53886af37ba854fdcce109721c63d43e",
+        "Unihan_IRGSources.txt": "e2c484cd22b54f7e0ce896ebb02f33e092b92325accf0fd55e0e14e3863869eb",
+        "Unihan_OtherMappings.txt": "fc7bbb8f923fa1e922a4d421aa15387d1c68250cc5e7619bdf81f575ab38472b",
+        "Unihan_Readings.txt": "9d39995b5de714e8ce93716ed5d15eaa0792d68e407cdf8a0add2893b8f4150b"
+      }
+    }
+  },
+  "generatedBy": "scripts/naming/extract-raw.mjs",
+  "outputSha256": {
+    "unihan-extract.tsv": "035deabbc26852f4859282726de4922843b4459f4d2acbd506b211e5092b5731"
+  },
+  "targetChars": 9133
+}

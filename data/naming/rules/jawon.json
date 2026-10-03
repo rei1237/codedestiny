@@ -1,0 +1,31 @@
+{
+  "version": "jawon-rules-v1",
+  "about": "자원오행 1차 분류 규칙(README §6.6). 공식 자원오행표는 없다 — 성명학 관행 출처(data/naming/raw/jawon-sources.json)의 부수→오행 배속을 투표로 모아 강희 부수마다 오행·신뢰도를 정하고, 간지·방위·오상 글자는 자의(字意) 규칙이 부수보다 앞선다. 저신뢰(<0.7)·미분류 글자는 hanja-pool-review.csv 로 자문 검수, LLM 보조 분류는 별도 1회 승인 전까지 쓰지 않는다.",
+  "voting": {
+    "sources": ["namestory-kimmantae", "ksname-antaeok", "sajucode", "hankukjakmyeongwon-irum-miso", "agiirum-juyeok", "tarotcafe", "erumy", "sina-blog", "kvov-nnn666", "shenjige", "baidu-jingyan", "cnddy"],
+    "bases": ["radical", "example-inferred", "principle-text"],
+    "rule": "출처마다 한 부수에 한 표. 다중 배속(multi) 규칙은 표도 반대도 아니다. 한 출처가 같은 부수에 서로 다른 단일값을 주면 그 출처는 기권. 최다 득표 오행을 택하고, 동률이면 tieBreak 순서의 첫 출처 값을 따른다(그 출처도 기권이면 미분류).",
+    "tieBreak": ["namestory-kimmantae", "ksname-antaeok", "hankukjakmyeongwon-irum-miso", "agiirum-juyeok"]
+  },
+  "referenceOnly": {
+    "sources": ["kseimei", "kangxizidian-attr", "meimingteng-yiqibazi", "chachaqiming"],
+    "why": "kseimei 는 원문이 '대부분의 유파가 채택하지 않음'이라 밝힌 일본 부수 오행, kangxizidian-attr 은 음운 기반 글자 속성(cnddy 가 字源 아님을 지적), meimingteng·chachaqiming 은 필획 형태 분류 — 검수 CSV 의 참고 열로만 보인다."
+  },
+  "confidence": {
+    "consensus": { "value": 0.9, "when": "표 3개 이상, 전원 일치" },
+    "agree": { "value": 0.8, "when": "표 2개, 일치" },
+    "majority": { "value": 0.7, "when": "표 4개 이상, 최다 득표 비율 3/4 이상" },
+    "single": { "value": 0.6, "when": "표 1개" },
+    "contested": { "value": 0.5, "when": "그 밖의 불일치 — 글자에 disputes 'jawon-sources-differ'" }
+  },
+  "meaning": {
+    "about": "자의 규칙은 부수 규칙보다 앞선다(cnddy '凡字形与字义的五行发生矛盾时，按字义为准', ksname '간지는 음훈에 따라'). 각 글자는 raw 출처의 글자 단위 규칙과 같은 오행이어야 빌드가 통과한다. 숫자(一~十)는 河圖 생성수(tarotcafe)와 후천수(ksname)가 갈려 넣지 않는다.",
+    "groups": [
+      { "id": "ganji", "confidence": 0.9, "chars": { "甲": "木", "乙": "木", "丙": "火", "丁": "火", "戊": "土", "己": "土", "庚": "金", "辛": "金", "壬": "水", "癸": "水", "寅": "木", "卯": "木", "巳": "火", "午": "火", "辰": "土", "戌": "土", "丑": "土", "未": "土", "申": "金", "酉": "金", "亥": "水", "子": "水" } },
+      { "id": "direction", "confidence": 0.8, "chars": { "東": "木", "南": "火", "中": "土", "西": "金", "北": "水" } },
+      { "id": "virtue", "confidence": 0.8, "chars": { "仁": "木", "禮": "火", "信": "土", "義": "金", "智": "水" } }
+    ]
+  },
+  "radicalOverrides": {},
+  "radicalOverridesNote": "자문 검수(jawon-radicals-review.csv review_element)로 확정한 부수는 여기에 {\"강희번호\": \"木\"} 로 옮긴다 — 신뢰도 1.0, 근거 'reviewer'."
+}

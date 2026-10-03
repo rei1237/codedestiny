@@ -1,0 +1,21 @@
+{
+  "about": "인명용 한자 풀 소속 1차 판정(Phase 1 보고 §5 추천 — 명단 차이는 1차 판정 후 자문 병행). 기본 규칙(build-pool.mjs): 크롤(rutopio 2024) ∪ efamily 재수집(2026-10-03) ∪ Unihan kHangul E(기초한자 — 규칙 제37조①)이면 포함, 어디에도 없는 Unihan N 전용 글자는 제외(fail-closed). 여기에는 그 기본 규칙을 사람이 뒤집는 글자만 사유와 함께 적는다. include 는 2026-10-03 1차 판정: efamily 가 유니코드 대신 내부 코드(A 평면 10·F 평면 15, isin=1)로만 싣는 글자 가운데 같은 음 후보의 32px 글리프를 대조해 같은 글자로 본 것(자문 검수 전). efamily 내부 코드의 획수 열은 자형과 맞지 않는 값(慜 26·湊 21)이 있어 획수는 Unihan 을 쓴다.",
+  "include": {
+    "𠦄": "efamily a0256(훼, isin=1) 글리프 일치(十 아래 十 둘) — Unihan 훼:N",
+    "𩇕": "efamily f10e3(정, isin=1) 글리프 일치(靑+彡) — Unihan 정:N",
+    "𬄕": "efamily a022d(집, isin=1, 훈 샘솟을) 글리프 일치(氵·隹 아래 木) — Unihan 집:N",
+    "𬟓": "efamily a026c·f17b8(훈, isin=1) 두 코드 모두 같은 글자(艹 가로획만 다른 이체) — Unihan 훈:N",
+    "𰜩": "efamily f0f74(은, isin=1) 글리프 일치(氵+恩) — Unihan 은:N",
+    "㴗": "efamily a0257(유, isin=1) 글리프 일치(氵+要) — Unihan 유:N",
+    "䚾": "efamily a0228(임, isin=1) 글리프 일치(言+壬, 32px 로 壬·𡈼 구분 불가) — Unihan 임:N",
+    "冕": "efamily f1cd6(면, isin=1, 훈 면류관) 글리프 일치(윗부분 日 형 이체) — Unihan 면:0N",
+    "姬": "efamily a0050(희, isin=1) 글리프 일치(女+𦣝, 姫 아님) — Unihan 희:0N",
+    "慜": "efamily f3450(민, isin=1, 훈 총명할) 글리프 일치(敏 아래 心) — Unihan 민:N",
+    "湊": "efamily a023a(주, isin=1) 글리프 일치(氵+奏) — Unihan 주:0N",
+    "珊": "efamily a023f(산, isin=1) 글리프 일치(⺩+冊) — Unihan 산:0N",
+    "睾": "efamily a0072(고, isin=1, 훈 불알) 글리프 일치(睪 아님) — Unihan 고:0N",
+    "籩": "efamily a028a(변, isin=1, 훈 변두) 글리프 일치(⺮+邊) — Unihan 변:1N",
+    "韌": "efamily a0255(인, isin=1) 글리프 일치(韋+刃) — Unihan 인:N"
+  },
+  "exclude": {}
+}

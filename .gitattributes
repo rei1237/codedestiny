@@ -46,3 +46,7 @@ public/js/destiny-profile.js             merge=cachebust
 .ignore text eol=lf
 # The static-policy generator writes this SVG with LF on every platform.
 public/icons/yehwa-branch.svg text eol=lf
+# 작명 데이터(scripts/naming/build-naming-data.mjs 입력·검수 CSV)는 모든 OS 에서 LF 로 둔다 — 빌드가 TSV 를 \n 으로 자른다.
+# raw/ 는 원천 발췌라 빈 칸 끝 탭(Unihan TSV)·원문 머리 공백(libhangul 고지)이 데이터다 — 공백 검사 제외.
+data/naming/** text eol=lf
+data/naming/raw/** text eol=lf -whitespace
