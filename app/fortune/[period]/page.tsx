@@ -138,6 +138,29 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
   const zodiacModels = hub.models.filter((m) => m.profile.kind === "zodiac");
   const animalModels = hub.models.filter((m) => m.profile.kind === "animal");
   const otherPeriods = FORTUNE_PERIOD_IDS.filter((p) => p !== period);
+  // 질문형 롱테일("띠별 운세는 무엇을 기준으로 정하나요")에 답하는 본문 섹션. 답은 이 페이지가 실제로 쓰는
+  // 기준 값(sample.facts)과 위 두 섹션의 설명을 그대로 옮긴 것이다 — 새 주장을 만들지 않는다.
+  // FAQPage JSON-LD 는 내지 않는다: 같은 문답이 4개 기간 허브에 반복되면 sign 페이지에서 겪은
+  // "구조화 데이터 4벌 동일" 문제(lib/fortune/period-faqs.ts 머리말)가 재현된다.
+  const hubFaqs = [
+    {
+      question: `${label} 별자리·띠별 운세는 무엇을 기준으로 정하나요?`,
+      answer:
+        `${sample.rangeLabel} 구간을 ${sample.facts.map((fact) => `${fact.label} ${fact.value}`).join(", ")} 기준으로 계산합니다. ` +
+        `이 값을 각 별자리·띠의 기질에 대입해 총운·애정운·재물운·건강운·직장운으로 나누므로, 같은 ${label}이면 누가 언제 열어도 결과가 같습니다.`,
+    },
+    {
+      question: "별자리 운세와 띠별 운세는 무엇이 다른가요?",
+      answer:
+        "별자리는 태양이 지나는 황도 12궁을 기준으로 생일에서, 띠는 태어난 해의 지지에서 정해집니다. " +
+        "그래서 두 운세는 서로 다른 계산이고, 이 페이지에는 별자리 12종과 띠 12종이 따로 담겨 있습니다.",
+    },
+    {
+      question: "1~2월 초에 태어났는데 내 띠는 어떻게 확인하나요?",
+      answer:
+        "띠가 바뀌는 기준은 양력 1월 1일이 아니라 절기상 입춘입니다. 입춘 전에 태어났다면 전년도 띠일 수 있으니 만세력으로 생년월일시를 확인해 보세요.",
+    },
+  ];
 
   const webPageJsonLd = buildWebPageJsonLd({ title: seo.title, description: seo.description, path: seo.path });
   const collectionJsonLd = buildCollectionPageJsonLd({ title: seo.title, description: seo.description, path: seo.path });
@@ -252,6 +275,20 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
               </Link>
             </section>
           )}
+
+          <section aria-labelledby="faq-heading" className="mt-12">
+            <h2 id="faq-heading" className="break-keep text-lg font-extrabold">
+              {label} 운세, 자주 묻는 질문
+            </h2>
+            <div className="mt-4 grid gap-3">
+              {hubFaqs.map((faq) => (
+                <div key={faq.question} className={`p-5 ${CARD}`}>
+                  <h3 className={`break-keep text-sm font-extrabold ${ACCENT}`}>{faq.question}</h3>
+                  <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>{faq.answer}</p>
+                </div>
+              ))}
+            </div>
+          </section>
 
           <section aria-labelledby="next-heading" className="mt-12">
             <h2 id="next-heading" className="break-keep text-lg font-extrabold">이어서 보기</h2>
