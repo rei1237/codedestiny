@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const title = signPageTitle(name, period, locale);
   const description = signDescription(name, period, locale);
   const base = `/fortune/${period}/${profile.id}`;
-  return buildSeoMetadata({ path: `/${prefix(locale)}${base}`, title, description, keywords: [name, periodLabel(period, locale), FORTUNE_COPY[locale].fortune], ogType: "article", hreflang: { ko: base, en: `/en${base}`, ja: `/ja${base}`, "zh-CN": `/zh${base}`, "zh-TW": `/zh-tw${base}` } });
+  return buildSeoMetadata({ path: `/${prefix(locale)}${base}`, title, description, keywords: [name, periodLabel(period, locale), FORTUNE_COPY[locale].fortune], ogType: "article", locale, hreflang: { ko: base, "x-default": base, en: `/en${base}`, ja: `/ja${base}`, "zh-CN": `/zh${base}`, "zh-TW": `/zh-tw${base}` } });
 }
 
 export default async function LocalizedSignFortunePage({ params }: { params: Promise<{ locale: string; period: string; sign: string }> }) {
@@ -64,8 +64,8 @@ export default async function LocalizedSignFortunePage({ params }: { params: Pro
   const faqs = buildPeriodFaqs(profile, period, locale);
   return <>
     <SignFortuneView vm={vm} locale={locale} />
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildWebPageJsonLd({ title, description, path })) }} />
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildArticleJsonLd({ title, description, path, category: FORTUNE_COPY[locale][sourceProfile.kind], keywords: [name, periodLabel(period, locale)], datePublished: `${vm.dateKey.length === 7 ? `${vm.dateKey}-01` : vm.dateKey}T00:00:00+09:00` })) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildWebPageJsonLd({ title, description, path, locale })) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildArticleJsonLd({ title, description, path, locale, category: FORTUNE_COPY[locale][sourceProfile.kind], keywords: [name, periodLabel(period, locale)], datePublished: `${vm.dateKey.length === 7 ? `${vm.dateKey}-01` : vm.dateKey}T00:00:00+09:00` })) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildBreadcrumbJsonLd([{ name: FORTUNE_COPY[locale].home, path: `/${prefix(locale)}/` }, { name: FORTUNE_COPY[locale].today, path: `/${prefix(locale)}/today` }, { name: `${periodLabel(period, locale)} ${FORTUNE_COPY[locale].fortune}`, path: `/${prefix(locale)}/fortune/${period}` }, { name, path }])) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFaqPageJsonLd(faqs)) }} />
   </>;

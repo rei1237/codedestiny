@@ -25,6 +25,7 @@ import { mergeKeywords, SEO_CORE_KEYWORDS, toAbsoluteUrl } from "./seo-metadata"
 import { getSeoProfileKeywords } from "./seo/entity-registry.mjs";
 import { buildOpenGraphImageUrl, getCanonicalUrl, isIndexableRoute, normalizePath } from "./seo.v2";
 import { truncateToDisplayWidth } from "./seo";
+import { ogLocaleFor, resolveLocaleTag } from "./i18n/locales";
 
 const SITE_ORIGIN = siteSeo.siteUrl.replace(/\/$/, "");
 const DEFAULT_OG_IMAGE_URL = siteSeo.defaultOgImage;
@@ -175,7 +176,7 @@ export function generatePageMetadata(opts: FortunePageMeta) {
     },
     openGraph: {
       type: "website" as const,
-      locale: inLanguage.replace("-", "_"),
+      locale: resolveLocaleTag(inLanguage) ? ogLocaleFor(inLanguage) : inLanguage.replace("-", "_"),
       url: canonicalUrl,
       title: uniqueTitle,
       description: uniqueDescription,
