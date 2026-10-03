@@ -2077,9 +2077,12 @@ export async function runPaymentsV2Reconcile(env) {
       'metadata.moonstoneDiscountReserved':true,'metadata.moonstoneDiscountReleasedAt':{$exists:false},
       status:{$in:['pending','failed','cancelled','refunded']},
       createdAt:{$lt:new Date(Date.now()-5*60_000)},
-    },{limit:20}));
+    },{sort:{'metadata.moonstoneDiscountCheckedAt':1,createdAt:1},limit:20}));
     for (const candidate of discounted) {
       try {
+        // Rotate uncertain orders too, so a batch of PG 404s cannot starve later orders.
+        await withPaymentDb(env,ctx,db=>db.updateOne(Payment,{merchantUid:candidate.merchantUid},
+          {$set:{'metadata.moonstoneDiscountCheckedAt':new Date()}}));
         const pg=await fetchPortOnePayment(env,candidate.merchantUid);
         if(pg?.paymentId!==candidate.merchantUid)continue;
         if(pg.status==='paid')await confirmOrder(env,ctx,{orderId:candidate.merchantUid},{withDb:withPaymentDb,deps:{fetchPayment:async()=>pg}});

@@ -147,7 +147,7 @@ export async function consumeMonthlyCreditLotsWithDb(db, { userId, amount, pushR
 // 환불/재지급: 복원 금액을 신규 30일 lot으로 적립하고(기존 lot의 만료는 되살리지 않음),
 // membershipCreditUsed를 되돌린다. lotId로 멱등(중복 lot 방지). 버전 가드 낙관적 write + 재시도.
 // 반환: 갱신된 user(lean) | null(유저 없음/경합 소진).
-export async function restoreMonthlyCreditLot({
+async function runRestoreCas({
   userId,
   lotId,
   amount,
@@ -155,12 +155,11 @@ export async function restoreMonthlyCreditLot({
   incrementGranted = false,
   pullRequestId = "",
   returnDetails = false,
-  db = null,
+  readUser,
+  applyUpdate,
 } = {}) {
   const restoreAmount = Math.max(0, Math.floor(Number(amount || 0)));
   if (!userId || restoreAmount <= 0) return null;
-  const readUser = () => db ? db.findOne(User,{_id:userId},{projection:{profileSubscription:1}})
-    : User.findById(userId).select("profileSubscription").lean();
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
     const current = await readUser();
@@ -188,9 +187,7 @@ export async function restoreMonthlyCreditLot({
       ...(pullRequestId ? { $pull: { recentConsumeRequestIds: pullRequestId } } : {}),
     };
     const restoreOptions = { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } };
-    const updated = db
-      ? await db.findOneAndUpdate(User, restoreFilter, restoreUpdate, restoreOptions)
-      : await User.findOneAndUpdate(restoreFilter, restoreUpdate, restoreOptions).lean();
+    const updated = await applyUpdate(restoreFilter, restoreUpdate, restoreOptions);
     if (updated) {
       try { globalThis.__billingBalanceCache?.invalidateForUser?.(userId); } catch {}
       // 복구(환불·롤백)도 접근 결정을 바꾼다 — 위 차감 경로와 같은 이유로 함께 버린다.
@@ -209,6 +206,26 @@ export async function restoreMonthlyCreditLot({
     // 버전 충돌 → 재조회 후 재시도.
   }
   return null;
+}
+
+// Native payment transactions must not fall back to the general Mongoose connection.
+export async function restoreMonthlyCreditLotWithDb(db, input = {}) {
+  return runRestoreCas({
+    ...input,
+    readUser: () => db.findOne(User, { _id: input.userId }, { projection: { profileSubscription: 1 } }),
+    applyUpdate: async (filter, update, options) => unwrapDoc(
+      await db.findOneAndUpdate(User, filter, update, options),
+    ),
+  });
+}
+
+export async function restoreMonthlyCreditLot(input = {}) {
+  if (input.db) return restoreMonthlyCreditLotWithDb(input.db, input);
+  return runRestoreCas({
+    ...input,
+    readUser: () => User.findById(input.userId).select("profileSubscription").lean(),
+    applyUpdate: (filter, update, options) => User.findOneAndUpdate(filter, update, options).lean(),
+  });
 }
 
 // 이벤트/보상 지급: 새 30일 lot을 적립한다. restoreMonthlyCreditLot 과 회계가 같지만
