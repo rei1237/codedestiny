@@ -151,18 +151,21 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 /* 2026-09-24 연이의 꽃정원 — 큰 CTA 하나 + 연이 안내 + 이용권 + 접힌 "더 둘러보기" + 한 줄 버그 제보 */
 .cdh-primary{box-shadow:0 12px 26px color-mix(in srgb,var(--cdh-accent) 26%,transparent)}
 
-/* A quiet doorway into Yeongnyangi's own world, below the primary action. */
-.cdh-yn-portal{position:relative;display:grid;grid-template-columns:72px minmax(0,1fr) 20px;align-items:center;gap:18px;width:min(100%,470px);margin-top:24px;padding:20px;border:1px solid #695473;border-radius:16px;background:#21192e;color:#f4eeff!important;text-decoration:none;transition:background .2s,border-color .2s}
-.cdh-yn-portal:hover{background:#2d223e;border-color:#e8d5a3}
+/* A quiet doorway into Yeongnyangi's own world, below the primary action — a moonlit banner in its own navy/gold tone (never --cdh-* pink). */
+.cdh-yn-portal{--ynp-deep:#0b1220;--ynp-night:#101b2c;--ynp-raised:#23344b;--ynp-gold:#e5c58e;--ynp-ivory:#f3eee5;--ynp-muted:#bac9da;position:relative;display:grid;grid-template-columns:84px minmax(0,1fr);align-items:center;gap:18px;width:min(100%,470px);margin-top:24px;padding:20px 22px;border:1px solid color-mix(in srgb,var(--ynp-gold) 40%,var(--ynp-raised));border-radius:20px;background:radial-gradient(120% 140% at 85% -20%,color-mix(in srgb,var(--ynp-gold) 16%,transparent),transparent 58%),radial-gradient(90% 120% at 0% 120%,color-mix(in srgb,var(--ynp-raised) 55%,transparent),transparent 60%),linear-gradient(160deg,var(--ynp-night),var(--ynp-deep));box-shadow:0 24px 54px -30px rgba(0,0,0,.65),inset 0 1px 0 color-mix(in srgb,var(--ynp-gold) 22%,transparent);color:var(--ynp-ivory)!important;text-decoration:none;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.cdh-yn-portal:before{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;padding:1px;background:linear-gradient(120deg,var(--ynp-gold),transparent 32%,transparent 68%,var(--ynp-gold));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.55;pointer-events:none}
+.cdh-yn-portal:after{content:"";position:absolute;top:-10px;right:-14px;z-index:0;width:132px;height:48px;background:var(--ynp-gold);opacity:.22;-webkit-mask:var(--cd-yehwa-mask-branch-spray,linear-gradient(transparent,transparent)) right top/contain no-repeat;mask:var(--cd-yehwa-mask-branch-spray,linear-gradient(transparent,transparent)) right top/contain no-repeat;pointer-events:none}
+.cdh-yn-portal>*{position:relative;z-index:1}
+.cdh-yn-portal:hover{border-color:var(--ynp-gold);box-shadow:0 28px 60px -28px rgba(0,0,0,.72),inset 0 1px 0 color-mix(in srgb,var(--ynp-gold) 30%,transparent)}
 .cdh-yn-portal:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:4px}
-.cdh-yn-portal__door{display:grid;place-items:center;width:72px;height:80px;overflow:hidden;border:1px solid #a891b3;border-radius:36px 36px 10px 10px;background:#342544}
+.cdh-yn-portal__door{display:grid;place-items:center;width:84px;height:92px;overflow:hidden;border:1px solid color-mix(in srgb,var(--ynp-gold) 55%,transparent);border-radius:999px 999px 20px 20px;background:var(--ynp-raised);box-shadow:0 0 0 4px color-mix(in srgb,var(--ynp-gold) 16%,transparent),0 10px 24px -12px rgba(0,0,0,.6)}
 .cdh-yn-portal__door img{width:100%;height:100%;object-fit:cover}
 .cdh-yn-portal__copy{display:grid;gap:5px;min-width:0}
-.cdh-yn-portal__copy strong{color:#f4eeff;font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:1.08rem;font-weight:700;line-height:1.5;word-break:keep-all}
-.cdh-yn-portal__copy small{color:#d8c8ea;font-size:.82rem;line-height:1.6;word-break:keep-all}
-.cdh-yn-portal__foot{margin-top:5px;color:#e8d5a3;font-size:.78rem;font-weight:700;line-height:1.5}
-.cdh-yn-portal__arrow{color:#e8d5a3}
-.cdh-yn-portal.is-entering{border-color:#e8d5a3}
+.cdh-yn-portal__copy strong{color:var(--ynp-ivory);font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:1.1rem;font-weight:700;line-height:1.5;word-break:keep-all}
+.cdh-yn-portal__copy small{color:var(--ynp-muted);font-size:.82rem;line-height:1.6;word-break:keep-all}
+.cdh-yn-portal__foot{display:inline-flex;align-items:center;gap:6px;margin-top:5px;color:var(--ynp-gold);font-size:.78rem;font-weight:700;line-height:1.5}
+.cdh-yn-portal__arrow{flex:none;color:var(--ynp-gold)}
+.cdh-yn-portal.is-entering{border-color:var(--ynp-gold)}
 /* Match the destination's night surface; no whole-page zoom or flashing glow. */
 .cd-yn-portal-overlay{position:fixed;z-index:2147482600;inset:0;display:grid;place-items:center;padding:28px;background:#0b1220;color:#f3eee5;pointer-events:auto;animation:cdYnPortalVeil .64s ease-out both}
 .cd-yn-portal-overlay__scene{position:relative;display:grid;justify-items:center;width:min(100%,420px);text-align:center;animation:cdYnPortalArrival .64s cubic-bezier(.16,1,.3,1) both}
@@ -174,7 +177,7 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 .cd-yn-portal-overlay__line{width:64px;height:1px;margin-top:26px;background:#bca476}
 @keyframes cdYnPortalVeil{from{opacity:0}40%,to{opacity:1}}
 @keyframes cdYnPortalArrival{0%{opacity:0;transform:translateY(10px)}38%,82%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-4px)}}
-@media (max-width:640px){.cdh-yn-portal{grid-template-columns:58px minmax(0,1fr) 16px;gap:12px;margin-top:12px;padding:16px}.cdh-yn-portal__door{width:58px;height:68px}.cdh-yn-portal__copy strong{font-size:1rem}.cdh-yn-portal__copy small{font-size:.78rem}.cdh-yn-portal__arrow{width:16px}}
+@media (max-width:640px){.cdh-yn-portal{grid-template-columns:64px minmax(0,1fr);gap:12px;margin-top:12px;padding:16px 18px}.cdh-yn-portal:after{width:96px;height:36px}.cdh-yn-portal__door{width:64px;height:72px}.cdh-yn-portal__copy strong{font-size:1rem}.cdh-yn-portal__copy small{font-size:.78rem}.cdh-yn-portal__arrow{width:14px;height:14px}}
 
 
 @media (prefers-reduced-motion:reduce){.cd-yn-portal-overlay,.cd-yn-portal-overlay *{animation:none!important}.cd-yn-portal-overlay{opacity:1}}
