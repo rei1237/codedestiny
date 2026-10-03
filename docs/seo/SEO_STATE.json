@@ -1913,5 +1913,16 @@
       "quality": null,
       "acquiredAt": null
     }
+  },
+  "titleExperiment": {
+    "startedAt": "2026-10-03",
+    "scope": "/fortune/{today,tomorrow,weekly,monthly}/{12띠+12별자리} title 꼬리 3패턴",
+    "source": "lib/fortune/seo-title.mjs (TITLE_VARIANTS, TITLE_EXPERIMENT_ROUND)",
+    "round": 0,
+    "assignment": "같은 종류(띠 12 · 별자리 12) 안 순번 % 3 → benefit / question / trust (각 4개씩)",
+    "baseline": "네이버 30일 노출 약 482,000 · CTR 0.6%; 별자리·띠 페이지 CTR 0.2~1.0% (2026-09-29 관찰)",
+    "compareAt": "배포 후 D+14 — 노출 1,000 이상 페이지만, 패턴별 CTR 비교 (사용자 수동: 네이버 서치어드바이저)",
+    "nextRound": "비교 후 TITLE_EXPERIMENT_ROUND 를 1 올리면 패턴이 한 칸씩 밀린다(라틴 스퀘어). 바꾼 날짜를 여기에 추가한다.",
+    "notes": "'감수' 표현은 쓰지 않는다(lib/brand/founder.ts: AI 결과를 사람이 검수하지 않음). 대통령 운세 문구는 공개 출처 URL 수령 전 미사용."
   }
 }

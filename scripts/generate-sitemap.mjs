@@ -534,20 +534,23 @@ function extractFortuneSignRoutes() {
   // 주간은 시드도 요일별 표도 그 주에서 나와 주 단위로만 바뀌고, 월간은 앵커가 오늘이라
   // 여전히 날마다 바뀐다(근거: scripts/lib/sitemap-lastmod.mjs 의 FORTUNE_VOLATILE_CADENCES).
   const periodChangefreq = { today: "daily", tomorrow: "daily", weekly: "weekly", monthly: "daily" };
-  const routes = [];
-  for (const [period, changefreq] of Object.entries(periodChangefreq)) {
-    routes.push({ path: `/fortune/${period}`, changefreq, priority: 0.9 });
-    for (const id of ids) {
-      routes.push({ path: `/fortune/${period}/${id}`, changefreq, priority: 0.82 });
-    }
-  }
   // 검색용 로케일 라우트는 한국어 정본과 같은 period/sign 집합에서 파생한다.
   // /zh 는 간체, /zh-tw 는 번체 URL 계약이다.
   const localized = ["en", "ja", "zh", "zh-tw"];
+  // href 는 <loc> 과 같은 정규화(끝 슬래시)를 거친다 — 슬래시 없는 URL 은 308 로 한 번 더 튀어 hreflang 상호 확인이 깨진다.
+  // ko 정본이 x-default 다(lib/i18n/routes.ts 의 hreflang 계약과 같다).
   const hreflang = (base) => [
-    { hreflang: "ko", href: toUrl(base) },
-    ...localized.map((locale) => ({ hreflang: locale === "zh" ? "zh-CN" : locale === "zh-tw" ? "zh-TW" : locale, href: toUrl(`/${locale}${base}`) })),
+    { hreflang: "ko", href: toUrl(normalizeSitemapPath(base)) },
+    ...localized.map((locale) => ({ hreflang: locale === "zh" ? "zh-CN" : locale === "zh-tw" ? "zh-TW" : locale, href: toUrl(normalizeSitemapPath(`/${locale}${base}`)) })),
+    { hreflang: "x-default", href: toUrl(normalizeSitemapPath(base)) },
   ];
+  const routes = [];
+  for (const [period, changefreq] of Object.entries(periodChangefreq)) {
+    routes.push({ path: `/fortune/${period}`, changefreq, priority: 0.9, alternates: hreflang(`/fortune/${period}`) });
+    for (const id of ids) {
+      routes.push({ path: `/fortune/${period}/${id}`, changefreq, priority: 0.82, alternates: hreflang(`/fortune/${period}/${id}`) });
+    }
+  }
   for (const locale of localized) routes.push({ path: `/${locale}/fortune`, changefreq: "daily", priority: 0.88, alternates: hreflang("/fortune") });
   for (const [period, changefreq] of Object.entries(periodChangefreq)) {
     const base = `/fortune/${period}`;

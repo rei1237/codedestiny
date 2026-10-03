@@ -1,7 +1,7 @@
 import { toAbsoluteUrl } from "./seo";
 import { siteSeo } from "./seo/siteSeo";
 import { FUSION_FORTUNE_PROFILE } from "./seo/entity-registry.mjs";
-import { LOCALE_CONFIG } from "./i18n/locales";
+import { LOCALE_CONFIG, resolveLocaleTag } from "./i18n/locales";
 import { BUSINESS_IDENTITY, BUSINESS_PHONE_INTL } from "./site-policy-config";
 
 type FaqItem = {
@@ -109,10 +109,8 @@ export function buildOrganizationJsonLd() {
  * 인자를 생략하면 ko-KR 로, 기존 호출부의 동작이 그대로 유지된다.
  */
 export function toInLanguage(locale?: string): string {
-  const key = String(locale || "ko").toLowerCase();
-  const matched = (Object.keys(LOCALE_CONFIG) as Array<keyof typeof LOCALE_CONFIG>)
-    .find((candidate) => candidate === key);
-  return (LOCALE_CONFIG[matched || "ko"].ogLocale || "ko_KR").replace("_", "-");
+  // "zh-TW"·"zh-CN" 처럼 키와 대소문자·표기가 다른 값도 맞춘다(예전엔 소문자 비교라 전부 ko-KR 로 떨어졌다).
+  return (LOCALE_CONFIG[resolveLocaleTag(locale) ?? "ko"].ogLocale || "ko_KR").replace("_", "-");
 }
 
 export function buildWebsiteJsonLd(locale?: string) {
@@ -269,6 +267,7 @@ export function buildArticleJsonLd(input: {
   keywords?: string[];
   datePublished?: string;
   dateModified?: string;
+  locale?: string;
 }) {
   const url = toAbsoluteUrl(input.path);
   return {
@@ -305,6 +304,6 @@ export function buildArticleJsonLd(input: {
     mainEntityOfPage: url,
     datePublished: input.datePublished,
     dateModified: input.dateModified,
-    inLanguage: "ko-KR",
+    inLanguage: toInLanguage(input.locale),
   };
 }

@@ -20,6 +20,7 @@ import { buildSignViewModel } from "@/lib/fortune/build-view";
 import { buildPeriodFaqs } from "@/lib/fortune/period-faqs";
 import { FORTUNE_PERIOD_IDS, PERIOD_LABEL, PERIOD_TITLE, isFortunePeriodId } from "@/lib/fortune/periods";
 import { SIGN_PROFILES, getSignProfile } from "@/lib/fortune/sign-profiles";
+import { buildFortuneTitle, titleVariantFor } from "@/lib/fortune/seo-title.mjs";
 import KakaoChannelInvite from '@/app/components/KakaoChannelInvite';
 import SignFortuneView from "./SignFortuneView";
 
@@ -82,7 +83,21 @@ function seoText(periodParam: string, signParam: string) {
     // 🔴 사이트 규약은 브랜드 접미사 없이 `무료 <키워드> | <보조 키워드>` 약 28자다
     // (/saju·/manse·/today·/ziwei 실측 25~28자). 이 라우트만 44자에 브랜드까지 붙어
     // 한국어 SERP 폭을 넘겼고, 잘린 꼬리가 하필 "무료 별자리 운세" 였다.
-    title: `${profile.nameKo} ${title} 운세 ${vm.titleDateLabel} | 무료 ${kindSearchLabel} 운세`,
+    //
+    // 🔴 2026-10-03: 같은 날 24쪽이 꼬리("무료 띠별 운세")까지 같아 네이버 CTR 이 0.2~1.0% 였다.
+    //    sign 마다 3패턴(혜택·질문·신뢰)을 달리 배정해 페이지별 CTR 로 비교한다 — 패턴·폭 규칙·
+    //    "감수" 표현을 쓰지 않는 이유는 lib/fortune/seo-title.mjs 머리말. 일간은 연도를 넣는다.
+    title: buildFortuneTitle({
+      name: profile.nameKo,
+      periodTitle: title,
+      dateLabel: vm.titleDateLabel,
+      year: periodParam === "today" || periodParam === "tomorrow" ? Number(vm.dateKey.slice(0, 4)) : null,
+      score: vm.score.overall,
+      variant: titleVariantFor(
+        SIGN_PROFILES.filter((p) => p.kind === profile.kind).findIndex((p) => p.id === profile.id),
+      ),
+      fallback: `${profile.nameKo} ${title} 운세 ${vm.titleDateLabel} | 무료 ${kindSearchLabel} 운세`,
+    }),
     // 🔴 설명은 이 sign 고유 문장으로 연다. 예전에는 총운 점수·행운의 색·행운의 숫자로
     //    시작했는데, 그 셋은 같은 날 여러 sign 이 같은 값을 갖는 일이 흔하다. 그러면 sign
     //    이름 하나만 다른 설명이 24개 깔린다 — 2026-08-24 실측: 색인 378개 중 설명이 70%

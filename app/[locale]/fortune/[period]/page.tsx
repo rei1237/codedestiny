@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   if (!locale || !isFortunePeriodId(period)) return {};
   const label = periodLabel(period, locale);
   const base = `/fortune/${period}`;
-  return buildSeoMetadata({ path: `/${prefix(locale)}${base}`, title: periodPageTitle(label, locale), description: periodDescription(label, locale), keywords: [label, FORTUNE_COPY[locale].zodiac, FORTUNE_COPY[locale].animal, FORTUNE_COPY[locale].fortune], hreflang: { ko: base, en: `/en${base}`, ja: `/ja${base}`, "zh-CN": `/zh${base}`, "zh-TW": `/zh-tw${base}` } });
+  return buildSeoMetadata({ path: `/${prefix(locale)}${base}`, title: periodPageTitle(label, locale), description: periodDescription(label, locale), keywords: [label, FORTUNE_COPY[locale].zodiac, FORTUNE_COPY[locale].animal, FORTUNE_COPY[locale].fortune], locale, hreflang: { ko: base, "x-default": base, en: `/en${base}`, ja: `/ja${base}`, "zh-CN": `/zh${base}`, "zh-TW": `/zh-tw${base}` } });
 }
 
 export default async function LocalizedFortunePeriodPage({ params }: { params: Promise<{ locale: string; period: string }> }) {
