@@ -9,7 +9,7 @@
       same: '당신의 기질과 삶의 흐름을 차분히 읽습니다. 원하는 상담자를 선택해 주세요.',
       compareNeo: '네오 상담으로 전환하기', compareYeon: '연이 상담으로 전환하기',
       observe: '연이가 발견한 단서', life: '생활에서 만나는 모습', practice: '오늘의 작은 실천', diagnosis: '네오의 진단', basis: '계산 근거', action: '행동 기준',
-      element: '오행의 분포', temperament: '타고난 기질', ten: '십성으로 읽는 역할', climate: '조후 · 계절의 감각', strength: '억부 · 힘을 쓰는 방식', flow: '현재 흐름', letter: '마지막으로 건네는 말',
+      element: '오행의 분포', temperament: '타고난 기질', ten: '십성으로 읽는 역할', climate: '조후 · 계절의 감각', strength: '억부 · 힘을 쓰는 방식', flow: '현재 흐름', letter: '편지',
       names: ['목(木)', '화(火)', '토(土)', '금(金)', '수(水)'],
       traits: ['새 일을 시작하고 방향을 넓혀 가는 힘', '생각과 감정을 밖으로 표현하는 힘', '관계와 일을 안정적으로 이어 가는 힘', '기준을 세우고 불필요한 것을 정리하는 힘', '정보를 살피고 상황에 맞춰 움직이는 힘'],
       scenes: ['관심사가 많아 여러 일을 시작할 수 있어요. 끝맺을 자리를 남겨두면 성장의 힘이 더 잘 쓰입니다.', '대화에 생기를 더할 수 있어요. 마음이 앞설 때는 상대가 답할 틈도 함께 남겨보세요.', '익숙한 역할을 지키는 데 마음이 놓일 수 있어요. 다른 사람의 몫까지 떠안고 있는지도 살펴보세요.', '모호한 상황에서 기준을 찾을 수 있어요. 기준이 너무 촘촘해지면 나와 타인의 여유가 줄기도 합니다.', '쉽게 지나치는 변화를 알아차릴 수 있어요. 생각이 길어질 때는 작은 실행으로 확인해 보세요.'],
@@ -60,6 +60,7 @@
       letterJong: '명식에서는 한 방향으로 모이는 기세를 살피는 종격 가능성이 검토되었어요. 강하다거나 약하다는 말 하나로 당신을 설명하기보다, 어떤 환경에서 힘이 자연스럽게 이어지는지 바라보는 편이 좋겠어요. 해석보다 당신이 실제로 겪은 경험을 먼저 놓아주세요.',
       letterCare: '혹시 요즘 기대만큼 일이 풀리지 않아 자신에게 엄격해졌다면, 결과를 곧바로 나의 가치와 묶지는 않았으면 해요. 힘든 시간이 꼭 좋은 일의 예고인 것은 아니지만, 오늘의 부담을 줄이는 선택은 지금도 해볼 수 있어요. 해야 할 일을 하나 덜어내거나, 믿을 만한 사람에게 지금의 사정을 말하는 작은 선택부터요.',
       letterPractice: '오늘 이 편지에서 한 가지만 가져간다면, 이렇게 시작해보면 어떨까요. {action} 누군가에게 잘 보이기 위한 숙제가 아니라, 내 하루가 조금 더 편안해지는지 알아보는 작은 시도예요. 잘 맞지 않는다면 다른 방법을 골라도 괜찮아요.',
+      letterSynthesis: '이 편지를 여는 순간의 당신과 마지막 문장 앞에 선 지금의 당신은, 어쩌면 조금 다른 마음일지도 몰라요. {image} {observation} 그리고 지금 이 시기의 당신은 {verdict}로 흘러가고 있어요. 서로 다른 이야기처럼 보이지만, 결국 이 모든 결은 한 사람 — 바로 당신을 가리키고 있어요. 타고난 결과 지금의 흐름이 이렇게 겹쳐 보이는 건 흔한 일이 아니에요. 그러니 오늘 이 풀이에서 다른 건 다 잊더라도, 지금의 당신이 이미 당신답게 흘러가고 있다는 사실 하나만은 마음에 남겨두셨으면 해요.',
       letterClosing: '찻잔을 내려놓을 때처럼, 오늘 읽은 말도 잠시 곁에 놓아두세요. 마음에 남은 문장은 간직하고, 나와 맞지 않는 말은 흘려보내도 좋아요. 당신의 삶을 가장 가까이에서 살아온 사람은 당신이니까요. 다음 걸음이 아직 선명하지 않더라도, 자신을 다그치지 않고 선택할 여유가 곁에 남기를 연이가 바라요.',
       neoLetterTitle: '마지막 작전 메모', neoGreeting: '{name}님, 이제 선택의 기준을 정리하자.', neoSignature: '네오 · 다음 한 수는 당신의 선택',
       neoDominant: '{element} {value}%가 상대적으로 두드러진다. {trait}을 살펴볼 단서다.',
@@ -140,7 +141,7 @@
       var stemIndex=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'].indexOf(p.d.g);
       model.letter={title:neo?c.neoLetterTitle:c.letter, greeting:name?fmt(neo?c.neoGreeting:c.letterGreeting,{name:name}):(neo?c.neoGuestGreeting:c.letterGuestGreeting), signature:neo?c.neoSignature:c.letterSignature,
         paragraphs:neo?[c.neoOpening,fmt(c.neoClue,{observation:tied?c.neoTied:fmt(c.neoDominant,{element:c.names[dominant],value:ratios[dominant].toFixed(0),trait:c.traits[dominant]}),scene:c.neoScenes[dominant]}),jong.isJong?c.neoJong:pw.isStrong?c.neoStrong:c.neoWeak,fmt(c.neoAction,{action:c.neoActions[day]}),c.neoClosing]:[
-          c.letterOpening,fmt(c.letterDay,{stem:p.d.g,image:c.letterImages[stemIndex<0?day*2:stemIndex]}),tied?c.letterTied:fmt(c.letterBalance,{observation:elementText,scene:c.scenes[dominant]}),jong.isJong?c.letterJong:pw.isStrong?c.letterStrong:c.letterWeak,c.letterCare,fmt(c.letterPractice,{action:c.actions[day]}),c.letterClosing], evidence:model.day.evidence};
+          c.letterOpening,fmt(c.letterDay,{stem:p.d.g,image:c.letterImages[stemIndex<0?day*2:stemIndex]}),tied?c.letterTied:fmt(c.letterBalance,{observation:elementText,scene:c.scenes[dominant]}),jong.isJong?c.letterJong:pw.isStrong?c.letterStrong:c.letterWeak,c.letterCare,fmt(c.letterPractice,{action:c.actions[day]}),fmt(c.letterSynthesis,{image:c.letterImages[stemIndex<0?day*2:stemIndex],observation:elementText,verdict:jong.isJong?'한 방향으로 흐르는 힘을 따라가는 구조':pw.isStrong?'스스로 길을 내는 힘이 비교적 넉넉한 구조':'곁의 도움과 준비된 시간이 있을 때 더 편안히 빛나는 구조'}),c.letterClosing], evidence:model.day.evidence};
     } else {
       model.letter={title:c.letter,greeting:neo?c.neo:c.yeon,signature:neo?c.neo:c.yeon,paragraphs:[elementText,c.scenes[day],neo?c.rules[day]:c.actions[day],neo?c.endNeo:c.endYeon],evidence:model.day.evidence};
     }
@@ -290,7 +291,7 @@
       reading.blocks=model.mode==='neo'?[{label:c.diagnosis,text:good?c.flowOpen:c.flowCare},{label:c.basis,text:reading.evidence},{label:c.action,text:gi>=0?c.godRules[gi]:c.strengthAction}]:[{label:c.observe,text:good?c.flowOpen:c.flowCare},{label:c.life,text:gi>=0?c.godLife[gi]:c.scenes[0]},{label:c.practice,text:gi>=0?c.godRules[gi]:c.strengthAction}];
       write(i===0?'dailyPanel':'monthlyPanel',(rich&&rich.daily(row,i,facts,model.mode))||markup(reading,model,true));
     });
-    if(section==='letter'||section==='all') {write('letterTitle',esc(mode()==='neo'?c.neo:c.yeon)+' · '+esc(model.letter.title));write('letterContent',letterMarkup(model));}
+    if(section==='letter'||section==='all') {write('letterTitle',mode()==='neo'?esc(c.neo)+' · '+esc(model.letter.title):esc(c.yeon)+'의 '+esc(model.letter.title));write('letterContent',letterMarkup(model));}
     renderHeader();
   }
   function refreshCopy() {
