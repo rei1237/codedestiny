@@ -289,7 +289,7 @@ interface NamedCandidate {
 
 | 메서드·경로 | 용도 | 비고 |
 |---|---|---|
-| POST `/api/naming-prompt/candidates` (신규) | 무료 엔진 상위 5개 | LLM 0콜. 로그인 불필요. `runAiRouteWithSecurity` 버킷에 등록(`verify:worker-security-guards`) |
+| POST `/api/naming-prompt/basis` (신규) | 무료 엔진 상위 5개 | LLM 0콜. 로그인 불필요. 기존 `basis` 보안 버킷(분당 30회)을 재사용한다 — 새 접미사를 만들면 보안 계층이 그 경로를 버킷 미분류로 막는다 |
 | POST `/api/naming-prompt/checkout` | 기존 | 입력 스키마 확장(성 한자, 모드, 프리셋, 고정·기피 글자) |
 | POST `/api/naming-prompt/generate` | 기존 웨이브 | 새 실행은 `NAMING_ENGINE_VERSION` 에 따라 v2 경로. 1차 LLM "후보 생성" 단계를 엔진 계산으로 교체 |
 | GET `/api/naming-prompt/result/:id` | 기존 | `engineVersion` 이 없으면 v1 레거시 직렬화 |

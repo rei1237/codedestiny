@@ -27,6 +27,11 @@ const NAMING_GENERATION_FRESHNESS_MS = 120000;
 const SAJU_EVIDENCE_SOURCE = "main-shell-saju-engine";
 const ALLOWED_FEATURE_KEYS = new Set([FEATURE_KEY, LEGACY_FEATURE_KEY, "naming_prompt", "namingPrompt", "premiumNamingPrompt"]);
 const PASS_ACCESS_TYPES = new Set(["membership_pass", "subscription_pass", "family", "family_pass", "license_pass"]);
+// 작명 엔진 v2 스위치(설계서 §10). 새 회차만 따른다 — 이미 시작한 회차는 레코드의 engineVersion 유무로 계속 같은 판을 쓴다.
+// 롤백 = "v1" 로 되돌리는 커밋. v2 모듈은 성 한자를 보낸 요청에서만 지연 로드한다.
+const NAMING_ENGINE_VERSION = "v2";
+const loadNamingV2 = () => import("../lib/naming-report-delivery-v2.js");
+const NAMING_V1_DELIVERY = Object.freeze({ generateNamingWave, namingChaptersText, namingReportComplete, confirmedEmptyNamingFailure });
 
 const ELEMENT_LABELS = Object.freeze({
   wood: "목(木)",
@@ -169,6 +174,35 @@ function normalizeInput(raw = {}) {
     day: date.day,
     hour: timeMatch ? Number(timeMatch[1]) : 12,
     minute: timeMatch ? Number(timeMatch[2]) : 0,
+    ...normalizeEngineFields(raw),
+  };
+}
+
+const nfc = (value, max) => clean(value, max).normalize("NFC");
+
+// v2 입력(성 한자·학파·돌림자·피할 글자). 🔴 성 한자가 없으면 키를 하나도 더하지 않는다 — v1 입력의 inputHash 가
+// 그대로 남아야 진행 중 v1 회차가 이어진다. 저장된 inputSnapshot 을 다시 거쳐도 같은 값이 나와야 한다(멱등).
+function normalizeEngineFields(raw = {}) {
+  const surnameHanja = nfc(raw.surnameHanja || raw.familyNameHanja, 10).replace(/\s+/g, "");
+  const engineMode = clean(raw.engineMode, 20);
+  const schoolPreset = clean(raw.schoolPreset, 40);
+  const fixed = raw.fixedChar && typeof raw.fixedChar === "object" ? raw.fixedChar : null;
+  const fixedCh = fixed ? nfc(fixed.ch, 4) : "";
+  const fixedHangul = fixed ? nfc(fixed.hangul, 4) : "";
+  const avoidSource = Array.isArray(raw.avoidChars) ? raw.avoidChars.join("") : String(raw.avoidChars ?? "");
+  const avoidChars = [...new Set(Array.from(avoidSource.normalize("NFC")).filter((ch) => /\p{Script=Han}/u.test(ch)))].sort();
+  if (!surnameHanja) {
+    if (engineMode || schoolPreset || fixedCh || avoidChars.length) {
+      throw createHttpError(400, "성씨 한자를 입력해 주세요.", { code: "NAMING_SURNAME_HANJA_REQUIRED" });
+    }
+    return {};
+  }
+  return {
+    surnameHanja,
+    ...(engineMode ? { engineMode } : {}),
+    ...(schoolPreset ? { schoolPreset } : {}),
+    fixedChar: fixedCh ? { position: toInt(fixed.position, 0), ch: fixedCh, ...(fixedHangul ? { hangul: fixedHangul } : {}) } : null,
+    avoidChars,
   };
 }
 
@@ -197,6 +231,14 @@ function validateInput(input) {
       code: "HANJA_LENGTH_MISMATCH",
       invalidHanja,
     });
+  }
+  if (input.surnameHanja) {
+    if (!/^\p{Script=Han}{1,2}$/u.test(input.surnameHanja)) {
+      throw createHttpError(400, "성씨 한자는 한자 1~2자로 입력해 주세요.", { code: "NAMING_SURNAME_HANJA_INVALID" });
+    }
+    if (input.nameLength > 2) {
+      throw createHttpError(400, "한자 작명은 이름 1~2자까지 지원합니다.", { code: "NAMING_ENGINE_NAME_LENGTH" });
+    }
   }
 }
 
@@ -1213,6 +1255,7 @@ function serializeExecutionResult(record) {
     model: clean(namingPrompt.model, 80),
     inputSnapshot: namingPrompt.inputSnapshot || null,
     sajuSnapshot: namingPrompt.sajuSnapshot || null,
+    ...engineResultFields(namingPrompt),
     generatedAt: namingPrompt.generatedAt || record.completedAt || null,
     paidAt: namingPrompt.paidAt || record.consumedAt || record.createdAt || null,
     accessMethod: String(record.accessMethod || ""),
@@ -1237,9 +1280,16 @@ function serializeResult(payment) {
     model: clean(namingPrompt.model, 80),
     inputSnapshot: namingPrompt.inputSnapshot || null,
     sajuSnapshot: namingPrompt.sajuSnapshot || null,
+    ...engineResultFields(namingPrompt),
     generatedAt: namingPrompt.generatedAt || null,
     paidAt: payment.paidAt || null,
   };
+}
+
+// v2 결과에만 엔진 요약·서술을 싣는다. engineVersion 이 없는 기존 결과는 키를 더하지 않는다(legacy 렌더 그대로).
+function engineResultFields(namingPrompt) {
+  if (!namingPrompt?.engineVersion) return {};
+  return { engineVersion: clean(namingPrompt.engineVersion, 80), engine: namingPrompt.engine || null, narration: namingPrompt.delivery?.narration || null };
 }
 
 async function findExecutionRecordForUser(env, auth, id) {
@@ -1474,8 +1524,18 @@ async function handleCheckout(request, env) {
   validateInput(input);
   const sajuEvidence = await resolveSajuEvidence(input, body.sajuEvidence, body.sajuEvidenceHash);
   const inputHash = await buildNamingOrderHash(input, sajuEvidence.evidenceHash);
+  // 결제 전에 엔진이 후보를 낼 수 있는 입력인지 확인한다(결제 판정은 건드리지 않는다).
+  let engineVersion = "";
+  if (NAMING_ENGINE_VERSION === "v2" && input.surnameHanja) {
+    const { view } = (await loadNamingV2()).prepareNaming(input);
+    if (view.candidates.length < 3) {
+      throw createHttpError(400, "조건에 맞는 이름 후보가 너무 적습니다. 피할 글자나 돌림자를 줄여 주세요.", { code: "NAMING_ENGINE_TOO_FEW", count: view.candidates.length });
+    }
+    engineVersion = view.engineVersion;
+  }
   return json({
     ok: true,
+    ...(engineVersion ? { engineVersion } : {}),
     productType: PRODUCT_TYPE,
     featureKey: FEATURE_KEY,
     amount: AMOUNT_KRW,
@@ -1490,6 +1550,26 @@ async function handleCheckout(request, env) {
     singlePaymentOnly: false,
     userId: String(auth.userId || ""),
     checkoutPayload: buildCheckoutPayload(inputHash, sajuEvidence.evidenceHash),
+  });
+}
+
+// 무료 엔진 상위 5개(README §10). 로그인 없음·LLM 0회 — 레이트 리밋은 보안 계층의 basis 버킷이 맡는다.
+async function handleBasis(request, env) {
+  if (NAMING_ENGINE_VERSION !== "v2") throw createHttpError(503, "한자 작명 엔진을 잠시 쓸 수 없습니다.", { code: "NAMING_ENGINE_DISABLED" });
+  const body = await readJson(request);
+  const input = normalizeInput(body.input || body);
+  validateInput(input);
+  if (!input.surnameHanja) throw createHttpError(400, "성씨 한자를 입력해 주세요.", { code: "NAMING_SURNAME_HANJA_REQUIRED" });
+  const { view, displayEvidence } = (await loadNamingV2()).namingBasis(input);
+  return json({
+    ok: true,
+    engineVersion: view.engineVersion,
+    dataVersion: view.dataVersion,
+    schoolPreset: view.schoolPreset,
+    surname: view.surname,
+    notices: view.notices,
+    saju: { ...view.saju, pillars: displayEvidence.pillars },
+    candidates: view.candidates,
   });
 }
 
@@ -1550,18 +1630,30 @@ async function handleGenerate(request, env, _routeContext = null, recoveryAuth =
     return json({ ok: true, idempotent: true, result: existingExecution });
   }
 
-  const sajuSnapshot = (original?.sajuSnapshot?.source !== "input-fallback" ? original?.sajuSnapshot : null) || buildSajuContext(input, sajuEvidence.evidence, sajuEvidence.evidenceHash);
+  // v2 는 새 회차 + 성 한자 입력일 때만. 이어 가는 회차는 저장된 engineVersion 유무를 따른다(진행 중 v1 회차는 v1 로 끝난다).
+  const wantV2 = original ? Boolean(original.engineVersion) : NAMING_ENGINE_VERSION === "v2" && Boolean(input.surnameHanja);
+  const v2 = wantV2 ? await loadNamingV2() : null;
+  const prepared = v2 && !original?.engine ? v2.prepareNaming(input) : null;
+  const engine = wantV2 ? original?.engine || prepared.view : null;
+  const sajuSnapshot = (original?.sajuSnapshot?.source !== "input-fallback" ? original?.sajuSnapshot : null)
+    || (prepared ? { ...buildSajuContext(input, prepared.displayEvidence, ""), source: "naming-engine-v2" } : buildSajuContext(input, sajuEvidence.evidence, sajuEvidence.evidenceHash));
   // 🔴 로케일은 `input` 밖에서 읽는다 — `input` 은 통째로 inputHash 가 되므로 여기에 넣으면
   //    (a) 배포 전 결제·배포 후 생성 사용자가 해시 불일치로 생성이 막히고
   //    (b) 언어만 바꿔 재요청할 때 같은 리딩에 30,000원이 다시 청구된다.
   const locale = original?.locale || body.locale || getAmbientAiLocale() || "ko";
-  const generatedPrompt = original?.generatedPrompt || buildGeneratedPrompt(input, sajuSnapshot, locale);
+  const generatedPrompt = original?.generatedPrompt || (v2 ? v2.buildNamingPrompt(engine, sajuSnapshot, {
+    genderLabel: resolveGenderLabel(input.gender), schoolPreset: engine.schoolPreset, fixedChar: input.fixedChar || null, avoidChars: input.avoidChars || [],
+    desiredType: input.desiredType, preferredStyle: input.preferredStyle, preferredImage: input.preferredImage, siblingHarmony: input.siblingHarmony, memo: input.memo,
+  }) : buildGeneratedPrompt(input, sajuSnapshot, locale));
   if (sajuSnapshot?.source === "input-fallback" && !original?.generatedResult) {
     throw createHttpError(422, "사주 계산 근거 확인이 필요합니다.", { code: "CALCULATION_UNAVAILABLE" });
   }
-  const details = { locale, evidenceHash: await buildSajuEvidenceHash(sajuSnapshot), originalEvidence: sajuEvidence.evidence,
-    access: Object.fromEntries(["accessMethod", "accessType", "evidenceId", "paymentId", "requestId", "profileId", "evidence"].map(key => [key, access[key]]).filter(([, value]) => value !== undefined)),
-    delivery: { version: 1, attempts: {}, chapters: {}, candidates: null } };
+  const v1Delivery = { version: 1, attempts: {}, chapters: {}, candidates: null };
+  const commonDetails = { locale, evidenceHash: await buildSajuEvidenceHash(sajuSnapshot), originalEvidence: sajuEvidence.evidence,
+    access: Object.fromEntries(["accessMethod", "accessType", "evidenceId", "paymentId", "requestId", "profileId", "evidence"].map(key => [key, access[key]]).filter(([, value]) => value !== undefined)) };
+  const details = engine
+    ? { ...commonDetails, engineVersion: engine.engineVersion, engine, delivery: v2.initialDelivery(engine) }
+    : { ...commonDetails, delivery: v1Delivery };
   const claimedAt = new Date();
 
   let claim;
@@ -1584,26 +1676,30 @@ async function handleGenerate(request, env, _routeContext = null, recoveryAuth =
   const deliveryPrompt = recoverCalculation ? buildGeneratedPrompt(deliveryInput, deliverySaju, locale) : claim.snapshot?.generatedPrompt || generatedPrompt;
 
   const filter = { executionId: claim.executionId, userId: String(auth.userId), "result.namingPrompt.deliveryLease": claim.lease, status: { $nin: ["completed", "refunded", "cancelled"] } };
-  let snapshot = { ...details, ...claim.snapshot, inputSnapshot: deliveryInput, sajuSnapshot: deliverySaju, generatedPrompt: deliveryPrompt, deliveryLease: claim.lease };
+  // 판은 선점한 레코드가 정한다. v1 레코드에 v2 기본값(engine·delivery)이 새어 들어가지 않게 기본값도 그 판으로 고른다.
+  const recordIsV2 = Boolean(claim.snapshot?.engineVersion);
+  const delivery = recordIsV2 ? v2 || await loadNamingV2() : NAMING_V1_DELIVERY;
+  const baseDetails = recordIsV2 || !engine ? details : { ...commonDetails, delivery: v1Delivery };
+  let snapshot = { ...baseDetails, ...claim.snapshot, inputSnapshot: deliveryInput, sajuSnapshot: deliverySaju, generatedPrompt: deliveryPrompt, deliveryLease: claim.lease };
   if (recoverCalculation) snapshot.evidenceHash = details.evidenceHash;
   try {
     if (snapshot.sajuSnapshot?.source === "input-fallback") throw createHttpError(422, "사주 계산 근거 확인이 필요합니다.", { code: "CALCULATION_UNAVAILABLE" });
     await saveNamingDelivery(filter, { result: { namingPrompt: snapshot } });
     // Old delivery_pending bodies already passed their original generation contract; store them without regenerating.
     if (!(claim.state === "delivery_pending" && !claim.snapshot?.delivery)) {
-      const wave = await generateNamingWave(env, snapshot, async delivery => {
-        snapshot = { ...snapshot, delivery, generatedResult: namingChaptersText(delivery.chapters),
-          nameCards: delivery.candidates?.cards || [], finalPick: delivery.candidates?.finalPick || null };
+      const wave = await delivery.generateNamingWave(env, snapshot, async state => {
+        snapshot = { ...snapshot, delivery: state, generatedResult: delivery.namingChaptersText(state.chapters),
+          nameCards: state.candidates?.cards || [], finalPick: state.candidates?.finalPick || null };
         await saveNamingDelivery(filter, { status: snapshot.generatedResult ? "partial" : "generating", result: { namingPrompt: snapshot } });
       });
       snapshot = { ...snapshot, delivery: wave.state, limited: wave.limited };
       const current = await saveNamingDelivery(filter, { result: { namingPrompt: snapshot } });
-      if (wave.limited && confirmedEmptyNamingFailure(wave.state)) {
+      if (wave.limited && delivery.confirmedEmptyNamingFailure(wave.state)) {
         await markNamingGenerationFailed(env, claim.executionId, Object.assign(new Error("작명첩 품질 기준 미달"), { code: "NAMING_RESULT_TOO_SHORT" }), String(auth.userId), claim.lease);
         await restoreNamingAccessOnFailure(env, auth, access);
         return json({ ok: false, retryable: false, reason: "LLM_ERROR", executionId: claim.executionId, resultId: claim.executionId, message: NAMING_LLM_ERROR_MESSAGE }, { status: 503 });
       }
-      if (!namingReportComplete(wave.state)) return namingPendingResponse(current);
+      if (!delivery.namingReportComplete(wave.state)) return namingPendingResponse(current);
     }
     const generatedAt = new Date();
     const execution = await upsertExecutionRecord(env, auth, access, inputHash, deliveryInput, deliverySaju, deliveryPrompt, snapshot.generatedResult, generatedAt,
@@ -1623,7 +1719,7 @@ function namingPendingResponse(record) {
   return json({ ok: true, status: record.status, retryable: snapshot.limited !== true, executionId: record.executionId, resultId: record.executionId,
     resumeBody: { resumeExecutionId: record.executionId },
     result: { id: record.executionId, status: record.status, saved: false, generatedResult: snapshot.generatedResult || "",
-      inputSnapshot: snapshot.inputSnapshot, sajuSnapshot: snapshot.sajuSnapshot, nameCards: snapshot.nameCards || [],
+      inputSnapshot: snapshot.inputSnapshot, sajuSnapshot: snapshot.sajuSnapshot, nameCards: snapshot.nameCards || [], ...engineResultFields(snapshot),
       chapters: snapshot.delivery?.chapters || {}, completedChapters: Object.keys(snapshot.delivery?.chapters || {}), totalChapters: 8 },
   }, { status: 202, headers: { "Retry-After": "3" } });
 }
@@ -1661,6 +1757,7 @@ export async function handleNamingPromptRoutes(request, env, ctx = null) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/naming-prompt");
+    if (method === "POST" && path === "/basis") return await handleBasis(request, env);
     if (method === "POST" && path === "/checkout") return await handleCheckout(request, env);
     if (method === "POST" && path === "/verify-payment") return await handleVerifyPayment(request, env);
     if (method === "POST" && path === "/generate") return await handleGenerate(request, env, ctx);
