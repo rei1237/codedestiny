@@ -18,7 +18,7 @@ for (const route of STATIC_POLICY_ROUTES) {
   }
 }
 
-for (const file of ['styles/static-policy.css', 'js/static-policy-contact.js', 'icons/yehwa-branch.svg']) {
+for (const file of ['styles/static-policy.css', 'styles/service-intro.css', 'styles/service-intro-fonts.css', 'js/static-policy-contact.js', 'icons/yehwa-branch.svg']) {
   const target = resolve(dist, file);
   mkdirSync(dirname(target), { recursive: true });
   copyFileSync(resolve('public', file), target);

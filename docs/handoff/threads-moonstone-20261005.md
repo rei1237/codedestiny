@@ -1,10 +1,21 @@
 ---
 status: active
-updated: 2026-10-03
-next: "Use the completed 10-card v2 campaign; verify operating price and moonstone discount plus the second Threads profile before October 5 at 09:00 KST publication."
+updated: 2026-10-04
+next: "Use v3/manifest.json and v3/posts.json; verify operating price, moonstone discount, improved chart UI and the second Threads profile before October 5 at 09:00 KST publication."
 ---
 
 # 10월 5일 고정 소개글·월정석 할인
+
+## 최신 정본 — 2026-10-04 스레드 설명형 10장 + 실제 서비스 소개
+
+이 절이 아래 과거 제작·전달 기록보다 우선한다. 최신 게시 정본은 `marketing/campaigns/2026-10-05/v3/manifest.json`, `v3/posts.json`과 `captions.md`이다. **threads-preview.html은 업로드용 10장 미리보기**, preview.html은 별도 서비스 소개 디자인이다. v2 및 과거 정치 사례 원고를 게시하지 않는다.
+
+- 1번 표지 SHA 유지. 2~10번은 기능 설명·실제 UI·조건을 넣은 1080×1350 JPEG. 모든 원고 500자 이내(최대 378자), 원본/규격/잘림 검증은 v3/validation.json과 layout-check.json.
+- `/about/` 정본에 승인 디자인을 연결했다. CMS, 운영자/정책 앵커, SEO/다국어 메타데이터를 유지한다. 실제 정적 라우트 생성기와 스타일 복사에도 반영. 상시 페이지에 미래 가격 숫자를 넣지 않았고 상담 선택·결제창 안내로 연결한다.
+- 최종 별도 시각 검토 SHIP: 카드 02~10과 실제 /about/ 모바일·데스크톱 캡처 14장. 360/390/430/1440 가로 넘침 없음, H1 하나, 내부 앵커 정상. FAQ 펼침과 소개 이미지 로딩 확인.
+- 정적 페이지 검사 8/8, 기존 소개 원문 검사 2/2, 스타일 미러 검사 통과. 대상 ESLint 오류 0(하드 내비게이션/기존 img 경고). 전체 check:fast는 기존 결제 정적 테스트 1개가 Windows CRLF에서 LF 정규식과 불일치해 실패(330 suites 통과, 1 실패). 해당 결제 소스/테스트는 HEAD 대비 변경 없음, CRLF를 LF로 정규화한 읽기 값에서는 패턴 일치. 결제 코드·테스트를 수정하지 않았다.
+- Codex 예약 `10-5-threads`는 v3로 갱신, 2026-10-05 09:00 KST 유지. 가격·월정석 부분 할인·개선 UI 운영 반영 확인이 게시 전 조건이며 운영 배포 완료나 Threads 네이티브 예약 완료를 뜻하지 않는다.
+
 
 ## 승인과 작업 위치
 

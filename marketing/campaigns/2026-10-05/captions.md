@@ -1,8 +1,10 @@
-# 10월 5일 오전 9시 고정 소개글
+# 10월 5일 스레드 게시 원고
 
-운영 가격·부분 할인 및 개선 UI 반영 확인 후 게시. 첫 글에 10장, 공용 답글은 02~10 순서. 실제 영냥이 소유 계정 확인. 기존 유입 추적 링크 유지.
+정본: v3/posts.json · 이미지: v3/manifest.json · 미리보기: threads-preview.html
 
-## official — 이미지 1 (368자)
+각 계정 첫 글에 v3/manifest.json의 10장을 순서대로 첨부. reply02~reply10은 해당 이미지 설명 순서의 답글이며 이미지 중복 첨부는 하지 않음. 플랫폼 첨부 제한이 확인되면 순서대로 답글에 분할.
+
+## official
 
 혼자 고민하던 밤, 우리에게 들려주세요.
 🌸 마음부터 들어주는 꽃돼지 연이
@@ -16,7 +18,7 @@
 
 https://code-destiny.com/ggulggul/?utm_source=threads&utm_medium=social&utm_campaign=pinned_20261005
 
-## yeongnyangi — 이미지 1 (378자)
+## yeongnyangi
 
 고민은 네가 가져와. 풀이는 내가 할게.
 사주 보는 고양이 영냥이야 🐾
@@ -30,14 +32,14 @@ https://code-destiny.com/ggulggul/?utm_source=threads&utm_medium=social&utm_camp
 무료 운세부터 만나봐.
 https://code-destiny.com/yeongnyangi/?utm_source=threads&utm_medium=social&utm_campaign=pinned_20261005
 
-## reply02 — 이미지 2 (154자)
+## reply02
 
 고민 하나 가져왔는데, 나를 읽는 이야기가 시작됐다.
 
 영냥이 상담은 질문과 상황을 따라 계산 근거를 풀어주는 AI 상담이에요. 기질과 반복되는 패턴을 살피고, 지금 선택할 수 있는 행동까지 정리합니다.
 막연한 한마디보다, 내 고민을 다시 바라볼 구체적인 이야기를 만나보세요.
 
-## reply03 — 이미지 3 (225자)
+## reply03
 
 처음 만난 너에게, 5,000원 상당의 달빛 선물 🌸
 
@@ -47,7 +49,7 @@ https://code-destiny.com/yeongnyangi/?utm_source=threads&utm_medium=social&utm_c
 
 ※ 10월 5일 정책 적용 후 기준. 월정석 1개=10원, 지급일부터 30일 유효, 현금 출금 불가. 적용 가능한 상담의 결제창에서 확인하세요.
 
-## reply04 — 이미지 4 (169자)
+## reply04
 
 사주만 보는 곳인 줄 알았죠?
 
@@ -57,7 +59,7 @@ https://code-destiny.com/yeongnyangi/?utm_source=threads&utm_medium=social&utm_c
 연애와 관계, 일과 돈, 앞으로의 방향. 지금 궁금한 이야기에 맞춰 시작하면 돼요.
 무료 기본 기능과 유료 상세 상담은 구분되어 있어요.
 
-## reply05 — 이미지 5 (178자)
+## reply05
 
 하나의 고민을, 여러 시선으로 더 깊게.
 
@@ -66,7 +68,7 @@ https://code-destiny.com/yeongnyangi/?utm_source=threads&utm_medium=social&utm_c
 
 여러 관점을 나란히 놓으면 내 고민을 새롭게 바라볼 단서가 생겨요. 마지막에는 지금의 선택과 실천 순서까지 정리합니다.
 
-## reply06 — 이미지 6 (177자)
+## reply06
 
 가입 전에도, 가볍게 만나볼 수 있어요 🌸
 
@@ -77,7 +79,7 @@ https://code-destiny.com/yeongnyangi/?utm_source=threads&utm_medium=social&utm_c
 무료 기본 운세부터 둘러보고, 더 깊게 묻고 싶을 때 유료 상세 상담을 선택해 주세요.
 이미지는 2026년 10월 3일 실제 서비스 화면 예시입니다.
 
-## reply07 — 이미지 7 (178자)
+## reply07
 
 글로만 듣던 내 흐름, 눈으로 펼쳐보세요.
 
@@ -86,7 +88,7 @@ https://code-destiny.com/yeongnyangi/?utm_source=threads&utm_medium=social&utm_c
 
 이미지는 실제 서비스 컴포넌트에 가상 입력을 넣은 기능 예시입니다. 표시 수치는 적중률이 아닙니다.
 
-## reply08 — 이미지 8 (215자)
+## reply08
 
 읽고 끝내기 아까운 이야기, 내 상담에 소장하세요.
 
@@ -96,7 +98,7 @@ https://code-destiny.com/yeongnyangi/?utm_source=threads&utm_medium=social&utm_c
 프롬프트를 복사해 ChatGPT 등 외부 도구에 직접 붙여 넣어 제작하는 방식이에요. 외부 도구의 이용 조건이 적용될 수 있습니다.
 이미지 속 리포트는 가상 입력으로 만든 기능 예시입니다.
 
-## reply09 — 이미지 9 (231자)
+## reply09
 
 “정말 제대로 잘 보시는 분과 인연이 닿아 도움 많이 받았습니다.”
 “여유를 갖고 한 걸음씩 걸어보겠습니다.”
@@ -106,7 +108,7 @@ https://code-destiny.com/yeongnyangi/?utm_source=threads&utm_medium=social&utm_c
 
 후기 원문: https://blog.naver.com/neosaju/224032671570
 
-## reply10 — 이미지 10 (243자)
+## reply10
 
 오늘의 마음부터, 나를 알아가는 시작.
 
@@ -116,7 +118,3 @@ https://code-destiny.com/yeongnyangi/?utm_source=threads&utm_medium=social&utm_c
 완료된 상담은 내 상담에서 다시 읽고, 제작 프롬프트를 외부 도구에 전달해 나만의 이미지 리포트로 간직할 수 있어요.
 
 무료 기본 운세와 유료 상세 상담은 구분됩니다. 프로필 링크에서 만나보세요.
-
-## 편집 근거 (게시하지 않음)
-
-후기는 lib/brand/customer-reviews.mjs의 게시 동의된 사람 1:1 상담 후기(kakao-047, kakao-050)입니다. 7번은 개선된 실제 오행 컴포넌트의 가상 입력 예시이며 운영 반영 전에는 기존 운영 화면처럼 소개하지 않습니다. 외부 이미지 제작은 사용자 직접 실행 방식입니다.

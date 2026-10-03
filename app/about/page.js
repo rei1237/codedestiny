@@ -1,5 +1,6 @@
+import ServiceIntroduction from "./ServiceIntroduction";
 import PressCoverage from "../components/PressCoverage";
-import PolicyGuide, { policyPageClass } from "../components/PolicyGuide";
+import { policyPageClass } from "../components/PolicyGuide";
 import { trustRoutes } from "../../lib/i18n/public-trust-copy.mjs";
 import Link from "next/link";
 import { buildSeoMetadata } from "../../lib/seo";
@@ -50,9 +51,11 @@ const jsonLd = JSON.stringify({
 
 export default function AboutPage() {
   return (
-    <main className={`cd-main-shell ${policyPageClass}`}>
+    <main className="about-service-page">
+      <ServiceIntroduction text={aboutPageText} />
+      <div id="service-details" className={`cd-main-shell ${policyPageClass}`}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <PolicyGuide kind="about" title={aboutPageText("title")} description={aboutPageText("intro")} />
+      <header><h2>{aboutPageText("title")}</h2><p>{aboutPageText("intro")}</p></header>
 
       <section className="cd-card" id="about-purpose">
         <h2>{aboutPageText("mission.title")}</h2>
@@ -211,6 +214,7 @@ export default function AboutPage() {
         </div>
       </section>
       <PressCoverage />
+      </div>
     </main>
   );
 }

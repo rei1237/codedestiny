@@ -1,0 +1,36 @@
+{
+  "sourceCampaign": "marketing/campaigns/2026-10-05",
+  "artwork": "Previously generated with built-in ImageGen; exact prompts in campaign v2/generation-prompts.json; no new raster artwork or UI reconstruction.",
+  "files": [
+    {
+      "file": "duo-stars.webp",
+      "source": "marketing/campaigns/2026-10-05/v2/art/duo-stars.png",
+      "transform": "WebP quality 87, max width 1100, preserve aspect ratio"
+    },
+    {
+      "file": "cat-reading.webp",
+      "source": "marketing/campaigns/2026-10-05/v2/art/cat-reading.png",
+      "transform": "WebP quality 87, max width 1100, preserve aspect ratio"
+    },
+    {
+      "file": "yeoni-gift.webp",
+      "source": "marketing/campaigns/2026-10-05/v2/art/yeoni-gift.png",
+      "transform": "WebP quality 87, max width 1100, preserve aspect ratio"
+    },
+    {
+      "file": "free-tarot.webp",
+      "source": "marketing/campaigns/2026-10-05/assets/actual-free-tarot.jpg",
+      "transform": "WebP quality 87, max width 1100, preserve aspect ratio"
+    },
+    {
+      "file": "elements.webp",
+      "source": "marketing/campaigns/2026-10-05/assets/reading-elements-refined.jpg",
+      "transform": "WebP quality 87, max width 1100, preserve aspect ratio"
+    },
+    {
+      "file": "report.webp",
+      "source": "marketing/campaigns/2026-10-05/assets/actual-component-report-example.jpg",
+      "transform": "WebP quality 87, max width 1100, preserve aspect ratio"
+    }
+  ]
+}
