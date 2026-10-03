@@ -675,7 +675,8 @@
     if (consult) area.appendChild(consult);
     area.appendChild(ziweiArticleLibrary(area));
     // The atlas is the sole decorative artwork on this surface. Keep text/captions.
-    area.querySelectorAll('img').forEach(function (img) { img.hidden = true; });
+    // The consultation entry scene is product imagery, not decoration — it must stay visible.
+    area.querySelectorAll('img').forEach(function (img) { if (!img.closest('.fc-entry__scene')) img.hidden = true; });
     cells.forEach(function (cell) {
       cell.setAttribute('aria-label', cell.querySelector('.zw-palace-name').textContent + ' · ' + cell.querySelector('.zw-branch-name').textContent);
     });
@@ -797,7 +798,7 @@
       // ?v= 를 빌려 써서 CSS 만 고친 커밋이 URL 을 못 돌렸다(실측: 44eac0f68 은 기존 방문자에게 도달하지
       // 못했다). 리터럴로 박아 두면 sync:public 이 CSS 자신의 내용 해시로 다시 쓴다 — 손으로 찍지 말 것.
       // 이 파일은 그래서 sync-legacy-static-to-public.mjs 의 MODULE_IMPORT_CACHE_KEY_FILES 에 등록돼 있다.
-      link.href = '/styles/basic-fortune-library.css?v=build-8a5c03cf34b9'; document.head.appendChild(link);
+      link.href = '/styles/basic-fortune-library.css?v=build-99188f0d3375'; document.head.appendChild(link);
     }
     ['sukuyo', 'ziwei', 'astro'].forEach(function (type) {
       var overlay = document.getElementById(type + 'ModalOverlay');

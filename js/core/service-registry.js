@@ -42,6 +42,7 @@
  *   keys       추가 검색 키워드 (공백 구분)
  *   badge      결과 카드 배지
  *   roles      홈 배치 역할 — 'quick' | 'recommended'
+ *   quickCollection  빠른 선택에서 개별 서비스 대신 여는 기존 컬렉션 ID
  */
 window.__cdServiceRegistryMeta = {
   purposes: ["love", "money", "career", "family", "life", "today", "compatibility", "self", "etc"],
@@ -357,6 +358,7 @@ window.__cdServiceRegistry = [
     desc: "카드가 전하는 지금의 마음과 선택",
     href: "/index.html?action=openTarotModal",
     action: "openTarotModal",
+    quickCollection: "tarotCollection",
     dedupeHref: "/tarot/",
     price: "무료 시작",
     purposes: ["love", "today", "self"],

@@ -1,0 +1,79 @@
+{
+  "tool": "built-in image_gen",
+  "approvedComp": "exec-797d6448-a6df-467c-ae67-6037e785e409.png",
+  "assets": [
+    {
+      "key": "yeoni-character",
+      "prompt": "Use case: illustration-story. Production web hero asset for Korean fortune service 꿀꿀 운세. Match approved high-end cute storybook illustration with softly shaded 3D-like characters, painterly details, warm delicate light. No words, letters, logos, UI, borders or watermarks. Transparent background cutout of YEONI flower pig, image 1 is mandatory identity reference (ignore all text). Pink chibi pig with huge pink LOTUS on top left of head, glossy brown eyes, round pink snout, purple neck scarf, short rounded body, curled tail. Exactly preserve profile proportions and shapes. Sitting and warmly smiling, one hoof resting on an open cream book, other hoof gently touching cheek as listening; small porcelain teacup next to book. Full character, entire lotus and book visible, no crop, nothing behind character, genuine transparent alpha, soft contact shadow only beneath feet and props. Center subject, clean generous margin, square composition. Do not render the profile sheet.",
+      "reference": "user attachment image-1.png",
+      "original": "exec-2372c655-353b-4f90-b3ed-0e8e8474067a.png",
+      "outputs": [
+        {
+          "path": "public/images/home/illustrated/yeoni-character-320.webp",
+          "bytes": 25650
+        },
+        {
+          "path": "public/images/home/illustrated/yeoni-character-480.webp",
+          "bytes": 43726
+        },
+        {
+          "path": "public/images/home/illustrated/yeoni-character-800.webp",
+          "bytes": 94064
+        }
+      ]
+    },
+    {
+      "key": "neo-character",
+      "prompt": "Use case: illustration-story. Production web hero asset for Korean fortune service 꿀꿀 운세. Match approved high-end cute storybook illustration with softly shaded 3D-like characters, painterly details, warm delicate light. No words, letters, logos, UI, borders or watermarks. Transparent background cutout of NEO lion, image 1 is mandatory identity reference (the sheet calls him YEONI in error, ignore all text). Cream chibi lion with thick warm orange scalloped mane, exactly four brown diamond marks on forehead, glossy brown eyes, red cape and neck tie, curled tail with orange tuft. Preserve these identity details faithfully. Seated upright with an open dark brown celestial book, one paw lightly points as giving kind practical guidance. Entire mane, book and cape visible, no cropping. No background or room, genuine transparent alpha, subtle contact shadow under character only. Center subject, generous margin, square composition. Do not render profile sheet.",
+      "reference": "user attachment image-2.png",
+      "original": "exec-bd99e7c5-edae-4610-93c9-79d4734eddd1.png",
+      "outputs": [
+        {
+          "path": "public/images/home/illustrated/neo-character-320.webp",
+          "bytes": 23414
+        },
+        {
+          "path": "public/images/home/illustrated/neo-character-480.webp",
+          "bytes": 39116
+        },
+        {
+          "path": "public/images/home/illustrated/neo-character-800.webp",
+          "bytes": 80982
+        }
+      ]
+    },
+    {
+      "key": "yeoni-room",
+      "prompt": "Use case: illustration-story. Production web hero asset for Korean fortune service 꿀꿀 운세. Match approved high-end cute storybook illustration with softly shaded 3D-like characters, painterly details, warm delicate light. No words, letters, logos, UI, borders or watermarks. BACKGROUND ONLY, no characters, no animals, no people. Wide 3:2 landscape lotus garden tea room. Rose ivory pale plaster and airy soft peach daylight across LEFT 60% which is very QUIET negative space for live Korean headline. Right side a flowering branch, distant arched garden window, hanging warm paper lantern, small empty tea table at bottom right intended for a character overlaid by web code. A few lush pink lotus flowers near bottom-right edge, subtle violet ribbon motif on table. Soft depth, handcrafted painted wooden room details. Keep center-left background pale ivory and uncluttered, no text anywhere. Beautiful calm image designed as hero background, not a huge scene panorama.",
+      "reference": null,
+      "original": "exec-36836c41-94b6-419d-aa4e-3a31ed60ff6c.png",
+      "outputs": [
+        {
+          "path": "public/images/home/illustrated/yeoni-room-640.webp",
+          "bytes": 28990
+        },
+        {
+          "path": "public/images/home/illustrated/yeoni-room-1280.webp",
+          "bytes": 77222
+        }
+      ]
+    },
+    {
+      "key": "neo-room",
+      "prompt": "Use case: illustration-story. Production web hero asset for Korean fortune service 꿀꿀 운세. Match approved high-end cute storybook illustration with softly shaded 3D-like characters, painterly details, warm delicate light. No words, letters, logos, UI, borders or watermarks. BACKGROUND ONLY, no characters, no animals, no people. Wide 3:2 landscape intimate moonlit celestial strategy study. Rich deep muted plum walls across LEFT 60% which is dark QUIET negative space for live cream headline. At right an arched observatory window shows tiny stars and moon, warm brass astrolabe and celestial globe, empty dark walnut study table at bottom right for character overlay by web code, warm lantern. Deep violet and gold, cozy sophisticated magical room, not bright blue. Sparse tiny stars, no overwhelming glow. Keep center-left dark plum and uncluttered. No text anywhere. Beautiful painted room designed as web hero background.",
+      "reference": null,
+      "original": "exec-9d64807d-ca2d-483f-a4af-83f4c253a655.png",
+      "outputs": [
+        {
+          "path": "public/images/home/illustrated/neo-room-640.webp",
+          "bytes": 28542
+        },
+        {
+          "path": "public/images/home/illustrated/neo-room-1280.webp",
+          "bytes": 90842
+        }
+      ]
+    }
+  ],
+  "optimization": "sharp WebP, transparent characters 320/480/800px, backgrounds 640/1280px; originals retained outside repository"
+}

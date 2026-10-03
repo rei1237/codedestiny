@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-03",
+  "assets": [
+    {
+      "name": "neo-human",
+      "method": "User-supplied sprite, first cell extracted without redrawing; Sharp resize and WebP encoding",
+      "reference": "F:/new assets/네오의 운세 전략실/네오 스프라이트 배경없음1-Photoroom.png",
+      "extract": {
+        "left": 0,
+        "top": 0,
+        "width": 362,
+        "height": 540
+      },
+      "outputs": [
+        "public/images/home/illustrated/neo-human-240.webp",
+        "public/images/home/illustrated/neo-human-480.webp"
+      ]
+    },
+    {
+      "name": "master-host",
+      "method": "built-in image_gen followed by Sharp WebP conversion",
+      "prompt": "Create a single transparent-background character cutout for a premium Korean fortune consultation website, using the attached existing book-cover heroine as the exact visual identity reference. Preserve her adult feminine face, long flowing black hair, dark wine-red eyes, elegant black lace off-shoulder dress, ornate black choker with garnet jewel, small ruby drop earrings and composed knowing smile. Waist-up portrait, both hands fully visible, holding a closed antique burgundy and gold book gently at waist level. Refined romantic fantasy editorial illustration with delicate detailed linework and painterly shading matching the reference, sophisticated and inviting. Character centered and entirely inside the canvas with generous transparent margins around hair, shoulders and hands. No writing anywhere, no symbols on the book, no marketing claims, no logos, no frame, no background. Render only this one woman, no duplicate pose or sheet.",
+      "reference": "build-cache/master-cover-reference.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a100da-35db-7132-aef0-7b3c93a9ee28/exec-34d8974f-1511-4cd2-b973-f4800fbcc90c.png",
+      "referenceUrl": "https://assets.code-destiny.com/마스터%20운명%20연애%20비책.webp",
+      "outputs": [
+        "public/images/home/illustrated/master-host-240.webp",
+        "public/images/home/illustrated/master-host-480.webp"
+      ]
+    }
+  ]
+}

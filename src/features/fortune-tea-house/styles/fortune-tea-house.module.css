@@ -8691,6 +8691,11 @@
   animation: landingParticleFloat var(--particle-duration, 17s) ease-in-out infinite;
 }
 
+/* Small screens keep the petals without sixteen continuously moving layers. */
+@media (max-width: 640px) {
+  .landingParticles span { animation: none; }
+}
+
 .landingParticles span:nth-child(1) { --particle-size: 7px; --particle-duration: 15s; left: 8%; top: 16%; }
 .landingParticles span:nth-child(2) { --particle-size: 5px; --particle-duration: 18s; left: 18%; top: 72%; }
 .landingParticles span:nth-child(3) { --particle-size: 8px; --particle-duration: 21s; left: 28%; top: 24%; }

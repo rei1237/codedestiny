@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-03",
+  "purpose": "User requested moonlight floral WebP home backgrounds and referenced human Yeoni in hanbok for the tea-house entry.",
+  "assets": [
+    {
+      "name": "moon-floral-light",
+      "source": "C:/Users/user/.codex/generated_images/01a100da-35db-7132-aef0-7b3c93a9ee28/exec-a4984a17-8d0f-4204-a77c-1dd3b2a5a6e2.png",
+      "prompt": "Create a refined Korean moonlight floral editorial WEBSITE BACKGROUND, tall portrait 1024x1536 composition. This is a decorative background layer for a premium Korean fortune consultation website, not a UI mockup. No text, no letters, no logo, no people, no animal characters, no panels or buttons. Pale warm ivory paper with subtle blush ink wash, delicate hand-painted lotus and peony flowers concentrated only on the extreme left and right edges and in bottom corners, graceful fine antique-gold botanical stems, a softly glowing full moon near the upper right corner. Fine Korean minhwa-inspired botanical illustration, elegant spacious restrained composition, refined artisan luxury, exceptionally delicate linework. Keep the CENTRAL 75 PERCENT of the entire image almost empty uniform warm ivory, suitable for readable content. At least 85% negative space overall. The florals should feel part of expensive book endpapers, not photo flowers, not loud wallpaper. Low contrast blush pink and muted champagne-gold leaves. No frames. Crisp yet quiet. Opaque background.",
+      "outputs": [
+        480,
+        1280
+      ],
+      "webpQuality": 72
+    },
+    {
+      "name": "moon-floral-dark",
+      "source": "C:/Users/user/.codex/generated_images/01a100da-35db-7132-aef0-7b3c93a9ee28/exec-f82a8287-c216-43e9-b168-4359e45889f5.png",
+      "reference": "moon-floral-light source",
+      "prompt": "Edit this background into its matching NIGHT MODE companion for a refined Korean moonlight floral fortune consultation website. Preserve the tall portrait composition with spacious almost empty center, moon upper right and delicate lotus/peony/floral stems at extreme edges only. Change palette to very deep muted midnight aubergine (near #100c1c) with restrained antique champagne gold botanical linework and soft dusty lavender flowers, luminous ivory moon, discreet paper grain. Refined Korean minhwa-inspired premium book endpaper illustration, calm, low contrast floral borders. Central 75% remains uniform dark near-black aubergine negative space, legible white typography will be placed as separate HTML later. No text, no UI, no logos, no characters. Not neon, not saturated purple. Opaque background.",
+      "outputs": [
+        480,
+        1280
+      ],
+      "webpQuality": 72
+    },
+    {
+      "name": "yeoni-hanbok",
+      "source": "C:/Users/user/.codex/generated_images/01a100da-35db-7132-aef0-7b3c93a9ee28/exec-46fba398-daae-4e4c-a19a-fcfa5d0a4b29.png",
+      "reference": "C:/Users/user/Desktop/CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+      "transparent": true,
+      "prompt": "Using the attached character profile as the exact identity reference, create a premium Korean illustrated character cutout of the SAME ADULT Yeoni woman: long wavy dusty rose-pink hair, soft pink-brown eyes, delicate warm face and small floral hair ornament. Change her clothing to an elegant traditional Korean HANBOK: creamy ivory silk jeogori with finely embroidered lotus flowers, a muted dusty rose/mauve chima, restrained antique-gold norigae. She gently holds one small porcelain tea cup with both hands at waist level, looking warmly toward the viewer with a subtle calm smile. Mid-thigh-up portrait, face clearly readable, beautiful refined editorial anime/watercolor rendering with fine clean details; expensive moonlight tea-house atmosphere in the character itself. Entire head and hair ornament fully inside canvas with generous clear margins, hands visible anatomically correct, clean garment silhouette. No background scenery: transparent alpha cutout, no cast shadow outside figure, no frame, no text, no profile sheet, no logo or watermark. This image will appear beside HTML text on a Korean fortune tea-house entry card. Preserve the reference facial identity and pink hair faithfully.",
+      "outputs": [
+        240,
+        480
+      ],
+      "webpQuality": 78
+    },
+    {
+      "name": "yeongnyangi-room-320",
+      "reusedSource": "public/assets/yeongnyangi/night/consultation-room-mobile.webp",
+      "width": 320,
+      "webpQuality": 72
+    }
+  ],
+  "directory": "public/images/home/illustrated",
+  "processing": "sharp resize and WebP encoding only, originals retained; no raster artwork drawn by scripts"
+}

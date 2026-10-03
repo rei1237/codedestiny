@@ -12,14 +12,19 @@ const quickSection = home.match(/id="cdQuickServices"[\s\S]*?<\/section>/)?.[0] 
 assert.ok(quickSection, "홈 무료 바로 시작 섹션을 찾지 못했습니다");
 
 const expectedQuickLinks = [
-  'href="/?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry" data-cd-service-id="saju"',
-  'href="/index.html?action=openTarotModal" data-action="openTarotModal" data-cd-service-id="tarot"',
-  'href="/ziwei/chart/" data-action="openZiweiModal" data-cd-service-id="ziwei"',
-  'href="/index.html?action=openSukuyoModal" data-action="openSukuyoModal" data-cd-service-id="sukuyo"',
-  'href="/index.html?action=openAstroModal" data-action="openAstroModal" data-cd-service-id="astrology"',
-  'href="/index.html?action=navigateToVedic" data-action="navigateToVedic" data-cd-service-id="vedic"',
+  'href="/?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry"',
+  'href="#tarotCollection" data-cd-open-collection="tarotCollection"',
+  'href="/ziwei/chart/" data-action="openZiweiModal"',
+  'href="/index.html?action=openSukuyoModal" data-action="openSukuyoModal"',
+  'href="/index.html?action=openAstroModal" data-action="openAstroModal"',
+  'href="/index.html?action=navigateToVedic" data-action="navigateToVedic"',
 ];
 for (const link of expectedQuickLinks) assert.ok(quickSection.includes(link), `직접 기능 링크가 없습니다: ${link}`);
+assert.doesNotMatch(quickSection, /openTarotModal/, 'home tarot opens the service library, not a card draw');
+assert.deepEqual([...quickSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map(m => m[1]), ['saju', 'ziwei', 'sukuyo', 'vedic', 'astrology', 'tarot']);
+const template = read('templates/home-funnel.html');
+assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhServices"'), 'methods precede search');
+assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhMore"'), 'methods are outside the fold');
 
 for (const seoRoot of [
   'href="/saju/" data-cd-service-id="saju"',
@@ -48,3 +53,5 @@ for (const entry of [
 }
 
 console.log("[home-direct-feature-links] PASS");
+
+assert.ok(template.indexOf('id="cdhFeatured"') < template.indexOf('id="cdhMore"'), 'signature readings stay directly visible');

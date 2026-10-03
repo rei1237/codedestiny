@@ -96,9 +96,12 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   }
 
   const signatureSources = Object.fromEntries([...fragment.querySelectorAll('[data-cd-service-id]')].map(card => [card.getAttribute('data-cd-service-id'), card.querySelector('img')?.getAttribute('src') || '']));
-  assert.match(signatureSources['master-love-codex'], /%EB%A7%88%EC%8A%A4%ED%84%B0%20%EC%9A%B4%EB%AA%85%20%EC%97%B0%EC%95%A0%20%EB%B9%84%EC%B1%85\.webp$/);
+  assert.equal(signatureSources['master-love-codex'], '/images/home/illustrated/master-host-240.webp');
   assert.match(signatureSources['fortune-tea-house'], /DestinyCafe\/%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%B0%BB%EC%A7%91\.webp$/);
-  assert.match(signatureSources['neo-operation-room'], /DestinyWar\/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4\.webp$/);
+  assert.equal(signatureSources['neo-operation-room'], '/images/home/illustrated/neo-human-240.webp');
+  for (const id of ['master-love-codex', 'neo-operation-room']) {
+    assert.ok(fs.existsSync(`public${signatureSources[id]}`), `${id}: referenced character artwork is missing`);
+  }
   assert.match(fragment.querySelector('.moon-story-entry__poster img')?.getAttribute('src') || '', /CodeDestinyNovel\/%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EB%85%B8%EB%B2%A8\.webp$/);
   assert.match(fragment.querySelector('.moon-music-entry__cover-stack img')?.getAttribute('src') || '', /CodeDestinyNovel\/%EC%9D%8C%EC%95%85%20%ED%94%8C%EB%A0%88%EC%9D%B4%EC%96%B4\.webp$/);
 });

@@ -269,6 +269,25 @@ body:has(#sukuyoModalOverlay.fr-sukuyo[aria-hidden="false"]) #cdMobileBottomNav 
 /* Ziwei star atlas: one chart, twelve visible palaces, no animation dependency. */
 #ziweiModalOverlay.fr-ziwei { --fr-bg:#0b121b; --fr-surface:#141e2b; --fr-ink:#f4efdf; --fr-muted:#bdc6cf; --fr-accent:#e0c58c; --fr-rule:#394351; }
 body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:none !important; }
+/* Ziwei disclosures read as tappable cards: a round chevron button shows closed (outline, down) vs open (filled, up). */
+#ziweiModalOverlay .fr-disclosure { margin: 12px 0 !important; border: 1px solid var(--fr-rule) !important; border-radius: 14px !important; background: var(--fr-surface) !important; overflow: hidden; }
+#ziweiModalOverlay .fr-disclosure > summary { position: relative; min-height: 56px; padding: 14px 64px 14px 18px; transition: background 150ms; }
+#ziweiModalOverlay .fr-disclosure > summary:hover { background: rgba(224, 197, 140, .08); }
+#ziweiModalOverlay .fr-disclosure > summary:focus-visible { outline: 2px solid var(--fr-accent); outline-offset: -2px; border-radius: 14px; }
+#ziweiModalOverlay .fr-disclosure > summary::before { content: ''; position: absolute; top: 50%; right: 14px; width: 32px; height: 32px; margin-top: -16px; border: 1.5px solid var(--fr-accent); border-radius: 50%; box-sizing: border-box; transition: background 180ms; }
+#ziweiModalOverlay .fr-disclosure > summary::after { position: absolute; top: 50%; right: 26px; width: 8px; height: 8px; margin: -6px 0 0; border-color: var(--fr-accent); border-right-width: 2px; border-bottom-width: 2px; }
+#ziweiModalOverlay .fr-disclosure[open] > summary { border-bottom: 1px solid var(--fr-rule); }
+#ziweiModalOverlay .fr-disclosure[open] > summary::before { background: var(--fr-accent); }
+#ziweiModalOverlay .fr-disclosure[open] > summary::after { margin-top: -2px; border-color: var(--fr-bg); }
+#ziweiModalOverlay .fr-disclosure-body { padding: 16px 14px 20px; }
+@media (min-width: 640px) { #ziweiModalOverlay .fr-disclosure-body { padding: 20px 20px 24px; } }
+/* Palace summary close: a real 44px control beside the palace title, not a small legacy chip. */
+#ziweiModalOverlay .fr-palace-summary { position: relative; margin-top: 20px; }
+#ziweiModalOverlay .fr-palace-summary > h3:has(+ .zw-summary-close-btn) { padding-right: 124px; min-height: 44px; }
+#ziweiModalOverlay .fr-palace-summary > .zw-summary-close-btn { position: absolute; top: 0; right: 0; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 16px 10px 14px; border: 1px solid var(--fr-rule); border-color: color-mix(in srgb, var(--fr-accent) 60%, var(--fr-surface)); border-radius: 999px; background: var(--fr-surface); color: var(--fr-ink); box-shadow: none; font-size: 14px; font-weight: 600; transform: none; }
+#ziweiModalOverlay .fr-palace-summary > .zw-summary-close-btn::before { content: ''; width: 12px; height: 12px; background: linear-gradient(45deg, transparent 43%, currentColor 43% 57%, transparent 57%), linear-gradient(-45deg, transparent 43%, currentColor 43% 57%, transparent 57%); }
+#ziweiModalOverlay .fr-palace-summary > .zw-summary-close-btn:hover { border-color: var(--fr-accent); background: var(--fr-surface); color: var(--fr-ink); opacity: 1; transform: none; }
+#ziweiModalOverlay .fr-palace-summary > .zw-summary-close-btn:focus-visible { outline: 2px solid var(--fr-accent); outline-offset: 2px; }
 #ziweiModalOverlay #ziweiModalSection.fr-report { max-width:1100px !important; padding:20px 24px 64px !important; }
 /* 엔진 인라인 CSS 가 이 박스에 overflow-x 를 준다(js/saju-engine.js:17562 hidden, :19545 는 768px 이하에서 auto).
    둘 다 짝 축을 auto 로 계산시켜 9천px 짜리 이 박스를 스크롤 컨테이너로 만든다. 그러면 sticky 내비가 실제로
