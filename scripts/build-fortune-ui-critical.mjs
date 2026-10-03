@@ -390,7 +390,9 @@ function renderCss(rows) {
     lines.push(row.text);
   }
   closeTo(0);
-  return lines.join("\n");
+  // CSSOM 이 `@keyframes` cssText 를 되돌려 쓸 때 셀렉터 줄 끝에 공백을 남긴다(`{ ` 뒤 개행).
+  // git diff --check 의 trailing-whitespace 가드가 이를 막으므로 내용은 그대로 두고 공백만 정리한다.
+  return lines.join("\n").replace(/[ \t]+$/gm, "");
 }
 
 /* ───────────────────────────── plumbing ───────────────────────────── */
