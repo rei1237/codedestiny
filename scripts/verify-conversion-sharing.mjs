@@ -38,7 +38,7 @@ try{
    await f.page.locator('#founder-records').screenshot({path:`${output}/trust-${width}.png`});
    await f.page.goto(base+'/yeongnyangi/1000-won-fortune/');
    await f.page.locator('#example').waitFor();
-   assert.equal(await f.page.locator('meta[property="og:image"]').getAttribute('content'),'https://code-destiny.com/assets/yeongnyangi/original/kakao-profile.png');
+   assert.equal(await f.page.locator('meta[property="og:image"]').getAttribute('content'),'https://code-destiny.com/og/yeongnyangi-og.png?v=a97cb41a65');
    assert.equal(await f.page.locator('link[rel="canonical"]').getAttribute('href'),'https://code-destiny.com/yeongnyangi/1000-won-fortune/');
    assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    results.push({surface:'home-and-seo',width,status:'PASS'});
