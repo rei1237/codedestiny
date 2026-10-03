@@ -86,6 +86,36 @@
   }
   syncAccountState();
   if (authCard && window.MutationObserver) new MutationObserver(syncAccountState).observe(authCard, { childList: true, subtree: true });
+  // 마이는 읽기 전용 요약이다. 프로필/퀘스트 조작은 단일 원본 카드에서만 한다.
+  var accountSheet = document.getElementById('cdAccountSheet');
+  function gardenText(key, fallback, vars) {
+    return typeof window.cdTranslate === 'function' ? window.cdTranslate('home.myGarden.' + key, vars || {}, fallback) : fallback.replace(/\{(\w+)\}/g, function(match, name) { return vars && vars[name] != null ? vars[name] : match; });
+  }
+  function syncGardenProfile() {
+    if (!accountSheet) return;
+    var profile = window.__cdCurrentDestinyProfile;
+    var name = accountSheet.querySelector('[data-my-profile-name]');
+    var description = accountSheet.querySelector('[data-my-profile-description]');
+    var growth = accountSheet.querySelector('[data-my-growth]');
+    if (name) name.textContent = profile && profile.name ? profile.name : gardenText('garden', '나의 달빛 정원');
+    if (description) description.textContent = profile ? gardenText('profileDescription', '내 프로필과 함께, 오늘의 좋은 흐름을 가꿔요.') : gardenText('emptyDescription', '프로필을 만들고 나를 알아가는 여정을 시작해요.');
+    if (!growth) return;
+    var snap = window.CDLevel && window.CDLevel.snapshot();
+    growth.hidden = !snap;
+    if (!snap) return;
+    growth.querySelector('strong').textContent = 'Lv. ' + snap.currentLevel;
+    var progress = growth.querySelector('progress');
+    progress.max = snap.nextLevelExp || 1;
+    progress.value = snap.currentLevel >= window.CDLevel.maxLevel ? progress.max : snap.currentLevelExp;
+    growth.querySelector('p').textContent = snap.currentLevel < window.CDLevel.maxLevel
+      ? gardenText('next', '다음 레벨까지 경험치 {exp}', { exp: Math.max(0, snap.nextLevelExp - snap.currentLevelExp).toLocaleString() }) + ' · ' + gardenText('today', '오늘의 실천 {done}/{total}', { done: snap.completedQuestIds.length, total: snap.quests.length })
+      : gardenText('max', '마지막 레벨에 도달했어요. 오늘도 나의 흐름을 가꿔요.');
+    var settings = accountSheet.querySelector('.my-garden-settings');
+    if (settings && !snap.loggedIn) settings.open = true;
+  }
+  if (accountSheet) accountSheet.addEventListener('cd:sheet-open', syncGardenProfile);
+  document.addEventListener('cd:profile-card-published', syncGardenProfile);
+  syncGardenProfile();
   move('#langWrap', 'cdhLanguageSlot');
   move('#cdMobileHeader .theme-switch-wrapper--appbar', 'cdhThemeSlot');
   move('#dpKakaoReferralShareBtn', 'cdhShareControls');

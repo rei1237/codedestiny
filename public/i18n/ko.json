@@ -1610,6 +1610,32 @@
       "geomancy-oracle": "이 일의 형세는 유리할까, 불리할까?",
       "stonehenge-runes": "나는 지금 어느 지점에 서 있을까?",
       "luck-sync-diary": "이번 달 흐름, 기록과 얼마나 맞았을까?"
+    },
+    "myGarden": {
+      "title": "마이",
+      "growth": "나의 성장",
+      "progress": "나의 성장 경험치",
+      "open": "프로필 · 오늘의 운 가꾸기",
+      "records": "나의 기록",
+      "usage": "이용 관리",
+      "pass": "이용권 · 월정석",
+      "settings": "계정 설정",
+      "garden": "나의 달빛 정원",
+      "profileDescription": "내 프로필과 함께, 오늘의 좋은 흐름을 가꿔요.",
+      "emptyDescription": "프로필을 만들고 나를 알아가는 여정을 시작해요.",
+      "next": "다음 레벨까지 경험치 {exp}",
+      "today": "오늘의 실천 {done}/{total}",
+      "max": "마지막 레벨에 도달했어요. 오늘도 나의 흐름을 가꿔요.",
+      "practice": "오늘의 운 가꾸기",
+      "intro": "작은 실천을 쌓아, 좋은 흐름을 맞이할 준비를 해요.",
+      "shared": "계정 공통 성장",
+      "done": "완료",
+      "feedback": "오늘의 실천이 쌓였어요.",
+      "levelUp": "한 단계 성장했어요. 달빛 정원에 꽃빛이 더해졌어요.",
+      "streak": "{days}일 함께했어요",
+      "profileTitle": "내 프로필 카드",
+      "cheer": "오늘도 한 걸음, 제가 곁에서 응원할게요.",
+      "mascotAlt": "연꽃을 건네며 응원하는 꽃돼지 연이"
     }
   },
   "footer": {
@@ -2105,10 +2131,10 @@
       "dashboard": "DAY PILLAR DASHBOARD",
       "hanjaTitle": "일주 한자 표기",
       "balanceTitle": "오행 균형도",
-      "summaryTitle": "🧾 세 줄 요약",
+      "summaryTitle": "세 줄 요약",
       "showDetail": "상세 분석 보기 ▼",
-      "detailTitle": "🔍 상세 분석",
-      "adviceTitle": "💡 맞춤 조언"
+      "detailTitle": "상세 분석",
+      "adviceTitle": "맞춤 조언"
     },
     "elements": {
       "wood": "목(木)",

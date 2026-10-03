@@ -1763,6 +1763,32 @@
       "geomancy-oracle": "Is the shape of this matter in my favor?",
       "stonehenge-runes": "Where do I stand right now?",
       "luck-sync-diary": "How closely did this month's flow match my notes?"
+    },
+    "myGarden": {
+      "title": "My space",
+      "growth": "My growth",
+      "progress": "My growth experience",
+      "open": "Profile · Daily practices",
+      "records": "My records",
+      "usage": "Manage services",
+      "pass": "Passes · Moonstones",
+      "settings": "Account settings",
+      "garden": "My moonlit garden",
+      "profileDescription": "Explore your profile and nurture everyday habits.",
+      "emptyDescription": "Create a profile and begin learning about yourself.",
+      "next": "{exp} EXP to the next level",
+      "today": "Today’s practices {done}/{total}",
+      "max": "You reached the highest level. Keep nurturing your daily habits.",
+      "practice": "Today’s practices",
+      "intro": "Build small habits and prepare for positive changes.",
+      "shared": "Shared across this account",
+      "done": "Done",
+      "feedback": "Today’s practice has been added.",
+      "levelUp": "You grew a level. Your moonlit garden has a little more bloom.",
+      "streak": "{days}-day streak",
+      "profileTitle": "My profile card",
+      "cheer": "One small step today. I’m here to cheer you on.",
+      "mascotAlt": "Yeoni the flower pig offering a lotus in encouragement"
     }
   },
   "terms": {

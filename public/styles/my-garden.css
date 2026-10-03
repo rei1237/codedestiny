@@ -1,0 +1,101 @@
+/* 마이와 프로필의 표현 계층. 성장/보상 정책은 CDLevel이 소유한다. */
+:is(#cdAccountSheet,#dpListSheet){--mg-bg:var(--cd-bg);--mg-surface:var(--cd-surface-2);--mg-ink:var(--cd-text);--mg-muted:var(--cd-text-muted);--mg-accent:var(--cd-accent);--mg-line:color-mix(in srgb,var(--mg-accent) 22%,transparent);color:var(--mg-ink);background:var(--mg-bg);scrollbar-color:var(--mg-accent) var(--mg-bg)}
+#cdAccountSheet{inset:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));width:auto;max-width:var(--cd-w-prose);height:auto;max-height:none;border-color:var(--mg-line);border-radius:var(--cd-r-section)}
+#cdAccountSheet .cd-sheet__head{padding:12px 12px 12px 24px;border-color:var(--mg-line)}
+#cdAccountSheet .cd-sheet__head h2{font-family:var(--font-serif);font-size:var(--cd-t-section);color:var(--mg-ink)}
+#cdAccountSheet .cd-sheet__close{color:var(--mg-muted)}
+#cdAccountSheet .cd-sheet__body{padding:24px;display:flex;flex-direction:column;gap:28px}
+.my-garden-hero{flex-shrink:0;position:relative;isolation:isolate;padding:28px 24px;border:1px solid var(--mg-line);border-radius:var(--cd-r-card);background:var(--mg-surface);overflow:hidden}
+.my-garden-hero:before{content:"";position:absolute;right:-20px;top:0;width:190px;height:190px;background:var(--mg-accent);opacity:.36;pointer-events:none;mask:url(/icons/yehwa-branch.svg) center/contain no-repeat;-webkit-mask:url(/icons/yehwa-branch.svg) center/contain no-repeat;z-index:-1}
+.my-garden-moon{display:block;width:32px;height:32px;margin-bottom:18px;color:var(--mg-accent)}
+.my-garden-name{margin:0;font:700 var(--cd-t-display)/1.4 var(--font-serif);overflow-wrap:anywhere;color:var(--mg-ink)}
+.my-garden-description{margin:8px 0 22px;font-size:var(--cd-t-body);line-height:1.7;color:var(--mg-muted);word-break:keep-all}
+.my-garden-progress{margin-bottom:22px}
+.my-garden-progress__label{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:var(--cd-t-body);color:var(--mg-muted)}
+.my-garden-progress__label strong{color:var(--mg-accent);font-size:var(--cd-t-card)}
+.my-garden-progress progress{display:block;appearance:none;width:100%;height:6px;border:0;border-radius:var(--cd-r-pill);margin:12px 0;background:var(--mg-line);overflow:hidden}
+.my-garden-progress progress::-webkit-progress-bar{background:var(--mg-line)}
+.my-garden-progress progress::-webkit-progress-value{background:var(--mg-accent);border-radius:var(--cd-r-pill)}
+.my-garden-progress progress::-moz-progress-bar{background:var(--mg-accent)}
+.my-garden-progress p{margin:0;color:var(--mg-muted);font-size:var(--cd-t-caption);line-height:1.6}
+#cdAccountSheet .my-garden-open{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:48px;padding:12px 16px;border-radius:var(--cd-r-control);background:var(--mg-accent);color:var(--mg-bg);text-decoration:none;font-weight:700;font-size:var(--cd-t-body)}
+.my-garden-open svg,.my-garden-menu svg{width:20px;height:20px;flex-shrink:0}
+.my-garden-section h3{margin:0 0 10px;color:var(--mg-ink);font-size:var(--cd-t-card)}
+#cdAccountSheet .my-garden-menu{margin:0;padding:0;border:0;gap:0}
+#cdAccountSheet .my-garden-menu a{gap:12px;min-height:56px;padding:12px 0;border-radius:0;border-bottom:1px solid var(--mg-line);font-size:var(--cd-t-body);color:var(--mg-ink)}
+.my-garden-menu a svg:first-child{color:var(--mg-accent)}
+.my-garden-menu a svg:last-child{margin-left:auto;width:16px;color:var(--mg-muted)}
+.my-garden-settings{border-top:1px solid var(--mg-line);padding-top:8px}
+.my-garden-settings>summary{display:flex;align-items:center;justify-content:space-between;min-height:48px;cursor:pointer;color:var(--mg-muted);font-size:var(--cd-t-body);list-style:none}
+.my-garden-settings>summary::-webkit-details-marker{display:none}
+.my-garden-settings>summary:after{content:"+";font-size:1.4rem}
+.my-garden-settings[open]>summary:after{content:"−"}
+/* 기존 계정 노드와 이벤트를 그대로 둔다. 이 표면에서만 장식과 계정 액션의 크기를 정리한다. */
+html body #cdAccountSheet #authQuickLinks .cd-user-card{display:flex;flex-direction:column;gap:12px;padding:16px 0!important;margin:0;border:0!important;border-radius:0;background:transparent!important;box-shadow:none!important;text-align:left}
+#cdAccountSheet #authQuickLinks .cd-user-card:before,#cdAccountSheet #authQuickLinks .cd-user-card:after,#cdAccountSheet .cd-user-card__avatar,#cdAccountSheet .cd-user-card__greeting,#cdAccountSheet .cd-user-card__tagline{display:none}
+html body #cdAccountSheet #authQuickLinks .cd-user-card__name{font:700 var(--cd-t-card)/1.5 var(--font-body);background:none!important;-webkit-text-fill-color:var(--mg-ink)!important;color:var(--mg-ink)!important;text-shadow:none}
+#cdAccountSheet .cd-user-card__info{align-items:flex-start;text-align:left}
+html body #cdAccountSheet #authQuickLinks :is(.cd-user-card__pass-line,.cd-user-card__welcome-chip){color:var(--mg-muted)!important;background:transparent;border:0;box-shadow:none}
+#cdAccountSheet .cd-user-card__actions{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px;margin:4px 0 0;padding:0;border:0}
+html body #cdAccountSheet #authQuickLinks .auth-btn{min-height:44px;margin:0;padding:10px 14px;background:var(--mg-surface)!important;border:1px solid var(--mg-line)!important;box-shadow:none!important;color:var(--mg-ink)!important;font-size:var(--cd-t-body)}
+#dpListSheet{left:12px;right:12px;top:max(12px,env(safe-area-inset-top));bottom:max(12px,env(safe-area-inset-bottom));width:auto;max-width:var(--cd-w-prose);height:auto;max-height:none;min-height:0;margin-inline:auto;border:1px solid var(--mg-line);border-radius:var(--cd-r-section);box-shadow:0 16px 48px color-mix(in srgb,var(--mg-ink) 18%,transparent)}
+#dpListSheet .dp-sheet-handle-wrap{display:none}
+#dpListSheet .dp-sheet-head{padding:14px 16px 14px 24px;border-color:var(--mg-line)}
+#dpListSheet .dp-sheet-title{font:700 var(--cd-t-section)/1.4 var(--font-serif);letter-spacing:0;color:var(--mg-ink)}
+#dpListSheet .dp-sheet-close{box-sizing:border-box;width:44px;height:44px;background:transparent;border:0;color:var(--mg-muted)}
+#dpListSheet .dp-list-scroll{min-height:0;padding:24px}
+#dpListSheet #dpMasterCard.dp-master-card{width:100%;max-width:none!important;margin:0 0 24px!important;background:var(--mg-surface);border:1px solid var(--mg-line);box-shadow:none;border-radius:var(--cd-r-card)}
+#dpListSheet #dpMasterCard:before,#dpListSheet #dpMasterCard:after,#dpListSheet .dp-mc-glow,#dpListSheet .dp-mc-stars{display:none}
+#dpListSheet .dp-mc-flower{color:var(--mg-accent);animation:none;opacity:.08}
+#dpListSheet .dp-mc-inner{padding:24px}
+#dpListSheet .dp-mc-header{gap:14px}
+#dpListSheet .dp-mc-label{font-size:var(--cd-t-caption);color:var(--mg-muted);letter-spacing:0;text-transform:none}
+#dpListSheet .dp-mc-name{font:700 var(--cd-t-display)/1.4 var(--font-serif);color:var(--mg-ink);white-space:normal;overflow-wrap:anywhere;text-shadow:none}
+#dpListSheet .dp-mc-birth{color:var(--mg-muted);white-space:normal;line-height:1.7}
+#dpListSheet .dp-mc-solar{color:var(--mg-ink)!important}
+#dpListSheet .dp-mc-avatar{background:var(--mg-bg);border-color:var(--mg-line);box-shadow:none;width:56px;height:56px}
+#dpListSheet :is(.dp-mc-menu-btn,.dp-mc-load-btn){background:var(--mg-bg);color:var(--mg-accent);border-color:var(--mg-line);box-shadow:none;min-height:44px}
+#dpListSheet .dp-mc-load-btn{font-size:var(--cd-t-body);min-height:48px}
+#dpListSheet .dp-mc-load-btn:before{display:none}
+#dpListSheet .dp-mc-divider{background:var(--mg-line)}
+#dpListSheet :is(.dp-mc-info-label,.dp-mc-info-val,.dp-mc-correction,.dp-mc-empty-desc,.dp-mc-empty-hint){color:var(--mg-muted)}
+#dpListSheet .dp-mc-empty-title{color:var(--mg-ink)}
+#dpListSheet .dp-sheet-foot{border-color:var(--mg-line)}
+#dpListSheet .dp-sheet-foot__link{background:var(--mg-surface);border-color:var(--mg-line);color:var(--mg-accent)}
+#dpListSheet :is(.dp-list-item,.dp-list-add,.dp-list-empty-cta){background:var(--mg-bg);border-color:var(--mg-line);color:var(--mg-accent);box-shadow:none;backdrop-filter:none}
+#dpListSheet .dp-list-item--active{background:var(--mg-surface);border-color:var(--mg-accent)}
+#dpListSheet :is(.dp-li-name,.dp-list-empty){color:var(--mg-ink)}
+#dpListSheet :is(.dp-li-meta,.dp-li-loc){color:var(--mg-muted)}
+#dpListSheet :is(.dp-li-edit,.dp-li-del){min-height:44px;background:var(--mg-surface);border-color:var(--mg-line);color:var(--mg-accent)}
+#dpListSheet .dp-li-current-badge{color:var(--mg-accent);border-color:var(--mg-line);background:var(--mg-surface)}
+#dpListSheet .dp-mc-identity>div>span{color:var(--mg-muted)!important;background:transparent!important;border-color:var(--mg-line)!important}
+#dpListSheet .dp-lvl{position:relative;margin-top:24px;padding:24px 0 0;border:0;border-top:1px solid var(--mg-line);border-radius:0;background:transparent;color:var(--mg-ink)}
+.dp-lvl__garden-title{margin:0 0 8px;font:700 var(--cd-t-section)/1.4 var(--font-serif);color:inherit}
+.dp-lvl__garden-description{margin:0 0 18px;font-size:var(--cd-t-body);line-height:1.7;color:inherit}
+#dpListSheet .dp-lvl__garden-description{color:var(--mg-muted)}
+#dpListSheet .dp-lvl__badge{font-size:var(--cd-t-card);color:var(--mg-accent)}
+#dpListSheet :is(.dp-lvl__streak,.dp-lvl__meta,.dp-lvl__note){font-size:var(--cd-t-caption);color:var(--mg-muted);line-height:1.7}
+#dpListSheet .dp-lvl__meta{word-break:keep-all;text-wrap:pretty}
+#dpListSheet .dp-lvl__bar{height:6px;background:var(--mg-line);margin-top:14px}
+#dpListSheet .dp-lvl__fill{background:var(--mg-accent)}
+#dpListSheet .dp-lvl__toggle{background:transparent;border:0;padding:0;margin-top:18px;font-size:var(--cd-t-body);color:var(--mg-ink)}
+#dpListSheet .dp-lvl__toggle b{color:var(--mg-accent)}
+#dpListSheet .dp-lvl__quests{gap:0;margin-top:0}
+#dpListSheet .dp-lvl__quests[hidden]{display:none}
+#dpListSheet .dp-lvl__quest{padding:14px 0;min-height:56px;border:0;border-bottom:1px solid var(--mg-line);border-radius:0;background:transparent;font-size:var(--cd-t-body);color:var(--mg-ink);font-weight:500;line-height:1.6}
+#dpListSheet .dp-lvl__quest[aria-pressed="true"]{color:var(--mg-muted);text-decoration:none}
+.dp-lvl__quest-mark{flex:none;display:grid;place-items:center;width:22px;height:22px;border:1px solid currentColor;border-radius:50%;color:inherit}
+.dp-lvl__quest-mark svg{width:16px;height:16px}
+#dpListSheet .dp-lvl__quest-exp{color:var(--mg-accent);font-size:var(--cd-t-caption)}
+#dpListSheet .dp-lvl__reward{margin-top:20px;padding:12px;background:var(--mg-bg);border-color:var(--mg-line);color:var(--mg-muted);font-size:var(--cd-t-caption);flex-wrap:wrap}
+#dpListSheet :is(.dp-lvl__reward-amt,.dp-lvl__reward-arrow){color:var(--mg-accent)}
+.dp-lvl__reward-moon svg{width:20px;height:20px;display:block}
+.dp-lvl__feedback{min-height:1.6em;margin:10px 0 0;font-size:var(--cd-t-body);line-height:1.6;color:inherit}
+.dp-lvl__companion{display:flex;align-items:center;gap:16px;margin:8px 0 16px}
+.dp-lvl__yeoni{background:transparent;flex:none;width:88px;height:116px;object-fit:contain;object-position:center;transform-origin:50% 90%}
+.dp-lvl__companion .dp-lvl__feedback{margin:0;font-family:var(--font-serif);font-size:var(--cd-t-body);line-height:1.8;word-break:keep-all;text-wrap:pretty}
+.dp-lvl__bloom{position:absolute;right:0;top:16px;width:72px;height:72px;background:currentColor;opacity:var(--garden-bloom,.12);pointer-events:none;mask:url(/icons/yehwa-branch.svg) center/contain no-repeat;-webkit-mask:url(/icons/yehwa-branch.svg) center/contain no-repeat}
+#dpListSheet :is(button,a):focus-visible,#cdAccountSheet :is(a,button,summary):focus-visible{outline:2px solid var(--mg-accent);outline-offset:3px}
+@media(min-width:760px){#cdAccountSheet{top:32px;bottom:32px;max-height:880px;margin-block:auto}#cdAccountSheet .cd-sheet__body{display:grid;grid-template-columns:1.15fr 1fr;align-content:start;gap:24px 32px}.my-garden-hero{grid-row:span 2}.my-garden-settings{grid-column:1/-1}#dpListSheet{top:32px;bottom:32px;max-height:900px}#dpListSheet .dp-mc-inner{display:grid;grid-template-columns:1fr 1.15fr;gap:20px 32px}#dpListSheet .dp-mc-header{grid-column:1;align-self:start}#dpListSheet .dp-mc-info{grid-column:1;align-self:start}#dpListSheet .dp-mc-divider{display:none}#dpListSheet .dp-lvl{grid-column:2;grid-row:1/span 3;margin:0;padding:0 0 0 24px;border-top:0;border-left:1px solid var(--mg-line)}#dpListSheet .dp-mc-load-btn{grid-column:1;align-self:end;margin:0}}
+@media(max-width:430px){#cdAccountSheet .cd-sheet__body,#dpListSheet .dp-list-scroll{padding:20px 16px}.my-garden-hero,#dpListSheet .dp-mc-inner{padding:22px 18px}.my-garden-name,#dpListSheet .dp-mc-name{font-size:var(--cd-t-section)}#dpListSheet .dp-mc-avatar{width:44px;height:44px;font-size:1.5rem}}
+@media(prefers-reduced-motion:reduce){#dpListSheet,#dpListSheet *,#cdAccountSheet *{animation:none!important;transition:none!important}}

@@ -1763,6 +1763,32 @@
       "geomancy-oracle": "このことの形勢は有利？不利？",
       "stonehenge-runes": "今の私はどの地点に立っている？",
       "luck-sync-diary": "今月の流れ、記録とどれくらい合った？"
+    },
+    "myGarden": {
+      "title": "マイページ",
+      "growth": "私の成長",
+      "progress": "私の成長経験値",
+      "open": "プロフィール・今日の習慣",
+      "records": "私の記録",
+      "usage": "利用管理",
+      "pass": "利用券・月光石",
+      "settings": "アカウント設定",
+      "garden": "私の月明かりの庭",
+      "profileDescription": "プロフィールとともに、毎日のよい流れを育てましょう。",
+      "emptyDescription": "プロフィールを作り、自分を知る旅を始めましょう。",
+      "next": "次のレベルまで {exp} EXP",
+      "today": "今日の習慣 {done}/{total}",
+      "max": "最高レベルに到達しました。今日もよい習慣を続けましょう。",
+      "practice": "今日のよい習慣",
+      "intro": "小さな習慣を重ね、よい流れを迎える準備をしましょう。",
+      "shared": "アカウント共通の成長",
+      "done": "完了",
+      "feedback": "今日の習慣が積み重なりました。",
+      "levelUp": "レベルが上がり、月明かりの庭に花の彩りが増えました。",
+      "streak": "{days}日連続",
+      "profileTitle": "私のプロフィールカード",
+      "cheer": "今日も一歩。そばで応援しています。",
+      "mascotAlt": "蓮の花を差し出して応援する花飾りの子ぶたヨニ"
     }
   },
   "terms": {
