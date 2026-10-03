@@ -106,3 +106,28 @@ test('the intl layer cannot call an LLM, payment, or recalculate a chart',()=>{
   assert.doesNotMatch(source,/localStorage|sessionStorage|indexedDB/);
   assert.doesNotMatch(source,/#[0-9a-f]{3,8}\b/i,'colours come from tokens in CSS');
 });
+
+test('ja / zh-CN / zh-TW carry their own full tables (same shape and placeholders as en, no leaked English prose, zh-TW differs from zh-CN)',()=>{
+  const copy=intl.copy;
+  const ph=s=>(String(s).match(/\{\w+\}/g)||[]).filter(x=>x!=='{dg}').sort().join(',');
+  const walk=(en,t,path)=>{
+    if(typeof en==='string'){assert.equal(typeof t,'string',path);assert.equal(ph(t),ph(en),path);return;}
+    if(Array.isArray(en)){assert.ok(Array.isArray(t)&&t.length===en.length,path);en.forEach((x,i)=>walk(x,t[i],path+'['+i+']'));return;}
+    assert.ok(t&&typeof t==='object',path);
+    Object.keys(en).forEach(k=>{assert.ok(k in t,path+'.'+k+' missing');walk(en[k],t[k],path+'.'+k);});
+  };
+  for(const lang of ['ja','zh-CN','zh-TW']){
+    walk(copy.en,copy[lang],lang);
+    const api=intl.forLang(lang);
+    for(const p of charts.slice(0,10)){
+      const ten={};[p.y.g,p.y.j,p.m.g,p.m.j,p.d.j,p.h.g,p.h.j].forEach(ch=>{const g=context.getTenGod(p.d.g,ch);ten[g]=(ten[g]||0)+1;});
+      const out=everything(api,factsOf(p,{ten,flow}),'pig');
+      for(const [name,html] of Object.entries(out)){
+        const prose=html.replace(/<[^>]*>/g,' ').replace(/\b(Yeoni|Neo|Gong)\b/g,'');
+        assert.deepEqual(prose.match(/[A-Za-z]{4,}/g)||[],[],lang+' '+name+' leaks English words');
+      }
+    }
+  }
+  assert.notEqual(JSON.stringify(copy['zh-TW']),JSON.stringify(copy['zh-CN']));
+  assert.match(copy['zh-TW'].fam.drain,/傷/);assert.match(copy['zh-CN'].fam.drain,/伤/);
+});
