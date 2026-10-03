@@ -160,6 +160,19 @@ test('flow: the current cycle and year cards show the engine score, ten gods and
   delete context.GAEUN_DB;
 });
 
+test('flow: the tone paragraph follows the score band and appears once when both rows share it',()=>{
+  const p=charts[2],row=(kind,score)=>({kind,g:'甲',j:'午',score,summary:'',age:31,end:40,year:2026,relations:[]});
+  const zero=rich.flow(factsOf(p,{flow:[row('period',0)]}),'pig');
+  assert.match(zero,/조율이 많이 필요한 흐름/);assert.doesNotMatch(zero,/조금 필요|순한 쪽으로 읽혀요/);
+  const full=rich.flow(factsOf(p,{flow:[row('period',100)]}),'pig');
+  assert.match(full,/아주 순한 흐름/);assert.match(full,/순한 쪽으로 읽혀요/);assert.doesNotMatch(full,/조율이 필요한 쪽/);
+  assert.match(rich.flow(factsOf(p,{flow:[row('period',50)]}),'pig'),/보통의 흐름으로 읽혀요/);
+  for(const mode of ['pig','neo']){
+    const both=rich.flow(factsOf(p,{flow:[row('period',10),row('year',30)]}),mode);
+    assert.equal(both.split(mode==='neo'?'평가상 조율 구간입니다':'조율이 필요한 쪽으로 읽혀요').length-1,1,mode);
+  }
+});
+
 test('daily: the energy gauge, ten-god advice and lucky booster come from the engine result in both voices',()=>{
   const p=charts[4];
   const row={gz:{g:'丙',j:'子'},gGod:'식신',jGod:'정관',gEl:'fire',jEl:'water',batteryPercent:30,grade:'조심 🛡️',luckyEl:'wood',
