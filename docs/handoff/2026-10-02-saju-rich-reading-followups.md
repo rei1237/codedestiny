@@ -20,13 +20,12 @@ next: "docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B1(ilju
 
 ## 다음 세션 시작 명령
 
-A1·A2·A3 는 끝났다(남은 것: B1·B2·B3·C1·C2·D1·E1). 과제마다 한 세션씩 쓴다. 아래 문장을 그대로 붙여 넣는다.
+A1·A2·A3·C1 은 끝났다(남은 것: B1·B2·B3·C2·D1·E1). 과제마다 한 세션씩 쓴다. 아래 문장을 그대로 붙여 넣는다.
 
 ```
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B1(iljuCard 상단 구 컴포넌트 디자인 정리)을 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B2(tsModal 네오 모드 시각 결함)를 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B3(쌓인 표의 스크린리더 의미)를 진행해줘
-docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 C1(NEO_GAEUN_DB 반말 정리)을 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 C2(비한국어 로케일 풍부한 판)를 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 D1(daewun-quality 검증기 타임아웃)을 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 E1(47030b73d 의 남은 해석 변경 검토)을 진행해줘
@@ -82,7 +81,7 @@ docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 E1(47030b73d �
 
 ### C. 문구·로케일
 
-**C1. `NEO_GAEUN_DB` 반말 혼재** — GREEN.
+**C1. `NEO_GAEUN_DB` 반말 혼재** — ✅ 완료 2026-10-03 (d4066c0f7, 미러·push 는 미완). 58문장을 합니다/하세요체로 다시 썼고(키 구조 무변경), reading-rich 세운 카드가 neo 모드에서 `NEO_GAEUN_DB`(없으면 `GAEUN_DB`)를 읽는다. 테스트 1건 추가(분기·폴백·120문장 어미). **미러는 아직 안 맞췄다**: 옆 세션(B3·D1)이 같은 공유 트리에서 sync:public 을 돌리는 중이라 해시가 계속 바뀌어, 마지막에 끝내는 세션이 sync:public 후 `public/js/saju-engine.js`·`public/js/core/saju/reading-rich.js` 를 함께 커밋하고 push 한다. 아래는 원래 기록.
 - `js/saju-engine.js:4538` 에 반말이 섞여 있어, 지금 `reading-rich.js` 는 두 모드 모두 `GAEUN_DB` 를 쓴다.
 - 할 일: 네오 말투(존댓말·단정)로 정리한 뒤 네오 모드에서 `NEO_GAEUN_DB` 를 쓰게 한다.
 - 금지어 검사(테스트·verify)를 통과해야 한다.
