@@ -34,6 +34,11 @@ featureMarketing 네임스페이스가 아예 없다").
 
 ## 2. zh-TW 커버리지 격차 (실측)
 
+> **2026-10-03 정정**: 아래 표는 2026-09-17 시점 기록이다. 현재 `sitemap-zh-tw.xml`(118 URL)에는
+> saju·astrology·vedic·tarot·ziwei·sukuyo·today·compatibility 8개 허브가 모두 있고, en·ja·zh 도 같다
+> (`<loc>` 포함 여부 실측 — 라이브 curl 은 아님). 즉 "zh-TW 404"·"compatibility 로케일 없음"은 더 이상 사실이 아니다.
+> 이 절은 이력으로만 남긴다.
+
 7개 대표 허브 curl 상태 코드(2026-09-17):
 
 | 허브 | zh-TW 상태 |
@@ -59,6 +64,8 @@ vedic/tarot 4개 핵심 허브는 zh-TW 페이지가 아예 없다(404) — **�
 권장한다(임의로 saju부터 하지 않음 — 코딩 원칙 1: 가정을 드러낸다).
 
 ## 3. `compatibility` 허브 — 로케일 자체가 없음
+
+> **2026-10-03 정정**: 현재 en·ja·zh·zh-TW 사이트맵에 `/compatibility/` 가 모두 있다(위 §2 정정 참고). 아래는 2026-09-17 기록.
 
 en/ja/zh/zh-TW 전부 404, ko만 존재. hreflang 태그도 아예 생성되지 않는다(정상 —
 없는 번역을 향한 가짜 alternates를 만들지 않는 설계). "궁합"은 검색 의도가
