@@ -2394,11 +2394,10 @@ export default function PalmDestinyMain() {
         return;
       }
 
-      const prepared = preparePalmResult(payloadRoot);
-
+      // 결제 전 응답은 판독 가능 여부·requestId 만 담는다. 본문은 결제 뒤 recoverPalm 이 GET /result 로 받는다.
       if (payloadRoot.analysisSaved !== true) throw new Error('RESULT_STORAGE_UNAVAILABLE');
 
-      if (!shouldShowPalmResult(prepared.canonical)) {
+      if (!shouldShowPalmResult(payloadRoot)) {
         setAnalysisResult(null);
         updatePaidFeatureGate({
           categoryKey: "palm-reading",
@@ -2412,7 +2411,7 @@ export default function PalmDestinyMain() {
       }
 
       setSubmitMessage(copy.resultConfirmedCheckingPaymentMessage);
-      // 모바일 PortOne 리다이렉트는 이 문서를 통째로 날린다 — 결제창을 열기 직전에 판독 응답을 이 탭에 남긴다.
+      // 모바일 PortOne 리다이렉트는 이 문서를 통째로 날린다 — 결제창을 열기 직전에 판독 영수증(requestId)을 이 탭에 남긴다.
       stashPalmResumePayload(billingRequestId, payloadRoot);
       const coinGateResult = await runBillingCoinGate({
         resume: buildResume({ requestId: billingRequestId, serverSaved: true }),

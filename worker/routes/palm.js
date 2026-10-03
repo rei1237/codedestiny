@@ -253,6 +253,10 @@ export async function handlePalmRoutes(request, env) {
     if (!payload.analysisPurpose) {
       throw createHttpError(400, "analysisPurpose 입력이 필요합니다.", { code: "MISSING_ANALYSIS_PURPOSE" });
     }
+    // 본문은 저장본(GET /result)으로만 전달되므로 저장 키가 없으면 비전 호출 전에 거절한다.
+    if (typeof body.requestId !== "string" || body.requestId.length < 8 || body.requestId.length > 120) {
+      throw createHttpError(422, "판독 요청 ID가 필요합니다.", { code: "REQUEST_ID_REQUIRED" });
+    }
 
     const leftInput = toSide(payload, "left");
     const rightInput = toSide(payload, "right");
@@ -568,7 +572,14 @@ export async function handlePalmRoutes(request, env) {
       visionUsed: usedVision,
       qualityScore,
     };
-    return json(body.requestId ? await savePalmAnalysis(env, auth.userId, body.requestId, result, deepConsult?.rawText || "") : result);
+    // 🔴 결제 전 응답에는 판독·해석 본문을 싣지 않는다. 본문은 결제 확인 뒤 GET /result 로만 나간다.
+    const saved = await savePalmAnalysis(env, auth.userId, body.requestId, result, deepConsult?.rawText || "");
+    return json({
+      requestId: saved.requestId,
+      analysisSaved: saved.analysisSaved === true,
+      mode: saved.mode,
+      validation: { hasPalm: saved.validation?.hasPalm === true },
+    });
   } catch (error) {
     return handleRouteError(error, { request, env, trace });
   }
