@@ -27838,6 +27838,8 @@ function renderSummary(p,johu,natal){
       '#5c6bc0','rgba(232,236,255,.78)');
   }
 
+  html+='<div class="saju-summary-illustration"><img src="/images/saju/'+(_isNeoSaju?'neo-plan-320.webp':'yeoni-clue-320.webp')+'" width="140" height="140" alt="" loading="lazy" decoding="async"></div>';
+
   /* ───────────────────────────────
      3. 오행 분포
   ─────────────────────────────── */
@@ -28097,6 +28099,8 @@ function renderSummary(p,johu,natal){
       ?'신살(神殺)은 사주 지지(地支) 조합에서 나오는 특수 에너지 패턴입니다. 길신(吉神)은 능력 강화하고 귀인도 끌어오는데, 살(殺)은 특정 영역에 강렬한 에너지 주되 과하면 부작용 따라옵니다. 타고난 운명 확정이 아니라 그 에너지를 어떻게 쓰느냐가 관건이거든요. 강점 될지 약점 될지는 결국 본인 하기 나름입니다.'
       :'신살(神殺)은 사주 지지(地支) 조합에서 발생하는 특수한 에너지 패턴입니다. 길신(吉神)은 능력을 강화하고 귀인 인연을 끌어들이며, 살(殺)은 특정 영역에서 강렬한 에너지를 부여하되 과하면 부작용이 따릅니다. 선천적 운명이 아니라 그 에너지를 어떻게 활용하느냐에 따라 강점이 될 수도, 약점이 될 수도 있습니다.')+'</div>',
     '#9C27B0','rgba(243,229,245,.7)');
+
+  html+='<div class="saju-summary-illustration"><img src="/images/saju/'+(_isNeoSaju?'neo-plan-320.webp':'yeoni-moonlight-reading.webp')+'" width="140" height="'+(_isNeoSaju?'140':'93')+'" alt="" loading="lazy" decoding="async"></div>';
 
   /* ───────────────────────────────
      8. 건강 & 소울 푸드
@@ -29916,8 +29920,8 @@ function generateDetailedAdvice(p,pw,jg,dominant,dayMaster,domE,natal,deep){
     '편인':'직관력과 영감이 탁월한 당신, 생각이 너무 많아 행동이 늦어지는 것이 가장 큰 문제입니다. <b>"일단 해보자"는 용기가 당신을 한 단계 성장시킵니다.</b> 아이디어를 혼자만 간직하지 말고, 신뢰하는 한 사람에게라도 꺼내 보세요. 고독을 즐기되 적절한 사회적 연결이 정신 건강을 지킵니다.',
     '정인':'사랑받고 배우는 것을 좋아하는 당신, 의존적 성향이 가장 큰 함정입니다. <b>누군가가 없어도 스스로 결정하고 실행하는 자립심 훈련이 평생 과제입니다.</b> 인정과 칭찬에 약하니 그것을 이용하는 사람을 조심하세요. 건강한 경계를 세우는 것이 성장의 첫걸음입니다.'
   };
-  out+='<div style="background:rgba(255,255,255,.85);border-radius:10px;padding:14px;margin-bottom:12px;border-left:4px solid var(--pink)">';
-  out+='<b style="font-size:.9rem;color:var(--pink)">⭐ 핵심 십성 '+dominant+' — 맞춤 조언</b><br>';
+  out+='<div style="background:rgba(255,255,255,.85);border-radius:10px;padding:14px;margin-bottom:12px;border-left:4px solid var(--cd-accent, #b31955)">';
+  out+='<b style="font-size:.9rem;color:var(--cd-accent, #b31955)">⭐ 핵심 십성 '+dominant+' — 맞춤 조언</b><br>';
   out+='<span style="font-size:.86rem;line-height:1.85">'+(tsAdviceFull[dominant]||deep.advice)+'</span>';
   out+='</div>';
 
@@ -30734,7 +30738,7 @@ function renderLifeGraph(bazi){
   var minScore=0,maxScore=100;
 
   function xOf(age){return PAD_L+((age-minAge)/(maxAge-minAge))*gW;}
-  function yOf(s){return PAD_T+((maxScore-s)/(maxScore-minScore))*gH;}
+  function yOf(s){return PAD_T+((s-minScore)/(maxScore-minScore))*gH;}
 
   var bg=ctx.createLinearGradient(0,0,0,CH);
   bg.addColorStop(0,'#fffdf8');
@@ -30797,13 +30801,13 @@ function renderLifeGraph(bazi){
     ctx.lineTo(gPts[gPts.length-1].x,yOf(50));
     ctx.closePath();
     if(isPositive){
-      ctx.rect(PAD_L,PAD_T,gW,yOf(50)-PAD_T);
-      var g=ctx.createLinearGradient(0,PAD_T,0,yOf(50));
+      ctx.rect(PAD_L,yOf(50),gW,gH-(yOf(50)-PAD_T));
+      var g=ctx.createLinearGradient(0,PAD_T+gH,0,yOf(50));
       g.addColorStop(0,'rgba(49,163,107,.28)');g.addColorStop(1,'rgba(49,163,107,.02)');
       ctx.fillStyle=g;
     }else{
-      ctx.rect(PAD_L,yOf(50),gW,gH-(yOf(50)-PAD_T));
-      var g2=ctx.createLinearGradient(0,yOf(50),0,PAD_T+gH);
+      ctx.rect(PAD_L,PAD_T,gW,yOf(50)-PAD_T);
+      var g2=ctx.createLinearGradient(0,yOf(50),0,PAD_T);
       g2.addColorStop(0,'rgba(197,83,92,.02)');g2.addColorStop(1,'rgba(197,83,92,.22)');
       ctx.fillStyle=g2;
     }

@@ -1,4 +1,4 @@
-import {reportGuideCopy, buildExternalImagePrompt, reportGuideAssets, chatgptUrl} from './fortune-report-content.mjs?v=build-3f60ad5a5bec';
+import {reportGuideCopy, buildExternalImagePrompt, reportGuideAssets, chatgptUrl} from './fortune-report-content.mjs?v=build-b1e6cac7c3d1';
 
 // Presentation only: callers supply an already authorized, completed result.
 function node(tag, cls, value) {

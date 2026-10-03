@@ -59,7 +59,7 @@ test('all six systems preserve saved values without inventing charts or sharing 
   const prompt=buildExternalImagePrompt({brand:'yeongnyangi',domain,locale:'ko',groups:report.chart.groups,passages:report.sections.map(section=>section.body)});
   assert.ok(prompt.includes('辛酉'));assert.ok(prompt.includes(secret));
   assert.match(prompt,/Do not calculate a new chart/);assert.match(prompt,/Do not make a public share image/);
-  assert.match(prompt,/white fluffy cat/);assert.match(prompt,/Do not output HTML/);assert.doesNotMatch(prompt,/editable HTML/);
+  assert.match(prompt,/white fluffy cat/);assert.match(prompt,/image_gen/);assert.doesNotMatch(prompt,/HTML|SVG|CSS/);
  }
 });
 test('localized guides cover six separate systems in all twelve runtime locales',()=>{
@@ -87,4 +87,16 @@ test('normal structured messages retain short Korean and English passages and da
  const messages=[JSON.stringify({sections:{summary:'Take your time.',advice:['Ask before deciding.','Wait until Friday.'],period:'2027',value:0}}),JSON.stringify({sections:{summary:'천천히 가세요.',advice:'먼저 물어보세요.'}})];
  const passages=loaded.exports.savedReportPassages(messages).join('\n');
  for(const value of ['Take your time.','Ask before deciding.','Wait until Friday.','2027','value: 0','천천히 가세요.','먼저 물어보세요.'])assert.ok(passages.includes(value),value);
+});
+test('each system gets its own chart design from supplied values only',()=>{
+ const keys={saju:/Four Pillars/,ziwei:/12 palaces/,sukuyo:/27 lunar mansions/,astrology:/natal chart wheel/,vedic:/Rashi chart/,tarot:/tarot spread/};
+ for(const domain of reportDomains){
+  const prompt=buildExternalImagePrompt({brand:'yeongnyangi',domain,locale:'ko',groups:[],passages:[]});
+  assert.match(prompt,keys[domain]);assert.match(prompt,/instead of inventing numbers/);
+ }
+});
+test('yeongnyangi offers four webp character choices',async()=>{
+ const {reportGuideChoices}=await import('../../js/core/fortune-report-content.mjs');
+ assert.equal(reportGuideChoices.yeongnyangi.length,4);
+ for(const item of reportGuideChoices.yeongnyangi)assert.match(item.src,/.webp$/);
 });
