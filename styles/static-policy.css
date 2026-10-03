@@ -24,9 +24,9 @@ body.cd-policy-static { margin:0; background:var(--policy-bg); color:var(--polic
 .policy-menu nav { position:absolute; top:58px; right:12px; display:grid; min-width:190px; padding:10px; border:1px solid var(--policy-line); border-radius:16px; background:var(--policy-card); box-shadow:0 18px 40px rgba(80,25,52,.16); }
 .policy-menu nav a { display:flex; min-height:44px; align-items:center; padding:0 12px; border-radius:10px; color:var(--policy-muted); text-decoration:none; }
 .policy-menu nav a:hover { background:color-mix(in srgb,var(--policy-accent) 10%,transparent); color:var(--policy-accent); }
-.cd-policy-static main { width:min(calc(100% - 32px),960px); margin:clamp(28px,5vw,64px) auto 0; color:var(--policy-ink); }
+.cd-policy-static main:not(.about-service-page) { width:min(calc(100% - 32px),960px); margin:clamp(28px,5vw,64px) auto 0; color:var(--policy-ink); }
 .cd-policy-static main :is(.policy-doc__head,.cd-main-header) { max-width:760px; margin-bottom:36px; }
-.cd-policy-static main :is(.policy-doc__title,.cd-main-title,h1) { margin:0; color:var(--policy-ink); font-family:'CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',serif; font-weight:700; font-size:clamp(2rem,5vw,3.6rem); line-height:1.24; letter-spacing:-.04em; word-break:keep-all; }
+.cd-policy-static main:not(.about-service-page) :is(.policy-doc__title,.cd-main-title,h1) { margin:0; color:var(--policy-ink); font-family:'CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',serif; font-weight:700; font-size:clamp(2rem,5vw,3.6rem); line-height:1.24; letter-spacing:-.04em; word-break:keep-all; }
 .cd-policy-static main :is(.policy-doc__meta) { margin-top:12px; color:var(--policy-gold); font-size:.8rem; font-weight:800; }
 .cd-policy-static main :is(.policy-doc__lede,.cd-main-intro) { max-width:65ch; margin-top:16px; color:var(--policy-muted); font-size:1rem; }
 .policy-doc__layout { display:grid; grid-template-columns:minmax(190px,240px) minmax(0,1fr); gap:clamp(28px,5vw,60px); align-items:start; }
@@ -37,10 +37,10 @@ body.cd-policy-static { margin:0; background:var(--policy-bg); color:var(--polic
 .policy-doc__toc-link { display:inline-flex; align-items:center; min-height:36px; }
 .policy-doc__body { min-width:0; }
 .policy-doc__section,.policy-embed-section,.cd-policy-static .cd-card { padding:24px; margin:0 0 18px; border:1px solid var(--policy-line); border-radius:20px; background:var(--policy-card); scroll-margin-top:24px; }
-.cd-policy-static main h2 { margin:0 0 12px; color:var(--policy-ink); font-family:'CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',serif; font-weight:700; font-size:1.22rem; line-height:1.45; word-break:keep-all; }
-.cd-policy-static main h3 { color:var(--policy-ink); font-size:1.02rem; line-height:1.55; }
-.cd-policy-static main :is(p,li) { overflow-wrap:anywhere; }
-.cd-policy-static main ul { padding-left:22px; }
+.cd-policy-static :where(main:not(.about-service-page), #service-details) h2 { margin:0 0 12px; color:var(--policy-ink); font-family:'CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',serif; font-weight:700; font-size:1.22rem; line-height:1.45; word-break:keep-all; }
+.cd-policy-static :where(main:not(.about-service-page), #service-details) h3 { color:var(--policy-ink); font-size:1.02rem; line-height:1.55; }
+.cd-policy-static :where(main:not(.about-service-page), #service-details) :is(p,li) { overflow-wrap:anywhere; }
+.cd-policy-static :where(main:not(.about-service-page), #service-details) ul { padding-left:22px; }
 .policy-doc__related,.cd-chip-wrap { display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:24px; }
 .policy-doc__related a,.cd-chip { display:inline-flex; align-items:center; min-height:44px; }
 .cd-card-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }

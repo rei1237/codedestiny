@@ -64,6 +64,14 @@ export function isJobEnabled(env, job) {
   return isSwitchOn(env, job.enableVar);
 }
 
+/** 기존 별도 캠페인이 정규 슬롯을 대체한다. 새 발행이나 잠금/재시도 경로를 만들지 않는다. */
+export function isEditorialSlotReserved(type, dateKey) {
+  if (type === "saju" && dateKey === "2026-10-05") return true;
+  // 기존 일요일 21:10 신년 예약: 그날의 20:30 마음 노트 대신 한 편만 발행한다.
+  return type === "karma" && dateKey >= "2026-11-01" && dateKey <= "2027-01-03"
+    && new Date(`${dateKey}T12:00:00+09:00`).getUTCDay() === 0;
+}
+
 /** "HH:MM" → KST 자정 기준 분. 형식이 틀리거나 23:00 이후면 null(해당 Job 만 건너뛴다). */
 export function parseJobTime(raw) {
   const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(String(raw ?? "").trim());
@@ -135,10 +143,10 @@ export async function publishThreadsJob(env, { type, provider, now, fetchImpl, g
     return { ok: false, status: 0, error: `format_threw: ${errorMessage(error)}`, ref: { ...base, ids: [] } };
   }
 
-  const editorial = {promptVersion:PROMPT_VERSION, locale:"ko", topic:type, contentType:"daily_reflection",
+  const editorial = {promptVersion:PROMPT_VERSION, locale:"ko", topic:type, contentType:type === "karma" ? "conversation" : "daily_reflection",
     hook:written.copy.hook, body:written.copy.body, text, destinationUrl,
     campaignId:new URL(destinationUrl).searchParams.get("utm_campaign"),
-    sourceBasis:`canonical_engine:${type}:${base.date}:Asia/Seoul`, recentCompared:recent.length};
+    sourceBasis:type === "karma" ? `editorial_theme:${facts.themeId}` : `canonical_engine:${type}:${base.date}:Asia/Seoul`, recentCompared:recent.length};
   if (repeatsRecent(written.copy, recent)) return {ok:false,status:0,error:"editorial_review_required",
     ref:{...base,...editorial,ids:[],reviewRequired:true}};
   // provider 가 [본 글, 답글…] 을 돌려주면 체인으로 낸다(띠별: 티저 + 12띠 답글). 링크·CTA 는 본 글에 있다.
@@ -200,6 +208,10 @@ export async function runThreadsDailyJobs(env, options = {}) {
     if (only && job.type !== only) continue;
     if (!isJobEnabled(env, job)) {
       jobs[job.type] = { ok: true, skipped: "job_disabled" };
+      continue;
+    }
+    if (isEditorialSlotReserved(job.type, dateKey)) {
+      jobs[job.type] = { ok: true, skipped: "editorial_slot_reserved" };
       continue;
     }
     // 간격 경고는 켜진 Job 끼리만 본다 — 꺼진 Job 의 기본 시각이 헛경고를 내지 않게.

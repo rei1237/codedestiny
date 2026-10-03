@@ -21,7 +21,17 @@ for (const route of STATIC_POLICY_ROUTES) test(`${route.canonical} is complete s
   assert.match(html, /class="policy-main-nav"/);
   assert.match(html, /class="policy-footer-grid"/);
   assert.match(html, /src="\/icons\/app-logo-512\.webp"/);
-  assert.match(html, /꽃돼지가 길을 안내할게요/);
+  if (route.key === 'about') {
+    assert.match(html, /class="cd-service-intro"/);
+    assert.match(html, /마음은 가볍게/);
+    assert.match(html, /href="\/styles\/service-intro\.css\?v=/);
+    assert.match(html, /id="service-details"/);
+    assert.match(html, /id="author"/);
+    assert.doesNotMatch(html, /9,900원|4,900원|운영 반영 전|게시용 이미지/);
+  } else {
+    assert.match(html, /꽃돼지가 길을 안내할게요/);
+    assert.doesNotMatch(html, /href="\/styles\/service-intro\.css/);
+  }
   assert.match(html, /<meta name="robots" content="index, follow">/);
   const publisherId = read('ads.txt').match(/^google\.com,\s*(pub-\d+),/m)[1];
   assert.ok(html.split('</head>')[0].includes(`<meta name="google-adsense-account" content="ca-${publisherId}">`));

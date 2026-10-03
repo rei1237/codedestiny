@@ -1,0 +1,44 @@
+{
+  "result.ilju.summaryTitle": {
+    "ko": "세 줄 요약",
+    "en": "Three-line summary",
+    "ja": "三行要約",
+    "zh-CN": "三行摘要",
+    "zh-TW": "三行摘要",
+    "vi": "Tóm tắt ba dòng",
+    "hi": "तीन-पंक्ति सारांश",
+    "es": "Resumen de tres líneas",
+    "fr": "Résumé en trois lignes",
+    "de": "Dreizeilige Zusammenfassung",
+    "nl": "Samenvatting van drie regels",
+    "ms": "Ringkasan tiga baris"
+  },
+  "result.ilju.detailTitle": {
+    "ko": "상세 분석",
+    "en": "Detailed analysis",
+    "ja": "詳細分析",
+    "zh-CN": "详细分析",
+    "zh-TW": "詳細分析",
+    "vi": "Phân tích chi tiết",
+    "hi": "विस्तृत विश्लेषण",
+    "es": "Análisis detallado",
+    "fr": "Analyse détaillée",
+    "de": "Detaillierte Analyse",
+    "nl": "Gedetailleerde analyse",
+    "ms": "Analisis terperinci"
+  },
+  "result.ilju.adviceTitle": {
+    "ko": "맞춤 조언",
+    "en": "Personalized advice",
+    "ja": "個別アドバイス",
+    "zh-CN": "专属建议",
+    "zh-TW": "專屬建議",
+    "vi": "Lời khuyên được cá nhân hóa",
+    "hi": "वैयक्तिकृत सलाह",
+    "es": "Asesoramiento personalizado",
+    "fr": "Conseils personnalisés",
+    "de": "Persönliche Beratung",
+    "nl": "Persoonlijk advies",
+    "ms": "Nasihat peribadi"
+  }
+}

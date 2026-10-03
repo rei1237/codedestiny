@@ -1,0 +1,26 @@
+[
+  {
+    "anchor": true,
+    "h1": 1,
+    "scrollWidth": 345,
+    "width": 360
+  },
+  {
+    "anchor": true,
+    "h1": 1,
+    "scrollWidth": 375,
+    "width": 390
+  },
+  {
+    "anchor": true,
+    "h1": 1,
+    "scrollWidth": 415,
+    "width": 430
+  },
+  {
+    "anchor": true,
+    "h1": 1,
+    "scrollWidth": 1425,
+    "width": 1440
+  }
+]

@@ -1,0 +1,85 @@
+{
+  "version": 3,
+  "scheduledKST": "2026-10-05T09:00:00+09:00",
+  "status": "prepared-not-posted",
+  "originalCoverSha256": "4ec18803662c6f463d07e5945c411bead11686b01c0efa151c6dca14a12e40f4",
+  "cards": [
+    {
+      "number": 1,
+      "file": "../assets/official-three-characters.png",
+      "preserved": true
+    },
+    {
+      "number": 2,
+      "file": "cards/02.jpg",
+      "source": "card-02.html",
+      "title": "고민 하나에서 시작되는,  나를 읽는 이야기. ",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "number": 3,
+      "file": "cards/03.jpg",
+      "source": "card-03.html",
+      "title": "처음 만난 당신에게,  5,000원 상당의 선물. ",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "number": 4,
+      "file": "cards/04.jpg",
+      "source": "card-04.html",
+      "title": "사주만 보는 곳인 줄  알았죠? ",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "number": 5,
+      "file": "cards/05.jpg",
+      "source": "card-05.html",
+      "title": "하나의 고민을,  여러 시선으로 더 깊게. ",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "number": 6,
+      "file": "cards/06.jpg",
+      "source": "card-06.html",
+      "title": "가입 전에도,  가볍게 만나보세요. ",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "number": 7,
+      "file": "cards/07.jpg",
+      "source": "card-07.html",
+      "title": "글로만 듣던 내 흐름,  눈으로 펼쳐보세요. ",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "number": 8,
+      "file": "cards/08.jpg",
+      "source": "card-08.html",
+      "title": "읽고 끝내기 아까운 이야기,  다시 펼칠 수 있도록. ",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "number": 9,
+      "file": "cards/09.jpg",
+      "source": "card-09.html",
+      "title": "고민의 방향이 보이는 설명.  그 경험을 담았습니다. ",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "number": 10,
+      "file": "cards/10.jpg",
+      "source": "card-10.html",
+      "title": "오늘의 마음부터,  나를 알아가는 시작. ",
+      "width": 1080,
+      "height": 1350
+    }
+  ]
+}

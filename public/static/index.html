@@ -5805,6 +5805,7 @@ html body #cdFinalCtaBand{padding:24px 16px;margin:8px auto 28px;border:0;backgr
   #cdSiteFooter .cd-footer-brandcol{padding-bottom:20px}
 }
 </style>
+<link rel="stylesheet" href="/styles/my-garden.css?v=build-db1f20b10cff">
 <link rel="stylesheet" href="/styles/press-coverage.css">
 <link rel="stylesheet" href="/styles/saju-reading.css?v=build-b958e497b46a">
 <link rel="stylesheet" href="/styles/fortune-consultation-entry.css?v=build-9a5c8ae5fcb0">
@@ -9480,19 +9481,34 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   <dialog class="cd-sheet" id="cdAccountSheet" data-cd-sheet aria-labelledby="cdAccountSheetTitle">
     <div class="cd-sheet__panel">
       <div class="cd-sheet__head">
-        <h2 id="cdAccountSheetTitle" data-cd-trans="home.funnelCopy.account">내 계정</h2>
+        <h2 id="cdAccountSheetTitle" data-cd-trans="home.myGarden.title">마이</h2>
         <button type="button" class="cd-sheet__close" data-cd-sheet-close aria-label="닫기" data-cd-trans-attr="aria-label:home.gardenCopy.sheetClose"><span aria-hidden="true">×</span></button>
       </div>
       <div class="cd-sheet__body">
-        <div class="cd-sheet__card" id="cdAccountSheetCard"></div>
-        <ul class="cd-sheet__menu">
-          <li><a href="/points/" data-cd-trans="home.gardenCopy.sheetPass">이용권 확인</a></li>
-          <li><a href="/?action=dpOpenList" data-action="dpOpenList" data-cd-trans="home.gardenCopy.sheetProfile">내 프로필 카드</a></li>
-          <li><a href="/fortune-chat/" data-cd-trans="home.gardenCopy.libraryChat">연이·네오 상담 기록</a></li>
-          <li><a href="/?action=cdOpenLibrary" data-action="cdOpenLibrary" data-cd-trans="home.gardenCopy.sheetLibrary">보관함</a></li>
-          <li><a href="/points/history/" data-cd-trans="home.gardenCopy.sheetPayments">결제 내역</a></li>
-          <li><a href="/contact/" data-cd-trans="home.gardenCopy.sheetSupport">고객센터</a></li>
-        </ul>
+        <section class="my-garden-hero" aria-labelledby="myGardenName">
+          <svg class="my-garden-moon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M26 21A12 12 0 0 1 11 6a12 12 0 1 0 15 15Z"/><path d="M23 3v6m-3-3h6"/></svg>
+          <h3 class="my-garden-name" id="myGardenName" data-my-profile-name>나의 달빛 정원</h3>
+          <p class="my-garden-description" data-my-profile-description>프로필을 만들고 나를 알아가는 여정을 시작해요.</p>
+          <div class="my-garden-progress" data-my-growth hidden>
+            <div class="my-garden-progress__label"><span data-cd-trans="home.myGarden.growth">나의 성장</span><strong></strong></div>
+            <progress max="1" value="0" aria-label="나의 성장 경험치" data-cd-trans-attr="aria-label:home.myGarden.progress"></progress><p></p>
+          </div>
+          <a class="my-garden-open" href="/?action=dpOpenList" data-action="dpOpenList"><span data-cd-trans="home.myGarden.open">프로필 · 오늘의 운 가꾸기</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a>
+        </section>
+        <section class="my-garden-section" aria-labelledby="myGardenRecords"><h3 id="myGardenRecords" data-cd-trans="home.myGarden.records">나의 기록</h3>
+          <ul class="cd-sheet__menu my-garden-menu">
+            <li><a href="/fortune-chat/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 4h16v13H9l-5 4Z"/><path d="M8 8h8m-8 4h5"/></svg><span data-cd-trans="home.gardenCopy.libraryChat">연이·네오 상담 기록</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></li>
+            <li><a href="/?action=cdOpenLibrary" data-action="cdOpenLibrary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 5h16v15H4Zm-1 0V2h18v3M9 10h6"/></svg><span data-cd-trans="home.gardenCopy.sheetLibrary">보관함</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></li>
+          </ul>
+        </section>
+        <section class="my-garden-section" aria-labelledby="myGardenUsage"><h3 id="myGardenUsage" data-cd-trans="home.myGarden.usage">이용 관리</h3>
+          <ul class="cd-sheet__menu my-garden-menu">
+            <li><a href="/points/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg><span data-cd-trans="home.myGarden.pass">이용권 · 월정석</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></li>
+            <li><a href="/points/history/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2Zm3 5h6m-6 4h6"/></svg><span data-cd-trans="home.gardenCopy.sheetPayments">결제 내역</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></li>
+            <li><a href="/contact/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4m0 3v1"/></svg><span data-cd-trans="home.gardenCopy.sheetSupport">고객센터</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></li>
+          </ul>
+        </section>
+        <details class="my-garden-settings"><summary data-cd-trans="home.myGarden.settings">계정 설정</summary><div class="cd-sheet__card" id="cdAccountSheetCard"></div></details>
       </div>
     </div>
   </dialog>
@@ -19546,7 +19562,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         </div>
 
         <div class="ilju-v2-block">
-          <h4 class="ilju-v2-block-title" data-cd-trans data-key="result.ilju.summaryTitle">🧾 세 줄 요약</h4>
+          <h4 class="ilju-v2-block-title" data-cd-trans data-key="result.ilju.summaryTitle">세 줄 요약</h4>
           <ul id="iljuSummaryList" class="ilju-v2-summary-list"></ul>
         </div>
       </div>
@@ -19556,11 +19572,11 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       <div id="iljuDetailWrap" class="ilju-v2-detail-wrap">
         <div class="ilju-v2-grid">
           <div class="ilju-v2-block">
-            <h4 class="ilju-v2-block-title" data-cd-trans data-key="result.ilju.detailTitle">🔍 상세 분석</h4>
+            <h4 class="ilju-v2-block-title" data-cd-trans data-key="result.ilju.detailTitle">상세 분석</h4>
             <ul id="iljuDetailList" class="ilju-v2-detail-list"></ul>
           </div>
           <div class="ilju-v2-block">
-            <h4 class="ilju-v2-block-title" data-cd-trans data-key="result.ilju.adviceTitle">💡 맞춤 조언</h4>
+            <h4 class="ilju-v2-block-title" data-cd-trans data-key="result.ilju.adviceTitle">맞춤 조언</h4>
             <ul id="iljuAdviceList" class="ilju-v2-advice-list"></ul>
           </div>
         </div>

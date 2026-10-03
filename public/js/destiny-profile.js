@@ -8537,6 +8537,7 @@
        화면에 적힌 숫자와 실제 지급이 어긋난다(사주 RPG 시트가 실제로 그랬다). */
     awardRules: CD_LEVEL_AWARD,
     rewardTable: CD_LEVEL_REWARD_TABLE,
+    maxLevel: CD_LEVEL_MAX,
     buildStrip: function() { return _dpBuildLevelStrip(); },
     // 보상 안내·연출은 순수 표시 계층이다(지급은 서버만 한다). 다른 화면에서도 같은 안내를 열 수 있게 노출한다.
     openRewardSheet: function() { return _dpOpenLevelRewardSheet(); },
@@ -8545,7 +8546,7 @@
 
   /* ── 프로필 카드 레벨 스트립 UI ── */
   var DP_LEVEL_MARKER = 'profile-card-level-v20260721';
-  var _dpLevelQuestsOpen = false;
+  var _dpLevelQuestsOpen = true;
   var _dpLevelBootDone = false;
 
   function _dpEnsureLevelStyles() {
@@ -8628,9 +8629,13 @@
     document.head.appendChild(style);
   }
 
+  function _dpGardenText(key, fallback, vars) {
+    return typeof window.cdTranslate === 'function' ? window.cdTranslate('home.myGarden.' + key, vars || {}, fallback) : _dpInterpolateText(fallback, vars);
+  }
+
   function _dpBuildLevelStrip() {
     var snap = _cdLevelSnapshot();
-    var pct = snap.nextLevelExp > 0
+    var pct = snap.currentLevel >= CD_LEVEL_MAX ? 100 : snap.nextLevelExp > 0
       ? Math.min(100, Math.round((snap.currentLevelExp / snap.nextLevelExp) * 100))
       : 0;
     var doneCount = snap.completedQuestIds.length;
@@ -8656,7 +8661,7 @@
     var rewardHtml = '<button type="button" class="dp-lvl__reward'
       + (snap.nextReward ? '' : ' dp-lvl__reward--done') + '" data-dp-level-reward'
       + ' aria-label="레벨 보상 안내 열기">'
-      + '<span class="dp-lvl__reward-moon" aria-hidden="true">🌙</span>'
+      + '<span class="dp-lvl__reward-moon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4a8.5 8.5 0 1 0 11.5 11.5Z"/></svg></span>'
       + '<span>' + rewardLabel + '</span>'
       + (rewardAmount ? '<span class="dp-lvl__reward-amt">' + rewardAmount + '</span>' : '<span class="dp-lvl__reward-amt"></span>')
       + '<span class="dp-lvl__reward-arrow" aria-hidden="true">›</span>'
@@ -8666,41 +8671,73 @@
       var done = snap.completedQuestIds.indexOf(quest.id) >= 0;
       return '<button type="button" class="dp-lvl__quest" data-dp-quest="' + _esc(quest.id) + '"'
         + ' aria-pressed="' + (done ? 'true' : 'false') + '"' + (done ? ' disabled' : '') + '>'
-        + '<span aria-hidden="true">' + quest.icon + '</span>'
+        + '<span class="dp-lvl__quest-mark" aria-hidden="true">' + (done ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4 10-10"/></svg>' : '') + '</span>'
         + '<span>' + _esc(quest.text) + '</span>'
-        + '<span class="dp-lvl__quest-exp">+' + CD_LEVEL_AWARD.quest.exp + '</span>'
+        + '<span class="dp-lvl__quest-exp">' + (done ? _esc(_dpGardenText('done', '완료')) : '+' + CD_LEVEL_AWARD.quest.exp + ' EXP') + '</span>'
         + '</button>';
     }).join('');
 
     return '<div class="dp-lvl" data-cd-level-marker="' + DP_LEVEL_MARKER + '">'
+      + '<span class="dp-lvl__bloom" aria-hidden="true" style="--garden-bloom:' + (0.10 + Math.min(snap.currentLevel, CD_LEVEL_MAX) / CD_LEVEL_MAX * 0.18).toFixed(2) + '"></span>'
+      + '<h3 class="dp-lvl__garden-title">' + _esc(_dpGardenText('growth', '나의 성장')) + '</h3>'
+      + '<div class="dp-lvl__companion">'
+        + '<img class="dp-lvl__yeoni" src="/images/yeoni/welcome/yeoni-welcome-v1-320.webp" width="320" height="480" alt="' + _esc(_dpGardenText('mascotAlt', '연꽃을 건네며 응원하는 꽃돼지 연이')) + '" decoding="async">'
+        + '<p class="dp-lvl__feedback" role="status" aria-live="polite">' + _esc(_dpGardenText('cheer', '오늘도 한 걸음, 제가 곁에서 응원할게요.')) + '</p>'
+      + '</div>'
+      + '<p class="dp-lvl__garden-description">' + _esc(_dpGardenText('intro', '작은 실천을 쌓아, 좋은 흐름을 맞이할 준비를 해요.')) + '</p>'
       + '<div class="dp-lvl__top">'
-        + '<span class="dp-lvl__badge">✦ Lv.' + snap.currentLevel + '</span>'
-        + (snap.streakDays > 0 ? '<span class="dp-lvl__streak">🔥 ' + snap.streakDays + '일 연속</span>' : '')
+        + '<span class="dp-lvl__badge">Lv.' + snap.currentLevel + '</span>'
+        + (snap.streakDays > 0 ? '<span class="dp-lvl__streak">' + _esc(_dpGardenText('streak', '{days}일 함께했어요', { days: snap.streakDays })) + '</span>' : '')
       + '</div>'
       + '<div class="dp-lvl__bar" role="progressbar" aria-label="경험치"'
-        + ' aria-valuemin="0" aria-valuemax="' + snap.nextLevelExp + '" aria-valuenow="' + snap.currentLevelExp + '">'
+        + ' aria-valuemin="0" aria-valuemax="' + snap.nextLevelExp + '" aria-valuenow="' + (snap.currentLevel >= CD_LEVEL_MAX ? snap.nextLevelExp : snap.currentLevelExp) + '">'
         + '<span class="dp-lvl__fill" style="transform:scaleX(' + (pct / 100) + ')"></span>'
       + '</div>'
-      + '<div class="dp-lvl__meta">' + snap.currentLevelExp + ' / ' + snap.nextLevelExp + ' EXP</div>'
-      + rewardHtml
+      + '<div class="dp-lvl__meta">' + (snap.currentLevel >= CD_LEVEL_MAX ? _esc(_dpGardenText('max', '마지막 레벨에 도달했어요. 오늘도 나의 흐름을 가꿔요.')) : _esc(_dpGardenText('next', '다음 레벨까지 경험치 {exp}', { exp: Math.max(0, snap.nextLevelExp - snap.currentLevelExp) }))) + ' · ' + _esc(_dpGardenText('shared', '계정 공통 성장')) + '</div>'
       + '<button type="button" class="dp-lvl__toggle" aria-expanded="' + (_dpLevelQuestsOpen ? 'true' : 'false') + '"'
-        + ' aria-controls="dpLvlQuests" aria-label="오늘의 퀘스트 ' + (_dpLevelQuestsOpen ? '접기' : '펼치기') + '">'
-        + '<span>오늘의 퀘스트 <b>' + doneCount + '/' + snap.quests.length + '</b></span>'
+        + ' aria-controls="dpLvlQuests" aria-label="' + _esc(_dpGardenText('practice', '오늘의 운 가꾸기')) + ' ' + (_dpLevelQuestsOpen ? '접기' : '펼치기') + '">'
+        + '<span>' + _esc(_dpGardenText('practice', '오늘의 운 가꾸기')) + ' <b>' + doneCount + '/' + snap.quests.length + '</b></span>'
         + '<span class="dp-lvl__chev" aria-hidden="true">▾</span>'
       + '</button>'
       + '<div class="dp-lvl__quests" id="dpLvlQuests"' + (_dpLevelQuestsOpen ? '' : ' hidden') + '>' + questsHtml + '</div>'
+      + rewardHtml
       + note
     + '</div>';
   }
 
   /* 카드 전체를 다시 그리면 열려 있던 메뉴·포커스가 날아가므로 레벨 블록만 바꿔 끼운다. */
+  function _dpPreserveGrowthView(root) {
+    var focused = document.activeElement;
+    var owned = focused && root && root.contains(focused);
+    var questId = owned ? focused.getAttribute('data-dp-quest') : null;
+    var toggleFocused = owned && focused.classList.contains('dp-lvl__toggle');
+    var feedback = root && root.querySelector('.dp-lvl__feedback');
+    var message = feedback ? feedback.textContent : '';
+    var mascot = root && root.querySelector('.dp-lvl__yeoni');
+    var animations = mascot && typeof mascot.getAnimations === 'function' ? mascot.getAnimations() : [];
+    return function(next) {
+      if (!next) return;
+      var status = next.querySelector('.dp-lvl__feedback');
+      if (status && message) status.textContent = message;
+      var nextMascot = next.querySelector('.dp-lvl__yeoni');
+      if (nextMascot) animations.forEach(function(animation) { animation.effect.target = nextMascot; });
+      var target = toggleFocused ? next.querySelector('.dp-lvl__toggle') : questId ? next.querySelector('[data-dp-quest="' + questId + '"]') : null;
+      if (target) {
+        if (target.disabled) target = next.querySelector('.dp-lvl__toggle');
+        target.focus({ preventScroll: true });
+      }
+    };
+  }
+
   function _dpRefreshLevelStrip() {
     var root = document.querySelector('#dpMasterCard .dp-lvl');
     if (!root) return;
+    var restore = _dpPreserveGrowthView(root);
     var holder = document.createElement('div');
     holder.innerHTML = _dpBuildLevelStrip();
     var next = holder.firstElementChild;
     if (next && root.parentNode) root.parentNode.replaceChild(next, root);
+    restore(next);
   }
 
   function _dpBindLevelEvents(el) {
@@ -8723,6 +8760,17 @@
       var result = _cdLevelAward('quest', questBtn.getAttribute('data-dp-quest') || '');
       if (result.changed) {
         _dpRefreshLevelStrip();
+        var feedback = el.querySelector('.dp-lvl__feedback');
+        if (feedback) feedback.textContent = result.leveledUp ? _dpGardenText('levelUp', '한 단계 성장했어요. 달빛 정원에 꽃빛이 더해졌어요.') : _dpGardenText('feedback', '오늘의 실천이 쌓였어요.');
+        var mascot = el.querySelector('.dp-lvl__yeoni');
+        if (result.leveledUp && mascot && typeof mascot.animate === 'function' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          mascot.animate([
+            { transform: 'translateY(0) rotate(0)' },
+            { transform: 'translateY(-10px) rotate(-5deg)', offset: 0.35 },
+            { transform: 'translateY(-4px) rotate(4deg)', offset: 0.7 },
+            { transform: 'translateY(0) rotate(0)' }
+          ], { duration: 700, easing: 'ease-out' });
+        }
         _dpNoteLocalLevelUp(result);
       }
     });
@@ -9079,6 +9127,7 @@
   function renderMasterCard(profile) {
     var el = document.getElementById('dpMasterCard');
     if (!el) return;
+    var restoreGrowthView = _dpPreserveGrowthView(el);
     _dpEnsureProfileActionMenuStyles();
     _dpEnsureLevelStyles();
     _dpBootLevelDaily();
@@ -9088,6 +9137,7 @@
       el.innerHTML = _emptyCard() + _dpBuildLevelStrip();
       el.className = 'dp-master-card dp-master-card--empty';
       _dpBindLevelEvents(el);
+      restoreGrowthView(el);
       return;
     }
 
@@ -9137,7 +9187,7 @@
         + '<div class="dp-mc-header">'
           + '<div class="dp-mc-avatar">' + zodiacEmoji + '</div>'
           + '<div class="dp-mc-identity">'
-            + '<div class="dp-mc-label">✦ MY DESTINY CARD</div>'
+            + '<div class="dp-mc-label">' + _esc(_dpGardenText('profileTitle', '내 프로필 카드')) + '</div>'
             + '<div class="dp-mc-name">' + _esc(profile.name) + '</div>'
             + '<div class="dp-mc-birth">' + calLabel + ' '
               + b.year + '년 ' + b.month + '월 ' + b.day + '일 '
@@ -9187,6 +9237,7 @@
       + '</div>';
     _dpBindMasterCardMenuEvents(el);
     _dpBindLevelEvents(el);
+    restoreGrowthView(el);
   }
 
   function _emptyCard() {

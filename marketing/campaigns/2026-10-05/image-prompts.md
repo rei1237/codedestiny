@@ -1,23 +1,44 @@
-# 이미지 제작 기록
+# 이미지 제작 기록 — v2
 
-제작 방식: 내장 ImageGen. 원본 캐릭터 에셋을 확인하고 새 장면을 직접 생성했다. 아래는 결과 재현용 최종 프롬프트 세트다. 실제 서비스 UI나 그래프를 생성 이미지로 위조하지 않았다.
+제작 모드: built-in ImageGen. 새 일러스트 3개를 직접 생성하고, 편집 가능한 HTML 문구와 실제 UI 캡처로 1080×1350 카드 9개를 구성했다.
 
-## official-three-characters.png
+1번은 assets/official-three-characters.png 원본 그대로. 이전 교체본은 assets에 보존. 게시 순서 v2/manifest.json. 이미지 요청은 transparent_background=true. 정확한 JSON은 v2/generation-prompts.json.
 
-세로 4:5 한국어 Threads 캐러셀 표지. 부드러운 로즈·크림 색의 달빛 찻집 정원. 연꽃 장식과 보라색 스카프를 한 분홍 꽃돼지 연이를 중앙의 가장 큰 주인공으로 그린다. 왼쪽에는 각진 주황 갈기와 이마 다이아몬드 무늬·붉은 망토를 한 네오 사자, 오른쪽에는 네이비·금색 마법사 모자를 쓴 복슬복슬한 흰 고양이 영냥이. 따뜻하고 고급스러운 동화 삽화, 모바일에서 읽기 쉬운 큰 한국어 제목. 문구: ‘혼자 고민하던 밤, 우리에게 들려주세요.’ / ‘꽃돼지 연이 · 네오 · 영냥이’ / ‘꿀꿀 운세 × 영냥이’ / ‘가입하면 월정석 500개’. 제공하지 않는 기능·할인·정확도 보장을 덧붙이지 않는다.
+## cat-reading
 
-## yeongnyangi-cover.png
+출력: v2/art/cat-reading.png
 
-세로 4:5 한국어 Threads 캐러셀 표지. 네이비와 금색의 신비로운 달빛 상담방. 서비스 원본의 네이비·금색 마법사 모자, 보라·금빛 눈, 복슬복슬한 흰 털을 유지한 영냥이를 주인공으로 새롭게 그린다. 도도하지만 다정한 표정. 카드·별·두루마리로 운세 상담 분위기만 표현하고 실제 차트나 결과 화면은 만들지 않는다. 문구: ‘고민은 네가 가져와. 풀이는 내가 할게.’ / ‘사주 보는 고양이 영냥이’ / ‘가입하면 월정석 500개’ / ‘다양한 무료 운세부터 만나봐.’
+참조: D:/Development/codedestiny-worktrees/moonstone-oct05-20261003-151816/public/assets/yeongnyangi/original/hero-800.webp
 
-## moonstone-welcome-benefit.png
+```text
+Create a new original polished fantasy storybook illustration for a Korean fortune service marketing carousel. Reference image defines YEONGNYANGI identity exactly: chubby white long-haired cat, purple-gold eyes, slightly aloof yet kind expression, midnight navy pointed crescent/star hat, gold-edged navy cape, blue gemstone neck ornament. No humans, no lions, no additional characters. Cat sits beside an open beautifully bound ivory book of constellations on a small navy velvet desk, one paw gently offering a page to viewer. Soft warm gold rimlight, gentle moon dust, painterly watercolor plus clean premium animation finish. Subject fills frame, complete ears/hat/paws, charming 2.5-head chibi proportions. Isolated illustration with genuinely transparent background, subtle small grounding shadow only. No text, no letters, no logos, no numbers. Landscape-ish compact grouping, not a full poster.
+```
 
-세로 4:5 한국어 가입 혜택 포스터. 꽃돼지 연이와 흰 마법사 고양이 영냥이가 반짝이는 월정석을 함께 건네는 장면. 연이의 연꽃·보라 스카프, 영냥이의 네이비·금 모자 정체성을 유지한다. 혜택과 산식을 모바일에서 명확하게 읽을 수 있게 구성. 문구: ‘꽃돼지 연이가 챙긴 첫 만남 선물’ / ‘월정석 500개’ / ‘5,000원 상당의 이용 혜택’ / ‘고등어 상담 9,900원’ / ‘월정석 500개 사용 −5,000원’ / ‘남은 결제 금액 4,900원’ / ‘남은 월정석도 원하는 만큼 할인’ / ‘가입 지급분 30일 유효 · 현금 출금 불가 · 적용 가능한 상담에서 사용’. 10월 5일 운영 가격 및 할인 적용 확인 후에만 게시한다.
+## yeoni-gift
 
-## 원본 캐릭터 근거
+출력: v2/art/yeoni-gift.png
 
-- public/fuctionassets/연이.webp
-- public/assets/sharing/neo-letter-v1.webp
-- public/assets/yeongnyangi/original/hero-800.webp
+참조: C:/Users/user/Desktop/CodeDestiny-Build/연이 프로필1.png
 
-참고 스레드의 제3자 인물·브랜드·4,000원 쿠폰·무료 질문 횟수 등은 복제하지 않았다.
+```text
+Create a new original ultra-adorable YEONI flower pig illustration using supplied character sheet as strict identity reference. Round soft baby pink face, enormous glossy dark-brown eyes with tiny catchlights, short rounded pink snout, tiny delighted open smile, plush plump cheeks, short pudgy arms and legs, 2.5 heads tall. Pink lotus perched on upper-left head, purple neck scarf, tiny curly tail. Exactly match the sheet; do NOT make long limbs, adult build, small eyes, realistic pig or heavy jowls. Yeoni sits happily holding a little cream gift box overflowing with beautiful lavender moon crystals, crescent ribbon, a few drifting pink petals. Friendly welcoming eye contact. Premium soft watercolor/chibi animation rendering. No humans or other animals, no Neo, no text/numbers/logos. Genuinely transparent background, full complete body, generous small margin around lotus and feet. A single finished character illustration, not a character sheet.
+```
+
+## duo-stars
+
+출력: v2/art/duo-stars.png
+
+참조: C:/Users/user/Desktop/CodeDestiny-Build/연이 프로필1.png, D:/Development/codedestiny-worktrees/moonstone-oct05-20261003-151816/public/assets/yeongnyangi/original/hero-800.webp
+
+```text
+Create a brand-new premium storybook illustration of ONLY the two supplied mascots together. Yeoni must match reference 1: very cute round baby-pink flower pig, huge brown eyes, short plump limbs, lotus on head and purple scarf, 2.5-head proportions. Yeongnyangi must match reference 2: white fluffy chibi cat, purple-gold eyes, navy/gold moon-star wizard hat and cape, blue gemstone. Both happily investigate a luminous open star atlas together, heads close, small floating motifs around them: one tarot card, a constellation, a crescent moon, an eastern four-pillar wooden tile, an orbital ring and a lotus; abstract icons only, NO invented data, no writing. Deep navy and warm gold accents with soft blush pink. Original high-end watercolor/animation rendering, extraordinarily charming pig. Complete characters, no human/no lion/no Neo. Genuinely transparent background. No text or logos. Compact horizontal group, centered.
+```
+
+새 카드에는 네오 그림이 없다. 연이의 둥근 얼굴·큰 갈색 눈·짧은 팔다리·연꽃·보라색 스카프를 확인했다. 실제 UI는 assets/actual-*.jpg를 그대로 배치했다.
+
+## 설명형 개편
+
+이번 개편은 기존 생성 원화를 재사용했다. 새 래스터 생성 없이 편집 가능한 서비스 특징 설명을 preview.html에 추가했다. 10번은 무료 체험·상담·소장으로 교체했고, 7번은 개선한 실제 ElementDistribution 컴포넌트를 가상 입력으로 캡처했다. 운영 화면 반영 전임을 표시한다.
+# v3 설명형 카드 제작 기록
+
+2026-10-04: 새 그림 생성 없이 기존 v2의 연이 선물·영냥이 리딩·두 캐릭터 별지도 원본을 재사용했습니다. 그림을 변형하지 않고 HTML/CSS 편집 레이아웃으로 기능 설명·실제 UI·이용 조건을 조합했습니다. 생성 프롬프트 원문은 아래 및 v2/generation-prompts.json에 보존합니다. 최신 게시물은 v3/manifest.json, v3/posts.json이며 threads-preview.html에서 10장을 확인합니다. preview.html은 별도 소개 디자인입니다.

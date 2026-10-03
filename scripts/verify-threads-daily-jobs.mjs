@@ -263,17 +263,18 @@ await check("실패(발행 0건)는 다음 틱에 재시도되고, 다른 type �
   assert.equal(r3.jobs.karma.ok, true, JSON.stringify(r3.jobs.karma));
   assert.deepEqual([...lock.docs.keys()].sort(), ["cron:sns-threads-daily|2026-09-17:threads:karma", "cron:sns-threads-daily|2026-09-17:threads:saju"]);
 });
-await check("띠별은 본 글(CTA·링크) + 12띠 답글 체인으로 나간다, 잠금은 1건", async () => {
+await check("띠별은 원글 + 3띠씩 4개 답글, 링크 없이 하나의 잠금으로 발행", async () => {
   const { options, fetch, lock } = harness();
   const result = await runJobs(BASE_ENV, { ...options, now: SEP17(8, 30) });
   assert.equal(result.jobs.zodiac.ok, true, JSON.stringify(result.jobs.zodiac));
   assert.equal(lock.calls.length, 1);
-  assert.equal(fetch.posted.length, 2);
-  assert.match(fetch.posted[0], /utm_campaign=threads_20260917_zodiac/);
-  assert.ok(fetch.posted[0].includes("12띠 한 줄 운세는 답글에"));
-  assert.equal(fetch.posted[1].split("\n").length, 12);
-  assert.ok(!fetch.posted[1].includes("http"), "답글에 링크가 들어갔다");
-  assert.equal(result.jobs.zodiac.ref.posts, 2);
+  assert.equal(fetch.posted.length, 5);
+  assert.ok(fetch.posted[0].includes("12띠의 이유와 실천"));
+  assert.ok(fetch.posted[0].endsWith("#꿀꿀운세"));
+  assert.ok(fetch.posted[0].includes("입춘"));
+  for (const reply of fetch.posted.slice(1)) assert.equal((reply.match(/\[/g) || []).length, 3);
+  assert.ok(fetch.posted.every((text) => !text.includes("http")));
+  assert.equal(result.jobs.zodiac.ref.posts, 5);
 });
 
 console.log("▶ ④ 격리");
@@ -286,7 +287,7 @@ await check("사주 provider 가 던져도 띠별·카르마는 발행된다, �
   assert.equal(result.jobs.zodiac.ok, true);
   assert.equal(result.jobs.karma.ok, true);
   assert.equal(result.jobs.ziwei.skipped, "job_disabled");
-  assert.equal(fetch.posted.length, 3); // 띠별 2(본 글+답글) + 카르마 1
+  assert.equal(fetch.posted.length, 6); // 띠별 5(원글+4답글) + 마음 노트 1
 });
 await check("facts 가 null 이면 facts_unavailable, connectDb 실패는 due Job 만 connect_db 실패", async () => {
   const { options } = harness();
@@ -381,7 +382,7 @@ const maxGenerate = (type) => async () => ({
   model: "stub-model",
   text: JSON.stringify({
     ...Object.fromEntries(Object.entries(LONGEST[type]).map(([key, n]) => [key, "가".repeat(n - 1) + "."])),
-    ...(type === "zodiac" ? { lines: Object.fromEntries(["쥐", "소", "호랑이", "토끼", "용", "뱀", "말", "양", "원숭이", "닭", "개", "돼지"].map((name) => [name, "가".repeat(21) + "."])) } : {}),
+    ...(type === "zodiac" ? { lines: Object.fromEntries(["쥐", "소", "호랑이", "토끼", "용", "뱀", "말", "양", "원숭이", "닭", "개", "돼지"].map((name, i) => [name, "가".repeat(53) + String(i % 10) + "."])) } : {}),
   }),
 });
 await check("366일 × 6유형 × (결정론/최대 길이 모델 문안), 띠별은 본 글·답글 각각", async () => {
@@ -403,8 +404,13 @@ await check("366일 × 6유형 × (결정론/최대 길이 모델 문안), 띠�
         const weight = threadsTextWeight(text);
         worst = Math.max(worst, weight);
         assert.ok(weight <= shared.POST_TEXT_LIMIT, `${type} ${i} weight ${weight}`);
-        assert.ok(text.endsWith(`→ ${url}\n\n#${provider.HASHTAG}`), `${type} ${i} 꼬리가 잘렸다`);
-        assert.ok(text.includes(provider.CTA));
+        if (type === "zodiac" || type === "karma") {
+          assert.ok(text.endsWith("#꿀꿀운세"));
+          assert.ok(!text.includes("http"), `${type} 질문형 게시물에 홍보 링크`);
+        } else {
+          assert.ok(text.endsWith(`→ ${url}\n\n#${type === "saju" ? "꿀꿀운세" : provider.HASHTAG}`), `${type} ${i} 꼬리가 잘렸다`);
+          assert.ok(text.includes(provider.CTA));
+        }
         assert.ok(text.includes(facts.dateLabel), `${type} date missing`);
         if (!written.copy.lines) assert.ok(text.includes(written.copy.body), `${type} body missing`);
         assert.ok(text.includes("개인 예측 아님"), `${type} scope missing`);
@@ -608,7 +614,32 @@ await check("10분 크론·관리자 수동 실행·두 wrangler [vars]", async 
   assert.deepEqual(Object.keys(jobs.DEFAULT_PROVIDERS), jobs.THREADS_DAILY_JOBS.map((job) => job.type), "Job 과 provider 목록이 어긋났다");
 });
 
-console.log(`\nverify-threads-daily-jobs: ${passed}개 통과`);
+await check("캠페인은 정규 슬롯을 대체하고 force에서도 추가 발행하지 않는다", async () => {
+  for (const [date, type, reserved] of [["2026-10-05", "saju", true], ["2026-10-06", "saju", false],
+    ["2026-10-25", "karma", false], ["2026-11-01", "karma", true], ["2026-11-02", "karma", false],
+    ["2027-01-03", "karma", true], ["2027-01-10", "karma", false]]) {
+    assert.equal(jobs.isEditorialSlotReserved(type, date), reserved, `${date}:${type}`);
+  }
+  const { options, lock, fetch } = harness();
+  const result = await runJobs(BASE_ENV, { ...options, only: "saju", force: true, now: kst(2026, 10, 5, 12, 0) });
+  assert.equal(result.jobs.saju.skipped, "editorial_slot_reserved");
+  assert.equal(lock.calls.length, 0);
+  assert.equal(fetch.posted.length, 0);
+});
+
+await check("출생연도는 해당 띠와 일치하며 12띠를 정확히 한 번씩 상세 안내", async () => {
+  const facts = zodiac.buildFacts({}, kst(2026, 10, 4, 8, 30));
+  const written = await zodiac.writeCopy({}, facts);
+  const texts = zodiac.format(facts, written.copy, "https://example.com");
+  for (const [index, animal] of facts.animals.entries()) {
+    for (const year of animal.years) {
+      assert.equal((year - 1960) % 12, index);
+      assert.ok(year <= 2008);
+    }
+    assert.equal(texts.slice(1).filter((text) => text.includes(`[${animal.name}띠 `)).length, 1);
+  }
+  assert.ok(!texts.join("\n").match(/입 닫|인연이 옵니다|답 빨리|잘 풀림:/));
+});
 
 await check('campaign IDs survive fragments and differ by day; recent duplicate hooks use a zero-call replacement',async()=>{
  const url=new URL(shared.buildUtmUrl('https://code-destiny.com','/?question=money#questions','ziwei','2026-09-29'));
@@ -620,3 +651,5 @@ await check('campaign IDs survive fragments and differ by day; recent duplicate 
  assert.equal(result.ok,true);assert.equal(result.ref.promptVersion,shared.PROMPT_VERSION);assert.equal(result.ref.recentCompared,1);
  assert.equal(result.ref.campaignId,'threads_20260917_saju');assert.notEqual(result.ref.hook,original.copy.hook);
 });
+
+console.log(`\nverify-threads-daily-jobs: ${passed}개 통과`);
