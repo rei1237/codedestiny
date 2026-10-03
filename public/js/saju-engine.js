@@ -13367,7 +13367,7 @@ function renderAstroInsightLegacyNeon() {
       if(!p) return '<span class="astro-life-chip">'+glyph+' '+(planetKr[pKey] || pKey)+'</span>';
       var h = p.hPlacidus || p.hWhole;
       var note = (p.hPlacidus && p.hWhole && p.hPlacidus !== p.hWhole)
-        ? ' <small title="'+_houseDiffLine(p.hPlacidus, p.hWhole)+'">통하우스 '+p.hWhole+'</small>'
+        ? ' <small title="'+_houseDiffLine(p.hPlacidus, p.hWhole)+'">(통하우스 기준 '+p.hWhole+')</small>'
         : '';
       return '<span class="astro-life-chip">'+glyph+' '+planetKr[pKey]+' · '+LIFE_SIGN_GLYPHS[p.signIdx]+' '+LIFE_SIGN_NAMES[p.signIdx]+(h ? ' · '+h+'하우스' : '')+note+'</span>';
     }
@@ -13694,7 +13694,7 @@ function renderAstroInsightLegacyNeon() {
       return ''
         + '<details class="astro-life-card" data-area="'+area.key+'" data-element="'+element+'">'
         + '<summary><span class="astro-life-title">'+area.title+'</span>'
-        + '<span class="astro-life-headline"><span class="astro-life-glyph" aria-hidden="true">'+anchor.glyph+'</span> '+flavor[0]+' '+anchor.label+' '+LIFE_SIGN_NAMES[signIdx]+'</span></summary>'
+        + '<span class="astro-life-headline"><span class="astro-life-glyph" aria-hidden="true">'+anchor.glyph+'\uFE0E</span> '+flavor[0]+' '+anchor.label+' '+LIFE_SIGN_NAMES[signIdx]+'</span></summary>'
         + '<div class="astro-life-body">'
         + '<p class="astro-life-kicker">이런 사람이에요</p>'
         + '<ul class="astro-life-traits">'+traits.map(function(t){ return '<li>'+t+'</li>'; }).join('')+'</ul>'
@@ -14134,7 +14134,7 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-life-grid{display:grid;grid-template-columns:1fr;gap:10px;}'
       +'.astro-life-card{border:1px solid rgba(148,163,184,.24);border-radius:12px;background:linear-gradient(155deg,rgba(15,23,42,.74),rgba(17,24,39,.7));overflow:hidden;position:relative;}'
       +'.astro-life-card:before{content:"";position:absolute;inset:0;border-radius:12px;padding:1px;background:linear-gradient(135deg,rgba(167,139,250,.52),rgba(56,189,248,.42),rgba(99,102,241,.32));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.45;}'
-      +'.astro-life-card > summary{padding:13px 13px;min-height:48px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;color:#e2e8f0;font-size:13px;font-weight:700;list-style:none;gap:8px;}'
+      +'.astro-life-card > summary{padding:13px 13px;min-height:48px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;cursor:pointer;color:#e2e8f0;font-size:13px;font-weight:700;list-style:none;gap:2px;}'
       +'.astro-life-card > summary::-webkit-details-marker{display:none;}'
       +'.astro-life-card[open]{border-color:rgba(125,211,252,.5);box-shadow:0 18px 34px -24px rgba(56,189,248,.8),0 0 0 1px rgba(167,139,250,.28) inset;}'
       +'.astro-life-body{padding:2px 13px 13px 13px;font-size:12px;color:#cbd5e1;line-height:1.78;}'
@@ -14142,7 +14142,6 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-life-body p:last-child{margin-bottom:2px;}'
       +'.astro-life-evidence{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}'
       +'.astro-life-chip{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.25);background:rgba(15,23,42,.7);font-size:11px;color:#bae6fd;}'
-      +'.astro-life-summary-hint{display:inline-block;margin-left:6px;color:#93c5fd;font-size:10px;font-weight:600;opacity:.92;}'
       +'.astro-mobile-grid{display:grid;grid-template-columns:1fr;gap:8px;}'
       +'.astro-mobile-card{border:1px solid rgba(125,211,252,.24);border-radius:10px;padding:10px;background:rgba(15,23,42,.52);}'
       +'.astro-mobile-card h4{margin:0 0 6px 0;font-size:13px;color:#a5f3fc;}'
