@@ -40,12 +40,12 @@ worker/naming-engine/            ← 순수 TS, Workers·Node 양쪽에서 impor
   config/
     weights.ts                   점수 가중치(§7) — 숫자만, 로직 없음
     school-presets.ts            학파 프리셋(§5)
-  data/
-    hanja-pool.v1.json           생성물(Phase 2). 인명용 한자 풀 + 원획 + 자원오행 + 플래그
-    surnames.v1.json             성씨 한자·원획(단성·복성)
-    suri-81.v1.json              81수리 표(학파 대안 포함)
-    samjae-125.v1.json           삼재 125조합(5³)
-    sound-blacklist.v1.json      놀림·비하 동음 블랙리스트
+  data/                          생성물(Phase 2) — 손으로 고치지 않는다. build-naming-data.mjs 로만 갱신
+    hanja-pool.v1.json           인명용 한자 풀 + 음별 훈 + 원획·필획 + 자원오행 + 분쟁·주의·태그
+    surnames.v1.json             성씨 한자·원획(단성·복성) + 2015 인구
+    suri-81.v1.json              81수리 등급(학파 대안·출처 포함)
+    samjae-125.v1.json           삼재 125조합(5³) 등급(출처 라벨 포함)
+    sound-blacklist.v1.json      놀림·비하 동음 블랙리스트(block/warn)
   strokes.ts                     원획/필획, 부수 변형 환산, 숫자 한자 규칙
   suri.ts                        4격·삼재·외격, 81 환원, 수리오행·수리 음양
   sound.ts                       초성 추출, 두 매핑, 인접 상생/상극
@@ -54,9 +54,15 @@ worker/naming-engine/            ← 순수 TS, Workers·Node 양쪽에서 impor
   score.ts                       항목 점수 + 근거 키
   diversify.ts                   MMR 다양화
   engine.ts                      파이프라인 진입점 runNamingEngine(input, preset)
-scripts/naming/                  데이터 빌드(Phase 2): 원천 → 정규화 → 생성물 + 검수 CSV
-data/naming/raw/                 원천 사본(크롤 명단, Unihan 발췌, libhangul hanja.txt) + 출처·라이선스 기록
-data/naming/NOTICE.md            Unicode License v3 · libhangul BSD-3 · rutopio MIT 고지(배포 조건, §13.A)
+scripts/naming/
+  extract-raw.mjs                내려받은 원천 → data/naming/raw/ 발췌 + manifest.json(상류 sha256)
+  build-naming-data.mjs          raw + rules + 검수 CSV → worker/naming-engine/data/*.v1.json + data/naming/review/*.csv.
+                                 `--check` 는 쓰지 않고 비교만(불일치면 실패). dataVersion = 입력·스크립트 해시
+  lib/                           naming-data-utils.mjs(CSV·부수표·두음) · build-pool.mjs(풀 대조·읽기·원획)
+data/naming/raw/                 원천 발췌(Unihan·libhangul·rutopio 크롤·efamily 재수집·KOSIS 성씨·수리/삼재/불용/자원오행 출처)
+data/naming/rules/               사람 판정 규칙: suri-81 · samjae-125 · buryong · sound-blacklist · jawon · pool-adjudication
+data/naming/review/              검수 CSV(빌드 생성물, §12)
+data/naming/NOTICE.md            출처별 조건 + Unicode License v3 · libhangul BSD-3 · rutopio MIT 전문 · KOSIS 인용 문구
 ```
 
 - 기존 `worker/lib/naming-sound-elements.js`·`naming-suri.js` 는 v1 프롬프트가 쓰므로 v1 삭제 시점까지 그대로 두고, v2 는 같은 표를 데이터 파일로 옮겨 단일 정본으로 만든다(v1 삭제 커밋에서 중복 해소).
@@ -67,30 +73,32 @@ data/naming/NOTICE.md            Unicode License v3 · libhangul BSD-3 · rutopi
 ```ts
 type Element = "wood" | "fire" | "earth" | "metal" | "water";
 
+// 생성물은 표 형식 { schema, dataVersion, fields: string[], rows: unknown[][] } — 한 행이 한 줄.
+// 아래는 한 행을 fields 순서대로 객체로 본 모양이다.
 interface HanjaEntry {
-  ch: string;                    // 한 글자(정자). 인명용 풀 소속이 존재 조건
-  readings: { hangul: string; initial: string; kind: "designated" | "dueum" }[]; // 지정 음 + 두음 파생(§13.A 주석 규칙)
-  variantOf: string | null;      // 별표2 허용자체면 정자
-  hun: string | null;            // 훈(뜻). 라이선스 확인된 원천만, 없으면 null
-  hunSource: "libhangul" | "self" | null;
-  radical: string;               // 강희 부수(원형)
-  wonStrokes: number;            // 원획(강희) — 기본
-  pilStrokes: number;            // 필획(현행 자형) — 옵션
-  jawonElement: Element | null;  // 자원오행
-  jawonBasis: "radical" | "meaning" | "reviewer";
-  confidence: number;            // 0~1. 0.7 미만은 추천 우선순위 하향
+  ch: string;                    // 한 글자. 인명용 풀 소속(basis)이 존재 조건
+  readings: [hangul: string, kind: "designated" | "dueum", hun: string | null][]; // 음마다 훈(libhangul, 파일 머리 hunSource). 두음 파생 포함
+  radical: number;               // 강희 부수 번호(kRSUnicode)
+  won: number;                   // 원획 — 기본(§6.1)
+  pil: number;                   // 필획(kTotalStrokes) — kr-pil 프리셋
+  jawon: Element | null;         // 자원오행(§6.6). null = 미분류
+  jawonBasis: "meaning" | "radical" | "reviewer" | null;
+  confidence: number | null;     // 0~1. 0.7 미만은 추천 우선순위 하향
   reviewed: boolean;             // 자문 검수 완료
-  disputed: boolean;             // 원획·자원오행 출처 불일치
-  cautions: { reasonKey: string; sources: string[] }[]; // 불용(不用) 관행 — 차단하지 않고 경고(§13.B.7)
-  tags: string[];                // 의미 태그
+  disputes: string[];            // won-total-exceeds-formula · multiple-radical-values · simplified-radical · jawon-sources-differ
+  cautions: [reasonKey: "buryong", sourceIdx: number[]][]; // 불용 관행 — 차단 없이 경고(§13.B.7). 색인 = 파일 머리 cautionSources
+  tags: string[];                // basic-edu · numeral-suui · ext-a · ext-b · ext-c-plus
+  basis: "crawl" | "efamily" | "law-basic-edu" | "adjudicated";
 }
+// 별표2 허용자체(variantOf)는 넣지 않았다 — efamily 가 허용자체를 별도 유니코드로 나열해 각자 독립 행이 된다.
 
-interface Surname { hangul: string; chars: string[]; compound: boolean }
+interface Surname { hangul: string; hanja: string; population: number; won: number[]; pil: number[]; compound: boolean }
 type SuriGrade = "good" | "half" | "bad";          // 출처마다 大吉·中吉 세분이 달라 3단계로 고정(§13.B.2)
-interface SuriEntry { n: number; grade: SuriGrade; flag: "" | "disputed" | "change-proposed";
-                      genderNote: "" | "common" | "some"; nameKey: string; interpKey: string;
-                      alternatives: { school: string; grade: SuriGrade }[]; sources: string[] }
-interface SamjaeEntry { heaven: Element; human: Element; earth: Element; grade: string; interpKey: string; sources: string[] } // 125조합
+interface SuriEntry { n: number; grade: SuriGrade; flag: "" | "disputed"; genderNote: "" | "common" | "some";
+                      alternatives: [sourceId: string, grade: SuriGrade][]; sources: string[] } // 대안 = 등급이 다른 출처
+interface SamjaeEntry { heaven: Element; human: Element; earth: Element; grade: SuriGrade; gradeRaw: string; // 기준 출처(zhouyi) 원 라벨
+                        flag: "" | "disputed"; alternatives: [sourceId: string, grade: SuriGrade][]; sources: string[] } // 125조합
+// 해설 문구 키(nameKey·interpKey)는 데이터에 두지 않는다 — Phase 4 문구 파일에서 n·조합으로 찾는다.
 
 interface NamingInput {
   surname: { hangul: string; hanja: string[] };   // 성 한자 선택 필수(복성은 2자)
@@ -142,8 +150,11 @@ interface NamedCandidate {
 - 기본 원획(강희자전 부수 원형 기준). 부수 변형 14종(v1 12종 + 罒→网 6, 耂→老 6)과 숫자 한자는 `radical-variants.csv`.
 - 원획 산출: Unihan `kRSUnicode`(부수번호.잔여획) → 강희 부수 원형 획수 + 잔여획(§13.A, `kRSKangXi` 는 15.1 에서 제거됨). 예: 河 85.5 → 4+5=9, 花 140.4 → 6+4=10, 陳 170.8 → 8+8=16, 鄭 163.12 → 7+12=19.
   - 부수 번호가 변형을 구분하므로 月은 肉부(130)일 때만 6, 달월(74)은 4. 王은 玉부(96)일 때만 5.
-  - **잔여획 0(부수 글자 자체)은 자형 실획**(王 4, 玉 5, 水 4) — `radical-variants.csv` 비고, 자문 확인 항목.
-- 대표 성명학 자료와 다르면 `disputed` + 검수 CSV.
+  - **잔여획 0 이하(부수 글자 자체)는 자형 실획**(王 96.-1 → 4, 玉 5, 水 4) — `radical-variants.csv` 비고, 자문 확인 항목.
+  - **Phase 2 수정 — 큰 값 규칙**: `won = 잔여획 ≤ 0 ? kTotalStrokes : max(kTotalStrokes, 원형 + 잔여)`. 부수가 원형보다 길게 쓰인 글자(泰 85.5 → 식 9 / 실획 10, 求 85.2 → 식 6 / 실획 7)는 식이 과소하다. 이런 글자 69자는 `disputes: won-total-exceeds-formula` 로 두 값을 `hanja-pool-review.csv` 에 함께 보인다.
+  - 숫자 一~十은 `radical-variants.csv` 수의 획수(四=4…十=10)를 쓰고 `numeral-suui` 태그를 단다. `kr-pil` 은 `pil`(실획).
+  - `kRSUnicode` 값이 둘 이상인 49자는 첫 값을 쓰고 `multiple-radical-values` 로 표시한다.
+- 표본 25자 실측 일치(2026-10-03): 金8 李7 朴6 崔11 鄭19 河9 柳9 洪10 郭15 閔12 羅20 蔡17 邊22 都16 蘇22 表9 琴13 陸16 王4 玉5 泰10 求7, 복성 南宮19 諸葛31 獨孤25.
 
 ### 6.2 4격(원형이정) — 단성 2자 기본식
 - 원격 = 이름1 + 이름2 / 형격 = 성 + 이름1 / 이격 = 성 + 이름2 / 정격 = 성 + 이름1 + 이름2 (출처 5곳 일치, 예: 金秉俊 17/16/17/25).
@@ -166,6 +177,9 @@ interface NamedCandidate {
 - 오격: 천격 = 성(단성 +1) / 인격 = 성 끝 글자 + 名1 / 지격 = 이름 합(외자 +1) / 외격 = 총격 − 인격 / 총격 = 전체(+1 없음). 외격의 +1 처리는 출처마다 다르다(iwahashi: 성·이름 모두 1자면 +2) → 프리셋 옵션.
 - 삼재 = 천·인·지격 수리오행 배치 **125조합(5³)**(조사 의뢰 때 가정한 "27조합"은 오류로 확인돼 정정).
 - 계통: 구마사키 겐오(熊崎健翁, 1929) 오격부상법이 1940년 창씨개명 때 유입(김만태 2014 KCI), 국내 주류는 원형이정(송진희 2018 KCI), 바이두백과도 삼재를 "후대 편찬·가치 낮음"으로 평가 → **가중 5 의 참고 지표**로만 반영하고 화면에 "참고"로 표시한다.
+- **Phase 2 결과**: 기준표 = zhouyi.cc 125조합 원문 전사(meimingteng 은 같은 표 복제라 독립 출처에서 뺌). 독립 대조 = kvov(대만)·cafengshui(대만)·虎の舞(일본) 125조합 전부 + hongjung(한국) 흉 16조합.
+  - 등급: 大吉·中吉·吉·吉多于凶·小吉 → good, 吉凶参半·半吉·吉帶凶·凶帶吉 → half, 그 밖(凶多于吉·大凶 등) → bad. 결과 good 64 / half 4 / bad 57.
+  - 독립 출처의 1/3 이상이 다른 등급이면 `disputed`(65조합). 가장 많이 갈리는 곳은 kvov 의 吉帶凶(58조합 차이)이다. 삼재는 가중 5 참고 지표라 기준표를 그대로 쓰고 분쟁은 화면 근거에만 보인다.
 
 ### 6.5 소리오행
 - 초성 기준. 쌍자음은 평음(ㄲ→ㄱ, ㄸ→ㄷ, ㅃ→ㅂ, ㅆ→ㅅ, ㅉ→ㅈ), 모음 초성은 ㅇ. 표기 발음(두음법칙 적용형, 예: 李=이) 기준.
@@ -177,8 +191,15 @@ interface NamedCandidate {
 - 복성 규칙은 출처를 찾지 못했다 → 성 두 글자를 각각 세어 전체 글자에 같은 규칙(전부 같으면 흉)을 적용하는 **설계 선택**, 자문 확인 항목.
 
 ### 6.6 자원오행
-- 1차 부수 규칙(예: 木·艹·竹 계열 → 木) → 의미 규칙 → 신뢰도. LLM 보조 분류는 과금이므로 **Phase 2 에서 비용 산정 후 1회 승인**을 받을 때만 쓴다.
-- 신뢰도 0.7 미만·미검수는 추천 순위에서 하향, `disputed` 는 상위 5개(무료 노출)에서 제외.
+- 공식 자원오행표는 없다. Phase 2 는 성명학 관행 출처 16곳(`raw/jawon-sources.json`)의 부수→오행 배속을 **투표**로 모았다(`rules/jawon.json`).
+  - 투표 출처 12곳(국내 7·중국 5): 출처마다 한 부수에 한 표. 다중 배속 규칙은 표가 아니고, 한 출처가 같은 부수에 서로 다른 단일값을 주면 기권. 최다 득표를 택하고 동률은 김만태 → 안태옥 → 한국작명원 → 주역작명원 순서로 가른다.
+  - 참고 전용 4곳(일본 kseimei, 음운 기반 kangxizidian, 필획 형태 meimingteng·chachaqiming)은 표에 넣지 않고 `jawon-radicals-review.csv` 참고 열에만 보인다.
+  - 신뢰도: 3표 이상 전원 일치 0.9 / 2표 일치 0.8 / 4표 이상·3/4 이상 다수 0.7 / 1표 0.6 / 그 밖의 불일치 0.5(`disputes: jawon-sources-differ`).
+- 자의(字意) 규칙이 부수보다 앞선다: 천간·지지 22자(0.9), 방위 東南中西北(0.8), 오상 仁禮信義智(0.8). 각 글자는 raw 출처의 글자 단위 규칙과 같아야 빌드가 통과한다. 숫자 一~十은 河圖 생성수와 후천수가 갈려 넣지 않았다.
+- 우선순위: 자의 > 검수자 부수 판정(`radicalOverrides`, 1.0) > 부수 투표. 검수자 글자 판정(`hanja-review-decisions.csv`)은 `reviewer`.
+- Phase 2 결과(9,107자): 부수 8,685 · 자의 32 · 미분류 390, 저신뢰(<0.7) 1,869(그중 불일치 600). 강희 부수 214개 중 미분류 47 · 1표 79 · 불일치 8.
+- LLM 보조 분류(미실행, 비용 추정): 미분류 390 + 저신뢰 1,869 = 2,259자, 50자씩 46콜. gemini-2.5-flash 단가(`config/llm-tariffs-20260921.json`)로 1회 약 $0.43(입력 12만·출력 6.3만·thinking 9.4만 토큰, 약 690원), 독립 2회 교차에 여유 1.5배를 더해 **약 2,100원**. 실행은 별도 1회 승인 후에만 한다. LLM 값은 `jawonBasis: "llm"`·신뢰도 0.6 상한으로 넣고 두 회차가 일치한 글자만 쓰며, 자문 검수 전에는 상위 5개(무료 노출)에서 뺀다.
+- 신뢰도 0.7 미만·미검수는 추천 순위에서 하향, `disputes` 가 있는 글자는 상위 5개(무료 노출)에서 제외.
 
 ### 6.7 사주 연동
 - 래퍼 `saju-input.ts` 가 `worker/lib/saju-snapshot-from-birth.js` `buildSajuSnapshotFromBirth`(메인 사주 정본: `calcPower`·`analyzeJohu`·`detectJong`·`applyRuntimeYongshinPolicy`)를 import 만 한다.
@@ -244,8 +265,6 @@ interface NamedCandidate {
 
 ## 12. 검수 절차와 CSV
 
-| 파일 | 내용 | 검수 열 |
-|---|---|---|
 | 파일 | 행 | 내용 | 검수 열 |
 |---|---|---|---|
 | `suri-81.csv` | 81 | v1 등급 · v2 제안 등급 · 출처 분포 · `disputed`/`change-proposed` · 성별 주석 | `review_grade`, `review_note` |
@@ -254,8 +273,13 @@ interface NamedCandidate {
 | `sound-mapping.csv` | 19 | 초성 → 오행(운해본·해례) | `review_note` |
 | `samjae-125.csv` | 125 | 천·인·지 오행 125조합 — **등급 칸은 비어 있음**(Phase 2 원문 전사) | `review_grade`, `review_note` |
 | `sources.csv` | 24 | 표별 출처 URL | — |
-| (Phase 2) `hanja-pool-diff.csv` | — | 명단 원천 4종 대조 차이 | `review_decision` |
-| (Phase 2) `hanja-pool-review.csv` | — | 저신뢰·분쟁 한자 | `review_won`, `review_jawon` |
+| (Phase 2 생성물, `data/naming/review/`) | | | |
+| `hanja-pool-diff.csv` | 490 | 명단 원천(크롤·efamily·Unihan E/N) 대조 차이와 포함·제외 사유 | `review_decision`, `review_note` → 확정분은 `rules/pool-adjudication.json` 으로 옮긴다 |
+| `hanja-pool-review.csv` | 3,916 | 원획 분쟁·훈 없음·숫자 수의·자원오행 저신뢰/미분류 | `review_won`, `review_jawon`, `review_note` |
+| `jawon-radicals-review.csv` | 214 | 강희 부수별 투표 결과·참고 출처·풀 글자 수 | `review_element`, `review_note` |
+| `suri-81-review.csv` | 81 | 적용 등급과 출처별 원 라벨 | `review_grade`, `review_note` |
+| `samjae-125-review.csv` | 125 | 기준표 등급과 독립 출처 라벨 | `review_grade`, `review_note` |
+| `surnames-review.csv` | 24 | KOSIS 성씨 중 제외한 표기와 사유 | `decision`, `reason` |
 
 - CSV 는 UTF-8 BOM(엑셀 한글 표시용). 수치는 WebFetch 요약기 추출을 거친 값이 섞여 있어 **바꾸는 수(28·38·59)와 승격 검토 수(73·75)는 사람이 원문 페이지와 대조**한 뒤 확정한다(조사 B 권고).
 - 삼재 등급은 요약기 추출값을 쓰지 않는다. Phase 2 에서 zhouyi.cc 전체표를 원문 전사하고 yishengmi 大吉·大凶 40 + 바이두 표본과 대조한다.
@@ -291,6 +315,18 @@ interface NamedCandidate {
   2. Unihan `kHangul` E·N 플래그
   3. 2024 추가 1,070자 보도자료 PDF(이미지 → 표본 대조)
   4. efamily 조회 표본 검증
+
+**Phase 2 efamily 재수집 [확인·실측, 2026-10-03]** (`raw/efamily-recrawl.csv`, 요청 998건·간격 1.1초 이상·403/429 0건)
+- 엔드포인트 `GET /webhanja/whjsearch?mode=listUnicodeByKsnd&ksnd=<음절 hex>&ext=0` — `ext=0` 은 인명용(isin=1)만 돌려준다.
+- 53자 누락 원인: rutopio 크롤러가 결과 0건이면 그 자음 묶음 반복을 끝낸다(`else: break`). '냥'이 0건이라 ㄴ 묶음 나머지 24음(녀…닐)이 2024년에 조회되지 않았다. 같은 break 동작을 재현하면 블록 463개로 rutopio 와 일치한다.
+- 결과: 음 527개 조회 → 10,383행, 고유 코드 9,495(표준 유니코드 9,090 · 내부 A 코드 377 · 사설 F 코드 28). 음과 무관한 획수별 나열로 교차 확인해 집합이 같다.
+  - rutopio 대비 새 글자 35(ㄴ 음 32 · 妞 · 慉 · 貀), rutopio 에만 있는 글자 0.
+  - 港·姬 는 표준 코드가 인명용이 아니다(isinmyung=0). 법원 시스템은 港을 F 코드 `f153f`, 姬 꼴을 A 코드 `a0050` 글리프로만 싣는다. A·F 코드는 웹폰트에도 없고 스프라이트 이미지로만 보인다.
+- 풀 포함 규칙(fail-closed, `build-pool.mjs`): 크롤 ∪ efamily 표준 코드 ∪ Unihan E(교육용 기초한자) ∪ `pool-adjudication.json` include. Unihan N 만 있고 어디에도 없는 글자, A·F 코드는 제외하고 `hanja-pool-diff.csv` 에 사유를 남긴다.
+- 결과 9,107자 = 크롤 9,055 + efamily 35 + 교육용 기초한자 2(港 — 규칙 제37조 ① 기초한자라 표준 코드로 포함, 𮕩 쇠:E — Unihan 표시만 근거라 검수 항목) + 1차 판정 15.
+  - 1차 판정 15자(𠦄 𩇕 𬄕 𬟓 𰜩 㴗 䚾 冕 姬 慜 湊 珊 睾 籩 韌): Unihan N 전용 19자마다 같은 음의 A·F 코드(isin=1) 32px 글리프를 대조해 같은 글자로 본 것. 䚾 은 32px 로 壬·𡈼 를 가릴 수 없고, 𬟓 는 두 코드(a026c·f17b8)가 같은 글자다. 자문 검수 전이다.
+  - A·F 코드의 획수 열은 자형과 어긋난 값이 있어(慜 26 ↔ 15, 湊 21 ↔ 13) 쓰지 않고 획수는 Unihan 으로 계산한다.
+  - 제외 4자(𡅕 𧅄 㘽 朊): 같은 음 후보 글리프가 다른 글자이거나 후보가 없다. 기초한자 1,800 전부 포함, 원획 100%.
 
 **Unicode Unihan 18.0 [확인]** (UAX #38 Rev.41, 데이터 2026-07-31)
 - `kRSKangXi` 는 **15.1.0 에서 제거**(18.0 데이터 0건) → 원획은 `kRSUnicode`(부수번호.잔여획, 18.0 에서는 `Unihan_IRGSources.txt`) + 강희 부수 원형 획수로 계산한다. 예: 河 `85.5` → 水 4 + 5 = 9.

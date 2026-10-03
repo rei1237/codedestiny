@@ -1,0 +1,4852 @@
+{
+ "elementOrder": "heaven=天格, human=人格, earth=地格",
+ "method": "curl raw HTML -> iconv-lite decode (all pages declared UTF-8; no GBK pages encountered) -> tag strip (strip.js) -> per-source parser scripts in this folder; no summarizer used for any grade",
+ "sources": [
+  {
+   "entries": [
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶多吉少",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉多于凶",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "中吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶多于吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "中吉",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉多于凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶多于吉",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶多于吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶多于吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶多于吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "中吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "中吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉多于凶",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉多于凶",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉凶参半",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶多于吉",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "中吉",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "中吉",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶多于吉",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶多于吉",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉多于凶",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "中吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶多于吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶多于吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶多于吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶多于吉",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉凶参半",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶多于吉",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶多于吉",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶多于吉",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶多于吉",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶多于吉",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉凶参半",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉凶参半",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "中吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉多于凶",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "金",
+     "note": "page header label reads 金金木 but its codes 773,784 encode 金金火 and it sits in the 金金火 slot of the page order; mapped to 金金火"
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "中吉",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "中吉",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶多于吉",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "金",
+     "human": "水",
+     "note": "first header code printed as 897 instead of the 7xx pattern used elsewhere (still decodes to 金水金); description text appears spliced from two passages (begins mid-sentence 但因基础运劣之故... then 基础稳固安然...)"
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "中吉",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶多于吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "中吉",
+     "heaven": "水",
+     "human": "火",
+     "note": "first header code printed as 031 instead of 931 (still decodes to 水火木)"
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶多于吉",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "中吉",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "中吉",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "中吉",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶多于吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶多于吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "中吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "中吉",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    }
+   ],
+   "id": "zhouyi",
+   "note": null,
+   "role": "primary",
+   "status": "ok",
+   "url": "https://m.zhouyi.cc/xingming/xmceshi/20063.html"
+  },
+  {
+   "entries": [
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶多吉少",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉多于凶",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "中吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶多于吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "中吉",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉多于凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶多于吉",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶多于吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶多于吉",
+     "heaven": "木",
+     "human": "水",
+     "note": "grade bracket is split by the page's fixed-width column layout (line break + code column); gradeRaw joins it"
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶多于吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "中吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "中吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉多于凶",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉多于凶",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉凶参半",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶多于吉",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "中吉",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "中吉",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶多于吉",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶多于吉",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉多于凶",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "中吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶多于吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶多于吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶多于吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "金",
+     "note": "grade bracket is split by the page's fixed-width column layout (line break + code column); gradeRaw joins it"
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶多于吉",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉凶参半",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶多于吉",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶多于吉",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶多于吉",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶多于吉",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶多于吉",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉凶参半",
+     "heaven": "金",
+     "human": "火",
+     "note": "grade bracket is split by the page's fixed-width column layout (line break + code column); gradeRaw joins it"
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉凶参半",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "中吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉多于凶",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "金",
+     "note": "page label reads 金金木 but codes 773,784 encode 金金火 (same typo as zhouyi); mapped to 金金火"
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "中吉",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "中吉",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶多于吉",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "水",
+     "note": "grade bracket is split by the page's fixed-width column layout (line break + code column); gradeRaw joins it"
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "中吉",
+     "heaven": "金",
+     "human": "水",
+     "note": "grade bracket is split by the page's fixed-width column layout (line break + code column); gradeRaw joins it"
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶多于吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "中吉",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶多于吉",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "火",
+     "note": "grade bracket is split by the page's fixed-width column layout (line break + code column); gradeRaw joins it"
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "中吉",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "中吉",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "中吉",
+     "heaven": "水",
+     "human": "土",
+     "note": "grade bracket is split by the page's fixed-width column layout (line break + code column); gradeRaw joins it"
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶多于吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶多于吉",
+     "heaven": "水",
+     "human": "金",
+     "note": "grade bracket is split by the page's fixed-width column layout (line break + code column); gradeRaw joins it"
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "中吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "水",
+     "note": "grade bracket is split by the page's fixed-width column layout (line break + code column); gradeRaw joins it"
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "中吉",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    }
+   ],
+   "id": "meimingteng",
+   "note": null,
+   "role": "cross-check (same text lineage as zhouyi; not independent)",
+   "status": "ok",
+   "url": "https://m.meimingteng.com/m/zhishi.aspx?id=4913"
+  },
+  {
+   "entries": [
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    }
+   ],
+   "id": "yishengmi",
+   "note": "The two images captioned 三才配置吉凶表1/2 are unrelated pictures (a teacher-retirement greeting document and a 崔姓女孩名 banner); no table data in them.",
+   "role": "cross-check (partial lists only; section headed 三才配置吉凶表部分内容梳理, each list ends with 等)",
+   "status": "ok",
+   "url": "https://www.yishengmi.cn/qiming/210.html"
+  },
+  {
+   "entries": [],
+   "id": "baidu_baike",
+   "note": "All curl attempts (desktop UA, mobile UA, wapbaike, Baiduspider UA) returned the 百度安全验证 JS challenge page or the baike homepage; no article content retrieved.",
+   "role": null,
+   "status": "unavailable",
+   "url": "https://baike.baidu.com/item/%E4%B8%89%E6%89%8D%E9%85%8D%E7%BD%AE ; https://baike.baidu.com/item/%E4%B8%89%E6%89%8D%E6%95%B0%E7%90%86/2086868"
+  },
+  {
+   "entries": [
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉帶凶",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉帶凶",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "中吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉帶凶",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉帶凶",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉帶凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉帶凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉帶凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "中吉",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "中吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉帶凶",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉帶凶",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉帶凶",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉帶凶",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉帶凶",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉帶凶",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉帶凶",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉帶凶",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉帶凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉帶凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉帶凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉帶凶",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉帶凶",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉帶凶",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉帶凶",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉帶凶",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉帶凶",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "中吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉帶凶",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉帶凶",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉帶凶",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉帶凶",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉帶凶",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉帶凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉帶凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉帶凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉帶凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉帶凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉帶凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉帶凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉帶凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉帶凶",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉帶凶",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉帶凶",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉帶凶",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉帶凶",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉帶凶",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉帶凶",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉帶凶",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉帶凶",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉帶凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉帶凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶帶吉",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉帶凶",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉帶凶",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "中吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉帶凶",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉帶凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉帶凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶 大",
+     "heaven": "土",
+     "human": "水",
+     "note": "grade cell literally \"凶&emsp;大\" (characters reversed vs 大凶); kept raw"
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "土",
+     "note": "天格 cell literally reads 基 (not 金); row sits between 金土火 and 金土金, mapped to 金"
+    }
+   ],
+   "id": "kvov",
+   "note": null,
+   "role": "cross-check (independent short-description table, traditional Chinese)",
+   "status": "ok",
+   "url": "http://zm-name.kvov.com/sswzx.php?id=5323333666655550935"
+  },
+  {
+   "entries": [
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "半吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "半吉",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "半吉",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "半吉",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "半吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "半吉",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "半吉",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "半吉",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "半吉",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "半吉",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "半吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "半吉",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "半吉",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "半吉",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "半吉",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "半吉",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    }
+   ],
+   "id": "cafengshui",
+   "note": null,
+   "role": "cross-check (independent condensed table, traditional Chinese)",
+   "status": "ok",
+   "url": "http://www.cafengshuinet.com/m/show_detail.php?id=2159"
+  },
+  {
+   "entries": [
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "小吉",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "小吉",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "小吉",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉",
+     "heaven": "水",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "小吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "小吉",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "小吉",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "小吉",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "小吉",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "小吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "大吉",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "小吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "小吉",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "小吉",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "小吉",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "小吉",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "小吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "吉",
+     "heaven": "土",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "小吉",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "小吉",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "小吉",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "小吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "小吉",
+     "heaven": "水",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "小吉",
+     "heaven": "木",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "小吉",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "大凶",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "吉",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "小吉",
+     "heaven": "金",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "小吉",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "大凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "小吉",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "凶",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    }
+   ],
+   "id": "jp_toranomai",
+   "note": null,
+   "role": "cross-check (Japanese; gradeRaw = 総合運 column; 基礎運/成功運 kept as extra fields)",
+   "status": "ok",
+   "url": "https://www.xn--u9jv37v3vc.com/sansai/list.php"
+  },
+  {
+   "entries": [
+    {
+     "earth": "水",
+     "gradeRaw": "급변사의 삼재",
+     "heaven": "水",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "급변사의 삼재",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "土",
+     "gradeRaw": "급변사의 삼재",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "급변사의 삼재",
+     "heaven": "火",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "급변사의 삼재",
+     "heaven": "土",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "급변사의 삼재",
+     "heaven": "水",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "정신박약, 발광, 폐병, 난치병의 삼재",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "정신박약, 발광, 폐병, 난치병의 삼재",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "金",
+     "gradeRaw": "정신박약, 발광, 폐병, 난치병의 삼재",
+     "heaven": "金",
+     "human": "木",
+     "note": null
+    },
+    {
+     "earth": "木",
+     "gradeRaw": "정신박약, 발광, 폐병, 난치병의 삼재",
+     "heaven": "木",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "조난, 부상, 타동적 위험의 삼재",
+     "heaven": "金",
+     "human": "土",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "조난, 부상, 타동적 위험의 삼재",
+     "heaven": "金",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "火",
+     "gradeRaw": "조난, 부상, 타동적 위험의 삼재",
+     "heaven": "水",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "조난, 부상, 타동적 위험의 삼재",
+     "heaven": "土",
+     "human": "水",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "조난, 부상, 타동적 위험의 삼재",
+     "heaven": "火",
+     "human": "金",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "조난, 부상, 타동적 위험의 삼재",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    },
+    {
+     "earth": "水",
+     "gradeRaw": "조난, 부상, 타동적 위험의 삼재",
+     "heaven": "金",
+     "human": "火",
+     "note": null
+    }
+   ],
+   "id": "kr_hongjung",
+   "note": "金火水 is printed twice in the 조난·부상 list (both rows kept). The same site gives 성공운(천-인)/기초운(인-지) pairwise rules, not triple grades.",
+   "role": "cross-check (Korean; partial: only three 흉 category lists under 3. 삼재배치로 본 급변·질병운; no full 125 table)",
+   "status": "ok",
+   "url": "http://www.hongjung.com/name-6.html"
+  },
+  {
+   "entries": [],
+   "id": "kr_mbgg_daumcafe",
+   "note": "Section \"3)삼재오행의 배치 길흉일람\" exists but the table itself is absent from the HTML (heading and two explanatory sentences only). The lists under 2)오행배합 are not labelled as 삼재 and the page contrasts them with 음오행 rules, so not used.",
+   "role": null,
+   "status": "unavailable",
+   "url": "https://m.cafe.daum.net/mbgg/RISv/220"
+  }
+ ]
+}

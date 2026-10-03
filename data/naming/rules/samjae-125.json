@@ -1,0 +1,16 @@
+{
+  "about": "삼재(三才) 125조합 등급 규칙. 기준 = 주 표(zhouyi, README §12) 원문 라벨, 독립 전체표 3곳(kvov·cafengshui·jp_toranomai)과 한국 부분표(kr_hongjung)로 분쟁을 표시한다. 검수 CSV(docs/design/naming-engine-v2/samjae-125.csv review_grade)가 있으면 최우선. 삼재는 가중 5 의 참고 지표(README §6.4).",
+  "base": "zhouyi",
+  "duplicateOf": { "meimingteng": "zhouyi" },
+  "corroborating": ["yishengmi"],
+  "corroboratingNote": "yishengmi 는 大吉·大凶 일부(39)만 있고 zhouyi 와 전부 같아 독립성을 확인할 수 없다 — 분쟁 계산에는 넣지 않고 출처 목록에만 남긴다.",
+  "independent": ["kvov", "cafengshui", "jp_toranomai", "kr_hongjung"],
+  "schools": { "zhouyi": "cn-zhouyi", "kvov": "tw-kvov", "cafengshui": "tw-cafengshui", "jp_toranomai": "jp-toranomai", "kr_hongjung": "kr-hongjung", "yishengmi": "cn-yishengmi" },
+  "labelMap": {
+    "good": ["大吉", "中吉", "吉", "吉多于凶", "小吉"],
+    "half": ["吉凶参半", "半吉", "吉帶凶", "凶帶吉"],
+    "bad": ["凶多于吉", "凶多吉少", "大凶", "凶", "凶 大", "급변사의 삼재", "정신박약, 발광, 폐병, 난치병의 삼재", "조난, 부상, 타동적 위험의 삼재"]
+  },
+  "labelMapNote": "吉帶凶·凶帶吉(길에 흉이 섞임·흉에 길이 섞임)은 반반으로 본다 — 수집 에이전트는 吉帶凶 을 길로 묶었으나 그러면 kvov 강한 불일치 33건 중 24건이 이 어휘 하나에서 나온다. kvov 土水火 의 \"凶 大\"(원문 순서 뒤집힘)는 大凶 으로 읽는다. 한국 부분표는 흉 범주 목록뿐이라 전부 bad. 모르는 라벨은 빌드 실패.",
+  "disputedRule": "독립 출처 중 그 조합을 실은 곳에서 확정 등급과 다른 3단계 등급의 비율이 1/3 이상이면 disputed"
+}

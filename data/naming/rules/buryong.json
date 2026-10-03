@@ -1,0 +1,8 @@
+{
+  "about": "불용(不用) 관행 글자 규칙. 차단하지 않고 경고만 한다(README §13.B.7 — 권익기·김만태 2018 KCI \"불용문자는 존재하지 않는다\"). 풀에는 글자별 출처 id 와 독립 계열 수만 싣고, 경고 임계값은 Phase 3 엔진 설정이 정한다.",
+  "lineage": {
+    "htype2019-seogok-301": "seogok-301",
+    "erumy-faq-76": "seogok-301"
+  },
+  "lineageNote": "htype2019 와 erumy 는 같은 서곡(西曲) 301자 목록을 옮긴 것으로 보여 한 계열로 센다. cobl·minsoks·aoma 는 대부분 이 목록의 부분집합이지만 문장·범주가 달라 독립 출처로 둔다(scratchpad 실측: cobl⊂htype, minsoks 147/149⊂htype, aoma 105/120⊂htype, knaming⊂namestory)."
+}

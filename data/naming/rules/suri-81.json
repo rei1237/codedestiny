@@ -1,0 +1,31 @@
+{
+  "about": "81수리 등급 규칙. 기준 = v1 표(worker/lib/naming-suri.js 2026-10-03), 원문 대조로 확인된 변경만 적용, 검수 CSV(docs/design/naming-engine-v2/suri-81.csv review_grade)가 있으면 최우선.",
+  "base": {
+    "source": "worker/lib/naming-suri.js (v1)",
+    "good": [1, 3, 5, 6, 7, 8, 11, 13, 15, 16, 17, 18, 21, 23, 24, 25, 29, 31, 32, 33, 35, 37, 39, 41, 45, 47, 48, 52, 57, 61, 63, 65, 67, 68, 81],
+    "half": [26, 27, 28, 38, 51, 58, 59, 71, 73, 75],
+    "bad": [2, 4, 9, 10, 12, 14, 19, 20, 22, 30, 34, 36, 40, 42, 43, 44, 46, 49, 50, 53, 54, 55, 56, 60, 62, 64, 66, 69, 70, 72, 74, 76, 77, 78, 79, 80]
+  },
+  "applied": [
+    { "n": 28, "grade": "bad", "reason": "라벨이 있는 독립 출처 전부 흉 계열(kseimei 大凶). 원문 HTML 대조 2026-10-03" },
+    { "n": 38, "grade": "good", "reason": "한국 독립 출처 6곳 吉·길·良運, 日 kseimei 吉 / fukucalendar 半吉. 원문 HTML 대조 2026-10-03" },
+    { "n": 59, "grade": "bad", "reason": "라벨이 있는 독립 출처 전부 흉 계열. 원문 HTML 대조 2026-10-03" }
+  ],
+  "notApplied": [
+    { "n": 73, "reason": "승격 검토 기각 — 한국 출처는 吉 다수지만 tarot·duckming 中吉, 日 kseimei 半吉·fukucalendar 凶. 자문 검수 대기" },
+    { "n": 75, "reason": "73 과 같은 분포. 자문 검수 대기" }
+  ],
+  "labelMap": {
+    "good": ["吉數(길수)", "吉", "길", "大吉", "상운수(上運數)", "양운수(良運數)", "최상운수", "強吉☆", "大吉◎", "吉　○"],
+    "half": ["半吉", "中吉", "반길", "반흉, 반길", "半吉▽"],
+    "bad": ["凶數(흉수)", "凶", "흉", "大凶", "흉운수", "최흉운수", "凶　▼", "大凶×"]
+  },
+  "labelMapNote": "中吉 은 Phase 1 분포 집계(中吉/半吉)와 같이 half 로 묶는다. 모르는 라벨은 빌드 실패.",
+  "schools": {
+    "irum": "kr-irum", "tarotcafe": "kr-tarotcafe", "aoma1004": "kr-aoma1004", "kimtaku": "kr-kimtaku",
+    "duckming": "kr-duckming", "sajuabc": "kr-sajuabc", "kseimei": "jp-kseimei", "fukucalendar": "jp-fukucalendar"
+  },
+  "duplicateOf": { "miso": "irum" },
+  "excluded": { "jangds": "수별 등급 라벨 없음(해설 문장만) — 문장을 등급으로 해석하지 않는다" },
+  "disputedRule": "한국 독립 출처(라벨 있음) 중 확정 등급과 다른 비율이 1/3 이상이면 disputed"
+}
