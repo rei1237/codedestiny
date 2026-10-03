@@ -12608,7 +12608,7 @@ function _astroBuildNatalWheelCard(chart, birth, houseSystemLabel) {
 
   svg.push('<circle cx="'+cx+'" cy="'+cy+'" r="58" fill="url(#astroWheelCore)" stroke="rgba(251,191,36,0.25)" stroke-width="1"/>');
   svg.push('<circle cx="'+cx+'" cy="'+cy+'" r="42" fill="none" stroke="rgba(125,211,252,0.25)" stroke-width="0.9" stroke-dasharray="2 4"/>');
-  svg.push('<text x="'+cx+'" y="'+(cy - 8)+'" text-anchor="middle" fill="rgba(253,230,138,0.9)" font-size="12" font-weight="800">NATAL WHEEL</text>');
+  svg.push('<text x="'+cx+'" y="'+(cy - 8)+'" text-anchor="middle" fill="rgba(253,230,138,0.9)" font-size="12" font-weight="800">'+(_sajuEngineCurrentLang() === 'ko' ? '출생 차트' : 'NATAL WHEEL')+'</text>');
   svg.push('<text x="'+cx+'" y="'+(cy + 10)+'" text-anchor="middle" fill="rgba(186,230,253,0.8)" font-size="9">ASC 기준 정밀 회전</text>');
   svg.push('</svg>');
 
@@ -13965,17 +13965,17 @@ function renderAstroInsightLegacyNeon() {
       : '물 2잔 + 5분 스트레칭으로 멘탈 배터리 리부팅하기';
     function clampBriefScore(v){ return Math.max(55, Math.min(98, Math.round(v))); }
     var astroCategoryData = [
-      { icon:'🔥', title:_sajuEngineText("se_10026_prop_title"), score:clampBriefScore(64 + topFocusCount * 5 + (isActionMode ? 7 : 2)), mission:astroStarterMission },
-      { icon:'💘', title:_sajuEngineText("se_10027_prop_title"), score:clampBriefScore(60 + (axisGap === 6 ? 4 : 9) + ((retroPlanets || []).length >= 2 ? -3 : 5)), mission:astroRelationshipMission },
-      { icon:'💸', title:_sajuEngineText("se_10028_prop_title"), score:clampBriefScore(59 + ((topFocusHouse === 2 || topFocusHouse === 8) ? 11 : 4)), mission:astroMoneyMission },
-      { icon:'🫂', title:_sajuEngineText("se_10029_prop_title"), score:clampBriefScore(58 + (topFocusHouse === 11 ? 12 : 6) + (isActionMode ? 3 : 0)), mission:astroSocialMission },
-      { icon:'🧠', title:_sajuEngineText("se_10030_prop_title"), score:clampBriefScore(62 + ((retroPlanets || []).length >= 2 ? 5 : 1)), mission:astroSelfcareMission }
+      { title:_sajuEngineText("se_10026_prop_title"), score:clampBriefScore(64 + topFocusCount * 5 + (isActionMode ? 7 : 2)), mission:astroStarterMission },
+      { title:_sajuEngineText("se_10027_prop_title"), score:clampBriefScore(60 + (axisGap === 6 ? 4 : 9) + ((retroPlanets || []).length >= 2 ? -3 : 5)), mission:astroRelationshipMission },
+      { title:_sajuEngineText("se_10028_prop_title"), score:clampBriefScore(59 + ((topFocusHouse === 2 || topFocusHouse === 8) ? 11 : 4)), mission:astroMoneyMission },
+      { title:_sajuEngineText("se_10029_prop_title"), score:clampBriefScore(58 + (topFocusHouse === 11 ? 12 : 6) + (isActionMode ? 3 : 0)), mission:astroSocialMission },
+      { title:_sajuEngineText("se_10030_prop_title"), score:clampBriefScore(62 + ((retroPlanets || []).length >= 2 ? 5 : 1)), mission:astroSelfcareMission }
     ];
     var astroCategoryCardsHtml = astroCategoryData.map(function(item){
       return ''
         +'<div class="astro-neon-mini">'
         +'<div class="astro-neon-mini-head">'
-        +'<div class="astro-neon-mini-title">'+item.icon+' '+item.title+'</div>'
+        +'<div class="astro-neon-mini-title">'+item.title+'</div>'
         +'<div class="astro-neon-mini-score">'+item.score+'점</div>'
         +'</div>'
         +'<div class="astro-neon-mini-meter"><span style="width:'+item.score+'%"></span></div>'
