@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-03
-next: "기존 사주 번역 검사 오류의 수정 범위 승인을 확인하고, 해당 오류를 해결한 뒤 main CI 통과 시 승인된 PayPal 운영 승격을 1회 실행한다."
+next: "승인된 사주 번역 문구 수정의 main CI 통과를 확인한 뒤 PayPal 운영 승격을 1회 실행한다."
 ---
 
 # PayPal PortOne V2 운영 연동
@@ -12,6 +12,7 @@ next: "기존 사주 번역 검사 오류의 수정 범위 승인을 확인하�
 - USD로 청구: 기존 원화 가격을 주문 준비 시 최신 공표 환율로 환산하고 결제 전에 USD 표시.
 - 2026-10-03: "방금 페이팔 실운영 승인이 났으니까 실제 결제에 페이팔도 연동해줘".
 - 실운영 설정과 운영 승격 1회는 승인됐다. 실결제 테스트, 환불, 유료 LLM, 검증을 위한 운영 DB 쓰기는 승인되지 않았다.
+- 재개 채팅에서 "기존 사주 번역 오류도 수정하고 CI 통과 후 운영 승격 진행" 답변으로 범위 확대가 승인됐다.
 
 ## 완료한 작업
 
@@ -38,9 +39,13 @@ next: "기존 사주 번역 검사 오류의 수정 범위 승인을 확인하�
 
 ## 차단과 다음 단계
 
-운영 승격은 미실행이다. 기존 main의 사주 번역 검사 실패가 남아 있다: index.html의 result.ilju.balanceTitle은 "오행 균형도", public/i18n/ko.json은 "📊 오행 균형도". PayPal 변경 전 CI 37103732126에서도 동일 실패가 확인됐다. 검사를 끄거나 실패를 성공으로 취급하지 않는다.
+운영 승격은 미실행이다. 기존 main의 사주 번역 검사 실패를 재현하고 수정했다: index.html의 result.ilju.balanceTitle과 public/i18n/ko.json을 "오행 균형도"로 일치시켰다. PayPal 변경 전 CI 37103732126에서도 동일 실패가 확인됐다. 검사를 끄거나 실패를 성공으로 취급하지 않는다.
 
-CLAUDE.md의 "범위 밖 결함은 보고만 한다"에 따라 사용자에게 이 오류의 수정 범위 확대를 질문했으며 답변 대기 중이다. 승인되면 i18n/authored/shellCopy-*.json 저작 파일과 기존 merge 스크립트를 사용해 12개 사전을 정리하고 실패 검사만 재현한다. 답변 없이 범위 밖 파일을 수정하지 않는다.
+범위 확대 승인 후 i18n/authored/shellCopy-14.json에 기존 12개 언어 제목을 등록하고 기존 merge 스크립트를 사용했다. 실제 생성 사전 변경은 한국어 제목의 이모지 제거 한 줄이다. 생성 과정에서 재적용된 기존 홈 문구 3개는 원상태로 보존했다. node --test __tests__/ui/shell-dictionary-parity.static.test.js는 수정 전 3/4, 수정 후 4/4 통과했다. 결제·인증·API·DB 로직은 이 수정에서 변경하지 않았다.
+
+재개 검증: git diff --check와 npm run verify:doc-freshness 통과. npm run check:fast -- --plan은 저작 파일 변경을 critical로 자동 승격했다. npm run check:fast는 결제 게이트 실행 도중 프로세스가 종료되어 전체 완료를 확인하지 못했다(exit -1). 로컬 전체 통과로 기록하지 않으며 정확한 수정 SHA의 공식 main CI 결과를 확인한다.
+
+코드 CI 37105341663과 인수인계 CI 37105736682는 동일 번역 오류로 실패했고, PayPal 코드의 Paid Flow Gates 37105341691은 통과했다. 9110be6bce18abd664b5a9b2f1e3dd9072a81bab의 origin/main 포함을 확인했으며 최신 main을 안전 워크트리에 fast-forward했다.
 
 동시 작업 때문에 안전 워크트리에서 개발했다. 공유 main에는 다른 세션의 staged/unstaged 변경과 로컬 분기된 커밋이 남아 있어 직접 병합하지 않고 검증된 작업만 HEAD:main으로 push했다. reset/stash/restore로 공유 변경을 지우지 않는다. main이 안전하게 정리된 뒤 이 커밋들을 포함하도록 병합하고 워크트리를 배수한다.
 
@@ -58,7 +63,8 @@ docs/context/delivery-and-ci.md의 운영 승격 계약에 따라 dispatch 뒤 �
 
 - 작업 디렉터리: D:\Development\codedestiny-worktrees\paypal-usd-20261003-151024
 - 문서: D:\Development\codedestiny-worktrees\paypal-usd-20261003-151024\docs\handoff\2026-10-03-paypal-portone-v2.md
-- 마지막 코드 SHA: 65e7e8dfc28794931455e1887305db9c2ded4382 (origin/main push 완료)
-- 다음 행동: 범위 확대 답변과 정확한 SHA CI 결과를 확인하고, 승인된 경우 사주 번역 검사 오류부터 해결한다.
+- 기존 PayPal 코드 SHA: 65e7e8dfc28794931455e1887305db9c2ded4382 (origin/main push 완료)
+- 기존 인수인계 SHA: 9110be6bce18abd664b5a9b2f1e3dd9072a81bab (origin/main 포함 확인)
+- 다음 행동: 승인된 제목 수정의 검증·commit·main push 후 정확한 SHA CI 통과를 확인하고 운영 승격을 1회 실행한다. 승격 실행 뒤에는 실행 링크만 보고하고 run을 poll/watch/log 하지 않는다.
 
 화면 증거와 세션 상태: C:\Users\user\.codex\visualizations\2026\10\03\01a1005c-ff97-7793-9650-d9c0695fb85b\paypal-session-state.txt. PayPal 연결 및 Cloudflare 설정 화면, mock USD 화면을 같은 폴더에 보관했다. 임시 preview 서버는 종료했고 브라우저 viewport는 복원했다.
