@@ -17,7 +17,7 @@ next: DEFAULT_FORTUNE_COST_POINTS 운영 시크릿 1개와 동기화 목록 1줄
 ## 전달 상태
 
 - 코드 커밋: `09e424135` UI 구현, `b785510f2` 기존 main 변경 병합, `bd2b7df5c78f5eb89a4400816997321f7bb1f048` 병합된 사주 제목 3개 번역 정합성 보정. 모두 main push 완료, PR 없음.
-- 코드 CI: https://github.com/rei1237/codedestiny/actions/runs/37125617933 (정확한 SHA `bd2b7df5c78f5eb89a4400816997321f7bb1f048`).
+- 중간 코드 CI: https://github.com/rei1237/codedestiny/actions/runs/37125617933 (`bd2b7df5c78f5eb89a4400816997321f7bb1f048`)에서 빌드와 번역 정합성은 통과했지만 병합된 index-inline-runtime 캐시 핀의 미러 불일치를 발견했다. 정적 셸 8벌의 해당 핀 1개를 재생성했다. 최종 CI는 이 문서 이후 main의 최신 커밋 실행을 기준으로 확인한다.
 - 이전 CI 37125217605는 빌드·핵심 회귀·타입/lint 통과, 다른 세션의 사주 제목 이모지 제거와 ko 사전의 불일치 3건으로 static guards 실패. 위 마지막 커밋에서 원문 의도를 유지하며 사전 정본에 반영했다.
 - 주요 파일: `templates/home-funnel.html`, `styles/my-garden.css`, `js/core/home-funnel.js`, `js/destiny-profile.js`, `i18n/authored/shellCopy-15.json`, `scripts/design/verify-my-garden.mjs` 및 public 미러. `shellCopy-16.json`은 사주 제목 병합 정합성 3키다.
 - `app/_lib/billing-client.ts`는 프로필 런타임 캐시 URL만 변경했고, 이에 맞춰 payment-freeze 해시를 갱신했다. 결제 함수 내용은 그대로다.
