@@ -23,7 +23,7 @@ beforeAll(async()=>{
  await jest.unstable_mockModule('../../worker/lib/models.js',()=>models);
  await jest.unstable_mockModule('../../worker/lib/db.js',()=>({connectDb:async()=>{},isTransientMongoError:()=>false,withMongoRetry:async(_e,op)=>op(),mongoose,connectPaymentDb:async()=>{},resetPaymentConnection:()=>{},mongoTransactionOptions:()=>({})}));
  await jest.unstable_mockModule('../../worker/lib/auth.js',()=>({requireUserFromRequest:async()=>({userId:UID}),isAuthDbInfraError:()=>false}));
- await jest.unstable_mockModule('../../worker/lib/monthly-credit-store.js',()=>({consumeMonthlyCreditLotsWithDb:consumeLots,restoreMonthlyCreditLot:restoreLots}));
+ await jest.unstable_mockModule('../../worker/lib/monthly-credit-store.js',()=>({consumeMonthlyCreditLotsWithDb:consumeLots,restoreMonthlyCreditLot:restoreLots,restoreMonthlyCreditLotWithDb:(db,input)=>restoreLots({...input,db})}));
  await jest.unstable_mockModule('../../worker/lib/security/index.js',()=>({enforceSensitiveEndpointSecurity:async()=>({ok:true})}));
  await jest.unstable_mockModule('../../worker/lib/access-state.js',()=>({invalidateAccessStateCacheForUser:()=>{}}));
  ({spendMoonstone}=await import('../../worker/payments/moonstone.js'));

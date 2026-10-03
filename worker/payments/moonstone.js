@@ -36,7 +36,7 @@ import { calculatePaidFeatureMembershipCreditCost, FEATURE_KEY_PRICE_TABLE } fro
 import { isMoonstoneSpendRefunded } from "../lib/moonstone-spend-proof.js";
 import { profileMutationMetadata } from "../lib/profile-mutation-context.js";
 import { MonthlyCreditLedger, User, Payment } from "../lib/models.js";
-import { consumeMonthlyCreditLotsWithDb, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
+import { consumeMonthlyCreditLotsWithDb, restoreMonthlyCreditLotWithDb } from "../lib/monthly-credit-store.js";
 import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
 
@@ -85,7 +85,7 @@ export async function releaseOrderMoonstones(db, orderId) {
     const spend=await tx.findOne(MonthlyCreditLedger,{userId:current.userId,type:SPEND,sourceId});
     if (!spend?.settledAt || spend.amount!==quantity) throw paymentError('MOONSTONE_IN_PROGRESS','월정석 사용 내역을 확인 중이에요.');
     if (isMoonstoneSpendRefunded(spend)) return true;
-    const restored=await restoreMonthlyCreditLot({db:tx,userId:current.userId,
+    const restored=await restoreMonthlyCreditLotWithDb(tx,{userId:current.userId,
       lotId:`refund:${sourceId}`,amount:quantity,returnDetails:true});
     if (!restored?.added) throw paymentError('MOONSTONE_IN_PROGRESS','월정석 복원을 확인 중이에요.');
     const now=new Date();
