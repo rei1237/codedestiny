@@ -2060,6 +2060,12 @@
     "agreeAndViewResult": "同意并查看结果"
   },
   "payment": {
+    "paypal": {
+      "usdHint": "海外支付 · 付款前确认美元金额",
+      "rateNotice": "按现有韩元价格换算。汇率日期：{date} (ECB)。",
+      "close": "关闭并查看支付状态",
+      "wait": "在PayPal中批准付款后，在此查看支付状态。"
+    },
     "loader": {
       "eyebrow": "月光支付确认",
       "title": "正在安全确认支付状态",

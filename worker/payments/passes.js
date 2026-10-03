@@ -15,6 +15,7 @@
  * import 한다(2026-08-12 에 4중 미러를 정리했다). 유일하게 남은 사본은 import 가 불가능한 정적 셸
  * 인라인(`index.html` goldenPackages)이고, payments.subscription-purchase.test.js 가 셸과 대조한다.
  */
+import { assertPaypalOrderMatches } from './paypal.js';
 import { PREVIOUS_PASS_POLICY_VERSION, previousPassPlan, CURRENT_PASS_POLICY_VERSION, PRIOR_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION, currentPassPlan, priorPassPlan, passPolicyVersion, isPassPolicyMix } from "../../lib/payment/pass-policy.js";
 import { assertPassSaleAllowed } from "../lib/pass-sale-policy.js";
 import { Payment, PointHistory, User } from "../lib/models.js";
@@ -99,7 +100,7 @@ export async function derivePassOrderId(userId, idempotencyKey, tier) {
  * 같은 키의 기존 주문이 다른 금액·등급이면 IDEMPOTENCY_CONFLICT — 옛 가격 주문을 조용히
  * 돌려주지 않는다. 그 409 를 흡수하는 것은 아래 createPayablePassOrder 다(호출부는 그쪽을 쓴다).
  */
-export async function createPassOrder(db, { userId, plan, idempotencyKey, paymentMethod = "card_general", paidResume = null, purchaseType = "SELF", giftDraft = null, foreignCard = null, refundConsent = false }) {
+export async function createPassOrder(db, { userId, plan, idempotencyKey, paymentMethod = "card_general", paidResume = null, purchaseType = "SELF", giftDraft = null, foreignCard = null, refundConsent = false, paypalCharge = null }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
   const orderId = await derivePassOrderId(userId, idempotencyKey, plan.tier);
@@ -130,6 +131,7 @@ export async function createPassOrder(db, { userId, plan, idempotencyKey, paymen
           productId: plan.planId,
           confirmAttempts: 0,
           metadata: {
+            ...(paypalCharge ? { paypalCharge } : {}),
             ...(paidResume ? { paidResume } : {}),
             ...(giftDraft ? { giftDraft } : {}),
             planId: plan.planId,
@@ -176,6 +178,7 @@ export async function createPassOrder(db, { userId, plan, idempotencyKey, paymen
       || (purchaseType === "GIFT" && JSON.stringify(order.metadata?.giftDraft) !== JSON.stringify(giftDraft))) {
     throw paymentError("IDEMPOTENCY_CONFLICT", "같은 요청으로 다른 선물을 준비할 수 없습니다.");
   }
+  assertPaypalOrderMatches(order, { paymentMethod, priceKRW: plan.wonPrice });
   return order;
 }
 

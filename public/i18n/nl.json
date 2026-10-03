@@ -2060,6 +2060,12 @@
     "agreeAndViewResult": "Akkoord en resultaat bekijken"
   },
   "payment": {
+    "paypal": {
+      "usdHint": "Internationale betaling · Controleer het USD-bedrag vooraf",
+      "rateNotice": "Omgerekend van de bestaande KRW-prijs. Wisselkoersdatum: {date} (ECB).",
+      "close": "Sluiten en betaalstatus bekijken",
+      "wait": "Keur de betaling goed in PayPal en bekijk hier de status."
+    },
     "loader": {
       "eyebrow": "Moonlight-betalingscontrole",
       "title": "Veilig uw betalingsstatus controleren",

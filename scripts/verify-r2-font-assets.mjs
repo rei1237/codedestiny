@@ -44,8 +44,8 @@ const FONT_FACE_SOURCES = [
   "public/zh/index.html",
 ];
 
-// CSP 정의 3곳. 하나만 넓히고 나머지를 빠뜨리면 경로에 따라 폰트가 죽으므로 전부 본다.
-const CSP_SOURCES = ["_headers", "public/_headers", "middleware.ts"];
+// CSP 정의 2곳. 하나만 넓히고 나머지를 빠뜨리면 경로에 따라 폰트가 죽으므로 전부 본다.
+const CSP_SOURCES = ["_headers", "public/_headers"];
 
 function collectFontFaceOrigins() {
   const origins = new Map();
@@ -80,7 +80,7 @@ function collectFontSrcDirectives() {
       failures.push(`CSP source missing: ${relativePath}`);
       continue;
     }
-    // 세미콜론(_headers 구분자) / 큰따옴표(middleware.ts 문자열 끝) / 줄바꿈까지가 한 디렉티브.
+    // 세미콜론(_headers 구분자) / 큰따옴표 / 줄바꿈까지가 한 디렉티브.
     // 작은따옴표는 값 자체('self')에 쓰이므로 종료문자로 넣으면 안 된다.
     const matches = source.match(/font-src[^;"\n]*/g) || [];
     if (!matches.length) {

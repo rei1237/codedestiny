@@ -1,6 +1,7 @@
 import { authFetch } from "../../app/_lib/auth-client";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import checkoutEntry from "@/js/core/checkout-entry.js";
+import type { PaypalCharge } from "@/js/core/checkout-entry.js";
 
 type AuthPortOneUser = {
   id?: string;
@@ -18,6 +19,7 @@ type PortOnePaymentRequestOptions = {
   paymentId: string;
   orderName: string;
   totalAmount: number;
+  paypalCharge?: PaypalCharge | null;
   redirectPath: string;
   customer: PortOneCustomer;
   customData: Record<string, unknown>;
@@ -458,7 +460,9 @@ export async function requestPortOneSinglePayment(
       locale: requestData.locale,
     });
 
-    const response = await window.PortOne!.requestPayment(requestData);
+    const response = dedicatedChannelKeyName === "paypalChannelKey"
+      ? await checkoutEntry.requestPaypalPayment(requestData, options.paypalCharge)
+      : await window.PortOne!.requestPayment(requestData);
     if (response?.code) {
       return {
         ok: false,

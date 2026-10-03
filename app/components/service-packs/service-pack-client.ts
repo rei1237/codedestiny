@@ -1,7 +1,7 @@
 import {authFetch,isMobileAppRuntime} from '@/app/_lib/auth-client';
 import {getApiBaseUrl} from '@/app/_lib/api-config';
 import {requestPortOneSinglePayment,type PortOneCustomer} from '@/lib/payment/portone';
-import checkoutEntry from '@/js/core/checkout-entry.js';
+import checkoutEntry, {type PaypalCharge} from '@/js/core/checkout-entry.js';
 
 export const PACK_FISH_IDS=['mackerel','salmon','flounder','tuna'] as const;
 export type PackFishId=typeof PACK_FISH_IDS[number];
@@ -10,7 +10,7 @@ export type OwnedServicePack={entitlementId:string;orderId:string;planId:string;
 export type PackQuote={ok:true;requestId:string;featureKey:string;accessMethod:string|null;status:'available'|'processing'|'used'|'restored'|'unavailable'|'paid';candidates:OwnedServicePack[];existingUse:null|{evidenceId:string;entitlementId:string;remainingUses:number}};
 export type PackGiftDraft={senderName:string;recipientName:string;giftMessage:string};
 export type PackPurchaseType='SELF'|'GIFT';
-export type PackOrder={purchaseType?:PackPurchaseType;giftId?:string;merchantUid:string;paymentAmount:number;productName:string;customer:PortOneCustomer;storeId:string;channelKey:string;status?:string;entitlementGranted?:boolean;packSnapshot:Omit<ServicePackPlan,'autoRenew'>};
+export type PackOrder={paypalCharge?:PaypalCharge|null;purchaseType?:PackPurchaseType;giftId?:string;merchantUid:string;paymentAmount:number;productName:string;customer:PortOneCustomer;storeId:string;channelKey:string;status?:string;entitlementGranted?:boolean;packSnapshot:Omit<ServicePackPlan,'autoRenew'>};
 export class ServicePackError extends Error{constructor(public code:string,public status=0){super(code);}}
 const positive=(value:unknown)=>Number.isSafeInteger(value)&&Number(value)>0;
 const text=(value:unknown)=>typeof value==='string'&&value.length>0;
@@ -90,10 +90,10 @@ export async function confirmPackOrderWithRecheck(orderId:string,signal?:AbortSi
 }
 // 결제수단은 꽃돼지 결제창과 같은 표(js/core/checkout-entry.js DIRECT_PAY_METHODS)가 정본이다 — 값을 여기 베끼지 않는다.
 // 카드는 종전 그대로(config payMethod·이니시스 채널, 주문 기록 card_general)이고, 카카오페이만 표에서 전용 채널을 받는다.
-export type PackPayMethod='CARD'|'KAKAOPAY';
-export const PACK_PAY_METHODS:readonly PackPayMethod[]=['CARD','KAKAOPAY'];
+export type PackPayMethod='CARD'|'KAKAOPAY'|'PAYPAL';
+export const PACK_PAY_METHODS:readonly PackPayMethod[]=['CARD','KAKAOPAY','PAYPAL'];
 /** 저장된 수단이 지금 꺼져 있으면(전용 채널키 없음 등) 카드로 이어간다. 확정 시 서버가 PG 결과로 수단을 바로잡는다. */
-export const packPayMethod=(value:unknown):PackPayMethod=>value==='KAKAOPAY'&&checkoutEntry.isDirectPayMethodEnabled('KAKAOPAY')?'KAKAOPAY':'CARD';
+export const packPayMethod=(value:unknown):PackPayMethod=>value==='PAYPAL'?'PAYPAL':value==='KAKAOPAY'&&checkoutEntry.isDirectPayMethodEnabled('KAKAOPAY')?'KAKAOPAY':'CARD';
 function packPayFields(method:PackPayMethod):{orderMethod:string;payFields?:{payMethod:string;channelKeyName:string}}{
  if(method==='CARD')return {orderMethod:'card_general'};
  if(!checkoutEntry.setSelectedDirectPayMethod(method))throw new ServicePackError('PAY_METHOD_UNAVAILABLE');
@@ -121,7 +121,7 @@ export async function payPackOrder(order:PackOrder,payMethod:PackPayMethod='CARD
  const giftReturn=`/gift/complete/?orderId=${encodeURIComponent(order.merchantUid)}`;
  if(order.entitlementGranted||order.status?.toUpperCase()==='PAID'){if(order.purchaseType==='GIFT'){window.location.assign(giftReturn);return false;}return confirmPackOrder(order.merchantUid);}
  const {payFields}=packPayFields(payMethod);
- const response=await requestPortOneSinglePayment({...(payFields?{payFields}:{}),apiBase:getApiBaseUrl(),paymentId:order.merchantUid,orderName:order.productName,totalAmount:order.paymentAmount,
+ const response=await requestPortOneSinglePayment({...(payFields?{payFields}:{}),paypalCharge:order.paypalCharge,apiBase:getApiBaseUrl(),paymentId:order.merchantUid,orderName:order.productName,totalAmount:order.paymentAmount,
   redirectPath:order.purchaseType==='GIFT'?giftReturn:`/points/?service_pack_return=1&orderId=${encodeURIComponent(order.merchantUid)}#fish-packs`,customer:order.customer,storeId:order.storeId,channelKey:order.channelKey,
   customData:{productType:'service_pack',planId:order.packSnapshot.planId}});
  if(!response.ok){

@@ -96,6 +96,7 @@ type PrepareSubscriptionOrderResponse = {
     planId: string;
     durationMonths: number;
     paymentAmount: number;
+    paypalCharge?: import("@/js/core/checkout-entry.js").PaypalCharge | null;
     productName: string;
     productType: "membership_pass";
     profileLimit: number;
@@ -2714,6 +2715,7 @@ export default function PointsPage() {
    * lang 이 바뀌면 다시 계산한다 — checkoutEntry.text 는 cdTranslate(LocaleRuntimeBridge)를 통해 읽으므로
    * 사전 로드 전에는 한국어 폴백이 나온다.
    */
+  const [payMethodConfigVersion, setPayMethodConfigVersion] = useState(0);
   const passPayMethods = useMemo(() => {
     const decorate = (id: string) => ({
       id,
@@ -2734,10 +2736,20 @@ export default function PointsPage() {
     // checkoutEntry.text 는 런타임 사전(globalThis.cdTranslate)을 읽으므로 ESLint 가 이 memo 의
     // 언어 의존을 볼 수 없다 — lang 을 빼면 로케일을 바꿔도 라벨이 옛 언어로 굳는다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang]);
+  }, [lang, payMethodConfigVersion]);
 
   /* ── 상태 ──────────────────────────────────────────────────────── */
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  useEffect(() => {
+    if (!authUser?.id || checkoutEntry.shouldUseAppStoreEntry()) return;
+    let active = true;
+    void fetchPortOnePaymentConfigCached(apiBase).then((config) => {
+      if (!active) return;
+      checkoutEntry.setDirectPayMethodAvailability(config as unknown as Record<string, unknown>);
+      setPayMethodConfigVersion((version) => version + 1);
+    }).catch(() => { /* PayPal remains unavailable until config is confirmed. */ });
+    return () => { active = false; };
+  }, [apiBase, authUser?.id]);
 
   const [isBooting, setIsBooting] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -4210,7 +4222,7 @@ export default function PointsPage() {
       // 둘은 클릭 시점에 이미 발사돼 있고 서로 의존이 없는데, 뒤에 두면 번호가 없는 첫 결제 사용자가
       // SDK 다운로드를 다 기다린 뒤에야 입력창을 봤다. 앞에 두면 그 다운로드가 입력 시간 뒤에 숨는다.
       const customerPhoneNumber = normalizePaymentPhoneNumber(order.customer?.phoneNumber || "")
-        || await ensurePaymentPhoneNumber(apiBase, authUser, null, Boolean(order.customer?.email));
+        || (order.paypalCharge ? "" : await ensurePaymentPhoneNumber(apiBase, authUser, null, Boolean(order.customer?.email)));
       setAuthUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
 
       // 클릭 시점에 prepare 와 함께 발사해 둔 것을 여기서 회수한다(대개 이미 끝나 있다).
@@ -4281,7 +4293,9 @@ export default function PointsPage() {
       // 이 주문은 결제창으로 넘어갔다. 성공하든 취소되든 재사용하지 않는다 —
       // 이미 시도된 paymentId 로 다시 결제창을 열면 PG 가 거절한다.
       subscriptionPrepareRef.current = null;
-      const rsp = await window.PortOne.requestPayment(requestData);
+      const rsp = directPayFields.orderMethod === "paypal"
+        ? await checkoutEntry.requestPaypalPayment(requestData, order.paypalCharge)
+        : await window.PortOne.requestPayment(requestData);
       const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
 
       if (!rsp || rsp.code || !paymentId) {

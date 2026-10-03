@@ -26,6 +26,7 @@ export function normalizeSecretKey(rawKey) {
  * 그중 하나가 빠지고, 빠진 그 하나가 프로덕션 채널키다.
  */
 export function stagingDeferralReason(key) {
+  if (String(key || '').trim().toUpperCase() === 'PAYPAL_ENABLED') return 'PayPal 실운영 활성화는 스테이징으로 복제하지 않는다';
   const name = normalizeSecretKey(key);
 
   if (/^PORTONE_/.test(name) || /^INI/.test(name) || name === "MID") {

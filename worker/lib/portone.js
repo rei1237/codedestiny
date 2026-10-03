@@ -105,6 +105,7 @@ export function getPortOneConfig(env) {
     // 하나만 받으므로, 이 값이 없으면 카카오페이 결제창을 열 방법이 아예 없다(같은 창에 합칠 수 없다).
     // 🔴 PORTONE_REQUIRED_ENV_KEYS 에 넣지 말 것 — 넣으면 이 채널키를 투입하기 전까지 카드·계좌이체·
     // 상품권까지 전부 503 이 된다. 미설정은 "카카오페이 카드만 비활성"으로 끝나야 한다.
+    portonePaypalChannelKey: getExactEnv(env, "PORTONE_PAYPAL_CHANNEL_KEY"),
     portoneKakaopayChannelKey: getExactEnvWithAlias(env, "PORTONE_KAKAOPAY_CHANNEL_KEY", [
       "PORTONE_KAKAOPAY_CHANNEL",
       "PORTONE_CHANNEL_KEY_KAKAOPAY",
@@ -304,6 +305,7 @@ export function getPortOnePublicConfig(env) {
     // 🔴 수단별 채널키. 클라이언트는 이 **필드 이름**을 checkout-entry 의 DIRECT_PAY_METHODS 표에서
     // 받아(channelKeyName) 여기서 값을 꺼낸다. 새 수단을 추가할 때 이름만 늘리면 된다.
     kakaopayChannelKey,
+    paypalChannelKey: String(env?.PAYPAL_ENABLED || "") === "1" && config.portoneWebhookSecret && config.portoneApiSecret && config.portoneStoreId ? config.portonePaypalChannelKey : "",
     currency: "CURRENCY_KRW",
     payMethod: "CARD",
     noticeUrl,

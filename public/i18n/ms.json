@@ -2060,6 +2060,12 @@
     "agreeAndViewResult": "Setuju dan lihat keputusan"
   },
   "payment": {
+    "paypal": {
+      "usdHint": "Bayaran antarabangsa · Semak jumlah USD sebelum membayar",
+      "rateNotice": "Ditukar daripada harga KRW sedia ada. Tarikh kadar tukaran: {date} (ECB).",
+      "close": "Tutup dan semak status bayaran",
+      "wait": "Luluskan bayaran dalam PayPal, kemudian semak statusnya di sini."
+    },
     "loader": {
       "eyebrow": "Cek pembayaran Moonlight",
       "title": "Menyemak status pembayaran anda dengan selamat",

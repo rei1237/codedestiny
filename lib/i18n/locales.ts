@@ -85,6 +85,28 @@ export function toLocale(value?: string): Locale | null {
   return (LOCALES as readonly string[]).find((locale) => locale.toLowerCase() === normalized) as Locale;
 }
 
+/**
+ * BCP 47·og:locale 표기("zh-CN"·"zh-TW"·"ja-JP"·"zh_TW"·"zh-Hant")를 Locale 키로 되돌린다.
+ * `toLocale` 은 키("zh"·"zh-TW")만 받아서 htmlLang/hrefLang 표기("zh-CN")는 null 이었다.
+ * 모르는 값은 null — 호출부가 기본(ko)을 고른다.
+ */
+export function resolveLocaleTag(value?: string): Locale | null {
+  const tag = String(value || "").trim().toLowerCase().replace("_", "-");
+  if (!tag) return null;
+  const same = (candidate: string) => candidate.toLowerCase().replace("_", "-") === tag;
+  return (
+    LOCALES.find((locale) => {
+      const config = LOCALE_CONFIG[locale];
+      return [locale, config.htmlLang, config.hrefLang, config.ogLocale, ...(config.hrefLangAliases || [])].some(same);
+    }) ?? null
+  );
+}
+
+/** 페이지 로케일(어느 표기든) → og:locale. 모르면 ko_KR. */
+export function ogLocaleFor(value?: string): string {
+  return LOCALE_CONFIG[resolveLocaleTag(value) ?? "ko"].ogLocale;
+}
+
 export function normalizePath(path: string): string {
   const raw = String(path || "/").trim();
   if (!raw) return "/";

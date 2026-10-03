@@ -8,6 +8,7 @@ import {
   siteSeo,
   toCanonicalUrl,
 } from "./seo/siteSeo";
+import { ogLocaleFor } from "./i18n/locales";
 
 export const SEO_SITE_URL = siteSeo.siteUrl;
 export const SEO_DEFAULT_OG_IMAGE = siteSeo.defaultOgImage;
@@ -29,6 +30,8 @@ export type BuildSeoMetadataOptions = {
   publishedTime?: string;
   modifiedTime?: string;
   hreflang?: Record<string, string>;
+  /** 페이지 로케일(ko 가 아닐 때만 넘긴다). og:locale 을 정한다. 생략하면 ko_KR. */
+  locale?: string;
 };
 
 /**
@@ -123,7 +126,7 @@ export function buildSeoMetadata(options: BuildSeoMetadataOptions): Metadata {
       description,
       url: canonical,
       siteName: siteSeo.brandName,
-      locale: "ko_KR",
+      locale: ogLocaleFor(options.locale),
       images: [
         {
           url: image,

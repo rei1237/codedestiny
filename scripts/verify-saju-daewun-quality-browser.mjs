@@ -41,7 +41,12 @@ try{
       if(request.method()!=='GET'&&/\/api\/(?:billing|payments|.*generate|.*ai)(?:\/|$)/.test(url.pathname))paidRequests.push(url.pathname);
       return route.continue();
     });
-    await context.addInitScript(()=>sessionStorage.setItem('privacyAgreed','true'));
+    // .card·.rpt-v2-block 은 content-visibility:auto 라 뷰포트 밖이면 하위를 건너뛴다 — innerText 는 비고 max-height 전환·높이 측정은 멈춘다.
+    // 읽거나 높이를 기다리는 요소는 대기 조건 안에서 뷰포트로 옮기고(true 일 때만 통과) 같은 평가에서 값을 돌려준다.
+    await context.addInitScript(()=>{
+      sessionStorage.setItem('privacyAgreed','true');
+      window.__cdVerifyInView=el=>{const top=el.getBoundingClientRect().top;if(top<-2||top>=innerHeight/2){el.scrollIntoView({block:'start',behavior:'instant'});return false;}return true;};
+    });
     const page=await context.newPage();activePage=page;
     page.on('dialog',dialog=>dialog.dismiss());
     page.on('pageerror',error=>{if(!/^(?:Error:\s*)?google_translate_script_failed$/.test(error.message))errors.push(error.message);});
@@ -70,11 +75,9 @@ try{
     });
     await page.locator('#dwDetail .saju-cycle-guide').waitFor({state:'visible'});
     const guide=page.locator('#dwDetail .saju-cycle-guide');
-    await guide.evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));
-    await page.waitForFunction(()=>document.querySelector('.saju-cycle-guide')?.innerText.length>500);
+    const content=await (await page.waitForFunction(()=>{const el=document.querySelector('.saju-cycle-guide');return !!el&&window.__cdVerifyInView(el)&&el.innerText.length>500&&el.innerText;})).jsonValue();
     assert.equal(await guide.locator('dt').count(),9);
     assert.equal(await page.locator('#yearList .year-row').count(),10);
-    const content=await guide.innerText();
     assert.match(content,/이번 지지에서 제공된 장간은/);
     assert.match(content,/통근/);
     assert.match(content,/합화 후보|합화 조건이 함께 확인/);
@@ -111,20 +114,24 @@ try{
       const block=document.getElementById('rpt-v2-section-quantumCard');
       if(!block.classList.contains('open'))toggleReportFeatureCard(block.querySelector('.rpt-v2-toggle-btn'));
     });
-    await page.waitForFunction(()=>document.querySelector('#rpt-v2-section-quantumCard .rpt-v2-detail')?.getBoundingClientRect().height>400);
+    // 펼치면 위쪽 블록 높이가 바뀌어 블록이 화면 밖으로 밀릴 수 있으므로 열린 뒤에도 뷰포트 안에서 높이를 기다린다.
+    await page.waitForFunction(()=>{
+      const block=document.getElementById('rpt-v2-section-quantumCard');
+      return window.__cdVerifyInView(block)&&block.querySelector('.rpt-v2-detail').getBoundingClientRect().height>400;
+    });
     const quantumRelationships=page.locator('#quantumSection .qm-section').filter({has:page.locator('.qm-sec-title',{hasText:'운의 관계 — 합·합화·충(沖) 조건'})});
     await quantumRelationships.evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));
     await page.waitForFunction(()=>{
       const section=Array.from(document.querySelectorAll('#quantumSection .qm-section')).find(item=>item.querySelector('.qm-sec-title')?.textContent.startsWith('운의 관계'));
       if(!section)return false;
-      const rect=section.getBoundingClientRect();
-      return rect.height>100&&rect.top>=-2&&rect.top<innerHeight/2&&section.checkVisibility({checkVisibilityCSS:true});
+      return window.__cdVerifyInView(section)&&section.getBoundingClientRect().height>100&&section.checkVisibility({checkVisibilityCSS:true});
     });
     await page.screenshot({path:resolve(directory,'quantum-'+width+'.png')});
     // Real recalculation through the same input form, using its unknown-time control.
     await page.evaluate(()=>{document.getElementById('birthTimeTip').click();});
-    await page.evaluate(async()=>{await calculate();});
-    await page.waitForFunction(()=>window.__cdSajuTimeUnknown===true);
+    // calculate() 는 결과 대시보드를 다시 그리며 iframe 을 교체한다. 그 사이 열려 있는 evaluate 가 컨텍스트 소멸로 끊기므로 완료 신호만 기다린다.
+    await page.evaluate(()=>{window.__cdVerifyCalcDone=false;calculate().finally(()=>{window.__cdVerifyCalcDone=true;});});
+    await page.waitForFunction(()=>window.__cdVerifyCalcDone===true&&window.__cdSajuTimeUnknown===true);
     await page.evaluate(()=>{window.unlockedFeatureMap.section_daewun=true;renderDaewun(window.__cdLastDaewunBazi);renderQuantumStrategy(G_PILLARS,G_NATAL,window.__cdLastDaewunBazi);});
     const unknown=await page.evaluate(()=>({rows:window.G_DAEWUN,text:document.getElementById('dwGrid').textContent,quantum:document.getElementById('quantumSection').textContent}));
     assert.deepEqual(unknown.rows,[],'unknown hour does not fabricate a start age');

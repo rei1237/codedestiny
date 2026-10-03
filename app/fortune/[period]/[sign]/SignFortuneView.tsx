@@ -10,6 +10,7 @@
  * DESIGN.md 의 One Accent Rule · Glow-Not-Shadow · Hue-Stays Rule 을 지킨다.
  */
 import Link from "next/link";
+import { founder } from "@/lib/brand/founder";
 import { formatFortuneEvidence, resolveFortuneMarked } from "@/lib/fortune/localized-evidence";
 import type { LangBox } from "@/lib/fortune/daily-data";
 import { FusionCrossSell } from "@/app/components/FusionCrossSell";
@@ -148,6 +149,11 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
             <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>
               {`${profile.rangeLabel} · ${profile.element} · ${profile.ruler}`}
             </p>
+            {locale === "ko" ? (
+              <p className={`mt-2 break-keep text-xs leading-6 ${MUTED}`}>
+                {founder.credential} · <Link href="/about/#author" className="underline underline-offset-2">제작자 소개</Link> · <Link href="/methodology/" className="underline underline-offset-2">계산 기준</Link>
+              </p>
+            ) : null}
           </div>
           <YeoniPortrait mood={moodForScore(score.overall)} size={104} priority className="mt-1" />
         </header>

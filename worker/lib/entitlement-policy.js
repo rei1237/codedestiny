@@ -115,6 +115,7 @@ const PG_PAYMENT_METHODS = new Set([
   "single_purchase",
   "transfer",
   "kakaopay",
+  "paypal",
   "naverpay",
   "easy_pay",
   "mobile",

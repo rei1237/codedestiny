@@ -17,6 +17,7 @@ export type DirectPayMethodId =
   | "CARD"
   | "TRANSFER"
   | "KAKAOPAY"
+  | "PAYPAL"
   | "MOBILE"
   | "GIFT_CULTURELAND"
   | "GIFT_BOOKNLIFE"
@@ -24,6 +25,8 @@ export type DirectPayMethodId =
 
 /** PortOne V2 요청에 실리는 payMethod 값. DirectPayMethodId 와 1:1 이 아니다. */
 export type PortOnePayMethod = "CARD" | "TRANSFER" | "MOBILE" | "GIFT_CERTIFICATE" | "EASY_PAY";
+
+export type PaypalCharge = { currency: "USD"; totalAmount: number; priceKRW: number; rate: number; rateDate: string; quotedAt: string; source: string };
 
 /** PortOne V2 이니시스 경로가 받는 상품권 종류. 해피머니·CULTURE_GIFT 는 대응 값이 없다. */
 export type GiftCertificateType = "CULTURELAND" | "BOOKNLIFE" | "SMART_MUNSANG";
@@ -194,6 +197,7 @@ export type PaymentChoiceCardSpec = {
 };
 
 declare const checkoutEntry: {
+  requestPaypalPayment(request: object, charge?: PaypalCharge | null): Promise<{ paymentId?: string; code?: string; message?: string }>;
   VERSION: number;
   RETURN_KEY: string;
   RETURN_TTL_MS: number;

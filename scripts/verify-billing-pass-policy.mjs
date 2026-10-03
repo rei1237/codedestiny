@@ -698,8 +698,8 @@ assertNotContains(cardSubscriptionSource, 'setProcessingStage("월정석 정보�
 // 한 프레임을 더 먹었다 — 쓸모없는 지연이고, 사용자 제스처와 requestPayment 사이가 벌어져 모바일에서
 // 결제창이 차단될 위험까지 만든다. 정리 → 곧바로 requestPayment 순서만 고정한다.
 assertNotContains(cardSubscriptionSource, "await closeProcessingOverlayBeforeExternalCheckout();", "overlay cleanup must not be awaited before opening the PG window");
-assertBefore(cardSubscriptionSource, "closeProcessingOverlayBeforeExternalCheckout();", "const rsp = await window.PortOne.requestPayment(requestData);", "subscription PG opens right after the React overlay is cleared");
-assertBefore(cardSubscriptionSource, "const rsp = await window.PortOne.requestPayment(requestData);", "withSubscriptionMethod(orderMethod, \"결제 승인 내역을 안전하게 확인하고 있어요.", "subscription confirm wait starts only after PG response");
+assertBefore(cardSubscriptionSource, "closeProcessingOverlayBeforeExternalCheckout();", "const rsp = directPayFields.orderMethod === \"paypal\"", "subscription PG opens right after the React overlay is cleared");
+assertBefore(cardSubscriptionSource, "const rsp = directPayFields.orderMethod === \"paypal\"", "withSubscriptionMethod(orderMethod, \"결제 승인 내역을 안전하게 확인하고 있어요.", "subscription confirm wait starts only after PG response");
 // 2026-10-01: "PDF 서비스와 일반 유료 서비스 조건은 상품별 안내…" 단언은 지웠다. 그 문장은 {false&&} 안에서만
 // 렌더되던 SubscriptionSection 본문에만 있어 실제 화면을 지키지 못했고, 죽은 컴포넌트를 지우면서 함께 사라졌다.
 assertContains(pointsSource, "subscriptions?: Record<string, unknown>[]", "points page reads payments/me subscriptions");
@@ -870,7 +870,7 @@ assertContains(indexSource, "'[direct-checkout] PortOne requestPayment failed'\n
 // finally 는 결제창이 닫힌 **뒤** 실행된다(오버레이 해제·억제 해제를 성공·실패·취소 한 곳에서 처리).
 assertContains(
   indexSource,
-  "window.__cdSuppressPaymentUnloadBlock = true;\n    var rsp;\n    try {\n      rsp = await window.PortOne.requestPayment(requestData);",
+  "window.__cdSuppressPaymentUnloadBlock = true;\n    var rsp;\n    try {\n      rsp = directPayFields.orderMethod === 'paypal'",
   "nothing may sit between the direct-checkout handoff and PortOne requestPayment",
 );
 assertContains(indexSource, "status: 'paymentProcessing'", "payment wait UI remains during server confirmation");
