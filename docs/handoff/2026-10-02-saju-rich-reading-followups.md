@@ -20,7 +20,7 @@ next: "docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B1(ilju
 
 ## 다음 세션 시작 명령
 
-A1·A2·A3·C1 은 끝났다(남은 것: B1·B2·B3·C2·D1·E1). 과제마다 한 세션씩 쓴다. 아래 문장을 그대로 붙여 넣는다.
+A1·A2·A3·C1·E1 은 끝났다(남은 것: B1·B2·B3·C2·D1). 과제마다 한 세션씩 쓴다. 아래 문장을 그대로 붙여 넣는다.
 
 ```
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B1(iljuCard 상단 구 컴포넌트 디자인 정리)을 진행해줘
@@ -28,7 +28,6 @@ docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B2(tsModal 네
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B3(쌓인 표의 스크린리더 의미)를 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 C2(비한국어 로케일 풍부한 판)를 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 D1(daewun-quality 검증기 타임아웃)을 진행해줘
-docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 E1(47030b73d 의 남은 해석 변경 검토)을 진행해줘
 ```
 
 여러 세션을 동시에 돌리면 두 번째부터 워크트리를 만든다(`scripts/create-safe-worktree.ps1`). 같은 파일(`js/core/saju/reading-rich.js`)을 건드리는 B3·C2 는 동시에 돌리지 않는다.
@@ -101,7 +100,13 @@ docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 E1(47030b73d �
 
 ### E. 해석 규칙 (사용자 판단 필요)
 
-**E1. 47030b73d 의 남은 해석 변경** — RED(운세 엔진·유료 AI 입력).
+**E1. 47030b73d 의 남은 해석 변경** — ✅ 완료 2026-10-03: 실측 후 사용자가 현 상태 유지로 결정(코드 무변경).
+- `getQuantumElType` 기후 보정: 전후 결과 차이 0건. 종격이 아닌 명식 19,647개에서 억부 용신∪기신이 항상 5행을 덮어 조후 분기에 도달하지 않는다(종격은 앞에서 반환).
+- `analyzeFortuneGZ`: 무작위 30,000건 중 4,282건(14%) 등급 변화. 원인은 천간충 甲庚·乙辛 추가(약 3,700), 수화기제·화련진금 대발복 삭제(약 410), 辛일간+丁 경고·합화 천간충 무효 삭제(약 260). 기준 명식 辛未 庚寅 辛酉 壬辰 은 60간지 중 24개가 바뀐다(丙寅 95→45, 甲子 85→45, 丁亥 45→85).
+- 유지 이유: 충을 확정 흉으로 읽지 않는 계약(`docs/design/saju-daewun-interpretation-contract.md`)과 공식 천간충 4쌍 정합. 되돌리면 금지어·사고/수술 예고 문구가 되살아난다.
+- 판정만 부분 복원하는 선택지(辛+丁 경고·합화 무효 로직)는 사용자가 택하지 않았다. 다시 열려면 RED 절차(`--write` 재생성·invariance 해시)가 필요하다.
+- (아래는 원래 기록)
+- RED(운세 엔진·유료 AI 입력).
 - 이번에는 대운 점수(`evalDaewun`·`evaluateDaewun`)만 사용자 지시로 되돌렸다.
 - 같은 커밋이 바꾼 아래 두 곳은 그대로다. 사용자가 "대운"만 지목했기 때문이다.
   - `getQuantumElType` 의 기후 보정(`js/saju-engine.js:4196`)
