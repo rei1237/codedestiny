@@ -1,10 +1,20 @@
 ---
-status: blocked
+status: active
 updated: 2026-10-03
-next: DEFAULT_FORTUNE_COST_POINTS 운영 시크릿 1개와 동기화 목록 1줄 삭제 승인 응답을 확인하고, 승인된 경우 해당 항목만 정리한 뒤 공식 운영 승격을 1회 실행한다.
+next: 승인된 시크릿 정리는 완료했다. 정리 커밋의 main CI 통과 후 공식 production workflow를 1회 실행하고, 런 URL을 전달한다.
 ---
 
 # 마이 달빛 정원과 꽃돼지 성장 카드
+
+## 2026-10-03 재개: 삭제 승인 확인 및 정리 완료
+
+- 사용자가 이 재개 채팅에서 **해당 1개와 목록 1줄 삭제 후 운영 승격 승인**으로 답했다. 아래의 승인 대기·시크릿 존재 기록은 이전 세션 상태다.
+- `scripts/sync-cloudflare-worker-secrets.mjs`에서 `DEFAULT_FORTUNE_COST_POINTS` 1줄만 제거했다. app/src/lib/worker/functions/config/scripts/__tests__/test/tests 참조 검색은 이제 0건이다.
+- 직접 secret DELETE는 Cloudflare 오류 10215(최신 업로드 버전이 미배포됨)로 거절됐다. `wrangler versions secret delete`로 해당 이름만 제외한 버전 `a224cc74-75f6-4f7c-a0c2-64fcb02c7286`을 생성했다. 운영 트래픽 배포 내역은 전후 동일하며, 다른 바인딩 전체도 전후 동일함을 확인했다. 로컬 운영 승격은 실행하지 않았다.
+- 원격 secrets 목록에서 대상 부재, 70→69개를 확인했다. 기존 업로드 용량 가드는 126/128, 여유 2개로 통과했다. 가드·Worker 설정·가격·이용권·인증/API/DB 코드는 변경하지 않았다. 비밀값은 출력·보관하지 않았다.
+- `node --check scripts/sync-cloudflare-worker-secrets.mjs`, `node --test __tests__/release/worker-binding-budget.test.js`(3/3), `git diff --check` 통과. `npm run check:fast -- --plan`은 critical 자동 승격을 확인했다.
+- `npm run check:fast`는 paid-gate-suite에서 메모리 할당 오류(`Array buffer allocation failed`, CoreCLR 초기화 실패 등)와 함께 exit 1로 중단됐다. 이를 통과로 기록하지 않는다. 공식 main CI가 승격 전 필수 게이트다.
+- 수정은 `D:/Development/codedestiny-worktrees/unused-fortune-secret-20261003-225019`에서 격리했다. 원래 main의 미커밋 셸/RSS/marketing/llms 변경과 `.tmp/`는 보존하며 전달 커밋에 포함하지 않는다.
 
 ## 사용자 요청과 확정한 방향
 
