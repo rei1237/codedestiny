@@ -20,11 +20,10 @@ next: "docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B1(ilju
 
 ## 다음 세션 시작 명령
 
-A1·A2·A3·C1·E1 은 끝났다(남은 것: B1·B2·B3·C2·D1). 과제마다 한 세션씩 쓴다. 아래 문장을 그대로 붙여 넣는다.
+A1·A2·A3·B3·C1·E1 은 끝났다(남은 것: B1·B2·C2·D1). 과제마다 한 세션씩 쓴다. 아래 문장을 그대로 붙여 넣는다.
 
 ```
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B1(iljuCard 상단 구 컴포넌트 디자인 정리)을 진행해줘
-docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B3(쌓인 표의 스크린리더 의미)를 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 C2(비한국어 로케일 풍부한 판)를 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 D1(daewun-quality 검증기 타임아웃)을 진행해줘
 ```
@@ -71,7 +70,8 @@ docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 D1(daewun-qual
 - 360px 에서 모달 위에 약 50px 빈칸이 있다.
 - `#tsGrid` 에 하드코딩 hex 가 남아 있다.
 
-**B3. 쌓인 표(≤520px 카드형)의 스크린리더 의미** — GREEN.
+**B3. 쌓인 표(≤560px 카드형)의 스크린리더 의미** — ✅ 완료 2026-10-03 (3c4175d05). 크롬 접근성 트리 실측: 쌓은 상태에서 `thead{display:none}` 로 columnheader 가 사라지고 열 이름은 `::before` 텍스트("개수 3")로만 전달됐다. thead 를 시각적으로만 숨기고, 스택 표에 table·rowgroup·row·columnheader·rowheader·cell 역할을 명시하고, `::before` 는 `content:attr(data-label) / ""` 로 장식 처리해 중복 낭독을 막았다. 360px 가로 넘침 0 유지. Safari/VoiceOver·NVDA 실기는 미검증(역할 명시는 표준 대응).
+- (아래는 원래 기록)
 - b8baea59d 는 4열 이상 표를 좁은 화면에서 카드로 쌓는다. 셀 `data-label` 을 쓰고 thead 는 `display:none` 이다.
 - 이 상태에서 스크린리더가 열 머리를 읽지 못할 수 있다(미검증).
 - 할 일: 쌓인 상태에서도 열 머리가 전달되는지 확인한다. 안 되면 thead 를 시각적으로만 숨기는 클래스나 셀별 머리 텍스트로 바꾼다.
