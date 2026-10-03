@@ -192,13 +192,14 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 :is(html,body).neo-mode .cdh-pass__mascot{background:#2a2242}
 :is(html,body).neo-mode :is(.cdh-pass__badge,.cdh-pass__btn){color:#1b1233!important}
 .cdh-more{border:1px solid var(--cdh-line);border-radius:24px;background:color-mix(in srgb,var(--cdh-surface) 80%,transparent)}
-.cdh-more__summary{display:flex;align-items:center;gap:14px;min-height:76px;padding:12px 18px;list-style:none;cursor:pointer}
+.cdh-more__summary{position:relative;isolation:isolate;display:flex;align-items:center;gap:16px;min-height:132px;padding:26px 28px;overflow:hidden;border-radius:23px;list-style:none;cursor:pointer;background:var(--cdh-card);box-shadow:inset 0 0 0 5px var(--cdh-bg),inset 0 0 0 6px color-mix(in srgb,var(--cdh-gold) 26%,transparent)}
+.cdh-more__summary::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,var(--cdh-card) 40%,transparent),var(--cdh-page-art) right 18% / 210px auto no-repeat;opacity:.6;pointer-events:none}
 .cdh-more__summary::-webkit-details-marker{display:none}
-.cdh-more__summary img{flex:none;width:52px;height:auto}
-.cdh-more__copy{display:grid;flex:1;gap:3px;min-width:0}
-.cdh-more__copy strong{color:var(--cdh-ink);font-size:1.02rem}
+.cdh-more__summary img{flex:none;width:52px;height:52px;object-fit:contain}
+.cdh-more__copy{display:grid;flex:1;gap:9px;min-width:0}
+.cdh-more__copy strong{max-width:24ch;color:var(--cdh-ink);font-family:'CodeDestinySerifKR',serif;font-size:1.25rem;line-height:1.5;word-break:keep-all}
 .cdh-more__copy small{color:var(--cdh-muted);font-size:.78rem;line-height:1.5}
-.cdh-more__arrow{flex:none;color:var(--cdh-accent);transition:transform .2s}
+.cdh-more__arrow{flex:none;width:44px;height:44px;padding:12px;border:1px solid color-mix(in srgb,var(--cdh-gold) 40%,transparent);border-radius:50%;background:var(--cdh-card);color:var(--cdh-gold);transition:transform .2s}
 .cdh-more[open] .cdh-more__arrow{transform:rotate(180deg)}
 .cdh-more__summary .cdh-more__off,.cdh-more[open]>.cdh-more__summary .cdh-more__on{display:none}
 .cdh-more[open]>.cdh-more__summary .cdh-more__off{display:inline}
@@ -231,7 +232,19 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 #cdHomeFunnel .cd-sig__viewport{display:contents}
 #cdHomeFunnel .cd-concern__card-label{white-space:normal;overflow:visible;text-overflow:clip;word-break:keep-all;overflow-wrap:anywhere}
 .cdh-share__copy>.cdh-share__reward{margin:8px 0 0;font-size:1.06rem;font-weight:800;line-height:1.45}
-@media (max-width:767px){#cdHomeFunnel .cd-sig__grid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;width:auto;padding-inline:0}#cdHomeFunnel .cd-sig-card{flex:none;max-width:none;display:grid;grid-template-columns:96px minmax(0,1fr);border-radius:18px;transform:none;opacity:1}#cdHomeFunnel .cd-sig-card__media{aspect-ratio:auto;min-height:100%}#cdHomeFunnel .cd-sig-card__img{position:absolute;inset:0;height:100%}#cdHomeFunnel .cd-sig-card__body{gap:4px;padding:12px 14px}#cdHomeFunnel .cd-sig-card__title{font-size:15px}#cdHomeFunnel .cd-sig-card__desc{display:-webkit-box;overflow:hidden;font-size:12.5px;line-height:1.5;-webkit-line-clamp:2;-webkit-box-orient:vertical}#cdHomeFunnel .cd-sig-card__price{margin-top:2px}}
+/* Keep each consultation illustration in its original proportions, including text in the art. */
+#cdHomeFunnel .cd-sig-card__media{aspect-ratio:auto;min-height:0;align-self:center;width:100%;background:var(--cdh-card)}
+#cdHomeFunnel .cd-sig-card__img{position:static;width:100%;height:auto;object-fit:contain;transform:none}
+#cdHomeFunnel .cd-sig-card__media--portrait{aspect-ratio:16/9;background:#241820 url('/images/home/illustrated/moon-floral-dark-480.webp') center 30% / cover no-repeat}
+#cdHomeFunnel .cd-sig-card__portrait{height:100%;padding:10px 12px 0;object-fit:contain;background:none}
+@media (max-width:767px){
+  #cdHomeFunnel .cd-sig__grid{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;width:auto;padding-inline:0}
+  #cdHomeFunnel .cd-sig-card{flex:none;max-width:none;display:flex;flex-direction:column;border-radius:18px;transform:none;opacity:1;backdrop-filter:none;-webkit-backdrop-filter:none}
+  #cdHomeFunnel .cd-sig-card__body{gap:7px;padding:18px 20px 20px}
+  #cdHomeFunnel .cd-sig-card__title{font-size:15px}
+  #cdHomeFunnel .cd-sig-card__desc{display:block;overflow:visible;font-size:13px;line-height:1.65;-webkit-line-clamp:unset}
+  #cdHomeFunnel .cd-sig-card__price{margin-top:3px}
+}
 @media (max-width:380px){#cdHomeFunnel .fortune-gateway__doors--duo .fortune-gateway__door{grid-template-columns:minmax(0,1fr) 76px}#cdHomeFunnel .fortune-gateway__doors--duo .fortune-gateway__door-art{width:76px;height:76px}#cdHomeFunnel .fortune-gateway__door-title{word-break:keep-all;overflow-wrap:anywhere}}
 @media (min-width:541px){.cdh .cd-review-invite{grid-template-columns:minmax(0,1fr) 120px;gap:18px;padding:20px 26px}}
 /* 오늘의 운세 — 달빛 예화 카드(2026-10-01): 아이보리 면에 금선 두 겹, 머리에는 찻잔 연이를 담은 달문(아치) 창, 날짜는 금빛 명조.
@@ -449,4 +462,43 @@ html.neo-mode #cdHomeFunnel .cdh-portal.cdh-persona--yeoni { display: none; }
   #cdHomeFunnel .cdh-portal { min-height: 176px; }
   .cdh-portal__copy { gap: 7px; padding: 22px 18px; }
   .cdh-portal__copy strong { font-size: 20px; }
+  .cdh-more__summary { padding: 24px 20px; }
+  .cdh-more__copy strong { font-size: 18px; }
+}
+
+/* The home letter and colophon share the illustrated home's quiet paper palette. */
+:is(#emailSubBoxHome,#emailSubBox,#cdSiteFooter){--home-paper:#fffaf4;--home-ink:#49303f;--home-muted:#715866;--home-line:#d9c5a6;--home-gold:#826432;--home-art:url('/images/home/illustrated/moon-floral-light-480.webp')}
+html.neo-mode :is(#emailSubBoxHome,#emailSubBox,#cdSiteFooter){--home-paper:#171323;--home-ink:#f4edff;--home-muted:#d0bfdc;--home-line:#64543f;--home-gold:#ead6a7;--home-art:url('/images/home/illustrated/moon-floral-dark-480.webp')}
+html body #cdFinalCtaBand{padding:24px 16px;margin:8px auto 28px;border:0;background:none;box-shadow:none}
+:is(#emailSubBoxHome,#emailSubBox){position:relative;isolation:isolate;width:100%;max-width:760px;padding:32px clamp(22px,4vw,42px);border:1px solid var(--home-line);border-radius:22px;background:var(--home-paper);box-shadow:0 16px 40px -32px #49303f;transition:none;text-align:left;color:var(--home-ink)}
+:is(#emailSubBoxHome,#emailSubBox)::before{content:'';position:absolute;inset:8px;z-index:-1;border:1px solid color-mix(in srgb,var(--home-line) 55%,transparent);border-radius:16px;background:linear-gradient(90deg,var(--home-paper) 40%,transparent),var(--home-art) right top / 200px auto no-repeat;opacity:.45;pointer-events:none}
+:is(#emailSubBoxHome,#emailSubBox) .sub-header{margin-bottom:14px}
+:is(#emailSubBoxHome,#emailSubBox) .sub-title{font-family:'CodeDestinySerifKR',serif;font-size:clamp(19px,4.8vw,24px);line-height:1.5;color:var(--home-ink)!important;letter-spacing:-.025em}
+:is(#emailSubBoxHome,#emailSubBox) .sub-desc{max-width:54ch;margin-bottom:20px;color:var(--home-muted);font-size:14px;line-height:1.75}
+:is(#emailSubBoxHome,#emailSubBox) .sub-daily-group{max-width:none;margin:0 0 18px;gap:4px;align-items:flex-start;text-align:left}
+:is(#emailSubBoxHome,#emailSubBox) .sub-daily-option{color:var(--home-ink);font-size:14px;min-height:44px;font-weight:600}
+:is(#emailSubBoxHome,#emailSubBox) input[type=checkbox]{accent-color:var(--home-gold)}
+:is(#emailSubBoxHome,#emailSubBox) .sub-daily-note{padding:0;border:0;background:none;box-shadow:none;color:var(--home-muted);font-size:13px;font-weight:400;line-height:1.7}
+:is(#emailSubBoxHome,#emailSubBox) .sub-form{gap:10px;margin-bottom:0}
+:is(#emailSubBoxHome,#emailSubBox) .sub-input{min-width:0;min-height:50px;border:1px solid var(--home-line);border-radius:12px;background:var(--home-paper);color:var(--home-ink)}
+:is(#emailSubBoxHome,#emailSubBox) .sub-input::placeholder{color:var(--home-muted)}
+:is(#emailSubBoxHome,#emailSubBox) .btn-subscribe{flex:none;min-height:50px;padding:12px 20px;border:1px solid var(--home-gold);border-radius:12px;background:var(--home-ink)!important;color:var(--home-paper)!important;box-shadow:none;white-space:nowrap}
+:is(#emailSubBoxHome,#emailSubBox) :is(input,button):focus-visible{outline:2px solid var(--home-gold);outline-offset:3px}
+#cdSiteFooter{background:var(--home-paper);color:var(--home-ink)}
+#cdSiteFooter .cd-footer-shell{gap:28px 28px;padding:34px 28px 28px;border-top:1px solid var(--home-line)}
+#cdSiteFooter .cd-footer-brandcol__mark{font-family:'CodeDestinySerifKR',serif;letter-spacing:.12em;font-size:20px;color:var(--home-gold)}
+#cdSiteFooter .cd-footer-brandcol__tagline{font-size:13px;line-height:1.8;color:var(--home-muted)}
+#cdSiteFooter .cd-footer-col{gap:2px}
+#cdSiteFooter .cd-footer-col__title{font-family:'CodeDestinySerifKR',serif;font-size:16px;letter-spacing:0;margin:0 0 8px;color:var(--home-ink)}
+#cdSiteFooter .cd-footer-shell .cd-footer-link{min-height:44px;align-content:center}
+#cdSiteFooter .cd-footer-shell>.cd-yehwa-peony{display:none}
+#cdSiteFooter .cd-footer-legal{border-color:var(--home-line);padding:24px 28px;gap:16px}
+@media(min-width:901px){
+  #cdSiteFooter .cd-footer-col--guides{display:grid;grid-column:1/-1;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 24px;padding-top:22px;border-top:1px solid var(--home-line)}
+  #cdSiteFooter .cd-footer-col--guides .cd-footer-col__title{grid-column:1/-1;margin-bottom:12px}
+}
+@media(max-width:640px){
+  :is(#emailSubBoxHome,#emailSubBox) .sub-form{flex-direction:column}
+  :is(#emailSubBoxHome,#emailSubBox) .btn-subscribe{width:100%}
+  #cdSiteFooter .cd-footer-brandcol{padding-bottom:20px}
 }

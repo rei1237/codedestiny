@@ -2649,6 +2649,7 @@ export default function NeoOperationRoomPage() {
                     imageClassName={styles.vnCharacterImage}
                     asset={activeHeroCharacterAsset}
                     alt=""
+                    resizeWidth={640}
                     fallbackSrc={activeHeroFallbackSrc}
                     priority={activeHeroImagePriority}
                     sizes={activeHeroImageSizes}

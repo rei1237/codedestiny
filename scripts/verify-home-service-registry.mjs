@@ -292,8 +292,13 @@ for (const { role, sectionId, label } of PLACEMENTS) {
       fail(`${label} 카드 "${id}": 레지스트리 roles 에 "${role}" 이 없다 — 배치와 데이터가 어긋난다`);
     }
     const href = attrOf(head, "href");
-    if (href && item.href && href !== item.href) {
-      fail(`${label} 카드 "${id}": href "${href}" / 레지스트리 "${item.href}"`);
+    const collection = role === "quick" ? item.quickCollection : null;
+    const expectedHref = collection ? `#${collection}` : item.href;
+    if (collection && (!/^[A-Za-z][A-Za-z0-9]*$/.test(collection) || !shell.includes(`id="${collection}"`) || attrOf(head, "data-cd-open-collection") !== collection || attrOf(head, "data-action"))) {
+      fail(`${label} 카드 "${id}": 컬렉션 대상·열기 속성이 없거나 개별 카드 뽑기 동작이 섞였다`);
+    }
+    if (href && expectedHref && href !== expectedHref) {
+      fail(`${label} 카드 "${id}": href "${href}" / 레지스트리 "${expectedHref}"`);
     }
     // 카드에 적힌 가격은 레지스트리와 같은 가격대여야 하고, 유료면 금액까지 같아야 한다.
     const body = html.slice(card.index, html.indexOf("</a>", card.index));
