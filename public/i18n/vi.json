@@ -2060,6 +2060,12 @@
     "agreeAndViewResult": "Đồng ý và xem kết quả"
   },
   "payment": {
+    "paypal": {
+      "usdHint": "Thanh toán quốc tế · Kiểm tra số tiền USD trước khi trả",
+      "rateNotice": "Quy đổi từ giá KRW hiện tại. Ngày tỷ giá: {date} (ECB).",
+      "close": "Đóng và kiểm tra trạng thái",
+      "wait": "Xác nhận thanh toán trong PayPal, sau đó kiểm tra trạng thái tại đây."
+    },
     "loader": {
       "eyebrow": "Séc thanh toán ánh trăng",
       "title": "Kiểm tra trạng thái thanh toán của bạn một cách an toàn",

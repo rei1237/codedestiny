@@ -2060,6 +2060,12 @@
     "agreeAndViewResult": "Aceptar y ver el resultado"
   },
   "payment": {
+    "paypal": {
+      "usdHint": "Pago internacional · Revisa el total en USD antes de pagar",
+      "rateNotice": "Convertido del precio actual en KRW. Fecha del tipo de cambio: {date} (ECB).",
+      "close": "Cerrar y comprobar el pago",
+      "wait": "Autoriza el pago en PayPal y consulta su estado aquí."
+    },
     "loader": {
       "eyebrow": "Cheque de pago a la luz de la luna",
       "title": "Comprobar de forma segura el estado de su pago",

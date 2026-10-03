@@ -24,6 +24,7 @@
  * `paymentmethodeasypay` 같은 행이 이미 쌓여 있다 — 지난 주문을 되살리려면 이 표가 필요하다.
  */
 export const PG_METHOD_CODE = Object.freeze({
+  paymentmethodpaypal: "paypal",
   paymentmethodcard: "card_general",
   paymentmethodeasypay: "easy_pay",
   paymentmethodtransfer: "transfer",
@@ -38,6 +39,7 @@ const METHOD_LABEL = Object.freeze({
   card_general: "카드 결제",
   easy_pay: "간편결제",
   kakaopay: "카카오페이",
+  paypal: "PayPal",
   naverpay: "네이버페이",
   transfer: "실시간 계좌이체",
   virtual_account: "가상계좌",
@@ -58,6 +60,7 @@ const METHOD_FAMILY = Object.freeze({
   card_general: "card",
   easy_pay: "easy_pay",
   kakaopay: "easy_pay",
+  paypal: "paypal",
   naverpay: "easy_pay",
   transfer: "transfer",
   virtual_account: "virtual_account",

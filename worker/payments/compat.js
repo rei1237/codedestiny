@@ -109,6 +109,8 @@ export function toLegacyPrepareOrder(order, { config = {}, customer = null, pric
     // 🔴 셸은 인라인 config 에 storeId·channelKey 가 있으면 /api/payments/config 를 아예 부르지
     // 않는다(_cdResolveDirectCheckoutConfig). 수단별 채널키를 여기에 안 실으면 셸은 이 값을 영영 못 본다.
     kakaopayChannelKey: String(config.kakaopayChannelKey || ""),
+    paypalChannelKey: String(config.paypalChannelKey || ""),
+    paypalCharge: order?.metadata?.paypalCharge || null,
     currency: String(config.currency || "CURRENCY_KRW"),
     payMethod: String(config.payMethod || "CARD"),
     noticeUrl: String(config.noticeUrl || ""),

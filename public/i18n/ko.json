@@ -1701,6 +1701,12 @@
     "agreeAndViewResult": "동의하고 결과 보기"
   },
   "payment": {
+    "paypal": {
+      "usdHint": "해외 결제 · 결제 전 USD 금액 확인",
+      "rateNotice": "기존 원화 가격을 환산한 결제 금액입니다. 환율 기준일: {date} (ECB).",
+      "close": "닫고 결제 상태 확인",
+      "wait": "PayPal에서 결제를 승인한 뒤 이 화면에서 결제 상태를 확인합니다."
+    },
     "loader": {
       "eyebrow": "달빛 결제 확인",
       "title": "결제 상태를 안전하게 확인하고 있습니다",

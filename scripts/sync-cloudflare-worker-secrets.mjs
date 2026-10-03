@@ -225,6 +225,8 @@ const SECRET_KEYS = [
   // staging-secret-policy 가 /^PORTONE_/ 로 결제 시크릿을 판별해 스테이징에서 제외하므로,
   // 그 이름으로 등록하면 프로덕션 카카오페이 채널키가 스테이징 워커로 동기화된다.
   "PORTONE_KAKAOPAY_CHANNEL_KEY",
+  "PORTONE_PAYPAL_CHANNEL_KEY",
+  "PAYPAL_ENABLED",
   "PORTONE_STORE_ID",
   "PORTONE_webhook_URL",
   "PORTONE_webhookurl",
@@ -476,7 +478,7 @@ function putWorkerSecret(key, value) {
 }
 
 const activeSecretKeys = onlyPortone
-  ? ["PORTONE_API_SECRET", "PORTONE_API_Secret", "PORTONE_WEBHOOK_URL", "PORTONE_webhook_URL", "PORTONE_webhookurl", "PORTONE_WEBHOOK_SECRET", "PORTONE_webhook", "PORTONE_webhook_Secret", "PORTONE_CHANNEL_KEY", "PORTONE_channel", "PORTONE_KAKAOPAY_CHANNEL_KEY", "PORTONE_STORE_ID", "PORTONE_Store", "MID", "INICISMID", "INIsignkey", "INIAPIKEY", "INIAPI_IV"]
+  ? ["PORTONE_API_SECRET", "PORTONE_API_Secret", "PORTONE_WEBHOOK_URL", "PORTONE_webhook_URL", "PORTONE_webhookurl", "PORTONE_WEBHOOK_SECRET", "PORTONE_webhook", "PORTONE_webhook_Secret", "PORTONE_CHANNEL_KEY", "PORTONE_channel", "PORTONE_KAKAOPAY_CHANNEL_KEY", "PORTONE_PAYPAL_CHANNEL_KEY", "PAYPAL_ENABLED", "PORTONE_STORE_ID", "PORTONE_Store", "MID", "INICISMID", "INIsignkey", "INIAPIKEY", "INIAPI_IV"]
   : SECRET_KEYS;
 
 // 스테이징에서 의도적으로 비워 두는 시크릿. 목록의 정본은 scripts/lib/staging-secret-policy.mjs 다

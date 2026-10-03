@@ -2060,6 +2060,12 @@
     "agreeAndViewResult": "同意して結果を見る"
   },
   "payment": {
+    "paypal": {
+      "usdHint": "海外決済 · お支払い前にUSD金額を確認",
+      "rateNotice": "既存のKRW価格を換算した決済額です。為替レート基準日: {date} (ECB)。",
+      "close": "閉じて決済状況を確認",
+      "wait": "PayPalで支払いを承認した後、この画面で決済状況を確認します。"
+    },
     "loader": {
       "eyebrow": "月光決済確認",
       "title": "決済状況を安全に確認しています",

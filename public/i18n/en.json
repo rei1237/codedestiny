@@ -2060,6 +2060,12 @@
     "agreeAndViewResult": "Agree and view result"
   },
   "payment": {
+    "paypal": {
+      "usdHint": "International payment · Review USD total before paying",
+      "rateNotice": "Converted from the existing KRW price. Exchange rate date: {date} (ECB).",
+      "close": "Close and check payment status",
+      "wait": "Approve the payment in PayPal, then check its status here."
+    },
     "loader": {
       "eyebrow": "Moonlight payment check",
       "title": "Safely checking your payment status",

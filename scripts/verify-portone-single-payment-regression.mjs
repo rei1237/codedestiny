@@ -599,7 +599,7 @@ function runInstantPgWindowTests() {
     assert.ok(ensureIndex > 0, `${label} must keep its payment-phone fallback: ${ensureCall}`);
     // 폴백 호출 앞 400자 안에 "번호가 없을 때만" 가드가 있어야 한다(설명 주석이 사이에 들어간다).
     assert.ok(
-      /if \(!customerPhone\)/.test(source.slice(Math.max(0, ensureIndex - 400), ensureIndex)),
+      /if \(!customerPhone(?: && !order\.paypalCharge)?\)/.test(source.slice(Math.max(0, ensureIndex - 400), ensureIndex)),
       `${label} must only look up / prompt for a phone when the order carried none`,
     );
   }
@@ -652,8 +652,8 @@ function runInstantPgWindowTests() {
   // 이제 PG 호출 직전에 상한을 **다시 장전**하고(준비 구간용 45초로는 카드 인증 시간을 못 덮는다),
   // requestPayment 가 반환된 뒤 finally 에서 푼다.
   assertContains(indexSource, "function _cdExtendDirectPgWindowSuppression()", "direct-PG suppression must be re-armed for the PG window itself");
-  assertBefore(indexSource, "_cdExtendDirectPgWindowSuppression();", "rsp = await window.PortOne.requestPayment(requestData);", "suppression must be re-armed before the PG window renders");
-  assertBefore(indexSource, "rsp = await window.PortOne.requestPayment(requestData);", "      _cdEndDirectPgWindowSuppression();\n    }", "suppression must be released only after the PG window closes");
+  assertBefore(indexSource, "_cdExtendDirectPgWindowSuppression();", "rsp = directPayFields.orderMethod === 'paypal'", "suppression must be re-armed before either PG flow renders");
+  assertBefore(indexSource, "rsp = directPayFields.orderMethod === 'paypal'", "      _cdEndDirectPgWindowSuppression();\n    }", "suppression must be released only after the PG window closes");
 
   // ③ 접근 확인 단계에 단건/카드 카피를 붙이지 않는다.
   assertNotContains(indexSource, "_cdLoadingMessage('access_check', 'single')", "access-check copy must not claim a card checkout is being prepared");
@@ -793,7 +793,7 @@ function runDirectPgOverlayTests() {
   // #imp-iframe-wrapper, z-index:99999 — Playwright 실측) **아래**(99998)에 깔아 결제창이 뜨는
   // 순간 자연히 덮이게 하고, 내리는 것은 requestPayment 가 끝난 뒤 한 번만 한다.
   assertContains(indexSource, "overlay.style.zIndex = copy.mode === 'card' ? '99998' : '2147483647';", "the gap overlay must sit *below* the PG window instead of being timed against it");
-  assertBefore(indexSource, "rsp = await window.PortOne.requestPayment(requestData);", "      _cdHideDirectPgWaitOverlay();", "gap overlay must be released only after the PG window closes");
+  assertBefore(indexSource, "rsp = directPayFields.orderMethod === 'paypal'", "      _cdHideDirectPgWaitOverlay();", "gap overlay must be released only after the PG window closes");
   assertContains(indexSource, "Promise.resolve(_cdRunDirectKrwCheckoutCore(opts)).catch(function(_cdDirectCheckoutError) {", "gap overlay must be cleared when the checkout fails");
 
   // ⓔ PG 결제창을 덮는 body 직속 fixed UI(쿠키 배너·테마 스위치)를 결제창이 열려 있는 동안 물린다.
