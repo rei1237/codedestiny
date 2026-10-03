@@ -28,6 +28,7 @@ async function assertEssentials(page, label) {
     ['methods', '#cdQuickServices'],
     ['concern', '#cdhConcern #cdConcernPick'],
     ['chat', '.cdh-room-link:visible'],
+    ['signature', '#cdSignatureConsult'],
   ];
   for (const [name, selector] of essentials) {
     const node = page.locator(selector).first();
@@ -243,7 +244,7 @@ async function assertEssentials(page, label) {
     const deepLink = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
     await deepLink.goto(origin + '/static/index.html#cdhFeatured', { waitUntil: 'domcontentloaded' });
     await deepLink.locator('#cdhFeatured #cdSignatureConsult').waitFor({ state: 'visible', timeout: 10000 });
-    assert.equal(await deepLink.locator('#cdhMore').evaluate((more) => more.open), true, 'featured deep link reveals its relocated section');
+    assert.equal(await deepLink.locator('#cdhMore').evaluate((more) => more.open), false, 'featured is directly visible without opening more');
     for (const anchor of ['cdhPass', 'cdhExpertsSlot']) {
       await deepLink.goto(origin + '/static/index.html#' + anchor, { waitUntil: 'domcontentloaded' });
       await deepLink.waitForFunction(() => document.getElementById('cdhMore')?.open === true, null, { timeout: 10000 });

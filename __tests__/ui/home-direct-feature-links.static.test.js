@@ -53,3 +53,5 @@ for (const entry of [
 }
 
 console.log("[home-direct-feature-links] PASS");
+
+assert.ok(template.indexOf('id="cdhFeatured"') < template.indexOf('id="cdhMore"'), 'signature readings stay directly visible');

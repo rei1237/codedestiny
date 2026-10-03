@@ -113,19 +113,21 @@
   <div class="cdh-flow">
 
     <div class="cdh-slot" id="cdhConcern" tabindex="-1"><div id="cdhConcernSlot">{{concern}}</div></div>
-    <a class="cdh-room-link cdh-persona--yeoni" href="/fortune-tea-house/"><strong data-cd-trans="home.gardenCopy.yeoniRoom">운명의 찻집</strong><span data-cd-trans="home.gardenCopy.yeoniRoomNote">연이와 함께 마음을 차근차근 풀어봐요</span><span aria-hidden="true">→</span></a>
-    <a class="cdh-room-link cdh-persona--neo" href="/neo-operation-room/"><strong data-cd-trans="home.gardenCopy.neoRoom">팩폭 전략실</strong><span data-cd-trans="home.gardenCopy.neoRoomNote">네오와 함께 다음 선택을 정리해요</span><span aria-hidden="true">→</span></a>
-
-    <a class="cdh-yn-portal" href="/yeongnyangi/" data-cd-business-entry="paid" data-cd-portal-link data-cd-portal-placement="home_hero" aria-label="영냥이의 달빛 점술방 둘러보기">
-      <span class="cdh-yn-portal__door" aria-hidden="true">
-        <img src="/assets/yeongnyangi/original/hero-480.webp" alt="" width="480" height="480" loading="lazy" decoding="async">
-      </span>
-      <span class="cdh-yn-portal__copy">
-        <strong>영냥이의 달빛 점술방</strong>
-        <small>마음에 남은 질문, 고양이에게 살짝.</small>
-        <span class="cdh-yn-portal__foot">영냥이 만나러 가기<svg class="cdh-yn-portal__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></span>
-      </span>
-    </a>
+    <div class="cdh-portals">
+      <a class="cdh-portal cdh-room-link cdh-persona--yeoni" href="/fortune-tea-house/">
+        <span class="cdh-portal__copy"><strong data-cd-trans="home.gardenCopy.yeoniRoom">운명의 찻집</strong><small data-cd-trans="home.gardenCopy.yeoniRoomNote">연이와 함께 마음을 차근차근 풀어봐요</small><span class="cdh-portal__go" aria-hidden="true">↗</span></span>
+        <span class="cdh-portal__art" aria-hidden="true"><img class="cdh-portal__scene" src="/images/home/illustrated/yeoni-room-640.webp" width="1536" height="1024" loading="lazy" decoding="async" alt=""><img class="cdh-portal__character" src="/images/home/illustrated/yeoni-hanbok-240.webp" srcset="/images/home/illustrated/yeoni-hanbok-240.webp 240w, /images/home/illustrated/yeoni-hanbok-480.webp 480w" sizes="(max-width: 640px) 38vw, 250px" width="1024" height="1536" loading="lazy" decoding="async" alt=""></span>
+      </a>
+      <a class="cdh-portal cdh-room-link cdh-persona--neo" href="/neo-operation-room/">
+        <span class="cdh-portal__copy"><strong data-cd-trans="home.gardenCopy.neoRoom">팩폭 전략실</strong><small data-cd-trans="home.gardenCopy.neoRoomNote">네오와 함께 다음 선택을 정리해요</small><span class="cdh-portal__go" aria-hidden="true">↗</span></span>
+        <span class="cdh-portal__art" aria-hidden="true"><img class="cdh-portal__scene" src="/images/home/illustrated/neo-room-640.webp" width="1536" height="1024" loading="lazy" decoding="async" alt=""><img class="cdh-portal__character" src="/images/home/illustrated/neo-character-320.webp" width="320" height="320" loading="lazy" decoding="async" alt=""></span>
+      </a>
+      <a class="cdh-portal cdh-yn-portal" href="/yeongnyangi/" data-cd-business-entry="paid" data-cd-portal-link data-cd-portal-placement="home_hero" aria-label="영냥이의 달빛 점술방 둘러보기">
+        <span class="cdh-portal__copy"><strong>영냥이의<br>달빛 점술방</strong><small>마음에 남은 질문,<br>고양이에게 살짝.</small><span class="cdh-portal__go">영냥이 만나러 가기 ↗</span></span>
+        <span class="cdh-portal__art" aria-hidden="true"><img class="cdh-portal__scene" src="/images/home/illustrated/yeongnyangi-room-320.webp" width="320" height="451" loading="lazy" decoding="async" alt=""><img class="cdh-portal__character" src="/assets/yeongnyangi/original/hero-480.webp" width="480" height="480" loading="lazy" decoding="async" alt=""></span>
+      </a>
+    </div>
+    <div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot">{{signature}}</div></div>
     <details class="cdh-more" id="cdhMore">
       <summary class="cdh-more__summary" aria-expanded="false" aria-controls="cdhGardenBody">
 
@@ -135,7 +137,7 @@
       <div class="cdh-more__body" id="cdhGardenBody">
     <div class="cdh-slot" id="cdhGatewaySlot">{{gateway}}</div>
 <div class="cdh-slot" id="cdhTodaySlot">{{today}}</div>
-<div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot">{{signature}}</div></div>
+
 
     <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
     <div class="cdh-slot" id="cdhDiarySlot">{{diary}}</div>
