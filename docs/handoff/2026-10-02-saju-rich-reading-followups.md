@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-10-02
-next: "docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 A3(일주 상세 분석 토글 상태 불일치)를 진행해줘"
+updated: 2026-10-03
+next: "docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B1(iljuCard 상단 구 컴포넌트 디자인 정리)을 진행해줘"
 ---
 
 # 사주 결과 화면 — 범위 밖 후속 과제 모음
@@ -20,12 +20,9 @@ next: "docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 A3(일�
 
 ## 다음 세션 시작 명령
 
-과제마다 한 세션씩 쓴다. 아래 문장을 그대로 붙여 넣는다.
+A1·A2·A3 는 끝났다(남은 것: B1·B2·B3·C1·C2·D1·E1). 과제마다 한 세션씩 쓴다. 아래 문장을 그대로 붙여 넣는다.
 
 ```
-docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 A1(일주 금 44% vs 막대 50%)부터 진행해줘
-docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 A2(흐름 0점 이름·문단 모순과 중복)를 진행해줘
-docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 A3(일주 상세 분석 토글 상태 불일치)를 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B1(iljuCard 상단 구 컴포넌트 디자인 정리)을 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B2(tsModal 네오 모드 시각 결함)를 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B3(쌓인 표의 스크린리더 의미)를 진행해줘
@@ -35,7 +32,7 @@ docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 D1(daewun-qual
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 E1(47030b73d 의 남은 해석 변경 검토)을 진행해줘
 ```
 
-여러 세션을 동시에 돌리면 두 번째부터 워크트리를 만든다(`scripts/create-safe-worktree.ps1`). 같은 파일(`js/core/saju/reading-rich.js`)을 건드리는 A2·B3·C2 는 동시에 돌리지 않는다.
+여러 세션을 동시에 돌리면 두 번째부터 워크트리를 만든다(`scripts/create-safe-worktree.ps1`). 같은 파일(`js/core/saju/reading-rich.js`)을 건드리는 B3·C2 는 동시에 돌리지 않는다.
 
 ## 과제 목록
 
@@ -56,7 +53,7 @@ docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 E1(47030b73d �
 - 할 일: 문단 톤을 `at`(0~4 구간) 기준으로 고르거나 문구를 구간 중립으로 바꾼다. 같은 문단은 한 번만 나오게 한다.
 - 테스트: `__tests__/ui/saju-reading-rich.test.mjs` 에 0점·100점 행과 대운+세운 동시 care 사례 1건을 추가한다.
 
-**A3. 일주 「상세 분석 보기 ▼」 토글이 이미 펼친 내용과 어긋남** — GREEN 추정. 실측(1280).
+**A3. 일주 「상세 분석 보기 ▼」 토글이 이미 펼친 내용과 어긋남** — ✅ 완료 2026-10-03 (45116f9f8, main 3d135ba2e 로 push). 원인은 `cd-lang-native.js` 의 ko 재적용이 `data-cd-origin-text`(로드 시점 문구)로 버튼을 되돌리는 것. `setIljuDetailExpanded(expanded)` 한 곳에서 문구·`aria-expanded`·max-height·`data-cd-origin-text` 를 쓴다. 아래는 원래 과제 기록.
 - 버튼은 접힘 표시(▼)인데 아래 상세가 이미 펼쳐져 있다.
 - 위치: `index.html:19426` `#iljuToggleBtn`(data-action `toggleIljuDetail`), 엔진 `js/saju-engine.js:9905`·`:10084` 의 버튼 문구 설정.
 - 할 일: 초기 펼침 상태와 버튼 문구·`aria-expanded` 를 한 곳에서 맞춘다. 정적 셸 정본은 `index.html`·`js/*` 이고, 고친 뒤 `npm run sync:public` 결과 미러를 같은 커밋에 담는다.
@@ -151,6 +148,11 @@ npm run check:fast
 결과 화면은 로그인 게이트가 있다. playwright 에서는 initScript 로 `window.__dpVerifyResultSession` 을 `async()=>'authenticated'` 로 정의한다.
 
 ## 🔴 실패·함정 (반복 금지)
+
+- **dev 서버(`npm run dev`)는 루트가 아니라 `public/` 미러를 서빙한다.** 루트 `js/*`·`index.html` 만 고치고 브라우저로 보면 옛 코드가 보인다. `npm run sync:public` 후에 확인한다(A3 에서 한 번 헛돌았다).
+- **`sync:public` 은 로케일 미러 4종(`public/en|ja|zh|zh-tw/index.html`)·사이트맵·rss·스타일까지 다시 쓴다.** 더러운 공유 트리에서는 옆 세션 미커밋 내용이 섞인다. 내 변경만 커밋하려면 `git diff -U3 <파일>` 에서 해당 hunk 만 뽑아 `git apply --cached --check` 후 `git apply --cached` 로 스테이징한다(손으로 다시 친 패치는 공백·UTF-8 불일치로 실패하니 sed 로 바이트 그대로 추출).
+- 오토 모드에서 `git stash` 는 차단된다. pull 이 미커밋 파일 때문에 막히면 해당 파일을 /d/tmp 에 백업 → `git checkout -- <그 파일만>` → pull 순서로 푼다. 되돌린 파일이 단순 재생성 미러면 복원하지 말고 소스(루트)가 남아 있는지만 확인한다.
+- `npm run check:fast` 의 `verify:sitemap-drift`(config/sitemap-lastmod.json 원장 불일치)는 A3 착수 시점에 이미 실패 상태였다(옆 세션 미커밋 작업 때문, 사주 계산을 안 바꾼 A3 와 무관). 내 변경이 원인이 아님을 `git stash` 없이 확인하려면 `git diff --stat config/sitemap-lastmod.json` 이 내 커밋에 없음을 본다.
 
 - **origin/main 머지 뒤 `sync:public` 을 한 번만 돌리면 미러의 `index-inline-runtime.js?v=build-…` 해시가 덜 수렴할 수 있다.** 748e398e8 이 그렇게 CI(Static guards·Main drift)에서 실패했다.
   - 머지 커밋 뒤 `sync:public` 을 한 번 더 돌린다.
