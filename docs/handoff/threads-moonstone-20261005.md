@@ -14,7 +14,7 @@ next: "Resolve the browser CDP connection, capture actual graph/report/free-feat
 - 주 작업: D:\Development\codedestiny-worktrees\moonstone-oct05-20261003-151816
 - 브랜치: wt/moonstone-oct05-20261003-151816. 준비 구현 b25aeb5e0, main 통합 3d47439baa58055aeb246d78af0056519dea7ccf.
 - 가격 B: D:\Development\codedestiny-worktrees\yn-price-1005-20261002-161442
-- B 브랜치 wt/yn-price-1005-20261002-161442. 준비 완료 커밋 **59eff7774df4cf87a16dc8763f58f889be23aa5d**. 10/5 전 main 통합·push 금지. B의 운영 승격은 별도 승인이다.
+- B 브랜치 wt/yn-price-1005-20261002-161442. 준비 완료 커밋 **a2e62d36f21ca7b6fd47c5246438364afac11162**. 10/5 전 main 통합·push 금지. B의 운영 승격은 별도 승인이다.
 - D:\Development\code-destiny의 다른 세션 미커밋 파일은 건드리지 않았다.
 
 ## 만든 자료
@@ -55,3 +55,15 @@ Chrome 공식 로그인 프로필 확인 당시 소개에 ‘천원’ 표현이
 ## 재개
 
 주 작업에서 이 파일과 가격 전환 문서를 읽고 실제 브라우저 연결을 복구한 뒤 미완료 캡처·계정 확인부터 진행한다. 10/5에는 B에 최신 main을 합치고 공식 CI/가격 릴리스 절차를 수행한다. 운영 승격 승인과 적용 확인 없이 할인 혜택 글을 게시하지 않는다. 생성 이미지 파일 때문에 주 작업 워크트리는 예약 실행이 끝나기 전에 지우지 않는다.
+
+## 10/3 후속 진척 (위 초기 차단 기록보다 우선)
+
+- 브라우저 연결 복구. 공식 Threads 소개를 꽃돼지·네오·영냥이, 무료 운세, 가입 500개 중심으로 수정하고 공개 반영 확인. 천원 상시 표현 제거. 기존 가격 종료 공지는 유지.
+- 대통령 원문 두 건의 본문과 표시 작성 시각을 직접 확인. 헌재 선고와 공식 취임사 대조. captions.md의 검증된 사례 답글 사용. 사용자는 과거 실패 사례를 홍보글에 언급하지 말라고 명시했다. 전체 정확도 주장은 하지 않는다.
+- 운영 무료 타로 캡처 완료. 그래프/리포트는 실제 ReadingCharts/SummaryReport 컴포넌트에 가상 입력을 넣어 캡처했고 이미지에 예시 표시. build-report-example.mjs로 재현 가능. 외부 API는 mock. 실제 고객 상담을 재현한 이미지가 아니다.
+- 결제 복원의 Native DB 어댑터를 분리해 cron coverage 오류 해결. 불명확 PG 주문이 20건 배치를 독점하지 않도록 확인 시각으로 순환.
+- main bb95726f9 CI Jest 331 suites / 4,960 tests 전부 통과, cron coverage 통과. 그 뒤 Mongoose 정적 검사 오류는 명시적 $set/$inc/$pull 객체로 수정(fc68ceb1f). 관련 20 tests, mongoose-update-pipeline, cron-mongo-op-coverage 로컬 통과.
+- 최신 통합 main f5e50dec4a19fc3d5e91307d87656e0fc80c52f2 push. 해당 CI 37107283782에서 Critical checks 및 Typecheck and lint 통과 확인. Build 확인 중. shell-dictionary-parity의 기존 오행 균형도 차이로 전체 CI는 아직 통과하지 못함.
+- 가격 B도 복원 수정과 가격 가드 보정 반영. 마지막 a2e62d36f21ca7b6fd47c5246438364afac11162, 미배포. 인증·가입보상·DB 스키마 유지.
+- Windows 전체 Jest 추가 실행은 330 suites / 4,959 tests 통과, 기존 pass-check 정적 정규식의 CRLF 조건 1건 실패. Linux CI는 해당 테스트 포함 전부 통과했으므로 구분해서 보고.
+- 남은 외부 작업: 10/5 운영 가격/할인 확인 후 게시 및 고정, 영냥이 게시 대상 확인, Facebook/Kakao 현재 소개/캐시 수정. 기본 이미지 6장 확보. Codex heartbeat 10-5-threads는 유지. 원문·이미지 때문에 작업 폴더 보존.
