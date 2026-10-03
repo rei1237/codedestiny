@@ -35,12 +35,71 @@
 import { calculatePaidFeatureMembershipCreditCost, FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { isMoonstoneSpendRefunded } from "../lib/moonstone-spend-proof.js";
 import { profileMutationMetadata } from "../lib/profile-mutation-context.js";
-import { MonthlyCreditLedger, User } from "../lib/models.js";
-import { consumeMonthlyCreditLotsWithDb } from "../lib/monthly-credit-store.js";
+import { MonthlyCreditLedger, User, Payment } from "../lib/models.js";
+import { consumeMonthlyCreditLotsWithDb, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
 
 const SPEND = "MONTHLY_CREDIT_SPEND";
+
+// Called within the same transaction as order creation. A discount reserves credit,
+// never consultation access. Its sourceId cannot serve as a full-price yn-* proof.
+export async function reserveOrderMoonstones(tx, order) {
+  const discount = order.pricingSnapshot?.moonstoneDiscount;
+  if (!discount?.quantity) return order;
+  const sourceId = `order-discount:${order.merchantUid}`;
+  const filter = {userId:order.userId,type:SPEND,sourceId};
+  const existing = await tx.findOne(MonthlyCreditLedger,filter);
+  if (existing) {
+    if (!existing.settledAt || isMoonstoneSpendRefunded(existing)
+      || existing.amount !== discount.quantity || existing.serviceKey !== order.featureKey)
+      throw paymentError('IDEMPOTENCY_CONFLICT','이 주문의 월정석 사용 내역을 확인해 주세요.');
+    return order;
+  }
+  const consumed = await consumeMonthlyCreditLotsWithDb(tx,{
+    userId:order.userId,amount:discount.quantity,pushRequestId:sourceId,incrementUsed:true,
+  });
+  if (!consumed.ok) throw paymentError(consumed.reason==='INSUFFICIENT'?'INSUFFICIENT_MOONSTONE':'MOONSTONE_IN_PROGRESS',
+    consumed.reason==='INSUFFICIENT'?'보유 월정석이 부족해요. 사용할 수량을 줄여 주세요.':'월정석 사용을 확인 중이에요. 같은 주문에서 다시 확인해 주세요.',
+    {monthlyBalance:consumed.balance});
+  const now=new Date();
+  await tx.insertOne(MonthlyCreditLedger,{...filter,amount:discount.quantity,
+    beforeBalance:consumed.balance+discount.quantity,afterBalance:consumed.balance,
+    serviceKey:order.featureKey,reason:'영냥이 단건 결제 월정석 할인',
+    metadata:{orderId:order.merchantUid,discountKRW:discount.discountKRW},
+    createdAt:now,updatedAt:now,settledAt:now});
+  await tx.updateOne(Payment,{merchantUid:order.merchantUid},{$set:{'metadata.moonstoneDiscountReserved':true}});
+  return {...order,metadata:{...order.metadata,moonstoneDiscountReserved:true}};
+}
+
+// Only callers with an authoritative PG failure/full cancellation may release.
+// A closed browser, lookup timeout, not-found response or partial refund is insufficient.
+export async function releaseOrderMoonstones(db, orderId) {
+  const order=await db.findOne(Payment,{merchantUid:orderId});
+  if (!order?.pricingSnapshot?.moonstoneDiscount?.quantity) return false;
+  return db.transaction(async tx=>{
+    const current=await tx.findOne(Payment,{merchantUid:orderId});
+    if (!['failed','cancelled','refunded'].includes(current?.status)) return false;
+    const quantity=current.pricingSnapshot.moonstoneDiscount.quantity;
+    const sourceId=`order-discount:${orderId}`;
+    const spend=await tx.findOne(MonthlyCreditLedger,{userId:current.userId,type:SPEND,sourceId});
+    if (!spend?.settledAt || spend.amount!==quantity) throw paymentError('MOONSTONE_IN_PROGRESS','월정석 사용 내역을 확인 중이에요.');
+    if (isMoonstoneSpendRefunded(spend)) return true;
+    const restored=await restoreMonthlyCreditLot({db:tx,userId:current.userId,
+      lotId:`refund:${sourceId}`,amount:quantity,returnDetails:true});
+    if (!restored?.added) throw paymentError('MOONSTONE_IN_PROGRESS','월정석 복원을 확인 중이에요.');
+    const now=new Date();
+    await tx.insertOne(MonthlyCreditLedger,{userId:current.userId,type:'MONTHLY_CREDIT_GRANT',
+      sourceId:`refund:${sourceId}`,amount:quantity,serviceKey:current.featureKey,
+      beforeBalance:restored.beforeBalance,afterBalance:restored.afterBalance,
+      reason:'영냥이 단건 결제 취소 월정석 복원',metadata:{orderId,originalLedgerId:String(spend._id)},
+      createdAt:now,updatedAt:now,settledAt:now});
+    await tx.updateOne(MonthlyCreditLedger,{_id:spend._id},{$set:{
+      'metadata.refundedForServiceExecution':true,'metadata.refundedAt':now}});
+    await tx.updateOne(Payment,{merchantUid:orderId},{$set:{'metadata.moonstoneDiscountReleasedAt':now}});
+    return true;
+  });
+}
 
 /** 미정산 예약행을 골라내는 조건. `settledAt` 에 default 를 두지 않은 이유가 이것이다. */
 export const UNSETTLED_FILTER = Object.freeze({ settledAt: { $exists: false } });

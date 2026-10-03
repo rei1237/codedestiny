@@ -10,6 +10,7 @@ function expr(row,e) {
   if(!e||typeof e!=='object')return e;
   const [[op,args]]=Object.entries(e),v=args.map(a=>expr(row,a));
   if(op==='$lt')return v[0]<v[1];
+  if(op==='$eq')return v[0]===v[1];
   if(op==='$add')return v.reduce((a,b)=>a+b,0);
   if(op==='$min')return Math.min(...v);
   if(op==='$ifNull')return v[0]??v[1];
@@ -295,6 +296,24 @@ test('foreign or wrong amount proof never creates access',async()=>{
   await expect(repo.attachPayment({},owner,'id',1000)).rejects.toMatchObject({status:402});
   payments[0].userId=owner;payments[0].paymentAmount=1;
   await expect(repo.attachPayment({},owner,'id',1000)).rejects.toMatchObject({status:402});
+});
+
+test('verified discounted cash plus reserved stones attaches once at the original consultation price',async()=>{
+  await repo.createRequest({},owner,'id',{...values,amountKRW:9900});
+  Object.assign(payments[0],{paymentAmount:4900,pricingSnapshot:{moonstoneDiscount:{listPriceKRW:9900,discountKRW:5000,quantity:500}},metadata:{moonstoneDiscountReserved:true}});
+  expect((await repo.attachPayment({},owner,'id',9900)).accessMethod).toBe('DIRECT_KRW');
+  expect((await repo.attachPayment({},owner,'id',9900)).paymentId).toBe('pay1');
+  expect(consumePass).not.toHaveBeenCalled();
+});
+
+test.each(['missing-reservation','released','wrong-sum','unpaid'])('discount proof %s cannot open a consultation',async kind=>{
+  await repo.createRequest({},owner,'id',{...values,amountKRW:9900});
+  Object.assign(payments[0],{paymentAmount:4900,pricingSnapshot:{moonstoneDiscount:{listPriceKRW:9900,discountKRW:5000,quantity:500}},metadata:{moonstoneDiscountReserved:true}});
+  if(kind==='missing-reservation')delete payments[0].metadata.moonstoneDiscountReserved;
+  if(kind==='released')payments[0].metadata.moonstoneDiscountReleasedAt=new Date();
+  if(kind==='wrong-sum')payments[0].paymentAmount=1;
+  if(kind==='unpaid')payments[0].status='pending';
+  await expect(repo.attachPayment({},owner,'id',9900)).rejects.toMatchObject({status:402});
 });
 test('already paid legacy price is preserved while an unpaid stale request must confirm the new price',async()=>{
   await repo.createRequest({},owner,'id',values);

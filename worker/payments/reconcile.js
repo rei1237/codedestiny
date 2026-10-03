@@ -104,6 +104,8 @@ export async function expireStalePendingOrders(db, { now = new Date(), limit = 5
       status: "pending",
       createdAt: { $lt: cutoff },
       "metadata.reconcile.lastPgStatus": { $exists: true, $nin: ["paid"] },
+      $or:[{'pricingSnapshot.moonstoneDiscount':{$exists:false}},
+        {'metadata.reconcile.lastPgStatus':{$in:['failed','cancelled']}}],
     },
     { limit },
   );

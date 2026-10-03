@@ -235,7 +235,13 @@ async function attachDirectPayment(env, userId, requestId, expectedCharge) {
         if (hasRequestAccess(request)) { result=request; return; }
         const proof = await Payment.findOneAndUpdate({
           userId:owner,requestId:`yn-${requestId}`,featureKey:request.featureKey,paymentType:'digital_content',purchaseType:{$ne:'GIFT'},
-          paymentAmount:expectedCharge,status:{$in:paidStatuses},
+          status:{$in:paidStatuses},
+          $and:[{$or:[{paymentAmount:expectedCharge},{
+            'pricingSnapshot.moonstoneDiscount.listPriceKRW':expectedCharge,
+            'metadata.moonstoneDiscountReserved':true,
+            'metadata.moonstoneDiscountReleasedAt':{$exists:false},
+            $expr:{$eq:[{$add:['$paymentAmount','$pricingSnapshot.moonstoneDiscount.discountKRW']},expectedCharge]},
+          }]}],
           ...(request.paymentClaimOrderId?{merchantUid:request.paymentClaimOrderId}:{}),
           'metadata.duplicatePaymentReviewRequired':{$ne:true},
           $or:[{'metadata.consumedBy':{$exists:false}},{'metadata.consumedBy':null},{'metadata.consumedBy':''}],

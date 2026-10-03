@@ -98,7 +98,7 @@ export async function createOrder(db, {
   userId, product, idempotencyKey, paymentType = "digital_content",
   profileId = "", contentKey = "", scope = "", returnPath = "", paymentMethod = "unknown",
   requestId = "", paidResume = null, env = {}, foreignCard = null, refundConsent = false,
-  purchaseType = "SELF", giftDraft = null,
+  purchaseType = "SELF", giftDraft = null, moonstoneDiscount = null,
 }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
@@ -148,7 +148,7 @@ export async function createOrder(db, {
           accessType: "single_purchase",
           status: "pending",
           orderState: "PENDING",
-          paymentAmount: product.priceKRW,
+          paymentAmount: moonstoneDiscount?.payableKRW ?? product.priceKRW,
           expectedChargedPoints: product.priceCoins,
           chargedPoints: 0,
           coinPrice: product.priceCoins,
@@ -161,7 +161,8 @@ export async function createOrder(db, {
           confirmAttempts: 0,
           // 가격을 주문 시점에 박아 둔다. 나중에 가격표가 바뀌어도 이 주문의 대조 기준은 흔들리지 않는다.
           pricingSnapshot: {
-            priceKRW: product.priceKRW,
+            priceKRW: moonstoneDiscount?.payableKRW ?? product.priceKRW,
+            ...(moonstoneDiscount ? {moonstoneDiscount} : {}),
             priceCoins: product.priceCoins,
             monthlyCost: product.monthlyCost,
             billingType: product.billingType,
@@ -212,6 +213,8 @@ export async function createOrder(db, {
     }));
   }
   if (!order) throw paymentError("INTERNAL_ERROR", "주문을 생성하지 못했습니다.", { orderId });
+  if (Number(order.pricingSnapshot?.moonstoneDiscount?.quantity || 0) !== Number(moonstoneDiscount?.quantity || 0))
+    throw paymentError('IDEMPOTENCY_CONFLICT','진행 중인 주문의 월정석 수량은 바꿀 수 없어요. 기존 결제 상태를 먼저 확인해 주세요.');
   return order;
 }
 
@@ -222,7 +225,10 @@ export async function createOrder(db, {
 export async function markOrderPaid(db, { orderId, order, pg }) {
   const result = await db.findOneAndUpdate(
     Payment,
-    { merchantUid: orderId, status: { $nin: NOT_CONFIRMABLE_RAW_STATUSES } },
+    { merchantUid: orderId, status: { $nin: NOT_CONFIRMABLE_RAW_STATUSES },
+      'metadata.moonstoneDiscountReleasedAt':{$exists:false},
+      ...(order?.pricingSnapshot?.moonstoneDiscount?.quantity ? {'metadata.moonstoneDiscountReserved':true} : {}),
+    },
     {
       $set: {
         status: "paid",

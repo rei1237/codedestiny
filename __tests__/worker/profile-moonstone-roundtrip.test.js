@@ -5,7 +5,7 @@ import { makeFakePaymentDb, matches } from '../fixtures/fake-payment-db.mjs';
 const UID='507f1f77bcf86cd799439011', PID='yn_test';
 const models={}, collections={};
 function query(run){const q={select:()=>q,sort:()=>q,limit:()=>q,lean:async()=>run()};return q;}
-for(const name of ['User','ProfileCard','PointHistory','MonthlyCreditLedger']){
+for(const name of ['User','ProfileCard','PointHistory','MonthlyCreditLedger','Payment']){
  const model={modelName:name};models[name]=model;
  model.find=f=>query(()=>collections[name].rows.filter(r=>matches(r,f)));
  model.findOne=f=>query(()=>collections[name].rows.find(r=>matches(r,f))||null);

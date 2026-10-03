@@ -404,6 +404,7 @@ type BillingBalanceData = {
 type BillingCoinGatePromise = Promise<BillingResult<BillingCoinGateData>>;
 
 export type BillingCoinGateInput = {
+  moonstoneQuantity?: number;
   categoryKey?: string;
   subFeatureKey?: string;
   featureKey?: string;
@@ -463,7 +464,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-529047cd4137";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-f85aa7043bd0";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -2458,7 +2459,10 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
     ? runtimeWindow._cdRunDirectKrwCheckout
     : null;
   const runtimeGate = explicitDirectGate || loadedRuntimeGate;
-  if (!runtimeGate) return null;
+  if (!runtimeGate) {
+    if (input.moonstoneQuantity) return { ok: false, status: 503, data: null, message: "할인 결제를 준비하지 못했습니다. 잠시 후 다시 시도해 주세요.", error: { code: "DISCOUNT_CHECKOUT_UNAVAILABLE", message: "할인 결제를 준비하지 못했습니다." }, raw: {} };
+    return null;
+  }
 
   const cost = resolveKnownCoinCost(input, context.eligibility);
   const featureKey = toText(input.featureKey || input.subFeatureKey || context.featureId);
@@ -2539,6 +2543,8 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       equalPriorityMethods: runtimePaymentOptions.equalPriorityMethods,
       recommendedMethods: runtimePaymentOptions.recommendedMethods,
       allowedPaymentModes: input.allowedPaymentModes,
+      checkoutPayload: input.moonstoneQuantity ? {moonstoneQuantity:input.moonstoneQuantity} : undefined,
+      directDiscountKRW: input.moonstoneQuantity ? input.moonstoneQuantity * amountKRW / resolveKnownMembershipCreditCost(input, cost) : 0,
       passStorePlan: input.passStorePlan,
       /* 🔴 결제 전 화면 상태. 여기서 넘기지 않으면 티켓에 안 실리고, 모바일 PG 리다이렉트로 돌아온
          사용자는 결제만 끝난 채 기능이 닫혀 있다 — React 경로 전체가 이 한 줄이 없어 막혀 있었다.

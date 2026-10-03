@@ -46,7 +46,8 @@ import { createServicePackRoutes } from "./service-pack-routes.js";
 import { verifyPgPayment } from "./pg.js";
 import { isLegacySingleOrderId } from "./order-id.js";
 import { dropEntitlementByIdentity, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
-import { settleOrphanSpends, spendMoonstone } from "./moonstone.js";
+import { settleOrphanSpends, spendMoonstone, reserveOrderMoonstones, releaseOrderMoonstones } from "./moonstone.js";
+import { quoteYeongnyangiMoonstoneDiscount } from '../lib/paid-feature-registry.js';
 import { acceptWebhook, claimReplayableEvents, describeEventFailure, markEventFailed, markEventProcessed } from "./webhook.js";
 import { alertPaymentAnomalies, runPaymentReconcile } from "./reconcile.js";
 import { createOperatorAlertSender } from "./fulfillment-alert.js";
@@ -146,7 +147,14 @@ export function invalidateBalanceSnapshot(userId) {
  * 카드 전용 서비스임을 확인했다(2026-08-12). 가상계좌를 판매하게 되면 이 결정을 다시 볼 것.
  * 미지원 타입은 받았다는 사실만 남기고 200 으로 끝낸다(재전송 요구 없음).
  */
-async function applyNonPaidPgEvent(db, { eventType, orderId }) {
+async function applyNonPaidPgEvent(db, input) {
+  const result=await applyNonPaidPgEventState(db,input);
+  if (['transaction.failed','transaction.cancelled'].includes(String(input.eventType).toLowerCase()))
+    await releaseOrderMoonstones(db,input.orderId);
+  return result;
+}
+
+async function applyNonPaidPgEventState(db, { eventType, orderId }) {
   const type = String(eventType || "").trim().toLowerCase();
 
   if (type === "transaction.failed") {
@@ -1208,6 +1216,11 @@ const ROUTES = {
       if (!idempotencyKey) idempotencyKey = `legacy-${crypto.randomUUID()}`;
       // 해외 발급 카드 결제창 노출 판정(I/O 없음). 결제수단은 클라이언트 신고값이라 판정은 "보내도 되는 상한"일 뿐이다.
       const paymentMethod = String(body.paymentMethod || body.payMethod || "card_general");
+      let moonstoneDiscount=null;
+      try { moonstoneDiscount=quoteYeongnyangiMoonstoneDiscount(product.featureKey,body.moonstoneQuantity ?? 0); }
+      catch { throw paymentError('INVALID_REQUEST','사용할 월정석 수량을 확인해 주세요. 단건 결제 잔액은 1,000원 이상이어야 해요.'); }
+      if (moonstoneDiscount && (product.priceKRW!==moonstoneDiscount.listPriceKRW || /paypal/i.test(paymentMethod)))
+        throw paymentError('INVALID_REQUEST','이 결제에서는 월정석 할인을 사용할 수 없어요.');
       /* 결제 전 환불·청약철회 고지에 동의했는가(단건 결제창). 🔴 handlePassPrepare 와 **같은 계약**이다:
          === true 만 동의로 보고, 없거나 다른 값이면 거절이 아니라 "동의 기록 없음"으로 남긴다
          (policy-versions.js buildRefundConsentRecord 머리주석 — 구버전 앱·옛 셸 보호). */
@@ -1222,7 +1235,8 @@ const ROUTES = {
         });
       }
 
-      const { order, user } = await withDb(env, ctx, async (db) => {
+      const { order, user } = await withDb(env, ctx, async (activeDb) => {
+        const prepare=async(db)=>{
         /* 🔴 사용자 조회와 주문 발급을 겹친다. 이 두 왕복은 서로를 기다릴 이유가 없다 — 사용자 문서는
            응답 봉투의 customer 조립(아래 buildLegacyPrepareCustomer)에만 쓰이고, 주문 발급이 그걸
            참조하는 유일한 지점은 profileId 폴백뿐이다. 셸·React 는 profileId 를 실어 보내므로
@@ -1233,7 +1247,9 @@ const ROUTES = {
           const {assertGiftIndexes}=await import('./gifts.js');
           await assertGiftIndexes(db);
         }
-        const userPromise = db.findOne(User, { _id: toObjectId(userId) }, { projection: LEGACY_PREPARE_USER_PROJECTION });
+        const userRead = db.findOne(User, { _id: toObjectId(userId) }, { projection: LEGACY_PREPARE_USER_PROJECTION });
+        // Mongo sessions cannot run concurrent operations. Ordinary checkouts keep the existing overlap.
+        const userPromise = moonstoneDiscount ? Promise.resolve(await userRead) : userRead;
         userPromise.catch(() => {}); // 미관측 거부 경고만 막는다 — 실제 처리는 아래 await 가 한다.
         const bodyProfileId = String(body.profileId || body.selectedProfileId || "");
         const profileId = bodyProfileId || String((await userPromise)?.destinyProfilesCurrentId || "");
@@ -1257,13 +1273,17 @@ const ROUTES = {
           paymentMethod,
           foreignCard,
           refundConsent,
+          moonstoneDiscount,
           ...(product.fulfillmentType==='service_pack'?{purchaseType:preparedPurchaseType,giftDraft:preparedGiftDraft,expectedOrderId:body.expectedOrderId}:{}),
         });
         if(product.fulfillmentType==='service_pack'&&preparedPurchaseType==='GIFT') {
           const {ensureGiftForOrder}=await import('./gifts.js');
           await ensureGiftForOrder(db,created);
         }
-        return { order: created, user: await userPromise };
+        const reserved=await reserveOrderMoonstones(db,created);
+        return { order: reserved, user: await userPromise };
+        };
+        return moonstoneDiscount ? activeDb.transaction(prepare) : prepare(activeDb);
       });
       ctx.orderId = String(order.merchantUid || "");
 
@@ -2040,6 +2060,23 @@ export async function runPaymentsV2Reconcile(env) {
       giftRefunds = await reconcileGiftRefunds(env);
     } catch {
       console.error("[GIFT_REFUND_RECONCILE_FAILED]", { requestId: ctx.requestId });
+    }
+    // Reserved discounts also need recovery when the buyer never returns or a webhook is lost.
+    // Read candidates in a short DB slot; PG lookups never hold the slot or a transaction.
+    const discounted=await withPaymentDb(env,ctx,db=>db.find(Payment,{
+      'metadata.moonstoneDiscountReserved':true,'metadata.moonstoneDiscountReleasedAt':{$exists:false},
+      status:{$in:['pending','failed','cancelled','refunded']},
+      createdAt:{$lt:new Date(Date.now()-5*60_000)},
+    },{limit:20}));
+    for (const candidate of discounted) {
+      try {
+        const pg=await fetchPortOnePayment(env,candidate.merchantUid);
+        if(pg?.paymentId!==candidate.merchantUid)continue;
+        if(pg.status==='paid')await confirmOrder(env,ctx,{orderId:candidate.merchantUid},{withDb:withPaymentDb,deps:{fetchPayment:async()=>pg}});
+        else if(['failed','cancelled'].includes(pg.status))await withPaymentDb(env,ctx,db=>applyNonPaidPgEvent(db,{
+          orderId:candidate.merchantUid,eventType:pg.status==='failed'?'transaction.failed':'transaction.cancelled',
+        }));
+      } catch { /* Uncertain PG status keeps the reservation. The next scheduled sweep can recover it. */ }
     }
     return { ...report, webhookReplay, giftRefunds };
   } catch (error) {

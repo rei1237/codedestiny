@@ -32,3 +32,7 @@
 .paper{min-width:0}.receipt dt{flex-shrink:0}.nav{flex-wrap:wrap}
 
 .depthNote{font-size:13px;line-height:1.75;color:var(--yn-muted);margin:18px 0;word-break:keep-all}
+.discount{margin:24px 0;padding:20px 0;border:0;border-top:1px solid var(--yn-line);color:var(--yn-ivory)}
+.discount legend{font-weight:750;padding:0 8px 0 0}.discount label{display:block;margin:12px 0 8px}
+.discount input{width:100%;box-sizing:border-box;min-height:44px;padding:10px 12px;border:1px solid var(--yn-line);border-radius:12px;background:var(--yn-raised);color:var(--yn-ivory);font:inherit;font-size:16px}
+.discount input:focus-visible{outline:3px solid var(--yn-gold);outline-offset:3px}.discount p{font-size:14px;line-height:1.7;color:var(--yn-muted)}.discount strong{color:var(--yn-gold)}

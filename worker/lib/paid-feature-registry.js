@@ -398,6 +398,30 @@ export function calculatePaidFeatureMembershipCreditCost(featureKey, coinCost) {
   return calculateMembershipCreditCost(coinCost ?? spec?.cost) * multiplier;
 }
 
+/** Optional web-KRW discount. The price-release registry enables this by restoring multiplier=1.
+ * Zero keeps the existing checkout unchanged; quantities and KRW are never accepted from a client quote.
+ * Leave at least 1,000 KRW for the PG; a fully covered consultation uses the existing moonstone method.
+ */
+export function quoteYeongnyangiMoonstoneDiscount(featureKey, quantity = 0) {
+  const spec = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(featureKey)];
+  if (!Number.isSafeInteger(quantity) || quantity < 0) throw new RangeError('INVALID_MOONSTONE_QUANTITY');
+  if (!quantity) return null;
+  if (!YEONGNYANGI_PAID_FEATURE_KEYS.includes(featureKey) || !spec?.membershipCreditAllowed
+    || spec.membershipCreditMultiplier !== 1) throw new RangeError('MOONSTONE_DISCOUNT_UNAVAILABLE');
+  return calculateMoonstoneDiscount(spec.amountKRW,calculatePaidFeatureMembershipCreditCost(featureKey),quantity);
+}
+
+export function calculateMoonstoneDiscount(listPriceKRW, fullCost, quantity) {
+  if (!Number.isSafeInteger(quantity) || quantity<1 || !Number.isSafeInteger(fullCost) || fullCost<1
+    || !Number.isSafeInteger(listPriceKRW) || listPriceKRW<1000) throw new RangeError('INVALID_MOONSTONE_QUANTITY');
+  const unitKRW = listPriceKRW / fullCost;
+  const discountKRW = quantity * unitKRW;
+  const payableKRW = listPriceKRW - discountKRW;
+  if (!Number.isSafeInteger(discountKRW) || !Number.isSafeInteger(payableKRW) || payableKRW < 1000)
+    throw new RangeError('MOONSTONE_DISCOUNT_LIMIT');
+  return { quantity, unitKRW, discountKRW, listPriceKRW, payableKRW };
+}
+
 export function getPaidFeaturePaymentPolicy(featureKey) {
   const spec = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(featureKey)];
   const directOnly = isDirectOnlyPaidFeatureKey(featureKey);

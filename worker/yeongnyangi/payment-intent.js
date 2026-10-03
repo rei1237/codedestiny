@@ -38,6 +38,8 @@ export async function reconcileFortuneCheckout({env,userId,requestId,product,wit
     {$set:{status:'failed',orderState:'FAILED',failureCode:pg.status==='cancelled'?'PG_PAYMENT_CANCELLED':'PG_PAYMENT_FAILED',
       failureStage:'pg-retry-check',updatedAt:new Date()}},{returnDocument:'after'}));
   if(!terminal)throw paymentError('PG_PAYMENT_NOT_PAID','결제 상태가 변경되었어요. 같은 상담에서 상태를 다시 확인해 주세요.');
+  const {releaseOrderMoonstones}=await import('../payments/moonstone.js');
+  await withDb(db=>releaseOrderMoonstones(db,orderId));
   await withDb(db=>advanceFortunePaymentGeneration(db,userId,requestId,Number(fortune.paymentGeneration||0),orderId));
 }
 

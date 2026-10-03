@@ -132,6 +132,7 @@ export default function CheckoutClient() {
   const [reading,setReading]=useState<FortuneRecord|null>(null);
   const [nativePrice,setNativePrice]=useState<string|null>(process.env.NEXT_PUBLIC_RUNTIME_TARGET === 'mobile-app' ? '' : null);
   const [gate, setGate] = useState<GateState>({ phase: "idle" });
+  const [moonstoneInput,setMoonstoneInput]=useState('0');
   const [lang, setLang] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   // 표는 모듈 상수라 같은 로케일이면 참조가 그대로다 — 아래 useEffect·useCallback 의존성에 넣어도 안전하다.
   const copy = getCheckoutCopy(lang);
@@ -178,6 +179,10 @@ export default function CheckoutClient() {
     if (!params.featureKey) return null;
     return resolveServerFeaturePricing({ featureKey: params.featureKey });
   }, [params.featureKey]);
+
+  const selectedStones = Number(moonstoneInput);
+  const discountedAmount = pricing ? pricing.amountKRW - selectedStones * (pricing.amountKRW / pricing.membershipCreditCost) : 0;
+  const validDiscount = Number.isSafeInteger(selectedStones) && selectedStones >= 0 && Number.isSafeInteger(discountedAmount) && discountedAmount >= 1000;
 
   // 모바일 PG 복귀: 문서가 새로 열리므로 결제 전 굳혀 둔 returnTo 로 돌아간다(게이트를 다시 타지 않는다).
   const buildResume = usePaidResume(RESUME_KIND, (args) => {
@@ -233,6 +238,12 @@ export default function CheckoutClient() {
 
   const startPayment = useCallback(async () => {
     if (!pricing || !available || paymentLock.current || packLock.current) return;
+    const moonstoneQuantity=Number(moonstoneInput);
+    if (!Number.isSafeInteger(moonstoneQuantity) || moonstoneQuantity<0
+      || (moonstoneQuantity>0 && (isSoulCatMode || pricing.monthlyCreditMultiplier!==1
+        || pricing.amountKRW-moonstoneQuantity*(pricing.amountKRW/pricing.membershipCreditCost)<1000))) {
+      setGate({phase:'error',message:'사용할 월정석 수량을 확인해 주세요. 단건 결제 잔액은 1,000원 이상이어야 해요.'});return;
+    }
     paymentLock.current=true;
     setGate({ phase: "paying" });
     try {
@@ -256,6 +267,7 @@ export default function CheckoutClient() {
         amountKRW: pricing.amountKRW,
         allowedPaymentModes: pricing.monthlyExcluded ? ["pass", "direct"] : ["pass", "direct", "monthly"],
         membershipCreditCost: pricing.membershipCreditCost,
+        moonstoneQuantity,
         passStorePlan: "family",
         disablePassFirst: true,
         resume: buildResume({ returnTo: params.returnTo }),
@@ -274,7 +286,7 @@ export default function CheckoutClient() {
       if(error instanceof FortuneApiError && error.status===401){redirectToLogin();return;}
       setGate({phase:'error',message:error instanceof Error?error.message:copy.errPaymentUnknown});
     } finally { paymentLock.current=false; }
-  }, [pricing, available, buildResume, params, copy, isSoulCatMode, productName]);
+  }, [pricing, available, buildResume, params, copy, isSoulCatMode, productName, moonstoneInput]);
 
   // CD 내부 모드의 returnTo 는 결제 "성공" 뒤 이동 주소(미결제면 "0 / N개 챕터 저장됨" 결과 화면)라 결제를 그만두고 나가는 링크에 쓰지 않는다.
   // SoulCat 모드의 returnTo 는 진짜 직전 화면이라 그대로 쓴다.
@@ -319,6 +331,16 @@ export default function CheckoutClient() {
                 <div className={styles.total}><dt>{copy.rowAmount}</dt><dd>{nativePrice === null ? formatKrw(pricing.amountKRW) : nativePrice || 'Google Play'}</dd></div>
                 {!pricing.monthlyExcluded && <div className={styles.moonstones}><dt>{alliance.moonstoneLabel}</dt><dd>{alliance.moonstones(pricing.membershipCreditCost.toLocaleString(intlLocale))}</dd></div>}
               </dl>
+              {!isSoulCatMode && nativePrice===null && lang==='ko' && !pricing.monthlyExcluded && pricing.monthlyCreditMultiplier===1 && <fieldset className={styles.discount} disabled={gate.phase==='paying'||gate.phase==='paid'||packBusy}>
+                <legend>월정석으로 단건 결제 할인받기</legend>
+                <label htmlFor="moonstone-discount">사용할 월정석 수량</label>
+                <input id="moonstone-discount" type="number" inputMode="numeric" min={0} step={1}
+                  max={Math.floor((pricing.amountKRW-1000)/(pricing.amountKRW/pricing.membershipCreditCost))}
+                  value={moonstoneInput} onChange={event=>setMoonstoneInput(event.target.value)} aria-describedby="moonstone-discount-note" />
+                <p id="moonstone-discount-note">1개당 {formatKrw(pricing.amountKRW/pricing.membershipCreditCost)} 할인돼요. 단건 결제를 선택할 때만 적용돼요. 전액 월정석 결제와 이용권은 다음 화면에서 선택할 수 있어요.</p>
+                {validDiscount && <p aria-live="polite">선택한 월정석 {Number(moonstoneInput).toLocaleString('ko-KR')}개 · 할인 후 단건 결제 <strong>{formatKrw(pricing.amountKRW-Number(moonstoneInput)*(pricing.amountKRW/pricing.membershipCreditCost))}</strong></p>}
+                <p>단건 결제 잔액은 1,000원 이상이어야 해요. 보유량은 다음 결제창의 ‘보유 월정석 확인’에서 확인할 수 있어요.</p>
+              </fieldset>}
               <p data-reading-output-locale={reading?.locale||lang}>{askPhase5Copy(lang).input.language}: <b lang={reading?.locale||lang}>{readingLanguageNames[reading?.locale||lang]}</b></p>
               <div className={styles.policy}>
                 <p>{copy.policyLine1}</p>
@@ -333,7 +355,7 @@ export default function CheckoutClient() {
                 disabled={!authSettled || !signedIn || !checked || !available || packBusy || gate.phase === "paying" || gate.phase === "paid"}
                 className={styles.pay}>
                 {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
-                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : copy.payAction(nativePrice === null ? formatKrw(pricing.amountKRW) : nativePrice || 'Google Play')}
+                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : copy.payAction(nativePrice === null ? formatKrw(validDiscount ? discountedAmount : pricing.amountKRW) : nativePrice || 'Google Play')}
               </button>
               <p className={styles.security}>{copy.methodNote}</p>
               <div aria-live="polite" className={styles.feedback}>
