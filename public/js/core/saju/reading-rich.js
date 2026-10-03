@@ -541,16 +541,18 @@
     control:['책임과 역할이 무거워지는 시기예요. 인정받을 기회가 함께 오지만 부담도 커지니, 맡을 일과 내려놓을 일을 나눠 보세요.', '관성 운: 책임·평가 압력이 커집니다. 수용할 역할과 거절할 역할을 구분하세요.'],
     parent:['배움과 도움이 들어오는 시기예요. 공부하고 자격을 갖추거나 좋은 조언자를 만나기 쉬우니, 받은 것을 작은 행동으로 옮겨 보세요.', '인성 운: 학습·지원이 들어옵니다. 입력을 실행으로 바꾸는 일정을 잡으세요.']
   };
+  // 톤은 FLOW_NAMES 구간(at)을 따른다: 0~1 care, 2 even, 3~4 open. 문구에 정도 표현을 넣지 않아 구간 이름과 어긋나지 않게 한다.
   var FLOW_TONE = {
-    open:['흐름이 비교적 순하게 읽혀요. 준비해 온 일을 작은 범위에서 먼저 시험해 보세요. 점수는 비교를 돕는 참고값이고 결과를 약속하지는 않아요.', '평가상 수월한 구간입니다. 준비된 일을 작은 규모로 실행하세요. 점수는 결과를 보장하지 않습니다.'],
-    care:['조율이 조금 필요한 흐름으로 읽혀요. 속도를 낮추고 역할과 일정을 정돈하면 같은 시기도 한결 편안해져요. 점수만으로 큰 결정을 내리지는 말아 주세요.', '평가상 조율 구간입니다. 일정과 역할을 정돈하고 선택지를 남기세요. 점수만으로 결론 내리지 마세요.']
+    open:['흐름이 순한 쪽으로 읽혀요. 준비해 온 일을 작은 범위에서 먼저 시험해 보세요. 점수는 비교를 돕는 참고값이고 결과를 약속하지는 않아요.', '평가상 수월한 구간입니다. 준비된 일을 작은 규모로 실행하세요. 점수는 결과를 보장하지 않습니다.'],
+    even:['크게 밀거나 당기지 않는 보통의 흐름으로 읽혀요. 하던 일을 꾸준히 이어 가면서 중간중간 방향만 점검해 보세요. 점수는 비교를 돕는 참고값이고 결과를 약속하지는 않아요.', '평가상 중간 구간입니다. 진행 중인 일을 유지하며 방향을 점검하세요. 점수는 결과를 보장하지 않습니다.'],
+    care:['조율이 필요한 쪽으로 읽혀요. 속도를 낮추고 역할과 일정을 정돈하면 같은 시기도 한결 편안해져요. 점수만으로 큰 결정을 내리지는 말아 주세요.', '평가상 조율 구간입니다. 일정과 역할을 정돈하고 선택지를 남기세요. 점수만으로 결론 내리지 마세요.']
   };
   var GAEUN_LABEL = [['love', '연애운'], ['wealth', '재물운'], ['relationship', '대인관계'], ['career', '커리어']];
   function plain(text) { return String(text || '').replace(/(?:[☀-➿]|\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDEFF]|\uD83E[\uDD00-\uDEFF]|️)/g, '').replace(/\s+/g, ' ').trim(); }
   function flow(facts, mode) {
     var p = facts && facts.p, L = lib(facts), rows = (facts && facts.flow) || [];
     if (!p || !p.d || !L.GAN || !L.GAN[p.d.g] || !L.getTenGod || !rows.length) return '';
-    var neo = mode === 'neo', k = neo ? 1 : 0, dg = p.d.g, dayEl = L.GAN[dg].e, twelve = L.cdTwelveStage || function () { return ''; };
+    var neo = mode === 'neo', k = neo ? 1 : 0, dg = p.d.g, dayEl = L.GAN[dg].e, twelve = L.cdTwelveStage || function () { return ''; }, toned = {};
     var html = rows.map(function (r) {
       var gd = L.GAN[r.g], jd = L.JI[r.j];
       if (!gd || !jd || typeof r.score !== 'number') return '';
@@ -576,7 +578,9 @@
         var g = (L.GAEUN_DB[gd.e] || L.GAEUN_DB.earth || {})[good ? 'good' : 'bad'] || {};
         body += '<ul class="saju-tiles">' + GAEUN_LABEL.filter(function (x) { return g[x[0]]; }).map(function (x) { return '<li><b>' + esc(x[1]) + '</b><span>' + esc(g[x[0]]) + '</span></li>'; }).join('') + '</ul>';
       }
-      body += para(FLOW_TONE[good ? 'open' : 'care'][k]);
+      // 대운·세운이 같은 톤이면 같은 문단이 두 번 나오므로 처음 한 번만 붙인다.
+      var tone = at >= 3 ? 'open' : at === 2 ? 'even' : 'care';
+      if (!toned[tone]) { toned[tone] = true; body += para(FLOW_TONE[tone][k]); }
       return section(title, body, 'saju-rich__lead saju-flow saju-flow--' + (year ? 'year' : 'period'));
     }).join('');
     if (!html) return '';
