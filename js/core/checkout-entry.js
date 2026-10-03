@@ -1991,7 +1991,7 @@
     }
     if (!charge || charge.currency !== "USD" || !Number.isSafeInteger(charge.totalAmount)
         || charge.totalAmount <= 0 || Number(charge.priceKRW) !== Number(request.totalAmount)
-        || !request.channelKey || shouldUseAppStoreEntry()) {
+        || !request.channelKey || !(request.customer && (request.customer.customerId || request.customer.email)) || shouldUseAppStoreEntry()) {
       return Promise.reject(new Error("PayPal order is unavailable."));
     }
     if (doc.getElementById("cdPaypalCheckout")) return Promise.reject(new Error("PayPal checkout is already open."));
@@ -2043,7 +2043,12 @@
     delete data.payMethod;
     delete data.windowType;
     delete data.giftCertificate;
-    delete data.bypass;
+    // Digital-goods STC uses the same buyer identifiers already sent to PayPal.
+    // Do not infer a country, split a name, or reuse the domestic PG bypass.
+    var additionalData = [];
+    if (request.customer.customerId) additionalData.push({ key: "sender_account_id", value: String(request.customer.customerId) });
+    if (request.customer.email) additionalData.push({ key: "sender_email", value: String(request.customer.email) });
+    data.bypass = { paypal_v2: { additional_data: additionalData } };
     return new Promise(function (resolve, reject) {
       var settled = false;
       function finish(response, error) {

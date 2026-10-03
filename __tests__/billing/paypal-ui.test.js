@@ -2,7 +2,7 @@
 const { JSDOM } = require('jsdom');
 const entry = require('../../js/core/checkout-entry.js');
 const quote = { currency: 'USD', totalAmount: 733, priceKRW: 9900, rateDate: '2026-10-02' };
-const request = { paymentId: 'order-test', orderName: '<script>unsafe</script>', totalAmount: 9900, storeId: 'test-store', channelKey: 'test-channel', payMethod: 'EASY_PAY', bypass: { inicis_v2: {} } };
+const request = { paymentId: 'order-test', orderName: '<script>unsafe</script>', totalAmount: 9900, storeId: 'test-store', channelKey: 'test-channel', customer: { customerId: 'buyer-test', email: 'buyer@example.test' }, payMethod: 'EASY_PAY', bypass: { inicis_v2: {} } };
 let dom;
 beforeEach(() => { dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://example.test' }); global.window = dom.window; global.document = dom.window.document; });
 afterEach(() => { dom.window.close(); delete global.window; delete global.document; });
@@ -18,7 +18,8 @@ test('PayPal stays closed until configured and uses USD SPB rather than requestP
   expect(document.getElementById('cdPaypalAmount').textContent).toContain('7.33');
   expect(document.getElementById('cdPaypalCheckout').querySelector('script')).toBeNull();
   expect(sent).toMatchObject({ uiType: 'PAYPAL_SPB', totalAmount: 733, currency: 'USD', products: [{ type: 'DIGITAL', amount: 733 }] });
-  expect(sent.payMethod).toBeUndefined(); expect(sent.bypass).toBeUndefined();
+  expect(sent.payMethod).toBeUndefined();
+  expect(sent.bypass).toEqual({ paypal_v2: { additional_data: [{ key: 'sender_account_id', value: 'buyer-test' }, { key: 'sender_email', value: 'buyer@example.test' }] } });
   expect(window.PortOne.requestPayment).not.toHaveBeenCalled();
   callbacks.onPaymentSuccess({ paymentId: 'order-test' });
   await expect(payment).resolves.toEqual({ paymentId: 'order-test' });
@@ -34,4 +35,20 @@ test('invalid USD quote is rejected before rendering buttons', async () => {
   window.PortOne = { loadPaymentUI: jest.fn() };
   await expect(entry.requestPaypalPayment(request, { ...quote, priceKRW: 1 })).rejects.toThrow();
   expect(window.PortOne.loadPaymentUI).not.toHaveBeenCalled();
+});
+
+test('PayPal resources are permitted by both shipping CSP files without widening default access', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  for (const file of ['_headers', 'public/_headers']) {
+    const policies = fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8').split('\n').filter((line) => line.includes('Content-Security-Policy:'));
+    expect(policies).toHaveLength(2);
+    for (const policy of policies) {
+      const directives = policy.slice(policy.indexOf(':') + 1).trim().split(';').map((rule) => rule.trim().split(/\s+/));
+      for (const name of ['script-src', 'script-src-elem', 'connect-src', 'frame-src', 'style-src', 'style-src-elem']) {
+        expect(directives.find((rule) => rule[0] === name)).toEqual(expect.arrayContaining(['https://*.paypal.com', 'https://*.paypalobjects.com']));
+      }
+      expect(directives.find((rule) => rule[0] === 'default-src')).toEqual(['default-src', "'self'"]);
+      expect(directives.find((rule) => rule[0] === 'object-src')).toEqual(['object-src', "'none'"]);
+    }
+  }
 });
