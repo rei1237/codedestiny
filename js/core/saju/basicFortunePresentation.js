@@ -774,7 +774,7 @@
     var toggle = root.querySelector('#astroReadingModeToggle');
     var flowCard = toggle && toggle.closest('.astro-section');
     if (flowCard) flowCard.classList.add('astro-flow-card');
-    var reading = collect('fr-astro-reading', 'startHere', ['.astro-flow-card', '#astroBig3Snapshot', '.precision-insight-card']);
+    var reading = collect('fr-astro-reading', 'keyReading', ['.astro-flow-card', '#astroBig3Snapshot', '.precision-insight-card']);
     if (reading) reading.classList.add('fr-reading');
     var planets = collect('fr-astro-planets', 'planets', ['#astroBirthMapSection', '#astroLifeAreaSection', '#astroAspectStorySection', '#astroPersonalGuidanceSection']);
     // .astro-stellar-archive carries four paid unlocks; it moves with the other gates so
