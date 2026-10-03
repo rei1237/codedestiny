@@ -224,7 +224,11 @@ export async function restoreMonthlyCreditLot(input = {}) {
   return runRestoreCas({
     ...input,
     readUser: () => User.findById(input.userId).select("profileSubscription").lean(),
-    applyUpdate: (filter, update, options) => User.findOneAndUpdate(filter, update, options).lean(),
+    applyUpdate: (filter, update, options) => User.findOneAndUpdate(filter, {
+      $set: update.$set,
+      $inc: update.$inc,
+      ...(update.$pull ? { $pull: update.$pull } : {}),
+    }, options).lean(),
   });
 }
 
