@@ -35,3 +35,7 @@ Create a brand-new premium storybook illustration of ONLY the two supplied masco
 ```
 
 새 카드에는 네오 그림이 없다. 연이의 둥근 얼굴·큰 갈색 눈·짧은 팔다리·연꽃·보라색 스카프를 확인했다. 실제 UI는 assets/actual-*.jpg를 그대로 배치했다.
+
+## 설명형 개편
+
+이번 개편은 기존 생성 원화를 재사용했다. 새 래스터 생성 없이 편집 가능한 서비스 특징 설명을 preview.html에 추가했다. 10번은 무료 체험·상담·소장으로 교체했고, 7번은 개선한 실제 ElementDistribution 컴포넌트를 가상 입력으로 캡처했다. 운영 화면 반영 전임을 표시한다.

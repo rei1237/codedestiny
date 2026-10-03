@@ -83,3 +83,13 @@ Chrome 공식 로그인 프로필 확인 당시 소개에 ‘천원’ 표현이
 - GitHub CI 37126103981: Build Pages and Worker, Typecheck and lint 성공. Static guards는 verify:public-mirror-fresh의 기존 index.html 및 public 언어별 미러 8개 불일치로 실패. 전체 CI 통과 아님. Main drift 37126103998도 같은 실패. Secret Scan, AI Locale Gate, Landing Watchdog 성공.
 - 로컬 check:fast는 doc-freshness와 여러 paid gate 통과 뒤 출력 정체로 중단. 이미지/원고/해시/레이아웃 대상 검증과 git diff --check는 통과.
 - 다음 행동: D:\Development\codedestiny-worktrees\moonstone-oct05-20261003-151816에서 이 문서와 가격 전환 문서를 읽고, 기존 public mirror 불일치는 해당 서비스 변경 담당 범위에서 확인한다. 10/5에는 운영 가격·부분 할인 및 실제 영냥이 계정을 확인한 뒤 v2/manifest.json과 posts.json으로 게시·고정한다. 운영 승격 승인 없이 승격하지 않는다.
+
+## 최신 요청 반영 — 설명형 홍보 개편
+
+이 절이 이전 캠페인 설명보다 우선한다. 사용자가 민감한 정치 이야기를 전부 제외하도록 정정했다. 현재 preview.html, 10번 카드, captions.md/posts.json에서 관련 사례·원문 링크를 제거했다. 과거 기록이나 이전 커밋의 원고를 게시에 재사용하지 않는다. heartbeat도 같은 지침으로 갱신했다.
+
+preview.html은 이미지 갤러리 대신 특징 설명형 랜딩이다. 무료 체험, 여섯 체계, 초융합, 계산 근거, 상담 보관, 외부 제작 프롬프트, 사람 상담 후기, 가입 혜택을 순서대로 설명한다. 1번 원본은 보존.
+
+이전 오행 캡처는 ReadingCharts의 계산 근거 부속 화면이었고 본문 SajuBoard와 다르다. 이번에는 ElementDistribution을 공유해 같은 색·아이콘·수치와 막대 비례로 표시한다. 실제 계산 값·결제·DB는 변경하지 않았다. 7번은 개선 실제 컴포넌트의 가상 입력 예시이며 운영 반영 전 표시. 게시 전에 운영 UI 반영도 확인한다.
+
+검증: 별도 시각 reviewer SHIP(1440 데스크톱·390 모바일 랜딩, 07/10 카드 및 차트 모바일). 차트 360/390/430 가로 넘침 없음. reading-visuals 8 tests 통과, 대상 ESLint 오류0/기존 img 경고7, diff --check 통과. check:fast는 paid-suite 출력 정체로 중단해 전체 통과로 표시하지 않는다. GitHub CI 최종 게이트 확인.
