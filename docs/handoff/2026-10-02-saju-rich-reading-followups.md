@@ -20,16 +20,12 @@ next: "docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B1(ilju
 
 ## 다음 세션 시작 명령
 
-A1·A2·A3 는 끝났다(남은 것: B1·B2·B3·C1·C2·D1·E1). 과제마다 한 세션씩 쓴다. 아래 문장을 그대로 붙여 넣는다.
+A1·A2·A3·B3·C1·E1 은 끝났다(남은 것: B1·B2·C2·D1). 과제마다 한 세션씩 쓴다. 아래 문장을 그대로 붙여 넣는다.
 
 ```
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B1(iljuCard 상단 구 컴포넌트 디자인 정리)을 진행해줘
-docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B2(tsModal 네오 모드 시각 결함)를 진행해줘
-docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 B3(쌓인 표의 스크린리더 의미)를 진행해줘
-docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 C1(NEO_GAEUN_DB 반말 정리)을 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 C2(비한국어 로케일 풍부한 판)를 진행해줘
 docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 D1(daewun-quality 검증기 타임아웃)을 진행해줘
-docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 E1(47030b73d 의 남은 해석 변경 검토)을 진행해줘
 ```
 
 여러 세션을 동시에 돌리면 두 번째부터 워크트리를 만든다(`scripts/create-safe-worktree.ps1`). 같은 파일(`js/core/saju/reading-rich.js`)을 건드리는 B3·C2 는 동시에 돌리지 않는다.
@@ -68,13 +64,14 @@ docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 E1(47030b73d �
 - 기준: `docs/context/design-canon.md` 를 먼저 읽고 `styles/saju-reading.css` 의 `--reading-*` 토큰과 섹션 hue 방식에 맞춘다.
 - 제약(선행 문서 '지켜야 할 것'): 새 hex·인라인 색 금지, 대비 4.5:1(UI 3:1), 탭 44px, 360px 가로 넘침 0, 연이 모드에 파랑 금지.
 
-**B2. tsModal(십성 상세 모달) 네오 모드** — GREEN. 실측.
+**B2. tsModal(십성 상세 모달) 네오 모드** — ✅ 완료 2026-10-03 (b76413f39, 네오 한정 CSS). 상자를 카드 토큰으로, X 는 --reading-ink(약 14:1), 360 모달 여백 12px. `#tsGrid` 의 hex 는 렌더 마크업에 없고 토큰 정의(네오 팔레트)뿐이라 손대지 않았다. 피그 모드의 흰 상자·X #ccc(1.6:1)는 그대로다(범위 밖). 아래는 원래 기록.
 - `.modal-box` 의 흰 바탕과 28px 패딩이 네오 어두운 카드에서 흰 테두리처럼 보인다.
 - 닫기 X 대비가 약 1.5:1 이다.
 - 360px 에서 모달 위에 약 50px 빈칸이 있다.
 - `#tsGrid` 에 하드코딩 hex 가 남아 있다.
 
-**B3. 쌓인 표(≤520px 카드형)의 스크린리더 의미** — GREEN.
+**B3. 쌓인 표(≤560px 카드형)의 스크린리더 의미** — ✅ 완료 2026-10-03 (3c4175d05). 크롬 접근성 트리 실측: 쌓은 상태에서 `thead{display:none}` 로 columnheader 가 사라지고 열 이름은 `::before` 텍스트("개수 3")로만 전달됐다. thead 를 시각적으로만 숨기고, 스택 표에 table·rowgroup·row·columnheader·rowheader·cell 역할을 명시하고, `::before` 는 `content:attr(data-label) / ""` 로 장식 처리해 중복 낭독을 막았다. 360px 가로 넘침 0 유지. Safari/VoiceOver·NVDA 실기는 미검증(역할 명시는 표준 대응).
+- (아래는 원래 기록)
 - b8baea59d 는 4열 이상 표를 좁은 화면에서 카드로 쌓는다. 셀 `data-label` 을 쓰고 thead 는 `display:none` 이다.
 - 이 상태에서 스크린리더가 열 머리를 읽지 못할 수 있다(미검증).
 - 할 일: 쌓인 상태에서도 열 머리가 전달되는지 확인한다. 안 되면 thead 를 시각적으로만 숨기는 클래스나 셀별 머리 텍스트로 바꾼다.
@@ -82,7 +79,7 @@ docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 E1(47030b73d �
 
 ### C. 문구·로케일
 
-**C1. `NEO_GAEUN_DB` 반말 혼재** — GREEN.
+**C1. `NEO_GAEUN_DB` 반말 혼재** — ✅ 완료 2026-10-03 (d4066c0f7, 미러·push 는 미완). 58문장을 합니다/하세요체로 다시 썼고(키 구조 무변경), reading-rich 세운 카드가 neo 모드에서 `NEO_GAEUN_DB`(없으면 `GAEUN_DB`)를 읽는다. 테스트 1건 추가(분기·폴백·120문장 어미). **미러는 아직 안 맞췄다**: 옆 세션(B3·D1)이 같은 공유 트리에서 sync:public 을 돌리는 중이라 해시가 계속 바뀌어, 마지막에 끝내는 세션이 sync:public 후 `public/js/saju-engine.js`·`public/js/core/saju/reading-rich.js` 를 함께 커밋하고 push 한다. 아래는 원래 기록.
 - `js/saju-engine.js:4538` 에 반말이 섞여 있어, 지금 `reading-rich.js` 는 두 모드 모두 `GAEUN_DB` 를 쓴다.
 - 할 일: 네오 말투(존댓말·단정)로 정리한 뒤 네오 모드에서 `NEO_GAEUN_DB` 를 쓰게 한다.
 - 금지어 검사(테스트·verify)를 통과해야 한다.
@@ -102,7 +99,13 @@ docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 E1(47030b73d �
 
 ### E. 해석 규칙 (사용자 판단 필요)
 
-**E1. 47030b73d 의 남은 해석 변경** — RED(운세 엔진·유료 AI 입력).
+**E1. 47030b73d 의 남은 해석 변경** — ✅ 완료 2026-10-03: 실측 후 사용자가 현 상태 유지로 결정(코드 무변경).
+- `getQuantumElType` 기후 보정: 전후 결과 차이 0건. 종격이 아닌 명식 19,647개에서 억부 용신∪기신이 항상 5행을 덮어 조후 분기에 도달하지 않는다(종격은 앞에서 반환).
+- `analyzeFortuneGZ`: 무작위 30,000건 중 4,282건(14%) 등급 변화. 원인은 천간충 甲庚·乙辛 추가(약 3,700), 수화기제·화련진금 대발복 삭제(약 410), 辛일간+丁 경고·합화 천간충 무효 삭제(약 260). 기준 명식 辛未 庚寅 辛酉 壬辰 은 60간지 중 24개가 바뀐다(丙寅 95→45, 甲子 85→45, 丁亥 45→85).
+- 유지 이유: 충을 확정 흉으로 읽지 않는 계약(`docs/design/saju-daewun-interpretation-contract.md`)과 공식 천간충 4쌍 정합. 되돌리면 금지어·사고/수술 예고 문구가 되살아난다.
+- 판정만 부분 복원하는 선택지(辛+丁 경고·합화 무효 로직)는 사용자가 택하지 않았다. 다시 열려면 RED 절차(`--write` 재생성·invariance 해시)가 필요하다.
+- (아래는 원래 기록)
+- RED(운세 엔진·유료 AI 입력).
 - 이번에는 대운 점수(`evalDaewun`·`evaluateDaewun`)만 사용자 지시로 되돌렸다.
 - 같은 커밋이 바꾼 아래 두 곳은 그대로다. 사용자가 "대운"만 지목했기 때문이다.
   - `getQuantumElType` 의 기후 보정(`js/saju-engine.js:4196`)

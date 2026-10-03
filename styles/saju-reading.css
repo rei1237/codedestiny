@@ -1,5 +1,5 @@
 /* Owned by the static saju surface, never by the shared mobile wrapper. */
-#resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading,#tsGrid {
+#resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading,#tsModal .modal-box,#tsGrid {
   --reading-ink:#54233e;--reading-muted:#774661;--reading-accent:#a52c60;--reading-paper:#fff8fb;--reading-line:#e5c3d2;
   --reading-card:#fff;--reading-gold:#c9a25e;--reading-on-accent:#fff;
   --reading-el-wood:rgb(46 125 50);--reading-el-fire:rgb(198 40 40);--reading-el-earth:rgb(141 110 99);--reading-el-metal:rgb(144 164 174);--reading-el-water:rgb(21 101 192);
@@ -7,7 +7,7 @@
 #resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading {
   color:var(--reading-ink);background:var(--reading-paper);font-family:var(--font-body, "CodeDestinyBody", sans-serif);
 }
-body.neo-mode #resultPage #letterBox,body.neo-mode #resultPage .saju-reading,body.neo-mode #sajuReadingHeader,body.neo-mode .saju-input-modes,body.neo-mode .saju-static-offer,body.neo-mode #modalBody .saju-reading,body.neo-mode #tsGrid {
+body.neo-mode #resultPage #letterBox,body.neo-mode #resultPage .saju-reading,body.neo-mode #sajuReadingHeader,body.neo-mode .saju-input-modes,body.neo-mode .saju-static-offer,body.neo-mode #modalBody .saju-reading,body.neo-mode #tsModal .modal-box,body.neo-mode #tsGrid {
   --reading-ink:#f4eafa;--reading-muted:#d6c7e5;--reading-accent:#e8c985;--reading-paper:#21182f;--reading-line:#685277;
   --reading-card:#2a2040;--reading-gold:#e8c985;--reading-on-accent:#21182f;
   --reading-el-wood:rgb(129 199 132);--reading-el-fire:rgb(239 154 154);--reading-el-earth:rgb(188 170 164);--reading-el-metal:rgb(207 216 220);--reading-el-water:rgb(144 202 249);
@@ -229,14 +229,14 @@ body.neo-mode .saju-cycle-guide {background:#21182f;color:#f4eafa;border-color:#
 .saju-table tbody th {font-weight:700;}
 .saju-table tfoot th,.saju-table tfoot td {font-weight:700;border-bottom:0;border-top:1px solid var(--reading-line);background:color-mix(in srgb,var(--reading-gold) 10%,var(--reading-card));}
 @media (max-width:560px) {
-  .saju-table--stack thead {display:none;}
+  .saju-table--stack thead {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
   .saju-table--stack,.saju-table--stack tbody,.saju-table--stack tfoot,.saju-table--stack tr {display:block;}
   .saju-table--stack tr {padding:12px 14px;border-bottom:1px solid color-mix(in srgb,var(--reading-line) 70%,transparent);}
   .saju-table--stack tbody tr:last-child {border-bottom:0;}
   .saju-table--stack tfoot tr {border-top:1px solid var(--reading-line);background:color-mix(in srgb,var(--reading-gold) 10%,var(--reading-card));}
   .saju-table--stack th[scope="row"] {display:block;padding:0 0 6px;border:0;font-size:.95rem;white-space:normal;}
   .saju-table--stack td {display:grid;grid-template-columns:6.5em minmax(0,1fr);gap:8px;padding:3px 0;border:0;white-space:normal;}
-  .saju-table--stack td::before {content:attr(data-label);color:var(--reading-muted);font-size:.8125rem;font-weight:600;}
+  .saju-table--stack td::before {content:attr(data-label);content:attr(data-label) / "";color:var(--reading-muted);font-size:.8125rem;font-weight:600;}
   .saju-table--stack td:empty {display:none;}
   .saju-table--stack tfoot :is(th,td) {background:none;border:0;}
   .saju-table--stack .saju-table__wrap {min-width:0;}
@@ -275,6 +275,16 @@ body.neo-mode .saju-cycle-guide {background:#21182f;color:#f4eafa;border-color:#
 #sajuIljuRich:not(:empty) {margin-top:20px;}
 /* 사주 상세 모달은 .wrap(z=1) 쌓임 맥락 안에 있어 전역 하단 내비(z 960~980)가 모달 아래쪽을 덮는다. 길어진 상세의 마지막 줄이 가려지지 않게 모달이 열린 동안만 내비를 숨긴다. */
 body:has(#tsModal.show) #cdMobileBottomNav {visibility:hidden;}
+/* 네오 상세 모달: 흰 .modal-box 와 28px 패딩이 어두운 카드를 흰 테두리처럼 감싸고, 닫기 X(#ccc)가 흰 바탕에서 1.6:1 이고, 88vh 상한이 360폭에서 위아래 50px 빈칸을 만든다. 상자를 카드 팔레트로 맞춘다. */
+body.neo-mode #tsModal .modal-box {background:var(--reading-paper);border:1px solid var(--reading-line);padding:0;}
+body.neo-mode #tsModal .modal-close {color:var(--reading-ink);}
+body.neo-mode #tsModal .modal-close:hover {color:var(--reading-accent);}
+body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
+@media (max-width:520px) {
+  body.neo-mode #tsModal {padding:12px;}
+  body.neo-mode #tsModal .modal-box {max-height:calc(100dvh - 24px);}
+  body.neo-mode #modalBody .saju-reading > h3 {padding-left:16px;}
+}
 .saju-bars {list-style:none;margin:0 0 12px;padding:0;display:grid;gap:10px;}
 .saju-bars li {display:grid;grid-template-columns:minmax(6.5em,auto) minmax(0,1fr) 2ch;align-items:center;gap:10px;font-size:.9rem;}
 .saju-bars__track {height:12px;border-radius:999px;background:color-mix(in srgb,var(--reading-line) 55%,transparent);box-shadow:inset 0 1px 2px rgb(0 0 0 / .1);overflow:hidden;}
