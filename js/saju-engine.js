@@ -9891,20 +9891,31 @@ const ILJU_DB = (function() {
   return db;
 })();
 
-function toggleIljuDetail(){
+// 버튼 문구·aria-expanded·maxHeight 를 한 곳에서만 쓴다.
+// data-cd-origin-text 도 같이 갱신해, ko 로케일 재적용(cd-lang-native.js)이
+// 펼침 상태를 모르는 채 페이지 로드 시점 문구로 되돌리지 않게 한다.
+function setIljuDetailExpanded(expanded){
   const detail = document.getElementById('iljuDetailWrap');
   const btn = document.getElementById('iljuToggleBtn');
   const card = document.getElementById('iljuCard');
-  if(!detail) return;
-  if(detail.style.maxHeight === '0px' || detail.style.maxHeight === ''){
+  if(!detail || !btn) return;
+  if(expanded){
     detail.style.maxHeight = (detail.scrollHeight + 12) + 'px';
-    btn.innerHTML = '상세 분석 접기 ▲';
-    if(card) card.classList.add('open-detail');
   } else {
     detail.style.maxHeight = '0px';
-    btn.innerHTML = '상세 분석 보기 ▼';
-    if(card) card.classList.remove('open-detail');
   }
+  const label = expanded ? '상세 분석 접기 ▲' : '상세 분석 보기 ▼';
+  btn.innerHTML = label;
+  btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  if(btn.hasAttribute('data-cd-origin-text')) btn.setAttribute('data-cd-origin-text', label);
+  if(card) card.classList.toggle('open-detail', expanded);
+}
+
+function toggleIljuDetail(){
+  const detail = document.getElementById('iljuDetailWrap');
+  if(!detail) return;
+  const isCollapsed = detail.style.maxHeight === '0px' || detail.style.maxHeight === '';
+  setIljuDetailExpanded(isCollapsed);
 }
 
 function iljuSanitizeText(html) {
@@ -10016,10 +10027,7 @@ function renderIlju(p){
 
   iljuCard.style.display = 'block';
 
-  const detail = document.getElementById('iljuDetailWrap');
-  const btn = document.getElementById('iljuToggleBtn');
-  if(detail) detail.style.maxHeight = '0px';
-  if(btn) btn.innerHTML = '상세 분석 보기 ▼';
+  setIljuDetailExpanded(false);
 
   var elementInfo = stemElementMap[p.d.g] || ['wood', '목(木)'];
   var theme = elementTheme[elementInfo[0]] || elementTheme.wood;
