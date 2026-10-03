@@ -4,7 +4,7 @@ updated: 2026-10-04
 next: "Check main CI for 433ffb2ed2d93c72f61d37b9979e5935c7551a80, resolve any external gate in its authorized scope, then request explicit production promotion approval before verifying the new Threads format."
 ---
 
-# Threads 発행 형식과 참여형 편성 인수인계
+# Threads 발행 형식과 참여형 편성 인수인계
 
 ## 요청과 전달
 
@@ -34,6 +34,7 @@ next: "Check main CI for 433ffb2ed2d93c72f61d37b9979e5935c7551a80, resolve any e
 - `npm run check:fast -- --plan` 및 `npm run check:fast`: critical로 자동 승격. paid-gate-suite 88개·lint 통과 후 `verify:sitemap-drift` 실패. 날짜 운세 URL 2026-10-04 추가/2026-09-04 제외 등 소스/추적 사이트맵 불일치. 사이트맵·라우트는 이번 변경 대상이 아니다. 이후 단계는 이 실행에서 미실행이다.
 - 최종 변경 파일 대상 ESLint와 `git diff --check` 통과.
 - [코드 main CI](https://github.com/rei1237/codedestiny/actions/runs/37134786176). CI 종료 결론은 링크에서 확인하며 로컬 검사 통과와 혼동하지 않는다.
+- 이후 원격 main의 사이트맵·정적 소개 페이지 수정 `d5ae0fddad92e01d08574e468e07b5f42b686f54`를 통합했다. 이 수정은 다른 작업의 변경이며 위 로컬 실패를 소급해 통과로 바꾸지 않는다. 최신 원격 main의 전체 CI를 확인한다.
 - 유료 LLM 0회, 실결제 0회, 실제 게시 0건, 운영 DB 쓰기 0회, 운영 승격 미실행. 결제/인증/가격/DB 스키마/발행 잠금은 유지했다.
 - 브라우저 연결은 timeout으로 실패하여 이번 턴의 최신 프로필·인사이트 실측은 없다. 이전 마케팅 로그는 과거 관측으로만 사용했다.
 
