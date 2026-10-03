@@ -1,3 +1,4 @@
+import { ABOUT_INTRO_COPY } from "./about-intro-copy";
 // /about 본문 문구. 페이지(서버 컴포넌트)와 관리자 CMS 화면(클라이언트)가 함께 읽으므로
 // 순수 데이터만 두고 metadata 같은 서버 전용 export 는 두지 않는다
 // (서버 페이지를 클라이언트 번들에서 import 하면 Next 빌드가 거부한다).
@@ -5,6 +6,7 @@ export const ABOUT_PAGE_TEXT_TRANSLATIONS = {
   // 렌더러(aboutPageText)는 현재 ko만 사용한다. AdSense 심사관이 반드시 확인하는
   // 정체성 페이지라 실질 한국어 콘텐츠를 충분히 담았다(신규 키는 렌더 대상 ko에만 둔다).
   ko: {
+    ...ABOUT_INTRO_COPY,
     "title": "Code Destiny 소개",
     "intro": "Code Destiny(코드 데스티니)는 사주팔자·만세력·타로·자미두수·서양 점성술·베다 점성술·숙요점·궁합·오늘의 운세를 한곳에서 볼 수 있는 한국어 운세 플랫폼입니다. 생년월일과 태어난 시간만 있으면 오행과 십성, 대운의 흐름, 별자리와 27수의 관계까지 차분하게 펼쳐 드립니다. 모든 해석은 미래를 단정하는 예언이 아니라, 오늘의 선택을 정리하고 자신을 돌아보게 돕는 참고 자료로 제공됩니다.",
     "mission.title": "우리가 만들고 싶은 것",

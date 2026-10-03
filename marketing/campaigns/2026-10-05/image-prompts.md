@@ -39,3 +39,6 @@ Create a brand-new premium storybook illustration of ONLY the two supplied masco
 ## 설명형 개편
 
 이번 개편은 기존 생성 원화를 재사용했다. 새 래스터 생성 없이 편집 가능한 서비스 특징 설명을 preview.html에 추가했다. 10번은 무료 체험·상담·소장으로 교체했고, 7번은 개선한 실제 ElementDistribution 컴포넌트를 가상 입력으로 캡처했다. 운영 화면 반영 전임을 표시한다.
+# v3 설명형 카드 제작 기록
+
+2026-10-04: 새 그림 생성 없이 기존 v2의 연이 선물·영냥이 리딩·두 캐릭터 별지도 원본을 재사용했습니다. 그림을 변형하지 않고 HTML/CSS 편집 레이아웃으로 기능 설명·실제 UI·이용 조건을 조합했습니다. 생성 프롬프트 원문은 아래 및 v2/generation-prompts.json에 보존합니다. 최신 게시물은 v3/manifest.json, v3/posts.json이며 threads-preview.html에서 10장을 확인합니다. preview.html은 별도 소개 디자인입니다.

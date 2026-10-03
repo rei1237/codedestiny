@@ -25,12 +25,16 @@ await build({
   platform: 'node',
   format: 'cjs',
   jsx: 'automatic',
-  external: ['react', 'react-dom', 'react/jsx-runtime', '/icons/*'],
+  external: ['react', 'react-dom', 'react/jsx-runtime', '/icons/*', '/assets/*'],
   loader: { '.js': 'jsx', '.css': 'local-css' },
   logLevel: 'silent',
   plugins: [{
     name: 'static-html-elements',
     setup(builder) {
+      // About-only CSS is linked separately; other policy pages do not download its fonts.
+      builder.onLoad({ filter: /[\\/]about[\\/]service-intro(?:-fonts)?\.css$/ }, (args) => ({
+        contents: '', loader: 'css', resolveDir: path.dirname(args.path),
+      }));
       builder.onResolve({ filter: /^next\/(link|image)$/ }, (args) => ({ path: args.path, namespace: 'static-html' }));
       builder.onLoad({ filter: /.*/, namespace: 'static-html' }, (args) => ({
         resolveDir: root,
@@ -53,6 +57,10 @@ const styles = (fs.existsSync(compiledCssPath) ? fs.readFileSync(compiledCssPath
 fs.mkdirSync('public/styles', { recursive: true });
 fs.mkdirSync('public/js', { recursive: true });
 fs.writeFileSync('public/styles/static-policy.css', styles);
+for (const file of ['service-intro.css', 'service-intro-fonts.css']) {
+  fs.copyFileSync(`app/about/${file}`, `public/styles/${file}`);
+}
+const introVersion = createHash('sha256').update(fs.readFileSync('app/about/service-intro.css')).digest('hex').slice(0, 12);
 const cssVersion = createHash('sha256').update(styles).digest('hex').slice(0, 12);
 const contactSource = fs.readFileSync('js/static-policy-contact.js');
 const contactVersion = createHash('sha256').update(contactSource).digest('hex').slice(0, 12);
@@ -85,7 +93,7 @@ for (let index = 0; index < STATIC_POLICY_ROUTES.length; index += 1) {
   if (route.key === 'contact') main = main.replace(/<form\b/, `<form data-policy-contact data-support-email="${escape(email)}"`);
   main = main.replace('<main ', '<main id="policyContent" ');
   const phone = String(business.phone || '');
-  const pressStyles = route.key === 'about' ? '<link rel="stylesheet" href="/styles/press-coverage.css">' : '';
+  const pressStyles = route.key === 'about' ? `<link rel="stylesheet" href="/styles/press-coverage.css"><link rel="stylesheet" href="/styles/service-intro.css?v=${introVersion}">` : '';
   const contactScript = route.key === 'contact'
     ? `<script src="/js/static-policy-contact.js?v=${contactVersion}" defer></script><noscript><p class="policy-nojs">문의는 <a href="mailto:${escape(email)}">${escape(email)}</a>로 보내주세요. 입력 내용을 자동으로 전송하지 않습니다.</p></noscript>`
     : '';
