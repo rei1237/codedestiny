@@ -1,0 +1,84 @@
+{
+  "coverSha256": "4ec18803662c6f463d07e5945c411bead11686b01c0efa151c6dca14a12e40f4",
+  "preservedCover": true,
+  "cards": [
+    {
+      "file": "02.jpg",
+      "size": [
+        1080,
+        1350
+      ]
+    },
+    {
+      "file": "03.jpg",
+      "size": [
+        1080,
+        1350
+      ]
+    },
+    {
+      "file": "04.jpg",
+      "size": [
+        1080,
+        1350
+      ]
+    },
+    {
+      "file": "05.jpg",
+      "size": [
+        1080,
+        1350
+      ]
+    },
+    {
+      "file": "06.jpg",
+      "size": [
+        1080,
+        1350
+      ]
+    },
+    {
+      "file": "07.jpg",
+      "size": [
+        1080,
+        1350
+      ]
+    },
+    {
+      "file": "08.jpg",
+      "size": [
+        1080,
+        1350
+      ]
+    },
+    {
+      "file": "09.jpg",
+      "size": [
+        1080,
+        1350
+      ]
+    },
+    {
+      "file": "10.jpg",
+      "size": [
+        1080,
+        1350
+      ]
+    }
+  ],
+  "postLengths": {
+    "official": 368,
+    "yeongnyangi": 378,
+    "reply02": 154,
+    "reply03": 225,
+    "reply04": 169,
+    "reply05": 178,
+    "reply06": 177,
+    "reply07": 178,
+    "reply08": 215,
+    "reply09": 231,
+    "reply10": 326
+  },
+  "layout": "9/9 no footer overlap, images loaded",
+  "scope": "marketing only; no payment API, pricing or DB changes"
+}
