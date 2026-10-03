@@ -13,7 +13,7 @@ next: 최신 main과 작업 상태를 확인하고 mock 결과 화면을 재현�
 ## 지금 상태
 
 - 작업 위치: `D:\Development\codedestiny-worktrees\ggulggul-home-art-20261003-181209`, 현재 브랜치 `wt/ggulggul-home-art-20261003-181209`. PR 없음.
-- 기준 홈 커밋: `947c10e8665992d100e79597b601e65929b677c7`. 초융합 관련 4파일의 이번 미커밋 수정은 전부 원복했고 현재 초융합 코드는 미수정이다.
+- 기준 홈 커밋: `76c3eead11bd402008db49281bb1544d6aaaa4c3`. 초융합 관련 4파일의 이번 미커밋 수정은 전부 원복했고 현재 초융합 코드는 미수정이다.
 - 이 문서는 수정 재개용이다. 홈 커밋의 main 반영·CI·배포 완료를 뜻하지 않는다.
 
 ## 남은 작업
@@ -54,6 +54,6 @@ npm run verify:handoff-contract
 ```text
 현재 인수인계 작업 디렉터리: D:\Development\codedestiny-worktrees\ggulggul-home-art-20261003-181209
 문서: D:\Development\codedestiny-worktrees\ggulggul-home-art-20261003-181209\docs\handoff\2026-10-03-fusion-premium-report-ui.md
-기준 홈 커밋: 947c10e8665992d100e79597b601e65929b677c7
+기준 홈 커밋: 76c3eead11bd402008db49281bb1544d6aaaa4c3
 이 문서와 CLAUDE.md를 읽고 최신 main의 커밋·동시 작업·미커밋 상태부터 확인해 작업 위치를 정해줘. 이전 초융합 변경 4파일은 원복됐다. mock preview 결과를 폼 제출로 재현하고, 달빛 예화의 고급 리포트 표지와 장별 위계·모바일 가독성을 개선해줘. ThreadRow/Bubble, 목차 Rail/Dock, PDF·앵커 계약을 보존해줘. 실 LLM·실결제·운영 DB 호출은 허용하지 않는다. 관련 검증 후 저장소 전달 규칙을 따르고 미실행 CI·배포를 완료로 보고하지 마.
 ```

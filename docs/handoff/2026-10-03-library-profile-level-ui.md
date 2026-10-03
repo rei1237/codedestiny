@@ -13,7 +13,7 @@ next: 최신 main과 현재 보관함·프로필·레벨 정본을 확인하고 
 ## 지금 상태
 
 - 작업 위치: `D:\Development\codedestiny-worktrees\ggulggul-home-art-20261003-181209`, 현재 브랜치 `wt/ggulggul-home-art-20261003-181209`. PR 없음.
-- 기준 홈 커밋: `947c10e8665992d100e79597b601e65929b677c7`. 이 주제의 구현은 시작하지 않았다.
+- 기준 홈 커밋: `76c3eead11bd402008db49281bb1544d6aaaa4c3`. 이 주제의 구현은 시작하지 않았다.
 - 다음 세션은 최신 main을 확인한 뒤 계획한다. 이 문서는 main 반영·CI·배포 완료의 근거가 아니다.
 
 ## 남은 작업
@@ -56,6 +56,6 @@ npm run verify:handoff-contract
 ```text
 현재 인수인계 작업 디렉터리: D:\Development\codedestiny-worktrees\ggulggul-home-art-20261003-181209
 문서: D:\Development\codedestiny-worktrees\ggulggul-home-art-20261003-181209\docs\handoff\2026-10-03-library-profile-level-ui.md
-기준 홈 커밋: 947c10e8665992d100e79597b601e65929b677c7
+기준 홈 커밋: 76c3eead11bd402008db49281bb1544d6aaaa4c3
 이 문서와 CLAUDE.md를 읽고 최신 main과 동시 작업 상태부터 확인해줘. 보관함·프로필·레벨 3영역의 UI 개선 계획만 작성하고 코드는 수정하지 마. 현재 보관함은 4개 목적지 메뉴이며 계정 레벨 정본과 조건부 월정석 정책을 보존해줘. 실제 화면은 mock으로 확인하고 영냥이 recover 생성 API, 실 LLM·실결제·운영 DB는 호출하지 마. 화면별 제안·재사용 정본·검증 기준·미확정 사항을 구체적으로 정리해줘.
 ```
