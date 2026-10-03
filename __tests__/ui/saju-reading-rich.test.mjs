@@ -160,6 +160,23 @@ test('flow: the current cycle and year cards show the engine score, ten gods and
   delete context.GAEUN_DB;
 });
 
+test('flow: the neo voice reads NEO_GAEUN_DB, and every neo sentence there ends politely',()=>{
+  const p=charts[2],row={kind:'year',g:'乙',j:'巳',score:70,summary:'',year:2026,relations:[]};
+  const tile=(db,mode)=>{
+    Object.assign(context,db);
+    try{return rich.flow(factsOf(p,{flow:[row]}),mode)}finally{for(const k of Object.keys(db))delete context[k]}
+  };
+  const both={GAEUN_DB:{wood:{good:{love:'기본'}}},NEO_GAEUN_DB:{wood:{good:{love:'네오'}}}};
+  assert.match(tile(both,'neo'),/<b>연애운<\/b><span>네오<\/span>/);
+  assert.match(tile(both,'pig'),/<b>연애운<\/b><span>기본<\/span>/);
+  assert.match(tile({GAEUN_DB:both.GAEUN_DB},'neo'),/<span>기본<\/span>/);
+  const start=engine.indexOf('var NEO_GAEUN_DB='),end=engine.indexOf('\n};\n',start);
+  const neoDb=vm.runInNewContext('('+engine.slice(start+'var NEO_GAEUN_DB='.length,end+2)+')');
+  const sentences=Object.values(neoDb).flatMap(e=>Object.values(e).flatMap(g=>Object.values(g))).flatMap(t=>t.match(/[^.]+\./g));
+  assert.equal(sentences.length,120);
+  for(const s of sentences)assert.match(s,/(니다|세요|마세요)\.$/,s);
+});
+
 test('flow: the tone paragraph follows the score band and appears once when both rows share it',()=>{
   const p=charts[2],row=(kind,score)=>({kind,g:'甲',j:'午',score,summary:'',age:31,end:40,year:2026,relations:[]});
   const zero=rich.flow(factsOf(p,{flow:[row('period',0)]}),'pig');

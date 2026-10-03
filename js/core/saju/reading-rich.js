@@ -575,7 +575,8 @@
       body += rel.length ? chips(rel.map(function (x) { return {tag:x.type, text:x.src + ' – ' + x.partner, note:x.isChung ? '변화·이동의 자극' : x.transformed ? '합화 조건 충족' : '결속·협력의 계기', tone:x.isChung ? 'care' : 'good'}; })) :
         para(neo ? '원국과 직접 합·충하는 글자는 없습니다.' : '원국 글자와 직접 합하거나 충하는 자리는 없어요.');
       if (year && L.GAEUN_DB) {
-        var g = (L.GAEUN_DB[gd.e] || L.GAEUN_DB.earth || {})[good ? 'good' : 'bad'] || {};
+        var db = (neo && L.NEO_GAEUN_DB && L.NEO_GAEUN_DB[gd.e]) ? L.NEO_GAEUN_DB : L.GAEUN_DB;
+        var g = (db[gd.e] || db.earth || {})[good ? 'good' : 'bad'] || {};
         body += '<ul class="saju-tiles">' + GAEUN_LABEL.filter(function (x) { return g[x[0]]; }).map(function (x) { return '<li><b>' + esc(x[1]) + '</b><span>' + esc(g[x[0]]) + '</span></li>'; }).join('') + '</ul>';
       }
       // 대운·세운이 같은 톤이면 같은 문단이 두 번 나오므로 처음 한 번만 붙인다.
