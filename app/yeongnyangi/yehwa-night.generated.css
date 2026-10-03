@@ -18,25 +18,27 @@
   height: 22px;
   margin-top: 6px;
   background: var(--yn-gold);
-  opacity: .45;
+  opacity: .8;
   pointer-events: none;
   -webkit-mask: var(--yn-yehwa-mask-branch-h) left center/contain no-repeat;
   mask: var(--yn-yehwa-mask-branch-h) left center/contain no-repeat;
 }
 
-/* 쉰 프레임: .cdh-services--luxe:before 레시피, 색만 금 */
+/* 쉰 프레임: .cdh-services--luxe:before 레시피, 색만 금.
+ * .service-card 자체 테두리가 불투명 #9c785d 라 레퍼런스(반투명 테두리)보다 더 또렷해야 보인다
+ * — padding(링 두께) 1→2px, opacity .5→.85 (실측: getComputedStyle 는 정상이었으나 스크린샷엔 거의 안 보였음). */
 .ynOriginal .service-card::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
   border-radius: inherit;
-  padding: 1px;
+  padding: 2px;
   background: linear-gradient(120deg, var(--yn-gold), transparent 32%, transparent 68%, var(--yn-gold));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  opacity: .5;
+  opacity: .85;
   pointer-events: none;
 }
 /* ::before 는 position:absolute + z-index:0 인 레이어라 static 본문보다 위 페인트 순서를 탄다
