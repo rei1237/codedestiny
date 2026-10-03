@@ -49,7 +49,8 @@ export function sajuNeedsFromSnapshot(snapshot: any): SajuNeeds {
   };
 }
 
-export function sajuNeedsFromBirth(birth: NamingBirth, gender: "M" | "F" | "N"): SajuNeeds {
+/** 정본 스냅샷 원본(기둥·오행 개수 포함). 라우트가 화면용 사주 요약을 같은 스냅샷에서 만든다. 계산 실패면 null. */
+export function sajuSnapshotFromBirth(birth: NamingBirth, gender: "M" | "F" | "N"): any {
   const time = String(birth?.time || "").trim();
   // 정본은 isLeapMonth 를 읽지만(saju-snapshot-from-birth.js:59) JSDoc 에 빠져 있어 변수로 넘긴다 — 읽기 전용 파일이라 고치지 않는다.
   const birthInfo = {
@@ -60,7 +61,11 @@ export function sajuNeedsFromBirth(birth: NamingBirth, gender: "M" | "F" | "N"):
     isLeapMonth: birth?.calendarType === "lunar_leap",
     gender: gender === "M" ? "male" : gender === "F" ? "female" : "",
   };
-  const snapshot = buildSajuSnapshotFromBirth(birthInfo);
+  return buildSajuSnapshotFromBirth(birthInfo) || null;
+}
+
+export function sajuNeedsFromBirth(birth: NamingBirth, gender: "M" | "F" | "N"): SajuNeeds {
+  const snapshot = sajuSnapshotFromBirth(birth, gender);
   if (!snapshot) throw new NamingEngineError("saju-unavailable", "생년월일로 사주를 계산하지 못했다");
   return sajuNeedsFromSnapshot(snapshot);
 }

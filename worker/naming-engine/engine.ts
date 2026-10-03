@@ -31,7 +31,7 @@ export interface NamingInput {
 
 export interface NamingEngineOptions {
   tier: Tier;
-  /** 주면 생년월일로 사주를 다시 계산하지 않는다 */
+  /** 주면 생년월일로 사주를 다시 계산하지 않는다(birth 도 있으면 해시는 birth 로 — 무료·유료가 같은 순서) */
   saju?: SajuNeeds;
   /** 테스트용 데이터 주입. 기본은 번들 데이터 */
   data?: NamingData;
@@ -128,7 +128,7 @@ export function runNamingEngine(input: NamingInput, options: NamingEngineOptions
   const data = options?.data || loadNamingData();
   const normalized = normalizeInput(input, data);
   const needs = options?.saju || sajuNeedsFromBirth(input.birth as NamingBirth, normalized.gender);
-  const inputHash = namingInputHash(normalized, options?.saju ? undefined : input.birth, needs);
+  const inputHash = namingInputHash(normalized, input.birth, needs);
   const count = tier === "paid" ? SEARCH.paidCount : SEARCH.freeCount;
 
   const ctx: SearchContext = {
