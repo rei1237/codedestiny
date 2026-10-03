@@ -40,7 +40,7 @@ assert.doesNotMatch(
   /interpretation:\s*null\s*,/,
   'worker/routes/palm.js: interpretation 을 무조건 null 로 반환하면 안 됨 (템플릿 폴백 고착)',
 );
-assert.match(route, /consultText/, 'worker/routes/palm.js: 응답에 consultText 가 실려야 함');
+assert.match(route, /consultText/, 'worker/routes/palm.js: 저장본(결제 뒤 GET /result)에 consultText 가 실려야 함');
 
 // ── 3. 🔴 비전 호출은 Workers AI 폴백을 꺼야 한다 ──
 // 폴백 경로는 normalized.prompt 만으로 메시지를 만들어 inline_data(사진)를 버린다.

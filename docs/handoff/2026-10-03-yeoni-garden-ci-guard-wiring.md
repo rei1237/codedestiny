@@ -1,5 +1,5 @@
 ---
-status: active
+status: done
 updated: 2026-10-03
 next: "docs/handoff/2026-10-03-yeoni-garden-ci-guard-wiring.md 대로 main CI(Verify guard wiring) 복구를 진행해줘"
 ---
@@ -27,15 +27,21 @@ next: "docs/handoff/2026-10-03-yeoni-garden-ci-guard-wiring.md 대로 main CI(Ve
 
 ## 할 일 (사용자 승인: ① 사유 선언)
 
-- [ ] `scripts/verify-guard-wiring.mjs` 의 `UNWIRED_BY_DESIGN` 배열, "실네트워크·실브라우저" 구역(현재 `["verify:i18n-rendered-korean", …]` 줄 바로 위)에 두 줄 추가:
+- [x] `scripts/verify-guard-wiring.mjs` 의 `UNWIRED_BY_DESIGN` 배열, "실네트워크·실브라우저" 구역(현재 `["verify:i18n-rendered-korean", …]` 줄 바로 위)에 두 줄 추가:
   ```js
   ["verify:account-sheet", "playwright 실렌더(6폭·로그인/비로그인 stub) — 셸 계정 시트 위치·스크롤 잠금을 고쳤으면 손으로 돌린다. 게이트 승격은 사용자 승인 사항"],
   ["verify:all-fortunes-journey", "playwright 실렌더(4폭 검색·필터·복원·요청 감시) — 모든 운세 화면·finder 를 고쳤으면 손으로 돌린다. 게이트 승격은 사용자 승인 사항"],
   ```
   CRLF 파일이면 줄 끝을 맞출 것(Edit/sed 가 CRLF 를 떨굴 수 있음 — node 로 패치).
-- [ ] 검증: `node scripts/verify-guard-wiring.mjs --self-test` → `node scripts/verify-guard-wiring.mjs` (OK 확인) → `npm run check:fast`.
-- [ ] 커밋(이 파일 하나 + 이 문서 status 갱신) → push → main CI `CI required` success 확인. 스테이징 검증은 하지 않는다.
-- [ ] 끝나면 이 문서 `status: done`, 커밋 SHA 기록.
+- [x] 검증: `node scripts/verify-guard-wiring.mjs --self-test` → `node scripts/verify-guard-wiring.mjs` (OK 확인) → `npm run check:fast`.
+- [x] 커밋(이 파일 하나 + 이 문서 status 갱신) → push → main CI `CI required` success 확인. 스테이징 검증은 하지 않는다.
+- [x] 끝나면 이 문서 `status: done`, 커밋 SHA 기록.
+
+## 결과 (세션 9e2a4882)
+
+- 워크트리 `wt/ci-guard-wiring-20261003-092458`(base e26488e65)에서 2줄 추가 — 이 문서를 `status: done` 으로 바꾼 커밋과 같은 커밋이다. 분류기 거부 없음.
+- `--self-test` OK(24 케이스), 본 검사 OK(verify:* 330 중 266 배선, 64 사유 선언).
+- `check:fast` 의 `npm test` 실패 3건(payments-v2.pass-check·subscription, yeongnyangi-service-packs)은 공유 node_modules 읽기 `UNKNOWN: unknown error, read` 헛실패 — 단독 재실행 3 스위트 136/136 통과.
 
 ## 🔴 실패한 시도·주의
 
