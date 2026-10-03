@@ -13693,7 +13693,7 @@ function renderAstroInsightLegacyNeon() {
       var duo = LIFE_SIGN_DUO[signIdx];
       return ''
         + '<details class="astro-life-card" data-area="'+area.key+'" data-element="'+element+'">'
-        + '<summary><span class="astro-life-title">'+area.title+'</span>'
+        + '<summary>'+_lifeConstellation(signIdx)+'<span class="astro-life-title">'+_lifeSigil(element)+area.title+'</span>'
         + '<span class="astro-life-headline"><span class="astro-life-glyph" aria-hidden="true">'+anchor.glyph+'\uFE0E</span> '+flavor[0]+' '+anchor.label+' '+LIFE_SIGN_NAMES[signIdx]+'</span></summary>'
         + '<div class="astro-life-body">'
         + '<p class="astro-life-kicker">이런 사람이에요</p>'
@@ -13707,10 +13707,65 @@ function renderAstroInsightLegacyNeon() {
         + '</details>';
     }
 
+    // 장식 SVG(전부 aria-hidden): 선·점은 currentColor 라 색은 basic-fortune-library.css 토큰이 정한다.
+    var LIFE_SIGIL_PATHS = { fire:'M8 2.5L14 13.5H2Z', earth:'M2 2.5H14L8 13.5ZM3 6.5H13', air:'M8 2.5L14 13.5H2ZM3 9.5H13', water:'M2 2.5H14L8 13.5Z' };
+    function _lifeSigil(element){
+      return LIFE_SIGIL_PATHS[element] ? '<svg class="astro-life-sigil" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="'+LIFE_SIGIL_PATHS[element]+'"/></svg>' : '';
+    }
+    // 12사인 별자리 약식 선화 — [별 좌표(100×60)], [이을 별 쌍], 가장 밝은 별 번호
+    var LIFE_CONSTELLATIONS = [
+      [[[12,34],[46,22],[62,30],[70,42]], [[0,1],[1,2],[2,3]], 1],
+      [[[16,10],[40,28],[50,36],[60,28],[86,8],[28,50]], [[0,1],[1,2],[2,3],[3,4],[2,5]], 2],
+      [[[18,8],[34,6],[20,30],[38,28],[22,54],[44,52]], [[0,1],[0,2],[2,4],[1,3],[3,5]], 1],
+      [[[50,6],[48,26],[28,50],[70,48]], [[0,1],[1,2],[1,3]], 1],
+      [[[30,48],[28,32],[38,18],[52,12],[62,22],[72,40],[92,46]], [[0,1],[1,2],[2,3],[3,4],[2,5],[5,6],[0,5]], 0],
+      [[[8,18],[28,26],[46,30],[62,22],[82,12],[52,48],[72,54]], [[0,1],[1,2],[2,3],[3,4],[2,5],[5,6]], 5],
+      [[[50,8],[28,28],[72,28],[30,52],[70,50]], [[0,1],[0,2],[1,2],[1,3],[2,4]], 0],
+      [[[8,12],[18,22],[30,28],[42,34],[54,42],[62,54],[76,56],[86,48],[84,38]], [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8]], 2],
+      [[[20,30],[36,22],[50,26],[48,42],[34,46],[20,42],[64,16],[72,36]], [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[2,6],[3,7]], 2],
+      [[[10,14],[30,32],[60,50],[88,22],[70,24],[48,20]], [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]], 3],
+      [[[10,12],[28,20],[44,16],[58,30],[46,44],[64,54],[84,44]], [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6]], 1],
+      [[[10,14],[22,6],[32,16],[20,22],[46,34],[68,50],[86,38],[94,50],[82,58]], [[0,1],[1,2],[2,3],[3,0],[2,4],[4,5],[5,6],[6,7],[7,8],[8,5]], 5]
+    ];
+    function _lifeConstellation(signIdx){
+      var c = LIFE_CONSTELLATIONS[signIdx];
+      if(!c) return '';
+      var d = c[1].map(function(e){ var a = c[0][e[0]], b = c[0][e[1]]; return 'M'+a[0]+' '+a[1]+'L'+b[0]+' '+b[1]; }).join('');
+      var stars = c[0].map(function(st, i){ return '<circle cx="'+st[0]+'" cy="'+st[1]+'" r="'+(i === c[2] ? 2.4 : 1.5)+'"/>'; }).join('');
+      return '<svg class="astro-life-constellation" viewBox="0 0 100 60" aria-hidden="true" focusable="false"><path d="'+d+'"/>'+stars+'</svg>';
+    }
+    // 섹션 머리 휠: 상승궁이 왼쪽 수평선, 황도는 반시계 — 사용자 실제 ☉·☽ 경도로 점을 놓는다.
+    function _lifeWheelSvg(){
+      var ascLon = _lonFromSignObj(chart.asc);
+      if(ascLon == null) return '';
+      function pt(lon, rad){ var t = Math.PI + (lon - ascLon) * Math.PI / 180; return (rad * Math.cos(t)).toFixed(1)+' '+(-rad * Math.sin(t)).toFixed(1); }
+      var ticks = '', signs = '';
+      for(var k=0; k<12; k++){
+        ticks += 'M'+pt(k*30, 76)+'L'+pt(k*30, 100);
+        var g = pt(k*30+15, 88).split(' ');
+        signs += '<text x="'+g[0]+'" y="'+g[1]+'">'+LIFE_SIGN_GLYPHS[k]+'\uFE0E</text>';
+      }
+      var sunLon = _lonFromSignObj(chart.sun), moonLon = _lonFromSignObj(chart.moon);
+      var marks = '';
+      if(sunLon != null && moonLon != null) marks += '<path class="astro-life-wheel__chord" d="M'+pt(sunLon, 64)+'L'+pt(moonLon, 48)+'"/>';
+      if(sunLon != null) marks += '<g class="astro-life-wheel__body" data-element="'+LIFE_ELEMENT_KEYS[chart.sun.idx % 4]+'" transform="translate('+pt(sunLon, 64)+')"><circle r="7" fill="none"/><circle r="2" stroke="none"/></g>';
+      if(moonLon != null) marks += '<g class="astro-life-wheel__body" data-element="'+LIFE_ELEMENT_KEYS[chart.moon.idx % 4]+'" transform="translate('+pt(moonLon, 48)+')"><path d="M-3 -7A7.4 7.4 0 1 1 -3 7A7 7 0 0 0 -3 -7Z" stroke="none"/></g>';
+      return '<svg class="astro-life-wheel" viewBox="-108 -108 216 216" aria-hidden="true" focusable="false">'
+        + '<circle class="astro-life-wheel__ring" r="100"/><circle class="astro-life-wheel__ring" r="76"/><circle class="astro-life-wheel__ring astro-life-wheel__ring--inner" r="34"/>'
+        + '<path class="astro-life-wheel__ring" d="'+ticks+'"/>'
+        + '<path class="astro-life-wheel__horizon" d="M'+pt(ascLon, 100)+'L'+pt(ascLon + 180, 100)+'"/>'
+        + '<g class="astro-life-wheel__signs">'+signs+'</g>'
+        + marks
+        + '</svg>';
+    }
+
     var lifeAreaSectionHtml = ''
       + '<div class="astro-section astro-life-area" id="astroLifeAreaSection">'
       + '<div class="astro-subhead" style="margin-bottom:8px;">🧭 Life Area Reading</div>'
+      + '<div class="astro-life-hero"><div>'
       + '<p class="astro-birth-lead">태어난 순간의 행성 배치로 사랑·일·돈·마음을 당신 차트에 맞춰 읽었어요.</p>'
+      + '<p class="astro-life-hero-note">오른쪽 원은 태어난 순간의 하늘이에요. 왼쪽 점선 끝이 상승궁, 고리가 해, 초승달이 달이에요.</p>'
+      + '</div>'+_lifeWheelSvg()+'</div>'
       + '<div class="astro-life-grid">'
       + LIFE_AREA_ORDER.map(function(key){ return lifeAreaByKey[key] ? _lifeAreaCard(lifeAreaByKey[key]) : ''; }).join('')
       + '</div>'
