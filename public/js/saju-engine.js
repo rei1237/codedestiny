@@ -12661,10 +12661,10 @@ function _astroBuildNatalWheelCard(chart, birth, houseSystemLabel) {
     + '<span>MC '+SIGN_GLYPH[Math.floor(_astroWheelNorm360(mcLon)/30)%12]+' '+SIGN_KO[Math.floor(_astroWheelNorm360(mcLon)/30)%12]+' '+_astroWheelFmtDeg(_astroWheelNorm360(mcLon) - (Math.floor(_astroWheelNorm360(mcLon)/30)%12)*30)+'</span>'
     + '</div>'
     + '<div class="astro-wheel-visual">'+svg.join('')+'</div>'
-    + '<div class="astro-wheel-tables">'
+    + '<details class="astro-fold astro-wheel-tables-fold"><summary>표로 보기 · 행성 위치와 각도 표</summary><div class="astro-wheel-tables">'
     + '<div class="astro-wheel-table-wrap"><div class="astro-wheel-table-title">행성 위치표</div><table class="astro-table astro-wheel-table"><thead><tr><th>행성</th><th>위치</th><th>하우스</th></tr></thead><tbody>'+planetRows+'</tbody></table></div>'
     + '<div class="astro-wheel-table-wrap"><div class="astro-wheel-table-title">어스펙트 요약</div><table class="astro-table astro-wheel-table"><thead><tr><th>행성쌍</th><th>유형</th><th>오차</th></tr></thead><tbody>'+aspectRows+'</tbody></table></div>'
-    + '</div>'
+    + '</div></details>'
     + '</div>';
 
   return { cardHtml: cardHtml };
@@ -13456,7 +13456,7 @@ function renderAstroInsightLegacyNeon() {
       + '<button type="button" class="astro-birth-mode-btn" id="astroBirthModeToggle" aria-pressed="false">쉬운 보기 ON</button>'
       + '</div>'
       + '<p class="astro-birth-lead">태어난 순간 하늘에 새겨진 나만의 우주 설계도예요. 카드를 탭하면 각 행성이 삶에서 어떻게 작동하는지 자세히 펼쳐집니다.</p>'
-      + '<div class="astro-birth-chip-row">'+birthMapSummaryChips+'</div>'
+      + '<details class="astro-fold"><summary>태양·달·상승궁이 놓인 하우스</summary><div class="astro-birth-chip-row">'+birthMapSummaryChips+'</div></details>'
       + '<details class="astro-birth-help">'
       + '<summary>하우스 해석 방식이 뭐예요? (Placidus vs Whole Sign)</summary>'
       + '<div class="astro-birth-help-body">'
@@ -13787,11 +13787,14 @@ function renderAstroInsightLegacyNeon() {
       + '<p class="astro-birth-lead">내 장점과 조심할 점을 오늘의 선택에 바로 적용하는 법</p>'
       + '<div class="astro-desc">'
       + '<p><b>1) 나의 강점 사용법:</b> 태양 '+_friendlyHousePair(sunHousePair)+', 수성 '+_friendlyHousePair(mercuryHousePair)+', 목성 '+_friendlyHousePair(jupiterHousePair)+' 조합은 통찰을 실행으로 연결할 때 힘이 커집니다. 정보를 빠르게 정리하고 핵심을 문장으로 구조화하면 설득력이 높아집니다. 관찰력과 책임감을 함께 쓰면 신뢰가 빠르게 쌓입니다.</p>'
+      + '</div>'
+      + '<details class="astro-fold"><summary>이어 읽기 · 약점이 터지는 순간, 관계와 일·돈의 처세, 오늘의 실행</summary>'
+      + '<div class="astro-desc">'
       + '<p><b>2) 약점이 터지는 상황:</b> 피로가 누적되거나 감정이 과열되면 결론을 서두르는 패턴이 나타날 수 있습니다. 특히 달 '+_friendlyHousePair(moonHousePair)+' 구간에서 마음이 불안정할 때는 과잉 사고나 회피 반응이 올라오기 쉽습니다. 이때는 즉답보다 간격을 두는 것이 손실을 줄입니다.</p>'
       + '<p><b>3) 사람 사이에서의 처세술:</b> 에너지를 빼앗는 관계는 말의 속도만 빠르고 감정 확인이 없는 관계입니다. 반대로 성장하는 관계는 내 리듬을 존중하면서도 현실 피드백을 주는 사람과 함께할 때 만들어집니다. 갈등이 생기면 단정형 말투보다 질문형 말투를 먼저 쓰는 것이 좋습니다. 너무 참고 버티기보다 경계선을 먼저 공유하세요.</p>'
       + '<p><b>4) 일과 돈에서의 처세술:</b> MC '+mcSign+'와 토성 '+_friendlyHousePair(saturnHousePair)+'은 누적 성장형 전략이 유리함을 보여줍니다. 단기 성과는 화성 '+_friendlyHousePair(marsHousePair)+'으로 당기고, 신뢰는 루틴과 납기 준수로 쌓는 방식이 좋습니다. 돈은 충동 소비를 줄이는 것보다 재능의 단가를 명확히 높이는 구조가 더 잘 맞습니다.</p>'
       + '<p><b>5) 오늘의 실행 조언:</b> (a) 오늘 가장 중요한 결정 1개는 20분 안에 초안을 만드세요. (b) 대화 전에 전달할 핵심 문장을 한 줄로 정리하세요. (c) 취침 전 15분은 완전 오프로 두고 감정 메모 3줄을 남기세요.</p>'
-      + '</div>'
+      + '</div></details>'
       + '</div>';
 
     var astroCanonicalSectionHtml = '';
@@ -13831,25 +13834,29 @@ function renderAstroInsightLegacyNeon() {
       + '<span class="astro-price-pill astro-price-pill--free">기본 차트 무료</span>'
       + '</div>'
       + '<p class="astro-action-hub__lead">정밀 차트, 프롬프트, 직접 입력 궁합, 유명인 궁합 실험실을 한 화면에서 순서대로 볼 수 있게 배치했습니다. 궁합 계산은 실행 시 3,000원 결제 후 열립니다.</p>'
+      + '<details class="astro-fold astro-action-hub__fold"><summary>바로 가기 · 질문 작성, 두 사람 궁합, 유명인 궁합</summary>'
       + '<div class="astro-action-hub__constellation" aria-hidden="true"><span>☉</span><i></i><span>☽</span><i></i><span>ASC</span><i></i><span>♀</span><i></i><span>♂</span></div>'
       + '<div class="astro-action-hub__grid">'
       + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroAiPromptSection" aria-controls="astroAiPromptSection"><span class="astro-action-hub__glyph">✦</span><strong>AI 상담 받기</strong><span>차트 기반 맞춤 답변을 바로 생성합니다.</span><em>아래에 표시됨</em></button>'
       + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="asDirect_name" aria-controls="asDirect_name"><span class="astro-action-hub__glyph">☍</span><strong>상대 직접 입력 궁합 · 3,000원</strong><span>출생 정보와 도시로 두 사람의 시나스트리를 엽니다.</span><em>결제 후 분석</em></button>'
       + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroSynastrySection" aria-controls="astroSynastrySection"><span class="astro-action-hub__glyph">✧</span><strong>유명인 궁합 실험실 · 3,000원</strong><span>셀럽 차트와 나의 별자리 합을 비교합니다.</span><em>결제 후 분석</em></button>'
-      + '</div>'
+      + '</div></details>'
       + '</div>';
 
     masterInsight = '<div class="astro-section precision-insight-card astro-neon-accent astro-neon-accent-gold" style="margin-bottom:20px;">'
       +'<div class="astro-subhead" style="color:#D4AF37;">차트 전체 요약</div>'
       +'<p class="astro-birth-lead" style="margin-bottom:8px;">당신의 차트가 말하는 핵심 분위기</p>'
-      +'<div class="astro-birth-chip-row" style="margin-bottom:10px;">'+birthMapSummaryChips+'</div>'
       +'<div class="astro-desc" style="font-size:0.95rem;white-space:normal;word-break:break-word;overflow-wrap:anywhere;max-width:100%;box-sizing:border-box;">'
       +'<p><b>1) 한눈에 보는 나의 기질</b><br>태양 <b>'+sunSign+'</b>(' + _friendlyHousePair(sunHousePair) + ')은 내가 의식적으로 추구하는 방향을, 달 <b>'+moonSign+'</b>(' + _friendlyHousePair(moonHousePair) + ')은 감정 안정 방식을 보여줍니다. 상승궁 <b>'+ascSign+'</b>(' + _friendlyHousePair(ascHousePair) + ')은 사람들이 처음 느끼는 인상과 삶을 대하는 태도를 설명합니다. 세 축이 함께 작동하면서 당신은 생각의 깊이와 실행력을 동시에 가져갈 수 있는 구조를 만듭니다. 에너지가 자주 모이는 무대는 <b>'+topHouseMetaQuick.title+'</b>이며, 이 영역에서 존재감이 가장 또렷해집니다.</p>'
+      +'</div>'
+      +'<details class="astro-fold"><summary>이어 읽기 · 겉과 속, 오래 갈수록 강해지는 힘, 주의할 패턴</summary>'
+      +'<div class="astro-birth-chip-row" style="margin-bottom:10px;">'+birthMapSummaryChips+'</div>'
+      +'<div class="astro-desc" style="font-size:0.95rem;white-space:normal;word-break:break-word;overflow-wrap:anywhere;max-width:100%;box-sizing:border-box;">'
       +'<p><b>2) 겉으로 보이는 나와 실제 속마음</b><br>겉으로는 상승궁의 톤 때문에 침착하고 단단해 보이지만, 실제 속마음은 달의 리듬에 따라 더 섬세하게 움직입니다. 이번 차트의 달 위상은 <b>'+astroMoonPhase+'</b>입니다. '+astroMoonPhaseAdvice+' 그래서 관계에서는 "이해받고 있다"는 감각이 매우 중요합니다. 겉과 속의 간격을 줄일수록 관계의 피로가 줄어듭니다.</p>'
       +'<p><b>3) 오래 갈수록 강해지는 부분</b><br>차트 룰러 <b>'+chartRuler+'</b>는 삶이 실제로 움직이는 손잡이입니다. 태양과 목성·토성 축은 빠른 반짝임보다 누적 성장에 강점을 줍니다. MC '+mcSign+' 방향성과 10하우스 테마를 꾸준히 밀면, 시간이 갈수록 실력과 평판이 함께 올라가는 흐름입니다. 처음에는 느리게 느껴질 수 있어도, 루틴이 자리 잡히면 결과의 안정감이 확연히 달라집니다.</p>'
       +'<p><b>4) 주의해야 할 내면 패턴</b><br>감정이 쌓일 때 즉시 결론을 내리거나, 반대로 결정을 계속 미루는 두 패턴 사이를 오갈 수 있습니다. 어스펙트 '+(majorAspectRows.length ? majorAspectRows[0].name : '정보 제한')+' 흐름은 성장을 밀어주지만, 과열 시에는 피로를 키울 수 있습니다. 완벽주의나 과잉 사고가 올라오는 날에는 속도보다 회복 루틴을 먼저 잡는 것이 안전합니다. 감정을 관리 대상으로 보는 습관이 판단의 질을 높여줍니다.</p>'
       +'<p><b>5) 오늘의 한 줄 정리</b><br>'+astroNodeAxisText+' 오늘의 당신은 <b>'+topHouseMetaQuick.title+'</b> 무대에서, 작지만 분명한 실행 하나를 끝낼 때 가장 빛납니다.</p>'
-      +'</div></div>';
+      +'</div></details></div>';
 
     var tightAspectText = majorAspectRows.length ? majorAspectRows[0].text : '타이트 주요각 없음';
     var retroText = retroPlanets.length ? retroPlanets.join(', ') : '역행 주요 행성 없음';
@@ -13983,11 +13990,11 @@ function renderAstroInsightLegacyNeon() {
       + '<div class="astro-section astro-big3-snapshot" id="astroBig3Snapshot" style="margin-bottom:16px;">'
         + '<div class="astro-subhead" style="margin-bottom:8px;color:#fde68a;">태양 별자리·달 별자리·상승궁 핵심 요약</div>'
       + '<p class="astro-birth-lead">세 별자리는 각각 내가 향하는 방향, 마음이 쉬는 방식, 사람들이 처음 느끼는 인상을 보여줍니다.</p>'
-      + '<div class="astro-big3-grid">'
+      + '<details class="astro-fold"><summary>세 별자리가 오늘 하는 일</summary><div class="astro-big3-grid">'
         + '<div class="astro-big3-card"><div class="astro-big3-label">태양 별자리</div><strong>'+sunSign+'</strong><p>성장할수록 닮아가는 중심 방향입니다. 오늘은 '+topHouseTopic+'에서 '+sunStrategy+' 흐름이 살아납니다.</p></div>'
         + '<div class="astro-big3-card"><div class="astro-big3-label">달 별자리</div><strong>'+moonSign+'</strong><p>감정적으로 안정되는 방식입니다. 달 '+_friendlyHousePair(moonHousePair)+' 리듬을 챙기면 마음의 피로가 줄어듭니다.</p></div>'
       + '<div class="astro-big3-card"><div class="astro-big3-label">상승궁</div><strong>'+ascSign+'</strong><p>처음 보이는 분위기와 현실 대응 방식입니다. 상승궁 '+_friendlyHousePair(ascHousePair)+'은 오늘의 첫인상과 시작 방식을 비춥니다.</p></div>'
-      + '</div>'
+      + '</div></details>'
       + '</div>';
     var astroNeonCss = '<style id="astroNeonBriefingStyle">'
       +'.astro-body, .astro-body button, .astro-body input, .astro-body select, .astro-body textarea{font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif !important;}'

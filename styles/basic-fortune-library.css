@@ -644,6 +644,13 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #astroModalOverlay .fortune-consultation :is(.fc-entry__note, .fc-entry__price span, .fc-form__intro p, .fc-form__intro dd) { font-size:var(--fr-fs-small); }
 #astroModalOverlay .fortune-consultation :is(.fc-entry__lead, .fc-form > summary) { font-size:var(--fr-fs-text); }
 #astroModalOverlay .fortune-consultation .fc-status { font-size:var(--fr-fs-small) !important; }
+/* 접기(8단계): 긴 문단·반복 블록은 그 블록만의 가치 한 줄 아래로 접는다(삭제 0). 화살표는 삶의 영역 카드와 같은 모양. */
+#astroModalOverlay #astroBodyWrap .astro-fold { margin:var(--cd-sp-sm, 10px) 0 0; border-top:1px solid var(--fr-rule); }
+#astroModalOverlay #astroBodyWrap .astro-fold > summary { position:relative; display:flex; align-items:center; min-height:44px; padding:var(--cd-sp-sm, 10px) 32px var(--cd-sp-sm, 10px) 0; color:var(--fr-accent); font-size:var(--fr-fs-text); font-weight:600; line-height:1.5; cursor:pointer; list-style:none; }
+#astroModalOverlay #astroBodyWrap .astro-fold > summary::-webkit-details-marker { display:none; }
+#astroModalOverlay #astroBodyWrap .astro-fold > summary::after { content:''; position:absolute; right:var(--cd-sp-xs, 6px); top:50%; width:8px; height:8px; margin-top:-6px; border-right:1.5px solid var(--fr-muted); border-bottom:1.5px solid var(--fr-muted); transform:rotate(45deg); transition:transform var(--cd-dur-base, 220ms) ease; }
+#astroModalOverlay #astroBodyWrap .astro-fold[open] > summary { margin-bottom:var(--cd-sp-xs, 6px); }
+#astroModalOverlay #astroBodyWrap .astro-fold[open] > summary::after { margin-top:-2px; transform:rotate(-135deg); }
 @media (min-width:768px) {
   #astroModalOverlay #astroBodyWrap.fr-report { padding:32px 36px 64px !important; }
   #astroModalOverlay .astro-house-articles { grid-template-columns:repeat(2,minmax(0,1fr)); }
