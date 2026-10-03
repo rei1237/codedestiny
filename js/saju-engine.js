@@ -10017,22 +10017,13 @@ function renderIlju(p){
   const hanjaName = nameMatch ? ('(' + nameMatch[2] + ')') : ('(' + key + ')');
   const animalMap = { '子': ['🐭','쥐'], '丑': ['🐮','소'], '寅': ['🐯','호랑이'], '卯': ['🐰','토끼'], '辰': ['🐉','용'], '巳': ['🐍','뱀'], '午': ['🐴','말'], '未': ['🐑','양'], '申': ['🐵','원숭이'], '酉': ['🐔','닭'], '戌': ['🐶','개'], '亥': ['🐷','돼지'] };
   const stemElementMap = { '甲':['wood','목(木)'], '乙':['wood','목(木)'], '丙':['fire','화(火)'], '丁':['fire','화(火)'], '戊':['earth','토(土)'], '己':['earth','토(土)'], '庚':['metal','금(金)'], '辛':['metal','금(金)'], '壬':['water','수(水)'], '癸':['water','수(水)'] };
-  const elementTheme = {
-    wood: { accent:'#2e7d32', soft:'#e8f5e9' },
-    fire: { accent:'#c62828', soft:'#ffebee' },
-    earth: { accent:'#8d6e63', soft:'#fff3e0' },
-    metal: { accent:'#78909c', soft:'#eceff1' },
-    water: { accent:'#1565c0', soft:'#e3f2fd' }
-  };
 
   iljuCard.style.display = 'block';
 
   setIljuDetailExpanded(false);
 
   var elementInfo = stemElementMap[p.d.g] || ['wood', '목(木)'];
-  var theme = elementTheme[elementInfo[0]] || elementTheme.wood;
-  iljuCard.style.setProperty('--ilju-accent', theme.accent);
-  iljuCard.style.setProperty('--ilju-soft', theme.soft);
+  iljuCard.dataset.el = elementInfo[0];
 
   var animal = animalMap[p.d.j] || ['✨','상징'];
   var nameMainEl = document.getElementById('iljuNameMain');

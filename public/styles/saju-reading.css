@@ -1,5 +1,5 @@
 /* Owned by the static saju surface, never by the shared mobile wrapper. */
-#resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading,#tsModal .modal-box,#tsGrid {
+#resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading,#tsModal .modal-box,#tsGrid,#iljuCard {
   --reading-ink:#54233e;--reading-muted:#774661;--reading-accent:#a52c60;--reading-paper:#fff8fb;--reading-line:#e5c3d2;
   --reading-card:#fff;--reading-gold:#c9a25e;--reading-on-accent:#fff;
   --reading-el-wood:rgb(46 125 50);--reading-el-fire:rgb(198 40 40);--reading-el-earth:rgb(141 110 99);--reading-el-metal:rgb(144 164 174);--reading-el-water:rgb(21 101 192);
@@ -7,7 +7,7 @@
 #resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading {
   color:var(--reading-ink);background:var(--reading-paper);font-family:var(--font-body, "CodeDestinyBody", sans-serif);
 }
-body.neo-mode #resultPage #letterBox,body.neo-mode #resultPage .saju-reading,body.neo-mode #sajuReadingHeader,body.neo-mode .saju-input-modes,body.neo-mode .saju-static-offer,body.neo-mode #modalBody .saju-reading,body.neo-mode #tsModal .modal-box,body.neo-mode #tsGrid {
+body.neo-mode #resultPage #letterBox,body.neo-mode #resultPage .saju-reading,body.neo-mode #sajuReadingHeader,body.neo-mode .saju-input-modes,body.neo-mode .saju-static-offer,body.neo-mode #modalBody .saju-reading,body.neo-mode #tsModal .modal-box,body.neo-mode #tsGrid,body.neo-mode #iljuCard {
   --reading-ink:#f4eafa;--reading-muted:#d6c7e5;--reading-accent:#e8c985;--reading-paper:#21182f;--reading-line:#685277;
   --reading-card:#2a2040;--reading-gold:#e8c985;--reading-on-accent:#21182f;
   --reading-el-wood:rgb(129 199 132);--reading-el-fire:rgb(239 154 154);--reading-el-earth:rgb(188 170 164);--reading-el-metal:rgb(207 216 220);--reading-el-water:rgb(144 202 249);
