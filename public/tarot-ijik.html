@@ -210,6 +210,22 @@ body {
   margin-bottom: 12px;
 }
 
+/* 질문 우선(2026-10-02): 고객 질문이 제목, 기존 부제는 그 위 눈썹 */
+.ijik-question {
+  margin: 0 0 28px;
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(21px, 4.6vw, 30px);
+  font-weight: 600;
+  line-height: 1.45;
+  color: #f6ecd8;
+  text-align: center;
+  word-break: keep-all;
+}
+.ijik-question .subtitle-kr {
+  display: block;
+  margin-bottom: 10px;
+}
+
 .subtitle-kr {
   font-family: 'Noto Serif KR', serif;
   font-size: clamp(14px, 2.5vw, 20px);
@@ -1198,7 +1214,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
   </div>
 
   <div class="main-title">TAROT ORACLE</div>
-  <div class="subtitle-kr">이직 운명의 카드</div>
+  <h1 class="ijik-question"><span class="subtitle-kr">이직 운명의 카드</span>지금 이직해도 괜찮을까?</h1>
 
   <p style="font-size:13px;color:rgba(200,185,220,0.6);line-height:2;max-width:420px;margin-bottom:36px;text-align:center;word-break:keep-all;">
     일의 문턱 앞에서 오래 망설인 마음에게<br>

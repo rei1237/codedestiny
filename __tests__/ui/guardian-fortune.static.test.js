@@ -33,12 +33,12 @@ test('the destiny gate stands on its own after the inline home widget was retire
   // 두 문은 카드 전체가 링크라 탭 타깃이 넉넉하고, 한국어는 단어 중간에서 끊기지 않아야 한다.
   assert.match(css, /\.fortune-gateway__door \{[\s\S]*?min-height: 274px/);
   assert.match(css, /word-break: keep-all/);
-  // 🔴 문이 하나가 되면 auto-fit 그리드가 세로 카드를 폭만 두 배로 늘린다 — 설명은 30ch 에서
+  // 🔴 auto-fit 그리드는 카드가 적으면 세로 카드를 폭만 두 배로 늘린다 — 설명은 30ch 에서
   //    끊겨 오른쪽이 비고, 절대배치(right/bottom:-18px)된 아트는 overflow:hidden 에 잘린다.
-  //    --single 은 아트에 자리를 따로 잡아 주는 가로형 레이아웃이라 position 이 relative 여야 한다.
-  assert.match(css, /\.fortune-gateway__doors--single \.fortune-gateway__door-art \{[\s\S]*?position: relative/);
-  // CTA 는 문이 하나일 때 카드 안에서 "누를 곳"이 되므로 알약 버튼이어야 한다.
-  assert.match(css, /\.fortune-gateway__doors--single \.fortune-gateway__door-go \{[\s\S]*?border-radius: 999px/);
+  //    --duo 는 아트에 자리를 따로 잡아 주는 가로형 레이아웃이라 position 이 relative 여야 한다.
+  assert.match(css, /\.fortune-gateway__doors--duo \.fortune-gateway__door-art \{[\s\S]*?position: relative/);
+  // CTA 는 카드 안에서 "누를 곳"이 되므로 알약 버튼이어야 한다.
+  assert.match(css, /\.fortune-gateway__doors--duo \.fortune-gateway__door-go \{[\s\S]*?border-radius: 999px/);
   // 외부 URL 을 fetch 하는 자산은 금지. 인라인 SVG data URI 의 xmlns 는 네임스페이스 식별자라 네트워크를 안 탄다.
   assert.doesNotMatch(css, /https?:\/\/(?!www\.w3\.org\/2000\/svg')/);
   // 장식 라인아트는 mask 로 그려 네오 모드가 background 만 바꿔 다시 칠한다 — 마스크가 빠지면 사각 판이 뜬다.
@@ -72,20 +72,23 @@ test('the destiny gate leads to the conversational reading in every shell', () =
     const html = read(shell);
     const gate = sliceDestinyGate(html, shell);
     // 카드 전체가 링크라 탭 타깃이 넉넉하다.
-    assert.match(gate, /class="fortune-gateway__door fortune-gateway__door--chat" href="\/fortune-chat\/"/, shell);
+    // 🔴 2026-10-02 운세 정원 개편: 연이 상담과 네오 상담을 두 카드로 펼친다(접어 두지 않는다).
+    //    캐릭터는 카드마다 고정이라 홈 테마 동기화(js/core/home-funnel.js)가 href 를 바꾸지 않는다.
+    assert.match(gate, /class="fortune-gateway__door fortune-gateway__door--chat" href="\/fortune-chat\/\?character=yeoni" data-chat-character="yeoni"/, shell);
+    assert.match(gate, /class="fortune-gateway__door fortune-gateway__door--chat fortune-gateway__door--neo" href="\/fortune-chat\/\?character=neo" data-chat-character="neo"/, shell);
     // 🔴 2026-09-02: 홈에 초융합 진입이 이미 세 곳(히어로 CTA · #cdConcernPick · #cdSignatureConsult)
     //    있어서 이 자리의 네 번째 중복을 뺐다. 되살리려면 그 중복부터 정리할 것.
     assert.doesNotMatch(gate, /fortune-gateway__door--fusion|href="\/fusion-fortune\/"/, shell);
-    // 문이 하나가 되면 --single 이 가로형 레이아웃을 켜는 유일한 스위치다(styles/fortune-gateway.css).
-    assert.match(gate, /class="fortune-gateway__doors fortune-gateway__doors--single"/, shell);
-    // 🔴 2026-09-02 사용자 결정: 이 카드의 마스코트는 연이 한 명이다(네오 아이콘·왕관 배지 제거).
-    //    문안의 "네오"는 상담 안 페르소나 설명이지 카드 그림의 약속이 아니다. 되살리려면 그 결정부터.
+    // --duo 가 가로형 카드 레이아웃을 켜는 유일한 스위치다(styles/fortune-gateway.css).
+    assert.match(gate, /class="fortune-gateway__doors fortune-gateway__doors--duo"/, shell);
+    // 각 카드는 자기 캐릭터 한 명만 그린다(2026-09-02 네오 아이콘·왕관 배지 제거는 그대로 — 네오 카드는 상담 페르소나 그림).
     assert.match(gate, /fortune-gateway__door-art-yeon/, shell);
+    assert.match(gate, /class="fortune-gateway__door-art-neo" src="\/images\/fortune-chat\/persona\/neo-greet\.webp/, shell);
     // 🔴 2026-09-15 사용자 결정: "오늘의 한마디"는 연이·네오의 말이므로 작약 화관 꽃돼지 연이를 노출한다.
     //    컬렉션·상세 서비스 일러스트 동기화가 이 마스코트 슬롯까지 확장되면 안 된다.
     assert.match(gate, /src="\/images\/fortune-tea-house\/yeon-peony-crown\.webp(?:\?v=[^"]+)?"/, shell);
     assert.doesNotMatch(gate, /feature-details\/assets\/fortune-chat-/i, shell);
-    assert.doesNotMatch(gate, /fortune-gateway__door-art-neo|\/icons\/neo-130\.webp/, shell);
+    assert.doesNotMatch(gate, /\/icons\/neo-130\.webp/, shell);
     // 장식 라인아트는 텍스트 없는 빈 span 하나로 두고 그림은 CSS mask 가 그린다.
     assert.match(gate, /<span class="fortune-gateway__flora" aria-hidden="true"><\/span>/, shell);
     // 가격과 무료 횟수를 카드에서 바로 읽을 수 있어야 한다.

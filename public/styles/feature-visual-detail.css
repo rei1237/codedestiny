@@ -208,3 +208,12 @@ html:has(#tilePvwOverlay.pvw-visual.pvw-open),html:has(.cd-detail-overlay .featu
 #tilePvwOverlay.pvw-visual:has([data-fortune-theme=indigo]) .tile-pvw-cta-sticky,.cd-detail-overlay:has([data-fortune-theme=indigo]) .cd-detail-cta{--fortune-accent:#424c86}
 #tilePvwOverlay.pvw-visual:has([data-fortune-theme=saffron]) .tile-pvw-cta-sticky,.cd-detail-overlay:has([data-fortune-theme=saffron]) .cd-detail-cta{--fortune-accent:#885022}
 #tilePvwOverlay.pvw-visual:has([data-fortune-theme=burgundy]) .tile-pvw-cta-sticky,.cd-detail-overlay:has([data-fortune-theme=burgundy]) .cd-detail-cta{--fortune-accent:#7b354b}
+/* 2026-10-03 연이의 운세 정원: 꿀꿀 운세 셸의 상세 시트(#tilePvwOverlay)만 연이 모드에서 정원 종이·자두 글자로 바꾼다.
+   App Router 상세(.featureIntroductionPage·다른 .cd-detail-overlay)와 네오 모드는 위 남색 종이 그대로.
+   제품별 테마 강조색(tint·장식)은 남기고, 구매 버튼만 정원 강조색 하나로 맞춘다. 결제 분기·DOM·가격은 건드리지 않는다. */
+body:not(.neo-mode) #tilePvwOverlay.pvw-visual .featureVisualDetail{--fortune-paper:#fff9f4;--fortune-ink:#402a38;--fortune-muted:#6b4d5e;--fortune-line:#ebd9df}
+body:not(.neo-mode) #tilePvwOverlay.pvw-visual .tile-pvw-sheet{background:#fff9f4;color:#402a38}
+body:not(.neo-mode) #tilePvwOverlay.pvw-visual #tilePvwTitle{color:#402a38}
+body:not(.neo-mode) #tilePvwOverlay.pvw-visual .tile-pvw-close{background:#fff9f4;color:#402a38}
+body:not(.neo-mode) #tilePvwOverlay.pvw-visual .tile-pvw-cta-sticky{background:#fff9f4!important;border-top-color:#ebd9df!important;--cd-detail-muted:#6b4d5e}
+body:not(.neo-mode) #tilePvwOverlay.pvw-visual :is(.tile-pvw-cta-btn,.fortuneAction a,.fortuneAction button){--fortune-accent:#b53660;background-color:#b53660;background-image:linear-gradient(135deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,0) 50%,rgba(64,42,56,.12) 100%)}

@@ -266,7 +266,7 @@ function sectionOf(id) {
 
 const byId = new Map(registry.map((item) => [item.id, item]));
 const PLACEMENTS = [
-  { role: "quick", sectionId: "cdQuickServices", label: "빠른 서비스" },
+  // quick(방식 허브 6종)은 홈 섹션 #cdQuickServices 와 함께 배치가 없어졌다(2026-10-03) — 모든 운세 방식 칩·검색이 입구다.
   { role: "recommended", sectionId: "cdSignatureConsult", label: "대표 상담" },
 ];
 
@@ -391,6 +391,76 @@ if (!copyKeys || !copyKeys.length) {
   }
   notes.push(`상세 문안 대조 ${registry.length - missing.length}/${registry.length}`);
 }
+
+/* ── 5. 홈 질문 카드 가격 ↔ 결제 정본 (#cdConcernPick, 2026-10-02) ─────
+ *
+ * 왜 — 질문 우선 전환으로 #cdConcernPick 카드가 결제 전에 가격을 보여 준다. 이 카드들은
+ * 코인 게이트·미리보기 시트를 피하려고 data-feature-key 를 달지 않으므로 2절이 보지 못한다.
+ * 그래서 가격 대조 전용 표식(data-cd-price-key | data-cd-price-free)을 따로 둔다.
+ * 🔴 fail-closed: 질문 카드·보조 링크·직접 물어보기를 클래스로 전수 발견하고, 표식이 없거나
+ * 가격 문구가 없거나 금액이 정본과 다르면 실패한다. 하나도 못 찾아도 실패한다.
+ * '1,000원부터' 처럼 시작가를 적은 카드는 그 시작 등급의 키(예: yeongnyangi-saju-mackerel)를 단다.
+ */
+const concern = sectionOf("cdConcernPick");
+if (!concern) {
+  fail("질문 카드: index.html 에 #cdConcernPick 이 없다");
+} else {
+  const PRICED_OPEN = /<(a|button)\b([^>]*\bclass="(cd-concern__q-link|cd-concern__q-alt|cd-concern__ask)"[^>]*)>/g;
+  let priced = 0;
+  let target;
+  while ((target = PRICED_OPEN.exec(concern))) {
+    priced += 1;
+    const [, tag, head, cls] = target;
+    const body = concern.slice(target.index, concern.indexOf(`</${tag}>`, target.index));
+    const label = `질문 카드 ${cls} "${attrOf(head, "data-cd-question") || attrOf(head, "href") || "?"}"`;
+    const key = attrOf(head, "data-cd-price-key");
+    const isFree = /\sdata-cd-price-free(?:[\s=>]|$)/.test(head);
+    if (!key && !isFree) {
+      fail(`${label}: data-cd-price-key 도 data-cd-price-free 도 없다 — 가격을 대조할 수 없다`);
+      continue;
+    }
+    if (key && isFree) {
+      fail(`${label}: data-cd-price-key 와 data-cd-price-free 가 함께 있다`);
+      continue;
+    }
+    const priceText = ((body.match(/cd-concern__q-price"[^>]*>([^<]+)/) || [])[1] || "").trim();
+    if (!priceText) {
+      fail(`${label}: 가격 문구(.cd-concern__q-price)가 없다 — 결제 전에 가격을 보여야 한다`);
+      continue;
+    }
+    const won = priceText.match(/(\d{1,3}(?:,\d{3})+|\d+)\s*원/);
+    if (isFree) {
+      if (won) fail(`${label}: 무료 표식인데 금액 "${priceText}" 를 보여 준다`);
+      continue;
+    }
+    const feature = resolveFeature(key);
+    if (!feature) {
+      fail(`${label}: data-cd-price-key "${key}" 가 결제 정본에 없다`);
+      continue;
+    }
+    if (!won) {
+      fail(`${label}: 유료(${key})인데 가격 문구 "${priceText}" 에 금액이 없다`);
+      continue;
+    }
+    if (Number(won[1].replace(/,/g, "")) !== feature.krw) {
+      fail(`${label}: 표시 "${priceText}" / 결제 정본 ${feature.krw.toLocaleString()}원 (${feature.key}, cost=${feature.cost})`);
+    }
+  }
+  if (priced === 0) fail("질문 카드: #cdConcernPick 에서 가격 대상(q-link·q-alt·ask)을 하나도 못 찾았다 — 선택자가 썩었다 (fail-closed)");
+
+  /* 패널마다 질문 카드가 있어야 한다 — 빈 패널은 타일을 눌러도 아무 답이 없다. */
+  const panelRe = /data-cd-concern-panel="([^"]+)"/g;
+  const panelAt = [];
+  let panel;
+  while ((panel = panelRe.exec(concern))) panelAt.push({ id: panel[1], at: panel.index });
+  if (!panelAt.length) fail("질문 카드: data-cd-concern-panel 패널을 하나도 못 찾았다 (fail-closed)");
+  panelAt.forEach(({ id, at }, i) => {
+    const chunk = concern.slice(at, i + 1 < panelAt.length ? panelAt[i + 1].at : concern.length);
+    if (!/class="cd-concern__q-link"/.test(chunk)) fail(`질문 카드: 패널 "${id}" 에 질문 카드(cd-concern__q-link)가 없다`);
+  });
+  notes.push(`질문 카드 가격 ${priced}곳 · 패널 ${panelAt.length}개 대조`);
+}
+
 /* ── 결과 ──────────────────────────────────────────────────────── */
 if (errors.length) {
   console.error(`[home-service-registry] 실패 ${errors.length}건 (${notes.join(" · ")})`);

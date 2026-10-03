@@ -1,0 +1,28 @@
+{
+  "label": "after",
+  "date": "2026-10-03",
+  "head": "b5afad57a",
+  "note": "연이 정원 개편 뒤(origin/main 병합 전). 기준선과 같은 조건: build:cf dist 의 /ggulggul/ 로컬 Lighthouse 3회 중앙값. 모바일 LCP 요소는 전후 모두 부팅 게이트 스플래시(img.cd-boot-gate__art, 0x0)라 개편 영향이 아니다. 데스크톱 LCP 요소: 전 h1#cdhTitle → 후 img#honeypigLogo(정원 히어로 480w). 로컬 기계 잡음 큼.",
+  "commands": [
+    "ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build:cf",
+    "MSYS_NO_PATHCONV=1 npm run perf:home -- --runs=3 --preset=both --label=after --route=/ggulggul/"
+  ],
+  "lighthouse": {
+    "mobile": {
+      "performance": { "median": 52, "min": 41, "max": 53 },
+      "fcp": { "median": 3252, "min": 3196, "max": 3283 },
+      "lcp": { "median": 7741, "min": 7590, "max": 11453 },
+      "tbt": { "median": 623, "min": 563, "max": 1035 },
+      "cls": { "median": 0, "min": 0, "max": 0 },
+      "speedIndex": { "median": 4372, "min": 4261, "max": 6432 }
+    },
+    "desktop": {
+      "performance": { "median": 94, "min": 93, "max": 94 },
+      "fcp": { "median": 743, "min": 675, "max": 1004 },
+      "lcp": { "median": 1391, "min": 1390, "max": 1712 },
+      "tbt": { "median": 79, "min": 30, "max": 111 },
+      "cls": { "median": 0, "min": 0, "max": 0 },
+      "speedIndex": { "median": 1004, "min": 976, "max": 1084 }
+    }
+  }
+}

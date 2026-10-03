@@ -134,6 +134,10 @@ Code Destiny는 한 명의 사용자가 언제든 펼쳐볼 수 있는 두 권�
 - **네오 Midnight Ink** (`#0a0818` → `#13102a` 그라디언트): 네오 배경.
 - **네오 Pearl Violet** (`#f4eeff`, muted `rgba(200,170,255,.7)`): 네오 본문 텍스트.
 
+### 연이 정원 홈 (`/ggulggul/` 홈 블록 `.cdh` 의 `--cdh-*`, 2026-10-02)
+- 홈 블록(`styles/home-funnel.css` `.cdh{}`)만 "마음이 머무는 곳, 연이의 운세 정원" 팔레트를 쓴다: 아이보리 `#fff9f4`(bg) · 분홍 표면 `#f8e4ea` · 카드 `#ffffff` · 본문 `#402a38` · muted `#6b4d5e` · 주색 `#b53660`(흰 글자 5.74:1) · 글자용 금 `#7e6028`(표면 위 4.81:1) · 라일락 `#6e5a8e`/`#f1eaf8`.
+- 전역 `--cd-*`(위 Cream·Ink·Rose Crimson)는 그대로다 — 두 값 모두 로즈 계열이라 Hue-Stays 를 지킨다. 글자 토큰은 모든 바탕에서 4.5:1 이상이어야 하며 `__tests__/ui/yeoni-garden-tokens.static.test.js` 가 계산으로 막는다. 네오 `--cdh-*` 블록은 불변.
+
 ### 연이 Dark (핑크 다크 — 어두운 표면이 필요할 때)
 연이에서도 대비를 위해 어두운 표면을 쓸 수 있다. 그 다크는 네이비·퍼플이 아니라 **딥 플럼/버건디**다.
 - **연이 Deep Plum** (`#3a0e28` → `#24081a` 그라디언트, 상단 글로우 `rgba(174,45,104,.32)`): 연이 다크 표면.
@@ -227,7 +231,7 @@ Glow 는 **상태 변화**의 언어다. 그런데 평상시 표면도 종이 �
   - 배경 `--cd-primary`, 텍스트 `--cd-primary-ink`, 그림자 `--cd-shade-3`. 그라디언트를 쓰지 않는다.
   - 값은 테마 토큰이 들고 있다(연이 `#b31955`/흰 글자 6.6:1, 네오 `#c4b5fd`/잉크 글자 10.0:1) — 그래서 페르소나별 오버라이드가 필요 없고, 밝은 글자만 남는 반쪽 오버라이드가 구조적으로 불가능하다.
   - **Secondary 짝:** `--cd-surface` 흰 표면 + `--cd-line-strong` 경계 + `--cd-text` 글자 + `--cd-shade-1`. 버튼 식별은 15:1 라벨 텍스트가 담당하고 경계는 보강이다(WCAG 1.4.11 — 텍스트 라벨이 있는 컴포넌트는 3:1 경계 대상이 아니다). 바탕 컨테이너는 `--cd-surface-quiet` 를 깔아 채움 차이로도 버튼이 읽히게 한다.
-  - 사용처: 홈 `.cd-concern__free` · `.cd-today__cta` · `.cd-today__gate-cta` · `.cd-pick__cta`.
+  - 사용처: 홈 `.cd-concern__free` · `.cd-today__cta` · `.cd-today__gate-cta`.
 - **Hover / Focus:** 색 자체보다 `Violet Neon Focus` 글로우(네오) 또는 은은한 스케일/투명도 변화(연이)로 상태 표현. Solid Primary 는 `--cd-primary-hover` + `--cd-shade-2`.
 
 ### Toggle / Pill Chips

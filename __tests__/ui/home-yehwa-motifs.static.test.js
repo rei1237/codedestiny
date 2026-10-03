@@ -23,7 +23,8 @@ test('the shell loads yehwa-motifs.css before the hero renders', () => {
 test('section dividers sit between the home sections', () => {
   const html = read('index.html');
   const count = (html.match(/<div class="cd-yehwa-divider" aria-hidden="true"><\/div>/g) || []).length;
-  assert.ok(count >= 5 && count <= 7, `expected 5~7 dividers, got ${count}`);
+  // 2026-10-03 운세 정원 개편에서 #cdWhyUs·#cdTodayPick 과 그 뒤 구분선 2개를 함께 지워 하한을 4로 내렸다.
+  assert.ok(count >= 4 && count <= 7, `expected 4~7 dividers, got ${count}`);
 });
 
 test('hero reuses a quiet garden motif without the retired visual stack', () => {
@@ -109,9 +110,8 @@ test('seal and sparkle placements are generated for every host and repainted for
 
 test('sprigs, concern seals and peonies are child spans on their hosts', () => {
   const html = read('index.html');
-  assert.equal((html.match(/class="cd-yehwa-sprig /g) || []).length, 4, '가지는 왜 우리 2 + AI 카드 2 = 4개');
-  assert.equal((html.match(/<span class="cd-yehwa-sprig cd-yehwa-sprig--(?:tl|tr)" aria-hidden="true"><\/span>/g) || []).length, 4, '가지는 전부 aria-hidden 인 --tl/--tr 이어야 한다');
-  assert.match(html, /<section data-cd-funnel-section="why_us" class="cd-why-us"[^>]*>\s*<span class="cd-yehwa-sprig cd-yehwa-sprig--tl"/, '왜 우리 섹션 첫 자식이 가지가 아니다');
+  assert.equal((html.match(/class="cd-yehwa-sprig /g) || []).length, 2, '가지는 AI 카드 2 = 2개(왜 우리 섹션은 2026-10-03 운세 정원 개편에서 삭제)');
+  assert.equal((html.match(/<span class="cd-yehwa-sprig cd-yehwa-sprig--(?:tl|tr)" aria-hidden="true"><\/span>/g) || []).length, 2, '가지는 전부 aria-hidden 인 --tl/--tr 이어야 한다');
   assert.match(html, /<section class="cd-ai-feats"[^>]*>\s*<span class="cd-yehwa-sprig cd-yehwa-sprig--tl"/, 'AI 카드 첫 자식이 가지가 아니다');
   // 🔴 파인더 가격 행은 단방향 가지(branch-spray)만 받는다 — 좌우 대칭인 구분선 마스크(branch-h)를 여기 두면
   // 방식/가격 행 사이 거터에 미러 쌍이 떠서 "나눌 것 없는 자리의 구분선"으로 읽힌다(2026-09-03 시각 판정).
@@ -121,10 +121,10 @@ test('sprigs, concern seals and peonies are child spans on their hosts', () => {
   assert.match(html, /<div class="cdh-garden">\s*(?:<span class="cdh-moon" aria-hidden="true"><\/span>)?\s*<span class="cd-yehwa-spray" aria-hidden="true"><\/span>/, '새 홈 장식은 정원 안에서만 재사용한다');
   assert.match(html, /<div class="fortune-gateway__filter-row" role="group" aria-label="가격대로 좁히기"[^>]*>\s*<span class="cd-yehwa-spray" aria-hidden="true"><\/span>/, '가격 행 첫 자식이 가지 스프레이가 아니다');
 
-  // 고민 카드 6장 전부에 인장 span 이 있고 CSS 가 aria-expanded=true 인 카드에서만 켠다.
+  // 질문 타일 8장(2026-10-02) 전부에 인장 span 이 있고 CSS 가 aria-expanded=true 인 카드에서만 켠다.
   const concern = html.match(/<button type="button" class="cd-concern__card"[^>]*>\s*<span class="cd-yehwa-seal cd-yehwa-seal--concern" aria-hidden="true"><\/span>/g) || [];
-  assert.equal(concern.length, 6, `고민 카드 6장 전부에 인장이 있어야 한다 (현재 ${concern.length})`);
-  assert.equal((html.match(/cd-yehwa-seal--concern"/g) || []).length, 6, '고민 인장은 카드 안 6개뿐이어야 한다');
+  assert.equal(concern.length, 8, `질문 타일 8장 전부에 인장이 있어야 한다 (현재 ${concern.length})`);
+  assert.equal((html.match(/cd-yehwa-seal--concern"/g) || []).length, 8, '고민 인장은 타일 안 8개뿐이어야 한다');
 
   assert.ok(html.includes('<div class="cd-feedback__copy"><span class="cd-yehwa-peony" aria-hidden="true"></span>'), '피드백 카드 가운데 열의 모란이 없다');
   assert.ok(html.includes('<div class="cd-footer-shell" data-marker="cd-footer-refine-v20260724"><span class="cd-yehwa-peony" aria-hidden="true"></span>'), '푸터 링크 허브의 모란이 없다');
@@ -136,7 +136,6 @@ test('sprigs, concern seals and peonies are child spans on their hosts', () => {
 test('PR-3 placements are generated, ordered by width, and repainted for neo', () => {
   const css = read('styles/yehwa-motifs.css');
   for (const sel of [
-    '.cd-why-us > .cd-yehwa-sprig',
     '.cd-ai-feats > .cd-yehwa-sprig',
     '.cd-concern__card[aria-expanded="true"] .cd-yehwa-seal--concern',
     '.cd-feedback__copy > .cd-yehwa-peony',

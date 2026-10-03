@@ -516,26 +516,27 @@
 .fortune-gateway__door:hover .fortune-gateway__door-go em { transform: translateX(4px); }
 .fortune-gateway__door:focus-visible { outline: 3px solid #8b1747; outline-offset: 3px; }
 
-/* ── 문이 하나일 때 (fortune-gateway__doors--single) v20260902 ──────────────
+/* ── 가로형 문 (fortune-gateway__doors--duo, 2026-09-02 --single 에서 이어짐) ──────────────
  * 홈에는 초융합 진입이 히어로 CTA·#cdConcernPick·#cdSignatureConsult 로 이미 세 곳 있어서
  * 2026-09-02 에 이 자리의 초융합 문을 뺐다. 그런데 위 auto-fit 그리드는 카드가 하나 남으면
  * "세로 카드 비율 그대로 폭만 두 배"로 늘린다 — 설명은 max-width:30ch 에서 끊겨 오른쪽이
  * 통째로 비고, 절대배치(right/bottom:-18px)된 아트는 overflow:hidden 에 잘린 채 구석에
  * 박힌다. 그래서 하나일 때는 아트 자리를 따로 잡은 가로형으로 바꾼다.
- * 🔴 이 규칙은 전부 --single 로 스코프된다. 문이 둘로 돌아오면 클래스만 떼면 원래대로다.
+ * 🔴 이 규칙은 전부 --duo 로 스코프된다. 2026-10-02 연이·네오 두 상담 카드가 이 가로형을 그대로 쓴다
+ *    (좁은 화면은 세로로 쌓고, 1000px 이상은 두 열 — 아래 --duo 블록).
  */
 
-/* 2026-09-02: 카드의 마스코트는 연이 한 명이다(사용자 결정 — 네오 아이콘·듀오 배치 제거).
-   연이는 아트 칸을 꽉 채우고 바닥에 선다. object-position 이 발을 발밑 그림자(::after)에 맞춘다. */
-.fortune-gateway__doors--single .fortune-gateway__door-art-yeon {
+/* 캐릭터는 아트 칸을 꽉 채우고 바닥에 선다. object-position 이 발을 발밑 그림자(::after)에 맞춘다.
+   2026-10-02: 연이 카드는 연이 단독, 네오 카드는 네오 단독 그림이다(두 상담을 펼쳐 보이라는 개편 요청). */
+.fortune-gateway__doors--duo .fortune-gateway__door-art-yeon,
+.fortune-gateway__doors--duo .fortune-gateway__door-art-neo {
   width: 100%;
   height: 100%;
   object-position: center bottom;
 }
 
-/* CTA 를 알약 버튼으로. 문이 둘일 때는 "카드 두 장" 자체가 선택지라 텍스트 링크로 충분했지만,
-   하나가 되면 카드 안에서 누를 곳이 어디인지가 유일한 정보다. 로즈골드 림은 장식(대비 무관). */
-.fortune-gateway__doors--single .fortune-gateway__door-go {
+/* CTA 를 알약 버튼으로 — 카드 안에서 누를 곳이 어디인지가 가장 중요한 정보다. 로즈골드 림은 장식(대비 무관). */
+.fortune-gateway__doors--duo .fortune-gateway__door-go {
   align-self: start;
   justify-self: start;
   margin-top: 16px;
@@ -548,16 +549,16 @@
 
 /* 🔴 네오 모드의 `html.neo-mode body .fortune-gateway__door-go`(0,2,2) 가 위 색(0,2,0)을
    이기므로 알약 배색을 퍼플 계열로 따로 준다 — 안 주면 어두운 표면에 로즈 알약이 뜬다. */
-html.neo-mode body .fortune-gateway__doors--single .fortune-gateway__door-go {
-  background: linear-gradient(135deg, #7c5cff 0%, #4c2fb8 100%);
+html.neo-mode body .fortune-gateway__doors--duo .fortune-gateway__door-go {
+  background: linear-gradient(135deg, #6a4bd8 0%, #4c2fb8 100%);
   color: #f4eeff;
   box-shadow: 0 14px 24px -15px rgba(38, 20, 92, .95);
 }
 
 @media (min-width: 681px) {
-  .fortune-gateway__doors--single { grid-template-columns: minmax(0, 1fr); }
+  .fortune-gateway__doors--duo { grid-template-columns: minmax(0, 1fr); }
 
-  .fortune-gateway__doors--single .fortune-gateway__door {
+  .fortune-gateway__doors--duo .fortune-gateway__door {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 256px;
     column-gap: clamp(20px, 3vw, 40px);
@@ -568,7 +569,7 @@ html.neo-mode body .fortune-gateway__doors--single .fortune-gateway__door-go {
 
   /* 🔴 `grid-row: 1 / -1` 은 암시적 행을 안 넘는다(명시 그리드의 마지막 선을 가리킨다).
      본문 항목이 5개이므로 span 5 로 준다. */
-  .fortune-gateway__doors--single .fortune-gateway__door-art {
+  .fortune-gateway__doors--duo .fortune-gateway__door-art {
     position: relative;
     inset: auto;
     z-index: 0;
@@ -579,27 +580,64 @@ html.neo-mode body .fortune-gateway__doors--single .fortune-gateway__door-go {
     height: 256px;
   }
 
-  .fortune-gateway__doors--single .fortune-gateway__door-kicker,
-  .fortune-gateway__doors--single .fortune-gateway__door-title,
-  .fortune-gateway__doors--single .fortune-gateway__door-desc,
-  .fortune-gateway__doors--single .fortune-gateway__door-meta,
-  .fortune-gateway__doors--single .fortune-gateway__door-go { grid-column: 1; }
+  .fortune-gateway__doors--duo .fortune-gateway__door-kicker,
+  .fortune-gateway__doors--duo .fortune-gateway__door-title,
+  .fortune-gateway__doors--duo .fortune-gateway__door-desc,
+  .fortune-gateway__doors--duo .fortune-gateway__door-meta,
+  .fortune-gateway__doors--duo .fortune-gateway__door-go { grid-column: 1; }
 
-  .fortune-gateway__doors--single .fortune-gateway__door-desc { max-width: 46ch; font-size: 13.5px; }
+  .fortune-gateway__doors--duo .fortune-gateway__door-desc { max-width: 46ch; font-size: 13.5px; }
 }
 
 /* 좁은 화면은 위 (max-width: 680px) 블록이 이미 세로형 그리드로 바꿔 둔다. 여기서는
    아트가 96px 안에서 뭉개지지 않게 자리만 조금 넓히고, 장식 라인아트는 본문 뒤로 가므로 더 옅게 줄인다. */
 @media (max-width: 680px) {
-  .fortune-gateway__doors--single .fortune-gateway__door { grid-template-columns: minmax(0, 1fr) 118px; }
-  .fortune-gateway__doors--single .fortune-gateway__door-art { width: 118px; height: 118px; }
-  .fortune-gateway__doors--single .fortune-gateway__door-go { margin-top: 12px; padding: 10px 18px; font-size: 12.5px; }
+  .fortune-gateway__doors--duo .fortune-gateway__door { grid-template-columns: minmax(0, 1fr) 118px; }
+  .fortune-gateway__doors--duo .fortune-gateway__door-art { width: 118px; height: 118px; }
+  .fortune-gateway__doors--duo .fortune-gateway__door-go { margin-top: 12px; padding: 10px 18px; font-size: 12.5px; }
   .fortune-gateway__door--chat::before { right: -54px; bottom: -70px; width: 220px; height: 220px; opacity: .34; }
   /* 제목 2행 꼬리(x≈270)와 겹치던 잎가지를 작게·위로 올린다. 남는 겹침은 1.3:1 선이라 제목(14:1)을 안 가린다. */
   .fortune-gateway__flora::before { top: -12px; right: -26px; width: 118px; height: 118px; opacity: .42; }
   /* 아트 옆 폭이 ~140px 라 "FORTUNE CHAT" 이 두 줄로 꺾였다(2026-09-02 실측). 장식 선을 빼고 한 줄로 고정. */
   .fortune-gateway__door-kicker { white-space: nowrap; }
   .fortune-gateway__door-kicker::before { display: none; }
+}
+
+/* ── 연이·네오 두 상담 (2026-10-02) ──────────────
+ * 네오 카드는 연이 모드에서도 네오의 라일락 계열로 칠해 두 상담이 한눈에 갈린다.
+ * 네오 모드는 아래 html.neo-mode 규칙(0,2,2)이 두 카드를 같은 어두운 표면으로 덮는다. */
+.fortune-gateway__door--neo {
+  border-color: rgba(108, 84, 196, .3);
+  background:
+    radial-gradient(circle at 88% 28%, rgba(238, 232, 255, .95), transparent 34%),
+    linear-gradient(150deg, #fdfcff 0%, #f4f0ff 52%, #ebe4ff 100%);
+  box-shadow: 0 18px 38px -28px rgba(60, 40, 130, .5), 0 0 28px rgba(214, 204, 255, .35), inset 0 1px 0 rgba(255, 255, 255, .9);
+}
+.fortune-gateway__door--neo::before { background: linear-gradient(160deg, #b8a6f0 0%, #8f78dc 100%); opacity: .3; }
+.fortune-gateway__door--neo .fortune-gateway__door-halo { background: radial-gradient(circle, rgba(196, 181, 253, .5), transparent 64%); }
+.fortune-gateway__door--neo .fortune-gateway__door-art img { filter: drop-shadow(0 18px 20px rgba(76, 47, 184, .2)); }
+.fortune-gateway__door--neo .fortune-gateway__door-kicker { color: #5b44b0; }
+.fortune-gateway__door--neo .fortune-gateway__door-title { color: #2f2160; }
+.fortune-gateway__doors--duo .fortune-gateway__door--neo .fortune-gateway__door-go {
+  background: linear-gradient(135deg, #6a4bd8 0%, #4c2fb8 100%);
+  color: #f6f2ff;
+  box-shadow: 0 14px 24px -15px rgba(46, 26, 120, .9), 0 0 0 1px rgba(214, 204, 255, .7);
+}
+/* 화살표는 홈의 `.cdh em`(0,1,1) 이 강조색으로 칠해 알약 배경에 묻혔다(1.4:1, 2026-10-03 실측) — 알약 글자색을 따른다. */
+.fortune-gateway__doors--duo .fortune-gateway__door-go em { color: inherit; }
+/* 알약 그라데이션 시작색은 흰 글자 대비 4.5:1 이상(#6a4bd8≈5.1, #b03a6e≈5.3 — 2026-10-03 #7c5cff 4.1 실측 후 낮춤). */
+/* 네오 모드에서도 두 카드가 같은 보라로 보이지 않게 연이 카드는 로즈 결을 남긴다. */
+html.neo-mode body .fortune-gateway__doors--duo .fortune-gateway__door--chat:not(.fortune-gateway__door--neo) { border-color: rgba(244, 164, 196, .34); }
+html.neo-mode body .fortune-gateway__doors--duo .fortune-gateway__door--chat:not(.fortune-gateway__door--neo) .fortune-gateway__door-kicker { color: #f6b8cf; }
+html.neo-mode body .fortune-gateway__doors--duo .fortune-gateway__door--chat:not(.fortune-gateway__door--neo) .fortune-gateway__door-go {
+  background: linear-gradient(135deg, #b03a6e 0%, #8b1f56 100%);
+  color: #fff4f8;
+  box-shadow: 0 14px 24px -15px rgba(90, 14, 50, .95);
+}
+@media (min-width: 1000px) {
+  .fortune-gateway__doors--duo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fortune-gateway__doors--duo .fortune-gateway__door { grid-template-columns: minmax(0, 1fr) 168px; }
+  .fortune-gateway__doors--duo .fortune-gateway__door-art { width: 168px; height: 168px; }
 }
 
 /* 접두 이유는 .fortune-gateway__entry-shell .fortune-gateway__eyebrow 주석 참고(.logo-area p 가 덮는다). */
@@ -864,6 +902,21 @@ html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
+/* 질문 우선 카드 — 제목은 고객 질문, 상품명은 작은 이름표로 내린다 */
+.fortune-gateway__rec-q {
+  color: #3c1830;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+.fortune-gateway__rec--q .fortune-gateway__rec-name,
+.cdh-services .fortune-gateway__rec--q .fortune-gateway__rec-name {
+  color: #7d5219;
+  font-size: 12px;
+  font-weight: 700;
+}
+.cdh-services .fortune-gateway__rec-q { color: var(--cdh-ink, #3c1830); font-size: 1.05rem; }
 .fortune-gateway__rec-foot {
   display: flex;
   align-items: center;
@@ -906,6 +959,8 @@ html.neo-mode body .fortune-gateway__rec-name b {
   color: #0a0b1a;
 }
 html.neo-mode body .fortune-gateway__rec-desc { color: #b9b3c9; }
+html.neo-mode body .fortune-gateway__rec-q { color: #f4eeff; }
+html.neo-mode body .fortune-gateway__rec--q .fortune-gateway__rec-name { color: #e8d5a3; }
 html.neo-mode body .fortune-gateway__rec-price { color: #c9a84c; }
 html.neo-mode body .fortune-gateway__rec-go { color: #c9a84c; }
 
@@ -1080,5 +1135,11 @@ html.neo-mode body .fortune-gateway__fchip[aria-pressed="true"] {
   .fortune-gateway__rec-name { grid-column: 2; grid-row: 1; }
   .fortune-gateway__rec-desc { grid-column: 2; grid-row: 2; }
   .fortune-gateway__rec-foot { grid-column: 2; grid-row: 3; }
+  .fortune-gateway__rec--q { grid-template-rows: auto auto auto 1fr; }
+  .fortune-gateway__rec--q .fortune-gateway__rec-media { grid-row: 1 / span 4; }
+  .fortune-gateway__rec--q .fortune-gateway__rec-q { grid-column: 2; grid-row: 1; }
+  .fortune-gateway__rec--q .fortune-gateway__rec-desc { grid-column: 2; grid-row: 2; }
+  .fortune-gateway__rec--q .fortune-gateway__rec-name { grid-column: 2; grid-row: 3; }
+  .fortune-gateway__rec--q .fortune-gateway__rec-foot { grid-row: 4; }
 }
 

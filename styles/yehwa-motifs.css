@@ -225,20 +225,6 @@
   transform: scaleX(-1);
 }
 
-.cd-why-us > .cd-yehwa-sprig {
-  top: -36px;
-  width: 200px;
-  height: 154px;
-}
-
-.cd-why-us > .cd-yehwa-sprig--tl {
-  left: 4px;
-}
-
-.cd-why-us > .cd-yehwa-sprig--tr {
-  right: 4px;
-}
-
 /* 딥 플럼 위에서는 딥 로즈골드가 가라앉는다 — 카드 자체의 금(#ead089)과 같은 계열로 밝게. */
 .cd-ai-feats > .cd-yehwa-sprig {
   top: -28px;
@@ -487,11 +473,6 @@ html.neo-mode body .cd-app-install__copy > .cd-yehwa-peony {
  * 브랜드 줄이 가운데 정렬이라 우상단 빈 자리는 30px 남짓뿐 — 벚가지는 끄고(글자 위를 지난다),
  * 달은 28px 로 모서리에, 모란은 좌하 모서리 밖으로 더 밀어 신뢰 배지 뒤 귀퉁이만 보이게 한다. ── */
 @media (max-width: 768px) {
-
-  /* PR-3 — 390px 실측: 왜 우리 제목이 폭을 다 쓴다(x70~245). */
-  .cd-why-us > .cd-yehwa-sprig {
-    display: none;
-  }
 
   .cd-yehwa-divider {
     width: calc(100% - 28px);

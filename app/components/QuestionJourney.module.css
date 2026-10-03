@@ -8,6 +8,7 @@
 .choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:22px 0}
 .journey .choices button{font:inherit;text-align:left;border:1px solid #6f5d76;border-radius:14px;background:#211a2c;color:var(--qj-text);padding:14px;min-height:84px;cursor:pointer;line-height:1.5;transition:border-color .18s ease,background-color .18s ease,transform .18s ease}
 .journey .choices button:hover{border-color:#c7a976;background:#30233b;transform:translateY(-1px)}
+.journey .choices button,.intro p{word-break:keep-all;overflow-wrap:break-word;text-wrap:pretty}
 .choices small{display:block;color:var(--qj-accent);margin-bottom:5px;font-size:12px;font-weight:700}
 .journey .choices button[aria-pressed=true]{border-color:var(--qj-accent);background:#443148;box-shadow:0 10px 22px rgb(7 3 13 / .22)}
 .journey details{border-top:1px solid #68576d;margin-top:4px;padding-top:4px}

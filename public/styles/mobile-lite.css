@@ -215,8 +215,7 @@
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__chip:active,
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__card:active,
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__category-card:active,
-  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__link:active,
-  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item:active {
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__link:active {
     transform: scale(0.985) !important;
   }
 
@@ -466,51 +465,6 @@
     word-break: keep-all !important;
   }
 
-  html.cd-mobile-runtime body #cdMobileBottomNav {
-    z-index: 980 !important;
-    padding: 8px max(12px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)) !important;
-    background: linear-gradient(180deg, rgba(7, 11, 31, 0.74), rgba(7, 11, 31, 0.98)) !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 -14px 36px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
-    backdrop-filter: blur(18px) saturate(1.1) !important;
-    -webkit-backdrop-filter: blur(18px) saturate(1.1) !important;
-  }
-
-  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__main {
-    max-width: 560px !important;
-    margin: 0 auto !important;
-    gap: 6px !important;
-  }
-
-  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item {
-    min-height: 54px !important;
-    border-radius: 16px !important;
-    background: rgba(255, 255, 255, 0.065) !important;
-    color: rgba(226, 232, 240, 0.78) !important;
-    /* 11px 하한 — 그 아래로는 5탭 라벨이 읽히지 않는다 */
-    font-size: 0.6875rem !important;
-    font-weight: 900 !important;
-    letter-spacing: 0 !important;
-    text-decoration: none !important;
-  }
-
-  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item::before {
-    width: 24px !important;
-    height: 24px !important;
-    font-size: 1.125rem !important;
-    line-height: 24px !important;
-  }
-
-  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item.is-active,
-  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item[aria-current="page"],
-  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item[aria-selected="true"] {
-    transform: translateY(-2px) !important;
-    border-color: rgba(248, 216, 148, 0.48) !important;
-    background: linear-gradient(135deg, rgba(248, 216, 148, 0.24), rgba(125, 211, 252, 0.14)) !important;
-    color: #fff7dd !important;
-    box-shadow: 0 8px 20px rgba(248, 216, 148, 0.18) !important;
-  }
-
   html.cd-mobile-runtime body #tilePvwOverlay.pvw-open,
   html.cd-mobile-runtime body [data-component="MobileFeatureBottomSheet"][aria-hidden="false"] {
     min-height: 100dvh !important;
@@ -543,10 +497,7 @@
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__chip:active,
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__card:active,
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__category-card:active,
-  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__link:active,
-  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item:active,
-  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item.is-active,
-  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item[aria-current="page"] {
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__link:active {
     transform: none !important;
   }
 }

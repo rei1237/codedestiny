@@ -1,0 +1,205 @@
+{
+  "label": "baseline",
+  "date": "2026-10-02",
+  "base": "4ec8bc475",
+  "note": "연이 정원 개편 전 기준선. perf 는 build:cf 로 만든 dist 의 /ggulggul/ 를 로컬 Lighthouse 로 3회 잰 중앙값(로컬 기계 잡음 큼, 특히 모바일 TBT 3.5~7.5s). 계정 패널 rect 는 public/ 정적 서버 + /api mock 으로 잼.",
+  "commands": [
+    "ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build:cf",
+    "MSYS_NO_PATHCONV=1 npm run perf:home -- --runs=3 --preset=both --label=baseline --route=/ggulggul/",
+    "node scripts/design/capture-yeoni-garden.mjs --label=baseline"
+  ],
+  "lighthouse": {
+    "mobile": {
+      "performance": {
+        "median": 32,
+        "min": 27,
+        "max": 35
+      },
+      "fcp": {
+        "median": 3523,
+        "min": 3414,
+        "max": 5813
+      },
+      "lcp": {
+        "median": 6968,
+        "min": 5725,
+        "max": 13623
+      },
+      "tbt": {
+        "median": 4764,
+        "min": 3461,
+        "max": 7504
+      },
+      "cls": {
+        "median": 0.0052,
+        "min": 0,
+        "max": 0.0052
+      },
+      "speedIndex": {
+        "median": 8877,
+        "min": 7808,
+        "max": 9578
+      }
+    },
+    "desktop": {
+      "performance": {
+        "median": 89,
+        "min": 81,
+        "max": 92
+      },
+      "fcp": {
+        "median": 875,
+        "min": 733,
+        "max": 881
+      },
+      "lcp": {
+        "median": 1630,
+        "min": 1403,
+        "max": 1677
+      },
+      "tbt": {
+        "median": 145,
+        "min": 145,
+        "max": 268
+      },
+      "cls": {
+        "median": 0.0006,
+        "min": 0.0006,
+        "max": 0.0006
+      },
+      "speedIndex": {
+        "median": 1207,
+        "min": 1114,
+        "max": 1420
+      }
+    }
+  },
+  "capture": [
+    {
+      "width": 320,
+      "state": "guest",
+      "scrollWidth": 320,
+      "cls": 0.021,
+      "accountPanel": null,
+      "forbidden": 0
+    },
+    {
+      "width": 320,
+      "state": "member",
+      "scrollWidth": 320,
+      "cls": 0.022,
+      "accountPanel": {
+        "left": -82,
+        "right": 187,
+        "width": 269,
+        "offLeft": true
+      },
+      "forbidden": 0
+    },
+    {
+      "width": 360,
+      "state": "guest",
+      "scrollWidth": 360,
+      "cls": 0,
+      "accountPanel": null,
+      "forbidden": 0
+    },
+    {
+      "width": 360,
+      "state": "member",
+      "scrollWidth": 360,
+      "cls": 0,
+      "accountPanel": {
+        "left": -100,
+        "right": 203,
+        "width": 302,
+        "offLeft": true
+      },
+      "forbidden": 0
+    },
+    {
+      "width": 390,
+      "state": "guest",
+      "scrollWidth": 390,
+      "cls": 0,
+      "accountPanel": null,
+      "forbidden": 0
+    },
+    {
+      "width": 390,
+      "state": "member",
+      "scrollWidth": 390,
+      "cls": 0.005,
+      "accountPanel": {
+        "left": -102,
+        "right": 218,
+        "width": 320,
+        "offLeft": true
+      },
+      "forbidden": 0
+    },
+    {
+      "width": 430,
+      "state": "guest",
+      "scrollWidth": 430,
+      "cls": 0.004,
+      "accountPanel": null,
+      "forbidden": 0
+    },
+    {
+      "width": 430,
+      "state": "member",
+      "scrollWidth": 430,
+      "cls": 0.004,
+      "accountPanel": {
+        "left": -82,
+        "right": 238,
+        "width": 320,
+        "offLeft": true
+      },
+      "forbidden": 0
+    },
+    {
+      "width": 768,
+      "state": "guest",
+      "scrollWidth": 768,
+      "cls": 0,
+      "accountPanel": null,
+      "forbidden": 0
+    },
+    {
+      "width": 768,
+      "state": "member",
+      "scrollWidth": 768,
+      "cls": 0,
+      "accountPanel": {
+        "left": 384,
+        "right": 704,
+        "width": 320,
+        "offLeft": false
+      },
+      "forbidden": 0
+    },
+    {
+      "width": 1280,
+      "state": "guest",
+      "scrollWidth": 1250,
+      "cls": 0.001,
+      "accountPanel": null,
+      "forbidden": 0
+    },
+    {
+      "width": 1280,
+      "state": "member",
+      "scrollWidth": 1250,
+      "cls": 0.024,
+      "accountPanel": {
+        "left": 349,
+        "right": 669,
+        "width": 320,
+        "offLeft": false
+      },
+      "forbidden": 0
+    }
+  ]
+}

@@ -42,6 +42,39 @@
     return String(value || "").toLowerCase().replace(/\s+/g, "");
   }
 
+  /* 검색 동의어(2026-10-03 운세 정원 개편) — 같은 고민·체계를 다르게 부르는 말.
+     검색어에 한 단어가 들어 있으면 같은 묶음의 다른 단어로 바꾼 검색어도 함께 찾는다(OR).
+     레지스트리 keys 에 모든 표기를 늘어놓지 않으려는 것이다. */
+  var SYNONYM_GROUPS = [
+    ["이직", "퇴사", "취업", "직장", "커리어", "진로", "직업"],
+    ["재물", "금전", "돈", "재테크", "재정"],
+    ["결혼", "배우자", "혼인", "결혼운"],
+    ["재회", "다시만남", "헤어진"],
+    ["궁합", "케미", "상성"],
+    ["연애", "사랑", "썸", "인연"],
+    ["자미두수", "자미", "紫微"],
+    ["숙요점", "숙요", "27수", "이십칠수"],
+    ["베다점", "베다", "나크샤트라", "인도점성술"],
+    ["점성술", "별자리", "호로스코프", "서양점성술"],
+    ["사주", "명리", "팔자", "만세력"],
+    ["오늘", "오늘의운세", "일일운세", "데일리"]
+  ].map(function (group) { return group.map(norm); });
+
+  function queryVariants(query) {
+    var out = [query];
+    if (!query) return out;
+    SYNONYM_GROUPS.forEach(function (group) {
+      group.forEach(function (word) {
+        if (query.indexOf(word) === -1) return;
+        group.forEach(function (other) {
+          var next = query.split(word).join(other);
+          if (out.indexOf(next) === -1) out.push(next);
+        });
+      });
+    });
+    return out;
+  }
+
   var BUCKET_ORDER = ["free", "low", "mid", "high", "premium", "vvip"];
 
   function bucketOfWon(won) {
@@ -86,6 +119,7 @@
     return {
       id: item.id,
       name: item.name,
+      question: item.question || "",
       desc: item.desc || "",
       href: item.href || "",
       action: item.action || "",
@@ -102,7 +136,7 @@
       image: item.image || "",
       imageAlt: item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지"),
       tagged: true,
-      hay: norm([item.name, item.desc, item.price, item.keys].join(" "))
+      hay: norm([item.name, item.question, item.desc, item.price, item.keys].join(" "))
     };
   });
 
@@ -110,11 +144,11 @@
      예전에는 입력·칩 선택 전까지 아무것도 렌더하지 않아, 홈에서 가장 강한 탐색 도구가 빈 채로
      서 있고 그 뒤로 타일 62개를 사용자가 직접 훑어야 했다.
 
-     🔴 기본으로 깔 것은 **바로 위 두 섹션이 이미 보여 주지 않는 것**이어야 한다 —
-        #cdSignatureConsult(roles:"recommended" 4개) · #cdQuickServices(roles:"quick" 6개)가
-        탐색기 **바로 위**에 붙어 있어서(index.html 11334 / 11451 / 11493), roles 를 가진 항목을
-        여기 다시 깔면 같은 카드가 한 화면에 두 번 나오고 인터랙티브 요소만 늘어난다.
-     그래서 roles 가 없고(= 상단 미노출) 무료로 시작할 수 있는 앞쪽 6개를 쓴다.
+     🔴 기본으로 깔 것은 roles 를 가진 항목이 아니어야 한다 — roles:"recommended" 4개는
+        #cdSignatureConsult 에 이미 나와 있어 다시 깔면 같은 카드가 한 화면에 두 번 나온다.
+        roles:"quick"(사주·타로·자미두수·숙요·베다·점성술 허브) 6개는 #cdQuickServices 와 함께
+        홈에서 빠졌고(2026-10-03) 모든 운세의 방식 칩·검색으로 들어간다 — 기본 목록 구성은 그대로 둔다.
+     그래서 roles 가 없고 무료로 시작할 수 있는 앞쪽 6개를 쓴다.
      'free' 판정은 bucketsOf() 하나에서만 파생한다 — 가격 문자열을 여기서 다시 해석하지 않는다.
 
      🔴 filterServices() 를 타지 않는다 — 그 안의 ensureCatalogue() 가 DOM 스윕(scrapeTiles)을
@@ -127,14 +161,12 @@
   var TILE_SELECTOR = [
     "#inputPage .moon-preview-card",
     "#inputPage .tarot-tile",
-    "#inputPage .cd-pick-card",
     "#inputPage .prem-card",
     "#inputPage .feature-card"
   ].join(", ");
   var TILE_CLASS_SELECTOR = [
     ".moon-preview-card",
     ".tarot-tile",
-    ".cd-pick-card",
     ".prem-card",
     ".feature-card"
   ].join(", ");
@@ -210,6 +242,12 @@
     return (item.action && featureImageIndex["a:" + item.action]) ||
       (item.featureKey && featureImageIndex["f:" + item.featureKey]) ||
       (imageHrefKey(item.href) && featureImageIndex["h:" + imageHrefKey(item.href)]) || "";
+  }
+
+  /* 체계 허브(roles:quick — 사주·타로·자미두수·숙요점·점성술·베다점)는 홈 #cdQuickServices 타일 그림을 빌렸다.
+     그 타일을 지운 뒤(2026-10-03) 같은 파일을 id 로 직접 가리킨다 — 레지스트리에 값을 저장하지 않는다. */
+  function methodHubImage(item) {
+    return item.roles && item.roles.indexOf("quick") !== -1 && /^[a-z]+$/.test(item.id || "") ? "/feature-details/assets/" + item.id + "-320.webp" : "";
   }
 
   /* 이미지 판정용 href 키는 쿼리를 남긴다 — normHref 처럼 떼면 /index.html?action=… 항목이
@@ -313,17 +351,20 @@
     var methods = state.methods || [];
     var buckets = state.buckets || [];
     var needsTags = purposes.length || methods.length || buckets.length;
+    /* 방식 '기타'(모든 운세 화면)는 레지스트리 밖 컬렉션 타일을 받는 칸이다. */
+    var wantsEtc = methods.indexOf("etc") !== -1;
+    var variants = queryVariants(query);
 
     return ensureCatalogue().filter(function (item) {
       /* 태그가 없는 스크래핑 항목은 축 필터를 만족시킬 방법이 없다 —
          필터가 하나라도 켜지면 후보에서 빠지고, 순수 검색일 때만 나온다. */
-      if (needsTags && !item.tagged) return false;
+      if (needsTags && !item.tagged && !(wantsEtc && !purposes.length && !buckets.length)) return false;
       if (purposes.length && !purposes.some(function (p) { return item.purposes.indexOf(p) !== -1; })) return false;
-      if (methods.length && !methods.some(function (m) { return item.methods.indexOf(m) !== -1; })) return false;
+      if (methods.length && item.tagged && !methods.some(function (m) { return item.methods.indexOf(m) !== -1; })) return false;
       /* 항목이 걸치는 버킷 중 하나라도 선택된 칩과 겹치면 통과한다 — 범위 가격이
          시작가 버킷에만 갇히지 않게 하는 지점이다. */
       if (buckets.length && !item.buckets.some(function (b) { return buckets.indexOf(b) !== -1; })) return false;
-      if (query && item.hay.indexOf(query) === -1) return false;
+      if (query && !variants.some(function (v) { return item.hay.indexOf(v) !== -1; })) return false;
       return true;
     });
   }
@@ -358,7 +399,7 @@
     var media = document.createElement("span");
     media.className = className;
     var image = document.createElement("img");
-    image.src = item.image || featureTileImage(item) || DEFAULT_SERVICE_IMAGE;
+    image.src = item.image || featureTileImage(item) || methodHubImage(item) || DEFAULT_SERVICE_IMAGE;
     image.alt = item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지");
     image.loading = "lazy";
     image.decoding = "async";
@@ -388,10 +429,16 @@
   }
 
   /* 운명의 문 디스커버용 — 이름/설명/가격 3단 카드 */
-  function renderRichResults(panel, list, state) {
+  function renderRichResults(panel, list, state, opts) {
+    opts = opts || {};
     // 타일은 부팅 뒤에도 붙고 떨어진다(모바일 지연 마운트). 첫 렌더 시점의 색인을 굳히지 않는다.
     featureImageIndex = null;
     panel.textContent = "";
+    if (!list.length && opts.emptyState) {
+      panel.appendChild(opts.emptyState());
+      panel.hidden = false;
+      return;
+    }
     if (!list.length) {
       var empty = document.createElement("p");
       empty.textContent = "일치하는 서비스가 없어요. 검색어나 필터를 바꿔보세요.";
@@ -405,16 +452,30 @@
     head.setAttribute("data-cd-trans", "home.svcFinder.recommendations");
     head.textContent = (single ? single.emoji + " " : "")
       + translate("home.svcFinder.recommendations", "찾으시는 운세를 골랐어요");
-    panel.appendChild(head);
+    if (!opts.showAll) panel.appendChild(head);
 
     var grid = document.createElement("div");
     grid.className = "fortune-gateway__recs-grid";
-    var visibleList = state.query || (state.purposes || []).length || (state.methods || []).length || (state.buckets || []).length
+    var visibleList = opts.showAll || state.query || (state.purposes || []).length || (state.methods || []).length || (state.buckets || []).length
       ? list
       : list.slice(0, 6);
     visibleList.forEach(function (item) {
       var node = openerNode(item, "fortune-gateway__rec");
       appendServiceImage(node, item, "fortune-gateway__rec-media");
+      /* 질문 우선 카드: 제목은 고객 질문, 상품명은 아래 작은 줄로 내린다.
+         상품명([data-pvw-title])은 미리보기 시트 제목이라 그대로 남긴다. */
+      if (item.question) {
+        node.classList.add("fortune-gateway__rec--q");
+        var q = document.createElement("span");
+        q.className = "fortune-gateway__rec-q";
+        var qKey = "home.svcQuestion." + item.id;
+        q.setAttribute("data-cd-trans", "");
+        q.setAttribute("data-key", qKey);
+        q.setAttribute("data-cd-origin-text", item.question);
+        q.classList.add("notranslate");
+        q.textContent = translate(qKey, item.question);
+        node.appendChild(q);
+      }
       var name = document.createElement("span");
       name.className = "fortune-gateway__rec-name";
       /* 시트 제목은 _pvwTileText 가 [data-pvw-title] 의 textContent 로 읽는다. 배지(<b>)를
@@ -445,6 +506,8 @@
         desc.textContent = translate(descKey, item.desc);
         node.appendChild(desc);
       }
+      // 질문 카드는 질문 → 설명 → 상품명(배지) 순서다.
+      if (item.question) node.appendChild(name);
 
       var foot = document.createElement("span");
       foot.className = "fortune-gateway__rec-foot";
@@ -485,13 +548,15 @@
     var progressive = config.filtersId ? document.getElementById(config.filtersId) : null;
     var clearButton = root.querySelector('[data-cd-search-clear]');
     var resetButton = root.querySelector('[data-cd-finder-reset]');
-    var summary = document.getElementById('fortuneGatewayResultSummary');
+    var summary = document.getElementById(config.summaryId || 'fortuneGatewayResultSummary');
     var filterPanel = root.querySelector('.fortune-gateway__filter-panel');
     var filterCount = root.querySelector('[data-cd-filter-count]');
     /* 홈(꿀꿀 운세)에서는 입력·칩을 고르기 전에는 결과를 깔지 않는다(2026-10-01 홈 개편).
-       단독 마운트(테스트·홈 밖)는 기존처럼 기본 목록을 보여 준다. */
+       단독 마운트(테스트·홈 밖)는 기존처럼 기본 목록을 보여 준다.
+       모든 운세 화면(showAll)은 아무것도 고르지 않아도 레지스트리 전체를 깐다. */
     var homeFunnel = document.getElementById("cdHomeFunnel");
-    var emptyUntilAsked = Boolean(homeFunnel && homeFunnel.contains(root));
+    var emptyUntilAsked = !config.showAll && Boolean(homeFunnel && homeFunnel.contains(root));
+    var renderOpts = { showAll: Boolean(config.showAll), emptyState: config.emptyState ? function () { return config.emptyState(resetAll); } : null };
 
     function state() {
       return {
@@ -519,11 +584,12 @@
         return;
       }
       /* 아무것도 고르지 않은 상태 = 기본 목록. 필터를 켰다가 모두 끄면 이리로 되돌아온다. */
-      var list = active ? filterServices(current) : DEFAULT_PICKS;
-      renderRichResults(panel, list, current);
+      var list = active ? filterServices(current) : (config.showAll ? CURATED : DEFAULT_PICKS);
+      renderRichResults(panel, list, current, renderOpts);
       if (summary) summary.textContent = active
         ? '조건에 맞는 서비스 ' + list.length + '개'
         : '전체 서비스 ' + list.length + '개';
+      if (config.onRender) config.onRender(current);
     }
 
     function resetAll() {
@@ -594,7 +660,7 @@
     render();
     if (live) panel.setAttribute("aria-live", live);
 
-    return { render: render };
+    return { render: render, reset: resetAll };
   }
 
   function warmCatalogue() {
@@ -605,7 +671,188 @@
     (window.requestIdleCallback || function (fn) { return window.setTimeout(fn, 0); })(run);
   }
 
+  /* ── 모든 운세 화면(2026-10-03 운세 정원 개편) ─────────────────
+     검색·방식·고민 블록(#cdAllFortunesRoot) 하나를 두 곳에 옮겨 단다.
+     모바일: 기존 '모든 운세' 개요 패널(#cdMobileFortuneOverview) 맨 위 — 그 아래 즐겨찾기·카테고리는 그대로.
+     데스크톱: 시트 #cdAllFortunes(js/core/shell-sheet.js).
+     노드를 옮기므로 입력값·칩 상태·리스너가 함께 따라간다. 카드·검색은 위 카탈로그 단일 출처다.
+     상태는 sessionStorage 에만 둔다(URL 파라미터를 늘리지 않는다). 카드를 눌러 떠났다가
+     뒤로 오면(bfcache 복원이든 새 로드든) 화면을 다시 열고 검색어·칩·스크롤을 되살린다. */
+  var AF_KEY = "cd.allFortunes.v1";
+  var AF_RETURN_MS = 30 * 60 * 1000;
+  var allFortunes = null;
+
+  function afRead() {
+    try {
+      var saved = JSON.parse(window.sessionStorage.getItem(AF_KEY) || "null");
+      return saved && typeof saved === "object" ? saved : null;
+    } catch (_) { return null; }
+  }
+
+  function afWrite(patch) {
+    try {
+      var next = Object.assign({}, afRead() || {}, patch);
+      window.sessionStorage.setItem(AF_KEY, JSON.stringify(next));
+    } catch (_) {}
+  }
+
+  function afScroller(root) {
+    return root.closest("#cdMobileFortuneOverview") || root.closest(".cd-sheet__body");
+  }
+
+  function afApplySaved(root, saved) {
+    var input = document.getElementById("cdAllFortunesSearch");
+    if (input && typeof saved.query === "string") input.value = saved.query;
+    var wanted = { "data-purpose": saved.purposes || [], "data-method": saved.methods || [] };
+    Object.keys(wanted).forEach(function (attr) {
+      var chips = root.querySelectorAll("[" + attr + "]");
+      Array.prototype.forEach.call(chips, function (chip) {
+        chip.setAttribute("aria-pressed", wanted[attr].indexOf(chip.getAttribute(attr)) !== -1 ? "true" : "false");
+      });
+    });
+  }
+
+  function afEmptyState(reset) {
+    var box = document.createElement("div");
+    box.className = "cd-af__empty";
+    var title = document.createElement("p");
+    title.className = "cd-af__empty-title";
+    title.textContent = translate("home.gardenCopy.allEmpty", "찾는 운세가 없어요");
+    var hint = document.createElement("p");
+    hint.textContent = translate("home.gardenCopy.allEmptyHint", "다른 말로 찾거나 조건을 풀어 보세요.");
+    var again = document.createElement("button");
+    again.type = "button";
+    again.className = "cd-af__empty-reset";
+    again.textContent = translate("home.gardenCopy.allReset", "조건 초기화");
+    again.addEventListener("click", reset);
+    box.appendChild(title);
+    box.appendChild(hint);
+    box.appendChild(again);
+    return box;
+  }
+
+  function ensureAllFortunes() {
+    if (allFortunes) return allFortunes;
+    var root = document.getElementById("cdAllFortunesRoot");
+    if (!root) return null;
+    var saved = afRead();
+    if (saved) afApplySaved(root, saved);
+    var api = mount({
+      rootId: "cdAllFortunesRoot",
+      resultsId: "cdAllFortunesResults",
+      inputId: "cdAllFortunesSearch",
+      summaryId: "cdAllFortunesSummary",
+      chipSelector: ".cd-af__chip",
+      filterChipSelector: ".cd-af__fchip",
+      purposeAttr: "data-purpose",
+      methodAttr: "data-method",
+      showAll: true,
+      emptyState: afEmptyState,
+      onRender: function (current) {
+        afWrite({ query: current.query, purposes: current.purposes, methods: current.methods });
+      }
+    });
+    root.addEventListener("click", function (event) {
+      var target = event.target instanceof Element ? event.target : null;
+      if (!target) return;
+      if (target.closest("[data-cd-af-browse]")) {
+        afBrowseCollections();
+        return;
+      }
+      var card = target.closest("#cdAllFortunesResults a[href], #cdAllFortunesResults button");
+      if (!card) return;
+      var box = afScroller(root);
+      afWrite({ scrollTop: box ? box.scrollTop : 0, returnAt: Date.now() });
+      // 공용 디스패처(document 버블)보다 이 리스너가 먼저 돈다 — 실행 전에 닫는다.
+      afCloseOverviewFor(root, card);
+    });
+    // 모바일 터치 브리지(js/mobile-interaction-patch.js)는 일부 액션(MBTI 등)을 document capture 에서
+    // 직접 실행하고 전파를 멈춰 위 리스너까지 오지 않는다. 브리지가 처리한 클릭만 실행 뒤에 닫는다.
+    // 브리지가 막은 고스트·스크롤 클릭은 처리 표시가 없으니 닫지 않는다.
+    window.addEventListener("click", function (event) {
+      var target = event.target instanceof Element ? event.target : null;
+      var card = target && root.contains(target) ? target.closest("#cdAllFortunesResults button[data-action], #cdAllFortunesResults a[href][data-action]") : null;
+      if (!card) return;
+      window.setTimeout(function () {
+        if (event.__cdMobileBridgeHandled) afCloseOverviewFor(root, card);
+      }, 0);
+    }, true);
+    allFortunes = { root: root, api: api };
+    return allFortunes;
+  }
+
+  // 모바일 오버레이(#cdMobileFortuneOverview, z 965)는 화면 안에서 실행되는 카드(무료 사주 입력 폼·MBTI 모달)를
+  // 가린다. 데스크톱 시트가 링크·액션 클릭에 닫히듯(shell-sheet) 무료 data-action 카드는 오버레이를 닫는다.
+  // 유료 카드는 상세 시트(#tilePvwOverlay)가 오버레이 위에 뜨므로 그대로 둔다.
+  function afCloseOverviewFor(root, card) {
+    if (root.getAttribute("data-cd-af-host") !== "overview") return;
+    if (!card.hasAttribute("data-action") || card.hasAttribute("data-pvw-paid")) return;
+    var overlay = window.cdMobileCollectionFullscreen;
+    if (overlay && overlay.isOpen()) overlay.close();
+  }
+
+  // 데스크톱 시트의 '카테고리로 둘러보기' — 시트를 닫고 옛 경로(정원 컬렉션으로 스크롤)로 간다.
+  // 시트가 닫히며 스크롤을 되돌리므로, 닫힘 이벤트 뒤에 움직인다.
+  function afBrowseCollections() {
+    var go = function () {
+      if (typeof window.cdOpenAllFortunes === "function") window.cdOpenAllFortunes({ browse: true });
+    };
+    var sheets = window.CodeDestinyShellSheet;
+    var sheet = document.getElementById("cdAllFortunes");
+    if (sheets && sheet && sheets.isOpen("cdAllFortunes")) {
+      sheet.addEventListener("cd:sheet-close", function () { window.setTimeout(go, 0); }, { once: true });
+      sheets.close("cdAllFortunes");
+    } else {
+      go();
+    }
+  }
+
+  // host 에 블록을 단다. before 가 있으면 그 앞에, 없으면 끝에.
+  function attachAllFortunes(host, before) {
+    var af = ensureAllFortunes();
+    if (!af || !host) return false;
+    if (af.root.parentNode !== host || (before && af.root.nextSibling !== before)) {
+      host.insertBefore(af.root, before || null);
+    }
+    af.root.setAttribute("data-cd-af-host", host.id === "cdMobileFortuneOverview" ? "overview" : "sheet");
+    return true;
+  }
+
+  function afRestoreScroll(top) {
+    if (!allFortunes || !top) return;
+    window.requestAnimationFrame(function () {
+      var box = afScroller(allFortunes.root);
+      if (box) box.scrollTop = top;
+    });
+  }
+
+  function bootAllFortunes() {
+    var sheet = document.getElementById("cdAllFortunes");
+    if (sheet) {
+      sheet.addEventListener("cd:sheet-open", function () {
+        attachAllFortunes(sheet.querySelector(".cd-sheet__body"));
+      });
+    }
+    window.addEventListener("pageshow", function (event) {
+      var saved = afRead();
+      if (!saved || !saved.returnAt) return;
+      var fresh = Date.now() - saved.returnAt < AF_RETURN_MS;
+      var entry = window.performance && performance.getEntriesByType ? performance.getEntriesByType("navigation")[0] : null;
+      var back = event.persisted || Boolean(entry && entry.type === "back_forward");
+      afWrite({ returnAt: 0 });
+      if (!fresh || !back || typeof window.cdOpenAllFortunes !== "function") return;
+      window.cdOpenAllFortunes();
+      afRestoreScroll(saved.scrollTop || 0);
+    });
+  }
+
+  window.CodeDestinyAllFortunes = {
+    attach: attachAllFortunes,
+    filter: function (state) { return filterServices(state || {}); }
+  };
+
   function boot() {
+    bootAllFortunes();
     var home = document.getElementById("cdHomeFunnel");
     var finder = document.getElementById("cdFinder");
     /* 홈 검색은 늘 펼쳐져 있다(2026-10-01). 입력 전에는 결과를 그리지 않으므로 마운트는 가볍다. */

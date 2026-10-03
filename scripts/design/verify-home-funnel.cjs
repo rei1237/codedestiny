@@ -107,7 +107,6 @@ async function assertEssentials(page, label) {
       assert.ok(await page.locator('#cdhCollections').isVisible(), 'collections open with the garden');
       assert.ok(await page.locator('#cdhCollections > .feature-card-grid').count(), 'existing cards live inside the garden');
       assert.ok(await page.locator('#cdhPass .cdh-pass__btn').isVisible(), 'pass opens with the garden');
-      assert.ok(await page.locator('#cdhQuickSlot [data-cdh-free]').isVisible(), 'free saju entry opens with the garden');
       assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'opening the garden does not touch search');
       const closeButton = page.locator('#cdhMore [data-cdh-garden-close]');
       await closeButton.focus();
@@ -133,12 +132,12 @@ async function assertEssentials(page, label) {
       const layout = await page.evaluate(() => ({
         overflow: document.documentElement.scrollWidth > innerWidth,
         width: document.getElementById('cdHomeFunnel').getBoundingClientRect().width,
-        unique: ['cdQuickServices', 'cdTodayHub', 'cdConcernPick', 'cdSignatureConsult', 'fortuneGatewayEntry', 'cdHomeGuideTitle'].every((id) => document.querySelectorAll('#' + id).length === 1),
+        unique: ['cdTodayHub', 'cdConcernPick', 'cdSignatureConsult', 'fortuneGatewayEntry', 'cdHomeGuideTitle'].every((id) => document.querySelectorAll('#' + id).length === 1),
         neoButton: Boolean(document.querySelector('#cdhThemeSlot [data-theme-mode="neo"]')),
         feedback: Boolean(document.querySelector('#cdhFeedbackSlot #cdFeedbackGate')),
         feedbackCta: Boolean(document.querySelector('#cdhFeedbackSlot .cd-feedback__cta[href="/feedback/"]')),
         feedbackReward: Boolean(document.querySelector('#cdhFeedbackSlot .cd-feedback__reward strong')),
-        moved: Boolean(document.querySelector('#cdhQuickSlot #cdQuickServices') && document.querySelector('#cdhPassSlot .cdh-pass')),
+        moved: Boolean(document.querySelector('#cdhPassSlot .cdh-pass')),
         shareEvent: Boolean(document.querySelector('#cdhShareControls #dpKakaoReferralShareBtn') && document.querySelector('#cdhShareControls #dpKakaoReferralNote')),
         profileCardOnHome: Boolean(document.querySelector('#cdHomeFunnel #dpMasterCard')),
       }));
@@ -203,7 +202,7 @@ async function assertEssentials(page, label) {
       await page.locator('#fortuneGatewaySearch').fill('검색되지않는없는운세');
       await page.waitForTimeout(250);
       assert.ok(await page.locator('#fortuneGatewayRecs').filter({ hasText: '일치하는 서비스가 없어요' }).isVisible(), 'empty search explains no match');
-      await page.locator('[data-cd-search-clear]').click();
+      await page.locator('#fortuneGatewayDiscover [data-cd-search-clear]').click();
       assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'clearing the query hides results again');
       // 정원 안 컬렉션에만 있는 서비스도 검색된다(타일 스크랩). 검색은 정원을 열지 않는다.
       await page.locator('#fortuneGatewaySearch').fill('나크샤트라');
@@ -215,13 +214,13 @@ async function assertEssentials(page, label) {
       assert.equal(await page.locator('[data-cd-filter-count]').textContent(), '1', 'filter toggle counts active panel filters');
       await page.waitForTimeout(250);
       assert.ok(await page.locator('#fortuneGatewayRecs .fortune-gateway__rec').count() > 0, 'search and free filter');
-      assert.ok(await page.locator('[data-cd-finder-reset]').isVisible(), 'reset appears for active filters');
-      await page.locator('[data-cd-finder-reset]').click();
+      assert.ok(await page.locator('#fortuneGatewayDiscover [data-cd-finder-reset]').isVisible(), 'reset appears for active filters');
+      await page.locator('#fortuneGatewayDiscover [data-cd-finder-reset]').click();
       assert.equal(await page.locator('#fortuneGatewaySearch').inputValue(), '', 'reset clears search');
       await page.locator('[data-price="low"]').click();
       assert.ok(await page.locator('#fortuneGatewayRecs .fortune-gateway__rec').filter({ hasText: '음악' }).count(), '1000 won filter includes music');
       await page.locator('#cdhServices').screenshot({ path: path.join(out, `finder-${width}.png`) });
-      await page.locator('[data-cd-finder-reset]').click();
+      await page.locator('#fortuneGatewayDiscover [data-cd-finder-reset]').click();
       assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'reset returns to the empty search state');
       if (width === 390 || width === 1440) {
         await page.locator('#cdhMore > summary').click();
@@ -295,15 +294,17 @@ async function assertEssentials(page, label) {
     await member.goto(origin + '/static/index.html', { waitUntil: 'domcontentloaded' });
     await member.waitForSelector('#cdAuthLogoutBtn', { state: 'attached' });
     await assertEssentials(member, 'logged in');
-    await member.locator('#cdhMore > summary').click();
-    await member.locator('[data-cdh-free]').first().click();
+    // 무료 사주는 '모든 운세' 화면의 사주 카드로 들어간다(홈 #cdQuickServices 는 2026-10-03 삭제).
+    await member.evaluate(() => window.cdOpenAllFortunes());
+    await member.locator('#cdAllFortunesResults a[data-action="cdOneStepFreeSajuEntry"]').first().click();
     await member.locator('#nameInput').fill('꽃길 테스트');
     await member.locator('#birthDate').fill('1995-05-15');
     await member.locator('#birthDate').dispatchEvent('change');
     await member.locator('#dpSaveBtn').click();
     await member.waitForFunction(() => document.getElementById('dpMasterCard')?.textContent.includes('꽃길 테스트'), null, { timeout: 15000 });
     await member.locator('.cdh-input-return').click();
-    await member.locator('.cdh-nav [data-action="dpOpenList"]').click();
+    await member.locator('#cdhAccountBtn').click();
+    await member.locator('#cdAccountSheet [data-action="dpOpenList"]').click();
     await member.waitForFunction(() => document.querySelector('#dpMasterCardHost #dpMasterCard') && document.getElementById('dpListSheet')?.classList.contains('dp-sheet--open'));
     assert.equal(mutations, 1, 'profile creation uses original controller once');
     assert.ok(await member.locator('#dpMasterCardHost #dpMasterCard').isVisible(), 'active profile card and level strip are visible under My');

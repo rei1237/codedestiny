@@ -3,7 +3,6 @@ import { readFileSync, writeFileSync } from "node:fs";
 const source = readFileSync("app/_lib/mobile-tabs.ts", "utf8");
 const keys = [...new Set([
   ...[...source.matchAll(/(?:transKey|ariaTransKey):\s*"([^"]+)"/g)].map(m => m[1]),
-  source.match(/MNAV_TOGGLE_TRANS_KEY\s*=\s*"([^"]+)"/)[1],
 ])];
 function valueAtPath(dictionary, key) {
   if (typeof dictionary[key] === "string") return dictionary[key];

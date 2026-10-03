@@ -9,9 +9,10 @@ try {
  await context.route('**/api/auth/me',route=>route.fulfill({status:200,json:{ok:true,authenticated:true,user:{id:'relationship-test-member',name:'회귀검증'}}}));
  const page=await context.newPage();page.setDefaultTimeout(45000);page.on('dialog',d=>d.dismiss());
  await page.goto(origin+'/index.html',{waitUntil:'domcontentloaded'});
- // 무료 사주 카드(퀵 서비스)는 연이의 정원 안이다 — 사용자처럼 정원을 먼저 연다.
- if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
- await page.locator('#cdQuickServices a[href*="cdOneStepFreeSajuEntry"]').click();
+ // 무료 사주는 '모든 운세' 화면의 사주 카드로 들어간다(홈 #cdQuickServices 는 2026-10-03 삭제).
+ await page.waitForFunction(() => typeof window.cdOpenAllFortunes === 'function');
+ await page.evaluate(() => window.cdOpenAllFortunes());
+ await page.locator('#cdAllFortunesResults a[data-action="cdOneStepFreeSajuEntry"]').first().click();
  await page.locator('#nameInput').fill('회귀검증');await page.locator('#birthDate').fill('1990-05-15');await page.locator('#run-btn').click();
  const block=page.locator('#rpt-v2-section-relationshipBoundaryTestEntry');await block.waitFor();
  assert.equal(await page.locator('#relationshipTemptationCard').count(),0);

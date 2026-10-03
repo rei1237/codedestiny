@@ -29,6 +29,7 @@ const files = {
   // 따로 있었는데, 탭 정의가 갈라져 5탭 중 4탭이 앱 셸을 벗어났다(빈 탭바). 사본을 없애고
   // 앱 셸도 이 렌더러를 쓰므로 마커도 여기로 옮긴다.
   mobileNav: "app/components/MobileBottomNav.tsx",
+  homeFunnelTemplate: "templates/home-funnel.html",
 };
 
 /**
@@ -153,15 +154,19 @@ const cases = [
     // 유지해야 하고 그 화면은 지난번처럼 중복·오작동 상태로 방치된다. 진입점까지 함께 막는다.
     name: "profile card management lives only in the static shell",
     includes: [
-      // React 하단 네비·앱 탭바의 마이 탭은 셸 액션으로 넘어간다.
+      // React 하단 네비·앱 탭바의 마이 탭은 셸 액션으로 넘어간다. 2026-10-02 부터 마이 탭은
+      // 셸 계정 시트(cdOpenAccount)를 열고, 프로필 카드는 그 시트의 "내 프로필 카드"(dpOpenList)로 연다.
       ["mobileTabs", "export const PROFILE_SHEET_ACTION = \"dpOpenList\""],
-      ["mobileTabs", "href: `/?action=${PROFILE_SHEET_ACTION}`"],
+      ["mobileTabs", "export const ACCOUNT_SHEET_ACTION = \"cdOpenAccount\""],
+      ["mobileTabs", "href: `/?action=${ACCOUNT_SHEET_ACTION}`"],
+      ["homeFunnelTemplate", "<a href=\"/?action=dpOpenList\" data-action=\"dpOpenList\""],
       // React 네비는 탭 정의를 정본에서 그대로 받아 쓰고(사본 금지), 셸 홈 대상 탭은
       // 클라이언트 라우팅이 아니라 문서 로드로 보낸다 — 그래야 ?action= 을 셸이 처리한다.
       ["mobileNav", "MOBILE_TABS"],
       ["mobileNav", "function targetsStaticShellHome"],
       // 셸이 ?action=dpOpenList 를 자동 실행할 수 있어야 그 이동이 시트 열기로 이어진다.
       ["mainRuntime", "dpOpenList: true"],
+      ["mainRuntime", "cdOpenAccount: true"],
     ],
     excludes: [
       ["mobileTabs", "\"/me\""],

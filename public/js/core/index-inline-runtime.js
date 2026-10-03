@@ -3263,6 +3263,9 @@ var __cdRouteActionAllowList = {
   cdOpenAllFortunes: true,
   // 마이 탭 — 프로필 카드 관리는 셸의 하단 시트가 정본이라 React 에서 여기로 넘어온다.
   dpOpenList: true,
+  // 보관함·마이 탭 — 셸 시트(js/core/shell-sheet.js)를 연다.
+  cdOpenLibrary: true,
+  cdOpenAccount: true,
   openAnimalTotemModal: true,
   openSajuAnimalPage: true,
   openDestinyFlowerStudio: true,

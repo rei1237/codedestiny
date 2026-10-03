@@ -8,7 +8,7 @@ const require=createRequire(import.meta.url),Module=require('node:module');
 const repository=`
 const state=()=>globalThis.__storedChapterTest;
 export const ownerId=x=>x,allowedChapterAttempts=()=>2,holdAutoResumes=()=>false,userCanRetry=()=>false;
-export const createRequest=async()=>{},attachPayment=async()=>{},reserveQuestionSkyFollowup=async()=>{};
+export const createRequest=async()=>{},attachPayment=async()=>{},reserveQuestionSkyFollowup=async()=>{},commitTarotDraw=async()=>{};
 export const saveAskAnalysis=async()=>{state().analysisCalls++;throw Error('unexpected analysis');};
 export const saveChapterDraft=async()=>{state().draftWrites++;};
 export const readRequest=async()=>{const s=state();s.reads++;if(s.readError)throw s.readError;return s.row;};

@@ -51,7 +51,8 @@ test('first-screen translations render before JS; missing translations fail the 
       assert.match(output, /data-cd-origin-text=/, 'runtime Korean restoration is preserved');
     }
     const bad = JSON.parse(read('public/i18n/ja.json'));
-    delete bad.home.searchEntry.title;
+    // 히어로 제목이 실제로 쓰는 키(2026-10-03 운세 정원 개편 뒤 home.gardenCopy.heroTitle)를 지운다.
+    delete bad.home.gardenCopy.heroTitle;
     writeFileSync(join(fixture, 'public/i18n/ja.json'), JSON.stringify(bad));
     assert.notEqual(run().status, 0);
   } finally {

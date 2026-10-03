@@ -122,7 +122,7 @@ const TARGETS = [
   /* 필드 INP 1,592ms · 1,224ms. 이동하므로 문서 요청을 취소하고 잰다.
      🔴 navigates 대상은 **입력 대기·처리만 신뢰하고 렌더 성분은 신뢰하지 않는다** —
         취소가 확정되기 전까지 크로미움이 페인트를 미룰 수 있다(보고서에도 그렇게 적는다). */
-  { name: "하단 내비 탭", selector: "#cdMobileBottomNav [data-nav-key='pass']", navigates: true },
+  { name: "하단 내비 탭", selector: "#cdMobileBottomNav [data-nav-key='consult']", navigates: true },
 
   /* 🔴 이 타일은 settle 만으로는 DOM 에 **없다**(실측: settle 직후 `.tarot-tile` 0개).
      오버레이 → 타로 탭 → 열린 컬렉션 스크롤, 세 단계를 거쳐야 지연 마운트가 끝난다.

@@ -5,31 +5,9 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "../..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-const home = read("index.html");
+// 홈 무료 바로 시작 섹션(#cdQuickServices)은 2026-10-03 삭제됐다 — 방식 허브 6종의 직접 실행 경로는
+// 모든 운세·검색이 그리는 레지스트리 항목이 정본이다.
 const registry = read("js/core/service-registry.js");
-
-const quickSection = home.match(/id="cdQuickServices"[\s\S]*?<\/section>/)?.[0] || "";
-assert.ok(quickSection, "홈 무료 바로 시작 섹션을 찾지 못했습니다");
-
-const expectedQuickLinks = [
-  'href="/?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry" data-cd-service-id="saju"',
-  'href="/index.html?action=openTarotModal" data-action="openTarotModal" data-cd-service-id="tarot"',
-  'href="/ziwei/chart/" data-action="openZiweiModal" data-cd-service-id="ziwei"',
-  'href="/index.html?action=openSukuyoModal" data-action="openSukuyoModal" data-cd-service-id="sukuyo"',
-  'href="/index.html?action=openAstroModal" data-action="openAstroModal" data-cd-service-id="astrology"',
-  'href="/index.html?action=navigateToVedic" data-action="navigateToVedic" data-cd-service-id="vedic"',
-];
-for (const link of expectedQuickLinks) assert.ok(quickSection.includes(link), `직접 기능 링크가 없습니다: ${link}`);
-
-for (const seoRoot of [
-  'href="/saju/" data-cd-service-id="saju"',
-  'href="/tarot/" data-action="openTarotModal" data-cd-service-id="tarot"',
-  'href="/ziwei/" data-action="openZiweiModal" data-cd-service-id="ziwei"',
-  'href="/sukuyo/" data-action="openSukuyoModal" data-cd-service-id="sukuyo"',
-  'href="/astrology/" data-action="openAstroModal" data-cd-service-id="astrology"',
-]) {
-  assert.equal(quickSection.includes(seoRoot), false, `SEO 허브 링크가 홈 바로가기에서 남아 있습니다: ${seoRoot}`);
-}
 
 for (const entry of [
   ['daily-fortune', '/today/', null],

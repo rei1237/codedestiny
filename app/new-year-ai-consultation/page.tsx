@@ -13,7 +13,7 @@ import { buildKrwOffer } from "@/lib/seo/paid-offer";
 const PAGE_PATH = "/new-year-ai-consultation/";
 const PAGE_TITLE = "신년운세 보는 곳 | 새해 월별 운세·재물운·연애운 풀이";
 const PAGE_DESCRIPTION =
-  "생년월일로 새해의 큰 흐름을 미리 읽는 신년운세 상담입니다. 그해 세운이 내 명식과 만나는 자리를 보고 재물·연애·커리어와 월별 체크포인트를 짚습니다.";
+  "올해 나에게 가장 중요한 일은 뭘까? 그해 세운이 내 명식과 만나는 자리와 재물·연애·월별 흐름을 짚는 신년운세입니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -108,7 +108,7 @@ export default function NewYearAiConsultationPage() {
       />
             <NewYearAiRouteClient />
             <ServiceIntroSection label="신년운세 전문가 상담 안내">
-        <h1>신년운세 보는 곳 — 새해 흐름과 월별 운세 풀이</h1>
+        <h1><span>신년운세 보는 곳 — 새해 흐름과 월별 운세 풀이</span>올해 나에게 가장 중요한 일은 뭘까?</h1>
         <p>
           신년운세 전문가 상담은 생년월일로 세운 사주 명식 위에 새해의 간지가 만드는 세운의 흐름을
           겹쳐 읽습니다. 한 해의 재물운과 관계운, 일과 커리어의 결이 어느 달에 열리는지,

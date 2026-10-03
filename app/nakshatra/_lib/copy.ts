@@ -209,6 +209,8 @@ export interface NakshatraCopy {
   // ── compat/page (converted to client) ────────────────
   compatPageEyebrow: string;
   compatPageHeading: string;
+  /** 있으면 H1 은 compatPageHeading(눈썹) + 이 질문이 된다. 저작 로케일(ko·en·ja·zh-CN·zh-TW)만 채운다(질문 우선 2026-10-02). */
+  compatPageQuestion?: string;
   compatPageSub: string;
 
   // ── calc/page (converted to client) ──────────────────
@@ -554,6 +556,7 @@ const NAKSHATRA_COPY_EN: NakshatraCopy = {
 
   compatPageEyebrow: "Nakshatra Codex · Compatibility",
   compatPageHeading: "East-West Compatibility",
+  compatPageQuestion: "You and that person — how compatible are you?",
   compatPageSub: "See India's 36-point Ashtakuta and the Eastern Sukuyo mansion-distance method overlaid on one screen. A rare cross-tradition compatibility reading.",
 
   calcHeading: "Check the two names of your star",
@@ -895,6 +898,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
 
     compatPageEyebrow: "Nakshatra Codex · Compatibility",
     compatPageHeading: "동서 통합 궁합",
+    compatPageQuestion: "그 사람과 나, 어떤 궁합일까?",
     compatPageSub: "인도 아쉬타쿠타 36점과 동양 숙요 격각을 한 화면에서 겹쳐 봅니다. 국내에서 보기 드문 두 전통의 교차 궁합이에요.",
 
     calcHeading: "내 별의 두 이름을 확인하세요",
@@ -1234,6 +1238,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
 
     compatPageEyebrow: "Nakshatra Codex · Compatibility",
     compatPageHeading: "東西統合相性",
+    compatPageQuestion: "あの人と私、どんな相性だろう？",
     compatPageSub: "インドのアシュタクータ36点と東洋の宿曜格角を一画面で重ねて見ます。国内では珍しい二つの伝統の交差相性です。",
 
     calcHeading: "あなたの星の二つの名前を確認しましょう",
@@ -1573,6 +1578,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
 
     compatPageEyebrow: "Nakshatra Codex · Compatibility",
     compatPageHeading: "东西方综合缘分",
+    compatPageQuestion: "我和那个人，是怎样的缘分？",
     compatPageSub: "在同一画面重叠查看印度阿什塔库塔36分与东方宿曜格角。这是国内罕见的两大传统交叉缘分解读。",
 
     calcHeading: "确认你星辰的两个名字",
@@ -1912,6 +1918,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
 
     compatPageEyebrow: "Nakshatra Codex · Compatibility",
     compatPageHeading: "東西方綜合緣分",
+    compatPageQuestion: "我和那個人，是怎樣的緣分？",
     compatPageSub: "在同一畫面重疊查看印度阿什塔庫塔36分與東方宿曜格角。這是國內罕見的兩大傳統交叉緣分解讀。",
 
     calcHeading: "確認你星辰的兩個名字",

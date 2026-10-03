@@ -142,7 +142,9 @@ for (const baseDir of ["dist", "out", ".open-next/assets"]) {
     }
 
     const dictionary = flattenDictionary(JSON.parse(readFileSync(dictionaryPath, "utf8")));
-    for (const match of markupOnly.matchAll(/data-cd-trans="(home\.searchEntry\.[^"]+)"/g)) {
+    // 첫 화면(검색·히어로) 키가 빠지면 로케일 첫 화면이 한국어로 나간다 — 빌드를 멈춘다.
+    // 2026-10-03 운세 정원 개편으로 히어로 제목이 home.gardenCopy.* 로 옮겨 그 접두사도 필수로 둔다.
+    for (const match of markupOnly.matchAll(/data-cd-trans="(home\.(?:searchEntry|gardenCopy)\.[^"]+)"/g)) {
       if (!dictionary[match[1]]?.trim()) {
         throw new Error(`[locale-prerender] ${locale}: missing required translation ${match[1]}`);
       }

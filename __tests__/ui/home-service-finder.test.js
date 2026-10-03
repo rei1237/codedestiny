@@ -232,6 +232,27 @@ test("결과 카드는 가격·CTA 클래스와 항목 id 기반 번역 키를 �
   );
 });
 
+// 질문 우선 카드(2026-10-02): 제목은 고객 질문, 상품명은 미리보기 시트 제목([data-pvw-title])으로 남긴다.
+test("질문이 있는 카드는 질문 → 설명 → 상품명 순서로 그리고 상품명을 시트 제목으로 유지한다", async () => {
+  const { doc } = await boot();
+  const panel = doc.getElementById("fortuneGatewayRecs");
+
+  doc.querySelector('#fortuneGatewayDiscover [data-purpose="compatibility"]').click();
+  const card = Array.from(panel.querySelectorAll(".fortune-gateway__rec")).find((c) =>
+    c.textContent.includes("마스터 인연의 서"),
+  );
+  assert.ok(card, "궁합 결과에 마스터 인연의 서가 없다");
+  const q = card.querySelector(".fortune-gateway__rec-q");
+  assert.ok(q && card.classList.contains("fortune-gateway__rec--q"), "질문 줄이 없다");
+  assert.equal(q.textContent, "내 다음 연애는 언제 시작될까?");
+  assert.equal(q.getAttribute("data-key"), "home.svcQuestion.master-love-codex");
+  const order = Array.from(card.children).map((n) => n.className.split(" ")[0]);
+  const at = (c) => order.indexOf(c);
+  assert.ok(at("fortune-gateway__rec-q") < at("fortune-gateway__rec-desc"), order.join(","));
+  assert.ok(at("fortune-gateway__rec-desc") < at("fortune-gateway__rec-name"), order.join(","));
+  assert.equal(card.querySelector("[data-pvw-title]").textContent, "마스터 인연의 서");
+});
+
 test("표시 가격은 레지스트리 값을 그대로 쓴다", async () => {
   const { doc } = await boot();
   const panel = doc.getElementById("fortuneGatewayRecs");
@@ -245,7 +266,7 @@ test("표시 가격은 레지스트리 값을 그대로 쓴다", async () => {
 
 // 회귀 배경: 입력·칩 선택 전에는 `panel.hidden = true` 로 아무것도 렌더하지 않아, 홈에서 가장 강한
 // 탐색 도구가 빈 채로 서 있었다(2026-09-01 진단). 기본 목록을 깔되 **바로 위 두 섹션과 겹치면 안 된다** —
-// #cdSignatureConsult(roles:"recommended") · #cdQuickServices(roles:"quick") 가 탐색기 바로 위에 있다.
+// #cdSignatureConsult(roles:"recommended") 가 홈에 있고, roles:"quick" 허브는 모든 운세·검색으로 들어간다.
 
 test("검색·칩 이전에도 기본 목록을 보여 준다", async () => {
   const { doc } = await boot();
@@ -275,7 +296,7 @@ test("기본 목록은 홈 상단 두 섹션의 카드와 겹치지 않는다", 
   assert.deepEqual(
     dup,
     [],
-    `기본 목록이 #cdQuickServices·#cdSignatureConsult 카드와 중복된다: ${dup.join(", ")}`,
+    `기본 목록이 roles 항목(#cdSignatureConsult·방식 허브)과 중복된다: ${dup.join(", ")}`,
   );
 });
 
@@ -306,6 +327,20 @@ test("결과 카드 이미지는 같은 기능의 홈 타일에서 빌리고, �
   assert.equal(img.getAttribute("src"), "https://assets.code-destiny.com/feature-test.webp", "로컬 404 에서 R2 원본으로 물러나지 않았다");
   img.dispatchEvent(new doc.defaultView.Event("error"));
   assert.equal(img.getAttribute("src"), "/images/home/finder-moon.svg", "R2 도 실패했는데 달 이미지로 떨어지지 않았다");
+});
+
+test("체계 허브(roles:quick)는 홈 타일이 없어도 체계 그림을 쓴다", async () => {
+  const { doc, window } = await boot();
+  const hubs = window.__cdServiceRegistry.filter((i) => (i.roles || []).includes("quick"));
+  assert.ok(hubs.length >= 6, "체계 허브가 레지스트리에 없다(fail-open)");
+  for (const hub of hubs) {
+    assert.ok((await search(window, doc, hub.name)).includes(hub.name), `${hub.name}: 검색 결과가 없다`);
+    const card = Array.from(doc.querySelectorAll("#fortuneGatewayRecs .fortune-gateway__rec"))
+      .find((item) => item.querySelector(".fortune-gateway__rec-name").firstChild.textContent.trim() === hub.name);
+    assert.equal(card?.querySelector(".fortune-gateway__rec-media img")?.getAttribute("src"), `/feature-details/assets/${hub.id}-320.webp`, `${hub.name}: 달 이미지로 떨어졌다`);
+    assert.ok(fs.existsSync(path.join(root, "public/feature-details/assets", `${hub.id}-320.webp`)), `${hub.id}: 그림 파일이 없다`);
+  }
+  window.close();
 });
 
 test("상품명은 띄어쓰기와 관계없이 검색되며 고민·가격 필터를 함께 유지한다", async () => {
@@ -526,4 +561,62 @@ test("홈 안의 검색은 입력·칩을 고르기 전에는 결과를 그리�
   doc.querySelector("[data-cd-finder-reset]").click();
   assert.equal(panel.hidden, true, "선택 초기화 뒤에도 결과가 남았다");
   assert.equal(count.hidden, true);
+});
+
+// 모든 운세 화면(2026-10-03) — dialog#cdAllFortunes 안의 블록을 같은 엔진으로 띄운다.
+async function bootAllFortunes(saved) {
+  const { window, doc } = await boot([sliceById(shell, "cdAllFortunes")]);
+  if (saved) window.sessionStorage.setItem("cd.allFortunes.v1", JSON.stringify(saved));
+  assert.ok(window.CodeDestinyAllFortunes.attach(doc.querySelector("#cdAllFortunes .cd-sheet__body")));
+  const panel = doc.getElementById("cdAllFortunesResults");
+  const input = doc.getElementById("cdAllFortunesSearch");
+  const search = async (text) => {
+    input.value = text;
+    input.dispatchEvent(new window.Event("input"));
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    return names(panel);
+  };
+  return { window, doc, panel, input, search };
+}
+
+test("모든 운세 검색은 동의어로도 찾는다(이직 → 직장·진로)", async () => {
+  const { search } = await bootAllFortunes();
+  const direct = await search("직장");
+  assert.ok(direct.length > 0, "직장 검색 결과가 없다");
+  const viaSynonym = await search("이직");
+  for (const name of direct) assert.ok(viaSynonym.includes(name), `이직 검색에 ${name} 이 빠졌다`);
+  assert.ok((await search("나크샤트라")).includes("베다점"), "나크샤트라로 베다점을 못 찾는다");
+});
+
+test("모든 운세의 '기타' 방식은 레지스트리 밖 컬렉션 타일만 보인다", async () => {
+  const { doc, panel } = await bootAllFortunes();
+  doc.querySelector('#cdAllFortunesRoot [data-method="etc"]').click();
+  const hits = names(panel);
+  assert.ok(hits.includes("따뜻한 태양 회복 타로"), `기타에 컬렉션 타일이 없다: ${hits.join(", ")}`);
+  assert.ok(!hits.includes("마스터 인연의 서"), "기타에 레지스트리 항목이 섞였다");
+});
+
+test("모든 운세는 결과가 없으면 빈 상태와 초기화를 보이고, 초기화하면 전체 목록으로 돌아온다", async () => {
+  const { window, doc, panel, input, search } = await bootAllFortunes();
+  const all = names(panel).length;
+  assert.equal(all, window.__cdServiceRegistry.length, "아무것도 고르지 않았는데 전체 목록이 아니다");
+  assert.equal((await search("없는운세쿼리zz")).length, 0);
+  const reset = panel.querySelector(".cd-af__empty .cd-af__empty-reset");
+  assert.ok(reset, "빈 상태 초기화 버튼이 없다");
+  reset.click();
+  assert.equal(input.value, "");
+  assert.equal(names(panel).length, all);
+  assert.ok(doc.getElementById("cdAllFortunesSummary"), "결과 요약 자리가 없다");
+});
+
+test("모든 운세는 sessionStorage 에 남긴 검색어·칩을 다시 열 때 복원한다", async () => {
+  const { window, doc, panel, input } = await bootAllFortunes({ query: "타로", purposes: ["love"], methods: [] });
+  assert.equal(input.value, "타로");
+  assert.equal(doc.querySelector('#cdAllFortunesRoot [data-purpose="love"]').getAttribute("aria-pressed"), "true");
+  const hits = names(panel);
+  assert.ok(hits.length > 0 && hits.length < window.__cdServiceRegistry.length, `복원한 조건으로 좁히지 못했다: ${hits.length}`);
+  doc.querySelector('#cdAllFortunesRoot [data-purpose="love"]').click();
+  const saved = JSON.parse(window.sessionStorage.getItem("cd.allFortunes.v1"));
+  assert.deepEqual(saved.purposes, [], "칩을 끈 상태가 저장되지 않았다");
+  assert.equal(saved.query, "타로");
 });

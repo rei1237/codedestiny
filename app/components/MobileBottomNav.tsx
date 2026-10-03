@@ -3,16 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { memo, useCallback, useEffect, useState, type MouseEvent } from "react";
-import { Gem, Home, Sparkles, UserCircle } from "lucide-react";
+import { Archive, Home, MessageCircleHeart, Sparkles, UserCircle } from "lucide-react";
 import {
   MOBILE_TABS,
   resolveActiveTabKey,
   readStoredTabKey,
   writeStoredTabKey,
-  readMnavCollapsed,
-  writeMnavCollapsed,
-  MNAV_TOGGLE_TRANS_KEY,
-  MNAV_TOGGLE_LABEL_KO,
   type MobileTab,
   type MobileTabKey,
 } from "@/app/_lib/mobile-tabs";
@@ -58,17 +54,12 @@ function TabIcon({ tabKey }: { tabKey: MobileTabKey }) {
       return <Home className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
     case "fortunes":
       return <Sparkles className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
-    case "pass":
-      return <Gem className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
-    case "my":
-      return <UserCircle className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
-    // 사주는 정적 셸과 같은 글리프를 쓴다 — 명(命) 한 글자가 lucide 아이콘보다 뜻이 분명하다.
+    case "consult":
+      return <MessageCircleHeart className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
+    case "library":
+      return <Archive className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
     default:
-      return (
-        <span className={ICON_CLASS} aria-hidden="true">
-          ☼
-        </span>
-      );
+      return <UserCircle className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
   }
 }
 
@@ -78,11 +69,6 @@ function MobileBottomNav() {
   // 활성 표시는 클라이언트 전용 정보라 마운트 이후에 확정해도 문제가 없다.
   const [activeKey, setActiveKey] = useState<MobileTabKey | null>(null);
   const [pendingKey, setPendingKey] = useState<MobileTabKey | null>(null);
-  // 접힘 상태. SSR/하이드레이션 불일치를 피하려고 초깃값은 localStorage 를 읽지 않는다.
-  // 🔴 false 가 아니라 null(=아직 모름)인 이유: app/layout.js 의 프리페인트 스크립트가 이미
-  // body 에 cd-mnav-collapsed 를 붙여 놓았을 수 있는데, false 로 시작하면 아래 토글 이펙트가
-  // 첫 커밋에서 그 클래스를 도로 걷어냈다가 다음 커밋에 다시 붙여 깜빡임이 그대로 남는다.
-  const [collapsed, setCollapsed] = useState<boolean | null>(null);
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   // 탭 라벨·aria 문구는 정적 셸이 쓰던 코어 사전 키를 그대로 읽는다. useTPick 은 값이
   // 없으면 넘긴 한국어를 돌려주므로 한국어 화면이 비지 않는다.
@@ -117,27 +103,8 @@ function MobileBottomNav() {
 
   useEffect(() => {
     document.body.classList.add("cd-mnav-mounted");
-    setCollapsed(readMnavCollapsed());
     return () => document.body.classList.remove("cd-mnav-mounted");
   }, []);
-
-  /**
-   * 폭 판정은 여기서 하지 않는다 — 상태 클래스만 붙이고 표현은 CSS 가 정한다.
-   *
-   * 🔴 2026-09-03 전환: 예전에는 실제로 감추는 규칙이 `@media (min-width: 769px)` 안에만 있어서
-   * "접은 채 창을 좁히면 탭바가 저절로 돌아온다"가 모바일 사용자의 안전장치였다. 이제 모바일·앱에서도
-   * 접히므로 그 안전장치는 없다 — 대신 접힌 상태에서도 손잡이가 항상 보이고 터치 타겟이 44px 이다
-   * (styles/mobile-bottom-nav.css 의 `--cd-mnav-handle-h`). 모바일에서 탭바는 유일한 내비이므로
-   * 그 손잡이를 줄이거나 감추는 변경을 하지 말 것.
-   *
-   * collapsed 가 null 인 첫 커밋에서는 아무것도 하지 않는다 — 프리페인트 스크립트가 붙여 둔
-   * 클래스를 걷어내면 깜빡임이 되살아난다(app/layout.js).
-   */
-  useEffect(() => {
-    if (collapsed === null) return;
-    document.body.classList.toggle("cd-mnav-collapsed", collapsed);
-    return () => document.body.classList.remove("cd-mnav-collapsed");
-  }, [collapsed]);
 
   // 경로가 실제로 바뀌면 대기 표시를 내린다.
   useEffect(() => {
@@ -169,33 +136,11 @@ function MobileBottomNav() {
       window.location.assign(tab.href);
       return;
     }
-    // React 라우트(/points)는 next/link 기본 이동에 맡기고 대기 표시만 남긴다.
+    // React 라우트(/fortune-chat)는 next/link 기본 이동에 맡기고 대기 표시만 남긴다.
   }, [pendingKey]);
-
-  const toggleCollapsed = useCallback(() => {
-    setCollapsed((previous) => {
-      // previous 가 null(마운트 이펙트 전)이면 프리페인트가 읽은 값과 같은 저장값을 본다 —
-      // false 로 넘겨짚으면 이미 접힌 바에서 첫 클릭이 아무 일도 안 하는 것처럼 보인다.
-      const next = !(previous ?? readMnavCollapsed());
-      writeMnavCollapsed(next);
-      return next;
-    });
-  }, []);
 
   return (
     <nav className="cd-mnav" aria-label={getNavAriaLabel(pathLocale === "zh" ? "zh-CN" : pathLocale || locale)}>
-      {/* 접기 손잡이. <ul> 앞의 형제라 마크업 이동 없이 바 상단 줄에 앉는다.
-          데스크탑은 바 위로 튀어나온 nub, 모바일·앱은 바 안쪽 손잡이 줄(달)이다 — 표현은 전부 CSS. */}
-      <button
-        type="button"
-        className="cd-mnav__handle"
-        aria-expanded={!collapsed}
-        aria-controls="cd-mnav-list"
-        aria-label={navText(MNAV_TOGGLE_TRANS_KEY, MNAV_TOGGLE_LABEL_KO)}
-        onClick={toggleCollapsed}
-      >
-        <span className="cd-mnav__chevron" aria-hidden="true" />
-      </button>
       <ul className="cd-mnav__list" id="cd-mnav-list">
         {MOBILE_TABS.map((tab) => {
           const isActive = activeKey === tab.key;

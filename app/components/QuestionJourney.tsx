@@ -31,9 +31,9 @@ export default function QuestionJourney({source='home'}:{source?:string}){
  function choose(q:QuestionGuide){setSelected(q);record('question_select',source,q);}
  const buttons=(rows:QuestionGuide[])=>rows.map(q=><button type="button" key={q.id} aria-pressed={selected?.id===q.id} aria-controls="question-reading" onClick={()=>choose(q)}><small>{q.group}</small>{q.question}</button>);
  return <section id="questions" className={styles.journey} aria-label="고민으로 시작하기">
-  <div className={styles.intro}><div><h2>지금 마음에 걸리는 질문은?</h2><p>질문을 고르면 영냥이가 어떤 방식으로 읽는지, 상담에서 확인할 내용과 결제 조건을 먼저 보여드려요.</p></div><img className={styles.mascot} src="/assets/yeongnyangi/original/hero-480.webp" srcSet="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(max-width: 560px) 112px, 176px" width="800" height="800" alt="달빛 모자를 쓰고 상담을 기다리는 흰 고양이 영냥이" loading="lazy" decoding="async"/></div>
+  <div className={styles.intro}><div><h2>지금 마음에 걸리는 질문은?</h2><p>질문 하나만 골라 줘. 어떤 방식으로 읽는지, 상담에서 볼 내용과 가격을 먼저 보여 줄게.</p></div><img className={styles.mascot} src="/assets/yeongnyangi/original/hero-480.webp" srcSet="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(max-width: 560px) 112px, 176px" width="800" height="800" alt="달빛 모자를 쓰고 상담을 기다리는 흰 고양이 영냥이" loading="lazy" decoding="async"/></div>
   <Exposure event="question_topics_view" source={source}/>
-  <div className={styles.choices}>{buttons(questionGuides.slice(0,4))}</div>
+  <div className={styles.choices}>{buttons(questionGuides)}</div>
   <details><summary>다른 고민 더 찾아보기 · {concernGuides.length}가지 질문</summary>
    <div className={styles.finder}>
     <label htmlFor="concern-search">어떤 고민이 마음에 남아 있나요?</label>

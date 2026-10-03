@@ -326,6 +326,18 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   assert.equal(hits.length, 1, "표식 안의 앵커에서 home_section_click 이 한 번 나가지 않았다");
   assert.equal(hits[0][2].section, "signature_consult");
   assert.equal(hits[0][2].destination, "/fusion-fortune/");
+  assert.equal("question_id" in hits[0][2], false, "질문 표식이 없는 앵커에 question_id 가 붙었다");
+}
+
+/* ⑩-1 질문 카드 앵커는 question_id(카탈로그 키)를 함께 싣는다 */
+{
+  const { window } = boot({ body: `<section data-cd-funnel-section="concern_pick"><a id="q" href="/tarot/mindscan/" data-cd-question="loveMind">질문</a></section>` });
+  window.document.getElementById("q").click();
+  const hits = (window.dataLayer || [])
+    .map((entry) => Array.from(entry))
+    .filter((c) => c[0] === "event" && c[1] === "home_section_click");
+  assert.equal(hits.length, 1, "질문 카드 앵커에서 home_section_click 이 한 번 나가지 않았다");
+  assert.equal(hits[0][2].question_id, "loveMind", "질문 카드 클릭에 question_id 가 빠졌다 — 같은 목적지의 질문을 구분할 수 없다");
 }
 
 /* ⑩-2 두 축을 한 리스너로 합친 뒤에도 서로를 죽이지 않는가 */
@@ -417,7 +429,8 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   const marks = [...home.matchAll(/data-cd-funnel-section="([^"]*)"/g)].map((m) => m[1]);
 
   assert.ok(
-    marks.length >= 8,
+    // 2026-10-03 #cdQuickServices(quick_services) 삭제로 8 → 7.
+    marks.length >= 7,
     `홈의 data-cd-funnel-section 표식이 ${marks.length}개다 — 면이 통째로 빠지면 그 면의 클릭이 어디에도 안 잡힌다`,
   );
   assert.equal(
@@ -542,6 +555,14 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
     0,
     "쿠키 배너가 window.Capacitor 를 직접 본다 — 정본 __cdAppContext.isApp() 만 쓸 것(브라우저 과탐지로 웹에서 배너가 사라진다)",
   );
+}
+
+/* ⑩-4 홈 질문 타일 선택은 question_select 로 따로 센다(탭은 home_section_click 대상이 아니다) */
+{
+  const start = SHELL_SOURCE.indexOf(`<script data-marker="cd-concern-pick-v20260824">`);
+  assert.ok(start >= 0, "질문 섹션 토글 스크립트를 찾지 못했다");
+  const body = SHELL_SOURCE.slice(start, SHELL_SOURCE.indexOf("</script>", start));
+  assert.match(body, /cdTrack\('question_select', \{[^}]*question_id: picked/, "질문 타일 선택에서 question_select(question_id) 발화가 사라졌다");
 }
 
 console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약 · home_section_click 위임 · 영냥이 포털 클릭/도착 · 홈 셸 표식 · 앱 라우터 크로스셀 면 분류 · 배너 앱 억제");

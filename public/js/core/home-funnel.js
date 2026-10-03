@@ -9,16 +9,6 @@
   var doc = document.documentElement;
   var lastFilter = null;
   var more = document.getElementById('cdhMore');
-  var bubble = home.querySelector('[data-cdh-bubble]');
-  var bubbleIndex = 0;
-  // [사전 키, ko 원문]. 키와 원문을 요소에 같이 옮겨야 언어 전환이 지금 줄을 번역·복원한다.
-  var bubbleLines = bubble ? [
-    ['home.gardenCopy.bubble1', '안녕하세요! 꽃돼지 연이예요.'],
-    ['home.gardenCopy.bubble2', '오늘 마음은 어떤 색이에요?'],
-    ['home.gardenCopy.bubble3', '타로 세 장부터 가볍게 펼쳐 봐요!'],
-    ['home.gardenCopy.bubble4', '고민은 천천히, 끝까지 들을게요.']
-  ] : [];
-
   // 홈의 유일한 접기는 "연이의 정원"(<details id="cdhMore">)이다. 상태는 details.open 하나뿐이고
   // 저장하지 않는다 — 재방문은 늘 닫힌 채 시작한다. 정원을 여닫는 다른 코드는 이 두 함수를 부른다.
   var gardenSummary = more ? more.querySelector(':scope > summary') : null;
@@ -56,8 +46,9 @@
     });
   }
 
-  // 대화형 상담 입구(상담 문·히어로 보조 진입점)는 지금 홈 테마(연이·네오)의 상담 캐릭터로 연다. 정적 href(/fortune-chat/)는 그대로 둔다.
-  var chatDoors = document.querySelectorAll('#fortuneGatewayEntry .fortune-gateway__door--chat, [data-cdh-chat-entry]');
+  // 캐릭터를 정하지 않은 상담 입구(하단 상담 탭)는 지금 홈 테마(연이·네오)의 상담 캐릭터로 연다. 정적 href(/fortune-chat/)는 그대로 둔다.
+  // 홈의 두 상담 카드(#fortuneGatewayEntry)는 data-chat-character 로 캐릭터가 고정돼 있어 여기서 바꾸지 않는다.
+  var chatDoors = document.querySelectorAll('[data-cdh-chat-entry]:not([data-chat-character])');
   function syncChatDoor() {
     var href = '/fortune-chat/?character=' + (doc.classList.contains('neo-mode') ? 'neo' : 'yeoni');
     for (var i = 0; i < chatDoors.length; i += 1) chatDoors[i].setAttribute('href', href);
@@ -86,7 +77,15 @@
     });
   }
   move('#cdCookieConsent', 'cdhCookieSlot');
-  move('#authQuickLinks', 'cdhAccountSlot');
+  var authCard = move('#authQuickLinks', 'cdAccountSheetCard');
+  // 헤더 계정 버튼 글자(로그인/내 계정)는 시트 안 로그인 카드가 회원 카드인지로 정한다.
+  var accountBtn = document.getElementById('cdhAccountBtn');
+  function syncAccountState() {
+    if (!accountBtn || !authCard) return;
+    accountBtn.setAttribute('data-auth', authCard.querySelector('.cd-user-card') ? 'member' : 'guest');
+  }
+  syncAccountState();
+  if (authCard && window.MutationObserver) new MutationObserver(syncAccountState).observe(authCard, { childList: true, subtree: true });
   move('#langWrap', 'cdhLanguageSlot');
   move('#cdMobileHeader .theme-switch-wrapper--appbar', 'cdhThemeSlot');
   move('#dpKakaoReferralShareBtn', 'cdhShareControls');
@@ -206,30 +205,11 @@
       }
       return;
     }
-    // data-action 진입점(퀵 서비스 사주 카드)은 공용 디스패처가 실행한다. 여기서도 부르면 두 번 돈다.
-    var freeEntry = target.closest('[data-cdh-free]');
-    if (freeEntry && !freeEntry.hasAttribute('data-action')) {
-      event.preventDefault();
-      revealInput();
-      if (typeof window.cdOneStepFreeSajuEntry === 'function') window.cdOneStepFreeSajuEntry();
-      else if (form) {
-        form.scrollIntoView({ block: 'start' });
-        var firstInput = form.querySelector('input');
-        if (firstInput) firstInput.focus({ preventScroll: true });
-      }
-    }
     if (target.closest('#cdMobileBottomNav [data-nav-key="home"]')) {
       doc.classList.remove('cdh-input-open');
       home.hidden = false;
       services.hidden = false;
       if (location.hash.indexOf('services') !== -1) history.replaceState(null, '', location.pathname + location.search);
-    }
-    if (bubble && target.closest('[data-cdh-bubble], #honeypigLogo')) {
-      bubbleIndex = (bubbleIndex + 1) % bubbleLines.length;
-      var line = bubbleLines[bubbleIndex];
-      bubble.setAttribute('data-cd-trans', line[0]);
-      bubble.setAttribute('data-cd-origin-text', line[1]);
-      bubble.textContent = typeof window.cdTranslate === 'function' ? window.cdTranslate(line[0], null, line[1]) : line[1];
     }
     if (target.closest('[data-cd-service-index-jump]')) {
       event.preventDefault();
