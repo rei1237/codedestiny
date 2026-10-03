@@ -79,7 +79,7 @@ export const siteSeo = {
    * `__tests__/ui/locale-footer.static.test.js` 가 그 일치를 강제한다.
    */
   brandName: "꿀꿀 운세",
-  alternateName: ["꿀꿀운세", "CODE DESTINY", "CodeDestiny", "코드데스티니", "코드 데스티니"],
+  alternateName: ["꿀꿀운세", "Ggulggul Fortune", "CODE DESTINY", "CodeDestiny", "코드데스티니", "코드 데스티니"],
   siteUrl: "https://code-destiny.com",
   defaultLocale: "ko",
   supportedLocales: ["ko"],
