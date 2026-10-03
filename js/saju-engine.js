@@ -12805,8 +12805,8 @@ function renderAstroInsightLegacyNeon() {
     var fortunaSign = (chart.lots && chart.lots.fortuna) ? chart.lots.fortuna.sign : '-';
     var spiritSign  = (chart.lots && chart.lots.spirit)  ? chart.lots.spirit.sign  : '-';
 
-    var sunDeg  = chart.sun.deg  != null ? ' <span style="color:#94a3b8;font-size:0.78rem">'+chart.sun.deg.toFixed(2)+'°</span>' : '';
-    var moonDeg = chart.moon.deg != null ? ' <span style="color:#94a3b8;font-size:0.78rem">'+chart.moon.deg.toFixed(2)+'°</span>' : '';
+    var sunDeg  = chart.sun.deg  != null ? ' <span style="color:#94a3b8;font-size:13px">'+chart.sun.deg.toFixed(2)+'°</span>' : '';
+    var moonDeg = chart.moon.deg != null ? ' <span style="color:#94a3b8;font-size:13px">'+chart.moon.deg.toFixed(2)+'°</span>' : '';
 
     var vmAspect = '';
     var vi = chart.planets.Venus && chart.planets.Venus.sign ? chart.planets.Venus.sign.idx : 0;
@@ -13806,21 +13806,21 @@ function renderAstroInsightLegacyNeon() {
       + '<label for="astroAiPromptQuestionInput">지금 궁금한 이야기</label><span id="astroAiPromptCoinBalance" hidden></span>'
       + '<textarea class="fc-question" id="astroAiPromptQuestionInput" maxlength="'+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'" placeholder="' + _sajuEngineText("se_10474_attr_placeholder") + '"></textarea>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;">'
-      + '  <span id="astroAiPromptQuestionCount" style="font-size:11px;color:#93c5fd;">0 / '+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'</span>'
-      + '  <span style="font-size:11px;color:#93c5fd;">최소 '+ASTROLOGY_AI_PROMPT_MIN_LENGTH+'자 입력</span>'
+      + '  <span id="astroAiPromptQuestionCount" style="font-size:13px;color:#93c5fd;">0 / '+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'</span>'
+      + '  <span style="font-size:13px;color:#93c5fd;">최소 '+ASTROLOGY_AI_PROMPT_MIN_LENGTH+'자 입력</span>'
       + '</div>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">'
       + '  <button id="astroAiPromptGenerateBtn" type="button" class="fc-primary">상담 시작하기</button>'
-      + '  <button id="astroAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#0f172a,#0ea5e9);color:#fff;border:1px solid rgba(125,211,252,.42);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
+      + '  <button id="astroAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#0f172a,#0ea5e9);color:#fff;border:1px solid rgba(125,211,252,.42);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
       + '</div>'
       + '</div></details>'
-      + '<div class="fc-status" role="status" aria-live="polite" id="astroAiPromptStatus" style="margin-top:8px;font-size:12px;color:#cbd5e1;line-height:1.6;"></div>'
+      + '<div class="fc-status" role="status" aria-live="polite" id="astroAiPromptStatus" style="margin-top:8px;font-size:13px;color:#cbd5e1;line-height:1.6;"></div>'
       + '<div class="fc-report" id="astroAiPromptAnswer" style="display:none;"></div>'
       + '<details id="astroAiPromptOutputWrap" style="display:none;margin-top:11px;border:1px solid rgba(56,189,248,.28);border-radius:12px;background:rgba(2,18,38,.5);padding:9px 12px;">'
-      + '  <summary style="cursor:pointer;font-size:12px;font-weight:800;color:#7dd3fc;">📋 이 상담에 쓰인 프롬프트 보기 (무료 제공)</summary>'
-      + '  <div style="font-size:11px;color:#bae6fd;margin:8px 0 4px;line-height:1.55;">원하는 다른 AI에도 그대로 붙여 넣어 다시 활용할 수 있어요.</div>'
-      + '  <div id="astroAiPromptType" style="font-size:11px;color:#a5f3fc;font-weight:700;margin:6px 0;">질문 유형: 일반</div>'
-      + '  <textarea id="astroAiPromptOutput" readonly style="width:100%;min-height:180px;border-radius:10px;border:1px solid rgba(125,211,252,.34);background:rgba(2,6,23,.75);color:#e0f2fe;padding:10px;font-size:12px;line-height:1.6;box-sizing:border-box;resize:vertical;"></textarea>'
+      + '  <summary style="cursor:pointer;font-size:13px;font-weight:800;color:#7dd3fc;">📋 이 상담에 쓰인 프롬프트 보기 (무료 제공)</summary>'
+      + '  <div style="font-size:13px;color:#bae6fd;margin:8px 0 4px;line-height:1.55;">원하는 다른 AI에도 그대로 붙여 넣어 다시 활용할 수 있어요.</div>'
+      + '  <div id="astroAiPromptType" style="font-size:13px;color:#a5f3fc;font-weight:700;margin:6px 0;">질문 유형: 일반</div>'
+      + '  <textarea id="astroAiPromptOutput" readonly style="width:100%;min-height:180px;border-radius:10px;border:1px solid rgba(125,211,252,.34);background:rgba(2,6,23,.75);color:#e0f2fe;padding:10px;font-size:13px;line-height:1.6;box-sizing:border-box;resize:vertical;"></textarea>'
       + '</details>'
       + '</div>';
 
@@ -13996,7 +13996,7 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-body .astro-section:before{content:"";position:absolute;inset:0;background-image:radial-gradient(1px 1px at 18% 22%,rgba(255,255,255,.62),transparent),radial-gradient(1px 1px at 76% 28%,rgba(251,191,36,.5),transparent),radial-gradient(1px 1px at 58% 74%,rgba(125,211,252,.48),transparent);pointer-events:none;opacity:.45;}'
       +'.astro-body .astro-subhead{font-size:18px;font-weight:800;color:#c4b5fd;letter-spacing:-.01em;margin-bottom:10px;}'
       +'.astro-body .astro-tags{margin-bottom:10px;}'
-      +'.astro-body .astro-tag{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.25);background:rgba(15,23,42,.7);font-size:11px;color:#bae6fd;margin:0 5px 5px 0;}'
+      +'.astro-body .astro-tag{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.25);background:rgba(15,23,42,.7);font-size:13px;color:#bae6fd;margin:0 5px 5px 0;}'
       +'.astro-body .astro-desc p{margin:0 0 10px 0;font-size:14px;line-height:1.72;color:#e2e8f0;}'
       +'.astro-readable{font-size:15px;line-height:1.78;}'
       +'.astro-readable .astro-section{padding:16px;}'
@@ -14004,17 +14004,17 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-readable .astro-desc p{font-size:15px;line-height:1.82;margin-bottom:12px;letter-spacing:.004em;}'
       +'.astro-readable .astro-desc ul,.astro-readable .astro-desc li{line-height:1.78;}'
       +'.astro-readable .astro-core{font-size:14px;line-height:1.72;}'
-      +'.astro-readable .astro-tag{font-size:11.5px;}'
+      +'.astro-readable .astro-tag{font-size:13px;}'
       +'.astro-readable .astro-neon-soft-block{line-height:1.75;}'
       +'.astro-readable .table-wrapper{overflow:auto;-webkit-overflow-scrolling:touch;}'
       +'.astro-readable .astro-table th,.astro-readable .astro-table td{padding:8px 7px;line-height:1.62;}'
-      +'.astro-label{font-size:12px;color:#93c5fd;display:block;margin-bottom:4px;font-weight:700;letter-spacing:.01em;}'
+      +'.astro-label{font-size:13px;color:#93c5fd;display:block;margin-bottom:4px;font-weight:700;letter-spacing:.01em;}'
       +'.astro-body .astro-core{border:1px solid rgba(167,139,250,.28);background:rgba(76,29,149,.15);border-radius:12px;padding:10px;color:#ede9fe;font-size:13px;line-height:1.65;}'
       +'.astro-neon-syn-wrap{margin-top:10px;padding:12px;border-radius:14px;border:1px solid rgba(96,165,250,.35);background:linear-gradient(165deg,rgba(11,14,20,.92),rgba(15,29,58,.88) 46%,rgba(26,28,44,.9));box-shadow:0 12px 24px -20px rgba(56,189,248,.8),inset 0 1px 0 rgba(255,255,255,.06);}'
       +'.astro-neon-syn-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;}'
       +'.astro-neon-syn-title{font-size:13px;font-weight:800;color:#bae6fd;letter-spacing:.01em;}'
-      +'.astro-neon-syn-chip{padding:3px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.38);background:rgba(34,211,238,.12);font-size:11px;color:#cffafe;}'
-      +'.astro-neon-syn-wrap .astro-neon-mz-tip{margin:8px 0 0 0;font-size:12px;color:#a5f3fc;line-height:1.65;}'
+      +'.astro-neon-syn-chip{padding:3px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.38);background:rgba(34,211,238,.12);font-size:13px;color:#cffafe;}'
+      +'.astro-neon-syn-wrap .astro-neon-mz-tip{margin:8px 0 0 0;font-size:14px;color:#a5f3fc;line-height:1.65;}'
       +'.astro-neon-input,.astro-neon-select{width:100%;box-sizing:border-box;padding:8px 10px;border-radius:10px;background:rgba(10,18,38,.86);color:#f8fafc;border:1px solid rgba(125,211,252,.36);font-size:13px;outline:none;box-shadow:inset 0 0 0 1px rgba(56,189,248,.08);}'
       +'.astro-neon-input:focus,.astro-neon-select:focus{border-color:rgba(125,211,252,.7);box-shadow:0 0 0 2px rgba(56,189,248,.22);}'
       +'.astro-neon-cta{width:100%;padding:11px 12px;border-radius:11px;background:linear-gradient(135deg,#0891b2,#6366f1 55%,#8b5cf6);color:#fff;font-weight:800;font-size:13px;border:1px solid rgba(125,211,252,.45);cursor:pointer;letter-spacing:.35px;box-shadow:0 8px 22px -14px rgba(56,189,248,.85);transition:transform .15s ease, box-shadow .15s ease;}'
@@ -14031,29 +14031,29 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-neon-accent-violet{border-left:3px solid #a78bfa !important;background:linear-gradient(90deg,rgba(167,139,250,.1),rgba(15,23,42,0)) !important;}'
       +'.astro-neon-accent-cyan{border-left:3px solid #22d3ee !important;background:linear-gradient(90deg,rgba(34,211,238,.1),rgba(15,23,42,0)) !important;}'
       +'.astro-neon-soft-block{background:rgba(15,23,42,.52) !important;border:1px solid rgba(148,163,184,.24) !important;border-radius:11px !important;padding:12px !important;}'
-      +'.astro-syn-loading{font-size:12px;color:#cbd5e1;line-height:1.65;}'
+      +'.astro-syn-loading{font-size:14px;color:#cbd5e1;line-height:1.65;}'
       +'.astro-syn-header{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;}'
       +'.astro-syn-name{font-size:16px;font-weight:900;color:#f8fafc;letter-spacing:-.01em;}'
-      +'.astro-syn-pill{padding:3px 10px;border-radius:999px;border:1px solid rgba(125,211,252,.45);background:rgba(34,211,238,.14);font-size:11px;color:#cffafe;font-weight:700;}'
+      +'.astro-syn-pill{padding:3px 10px;border-radius:999px;border:1px solid rgba(125,211,252,.45);background:rgba(34,211,238,.14);font-size:13px;color:#cffafe;font-weight:700;}'
       +'.astro-syn-pill.gold{border-color:rgba(245,158,11,.44);background:rgba(245,158,11,.14);color:#fde68a;}'
-      +'.astro-syn-meta{font-size:11px;color:#94a3b8;border:1px solid rgba(148,163,184,.34);padding:3px 8px;border-radius:999px;}'
+      +'.astro-syn-meta{font-size:13px;color:#94a3b8;border:1px solid rgba(148,163,184,.34);padding:3px 8px;border-radius:999px;}'
       +'.astro-syn-score-row{display:grid;grid-template-columns:auto 1fr;gap:10px;margin-bottom:12px;align-items:start;}'
       +'.astro-syn-score-card{background:rgba(2,6,23,.7);border:1px solid rgba(125,211,252,.18);border-radius:12px;padding:13px;text-align:center;min-width:84px;}'
-      +'.astro-syn-score-label{font-size:10px;color:#a5b4fc;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}'
+      +'.astro-syn-score-label{font-size:13px;color:#a5b4fc;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}'
       +'.astro-syn-score-val{font-size:34px;font-weight:900;line-height:1;}'
-      +'.astro-syn-score-unit{font-size:10px;color:#64748b;margin-top:2px;}'
+      +'.astro-syn-score-unit{font-size:13px;color:#64748b;margin-top:2px;}'
       +'.astro-syn-summary{display:flex;flex-direction:column;gap:6px;}'
-      +'.astro-syn-type{font-size:12px;color:#e2e8f0;line-height:1.5;font-weight:700;}'
+      +'.astro-syn-type{font-size:13px;color:#e2e8f0;line-height:1.5;font-weight:700;}'
       +'.astro-syn-sign-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:3px;}'
-      +'.astro-syn-sign-item{padding:5px 7px;border-radius:7px;font-size:11px;}'
+      +'.astro-syn-sign-item{padding:5px 7px;border-radius:7px;font-size:13px;}'
       +'.astro-syn-sign-item.sun{background:rgba(251,191,36,.1);color:#fde68a;}'
       +'.astro-syn-sign-item.moon{background:rgba(148,163,184,.12);color:#e2e8f0;}'
       +'.astro-syn-sign-item.venus{background:rgba(244,114,182,.1);color:#fbcfe8;}'
       +'.astro-syn-sign-item.mars{background:rgba(239,68,68,.1);color:#fca5a5;}'
       +'.astro-syn-triple{display:grid;grid-template-columns:1fr;gap:7px;margin-bottom:12px;}'
       +'.astro-syn-card{border-radius:11px;padding:10px 12px;border:1px solid rgba(148,163,184,.22);background:rgba(15,23,42,.52);}'
-      +'.astro-syn-card h5{margin:0 0 5px 0;font-size:11px;letter-spacing:.02em;}'
-      +'.astro-syn-card p{margin:0;font-size:12px;color:#e2e8f0;line-height:1.6;word-break:keep-all;}'
+      +'.astro-syn-card h5{margin:0 0 5px 0;font-size:13px;letter-spacing:.02em;}'
+      +'.astro-syn-card p{margin:0;font-size:14px;color:#e2e8f0;line-height:1.6;word-break:keep-all;}'
       +'.astro-syn-card.love{border-color:rgba(244,114,182,.28);background:rgba(244,114,182,.08);}'
       +'.astro-syn-card.love h5{color:#f472b6;}'
       +'.astro-syn-card.work{border-color:rgba(251,191,36,.25);background:rgba(251,191,36,.08);}'
@@ -14061,58 +14061,58 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-syn-card.spirit{border-color:rgba(129,140,248,.24);background:rgba(129,140,248,.08);}'
       +'.astro-syn-card.spirit h5{color:#818cf8;}'
       +'.astro-syn-data{background:rgba(99,102,241,.1);border:1px solid rgba(129,140,248,.25);border-radius:10px;padding:10px;margin-bottom:12px;}'
-      +'.astro-syn-data-title{font-size:11px;color:#a5b4fc;font-weight:700;margin-bottom:6px;}'
-      +'.astro-syn-data-copy{font-size:12px;color:#e2e8f0;line-height:1.65;}'
-      +'.astro-syn-aspects-title{font-size:11px;color:#94a3b8;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}'
+      +'.astro-syn-data-title{font-size:13px;color:#a5b4fc;font-weight:700;margin-bottom:6px;}'
+      +'.astro-syn-data-copy{font-size:14px;color:#e2e8f0;line-height:1.65;}'
+      +'.astro-syn-aspects-title{font-size:13px;color:#94a3b8;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}'
       +'.astro-syn-aspects{display:flex;flex-direction:column;gap:4px;}'
       +'.astro-syn-aspect{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border-radius:7px;padding:6px 10px;}'
-      +'.astro-syn-aspect-main{font-size:11px;color:#e2e8f0;flex:1;}'
+      +'.astro-syn-aspect-main{font-size:13px;color:#e2e8f0;flex:1;}'
       +'.astro-syn-overlay{background:rgba(20,25,35,.6);border:1px solid rgba(129,140,248,.2);border-radius:10px;padding:10px;margin-bottom:12px;}'
-      +'.astro-syn-overlay-title{font-size:11px;color:#818cf8;font-weight:700;margin-bottom:6px;}'
-      +'.astro-syn-overlay-copy{font-size:12px;color:#e2e8f0;line-height:1.62;}'
-      +'.astro-syn-overlay-tip{font-size:11px;color:#94a3b8;margin-top:6px;line-height:1.55;}'
+      +'.astro-syn-overlay-title{font-size:13px;color:#818cf8;font-weight:700;margin-bottom:6px;}'
+      +'.astro-syn-overlay-copy{font-size:14px;color:#e2e8f0;line-height:1.62;}'
+      +'.astro-syn-overlay-tip{font-size:14px;color:#94a3b8;margin-top:6px;line-height:1.55;}'
       +'.astro-syn-shadow{background:rgba(15,23,42,.6);border-radius:10px;padding:12px;border:1px solid rgba(255,255,255,.07);}'
-      +'.astro-syn-shadow-title{font-size:11px;color:#94a3b8;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;}'
-      +'.astro-syn-shadow-good{font-size:12px;color:#86efac;margin-bottom:5px;line-height:1.5;}'
-      +'.astro-syn-shadow-bad{font-size:12px;color:#fca5a5;margin-bottom:8px;line-height:1.5;}'
-      +'.astro-syn-shadow-remedy{font-size:12px;background:rgba(129,140,248,.12);border-left:3px solid #818cf8;padding:8px 10px;border-radius:0 8px 8px 0;color:#c7d2fe;line-height:1.6;word-break:keep-all;}'
+      +'.astro-syn-shadow-title{font-size:13px;color:#94a3b8;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;}'
+      +'.astro-syn-shadow-good{font-size:14px;color:#86efac;margin-bottom:5px;line-height:1.5;}'
+      +'.astro-syn-shadow-bad{font-size:14px;color:#fca5a5;margin-bottom:8px;line-height:1.5;}'
+      +'.astro-syn-shadow-remedy{font-size:14px;background:rgba(129,140,248,.12);border-left:3px solid #818cf8;padding:8px 10px;border-radius:0 8px 8px 0;color:#c7d2fe;line-height:1.6;word-break:keep-all;}'
       +'.astro-syn-quick{margin:10px 0 12px 0;padding:10px 11px;border-radius:10px;background:rgba(56,189,248,.1);border:1px solid rgba(125,211,252,.28);}'
-      +'.astro-syn-quick-title{font-size:11px;color:#a5f3fc;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;}'
+      +'.astro-syn-quick-title{font-size:13px;color:#a5f3fc;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;}'
       +'.astro-syn-quick ul{margin:0;padding-left:16px;}'
-      +'.astro-syn-quick li{font-size:12px;line-height:1.66;color:#e2e8f0;margin-bottom:3px;}'
+      +'.astro-syn-quick li{font-size:14px;line-height:1.66;color:#e2e8f0;margin-bottom:3px;}'
       +'.astro-neon-wrap{position:relative;overflow:hidden;border-radius:22px;padding:16px;border:1px solid rgba(251,191,36,.34);background:linear-gradient(165deg,#080b14 0%,#0b1730 48%,#161b2b 100%);box-shadow:0 0 0 1px rgba(251,191,36,.12),0 24px 48px -30px rgba(56,189,248,.58),inset 0 1px 0 rgba(255,255,255,.07);}'
       +'.astro-neon-wrap:before{content:"";position:absolute;inset:0;background-image:linear-gradient(115deg,transparent 0 42%,rgba(125,211,252,.16) 42.2%,transparent 42.8% 100%),radial-gradient(1px 1px at 16% 26%,rgba(255,255,255,.72),transparent),radial-gradient(1px 1px at 34% 66%,rgba(251,191,36,.64),transparent),radial-gradient(1px 1px at 72% 22%,rgba(186,230,253,.64),transparent),radial-gradient(1px 1px at 86% 74%,rgba(255,255,255,.52),transparent);pointer-events:none;opacity:.65;}'
       +'.astro-neon-wrap:after{content:"";position:absolute;left:10%;right:10%;top:44%;border-top:1px solid rgba(251,191,36,.16);transform:rotate(-8deg);pointer-events:none;}'
       +'.astro-neon-head{position:relative;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;z-index:1;}'
-      +'.astro-neon-badge{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;border:1px solid rgba(125,211,252,.42);background:rgba(34,211,238,.12);color:#cffafe;font-size:11px;font-weight:700;letter-spacing:.02em;}'
+      +'.astro-neon-badge{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;border:1px solid rgba(125,211,252,.42);background:rgba(34,211,238,.12);color:#cffafe;font-size:13px;font-weight:700;letter-spacing:.02em;}'
       +'.astro-mode-row{position:relative;z-index:1;display:flex;justify-content:flex-end;margin-top:10px;}'
-      +'.astro-reading-mode-btn{min-height:36px;padding:7px 12px;border-radius:999px;border:1px solid rgba(251,191,36,.46);background:rgba(251,191,36,.12);color:#fef3c7;font-size:12px;font-weight:800;cursor:pointer;}'
+      +'.astro-reading-mode-btn{min-height:36px;padding:7px 12px;border-radius:999px;border:1px solid rgba(251,191,36,.46);background:rgba(251,191,36,.12);color:#fef3c7;font-size:13px;font-weight:800;cursor:pointer;}'
       +'.astro-reading-mode-btn[aria-pressed="true"]{border-color:rgba(125,211,252,.55);background:rgba(14,116,144,.24);color:#cffafe;}'
       +'.astro-reading-mode-btn:focus-visible{outline:2px solid #fde68a;outline-offset:2px;}'
       +'.astro-action-hub{position:relative;overflow:hidden;border-color:rgba(125,211,252,.34)!important;background:linear-gradient(150deg,rgba(8,18,38,.96),rgba(22,15,41,.92))!important;box-shadow:0 18px 42px -30px rgba(125,211,252,.75),inset 0 1px 0 rgba(255,255,255,.08);}'
       +'.astro-action-hub:before{content:"";position:absolute;inset:0;background-image:linear-gradient(115deg,transparent 0 48%,rgba(125,211,252,.12) 48.2%,transparent 48.8% 100%),linear-gradient(25deg,transparent 0 62%,rgba(251,191,36,.11) 62.2%,transparent 62.7% 100%);pointer-events:none;}'
       +'.astro-action-hub__titlebar{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;}'
-      +'.astro-action-hub__kicker,.astro-section-kicker{font-size:10px;color:#67e8f9;font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;}'
+      +'.astro-action-hub__kicker,.astro-section-kicker{font-size:13px;color:#67e8f9;font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;}'
       +'.astro-action-hub__lead{position:relative;z-index:1;margin:0;color:#dbeafe;font-size:13px;line-height:1.65;}'
-      +'.astro-action-hub__constellation{position:relative;z-index:1;display:flex;align-items:center;gap:7px;margin:12px 0;color:#fde68a;font-size:12px;font-weight:900;}'
+      +'.astro-action-hub__constellation{position:relative;z-index:1;display:flex;align-items:center;gap:7px;margin:12px 0;color:#fde68a;font-size:13px;font-weight:900;}'
       +'.astro-action-hub__constellation span{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:26px;border-radius:999px;border:1px solid rgba(251,191,36,.28);background:rgba(15,23,42,.68);color:#fef3c7;}'
       +'.astro-action-hub__constellation i{display:block;flex:1;min-width:18px;height:1px;background:linear-gradient(90deg,rgba(125,211,252,.12),rgba(251,191,36,.42),rgba(125,211,252,.12));}'
       +'.astro-action-hub__grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(156px,1fr));gap:9px;margin-top:11px;}'
       +'.astro-action-hub__btn{position:relative;min-height:112px;text-align:left;border-radius:14px;border:1px solid rgba(125,211,252,.28);background:linear-gradient(160deg,rgba(15,23,42,.78),rgba(30,27,75,.58));color:#e0f2fe;padding:12px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);}'
       +'.astro-action-hub__btn strong{display:block;color:#fef3c7;font-size:13px;margin:4px 0 5px;}'
-      +'.astro-action-hub__btn span{display:block;color:#bfdbfe;font-size:12px;line-height:1.5;}'
-      +'.astro-action-hub__btn em{display:inline-flex;margin-top:9px;border:1px solid rgba(251,191,36,.26);border-radius:999px;padding:3px 8px;color:#fde68a;background:rgba(120,53,15,.22);font-size:10px;font-style:normal;font-weight:900;}'
+      +'.astro-action-hub__btn span{display:block;color:#bfdbfe;font-size:13px;line-height:1.5;}'
+      +'.astro-action-hub__btn em{display:inline-flex;margin-top:9px;border:1px solid rgba(251,191,36,.26);border-radius:999px;padding:3px 8px;color:#fde68a;background:rgba(120,53,15,.22);font-size:13px;font-style:normal;font-weight:900;}'
       +'.astro-action-hub__glyph{width:28px;height:28px;border-radius:999px;display:inline-flex!important;align-items:center;justify-content:center;border:1px solid rgba(125,211,252,.32);background:rgba(8,47,73,.45);color:#bae6fd;font-size:13px!important;}'
       +'.astro-action-hub__btn:focus-visible{outline:2px solid #67e8f9;outline-offset:2px;}'
       +'.astro-section-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;}'
-      +'.astro-price-pill{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid rgba(251,191,36,.34);background:rgba(120,53,15,.24);color:#fde68a;font-size:11px;font-weight:900;padding:5px 9px;white-space:nowrap;}'
+      +'.astro-price-pill{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid rgba(251,191,36,.34);background:rgba(120,53,15,.24);color:#fde68a;font-size:13px;font-weight:900;padding:5px 9px;white-space:nowrap;}'
       +'.astro-price-pill--free{border-color:rgba(52,211,153,.34);background:rgba(6,78,59,.24);color:#bbf7d0;}'
       +'.astro-price-pill--prompt{border-color:rgba(125,211,252,.36);background:rgba(14,116,144,.22);color:#cffafe;}'
       +'.astro-prompt-panel,.astro-compat-panel{position:relative;overflow:hidden;}'
       +'.astro-prompt-panel:before,.astro-compat-panel:before{content:"";position:absolute;left:12px;right:12px;top:0;border-top:1px solid rgba(255,255,255,.08);pointer-events:none;}'
       +'.astro-paid-note{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 12px 0;padding:8px 10px;border-radius:12px;border:1px solid rgba(251,191,36,.38);background:rgba(120,53,15,.24);}'
-      +'.astro-paid-note strong{color:#fde68a;font-size:12px;}'
-      +'.astro-paid-note span{color:#fef3c7;font-size:11px;line-height:1.45;}'
+      +'.astro-paid-note strong{color:#fde68a;font-size:14px;}'
+      +'.astro-paid-note span{color:#fef3c7;font-size:14px;line-height:1.45;}'
       +'.astro-paid-note--pink{border-color:rgba(244,114,182,.38);background:rgba(131,24,67,.22);}'
       +'.astro-neon-panel{position:relative;z-index:1;margin-top:10px;padding:12px;border-radius:14px;border:1px solid rgba(148,163,184,.24);background:rgba(2,6,23,.54);backdrop-filter:blur(6px);}'
       +'.astro-neon-key{font-size:14px;line-height:1.62;color:#f8fafc;margin:0 0 7px 0;}'
@@ -14121,46 +14121,46 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-neon-mini{border-radius:13px;border:1px solid rgba(148,163,184,.22);background:rgba(15,23,42,.58);padding:11px;backdrop-filter:blur(4px);}'
       +'.astro-neon-mini-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}'
       +'.astro-neon-mini-title{font-size:14px;font-weight:700;color:#e0f2fe;letter-spacing:-.01em;}'
-      +'.astro-neon-mini-score{font-size:12px;font-weight:700;color:#67e8f9;}'
+      +'.astro-neon-mini-score{font-size:13px;font-weight:700;color:#67e8f9;}'
       +'.astro-neon-mini-meter{height:6px;border-radius:999px;background:rgba(30,41,59,.85);overflow:hidden;margin-top:7px;}'
       +'.astro-neon-mini-meter span{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#a855f7);box-shadow:0 0 12px rgba(34,211,238,.65);}'
-      +'.astro-neon-mini-copy{margin:7px 0 0 0;font-size:12px;line-height:1.6;color:#cbd5e1;}'
+      +'.astro-neon-mini-copy{margin:7px 0 0 0;font-size:14px;line-height:1.6;color:#cbd5e1;}'
       +'.astro-neon-actions{position:relative;z-index:1;margin-top:10px;border:1px solid rgba(125,211,252,.24);border-radius:14px;background:rgba(15,23,42,.58);padding:12px;}'
       +'.astro-neon-actions h4{margin:0 0 8px 0;font-size:14px;color:#cffafe;}'
       +'.astro-neon-actions ul{margin:0;padding-left:18px;color:#e2e8f0;font-size:13px;line-height:1.7;}'
-      +'.astro-neon-total{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#a5f3fc;}'
+      +'.astro-neon-total{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:#a5f3fc;}'
       +'.astro-neon-total strong{font-size:16px;color:#fff;}'
       +'.astro-big3-snapshot{border-color:rgba(251,191,36,.32) !important;background:linear-gradient(160deg,rgba(24,18,35,.94),rgba(8,17,35,.94)) !important;}'
       +'.astro-big3-grid{display:grid;grid-template-columns:1fr;gap:10px;}'
       +'.astro-big3-card{border:1px solid rgba(251,191,36,.24);border-radius:14px;background:rgba(15,23,42,.58);padding:12px;}'
-      +'.astro-big3-label{font-size:11px;color:#fde68a;font-weight:800;margin-bottom:5px;}'
+      +'.astro-big3-label{font-size:13px;color:#fde68a;font-weight:800;margin-bottom:5px;}'
       +'.astro-big3-card strong{display:block;color:#e0f2fe;font-size:16px;margin-bottom:6px;}'
-      +'.astro-big3-card p{margin:0;color:#cbd5e1;font-size:13px;line-height:1.68;}'
+      +'.astro-big3-card p{margin:0;color:#cbd5e1;font-size:14px;line-height:1.68;}'
       +'.astro-detail-layer{display:block;}'
       +'.astro-body.is-easy .astro-detail-layer{display:none;}'
       +'.astro-body.is-detail .astro-detail-layer{display:block;}'
       +'.astro-wheel-card{border:1px solid rgba(251,191,36,0.22) !important;background:linear-gradient(155deg,rgba(12,18,36,.95),rgba(7,12,26,.95)) !important;box-shadow:0 14px 28px -24px rgba(251,191,36,.65);}'
-      +'.astro-wheel-caption{margin:0 0 10px 0;color:#cbd5e1;font-size:12px;line-height:1.65;}'
-      +'.astro-wheel-warning{margin-bottom:10px;padding:8px 10px;border-radius:9px;border:1px solid rgba(251,113,133,.35);background:rgba(127,29,29,.2);color:#fecaca;font-size:12px;line-height:1.55;}'
+      +'.astro-wheel-caption{margin:0 0 10px 0;color:#cbd5e1;font-size:13px;line-height:1.65;}'
+      +'.astro-wheel-warning{margin-bottom:10px;padding:8px 10px;border-radius:9px;border:1px solid rgba(251,113,133,.35);background:rgba(127,29,29,.2);color:#fecaca;font-size:13px;line-height:1.55;}'
       +'.astro-wheel-summary{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}'
-      +'.astro-wheel-summary span{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1px solid rgba(125,211,252,.28);background:rgba(15,23,42,.68);color:#e2e8f0;font-size:11px;font-weight:700;}'
+      +'.astro-wheel-summary span{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1px solid rgba(125,211,252,.28);background:rgba(15,23,42,.68);color:#e2e8f0;font-size:13px;font-weight:700;}'
       +'.astro-wheel-visual{border-radius:14px;border:1px solid rgba(148,163,184,.2);background:radial-gradient(circle at 50% 35%,rgba(15,23,42,.95),rgba(2,6,23,.97));padding:8px;}'
       +'.astro-wheel-svg{display:block;width:100%;height:auto;}'
       +'.astro-wheel-tables{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}'
       +'.astro-wheel-table-wrap{border-radius:11px;border:1px solid rgba(148,163,184,.2);background:rgba(2,6,23,.42);padding:9px;}'
-      +'.astro-wheel-table-title{margin-bottom:6px;color:#bae6fd;font-size:12px;font-weight:700;letter-spacing:.01em;}'
-      +'.astro-wheel-table th,.astro-wheel-table td{font-size:12px;padding:6px 7px;line-height:1.55;}'
+      +'.astro-wheel-table-title{margin-bottom:6px;color:#bae6fd;font-size:13px;font-weight:700;letter-spacing:.01em;}'
+      +'.astro-wheel-table th,.astro-wheel-table td{font-size:13px;padding:6px 7px;line-height:1.55;}'
       +'.astro-birth-map{position:relative;border-color:rgba(125,211,252,.35) !important;background:linear-gradient(155deg,rgba(7,17,38,.95),rgba(15,23,42,.95)) !important;}'
       +'.astro-birth-map:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 20% 10%,rgba(56,189,248,.12),rgba(56,189,248,0) 40%),radial-gradient(circle at 80% 20%,rgba(167,139,250,.12),rgba(167,139,250,0) 42%);}'
       +'.astro-birth-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px;}'
-      +'.astro-birth-mode-btn{padding:7px 12px;border-radius:999px;border:1px solid rgba(125,211,252,.5);background:rgba(14,116,144,.25);color:#cffafe;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s ease;}'
+      +'.astro-birth-mode-btn{padding:7px 12px;border-radius:999px;border:1px solid rgba(125,211,252,.5);background:rgba(14,116,144,.25);color:#cffafe;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s ease;}'
       +'.astro-birth-mode-btn[aria-pressed="true"]{background:rgba(251,191,36,.18);border-color:rgba(251,191,36,.58);color:#fde68a;}'
       +'.astro-birth-mode-btn:focus-visible{outline:2px solid #67e8f9;outline-offset:2px;}'
       +'.astro-birth-lead{margin:0 0 10px 0;font-size:14px;line-height:1.72;color:#e2e8f0;}'
       +'.astro-birth-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}'
-      +'.astro-birth-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid rgba(148,163,184,.35);background:rgba(15,23,42,.65);font-size:12px;color:#e2e8f0;}'
+      +'.astro-birth-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid rgba(148,163,184,.35);background:rgba(15,23,42,.65);font-size:13px;color:#e2e8f0;}'
       +'.astro-birth-help{margin-bottom:10px;border:1px solid rgba(148,163,184,.3);border-radius:10px;background:rgba(15,23,42,.52);}'
-      +'.astro-birth-help > summary{cursor:pointer;padding:11px 12px;min-height:44px;color:#bae6fd;font-size:12px;font-weight:700;list-style:none;display:flex;align-items:center;}'
+      +'.astro-birth-help > summary{cursor:pointer;padding:11px 12px;min-height:44px;color:#bae6fd;font-size:13px;font-weight:700;list-style:none;display:flex;align-items:center;}'
       +'.astro-birth-help > summary::-webkit-details-marker{display:none;}'
       +'.astro-birth-help-body{padding:0 12px 10px 12px;color:#e2e8f0;font-size:13px;line-height:1.7;}'
       +'.astro-birth-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px;}'
@@ -14169,38 +14169,38 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-birth-card > summary::-webkit-details-marker{display:none;}'
       +'.astro-birth-card > summary:focus-visible{outline:2px solid #67e8f9;outline-offset:-2px;}'
       +'.astro-birth-planet{font-weight:800;color:#e0f2fe;font-size:13px;}'
-      +'.astro-birth-sign{color:#fef3c7;font-size:12px;font-weight:700;}'
-      +'.astro-birth-house{color:#a5f3fc;font-size:11px;}'
-      +'.astro-birth-keywords{font-size:11px;color:#c4b5fd;line-height:1.5;}'
-      +'.astro-birth-open{position:absolute;right:12px;top:12px;color:#67e8f9;font-size:11px;font-weight:700;}'
+      +'.astro-birth-sign{color:#fef3c7;font-size:13px;font-weight:700;}'
+      +'.astro-birth-house{color:#a5f3fc;font-size:13px;}'
+      +'.astro-birth-keywords{font-size:13px;color:#c4b5fd;line-height:1.5;}'
+      +'.astro-birth-open{position:absolute;right:12px;top:12px;color:#67e8f9;font-size:13px;font-weight:700;}'
       +'.astro-birth-card-body{padding:0 12px 10px 12px;color:#e2e8f0;font-size:13px;line-height:1.68;}'
       +'.astro-birth-card-body p{margin:0 0 7px 0;}'
-      +'.astro-birth-one-line{padding:7px 9px;border-radius:8px;border:1px solid rgba(148,163,184,.28);background:rgba(30,41,59,.42);font-size:12px;color:#bfdbfe;}'
+      +'.astro-birth-one-line{padding:7px 9px;border-radius:8px;border:1px solid rgba(148,163,184,.28);background:rgba(30,41,59,.42);font-size:13px;color:#bfdbfe;}'
       +'.astro-birth-aspects-wrap{border:1px solid rgba(148,163,184,.26);border-radius:11px;background:rgba(2,6,23,.36);padding:10px;}'
-      +'.astro-birth-aspects-title{font-size:12px;font-weight:800;color:#c4b5fd;margin-bottom:8px;}'
+      +'.astro-birth-aspects-title{font-size:13px;font-weight:800;color:#c4b5fd;margin-bottom:8px;}'
       +'.astro-birth-aspect{border:1px solid rgba(148,163,184,.2);border-radius:9px;background:rgba(15,23,42,.5);margin-bottom:7px;}'
       +'.astro-birth-aspect > summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 10px;min-height:44px;touch-action:manipulation;}'
       +'.astro-birth-aspect > summary::-webkit-details-marker{display:none;}'
-      +'.astro-birth-aspect-title{font-size:12px;color:#e2e8f0;font-weight:700;}'
-      +'.astro-birth-aspect-orb{font-size:11px;color:#67e8f9;white-space:nowrap;}'
-      +'.astro-birth-aspect-body{padding:0 10px 8px 10px;font-size:12px;color:#cbd5e1;line-height:1.65;}'
-      +'.astro-birth-empty{margin:0;font-size:12px;color:#cbd5e1;}'
-      +'.astro-birth-foot{margin:10px 0 0 0;font-size:12px;color:#93c5fd;line-height:1.65;}'
+      +'.astro-birth-aspect-title{font-size:13px;color:#e2e8f0;font-weight:700;}'
+      +'.astro-birth-aspect-orb{font-size:13px;color:#67e8f9;white-space:nowrap;}'
+      +'.astro-birth-aspect-body{padding:0 10px 8px 10px;font-size:13px;color:#cbd5e1;line-height:1.65;}'
+      +'.astro-birth-empty{margin:0;font-size:13px;color:#cbd5e1;}'
+      +'.astro-birth-foot{margin:10px 0 0 0;font-size:13px;color:#93c5fd;line-height:1.65;}'
       +'.astro-life-grid{display:grid;grid-template-columns:1fr;gap:10px;}'
       +'.astro-life-card{border:1px solid rgba(148,163,184,.24);border-radius:12px;background:linear-gradient(155deg,rgba(15,23,42,.74),rgba(17,24,39,.7));overflow:hidden;position:relative;}'
       +'.astro-life-card:before{content:"";position:absolute;inset:0;border-radius:12px;padding:1px;background:linear-gradient(135deg,rgba(167,139,250,.52),rgba(56,189,248,.42),rgba(99,102,241,.32));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.45;}'
       +'.astro-life-card > summary{padding:13px 13px;min-height:48px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;cursor:pointer;color:#e2e8f0;font-size:13px;font-weight:700;list-style:none;gap:2px;}'
       +'.astro-life-card > summary::-webkit-details-marker{display:none;}'
       +'.astro-life-card[open]{border-color:rgba(125,211,252,.5);box-shadow:0 18px 34px -24px rgba(56,189,248,.8),0 0 0 1px rgba(167,139,250,.28) inset;}'
-      +'.astro-life-body{padding:2px 13px 13px 13px;font-size:12px;color:#cbd5e1;line-height:1.78;}'
+      +'.astro-life-body{padding:2px 13px 13px 13px;font-size:13px;color:#cbd5e1;line-height:1.78;}'
       +'.astro-life-body p{margin:0 0 9px 0;}'
       +'.astro-life-body p:last-child{margin-bottom:2px;}'
       +'.astro-life-evidence{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}'
-      +'.astro-life-chip{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.25);background:rgba(15,23,42,.7);font-size:11px;color:#bae6fd;}'
+      +'.astro-life-chip{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.25);background:rgba(15,23,42,.7);font-size:13px;color:#bae6fd;}'
       +'.astro-mobile-grid{display:grid;grid-template-columns:1fr;gap:8px;}'
       +'.astro-mobile-card{border:1px solid rgba(125,211,252,.24);border-radius:10px;padding:10px;background:rgba(15,23,42,.52);}'
       +'.astro-mobile-card h4{margin:0 0 6px 0;font-size:13px;color:#a5f3fc;}'
-      +'.astro-mobile-card p{margin:0;font-size:12px;line-height:1.68;color:#cbd5e1;}'
+      +'.astro-mobile-card p{margin:0;font-size:14px;line-height:1.68;color:#cbd5e1;}'
       +'.astro-birth-map.is-beginner .astro-birth-advanced{display:none;}'
       +'.astro-birth-card,.astro-birth-aspect,.astro-life-card{transition:box-shadow .22s ease,border-color .22s ease,background-color .22s ease,transform .22s ease;}'
       +'.astro-birth-card:hover,.astro-birth-aspect:hover,.astro-life-card:hover{border-color:rgba(103,232,249,.42);box-shadow:0 12px 24px -16px rgba(34,211,238,.62);transform:translateY(-1px);}'
@@ -14261,7 +14261,7 @@ function renderAstroInsightLegacyNeon() {
       +'<li>'+astroRelationshipMission+'</li>'
       +'<li>'+astroSelfcareMission+'</li>'
       +'</ul>'
-      +'<p style="margin:8px 0 0 0;font-size:12px;color:#a5f3fc;"><b>행운을 여는 작은 의식:</b> '+astroBoosterColor+' 톤 + '+astroBoosterPlace+' + 물 한 잔 루틴 💧</p>'
+      +'<p style="margin:8px 0 0 0;font-size:14px;color:#a5f3fc;"><b>행운을 여는 작은 의식:</b> '+astroBoosterColor+' 톤 + '+astroBoosterPlace+' + 물 한 잔 루틴 💧</p>'
       +'</div>'
       +'</div>'
       +'</div>'
@@ -14293,9 +14293,9 @@ function renderAstroInsightLegacyNeon() {
         +'<div class="astro-section">'
         +'<div class="astro-subhead">🧠 생각·말투·성장 변수 - 수성·목성·외행성</div>'
         +'<div class="astro-tags">'
-        +'<span class="astro-tag">☿ 수성</span> <span class="astro-planet">'+mercurySign+(chart.planets.Mercury&&chart.planets.Mercury.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
-        +' <span class="astro-tag">♃ 목성</span> <span class="astro-planet">'+jupiterSign+(chart.planets.Jupiter&&chart.planets.Jupiter.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
-        +' <span class="astro-tag">♄ 토성</span> <span class="astro-planet">'+saturnSign+(chart.planets.Saturn&&chart.planets.Saturn.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
+        +'<span class="astro-tag">☿ 수성</span> <span class="astro-planet">'+mercurySign+(chart.planets.Mercury&&chart.planets.Mercury.retro?' <span style="color:#f87171;font-size:13px">Rx</span>':'')+'</span>'
+        +' <span class="astro-tag">♃ 목성</span> <span class="astro-planet">'+jupiterSign+(chart.planets.Jupiter&&chart.planets.Jupiter.retro?' <span style="color:#f87171;font-size:13px">Rx</span>':'')+'</span>'
+        +' <span class="astro-tag">♄ 토성</span> <span class="astro-planet">'+saturnSign+(chart.planets.Saturn&&chart.planets.Saturn.retro?' <span style="color:#f87171;font-size:13px">Rx</span>':'')+'</span>'
         +'</div>'
         +'<div class="astro-desc">'
         +'<p><b>💬 수성:</b> 수성 '+_friendlyHousePair(mercuryHousePair)+'은 생각을 정리하는 방식과 말투의 설득 구조를 보여줍니다. 감정부터 말하기보다 맥락-핵심-요청 순서로 말하면 오해가 크게 줄어듭니다.</p>'
@@ -14310,7 +14310,7 @@ function renderAstroInsightLegacyNeon() {
         +'<span class="astro-tag">MC 천정(10H)</span> <span class="astro-planet">'+mcSign+'</span>'
         +' <span class="astro-tag">Desc 하강궁(7H)</span> <span class="astro-planet">'+descSign+'</span>'
         +' <span class="astro-tag">6H</span> <span class="astro-house">'+h6Sign+'</span>'
-        +' <span class="astro-tag">Saturn ♄</span> <span class="astro-planet">'+saturnSign+(chart.planets.Saturn&&chart.planets.Saturn.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
+        +' <span class="astro-tag">Saturn ♄</span> <span class="astro-planet">'+saturnSign+(chart.planets.Saturn&&chart.planets.Saturn.retro?' <span style="color:#f87171;font-size:13px">Rx</span>':'')+'</span>'
         +'</div>'
         +'<div class="astro-desc">'
         +'<p><b>신뢰를 얻는 방식:</b> 10하우스/MC '+mcSign+' 축은 공적 결과물로 평가받을 때 강점이 드러납니다. 태양 '+_friendlyHousePair(sunHousePair)+'과 화성 '+_friendlyHousePair(marsHousePair)+'이 받쳐주는 만큼, 결정 후 실행 속도는 충분히 빠른 편입니다.</p>'
@@ -14323,8 +14323,8 @@ function renderAstroInsightLegacyNeon() {
         +'<div class="astro-subhead">💘 연애 설렘 포인트 - 마음이 켜지는 순간</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">Desc 하강궁(7H)</span> <span class="astro-planet">'+descSign+'</span>'
-        +' <span class="astro-tag">Venus 금성 ♀</span> <span class="astro-planet">'+venusSign+(chart.planets.Venus&&chart.planets.Venus.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
-        +' <span class="astro-tag">Mars 화성 ♂</span> <span class="astro-planet">'+marsSign+(chart.planets.Mars&&chart.planets.Mars.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
+        +' <span class="astro-tag">Venus 금성 ♀</span> <span class="astro-planet">'+venusSign+(chart.planets.Venus&&chart.planets.Venus.retro?' <span style="color:#f87171;font-size:13px">Rx</span>':'')+'</span>'
+        +' <span class="astro-tag">Mars 화성 ♂</span> <span class="astro-planet">'+marsSign+(chart.planets.Mars&&chart.planets.Mars.retro?' <span style="color:#f87171;font-size:13px">Rx</span>':'')+'</span>'
         +'</div>'
         +'<div class="astro-desc">'
         +'<p><b>끌림 포인트:</b> 금성 '+_friendlyHousePair(venusHousePair)+'은 무엇에 매력을 느끼는지, 화성 '+_friendlyHousePair(marsHousePair)+'은 다가가는 방식과 욕망의 방향을 보여줍니다. 하강궁 '+descSign+'은 반복적으로 끌리는 관계의 패턴을 설명합니다.</p>'
@@ -14337,7 +14337,7 @@ function renderAstroInsightLegacyNeon() {
         +'<div class="astro-subhead">🍀 지금 운이 들어오는 길 - 목성의 흐름</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">Jupiter ♃ Transit</span> <span class="astro-planet">'+jupiterTransit+'</span>'
-        +' <span style="color:#94a3b8;font-size:0.78rem">('+now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+(now.getDate())+'일 기준)</span>'
+        +' <span style="color:#94a3b8;font-size:13px">('+now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+(now.getDate())+'일 기준)</span>'
         +'</div>'
         +'<div class="astro-desc">'
         +'<p>지금 트랜짓 목성은 <b>'+jupiterTransit+'</b> 영역을 자극하고 있습니다. 운은 갑자기 떨어지는 선물이 아니라, 이미 진행 중인 축을 넓힐 때 가장 안정적으로 들어옵니다.</p>'
@@ -14388,7 +14388,7 @@ function renderAstroInsightLegacyNeon() {
         +'<div class="astro-section-title-row"><div class="astro-subhead" style="color:#f59e0b;margin-bottom:0;"><span aria-hidden="true">💫</span> 나의 시나스트리: 상대 직접 입력</div><span class="astro-price-pill">3,000원</span></div>'
         +'<div class="astro-paid-note"><strong>유료 궁합 분석 · 3,000원</strong><span>결제 확인 후 두 사람의 시나스트리 결과가 생성됩니다.</span></div>'
         +'<div class="astro-desc">'
-        +'<p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">'
+        +'<p style="font-size:14px;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">'
         +'상대 정보를 입력하면 두 사람의 궁합 지도를 확인할 수 있습니다. 태어난 시각을 모르면 12:00(정오)로 계산되며, 대화 템포에 대한 힌트도 함께 제공됩니다.'
         +'</p>'
         /* 입력 폼 */
@@ -14433,44 +14433,44 @@ function renderAstroInsightLegacyNeon() {
 
         /* ── [✨ 천상의 지도: 당신의 성좌] ── */
         +'<div class="astro-neon-soft-block" style="margin-bottom:14px;">'
-        +'<div style="font-size:0.78rem;color:#818cf8;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">✨ 천상의 지도: 당신의 성좌</div>'
-        +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;">'
+        +'<div style="font-size:13px;color:#818cf8;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">✨ 천상의 지도: 당신의 성좌</div>'
+        +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:8px;">'
         +'<div style="background:rgba(251,191,36,0.1);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(251,191,36,0.25);">'
-        +'<div style="font-size:0.65rem;color:#fbbf24;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">☀ 태양</div>'
-        +'<div style="font-size:0.85rem;font-weight:800;color:#fde68a;line-height:1.2;">'+sunSign+'</div>'
-        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">핵심 자아</div>'
+        +'<div style="font-size:13px;color:#fbbf24;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">☀ 태양</div>'
+        +'<div style="font-size:14px;font-weight:800;color:#fde68a;line-height:1.2;">'+sunSign+'</div>'
+        +'<div style="font-size:13px;color:#94a3b8;margin-top:3px;">핵심 자아</div>'
         +'</div>'
         +'<div style="background:rgba(148,163,184,0.12);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(148,163,184,0.2);">'
-        +'<div style="font-size:0.65rem;color:#94a3b8;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">☽ 달</div>'
-        +'<div style="font-size:0.85rem;font-weight:800;color:#e2e8f0;line-height:1.2;">'+moonSign+'</div>'
-        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">감정 패턴</div>'
+        +'<div style="font-size:13px;color:#94a3b8;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">☽ 달</div>'
+        +'<div style="font-size:14px;font-weight:800;color:#e2e8f0;line-height:1.2;">'+moonSign+'</div>'
+        +'<div style="font-size:13px;color:#94a3b8;margin-top:3px;">감정 패턴</div>'
         +'</div>'
         +'<div style="background:rgba(244,114,182,0.1);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(244,114,182,0.2);">'
-        +'<div style="font-size:0.65rem;color:#f472b6;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">♀ 금성</div>'
-        +'<div style="font-size:0.85rem;font-weight:800;color:#fbcfe8;line-height:1.2;">'+venusSign+'</div>'
-        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">사랑의 언어</div>'
+        +'<div style="font-size:13px;color:#f472b6;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">♀ 금성</div>'
+        +'<div style="font-size:14px;font-weight:800;color:#fbcfe8;line-height:1.2;">'+venusSign+'</div>'
+        +'<div style="font-size:13px;color:#94a3b8;margin-top:3px;">사랑의 언어</div>'
         +'</div>'
         +'<div style="background:rgba(239,68,68,0.1);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(239,68,68,0.2);">'
-        +'<div style="font-size:0.65rem;color:#f87171;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">♂ 화성</div>'
-        +'<div style="font-size:0.85rem;font-weight:800;color:#fca5a5;line-height:1.2;">'+marsSign+'</div>'
-        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">욕망의 동력</div>'
+        +'<div style="font-size:13px;color:#f87171;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">♂ 화성</div>'
+        +'<div style="font-size:14px;font-weight:800;color:#fca5a5;line-height:1.2;">'+marsSign+'</div>'
+        +'<div style="font-size:13px;color:#94a3b8;margin-top:3px;">욕망의 동력</div>'
         +'</div>'
         +'</div>'
         +'</div>'
 
         /* ── [🎭 영혼의 쌍둥이: 나와 닮은 별의 인물] — 동적 렌더 컨테이너 ── */
         +'<div class="astro-neon-soft-block" style="margin-bottom:14px;border-color:rgba(52,211,153,0.25) !important;background:rgba(16,185,129,.08) !important;">'
-        +'<div style="font-size:0.78rem;color:#34d399;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">🎭 영혼의 쌍둥이: 나와 같은 별의 인물</div>'
-        +'<p style="font-size:0.82rem;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">사주 <b>CelebrityDB</b>에서 <b>'+sunSign+'</b> 태양 또는 <b>'+venusSign+'</b> 금성과 같은 기운을 가진 유명인을 자동으로 찾아드립니다.</p>'
+        +'<div style="font-size:13px;color:#34d399;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">🎭 영혼의 쌍둥이: 나와 같은 별의 인물</div>'
+        +'<p style="font-size:14px;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">사주 <b>CelebrityDB</b>에서 <b>'+sunSign+'</b> 태양 또는 <b>'+venusSign+'</b> 금성과 같은 기운을 가진 유명인을 자동으로 찾아드립니다.</p>'
         +'<div id="astroCosmicTwins" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;">'
-        +'<span style="color:#666;font-size:0.8rem;">✦ 분석 중...</span>'
+        +'<span style="color:var(--fr-muted);font-size:13px;">✦ 분석 중...</span>'
         +'</div>'
         +'</div>'
 
         /* ── [💍 운명의 시나스트리] — 유명인 선택 UI ── */
         +'<div class="astro-neon-soft-block" style="margin-bottom:14px;border-color:rgba(244,114,182,0.25) !important;background:rgba(244,114,182,.08) !important;">'
-        +'<div style="font-size:0.78rem;color:#f472b6;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">💍 운명의 시나스트리: 유명인 궁합 분석</div>'
-        +'<p style="font-size:0.82rem;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">셀럽을 고르면 네 차트와 바로 맞대결. 연애 케미, 협업 합, 감정 파동까지 한 번에 뜨는 코즈믹 랩이에요. 생시 미상은 12:00 기준이라 달/상승궁은 참고용으로 보고, 실제 성향은 대화 템포로 최종 체크해요.</p>'
+        +'<div style="font-size:13px;color:#f472b6;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">💍 운명의 시나스트리: 유명인 궁합 분석</div>'
+        +'<p style="font-size:14px;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">셀럽을 고르면 네 차트와 바로 맞대결. 연애 케미, 협업 합, 감정 파동까지 한 번에 뜨는 코즈믹 랩이에요. 생시 미상은 12:00 기준이라 달/상승궁은 참고용으로 보고, 실제 성향은 대화 템포로 최종 체크해요.</p>'
         /* 국가 탭 */
         +'<div id="astroCtryTabs" class="astro-neon-tab-row"></div>'
         /* 카테고리 탭 */
@@ -14478,7 +14478,7 @@ function renderAstroInsightLegacyNeon() {
         /* 검색 */
         +'<div style="position:relative;margin-bottom:8px;">'
         +'<input type="text" class="astro-neon-input" id="astroSyQ" placeholder="' + _sajuEngineText("se_11148_attr_placeholder") + '" autocomplete="off" style="padding-right:34px;">'
-        +'<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#888;pointer-events:none;font-size:0.9rem;">🔍</span>'
+        +'<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--fr-muted);pointer-events:none;font-size:14px;">🔍</span>'
         +'</div>'
         /* 유명인 버튼 목록 */
         +'<div id="astroSyCelebs" class="astro-neon-scroll"></div>'
@@ -14499,13 +14499,13 @@ function renderAstroInsightLegacyNeon() {
             var cfg={fire:['#f87171','🔥','불(Fire)'],earth:['#fde68a','🌿','흙(Earth)'],air:['#93c5fd','💨','공기(Air)'],water:['#34d399','💧','물(Water)']};
             var c=cfg[el]; var pct=elemPct[el];
             return '<div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px; border:1px solid rgba(255,255,255,0.07);">'
-                +'<div style="font-size:0.82rem; color:'+c[0]+'; font-weight:700; margin-bottom:6px;">'+c[1]+' '+c[2]+'</div>'
-                +'<div style="font-size:1.5rem; font-weight:900; color:'+c[0]+'; line-height:1;">'+pct+'<span style="font-size:0.75rem; color:#94a3b8; font-weight:400;">%</span></div>'
+                +'<div style="font-size:13px; color:'+c[0]+'; font-weight:700; margin-bottom:6px;">'+c[1]+' '+c[2]+'</div>'
+                +'<div style="font-size:1.5rem; font-weight:900; color:'+c[0]+'; line-height:1;">'+pct+'<span style="font-size:13px; color:#94a3b8; font-weight:400;">%</span></div>'
                 +'<div style="height:4px; background:#1e293b; border-radius:2px; margin-top:8px; overflow:hidden;"><div style="height:100%; width:'+pct+'%; background:'+c[0]+'; border-radius:2px;"></div></div>'
                 +'</div>';
         }).join('')
         +'</div>'
-        +'<div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px; font-size:0.88rem;">'
+        +'<div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px; font-size:14px;">'
         +'<span style="color:#fbbf24; font-weight:700;">지배 원소: '+elemDomNames[elemDominant]+'</span>'
         +'<p style="margin:6px 0 0 0; color:#cbd5e1; line-height:1.5;">'+elemDomDesc[elemDominant]+'</p>'
         +'</div>'
@@ -14518,47 +14518,47 @@ function renderAstroInsightLegacyNeon() {
         +'<div class="astro-desc">'
         +'<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">'
         +'<div style="flex:1; min-width:130px; background:rgba(167,139,250,0.12); border-radius:10px; padding:12px; border:1px solid rgba(167,139,250,0.3); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">메인 타임로드</div>'
+        +'<div style="font-size:13px; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">메인 타임로드</div>'
         +'<div style="font-size:1.15rem; font-weight:900; color:#ddd6fe;">'+firdariaMain.planet+'</div>'
-        +'<div style="font-size:0.7rem; color:#94a3b8; margin-top:4px;">잔여 약 '+firdariaMainYearsLeft+'년</div>'
+        +'<div style="font-size:13px; color:#94a3b8; margin-top:4px;">잔여 약 '+firdariaMainYearsLeft+'년</div>'
         +'</div>'
         +'<div style="flex:1; min-width:130px; background:rgba(167,139,250,0.06); border-radius:10px; padding:12px; border:1px solid rgba(167,139,250,0.15); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">서브 타임로드</div>'
+        +'<div style="font-size:13px; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">서브 타임로드</div>'
         +'<div style="font-size:1.15rem; font-weight:900; color:#c4b5fd;">'+firdariaSubPlanet+'</div>'
-        +'<div style="font-size:0.7rem; color:#94a3b8; margin-top:4px;">조율 에너지</div>'
+        +'<div style="font-size:13px; color:#94a3b8; margin-top:4px;">조율 에너지</div>'
         +'</div>'
         +'</div>'
-        +'<p style="font-size:0.95rem; color:#e2e8f0; line-height:1.7; margin-bottom:12px; font-weight:600;">'+(firdariaDynamic.theme || firdariaMain.theme)+'</p>'
-        +'<p style="font-size:0.84rem; color:#cbd5e1; line-height:1.65; margin:0 0 10px 0;">'+firdariaPrecisionNote+'</p>'
+        +'<p style="font-size:15px; color:#e2e8f0; line-height:1.7; margin-bottom:12px; font-weight:600;">'+(firdariaDynamic.theme || firdariaMain.theme)+'</p>'
+        +'<p style="font-size:14px; color:#cbd5e1; line-height:1.65; margin:0 0 10px 0;">'+firdariaPrecisionNote+'</p>'
         +'<div style="background:rgba(167,139,250,0.07); border-radius:10px; padding:14px; margin-bottom:10px; border:1px solid rgba(167,139,250,0.12);">'
-        +'<div style="color:#c4b5fd; font-weight:700; margin-bottom:6px; font-size:0.82rem;">📖 심층 해석</div>'
-        +'<p style="color:#cbd5e1; line-height:1.7; font-size:0.88rem; margin:0;">'+(firdariaDynamic.detail || firdariaMain.detail)+'</p>'
+        +'<div style="color:#c4b5fd; font-weight:700; margin-bottom:6px; font-size:13px;">📖 심층 해석</div>'
+        +'<p style="color:#cbd5e1; line-height:1.7; font-size:14px; margin:0;">'+(firdariaDynamic.detail || firdariaMain.detail)+'</p>'
         +'</div>'
         +'<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">'
         +'<div style="background:rgba(250,204,21,0.07); border-radius:10px; padding:12px; border:1px solid rgba(250,204,21,0.15);">'
-        +'<div style="color:#fde68a; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💼 커리어 천기</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.career || firdariaMain.career)+'</p>'
+        +'<div style="color:#fde68a; font-weight:700; font-size:13px; margin-bottom:5px;">💼 커리어 천기</div>'
+        +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+(firdariaDynamic.career || firdariaMain.career)+'</p>'
         +'</div>'
         +'<div style="background:rgba(244,114,182,0.07); border-radius:10px; padding:12px; border:1px solid rgba(244,114,182,0.15);">'
-        +'<div style="color:#f9a8d4; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💕 연애 & 관계</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.love || firdariaMain.love)+'</p>'
+        +'<div style="color:#f9a8d4; font-weight:700; font-size:13px; margin-bottom:5px;">💕 연애 & 관계</div>'
+        +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+(firdariaDynamic.love || firdariaMain.love)+'</p>'
         +'</div>'
         +'</div>'
         +'<div style="background:rgba(239,68,68,0.07); border-radius:10px; padding:12px; margin-bottom:10px; border:1px solid rgba(239,68,68,0.15);">'
-        +'<div style="color:#fca5a5; font-weight:700; font-size:0.8rem; margin-bottom:5px;">⚠️ 주의 및 건강</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.caution || firdariaMain.caution)+'</p>'
+        +'<div style="color:#fca5a5; font-weight:700; font-size:13px; margin-bottom:5px;">⚠️ 주의 및 건강</div>'
+        +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+(firdariaDynamic.caution || firdariaMain.caution)+'</p>'
         +'</div>'
         +'<div style="background:rgba(16,185,129,0.07); border-radius:10px; padding:12px; border:1px solid rgba(16,185,129,0.15);">'
-        +'<div style="color:#6ee7b7; font-weight:700; font-size:0.8rem; margin-bottom:5px;">✅ 핵심 행동 조언</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.advice || firdariaMain.advice)+'</p>'
+        +'<div style="color:#6ee7b7; font-weight:700; font-size:13px; margin-bottom:5px;">✅ 핵심 행동 조언</div>'
+        +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+(firdariaDynamic.advice || firdariaMain.advice)+'</p>'
         +'</div>'
         +(function(){
             var comboKey = firdariaMain.kr+'_'+firdariaSubPlanet;
             var comboMsg = FIRDARIA_COMBO[comboKey];
             if(!comboMsg) return '';
             return '<div style="margin-top:10px; background:rgba(139,92,246,0.1); border-radius:10px; padding:12px; border:1px solid rgba(139,92,246,0.3);">'
-                +'<div style="color:#a78bfa; font-weight:700; font-size:0.8rem; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">✦ '+firdariaMain.kr+' × '+firdariaSubPlanet+' 콤보 에너지</div>'
-                +'<p style="color:#e2e8f0; font-size:0.85rem; line-height:1.65; margin:0;">'+comboMsg+'</p>'
+                +'<div style="color:#a78bfa; font-weight:700; font-size:13px; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">✦ '+firdariaMain.kr+' × '+firdariaSubPlanet+' 콤보 에너지</div>'
+                +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+comboMsg+'</p>'
                 +'</div>';
         })()
         +'</div>'
@@ -14570,45 +14570,45 @@ function renderAstroInsightLegacyNeon() {
         +'<div class="astro-desc">'
         +'<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">'
         +'<div style="flex:1; min-width:110px; background:rgba(34,211,238,0.1); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.25); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">올해의 하우스</div>'
-        +'<div style="font-size:0.92rem; font-weight:800; color:#a5f3fc;">'+profHouse+'</div>'
+        +'<div style="font-size:13px; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">올해의 하우스</div>'
+        +'<div style="font-size:15px; font-weight:800; color:#a5f3fc;">'+profHouse+'</div>'
         +'</div>'
         +'<div style="flex:1; min-width:100px; background:rgba(34,211,238,0.08); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.2); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">지배 별자리</div>'
-        +'<div style="font-size:0.92rem; font-weight:800; color:#a5f3fc;">'+profSign+'</div>'
+        +'<div style="font-size:13px; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">지배 별자리</div>'
+        +'<div style="font-size:15px; font-weight:800; color:#a5f3fc;">'+profSign+'</div>'
         +'</div>'
         +'<div style="flex:1; min-width:100px; background:rgba(34,211,238,0.08); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.2); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">올해의 행성</div>'
+        +'<div style="font-size:13px; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">올해의 행성</div>'
         +'<div style="font-size:1.1rem; font-weight:900; color:#67e8f9;">'+profRuler+'</div>'
         +'</div>'
         +'</div>'
-        +'<p style="font-size:0.95rem; color:#e2e8f0; line-height:1.7; margin-bottom:12px; font-weight:600;">'+(profectionDynamic.theme || curProfData.theme)+'</p>'
-        +'<p style="font-size:0.84rem; color:#cbd5e1; line-height:1.65; margin:0 0 10px 0;">'+profectionPrecisionNote+'</p>'
+        +'<p style="font-size:15px; color:#e2e8f0; line-height:1.7; margin-bottom:12px; font-weight:600;">'+(profectionDynamic.theme || curProfData.theme)+'</p>'
+        +'<p style="font-size:14px; color:#cbd5e1; line-height:1.65; margin:0 0 10px 0;">'+profectionPrecisionNote+'</p>'
         +'<div style="background:rgba(34,211,238,0.06); border-radius:10px; padding:14px; margin-bottom:10px; border:1px solid rgba(34,211,238,0.12);">'
-        +'<div style="color:#67e8f9; font-weight:700; margin-bottom:6px; font-size:0.82rem;">📖 올해의 메시지</div>'
-        +'<p style="color:#cbd5e1; line-height:1.7; font-size:0.88rem; margin:0;">'+(profectionDynamic.detail || curProfData.detail)+'<br><br>'
+        +'<div style="color:#67e8f9; font-weight:700; margin-bottom:6px; font-size:13px;">📖 올해의 메시지</div>'
+        +'<p style="color:#cbd5e1; line-height:1.7; font-size:14px; margin:0;">'+(profectionDynamic.detail || curProfData.detail)+'<br><br>'
         +'지배 별자리 <b style="color:#a5f3fc">'+profSign+'</b>의 에너지가 이 하우스 주제를 채색하며, 올해 지배 행성 <b style="color:#67e8f9">'+profRuler+'</b>의 트랜짓 상태가 이 한 해의 실제 흐름을 결정합니다.</p>'
         +'</div>'
         +'<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">'
         +'<div style="background:rgba(250,204,21,0.07); border-radius:10px; padding:12px; border:1px solid rgba(250,204,21,0.15);">'
-        +'<div style="color:#fde68a; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💼 커리어 & 재물</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(profectionDynamic.career || curProfData.career)+'</p>'
+        +'<div style="color:#fde68a; font-weight:700; font-size:13px; margin-bottom:5px;">💼 커리어 & 재물</div>'
+        +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+(profectionDynamic.career || curProfData.career)+'</p>'
         +'</div>'
         +'<div style="background:rgba(244,114,182,0.07); border-radius:10px; padding:12px; border:1px solid rgba(244,114,182,0.15);">'
-        +'<div style="color:#f9a8d4; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💕 연애 & 인간관계</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(profectionDynamic.love || curProfData.love)+'</p>'
+        +'<div style="color:#f9a8d4; font-weight:700; font-size:13px; margin-bottom:5px;">💕 연애 & 인간관계</div>'
+        +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+(profectionDynamic.love || curProfData.love)+'</p>'
         +'</div>'
         +'</div>'
         +'<div style="background:rgba(16,185,129,0.07); border-radius:10px; padding:12px; border:1px solid rgba(16,185,129,0.15);">'
-        +'<div style="color:#6ee7b7; font-weight:700; font-size:0.8rem; margin-bottom:5px;">✅ 이 해를 최대한 활용하는 법</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(profectionDynamic.advice || curProfData.advice)+'</p>'
+        +'<div style="color:#6ee7b7; font-weight:700; font-size:13px; margin-bottom:5px;">✅ 이 해를 최대한 활용하는 법</div>'
+        +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+(profectionDynamic.advice || curProfData.advice)+'</p>'
         +'</div>'
         +'</div>'
         +'</div>'
 
         +'<div class="astro-expert">'
         +'<div class="expert-title">🗣️ 네오 & 연이의 코즈믹 카운슬링</div>'
-        +'<p style="margin:0 0 10px 0;color:#cbd5e1;font-size:12px;line-height:1.7;">오늘 차트가 말하는 진짜 핵심</p>'
+        +'<p style="margin:0 0 10px 0;color:#cbd5e1;font-size:14px;line-height:1.7;">오늘 차트가 말하는 진짜 핵심</p>'
         +'<div class="expert-msg">'
         +'<div class="expert-msg-row expert-msg-row--neo">'
         +'<span class="expert-avatar"><img class="expert-avatar-img" src="https://assets.code-destiny.com/cdn-cgi/image/width=240,quality=82,format=auto/DestinyWar/%EC%A0%84%EB%9E%B5%EC%8B%A4%20%EB%84%A4%EC%98%A4%20%EB%A9%94%EC%9D%B8-Photoroom.webp" alt="네오" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="expert-avatar-fallback" hidden>🔷</span></span>'
@@ -14961,14 +14961,14 @@ function renderAstroInsightLegacyNeon() {
       return ''
         + '<div class="astro-syn-prompt-card" data-astro-synastry-prompt-card="included-v20260615-quality-v2" style="margin-top:14px;border:1px solid rgba(125,211,252,.34);background:linear-gradient(145deg,rgba(8,13,32,.94),rgba(20,34,58,.9));border-radius:14px;padding:13px;box-shadow:0 16px 34px rgba(8,47,73,.26);">'
         + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px;">'
-        + '<div><div style="font-size:0.76rem;color:#a5f3fc;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;">Synastry Prompt Included</div><strong style="display:block;color:#fef3c7;font-size:0.96rem;">궁합 결과 기반 AI 상담 프롬프트</strong></div>'
-        + '<span style="border:1px solid rgba(134,239,172,.35);background:rgba(22,101,52,.22);color:#bbf7d0;border-radius:999px;padding:4px 8px;font-size:0.7rem;font-weight:900;">궁합 3,000원에 포함</span>'
+        + '<div><div style="font-size:13px;color:#a5f3fc;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;">Synastry Prompt Included</div><strong style="display:block;color:#fef3c7;font-size:0.96rem;">궁합 결과 기반 AI 상담 프롬프트</strong></div>'
+        + '<span style="border:1px solid rgba(134,239,172,.35);background:rgba(22,101,52,.22);color:#bbf7d0;border-radius:999px;padding:4px 8px;font-size:13px;font-weight:900;">궁합 3,000원에 포함</span>'
         + '</div>'
-        + '<p style="margin:0 0 8px 0;color:#cbd5e1;font-size:0.8rem;line-height:1.65;">방금 계산한 시너스트리 결과를 달·금성·화성·하우스 오버레이 중심의 깊은 관계 상담 흐름으로 이어갈 수 있습니다.</p>'
-        + '<textarea data-astro-synastry-prompt-output readonly style="width:100%;min-height:178px;border-radius:10px;border:1px solid rgba(125,211,252,.3);background:rgba(2,6,23,.74);color:#e0f2fe;padding:10px;font-size:0.78rem;line-height:1.66;box-sizing:border-box;resize:vertical;">' + _astroPromptEscapeHtml(prompt) + '</textarea>'
+        + '<p style="margin:0 0 8px 0;color:#cbd5e1;font-size:14px;line-height:1.65;">방금 계산한 시너스트리 결과를 달·금성·화성·하우스 오버레이 중심의 깊은 관계 상담 흐름으로 이어갈 수 있습니다.</p>'
+        + '<textarea data-astro-synastry-prompt-output readonly style="width:100%;min-height:178px;border-radius:10px;border:1px solid rgba(125,211,252,.3);background:rgba(2,6,23,.74);color:#e0f2fe;padding:10px;font-size:13px;line-height:1.66;box-sizing:border-box;resize:vertical;">' + _astroPromptEscapeHtml(prompt) + '</textarea>'
         + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">'
-        + '<span data-astro-synastry-prompt-status style="color:#93c5fd;font-size:0.74rem;">궁합 결제에 포함된 기본 프롬프트입니다.</span>'
-        + '<button type="button" data-astro-copy-synastry-prompt style="border:1px solid rgba(125,211,252,.42);background:linear-gradient(135deg,#0f172a,#0ea5e9);color:#fff;border-radius:10px;padding:9px 12px;font-size:0.78rem;font-weight:800;cursor:pointer;">프롬프트 복사</button>'
+        + '<span data-astro-synastry-prompt-status style="color:#93c5fd;font-size:13px;">궁합 결제에 포함된 기본 프롬프트입니다.</span>'
+        + '<button type="button" data-astro-copy-synastry-prompt style="border:1px solid rgba(125,211,252,.42);background:linear-gradient(135deg,#0f172a,#0ea5e9);color:#fff;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:800;cursor:pointer;">프롬프트 복사</button>'
         + '</div>'
         + '</div>';
     }
@@ -15386,17 +15386,17 @@ function renderAstroInsightLegacyNeon() {
                 twins.push({ c: c, r: r, matchSun: matchSun, flag: flag });
             });
             if (twins.length === 0) {
-                twinsDiv.innerHTML = '<span style="color:#666;font-size:0.8rem;">DB에서 같은 기운의 유명인을 찾지 못했습니다.</span>';
+                twinsDiv.innerHTML = '<span style="color:var(--fr-muted);font-size:13px;">DB에서 같은 기운의 유명인을 찾지 못했습니다.</span>';
             } else {
                 twinsDiv.innerHTML = twins.map(function(t) {
                     var tag = t.matchSun ? '☀ 같은 태양' : '♀ 같은 금성';
                     var tagClr = t.matchSun ? '#fbbf24' : '#f472b6';
                     return '<div onclick="window._astroPickCeleb('+JSON.stringify(t.c.name)+','+JSON.stringify(t.c.birth)+','+(t.c.hour||12)+')" '
-                        +'style="cursor:pointer;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:20px;padding:5px 11px;font-size:0.75rem;color:#a7f3d0;transition:all 0.2s;" '
+                        +'style="cursor:pointer;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:20px;padding:5px 11px;font-size:13px;color:#a7f3d0;transition:all 0.2s;" '
                         +'onmouseenter="this.style.background=\'rgba(52,211,153,0.2)\'" onmouseleave="this.style.background=\'rgba(52,211,153,0.08)\'">'
                         + t.flag + ' ' + t.c.name
-                        +'<span style="font-size:0.6rem;color:'+tagClr+';margin-left:4px;font-weight:700;">'+tag+'</span>'
-                        +'<span style="font-size:0.6rem;color:#fde68a;margin-left:6px;font-weight:800;">3,000원</span>'
+                        +'<span style="font-size:13px;color:'+tagClr+';margin-left:4px;font-weight:700;">'+tag+'</span>'
+                        +'<span style="font-size:13px;color:#fde68a;margin-left:6px;font-weight:800;">3,000원</span>'
                         +'</div>';
                 }).join('');
             }
@@ -15420,7 +15420,7 @@ function renderAstroInsightLegacyNeon() {
             });
             listDiv.innerHTML = '';
             if (filtered.length === 0) {
-                listDiv.innerHTML = '<span style="color:#666;font-size:0.8rem;padding:4px;">검색 결과가 없습니다.</span>';
+                listDiv.innerHTML = '<span style="color:var(--fr-muted);font-size:13px;padding:4px;">검색 결과가 없습니다.</span>';
                 return;
             }
             filtered.slice(0, 80).forEach(function(c) {
@@ -15428,7 +15428,7 @@ function renderAstroInsightLegacyNeon() {
                 var btn = document.createElement('button');
                 btn.type = 'button';
                 btn.textContent = flag + c.name + ' · 3,000원';
-                btn.style.cssText = 'padding:5px 11px;border-radius:999px;font-size:0.75rem;font-weight:700;letter-spacing:.01em;border:1px solid rgba(244,114,182,0.34);background:linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78));color:#fbcfe8;cursor:pointer;transition:all 0.2s;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
+                btn.style.cssText = 'padding:5px 11px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:.01em;border:1px solid rgba(244,114,182,0.34);background:linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78));color:#fbcfe8;cursor:pointer;transition:all 0.2s;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
                 btn.onmouseenter = function() { this.style.background='rgba(244,114,182,0.18)'; };
                 btn.onmouseleave = function() { this.style.background='linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78))'; };
                 btn.onclick = function() {
@@ -15440,7 +15440,7 @@ function renderAstroInsightLegacyNeon() {
             });
             if (filtered.length > 80) {
                 var note = document.createElement('span');
-                note.style.cssText = 'color:#666;font-size:0.73rem;padding:4px 6px;align-self:center;';
+                note.style.cssText = 'color:var(--fr-muted);font-size:13px;padding:4px 6px;align-self:center;';
                 note.textContent = '외 ' + (filtered.length - 80) + '명';
                 listDiv.appendChild(note);
             }
@@ -15453,10 +15453,10 @@ function renderAstroInsightLegacyNeon() {
                 var b = document.createElement('button'); b.type = 'button';
                 b.textContent = label; b.dataset.c = code;
                 var isA = code === '';
-                b.style.cssText = 'padding:4px 10px;border-radius:999px;font-size:0.72rem;font-weight:700;border:1px solid rgba(129,140,248,'+(isA?'0.7':'0.3')+');background:rgba(129,140,248,'+(isA?'0.18':'0.04')+');color:'+(isA?'#a5b4fc':'#7f8c8d')+';cursor:pointer;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
+                b.style.cssText = 'padding:4px 10px;border-radius:999px;font-size:13px;font-weight:700;border:1px solid rgba(129,140,248,'+(isA?'0.7':'0.3')+');background:rgba(129,140,248,'+(isA?'0.18':'0.04')+');color:'+(isA?'#a5b4fc':'var(--fr-muted)')+';cursor:pointer;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
                 b.onclick = function() {
                     ctryDiv.querySelectorAll('button').forEach(function(x){
-                        x.style.background='rgba(129,140,248,0.04)'; x.style.borderColor='rgba(129,140,248,0.3)'; x.style.color='#7f8c8d';
+                        x.style.background='rgba(129,140,248,0.04)'; x.style.borderColor='rgba(129,140,248,0.3)'; x.style.color='var(--fr-muted)';
                     });
                     this.style.background='rgba(129,140,248,0.18)'; this.style.borderColor='rgba(129,140,248,0.7)'; this.style.color='#a5b4fc';
                     _astroActiveCtry = this.dataset.c; _astroRenderCelebList();
@@ -15476,10 +15476,10 @@ function renderAstroInsightLegacyNeon() {
             ['전체'].concat(CELEB_CATS).forEach(function(c, i) {
                 var b = document.createElement('button'); b.type='button'; b.dataset.cat = i===0?'':c;
                 b.textContent = (ic[c]||'✨') + ' ' + c;
-                b.style.cssText = 'padding:4px 10px;border-radius:999px;font-size:0.72rem;font-weight:700;border:1px solid rgba(244,114,182,'+(i===0?'0.6':'0.25')+');background:rgba(244,114,182,'+(i===0?'0.15':'0.04')+');color:'+(i===0?'#f9a8d4':'#94a3b8')+';cursor:pointer;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
+                b.style.cssText = 'padding:4px 10px;border-radius:999px;font-size:13px;font-weight:700;border:1px solid rgba(244,114,182,'+(i===0?'0.6':'0.25')+');background:rgba(244,114,182,'+(i===0?'0.15':'0.04')+');color:'+(i===0?'#f9a8d4':'var(--fr-muted)')+';cursor:pointer;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
                 b.onclick = function() {
                     catDiv.querySelectorAll('button').forEach(function(x){
-                        x.style.background='rgba(244,114,182,0.04)'; x.style.borderColor='rgba(244,114,182,0.25)'; x.style.color='#94a3b8';
+                        x.style.background='rgba(244,114,182,0.04)'; x.style.borderColor='rgba(244,114,182,0.25)'; x.style.color='var(--fr-muted)';
                     });
                     this.style.background='rgba(244,114,182,0.15)'; this.style.borderColor='rgba(244,114,182,0.6)'; this.style.color='#f9a8d4';
                     _astroActiveCat = this.dataset.cat; _astroRenderCelebList();
@@ -15910,7 +15910,7 @@ function renderAstroInsightLegacyNeon() {
                       html2 += '<div class="astro-syn-aspect">'
                             +'<span style="font-size:1rem;color:'+r.asp.color+';">'+r.asp.symbol+'</span>'
                         +'<span class="astro-syn-aspect-main">'+r.pair+'</span>'
-                      +'<span style="font-size:0.68rem;background:rgba('+( r.weighted>0?'52,211,153':'239,68,68' )+',0.15);color:'+r.asp.color+';padding:2px 7px;border-radius:10px;">'+r.asp.name+' · orb '+r.asp.orb.toFixed(2)+'°</span>'
+                      +'<span style="font-size:13px;background:rgba('+( r.weighted>0?'52,211,153':'239,68,68' )+',0.15);color:'+r.asp.color+';padding:2px 7px;border-radius:10px;">'+r.asp.name+' · orb '+r.asp.orb.toFixed(2)+'°</span>'
                             +'</div>';
                     });
                     html2 += '</div></div>';
@@ -15950,7 +15950,7 @@ function renderAstroInsightLegacyNeon() {
                 resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             } catch(e) {
               astroLatestCompatibilityResult = null;
-                resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:0.85rem;">시나스트리 계산 중 오류가 발생했습니다: ' + (e.message || e) + '</div></div>';
+                resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:14px;">시나스트리 계산 중 오류가 발생했습니다: ' + (e.message || e) + '</div></div>';
             }
         }, 50);
     };
@@ -15995,7 +15995,7 @@ function renderAstroInsightLegacyNeon() {
         var lonVal  = (lon != null) ? Number(lon) : 126.9780;
 
         if (!dateVal) {
-            resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:0.85rem;padding:4px 0;">⚠ 상대방의 생년월일을 입력해 주세요.</div></div>';
+            resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:14px;padding:4px 0;">⚠ 상대방의 생년월일을 입력해 주세요.</div></div>';
             return;
         }
 
@@ -16206,7 +16206,7 @@ function renderAstroInsightLegacyNeon() {
                       h += '<div class="astro-syn-aspect">'
                             +'<span style="font-size:1rem;color:'+r.asp.color+';">'+r.asp.symbol+'</span>'
                         +'<span class="astro-syn-aspect-main">'+r.pair+'</span>'
-                      +'<span style="font-size:0.68rem;background:rgba('+(r.weighted>0?'52,211,153':'239,68,68')+',0.15);color:'+r.asp.color+';padding:2px 7px;border-radius:10px;">'+r.asp.name+' · orb '+r.asp.orb.toFixed(2)+'°</span>'
+                      +'<span style="font-size:13px;background:rgba('+(r.weighted>0?'52,211,153':'239,68,68')+',0.15);color:'+r.asp.color+';padding:2px 7px;border-radius:10px;">'+r.asp.name+' · orb '+r.asp.orb.toFixed(2)+'°</span>'
                             +'</div>';
                     });
                     h += '</div></div>';
@@ -16258,7 +16258,7 @@ function renderAstroInsightLegacyNeon() {
                   resultDiv.appendChild(wHost);
                   cdEnsureCompatLlmReady(function () {
                     if (!window.CompatLlm || typeof window.CompatLlm.mountWesternFromPayload !== 'function') {
-                      wHost.innerHTML = '<div style="color:#fda4af;font-size:0.85rem;padding:10px;border-radius:10px;border:1px solid rgba(251,113,133,0.35);margin-top:10px;">AI 프롬프트 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</div>';
+                      wHost.innerHTML = '<div style="color:#fda4af;font-size:14px;padding:10px;border-radius:10px;border:1px solid rgba(251,113,133,0.35);margin-top:10px;">AI 프롬프트 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</div>';
                       return;
                     }
                     var mySunN = _sySignName(chart, 'Sun');
@@ -16344,7 +16344,7 @@ function renderAstroInsightLegacyNeon() {
                 }
             } catch(e) {
               astroLatestCompatibilityResult = null;
-                resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:0.85rem;">계산 중 오류가 발생했습니다: ' + (e.message || e) + '</div></div>';
+                resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:14px;">계산 중 오류가 발생했습니다: ' + (e.message || e) + '</div></div>';
             }
         }, 50);
     };
@@ -34120,21 +34120,21 @@ function showQuantumResult() {
       + '.astro-restored-hero__sky span:nth-child(1){width:220px;height:220px;right:-80px;top:-70px;}'
       + '.astro-restored-hero__sky span:nth-child(2){width:150px;height:150px;left:-52px;bottom:-54px;border-color:rgba(45,212,191,.18);}'
       + '.astro-restored-hero__sky span:nth-child(3){width:90px;height:90px;right:26%;bottom:22px;border-color:rgba(240,171,252,.18);}'
-      + '.astro-restored-hero__kicker{position:relative;color:#67e8f9;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;margin-bottom:7px;}'
+      + '.astro-restored-hero__kicker{position:relative;color:#67e8f9;font-size:13px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;margin-bottom:7px;}'
       + '.astro-restored-hero h3{position:relative;margin:0 0 9px 0;color:#fff7ed;font-size:24px;line-height:1.34;font-family:"Noto Serif KR","Noto Sans KR",serif;letter-spacing:0;}'
       + '.astro-restored-hero p{position:relative;margin:0;color:#dbeafe;font-size:14px;line-height:1.82;word-break:keep-all;}'
       + '.astro-restored-hero p b{color:#fef3c7;}'
       + '.astro-restored-hero__orbits{position:relative;display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:13px 0 12px;color:#fde68a;}'
-      + '.astro-restored-hero__orbits span{display:inline-flex;align-items:center;min-height:28px;border-radius:999px;border:1px solid rgba(251,191,36,.32);background:rgba(15,23,42,.58);padding:5px 9px;font-size:12px;font-weight:900;}'
+      + '.astro-restored-hero__orbits span{display:inline-flex;align-items:center;min-height:28px;border-radius:999px;border:1px solid rgba(251,191,36,.32);background:rgba(15,23,42,.58);padding:5px 9px;font-size:13px;font-weight:900;}'
       + '.astro-restored-hero__orbits i{display:block;flex:1;min-width:18px;height:1px;background:linear-gradient(90deg,rgba(125,211,252,.16),rgba(251,191,36,.5),rgba(240,171,252,.16));}'
       + '.astro-restored-hero__cards{position:relative;display:grid;grid-template-columns:1fr;gap:9px;}'
       + '.astro-restored-hero__cards article{border-radius:14px;border:1px solid rgba(125,211,252,.28);background:rgba(2,6,23,.42);padding:11px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);}'
       + '.astro-restored-hero__cards strong{display:block;color:#fef3c7;font-size:13px;margin-bottom:4px;}'
-      + '.astro-restored-hero__cards span{display:block;color:#c7f9ff;font-size:12px;line-height:1.65;}'
+      + '.astro-restored-hero__cards span{display:block;color:#c7f9ff;font-size:13px;line-height:1.65;}'
       + '.astro-restored-chart-details{border:1px solid rgba(125,211,252,.28);border-radius:16px;background:rgba(3,10,29,.48);margin:0 0 14px 0;overflow:hidden;}'
       + '.astro-restored-chart-details>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;padding:12px 13px;color:#fef3c7;font-weight:900;list-style:none;}'
       + '.astro-restored-chart-details>summary::-webkit-details-marker{display:none;}'
-      + '.astro-restored-chart-details>summary em{color:#93c5fd;font-size:11px;font-style:normal;font-weight:700;}'
+      + '.astro-restored-chart-details>summary em{color:#93c5fd;font-size:13px;font-style:normal;font-weight:700;}'
       + '.astro-restored-chart-details .astro-wheel-card{margin:0!important;border-radius:0!important;border-width:1px 0 0 0!important;}'
       + '.astro-cosmic-restored .astro-action-hub,.astro-cosmic-restored .astro-section{border-radius:16px!important;}'
       + '.astro-cosmic-restored .astro-action-hub,.astro-cosmic-restored .astro-prompt-panel,.astro-cosmic-restored .astro-compat-panel{border:1px solid rgba(125,211,252,.28)!important;background:linear-gradient(155deg,rgba(5,12,31,.94),rgba(18,22,52,.9) 54%,rgba(35,19,54,.86))!important;box-shadow:0 22px 52px -34px rgba(125,211,252,.8),inset 0 1px 0 rgba(255,255,255,.08)!important;}'
@@ -34142,8 +34142,8 @@ function showQuantumResult() {
       + '.astro-cosmic-restored .astro-compat-panel:before,.astro-cosmic-restored .astro-prompt-panel:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 8% 18%,rgba(251,191,36,.13),transparent 23%),radial-gradient(circle at 88% 18%,rgba(56,189,248,.12),transparent 26%),linear-gradient(120deg,transparent 0 60%,rgba(240,171,252,.07) 60.2%,transparent 61%);pointer-events:none;}'
       + '.astro-cosmic-restored .astro-compat-panel>*,.astro-cosmic-restored .astro-prompt-panel>*{position:relative;z-index:1;}'
       + '.astro-cosmic-restored .astro-paid-note{border:1px solid rgba(251,191,36,.28)!important;background:rgba(120,53,15,.18)!important;border-radius:13px!important;padding:10px 11px!important;margin:8px 0 12px!important;}'
-      + '.astro-cosmic-restored .astro-paid-note strong{display:block;color:#fef3c7;font-size:13px;margin-bottom:4px;}'
-      + '.astro-cosmic-restored .astro-paid-note span{display:block;color:#dbeafe;font-size:12px;line-height:1.65;}'
+      + '.astro-cosmic-restored .astro-paid-note strong{display:block;color:#fef3c7;font-size:14px;margin-bottom:4px;}'
+      + '.astro-cosmic-restored .astro-paid-note span{display:block;color:#dbeafe;font-size:14px;line-height:1.65;}'
       + '.astro-cosmic-restored .astro-neon-input,.astro-cosmic-restored .astro-neon-select,#astroAiPromptOutput{border-color:rgba(125,211,252,.34)!important;background:rgba(2,8,23,.72)!important;color:#eaf6ff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);}'
       + '.astro-cosmic-restored .astro-neon-cta{border-radius:999px!important;background:linear-gradient(135deg,#0ea5e9,#4f46e5 58%,#7c3aed)!important;box-shadow:0 16px 34px -20px rgba(56,189,248,.9)!important;}'
       + '.astro-stellar-archive{position:relative;border:1px solid rgba(251,191,36,.3);background:radial-gradient(circle at 18% 0%,rgba(251,191,36,.15),transparent 28%),radial-gradient(circle at 88% 12%,rgba(125,211,252,.12),transparent 30%),linear-gradient(160deg,rgba(7,12,28,.94),rgba(18,11,37,.9));border-radius:20px;padding:15px;margin:0 0 14px 0;overflow:hidden;}'
@@ -34337,53 +34337,53 @@ function showQuantumResult() {
       + '.astro-counsel{--gold:#f6d365;--cyan:#7dd3fc;--rose:#f0abfc;--ink:#e5edf8;color:var(--ink);font-family:"SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;}'
       + '.astro-counsel *{box-sizing:border-box;word-break:keep-all;}'
       + '.astro-counsel-hero{border:1px solid rgba(246,211,101,.34);background:linear-gradient(145deg,rgba(16,18,34,.96),rgba(10,31,45,.92));border-radius:16px;padding:18px;margin-bottom:14px;}'
-      + '.astro-counsel-kicker{font-size:11px;font-weight:900;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;}'
+      + '.astro-counsel-kicker{font-size:13px;font-weight:900;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;}'
       + '.astro-counsel h3{margin:0 0 10px 0;font-size:22px;line-height:1.34;color:#fff;}'
       + '.astro-counsel h4{margin:0 0 12px 0;font-size:18px;line-height:1.38;color:#fef3c7;}'
       + '.astro-counsel p{margin:0 0 10px 0;font-size:14px;line-height:1.78;color:#dbeafe;}'
       + '.astro-counsel-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}'
-      + '.astro-counsel-tags span{border:1px solid rgba(125,211,252,.3);background:rgba(14,116,144,.18);border-radius:999px;padding:5px 9px;font-size:12px;color:#cffafe;}'
+      + '.astro-counsel-tags span{border:1px solid rgba(125,211,252,.3);background:rgba(14,116,144,.18);border-radius:999px;padding:5px 9px;font-size:13px;color:#cffafe;}'
       + '.astro-counsel-basis{border:1px solid rgba(125,211,252,.26);background:rgba(8,47,73,.22);border-radius:12px;padding:11px;margin-top:12px;}'
       + '.astro-counsel-basis strong,.astro-counsel-integration b{display:block;color:#fef3c7;font-size:13px;margin-bottom:7px;}'
       + '.astro-counsel-basis div{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}'
-      + '.astro-counsel-basis span{border:1px solid rgba(246,211,101,.28);background:rgba(246,211,101,.1);border-radius:999px;padding:4px 8px;font-size:11px;color:#fde68a;font-weight:800;}'
-      + '.astro-counsel-basis p{margin:0!important;font-size:12.5px!important;color:#bfdbfe!important;line-height:1.7!important;}'
+      + '.astro-counsel-basis span{border:1px solid rgba(246,211,101,.28);background:rgba(246,211,101,.1);border-radius:999px;padding:4px 8px;font-size:13px;color:#fde68a;font-weight:800;}'
+      + '.astro-counsel-basis p{margin:0!important;font-size:14px!important;color:#bfdbfe!important;line-height:1.7!important;}'
       + '.astro-counsel-section{border:1px solid rgba(148,163,184,.24);background:linear-gradient(150deg,rgba(15,23,42,.92),rgba(24,18,39,.9));border-radius:16px;padding:15px;margin-bottom:14px;}'
       + '.astro-counsel-axis-grid,.astro-counsel-planet-grid,.astro-counsel-job-list{display:grid;grid-template-columns:1fr;gap:10px;}'
       + '.astro-counsel-axis,.astro-counsel-planet,.astro-counsel-job-list article{border:1px solid rgba(125,211,252,.24);background:rgba(2,6,23,.42);border-radius:12px;padding:13px;}'
       + '.astro-counsel-axis__top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}'
-      + '.astro-counsel-axis__top span,.astro-counsel-axis__meta{font-size:12px;color:#a5f3fc;font-weight:800;}'
+      + '.astro-counsel-axis__top span,.astro-counsel-axis__meta{font-size:13px;color:#a5f3fc;font-weight:800;}'
       + '.astro-counsel-axis__top strong{font-size:18px;color:#fff;}'
       + '.astro-counsel-axis__meta{margin-bottom:10px;color:#fde68a;}'
-      + '.astro-counsel-step b,.astro-counsel-life b{display:block;margin-bottom:4px;color:#fde68a;font-size:12px;}'
+      + '.astro-counsel-step b,.astro-counsel-life b{display:block;margin-bottom:4px;color:#fde68a;font-size:13px;}'
       + '.astro-counsel-step span,.astro-counsel-life span{display:block;}'
       + '.astro-counsel-life{border-left:3px solid var(--rose);padding-left:10px;color:#f5d0fe!important;}'
       + '.astro-counsel-mini-apply,.astro-counsel-apply{border:1px solid rgba(246,211,101,.28);background:rgba(246,211,101,.1);border-radius:11px;padding:10px;color:#fef3c7;font-size:13px;line-height:1.7;}'
       + '.astro-counsel-apply{margin-top:12px;display:flex;flex-direction:column;gap:3px;}'
       + '.astro-counsel-mini-apply{display:flex;flex-direction:column;gap:3px;}'
-      + '.astro-counsel-mini-apply b,.astro-counsel-apply b{color:#fff7cc;font-size:12px;}'
+      + '.astro-counsel-mini-apply b,.astro-counsel-apply b{color:#fff7cc;font-size:13px;}'
       + '.astro-counsel-integration{border:1px solid rgba(240,171,252,.28);background:rgba(88,28,135,.18);border-radius:12px;padding:12px;margin-top:10px;color:#f5d0fe;font-size:13px;line-height:1.72;}'
-      + '.astro-counsel-integration p{margin:0 0 8px 0!important;color:#f5d0fe!important;font-size:13px!important;line-height:1.72!important;}'
+      + '.astro-counsel-integration p{margin:0 0 8px 0!important;color:#f5d0fe!important;font-size:14px!important;line-height:1.72!important;}'
       + '.astro-counsel-integration p:last-child{margin-bottom:0!important;}'
       + '.astro-wheel-card{border:1px solid rgba(251,191,36,0.22)!important;background:linear-gradient(155deg,rgba(12,18,36,.95),rgba(7,12,26,.95))!important;box-shadow:0 14px 28px -24px rgba(251,191,36,.65);border-radius:16px;padding:15px;margin-bottom:14px;}'
-      + '.astro-wheel-caption{margin:0 0 10px 0;color:#cbd5e1;font-size:12px;line-height:1.65;}'
-      + '.astro-wheel-warning{margin-bottom:10px;padding:8px 10px;border-radius:9px;border:1px solid rgba(251,113,133,.35);background:rgba(127,29,29,.2);color:#fecaca;font-size:12px;line-height:1.55;}'
+      + '.astro-wheel-caption{margin:0 0 10px 0;color:#cbd5e1;font-size:13px;line-height:1.65;}'
+      + '.astro-wheel-warning{margin-bottom:10px;padding:8px 10px;border-radius:9px;border:1px solid rgba(251,113,133,.35);background:rgba(127,29,29,.2);color:#fecaca;font-size:13px;line-height:1.55;}'
       + '.astro-wheel-summary{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}'
-      + '.astro-wheel-summary span{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1px solid rgba(125,211,252,.28);background:rgba(15,23,42,.68);color:#e2e8f0;font-size:11px;font-weight:700;}'
+      + '.astro-wheel-summary span{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1px solid rgba(125,211,252,.28);background:rgba(15,23,42,.68);color:#e2e8f0;font-size:13px;font-weight:700;}'
       + '.astro-wheel-visual{border-radius:14px;border:1px solid rgba(148,163,184,.2);background:radial-gradient(circle at 50% 35%,rgba(15,23,42,.95),rgba(2,6,23,.97));padding:8px;}'
       + '.astro-wheel-svg{display:block;width:100%;height:auto;}'
       + '.astro-wheel-tables{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}'
       + '.astro-wheel-table-wrap{border-radius:11px;border:1px solid rgba(148,163,184,.2);background:rgba(2,6,23,.42);padding:9px;overflow:auto;}'
-      + '.astro-wheel-table-title{margin-bottom:6px;color:#bae6fd;font-size:12px;font-weight:800;}'
+      + '.astro-wheel-table-title{margin-bottom:6px;color:#bae6fd;font-size:13px;font-weight:800;}'
       + '.astro-wheel-table{width:100%;border-collapse:collapse;}'
-      + '.astro-wheel-table th,.astro-wheel-table td{font-size:12px;padding:6px 7px;line-height:1.55;border-bottom:1px solid rgba(148,163,184,.16);color:#dbeafe;text-align:left;}'
+      + '.astro-wheel-table th,.astro-wheel-table td{font-size:13px;padding:6px 7px;line-height:1.55;border-bottom:1px solid rgba(148,163,184,.16);color:#dbeafe;text-align:left;}'
       + '.astro-counsel-career-steps p span{display:block;margin-top:5px;color:#bae6fd;}'
       + '.astro-counsel-job-list article strong,.astro-counsel-planet strong{display:block;color:#fff;font-size:14px;margin-bottom:6px;}'
       + '.astro-counsel-job-list article span{display:block;color:#cbd5e1;font-size:13px;line-height:1.68;}'
       + '.astro-counsel-error{border:1px solid rgba(248,113,113,.35);border-radius:14px;background:rgba(127,29,29,.18);padding:16px;color:#fee2e2;}'
       + '@media (min-width:720px){.astro-counsel-axis-grid{grid-template-columns:repeat(3,minmax(0,1fr));}.astro-counsel-planet-grid,.astro-counsel-job-list{grid-template-columns:repeat(2,minmax(0,1fr));}.astro-counsel h3{font-size:26px;}}'
       + '@media (max-width:860px){.astro-wheel-tables{grid-template-columns:1fr;}}'
-      + '@media (max-width:560px){.astro-counsel{font-size:14px;}.astro-counsel-hero,.astro-counsel-section{border-radius:13px;padding:13px;}.astro-counsel p{font-size:13.5px;line-height:1.82;}.astro-counsel h3{font-size:20px;}.astro-counsel h4{font-size:17px;}}'
+      + '@media (max-width:560px){.astro-counsel{font-size:14px;}.astro-counsel-hero,.astro-counsel-section{border-radius:13px;padding:13px;}.astro-counsel p{font-size:14px;line-height:1.82;}.astro-counsel h3{font-size:20px;}.astro-counsel h4{font-size:17px;}}'
       + '</style>';
 
     area.innerHTML = css

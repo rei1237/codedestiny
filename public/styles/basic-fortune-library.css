@@ -547,7 +547,7 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #astroModalOverlay .fr-facts > div { display:block; }
 #astroModalOverlay .fr-facts dt { font-size:13px; letter-spacing:.04em; }
 #astroModalOverlay .fr-facts dd { margin:5px 0 4px; font-size:19px; font-family:'Gowun Batang','Gowun Dodum',serif; }
-#astroModalOverlay .fr-facts p { color:var(--fr-accent); font-size:13px; line-height:1.6; }
+#astroModalOverlay .fr-facts p { color:var(--fr-accent); font-size:var(--fr-fs-small); line-height:1.6; }
 #astroModalOverlay .fr-astro-nav { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; padding:12px 0; margin:20px 0 24px; border-bottom:1px solid var(--fr-rule); }
 #astroModalOverlay .fr-astro-nav a { display:flex; align-items:center; justify-content:center; text-align:center; min-height:44px; color:var(--fr-accent); font-size:14px; text-decoration:none; }
 #astroModalOverlay .astro-house-section { scroll-margin-top:80px; margin-bottom:40px; }
@@ -583,7 +583,7 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #astroModalOverlay #astroBodyWrap .astro-life-body { padding:0 var(--cd-sp-md, 16px) var(--cd-sp-md, 16px); color:var(--fr-ink); font-size:var(--fr-fs-text); line-height:1.75; }
 #astroModalOverlay #astroBodyWrap .astro-life-body p { margin:0 0 var(--cd-sp-sm, 10px); }
 #astroModalOverlay #astroBodyWrap .astro-life-body b { display:block; margin-bottom:2px; color:var(--fr-accent); font-size:var(--fr-fs-label); font-weight:600; }
-#astroModalOverlay #astroBodyWrap .astro-life-kicker { color:var(--fr-accent); font-size:var(--fr-fs-label); font-weight:600; }
+#astroModalOverlay #astroBodyWrap .astro-life-kicker { color:var(--fr-accent); font-size:var(--fr-fs-small); font-weight:600; }
 #astroModalOverlay #astroBodyWrap .astro-life-traits { margin:0 0 var(--cd-sp-md, 16px); padding-left:20px; }
 #astroModalOverlay #astroBodyWrap .astro-life-traits li { margin-bottom:var(--cd-sp-xs, 6px); }
 #astroModalOverlay #astroBodyWrap .astro-life-traits li::marker { color:var(--el); }
@@ -596,7 +596,7 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 /* 장식 SVG(5단계): 섹션 머리 휠·제목 앞 원소 시길·카드 오른쪽 위 별자리 선화. 선은 currentColor, 색은 토큰만 쓴다. */
 #astroModalOverlay #astroBodyWrap .astro-life-hero { display:grid; grid-template-columns:minmax(0,1fr) 136px; gap:var(--cd-sp-md, 16px); align-items:center; margin-bottom:var(--cd-sp-md, 16px); }
 #astroModalOverlay #astroBodyWrap .astro-life-hero .astro-birth-lead { margin:0; }
-#astroModalOverlay #astroBodyWrap .astro-life-hero-note { margin:var(--cd-sp-xs, 6px) 0 0; color:var(--fr-muted); font-size:var(--fr-fs-label); line-height:1.6; text-wrap:balance; }
+#astroModalOverlay #astroBodyWrap .astro-life-hero-note { margin:var(--cd-sp-xs, 6px) 0 0; color:var(--fr-muted); font-size:var(--fr-fs-small); line-height:1.6; text-wrap:balance; }
 #astroModalOverlay #astroBodyWrap .astro-life-wheel { display:block; width:100%; height:auto; color:var(--fr-accent); }
 #astroModalOverlay #astroBodyWrap .astro-life-wheel__ring { fill:none; stroke:currentColor; stroke-width:.8; opacity:.45; }
 #astroModalOverlay #astroBodyWrap .astro-life-wheel__ring--inner { opacity:.25; }
@@ -637,6 +637,13 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #astroModalOverlay .astro-house-article-body ol { padding-left:22px; }
 #astroModalOverlay .astro-house-article-body table { display:block; max-width:100%; overflow-x:auto; border-collapse:collapse; }
 #astroModalOverlay .astro-house-article-body :is(td,th) { min-width:90px; padding:12px; border-bottom:1px solid var(--fr-rule); }
+/* 읽기 하한(6단계): 라벨 13px · 설명 14px. 상담 진입(4종 공용 fortune-consultation-entry.css)은 rem 이라
+   ≤480px 루트 14px 에서 10~12px 로 줄었다(실측) — 점성술 모달 안에서만 px 토큰으로 올리고, 다른 3종은 후속으로 둔다. */
+#astroModalOverlay .fr-brand { font-size:var(--fr-fs-label); }
+#astroModalOverlay .fortune-consultation :is(.fc-entry__scene figcaption, .fc-entry__name, .fc-entry__price, .fc-entry__topics, .fc-form__intro dt, .fc-examples button) { font-size:var(--fr-fs-label); }
+#astroModalOverlay .fortune-consultation :is(.fc-entry__note, .fc-entry__price span, .fc-form__intro p, .fc-form__intro dd) { font-size:var(--fr-fs-small); }
+#astroModalOverlay .fortune-consultation :is(.fc-entry__lead, .fc-form > summary) { font-size:var(--fr-fs-text); }
+#astroModalOverlay .fortune-consultation .fc-status { font-size:var(--fr-fs-small) !important; }
 @media (min-width:768px) {
   #astroModalOverlay #astroBodyWrap.fr-report { padding:32px 36px 64px !important; }
   #astroModalOverlay .astro-house-articles { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -652,9 +659,9 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
   #astroModalOverlay .fr-facts > div { display:grid; grid-template-columns:62px 1fr; column-gap:12px; }
   #astroModalOverlay .fr-facts dt { font-size:13px; align-self:baseline; }
   #astroModalOverlay .fr-facts dd { margin:0; font-size:17px; }
-  #astroModalOverlay .fr-facts p { margin:4px 0 0; font-size:12px; }
+  #astroModalOverlay .fr-facts p { margin:4px 0 0; font-size:var(--fr-fs-small); }
   #astroModalOverlay .fr-astro-nav { grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px 8px; margin:14px 0 18px; padding:0 0 10px; }
-  #astroModalOverlay .fr-astro-nav a { min-height:40px; font-size:12px; }
+  #astroModalOverlay .fr-astro-nav a { min-height:44px; font-size:var(--fr-fs-small); line-height:1.4; }
   #astroModalOverlay #astroBodyWrap :is(.astro-section, .astro-action-hub, .astro-wheel-card, .precision-insight-card, .astro-cosmic-restored, .astro-stellar-archive, .astro-restored-hero) { padding:14px !important; }
   #astroModalOverlay #astroBodyWrap .astro-big3-grid { grid-template-columns:1fr; }
   #astroModalOverlay #astroBodyWrap .astro-life-duo { grid-template-columns:1fr; }
