@@ -429,8 +429,7 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   const marks = [...home.matchAll(/data-cd-funnel-section="([^"]*)"/g)].map((m) => m[1]);
 
   assert.ok(
-    // 2026-10-03 #cdQuickServices(quick_services) 삭제로 8 → 7.
-    marks.length >= 7,
+    marks.length >= 8,
     `홈의 data-cd-funnel-section 표식이 ${marks.length}개다 — 면이 통째로 빠지면 그 면의 클릭이 어디에도 안 잡힌다`,
   );
   assert.equal(

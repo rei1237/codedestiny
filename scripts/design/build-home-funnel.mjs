@@ -28,6 +28,7 @@ const htmlOf = (node, label) => {
 };
 
 const nodes = {
+  quick: byId('cdQuickServices'),
   today: byId('cdTodayHub'),
   concern: byId('cdConcernPick'),
   signature: byId('cdSignatureConsult'),

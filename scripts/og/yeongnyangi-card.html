@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>영냥이 — OG Card 1200x630</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Nanum+Myeongjo:wght@700;800&family=Jost:wght@400;500;600&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     영냥이 — 링크 공유 카드 (Open Graph 1200x630)
+
+     구성: 좌측 = 호기심을 여는 헤드라인 + 한 줄 설명 + 상담 체계 칩
+           우측 = 영냥이 단독 주인공(사주 두루마리를 펼친 영냥이)
+     캐릭터는 기존 자산 public/assets/yeongnyangi/report-saju-yeongnyangi-v1.png 를 그대로 쓴다.
+     팔레트는 docs/design/yeongnyangi-tarot/art-ledger.jsonl 의 밤 남색 + 금 + 바이올렛.
+     출력: public/og/yeongnyangi-og.png (파일명 영구 고정 — render-og-card.mjs 참고)
+     ============================================================ */
+
+  :root {
+    --gold-hi:      #fff4d2;
+    --gold-light:   #f2dda6;
+    --gold:         #e5c58e;
+    --gold-mid:     #c9993f;
+    --gold-deep:    #8f6420;
+    --gold-shadow:  #5c3f12;
+
+    --navy:         #101b2c;
+    --navy-deep:    #0b1220;
+    --slate:        #18263a;
+    --slate-lit:    #23344b;
+    --violet:       #665087;
+    --ivory:        #f3eee5;
+
+    --engrave: 0 -1px 0 rgba(0,0,0,.75), 0 1px 0 rgba(255,238,190,.22);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    background: #05080f;
+  }
+
+  /* ---------- 1. 밤하늘 무대 ---------- */
+  .stage {
+    position: relative;
+    width: 1200px;
+    height: 630px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    isolation: isolate;
+    background:
+      radial-gradient(70% 60% at 50% 4%,  rgba(102, 80, 135, .40), transparent 66%),
+      radial-gradient(56% 50% at 92% 96%, rgba(60, 46, 110, .34), transparent 70%),
+      radial-gradient(52% 46% at 4% 90%,  rgba(30, 52, 96, .34), transparent 72%),
+      linear-gradient(168deg, #141d36 0%, #0a1020 48%, #04070e 100%);
+  }
+
+  .dust {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background-image:
+      radial-gradient(1.4px 1.4px at 18% 24%,  rgba(255, 236, 190, .85), transparent 62%),
+      radial-gradient(1px 1px     at 72% 62%,  rgba(220, 226, 255, .70), transparent 62%),
+      radial-gradient(1.7px 1.7px at 44% 88%,  rgba(238, 210, 150, .55), transparent 62%),
+      radial-gradient(1.1px 1.1px at 88% 14%,  rgba(240, 240, 255, .58), transparent 62%),
+      radial-gradient(2.4px 2.4px at 30% 52%,  rgba(229, 197, 142, .28), transparent 66%);
+    background-size: 163px 131px, 211px 173px, 271px 199px, 139px 241px, 397px 353px;
+    background-position: 0 0, 41px 63px, 97px 17px, 23px 109px, 151px 71px;
+  }
+
+  .veil {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background:
+      radial-gradient(46% 34% at 50% 0%, rgba(200, 196, 255, .14), transparent 68%),
+      radial-gradient(120% 92% at 50% 50%, transparent 52%, rgba(0, 0, 0, .64) 100%);
+  }
+
+  /* ---------- 2. 카드 — 유광 골드 베젤 ---------- */
+  .bezel {
+    position: relative;
+    z-index: 3;
+    width: 1128px;
+    height: 542px;
+    margin-top: 30px;
+    padding: 5px;
+    border-radius: 30px;
+    background: linear-gradient(
+      128deg,
+      var(--gold-hi)     0%,
+      var(--gold-mid)   11%,
+      var(--gold-deep)  20%,
+      var(--gold-hi)    33%,
+      var(--gold-light) 40%,
+      var(--gold-mid)   52%,
+      var(--gold-shadow)62%,
+      var(--gold-light) 74%,
+      var(--gold-hi)    82%,
+      var(--gold-mid)   92%,
+      var(--gold-deep) 100%
+    );
+    box-shadow:
+      0 0 0 1px rgba(92, 63, 18, .85),
+      0 30px 60px -18px rgba(0, 0, 0, .85),
+      0 8px 22px rgba(0, 0, 0, .55),
+      0 0 90px rgba(214, 168, 78, .15);
+  }
+
+  .card {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 25px;
+    overflow: hidden;
+    background:
+      radial-gradient(48% 70% at 78% 40%, rgba(102, 80, 135, .48), transparent 70%),
+      radial-gradient(60% 70% at 10% -10%, rgba(35, 52, 75, .9), transparent 70%),
+      radial-gradient(46% 56% at 96% 104%, rgba(8, 12, 24, .8), transparent 74%),
+      linear-gradient(158deg, var(--slate-lit) 0%, var(--navy) 46%, var(--navy-deep) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(220, 230, 255, .14),
+      inset 0 -1px 0 rgba(0, 0, 0, .6),
+      inset 0 0 70px rgba(0, 0, 0, .5);
+  }
+
+  /* 별자리 성도 문양 */
+  .chart {
+    position: absolute;
+    inset: 0;
+    opacity: .1;
+  }
+
+  .sheen {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(102deg,
+      transparent 26%,
+      rgba(230, 236, 255, .05) 42%,
+      rgba(240, 244, 255, .08) 49%,
+      rgba(230, 236, 255, .04) 56%,
+      transparent 72%);
+  }
+
+  .frame { position: absolute; inset: 0; }
+
+  /* ---------- 3. 우측 — 영냥이 무대 ---------- */
+  /* 큰 금빛 초승달 — 영냥이 모자의 달을 무대 배경으로 키운다 */
+  .moon {
+    position: absolute;
+    right: 70px;
+    top: 34px;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    z-index: 3;
+    background: radial-gradient(circle at 50% 50%, rgba(229, 197, 142, .16), transparent 66%);
+  }
+  .moon svg { width: 100%; height: 100%; display: block; }
+
+  .hero {
+    position: absolute;
+    right: 62px;
+    top: 44px;
+    width: 432px;
+    height: 455px;
+    z-index: 4;
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    left: 50px;
+    right: 50px;
+    bottom: -4px;
+    height: 32px;
+    border-radius: 50%;
+    background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, .5), transparent 72%);
+    z-index: -1;
+  }
+
+  /* 원본 1254² 캔버스 안 인물 영역(1177x1236 @ 55,1)만 보이도록 배율·오프셋을 맞춘다. */
+  .hero__art {
+    position: absolute;
+    width: 461px;
+    height: 461px;
+    left: -20px;
+    top: 0;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .55));
+  }
+
+  /* ---------- 4. 좌측 — 카피 ---------- */
+  .copy {
+    position: absolute;
+    left: 74px;
+    width: 560px;
+    top: 74px;
+    z-index: 5;
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: 'Cinzel', Georgia, serif;
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1;
+    letter-spacing: .3em;
+    color: rgba(242, 221, 166, .9);
+    text-shadow: var(--engrave);
+  }
+  .eyebrow b {
+    font-family: 'Nanum Myeongjo', serif;
+    font-weight: 800;
+    font-size: 19px;
+    letter-spacing: .1em;
+    color: var(--gold-light);
+  }
+  .eyebrow i {
+    width: 6px;
+    height: 6px;
+    transform: rotate(45deg);
+    background: linear-gradient(135deg, var(--gold-hi), var(--gold-mid));
+    box-shadow: 0 0 8px rgba(229, 197, 142, .6);
+  }
+
+  .rule {
+    width: 120px;
+    height: 1px;
+    margin: 26px 0 28px;
+    background: linear-gradient(90deg, rgba(229, 197, 142, .8), transparent);
+  }
+
+  .headline {
+    font-family: 'Nanum Myeongjo', 'Batang', serif;
+    font-weight: 800;
+    font-size: 52px;
+    line-height: 1.26;
+    letter-spacing: -.01em;
+    color: var(--ivory);
+    text-shadow:
+      0 2px 0 rgba(0, 0, 0, .45),
+      0 6px 16px rgba(0, 0, 0, .6),
+      0 0 30px rgba(200, 196, 255, .14);
+  }
+  .headline em {
+    font-style: normal;
+    color: var(--gold);
+    text-shadow:
+      0 1px 0 var(--gold-deep),
+      0 2px 0 var(--gold-shadow),
+      0 3px 1px rgba(0, 0, 0, .55),
+      0 6px 14px rgba(0, 0, 0, .55),
+      0 0 30px rgba(229, 197, 142, .24);
+  }
+
+  .sub {
+    margin-top: 24px;
+    font-family: 'Noto Sans KR', system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 21px;
+    line-height: 1.55;
+    color: rgba(222, 228, 245, .88);
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, .6), 0 2px 6px rgba(0, 0, 0, .4);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 30px;
+    padding: 12px 24px 12px 18px;
+    border-radius: 999px;
+    font-family: 'Noto Sans KR', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--gold-light);
+    background: linear-gradient(180deg, rgba(102, 80, 135, .5), rgba(35, 52, 75, .6));
+    box-shadow:
+      inset 0 0 0 1.4px rgba(229, 197, 142, .7),
+      0 8px 18px rgba(0, 0, 0, .45),
+      0 0 26px rgba(102, 80, 135, .35);
+  }
+  .chip svg { width: 20px; height: 20px; display: block; }
+
+  /* ---------- 5. 하단 각인 ---------- */
+  .plate {
+    position: absolute;
+    left: 74px;
+    width: 560px;
+    bottom: 42px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  .plate .k {
+    font-family: 'Jost', system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .32em;
+    color: rgba(190, 196, 228, .7);
+  }
+  .plate .issuer {
+    font-family: 'Cinzel', Georgia, serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: .3em;
+    color: rgba(240, 212, 154, .96);
+    text-shadow: var(--engrave), 0 2px 6px rgba(0, 0, 0, .5);
+  }
+
+  .domain {
+    position: relative;
+    z-index: 3;
+    margin-top: 21px;
+    font-family: 'Jost', system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1;
+    letter-spacing: .42em;
+    text-indent: .42em;
+    color: rgba(196, 204, 240, .78);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="dust"></div>
+  <div class="veil"></div>
+
+  <div class="bezel">
+    <div class="card">
+      <!-- 별자리 성도 문양: 동심원 궤도 + 방위선 -->
+      <svg class="chart" viewBox="0 0 1118 532" aria-hidden="true">
+        <g fill="none" stroke="#e5c58e" stroke-width="1">
+          <circle cx="830" cy="250" r="150"/>
+          <circle cx="830" cy="250" r="230"/>
+          <circle cx="830" cy="250" r="320" stroke-dasharray="2 7"/>
+          <circle cx="830" cy="250" r="420"/>
+          <path d="M830 -180 V680 M400 250 H1260 M526 -54 L1134 554 M1134 -54 L526 554" stroke-opacity=".6"/>
+        </g>
+        <g fill="none" stroke="#f3eee5" stroke-width="1.1" stroke-opacity=".9">
+          <path d="M120 470 L176 432 L232 446 L268 404 L330 418"/>
+          <path d="M520 70 L566 104 L612 92 L650 128"/>
+        </g>
+        <g fill="#f3eee5">
+          <circle cx="120" cy="470" r="2.4"/><circle cx="176" cy="432" r="2"/><circle cx="232" cy="446" r="2.6"/>
+          <circle cx="268" cy="404" r="2"/><circle cx="330" cy="418" r="2.4"/>
+          <circle cx="520" cy="70" r="2.2"/><circle cx="566" cy="104" r="2.6"/><circle cx="612" cy="92" r="2"/><circle cx="650" cy="128" r="2.4"/>
+        </g>
+      </svg>
+
+      <div class="sheen"></div>
+
+      <!-- 각인 괘선 + 네 귀 별 장식 -->
+      <svg class="frame" viewBox="0 0 1118 532" aria-hidden="true">
+        <g fill="none" stroke="#e5c58e">
+          <rect x="24" y="24" width="1070" height="484" rx="14"
+                stroke-opacity=".55" stroke-width="1.2"/>
+          <rect x="31" y="31" width="1056" height="470" rx="9"
+                stroke-opacity=".24" stroke-width="1"/>
+        </g>
+        <g id="cornerStar">
+          <path d="M24 66 L24 40 A16 16 0 0 1 40 24 L66 24"
+                fill="none" stroke="#f4dda6" stroke-opacity=".85" stroke-width="2.2"
+                stroke-linecap="round"/>
+          <path d="M52 40 L54.2 49.8 L64 52 L54.2 54.2 L52 64 L49.8 54.2 L40 52 L49.8 49.8 Z"
+                fill="#e5c58e" fill-opacity=".7"/>
+        </g>
+        <use href="#cornerStar" transform="translate(1118 0) scale(-1 1)"/>
+        <use href="#cornerStar" transform="translate(0 532) scale(1 -1)"/>
+        <use href="#cornerStar" transform="translate(1118 532) scale(-1 -1)"/>
+
+        <!-- 흩날리는 금별 -->
+        <g fill="#f4e0ae">
+          <path d="M600 210 L602 215 L607 217 L602 219 L600 224 L598 219 L593 217 L598 215 Z" opacity=".55"/>
+          <path d="M1060 300 L1061.6 304 L1065.6 305.6 L1061.6 307.2 L1060 311.2 L1058.4 307.2 L1054.4 305.6 L1058.4 304 Z" opacity=".5"/>
+          <path d="M640 440 L641.2 443.2 L644.4 444.4 L641.2 445.6 L640 448.8 L638.8 445.6 L635.6 444.4 L638.8 443.2 Z" opacity=".4"/>
+        </g>
+      </svg>
+
+      <!-- 금빛 초승달 -->
+      <div class="moon">
+        <svg viewBox="0 0 400 400" aria-hidden="true">
+          <defs>
+            <linearGradient id="moonGold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#fff4d2"/>
+              <stop offset=".45" stop-color="#e5c58e"/>
+              <stop offset="1" stop-color="#8f6420"/>
+            </linearGradient>
+            <mask id="moonCut">
+              <rect width="400" height="400" fill="#000"/>
+              <circle cx="200" cy="200" r="168" fill="#fff"/>
+              <circle cx="262" cy="150" r="160" fill="#000"/>
+            </mask>
+          </defs>
+          <rect width="400" height="400" fill="url(#moonGold)" mask="url(#moonCut)" opacity=".55"/>
+        </svg>
+      </div>
+
+      <div class="hero">
+        <img class="hero__art" alt="남색 마법사 모자를 쓴 흰 고양이 영냥이가 사주 두루마리를 펼쳐 든 모습"
+             src="../../public/assets/yeongnyangi/report-saju-yeongnyangi-v1.png">
+      </div>
+
+      <div class="copy">
+        <div class="eyebrow"><b>사주 보는 고양이</b><i></i>YEONGNYANGI</div>
+        <div class="rule"></div>
+        <div class="headline">오늘 밤, 고양이가<br><em>당신의 사주를 펼쳐요</em></div>
+        <div class="sub">말하지 못한 그 고민,<br>영냥이는 이미 알고 있을지도 몰라요</div>
+        <div class="chip">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 L11.8 8.2 L18 10 L11.8 11.8 L10 18 L8.2 11.8 L2 10 L8.2 8.2 Z" fill="#e5c58e"/></svg>
+          사주 · 자미두수 · 타로 — 챕터별 상담
+        </div>
+      </div>
+
+      <div class="plate">
+        <span class="issuer">CODE DESTINY</span>
+        <span class="k">FORTUNE SOUL CAT</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="domain">code-destiny.com</div>
+</div>
+</body>
+</html>

@@ -181,7 +181,7 @@
     var overlay = document.createElement('div');
     overlay.className = 'cd-yn-portal-overlay';
     overlay.setAttribute('aria-hidden', 'true');
-    overlay.innerHTML = '<div class="cd-yn-portal-overlay__scene"><span class="cd-yn-portal-overlay__moon" aria-hidden="true"></span><span class="cd-yn-portal-overlay__portrait"><img src="/assets/yeongnyangi/original/avatar.webp" width="160" height="160" alt="" decoding="async"></span><p class="cd-yn-portal-overlay__title">영냥이의 달빛 점술방</p><p class="cd-yn-portal-overlay__note">달빛을 따라, 이야기가 이어지는 곳으로</p><span class="cd-yn-portal-overlay__line" aria-hidden="true"></span></div>';
+    overlay.innerHTML = '<div class="cd-yn-portal-overlay__scene"><span class="cd-yn-portal-overlay__moon" aria-hidden="true"></span><span class="cd-yn-portal-overlay__portrait"><img src="/assets/yeongnyangi/original/hero-480.webp" width="480" height="480" alt="" decoding="async"></span><p class="cd-yn-portal-overlay__title">영냥이의 달빛 점술방</p><p class="cd-yn-portal-overlay__note">달빛을 따라, 이야기가 이어지는 곳으로</p><span class="cd-yn-portal-overlay__line" aria-hidden="true"></span></div>';
     document.body.appendChild(overlay);
     window.setTimeout(function () {
       try {
@@ -204,6 +204,18 @@
         enterYeongnyangiPortal(portal);
       }
       return;
+    }
+    // data-action 진입점(퀵 서비스 사주 카드)은 공용 디스패처가 실행한다. 여기서도 부르면 두 번 돈다.
+    var freeEntry = target.closest('[data-cdh-free]');
+    if (freeEntry && !freeEntry.hasAttribute('data-action')) {
+      event.preventDefault();
+      revealInput();
+      if (typeof window.cdOneStepFreeSajuEntry === 'function') window.cdOneStepFreeSajuEntry();
+      else if (form) {
+        form.scrollIntoView({ block: 'start' });
+        var firstInput = form.querySelector('input');
+        if (firstInput) firstInput.focus({ preventScroll: true });
+      }
     }
     if (target.closest('#cdMobileBottomNav [data-nav-key="home"]')) {
       doc.classList.remove('cdh-input-open');

@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import {siteSeo} from '@/lib/seo/siteSeo';
+import {yeongnyangiOgImage} from './_lib/share-image';
 import {buildBreadcrumbJsonLd,buildFaqPageJsonLd,buildServiceJsonLd,buildWebPageJsonLd} from '@/lib/structured-data';
 import Home from './_components/Home';
 import KoreanOnly from './_components/KoreanOnly';
@@ -11,12 +12,11 @@ const PATH='/yeongnyangi/';
 const TITLE=`사주 보는 고양이 영냥이 | ${LOWEST_PRICE}부터 운세 상담 · ${siteSeo.brandName}`;
 const DESCRIPTION=`사주 보는 고양이 영냥이가 사주·자미두수·숙요·베다·점성술·타로 중 한 체계로 내 고민을 챕터별로 읽어 드려요. 고등어 상담 ${LOWEST_PRICE}부터, 결과는 내 상담에 보관돼요.`;
 const URL_=`https://code-destiny.com${PATH}`;
-const OG_IMAGE='https://code-destiny.com/assets/yeongnyangi/original/kakao-profile.png';
 export const metadata:Metadata={title:{absolute:TITLE},description:DESCRIPTION,
  keywords:['사주 보는 고양이','사주보는고양이','사주보는 고양이','영냥이','꿀꿀 운세','천원 운세'],
  alternates:{canonical:URL_},robots:{index:true,follow:true},
- openGraph:{type:'website',locale:'ko_KR',url:URL_,siteName:siteSeo.brandName,title:TITLE,description:DESCRIPTION,images:[{url:OG_IMAGE,width:800,height:800,alt:'사주 보는 고양이 영냥이'}]},
- twitter:{card:'summary_large_image',title:TITLE,description:DESCRIPTION,images:[OG_IMAGE]}};
+ openGraph:{type:'website',locale:'ko_KR',url:URL_,siteName:siteSeo.brandName,title:TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage]},
+ twitter:{card:'summary_large_image',title:TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage.url]}};
 const jsonLd=[
  buildWebPageJsonLd({title:TITLE,description:DESCRIPTION,path:PATH}),
  buildBreadcrumbJsonLd([{name:siteSeo.brandName,path:'/ggulggul/'},{name:'사주 보는 고양이 영냥이',path:PATH}]),

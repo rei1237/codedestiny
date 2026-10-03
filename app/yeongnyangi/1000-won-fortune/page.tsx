@@ -6,6 +6,7 @@ import {consultationChapterCounts} from '@/worker/yeongnyangi/fortune/consultati
 import {topicCatalog} from '@/worker/yeongnyangi/fortune/topics';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import {siteSeo} from '@/lib/seo/siteSeo';
+import {yeongnyangiOgImage} from '../_lib/share-image';
 import {buildBreadcrumbJsonLd,buildFaqPageJsonLd,buildServiceJsonLd,buildWebPageJsonLd} from '@/lib/structured-data';
 import styles from './page.module.css';
 import {SEO_READING_EXAMPLES} from '@/lib/seo-reading-examples';
@@ -23,8 +24,6 @@ import LocalizedGuideScreen from '../_components/LocalizedGuideScreen';
 // 🔴 무료 키워드는 꿀꿀 운세 랜딩(/saju/ 등)의 몫이다. 제목·H1·설명에 "무료"를 넣지 않는다.
 const PATH='/yeongnyangi/1000-won-fortune/';
 const PAGE_URL=`https://code-destiny.com${PATH}`;
-// Original hanji birth-chart illustration shared with the saju purchasing guide.
-const OG_IMAGE='https://code-destiny.com/assets/yeongnyangi/conversion/saju-pattern.webp';
 const DOMAINS:DomainId[]=['saju','ziwei','sukuyo','vedic','astrology','tarot'];
 const TIERS=['mackerel','salmon','flounder','tuna'] as const;
 const won=(amount:number)=>`${amount.toLocaleString('ko-KR')}원`;
@@ -74,8 +73,8 @@ export const metadata:Metadata={
  keywords:['천원 운세','천원운세','1000원 운세','1,000원 운세','천원사주','천원 사주풀이','1000원 사주','사주보는 고양이','영냥이'],
  alternates:{canonical:PAGE_URL},
  robots:{index:true,follow:true,googleBot:{index:true,follow:true,'max-image-preview':'large','max-snippet':-1,'max-video-preview':-1}},
- openGraph:{type:'website',locale:'ko_KR',url:PAGE_URL,siteName:siteSeo.brandName,title:OG_TITLE,description:DESCRIPTION,images:[{url:OG_IMAGE,width:800,height:800,alt:'사주보는 고양이 영냥이'}]},
- twitter:{card:'summary_large_image',title:OG_TITLE,description:DESCRIPTION,images:[OG_IMAGE]},
+ openGraph:{type:'website',locale:'ko_KR',url:PAGE_URL,siteName:siteSeo.brandName,title:OG_TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage]},
+ twitter:{card:'summary_large_image',title:OG_TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage.url]},
 };
 
 const jsonLd=[

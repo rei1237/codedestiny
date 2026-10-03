@@ -2,8 +2,10 @@ import type {FortuneRecord} from './api';
 import type {FreeReading} from '@/worker/yeongnyangi/fortune/free/categories';
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {shareCopy} from './share-copy';
+import {yeongnyangiOgImage} from './share-image';
 
-export const consultationShareImage='https://code-destiny.com/assets/yeongnyangi/hero.webp';
+// 카카오 feed imageUrl — webp 는 카카오 미리보기에서 빠질 수 있어 PNG 공유 카드를 쓴다.
+export const consultationShareImage=yeongnyangiOgImage.url;
 export const shareLimit=600;
 export type ShareChoice={id:string;label:string;question:string;text:string};
 export function resultShareUrl(row?:FortuneRecord,channel='copy'){

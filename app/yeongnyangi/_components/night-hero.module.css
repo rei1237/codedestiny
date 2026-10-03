@@ -1,6 +1,8 @@
 .hero{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:center;gap:24px;min-height:600px;padding:64px max(32px,calc((100% - 1080px)/2));overflow:hidden;background:var(--yn-deep)}
 .room{position:absolute;inset:0;z-index:-2}.room img{width:100%;height:100%;object-fit:cover;object-position:center}
 .hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,var(--yn-deep),transparent 30%),linear-gradient(90deg,#0b122033,transparent 75%)}
+.hero::before{content:"";position:absolute;top:0;right:0;z-index:-1;width:160px;height:120px;background:var(--yn-gold);opacity:.35;pointer-events:none;-webkit-mask:var(--yn-yehwa-mask-branch-spray) top right/contain no-repeat;mask:var(--yn-yehwa-mask-branch-spray) top right/contain no-repeat}
+@media(max-width:699px){.hero::before{width:110px;height:84px}}
 .copy{min-width:0}.copy h1{font-family:"Yeongnyangi Myeongjo",serif;font-size:clamp(2rem,3.6vw,3.3rem);line-height:1.45;letter-spacing:-.035em;margin:0 0 22px;color:var(--yn-ivory);text-wrap:balance}.copy h1 span{color:var(--yn-gold)}
 .copy>p{font-size:17px;line-height:1.85;color:var(--yn-muted);margin:0 0 28px;overflow-wrap:anywhere}
 .actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.actions a{display:inline-flex;gap:10px;align-items:center;justify-content:center;min-height:52px;padding:12px 18px;border-radius:12px;font-size:15px;font-weight:700;text-decoration:none;line-height:1.55;text-align:center}

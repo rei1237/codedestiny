@@ -8,12 +8,14 @@ const root = path.resolve(__dirname, "../..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
 test("사주 내부 진입은 SEO 페이지가 아닌 단일 직행 액션을 사용한다", () => {
+  const home = read("index.html");
   const registry = read("js/core/service-registry.js");
   const appHome = read("app/app/AppHomeClient.tsx");
   const homeSections = read("app/components/HomeServiceSections.tsx");
   const famousSaju = read("app/insights/famous-saju/[slug]/page.tsx");
   const profile = read("js/destiny-profile.js");
 
+  assert.match(home, /href="\/?\?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry" data-cd-service-id="saju"/);
   assert.match(registry, /id: "saju"[\s\S]*?href: "\/?\?action=cdOneStepFreeSajuEntry"[\s\S]*?action: "cdOneStepFreeSajuEntry"/);
   assert.match(appHome, /href="\/?\?action=cdOneStepFreeSajuEntry"/);
   assert.match(homeSections, /"\/saju\/basic": "\/?\?action=cdOneStepFreeSajuEntry"/);
