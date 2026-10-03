@@ -301,6 +301,11 @@ async function assertEssentials(page, label) {
     await member.locator('#nameInput').fill('꽃길 테스트');
     await member.locator('#birthDate').fill('1995-05-15');
     await member.locator('#birthDate').dispatchEvent('change');
+    if (!await member.locator('#birthTimeText').isVisible()) {
+      await member.locator('#cdMobileSajuDetailToggle').click();
+    }
+    await member.locator('#birthTimeText').fill('12:00');
+    await member.locator('#birthTimeText').blur();
     await member.locator('#dpSaveBtn').click();
     await member.waitForFunction(() => document.getElementById('dpMasterCard')?.textContent.includes('꽃길 테스트'), null, { timeout: 15000 });
     await member.locator('.cdh-input-return').click();
