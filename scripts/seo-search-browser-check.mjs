@@ -39,10 +39,8 @@ try {
     assert.ok(layout.scroll<=layout.width+2,JSON.stringify(layout));
     assert.ok(layout.documentWidth<=width+2,JSON.stringify(layout));
     await page.screenshot({path:join(artifactDir,`home-${width}.png`)});
-    // 무료 사주는 '모든 운세' 화면의 사주 카드로 들어간다(홈 #cdQuickServices 는 2026-10-03 삭제).
-    await page.waitForFunction(() => typeof window.cdOpenAllFortunes === 'function');
-    await page.evaluate(() => window.cdOpenAllFortunes());
-    const entry=page.locator('#cdAllFortunesResults a[data-action="cdOneStepFreeSajuEntry"]').first();
+    if(await page.locator('#cdhMore:not([open]) > summary').count())await page.locator('#cdhMore > summary').click();
+    const entry=page.locator('[data-cdh-free]').first();
     await entry.focus();
     await page.keyboard.press('Enter');
     await page.waitForTimeout(500);

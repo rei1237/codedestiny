@@ -205,6 +205,18 @@
       }
       return;
     }
+    // data-action 진입점(퀵 서비스 사주 카드)은 공용 디스패처가 실행한다. 여기서도 부르면 두 번 돈다.
+    var freeEntry = target.closest('[data-cdh-free]');
+    if (freeEntry && !freeEntry.hasAttribute('data-action')) {
+      event.preventDefault();
+      revealInput();
+      if (typeof window.cdOneStepFreeSajuEntry === 'function') window.cdOneStepFreeSajuEntry();
+      else if (form) {
+        form.scrollIntoView({ block: 'start' });
+        var firstInput = form.querySelector('input');
+        if (firstInput) firstInput.focus({ preventScroll: true });
+      }
+    }
     if (target.closest('#cdMobileBottomNav [data-nav-key="home"]')) {
       doc.classList.remove('cdh-input-open');
       home.hidden = false;
