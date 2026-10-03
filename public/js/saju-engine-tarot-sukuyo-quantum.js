@@ -2891,7 +2891,7 @@ function startThreeCardFlow() {
   
   var msgEl = document.getElementById('tarotRitualMsg');
   if (msgEl) {
-    msgEl.innerHTML = '🌀 세 장의 카드가 당신을 향해 흘러오고 있습니다...';
+    msgEl.innerHTML = '✦ 세 장의 카드가 당신을 향해 흘러오고 있습니다...';
     msgEl.style.opacity = 1;
   }
   // 명리 타로: 로컬 TAROT_DATA 사용 (타로 엔진 API 호출 없음)
@@ -3018,8 +3018,8 @@ function _runShowTarotFinalInterpretation() {
   var oracle = (readings[readings.length - 1] && readings[readings.length - 1].oracleMessage) || '';
   var aiPrompt = buildMyeongriTarotAiPrompt(cardsData, curTarotCat, labels, readings, advice, oracle);
   var interpretation = '' +
-    '<b style="color:#c4b5fd;font-size:1.02em">🔮 명리학 타로 세 장의 흐름</b><br>' +
-    '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">지나온 흐름, 현재의 결, 다음 선택 기준을 차례로 엮습니다.</span><br><br>' +
+    '<b style="color:#ead089;font-size:1.02em">🔮 명리학 타로 세 장의 흐름</b><br>' +
+    '<span style="opacity:0.9;color:#e3b4c6;line-height:1.85;">지나온 흐름, 현재의 결, 다음 선택 기준을 차례로 엮습니다.</span><br><br>' +
     realityPlan +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(167,243,208,0.35);border-radius:12px;background:rgba(5,150,105,0.10);">' +
       '<b style="color:#6ee7b7;font-size:1em">🪷 오늘의 조율 문장</b><br><br>' +
@@ -3028,7 +3028,7 @@ function _runShowTarotFinalInterpretation() {
   var oracleEl = document.getElementById('tarotOracleText');
   if (oracleEl) {
     oracleEl.innerHTML = oracle
-        ? '<div style="font-weight:700;color:#FFD700;margin-bottom:6px;letter-spacing:0.03em">✨ 봉인 오라클</div><span style="font-style:italic;line-height:1.8">"' + escapeTarotHtml(oracle) + '"</span>'
+        ? '<div style="font-weight:700;color:#ead089;margin-bottom:6px;letter-spacing:0.03em">✨ 봉인 오라클</div><span style="font-style:italic;line-height:1.8">"' + escapeTarotHtml(oracle) + '"</span>'
       : '';
     if (oracle) oracleEl.classList.add('show');
   }
@@ -3203,11 +3203,11 @@ function _runStartTarotReading() {
   var token = tarotLifecycleToken;
   
   // 1. 셔플 단계
-  msgEl.innerHTML = `🌀 카드가 질문의 결을 고르고 있습니다...`;
+  msgEl.innerHTML = `✦ 카드가 질문의 결을 고르고 있습니다...`;
   msgEl.style.opacity = 1;
   
-  // 카드 흔들림 효과
-  card.style.animation = 'cardShake 0.5s ease-in-out infinite';
+  // 카드 응축 효과 — 흔들림이 아니라 느리고 확신에 찬 스케일+들림(styles/fortune-ui.css @keyframes cardGather)
+  card.style.animation = 'cardGather 1.1s ease-in-out infinite';
   
   // 2초 후 뽑기
   tarotReadingTimer = setTimeout(function() {
@@ -3256,8 +3256,8 @@ function _runStartTarotReading() {
     var reading = combineTarotAndTenGod(picked, '', curTarotCat, isReversed ? 'reversed' : 'upright');
     var resultEl = document.getElementById('tarotResultContainer');
     if (resultEl) resultEl.classList.remove('is-empty');
-    var interpretation = '<b style="color:#ddd6fe;font-size:1.02em">🌙 명리학 타로 한 장 리딩</b><br>' +
-      '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">지금 필요한 선택을 차분히 정리해 드릴게요.</span><br><br>' +
+    var interpretation = '<b style="color:#ead089;font-size:1.02em">🌙 명리학 타로 한 장 리딩</b><br>' +
+      '<span style="opacity:0.9;color:#e3b4c6;line-height:1.85;">지금 필요한 선택을 차분히 정리해 드릴게요.</span><br><br>' +
       buildMyeongriTarotReadingHtml(reading, '오늘');
     streamRitualHtmlTyped(interpretation, 'destinyFortune', function() {
       if (token !== tarotLifecycleToken) return;
@@ -3265,7 +3265,7 @@ function _runStartTarotReading() {
       var oracleEl = document.getElementById('tarotOracleText');
       if (oracleEl) {
         oracleEl.innerHTML = advice
-          ? '<div style="font-weight:700;color:#FFD700;margin-bottom:6px;letter-spacing:0.03em">✨ 봉인 오라클</div><span style="font-style:italic;line-height:1.8">"' + escapeTarotHtml(advice) + '"</span>'
+          ? '<div style="font-weight:700;color:#ead089;margin-bottom:6px;letter-spacing:0.03em">✨ 봉인 오라클</div><span style="font-style:italic;line-height:1.8">"' + escapeTarotHtml(advice) + '"</span>'
           : '';
         if (advice) oracleEl.classList.add('show');
       }
@@ -3403,14 +3403,14 @@ function streamRitualHtmlTyped(htmlStr, targetId, onComplete) {
 
 function createGoldDust(element) {
   var rect = element.getBoundingClientRect();
-  for(var i=0; i<30; i++) {
+  for(var i=0; i<18; i++) {
     var dust = document.createElement('div');
     dust.className = 'gold-dust';
     dust.style.left = (Math.random() * rect.width) + 'px';
     dust.style.top = (Math.random() * rect.height) + 'px';
     dust.style.animationDelay = (Math.random() * 0.5) + 's';
     element.appendChild(dust);
-    setTimeout(() => dust.remove(), 2000); // 청소
+    setTimeout(() => dust.remove(), 2400); // 청소 — dustFloat 2.4s 와 맞춤
   }
 }
 
