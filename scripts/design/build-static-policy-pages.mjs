@@ -60,7 +60,7 @@ fs.writeFileSync('public/styles/static-policy.css', styles);
 for (const file of ['service-intro.css', 'service-intro-fonts.css']) {
   fs.copyFileSync(`app/about/${file}`, `public/styles/${file}`);
 }
-const introVersion = createHash('sha256').update(fs.readFileSync('app/about/service-intro.css')).digest('hex').slice(0, 12);
+const introVersion = createHash('sha256').update(fs.readFileSync('app/about/service-intro.css', 'utf8').replace(/\r\n?/g, '\n')).digest('hex').slice(0, 12);
 const cssVersion = createHash('sha256').update(styles).digest('hex').slice(0, 12);
 const contactSource = fs.readFileSync('js/static-policy-contact.js');
 const contactVersion = createHash('sha256').update(contactSource).digest('hex').slice(0, 12);
