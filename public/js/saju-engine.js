@@ -13350,6 +13350,31 @@ function renderAstroInsightLegacyNeon() {
       var bTitle = Number.isFinite(bNum) ? _houseMeta(bNum).title : _sajuEngineText("se_9647_prop_title");
       return text + ' (체감: ' + aTitle + ' / 큰 흐름: ' + bTitle + ')';
     }
+    /* Life Area chips carry one idea each: planet, sign, Placidus house. Whole Sign is
+       shown only when it disagrees, so identical "12H / 12H" pairs never repeat. */
+    var LIFE_PLANET_GLYPHS = { Sun:'☉', Moon:'☽', Mercury:'☿', Venus:'♀', Mars:'♂', Jupiter:'♃', Saturn:'♄', Uranus:'♅', Neptune:'♆', Pluto:'♇' };
+    var LIFE_SIGN_GLYPHS = ['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+    var LIFE_SIGN_NAMES = ['양자리','황소자리','쌍둥이자리','게자리','사자자리','처녀자리','천칭자리','전갈자리','사수자리','염소자리','물병자리','물고기자리'];
+    var lifePlacementByKey = {};
+    placementData.forEach(function(p){ lifePlacementByKey[p.key] = p; });
+    function _lifeHouseOf(pKey){
+      var p = lifePlacementByKey[pKey];
+      return p ? (p.hPlacidus || p.hWhole || null) : null;
+    }
+    function _lifeHouseText(pKey){
+      var h = _lifeHouseOf(pKey);
+      return h ? (h + '하우스') : '하우스 정보 없음';
+    }
+    function _lifeChip(pKey){
+      var p = lifePlacementByKey[pKey];
+      var glyph = LIFE_PLANET_GLYPHS[pKey] || '✦';
+      if(!p) return '<span class="astro-life-chip">'+glyph+' '+(planetKr[pKey] || pKey)+'</span>';
+      var h = p.hPlacidus || p.hWhole;
+      var note = (p.hPlacidus && p.hWhole && p.hPlacidus !== p.hWhole)
+        ? ' <small title="'+_houseDiffLine(p.hPlacidus, p.hWhole)+'">통하우스 '+p.hWhole+'</small>'
+        : '';
+      return '<span class="astro-life-chip">'+glyph+' '+planetKr[pKey]+' · '+LIFE_SIGN_GLYPHS[p.signIdx]+' '+LIFE_SIGN_NAMES[p.signIdx]+(h ? ' · '+h+'하우스' : '')+note+'</span>';
+    }
 
     var quickHouseFocusCount = {};
     placementData.forEach(function(p){
@@ -13453,21 +13478,13 @@ function renderAstroInsightLegacyNeon() {
       + '<p class="astro-birth-lead">핵심 요약 → 상세 해석 → 현실 조언 → 근거 칩 순서로, 각 삶의 영역을 따뜻하고 현실적으로 정리했습니다.</p>'
       + '<div class="astro-life-grid">'
       + LIFE_AREA_MAPPINGS.map(function(area){
-          var evidencePlanets = area.planets.slice(0, 3).map(function(pk){
-            var pm = _planetMeta(pk);
-            return '<span class="astro-life-chip">'+pm.icon+' '+pm.label+' '+_friendlyHousePair(_planetPairByKey(pk))+'</span>';
-          });
-          var evidenceHouses = area.houses.slice(0, 2).map(function(h){
-            var hm = _houseMeta(h);
-            return '<span class="astro-life-chip">'+hm.label+' '+hm.title+'</span>';
-          });
-          var evidence = evidencePlanets.concat(evidenceHouses).slice(0, 5).join('');
+          var evidence = area.planets.slice(0, 3).map(_lifeChip).join('');
 
           var body = (function(){
             if(area.key === 'identity'){
               return ''
                 + '<p><b>핵심 요약:</b> 나는 방향이 보일 때 에너지가 빠르게 살아나는 타입입니다. 생각을 오래 붙잡기보다 작은 실행으로 리듬을 만드는 편이 더 잘 맞아요.</p>'
-                + '<p><b>차트가 말하는 성향:</b> 태양 '+_friendlyHousePair(sunHousePair)+'과 수성 '+_friendlyHousePair(mercuryHousePair)+'은 의식적으로 추구하는 목표와 사고 방식이 서로 강하게 연결되어 있음을 보여줍니다. 상승궁 '+_friendlyHousePair(ascHousePair)+'은 처음에는 차분하고 단단한 인상을 만들지만, 가까워질수록 속의 열정이 분명해지는 흐름을 만듭니다. 혼자 있을 때는 머릿속 시뮬레이션이 길어질 수 있고, 그래서 시작 타이밍을 놓치면 스스로를 답답하게 느끼기 쉽습니다. 반대로 시작 버튼을 누르는 순간 집중력이 빠르게 붙고 존재감이 커집니다.</p>'
+                + '<p><b>차트가 말하는 성향:</b> 태양 '+_lifeHouseText('Sun')+'과 수성 '+_lifeHouseText('Mercury')+'은 의식적으로 추구하는 목표와 사고 방식이 서로 강하게 연결되어 있음을 보여줍니다. 상승궁 '+ascSign+'은 처음에는 차분하고 단단한 인상을 만들지만, 가까워질수록 속의 열정이 분명해지는 흐름을 만듭니다. 혼자 있을 때는 머릿속 시뮬레이션이 길어질 수 있고, 그래서 시작 타이밍을 놓치면 스스로를 답답하게 느끼기 쉽습니다. 반대로 시작 버튼을 누르는 순간 집중력이 빠르게 붙고 존재감이 커집니다.</p>'
                 + '<p><b>현실에서 나타나는 모습:</b> 사람들은 당신을 신중하고 믿을 만한 사람으로 먼저 인식합니다. 그러나 실제로는 결정을 내리면 꽤 빠르게 밀고 나가는 면이 드러납니다. 익숙한 환경에서는 리더십이 자연스럽게 올라오는 편입니다.</p>'
                 + '<p><b>잘 쓰면 장점이 되는 부분:</b> 목표를 구조화하고 우선순위를 정리하는 능력이 강한 무기입니다. 배운 내용을 바로 실전에 옮기는 감각도 좋아서, 경험치가 빠르게 쌓이는 타입입니다.</p>'
                 + '<p><b>조심해야 할 패턴:</b> 완벽한 준비를 기다리다가 착수 시점이 늦어질 수 있습니다. 스스로에게 엄격해질수록 자책이 커지니, 진행률로 자신을 평가하는 습관이 필요합니다.</p>'
@@ -13476,7 +13493,7 @@ function renderAstroInsightLegacyNeon() {
             if(area.key === 'emotion'){
               return ''
                 + '<p><b>핵심 요약:</b> 감정은 문제 해결보다 먼저 안정 루틴으로 다루는 것이 좋습니다. 마음이 쉬는 공간을 확보하면 관계와 일이 동시에 정리됩니다.</p>'
-                + '<p><b>차트가 말하는 성향:</b> 달 '+_friendlyHousePair(moonHousePair)+'은 감정이 섬세하게 작동하는 구조를 보여줍니다. 금성 '+_friendlyHousePair(venusHousePair)+'이 함께 강조되어, 관계의 말투와 분위기에 심리적 영향을 크게 받는 편입니다. 피곤할 때는 감정 설명보다 침묵이 먼저 나오기 쉬우므로, 스스로 상태를 먼저 이름 붙이는 과정이 중요합니다. 안정된 루틴이 있으면 정서 회복 속도가 빨라집니다.</p>'
+                + '<p><b>차트가 말하는 성향:</b> 달 '+_lifeHouseText('Moon')+'은 감정이 섬세하게 작동하는 구조를 보여줍니다. 금성 '+_lifeHouseText('Venus')+'이 함께 강조되어, 관계의 말투와 분위기에 심리적 영향을 크게 받는 편입니다. 피곤할 때는 감정 설명보다 침묵이 먼저 나오기 쉬우므로, 스스로 상태를 먼저 이름 붙이는 과정이 중요합니다. 안정된 루틴이 있으면 정서 회복 속도가 빨라집니다.</p>'
                 + '<p><b>현실에서 나타나는 모습:</b> 평소에는 부드럽고 배려 깊게 반응하지만, 누적 피로가 쌓이면 갑자기 거리감을 둘 수 있습니다. 가까운 사람일수록 작은 말투 차이를 더 크게 느끼는 경향이 있습니다.</p>'
                 + '<p><b>잘 쓰면 장점이 되는 부분:</b> 공감력과 정서 감지력이 뛰어나 사람의 상태를 빠르게 읽습니다. 팀이나 관계에서 분위기 조율자로 강점을 발휘할 수 있습니다.</p>'
                 + '<p><b>조심해야 할 패턴:</b> 감정을 오래 누르면 어느 순간 과하게 반응할 수 있습니다. 혼자서만 정리하려고 버티면 회복 시간이 길어집니다.</p>'
@@ -13485,7 +13502,7 @@ function renderAstroInsightLegacyNeon() {
             if(area.key === 'love'){
               return ''
                 + '<p><b>핵심 요약:</b> 연애는 끌림의 강도보다 표현 속도와 안정감 조율이 핵심입니다. 마음이 켜지는 순간과 불안해지는 순간을 같이 관리해야 오래 갑니다.</p>'
-                + '<p><b>차트가 말하는 성향:</b> 금성 '+_friendlyHousePair(venusHousePair)+'은 끌리는 스타일과 사랑의 언어를 보여주고, 화성 '+_friendlyHousePair(marsHousePair)+'은 먼저 다가가는 방식과 욕구의 방향을 보여줍니다. 달 '+_friendlyHousePair(moonHousePair)+'이 원하는 안정 방식과 속도가 맞지 않으면 오해가 커질 수 있습니다. 5하우스/7하우스 주제가 활성화될수록 설렘은 커지지만, 관계 운영력도 함께 요구됩니다.</p>'
+                + '<p><b>차트가 말하는 성향:</b> 금성 '+_lifeHouseText('Venus')+'은 끌리는 스타일과 사랑의 언어를 보여주고, 화성 '+_lifeHouseText('Mars')+'은 먼저 다가가는 방식과 욕구의 방향을 보여줍니다. 달 '+_lifeHouseText('Moon')+'이 원하는 안정 방식과 속도가 맞지 않으면 오해가 커질 수 있습니다. 5하우스/7하우스 주제가 활성화될수록 설렘은 커지지만, 관계 운영력도 함께 요구됩니다.</p>'
                 + '<p><b>현실에서 나타나는 모습:</b> 초반에는 호감 표현이 분명하지만, 상대 반응이 모호하면 빠르게 방어적으로 바뀔 수 있습니다. 신뢰가 생기면 헌신도가 높고 관계를 오래 지키려는 성향이 큽니다.</p>'
                 + '<p><b>잘 쓰면 장점이 되는 부분:</b> 진심을 행동으로 보여주는 힘이 큽니다. 서로의 리듬을 합의하면 깊고 안정적인 관계를 만들 수 있습니다.</p>'
                 + '<p><b>조심해야 할 패턴:</b> 마음 확인이 늦어지면 상상으로 결론을 내릴 수 있습니다. 표현을 참다가 한 번에 터뜨리는 방식은 피하는 편이 좋습니다.</p>'
@@ -13494,7 +13511,7 @@ function renderAstroInsightLegacyNeon() {
             if(area.key === 'career'){
               return ''
                 + '<p><b>핵심 요약:</b> 커리어는 단기 성과보다 신뢰 누적형 전략이 잘 맞습니다. 보이는 결과물과 루틴을 함께 관리할 때 성장 속도가 빨라집니다.</p>'
-                + '<p><b>차트가 말하는 성향:</b> MC '+mcSign+'와 10하우스 테마는 사회에서 인정받고 싶은 방향을 분명하게 보여줍니다. 토성 '+_friendlyHousePair(saturnHousePair)+'은 시간이 걸려도 실력을 굳히는 과제를 주고, 목성 '+_friendlyHousePair(jupiterHousePair)+'은 확장 기회를 열어 줍니다. 태양 '+_friendlyHousePair(sunHousePair)+'과 화성 '+_friendlyHousePair(marsHousePair)+'이 받쳐주면, 목표를 실행으로 전환하는 힘이 안정적으로 커집니다.</p>'
+                + '<p><b>차트가 말하는 성향:</b> MC '+mcSign+'와 10하우스 테마는 사회에서 인정받고 싶은 방향을 분명하게 보여줍니다. 토성 '+_lifeHouseText('Saturn')+'은 시간이 걸려도 실력을 굳히는 과제를 주고, 목성 '+_lifeHouseText('Jupiter')+'은 확장 기회를 열어 줍니다. 태양 '+_lifeHouseText('Sun')+'과 화성 '+_lifeHouseText('Mars')+'이 받쳐주면, 목표를 실행으로 전환하는 힘이 안정적으로 커집니다.</p>'
                 + '<p><b>현실에서 나타나는 모습:</b> 즉흥형 성과보다 시스템을 세팅할 때 강합니다. 혼자 집중할 때 결과물이 좋지만, 핵심 구간에서는 협업을 연결할 때 영향력이 더 커집니다.</p>'
                 + '<p><b>잘 쓰면 장점이 되는 부분:</b> 책임감, 지속성, 문제 해결력이 신뢰를 만듭니다. 반복 가능한 프로세스를 만들면 성과가 꾸준히 누적됩니다.</p>'
                 + '<p><b>조심해야 할 패턴:</b> 기준을 너무 높게 잡아 속도를 잃을 수 있습니다. 모든 일을 혼자 해결하려 하면 피로 누적이 빨라집니다.</p>'
@@ -13503,7 +13520,7 @@ function renderAstroInsightLegacyNeon() {
             if(area.key === 'money'){
               return ''
                 + '<p><b>핵심 요약:</b> 재정 운은 절약 하나보다 재능의 단가를 올리는 전략에서 더 크게 열립니다. 돈 흐름은 가치 설계와 연결되어 있습니다.</p>'
-                + '<p><b>차트가 말하는 성향:</b> 2하우스와 8하우스 축은 개인 수익과 공동 자원의 균형을 보여줍니다. 금성 '+_friendlyHousePair(venusHousePair)+'은 돈을 버는 감각과 취향 기반 수익화를, 목성 '+_friendlyHousePair(jupiterHousePair)+'은 확장 기회를 시사합니다. 토성 '+_friendlyHousePair(saturnHousePair)+'은 안정 자산을 만드는 데 필요한 규율을 강조합니다.</p>'
+                + '<p><b>차트가 말하는 성향:</b> 2하우스와 8하우스 축은 개인 수익과 공동 자원의 균형을 보여줍니다. 금성 '+_lifeHouseText('Venus')+'은 돈을 버는 감각과 취향 기반 수익화를, 목성 '+_lifeHouseText('Jupiter')+'은 확장 기회를 시사합니다. 토성 '+_lifeHouseText('Saturn')+'은 안정 자산을 만드는 데 필요한 규율을 강조합니다.</p>'
                 + '<p><b>현실에서 나타나는 모습:</b> 필요한 곳에는 과감하지만, 기준이 없는 지출에는 후회가 남기 쉽습니다. 목표가 명확할 때 저축과 투자의 집중력이 올라갑니다.</p>'
                 + '<p><b>잘 쓰면 장점이 되는 부분:</b> 돈의 흐름을 구조화하는 능력이 좋습니다. 가치가 명확한 분야에서는 수익화 속도가 빨라질 수 있습니다.</p>'
                 + '<p><b>조심해야 할 패턴:</b> 감정 소비나 과도한 낙관으로 계획이 흐트러질 수 있습니다. 단기 수익만 좇으면 피로가 커집니다.</p>'
@@ -13512,7 +13529,7 @@ function renderAstroInsightLegacyNeon() {
             if(area.key === 'growth'){
               return ''
                 + '<p><b>핵심 요약:</b> 성장은 편안함보다 약간의 불편함이 있는 구간에서 빠르게 일어납니다. 어렵게 느껴지는 과제가 장기 무기가 됩니다.</p>'
-                + '<p><b>차트가 말하는 성향:</b> 목성 '+_friendlyHousePair(jupiterHousePair)+'은 확장의 문을 열고, 토성 '+_friendlyHousePair(saturnHousePair)+'은 실력을 굳히는 책임을 줍니다. 명왕성 '+_friendlyHousePair(plutoHousePair)+'은 한 번 결심하면 삶의 체질을 바꾸는 깊은 변화를 유도합니다. 9하우스/10하우스/12하우스 주제가 함께 작동하면, 외적 성과와 내적 성숙이 동시에 요구됩니다.</p>'
+                + '<p><b>차트가 말하는 성향:</b> 목성 '+_lifeHouseText('Jupiter')+'은 확장의 문을 열고, 토성 '+_lifeHouseText('Saturn')+'은 실력을 굳히는 책임을 줍니다. 명왕성 '+_lifeHouseText('Pluto')+'은 한 번 결심하면 삶의 체질을 바꾸는 깊은 변화를 유도합니다. 9하우스/10하우스/12하우스 주제가 함께 작동하면, 외적 성과와 내적 성숙이 동시에 요구됩니다.</p>'
                 + '<p><b>현실에서 나타나는 모습:</b> 처음에는 느리게 출발해도, 한 번 방향을 잡으면 강하게 밀고 갑니다. 남들이 포기하는 구간에서 실력이 쌓이는 스타일입니다.</p>'
                 + '<p><b>잘 쓰면 장점이 되는 부분:</b> 장기 프로젝트에서 버티는 힘이 큽니다. 배운 것을 구조로 만들어 재사용하는 능력이 좋습니다.</p>'
                 + '<p><b>조심해야 할 패턴:</b> 성장통을 실패로 오해하면 중간에 동력이 꺼질 수 있습니다. 완벽한 타이밍만 기다리면 기회를 놓칠 수 있습니다.</p>'
@@ -13520,7 +13537,7 @@ function renderAstroInsightLegacyNeon() {
             }
             return ''
               + '<p><b>핵심 요약:</b> 내면 회복은 성과의 반대가 아니라 성과를 지키는 기반입니다. 감정 정리 시간이 있을수록 실행력이 오래 갑니다.</p>'
-              + '<p><b>차트가 말하는 성향:</b> 달 '+_friendlyHousePair(moonHousePair)+'과 해왕성 '+_friendlyHousePair(neptuneHousePair)+', 명왕성 '+_friendlyHousePair(plutoHousePair)+' 조합은 내면 감수성과 회복 루틴의 중요성을 강조합니다. 4하우스/8하우스/12하우스 테마가 강할수록 혼자 정리하는 시간이 필요하고, 깊은 감정은 천천히 해석하는 편이 안정적입니다. 잠깐 멈추는 선택이 오히려 다음 성과를 앞당기는 구조입니다.</p>'
+              + '<p><b>차트가 말하는 성향:</b> 달 '+_lifeHouseText('Moon')+'과 해왕성 '+_lifeHouseText('Neptune')+', 명왕성 '+_lifeHouseText('Pluto')+' 조합은 내면 감수성과 회복 루틴의 중요성을 강조합니다. 4하우스/8하우스/12하우스 테마가 강할수록 혼자 정리하는 시간이 필요하고, 깊은 감정은 천천히 해석하는 편이 안정적입니다. 잠깐 멈추는 선택이 오히려 다음 성과를 앞당기는 구조입니다.</p>'
               + '<p><b>현실에서 나타나는 모습:</b> 겉으로는 괜찮아 보여도 속에서 피로가 누적될 수 있습니다. 혼자 있을 때 감정 해상도가 높아지는 타입입니다.</p>'
               + '<p><b>잘 쓰면 장점이 되는 부분:</b> 통찰력, 직관, 공감의 깊이가 큽니다. 타인의 마음을 이해하는 능력이 관계 품질을 높여 줍니다.</p>'
               + '<p><b>조심해야 할 패턴:</b> 회복 없이 버티면 작은 일에도 쉽게 과부하가 옵니다. 모든 감정을 혼자 해석하려 하면 고립감이 커질 수 있습니다.</p>'
