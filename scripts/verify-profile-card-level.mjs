@@ -419,8 +419,10 @@ assert.ok(
   /다음 보상 · Lv\.\d+/.test(stripHtml) || stripHtml.includes("로그인 후 지급") || stripHtml.includes("모든 레벨 보상"),
   "보상 요약 문구가 비어 있습니다",
 );
-assert.ok(stripHtml.indexOf("data-dp-level-reward") > stripHtml.indexOf("EXP</div>"), "보상 줄이 EXP 바 아래가 아닙니다");
-assert.ok(stripHtml.indexOf("data-dp-level-reward") < stripHtml.indexOf("dpLvlQuests"), "보상 줄이 퀘스트 목록보다 뒤에 있습니다");
+assert.ok(stripHtml.indexOf("data-dp-level-reward") > stripHtml.indexOf('role="progressbar"'), "보상 줄이 경험치 바 아래가 아닙니다");
+assert.ok(stripHtml.indexOf("data-dp-level-reward") > stripHtml.indexOf('id="dpLvlQuests"'), "성장 실천 뒤에 별도로 보상 안내를 배치해야 합니다");
+assert.ok(stripHtml.includes('aria-expanded="true"'), "오늘의 실천은 처음부터 펼쳐 보여야 합니다");
+assert.ok(stripHtml.includes('계정 공통 성장'), "프로필별 성장으로 오해하지 않도록 안내해야 합니다");
 
 assert.equal(typeof CDLevel.openRewardSheet, "function", "보상 시트 진입점이 노출되지 않았습니다");
 CDLevel.openRewardSheet();

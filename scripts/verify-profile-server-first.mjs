@@ -127,7 +127,7 @@ async function runTarget(relPath) {
     await wait(BOOT_WAIT_MS);
     const html = env.card().innerHTML;
     check("세션검증 실패에도 /api/profile 이 호출된다", env.calls.some((c) => c.startsWith("/api/profile")), env.calls.join(", "));
-    check("서버 데이터로 카드가 렌더된다", html.includes("MY DESTINY CARD") && html.includes("회귀테스트"), html.slice(0, 160));
+    check("서버 데이터로 카드가 렌더된다", env.card().querySelector('.dp-mc-name')?.textContent === "회귀테스트", html.slice(0, 160));
   }
 
   // 2) /api/profile 실패 → 오류+재시도 카드 (빈 "새로 작성" 카드가 아니다)
@@ -167,7 +167,7 @@ async function runTarget(relPath) {
       await wait(BOOT_WAIT_MS);
       const after = env.calls.filter((c) => c.startsWith("/api/profile")).length;
       check("재시도가 새 서버 요청을 낸다", after > before, `${before} → ${after}`);
-      check("재시도 후 카드가 복구된다", el.innerHTML.includes("MY DESTINY CARD"), el.innerHTML.slice(0, 160));
+      check("재시도 후 카드가 복구된다", el.querySelector('.dp-mc-name')?.textContent === "회귀테스트", el.innerHTML.slice(0, 160));
     } else {
       check("재시도 핸들러(window.dpRetryProfileSync)가 노출된다", false);
     }

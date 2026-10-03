@@ -1763,6 +1763,32 @@
       "geomancy-oracle": "這件事的形勢有利還是不利？",
       "stonehenge-runes": "我現在站在什麼位置？",
       "luck-sync-diary": "這個月的走勢和記錄有多吻合？"
+    },
+    "myGarden": {
+      "title": "我的",
+      "growth": "我的成長",
+      "progress": "我的成長經驗值",
+      "open": "檔案 · 今日小行動",
+      "records": "我的記錄",
+      "usage": "使用管理",
+      "pass": "通行證 · 月光石",
+      "settings": "帳戶設定",
+      "garden": "我的月光花園",
+      "profileDescription": "了解自己，用日常習慣迎接好的變化。",
+      "emptyDescription": "建立檔案，開始了解自己的旅程。",
+      "next": "距下一級還需 {exp} 經驗",
+      "today": "今日行動 {done}/{total}",
+      "max": "已達到最高等級，繼續培養每日好習慣吧。",
+      "practice": "今日小行動",
+      "intro": "積累小行動，為積極的變化做好準備。",
+      "shared": "帳戶共同成長",
+      "done": "完成",
+      "feedback": "今天的小行動已記錄。",
+      "levelUp": "成長了一級，月光花園多了一抹花色。",
+      "streak": "已連續 {days} 天",
+      "profileTitle": "我的檔案卡",
+      "cheer": "今天也邁出一小步，我會為你加油。",
+      "mascotAlt": "捧著蓮花為你加油的花豬妍伊"
     }
   },
   "terms": {
