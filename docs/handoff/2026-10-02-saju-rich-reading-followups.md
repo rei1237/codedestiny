@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-02
-next: "docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 A1(일주 금 44% vs 막대 50%)부터 진행해줘"
+next: "docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 A3(일주 상세 분석 토글 상태 불일치)를 진행해줘"
 ---
 
 # 사주 결과 화면 — 범위 밖 후속 과제 모음
@@ -49,7 +49,8 @@ docs/handoff/2026-10-02-saju-rich-reading-followups.md 를 읽고 E1(47030b73d �
 - 할 일: 두 값의 출처를 찾는다. 후보는 `calcNatalElement` 계열과 막대 렌더의 반올림·분모(시주 포함 여부, 지장간 가중) 차이다. 어느 쪽이 정본인지 정하고 한쪽에 맞춘다.
 - 🔴 운세 엔진 계산(`calcPower`·`analyzeJohu` 등 `scripts/extract-saju-runtime.mjs` 추출 대상)을 바꾸면 RED 다. 그 경우 `--write` 재생성과 `__tests__/ui/yeongnyangi-reading-invariance.test.mjs` 해시 갱신이 따른다. 표시층에서 해결되는지 먼저 본다.
 
-**A2. 흐름(지금 시기) 0점 모순과 문단 중복** — GREEN. 실측.
+**A2. 흐름(지금 시기) 0점 모순과 문단 중복** — ✅ 완료 2026-10-03 (698a27cba). 톤 문단을 FLOW_NAMES 구간(at) 기준 세 갈래(0~1 care·2 even·3~4 open)로 고르고 정도 표현을 뺐다. 대운·세운이 같은 톤이면 문단을 한 번만 낸다. 테스트 1건 추가(0·50·100점, 두 모드 동시 care).
+- (아래는 원래 기록)
 - `js/core/saju/reading-rich.js:536` 의 `FLOW_NAMES` 에서 0점은 '조율이 많이 필요한 흐름'이다. 그런데 `:579` 는 `FLOW_TONE[good ? 'open' : 'care']` 두 갈래뿐이라 '조율이 조금 필요한 흐름으로 읽혀요…' 문단이 함께 나온다.
 - 대운 행과 세운 행이 둘 다 care 면 같은 `FLOW_TONE` 문단이 섹션 안에서 두 번 나온다.
 - 할 일: 문단 톤을 `at`(0~4 구간) 기준으로 고르거나 문구를 구간 중립으로 바꾼다. 같은 문단은 한 번만 나오게 한다.
