@@ -1300,8 +1300,15 @@
       if (sh <= ch || st + ch >= sh - 40) {
         levelUpShown = true;
         if (banner) {
+          var hideBanner = function () {
+            banner.classList.remove("is-visible");
+            banner.setAttribute("aria-hidden", "true");
+            banner.removeEventListener("click", hideBanner);
+          };
           banner.classList.add("is-visible");
           banner.setAttribute("aria-hidden", "false");
+          banner.addEventListener("click", hideBanner);
+          setTimeout(hideBanner, 2600);
         }
         triggerLevelUpConfetti();
       }

@@ -505,24 +505,33 @@
   opacity: 0;
   pointer-events: none;
   z-index: 100010;
-  transition: opacity 0.4s, transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: opacity 0.4s, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
   text-align: center;
+  width: min(88vw, 34rem);
+  box-sizing: border-box;
+  padding: 1.4rem 1.5rem;
+  border-radius: 20px;
+  border: 1px solid rgba(246,217,139,0.42);
+  background: rgba(10,28,34,0.9);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.45);
 }
 .tarot-self-esteem-levelup-banner.is-visible {
   opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
   transform: translate(-50%, -50%) scale(1);
 }
 .tarot-self-esteem-levelup-text {
-  font-size: clamp(2.8rem, 9vw, 5rem);
-  font-weight: 900;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b, #c084fc, #fbbf24);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  background-size: 200% auto;
-  animation: selfEsteemGradientShift 2s linear infinite;
-  filter: drop-shadow(0 0 30px rgba(251,191,36,0.6));
-  white-space: nowrap;
+  display: block;
+  font-family: "CodeDestinySerifKR", "CodeDestinyDisplay", serif;
+  font-size: clamp(1.5rem, 6.2vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: #f6d98b;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 @keyframes selfEsteemGradientShift {
   0% { background-position: 0% center; }
