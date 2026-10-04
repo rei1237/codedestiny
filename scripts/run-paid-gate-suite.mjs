@@ -280,13 +280,19 @@ async function main() {
     process.exit(1);
   }
   const requested = Number(arg("--jobs", ""));
+  // 기본 동시 실행 수 = min(코어, 남은 메모리 ÷ 1.5GiB), 최소 1. 항목마다 node 테스트 러너가 통째로 뜨므로
+  // 메모리를 넘겨 띄우면 OOM 으로 헛실패한다(2026-10-05 로컬: 남은 0.7GiB 에 6개 → OOM). 항목은 줄이지 않고
+  // 순서만 늦춘다 — 전부 돌린다(fail-closed). --jobs 를 주면 그 값을 그대로 쓴다.
+  const cpuJobs = Math.min(6, os.availableParallelism?.() ?? os.cpus().length);
+  const memJobs = Math.floor(os.freemem() / (1.5 * 2 ** 30));
   const jobs = Number.isFinite(requested) && requested >= 1
     ? Math.floor(requested)
-    : Math.max(2, Math.min(6, os.availableParallelism?.() ?? os.cpus().length));
+    : Math.max(1, Math.min(cpuJobs, memJobs));
+  const jobsWhy = Number.isFinite(requested) && requested >= 1 ? "--jobs" : `코어 ${cpuJobs} · 메모리 ${memJobs}`;
   const verbose = hasFlag("--verbose");
   const baseRef = arg("--base");
 
-  console.log(`[paid-gate-suite] ${entries.length}개 항목 · 동시 실행 ${jobs}${skip ? ` · 제외=${skip}` : ""}`);
+  console.log(`[paid-gate-suite] ${entries.length}개 항목 · 동시 실행 ${jobs}(${jobsWhy})${skip ? ` · 제외=${skip}` : ""}`);
   const wallStarted = Date.now();
 
   const results = await runPool(entries, jobs, ROOT, (entry, result) => {

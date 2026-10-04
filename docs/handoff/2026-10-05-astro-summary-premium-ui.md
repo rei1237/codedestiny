@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-05
-next: "새 세션 첫 문장: docs/handoff/2026-10-05-astro-summary-premium-ui.md 를 읽고 §0 시작 절차부터 진행하라."
+next: "완료. §6 결제 목록 전체 동기화는 사용자 승인 대기(§10 완료 기록 참고)."
 ---
 
 # 점성술 "차트 전체 요약" 서랍 고급화 + 낡은 결제 목록·범위 밖 결함 정리
@@ -216,3 +216,40 @@ next: "새 세션 첫 문장: docs/handoff/2026-10-05-astro-summary-premium-ui.m
 - `styles/fonts-serif.css`: CodeDestinySerifKR 700·Cinzel.
 - 결제: `worker/lib/paid-feature-registry.js:326`, `worker/lib/billing-feature-registry.js`, `scripts/audit-payment-p0-inventory.mjs`, `scripts/build-purchase-journey-review.mjs`, `scripts/report-paid-delivery-inventory.mjs`, `scripts/lib/paid-delivery-inventory.mjs`.
 - `scripts/run-paid-gate-suite.mjs`: §7-7.
+
+## 10. 완료 기록 (2026-10-05, 세션 67557dcb)
+
+- 커밋:
+  - 895f12892 토큰·제목
+  - 05af2f0a1 SVG 기호
+  - 08970543d 성도·압축 행
+  - 2f398309c 목성 호·연애 삼각
+  - 598f661ec 요약 문법 통일
+  - 21c9dd651 paid-gate-suite jobs(§7-7)
+  - 79d6e963f 시간 모름 ASC/MC/DSC 숨김(§7-2)
+  - e76e4c3c4 조사 헬퍼(§7-1)
+  - 3cb7ff19e "○○의 자리"(§7-3)
+  - 2867af8ea curProfData 삭제(§7-4)
+- 실측:
+  - 360·390·1280에서 오류 0, 넘침 0. 유료 게이트 4종은 모두 서랍 밖에 있다.
+  - 시간 앎·모름 두 프로필과 추가 6개 프로필의 전문 조사 스캔에서 실제 오류는 0건이다. 남은 검출은 인물·도시 이름 오탐이다.
+  - 점성술 node 테스트 35/35 통과.
+- §7-5: A는 캡처 한계라 기록만 했다. B는 프로브 인공물(외부 이미지 차단)이다. C는 2단계 무박스화로 해소했다.
+- §7-6은 보고만 했다.
+  - transits.js 의 `memo` 가 이미 같은 시각을 캐시한다. 공급자 `AstroEngine.lonsAtMs` 는 Swiss 황경 10개만 읽는다.
+  - 남은 호출은 모두 서로 다른 시각(일간 격자와 이분 탐색)이다.
+  - 더 줄이려면 보간이나 행성별 지연 계산이 필요하다. 보간은 결과를 바꾸고, 지연 계산은 공급자 계약을 바꾼다. 그래서 손대지 않았다.
+- §6은 실행하지 않았다(RED, 사용자 승인 대기). paid-gate-auditor 판정은 STOP이다.
+  - 생성기를 다시 돌리면 다른 상품 약 120개의 가격·행이 함께 바뀐다. 09-09·09-16·09-27 레지스트리 정책 변경이 목록에 반영되지 않은 채 쌓여 있기 때문이다. 내역은 p0 priceKRW 약 95건, purchase-journey 행 +34/−11과 가격 102건이다.
+  - purchase-journey `--check` 는 HEAD 에서 이미 실패하며, CI 는 이를 돌리지 않는다.
+  - 재생성해도 entrypoints 는 [] 로 남는다.
+  - 진행하려면 "전체 카탈로그 동기화"로 승인을 받아 깨끗한 트리에서 단독 커밋한다.
+  - 표시명은 "점성술 앞으로 12개월 흐름"(35바이트)을 권장한다. 재생성 전에 별도 커밋으로 바꾼다.
+- 범위 밖 후속 과제(보고만):
+  - 시간 모름일 때 정오 기준 하우스 주제 문구가 남아 있다. 히어로 "오늘의 중심 별"(sun.topic)과 요약 한 줄(topHouseMetaQuick)이다.
+  - 서랍 밖의 MC 언급(전문 표·counsel 본문 일부)과 차트 표의 ASC·MC 행.
+  - transit-reading 근거 줄 "출생 차트 N번째 집(하우스)"과 행성 위치 표 각주 "N번째".
+  - 사주 '을(를)'(28369·29616).
+  - 상단 바 이모지.
+  - check:fast 의 yeongnyangi-tarot-spread-v3 플래키.
+  - 1280 인용문의 한글 가짜 기울임.
