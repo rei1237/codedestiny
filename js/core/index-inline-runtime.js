@@ -1954,7 +1954,8 @@ var __cdLazyActionLoaders = {
   // 같은 계열의 버그 — 위 주석 참고).
   shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-b2ea98d3f343'); },
   shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-b2ea98d3f343'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-b2ea98d3f343'); }
+  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-b2ea98d3f343'); },
+  openSajuCompatArchive: function() { return __cdLoadScriptOnce('/js/saju-compat-archive.js?v=build-b1d1aa1db384'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
 var __cdLazyActionState = {};
@@ -2253,7 +2254,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-514bd939c9fd',
+    '/js/saju-engine.js?v=build-724dc2d4d330',
       '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
@@ -2414,8 +2415,8 @@ function __cdEnsureSajuCompatModules() {
   if (window.__cdSajuCompat) return Promise.resolve(window.__cdSajuCompat);
   if (__cdSajuCompatLoadPromise) return __cdSajuCompatLoadPromise;
   __cdSajuCompatLoadPromise = Promise.all([
-    import('/js/saju-compat-render.mjs?v=build-6fbeaac56a1c'),
-    import('/js/saju-compat-flow.mjs?v=build-c128fded5c07'),
+    import('/js/saju-compat-render.mjs?v=build-daa2f46690d8'),
+    import('/js/saju-compat-flow.mjs?v=build-e5f5ca749508'),
     import('/js/core/paid-narrative-reader.js?v=build-c9b681355666')
   ]).then(function(mods) {
     if (!window.CDPaidNarrativeReader || typeof window.CDPaidNarrativeReader.run !== 'function') {
@@ -3292,6 +3293,8 @@ var __cdRouteActionAllowList = {
   // 보관함·마이 탭 — 셸 시트(js/core/shell-sheet.js)를 연다.
   cdOpenLibrary: true,
   cdOpenAccount: true,
+  // 보관함 시트의 "사주 궁합 기록" — 저장된 스냅샷만 연다(LLM 호출 없음).
+  openSajuCompatArchive: true,
   openAnimalTotemModal: true,
   openSajuAnimalPage: true,
   openDestinyFlowerStudio: true,
@@ -8374,7 +8377,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-514bd939c9fd',
+      '/js/saju-engine.js?v=build-724dc2d4d330',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-cb3d1ad108ad'
   ];

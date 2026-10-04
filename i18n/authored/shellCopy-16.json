@@ -40,5 +40,19 @@
     "de": "Persönliche Beratung",
     "nl": "Persoonlijk advies",
     "ms": "Nasihat peribadi"
+  },
+  "home.gardenCopy.librarySajuCompat": {
+    "ko": "사주 궁합 기록",
+    "en": "Saju compatibility records",
+    "ja": "四柱推命の相性記録",
+    "zh-CN": "八字合盘记录",
+    "zh-TW": "八字合盤紀錄",
+    "vi": "Saju compatibility records",
+    "hi": "Saju compatibility records",
+    "es": "Saju compatibility records",
+    "fr": "Saju compatibility records",
+    "de": "Saju compatibility records",
+    "nl": "Saju compatibility records",
+    "ms": "Saju compatibility records"
   }
 }

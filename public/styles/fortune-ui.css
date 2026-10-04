@@ -4717,6 +4717,23 @@ body.neo-mode .cd-compat-snap .compat-energy-label{color:var(--cd-accent,#d8b4fe
 @keyframes cd-compat-flow-spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.cd-compat-flow-title::before{animation:none}}
 body.neo-mode .cd-compat-flow,body.neo-mode .cd-compat-flow-notice,body.neo-mode .cd-compat-flow-saved{background:var(--cd-surface,rgba(19,16,42,.96));border-color:var(--cd-border,rgba(196,181,253,.32));color:var(--cd-text,#f4eeff)}
+/* 보관함 "사주 궁합 기록" 시트(js/saju-compat-archive.js) — 목록·상세. 시트 색은 home-funnel.css 의 --cd-sheet-* 를 따른다. */
+@media (min-width:760px){.cd-sheet.cd-compat-archive{width:min(760px,calc(100vw - 48px))}}
+.cd-compat-archive__lead{margin:0 0 12px}
+.cd-compat-archive__list{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.cd-compat-archive__item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center;width:100%;min-height:64px;padding:12px 14px;border:1px solid var(--cd-sheet-line);border-radius:14px;background:var(--cd-sheet-surface,transparent);color:var(--cd-sheet-ink);font:inherit;text-align:left;cursor:pointer}
+.cd-compat-archive__item:hover{border-color:var(--cd-sheet-accent)}
+.cd-compat-archive__item:focus-visible,.cd-compat-archive__btn:focus-visible,.cd-compat-archive__cta:focus-visible{outline:2px solid var(--cd-sheet-accent);outline-offset:2px}
+.cd-compat-archive__item-title{grid-column:1;font-size:.95rem;font-weight:800;line-height:1.4;overflow-wrap:anywhere}
+.cd-compat-archive__item-meta{grid-column:1;color:var(--cd-sheet-muted,var(--cd-sheet-ink));font-size:.84rem;line-height:1.4}
+.cd-compat-archive__item-grade{grid-column:1;color:var(--cd-sheet-accent);font-size:.8rem;font-weight:700;line-height:1.4}
+.cd-compat-archive__item-open{grid-column:2;grid-row:1 / span 3;color:var(--cd-sheet-accent);font-size:.84rem;font-weight:800;white-space:nowrap}
+.cd-compat-archive__state{margin:8px 0 12px;color:var(--cd-sheet-ink);font-size:.95rem;line-height:1.65}
+.cd-compat-archive__btn,.cd-compat-archive__cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border:0;border-radius:999px;background:linear-gradient(135deg,#ff8ba7,#ff6b9d);color:#fff;font:inherit;font-size:.92rem;font-weight:800;text-decoration:none;cursor:pointer}
+.cd-compat-archive__btn--ghost{border:1px solid var(--cd-sheet-line);background:transparent;color:var(--cd-sheet-ink)}
+.cd-compat-archive__detail-head{margin:0 0 10px}
+.cd-compat-archive__note{margin:0 0 12px;color:var(--cd-sheet-muted,var(--cd-sheet-ink));font-size:.84rem;line-height:1.55}
+@media (max-width:759px){.cd-compat-archive__item{grid-template-columns:minmax(0,1fr)}.cd-compat-archive__item-open{grid-column:1;grid-row:auto;justify-self:start}}
 /* ═══ 전생 인연 카드 ═══ */
 .pastlife-card{background:linear-gradient(160deg,#1A0533,#2D0B5E,#1A0A3B);border:1.5px solid rgba(186,104,200,.35);border-radius:18px;padding:20px 18px;margin-top:10px;position:relative;overflow:hidden}
 .pastlife-card::before{content:'';position:absolute;top:-30px;right:-20px;width:180px;height:180px;background:radial-gradient(circle,rgba(186,104,200,.2),transparent 70%);pointer-events:none}
@@ -17179,7 +17196,8 @@ body.neo-mode #resultPage #summaryArea .saju-summary-toggle {
 }
 
 /* ═══ 궁합 장문 리포트 ═══ */
-#resultPage #compatResult .compat-wrap {
+#resultPage #compatResult .compat-wrap,
+.cd-compat-archive .compat-wrap {
   color: var(--cd-text, #3c1830);
   font-family: var(--font-body, 'Pretendard', 'Malgun Gothic', sans-serif);
   font-size: max(1rem, 16px);
@@ -17187,8 +17205,11 @@ body.neo-mode #resultPage #summaryArea .saju-summary-toggle {
   letter-spacing: -0.01em;
 }
 #resultPage #compatResult .compat-section,
+.cd-compat-archive .compat-section,
 #resultPage #compatResult .compat-fact-box,
-#resultPage #compatResult .compat-advice-box {
+.cd-compat-archive .compat-fact-box,
+#resultPage #compatResult .compat-advice-box,
+.cd-compat-archive .compat-advice-box {
   border: 1px solid var(--cd-border, rgba(216,63,120,.16));
   border-radius: var(--cd-r-md, 16px);
   background: var(--cd-surface, rgba(255,255,255,.96));
@@ -17196,14 +17217,18 @@ body.neo-mode #resultPage #summaryArea .saju-summary-toggle {
   box-shadow: var(--cd-elev-0, 0 4px 12px rgba(150,72,104,.07));
 }
 #resultPage #compatResult .compat-section-title,
+.cd-compat-archive .compat-section-title,
 #resultPage #compatResult .compat-fact-title,
-#resultPage #compatResult .compat-advice-title {
+.cd-compat-archive .compat-fact-title,
+#resultPage #compatResult .compat-advice-title,
+.cd-compat-archive .compat-advice-title {
   color: var(--cd-accent, #b31955);
   font-family: var(--font-display, var(--font-body));
   font-size: 1.08rem;
   line-height: 1.45;
 }
-#resultPage #compatResult .compat-check-item {
+#resultPage #compatResult .compat-check-item,
+.cd-compat-archive .compat-check-item {
   align-items: flex-start;
   min-width: 0;
   padding: 13px 0;
@@ -17211,81 +17236,101 @@ body.neo-mode #resultPage #summaryArea .saju-summary-toggle {
   font-size: 1rem;
   line-height: 1.78;
 }
-#resultPage #compatResult .compat-check-item > span:last-child {
+#resultPage #compatResult .compat-check-item > span:last-child,
+.cd-compat-archive .compat-check-item > span:last-child {
   min-width: 0;
 }
-#resultPage #compatResult .compat-check-reason {
+#resultPage #compatResult .compat-check-reason,
+.cd-compat-archive .compat-check-reason {
   display: block;
   margin-bottom: .32em;
   color: var(--cd-text, #3c1830);
 }
-#resultPage #compatResult .compat-check-detail {
+#resultPage #compatResult .compat-check-detail,
+.cd-compat-archive .compat-check-detail {
   display: block;
   color: var(--cd-text-muted, #70445c);
   font-size: .92rem;
   line-height: 1.7;
 }
-#resultPage #compatResult .compat-love-grid {
+#resultPage #compatResult .compat-love-grid,
+.cd-compat-archive .compat-love-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
-#resultPage #compatResult .compat-love-card {
+#resultPage #compatResult .compat-love-card,
+.cd-compat-archive .compat-love-card {
   min-width: 0;
   padding: 16px;
   border: 1px solid var(--cd-border, rgba(216,63,120,.16));
   border-radius: 13px;
   background: var(--cd-surface-2, rgba(255,247,250,.84));
 }
-#resultPage #compatResult .compat-love-card h4 {
+#resultPage #compatResult .compat-love-card h4,
+.cd-compat-archive .compat-love-card h4 {
   margin: 0 0 9px;
   color: var(--cd-accent, #b31955);
   font-family: var(--font-display, var(--font-body));
   font-size: 1rem;
   line-height: 1.45;
 }
-#resultPage #compatResult .compat-love-card p {
+#resultPage #compatResult .compat-love-card p,
+.cd-compat-archive .compat-love-card p {
   margin: 0 0 1em;
   color: var(--cd-text, #3c1830);
   font-size: 1rem;
   line-height: 1.78;
 }
-#resultPage #compatResult .compat-love-card p:last-child { margin-bottom: 0; }
-#resultPage #compatResult .pastlife-reflection {
+#resultPage #compatResult .compat-love-card p:last-child,
+.cd-compat-archive .compat-love-card p:last-child { margin-bottom: 0; }
+#resultPage #compatResult .pastlife-reflection,
+.cd-compat-archive .pastlife-reflection {
   margin-top: 16px;
   padding: 17px;
   border: 1px solid rgba(186,104,200,.38);
   border-radius: 14px;
   background: color-mix(in srgb, #8b5cf6 13%, var(--cd-surface, #fff));
 }
-#resultPage #compatResult .pastlife-reflection h4 {
+#resultPage #compatResult .pastlife-reflection h4,
+.cd-compat-archive .pastlife-reflection h4 {
   margin: 0 0 8px;
   color: var(--cd-accent, #b31955);
   font-family: var(--font-display, var(--font-body));
   font-size: 1.02rem;
 }
-#resultPage #compatResult .pastlife-reflection p {
+#resultPage #compatResult .pastlife-reflection p,
+.cd-compat-archive .pastlife-reflection p {
   margin: 0 0 1em;
   font-size: 1rem;
   line-height: 1.78;
 }
-#resultPage #compatResult .pastlife-reflection ul {
+#resultPage #compatResult .pastlife-reflection ul,
+.cd-compat-archive .pastlife-reflection ul {
   margin: .6em 0 0 1.25em;
   padding: 0;
 }
 body.neo-mode #resultPage #compatResult .compat-section,
+body.neo-mode .cd-compat-archive .compat-section,
 body.neo-mode #resultPage #compatResult .compat-fact-box,
+body.neo-mode .cd-compat-archive .compat-fact-box,
 body.neo-mode #resultPage #compatResult .compat-advice-box,
-body.neo-mode #resultPage #compatResult .compat-love-card {
+body.neo-mode .cd-compat-archive .compat-advice-box,
+body.neo-mode #resultPage #compatResult .compat-love-card,
+body.neo-mode .cd-compat-archive .compat-love-card {
   background: var(--cd-surface, rgba(19,16,42,.96));
   border-color: var(--cd-border, rgba(196,181,253,.32));
 }
 body.neo-mode #resultPage #compatResult .compat-check-item,
+body.neo-mode .cd-compat-archive .compat-check-item,
 body.neo-mode #resultPage #compatResult .compat-check-reason,
-body.neo-mode #resultPage #compatResult .compat-love-card p {
+body.neo-mode .cd-compat-archive .compat-check-reason,
+body.neo-mode #resultPage #compatResult .compat-love-card p,
+body.neo-mode .cd-compat-archive .compat-love-card p {
   color: var(--cd-text, #f4eeff);
 }
-body.neo-mode #resultPage #compatResult .compat-check-detail {
+body.neo-mode #resultPage #compatResult .compat-check-detail,
+body.neo-mode .cd-compat-archive .compat-check-detail {
   color: var(--cd-text-muted, rgba(200,170,255,.7));
 }
 @media (max-width: 640px) {
@@ -17295,10 +17340,14 @@ body.neo-mode #resultPage #compatResult .compat-check-detail {
   #resultPage #summaryArea .saju-summary-chapter__body { font-size: 1rem; line-height: 1.75; }
   #resultPage #summaryArea .saju-summary-kv { grid-template-columns: 5.1rem minmax(0, 1fr); gap: 8px; }
   #resultPage #summaryArea .saju-reading-depth { padding: 14px 13px; }
-  #resultPage #compatResult .compat-love-grid { grid-template-columns: 1fr; }
+  #resultPage #compatResult .compat-love-grid,
+  .cd-compat-archive .compat-love-grid { grid-template-columns: 1fr; }
   #resultPage #compatResult .compat-section,
+  .cd-compat-archive .compat-section,
   #resultPage #compatResult .compat-fact-box,
-  #resultPage #compatResult .compat-advice-box { padding: 15px 14px; }
+  .cd-compat-archive .compat-fact-box,
+  #resultPage #compatResult .compat-advice-box,
+  .cd-compat-archive .compat-advice-box { padding: 15px 14px; }
   #resultPage #sajuCard .pillar { padding: 8px 3px 10px; }
   #resultPage #sajuCard .pillar-head { font-size: .78rem; }
   #resultPage #sajuCard .pillar-head small { font-size: .64rem; }

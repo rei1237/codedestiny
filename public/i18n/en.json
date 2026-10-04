@@ -1701,7 +1701,8 @@
       "yeoniRoom": "Destiny Tea House",
       "yeoniRoomNote": "Talk things through with Yeoni",
       "neoRoom": "Neo’s strategy room",
-      "neoRoomNote": "Find your next step with Neo"
+      "neoRoomNote": "Find your next step with Neo",
+      "librarySajuCompat": "Saju compatibility records"
     },
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
@@ -20229,6 +20230,28 @@
       "revoked": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
       "retry": "Continue loading the AI reading",
       "moduleFail": "Couldn't load the AI reading screen. No payment was made. Please try again shortly."
+    },
+    "archive": {
+      "title": "Saju compatibility records",
+      "lead": "Your paid Saju compatibility results are kept exactly as they were. Reopening one never costs extra or generates anything new.",
+      "loading": "Loading your records…",
+      "empty": "No Saju compatibility results are saved yet.",
+      "login": "Sign in to see your saved Saju compatibility records.",
+      "loginCta": "Sign in",
+      "error": "Couldn't load your records. Please try again shortly.",
+      "retry": "Try again",
+      "back": "← Back to list",
+      "close": "Close",
+      "itemTitle": "{type} — {name}",
+      "itemMeta": "{date} · {score} pts",
+      "itemDate": "{date}",
+      "itemOpen": "Open",
+      "itemAria": "Open Saju compatibility result for {name}",
+      "revoked": "A result for a cancelled or refunded payment can't be opened.",
+      "notFound": "We couldn't find this record.",
+      "unreadable": "This record can't be shown on this screen right now. Please contact support.",
+      "detailNote": "This is a saved result. Reopening it doesn't call the AI again and costs nothing extra.",
+      "duplicate": "A Saju compatibility result with the same conditions (your chart, partner name and type) is already saved in your library.\n\n[OK] Pay again and view a new reading\n[Cancel] Open the saved result in your library"
     }
   }
 }

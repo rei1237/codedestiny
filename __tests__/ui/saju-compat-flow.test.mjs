@@ -5,7 +5,8 @@ import { requestBody, samplePairs } from '../fixtures/saju-compat-llm-fixture.mj
 import { normalizeSajuCompatInput } from '../../worker/lib/saju-compat-schema.js';
 import {
   buildSajuCompatBody, captureSajuCompatEvidence, createSajuCompatPendingStore, newSajuCompatRequestId, pillarsToWire,
-  runSajuCompatGeneration, sajuCompatEvidenceFromGrant, sajuCompatFailureKey, sajuCompatInputKey, SAJU_COMPAT_PENDING_TTL_MS,
+  classifySajuCompatArchiveReply, findSajuCompatDuplicate, normalizeSajuCompatArchiveItems, runSajuCompatGeneration, sajuCompatArchiveDetailPath,
+  sajuCompatEvidenceFromGrant, sajuCompatFailureKey, sajuCompatInputKey, SAJU_COMPAT_ARCHIVE_PATH, SAJU_COMPAT_PENDING_TTL_MS,
 } from '../../js/saju-compat-flow.mjs';
 import { SAJU_COMPAT_KO } from '../../js/saju-compat-render.mjs';
 
@@ -166,4 +167,43 @@ test('실패 코드별 안내 문구 키는 모두 번역 정본(SAJU_COMPAT_KO)
   for (const code of ['REVOKED', 'REVIEW_REQUIRED', 'INPUT_MISMATCH', 'NOT_FOUND', 'PAYMENT_UNCONFIRMED', 'AUTH', 'TRANSPORT', 'INTERRUPTED', 'EMPTY']) {
     assert.ok(SAJU_COMPAT_KO[sajuCompatFailureKey(code)], code);
   }
+});
+
+const archiveRow = (id, createdAt, extra = {}) => ({ resultId: id, createdAt, generatedAt: createdAt, compatType: 'love', partnerName: '하늘', selfKey: '甲子 乙丑 丙寅 丁卯', partnerKey: '戊辰 己巳 庚午 辛未', score: 71, grade: 'B', pastLifeGrade: 'C', ...extra });
+
+test('보관함 경로와 응답 분류: 401 로그인·403 철회·404 없음·본문 이상·그 밖 오류를 가른다', () => {
+  assert.equal(SAJU_COMPAT_ARCHIVE_PATH, '/api/saju-compat-basic/archive');
+  assert.equal(sajuCompatArchiveDetailPath('exec/1 2'), '/api/saju-compat-basic/archive/exec%2F1%202');
+  assert.deepEqual(classifySajuCompatArchiveReply({ status: 401, payload: {} }, 'list'), { state: 'login' });
+  assert.deepEqual(classifySajuCompatArchiveReply({ status: 403, payload: { ok: false, reason: 'PAYMENT_REVOKED' } }, 'detail'), { state: 'revoked' });
+  assert.deepEqual(classifySajuCompatArchiveReply({ status: 404, payload: {} }, 'detail'), { state: 'notFound' });
+  assert.deepEqual(classifySajuCompatArchiveReply({ status: 200, payload: { ok: true, resultId: 'r1', createdAt: '2026-10-04T01:00:00Z', result: { schemaVersion: 1 } } }, 'detail'),
+    { state: 'detail', resultId: 'r1', createdAt: '2026-10-04T01:00:00Z', result: { schemaVersion: 1 } });
+  assert.deepEqual(classifySajuCompatArchiveReply({ status: 200, payload: { ok: true, resultId: 'r1' } }, 'detail'), { state: 'unreadable' });
+  assert.deepEqual(classifySajuCompatArchiveReply({ status: 503, payload: { ok: false, retryable: true } }, 'list'), { state: 'error', retryable: true });
+  assert.deepEqual(classifySajuCompatArchiveReply({ status: 500, payload: { ok: false, retryable: false } }, 'list'), { state: 'error', retryable: false });
+  assert.deepEqual(classifySajuCompatArchiveReply({ status: 0, payload: {} }, 'list'), { state: 'error', retryable: true });
+  assert.equal(classifySajuCompatArchiveReply({ status: 200, payload: { ok: true, items: [archiveRow('a', '2026-10-01T00:00:00Z')] } }, 'list').items.length, 1);
+});
+
+test('보관함 목록 정규화: resultId 없는 행은 버리고 최신순으로 두며 점수는 숫자·없으면 null', () => {
+  const items = normalizeSajuCompatArchiveItems([
+    archiveRow('old', '2026-10-01T00:00:00Z'), null, { createdAt: '2026-10-09T00:00:00Z' },
+    archiveRow('new', '2026-10-03T00:00:00Z', { score: null }), archiveRow('mid', '2026-10-02T00:00:00Z', { score: '88' }),
+  ]);
+  assert.deepEqual(items.map((item) => item.resultId), ['new', 'mid', 'old']);
+  assert.deepEqual(items.map((item) => item.score), [null, 88, 71]);
+  assert.deepEqual(normalizeSajuCompatArchiveItems(undefined), []);
+});
+
+test('결제 전 중복 판정: 내 사주·유형·상대 이름이 같은 가장 최근 결과만 돌려주고, 기둥이 없으면 null', () => {
+  const items = [archiveRow('older', '2026-10-01T00:00:00Z'), archiveRow('newer', '2026-10-02T00:00:00Z'),
+    archiveRow('other-type', '2026-10-03T00:00:00Z', { compatType: 'friend' }), archiveRow('other-name', '2026-10-03T00:00:00Z', { partnerName: '바다' }),
+    archiveRow('other-self', '2026-10-03T00:00:00Z', { selfKey: '癸亥 乙丑 丙寅 丁卯' })];
+  const self = enginePillars('甲子 乙丑 丙寅 丁卯');
+  assert.equal(findSajuCompatDuplicate(items, { selfPillars: self, compatType: 'love', partnerName: '하늘' }).resultId, 'newer');
+  assert.equal(findSajuCompatDuplicate(items, { selfPillars: self, compatType: 'friend', partnerName: '하늘' }).resultId, 'other-type');
+  assert.equal(findSajuCompatDuplicate(items, { selfPillars: self, compatType: 'business', partnerName: '하늘' }), null);
+  assert.equal(findSajuCompatDuplicate(items, { selfPillars: {}, compatType: 'love', partnerName: '하늘' }), null);
+  assert.equal(findSajuCompatDuplicate([], { selfPillars: self, compatType: 'love', partnerName: '하늘' }), null);
 });

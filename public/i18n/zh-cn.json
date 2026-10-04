@@ -1701,7 +1701,8 @@
       "yeoniRoom": "命运茶馆",
       "yeoniRoomNote": "和妍伊一起慢慢理清心事",
       "neoRoom": "尼奥策略室",
-      "neoRoomNote": "和尼奥一起理清下一步"
+      "neoRoomNote": "和尼奥一起理清下一步",
+      "librarySajuCompat": "八字合盘记录"
     },
     "chatEntry": {
       "title": "向 Yeoni 和 Neo 问出此刻最想知道的一件事",
@@ -20229,6 +20230,28 @@
       "revoked": "已取消或退款的付款无法继续生成结果。以下为基础解读。",
       "retry": "继续加载 AI 解读",
       "moduleFail": "未能加载 AI 解读界面，未产生任何付款。请稍后再试。"
+    },
+    "archive": {
+      "title": "八字合盘记录",
+      "lead": "您已付费的八字合盘结果会原样保存。再次打开不会产生额外费用，也不会重新生成。",
+      "loading": "正在加载记录…",
+      "empty": "还没有已保存的八字合盘结果。",
+      "login": "登录后即可查看已保存的八字合盘记录。",
+      "loginCta": "去登录",
+      "error": "未能加载记录，请稍后再试。",
+      "retry": "重新加载",
+      "back": "← 返回列表",
+      "close": "关闭",
+      "itemTitle": "{type} — {name}",
+      "itemMeta": "{date} · {score}分",
+      "itemDate": "{date}",
+      "itemOpen": "查看",
+      "itemAria": "打开与{name}的八字合盘结果",
+      "revoked": "已取消或退款的付款，其结果无法打开。",
+      "notFound": "找不到这条记录。",
+      "unreadable": "这条记录目前无法在此界面打开，请联系客服。",
+      "detailNote": "这是已保存的结果。再次打开不会重新调用 AI，也无需额外付费。",
+      "duplicate": "收藏夹中已有按相同条件（您的八字、对方姓名、合盘类型）保存的八字合盘结果。\n\n[确定] 重新付费并再看一次\n[取消] 打开收藏夹中已保存的结果"
     }
   }
 }

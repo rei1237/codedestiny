@@ -184,3 +184,70 @@ export async function runSajuCompatGeneration({ reader, body, post, get, wait, a
     return classifyFailure(last, resultId);
   }
 }
+
+// ─── 보관함: 저장된 스냅샷 목록·열람(LLM 호출 없음) ───────────────────────────────────────────
+export const SAJU_COMPAT_ARCHIVE_PATH = "/api/saju-compat-basic/archive";
+
+export function sajuCompatArchiveDetailPath(resultId) {
+  return `${SAJU_COMPAT_ARCHIVE_PATH}/${encodeURIComponent(text(resultId))}`;
+}
+
+const timeOf = (value) => {
+  const ms = Date.parse(text(value));
+  return Number.isFinite(ms) ? ms : 0;
+};
+
+/** 목록 응답의 items 를 화면용으로 고른다: resultId 없는 행은 버리고, 필드는 문자열·숫자로 굳히고, 최신순으로 둔다. */
+export function normalizeSajuCompatArchiveItems(items) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .filter((item) => item && typeof item === "object" && text(item.resultId))
+    .map((item) => ({
+      resultId: text(item.resultId),
+      createdAt: text(item.createdAt),
+      generatedAt: text(item.generatedAt),
+      compatType: text(item.compatType),
+      partnerName: text(item.partnerName),
+      selfKey: text(item.selfKey),
+      partnerKey: text(item.partnerKey),
+      score: Number.isFinite(Number(item.score)) && item.score !== null && item.score !== "" ? Number(item.score) : null,
+      grade: text(item.grade),
+      pastLifeGrade: text(item.pastLifeGrade),
+    }))
+    .sort((a, b) => timeOf(b.createdAt) - timeOf(a.createdAt));
+}
+
+/**
+ * 보관함 응답({status,payload}) → 화면 상태. 던지지 않는다.
+ * 목록: {state:"list",items} · 상세: {state:"detail",resultId,createdAt,result}
+ * 공통 실패: login(401) · revoked(403 PAYMENT_REVOKED) · notFound(404) · unreadable(본문이 스냅샷이 아님) · error(그 밖, retryable)
+ */
+export function classifySajuCompatArchiveReply(reply, kind) {
+  const status = Number(reply?.status) || 0;
+  const payload = reply?.payload && typeof reply.payload === "object" ? reply.payload : {};
+  if (status === 401) return { state: "login" };
+  if (status === 403 && payload.reason === "PAYMENT_REVOKED") return { state: "revoked" };
+  if (status === 404) return { state: "notFound" };
+  if (status >= 200 && status < 300 && payload.ok) {
+    if (kind === "detail") {
+      if (payload.result && typeof payload.result === "object") {
+        return { state: "detail", resultId: text(payload.resultId), createdAt: text(payload.createdAt), result: payload.result };
+      }
+      return { state: "unreadable" };
+    }
+    return { state: "list", items: normalizeSajuCompatArchiveItems(payload.items) };
+  }
+  return { state: "error", retryable: payload.retryable !== false };
+}
+
+/**
+ * 결제 전 중복 안내용: 같은 내 사주·유형·상대 이름으로 이미 저장된 결과가 있으면 가장 최근 것을 돌려준다.
+ * 상대 기둥은 결제 전 폼 값으로는 알 수 없어(서버가 계산) 이름까지만 비교하는 근사다 — 안내일 뿐 결제를 막지 않는다.
+ */
+export function findSajuCompatDuplicate(items, { selfPillars, compatType, partnerName }) {
+  const selfKey = PILLAR_KEYS.map((key) => `${text(selfPillars?.[key]?.g)}${text(selfPillars?.[key]?.j)}`).join(" ");
+  const name = Array.from(text(partnerName)).slice(0, PARTNER_NAME_MAX).join("");
+  const type = text(compatType) || "love";
+  if (!selfKey.replace(/ /g, "")) return null;
+  return normalizeSajuCompatArchiveItems(items).find((item) => item.selfKey === selfKey && item.compatType === type && item.partnerName === name) || null;
+}

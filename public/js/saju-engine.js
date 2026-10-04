@@ -29414,9 +29414,9 @@ function _seSajuCompatWaitVisible() {
 }
 
 /* 생성 전송: fetchJsonWithAuth 의 9초 제한은 LLM POST 에 짧다 — 요가 구루처럼 일반 fetch(POST 90초·GET 22초)를 쓴다. */
-async function _seSajuCompatSend(method, path, body) {
+async function _seSajuCompatSend(method, path, body, timeoutMs) {
   var controller = new AbortController();
-  var timer = setTimeout(function() { controller.abort(); }, method === 'POST' ? 90000 : 22000);
+  var timer = setTimeout(function() { controller.abort(); }, timeoutMs || (method === 'POST' ? 90000 : 22000));
   var headers = { 'Content-Type': 'application/json' };
   var token = getFortuneAuthToken();
   if (token) headers.Authorization = 'Bearer ' + token;
@@ -29434,6 +29434,31 @@ async function _seSajuCompatSend(method, path, body) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+/* 결제 전 중복 안내: 같은 내 사주·유형·상대 이름으로 저장된 결과가 이미 있으면 한 번 알린다. 반환 true = 사용자가 "저장된 결과 열기"를 골랐다.
+   비로그인·조회 실패·지연이면 조용히 건너뛴다 — 안내일 뿐 결제를 막지 않고, 새로 결제하면 새 구매다. */
+async function _seSajuCompatWantsSavedResult(kit, name, type) {
+  if (!getFortuneAuthToken()) return false;
+  try {
+    var reply = await _seSajuCompatSend('GET', kit.flow.SAJU_COMPAT_ARCHIVE_PATH, null, 3000);
+    var view = kit.flow.classifySajuCompatArchiveReply(reply, 'list');
+    if (view.state !== 'list' || !kit.flow.findSajuCompatDuplicate(view.items, { selfPillars: G_PILLARS, compatType: type, partnerName: name })) return false;
+  } catch (_) {
+    return false;
+  }
+  return !window.confirm(_seSajuCompatTranslator(kit)('sajuCompat.archive.duplicate'));
+}
+
+function _seSajuCompatOpenArchive() {
+  if (typeof window.openSajuCompatArchive === 'function') return window.openSajuCompatArchive();
+  var loaders = window.__cdLazyActionLoaders;
+  if (loaders && typeof loaders.openSajuCompatArchive === 'function') {
+    return loaders.openSajuCompatArchive().then(function() {
+      if (typeof window.openSajuCompatArchive === 'function') window.openSajuCompatArchive();
+    }).catch(function() {});
+  }
+  return undefined;
 }
 
 /* 진입: 결제 전에 모듈부터 올린다(못 올리면 결제 없이 안내). 같은 입력의 미완료 구매가 있으면 게이트를 건너뛰고 같은 요청을 잇는다. */
@@ -29459,6 +29484,11 @@ async function _seSajuCompatLlmEntry(compatRunBtn, name, bd, type) {
   var pending = _seSajuCompatPendingStore(kit).get(inputKey);
   if (pending && pending.requestId) {
     runCompatCore(compatRunBtn, name, bd, type, _seSajuCompatPaidState(kit, inputKey, String(pending.requestId), pending.evidence));
+    return;
+  }
+  if (await _seSajuCompatWantsSavedResult(kit, name, type)) {
+    release();
+    _seSajuCompatOpenArchive();
     return;
   }
   var requestId = kit.flow.newSajuCompatRequestId();
