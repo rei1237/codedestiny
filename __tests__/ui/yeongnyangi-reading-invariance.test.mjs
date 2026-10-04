@@ -86,8 +86,11 @@ async function prepared(productId,kindId,extra={}){
     if(kind?.partner)body.partnerProfileId='partner';
     const row=await m.prepareFortune(env,'owner',body);
     const {snapshot}=row,{contexts,consultation,...analysis}=snapshot.analysis;
+    // Delivery metadata is deliberately new; retain the historical calculation,
+    // identity and manifest hashes and pin that metadata independently.
+    assert.equal(snapshot.deliveryContract,'chapter-delivery-20261004');
     const prepare={id:row._id,fingerprint:row.fingerprint,amountKRW:row.amountKRW,productId:row.productId,featureKey:row.featureKey,
-      checkpoint:row.generationCheckpoint?.version,snapshotKeys:Object.keys(snapshot).sort(),product:snapshot.product,manifest:snapshot.manifest,consultation,
+      checkpoint:row.generationCheckpoint?.version,snapshotKeys:Object.keys(snapshot).filter(key=>key!=='deliveryContract').sort(),product:snapshot.product,manifest:snapshot.manifest,consultation,
       analysisKeys:Object.keys(analysis).sort(),facts:Object.fromEntries(Object.entries(contexts).map(([d,c])=>[d,c.facts.map(f=>f.id)]))};
     return {id:row._id,prepare,...await chapterRun(row)};
   }finally{restore();}

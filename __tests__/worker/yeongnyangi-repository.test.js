@@ -1,5 +1,6 @@
 import {jest} from '@jest/globals';
 import mongoose from 'mongoose';
+import {CHAPTER_DELIVERY_VERSION as deliveryVersion} from '../../worker/yeongnyangi/chapter-delivery-contract.js';
 const owner='507f1f77bcf86cd799439011', other='507f1f77bcf86cd799439022';
 let loseStoredDraftAtClaim=false;
 let requests=[],payments=[],evidences=[],accounts=[],familyUser=null,failWrite=false,failFinalRead=false,failFinalComplete=false,refundBeforeFinalization=false,tail=Promise.resolve(),activeOperations=0;
@@ -418,6 +419,52 @@ async function failCurrent(times,code='CHAPTER_SECTION_TOO_SHORT'){
     await repo.failChapter({},owner,'id',claim.token,code,requests[0].chapterAttempts[ordinal],'quality',repo.allowedChapterAttempts(requests[0],ordinal),'section:example:90/121',ordinal);
   }
 }
+
+test.each(['CHAPTER_TRUNCATED','INVALID_CHAPTER','FORTUNE_PROVIDER_RATE_LIMIT'])('versioned recovery preserves saved chapters through %s and grants one scheduled call atomically',async code=>{
+  await repo.createRequest({},owner,'id',book(3));await repo.attachPayment({},owner,'id',1000);
+  await saveThrough(1,3);
+  requests[0].generationCheckpoint={recoveryPolicy:deliveryVersion};
+  const saved=JSON.stringify(requests[0].chapters);
+  await failCurrent(2,code);
+  expect(requests[0].errorCode).toBe('AUTOMATIC_RECOVERY_STOPPED');
+  await Promise.all([repo.escalateStopped({},requests[0]),repo.escalateStopped({},requests[0])]);
+  expect(requests[0].systemRecoveryGrants[1]).toBe(1);
+  expect(repo.allowedChapterAttempts(requests[0],1)).toBe(3);
+  await failCurrent(1,code);await repo.escalateStopped({},requests[0]);
+  expect(requests[0].errorCode).toBe('GENERATION_REVIEW_REQUIRED');
+  expect(JSON.stringify(requests[0].chapters)).toBe(saved);
+  await Promise.all([repo.resumeHeldByUser({},owner,'id'),repo.resumeHeldByUser({},owner,'id')]);
+  expect(requests[0].manualRecoveryGrants[1]).toBe(1);
+  expect(repo.allowedChapterAttempts(requests[0],1)).toBe(4);
+  await saveThrough(3,3);
+  expect(requests[0].state).toBe('COMPLETED');
+  expect(JSON.stringify(requests[0].chapters.slice(0,1))).toBe(saved);
+  expect(requests[0].chapterAttempts).toEqual({0:1,1:4,2:1});
+  expect(payments[0]).toMatchObject({status:'paid',paymentAmount:1000});
+  expect(consumePass).not.toHaveBeenCalled();expect(refundPass).not.toHaveBeenCalled();
+});
+
+test('versioned completion cannot commit a missing or invalid chapter, and durable resume consumes no new attempt',async()=>{
+  const manifest=[0,1].map(i=>({id:'c'+i,minimumChars:120,sections:[{id:'section'}]}));
+  await repo.createRequest({},owner,'id',{...values,snapshot:{manifest,deliveryContract:deliveryVersion}});
+  await repo.attachPayment({},owner,'id',1000);
+  const body=i=>({chapterId:'c'+i,complete:true,deliveryVersion,blocks:[{id:'section',title:'제목',paragraphs:['검증에 충분한 본문입니다. '.repeat(20)]}]});
+  const first=await repo.claimChapter({},owner,'id');
+  await expect(repo.finishChapter({},owner,'id',first.token,0,{...body(0),complete:false},2)).rejects.toThrow();
+  expect(requests[0].chapters).toHaveLength(0);
+  await repo.saveChapterDraft({},owner,'id',first.token,0,{body:body(0)});
+  requests[0].leaseUntil=new Date(0);
+  const resumed=await repo.claimChapter({},owner,'id');
+  expect(requests[0].chapterAttempts[0]).toBe(1);
+  await repo.finishChapter({},owner,'id',resumed.token,0,body(0),2);
+  expect(requests[0].state).not.toBe('COMPLETED');
+  const second=await repo.claimChapter({},owner,'id');
+  await repo.finishChapter({},owner,'id',second.token,1,body(1),2);
+  const saved=JSON.stringify(requests[0].chapters);
+  expect(requests[0].state).toBe('COMPLETED');
+  expect((await repo.claimChapter({},owner,'id')).token).toBeNull();
+  expect(JSON.stringify(requests[0].chapters)).toBe(saved);
+});
 
 test('a tuna book preserves nine saved chapters when the unusable tenth exhausts its budget',async()=>{
   await repo.createRequest({},owner,'id',book(15));await repo.attachPayment({},owner,'id',1000);

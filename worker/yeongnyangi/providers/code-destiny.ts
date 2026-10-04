@@ -4,6 +4,7 @@ import { tokensRequiredForChars } from '../../lib/llm-budget.js';
 import { FortuneError, type FortuneLLMRequest, type LLMProvider } from '../fortune/shared/contracts';
 import { messages } from '../fortune/shared/prompt';
 import { getEnv } from '../../lib/env.js';
+import { CHAPTER_TIMEOUT_MS } from '../chapter-delivery-contract.js';
 
 // Gemini's responseSchema uses the OpenAPI subset, not JSON Schema.
 function providerSchema(value: any): any {
@@ -29,6 +30,7 @@ export function chapterOutputTokenBudget(requested?: number, version?: string): 
 }
 
 export class CodeDestinyProvider implements LLMProvider {
+  receipt?: {provider:string;model:string;finishReason:string;inputTokens:number|null;outputTokens:number|null;estimated:boolean|null;thinkingTokens:number|null;durationMs:number;maxOutputTokens:number;status:number|null};
   constructor(private env: Record<string, unknown>, private logContext: Record<string, unknown> = {}) {}
   async analyzeQuestion(system: string, data: string): Promise<string> {
     if(getEnv(this.env,'LLM_DRY_RUN')==='true'||!getEnv(this.env,'GEMINIF_API_KEY'))throw new FortuneError('LLM_NOT_CONFIGURED',503);
@@ -41,13 +43,14 @@ export class CodeDestinyProvider implements LLMProvider {
     return response.text;
   }
   async generate(request: FortuneLLMRequest) {
+    const startedAt=Date.now();
     // No fixture or paid-provider fallback is selected by request parameters.
     if (getEnv(this.env,'LLM_DRY_RUN') === 'true' || !getEnv(this.env,'GEMINIF_API_KEY')) throw new FortuneError('LLM_NOT_CONFIGURED',503);
     const cap=chapterOutputTokenBudget(request.maxOutputTokens,request.outputBudgetVersion);
     // The system instructions already travel in systemPrompt. Send the user
     // payload once, without embedding and escaping the whole message array.
     let payload=messages(request)[1].content;
-    if(request.outputBudgetVersion===CONCISE_READING_VERSION){
+    if(request.deliveryContract || request.outputBudgetVersion===CONCISE_READING_VERSION){
       // The actual responseSchema carries the same output contract below. Keep
       // each fact/rule once and avoid escaping the entire domain JSON as text.
       const {OUTPUT_SCHEMA:_schema,...data}=JSON.parse(payload);
@@ -58,8 +61,9 @@ export class CodeDestinyProvider implements LLMProvider {
       locale:request.locale || 'ko',
       // The persona sets the speech level; keep the shared Korean directive from forcing 존댓말 over it.
       outputRegister:'persona',
-      // Queue generation owns one chapter and a 180s lease. Leave 30s for validation and persisted reread.
-      maxOutputTokens:cap,thinkingBudget:CHAPTER_THINKING_BUDGET,timeoutMs:150000,
+      // The chapter lease reserves another 90 seconds for analysis, validation and persisted reread.
+      maxOutputTokens:cap,thinkingBudget:CHAPTER_THINKING_BUDGET,timeoutMs:CHAPTER_TIMEOUT_MS,
+      preserveTermination:true,
       // The durable chapter counter owns retries. Hidden provider retries would
       // multiply calls behind one recorded attempt and delay queue recovery.
       maxProviderAttempts:1,
@@ -67,12 +71,16 @@ export class CodeDestinyProvider implements LLMProvider {
       taskType:'yeongnyangi-chapter',
       logContext:this.logContext,
     });
-    // Preserve truncated raw text for local body recovery before considering a paid retry.
+    this.receipt={provider:response.provider || 'gemini',model:response.model || 'gemini-2.5-flash',
+      finishReason:response.finishReason || '',inputTokens:response.usage?.inputTokens ?? null,outputTokens:response.usage?.outputTokens ?? null,
+      estimated:response.usage?Boolean(response.usage.estimated):null,thinkingTokens:response.usage?.thinkingTokens ?? null,
+      durationMs:Date.now()-startedAt,maxOutputTokens:cap,status:'status' in response?response.status:null};
     if (!response.ok || response.isMock || !response.text) {
       const code='error' in response ? String(response.error) : '';
       console.warn('[yeongnyangi-provider]',JSON.stringify({code:code.replace(/[^A-Za-z0-9_]/g,'').slice(0,80),status:'status' in response?response.status:null}));
       throw new FortuneError(/timeout|deadline/i.test(code)?'FORTUNE_PROVIDER_TIMEOUT':'FORTUNE_PROVIDER_FAILED',502);
     }
+    if(response.truncated || /^(MAX_TOKENS|LENGTH)$/i.test(response.finishReason || ''))throw new FortuneError('CHAPTER_TRUNCATED',502);
     return {result:response.text,provider:response.provider || 'gemini',model:response.model || 'gemini-2.5-flash'};
   }
 }

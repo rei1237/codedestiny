@@ -24,6 +24,11 @@ import {
 } from "./namingRecommendations";
 import { stashNamingRetryPayload } from "./retryHandoff";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import dynamic from "next/dynamic";
+import NamingEngineFields, { INITIAL_ENGINE_FIELDS, engineRawInput, type EngineFieldsValue } from "./v2/NamingEngineFields";
+
+// 무료 한자 미리보기는 작명서 그림 묶음을 끌고 오므로 성씨 한자를 고른 뒤에만 받는다.
+const NamingBasisPanel = dynamic(() => import("./v2/NamingBasisPanel"), { ssr: false });
 
 const FEATURE_KEY = "premium-naming-prompt";
 const AMOUNT_KRW = 30000;
@@ -53,6 +58,8 @@ type FormState = {
   desiredNamesText: string;
   preferenceTone: string;
   useHanja: boolean;
+  /** v2 결정론 엔진 입력(성씨 한자 등). 성씨 한자를 고르지 않으면 서버로 키가 가지 않는다. */
+  engine: EngineFieldsValue;
   generationNameRule: string;
   siblingHarmony: string;
   avoidFamilyNames: string;
@@ -78,6 +85,7 @@ const INITIAL_FORM: FormState = {
   desiredNamesText: "",
   preferenceTone: "",
   useHanja: true,
+  engine: INITIAL_ENGINE_FIELDS,
   generationNameRule: "",
   siblingHarmony: "",
   avoidFamilyNames: "",
@@ -1932,6 +1940,8 @@ function toRawInput(form: FormState): Record<string, unknown> {
     siblingHarmony: form.siblingHarmony,
     avoidFamilyNames: form.avoidFamilyNames,
     memo: form.memo,
+    // 🔴 성씨 한자가 없거나 이름 3자 이상이면 빈 객체 — v1 입력·inputHash 가 그대로다.
+    ...(form.useHanja ? engineRawInput(form.engine, form.nameLength) : {}),
   };
 }
 
@@ -2143,6 +2153,15 @@ export default function NamingAiClient() {
   }, [form.birthDate, form.birthTime, form.birthTimeUnknown, form.calendarType, form.isLeapMonth, form.gender, form.timezone, form.birthPlace, form.familyName]);
 
   const missing = useMemo(() => validateRequired(form, copy), [form, copy]);
+  const updateEngine = useCallback((patch: Partial<EngineFieldsValue>) => {
+    setForm((prev) => ({ ...prev, engine: { ...prev.engine, ...patch } }));
+  }, []);
+  const showEngineBasis = form.useHanja && Boolean(form.engine.surnameHanja) && form.nameLength <= 2;
+  const basisInput = useMemo(() => {
+    if (!showEngineBasis || missing.length) return null;
+    const raw = toRawInput(form);
+    return raw.surnameHanja ? raw : null;
+  }, [form, missing, showEngineBasis]);
   // 복성(남궁·황보)은 2음절이라 통과한다. 3음절 이상이면 이름 전체를 성씨 칸에 적은 것으로 본다.
   const familyNameLooksLikeFullName = useMemo(
     () => (form.familyName.match(/[가-힣]/g) || []).length >= 3,
@@ -2652,6 +2671,16 @@ export default function NamingAiClient() {
                       </select>
                     </label>
                   </div>
+                  {form.useHanja ? (
+                    <NamingEngineFields
+                      locale={locale}
+                      familyName={form.familyName}
+                      nameLength={form.nameLength}
+                      value={form.engine}
+                      disabled={busy}
+                      onChange={updateEngine}
+                    />
+                  ) : null}
                   <label className={`${LABEL} mt-3.5`}>
                     {copy.desiredNamesLabel}
                     <textarea
@@ -2747,6 +2776,8 @@ export default function NamingAiClient() {
                       )}
                     </div>
                   )}
+
+                  {showEngineBasis ? <NamingBasisPanel locale={locale} input={basisInput} disabled={busy} /> : null}
 
                   <div className="mt-5 flex justify-between gap-3">
                     <StepMoveButton onClick={() => setStep(0)} label={copy.step1PrevButton} subtle />

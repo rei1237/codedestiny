@@ -1,3 +1,4 @@
+import {CHAPTER_DELIVERY_VERSION,CHAPTER_LEASE_MS,chapterDeliveryFailure,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
 import { storedChapterDraft } from './stored-chapter.js';
 import { mongoose, mongoTransactionOptions, withMongoRetry } from '../lib/db.js';
 import { Payment } from '../lib/models.js';
@@ -9,13 +10,13 @@ import { CHAT_FEATURE_KEY, chatCardClaim, chatPaymentRequestId } from './access-
 export { YeongnyangiRequest };
 
 const paidStatuses = ['paid','success','fulfilled'];
-// One first generation and at most one server retry per chapter. Historical
-// grants remain in the audit but never enlarge the paid-generation budget.
+// One first call and one immediate retry. Versioned requests may receive one
+// scheduled repair and two explicit recovery calls; legacy grants stay inert.
 export const AUTOMATIC_CHAPTER_ATTEMPTS = 2;
-export const MANUAL_CHAPTER_RECOVERY_LIMIT = 0;
-export const SYSTEM_CHAPTER_RETRY_GRANT = 0;
-export const USER_HOLD_RETRY_LIMIT = 0;
-export const USER_HOLD_RETRY_GRANT = 0;
+export const MANUAL_CHAPTER_RECOVERY_LIMIT = 2;
+export const SYSTEM_CHAPTER_RETRY_GRANT = 1;
+export const USER_HOLD_RETRY_LIMIT = 1;
+export const USER_HOLD_RETRY_GRANT = 1;
 export const FIX_RESUME_GRANT = 0;
 export const MAX_FIX_RESUMES = 0;
 // Raise when a deployed generation fix should retry held orders once more.
@@ -49,7 +50,9 @@ const grantCount=(grants,ordinal)=>Math.max(0,Number(grants?.[ordinal])||0);
 // Pin a grant counter so a concurrent grant is never overwritten by a stale decision.
 const pinGrant=(field,ordinal,value)=>value?{[`${field}.${ordinal}`]:value}
   :{$or:[{[`${field}.${ordinal}`]:{$exists:false}},{[`${field}.${ordinal}`]:0}]};
-export const allowedChapterAttempts=(_row,_ordinal)=>AUTOMATIC_CHAPTER_ATTEMPTS;
+export const allowedChapterAttempts=(row,ordinal)=>AUTOMATIC_CHAPTER_ATTEMPTS+(hasChapterDeliveryContract(row)
+  ?Math.min(MANUAL_CHAPTER_RECOVERY_LIMIT,grantCount(row.manualRecoveryGrants,ordinal))+Math.min(SYSTEM_CHAPTER_RETRY_GRANT,grantCount(row.systemRecoveryGrants,ordinal)):0);
+const allowedOrderAttempts=row=>(row.snapshot?.manifest || []).reduce((sum,_chapter,i)=>sum+allowedChapterAttempts(row,i),0);
 
 // Dotted fields: an existing hold keeps its resume count.
 const holdSet=(reason,chapter,at)=>({'hold.reason':String(reason).slice(0,80),'hold.chapter':Number.isInteger(chapter)?chapter:null,
@@ -71,7 +74,7 @@ export function canResumeAfterFix(row = {}) {
 const savedChapters=row=>Array.isArray(row.chapters)?row.chapters.length:Number(row.completedChapters || 0);
 // A family order held before its first chapter restores its pass instead, so it never gets a buyer hold retry.
 // Access method and the saved count are pinned by the caller, so the decision holds at write time.
-const holdRetryLeft=(row,ordinal)=>hasRequestAccess(row)&&!(requestAccessMethod(row)!=='DIRECT_KRW'&&!ordinal)&&
+const holdRetryLeft=(row,ordinal)=>hasChapterDeliveryContract(row)&&grantCount(row.manualRecoveryGrants,ordinal)<MANUAL_CHAPTER_RECOVERY_LIMIT&&hasRequestAccess(row)&&!(requestAccessMethod(row)!=='DIRECT_KRW'&&!ordinal)&&
   grantCount(row.hold?.userRetries,ordinal)<USER_HOLD_RETRY_LIMIT;
 // A hold from a spent budget (never a deterministic rejection or the ask limit) that its buyer may still retry.
 export function userCanRetryHold(row = {}) {
@@ -82,7 +85,7 @@ export function userCanRetryHold(row = {}) {
 // Whether the buyer's retry button can move the order. A stopped chapter escalates through a user grant,
 // the system retry, then a user hold retry; a held chapter only while its user hold retries last.
 export function userCanRetry(row = {}) {
-  if(Number(row.chapterAttempts?.[savedChapters(row)] || 0)>=AUTOMATIC_CHAPTER_ATTEMPTS)return false;
+  if(!hasChapterDeliveryContract(row)&&Number(row.chapterAttempts?.[savedChapters(row)] || 0)>=AUTOMATIC_CHAPTER_ATTEMPTS)return false;
   if(['COMPLETED','REFUNDED'].includes(row.state)||!hasRequestAccess(row))return false;
   if(row.errorCode!=='AUTOMATIC_RECOVERY_STOPPED')return userCanRetryHold(row);
   const ordinal=savedChapters(row);
@@ -408,7 +411,7 @@ async function reconcileAttemptLimit(env,userId,current) {
   const chapterAttempts=Number(current.chapterAttempts?.[ordinal] || 0);
   const manualGrants=grantCount(current.manualRecoveryGrants,ordinal),systemGrants=grantCount(current.systemRecoveryGrants,ordinal);
   const exhausted=chapterAttempts>=allowedChapterAttempts(current,ordinal)?'AUTOMATIC_RECOVERY_STOPPED'
-    :Number(current.attempts || 0)>=total*AUTOMATIC_CHAPTER_ATTEMPTS?'GENERATION_REVIEW_REQUIRED':'';
+    :Number(current.attempts || 0)>=allowedOrderAttempts(current)?'GENERATION_REVIEW_REQUIRED':'';
   if(exhausted){
     // A terminated Worker may never reach failChapter. Persist the exhausted
     // state so library recovery can grant a retry instead of showing an endless wait.
@@ -469,7 +472,7 @@ export async function claimChapter(env, userId, requestId, source = 'queue', opt
     $and:[{$or:[{nextAttemptAt:null},{nextAttemptAt:{$lte:now}}]},
       {$or:[{[attemptKey]:{$exists:false}},{[attemptKey]:chapterAttempts}]}],
     $or:[{leaseUntil:null},{leaseUntil:{$lte:now}}],
-  },{$set:{state:'GENERATING',leaseToken:token,leaseUntil:new Date(now.getTime()+180000),errorCode:''},
+  },{$set:{state:'GENERATING',leaseToken:token,leaseUntil:new Date(now.getTime()+CHAPTER_LEASE_MS),errorCode:''},
     ...(!options.storedOnly&&!storedChapterDraft(current)?{$inc:{attempts:1,[`chapterAttempts.${ordinal}`]:1}}:{}),
     $push:{recoveryAudit:{kind:'generation_claim',source:['queue','scheduled'].includes(source)?source:'queue',chapter:ordinal,at:now}}}, {new:true,...(session?{session}:{})}).lean();
   const row=await withMongoRetry(env,async()=>{
@@ -530,8 +533,10 @@ async function completeStoredRequest(env, userId, requestId, total, token = '') 
           [`chapters.${total-1}`]:{$exists:true},...(token?{leaseToken:token}:{})};
         const stored=await YeongnyangiRequest.findOne(filter).session(session).lean();
         if(!stored||!Array.isArray(stored.chapters)||stored.chapters.length!==total)return;
+        const invalid=stored.snapshot.manifest.some((chapter,i)=>
+          (stored.snapshot.deliveryContract===CHAPTER_DELIVERY_VERSION||stored.chapters[i]?.deliveryVersion===CHAPTER_DELIVERY_VERSION)&&chapterDeliveryFailure(stored.chapters[i],chapter));
         const questions=stored.snapshot?.analysis?.consultation?.questions || [];
-        if(questions.some(q=>!stored.chapters[stored.snapshot.manifest.findIndex(c=>c.id===q.chapterId)]?.questionAnswers?.some(a=>a.questionId===q.id&&typeof a.answer==='string'&&a.answer.trim().length>=10))){
+        if(invalid||questions.some(q=>!stored.chapters[stored.snapshot.manifest.findIndex(c=>c.id===q.chapterId)]?.questionAnswers?.some(a=>a.questionId===q.id&&typeof a.answer==='string'&&a.answer.trim().length>=10))){
           result=await YeongnyangiRequest.findOneAndUpdate(filter,{$set:{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',leaseToken:'',leaseUntil:null,
             ...holdSet('STORAGE_VERIFICATION',total-1,new Date())},$push:{recoveryAudit:{kind:'review_required',source:'storage_verification',chapter:total-1,at:new Date()}}},{new:true,session}).lean();
           return;
@@ -581,6 +586,10 @@ export async function finishChapter(env, userId, requestId, token, ordinal, body
         const filter = {_id:requestId,userId:ownerId(userId),leaseToken:token,state:'GENERATING', [`chapters.${ordinal}`]:{$exists:false}};
         const request = await YeongnyangiRequest.findOne(filter).session(session).lean();
         if (!request) return;
+        if(request.snapshot?.deliveryContract===CHAPTER_DELIVERY_VERSION||body?.deliveryVersion===CHAPTER_DELIVERY_VERSION){
+          const code=chapterDeliveryFailure(body,request.snapshot.manifest[ordinal]);
+          if(code)throw failure(409,code);
+        }
         // Write the payment in the same transaction: a read alone allows a refund to
         // commit between validation and chapter storage (snapshot write skew).
         const accessMethod=requestAccessMethod(request);
@@ -688,14 +697,15 @@ async function restorePassQuota(env,userId,requestId,access,{cycleKey,cost,evide
   });
 }
 
-export async function failChapter(env, userId, requestId, token, code, attempt = 1, stage = '', allowedAttempts = AUTOMATIC_CHAPTER_ATTEMPTS, detail = '', ordinal = null) {
+/** @param {Record<string, unknown> | null} [receipt] Provider metadata only; never text or input. */
+export async function failChapter(env, userId, requestId, token, code, attempt = 1, stage = '', allowedAttempts = AUTOMATIC_CHAPTER_ATTEMPTS, detail = '', ordinal = null, receipt = null) {
   const limited=code==='ASK_LIMITED_REVIEW_REQUIRED';
   const permanent=['GENERATION_REVIEW_REQUIRED','INVALID_MANIFEST'].includes(code);
   const stopped=attempt>=allowedAttempts&&!permanent&&!limited;
   const result=await withMongoRetry(env, () => YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),leaseToken:token,state:'GENERATING'},
     {$set:{state:'FORTUNE_FAILED',leaseToken:'',leaseUntil:null,errorCode:limited?'ASK_LIMITED_REVIEW_REQUIRED':permanent?'GENERATION_REVIEW_REQUIRED':stopped?'AUTOMATIC_RECOVERY_STOPPED':String(code).slice(0,80),lastFailure:{code:String(code).slice(0,80),stage,at:new Date()},nextAttemptAt:limited||permanent||stopped?null:new Date(Date.now()+(stage==='quality'?QUALITY_RETRY_MS:attempt===1?30000:120000)),
       ...(limited||permanent?holdSet(code,Number.isInteger(ordinal)?ordinal:null,new Date()):{})},
-      $push:{recoveryAudit:{kind:limited||permanent?'review_required':stopped?'automatic_recovery_stopped':'retryable_failure',source:'generation',chapter:Number.isInteger(ordinal)?ordinal:null,at:new Date(),code:String(code).slice(0,80),...(detail?{detail:String(detail).slice(0,80)}:{})}}}));
+      $push:{recoveryAudit:{kind:limited||permanent?'review_required':stopped?'automatic_recovery_stopped':'retryable_failure',source:'generation',chapter:Number.isInteger(ordinal)?ordinal:null,at:new Date(),code:String(code).slice(0,80),...(detail?{detail:String(detail).slice(0,80)}:{}),...(receipt?{receipt}:{})}}}));
   if(permanent)await refundTerminalFamilyQuota(env,userId,requestId);
   return result;
 }
@@ -705,7 +715,7 @@ export async function resumeRequest(env,userId,requestId) {
   if(row.errorCode!=='AUTOMATIC_RECOVERY_STOPPED') return row;
   const ordinal=row.chapters.length,grantKey=`manualRecoveryGrants.${ordinal}`;
   const grants=grantCount(row.manualRecoveryGrants,ordinal),now=new Date();
-  if(grants>=MANUAL_CHAPTER_RECOVERY_LIMIT){
+  if(!hasChapterDeliveryContract(row)||grants>=MANUAL_CHAPTER_RECOVERY_LIMIT){
     const latest=await escalateStoppedChapter(env,userId,requestId,row,'user','MANUAL_RECOVERY_LIMIT_REACHED');
     if(latest.errorCode==='GENERATION_REVIEW_REQUIRED')throw failure(409,'GENERATION_REVIEW_REQUIRED');
     return latest;
@@ -726,7 +736,7 @@ async function escalateStoppedChapter(env,userId,requestId,row,source,reason) {
   const system=grantCount(row.systemRecoveryGrants,ordinal);
   const filter={_id:requestId,userId:ownerId(userId),errorCode:'AUTOMATIC_RECOVERY_STOPPED',chapters:{$size:ordinal},
     $and:[pinGrant('manualRecoveryGrants',ordinal,grantCount(row.manualRecoveryGrants,ordinal)),pinGrant('systemRecoveryGrants',ordinal,system)]};
-  if(!system && SYSTEM_CHAPTER_RETRY_GRANT>0){
+  if(hasChapterDeliveryContract(row)&&!system && SYSTEM_CHAPTER_RETRY_GRANT>0){
     const retried=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate(filter,{$set:{state:'PAID',errorCode:'',nextAttemptAt:null,queuedUntil:null},
       $inc:{[`systemRecoveryGrants.${ordinal}`]:SYSTEM_CHAPTER_RETRY_GRANT},$push:{recoveryAudit:{kind:'system_retry',source,chapter:ordinal,at:now}}},{new:true}).lean());
     return retried || readRequest(env,userId,requestId);
@@ -768,11 +778,11 @@ export async function resumeHeldAfterFix(env,row) {
 export async function resumeHeldByUser(env,userId,requestId) {
   const current=await readRequest(env,userId,requestId);
   if(!userCanRetryHold(current))return current;
-  const ordinal=current.chapters.length,used=grantCount(current.hold?.userRetries,ordinal),reason=heldReason(current),now=new Date();
+  const ordinal=current.chapters.length,used=grantCount(current.hold?.userRetries,ordinal),manual=grantCount(current.manualRecoveryGrants,ordinal),reason=heldReason(current),now=new Date();
   const resumed=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:ownerId(userId),state:'FORTUNE_FAILED',
-    errorCode:'GENERATION_REVIEW_REQUIRED',chapters:{$size:ordinal},...pinGrant('hold.userRetries',ordinal,used)},
+    errorCode:'GENERATION_REVIEW_REQUIRED',chapters:{$size:ordinal},$and:[pinGrant('hold.userRetries',ordinal,used),pinGrant('manualRecoveryGrants',ordinal,manual)]},
   {$set:{state:'PAID',errorCode:'',nextAttemptAt:null,queuedUntil:null,leaseToken:'',leaseUntil:null,'hold.alertPending':false},
-  $inc:{[`hold.userRetries.${ordinal}`]:1,[`systemRecoveryGrants.${ordinal}`]:USER_HOLD_RETRY_GRANT},
+  $inc:{[`hold.userRetries.${ordinal}`]:1,[`manualRecoveryGrants.${ordinal}`]:USER_HOLD_RETRY_GRANT},
   $push:{recoveryAudit:{kind:'user_retry_after_hold',source:'user',chapter:ordinal,at:now,code:reason}}},{new:true}).lean());
   return resumed || readRequest(env,userId,requestId);
 }

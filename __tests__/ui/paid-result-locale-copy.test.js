@@ -251,6 +251,8 @@ test("로케일 카피 표는 로케일마다 같은 키 집합을 갖는다", (
 // (레포 전체에는 의도적으로 일부 로케일만 채운 표가 있어 같은 잣대를 들이대지 않는다.)
 const PAID_RESULT_COPY_MODULES = [
   "app/naming-ai/result/resultCopy.ts",
+  // 작명 v2 작명서·무료 미리보기·입력 필드가 함께 쓰는 문구표.
+  "app/naming-ai/v2/namingV2Copy.ts",
   "app/vedic-ai/result/resultCopy.ts",
   "app/components/ziwei/_lib/ziwei-deep-pdf-copy.ts",
   "src/features/master-love-codex/_lib/copy.ts",
@@ -301,6 +303,11 @@ const PAID_RESULT_SURFACES = [
   "app/vedic-ai/result/VedicAiResultClient.tsx",
   "app/components/ziwei/ZiweiDeepPdfPanel.tsx",
   "app/naming-ai/result/NamingAiResultClient.tsx",
+  // 작명 v2 — 유료 작명서와 같은 그림을 무료 미리보기·입력 필드도 쓴다(한 문구표).
+  "app/naming-ai/v2/NamingV2Report.tsx",
+  "app/naming-ai/v2/NamingArt.tsx",
+  "app/naming-ai/v2/NamingBasisPanel.tsx",
+  "app/naming-ai/v2/NamingEngineFields.tsx",
   "src/features/master-love-codex/components/CodexReader.tsx",
   "src/features/master-love-codex/components/CodexChapter.tsx",
   "src/features/master-love-codex/components/CodexPrologueScene.tsx",

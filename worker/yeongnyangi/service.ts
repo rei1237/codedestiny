@@ -1,3 +1,4 @@
+import {CHAPTER_DELIVERY_VERSION,chapterQualityFailure,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
 import { correctedFortune } from "./reading-correction.js";
 import { storedChapterDraft, canResumeStoredChapter } from './stored-chapter.js';
 import {conciseReadingManifest} from './fortune/concise-reading';
@@ -260,7 +261,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,...(persona?{persona}:{}),
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{deliveryContract:CHAPTER_DELIVERY_VERSION,...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
 }
 
 /** The buyer's pick over the committed deck. A repeat call returns the stored draw unchanged (refresh, retry, return). */
@@ -318,7 +319,7 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   product.name=skyModes[input.mode];product.image=SKY_IMAGE;
   // New purchases use the registry flounder contract; old snapshots are never rewritten.
   return createRequest(env,userId,id,{profileId:'question-sky',productId:product.id,featureKey:product.cdFeatureKey,amountKRW:product.priceKRW,fingerprint,
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{product,analysis,manifest,input,questionSkyStage:{version:QUESTION_SKY_TWO_STAGE_VERSION,firstChars:manifest[0].targetChars?.[0],followupChars:manifest[1].targetChars?.[0]},questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{deliveryContract:CHAPTER_DELIVERY_VERSION,product,analysis,manifest,input,questionSkyStage:{version:QUESTION_SKY_TWO_STAGE_VERSION,firstChars:manifest[0].targetChars?.[0],followupChars:manifest[1].targetChars?.[0]},questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
 }
 
 export async function submitQuestionSkyFollowup(env:Record<string,unknown>,userId:string,requestId:string,question:unknown){
@@ -344,14 +345,14 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
   const {row,token}=await claimChapter(env,userId,requestId,source,{storedOnly});
   if(!token) return row;
   const ordinal=row.chapters.length;
-  const startedAt=Date.now();let stage='provider';let result:any;
+  const startedAt=Date.now();let stage='provider';let result:any;let sharedProvider:CodeDestinyProvider|undefined;
   try {
     const draft=storedChapterDraft(row);
     if(draft) result=draft.body;
     else {
       // A stored-only claim cannot turn into a paid provider call after a race.
       if(storedOnly||!providerReady(env))throw new FortuneError('LLM_NOT_CONFIGURED',503);
-      const sharedProvider=new CodeDestinyProvider(env,{serviceId:row.featureKey,requestId,
+      sharedProvider=new CodeDestinyProvider(env,{serviceId:row.featureKey,requestId,
         access:row.accessMethod || (row.paymentId?'DIRECT_KRW':''),sectionGroup:String(ordinal+1),
         attempt:Number(row.chapterAttempts?.[ordinal] || 1),generationSource:source});
       let ask: {analysis:AskAnalysis;evidence:EvidencePacket}|undefined;
@@ -363,7 +364,8 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
           parseAskAnalysis(escapeAskData(saved),consultation);
         } else {
           stage='analysis';
-          const analysis=await analyzeAsk(consultation,(system,data)=>sharedProvider.analyzeQuestion(system,data));
+          const providerForAnalysis=sharedProvider;
+          const analysis=await analyzeAsk(consultation,(system,data)=>providerForAnalysis.analyzeQuestion(system,data));
           stage='storage';
           await saveAskAnalysis(env,userId,requestId,token,analysis);
         }
@@ -379,13 +381,13 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
         }
       }
       stage='provider';
-      const repair=Number(row.chapterAttempts?.[ordinal] || 0)>1 && row.lastFailure?.stage==='quality'
+      const repair=Number(row.chapterAttempts?.[ordinal] || 0)>1 && (row.lastFailure?.stage==='quality'||chapterQualityFailure(row.lastFailure?.code))
         ? {code:row.lastFailure.code}:undefined;
       const followupQuestion=ordinal===1&&row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION
         ? row.generationCheckpoint?.followup?.question : undefined;
       if(ordinal===1&&row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION&&!followupQuestion)
         throw new FortuneError('FOLLOWUP_NOT_SUBMITTED',409);
-      const input={locale:readingLocale(row.snapshot.locale),outputContext:row.snapshot.outputContext,chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion,persona:row.snapshot.persona,voiceStyle:row.snapshot.voiceStyle};
+      const input={deliveryContract:CHAPTER_DELIVERY_VERSION,locale:readingLocale(row.snapshot.locale),outputContext:row.snapshot.outputContext,chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion,persona:row.snapshot.persona,voiceStyle:row.snapshot.voiceStyle};
       if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
       const provider=new StructuredChapterProvider(sharedProvider);
       const generated=await provider.generateChapter(input);
@@ -395,7 +397,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
       // chapter.ts corrects the reader's pillars first; a claim left here keeps a quality code so the one repair can name it.
       if(natalFacts)try{assertSajuPillarClaims(result,natalFacts);}catch{throw new FortuneError('SAJU_PILLAR_CONTRADICTION');}
       stage='storage';
-      await saveChapterDraft(env,userId,requestId,token,ordinal,{raw:generated,body:result});
+      await saveChapterDraft(env,userId,requestId,token,ordinal,{raw:generated,body:result,receipt:sharedProvider.receipt});
     }
     stage='storage';
     const completed=await finishChapter(env,userId,requestId,token,ordinal,result,row.snapshot.manifest.length);
@@ -411,15 +413,16 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
       } catch { /* Keep the existing storage failure checkpoint if reread is unavailable. */ }
     }
     const code=error instanceof FortuneError?error.code:stage==='storage'?'RESULT_STORAGE_UNAVAILABLE':'GENERATION_FAILED';
+    if(stage==='provider'&&chapterQualityFailure(code))stage='quality';
     const detail=error instanceof FortuneError?error.detail:undefined;
     console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage,durationMs:Date.now()-startedAt,code,detail}));
     const allowedAttempts=allowedChapterAttempts(row,ordinal);
     const askQuality=stage==='quality'&&ordinal===0&&row.generationCheckpoint?.version==='ask-generation-v1';
     // One existing-budget quality regeneration at most. A second rejection
     // preserves the paid request and saved chapters for support review.
-    const review=askQuality&&(row.lastFailure?.stage==='quality'||Number(row.chapterAttempts?.[ordinal] || 0)>=allowedAttempts);
+    const review=askQuality&&!hasChapterDeliveryContract(row)&&(row.lastFailure?.stage==='quality'||Number(row.chapterAttempts?.[ordinal] || 0)>=allowedAttempts);
     try { await failChapter(env,userId,requestId,token,review?'ASK_LIMITED_REVIEW_REQUIRED':code,
-      row.chapterAttempts?.[ordinal] || 1,stage,stage==='storage'?Number.MAX_SAFE_INTEGER:allowedAttempts,review?code:detail,ordinal); }
+      row.chapterAttempts?.[ordinal] || 1,stage,stage==='storage'?Number.MAX_SAFE_INTEGER:allowedAttempts,review?code:detail,ordinal,sharedProvider?.receipt); }
     catch { console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage:'failure_checkpoint',code})); }
     throw error;
   }
