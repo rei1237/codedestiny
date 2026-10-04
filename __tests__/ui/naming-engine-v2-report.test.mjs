@@ -70,6 +70,7 @@ test('대조기: 틀린 획·격·수, 표 밖 한자, 금지 표현을 잡고 �
 });
 
 const uniqueBody=(id,extra='')=>[extra,...Array.from({length:12},(_,k)=>`${id}장 ${k+1}번째 문단에서는 ${first.hangul} 이름을 부를 때의 느낌과 생활 속 쓰임을 ${id*100+k}번 관점으로 차분하게 풀어 드립니다.`)].filter(Boolean).join('\n\n');
+const REPEAT='이 이름은 불릴 때마다 아이에게 따뜻하고 단정한 기운을 전해 줄 것이라고 작명가는 믿습니다.';
 const reply=(value)=>({ok:true,provider:'gemini',model:'gemini-2.5-flash',text:JSON.stringify(value)});
 async function drive(respond,{maxRequests=30}={}){
   const snapshot={engine:view,sajuSnapshot:lines,generatedPrompt:E.buildNamingV2Prompt(view,lines,prefs),evidenceHash:'h1',locale:'ko',delivery:E.initialDeliveryV2(view)};
@@ -119,6 +120,7 @@ test('웨이브: 서술 실패는 결정론으로 넘어가고, 못 쓴 장은 �
     if(part==='2') throw new Error('timeout');
     if(part==='5') return reply({title:'비교',evidenceHash:'h1',body:uniqueBody(5,`${name1}은 원격 ${first.grids.won+1}로 길합니다.`)});
     if(part==='7') return reply({title:'피할 이름',evidenceHash:'other',body:uniqueBody(7)});
+    if(part==='4') return reply({title:TITLES[3],evidenceHash:'h1',body:`${uniqueBody(4)}\n\n${REPEAT} ${REPEAT}\n\n${REPEAT}`});
     return reply({title:TITLES[Number(part)-1],evidenceHash:'h1',body:uniqueBody(part)});
   });
   assert.equal(limited,false);assert.ok(E.namingReportCompleteV2(state));
@@ -127,6 +129,8 @@ test('웨이브: 서술 실패는 결정론으로 넘어가고, 못 쓴 장은 �
   assert.equal(state.chapters[5].source,'llm-corrected');
   assert.ok(state.chapters[5].body.includes(E.factParagraph(view,first)));
   assert.equal(state.chapters[1].source,'llm');
+  // 반복 문장은 장을 버리지 않고 한 번만 남긴다
+  assert.equal(state.chapters[4].source,'llm');assert.equal(state.chapters[4].body.split(REPEAT).length-1,1);
   assert.equal(E.confirmedEmptyNamingFailureV2(state),false);
 });
 
