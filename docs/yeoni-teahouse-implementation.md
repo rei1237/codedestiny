@@ -65,7 +65,7 @@
 - 기존 찻잔의 연애 문구가 다른 질문에 섞이지 않도록 v2 결과에서는 찻잔 해설을 제외. 과거 저장 결과는 원래 경로 유지.
 - TypeScript 검사 exit 0. 최신 핵심+사이트맵 targeted 18/18 통과. check:fast의 88 paid gate 중 npm test 이외 87개 통과, npm test 2415 통과/사이트맵 lastmod 1 실패 후 생성 원장 갱신하여 해당 6개 통과. 통합 후 공식 CI 결과를 별도로 확인한다.
 - 실 LLM·실결제·운영 DB 쓰기·운영 배포 없음. 상담 문장의 전문가 수준은 실제 모델 결과 평가 없이는 달성했다고 단정할 수 없다. 원국/추첨/관계 근거를 서버에서 고정하고 기존 품질·부분 복구·비용 상한을 유지한 구현 검증이다.
-- 생성 에셋 29개 중 기준 시트 1, 화면 적용 13, 추가 배치용 15. manifest의 screens/status로 구분. 일부 보조 반응을 한 화면에 중복 배치하지 않았다.
+- 생성 에셋 29개 중 기준 시트 1, 화면 적용 16, 추가 배치용 12. manifest의 screens/status로 구분. 일부 보조 반응을 한 화면에 중복 배치하지 않았다.
 - 번역 키는 12개 지원 언어와 연결했다. 핵심 홈 안내 KO/EN/JA/ZH 및 나머지 영어 fallback, 새 스프레드 상세는 KO/EN 기준이다. 나머지 언어의 원어민 품질 검수는 남아 있다.
 
 ## 통합 후 보완
@@ -77,3 +77,11 @@
 - 공통 공유 컴포넌트의 tea 색상 토큰을 크림/찻잎 계열로 교체하고 스타일을 진입점에서 로드하여 밝은 결과 화면의 대비를 확인했다. 다른 브랜드의 공유 색상은 유지.
 - 새 consultationVersion=tea-v2의 LLM 캐시 keyExtra를 yeoni-evidence-v2로 분리. 기존 v4/v5 상담 키는 보존. 22개 사주 시기/타로 해석 테스트 및 LLM 복구 가드 통과.
 - 현재 코드의 모델은 공통 callGeminiText→callLLM의 gemini-2.5-flash. 이 라우트는 Workers AI fallback을 끈다. 그룹 최대 출력 12,000토큰, 62초/보완30초/전체86초 제한, checkpoint 그룹별 최대2회 기존 정책 유지. 실제 제공자 청구액은 호출하지 않아 측정하지 않았다.
+
+## 추가 요청: 기존 공간·음악과 직접 제작한 결과 연이
+- 기존 장면별 데스크톱/모바일 배경 및 FloatingPetals를 새 상담 화면에 재사용. 기존 프롤로그·변신 영상·찻잔·앨범은 유지한다.
+- 기존 BGM audio/트랙/음량/저장 설정을 재사용하고 홈·입력·생성·결과에도 켜기/끄기 버튼을 제공한다. Chrome에서 재생 readyState=4/currentTime 증가, 끄기 후 paused=true 확인. 실제 청취 평가는 별도.
+- 새로 생성한 pig-empathy/pig-advice/prop-envelope를 핵심 답변 말풍선·행동 조언·편지 머리말에 적용. 0.45초 등장 효과만 사용하고 모션 줄이기에서는 애니메이션 없이 즉시 읽힌다.
+- 390px 결과에서 투명 테두리·꽃 장식·말풍선·배경 겹침 확인. 360px 결과 clientWidth=scrollWidth=345(스크롤바 제외), 가로 넘침 없음.
+- check:fast -- --base=17c4e9ab5c153d6d078c90b92628eb5e8eddfb6d exit 0. paid-gate 88/88, Jest 333 suites / 4984 tests, lint/typecheck 통과. 추가 UI 변경 후 typecheck exit 0.
+- d9eaa7a CI는 type/lint, critical, Pages/Worker build 통과. Static guards가 메인 카드 가격 누락을 검출하여 기존 레지스트리 검증 대상 가격 키를 복원했다. verify:home-service-registry PASS. 수정 SHA의 CI 확인은 전달 마지막 단계.

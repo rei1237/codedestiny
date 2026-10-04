@@ -4,6 +4,8 @@
 import "./styles/tea-report.module.css";
 import "./styles/tea-library.module.css";
 import "./styles/tea-tarot-artwork.module.css";
+import "./styles/tea-result-companion.module.css";
+import roomStyles from "./styles/tea-room.module.css";
 import "@/components/fortune/ConsultationShare.module.css";
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -1513,11 +1515,25 @@ export default function FortuneTeaHousePage() {
     </section>;
   }
 
+  const soundControl = <button
+        className={["landing", "questionInput", "scentLoading", "tarotReveal", "result"].includes(stage) ? roomStyles.soundToggle : styles.bgmToggle}
+        type="button"
+        data-active={bgmEnabled && bgmStatus === "playing" ? "true" : "false"}
+        aria-label={bgmEnabled ? "운명의 찻집 배경 음악 끄기" : "운명의 찻집 배경 음악 켜기"}
+        aria-pressed={bgmEnabled}
+        onClick={toggleBgm}
+      >
+        <span aria-hidden>{bgmEnabled && bgmStatus === "playing" ? <Volume2 size={14} strokeWidth={2.4} /> : <VolumeX size={14} strokeWidth={2.4} />}</span>
+        <strong>BGM</strong>
+        <em>{bgmEnabled ? (bgmStatus === "playing" ? "ON" : "READY") : "OFF"}</em>
+      </button>;
+
   function renderScene() {
     if (stage === "landing") {
       return (
         <FortuneTeaHouseLanding
           hasSeenPrologue={hasSeenEntryPrologue}
+          soundControl={soundControl}
           onEnter={enterTeaHouse}
           onChooseCup={() => goToStage("teaSelect")}
           onOpenAlbum={() => setIsTarotAlbumOpen(true)}
@@ -1589,7 +1605,7 @@ export default function FortuneTeaHousePage() {
   }
 
   return (
-    <FortuneTeaHouseImmersiveShell stage={stage} notice={notice} onBackToLanding={returnToLanding}>
+    <FortuneTeaHouseImmersiveShell stage={stage} notice={notice} onBackToLanding={returnToLanding} soundControl={soundControl}>
       <audio
         ref={bgmAudioRef}
         className={styles.bgmAudio}
@@ -1597,18 +1613,7 @@ export default function FortuneTeaHousePage() {
         loop={stage !== "scentLoading"}
         preload="none"
       />
-      {["teaSelect", "prologue", "transform"].includes(stage) ? <button
-        className={styles.bgmToggle}
-        type="button"
-        data-active={bgmEnabled && bgmStatus === "playing" ? "true" : "false"}
-        aria-label={bgmEnabled ? "운명의 찻집 배경 음악 끄기" : "운명의 찻집 배경 음악 켜기"}
-        aria-pressed={bgmEnabled}
-        onClick={toggleBgm}
-      >
-        <span aria-hidden>{bgmEnabled && bgmStatus === "playing" ? <Volume2 size={14} strokeWidth={2.4} /> : <VolumeX size={14} strokeWidth={2.4} />}</span>
-        <strong>BGM</strong>
-        <em>{bgmEnabled ? (bgmStatus === "playing" ? "ON" : "READY") : "OFF"}</em>
-      </button> : null}
+
 
       {stage === "teaSelect" ? (
         <HoneyDropRewardOverlay

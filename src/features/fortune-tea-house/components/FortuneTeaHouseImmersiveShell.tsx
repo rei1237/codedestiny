@@ -15,6 +15,7 @@ type FortuneTeaHouseImmersiveShellProps = {
   notice?: string;
   onBackToLanding: () => void;
   children: ReactNode;
+  soundControl?: ReactNode;
 };
 
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다. */
@@ -25,7 +26,7 @@ const KO = {
 };
 const BRAND = { title: "연이의 운명 찻집" };
 
-export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBackToLanding, children }: FortuneTeaHouseImmersiveShellProps) {
+export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBackToLanding, children, soundControl }: FortuneTeaHouseImmersiveShellProps) {
   const copy = useTeaHouseCopy("shell", KO);
   const brand = useTeaHouseCopy("homeV2", BRAND);
   const backgroundAssets = getStageBackgroundAssets(stage);
@@ -39,10 +40,12 @@ export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBa
   } as CSSProperties;
   const shouldShowBackButton = stage !== "landing";
 
-  if (stage === "landing") return <main>{children}</main>;
+  if (stage === "landing") return <main style={backgroundStyle}>{children}</main>;
   if (["questionInput", "scentLoading", "tarotReveal", "result"].includes(stage)) return (
-    <main className={room.room} data-stage={stage}>
+    <main className={room.room} data-stage={stage} style={backgroundStyle}>
+      <div className={room.atmosphere} aria-hidden><FloatingPetals /></div>
       <header className={room.header}><button type="button" onClick={onBackToLanding}>{copy.back}</button><Link href="/fortune-tea-house/">{brand.title}</Link><Link href="/ggulggul/" aria-label={copy.homeAria}>{copy.home}</Link></header>
+      <div className={room.soundBar}>{soundControl}</div>
       {notice && <p className={room.notice} role="status">{notice}</p>}
       {children}
     </main>
@@ -51,6 +54,7 @@ export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBa
   return (
     <main className={styles.page} data-stage={stage} style={backgroundStyle}>
       <FloatingPetals />
+      {soundControl}
       <div className={styles.backdropVeil} aria-hidden />
       {shouldShowBackButton ? (
         <button className={styles.backButton} type="button" onClick={onBackToLanding}>

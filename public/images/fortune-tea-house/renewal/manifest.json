@@ -210,8 +210,10 @@
       "file": "/images/fortune-tea-house/renewal/pig-empathy.webp",
       "source": "assets/yeoni-teahouse/originals/pig-reactions.png",
       "usage": "꽃돼지 안내·입력·상태",
-      "screens": [],
-      "status": "available-not-mounted",
+      "screens": [
+        "result-core-answer"
+      ],
+      "status": "applied-or-reference",
       "alt": "마음을 헤아리는 꽃돼지 연이",
       "decorativeAlt": "",
       "width": 384,
@@ -230,8 +232,10 @@
       "file": "/images/fortune-tea-house/renewal/pig-advice.webp",
       "source": "assets/yeoni-teahouse/originals/pig-reactions.png",
       "usage": "꽃돼지 안내·입력·상태",
-      "screens": [],
-      "status": "available-not-mounted",
+      "screens": [
+        "result-action-advice"
+      ],
+      "status": "applied-or-reference",
       "alt": "조심스럽게 조언하는 꽃돼지 연이",
       "decorativeAlt": "",
       "width": 384,
@@ -564,8 +568,10 @@
       "file": "/images/fortune-tea-house/renewal/prop-envelope.webp",
       "source": "assets/yeoni-teahouse/originals/props.png",
       "usage": "보조 소품·카드 선택",
-      "screens": [],
-      "status": "available-not-mounted",
+      "screens": [
+        "result-letterhead"
+      ],
+      "status": "applied-or-reference",
       "alt": "꽃 봉인이 있는 편지 봉투",
       "decorativeAlt": "",
       "width": 512,

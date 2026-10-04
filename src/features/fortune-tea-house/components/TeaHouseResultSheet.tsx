@@ -686,9 +686,9 @@ export default function TeaHouseResultSheet({
         <header className={`${styles.resultHeader} `} data-tea-pdf-section>
           {result.consultationVersion !== "tea-v2" && <p className={styles.sceneEyebrow}>{selectedCup?.eyebrow || copy.kdaff0ix}</p>}
           <h2 id="teaResultTitle">{result.sessionTitle}</h2>
-          {result.questionSummary ? <p>{result.questionSummary}</p> : null}
+          {result.consultationVersion !== "tea-v2" && result.questionSummary ? <p>{result.questionSummary}</p> : null}
           {result.consultationVersion !== "tea-v2" && <strong className={styles.resultYeoniOpening}>{yeoniOpening}</strong>}
-          {result.yeoniReading.intro ? (
+          {result.consultationVersion !== "tea-v2" && result.yeoniReading.intro ? (
             <div className={styles.resultHeroGreeting}>
               <LlmParagraphs text={result.yeoniReading.intro} />
             </div>
@@ -981,8 +981,9 @@ export default function TeaHouseResultSheet({
         <section className={`${styles.actionPrescription} `} aria-labelledby="actionPrescriptionTitle" data-tea-pdf-section>
           <h3 id="actionPrescriptionTitle">{copy.kedjmzci}</h3>
           {result.actionPrescription ? (
-            <div className={styles.yeoniReadingItem}>
-              <LlmParagraphs text={result.actionPrescription} />
+            <div className={styles.actionDialogue}>
+              <img src="/images/fortune-tea-house/renewal/pig-advice.webp" width="72" height="84" alt="" loading="lazy" />
+              <div className={styles.yeoniReadingItem}><LlmParagraphs text={result.actionPrescription} /></div>
             </div>
           ) : null}
           {previewKeywords.length ? (

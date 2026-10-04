@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Flower2, UserRound } from "lucide-react";
 import type { FortuneTeaHouseConsultMode } from "../data/consult";
@@ -29,16 +30,16 @@ const KO = {
 };
 const modes=["saju","tarot","sukuyo"] as const;
 const questionModes:FortuneTeaHouseConsultMode[]=["sukuyo","tarot","saju","saju","tarot","tarot"];
-type Props={hasSeenPrologue:boolean;onEnter:(mode?:FortuneTeaHouseConsultMode,question?:string)=>void;onReplayPrologue:()=>void;onShowHistory:()=>void;onChooseCup?:()=>void;onOpenAlbum?:()=>void};
-export default function FortuneTeaHouseLanding({onEnter,onReplayPrologue,onShowHistory,onChooseCup,onOpenAlbum}:Props){
+type Props={soundControl?:ReactNode;hasSeenPrologue:boolean;onEnter:(mode?:FortuneTeaHouseConsultMode,question?:string)=>void;onReplayPrologue:()=>void;onShowHistory:()=>void;onChooseCup?:()=>void;onOpenAlbum?:()=>void};
+export default function FortuneTeaHouseLanding({onEnter,onReplayPrologue,onShowHistory,onChooseCup,onOpenAlbum,soundControl}:Props){
  const copy=useTeaHouseCopy("homeV2",KO);
  return <div className={styles.home}>
- <header className={styles.header}><Link href="/fortune-tea-house/" className={styles.brand}><Flower2 aria-hidden size={24}/>{copy.title}</Link><nav aria-label={copy.title}><button onClick={onShowHistory}><BookOpen size={18} aria-hidden/>{copy.library}</button><Link href="/login/?next=%2Ffortune-tea-house%2F"><UserRound size={18} aria-hidden/>{copy.account}</Link><Link href="/ggulggul/">{copy.back}</Link></nav></header>
+ <header className={styles.header}><Link href="/fortune-tea-house/" className={styles.brand}><Flower2 aria-hidden size={24}/>{copy.title}</Link><nav aria-label={copy.title}><button onClick={onShowHistory}><BookOpen size={18} aria-hidden/>{copy.library}</button><Link href="/login/?next=%2Ffortune-tea-house%2F"><UserRound size={18} aria-hidden/>{copy.account}</Link><Link href="/ggulggul/">{copy.back}</Link>{soundControl}</nav></header>
  <section className={styles.hero}><div className={styles.heroCopy}><h1>{copy.heading}</h1><p className={styles.lead}>{copy.lead}</p><p>{copy.intro}</p><div className={styles.actions}><button className={styles.primary} onClick={()=>onEnter()}>{copy.start}<ArrowRight aria-hidden size={18}/></button><a href="#tea-example">{copy.sample}</a></div></div><Image src="/images/fortune-tea-house/renewal/yeoni-tea-welcome.webp" width={1536} height={1024} alt={copy.heroAlt} priority sizes="(max-width:700px) 100vw,60vw" className={styles.heroImage}/></section>
  <section className={styles.section} id="tea-concerns"><h2>{copy.concerns}</h2><p>{copy.concernsHelp}</p><div className={styles.questions}>{copy.questions.map((q,i)=><button key={i} onClick={()=>onEnter(questionModes[i],q)}>{q}<ArrowRight aria-hidden size={18}/></button>)}</div></section>
  <section className={styles.section}><h2>{copy.methods}</h2><div className={styles.methods}>{modes.map(mode=><article key={mode}><Image src={`/images/fortune-tea-house/renewal/yeoni-${mode}.webp`} alt="" width={720} height={480} sizes="(max-width:700px) 100vw,33vw"/><h3>{copy[mode]}</h3><strong>{copy[`${mode}Line`]}</strong><p>{copy[`${mode}Info`]}</p><span>{getFortuneTeaHouseConsultPriceLabel(mode)}</span><button onClick={()=>onEnter(mode)}>{copy.choose}<ArrowRight size={16} aria-hidden/></button></article>)}</div><p className={styles.note}>{copy.priceNote}</p><button className={styles.textButton} onClick={()=>onEnter("sajuCompatibility")}>{copy.compat}<ArrowRight size={16} aria-hidden/></button></section>
  <section className={`${styles.section} ${styles.preview}`} id="tea-example"><div><h2>{copy.previewTitle}</h2><p>{copy.welcomeHuman}</p><Image src="/images/fortune-tea-house/renewal/yeoni-human-welcome.webp" width={720} height={720} alt="" sizes="(max-width:700px) 100vw,40vw"/></div><article className={styles.letter}><span>{copy.example}</span><h3>{copy.exampleQuestion}</h3><p className={styles.answer}>{copy.exampleAnswer}</p><p>{copy.exampleBody}</p><ol>{copy.resultParts.map(p=><li key={p}>{p}</li>)}</ol></article></section>
  <section className={`${styles.section} ${styles.history}`}><div><h2>{copy.historyTitle}</h2><p>{copy.historyBody}</p></div><button className={styles.primary} onClick={onShowHistory}>{copy.library}<ArrowRight size={18} aria-hidden/></button></section>
- <footer className={styles.section}><h2>{copy.guideTitle}</h2><p>{copy.guide}</p><h3>{copy.optional}</h3><div className={styles.actions}><button onClick={onReplayPrologue}>{copy.prologue}</button><button onClick={onChooseCup}>{copy.cups}</button><button onClick={onOpenAlbum}>{copy.album}</button></div></footer>
+ <footer className={`${styles.section} ${styles.visit}`}><h2>{copy.guideTitle}</h2><p>{copy.guide}</p><h3>{copy.optional}</h3><div className={styles.actions}><button onClick={onReplayPrologue}>{copy.prologue}</button><button onClick={onChooseCup}>{copy.cups}</button><button onClick={onOpenAlbum}>{copy.album}</button></div></footer>
  </div>;
 }
