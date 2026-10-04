@@ -7,6 +7,11 @@ export const CHAPTER_LEASE_MS = CHAPTER_TIMEOUT_MS + 90000;
 export const hasChapterDeliveryContract = row => row?.snapshot?.deliveryContract === CHAPTER_DELIVERY_VERSION ||
   row?.generationCheckpoint?.recoveryPolicy === CHAPTER_DELIVERY_VERSION;
 
+// A truncation and empty-response guard, not the quality length bar: validateChapter keeps the single length
+// repair (reading-quality.ts chapterFloor), and a paid chapter is never withheld for length alone (principle 17).
+export const CHAPTER_DELIVERY_FLOOR_RATIO = 0.5;
+export const chapterDeliveryFloor = chapter => Math.max(120, Math.ceil((Number(chapter?.minimumChars) || 0) * CHAPTER_DELIVERY_FLOOR_RATIO));
+
 const normalize = text => text.normalize('NFC').replace(/\s+/gu, ' ').trim();
 export function deliveredCharacterCount(body) {
   const passages = [...(Array.isArray(body?.blocks) ? body.blocks.flatMap(b => b?.paragraphs || []) : body?.analysis || []), body?.example, body?.advice]
@@ -19,7 +24,7 @@ export function deliveredCharacterCount(body) {
 export function chapterDeliveryFailure(body, chapter, requireEnvelope = true) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return 'INVALID_CHAPTER';
   if (requireEnvelope && (body.chapterId !== chapter.id || body.complete !== true)) return 'CHAPTER_INCOMPLETE';
-  if (deliveredCharacterCount(body) < Math.max(120, Number(chapter.minimumChars) || 0)) return 'CHAPTER_TOO_SHORT';
+  if (deliveredCharacterCount(body) < chapterDeliveryFloor(chapter)) return 'CHAPTER_TOO_SHORT';
   if (chapter.sections?.length) {
     const blocks = body.blocks;
     if (!Array.isArray(blocks) || blocks.length !== chapter.sections.length || new Set(blocks.map(b => b?.id)).size !== blocks.length ||

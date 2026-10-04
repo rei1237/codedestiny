@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 import path from 'node:path';
-import {CHAPTER_DELIVERY_VERSION as version,CHAPTER_TIMEOUT_MS,CHAPTER_LEASE_MS,chapterDeliveryFailure} from '../../worker/yeongnyangi/chapter-delivery-contract.js';
+import {CHAPTER_DELIVERY_VERSION as version,CHAPTER_TIMEOUT_MS,CHAPTER_LEASE_MS,chapterDeliveryFailure,chapterDeliveryFloor,deliveredCharacterCount} from '../../worker/yeongnyangi/chapter-delivery-contract.js';
 import {chapterRecoveryPlan} from '../../worker/yeongnyangi/recovery-plan.js';
 const Module=createRequire(import.meta.url)('node:module');
 const bundle=await build({stdin:{contents:`export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {deliverChapter} from './worker/yeongnyangi/providers/delivery'; export {mockReadingV5} from './__tests__/fixtures/yeongnyangi-chapter'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationDomain,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
@@ -33,6 +33,16 @@ test('completion rejects malformed JSON, false/missing marker, wrong identity, m
    {...raw,blocks:raw.blocks.slice(1)},{...raw,blocks:raw.blocks.map(b=>({...b,paragraphs:['짧은 문장입니다.']}))},
    {...raw,persona:'이하 생략'}])assert.throws(()=>m.deliverChapter(value,input));
  assert.equal(m.deliverChapter(JSON.stringify(raw),input).complete,true);
+});
+
+test('delivery length only catches empty or cut-off replies: 75% of the minimum is delivered, 40% is too short',()=>{
+ const sized=ratio=>{const body=complete(),per=Math.ceil(input.chapter.minimumChars*ratio/body.blocks.length);
+  return {...body,example:'',advice:'',blocks:body.blocks.map((b,i)=>({...b,paragraphs:[`${i}`.padEnd(per,'흐')]}))};};
+ const floor=chapterDeliveryFloor(input.chapter),near=sized(.75),short=sized(.4);
+ assert.equal(floor,Math.max(120,Math.ceil(input.chapter.minimumChars*.5)));
+ assert.ok(deliveredCharacterCount(near)<input.chapter.minimumChars&&deliveredCharacterCount(short)<floor);
+ assert.equal(chapterDeliveryFailure(near,input.chapter),'');assert.equal(m.deliverChapter(near,input).complete,true);
+ assert.equal(chapterDeliveryFailure(short,input.chapter),'CHAPTER_TOO_SHORT');assert.throws(()=>m.deliverChapter(short,input));
 });
 
 test('all 28 catalog products share the explicit one-chapter identity and completion contract',async()=>{

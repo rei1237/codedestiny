@@ -26,7 +26,7 @@ const sourceLabel=s=>label(s)==='relationMap'?'personA':label(s);
 const overlaps=(a,b)=>a===b||a.startsWith(b+'.')||b.startsWith(a+'.');
 const PREMIUM=/usefulGod|jong|majorLuck|vimshottariDasha|dasha|yogas|divisionalCharts|fourTransformations|sanFangSiZheng/;
 const PREMIUM_TITLE=/대운|용신|다샤|요가|분할도|사화|삼방사정|대한|나밤샤|다샴샤/;
-const FORBIDDEN_FIELD={saju:/heeshin|희신/i,ziwei:/lunar|yearlyFour/i,vedic:/transit|pratyantar/i,astrology:/ruler|dignit|element/i,sukuyo:/birthTimeContext/,tarot:/topSummary|quality|levelUp|questionType/};
+const FORBIDDEN_FIELD={saju:/heeshin|희신/i,ziwei:/lunar|yearlyFour/i,vedic:/transit|pratyantar/i,astrology:/transit|progress|chiron|lilith/i,sukuyo:/birthTimeContext/,tarot:/topSummary|quality|levelUp|questionType/};
 
 test('ownership: no two chapters own overlapping facts; owns come from the chapter inputs; anchor owns the refs',()=>{
  for(const {domain,kind,tier,chapters} of all){
@@ -52,7 +52,7 @@ test('ownership: no two chapters own overlapping facts; owns come from the chapt
 });
 
 test('chapter counts and insight units rise monotonically by tier',()=>{
- const expected={saju:[8,13,28],ziwei:[8,13,20],vedic:[8,13,23],astrology:[8,10,12],sukuyo:[6,8,10],'tarot:love':[5,7,9],'tarot:choice':[4,5,6]};
+ const expected={saju:[8,13,28],ziwei:[8,13,21],vedic:[8,13,23],astrology:[8,10,12],sukuyo:[6,8,10],'tarot:love':[5,7,9],'tarot:choice':[4,5,6]};
  const timing={saju:[1,2,9],ziwei:[1,2,4],vedic:[0,0,4],astrology:[0,0,0],sukuyo:[0,0,0],'tarot:love':[0,0,0],'tarot:choice':[0,0,0]};
  for(const [domain,kinds] of Object.entries(KINDS))for(const kind of kinds){
   const key=m.v7CatalogKey(domain,kind);

@@ -7,7 +7,7 @@ import path from 'node:path';
 import {build} from 'esbuild';
 // Design §6-3: the v7 fact ledger splits real engine facts into ASCII sub-IDs and pins each to one chapter. Flag OFF, no LLM.
 const Module=createRequire(import.meta.url)('node:module');
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-v7-ledger'; export {readingManifestV7,V7_ANCHOR_REFS} from './worker/yeongnyangi/fortune/reading-v7'; export {products} from './worker/yeongnyangi/payments/catalog'; export {domains} from './worker/yeongnyangi/fortune/index'; export {tenGodFor} from './worker/lib/life-book-ai-saju.js'; export {STEM_HANJA} from './lib/korean-calendar/index.js'; export {aspectBetween} from './worker/lib/swiss-ephemeris.js'; export {relationFromForwardDistance} from './worker/lib/sukuyo-relation-core.js'; export {SUKUYO_MANSIONS} from './worker/lib/sukuyo-premium.js';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-v7-ledger'; export {readingManifestV7,V7_ANCHOR_REFS} from './worker/yeongnyangi/fortune/reading-v7'; export {products} from './worker/yeongnyangi/payments/catalog'; export {domains} from './worker/yeongnyangi/fortune/index'; export {tenGodFor} from './worker/lib/life-book-ai-saju.js'; export {STEM_HANJA} from './lib/korean-calendar/index.js'; export {aspectBetween} from './worker/lib/swiss-ephemeris.js'; export {relationFromForwardDistance} from './worker/lib/sukuyo-relation-core.js'; export {SUKUYO_MANSIONS} from './worker/lib/sukuyo-premium.js'; export {VEDIC_YOGA_SLUGS} from './worker/yeongnyangi/fortune/vedic/derived';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const filename=path.resolve('yeongnyangi-reading-v7-ledger.test.cjs');
 const loaded=new Module(filename);
 loaded.filename=filename;
@@ -178,7 +178,8 @@ test('ziwei, vedic, astrology, sukuyo, tarot: sub-IDs land on the catalog owners
  const dasha=resolved.find(x=>x.fixture==='vedic'&&x.tier==='tuna').ledger.facts.get('vedic.vimshottariDasha.arc').value;
  assert.ok(!JSON.stringify(dasha).includes('1997-02-10'),'birth-balance start date must not leak');
  const a=pick('astrology','tuna'),as=pick('astrology','salmon');
- assert.ok(a('tension').every(id=>/-(square|opposition)-|none-tension/.test(id))&&a('tension').length);
+ // Tension also owns the chart sect (astrology/derived.ts): the out-of-sect malefic reads as the sharpest tension.
+ assert.ok(a('tension').every(id=>/-(square|opposition)-|none-tension|\.chartSect$/.test(id))&&a('tension').includes('astrology.chartSect'));
  assert.ok(a('harmony').every(id=>/-(trine|sextile)-|none-harmony/.test(id))&&a('harmony').length);
  assert.ok(as('aspects').some(id=>id.includes('-conjunction-')||id.endsWith('none-conjunction')));
  // Tuna has no conjunction chapter: a conjunction goes to the earlier planet owner in manifest order.
@@ -221,7 +222,8 @@ test('fail-closed: every value an engine can emit has a slug, and every slug is 
  assert.deepEqual([...types].sort(),Object.keys(m.ASPECT_FAMILY).sort());
  const yogaNames=[...readFileSync('worker/lib/vedic-ai-chart.js','utf8').matchAll(/yogas\.push\(\{\s*name:\s*"([^"]+)"/g)].map(x=>x[1]);
  assert.ok(yogaNames.length>=4);
- assert.deepEqual([...new Set(yogaNames)].sort(),Object.keys(m.YOGA_SLUGS).sort());
+ // Engine yogas plus the classical yogas yeongnyangi derives itself (vedic/derived.ts).
+ assert.deepEqual([...new Set([...yogaNames,...Object.keys(m.VEDIC_YOGA_SLUGS)])].sort(),Object.keys(m.YOGA_SLUGS).sort());
  assert.deepEqual(facts('vedic').planets.map(p=>p.name).sort(),[...m.VEDIC_PLANETS].sort());
  assert.deepEqual(Object.keys(facts('vedic').divisionalCharts).filter(k=>k!=='d1').sort(),[...m.DIVISIONAL_KEYS].sort());
  assert.deepEqual(Object.keys(facts('astrology').planets).sort(),[...m.ASTRO_PLANETS].sort());
