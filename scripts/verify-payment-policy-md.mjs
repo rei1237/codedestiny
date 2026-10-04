@@ -1,12 +1,13 @@
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { build } from "esbuild";
 import { KRW_PER_COIN } from "../worker/lib/billing-policy.js";
 
 // PAYMENT_POLICY.md(운명 찻집 상담 가격 정본)와 코드 3곳의 가격이 어긋나지 않는지 검증한다.
 // Cloudflare Worker는 런타임에 파일을 못 읽으므로, 이 정합성은 빌드/CI 시점에 여기서 강제한다.
-// 가격 수치는 절대 코드에 맞추지 말 것 — 이 스크립트가 실패하면 파서가 아니라 코드가 정본과
-// 어긋났다는 뜻이다. (정본은 PAYMENT_POLICY.md)
+// 가격 수치는 검사 통과를 위해 바꾸지 않는다. 프런트는 서버 레지스트리로 초기화되므로
+// 실제 모듈의 최종 값을 실행해 정책 문서와 대조한다.
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const source = (path) => readFileSync(resolve(root, path), "utf8");
@@ -135,22 +136,24 @@ for (const key of LEGACY_KEYS) {
 }
 
 // ── 3. src/features/fortune-tea-house/data/consultPricing.ts 대조 ────────────
-const consultSrc = source("src/features/fortune-tea-house/data/consultPricing.ts");
-
-function parseConsultAmountKRW(src, featureKey) {
-  const escaped = featureKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const m = src.match(new RegExp(`featureKey:\\s*["']${escaped}["'][\\s\\S]*?amountKRW:\\s*(\\d+)`));
-  return m ? Number(m[1]) : null;
-}
+const consultBundle = await build({
+  entryPoints: [resolve(root, "src/features/fortune-tea-house/data/consultPricing.ts")],
+  absWorkingDir: root, bundle: true, platform: "node", format: "esm", write: false,
+});
+const { fortuneTeaHouseConsultPricing } = await import(
+  "data:text/javascript;base64," + Buffer.from(consultBundle.outputFiles[0].text).toString("base64")
+);
+const consultPrices = Object.values(fortuneTeaHouseConsultPricing);
 
 for (const key of TEA_HOUSE_KEYS) {
   const want = doc[key];
   if (!want) continue;
-  const amountKRW = parseConsultAmountKRW(consultSrc, key);
-  if (amountKRW === null) {
-    fail(`consultPricing.ts: '${key}' 의 amountKRW를 찾지 못했습니다.`);
+  const matches = consultPrices.filter((price) => price.featureKey === key);
+  if (matches.length !== 1) {
+    fail(`consultPricing.ts: '${key}' 상품은 정확히 1개여야 합니다 (발견 ${matches.length}개).`);
     continue;
   }
+  const amountKRW = matches[0].amountKRW;
   if (amountKRW !== want.amountKRW) {
     fail(`consultPricing.ts: '${key}' amountKRW=${amountKRW} (문서 ${want.amountKRW})`);
   }

@@ -1097,7 +1097,7 @@
       h.push('<section class="as-deep-part" aria-labelledby="asDeepTalk"><h3 class="as-h3" id="asDeepTalk">행성끼리의 대화</h3><ol class="as-talk">');
       d.talk.forEach(function (t) {
         h.push('<li class="as-talk-item' + (HARD[t.type] ? ' is-hard' : '') + '"><div class="as-talk-head"><span class="as-talk-pair">' + esc(KO[t.a]) + '&nbsp;· ' + esc(KO[t.b]) + '</span>'
-          + '<span class="as-talk-kind">' + esc(t.kind) + '</span><span class="as-talk-orb">' + esc(t.closeness) + ' · 오차 ' + t.orb + '°</span></div><p>' + keep(t.text.join(' ')) + '</p></li>');
+          + '<span class="as-talk-kind">' + esc(t.kind) + '</span><span class="as-talk-orb">' + esc(t.closeness) + '</span></div><p>' + keep(t.text.join(' ')) + '</p></li>');
       });
       h.push('</ol></section>');
     }
@@ -1174,8 +1174,21 @@
     };
   }
 
+  /* The older page block (saju-engine.js renderAstroInsightLegacyNeon) keys its firdaria and profection texts by Korean
+   * planet name and house index; this hands it the sect- and birthday-aware values instead of its own year arithmetic.
+   * A node firdaria (no planet text there) and an unknown birth time return null for that part. */
+  function legacyPeriods(model) {
+    var p = model && model.periods, f = p && p.firdaria, pr = p && p.profection, out = { firdaria: null, profection: null };
+    if (f && CORE.indexOf(f.current.lord) >= 0) {
+      out.firdaria = { main: KO[f.current.lord], sub: f.current.sub ? KO[f.current.sub.lord] : null, fromYear: f.current.fromYear, toYear: f.current.toYear, sect: f.sect };
+    }
+    if (pr) out.profection = { houseIdx: pr.house - 1, signIdx: pr.signIdx, lord: KO[pr.lord], age: pr.age };
+    return out;
+  }
+
   root.AstroNatalReading = {
     build: build,
+    legacyPeriods: legacyPeriods,
     render: render,
     renderChart: renderChart,
     renderDeep: renderDeep,

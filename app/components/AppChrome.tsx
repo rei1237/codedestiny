@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useCallback } from "react";
 import { ArrowLeft, Home } from "lucide-react";
+import styles from "./FeatureBackHomeNav.module.css";
 import { LazyMotion } from "framer-motion";
 import { useLocale } from "@/lib/i18n/useT";
 import GlobalHeader from "./GlobalHeader";
@@ -135,19 +136,19 @@ const FEATURE_NAV_SELF_MANAGED_ROUTES = [
 const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
 type ChromeLocale = (typeof LOCALE_CODES)[number];
 
-const FEATURE_NAV_COPY: Record<ChromeLocale, { back: string; home: string }> = {
-  ko: { back: "이전 페이지로 이동", home: "홈" },
-  en: { back: "Go back", home: "Home" },
-  ja: { back: "前のページに戻る", home: "ホーム" },
-  "zh-CN": { back: "返回上一页", home: "首页" },
-  "zh-TW": { back: "返回上一頁", home: "首頁" },
-  vi: { back: "Quay lại trang trước", home: "Trang chủ" },
-  hi: { back: "पिछले पेज पर जाएं", home: "होम" },
-  es: { back: "Volver a la página anterior", home: "Inicio" },
-  fr: { back: "Retour à la page précédente", home: "Accueil" },
-  de: { back: "Zur vorherigen Seite", home: "Startseite" },
-  nl: { back: "Terug naar vorige pagina", home: "Start" },
-  ms: { back: "Kembali ke halaman sebelumnya", home: "Laman utama" },
+const FEATURE_NAV_COPY: Record<ChromeLocale, { back: string; backLabel: string; home: string }> = {
+  ko: { back: "이전 페이지로 이동", backLabel: "뒤로", home: "홈" },
+  en: { back: "Go back", backLabel: "Back", home: "Home" },
+  ja: { back: "前のページに戻る", backLabel: "戻る", home: "ホーム" },
+  "zh-CN": { back: "返回上一页", backLabel: "返回", home: "首页" },
+  "zh-TW": { back: "返回上一頁", backLabel: "返回", home: "首頁" },
+  vi: { back: "Quay lại trang trước", backLabel: "Quay lại", home: "Trang chủ" },
+  hi: { back: "पिछले पेज पर जाएं", backLabel: "वापस", home: "होम" },
+  es: { back: "Volver a la página anterior", backLabel: "Volver", home: "Inicio" },
+  fr: { back: "Retour à la page précédente", backLabel: "Retour", home: "Accueil" },
+  de: { back: "Zur vorherigen Seite", backLabel: "Zurück", home: "Startseite" },
+  nl: { back: "Terug naar vorige pagina", backLabel: "Terug", home: "Start" },
+  ms: { back: "Kembali ke halaman sebelumnya", backLabel: "Kembali", home: "Laman utama" },
 };
 
 function isUnsafePaymentReferrer(referrer: string) {
@@ -162,6 +163,8 @@ function isUnsafePaymentReferrer(referrer: string) {
 }
 
 function FeatureBackHomeNav() {
+  const pathname = usePathname();
+  const isNeoRoom = pathname?.includes("/neo-operation-room");
   const router = useRouter();
   const locale = useLocale() as ChromeLocale;
   const copy = FEATURE_NAV_COPY[locale] ?? FEATURE_NAV_COPY.ko;
@@ -188,27 +191,28 @@ function FeatureBackHomeNav() {
   }, [router]);
 
   return (
-    // cd-feature-nav: 모바일에서 숨기는 표식. 하단 네비(.cd-mnav)가 홈 탭을 이미 갖고 있어
-    // 이 좌상단 고정 나브는 중복이면서 기능 화면 UI 를 덮는다. 숨김 규칙은 두 나브가 서로의
-    // 대체재이므로 같은 미디어 쿼리 안에 둔다 — styles/mobile-bottom-nav.css.
+    // The navigation owns its row in document flow so it cannot cover page content.
+    // cd-feature-nav remains the marker hidden when the mobile tab bar is mounted.
     <nav
       aria-label="Feature navigation"
-      className="cd-feature-nav pointer-events-none fixed left-3 top-[calc(env(safe-area-inset-top,0px)+12px)] z-[2147481200] flex items-center gap-2 sm:left-4"
+      className={`cd-feature-nav ${styles.navigation} ${isNeoRoom ? styles.neo : ""}`}
     >
       <button
         type="button"
         onClick={goBack}
-        className="pointer-events-auto inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/[.18] bg-slate-950/[.62] text-white shadow-[0_14px_36px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:bg-slate-900/[.82] focus:outline-none focus:ring-2 focus:ring-amber-200/60"
+        className={`cd-yehwa-button cd-yehwa-button--secondary ${styles.button} ${styles.back}`}
         aria-label={copy.back}
       >
-        <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+        <ArrowLeft className={styles.icon} aria-hidden="true" />
+        <span>{copy.backLabel}</span>
       </button>
       <button
         type="button"
         onClick={goHome}
-        className="pointer-events-auto inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/30 bg-[linear-gradient(135deg,rgba(15,23,42,0.78),rgba(70,49,118,0.68),rgba(184,134,48,0.42))] px-4 text-sm font-black text-amber-50 no-underline shadow-[0_14px_36px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:border-amber-100/54 hover:bg-slate-900/82 focus:outline-none focus:ring-2 focus:ring-amber-200/60"
+        className={`cd-yehwa-button cd-yehwa-button--primary ${styles.button} ${styles.home}`}
+        aria-label={copy.home}
       >
-        <Home className="h-4 w-4" aria-hidden="true" />
+        <Home className={styles.icon} aria-hidden="true" />
         <span>{copy.home}</span>
       </button>
     </nav>

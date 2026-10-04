@@ -2,21 +2,23 @@
 
 import type { CSSProperties } from "react";
 import type { FortuneTeaFiveElementBalance } from "../data/consult";
-import styles from "../styles/fortune-tea-house.module.css";
+import styles from "../styles/tea-report.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type FiveElementBalanceProps = {
   elements?: FortuneTeaFiveElementBalance[];
+  method?: { scores: Record<string, number>; total: number };
 };
 
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다. */
 const KO = {
   eyebrow: "찻잔 향이 차오르는 결",
   title: "오행 향의 균형",
+  method: "천간·지지·지장간의 가중치를 합한 전체에서 각 오행이 차지하는 비중입니다. 단순 글자 수나 성공 확률이 아니며, 출생 시간 미상일 때는 시주를 제외합니다.",
   empty: "출생정보가 충분하지 않아 오행의 세부 균형은 펼치지 않았어요.",
 };
 
-export default function FiveElementBalance({ elements }: FiveElementBalanceProps) {
+export default function FiveElementBalance({ elements, method }: FiveElementBalanceProps) {
   const copy = useTeaHouseCopy("fiveElementBalance", KO);
   if (!elements?.length) {
     return (
@@ -36,13 +38,14 @@ export default function FiveElementBalance({ elements }: FiveElementBalanceProps
         <span>{copy.eyebrow}</span>
         <h4 id="fiveElementBalanceTitle">{copy.title}</h4>
       </div>
+      <p className={styles.sajuMutedText}>{copy.method}</p>
       <div className={styles.fiveElementBalance}>
         {elements.map((element) => (
           <article className={styles.fiveElementItem} data-tone={element.tone} key={element.key}>
             <div className={styles.fiveElementMeta}>
               <span>{element.nameKo}</span>
               <strong>{element.strengthLabel}</strong>
-              <em>{Math.round(element.value)}%</em>
+              <em>{Math.round(element.value)}%{method && Number.isFinite(method.scores[element.key]) ? <small> · {method.scores[element.key].toFixed(2)} / {method.total.toFixed(2)}</small> : null}</em>
             </div>
             <div className={styles.fiveElementTrack} aria-label={`${element.nameKo} ${Math.round(element.value)}%`}>
               <span style={{ "--element-value": `${element.value}%` } as CSSProperties} />

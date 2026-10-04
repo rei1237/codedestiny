@@ -154,3 +154,13 @@ test('output budget keeps the chapter target plus headroom and stays under the p
   assert.ok(m.v7OutputTokens(chapter,2)>m.v7OutputTokens(chapter,0),`${where}: questions add no room`);
  }
 });
+test('every health chapter, and no other chapter, carries the shared health contract', ()=>{
+ const seen=new Set();
+ for(const {domain,tier,kind,chapters} of all)for(const chapter of chapters){
+  const rule=m.buildV7ChapterPrompt({chapter,facts:[],previous:[]}).domainRules.healthContract;
+  if(chapter.key==='health'){assert.equal(rule,m.HEALTH_RULES,`${domain}/${tier}/${kind}/${chapter.key}`);seen.add(domain);}
+  else assert.equal(rule,undefined,`${domain}/${tier}/${kind}/${chapter.key}`);
+ }
+ assert.deepEqual([...seen].sort(),['astrology','saju','vedic','ziwei']);
+ assert.match(m.HEALTH_RULES,/의료진/);
+});

@@ -1,89 +1,73 @@
 ---
 status: active
-updated: 2026-10-03
-next: "docs/handoff/yeongnyangi-price-20261005.md 의 '10/5 당일 절차'대로 워크트리 B 의 영냥이 정식 가격을 main 에 머지·push 하고 스테이징 검증까지 진행해줘. RED 이니 위험·검증·롤백을 먼저 보고하고, 운영 승격은 범위를 다시 보여 준 뒤 내 승인을 받아"
+updated: 2026-10-05
+next: "docs/handoff/yeongnyangi-price-20261005.md 의 '남은 절차'부터 이어서 진행해줘. 고등어 3,000원 체계와 천원 사주 콘텐츠가 main 에 올라갔는지 확인하고, 운영 승격은 범위를 다시 보여 준 뒤 내 승인을 받아"
 ---
 
 # 영냥이 정식 가격 시행 (2026-10-05)
 
 ## 왜
 
-체험가(고등어 1,000원~)로는 공유·유입이 적은 지금 수익이 거의 없다. 사용자 원문:
+체험가(고등어 1,000원~)로는 수익이 거의 없다. 10-02 에 고등어 9,900원 체계를 준비했으나 10-04 에 바꿨다. 사용자 원문:
 
-- "딱 10월 5일부터 영냥이 상담 가격을 새롭게 논의한 가격으로 업데이트해서 그 가격으로 상담받을 수 있도록하고 영냥이 이용권 가격도 그에 맞게 가격을 인상시켜줘"
-- "가격을 높히는만큼 영냥이 이용권의 혜택은 더 커지는 편이 나을것 같다"
-- "그때부터는 천원 운세가 이날 9900원 운세로 설명도 바꿔야할것 같다"
-- (같은 날 수정) "가격 차이가 너무 심한데 연어 17900, 광어 23900, 참치 34900, 모둠 49000, 오마카세 99900원으로 가격을 변경해줘 그리고 생선팩 가격도 그에 맞도록 가격을 조정해주도록하고 10월 5일부터 반영되도록해줘 인수인계 문서 만들어서 진행하는게 낫겠다"
+- "9900원까지 올리는것은 너무 가파르기 때문에 아닌것 같고 고등어 기준 2990원으로 설정하고 나머지도 그에 맞게 영냥이 이용권까지 가격을 같은 비율로 계산해서 결정한 이후에 작업 후 운영 승격까지 진행시켜줘"
+- "천원 운세라는 단어를 쓰기 위해서라도 일부 서비스는 천원으로 이용할 수 있도록 해줘 예를들면 재밌는 사주 콘텐츠들이 좋겠다."
+- "앱에서도 천원이더라도 돈은 받도록 수정해"
 
-결정(2026-10-02): 날짜 분기 코드 없이 **10/5 당일 배포·승격**. 팩 할인 20/30/40%·30일. `/yeongnyangi/1000-won-fortune/` URL 은 유지하고 문구만 '9,900원 운세'. 체험가 종료는 지금부터 "10월 4일까지" 고지(이미 main).
+결정(10-04): 직전 확정표(9,900 체계) × 0.302, 100원 단위(코인 정수 유지라 2,990 대신 3,000). 승격은 10/5 0시 KST 이후. 천원 콘텐츠는 리포트 카드 5종 + 달빛 럭키 리추얼. 9,900 체계 워크트리 B 는 머지하지 않고 폐기.
 
 ## 최종 가격표
 
-단건(`worker/lib/paid-feature-registry.js`, 클라이언트는 `worker/yeongnyangi/payments/catalog.ts` 로 파생):
+단건(`worker/lib/paid-feature-registry.js`):
 
 | | 고등어 | 연어 | 광어 | 참치 | 모둠(3종 각) | 오마카세 |
 |---|---|---|---|---|---|---|
-| 지금(체험가) | 1,000 | 3,000 | 5,000 | 10,000 | 20,000 | 50,000 |
-| 10/5~ | **9,900** | **17,900** | **23,900** | **34,900** | **49,000** | **99,900** |
-| 월정석(10/3 추가 승인) | 990개 | 1,790개 | 2,390개 | 3,490개 | 4,900개 | 9,990개 |
-| 앱 코인 | 99 | 179 | 239 | 349 | 490 | 999 |
+| 체험가(~10/4) | 1,000 | 3,000 | 5,000 | 10,000 | 20,000 | 50,000 |
+| 10/5~ | **3,000** | **5,400** | **7,200** | **10,500** | **14,800** | **30,000** |
+| 코인 / 월정석(1개=10원) | 30 / 300 | 54 / 540 | 72 / 720 | 105 / 1,050 | 148 / 1,480 | 300 / 3,000 |
 
-생선 팩(`worker/payments/service-pack-policy.js`, `-v3`, policy `yeongnyangi-pack-20261005`, 30일, 같은 생선 전용, 웹 PG 전용):
+생선 팩(`-v3`, policy `yeongnyangi-pack-20261005`, 30일, 같은 생선 전용, 웹 PG 전용):
 
 | | 5회(20%↓) | 10회(30%↓) | 20회(40%↓) |
 |---|---|---|---|
-| 고등어 | 39,600 | 69,300 | 118,800 |
-| 연어 | 71,600 | 125,300 | 214,800 |
-| 광어 | 95,600 | 167,300 | 286,800 |
-| 참치 | 139,600 | 244,300 | 418,800 |
+| 고등어 | 12,000 | 21,000 | 36,000 |
+| 연어 | 21,600 | 37,800 | 64,800 |
+| 광어 | 28,800 | 50,400 | 86,400 |
+| 참치 | 42,000 | 73,500 | 126,000 |
 
-## 지금 상태 (2026-10-02)
+천원 사주 콘텐츠(10코인, 1,000원, 영구 해금, LLM 없음): 나의 매력 클래스 `rpt_specialCharmCard` · 인생 스킬 트리 `rpt_skillTreeCard` · 사주로 보는 여행지 `rpt_energyCoordCard` · 빌런 블랙리스트 `rpt_villainCard` · 시크릿 하우스 `rpt_secretHouseEntryCard` · 달빛 럭키 리추얼 `fun.quantumLotto.ritualReport`. 진입은 무료 사주 결과의 리포트 카드. 이용권 최저 커버 30→10코인.
 
-- **main(배포됨)**: 체험가 배너가 "체험가는 10월 4일까지, 10월 5일부터 정식 가격"을 고지한다. 취소선 '정식 오픈 예정가'(`lib/brand/launch-offer.ts` `plannedPriceKRW`)는 위 10/5 가격으로 맞춰 두었다. 실결제가는 아직 체험가다.
-- **워크트리 B (main 미머지, push 안 함)**: `D:\Development\codedestiny-worktrees\yn-price-1005-20261002-161442`, 브랜치 `wt/yn-price-1005-20261002-161442`.
-  - 89f56bf41 가격·이용권·문구 코드 / 0cd324690 결제 문서 / 754e193d2 origin/main 머지 / f85915c7a 가격 재조정(17,900~99,900)
-  - 내용: 레지스트리 단건가, 팩 20/30/40% `-v3`, 기존 팩 보호(`servicePackCoverage` 는 `0 < 스냅샷 단가 ≤ 현재가`면 같은 생선에 적용), `PRICE_CHANGED` 안내 고정 금액 제거, `launch-offer` `active:false`, '천원 운세'→'9,900원 운세' 문구(URL 유지), 앱 SKU 실패 폐쇄, 결제 문서 10-05 절.
-  - 🔴 B 는 이 PC 로컬에만 있다(브랜치 push 금지 규칙). 워크트리를 지우지 않는다.
-- 검증(10/2, mock): `npm run check:fast` 통과(paid-gate 88/88, jest 전체), 결제 jest 11스위트 314/314, `verify-app-store-pricing` 통과, 영냥이 UI node --test 통과. dev 화면(390/1280)에서 영냥이 홈·9,900원 페이지에 새 가격만 보이고 체험가·천원 0건. 팩 카드·결제창은 mock 에서 카탈로그 402·로그인 리다이렉트라 **화면 미검증**(서버 테스트만).
+## 커밋 (워크트리 `D:\Development\codedestiny-worktrees\yn-price-3000-20261004-235305`)
 
-## 10/5 당일 절차
+- C1 c03fc3520 영냥이 3,000원 체계·팩 -v3·체험가 종료·미러
+- C2 7059a967a 천원 콘텐츠 6종·MIN_PASS 10·앱 무료 통과 거부(`isAppFreeFeature`)
+- 2a579744e core 사전(shellCopy·homeQuestions) 재병합·월정석 할인 테스트 PG 하한
+- C3 b8c95a1af 문구: `/yeongnyangi/1000-won-fortune/` 를 천원 사주 콘텐츠 허브로(URL 유지), 홈·랜딩 다음 단계·엔티티 레지스트리 문구
+- C4 문서(이 커밋): payment-gating 10-05 절, payment-policy-flow, CONTEXT_AUDIT, play-billing-app, PLAY_CONSOLE_TASKS, 이 문서
 
-KST 10/5 에 사용자 요청으로 시작한다. 배너가 "10월 4일까지"라 10/5 중 어느 시각이든 약속 위반이 아니다(늦을수록 사용자에게 유리할 뿐).
+## 남은 절차
 
-1. 메인 체크아웃 `git status` 로 옆 세션 미커밋 확인. B 에서 `git fetch origin && git merge origin/main`. 충돌 시 결제 문서는 양쪽 절 보존, invariance 표는 main 표 기준으로 id/prepare(1·2번째 해시)만 재생성(`YEONGNYANGI_INVARIANCE_PRINT=1 node --test __tests__/ui/yeongnyangi-reading-invariance.test.mjs`).
-2. B 에서 `npm run sync:public` → `npm run sitemap:generate` → `npm run llms:generate` 후 미러·원장 변경을 커밋.
-   - 10/2 이후 main 에 영냥이 리딩 커밋(84fa9b160 반말/존댓말 등)이 계속 오르고 있어 invariance 표·문구 파일 충돌이 예상된다. 요청 본문 해시(3번째 이후)가 바뀌면 그건 main 쪽 변경이니 main 값을 따른다.
-3. B 에서 `npm run check:fast` (jest 는 동시 실행 금지. mongoose `UNKNOWN: read` 는 I/O 헛실패라 그 스위트만 단독 재실행. 10/2 에 `verify:ziwei-deep-report-flow` 안의 `__tests__/ui/ziwei-deep-paid-delivery.behavior.test.js` 가 2회 'test failed' 로 떨어졌다가 단독 4회 통과 — 가격 무관 간헐 실패로 보고 단독 재실행 후 남은 단계를 이어 돌렸다).
-4. `git push origin HEAD:main` → main `CI required` 통과 확인.
-5. 결제 변경이라 `npm run verify:staging -- --sha=<40자리 SHA>`. 스테이징에서 직접 확인: `/yeongnyangi/` 생선 가격, `/yeongnyangi/1000-won-fortune/` 제목·가격표, 팩 카드 12종 가격, 결제창 금액(실결제 금지 — 금액 표시까지만).
-6. **운영 승격 범위 재확인**: 마지막 승격 이후 main 에 오른 다른 세션 커밋 목록을 보여 주고 1회 승인을 받는다. 승인 뒤 승격 → `npm run verify:release`.
-7. 이 문서 `status: done`, 결제 문서·`CURRENT_DEV_BASELINE` 에 시행 사실 기록.
+1. 워크트리에서 origin/main 머지 → `npm run sync:public`·`sitemap:generate`·`llms:generate` → `git push origin HEAD:main` → main `CI required` 확인.
+2. `npm run verify:staging -- --sha=<40자리>`. 스테이징에서 금액 표시까지만 확인(실결제 금지).
+3. 운영 승격: 마지막 승격 이후 main 의 다른 세션 커밋 목록을 보여 주고, 섞여 있으면 재승인. 확인과 dispatch 는 한 명령. 이후 `npm run verify:release`.
+4. 이 문서 `status: done`, 워크트리 A·B·현재 정리(node_modules 정션 먼저 끊기).
 
 ## 롤백
 
-가격 커밋만 `git revert`(89f56bf41·f85915c7a, 10/5 머지 뒤 생긴 미러·원장 커밋 포함) 후 push·재승격. force-push 금지. 롤백 사이에 팔린 `-v3` 팩은 저장된 `packSnapshot` 가격대로 유지되고, 결제 확정도 스냅샷을 쓰므로 진행 중 주문이 깨지지 않는다. 롤백 후 단가가 팩 스냅샷 단가보다 낮아지면 그 팩은 `servicePackCoverage` 에서 적용되지 않으므로(상한 검사) 롤백 시 판매분이 있으면 별도 조치가 필요하다.
+가격 커밋만 `git revert` 후 push·재승격. force-push 금지. 롤백 사이 팔린 `-v3` 팩은 `packSnapshot` 가격대로 유지. 천원 콘텐츠를 되돌리면 `MIN_PASS_COVERABLE_COIN`·`FAMILY_MIN_PASS_COVERABLE_COIN` 도 30 으로 함께 되돌린다.
 
 ## 사람 손 작업 (Play Console)
 
-앱(Google Play)에는 새 가격대 SKU 가 없어 영냥이 상담 앱 결제는 `APP_SKU_NOT_VERIFIED`(503)로 **실패 폐쇄**된다(웹 결제는 정상). 앱에서 팔려면 콘텐츠 SKU 6개 등록 후 `worker/lib/app-store-pricing.js` 티어 추가·`APP_UNVERIFIED_CONTENT_COIN_PRICES` 에서 제거: 9,900 / 17,900 / 23,900 / 34,900 / 49,000 / 99,900원. 절차는 `docs/pricing/PLAY_CONSOLE_TASKS.md`.
+앱은 새 가격대 SKU 가 없어 실패 폐쇄(`APP_SKU_NOT_VERIFIED` 503, 웹 정상): 영냥이 ₩5,400·₩7,200·₩10,500·₩14,800, 천원 콘텐츠 ₩1,000(Play KRW 하한으로 가능한지 미확인 — `docs/play-billing-app.md` 는 과거에 불성립으로 적었다). 등록 후 `worker/lib/app-store-pricing.js` 티어 추가. 절차는 `docs/pricing/PLAY_CONSOLE_TASKS.md`.
 
 ## 알려진 위험·범위 밖 (보고만, 미수정)
 
-- 상담가가 최대 약 10배 오른다. 전환 하락은 사용자 판단 사항.
-- `-v2` 이전 팩은 단가 상한만 있어 오래 남은 선물 팩(1년+30일)도 인상 뒤 계속 적용된다. 보유 배지 미표시(`ServicePacks.tsx`).
-- 9,900원 페이지 FAQ의 월정석 미적용 문구는 10/3 준비본에서 수정했다. 소셜 프로필 및 외부 공유 캐시는 운영 전환 뒤 별도로 확인한다.
-- 연이·네오 채팅 3,000원은 생선 단계가 아니라 그대로. SoulCat 미러 카탈로그(`server/payments/catalog.ts`)는 이미 불일치.
+- `-v2` 이전 팩은 단가 상한만 있어 오래 남은 선물 팩도 계속 적용된다. 보유 배지 미표시(`ServicePacks.tsx`).
+- 천원 허브 FAQ "월정석 적용 안 됨" 문구와 레지스트리(허용) 불일치. `app/channel/page.tsx:16` 도 같은 문구.
+- 이용권 최저 커버 10코인 부작용(코드 읽기 추정): 잔여 10~29코인 이용권이 종료되지 않고 만료까지 남아 그동안 하위 등급 구매가 `DOWNGRADE_BLOCKED`. 잔여로 쓸 수 있는 건 천원 콘텐츠뿐.
+- 달빛 럭키 리추얼은 사용자 단위 영구 해금 목록에서 제외(`worker/routes/billing.js:2535`) — 재열람 여부 미확인이라 허브 문구에서 재열람 주장을 뺐다.
+- 월정석 혼합 결제는 PG 잔액 1,000원 하한 때문에 고등어(3,000원)에서 최대 200개까지만 쓸 수 있다. Threads "500개=5,000원 할인" 예시는 고등어에 성립하지 않는다.
+- 연이·네오 채팅 3,000원은 그대로. SoulCat 미러 카탈로그 불일치.
+- Threads 10/5 게시 자료(다른 세션, `docs/handoff/threads-moonstone-20261005.md`)는 9,900/4,900원 예시를 쓴다 — 게시 전 3,000원 체계로 고쳐야 한다.
 - Yeongnyangi Browser Shadow CI 는 10/2 이전부터 실패(shadow, 비차단).
-
-## 2026-10-03 추가 승인 및 게시 연결
-
-- 사용자가 월정석의 원래 가치(1개=10원)를 복원하고, 원하는 수량을 쿠폰처럼 써서 차액을 단건 결제하는 방식을 승인했다. 위 월정석 행은 이 결정으로 교체했다. PG 잔액은 1,000원 이상이며, 전액 월정석·Family·생선 팩 권리는 기존 경로를 유지한다.
-- 준비 코드 `b25aeb5e0`, 최신 main 결제 런타임과의 통합 `3d47439ba`를 B에 통합했다. B의 registry multiplier=1로 활성화하며, main 준비 코드는 multiplier=5인 동안 비활성이다. B를 10/5 전에 main에 올리지 않는다.
-- 부분 할인 및 기존 팩·월정석 회귀 4개 Jest 스위트 180개 통과(mock). `/prepare`가 서버 가격으로 500개=5,000원 할인을 계산하고 4,900원을 청구하는 것, 재시도 시 추가 차감 없음, 수량 변경 거부를 포함한다. 실제 PG·DB·LLM 검증은 하지 않았다.
-- 리딩 불변성 123개 케이스에서 가격에 따른 id/prepare 열만 재생성했고 실제 리딩 요청·검증 결과·매니페스트 해시는 유지했다. 종료된 체험가의 화면 문구 검사도 통과했다.
-- 게시 시각은 2026-10-05 09:00 KST. Codex 일회성 후속 실행 `10-5-threads`가 등록되었다. Threads 자체 예약글은 아직 없다. 운영 가격·부분 할인이 확인되기 전에는 5,000원 혜택 게시를 보류하도록 했다.
-- 운영 승격은 이 준비·예약에 포함되지 않는다. 기존 당일 절차의 승인 및 릴리스 검증을 완료해야 게시 조건이 충족된다.
-- 현재 Chrome·인앱 브라우저 CDP 연결 시간 초과로 실제 기능 캡처·SNS 프로필 수정은 미완료. 게시 자료 및 재개 상태는 `threads-moonstone-20261005.md`를 함께 확인한다.
-최신 가격 준비본 커밋(10/3 통합): `59eff7774df4cf87a16dc8763f58f889be23aa5d`. 가격 B 워크트리에 보존하며, 10/5 이전에는 main에 합치거나 push하지 않는다.
-
-최종 월정석 보완(10/3): B HEAD a2e62d36f21ca7b6fd47c5246438364afac11162. Native 복원 어댑터, Mongoose 명시 연산자, PG 확인 배치 순환, 가격별 policy 검사 보정. main 준비본 f5e50dec4의 Critical checks CI 통과. B는 10/5 이전 공개하지 않는다.
+- 천원 콘텐츠(unlock) 이용권 경로는 소유 조회 DB 읽기 1회가 추가된다.

@@ -144,7 +144,7 @@ function pickFreeFeatureKey() {
     const result = billingRegistry.getBillingFeaturePricing({ featureKey: key });
     if (!result?.ok || !result.pricing) continue;
     const coin = Math.floor(Number(result.pricing.coinPrice ?? result.pricing.cost ?? 0));
-    if (appPricing.isAppFreeCoinPrice(coin) && !key.startsWith("yeongnyangi-")) return key;
+    if (appPricing.isAppFreeFeature(key, coin)) return key;
   }
   return null; // 무료 구간 기능이 사라지면 해당 테스트만 건너뛴다.
 }
@@ -631,19 +631,20 @@ describe("free-grant — 앱 무료 구간", () => {
 });
 
 describe("intent — 결제 의도 기록", () => {
-  test("고등어 상담은 음악용 저가 무료 정책으로 지급하지 않는다", async () => {
+  test("고등어 상담(30코인, ₩3,000 SKU)은 무료 지급으로 우회할 수 없다", async () => {
     const { status, payload } = await callRoute(postJson("/free-grant", {
       featureKey: "yeongnyangi-saju-mackerel", requestId: "yn-" + "a".repeat(64),
     }));
-    expect(status).toBe(503);
-    expect(payload.code).toBe("APP_SKU_NOT_VERIFIED");
+    expect(status).toBe(400);
+    expect(payload.code).toBe("APP_STORE_PRODUCT_NOT_FREE");
     expect(mockPaymentCreate).not.toHaveBeenCalled();
   });
 
+  // 2026-10-05: 영냥이는 앱 SKU 가 없어 판매가 닫혔다. 같은 복구 계약을 3,000원 등급 상품으로 확인한다.
   test("앱 종료 뒤 영수증 복구가 서버 의도의 상담 ID를 보존한다", async () => {
-    const requestId = "yn-" + "a".repeat(64);
+    const requestId = "dream-" + "a".repeat(32);
     mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => ({
-      featureKey: "yeongnyangi-saju-salmon", requestId, profileId: "saved-profile",
+      featureKey: "dream-psycho-analysis", requestId, profileId: "saved-profile",
     }) }) });
     const { status, payload } = await callRoute(postJson("/google/restore", {
       purchases: [{ productId: "cd_content_tier_01", purchaseToken: "orphan-yn", orderId: "GPA.test" }],
@@ -653,6 +654,31 @@ describe("intent — 결제 의도 기록", () => {
     expect(mockPaymentCreate.mock.calls[0][0].requestId).toBe(requestId);
     expect(mockPaymentCreate.mock.calls[0][0].pricingSnapshot.requestId).toBe(requestId);
     expect(payload.data.purchases[0].shouldConsume).toBe(true);
+  });
+
+  test("앱 SKU 가 없는 영냥이 가격의 복구는 지급하지 않고 실패로 남긴다", async () => {
+    mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => ({
+      featureKey: "yeongnyangi-saju-salmon", requestId: "yn-" + "a".repeat(64), profileId: "saved-profile",
+    }) }) });
+    const { status, payload } = await callRoute(postJson("/google/restore", {
+      purchases: [{ productId: "cd_content_tier_01", purchaseToken: "orphan-yn", orderId: "GPA.test" }],
+    }));
+    expect(status).toBe(200);
+    expect(payload.data.failedPurchases).toEqual([expect.objectContaining({ code: "APP_SKU_NOT_VERIFIED" })]);
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+  });
+
+  // 2026-10-05 천원 사주 콘텐츠(10코인)는 무료 구간 가격이지만 앱에서도 돈을 받는다. ₩1,000 SKU 가 없어 닫힌다.
+  const FUN_1000_KEYS = ["rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_energyCoordCard", "rpt_villainCard", "rpt_secretHouseEntryCard", "fun.quantumLotto.ritualReport"];
+  test.each(FUN_1000_KEYS)("천원 사주 콘텐츠 %s 는 앱 무료 통과 없이 SKU 미검증으로 닫힌다", async (featureKey) => {
+    expect([...appPricing.APP_PAID_LOW_PRICE_FEATURE_KEYS]).toEqual(FUN_1000_KEYS);
+    expect(registry.FEATURE_KEY_PRICE_TABLE[featureKey]).toMatchObject({ cost: 10, amountKRW: 1000 });
+    for (const path of ["/free-grant", "/google/intent"]) {
+      const { status, payload } = await callRoute(postJson(path, { featureKey, requestId: "fun-" + "b".repeat(32) }));
+      expect(status).toBe(503);
+      expect(payload.code).toBe("APP_SKU_NOT_VERIFIED");
+    }
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
   });
 
   test("launchBillingFlow 직전 의도를 남기고 obfuscatedAccountId를 내려준다", async () => {

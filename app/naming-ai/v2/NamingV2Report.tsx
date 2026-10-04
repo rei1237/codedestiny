@@ -63,7 +63,12 @@ function usefulFilled(candidate: V2Candidate, useful: V2Element[]): V2Element[] 
   return [...hits];
 }
 
-const firstHun = (hun: string | null | undefined) => (hun ? hun.split(/[,;]/)[0].trim() : "");
+// 엔진 firstHun 과 같은 규칙 — 이체자 안내 토막("峯과 同字")은 건너뛴다.
+const firstHun = (hun: string | null | undefined) => {
+  if (!hun) return "";
+  const parts = hun.split(/[,;]/).map((part) => part.trim());
+  return parts.find((part) => part && !/\p{Script=Han}/u.test(part)) ?? parts[0];
+};
 
 export default function NamingV2Report({ engine, narration, tier, exportExpand = false, locale }: NamingV2ReportProps) {
   const copy = useMemo(() => getNamingV2Copy(locale || getCurrentLoadingLocale()), [locale]);
@@ -152,7 +157,7 @@ export default function NamingV2Report({ engine, narration, tier, exportExpand =
   }
 
   const compared = compare.map((rank) => candidates.find((c) => c.rank === rank)).filter((c): c is V2Candidate => Boolean(c));
-  const seriesColors = ["var(--nv2-violet)", "var(--nv2-gold)", elementTone("water").color];
+  const seriesColors = ["var(--nv2-seal)", "var(--nv2-ornament)", elementTone("water").color];
   const selectedNarration = narrationOf(selected);
 
   return (
@@ -169,9 +174,9 @@ export default function NamingV2Report({ engine, narration, tier, exportExpand =
                 <h2 className={styles.certTitle}>{copy.reportTitle}</h2>
                 <p className={styles.certLead}>{copy.reportLead(surname.hangul)}</p>
                 <p className={styles.certPickLabel}>{copy.finalPickLabel}</p>
-                <div className={styles.certName}>
+                <div className={styles.certName} style={{ ["--nv2-name-len" as string]: [...`${surname.hanja}${pick.hanja}`].length }}>
                   <span className={cx(styles.han, styles.certHanja)} lang="ko">{surname.hanja}{pick.hanja}</span>
-                  <Seal text={copy.sealNaming} size={60} tilt={-5} stamp={!exportExpand} />
+                  <Seal text={copy.sealNaming} size={60} tilt={-5} stamp={!exportExpand} fluid className={styles.certSeal} />
                 </div>
                 <p className={styles.certHangul}>{fullHangul(pick)}</p>
                 <ul className={styles.certChars}>
@@ -321,7 +326,7 @@ export default function NamingV2Report({ engine, narration, tier, exportExpand =
           </div>
           <div>
             <h3 className={styles.subTitle}>{copy.radarTitle}</h3>
-            <ScoreRadar copy={copy} series={[{ key: String(selected.rank), label: fullHangul(selected), scores: selected.scores, color: "var(--nv2-violet)" }]} />
+            <ScoreRadar copy={copy} series={[{ key: String(selected.rank), label: fullHangul(selected), scores: selected.scores, color: "var(--nv2-seal)" }]} />
           </div>
         </div>
 

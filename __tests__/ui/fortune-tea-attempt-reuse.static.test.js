@@ -28,7 +28,7 @@ test("재제출은 보관된 attemptId 를 먼저 쓰고, 없을 때만 새로 �
   assert.ok(PAGE.includes("? carriedPaid.attemptId"), "이어받기 갈래가 사라졌다");
   assert.match(
     PAGE,
-    /carriedPaid\s*\r?\n\s*\? carriedPaid\.attemptId\s*\r?\n\s*: createFortuneTeaAttemptId\(requestPayload\)/,
+    /carriedPaid\s*\r?\n\s*\? carriedPaid\.attemptId\s*\r?\n\s*: nextQuestionInput\.attemptId \|\| createFortuneTeaAttemptId\(requestPayload\)/,
     "createFortuneTeaAttemptId 가 이어받기보다 먼저 불린다 — 순서가 뒤집히면 재과금이다",
   );
 });

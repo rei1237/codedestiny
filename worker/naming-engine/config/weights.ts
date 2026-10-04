@@ -50,5 +50,16 @@ export const SEARCH = Object.freeze({
   mmrLambda: 0.7,
 });
 
+/**
+ * 추천 모드의 자연 이름(name-usage givenRows — Wikidata 1940년 이후 출생 대한민국 인물). 이 목록의 한글 이름만 먼저 탐색하고,
+ * 못 채우면 풀 전체 탐색으로 넘어간다(names.fallback). 성별 지정: 그 성별 사용 minUse 명 이상 · 그 성별 비율 minShare 이상 ·
+ * 1990년 이후 출생자 사용 minRecent 명 이상(영자·순자 같은 옛 이름을 뺀다). 성별 미정: 남녀 합 neutralMinTotal 이상 ·
+ * 적은 쪽 비율 neutralMinShare 이상 · 최근 사용 minRecent 이상. perSyllable = 음절마다 조합에 쓰는 글자 수.
+ */
+export const NATURAL_NAMES = Object.freeze({ minUse: 2, minShare: 0.7, minRecent: 1, neutralMinTotal: 3, neutralMinShare: 0.25, perSyllable: 12 });
+
+/** 선택 모드: 부모가 고른 한글 이름 최대 개수. */
+export const MAX_DESIRED_NAMES = 5;
+
 /** 완화 단계(§7): 0 엄격 → 1 원격·형격 흉 허용 → 2 정격 반길 허용 → 3 신뢰도 하한·훈 없음·무료 분쟁 제외 해제. 정격 흉은 끝까지 막는다. */
 export const MAX_RELAXATION_STAGE = 3;

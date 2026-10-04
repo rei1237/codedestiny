@@ -3,6 +3,7 @@
 
 import type { NamingResultV2 } from "./engine";
 import type { NamedCandidate } from "./score";
+import { firstHun } from "./config/negative-meaning";
 import { GRID_NAMES, type GridName } from "./suri";
 import type { Element, Grade, Relation } from "./types";
 
@@ -56,6 +57,10 @@ export interface EngineView {
     pillars?: Record<string, { g: string; j: string; gE?: string }>;
     counts?: Partial<Record<Element, number>>;
   };
+  /** 추천 방식. Phase 6.5(2026-10-04) 이전 레코드에는 없다 — 없으면 "recommend" 로 읽는다. */
+  strategy?: "recommend" | "choose";
+  /** strategy 가 "choose" 일 때만 — 부모가 고른 한글 이름(입력 순서). */
+  desiredNames?: string[];
   notices: string[];
   candidates: EngineCandidateView[];
 }
@@ -113,6 +118,8 @@ export function engineView(result: NamingResultV2): EngineView {
       timeUnknown: result.saju.timeUnknown,
       jongConditional: result.saju.jongConditional,
     },
+    strategy: result.strategy,
+    ...(result.strategy === "choose" ? { desiredNames: [...result.desiredNames] } : {}),
     notices: [...result.notices],
     candidates: result.candidates.map((candidate, index) => candidateView(candidate, index + 1)),
   };
@@ -137,11 +144,9 @@ export function particle(word: string, withBatchim: string, without: string): st
 
 // ── 결정론 서술 ──
 
+export { firstHun };
+
 const labels = (elements: Element[]) => elements.map((e) => ELEMENT_LABEL[e]).join("·");
-/** 첫째 훈 한 토막. "막힐 니, 진흙 니" → "막힐 니" */
-export function firstHun(hun: string | null): string {
-  return hun ? hun.split(",")[0].trim() : "";
-}
 export function fullName(view: EngineView, candidate: EngineCandidateView): string {
   return `${view.surname.hangul}${candidate.hangul}(${view.surname.hanja}${candidate.hanja})`;
 }
@@ -237,8 +242,23 @@ export interface Narration { source: "llm" | "llm-corrected" | "engine"; names: 
 export const NARRATION_NAME_COUNT = 6;
 export const NARRATION_LETTER_COUNT = 3;
 
+/** 하나씩 풀어 쓰는 후보(순위 순). 선택 방식이면 고른 이름마다 가장 높은 후보를 꼭 넣고 나머지를 순위대로 채운다. */
+export function narratedCandidates(view: EngineView): EngineCandidateView[] {
+  if (view.strategy !== "choose") return view.candidates.slice(0, NARRATION_NAME_COUNT);
+  const keep = new Set<number>();
+  for (const name of view.desiredNames || []) {
+    const best = view.candidates.find((candidate) => candidate.hangul === name);
+    if (best) keep.add(best.rank);
+  }
+  for (const candidate of view.candidates) {
+    if (keep.size >= NARRATION_NAME_COUNT) break;
+    keep.add(candidate.rank);
+  }
+  return view.candidates.filter((candidate) => keep.has(candidate.rank));
+}
+
 export function deterministicNarration(view: EngineView): Narration {
-  const top = view.candidates.slice(0, NARRATION_NAME_COUNT);
+  const top = narratedCandidates(view);
   return {
     source: "engine",
     names: top.map((candidate) => ({
@@ -335,11 +355,12 @@ export function engineChapterBody(id: number, view: EngineView, saju: SajuLines,
         "넷째, 실제로 쓰기 좋은지입니다. 교육용 기초한자인지, 불용한자 관행에 걸리는지, 첫소리 ㄹ이나 같은 음절 반복처럼 부르기 불편한 점이 없는지를 함께 보았습니다. 삼재는 학파마다 해석이 달라 참고 지표로만 반영했습니다.",
       ].join("\n\n");
     case 4: {
-      const detailed = view.candidates.slice(0, NARRATION_NAME_COUNT).map((candidate) => {
+      const told = narratedCandidates(view);
+      const detailed = told.map((candidate) => {
         const told = narrationFor(view, narration, candidate);
         return [`### ${candidate.rank}. ${fullName(view, candidate)}`, factParagraph(view, candidate), told.meaning, told.sajuSupport, told.soundFeel].join("\n\n");
       });
-      const rest = view.candidates.slice(NARRATION_NAME_COUNT);
+      const rest = view.candidates.filter((candidate) => !told.includes(candidate));
       if (rest.length) detailed.push(`그 밖에 ${rest.map((candidate) => fullName(view, candidate)).join(", ")}도 같은 기준으로 계산된 후보입니다.`);
       return detailed.join("\n\n");
     }
@@ -369,7 +390,7 @@ export function engineChapterBody(id: number, view: EngineView, saju: SajuLines,
         "뜻에서는 첫째 훈이 부정적인 뜻을 지닌 한자와 성별 관례상 어색한 글자를 걸렀습니다.",
       ].join("\n\n");
     case 8: {
-      const top = view.candidates.slice(0, NARRATION_NAME_COUNT);
+      const top = narratedCandidates(view);
       const charsWith = (flag: string) => [...new Set(top.flatMap((candidate) => candidate.chars.filter((char) => char.flags.includes(flag)).map((char) => char.ch)))];
       const variant = charsWith("court-code-variant");
       const lowConfidence = charsWith("low-confidence");

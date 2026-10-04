@@ -36,6 +36,14 @@ export interface NamingV2Copy {
   fixedHangulPlaceholder: string;
   avoidLabel: string;
   avoidPlaceholder: string;
+  strategyLabel: string;
+  strategies: Record<"recommend" | "choose", { title: string; desc: string }>;
+  chosenNamesLabel: string;
+  chosenNamesPlaceholder: string;
+  chosenNamesHint: string;
+  chosenNamesEmpty: string;
+  chosenNamesSkipped: (items: string) => string;
+  chosenNamesLimit: (max: number) => string;
   engineLengthNote: string;
   // 무료 미리보기
   basisTitle: string;
@@ -134,6 +142,9 @@ const KO: NamingV2Copy = {
     "surname.pool-strokes": "성씨 획수를 성씨 통계 대신 인명용 한자 자료에서 읽었습니다.",
     "sound.school-differs": "고른 학파에 따라 소리오행 배정이 달라질 수 있습니다.",
     "candidates.short": "조건을 모두 만족하는 후보가 적어 보여 드리는 수가 줄었습니다.",
+    "names.fallback": "성별에 맞는 자연스러운 이름만으로는 후보가 모자라 인명용 한자 전체에서 함께 골랐습니다.",
+    "desired.unavailable": "고른 이름 가운데 조건에 맞는 한자 조합을 찾지 못한 이름이 있습니다.",
+    "desired.padded": "고른 이름만으로는 후보가 모자라 추천 이름을 덧붙였습니다. 덧붙인 이름은 부모님이 고른 이름이 아닙니다.",
   },
   relaxedNotice: (stage) => `후보가 부족해 조건을 ${stage}단계까지 완화해 골랐습니다.`,
   mapping: {
@@ -165,6 +176,17 @@ const KO: NamingV2Copy = {
   fixedHangulPlaceholder: "읽기(선택)",
   avoidLabel: "피할 한자",
   avoidPlaceholder: "예: 死 病 (띄어 쓰기)",
+  strategyLabel: "이름 정하는 방식",
+  strategies: {
+    recommend: { title: "추천 이름 받기(기본)", desc: "아이 성별에 맞게 실제로 많이 쓰는 자연스러운 이름 가운데 사주에 맞는 이름을 골라 드립니다." },
+    choose: { title: "생각해 둔 이름으로 찾기", desc: "부모님이 고른 한글 이름마다 사주·수리·소리에 맞는 한자 조합을 찾아 드립니다." },
+  },
+  chosenNamesLabel: "생각해 둔 이름",
+  chosenNamesPlaceholder: "예: 서윤 하은 지우",
+  chosenNamesHint: "한글 1~2글자 이름을 띄어 쓰거나 쉼표로 나눠 5개까지 적어 주세요.",
+  chosenNamesEmpty: "이름을 하나 이상 적어 주세요.",
+  chosenNamesSkipped: (items) => `이름으로 쓸 수 없어 뺀 항목: ${items}`,
+  chosenNamesLimit: (max) => `앞의 ${max}개만 씁니다.`,
   engineLengthNote: "한자 계산 작명은 이름 1~2자까지 지원합니다.",
   basisTitle: "무료 한자 이름 미리보기",
   basisLead: "결제 전에 계산 엔진이 고른 상위 5개 이름과 사주 오행 요약을 먼저 보여 드립니다. AI 호출 없이 계산만으로 만듭니다.",
@@ -258,6 +280,9 @@ const EN: NamingV2Copy = {
     "surname.pool-strokes": "Surname strokes were read from the name-hanja data instead of surname statistics.",
     "sound.school-differs": "Sound elements can differ by the school you chose.",
     "candidates.short": "Few names met every condition, so fewer are shown.",
+    "names.fallback": "Too few natural names for this gender matched, so the whole name-hanja pool was searched as well.",
+    "desired.unavailable": "No fitting hanja combination was found for some of the names you chose.",
+    "desired.padded": "Your chosen names gave too few candidates, so recommended names were added. Added names are not the ones you chose.",
   },
   relaxedNotice: (stage) => `Too few names matched, so conditions were relaxed to stage ${stage}.`,
   mapping: {
@@ -289,6 +314,17 @@ const EN: NamingV2Copy = {
   fixedHangulPlaceholder: "Reading (optional)",
   avoidLabel: "Hanja to avoid",
   avoidPlaceholder: "e.g. 死 病 (space-separated)",
+  strategyLabel: "How to pick the name",
+  strategies: {
+    recommend: { title: "Recommend names (default)", desc: "We pick names that suit the saju from natural names commonly given to this gender." },
+    choose: { title: "Use names I have in mind", desc: "For each Hangul name you enter, we find hanja combinations that fit the saju, strokes and sound." },
+  },
+  chosenNamesLabel: "Names you have in mind",
+  chosenNamesPlaceholder: "e.g. 서윤 하은 지우",
+  chosenNamesHint: "Enter up to 5 Hangul names of 1–2 syllables, separated by spaces or commas.",
+  chosenNamesEmpty: "Please enter at least one name.",
+  chosenNamesSkipped: (items) => `Skipped (not usable as names): ${items}`,
+  chosenNamesLimit: (max) => `Only the first ${max} are used.`,
   engineLengthNote: "Calculated hanja naming supports one- or two-character names.",
   basisTitle: "Free hanja name preview",
   basisLead: "Before you pay, see the engine's top five names and your saju element summary. Calculated only, no AI call.",
@@ -375,6 +411,9 @@ const JA: NamingV2Copy = {
     "surname.pool-strokes": "姓の画数を姓氏統計ではなく人名用漢字データから読みました。",
     "sound.school-differs": "選んだ流派によって音の五行の配当が変わることがあります。",
     "candidates.short": "全条件を満たす候補が少ないため、表示数が減りました。",
+    "names.fallback": "性別に合う自然な名前だけでは候補が足りず、人名用漢字全体からも選びました。",
+    "desired.unavailable": "選んだ名前のうち、条件に合う漢字の組み合わせが見つからなかった名前があります。",
+    "desired.padded": "選んだ名前だけでは候補が足りず、おすすめの名前を加えました。加えた名前はご両親が選んだ名前ではありません。",
   },
   relaxedNotice: (stage) => `候補が足りず、条件を第${stage}段階まで緩めました。`,
   mapping: { modern: "現代実務の配当(ㅇ・ㅎ 土、ㅁ・ㅂ・ㅍ 水)", hunminjeongeum: "訓民正音解例の配当(ㅁ・ㅂ・ㅍ 土、ㅇ・ㅎ 水)" },
@@ -403,6 +442,17 @@ const JA: NamingV2Copy = {
   fixedHangulPlaceholder: "読み(任意)",
   avoidLabel: "避ける漢字",
   avoidPlaceholder: "例: 死 病(空白区切り)",
+  strategyLabel: "名前の決め方",
+  strategies: {
+    recommend: { title: "おすすめの名前(基本)", desc: "性別に合う、実際によく使われる自然な名前から四柱に合う名前を選びます。" },
+    choose: { title: "考えている名前で探す", desc: "ご両親が選んだハングル名ごとに、四柱・画数・音に合う漢字の組み合わせを探します。" },
+  },
+  chosenNamesLabel: "考えている名前",
+  chosenNamesPlaceholder: "例: 서윤 하은 지우",
+  chosenNamesHint: "ハングル1〜2文字の名前を空白か読点で区切って5つまで入力してください。",
+  chosenNamesEmpty: "名前を1つ以上入力してください。",
+  chosenNamesSkipped: (items) => `名前として使えず除外: ${items}`,
+  chosenNamesLimit: (max) => `最初の${max}つだけ使います。`,
   engineLengthNote: "漢字計算による命名は名1〜2字に対応します。",
   basisTitle: "無料・漢字名プレビュー",
   basisLead: "お支払い前に、計算エンジンが選んだ上位5つの名前と四柱の五行要約をお見せします。AIは使わず計算のみです。",
@@ -489,6 +539,9 @@ const ZH_CN: NamingV2Copy = {
     "surname.pool-strokes": "姓氏笔画取自人名用汉字资料，而非姓氏统计。",
     "sound.school-differs": "所选流派不同，音五行的配属可能不同。",
     "candidates.short": "满足全部条件的候选较少，显示数量随之减少。",
+    "names.fallback": "仅凭符合性别的常用名字候选不足，因此也从全部人名用汉字中挑选。",
+    "desired.unavailable": "您选的名字中，有的找不到符合条件的汉字组合。",
+    "desired.padded": "仅凭您选的名字候选不足，已补充推荐名字。补充的名字不是您选的名字。",
   },
   relaxedNotice: (stage) => `候选不足，已将条件放宽至第${stage}级。`,
   mapping: { modern: "现代实务配属(ㅇ·ㅎ 土，ㅁ·ㅂ·ㅍ 水)", hunminjeongeum: "训民正音解例配属(ㅁ·ㅂ·ㅍ 土，ㅇ·ㅎ 水)" },
@@ -517,6 +570,17 @@ const ZH_CN: NamingV2Copy = {
   fixedHangulPlaceholder: "读音(可选)",
   avoidLabel: "避用汉字",
   avoidPlaceholder: "例：死 病(空格分隔)",
+  strategyLabel: "取名方式",
+  strategies: {
+    recommend: { title: "推荐名字(默认)", desc: "从符合孩子性别、实际常用的自然名字中挑选适合八字的名字。" },
+    choose: { title: "用已想好的名字", desc: "为您选的每个韩文名字寻找适合八字、笔画与读音的汉字组合。" },
+  },
+  chosenNamesLabel: "已想好的名字",
+  chosenNamesPlaceholder: "例：서윤 하은 지우",
+  chosenNamesHint: "请输入最多5个1~2字的韩文名字，用空格或逗号分隔。",
+  chosenNamesEmpty: "请至少输入一个名字。",
+  chosenNamesSkipped: (items) => `无法作为名字而略去：${items}`,
+  chosenNamesLimit: (max) => `只使用前${max}个。`,
   engineLengthNote: "汉字计算起名支持1~2字的名字。",
   basisTitle: "免费汉字名预览",
   basisLead: "付款前先展示计算引擎选出的前5个名字和八字五行摘要。仅靠计算，不调用AI。",
@@ -601,6 +665,9 @@ const ZH_TW: NamingV2Copy = {
     "surname.pool-strokes": "姓氏筆畫取自人名用漢字資料，而非姓氏統計。",
     "sound.school-differs": "所選流派不同，音五行的配屬可能不同。",
     "candidates.short": "滿足全部條件的候選較少，顯示數量隨之減少。",
+    "names.fallback": "僅憑符合性別的常用名字候選不足，因此也從全部人名用漢字中挑選。",
+    "desired.unavailable": "您選的名字中，有的找不到符合條件的漢字組合。",
+    "desired.padded": "僅憑您選的名字候選不足，已補充推薦名字。補充的名字不是您選的名字。",
   },
   relaxedNotice: (stage) => `候選不足，已將條件放寬至第${stage}級。`,
   mapping: { modern: "現代實務配屬(ㅇ·ㅎ 土，ㅁ·ㅂ·ㅍ 水)", hunminjeongeum: "訓民正音解例配屬(ㅁ·ㅂ·ㅍ 土，ㅇ·ㅎ 水)" },
@@ -627,6 +694,17 @@ const ZH_TW: NamingV2Copy = {
   fixedHangulPlaceholder: "讀音(選填)",
   avoidLabel: "避用漢字",
   avoidPlaceholder: "例：死 病(空格分隔)",
+  strategyLabel: "取名方式",
+  strategies: {
+    recommend: { title: "推薦名字(預設)", desc: "從符合孩子性別、實際常用的自然名字中挑選適合八字的名字。" },
+    choose: { title: "用已想好的名字", desc: "為您選的每個韓文名字尋找適合八字、筆畫與讀音的漢字組合。" },
+  },
+  chosenNamesLabel: "已想好的名字",
+  chosenNamesPlaceholder: "例：서윤 하은 지우",
+  chosenNamesHint: "請輸入最多5個1~2字的韓文名字，以空格或逗號分隔。",
+  chosenNamesEmpty: "請至少輸入一個名字。",
+  chosenNamesSkipped: (items) => `無法作為名字而略去：${items}`,
+  chosenNamesLimit: (max) => `只使用前${max}個。`,
   engineLengthNote: "漢字計算命名支援1~2字的名字。",
   basisTitle: "免費漢字名預覽",
   basisLead: "付款前先呈現計算引擎選出的前5個名字與八字五行摘要。僅靠計算，不呼叫AI。",

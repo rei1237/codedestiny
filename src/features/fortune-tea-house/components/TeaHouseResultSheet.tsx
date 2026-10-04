@@ -1,4 +1,5 @@
 "use client";
+import TeaResultCompanion from "./TeaResultCompanion";
 
 import type { CSSProperties } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -12,7 +13,7 @@ import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, Fo
 import { fortuneTeaHouseAssets } from "../data/assets";
 import { getTeaHouseCupById, teaHouseCups } from "../data/teaCups";
 import { majorArcanaCards } from "../data/tarotCards";
-import { tenGodMetaMap } from "../data/tenGods";
+import { tenGodMetaMap } from "@/lib/fortune-tea-house/ten-gods.mjs";
 import { sanitizeTeaHouseConsultResult } from "../lib/sanitizeConsultResult";
 import { localizeConsultResult } from "../lib/localizeConsultResult";
 import { tarotSpreadPositions } from "../lib/tarotAdapter";
@@ -25,7 +26,7 @@ import TeaHouseSajuResultPanel from "./TeaHouseSajuResultPanel";
 import TeaHouseSajuCompatResultPanel from "./TeaHouseSajuCompatResultPanel";
 import TeaHouseSukuyoResultPanel from "./TeaHouseSukuyoResultPanel";
 import TenGodSymbolCard from "./TenGodSymbolCard";
-import styles from "../styles/fortune-tea-house.module.css";
+import styles from "../styles/tea-report.module.css";
 
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 import { useLocale } from "@/lib/i18n/useT";
@@ -50,21 +51,6 @@ type HoneyLetterApiResponse = {
   required?: number;
   current?: number;
 };
-const resultSceneUi =
-  "min-h-svh bg-[#210916] bg-[radial-gradient(circle_at_50%_-10%,rgba(255,236,244,0.2),transparent_34rem),radial-gradient(circle_at_12%_10%,rgba(179,25,85,0.18),transparent_30rem),radial-gradient(circle_at_90%_16%,rgba(234,208,137,0.14),transparent_28rem)] text-[#fff1f7] antialiased";
-const resultSheetUi =
-  "relative isolate overflow-hidden rounded-[26px] border border-[#f4bed1]/30 bg-[#24081a]/95 shadow-[0_42px_124px_rgba(31,3,18,0.58),0_0_74px_rgba(179,25,85,0.16),inset_0_1px_0_rgba(255,255,255,0.17)] ring-1 ring-white/10 backdrop-blur-2xl";
-const resultHeaderUi =
-  "rounded-[22px] border border-[#f6dfb7]/20 bg-white/[0.065] shadow-[0_22px_64px_rgba(4,2,12,0.22),inset_0_1px_0_rgba(255,255,255,0.14)] ring-1 ring-white/5 backdrop-blur-xl";
-const resultGlassCardUi =
-  "rounded-[18px] border border-[#f6dfb7]/20 bg-white/[0.06] shadow-[0_20px_58px_rgba(4,2,12,0.22),inset_0_1px_0_rgba(255,255,255,0.12)] ring-1 ring-white/5 backdrop-blur-xl";
-const resultLiftCardUi =
-  "transition duration-300 hover:-translate-y-1 hover:border-[#ffe8a6]/50 hover:shadow-[0_28px_74px_rgba(4,2,12,0.34),0_0_42px_rgba(206,196,255,0.12)]";
-const resultReadingCardUi =
-  "rounded-2xl border border-[#f6dfb7]/20 bg-[#0e0719]/60 shadow-[0_18px_46px_rgba(4,2,12,0.22),inset_0_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5";
-const resultActionUi =
-  "rounded-2xl border border-[#f6dfb7]/20 bg-[#0e0719]/60 px-3 py-3 shadow-[0_18px_52px_rgba(4,2,12,0.24),inset_0_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 backdrop-blur-xl";
-
 // 카드별 상세 해석 5항목. 순서와 라벨은 워커 프롬프트(tarotCardReadings)와 1:1로 맞춘다.
 const tarotCardDetailFields = [
   { key: "coreMeaning", labelKey: "ki7hqs6v" as keyof typeof KO },
@@ -222,6 +208,7 @@ const SPREAD_POSITION_SKIP_KEYS = ["positionId"];
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
     키는 문구의 결정론적 해시라 같은 문구가 자동으로 한 키로 합쳐진다(정적 셸의 마커 도구와 같은 방식). */
 const KO = {
+  safeShareLabel: "개인정보 없는 찻집 초대", safeShareText: "연이와 차 한 잔, 내 마음과 선택을 차분히 돌아보는 시간.",
   cardOrdinal: "{index}번째 카드 ·",
   choicePathTitle: "지금 선택할 수 있는 {count} 길",
   countSuffix: "{count}가지",
@@ -685,44 +672,23 @@ export default function TeaHouseResultSheet({
 
   return (
     <section
-      className={`${styles.resultScene} ${resultSceneUi}`}
+      className={`${styles.resultScene} `}
       data-accent={selectedCup?.accent || "pink"}
       data-mode={consultationMode}
       aria-labelledby="teaResultTitle"
     >
-      <aside className={styles.resultYeoniPanel}>
-        <span
-          ref={resultYeoniGate.ref}
-          className={styles.resultThanksYeoniSprite}
-          data-playback={resultYeoniGate.canAnimate && !resultYeoniGate.isMobile && resultYeoniProbe.isLoaded ? "animated" : "static"}
-          data-sprite-status={resultYeoniProbe.status}
-          style={{
-            "--result-yeoni-sprite": resultYeoniSpriteSource ? `url("${resultYeoniSpriteSource}")` : "none",
-            "--result-yeoni-bg-size": resultYeoniGate.isMobile || !resultYeoniProbe.isLoaded ? "contain" : "400% 200%",
-            "--result-yeoni-bg-position": resultYeoniGate.isMobile || !resultYeoniProbe.isLoaded ? "center" : "0% 0%",
-          } as CSSProperties}
-          role="img"
-          aria-label={copy.kj7r9fgs}
-        />
-        <TeaHouseDialogueBox speaker="연이" text={resultThanksLine} />
-      </aside>
-
+      <TeaResultCompanion result={result}/>
       <article
         ref={resultSheetRef}
-        className={`${styles.resultSheet} ${resultSheetUi}`}
+        className={`${styles.resultSheet} `}
         data-mode={consultationMode}
       >
-        <header className={`${styles.resultHeader} ${resultHeaderUi}`} data-tea-pdf-section>
-          <picture className={styles.resultHeroArtwork} aria-hidden="true">
-            <source media="(max-width: 640px)" srcSet={fortuneTeaHouseAssets.premium.resultReadingMobile} />
-            <img src={fortuneTeaHouseAssets.premium.resultReadingDesktop} alt="" loading="eager" decoding="async" />
-          </picture>
-          {selectedCup ? <TeaCupVisual cup={selectedCup} state="selected" size="large" className={styles.resultHeaderCup} /> : null}
-          <p className={styles.sceneEyebrow}>{selectedCup?.eyebrow || copy.kdaff0ix}</p>
+        <header className={`${styles.resultHeader} `} data-tea-pdf-section>
+          {result.consultationVersion !== "tea-v2" && <p className={styles.sceneEyebrow}>{selectedCup?.eyebrow || copy.kdaff0ix}</p>}
           <h2 id="teaResultTitle">{result.sessionTitle}</h2>
-          {result.questionSummary ? <p>{result.questionSummary}</p> : null}
-          <strong className={styles.resultYeoniOpening}>{yeoniOpening}</strong>
-          {result.yeoniReading.intro ? (
+          {result.consultationVersion !== "tea-v2" && result.questionSummary ? <p>{result.questionSummary}</p> : null}
+          {result.consultationVersion !== "tea-v2" && <strong className={styles.resultYeoniOpening}>{yeoniOpening}</strong>}
+          {result.consultationVersion !== "tea-v2" && result.yeoniReading.intro ? (
             <div className={styles.resultHeroGreeting}>
               <LlmParagraphs text={result.yeoniReading.intro} />
             </div>
@@ -730,12 +696,12 @@ export default function TeaHouseResultSheet({
         </header>
 
         <div className={styles.resultSummaryGrid} data-tea-pdf-section>
-          <div className={`${resultGlassCardUi} ${resultLiftCardUi}`}>
+          {result.consultationVersion !== "tea-v2" && <div className={` `}>
             <span>{copy.kwxbfnz8}</span>
             <strong>{result.teaCup.name}</strong>
             <p>{result.teaCup.topic}</p>
-          </div>
-          <div className={`${resultGlassCardUi} ${resultLiftCardUi}`}>
+          </div>}
+          <div className={` `}>
             <span>{copy.kaenglpz}</span>
             <strong>
               {isSajuCompatMode ? copy.kgzwphxn : isSajuMode ? copy.khvssutl : isSukuyoMode ? copy.kkn8datm : copy.kyj3pk8r}
@@ -743,7 +709,7 @@ export default function TeaHouseResultSheet({
             <p>{isSajuCompatMode ? copy.kgadbuzz : isSajuMode ? copy.kl1lj6o9 : isSukuyoMode ? copy.kenztqzw : copy.ketc5uik}</p>
           </div>
           {isTarotMode ? (
-            <div className={`${resultGlassCardUi} ${resultLiftCardUi}`}>
+            <div className={` `}>
               <span>{copy.km4yfhh5}</span>
               <strong>
                 {result.tarot.nameKo} · {direction}
@@ -751,30 +717,30 @@ export default function TeaHouseResultSheet({
               <p>{result.tarot.keywords.join(" · ")}</p>
             </div>
           ) : isSukuyoMode ? (
-            <div className={`${resultGlassCardUi} ${resultLiftCardUi}`}>
+            <div className={` `}>
               <span>{copy.ksnr4vsd}</span>
               <strong>{sukuyo?.relationType || copy.kzfpztzp} · {sukuyo?.distanceLabel || copy.kxej1zgo}</strong>
               <p>{[sukuyo?.user.sukuyoName, sukuyo?.partner.sukuyoName].filter(Boolean).join(" · ") || copy.kcepagod}</p>
             </div>
           ) : (
-            <div className={`${resultGlassCardUi} ${resultLiftCardUi}`}>
+            <div className={` `}>
               <span>{copy.kfo31gf6}</span>
               <strong>{primaryTenGodMeta ? primaryTenGodMeta.nameKo : copy.k258gcap}</strong>
               <p>{primaryTenGodMeta ? primaryTenGodMeta.roleInTeaHouse : copy.kzr8vqho}</p>
             </div>
           )}
-          <div className={`${resultGlassCardUi} ${resultLiftCardUi}`}>
+          {previewKeywords.length > 0 ? <div className={` `}>
             <span>{copy.klx2uhdh}</span>
             <strong>{previewKeywords.slice(0, 2).join(" · ")}</strong>
             <p>{previewKeywords.slice(2).join(" · ") || previewKeywords.join(" · ")}</p>
-          </div>
+          </div> : null}
         </div>
 
-        <section className={`${styles.resultPriorityStrip} ${resultGlassCardUi}`} aria-labelledby="resultPriorityTitle" data-tea-pdf-section>
+        <section className={`${styles.resultPriorityStrip} `} aria-labelledby="resultPriorityTitle" data-tea-pdf-section>
           <h3 id="resultPriorityTitle">{copy.kpmsdgrf}</h3>
           <div className={styles.resultPriorityGrid}>
             {priorityCards.map((item) => (
-              <article className={`${styles.resultPriorityCard} ${resultReadingCardUi} ${resultLiftCardUi}`} key={item.label}>
+              <article className={`${styles.resultPriorityCard}  `} key={item.label}>
                 <span>{item.label}</span>
                 <strong>{item.title}</strong>
                 <p>{item.body}</p>
@@ -783,7 +749,7 @@ export default function TeaHouseResultSheet({
           </div>
         </section>
 
-        <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="teaCupTopicTitle" data-tea-pdf-section>
+        {result.consultationVersion !== "tea-v2" && <section className={`${styles.resultBlock} `} aria-labelledby="teaCupTopicTitle" data-tea-pdf-section>
           <h3 id="teaCupTopicTitle">{copy.kvfqzxf5}</h3>
           <LlmParagraphs text={resultPrelude} pClassName={styles.sajuSummary} />
           <p className={styles.sajuCaution}>
@@ -793,19 +759,19 @@ export default function TeaHouseResultSheet({
                 ? copy.cupLensSukuyo.replace("{cup}", result.teaCup.name).replace("{topic}", result.teaCup.topic)
               : copy.cupLensTarot.replace("{cup}", result.teaCup.name).replace("{topic}", result.teaCup.topic)}
           </p>
-        </section>
+        </section>}
 
         {isSajuCompatMode ? <TeaHouseSajuCompatResultPanel result={result} /> : null}
         {isSajuMode ? <TeaHouseSajuResultPanel result={result} onShowTarot={onShowTarot} onEditBirthInfo={onEditBirthInfo} showTarotAction={false} /> : null}
         {isSukuyoMode ? <TeaHouseSukuyoResultPanel result={result} /> : null}
 
         {isTarotMode ? (
-        <section className={`${styles.resultBlock} ${styles.resultTarotShowcase} ${resultGlassCardUi}`} aria-labelledby="tarotResultTitle">
+        <section className={`${styles.resultBlock} ${styles.resultTarotShowcase} `} aria-labelledby="tarotResultTitle">
           <h3 id="tarotResultTitle">{copy.klnt7csr}</h3>
           <div className={styles.resultTarotGallery} aria-label={copy.ksb3xyuj}>
             {tarotSpreadCards.map((card, index) => (
               <article
-                className={`${styles.resultTarotGalleryCard} ${resultLiftCardUi}`}
+                className={`${styles.resultTarotGalleryCard} `}
                 key={`${card.positionId}-${card.cardId}`}
                 data-active={index === visibleTarotCardIndex}
                 role="button"
@@ -838,7 +804,7 @@ export default function TeaHouseResultSheet({
           <div className={styles.resultTarotReadingFlow}>
             {tarotSpreadCards.map((card, index) => (
               <article
-                className={`${styles.resultTarotReadingCard} ${resultReadingCardUi}`}
+                className={`${styles.resultTarotReadingCard} `}
                 data-active={index === visibleTarotCardIndex}
                 key={`${card.positionId}-${card.cardId}-reading`}
               >
@@ -880,7 +846,7 @@ export default function TeaHouseResultSheet({
         ) : null}
 
         {isTarotMode && cardInteractions.length ? (
-        <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="tarotInteractionTitle">
+        <section className={`${styles.resultBlock} `} aria-labelledby="tarotInteractionTitle">
           <h3 id="tarotInteractionTitle">{copy.k6eloopo}</h3>
           <p className={styles.resultInteractionLead}>
             
@@ -888,7 +854,7 @@ export default function TeaHouseResultSheet({
           </p>
           <div className={styles.resultInteractionList}>
             {cardInteractions.map((interaction, index) => (
-              <article className={`${styles.resultInteractionCard} ${resultReadingCardUi}`} key={`${interaction.pair}-${index}`}>
+              <article className={`${styles.resultInteractionCard} `} key={`${interaction.pair}-${index}`}>
                 <strong>{interaction.pair}</strong>
                 <LlmParagraphs text={interaction.insight} />
               </article>
@@ -897,7 +863,7 @@ export default function TeaHouseResultSheet({
         </section>
         ) : null}
 
-        <section className={`${styles.resultBlock} ${styles.synthesisBlock} ${resultGlassCardUi}`} aria-labelledby="synthesisResultTitle" data-tea-pdf-section>
+        <section className={`${styles.resultBlock} ${styles.synthesisBlock} `} aria-labelledby="synthesisResultTitle" data-tea-pdf-section>
           <h3 id="synthesisResultTitle">{synthesis.title}</h3>
           <div className={styles.synthesisVisualPair} aria-label={isSajuMode ? copy.kdfxgroy : isSukuyoMode ? copy.kythmj75 : copy.kq4huqsk}>
             {isSukuyoMode ? (
@@ -936,26 +902,11 @@ export default function TeaHouseResultSheet({
           {synthesis.sajuTarotBridge ? <strong>{synthesis.sajuTarotBridge}</strong> : null}
         </section>
 
-        <section className={styles.resultBlock} aria-labelledby="emotionResultTitle" data-tea-pdf-section>
+        {result.consultationVersion !== "tea-v2" && <section className={styles.resultBlock} aria-labelledby="emotionResultTitle" data-tea-pdf-section>
           <h3 id="emotionResultTitle">{copy.kytzswpf}</h3>
-          <div className={styles.resultEmotionPigStage}>
-            <span className={styles.resultEmotionPigGlow} aria-hidden />
-            <span
-              ref={resultPigGate.ref}
-              className={styles.resultEmotionPigSprite}
-              data-playback={resultPigGate.canAnimate && !resultPigGate.isMobile && resultPigProbe.isLoaded ? "animated" : "static"}
-              data-sprite-status={resultPigProbe.status}
-              style={{
-                "--result-pig-sprite": resultPigSpriteSource ? `url("${resultPigSpriteSource}")` : "none",
-                "--result-pig-bg-size": resultPigGate.isMobile || !resultPigProbe.isLoaded ? "contain" : "400% 400%",
-                "--result-pig-bg-position": resultPigGate.isMobile || !resultPigProbe.isLoaded ? "center" : "0% 0%",
-              } as CSSProperties}
-              role="img"
-              aria-label={copy.k2sy0hhr}
-            />
-          </div>
+
           {heartScent?.name ? (
-            <article className={`${styles.resultScentCard} ${resultReadingCardUi}`}>
+            <article className={`${styles.resultScentCard} `}>
               <span>{copy.kuw6bcuo}</span>
               <strong>{heartScent.name}</strong>
               {heartScent.category ? <em className={styles.resultScentCategory}>{copy.scentCategoryLabel.replace("{category}", heartScent.category)}</em> : null}
@@ -968,18 +919,18 @@ export default function TeaHouseResultSheet({
               <div className={styles.resultEmotionItem} data-tone={item.tone} key={item.label || String(index)}>
                 <div>
                   <strong>{item.label}</strong>
-                  <span>{item.value}%</span>
+                  {result.consultationVersion !== "tea-v2" && <span>{item.value}%</span>}
                 </div>
-                <div className={styles.resultGaugeTrack}>
+                {result.consultationVersion !== "tea-v2" && <div className={styles.resultGaugeTrack}>
                   <span style={{ "--gauge-value": `${item.value}%` } as CSSProperties} />
-                </div>
+                </div>}
                 <p>{item.description}</p>
               </div>
             ))}
           </div>
-        </section>
+        </section>}
 
-        <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="yeoniReadingTitle" data-tea-pdf-section>
+        <section className={`${styles.resultBlock} `} aria-labelledby="yeoniReadingTitle" data-tea-pdf-section>
           <h3 id="yeoniReadingTitle">{isSajuMode ? copy.kst4ojam : isSukuyoMode ? copy.kuwufcwj : copy.ks0lanlt}</h3>
           {isTarotMode ? (
             <TarotAssetCard
@@ -992,21 +943,13 @@ export default function TeaHouseResultSheet({
               size="sm"
               visualOnly
             />
-          ) : (
-            <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.yeoni.transparent.bust} alt="" />
-          )}
+          ) : null}
           <div className={styles.yeoniReadingGrid}>
             {result.yeoniReading.main ? (
               <div className={styles.yeoniReadingItem}>
                 <LlmParagraphs text={result.yeoniReading.main} />
               </div>
             ) : null}
-            <AssetImage
-              className={styles.resultSectionMascot}
-              src={fortuneTeaHouseAssets.pig.transparent.base2}
-              fallbackSrc={fortuneTeaHouseAssets.cutout.flowerPig}
-              alt=""
-            />
             {result.yeoniReading.advice ? (
               <div className={styles.yeoniReadingItem}>
                 <LlmParagraphs text={result.yeoniReading.advice} />
@@ -1020,12 +963,11 @@ export default function TeaHouseResultSheet({
           </div>
         </section>
 
-        <section className={styles.resultBlock} aria-labelledby="choiceSimulationTitle" data-tea-pdf-section>
+        {result.choiceSimulation.length > 0 ? (<section className={styles.resultBlock} aria-labelledby="choiceSimulationTitle" data-tea-pdf-section>
           <h3 id="choiceSimulationTitle">{choiceSimulationTitle}</h3>
-          <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.cutout.flowerPig} alt="" />
           <div className={styles.choiceGrid}>
             {result.choiceSimulation.map((choice) => (
-              <article className={`${styles.choiceCard} ${resultReadingCardUi} ${resultLiftCardUi}`} key={choice.id || choice.title}>
+              <article className={`${styles.choiceCard}  `} key={choice.id || choice.title}>
                 {choice.subtitle ? <span>{choice.subtitle}</span> : null}
                 <h4>{choice.title}</h4>
                 <LlmParagraphs text={choice.result} />
@@ -1033,15 +975,15 @@ export default function TeaHouseResultSheet({
               </article>
             ))}
           </div>
-        </section>
+        </section>) : null}
 
         {result.actionPrescription || previewKeywords.length ? (
-        <section className={`${styles.actionPrescription} ${resultGlassCardUi}`} aria-labelledby="actionPrescriptionTitle" data-tea-pdf-section>
+        <section className={`${styles.actionPrescription} `} aria-labelledby="actionPrescriptionTitle" data-tea-pdf-section>
           <h3 id="actionPrescriptionTitle">{copy.kedjmzci}</h3>
-          <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.consultModes[consultationMode] || fortuneTeaHouseAssets.cutout.flowerPig} alt="" />
           {result.actionPrescription ? (
-            <div className={styles.yeoniReadingItem}>
-              <LlmParagraphs text={result.actionPrescription} />
+            <div className={styles.actionDialogue}>
+              <img src="/images/fortune-tea-house/renewal/pig-advice.webp" width="72" height="84" alt="" loading="lazy" />
+              <div className={styles.yeoniReadingItem}><LlmParagraphs text={result.actionPrescription} /></div>
             </div>
           ) : null}
           {previewKeywords.length ? (
@@ -1057,7 +999,7 @@ export default function TeaHouseResultSheet({
         <section className={`${styles.resultBlock} ${styles.honeyLetterBlock}`} aria-labelledby="honeyLetterTitle">
           <div className={styles.honeyLetterLayout}>
             <div className={styles.honeyLetterMascotWrap} aria-hidden>
-              <AssetImage className={styles.honeyLetterMascot} src={fortuneTeaHouseAssets.rewards.flowerPigHoneyHug} alt="" />
+              <AssetImage className={styles.honeyLetterMascot} src="/images/fortune-tea-house/renewal/pig-cheer.webp" alt="" />
               <span className={styles.honeyLetterBalance}>
                 <AssetImage className={styles.honeyLetterIcon} src={fortuneTeaHouseAssets.rewards.honeyDrop} fallbackSrc={fortuneTeaHouseAssets.rewards.honeyDrop2} alt="" />
                 {copy.honeyCount.replace("{count}", String(honeyBalance))}
@@ -1101,18 +1043,18 @@ export default function TeaHouseResultSheet({
         </section>
 
         {result.closingLine ? (
-        <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="closingResultTitle" data-tea-pdf-section>
+        <section className={`${styles.resultBlock} `} aria-labelledby="closingResultTitle" data-tea-pdf-section>
+          <img className={styles.letterPortrait} src="/images/fortune-tea-house/renewal/human-letter.webp" width="180" height="190" alt="" loading="lazy"/>
           <h3 id="closingResultTitle">{copy.kqhu9dwn}</h3>
-          <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.yeoni.transparent.bust} alt="" />
           <div className={styles.yeoniReadingItem}>
             <LlmParagraphs text={result.closingLine} pClassName={styles.sajuSummary} />
           </div>
         </section>
         ) : null}
 
-        <ConsultationShare key={rawResult.resultId} brand="tea" choices={teaHouseShareChoices(rawResult)} />
+        <ConsultationShare key={rawResult.resultId} brand="tea" choices={[{id:"invitation",label:copy.safeShareLabel,text:copy.safeShareText},...teaHouseShareChoices(rawResult)]} />
 
-        <div className={`${styles.resultActions} ${resultActionUi}`}>
+        <div className={`${styles.resultActions} `}>
           <TeaHouseButton onClick={onRestart}>{copy.kp3udmzq}</TeaHouseButton>
           <TeaHouseButton variant="secondary" onClick={saveResultAsTextFile}>
             

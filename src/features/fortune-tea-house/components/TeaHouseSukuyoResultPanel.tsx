@@ -4,7 +4,7 @@ import type { FortuneTeaHouseCalendarType, FortuneTeaHouseConsultResponse, Fortu
 import { fortuneTeaHouseAssets } from "../data/assets";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import AssetImage from "./AssetImage";
-import styles from "../styles/fortune-tea-house.module.css";
+import styles from "../styles/tea-report.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TeaHouseSukuyoResultPanelProps = {
@@ -119,7 +119,7 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
             <h3 id="sukuyoResultPanelTitle">{copy.emptyTitle}</h3>
             <p>{compatibility?.summary || copy.emptySummary}</p>
           </div>
-          <AssetImage className={styles.sukuyoResultImage} src={fortuneTeaHouseAssets.consultModes.sukuyo} alt={copy.headerAlt} />
+          <AssetImage className={styles.sukuyoResultImage} src="/images/fortune-tea-house/renewal/yeoni-sukuyo.webp" alt={copy.headerAlt} />
         </header>
       </section>
     );
@@ -133,7 +133,7 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
           <h3 id="sukuyoResultPanelTitle">{compatibility.title}</h3>
           <LlmParagraphs text={compatibility.summary} />
         </div>
-        <AssetImage className={styles.sukuyoResultImage} src={fortuneTeaHouseAssets.consultModes.sukuyo} alt={copy.headerAlt} />
+        <AssetImage className={styles.sukuyoResultImage} src="/images/fortune-tea-house/renewal/yeoni-sukuyo.webp" alt={copy.headerAlt} />
       </header>
 
       <div className={styles.sukuyoMoonGrid} data-tea-pdf-section>
@@ -152,11 +152,11 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
           <strong>{compatibility.distanceLabel || copy.distanceEmpty}</strong>
           <p>{compatibility.direction || copy.directionEmpty}</p>
         </article>
-        <article>
+        {compatibility.compatibilityIndex != null ? <article>
           <span>{copy.tempEyebrow}</span>
           <strong>{compatibility.compatibilityIndex ? `${compatibility.compatibilityIndex}%` : copy.tempChecking}</strong>
           <p>{copy.focusSentence.replace("{focus}", compatibility.focus || copy.focusEmpty)}</p>
-        </article>
+        </article> : null}
       </div>
 
       {compatibility.relationDetail || compatibility.elementHarmony || compatibility.scores ? (
@@ -198,12 +198,6 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
           <span>{copy.strengthEyebrow}</span>
           <h4 id="sukuyoStrengthTitle">{copy.strengthTitle}</h4>
         </div>
-        <AssetImage
-          className={styles.resultSectionMascot}
-          src={fortuneTeaHouseAssets.yeoni.transparent.bust}
-          fallbackSrc={fortuneTeaHouseAssets.yeoni.bust}
-          alt=""
-        />
         <div className={styles.sukuyoTextList}>
           {compatibility.strengths.map((item) => (
             <p key={item}>{item}</p>

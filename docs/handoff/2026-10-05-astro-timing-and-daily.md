@@ -1,7 +1,7 @@
 ---
-status: open
-updated: 2026-10-04
-next: "새 세션 첫 문장: docs/handoff/2026-10-05-astro-timing-and-daily.md 를 읽고 §0 시작 절차부터 진행하라."
+status: done
+updated: 2026-10-05
+next: "완료. 남은 것은 사용자 라이브 검수와 아래 §8 완료 기록의 후속 과제(보고만)뿐이다."
 ---
 
 # 점성술 2차 개편 — 쉬운 말·정확한 날짜·오늘의 별자리 운세·유료 연간 흐름
@@ -138,3 +138,18 @@ next: "새 세션 첫 문장: docs/handoff/2026-10-05-astro-timing-and-daily.md 
   - 결제 픽스처·테스트
   - `index.html` script 태그(sync 미러)
 - 재사용: `natal-reading.js` `aspectsOf`·`firdariaOf`·W 공유 작성기, `_astroCounselPaidGate`·`_cdGateBody`, `calcAstroSwissChartOrThrow`, 서버 `aspectBetween`·`buildAstroTransitInsights`(로직 참고)
+
+## 8. 완료 기록 (2026-10-05)
+
+main 반영: 731fe28be (push 4b5e505ef..731fe28be). 커밋: 65a7d0b04 트랜싯 엔진 · 31eee767f 옛 시기 정정 · 557da3dae 오늘의 별자리 운세(무료) · a8bae28e0 앞으로 12개월(유료 astro_yearly_transit, 30코인=3,000원, 키 하나 영구) · f9f32638f verify 내비 5→7 · c5b38caaa 옛 서랍 쉬운 말 · 05ffc0a43 미러·사이트맵 재생성.
+
+검증: astro node 테스트 35/35, jest paid-non-llm-delivery 6/6, 결제 verify 14종, paid-gate-suite 88/88(--jobs 1), check:fast 나머지 단계 전부 0, npm test(jest 4983·node 2441) fail 0. 브라우저 mock 360/390/1280: 잠김 본문 DOM 0자, 해금 mock 본문 노출, 에러 0, 가로 넘침 0, 연간 계산 1.6~2.8초, visual-checker 12장 통과.
+
+후속 과제(보고만, 이번 범위 밖):
+- 히어로 조사 오류 "바다이 커리어"(_astroCounselTone+이), 각 문구 "수성은(는)"·"기회을".
+- 출생시간 모름일 때 히어로·빅3 가 정오 차트의 상승궁·MC 를 여전히 보여 줌, 커리어 앵커도 mcIndex 사용.
+- natal-reading 의 "N번째 집" 표현, curProfData 양자리 폴백 죽은 코드.
+- 생성 인벤토리 3종 낡음(paid-delivery-inventory-20260927.json · purchase-journey/inventory.json · payment-p0-inventory.json 의 5000원) — 생성기로만 갱신.
+- 레지스트리 표시명 "점성술 연간 트랜짓 운세" 가 전문 용어.
+- 연간 계산 lonsAt 약 2,800회 동기 호출(현재 2.8초 이내).
+- check:fast 의 paid-gate-suite 기본 동시 6개가 여유 메모리 부족 시 OOM 으로 헛실패한다(--jobs 1 로 통과).

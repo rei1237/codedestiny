@@ -70,6 +70,7 @@ test('대조기: 틀린 획·격·수, 표 밖 한자, 금지 표현을 잡고 �
 });
 
 const uniqueBody=(id,extra='')=>[extra,...Array.from({length:12},(_,k)=>`${id}장 ${k+1}번째 문단에서는 ${first.hangul} 이름을 부를 때의 느낌과 생활 속 쓰임을 ${id*100+k}번 관점으로 차분하게 풀어 드립니다.`)].filter(Boolean).join('\n\n');
+const REPEAT='이 이름은 불릴 때마다 아이에게 따뜻하고 단정한 기운을 전해 줄 것이라고 작명가는 믿습니다.';
 const reply=(value)=>({ok:true,provider:'gemini',model:'gemini-2.5-flash',text:JSON.stringify(value)});
 async function drive(respond,{maxRequests=30}={}){
   const snapshot={engine:view,sajuSnapshot:lines,generatedPrompt:E.buildNamingV2Prompt(view,lines,prefs),evidenceHash:'h1',locale:'ko',delivery:E.initialDeliveryV2(view)};
@@ -119,6 +120,7 @@ test('웨이브: 서술 실패는 결정론으로 넘어가고, 못 쓴 장은 �
     if(part==='2') throw new Error('timeout');
     if(part==='5') return reply({title:'비교',evidenceHash:'h1',body:uniqueBody(5,`${name1}은 원격 ${first.grids.won+1}로 길합니다.`)});
     if(part==='7') return reply({title:'피할 이름',evidenceHash:'other',body:uniqueBody(7)});
+    if(part==='4') return reply({title:TITLES[3],evidenceHash:'h1',body:`${uniqueBody(4)}\n\n${REPEAT} ${REPEAT}\n\n${REPEAT}`});
     return reply({title:TITLES[Number(part)-1],evidenceHash:'h1',body:uniqueBody(part)});
   });
   assert.equal(limited,false);assert.ok(E.namingReportCompleteV2(state));
@@ -127,6 +129,8 @@ test('웨이브: 서술 실패는 결정론으로 넘어가고, 못 쓴 장은 �
   assert.equal(state.chapters[5].source,'llm-corrected');
   assert.ok(state.chapters[5].body.includes(E.factParagraph(view,first)));
   assert.equal(state.chapters[1].source,'llm');
+  // 반복 문장은 장을 버리지 않고 한 번만 남긴다
+  assert.equal(state.chapters[4].source,'llm');assert.equal(state.chapters[4].body.split(REPEAT).length-1,1);
   assert.equal(E.confirmedEmptyNamingFailureV2(state),false);
 });
 
@@ -158,4 +162,24 @@ test('서비스: 라우트 입력 → 엔진 입력, 정본 스냅샷으로 유�
   assert.equal(Object.values(paid.displayEvidence.natal.counts).reduce((a,b)=>a+b,0),8);
   assert.deepEqual(paid.view.saju.counts,paid.displayEvidence.natal.counts,'화면 요약용 원국 개수');assert.deepEqual(paid.view.saju.pillars,paid.displayEvidence.pillars);
   assert.ok(paid.view.candidates.every((c)=>c.chars.every((ch)=>Number.isInteger(ch.radical)&&ch.radical>=1&&ch.radical<=214)),'부수 번호 1~214');
+});
+
+test('선택 방식: 고른 이름마다 가장 높은 후보를 하나씩 풀어 쓴다(순위 6 밖이어도)',()=>{
+  const desiredNames=['서윤','하은','지아','수아','예린'];
+  const chosen=E.engineView(E.runNamingEngine({surname:{hangul:'김',hanja:['金']},gender:'F',nameLength:2,strategy:'choose',desiredNames},{tier:'paid',saju:needs}));
+  const told=E.narratedCandidates(chosen);
+  assert.ok(told.length>=6,String(told.length));
+  for(const name of desiredNames)if(chosen.candidates.some((c)=>c.hangul===name))assert.ok(told.some((c)=>c.hangul===name),name);
+  assert.deepEqual(E.deterministicNarration(chosen).names.map((entry)=>entry.rank),told.map((c)=>c.rank));
+  const ch4=E.engineChapterBody(4,chosen,lines,null);
+  for(const c of told)assert.ok(ch4.includes(`### ${c.rank}. ${E.fullName(chosen,c)}`),c.hangul);
+  // 추천 방식은 그대로 상위 6.
+  assert.deepEqual(E.narratedCandidates(view).map((c)=>c.rank),[1,2,3,4,5,6]);
+});
+
+test('장 본문 정규화: 소제목·굵은 줄은 남기고, 짝 없는 ** 와 "미 미치" 반복은 고친다',()=>{
+  const raw='앞 문장입니다.\n\n### 사주 분석: 타고난 기운\n\n### 1. 김서윤(金序潤)\n\n첫 후보는 좋은 영향을 미 미치는 이름입니다.\n\n**1. 작명학적 완성도를 원하신다면: 김예린(金譽潾)**\n\n**강조가 닫히지 않은 문단입니다.\n\n끝나지 않은 문장';
+  const out=E.normalizeNamingBody(raw);
+  assert.equal(out,'앞 문장입니다.\n\n### 사주 분석: 타고난 기운\n\n### 1. 김서윤(金序潤)\n\n첫 후보는 좋은 영향을 미치는 이름입니다.\n\n**1. 작명학적 완성도를 원하신다면: 김예린(金譽潾)**\n\n강조가 닫히지 않은 문단입니다.');
+  assert.equal(E.normalizeNamingBody('그 이름이 이 이름입니다.'),'그 이름이 이 이름입니다.');
 });

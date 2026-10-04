@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { createTeaMock } from './fixtures/mock-tea-house.mjs';
 import { pathToFileURL } from 'node:url';
 import { sajuResponse, ziweiResponse, tarotResponse, nakshatraAiResponse } from './fixtures/mock-dev-responses.mjs';
 
@@ -35,6 +36,7 @@ function mockNakshatraResolve(body) {
 export function createMockApiServer() {
   // Process-local storage: restart clears sessions and profiles, never touches Mongo.
   const profiles = new Map();
+  const teaMock = createTeaMock();
   let loggedIn = false;
   return http.createServer(async (req, res) => {
     const send = (status, body) => {
@@ -55,6 +57,7 @@ export function createMockApiServer() {
       }
       const body = raw ? JSON.parse(raw) : {};
       const route = `${req.method} ${path}`;
+      if (await teaMock(route, body, loggedIn ? 'mock-user' : null, send)) return;
       if (route === 'GET /api/payments/pass-offers') {
         const { listCurrentPassOffers } = await import('../worker/lib/pass-sale-policy.js');
         return send(200, { ok: true, offers: listCurrentPassOffers(url.searchParams.get('channel') === 'googlePlay' ? 'googlePlay' : 'web') });

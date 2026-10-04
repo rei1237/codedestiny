@@ -8,6 +8,7 @@ import styles from "../styles/fortune-tea-house.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type HoneyDropRewardOverlayProps = {
+  inline?: boolean;
   honeyDrops: FortuneTeaHouseHoneyDropsState | null;
   burstKey: number;
   message: string;
@@ -261,7 +262,7 @@ function HoneyPigQnaPanel() {
   );
 }
 
-export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, onOpenTarotAlbum, onRequestRefresh }: HoneyDropRewardOverlayProps) {
+export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, onOpenTarotAlbum, onRequestRefresh, inline = false }: HoneyDropRewardOverlayProps) {
   const copy = useTeaHouseCopy("honeyReward", KO);
   const [showInfo, setShowInfo] = useState(false);
   const [honeyModeActive, setHoneyModeActive] = useState(false);
@@ -281,7 +282,7 @@ export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, 
   } as CSSProperties;
 
   return (
-    <aside className={styles.honeyRewardLayer} data-mode={honeyModeActive ? "active" : "compact"} aria-live="polite">
+    <aside className={styles.honeyRewardLayer + (inline ? " " + styles.honeyRewardInline : "")} data-mode={honeyModeActive ? "active" : "compact"} aria-live="polite">
       <div className={styles.honeyHeaderDock} data-unlocked={unlocked ? "true" : "false"} data-open={showInfo ? "true" : "false"}>
         <button
           type="button"

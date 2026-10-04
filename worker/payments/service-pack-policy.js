@@ -1,20 +1,20 @@
 import { FEATURE_KEY_PRICE_TABLE, YEONGNYANGI_PAID_FEATURE_KEYS } from '../lib/paid-feature-registry.js';
 import { paymentError } from './errors.js';
 
-// Approved 2026-10-01 (replaces 2026-09-30 table): same-fish consultations only, 30 days, direct PG purchase.
-// 5·10·20 uses at 10/15/20% off the single price. Prices are written out, not derived, so a unit
-// price change cannot silently reprice packs. This table is the only source of pack price/quantity.
+// Approved 2026-10-02 for 2026-10-05 (replaces the 2026-10-01 table): same-fish consultations only, 30 days,
+// direct PG purchase. 5·10·20 uses at 20/30/40% off the new single price — the discount grew with the
+// price rise. Prices are written out, not derived, so a unit price change cannot silently reprice packs. This table is the only source of pack price/quantity.
 const PACK_USES = Object.freeze([5, 10, 20]);
 export const SERVICE_PACK_PLANS = Object.freeze(Object.fromEntries([
-  ['mackerel', '고등어', [4500, 8500, 16000]],
-  ['salmon', '연어', [13500, 25500, 48000]],
-  ['flounder', '광어', [22500, 42500, 80000]],
-  ['tuna', '참치', [45000, 85000, 160000]],
+  ['mackerel', '고등어', [12000, 21000, 36000]],
+  ['salmon', '연어', [21600, 37800, 64800]],
+  ['flounder', '광어', [28800, 50400, 86400]],
+  ['tuna', '참치', [42000, 73500, 126000]],
 ].flatMap(([fishId, label, prices]) => ['small', 'medium', 'large'].map((size, index) => [
-  `yeongnyangi-pack-${fishId}-${size}-v2`,
+  `yeongnyangi-pack-${fishId}-${size}-v3`,
   Object.freeze({ name: `${label} 세트 ${PACK_USES[index]}회`, fishId,
     priceKRW: prices[index], totalUses: PACK_USES[index], validityDays: 30,
-    policyVersion: 'yeongnyangi-pack-20261001' }),
+    policyVersion: 'yeongnyangi-pack-20261005' }),
 ]))));
 const FISH = Object.freeze(['mackerel','salmon','flounder','tuna']);
 
@@ -44,10 +44,13 @@ export function resolveServicePackProduct(planId,plans=SERVICE_PACK_PLANS) {
     packSnapshot});
 }
 
+// A pack bought before a price rise keeps covering its fish at the new price (2026-10-05): the snapshot
+// unit price may be at or below the current one. Same-fish scope is enforced by eligibleFeatureKeys.
 export function servicePackCoverage(right,featureKey,amountKRW,now=new Date()) {
   const snapshot=right?.packSnapshot;
   if(right?.type!=='service_pack'||right.status!=='granted'||!snapshot
-    ||!snapshot.eligibleFeatureKeys?.includes(featureKey)||snapshot.unitPriceKRW!==Number(amountKRW))
+    ||!snapshot.eligibleFeatureKeys?.includes(featureKey)
+    ||!(Number(snapshot.unitPriceKRW)>0&&Number(snapshot.unitPriceKRW)<=Number(amountKRW)))
     return {covered:false,reason:'SERVICE_PACK_NOT_COVERED'};
   if(!right.expiresAt||!Number.isFinite(new Date(right.expiresAt).getTime())||new Date(right.expiresAt).getTime()<=now.getTime())
     return {covered:false,reason:'SERVICE_PACK_EXPIRED'};
