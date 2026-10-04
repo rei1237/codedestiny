@@ -1,108 +1,71 @@
 "use client";
 
-import { AnimatePresence, m, useReducedMotion } from "framer-motion";
-import Image from "next/image";
+// 최애운명 — "내 최애 × 나 케미" 오케스트레이터.
+// 7단계: hook → pick → info → computing → result(core) → details → share.
+// 계산은 전부 결정론(lib/idol-chemi). 생년월일은 메모리·프로필 카드에서만 쓰고 저장·URL·카드에 넣지 않는다.
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type CSSProperties } from "react";
+import { useReducedMotion } from "framer-motion";
+import {
+  CHEMI_TYPE_BY_ID,
+  MIN_SELF_CONSENT_AGE,
+  listRosterGroups,
+  resolvePartner,
+  runChemi,
+  type CalendarType,
+  type ChemiCopy,
+  type ChemiPartnerRecord,
+  type ChemiPartnerRef,
+  type ChemiResult,
+} from "@/lib/idol-chemi";
+import { shareThrough } from "@/js/share-service.mjs";
+import KakaoSdk from "@/app/components/KakaoSdk";
+import { useAnalytics } from "@/app/hooks/useAnalytics";
+import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
+import { getApiBaseUrl } from "@/app/_lib/api-config";
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { readCurrentDestinyProfile, resolveDestinyProfileBirthParts } from "@/app/_lib/profile-card-storage";
 import {
   clearFeatureSessionDraft,
   readFeatureSessionDraft,
   writeFeatureSessionDraft,
 } from "@/app/_lib/feature-session-draft";
-import { readCurrentDestinyProfile, resolveDestinyProfileBirthParts } from "@/app/_lib/profile-card-storage";
-import { useBackNavigation } from "@/app/hooks/useBackNavigation";
-import DestinyIcon from "@/app/components/icons/DestinyIcon";
-import BiasDestinyHero from "./components/BiasDestinyHero";
-import BiasDestinyStageLineup from "./components/BiasDestinyStageLineup";
-import BiasDestinyInputPanel from "./components/BiasDestinyInputPanel";
-import BiasDestinyElementChart from "./components/BiasDestinyElementChart";
-import BiasDestinyFiveSections from "./components/BiasDestinyFiveSections";
-import BiasDestinyMainCard from "./components/BiasDestinyMainCard";
-import BiasDestinyMzZone from "./components/BiasDestinyMzZone";
-import BiasDestinyScoreGauge from "./components/BiasDestinyScoreGauge";
-import BiasFandomHeroCard from "./components/BiasFandomHeroCard";
-import BiasFandomJourneyCard from "./components/BiasFandomJourneyCard";
-import BiasFandomBehaviorSection from "./components/BiasFandomBehaviorSection";
-import BiasFandomPersistenceCard from "./components/BiasFandomPersistenceCard";
-import BiasFandomDetachmentCard from "./components/BiasFandomDetachmentCard";
-import BiasFandomFinaleCard from "./components/BiasFandomFinaleCard";
-import BiasDestinyShareCard from "./components/BiasDestinyShareCard";
-import BiasDestinySpotlightBackground from "./components/BiasDestinySpotlightBackground";
-import BiasDestinyStageLoading from "./components/BiasDestinyStageLoading";
-import DestinyBiasCoinModal from "./components/DestinyBiasCoinModal";
-import DestinyBiasProgress from "./components/DestinyBiasProgress";
-import DestinyBiasActionBar from "./components/DestinyBiasActionBar";
-import FansignEditionBadge from "./components/FansignEditionBadge";
-import MyDestinyBiasHero from "./components/MyDestinyBiasHero";
-import DestinyBiasHeader from "./components/DestinyBiasHeader";
-import { useDestinyBiasCopy, type DestinyBiasCopy } from "./_lib/copy";
-import styles from "./destiny-bias.module.css";
-import {
-  destinyBiasCelebCategories,
-  destinyBiasCelebrityPresets,
-  type DestinyBiasCelebCategory,
-  type DestinyBiasCelebrityPreset,
-} from "./lib/celebrityProfiles";
-import { destinyBiasIntroCopy, destinyBiasLoadingMessages } from "./lib/destinyBiasCopy";
-import { destinyBiasThemeChoices } from "./lib/destinyBiasTheme";
 import { useDestinyBiasTouchGuard } from "./lib/destinyBiasTouchGuard";
-import type { DestinyBiasResultViewModel, PersonInputState } from "./lib/types";
-import { analyzeDestinyBias } from "./engine/destinyBiasEngine";
-import { normalizeBirthDateInput } from "./engine/birthEnergy";
-import { downloadSvg } from "./utils/downloadSvg";
-import { buildPngBlobFromDestinyBiasCard, downloadPngFromSvg } from "./utils/downloadPngFromSvg";
-import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import ChemiHook from "./components/chemi/ChemiHook";
+import IdolPicker from "./components/chemi/IdolPicker";
+import MyInfoPanel, { type MyInfoValue } from "./components/chemi/MyInfoPanel";
+import ChemiComputing from "./components/chemi/ChemiComputing";
+import ChemiCoreCard from "./components/chemi/ChemiCoreCard";
+import ChemiTypeBadge from "./components/chemi/ChemiTypeBadge";
+import ChemiSections from "./components/chemi/ChemiSections";
+import ChemiEvidencePanel from "./components/chemi/ChemiEvidencePanel";
+import ChemiShareBar, { type ShareBarStatus } from "./components/chemi/ChemiShareBar";
+import MemberSwitcher from "./components/chemi/MemberSwitcher";
+import RecentResults from "./components/chemi/RecentResults";
+import TypeCollection from "./components/chemi/TypeCollection";
+import {
+  collectedTypeIds,
+  pushRecentPartner,
+  pushRecentResult,
+  readRecentPartners,
+  readRecentResults,
+  type RecentResultEntry,
+} from "./components/chemi/chemiStorage";
+import styles from "./destiny-bias.module.css";
 
-const MAX_BIAS_IMAGE_SIZE_MB = 12;
-
-const BIAS_MOODS = ["청량", "카리스마", "몽환", "러블리", "시크", "힐링"] as const;
-const RELATION_MOODS = ["응원형", "성장형", "설렘형", "위로형", "운명형"] as const;
-const GENDER_OPTIONS = ["여성", "남성", "기타"] as const;
-
-const INITIAL_ME: PersonInputState = {
-  name: "",
-  birthDateInput: "",
-  birthTimeInput: "",
-};
-
-const INITIAL_BIAS: PersonInputState = {
-  name: "",
-  birthDateInput: "",
-  birthTimeInput: "",
-};
-
-const FEATURED_CELEB_PRESET_COUNT = 8;
-
-type ProfileSeed = {
-  name: string;
-  birthDateInput: string;
-  birthTimeInput: string;
-  gender: (typeof GENDER_OPTIONS)[number] | "";
-};
-
-type StoredAuthUser = {
-  name?: string;
-  birthDate?: string;
-  birthTime?: string;
-  gender?: string;
-};
-
-type UiStep = 0 | 1 | 2 | 3 | 4 | 5;
-
-type DestinyBiasDraft = {
-  uiStep: UiStep;
-  meInput: PersonInputState;
-  biasInput: PersonInputState;
-  meGender: (typeof GENDER_OPTIONS)[number];
-  biasArtistInput: string;
-  selectedCelebPresetId: string;
-  biasMood: (typeof BIAS_MOODS)[number];
-  relationMood: (typeof RELATION_MOODS)[number];
-  activeThemeKey: string;
-};
+type Step = "hook" | "pick" | "info" | "computing" | "result";
+type Outcome = { result: ChemiResult; copy: ChemiCopy; partner: ChemiPartnerRecord };
+type ProfileSeed = { birthDateInput: string; calendarType: CalendarType; fromProfile: boolean };
+type StoredAuthUser = { id?: string; userId?: string; birthDate?: string } | null;
+type Draft = { step: Step; partnerRef: ChemiPartnerRef | null };
 
 const DESTINY_BIAS_DRAFT_FEATURE_KEY = "saju-destiny-bias";
+const FUNNEL = "destiny_bias_chemi";
+const FEATURE_PATH = "/saju/destiny-bias/";
+const COMPUTING_MIN_MS = 650;
+const COMPUTING_MAX_MS = 1200;
 
 function getDestinyBiasDraftScope() {
   const profile = readCurrentDestinyProfile();
@@ -115,85 +78,37 @@ function getDestinyBiasDraftScope() {
 
 function normalizeBirthDateText(value: unknown) {
   const digits = String(value || "").replace(/\D/g, "");
-  if (digits.length !== 8) return "";
-  return digits;
+  return digits.length === 8 ? digits : "";
 }
 
-function normalizeBirthTimeText(value: unknown) {
-  const digits = String(value || "").replace(/\D/g, "");
-  if (digits.length !== 4) return "";
-  return digits;
+function normalizeCalendarType(value: unknown, leap: unknown): CalendarType {
+  const raw = String(value || "").toLowerCase();
+  if (raw.includes("lunar") || raw === "음력") return leap ? "lunar_leap" : "lunar";
+  return "solar";
 }
 
-function normalizeProfileBirthTimeInput(profile: ReturnType<typeof readCurrentDestinyProfile>) {
-  const birth = profile?.birth || {};
-  const hour = Number(birth.hour ?? profile?.birthHour);
-  const minute = Number(birth.minute ?? profile?.birthMinute ?? 0);
-  if (Number.isFinite(hour) && hour >= 0 && hour <= 23 && Number.isFinite(minute) && minute >= 0 && minute <= 59) {
-    return `${String(Math.trunc(hour)).padStart(2, "0")}${String(Math.trunc(minute)).padStart(2, "0")}`;
-  }
-  return normalizeBirthTimeText(profile?.birthTime || profile?.birthIso);
-}
-
-function normalizeGenderOption(value: unknown): (typeof GENDER_OPTIONS)[number] | "" {
-  const raw = String(value || "").trim();
-  if (!raw) return "";
-
-  if (/^(f|female|woman|여|여성)$/i.test(raw)) return "여성";
-  if (/^(m|male|man|남|남성)$/i.test(raw)) return "남성";
-  if (/^(other|기타)$/i.test(raw)) return "기타";
-
-  return "";
-}
-
-function formatBirthdayPreview(value: string) {
-  const digits = String(value || "").replace(/\D/g, "");
-  if (digits.length !== 8) return "";
-  return `${digits.slice(0, 4)}.${digits.slice(4, 6)}.${digits.slice(6, 8)}`;
-}
-
-function formatTimePreview(value: string) {
-  const digits = String(value || "").replace(/\D/g, "");
-  if (digits.length !== 4) return "";
-  return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
-}
-
+/** 프로필 카드 → 로그인 사용자 순으로 생년월일 시드를 읽는다(verify-profile-card-action-policy 계약). */
 function readCurrentProfileSeed(): ProfileSeed {
-  if (typeof window === "undefined") {
-    return {
-      name: "",
-      birthDateInput: "",
-      birthTimeInput: "",
-      gender: "",
-    };
-  }
+  const empty: ProfileSeed = { birthDateInput: "", calendarType: "solar", fromProfile: false };
+  if (typeof window === "undefined") return empty;
   try {
-    const user = readSanitizedAuthUser() as StoredAuthUser | null;
+    const user = readSanitizedAuthUser() as StoredAuthUser;
     const profile = readCurrentDestinyProfile();
     const profileBirth = resolveDestinyProfileBirthParts(profile);
     const profileBirthDateInput = profileBirth
       ? `${String(profileBirth.year).padStart(4, "0")}${String(profileBirth.month).padStart(2, "0")}${String(profileBirth.day).padStart(2, "0")}`
       : "";
-    const profileBirthTimeInput = normalizeProfileBirthTimeInput(profile);
-    const profileGender = normalizeGenderOption(profile?.gender);
-    const fallbackName = String(user?.name || "").trim();
     const fallbackBirthDateInput = normalizeBirthDateText(user?.birthDate);
-    const fallbackBirthTimeInput = normalizeBirthTimeText(user?.birthTime);
-    const fallbackGender = normalizeGenderOption(user?.gender);
-
+    const birthDateInput = profileBirthDateInput || fallbackBirthDateInput;
     return {
-      name: String(profile?.name || "").trim() || fallbackName,
       birthDateInput: profileBirthDateInput || fallbackBirthDateInput,
-      birthTimeInput: profileBirthTimeInput || fallbackBirthTimeInput,
-      gender: profileGender || fallbackGender,
+      calendarType: profileBirthDateInput
+        ? normalizeCalendarType(profile?.calendarType || profile?.calType || profile?.birth?.calType, profile?.isLeapMonth)
+        : "solar",
+      fromProfile: Boolean(birthDateInput && profileBirthDateInput),
     };
   } catch {
-    return {
-      name: "",
-      birthDateInput: "",
-      birthTimeInput: "",
-      gender: "",
-    };
+    return empty;
   }
 }
 
@@ -206,1374 +121,510 @@ function readLocalToken() {
   }
 }
 
+function isLoggedInNow() {
+  const token = readLocalToken();
+  if (token) return true;
+  try {
+    const user = readSanitizedAuthUser() as StoredAuthUser;
+    return Boolean(user?.id || user?.userId);
+  } catch {
+    return false;
+  }
+}
+
+function todayKst() {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  const get = (t: string) => parts.find((p) => p.type === t)?.value || "";
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
+function toIsoDate(digits: string) {
+  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
+}
+
+function validateBirthInput(digits: string): string {
+  if (digits.length !== 8) return "생년월일 8자리를 입력해 주세요.";
+  const y = Number(digits.slice(0, 4));
+  const m = Number(digits.slice(4, 6));
+  const d = Number(digits.slice(6, 8));
+  if (y < 1900 || y > 2100 || m < 1 || m > 12 || d < 1 || d > 31) return "실제 날짜가 아니에요. 다시 확인해 주세요.";
+  return "";
+}
+
+function engineErrorMessage(caught: unknown) {
+  const code = String((caught as Error)?.message || "");
+  if (code.includes("USER_UNDER_CONSENT_AGE")) return `만 ${MIN_SELF_CONSENT_AGE}세 이상만 이용할 수 있어요.`;
+  if (code.includes("BIRTH_DATE_INVALID")) return "생년월일을 다시 확인해 주세요. 음력이면 달력을 음력으로 바꿔 주세요.";
+  if (code.includes("PARTNER")) return "선택한 최애 정보를 불러오지 못했어요. 다른 최애를 골라 주세요.";
+  return friendlyErrorMessage(caught, "계산 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.");
+}
+
+function buildInviteUrl(partner: ChemiPartnerRef, channel: string) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://code-destiny.com";
+  const key = partner.kind === "roster" ? "m" : "p";
+  return `${origin}${FEATURE_PATH}?${key}=${encodeURIComponent(partner.id)}&utm_source=${encodeURIComponent(channel)}&utm_medium=share&utm_campaign=public_share`;
+}
+
 function sleep(ms: number) {
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     window.setTimeout(resolve, ms);
   });
 }
 
-function InputField({
-  label,
-  subLabel,
-  value,
-  onChange,
-  placeholder,
-  inputMode,
-  maxLength,
-  error,
-}: {
-  label: string;
-  subLabel?: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  inputMode?: "text" | "numeric";
-  maxLength?: number;
-  error?: string;
-}) {
-  return (
-    <label className="grid gap-1 text-sm text-white/90">
-      {subLabel ? <span className="text-[10px] font-semibold tracking-[0.15em] text-white/55">{subLabel}</span> : null}
-      <span className="font-semibold text-white/95">{label}</span>
-      <input
-        type="text"
-        inputMode={inputMode}
-        value={value}
-        onChange={(event) => onChange(maxLength ? event.target.value.slice(0, maxLength) : event.target.value)}
-        placeholder={placeholder}
-        className={styles.premiumInput}
-      />
-      {error ? <span className="text-xs text-[#FF9AD8]">{error}</span> : null}
-    </label>
-  );
+async function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export default function DestinyBiasClient() {
   const router = useRouter();
+  // 정적 export 에서 useSearchParams 는 Suspense 경계를 요구하므로 마운트 시 location 을 직접 읽는다.
+  const [searchParams] = useState(() => (typeof window === "undefined" ? null : new URLSearchParams(window.location.search)));
   const reduceMotion = useReducedMotion();
+  const { trackClick, trackShare, trackFunnelStep } = useAnalytics();
   const { guardHandlers, shouldBlockClick } = useDestinyBiasTouchGuard();
-  // 신규 필드는 en/ja/zh만 채우고 나머지 로케일은 getDestinyBiasCopy()가 EN과 병합해
-  // 자동으로 채우므로(app/saju/destiny-bias/_lib/copy.ts), 이 캐스트는 실제 undefined 위험이 없다.
-  const copy = useDestinyBiasCopy() as Required<DestinyBiasCopy>;
 
-  const [uiStep, setUiStep] = useState<UiStep>(0);
-  const [meInput, setMeInput] = useState<PersonInputState>(INITIAL_ME);
-  const [biasInput, setBiasInput] = useState<PersonInputState>(INITIAL_BIAS);
-  const [meGender, setMeGender] = useState<(typeof GENDER_OPTIONS)[number]>(() => readCurrentProfileSeed().gender || "기타");
-  const [biasArtistInput, setBiasArtistInput] = useState("");
-  const [biasPresetQuery, setBiasPresetQuery] = useState("");
-  const [activeCelebCategory, setActiveCelebCategory] = useState<DestinyBiasCelebCategory>("전체");
-  const [activeAnimeSeries, setActiveAnimeSeries] = useState("전체 작품");
-  const [selectedCelebPresetId, setSelectedCelebPresetId] = useState("");
-  const CELEB_PAGE_SIZE = 24;
-  const [celebVisibleCount, setCelebVisibleCount] = useState(CELEB_PAGE_SIZE);
-  const [biasImageDataUrl, setBiasImageDataUrl] = useState("");
-  const [biasImageName, setBiasImageName] = useState("");
-  const [biasImageError, setBiasImageError] = useState("");
+  const [step, setStep] = useState<Step>("hook");
+  const [partner, setPartner] = useState<ChemiPartnerRecord | null>(null);
+  const [info, setInfo] = useState<MyInfoValue>({ birthDateInput: "", calendarType: "solar" });
+  const [seededFromProfile, setSeededFromProfile] = useState(false);
+  const [infoError, setInfoError] = useState("");
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
+  const [recentPartners, setRecentPartners] = useState<ChemiPartnerRef[]>([]);
+  const [recentResults, setRecentResults] = useState<RecentResultEntry[]>([]);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [shareBusy, setShareBusy] = useState(false);
+  const [shareStatus, setShareStatus] = useState<ShareBarStatus>(null);
+  const [savedToCollection, setSavedToCollection] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
-  const [biasMood, setBiasMood] = useState<(typeof BIAS_MOODS)[number]>("청량");
-  const [relationMood, setRelationMood] = useState<(typeof RELATION_MOODS)[number]>("응원형");
-  const [activeThemeKey, setActiveThemeKey] = useState("moonlight_neon");
+  const coreCardRef = useRef<HTMLDivElement | null>(null);
+  const computingTokenRef = useRef(0);
+  const entryTrackedRef = useRef(false);
 
-  const [analyzing, setAnalyzing] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
-  const [stageLoading, setStageLoading] = useState(0);
+  const groups = useMemo(() => listRosterGroups(), []);
+  const groupNames = useMemo(() => groups.map((g) => g.nameKo), [groups]);
+  const totalMembers = useMemo(() => groups.reduce((n, g) => n + g.memberCount, 0), [groups]);
+  const collected = useMemo(() => collectedTypeIds(recentResults), [recentResults]);
+  const from = searchParams?.get("from") || (searchParams?.get("utm_medium") === "share" ? "share" : "direct");
 
-  const [birthInputErrors, setBirthInputErrors] = useState({
-    me: "",
-    bias: "",
-  });
-
-  const [resultVm, setResultVm] = useState<DestinyBiasResultViewModel | null>(null);
-  const [error, setError] = useState("");
-  const [toast, setToast] = useState("");
-  const [draftReady, setDraftReady] = useState(false);
-
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLowSpec, setIsLowSpec] = useState(false);
-
-  const [coinModal, setCoinModal] = useState<{
-    open: boolean;
-    title: string;
-    message: string;
-    requiredCoins: number;
-    loginRequired: boolean;
-  }>({
-    open: false,
-    title: copy.clientGuideTitle,
-    message: "",
-    requiredCoins: 0,
-    loginRequired: false,
-  });
-
-  const selectedTheme = useMemo(() => {
-    return destinyBiasThemeChoices.find((item) => item.key === activeThemeKey) || destinyBiasThemeChoices[0];
-  }, [activeThemeKey]);
-
-  const featuredCelebPresets = useMemo(() => {
-    return destinyBiasCelebrityPresets.slice(0, FEATURED_CELEB_PRESET_COUNT);
-  }, []);
-
-  const animeSeriesOptions = useMemo(() => {
-    const base = ["전체 작품"];
-    const values = destinyBiasCelebrityPresets
-      .filter((preset) => preset.category === "애니 캐릭터")
-      .map((preset) => String(preset.artist || "").trim())
-      .filter(Boolean);
-    const deduped = Array.from(new Set(values));
-    return base.concat(deduped);
-  }, []);
-
-  const filteredCelebPresets = useMemo(() => {
-    const keyword = biasPresetQuery.trim().toLowerCase();
-    return destinyBiasCelebrityPresets.filter((preset) => {
-      if (activeCelebCategory !== "전체" && preset.category !== activeCelebCategory) return false;
-      if (activeCelebCategory === "애니 캐릭터" && activeAnimeSeries !== "전체 작품") {
-        if (preset.artist !== activeAnimeSeries) return false;
-      }
-      if (!keyword) return true;
-      return preset.searchText.includes(keyword);
-    });
-  }, [activeAnimeSeries, activeCelebCategory, biasPresetQuery]);
-
-  // 필터/검색이 바뀌면 더보기 노출 개수 초기화
+  // 초기화: 프로필 시드·최근 기록·드래프트·딥링크(?m= / ?p=)
   useEffect(() => {
-    setCelebVisibleCount(CELEB_PAGE_SIZE);
-  }, [activeAnimeSeries, activeCelebCategory, biasPresetQuery]);
+    const seed = readCurrentProfileSeed();
+    setInfo({ birthDateInput: seed.birthDateInput, calendarType: seed.calendarType });
+    setSeededFromProfile(seed.fromProfile);
+    setRecentPartners(readRecentPartners());
+    setRecentResults(readRecentResults());
+    setLoggedIn(isLoggedInNow());
 
-  useEffect(() => {
-    if (activeCelebCategory !== "애니 캐릭터" && activeAnimeSeries !== "전체 작품") {
-      setActiveAnimeSeries("전체 작품");
+    let nextStep: Step = "hook";
+    let nextPartner: ChemiPartnerRecord | null = null;
+    const deepMember = searchParams?.get("m");
+    const deepPreset = searchParams?.get("p");
+    const deepRef: ChemiPartnerRef | null = deepMember ? { kind: "roster", id: deepMember } : deepPreset ? { kind: "preset", id: deepPreset } : null;
+    if (deepRef) {
+      nextPartner = resolvePartner(deepRef);
+      if (nextPartner) nextStep = "info";
     }
-  }, [activeAnimeSeries, activeCelebCategory]);
-
-  const selectedCelebPreset = useMemo(() => {
-    return destinyBiasCelebrityPresets.find((preset) => preset.id === selectedCelebPresetId) || null;
-  }, [selectedCelebPresetId]);
-
-  useEffect(() => {
-    const localToken = readLocalToken();
-    const user = readSanitizedAuthUser();
-    const loggedIn = Boolean(localToken || user?.id || user?.userId);
-
-    setIsLoggedIn(loggedIn);
-  }, []);
-
-  useEffect(() => {
-    const draft = readFeatureSessionDraft<DestinyBiasDraft>(getDestinyBiasDraftScope());
-    if (draft?.value) {
-      const value = draft.value;
-      setUiStep(value.uiStep);
-      setMeInput(value.meInput);
-      setBiasInput(value.biasInput);
-      setMeGender(value.meGender);
-      setBiasArtistInput(value.biasArtistInput);
-      setSelectedCelebPresetId(value.selectedCelebPresetId);
-      setBiasMood(value.biasMood);
-      setRelationMood(value.relationMood);
-      setActiveThemeKey(value.activeThemeKey);
-    }
-    setDraftReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!draftReady || uiStep > 3 || resultVm) return;
-    writeFeatureSessionDraft<DestinyBiasDraft>(getDestinyBiasDraftScope(), {
-      uiStep,
-      meInput,
-      biasInput,
-      meGender,
-      biasArtistInput,
-      selectedCelebPresetId,
-      biasMood,
-      relationMood,
-      activeThemeKey,
-    });
-  }, [
-    activeThemeKey,
-    biasArtistInput,
-    biasInput,
-    biasMood,
-    draftReady,
-    meGender,
-    meInput,
-    relationMood,
-    resultVm,
-    selectedCelebPresetId,
-    uiStep,
-  ]);
-
-  useEffect(() => {
-    if (resultVm) clearFeatureSessionDraft(getDestinyBiasDraftScope());
-  }, [resultVm]);
-
-  useEffect(() => {
-    const applyProfileData = () => {
-      const profileSeed = readCurrentProfileSeed();
-      setMeInput((prev) => {
-        const nextName = profileSeed.name || prev.name;
-        const nextBirthDate = profileSeed.birthDateInput || prev.birthDateInput;
-        const nextBirthTime = profileSeed.birthTimeInput || prev.birthTimeInput;
-
-        if (nextName === prev.name && nextBirthDate === prev.birthDateInput && nextBirthTime === prev.birthTimeInput) {
-          return prev;
+    if (!nextPartner) {
+      try {
+        const draft = readFeatureSessionDraft<Draft>(getDestinyBiasDraftScope());
+        const ref = draft?.value?.partnerRef;
+        if (ref) {
+          nextPartner = resolvePartner(ref);
+          if (nextPartner) nextStep = draft?.value?.step === "info" || draft?.value?.step === "result" ? "info" : "pick";
         }
-
-        return {
-          ...prev,
-          name: nextName,
-          birthDateInput: nextBirthDate,
-          birthTimeInput: nextBirthTime,
-        };
-      });
-
-      setMeGender((prev) => {
-        const nextGender = profileSeed.gender || prev;
-        return nextGender === prev ? prev : nextGender;
-      });
-    };
-
-    applyProfileData();
-    if (typeof window === "undefined") return;
-    window.addEventListener("destinyProfileChanged", applyProfileData);
-    return () => {
-      window.removeEventListener("destinyProfileChanged", applyProfileData);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (typeof navigator === "undefined") return;
-    const memory = Number((navigator as Navigator & { deviceMemory?: number }).deviceMemory || 8);
-    const core = Number(navigator.hardwareConcurrency || 8);
-    setIsLowSpec(memory <= 4 || core <= 4);
-  }, []);
-
-  useEffect(() => {
-    if (uiStep !== 0) {
-      setStageLoading(0);
-      return;
-    }
-
-    const timer = window.setInterval(() => {
-      setStageLoading((prev) => (prev >= 100 ? 0 : prev + 1));
-    }, 40);
-
-    return () => window.clearInterval(timer);
-  }, [uiStep]);
-
-  useEffect(() => {
-    if (!analyzing) {
-      setLoadingProgress(0);
-      setLoadingMessageIndex(0);
-      return;
-    }
-
-    const startedAt = Date.now();
-    const interval = window.setInterval(() => {
-      const elapsed = Date.now() - startedAt;
-      const ratio = Math.min(0.94, 0.08 + elapsed / 1700);
-      setLoadingProgress((prev) => Math.max(prev, ratio));
-
-      const messageCursor = Math.min(
-        destinyBiasLoadingMessages.length - 1,
-        Math.floor((elapsed / 1400) * destinyBiasLoadingMessages.length),
-      );
-      setLoadingMessageIndex(messageCursor);
-    }, 90);
-
-    return () => window.clearInterval(interval);
-  }, [analyzing]);
-
-  useEffect(() => {
-    if (!toast) return;
-    const timer = window.setTimeout(() => setToast(""), 2200);
-    return () => window.clearTimeout(timer);
-  }, [toast]);
-
-  useEffect(() => {
-    if (!coinModal.open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [coinModal.open]);
-
-  const openCoinNotice = useCallback((params: {
-    title: string;
-    message: string;
-    requiredCoins?: number;
-    loginRequired?: boolean;
-  }) => {
-    setCoinModal({
-      open: true,
-      title: params.title,
-      message: params.message,
-      requiredCoins: Number(params.requiredCoins || 0),
-      loginRequired: Boolean(params.loginRequired),
-    });
-  }, []);
-
-  const handleBiasImageChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    const imageType = /^image\/(png|jpe?g|webp|gif|bmp|avif)$/i.test(file.type);
-    if (!imageType) {
-      setBiasImageError(copy.clientImageTypeError);
-      event.target.value = "";
-      return;
-    }
-
-    const maxBytes = MAX_BIAS_IMAGE_SIZE_MB * 1024 * 1024;
-    if (file.size > maxBytes) {
-      setBiasImageError(copy.clientImageSizeError(MAX_BIAS_IMAGE_SIZE_MB));
-      event.target.value = "";
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = typeof reader.result === "string" ? reader.result : "";
-      if (!dataUrl) {
-        setBiasImageError(copy.clientImageReadError);
-        event.target.value = "";
-        return;
+      } catch {
+        // 드래프트 손상은 무시
       }
-
-      setBiasImageDataUrl(dataUrl);
-      setBiasImageName(file.name || "my-bias-image");
-      setBiasImageError("");
-      setToast(copy.clientImageReadyToast);
-    };
-
-    reader.onerror = () => {
-      setBiasImageError(copy.clientImageProcessError);
-      event.target.value = "";
-    };
-
-    reader.readAsDataURL(file);
-  }, [copy]);
-
-  const clearBiasImage = useCallback(() => {
-    setBiasImageDataUrl("");
-    setBiasImageName("");
-    setBiasImageError("");
-    setToast(copy.clientImageClearedToast);
-  }, [copy]);
-
-  const onSafeClick = useCallback((callback: () => void) => {
-    return (event: React.MouseEvent<HTMLButtonElement>) => {
-      if (shouldBlockClick()) {
-        event.preventDefault();
-        return;
-      }
-      callback();
-    };
-  }, [shouldBlockClick]);
-
-  const handleAnalysisBack = useCallback(() => {
-    if (analyzing && uiStep === 4) {
-      return false;
     }
+    setPartner(nextPartner);
+    setStep(nextStep);
+    setHydrated(true);
 
-    if (uiStep <= 0) {
-      return false;
+    if (!entryTrackedRef.current) {
+      entryTrackedRef.current = true;
+      trackFunnelStep({ funnel: FUNNEL, step: "entry", stepIndex: 1 });
+      trackClick("destiny_bias_entry", { from, deep_link: Boolean(deepRef) });
     }
+    // searchParams 는 마운트 시 1회만 읽는다(딥링크 재진입은 새 마운트).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    if (uiStep === 5) {
-      setUiStep(3);
-      setError("");
-      return true;
+  // 드래프트: partnerRef + step 만 (생일 미저장)
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      const scope = getDestinyBiasDraftScope();
+      if (step === "hook" && !partner) clearFeatureSessionDraft(scope);
+      else writeFeatureSessionDraft<Draft>(scope, { step, partnerRef: partner ? { kind: partner.kind, id: partner.id } : null });
+    } catch {
+      // 세션 저장 실패 무시
     }
+  }, [hydrated, step, partner]);
 
-    setUiStep((prev) => {
-      if (prev <= 0) return 0;
-      return (prev - 1) as UiStep;
-    });
-    setError("");
-    return true;
-  }, [analyzing, uiStep]);
+  // 결과 도착 시 포커스 이동(스크린리더·키보드)
+  useEffect(() => {
+    if (step !== "result" || !outcome) return;
+    const node = coreCardRef.current;
+    if (!node) return;
+    node.focus({ preventScroll: true });
+    node.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  }, [step, outcome, reduceMotion]);
 
-  // 결제 안내 sheet가 열려 있으면 결과/입력 단계보다 먼저 닫는다. boolean enabled
-  // 를 넘겨 hook 이 이 표면 전용 history guard를 같은 렌더에서 설치한다.
   useBackNavigation({
-    scope: "overlay",
-    priority: 100,
-    enabled: coinModal.open,
-    canGoBack: true,
+    scope: "analysis",
+    canGoBack: () => step !== "hook",
     onBack: () => {
-      setCoinModal((prev) => ({ ...prev, open: false }));
+      if (step === "result") setStep("info");
+      else if (step === "info") setStep("pick");
+      else if (step === "pick") setStep("hook");
+      else return false;
       return true;
     },
   });
 
-  useBackNavigation({
-    scope: "analysis",
-    priority: 50,
-    maxInternalBackSteps: 1,
-    enabled: true,
-    isLocked: () => analyzing && uiStep === 4,
-    canGoBack: () => coinModal.open || uiStep > 0,
-    onBack: handleAnalysisBack,
-  });
+  const selectPartner = useCallback(
+    (next: ChemiPartnerRecord) => {
+      setPartner(next);
+      setInfoError("");
+      setSavedToCollection(false);
+      setShareStatus(null);
+      setRecentPartners(pushRecentPartner({ kind: next.kind, id: next.id }));
+      trackFunnelStep({ funnel: FUNNEL, step: "idol_selected", stepIndex: 2 });
+      trackClick("destiny_bias_idol_selected", { partner_kind: next.kind, group_id: next.groupId || "preset" });
+      setStep("info");
+    },
+    [trackClick, trackFunnelStep],
+  );
 
-  const goBackToMain = useCallback(() => {
-    if (handleAnalysisBack()) return;
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      window.history.back();
-      return;
-    }
-    if (typeof window !== "undefined") {
-      const host = window.location.hostname;
-      if (host === "localhost" || host === "127.0.0.1" || host === "::1" || window.location.search.includes("debugSajuRedirect=1")) {
-        console.warn("[saju-redirect-blocked]", {
-          reason: "destiny-bias-root-back-replaced",
-          pathname: window.location.pathname,
-          isAnalyzing: analyzing,
-          uiStep,
-        });
-      }
-    }
-    router.replace("/saju");
-  }, [analyzing, handleAnalysisBack, router, uiStep]);
-
-  const validateBirthInput = useCallback((value: string, target: "me" | "bias") => {
-    const result = normalizeBirthDateInput(value);
-    setBirthInputErrors((prev) => ({
-      ...prev,
-      [target]: result.ok === true ? "" : result.reason,
-    }));
-    return result;
-  }, []);
-
-  const validateStep = useCallback((step: 1 | 2 | 3) => {
-    if (step === 1) {
-      if (!meInput.name.trim()) return copy.clientInsufficientNamePrompt;
-      const meBirth = validateBirthInput(meInput.birthDateInput, "me");
-      if (meBirth.ok === false) return copy.clientMyBirthErrorPrefix(meBirth.reason);
-    }
-
-    if (step === 2) {
-      if (!biasInput.name.trim()) return copy.clientBiasNamePrompt;
-      const biasBirth = validateBirthInput(biasInput.birthDateInput, "bias");
-      if (biasBirth.ok === false) return copy.clientBiasBirthErrorPrefix(biasBirth.reason);
-    }
-
-    return "";
-  }, [biasInput.birthDateInput, biasInput.name, copy, meInput.birthDateInput, meInput.name, validateBirthInput]);
-
-  const applyCelebPreset = useCallback((preset: DestinyBiasCelebrityPreset) => {
-    setSelectedCelebPresetId(preset.id);
-    setBiasInput({
-      name: preset.name,
-      birthDateInput: preset.birthDateInput,
-      birthTimeInput: preset.birthTimeInput,
-    });
-    setBiasArtistInput(preset.artist);
-    setBirthInputErrors((prev) => ({ ...prev, bias: "" }));
-    setError("");
-    setToast(
-      preset.timeKnown
-        ? copy.clientPresetLoadedToast(preset.sourceLabel)
-        : copy.clientPresetBirthOnlyToast(preset.sourceLabel),
-    );
-  }, [copy]);
-
-  const nextStep = useCallback((currentStep: 1 | 2 | 3) => {
-    const message = validateStep(currentStep);
-    if (message) {
-      setError(message);
-      return;
-    }
-    setError("");
-    setUiStep((currentStep + 1) as 2 | 3 | 4);
-  }, [validateStep]);
-
-  const analyze = useCallback(async () => {
-    if (analyzing) return;
-
-    const validationMessage = validateStep(3);
-    if (validationMessage) {
-      setError(validationMessage);
-      setUiStep(3);
-      return;
-    }
-
-    if (!isLoggedIn) {
-      openCoinNotice({
-        title: copy.clientLoginRequiredTitle,
-        message: copy.clientLoginRequiredMessage,
-        loginRequired: true,
-      });
-      return;
-    }
-
-    setError("");
-    setAnalyzing(true);
-    setUiStep(4);
-
-    try {
-      const localResult = analyzeDestinyBias({
-        userName: meInput.name,
-        userBirthDateInput: meInput.birthDateInput,
-        userBirthTimeInput: meInput.birthTimeInput,
-        biasName: biasInput.name,
-        biasBirthDateInput: biasInput.birthDateInput,
-        biasBirthTimeInput: biasInput.birthTimeInput,
-        linkedArtistName: biasArtistInput,
-        biasMood,
-        relationMood,
-        themeKey: selectedTheme.key,
-        themeLabel: selectedTheme.name,
-      });
-
-      await sleep(1100);
-      setLoadingProgress(1);
-
-      const vm: DestinyBiasResultViewModel = {
-        ...localResult,
-        themeLabel: selectedTheme.name,
-        biasMood,
-        relationMood,
-      };
-
-      setResultVm(vm);
-      setUiStep(5);
-      setToast(copy.clientAnalysisCompleteToast);
-    } catch (analysisError) {
-      setResultVm(null);
-      setUiStep(3);
-      if (analysisError instanceof Error) {
-        setError(friendlyErrorMessage(analysisError, copy.clientAnalysisErrorDefault));
-      } else {
-        setError(copy.clientAnalysisErrorDefault);
-      }
-    } finally {
-      setAnalyzing(false);
-    }
-  }, [
-    analyzing,
-    biasInput.birthDateInput,
-    biasInput.birthTimeInput,
-    biasInput.name,
-    biasArtistInput,
-    biasMood,
-    copy,
-    isLoggedIn,
-    meInput.birthDateInput,
-    meInput.birthTimeInput,
-    meInput.name,
-    openCoinNotice,
-    relationMood,
-    selectedTheme.key,
-    selectedTheme.name,
-    validateStep,
-  ]);
-
-  const handleDownloadSvg = useCallback(() => {
-    if (!resultVm) return;
-    downloadSvg(resultVm.cardSvg, `my-destiny-bias-${resultVm.destinyId}.svg`);
-    setToast(copy.clientSvgSavedToast);
-  }, [copy, resultVm]);
-
-  const handleDownloadPng = useCallback(async () => {
-    if (!resultVm) return;
-    try {
-      await downloadPngFromSvg(resultVm.cardSvg, `my-destiny-bias-${resultVm.destinyId}.png`);
-      setToast(copy.clientPngSavedToast);
-    } catch (downloadError) {
-      setError(friendlyErrorMessage(downloadError, copy.clientPngSaveFailed));
-    }
-  }, [copy, resultVm]);
-
-  const handleCopyResult = useCallback(async () => {
-    if (!resultVm || typeof navigator === "undefined" || !navigator.clipboard) return;
-    const summary = [
-      `[My Destiny Bias] ${resultVm.biasName}`,
-      `${copy.clientSummaryScoreLabel} ${resultVm.totalScore} · ${resultVm.destinyGrade} (${resultVm.gradeTitle})`,
-      `${copy.clientSummaryEnergyLabel} ${resultVm.auraType} / ${resultVm.auraMaterial}`,
-      `${copy.clientSummaryPairingLabel} ${resultVm.pairingAlias}`,
-      `${copy.clientSummaryMessageLabel} ${resultVm.oneLineDestinyMessage}`,
-      `${copy.clientSummaryFansignLabel} ${resultVm.fansignMessage}`,
-      `Destiny ID ${resultVm.destinyId}`,
-    ].join("\n");
-
-    try {
-      await navigator.clipboard.writeText(summary);
-      setToast(copy.clientCopySummaryToast);
-    } catch {
-      setError(copy.clientCopyResultFailed);
-    }
-  }, [copy, resultVm]);
-
-  const handleShareResult = useCallback(async () => {
-    if (!resultVm || typeof navigator === "undefined") return;
-
-    const text = copy.clientShareChemistryLine(resultVm.biasName, resultVm.totalScore, resultVm.destinyGrade, resultVm.oneLineDestinyMessage);
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: copy.clientShareTitle,
-          text,
-          url: window.location.href,
-        });
-        setToast(copy.clientShareResultToast);
+  const compute = useCallback(
+    async (target: ChemiPartnerRecord, infoValue: MyInfoValue, source: "form" | "switch" | "replay") => {
+      const digits = infoValue.birthDateInput;
+      const validation = validateBirthInput(digits);
+      if (validation) {
+        setInfoError(validation);
+        setStep("info");
         return;
-      } catch {
-        // 사용자가 공유 창을 닫은 경우는 조용히 처리
       }
-    }
-
-    try {
-      await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
-      setToast(copy.clientShareTextCopiedToast);
-    } catch {
-      setError(copy.clientShareTextCopyFailed);
-    }
-  }, [copy, resultVm]);
-
-  const getShareBaseText = useCallback(() => {
-    if (!resultVm) return "";
-    return copy.clientShareChemistryLine(resultVm.biasName, resultVm.totalScore, resultVm.destinyGrade, resultVm.oneLineDestinyMessage);
-  }, [copy, resultVm]);
-
-  const buildShareFile = useCallback(async () => {
-    if (!resultVm) return null;
-    const blob = await buildPngBlobFromDestinyBiasCard(resultVm.cardSvg);
-    return new File([blob], `my-destiny-bias-${resultVm.destinyId}.png`, { type: "image/png" });
-  }, [resultVm]);
-
-  const shareWithNativeSheet = useCallback(async (platformLabel: string) => {
-    if (!resultVm || typeof navigator === "undefined") return false;
-    if (!navigator.share) return false;
-
-    const text = getShareBaseText();
-    const url = typeof window !== "undefined" ? window.location.href : "";
-
-    try {
-      const file = await buildShareFile();
-      if (!file) return false;
-      const payload: ShareData = {
-        title: copy.clientShareTitle,
-        text,
-        url,
-        files: [file],
-      };
-
-      if (navigator.canShare && !navigator.canShare({ files: [file] })) {
-        return false;
+      setInfoError("");
+      setSavedToCollection(false);
+      setShareStatus(null);
+      const token = ++computingTokenRef.current;
+      setStep("computing");
+      const startedAt = Date.now();
+      let next: Outcome | null = null;
+      let failure = "";
+      try {
+        const { result, copy } = runChemi({
+          user: {
+            birthDate: toIsoDate(digits),
+            calendarType: infoValue.calendarType,
+            isLeapMonth: infoValue.calendarType === "lunar_leap",
+          },
+          partner: { kind: target.kind, id: target.id },
+          referenceDate: todayKst(),
+        });
+        next = { result, copy, partner: target };
+      } catch (caught) {
+        failure = engineErrorMessage(caught);
       }
+      const elapsed = Date.now() - startedAt;
+      const wait = reduceMotion ? 0 : Math.min(COMPUTING_MAX_MS, Math.max(0, COMPUTING_MIN_MS - elapsed));
+      if (wait > 0) await sleep(wait);
+      if (computingTokenRef.current !== token) return;
 
-      await navigator.share(payload);
-      setToast(copy.clientPlatformShareOpenedToast(platformLabel));
-      return true;
-    } catch {
-      return false;
-    }
-  }, [buildShareFile, copy, getShareBaseText, resultVm]);
-
-  const handleShareToX = useCallback(() => {
-    if (!resultVm || typeof window === "undefined") return;
-    const text = getShareBaseText();
-    const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`;
-    window.open(shareUrl, "_blank", "noopener,noreferrer,width=620,height=720");
-    setToast(copy.clientShareToXToast);
-  }, [copy, getShareBaseText, resultVm]);
-
-  const handleShareToInstagram = useCallback(async () => {
-    if (!resultVm) return;
-
-    const nativeShared = await shareWithNativeSheet(copy.clientPlatformInstagram);
-    if (nativeShared) return;
-
-    try {
-      await downloadPngFromSvg(resultVm.cardSvg, `my-destiny-bias-${resultVm.destinyId}.png`);
-      setToast(copy.clientInstagramSavedToast);
-    } catch {
-      setError(copy.clientInstagramSaveFailed);
-    }
-  }, [copy, resultVm, shareWithNativeSheet]);
-
-  const handleShareToKakao = useCallback(async () => {
-    if (!resultVm || typeof window === "undefined") return;
-
-    const nativeShared = await shareWithNativeSheet(copy.clientPlatformKakao);
-    if (nativeShared) return;
-
-    const text = getShareBaseText();
-    const fallback = `${text}\n${window.location.href}`;
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(fallback);
+      if (!next) {
+        setInfoError(failure);
+        setStep("info");
+        return;
       }
-      setToast(copy.clientKakaoCopiedToast);
-    } catch {
-      setError(copy.clientKakaoCopyFailed);
+      setOutcome(next);
+      setStep("result");
+      setRecentResults(
+        pushRecentResult({
+          partner: { kind: target.kind, id: target.id },
+          partnerName: target.displayName,
+          groupLabel: target.groupLabel,
+          chemiTypeId: next.result.chemiTypeId,
+          chemiTypeNameKo: next.result.chemiTypeNameKo,
+          oneLiner: next.copy.oneLiner,
+          minorMode: next.result.minorMode,
+          engineVersion: next.result.engineVersion,
+          at: new Date().toISOString(),
+        }),
+      );
+      if (source === "form") trackFunnelStep({ funnel: FUNNEL, step: "profile_ready", stepIndex: 3 });
+      trackFunnelStep({ funnel: FUNNEL, step: "result_complete", stepIndex: 4 });
+      trackClick("destiny_bias_result_complete", {
+        chemi_type_id: next.result.chemiTypeId,
+        group_id: target.groupId || "preset",
+        minor_mode: next.result.minorMode,
+        signal_strength: next.result.signalStrength,
+        calendar: infoValue.calendarType,
+        from,
+        source,
+      });
+    },
+    [from, reduceMotion, trackClick, trackFunnelStep],
+  );
+
+  const handleInfoSubmit = useCallback(() => {
+    if (!partner) {
+      setStep("pick");
+      return;
     }
-  }, [copy, getShareBaseText, resultVm, shareWithNativeSheet]);
+    void compute(partner, info, "form");
+  }, [compute, info, partner]);
 
-  const handleRetry = useCallback(() => {
-    setUiStep(1);
-    setResultVm(null);
-    setBiasArtistInput("");
-    setBiasImageDataUrl("");
-    setBiasImageName("");
-    setBiasImageError("");
-    setError("");
-  }, []);
+  const handleSwitch = useCallback(
+    (next: ChemiPartnerRecord) => {
+      setPartner(next);
+      setRecentPartners(pushRecentPartner({ kind: next.kind, id: next.id }));
+      trackClick("destiny_bias_member_switch", { group_id: next.groupId || "preset" });
+      void compute(next, info, "switch");
+    },
+    [compute, info, trackClick],
+  );
 
-  const handleTryAnotherBias = useCallback(() => {
-    setUiStep(2);
-    setResultVm(null);
-    setBiasInput(INITIAL_BIAS);
-    setBiasArtistInput("");
-    setBiasImageDataUrl("");
-    setBiasImageName("");
-    setBiasImageError("");
-    setError("");
-    setToast(copy.clientTryAnotherToast);
-  }, [copy]);
+  const handleReplay = useCallback(
+    (ref: ChemiPartnerRef) => {
+      const next = resolvePartner(ref);
+      if (!next) return;
+      setPartner(next);
+      if (validateBirthInput(info.birthDateInput)) {
+        setStep("info");
+        return;
+      }
+      void compute(next, info, "replay");
+    },
+    [compute, info],
+  );
 
-  const particleCount = reduceMotion || isLowSpec ? 5 : 12;
+  const resetToPick = useCallback(() => {
+    computingTokenRef.current += 1;
+    setOutcome(null);
+    setShareStatus(null);
+    setStep("pick");
+    trackClick("destiny_bias_pick_another");
+  }, [trackClick]);
+
+  const shareTitle = outcome ? `${outcome.partner.displayName} × 나 = ${outcome.result.chemiTypeNameKo}` : "최애운명";
+
+  const handleInvite = useCallback(async () => {
+    if (!outcome) return;
+    const url = buildInviteUrl(outcome.partner, "copy");
+    trackShare({ feature: "destiny-bias-chemi", channel: "link" });
+    trackFunnelStep({ funnel: FUNNEL, step: "share_click", stepIndex: 5 });
+    const res = await shareThrough("copy", { title: shareTitle, text: outcome.copy.oneLiner, url });
+    setShareStatus(
+      res.status === "copied"
+        ? { tone: "ok", text: "친구에게 보낼 링크를 복사했어요. 친구는 자기 생일만 넣으면 같은 최애와 케미를 볼 수 있어요." }
+        : { tone: "warn", text: `복사가 막혀 있어요. 이 주소를 직접 보내 주세요: ${url}` },
+    );
+  }, [outcome, shareTitle, trackFunnelStep, trackShare]);
+
+  const handleShareCard = useCallback(async () => {
+    if (!outcome || shareBusy) return;
+    setShareBusy(true);
+    trackFunnelStep({ funnel: FUNNEL, step: "share_click", stepIndex: 5 });
+    try {
+      const url = buildInviteUrl(outcome.partner, "native");
+      const text = `${outcome.copy.oneLiner} — 내 최애 ${outcome.partner.displayName}와 나는 「${outcome.result.chemiTypeNameKo}」`;
+      let res = await shareThrough("native", { title: shareTitle, text, url });
+      if (res.status === "unavailable") {
+        res = await shareThrough("kakao", { title: shareTitle, text, url, image: `${window.location.origin}/images/destiny-bias/og-default-1200x630.png` });
+        if (res.status !== "opened") res = await shareThrough("copy", { title: shareTitle, text, url });
+      }
+      const channel = res.status === "opened" ? "kakao" : res.status === "shared" ? "etc" : "link";
+      trackShare({ feature: "destiny-bias-chemi", channel });
+      if (res.status === "shared" || res.status === "opened") setShareStatus({ tone: "ok", text: "공유 창을 열었어요." });
+      else if (res.status === "copied") setShareStatus({ tone: "ok", text: "공유 링크를 복사했어요. 원하는 곳에 붙여 넣어 주세요." });
+      else if (res.status === "cancelled") setShareStatus(null);
+      else setShareStatus({ tone: "warn", text: "공유를 열지 못했어요. 「이미지 저장」 후 직접 올려 주세요." });
+    } finally {
+      setShareBusy(false);
+    }
+  }, [outcome, shareBusy, shareTitle, trackFunnelStep, trackShare]);
+
+  const handleSaveImage = useCallback(async () => {
+    const node = coreCardRef.current;
+    if (!node || !outcome || shareBusy) return;
+    setShareBusy(true);
+    setShareStatus({ tone: "info", text: "카드 이미지를 만드는 중…" });
+    try {
+      await document.fonts?.ready;
+      const { toBlob } = await import("html-to-image");
+      let blob = await toBlob(node, { pixelRatio: 3, cacheBust: true });
+      if (!blob) blob = await toBlob(node, { pixelRatio: 2, cacheBust: true });
+      if (!blob) throw new Error("IMAGE_EXPORT_EMPTY");
+      await downloadBlob(blob, `chemi-${outcome.partner.id}-${outcome.result.chemiTypeId}.png`);
+      trackShare({ feature: "destiny-bias-chemi", channel: "download" });
+      trackFunnelStep({ funnel: FUNNEL, step: "share_click", stepIndex: 5 });
+      setShareStatus({ tone: "ok", text: "이미지를 저장했어요. 카드에는 생일이 들어가지 않아요." });
+    } catch (caught) {
+      setShareStatus({ tone: "warn", text: friendlyErrorMessage(caught, "이미지를 만들지 못했어요. 화면을 캡처해 주세요.") });
+    } finally {
+      setShareBusy(false);
+    }
+  }, [outcome, shareBusy, trackFunnelStep, trackShare]);
+
+  const handleSaveCollection = useCallback(async () => {
+    if (!outcome || shareBusy || savedToCollection) return;
+    const token = readLocalToken();
+    setShareBusy(true);
+    try {
+      const apiBase = String(getApiBaseUrl() || "").trim();
+      const { result, copy } = outcome;
+      const response = await fetch(`${apiBase}/api/destiny-bias/cards`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({
+          title: shareTitle,
+          headline: copy.oneLiner,
+          summary: copy.points.map((p) => p.text).join(" "),
+          themeKey: "kpop_cream",
+          score: 0,
+          grade: "",
+          reportText: [copy.scenario.text, copy.caution.text, copy.finish.text].join("\n\n"),
+          canonical: {
+            chemiTypeId: result.chemiTypeId,
+            partner: result.partner,
+            engineVersion: result.engineVersion,
+            rulesVersion: result.rulesVersion,
+            rosterVersion: result.rosterVersion,
+            copyVersion: copy.copyVersion,
+            signals: result.matchedSignalKeys,
+            minorMode: result.minorMode,
+          },
+        }),
+      });
+      if (response.status === 401) {
+        setLoggedIn(false);
+        setShareStatus({ tone: "warn", text: "로그인이 풀렸어요. 다시 로그인하면 저장할 수 있어요." });
+        return;
+      }
+      if (!response.ok) throw new Error(`HTTP_${response.status}`);
+      setSavedToCollection(true);
+      setShareStatus({ tone: "ok", text: "컬렉션에 저장했어요." });
+      trackClick("destiny_bias_collection_save", { chemi_type_id: result.chemiTypeId });
+    } catch (caught) {
+      setShareStatus({ tone: "warn", text: friendlyErrorMessage(caught, "저장에 실패했어요. 잠시 후 다시 시도해 주세요.") });
+    } finally {
+      setShareBusy(false);
+    }
+  }, [outcome, savedToCollection, shareBusy, shareTitle, trackClick]);
+
+  const stickyLabel = step === "hook" ? "내 최애 고르기" : step === "info" ? "케미 계산하기" : step === "result" ? "내 케미 카드 공유" : "";
+  const stickyAction = () => {
+    if (step === "hook") setStep("pick");
+    else if (step === "info") handleInfoSubmit();
+    else if (step === "result") void handleShareCard();
+  };
 
   return (
-    <section className={`relative min-h-[100svh] w-screen overflow-x-hidden text-white ${styles.destinyBiasBg}`}>
-      <BiasDestinySpotlightBackground isLowSpec={isLowSpec} reduceMotion={Boolean(reduceMotion)} />
+    <div className={`${styles.page} ${hydrated ? styles.pageReady : ""}`} data-step={step}>
+      <KakaoSdk />
+      <main className={`${styles.frame} ${stickyLabel ? styles.stickyCtaSafe : ""}`}>
+        {step === "hook" ? <ChemiHook groupNames={groupNames} totalMembers={totalMembers} onStart={() => setStep("pick")} /> : null}
 
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        {Array.from({ length: particleCount }).map((_, index) => (
-          <span
-            key={index}
-            className={`absolute ${styles.floatParticle}`}
-            style={{
-              left: `${7 + ((index * 11) % 88)}%`,
-              top: `${6 + ((index * 9) % 82)}%`,
-              animationDuration: `${3.6 + (index % 4) * 0.8}s`,
+        {step === "pick" ? (
+          <IdolPicker
+            recent={recentPartners}
+            selected={partner ? { kind: partner.kind, id: partner.id } : null}
+            isLoggedIn={loggedIn}
+            onSelect={selectPartner}
+            onBack={() => setStep("hook")}
+          />
+        ) : null}
+
+        {step === "info" && partner ? (
+          <MyInfoPanel
+            partner={partner}
+            value={info}
+            error={infoError}
+            seededFromProfile={seededFromProfile}
+            onChange={(next) => {
+              setInfo(next);
+              setSeededFromProfile(false);
+              if (infoError) setInfoError("");
+            }}
+            onSubmit={handleInfoSubmit}
+            onBack={() => setStep("pick")}
+          />
+        ) : null}
+
+        {step === "computing" && partner ? <ChemiComputing partnerName={partner.displayName} /> : null}
+
+        {step === "result" && outcome ? (
+          <section className={styles.result} aria-labelledby="dbk-result-title">
+            <h2 id="dbk-result-title" className="sr-only">케미 결과</h2>
+            <ChemiCoreCard ref={coreCardRef} result={outcome.result} copy={outcome.copy} />
+            <ChemiShareBar
+              busy={shareBusy}
+              status={shareStatus}
+              canSaveCollection={loggedIn}
+              savedToCollection={savedToCollection}
+              onShareCard={() => void handleShareCard()}
+              onSaveImage={() => void handleSaveImage()}
+              onInviteFriend={() => void handleInvite()}
+              onPickAnother={resetToPick}
+              onSaveCollection={() => void handleSaveCollection()}
+            />
+            <ChemiSections copy={outcome.copy} />
+            <ChemiEvidencePanel result={outcome.result} />
+            <MemberSwitcher current={outcome.partner} onSwitch={handleSwitch} />
+            <TypeCollection collected={collected} currentTypeId={outcome.result.chemiTypeId} />
+            <RecentResults items={recentResults.filter((r) => r.partner.id !== outcome.partner.id)} onReplay={handleReplay} />
+            <p className={styles.footLinks}>
+              <button type="button" className={styles.linkButton} onClick={() => router.push("/saju/")}>
+                다른 사주 콘텐츠 보기
+              </button>
+            </p>
+          </section>
+        ) : null}
+
+        {step === "hook" && recentResults.length > 0 ? (
+          <>
+            <RecentResults items={recentResults} onReplay={handleReplay} />
+            <TypeCollection collected={collected} />
+          </>
+        ) : null}
+
+        {step === "hook" && recentResults.length === 0 ? (
+          <section className={styles.typePreview} aria-label="케미 유형 미리보기">
+            {(["telepathy", "accel-brake", "slow-burn"] as const).map((id) => (
+              <ChemiTypeBadge key={id} typeId={id} nameKo={CHEMI_TYPE_BY_ID[id].nameKo} shortKo={CHEMI_TYPE_BY_ID[id].shortKo} size="sm" />
+            ))}
+          </section>
+        ) : null}
+      </main>
+
+      {stickyLabel ? (
+        <div className={`fixed inset-x-0 bottom-0 md:hidden ${styles.stickyCtaBar}`} {...guardHandlers}>
+          <button
+            type="button"
+            className={styles.ctaPrimary}
+            disabled={shareBusy}
+            onClick={(event) => {
+              if (shouldBlockClick()) {
+                event.preventDefault();
+                return;
+              }
+              stickyAction();
             }}
           >
-            {index % 4 === 0 ? (
-              <DestinyIcon name="star" size={14} className="text-violet-100/90" variant="soft" />
-            ) : index % 4 === 1 ? (
-              <DestinyIcon name="heartGlow" size={14} className="text-rose-100/90" variant="glow" />
-            ) : index % 4 === 2 ? (
-              <DestinyIcon name="sparkle" size={14} className="text-fuchsia-100/90" variant="soft" />
-            ) : (
-              <DestinyIcon name="lightstick" size={14} className="text-cyan-100/90" variant="soft" />
-            )}
-          </span>
-        ))}
-      </div>
-
-      <DestinyBiasHeader onBack={goBackToMain} coinBadgeText={destinyBiasIntroCopy.coinBadge} />
-
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-28 pt-4 md:px-6 md:pb-14 md:pt-6">
-
-        <AnimatePresence>
-          {toast ? (
-            <m.p
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className={`mb-3 ${styles.toastPill}`}
-            >
-              {toast}
-            </m.p>
-          ) : null}
-        </AnimatePresence>
-
-        <div className="space-y-4 md:space-y-5">
-          {uiStep === 0 ? (
-            <>
-              <BiasDestinyHero onEnter={() => setUiStep(1)} stageLoading={stageLoading} />
-              <BiasDestinyStageLineup />
-            </>
-          ) : null}
-
-          {uiStep > 0 ? (
-            <>
-              <MyDestinyBiasHero subtitle={destinyBiasIntroCopy.lead} />
-              <DestinyBiasProgress current={uiStep === 5 ? 5 : uiStep} />
-            </>
-          ) : null}
-
-            {uiStep === 1 ? (
-              <BiasDestinyInputPanel
-                stepLabel="STEP 01 · FAN PROFILE CHECK"
-                title={copy.clientStep1Title}
-                description={copy.clientStep1Desc}
-              >
-                <div className="grid gap-3 md:grid-cols-2">
-                  <InputField
-                    subLabel={copy.clientNameSubLabel}
-                    label={copy.clientMyNameLabel}
-                    value={meInput.name}
-                    onChange={(value) => setMeInput((prev) => ({ ...prev, name: value }))}
-                    placeholder={copy.clientMyNamePlaceholder}
-                    maxLength={24}
-                  />
-
-                  <InputField
-                    subLabel={copy.clientBirthDateSubLabel}
-                    label={copy.clientMyBirthDateLabel}
-                    value={meInput.birthDateInput}
-                    onChange={(value) => {
-                      setMeInput((prev) => ({ ...prev, birthDateInput: value }));
-                      if (value.trim()) validateBirthInput(value, "me");
-                      else setBirthInputErrors((prev) => ({ ...prev, me: "" }));
-                    }}
-                    placeholder={copy.clientMyBirthDatePlaceholder}
-                    inputMode="numeric"
-                    maxLength={10}
-                    error={birthInputErrors.me}
-                  />
-                </div>
-
-                <div className="mt-3 grid gap-3 md:grid-cols-2">
-                  <InputField
-                    subLabel={copy.clientBirthTimeSubLabel}
-                    label={copy.clientBirthTimeOptionalLabel}
-                    value={meInput.birthTimeInput}
-                    onChange={(value) => setMeInput((prev) => ({ ...prev, birthTimeInput: value }))}
-                    placeholder={copy.clientMyBirthTimePlaceholder}
-                    inputMode="numeric"
-                    maxLength={4}
-                  />
-
-                  <label className="grid gap-0.5 text-sm text-white/90">
-                    <span className="text-[10px] font-semibold tracking-[0.15em] text-white/55">{copy.clientGenderSubLabel}</span>
-                    <span className="font-semibold text-white/95">{copy.clientGenderLabel}</span>
-                    <select
-                      value={meGender}
-                      onChange={(event) => setMeGender(event.target.value as (typeof GENDER_OPTIONS)[number])}
-                      className={styles.cosmicSelect}
-                    >
-                      {GENDER_OPTIONS.map((item) => (
-                        <option key={item} value={item}>{copy.clientGenderOptionLabels[item] ?? item}</option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
-                <p className="mt-4 text-xs text-white/70">{copy.clientPrivacyNote}</p>
-              </BiasDestinyInputPanel>
-            ) : null}
-
-            {uiStep === 2 ? (
-              <BiasDestinyInputPanel
-                stepLabel="STEP 02 · BIAS LINK"
-                title={copy.clientStep2Title}
-                description={copy.clientStep2Desc}
-              >
-                <div className="grid gap-3 md:grid-cols-2">
-                  <InputField
-                    subLabel={copy.clientBiasNameSubLabel}
-                    label={copy.clientBiasNameFieldLabel}
-                    value={biasInput.name}
-                    onChange={(value) => {
-                      setSelectedCelebPresetId("");
-                      setBiasInput((prev) => ({ ...prev, name: value }));
-                    }}
-                    placeholder={copy.clientBiasNamePlaceholder}
-                    maxLength={24}
-                  />
-
-                  <InputField
-                    subLabel={copy.clientBirthDateSubLabel}
-                    label={copy.clientBiasBirthDateLabel}
-                    value={biasInput.birthDateInput}
-                    onChange={(value) => {
-                      setSelectedCelebPresetId("");
-                      setBiasInput((prev) => ({ ...prev, birthDateInput: value }));
-                      if (value.trim()) validateBirthInput(value, "bias");
-                      else setBirthInputErrors((prev) => ({ ...prev, bias: "" }));
-                    }}
-                    placeholder={copy.clientBiasBirthDatePlaceholder}
-                    inputMode="numeric"
-                    maxLength={10}
-                    error={birthInputErrors.bias}
-                  />
-                </div>
-
-                <div className="mt-3 grid gap-3 md:grid-cols-2">
-                  <InputField
-                    subLabel={copy.clientArtistSubLabel}
-                    label={copy.clientArtistLabel}
-                    value={biasArtistInput}
-                    onChange={(value) => {
-                      setSelectedCelebPresetId("");
-                      setBiasArtistInput(value);
-                    }}
-                    placeholder={copy.clientArtistPlaceholder}
-                    maxLength={36}
-                  />
-
-                  <InputField
-                    subLabel={copy.clientBirthTimeSubLabel}
-                    label={copy.clientBirthTimeOptionalLabel}
-                    value={biasInput.birthTimeInput}
-                    onChange={(value) => {
-                      setSelectedCelebPresetId("");
-                      setBiasInput((prev) => ({ ...prev, birthTimeInput: value }));
-                    }}
-                    placeholder={copy.clientBiasBirthTimePlaceholder}
-                    inputMode="numeric"
-                    maxLength={4}
-                  />
-                </div>
-
-                <div className={`${styles.celebPickerShell} mt-4`}>
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-semibold tracking-[0.15em] text-cyan-100/80">{copy.clientStarArchiveSubLabel}</p>
-                      <h3 className="mt-1 text-base font-black text-white">{copy.clientStarArchiveTitle}</h3>
-                      <p className="mt-1 text-sm leading-6 text-white/72">
-                        {copy.clientStarArchiveDesc}
-                      </p>
-                    </div>
-                    <div className={styles.celebCountBadge}>{copy.clientDisplayCountSuffix(filteredCelebPresets.length)}</div>
-                  </div>
-
-                  <div className="mt-3">
-                    <div className={styles.celebQuickGrid}>
-                      {featuredCelebPresets.map((preset) => {
-                        const selected = preset.id === selectedCelebPresetId;
-                        return (
-                          <button
-                            key={preset.id}
-                            type="button"
-                            onClick={() => applyCelebPreset(preset)}
-                            className={`${styles.celebQuickChip} ${selected ? styles.celebQuickChipActive : ""}`}
-                          >
-                            <span className="text-sm font-black text-white">{preset.name}</span>
-                            <span className="mt-1 text-[11px] text-cyan-100/80">{preset.artist || preset.category}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-                    <input
-                      type="text"
-                      value={biasPresetQuery}
-                      onChange={(event) => setBiasPresetQuery(event.target.value)}
-                      placeholder={copy.clientSearchPlaceholder}
-                      className="h-12 rounded-xl border border-white/20 bg-black/35 px-3 text-sm text-white outline-none ring-1 ring-transparent transition placeholder:text-white/45 focus:border-cyan-200/70 focus:ring-cyan-200/35"
-                    />
-                    <div className={styles.celebTabRow}>
-                      {destinyBiasCelebCategories.map((category) => {
-                        const active = activeCelebCategory === category;
-                        return (
-                          <button
-                            key={category}
-                            type="button"
-                            onClick={() => {
-                              setActiveCelebCategory(category);
-                              if (category !== "애니 캐릭터") setActiveAnimeSeries("전체 작품");
-                            }}
-                            className={`${styles.celebTabBtn} ${active ? styles.celebTabBtnActive : ""}`}
-                          >
-                            {category}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {activeCelebCategory === "애니 캐릭터" ? (
-                    <div className="mt-2 grid gap-2">
-                      <p className="text-[11px] font-semibold tracking-[0.08em] text-cyan-100/82">{copy.clientNarrowBySeriesLabel}</p>
-                      <div className={styles.celebTabRow}>
-                        {animeSeriesOptions.map((seriesName) => {
-                          const active = activeAnimeSeries === seriesName;
-                          return (
-                            <button
-                              key={seriesName}
-                              type="button"
-                              onClick={() => setActiveAnimeSeries(seriesName)}
-                              className={`${styles.celebTabBtn} ${active ? styles.celebTabBtnActive : ""}`}
-                            >
-                              {seriesName}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {selectedCelebPreset ? (
-                    <div className={`${styles.celebSelectedBar} mt-3`}>
-                      <div>
-                        <p className="text-sm font-black text-white">{selectedCelebPreset.sourceLabel}</p>
-                        <p className="mt-1 text-xs text-white/72">
-                          {copy.clientBirthdayPrefix} {formatBirthdayPreview(selectedCelebPreset.birthDateInput)}
-                          {selectedCelebPreset.timeKnown
-                            ? ` · ${copy.clientTimePrefix} ${formatTimePreview(selectedCelebPreset.birthTimeInput)}`
-                            : copy.clientTimeUnknownNote}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => applyCelebPreset(selectedCelebPreset)}
-                        className="rounded-full border border-cyan-200/40 bg-cyan-300/10 px-4 py-2 text-xs font-bold text-cyan-50 transition hover:border-cyan-100/70 hover:bg-cyan-300/20"
-                      >
-                        {copy.clientReapplyButton}
-                      </button>
-                    </div>
-                  ) : null}
-
-                  <div className={`${styles.celebListGrid} mt-3`}>
-                    {filteredCelebPresets.slice(0, celebVisibleCount).map((preset) => {
-                      const selected = preset.id === selectedCelebPresetId;
-                      return (
-                        <button
-                          key={preset.id}
-                          type="button"
-                          onClick={() => applyCelebPreset(preset)}
-                          className={`${styles.celebCard} ${selected ? styles.celebCardSelected : ""}`}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-black text-white">{preset.name}</p>
-                              <p className="mt-1 text-xs text-cyan-100/82">{preset.artist || preset.category}</p>
-                            </div>
-                            <span className="rounded-full border border-white/15 bg-white/8 px-2 py-1 text-[10px] font-semibold text-white/72">
-                              {preset.category}
-                            </span>
-                          </div>
-                          <p className="mt-3 text-xs text-white/72">
-                            {formatBirthdayPreview(preset.birthDateInput)}
-                            {preset.timeKnown ? ` · ${formatTimePreview(preset.birthTimeInput)}` : copy.clientTimeHiddenNote}
-                          </p>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {filteredCelebPresets.length > celebVisibleCount ? (
-                    <div className="mt-3 flex justify-center">
-                      <button
-                        type="button"
-                        onClick={() => setCelebVisibleCount((prev) => prev + CELEB_PAGE_SIZE)}
-                        className="rounded-full border border-cyan-200/40 bg-cyan-300/10 px-5 py-2 text-sm font-semibold text-cyan-50 transition hover:border-cyan-200/60 hover:bg-cyan-300/20"
-                      >
-                        {copy.clientLoadMoreButton(celebVisibleCount, filteredCelebPresets.length)}
-                      </button>
-                    </div>
-                  ) : null}
-
-                  {filteredCelebPresets.length === 0 ? (
-                    <p className="mt-3 text-sm text-white/68">{copy.clientNoSearchResults}</p>
-                  ) : null}
-                </div>
-
-                <div className="mt-3 grid gap-3 md:grid-cols-2">
-                  <label className="grid gap-0.5 text-sm text-white/90">
-                    <span className="text-[10px] font-semibold tracking-[0.15em] text-white/55">{copy.clientBiasMoodSubLabel}</span>
-                    <span className="font-semibold text-white/95">{copy.clientBiasMoodLabel}</span>
-                    <select
-                      value={biasMood}
-                      onChange={(event) => setBiasMood(event.target.value as (typeof BIAS_MOODS)[number])}
-                      className={styles.cosmicSelect}
-                    >
-                      {BIAS_MOODS.map((item) => (
-                        <option key={item} value={item}>{copy.clientBiasMoodOptionLabels[item] ?? item}</option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
-                <div className="mt-3 grid gap-3 md:grid-cols-2">
-                  <label className="grid gap-0.5 text-sm text-white/90">
-                    <span className="text-[10px] font-semibold tracking-[0.15em] text-white/55">{copy.clientChemistrySubLabel}</span>
-                    <span className="font-semibold text-white/95">{copy.clientRelationMoodLabel}</span>
-                    <select
-                      value={relationMood}
-                      onChange={(event) => setRelationMood(event.target.value as (typeof RELATION_MOODS)[number])}
-                      className={styles.cosmicSelect}
-                    >
-                      {RELATION_MOODS.map((item) => (
-                        <option key={item} value={item}>{copy.clientRelationMoodOptionLabels[item] ?? item}</option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
-                <div className="mt-4 rounded-2xl border border-white/15 bg-black/20 p-4">
-                  <p className="text-[10px] font-semibold tracking-[0.15em] text-cyan-100/80">{copy.clientPhotoMergeSubLabel}</p>
-                  <h3 className="mt-1 text-base font-black text-white">{copy.clientUploadImageTitle}</h3>
-                  <p className="mt-1 text-sm leading-6 text-white/75">
-                    {copy.clientUploadImageDesc}
-                  </p>
-
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-[linear-gradient(92deg,#22d3ee,#8b5cf6,#ec4899)] px-4 py-2 text-xs font-extrabold text-white shadow-[0_12px_28px_rgba(139,92,246,0.38)] transition hover:-translate-y-0.5">
-                      {copy.clientSelectImageButton}
-                      <input type="file" accept="image/*" className="sr-only" onChange={handleBiasImageChange} />
-                    </label>
-                    {biasImageDataUrl ? (
-                      <button
-                        type="button"
-                        onClick={clearBiasImage}
-                        className="rounded-full border border-white/25 bg-white/8 px-4 py-2 text-xs font-semibold text-white/90 transition hover:border-cyan-200/65 hover:bg-cyan-300/10"
-                      >
-                        {copy.clientResetUploadButton}
-                      </button>
-                    ) : null}
-                  </div>
-
-                  {biasImageDataUrl ? (
-                    <div className="mt-3 flex items-center gap-3 rounded-2xl border border-cyan-200/25 bg-cyan-300/8 p-2">
-                      <Image
-                        src={biasImageDataUrl}
-                        alt={copy.clientUploadPreviewAlt}
-                        width={64}
-                        height={64}
-                        unoptimized
-                        className="h-16 w-16 rounded-xl border border-white/20 object-cover"
-                      />
-                      <div className="min-w-0">
-                        <p className="truncate text-xs font-semibold text-cyan-100">{biasImageName || copy.clientUploadCompleteDefault}</p>
-                        <p className="mt-0.5 text-[11px] text-white/70">{copy.clientUploadHint}</p>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {biasImageError ? <p className="mt-2 text-xs text-[#FF9AD8]">{biasImageError}</p> : null}
-                </div>
-              </BiasDestinyInputPanel>
-            ) : null}
-
-            {uiStep === 3 ? (
-              <BiasDestinyInputPanel
-                stepLabel="STEP 03 · STAGE THEME"
-                title={copy.clientStep3Title}
-                description={copy.clientStep3Desc}
-              >
-                <div
-                  className={`${styles.themePanelGlow} p-3 md:p-4`}
-                  style={{ "--theme-beam": selectedTheme.preview } as CSSProperties}
-                >
-                  <div className="relative z-10">
-                  <p className="mb-3 text-[10px] font-semibold tracking-[0.2em] text-[var(--bias-gold)]/85">
-                    LIGHTING RIG · {copy.clientLightingRigLabel}
-                  </p>
-                  <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                    {destinyBiasThemeChoices.map((theme) => {
-                      const active = activeThemeKey === theme.key;
-                      return (
-                        <button
-                          key={theme.key}
-                          type="button"
-                          aria-pressed={active}
-                          aria-label={copy.clientThemeAriaLabel(theme.name, active)}
-                          onClick={() => setActiveThemeKey(theme.key)}
-                          style={{ "--theme-beam": theme.preview } as CSSProperties}
-                          className={`${styles.themeStageCard} ${active ? styles.themeStageCardActive : ""}`}
-                        >
-                          <div className={styles.themeStageWell}>
-                            <span className={styles.themeStageBeam} aria-hidden />
-                            <span className={styles.themeStageFloor} aria-hidden />
-                            <span className={styles.themeStageRig} aria-hidden />
-                            <span className={styles.themeStageLip} aria-hidden />
-                          </div>
-                          <div className="p-3">
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="text-sm font-bold text-white">{theme.name}</p>
-                              {active ? (
-                                <span className="rounded-full border border-[var(--bias-gold)]/60 bg-[var(--bias-gold)]/20 px-2 py-0.5 text-[10px] font-black tracking-[0.08em] text-[var(--bias-gold)]">
-                                  ON AIR
-                                </span>
-                              ) : null}
-                            </div>
-                            <p className="mt-1 text-xs leading-5 text-white/75">{theme.description}</p>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  </div>
-                </div>
-              </BiasDestinyInputPanel>
-            ) : null}
-
-            {uiStep === 4 ? (
-              <BiasDestinyStageLoading
-                message={destinyBiasLoadingMessages[loadingMessageIndex]}
-                progress={loadingProgress}
-              />
-            ) : null}
-
-          {uiStep === 5 && resultVm ? (
-            <section className="mx-auto w-full max-w-5xl space-y-5">
-              <article className="relative overflow-hidden rounded-[30px] border border-white/15 bg-[linear-gradient(145deg,rgba(7,4,22,0.84),rgba(26,11,63,0.56))] p-5 shadow-[0_0_48px_rgba(109,59,255,0.22)] md:p-7">
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_10%,rgba(255,217,138,0.24),transparent_38%),radial-gradient(circle_at_88%_88%,rgba(255,95,210,0.18),transparent_35%)]" aria-hidden />
-                <div className={styles.spotCone} aria-hidden />
-                <div className={styles.stageFloorLine} aria-hidden />
-                <div className="relative z-10">
-                  <p className="text-xs font-semibold tracking-[0.15em] text-[var(--bias-gold)]/90">ENCORE · FAN CONCERT DESTINY REPORT</p>
-                  <h2 className="mt-2 text-2xl font-black leading-tight md:text-3xl">{copy.clientMainReportTitle(resultVm.biasName)}</h2>
-                  <p className="mt-2 max-w-3xl break-keep text-sm leading-7 text-white/88">
-                    {resultVm.chemistrySummary}
-                  </p>
-                  <div className="mt-3 inline-flex">
-                    <FansignEditionBadge editionLabel={resultVm.editionLabel} destinyGrade={resultVm.destinyGrade} />
-                  </div>
-                </div>
-              </article>
-
-              <BiasFandomHeroCard vm={resultVm} />
-
-              <BiasDestinyMainCard vm={resultVm} biasImageUrl={biasImageDataUrl} />
-
-              <BiasFandomJourneyCard vm={resultVm} />
-
-              <BiasFandomBehaviorSection vm={resultVm} />
-
-              <BiasFandomPersistenceCard vm={resultVm} />
-
-              <BiasFandomDetachmentCard vm={resultVm} />
-
-              <BiasFandomFinaleCard vm={resultVm} />
-
-              <section className="space-y-3">
-                <p className="text-[11px] font-semibold tracking-[0.16em] text-white/50">{copy.clientSupplementaryLabel} SUPPLEMENTARY READING</p>
-              </section>
-
-              <BiasDestinyScoreGauge vm={resultVm} />
-
-              <BiasDestinyElementChart vm={resultVm} />
-
-              <BiasDestinyFiveSections vm={resultVm} />
-
-              <BiasDestinyMzZone vm={resultVm} />
-
-              <BiasDestinyShareCard vm={resultVm} />
-
-              <section className="space-y-3">
-                <p className="text-[11px] font-semibold tracking-[0.16em] text-[var(--bias-gold)]/85">{copy.clientSaveShareLabel} SAVE &amp; SHARE</p>
-                <DestinyBiasActionBar
-                  onDownloadSvg={handleDownloadSvg}
-                  onDownloadPng={() => {
-                    handleDownloadPng().catch(() => null);
-                  }}
-                  onShare={() => {
-                    handleShareResult().catch(() => null);
-                  }}
-                  onShareToX={handleShareToX}
-                  onShareToInstagram={() => {
-                    handleShareToInstagram().catch(() => null);
-                  }}
-                  onShareToKakao={() => {
-                    handleShareToKakao().catch(() => null);
-                  }}
-                  onCopy={() => {
-                    handleCopyResult().catch(() => null);
-                  }}
-                  onRetry={handleRetry}
-                  onTryAnother={handleTryAnotherBias}
-                />
-              </section>
-
-              <p className="pt-1 text-center text-[11px] leading-5 text-white/55">
-                {resultVm.bottomNotice}
-              </p>
-            </section>
-          ) : null}
-
-          {error ? (
-            <p className={styles.warnMsg}>
-              {error}
-            </p>
-          ) : null}
-        </div>
-      </div>
-
-      {uiStep > 0 && uiStep < 4 ? (
-        <div className={`fixed inset-x-0 bottom-0 md:hidden ${styles.stickyCtaBar}`} {...guardHandlers}>
-          <div className="mx-auto flex w-full max-w-7xl gap-2">
-            {uiStep > 0 ? (
-              <button
-                type="button"
-                onClick={onSafeClick(() => setUiStep((prev) => (prev - 1) as UiStep))}
-                className="min-h-11 flex-1 rounded-full border border-white/30 bg-white/10 text-sm font-semibold text-white"
-              >
-                {copy.clientPrevButton}
-              </button>
-            ) : null}
-
-            {uiStep < 3 ? (
-              <button
-                type="button"
-                onClick={onSafeClick(() => nextStep(uiStep as 1 | 2 | 3))}
-                className={`flex-1 ${styles.primaryCta}`}
-              >
-                {copy.clientEnterStageButton}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onSafeClick(() => {
-                  analyze().catch(() => null);
-                })}
-                disabled={analyzing}
-                className={`flex-1 ${styles.primaryCta}`}
-              >
-                {analyzing ? copy.clientPayingButton : copy.clientPayButton}
-              </button>
-            )}
-          </div>
+            {stickyLabel}
+          </button>
         </div>
       ) : null}
-
-      {uiStep > 0 && uiStep < 4 ? (
-        <div className="mx-auto hidden w-full max-w-7xl px-6 pb-6 md:block">
-          <div className="mt-4 flex gap-2">
-            {uiStep > 0 ? (
-              <button
-                type="button"
-                onClick={() => setUiStep((prev) => (prev - 1) as UiStep)}
-                className="min-h-11 rounded-full border border-white/30 bg-white/10 px-6 text-sm font-semibold text-white"
-              >
-                {copy.clientPrevButton}
-              </button>
-            ) : null}
-
-            {uiStep < 3 ? (
-              <button
-                type="button"
-                onClick={() => nextStep(uiStep as 1 | 2 | 3)}
-                className={`px-8 ${styles.primaryCta}`}
-              >
-                {copy.clientEnterStageButton}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => analyze().catch(() => null)}
-                disabled={analyzing}
-                className={`px-8 ${styles.primaryCta}`}
-              >
-                {analyzing ? copy.clientPayingButton : copy.clientPayButton}
-              </button>
-            )}
-          </div>
-        </div>
-      ) : null}
-
-      <DestinyBiasCoinModal
-        open={coinModal.open}
-        title={coinModal.title}
-        message={coinModal.message}
-        requiredCoins={coinModal.requiredCoins}
-        loginRequired={coinModal.loginRequired}
-        onClose={() => setCoinModal((prev) => ({ ...prev, open: false }))}
-      />
-    </section>
+    </div>
   );
 }
