@@ -1701,7 +1701,11 @@
       "yeoniRoom": "Destiny Tea House",
       "yeoniRoomNote": "Talk things through with Yeoni",
       "neoRoom": "Neo’s strategy room",
-      "neoRoomNote": "Find your next step with Neo"
+      "neoRoomNote": "Find your next step with Neo",
+      "chemiKicker": "K-POP Bias Chemistry",
+      "chemiTitle": "You and your bias: what's the chemistry?",
+      "chemiNote": "Enter your birthday and get a photocard",
+      "chemiCta": "See my bias chemistry"
     },
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
