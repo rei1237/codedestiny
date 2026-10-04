@@ -107,6 +107,7 @@
     openSukuyoModal: 'sukuyoModalOverlay',
     openZiweiModal: 'ziweiModalOverlay',
     openAstroModal: 'astroModalOverlay',
+    openTarotModal: 'tarotModalOverlay',
     openTarotLoveModal: 'tarotLoveOverlay',
     openTarotHealingModal: 'tarotHealingOverlay',
     openTarotReunionModal: 'tarotReunionOverlay',
@@ -221,19 +222,38 @@
     } catch (_) {}
   }
 
+  // 시빌라 모달의 sb-open 등 개봉 클래스. 빼 주지 않으면 감춰졌는데도 클래스상으론
+  // 계속 "열림"이라 다음 개봉·스크롤락 해제 판정이 모두 어긋난다.
+  var OPEN_CLASSES = ['open', 'is-open', 'pvw-open', 'pvw-prem', 'sb-open', 'active'];
+
+  function isOverlayOpen(node) {
+    for (var i = 0; i < OPEN_CLASSES.length; i += 1) {
+      if (node.classList.contains(OPEN_CLASSES[i])) return true;
+    }
+    var inline = node.style.display;
+    return !!inline && inline !== 'none';
+  }
+
+  function isRendered(node) {
+    try {
+      var cs = window.getComputedStyle(node);
+      return cs.display !== 'none' && cs.visibility !== 'hidden';
+    } catch (_) {
+      return true;
+    }
+  }
+
+  // 열려 있는 노드만 닫는다. 닫힌 오버레이에 visibility/pointer-events 를 박으면
+  // display 만 되돌리는 개봉 함수(자미두수·수쿠요·점성술 등)로 다시 열어도
+  // 보이지도 눌리지도 않는다 — 타로를 닫은 뒤 다른 기능이 안 열리던 원인.
   function hideOverlayNode(node) {
     if (!node) return;
     try {
-      node.classList.remove('open');
-      node.classList.remove('is-open');
-      node.classList.remove('pvw-open');
-      node.classList.remove('pvw-prem');
-      // 시빌라 모달의 개봉 클래스. 빼 주지 않으면 인라인 display:none 으로 감춰졌는데도
-      // 클래스상으론 계속 "열림"이라 다음 개봉·스크롤락 해제 판정이 모두 어긋난다.
-      node.classList.remove('sb-open');
-      node.style.display = 'none';
-      node.style.visibility = 'hidden';
-      node.style.pointerEvents = 'none';
+      if (!isOverlayOpen(node)) return;
+      for (var i = 0; i < OPEN_CLASSES.length; i += 1) node.classList.remove(OPEN_CLASSES[i]);
+      // 클래스로만 보이던 막(tarotFocusOverlay 등)은 클래스 제거로 충분하다.
+      // 거기에 display:none 을 박으면 클래스만 다시 붙이는 개봉 경로가 영구히 막힌다.
+      if (isRendered(node)) node.style.display = 'none';
       node.setAttribute('aria-hidden', 'true');
       if (node.hasAttribute('inert')) node.removeAttribute('inert');
     } catch (_) {}
