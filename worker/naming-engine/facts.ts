@@ -3,6 +3,7 @@
 
 import type { NamingResultV2 } from "./engine";
 import type { NamedCandidate } from "./score";
+import { firstHun } from "./config/negative-meaning";
 import { GRID_NAMES, type GridName } from "./suri";
 import type { Element, Grade, Relation } from "./types";
 
@@ -56,6 +57,10 @@ export interface EngineView {
     pillars?: Record<string, { g: string; j: string; gE?: string }>;
     counts?: Partial<Record<Element, number>>;
   };
+  /** 추천 방식. Phase 6.5(2026-10-04) 이전 레코드에는 없다 — 없으면 "recommend" 로 읽는다. */
+  strategy?: "recommend" | "choose";
+  /** strategy 가 "choose" 일 때만 — 부모가 고른 한글 이름(입력 순서). */
+  desiredNames?: string[];
   notices: string[];
   candidates: EngineCandidateView[];
 }
@@ -113,6 +118,8 @@ export function engineView(result: NamingResultV2): EngineView {
       timeUnknown: result.saju.timeUnknown,
       jongConditional: result.saju.jongConditional,
     },
+    strategy: result.strategy,
+    ...(result.strategy === "choose" ? { desiredNames: [...result.desiredNames] } : {}),
     notices: [...result.notices],
     candidates: result.candidates.map((candidate, index) => candidateView(candidate, index + 1)),
   };
@@ -137,11 +144,9 @@ export function particle(word: string, withBatchim: string, without: string): st
 
 // ── 결정론 서술 ──
 
+export { firstHun };
+
 const labels = (elements: Element[]) => elements.map((e) => ELEMENT_LABEL[e]).join("·");
-/** 첫째 훈 한 토막. "막힐 니, 진흙 니" → "막힐 니" */
-export function firstHun(hun: string | null): string {
-  return hun ? hun.split(",")[0].trim() : "";
-}
 export function fullName(view: EngineView, candidate: EngineCandidateView): string {
   return `${view.surname.hangul}${candidate.hangul}(${view.surname.hanja}${candidate.hanja})`;
 }

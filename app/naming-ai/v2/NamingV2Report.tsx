@@ -63,7 +63,12 @@ function usefulFilled(candidate: V2Candidate, useful: V2Element[]): V2Element[] 
   return [...hits];
 }
 
-const firstHun = (hun: string | null | undefined) => (hun ? hun.split(/[,;]/)[0].trim() : "");
+// 엔진 firstHun 과 같은 규칙 — 이체자 안내 토막("峯과 同字")은 건너뛴다.
+const firstHun = (hun: string | null | undefined) => {
+  if (!hun) return "";
+  const parts = hun.split(/[,;]/).map((part) => part.trim());
+  return parts.find((part) => part && !/\p{Script=Han}/u.test(part)) ?? parts[0];
+};
 
 export default function NamingV2Report({ engine, narration, tier, exportExpand = false, locale }: NamingV2ReportProps) {
   const copy = useMemo(() => getNamingV2Copy(locale || getCurrentLoadingLocale()), [locale]);

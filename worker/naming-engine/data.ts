@@ -55,6 +55,8 @@ export interface NamingData {
   blacklist: BlacklistEntry[];
   /** 이름 음절 → [첫째 자리, 둘째 자리] 사용 횟수(두 음절 이름 기준). */
   syllableUse: Map<string, readonly [number, number]>;
+  /** 이름(성 제외, 1~2음절) → [남, 여, 남(1990년 이후 출생), 여(1990년 이후 출생)] 사용 인원. 추천 모드의 자연 이름 판정. */
+  givenUse: Map<string, readonly [number, number, number, number]>;
 }
 
 function columns(file: TabularFile, expectedSchema: string): Record<string, number> {
@@ -72,7 +74,9 @@ function decode(): NamingData {
   const suriFile = suriJson as unknown as TabularFile;
   const samjaeFile = samjaeJson as unknown as TabularFile;
   const blacklistFile = blacklistJson as unknown as TabularFile;
-  const usageFile = nameUsageJson as unknown as TabularFile & { syllableFields: string[]; syllableRows: unknown[][] };
+  const usageFile = nameUsageJson as unknown as TabularFile & {
+    syllableFields: string[]; syllableRows: unknown[][]; givenFields: string[]; givenRows: unknown[][];
+  };
   const versions = new Set([poolFile, surnamesFile, suriFile, samjaeFile, blacklistFile, usageFile].map((f) => f.dataVersion));
   // 여섯 파일은 한 빌드의 산출물이어야 한다. 섞이면 근거 키와 수치가 어긋난다.
   if (versions.size !== 1) throw new NamingEngineError("data-version-mismatch", [...versions].join(","));
@@ -83,6 +87,11 @@ function decode(): NamingData {
   const syllableUse = new Map<string, readonly [number, number]>(usageFile.syllableRows.map((row) => [
     row[y.hangul] as string,
     [row[y.first] as number, row[y.second] as number] as const,
+  ]));
+  const v = Object.fromEntries(usageFile.givenFields.map((name, index) => [name, index]));
+  const givenUse = new Map<string, readonly [number, number, number, number]>(usageFile.givenRows.map((row) => [
+    row[v.given] as string,
+    [row[v.male] as number, row[v.female] as number, row[v.maleRecent] as number, row[v.femaleRecent] as number] as const,
   ]));
 
   const sources = (poolFile.cautionSources as { id: string; lineage: string }[]) || [];
@@ -153,6 +162,7 @@ function decode(): NamingData {
     samjae,
     blacklist,
     syllableUse,
+    givenUse,
   };
 }
 

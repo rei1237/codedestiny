@@ -1,4 +1,4 @@
-{"dataVersion":"naming-data-v1-f1714fda0eb5","fields":["n","grade","flag","genderNote","alternatives","sources"],"generatedBy":"scripts/naming/build-naming-data.mjs","schema":"naming-suri-81/1","rows":[
+{"dataVersion":"naming-data-v1-0992d0ac276e","fields":["n","grade","flag","genderNote","alternatives","sources"],"generatedBy":"scripts/naming/build-naming-data.mjs","schema":"naming-suri-81/1","rows":[
 [1,"good","","",[],["jp-fukucalendar","jp-kseimei","kr-aoma1004","kr-duckming","kr-irum","kr-kimtaku","kr-sajuabc","kr-tarotcafe"]],
 [2,"bad","","",[],["jp-fukucalendar","jp-kseimei","kr-aoma1004","kr-duckming","kr-irum","kr-kimtaku","kr-sajuabc","kr-tarotcafe"]],
 [3,"good","","",[],["jp-fukucalendar","jp-kseimei","kr-aoma1004","kr-duckming","kr-irum","kr-kimtaku","kr-sajuabc","kr-tarotcafe"]],

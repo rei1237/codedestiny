@@ -11,7 +11,8 @@
     "disease": "질병",
     "death": "죽음·범죄",
     "tease": "놀림·생리 현상",
-    "negative": "부정적 뜻의 낱말"
+    "negative": "부정적 뜻의 낱말",
+    "common": "일상 사물·호칭 낱말(이름으로 들리면 놀림거리)"
   },
   "reviewed": false,
   "entries": [
@@ -66,6 +67,20 @@
     { "text": "간첩", "grade": "warn", "category": "negative" },
     { "text": "사망", "grade": "warn", "category": "death" },
     { "text": "대마", "grade": "warn", "category": "negative" },
-    { "text": "도박", "grade": "warn", "category": "negative" }
+    { "text": "도박", "grade": "warn", "category": "negative" },
+    { "text": "모진", "grade": "warn", "category": "negative" },
+    { "text": "고모", "grade": "warn", "category": "common" },
+    { "text": "이모", "grade": "warn", "category": "common" },
+    { "text": "숙모", "grade": "warn", "category": "common" },
+    { "text": "삼촌", "grade": "warn", "category": "common" },
+    { "text": "무지", "grade": "warn", "category": "common" },
+    { "text": "도구", "grade": "warn", "category": "common" },
+    { "text": "아동", "grade": "warn", "category": "common" },
+    { "text": "봉지", "grade": "warn", "category": "common" },
+    { "text": "휴지", "grade": "warn", "category": "common" },
+    { "text": "비누", "grade": "warn", "category": "common" },
+    { "text": "치마", "grade": "warn", "category": "common" },
+    { "text": "바지", "grade": "warn", "category": "common" },
+    { "text": "가구", "grade": "warn", "category": "common" }
   ]
 }
