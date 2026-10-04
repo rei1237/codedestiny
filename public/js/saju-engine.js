@@ -13452,7 +13452,9 @@ function renderAstroInsightLegacyNeon() {
       .map(function(k){ return { house:Number(k), count:quickHouseFocusCount[k] }; })
       .sort(function(a,b){ return b.count - a.count; })[0] || null;
     var topHouseMetaQuick = _houseMeta(quickTopFocusHouse ? quickTopFocusHouse.house : null);
-    var ascChipValue = (chart.asc && chart.asc.idx != null)
+    var ascChipValue = !storyTimeKnown
+      ? '<span class="astro-ill-legend__note">출생 시간을 넣으면 보여요</span>'
+      : (chart.asc && chart.asc.idx != null)
       ? (_signPlain(ascSign) + (storyTimeKnown ? ' · ' + _friendlyHousePair(ascHousePair) : ''))
       : '상승궁 계산 정보 없음';
 
@@ -13941,7 +13943,7 @@ function renderAstroInsightLegacyNeon() {
       +'<details class="astro-fold"><summary>이어 읽기 · 겉과 속, 오래 갈수록 강해지는 힘, 주의할 패턴</summary>'
       +'<div class="astro-birth-chip-row" style="margin-bottom:10px;">'+birthMapSummaryChips+'</div>'
       +'<div class="astro-desc" style="font-size:0.95rem;white-space:normal;word-break:break-word;overflow-wrap:anywhere;max-width:100%;box-sizing:border-box;">'
-      +'<p class="astro-fold-cont">상승궁 '+_signTopic(ascSign, ascHousePair)+' 사람들이 처음 느끼는 인상과 삶을 대하는 태도를 설명합니다. 세 축이 함께 작동하면서 당신은 생각의 깊이와 실행력을 동시에 가져갈 수 있는 구조를 만듭니다. 에너지가 자주 모이는 무대는 <b>'+topHouseMetaQuick.title+'</b>이며, 이 영역에서 존재감이 가장 또렷해집니다.</p>'
+      +'<p class="astro-fold-cont">'+(storyTimeKnown ? '상승궁 '+_signTopic(ascSign, ascHousePair)+' 사람들이 처음 느끼는 인상과 삶을 대하는 태도를 설명합니다. ' : '')+'세 축이 함께 작동하면서 당신은 생각의 깊이와 실행력을 동시에 가져갈 수 있는 구조를 만듭니다. 에너지가 자주 모이는 무대는 <b>'+topHouseMetaQuick.title+'</b>이며, 이 영역에서 존재감이 가장 또렷해집니다.</p>'
       +'<dl class="astro-dl">'
       +'<div><dt>겉으로 보이는 나와 실제 속마음</dt><dd>겉으로는 상승궁의 톤 때문에 침착하고 단단해 보이지만, 실제 속마음은 달의 리듬에 따라 더 섬세하게 움직입니다. 이번 차트의 달 위상은 <b>'+astroMoonPhase+'</b>입니다. '+astroMoonPhaseAdvice+' 그래서 관계에서는 "이해받고 있다"는 감각이 매우 중요합니다. 겉과 속의 간격을 줄일수록 관계의 피로가 줄어듭니다.</dd></div>'
       +'<div><dt>오래 갈수록 강해지는 부분</dt><dd>인생의 방향키를 쥔 별은 <b>'+String(chartRuler).replace(/\([^)]*\)$/, '')+'</b>입니다. 태양과 목성·토성은 빠른 반짝임보다 누적 성장에 강점을 줍니다. 사회적 목표 별자리 '+_signPlain(mcSign)+'의 방향과 일·평판의 주제를 꾸준히 밀면, 시간이 갈수록 실력과 평판이 함께 올라가는 흐름입니다. 처음에는 느리게 느껴질 수 있어도, 루틴이 자리 잡히면 결과의 안정감이 확연히 달라집니다.</dd></div>'
@@ -14094,7 +14096,7 @@ function renderAstroInsightLegacyNeon() {
       + '<details class="astro-fold"><summary>세 별자리가 오늘 하는 일</summary><div class="astro-big3-grid">'
         + '<div class="astro-big3-card"><div class="astro-big3-label">태양 별자리</div><strong>'+_signPlain(sunSign)+'</strong><p>성장할수록 닮아가는 중심 방향입니다. 오늘은 '+topHouseTopic+'에서 '+sunStrategy+' 흐름이 살아납니다.</p></div>'
         + '<div class="astro-big3-card"><div class="astro-big3-label">달 별자리</div><strong>'+_signPlain(moonSign)+'</strong><p>감정적으로 안정되는 방식입니다. 달 '+_friendlyHousePair(moonHousePair)+' 리듬을 챙기면 마음의 피로가 줄어듭니다.</p></div>'
-      + '<div class="astro-big3-card"><div class="astro-big3-label">상승궁</div><strong>'+_signPlain(ascSign)+'</strong><p>처음 보이는 분위기와 현실 대응 방식입니다. 상승궁 '+_friendlyHousePair(ascHousePair)+'은 오늘의 첫인상과 시작 방식을 비춥니다.</p></div>'
+      + '<div class="astro-big3-card"><div class="astro-big3-label">상승궁</div><strong>'+(storyTimeKnown ? _signPlain(ascSign) : '<span class="astro-ill-legend__note">출생 시간을 넣으면 보여요</span>')+'</strong><p>처음 보이는 분위기와 현실 대응 방식입니다. 상승궁 '+_friendlyHousePair(ascHousePair)+'은 오늘의 첫인상과 시작 방식을 비춥니다.</p></div>'
       + '</div></details>'
       + '</div>';
     var astroNeonCss = '<style id="astroNeonBriefingStyle">'
@@ -14418,7 +14420,7 @@ function renderAstroInsightLegacyNeon() {
         +'<div class="astro-tags">'
         +'<span class="astro-tag-pair"><span class="astro-tag">'+_asG('Sun')+'태양</span> <span class="astro-planet">'+_signPlain(sunSign)+'</span></span>'
         +' <span class="astro-tag-pair"><span class="astro-tag">'+_asG('Moon')+'달</span> <span class="astro-planet">'+_signPlain(moonSign)+'</span></span>'
-        +' <span class="astro-tag-pair"><span class="astro-tag">'+_asG('ASC')+'상승궁</span> <span class="astro-planet">'+_signPlain(ascSign)+'</span></span>'
+        +' <span class="astro-tag-pair"><span class="astro-tag">'+_asG('ASC')+'상승궁</span> '+(storyTimeKnown ? '<span class="astro-planet">'+_signPlain(ascSign)+'</span>' : '<span class="astro-ill-legend__note">출생 시간을 넣으면 보여요</span>')+'</span>'
         +'</div>'
         +'<div class="astro-desc">'
       +'<dl class="astro-dl">'
@@ -14457,14 +14459,14 @@ function renderAstroInsightLegacyNeon() {
         +'<div class="astro-section">'
         +'<div class="astro-subhead">커리어 방향 - 어디서 가장 빛나는가</div>'
         +'<div class="astro-tags">'
-        +'<span class="astro-tag-pair"><span class="astro-tag">사회적 목표</span> <span class="astro-planet">'+_signPlain(mcSign)+'</span></span>'
-        +' <span class="astro-tag-pair"><span class="astro-tag">끌리는 상대</span> <span class="astro-planet">'+_signPlain(descSign)+'</span></span>'
-        +' <span class="astro-tag-pair"><span class="astro-tag">일하는 습관</span> <span class="astro-house">'+_signPlain(h6Sign)+'</span></span>'
+        +'<span class="astro-tag-pair"><span class="astro-tag">사회적 목표</span> '+(storyTimeKnown ? '<span class="astro-planet">'+_signPlain(mcSign)+'</span>' : '<span class="astro-ill-legend__note">출생 시간을 넣으면 보여요</span>')+'</span>'
+        +' <span class="astro-tag-pair"><span class="astro-tag">끌리는 상대</span> '+(storyTimeKnown ? '<span class="astro-planet">'+_signPlain(descSign)+'</span>' : '<span class="astro-ill-legend__note">출생 시간을 넣으면 보여요</span>')+'</span>'
+        +' <span class="astro-tag-pair"><span class="astro-tag">일하는 습관</span> '+(storyTimeKnown ? '<span class="astro-house">'+_signPlain(h6Sign)+'</span>' : '<span class="astro-ill-legend__note">출생 시간을 넣으면 보여요</span>')+'</span>'
         +' <span class="astro-tag-pair"><span class="astro-tag">'+_asG('Saturn')+'토성</span> <span class="astro-planet">'+_signPlain(saturnSign)+(chart.planets.Saturn&&chart.planets.Saturn.retro?' <span class="astro-retro">역행</span>':'')+'</span></span>'
         +'</div>'
         +'<div class="astro-desc">'
         +'<dl class="astro-dl">'
-        +'<div><dt>신뢰를 얻는 방식</dt><dd>사회적 목표 별자리 '+_signPlain(mcSign)+'는 공적 결과물로 평가받을 때 강점이 드러납니다. 태양 '+_friendlyHousePair(sunHousePair)+'과 화성 '+_friendlyHousePair(marsHousePair)+'이 받쳐주는 만큼, 결정 후 실행 속도는 충분히 빠른 편입니다.</dd></div>'
+        +'<div><dt>신뢰를 얻는 방식</dt><dd>'+(storyTimeKnown ? '사회적 목표 별자리 '+_signPlain(mcSign)+'는 공적 결과물로 평가받을 때 강점이 드러납니다. 태양 ' : '사회적 목표 별자리는 출생 시간을 넣으면 보여요. 지금은 태양 ')+''+_friendlyHousePair(sunHousePair)+'과 화성 '+_friendlyHousePair(marsHousePair)+'이 받쳐주는 만큼, 결정 후 실행 속도는 충분히 빠른 편입니다.</dd></div>'
         +'</dl>'
         +'</div>'
         +'<details class="astro-fold"><summary>이어 읽기 · 실력이 커지는 환경, 현실 조언 3가지</summary>'
@@ -34262,22 +34264,25 @@ function showQuantumResult() {
     var moon = _astroCounselPlacement(chart, 'Moon', houseAscIdx);
     var asc = { sign:_astroCounselSignName(chart.asc), signIdx:ascIdx };
     var mc = { sign:_astroCounselSignName(chart.mc), signIdx:_astroCounselSignIdx(chart.mc) };
+    var timeKnown = _astroCounselDataBasis(pack).timeKnown;
     return ''
       + '<section class="astro-restored-hero" data-astro-basic-result="' + ASTRO_COUNSEL_MARKER + '">'
       + '<div class="astro-restored-hero__sky" aria-hidden="true"><span></span><span></span><span></span></div>'
       + '<div class="astro-restored-hero__kicker">서양 점성술 리딩</div>'
       + '<h3>당신의 별자리가 다시 말을 걸기 시작합니다</h3>'
-      + '<p><b>' + _astroCounselEscape(sun.sign) + ' 태양</b>은 삶이 향하는 빛의 방향이고, <b>' + _astroCounselEscape(moon.sign) + ' 달</b>은 마음이 쉬어 가는 은밀한 항구입니다. <b>' + _astroCounselEscape(asc.sign) + ' 상승궁</b>은 세상에 처음 닿는 별빛이며, 사회적 목표 별자리인 <b>' + _astroCounselEscape(mc.sign) + '</b>는 당신이 사회 속에 남길 이름의 결을 보여줍니다.</p>'
+      + '<p><b>' + _astroCounselEscape(sun.sign) + ' 태양</b>은 삶이 향하는 빛의 방향이고, <b>' + _astroCounselEscape(moon.sign) + ' 달</b>은 마음이 쉬어 가는 은밀한 항구입니다. ' + (timeKnown ? '<b>' + _astroCounselEscape(asc.sign) + ' 상승궁</b>은 세상에 처음 닿는 별빛이며, 사회적 목표 별자리인 <b>' + _astroCounselEscape(mc.sign) + '</b>는 당신이 사회 속에 남길 이름의 결을 보여줍니다.' : '상승궁과 사회적 목표 별자리는 출생 시간을 넣으면 보여요.') + '</p>'
       + '<div class="astro-restored-hero__orbits">'
       + '<span>' + _astroCounselGlyph('Sun') + _astroCounselEscape(sun.sign) + '</span>'
       + '<i></i><span>' + _astroCounselGlyph('Moon') + _astroCounselEscape(moon.sign) + '</span>'
-      + '<i></i><span>' + _astroCounselGlyph('ASC') + _astroCounselEscape(asc.sign) + '</span>'
-      + '<i></i><span>목표 ' + _astroCounselEscape(mc.sign) + '</span>'
+      + (timeKnown
+        ? '<i></i><span>' + _astroCounselGlyph('ASC') + _astroCounselEscape(asc.sign) + '</span>'
+          + '<i></i><span>목표 ' + _astroCounselEscape(mc.sign) + '</span>'
+        : '<i></i><span class="is-note">상승궁·목표는 출생 시간을 넣으면 보여요</span>')
       + '</div>'
       + '<div class="astro-restored-hero__cards">'
       + '<article><strong>오늘의 중심 별</strong><span>' + _astroCounselEscape(_astroCounselTone(sun.signIdx, '내면의 중심 신호')) + '이 ' + _astroCounselEscape(sun.topic) + '에서 선명하게 빛납니다.</span></article>'
       + '<article><strong>마음의 달빛</strong><span>' + _astroCounselEscape(_astroCounselMoonNeed(moon.signIdx)) + '을 지켜줄수록 판단의 결이 맑아집니다.</span></article>'
-      + '<article><strong>처음 열리는 문</strong><span>' + _astroCounselEscape(_astroCounselAscStyle(asc.signIdx)) + '이 첫 만남과 시작의 분위기를 이끕니다.</span></article>'
+      + '<article><strong>처음 열리는 문</strong><span>' + (timeKnown ? _astroCounselEscape(_astroCounselAscStyle(asc.signIdx)) + '이 첫 만남과 시작의 분위기를 이끕니다.' : '첫인상과 시작 태도는 출생 시간을 넣으면 보여요.') + '</span></article>'
       + '</div>'
       + '</section>';
   }

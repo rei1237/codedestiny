@@ -670,3 +670,6 @@
 #astroModalOverlay #astroBodyWrap .as-record .astro-tag-pair { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: 6px; white-space: nowrap; margin: 0 8px 8px 0; }
 #astroModalOverlay #astroBodyWrap .as-record .astro-quote b { font: inherit !important; color: inherit !important; letter-spacing: inherit; }
 #astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero__cards > article > span { font-size: 15px !important; line-height: 1.7; }
+/* 출생 시간 모름: 히어로 궤도의 상승궁·목표 자리는 한 줄 안내로(격자 전체 폭). */
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero__orbits > span.is-note { grid-column: 1 / -1; color: var(--as-text-2) !important; font-size: 13px !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-big3-card strong .astro-ill-legend__note { font-family: var(--as-body); font-weight: 500; }

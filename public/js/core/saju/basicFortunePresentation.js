@@ -853,7 +853,7 @@
     // 점성술 "나의 이야기" 층(#asStory). 위 시트 뒤에 붙여 같은 특정성에서 이긴다. ?v= 는 위와 같은 규칙.
     if (!document.getElementById('astroReadingStyle')) {
       var storyLink = document.createElement('link'); storyLink.id = 'astroReadingStyle'; storyLink.rel = 'stylesheet';
-      storyLink.href = '/styles/astro-reading.css?v=build-6f7301dbdcd1'; document.head.appendChild(storyLink);
+      storyLink.href = '/styles/astro-reading.css?v=build-e7c13ce86c9d'; document.head.appendChild(storyLink);
     }
     ['sukuyo', 'ziwei', 'astro'].forEach(function (type) {
       var overlay = document.getElementById(type + 'ModalOverlay');
