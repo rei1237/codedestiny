@@ -1889,7 +1889,7 @@ var __cdLazyActionLoaders = {
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-a214af72905f'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
   openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-91390be43877'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-a03eb7b7daee'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-01ca428bfc60'); },
   openSibylModal: function() {
     return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-17f27a22f2a0').then(function() {
@@ -2257,10 +2257,10 @@ function __cdEnsureSajuCoreLoaded() {
       '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-cb3d1ad108ad',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-8462367e20dc',
     '/js/core/saju/basicFortunePresentation.js?v=build-3696b77fdaf6',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
-    '/js/core/saju/reportDashboard.js?v=build-69a84b7e07e2',
+    '/js/core/saju/reportDashboard.js?v=build-d6ddaebcaf1e',
     '/js/saju-engine-continuation.js?v=build-8d68ebe282a3',
     '/js/entertain-engine.js?v=build-c3b89a46c12c',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
@@ -8350,7 +8350,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
       '/js/saju-engine.js?v=build-42bd85740971',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-cb3d1ad108ad'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-8462367e20dc'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일

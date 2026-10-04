@@ -75,7 +75,7 @@ const __lazyActionLoaders = {
   openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-a214af72905f'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing/')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing/')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-91390be43877'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-a03eb7b7daee'),
   openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-01ca428bfc60'),
   openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai/')),
   closeLifeBookModal: () => Promise.resolve(),
