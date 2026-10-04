@@ -1,25 +1,28 @@
-/* 최애운명 — K-POP 크림 팔레트. hex 는 사설 변수(--dbk-*)에만 둔다. 포토카드·매거진 무드, 소속사 굿즈·로고·응원봉 모사 없음. */
+/* 최애운명 — ENCORE NIGHT(밤 공연장) 팔레트. 토큰 이름은 유지(cream=무대 바닥색, ink=글자색). hex 는 사설 변수(--dbk-*)에만 둔다. 포토카드·매거진 무드, 소속사 굿즈·로고·응원봉 모사 없음. */
 
 .page {
-  --dbk-cream: #fff8f0;
-  --dbk-cream-2: #fff1e4;
-  --dbk-ink: #1f1a2e;
-  --dbk-ink-soft: rgba(31, 26, 46, 0.78);
-  --dbk-ink-mute: rgba(31, 26, 46, 0.66);
-  --dbk-lilac: #c7b6ff;
-  --dbk-lilac-deep: #7a5cff;
-  --dbk-blue: #3d5afe;
-  --dbk-blue-soft: #dfe5ff;
-  --dbk-pink: #ff7ab6;
-  --dbk-pink-soft: #ffe1ef;
-  --dbk-line: rgba(31, 26, 46, 0.12);
-  --dbk-card: #ffffff;
-  --dbk-shadow: 0 18px 40px -22px rgba(61, 90, 254, 0.35), 0 10px 24px -18px rgba(255, 122, 182, 0.4);
+  --dbk-cream: #0a0616;
+  --dbk-cream-2: rgba(255, 255, 255, 0.07);
+  --dbk-ink: #f7f1ff;
+  --dbk-ink-soft: rgba(247, 241, 255, 0.86);
+  --dbk-ink-mute: rgba(247, 241, 255, 0.68);
+  --dbk-on-ink: #160a30;
+  --dbk-lilac: rgba(183, 155, 255, 0.24);
+  --dbk-lilac-deep: #c3adff;
+  --dbk-blue: #9fe3ff;
+  --dbk-blue-soft: rgba(120, 210, 255, 0.18);
+  --dbk-pink: #ff8fd0;
+  --dbk-pink-soft: rgba(255, 120, 200, 0.18);
+  --dbk-gold: #ffd98a;
+  --dbk-danger: #ff9bb8;
+  --dbk-line: rgba(255, 255, 255, 0.16);
+  --dbk-card: rgba(24, 15, 48, 0.66);
+  --dbk-shadow: 0 34px 70px -34px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.05) inset, 0 1px 0 rgba(255, 255, 255, 0.2) inset;
   --dbk-radius: 22px;
   --dbk-accent: var(--dbk-lilac-deep);
   --dbk-accent-soft: var(--dbk-lilac);
   color: var(--dbk-ink);
-  background: var(--dbk-cream);
+  background: transparent;
   min-height: 100%;
   font-feature-settings: "ss01";
 }
@@ -146,9 +149,11 @@
 
 .ctaPrimary {
   width: 100%;
-  color: #fff;
-  background: linear-gradient(100deg, var(--dbk-blue) 0%, var(--dbk-lilac-deep) 55%, var(--dbk-pink) 120%);
-  box-shadow: 0 14px 28px -16px rgba(61, 90, 254, 0.7);
+  position: relative;
+  overflow: hidden;
+  color: var(--dbk-on-ink);
+  background: linear-gradient(180deg, #ffffff 0%, #efe6ff 52%, #d3c0ff 100%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7) inset, 0 16px 44px -12px rgba(190, 160, 255, 0.8), 0 0 30px -4px rgba(255, 143, 208, 0.5);
 }
 
 .ctaPrimary:hover:not(:disabled),
@@ -273,6 +278,8 @@
   line-height: 1.18;
   font-weight: 900;
   letter-spacing: -0.02em;
+  word-break: keep-all;
+  text-wrap: balance;
 }
 
 .hookLead {
@@ -401,7 +408,7 @@
 
 .tab[aria-selected="true"] {
   background: var(--dbk-ink);
-  color: #fff;
+  color: var(--dbk-on-ink);
 }
 
 .groupGrid {
@@ -637,7 +644,7 @@
   margin: 0;
   font-size: 13px;
   font-weight: 700;
-  color: #c2185b;
+  color: var(--dbk-danger);
 }
 
 .segmented {
@@ -675,7 +682,7 @@
 .segmentActive {
   border-color: var(--dbk-ink);
   background: var(--dbk-ink);
-  color: #fff;
+  color: var(--dbk-on-ink);
 }
 
 .segment:has(input:focus-visible) {
@@ -1163,7 +1170,7 @@
 }
 
 .signalItem[data-tone="friction"] .signalTone {
-  color: #c2185b;
+  color: var(--dbk-danger);
 }
 
 .signalEvidence {
@@ -1213,7 +1220,7 @@
 }
 
 .shareStatus[data-tone="warn"] {
-  color: #c2185b;
+  color: var(--dbk-danger);
 }
 
 /* ---------- 반복 흐름 ---------- */
@@ -1328,7 +1335,7 @@
   padding: 10px 16px;
   padding-bottom: calc(10px + max(0px, env(safe-area-inset-bottom) - var(--cd-mnav-offset, 0px)));
   bottom: var(--cd-mnav-offset, 0px);
-  background: linear-gradient(180deg, rgba(255, 248, 240, 0) 0%, var(--dbk-cream, #fff8f0) 36%);
+  background: linear-gradient(180deg, rgba(10, 6, 22, 0) 0%, var(--dbk-cream) 40%);
   backdrop-filter: blur(6px);
 }
 
@@ -1729,4 +1736,188 @@
 .shareCanvas[data-ratio="square"] .shareCanvasFoot {
   bottom: 34px;
   font-size: 26px;
+}
+
+/* ============ ENCORE NIGHT 스킨: 서체·질감 ============ */
+.stepTitle,
+.landingType,
+.finishText,
+.coreCardOneLiner {
+  font-family: var(--dbk-font-serif);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  text-shadow: 0 0 28px rgba(196, 160, 255, 0.45);
+}
+
+.kicker,
+.stepLabel {
+  font-family: var(--dbk-font-poster);
+  font-size: 13px;
+  letter-spacing: 0.24em;
+  color: var(--dbk-gold);
+}
+
+.kicker::before {
+  content: "";
+  display: inline-block;
+  width: 22px;
+  height: 1px;
+  margin-right: 10px;
+  vertical-align: middle;
+  background: currentColor;
+}
+
+.sectionTitle {
+  font-family: var(--dbk-font-serif);
+  font-size: 18px;
+  letter-spacing: -0.01em;
+}
+
+/* 글래스 패널: 반투명 유리 + 상단 하이라이트 + 필름 그레인 */
+.sectionCard,
+.infoForm,
+.evidence,
+.recentResults,
+.shareCardSection,
+.hookFacts,
+.emptyState,
+.landingCard,
+.groupTile,
+.memberTile {
+  background-color: var(--dbk-card);
+  background-image: var(--dbk-grain), linear-gradient(155deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.03) 42%, rgba(255, 255, 255, 0.06) 100%);
+  background-blend-mode: soft-light, normal;
+  border-color: var(--dbk-line);
+  box-shadow: var(--dbk-shadow);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+
+.hookFacts {
+  border-style: solid;
+  border-width: 1px;
+}
+
+.groupTile,
+.memberTile {
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.groupTile:hover,
+.memberTile:hover {
+  transform: translateY(-2px);
+  border-color: var(--dbk-gold);
+  box-shadow: var(--dbk-shadow), 0 0 26px -6px rgba(255, 217, 138, 0.55);
+}
+
+.memberInitial {
+  font-family: var(--dbk-font-serif);
+  color: var(--dbk-gold);
+  text-shadow: 0 0 18px rgba(255, 217, 138, 0.55);
+}
+
+/* 주 버튼: 스포트라이트를 받은 흰 필 + 홀로 스윕 */
+.ctaPrimary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 32%, rgba(255, 143, 208, 0.42) 44%, rgba(159, 227, 255, 0.5) 52%, transparent 64%);
+  transform: translateX(-120%);
+  animation: dbkSweep 3.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.ctaSecondary {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.ctaGhost {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.chip,
+.searchBox input,
+.textInput,
+.segment,
+.shareNickInput,
+.signalItem,
+.collectionCell,
+.recentItem {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--dbk-ink);
+}
+
+.searchBox input::placeholder,
+.textInput::placeholder,
+.shareNickInput::placeholder {
+  color: var(--dbk-ink-mute);
+}
+
+.segmentActive {
+  background: var(--dbk-ink);
+  color: var(--dbk-on-ink);
+}
+
+/* 시나리오 = 종이 티켓. 양옆 반달 펀칭 + 종이 결. 안에서는 잉크색을 어둡게 되돌린다. */
+.scenarioCard {
+  --dbk-ink: #1d1230;
+  --dbk-ink-soft: rgba(29, 18, 48, 0.86);
+  --dbk-ink-mute: rgba(29, 18, 48, 0.7);
+  --dbk-pink: #b3246f;
+  color: var(--dbk-ink);
+  background-color: #f6eddc;
+  background-image: var(--dbk-grain), linear-gradient(180deg, #fbf4e6 0%, #f1e4cd 100%);
+  background-blend-mode: multiply, normal;
+  border: 0;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  -webkit-mask-image: radial-gradient(circle 11px at 0 50%, transparent 10.5px, #000 11px), radial-gradient(circle 11px at 100% 50%, transparent 10.5px, #000 11px);
+  mask-image: radial-gradient(circle 11px at 0 50%, transparent 10.5px, #000 11px), radial-gradient(circle 11px at 100% 50%, transparent 10.5px, #000 11px);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  box-shadow: none;
+}
+
+.scenarioTag {
+  font-family: var(--dbk-font-poster);
+  letter-spacing: 0.2em;
+}
+
+/* 마무리 = 금박 스탬프 카드 */
+.finishCard {
+  background-color: #1a1030;
+  background-image: var(--dbk-grain), linear-gradient(135deg, rgba(255, 217, 138, 0.3), rgba(255, 143, 208, 0.16) 48%, rgba(159, 227, 255, 0.22));
+  background-blend-mode: soft-light, normal;
+  color: var(--dbk-ink);
+  border-color: rgba(255, 217, 138, 0.6);
+}
+
+.stickyCtaBar {
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+@keyframes dbkSweep {
+  0%,
+  55% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ctaPrimary::after {
+    animation: none;
+    opacity: 0;
+  }
+  .groupTile,
+  .memberTile {
+    transition: none;
+  }
 }

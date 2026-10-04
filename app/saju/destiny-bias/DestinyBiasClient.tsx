@@ -12,7 +12,6 @@ import {
   MIN_SELF_CONSENT_AGE,
   listRosterGroups,
   resolvePartner,
-  runChemi,
   type CalendarType,
   type ChemiCopy,
   type ChemiPartnerRecord,
@@ -38,6 +37,16 @@ import IdolPicker from "./components/chemi/IdolPicker";
 import MyInfoPanel, { type MyInfoValue } from "./components/chemi/MyInfoPanel";
 import ChemiComputing from "./components/chemi/ChemiComputing";
 import ChemiCoreCard from "./components/chemi/ChemiCoreCard";
+import PhotocardDeco from "./components/chemi/PhotocardDeco";
+import { DEFAULT_PHOTOCARD_THEME, PHOTOCARD_THEMES } from "./components/chemi/PhotocardFace";
+import {
+  DEFAULT_BIAS_MOOD,
+  DEFAULT_RELATION_MOOD,
+  RELATION_MOODS,
+  RELATION_MOODS_MINOR,
+  buildChemiReport,
+  type ChemiReport,
+} from "./engine/chemiReportBridge";
 import ChemiTypeBadge from "./components/chemi/ChemiTypeBadge";
 import ChemiSections from "./components/chemi/ChemiSections";
 import ChemiEvidencePanel from "./components/chemi/ChemiEvidencePanel";
@@ -57,7 +66,8 @@ import {
 import styles from "./destiny-bias.module.css";
 
 type Step = "hook" | "pick" | "info" | "computing" | "result";
-type Outcome = { result: ChemiResult; copy: ChemiCopy; partner: ChemiPartnerRecord };
+type Outcome = { report: ChemiReport; result: ChemiResult; copy: ChemiCopy; partner: ChemiPartnerRecord };
+type Moods = { biasMood: string; relationMood: string };
 type ProfileSeed = { birthDateInput: string; calendarType: CalendarType; fromProfile: boolean };
 type StoredAuthUser = { id?: string; userId?: string; birthDate?: string } | null;
 type Draft = { step: Step; partnerRef: ChemiPartnerRef | null };
@@ -229,6 +239,12 @@ export default function DestinyBiasClient() {
   const [shareNickname, setShareNickname] = useState("");
   const [showNickname, setShowNickname] = useState(true);
 
+  // 포카 꾸미기: 무드는 리포트를 다시 계산하고, 테마·사진은 표시만 바꾼다. 사진은 메모리에만 둔다.
+  const [themeKey, setThemeKey] = useState<string>(DEFAULT_PHOTOCARD_THEME);
+  const [moods, setMoods] = useState<Moods>({ biasMood: DEFAULT_BIAS_MOOD, relationMood: DEFAULT_RELATION_MOOD });
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [resultSeq, setResultSeq] = useState(0);
+
   const coreCardRef = useRef<HTMLDivElement | null>(null);
   const shareCanvasRef = useRef<HTMLDivElement | null>(null);
   // 같은 입력으로 공유를 다시 누르면 서버를 또 부르지 않는다(메모리 한정 — 생일이 키에 들어가므로 저장 금지).
@@ -299,12 +315,12 @@ export default function DestinyBiasClient() {
 
   // 결과 도착 시 포커스 이동(스크린리더·키보드)
   useEffect(() => {
-    if (step !== "result" || !outcome) return;
+    if (step !== "result" || !resultSeq) return;
     const node = coreCardRef.current;
     if (!node) return;
     node.focus({ preventScroll: true });
     node.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
-  }, [step, outcome, reduceMotion]);
+  }, [step, resultSeq, reduceMotion]);
 
   useBackNavigation({
     scope: "analysis",
@@ -350,16 +366,15 @@ export default function DestinyBiasClient() {
       let next: Outcome | null = null;
       let failure = "";
       try {
-        const { result, copy } = runChemi({
-          user: {
-            birthDate: toIsoDate(digits),
-            calendarType: infoValue.calendarType,
-            isLeapMonth: infoValue.calendarType === "lunar_leap",
-          },
-          partner: { kind: target.kind, id: target.id },
+        const report = buildChemiReport({
+          user: { birthDate: toIsoDate(digits), calendarType: infoValue.calendarType },
+          partner: target,
+          moods,
+          themeKey,
+          themeLabel: PHOTOCARD_THEMES.find((theme) => theme.key === themeKey)?.label,
           referenceDate: todayKst(),
         });
-        next = { result, copy, partner: target };
+        next = { report, result: report.result, copy: report.copy, partner: target };
       } catch (caught) {
         failure = engineErrorMessage(caught);
       }
@@ -374,6 +389,7 @@ export default function DestinyBiasClient() {
         return;
       }
       setOutcome(next);
+      setResultSeq((value) => value + 1);
       setStep("result");
       setRecentResults(
         pushRecentResult({
@@ -400,7 +416,31 @@ export default function DestinyBiasClient() {
         source,
       });
     },
-    [from, reduceMotion, trackClick, trackFunnelStep],
+    [from, moods, reduceMotion, themeKey, trackClick, trackFunnelStep],
+  );
+
+  /** 무드를 바꾸면 같은 입력으로 리포트만 다시 만든다(계산 화면·스크롤 이동 없음). */
+  const handleMoodChange = useCallback(
+    (patch: Partial<Moods>) => {
+      const nextMoods = { ...moods, ...patch };
+      setMoods(nextMoods);
+      if (!outcome || validateBirthInput(info.birthDateInput)) return;
+      try {
+        const report = buildChemiReport({
+          user: { birthDate: toIsoDate(info.birthDateInput), calendarType: info.calendarType },
+          partner: outcome.partner,
+          moods: nextMoods,
+          themeKey,
+          themeLabel: PHOTOCARD_THEMES.find((theme) => theme.key === themeKey)?.label,
+          referenceDate: todayKst(),
+        });
+        setOutcome({ report, result: report.result, copy: report.copy, partner: outcome.partner });
+        trackClick("destiny_bias_deco_mood", { kind: patch.biasMood ? "bias" : "relation" });
+      } catch {
+        // 재계산 실패 시 직전 결과를 그대로 둔다.
+      }
+    },
+    [info, moods, outcome, themeKey, trackClick],
   );
 
   const handleInfoSubmit = useCallback(() => {
@@ -634,7 +674,7 @@ export default function DestinyBiasClient() {
     }
   }, [outcome, savedToCollection, shareBusy, shareTitle, trackClick]);
 
-  const stickyLabel = step === "hook" ? "내 최애 고르기" : step === "info" ? "케미 계산하기" : step === "result" ? "내 케미 카드 공유" : "";
+  const stickyLabel = step === "hook" ? "내 최애 고르기" : step === "info" ? "케미 계산하기" : "";
   const stickyAction = () => {
     if (step === "hook") setStep("pick");
     else if (step === "info") handleInfoSubmit();
@@ -678,7 +718,7 @@ export default function DestinyBiasClient() {
         {step === "result" && outcome ? (
           <section className={styles.result} aria-labelledby="dbk-result-title">
             <h2 id="dbk-result-title" className="sr-only">케미 결과</h2>
-            <ChemiCoreCard ref={coreCardRef} result={outcome.result} copy={outcome.copy} />
+            <ChemiCoreCard ref={coreCardRef} report={outcome.report} themeKey={themeKey} photoUrl={photoUrl} />
             <ChemiShareBar
               busy={shareBusy}
               status={shareStatus}
@@ -700,6 +740,23 @@ export default function DestinyBiasClient() {
               onRatioChange={setShareRatio}
               onNicknameChange={setShareNickname}
               onShowNicknameChange={setShowNickname}
+            />
+            <PhotocardDeco
+              themeKey={themeKey}
+              biasMood={outcome.report.vm.biasMood}
+              relationMood={outcome.report.vm.relationMood}
+              relationMoods={outcome.report.minorMode ? RELATION_MOODS_MINOR : RELATION_MOODS}
+              hasPhoto={Boolean(photoUrl)}
+              onThemeChange={(key) => {
+                setThemeKey(key);
+                trackClick("destiny_bias_deco_theme", { theme: key });
+              }}
+              onBiasMoodChange={(biasMood) => handleMoodChange({ biasMood })}
+              onRelationMoodChange={(relationMood) => handleMoodChange({ relationMood })}
+              onPhotoChange={(next) => {
+                setPhotoUrl(next);
+                trackClick("destiny_bias_deco_photo", { action: next ? "set" : "clear" });
+              }}
             />
             <ChemiSections copy={outcome.copy} />
             <ChemiEvidencePanel result={outcome.result} />
