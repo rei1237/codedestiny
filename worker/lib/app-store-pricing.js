@@ -121,6 +121,24 @@ export function isAppFreeCoinPrice(value) {
   return coinPrice > 0 && coinPrice <= APP_FREE_MAX_COIN_PRICE;
 }
 
+// 2026-10-05 천원 사주 콘텐츠(웹 1,000원·10코인)는 가격이 무료 구간에 들지만 앱에서도 돈을 받는다
+// (사용자 확정 "앱에서도 천원이더라도 돈은 받도록"). ₩1,000 Play SKU 가 없으므로 등록 전까지
+// 앱 결제는 APP_SKU_NOT_VERIFIED 로 실패 폐쇄된다. 영냥이(yeongnyangi-*)도 무료 통과하지 않는다.
+export const APP_PAID_LOW_PRICE_FEATURE_KEYS = Object.freeze([
+  "rpt_specialCharmCard",
+  "rpt_skillTreeCard",
+  "rpt_energyCoordCard",
+  "rpt_villainCard",
+  "rpt_secretHouseEntryCard",
+  "fun.quantumLotto.ritualReport",
+]);
+
+export function isAppFreeFeature(featureKey, coinPrice) {
+  const key = String(featureKey || "").trim();
+  if (key.startsWith("yeongnyangi-") || APP_PAID_LOW_PRICE_FEATURE_KEYS.includes(key)) return false;
+  return isAppFreeCoinPrice(coinPrice);
+}
+
 /**
  * 웹 코인가 → 앱 콘텐츠 티어. 등록되지 않은 가격대면 null을 반환하므로
  * 호출부는 fail-closed로 처리해야 한다(임의 가격으로 결제시키면 안 된다).

@@ -10,7 +10,7 @@ import { getPaidFeatureBillingType, isPerUsePaidFeatureKey, PAID_FEATURE_BILLING
 import {
   APP_PASS_DURATION_DAYS,
   findAppStoreProductById,
-  isAppFreeCoinPrice,
+  isAppFreeFeature,
   resolveAppContentTier,
   resolveAppPassCoverageKRW,
   resolveAppPassProduct,
@@ -166,8 +166,8 @@ function resolveProduct(pricing, env, body = {}) {
   const coinPrice = resolveProductCoinPrice(pricing, body);
 
   // 웹 ₩500 이하 기능은 인상해도 Play KRW 최저 판매가를 밑돌 수 있어 SKU를 만들지 않고
-  // 앱에서만 무료로 통과시킨다(웹은 유료 그대로).
-  if (isAppFreeCoinPrice(coinPrice) && !featureKey.startsWith("yeongnyangi-")) {
+  // 앱에서만 무료로 통과시킨다(웹은 유료 그대로). 영냥이·천원 사주 콘텐츠는 예외(isAppFreeFeature).
+  if (isAppFreeFeature(featureKey, coinPrice)) {
     return {
       provider: "GOOGLE_PLAY",
       kind: "free",

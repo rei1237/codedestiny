@@ -14,6 +14,7 @@ import { MUSIC_TRACK_UNLOCK_COIN_COST } from "../lib/music-access-policy.js";
 import {
   APP_FREE_MAX_COIN_PRICE,
   isAppFreeCoinPrice,
+  isAppFreeFeature,
   isAppUnverifiedContentCoinPrice,
   listAppContentTiers,
   listAppPassProducts,
@@ -65,7 +66,14 @@ function collectRegistryCoinPrices() {
 const registryCoinPrices = collectRegistryCoinPrices();
 for (const [coinPrice, sourceKeys] of [...registryCoinPrices.entries()].sort((a, b) => a[0] - b[0])) {
   if (isAppFreeCoinPrice(coinPrice)) {
-    notes.push(`무료 통과(${coinPrice}코인 ≤ ${APP_FREE_MAX_COIN_PRICE}): ${sourceKeys.join(", ")}`);
+    // 무료 구간 가격이어도 isAppFreeFeature 가 거부한 키(천원 사주 콘텐츠·영냥이)는 앱에서 돈을 받는다.
+    // 그 가격대에 SKU 가 없으면 APP_SKU_NOT_VERIFIED 실패 폐쇄이고, 있으면 그 SKU 로 판매된다.
+    const paidKeys = sourceKeys.filter((key) => !isAppFreeFeature(key, coinPrice));
+    const freeKeys = sourceKeys.filter((key) => isAppFreeFeature(key, coinPrice));
+    if (freeKeys.length) notes.push(`무료 통과(${coinPrice}코인 ≤ ${APP_FREE_MAX_COIN_PRICE}): ${freeKeys.join(", ")}`);
+    if (paidKeys.length) {
+      notes.push(`앱 유료(${coinPrice}코인, ${resolveAppContentTier(coinPrice) ? "SKU 판매" : "Play SKU 미생성 → APP_SKU_NOT_VERIFIED 실패 폐쇄"}): ${paidKeys.join(", ")}`);
+    }
     continue;
   }
   if (isAppUnverifiedContentCoinPrice(coinPrice)) {

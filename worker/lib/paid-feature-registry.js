@@ -364,14 +364,16 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "premium-naming-prompt": { cost: 300, amountKRW: 30000, reason: "사주 맞춤 작명 프롬프트 생성" },
   "premium-sukuyo-compat-extra": { cost: 30, reason: "숙요점 정밀 궁합 확장 분석" },
   "profile-card-manage": { cost: 50, reason: "프로필 카드 추가/수정/삭제" },
-  rpt_specialCharmCard: { cost: 30, reason: "나의 매력 클래스 영구 해금" },
+  // 2026-10-05 천원 사주 콘텐츠: 결정론(LLM 없음) 재미 리포트 6종은 1,000원이다. "천원 운세" 이름의 근거이므로
+  // 가격을 바꾸면 app/yeongnyangi/1000-won-fortune/ 빌드 가드가 멈춘다. 앱(Google Play)은 ₩1,000 SKU 가 없어 실패 폐쇄.
+  rpt_specialCharmCard: { cost: 10, amountKRW: 1000, reason: "나의 매력 클래스 영구 해금" },
   rpt_quantumCard: { cost: 50, reason: "퀀텀 명리 엔진 영구 해금" },
   rpt_healthReportCard: { cost: 50, reason: "명리 헬스 리포트 영구 해금" },
-  rpt_skillTreeCard: { cost: 30, reason: "인생 스킬 트리 영구 해금" },
-  rpt_energyCoordCard: { cost: 30, reason: "사주로 보는 여행지 영구 해금" },
-  rpt_villainCard: { cost: 30, reason: "빌런 블랙리스트 영구 해금" },
-  rpt_secretHouseEntryCard: { cost: 30, reason: "시크릿 하우스 영구 해금" },
-  "fun.quantumLotto.ritualReport": { cost: 30, reason: "달빛 럭키 리추얼 리포트" },
+  rpt_skillTreeCard: { cost: 10, amountKRW: 1000, reason: "인생 스킬 트리 영구 해금" },
+  rpt_energyCoordCard: { cost: 10, amountKRW: 1000, reason: "사주로 보는 여행지 영구 해금" },
+  rpt_villainCard: { cost: 10, amountKRW: 1000, reason: "빌런 블랙리스트 영구 해금" },
+  rpt_secretHouseEntryCard: { cost: 10, amountKRW: 1000, reason: "시크릿 하우스 영구 해금" },
+  "fun.quantumLotto.ritualReport": { cost: 10, amountKRW: 1000, reason: "달빛 럭키 리추얼 리포트" },
   ...YEONGNYANGI_RAW_PRICE_ENTRIES,
 });
 

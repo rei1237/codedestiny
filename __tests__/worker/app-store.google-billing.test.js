@@ -144,7 +144,7 @@ function pickFreeFeatureKey() {
     const result = billingRegistry.getBillingFeaturePricing({ featureKey: key });
     if (!result?.ok || !result.pricing) continue;
     const coin = Math.floor(Number(result.pricing.coinPrice ?? result.pricing.cost ?? 0));
-    if (appPricing.isAppFreeCoinPrice(coin) && !key.startsWith("yeongnyangi-")) return key;
+    if (appPricing.isAppFreeFeature(key, coin)) return key;
   }
   return null; // 무료 구간 기능이 사라지면 해당 테스트만 건너뛴다.
 }
@@ -665,6 +665,19 @@ describe("intent — 결제 의도 기록", () => {
     }));
     expect(status).toBe(200);
     expect(payload.data.failedPurchases).toEqual([expect.objectContaining({ code: "APP_SKU_NOT_VERIFIED" })]);
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+  });
+
+  // 2026-10-05 천원 사주 콘텐츠(10코인)는 무료 구간 가격이지만 앱에서도 돈을 받는다. ₩1,000 SKU 가 없어 닫힌다.
+  const FUN_1000_KEYS = ["rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_energyCoordCard", "rpt_villainCard", "rpt_secretHouseEntryCard", "fun.quantumLotto.ritualReport"];
+  test.each(FUN_1000_KEYS)("천원 사주 콘텐츠 %s 는 앱 무료 통과 없이 SKU 미검증으로 닫힌다", async (featureKey) => {
+    expect([...appPricing.APP_PAID_LOW_PRICE_FEATURE_KEYS]).toEqual(FUN_1000_KEYS);
+    expect(registry.FEATURE_KEY_PRICE_TABLE[featureKey]).toMatchObject({ cost: 10, amountKRW: 1000 });
+    for (const path of ["/free-grant", "/google/intent"]) {
+      const { status, payload } = await callRoute(postJson(path, { featureKey, requestId: "fun-" + "b".repeat(32) }));
+      expect(status).toBe(503);
+      expect(payload.code).toBe("APP_SKU_NOT_VERIFIED");
+    }
     expect(mockPaymentCreate).not.toHaveBeenCalled();
   });
 
