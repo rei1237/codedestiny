@@ -5,14 +5,14 @@ const TAROT_HEALING_START_METADATA_COPY = {
   ko: {
     title: "무료 힐링 타로 4카드 — 오늘의 회복 에너지 리딩",
     description:
-      "지금 바로 무료 힐링 타로 4카드 리딩. 마음이 지쳤을 때, 쉬고 싶을 때 — 과거의 상처·현재 에너지·회복 방향·오늘의 선물을 카드 한 장씩 확인하세요. 완전 무료.",
+      "지금 바로 무료 힐링 타로 4카드 리딩. 마음이 지쳤을 때, 쉬고 싶을 때 — 마음이 지친 자리·감정의 온도·회복의 단서·오늘의 회복 행동을 카드 한 장씩 확인하세요. 완전 무료.",
     keywords: ["힐링 타로", "4카드 타로", "Sun and Light", "회복 타로", "무료 타로", "타로 리딩", "healing tarot spread"],
     featureList: ["4카드 힐링 스프레드", "오늘의 회복 에너지 리딩", "과거·현재·방향·선물 카드 해석"],
   },
   en: {
     title: "Free 4-Card Healing Tarot - Today's Recovery Energy Reading",
     description:
-      "Start a free 4-card healing tarot reading now. When your heart feels tired and needs rest, check past wounds, present energy, recovery direction, and today's gift one card at a time.",
+      "Start a free 4-card healing tarot reading now. When your heart feels tired and needs rest, check where the heart grew tired, the temperature of feeling, a clue to recovery, and today's recovery action one card at a time.",
     keywords: ["healing tarot", "4-card tarot", "Sun and Light", "recovery tarot", "free tarot", "tarot reading", "healing tarot spread"],
     featureList: ["4-card healing spread", "Today's recovery energy reading", "Past, present, direction, and gift card reading"],
   },

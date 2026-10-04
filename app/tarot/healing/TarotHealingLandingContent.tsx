@@ -55,20 +55,20 @@ const HEALING_COPY: Record<LoadingLocale, HealingCopy> = {
     eyebrow: "Healing Tarot",
     h1: "무료 힐링 타로 4카드 리딩",
     intro:
-      "힐링 타로는 마음이 지쳤을 때 감정을 억지로 고치기보다, 지금 어디에 빛을 들여야 하는지 조용히 살피는 리딩입니다. 과거의 상처, 현재의 온도, 회복의 단서, 오늘의 작은 선물을 네 장의 카드로 나누어 읽고 바로 실천할 수 있는 회복 문장을 함께 건넵니다.",
+      "힐링 타로는 마음이 지쳤을 때 감정을 억지로 고치기보다, 지금 어디에 빛을 들여야 하는지 조용히 살피는 리딩입니다. 마음이 지친 자리, 감정의 온도, 회복의 단서, 오늘의 회복 행동을 네 장의 카드로 나누어 읽고 바로 실천할 수 있는 회복 문장을 함께 건넵니다.",
     primaryCta: "힐링 타로 시작하기",
     tarotLink: "무료 타로 리딩 모아보기",
     steps: [
       ["1", "마음의 자리 고르기", "지금 가장 무겁게 남은 감정이나 다시 온기를 들이고 싶은 장면을 떠올립니다."],
-      ["2", "네 장의 카드 확인", "과거의 상처, 현재의 온도, 회복의 단서, 오늘의 선물을 순서대로 읽습니다."],
+      ["2", "네 장의 카드 확인", "마음이 지친 자리, 감정의 온도, 회복의 단서, 오늘의 회복 행동을 순서대로 읽습니다."],
       ["3", "작은 회복 행동 정하기", "리딩 문장을 확정된 예언이 아니라 하루를 덜 무겁게 만드는 자기성찰의 빛으로 사용합니다."],
     ],
     checkTitle: "힐링 타로에서 확인하는 것",
     checks: [
-      ["과거의 상처", "반복해서 마음을 붙잡는 기억이나 감정의 흔적을 부드럽게 바라봅니다."],
-      ["현재의 온도", "지금 마음이 어디에 힘을 쓰고 있는지, 쉬어야 할 지점을 확인합니다."],
-      ["회복 방향", "무리한 결론보다 오늘 선택할 수 있는 현실적인 회복 방향을 정리합니다."],
-      ["오늘의 선물", "작은 위로, 관계의 힌트, 나를 돌보는 문장을 카드 흐름으로 받아 봅니다."],
+      ["마음이 지친 자리", "반복해서 마음을 붙잡는 기억이나 감정의 흔적을 부드럽게 바라봅니다."],
+      ["감정의 온도", "지금 마음이 어디에 힘을 쓰고 있는지, 쉬어야 할 지점을 확인합니다."],
+      ["회복의 단서", "무리한 결론보다 오늘 선택할 수 있는 현실적인 회복 방향을 정리합니다."],
+      ["오늘의 회복 행동", "작은 위로와 나를 돌보는 문장을 오늘 안에 해볼 수 있는 행동 하나로 받아 봅니다."],
     ],
     noticeTitle: "주의와 면책",
     noticeBody:
@@ -91,20 +91,20 @@ const HEALING_COPY: Record<LoadingLocale, HealingCopy> = {
     eyebrow: "Healing Tarot",
     h1: "Free 4-Card Healing Tarot Reading",
     intro:
-      "Healing Tarot gently organizes your emotional flow when the heart feels tired. Four cards look at past wounds, present energy, direction of recovery, and today's gift, then offer a small healing sentence you can practice right away.",
+      "Healing Tarot gently organizes your emotional flow when the heart feels tired. Four cards look at where the heart grew tired, the temperature of feeling, a clue to recovery, and today's recovery action, then offer a small healing sentence you can practice right away.",
     primaryCta: "Start Healing Tarot",
     tarotLink: "Browse Free Tarot Readings",
     steps: [
       ["1", "Choose a question", "Bring to mind the emotion weighing on you most or the relationship flow you want to heal."],
-      ["2", "Read four cards", "Read past wound, present energy, recovery direction, and today's gift in order."],
+      ["2", "Read four cards", "Read where the heart grew tired, the temperature of feeling, a clue to recovery, and today's recovery action in order."],
       ["3", "Choose a small action", "Use the reading as a self-reflection hint for your day, not as a fixed prophecy."],
     ],
     checkTitle: "What Healing Tarot Reveals",
     checks: [
-      ["Past wound", "Gently look at a memory or emotional trace that keeps holding your heart."],
-      ["Present energy", "See where your mind is spending strength and where rest is needed."],
-      ["Recovery direction", "Choose a realistic direction for today rather than forcing a conclusion."],
-      ["Today's gift", "Receive a small comfort, relationship hint, or self-care sentence through the card flow."],
+      ["Where the heart grew tired", "Gently look at a memory or emotional trace that keeps holding your heart."],
+      ["The temperature of feeling", "See where your mind is spending strength and where rest is needed."],
+      ["A clue to recovery", "Choose a realistic direction for today rather than forcing a conclusion."],
+      ["Today's recovery action", "Receive a small comfort or self-care sentence as one action you can try today."],
     ],
     noticeTitle: "Notice and Disclaimer",
     noticeBody:

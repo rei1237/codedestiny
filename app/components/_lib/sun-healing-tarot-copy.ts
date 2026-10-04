@@ -50,13 +50,8 @@ export interface SunHealingTarotCopy {
   adviceHeading: string;
   adviceFallback: string;
 
-  cardSummaryEyebrow: string;
-  cardSummaryHeading: string;
   cardDetailEyebrow: string;
   cardDetailHeading: string;
-  meaningLabel: string;
-  shadowLabel: string;
-  recoveryActionLabel: string;
 
   overallFlowTitle: string;
   routineEyebrow: string;
@@ -122,13 +117,8 @@ const SUN_HEALING_TAROT_COPY_EN: SunHealingTarotCopy = {
   adviceHeading: "A reading that returns light to the marks on your heart",
   adviceFallback: "Instead of treating your current feelings as a problem, we translate the symbols the cards revealed into a recoverable scene and words.",
 
-  cardSummaryEyebrow: "A four-card summary",
-  cardSummaryHeading: "Four scenes reflected in your heart today",
   cardDetailEyebrow: "A recovery message per card",
   cardDetailHeading: "The recovery sentence each card offers",
-  meaningLabel: "What the card reveals",
-  shadowLabel: "Something to watch carefully",
-  recoveryActionLabel: "Today's recovery action",
 
   overallFlowTitle: "Overall flow",
   routineEyebrow: "Today's recovery routine",
@@ -195,13 +185,8 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     adviceHeading: "마음의 흔적 위에 빛을 돌려놓는 해석",
     adviceFallback: "지금의 마음을 문제로 만들지 않고, 카드가 비춘 상징을 회복 가능한 장면과 말로 정리합니다.",
 
-    cardSummaryEyebrow: "4장 카드 요약",
-    cardSummaryHeading: "오늘 마음에 비친 네 장면",
     cardDetailEyebrow: "카드별 회복 메시지",
     cardDetailHeading: "각 카드가 건네는 회복 문장",
-    meaningLabel: "카드가 비춘 의미",
-    shadowLabel: "조심히 살필 부분",
-    recoveryActionLabel: "오늘의 회복 행동",
 
     overallFlowTitle: "종합 흐름",
     routineEyebrow: "오늘의 회복 루틴",
@@ -266,13 +251,8 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     adviceHeading: "心の跡の上に光を取り戻す解釈",
     adviceFallback: "今の気持ちを問題にするのではなく、カードが映した象徴を回復可能な場面と言葉に整理します。",
 
-    cardSummaryEyebrow: "4枚のカードまとめ",
-    cardSummaryHeading: "今日心に映った4つの場面",
     cardDetailEyebrow: "カードごとの回復メッセージ",
     cardDetailHeading: "各カードが贈る回復の言葉",
-    meaningLabel: "カードが映した意味",
-    shadowLabel: "注意して見守るべきこと",
-    recoveryActionLabel: "今日の回復行動",
 
     overallFlowTitle: "総合的な流れ",
     routineEyebrow: "今日の回復ルーティン",
@@ -337,13 +317,8 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     adviceHeading: "在心灵的痕迹上重新点亮光芒的解读",
     adviceFallback: "不将此刻的心情视为问题，而是把卡牌映照出的象征整理成可以疗愈的场景与话语。",
 
-    cardSummaryEyebrow: "四张牌摘要",
-    cardSummaryHeading: "今日映照在心中的四个场景",
     cardDetailEyebrow: "每张牌的疗愈讯息",
     cardDetailHeading: "每张牌传递的疗愈话语",
-    meaningLabel: "卡牌映照的含义",
-    shadowLabel: "需要谨慎留意之处",
-    recoveryActionLabel: "今日的疗愈行动",
 
     overallFlowTitle: "综合流向",
     routineEyebrow: "今日的疗愈日常",
@@ -408,13 +383,8 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     adviceHeading: "在心靈的痕跡上重新點亮光芒的解讀",
     adviceFallback: "不將此刻的心情視為問題，而是把卡牌映照出的象徵整理成可以療癒的場景與話語。",
 
-    cardSummaryEyebrow: "四張牌摘要",
-    cardSummaryHeading: "今日映照在心中的四個場景",
     cardDetailEyebrow: "每張牌的療癒訊息",
     cardDetailHeading: "每張牌傳遞的療癒話語",
-    meaningLabel: "卡牌映照的含義",
-    shadowLabel: "需要謹慎留意之處",
-    recoveryActionLabel: "今日的療癒行動",
 
     overallFlowTitle: "綜合流向",
     routineEyebrow: "今日的療癒日常",

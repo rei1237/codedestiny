@@ -1,7 +1,8 @@
 "use client";
 
-import { AnimatePresence, m } from "framer-motion";
+import { AnimatePresence, m, MotionConfig, useReducedMotion } from "framer-motion";
 import {
+  ChevronDown,
   Clipboard,
   Loader2,
   RotateCcw,
@@ -66,6 +67,7 @@ type SunRecoveryCardReadingDto = {
   meaning?: string;
   shadow?: string;
   recoveryAdvice?: string;
+  positionReading?: string;
 };
 
 type RecoveryRoutineDto = {
@@ -185,25 +187,25 @@ function drawHealingCards(): TarotCardDto[] {
   });
 }
 
-function SunHero() {
+function SunHero({ still = false }: { still?: boolean }) {
   return (
     <div className="relative flex items-center justify-center" style={{ width: 220, height: 220 }}>
       <m.div
         className="absolute rounded-full"
         style={{ width: 220, height: 220, background: "radial-gradient(circle, #F59E0B26 0%, transparent 70%)" }}
-        animate={{ scale: [1, 1.12, 1], opacity: [0.5, 1, 0.5] }}
+        animate={still ? undefined : { scale: [1, 1.12, 1], opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
       />
       <m.div
         className="absolute rounded-full border-2 border-amber-300/45"
         style={{ width: 168, height: 168 }}
-        animate={{ scale: [1.02, 1.1, 1.02], opacity: [0.4, 0.8, 0.4] }}
+        animate={still ? undefined : { scale: [1.02, 1.1, 1.02], opacity: [0.4, 0.8, 0.4] }}
         transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
       />
       <m.div
         className="absolute rounded-full border-2 border-amber-400/55"
         style={{ width: 110, height: 110 }}
-        animate={{ scale: [1, 1.07, 1], opacity: [0.6, 1, 0.6] }}
+        animate={still ? undefined : { scale: [1, 1.07, 1], opacity: [0.6, 1, 0.6] }}
         transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
       />
       <m.svg
@@ -211,7 +213,7 @@ function SunHero() {
         height="80"
         viewBox="0 0 100 100"
         xmlns="http://www.w3.org/2000/svg"
-        animate={{ rotate: 360 }}
+        animate={still ? undefined : { rotate: 360 }}
         transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
         className="relative z-10"
       >
@@ -269,7 +271,7 @@ function CardBackFace({ copy }: { copy: SunHealingTarotCopy }) {
         <circle cx="50" cy="50" r="11" fill="#F59E0B" opacity="0.85" />
         <circle cx="50" cy="50" r="6" fill="#FEF3C7" opacity="1" />
       </svg>
-      <p className="mt-2 text-[8px] tracking-[0.25em] text-amber-600/70 font-medium uppercase">{copy.cardBackLabel}</p>
+      <p className="mt-2 text-xs tracking-[0.16em] text-amber-600/70 font-medium uppercase">{copy.cardBackLabel}</p>
     </div>
   );
 }
@@ -347,66 +349,30 @@ function orientationLabelOf(value?: string) {
   return value === "reversed" ? "역방향" : "정방향";
 }
 
-function ResultCardSummary({ item, idx, card, copy }: { item: SunRecoveryCardReadingDto; idx: number; card?: TarotCardDto; copy: SunHealingTarotCopy }) {
+function ResultCard({ item, idx, card, copy }: { item: SunRecoveryCardReadingDto; idx: number; card?: TarotCardDto; copy: SunHealingTarotCopy }) {
   const orientation = copy.orientationLabel(item.orientation || card?.orientation);
   const keywords = Array.isArray(item.keywords) ? item.keywords.slice(0, 3) : [];
+  const body = String(item.positionReading || item.meaning || "").trim();
   return (
-    <article className="rounded-lg border border-amber-200/70 bg-white/82 p-3 shadow-[0_12px_30px_rgba(180,120,35,0.12)]">
-      <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-amber-100 bg-amber-50">
-        {card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(copy, card, idx)} fill sizes="120px" className="object-cover" unoptimized />) : null}
+    <article className="flex gap-4 rounded-lg border border-white/80 bg-white/86 p-4 shadow-[0_18px_52px_rgba(180,120,35,0.14)] sm:gap-5 sm:p-5">
+      <div className="relative aspect-[3/5] w-[76px] shrink-0 self-start overflow-hidden rounded-md border border-amber-200/80 bg-amber-50 shadow-[0_10px_24px_rgba(180,120,35,0.16)] sm:w-[88px]">
+        {card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(copy, card, idx)} fill sizes="88px" className="object-cover" unoptimized />) : null}
       </div>
-      <p className="mt-3 text-[11px] font-semibold text-teal-700">{idx + 1}. {copy.positionLabels[idx]}</p>
-      <h4 className="mt-1 text-sm font-bold leading-tight text-amber-950">{item.cardName}</h4>
-      <p className="mt-1 text-xs font-semibold text-stone-500">{orientation}</p>
-      {keywords.length ? (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {keywords.map((keyword) => (
-            <span key={keyword} className="rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-800">{keyword}</span>
-          ))}
-        </div>
-      ) : null}
-      {item.shortMessage ? <p className="mt-3 text-xs leading-5 text-stone-700">{item.shortMessage}</p> : null}
-    </article>
-  );
-}
-
-function ResultDetailCard({ item, idx, copy }: { item: SunRecoveryCardReadingDto; idx: number; copy: SunHealingTarotCopy }) {
-  const orientation = copy.orientationLabel(item.orientation);
-  const keywords = Array.isArray(item.keywords) ? item.keywords.slice(0, 3) : [];
-  return (
-    <article className="rounded-lg border border-white/80 bg-white/86 p-5 shadow-[0_18px_52px_rgba(180,120,35,0.14)]">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold text-teal-700">{idx + 1}. {copy.positionLabels[idx]}</p>
-          <h3 className="mt-1 font-serif text-xl font-semibold leading-tight text-amber-950">{item.cardName}</h3>
-        </div>
-        <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">{orientation}</span>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-semibold text-teal-700">{idx + 1}. {copy.positionLabels[idx]}</p>
+        <h4 className="mt-1 font-serif text-lg font-semibold leading-snug text-amber-950">
+          {item.cardName}
+          <span className="ml-2 align-middle text-xs font-bold text-amber-700">{orientation}</span>
+        </h4>
+        {keywords.length ? (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {keywords.map((keyword) => (
+              <span key={keyword} className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-800">{keyword}</span>
+            ))}
+          </div>
+        ) : null}
+        {body ? <p className="mt-3 text-[15px] leading-7 text-stone-700">{body}</p> : null}
       </div>
-      {keywords.length ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {keywords.map((keyword) => (
-            <span key={keyword} className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">{keyword}</span>
-          ))}
-        </div>
-      ) : null}
-      {item.meaning ? (
-        <div className="mt-5">
-          <p className="text-xs font-bold tracking-normal text-amber-700">{copy.meaningLabel}</p>
-          <p className="mt-2 text-sm leading-7 text-stone-700">{item.meaning}</p>
-        </div>
-      ) : null}
-      {item.shadow ? (
-        <div className="mt-4 rounded-lg border border-rose-100 bg-rose-50/70 p-4">
-          <p className="text-xs font-bold text-rose-700">{copy.shadowLabel}</p>
-          <p className="mt-2 text-sm leading-7 text-stone-700">{item.shadow}</p>
-        </div>
-      ) : null}
-      {item.recoveryAdvice ? (
-        <div className="mt-4 rounded-lg border border-teal-100 bg-teal-50/70 p-4">
-          <p className="text-xs font-bold text-teal-700">{copy.recoveryActionLabel}</p>
-          <p className="mt-2 text-sm leading-7 text-stone-700">{item.recoveryAdvice}</p>
-        </div>
-      ) : null}
     </article>
   );
 }
@@ -485,6 +451,7 @@ function buildSunHealingAiPromptText(args: {
 
 export default function SunHealingTarot() {
   const copy = useSunHealingTarotCopy();
+  const reduceMotion = useReducedMotion();
   const [stage, setStage] = useState<Stage>("intro");
   const [cards, setCards] = useState<TarotCardDto[]>([]);
   const [revealedCount, setRevealedCount] = useState(0);
@@ -624,7 +591,8 @@ export default function SunHealingTarot() {
   }, [aiPromptText]);
 
   return (
-    <main
+    <MotionConfig reducedMotion="user">
+    <section
       className="relative overflow-x-hidden bg-[#fff7e6] px-0 py-0 text-stone-900"
     >
       <div
@@ -641,19 +609,13 @@ export default function SunHealingTarot() {
           background: "radial-gradient(circle at 18% 12%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 32%), radial-gradient(circle at 80% 8%, rgba(125,211,252,0.24) 0%, rgba(125,211,252,0) 28%), radial-gradient(circle at 52% 100%, rgba(251,191,36,0.32) 0%, rgba(251,191,36,0) 46%), linear-gradient(180deg, rgba(255,250,235,0.18) 0%, rgba(255,250,235,0.5) 100%)",
         }}
       />
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.18] mix-blend-multiply"
-        style={{
-          backgroundImage: "repeating-linear-gradient(0deg, rgba(120,83,30,0.18) 0px, rgba(120,83,30,0.18) 1px, transparent 1px, transparent 5px), repeating-linear-gradient(90deg, rgba(255,255,255,0.36) 0px, rgba(255,255,255,0.36) 1px, transparent 1px, transparent 7px)",
-        }}
-      />
       <div className="relative z-10 mx-auto flex w-full max-w-[1440px] flex-col px-4 py-5 md:px-8 md:py-7">
         <header className="mb-5 flex items-center justify-between gap-3">
           <div>
-            <p className="text-[10px] font-semibold tracking-[0.18em] text-amber-700/80">{copy.headerEyebrow}</p>
+            <p className="text-xs font-semibold tracking-[0.18em] text-amber-700/80">{copy.headerEyebrow}</p>
             <h2 className="mt-1 font-serif text-[24px] font-semibold leading-tight text-amber-950 md:text-[32px]">{copy.headerTitle}</h2>
           </div>
-          <button type="button" onClick={goHome} className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-amber-200/70 bg-white/70 px-4 text-xs font-semibold text-amber-950 shadow-[0_12px_34px_rgba(180,120,35,0.14)] backdrop-blur-xl transition-colors hover:bg-white">
+          <button type="button" onClick={goHome} className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-amber-200/70 bg-white/70 px-4 text-xs font-semibold text-amber-950 shadow-[0_12px_34px_rgba(180,120,35,0.14)] backdrop-blur-xl transition-colors hover:bg-white">
             <RotateCcw className="h-3.5 w-3.5" />{copy.homeButton}
           </button>
         </header>
@@ -680,15 +642,15 @@ export default function SunHealingTarot() {
               </div>
               <div className="relative mx-auto w-full max-w-[420px]">
                 <m.div
-                  animate={{ y: [0, -8, 0] }}
+                  animate={reduceMotion ? undefined : { y: [0, -8, 0] }}
                   transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
                   className="rounded-[32px] border border-white/80 bg-white/64 p-5 shadow-[0_28px_90px_rgba(180,120,35,0.22)] backdrop-blur-2xl"
                 >
-                  <div className="flex justify-center"><SunHero /></div>
+                  <div className="flex justify-center"><SunHero still={!!reduceMotion} /></div>
                   <div className="mt-3 grid grid-cols-4 gap-2">
                     {POSITION_LABELS_SHORT.map((label, idx) => (
                       <div key={label} className="aspect-[3/4] rounded-2xl border border-amber-200/70 bg-[linear-gradient(160deg,rgba(255,255,255,0.82),rgba(255,236,186,0.58))] p-2 shadow-inner">
-                        <div className="flex h-full items-end justify-center rounded-xl border border-amber-100 bg-white/70 pb-2 text-[10px] font-semibold text-amber-900">{idx + 1}. {label}</div>
+                        <div className="flex h-full items-end justify-center rounded-xl border border-amber-100 bg-white/70 pb-2 text-xs font-semibold text-amber-900">{idx + 1}. {label}</div>
                       </div>
                     ))}
                   </div>
@@ -720,11 +682,11 @@ export default function SunHealingTarot() {
                         <AnimatePresence>{isGlowing && (<m.div initial={{ opacity: 0.7, scale: 0.95 }} animate={{ opacity: 0, scale: 1.28 }} exit={{}} transition={{ duration: 0.85, ease: "easeOut" }} className="pointer-events-none absolute inset-0 rounded-[24px] bg-amber-200 blur-2xl" style={{ zIndex: 30 }} />)}</AnimatePresence>
                         <m.button type="button" onClick={() => flip(idx)} disabled={!enabled} whileHover={enabled ? { y: -8, filter: "drop-shadow(0 22px 34px rgba(217,144,42,0.3))" } : undefined} transition={{ type: "spring", stiffness: 300, damping: 22 }} className="relative h-full w-full rounded-[24px]" style={{ transformStyle: "preserve-3d" }}>
                           <m.div className="absolute inset-0" style={{ transformStyle: "preserve-3d" }} animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.72, ease: [0.35, 0, 0.15, 1] }}>
-                            <div className="absolute inset-0 rounded-[24px] shadow-[0_20px_48px_rgba(180,120,35,0.18)]" style={{ backfaceVisibility: "hidden" }}><CardBackFace copy={copy} />{enabled && (<m.div className="absolute inset-0 rounded-[24px] ring-2 ring-amber-300/80" animate={{ opacity: [0.42, 1, 0.42] }} transition={{ duration: 2.2, repeat: Infinity }} />)}</div>
+                            <div className="absolute inset-0 rounded-[24px] shadow-[0_20px_48px_rgba(180,120,35,0.18)]" style={{ backfaceVisibility: "hidden" }}><CardBackFace copy={copy} />{enabled && (<m.div className="absolute inset-0 rounded-[24px] ring-2 ring-amber-300/80" animate={reduceMotion ? undefined : { opacity: [0.42, 1, 0.42] }} transition={{ duration: 2.2, repeat: Infinity }} />)}</div>
                             <div className="absolute inset-0 overflow-hidden rounded-[24px] shadow-[0_20px_56px_rgba(180,120,35,0.24)]" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
                               {card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(copy, card, idx)} fill sizes="(max-width: 768px) 45vw, 260px" className="object-cover" unoptimized priority />) : (<div className="absolute inset-0 bg-amber-50" />)}
                               <div className="absolute inset-x-0 bottom-0 px-3 pb-3 pt-16" style={{ background: "linear-gradient(0deg, rgba(255,251,235,0.97) 0%, rgba(255,251,235,0.72) 58%, transparent 100%)" }}>
-                                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-700">{POSITION_LABELS[idx]}</p>
+                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">{POSITION_LABELS[idx]}</p>
                                 <p className="mt-1 text-[13px] font-semibold leading-tight text-stone-800">{safeCardTitle(copy, card, idx)}</p>
                               </div>
                             </div>
@@ -768,11 +730,11 @@ export default function SunHealingTarot() {
                   <p className="mt-2 font-serif text-xl font-semibold leading-8 text-amber-950">{resultSunLine}</p>
                 </div>
                 {cards.length > 0 && (
-                  <div className="mt-5 grid grid-cols-4 gap-2 lg:grid-cols-2">
+                  <div className="mt-5 hidden gap-2 lg:grid lg:grid-cols-2">
                     {cards.map((card, idx) => (
                       <div key={idx}>
                         <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg border border-amber-200/70 shadow-[0_16px_34px_rgba(180,120,35,0.18)]">{card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(copy, card, idx)} fill sizes="120px" className="object-cover" unoptimized />) : (<div className="absolute inset-0 bg-amber-50" />)}</div>
-                        <p className="mt-1 text-center text-[10px] font-semibold text-amber-800">{POSITION_LABELS_SHORT[idx]}</p>
+                        <p className="mt-1 text-center text-xs font-semibold text-amber-800">{POSITION_LABELS_SHORT[idx]}</p>
                       </div>
                     ))}
                   </div>
@@ -789,31 +751,18 @@ export default function SunHealingTarot() {
                   <h3 className="mt-2 font-serif text-2xl font-semibold leading-tight text-amber-950">{copy.adviceHeading}</h3>
                   <p className="mt-3 text-sm leading-7 text-stone-700">{reading?.opening || copy.adviceFallback}</p>
                 </section>
-                <section>
-                  <div className="mb-3 flex items-end justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-semibold text-teal-700">{copy.cardSummaryEyebrow}</p>
-                      <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">{copy.cardSummaryHeading}</h3>
-                    </div>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    {resultCards.map((item, idx) => (
-                      <ResultCardSummary key={`${item.cardName}-${idx}`} item={item} idx={idx} card={cards[idx]} copy={copy} />
-                    ))}
-                  </div>
-                </section>
+                {resultStory ? (
+                  <ReadingCard title={copy.overallFlowTitle} tone="neutral" icon={Sparkles} text={resultStory} />
+                ) : null}
                 <section className="space-y-3">
                   <div>
                     <p className="text-xs font-semibold text-teal-700">{copy.cardDetailEyebrow}</p>
                     <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">{copy.cardDetailHeading}</h3>
                   </div>
                   {resultCards.map((item, idx) => (
-                    <ResultDetailCard key={`${item.positionLabel}-${idx}`} item={item} idx={idx} copy={copy} />
+                    <ResultCard key={`${item.positionLabel}-${idx}`} item={item} idx={idx} card={cards[idx]} copy={copy} />
                   ))}
                 </section>
-                {resultStory ? (
-                  <ReadingCard title={copy.overallFlowTitle} tone="neutral" icon={Sparkles} text={resultStory} />
-                ) : null}
                 {resultRoutines.length ? (
                   <section>
                     <p className="text-xs font-semibold text-teal-700">{copy.routineEyebrow}</p>
@@ -837,8 +786,14 @@ export default function SunHealingTarot() {
                     className="tarot-healing-ai-prompt-panel rounded-lg border border-amber-200/80 bg-[linear-gradient(135deg,rgba(255,251,235,0.96),rgba(255,247,237,0.9),rgba(240,253,250,0.5))] p-5 shadow-[0_20px_58px_rgba(180,120,35,0.16)]"
                     data-marker="tarot-healing-ai-prompt-bottom-v20260621"
                   >
-                    <p className="tarot-healing-ai-prompt-kicker text-xs font-semibold tracking-normal text-teal-700">{copy.promptPanelKicker}</p>
-                    <h3 className="tarot-healing-ai-prompt-title mt-1 font-serif text-2xl font-semibold leading-tight text-amber-950">{copy.promptPanelTitle}</h3>
+                    <details className="group">
+                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                      <span>
+                        <span className="tarot-healing-ai-prompt-kicker block text-xs font-semibold tracking-normal text-teal-700">{copy.promptPanelKicker}</span>
+                        <h3 className="tarot-healing-ai-prompt-title mt-1 font-serif text-2xl font-semibold leading-tight text-amber-950">{copy.promptPanelTitle}</h3>
+                      </span>
+                      <ChevronDown className="h-5 w-5 shrink-0 text-amber-700 transition-transform group-open:rotate-180" aria-hidden="true" />
+                    </summary>
                     <p className="tarot-healing-ai-prompt-lead mt-3 text-sm leading-7 text-stone-700">
                       {copy.promptPanelLead}
                     </p>
@@ -861,6 +816,7 @@ export default function SunHealingTarot() {
                         {aiPromptCopyStatus}
                       </span>
                     </div>
+                    </details>
                   </section>
                 ) : null}
               </div>
@@ -868,6 +824,7 @@ export default function SunHealingTarot() {
           ) : null}
         </AnimatePresence>
       </div>
-    </main>
+    </section>
+    </MotionConfig>
   );
 }

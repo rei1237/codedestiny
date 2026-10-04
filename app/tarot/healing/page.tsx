@@ -7,16 +7,16 @@ const TAROT_HEALING_METADATA_COPY = {
   ko: {
     title: "무료 힐링 타로 4카드 — 오늘의 회복 에너지 리딩",
     description:
-      "힐링 타로 4카드는 지친 마음을 바라보고 회복 방향을 정리하는 무료 타로 리딩입니다. 과거의 상처, 현재 에너지, 회복 방향, 오늘의 선물을 카드 흐름으로 확인하세요.",
+      "힐링 타로 4카드는 지친 마음을 바라보고 회복 방향을 정리하는 무료 타로 리딩입니다. 마음이 지친 자리, 감정의 온도, 회복의 단서, 오늘의 회복 행동을 카드 흐름으로 확인하세요.",
     keywords: ["힐링 타로", "4카드 타로", "Sun and Light", "회복 타로", "무료 타로", "타로 리딩", "healing tarot spread"],
-    featureList: ["4카드 힐링 스프레드", "오늘의 회복 에너지 리딩", "과거·현재·방향·선물 카드 해석"],
+    featureList: ["4카드 힐링 스프레드", "오늘의 회복 에너지 리딩", "지친 자리·감정의 온도·회복의 단서·회복 행동 카드 해석"],
   },
   en: {
     title: "Free 4-Card Healing Tarot - Today's Recovery Energy Reading",
     description:
-      "The 4-card healing tarot is a free reading that gently looks at a tired heart and organizes the path of recovery through past wounds, present energy, direction, and today's gift.",
+      "The 4-card healing tarot is a free reading that gently looks at a tired heart and organizes the path of recovery through where the heart grew tired, the temperature of feeling, a clue to recovery, and today's recovery action.",
     keywords: ["healing tarot", "4-card tarot", "Sun and Light", "recovery tarot", "free tarot", "tarot reading", "healing tarot spread"],
-    featureList: ["4-card healing spread", "Today's recovery energy reading", "Past, present, direction, and gift card reading"],
+    featureList: ["4-card healing spread", "Today's recovery energy reading", "Tired heart, feeling temperature, recovery clue, and recovery action card reading"],
   },
   ja: {
     title: "無料ヒーリングタロット4カード — 今日の回復エネルギーリーディング",
@@ -67,19 +67,19 @@ export default function SunHealingTarotPage() {
         <h3>네 장이 각각 맡는 자리</h3>
         <ul>
           <li>
-            숨겨진 진실 — 감정 소모의 핵심 원인을 봅니다. 겉으로 드러난 사건보다 그 아래에서 힘을 빼앗고
+            마음이 지친 자리 — 감정 소모의 핵심 원인을 봅니다. 겉으로 드러난 사건보다 그 아래에서 힘을 빼앗고
             있는 것이 무엇인지 먼저 짚는 자리입니다.
           </li>
           <li>
-            감정 수용 — 지금 인정해야 할 감정을 봅니다. 고쳐야 할 감정이 아니라, 아직 이름을 안 붙여 둔 채로
+            감정의 온도 — 지금 인정해야 할 감정을 봅니다. 고쳐야 할 감정이 아니라, 아직 이름을 안 붙여 둔 채로
             남아 있는 감정을 그대로 꺼내 놓는 자리입니다.
           </li>
           <li>
-            회복 단서 — 현재 상황이 주는 배움을 봅니다. 지나간 일을 미화하지 않으면서도, 이 구간이 남긴
+            회복의 단서 — 현재 상황이 주는 배움을 봅니다. 지나간 일을 미화하지 않으면서도, 이 구간이 남긴
             쓸 만한 정보가 무엇인지 가려내는 자리입니다.
           </li>
           <li>
-            다음 행동 — 즉시 실행 가능한 치유 행동을 봅니다. 네 자리 중 해석 가중치가 가장 높게 잡혀 있으며,
+            오늘의 회복 행동 — 즉시 실행 가능한 회복 행동을 봅니다. 네 자리 중 해석 가중치가 가장 높게 잡혀 있으며,
             리딩 전체가 이 한 문장으로 모이도록 설계돼 있습니다.
           </li>
         </ul>
