@@ -1340,7 +1340,8 @@
         "w10000": "₩10,000",
         "from10000": "From ₩10,000",
         "w30000": "₩30,000",
-        "w50000": "₩50,000"
+        "w50000": "₩50,000",
+        "from3000": "From ₩3,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1601,14 +1602,14 @@
       "pass": "Pas",
       "login": "Log masuk",
       "account": "Akaun saya",
-      "offerTitle": "Saju yang dahulu dibaca dalam sesi 1:1 bernilai ₩300,000, kini dari ₩1,000",
+      "offerTitle": "Saju yang dahulu dibaca dalam sesi 1:1 bernilai ₩300,000, kini dari ₩3,000",
       "reviewsLead": "Mesej KakaoTalk sebenar daripada pelanggan sesi 1:1 Neo, dipetik dalam bahasa Korea asal. Bahagian yang ditinggalkan ditanda dengan ….",
       "reviewsBar": "Sesi 1:1 bersama Neo · KakaoTalk",
       "reviewsMeta": "Ulasan sebenar · disiarkan dengan persetujuan",
       "reviewsPosted": "disiarkan di blog",
       "reviewsFine": "Ulasan berdasarkan pengalaman peribadi dan tidak menjamin hasil. Bacaan Saju hanya sebagai rujukan.",
-      "offerNote": "Sesi 1:1 dikendalikan sendiri oleh Neo; bacaan ₩1,000 disediakan oleh enjin pengiraan dengan ulasan AI.",
-      "offerCta": "Lihat bacaan Saju ₩1,000 →",
+      "offerNote": "Sesi 1:1 dikendalikan sendiri oleh Neo; bacaan ₩3,000 disediakan oleh enjin pengiraan dengan ulasan AI.",
+      "offerCta": "Lihat bacaan Saju ₩3,000 →",
       "expertiseTitle": "Pengiraan ikut peraturan, ulasan oleh AI",
       "expertise": {
         "engine": "Carta kelahiran dibina dengan peraturan pengiraan tetap, dan AI menulis ulasan berdasarkan hasil itu. Jika ulasan menyebut tiang hari atau jam yang berbeza daripada pengiraan, pelayan akan menolaknya.",

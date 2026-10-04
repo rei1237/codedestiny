@@ -30,8 +30,8 @@ test.each([-1,0,0.5,NaN,Infinity,891,990,1000,'500'])('invalid or PG-under-minim
 test('discount activates only with the restored value; unrelated features remain excluded',()=>{
   expect(quoteYeongnyangiMoonstoneDiscount('yeongnyangi-saju-mackerel',0)).toBeNull();
   if(getPaidFeaturePaymentPolicy('yeongnyangi-saju-mackerel').membershipCreditMultiplier===1)
-    expect(quoteYeongnyangiMoonstoneDiscount('yeongnyangi-saju-mackerel',500).payableKRW)
-      .toBe(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW-5000);
+    expect(quoteYeongnyangiMoonstoneDiscount('yeongnyangi-saju-mackerel',100).payableKRW)
+      .toBe(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW-1000);
   else expect(()=>quoteYeongnyangiMoonstoneDiscount('yeongnyangi-saju-mackerel',500)).toThrow();
   expect(()=>quoteYeongnyangiMoonstoneDiscount('fortune-chat-consultation',1)).toThrow();
 });
@@ -105,7 +105,7 @@ test('prepare uses the release registry and rejects client discount amounts; rep
   const env={JWT_ACCESS_SECRET:'fixture-secret-not-real-0123456789',GEMINIF_API_KEY:'fixture-no-call',LLM_DRY_RUN:'false',PORTONE_STORE_ID:'fixture-store',PORTONE_CHANNEL_KEY:'fixture-channel',PORTONE_API_SECRET:'fixture-secret'};
   const token=await signAuthToken({_id:USER,email:'test@example.invalid',role:'user',name:'sample'},env);
   const prepare=async(extra={})=>{
-    const req=new Request('https://example.com/api/payments/prepare',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({featureKey,productId:product.productId,requestId:`yn-${id}`,moonstoneQuantity:500,discountKRW:1,paymentAmount:product.priceKRW,...extra})});
+    const req=new Request('https://example.com/api/payments/prepare',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({featureKey,productId:product.productId,requestId:`yn-${id}`,moonstoneQuantity:100,discountKRW:1,paymentAmount:product.priceKRW,...extra})});
     const response=await handlePaymentsContext(req,env,{prefix:'/api/payments',legacyEnvelope:'prepare',withDb:(_e,_c,fn)=>fn(db),pgDeps:{fetchPayment:async()=>{throw Object.assign(Error('unregistered'),{status:404,code:'PAYMENT_NOT_FOUND'});}}});
     return {status:response.status,body:await response.json()};
   };
@@ -114,10 +114,10 @@ test('prepare uses the release registry and rejects client discount amounts; rep
     expect(first.status).toBe(400);expect(balance(db)).toBe(700);return;
   }
   expect(first.status).toBe(201);
-  expect(first.body.order.paymentAmount).toBe(product.priceKRW-5000);
-  expect(balance(db)).toBe(200);
+  expect(first.body.order.paymentAmount).toBe(product.priceKRW-1000);
+  expect(balance(db)).toBe(600);
   const repeat=await prepare();
-  expect(repeat.status).toBe(201);expect(repeat.body.order.merchantUid).toBe(first.body.order.merchantUid);expect(balance(db)).toBe(200);
-  expect((await prepare({moonstoneQuantity:100})).status).toBe(409);
-  expect(balance(db)).toBe(200);
+  expect(repeat.status).toBe(201);expect(repeat.body.order.merchantUid).toBe(first.body.order.merchantUid);expect(balance(db)).toBe(600);
+  expect((await prepare({moonstoneQuantity:50})).status).toBe(409);
+  expect(balance(db)).toBe(600);
 });

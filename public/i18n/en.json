@@ -1340,7 +1340,8 @@
         "w10000": "₩10,000",
         "from10000": "From ₩10,000",
         "w30000": "₩30,000",
-        "w50000": "₩50,000"
+        "w50000": "₩50,000",
+        "from3000": "From ₩3,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1601,14 +1602,14 @@
       "pass": "Passes",
       "login": "Log in",
       "account": "My account",
-      "offerTitle": "Saju once read in ₩300,000 one-on-one sessions, now from ₩1,000",
+      "offerTitle": "Saju once read in ₩300,000 one-on-one sessions, now from ₩3,000",
       "reviewsLead": "Real KakaoTalk messages from Neo's 1:1 clients, quoted in the original Korean. Omissions are marked with ….",
       "reviewsBar": "Neo 1:1 session · KakaoTalk",
       "reviewsMeta": "Real client review · shared with consent",
       "reviewsPosted": "posted on blog",
       "reviewsFine": "Reviews reflect personal experience and do not guarantee results. Saju readings are for reference only.",
-      "offerNote": "The 1:1 sessions were held by Neo in person; the ₩1,000 reading is delivered by a calculation engine with AI commentary.",
-      "offerCta": "Try the ₩1,000 Saju reading →",
+      "offerNote": "The 1:1 sessions were held by Neo in person; the ₩3,000 reading is delivered by a calculation engine with AI commentary.",
+      "offerCta": "Try the ₩3,000 Saju reading →",
       "expertiseTitle": "Rules for the calculation, AI for the commentary",
       "expertise": {
         "engine": "The natal chart is built with fixed calculation rules, and the AI writes its commentary from that result. If the commentary names a day or hour pillar that differs from the calculation, the server rejects it.",
