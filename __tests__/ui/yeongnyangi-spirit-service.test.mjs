@@ -59,10 +59,10 @@ for(const mode of ['prashna-v1'])test(mode+' uses question moment without a prof
   assert.equal(a._id,b._id);assert.equal(a.profileId,'question-sky');assert.equal(a.snapshot.manifest.length,2);
   assert.ok(a.snapshot.calculation.audit.length>0);assert.equal(a.snapshot.input.localTime,localTime);
   assert.equal(a.snapshot.analysis.consultation.questionSky.situation,'연락이 끊겼어요');
-  assert.equal(a.amountKRW,5000);assert.equal(a.featureKey,'yeongnyangi-saju-flounder');
+  assert.equal(a.amountKRW,7200);assert.equal(a.featureKey,'yeongnyangi-saju-flounder');
   assert.ok(a.snapshot.manifest.every(c=>c.title&&c.focus&&c.requiredSections.length>=2));
   assert.ok(a.snapshot.analysis.contexts.vedic.facts.some(f=>f.label==='프라슈나 계산 근거'));
-  assert.equal((await prepareFortune(env,'owner',body)).amountKRW,1000);
+  assert.equal((await prepareFortune(env,'owner',body)).amountKRW,3000);
   a.paymentId='original-payment';a.state='GENERATING';a.chapters=[{summary:'saved chapter',sources:['private-calculation']}];
   const replay=await prepareFortune({},'sky-owner',questionBody);
   assert.equal(replay.paymentId,'original-payment');assert.equal(replay.chapters.length,1);
@@ -81,7 +81,7 @@ test('new horary purchase is refused before DB/provider and old saved horary rem
  assert.equal(globalThis.__spiritTest.rows.size,before);assert.equal(globalThis.__spiritTest.calls,0);
  const row=await prepareFortune(env,'owner',body);
  const legacy={...row,paymentId:'legacy-horary',snapshot:{...row.snapshot,analysis:{...row.snapshot.analysis,consultation:{questionSky:{mode:'horary-v1'}}}}};
- const result=presentFortune(legacy);assert.equal(result.paid,true);assert.equal(result.product.priceKRW,1000);
+ const result=presentFortune(legacy);assert.equal(result.paid,true);assert.equal(result.product.priceKRW,3000);
 });
 
 test('new consultation attempts separate identical purchases while retries and saved results keep their identity',async()=>{

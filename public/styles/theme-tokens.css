@@ -402,3 +402,68 @@ html[data-cd-theme="neo"] {
   --cd-yehwa-line-deep: #e8d5a3;
   --cd-yehwa-ivory: #dcc48e;
 }
+
+/* Lunar floral controls: ornament stays in its own trailing gutter. */
+:root {
+  --cd-button-sprig-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='black' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 32c8-4 13-10 17-21M17 28c-7 0-9-5-7-9 6 0 9 4 7 9Zm5-7c-1-7 3-10 8-10 1 6-2 10-8 10M31 5a7 7 0 1 0 5 10 6 6 0 0 1-5-10Z'/%3E%3C/g%3E%3C/svg%3E");
+}
+.cd-yehwa-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cd-sp-sm);
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: var(--cd-btn-h);
+  max-width: 100%;
+  padding: 12px 24px;
+  border: 1px solid var(--cd-line-strong);
+  border-radius: var(--cd-r-control);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+.cd-yehwa-button--primary {
+  padding-inline-end: 44px;
+  background: var(--cd-cta-primary-bg);
+  color: var(--cd-cta-primary-ink);
+  border-color: var(--cd-cta-hairline);
+  box-shadow: var(--cd-shade-2);
+}
+.cd-yehwa-button--secondary {
+  background: var(--cd-surface);
+  color: var(--cd-text);
+  border-color: var(--cd-line-strong);
+  box-shadow: var(--cd-shade-1);
+}
+.cd-yehwa-button--primary::after,
+.cdh-pass__btn::after,
+.cdh-primary::after {
+  content: "";
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  inset-inline-end: 8px;
+  top: calc(50% - 14px);
+  background: var(--cd-yehwa-line);
+  -webkit-mask: var(--cd-button-sprig-mask) center / contain no-repeat;
+  mask: var(--cd-button-sprig-mask) center / contain no-repeat;
+  opacity: .7;
+  pointer-events: none;
+}
+.cd-yehwa-button:focus-visible { outline: 2px solid var(--cd-focus-ring); outline-offset: 3px; }
+.cd-yehwa-button:disabled { opacity: .5; cursor: default; box-shadow: none; }
+@media (hover: hover) {
+  .cd-yehwa-button:not(:disabled):hover { border-color: var(--cd-yehwa-line-deep); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cd-yehwa-button { transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+}
+
+:is(.cdh-primary,.cdh-secondary,.cdh-pass__btn):focus-visible {outline:2px solid var(--cd-focus-ring);outline-offset:3px}

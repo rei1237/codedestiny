@@ -1340,7 +1340,9 @@
         "w10000": "₩10,000",
         "from10000": "From ₩10,000",
         "w30000": "₩30,000",
-        "w50000": "₩50,000"
+        "w50000": "₩50,000",
+        "w20000": "₩20,000",
+        "from3000": "From ₩3,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1601,14 +1603,14 @@
       "pass": "Gói sử dụng",
       "login": "Đăng nhập",
       "account": "Tài khoản của tôi",
-      "offerTitle": "Lá số Tứ trụ từng được luận trong buổi tư vấn 1:1 giá 300.000 won, nay chỉ từ 1.000 won",
+      "offerTitle": "Lá số Tứ trụ từng được luận trong buổi tư vấn 1:1 giá 300.000 won, nay chỉ từ 3.000 won",
       "reviewsLead": "Tin nhắn KakaoTalk thật từ khách tư vấn 1:1 của Neo, giữ nguyên tiếng Hàn. Phần lược bỏ được đánh dấu bằng ….",
       "reviewsBar": "Tư vấn 1:1 với Neo · KakaoTalk",
       "reviewsMeta": "Đánh giá thật · đã đồng ý đăng",
       "reviewsPosted": "đăng trên blog",
       "reviewsFine": "Đánh giá dựa trên trải nghiệm cá nhân và không đảm bảo kết quả. Luận giải Tứ trụ chỉ mang tính tham khảo.",
-      "offerNote": "Buổi tư vấn 1:1 do Neo trực tiếp thực hiện; gói 1.000 won được cung cấp bằng công cụ tính toán và lời giải của AI.",
-      "offerCta": "Xem gói Tứ trụ 1.000 won →",
+      "offerNote": "Buổi tư vấn 1:1 do Neo trực tiếp thực hiện; gói 3.000 won được cung cấp bằng công cụ tính toán và lời giải của AI.",
+      "offerCta": "Xem gói Tứ trụ 3.000 won →",
       "expertiseTitle": "Tính toán theo quy tắc, AI viết lời giải",
       "expertise": {
         "engine": "Lá số được lập theo quy tắc tính cố định, AI viết lời giải dựa trên kết quả đó. Nếu lời giải ghi trụ ngày hoặc trụ giờ khác với kết quả tính, máy chủ sẽ loại bỏ.",
@@ -1648,7 +1650,7 @@
       "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
       "passCta": "See all 4 passes",
       "moreTitle": "Khám phá xưởng của Yeoni",
-      "moreItems": "Daily readings · consultations · passes · stories",
+      "moreItems": "Daily readings · consultations · stories",
       "moreClose": "Show less",
       "searchLead": "Find the reading you need by concern, method or price.",
       "searchPlaceholder": "Love, money, a job move… search readings",
@@ -6830,7 +6832,8 @@
         "k1bs96nr": "Bản tóm tắt tác chiến lạnh lùng của Neo cho lựa chọn trước mắt",
         "n30000": "30.000 KRW",
         "n20000Price10000": "Từ 10.000 KRW",
-        "n50000": "50.000 KRW"
+        "n50000": "50.000 KRW",
+        "n30000Price20000": "20.000 KRW"
       }
     },
     "cdSigCardBody": {

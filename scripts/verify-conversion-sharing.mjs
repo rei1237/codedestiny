@@ -20,7 +20,7 @@ try{
     Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>window.__copies.push(text)}});
    });
    await f.page.goto(base+'/');
-   await f.page.getByRole('heading',{name:'1회 30만원 1:1 상담으로 풀던 사주를, 이제 천원에'}).waitFor();
+   await f.page.getByRole('heading',{name:'1회 30만원 1:1 상담으로 풀던 사주를, 이제 3,000원에'}).waitFor();
    assert.match(await f.page.locator('#founder-records').innerText(),/10년 경력 운세 상담사·명리학자가 만든 서비스/);
    assert.match(await f.page.locator('meta[name="description"]').getAttribute('content'),/10년 경력/);
    assert.equal(await f.page.locator('#founder-records a[target="_blank"]').count(),0);

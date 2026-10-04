@@ -113,6 +113,8 @@
 /public/js/core/app-context.d.ts
 /public/js/core/app-context.js
 /public/js/core/astro/natal-reading.js
+/public/js/core/astro/transit-reading.js
+/public/js/core/astro/transits.js
 /public/js/core/auth-hint.d.ts
 /public/js/core/auth-hint.js
 /public/js/core/bootstrapDestinyFlower.js

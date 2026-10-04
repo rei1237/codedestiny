@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-04",
+  "tool": "built-in image_gen",
+  "reference": "public/neo-operation-room/sprites/transparent/neo-transparent-s1-f01.webp",
+  "assets": [
+    {
+      "path": "public/neo-operation-room/briefing/neo-explain-v1.webp",
+      "pose": "explain",
+      "prompt": "Create ONE polished transparent-background waist-up illustration of the exact male character Neo in the supplied reference. This is a character-consistency reference for Code Destiny's fortune consultation result UI. Preserve silver tousled hair, steel-blue eyes, same face and age (adult), ornate navy-blue military fantasy uniform with champagne gold embroidery, black gloves, violet-blue draped fabric, refined anime rendering and soft clean outlines. Pose: calmly explaining a strategy, one hand open palm gesturing toward the viewer's right as if explaining a diagram, attentive serious expression. Full head and shoulders and both hands inside frame, generous transparent padding, elegant three-quarter pose, readable at 160px display width, no text, no speech bubble, no numbers, no logo, no background, no glow fog. Match existing character precisely, do not make a lion or animal. Portrait canvas approximately 2:3. Final production UI asset, not a mockup.",
+      "encoding": "RGBA WebP, 480x720, quality 88; original generated PNG retained in Codex",
+      "use": "key assessment"
+    },
+    {
+      "path": "public/neo-operation-room/briefing/neo-caution-v1.webp",
+      "pose": "caution",
+      "prompt": "Create ONE polished transparent-background waist-up illustration of the exact male character Neo in the supplied reference. This is a character-consistency reference for Code Destiny's fortune consultation result UI. Preserve silver tousled hair, steel-blue eyes, same face and age (adult), ornate navy-blue military fantasy uniform with champagne gold embroidery, black gloves, violet-blue draped fabric, refined anime rendering and soft clean outlines. Pose: firm but respectful caution, one hand raised gently to indicate pause, composed focused expression, no anger or scolding. Full head and shoulders and both hands inside frame, generous transparent padding, elegant three-quarter pose, readable at 160px display width, no text, no speech bubble, no numbers, no logo, no background, no glow fog. Match existing character precisely, do not make a lion or animal. Portrait canvas approximately 2:3. Final production UI asset, not a mockup.",
+      "encoding": "RGBA WebP, 480x720, quality 88; original generated PNG retained in Codex",
+      "use": "forbidden action"
+    },
+    {
+      "path": "public/neo-operation-room/briefing/neo-encourage-v1.webp",
+      "pose": "encourage",
+      "prompt": "Create ONE polished transparent-background waist-up illustration of the exact male character Neo in the supplied reference. This is a character-consistency reference for Code Destiny's fortune consultation result UI. Preserve silver tousled hair, steel-blue eyes, same face and age (adult), ornate navy-blue military fantasy uniform with champagne gold embroidery, black gloves, violet-blue draped fabric, refined anime rendering and soft clean outlines. Pose: quiet encouraging conclusion, subtle warm confident smile and hand lightly over heart, dignified strategist. Full head and shoulders and both hands inside frame, generous transparent padding, elegant three-quarter pose, readable at 160px display width, no text, no speech bubble, no numbers, no logo, no background, no glow fog. Match existing character precisely, do not make a lion or animal. Portrait canvas approximately 2:3. Final production UI asset, not a mockup.",
+      "encoding": "RGBA WebP, 480x720, quality 88; original generated PNG retained in Codex",
+      "use": "closing words"
+    }
+  ]
+}

@@ -22,7 +22,7 @@ export default function NightHero(){
     <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>지금 궁금한 질문 고르기<ArrowRight size={19} aria-hidden="true"/></a>
     <a className={styles.secondary} href="#readings"><BookOpen size={18} aria-hidden="true"/>상담 종류 살펴보기</a>
    </div>
-   <p className={styles.price}>{planned!==null?<>선착순 {launchOffer.limit.toLocaleString('ko-KR')}명 체험가 · <LaunchPlannedPrice amount={planned}/></>:<>천원 운세부터 · </>}<span className={styles.keep}>사주 고등어 {starter.priceKRW.toLocaleString('ko-KR')}원</span> · {starter.chapterCount}개 챕터</p>
+   <p className={styles.price}>{planned!==null?<>선착순 {launchOffer.limit.toLocaleString('ko-KR')}명 체험가 · <LaunchPlannedPrice amount={planned}/></>:null}<span className={styles.keep}>사주 고등어 {starter.priceKRW.toLocaleString('ko-KR')}원</span> · {starter.chapterCount}개 챕터</p>
    <a className={styles.example} href="/yeongnyangi/1000-won-fortune/#example">결제 전 상담 예시 읽기 →</a>
   </div>
   <div className={styles.character}>

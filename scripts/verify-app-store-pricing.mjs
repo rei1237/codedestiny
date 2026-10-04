@@ -14,6 +14,7 @@ import { MUSIC_TRACK_UNLOCK_COIN_COST } from "../lib/music-access-policy.js";
 import {
   APP_FREE_MAX_COIN_PRICE,
   isAppFreeCoinPrice,
+  isAppFreeFeature,
   isAppUnverifiedContentCoinPrice,
   listAppContentTiers,
   listAppPassProducts,
@@ -65,7 +66,14 @@ function collectRegistryCoinPrices() {
 const registryCoinPrices = collectRegistryCoinPrices();
 for (const [coinPrice, sourceKeys] of [...registryCoinPrices.entries()].sort((a, b) => a[0] - b[0])) {
   if (isAppFreeCoinPrice(coinPrice)) {
-    notes.push(`무료 통과(${coinPrice}코인 ≤ ${APP_FREE_MAX_COIN_PRICE}): ${sourceKeys.join(", ")}`);
+    // 무료 구간 가격이어도 isAppFreeFeature 가 거부한 키(천원 사주 콘텐츠·영냥이)는 앱에서 돈을 받는다.
+    // 그 가격대에 SKU 가 없으면 APP_SKU_NOT_VERIFIED 실패 폐쇄이고, 있으면 그 SKU 로 판매된다.
+    const paidKeys = sourceKeys.filter((key) => !isAppFreeFeature(key, coinPrice));
+    const freeKeys = sourceKeys.filter((key) => isAppFreeFeature(key, coinPrice));
+    if (freeKeys.length) notes.push(`무료 통과(${coinPrice}코인 ≤ ${APP_FREE_MAX_COIN_PRICE}): ${freeKeys.join(", ")}`);
+    if (paidKeys.length) {
+      notes.push(`앱 유료(${coinPrice}코인, ${resolveAppContentTier(coinPrice) ? "SKU 판매" : "Play SKU 미생성 → APP_SKU_NOT_VERIFIED 실패 폐쇄"}): ${paidKeys.join(", ")}`);
+    }
     continue;
   }
   if (isAppUnverifiedContentCoinPrice(coinPrice)) {
@@ -82,8 +90,8 @@ for (const [coinPrice, sourceKeys] of [...registryCoinPrices.entries()].sort((a,
 for (const tier of listAppContentTiers()) {
   const orphan = tier.coinPrices.filter((coinPrice) => !registryCoinPrices.has(coinPrice));
   if (orphan.length === tier.coinPrices.length) {
-    // 이미 Play Console에 등록된 7천원 티어는 과거 영수증 복원을 위해 ID를 보존한다.
-    if (tier.productId === "cd_content_tier_14") notes.push(`복원 전용 보존 SKU ${tier.productId}: 현행 레지스트리 상품 없음`);
+    // 이미 Play Console에 등록된 7천원·2만원 티어는 과거 영수증 복원을 위해 ID를 보존한다.
+    if (["cd_content_tier_14", "cd_content_tier_09"].includes(tier.productId)) notes.push(`복원 전용 보존 SKU ${tier.productId}: 현행 레지스트리 상품 없음`);
     else failures.push(`앱 티어 ${tier.productId}: 레지스트리에 존재하지 않는 가격대(${tier.coinPrices.join(", ")}코인) — 사용되지 않는 SKU`);
   }
 }

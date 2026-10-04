@@ -1340,7 +1340,9 @@
         "w10000": "₩10,000",
         "from10000": "From ₩10,000",
         "w30000": "₩30,000",
-        "w50000": "₩50,000"
+        "w50000": "₩50,000",
+        "w20000": "₩20,000",
+        "from3000": "From ₩3,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1601,14 +1603,14 @@
       "pass": "Pases",
       "login": "Iniciar sesión",
       "account": "Mi cuenta",
-      "offerTitle": "El Saju que se leía en consultas 1:1 de ₩300.000, ahora desde ₩1.000",
+      "offerTitle": "El Saju que se leía en consultas 1:1 de ₩300.000, ahora desde ₩3.000",
       "reviewsLead": "Mensajes reales de KakaoTalk de clientes de las consultas 1:1 de Neo, citados en el coreano original. Las omisiones se marcan con ….",
       "reviewsBar": "Consulta 1:1 con Neo · KakaoTalk",
       "reviewsMeta": "Opinión real · publicada con consentimiento",
       "reviewsPosted": "publicado en el blog",
       "reviewsFine": "Las opiniones reflejan experiencias personales y no garantizan resultados. La lectura Saju es solo orientativa.",
-      "offerNote": "Las consultas 1:1 las hacía Neo en persona; la lectura de ₩1.000 se ofrece con un motor de cálculo y comentarios de IA.",
-      "offerCta": "Ver la lectura Saju de ₩1.000 →",
+      "offerNote": "Las consultas 1:1 las hacía Neo en persona; la lectura de ₩3.000 se ofrece con un motor de cálculo y comentarios de IA.",
+      "offerCta": "Ver la lectura Saju de ₩3.000 →",
       "expertiseTitle": "Cálculo con reglas fijas, comentario con IA",
       "expertise": {
         "engine": "La carta natal se construye con reglas de cálculo fijas y la IA redacta el comentario a partir de ese resultado. Si el comentario cita un pilar del día o de la hora distinto del calculado, el servidor lo descarta.",
@@ -1648,7 +1650,7 @@
       "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
       "passCta": "See all 4 passes",
       "moreTitle": "Explora el taller de Yeoni",
-      "moreItems": "Daily readings · consultations · passes · stories",
+      "moreItems": "Daily readings · consultations · stories",
       "moreClose": "Show less",
       "searchLead": "Find the reading you need by concern, method or price.",
       "searchPlaceholder": "Love, money, a job move… search readings",
@@ -6830,7 +6832,8 @@
         "k1bs96nr": "El informe de operaciones de Neo, frío y directo, sobre la decisión que tienes delante",
         "n30000": "₩30.000",
         "n20000Price10000": "Desde ₩10.000",
-        "n50000": "₩50.000"
+        "n50000": "₩50.000",
+        "n30000Price20000": "₩20.000"
       }
     },
     "cdSigCardBody": {

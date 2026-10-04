@@ -1340,7 +1340,9 @@
         "w10000": "10,000韩元",
         "from10000": "10,000韩元起",
         "w30000": "30,000韩元",
-        "w50000": "50,000韩元"
+        "w50000": "50,000韩元",
+        "w20000": "20,000韩元",
+        "from3000": "3,000韩元起"
       },
       "chip": {
         "love": "那个人的心意 · 我的下一段恋爱",
@@ -1601,14 +1603,14 @@
       "pass": "使用券",
       "login": "登录",
       "account": "我的账户",
-      "offerTitle": "曾以每次300,000韩元一对一咨询解读的四柱，现在1,000韩元起",
+      "offerTitle": "曾以每次300,000韩元一对一咨询解读的四柱，现在3,000韩元起",
       "reviewsLead": "这是尼奥一对一咨询时收到的真实 KakaoTalk 评价，按韩文原文照录，省略处以…标示。",
       "reviewsBar": "尼奥一对一咨询 · KakaoTalk",
       "reviewsMeta": "真实用户评价 · 已获发布同意",
       "reviewsPosted": "博客发布",
       "reviewsFine": "评价基于个人体验，不保证结果。四柱解读仅供参考。",
-      "offerNote": "一对一咨询由尼奥亲自进行；1,000韩元咨询由计算引擎与 AI 解读提供。",
-      "offerCta": "查看1,000韩元四柱咨询 →",
+      "offerNote": "一对一咨询由尼奥亲自进行；3,000韩元咨询由计算引擎与 AI 解读提供。",
+      "offerCta": "查看3,000韩元四柱咨询 →",
       "expertiseTitle": "命盘按规则计算，解读交给 AI",
       "expertise": {
         "engine": "命盘按固定计算规则排出，AI 根据计算结果撰写解读。若解读中出现与计算不符的日柱或时柱，服务器会将其拦下。",
@@ -1648,7 +1650,7 @@
       "passNote": "Standard、Premium、VVIP 适用于花猪运势，Family 适用于花猪和灵喵的付费解读。已购买的使用券保持购买时的条件。",
       "passCta": "查看4种使用券",
       "moreTitle": "探索妍伊的工作室",
-      "moreItems": "Daily readings · consultations · passes · stories",
+      "moreItems": "Daily readings · consultations · stories",
       "moreClose": "Show less",
       "searchLead": "按烦恼、占法和价格，找到你现在需要的运势。",
       "searchPlaceholder": "恋爱、财运、跳槽……搜索想看的运势",
@@ -6830,7 +6832,8 @@
         "k1bs96nr": "Neo 冷静点明的选择作战简报",
         "n30000": "30,000韩元",
         "n20000Price10000": "10,000韩元起",
-        "n50000": "50,000韩元"
+        "n50000": "50,000韩元",
+        "n30000Price20000": "20,000韩元"
       }
     },
     "cdSigCardBody": {

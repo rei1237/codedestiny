@@ -13,6 +13,7 @@
  */
 import { handlePaymentsContext } from "../../worker/payments/index.js";
 import { listProducts } from "../../worker/payments/catalog.js";
+import { getPaidFeatureBillingType } from "../../worker/lib/paid-feature-registry.js";
 import { activatePassSubscription, evaluatePassCoverage, revokePassGrantForOrder, terminatePassOnBudgetExhaustion } from "../../worker/payments/passes.js";
 import { getBillingFeaturePricing } from "../../worker/lib/billing-feature-registry.js";
 import { MIN_PASS_COVERABLE_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
@@ -24,7 +25,9 @@ const DAY_MS = 86_400_000;
 
 // 건당 상한 안쪽의 저가 상품 하나를 레지스트리에서 고른다(가격 개정에 흔들리지 않게).
 // 이용권 제외(passExcluded·direct_only) 상품은 이 경로의 대상이 아니므로 뺀다.
-const CHEAP = listProducts().filter((p) => !p.passExcluded && !p.familyPassOnly && Number(p.priceCoins) > 0 && Number(p.priceCoins) <= PASS_LIMITS.standard)
+// 2026-10-05: 최저가(10코인)가 천원 사주 콘텐츠(unlock, 소유 조회 1회 추가)로 바뀌어 회당(per_use) 경로로 고정한다.
+const CHEAP = listProducts().filter((p) => !p.passExcluded && !p.familyPassOnly && Number(p.priceCoins) > 0 && Number(p.priceCoins) <= PASS_LIMITS.standard
+  && getPaidFeatureBillingType(p.featureKey) === "per_use")
   .sort((a, b) => Number(a.priceCoins) - Number(b.priceCoins))[0];
 
 async function tokenFor(userId) {
@@ -588,7 +591,7 @@ describe("영냥이 제휴 상품 — Family·월정석·단건 허용", () => {
     expect(user.profileSubscription.monthlySpendCoin).toBe(FAMILY_ONLY.priceCoins);
   });
 
-  test("coin-gate/moonstone: 같은 상담을 반복 요청해도 500개를 한 번만 차감한다", async () => {
+  test("coin-gate/moonstone: 같은 상담을 반복 요청해도 월정석을 한 번만 차감한다", async () => {
     const db = makeFakePaymentDb({uniqueKeys:[["userId","type","sourceId"]]});
     const user = seedUser(db, {
       membershipCreditBalance: 100000, membershipCreditGranted: 100000, membershipCreditUsed: 0,
@@ -600,7 +603,7 @@ describe("영냥이 제휴 상품 — Family·월정석·단건 허용", () => {
     const first=await postMoonstone(db,body),second=await postMoonstone(db,body);
     expect(first.response.status).toBe(200);
     expect(second.response.status).toBe(200);
-    expect(user.profileSubscription.membershipCreditBalance).toBe(99500);
+    expect(user.profileSubscription.membershipCreditBalance).toBe(100000-FAMILY_ONLY.priceKRW/10);
     expect(db.rows.filter((row) => row.type === "MONTHLY_CREDIT_SPEND")).toHaveLength(1);
     expect(db.rows.find(row=>row._id===fortuneId)).toMatchObject({state:'PAID',accessMethod:'MOONLIGHT_STONE'});
   });

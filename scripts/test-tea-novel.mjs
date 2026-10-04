@@ -93,6 +93,21 @@ try {
   await page.waitForTimeout(500); await page.screenshot({path:out+'/question-'+width+'.png',fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'question overflow '+width);
  }
+ const modes=page.locator('[class*=consultModeGrid] [role=radio]');
+ assert.equal(await modes.count(),4);
+ for(let i=0;i<4;i++){
+  await modes.nth(i).click();
+  assert.equal(await modes.nth(i).getAttribute('aria-checked'),'true');
+ }
+ await modes.first().click();
+ await page.setViewportSize({width:1280,height:844});
+ await page.locator('#fortuneTeaQuestion').scrollIntoViewIfNeeded();
+ const inputBox=await page.locator('#fortuneTeaQuestion').boundingBox();
+ const actionBox=await page.getByRole('button',{name:'상담 내용과 가격 확인',exact:true}).boundingBox();
+ assert.ok(actionBox.y>=inputBox.y+inputBox.height,'actions do not overlap question input');
+ await page.locator('[class*=consultModeGrid]').screenshot({path:out+'/consult-methods.png'});
+ await page.getByRole('button',{name:'상담 내용과 가격 확인',exact:true}).scrollIntoViewIfNeeded();
+ await page.screenshot({path:out+'/buttons-1280.png'});
  await page.getByRole('button',{name:'돌아가기',exact:true}).click();
  await page.getByRole('button',{name:'연이의 이야기 읽기',exact:true}).click();
  await page.locator('[data-entry-stage="doorOpened"]').waitFor();

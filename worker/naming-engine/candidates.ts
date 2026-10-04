@@ -6,7 +6,7 @@
 // 동음 블랙리스트는 상위 K 에 들 만한 조합에만 늦게 확인한다(block 은 버리고 warn 은 감점).
 
 import { CONFIDENCE, DIST_BONUS, PRACTICAL, SEARCH, WEIGHTS } from "./config/weights";
-import { DISEASE_RADICAL, feminineCharForMale, hasNegativeMeaning, mismatchesGender } from "./config/negative-meaning";
+import { awkwardForName, DISEASE_RADICAL, feminineCharForMale, hasNegativeMeaning, mismatchesGender } from "./config/negative-meaning";
 import type { SchoolPreset } from "./config/school-presets";
 import type { BlacklistEntry, HanjaEntry, HanjaReading, NamingData } from "./data";
 import type { SajuNeeds } from "./saju-input";
@@ -69,12 +69,12 @@ export interface SearchHit {
 }
 
 /**
- * 글자(음 단위)가 허용되는 최소 완화 단계. null 은 어떤 단계에서도 추천하지 않는다(첫째 훈이 부정 뜻·반대 성별 호칭, 疒부, 남자 이름의 女부 글자).
+ * 글자(음 단위)가 허용되는 최소 완화 단계. null 은 어떤 단계에서도 추천하지 않는다(첫째 훈이 부정 뜻·반대 성별 호칭, 이름에 어색한 글자, 疒부, 남자 이름의 女부 글자).
  * 훈 없음·자원오행 신뢰도 하한 미만·무료의 분쟁 글자는 3단계에서만 허용한다.
  */
 export function unitStage(entry: HanjaEntry, reading: HanjaReading, tier: Tier, gender: "M" | "F" | "N"): number | null {
   if (hasNegativeMeaning(reading.hun) || mismatchesGender(reading.hun, gender)) return null;
-  if (entry.radical === DISEASE_RADICAL || feminineCharForMale(entry.ch, entry.radical, gender)) return null;
+  if (entry.radical === DISEASE_RADICAL || awkwardForName(entry.ch) || feminineCharForMale(entry.ch, entry.radical, gender)) return null;
   const lowConfidence = !entry.jawon || (entry.confidence ?? 0) < CONFIDENCE.floor;
   const freeDisputed = tier === "free" && entry.disputes.length > 0;
   return !reading.hun || lowConfidence || freeDisputed ? 3 : 0;

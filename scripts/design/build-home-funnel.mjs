@@ -74,8 +74,8 @@ vars.pass = `<section class="cdh-pass" aria-labelledby="cdhPassTitle" data-desig
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">이용권 4종 확인하기</a>
 </section>`;
 vars.representativePrice = Number(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW).toLocaleString('ko-KR') + '원';
-// 신뢰 블록 제목·고지·CTA 는 12개 로케일 사전에 "1,000원" 을 문구로 굽는다. 가격이 바뀌면 문구가 거짓이 되므로 빌드를 멈춘다.
-if (Number(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW) !== 1000) throw new Error('home funnel trust offer copy says 1,000원: update offerTitle/offerNote/offerCta before changing the mackerel price');;
+// 신뢰 블록 제목·고지·CTA 는 12개 로케일 사전에 "3,000원" 을 문구로 굽는다(2026-10-05 고등어 정식가). 가격이 바뀌면 문구가 거짓이 되므로 빌드를 멈춘다.
+if (Number(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW) !== 3000) throw new Error('home funnel trust offer copy says 3,000원: update offerTitle/offerNote/offerCta before changing the mackerel price');;
 // 홈 두 상담 카드(#fortuneGatewayEntry)의 '이후 1회 3,000원'은 사전 문구다 — 가격이 바뀌면 문구부터 고친다.
 if (Number(FEATURE_KEY_PRICE_TABLE['fortune-chat-consultation'].amountKRW) !== 3000) throw new Error('home chat doors say 3,000원: update shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n115000 before changing the fortune chat price');
 const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);

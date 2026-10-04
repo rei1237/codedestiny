@@ -176,7 +176,7 @@ window.__cdServiceRegistry = [
     desc: "직설적인 네오가 짚는 현실 전략",
     href: "/neo-operation-room/",
     featureKey: "neo-operation-room-consultation",
-    price: "30,000원",
+    price: "20,000원",
     purposes: ["money", "career", "life"],
     methods: ["saju", "ai"],
     keys: "네오 작전실 팩폭 전략 현실",
