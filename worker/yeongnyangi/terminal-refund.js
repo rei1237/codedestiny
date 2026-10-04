@@ -6,6 +6,10 @@ import {storedChapterDraft} from './stored-chapter.js';
 
 const leaseFree = now => ({ $or: [{ leaseUntil: null }, { leaseUntil: { $lte: now } }] });
 const pending = { [`${P}.status`]: 'pending', state: 'FORTUNE_FAILED', errorCode: 'DELIVERY_REFUND_PENDING' };
+const refundablePayment = { $or: [
+  { status: { $in: ['paid','success','fulfilled','cancelled'] } },
+  { status: 'refunded', orderState: 'CANCELLED' },
+] };
 const supported = row => String(row.featureKey || '').startsWith('yeongnyangi-') &&
   ['DIRECT_KRW','FAMILY','MOONLIGHT_STONE','SERVICE_PACK'].includes(row.accessMethod || (row.paymentId?'DIRECT_KRW':''));
 
@@ -24,10 +28,10 @@ export async function reserveDeliveryRefund(db, row, { retryable=false, now=new 
     if(current.paymentId) {
       payment=await tx.findOne(Payment,{_id:toObjectId(current.paymentId),userId:owner,featureKey:current.featureKey,
         'metadata.consumedBy':id,paymentType:'digital_content',purchaseType:{$ne:'GIFT'},
-        status:{$in:['paid','success','fulfilled','cancelled']}});
+        ...refundablePayment});
       if(!payment || payment.refundLock || payment.orderState==='PARTIAL_CANCELLED')return null;
       const locked=await tx.updateOne(Payment,{_id:payment._id,userId:owner,'metadata.consumedBy':id,
-        status:payment.status,refundLock:null},{$set:{'metadata.yeongnyangiRefundPending':true}});
+        status:payment.status,orderState:payment.orderState ?? null,refundLock:null},{$set:{'metadata.yeongnyangiRefundPending':true}});
       if(!locked.modifiedCount&&!payment.metadata?.yeongnyangiRefundPending)throw new Error('REFUND_RESERVATION_CONFLICT');
     }
     const reserved=await tx.findOneAndUpdate(YeongnyangiRequest,{_id:id,userId:owner,state:'FORTUNE_FAILED',errorCode:current.errorCode,
@@ -56,7 +60,7 @@ export async function settlePendingDeliveryRefund(env,db,row,{now=new Date(),ref
     if(claim.paymentId) {
       const payment=await db.findOne(Payment,{_id:toObjectId(claim.paymentId),userId:owner,featureKey:claim.featureKey,
         'metadata.consumedBy':id,'metadata.yeongnyangiRefundPending':true,purchaseType:{$ne:'GIFT'},
-        status:{$in:['paid','success','fulfilled','cancelled']}});
+        ...refundablePayment});
       if(!payment || payment.refundLock || payment.orderState==='PARTIAL_CANCELLED')throw new Error('REFUND_PAYMENT_PROOF_MISSING');
       const cancel=refundCash || (await import('../lib/payment-refund.js')).refundPaymentAsOperator;
       const result=await cancel({env,payment,reason:'영냥이 상담 복구 후 전체 결과 미제공 자동 환불',actorId:'system:yeongnyangi-delivery'});

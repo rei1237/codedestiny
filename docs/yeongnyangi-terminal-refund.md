@@ -24,7 +24,7 @@
 
 ## 검증
 
-신규 terminal refund, 월정석·서비스팩 repository, quota refund, recovery, 통합 기록/최애 저장 mock 7개 suite 86개 PASS. 현금 실패·응답 유실·중복 정산·단건 결제 할인 월정석 복원, 소유자/결제 연결, 현재/과거 초안, 최종 복구 선행, 월정석·서비스팩·family quota 복원, stale claim/reconcile 경합을 검증했다. 독립 기술 검토의 P1 경합 2건을 수정하고 해당 경합 테스트를 추가했다.
+신규 terminal refund, 월정석·서비스팩 repository, quota refund, recovery, 통합 기록/최애 저장 mock 7개 suite 89개 PASS. 현금 실패·응답 유실·중복 정산·단건 결제 할인 월정석 복원·웹훅 선확정 후 정산 재시도, 소유자/결제 연결, 현재/과거 초안, 최종 복구 선행, 월정석·서비스팩·family quota 복원, stale claim/reconcile 경합을 검증했다. 독립 기술 검토의 P1 경합 2건을 수정하고 해당 경합 테스트를 추가했다.
 
 실행 명령: `npm run test:jest -- --runInBand --runTestsByPath __tests__/worker/yeongnyangi-terminal-refund.test.js __tests__/worker/yeongnyangi-moonstone-refund-repository.test.js __tests__/worker/yeongnyangi-service-pack-repository.test.js __tests__/worker/yeongnyangi-recovery.test.js __tests__/worker/pass-consumption.refund.test.js __tests__/worker/record-library.test.js __tests__/worker/destiny-bias-record-storage.test.js`
 

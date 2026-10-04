@@ -31,6 +31,7 @@ const details={
   partial:{record:record('fusion','partial',{status:'partial'}),content:{chapters:[{title:'첫 장',body:'부분 저장 내용'}]}},
 };
 const browser=await chromium.launch({headless:true}); const evidence=[];
+let debugState;
 async function contextFor(width,scenario='normal') {
   const context=await browser.newContext({viewport:{width,height:844},reducedMotion:'reduce',serviceWorkers:'block',isMobile:width<500,hasTouch:width<500});
   await context.addInitScript(({user,guest})=>{localStorage.setItem('fortuneThemeModeStateV1','pig');if(!guest){localStorage.setItem('fortune_auth_user',JSON.stringify(user));localStorage.setItem('fortune_auth_token','mock-token');}}, {user,guest:scenario==='guest'});
@@ -65,7 +66,7 @@ async function contextFor(width,scenario='normal') {
   });
   const page=await context.newPage();page.setDefaultNavigationTimeout(120000);page.setDefaultTimeout(60000);page.on('pageerror',error=>errors.push(error.message));
   if(detailOnly)page.on('response',response=>{if(response.url().includes('/api/records/detail'))void response.json().then(data=>console.log('Fixture detail',response.status(),data.record?.status,Object.keys(data.content||{})));});
-  return {context,page,seen,forbidden,errors};
+  debugState={context,page,seen,forbidden,errors};return debugState;
 }
 async function bounds(page,width) {
   await page.waitForFunction(()=>parseFloat(getComputedStyle(document.querySelector('main')).paddingBottom)>=110);
@@ -73,7 +74,7 @@ async function bounds(page,width) {
   assert.ok(box.scroll<=width+1,`overflow ${box.scroll} > ${width}`);assert.ok(box.bottom>=110,'navigation safe spacing');return box;
 }
 try {
-  for(const width of detailOnly?[]:[360,390,430,1280]) {
+  for(const width of detailOnly?[]:[360,390,430,1280].filter(width=>!process.env.RECORDS_TEST_WIDTH||width===Number(process.env.RECORDS_TEST_WIDTH))) {
     const state=await contextFor(width);const {page,context}=state;
     await page.goto(origin+'/consultations/',{waitUntil:'domcontentloaded'});await page.getByRole('heading',{name:'지금, 어떤 답이 필요한가요?'}).waitFor();
     for(const source of RECORD_SERVICES.filter(row=>row.featured))assert.equal(await page.locator(`main a[href="${source.href}"]`).count(),1);
@@ -87,7 +88,7 @@ try {
     await page.getByRole('searchbox').fill('계획');await page.waitForTimeout(500);await page.locator('main article').first().waitFor();
     await page.locator('main article a').nth(4).scrollIntoViewIfNeeded();await page.waitForTimeout(100);const readingTop=await page.evaluate(()=>scrollY);
     await page.locator('main article a').nth(4).click();await page.waitForFunction(()=>document.querySelector('main h1')?.textContent.includes('[화면 검증]'));
-    await page.goBack({waitUntil:'domcontentloaded'});await page.locator('main article').first().waitFor();assert.equal(await page.getByRole('searchbox').inputValue(),'계획');await page.waitForTimeout(300);assert.ok(Math.abs(await page.evaluate(()=>scrollY)-readingTop)<60,`archive scroll restored ${readingTop}`);
+    await page.goBack({waitUntil:'domcontentloaded'});try{await page.locator('main article').first().waitFor();}catch(error){console.log('Back restoration failure',width,page.url(),await page.locator('main').innerText(),state.errors,state.seen);throw error;}assert.equal(await page.getByRole('searchbox').inputValue(),'계획');await page.waitForTimeout(300);assert.ok(Math.abs(await page.evaluate(()=>scrollY)-readingTop)<60,`archive scroll restored ${readingTop}`);
     await page.getByRole('button',{name:'대화 상담',exact:true}).click();await page.waitForFunction(()=>document.querySelectorAll('main article').length===6);
     assert.equal(await page.locator('main article a[href*="source=chat"] ').count(),6);
     await page.locator('main article a').first().click();await page.getByText('대화의 전체 상세 내용',{exact:true}).waitFor();await page.goBack({waitUntil:'domcontentloaded'});await page.locator('main article').first().waitFor();assert.equal(await page.getByRole('button',{name:'대화 상담',exact:true}).getAttribute('aria-pressed'),'true');
@@ -119,5 +120,6 @@ try {
     if(source==='codex')await state.page.waitForFunction(()=>Array.from(document.images).filter(img=>img.src.includes('CodeDestinyNovel')).every(img=>img.complete&&img.naturalWidth>0));
     await bounds(state.page,390);await state.page.screenshot({path:path.join(out,`reading-${source}.png`),fullPage:true});evidence.push({scenario:'direct-refresh-'+source,passed:true,...(source==='codex'?{portrait:'offline local character fixture; production R2 unverified'}:{}),api:state.seen});await state.context.close();
   }
-} finally {fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify(evidence,null,2));await browser.close();}
+} catch(error){console.log('Fixture browser failure',debugState?.page.url(),debugState?.errors,debugState?.seen,await debugState?.page.locator('body').innerText());throw error;}
+finally {fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify(evidence,null,2));await browser.close();}
 console.log(`PASS ${evidence.length} browser scenarios — fixtures only; provider/payment/write requests zero.`);

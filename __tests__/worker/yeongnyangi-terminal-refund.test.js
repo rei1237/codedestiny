@@ -36,10 +36,15 @@ test('historical drafts do not prevent a partial final failure reservation',asyn
  expect(deliveryRefundPending(row)).toBe(true);expect(row.chapters).toHaveLength(1);
  expect(f.payment.metadata.yeongnyangiRefundPending).toBe(true);
 });
-test.each(['owner','request','partial-cancel'])('invalid %s payment proof cannot start a refund',async kind=>{
+test.each(['owner','request','partial-cancel','refunded-partial'])('invalid %s payment proof cannot start a refund',async kind=>{
  const f=fixture();if(kind==='owner')f.payment.userId=OTHER;if(kind==='request')f.payment.metadata.consumedBy='b'.repeat(64);
  if(kind==='partial-cancel')f.payment.orderState='PARTIAL_CANCELLED';
+ if(kind==='refunded-partial'){f.payment.status='refunded';f.payment.orderState='PARTIAL_CANCELLED';}
  expect(await reserveDeliveryRefund(f.db,f.row,{now})).toBeNull();expect(deliveryRefundPending(f.row)).toBe(false);
+});
+test('webhook-confirmed full cancellation can reserve the remaining delivery settlement',async()=>{
+ const f=fixture();f.payment.status='refunded';f.payment.orderState='CANCELLED';
+ expect(deliveryRefundPending(await reserveDeliveryRefund(f.db,f.row,{now}))).toBe(true);
 });
 test('a recovery grant added after the scan wins over stale refund eligibility',async()=>{
  const f=fixture(),scanned=structuredClone(f.row);f.row.manualRecoveryGrants[1]++;
@@ -92,6 +97,19 @@ test('discount restoration failure remains pending after PG cancellation and is 
  const release=jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true);
  expect((await settlePendingDeliveryRefund({},f.db,f.row,{now,refundCash:cancel,releaseDiscount:release})).outcome).toBe('delivery_refund_pending');
  expect(f.row.state).toBe('FORTUNE_FAILED');
+ expect((await settlePendingDeliveryRefund({},f.db,f.row,{now:new Date(now.getTime()+180000),refundCash:cancel,releaseDiscount:release})).outcome).toBe('delivery_refunded');
+ expect(pgCalls).toBe(1);expect(release).toHaveBeenCalledTimes(2);
+});
+test('webhook-first full refund retries failed discount restoration without another PG cancellation',async()=>{
+ const f=fixture();f.payment.pricingSnapshot={moonstoneDiscount:{quantity:500}};await reserveDeliveryRefund(f.db,f.row,{now});
+ let pgCalls=0;
+ const cancel=async({payment})=>{
+  if(payment.orderState!=='CANCELLED'){pgCalls++;await f.db.updateOne(Payment,{_id:PAY},{$set:{status:'refunded',orderState:'CANCELLED'}});}
+  return {ok:true,orderState:'CANCELLED'};
+ };
+ const release=jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+ expect((await settlePendingDeliveryRefund({},f.db,f.row,{now,refundCash:cancel,releaseDiscount:release})).outcome).toBe('delivery_refund_pending');
+ expect(f.payment.status).toBe('refunded');expect(f.row.state).toBe('FORTUNE_FAILED');
  expect((await settlePendingDeliveryRefund({},f.db,f.row,{now:new Date(now.getTime()+180000),refundCash:cancel,releaseDiscount:release})).outcome).toBe('delivery_refunded');
  expect(pgCalls).toBe(1);expect(release).toHaveBeenCalledTimes(2);
 });
