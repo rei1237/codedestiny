@@ -63,8 +63,14 @@ export function loadCompatEngine(sourceUrl = new URL('../../js/saju-engine.js', 
       const s2 = side(p2);
       return api.analyzeCompat(p1, s1.natal, s1.power, s1.johu, s1.jong, p2, s2.natal, s2.power, s2.johu, s2.jong, type, name);
     },
-    pastLife(a, b, name = '상대') {
-      return api.analyzePastLifeCompat(toPillars(a), toPillars(b), name);
+    // out 을 주면 out.facts 에 전생 구조화 사실이 채워진다(반환 html 은 그대로).
+    pastLife(a, b, name = '상대', out) {
+      return api.analyzePastLifeCompat(toPillars(a), toPillars(b), name, out);
+    },
+    // 정적 소스 검사용 — 실제 선언 본문.
+    functionSource(name) {
+      if (!decl.has(name)) throw new Error(`Production declaration missing: ${name}`);
+      return decl.get(name).text;
     },
   };
 }

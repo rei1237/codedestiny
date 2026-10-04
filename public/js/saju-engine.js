@@ -29438,6 +29438,10 @@ async function runCompatCore(compatRunBtn, name, bd, type){
 function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
   var score=0;
   var reasons=[];
+  /* 구조화 사실(facts): 화면 문구와 같은 지점에서 코드·가감을 수집한다. 화면 html 은 이 값에 의존하지 않는다. */
+  var F={reasons:[],adjustments:[]};
+  function addReasonFact(code,delta,evidence){F.reasons.push({code:code,polarity:delta>0?'+':'-',delta:delta,evidence:evidence||{}});}
+  function addTypeAdjustFact(code,delta){F.adjustments.push({kind:'type',code:code,delta:delta});}
 
   function isHot(j){return j&& (j.type==='hot'||j.type==='warm');}
   function isCold(j){return j&& (j.type==='cold'||j.type==='cool');}
@@ -29446,26 +29450,33 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     if((isHot(jh1)&&isCold(jh2))||(isCold(jh1)&&isHot(jh2))){
       score+=4;
       reasons.push('한쪽은 뜨겁고 한쪽은 차가워 서로의 기온을 예쁘게 중화해주는 궁합이에요.');
+      addReasonFact('JOHU_COMPLEMENT',4);
     }else if(isHot(jh1)&&isHot(jh2)){
       score-=3;
       reasons.push('둘 다 뜨거운 편이라 감정의 불꽃은 강하지만, 다툼도 쉽게 커질 수 있는 불(火) 과열 궁합입니다.');
+      addReasonFact('JOHU_BOTH_HOT',-3);
     }else if(isCold(jh1)&&isCold(jh2)){
       score-=3;
       reasons.push('둘 다 차가운 편이라 안정감은 있지만, 서로가 서로에게 온기를 채워주기엔 다소 부족할 수 있어요.');
+      addReasonFact('JOHU_BOTH_COLD',-3);
     }else{
       score+=1;
       reasons.push('기온이 크게 충돌하진 않지만, 한쪽이 살짝 더 '+(isHot(jh1)?'따뜻한':'차가운')+' 편이라 균형을 잡아주는 구조입니다.');
+      addReasonFact('JOHU_MILD',1);
     }
     if(jh1.moistType&&jh2.moistType){
       if(jh1.moistType==='wet'&&jh2.moistType==='dry' || jh1.moistType==='dry'&&jh2.moistType==='wet'){
         score+=3;
         reasons.push('한 사람은 촉촉하고 한 사람은 건조한 체질이라, 습조(濕燥)가 서로를 채워주는 이상적인 궁합입니다.');
+        addReasonFact('MOIST_COMPLEMENT',3);
       }else if(jh1.moistType===jh2.moistType&&jh1.moistType!=='balanced'){
         score-=2;
         reasons.push('둘 다 '+(jh1.moistType==='wet'?'습기가 많은':'건조한')+' 편이라, 컨디션이 나쁠 때 함께 늘어지거나 메말라 있기 쉬운 구조입니다.');
+        addReasonFact('MOIST_BOTH',-2,{moist:jh1.moistType});
       }else{
         score+=0.5;
         reasons.push('습조(濕燥) 면에서는 크게 충돌하지 않고, 일상 컨디션도 비슷한 편으로 흘러가는 궁합입니다.');
+        addReasonFact('MOIST_NEUTRAL',0.5);
       }
     }
   }
@@ -29474,21 +29485,26 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
   if(e1===e2){
     score+=1;
     reasons.push('둘 다 '+EL_K[e1]+' 기운이 강해 비슷한 코드와 리듬을 공유합니다.');
+    addReasonFact('ELEMENT_SAME',1,{element:e1});
     if((n1.counts[e1]||0)>=4&&(n2.counts[e2]||0)>=4){
       score-=2;
       reasons.push('다만 같은 오행이 둘 다 너무 강해서, 의견 충돌 시 양보가 잘 안 되는 구조이기도 해요.');
+      addReasonFact('ELEMENT_SAME_EXCESS',-2,{element:e1});
     }
   }
   if(SHENG[e1]===e2){
     score+=3;
     reasons.push(EL_K[e1]+' 이 '+EL_K[e2]+' 을(를) 생해주는 구조라, 한쪽이 자연스럽게 다른 쪽을 키워주는 상생 궁합입니다.');
+    addReasonFact('ELEMENT_SHENG_SELF_TO_PARTNER',3,{from:e1,to:e2});
   }else if(SHENG[e2]===e1){
     score+=3;
     reasons.push(EL_K[e2]+' 이 '+EL_K[e1]+' 을(를) 도와주는 구조라, 서로를 성장시키는 든든한 지원자 관계입니다.');
+    addReasonFact('ELEMENT_SHENG_PARTNER_TO_SELF',3,{from:e2,to:e1});
   }
   if(KE[e1]===e2||KE[e2]===e1){
     score-=2;
     reasons.push('기본적으로 상극 관계('+EL_K[e1]+' ↔ '+EL_K[e2]+')라, 긴장감과 신경전이 쉽게 생길 수 있는 궁합입니다.');
+    addReasonFact('ELEMENT_KE',-2,{self:e1,partner:e2});
   }
 
   var g1=p1.d.g,g2=p2.d.g,j1=p1.d.j,j2=p2.d.j;
@@ -29513,21 +29529,25 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
   if(GANHE_C[g1]&&GANHE_C[g1][g2]){
     score+=3;
     reasons.push('두 사람의 일간 천간이 합(合)을 이루어, 기본적으로 마음 코드가 잘 맞는 궁합입니다.');
+    addReasonFact('DAY_STEM_HE',3,{self:g1,partner:g2});
   }
   if(JIHE_C[j1]&&JIHE_C[j1][j2]){
     score+=2;
     reasons.push('일지(배우자 자리)에서 육합이 이루어져, 같이 있을 때 편안함과 끌림이 강하게 느껴지는 구조입니다.');
+    addReasonFact('DAY_BRANCH_HE',2,{self:j1,partner:j2});
   }
   CHONG_G.forEach(function(p){
     if((p[0]===g1&&p[1]===g2)||(p[1]===g1&&p[0]===g2)){
       score-=3;
       reasons.push('일간이 충(沖)을 이루어, 좋은 점도 강하지만 부딪칠 때 크게 부딪히는 롤러코스터형 궁합이에요.');
+      addReasonFact('DAY_STEM_CHONG',-3,{self:g1,partner:g2});
     }
   });
   CHONG_J.forEach(function(p){
     if((p[0]===j1&&p[1]===j2)||(p[1]===j1&&p[0]===j2)){
       score-=3;
       reasons.push('일지가 충(沖)을 이루어, 생활 패턴이나 감정 리듬이 다르게 움직일 수 있습니다. 조율이 중요해요.');
+      addReasonFact('DAY_BRANCH_CHONG',-3,{self:j1,partner:j2});
     }
   });
 
@@ -29542,6 +29562,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     if(commonY.length){
       score+=4;
       reasons.push('두 사람 모두 '+commonY.map(function(e){return EL_E[e]+EL_K[e];}).join(', ')+' 기운을 용신으로 삼아, 인생을 바라보는 핵심 방향이 매우 비슷합니다.');
+      addReasonFact('YONGSHIN_COMMON',4,{elements:commonY.slice()});
     }
     var commonSet={};
     commonY.forEach(function(e){commonSet[e]=true;});
@@ -29555,19 +29576,20 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     if(clashEls.length){
       score-=4;
       reasons.push('특히 '+clashEls.map(function(e){return EL_E[e]+EL_K[e];}).join(', ')+' 기운은 한쪽에게는 용신, 다른 한쪽에게는 기신으로 작용해, 그 주제에서는 민감하게 부딪힐 수 있는 구조입니다.');
+      addReasonFact('YONGSHIN_CLASH',-4,{elements:clashEls.slice()});
     }
   }
 
   if(type==='love'){
-    if(JIHE_C[j1]&&JIHE_C[j1][j2])score+=1;
-    if(isHot(jh1)&&isHot(jh2))score-=1;
+    if(JIHE_C[j1]&&JIHE_C[j1][j2]){score+=1;addTypeAdjustFact('TYPE_LOVE_DAY_BRANCH_HE',1);}
+    if(isHot(jh1)&&isHot(jh2)){score-=1;addTypeAdjustFact('TYPE_LOVE_BOTH_HOT',-1);}
   }else if(type==='business'){
-    if(pw1&&pw2&&pw1.isStrong&&pw2.isStrong)score+=1;
+    if(pw1&&pw2&&pw1.isStrong&&pw2.isStrong){score+=1;addTypeAdjustFact('TYPE_BUSINESS_BOTH_STRONG',1);}
     CHONG_J.forEach(function(p){
-      if((p[0]===j1&&p[1]===j2)||(p[1]===j1&&p[0]===j2))score-=1;
+      if((p[0]===j1&&p[1]===j2)||(p[1]===j1&&p[0]===j2)){score-=1;addTypeAdjustFact('TYPE_BUSINESS_DAY_BRANCH_CHONG',-1);}
     });
   }else if(type==='friend'){
-    if(KE[e1]===e2||KE[e2]===e1)score+=1; // 티키타카용 긴장감
+    if(KE[e1]===e2||KE[e2]===e1){score+=1;addTypeAdjustFact('TYPE_FRIEND_ELEMENT_KE',1);} // 티키타카용 긴장감
   }
 
   var allChars1=[p1.y.g,p1.y.j,p1.m.g,p1.m.j,p1.d.g,p1.d.j,p1.h.g,p1.h.j];
@@ -29592,6 +29614,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     if(kijiControlEvents.length){
       score+=5;
       reasons.push('⭐ 흉신 제어: 상대의 글자('+kijiControlEvents.map(function(e){return e.by;}).join(', ')+')가 당신의 기신('+kijiControlEvents.map(function(e){return e.char;}).join(', ')+')을 충(沖)으로 제거해줍니다. 상대방이 당신의 나쁜 기운을 몰아내주는 최고 궁합의 핵심 요인입니다.');
+      addReasonFact('KIJI_CONTROL_FORWARD',5,{events:kijiControlEvents.map(function(e){return{char:e.char,by:e.by};})});
     }
   }
   var p2KijiEvents=[];
@@ -29608,6 +29631,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     if(p2KijiEvents.length){
       score+=4;
       reasons.push('⭐ 역방향 흉신 제어: 당신의 글자('+p2KijiEvents.map(function(e){return e.by;}).join(', ')+')가 상대의 기신을 충으로 제거해줍니다. 당신도 상대에게 해방감을 주는 존재입니다.');
+      addReasonFact('KIJI_CONTROL_REVERSE',4,{events:p2KijiEvents.map(function(e){return{char:e.char,by:e.by};})});
     }
   }
 
@@ -29625,6 +29649,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
         heTrapFound=true;
         score-=4;
         reasons.push('🚨 합의 함정: '+c1+'와 '+c2+'가 합(合)을 이루면서 결과 오행('+EL_K[rEl]+')이 당신의 기신을 강화합니다. 겉은 잘 맞아 보이나 속으로 해로운 에너지가 쌓이는 구조입니다. 편안함과 중독을 구분하세요.');
+        addReasonFact('HE_TRAP',-4,{self:c1,partner:c2,resultElement:rEl});
       }
     });
   });
@@ -29633,6 +29658,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
 
   var sok=analyzeSokCompat(jh1,p1.m.j,jh2,p2.m.j,p1,p2,type,n1,n2);
   score+=sok.scoreAdj;
+  sok.facts.adjustments.forEach(function(a){F.adjustments.push(a);});
 
   var normalizeMyeongri = function(raw) {
     return Math.max(20, Math.min(96, Math.round(58 + (raw * 2.8))));
@@ -29784,7 +29810,39 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     '</div>'+
     '</div>';
 
-  return{score:score,integratedScore:integratedScore,grade:grade,gradeCls:gradeCls,label:gradeLabel,emoji:gradeIcon,html:html};
+  var factFlags=[str1==='신강'&&str2==='신약'?'STRENGTH_SELF_LEADS':str1==='신약'&&str2==='신강'?'STRENGTH_PARTNER_LEADS':'STRENGTH_PEER'];
+  if(KE[e1]===e2)factFlags.push('KE_SELF_OVER_PARTNER');else if(KE[e2]===e1)factFlags.push('KE_PARTNER_OVER_SELF');
+  if(kijiControlEvents.length)factFlags.push('KIJI_RELIEF');
+  if(heTrapFound)factFlags.push('HE_TRAP');
+  var facts={
+    type:type,
+    score:{raw:score,display:integratedScore},
+    grade:{code:grade.charAt(0)},
+    prescriptionBand:score>=8?'keep':score>=3?'grow':score>=-2?'communicate':'survive',
+    longTermBand:integratedScore>=80?'high':integratedScore>=65?'good':integratedScore>=50?'mid':'low',
+    conflictBand:heTrapFound?'he_trap':clashEls.length?'yongshin_clash':'calm',
+    johu:{
+      self:{type:jh1?jh1.type:null,moist:jh1?(jh1.moistType||null):null},
+      partner:{type:jh2?jh2.type:null,moist:jh2?(jh2.moistType||null):null}
+    },
+    dominantElements:{
+      self:{element:e1,count:n1.counts[e1]||0},
+      partner:{element:e2,count:n2.counts[e2]||0}
+    },
+    dayPillars:{self:{gan:g1,ji:j1},partner:{gan:g2,ji:j2}},
+    strength:{self:str1==='신강'?'strong':'weak',partner:str2==='신강'?'strong':'weak'},
+    yongshin:{
+      self:yong1.slice(),partner:yong2.slice(),
+      kijiSelf:kiji1.slice(),kijiPartner:kiji2.slice(),
+      common:commonY.slice(),clash:clashEls.slice(),
+      jong:{self:!!(jg1&&jg1.isJong),partner:!!(jg2&&jg2.isJong)}
+    },
+    factFlags:factFlags,
+    reasons:F.reasons,
+    adjustments:F.adjustments,
+    sok:sok.facts
+  };
+  return{score:score,integratedScore:integratedScore,grade:grade,gradeCls:gradeCls,label:gradeLabel,emoji:gradeIcon,html:html,facts:facts};
 }
 function analyzeSokCompat(jh1,mj1,jh2,mj2,p1,p2,type,n1,n2){
   type = type || 'love';
@@ -29797,6 +29855,7 @@ function analyzeSokCompat(jh1,mj1,jh2,mj2,p1,p2,type,n1,n2){
   var s1=getSeason(mj1),s2=getSeason(mj2);
   var h1=isHot(jh1),h2=isHot(jh2),c1=isCold(jh1),c2=isCold(jh2);
   var score=0,text='';
+  var adj=[],johuPair='neutral',seasonPair='other',stemRelation=null,sameExcess=false;
 
   var warmWarmText, coldColdText, mixedText, neutralText;
   if(type==='business'){
@@ -29816,15 +29875,15 @@ function analyzeSokCompat(jh1,mj1,jh2,mj2,p1,p2,type,n1,n2){
     neutralText = '🌱 평온한 대지: 한여름의 습함도 한겨울의 칼바람도 없는, 쾌적한 봄가을 날씨 같은 에너지 조화를 이룹니다. 극단적인 롤러코스터보다는 잔잔하고 안정적으로 신뢰를 쌓아가며 편안한 육체적, 정신적 교감을 나누는 데 유리한 아주 건강한 구조입니다.';
   }
 
-  if(h1&&h2){ score+=2; text=warmWarmText; }
-  else if(c1&&c2){ score+=1; text=coldColdText; }
-  else if((h1&&c2)||(h2&&c1)){ score+=0; text=mixedText; }
-  else{ score+=0.5; text=neutralText; }
+  if(h1&&h2){ score+=2; text=warmWarmText; johuPair='warm_warm'; adj.push({kind:'sok',code:'SOK_JOHU_WARM_WARM',delta:2}); }
+  else if(c1&&c2){ score+=1; text=coldColdText; johuPair='cold_cold'; adj.push({kind:'sok',code:'SOK_JOHU_COLD_COLD',delta:1}); }
+  else if((h1&&c2)||(h2&&c1)){ score+=0; text=mixedText; johuPair='mixed'; adj.push({kind:'sok',code:'SOK_JOHU_MIXED',delta:0}); }
+  else{ score+=0.5; text=neutralText; adj.push({kind:'sok',code:'SOK_JOHU_NEUTRAL',delta:0.5}); }
 
   var pairGood=(s1==='봄'&&s2==='가을')||(s1==='가을'&&s2==='봄')||(s1==='여름'&&s2==='겨울')||(s1==='겨울'&&s2==='여름');
-  if(pairGood)score+=2;
-  else if(s1===s2)score+=0.5;
-  else score-=0.5;
+  if(pairGood){score+=2;seasonPair='complement';adj.push({kind:'sok',code:'SOK_SEASON_COMPLEMENT',delta:2});}
+  else if(s1===s2){score+=0.5;seasonPair='same';adj.push({kind:'sok',code:'SOK_SEASON_SAME',delta:0.5});}
+  else{score-=0.5;adj.push({kind:'sok',code:'SOK_SEASON_OTHER',delta:-0.5});}
 
   var e1=(GAN[p1.d.g]||{}).e;
   var e2=(GAN[p2.d.g]||{}).e;
@@ -29832,19 +29891,20 @@ function analyzeSokCompat(jh1,mj1,jh2,mj2,p1,p2,type,n1,n2){
     var elMap={wood:'목(木-성장/뻗어나감)',fire:'화(火-열정/확산)',earth:'토(土-수용/안정)',metal:'금(金-규칙/결단)',water:'수(水-유연/지혜)'};
     if(e1===e2){
       score+=1;
+      stemRelation='same'; adj.push({kind:'sok',code:'SOK_STEM_SAME',delta:1});
       var sameBase = '두 사람 모두 '+elMap[e1]+' 기운이 본질(일간)이라, 세상을 바라보는 프레임과 삶의 리듬이 마치 거울을 보듯 닮아 있습니다. 말하지 않아도 통하는 깊은 동질감이 이 관계의 강력한 기초가 됩니다.';
       if(type==='love') sameBase += ' 하지만 너무 비슷한 사람끼리는 자석의 같은 극처럼 밀어내거나, 지나치게 익숙해져 "가족 같은 편안함"만 남고 설렘이 줄어드는 함정에 빠질 수 있습니다. 의식적으로 새로운 데이트나 낯선 경험을 공유하여 자극을 공급해주세요.';
       else if(type==='business') sameBase += ' 동업할 때 업무 스타일이 같아 소통 비용이 제로에 가깝습니다. 다만, 같은 맹점을 가질 수 있으므로 두 사람 다 놓치기 쉬운 영역(재무 등)은 제3자에게 조언을 구하는 것이 안전합니다.';
       else sameBase += ' 관심사나 노는 방식이 완벽히 일치하여 최고의 파트너가 됩니다. 혼자 하기 뻘쭘했던 것들을 함께 시도해 보세요.';
       text += '<br><br><b>오행 본원(일간) 분석:</b> '+sameBase;
-      if((n1.counts[e1]||0)>=4&&(n2.counts[e2]||0)>=4){ score-=2; text += ' ⚠️ 다만, 두 분 모두 특정 오행으로 쏠림이 너무 심해 다툼이 생기면 누구 하나 쉽게 굽히지 않는 지독한 평형 상태에 빠질 수 있습니다. 갈등 시 무조건 중간 조율자를 두는 것이 좋습니다.'; }
+      if((n1.counts[e1]||0)>=4&&(n2.counts[e2]||0)>=4){ score-=2; sameExcess=true; adj.push({kind:'sok',code:'SOK_STEM_SAME_EXCESS',delta:-2}); text += ' ⚠️ 다만, 두 분 모두 특정 오행으로 쏠림이 너무 심해 다툼이 생기면 누구 하나 쉽게 굽히지 않는 지독한 평형 상태에 빠질 수 있습니다. 갈등 시 무조건 중간 조율자를 두는 것이 좋습니다.'; }
     } else {
       var gen={'wood':'fire','fire':'earth','earth':'metal','metal':'water','water':'wood'};
       var con={'wood':'earth','earth':'water','water':'fire','fire':'metal','metal':'wood'};
-      if(gen[e1]===e2){ score+=0.5; text += '<br><br><b>오행 본원(일간) 생극제화:</b> 당신의 '+elMap[e1]+'가 상대의 '+elMap[e2]+'를 끊임없이 생(生, 밀어주고 키워줌)하는 구조입니다. 당신이 무의식중에 상대를 돌보고 에너지를 공급하며, 그로 인해 상대가 빛을 보게 됩니다. 이 자연스럽고 헌신적인 사랑의 흐름이 관계를 따뜻하게 만듭니다.'; }
-      else if(gen[e2]===e1){ score+=0.5; text += '<br><br><b>오행 본원(일간) 생극제화:</b> 상대의 '+elMap[e2]+'가 당신의 '+elMap[e1]+'를 아낌없이 생(生)해주는, 이른바 "받는 사랑"의 구조입니다. 상대가 자연스럽게 당신의 지지기반이 되어주며, 당신은 그로 인해 편안함과 안정감을 얻습니다. 받는 것에 익숙해지지 말고 깊은 감사를 꼭 표현하세요.'; }
-      else if(con[e1]===e2){ score-=1; text += '<br><br><b>오행 상극(일간)의 긴장감:</b> 당신의 '+elMap[e1]+'가 상대의 '+elMap[e2]+'를 극(剋, 통제하고 조종함)하는 구조라, 당신도 모르게 상대의 방식에 간섭하거나 리드하려는 성향이 강해집니다. 이 "건강한 압박"이 성장을 낳을지, 숨 막히는 스트레스가 될지는 당신의 어휘와 배려심에 달려 있습니다.'; }
-      else if(con[e2]===e1){ score-=1; text += '<br><br><b>오행 상극(일간)의 긴장감:</b> 상대의 '+elMap[e2]+'가 당신의 '+elMap[e1]+'를 억제하는 형태라, 관계에서 은연중에 당신이 지고 들어가거나 눈치를 보게 될 수 있습니다. 매력적인 긴장감이자 강력한 끌림의 원인이 되기도 하지만, 장기적으로 당신의 에너지가 시들지 않도록 각자의 경계선(Boundary)을 명확히 설정하는 것이 이 관계를 살리는 길입니다.'; }
+      if(gen[e1]===e2){ score+=0.5; stemRelation='sheng_self_to_partner'; adj.push({kind:'sok',code:'SOK_STEM_SHENG',delta:0.5}); text += '<br><br><b>오행 본원(일간) 생극제화:</b> 당신의 '+elMap[e1]+'가 상대의 '+elMap[e2]+'를 끊임없이 생(生, 밀어주고 키워줌)하는 구조입니다. 당신이 무의식중에 상대를 돌보고 에너지를 공급하며, 그로 인해 상대가 빛을 보게 됩니다. 이 자연스럽고 헌신적인 사랑의 흐름이 관계를 따뜻하게 만듭니다.'; }
+      else if(gen[e2]===e1){ score+=0.5; stemRelation='sheng_partner_to_self'; adj.push({kind:'sok',code:'SOK_STEM_SHENG',delta:0.5}); text += '<br><br><b>오행 본원(일간) 생극제화:</b> 상대의 '+elMap[e2]+'가 당신의 '+elMap[e1]+'를 아낌없이 생(生)해주는, 이른바 "받는 사랑"의 구조입니다. 상대가 자연스럽게 당신의 지지기반이 되어주며, 당신은 그로 인해 편안함과 안정감을 얻습니다. 받는 것에 익숙해지지 말고 깊은 감사를 꼭 표현하세요.'; }
+      else if(con[e1]===e2){ score-=1; stemRelation='ke_self_over_partner'; adj.push({kind:'sok',code:'SOK_STEM_KE',delta:-1}); text += '<br><br><b>오행 상극(일간)의 긴장감:</b> 당신의 '+elMap[e1]+'가 상대의 '+elMap[e2]+'를 극(剋, 통제하고 조종함)하는 구조라, 당신도 모르게 상대의 방식에 간섭하거나 리드하려는 성향이 강해집니다. 이 "건강한 압박"이 성장을 낳을지, 숨 막히는 스트레스가 될지는 당신의 어휘와 배려심에 달려 있습니다.'; }
+      else if(con[e2]===e1){ score-=1; stemRelation='ke_partner_over_self'; adj.push({kind:'sok',code:'SOK_STEM_KE',delta:-1}); text += '<br><br><b>오행 상극(일간)의 긴장감:</b> 상대의 '+elMap[e2]+'가 당신의 '+elMap[e1]+'를 억제하는 형태라, 관계에서 은연중에 당신이 지고 들어가거나 눈치를 보게 될 수 있습니다. 매력적인 긴장감이자 강력한 끌림의 원인이 되기도 하지만, 장기적으로 당신의 에너지가 시들지 않도록 각자의 경계선(Boundary)을 명확히 설정하는 것이 이 관계를 살리는 길입니다.'; }
     }
   }
 
@@ -29951,10 +30011,20 @@ function analyzeSokCompat(jh1,mj1,jh2,mj2,p1,p2,type,n1,n2){
     detail+='</div>';
   }
 
-  return{scoreAdj:score,text:text+detail};
+  var SEASON_CODE={'봄':'spring','여름':'summer','가을':'autumn','겨울':'winter'};
+  var TEN_GOD_CODE={'비겁':'bigeop','식상':'siksang','관성':'gwanseong','인성':'inseong','재성':'jaeseong'};
+  var sokFacts={
+    johuPair:johuPair,
+    seasons:{self:SEASON_CODE[s1],partner:SEASON_CODE[s2]},
+    seasonPair:seasonPair,
+    stem:{self:e1||null,partner:e2||null,relation:stemRelation,sameExcess:sameExcess},
+    tenGods:{self:cat1?TEN_GOD_CODE[cat1]:null,partner:cat2?TEN_GOD_CODE[cat2]:null},
+    adjustments:adj
+  };
+  return{scoreAdj:score,text:text+detail,facts:sokFacts};
 }
 
-function analyzePastLifeCompat(p1, p2, name){
+function analyzePastLifeCompat(p1, p2, name, out){
   var GAN_HE={甲:'己',己:'甲',乙:'庚',庚:'乙',丙:'辛',辛:'丙',丁:'壬',壬:'丁',戊:'癸',癸:'戊'};
   var GAN_CHONG={甲:'庚',庚:'甲',乙:'辛',辛:'乙',丙:'壬',壬:'丙',丁:'癸',癸:'丁'};
   var JI_HE={子:'丑',丑:'子',寅:'亥',亥:'寅',卯:'戌',戌:'卯',辰:'酉',酉:'辰',巳:'申',申:'巳',午:'未',未:'午'};
@@ -29982,34 +30052,34 @@ function analyzePastLifeCompat(p1, p2, name){
   pScore+=(ab_ganHe?2:0)+(ab_jiHe?2:0)-(ab_ganChong?2:0)-(ab_jiChong?2:0)+(ab_ganSame?1:0)+(ab_jiSame?1:0);
   pScore+=(ba_ganHe?2:0)+(ba_jiHe?2:0)-(ba_ganChong?2:0)-(ba_jiChong?2:0)+(ba_ganSame?1:0)+(ba_jiSame?1:0);
 
-  var grade,gradeIcon,gradeLabel,gradeDesc,story,prescription;
+  var grade,gradeIcon,gradeLabel,gradeDesc,story,prescription,gradeCode;
   if(pScore>=6){
-    grade='🌟 S급';gradeIcon='💫';gradeLabel='전생의 쌍둥이 별';
+    grade='🌟 S급';gradeCode='S';gradeIcon='💫';gradeLabel='전생의 쌍둥이 별';
     gradeDesc='[천간합+지지합] 천간(하늘의 뜻)과 지지(땅의 현실)가 완벽한 合(합)을 이루는, 수백만 분의 일 확률로 만나는 극히 드문 우주적 인연입니다.';
     story='먼 전생에 두 영혼은 하나의 거대한 사명을 위해 함께 태어났습니다. 스승과 제자였거나, 한 나라를 함께 세운 동지였거나, 전쟁터에서 서로의 목숨을 기꺼이 대신 내어준 절대적 구원자였을 것입니다. 육신은 스러졌어도 영혼에 새겨진 그 깊은 약속이 끊어지지 않아 우주가 이 거대한 수레바퀴를 돌려 이번 생에서 당신들을 다시 만나게 세팅했습니다. 처음 만난 순간부터 이유 없이 쏟아지던 맹목적인 신뢰와 눈물 나도록 그리웠던 감정은 결코 우연이나 착각이 아닙니다.';
     prescription='[절대 보존의 법칙]: 이 인연의 엄청난 무게를 일상의 편안함 취급하며 가벼이 여기지 마세요. 전생의 그 깊은 은혜로운 인연도 현생에서 오만해지면 깎이고 부서집니다. 두 사람의 에너지는 단순히 둘이 잘 먹고 잘사는 것을 넘어 외부로 뻗어나가야 합니다. 함께 이룰 거대한 공동의 목표나 사회적인 선한 영향력을 설계하여 그 거대한 빛의 에너지를 끊임없이 발산하세요.';
   }else if(pScore>=3){
-    grade='✨ A급';gradeIcon='🌸';gradeLabel='운명의 데자뷰 인연';
+    grade='✨ A급';gradeCode='A';gradeIcon='🌸';gradeLabel='운명의 데자뷰 인연';
     gradeDesc='[강력한 합의 기운] 전생에 깊은 정서적 교감이나 매우 구체적인 약속이 있었던 카르마 파트너입니다. 이유 없는 강렬한 끌림의 정체입니다.';
     story='이 두 사람은 길고 긴 전생의 스펙트럼 어딘가에서 이미 서로의 체온과 숨결을 너무나 잘 알고 있었습니다. 생전 처음 만난 낯선 눈동자 속에서 느껴지는 지독히 묘한 친근감, 어딘가 오래전부터 대화를 이어온 것 같은 알 수 없는 데자뷰 — 그것은 뇌의 오류가 아니라 영혼의 기억입니다. 어쩌면 한쪽이 다른 한쪽에게 미처 갚지 못한 빚(사랑이든 헌신이든)을 갚으러 부리나케 찾아왔거나, 전생의 마지막 순간에 채 끝맺지 못한 애절한 이야기를 마저 완성하기 위해 먼 길을 돌아 현생의 무대에 함께 오른 것입니다.';
     prescription='[진실의 거울 법칙]: 이 운명적 만남을 진정한 완성으로 이끌려면 철저한 "영혼의 알몸"이 되어야 합니다. 전생에서 오해로 인해 삼켜야 했던 말들, 숨기고 혼자 앓았던 상처를 현생에서 남김없이 꺼내어 소독하세요. 이 인연이 가끔 주는 찌릿한 불편함조차 전생의 잔재이니 절대 회피하지 말고 정면으로 마주 안아야만 비로소 완전한 카르마의 해소가 이루어집니다.';
   }else if(pScore>=1){
-    grade='🌱 B급';gradeIcon='🌿';gradeLabel='다시 싹트는 인연';
+    grade='🌱 B급';gradeCode='B';gradeIcon='🌿';gradeLabel='다시 싹트는 인연';
     gradeDesc='[가벼운 합/복음] 전생의 어느 한 자락에서 옷깃을 스치듯 가볍게 인연을 맺었던 얕은 카르마가 현생에서 발아할 기회를 얻었습니다.';
     story='전생에서 두 사람은 짧고 굵지 구부러진 관계보다는 바람처럼 스쳐 간 사이였습니다. 번화한 시장통에서 우연히 눈이 마주친 상인과 손님이었거나, 비를 피해 잠시 같은 처마 밑으로 뛰어들어온 같은 마을 사람이었을지 모릅니다. 특별한 감정적 부채나 원한은 없었으나, 묘하게 좋은 잔상으로 남은 그 스침이 현생에서는 더 무성한 가지를 뻗어 깊이 있는 숲으로 자라날 기회의 씨앗을 얻은 것입니다.';
     prescription='[물의 법칙]: 거창한 소울메이트의 서사를 강요하거나 무리하게 딥토크를 이끌어내려 하지 마세요. 이 인연은 폭우가 아니라 안개비처럼 일상의 작고 소소한 정성에 자양분을 얻어 자라납니다. 밥은 먹었는지 묻고, 작은 초콜릿을 건네는 그 가벼운 발걸음 속에서 전생엔 스쳐 갔던 인연이 현생에서는 든든히 뿌리를 내리는 기적을 맛볼 수 있습니다.';
   }else if(pScore===0){
-    grade='⚪ C급';gradeIcon='🔮';gradeLabel='백지 위의 새로운 인연';
+    grade='⚪ C급';gradeCode='C';gradeIcon='🔮';gradeLabel='백지 위의 새로운 인연';
     gradeDesc='[카르마 제로] 얽히고설킨 빚이나 깊은 약속 등 전생의 무거운 연결고리가 전혀 감지되지 않는, 이 생에서 완벽히 새롭게 창조하는 순백의 파트너십입니다.';
     story='전생이라는 깊고 무거운 서고에서 두 사람의 이야기가 적힌 책을 찾을 수 없습니다. 이것은 실망할 일이 아니라 오히려 완벽한 축복입니다! 왜냐하면 두 사람은 서로에게 갚아야 할 원한도, 억지로 소화해야 할 업보의 찌꺼기도 없이 가장 순수하고 깨끗한 출발선에 서 있다는 뜻이기 때문입니다. 전생의 관성이나 이유 모를 구속력의 무게 없이 오직 두 사람의 자유의지와 선택만으로 이 관계의 모든 뼈대와 색깔을 칠해나갈 수 있는 엄청난 백지수표를 받았습니다.';
     prescription='[자유 창조의 법칙]: 상대방을 대할 때 "이 사람은 원래 이럴 거야"라는 과거의 데이터나 편견의 색안경을 철저히 부수세요. 지금 숨 쉬는 이 1분 1초부터 어떤 서사를 쓰고, 어떤 장르의 관계(로맨스, 코미디, 휴먼다큐)를 만들어갈지 온전히 둘의 대화와 합의로 세워나가면 됩니다. 가장 무거운 카르마에서 해방된 가장 자유로운 영혼들의 만남입니다.';
   }else if(pScore>=-3){
-    grade='⚠️ D급';gradeIcon='⚡';gradeLabel='풀어야 할 매듭, 업보(Karma)의 인연';
+    grade='⚠️ D급';gradeCode='D';gradeIcon='⚡';gradeLabel='풀어야 할 매듭, 업보(Karma)의 인연';
     gradeDesc='[충(沖)의 발생] 전생에 서로의 가슴에 깊지 않은 상처나 채 풀지 못한 오해를 남긴 미완성의 인연. 그 불편한 매듭을 풀기 위해 재차 소환되었습니다.';
     story='이 관계에는 전생에 서로를 아프게 했거나 뾰족하게 대립했던 "미세한 업보의 가시"가 남아 있습니다. 머리로는 이해하는데 묘하게 자존심이 상하거나, 아주 사소한 말 한마디에 신경이 날카롭게 곤두서는 그 이유 모를 불편함은 성격 차이가 아니라 바로 전생의 잔흔이 보내는 알람입니다. 하지만 두려워하지 마세요. 그 까끌까끌한 업보를 품은 채 현생에서 서로를 또다시 당겨왔다는 것은, 바로 지금 이 생에서 그 꼬인 매듭을 완전히 베어내어 풀 수 있는 절호의 기회가 주어졌다는 강력한 반증입니다.';
     prescription='[선제 사과의 법칙]: 이 관계에서 고장 난 레코드처럼 반복되는 특정 갈등 패턴(돈 문제, 연락 문제, 말투 문제 등)을 현미경 같은 시선으로 관찰하세요. 그 지긋지긋한 패턴이 묻혀있던 전생의 업보를 가리키는 엑스레이 사진입니다. 문제를 풀 단 하나의 방법은 무조건적인 하차입니다. "누가 맞냐"를 따지는 에고의 스위치를 끄고, 먼저 고개 숙여 져주고 치명적인 약점을 감싸 안아주는 쪽이 수천 년 묵은 악연의 쇠사슬을 끊어내는 진정한 승리자가 됩니다.';
   }else{
-    grade='🌀 F급';gradeIcon='🔥';gradeLabel='피 흘리며 배우는 악연의 대물림';
+    grade='🌀 F급';gradeCode='F';gradeIcon='🔥';gradeLabel='피 흘리며 배우는 악연의 대물림';
     gradeDesc='[천충지충(天沖地沖)] 천간과 지지가 모두 거칠게 부딪치는 극강의 파괴적 조합. 전생에 서로의 생존을 위협할 만큼 깊고 치명적인 카르마 빚을 진 관계입니다.';
     story='두 영혼 주변에는 전생의 차갑고 날 선 칼바람이 불고 있습니다. 이들은 과거에 서로에게 지울 수 없는 엄청난 상처, 배신, 혹은 파멸을 주고받았던 가장 치명적인 숙적이었습니다. 그런데 왜 다시 만났을까요? 그 강렬하고 독성 강한 끌림의 뒷면에는 서로를 할퀴어야만 소멸되는 어두운 업보의 에너지가 남아있기 때문입니다. 벗어나려 발버둥 쳐도 진흙탕 속으로 더 자석처럼 빨려 들어가는 듯한 통제 불능의 애증 — 이것이 전생 악연의 가장 명백한 증거입니다. 어쩌면 이번 찰나의 생이 그 지독한 수만 년의 악연 고리에서 탈출할 수 있는 우주가 준 마지막 비상구일지 모릅니다.';
     prescription='[절단과 방생의 법칙]: 관계를 지속할수록 진짜 나를 잃어버리고 바닥 모를 심연으로 끌려가는 기분이 든다면 당장 브레이크를 밟으세요. 카르마를 푼다는 착각 아래 계속 곁에 남아서 끊임없이 서로를 난도질하는 것은 업보를 소멸시키는 것이 아니라 이자를 쳐서 빚을 늘리는 행위입니다. 때로는 그 사람을 내 삶에서 과감히 잘라내고 조용히 사라져 주는 결단, 그 자비롭고 냉정한 거리두기만이 두 영혼 모두를 구원하고 윤회의 악순환을 영원히 끝내는 가장 위대한 사랑의 방식입니다.';
@@ -30066,6 +30136,16 @@ function analyzePastLifeCompat(p1, p2, name){
     '<ul><li>반복되는 갈등을 한 문장으로 이름 붙이기</li><li>서로에게 필요한 거리와 연락 방식을 말로 합의하기</li><li>관계가 편안해지는 행동과 소모되는 행동을 각각 기록하기</li></ul>'+
     '</div>';
 
+  if(out){
+    var crossKind=function(he,chong,same){return he?'he':chong?'chong':same?'same':'none';};
+    out.facts={
+      grade:{code:gradeCode,pScore:pScore},
+      cross:[
+        {dir:'self_day_to_partner_year',from:{gan:a_dg,ji:a_dj},to:{gan:b_yg,ji:b_yj},gan:crossKind(ab_ganHe,ab_ganChong,ab_ganSame),ji:crossKind(ab_jiHe,ab_jiChong,ab_jiSame)},
+        {dir:'partner_day_to_self_year',from:{gan:b_dg,ji:b_dj},to:{gan:a_yg,ji:a_yj},gan:crossKind(ba_ganHe,ba_ganChong,ba_ganSame),ji:crossKind(ba_jiHe,ba_jiChong,ba_jiSame)}
+      ]
+    };
+  }
   return '<div class="pastlife-card">'+
     '<div class="pastlife-header">'+
     '<div><div class="pastlife-title-text">🔮 전생 인연 풀이</div>'+
