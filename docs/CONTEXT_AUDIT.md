@@ -33,6 +33,11 @@ If the first three documents disagree, do not merge rules silently. Record the m
 
 ## Current Conflict Resolutions
 
+### 영냥이 10-05 정식가: 9,900원 체계 ↔ 3,000원 체계 (2026-10-04, 해소)
+
+- **충돌 내용**: `docs/context/payment-gating.md` 2026-10-02 체험가 절과 `docs/handoff/yeongnyangi-price-20261005.md`(10-02판)는 10-05 정식가를 고등어 9,900원 체계로 적었다. 2026-10-04 사용자가 "9900원까지 올리는것은 너무 가파르다"며 그 표 ×0.302·100원 단위(고등어 3,000원)로 바꾸고, "천원 운세" 이름을 위해 재미 사주 콘텐츠 6종을 1,000원으로 내렸다.
+- **정본**: payment-gating 2026-10-05 절. 9,900원 체계 워크트리 B(`wt/yn-price-1005-20261002-161442`)는 머지하지 않고 폐기했다. 10-02 절의 숫자는 이력으로 남긴다.
+
 ### 실행 등급과 GREEN 격리 면제 문구 충돌 (2026-09-08, 확인 필요)
 
 - `CLAUDE.md`의 현재 실행 계약은 2개 이상 파일 또는 CI·배포 축을 RED로 판정하고 격리 worktree를 요구한다.
