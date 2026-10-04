@@ -848,7 +848,10 @@ export default function FortuneTeaHousePage() {
       // 정상 응답으로 주는데(worker/routes/fortune-tea-house.js readHoneyDropsState), 이를 실패로 보고
       // 백오프를 돌리면 비로그인 방문자 1명당 같은 요청이 4회 나갔다. 잔량은 덮지 않고(로컬 0 유지)
       // 부트스트랩만 종료한다. 로그인하면 auth 변경 경로가 다시 조회한다.
-      if (serverHoneyDrops && !serverHoneyDrops.disabled && !serverHoneyDrops.authenticated) return true;
+      if (serverHoneyDrops && !serverHoneyDrops.disabled && !serverHoneyDrops.authenticated) {
+        setHoneyDrops(current => current?.authenticated ? current : serverHoneyDrops);
+        return true;
+      }
       return false;
     } catch {
       return false;
@@ -1539,6 +1542,7 @@ export default function FortuneTeaHousePage() {
           soundControl={soundControl}
           onEnter={enterTeaHouse}
           onChooseCup={() => goToStage("teaSelect")}
+          honeyDrops={honeyDrops}
           onOpenAlbum={() => setIsTarotAlbumOpen(true)}
           onReplayPrologue={() => replayEntryPrologue()}
           onResumePrologue={() => replayEntryPrologue(true)}
@@ -1634,6 +1638,7 @@ export default function FortuneTeaHousePage() {
         <Suspense fallback={<TarotAlbumLoadingDialog onClose={() => setIsTarotAlbumOpen(false)} />}>
           <DestinyCafeTarotAlbum
             isOpen={isTarotAlbumOpen}
+            onRequestRefresh={refreshHoneyDrops}
             honeyDrops={honeyDrops}
             onClose={() => setIsTarotAlbumOpen(false)}
             onHoneyDropsChange={setHoneyDrops}
