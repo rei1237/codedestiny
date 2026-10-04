@@ -588,7 +588,7 @@ describe("영냥이 제휴 상품 — Family·월정석·단건 허용", () => {
     expect(user.profileSubscription.monthlySpendCoin).toBe(FAMILY_ONLY.priceCoins);
   });
 
-  test("coin-gate/moonstone: 같은 상담을 반복 요청해도 500개를 한 번만 차감한다", async () => {
+  test("coin-gate/moonstone: 같은 상담을 반복 요청해도 월정석을 한 번만 차감한다", async () => {
     const db = makeFakePaymentDb({uniqueKeys:[["userId","type","sourceId"]]});
     const user = seedUser(db, {
       membershipCreditBalance: 100000, membershipCreditGranted: 100000, membershipCreditUsed: 0,
@@ -600,7 +600,7 @@ describe("영냥이 제휴 상품 — Family·월정석·단건 허용", () => {
     const first=await postMoonstone(db,body),second=await postMoonstone(db,body);
     expect(first.response.status).toBe(200);
     expect(second.response.status).toBe(200);
-    expect(user.profileSubscription.membershipCreditBalance).toBe(99500);
+    expect(user.profileSubscription.membershipCreditBalance).toBe(100000-FAMILY_ONLY.priceKRW/10);
     expect(db.rows.filter((row) => row.type === "MONTHLY_CREDIT_SPEND")).toHaveLength(1);
     expect(db.rows.find(row=>row._id===fortuneId)).toMatchObject({state:'PAID',accessMethod:'MOONLIGHT_STONE'});
   });

@@ -14,7 +14,7 @@ const mockDbExports={mongoose:{...mongoose,startSession:async()=>({
 jest.unstable_mockModule('../../worker/lib/db.js',()=>mockDbExports);
 const repository=import('../../worker/yeongnyangi/repository.js');
 const USER='507f1f77bcf86cd799439011',ID='d'.repeat(64),RID='yn-'+ID;
-const product=resolveProduct({featureKey:'yeongnyangi-saju-mackerel'});
+const product=resolveProduct({featureKey:'yeongnyangi-saju-mackerel'}),STONES=product.monthlyCost;
 function chain(run) {
  const query={session:()=>query,select:()=>query,sort:()=>query,limit:()=>query,
   lean:run,then:(yes,no)=>Promise.resolve().then(run).then(yes,no)};
@@ -24,9 +24,9 @@ async function withFixture(run,chat=null) {
  const db=makeFakePaymentDb({uniqueKeys:[['userId','type','sourceId']]}),saved=[];
  const expiresAt=new Date('2099-10-30');
  db.rows.push({_id:USER,recentConsumeRequestIds:[],profileSubscription:{
-  membershipCreditBalance:500,membershipCreditUsed:0,membershipCreditLotsVersion:0,
-  membershipCreditLots:[{lotId:'signup',amount:500,remaining:500,grantedAt:new Date(),expiresAt}]}},
- {_id:ID,userId:USER,featureKey:(chat||product).featureKey,amountKRW:chat?3000:1000,state:'CREATED',paymentId:null,
+  membershipCreditBalance:STONES,membershipCreditUsed:0,membershipCreditLotsVersion:0,
+  membershipCreditLots:[{lotId:'signup',amount:STONES,remaining:STONES,grantedAt:new Date(),expiresAt}]}},
+ {_id:ID,userId:USER,featureKey:(chat||product).featureKey,amountKRW:chat?3000:product.priceKRW,state:'CREATED',paymentId:null,
   accessMethod:null,paymentClaimOrderId:'',chapters:[],completedChapters:0,chapterAttempts:{},attempts:0,
   leaseUntil:null,nextAttemptAt:null,snapshot:{manifest:[{},{}]}});
  active={db,get row(){return db.rows.find(r=>r._id===ID)},get user(){return db.rows.find(r=>String(r._id)===USER)}};
@@ -54,7 +54,7 @@ test('refunded request reread is terminal and blocks lease, draft, analysis and 
  await expect(repo.saveAskAnalysis({},USER,ID,'old',{summary:'late'})).rejects.toMatchObject({code:'GENERATION_LEASE_LOST'});
  expect(await repo.finishChapter({},USER,ID,'old',0,{summary:'late'},2)).toBeNull();
  expect(f.row.chapters).toHaveLength(0);
- expect(f.user.profileSubscription.membershipCreditBalance).toBe(500);
+ expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES);
 }));
 test('refund between proof read and lease CAS prevents a new attempt',()=>withFixture(async(f,repo)=>{
  const write=f.db.findOneAndUpdate;let entered,resume;
@@ -96,19 +96,19 @@ test('terminal update racing chapter transaction rolls back late content before 
  expect((await restored).refunded).toBe(true);
  expect(f.row.state).toBe('REFUNDED');
  expect(f.row.chapters).toHaveLength(0);
- expect(f.user.profileSubscription.membershipCreditBalance).toBe(500);
+ expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES);
 }));
 test('a fortune-chat consultation paid with stones gets them back once when it delivered nothing',()=>withFixture(async f=>{
- expect(f.user.profileSubscription.membershipCreditBalance).toBe(200);
+ expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES-300);
  terminal(f);
  const first=await refundTerminalMoonstone(f.db,{userId:USER,requestId:ID,perUse:true});
  expect(first).toMatchObject({refunded:true,replayed:false,amount:300});
  expect(f.row).toMatchObject({state:'REFUNDED',errorCode:'MONTHLY_CREDIT_RESTORED'});
- expect(f.user.profileSubscription.membershipCreditBalance).toBe(500);
+ expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES);
  const receipt=f.db.rows.find(r=>r.type==='MONTHLY_CREDIT_GRANT');
  expect(receipt.metadata.requestId).toBe('fc-'+ID);
  expect((await refundTerminalMoonstone(f.db,{userId:USER,requestId:ID,perUse:true})).replayed).toBe(true);
- expect(f.user.profileSubscription.membershipCreditBalance).toBe(500);
+ expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES);
  // The Yeongnyangi stone restore never touches a per-use consultation.
  expect((await refund(f)).refunded).toBe(false);
 },resolveProduct({featureKey:'fortune-chat-consultation'})));

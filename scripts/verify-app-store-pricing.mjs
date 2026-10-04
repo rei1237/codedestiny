@@ -82,8 +82,8 @@ for (const [coinPrice, sourceKeys] of [...registryCoinPrices.entries()].sort((a,
 for (const tier of listAppContentTiers()) {
   const orphan = tier.coinPrices.filter((coinPrice) => !registryCoinPrices.has(coinPrice));
   if (orphan.length === tier.coinPrices.length) {
-    // 이미 Play Console에 등록된 7천원 티어는 과거 영수증 복원을 위해 ID를 보존한다.
-    if (tier.productId === "cd_content_tier_14") notes.push(`복원 전용 보존 SKU ${tier.productId}: 현행 레지스트리 상품 없음`);
+    // 이미 Play Console에 등록된 7천원·2만원 티어는 과거 영수증 복원을 위해 ID를 보존한다.
+    if (["cd_content_tier_14", "cd_content_tier_09"].includes(tier.productId)) notes.push(`복원 전용 보존 SKU ${tier.productId}: 현행 레지스트리 상품 없음`);
     else failures.push(`앱 티어 ${tier.productId}: 레지스트리에 존재하지 않는 가격대(${tier.coinPrices.join(", ")}코인) — 사용되지 않는 SKU`);
   }
 }

@@ -56,19 +56,19 @@
     "nl": "Free",
     "ms": "Free"
   },
-  "home.concernPick.price.from1000": {
-    "ko": "1,000원부터",
-    "en": "From ₩1,000",
-    "ja": "1,000ウォン〜",
-    "zh-CN": "1,000韩元起",
-    "zh-TW": "1,000韓元起",
-    "vi": "From ₩1,000",
-    "hi": "From ₩1,000",
-    "es": "From ₩1,000",
-    "fr": "From ₩1,000",
-    "de": "From ₩1,000",
-    "nl": "From ₩1,000",
-    "ms": "From ₩1,000"
+  "home.concernPick.price.from3000": {
+    "ko": "3,000원부터",
+    "en": "From ₩3,000",
+    "ja": "3,000ウォン〜",
+    "zh-CN": "3,000韩元起",
+    "zh-TW": "3,000韓元起",
+    "vi": "From ₩3,000",
+    "hi": "From ₩3,000",
+    "es": "From ₩3,000",
+    "fr": "From ₩3,000",
+    "de": "From ₩3,000",
+    "nl": "From ₩3,000",
+    "ms": "From ₩3,000"
   },
   "home.concernPick.price.w3000": {
     "ko": "3,000원",

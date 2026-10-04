@@ -28,7 +28,7 @@ async function withFixture(run) {
  db.rows.push({_id:USER,recentConsumeRequestIds:[],profileSubscription:{
   membershipCreditBalance:500,membershipCreditUsed:0,membershipCreditLotsVersion:0,
   membershipCreditLots:[{lotId:'signup',amount:500,remaining:500,grantedAt:new Date(),expiresAt}]}},
- {_id:ID,userId:USER,featureKey:product.featureKey,amountKRW:1000,state:'CREATED',paymentId:null,
+ {_id:ID,userId:USER,featureKey:product.featureKey,amountKRW:product.priceKRW,state:'CREATED',paymentId:null,
   accessMethod:null,paymentClaimOrderId:'',chapters:[],completedChapters:0,chapterAttempts:{},attempts:0,
   leaseUntil:null,nextAttemptAt:null,snapshot:{manifest:[{},{}]}});
  active={db,get row(){return db.rows.find(r=>r._id===ID)},get user(){return db.rows.find(r=>String(r._id)===USER)}};

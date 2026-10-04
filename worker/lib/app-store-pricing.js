@@ -46,6 +46,8 @@ const CONTENT_TIER_TABLE = Object.freeze([
   // (docs/pricing/PLAY_CONSOLE_TASKS.md). 등록 전까지 앱에서 이 구간만 티어 미등록 503 이다.
   { productId: "cd_content_tier_14", amountKRW: 7000, webAmountKRW: 7000, coinPrices: Object.freeze([70]) },
   { productId: "cd_content_tier_06", amountKRW: 10000, webAmountKRW: 10000, coinPrices: Object.freeze([100]) },
+  // 2026-10-05: 200코인을 쓰던 영냥이 모둠이 14,800원으로 바뀌어 현행 상품이 없다. Play 에 등록된 ID 라
+  // 과거 영수증 복원용으로 보존한다(tier_14 와 같다).
   { productId: "cd_content_tier_09", amountKRW: 20000, webAmountKRW: 20000, coinPrices: Object.freeze([200]) },
   { productId: "cd_content_tier_10", amountKRW: 30000, webAmountKRW: 30000, coinPrices: Object.freeze([300]) },
   // 2026-09-01 폐기: cd_content_tier_11(390코인/₩39,000)·cd_content_tier_13(700코인/₩70,000).
@@ -82,7 +84,9 @@ const PASS_TIER_TABLE = Object.freeze([
 
 // 웹에는 존재하지만 Play Console SKU를 아직 만들지 않은 가격대. 네이티브 결제는 대체 SKU로
 // 내리지 않고 APP_SKU_NOT_VERIFIED로 실패 폐쇄한다.
-export const APP_UNVERIFIED_CONTENT_COIN_PRICES = Object.freeze([500]);
+// 2026-10-05: 영냥이 정식 가격 중 티어가 없는 54·72·105·148코인(5,400·7,200·10,500·14,800원)도 Play SKU 를 만들기 전까지 여기에 둔다.
+// 앱에서 영냥이 상담 결제는 그때까지 실패 폐쇄된다(웹 결제는 그대로).
+export const APP_UNVERIFIED_CONTENT_COIN_PRICES = Object.freeze([54, 72, 105, 148, 500]);
 export function isAppUnverifiedContentCoinPrice(value) {
   return APP_UNVERIFIED_CONTENT_COIN_PRICES.includes(Math.floor(Number(value)));
 }

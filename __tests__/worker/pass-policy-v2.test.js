@@ -50,8 +50,8 @@ describe("versioned flower passes", () => {
     expect(family).toMatchObject({ planId: "family_1m_v4", wonPrice: 149000, monthlyLimitCoin: 3500, profileLimit: 0 });
     expect(family.monthlyLimitCoin * 100).toBe(350000);
     expect(canUseByPass({ ...family, isActive: true }, 500)).toBe(true);
-    expect(isPassBudgetExhausted("family", 4990, 5000, family)).toBe(false);
-    expect(isPassBudgetExhausted("family", 4991, 5000, family)).toBe(true);
+    expect(isPassBudgetExhausted("family", 4970, 5000, family)).toBe(false); // 2026-10-05: Family 최저 커버 30코인
+    expect(isPassBudgetExhausted("family", 4971, 5000, family)).toBe(true);
     expect(isPassBudgetExhausted("family", 5000, 5000, family)).toBe(true);
   });
   test("three-card, five-card, saju and compatibility teas cost 5,000", () => {
@@ -59,10 +59,10 @@ describe("versioned flower passes", () => {
     expect(tea).toHaveLength(5);
     expect(tea.every(([, value]) => value.amountKRW === 5000 && value.cost === 50)).toBe(true);
     expect(FEATURE_KEY_PRICE_TABLE["fusion-fortune-consultation"]).toMatchObject({ cost: 500, amountKRW: 50000 });
-    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-saju-mackerel"].amountKRW).toBe(1000);
-    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-fusion-all"]).toMatchObject({ cost: 500, amountKRW: 50000, paymentScope: "direct_or_family" });
+    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-saju-mackerel"].amountKRW).toBe(3000);
+    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-fusion-all"]).toMatchObject({ cost: 300, amountKRW: 30000, paymentScope: "direct_or_family" });
     for (const key of ["yeongnyangi-fusion-saju-ziwei", "yeongnyangi-fusion-sukuyo-vedic", "yeongnyangi-fusion-astrology-tarot"]) {
-      expect(FEATURE_KEY_PRICE_TABLE[key].amountKRW).toBe(20000);
+      expect(FEATURE_KEY_PRICE_TABLE[key].amountKRW).toBe(14800);
     }
   });
 });

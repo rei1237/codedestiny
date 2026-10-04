@@ -34,7 +34,7 @@ const messages={
   FAMILY_OR_DIRECT_PAYMENT_REQUIRED:'영냥이 유료 리딩은 Family 이용권 또는 단건 결제로 이용해 주세요.',
   MONTHLY_PASS_LIMIT_EXCEEDED:'Family 이용권의 누적 한도를 모두 사용했어요. 이번 상담은 단건 결제로 이용해 주세요.',
   PASS_QUOTA_RESTORED:'상담 결과가 저장되지 않아 Family 이용 한도를 복구했어요.',
-  PRICE_CHANGED:'상담 가격이 변경되었어요. 상담 선택 화면에서 50,000원 가격을 확인한 뒤 다시 시작해 주세요.',
+  PRICE_CHANGED:'상담 가격이 변경되었어요. 상담 선택 화면에서 바뀐 가격을 확인한 뒤 다시 시작해 주세요.',
   HORARY_FREE_PROMPT_REQUIRED:'호라리는 무료 프롬프트 화면에서 이용해 주세요.',
   QUESTION_LOCATION_REQUIRED:'위치 사용에 동의하거나 질문 당시 도시를 선택해 주세요.',
   QUESTION_SKY_INPUT:'5자 이상인 한 가지 질문과 질문자 도시를 확인해 주세요.',
