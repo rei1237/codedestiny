@@ -14251,7 +14251,7 @@ function renderAstroInsightLegacyNeon() {
           moonDay: storyMoonDay
         });
         // #asChart 는 basicFortunePresentation 이 .astro-wheel-card 안으로 옮긴다.
-        astroStoryHtml = window.AstroNatalReading.render(storyModel) + window.AstroNatalReading.renderChart(storyModel);
+        astroStoryHtml = window.AstroNatalReading.render(storyModel) + window.AstroNatalReading.renderChart(storyModel) + window.AstroNatalReading.renderDeep(storyModel);
       }
     } catch (storyErr) {
       astroStoryHtml = '';

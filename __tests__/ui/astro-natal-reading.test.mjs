@@ -184,3 +184,32 @@ test('the chart table shows each position as sign and 20°36′, houses only wit
   assert.doesNotMatch(reading.renderChart(same), /as-foot/);
   assert.equal(reading._calc.degText(20.6), '20°36′');
 });
+
+// The deep layer minus its "how it was computed" fold, which is the one place method names are allowed.
+const deepText = model => reading.renderDeep(model).replace(/<details class="as-calc">[\s\S]*?<\/details>/, '').replace(/<[^>]+>/g, '\n').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
+
+test('the deep layer reads every planet and the closest aspects without repeating the story', () => {
+  for (const tag of Object.keys(charts)) {
+    for (const model of [timed(tag), untimed(tag)]) {
+      const d = model.deep, text = deepText(model);
+      assert.deepEqual(plain(d.planets.map(p => p.body)), BODIES, tag);
+      for (const p of d.planets) assert.ok(p.line && p.text.length >= 2 && p.text.length <= 3, `${tag} ${p.body}`);
+      assert.ok(d.talk.length <= 5 && d.talk.every((t, i) => BODIES.includes(t.a) && BODIES.includes(t.b) && (!i || d.talk[i - 1].orb <= t.orb)), tag);
+      for (const banned of BANNED) assert.doesNotMatch(text, banned, `${tag} ${banned}`);
+      // Sentences only: aspect-type labels such as "부딪히며 키우는 사이(사각)" may repeat.
+      const all = sentencesOf(storyText(model) + '\n' + text).filter(s => s.endsWith('.'));
+      assert.equal(new Set(all).size, all.length, `${tag} ${all.filter((s, i) => all.indexOf(s) !== i)}`);
+    }
+  }
+});
+
+test('the deep layer gives periods only with a birth time and names no house without one', () => {
+  for (const tag of Object.keys(charts)) {
+    const t = timed(tag).deep, u = untimed(tag);
+    assert.deepEqual(plain(t.periods.items.map(i => i.key)), ['firdaria', 'profection'], tag);
+    assert.equal(u.deep.periods.items.length, 0, tag);
+    assert.ok(u.deep.periods.timeless, tag);
+    assert.doesNotMatch(deepText(u), /번째 집|첫인상|사회에서 보이는|MC/, tag);
+    assert.ok(u.deep.calc.some(c => c.includes('정오')) && !u.deep.calc.some(c => /플라시더스|75년/.test(c)), tag);
+  }
+});

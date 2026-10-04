@@ -957,6 +957,163 @@
     return '<div class="as-reading as-chart' + (a ? '' : ' is-timeless') + '" id="asChart">' + h.join('') + '</div>';
   }
 
+  /* ── Deep reading (#asDeep): every planet, the closest aspects, periods, balance and how it was computed.
+     It is written with the same writer as the story, after it, so no sentence on the page is said twice. ── */
+  var PLANET_LINE = {
+    Sun: '{gift:으로} 자기 자리를 만들어 가요.',
+    Moon: '{need:이} 채워질 때 마음이 가장 편안해요.',
+    Mercury: '생각을 정리하고 말할 때는 {manner} 풀어 가요.',
+    Venus: '{tone} 사람과 분위기에 마음이 먼저 끌려요.',
+    Mars: '원하는 게 생기면 {manner} 움직이는 편이에요.',
+    Jupiter: '{tone} 경험 쪽으로 운의 문이 넓게 열려요.',
+    Saturn: '{shadow:을} 다스리는 법을 익힐수록 단단해져요.',
+    Uranus: '같은 세대와 함께 {sign}의 결로 낡은 틀을 바꾸고 싶어 해요.',
+    Neptune: '같은 세대와 함께 {tone} 꿈과 이상을 품고 자랐어요.',
+    Pluto: '같은 세대와 함께 {sign}의 결로 깊은 변화를 겪으며 단단해져요.'
+  };
+  var PLANET_DOES = {
+    Sun: '태양은 삶의 방향과 스스로를 드러내는 힘을 보여 줘요.',
+    Moon: '달은 마음이 쉬는 방식과 감정의 리듬을 보여 줘요.',
+    Mercury: '수성은 생각하고 배우고 말하는 방식을 보여 줘요.',
+    Venus: '금성은 좋아하는 것과 사랑하는 방식, 즐기는 감각을 보여 줘요.',
+    Mars: '화성은 원하는 것을 향해 움직이는 힘과 화를 내는 방식을 보여 줘요.',
+    Jupiter: '목성은 운이 넓어지는 쪽과 믿음의 방향을 보여 줘요.',
+    Saturn: '토성은 오래 걸려도 단단히 쌓아야 하는 숙제를 보여 줘요.',
+    Uranus: '천왕성은 틀을 깨고 새로 바꾸려는 힘을 보여 줘요.',
+    Neptune: '해왕성은 상상과 이상, 경계가 흐려지는 곳을 보여 줘요.',
+    Pluto: '명왕성은 무너졌다 다시 서며 깊어지는 힘을 보여 줘요.'
+  };
+  var MODE_LINE = {
+    cardinal: '먼저 시작하는 {sign}에 놓인 {body:은} 앞장서서 길을 여는 쪽으로 힘을 써요.',
+    fixed: '한번 정하면 지켜 내는 {sign}에 놓인 {body:은} 오래 꾸준히 버티는 쪽으로 힘을 써요.',
+    mutable: '상황에 맞춰 바뀌는 {sign}에 놓인 {body:은} 그때그때 유연하게 힘을 써요.'
+  };
+  var DEEP_HOUSE = ['{n}번째 집({arena})에 있어서, {at} 이 힘이 가장 잘 드러나요.', '삶의 무대는 {n}번째 집({arena})이라, {at} 자주 쓰여요.', '{n}번째 집({arena})에 놓여 {at} 먼저 깨어나요.'];
+  var DEEP_SPARE = ['잘 쓰면 {gift:이} 되고, 지나치면 {shadow:으로} 기울어요.', '이 자리에서는 {need:이} 있을 때 힘이 제대로 나와요.'];
+  var RETRO_LINE = '태어날 때 역행 중이라, 이 힘을 밖으로 쓰기 전에 안으로 곱씹는 흐름이 있어요.';
+  var ASPECT_TERM = { conjunction: '합', sextile: '육분', square: '사각', trine: '삼분', opposition: '대립' };
+  var TALK_TIP = {
+    conjunction: '두 힘이 늘 함께 움직여서, 한쪽을 쓰면 다른 쪽도 따라 깨어나요.',
+    sextile: '조금만 손을 보태면 서로를 살려 주는 사이예요.',
+    square: '부딪힐 때마다 조금씩 자라니, 답답함을 신호로 삼아 보세요.',
+    trine: '애쓰지 않아도 잘 맞물려서, 의식해서 써야 재능이 돼요.',
+    opposition: '한쪽으로 쏠리지 않게 둘 사이의 균형을 찾는 게 숙제예요.'
+  };
+  var PERIOD_NOTE = '시기 해석은 흐름을 읽는 지도예요. 정해진 일을 말하지는 않아요.';
+  function closeness(orb) { return orb <= 1 ? '아주 정확해요' : orb <= 3 ? '정확한 편' : '느슨한 편'; }
+  function pairText(a, W) {
+    var key = pairKey(a.a, a.b), ab = key.split('-'), row = PAIR[key], hard = aspectTone(a) === 'tension' ? 1 : 0;
+    var head = { a: KO[ab[0]], b: KO[ab[1]], asp: ASPECT_KO[a.type] };
+    return row ? W.take([fill('{a:과} {b:이} {asp:이라} ', head) + (row[hard] || row[0])]) : null;
+  }
+  function deepPlanet(ctx, body, W) {
+    var p = ctx.pos[body], pair = body === 'Moon' && ctx.moonSigns, v = W.vars(p.signIdx), s = [];
+    var line = pair ? fill('{a:이나} {b:이} 채워질 때 마음이 가장 편안해요.', { a: NEED[pair[0]], b: NEED[pair[1]] }) : fill(PLANET_LINE[body], v);
+    s.push(PLANET_DOES[body]);
+    if (p.house) s.push(W.take(W.rotate('deep-house', DEEP_HOUSE).map(function (t) { return fill(t, { n: p.house, arena: HOUSE_ARENA[p.house - 1], at: ARENA_AT[p.house - 1] }); })));
+    else if (pair) s.push(W.take([fill('태어난 날 달이 {a}에서 {b}로 넘어가, 두 별자리의 마음결을 함께 지녔어요.', { a: SIGN[pair[0]], b: SIGN[pair[1]] })]));
+    else s.push(W.take([fill(MODE_LINE[MODES[p.signIdx % 3]], W.vars(p.signIdx, { body: KO[body] }))]));
+    var asp = ctx.aspects.filter(function (a) { return (a.a === body || a.b === body) && BODIES.indexOf(a.a) >= 0 && BODIES.indexOf(a.b) >= 0 && a.orb <= 4; })[0];
+    var dig = p.dignity >= 4 ? 'high' : p.dignity <= -4 ? 'low' : null;
+    var third = (asp && pairText(asp, W))
+      || (dig && W.take(DIGNITY_LINE[dig].map(function (t) { return fill(t, { body: KO[body] }); })))
+      || (p.retro && W.take([RETRO_LINE]))
+      || (!pair && W.take(DEEP_SPARE.map(function (t) { return fill(t, v); })));
+    if (third) s.push(third);
+    return {
+      body: body, ko: KO[body],
+      where: (pair ? SIGN[pair[0]] + ' 또는 ' + SIGN[pair[1]] : SIGN[p.signIdx]) + (p.house ? ' · ' + p.house + '번째 집' : ''),
+      retro: !!p.retro,
+      line: W.take([line]) || line,
+      text: s.filter(Boolean)
+    };
+  }
+  function deepOf(ctx, W) {
+    var planets = BODIES.filter(function (b) { return ctx.pos[b]; }).map(function (b) { return deepPlanet(ctx, b, W); });
+    var talk = ctx.aspects.filter(function (a) { return BODIES.indexOf(a.a) >= 0 && BODIES.indexOf(a.b) >= 0; }).slice(0, 5).map(function (a) {
+      var first = pairText(a, W) || W.take([fill('{a}의 {fa:과} {b}의 {fb:이} {asp:이에요}.', { a: KO[a.a], b: KO[a.b], fa: PLANET_FORCE[a.a], fb: PLANET_FORCE[a.b], asp: ASPECT_KO[a.type] })]);
+      return { a: a.a, b: a.b, type: a.type, orb: a.orb, kind: ASPECT_KO[a.type] + '(' + ASPECT_TERM[a.type] + ')', closeness: closeness(a.orb), text: [first, W.take([TALK_TIP[a.type]])].filter(Boolean) };
+    });
+    var periods = null;
+    if (ctx.age) {
+      periods = { items: [], note: null };
+      var f = ctx.firdaria, pr = ctx.profection;
+      if (f) {
+        var c = f.current, lines = [fill('지금은 {lord}의 시기예요. {from}년부터 {to}년까지 이어져요.', { lord: KO[c.lord], from: c.fromYear, to: c.toYear }), W.take([FIRD_LINE[c.lord]])];
+        if (c.sub) lines.push(fill('그 안에서 {to}년까지는 {sub}의 결이 함께 섞여요.', { to: c.sub.toYear, sub: KO[c.sub.lord] }));
+        lines.push(fill('{year}년부터는 {next}의 시기로 넘어가요.', { year: f.next.fromYear, next: KO[f.next.lord] }));
+        periods.items.push({ key: 'firdaria', title: '인생 시기 지도', text: lines.filter(Boolean) });
+      }
+      if (pr) {
+        periods.items.push({ key: 'profection', title: '올해의 주제 집', text: [
+          fill('{age}세인 올해는 {n}번째 집, {arena}의 해예요.', { age: pr.age, n: pr.house, arena: HOUSE_ARENA[pr.house - 1] }),
+          W.take([PROF[pr.house - 1][1]]),
+          fill('이 해의 주인 행성은 {lord:이에요}.', { lord: KO[pr.lord] }) + (LORD_TIP[pr.lord] ? ' ' + LORD_TIP[pr.lord] + '.' : '')
+        ].filter(Boolean) });
+      }
+      if (periods.items.length) periods.note = PERIOD_NOTE;
+      else periods.timeless = '태어난 시간을 알면 낮과 밤 차트를 가려 인생 시기 지도와 올해의 주제 집까지 볼 수 있어요.';
+    }
+    var b = ctx.balance, lead = b.elements.filter(function (r) { return r.key === b.leading; })[0], mode = b.modes.filter(function (r) { return r.key === b.mode; })[0];
+    var balanceText = [fill('{el} 기운이 {share}%로 가장 많고, {mode} 결이 가장 강해요.', { el: EL_KO[lead.key], share: lead.share, mode: MODE_KO[mode.key] })];
+    if (b.empty.length) balanceText.push(fill('수성·금성·화성과 해·달에는 {els} 기운이 없어요.', { els: b.empty.map(function (k) { return EL_KO[k]; }).join('·') }));
+    var calc = ['행성 위치는 스위스 천문력(Swiss Ephemeris)으로 계산한 회귀 황도 기준이에요.'];
+    if (ctx.timeKnown) {
+      calc.push('집은 플라시더스(Placidus) 방식으로 나눴어요. 태어난 시각과 장소를 그대로 반영해서, 몇 분 차이로도 집 경계가 움직일 수 있어요.');
+      calc.push('별자리 하나를 집 하나로 보는 홀사인(Whole Sign) 방식은 큰 방향을 볼 때 써요. 두 방식이 다른 행성은 위치 표 아래에 따로 적었어요.');
+    } else {
+      calc.push('태어난 시간을 몰라 그날 정오의 하늘로 계산했고, 집과 축은 넣지 않았어요.');
+      if (ctx.moonSigns) calc.push('달은 하루에 13도쯤 움직여서, 그날 별자리를 옮긴 달은 두 별자리를 함께 읽었어요.');
+    }
+    calc.push('행성끼리의 각은 해·달 8°, 수성·금성·화성 6°, 나머지는 5°까지 허용해서 셌어요.');
+    calc.push(ctx.timeKnown ? '원소 균형은 해·달·상승점에 3, 수성·금성·화성에 2, 목성·토성에 1, 바깥 행성에 0.5를 주고 셌어요.' : '원소 균형은 해·달에 3, 수성·금성·화성에 2, 목성·토성에 1, 바깥 행성에 0.5를 주고 셌어요.');
+    if (ctx.firdaria) calc.push('인생 시기 지도는 낮에 태어났는지 밤에 태어났는지에 따라 순서를 달리 쓰고, 75년을 한 바퀴로 봐요.');
+    return {
+      planets: planets,
+      talk: talk,
+      periods: periods,
+      balance: { text: balanceText, elements: b.elements.map(function (r) { return { key: r.key, ko: r.ko, share: r.share }; }), modes: b.modes.map(function (r) { return { key: r.key, ko: r.ko, share: r.share }; }) },
+      calc: calc
+    };
+  }
+  function bars(rows, cls) {
+    return '<div class="as-bars ' + cls + '" role="list">' + rows.map(function (r) {
+      return '<div class="as-bar" role="listitem" data-key="' + r.key + '"><span class="as-bar-name">' + esc(r.ko) + '</span>'
+        + '<svg class="as-bar-track" viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true" focusable="false"><rect class="as-bar-bg" width="100" height="6"/><rect class="as-bar-fill" width="' + Math.max(0, Math.min(100, r.share)) + '" height="6"/></svg>'
+        + '<span class="as-bar-val">' + r.share + '%</span></div>';
+    }).join('') + '</div>';
+  }
+  // Prose only: keep dot-joined lists, a closing parenthesis and its particle, and "볼 수" on one line at 390px.
+  function keep(t) { return esc(t).replace(/([가-힣])·(?=[가-힣])/g, '$1⁠·⁠').replace(/\)(?=[가-힣])/g, ')⁠').replace(/ 수 있/g, ' 수 있'); }
+  function renderDeep(model) {
+    var d = model.deep, h = [];
+    h.push('<section class="as-deep-part" aria-labelledby="asDeepPlanets"><h3 class="as-h3" id="asDeepPlanets">행성 열 개</h3><div class="as-planets">');
+    d.planets.forEach(function (p) {
+      h.push('<details class="as-planet" data-body="' + p.body + '"><summary><span class="as-pl-name">' + esc(p.ko) + '</span><span class="as-pl-where">' + evText(p.where)
+        + (p.retro ? ' <span class="as-rx">역행</span>' : '') + '</span><span class="as-pl-line">' + esc(p.line) + '</span></summary><p class="as-pl-body">' + keep(p.text.join(' ')) + '</p></details>');
+    });
+    h.push('</div></section>');
+    if (d.talk.length) {
+      h.push('<section class="as-deep-part" aria-labelledby="asDeepTalk"><h3 class="as-h3" id="asDeepTalk">행성끼리의 대화</h3><ol class="as-talk">');
+      d.talk.forEach(function (t) {
+        h.push('<li class="as-talk-item' + (HARD[t.type] ? ' is-hard' : '') + '"><div class="as-talk-head"><span class="as-talk-pair">' + esc(KO[t.a]) + '&nbsp;· ' + esc(KO[t.b]) + '</span>'
+          + '<span class="as-talk-kind">' + esc(t.kind) + '</span><span class="as-talk-orb">' + esc(t.closeness) + ' · 오차 ' + t.orb + '°</span></div><p>' + keep(t.text.join(' ')) + '</p></li>');
+      });
+      h.push('</ol></section>');
+    }
+    if (d.periods) {
+      h.push('<section class="as-deep-part" aria-labelledby="asDeepPeriods"><h3 class="as-h3" id="asDeepPeriods">인생 시기</h3>');
+      d.periods.items.forEach(function (it) { h.push('<div class="as-period" data-key="' + it.key + '"><h4 class="as-h4">' + esc(it.title) + '</h4><p>' + keep(it.text.join(' ')) + '</p></div>'); });
+      if (d.periods.timeless) h.push('<p class="as-period-none">' + keep(d.periods.timeless) + '</p>');
+      if (d.periods.note) h.push('<p class="as-note">' + esc(d.periods.note) + '</p>');
+      h.push('</section>');
+    }
+    h.push('<section class="as-deep-part" aria-labelledby="asDeepBalance"><h3 class="as-h3" id="asDeepBalance">원소와 기질의 균형</h3><p>' + keep(d.balance.text.join(' ')) + '</p>');
+    h.push('<div class="as-balance"><div><h4 class="as-h4">원소</h4>' + bars(d.balance.elements, 'is-elements') + '</div><div><h4 class="as-h4">기질</h4>' + bars(d.balance.modes, 'is-modes') + '</div></div></section>');
+    h.push('<details class="as-calc"><summary>어떻게 계산했나요</summary><ul>' + d.calc.map(function (c) { return '<li>' + keep(c) + '</li>'; }).join('') + '</ul></details>');
+    return '<div class="as-reading as-deep" id="asDeep">' + h.join('') + '</div>';
+  }
+
   function context(chart, opts) {
     var timeKnown = opts.timeKnown !== false && !!(chart.asc && chart.mc);
     var cusps = timeKnown ? cuspsOf(chart) : null;
@@ -993,6 +1150,7 @@
     });
     var W = writer(), portrait = portraitOf(ctx, W);
     var categories = CATS.map(function (c) { return writeCategory(ctx, c[0], c[1], pickFactors(ctx, c[0], used, reserved), W); });
+    var deep = deepOf(ctx, W);
     var band = BODIES.filter(function (b) { return ctx.pos[b]; }).map(function (b) { return { body: b, lon: round1(ctx.pos[b].lon) }; });
     if (ctx.timeKnown) band.push({ body: 'ASC', lon: round1(ctx.pos.ASC.lon) });
     return {
@@ -1005,6 +1163,7 @@
       },
       portrait: portrait,
       categories: categories,
+      deep: deep,
       planets: planets,
       angles: ctx.timeKnown ? { asc: round1(ctx.pos.ASC.lon), mc: round1(ctx.pos.MC.lon), ascSign: ctx.pos.ASC.signIdx, mcSign: ctx.pos.MC.signIdx, cusps: ctx.cusps.map(round1) } : null,
       aspects: ctx.aspects.slice(),
@@ -1019,6 +1178,7 @@
     build: build,
     render: render,
     renderChart: renderChart,
+    renderDeep: renderDeep,
     _calc: { SIGN: SIGN, KO: KO, RULER: RULER, dignity: dignity, houseOf: houseOf, aspectsOf: aspectsOf, degText: degText, jo: jo, contrast: contrast, fill: fill, SIGN_STYLE: SIGN_STYLE, PROF: PROF }
   };
 })(typeof window !== 'undefined' ? window : globalThis);
