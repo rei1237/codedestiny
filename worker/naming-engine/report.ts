@@ -8,7 +8,7 @@ import { dedupeCodexBody } from "../lib/master-love-codex-quality.js";
 import { countPaidReportBodyChars } from "../lib/paid-report-quality.js";
 import { correctText, findViolations, type CheckContext, type Violation } from "./checker";
 import {
-  ELEMENT_LABEL, GRADE_LABEL, GRID_LABEL, NARRATION_LETTER_COUNT, NARRATION_NAME_COUNT, RELATION_LABEL,
+  ELEMENT_LABEL, GRADE_LABEL, GRID_LABEL, NARRATION_LETTER_COUNT, RELATION_LABEL, narratedCandidates,
   deterministicNarration, engineCards, engineChapterBody, firstHun, fullName,
   letterText, meaningText, sajuSupportText, soundFeelText,
   type EngineView, type Narration, type SajuLines,
@@ -132,7 +132,7 @@ const CHAPTER_GUIDES: Record<number, string> = {
   1: "사주의 핵심과 이번 후보군 전체의 인상을 정리하고, 1순위 후보를 왜 앞에 두었는지 소개하세요.",
   2: "명식·오행 분포·일간의 힘을 풀고, 메인 사주 엔진이 정한 용신과 주의 오행이 이름 글자 선택에 어떻게 쓰였는지 설명하세요.",
   3: "자원오행·수리 4격·소리오행·실제 쓰임 네 기준을 이 아이의 사주에 맞춰 설명하세요.",
-  4: `상위 ${NARRATION_NAME_COUNT}개 후보를 순위대로 하나씩 다루세요. 후보마다 '### 순위. 성이름(한자)' 소제목을 달고 뜻·사주 보완·수리·소리를 설명하세요.`,
+  4: "아래 [이번 장 후보]를 순위대로 하나씩 다루세요. 후보마다 '### 순위. 성이름(한자)' 소제목을 달고 뜻·사주 보완·수리·소리를 설명하세요.",
   5: "상위 3개 후보를 나란히 놓고 어떤 가치를 우선할 때 어떤 이름이 맞는지 비교하세요.",
   6: "1순위 후보를 최종 추천으로 정리하고, 다른 선택을 할 만한 조건도 함께 적으세요.",
   7: "이 사주에서 피하는 편이 좋은 오행 글자·수리 조합·소리 조합을 일반 원칙으로 설명하세요. 실존 인물의 이름을 예로 들거나 깎아내리지 마세요.",
@@ -145,13 +145,15 @@ function parseJson(text: string): any {
 }
 function usable(ai: any): boolean { return Boolean(ai?.ok) && !/mock/i.test(ai.provider || ""); }
 
+const toldRanks = (view: EngineView) => narratedCandidates(view).map((candidate) => candidate.rank).join(", ");
+
 function narrationPrompt(snapshot: any): string {
   return `${snapshot.generatedPrompt}
 
 [이번 호출 범위]
 이번 요청은 후보별 짧은 서술 단계입니다. 8장 본문은 아직 쓰지 마세요.
-상위 ${NARRATION_NAME_COUNT}개 후보(순위 1~${NARRATION_NAME_COUNT}) 각각에 meaning(한자 뜻풀이), sajuSupport(사주 보완 설명), soundFeel(부르는 소리의 느낌)을 항목마다 80~140자로 쓰세요.
-상위 ${NARRATION_LETTER_COUNT}개 후보에는 부모에게 건네는 짧은 편지 letter 를 150~300자로 쓰세요.
+순위 ${toldRanks(snapshot.engine)} 후보 각각에 meaning(한자 뜻풀이), sajuSupport(사주 보완 설명), soundFeel(부르는 소리의 느낌)을 항목마다 80~140자로 쓰세요.
+그중 앞의 ${NARRATION_LETTER_COUNT}개 후보에는 부모에게 건네는 짧은 편지 letter 를 150~300자로 쓰세요.
 수치는 위 표의 값만 쓰고, 표에 없는 한자를 쓰지 마세요.
 JSON만 출력: {"names":[{"rank":1,"meaning":"...","sajuSupport":"...","soundFeel":"..."}],"letters":[{"rank":1,"letter":"..."}],"evidenceHash":"${snapshot.evidenceHash}"}. 계산 근거 해시를 그대로 돌려주세요.`;
 }
@@ -164,7 +166,8 @@ function chapterPrompt(snapshot: any, id: number, title: string, draft: { body: 
 
 [이번 호출 범위]
 ${id}장 '${title}' 하나만 작성하세요. 다른 장은 쓰지 마세요.
-${CHAPTER_GUIDES[id] || ""}
+${CHAPTER_GUIDES[id] || ""}${id === 4 ? `
+[이번 장 후보] 순위 ${toldRanks(snapshot.engine)}` : ""}
 계산 근거 → 생활에서의 사용 패턴과 구체적 사례 → 반대 조건/주의점 → 현실적인 선택과 행동을 배분하세요. 앞선 다른 장의 설명을 반복하지 마세요.
 본문만 공백·마크다운·제목 제외 최소 2,500자, 목표 3,200~3,700자. 소제목과 짧은 문단으로 작성하세요.
 ${feedback}JSON만 출력: {"title":"현재 출력 언어로 장 제목", "body":"본문", "evidenceHash":"${snapshot.evidenceHash}"}. 계산 근거 해시를 그대로 돌려주세요.`;
@@ -175,7 +178,7 @@ const fieldText = (value: unknown) => normalizeNarrativeBody(String(value ?? "")
 /** 서술 JSON → 검사·교정된 서술. 쓸 만한 LLM 필드가 하나도 없으면 null(무효 시도). */
 export function acceptNarration(value: any, ctx: CheckContext): Narration | null {
   const { view } = ctx;
-  const top = view.candidates.slice(0, NARRATION_NAME_COUNT);
+  const top = narratedCandidates(view);
   const names = Array.isArray(value?.names) ? value.names : [];
   const letters = Array.isArray(value?.letters) ? value.letters : [];
   let accepted = 0;
