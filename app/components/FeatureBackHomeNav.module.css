@@ -18,3 +18,13 @@
 .back::after { display: none; }
 
 .navigation .button:focus-visible { outline-color: var(--cd-yehwa-line); }
+
+.neo {
+  --cd-cta-primary-bg: #122237;
+  --cd-cta-primary-bg-2: #0b1526;
+  --cd-cta-primary-ink: #f6eed9;
+  --cd-cta-hairline: rgba(205, 172, 104, 0.65);
+  background: #080f1b;
+}
+.neo .home { padding-inline: 18px; }
+.neo .home::after { display: none; }

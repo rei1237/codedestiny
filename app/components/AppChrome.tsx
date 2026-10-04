@@ -163,6 +163,8 @@ function isUnsafePaymentReferrer(referrer: string) {
 }
 
 function FeatureBackHomeNav() {
+  const pathname = usePathname();
+  const isNeoRoom = pathname?.includes("/neo-operation-room");
   const router = useRouter();
   const locale = useLocale() as ChromeLocale;
   const copy = FEATURE_NAV_COPY[locale] ?? FEATURE_NAV_COPY.ko;
@@ -193,7 +195,7 @@ function FeatureBackHomeNav() {
     // cd-feature-nav remains the marker hidden when the mobile tab bar is mounted.
     <nav
       aria-label="Feature navigation"
-      className={`cd-feature-nav ${styles.navigation}`}
+      className={`cd-feature-nav ${styles.navigation} ${isNeoRoom ? styles.neo : ""}`}
     >
       <button
         type="button"
