@@ -27,7 +27,10 @@ export function chapterDeliveryFailure(body, chapter, requireEnvelope = true) {
         !Array.isArray(blocks[i]?.paragraphs) || !blocks[i].paragraphs.length || blocks[i].paragraphs.some(p => typeof p !== 'string' || !p.trim()))) return 'INVALID_CHAPTER_BLOCKS';
   }
   const text = JSON.stringify(body);
-  if (/(?:이하\s*생략|계속됩니다|다음\s*(?:응답|메시지)에서\s*계속|to be continued|続きは次|以下省略)/iu.test(text)) return 'CHAPTER_INCOMPLETE';
+  // A normal sentence such as "이 흐름이 계속됩니다" is not a cutoff marker.
+  // Only a standalone continuation field/paragraph is ambiguous enough to reject.
+  if (/(?:이하\s*생략|다음\s*(?:응답|메시지)에서\s*계속|to be continued|続きは次|以下省略)/iu.test(text) ||
+    /"\s*(?:계속됩니다|계속)[.…]*\s*"/u.test(text)) return 'CHAPTER_INCOMPLETE';
   return '';
 }
 
