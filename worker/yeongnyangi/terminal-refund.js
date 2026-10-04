@@ -42,7 +42,7 @@ export async function reserveDeliveryRefund(db, row, { retryable=false, now=new 
   });
 }
 
-export async function settlePendingDeliveryRefund(env,db,row,{now=new Date(),refundCash,refundNonCash}={}) {
+export async function settlePendingDeliveryRefund(env,db,row,{now=new Date(),refundCash,refundNonCash,releaseDiscount}={}) {
   if(!supported(row)||!deliveryRefundPending(row))return {outcome:'not_pending'};
   const owner=toObjectId(row.userId),id=String(row._id),token=crypto.randomUUID();
   const claim=await db.findOneAndUpdate(YeongnyangiRequest,{_id:id,userId:owner,...pending,
@@ -61,6 +61,10 @@ export async function settlePendingDeliveryRefund(env,db,row,{now=new Date(),ref
       const cancel=refundCash || (await import('../lib/payment-refund.js')).refundPaymentAsOperator;
       const result=await cancel({env,payment,reason:'영냥이 상담 복구 후 전체 결과 미제공 자동 환불',actorId:'system:yeongnyangi-delivery'});
       if(!result.ok || result.orderState!=='CANCELLED')throw new Error('REFUND_CANCELLATION_PENDING');
+      if(payment.pricingSnapshot?.moonstoneDiscount?.quantity) {
+        const release=releaseDiscount || (await import('../payments/moonstone.js')).releaseOrderMoonstones;
+        if(!await release(db,payment.merchantUid))throw new Error('REFUND_DISCOUNT_RESTORE_PENDING');
+      }
       await db.updateOne(YeongnyangiRequest,ownedClaim,{$set:{state:'REFUNDED',errorCode:'DELIVERY_REFUNDED',
         [`${P}.status`]:'completed',[`${P}.completedAt`]:now,[`${P}.leaseUntil`]:null}});
     } else {

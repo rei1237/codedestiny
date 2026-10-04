@@ -4,6 +4,8 @@ import {YeongnyangiRequest} from '../../worker/lib/yeongnyangi-models.js';
 import {makeFakePaymentDb,matches} from '../fixtures/fake-payment-db.mjs';
 import {reserveDeliveryRefund,settlePendingDeliveryRefund,settleDeliveryRefunds} from '../../worker/yeongnyangi/terminal-refund.js';
 import {canReserveDeliveryRefund,deliveryRefundPending} from '../../worker/yeongnyangi/terminal-refund-policy.js';
+import {releaseOrderMoonstones} from '../../worker/payments/moonstone.js';
+import {User,MonthlyCreditLedger} from '../../worker/lib/models.js';
 const USER='507f1f77bcf86cd799439011',OTHER='507f1f77bcf86cd799439012',ID='a'.repeat(64),PAY='507f1f77bcf86cd799439019';
 const now=new Date('2026-10-05T00:00:00Z');
 function fixture(method='DIRECT_KRW') {
@@ -70,6 +72,28 @@ test('PG success with a lost request write retries the same payment without a se
  const later=new Date(now.getTime()+180000);
  expect((await settlePendingDeliveryRefund({},f.db,f.row,{now:later,refundCash:cancel})).outcome).toBe('delivery_refunded');
  expect(calls).toBe(1);expect(f.row.state).toBe('REFUNDED');
+});
+
+test('mixed cash and discount stones restore the settled discount once before completion',async()=>{
+ const f=fixture();f.payment.pricingSnapshot={moonstoneDiscount:{quantity:500}};
+ f.db.rows.push({_id:USER,profileSubscription:{membershipCreditBalance:0,membershipCreditUsed:500,membershipCreditLotsVersion:0,membershipCreditLots:[]}},
+  {_id:'discount-spend',userId:USER,type:'MONTHLY_CREDIT_SPEND',sourceId:'order-discount:fixture-payment',amount:500,settledAt:now});
+ await reserveDeliveryRefund(f.db,f.row,{now});
+ const cancel=async()=>{await f.db.updateOne(Payment,{_id:PAY},{$set:{status:'cancelled',orderState:'CANCELLED'}});return {ok:true,orderState:'CANCELLED'};};
+ expect((await settlePendingDeliveryRefund({},f.db,f.row,{now,refundCash:cancel})).outcome).toBe('delivery_refunded');
+ expect((await f.db.findOne(User,{_id:USER})).profileSubscription.membershipCreditBalance).toBe(500);
+ expect(await releaseOrderMoonstones(f.db,'fixture-payment')).toBe(true);
+ expect((await f.db.findOne(User,{_id:USER})).profileSubscription.membershipCreditBalance).toBe(500);
+ expect((await f.db.find(MonthlyCreditLedger,{type:'MONTHLY_CREDIT_GRANT'}))).toHaveLength(1);
+});
+test('discount restoration failure remains pending after PG cancellation and is retried',async()=>{
+ const f=fixture();f.payment.pricingSnapshot={moonstoneDiscount:{quantity:500}};await reserveDeliveryRefund(f.db,f.row,{now});
+ let pgCalls=0;const cancel=async({payment})=>{if(payment.status!=='cancelled'){pgCalls++;await f.db.updateOne(Payment,{_id:PAY},{$set:{status:'cancelled',orderState:'CANCELLED'}});}return {ok:true,orderState:'CANCELLED'};};
+ const release=jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+ expect((await settlePendingDeliveryRefund({},f.db,f.row,{now,refundCash:cancel,releaseDiscount:release})).outcome).toBe('delivery_refund_pending');
+ expect(f.row.state).toBe('FORTUNE_FAILED');
+ expect((await settlePendingDeliveryRefund({},f.db,f.row,{now:new Date(now.getTime()+180000),refundCash:cancel,releaseDiscount:release})).outcome).toBe('delivery_refunded');
+ expect(pgCalls).toBe(1);expect(release).toHaveBeenCalledTimes(2);
 });
 test('provider and queue unavailability do not stop an already reserved refund',async()=>{
  const f=fixture();await reserveDeliveryRefund(f.db,f.row,{now});

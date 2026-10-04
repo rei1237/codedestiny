@@ -100,6 +100,9 @@ function makeNativeDb(session) { return {
   updateOne(Model, filter, update, options) {
     return Model.collection.updateOne(filter, update, { ...options, session });
   },
+  insertOne(Model, document, options) {
+    return Model.collection.insertOne(document, { ...options, session });
+  },
   findOneAndUpdate(Model, filter, update, options) {
     return Model.collection.findOneAndUpdate(filter, update, { ...options, session });
   },
