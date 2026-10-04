@@ -23,6 +23,7 @@ test("유료 결과 안내의 캐릭터와 환산은 브랜드 및 기존 단가
   assert.match(paidReviewCopy('ggulggul').title, /연이/);
   assert.match(paidReviewCopy('yeongnyangi').image, /yeongnyangi/);
   assert.match(paidReviewCopy('yeongnyangi').description, /네 후기가/);
+  assert.match(paidReviewCopy('yeongnyangi').detail, /꿀꿀운세 기준/);
   assert.equal(reviewRewardWorthLabel({amount:100,currency:'moonstone',trigger:'approved'},10), '1,000원 상당');
   assert.equal(reviewRewardWorthLabel({amount:250,currency:'moonstone',trigger:'approved'},10), '2,500원 상당');
   assert.equal(reviewRewardWorthLabel({amount:100,currency:'moonstone',trigger:'submitted'},10), '');
