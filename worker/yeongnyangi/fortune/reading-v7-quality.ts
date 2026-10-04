@@ -71,9 +71,10 @@ export const V7_TERMS:Record<string,V7Term[]>={
   vedic:[
     {term:'라그나',ids:['.lagna'],anchor:true},
     {term:'나크샤트라',ids:['.lagna','.moon'],anchor:true},
-    ...fromPlanets(KO_PLANETS,'planets'),
-    {term:'라후',ids:['.planets.Rahu']},
-    {term:'케투',ids:['.planets.Ketu']},
+    // 요가의 성립 조건과 건강 근거(vedic/derived.ts)는 행성을 부르므로 그 사실을 가진 장도 행성 이름을 쓸 수 있다.
+    ...fromPlanets(KO_PLANETS,'planets').map(t=>({...t,ids:[...t.ids,'.yogas.','.healthBasis']})),
+    {term:'라후',ids:['.planets.Rahu','.healthBasis']},
+    {term:'케투',ids:['.planets.Ketu','.healthBasis']},
   ],
   astrology:[
     {term:'상승점',ids:['.ascendant'],anchor:true},
@@ -87,6 +88,8 @@ export const V7_TERMS:Record<string,V7Term[]>={
 };
 /** House numbers are a pattern, not a word list. Vedic and astrology store them under different labels. */
 const HOUSE_LABEL:Record<string,string>={vedic:'houses',astrology:'houseCusps'};
+// 하우스 번호를 근거 문장에 쓰는 파생 사실: 요가는 켄드라·트리코나·두스타나 전부, 베다 건강은 1·6·8·12하우스.
+const HOUSE_EXTRA:Record<string,(house:number)=>string[]>={vedic:house=>['.yogas.',...([1,6,8,12].includes(house)?['.healthBasis']:[])]};
 const HOUSE_TERM=/(\d{1,2})\s*번?\s*하우스/gu;
 
 const NORM=(s:string)=>s.normalize('NFC').replace(/\s+/g,' ').trim();
@@ -181,7 +184,7 @@ export function auditV7Chapter(input:V7AuditInput):V7Audit{
       if(!houseLabel)continue;
       for(const match of unit.plain.matchAll(HOUSE_TERM)){
         const house=Number(match[1]);
-        if(house>=1&&house<=12)check(unit,`${house}하우스`,[`.${houseLabel}.${house}`],false);
+        if(house>=1&&house<=12)check(unit,`${house}하우스`,[`.${houseLabel}.${house}`,...(HOUSE_EXTRA[domain]?.(house)||[])],false);
       }
     }
   }

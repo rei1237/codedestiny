@@ -14,7 +14,7 @@ const fields: Record<DomainId, readonly string[]> = {
   ziwei: ['lifePalace','bodyPalace','palaces','fourTransformations','yearlyLuck','yearlyTimeline','sanFangSiZheng','businessBasis','healthBasis','bureau','compatibility'],
   astrology: ['planets','ascendant','midheaven','northNode','southNode','houseCusps','aspects','transits','synastry'],
   vedic: ['lagna','moon','sun','planets','houses','grahas','bhavas','moonNakshatra','rahuKetu','divisionalCharts',
-    'yogas','vimshottariDasha','dashaPeriods','transits','ashtakuta'],
+    'yogas','healthBasis','vimshottariDasha','dashaPeriods','transits','ashtakuta'],
   sukuyo: ['personA','personB','forwardDistance','reverseDistance','distanceLabel','relation'],
   tarot: ['spreadId','cards'],
 };

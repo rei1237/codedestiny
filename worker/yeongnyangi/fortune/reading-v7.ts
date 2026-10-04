@@ -142,7 +142,7 @@ export const v7Catalog:Record<string,V7Entry[]>={
     e('home','relations','ft','집과 어머니(4하우스)','','houses.4','집과 어머니의 결/마음이 쉬는 자리/집이 부담이 될 때','scene'),
     e('d7','relations','t','자녀(D7)','','divisionalCharts.d7','삽탐샤로 본 자녀/이어지는 것/책임이 무거울 때','scene'),
     e('d12','relations','t','부모(D12)','','divisionalCharts.d12','드와다샴샤로 본 부모/물려받은 결/거리를 두어야 할 때','scene'),
-    e('health','health','sft','몸과 회복(6하우스)','','houses.6 s:houses.8 s:houses.12','6하우스가 말하는 몸/무리가 쌓이는 조건/회복 습관'),
+    e('health','health','sft','몸과 회복(6하우스)','','houses.6 s:houses.8 s:houses.12 healthBasis','1·6·8·12하우스 주인이 말하는 몸의 기초/무리가 쌓이는 조건/회복 습관'),
     e('transformation','health','ft','위기와 변화(8하우스)','','houses.8','위기가 오는 자리/변화를 겪는 방식/다시 서는 법'),
     e('release','health','ft','소모와 쉼(12하우스)','','houses.12','소모가 생기는 자리/쉼이 필요한 신호/놓아주는 법'),
     e('yogas','depth','t','명식에 맺힌 요가','','yogas','맺힌 요가의 뜻/요가가 드러나는 조건/요가의 한계'),
