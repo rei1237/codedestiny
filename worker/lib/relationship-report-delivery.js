@@ -2,6 +2,7 @@ import { PAID_LLM_PARTS_PER_REQUEST } from "./sync-llm-timeout.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { runWithAiLocale } from "./ai-locale-context.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage, paidReportBody } from "./paid-report-quality.js";
+import { dedupeCodexBody } from "./master-love-codex-quality.js";
 
 function repeated(text) {
   if (hasRepeatedReportPassage(text)) return true;
@@ -34,6 +35,15 @@ export function relationshipScoreBasisOk(text, score, { citation = false } = {})
 }
 export const RELATIONSHIP_PART_IDS = [...Array.from({ length: 10 }, (_, i) => String(i)), "frame"];
 const RELATIONSHIP_PART_MIN_CHARS = 2000;
+// Keep paid prose when only an already delivered sentence is repeated. Never
+// manufacture text or accept a mostly duplicated body after deleting its bulk.
+export function editRelationshipPart(body, priorBodies, score) {
+  if (typeof body !== 'string' || !relationshipScoreBasisOk(body, score)) return null;
+  const edited = dedupeCodexBody(body, priorBodies);
+  const originalChars = countPaidReportBodyChars(body), editedChars = countPaidReportBodyChars(edited);
+  if (editedChars < originalChars && (editedChars < RELATIONSHIP_PART_MIN_CHARS || editedChars < originalChars * 0.8)) return null;
+  return edited && !repeated(edited) && relationshipScoreBasisOk(edited, score) ? edited : null;
+}
 // A readable saved part is delivered without a length-only repair.
 const partAccepted = (delivery, id) => Boolean(delivery.parts?.[id]);
 export function relationshipDeliveryComplete(delivery) {
@@ -89,10 +99,15 @@ export async function generateRelationshipWave(env, meta, checkpoint) {
     const persist = async () => {
       delivery.rawResponses = { ...delivery.rawResponses, [id]: response?.rawText || response?.text || "" };
       // The repeat check excludes this part's own draft, which a repair preserves.
-      const existing = Object.entries(delivery.parts).filter(([key]) => key !== id).map(([, part]) => part.body || "").join("\n");
-      if (!part || repeated(part.body || JSON.stringify(part)) || (part.body && repeated(existing + "\n" + part.body))) {
+      const existing = Object.entries(delivery.parts).filter(([key]) => key !== id).map(([, part]) => part.body || "");
+      const edited = part?.body ? editRelationshipPart(part.body, existing, score) : null;
+      if (!part || (part.body ? !edited : repeated(JSON.stringify(part)))) {
         if (response?.ok) { delivery.invalidAttempts[id] = (delivery.invalidAttempts[id] || 0) + 1; await checkpoint(structuredClone(delivery)); }
         return;
+      }
+      if (part.body && edited !== part.body) {
+        part.body = edited;
+        delivery.localEdits = { ...delivery.localEdits, [id]: 'DUPLICATE_SENTENCES_REMOVED' };
       }
       // A full part always replaces a draft; a short one only when it is longer.
       if (delivery.parts[id]?.body && short && countPaidReportBodyChars(delivery.parts[id].body) >= countPaidReportBodyChars(part.body)) return;

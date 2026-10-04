@@ -1,7 +1,7 @@
 ---
-status: blocked
+status: active
 updated: 2026-10-04
-next: "사용자가 운영 승격을 명시 승인했다. 정확한 main SHA의 CI 통과 후 1회 승격한다. 참치 복구 execute/실 LLM은 Gate 2 및 결제 커밋 마커 예외 승인 전 실행하지 않는다."
+next: "사용자가 모든 보고된 복구와 운영 승격을 승인했다. 진행 중인 영냥이 릴리스 37177714235의 실 버전을 확인하고 참치 복구를 실행한다. 관계 리포트 보강도 CI/운영 반영 후 승인된 계획으로 복구한다."
 ---
 
 # 영냥이 참치 챕터 전달 보강 및 운영 주문 점검
@@ -10,7 +10,7 @@ next: "사용자가 운영 승격을 명시 승인했다. 정확한 main SHA의 
 
 - 사용자 목표: 참치 대운 누락 원인 규명, 1차 생성 성공률/토큰 효율 개선, 실패한 장만 복구, 추가 결제·이용권 변동 금지.
 - 대상: 70f6209e67a44924622f18a8ea6e7aa81df4bdf306023d925bb3f7410b621417.
-- 읽기 전용 진단 후 사용자의 정확한 수정·시간 여유·복구 요청을 구현 범위로 반영했다. 이후 "바로 운영 승격까지 진행해"로 검증 후 운영 승격 1회가 승인됐다. 주문 복구 쓰기·과금 LLM·PG·환불 승인은 아직 없다.
+- 읽기 전용 진단 후 사용자의 정확한 수정·시간 여유·복구 요청을 구현 범위로 반영했다. 이후 "바로 운영 승격까지 진행해", 이어 "모두 승인할테니 급선무이므로 빨리 진행해줘"로 보고된 수정/승격/복구 계획이 승인됐다. 추가 PG·환불·자산 변경은 범위 밖이다.
 - 추가 지시: 전체 유료 LLM 전달 상태 조사. 고객 주문 분석 우선순위는 참치이며 모둠/오마카세 개별 분석 제외.
 - 작업 디렉터리: D:/Development/codedestiny-worktrees/yeongnyangi-chapter-recovery-20261004-123007.
 - 작업 브랜치: codex/yeongnyangi-chapter-recovery. 공유 main의 기존 미커밋 파일은 수정하지 않았다.
@@ -135,12 +135,15 @@ paid/success/fulfilled 결제, 소유자, requestId, consumedBy, 환불 마커�
 - 사용자가 제공한 본인 계정 3개 모두 존재하며 해당 결과의 소유자 ID는 세 계정 어느 것과도 다름을 재확인했다.
   다른 고객 이메일/이름/출생 정보는 출력하지 않았다.
 
-추가 수정안(미구현): 정상 6부분 보존, 거절된 원문의 정확한 중복 문장을 로컬 편집해 부족하지 않으면 재사용,
-필요한 부분만 동일 입력/기존 결제 증빙으로 1회 교정, 프레임 포함 전체 저장 확인 전 완료 금지,
-형식/문장 중복 실패를 즉시 환급·영구 중단으로 연결하지 않는 제한된 자동 복구.
-부분별 실패 코드와 원문 길이를 남기고, 환급 불확실성은 원장 재대조 전 생성하지 않도록 한다.
-이 상품의 전용 복구 dry-run은 아직 작성/실행하지 않았으므로 호출 비용을 확정하지 않는다.
-결제/환급 경로를 건드리는 변경은 기존 사용자 규칙에 따라 별도 승인 대상이다.
+승인 후 구현: 기존 중복 제거 함수를 재사용하여 정확히 같은 문장만 정리한다. 내용이 줄면 2000자 및 원문 80% 이상이 남아야 하고 계산 점수를 다시 검증한다.
+신규 생성에도 같은 편집을 적용하므로 중복 한 문장 때문에 전체 응답을 폐기하지 않는다. 기존 완료본은 변경하지 않는다.
+재개는 requireExisting으로 기존 차감 증빙만 인정한다. 명시 승인된 복구의 recoveryNoRefund 플래그는 실패 시 자산 환급을 막고 partial/limited로 남긴다.
+전용 스크립트 scripts/recover-relationship-report.mjs는 기본 dry-run, 원래 월정석 차감/환급 여부/보상 지급/입력/잠금/계획 해시를 확인한다.
+기존 6부분은 보존하고 6번 raw 2125자에서 중복만 제거한 2091자 본문을 재사용한다. 나머지 7,8,9,frame: 최초 4회, 자동 상한 8회.
+dry-run planSha: e6eaca0a03241fa7bfa1ef8d90ed585ddf493ce2777f6191286b3df3f7e29a71. ready=true, applied=false.
+명령: `node scripts/recover-relationship-report.mjs --db code_destiny --session rbt_3c4dc94c-0660-4ea6-bd6b-48e3d23cd9a1`
+실행은 위 명령에 `--execute --plan-sha <직전 dry-run 해시>`를 추가하며, 관계 리포트 코드 운영 반영 후 수행한다.
+관계 전달/라우트 Jest 37개 및 실제 복구 스크립트의 mock 실행/보존/멱등/차단 테스트 3개 통과, typecheck 통과.
 
 ## Gate 2: 참치 실행 승인에 필요한 사항
 
@@ -150,6 +153,8 @@ paid/success/fulfilled 결제, 소유자, requestId, consumedBy, 환불 마커�
    metadata.yeongnyangiChapterCommit, metadata.yeongnyangiCompletionCommit, updatedAt.
    결제 금액·결제 상태·환불·이용권·월정석 잔액은 변경하지 않는다.
    기존 finishChapter/completeStoredRequest 트랜잭션이 이 마커로 환불과의 경합을 직렬화하므로 안전장치를 제거하지 않았다.
+
+위 항목은 사용자의 "모두 승인" 메시지로 승인됐다. 최신 dry-run도 같은 해시, ready=true로 재확인했다.
 
 환경변수는 MONGO_URI 또는 MONGODB_URI로만 사용한다. 값은 출력/커밋하지 않는다.
 다음 명령은 현재 dry-run으로만 실행했다:
@@ -181,7 +186,9 @@ execute는 고객 결과를 로컬에서 생성하지 않는다. 해당 주문�
 - 생성·저장 공통 수정 커밋: `a8ea7348f` (`fix(yeongnyangi): validate durable chapters and bound recovery`).
 - 운영 도구/진단 커밋: `deda9151a` (`fix(ops): require reviewed plans for chapter recovery`).
 - 최신 main 통합 뒤 계약/불변성/복구 targeted 17개 및 저장소/크론 Jest 109개 통과, typecheck 통과.
-- main CI와 운영 승격은 별개다. 최종 전달 SHA의 CI 결과는 채팅 전달 기록에 남긴다.
+- main CI: 6deacd77e 전체 CI 37176952837 통과, 문서 수정 후 73befba1e CI 37177080572 통과.
+- `npm run verify:release` 통과. 승인된 영냥이 운영 승격 37177714235 실행 중, 대상 73befba1ee9d59de914f0696094c6132e369fabe.
+- 승격 전 실 Pages/Worker는 둘 다 4886b9c99eaf10458e61fd38a73ed10f2868c79a였다.
 - 최초 check:fast는 변경된 절단 거부 계약/완결 마커가 없는 구 mock/새 snapshot 키의 기존 기대값 때문에 실패했다.
   검사를 제거하지 않고, 절단은 거부하고 완결 마커를 제공하도록 기대 계약과 fixture를 갱신했다.
 - 실 LLM·PG·운영 DB 쓰기·운영 승격·실고객 화면 검증은 수행하지 않았다. 실제 1차 성공률/비용 절감률은 미측정이다.
