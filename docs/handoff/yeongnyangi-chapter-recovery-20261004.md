@@ -117,8 +117,8 @@ paid/success/fulfilled 결제, 소유자, requestId, consumedBy, 환불 마커�
 영냥이 수정으로 전체 LLM 문제가 해결됐다고 보고하지 않는다.
 
 - MasterLoveCodexSession generation_failed 9건: 원래 결제 모두 refunded, PURCHASE_REFUNDED. 재생성 제외.
-- PaidExecutionRecord 미완료 4건 중 사용자가 제공한 본인 계정 2건은 고객 피해 집계에서 제외.
-- 나머지 오래된 기록: PaidExecutionRecord 2건(7~9월), AstrologyAiConsultation 3건(7월), HumanDesignReport 1건(8월).
+- 본인 계정 3개로 재대조: PaidExecutionRecord 미완료 4건 중 3건 및 HumanDesignReport 1건은 본인 테스트이므로 고객 피해 집계에서 제외.
+- 나머지 오래된 기록: PaidExecutionRecord 1건(8월), AstrologyAiConsultation 3건(7월).
   직접 카드 결제 ID 연결이 없어 현재 결과/이용권·월정석 증빙을 추가 대조해야 한다. 미완료 상태만으로 미제공 확정 처리하지 않았다.
 - ServiceExecutionTransaction의 현재 공용 paidNarrative 기록은 0. 이 저장소의 TTL/보존 범위가 있으므로 과거 장애가 없었다는 뜻이 아니다.
 
