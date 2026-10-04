@@ -118,3 +118,53 @@ test('the module stays pure: no clock, randomness, storage, DOM or requests', ()
     assert.doesNotMatch(source, banned, String(banned));
   }
 });
+
+// Visible text of the story fragment, one line per element; sentences of 15+ characters are what a reader would notice repeating.
+const storyText = model => reading.render(model).replace(/<[^>]+>/g, '\n').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+const sentencesOf = text => text.split(/\n+/).flatMap(l => l.split(/(?<=[.?!])\s+/)).map(s => s.trim()).filter(s => s.length >= 15 && !s.includes('·'));
+const BANNED = [/Placidus|Whole Sign|플라시더스|홀사인|\d+H\b/, /체감:|큰 흐름:|키워드:|자세히 보기/, /어스펙트|오브|orb|룰러/i, /\([A-Z][a-z]+\)/, /\)\)/, /^\d\)|\([a-c]\)/m, /#\S/];
+
+test('every verdict can be turned into a "…지만" clause', () => {
+  const { SIGN_STYLE, PROF, contrast } = reading._calc;
+  const gists = Object.values(SIGN_STYLE).flatMap(rows => rows.map(r => r[0])).concat(PROF.map(r => r[0]));
+  assert.equal(gists.length, 84);
+  for (const g of gists) assert.ok(contrast(g) && contrast(g).endsWith('지만'), g);
+  assert.equal(contrast('천천히 깊어지는 오래가는 사랑을 원해요'), '천천히 깊어지는 오래가는 사랑을 원하지만');
+  assert.equal(contrast('말이 잘 통하는 사람에게 먼저 끌려요'), '말이 잘 통하는 사람에게 먼저 끌리지만');
+  assert.equal(contrast('올해는 시야를 넓히는 해예요'), '올해는 시야를 넓히는 해이지만');
+});
+
+test('the first layer reads in plain words, says no sentence twice and stays short', () => {
+  for (const tag of Object.keys(charts)) {
+    for (const model of [timed(tag), untimed(tag)]) {
+      const text = storyText(model), seen = new Set();
+      for (const banned of BANNED) assert.doesNotMatch(text, banned, `${tag} ${banned}`);
+      for (const s of sentencesOf(text)) {
+        assert.ok(!seen.has(s), `${tag} repeats: ${s}`); seen.add(s);
+        assert.ok(s.length <= 64, `${tag} too long: ${s}`);
+      }
+      assert.ok(model.categories.every(c => c.bullets.length === 3 && c.conclusion && c.scene && c.action), tag);
+    }
+  }
+});
+
+test('b1, b2 and b3 get different verdicts in at least five of six areas', () => {
+  const verdicts = ['b1', 'b2', 'b3'].map(tag => timed(tag).categories.map(c => c.conclusion));
+  const distinct = verdicts[0].filter((_, i) => new Set(verdicts.map(v => v[i])).size === 3).length;
+  assert.ok(distinct >= 5, String(distinct));
+});
+
+test('without a birth time the story names no house, first impression or MC and notes the missing time once', () => {
+  for (const tag of Object.keys(charts)) {
+    const model = untimed(tag), text = storyText(model), note = model.notes.timeNote;
+    assert.ok(note, tag);
+    assert.equal(text.split(note).length - 1, 1, tag);
+    assert.doesNotMatch(text.replace(note, ''), /번째 집|첫인상|사회에서 보이는/, tag);
+    assert.equal(timed(tag).notes.timeNote, null, tag);
+  }
+  // A Moon that changed sign that day is never read from one sign alone.
+  const b1 = untimed('b1'), heal = b1.categories.find(c => c.id === 'heal');
+  assert.match(heal.conclusion, /진심 어린 인정.*세심한 배려/);
+  assert.equal(heal.fit, null);
+  assert.match(heal.caution, /인정받고 싶은 조급함.*완벽주의/);
+});
