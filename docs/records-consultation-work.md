@@ -19,7 +19,7 @@
 
 생성 claim/reconcile의 stale CAS, quota 복원 transaction 분리, 혼합 단건 결제의 할인 월정석 복원 누락, 웹훅 선확정(`refunded + CANCELLED`) 후 정산 재시도 누락을 수정했다. 외부 생성의 성공률이나 환불 완료 시각은 보장하지 않는다. 관련 mock 7개 suite/89개 PASS이며 실 PG·실 LLM·운영 정산 증거는 없다.
 
-최신 main의 concern panel CSS를 충돌 없이 병합하고 정적 소스·미러 캐시를 재생성했다. 공식 `check:fast --committed-head --base=main --head=HEAD`와 정확한 main SHA의 CI 결과는 종료 보고에 별도로 기록한다. 초기 전체 테스트, 중단된 공식 검사 또는 실패한 연속 dev browser 실행을 최종 통과로 취급하지 않는다.
+primary main과 원격 main을 모두 포함하고 정적 소스·미러 캐시를 재생성했다. 병합 후 typecheck와 `verify:public-mirror-fresh`도 exit 0이다. 정확한 main SHA의 CI 결과는 종료 보고에 별도로 기록한다. 초기 전체 테스트, 중단된 공식 검사 또는 실패한 연속 dev browser 실행을 최종 통과로 취급하지 않는다.
 
 ## 원격 변경 통합과 추가 결함 검증
 

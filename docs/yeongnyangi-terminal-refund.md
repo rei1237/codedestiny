@@ -29,3 +29,5 @@
 실행 명령: `npm run test:jest -- --runInBand --runTestsByPath __tests__/worker/yeongnyangi-terminal-refund.test.js __tests__/worker/yeongnyangi-moonstone-refund-repository.test.js __tests__/worker/yeongnyangi-service-pack-repository.test.js __tests__/worker/yeongnyangi-recovery.test.js __tests__/worker/pass-consumption.refund.test.js __tests__/worker/record-library.test.js __tests__/worker/destiny-bias-record-storage.test.js`
 
 실 PG·실 LLM·운영 DB 호출은 없었다. 공식 check:fast 및 main CI의 최종 결과는 작업 종료 보고에서 확인한다.
+
+원격 최신 가격·월정석/세트 정책 병합 후 관련 8개 suite/179개를 재검증했다. 과거 월정석 500/1,000원 주문의 저장된 증빙을 synthetic fixture로 재구성해 현재 가격과 무관하게 원래 500을 복원하는 것을 확인했다. 현재 결제 API에 옛 가격 주문을 허용한 것은 아니다. 로컬 공식 검사는 병합 전 `81d827ffdf5f`에서 Node 2,428개·Jest 337개 suite/5,042개를 포함해 exit 0이었다. 최종 병합 SHA의 공식 판정은 main CI에서 확인한다.

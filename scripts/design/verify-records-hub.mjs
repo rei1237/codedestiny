@@ -161,7 +161,7 @@ try {
       await state.page.getByRole('button',{name:/FRONT/}).waitFor();
     }
     if(source==='codex')await state.page.waitForFunction(()=>Array.from(document.images).filter(img=>img.src.includes('CodeDestinyNovel')).every(img=>img.complete&&img.naturalWidth>0));
-    await bounds(state.page,390);await state.page.screenshot({path:path.join(out,`reading-${source}.png`),fullPage:true});evidence.push({scenario:'direct-refresh-'+source,passed:true,...(source==='codex'?{portrait:'offline local character fixture; production R2 unverified'}:{}),api:state.seen});await state.context.close();
+    await bounds(state.page,390);assert.equal(state.errors.length,0,JSON.stringify(state.errors));await state.page.screenshot({path:path.join(out,`reading-${source}.png`),fullPage:true});evidence.push({scenario:'direct-refresh-'+source,passed:true,...(source==='codex'?{portrait:'offline local character fixture; production R2 unverified'}:{}),api:state.seen});await state.context.close();
   }
 } catch(error){console.log('Fixture browser failure',debugState?.page.url(),debugState?.errors,debugState?.seen,await debugState?.page.locator('body').innerText());throw error;}
 finally {fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify(evidence,null,2));await browser.close();}
