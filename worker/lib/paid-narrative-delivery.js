@@ -126,7 +126,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     for (const task of state.tasks) {
       const draft = state.drafts?.[task.id];
       if (!state.parts[task.id] && draft) {
-        const candidate = selectNarrativeCandidate(null, normalizeNarrativeBody(draft, Object.values(state.parts)), { ...(completeBody && { complete: completeBody }), ...(measureBody && { measure: measureBody }) });
+        const candidate = selectNarrativeCandidate(null, draft, { ...(completeBody && { complete: completeBody }), ...(measureBody && { measure: measureBody }) });
         if (candidate && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + candidate)) { state.parts[task.id] = candidate; await persist(); }
       }
     }
@@ -162,11 +162,10 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
         const raw = getPaidGenerationRaw() || ai?.rawText || ai?.text || (value ? JSON.stringify(value) : "");
         if (raw) state.rawResponses = { ...state.rawResponses, [task.id]: raw };
         const edited = valid && !/^\s*[\[{]/.test(value.body)
-          ? normalizeNarrativeBody(value.body, Object.values(state.parts)) : value?.body;
+          ? normalizeNarrativeBody(value.body) : value?.body;
         const body = valid && !hasRepeatedReportPassage(edited)
           && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + edited) ? edited : null;
-        const editedDraft = draft && normalizeNarrativeBody(draft, Object.values(state.parts));
-        const previous = editedDraft && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + editedDraft) ? editedDraft : null;
+        const previous = draft && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + draft) ? draft : null;
         const candidate = selectNarrativeCandidate(previous, body, { ...(completeBody && { complete: completeBody }), ...(measureBody && { measure: measureBody }) });
         // Preserve the existing producer acceptance for full structured results.
         // Short narratives/structured adapters use their own completeness check.

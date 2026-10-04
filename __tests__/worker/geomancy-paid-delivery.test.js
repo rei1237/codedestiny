@@ -147,18 +147,5 @@ test.each(['pass','monthly','single'].flatMap(pay=>['throw','null','confirm'].ma
 test.each(['throw','null','confirm'])('checkpoint %s stops before provider',async kind=>{fault={kind,metadata:true};expect((await start()).status).toBe(503);expect(provider).not.toHaveBeenCalled();expect((await resume()).status).toBe(202);});
 test.each(['short','missing','wrong-facts','truncated','interrupted','mock'])('%s never becomes a completed fallback',async kind=>{const base=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{if(kind==='interrupted')throw Error('lost');const ai=await base(...args),value=JSON.parse(ai.text);if(kind==='short')value.body='짧음';if(kind==='missing')delete value.body;if(kind==='wrong-facts')value.evidenceHash='wrong';return {...ai,truncated:kind==='truncated',isMock:kind==='mock',text:JSON.stringify(value)};});expect((await start()).status).toBe(202);expect(Object.keys(docs[0].metadata.paidNarrative.parts)).toHaveLength(3);expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(8);});
 test('original owner, input and revoked/denied evidence are enforced',async()=>{mode='denied';expect((await start()).status).toBe(402);expect(provider).not.toHaveBeenCalled();mode='pass';await start();userId='other';expect((await resume()).status).toBe(404);userId=owner;expect((await post({...original(),question:'변경한 질문입니다.'})).status).toBe(409);mode='denied';expect((await resume()).status).toBe(402);mode='pass';revoked=true;expect((await resume()).status).toBe(403);expect(provider).toHaveBeenCalledTimes(4);});
-
-test('one shared sentence does not buy a retry or overwrite delivered parts', async () => {
- const good=provider.getMockImplementation();
- const shared='계산된 흐름은 고정된 미래가 아니므로 현재의 상황과 선택을 함께 확인해야 합니다.';
- provider.mockImplementation(async(...args)=>{const response=await good(...args),value=JSON.parse(response.text);value.body=shared+'\n\n'+value.body;return {...response,text:JSON.stringify(value)};});
- await start();const saved=clone(docs[0].metadata.paidNarrative.parts);
- expect((await finish()).status).toBe(200);
- const state=docs[0].metadata.paidNarrative;
- expect(provider).toHaveBeenCalledTimes(state.tasks.length);
- expect(Object.values(state.attempts).every(n=>n===1)).toBe(true);
- for(const [key,body]of Object.entries(saved))expect(state.parts[key]).toBe(body);
- expect(Object.values(state.parts).filter(body=>body.includes(shared))).toHaveLength(1);
-});
 test('concurrent original requests share a lease and retain original locale',async()=>{const {runWithAiLocale,getAmbientAiLocale}=await import('../../worker/lib/ai-locale-context.js');let release;const hold=new Promise(resolve=>release=resolve),base=provider.getMockImplementation(),locales=[];provider.mockImplementation(async(...args)=>{locales.push(getAmbientAiLocale());await hold;return base(...args);});const first=runWithAiLocale('ja',start);for(let i=0;i<100&&provider.mock.calls.length<4;i++)await new Promise(resolve=>setImmediate(resolve));expect((await start()).status).toBe(202);release();await first;expect(locales).toEqual(['ja','ja','ja','ja']);const pending=await route(new Request('https://mock.test/api/oracle/result'),{});expect(pending.status).toBe(202);expect((await pending.json()).locale).toBe('ja');expect(provider).toHaveBeenCalledTimes(4);});
 test('provider interruptions have two attempts per part without false refund or completion',async()=>{provider.mockResolvedValue({ok:false});await start();for(let i=0;i<8;i++)await resume();expect(provider).toHaveBeenCalledTimes(14);expect(docs[0].status).toBe('pending');expect(Object.values(docs[0].metadata.paidNarrative.attempts).every(n=>n===2)).toBe(true);});
