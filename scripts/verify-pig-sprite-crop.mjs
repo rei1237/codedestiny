@@ -24,6 +24,7 @@
  *       그 파일은 이 가드의 검사 범위 밖이지만 규칙 자체는 동일하다.)
  *   ② .pigSpriteFrame 을 쓰는 컴포넌트는 전부 pigSpriteFrameStyle() 로 변수를 만든다.
  *      호출부 하나를 빠뜨리면 그 화면만 CSS 기본값(welcome 프레임)으로 조용히 굳는다.
+ *      pig 소비처가 폐기되면 현행 SpriteCrop 의 JS 크롭 계산과 실제 소비처를 대신 확인한다.
  *
  * fail-closed: 검사 대상을 하나도 못 찾으면 통과가 아니라 실패다(CLAUDE.md 코딩 원칙 10).
  * 이름 grep 이 아니라 calc( 를 괄호 균형으로 잘라 실제 식을 본다(코딩 원칙 6).
@@ -160,30 +161,50 @@ function checkStylesheets() {
   return { failures, scanned: files.length };
 }
 
-function checkPigSpriteConsumers() {
+const SPRITE_CROP_PATH = "src/features/fortune-tea-house/components/SpriteCrop.tsx";
+
+function inspectSpriteConsumers(files) {
   const failures = [];
-  const files = COMPONENT_ROOTS.flatMap((dir) => walk(join(root, dir), [".tsx", ".jsx"]));
   if (files.length === 0) {
     failures.push("컴포넌트를 하나도 찾지 못했습니다 — 가드가 아무것도 검사하지 않았습니다.");
-    return { failures, consumers: [] };
+    return { failures, consumers: [], spriteConsumers: [] };
   }
 
   const consumers = [];
-  for (const abs of files) {
-    const source = readFileSync(abs, "utf8");
+  const spriteConsumers = [];
+  for (const { path, source } of files) {
     if (!/styles\.pigSpriteFrame/.test(source)) continue;
-    consumers.push(relative(root, abs));
+    consumers.push(path);
     if (!/pigSpriteFrameStyle\s*\(/.test(source)) {
       failures.push(
-        `${relative(root, abs)} — .pigSpriteFrame 을 쓰면서 pigSpriteFrameStyle() 을 부르지 않습니다.` +
+        `${path} — .pigSpriteFrame 을 쓰면서 pigSpriteFrameStyle() 을 부르지 않습니다.` +
           "\n    크롭 변수가 비어 그 화면만 CSS 기본값(welcome 프레임)으로 조용히 굳습니다.",
       );
     }
   }
   if (consumers.length === 0) {
-    failures.push(".pigSpriteFrame 소비처를 하나도 찾지 못했습니다 — 클래스 이름이 바뀌었다면 이 가드도 함께 고쳐야 합니다.");
+    const crop = files.find((file) => file.path === SPRITE_CROP_PATH)?.source || "";
+    const cropVariables = ["width", "height", "left", "top"];
+    const hasJsCrop = /styles\.spriteCrop/.test(crop) && /style=\{style\}/.test(crop) &&
+      cropVariables.every((name) => new RegExp('"--sprite-img-' + name + '"\\s*:\\s*`[^`]*\\$\\{[^`]+\\/[^`]+\\}%' + '`').test(crop));
+    if (!hasJsCrop) {
+      failures.push(`${SPRITE_CROP_PATH} — pig 소비처를 대체할 JS 백분율 크롭 구현을 찾지 못했습니다.`);
+    }
+    for (const { path, source } of files) {
+      const imported = /import\s+([\w$]+)\s+from\s+["'](\.[^"']*\/SpriteCrop)(?:\.tsx)?["']/.exec(source);
+      if (!imported || resolve(root, path, "..", imported[2] + ".tsx") !== resolve(root, SPRITE_CROP_PATH)) continue;
+      if (new RegExp("<" + imported[1] + "(?:\\s|/?>)").test(source)) spriteConsumers.push(path);
+    }
+    if (spriteConsumers.length === 0) {
+      failures.push(".pigSpriteFrame 및 현행 SpriteCrop 소비처를 하나도 찾지 못했습니다 — 가드가 실제 크롭 사용을 검사하지 않았습니다.");
+    }
   }
-  return { failures, consumers };
+  return { failures, consumers, spriteConsumers };
+}
+
+function checkPigSpriteConsumers() {
+  const files = COMPONENT_ROOTS.flatMap((dir) => walk(join(root, dir), [".tsx", ".jsx"]));
+  return inspectSpriteConsumers(files.map((abs) => ({ path: relative(root, abs).replaceAll("\\", "/"), source: readFileSync(abs, "utf8") })));
 }
 
 /** 두 단언이 실제로 무언가를 가른다는 것을 합성 입력으로 확인한다(파일을 건드리지 않는다). */
@@ -218,6 +239,25 @@ function selfTest() {
     }
   }
 
+  const spriteComponent = {
+    path: SPRITE_CROP_PATH,
+    source: 'const style = { "--sprite-img-width": `${sheetWidth / width * 100}%`, "--sprite-img-height": `${sheetHeight / height * 100}%`, "--sprite-img-left": `-${x / width * 100}%`, "--sprite-img-top": `-${y / height * 100}%` }; <span className={styles.spriteCrop} style={style} />',
+  };
+  const spriteConsumer = { path: "src/features/fortune-tea-house/components/TeaCupVisual.tsx", source: 'import SpriteCrop from "./SpriteCrop"; <SpriteCrop width={20} />' };
+  const coverageCases = [
+    { name: "pig 없이 현행 SpriteCrop 과 실제 소비처가 있으면 통과한다", files: [spriteComponent, spriteConsumer], shouldFail: false },
+    { name: "모든 크롭 구현과 소비처가 사라지면 잡는다", files: [{ path: "app/page.tsx", source: "<main />" }], shouldFail: true },
+    { name: "구현만 있고 소비처가 없으면 잡는다", files: [spriteComponent], shouldFail: true },
+    { name: "소비처만 있고 구현이 없으면 잡는다", files: [spriteConsumer], shouldFail: true },
+    { name: "import 만 남으면 실제 소비처로 세지 않는다", files: [spriteComponent, { ...spriteConsumer, source: 'import SpriteCrop from "./SpriteCrop";' }], shouldFail: true },
+    { name: "대체 구현이 있어도 기존 pig 헬퍼 누락은 잡는다", files: [spriteComponent, spriteConsumer, { path: "app/pig.tsx", source: "<span className={styles.pigSpriteFrame} />" }], shouldFail: true },
+    { name: "JS 크롭 계산이 사라지면 잡는다", files: [{ ...spriteComponent, source: "<span className={styles.spriteCrop} style={style} />" }, spriteConsumer], shouldFail: true },
+  ];
+  for (const testCase of coverageCases) {
+    const failed = inspectSpriteConsumers(testCase.files).failures.length > 0;
+    if (failed !== testCase.shouldFail) broken.push(`검사 범위 · ${testCase.name}: 기대 ${testCase.shouldFail ? "실패" : "통과"} / 실제 ${failed ? "실패" : "통과"}`);
+  }
+
   return broken;
 }
 
@@ -248,8 +288,11 @@ function main() {
   }
 
   console.log(`✅ 스타일시트 ${styles.scanned}개에 증명 못 할 나눗셈 없음.`);
-  console.log(`✅ .pigSpriteFrame 소비처 ${consumers.consumers.length}개 전부 pigSpriteFrameStyle() 사용:`);
+  console.log(consumers.consumers.length > 0
+    ? `✅ .pigSpriteFrame 소비처 ${consumers.consumers.length}개 전부 pigSpriteFrameStyle() 사용:`
+    : `✅ pig 소비처 없음 — 현행 SpriteCrop JS 백분율 크롭 및 실제 소비처 ${consumers.spriteConsumers.length}개 확인:`);
   for (const file of consumers.consumers) console.log(`   - ${file}`);
+  for (const file of consumers.spriteConsumers) console.log(`   - ${file}`);
 }
 
 main();
