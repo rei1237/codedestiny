@@ -93,6 +93,14 @@ function saju(label:string,v:O,k:Kit){
     }
     case 'yearlyLuck':for(const x of list(v))k.emit(label,String(x.year),x,[`yearlyLuck.Y${x.year-k.baseYear}`]);return true;
     case 'monthlyLuck':for(const x of list(v))k.emit(label,`${x.start?.year}-${pad2(x.start?.month)}`,x,['monthlyLuck.M12']);return true;
+    case 'elementProfile':case 'tenGodProfile':case 'healthBasis':return whole(k,label,v);
+    case 'movementSignals':{
+      const {periods,majorLuck,...natal}=v||{};
+      k.emit(label,'natal',natal,['movementSignals.natal']);
+      if(majorLuck)k.emit(label,'major',{majorLuck},['movementSignals.major']);
+      for(const x of list(periods))k.emit(label,String(x.year),x,[`movementSignals.Y${x.year-k.baseYear}`]);
+      return true;
+    }
     case 'majorLuck':{
       const {cycles:all,currentCycle,...rest}=v||{},cycles=list(all);
       const cur=currentCycle?cycles.find(c=>c.index===currentCycle.index)||currentCycle:null;

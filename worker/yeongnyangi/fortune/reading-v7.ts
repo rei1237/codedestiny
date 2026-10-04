@@ -62,7 +62,7 @@ const card=(key:string,tiers:string,title:string,positions:string[],cover:string
 
 export const v7Catalog:Record<string,V7Entry[]>={
   saju:[
-    e('anchor','base','sft','타고난 중심과 힘의 균형','','dayMaster pillars strengthHeuristic','기질의 중심/힘의 균형이 일상에 드러나는 방식/강점이 지나칠 때','scene'),
+    e('anchor','base','sft','타고난 중심과 힘의 균형','','dayMaster pillars strengthHeuristic elementProfile tenGodProfile','발달한 오행·십성이 만드는 기질/힘의 균형이 일상에 드러나는 방식/강점이 지나칠 때','scene'),
     e('love','love','sft','끌림과 연애의 방식','shinsal s:tenGods s:tenGodsByPillar','shinsal.도화살 shinsal.홍염살 s:tenGods.식신 s:tenGods.상관','끌림이 생기는 자리/가까워지는 방식/연애가 흔들리는 조건','scene'),
     e('expression','love','f','마음을 전하는 표현','tenGods tenGodsByPillar','tenGods.식신 tenGods.상관','표현의 온도/말이 관계에 남기는 것/표현을 다듬는 법','scene'),
     e('siksin','love','t','다정하게 전하는 마음(식신)','tenGods tenGodsByPillar','tenGods.식신','다정함이 드러나는 방식/편안함이 주는 매력/여유가 느슨함이 될 때','scene'),
@@ -83,16 +83,16 @@ export const v7Catalog:Record<string,V7Entry[]>={
     e('geopjae','relations','t','겨루는 사람(겁재)','tenGods tenGodsByPillar','tenGods.겁재','겨루는 사람이 나타나는 자리/경쟁이 자원을 흔드는 조건/경쟁을 협력으로 바꾸는 법','scene'),
     e('roots','relations','ft','부모와 뿌리','pillarDetails.year tenGodsByPillar.year natalInteractions','pillarDetails.year tenGodsByPillar.year natalInteractions.year','부모와 뿌리에서 받은 결/집안의 기대가 남긴 것/뿌리와 거리를 두는 법','scene'),
     e('children','relations','ft','자녀와 인생 후반','pillarDetails.hour tenGodsByPillar.hour natalInteractions','pillarDetails.hour tenGodsByPillar.hour natalInteractions.hour','자녀와 아랫사람과의 관계/인생 후반의 결/후반을 준비하는 법','scene'),
-    e('health','health','sft','몸의 리듬과 회복','','fiveElements seasonalBalance','치우친 기운이 드러나는 생활 리듬/계절·환경에 따른 컨디션/회복 습관'),
+    e('health','health','sft','몸의 리듬과 회복','','fiveElements seasonalBalance healthBasis','치우친 기운이 드러나는 생활 리듬/계절·환경에 따른 컨디션/회복 습관'),
     e('signals','depth','t','귀인·이동·강한 기운의 신호','shinsal','shinsal.천을귀인 shinsal.문창귀인 shinsal.역마살 shinsal.화개살 shinsal.양인살 shinsal.괴강살 shinsal.백호살 shinsal.공망 shinsal.귀문관살 shinsal.원진살','있는 신살의 뜻과 한계/도움과 이동의 통로/강한 기운을 다루는 법','scene'),
     e('useful','depth','t','나를 살리는 기운(용신·종격 판정)','','usefulGod jong','용신의 근거와 한계/생활에서 보강하는 법/종격 여부가 바꾸는 해석'),
     e('majorArc','timing','t','대운으로 보는 인생의 굴곡','majorLuck','majorLuck.arc','지나온 대운이 남긴 굴곡/먼 대운의 방향/긴 주기를 읽는 법'),
-    e('majorNow','timing','t','지금의 대운','majorLuck advancedFactors','majorLuck.current advancedFactors','지금 대운의 과제/지금 대운이 원국과 만나는 자리','decision'),
+    e('majorNow','timing','t','지금의 대운','majorLuck advancedFactors movementSignals','majorLuck.current advancedFactors movementSignals.major','지금 대운의 과제/지금 대운이 원국과 만나는 자리','decision'),
     e('majorNext','timing','t','다음 대운과 준비','majorLuck','majorLuck.next','다음 대운이 바꾸는 것/전환 전에 준비할 조건','decision'),
-    e('yearNow','timing','sft','올해와 내년','yearlyLuck s:monthlyLuck','yearlyLuck.Y0 yearlyLuck.Y1 s:monthlyLuck.M12','올해 세운의 흐름/내년 세운의 흐름','decision',
+    e('yearNow','timing','sft','올해와 내년','yearlyLuck s:monthlyLuck movementSignals','yearlyLuck.Y0 yearlyLuck.Y1 s:monthlyLuck.M12 movementSignals.natal movementSignals.Y0-1','올해 세운의 흐름/내년 세운의 흐름','decision',
       {requires:['s:birthTime'],fallback:['s:dayMaster','s:pillarDetails']}),
     e('months','timing','ft','앞으로 12개월','monthlyLuck','monthlyLuck.M12','가까운 몇 달의 흐름/한 해 가운데 달라지는 달/달마다 점검할 것'),
-    e('yearsAhead','timing','t','앞으로 8년의 세운','yearlyLuck','yearlyLuck.Y2-9','앞으로 몇 해의 큰 결/세운이 바뀌는 해/길게 준비할 일'),
+    e('yearsAhead','timing','t','앞으로 8년의 세운','yearlyLuck movementSignals','yearlyLuck.Y2-9 movementSignals.Y2-9','앞으로 몇 해의 큰 결/세운이 바뀌는 해/길게 준비할 일'),
   ],
   ziwei:[
     e('anchor','base','sft','삶의 중심(명궁·신궁)','','lifePalace bodyPalace palaces.명궁 bureau','명궁 주성이 말하는 기질/신궁이 앉은 자리의 무게/오행국이 정하는 리듬','scene'),
@@ -205,7 +205,7 @@ export const v7Catalog:Record<string,V7Entry[]>={
 // saju.seasonalBalance (조후, the element the chart needs) is owned by the health chapter, but every chapter cites the
 // same conclusion so no chapter names a different needed element.
 export const V7_ANCHOR_REFS:Record<DomainId,string[]>={
-  saju:['dayMaster','pillars','strengthHeuristic','seasonalBalance'],
+  saju:['dayMaster','pillars','strengthHeuristic','seasonalBalance','elementProfile'],
   ziwei:['lifePalace','bodyPalace','palaces.명궁','bureau'],
   vedic:['lagna','houses.1'],
   astrology:['ascendant','planets.Sun','houseCusps.1'],

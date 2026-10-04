@@ -27,7 +27,7 @@ const TEMPERAMENT = {
     none:'깊이 머무르기보다 바로 움직이는 편이라 쉼과 성찰의 시간이 부족해지기 쉽다. 의식적으로 멈추는 시간을 두면 판단이 깊어진다.'},
 };
 
-/** @param {{ratios?:Record<string,number>,counts?:Record<string,number>,dominant?:string}} [fiveElements] */
+/** @param {{ratios?:Record<string,number>|object,counts?:Record<string,number>,dominant?:string}} [fiveElements] */
 export function buildElementProfile(fiveElements = {}) {
   const ratios = fiveElements.ratios || {}, counts = fiveElements.counts || {};
   const elements = ELEMENTS.map(element => {
@@ -61,7 +61,7 @@ const COMBOS = [
   {name:'관살혼잡', test:n => n.편관 && n.정관, meaning:'책임과 역할이 여러 갈래로 겹치기 쉬워 우선순위 고정이 필요한 구조'},
 ];
 
-/** @param {{tenGodsByPillar?:Record<string,any>, tenGods?:Record<string,number>, strength?:{isStrong?:boolean}}} [input] */
+/** @param {{tenGodsByPillar?:Record<string,any>, tenGods?:Record<string,number>|object, strength?:{isStrong?:boolean}}} [input] */
 export function buildTenGodProfile({ tenGodsByPillar = {}, tenGods = {}, strength = {} } = {}) {
   const surface = {}, hidden = {}, where = {};
   const add = (map, god, n = 1) => { if (god && god !== '일간') map[god] = (map[god] || 0) + n; };
@@ -102,7 +102,7 @@ const ADJACENT = [['year','month'],['month','day'],['day','hour']];
 const branchOf = target => String(target || '')[0];
 const clashesOf = interactions => rows(interactions?.branchClashes).map(c => ({label:c.label, pillars:c.pillars, values:c.values}));
 
-/** @param {{pillars?:Record<string,string|null>, natalInteractions?:object, shinsal?:any, yearlyLuck?:any[], majorLuck?:any}} [input] */
+/** @param {{pillars?:Record<string,string|null>, natalInteractions?:object, shinsal?:any, yearlyLuck?:any[]|null, majorLuck?:any}} [input] */
 export function buildMovementSignals({ pillars = {}, natalInteractions = {}, shinsal = {}, yearlyLuck = null, majorLuck = null } = {}) {
   const details = preventionPillarDetails(pillars);
   const present = POSITIONS.filter(p => details[p]);

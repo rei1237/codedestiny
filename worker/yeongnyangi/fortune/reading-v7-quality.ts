@@ -51,9 +51,10 @@ export const V7_TERMS:Record<string,V7Term[]>={
     {term:'일주',ids:['.pillars'],anchor:true},
     {term:'신강',ids:['.strengthHeuristic'],anchor:true},
     {term:'신약',ids:['.strengthHeuristic'],anchor:true},
-    {term:'오행',ids:['.fiveElements'],anchor:true},
-    ...fromSlugs(TEN_GOD_SLUGS,'tenGods'),
-    ...fromSlugs(SHINSAL_SLUGS,'shinsal'),
+    {term:'오행',ids:['.fiveElements','.elementProfile'],anchor:true},
+    // The anchor owns the ten-god cluster profile, so it may name single ten gods; 역마 also belongs to the movement facts.
+    ...fromSlugs(TEN_GOD_SLUGS,'tenGods').map(t=>({...t,ids:[...t.ids,'.tenGodProfile']})),
+    ...fromSlugs(SHINSAL_SLUGS,'shinsal').map(t=>t.term==='역마살'?{...t,ids:[...t.ids,'.movementSignals.natal']}:t),
   ],
   ziwei:[
     {term:'명궁',ids:['.palaces.myeong','.lifePalace'],anchor:true},

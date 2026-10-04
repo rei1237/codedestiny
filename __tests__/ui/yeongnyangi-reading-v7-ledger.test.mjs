@@ -111,10 +111,15 @@ test('saju: declared absence, pillar and interaction ownership, year ranges',()=
  // A clash between year and day goes to the first owner in manifest order (spouse owns the day pillar).
  const clash=[...tuna.ledger.facts.keys()].find(id=>id.startsWith('saju.natalInteractions.branchClashes.year-day'));
  assert.ok(clash&&own('spouse').includes(clash),clash);
- assert.deepEqual(own('yearNow'),['saju.yearlyLuck.2026','saju.yearlyLuck.2027']);
- assert.deepEqual(own('yearsAhead'),[2028,2029,2030,2031,2032,2033,2034,2035].map(y=>`saju.yearlyLuck.${y}`));
+ const luck=key=>own(key).filter(id=>id.startsWith('saju.yearlyLuck.'));
+ assert.deepEqual(luck('yearNow'),['saju.yearlyLuck.2026','saju.yearlyLuck.2027']);
+ assert.deepEqual(luck('yearsAhead'),[2028,2029,2030,2031,2032,2033,2034,2035].map(y=>`saju.yearlyLuck.${y}`));
+ // Movement facts: the natal reading plus one fact per dated year, all owned at tuna.
+ const movement=[...tuna.ledger.facts.keys()].filter(id=>id.startsWith('saju.movementSignals.'));
+ assert.ok(movement.includes('saju.movementSignals.natal')&&movement.some(id=>/\.20\d\d$/.test(id)),movement.join());
+ assert.deepEqual(movement.filter(id=>tuna.unowned.includes(id)),[]);
  assert.equal(own('months').length,12);
- assert.deepEqual(own('majorNow'),['saju.advancedFactors','saju.majorLuck.current']);
+ assert.deepEqual(own('majorNow'),['saju.advancedFactors','saju.majorLuck.current','saju.movementSignals.major']);
  assert.equal(tuna.ledger.facts.get('saju.majorLuck.current').value.cycle.startYear,2024);
  assert.equal(tuna.ledger.facts.get('saju.majorLuck.next').value.cycle.startYear,2034);
  // Salmon: the month-by-month facts ride along in yearNow; love keeps only 도화·홍염 plus 식상.
@@ -128,7 +133,10 @@ test('saju: declared absence, pillar and interaction ownership, year ranges',()=
 test('saju without a birth time: decision 7 rebuilds this year and next, and it matches the engine year luck',()=>{
  for(const r of resolved.filter(r=>r.fixture==='saju:noTime')){
   const yearNow=r.chapters.find(c=>c.key==='yearNow');
-  assert.deepEqual(yearNow.owns,['saju.yearlyLuck.2026','saju.yearlyLuck.2027']);
+  assert.deepEqual(yearNow.owns.filter(id=>id.startsWith('saju.yearlyLuck.')),['saju.yearlyLuck.2026','saju.yearlyLuck.2027']);
+  // Movement keeps its natal reading but no dated year without a birth time.
+  assert.ok(r.chapters.some(c=>c.owns.includes('saju.movementSignals.natal')),r.tier);
+  assert.ok(![...r.ledger.facts.keys()].some(id=>/^saju\.movementSignals\.\d/.test(id)));
   assert.ok(!r.ledger.facts.has('saju.pillarDetails.hour'));
   assert.ok(![...r.ledger.facts.keys()].some(id=>/monthlyLuck|majorLuck/.test(id)));
  }

@@ -65,7 +65,7 @@ test('ledger with the stored matrix: timing facts stay with timing chapters and 
   for(const c of chapters)for(const id of c.owns)if(TIMING_LABELS.test(ledger.facts.get(id).label))assert.equal(c.theme,'timing',`${tier}: ${id} owned by ${c.key}`);
   const monthOwner=chapters.find(c=>c.key===(tier==='salmon'?'yearNow':'months'));
   assert.deepEqual(monthOwner.owns.filter(id=>id.startsWith('saju.monthlyLuck.')),rolling.map(k=>`saju.monthlyLuck.${k}`),tier);
-  if(tier==='tuna')assert.deepEqual(chapters.find(c=>c.key==='yearsAhead').owns,[2028,2029,2030,2031,2032,2033,2034,2035].map(y=>`saju.yearlyLuck.${y}`));
+  if(tier==='tuna')assert.deepEqual(chapters.find(c=>c.key==='yearsAhead').owns.filter(id=>id.startsWith('saju.yearlyLuck.')),[2028,2029,2030,2031,2032,2033,2034,2035].map(y=>`saju.yearlyLuck.${y}`));
  }
 });
 

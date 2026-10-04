@@ -17,7 +17,7 @@ const rows=(text:string):Row[]=>text.split('\n').map(s=>s.trim()).filter(Boolean
 });
 const outline=(mackerel:string,salmon:string,flounder:string,tuna:string):Outline=>({mackerel:rows(mackerel),salmon:rows(salmon),flounder:rows(flounder),tuna:rows(tuna)});
 const outlines:Record<DomainId,Outline>={
- saju:outline(`self|일간으로 읽는 나의 기질|dayMaster,pillarDetails
+ saju:outline(`self|일간으로 읽는 나의 기질|dayMaster,pillarDetails,tenGodProfile,elementProfile
  balance|오행과 계절의 균형|fiveElements,seasonalBalance,strengthHeuristic
  talent|재능과 일하는 방식|tenGods,tenGodsByPillar
  love|사랑과 가까운 관계|tenGodsByPillar,natalInteractions`,
