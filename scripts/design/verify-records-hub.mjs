@@ -7,6 +7,7 @@ import { RECORD_SERVICES, savedRecordPath } from '../../lib/records/service-regi
 import { getMasterLoveCodexPlan } from '../../worker/lib/master-love-codex-prompt.mjs';
 const origin = process.env.RECORDS_TEST_ORIGIN || 'http://127.0.0.1:3194';
 const detailOnly = process.env.RECORDS_TEST_DETAIL_ONLY;
+const stateOnly = process.env.RECORDS_TEST_SCENARIO;
 assert.match(origin, /^http:\/\/(127\.0\.0\.1|localhost):\d+$/);
 const out = path.resolve('build-cache/records-hub'); fs.mkdirSync(out,{recursive:true});
 const user = {id:'64b7f2a1c3d4e5f601234567',_id:'64b7f2a1c3d4e5f601234567',name:'화면 검증',email:'fixture@example.invalid',hasLocalAuth:true};
@@ -85,7 +86,7 @@ async function bounds(page,width) {
   assert.ok(box.scroll<=width+1,`overflow ${box.scroll} > ${width}`);assert.ok(box.bottom>=110,'navigation safe spacing');return box;
 }
 try {
-  for(const width of detailOnly?[]:[360,390,430,1280].filter(width=>!process.env.RECORDS_TEST_WIDTH||width===Number(process.env.RECORDS_TEST_WIDTH))) {
+  for(const width of detailOnly||stateOnly?[]:[360,390,430,1280].filter(width=>!process.env.RECORDS_TEST_WIDTH||width===Number(process.env.RECORDS_TEST_WIDTH))) {
     const state=await contextFor(width);const {page,context}=state;
     await page.goto(origin+'/consultations/',{waitUntil:'domcontentloaded'});await page.getByRole('heading',{name:'지금, 어떤 답이 필요한가요?'}).waitFor();
     for(const source of RECORD_SERVICES.filter(row=>row.featured))assert.equal(await page.locator(`main a[href="${source.href}"]`).count(),1);
@@ -107,14 +108,14 @@ try {
     assert.equal(state.errors.length,0,JSON.stringify(state.errors));assert.equal(state.forbidden.length,0,JSON.stringify(state.forbidden));
     evidence.push({scenario:'layout-navigation-restore',width,hubBounds,archiveBounds,api:state.seen,passed:true});await context.close();
   }
-  for(const scenario of detailOnly?[]:['guest','empty','error','partial-error']) {
+  for(const scenario of detailOnly?[]:['guest','empty','error','partial-error'].filter(scenario=>!stateOnly||stateOnly===scenario)) {
     const state=await contextFor(390,scenario);await state.page.goto(origin+'/records/',{waitUntil:'domcontentloaded'});
     const expected={guest:'내 기록을 보려면 로그인해 주세요',empty:'아직 보관된 기록이 없어요',error:'기록을 불러오지 못했어요','partial-error':'일부 기록을 확인하지 못했어요'}[scenario];await state.page.getByText(expected,{exact:true}).waitFor();
     if(scenario==='partial-error')assert.equal(await state.page.locator('main article').count(),10);
     if(scenario==='error')assert.equal(await state.page.getByText('아직 보관된 기록이 없어요',{exact:true}).count(),0);
     await state.page.screenshot({path:path.join(out,`archive-${scenario}.png`),fullPage:true});evidence.push({scenario,passed:true,api:state.seen});await state.context.close();
   }
-  for(const source of ['neo','fusion','codex','chat','chat-consultation','tea','astrology','partial'].filter(source=>!detailOnly||source===detailOnly)) {
+  for(const source of (stateOnly?[]:['neo','fusion','codex','chat','chat-consultation','tea','astrology','partial']).filter(source=>!detailOnly||source===detailOnly)) {
     const state=await contextFor(390);const actual=source==='partial'?'fusion':source;
     await state.page.goto(origin+savedRecordPath(actual,source==='tea'?'tea-fixture':source==='partial'?'partial':'fixture'),{waitUntil:'domcontentloaded'});
     if(source==='tea')await state.page.getByText('[화면 검증] 연이의 상담 기록',{exact:true}).waitFor();
