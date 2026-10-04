@@ -1,7 +1,7 @@
 ---
 status: blocked
 updated: 2026-10-04
-next: "Gate 2 승인 전에는 운영 승격·복구 execute·실 LLM을 실행하지 않는다. 참치 복구 승인과 결제 커밋 마커 예외를 확인하고 최신 dry-run을 대조한다. 추가 발견한 관계 경계 건은 별도 진단 Gate 승인 후 구현한다."
+next: "사용자가 운영 승격을 명시 승인했다. 정확한 main SHA의 CI 통과 후 1회 승격한다. 참치 복구 execute/실 LLM은 Gate 2 및 결제 커밋 마커 예외 승인 전 실행하지 않는다."
 ---
 
 # 영냥이 참치 챕터 전달 보강 및 운영 주문 점검
@@ -10,7 +10,7 @@ next: "Gate 2 승인 전에는 운영 승격·복구 execute·실 LLM을 실행�
 
 - 사용자 목표: 참치 대운 누락 원인 규명, 1차 생성 성공률/토큰 효율 개선, 실패한 장만 복구, 추가 결제·이용권 변동 금지.
 - 대상: 70f6209e67a44924622f18a8ea6e7aa81df4bdf306023d925bb3f7410b621417.
-- 읽기 전용 진단 후 사용자의 정확한 수정·시간 여유·복구 요청을 구현 범위로 반영했다. 운영 쓰기·과금 LLM·PG·환불·운영 승격 승인은 아직 없다.
+- 읽기 전용 진단 후 사용자의 정확한 수정·시간 여유·복구 요청을 구현 범위로 반영했다. 이후 "바로 운영 승격까지 진행해"로 검증 후 운영 승격 1회가 승인됐다. 주문 복구 쓰기·과금 LLM·PG·환불 승인은 아직 없다.
 - 추가 지시: 전체 유료 LLM 전달 상태 조사. 고객 주문 분석 우선순위는 참치이며 모둠/오마카세 개별 분석 제외.
 - 작업 디렉터리: D:/Development/codedestiny-worktrees/yeongnyangi-chapter-recovery-20261004-123007.
 - 작업 브랜치: codex/yeongnyangi-chapter-recovery. 공유 main의 기존 미커밋 파일은 수정하지 않았다.
@@ -79,6 +79,10 @@ DB audit에서 대상은 saju_tuna, paid, FORTUNE_FAILED / GENERATION_REVIEW_REQ
 토큰 상한은 기존 장별 분량·thinking 예산을 유지하므로 시간 증가가 토큰 상한을 늘리지는 않는다.
 원격 공급자는 로컬 중단 뒤에도 처리/과금할 가능성이 있으므로, 잠금과 1회 호출 예산으로 겹친 재시도를 막되 비용 0을 보장하지 않는다.
 다른 HTTP 동기 LLM에 240초를 일괄 적용하면 브라우저/상위 타임아웃을 넘어설 수 있으므로 적용하지 않았다.
+Cloudflare 공식 제한도 확인했다: 큐 소비 작업 wall time은 15분이며 HTTP 응답/연결 종료 뒤 waitUntil 연장은 30초다.
+따라서 240초 작업은 기존 장별 큐에서 처리한다. CPU 시간과 네트워크 대기 시간은 별도 제한이다.
+근거: https://developers.cloudflare.com/workers/platform/limits/#wall-time-limits-by-invocation-type
+자동 3회가 모두 실패하면 현재 정책은 여전히 보류된다. 무한 재시도 비용을 만들지 않았으며, 외부 장애에도 영구적으로 무개입 완성을 보장하는 상태는 아니다.
 
 ## 영냥이 운영 주문 전수 대조
 
@@ -128,7 +132,7 @@ paid/success/fulfilled 결제, 소유자, requestId, consumedBy, 환불 마커�
   relationship-delivery-store.js: knownFailed면 generation_failed 저장 후 환급을 시도하며, 이후 같은 결과의 재개는 retryable:false로 거절.
 - 동일 serviceKey의 차감 이후 환급 원장과, 같은 계정의 이후 MONTHLY_CREDIT_GRANT는 조회 범위에서 없다.
   환급 시도 자체의 실패 이유는 실행 로그가 없어 불명이다. 자동 환급이 성공했다고 단정하지 않는다.
-- 사용자가 제공한 본인 계정과 해당 결과의 소유자 계정을 조회해 두 계정이 모두 존재하고 ID가 다름을 확인했다.
+- 사용자가 제공한 본인 계정 3개 모두 존재하며 해당 결과의 소유자 ID는 세 계정 어느 것과도 다름을 재확인했다.
   다른 고객 이메일/이름/출생 정보는 출력하지 않았다.
 
 추가 수정안(미구현): 정상 6부분 보존, 거절된 원문의 정확한 중복 문장을 로컬 편집해 부족하지 않으면 재사용,
@@ -140,7 +144,7 @@ paid/success/fulfilled 결제, 소유자, requestId, consumedBy, 환불 마커�
 
 ## Gate 2: 참치 실행 승인에 필요한 사항
 
-1. 검증된 코드의 운영 승격(별도 명시 승인).
+1. 검증된 코드의 운영 승격은 최신 사용자 메시지로 승인됨. CI 및 릴리스 게이트 이후 실행한다.
 2. 위 참치 주문의 누락 12장 생성(기존 4장 보존, 최소 12회/자동 상한 35회).
 3. 기존 동시 환불 방어용 Payment 메타데이터 마커 예외:
    metadata.yeongnyangiChapterCommit, metadata.yeongnyangiCompletionCommit, updatedAt.
@@ -172,9 +176,11 @@ execute는 고객 결과를 로컬에서 생성하지 않는다. 해당 주문�
 - 원래 123개 상품·상담 준비 불변성 검사: 새 deliveryContract 키만 별도 단언하며 기존 계산·목차·정체성 해시는 유지.
 - 대운 입력 8/10/12 cycle 및 순행/역행: 기존 주제별 목차 유지, 해당 장에 제공되는 원래 계산 근거 선택 확인.
 - typecheck 통과. 수정 후 `npm run check:fast`의 paid-gate-suite 88/88과 lint는 통과했다.
-  이후 sitemap drift 검사에서 중단되어 check:fast 전체 통과로 보고하지 않는다. 최신 main의 사이트맵 갱신을 통합하고 다시 확인한다.
+  이후 sitemap drift 검사에서 중단되어 check:fast 전체 통과로 보고하지 않는다. 최신 main 통합 후 생성기로 원장 서명을 갱신했고 sitemap drift 재검사는 통과했다.
 - 절단/계약/복구 스크립트 관련 targeted 검사 24개, benchmark/fusion/기존 준비 불변성 12개 통과.
 - 생성·저장 공통 수정 커밋: `a8ea7348f` (`fix(yeongnyangi): validate durable chapters and bound recovery`).
+- 운영 도구/진단 커밋: `deda9151a` (`fix(ops): require reviewed plans for chapter recovery`).
+- 최신 main 통합 뒤 계약/불변성/복구 targeted 17개 및 저장소/크론 Jest 109개 통과, typecheck 통과.
 - main CI와 운영 승격은 별개다. 최종 전달 SHA의 CI 결과는 채팅 전달 기록에 남긴다.
 - 최초 check:fast는 변경된 절단 거부 계약/완결 마커가 없는 구 mock/새 snapshot 키의 기존 기대값 때문에 실패했다.
   검사를 제거하지 않고, 절단은 거부하고 완결 마커를 제공하도록 기대 계약과 fixture를 갱신했다.
