@@ -41,7 +41,7 @@ const expectedCosts = {
   "compat-astro-synastry": 30,
   "compat-astro-direct-synastry": 30,
   "compat-ziwei-compatibility": 30,
-  "compat-saju-compatibility": 30,
+  "compat-saju-compatibility": 50,
   "compat-sukuyo-compatibility": 30,
   "premium-sukuyo-compat-extra": 30,
   "sukuyo-relationship-encyclopedia": 30,

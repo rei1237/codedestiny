@@ -1812,8 +1812,8 @@
       "purchase": "결제 승인과 이용 권한을 확인하고 있습니다.",
       "pdfGeneration": "PDF 생성을 위한 결제 권한을 확인하고 있습니다."
     },
-    "price5000": "3,000원",
-    "perUse5000": "회당 · 3,000원",
+    "price5000": "5,000원",
+    "perUse5000": "회당 · 5,000원",
     "permanentUnlockApprox5000": "영구 해금 · 약 5,000원",
     "viewNow": "지금 열람하기 →",
     "permanentUnlock5000": "5,000원으로 영구 해금",

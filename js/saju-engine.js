@@ -29253,7 +29253,7 @@ async function runCompat(){
 
   /* 🔒 사주 궁합 5,000원 게이트 */
   if (typeof window._cdCoinGatePerUse === 'function') {
-    window._cdCoinGatePerUse(30, '사주 궁합 분석', function() {
+    window._cdCoinGatePerUse(50, '사주 궁합 분석', function() {
       runCompatCore(compatRunBtn, name, bd, type);
     }, function() {
       if (compatRunBtn) {
