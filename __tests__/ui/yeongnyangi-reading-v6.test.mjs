@@ -155,6 +155,12 @@ test('v6 rejects missing depth, false evidence, duplicated prose and unsupported
  const forged=structuredClone(good);forged.blocks[0].sources=['saju.fake'];assert.throws(()=>m.validateChapter(forged,input),{code:'INVALID_EVIDENCE'});
  assert.throws(()=>m.validateChapter(good,{...input,previous:[good]}),{code:'DUPLICATE_CHAPTER'});
  const claim=structuredClone(good);claim.blocks[0].paragraphs.push('반드시 재회합니다.');assert.throws(()=>m.validateChapter(claim,input),{code:'UNSUPPORTED_READING_CLAIM'});
+ for(const text of ['이 시기에 위장 질환이 생깁니다.','내년에는 병에 걸립니다.','마흔 무렵 발병할 것입니다.']){
+  const disease=structuredClone(good);disease.blocks[0].paragraphs.push(text);assert.throws(()=>m.validateChapter(disease,input),{code:'UNSUPPORTED_READING_CLAIM'},text);
+ }
+ for(const text of ['걱정되는 증상이나 질환이 있다면 의료진과 확인해 보세요.','이 흐름이 병에 걸린다는 뜻은 아닙니다.']){
+  const care=structuredClone(good);care.blocks[0].paragraphs.push(text);assert.doesNotThrow(()=>m.validateChapter(care,input),text);
+ }
 });
 test('one section a little short keeps the chapter; only a hollow section discards it (principle 17)',()=>{
  const section=chapter.sections[0];
