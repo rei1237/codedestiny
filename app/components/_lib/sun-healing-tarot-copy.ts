@@ -62,7 +62,6 @@ export interface SunHealingTarotCopy {
   routineEyebrow: string;
   routineHeading: string;
   affirmationLabel: string;
-  qualityEnhancedNote: string;
 
   promptPanelKicker: string;
   promptPanelTitle: string;
@@ -71,8 +70,6 @@ export interface SunHealingTarotCopy {
   promptCopiedStatus: string;
   promptCopyManualStatus: string;
 
-  loginRequiredAlert: string;
-  delayedAlert: string;
   fetchErrorAlert: string;
   linkCopiedAlert: string;
   shareUnsupportedAlert: string;
@@ -137,7 +134,6 @@ const SUN_HEALING_TAROT_COPY_EN: SunHealingTarotCopy = {
   routineEyebrow: "Today's recovery routine",
   routineHeading: "A recovery action you can start in 10 minutes",
   affirmationLabel: "A sentence for you today",
-  qualityEnhancedNote: "The four sun messages have come together into a calmer whole.",
 
   promptPanelKicker: "A recovery question to continue",
   promptPanelTitle: "Reflect once more on what the sun left behind",
@@ -146,8 +142,6 @@ const SUN_HEALING_TAROT_COPY_EN: SunHealingTarotCopy = {
   promptCopiedStatus: "Copied.",
   promptCopyManualStatus: "Please select and copy it manually.",
 
-  loginRequiredAlert: "You need to log in to open a recovery reading. Please log in and try again.",
-  delayedAlert: "Preparing the reading is taking longer than expected. Please refresh the page and check again.",
   fetchErrorAlert: "Something went wrong while loading the reading. Please try again shortly.",
   linkCopiedAlert: "Link copied.",
   shareUnsupportedAlert: "Sharing isn't supported in this environment.",
@@ -213,7 +207,6 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     routineEyebrow: "오늘의 회복 루틴",
     routineHeading: "10분 안에 시작하는 회복 행동",
     affirmationLabel: "오늘 나에게 건네는 문장",
-    qualityEnhancedNote: "네 장의 태양 메시지가 한결 차분한 결로 모였습니다.",
 
     promptPanelKicker: "이어 볼 회복 질문",
     promptPanelTitle: "태양이 남긴 문장을 한 번 더 비추기",
@@ -222,8 +215,6 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     promptCopiedStatus: "복사되었습니다.",
     promptCopyManualStatus: "직접 선택해 복사해 주세요.",
 
-    loginRequiredAlert: "회복 리딩을 열려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
-    delayedAlert: "해석 준비가 지연되고 있습니다. 페이지를 새로고침한 뒤 다시 확인해 주세요.",
     fetchErrorAlert: "해석을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
     linkCopiedAlert: "링크를 복사했습니다.",
     shareUnsupportedAlert: "공유를 지원하지 않는 환경입니다.",
@@ -287,7 +278,6 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     routineEyebrow: "今日の回復ルーティン",
     routineHeading: "10分で始められる回復行動",
     affirmationLabel: "今日の自分に贈る言葉",
-    qualityEnhancedNote: "4つの太陽のメッセージが、より落ち着いた形にまとまりました。",
 
     promptPanelKicker: "続けて見る回復の質問",
     promptPanelTitle: "太陽が残した言葉をもう一度照らす",
@@ -296,8 +286,6 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     promptCopiedStatus: "コピーしました。",
     promptCopyManualStatus: "直接選択してコピーしてください。",
 
-    loginRequiredAlert: "回復リーディングを開くにはログインが必要です。ログイン後、もう一度お試しください。",
-    delayedAlert: "解読の準備に時間がかかっています。ページを更新してもう一度ご確認ください。",
     fetchErrorAlert: "解読の読み込み中に問題が発生しました。しばらくしてからもう一度お試しください。",
     linkCopiedAlert: "リンクをコピーしました。",
     shareUnsupportedAlert: "この環境では共有がサポートされていません。",
@@ -361,7 +349,6 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     routineEyebrow: "今日的疗愈日常",
     routineHeading: "10分钟内就能开始的疗愈行动",
     affirmationLabel: "今天想对自己说的话",
-    qualityEnhancedNote: "四条太阳讯息汇聚成了更为沉稳的整体。",
 
     promptPanelKicker: "可以延续的疗愈问题",
     promptPanelTitle: "再次映照太阳留下的话语",
@@ -370,8 +357,6 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     promptCopiedStatus: "已复制。",
     promptCopyManualStatus: "请手动选择并复制。",
 
-    loginRequiredAlert: "开启疗愈解读需要先登录，请登录后重试。",
-    delayedAlert: "解读准备时间较长，请刷新页面后再次确认。",
     fetchErrorAlert: "加载解读时出现问题，请稍后再试。",
     linkCopiedAlert: "已复制链接。",
     shareUnsupportedAlert: "当前环境不支持分享。",
@@ -435,7 +420,6 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     routineEyebrow: "今日的療癒日常",
     routineHeading: "10分鐘內就能開始的療癒行動",
     affirmationLabel: "今天想對自己說的話",
-    qualityEnhancedNote: "四條太陽訊息匯聚成了更為沉穩的整體。",
 
     promptPanelKicker: "可以延續的療癒問題",
     promptPanelTitle: "再次映照太陽留下的話語",
@@ -444,8 +428,6 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     promptCopiedStatus: "已複製。",
     promptCopyManualStatus: "請手動選擇並複製。",
 
-    loginRequiredAlert: "開啟療癒解讀需要先登入，請登入後重試。",
-    delayedAlert: "解讀準備時間較長，請重新整理頁面後再次確認。",
     fetchErrorAlert: "載入解讀時出現問題，請稍後再試。",
     linkCopiedAlert: "已複製連結。",
     shareUnsupportedAlert: "目前環境不支援分享。",

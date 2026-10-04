@@ -11,8 +11,7 @@ import {
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSunHealingTarotCopy, type SunHealingTarotCopy } from "./_lib/sun-healing-tarot-copy";
-import { detectLocale } from "@/lib/i18n/dictionary";
-import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
+import { computeSunHealingReading, loadSunHealingEngine } from "./_lib/sun-healing-local-reading";
 
 
 // ─── Design Token ───────────────────────────────────────────────────────────
@@ -76,27 +75,16 @@ type RecoveryRoutineDto = {
   timeGuide?: string;
 };
 
-type EngineMetaDto = {
-  qualityEnhanced?: boolean;
-  source?: string;
-  spreadType?: string;
-  cardCount?: number;
-};
-
 type ReadingFetchResult = {
   reading: HealingReadingDto | null;
   highlights: string[];
-  engineMeta: EngineMetaDto | null;
 };
 
 type Stage = "intro" | "spread" | "result";
 
 type SectionTone = "neutral" | "warm" | "focus";
 
-const SPREAD_TYPE = "healing_rising_four_card" as const;
 const SPREAD_CARD_COUNT = 4 as const;
-const READING_ENDPOINT = "/api/tarot/reading";
-const API_TIMEOUT_MS = 30000;
 // lib/tarot/spreads.mjs의 healing_rising_four_card 포지션 키와 동일해야 한다.
 const HEALING_POSITIONS = ["hidden_truth", "embrace_pain", "silver_lining", "step_forward"] as const;
 
@@ -149,7 +137,8 @@ function cardImageUrl(card?: TarotCardDto) {
 }
 
 // 카드 표기명은 lib/tarot/tarot-cards.mjs(nameKo/nameEn)와 동일해야 한다.
-// (엔진 직접 import는 rich-card-meanings 대용량 모듈이 클라 번들에 딸려와 금지)
+// (엔진 정적 import는 rich-card-meanings 대용량 모듈이 초기 번들에 딸려와 금지 — 해석 계산은
+// _lib/sun-healing-local-reading 의 동적 import 청크에서만 엔진을 싣는다)
 const MAJOR_CARD_NAMES: Record<string, [string, string]> = {
   M00: ["바보", "The Fool"], M01: ["마법사", "The Magician"], M02: ["여사제", "The High Priestess"],
   M03: ["여황제", "The Empress"], M04: ["황제", "The Emperor"], M05: ["교황", "The Hierophant"],
@@ -502,10 +491,9 @@ export default function SunHealingTarot() {
   const [loading, setLoading] = useState(false);
   const [reading, setReading] = useState<HealingReadingDto | null>(null);
   const [consultingHighlights, setConsultingHighlights] = useState<string[]>([]);
-  const [engineMeta, setEngineMeta] = useState<EngineMetaDto | null>(null);
+  const [readingError, setReadingError] = useState("");
   const [glowingCard, setGlowingCard] = useState<number | null>(null);
   const [aiPromptCopyStatus, setAiPromptCopyStatus] = useState("");
-  const abortRef = useRef<AbortController | null>(null);
   const readingPromiseRef = useRef<Promise<ReadingFetchResult> | null>(null);
 
 
@@ -516,43 +504,20 @@ export default function SunHealingTarot() {
   }, []);
 
   const requestReading = useCallback(async (cardsToRead: TarotCardDto[]): Promise<ReadingFetchResult> => {
-    abortRef.current?.abort();
-    const ac = new AbortController();
-    abortRef.current = ac;
-    const timeoutId = window.setTimeout(() => ac.abort(), API_TIMEOUT_MS);
-    try {
-      const payloadCards = cardsToRead.map((c) => ({ cardId: c.cardId, position: c.position, orientation: c.orientation }));
-      const res = await fetch(READING_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", [AI_LOCALE_HEADER]: detectLocale() },
-        body: JSON.stringify({ category: "healing", spreadType: SPREAD_TYPE, cards: payloadCards }),
-        signal: ac.signal,
-      });
-      if (res.status === 401 || res.status === 403) throw new Error("LOGIN_REQUIRED");
-      const data = await res.json();
-      if (!res.ok || data?.ok === false) throw new Error(data?.message || "reading failed");
-      const nextReading = (data?.reading || null) as HealingReadingDto | null;
-      const highlights = Array.isArray(data?.consultingHighlights) ? data.consultingHighlights.map((line: unknown) => String(line || "").trim()).filter(Boolean).slice(0, 4) : [];
-      if (nextReading) nextReading.consultingHighlights = highlights;
-      return {
-        reading: nextReading,
-        highlights,
-        engineMeta: data?.engineMeta && typeof data.engineMeta === "object" ? (data.engineMeta as EngineMetaDto) : null,
-      };
-    } finally {
-      window.clearTimeout(timeoutId);
-      if (abortRef.current === ac) abortRef.current = null;
-    }
+    // 무료 기능: 로그인이 필요한 /api/tarot/reading 대신 같은 결정론 엔진을 브라우저에서 계산한다.
+    const { reading: nextReading, highlights } = await computeSunHealingReading<HealingReadingDto>(cardsToRead);
+    if (nextReading) nextReading.consultingHighlights = highlights;
+    return { reading: nextReading, highlights };
   }, []);
 
   const start = useCallback(() => {
     setReading(null);
     setConsultingHighlights([]);
-    setEngineMeta(null);
+    setReadingError("");
     setAiPromptCopyStatus("");
     setRevealedCount(0);
-    abortRef.current?.abort();
-    // 카드 뽑기는 서버 왕복 없이 즉시 처리하고, 해석은 카드를 뒤집는 동안 미리 받아 둔다.
+    // 카드 뽑기는 즉시 처리하고, 엔진 청크 로드와 해석 계산은 카드를 뒤집는 동안 미리 해 둔다.
+    loadSunHealingEngine().catch(() => {});
     const drawn = drawHealingCards();
     setCards(drawn);
     setStage("spread");
@@ -575,6 +540,7 @@ export default function SunHealingTarot() {
     if (revealedCount < SPREAD_CARD_COUNT || cards.length !== SPREAD_CARD_COUNT) return;
 
     setLoading(true);
+    setReadingError("");
     setAiPromptCopyStatus("");
     try {
       const pending = readingPromiseRef.current;
@@ -582,24 +548,17 @@ export default function SunHealingTarot() {
       let result: ReadingFetchResult;
       try {
         result = pending ? await pending : await requestReading(cards);
-      } catch (error) {
-        if (error instanceof Error && error.message === "LOGIN_REQUIRED") throw error;
-        // 프리페치가 실패했으면 한 번 새로 요청한다.
+      } catch {
+        // 프리페치(엔진 청크 로드)가 실패했으면 한 번 새로 계산한다.
         result = await requestReading(cards);
       }
+      if (!result.reading) throw new Error("empty healing reading");
       setReading(result.reading);
       setConsultingHighlights(result.highlights);
-      setEngineMeta(result.engineMeta);
       setStage("result");
     } catch (error) {
       console.error(error);
-      if (error instanceof Error && error.message === "LOGIN_REQUIRED") {
-        alert(copy.loginRequiredAlert);
-      } else if (error instanceof DOMException && error.name === "AbortError") {
-        alert(copy.delayedAlert);
-      } else {
-        alert(copy.fetchErrorAlert);
-      }
+      setReadingError(copy.fetchErrorAlert);
     } finally {
       setLoading(false);
     }
@@ -779,6 +738,7 @@ export default function SunHealingTarot() {
                   <span className="absolute inset-0 translate-x-[-120%] bg-[linear-gradient(110deg,transparent,rgba(255,255,255,0.48),transparent)] transition-transform duration-700 group-hover:translate-x-[120%]" />
                   <span className="relative flex items-center justify-center gap-2">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}{loading ? copy.interpretingLabel : copy.openReadingButton}</span>
                 </button>
+                {readingError ? (<p role="alert" className="mt-3 text-center text-sm font-medium leading-6 text-rose-700">{readingError}</p>) : null}
               </div>
               <aside className="rounded-[30px] border border-white/80 bg-white/64 p-5 shadow-[0_24px_70px_rgba(180,120,35,0.16)] backdrop-blur-2xl lg:min-h-[calc(100dvh-132px)]">
                 <p className="text-xs font-semibold tracking-[0.18em] text-teal-700/75">{copy.sidebarEyebrow}</p>
@@ -872,7 +832,6 @@ export default function SunHealingTarot() {
                   </section>
                 ) : null}
                 {reading?.notice ? <p className="text-xs leading-6 text-stone-500">{reading.notice}</p> : null}
-                {engineMeta?.qualityEnhanced && (<p className="rounded-lg border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-xs font-semibold text-amber-800">{copy.qualityEnhancedNote}</p>)}
                 {aiPromptText ? (
                   <section
                     className="tarot-healing-ai-prompt-panel rounded-lg border border-amber-200/80 bg-[linear-gradient(135deg,rgba(255,251,235,0.96),rgba(255,247,237,0.9),rgba(240,253,250,0.5))] p-5 shadow-[0_20px_58px_rgba(180,120,35,0.16)]"
