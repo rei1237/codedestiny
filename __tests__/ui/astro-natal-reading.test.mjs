@@ -46,10 +46,10 @@ test('evidence signs and houses match the chart', () => {
         const lon = lonOf(chart, ev.body);
         assert.equal(ev.signIdx, Math.floor(lon / 30), `${tag} ${ev.body} sign`);
         assert.equal(ev.house, houseOf(chart, lon), `${tag} ${ev.body} house`);
-        assert.ok(ev.label.includes(SIGN[ev.signIdx]) && ev.label.includes(ev.house + '번째 집'), `${tag} ${ev.label}`);
+        assert.ok(ev.label.includes(SIGN[ev.signIdx]) && ev.label.includes(reading._calc.HOUSE_ARENA[ev.house - 1] + '의 자리') && !ev.label.includes('번째 집'), `${tag} ${ev.label}`);
       } else if (ev.body === 'house') {
         assert.equal(ev.signIdx, Math.floor(chart.houseCuspsLon[ev.house - 1] / 30), `${tag} cusp ${ev.house}`);
-        assert.ok(ev.label.startsWith(ev.house + '번째 집 · ' + SIGN[ev.signIdx]), `${tag} ${ev.label}`);
+        assert.ok(ev.label.startsWith(reading._calc.HOUSE_ARENA[ev.house - 1] + '의 자리 · ' + SIGN[ev.signIdx]), `${tag} ${ev.label}`);
       } else if (ev.body === 'ASC' || ev.body === 'MC') {
         assert.equal(ev.signIdx, chart[ev.body.toLowerCase()].idx, `${tag} ${ev.body}`);
         assert.ok(ev.label.includes(SIGN[ev.signIdx]), `${tag} ${ev.label}`);

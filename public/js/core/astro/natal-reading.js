@@ -190,7 +190,7 @@
   function bodyLabel(ctx, body) {
     var p = ctx.pos[body], parts = [KO[body]];
     parts.push(body === 'Moon' && ctx.moonSigns ? SIGN[ctx.moonSigns[0]] + ' 또는 ' + SIGN[ctx.moonSigns[1]] : SIGN[p.signIdx]);
-    if (p.house && body !== 'ASC' && body !== 'MC') parts.push(p.house + '번째 집');
+    if (p.house && body !== 'ASC' && body !== 'MC') parts.push(HOUSE_ARENA[p.house - 1] + '의 자리');
     return parts.join(' · ');
   }
   function evBody(ctx, body, aspect) {
@@ -204,7 +204,7 @@
     }
     return e;
   }
-  function evHouse(ctx, n) { var s = ctx.cuspSign(n); return { body: 'house', house: n, signIdx: s, label: n + '번째 집 · ' + SIGN[s] + '에서 시작' }; }
+  function evHouse(ctx, n) { var s = ctx.cuspSign(n); return { body: 'house', house: n, signIdx: s, label: HOUSE_ARENA[n - 1] + '의 자리 · ' + SIGN[s] + '에서 시작' }; }
 
   /* ── category factors ── */
   function factor(key, kind, w, data, ev) { return { key: key, kind: kind, w: w, data: data, ev: ev.filter(Boolean) }; }
@@ -258,7 +258,7 @@
     var pr = ctx.profection;
     if (!pr) return null;
     return factor('profection', 'profection', w, { house: pr.house, signIdx: pr.signIdx, lord: pr.lord, lordHouse: ctx.pos[pr.lord].house, anchor: !!anchor },
-      [{ body: 'profection', house: pr.house, signIdx: pr.signIdx, label: '올해의 주제 집 · ' + pr.house + '번째 집 · ' + SIGN[pr.signIdx] }, evBody(ctx, pr.lord)]);
+      [{ body: 'profection', house: pr.house, signIdx: pr.signIdx, label: '올해의 주제 · ' + HOUSE_ARENA[pr.house - 1] + '의 자리 · ' + SIGN[pr.signIdx] }, evBody(ctx, pr.lord)]);
   }
   function firdariaF(ctx, w) {
     var f = ctx.firdaria;
@@ -490,20 +490,20 @@
   };
   var HOUSE_EXTRA = ['특히 {at} 이런 모습이 잘 드러나요.', '{at} 이 힘이 자주 쓰여요.'];
   var HOUSE_FRAME = {
-    'love:5': '설렘의 자리인 5번째 집이 {sign}에서 시작해, {tone} 데이트에 마음이 열려요.',
-    'love:7': '짝의 자리인 7번째 집이 {sign}에서 시작해, {need:을} 주는 상대와 잘 맞아요.',
-    'money:8': '함께 나누는 돈의 자리인 8번째 집이 {sign}에서 시작해, 공동의 돈은 {manner} 다루는 게 좋아요.',
-    'people:11': '친구와 모임의 자리인 11번째 집이 {sign}에서 시작해, {tone} 모임에서 인연이 넓어져요.',
-    'people:7': '일대일 관계의 자리인 7번째 집이 {sign}에서 시작해, 가까운 사이엔 {need:이} 중요해요.',
-    'people:3': '말과 이웃의 자리인 3번째 집이 {sign}에서 시작해, 가까운 사람과는 {manner} 이야기해요.',
-    'work:6': '매일의 일을 맡는 6번째 집이 {sign}에서 시작해, 일과는 {manner} 꾸리는 게 맞아요.',
-    'heal:4': '집과 뿌리의 자리인 4번째 집이 {sign}에서 시작해, {tone} 공간에서 마음이 쉬어요.',
-    'heal:12': '혼자만의 쉼을 뜻하는 12번째 집이 {sign}에서 시작해, 쉴 때는 {manner} 비워 내는 게 좋아요.',
-    'heal:6': '몸의 리듬을 맡는 6번째 집이 {sign}에서 시작해, 생활 리듬은 {manner} 지키면 편해요.'
+    'love:5': '설렘의 자리가 {sign}에서 시작해, {tone} 데이트에 마음이 열려요.',
+    'love:7': '짝의 자리가 {sign}에서 시작해, {need:을} 주는 상대와 잘 맞아요.',
+    'money:8': '함께 나누는 돈의 자리가 {sign}에서 시작해, 공동의 돈은 {manner} 다루는 게 좋아요.',
+    'people:11': '친구와 모임의 자리가 {sign}에서 시작해, {tone} 모임에서 인연이 넓어져요.',
+    'people:7': '일대일 관계의 자리가 {sign}에서 시작해, 가까운 사이엔 {need:이} 중요해요.',
+    'people:3': '말과 이웃의 자리가 {sign}에서 시작해, 가까운 사람과는 {manner} 이야기해요.',
+    'work:6': '매일의 일을 맡는 자리가 {sign}에서 시작해, 일과는 {manner} 꾸리는 게 맞아요.',
+    'heal:4': '집과 뿌리의 자리가 {sign}에서 시작해, {tone} 공간에서 마음이 쉬어요.',
+    'heal:12': '혼자만의 쉼을 뜻하는 자리가 {sign}에서 시작해, 쉴 때는 {manner} 비워 내는 게 좋아요.',
+    'heal:6': '몸의 리듬을 맡는 자리가 {sign}에서 시작해, 생활 리듬은 {manner} 지키면 편해요.'
   };
   var RULER_LINE = {
-    money: '돈의 자리 주인인 {ruler:이} {n}번째 집에 있어, {at} 돈의 흐름이 생기기 쉬워요.',
-    work: '사회에서 보이는 모습의 주인인 {ruler:이} {n}번째 집에 있어, {at} 일의 실마리가 보여요.'
+    money: '돈의 자리를 다스리는 {ruler} 덕분에 {at} 돈의 흐름이 생기기 쉬워요.',
+    work: '사회에서 보이는 모습을 다스리는 {ruler} 덕분에 {at} 일의 실마리가 보여요.'
   };
   var OCC_FRAME = {
     'money:2': '돈의 자리에 {bodies:이} 있어, {force:이} 벌고 쓰는 방식에 묻어나요.',
@@ -512,8 +512,8 @@
   };
   var ASC_PEOPLE = '첫인상 별자리가 {sign:이라}, 새로운 사람과도 {manner} 관계를 시작해요.';
   var HOUSE_OF = {
-    'work:Sun': ['태양이 {n}번째 집에 있어, {at} 가장 당신답게 빛나요.'],
-    'heal:Neptune': ['해왕성이 {n}번째 집에 있어 {at} 마음이 쉽게 젖어 들어요.', '이 자리엔 부드러운 경계가 필요해요.']
+    'work:Sun': ['태양은 {at} 가장 당신답게 빛나요.'],
+    'heal:Neptune': ['해왕성의 영향으로 {at} 마음이 쉽게 젖어 들어요.', '이 자리엔 부드러운 경계가 필요해요.']
   };
   /* Pairs of bodies (in BODIES order): [easy, hard] clause after "A와 B가 …사이라". */
   var PAIR = {
@@ -684,7 +684,7 @@
         if (cat === 'growth' && d.body === 'Saturn') return [W.take([SIGN_STYLE.growth[d.signIdx][0] + '.']), extraLine(ctx, d.body, W)].filter(Boolean);
         return [W.take([fill((PLANET_ROLE[cat] || {})[d.body] || ROLE_FALLBACK, W.vars(d.signIdx, { body: KO[d.body] }))]), extraLine(ctx, d.body, W)].filter(Boolean);
       case 'cusp':
-        return [W.take([fill(HOUSE_FRAME[cat + ':' + d.house] || '{n}번째 집이 {sign}에서 시작해, 이 영역에서는 {manner} 움직여요.', W.vars(d.signIdx, { n: d.house }))])].filter(Boolean);
+        return [W.take([fill(HOUSE_FRAME[cat + ':' + d.house] || '{arena}의 자리가 {sign}에서 시작해, 이 영역에서는 {manner} 움직여요.', W.vars(d.signIdx, { n: d.house, arena: HOUSE_ARENA[d.house - 1] }))])].filter(Boolean);
       case 'angle':
         return [W.take([fill(ASC_PEOPLE, W.vars(d.signIdx))])].filter(Boolean);
       case 'occupants':
@@ -769,8 +769,8 @@
     if (st) {
       energy.push(W.take([st.kind === 'sign'
         ? fill('{bodies:이} 모두 {sign}에 모여 있어, 그 별자리의 색이 삶 전체에 짙게 배어 있어요.', { bodies: names(st.bodies), sign: SIGN[st.value] })
-        : fill('{bodies:이} 모두 {n}번째 집에 모여 있어, {arena:이} 삶의 큰 무대가 돼요.', { bodies: names(st.bodies), n: st.value, arena: HOUSE_ARENA[st.value - 1] })]));
-      energyEv.push('몰림 · ' + (st.kind === 'sign' ? SIGN[st.value] : st.value + '번째 집') + ' · ' + st.bodies.map(function (x) { return KO[x]; }).join('·'));
+        : fill('{bodies:이} 모두 {arena}의 자리에 모여 있어, 이 영역이 삶의 큰 무대가 돼요.', { bodies: names(st.bodies), n: st.value, arena: HOUSE_ARENA[st.value - 1] })]));
+      energyEv.push('몰림 · ' + (st.kind === 'sign' ? SIGN[st.value] : HOUSE_ARENA[st.value - 1] + '의 자리') + ' · ' + st.bodies.map(function (x) { return KO[x]; }).join('·'));
     }
     paras.push({ key: 'energy', title: '에너지의 결', text: energy.filter(Boolean), evidence: energyEv });
 
@@ -1139,7 +1139,7 @@
     fixed: '한번 정하면 지켜 내는 {sign}에 놓인 {body:은} 오래 꾸준히 버티는 쪽으로 힘을 써요.',
     mutable: '상황에 맞춰 바뀌는 {sign}에 놓인 {body:은} 그때그때 유연하게 힘을 써요.'
   };
-  var DEEP_HOUSE = ['{n}번째 집({arena})에 있어서, {at} 이 힘이 가장 잘 드러나요.', '삶의 무대는 {n}번째 집({arena})이라, {at} 자주 쓰여요.', '{n}번째 집({arena})에 놓여 {at} 먼저 깨어나요.'];
+  var DEEP_HOUSE = ['이 힘은 {at} 가장 잘 드러나요.', '삶의 무대가 {arena:이라}, 그 안에서 자주 쓰여요.', '{at} 이 힘이 먼저 깨어나요.'];
   var DEEP_SPARE = ['잘 쓰면 {gift:이} 되고, 지나치면 {shadow:으로} 기울어요.', '이 자리에서는 {need:이} 있을 때 힘이 제대로 나와요.'];
   var RETRO_LINE = '태어날 때 역행 중이라, 이 힘을 밖으로 쓰기 전에 안으로 곱씹는 흐름이 있어요.';
   var ASPECT_TERM = { conjunction: '합', sextile: '육분', square: '사각', trine: '삼분', opposition: '대립' };
@@ -1173,7 +1173,7 @@
     if (third) s.push(third);
     return {
       body: body, ko: KO[body],
-      where: (pair ? SIGN[pair[0]] + ' 또는 ' + SIGN[pair[1]] : SIGN[p.signIdx]) + (p.house ? ' · ' + p.house + '번째 집' : ''),
+      where: (pair ? SIGN[pair[0]] + ' 또는 ' + SIGN[pair[1]] : SIGN[p.signIdx]) + (p.house ? ' · ' + HOUSE_ARENA[p.house - 1] + '의 자리' : ''),
       retro: !!p.retro,
       line: W.take([line]) || line,
       text: s.filter(Boolean)
@@ -1197,7 +1197,7 @@
       }
       if (pr) {
         periods.items.push({ key: 'profection', title: '올해의 주제 집', text: [
-          fill('{age}세인 올해는 {n}번째 집, {arena}의 해예요.', { age: pr.age, n: pr.house, arena: HOUSE_ARENA[pr.house - 1] }),
+          fill('{age}세인 올해는 {arena:이} 중심이 되는 해예요.', { age: pr.age, n: pr.house, arena: HOUSE_ARENA[pr.house - 1] }),
           W.take([PROF[pr.house - 1][1]]),
           fill('이 해의 주인 행성은 {lord:이에요}.', { lord: KO[pr.lord] }) + (LORD_TIP[pr.lord] ? ' ' + LORD_TIP[pr.lord] + '.' : '')
         ].filter(Boolean) });
@@ -1351,6 +1351,6 @@
     triadSvg: triadSvg,
     glyphSprite: glyphSprite,
     ensureGlyphSprite: ensureGlyphSprite,
-    _calc: { SIGN: SIGN, KO: KO, RULER: RULER, dignity: dignity, houseOf: houseOf, aspectsOf: aspectsOf, degText: degText, jo: jo, contrast: contrast, fill: fill, SIGN_STYLE: SIGN_STYLE, PROF: PROF }
+    _calc: { SIGN: SIGN, KO: KO, RULER: RULER, dignity: dignity, houseOf: houseOf, aspectsOf: aspectsOf, degText: degText, jo: jo, contrast: contrast, fill: fill, SIGN_STYLE: SIGN_STYLE, PROF: PROF, HOUSE_ARENA: HOUSE_ARENA }
   };
 })(typeof window !== 'undefined' ? window : globalThis);
