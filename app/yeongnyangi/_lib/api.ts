@@ -4,7 +4,7 @@ import {AI_LOCALE_HEADER} from '@/lib/i18n/ai-locale';
 import type {Product} from '@/worker/yeongnyangi/payments/catalog';
 import type {ChapterSpec,ChapterBody} from '@/worker/yeongnyangi/fortune/book-contracts';
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
-export type FortuneRecovery={requestId:string;savedChapters:number;totalChapters:number;providerNeeded:boolean;retryable:boolean;canRetryNow:boolean;nextAction:'reread'|'draw'|'wait'|'retry'|'support'|'held';autoResume:boolean};
+export type FortuneRecovery={refundPending?:boolean;requestId:string;savedChapters:number;totalChapters:number;providerNeeded:boolean;retryable:boolean;canRetryNow:boolean;nextAction:'reread'|'draw'|'wait'|'retry'|'support'|'held';autoResume:boolean};
 export type FortuneFollowup={status:'available'|'submitted'|'unavailable'|string;used:boolean;suggestions:string[]};
 export type FortuneRecord={correction?:{reason:string;appliedAt?:string};locale?:ReadingLocale;charts?:import('@/worker/yeongnyangi/fortune/reading-presentation').ReadingChart[];id:string;profileId:string;productId:string;state:string;paid:boolean;accessMethod?:'DIRECT_KRW'|'FAMILY';product:Product;manifest:ChapterSpec[];chapters:ChapterBody[];consultation?:Partial<import('@/worker/yeongnyangi/fortune/consultation').Consultation>;followup?:FortuneFollowup;recovery?:FortuneRecovery;errorCode?:string;createdAt:string;completedAt?:string;tarotSpread?:PublicTarotSpread};
 export type TarotSpreadSlot={id:string;desktop:{col:number;row:number};mobile:{col:number;row:number};cross?:boolean;span?:number};

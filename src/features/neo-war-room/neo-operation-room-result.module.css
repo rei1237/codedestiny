@@ -1,4 +1,5 @@
-.shell {
+.shell,
+.savedDocuments {
   /* Existing Neo palette from DESIGN.md; private tokens stay inside this result surface. */
   --nr-bg: #0a0818;
   --nr-surface: #13102a;
@@ -7,6 +8,9 @@
   --nr-accent: #c4b5fd;
   --nr-gold: #e8d5a3;
   --nr-border: color-mix(in srgb, var(--nr-accent) 25%, transparent);
+}
+
+.shell {
   color-scheme: dark;
   position: relative;
   min-height: 100svh;

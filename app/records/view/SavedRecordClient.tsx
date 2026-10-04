@@ -47,7 +47,7 @@ export default function SavedRecordClient() {
       {error && <section role="alert" className="space-y-3"><h2 className="text-xl font-semibold">{error}</h2><button className={recordButton} onClick={() => setRetry(old => old + 1)}>{c.retry}</button></section>}
       {detail && <>
         {detail.record.question && <p className="mb-6 whitespace-pre-wrap break-words text-base leading-relaxed">{detail.record.question}</p>}
-        {!['completed', 'saved', 'conversation'].includes(detail.record.status) && <section role="status" className="mb-6 space-y-3 rounded-[var(--cd-r-card)] border border-[var(--cd-border)] p-4"><p className="font-semibold">{(c as Record<string,string>)[detail.record.status] || c.saved}</p><p>{c.partialLead}</p><a className={recordButton} href={detail.record.recoveryHref || '/points/history/'}>{c.recover}</a></section>}
+        {!['completed', 'saved', 'conversation'].includes(detail.record.status) && <section role="status" className="mb-6 space-y-3 rounded-[var(--cd-r-card)] border border-[var(--cd-border)] p-4"><p className="font-semibold">{(c as Record<string,string>)[detail.record.status] || c.saved}</p><p>{detail.record.status==='refund_pending'?c.refundLead:c.partialLead}</p><a className={recordButton} href={detail.record.recoveryHref || '/points/history/'}>{c.recover}</a></section>}
         <StoredReading source={source} serviceId={detail.record.serviceId} value={detail.content} />
         <div className="mt-8 flex flex-wrap gap-3"><a className={recordButton} href="/records/">{c.back}</a><a className={recordButton} href={detail.record.startHref}>{c.newConsult}</a></div>
       </>}

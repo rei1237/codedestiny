@@ -7,6 +7,7 @@ import {makeFakePaymentDb} from '../fixtures/fake-payment-db.mjs';
 import {spendMoonstone} from '../../worker/payments/moonstone.js';
 import {resolveProduct} from '../../worker/payments/catalog.js';
 import {refundTerminalMoonstone} from '../../worker/yeongnyangi/moonstone-refund.js';
+import {reserveDeliveryRefund} from '../../worker/yeongnyangi/terminal-refund.js';
 let active;
 const mockDbExports={mongoose:{...mongoose,startSession:async()=>({
  endSession:async()=>{},withTransaction:fn=>active.db.transaction(fn)
@@ -46,6 +47,32 @@ async function withFixture(run,chat=null) {
 }
 const terminal=f=>Object.assign(f.row,{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',leaseToken:'',leaseUntil:null});
 const refund=f=>refundTerminalMoonstone(f.db,{userId:USER,requestId:ID});
+
+test('a reserved partial final failure restores original stones exactly once and blocks a new lease',()=>withFixture(async(f,repo)=>{
+ const claim=await repo.claimChapter({},USER,ID);await repo.finishChapter({},USER,ID,claim.token,0,{summary:'saved'},2);
+ terminal(f);await reserveDeliveryRefund(f.db,f.row);
+ await expect(repo.claimChapter({},USER,ID)).rejects.toMatchObject({code:'DELIVERY_REFUND_PENDING'});
+ expect((await refundTerminalMoonstone(f.db,{userId:USER,requestId:ID,terminal:true})).refunded).toBe(true);
+ expect((await refundTerminalMoonstone(f.db,{userId:USER,requestId:ID,terminal:true})).replayed).toBe(true);
+ expect(f.row.chapters).toHaveLength(1);expect(f.user.profileSubscription.membershipCreditBalance).toBe(500);
+}));
+
+test.each(['claim','reconcile'])('refund reservation wins over a stale %s CAS',kind=>withFixture(async(f,repo)=>{
+ const first=await repo.claimChapter({},USER,ID);await repo.finishChapter({},USER,ID,first.token,0,{summary:'saved'},2);
+ if(kind==='reconcile')f.row.chapterAttempts[1]=2;
+ const write=f.db.findOneAndUpdate;let entered,resume,pausedOnce=false;
+ const ready=new Promise(resolve=>{entered=resolve}),paused=new Promise(resolve=>{resume=resolve});
+ f.db.findOneAndUpdate=async(Model,filter,update,...rest)=>{
+  if(!pausedOnce&&Model===YeongnyangiRequest&&(kind==='claim'?update.$set?.state==='GENERATING':update.$set?.errorCode==='AUTOMATIC_RECOVERY_STOPPED')){
+   pausedOnce=true;entered();await paused;
+  }
+  return write(Model,filter,update,...rest);
+ };
+ const delayed=repo.claimChapter({},USER,ID);await ready;
+ terminal(f);await reserveDeliveryRefund(f.db,f.row);resume();
+ expect((await delayed).token).toBeNull();expect(f.row.errorCode).toBe('DELIVERY_REFUND_PENDING');
+ expect(f.row.state).toBe('FORTUNE_FAILED');expect(f.row.chapters).toHaveLength(1);
+}));
 test('refunded request reread is terminal and blocks lease, draft, analysis and chapter writes',()=>withFixture(async(f,repo)=>{
  terminal(f);await refund(f);
  expect((await repo.readRequest({},USER,ID)).state).toBe('REFUNDED');

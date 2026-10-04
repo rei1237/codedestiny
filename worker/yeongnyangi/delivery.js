@@ -1,6 +1,7 @@
 import {enqueueConsultation} from './queue.js';
 import * as repository from './repository.js';
 import {providerReady} from './service.ts';
+import {deliveryRefundPending} from './terminal-refund-policy.js';
 
 // Reading the result is also a bounded delivery heartbeat. It never calls the
 // provider in the HTTP request: it only repairs a missing queue hand-off. When
@@ -9,6 +10,7 @@ import {providerReady} from './service.ts';
 // or making the buyer press a recovery button.
 export async function readAndContinueFortune(env,userId,requestId) {
   let row=await repository.readRequest(env,userId,requestId);
+  if(deliveryRefundPending(row))return row;
   const total=row.snapshot?.manifest?.length || 0;
   if(!providerReady(env)||!env.YEONGNYANGI_QUEUE||!repository.hasRequestAccess(row)||!total||row.chapters.length>=total||
     ['COMPLETED','REFUNDED','AWAITING_FOLLOWUP'].includes(row.state)||['PAYMENT_NOT_ACTIVE','GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED'].includes(row.errorCode))return row;

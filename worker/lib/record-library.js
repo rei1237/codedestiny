@@ -28,6 +28,7 @@ const titleFields = ['title', 'result.title', 'result.sessionTitle', 'initialBri
 export function recordStatus(doc, source) {
   const status = clean(doc.state || doc.premiumStatus || doc.generationStatus || doc.status, 40).toLowerCase();
   if (['refunded', 'cancelled', 'canceled', 'revoked'].includes(doc.status)) return 'revoked';
+  if(status!=='refunded'&&(doc.refundStatus==='pending'||doc.generationCheckpoint?.deliveryRefund?.status==='pending'))return 'refund_pending';
   if (doc.stage === 1 || ['partial', 'delivery_pending'].includes(status)) return 'partial';
   if (['completed', 'success', 'delivered'].includes(status)) {
     if (source.id === 'codex' && Array.isArray(doc.chapterManifest)) {
@@ -131,7 +132,7 @@ export async function listRecords(userId, params, readPage = async (source, quer
     summaryExcerpt: { $substrCP: [{ $convert: { input: { $ifNull: ['$summary', '$result.summary'] }, to: 'string', onError: '', onNull: '' } }, 0, 600] },
     questionExcerpt: { $substrCP: [{ $convert: { input: firstQuestion, to: 'string', onError: '', onNull: '' } }, 0, 600] },
     ...(source.id === 'codex' ? { chapterManifest: { $map: { input: { $ifNull: ['$chapters', []] }, as: 'chapter', in: { id: '$$chapter.id', ok: '$$chapter.ok', chars: { $strLenCP: { $convert: { input: { $ifNull: ['$$chapter.body', '$$chapter.content'] }, to: 'string', onError: '', onNull: '' } } } } } } } : {}),
-    ...(source.id === 'chat-consultation' ? { manifestCount: { $size: { $ifNull: ['$snapshot.manifest', []] } } } : {}),
+    ...(source.id === 'chat-consultation' ? { refundStatus:'$generationCheckpoint.deliveryRefund.status',manifestCount: { $size: { $ifNull: ['$snapshot.manifest', []] } } } : {}),
     ...(source.id === 'executions' ? { partCount: { $size: { $objectToArray: { $ifNull: ['$metadata.paidNarrative.parts', {}] } } } } : {}),
     ...(source.id === 'tea' ? { partCount: { $size: { $objectToArray: { $ifNull: ['$generationCheckpoint.parts', {}] } } } } : {}),
   };

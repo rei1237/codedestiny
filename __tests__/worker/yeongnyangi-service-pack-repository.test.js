@@ -3,6 +3,7 @@ import {jest} from '@jest/globals';
 import mongoose from 'mongoose';
 import {MonthlyCreditLedger,PointHistory,User,Payment} from '../../worker/lib/models.js';
 import {YeongnyangiRequest} from '../../worker/lib/yeongnyangi-models.js';
+import {reserveDeliveryRefund} from '../../worker/yeongnyangi/terminal-refund.js';
 import {makeFakePaymentDb} from '../fixtures/fake-payment-db.mjs';
 import {resolveServicePackProduct} from '../../worker/payments/service-pack-policy.js';
 import {PurchaseEntitlement} from '../../worker/payments/purchase-entitlement-model.js';
@@ -59,6 +60,46 @@ async function withFixture(run) {
 }
 const terminal=f=>Object.assign(f.row,{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',leaseToken:'',leaseUntil:null});
 const refund=f=>restoreFailedServicePackUse(f.db,{userId:USER,requestId:RID});
+
+test('a reserved partial final failure restores a pack use once while preserving chapters',()=>withFixture(async(f,repo)=>{
+ const claim=await repo.claimChapter({},USER,ID);await repo.finishChapter({},USER,ID,claim.token,0,{summary:'saved'},2);
+ terminal(f);await reserveDeliveryRefund(f.db,f.row);
+ await expect(repo.claimChapter({},USER,ID)).rejects.toMatchObject({code:'DELIVERY_REFUND_PENDING'});
+ expect((await restoreFailedServicePackUse(f.db,{userId:USER,requestId:RID,terminal:true})).restored).toBe(true);
+ expect((await restoreFailedServicePackUse(f.db,{userId:USER,requestId:RID,terminal:true})).replayed).toBe(true);
+ expect(f.row.chapters).toHaveLength(1);expect(f.db.rows.find(r=>r.type==='service_pack').remainingUses).toBe(13);
+}));
+
+test('reserved partial family delivery restores quota and its receipt in one transaction',()=>withFixture(async(f,repo)=>{
+ const expiry=new Date('2099-10-30'),evidenceId='507f1f77bcf86cd799439017';
+ Object.assign(f.user.profileSubscription,{tier:'family',passTier:'family',expiresAt:expiry,
+  premiumUseCycleKey:expiry.toISOString(),monthlySpendCoin:10});
+ delete f.row.packEntitlementId;
+ Object.assign(f.row,{accessMethod:'FAMILY',passEvidenceId:evidenceId,passCycleKey:expiry.toISOString(),passCoinCost:10,
+  chapters:[{summary:'saved'}],completedChapters:1});
+ f.db.rows.push({_id:evidenceId,userId:USER,featureKey:product.featureKey,kind:'deduct',
+  metadata:{requestId:RID,accessMethod:'FAMILY',passCycleKey:expiry.toISOString(),coinCost:10}});
+ terminal(f);await reserveDeliveryRefund(f.db,f.row);
+ expect(await repo.refundReservedDelivery({},USER,ID)).toBe(true);
+ expect(f.row.state).toBe('REFUNDED');expect(f.user.profileSubscription.monthlySpendCoin).toBe(0);
+ expect(f.db.rows.filter(row=>row.reason==='pass_quota_refund')).toHaveLength(1);
+ expect(await repo.refundReservedDelivery({},USER,ID)).toBe(false);
+ expect(f.user.profileSubscription.monthlySpendCoin).toBe(0);
+}));
+
+test('a failed family request CAS never restores quota or marks spend evidence',()=>withFixture(async(f,repo)=>{
+ const expiry=new Date('2099-10-30'),evidenceId='507f1f77bcf86cd799439017';
+ Object.assign(f.user.profileSubscription,{premiumUseCycleKey:expiry.toISOString(),monthlySpendCoin:10});
+ delete f.row.packEntitlementId;
+ Object.assign(f.row,{accessMethod:'FAMILY',passEvidenceId:evidenceId,passCycleKey:expiry.toISOString(),passCoinCost:10,
+  chapters:[{summary:'saved'}],completedChapters:1});
+ const evidence={_id:evidenceId,userId:USER,featureKey:product.featureKey,kind:'deduct',metadata:{requestId:RID,accessMethod:'FAMILY'}};
+ f.db.rows.push(evidence);terminal(f);await reserveDeliveryRefund(f.db,f.row);
+ const write=f.db.findOneAndUpdate;f.db.findOneAndUpdate=async(Model,filter,update,...rest)=>
+  Model===YeongnyangiRequest&&update.$set?.errorCode==='PASS_QUOTA_RESTORED'?null:write(Model,filter,update,...rest);
+ expect(await repo.refundReservedDelivery({},USER,ID)).toBe(false);
+ expect(f.user.profileSubscription.monthlySpendCoin).toBe(10);expect(evidence.metadata.refundedForServiceExecution).toBeUndefined();
+}));
 test('refunded request reread is terminal and blocks lease, draft, analysis and chapter writes',()=>withFixture(async(f,repo)=>{
  terminal(f);await refund(f);
  expect((await repo.readRequest({},USER,ID)).state).toBe('REFUNDED');

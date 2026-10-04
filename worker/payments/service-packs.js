@@ -7,6 +7,7 @@ import { paymentError } from './errors.js';
 import { servicePackCoverage, servicePackFeatures } from './service-pack-policy.js';
 import { YeongnyangiRequest } from '../lib/yeongnyangi-models.js';
 import { reserveFortuneFunding, completeFortuneFunding } from '../yeongnyangi/payment-funding.js';
+import { terminalRestoreFilter } from '../yeongnyangi/terminal-refund-policy.js';
 
 const PAID=['paid','success','fulfilled'];
 const packUseEvidenceId=(userId,requestId)=>paidExecutionDocumentId('service-pack-use:'+userId+':'+requestId);
@@ -163,7 +164,7 @@ export async function consumeServicePack(db,{userId,entitlementId,requestId,now=
 }
 
 // Reuses the existing empty terminal-failure rule; no automatic cash/PG refund.
-export async function restoreFailedServicePackUse(db,{userId,requestId,now=new Date()}) {
+export async function restoreFailedServicePackUse(db,{userId,requestId,now=new Date(),terminal=false}) {
   if(!/^yn-[a-f0-9]{64}$/.test(String(requestId)))throw paymentError('INVALID_REQUEST','상담 요청을 확인해 주세요.');
   const fortuneId=String(requestId).slice(3),receiptId=restoreId(userId,requestId);
   return db.transaction(async tx=>{
@@ -172,8 +173,7 @@ export async function restoreFailedServicePackUse(db,{userId,requestId,now=new D
     const account=await tx.findOne(User,{_id:toObjectId(userId)},{projection:{points:1}});
     const balanceAfter=Math.max(0,Number(account?.points||0));
     const row=await tx.findOneAndUpdate(YeongnyangiRequest,{_id:fortuneId,userId:toObjectId(userId),accessMethod:'SERVICE_PACK',
-      state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0,
-      'chapters.0':{$exists:false},'generationCheckpoint.chapterDrafts.0':{$exists:false},
+      state:'FORTUNE_FAILED',...terminalRestoreFilter(terminal),
       $or:[{leaseUntil:null},{leaseUntil:{$exists:false}},{leaseUntil:{$lte:now}}]},
       {$set:{state:'REFUNDED',errorCode:'SERVICE_PACK_USE_RESTORED',leaseToken:'',leaseUntil:null,updatedAt:now}},
       {returnDocument:'after'});

@@ -68,6 +68,7 @@ async function contextFor(width,scenario='normal') {
   return {context,page,seen,forbidden,errors};
 }
 async function bounds(page,width) {
+  await page.waitForFunction(()=>parseFloat(getComputedStyle(document.querySelector('main')).paddingBottom)>=110);
   const box=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,bottom:parseFloat(getComputedStyle(document.querySelector('main')).paddingBottom)}));
   assert.ok(box.scroll<=width+1,`overflow ${box.scroll} > ${width}`);assert.ok(box.bottom>=110,'navigation safe spacing');return box;
 }

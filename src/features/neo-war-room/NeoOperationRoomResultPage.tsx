@@ -1601,7 +1601,7 @@ function CtaDeck({ attemptId, hasRefined, onOpenReality, locale }: { attemptId: 
 export function SavedNeoDocuments({ session, locale }: { session: NeoResultSession; locale: LoadingLocale }) {
   const [viewAll, setViewAll] = useState(true);
   const compat = session.compatScores ? { scores: session.compatScores, relationshipStatus: session.relationshipStatus || '', partnerBirthTimeUnknown: session.partnerBirthTimeUnknown === true } : null;
-  return <div className={styles.page}><div className={styles.documentStack}>
+  return <div className={styles.savedDocuments}><div className={styles.documentStack}>
     <ResultSummaryCover session={session} methodName={methodLabel(session.selectedMethod || session.initialBriefing?.selectedMethod, locale)} badgeIndex={0} locale={locale} />
     {session.initialBriefing?.operationTitle && <h2 className="text-xl font-semibold">{session.initialBriefing.operationTitle}</h2>}
     {session.initialBriefing && <InitialBriefingDocument briefing={session.initialBriefing} compat={compat} evidenceFallbackLabel="" hasRefined badgeIndex={0} onOpenReality={() => {}} viewAll={viewAll} onViewAllChange={setViewAll} expandForExport={false} locale={locale} />}
