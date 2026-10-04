@@ -3,6 +3,7 @@
 // before a saved result is restored directly (without mounting the question form).
 import "./styles/tea-report.module.css";
 import "./styles/tea-library.module.css";
+import "./styles/tea-tarot-artwork.module.css";
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { trackEvent } from "@/lib/analytics";
@@ -93,7 +94,6 @@ type FortuneTeaBillingGateData = NonNullable<FortuneTeaBillingGateResult["data"]
 
 const DestinyCafeTarotAlbum = lazy(() => import("./components/DestinyCafeTarotAlbum"));
 const TeaHouseHistoryPanel = lazy(() => import("./components/TeaHouseHistoryPanel"));
-const FortuneTeaHouseDebugPanel = lazy(() => import("./components/FortuneTeaHouseDebugPanel"));
 const QuestionInputScene = lazy(() => import("./components/QuestionInputScene"));
 const ScentLoadingScene = lazy(() => import("./components/ScentLoadingScene"));
 const TarotRevealScene = lazy(() => import("./components/TarotRevealScene"));
@@ -1688,18 +1688,6 @@ export default function FortuneTeaHousePage() {
           </m.div>
         </AnimatePresence>
       </div>
-      {process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_TEA_DEBUG === "1" ? (
-        <Suspense fallback={null}>
-          <FortuneTeaHouseDebugPanel
-            stage={stage}
-            selectedCup={selectedCup}
-            questionInput={questionInput}
-            consultResult={consultResult}
-            lastError={submitError}
-            isSubmitting={isSubmitting}
-          />
-        </Suspense>
-      ) : null}
     </FortuneTeaHouseImmersiveShell>
   );
 }

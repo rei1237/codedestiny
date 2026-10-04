@@ -690,7 +690,7 @@ function safeBuildTarotSpreadCards(request: FortuneTeaHouseConsultRequest, seed:
             positionMeaning: first.positionMeaning,
             // 첫 카드 정체성을 대표 카드로 덮으므로 해설도 반드시 대표 카드 기준으로 재생성한다.
             // first.reading을 그대로 두면 원래 뽑힌 다른 카드의 문장이 남아 헤더-본문 불일치(P0)가 생긴다.
-            reading: `${first.positionLabel} 자리에는 ${representative.nameKo}이 ${orientationLabel(representative.orientation)}으로 떠올라 ${representative.keywords.slice(0, 2).join(", ")}의 결을 비춥니다. ${first.positionMeaning}을 비추는 이 자리에서, 이 카드는 ${representative.meaning}`,
+            reading: `${first.positionLabel} 자리에는 ${representative.nameKo} 카드가 ${orientationLabel(representative.orientation)}으로 떠올라 ${representative.keywords.slice(0, 2).join(", ")}의 결을 비춥니다. ${first.positionMeaning}을 비추는 이 자리에서, 이 카드는 ${representative.meaning}`,
           },
           ...rest,
         ] as FortuneTeaTarotSpreadCard[],
