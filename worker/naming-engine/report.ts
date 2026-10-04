@@ -173,7 +173,23 @@ ${CHAPTER_GUIDES[id] || ""}${id === 4 ? `
 ${feedback}JSON만 출력: {"title":"현재 출력 언어로 장 제목", "body":"본문", "evidenceHash":"${snapshot.evidenceHash}"}. 계산 근거 해시를 그대로 돌려주세요.`;
 }
 
-const fieldText = (value: unknown) => normalizeNarrativeBody(String(value ?? "").trim()).replace(/\s*\n+\s*/g, " ").trim();
+// 모델이 같은 음절을 한 번 더 찍는 버릇(실호출 2026-10-05 "영향을 미 미치는" 3회) — 확인된 꼴만 고친다.
+const fixStutter = (text: string) => text.replace(/(^|\s)미 (?=미[치칠칩쳐친])/gu, "$1");
+// 한 줄짜리 소제목(### …)·굵은 줄(**…**)은 문장부호로 끝나지 않아도 그대로 둔다 — 공용 정규화는 "1." 을 문장 끝으로 보고
+// "### 1. 김서윤(金序潤)" 을 "### 1." 로 자른다(실호출 2026-10-05). 짝이 안 맞는 ** 는 걷어낸다.
+const MARKUP_LINE = /^(#{1,6}\s+\S.*|\*\*[^*\n]+\*\*:?)$/u;
+export function normalizeNamingBody(body: string): string {
+  if (/^\s*[\[{]/u.test(body)) return body;
+  const paragraphs = fixStutter(body).split(/\n\s*\n/u).map((paragraph) => {
+    const text = paragraph.trim();
+    if (MARKUP_LINE.test(text)) return text;
+    const prose = normalizeNarrativeBody(text);
+    return (prose.match(/\*\*/g) || []).length % 2 ? prose.replace(/\*\*/g, "") : prose;
+  });
+  return [...new Set(paragraphs.filter(Boolean))].join("\n\n");
+}
+
+const fieldText = (value: unknown) => normalizeNarrativeBody(fixStutter(String(value ?? "").trim())).replace(/\s*\n+\s*/g, " ").trim();
 
 /** 서술 JSON → 검사·교정된 서술. 쓸 만한 LLM 필드가 하나도 없으면 null(무효 시도). */
 export function acceptNarration(value: any, ctx: CheckContext): Narration | null {
@@ -303,7 +319,7 @@ export async function generateNamingWaveV2(snapshot: any, checkpoint: (state: Na
       // 같은 장 안·다른 장과 겹친 문장은 지우고 남은 서술을 쓴다(원칙 17 — 반복은 거부 대신 결정적 교정).
       // 실호출(2026-10-04) 4장이 후보마다 같은 틀 문장을 되풀이해 두 번 모두 거부되고 결정론 장으로 넘어갔다.
       const otherBodies = Object.entries(state.chapters).filter(([key]) => Number(key) !== id).map(([, chapter]) => chapter.body);
-      const raw = typeof value?.body === "string" ? normalizeNarrativeBody(value.body) : null;
+      const raw = typeof value?.body === "string" ? normalizeNamingBody(value.body) : null;
       const body = typeof raw === "string" ? dedupeCodexBody(raw, otherBodies) : null;
       if (!value || (value.evidenceHash && value.evidenceHash !== snapshot.evidenceHash) || typeof body !== "string"
         || countPaidReportBodyChars(body) < (body === raw ? 1 : CHAPTER_MIN_CORRECTED_CHARS)) {
