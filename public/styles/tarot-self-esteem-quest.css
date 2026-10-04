@@ -202,7 +202,7 @@
   gap: 4px;
   padding: 4px 12px;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: max(12px, 0.72rem);
   font-weight: 700;
   letter-spacing: 0;
   text-transform: uppercase;
@@ -270,7 +270,7 @@
 .tarot-self-esteem-exp-label {
   display: flex;
   justify-content: space-between;
-  font-size: 0.78rem;
+  font-size: max(12px, 0.78rem);
   color: #9fded7;
   margin-bottom: 8px;
   letter-spacing: 0;
@@ -299,6 +299,8 @@
   color: #f4fbf8;
   text-align: center;
   margin: 0 0 8px;
+  padding: 0 52px;
+  word-break: keep-all;
   line-height: 1.5;
   font-family: "CodeDestinyDisplay", "CodeDestinyBody", system-ui, sans-serif;
 }
@@ -355,7 +357,7 @@
 .tarot-self-esteem-slot:has(.tarot-self-esteem-card.flipped),
 .tarot-self-esteem-slot.has-flipped { z-index: 10; }
 .tarot-self-esteem-slot-label {
-  font-size: 0.72rem;
+  font-size: max(12px, 0.72rem);
   color: #9fb8b4;
   margin-top: 10px;
   text-align: center;
@@ -435,7 +437,7 @@
   content: attr(data-back-num);
   position: absolute;
   bottom: 10px;
-  font-size: 0.7rem;
+  font-size: max(12px, 0.75rem);
   font-weight: 800;
   color: rgba(153,246,228,0.72);
   letter-spacing: 0;
@@ -468,7 +470,7 @@
 }
 .tarot-self-esteem-card-front[data-reversed="1"] .tarot-self-esteem-face-img { transform: rotate(180deg); }
 .tarot-self-esteem-card-name {
-  font-size: 0.72rem;
+  font-size: max(12px, 0.72rem);
   color: #f6d98b;
   margin-top: 5px;
   text-align: center;
@@ -587,9 +589,11 @@
   font-family: "CodeDestinyPremium", "CodeDestinyDisplay", "CodeDestinyBody", serif;
   color: #fff7d6;
   margin: 0 0 8px;
+  padding: 0 52px;
+  word-break: keep-all;
   text-shadow: 0 0 24px rgba(246,217,139,0.34);
 }
-.tarot-self-esteem-reading-subtitle { font-size: 0.85rem; color: #9fb8b4; }
+.tarot-self-esteem-reading-subtitle { font-size: max(12px, 0.85rem); color: #9fb8b4; }
 .tarot-self-esteem-reading-content {
   padding: 0 0 4px;
   color: #f4fbf8;
@@ -648,7 +652,7 @@
   border-radius: 50%;
   background: linear-gradient(135deg, #0f766e, #f6d98b);
   color: #061215;
-  font-size: 0.85rem;
+  font-size: max(12px, 0.85rem);
   font-weight: 800;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   box-shadow: 0 0 12px rgba(45,212,191,0.34);
@@ -680,7 +684,7 @@
   gap: 4px;
   padding: 2px 10px;
   border-radius: 999px;
-  font-size: 0.75rem;
+  font-size: max(12px, 0.75rem);
   font-weight: 600;
   background: rgba(246,217,139,0.1);
   border: 1px solid rgba(246,217,139,0.3);
@@ -698,7 +702,7 @@
 .tse-keyword {
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: max(12px, 0.78rem);
   background: rgba(45,212,191,0.13);
   border: 1px solid rgba(45,212,191,0.26);
   color: #99f6e4;
@@ -716,7 +720,7 @@
 .tse-card-action-label {
   display: block;
   margin-bottom: 4px;
-  font-size: 0.78rem;
+  font-size: max(12px, 0.78rem);
   font-weight: 800;
   color: #f6d98b;
 }
@@ -731,7 +735,7 @@
 .tse-summary-key-label {
   display: block;
   margin-bottom: 4px;
-  font-size: 0.78rem;
+  font-size: max(12px, 0.78rem);
   font-weight: 800;
   color: #99f6e4;
 }
@@ -831,11 +835,11 @@
 }
 .tse-quest-item:hover { background: rgba(45,212,191,0.16); }
 .tse-quest-num {
-  width: 22px; height: 22px;
+  width: 24px; height: 24px;
   border-radius: 50%;
   background: linear-gradient(135deg, #0f766e, #f6d98b);
   color: #061215;
-  font-size: 0.7rem; font-weight: 800;
+  font-size: max(12px, 0.75rem); font-weight: 800;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   margin-top: 1px;
 }
@@ -897,7 +901,7 @@
 .tarot-self-esteem-ai-prompt-kicker {
   display: block;
   margin: 0;
-  font-size: 0.76rem;
+  font-size: max(12px, 0.76rem);
   font-weight: 800;
   color: #99f6e4;
 }
@@ -961,7 +965,7 @@
 .tarot-self-esteem-ai-prompt-status {
   min-height: 1.2em;
   color: #99f6e4;
-  font-size: 0.78rem;
+  font-size: max(12px, 0.78rem);
   font-weight: 800;
 }
 .tarot-self-esteem-ai-prompt-status[data-state="success"] { color: #fff7d6; }
@@ -997,7 +1001,7 @@
   .tarot-self-esteem-draw-header { font-size: 0.92rem; line-height: 1.5; }
   .tarot-self-esteem-card-grid { gap: 10px; margin-bottom: 16px; }
   .tarot-self-esteem-card { width: 100px; height: 150px; }
-  .tarot-self-esteem-slot-label { color: #94a3b8; font-size: 0.68rem; max-width: 110px; }
+  .tarot-self-esteem-slot-label { color: #94a3b8; font-size: max(12px, 0.68rem); max-width: 110px; }
   .tarot-self-esteem-btn--invoke, .tarot-self-esteem-final-btn, .tarot-self-esteem-btn { width: 100%; }
   .tse-card-header { padding: 12px 14px 10px; }
   .tse-card-body { padding: 12px 14px 10px; font-size: 0.9rem; }
@@ -1005,7 +1009,7 @@
   .tse-card-thumb { width: 48px; height: 78px; }
   .tse-levelup-card, .tse-action-card { padding: 16px 14px; }
   .tarot-self-esteem-ai-prompt-panel { padding: 16px 14px; }
-  .tarot-self-esteem-ai-prompt-output { min-height: 190px; max-height: 38dvh; font-size: 0.84rem; }
+  .tarot-self-esteem-ai-prompt-output { min-height: 190px; max-height: 38dvh; font-size: max(12px, 0.84rem); }
   .tarot-self-esteem-ai-prompt-actions { display: grid; grid-template-columns: 1fr; }
   .tarot-self-esteem-ai-prompt-copy { width: 100%; }
   .tarot-self-esteem-result-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
