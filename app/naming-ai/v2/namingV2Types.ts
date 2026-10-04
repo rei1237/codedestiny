@@ -93,10 +93,34 @@ export type V2SchoolPreset = (typeof V2_SCHOOL_PRESETS)[number];
 
 const KO_OF: Record<V2Element, FiveElement> = { wood: "목", fire: "화", earth: "토", metal: "금", water: "수" };
 
-/** 등록된 오행 색(lib/five-element-colors.ts). 색만으로 구분하지 않도록 화면은 늘 글자 라벨을 같이 둔다. */
+// 작명서 바탕에서 글자로 읽히게 등록 오행 색을 먹색(#3c1830)으로 섞어 짙게 한다 — 가장 어두운 바탕(한지 #fdf6f0 위 옅은 칩 배경)에서도 4.6:1 이상.
+// 등록 색은 밤 바탕용 파스텔이라(금 1.4:1) 그대로는 글자·선이 사라진다. 색상(hue)은 등록 색을 따르고 새 색을 만들지 않는다. color-mix 는 PDF(html2canvas)가 못 읽어 미리 계산한다.
+// 칩이 놓이는 가장 어두운 바탕(실측 2026-10-04: 카드 그라데이션 위 약 242,238,236) — 한지 #fdf6f0 보다 짙어 이것을 기준으로 한다.
+const PAPER: [number, number, number] = [242, 238, 236];
+const SOFT_ALPHA = 0.1;
+const INK: [number, number, number] = [60, 24, 48];
+const luminance = (rgb: number[]) => {
+  const [r, g, b] = rgb.map((v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+function deepenForPaper(hex: string): [number, number, number] {
+  const base = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  for (let t = 0; t <= 1; t += 0.05) {
+    const mixed = base.map((v, i) => Math.round(v + (INK[i] - v) * t)) as [number, number, number];
+    const chip = mixed.map((v, i) => v * SOFT_ALPHA + PAPER[i] * (1 - SOFT_ALPHA));
+    if ((luminance(chip) + 0.05) / (luminance(mixed) + 0.05) >= 4.6) return mixed;
+  }
+  return INK;
+}
+const PAPER_TONES = Object.fromEntries(Object.entries(FIVE_ELEMENT_TOKENS).map(([key, token]) => {
+  const rgb = deepenForPaper(token.color).join(", ");
+  return [key, { color: `rgb(${rgb})`, soft: `rgba(${rgb}, ${SOFT_ALPHA})`, hanja: token.hanja }];
+})) as Record<FiveElement, { color: string; soft: string; hanja: string }>;
+
+/** 오행 색(lib/five-element-colors.ts 를 밝은 바탕용으로 짙게 보정). 색만으로 구분하지 않도록 화면은 늘 글자 라벨을 같이 둔다. */
 export function elementTone(element: V2Element | null | undefined): { color: string; soft: string; hanja: string } {
-  if (!element) return { color: "rgba(200,170,255,.7)", soft: "rgba(196,181,253,.12)", hanja: "?" };
-  return FIVE_ELEMENT_TOKENS[KO_OF[element]];
+  if (!element) return { color: "rgb(112, 68, 92)", soft: "rgba(112, 68, 92, 0.08)", hanja: "?" };
+  return PAPER_TONES[KO_OF[element]];
 }
 
 const GENERATES: Record<V2Element, V2Element> = { wood: "fire", fire: "earth", earth: "metal", metal: "water", water: "wood" };

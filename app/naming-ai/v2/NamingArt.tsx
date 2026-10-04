@@ -34,8 +34,8 @@ export const cx = (...names: Array<string | false | null | undefined>) => names.
 const r1 = (n: number) => Math.round(n * 10) / 10;
 const safeId = (id: string) => id.replace(/[^a-zA-Z0-9_-]/g, "");
 
-export const GRADE_TONE: Record<V2Grade, string> = { good: "var(--nv2-gold)", half: "var(--nv2-violet)", bad: "var(--nv2-seal)" };
-const RELATION_TONE: Record<V2Relation, string> = { generate: "var(--nv2-gold)", same: "var(--nv2-muted)", control: "var(--nv2-seal)" };
+export const GRADE_TONE: Record<V2Grade, string> = { good: "var(--nv2-good)", half: "var(--nv2-muted)", bad: "var(--nv2-seal)" };
+const RELATION_TONE: Record<V2Relation, string> = { generate: "var(--nv2-good)", same: "var(--nv2-muted)", control: "var(--nv2-seal)" };
 
 /* ── A1 액자: 한지 + 금선 이중 테두리 + 당초문 모서리 + 보상화문 메달리온 ── */
 
@@ -115,12 +115,14 @@ export function BosanghwaMedallion({ className }: { className?: string }) {
 const CJK = /\p{Script=Han}|\p{Script=Hangul}|\p{Script=Hiragana}|\p{Script=Katakana}/u;
 
 /** 붉은 인주 낙관. 한 글자는 가운데, 두 글자는 세로, 세·네 글자는 오른쪽 세로줄부터 읽는 2×2, 라틴 문자는 가로 한 줄. */
-export function Seal({ text, size = 56, tilt = -4, round = false, stamp = false, className }: {
+export function Seal({ text, size = 56, tilt = -4, round = false, stamp = false, fluid = false, className }: {
   text: string;
   size?: number;
   tilt?: number;
   round?: boolean;
   stamp?: boolean;
+  /** true 면 겉 크기를 className 의 CSS 가 정한다(size 는 그림 좌표계로만 쓴다). */
+  fluid?: boolean;
   className?: string;
 }) {
   const chars = Array.from(text);
@@ -155,11 +157,11 @@ export function Seal({ text, size = 56, tilt = -4, round = false, stamp = false,
   return (
     <span
       className={cx(styles.seal, stamp && styles.stamp, className)}
-      style={{ width: s, height: s, ["--nv2-tilt" as string]: `${tilt}deg`, transform: stamp ? undefined : `rotate(${tilt}deg)` }}
+      style={{ ...(fluid ? null : { width: s, height: s }), ["--nv2-tilt" as string]: `${tilt}deg`, transform: stamp ? undefined : `rotate(${tilt}deg)` }}
       role="img"
       aria-label={text}
     >
-      <svg viewBox={`0 0 ${s} ${s}`} width={s} height={s} aria-hidden="true" focusable="false">
+      <svg viewBox={`0 0 ${s} ${s}`} width={fluid ? "100%" : s} height={fluid ? "100%" : s} aria-hidden="true" focusable="false">
         {round ? (
           <>
             <circle cx={s / 2} cy={s / 2} r={s / 2 - 1.5} style={{ fill: "var(--nv2-seal)" }} />
@@ -236,7 +238,7 @@ export function ElementPentagon({ copy, counts, adds }: {
     <figure className={styles.figure}>
       <svg viewBox="0 0 340 334" className={styles.art} role="img" aria-label={label}>
         <defs>
-          <Arrow id={`${uid}g`} tone="var(--nv2-gold)" />
+          <Arrow id={`${uid}g`} tone="var(--nv2-good)" />
           <Arrow id={`${uid}c`} tone="var(--nv2-seal)" />
         </defs>
         {V2_ELEMENTS.map((el) => {
@@ -247,7 +249,7 @@ export function ElementPentagon({ copy, counts, adds }: {
         {V2_ELEMENTS.map((el) => {
           const to = generatesOf(el);
           const s = segment(pos(el), pos(to), radius(el) + 3, radius(to) + 7);
-          return <line key={`g${el}`} {...s} strokeWidth="1.8" markerEnd={`url(#${uid}g)`} style={{ stroke: "var(--nv2-gold)" }} />;
+          return <line key={`g${el}`} {...s} strokeWidth="1.8" markerEnd={`url(#${uid}g)`} style={{ stroke: "var(--nv2-good)" }} />;
         })}
         {V2_ELEMENTS.map((el) => {
           const p = pos(el);
@@ -268,16 +270,16 @@ export function ElementPentagon({ copy, counts, adds }: {
               {/* 바탕색 테두리(halo)로 화살촉 근처에서도 숫자가 읽히게 한다 */}
               <text x={lx} y={ly} textAnchor="middle" fontSize="12.5" strokeWidth="4" strokeLinejoin="round" paintOrder="stroke" style={{ fill: "var(--nv2-ink-soft)", stroke: "var(--nv2-surface)" }}>
                 {copy.elements[el]}{hasCounts ? ` ${counts?.[el] || 0}` : ""}
-                {add > 0 ? <tspan style={{ fill: "var(--nv2-gold)", fontWeight: 700 }}>{` +${add}`}</tspan> : null}
+                {add > 0 ? <tspan style={{ fill: "var(--nv2-accent)", fontWeight: 700 }}>{` +${add}`}</tspan> : null}
               </text>
             </g>
           );
         })}
       </svg>
       <div className={styles.legend}>
-        <span className={styles.legendItem}><svg width="26" height="10" aria-hidden="true"><line x1="1" y1="5" x2="25" y2="5" strokeWidth="2" style={{ stroke: "var(--nv2-gold)" }} /></svg>{copy.generateLegend}</span>
+        <span className={styles.legendItem}><svg width="26" height="10" aria-hidden="true"><line x1="1" y1="5" x2="25" y2="5" strokeWidth="2" style={{ stroke: "var(--nv2-good)" }} /></svg>{copy.generateLegend}</span>
         <span className={styles.legendItem}><svg width="26" height="10" aria-hidden="true"><line x1="1" y1="5" x2="25" y2="5" strokeWidth="1.6" strokeDasharray="5 4" style={{ stroke: "var(--nv2-seal)" }} /></svg>{copy.controlLegend}</span>
-        <span className={styles.legendItem}><svg width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" strokeWidth="2" style={{ stroke: "var(--nv2-gold)" }} /></svg>{copy.nameAddsLabel}</span>
+        <span className={styles.legendItem}><svg width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" strokeWidth="2" style={{ stroke: "var(--nv2-accent)" }} /></svg>{copy.nameAddsLabel}</span>
       </div>
       <figcaption className={styles.caption}>{hasCounts ? copy.pentagonCaption : copy.pentagonCaptionNoCounts}</figcaption>
     </figure>
@@ -354,7 +356,7 @@ export function ScoreRadar({ copy, series }: { copy: NamingV2Copy; series: Radar
           return (
             <text key={key} x={p.x} y={r1(p.y + dy)} textAnchor={anchor} fontSize="12" style={{ fill: "var(--nv2-ink-soft)" }}>
               {copy.scores[key]}
-              {single ? <tspan style={{ fill: "var(--nv2-gold)", fontWeight: 700 }}>{` ${Math.round(clamp(single.scores[key]) * 100)}`}</tspan> : null}
+              {single ? <tspan style={{ fill: "var(--nv2-accent)", fontWeight: 700 }}>{` ${Math.round(clamp(single.scores[key]) * 100)}`}</tspan> : null}
             </text>
           );
         })}
@@ -392,7 +394,7 @@ export function SoundLine({ copy, syllables, elements, relations }: {
     <figure className={styles.figure}>
       <svg viewBox={`0 0 ${W} 124`} className={styles.art} style={{ maxWidth: W * 1.35 }} role="img" aria-label={label}>
         <defs>
-          <Arrow id={`${uid}g`} tone="var(--nv2-gold)" />
+          <Arrow id={`${uid}g`} tone="var(--nv2-good)" />
         </defs>
         {relations.slice(0, n - 1).map((rel, k) => {
           const x1 = x(k) + NR + 5;
@@ -452,7 +454,7 @@ export function GridPillars({ copy, candidate, surnameHanja }: { copy: NamingV2C
           <div key={grid} className={styles.pillar} style={{ borderColor: grade === "good" ? "var(--nv2-gold-line)" : undefined }}>
             <span className={styles.pillarRoof} aria-hidden="true">
               <svg className={styles.fill} viewBox="0 0 120 22" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-                <path d="M2 20C24 18 40 10 60 3C80 10 96 18 118 20" fill="none" strokeWidth="1.4" style={{ stroke: "var(--nv2-gold)" }} />
+                <path d="M2 20C24 18 40 10 60 3C80 10 96 18 118 20" fill="none" strokeWidth="1.4" style={{ stroke: "var(--nv2-ornament)" }} />
                 <path d="M14 20h92" strokeWidth="1" style={{ stroke: "var(--nv2-gold-line)" }} />
               </svg>
             </span>
@@ -547,7 +549,7 @@ function Tally({ count }: { count: number }) {
   for (let k = 0; k < rest; k += 1) marks.push(<line key={`r${k}`} x1={groups * 20 + 2 + k * 4} y1="2" x2={groups * 20 + 2 + k * 4} y2="16" />);
   const width = groups * 20 + rest * 4 + 2;
   return (
-    <svg className={styles.tally} width={width} height="18" viewBox={`0 0 ${width} 18`} aria-hidden="true" focusable="false" strokeWidth="1.4" strokeLinecap="round" style={{ stroke: "var(--nv2-gold)" }}>
+    <svg className={styles.tally} width={width} height="18" viewBox={`0 0 ${width} 18`} aria-hidden="true" focusable="false" strokeWidth="1.4" strokeLinecap="round" style={{ stroke: "var(--nv2-ornament)" }}>
       {marks}
     </svg>
   );
