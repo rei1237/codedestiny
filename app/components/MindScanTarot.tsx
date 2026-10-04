@@ -487,7 +487,6 @@ function PickingStage({ round, mainSelected, subSelected, onPick, copy }: Pickin
                 : copy.pickingSelectPrompt}
           </m.p>
         </AnimatePresence>
-      {stage === "result" && reading && delivery?.resultId && <ReviewRewardBanner afterResult/>}
 
         {/* Progress bar */}
         <div className="flex items-center justify-center gap-2 mt-3">
@@ -1814,6 +1813,7 @@ export default function MindScanTarot() {
             drawn={drawn} drawnSub={drawnSub} reading={reading} question={question} onRestart={restart} reportRef={reportRef} resultId={delivery?.resultId} copy={copy} />
         )}
       </AnimatePresence>
+      {stage === "result" && reading && delivery?.resultId && <ReviewRewardBanner afterResult/>}
     </div>
   );
 }
