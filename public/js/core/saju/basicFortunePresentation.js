@@ -809,6 +809,11 @@
       // 이 파일은 그래서 sync-legacy-static-to-public.mjs 의 MODULE_IMPORT_CACHE_KEY_FILES 에 등록돼 있다.
       link.href = '/styles/basic-fortune-library.css?v=build-ed20718c5172'; document.head.appendChild(link);
     }
+    // 점성술 "나의 이야기" 층(#asStory). 위 시트 뒤에 붙여 같은 특정성에서 이긴다. ?v= 는 위와 같은 규칙.
+    if (!document.getElementById('astroReadingStyle')) {
+      var storyLink = document.createElement('link'); storyLink.id = 'astroReadingStyle'; storyLink.rel = 'stylesheet';
+      storyLink.href = '/styles/astro-reading.css?v=build-b136d6bc569d'; document.head.appendChild(storyLink);
+    }
     ['sukuyo', 'ziwei', 'astro'].forEach(function (type) {
       var overlay = document.getElementById(type + 'ModalOverlay');
       if (overlay) {

@@ -798,24 +798,29 @@
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   var BAND_LABEL = { Sun: '태양', Moon: '달', ASC: '첫인상' };
   function bandSvg(band) {
-    var out = ['<svg class="as-band" viewBox="0 0 360 52" aria-hidden="true" focusable="false">', '<line class="as-band-line" x1="0" y1="36" x2="360" y2="36"/>'];
-    for (var i = 0; i <= 12; i++) out.push('<line class="as-band-tick" x1="' + i * 30 + '" y1="31" x2="' + i * 30 + '" y2="41"/>');
-    band.forEach(function (p) { out.push('<circle class="as-band-dot' + (BAND_LABEL[p.body] ? ' is-key' : '') + '" cx="' + p.lon + '" cy="36" r="' + (BAND_LABEL[p.body] ? 3.6 : 2.4) + '"/>'); });
+    var out = ['<svg class="as-band" viewBox="0 0 360 62" aria-hidden="true" focusable="false">', '<line class="as-band-line" x1="0" y1="48" x2="360" y2="48"/>'];
+    for (var i = 0; i <= 12; i++) out.push('<line class="as-band-tick" x1="' + i * 30 + '" y1="43" x2="' + i * 30 + '" y2="53"/>');
+    // Key dots last so the gold ones sit on top of nearby grey ones.
+    band.slice().sort(function (a, b) { return (BAND_LABEL[a.body] ? 1 : 0) - (BAND_LABEL[b.body] ? 1 : 0); }).forEach(function (p) { out.push('<circle class="as-band-dot' + (BAND_LABEL[p.body] ? ' is-key' : '') + '" cx="' + p.lon + '" cy="48" r="' + (BAND_LABEL[p.body] ? 3.6 : 2.4) + '"/>'); });
     var last = -99, row = 0;
     band.filter(function (p) { return BAND_LABEL[p.body]; }).sort(function (a, b) { return a.lon - b.lon; }).forEach(function (p) {
-      row = p.lon - last < 34 ? 1 - row : 0; last = p.lon;
-      var x = Math.min(344, Math.max(16, p.lon));
-      out.push('<text class="as-band-label" x="' + x + '" y="' + (row ? 12 : 24) + '" text-anchor="middle">' + BAND_LABEL[p.body] + '</text>');
+      row = p.lon - last < 46 ? 1 - row : 0; last = p.lon;
+      var x = Math.min(338, Math.max(22, p.lon));
+      out.push('<text class="as-band-label" x="' + x + '" y="' + (row ? 14 : 32) + '" text-anchor="middle">' + BAND_LABEL[p.body] + '</text>');
     });
     out.push('</svg>');
     return out.join('');
   }
-  function evList(cls, labels) { return '<ul class="' + cls + '">' + labels.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>'; }
+  // A no-break space before ' · ' keeps the dot from starting a wrapped line.
+  function evText(l) { return esc(l).replace(/ · /g, '&nbsp;· '); }
+  function evList(cls, labels) { return '<ul class="' + cls + '">' + labels.map(function (l) { return '<li>' + evText(l) + '</li>'; }).join('') + '</ul>'; }
+  // Chips are labels (13px), not reading text, so they are spans in a role=list rather than li.
+  function evChips(labels) { return '<div class="as-ev-chips" role="list">' + labels.map(function (l) { return '<span role="listitem">' + evText(l) + '</span>'; }).join('') + '</div>'; }
   function renderStory(model) {
     var c = model.cover, h = [];
     h.push('<header class="as-cover">');
     h.push('<div class="as-cover-sky">' + bandSvg(c.band) + '</div>');
-    if (c.name) h.push('<p class="as-cover-kicker">' + esc(c.name) + ' 님의 출생 차트</p>');
+    if (c.name) h.push('<div class="as-cover-kicker">' + esc(c.name) + ' 님의 출생 차트</div>');
     h.push('<h2 class="as-portrait">' + esc(model.portrait.headline) + '</h2>');
     h.push('<ul class="as-big3">' + c.big3.map(function (r) {
       return '<li class="as-big3-row" data-key="' + r.key + '"><span class="as-big3-role">' + esc(r.role) + '</span><span class="as-big3-sign">' + esc(r.sign) + '</span><span class="as-big3-phrase">' + esc(r.phrase) + '</span></li>';
@@ -824,13 +829,13 @@
     h.push('</header>');
     h.push('<section class="as-temperament" aria-labelledby="asTemperamentTitle"><h3 class="as-h3" id="asTemperamentTitle">타고난 성향</h3>');
     model.portrait.paragraphs.forEach(function (p) {
-      h.push('<div class="as-para" data-key="' + p.key + '"><h4 class="as-h4">' + esc(p.title) + '</h4><p>' + esc(p.text.join(' ')) + '</p>' + evList('as-ev-chips', p.evidence) + '</div>');
+      h.push('<div class="as-para" data-key="' + p.key + '"><h4 class="as-h4">' + esc(p.title) + '</h4><p>' + esc(p.text.join(' ')) + '</p>' + evChips(p.evidence) + '</div>');
     });
     h.push('</section>');
     h.push('<section class="as-cats" aria-labelledby="asCatsTitle"><h3 class="as-h3" id="asCatsTitle">삶의 여섯 갈래</h3>');
     model.categories.forEach(function (k) {
       h.push('<details class="as-cat" data-cat="' + k.id + '"><summary><span class="as-cat-title">' + esc(k.title) + '</span><span class="as-cat-gist">' + esc(k.conclusion) + '</span></summary><div class="as-cat-body">');
-      h.push('<p class="as-label">당신은 이래요</p><ul class="as-bullets">' + k.bullets.map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('') + '</ul>');
+      h.push('<div class="as-label">당신은 이래요</div><ul class="as-bullets">' + k.bullets.map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('') + '</ul>');
       if (k.scene) h.push('<p class="as-scene">' + esc(k.scene) + '</p>');
       h.push('<dl class="as-fit">' + (k.fit ? '<div><dt>잘 맞는 것</dt><dd>' + esc(k.fit) + '</dd></div>' : '') + (k.caution ? '<div><dt>조심할 것</dt><dd>' + esc(k.caution) + '</dd></div>' : '') + '</dl>');
       if (k.action) h.push('<p class="as-action"><span class="as-label">이번 주 해볼 한 가지</span>' + esc(k.action) + '</p>');

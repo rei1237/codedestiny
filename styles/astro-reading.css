@@ -1,0 +1,184 @@
+/* 점성술 결과 "나의 이야기" 층 (js/core/astro/natal-reading.js 의 #asStory).
+ * 컨셉: 밤하늘 관측 기록 — 우주 장식은 표지에만, 본문은 잉크 바탕 위의 활자와 헤어라인.
+ * 색은 .as-reading 의 --as-* 토큰에만 선언한다. 간격·반경·모션·폭은 DESIGN.md §7 의 --cd-* 를 쓴다.
+ * 이 파일은 basicFortunePresentation.js init() 이 basic-fortune-library.css 뒤에 붙인다. */
+
+.as-reading {
+  --as-ink-0: #0c0f1c;
+  --as-ink-1: #12162a;
+  --as-text: #efe9dc;
+  --as-text-2: #b9b3a6;
+  --as-gold: #d8b77a;
+  --as-rule: rgba(239, 233, 220, .14);
+  --as-milky: rgba(214, 206, 186, .07);
+  --as-serif: 'CodeDestinySerifKR', 'Nanum Myeongjo', 'AppleMyungjo', serif;
+  --as-body: 'CodeDestinyBody', 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+  color: var(--as-text);
+  font-family: var(--as-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.75;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+.as-reading :is(h2, h3, h4, p, ul, dl, dd) { margin: 0; }
+
+/* ── 표지 ─────────────────────────────────────────── */
+.as-reading .as-cover {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: var(--cd-sp-lg, 24px) 0 var(--cd-sp-lg, 24px);
+  border-bottom: 1px solid var(--as-rule);
+}
+/* 은하수: 표지 뒤 저채도 대각 띠 하나. */
+.as-reading .as-cover::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -40% -20%;
+  background: linear-gradient(118deg, transparent 38%, var(--as-milky) 48%, var(--as-milky) 54%, transparent 64%);
+  pointer-events: none;
+}
+.as-reading .as-cover-sky { margin: 0 0 var(--cd-sp-md, 16px); color: var(--as-text-2); }
+/* 띠는 폭에 비례해 커지므로 상한을 둔다 — 라벨이 390 에서 13.4px, 상한에서 16.7px. */
+.as-reading .as-band { display: block; width: 100%; max-width: 400px; height: auto; overflow: visible; }
+.as-reading .as-band-line { stroke: currentColor; stroke-width: 1; opacity: .5; }
+.as-reading .as-band-tick { stroke: currentColor; stroke-width: 1; opacity: .35; }
+.as-reading .as-band-dot { fill: currentColor; opacity: .8; }
+.as-reading .as-band-dot.is-key { fill: var(--as-gold); opacity: 1; stroke: var(--as-ink-1); stroke-width: 1.5; }
+.as-reading .as-band-label { fill: var(--as-text-2); font-family: var(--as-body); font-size: 15px; font-weight: 600; }
+.as-reading .as-cover-kicker { margin-bottom: var(--cd-sp-xs, 6px); color: var(--as-text-2); font-size: 13px; letter-spacing: .04em; }
+.as-reading .as-portrait {
+  max-width: 16em;
+  color: var(--as-text);
+  font-family: var(--as-serif);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -.01em;
+}
+.as-reading .as-big3 { margin-top: var(--cd-sp-lg, 24px); padding: 0; list-style: none; border-top: 1px solid var(--as-rule); }
+.as-reading .as-big3-row {
+  display: grid;
+  grid-template-columns: 6.5em minmax(0, 1fr);
+  column-gap: var(--cd-sp-sm, 10px);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--as-rule);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.as-reading .as-big3-role { grid-row: span 2; padding-top: 2px; color: var(--as-text-2); font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+.as-reading .as-big3-sign { color: var(--as-text); font-size: 17px; font-weight: 600; }
+.as-reading .as-big3-phrase { color: var(--as-text-2); font-size: 15px; }
+.as-reading .as-time-note {
+  display: inline-block;
+  margin-top: var(--cd-sp-md, 16px);
+  padding: 4px 12px;
+  border: 1px solid var(--as-rule);
+  border-radius: var(--cd-r-pill, 999px);
+  color: var(--as-text-2);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ── 제목 ─────────────────────────────────────────── */
+.as-reading .as-h3 {
+  margin: var(--cd-sp-xl, 36px) 0 var(--cd-sp-sm, 10px);
+  color: var(--as-text);
+  font-family: var(--as-serif);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* ── 타고난 성향 ──────────────────────────────────── */
+.as-reading .as-para { padding: var(--cd-sp-md, 16px) 0 var(--cd-sp-lg, 24px); border-top: 1px solid var(--as-rule); }
+.as-reading .as-h4 { margin-bottom: var(--cd-sp-xs, 6px); color: var(--as-text); font-size: 18px; font-weight: 700; line-height: 1.5; }
+.as-reading .as-para > p { max-width: 36em; color: var(--as-text); font-size: 16px; line-height: 1.75; }
+.as-reading .as-ev-chips { display: flex; flex-wrap: wrap; gap: var(--cd-sp-xs, 6px); margin-top: 12px; }
+.as-reading .as-ev-chips > span {
+  padding: 2px 10px;
+  border: 1px solid var(--as-rule);
+  border-radius: var(--cd-r-pill, 999px);
+  color: var(--as-text-2);
+  font-size: 13px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 삶의 여섯 갈래 ───────────────────────────────── */
+.as-reading .as-cats { margin-bottom: var(--cd-sp-lg, 24px); }
+.as-reading .as-cat { border-top: 1px solid var(--as-rule); }
+.as-reading .as-cat:last-of-type { border-bottom: 1px solid var(--as-rule); }
+.as-reading .as-cat > summary {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 14px 36px 14px 0;
+  list-style: none;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color var(--cd-dur-fast, 120ms) ease;
+}
+.as-reading .as-cat > summary::-webkit-details-marker { display: none; }
+.as-reading :is(.as-cat, .as-why) > summary::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--as-text-2);
+  border-bottom: 1.5px solid var(--as-text-2);
+  transform: translateY(-75%) rotate(45deg);
+  transition: transform var(--cd-dur-fast, 120ms) ease;
+}
+.as-reading :is(.as-cat, .as-why)[open] > summary::after { transform: translateY(-25%) rotate(225deg); }
+.as-reading .as-cat > summary:hover { background-color: rgba(239, 233, 220, .03); }
+.as-reading :is(.as-cat, .as-why) > summary:focus-visible { outline: 2px solid var(--as-gold); outline-offset: 2px; }
+.as-reading .as-cat-title { color: var(--as-text-2); font-size: 13px; font-weight: 600; letter-spacing: .04em; line-height: 1.5; }
+.as-reading .as-cat-gist { color: var(--as-text); font-size: 17px; font-weight: 500; line-height: 1.55; }
+.as-reading .as-cat-body { display: grid; gap: var(--cd-sp-md, 16px); padding: var(--cd-sp-xs, 6px) 0 var(--cd-sp-lg, 24px); }
+.as-reading .as-label { display: block; margin-bottom: var(--cd-sp-xs, 6px); color: var(--as-text-2); font-size: 13px; font-weight: 600; letter-spacing: .02em; line-height: 1.5; }
+.as-reading .as-cat-body > .as-label { margin-bottom: -10px; }
+.as-reading .as-bullets { padding-left: 1.15em; }
+.as-reading .as-bullets > li { margin-bottom: var(--cd-sp-xs, 6px); color: var(--as-text); font-size: 16px; line-height: 1.7; }
+.as-reading .as-bullets > li::marker { color: var(--as-text-2); }
+.as-reading .as-scene { color: var(--as-text); font-size: 16px; line-height: 1.75; }
+.as-reading .as-fit { display: grid; gap: 12px; }
+.as-reading .as-fit > div { padding-top: 10px; border-top: 1px solid var(--as-rule); }
+.as-reading .as-fit dt { margin-bottom: 2px; color: var(--as-text-2); font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+.as-reading .as-fit dd { color: var(--as-text); font-size: 15px; line-height: 1.7; }
+.as-reading .as-action { padding-top: 10px; border-top: 1px solid var(--as-rule); color: var(--as-text); font-size: 16px; line-height: 1.7; }
+.as-reading .as-why > summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding-right: 32px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--as-text-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+.as-reading .as-why > summary::-webkit-details-marker { display: none; }
+.as-reading .as-ev-list { padding-left: 1.15em; }
+.as-reading .as-ev-list > li { color: var(--as-text-2); font-size: 15px; line-height: 1.7; font-variant-numeric: tabular-nums; }
+
+@media (min-width: 480px) {
+  .as-reading .as-fit { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cd-sp-md, 16px); }
+  .as-reading .as-fit > div:only-child { grid-column: 1 / -1; }
+}
+@media (min-width: 768px) {
+  .as-reading .as-portrait { font-size: 40px; }
+  .as-reading .as-h3 { font-size: 26px; }
+  .as-reading .as-h4 { font-size: 20px; }
+  .as-reading .as-cover { padding-top: var(--cd-sp-xl, 36px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .as-reading :is(.as-cat, .as-why) > summary, .as-reading :is(.as-cat, .as-why) > summary::after { transition: none; }
+}
