@@ -1,4 +1,4 @@
-{"dataVersion":"naming-data-v1-220e9ec9b92a","fields":["heaven","human","earth","grade","gradeRaw","flag","alternatives","sources"],"generatedBy":"scripts/naming/build-naming-data.mjs","schema":"naming-samjae-125/1","rows":[
+{"dataVersion":"naming-data-v1-f1714fda0eb5","fields":["heaven","human","earth","grade","gradeRaw","flag","alternatives","sources"],"generatedBy":"scripts/naming/build-naming-data.mjs","schema":"naming-samjae-125/1","rows":[
 ["wood","wood","wood","good","大吉","",[],["cn-zhouyi","tw-kvov","tw-cafengshui","jp-toranomai"]],
 ["wood","wood","fire","good","大吉","",[],["cn-zhouyi","cn-yishengmi","tw-kvov","tw-cafengshui","jp-toranomai"]],
 ["wood","wood","earth","good","大吉","",[],["cn-zhouyi","cn-yishengmi","tw-kvov","tw-cafengshui","jp-toranomai"]],
