@@ -1,4 +1,4 @@
-{"dataVersion":"naming-data-v1-bda138c29ebd","fields":["text","grade","category"],"generatedBy":"scripts/naming/build-naming-data.mjs","grades":["block","warn"],"reviewed":false,"schema":"naming-sound-blacklist/1","rows":[
+{"dataVersion":"naming-data-v1-220e9ec9b92a","fields":["text","grade","category"],"generatedBy":"scripts/naming/build-naming-data.mjs","grades":["block","warn"],"reviewed":false,"schema":"naming-sound-blacklist/1","rows":[
 ["간질","block","disease"],
 ["간첩","warn","negative"],
 ["개새","block","profanity"],
