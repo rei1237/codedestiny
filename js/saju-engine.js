@@ -14231,9 +14231,35 @@ function renderAstroInsightLegacyNeon() {
         + '</div></div>';
     }
 
+    /* ── 출생 차트 이야기 (js/core/astro/natal-reading.js). 실패하면 아래 기존 블록만 그린다. ── */
+    var astroStoryHtml = '';
+    try {
+      if (window.AstroNatalReading) {
+        var storyTimeKnown = !(birth.unknownHour === true || birth.timeDefault === true);
+        // 시간을 모르면 정오 차트로 읽으므로, 그날 달이 별자리를 바꿨는지 0시·23:59 차트로 따로 본다.
+        var storyMoonDay = storyTimeKnown ? null : [
+          calcAstroSwissChartOrThrow(y, m, d, 0, lat, lon, tz, houseSystem).moon.idx,
+          calcAstroSwissChartOrThrow(y, m, d, 23 + 59 / 60, lat, lon, tz, houseSystem).moon.idx
+        ];
+        var storyProfile = typeof window.__cdGetCurrentDestinyProfile === 'function' ? window.__cdGetCurrentDestinyProfile() : null;
+        var storyToday = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        astroStoryHtml = window.AstroNatalReading.render(window.AstroNatalReading.build(chart, {
+          timeKnown: storyTimeKnown,
+          today: storyToday,
+          name: storyProfile && storyProfile.name ? storyProfile.name : '',
+          birth: { year: y, month: m, day: d, hour: h, minute: min },
+          moonDay: storyMoonDay
+        }));
+      }
+    } catch (storyErr) {
+      astroStoryHtml = '';
+      if (window.console && console.warn) console.warn('[astro-story] render skipped:', storyErr && storyErr.message);
+    }
+
     var html = '<div class="astro-body astro-readable cosmic-theme star-container is-easy" id="astroBodyWrap">'
       + astroNeonCss
       + precisionNoticeHtml
+      + astroStoryHtml
       + astroActionHubHtml
       + astroAiPromptSectionHtml
       + (natalWheel && natalWheel.cardHtml ? natalWheel.cardHtml : '')
