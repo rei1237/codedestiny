@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useCallback } from "react";
 import { ArrowLeft, Home } from "lucide-react";
+import styles from "./FeatureBackHomeNav.module.css";
 import { LazyMotion } from "framer-motion";
 import { useLocale } from "@/lib/i18n/useT";
 import GlobalHeader from "./GlobalHeader";
@@ -161,6 +162,16 @@ function isUnsafePaymentReferrer(referrer: string) {
   }
 }
 
+function MoonlitNavSeal() {
+  return (
+    <svg className={styles.seal} viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M45 8a25 25 0 1 0 12 29M43 8a10 10 0 0 1-8-13 11 11 0 1 0 8 13" transform="translate(0 6)" />
+      <path d="M12 51c5-2 8-6 10-12M14 49c-6 0-7-5-6-8 5 0 8 3 6 8Zm4-5c-1-5 2-8 6-8 1 5-2 8-6 8ZM48 47c3-2 5-5 6-9M51 44c-5-1-6-4-5-7 4 0 6 3 5 7Z" />
+      <path d="m51 14 1.5 3.5L56 19l-3.5 1.5L51 24l-1.5-3.5L46 19l3.5-1.5Z" />
+    </svg>
+  );
+}
+
 function FeatureBackHomeNav() {
   const router = useRouter();
   const locale = useLocale() as ChromeLocale;
@@ -198,17 +209,19 @@ function FeatureBackHomeNav() {
       <button
         type="button"
         onClick={goBack}
-        className="pointer-events-auto inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/[.18] bg-slate-950/[.62] text-white shadow-[0_14px_36px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:bg-slate-900/[.82] focus:outline-none focus:ring-2 focus:ring-amber-200/60"
+        className={`${styles.button} ${styles.back}`}
         aria-label={copy.back}
       >
-        <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+        <MoonlitNavSeal />
+        <ArrowLeft className={styles.icon} aria-hidden="true" />
       </button>
       <button
         type="button"
         onClick={goHome}
-        className="pointer-events-auto inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/30 bg-[linear-gradient(135deg,rgba(15,23,42,0.78),rgba(70,49,118,0.68),rgba(184,134,48,0.42))] px-4 text-sm font-black text-amber-50 no-underline shadow-[0_14px_36px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:border-amber-100/54 hover:bg-slate-900/82 focus:outline-none focus:ring-2 focus:ring-amber-200/60"
+        className={`${styles.button} ${styles.home}`}
+        aria-label={copy.home}
       >
-        <Home className="h-4 w-4" aria-hidden="true" />
+        <span className={styles.homeSeal}><MoonlitNavSeal /><Home className={styles.icon} aria-hidden="true" /></span>
         <span>{copy.home}</span>
       </button>
     </nav>
