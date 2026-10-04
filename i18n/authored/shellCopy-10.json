@@ -224,18 +224,18 @@
     "ms": "Terokai atelier Yeoni"
   },
   "home.gardenCopy.moreItems": {
-    "ko": "오늘의 운세 · 상담 · 이용권 · 기록과 이야기",
-    "en": "Daily readings · consultations · passes · stories",
-    "ja": "Daily readings · consultations · passes · stories",
-    "zh-CN": "Daily readings · consultations · passes · stories",
-    "zh-TW": "Daily readings · consultations · passes · stories",
-    "vi": "Daily readings · consultations · passes · stories",
-    "hi": "Daily readings · consultations · passes · stories",
-    "es": "Daily readings · consultations · passes · stories",
-    "fr": "Daily readings · consultations · passes · stories",
-    "de": "Daily readings · consultations · passes · stories",
-    "nl": "Daily readings · consultations · passes · stories",
-    "ms": "Daily readings · consultations · passes · stories"
+    "ko": "오늘의 운세 · 상담 · 기록과 이야기",
+    "en": "Daily readings · consultations · stories",
+    "ja": "Daily readings · consultations · stories",
+    "zh-CN": "Daily readings · consultations · stories",
+    "zh-TW": "Daily readings · consultations · stories",
+    "vi": "Daily readings · consultations · stories",
+    "hi": "Daily readings · consultations · stories",
+    "es": "Daily readings · consultations · stories",
+    "fr": "Daily readings · consultations · stories",
+    "de": "Daily readings · consultations · stories",
+    "nl": "Daily readings · consultations · stories",
+    "ms": "Daily readings · consultations · stories"
   },
   "home.gardenCopy.moreClose": {
     "ko": "접기",
