@@ -12228,8 +12228,24 @@ var AstroEngine = (function(){
       return base;
     }
 
+    /* 트랜싯용: 순간(ms, UTC) → 행성 10개 황경. 하우스·각 계산 없이 Swiss 만 읽는다. Swiss 가 없으면 null. */
+    function lonsAtMs(ms){
+      var swe=window.swisseph||window.Swe||window.swe||null;
+      if(!swe || (typeof swe.calc_ut!=='function' && typeof swe.swe_calc_ut!=='function')) return null;
+      var flags=((typeof swe.SEFLG_SPEED==='number')?swe.SEFLG_SPEED:256)|((typeof swe.SEFLG_SWIEPH==='number')?swe.SEFLG_SWIEPH:2);
+      var jdUT=ms/86400000+2440587.5, out={};
+      for (var i=0;i<PLANET_ORDER.length;i++) {
+        var pid=mapPlanetId(swe, PLANET_ORDER[i]);
+        var lon=pid==null ? NaN : Number(sweValueAt(callSweCalcUt(swe, jdUT, pid, flags), 0));
+        if(!isFinite(lon)) return null;
+        out[PLANET_ORDER[i]]=revDeg(lon);
+      }
+      return out;
+    }
+
     AstroEngine = {
       calcAll: calcAll,
+      lonsAtMs: lonsAtMs,
       toSign: LegacyAstroEngine.toSign,
       deltaT: calcDeltaTSeconds,
       toNatalJSON: function(year,mon,day,localHour,lat,lon,tzOff,options){
@@ -14286,14 +14302,37 @@ function renderAstroInsightLegacyNeon() {
       if (window.console && console.warn) console.warn('[astro-story] render skipped:', storyErr && storyErr.message);
     }
 
+    /* ── 오늘의 별자리 운세 (js/core/astro/transits.js + transit-reading.js): 오늘 실제 하늘 → 출생 차트.
+       위치는 Swiss 경도만 읽는 lonsAtMs, 없으면 calcAll. 실패하면 아래 옛 "오늘의 핵심 흐름" 카드를 그린다. ── */
+    var astroLonsAt = function (ms) {
+      var row = typeof AstroEngine.lonsAtMs === 'function' ? AstroEngine.lonsAtMs(ms) : null;
+      if (row) return row;
+      var t = new Date(ms);
+      return window.AstroTransits.lonsFromChart(AstroEngine.calcAll(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate(), t.getUTCHours() + t.getUTCMinutes() / 60 + t.getUTCSeconds() / 3600, lat, lon, 0, { houseSystem: houseSystem }));
+    };
+    var astroTodayHtml = '';
+    try {
+      if (window.AstroTransits && window.AstroTransitReading) {
+        var astroTransitNatal = window.AstroTransits.natalOf(chart, storyTimeKnown);
+        // 날짜·시각은 기기 시간대 기준(storyToday 와 같은 날).
+        var astroTransitToday = window.AstroTransits.today(astroTransitNatal, { today: storyToday, tz: -now.getTimezoneOffset() / 60, lonsAt: astroLonsAt });
+        astroTodayHtml = window.AstroTransitReading.renderToday(window.AstroTransitReading.today(astroTransitToday));
+      }
+    } catch (todayErr) {
+      astroTodayHtml = '';
+      if (window.console && console.warn) console.warn('[astro-today] skipped:', todayErr && todayErr.message);
+    }
+
     var html = '<div class="astro-body astro-readable cosmic-theme star-container is-easy" id="astroBodyWrap">'
       + astroNeonCss
       + precisionNoticeHtml
+      + astroTodayHtml
       + astroStoryHtml
       + astroActionHubHtml
       + astroAiPromptSectionHtml
       + (natalWheel && natalWheel.cardHtml ? natalWheel.cardHtml : '')
       + astroBig3SnapshotHtml
+      + (astroTodayHtml ? '' : ''
       +'<div class="astro-section" style="margin-bottom:16px;">'
       +'<div class="astro-neon-wrap">'
       +'<div class="astro-neon-head">'
@@ -14318,7 +14357,7 @@ function renderAstroInsightLegacyNeon() {
       +'<p style="margin:8px 0 0 0;font-size:14px;color:#a5f3fc;"><b>행운을 여는 작은 의식:</b> '+astroBoosterColor+' 톤 + '+astroBoosterPlace+' + 물 한 잔 루틴 💧</p>'
       +'</div>'
       +'</div>'
-      +'</div>'
+      +'</div>')
       + '<div class="astro-detail-layer" id="astroDetailLayer">'
       + masterInsight
       + birthMapSectionHtml

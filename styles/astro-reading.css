@@ -172,6 +172,54 @@
 .as-reading .as-ev-list { padding-left: 1.15em; }
 .as-reading .as-ev-list > li { color: var(--as-text-2); font-size: 15px; line-height: 1.7; font-variant-numeric: tabular-nums; }
 
+/* ── 오늘의 별자리 운세(#asToday, js/core/astro/transit-reading.js) ── */
+.as-reading.as-today { padding-bottom: var(--cd-sp-md, 16px); }
+.as-reading.as-today > .as-h3 { margin-bottom: var(--cd-sp-md, 16px); font-family: var(--as-serif); }
+.as-reading .as-today-moon { display: grid; gap: var(--cd-sp-xs, 6px); padding: var(--cd-sp-md, 16px) 0; border-top: 1px solid var(--as-rule); }
+.as-reading .as-today-moon > .as-label { margin-bottom: 0; }
+.as-reading .as-today-moon > p { max-width: 36em; font-size: 16px; line-height: 1.75; }
+.as-reading .as-today-void {
+  margin-bottom: var(--cd-sp-md, 16px);
+  padding: 12px 14px;
+  border: 1px solid var(--as-rule);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.as-reading .as-today-void > .as-label { color: var(--as-gold); }
+.as-reading .as-today-hits { display: grid; gap: var(--cd-sp-md, 16px); margin: 0 0 var(--cd-sp-md, 16px); padding: 0; list-style: none; }
+.as-reading .as-today-hits > li { padding-top: var(--cd-sp-md, 16px); border-top: 1px solid var(--as-rule); }
+.as-reading .as-today-hit { margin-bottom: 10px; font-size: 17px; line-height: 1.7; }
+.as-reading .as-today-lasts {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--as-rule);
+  border-radius: var(--cd-r-pill, 999px);
+  color: var(--as-gold);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.8;
+  vertical-align: 1px;
+}
+.as-reading .as-today-notes { margin-bottom: var(--cd-sp-md, 16px); }
+.as-reading .as-today-cats { margin-bottom: var(--cd-sp-md, 16px); border-top: 1px solid var(--as-rule); }
+.as-reading .as-today-cats > div {
+  display: grid;
+  grid-template-columns: 4.5em 3.6em minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--as-rule);
+}
+.as-reading .as-today-cats dt { color: var(--as-text-2); font-size: 15px; font-weight: 600; }
+.as-reading .as-today-score { color: var(--as-gold); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.as-reading .as-today-unit { margin-left: 1px; color: var(--as-text-2); font-size: 13px; font-weight: 600; }
+.as-reading .as-today-line { color: var(--as-text); font-size: 15px; line-height: 1.65; }
+@media (max-width: 419px) {
+  .as-reading .as-today-cats > div { grid-template-columns: 4.5em minmax(0, 1fr); row-gap: 2px; }
+  .as-reading .as-today-line { grid-column: 1 / -1; }
+}
+
 /* ── 출생 차트(#asChart): 옛 .astro-wheel-card 를 호스트로 쓰고 카드 장식은 걷어 낸다 ── */
 #astroModalOverlay #astroBodyWrap .astro-wheel-card.as-wheel-host {
   margin: 0 !important;
