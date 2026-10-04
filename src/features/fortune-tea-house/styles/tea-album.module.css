@@ -10,9 +10,16 @@
 .invitation progress,.lock progress { display:block; margin-top:10px; width:100%; height:6px; accent-color:#efbace; border:0; border-radius:8px; overflow:hidden; }
 .invitation progress::-webkit-progress-bar,.lock progress::-webkit-progress-bar { background:#68475b; }
 .invitation progress::-webkit-progress-value,.lock progress::-webkit-progress-value { background:#efbace; }
-.world .primary,.invitation .primary { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:48px; padding:12px 20px; border:1px solid #e4b4c6; border-radius:8px; background:#efbace; color:#32172b; text-decoration:none; font-size:14px; font-weight:700; line-height:1.5; cursor:pointer; }
-.primary:disabled { opacity:.5; cursor:default; }
-.secondary { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 14px; border:1px solid #947082; border-radius:8px; background:#2b1729; color:#ffede8; cursor:pointer; }
+.world .primary,.invitation .primary { position:relative; display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:52px; padding:14px 24px; border:1px solid #dcc18e; border-radius:9px; background:linear-gradient(125deg,#f4d8c8,#e9b6ca); color:#36192c; text-decoration:none; font-size:14px; font-weight:700; line-height:1.5; box-shadow:inset 0 1px 0 #fff7e8b0,0 7px 20px #10051240; cursor:pointer; transition:transform 160ms ease,box-shadow 160ms ease; }
+.world .primary::after,.invitation .primary::after { content:""; position:absolute; inset:4px; border:1px solid #a57b6b40; border-radius:5px; pointer-events:none; }
+.world .primary:hover:not(:disabled),.invitation .primary:hover { transform:translateY(-1px);box-shadow:inset 0 1px 0 #fff7e8b0,0 10px 24px #10051255; }
+.world .primary:active:not(:disabled),.invitation .primary:active { transform:translateY(1px);box-shadow:inset 0 1px 4px #7d4b5930; }
+.world .primary:disabled { opacity:.46; cursor:default; box-shadow:none; }
+.world .secondary { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:52px; padding:14px 22px; border:1px solid #ae8c7d; border-radius:9px; background:#311b2e; color:#f4dfd4; font-size:14px; font-weight:600; cursor:pointer; transition:background 160ms ease; }
+.world .secondary:hover:not(:disabled) { background:#492b42; }
+.world .secondary:active:not(:disabled) { background:#251224; }
+.world .secondary:disabled { opacity:.46; cursor:default; }
+.moonOrnament { float:right; width:82px; height:82px; object-fit:contain; margin:-16px -10px 4px 14px; }
 .hero { position:relative; isolation:isolate; display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,.8fr); min-height:460px; overflow:hidden; border:1px solid #b88e676b; border-radius:20px 20px 4px 4px; background:#281222; }
 .heroArt { width:100%; height:100%; object-fit:cover; object-position:65% center; }
 .heroCopy { align-self:center; padding:44px; }
@@ -32,5 +39,5 @@
 .shelf { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px 16px; padding:12px 0; }
 @media(min-width:700px) { .shelf { grid-template-columns:repeat(3,minmax(0,1fr));gap:32px 24px; } }
 @media(min-width:1100px) { .shelf { grid-template-columns:repeat(4,minmax(0,1fr)); } }
-@media(max-width:700px) { .invitation { grid-template-columns:64px minmax(0,1fr); gap:18px; width:calc(100% - 32px); padding:22px 16px; } .bookCover { width:64px;height:94px; } .invitation .world .primary,.invitation .primary { grid-column:1/-1; } .invitation p { font-size:13px; } .hero,.lock { grid-template-columns:1fr; } .heroArt { grid-row:1;height:260px;object-position:65% 38%; } .heroCopy,.lockCopy { padding:26px 22px; } .hero h2 { font-size:2rem; } .lockArt { min-height:230px;height:230px; } .lockArt img { object-position:65% 35%; } .actions { flex-direction:column; } .meta { line-height:1.8; } }
+@media(max-width:700px) { .invitation { grid-template-columns:64px minmax(0,1fr); gap:18px; width:calc(100% - 32px); padding:22px 16px; } .bookCover { width:64px;height:94px; } .invitation .primary { grid-column:1/-1; } .invitation p { font-size:13px; } .hero,.lock { grid-template-columns:1fr; } .heroArt { grid-row:1;height:260px;object-position:65% 38%; } .heroCopy,.lockCopy { padding:26px 22px; } .hero h2 { font-size:2rem; } .lockArt { min-height:230px;height:230px; } .lockArt img { object-position:65% 35%; } .actions { flex-direction:column; } .meta { line-height:1.8; } }
 @media(prefers-reduced-motion:reduce) { .world * { animation:none !important; transition:none !important; } }

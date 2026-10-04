@@ -718,12 +718,12 @@ function TarotAlbumHero({ currentHoneyDrops, totalCards, selectedCount, pdfBusy,
   const visit = useTeaHouseCopy("albumVisit", albumVisitCopy);
   return <header className={albumStyles.hero}>
     <div className={albumStyles.heroCopy}>
-      <span className={albumStyles.eyebrow}>{visit.chapter}</span>
+      <Image src="/images/fortune-tea-house/moonlight-lotus-ornament.webp" alt="" width={120} height={120} className={albumStyles.moonOrnament}/><span className={albumStyles.eyebrow}>{visit.chapter}</span>
       <h2 id="tarotAlbumTitle">{copy.k1yzt0ya}</h2><p>{copy.kampzo9z}</p>
       <div className={albumStyles.meta}><span>{copy.kq8n5rri}</span><span>{copy.kfe3rgpe} {totalCards}{copy.kskfjn2j}</span><span>{copy.khjystua} {currentHoneyDrops}</span></div>
       <div className={albumStyles.actions}>
         <PdfActionButton onClick={onDownloadAll} disabled={pdfBusy} label={copy.kmzmv9si}/>
-        <PdfActionButton onClick={onDownloadSelected} disabled={pdfBusy || selectedCount === 0} label={selectedCount ? copy.selectedPdfLabel.replace("{count}", String(selectedCount)) : copy.kvgpq4qo}/>
+        <PdfActionButton onClick={onDownloadSelected} disabled={pdfBusy || selectedCount === 0} secondary label={selectedCount ? copy.selectedPdfLabel.replace("{count}", String(selectedCount)) : copy.kvgpq4qo}/>
       </div><p className={albumStyles.note}>{visit.downloadNote}</p>
     </div>
     <Image className={albumStyles.heroArt} src="/images/fortune-tea-house/yeoni-moonlight-novel.webp" alt={visit.humanAlt} width={768} height={768} sizes="(max-width:700px) 100vw,45vw"/>
@@ -734,7 +734,9 @@ function PdfActionButton({
   onClick,
   disabled,
   label,
+  secondary = false,
 }: {
+  secondary?: boolean;
   onClick: () => void;
   disabled: boolean;
   label: string;
@@ -742,7 +744,7 @@ function PdfActionButton({
   return (
     <button
       type="button"
-      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-champagne-gold/35 bg-champagne-gold/12 px-5 text-sm font-black text-champagne-gold shadow-[0_12px_34px_rgba(216,179,108,.14)] transition hover:-translate-y-0.5 hover:border-champagne-gold/60 hover:bg-champagne-gold/18 focus:outline-none focus:ring-2 focus:ring-champagne-gold/45 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
+      className={secondary ? albumStyles.secondary : albumStyles.primary}
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
@@ -1113,7 +1115,7 @@ function TarotAlbumLockPanel({ currentHoneyDrops, isHoneyLoading, canUnlock, isU
   const progress = visit.progress.replace("{count}", String(currentHoneyDrops)).replace("{cost}", String(TAROT_ALBUM_UNLOCK_COST));
   return <div className={albumStyles.lock}>
     <div className={albumStyles.lockArt}><Image src="/images/fortune-tea-house/yeoni-moonlight-novel.webp" alt={visit.humanAlt} fill sizes="(max-width:700px) 100vw,45vw"/></div>
-    <div className={albumStyles.lockCopy}>
+    <div className={albumStyles.lockCopy}><Image src="/images/fortune-tea-house/moonlight-lotus-ornament.webp" alt="" width={110} height={110} className={albumStyles.moonOrnament}/>
       <span className={albumStyles.eyebrow}>{visit.eyebrow}</span><h2 id="tarotAlbumTitle">{copy.k1yzt0ya}</h2><p>{visit.description.replace("{cost}", String(TAROT_ALBUM_UNLOCK_COST))}</p>
       <span className={albumStyles.balance}>{guest ? visit.guest : isHoneyLoading ? visit.loading : progress}</span>
       {!guest && <progress max={TAROT_ALBUM_UNLOCK_COST} value={Math.min(currentHoneyDrops,TAROT_ALBUM_UNLOCK_COST)} aria-label={progress}/>}
@@ -1593,36 +1595,19 @@ function TarotAlbumPdfRender({
   );
 }
 
-const pdfPageStyle: CSSProperties = {
-  width: PDF_PAGE_WIDTH_PX,
-  minHeight: PDF_PAGE_HEIGHT_PX,
-  padding: "54px",
-  background: "linear-gradient(145deg, #241021 0%, #352039 65%, #241021 100%)",
-  color: "#EDEFF5",
-  fontFamily: "CodeDestinyBody, Pretendard, Apple SD Gothic Neo, sans-serif",
-  position: "relative",
-  overflow: "hidden",
-};
-
-function PdfPageShell({
-  children,
-  pageNumber,
-}: {
-  children: ReactNode;
-  pageNumber?: number;
-}) {
-  return (
-    <section data-tarot-pdf-page style={pdfPageStyle}>
-      <div style={{ position: "absolute", inset: 24, border: "1px solid rgba(216,179,108,.2)", borderRadius: 28 }} />
-      <div style={{ position: "absolute", right: 64, top: 52, width: 88, height: 88, borderRadius: 999, background: "rgba(237,239,245,.78)", boxShadow: "0 0 36px rgba(237,239,245,.25)" }} />
-      <div style={{ position: "relative", zIndex: 1 }}>{children}</div>
-      {pageNumber ? (
-        <p style={{ position: "absolute", bottom: 28, right: 54, margin: 0, color: "rgba(237,239,245,.58)", fontSize: 12, fontWeight: 800 }}>
-          {pageNumber}
-        </p>
-      ) : null}
-    </section>
-  );
+const PDF_ORNAMENT = "/images/fortune-tea-house/moonlight-lotus-ornament.webp";
+const pdfInk = { title:"#462c3c", body:"#59474c", gold:"#876338", muted:"#786168", line:"#d8c5ac", paper:"#fbf5eb" };
+const pdfBody: CSSProperties = { margin:0, color:pdfInk.body, fontSize:14, lineHeight:1.65, fontWeight:400, wordBreak:"keep-all", overflowWrap:"break-word" };
+const pdfSectionTitle: CSSProperties = { margin:"0 0 8px", color:pdfInk.gold, fontSize:14, lineHeight:1.5, fontWeight:700 };
+function PdfPageShell({ children, pageNumber, dark=false }: { children:ReactNode; pageNumber?:number; dark?:boolean }) {
+  const copy=useTeaHouseCopy("tarotAlbum",KO);
+  return <section data-tarot-pdf-page style={{ width:PDF_PAGE_WIDTH_PX, minHeight:PDF_PAGE_HEIGHT_PX, boxSizing:"border-box", padding:"48px 52px 60px", position:"relative", overflow:"hidden", background:dark ? "#261326" : pdfInk.paper, color:dark ? "#fff0e8" : pdfInk.title, fontFamily:"CodeDestinyBody, Pretendard, Apple SD Gothic Neo, sans-serif" }}>
+    <div style={{ position:"absolute", inset:22, border:`1px solid ${dark ? "#9b796148" : "#cdb799"}`, pointerEvents:"none" }}/>
+    <div style={{ position:"absolute", inset:28, border:`1px solid ${dark ? "#9b796124" : "#e5d6c0"}`, pointerEvents:"none" }}/>
+    {!dark && <img src={PDF_ORNAMENT} alt="" style={{ position:"absolute", width:132, height:132, top:36, right:38, opacity:.34 }}/>}
+    <div style={{ position:"relative", zIndex:1 }}>{children}</div>
+    <footer style={{ position:"absolute", left:52, right:52, bottom:31, display:"flex", justifyContent:"space-between", paddingTop:10, borderTop:`1px solid ${dark ? "#9b796148" : "#d8c5ac"}`, color:dark ? "#d8c1ab" : pdfInk.muted, fontSize:10, letterSpacing:.6 }}><span>{copy.kkr3uulf}</span><span>{pageNumber ?? ""}</span></footer>
+  </section>;
 }
 
 function PdfCoverPage({ count }: { count: number; cardBackUrl: string }) {
@@ -1630,35 +1615,29 @@ function PdfCoverPage({ count }: { count: number; cardBackUrl: string }) {
   const visit = useTeaHouseCopy("albumVisit", albumVisitCopy);
   const locale = useLocale();
   const createdAt = new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(new Date());
-  return <PdfPageShell>
+  return <PdfPageShell dark>
     <div style={{ position:"relative", height:590, margin:"-28px -28px 36px", overflow:"hidden", borderRadius:"12px 12px 0 0" }}>
       <img src="/images/fortune-tea-house/yeoni-moonlight-novel.webp" alt="" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"65% center" }}/>
       <div style={{ position:"absolute", inset:0, background:"linear-gradient(0deg,#241021,transparent 48%)" }}/>
       <p style={{ position:"absolute", bottom:20, left:32, color:"#e8ca91", fontSize:15, letterSpacing:3 }}>{visit.chapter}</p>
     </div>
+    <img src={PDF_ORNAMENT} alt="" style={{position:"absolute",right:-14,bottom:62,width:120,height:120,opacity:.7}}/>
     <h1 style={{ margin:"0 0 24px", fontFamily:"CodeDestinySerif, Georgia, serif", fontSize:48, fontWeight:500, lineHeight:1.3, color:"#ffe8ea" }}>{copy.k1yzt0ya}</h1>
-    <p style={{ fontSize:19, lineHeight:1.9, color:"#e4ccd4", maxWidth:610 }}>{copy.kfnkjoro}</p>
+    <p style={{ fontSize:19, lineHeight:1.9, color:"#e4ccd4", maxWidth:510 }}>{copy.kfnkjoro}</p>
     <p style={{ marginTop:36, paddingTop:20, borderTop:"1px solid #a9816855", color:"#e8ca91", fontSize:13 }}>{copy.kfe3rgpe} {count}{copy.kskfjn2j} · {createdAt}</p>
   </PdfPageShell>;
 }
 
-function PdfTocPage({ groups }: { groups: Array<{ title: string; cards: TarotAlbumStoryCard[] }> }) {
-  const copy = useTeaHouseCopy("tarotAlbum", KO);
-  return (
-    <PdfPageShell pageNumber={2}>
-      <h2 style={{ margin: "0 0 22px", color: "#EDEFF5", fontSize: 34, fontWeight: 950 }}>{copy.kdhtquzm}</h2>
-      <div style={{ display: "grid", gap: 18 }}>
-        {groups.map((group) => (
-          <section key={group.title} style={{ border: "1px solid rgba(216,179,108,.16)", borderRadius: 20, padding: 18, background: "rgba(255,255,255,.045)" }}>
-            <h3 style={{ margin: "0 0 10px", color: "#D8B36C", fontSize: 18, fontWeight: 950 }}>{group.title}</h3>
-            <p style={{ margin: 0, color: "rgba(156,135,212,.86)", fontSize: 13, lineHeight: 1.85, fontWeight: 700 }}>
-              {group.cards.map((card) => `${card.titleKo}(${card.titleEn})`).join(" · ")}
-            </p>
-          </section>
-        ))}
-      </div>
-    </PdfPageShell>
-  );
+function PdfTocPage({ groups }: { groups:Array<{title:string; cards:TarotAlbumStoryCard[]}> }) {
+  const copy=useTeaHouseCopy("tarotAlbum",KO);
+  return <PdfPageShell pageNumber={2}>
+    <p style={{...pdfSectionTitle, letterSpacing:2}}>{copy.kb6dudtb}</p>
+    <h2 style={{margin:"0 0 34px",fontSize:38,fontWeight:500,color:pdfInk.title}}>{copy.kdhtquzm}</h2>
+    <div style={{display:"grid",gap:18}}>{groups.map((group,index)=><section key={group.title} style={{paddingBottom:16,borderBottom:`1px solid ${pdfInk.line}`}}>
+      <h3 style={{margin:"0 0 12px",fontSize:19,fontWeight:600,color:pdfInk.title}}><span style={{color:pdfInk.gold,fontSize:12,marginRight:16}}>{String(index+1).padStart(2,"0")}</span>{group.title}</h3>
+      <p style={{...pdfBody,fontSize:13,lineHeight:1.9}}>{group.cards.map(card=>`${card.titleKo} (${card.titleEn})`).join(" · ")}</p>
+    </section>)}</div>
+  </PdfPageShell>;
 }
 
 function PdfCardPage({
@@ -1684,81 +1663,36 @@ function PdfCardPage({
     [copy.kajyhu4o, card.innerGrowthMeaning],
   ] as const;
 
-  return (
-    <PdfPageShell pageNumber={pageNumber}>
-      <div style={{ display: "grid", gridTemplateColumns: "210px 1fr", gap: 24 }}>
-        <div>
-          <img
-            src={imageSrc}
-            crossOrigin="anonymous"
-            alt=""
-            style={{ width: 196, height: 294, objectFit: "cover", borderRadius: 18, border: "1px solid rgba(216,179,108,.28)", boxShadow: "0 24px 46px rgba(0,0,0,.32)" }}
-            onError={(event) => {
-              event.currentTarget.src = cardBackUrl;
-            }}
-          />
-          <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {card.keywords.slice(0, 5).map((keyword) => (
-              <span key={keyword} style={{ border: "1px solid rgba(216,179,108,.18)", borderRadius: 999, padding: "5px 8px", color: "#D8B36C", fontSize: 10, fontWeight: 900 }}>
-                {keyword}
-              </span>
-            ))}
-          </div>
-        </div>
-        <div>
-          <p style={{ margin: "0 0 8px", color: "#D8B36C", fontSize: 12, fontWeight: 950, letterSpacing: 1.1 }}>
-            {card.suitLabel} · {card.element}
-          </p>
-          <h2 style={{ margin: 0, color: "#EDEFF5", fontSize: 30, lineHeight: 1.16, fontWeight: 950 }}>
-            {card.titleKo}
-          </h2>
-          <p style={{ margin: "4px 0 14px", color: "rgba(156,135,212,.86)", fontSize: 14, fontWeight: 800 }}>{card.titleEn}</p>
-          <p style={{ margin: "0 0 14px", color: "#EDEFF5", fontSize: 13, lineHeight: 1.65, fontWeight: 800 }}>
-            {card.shortSummary}
-          </p>
-          <section style={{ border: "1px solid rgba(216,179,108,.14)", borderRadius: 16, padding: 12, background: "rgba(255,255,255,.045)", marginBottom: 12 }}>
-            <h3 style={{ margin: "0 0 6px", color: "#D8B36C", fontSize: 13, fontWeight: 950 }}>{copy.kbx1lbox}</h3>
-            <p style={{ margin: 0, color: "rgba(237,239,245,.88)", fontSize: 11.2, lineHeight: 1.62, fontWeight: 650 }}>{card.story}</p>
-          </section>
-        </div>
+  return <PdfPageShell pageNumber={pageNumber}>
+    <div style={{display:"grid",gridTemplateColumns:"182px minmax(0,1fr)",gap:28,alignItems:"start"}}>
+      <div><img src={imageSrc} crossOrigin="anonymous" alt="" style={{width:182,height:273,objectFit:"cover",borderRadius:7,border:`1px solid ${pdfInk.line}`,boxShadow:"0 10px 20px #4a2a351c"}} onError={event=>{if(event.currentTarget.src!==cardBackUrl)event.currentTarget.src=cardBackUrl;}}/>
+        <p style={{margin:"14px 0 0",fontSize:12,lineHeight:1.8,color:pdfInk.gold}}>{card.keywords.slice(0,5).join(" · ")}</p>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 16 }}>
-        {sections.map(([title, body]) => (
-          <section key={title} style={{ border: "1px solid rgba(156,135,212,.14)", borderRadius: 14, padding: 10, background: "rgba(255,255,255,.04)" }}>
-            <h3 style={{ margin: "0 0 5px", color: "#D8B36C", fontSize: 11.4, fontWeight: 950 }}>{title}</h3>
-            <p style={{ margin: 0, color: "rgba(237,239,245,.84)", fontSize: 9.6, lineHeight: 1.58, fontWeight: 650 }}>{body}</p>
-          </section>
-        ))}
+      <div><p style={{...pdfSectionTitle,marginBottom:10,paddingRight:85,fontSize:12}}>{card.suitLabel} · {card.element}</p>
+        <h2 style={{margin:0,fontSize:34,lineHeight:1.3,fontWeight:500,color:pdfInk.title}}>{card.titleKo}</h2>
+        <p style={{margin:"6px 0 12px",fontSize:14,color:pdfInk.muted}}>{card.titleEn}</p>
+        <p style={{...pdfBody,fontSize:16,fontWeight:600,marginBottom:14}}>{card.shortSummary}</p>
+        <h3 style={pdfSectionTitle}>{copy.kbx1lbox}</h3><p style={pdfBody}>{card.story}</p>
       </div>
-      <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <section style={{ border: "1px solid rgba(216,179,108,.18)", borderRadius: 14, padding: 10, background: "rgba(216,179,108,.08)" }}>
-          <h3 style={{ margin: "0 0 5px", color: "#D8B36C", fontSize: 11.4, fontWeight: 950 }}>{copy.km05ijjs}</h3>
-          <p style={{ margin: 0, color: "rgba(237,239,245,.9)", fontSize: 9.8, lineHeight: 1.58, fontWeight: 700 }}>{card.yeoniMessage}</p>
-        </section>
-        <section style={{ border: "1px solid rgba(156,135,212,.18)", borderRadius: 14, padding: 10, background: "rgba(156,135,212,.07)" }}>
-          <h3 style={{ margin: "0 0 5px", color: "#9C87D4", fontSize: 11.4, fontWeight: 950 }}>{copy.kjcpkfd5}</h3>
-          <p style={{ margin: 0, color: "rgba(237,239,245,.9)", fontSize: 9.8, lineHeight: 1.58, fontWeight: 700 }}>{card.journalQuestion}</p>
-        </section>
-      </div>
-    </PdfPageShell>
-  );
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px 28px",marginTop:20,paddingTop:18,borderTop:`1px solid ${pdfInk.line}`}}>
+      {sections.map(([title,body])=><section key={title}><h3 style={pdfSectionTitle}>{title}</h3><p style={pdfBody}>{body}</p></section>)}
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24,marginTop:16,padding:"14px 20px",background:"#efe3db",borderRadius:6}}>
+      <section><h3 style={pdfSectionTitle}>{copy.km05ijjs}</h3><p style={{...pdfBody,fontSize:13}}>{card.yeoniMessage}</p></section>
+      <section><h3 style={pdfSectionTitle}>{copy.kjcpkfd5}</h3><p style={{...pdfBody,fontSize:13}}>{card.journalQuestion}</p></section>
+    </div>
+  </PdfPageShell>;
 }
 
-function PdfLastPage({ pageNumber }: { pageNumber: number }) {
-  const copy = useTeaHouseCopy("tarotAlbum", KO);
-  return (
-    <PdfPageShell pageNumber={pageNumber}>
-      <div style={{ display: "grid", minHeight: 990, alignContent: "center", gap: 20, textAlign: "center" }}>
-        <p style={{ margin: 0, color: "#D8B36C", fontSize: 15, fontWeight: 950, letterSpacing: 2 }}>{copy.kqjimwmt}</p>
-        <h2 style={{ margin: "0 auto", maxWidth: 560, color: "#EDEFF5", fontSize: 38, lineHeight: 1.35, fontWeight: 950 }}>
-
-          {copy.kftcqqfx}
-        </h2>
-        <p style={{ margin: "0 auto", maxWidth: 520, color: "rgba(156,135,212,.86)", fontSize: 17, lineHeight: 1.8, fontWeight: 700 }}>
-
-          {copy.k0iceshy}
-        </p>
-      </div>
-    </PdfPageShell>
-  );
+function PdfLastPage({ pageNumber }: { pageNumber:number }) {
+  const copy=useTeaHouseCopy("tarotAlbum",KO);
+  return <PdfPageShell pageNumber={pageNumber} dark>
+    <div style={{display:"grid",minHeight:990,alignContent:"center",gap:28,textAlign:"center"}}>
+      <img src={PDF_ORNAMENT} alt="" style={{width:260,height:260,objectFit:"contain",margin:"0 auto 12px"}}/>
+      <p style={{margin:0,color:"#e8ca91",fontSize:14,letterSpacing:3}}>{copy.kqjimwmt}</p>
+      <h2 style={{margin:"0 auto",maxWidth:540,color:"#ffe9e8",fontSize:34,lineHeight:1.5,fontWeight:500,wordBreak:"keep-all"}}>{copy.kftcqqfx}</h2>
+      <p style={{margin:"0 auto",maxWidth:500,color:"#dec4ce",fontSize:17,lineHeight:1.9,wordBreak:"keep-all"}}>{copy.k0iceshy}</p>
+    </div>
+  </PdfPageShell>;
 }

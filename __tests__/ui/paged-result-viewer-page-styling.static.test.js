@@ -38,10 +38,14 @@ test('CSS 모듈이 뷰어 페이지를 role=region 자손 셀렉터로 잡지 �
   assert.deepEqual(offenders, [], `pageClassName prop 을 써라: ${offenders.join(', ')}`);
 });
 
-test('네오 결과 화면은 pageClassName 으로 페이지를 스타일한다', () => {
+test('네오 결과 화면은 전용 펼침 리더를 사용하고 공통 페이지 뷰어는 보존한다', () => {
   const page = fs.readFileSync(path.join(root, 'src/features/neo-war-room/NeoOperationRoomResultPage.tsx'), 'utf8');
   const viewerCount = (page.match(/<PagedResultViewer/g) || []).length;
-  const pageClassCount = (page.match(/pageClassName=/g) || []).length;
-  assert.ok(viewerCount >= 2, `PagedResultViewer 호출을 찾지 못했다 (${viewerCount}개)`);
-  assert.equal(pageClassCount, viewerCount);
+  assert.equal(viewerCount, 0);
+  assert.equal((page.match(/<NeoResultChapters/g) || []).length, 2);
+  const reader = fs.readFileSync(path.join(root, 'src/features/neo-war-room/components/NeoResultChapters.tsx'), 'utf8');
+  assert.match(reader, /expandForExport \|\| viewAll \|\| openChapters\.has/);
+  assert.match(reader, /page\.content/);
+  const shared = fs.readFileSync(path.join(root, 'components/fortune/PagedResultViewer.tsx'), 'utf8');
+  assert.match(shared, /pageClassName/);
 });
