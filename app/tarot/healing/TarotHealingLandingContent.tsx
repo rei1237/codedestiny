@@ -505,7 +505,7 @@ export default function TarotHealingLandingContent() {
     <main className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-stone-50 text-stone-950">
       <section className="mx-auto max-w-5xl px-5 py-10 md:py-14">
         <p className="text-sm font-bold uppercase tracking-[0.14em] text-amber-700">{copy.eyebrow}</p>
-        <h1 className="mt-3 max-w-3xl text-3xl font-black leading-tight md:text-5xl">{copy.h1}</h1>
+        <h1 className="mt-3 max-w-3xl break-keep text-3xl font-black leading-tight md:text-5xl">{copy.h1}</h1>
         <p className="mt-5 max-w-3xl text-base leading-8 text-stone-700 md:text-lg">{copy.intro}</p>
         <div className="mt-6 flex flex-wrap gap-3">
           <a href="#healing-tarot-reading" className="rounded-full bg-amber-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-amber-200 transition hover:bg-amber-600">

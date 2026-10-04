@@ -271,7 +271,7 @@ function CardBackFace({ copy }: { copy: SunHealingTarotCopy }) {
         <circle cx="50" cy="50" r="11" fill="#F59E0B" opacity="0.85" />
         <circle cx="50" cy="50" r="6" fill="#FEF3C7" opacity="1" />
       </svg>
-      <p className="mt-2 text-xs tracking-[0.16em] text-amber-600/70 font-medium uppercase">{copy.cardBackLabel}</p>
+      <p className="mt-2 text-xs tracking-[0.16em] text-amber-800 font-medium uppercase">{copy.cardBackLabel}</p>
     </div>
   );
 }
@@ -381,8 +381,8 @@ function RoutineCard({ item }: { item: RecoveryRoutineDto }) {
   return (
     <article className="rounded-lg border border-amber-200/70 bg-amber-50/82 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
-        <h4 className="font-serif text-lg font-semibold leading-tight text-amber-950">{item.title}</h4>
-        {item.timeGuide ? <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-amber-800">{item.timeGuide}</span> : null}
+        <h4 className="break-keep font-serif text-lg font-semibold leading-tight text-amber-950">{item.title}</h4>
+        {item.timeGuide ? <span className="shrink-0 whitespace-nowrap rounded-full bg-white px-3 py-1 text-xs font-bold text-amber-800">{item.timeGuide}</span> : null}
       </div>
       {item.description ? <p className="mt-2 text-sm leading-6 text-stone-700">{item.description}</p> : null}
       {item.action ? <p className="mt-3 text-sm font-semibold leading-6 text-stone-800">{item.action}</p> : null}
@@ -721,7 +721,7 @@ export default function SunHealingTarot() {
           ) : null}
           {stage === "result" ? (
             <m.section key="result" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid flex-1 gap-5 pb-5 lg:grid-cols-[330px_minmax(0,1fr)]">
-              <aside className="rounded-lg border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(255,247,237,0.76),rgba(240,253,250,0.42))] p-5 shadow-[0_24px_70px_rgba(180,120,35,0.16)] backdrop-blur-2xl lg:sticky lg:top-6 lg:max-h-[calc(100dvh-48px)] lg:overflow-auto">
+              <aside className="rounded-lg border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(255,247,237,0.76),rgba(240,253,250,0.42))] p-5 shadow-[0_24px_70px_rgba(180,120,35,0.16)] backdrop-blur-2xl lg:self-start">
                 <p className="text-xs font-semibold tracking-normal text-teal-700/75">{copy.resultEyebrow}</p>
                 <h2 className="mt-3 font-serif text-3xl font-semibold leading-tight text-amber-950">{copy.resultHeading}</h2>
                 <p className="mt-3 text-sm leading-7 text-stone-700">{reading?.subtitle || copy.resultSubtitleFallback}</p>
