@@ -45,6 +45,9 @@ export interface ChapterSpec {
   ordinal: number;
 }
 export interface ChapterBody {
+  chapterId?: string;
+  complete?: boolean;
+  deliveryVersion?: string;
   title?: string;
   questionAnswers?: { questionId: string; answer: string; reason: string; timing: string; action: string; review?: string; mode?: 'normal' | 'limited' | 'care' }[];
   // palaces: 자미 궁 강조용 선택 필드(fortune/ziwei/block-palaces.ts). 옛 결과에는 없다.

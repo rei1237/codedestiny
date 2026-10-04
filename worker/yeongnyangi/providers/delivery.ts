@@ -10,6 +10,8 @@ import {attachTarotSafetyNotice} from '../fortune/tarot/master-reading';
 import {hasOutOfTierTerm,nearDuplicate,splitSectionParagraph} from '../fortune/reading-quality';
 import {sanitizeQuestionSkyBody} from '../fortune/question-sky-reading';
 import {blockAnchorNames,sanitizeBlockAnchors} from '../fortune/block-anchors';
+import {hasReadingSections} from '../fortune/reading-policy';
+import {CHAPTER_DELIVERY_VERSION,chapterDeliveryFailure} from '../chapter-delivery-contract.js';
 
 // The strict validator remains a diagnostic contract. Delivery accepts the
 // provider's useful text after local editing; it never invents missing insights.
@@ -17,6 +19,25 @@ const unsafe = /(?:외도|바람기|바람끼).{0,12}\d+\s*%|(?:반드시|무조
 const prose=(value:unknown)=>typeof value==='string'&&!/<\/?[a-z][^>]*>/i.test(value)?value.trim():'';
 const list=(value:unknown)=>Array.isArray(value)?value.map(prose).filter(Boolean):[];
 export function deliverChapter(raw:unknown,input:ChapterRequest):ChapterBody {
+  const contracted=input.deliveryContract===CHAPTER_DELIVERY_VERSION;
+  let candidate:any=raw;
+  if(typeof candidate==='string')try{candidate=JSON.parse(candidate);}catch{
+    if(contracted)throw new FortuneError('INVALID_CHAPTER');
+  }
+  if(contracted && (!candidate || candidate.chapterId!==input.chapter.id || candidate.complete!==true))throw new FortuneError('CHAPTER_INCOMPLETE');
+  // Gemini cannot enforce an empty-string enum. These fields are unused in
+  // sectioned books; normalize the new response before duplicate/shape checks.
+  if(candidate && Array.isArray(candidate.blocks) && candidate.blocks.length && hasReadingSections(input.chapter.version))
+    candidate={...candidate,analysis:[],example:'',advice:''};
+  const body=deliverChapterBody(candidate,input);
+  if(!contracted)return body;
+  const delivered={...body,chapterId:input.chapter.id,complete:true,deliveryVersion:CHAPTER_DELIVERY_VERSION};
+  const code=chapterDeliveryFailure(delivered,input.chapter);
+  if(code)throw new FortuneError(code);
+  return delivered;
+}
+
+function deliverChapterBody(raw:unknown,input:ChapterRequest):ChapterBody {
   try { return validateChapter(raw,input); } catch(error) {
     if(!(error instanceof FortuneError))throw error;
     // Which strict rule sent this chapter to local editing; the text itself is never logged.

@@ -41,6 +41,7 @@ export interface FortuneResult {
   cautions: string[];
 }
 export interface FortuneLLMRequest {
+  deliveryContract?: string;
   outputBudgetVersion?: string;
   locale?: import('../reading-locale').ReadingLocale;
   maxProviderAttempts?: number;

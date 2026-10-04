@@ -142,13 +142,13 @@ test('a held order resumed after the fix is queued in the same tick; one a fix c
   expect(enqueue).toHaveBeenCalledTimes(1);expect(enqueue.mock.calls[0][1]).toMatchObject({_id:'fixable',state:'PAID'});
   expect(result.outcomes.map(o=>o.outcome)).toEqual(expect.arrayContaining(['resumed_after_fix','hold_kept','queued']));
 });
-test('a stopped chapter idle for 30 minutes gets the server retry and generates; an exhausted one is held',async()=>{
+test('a stopped chapter idle for five minutes gets the server retry and generates; an exhausted one is held',async()=>{
   const now=10*60*60*1000;
   stopped=[{_id:'retry',userId:'owner',chapters:nine},{_id:'spent',userId:'owner',chapters:nine}];
   const escalate=jest.fn(async(_env,row)=>row._id==='retry'?{...row,state:'PAID',errorCode:''}:{...row,state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
   const generate=jest.fn(async(_env,_owner,id)=>({_id:id,userId:'owner',chapters:nine,state:'FORTUNE_FAILED'}));
   const result=await runYeongnyangiRecovery({},{providerReady:()=>true,escalate,generate,clock:()=>now});
-  expect(filters.find(q=>q.errorCode==='AUTOMATIC_RECOVERY_STOPPED').updatedAt.$lt.getTime()).toBe(now-30*60*1000);
+  expect(filters.find(q=>q.errorCode==='AUTOMATIC_RECOVERY_STOPPED').updatedAt.$lt.getTime()).toBe(now-5*60*1000);
   expect(generate).toHaveBeenCalledTimes(1);expect(generate.mock.calls[0][2]).toBe('retry');
   expect(result.outcomes.map(o=>o.outcome)).toEqual(expect.arrayContaining(['system_retry','held']));
 });
@@ -171,6 +171,6 @@ test('the operator alert names the order, item and action without buyer data',()
     recoveryAudit:[{kind:'automatic_recovery_stopped',source:'generation',code:'CHAPTER_SECTION_TOO_SHORT',detail:'section:example:90/121'}]};
   const {subject,text}=holdAlertMessage(row);
   expect(subject).toContain('c'.repeat(12));
-  for(const part of ['c'.repeat(64),'saju_tuna','저장 9/15','멈춘 항목 10/15','SYSTEM_RECOVERY_EXHAUSTED','CHAPTER_SECTION_TOO_SHORT section:example:90/121','자동 재개','--operator','추가 결제'])expect(text).toContain(part);
+  for(const part of ['c'.repeat(64),'saju_tuna','저장 9/15','멈춘 항목 10/15','SYSTEM_RECOVERY_EXHAUSTED','CHAPTER_SECTION_TOO_SHORT section:example:90/121','자동 재개','dry-run','--execute','추가 결제'])expect(text).toContain(part);
   for(const secret of ['507f1f77bcf86cd799439011','profile-secret','구매자이름'])expect(subject+text).not.toContain(secret);
 });

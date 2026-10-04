@@ -14,6 +14,7 @@ test('declared output allowance is honored without shrinking large answers or lo
   await provider.generate({...request,maxOutputTokens:declared});
   assert.equal(getOptions().maxOutputTokens,expected);
   assert.equal(getOptions().thinkingBudget,CHAPTER_THINKING_BUDGET);
+  assert.equal(getOptions().timeoutMs,240000);
   assert.equal(getOptions().maxProviderAttempts,1);
   assert.equal(getOptions().fallbackToWorkersAI,false);
  }
@@ -54,14 +55,22 @@ test('question analysis uses a short deterministic single provider call',async()
  assert.equal(getOptions().thinkingBudget,0);
  setResponse({ok:true,text:'{}',truncated:true});await assert.rejects(provider.analyzeQuestion('classify','data'));
 });
-test('output truncation preserves raw text for local delivery recovery',async()=>{
+test('output truncation is never accepted as a complete paid chapter',async()=>{
  for(const flags of [{truncated:true},{finishReason:'MAX_TOKENS'}]){
-  setResponse({ok:true,text:'{}',...flags});assert.equal((await provider.generate(request)).result,'{}');
+  setResponse({ok:true,text:'{}',...flags});await assert.rejects(provider.generate(request),e=>e.code==='CHAPTER_TRUNCATED');assert.equal(getOptions().preserveTermination,true);
  }
 });
 test('timeout and provider failure remain distinct recoverable errors',async()=>{
  setResponse({ok:false,error:'LLM_TIMEOUT'});await assert.rejects(provider.generate(request),e=>e.code==='FORTUNE_PROVIDER_TIMEOUT');
  setResponse({ok:false,error:'UNAVAILABLE'});await assert.rejects(provider.generate(request),e=>e.code==='FORTUNE_PROVIDER_FAILED');
+});
+
+test('chapter receipt distinguishes measured, estimated and unavailable tokens without retaining text',async()=>{
+ setResponse({ok:true,text:'{"private":"content"}',finishReason:'STOP',usage:{inputTokens:200,outputTokens:80,thinkingTokens:10,estimated:true}});
+ await provider.generate(request);assert.equal(provider.receipt.estimated,true);assert.equal(provider.receipt.thinkingTokens,10);
+ assert.equal(provider.receipt.outputTokens,80);assert.ok(!JSON.stringify(provider.receipt).includes('private'));
+ setResponse({ok:false,error:'UNAVAILABLE',status:429});await assert.rejects(provider.generate(request));
+ assert.equal(provider.receipt.status,429);assert.equal(provider.receipt.inputTokens,null);assert.equal(provider.receipt.estimated,null);
 });
 test('mock output cannot be passed off as a paid provider response',async()=>{
  setResponse({ok:true,text:'{}',isMock:true});await assert.rejects(provider.generate(request),e=>e.code==='FORTUNE_PROVIDER_FAILED');

@@ -59,7 +59,7 @@ for(const productId of ids)test(`${productId}: engine -> snapshot -> every promp
   const input={chapter,analysis:row.snapshot.analysis,previous:row.chapters};
   const body=await new m.MockChapterProvider().generateChapter(input);
   outputs.push(body);
-  return {provider:'mock',model:'fixture',result:body};
+  return {provider:'mock',model:'fixture',result:{...body,chapterId:chapter.id,complete:true}};
  };
  row.paymentId='mock-access';row.state='PAID';
  // Fail after durable draft, before final chapter commit. Resume must reuse it without a provider call.
