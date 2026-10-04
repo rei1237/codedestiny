@@ -6127,6 +6127,9 @@ var _SE_ASTRO_CELEB_RESUME_KIND = 'saju-engine-astro-celeb-synastry';
 var _SE_ASTRO_DIRECT_RESUME_KIND = 'saju-engine-astro-direct-synastry';
 var _SE_ZIWEI_COMPAT_RESUME_KIND = 'saju-engine-ziwei-compat';
 var _SE_SAJU_COMPAT_RESUME_KIND = 'saju-engine-saju-compat';
+/* 기본 사주 궁합 LLM 서비스화(50코인 선결제 → 서버 생성 → 보관함 스냅샷) 스위치.
+   라우트·렌더러·보관함이 모두 배포된 뒤에만 켠다. 꺼져 있으면 runCompat/runCompatCore 는 기존 결정론 경로 그대로다. */
+var _SE_SAJU_COMPAT_LLM_ENABLED = false;
 
 function _seBuildAstroCelebResumeDescriptor(name, birth, hour) {
   if (!name || !birth) return null;
@@ -6219,9 +6222,9 @@ function _seRunZiweiCompatResume(descriptor) {
   });
 }
 
-function _seBuildSajuCompatResumeDescriptor(name, bd, type) {
+function _seBuildSajuCompatResumeDescriptor(name, bd, type, requestId) {
   if (!bd) return null;
-  return {
+  var descriptor = {
     kind: _SE_SAJU_COMPAT_RESUME_KIND,
     // 사주 궁합 폼은 사주 결과 화면 안에 있다 — 셸의 사주 진입 딥링크가 계산까지 다시 돌려 준다.
     action: 'cdSajuTabEntry',
@@ -6234,9 +6237,12 @@ function _seBuildSajuCompatResumeDescriptor(name, bd, type) {
       minute: _seFieldValue('compatBirthMinute')
     }
   };
+  // LLM 흐름: 복귀 뒤에도 같은 requestId 로 서버가 결제 차감을 찾는다(서술자 인자는 원시값만 통과한다).
+  if (requestId) descriptor.args.requestId = String(requestId);
+  return descriptor;
 }
 
-function _seRunSajuCompatResume(descriptor) {
+function _seRunSajuCompatResume(descriptor, grant) {
   var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
   if (!args.bd) return false;
   return _seWaitForResumeTarget(function() {
@@ -6250,8 +6256,22 @@ function _seRunSajuCompatResume(descriptor) {
     _seSetRadioValue('compatCalType', args.cal || 'solar');
     _seSetFieldValue('compatBirthHour', args.hour);
     _seSetFieldValue('compatBirthMinute', args.minute);
+    var compatBtn = document.getElementById('compatRunBtn');
+    var compatName = String(args.name || '상대방');
+    var compatBd = String(args.bd);
+    var compatType = String(args.type || 'love');
     // 🔴 게이트를 다시 타는 runCompat 이 아니라 코어를 직접 부른다(재결제 방지).
-    runCompatCore(document.getElementById('compatRunBtn'), String(args.name || '상대방'), String(args.bd), String(args.type || 'love'));
+    if (_SE_SAJU_COMPAT_LLM_ENABLED && args.requestId) {
+      // 결제는 이미 끝났다 — 모듈을 못 올리면 코어를 부르지 않고 미처리로 돌려 복귀 안내가 이어지게 한다.
+      return _seSajuCompatLoadKit().then(function(kit) {
+        var requestId = String(args.requestId);
+        var evidence = kit.flow.sajuCompatEvidenceFromGrant(grant, requestId) || kit.flow.captureSajuCompatEvidence('', {}, requestId);
+        var inputKey = _seSajuCompatInputKey(kit, compatName, compatBd, compatType);
+        runCompatCore(compatBtn, compatName, compatBd, compatType, _seSajuCompatPaidState(kit, inputKey, requestId, evidence));
+        return true;
+      }, function() { return false; });
+    }
+    runCompatCore(compatBtn, compatName, compatBd, compatType);
     return true;
   });
 }
@@ -29279,6 +29299,12 @@ async function runCompat(){
     return;
   }
 
+  /* LLM 서비스 경로: 선결제 → 서버 생성. 게이트가 없으면 아래 기존 분기(로그인 안내·서비스 오류)로 내려간다. */
+  if (_SE_SAJU_COMPAT_LLM_ENABLED && typeof window._cdCoinGatePerUse === 'function') {
+    _seSajuCompatLlmEntry(compatRunBtn, name, bd, type);
+    return;
+  }
+
   /* 🔒 사주 궁합 5,000원 게이트 */
   if (typeof window._cdCoinGatePerUse === 'function') {
     window._cdCoinGatePerUse(50, '사주 궁합 분석', function() {
@@ -29317,7 +29343,218 @@ async function runCompat(){
   return;
 }
 
-async function runCompatCore(compatRunBtn, name, bd, type){
+/* ─── 기본 사주 궁합 LLM 서비스: 선결제 → 서버 생성 → 보관함 스냅샷 ─────────────────────────────
+   _SE_SAJU_COMPAT_LLM_ENABLED 가 켜졌을 때만 runCompat 이 여기로 들어온다. 결제는 공유 게이트(_cdCoinGatePerUse)가
+   먼저 끝내고, 생성·재개·보관은 서버(worker/routes/saju-compat-basic.js)가 한다. 이 파일은 연결만 하고,
+   요청 본문·대기 기록·생성 실행은 js/saju-compat-flow.mjs, 화면 그리기는 js/saju-compat-render.mjs 가 맡는다.
+   🔴 결제를 만들거나 환불하지 않는다. 생성이 실패하면 결제는 서버에 보존되고, 화면은 기존 결정론 결과 + 안내 + 이어받기 버튼이다. */
+var _SE_SAJU_COMPAT_COIN_COST = 50;
+var _SE_SAJU_COMPAT_PATH = '/api/saju-compat-basic/generate';
+var _seSajuCompatRun = 0; // 생성 세대 번호 — 새 실행이 시작되면 이전 실행은 화면을 더 건드리지 않는다.
+
+function _seSajuCompatLoadKit() {
+  if (typeof window.__cdEnsureSajuCompatModules !== 'function') return Promise.reject(new Error('saju-compat-loader-missing'));
+  return window.__cdEnsureSajuCompatModules();
+}
+
+function _seSajuCompatTranslator(kit) {
+  return kit.render.createSajuCompatT(typeof window.cdTranslate === 'function'
+    ? function(key, vars, fallback) { return window.cdTranslate(key, vars, fallback); }
+    : undefined);
+}
+
+function _seSajuCompatOwnerId() {
+  try {
+    var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null');
+    return String((user && (user._id || user.id || user.userId)) || '');
+  } catch (_) { return ''; }
+}
+
+function _seSajuCompatPendingStore(kit) {
+  var storage = null;
+  try { storage = window.localStorage; } catch (_) {}
+  return kit.flow.createSajuCompatPendingStore({ storage: storage, ownerId: _seSajuCompatOwnerId() });
+}
+
+/* 같은 구매인지 가르는 키: 내 사주 + 상대 입력(0시는 유효값 — runCompatCore 와 같은 읽기 규칙). */
+function _seSajuCompatInputKey(kit, name, bd, type) {
+  var hourRaw = parseInt(_seFieldValue('compatBirthHour'), 10);
+  var minuteRaw = parseInt(_seFieldValue('compatBirthMinute'), 10);
+  return kit.flow.sajuCompatInputKey({
+    selfPillars: G_PILLARS,
+    name: name,
+    birth: bd,
+    calType: _seRadioValue('compatCalType', 'solar'),
+    hour: isNaN(hourRaw) ? 12 : hourRaw,
+    minute: isNaN(minuteRaw) ? 0 : minuteRaw,
+    type: type
+  });
+}
+
+function _seSajuCompatPaidState(kit, inputKey, requestId, evidence) {
+  return { kit: kit, inputKey: inputKey, requestId: requestId, evidence: evidence || null };
+}
+
+function _seSajuCompatVisible() {
+  return document.visibilityState !== 'hidden' && navigator.onLine !== false;
+}
+
+function _seSajuCompatWaitVisible() {
+  return new Promise(function(resolve) {
+    function check() {
+      if (!_seSajuCompatVisible()) return;
+      document.removeEventListener('visibilitychange', check);
+      window.removeEventListener('online', check);
+      resolve();
+    }
+    document.addEventListener('visibilitychange', check);
+    window.addEventListener('online', check);
+    check();
+  });
+}
+
+/* 생성 전송: fetchJsonWithAuth 의 9초 제한은 LLM POST 에 짧다 — 요가 구루처럼 일반 fetch(POST 90초·GET 22초)를 쓴다. */
+async function _seSajuCompatSend(method, path, body) {
+  var controller = new AbortController();
+  var timer = setTimeout(function() { controller.abort(); }, method === 'POST' ? 90000 : 22000);
+  var headers = { 'Content-Type': 'application/json' };
+  var token = getFortuneAuthToken();
+  if (token) headers.Authorization = 'Bearer ' + token;
+  try {
+    var response = await fetch(getFortuneApiBaseUrl() + path, {
+      method: method,
+      credentials: 'include',
+      headers: headers,
+      signal: controller.signal,
+      body: method === 'POST' ? JSON.stringify(body) : undefined
+    });
+    var payload = {};
+    try { payload = await response.json(); } catch (_) {}
+    return { status: response.status, payload: payload };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/* 진입: 결제 전에 모듈부터 올린다(못 올리면 결제 없이 안내). 같은 입력의 미완료 구매가 있으면 게이트를 건너뛰고 같은 요청을 잇는다. */
+async function _seSajuCompatLlmEntry(compatRunBtn, name, bd, type) {
+  var release = function() {
+    if (compatRunBtn) {
+      compatRunBtn.disabled = false;
+      compatRunBtn.style.opacity = '';
+    }
+  };
+  var kit;
+  try {
+    kit = await _seSajuCompatLoadKit();
+  } catch (loadError) {
+    console.warn('[SajuCompat] module load failed:', loadError);
+    release();
+    alert(typeof window.cdTranslate === 'function'
+      ? window.cdTranslate('sajuCompat.flow.moduleFail', {}, 'AI 풀이 화면을 불러오지 못했어요. 결제는 진행되지 않았어요. 잠시 후 다시 시도해 주세요.')
+      : 'AI 풀이 화면을 불러오지 못했어요. 결제는 진행되지 않았어요. 잠시 후 다시 시도해 주세요.');
+    return;
+  }
+  var inputKey = _seSajuCompatInputKey(kit, name, bd, type);
+  var pending = _seSajuCompatPendingStore(kit).get(inputKey);
+  if (pending && pending.requestId) {
+    runCompatCore(compatRunBtn, name, bd, type, _seSajuCompatPaidState(kit, inputKey, String(pending.requestId), pending.evidence));
+    return;
+  }
+  var requestId = kit.flow.newSajuCompatRequestId();
+  window._cdCoinGatePerUse(_SE_SAJU_COMPAT_COIN_COST, '사주 궁합 분석', function(transactionId, payload) {
+    var evidence = kit.flow.captureSajuCompatEvidence(transactionId, payload, requestId);
+    runCompatCore(compatRunBtn, name, bd, type, _seSajuCompatPaidState(kit, inputKey, requestId, evidence));
+  }, release, {
+    featureKey: 'compat-saju-compatibility',
+    action: 'cdSajuTabEntry',
+    requestId: requestId,
+    resume: _seBuildSajuCompatResumeDescriptor(name, bd, type, requestId) || undefined
+  });
+}
+
+/* 결제 뒤 생성·표시. 반환 {rendered:true} = LLM 결과를 그렸다 / {noticeHtml} = 호출부가 기존 결과 위에 안내를 얹는다 / {stale:true} = 더 그리지 않는다. */
+async function _seSajuCompatLlmDeliver(llm, ctx) {
+  var kit = llm.kit;
+  var t = _seSajuCompatTranslator(kit);
+  var esc = kit.render.escapeHtml;
+  var resultArea = ctx.resultArea;
+  var runId = ++_seSajuCompatRun;
+  var owner = _seSajuCompatOwnerId();
+  var active = function() {
+    return runId === _seSajuCompatRun && !!resultArea && document.body.contains(resultArea) && owner === _seSajuCompatOwnerId();
+  };
+  var showFlow = function(titleKey, vars, withKeepOpen) {
+    if (!active()) return;
+    resultArea.innerHTML = '<div class="cd-compat-flow" role="status" aria-live="polite"><div class="cd-compat-flow-title">' + esc(t(titleKey, vars)) + '</div>'
+      + (withKeepOpen ? '<div class="cd-compat-flow-note">' + esc(t('sajuCompat.flow.keepOpen')) + '</div>' : '') + '</div>';
+  };
+
+  /* 결제는 끝났고 생성은 아직이다 — 이 기록이 새로고침·입력 전환 뒤에도 같은 요청을 잇게 해 이중 결제를 막는다. */
+  var store = _seSajuCompatPendingStore(kit);
+  var saved = store.get(llm.inputKey);
+  var sameRequest = !!saved && String(saved.requestId) === llm.requestId;
+  if (!sameRequest) store.put(llm.inputKey, { requestId: llm.requestId, evidence: llm.evidence, resumeBody: null, resultId: '' });
+  var body = kit.flow.buildSajuCompatBody({
+    selfPillars: G_PILLARS,
+    partnerPillars: ctx.p2,
+    compatType: ctx.type,
+    partnerName: ctx.name,
+    compatFacts: ctx.compat.facts,
+    pastLifeFacts: ctx.pastOut.facts,
+    requestId: llm.requestId,
+    evidence: llm.evidence
+  });
+  var initial = sameRequest && saved.resumeBody ? saved.resumeBody : body;
+  var resultId = sameRequest && saved.resultId ? String(saved.resultId) : '';
+
+  showFlow('sajuCompat.flow.starting', {}, true);
+  setTimeout(function() { if (active()) resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+
+  var outcome = null;
+  for (var attempt = 0; attempt < 3 && active(); attempt++) {
+    outcome = await kit.flow.runSajuCompatGeneration({
+      reader: kit.reader,
+      body: initial,
+      post: function(requestBody) { return _seSajuCompatSend('POST', _SE_SAJU_COMPAT_PATH, requestBody); },
+      get: function() { return _seSajuCompatSend('GET', _SE_SAJU_COMPAT_PATH + '?resultId=' + encodeURIComponent(resultId), null); },
+      wait: function(ms) { return new Promise(function(resolve) { setTimeout(resolve, ms); }); },
+      active: active,
+      visible: _seSajuCompatVisible,
+      persist: function(nextBody, nextResultId) {
+        resultId = nextResultId || resultId;
+        store.update(llm.inputKey, { resumeBody: nextBody, resultId: resultId });
+      },
+      onProgress: function(data) {
+        showFlow('sajuCompat.flow.progress', { done: Number(data.completedParts) || 0, total: Number(data.totalParts) || 0 }, true);
+      }
+    });
+    // 탭이 숨겨지거나 오프라인이어서 멈춘 것은 실패가 아니다 — 돌아오면 저장된 이어받기 본문에서 계속한다.
+    if (outcome.ok || outcome.code !== 'INTERRUPTED' || _seSajuCompatVisible()) break;
+    await _seSajuCompatWaitVisible();
+    var latest = store.get(llm.inputKey);
+    if (latest && latest.resumeBody) initial = latest.resumeBody;
+  }
+  if (!active() || !outcome) return { stale: true };
+
+  if (outcome.ok) {
+    var html = kit.render.renderSajuCompat(outcome.snapshot, { t: t, selfName: typeof USER_NAME === 'string' ? USER_NAME : '' });
+    if (html) {
+      resultArea.innerHTML = html + '<div class="cd-compat-flow-saved">' + esc(t('sajuCompat.flow.saved')) + '</div>';
+      store.clear(llm.inputKey);
+      return { rendered: true };
+    }
+    // 저장은 됐지만 이 화면이 그릴 수 없는 모양 — 같은 결과를 다시 받아도 같으므로 재시도 대신 확인 안내.
+    outcome = { ok: false, code: 'REVIEW_REQUIRED', retryable: false, clearPending: false };
+  }
+  if (outcome.clearPending) store.clear(llm.inputKey);
+  var retry = outcome.retryable
+    ? '<button type="button" class="cd-compat-flow-retry" data-action="runCompat">' + esc(t('sajuCompat.flow.retry')) + '</button>'
+    : '';
+  return { rendered: false, noticeHtml: '<div class="cd-compat-flow-notice" role="status"><p>' + esc(t(kit.flow.sajuCompatFailureKey(outcome.code))) + '</p>' + retry + '</div>' };
+}
+
+async function runCompatCore(compatRunBtn, name, bd, type, llm){
   var compatCalBtns = document.getElementsByName('compatCalType');
   var compatCalType = 'solar';
   for(var i=0; i<compatCalBtns.length; i++) { if(compatCalBtns[i].checked) { compatCalType = compatCalBtns[i].value; break; } }
@@ -29427,10 +29664,19 @@ async function runCompatCore(compatRunBtn, name, bd, type){
     var llmHost=cdEnsureCompatLlmHost();
     if(llmHost) llmHost.innerHTML='';
     var compat=analyzeCompat(G_PILLARS,G_NATAL,G_POWER,G_JOHU,G_JONG,p2,natal2,power2,johu2,jong2,type,name);
-    if(resultArea) resultArea.innerHTML=compat.html;
-    var pastHtml=analyzePastLifeCompat(G_PILLARS,p2,name);
-    if(resultArea) resultArea.insertAdjacentHTML('beforeend',pastHtml);
-    cdEnsureCompatLlmReady(function(){
+    /* LLM 흐름이면 엔진이 확정한 사실(compat.facts·pastOut.facts)을 서버로 보내 서술을 받는다. 못 받으면 아래 기존 결과가 폴백이다. */
+    var pastOut=llm?{}:null;
+    var pastHtml=analyzePastLifeCompat(G_PILLARS,p2,name,pastOut);
+    var llmDone=false, llmNotice='';
+    if(llm){
+      var delivered=await _seSajuCompatLlmDeliver(llm,{resultArea:resultArea,p2:p2,type:type,name:name,compat:compat,pastOut:pastOut});
+      if(delivered.stale) return;
+      llmDone=!!delivered.rendered;
+      llmNotice=delivered.noticeHtml||'';
+    }
+    if(resultArea&&!llmDone) resultArea.innerHTML=llmNotice+compat.html;
+    if(resultArea&&!llmDone) resultArea.insertAdjacentHTML('beforeend',pastHtml);
+    if(!llmDone) cdEnsureCompatLlmReady(function(){
       var host = cdEnsureCompatLlmHost();
       if (!host) return;
       if (!window.CompatLlm || typeof window.CompatLlm.mountSaju !== 'function') {

@@ -2253,12 +2253,12 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-e9d8d7412dcc',
+    '/js/saju-engine.js?v=build-514bd939c9fd',
       '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-cb3d1ad108ad',
-    '/js/core/saju/basicFortunePresentation.js?v=build-442599361172',
+    '/js/core/saju/basicFortunePresentation.js?v=build-e398fbe9f265',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
     '/js/core/saju/reportDashboard.js?v=build-69a84b7e07e2',
     '/js/saju-engine-continuation.js?v=build-8d68ebe282a3',
@@ -2405,6 +2405,32 @@ function __cdEnsureSwissEphLoaded() {
 
 if (typeof window !== 'undefined') {
   window.__cdEnsureSwissEphLoaded = __cdEnsureSwissEphLoaded;
+}
+
+/* 기본 사주 궁합 LLM 흐름(js/saju-engine.js runCompat)이 쓰는 모듈 묶음 — 결제 전에 올려 두고, 못 올리면 결제하지 않는다.
+   renderer(결과·보관함 공용) + flow(요청·대기 기록·실행) + paid-narrative-reader(classic UMD, import 하면 window.CDPaidNarrativeReader 를 단다). */
+var __cdSajuCompatLoadPromise = null;
+function __cdEnsureSajuCompatModules() {
+  if (window.__cdSajuCompat) return Promise.resolve(window.__cdSajuCompat);
+  if (__cdSajuCompatLoadPromise) return __cdSajuCompatLoadPromise;
+  __cdSajuCompatLoadPromise = Promise.all([
+    import('/js/saju-compat-render.mjs?v=build-6fbeaac56a1c'),
+    import('/js/saju-compat-flow.mjs?v=build-c128fded5c07'),
+    import('/js/core/paid-narrative-reader.js?v=build-c9b681355666')
+  ]).then(function(mods) {
+    if (!window.CDPaidNarrativeReader || typeof window.CDPaidNarrativeReader.run !== 'function') {
+      throw new Error('paid narrative reader missing');
+    }
+    window.__cdSajuCompat = { render: mods[0], flow: mods[1], reader: window.CDPaidNarrativeReader };
+    return window.__cdSajuCompat;
+  }).catch(function(err) {
+    __cdSajuCompatLoadPromise = null;
+    throw err;
+  });
+  return __cdSajuCompatLoadPromise;
+}
+if (typeof window !== 'undefined') {
+  window.__cdEnsureSajuCompatModules = __cdEnsureSajuCompatModules;
 }
 
 function __cdInstallSajuActionStub(actionName) {
@@ -8348,7 +8374,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-e9d8d7412dcc',
+      '/js/saju-engine.js?v=build-514bd939c9fd',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-cb3d1ad108ad'
   ];
@@ -8367,7 +8393,7 @@ function __cdEnsureBirthModalDepsLoaded() {
   if (__cdBirthModalDepsLoadPromise) return __cdBirthModalDepsLoadPromise;
   var presentationReady = window.BasicFortunePresentation
     ? Promise.resolve()
-    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-442599361172');
+    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-e398fbe9f265');
   var tasks = [presentationReady];
   if (
     typeof _ModalProfileState === 'undefined' ||

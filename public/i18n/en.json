@@ -20218,6 +20218,17 @@
       "reflectionNote": "Don't stop at asking “Why are we so drawn to each other, or why do we clash?” Look for actions you can actually change in your current relationship. What shapes your next scene is your agreements and boundaries now, more than the story of the past.",
       "disclaimer": "※ The past-life bond reading is entertainment content based on Saju theory 🌙"
     },
-    "footer": "This reading is an AI-written interpretation based on the scores and harmony/clash evidence calculated by the engine, provided for reference only. It does not stand in for a conclusion about your relationship."
+    "footer": "This reading is an AI-written interpretation based on the scores and harmony/clash evidence calculated by the engine, provided for reference only. It does not stand in for a conclusion about your relationship.",
+    "flow": {
+      "starting": "Preparing your Saju compatibility reading…",
+      "progress": "Writing your Saju compatibility reading… ({done}/{total})",
+      "keepOpen": "Your payment is complete. If you leave and come back, you will pick up the same result.",
+      "saved": "This result is saved in your library. Reopening it later costs nothing extra.",
+      "fallback": "We couldn't load the AI reading, so the basic interpretation is shown first. Your payment is preserved, and the button below lets you continue loading the AI reading for the same pair.",
+      "review": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below.",
+      "revoked": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
+      "retry": "Continue loading the AI reading",
+      "moduleFail": "Couldn't load the AI reading screen. No payment was made. Please try again shortly."
+    }
   }
 }
