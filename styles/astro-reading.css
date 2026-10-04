@@ -647,3 +647,26 @@
 #astroModalOverlay #astroBodyWrap .as-record .astro-dl > div:first-child { padding-top: 0; border-top: 0; }
 #astroModalOverlay #astroBodyWrap .as-record .astro-dl dt { color: var(--as-gold) !important; font-size: 13px; font-weight: 700; letter-spacing: .04em; }
 #astroModalOverlay #astroBodyWrap .as-record .astro-dl dd { margin: 0; color: var(--as-text) !important; font-size: 15px; line-height: 1.75; }
+
+/* 차트 전체 요약·한눈에 보기·생각·커리어·집중 포인트·히어로·시너지: 같은 문법(금색 작은 표제 + 본문, 헤어라인). */
+/* 금색 한 줄(오늘의 한 줄 정리): 기존 핵심 한 줄(.astro-core) 위에 작은 금색 표제. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-quote__k { display: block; margin-bottom: 4px; color: var(--as-gold) !important; font-family: var(--as-body); font-size: 13px; font-weight: 600; letter-spacing: .04em; }
+/* 정의 목록·이어 읽기 문단 안 강조는 표제가 아니라 본문 굵기 — 옛 ".astro-desc b = 금색 13px" 표제 규칙에서 뺀다. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-desc :is(.astro-dl dd, .astro-fold-cont) b { color: var(--as-text) !important; font-size: inherit !important; font-weight: 700 !important; letter-spacing: normal; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-fold-cont { margin: 0 0 var(--cd-sp-md, 16px); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-desc + .astro-fold { margin-top: var(--cd-sp-md, 16px); }
+/* 히어로 궤도 칩: 4개가 한 줄에 못 들면 2×2 로 — 하나만 혼자 줄바꿈되지 않게. 사이 선은 격자에서 뺀다. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero__orbits { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero__orbits > i { display: none !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero__orbits > span { justify-content: flex-start; min-height: 36px; }
+/* 시너지 목록: 굵은 첫 줄을 금색 작은 표제로, 점 대신 헤어라인. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-core:has(> ul) { font-family: var(--as-body); font-weight: 400; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-core > ul { margin: 0 !important; padding: 0 !important; list-style: none; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-core > ul > li { margin: 0 !important; padding: 12px 0; border-top: 1px solid var(--as-rule); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-core > ul > li:first-child { padding-top: 0; border-top: 0; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-core > ul > li > b:first-child { display: block; margin-bottom: 4px; color: var(--as-gold) !important; font-size: 13px; font-weight: 600; letter-spacing: .04em; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-core > ul > li > b:first-child + br { display: none; }
+/* 칩 줄: 이름표 칩 + 값은 한 묶음으로 줄바꿈. 핵심 한 줄 안 강조는 앞뒤 문장 글꼴을 그대로. 히어로 3칸 본문은 다른 본문과 같은 15px. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-tag-pair { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: 6px; white-space: nowrap; margin: 0 8px 8px 0; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-quote b { font: inherit !important; color: inherit !important; letter-spacing: inherit; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero__cards > article > span { font-size: 15px !important; line-height: 1.7; }

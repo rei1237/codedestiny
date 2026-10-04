@@ -1070,7 +1070,11 @@
   function triadSvg(opt) {
     var P = { sun: [60, 16], moon: [22, 66], asc: [98, 66] }, out = [];
     out.push('<svg class="as-ill as-ill-triad" viewBox="0 0 120 84" aria-hidden="true" focusable="false">');
-    out.push('<path class="as-ill-edge' + (opt.ascKnown ? '' : ' is-soft') + '" d="M60 16L22 66L98 66Z"/>');
+    // 선은 노드 테두리 밖(r 13 + 2)에서 끊어 기호를 가로지르지 않게 한다.
+    [['sun', 'moon'], ['moon', 'asc'], ['asc', 'sun']].forEach(function (e) {
+      var p = P[e[0]], q = P[e[1]], dx = q[0] - p[0], dy = q[1] - p[1], k = 15 / Math.sqrt(dx * dx + dy * dy);
+      out.push('<line class="as-ill-edge' + (opt.ascKnown ? '' : ' is-soft') + '" x1="' + f1(p[0] + dx * k) + '" y1="' + f1(p[1] + dy * k) + '" x2="' + f1(q[0] - dx * k) + '" y2="' + f1(q[1] - dy * k) + '"/>');
+    });
     ['sun', 'moon', 'asc'].forEach(function (k) {
       var p = P[k], open = k === 'asc' && !opt.ascKnown;
       out.push('<circle class="as-ill-node' + (open ? ' is-open' : '') + '" cx="' + p[0] + '" cy="' + p[1] + '" r="13"/>');
