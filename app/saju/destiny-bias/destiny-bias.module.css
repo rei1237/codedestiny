@@ -1387,3 +1387,346 @@
     transition: none;
   }
 }
+
+/* ---------- 공유 카드(1080 캔버스 + 축소 미리보기) ---------- */
+.shareCardSection {
+  display: grid;
+  gap: 12px;
+  padding: 18px 16px;
+  border-radius: var(--dbk-radius);
+  background: var(--dbk-card);
+  border: 1px solid var(--dbk-line);
+}
+
+.ratioToggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sharePreviewFrame {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 18px;
+  box-shadow: var(--dbk-shadow);
+  background: var(--dbk-cream-2);
+}
+
+.sharePreviewFrame[data-ratio="story"] {
+  max-width: 250px;
+}
+
+.shareScaler {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: top left;
+}
+
+/* 아래 px 는 1080 캔버스 기준 절대값이다(내보내기 해상도). 미리보기는 .shareScaler 가 줄인다. */
+.shareCanvas {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 72px 120px;
+  box-sizing: border-box;
+  color: var(--dbk-ink);
+  background: var(--dbk-cream);
+  font-family: inherit;
+}
+
+.shareCanvas[data-accent="lilac"] {
+  --dbk-accent: var(--dbk-lilac-deep);
+  --dbk-accent-soft: var(--dbk-lilac);
+}
+
+.shareCanvas[data-accent="blue"] {
+  --dbk-accent: var(--dbk-blue);
+  --dbk-accent-soft: var(--dbk-blue-soft);
+}
+
+.shareCanvas[data-accent="pink"] {
+  --dbk-accent: var(--dbk-pink);
+  --dbk-accent-soft: var(--dbk-pink-soft);
+}
+
+.shareCanvasBg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.shareCanvasStickerA,
+.shareCanvasStickerB {
+  position: absolute;
+  width: 168px;
+  height: 168px;
+}
+
+.shareCanvasStickerA {
+  top: 44px;
+  right: 48px;
+  transform: rotate(10deg);
+}
+
+.shareCanvasStickerB {
+  bottom: 150px;
+  left: 44px;
+  width: 132px;
+  height: 132px;
+  transform: rotate(-12deg);
+}
+
+.shareCanvasPanel {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 64px 56px 60px;
+  border-radius: 56px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 3px solid var(--dbk-line);
+  text-align: center;
+  word-break: keep-all;
+}
+
+.shareCanvasPanel p {
+  margin: 0;
+}
+
+.shareCanvasKicker {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--dbk-accent);
+}
+
+.shareCanvasPair {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 54px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.shareCanvasPair i {
+  font-style: normal;
+  color: var(--dbk-accent);
+}
+
+.shareCanvasGroup {
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--dbk-ink-soft);
+}
+
+.shareCanvasSymbol {
+  width: 260px;
+  height: 260px;
+  object-fit: contain;
+}
+
+.shareCanvas[data-ratio="story"] .shareCanvasSymbol {
+  width: 360px;
+  height: 360px;
+  margin: 24px 0;
+}
+
+.shareCanvasShort {
+  padding: 8px 26px;
+  border-radius: 999px;
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--dbk-ink);
+  background: var(--dbk-accent-soft);
+}
+
+.shareCanvasType {
+  font-size: 68px;
+  font-weight: 900;
+  line-height: 1.22;
+}
+
+.shareCanvasOneLiner {
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--dbk-ink-soft);
+}
+
+.shareCanvasMeta {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--dbk-ink-mute);
+}
+
+.shareCanvasFoot {
+  position: absolute;
+  left: 72px;
+  right: 72px;
+  bottom: 52px;
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--dbk-ink);
+}
+
+.shareNickRow {
+  display: grid;
+  gap: 8px;
+}
+
+.shareNickInput {
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 2px solid var(--dbk-line);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--dbk-ink);
+  background: var(--dbk-cream);
+}
+
+.shareNickInput:focus {
+  outline: none;
+  border-color: var(--dbk-blue);
+  box-shadow: 0 0 0 4px var(--dbk-blue-soft);
+}
+
+.shareNickInput:disabled {
+  opacity: 0.55;
+}
+
+.shareNickToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dbk-ink-soft);
+}
+
+.shareNickToggle input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--dbk-lilac-deep);
+}
+
+/* ---------- 공유 랜딩(/saju/destiny-bias/share/) ---------- */
+.landing {
+  display: grid;
+  gap: 18px;
+  text-align: center;
+}
+
+.landingCard {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 28px 20px 24px;
+  border-radius: 26px;
+  background: var(--dbk-card);
+  box-shadow: var(--dbk-shadow);
+  word-break: keep-all;
+}
+
+.landingCard[data-accent="lilac"] {
+  --dbk-accent: var(--dbk-lilac-deep);
+  --dbk-accent-soft: var(--dbk-lilac);
+}
+
+.landingCard[data-accent="blue"] {
+  --dbk-accent: var(--dbk-blue);
+  --dbk-accent-soft: var(--dbk-blue-soft);
+}
+
+.landingCard[data-accent="pink"] {
+  --dbk-accent: var(--dbk-pink);
+  --dbk-accent-soft: var(--dbk-pink-soft);
+}
+
+.landingPair {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.landingPair i {
+  font-style: normal;
+  margin: 0 6px;
+  color: var(--dbk-accent);
+}
+
+.landingGroup {
+  margin: 0;
+  font-size: 14px;
+  color: var(--dbk-ink-soft);
+}
+
+.landingType {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.landingOneLiner {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--dbk-ink-soft);
+}
+
+.landingActions {
+  display: grid;
+  gap: 10px;
+}
+
+.landingActions a {
+  text-decoration: none;
+}
+
+/* G 시각 결함 보정: 앵커 CTA 세로 중앙, 제목 보조문구 줄바꿈, 정사각 카드 푸터 여백 */
+.landingActions a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.sectionTitle {
+  flex-wrap: wrap;
+}
+
+.sectionTitle small {
+  flex: 0 0 auto;
+}
+
+.shareCanvas[data-ratio="square"] .shareCanvasPanel {
+  gap: 12px;
+  padding: 44px 56px 40px;
+  margin-bottom: 56px;
+}
+
+.shareCanvas[data-ratio="square"] .shareCanvasFoot {
+  bottom: 34px;
+  font-size: 26px;
+}

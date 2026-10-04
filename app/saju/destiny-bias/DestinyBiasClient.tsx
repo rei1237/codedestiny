@@ -42,6 +42,7 @@ import ChemiTypeBadge from "./components/chemi/ChemiTypeBadge";
 import ChemiSections from "./components/chemi/ChemiSections";
 import ChemiEvidencePanel from "./components/chemi/ChemiEvidencePanel";
 import ChemiShareBar, { type ShareBarStatus } from "./components/chemi/ChemiShareBar";
+import ChemiShareCard, { SHARE_CARD_HEIGHT, SHARE_CARD_WIDTH, type ShareRatio } from "./components/chemi/ChemiShareCard";
 import MemberSwitcher from "./components/chemi/MemberSwitcher";
 import RecentResults from "./components/chemi/RecentResults";
 import TypeCollection from "./components/chemi/TypeCollection";
@@ -165,6 +166,26 @@ function buildInviteUrl(partner: ChemiPartnerRef, channel: string) {
   return `${origin}${FEATURE_PATH}?${key}=${encodeURIComponent(partner.id)}&utm_source=${encodeURIComponent(channel)}&utm_medium=share&utm_campaign=public_share`;
 }
 
+type CreatedShare = { shareUrl: string; ogUrl: string };
+
+function withShareUtm(shareUrl: string, channel: string) {
+  return `${shareUrl}&utm_source=${encodeURIComponent(channel)}&utm_medium=share&utm_campaign=public_share`;
+}
+
+async function waitForImages(node: HTMLElement) {
+  const images = Array.from(node.querySelectorAll("img"));
+  await Promise.all(
+    images.map((img) =>
+      img.complete
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            img.addEventListener("load", () => resolve(), { once: true });
+            img.addEventListener("error", () => resolve(), { once: true });
+          }),
+    ),
+  );
+}
+
 function sleep(ms: number) {
   return new Promise<void>((resolve) => {
     window.setTimeout(resolve, ms);
@@ -204,7 +225,14 @@ export default function DestinyBiasClient() {
   const [savedToCollection, setSavedToCollection] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
+  const [shareRatio, setShareRatio] = useState<ShareRatio>("square");
+  const [shareNickname, setShareNickname] = useState("");
+  const [showNickname, setShowNickname] = useState(true);
+
   const coreCardRef = useRef<HTMLDivElement | null>(null);
+  const shareCanvasRef = useRef<HTMLDivElement | null>(null);
+  // 같은 입력으로 공유를 다시 누르면 서버를 또 부르지 않는다(메모리 한정 — 생일이 키에 들어가므로 저장 금지).
+  const shareCacheRef = useRef<{ key: string; value: CreatedShare } | null>(null);
   const computingTokenRef = useRef(0);
   const entryTrackedRef = useRef(false);
 
@@ -430,41 +458,125 @@ export default function DestinyBiasClient() {
     );
   }, [outcome, shareTitle, trackFunnelStep, trackShare]);
 
+  /** 1080px 공유 카드를 PNG 로 찍는다. 실패하면 null(호출자가 폴백을 고른다). */
+  const exportShareCardBlob = useCallback(async (): Promise<Blob | null> => {
+    const node = shareCanvasRef.current;
+    if (!node) return null;
+    try {
+      await document.fonts?.ready;
+      await waitForImages(node);
+      const { toBlob } = await import("html-to-image");
+      const options = { width: SHARE_CARD_WIDTH, height: SHARE_CARD_HEIGHT[shareRatio], pixelRatio: 1, cacheBust: true };
+      // 첫 호출은 이미지 인라인이 덜 끝나 null 이 나올 수 있어 1회만 재시도한다.
+      return (await toBlob(node, options)) || (await toBlob(node, options));
+    } catch {
+      return null;
+    }
+  }, [shareRatio]);
+
+  /** 서버에 공개 요약을 만들고 공유 링크를 받는다. 본문은 서버가 재계산하므로 입력만 보낸다. */
+  const ensureShare = useCallback(async (): Promise<{ share: CreatedShare | null; rateLimited: boolean }> => {
+    if (!outcome) return { share: null, rateLimited: false };
+    const nickname = showNickname ? shareNickname.trim() : "";
+    const key = [outcome.partner.kind, outcome.partner.id, info.birthDateInput, info.calendarType, nickname].join("|");
+    if (shareCacheRef.current?.key === key) return { share: shareCacheRef.current.value, rateLimited: false };
+    try {
+      const apiBase = String(getApiBaseUrl() || "").trim();
+      const response = await fetch(`${apiBase}/api/destiny-bias/share`, {
+        method: "POST",
+        credentials: "omit",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          user: {
+            birthDate: toIsoDate(info.birthDateInput),
+            calendarType: info.calendarType,
+            isLeapMonth: info.calendarType === "lunar_leap",
+          },
+          partner: { kind: outcome.partner.kind, id: outcome.partner.id },
+          nickname,
+          showNickname: Boolean(nickname),
+          referenceDate: todayKst(),
+        }),
+      });
+      if (response.status === 429) return { share: null, rateLimited: true };
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !payload?.ok || typeof payload.shareUrl !== "string") return { share: null, rateLimited: false };
+      const value = { shareUrl: payload.shareUrl, ogUrl: String(payload.ogUrl || "") };
+      shareCacheRef.current = { key, value };
+      return { share: value, rateLimited: false };
+    } catch {
+      return { share: null, rateLimited: false };
+    }
+  }, [info, outcome, shareNickname, showNickname]);
+
   const handleShareCard = useCallback(async () => {
     if (!outcome || shareBusy) return;
     setShareBusy(true);
+    setShareStatus({ tone: "info", text: "공유 카드를 준비하는 중…" });
     trackFunnelStep({ funnel: FUNNEL, step: "share_click", stepIndex: 5 });
     try {
-      const url = buildInviteUrl(outcome.partner, "native");
+      const [{ share, rateLimited }, blob] = await Promise.all([ensureShare(), exportShareCardBlob()]);
+      // 공유 링크를 못 만들어도(오프라인·한도) 초대 링크로는 공유할 수 있게 둔다.
+      const urlFor = (channel: string) => (share ? withShareUtm(share.shareUrl, channel) : buildInviteUrl(outcome.partner, channel));
       const text = `${outcome.copy.oneLiner} — 내 최애 ${outcome.partner.displayName}와 나는 「${outcome.result.chemiTypeNameKo}」`;
-      let res = await shareThrough("native", { title: shareTitle, text, url });
-      if (res.status === "unavailable") {
-        res = await shareThrough("kakao", { title: shareTitle, text, url, image: `${window.location.origin}/images/destiny-bias/og-default-1200x630.png` });
-        if (res.status !== "opened") res = await shareThrough("copy", { title: shareTitle, text, url });
+      const ogImage = share?.ogUrl || `${window.location.origin}/images/destiny-bias/og-default-1200x630.png`;
+
+      let status = "unavailable";
+      let channel: "link" | "etc" | "kakao" = "link";
+      const file = blob ? new File([blob], `chemi-${outcome.partner.id}.png`, { type: "image/png" }) : null;
+      if (file && typeof navigator.share === "function" && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: shareTitle, text, url: urlFor("native") });
+          status = "shared";
+          channel = "etc";
+        } catch (caught) {
+          status = (caught as Error)?.name === "AbortError" ? "cancelled" : "unavailable";
+        }
       }
-      const channel = res.status === "opened" ? "kakao" : res.status === "shared" ? "etc" : "link";
-      trackShare({ feature: "destiny-bias-chemi", channel });
-      if (res.status === "shared" || res.status === "opened") setShareStatus({ tone: "ok", text: "공유 창을 열었어요." });
-      else if (res.status === "copied") setShareStatus({ tone: "ok", text: "공유 링크를 복사했어요. 원하는 곳에 붙여 넣어 주세요." });
-      else if (res.status === "cancelled") setShareStatus(null);
-      else setShareStatus({ tone: "warn", text: "공유를 열지 못했어요. 「이미지 저장」 후 직접 올려 주세요." });
+      if (status === "unavailable") {
+        const res = await shareThrough("kakao", { title: shareTitle, text, url: urlFor("kakao"), image: ogImage });
+        if (res.status === "opened") {
+          status = "opened";
+          channel = "kakao";
+        }
+      }
+      if (status === "unavailable") {
+        const res = await shareThrough("copy", { title: shareTitle, text, url: urlFor("copy") });
+        status = res.status;
+      }
+
+      if (status !== "cancelled") trackShare({ feature: "destiny-bias-chemi", channel });
+      if (status === "shared" || status === "opened") setShareStatus({ tone: "ok", text: "공유 창을 열었어요. 카드와 링크에는 생일이 들어가지 않아요." });
+      else if (status === "copied") {
+        setShareStatus({
+          tone: "ok",
+          text: rateLimited
+            ? "공유 요청이 잠시 많아 초대 링크를 복사했어요. 친구가 같은 최애와 케미를 볼 수 있어요."
+            : "공유 링크를 복사했어요. 원하는 곳에 붙여 넣어 주세요.",
+        });
+      } else if (status === "cancelled") setShareStatus(null);
+      else setShareStatus({ tone: "warn", text: `복사가 막혀 있어요. 이 주소를 직접 보내 주세요: ${urlFor("copy")}` });
     } finally {
       setShareBusy(false);
     }
-  }, [outcome, shareBusy, shareTitle, trackFunnelStep, trackShare]);
+  }, [ensureShare, exportShareCardBlob, outcome, shareBusy, shareTitle, trackFunnelStep, trackShare]);
 
   const handleSaveImage = useCallback(async () => {
-    const node = coreCardRef.current;
-    if (!node || !outcome || shareBusy) return;
+    if (!outcome || shareBusy) return;
     setShareBusy(true);
     setShareStatus({ tone: "info", text: "카드 이미지를 만드는 중…" });
     try {
-      await document.fonts?.ready;
-      const { toBlob } = await import("html-to-image");
-      let blob = await toBlob(node, { pixelRatio: 3, cacheBust: true });
-      if (!blob) blob = await toBlob(node, { pixelRatio: 2, cacheBust: true });
+      let blob = await exportShareCardBlob();
+      if (!blob) {
+        // 폴백: 서버가 그린 1200×630 카드. 이때만 공유 스냅샷이 필요하다.
+        const { share } = await ensureShare();
+        if (share?.ogUrl) {
+          const response = await fetch(share.ogUrl, { credentials: "omit" });
+          if (response.ok) blob = await response.blob();
+        }
+      }
       if (!blob) throw new Error("IMAGE_EXPORT_EMPTY");
-      await downloadBlob(blob, `chemi-${outcome.partner.id}-${outcome.result.chemiTypeId}.png`);
+      await downloadBlob(blob, `chemi-${outcome.partner.id}-${outcome.result.chemiTypeId}-${shareRatio}.png`);
       trackShare({ feature: "destiny-bias-chemi", channel: "download" });
       trackFunnelStep({ funnel: FUNNEL, step: "share_click", stepIndex: 5 });
       setShareStatus({ tone: "ok", text: "이미지를 저장했어요. 카드에는 생일이 들어가지 않아요." });
@@ -473,7 +585,7 @@ export default function DestinyBiasClient() {
     } finally {
       setShareBusy(false);
     }
-  }, [outcome, shareBusy, trackFunnelStep, trackShare]);
+  }, [ensureShare, exportShareCardBlob, outcome, shareBusy, shareRatio, trackFunnelStep, trackShare]);
 
   const handleSaveCollection = useCallback(async () => {
     if (!outcome || shareBusy || savedToCollection) return;
@@ -577,6 +689,17 @@ export default function DestinyBiasClient() {
               onInviteFriend={() => void handleInvite()}
               onPickAnother={resetToPick}
               onSaveCollection={() => void handleSaveCollection()}
+            />
+            <ChemiShareCard
+              ref={shareCanvasRef}
+              result={outcome.result}
+              copy={outcome.copy}
+              ratio={shareRatio}
+              nickname={shareNickname}
+              showNickname={showNickname}
+              onRatioChange={setShareRatio}
+              onNicknameChange={setShareNickname}
+              onShowNicknameChange={setShowNickname}
             />
             <ChemiSections copy={outcome.copy} />
             <ChemiEvidencePanel result={outcome.result} />
