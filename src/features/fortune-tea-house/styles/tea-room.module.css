@@ -14,3 +14,10 @@
 @media(prefers-reduced-motion:reduce){.atmosphere{display:none}}
 
 :global(html[data-tea-stage]:not([data-tea-stage="landing"])) .publicGuide{display:none}
+
+/* Moonlight belongs to the entry and question scenes; result/recovery surfaces keep their contract. */
+.moonlit::before{background-image:linear-gradient(180deg,color-mix(in srgb,var(--novel-bg) 40%,transparent),color-mix(in srgb,var(--novel-bg) 88%,transparent)),var(--tea-bg-desktop)}
+.moonlit .header{border-color:var(--novel-border)}
+.moonlit .header button,.moonlit .soundToggle{background:var(--novel-bg);color:var(--novel-text);border-color:var(--novel-border)}
+.moonlit .notice{background:var(--novel-surface);color:var(--novel-text)}
+@media(max-width:700px){.moonlit::before{background-image:linear-gradient(180deg,color-mix(in srgb,var(--novel-bg) 55%,transparent),color-mix(in srgb,var(--novel-bg) 92%,transparent)),var(--tea-bg-mobile)}}

@@ -796,9 +796,10 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   return (
     <section className={`${styles.questionScene}`} aria-labelledby="teaQuestionTitle">
       <div className={styles.questionActor}>
-        <img className={styles.yeoniPortrait} src="/images/fortune-tea-house/renewal/pig-listening.webp" alt="" width="104" height="112" />
+        <img className={styles.yeoniPortrait} src="/images/fortune-tea-house/renewal/human-listening.webp" alt="" width="104" height="112" />
         <p>{copy.welcomeNote}</p>
       </div>
+      <p className={styles.chosenTea}>{selectedCup.name} · {selectedCup.topic}</p>
       <form id="tea-question-form" className={`${styles.questionPanel}`} onSubmit={handleSubmit}>
         <p className={styles.sceneEyebrow}>{copy.stepLabel}</p>
         <h2 id="teaQuestionTitle">{copy.questionTitle}</h2>

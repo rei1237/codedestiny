@@ -1,9 +1,9 @@
-.questionScene{max-width:880px;margin:0 auto;color:#303c31;padding:24px 20px 48px;font-family:var(--tea-font-body),sans-serif;line-height:1.7;overflow-wrap:anywhere}
-.questionPanel{min-width:0}
+.questionScene{max-width:880px;margin:0 auto;color:var(--novel-text,#fff1f7);padding:24px 20px 48px;font-family:var(--tea-font-body),sans-serif;line-height:1.7;overflow-wrap:anywhere}
+.questionPanel{min-width:0;background:#fffaf7;color:#3c1830;padding:32px;border-radius:var(--cd-r-section,26px)}
 .questionPanel h2{font-family:var(--tea-font-premium),serif;font-size:clamp(1.6rem,4vw,2.2rem);line-height:1.4;margin:8px 0 16px}
 .questionPanel h3{font-size:1.1rem;margin:0}
-.questionActor{display:flex;align-items:center;gap:16px;margin-bottom:24px;max-width:580px}
-.yeoniPortrait{width:104px;height:112px;object-fit:contain;flex-shrink:0}
+.questionActor{display:flex;align-items:center;gap:24px;margin-bottom:20px;max-width:720px;font-family:var(--tea-font-premium),serif;font-size:1.08rem}
+.yeoniPortrait{width:180px;height:190px;object-fit:cover;object-position:center 24%;flex-shrink:0;border-radius:var(--cd-r-card,20px)}
 .sceneEyebrow{font-size:.8rem;letter-spacing:.1em;color:#647358}
 .sceneDescription{color:#626558}
 .questionFormSection{padding:24px 0;border-bottom:1px solid #dcdaca}
@@ -43,4 +43,8 @@
 .tarotSpreadOption span{font-size:.85rem}
 .storyActions{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;padding:24px 0;position:sticky;bottom:0;background:#faf7ef;border-top:1px solid #dcdaca}
 .questionError,.profileLoadError,.questionSubmitErrorCard{padding:12px;border-left:3px solid #a44940;background:#fff0e8;color:#813a34}
-@media(max-width:600px){.questionScene{padding:20px 16px 24px}.consultModeGrid,.birthInfoGrid,.sukuyoPairGrid,.sukuyoMetaGrid,.questionFieldGrid{grid-template-columns:1fr}.consultModeCard{padding:12px}.consultModeCard[data-selected=true]{padding:11px}.storyActions{position:static}.storyActions>*{flex:1}.questionFormSection{padding:20px 0}.questionActor{font-size:.88rem}.yeoniPortrait{width:80px;height:96px}}
+@media(max-width:600px){.questionScene{padding:20px 16px 24px}.consultModeGrid,.birthInfoGrid,.sukuyoPairGrid,.sukuyoMetaGrid,.questionFieldGrid{grid-template-columns:1fr}.consultModeCard{padding:12px}.consultModeCard[data-selected=true]{padding:11px}.storyActions{position:static}.storyActions>*{flex:1}.questionFormSection{padding:20px 0}.questionActor{font-size:.88rem}.yeoniPortrait{width:112px;height:144px}.questionPanel{padding:20px 16px}.questionActor{gap:16px}}
+
+.chosenTea{color:var(--novel-gold,#ead089);font-size:.92rem;margin:0 0 18px}
+.questionPanel h2, .questionSectionHeader h3 { word-break: keep-all; overflow-wrap: anywhere; }
+.questionSectionHeader > span { flex-shrink: 0; white-space: nowrap; }

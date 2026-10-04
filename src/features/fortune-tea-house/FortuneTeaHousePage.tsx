@@ -5,6 +5,7 @@ import "./styles/tea-report.module.css";
 import "./styles/tea-library.module.css";
 import "./styles/tea-tarot-artwork.module.css";
 import "./styles/tea-result-companion.module.css";
+import { readEntryBookmark, saveEntryBookmark } from "./lib/entryBookmark";
 import roomStyles from "./styles/tea-room.module.css";
 import "@/components/fortune/ConsultationShare.module.css";
 
@@ -1008,14 +1009,16 @@ export default function FortuneTeaHousePage() {
     goToStage("questionInput");
   }
 
-  function replayEntryPrologue() {
+  function replayEntryPrologue(resume = false) {
     if (isEnteringTeaHouse) return;
     void playBgm();
     setIsEntryPrologueSkipped(false);
+    const bookmark = resume ? readEntryBookmark() : null;
+    if (!resume) saveEntryBookmark(null);
     setIsEnteringTeaHouse(true);
     enterTimerRef.current = window.setTimeout(() => {
       setIsEnteringTeaHouse(false);
-      goToStage("doorOpened");
+      goToStage(bookmark?.stage || "doorOpened");
     }, 1280);
   }
 
@@ -1516,7 +1519,7 @@ export default function FortuneTeaHousePage() {
   }
 
   const soundControl = <button
-        className={["landing", "questionInput", "scentLoading", "tarotReveal", "result"].includes(stage) ? roomStyles.soundToggle : styles.bgmToggle}
+        className={roomStyles.soundToggle}
         type="button"
         data-active={bgmEnabled && bgmStatus === "playing" ? "true" : "false"}
         aria-label={bgmEnabled ? "운명의 찻집 배경 음악 끄기" : "운명의 찻집 배경 음악 켜기"}
@@ -1537,14 +1540,15 @@ export default function FortuneTeaHousePage() {
           onEnter={enterTeaHouse}
           onChooseCup={() => goToStage("teaSelect")}
           onOpenAlbum={() => setIsTarotAlbumOpen(true)}
-          onReplayPrologue={replayEntryPrologue}
+          onReplayPrologue={() => replayEntryPrologue()}
+          onResumePrologue={() => replayEntryPrologue(true)}
           onShowHistory={() => setIsHistoryOpen(true)}
         />
       );
     }
 
     if (isTeaHouseEntryStage(stage)) {
-      return <TeaHouseEntryScene stage={stage} onStageChange={goToStage} onComplete={completeEntryPrologue} />;
+      return <TeaHouseEntryScene stage={stage} onStageChange={goToStage} onComplete={completeEntryPrologue} onSkip={() => { setIsEntryPrologueSkipped(true); goToStage("teaSelect"); }} />;
     }
 
     if (stage === "teaSelect") {
@@ -1617,6 +1621,7 @@ export default function FortuneTeaHousePage() {
 
       {stage === "teaSelect" ? (
         <HoneyDropRewardOverlay
+          inline
           honeyDrops={honeyDrops}
           burstKey={honeyRewardBurstKey}
           message={honeyRewardMessage}
@@ -1681,7 +1686,7 @@ export default function FortuneTeaHousePage() {
       <div className={styles.sceneFrame} aria-live="polite">
         <AnimatePresence mode="wait" initial={false}>
           <m.div
-            key={stage}
+            key={isTeaHouseEntryStage(stage) ? "entryNovel" : stage}
             className={styles.sceneStage}
             initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.992 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
