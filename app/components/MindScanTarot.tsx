@@ -1,4 +1,5 @@
 "use client";
+import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 
 import CardBack from "./TarotCardBack";
 import { AnimatePresence, m, useMotionValue, useSpring, useTransform } from "framer-motion";
@@ -486,6 +487,7 @@ function PickingStage({ round, mainSelected, subSelected, onPick, copy }: Pickin
                 : copy.pickingSelectPrompt}
           </m.p>
         </AnimatePresence>
+      {stage === "result" && reading && delivery?.resultId && <ReviewRewardBanner afterResult/>}
 
         {/* Progress bar */}
         <div className="flex items-center justify-center gap-2 mt-3">

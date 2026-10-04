@@ -1,4 +1,5 @@
 import {reportGuideCopy, buildExternalImagePrompt, reportGuideAssets, chatgptUrl} from './fortune-report-content.mjs?v=build-b1e6cac7c3d1';
+import {mountPaidReviewInvite} from '../review-reward-invite.mjs';
 
 // Presentation only: callers supply an already authorized, completed result.
 function node(tag, cls, value) {
@@ -10,6 +11,7 @@ function node(tag, cls, value) {
 function mount(options) {
   if (!options?.host?.isConnected) return false;
   const host = options.host;
+  mountPaidReviewInvite({host, completed:options.completed, paid:options.paid, locale:options.locale});
   host.querySelector('[data-paid-editorial-report]')?.remove();
   if (options.completed !== true || options.paid !== true || !String(options.resultText || '').trim()) return false;
   const locale = options.locale || 'ko', domain = options.domain || 'saju';

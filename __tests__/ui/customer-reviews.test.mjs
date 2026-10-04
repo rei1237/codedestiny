@@ -8,6 +8,8 @@ import path from 'node:path';
 import {build} from 'esbuild';
 import {CUSTOMER_REVIEWS,splitReviews,visibleReviews,postedMonth} from '../../lib/brand/customer-reviews.mjs';
 import {EXPERTISE_FACTS} from '../../lib/brand/expertise-facts.mjs';
+import {PRESIDENTIAL_RECORDS, YEONGNYANGI_TESTIMONIAL} from '../../lib/brand/trust-stories.mjs';
+import {JSDOM} from 'jsdom';
 
 const require=createRequire(import.meta.url),Module=require('node:module');
 // 후기 원문(블로그 캡처와 3회 대조)이 바뀌면 실패한다. 의도한 수정이면 이미지 재대조 후에만 갱신한다.
@@ -70,24 +72,27 @@ test('trust copy has no superlatives, guarantees or political claims',()=>{
  assert.doesNotMatch(founder,BANNED);
 });
 
-test('static home shell carries the featured reviews verbatim and no evidence link',()=>{
+test('static home shell carries the featured reviews verbatim alongside the restored original records',()=>{
  const shell=readFileSync('index.html','utf8'),{lead}=splitReviews(3);
  assert.equal(shell.match(/class="cdh-kakao__card"/g)?.length,lead.length);
  const escape=text=>text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/\n/g,'<br>');
  for(const review of lead) for(const text of review.bubbles) assert.ok(shell.includes('<p>'+escape(text)+'</p>'),review.id);
- assert.doesNotMatch(shell,/neosaju|cdh-prediction-records/);
+ for(const record of PRESIDENTIAL_RECORDS) assert.ok(shell.includes(record.url));
+ assert.ok(shell.includes(YEONGNYANGI_TESTIMONIAL.title));
 });
 
-test('founder trust renders every review once with disclaimers and no evidence link',async()=>{
+test('founder trust renders every review once with disclaimers alongside historical records',async()=>{
  const html=await renderFounderTrust();
  assert.match(html,/1회 30만원 1:1 상담으로 풀던 사주를, 이제 천원에/);
  assert.equal(html.match(/<article/g).length,visibleReviews().length);
  assert.match(html,new RegExp(`후기 ${visibleReviews().length-3}개 더 보기`));
  assert.match(html,/개인 경험에 따른 후기이며 결과를 보장하지 않습니다\. 사주 풀이는 참고용 정보입니다\./);
  assert.match(html,/천원 상담은 계산 엔진과 AI 해설로 제공돼요/);
- assert.equal(html.match(/<li>/g).length,EXPERTISE_FACTS.length);
- assert.doesNotMatch(html,/neosaju|blog\.naver|founder-timeline|target="_blank"/);
- assert.doesNotMatch(html.replace(/<p[^>]*data-review-text[^>]*>[\s\S]*?<\/p>/g,'').replace(/<[^>]+>/g,''),BANNED);
+ assert.equal(html.match(/<li>/g).length,EXPERTISE_FACTS.length+PRESIDENTIAL_RECORDS.length);
+ const document=new JSDOM(html).window.document;
+ for(const record of PRESIDENTIAL_RECORDS) assert.ok(document.querySelector(`a[href="${record.url}"]`));
+ document.querySelector(".cd-trust-stories").remove();
+ assert.doesNotMatch(document.body.innerHTML.replace(/<p[^>]*data-review-text[^>]*>[\s\S]*?<\/p>/g,'').replace(/<[^>]+>/g,''),BANNED);
 });
 
 test('consultation shows two featured reviews, collapsed and ko-only, with the human-vs-AI notice',async()=>{
