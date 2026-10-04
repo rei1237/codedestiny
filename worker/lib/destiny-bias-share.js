@@ -1,0 +1,326 @@
+/**
+ * 최애운명(K-POP 케미) 공유 스냅샷.
+ *
+ * 계약:
+ * - 클라이언트는 **입력**(생일·최애 참조)만 보내고 본문은 서버가 lib/idol-chemi 로 재계산한다.
+ *   그래서 저장 문서에는 유형·한 줄·최애 표시명만 남고 생일은 어디에도 기록되지 않는다.
+ * - 레이트 리밋에는 끄는 스위치가 없다(result-share-snapshot.js 와 같은 이유: 유일한 유량 방어).
+ * - referenceDate 는 클라이언트 값을 그대로 믿지 않는다. 서버 KST 날짜 ±1일 안이면 서버값을 쓴다
+ *   (미성년 모드를 날짜로 우회하는 것을 막는다).
+ * - 이 파일은 workers-og 를 import 하지 않는다(.wasm 이 플레인 node 에서 깨진다). OG HTML 만 만든다.
+ */
+import { DestinyBiasShare } from "./models.js";
+import { createShareId, hasSensitiveText, sanitizeShareText, toIso } from "./share-snapshot-core.js";
+import { validateBirthDateWithAge } from "./validation.js";
+import {
+  CHEMI_TYPE_BY_ID,
+  MIN_SELF_CONSENT_AGE,
+  PARTNER_ID_PATTERN,
+  PARTNER_KINDS,
+  runChemi,
+} from "../../lib/idol-chemi/index.js";
+
+export const DESTINY_BIAS_SHARE_ID_PREFIX = "dbs_";
+export const DESTINY_BIAS_SHARE_TTL_MS = 90 * 24 * 60 * 60 * 1000;
+export const DESTINY_BIAS_SHARE_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+export const DESTINY_BIAS_SHARE_RATE_LIMIT_MAX = 10;
+export const DESTINY_BIAS_SHARE_NICKNAME_MAX = 20;
+export const DESTINY_BIAS_SHARE_ID_PATTERN = /^dbs_[A-Za-z0-9_-]{24,80}$/;
+export const DESTINY_BIAS_SHARE_LANDING_PATH = "/saju/destiny-bias/share/";
+export const DESTINY_BIAS_OG_FALLBACK_PATH = "/images/destiny-bias/og-default-1200x630.png";
+
+const CALENDAR_TYPES = Object.freeze(["solar", "lunar", "lunar_leap"]);
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const LINK_LIKE = /https?:\/\/|www\./i;
+
+export class DestinyBiasShareError extends Error {
+  constructor(code, message, status = 400) {
+    super(message);
+    this.name = "DestinyBiasShareError";
+    this.code = code;
+    this.status = status;
+  }
+}
+
+export function isValidDestinyBiasShareId(value) {
+  return DESTINY_BIAS_SHARE_ID_PATTERN.test(String(value || ""));
+}
+
+export function createDestinyBiasShareId() {
+  return createShareId(DESTINY_BIAS_SHARE_ID_PREFIX, 18);
+}
+
+export function destinyBiasShareRateLimitVerdict({ count = 0, resetAt = 0, now = Date.now() } = {}) {
+  if (Number(count) <= DESTINY_BIAS_SHARE_RATE_LIMIT_MAX) return null;
+  return {
+    ok: false,
+    status: 429,
+    error: "DESTINY_BIAS_SHARE_RATE_LIMITED",
+    message: "공유 요청이 잠시 많아요. 잠시 후 다시 시도해 주세요.",
+    retryAfterSeconds: Math.max(1, Math.ceil((Number(resetAt) - Number(now)) / 1000)),
+  };
+}
+
+/** 출처를 못 읽으면 공용 버킷으로 몰아 fail-closed 로 센다. */
+export function destinyBiasShareRateLimitSubject(request) {
+  const headers = request?.headers;
+  const direct = String(headers?.get?.("CF-Connecting-IP") || "").trim();
+  if (direct) return `ip:${direct}`;
+  const forwarded = String(headers?.get?.("X-Forwarded-For") || "").split(",")[0].trim();
+  if (forwarded) return `ip:${forwarded}`;
+  return "ip:unknown";
+}
+
+export function kstDateString(now = new Date()) {
+  const kst = new Date(new Date(now).getTime() + 9 * 60 * 60 * 1000);
+  return `${kst.getUTCFullYear()}-${String(kst.getUTCMonth() + 1).padStart(2, "0")}-${String(kst.getUTCDate()).padStart(2, "0")}`;
+}
+
+/** 클라이언트 referenceDate 가 서버 KST 날짜 ±1일 안이면 서버값, 아니면 거부. */
+export function resolveReferenceDate(clientValue, now = new Date()) {
+  const server = kstDateString(now);
+  const client = String(clientValue || "").trim();
+  if (!client) return server;
+  const invalid = () => new DestinyBiasShareError("DESTINY_BIAS_SHARE_REFERENCE_DATE_INVALID", "기준 날짜가 올바르지 않아요.");
+  if (!ISO_DATE.test(client)) throw invalid();
+  const diffDays = Math.abs((Date.parse(`${client}T00:00:00Z`) - Date.parse(`${server}T00:00:00Z`)) / 86400000);
+  if (!Number.isFinite(diffDays) || diffDays > 1) throw invalid();
+  return server;
+}
+
+function normalizeNickname(input) {
+  if (!input?.showNickname) return null;
+  const nickname = sanitizeShareText(input.nickname, DESTINY_BIAS_SHARE_NICKNAME_MAX);
+  if (!nickname) return null;
+  if (hasSensitiveText(nickname) || LINK_LIKE.test(nickname)) {
+    throw new DestinyBiasShareError("DESTINY_BIAS_SHARE_NICKNAME_INVALID", "닉네임에 연락처·링크는 넣을 수 없어요.");
+  }
+  return nickname;
+}
+
+/** 입력을 화이트리스트로 좁힌다. 생일은 계산에만 쓰고 projected 밖으로 내보내지 않는다. */
+export function normalizeDestinyBiasShareInput(input, now = new Date()) {
+  if (!input || typeof input !== "object") {
+    throw new DestinyBiasShareError("DESTINY_BIAS_SHARE_INPUT_INVALID", "요청 본문이 올바르지 않아요.");
+  }
+  const user = input.user && typeof input.user === "object" ? input.user : {};
+  const partner = input.partner && typeof input.partner === "object" ? input.partner : {};
+
+  const birthDate = String(user.birthDate || "").trim();
+  const birth = validateBirthDateWithAge(birthDate, now);
+  if (!birth.isValid) {
+    // validateBirthDateWithAge 는 만 14세 미만도 isValid:false 로 돌려준다 — age 가 음수가 아니면 날짜 자체는 유효한 것.
+    if (birth.age >= 0 && birth.age < MIN_SELF_CONSENT_AGE) {
+      throw new DestinyBiasShareError("DESTINY_BIAS_SHARE_UNDER_AGE", `만 ${MIN_SELF_CONSENT_AGE}세 이상만 이용할 수 있어요.`);
+    }
+    throw new DestinyBiasShareError("DESTINY_BIAS_SHARE_BIRTH_DATE_INVALID", birth.error || "올바른 생년월일을 입력해주세요.");
+  }
+
+  const calendarType = CALENDAR_TYPES.includes(user.calendarType) ? user.calendarType : "solar";
+  const kind = String(partner.kind || "").trim();
+  const id = String(partner.id || "").trim();
+  if (!PARTNER_KINDS.includes(kind) || !PARTNER_ID_PATTERN.test(id) || id.length > 80) {
+    throw new DestinyBiasShareError("DESTINY_BIAS_SHARE_PARTNER_INVALID", "최애 정보를 찾을 수 없어요.");
+  }
+
+  return {
+    user: { birthDate, calendarType, isLeapMonth: calendarType === "lunar_leap" },
+    partner: { kind, id },
+    nicknameDisplay: normalizeNickname(input),
+    referenceDate: resolveReferenceDate(input.referenceDate, now),
+  };
+}
+
+/** 서버 재계산 → 공개 요약 투영. 반환 객체에 생일·명식은 없다. */
+export function projectDestinyBiasShare(normalized) {
+  let computed;
+  try {
+    computed = runChemi({ user: normalized.user, partner: normalized.partner, referenceDate: normalized.referenceDate });
+  } catch (error) {
+    const code = String(error?.message || "");
+    if (code === "IDOL_CHEMI_PARTNER_UNKNOWN") {
+      throw new DestinyBiasShareError("DESTINY_BIAS_SHARE_PARTNER_INVALID", "최애 정보를 찾을 수 없어요.");
+    }
+    if (code === "IDOL_CHEMI_USER_UNDER_CONSENT_AGE") {
+      throw new DestinyBiasShareError("DESTINY_BIAS_SHARE_UNDER_AGE", `만 ${MIN_SELF_CONSENT_AGE}세 이상만 이용할 수 있어요.`);
+    }
+    if (code.startsWith("IDOL_CHEMI_")) {
+      throw new DestinyBiasShareError("DESTINY_BIAS_SHARE_INPUT_INVALID", "입력을 다시 확인해 주세요.");
+    }
+    throw error;
+  }
+  const { result, copy } = computed;
+  const typeMeta = CHEMI_TYPE_BY_ID[result.chemiTypeId];
+  return {
+    chemiTypeId: result.chemiTypeId,
+    chemiTypeNameKo: sanitizeShareText(typeMeta?.nameKo || result.chemiTypeNameKo, 80),
+    chemiTypeShortKo: sanitizeShareText(typeMeta?.shortKo || result.chemiTypeShortKo, 40),
+    signalStrength: result.signalStrength,
+    oneLiner: sanitizeShareText(copy.oneLiner, 160),
+    partnerKind: result.partner.kind,
+    partnerId: result.partner.id,
+    partnerName: sanitizeShareText(result.partner.displayName, 60),
+    groupId: result.partner.groupId || null,
+    groupLabel: sanitizeShareText(result.partner.groupLabel, 60),
+    nicknameDisplay: normalized.nicknameDisplay,
+    minorMode: Boolean(result.minorMode),
+    engineVersion: String(result.engineVersion),
+    rosterVersion: String(result.rosterVersion),
+    copyVersion: String(copy.copyVersion),
+  };
+}
+
+async function sha256Hex(text) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(text || "")));
+  return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+/** 같은 (유형·최애·닉네임·버전) → 같은 링크. 생일은 해시 재료에도 넣지 않는다. */
+export function computeDestinyBiasShareContentHash(projected) {
+  const material = [
+    projected.chemiTypeId,
+    projected.signalStrength,
+    projected.oneLiner,
+    projected.partnerKind,
+    projected.partnerId,
+    projected.nicknameDisplay || "",
+    projected.minorMode ? "1" : "0",
+    projected.engineVersion,
+    projected.rosterVersion,
+    projected.copyVersion,
+  ].join("|");
+  return sha256Hex(`destiny-bias-share:${material}`);
+}
+
+export function toPublicDestinyBiasShare(record) {
+  if (!record) return null;
+  const value = typeof record.toObject === "function" ? record.toObject() : record;
+  return {
+    shareId: String(value.shareId),
+    chemiTypeId: String(value.chemiTypeId),
+    chemiTypeNameKo: String(value.chemiTypeNameKo),
+    chemiTypeShortKo: String(value.chemiTypeShortKo),
+    signalStrength: String(value.signalStrength),
+    oneLiner: String(value.oneLiner),
+    partner: {
+      kind: String(value.partnerKind),
+      id: String(value.partnerId),
+      displayName: String(value.partnerName),
+      groupId: value.groupId ? String(value.groupId) : null,
+      groupLabel: String(value.groupLabel || ""),
+    },
+    nicknameDisplay: value.nicknameDisplay ? String(value.nicknameDisplay) : null,
+    minorMode: Boolean(value.minorMode),
+    engineVersion: String(value.engineVersion),
+    rosterVersion: String(value.rosterVersion),
+    copyVersion: String(value.copyVersion),
+    createdAt: toIso(value.createdAt),
+    ...(value.expiresAt ? { expiresAt: toIso(value.expiresAt) } : {}),
+  };
+}
+
+export function resolveShareOrigin({ requestUrl, env = {} } = {}) {
+  const configured = String(env.PUBLIC_SITE_URL || env.SITE_URL || env.SITE_BASE_URL || "").trim().replace(/\/+$/, "");
+  return configured || new URL(requestUrl).origin;
+}
+
+export function buildDestinyBiasShareUrl({ shareId, requestUrl, env = {} } = {}) {
+  return `${resolveShareOrigin({ requestUrl, env })}${DESTINY_BIAS_SHARE_LANDING_PATH}?s=${encodeURIComponent(String(shareId))}`;
+}
+
+export async function createDestinyBiasShare({ input, requestUrl, env = {}, now = new Date(), model = DestinyBiasShare } = {}) {
+  if (!model) throw new Error("DESTINY_BIAS_SHARE_STORAGE_UNAVAILABLE");
+  const normalized = normalizeDestinyBiasShareInput(input, now);
+  const projected = projectDestinyBiasShare(normalized);
+  const contentHash = await computeDestinyBiasShareContentHash(projected);
+  const nowMs = new Date(now).getTime();
+
+  const reuse = async () => {
+    const existing = await model.findOne({ contentHash, status: "active" }).lean();
+    const expiry = existing?.expiresAt ? new Date(existing.expiresAt).getTime() : 0;
+    if (!existing || expiry <= nowMs) return null;
+    return {
+      snapshot: toPublicDestinyBiasShare(existing),
+      shareUrl: buildDestinyBiasShareUrl({ shareId: existing.shareId, requestUrl, env }),
+      reused: true,
+    };
+  };
+
+  const reused = await reuse();
+  if (reused) return reused;
+
+  const base = {
+    ...projected,
+    contentHash,
+    createdAt: new Date(nowMs),
+    expiresAt: new Date(nowMs + DESTINY_BIAS_SHARE_TTL_MS),
+    status: "active",
+  };
+  let lastError;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const record = await model.create({ shareId: createDestinyBiasShareId(), ...base });
+      const snapshot = toPublicDestinyBiasShare(record);
+      return { snapshot, shareUrl: buildDestinyBiasShareUrl({ shareId: snapshot.shareId, requestUrl, env }), reused: false };
+    } catch (error) {
+      lastError = error;
+      if (error?.code !== 11000) throw error;
+      // shareId 충돌 또는 같은 본문의 동시 요청 — 후자면 그 문서를 돌려준다.
+      const raced = await reuse();
+      if (raced) return raced;
+    }
+  }
+  throw lastError || new Error("DESTINY_BIAS_SHARE_ID_COLLISION");
+}
+
+export async function findPublicDestinyBiasShare({ shareId, now = new Date(), model = DestinyBiasShare } = {}) {
+  if (!isValidDestinyBiasShareId(shareId) || !model) return null;
+  const record = await model.findOne({ shareId: String(shareId), status: "active" }).lean();
+  if (!record || (record.expiresAt && new Date(record.expiresAt).getTime() <= new Date(now).getTime())) return null;
+  return toPublicDestinyBiasShare(record);
+}
+
+/* ---------------- OG 카드 HTML (satori 용 마크업만; 렌더는 destiny-bias-share-og.js) ---------------- */
+
+const OG_ACCENT = Object.freeze({
+  telepathy: "#7a5cff",
+  "same-wave": "#3d5afe",
+  "accel-brake": "#ff7ab6",
+  "locked-in": "#3d5afe",
+  "quiet-care": "#7a5cff",
+  "hype-charger": "#ff7ab6",
+  "push-pull": "#ff7ab6",
+  "cross-learn": "#3d5afe",
+  "slow-burn": "#7a5cff",
+});
+
+const HTML_ESCAPES = Object.freeze({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" });
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (ch) => HTML_ESCAPES[ch]);
+}
+
+export function buildDestinyBiasOgHtml(snapshot, brandDomain = "code-destiny.com") {
+  const accent = OG_ACCENT[snapshot.chemiTypeId] || "#7a5cff";
+  const who = snapshot.nicknameDisplay
+    ? `${snapshot.nicknameDisplay} × ${snapshot.partner.displayName}`
+    : `나 × ${snapshot.partner.displayName}`;
+  const group = snapshot.partner.groupLabel ? ` · ${snapshot.partner.groupLabel}` : "";
+  // satori: 자식이 둘 이상인 요소는 display:flex 필수, 배치는 절대좌표(og-card.js 실측 메모와 동일).
+  return `<div style="display:flex;position:relative;width:1200px;height:630px;background:#fff8f0;font-family:'Noto Sans KR';">
+  <div style="display:flex;position:absolute;left:0;top:0;width:1200px;height:14px;background:${accent};"></div>
+  <div style="display:flex;position:absolute;left:80px;top:72px;font-size:24px;letter-spacing:4px;color:${accent};font-weight:700;">최애운명 · 케미 유형</div>
+  <div style="display:flex;position:absolute;left:80px;top:122px;font-size:30px;color:#4b4560;">${escapeHtml(who)}${escapeHtml(group)}</div>
+  <div style="display:flex;position:absolute;left:80px;right:80px;top:196px;font-size:66px;line-height:1.22;color:#1f1a2e;font-weight:700;">${escapeHtml(snapshot.chemiTypeNameKo)}</div>
+  <div style="display:flex;position:absolute;left:80px;right:80px;top:372px;font-size:32px;line-height:1.5;color:#4b4560;">${escapeHtml(snapshot.oneLiner)}</div>
+  <div style="display:flex;position:absolute;left:80px;bottom:64px;font-size:24px;color:#1f1a2e;font-weight:700;">꿀꿀운세</div>
+  <div style="display:flex;position:absolute;right:80px;bottom:66px;font-size:22px;color:#6b6875;">${escapeHtml(brandDomain)} · 오락용</div>
+</div>`;
+}
+
+export function collectDestinyBiasOgGlyphs(snapshot, brandDomain) {
+  const text = buildDestinyBiasOgHtml(snapshot, brandDomain)
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;|&lt;|&gt;|&quot;|&#39;/g, " ");
+  return Array.from(new Set(Array.from(text))).join("");
+}
