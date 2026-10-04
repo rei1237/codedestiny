@@ -163,3 +163,23 @@ test('서비스: 라우트 입력 → 엔진 입력, 정본 스냅샷으로 유�
   assert.deepEqual(paid.view.saju.counts,paid.displayEvidence.natal.counts,'화면 요약용 원국 개수');assert.deepEqual(paid.view.saju.pillars,paid.displayEvidence.pillars);
   assert.ok(paid.view.candidates.every((c)=>c.chars.every((ch)=>Number.isInteger(ch.radical)&&ch.radical>=1&&ch.radical<=214)),'부수 번호 1~214');
 });
+
+test('선택 방식: 고른 이름마다 가장 높은 후보를 하나씩 풀어 쓴다(순위 6 밖이어도)',()=>{
+  const desiredNames=['서윤','하은','지아','수아','예린'];
+  const chosen=E.engineView(E.runNamingEngine({surname:{hangul:'김',hanja:['金']},gender:'F',nameLength:2,strategy:'choose',desiredNames},{tier:'paid',saju:needs}));
+  const told=E.narratedCandidates(chosen);
+  assert.ok(told.length>=6,String(told.length));
+  for(const name of desiredNames)if(chosen.candidates.some((c)=>c.hangul===name))assert.ok(told.some((c)=>c.hangul===name),name);
+  assert.deepEqual(E.deterministicNarration(chosen).names.map((entry)=>entry.rank),told.map((c)=>c.rank));
+  const ch4=E.engineChapterBody(4,chosen,lines,null);
+  for(const c of told)assert.ok(ch4.includes(`### ${c.rank}. ${E.fullName(chosen,c)}`),c.hangul);
+  // 추천 방식은 그대로 상위 6.
+  assert.deepEqual(E.narratedCandidates(view).map((c)=>c.rank),[1,2,3,4,5,6]);
+});
+
+test('장 본문 정규화: 소제목·굵은 줄은 남기고, 짝 없는 ** 와 "미 미치" 반복은 고친다',()=>{
+  const raw='앞 문장입니다.\n\n### 사주 분석: 타고난 기운\n\n### 1. 김서윤(金序潤)\n\n첫 후보는 좋은 영향을 미 미치는 이름입니다.\n\n**1. 작명학적 완성도를 원하신다면: 김예린(金譽潾)**\n\n**강조가 닫히지 않은 문단입니다.\n\n끝나지 않은 문장';
+  const out=E.normalizeNamingBody(raw);
+  assert.equal(out,'앞 문장입니다.\n\n### 사주 분석: 타고난 기운\n\n### 1. 김서윤(金序潤)\n\n첫 후보는 좋은 영향을 미치는 이름입니다.\n\n**1. 작명학적 완성도를 원하신다면: 김예린(金譽潾)**\n\n강조가 닫히지 않은 문단입니다.');
+  assert.equal(E.normalizeNamingBody('그 이름이 이 이름입니다.'),'그 이름이 이 이름입니다.');
+});

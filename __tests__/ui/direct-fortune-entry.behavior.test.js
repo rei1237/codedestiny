@@ -66,9 +66,9 @@ test("타로와 숙요점은 한 번의 진입에서 모달 초기화를 한 번
   assert.match(runtime, /var __cdBirthModalDepsLoadPromise = null;/);
   assert.match(runtime, /if \(__cdBirthModalDepsLoadPromise\) return __cdBirthModalDepsLoadPromise;/);
   assert.match(runtime, /var __cdSukuyoModalState = window\.__cdSukuyoModalState/);
-  assert.match(runtime, /if \(__cdSukuyoModalState\.open\) return __cdSukuyoModalState\.pending \|\| true;/);
+  assert.match(runtime, /if \(__cdSukuyoModalState\.open\) \{\n\s*if \(__cdSukuyoModalState\.pending\) return __cdSukuyoModalState\.pending;\n\s*if \(overlay\.style\.display !== 'none' && getComputedStyle\(overlay\)\.display !== 'none'\) return true;/);
   assert.match(runtime, /var state = window\.__cdTarotModalState/);
-  assert.match(runtime, /if \(state\.open\) return state\.pending \|\| true;/);
+  assert.match(runtime, /if \(state\.open && overlay\.style\.display !== 'none'[^\n]*\{\n\s*return state\.pending \|\| true;/);
   assert.match(runtime, /state\.generation === generation/);
 });
 

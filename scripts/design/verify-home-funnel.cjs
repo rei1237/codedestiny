@@ -247,7 +247,11 @@ async function assertEssentials(page, label) {
     await deepLink.goto(origin + '/static/index.html#cdhFeatured', { waitUntil: 'domcontentloaded' });
     await deepLink.locator('#cdhFeatured #cdSignatureConsult').waitFor({ state: 'visible', timeout: 10000 });
     assert.equal(await deepLink.locator('#cdhMore').evaluate((more) => more.open), false, 'featured is directly visible without opening more');
-    for (const anchor of ['cdhPass', 'cdhExpertsSlot']) {
+    await deepLink.goto(origin + '/static/index.html#cdhPass', { waitUntil: 'domcontentloaded' });
+    await deepLink.locator('#cdhPass .cdh-pass__btn').waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(await deepLink.locator('#cdhMore').evaluate((more) => more.open), false, '#cdhPass stays in the primary flow without opening the garden');
+
+    for (const anchor of ['cdhExpertsSlot']) {
       await deepLink.goto(origin + '/static/index.html#' + anchor, { waitUntil: 'domcontentloaded' });
       await deepLink.waitForFunction(() => document.getElementById('cdhMore')?.open === true, null, { timeout: 10000 });
       await deepLink.waitForTimeout(250);

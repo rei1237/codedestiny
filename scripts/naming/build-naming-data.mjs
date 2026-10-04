@@ -49,6 +49,7 @@ const inputs = {
   jawonSources: join(RAW, "jawon-sources.json"),
   jawonRules: join(RULES, "jawon.json"),
   adjudication: join(RULES, "pool-adjudication.json"),
+  hunOverrides: join(RULES, "hun-overrides.json"),
   poolDecisions: optional(join(RULES, "hanja-review-decisions.csv")),
   suriForm: join(REVIEW_FORMS, "suri-81.csv"),
   samjaeForm: join(REVIEW_FORMS, "samjae-125.csv"),
@@ -260,6 +261,14 @@ function loadHun() {
     const prev = m.get(reading);
     if (!prev) m.set(reading, meaning);
     else if (!prev.split("; ").includes(meaning)) m.set(reading, `${prev}; ${meaning}`);
+  }
+  // 사람 교정(rules/hun-overrides.json) — 원천에 없는 글자·읽기를 고치려 하면 실패(fail-closed).
+  for (const [ch, byReading] of Object.entries(readJson(inputs.hunOverrides).overrides)) {
+    const m = map.get(ch.codePointAt(0));
+    for (const [reading, hun] of Object.entries(byReading)) {
+      if (!m || !m.has(reading)) fail(`hun override has no libhangul entry: ${ch} ${reading}`);
+      m.set(reading, hun);
+    }
   }
   return map;
 }

@@ -5,9 +5,11 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 import { RECORD_SERVICES, savedRecordPath } from '../../lib/records/service-registry.js';
 import { getMasterLoveCodexPlan } from '../../worker/lib/master-love-codex-prompt.mjs';
+import { createRequire } from 'node:module';
 const origin = process.env.RECORDS_TEST_ORIGIN || 'http://127.0.0.1:3194';
 const detailOnly = process.env.RECORDS_TEST_DETAIL_ONLY;
 const stateOnly = process.env.RECORDS_TEST_SCENARIO;
+const hubOnly = process.env.RECORDS_TEST_HUB_ONLY === '1';
 assert.match(origin, /^http:\/\/(127\.0\.0\.1|localhost):\d+$/);
 const out = path.resolve('build-cache/records-hub'); fs.mkdirSync(out,{recursive:true});
 const user = {id:'64b7f2a1c3d4e5f601234567',_id:'64b7f2a1c3d4e5f601234567',name:'화면 검증',email:'fixture@example.invalid',hasLocalAuth:true};
@@ -31,6 +33,18 @@ const details={
   legacy:{record:record('astrology'),content:{id:'',chapters:[{title:'첫 장',body:'첫 장 전체 내용'},{title:'마지막 장',body:'마지막 장 전체 내용'}],chart:{planets:[{name:'Sun',degree:12}]},html:'<table><tr><td>저장된 표</td></tr></table><script>window.fixtureXss=true</script>'}},
   partial:{record:record('fusion','partial',{status:'partial'}),content:{chapters:[{title:'첫 장',body:'부분 저장 내용'}]}},
 };
+if(!stateOnly && (!detailOnly || detailOnly==='destiny-bias')) {
+  // Build a synthetic, local calculation before opening the saved reader.
+  // The reader itself may only GET the persisted snapshot.
+  const {build}=await import('esbuild');
+  const bundle=await build({stdin:{contents:"export {buildChemiReport} from './app/saju/destiny-bias/engine/chemiReportBridge'; export {resolvePartner} from './lib/idol-chemi/index.js';",resolveDir:process.cwd(),loader:'ts'},bundle:true,write:false,platform:'node',format:'cjs'});
+  const module={exports:{}};new Function('require','module','exports',bundle.outputFiles[0].text)(createRequire(import.meta.url),module,module.exports);
+  const report=structuredClone(module.exports.buildChemiReport({user:{birthDate:'1995-03-14',calendarType:'solar'},partner:module.exports.resolvePartner({kind:'roster',id:'bts-jungkook'}),referenceDate:'2026-10-01'}));
+  report.result.partner.displayName='테스트 최애';report.result.partner.groupLabel='검증 그룹';report.vm.biasName='테스트 최애';
+  assert.equal(report.vm.userBirthDate,'');assert.equal(report.vm.biasBirthDate,'');assert.equal(report.vm.cardSvg,'');
+  details['destiny-bias']={record:record('destiny-bias'),content:{canonical:{version:'destiny-bias-record-v1',viewModel:report.vm,chemiReport:report,themeKey:'lotus-moon'}}};
+}
+details['bias-partial']={record:record('destiny-bias','broken',{status:'partial'}),content:{reportText:'남아 있는 저장 내용',canonical:{version:'destiny-bias-record-v1',viewModel:{totalScore:1,detailedTabs:[null],elementDistribution:{user:{}}},chemiReport:{totalScore:1,subScores:[],copy:{points:[]},result:{pillars:{user:{}}},vm:{detailedTabs:[]}}}}};
 // Compile the small set of routes before exercising browser history. A cold
 // development compiler can invalidate its own manifest during a redirect.
 for(const pathname of ['/consultations/','/records/','/records/view/','/fortune-tea-house/']) {
@@ -70,7 +84,7 @@ async function contextFor(width,scenario='normal') {
         const offset=Number(url.searchParams.get('cursor')||0);
         data={ok:true,items:selected.slice(offset,offset+10),failures:scenario==='partial-error'?[{source:'fusion',name:'초융합 운세'}]:[],nextCursor:offset+10<selected.length?String(offset+10):scenario==='partial-error'?'24':null};
       }
-    } else if(url.pathname==='/api/records/detail')data={ok:true,...details[url.searchParams.get('id')==='partial'?'partial':url.searchParams.get('source')==='astrology'?'legacy':url.searchParams.get('source')]};
+    } else if(url.pathname==='/api/records/detail')data={ok:true,...details[url.searchParams.get('id')==='broken'?'bias-partial':url.searchParams.get('id')==='partial'?'partial':url.searchParams.get('source')==='astrology'?'legacy':url.searchParams.get('source')]};
     else if(url.pathname.startsWith('/api/fortune-tea-house/results/'))data={ok:true,result:tea};
     else if(url.pathname.startsWith('/api/profile'))data={ok:true,profiles:[],currentId:''};
     else if(/subscription|access-state|pass/.test(url.pathname))data={ok:true,user,subscription:{tier:'none',isActive:false},access:{unlocked:[],features:{}},entitlements:[]};
@@ -107,30 +121,45 @@ try {
     assert.equal(state.errors.length,0,JSON.stringify(state.errors));assert.equal(state.forbidden.length,0,JSON.stringify(state.forbidden));
     evidence.push({scenario:'layout-navigation-restore',width,hubBounds,archiveBounds,api:state.seen,passed:true});await context.close();
   }
-  for(const scenario of detailOnly?[]:['guest','empty','error','partial-error'].filter(scenario=>!stateOnly||stateOnly===scenario)) {
+  for(const scenario of detailOnly||hubOnly?[]:['guest','empty','error','partial-error'].filter(scenario=>!stateOnly||stateOnly===scenario)) {
     const state=await contextFor(390,scenario);await state.page.goto(origin+'/records/',{waitUntil:'domcontentloaded'});
     const expected={guest:'내 기록을 보려면 로그인해 주세요',empty:'아직 보관된 기록이 없어요',error:'기록을 불러오지 못했어요','partial-error':'일부 기록을 확인하지 못했어요'}[scenario];await state.page.getByText(expected,{exact:true}).waitFor();
     if(scenario==='partial-error')assert.equal(await state.page.locator('main article').count(),10);
     if(scenario==='error')assert.equal(await state.page.getByText('아직 보관된 기록이 없어요',{exact:true}).count(),0);
     await state.page.screenshot({path:path.join(out,`archive-${scenario}.png`),fullPage:true});evidence.push({scenario,passed:true,api:state.seen});await state.context.close();
   }
-  for(const source of (stateOnly?[]:['neo','fusion','codex','chat','chat-consultation','tea','astrology','partial']).filter(source=>!detailOnly||source===detailOnly)) {
-    const state=await contextFor(390);const actual=source==='partial'?'fusion':source;
-    await state.page.goto(origin+savedRecordPath(actual,source==='tea'?'tea-fixture':source==='partial'?'partial':'fixture'),{waitUntil:'domcontentloaded'});
+  for(const source of (stateOnly||hubOnly?[]:['neo','fusion','codex','chat','chat-consultation','tea','astrology','partial','destiny-bias','bias-partial']).filter(source=>!detailOnly||source===detailOnly)) {
+    const state=await contextFor(390);const actual=source==='partial'?'fusion':source==='bias-partial'?'destiny-bias':source;
+    await state.page.goto(origin+savedRecordPath(actual,source==='tea'?'tea-fixture':source==='partial'?'partial':source==='bias-partial'?'broken':'fixture'),{waitUntil:'domcontentloaded'});
     if(source==='tea')await state.page.getByText('[화면 검증] 연이의 상담 기록',{exact:true}).waitFor();
     else if(source==='codex')await state.page.waitForSelector('#master-love-codex-document');
     else if(source==='neo')await state.page.getByText('저장된 작전',{exact:true}).first().waitFor();
     else if(source==='fusion')await state.page.getByText('sajuSection 저장 섹션',{exact:true}).waitFor();
     else if(source==='chat')await state.page.getByText('대화의 전체 상세 내용',{exact:true}).waitFor();
     else if(source==='chat-consultation')await state.page.getByText('마지막 상담 전체 본문',{exact:true}).waitFor();
+    else if(source==='destiny-bias')await state.page.locator('[data-saved-chemi]').waitFor();
+    else if(source==='bias-partial')await state.page.getByText('남아 있는 저장 내용',{exact:true}).waitFor();
     else if(source==='partial'){try{await state.page.getByText('부분 저장 내용',{exact:true}).waitFor();}catch(error){console.log('Partial fixture failure',await state.page.locator('main').innerText(),state.errors,state.seen);throw error;}}
     else {await state.page.getByText('마지막 장 전체 내용',{exact:true}).waitFor();assert.equal(await state.page.locator('td').filter({hasText:'저장된 표'}).count(),1);assert.equal(await state.page.evaluate(()=>window.fixtureXss),undefined);}
     await state.page.reload({waitUntil:'domcontentloaded'});
-    const refreshedText={tea:'[화면 검증] 연이의 상담 기록',neo:'저장된 작전',fusion:'sajuSection 저장 섹션',chat:'대화의 전체 상세 내용','chat-consultation':'마지막 상담 전체 본문',partial:'부분 저장 내용',astrology:'마지막 장 전체 내용'}[source];
+    const refreshedText={tea:'[화면 검증] 연이의 상담 기록',neo:'저장된 작전',fusion:'sajuSection 저장 섹션',chat:'대화의 전체 상세 내용','chat-consultation':'마지막 상담 전체 본문',partial:'부분 저장 내용',astrology:'마지막 장 전체 내용','destiny-bias':'케미 포인트','bias-partial':'남아 있는 저장 내용'}[source];
     if(source==='codex')await state.page.waitForSelector('#master-love-codex-document');
     else await state.page.getByText(refreshedText,{exact:true}).first().waitFor();
     assert.equal(state.errors.length,0,JSON.stringify(state.errors));assert.equal(state.forbidden.length,0,JSON.stringify(state.forbidden));
     if(source==='neo')assert.equal(await state.page.getByText('selected Method',{exact:true}).count(),0);
+    if(source==='bias-partial')assert.equal(await state.page.locator('[data-saved-chemi]').count(),0);
+    if(source==='destiny-bias') {
+      await state.page.getByRole('button',{name:/케미 리포트/}).click();
+      await state.page.waitForSelector('#dbk-report-panel-report');
+      await state.page.getByRole('button',{name:/팬덤 성향/}).click();
+      await state.page.waitForSelector('#dbk-report-panel-fandom');
+      await state.page.getByRole('button',{name:/밈 존/}).click();
+      await state.page.waitForSelector('#dbk-report-panel-meme');
+      await state.page.getByText('근거 펼쳐보기',{exact:true}).click();
+      assert.ok(await state.page.locator('[data-saved-chemi] table').count()>=2);
+      await state.page.getByRole('button',{name:/FLIP/}).click();
+      await state.page.getByRole('button',{name:/FRONT/}).waitFor();
+    }
     if(source==='codex')await state.page.waitForFunction(()=>Array.from(document.images).filter(img=>img.src.includes('CodeDestinyNovel')).every(img=>img.complete&&img.naturalWidth>0));
     await bounds(state.page,390);await state.page.screenshot({path:path.join(out,`reading-${source}.png`),fullPage:true});evidence.push({scenario:'direct-refresh-'+source,passed:true,...(source==='codex'?{portrait:'offline local character fixture; production R2 unverified'}:{}),api:state.seen});await state.context.close();
   }

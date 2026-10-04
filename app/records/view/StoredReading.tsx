@@ -4,6 +4,7 @@ import AiResultProse from '@/components/fortune/AiResultProse';
 import { sanitizePublicInsightHtml } from '@/app/insights/_lib/sanitizePublicHtml';
 import { useLocale } from '@/lib/i18n/useT';
 import { recordsCopy } from '@/lib/records/copy';
+import { isStoredBiasViewModel, isStoredChemiReport } from '@/lib/records/stored-bias-shape.js';
 import type { Decks, NatalIdentity } from '@/app/nakshatra/ai/AiConsultDecks';
 import type { HdChart } from '@/app/human-design/_lib/types';
 import type { Locale as HdLocale } from '@/app/human-design/_copy';
@@ -19,6 +20,7 @@ import BiasDestinyMainCard from '@/app/saju/destiny-bias/components/BiasDestinyM
 import BiasDestinyFiveSections from '@/app/saju/destiny-bias/components/BiasDestinyFiveSections';
 import BiasDestinyElementChart from '@/app/saju/destiny-bias/components/BiasDestinyElementChart';
 import type { DestinyBiasResultViewModel } from '@/app/saju/destiny-bias/lib/types';
+import type { ChemiReport } from '@/app/saju/destiny-bias/engine/chemiReportBridge';
 import biasStyles from '@/app/saju/destiny-bias/destiny-bias.module.css';
 
 const AiConsultDecks = dynamic(() => import('@/app/nakshatra/ai/AiConsultDecks'));
@@ -27,6 +29,10 @@ const CodexReader = dynamic(() => import('@/src/features/master-love-codex/compo
 const SavedNeoDocuments = dynamic(() => import('@/src/features/neo-war-room/NeoOperationRoomResultPage').then(module => module.SavedNeoDocuments));
 const FusionResultThread = dynamic(() => import('@/app/fusion-fortune/FusionResultThread').then(module => module.FusionResultThread));
 const ConsultationResult = dynamic(() => import('@/app/fortune-chat/ConsultationResult'));
+const ChemiCoreCard = dynamic(() => import('@/app/saju/destiny-bias/components/chemi/ChemiCoreCard'));
+const ChemiSections = dynamic(() => import('@/app/saju/destiny-bias/components/chemi/ChemiSections'));
+const ChemiReportTabs = dynamic(() => import('@/app/saju/destiny-bias/components/chemi/ChemiReportTabs'));
+const ChemiEvidencePanel = dynamic(() => import('@/app/saju/destiny-bias/components/chemi/ChemiEvidencePanel'));
 
 // Legacy snapshots keep their structure: chapters, message order/roles, card
 // positions and tabular facts. Dedicated modern result routes remain primary.
@@ -69,9 +75,14 @@ function Structure({ value, field = '' }: { value: unknown; field?: string }) {
 export default function StoredReading({ source, serviceId, value }: { source: string; serviceId: string; value: unknown }) {
   const locale = useLocale(), c = recordsCopy(locale), row = object(value);
   const canonical = object(row.canonical), vm = object(canonical.viewModel);
-  if (source === 'destiny-bias' && canonical.version === 'destiny-bias-record-v1' && typeof vm.totalScore === 'number' && Array.isArray(vm.detailedTabs) && object(vm.elementDistribution).user) {
+  if (source === 'destiny-bias' && canonical.version === 'destiny-bias-record-v1' && Object.prototype.hasOwnProperty.call(canonical,'chemiReport')) {
+    if (!isStoredChemiReport(canonical.chemiReport)) return <Structure value={row} />;
+    const report = canonical.chemiReport as ChemiReport;
+    return <div data-saved-chemi className={`${biasStyles.page} space-y-6 rounded-[var(--cd-r-card)] p-4`} style={{background:'var(--dbk-cream)'}}><ChemiCoreCard report={report} themeKey={String(canonical.themeKey || '')} /><ChemiSections copy={report.copy} /><ChemiReportTabs vm={report.vm} /><ChemiEvidencePanel result={report.result} /></div>;
+  }
+  if (source === 'destiny-bias' && canonical.version === 'destiny-bias-record-v1' && isStoredBiasViewModel(vm)) {
     const snapshot = vm as DestinyBiasResultViewModel;
-    return <><div className={`${biasStyles.page} space-y-6 rounded-[var(--cd-r-card)] p-4`}><BiasDestinyMainCard vm={snapshot} /><BiasDestinyElementChart vm={snapshot} /><BiasDestinyFiveSections vm={snapshot} /></div><Structure value={vm} /></>;
+    return <><div className={`${biasStyles.page} space-y-6 rounded-[var(--cd-r-card)] p-4`} style={{background:'var(--dbk-cream)'}}><BiasDestinyMainCard vm={snapshot} /><BiasDestinyElementChart vm={snapshot} /><BiasDestinyFiveSections vm={snapshot} /></div><Structure value={vm} /></>;
   }
   if (source === 'chat-consultation' && Array.isArray(row.chapters) && Array.isArray(row.manifest)) return <ConsultationResult row={row as ChatConsultation} readOnly onNew={() => window.location.assign('/fortune-chat/')} />;
   if (source === 'fusion' && object(row.result).sajuSection) return <><div className={`${fusionStyles.page} rounded-[var(--cd-r-card)] p-3`}><ol className="space-y-5"><FusionResultThread result={row.result as FusionResult} openSection="" onToggleSection={() => {}} exporting /></ol></div><Structure value={Object.fromEntries(Object.entries(row).filter(([key]) => key !== 'result'))} /></>;

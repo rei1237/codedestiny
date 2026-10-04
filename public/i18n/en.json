@@ -1340,7 +1340,9 @@
         "w10000": "₩10,000",
         "from10000": "From ₩10,000",
         "w30000": "₩30,000",
-        "w50000": "₩50,000"
+        "w50000": "₩50,000",
+        "w20000": "₩20,000",
+        "from3000": "From ₩3,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1601,14 +1603,14 @@
       "pass": "Passes",
       "login": "Log in",
       "account": "My account",
-      "offerTitle": "Saju once read in ₩300,000 one-on-one sessions, now from ₩1,000",
+      "offerTitle": "Saju once read in ₩300,000 one-on-one sessions, now from ₩3,000",
       "reviewsLead": "Real KakaoTalk messages from Neo's 1:1 clients, quoted in the original Korean. Omissions are marked with ….",
       "reviewsBar": "Neo 1:1 session · KakaoTalk",
       "reviewsMeta": "Real client review · shared with consent",
       "reviewsPosted": "posted on blog",
       "reviewsFine": "Reviews reflect personal experience and do not guarantee results. Saju readings are for reference only.",
-      "offerNote": "The 1:1 sessions were held by Neo in person; the ₩1,000 reading is delivered by a calculation engine with AI commentary.",
-      "offerCta": "Try the ₩1,000 Saju reading →",
+      "offerNote": "The 1:1 sessions were held by Neo in person; the ₩3,000 reading is delivered by a calculation engine with AI commentary.",
+      "offerCta": "Try the ₩3,000 Saju reading →",
       "expertiseTitle": "Rules for the calculation, AI for the commentary",
       "expertise": {
         "engine": "The natal chart is built with fixed calculation rules, and the AI writes its commentary from that result. If the commentary names a day or hour pillar that differs from the calculation, the server rejects it.",
@@ -1648,7 +1650,7 @@
       "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
       "passCta": "See all 4 passes",
       "moreTitle": "Explore Yeoni’s atelier",
-      "moreItems": "Daily readings · consultations · passes · stories",
+      "moreItems": "Daily readings · consultations · records · stories",
       "moreClose": "Show less",
       "searchLead": "Find the reading you need by concern, method or price.",
       "searchPlaceholder": "Love, money, a job move… search readings",
@@ -1701,7 +1703,11 @@
       "yeoniRoom": "Destiny Tea House",
       "yeoniRoomNote": "Talk things through with Yeoni",
       "neoRoom": "Neo’s strategy room",
-      "neoRoomNote": "Find your next step with Neo"
+      "neoRoomNote": "Find your next step with Neo",
+      "chemiKicker": "K-POP Bias Chemistry",
+      "chemiTitle": "You and your bias: what's the chemistry?",
+      "chemiNote": "Enter your birthday and get a photocard",
+      "chemiCta": "See my bias chemistry"
     },
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
@@ -6830,7 +6836,8 @@
         "k1bs96nr": "Neo's cool-headed operation briefing on the choice in front of you",
         "n30000": "₩30,000",
         "n20000Price10000": "From ₩10,000",
-        "n50000": "₩50,000"
+        "n50000": "₩50,000",
+        "n30000Price20000": "₩20,000"
       }
     },
     "cdSigCardBody": {

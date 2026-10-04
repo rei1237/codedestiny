@@ -24,9 +24,10 @@ const edits = [], dictionaryCopies = [];
 const doc = parse(html, { sourceCodeLocationInfo: true });
 function visit(node, amount = null) {
   const attrs = Object.fromEntries((node.attrs || []).map(a => [a.name, a.value]));
-  if (attrs["data-feature-key"]) amount = price(attrs["data-feature-key"]);
+  if (attrs["data-cd-price-key"]) amount = price(attrs["data-cd-price-key"]);
+  else if (attrs["data-feature-key"]) amount = price(attrs["data-feature-key"]);
   else if (attrs["data-cd-service-id"]) amount = price(featureById.get(attrs["data-cd-service-id"]));
-  if (amount > 0 && /tarot-tile__coin-badge|cd-sig-card__price|cd-quick-card__price/.test(attrs.class || "") && node.sourceCodeLocation?.startTag) {
+  if (amount > 0 && /tarot-tile__coin-badge|cd-sig-card__price|cd-quick-card__price|cd-concern__q-price/.test(attrs.class || "") && node.sourceCodeLocation?.startTag) {
     const loc = node.sourceCodeLocation;
     const content = html.slice(loc.startTag.endOffset, loc.endTag.startOffset);
     if (/\d[\d,]*\s*원/.test(content)) {
@@ -36,7 +37,7 @@ function visit(node, amount = null) {
         const attrName = attrs["data-key"] ? "data-key" : attrs["data-cd-trans"] ? "data-cd-trans" : null;
         const key = attrs[attrName];
         if (key) {
-          const newKey = `${key}Price${amount}`;
+          const newKey = /^home\.concernPick\.price\.w\d+$/.test(key) ? key.replace(/w\d+$/, `w${amount}`) : `${key}Price${amount}`;
           const a = loc.attrs[attrName];
           edits.push({ start: a.startOffset, end: a.endOffset, text: `${attrName}="${newKey}"` });
           dictionaryCopies.push({ key, newKey, amount, fallback: next });
@@ -48,6 +49,9 @@ function visit(node, amount = null) {
 }
 visit(doc);
 for (const edit of edits.sort((a,b) => b.start-a.start)) html = html.slice(0,edit.start)+edit.text+html.slice(edit.end);
+const neoPrice = price(featureById.get("neo-operation-room"));
+if (!(neoPrice > 0)) throw new Error("Missing Neo display price");
+html = html.replace(/^(\s*['"]\/neo-operation-room['"]:\{.*)$/gm, line => line.replace(/\d[\d,]*원/g, won(neoPrice)));
 writeFileSync("index.html", html);
 for (const file of readdirSync("public/i18n").filter(f => f.endsWith(".json"))) {
   const path = `public/i18n/${file}`, data = JSON.parse(readFileSync(path,"utf8"));

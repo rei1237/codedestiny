@@ -296,7 +296,7 @@ for (const featureKey of listServerPricedFeatureKeys()) {
     const paidMethods = ["DIRECT_KRW", ...(monthlyAllowed ? ["MOONLIGHT_STONE"] : [])];
     if (featureKey.startsWith("yeongnyangi-")) {
       assert.equal(monthlyAllowed, true, `${featureKey}: 승인된 영냥이 월정석 결제 유지`);
-      assert.equal(membershipCreditCost, coinCost * 50, `${featureKey}: 1,000원당 500 월정석 정본`);
+      assert.equal(membershipCreditCost, coinCost * 10, `${featureKey}: 월정석 1개당 10원 복원 정책`);
     }
     for (const [label, decisionForTier] of [
       ["standard", standardDecision],

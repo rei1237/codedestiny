@@ -7,8 +7,8 @@
 - 화면: `/records/`, `/records/view/`, `/consultations/`. 대표 완료 결과에 저장 결과·전체 보관함 링크. 기존 직접 접근/공유 경로는 유지.
 - 추가 저장 누락 수정: 최애운명의 기존 cards POST에 완성 VM 저장 연결. 동일 사용자/저장 요청 재시도는 원자 upsert로 중복 방지한다.
 - 보존: 결제 가격/이용권/월정석/단건 결제, 인증 정책, 기존 저장 본문 및 스키마, TTL/공유 정책. 추가 요청으로 영냥이 최종 복구 실패의 자동 환불 정책만 명시적으로 변경했다. 실 DB/실 LLM/실결제/운영 인덱스/배포는 호출하지 않았다.
-- 검증: 신규 Worker mock 22개와 기존 Node 영향 범위 54개 PASS. 최신 환불·repository 영향 범위 mock 8개 suite/178개 PASS. typecheck/eslint/Worker dry-run PASS. 전체 공식 검사의 87개 가드가 통과했으나 Jest의 기존 repository mock 2개가 새 adapter export 누락으로 실패했다. 해당 mock을 수정하고 178개를 재검증했다. 이전 실패·중단 실행을 최종 통과로 보고하지 않으며 최종 check:fast/CI 판정은 종료 보고에 별도로 기록한다.
-- browser: 비식별 16개 서로 다른 시나리오 PASS, 360/390/430/1280px. 생성/결제/차감/쓰기 0회. 연속 실행의 개발 서버 manifest 오류로 마지막 3개는 분리 실행했고, 최종 Neo 대비 변경 후 Neo 상세를 재검증했다. `build-cache/records-hub/verification.json`에 실행별 근거를 남겼다. PNG도 같은 폴더다.
+- 검증: 신규 Worker mock 22개와 기존 Node 영향 범위 54개 PASS. `81d827ffdf5f`의 공식 `check:fast --committed-head --base=main --head=HEAD`는 exit 0, 88개 가드·Node 2,428개·Jest 337개 suite/5,042개 PASS. 이후 원격 `0350aeb14abf`를 병합하고 겹치는 저장 연결을 보완했다. 병합 후 환불·repository 영향 범위 8개 suite/179개, 최애 저장 및 원격 정적 계약 Node 15개, 저장 형식 검사 59개 PASS. 초기 실패했던 repository mock export와 함수 추출 테스트의 helper 주입을 수정했다. 타입 검사·정적 미러와 정확한 main SHA의 CI 판정은 종료 보고에 별도로 기록한다.
+- browser: 비식별 18개 서로 다른 시나리오 PASS, 360/390/430/1280px. 생성/결제/차감/쓰기 0회. 초기 연속 실행의 개발 서버 manifest 오류로 마지막 3개는 분리 실행했고, 최종 Neo 대비 변경 후 Neo 상세를 재검증했다. 원격 병합 후 4개 화면 폭의 허브/보관함을 재검증하고 최애 전체 포토카드·상세 탭·명식 근거 및 불완전 저장 형식의 새로고침을 추가했다. `build-cache/records-hub/verification.json`에 실행별 근거를 남겼다. PNG도 같은 폴더다.
 - 디자인: 독립 A/B 검토, detector 0 findings. 검색 키보드 포커스·내부 필드 중복 수정. 외부 Codex 이미지에는 동일 캐릭터 local fixture를 사용했다.
 - 제약: TTL로 이미 삭제된 기록과 과거 서버 미저장 최애 결과는 복원할 수 없다. 실기기/native 웹뷰/운영 데이터·인덱스 explain/운영 R2 이미지/정량 대비는 미검증. 레거시 구조 필드 일부는 한국어 라벨이며 다른 언어는 후속 문체 검토가 필요하다.
 - 마이그레이션: 데이터 이동 없음. `node scripts/records-index-plan.mjs`는 read-only 계획이다. 인덱스 apply는 운영자의 별도 승인 환경에서만 수행하며 API/Worker startup에서 호출하지 않는다.
@@ -20,3 +20,11 @@
 생성 claim/reconcile의 stale CAS, quota 복원 transaction 분리, 혼합 단건 결제의 할인 월정석 복원 누락, 웹훅 선확정(`refunded + CANCELLED`) 후 정산 재시도 누락을 수정했다. 외부 생성의 성공률이나 환불 완료 시각은 보장하지 않는다. 관련 mock 7개 suite/89개 PASS이며 실 PG·실 LLM·운영 정산 증거는 없다.
 
 최신 main의 concern panel CSS를 충돌 없이 병합하고 정적 소스·미러 캐시를 재생성했다. 공식 `check:fast --committed-head --base=main --head=HEAD`와 정확한 main SHA의 CI 결과는 종료 보고에 별도로 기록한다. 초기 전체 테스트, 중단된 공식 검사 또는 실패한 연속 dev browser 실행을 최종 통과로 취급하지 않는다.
+
+## 원격 변경 통합과 추가 결함 검증
+
+- 원격 K-pop 최애운명 화면·공유 API·최신 가격 레지스트리를 보존했다. 수동 컬렉션 저장은 일부 요약만 저장했으므로 로그인 사용자의 전체 표시용 `chemiReport`와 VM을 자동 저장한다. 자동/수동/재시도는 같은 owner·UUID와 Promise를 공유한다. 다른 결과나 계정으로 바뀐 뒤 도착한 응답은 현재 UI에 적용하지 않는다.
+- 새 최애 결과는 포토카드 앞뒤, 3개 상세 탭, 케미 해석, 양쪽 명식과 신호 근거를 저장된 스냅샷으로 표시한다. 입력 생일·사진·원본 파트너 입력은 저장 payload에 넣지 않는다. 기존 공개 공유는 원격 구현을 유지한다.
+- 부분 `canonical`이 전용 카드 컴포넌트에 들어가면 오류가 나는 P1을 찾았다. 순수 형식 검사로 누락/null/잘못된 중첩값을 걸러 저장된 구조 본문으로 열며, 값을 채우거나 새 계산을 하지 않는다. 회귀 59개와 실제 브라우저 직접 URL·새로고침으로 확인했다.
+- 가격 변경 전 월정석 500/단건 1,000원 스냅샷을 synthetic 과거 증빙으로 재구성해 원 차감 500을 복원하는 테스트를 추가했다. 현재 구매 API는 옛 가격 주문을 계속 거부한다.
+- 원격 CI의 기존 최애 meta description 폭 초과(165)를 짧게 수정했다. 실제 빌드의 SEO 게이트 결과는 main CI로 확인한다.

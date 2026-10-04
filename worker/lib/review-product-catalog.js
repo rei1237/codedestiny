@@ -333,7 +333,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
     productId: "destiny-bias",
     name: "최애운명",
     summary: "최애와 나의 운명을 겹쳐 보는 심화 분석",
-    href: "/destiny-bias",
+    href: "/saju/destiny-bias",
     featureKeys: Object.freeze([
     ]),
   },

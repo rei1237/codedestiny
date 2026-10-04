@@ -33,6 +33,11 @@ If the first three documents disagree, do not merge rules silently. Record the m
 
 ## Current Conflict Resolutions
 
+### 영냥이 10-05 정식가: 9,900원 체계 ↔ 3,000원 체계 (2026-10-04, 해소)
+
+- **충돌 내용**: `docs/context/payment-gating.md` 2026-10-02 체험가 절과 `docs/handoff/yeongnyangi-price-20261005.md`(10-02판)는 10-05 정식가를 고등어 9,900원 체계로 적었다. 2026-10-04 사용자가 "9900원까지 올리는것은 너무 가파르다"며 그 표 ×0.302·100원 단위(고등어 3,000원)로 바꾸고, "천원 운세" 이름을 위해 재미 사주 콘텐츠 6종을 1,000원으로 내렸다.
+- **정본**: payment-gating 2026-10-05 절. 9,900원 체계 워크트리 B(`wt/yn-price-1005-20261002-161442`)는 머지하지 않고 폐기했다. 10-02 절의 숫자는 이력으로 남긴다.
+
 ### 실행 등급과 GREEN 격리 면제 문구 충돌 (2026-09-08, 확인 필요)
 
 - `CLAUDE.md`의 현재 실행 계약은 2개 이상 파일 또는 CI·배포 축을 RED로 판정하고 격리 worktree를 요구한다.
@@ -338,3 +343,11 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **가드**: `scripts/verify-basic-fortune-library.mjs` 의 astro 단언은 그대로 둔다. 확인하는 것은 nav 5, `.astro-wheel-card`, 상담 요소, 빈 details 0, 비ko 제목 한글 0 이다.
 - **남은 것(범위 밖)**: 상담 블록 4종과 `.astro-stellar-archive` 는 불변이다. 새 바탕과 어울리지 않으면 보고만 한다.
 - **롤백**: 인수인계 문서 `docs/handoff/2026-10-04-astro-premium-redesign.md` §9 의 커밋 단위로 `git revert`.
+
+## 2026-10-04 작명 v2 밝은 작명서 — design-canon "App Router 는 네오 단일(밤)" ↔ 밝은 톤 요청
+
+- **요청(원문)**: "미해결 리스크부터 해결해주고 너무 어두운 톤이므로 밝게 개선해주면 좋겠다."
+- **충돌**: design-canon 은 App Router 화면을 네오 밤 세계 하나로 정했다(`dark:`·prefers-color-scheme 금지, 단일 다크). 사용자 요청이 더 최근이고 구체적이며 작명 v2 화면에 한정된다.
+- **해소**: 모드 전환이 아니라 화면 단위 표지 선택이다. 작명 v2(랜딩 `?naming_engine=v2` opt-in, v2 결과)일 때만 셸 전체가 연이 표지(아이보리 #fffaf7·플럼 잉크·로즈 크림슨, 금은 장식)로 바뀐다. 반쪽 전환은 없다. 색은 사설 변수 `--nm-*`(app/naming-ai/naming-tone.module.css)·`--nv2-*` 에만 두고 `--cd-*` 는 재선언하지 않는다. 밝은 값은 styles/theme-tokens.css 에 이미 있는 연이 값만 쓰며 새 hex 는 없다. v1·레거시 결과는 `.shell` 밤 값 그대로라 픽셀이 같다.
+- **가드**: `__tests__/ui/paid-result-locale-copy.test.js`(v2 UI 한글 금지)와 headed 360/960 대비 실측(본문 4.5:1 이상)을 확인했다. 오행 글자색은 lib/five-element-colors.ts 를 건드리지 않고 namingV2Types.ts 가 칩 배경 대비 4.6:1 이상이 되도록 먹색으로 섞는다.
+- **롤백**: Phase 6.6 밝은 톤 커밋(셸 톤·v2 팔레트·산수 그림)을 `git revert`.

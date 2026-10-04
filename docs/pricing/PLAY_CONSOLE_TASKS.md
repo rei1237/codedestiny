@@ -116,6 +116,8 @@
 > 이번 정비 전에는 `fortune-fish-gacha`(5코인/₩500)도 여기 있었으나, 웹에서도 무료로 전환돼 레지스트리에서 빠졌다.
 > 🔴 `APP_FREE_MAX_COIN_PRICE` 를 5로 되돌리면 앱에서 음악 구매가 **Play 티어 미등록 503 으로 하드블록**된다.
 
+> 2026-10-05 예외: 천원 사주 콘텐츠 6종(10코인/₩1,000, `APP_PAID_LOW_PRICE_FEATURE_KEYS`)과 영냥이 `yeongnyangi-*` 는 무료 구간이어도 무료 통과하지 않는다. ₩1,000 SKU 를 등록하고 `worker/lib/app-store-pricing.js` 에 10코인 티어를 추가하기 전까지 앱에서는 `APP_SKU_NOT_VERIFIED`(503)로 닫힌다. 영냥이 새 가격 중 ₩5,400·₩7,200·₩10,500·₩14,800 도 SKU 가 없어 `APP_UNVERIFIED_CONTENT_COIN_PRICES` 로 실패 폐쇄 중이다.
+
 ## 5. 배포 후 확인
 
 1. `npm run verify:app-store-pricing` — 레지스트리 가격대가 전부 앱 티어로 커버되는지(미커버 = 앱 결제 하드블록)

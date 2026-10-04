@@ -100,6 +100,7 @@
 | --- | --- | --- |
 | `guardianFortuneGenerationAttempts`, `fusionFortuneGenerationAttempts` | 예약·중복요청 잠금이며 본문 없음. 독립 결과에서 제외 | models:1761,1841 |
 | `guardianFortuneSharedSnapshots`, `resultSharedSnapshots` | 공개 공유용 요약, owner userId 없음, TTL. 개인 소유권을 추정해 보관함에 넣지 않음 | models:1778,1813 |
+| `destinyBiasShares` / DestinyBiasShare | 원격 K-pop 개편의 공개 공유 요약·90일 TTL. owner userId 연결이 없으므로 개인 보관함 원본으로 사용하지 않음. 개인 전체 결과는 별도 DestinyBiasCard에 저장 | worker/lib/models.js의 destinyBiasShareSchema; worker/lib/destiny-bias-share.js |
 | `PointHistory`, `Payment` 일반 문서, `MonthlyCreditLedger`, entitlements | 결제/이용권 증거. 결과 본문 없으면 운세 결과로 노출하지 않음. Payment.namingPrompt는 본문 있는 예외 | models:298,384,419; routes/naming-prompt:1223 |
 | 일반 사주·자미·숙요·베다·점성·타로 무료 계산 | 조사한 worker 모델·routes 범위에서 별도 소유자 연결 private 영속 결과 모델은 확인되지 않음. 공유 snapshot과 계산 cache를 private 기록으로 간주하지 않음 | models:1815; worker/routes/astro.js, worker/routes/fortune.js의 계산/프롬프트 경로 |
 | `yeongnyangi_requests` 일반 영냥이, `yeongnyangi_free_readings` | 별도 영냥이 서비스 영역. 꿀꿀 대화 persona+featureKey 레코드만 이번 공통 저장 어댑터의 꿀꿀 대상으로 분류 | worker/lib/yeongnyangi-models.js:18,61,88; routes/fortune-chat-consultations:68 |
@@ -133,6 +134,8 @@
 - 목록 검색어·필터·scroll 복원, 안전 영역, 하단 카드 가림, 브라우저/웹뷰 뒤로·새로고침은 비식별 mock으로 360/390/430px에서 검증한다.
 
 이 문서는 조사 인벤토리다. 구현·테스트 통과 여부는 별도 최종 작업 보고와 실제 테스트 결과에서 확인해야 한다.
+
+원격 K-pop 개편을 병합한 뒤 최애운명 저장 연결을 해당 새 화면에 맞춰 보완했다. 기존 수동 저장은 일부 요약만 저장했으므로 과거 그 요약에서 전체 새 포토카드를 추정해 복원하지 않는다. 남아 있는 본문을 그대로 표시한다. 새 로그인 결과는 `canonical.chemiReport`와 생일이 제거된 `viewModel`을 저장하고 포토카드·전체 탭·근거 표를 다시 연다. 불완전한 과거 canonical은 순수 형식 검사 후 구조 본문으로 안전하게 표시한다. 저장소 개수와 데이터 이동 없는 조회 방식은 같다.
 
 ## 이번 구현의 연결 계약
 

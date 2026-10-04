@@ -1889,7 +1889,7 @@ var __cdLazyActionLoaders = {
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-a214af72905f'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
   openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-91390be43877'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-a03eb7b7daee'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-01ca428bfc60'); },
   openSibylModal: function() {
     return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-17f27a22f2a0').then(function() {
@@ -2253,14 +2253,14 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-0850054163b1',
+    '/js/saju-engine.js?v=build-d8cee1ddd5c1',
       '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-cb3d1ad108ad',
-    '/js/core/saju/basicFortunePresentation.js?v=build-e398fbe9f265',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-8462367e20dc',
+    '/js/core/saju/basicFortunePresentation.js?v=build-de75dbfeadd9',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
-    '/js/core/saju/reportDashboard.js?v=build-69a84b7e07e2',
+    '/js/core/saju/reportDashboard.js?v=build-d6ddaebcaf1e',
     '/js/saju-engine-continuation.js?v=build-8d68ebe282a3',
     '/js/entertain-engine.js?v=build-c3b89a46c12c',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
@@ -8348,9 +8348,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-0850054163b1',
+      '/js/saju-engine.js?v=build-d8cee1ddd5c1',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-cb3d1ad108ad'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-8462367e20dc'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일
@@ -8367,7 +8367,7 @@ function __cdEnsureBirthModalDepsLoaded() {
   if (__cdBirthModalDepsLoadPromise) return __cdBirthModalDepsLoadPromise;
   var presentationReady = window.BasicFortunePresentation
     ? Promise.resolve()
-    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-e398fbe9f265');
+    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-de75dbfeadd9');
   var tasks = [presentationReady];
   if (
     typeof _ModalProfileState === 'undefined' ||
@@ -8527,7 +8527,12 @@ function openSukuyoModal(_retried) {
   var overlay = document.getElementById('sukuyoModalOverlay');
   if (!overlay) return;
   if (!_retried) {
-    if (__cdSukuyoModalState.open) return __cdSukuyoModalState.pending || true;
+    // 의존성 로딩 중이거나 실제로 보일 때만 중복 진입이다. closeSukuyoModal 을 거치지 않고
+    // 감춰지면(모바일 백스택 일괄 닫기 등) open=true 가 남아 재열기가 영구히 막힌다.
+    if (__cdSukuyoModalState.open) {
+      if (__cdSukuyoModalState.pending) return __cdSukuyoModalState.pending;
+      if (overlay.style.display !== 'none' && getComputedStyle(overlay).display !== 'none') return true;
+    }
     __cdSukuyoModalState.open = true;
     __cdSukuyoModalState.generation += 1;
     var generation = __cdSukuyoModalState.generation;
@@ -9372,6 +9377,10 @@ function _resetTarotUI() {
   window.curTarotCat = null;
   window.isReading = false;
   if (window.tarotThreeCardState) window.tarotThreeCardState = { cards: [], revealedIndex: -1 };
+  // 확대 보기 중에 닫으면 z-index 9998 전체화면 막(tarotFocusOverlay)이 남아 홈 전체를 덮는다.
+  if (cardEl) cardEl.classList.remove('divine-focus');
+  var focusOverlay = document.getElementById('tarotFocusOverlay');
+  if (focusOverlay) focusOverlay.classList.remove('active');
 }
 function resetTarotForCategorySelection() {
   var overlay = document.getElementById('tarotModalOverlay');
@@ -9385,7 +9394,11 @@ function openTarotModal() {
   if (!overlay) return;
   var state = window.__cdTarotModalState || { open: false, generation: 0, pending: null };
   window.__cdTarotModalState = state;
-  if (state.open) return state.pending || true;
+  // 플래그만 믿으면 ESC 로 전체화면을 빠져나가거나 백스택이 노드를 감춘 뒤
+  // open=true 가 남아 재열기가 영구히 막힌다. 실제로 보일 때만 중복 진입으로 본다.
+  if (state.open && overlay.style.display !== 'none' && getComputedStyle(overlay).display !== 'none') {
+    return state.pending || true;
+  }
   state.open = true;
   state.generation += 1;
   var generation = state.generation;

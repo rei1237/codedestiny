@@ -2,14 +2,14 @@
 /**
  * 작명 v2 작명서 배경 그림 생성기 → public/assets/naming-ai/v2/*.webp
  *
- * 감지금니(紺紙金泥) — 쪽빛 종이에 금니로 그린 산수. 금선 보름달·다섯 봉우리·폭포·노송·끝말림 구름·물결을
- * 직접 SVG 로 그리고 sharp(rsvg) 로 알파 WebP 를 만든다. 남의 그림·사진을 쓰지 않는다.
- * 색은 naming-v2.module.css .scope 의 --nv2-* 값과 예화 선색(--cd-yehwa-line 과 같은 값)이다 —
+ * 금니 산수 — 아이보리 한지에 금니로 그린 산수(2026-10-04 Phase 6.6: 밤 감지금니 → 밝은 한지로 바꿨다).
+ * 금선 새벽달·다섯 봉우리·폭포·노송·끝말림 구름·물결을 직접 SVG 로 그리고 sharp(rsvg) 로 알파 WebP 를 만든다. 남의 그림·사진을 쓰지 않는다.
+ * 색은 naming-v2.module.css .scope 의 --nv2-* 값(연이 표지)과 예화 선색(--cd-yehwa-line·-deep 과 같은 값)이다 —
  * 그림 안의 색이라 CSS 토큰을 늘리지 않는다.
  *
  * 🔴 산출물 WebP 는 손으로 고치지 말고 여기서 고친 뒤 `node scripts/design/gen-naming-v2-scene.mjs` 로 다시 만든다.
  *    좌표·잡음은 고정 시드라 재실행해도 SVG 는 같다(--svg 로 SVG 도, --out=<dir> 로 다른 폴더에 떨굴 수 있다).
- * 🔴 글자 뒤에 깔리므로 밝은 면을 넓게 두지 않는다 — 채움은 종이와 같거나 어둡게, 금선은 가늘게.
+ * 🔴 글자 뒤에 깔리므로 짙은 면을 넓게 두지 않는다 — 채움은 종이와 같거나 밝게, 금선은 가늘게.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -22,12 +22,12 @@ const OUT_DIR = OUT_ARG ? path.resolve(OUT_ARG.slice(6)) : path.join(ROOT, 'publ
 const DUMP_SVG = process.argv.includes('--svg');
 
 const C = {
-  bg: '#0a0818',
-  surface: '#13102a',
-  violet: '#c4b5fd',
-  ink: '#c9a46a', // 금니 선(예화 선색과 같은 값)
-  gold: '#e8d5a3', // 밝은 금(달 테두리·반짝임)
-  star: '#fbf3dc',
+  bg: '#fdf6f0', // 한지(작명서 --nv2-surface) — 벼랑·물결 채움
+  surface: '#fffaf7', // 가장 밝은 종이(--nv2-bg) — 구름·솔잎 채움
+  violet: '#f7e4e7', // 먼 산·안개의 엷은 분홍(연이 블러시와 같은 값)
+  ink: '#a97b3e', // 금니 선(예화 짙은 선색과 같은 값 — 밝은 종이에서 보이게)
+  gold: '#c9a46a', // 금(달 테두리·반짝임, 예화 선색과 같은 값)
+  star: '#c9a46a',
 };
 
 // ── 기하·잡음 ─────────────────────────────────────────────
@@ -410,7 +410,7 @@ ${parts.join('\n')}
 `;
 }
 
-// 히어로(작명서 표지 위 달밤 산수) · 깔개(액자 안 하단 산수, 글자 뒤라 옅게)
+// 히어로(작명서 표지 위 새벽달 산수) · 깔개(액자 안 하단 산수, 글자 뒤라 옅게)
 const OUTPUTS = [
   { file: 'scene-hero-wide.webp', W: 1520, H: 640, layout: 'wide', sky: true },
   { file: 'scene-hero-narrow.webp', W: 780, H: 600, layout: 'narrow', sky: true },

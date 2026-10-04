@@ -1542,7 +1542,7 @@ export default function NumerologyTarotClient() {
         <header className={styles.topBar}>
           <strong className={styles.brand}>수비학 타로</strong>
           <div className={styles.actions}>
-            <button type="button" className={styles.ghostBtn} onClick={() => router.push("/index.html")}>메인으로</button>
+            {isFullscreen && (<button type="button" className={styles.ghostBtn} onClick={() => router.push("/index.html")}>메인으로</button>)}
             <button type="button" className={styles.lightBtn} onClick={toggleFullscreen}>{isFullscreen ? "전체화면 해제" : "전체화면"}</button>
           </div>
         </header>

@@ -1,28 +1,38 @@
 /*
- * 작명 v2 작명서(밤 한지) — 에셋 A1~A9 의 구조·모션. 색은 네오 정본 팔레트 값을 사설 네임스페이스(--nv2-*)로만 받는다.
- * 🔴 --cd-* 를 재선언하지 않는다(DESIGN.md §7). 오행 색은 컴포넌트가 lib/five-element-colors 에서 인라인으로 준다.
- * 🔴 --cd-bg 등을 var() 로 받지 않는 이유: App Router 에서 --cd-* 네오 값은 html[data-cd-theme="neo"](저장값 neo)일 때만
- *    붙고 기본은 라이트다(app/layout.js 테마 스크립트 주석). 작명 화면은 기존 결과 화면처럼 늘 밤 한지라서,
- *    love-secret-theme.module.css(--ls-*)와 같은 방식으로 네오 정본 값을 이 사설 네임스페이스 한 곳에만 둔다.
+ * 작명 v2 작명서(아이보리 한지·먹·금니) — 에셋 A1~A9 의 구조·모션. 색은 연이 표지 정본 값(styles/theme-tokens.css 라이트)을
+ * 사설 네임스페이스(--nv2-*)로만 받는다(2026-10-04 Phase 6.6 사용자 요청 "너무 어두운 톤 → 밝게", 캐논 예외는 docs/CONTEXT_AUDIT.md).
+ * 🔴 --cd-* 를 재선언하지 않는다(DESIGN.md §7). 오행 색은 컴포넌트가 elementTone(밝은 바탕용으로 짙게 보정)에서 인라인으로 준다.
+ * 🔴 --cd-bg 등을 var() 로 받지 않는 이유: --cd-* 는 사용자 테마(네오 저장값)에 따라 바뀌는데 작명서는 늘 같은 밝은 한지여야 하고,
+ *    셸(app/naming-ai/naming-tone.module.css)과 반쪽만 전환되지 않도록 이 사설 네임스페이스 한 곳에 값을 둔다.
+ * 🔴 금(--nv2-ornament·gold-line)은 장식선 전용이다(대비 3.4:1) — 글자 강조는 --nv2-accent(플럼, 6.6:1).
  * 🔴 움직임은 전부 prefers-reduced-motion 에서 끈다.
  */
 .scope {
-  --nv2-bg: #0a0818;
-  --nv2-surface: #13102a;
-  --nv2-ink: #f4eeff;
-  --nv2-ink-soft: #e6ddfa;
-  --nv2-muted: #c8aaff;
-  --nv2-violet: #c4b5fd;
-  --nv2-gold: #e8d5a3;
-  --nv2-gold-line: rgba(232, 213, 163, 0.55);
-  --nv2-gold-faint: rgba(232, 213, 163, 0.16);
-  --nv2-seal: #f08a8a; /* 오행 화(火) 토큰과 같은 값 — 낙관 인주 */
+  --nv2-bg: #fffaf7;
+  --nv2-surface: #fdf6f0;
+  --nv2-card: rgba(255, 255, 255, 0.96);
+  --nv2-card-soft: rgba(255, 247, 250, 0.84);
+  --nv2-ink: #3c1830;
+  --nv2-ink-soft: #4a2443;
+  --nv2-muted: #70445c;
+  --nv2-accent: #8e3f63;
+  --nv2-focus: #b31955;
+  --nv2-good: #14532d; /* 길·상생 — 금색 대신 글자로 읽히는 짙은 초록(배지 무료 글자색과 같은 값) */
+  --nv2-ornament: #a97b3e; /* 금니 장식선 */
+  --nv2-gold-line: rgba(201, 164, 106, 0.55);
+  --nv2-gold-faint: rgba(201, 164, 106, 0.2);
+  --nv2-seal: #b31955; /* 로즈 크림슨 — 낙관 인주·흉·상극 */
   color: var(--nv2-ink);
+  /* 한국어는 어절 단위로 줄을 바꾼다(R6: 360px 에서 낱말 중간이 꺾였다) */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
-/* 한자 글꼴 — 웹폰트가 덮지 못한 글자는 시스템 명조로(5f 결정: R2 미러 전까지 로컬·시스템 폴백) */
+/* 한자 글꼴 — 웹폰트가 덮지 못한 글자는 시스템 명조로(5f 결정: R2 미러 전까지 로컬·시스템 폴백).
+   R3(2026-10-04): 전역 "CodeDestinyHan" 은 local() 고딕 별칭이라 화면에선 한자가 고딕, html-to-image 저장본에선
+   (url 없는 @font-face 는 담기지 않아) 명조로 떨어져 서로 달랐다 → 작명서 한자는 별칭을 빼고 같은 명조 스택만 쓴다. */
 .han {
-  font-family: "CodeDestinyHan", "CodeDestinySerifKR", "Noto Serif KR", "Noto Serif CJK KR", "Source Han Serif K", "Batang", "AppleMyungjo", serif;
+  font-family: "CodeDestinySerifKR", "Noto Serif KR", "Noto Serif CJK KR", "Source Han Serif K", "Batang", "AppleMyungjo", serif;
   font-feature-settings: "locl";
 }
 
@@ -30,11 +40,11 @@
 .paper {
   position: relative;
   background-color: var(--nv2-surface);
-  --nv2-glow: radial-gradient(120% 80% at 50% 0%, rgba(232, 213, 163, 0.07), transparent 60%);
+  --nv2-glow: radial-gradient(120% 80% at 50% 0%, rgba(201, 164, 106, 0.12), transparent 60%);
   background-image:
     var(--nv2-scene, none),
     var(--nv2-glow),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg fill='none' stroke='%23e8d5a3' stroke-opacity='.05' stroke-width='.6'%3E%3Cpath d='M0 23c40-6 70 9 160-3M0 71c55 8 90-10 160 4M0 118c35-9 95 7 160-2M31 0c-5 50 8 90-2 160M97 0c6 40-9 100 3 160'/%3E%3Ccircle cx='80' cy='80' r='22'/%3E%3Ccircle cx='0' cy='0' r='22'/%3E%3Ccircle cx='160' cy='160' r='22'/%3E%3C/g%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg fill='none' stroke='%23a97b3e' stroke-opacity='.08' stroke-width='.6'%3E%3Cpath d='M0 23c40-6 70 9 160-3M0 71c55 8 90-10 160 4M0 118c35-9 95 7 160-2M31 0c-5 50 8 90-2 160M97 0c6 40-9 100 3 160'/%3E%3Ccircle cx='80' cy='80' r='22'/%3E%3Ccircle cx='0' cy='0' r='22'/%3E%3Ccircle cx='160' cy='160' r='22'/%3E%3C/g%3E%3C/svg%3E");
   background-size: 100% auto, auto, 160px 160px;
   background-position: center bottom, 0 0, 0 0;
   background-repeat: no-repeat, no-repeat, repeat;
@@ -47,17 +57,17 @@
   position: relative;
   border-radius: 20px;
   border: 1px solid var(--nv2-gold-line);
-  box-shadow: 0 0 44px -12px rgba(232, 213, 163, 0.28);
+  box-shadow: 0 14px 44px -22px rgba(60, 24, 48, 0.28);
   overflow: hidden;
 }
-/* PDF(html2canvas 1.4)는 바깥 box-shadow 를 액자 안쪽까지 금빛으로 칠한다(실측: 몸통 70% 가 회갈색) — 캡처 중에는 끈다 */
+/* PDF(html2canvas 1.4)는 바깥 box-shadow 를 액자 안쪽까지 칠한다(실측: 몸통 70% 가 회갈색) — 캡처 중에는 끈다 */
 .exporting .frame { box-shadow: none; }
 /* 안쪽 금선 — inset box-shadow 는 html2canvas(PDF)에서 십자선으로 깨져 테두리 요소로 그린다.
    ::before 가 아니라 실제 요소다: html2canvas 는 의사 요소를 원본의 px 폭으로 복제해 캡처 폭이 달라지면(스크롤바 15px) 한쪽이 안으로 밀린다 */
 .frameLine {
   position: absolute;
   inset: 5px;
-  border: 1px solid rgba(232, 213, 163, 0.32);
+  border: 1px solid rgba(201, 164, 106, 0.45);
   border-radius: 15px;
   pointer-events: none;
 }
@@ -66,8 +76,8 @@
   position: absolute;
   width: 64px;
   height: 64px;
-  color: var(--nv2-gold);
-  opacity: 0.8;
+  color: var(--nv2-ornament);
+  opacity: 0.85;
   pointer-events: none;
 }
 .cornerTL { top: 10px; left: 10px; }
@@ -81,8 +91,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--nv2-gold);
-  opacity: 0.09;
+  color: var(--nv2-ornament);
+  opacity: 0.1;
   pointer-events: none;
 }
 .medallion { display: block; width: min(78%, 420px); height: auto; aspect-ratio: 1; }
@@ -114,7 +124,7 @@
 .pillarRow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 360px; margin: 0 auto; }
 .pillarCell {
   display: grid; justify-items: center; gap: 2px; padding: 10px 4px 12px;
-  border-radius: 12px; border: 1px solid var(--nv2-gold-faint); background: rgba(10, 8, 24, 0.35);
+  border-radius: 12px; border: 1px solid var(--nv2-gold-faint); background: var(--nv2-surface);
 }
 .pillarKey { font-size: 12px; color: var(--nv2-muted); }
 .ganji { font-size: 28px; line-height: 1.15; font-weight: 700; }
@@ -128,14 +138,14 @@
   position: relative; display: grid; justify-items: center; align-content: start; gap: 6px;
   padding: 26px 10px 14px; border-radius: 12px; text-align: center;
   border: 1px solid var(--nv2-gold-faint);
-  background: linear-gradient(180deg, rgba(232, 213, 163, 0.08), rgba(10, 8, 24, 0.35));
+  background: linear-gradient(180deg, rgba(201, 164, 106, 0.14), var(--nv2-surface));
 }
 .pillarRoof { position: absolute; top: -9px; left: 8%; width: 84%; height: 20px; }
-.pillarHan { font-size: 30px; line-height: 1; color: var(--nv2-gold); }
+.pillarHan { font-size: 30px; line-height: 1; color: var(--nv2-accent); }
 .pillarName { font-size: 13px; color: var(--nv2-muted); }
 .pillarValue { font-family: var(--font-premium); font-size: 30px; line-height: 1.05; color: var(--nv2-ink); font-variant-numeric: tabular-nums; }
 .formula { font-size: 13px; color: var(--nv2-ink-soft); font-variant-numeric: tabular-nums; }
-.formula .han { font-size: 15px; margin-right: 1px; color: var(--nv2-gold); }
+.formula .han { font-size: 15px; margin-right: 1px; color: var(--nv2-accent); }
 .formulaTerm { white-space: nowrap; }
 .pillarSuri { display: inline-flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; font-size: 12px; color: var(--nv2-muted); }
 
@@ -155,13 +165,13 @@
 .strokeCard {
   display: grid; justify-items: center; align-content: start; gap: 6px;
   padding: 16px 12px; border-radius: 14px; text-align: center;
-  border: 1px solid var(--nv2-gold-faint); background: rgba(10, 8, 24, 0.4);
+  border: 1px solid var(--nv2-gold-faint); background: var(--nv2-surface);
 }
 .strokeCardCompact { padding: 12px 10px; opacity: 0.92; }
 .strokeHan { font-size: 64px; line-height: 1.05; color: var(--nv2-ink); }
 .strokeCardCompact .strokeHan { font-size: 44px; color: var(--nv2-ink-soft); }
 .strokeHun { display: grid; gap: 2px; font-size: 14px; color: var(--nv2-ink); }
-.strokeHun b { font-size: 18px; color: var(--nv2-gold); }
+.strokeHun b { font-size: 18px; color: var(--nv2-accent); }
 .strokeHunText {
   font-size: 13px; color: var(--nv2-muted); line-height: 1.5;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
@@ -236,12 +246,12 @@
   padding: 22px 18px;
   border-radius: 20px;
   border: 1px solid var(--nv2-gold-faint);
-  background: rgba(19, 16, 42, 0.72);
+  background: var(--nv2-card);
 }
 @media (min-width: 720px) { .block { padding: 28px 26px; } }
 .blockTitle { margin: 0; font-family: var(--font-premium); font-size: 21px; line-height: 1.4; color: var(--nv2-ink); text-wrap: balance; }
-.blockTitle .han { color: var(--nv2-gold); }
-.subTitle { margin: 12px 0 0; font-size: 16px; font-weight: 700; color: var(--nv2-gold); }
+.blockTitle .han { color: var(--nv2-accent); }
+.subTitle { margin: 12px 0 0; font-size: 16px; font-weight: 700; color: var(--nv2-accent); }
 .lead { margin: -6px 0 0; color: var(--nv2-ink-soft); text-wrap: pretty; }
 .note { margin: 0; font-size: 14px; color: var(--nv2-muted); text-wrap: pretty; }
 .chipRow { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
@@ -249,19 +259,19 @@
 .button {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   min-height: 44px; padding: 10px 18px; border-radius: 999px;
-  border: 1px solid var(--nv2-gold); background: var(--nv2-gold); color: var(--nv2-bg);
+  border: 1px solid var(--nv2-seal); background: var(--nv2-seal); color: var(--nv2-bg);
   font: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
   transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
 }
-.button:hover { background: var(--nv2-ink); border-color: var(--nv2-ink); }
-.button:focus-visible { outline: 2px solid var(--nv2-violet); outline-offset: 3px; }
+.button:hover { background: var(--nv2-ink); border-color: var(--nv2-ink); color: var(--nv2-bg); }
+.button:focus-visible { outline: 2px solid var(--nv2-focus); outline-offset: 3px; }
 .button:disabled { opacity: 0.6; cursor: progress; }
 .buttonGhost { background: transparent; color: var(--nv2-ink); border-color: var(--nv2-gold-line); }
-.buttonGhost:hover { background: var(--nv2-gold-faint); color: var(--nv2-ink); border-color: var(--nv2-gold); }
-.buttonGhost[aria-pressed="true"] { background: var(--nv2-gold-faint); border-color: var(--nv2-gold); color: var(--nv2-gold); }
+.buttonGhost:hover { background: var(--nv2-gold-faint); color: var(--nv2-ink); border-color: var(--nv2-accent); }
+.buttonGhost[aria-pressed="true"] { background: var(--nv2-gold-faint); border-color: var(--nv2-accent); color: var(--nv2-accent); }
 
-/* 표지 작명서 — 이미지 저장 대상. 저장본도 같은 밤 한지 바탕을 가진다.
-   감지금니 산수(scripts/design/gen-naming-v2-scene.mjs 생성 — 직접 그린 그림): 표지 위 달밤 히어로 + 액자 안 하단 깔개(옅게).
+/* 표지 작명서 — 이미지 저장 대상. 저장본도 같은 아이보리 한지 바탕을 가진다.
+   금니 산수(scripts/design/gen-naming-v2-scene.mjs 생성 — 직접 그린 그림): 표지 위 새벽달 히어로 + 액자 안 하단 깔개(옅게).
    그림은 양옆·위아래가 투명하게 풀려 있어 폭에 맞춰 100% 로 깐다. */
 .certWrap {
   display: grid;
@@ -279,27 +289,32 @@
   .certFrame { --nv2-scene: url("/assets/naming-ai/v2/scene-paper-wide.webp"); padding: 52px 48px 78px; }
 }
 .certHead { display: flex; align-items: center; justify-content: center; gap: 12px; }
-.kicker { font-size: 15px; letter-spacing: 0.32em; color: var(--nv2-gold); }
+.kicker { font-size: 15px; letter-spacing: 0.32em; color: var(--nv2-accent); }
 .certTitle { margin: 14px 0 0; font-family: var(--font-premium); font-size: clamp(24px, 6vw, 32px); line-height: 1.3; color: var(--nv2-ink); text-wrap: balance; }
 .certLead { margin: 8px auto 0; max-width: 34ch; color: var(--nv2-ink-soft); text-wrap: pretty; }
 .certPickLabel { margin: 26px 0 0; font-size: 13px; letter-spacing: 0.18em; color: var(--nv2-muted); }
-.certName { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; margin-top: 6px; }
+.certName {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; margin-top: 6px;
+  --nv2-name-size: min(clamp(56px, 17vw, 96px), calc((100cqi - 78px) / (var(--nv2-name-len, 3) * 1.1)));
+}
 /* 한 줄 고정 — 글자 수(--nv2-name-len)와 옆 도장(60px + 간격 10px)을 뺀 액자 안쪽 폭에 맞춰 줄인다.
    글자당 폭 1.08em(자간 0.08em) + 여유. 실측 전: 360px 에서 金澤和, 390px 에서 南宮澤和 가 두 줄로 꺾였다. */
 .certHanja {
-  font-size: min(clamp(56px, 17vw, 96px), calc((100cqi - 78px) / (var(--nv2-name-len, 3) * 1.1)));
+  font-size: var(--nv2-name-size);
   line-height: 1.1; letter-spacing: 0.08em; white-space: nowrap; color: var(--nv2-ink);
 }
-.certHangul { margin: 4px 0 0; font-family: var(--font-premium); font-size: 22px; letter-spacing: 0.4em; color: var(--nv2-gold); }
+/* R4 — 도장은 글자보다 조금만 크게(약 1.25배, 최대 60px). 복성 넉 자가 320px 에서 작아질 때 도장만 무거워 보이지 않게. */
+.certSeal { width: min(60px, calc(var(--nv2-name-size) * 1.25)); height: min(60px, calc(var(--nv2-name-size) * 1.25)); }
+.certHangul { margin: 4px 0 0; font-family: var(--font-premium); font-size: 22px; letter-spacing: 0.4em; color: var(--nv2-accent); }
 .certChars { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; margin: 16px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--nv2-ink-soft); }
 .certChars li { display: inline-flex; align-items: baseline; gap: 6px; }
-.certChars .han { font-size: 20px; color: var(--nv2-gold); }
+.certChars .han { font-size: 20px; color: var(--nv2-accent); }
 .certGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 24px auto 0; max-width: 420px; }
 .certGridCell {
   display: grid; justify-items: center; gap: 4px; padding: 10px 2px;
   border-top: 1px solid var(--nv2-gold-line); border-bottom: 1px solid var(--nv2-gold-faint);
 }
-.certGridCell .han { font-size: 20px; color: var(--nv2-gold); line-height: 1; }
+.certGridCell .han { font-size: 20px; color: var(--nv2-accent); line-height: 1; }
 .certGridCell b { font-family: var(--font-premium); font-size: 20px; font-variant-numeric: tabular-nums; }
 .certFoot { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 26px; text-align: left; }
 .certFootInfo { display: grid; gap: 8px; }
@@ -313,7 +328,7 @@
 .elementRows dt { font-size: 14px; color: var(--nv2-muted); word-break: keep-all; }
 .elementRows dd { margin: 0; }
 .pentagonFor { margin: 8px 0 0; text-align: center; font-size: 14px; color: var(--nv2-ink-soft); }
-.pentagonFor .han { color: var(--nv2-gold); font-size: 17px; }
+.pentagonFor .han { color: var(--nv2-accent); font-size: 17px; }
 .notices {
   display: grid; gap: 6px; margin: 0; padding: 14px 18px 14px 34px; border-radius: 14px;
   border: 1px dashed var(--nv2-gold-line); font-size: 14px; color: var(--nv2-ink-soft);
@@ -324,20 +339,20 @@
 @media (min-width: 720px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .card {
   display: grid; align-content: start; gap: 8px; padding: 16px; border-radius: 16px;
-  border: 1px solid var(--nv2-gold-faint); background: rgba(10, 8, 24, 0.45);
+  border: 1px solid var(--nv2-gold-faint); background: var(--nv2-surface);
   transition: border-color 160ms ease;
 }
-.cardActive { border-color: var(--nv2-gold); }
+.cardActive { border-color: var(--nv2-accent); }
 @media (min-width: 720px) { .cards > :last-child:nth-child(odd) { grid-column: 1 / -1; } }
 .cardTop { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.rank { font-size: 13px; font-weight: 700; color: var(--nv2-gold); }
+.rank { font-size: 13px; font-weight: 700; color: var(--nv2-accent); }
 .total { font-size: 13px; color: var(--nv2-muted); }
 .total b { font-family: var(--font-premium); font-size: 20px; color: var(--nv2-ink); font-variant-numeric: tabular-nums; }
 .cardHanja { font-size: 40px; line-height: 1.15; letter-spacing: 0.06em; color: var(--nv2-ink); }
 .cardHangul { font-size: 16px; font-weight: 600; letter-spacing: 0.2em; color: var(--nv2-ink-soft); }
-.cardFill { font-size: 13px; color: var(--nv2-gold); }
+.cardFill { font-size: 13px; color: var(--nv2-accent); }
 .cardGrades { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: var(--nv2-ink-soft); }
-.cardGrades .han { color: var(--nv2-gold); }
+.cardGrades .han { color: var(--nv2-accent); }
 .cardActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 
 /* 이름 상세 */
@@ -345,7 +360,7 @@
 .twoCol { display: grid; gap: 20px; }
 @media (min-width: 720px) { .twoCol { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
 .narration dl { display: grid; gap: 12px; margin: 8px 0 0; }
-.narration dt { font-size: 14px; font-weight: 700; color: var(--nv2-gold); }
+.narration dt { font-size: 14px; font-weight: 700; color: var(--nv2-accent); }
 .narration dd { margin: 2px 0 0; color: var(--nv2-ink); text-wrap: pretty; }
 
 /* 비교 */
@@ -372,13 +387,13 @@
   padding: 18px;
   border-radius: 20px;
   border: 1px solid var(--nv2-gold-faint);
-  background: rgba(10, 8, 24, 0.5);
+  background: var(--nv2-card-soft);
 }
 .field { display: grid; gap: 6px; }
 .fieldLabel { padding: 0; font-size: 14px; font-weight: 600; color: var(--nv2-ink-soft); }
 .fieldSub { font-size: 13px; color: var(--nv2-muted); }
 .fieldHint { display: block; font-size: 13px; font-weight: 400; line-height: 1.6; color: var(--nv2-muted); text-wrap: pretty; }
-.fieldWarn { margin: 0; font-size: 13px; font-weight: 600; color: var(--nv2-gold); }
+.fieldWarn { margin: 0; font-size: 13px; font-weight: 600; color: var(--nv2-accent); }
 .fieldset { display: grid; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
 .fieldset:disabled { opacity: 0.6; }
 .input {
@@ -386,29 +401,29 @@
   min-height: 44px;
   padding: 10px 14px;
   border-radius: 14px;
-  border: 1px solid rgba(196, 181, 253, 0.2);
-  background: rgba(9, 7, 24, 0.7);
+  border: 1px solid var(--nv2-gold-line);
+  background: var(--nv2-card);
   color: var(--nv2-ink);
   font-size: 16px;
   outline: none;
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 .input::placeholder { color: var(--nv2-muted); opacity: 0.8; }
-.input:focus { border-color: rgba(196, 181, 253, 0.6); box-shadow: 0 0 0 3px rgba(196, 181, 253, 0.14); }
+.input:focus { border-color: var(--nv2-focus); box-shadow: 0 0 0 3px rgba(179, 25, 85, 0.14); }
 .input:disabled { opacity: 0.5; }
 .surnameChips { display: flex; flex-wrap: wrap; gap: 8px; }
 .surnameChip {
   display: inline-flex; align-items: center; gap: 10px;
   min-height: 52px; padding: 6px 14px; border-radius: 14px;
-  border: 1px solid var(--nv2-gold-faint); background: rgba(19, 16, 42, 0.8);
+  border: 1px solid var(--nv2-gold-faint); background: var(--nv2-card);
   color: var(--nv2-ink); font: inherit; cursor: pointer; text-align: left;
   transition: border-color 160ms ease, background-color 160ms ease;
 }
 .surnameChip:hover { border-color: var(--nv2-gold-line); }
-.surnameChip:focus-visible { outline: 2px solid var(--nv2-violet); outline-offset: 2px; }
-.surnameChip[aria-pressed="true"] { border-color: var(--nv2-gold); background: var(--nv2-gold-faint); }
+.surnameChip:focus-visible { outline: 2px solid var(--nv2-focus); outline-offset: 2px; }
+.surnameChip[aria-pressed="true"] { border-color: var(--nv2-accent); background: var(--nv2-gold-faint); }
 .surnameChip:disabled { opacity: 0.5; cursor: not-allowed; }
-.surnameChipHan { font-size: 28px; line-height: 1; color: var(--nv2-gold); }
+.surnameChipHan { font-size: 28px; line-height: 1; color: var(--nv2-accent); }
 .surnameChipMeta { font-size: 13px; color: var(--nv2-ink-soft); }
 .schoolList { display: grid; gap: 8px; }
 @media (min-width: 720px) { .schoolList { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -417,8 +432,8 @@
   min-height: 44px; padding: 12px; border-radius: 14px;
   border: 1px solid var(--nv2-gold-faint); cursor: pointer;
 }
-.schoolOption:has(input:checked) { border-color: var(--nv2-gold); background: var(--nv2-gold-faint); }
-.schoolOption input { flex: none; width: 18px; height: 18px; margin-top: 2px; accent-color: var(--nv2-gold); }
+.schoolOption:has(input:checked) { border-color: var(--nv2-accent); background: var(--nv2-gold-faint); }
+.schoolOption input { flex: none; width: 18px; height: 18px; margin-top: 2px; accent-color: var(--nv2-seal); }
 .schoolOption b { display: block; font-size: 14px; color: var(--nv2-ink); }
 @media (min-width: 720px) { .strategyList { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .fixedRow { display: grid; gap: 8px; }
@@ -428,6 +443,6 @@
 .basis { display: grid; gap: 18px; margin-top: 20px; }
 .basisHead {
   display: grid; justify-items: start; gap: 10px; padding: 18px;
-  border-radius: 20px; border: 1px solid var(--nv2-gold-line); background: rgba(10, 8, 24, 0.5);
+  border-radius: 20px; border: 1px solid var(--nv2-gold-line); background: var(--nv2-card-soft);
 }
 .basisHint { margin: 0; padding: 14px 18px; border-radius: 14px; border: 1px solid var(--nv2-gold-line); font-size: 14px; color: var(--nv2-ink-soft); text-wrap: pretty; }

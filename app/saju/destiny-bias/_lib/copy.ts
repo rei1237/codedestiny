@@ -479,7 +479,7 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     elementWater: "수",
 
     mzZoneLabel: "MZ 재미 존",
-    mzRelationMbtiLabel: "우리 관계 MBTI",
+    mzRelationMbtiLabel: "우리 케미 4글자",
 
     scoreGaugeAriaLabel: (total) => `궁합 점수 ${total}점`,
     scoreGaugeTimeUnknownText: (biasName) =>

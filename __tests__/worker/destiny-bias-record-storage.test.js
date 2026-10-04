@@ -10,6 +10,7 @@ beforeAll(async()=>{
     return {userId:user};
   }}));
   jest.unstable_mockModule('../../worker/lib/models.js',()=>({
+    AbuseScore:{},DestinyBiasShare:{},
     User:{findById:()=>({select:()=>({lean:async()=>({_id:user})})})},
     DestinyBiasCard:{findOneAndUpdate:(query,update)=>({lean:async()=>{
       upserts.push(query);const key=String(query._id);if(!docs.has(key))docs.set(key,{_id:query._id,...update.$setOnInsert});return docs.get(key);

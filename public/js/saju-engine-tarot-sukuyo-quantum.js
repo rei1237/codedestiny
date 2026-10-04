@@ -6206,7 +6206,7 @@ function renderLottoRitualReport(state){
   area.innerHTML=
     '<section class="lr-wrap" aria-label="' + _sajuQuantumText("sq_5265_attr_aria_label") + '">'+
       '<div class="lr-head">'+
-        '<span class="lr-kicker">3,000원 디지털 리포트</span>'+
+        '<span class="lr-kicker">1,000원 디지털 리포트</span>'+
         '<h4>'+lottoEsc(report.title)+'</h4>'+
         '<p>더 좋은 번호가 아니라, 번호별 상징 해석과 이번 주 금전 루틴을 여는 달빛 리포트입니다.</p>'+
       '</div>'+
@@ -6568,9 +6568,9 @@ function renderLottoNumbers(natal, bazi){
           '<span>더 좋은 번호가 아닌 더 깊은 리포트입니다</span>'+
           '<strong>달빛 럭키 리추얼 리포트</strong>'+
           '<p>번호별 상징 해석과 이번 주 금전 루틴을 확인해보세요.</p>'+
-          '<button type="button" class="lc-ritual-cta-btn" data-action="openLottoRitualReport" data-tile-lock-key="'+LOTTO_RITUAL_FEATURE_KEY+'" data-tile-lock-cost="30">'+
+          '<button type="button" class="lc-ritual-cta-btn" data-action="openLottoRitualReport" data-tile-lock-key="'+LOTTO_RITUAL_FEATURE_KEY+'" data-tile-lock-cost="10">'+
             '<span class="tarot-tile__title">달빛 럭키 리추얼 리포트</span>'+
-            '<small>3,000원으로 달빛 럭키 리추얼 열기</small>'+
+            '<small>1,000원으로 달빛 럭키 리추얼 열기</small>'+
           '</button>'+
           '<em>구매 즉시 열람되는 디지털 콘텐츠이며, 복권 결과를 예측하거나 보장하지 않습니다.</em>'+
         '</div>'+
