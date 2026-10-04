@@ -20080,5 +20080,144 @@
       "8": "Deep exploration of unfamiliar views",
       "9": "Preparation through learning and support"
     }
+  },
+  "sajuCompat": {
+    "selfFallback": "我",
+    "type": {
+      "love": "戀愛/婚姻合盤",
+      "business": "事業/合夥合盤",
+      "friend": "朋友/同事合盤"
+    },
+    "grade": {
+      "S": "🌟 前世的恩人",
+      "A": "✨ 命定契合",
+      "B": "😊 有緣契合",
+      "C": "🙂 平凡的緣分",
+      "D": "⚠️ 業緣契合",
+      "F": "🌧️ 磨難之緣"
+    },
+    "gradeBadge": "{grade}級",
+    "titleLine": "{type} — {self} × {partner}",
+    "scoreLine": "僅命理合盤得分：{score}/100",
+    "overview": {
+      "title": "🧭 合盤總評",
+      "note": "本次結果僅以四柱命理計算。綜合日干、日支的合與沖、調候、用神/忌神及十神結構，得出 {score}/100。"
+    },
+    "energy": {
+      "title": "🌡️ 能量調和",
+      "johu": "調候（溫度）",
+      "elements": "日干五行",
+      "season": "月支季節",
+      "tenGods": "十神結構"
+    },
+    "detail": {
+      "title": "🧩 詳細解讀",
+      "emotionRhythm": "情感節奏",
+      "conflictSwitch": "衝突開關",
+      "realOps": "現實相處",
+      "longTerm": "長期展望"
+    },
+    "reasons": {
+      "title": "📋 合盤要點檢查",
+      "total": "總分 {total} 分"
+    },
+    "reason": {
+      "JOHU_COMPLEMENT": "一方偏熱、一方偏涼，能彼此中和溫度，是相得益彰的搭配。",
+      "JOHU_BOTH_HOT": "兩人都偏熱，感情的火花很旺，但爭吵也容易升級，是火氣過旺的搭配。",
+      "JOHU_BOTH_COLD": "兩人都偏涼，雖然穩定，但彼此給予溫暖可能略顯不足。",
+      "JOHU_MILD": "氣溫上不會有太大衝突，但其中一方稍微更{tone}一些，形成相互平衡的結構。",
+      "MOIST_COMPLEMENT": "一方偏濕潤、一方偏乾燥，濕燥互補，是理想的搭配。",
+      "MOIST_BOTH": "兩人都偏{moist}，狀態不佳時容易一起萎靡或乾涸。",
+      "MOIST_NEUTRAL": "在濕燥方面沒有太大衝突，日常狀態也比較相近。",
+      "ELEMENT_SAME": "兩人都{element}氣旺盛，節奏與頻率相近。",
+      "ELEMENT_SAME_EXCESS": "不過兩人同一五行都過強，意見衝突時不容易退讓。",
+      "ELEMENT_SHENG_SELF_TO_PARTNER": "{from}生{to}，一方自然滋養另一方，是相生的搭配。",
+      "ELEMENT_SHENG_PARTNER_TO_SELF": "{from}扶助{to}，是彼此成長的可靠支持者關係。",
+      "ELEMENT_KE": "基本為相剋關係（{self} ↔ {partner}），容易產生緊張與較勁。",
+      "DAY_STEM_HE": "兩人的日干天干成合，基本上心意相通。",
+      "DAY_BRANCH_HE": "日支（配偶位）形成六合，相處時會強烈感到安心與吸引。",
+      "DAY_STEM_CHONG": "日干相沖，優點突出，但碰撞時也很激烈，是過山車型的搭配。",
+      "DAY_BRANCH_CHONG": "日支相沖，生活節奏與情緒節奏可能不同步，磨合很重要。",
+      "YONGSHIN_COMMON": "兩人都以{elements}之氣為用神，看待人生的核心方向非常相近。",
+      "YONGSHIN_CLASH": "尤其{elements}之氣對一方是用神，對另一方卻是忌神，在這一主題上容易敏感碰撞。",
+      "KIJI_CONTROL_FORWARD": "制化凶神：對方的字（{by}）以沖化解你的忌神（{chars}）。對方為你驅散不良之氣，是最佳搭配的關鍵因素。",
+      "KIJI_CONTROL_REVERSE": "反向制化：你的字（{by}）以沖化解對方的忌神。你同樣能帶給對方釋放感。",
+      "HE_TRAP": "合的陷阱：{self}與{partner}成合，所化五行（{element}）會增強你的忌神。表面看似契合，內裡卻會積聚不利的能量。請分清安心與依賴。"
+    },
+    "element": {
+      "wood": "木",
+      "fire": "火",
+      "earth": "土",
+      "metal": "金",
+      "water": "水"
+    },
+    "tone": {
+      "warm": "溫暖",
+      "cool": "寒涼"
+    },
+    "moist": {
+      "wet": "濕潤",
+      "dry": "乾燥"
+    },
+    "love": {
+      "title": "💍 戀愛·婚姻合盤深度解讀",
+      "emotion": "💞 情感與表達節奏",
+      "conflict": "🧯 衝突與修復方式",
+      "home": "🏠 同居與婚姻生活經營",
+      "growth": "🌱 長期成長條件"
+    },
+    "fact": {
+      "title": "💥 直言分析 — 這段關係的真相",
+      "STRENGTH_SELF_LEADS": "力量失衡警報",
+      "STRENGTH_PARTNER_LEADS": "被吸收預警",
+      "STRENGTH_PEER": "強對強 / 弱對弱",
+      "KE_SELF_OVER_PARTNER": "日干相剋（你是制約方）",
+      "KE_PARTNER_OVER_SELF": "日干相剋（你是被制約方）",
+      "KIJI_RELIEF": "彌補弱點的甜頭",
+      "HE_TRAP": "⚠ 合的陷阱警報",
+      "repeatScene": "容易重複的場景",
+      "recovery": "修復的標準"
+    },
+    "advice": {
+      "title": "🎯 天機處方",
+      "keep": "[維繫天機] 切忌放任",
+      "grow": "[成長天機] 差異之美",
+      "communicate": "[溝通天機] 把不滿說出口",
+      "survive": "[生存天機] 規則與界線",
+      "secret": {
+        "love": "[戀愛祕訣]",
+        "business": "[合夥祕訣]",
+        "friend": "[友情祕訣]"
+      },
+      "conflictRoutine": "[衝突修復流程]",
+      "growthGoal": "[共同成長目標]"
+    },
+    "past": {
+      "title": "🔮 前世緣分解讀",
+      "subtitle": "PAST LIFE COMPATIBILITY · 日柱×年柱交叉分析",
+      "grade": {
+        "S": "🌟 S級 · 前世的雙子星",
+        "A": "✨ A級 · 命運的似曾相識之緣",
+        "B": "🌱 B級 · 再度萌芽的緣分",
+        "C": "⚪ C級 · 白紙上的全新緣分",
+        "D": "⚠️ D級 · 待解的結，業力(Karma)之緣",
+        "F": "🌀 F級 · 在痛中學習、苦緣的傳承"
+      },
+      "crossSelf": "🧬 {self}的日柱（{selfPillar}）× {partner}的年柱（{partnerPillar}）",
+      "crossPartner": "🧬 {partner}的日柱（{partnerPillar}）× {self}的年柱（{selfPillar}）",
+      "cross": {
+        "he": "合",
+        "chong": "沖",
+        "same": "同",
+        "none": "無"
+      },
+      "prescription": "⚔️ 天機處方",
+      "questionsTitle": "今生可以確認的問題",
+      "reflectionPull": "前世緣分的等級並非對關係結局的判定，而是回顧兩人相遇時的熟悉感與緊張感的象徵。尤其本次解讀為「{label}」，可作為觀察吸引力或反覆出現的情緒場景的參考。",
+      "reflectionDistance": "前世緣分的等級並非對關係結局的判定，而是回顧兩人相遇時的熟悉感與緊張感的象徵。尤其本次解讀為「{label}」，可作為觀察距離感或需要磨合的場景的參考。",
+      "reflectionNote": "不要只停留在追問「我們為什麼會這樣相互吸引或衝突」，而是去找找當下關係中真正可以改變的行為。比起過去的故事，現在的共識與界線才會塑造兩人的下一幕。",
+      "disclaimer": "※ 前世緣分解讀是基於命理學的娛樂內容 🌙"
+    },
+    "footer": "本解讀是 AI 依據引擎計算的分數與合沖依據撰寫的解釋，僅供參考，不能替代對關係的結論。"
   }
 }

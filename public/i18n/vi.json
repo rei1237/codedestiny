@@ -20080,5 +20080,144 @@
       "8": "Deep exploration of unfamiliar views",
       "9": "Preparation through learning and support"
     }
+  },
+  "sajuCompat": {
+    "selfFallback": "Me",
+    "type": {
+      "love": "Romance / marriage compatibility",
+      "business": "Business / partnership compatibility",
+      "friend": "Friend / colleague compatibility"
+    },
+    "grade": {
+      "S": "🌟 Benefactor from a past life",
+      "A": "✨ Destined match",
+      "B": "😊 Connected match",
+      "C": "🙂 Ordinary connection",
+      "D": "⚠️ Karmic match",
+      "F": "🌧️ Difficult-fate match"
+    },
+    "gradeBadge": "Grade {grade}",
+    "titleLine": "{type} — {self} × {partner}",
+    "scoreLine": "Saju-only compatibility score: {score}/100",
+    "overview": {
+      "title": "🧭 Compatibility overview",
+      "note": "This result is calculated from Saju alone. Day-stem and day-branch harmonies and clashes, seasonal balance, useful and harmful elements, and the ten-gods structure are combined into a score of {score}/100."
+    },
+    "energy": {
+      "title": "🌡️ Energy harmony",
+      "johu": "Seasonal balance (temperature)",
+      "elements": "Day-stem element",
+      "season": "Season of the month branch",
+      "tenGods": "Ten-gods structure"
+    },
+    "detail": {
+      "title": "🧩 Detailed reading",
+      "emotionRhythm": "Emotional rhythm",
+      "conflictSwitch": "Conflict triggers",
+      "realOps": "Everyday practice",
+      "longTerm": "Long-term outlook"
+    },
+    "reasons": {
+      "title": "📋 Compatibility checkpoints",
+      "total": "Total {total} pts"
+    },
+    "reason": {
+      "JOHU_COMPLEMENT": "One of you runs hot and the other cool, so you balance each other's temperature nicely.",
+      "JOHU_BOTH_HOT": "You both run hot, so the spark is strong, but arguments can flare up quickly as well. It is a fire-overheating pairing.",
+      "JOHU_BOTH_COLD": "You both run cool, so there is stability, but it may be hard to bring each other enough warmth.",
+      "JOHU_MILD": "Your temperatures do not clash much, but one of you runs slightly {tone}, which creates a balancing structure.",
+      "MOIST_COMPLEMENT": "One of you is moist and the other dry, so your moisture balance fills in for each other. It is an ideal match.",
+      "MOIST_BOTH": "You are both on the {moist} side, so when you are low you can easily sag or dry out together.",
+      "MOIST_NEUTRAL": "Your moisture balance does not clash much, and your day-to-day condition tends to run alike.",
+      "ELEMENT_SAME": "You both have strong {element} energy and share a similar code and rhythm.",
+      "ELEMENT_SAME_EXCESS": "However, the same element is very strong in both of you, so neither tends to give way when opinions clash.",
+      "ELEMENT_SHENG_SELF_TO_PARTNER": "{from} generates {to}, so one of you naturally nourishes the other. It is a mutually generating match.",
+      "ELEMENT_SHENG_PARTNER_TO_SELF": "{from} supports {to}, so you are dependable supporters who help each other grow.",
+      "ELEMENT_KE": "Your elements are in a controlling relationship ({self} ↔ {partner}), so tension and friction can arise easily.",
+      "DAY_STEM_HE": "Your day stems form a harmony (合), so your hearts tend to be in tune.",
+      "DAY_BRANCH_HE": "Your day branches (the spouse position) form a six-harmony, bringing strong comfort and attraction when you are together.",
+      "DAY_STEM_CHONG": "Your day stems clash (沖), so the highs are strong but so are the collisions. It is a roller-coaster pairing.",
+      "DAY_BRANCH_CHONG": "Your day branches clash (沖), so your daily patterns and emotional rhythms may move differently. Adjusting to each other matters.",
+      "YONGSHIN_COMMON": "You both rely on {elements} energy as your useful element, so your core direction in life is very similar.",
+      "YONGSHIN_CLASH": "In particular, {elements} energy is a useful element for one of you but a harmful element for the other, so you may collide sensitively on that theme.",
+      "KIJI_CONTROL_FORWARD": "Harmful-element control: your partner's characters ({by}) clear your harmful elements ({chars}) through clash (沖). This is the core of a top-tier match: the other person drives out your bad energy.",
+      "KIJI_CONTROL_REVERSE": "Reverse control: your characters ({by}) clear your partner's harmful elements through clash. You also bring your partner a sense of release.",
+      "HE_TRAP": "Harmony trap: {self} and {partner} form a harmony (合), and the resulting element ({element}) strengthens your harmful element. It looks like a good fit on the surface, but harmful energy can build up inside. Tell comfort apart from dependence."
+    },
+    "element": {
+      "wood": "Wood (木)",
+      "fire": "Fire (火)",
+      "earth": "Earth (土)",
+      "metal": "Metal (金)",
+      "water": "Water (水)"
+    },
+    "tone": {
+      "warm": "warmer",
+      "cool": "cooler"
+    },
+    "moist": {
+      "wet": "damp",
+      "dry": "dry"
+    },
+    "love": {
+      "title": "💍 In-depth romance and marriage compatibility",
+      "emotion": "💞 Emotional and expressive rhythm",
+      "conflict": "🧯 How you conflict and recover",
+      "home": "🏠 Living together and married life",
+      "growth": "🌱 Conditions for long-term growth"
+    },
+    "fact": {
+      "title": "💥 Straight talk — the truth of this relationship",
+      "STRENGTH_SELF_LEADS": "Power imbalance alert",
+      "STRENGTH_PARTNER_LEADS": "Absorption warning",
+      "STRENGTH_PEER": "Strong vs. strong / weak vs. weak",
+      "KE_SELF_OVER_PARTNER": "Day-stem control (you are the controller)",
+      "KE_PARTNER_OVER_SELF": "Day-stem control (you are the one controlled)",
+      "KIJI_RELIEF": "The sweetness of covering weak spots",
+      "HE_TRAP": "⚠ Harmony (合) trap alert",
+      "repeatScene": "A scene that tends to repeat",
+      "recovery": "How to know you have recovered"
+    },
+    "advice": {
+      "title": "🎯 Prescription from the stars",
+      "keep": "[Keep it up] Never neglect it",
+      "grow": "[Grow] The beauty of differences",
+      "communicate": "[Communicate] Put dissatisfaction into words",
+      "survive": "[Survive] Rules and boundaries",
+      "secret": {
+        "love": "[Romance secret]",
+        "business": "[Partnership secret]",
+        "friend": "[Friendship secret]"
+      },
+      "conflictRoutine": "[Conflict recovery routine]",
+      "growthGoal": "[Shared growth goal]"
+    },
+    "past": {
+      "title": "🔮 Past-life connection reading",
+      "subtitle": "PAST LIFE COMPATIBILITY · Day × year pillar cross analysis",
+      "grade": {
+        "S": "🌟 Grade S · Twin stars of a past life",
+        "A": "✨ Grade A · A destined déjà-vu bond",
+        "B": "🌱 Grade B · A bond sprouting again",
+        "C": "⚪ Grade C · A fresh bond on a blank page",
+        "D": "⚠️ Grade D · A knot to untie, a karmic bond",
+        "F": "🌀 Grade F · Learning through pain, a bond of inherited hardship"
+      },
+      "crossSelf": "🧬 {self}'s day pillar ({selfPillar}) × {partner}'s year pillar ({partnerPillar})",
+      "crossPartner": "🧬 {partner}'s day pillar ({partnerPillar}) × {self}'s year pillar ({selfPillar})",
+      "cross": {
+        "he": "Harmony (合)",
+        "chong": "Clash (沖)",
+        "same": "Same (同)",
+        "none": "None (無)"
+      },
+      "prescription": "⚔️ Prescription from the stars",
+      "questionsTitle": "Questions to check in this life",
+      "reflectionPull": "The past-life grade is not a verdict on where your relationship will end up; it is a symbol for reflecting on the familiarity and tension you feel when you meet. The result read as “{label}” can help you observe the pull between you and the emotional scenes that keep recurring.",
+      "reflectionDistance": "The past-life grade is not a verdict on where your relationship will end up; it is a symbol for reflecting on the familiarity and tension you feel when you meet. The result read as “{label}” can help you observe the distance between you and the moments that call for adjustment.",
+      "reflectionNote": "Don't stop at asking “Why are we so drawn to each other, or why do we clash?” Look for actions you can actually change in your current relationship. What shapes your next scene is your agreements and boundaries now, more than the story of the past.",
+      "disclaimer": "※ The past-life bond reading is entertainment content based on Saju theory 🌙"
+    },
+    "footer": "This reading is an AI-written interpretation based on the scores and harmony/clash evidence calculated by the engine, provided for reference only. It does not stand in for a conclusion about your relationship."
   }
 }
