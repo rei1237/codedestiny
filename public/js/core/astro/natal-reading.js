@@ -983,7 +983,7 @@
     Neptune: '해왕성은 상상과 이상, 경계가 흐려지는 곳을 보여 줘요.',
     Pluto: '명왕성은 무너졌다 다시 서며 깊어지는 힘을 보여 줘요.'
   };
-  var MODE_LINE = {
+  var DEEP_MODE = {
     cardinal: '먼저 시작하는 {sign}에 놓인 {body:은} 앞장서서 길을 여는 쪽으로 힘을 써요.',
     fixed: '한번 정하면 지켜 내는 {sign}에 놓인 {body:은} 오래 꾸준히 버티는 쪽으로 힘을 써요.',
     mutable: '상황에 맞춰 바뀌는 {sign}에 놓인 {body:은} 그때그때 유연하게 힘을 써요.'
@@ -1012,7 +1012,7 @@
     s.push(PLANET_DOES[body]);
     if (p.house) s.push(W.take(W.rotate('deep-house', DEEP_HOUSE).map(function (t) { return fill(t, { n: p.house, arena: HOUSE_ARENA[p.house - 1], at: ARENA_AT[p.house - 1] }); })));
     else if (pair) s.push(W.take([fill('태어난 날 달이 {a}에서 {b}로 넘어가, 두 별자리의 마음결을 함께 지녔어요.', { a: SIGN[pair[0]], b: SIGN[pair[1]] })]));
-    else s.push(W.take([fill(MODE_LINE[MODES[p.signIdx % 3]], W.vars(p.signIdx, { body: KO[body] }))]));
+    else s.push(W.take([fill(DEEP_MODE[MODES[p.signIdx % 3]], W.vars(p.signIdx, { body: KO[body] }))]));
     var asp = ctx.aspects.filter(function (a) { return (a.a === body || a.b === body) && BODIES.indexOf(a.a) >= 0 && BODIES.indexOf(a.b) >= 0 && a.orb <= 4; })[0];
     var dig = p.dignity >= 4 ? 'high' : p.dignity <= -4 ? 'low' : null;
     var third = (asp && pairText(asp, W))

@@ -196,6 +196,7 @@ test('the deep layer reads every planet and the closest aspects without repeatin
       for (const p of d.planets) assert.ok(p.line && p.text.length >= 2 && p.text.length <= 3, `${tag} ${p.body}`);
       assert.ok(d.talk.length <= 5 && d.talk.every((t, i) => BODIES.includes(t.a) && BODIES.includes(t.b) && (!i || d.talk[i - 1].orb <= t.orb)), tag);
       for (const banned of BANNED) assert.doesNotMatch(text, banned, `${tag} ${banned}`);
+      assert.doesNotMatch(storyText(model) + '\n' + text, /[{}]/, `${tag} unfilled template`);
       // Sentences only: aspect-type labels such as "부딪히며 키우는 사이(사각)" may repeat.
       const all = sentencesOf(storyText(model) + '\n' + text).filter(s => s.endsWith('.'));
       assert.equal(new Set(all).size, all.length, `${tag} ${all.filter((s, i) => all.indexOf(s) !== i)}`);
