@@ -209,7 +209,8 @@ async function handleStart(request, env, recoveryAuth = null) {
   if (!supplied.resumeSessionId && supplied.idempotencyKey.length < 12) return json({ ok: false, reason: "INVALID_INPUT" }, { status: 422 });
   return runRelationshipDelivery(env, auth, supplied, {
     normalize,
-    verify: (userId, requestId) => verifyPerUsePayment(env, { userId, featureKey: FEATURE_KEY, coinPrice: COST, requestId }),
+    verify: (userId, requestId) => verifyPerUsePayment(env, { userId, featureKey: FEATURE_KEY, coinPrice: COST, requestId,
+      requireExisting: Boolean(supplied.resumeSessionId || recoveryAuth) }),
     seed: input => {
       const saju = calculateLoveSecretAiSaju(input.normalized), boundary = scoreBoundary(saju);
       return {

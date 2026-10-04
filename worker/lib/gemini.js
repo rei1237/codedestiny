@@ -163,7 +163,7 @@ export async function callGeminiText(env, prompt, options = {}) {
       return tooShort;
     }
 
-    return recoverClippedLlmResponse({
+    const response = {
       ok: true,
       text: result.text,
       model: result.model,
@@ -171,7 +171,11 @@ export async function callGeminiText(env, prompt, options = {}) {
       isMock: result.isMock === true,
       truncated: result.truncated === true,
       finishReason: clean(result.finishReason, 40),
-    });
+      usage: result.usage,
+    };
+    // Chapter completion owns its output contract. Do not erase MAX_TOKENS
+    // before that caller can decide whether the purchased chapter is complete.
+    return options.preserveTermination === true ? response : recoverClippedLlmResponse(response);
   } catch (error) {
     return toFailure(error);
   }
