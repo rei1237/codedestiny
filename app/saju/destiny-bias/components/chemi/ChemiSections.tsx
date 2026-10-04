@@ -2,6 +2,7 @@
 
 import type { ChemiCopy } from "@/lib/idol-chemi";
 import styles from "../../destiny-bias.module.css";
+import art from "../../stage-art.module.css";
 
 type Props = {
   copy: ChemiCopy;
@@ -11,6 +12,12 @@ type Props = {
 export default function ChemiSections({ copy }: Props) {
   return (
     <div className={styles.sections}>
+      <div className={`${art.band} ${art.bandBackstage}`} aria-hidden>
+        <p className={art.bandLabel}>
+          After the show
+          <b>Chemi report</b>
+        </p>
+      </div>
       <section className={styles.sectionCard} aria-labelledby="dbk-points-title">
         <h3 id="dbk-points-title" className={styles.sectionTitle}>케미 포인트</h3>
         <ol className={styles.pointList}>

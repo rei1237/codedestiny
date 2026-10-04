@@ -1862,17 +1862,14 @@
   color: var(--dbk-on-ink);
 }
 
-/* 시나리오 = 종이 티켓. 양옆 반달 펀칭 + 종이 결. 안에서는 잉크색을 어둡게 되돌린다. */
+/* 시나리오 = 밤 공연 티켓 스텁. 양옆 반달 펀칭 + 금박 결. */
 .scenarioCard {
-  --dbk-ink: #1d1230;
-  --dbk-ink-soft: rgba(29, 18, 48, 0.86);
-  --dbk-ink-mute: rgba(29, 18, 48, 0.7);
-  --dbk-pink: #b3246f;
-  color: var(--dbk-ink);
-  background-color: #f6eddc;
-  background-image: var(--dbk-grain), linear-gradient(180deg, #fbf4e6 0%, #f1e4cd 100%);
-  background-blend-mode: multiply, normal;
+  background-color: #1d1436;
+  background-image: var(--dbk-grain), linear-gradient(160deg, rgba(255, 217, 138, 0.16) 0%, rgba(42, 31, 69, 0) 38%, rgba(255, 143, 208, 0.12) 100%);
+  background-blend-mode: soft-light, normal;
   border: 0;
+  outline: 1px solid rgba(255, 217, 138, 0.42);
+  outline-offset: -7px;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   -webkit-mask-image: radial-gradient(circle 11px at 0 50%, transparent 10.5px, #000 11px), radial-gradient(circle 11px at 100% 50%, transparent 10.5px, #000 11px);
@@ -1885,6 +1882,7 @@
 .scenarioTag {
   font-family: var(--dbk-font-poster);
   letter-spacing: 0.2em;
+  color: var(--dbk-foil-gold, #ffd98a);
 }
 
 /* 마무리 = 금박 스탬프 카드 */

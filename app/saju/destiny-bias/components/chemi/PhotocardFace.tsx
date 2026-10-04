@@ -1,5 +1,6 @@
 // 포토카드 앞·뒷면. 표시용 문자열만 받는다 — 날짜 입력·명식 같은 개인정보는 이 파일에 들어오지 않는다.
 import styles from "../../photocard.module.css";
+import art from "../../stage-art.module.css";
 
 export type PhotocardGauge = { key: string; label: string; value: number };
 
@@ -10,6 +11,8 @@ export type PhotocardView = {
   typeName: string;
   typeShort: string;
   symbolSrc: string;
+  /** 사진을 안 넣었을 때 깔리는 가상 아이돌 실루엣 아트 */
+  idolSrc: string;
   oneLiner: string;
   total: number;
   grade: string;
@@ -47,16 +50,18 @@ export function PhotocardFront({ view, photoUrl, flat, hidden }: FaceProps) {
   return (
     <div className={`${styles.pcFace} ${flat ? styles.pcStatic : ""}`} data-theme={view.themeKey} aria-hidden={hidden || undefined}>
       <span className={`${styles.pcLayer} ${styles.pcArt}`} aria-hidden />
+      <span className={`${styles.pcLayer} ${art.pcIdol}`} aria-hidden>
+        <img src={view.idolSrc} alt="" width={640} height={960} decoding="async" />
+      </span>
       {photoUrl ? (
-        <span className={`${styles.pcLayer} ${styles.pcPhoto}`} aria-hidden>
+        <span className={`${styles.pcLayer} ${styles.pcPhoto}`} data-device-photo="1" aria-hidden>
           <img src={photoUrl} alt="" decoding="async" />
         </span>
-      ) : (
-        <span className={`${styles.pcLayer} ${styles.pcSymbol}`} aria-hidden>
-          <img src={view.symbolSrc} alt="" width={240} height={240} decoding="async" />
-        </span>
-      )}
+      ) : null}
       <span className={`${styles.pcLayer} ${styles.pcScrim}`} aria-hidden />
+      <span className={`${art.pcSeal} ${photoUrl ? art.pcSealSmall : ""}`} aria-hidden>
+        <img src={view.symbolSrc} alt="" width={160} height={160} decoding="async" />
+      </span>
       <span className={`${styles.pcLayer} ${styles.pcHolo}`} aria-hidden />
       <span className={`${styles.pcLayer} ${styles.pcGlitter}`} aria-hidden />
       <span className={`${styles.pcLayer} ${styles.pcGrain}`} aria-hidden />
@@ -111,6 +116,7 @@ export function PhotocardBack({ view, hidden }: FaceProps) {
   return (
     <div className={`${styles.pcFace} ${styles.pcBack}`} data-theme={view.themeKey} aria-hidden={hidden || undefined}>
       <span className={`${styles.pcLayer} ${styles.pcBackArt}`} aria-hidden />
+      <span className={`${styles.pcLayer} ${styles.pcBackPhoto}`} aria-hidden />
       <span className={`${styles.pcLayer} ${styles.pcGrain}`} aria-hidden />
       <span className={styles.pcFrame} aria-hidden />
       <div className={styles.pcBackBody}>

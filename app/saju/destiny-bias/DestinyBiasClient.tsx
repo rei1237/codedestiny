@@ -36,7 +36,8 @@ import ChemiHook from "./components/chemi/ChemiHook";
 import IdolPicker from "./components/chemi/IdolPicker";
 import MyInfoPanel, { type MyInfoValue } from "./components/chemi/MyInfoPanel";
 import ChemiComputing from "./components/chemi/ChemiComputing";
-import ChemiCoreCard from "./components/chemi/ChemiCoreCard";
+import ChemiReportTabs from "./components/chemi/ChemiReportTabs";
+import ChemiCoreCard, { toPhotocardView } from "./components/chemi/ChemiCoreCard";
 import PhotocardDeco from "./components/chemi/PhotocardDeco";
 import { DEFAULT_PHOTOCARD_THEME, PHOTOCARD_THEMES } from "./components/chemi/PhotocardFace";
 import {
@@ -499,14 +500,16 @@ export default function DestinyBiasClient() {
   }, [outcome, shareTitle, trackFunnelStep, trackShare]);
 
   /** 1080px 공유 카드를 PNG 로 찍는다. 실패하면 null(호출자가 폴백을 고른다). */
-  const exportShareCardBlob = useCallback(async (): Promise<Blob | null> => {
+  const exportShareCardBlob = useCallback(async (includeDevicePhoto = false): Promise<Blob | null> => {
     const node = shareCanvasRef.current;
     if (!node) return null;
     try {
       await document.fonts?.ready;
       await waitForImages(node);
       const { toBlob } = await import("html-to-image");
-      const options = { width: SHARE_CARD_WIDTH, height: SHARE_CARD_HEIGHT[shareRatio], pixelRatio: 1, cacheBust: true };
+      // 기기 사진은 「이미지 저장」에만 찍는다. 공유 파일을 만들 때는 사진 레이어를 걸러 실루엣 아트가 드러난다.
+      const filter = (el: HTMLElement) => includeDevicePhoto || !(el instanceof HTMLElement && el.dataset.devicePhoto);
+      const options = { width: SHARE_CARD_WIDTH, height: SHARE_CARD_HEIGHT[shareRatio], pixelRatio: 1, cacheBust: true, filter };
       // 첫 호출은 이미지 인라인이 덜 끝나 null 이 나올 수 있어 1회만 재시도한다.
       return (await toBlob(node, options)) || (await toBlob(node, options));
     } catch {
@@ -606,7 +609,7 @@ export default function DestinyBiasClient() {
     setShareBusy(true);
     setShareStatus({ tone: "info", text: "카드 이미지를 만드는 중…" });
     try {
-      let blob = await exportShareCardBlob();
+      let blob = await exportShareCardBlob(true);
       if (!blob) {
         // 폴백: 서버가 그린 1200×630 카드. 이때만 공유 스냅샷이 필요하다.
         const { share } = await ensureShare();
@@ -642,9 +645,9 @@ export default function DestinyBiasClient() {
           title: shareTitle,
           headline: copy.oneLiner,
           summary: copy.points.map((p) => p.text).join(" "),
-          themeKey: "kpop_cream",
-          score: 0,
-          grade: "",
+          themeKey,
+          score: outcome.report.totalScore,
+          grade: outcome.report.grade,
           reportText: [copy.scenario.text, copy.caution.text, copy.finish.text].join("\n\n"),
           canonical: {
             chemiTypeId: result.chemiTypeId,
@@ -672,7 +675,7 @@ export default function DestinyBiasClient() {
     } finally {
       setShareBusy(false);
     }
-  }, [outcome, savedToCollection, shareBusy, shareTitle, trackClick]);
+  }, [outcome, savedToCollection, shareBusy, shareTitle, themeKey, trackClick]);
 
   const stickyLabel = step === "hook" ? "내 최애 고르기" : step === "info" ? "케미 계산하기" : "";
   const stickyAction = () => {
@@ -732,8 +735,8 @@ export default function DestinyBiasClient() {
             />
             <ChemiShareCard
               ref={shareCanvasRef}
-              result={outcome.result}
-              copy={outcome.copy}
+              view={toPhotocardView(outcome.report, { themeKey, nickname: showNickname ? shareNickname : "" })}
+              photoUrl={photoUrl}
               ratio={shareRatio}
               nickname={shareNickname}
               showNickname={showNickname}
@@ -759,6 +762,7 @@ export default function DestinyBiasClient() {
               }}
             />
             <ChemiSections copy={outcome.copy} />
+            <ChemiReportTabs vm={outcome.report.vm} onOpen={(tab) => trackClick("destiny_bias_report_tab", { tab })} />
             <ChemiEvidencePanel result={outcome.result} />
             <MemberSwitcher current={outcome.partner} onSwitch={handleSwitch} />
             <TypeCollection collected={collected} currentTypeId={outcome.result.chemiTypeId} />

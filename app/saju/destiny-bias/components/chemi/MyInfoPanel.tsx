@@ -3,6 +3,7 @@
 import { useId } from "react";
 import type { CalendarType, ChemiPartnerRecord } from "@/lib/idol-chemi";
 import styles from "../../destiny-bias.module.css";
+import art from "../../stage-art.module.css";
 
 export type MyInfoValue = {
   birthDateInput: string; // YYYYMMDD 8자리
@@ -38,6 +39,12 @@ export default function MyInfoPanel({ partner, value, error, seededFromProfile, 
 
   return (
     <section className={styles.infoPanel} aria-labelledby="dbk-info-title">
+      <div className={`${art.band} ${art.bandBackstage}`} aria-hidden>
+        <p className={art.bandLabel}>
+          Backstage
+          <b>Your ticket</b>
+        </p>
+      </div>
       <div className={styles.stepHeader}>
         <button type="button" className={styles.backLink} onClick={onBack}>
           ← 최애 다시 고르기

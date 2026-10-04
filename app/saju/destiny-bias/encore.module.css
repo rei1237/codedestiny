@@ -33,6 +33,19 @@
   display: block;
 }
 
+/* 직접 그린 무대 조명·헤이즈·객석 보케(인물 없음). CSS 빔이 그 위에 겹친다. */
+.photo {
+  inset: 0;
+  background: url("/images/destiny-bias/stage/backdrop-720.webp") 50% 0 / cover no-repeat;
+  opacity: 0.62;
+}
+
+@media (min-width: 768px) {
+  .photo {
+    background-image: url("/images/destiny-bias/stage/backdrop-1280.webp");
+  }
+}
+
 .haze {
   inset: -10% -20% auto;
   height: 70%;

@@ -25,6 +25,7 @@ export default function MyDestinyBiasShell({ children }: MyDestinyBiasShellProps
       className={`${stage.shell} fixed inset-0 z-[60] overflow-y-auto overflow-x-hidden [padding-top:env(safe-area-inset-top)] [padding-bottom:env(safe-area-inset-bottom)]`}
     >
       <div className={stage.backdrop} aria-hidden>
+        <span className={stage.photo} />
         <span className={stage.haze} />
         <span className={`${stage.beam} ${stage.beamLeft}`} />
         <span className={`${stage.beam} ${stage.beamCenter}`} />

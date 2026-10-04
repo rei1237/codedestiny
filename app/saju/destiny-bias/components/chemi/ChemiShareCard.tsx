@@ -1,9 +1,10 @@
 "use client";
 
 import { forwardRef, useEffect, useRef, useState } from "react";
-import type { ChemiCopy, ChemiResult } from "@/lib/idol-chemi";
-import { ASSETS, STRENGTH_LABEL, TYPE_ACCENT, stickerSrc, typeSymbolSrc } from "./chemiAssets";
+import { STAGE } from "./chemiAssets";
+import { PhotocardFront, type PhotocardView } from "./PhotocardFace";
 import styles from "../../destiny-bias.module.css";
+import card from "../../share-card.module.css";
 
 export type ShareRatio = "square" | "story";
 export const SHARE_CARD_WIDTH = 1080;
@@ -11,8 +12,10 @@ export const SHARE_CARD_HEIGHT: Record<ShareRatio, number> = { square: 1080, sto
 export const SHARE_NICKNAME_MAX = 20;
 
 type Props = {
-  result: ChemiResult;
-  copy: ChemiCopy;
+  /** 포토카드 표시용 문자열 묶음. 날짜 입력·명식은 이 타입에 없다. */
+  view: PhotocardView;
+  /** 기기 안에서만 쓰는 사진. 「이미지 저장」에만 찍히고, 공유 파일을 만들 때는 걸러진다. */
+  photoUrl?: string | null;
   ratio: ShareRatio;
   nickname: string;
   showNickname: boolean;
@@ -24,16 +27,15 @@ type Props = {
 /**
  * 공유 카드(1080×1080 · 1080×1920). ref 는 실제 1080px 캔버스 노드를 가리킨다 —
  * 축소는 바깥 래퍼의 transform 으로만 하므로 html-to-image 가 원본 크기로 찍는다.
- * 🔴 생년월일·명식은 어떤 형태로도 이 DOM 에 넣지 않는다(공유물에 개인정보 금지).
+ * 🔴 날짜 입력·명식은 어떤 형태로도 이 DOM 에 넣지 않는다(공유물에 개인정보 금지).
  */
 const ChemiShareCard = forwardRef<HTMLDivElement, Props>(function ChemiShareCard(
-  { result, copy, ratio, nickname, showNickname, onRatioChange, onNicknameChange, onShowNicknameChange },
+  { view, photoUrl, ratio, nickname, showNickname, onRatioChange, onNicknameChange, onShowNicknameChange },
   ref,
 ) {
   const frameRef = useRef<HTMLDivElement | null>(null);
   const [scale, setScale] = useState(0.3);
   const height = SHARE_CARD_HEIGHT[ratio];
-  const me = showNickname && nickname.trim() ? nickname.trim() : "나";
 
   useEffect(() => {
     const frame = frameRef.current;
@@ -71,46 +73,40 @@ const ChemiShareCard = forwardRef<HTMLDivElement, Props>(function ChemiShareCard
         </button>
       </div>
 
-      <div
-        ref={frameRef}
-        className={styles.sharePreviewFrame}
-        data-ratio={ratio}
-        style={{ height: Math.round(height * scale) }}
-      >
+      <div ref={frameRef} className={`${styles.sharePreviewFrame} ${card.frame}`} data-ratio={ratio} style={{ height: Math.round(height * scale) }}>
         <div className={styles.shareScaler} style={{ transform: `scale(${scale})` }}>
-          <div
-            ref={ref}
-            className={styles.shareCanvas}
-            data-ratio={ratio}
-            data-accent={TYPE_ACCENT[result.chemiTypeId]}
-            style={{ width: SHARE_CARD_WIDTH, height }}
-          >
-            <img className={styles.shareCanvasBg} src={ratio === "story" ? ASSETS.shareBgStory : ASSETS.shareBgSquare} alt="" aria-hidden />
-            <img className={styles.shareCanvasStickerA} src={stickerSrc(1)} alt="" aria-hidden />
-            <img className={styles.shareCanvasStickerB} src={stickerSrc(4)} alt="" aria-hidden />
-            <div className={styles.shareCanvasPanel}>
-              <p className={styles.shareCanvasKicker}>최애운명 · 케미 유형</p>
-              <p className={styles.shareCanvasPair}>
-                <strong>{me}</strong>
-                <i aria-hidden>×</i>
-                <strong>{result.partner.displayName}</strong>
-              </p>
-              {result.partner.groupLabel ? <p className={styles.shareCanvasGroup}>{result.partner.groupLabel}</p> : null}
-              <img className={styles.shareCanvasSymbol} src={typeSymbolSrc(result.chemiTypeId)} alt="" aria-hidden />
-              <p className={styles.shareCanvasShort}>{result.chemiTypeShortKo}</p>
-              <p className={styles.shareCanvasType}>{result.chemiTypeNameKo}</p>
-              <p className={styles.shareCanvasOneLiner}>{copy.oneLiner}</p>
-              <p className={styles.shareCanvasMeta}>
-                {STRENGTH_LABEL[result.signalStrength]} · {result.minorMode ? "우정·팀워크 모드" : "현실 친구 모드"}
-              </p>
+          <div ref={ref} className={card.canvas} data-ratio={ratio} style={{ width: SHARE_CARD_WIDTH, height }}>
+            <img className={card.bg} src={ratio === "story" ? STAGE.heroTall : STAGE.fanOcean} alt="" aria-hidden />
+            <div className={card.cardBox}>
+              <div className={card.cardScale}>
+                <PhotocardFront view={view} photoUrl={photoUrl} flat />
+              </div>
             </div>
-            <p className={styles.shareCanvasFoot}>
+            <div className={card.copy}>
+              <p className={card.kicker}>My Bias Chemi</p>
+              <p className={card.pair}>
+                {view.me}
+                <i aria-hidden>×</i>
+                {view.partnerName}
+              </p>
+              <p className={card.score}>
+                {view.total}
+                <small>%</small>
+              </p>
+              <p className={card.grade}>{view.grade}</p>
+              <p className={card.type}>
+                {view.typeShort} · {view.typeName}
+              </p>
+              <p className={card.oneLiner}>{view.oneLiner}</p>
+            </div>
+            <p className={card.foot}>
               <span>꿀꿀 운세 · 최애운명</span>
               <span>code-destiny.com · 오락용</span>
             </p>
           </div>
         </div>
       </div>
+      {photoUrl ? <p className={card.photoNote}>넣은 사진은 「이미지 저장」에만 찍혀요. 공유로 보내는 카드와 링크에는 빠져요.</p> : null}
 
       <div className={styles.shareNickRow}>
         <label className={styles.fieldLabel} htmlFor="dbk-share-nickname">
@@ -127,7 +123,7 @@ const ChemiShareCard = forwardRef<HTMLDivElement, Props>(function ChemiShareCard
           disabled={!showNickname}
           onChange={(e) => onNicknameChange(e.target.value.slice(0, SHARE_NICKNAME_MAX))}
         />
-        <label className={styles.shareNickToggle}>
+        <label className={`${styles.shareNickToggle} ${card.check}`}>
           <input type="checkbox" checked={!showNickname} onChange={(e) => onShowNicknameChange(!e.target.checked)} />
           닉네임 숨기기
         </label>

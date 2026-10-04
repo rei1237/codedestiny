@@ -1,0 +1,274 @@
+/* 최애운명 무대 아트(직접 그린 가상 아이돌 실루엣·공연장) 배치.
+   자산·출처: docs/design/destiny-bias-kpop-art.jsonl. 토큰(--dbk-*)은 encore.module.css 의 .shell 에서 상속한다. */
+
+/* ---------- 후크 히어로: 돔 공연장 키 비주얼 ---------- */
+.hero {
+  position: relative;
+  margin: -64px -16px 0;
+  height: clamp(320px, 54vh, 470px);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.hero picture,
+.heroImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.heroImg {
+  object-fit: cover;
+  object-position: 50% 30%;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 56%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 56%, transparent 100%);
+  animation: dbkHeroIn 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* 제목이 얹히는 아래쪽을 눌러 대비를 확보한다 */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(7, 4, 22, 0.5) 0%, rgba(7, 4, 22, 0) 22%, rgba(7, 4, 22, 0) 46%, rgba(7, 4, 22, 0.78) 100%),
+    radial-gradient(60% 40% at 50% 34%, rgba(255, 255, 255, 0.1), transparent 70%);
+}
+
+.heroCopy {
+  position: absolute;
+  z-index: 2;
+  left: 20px;
+  right: 20px;
+  bottom: 6px;
+}
+
+.heroKicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-family: var(--dbk-font-poster);
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--dbk-foil-gold, #ffd98a);
+  text-shadow: 0 1px 2px rgba(6, 3, 18, 0.9);
+}
+
+.heroKicker::before {
+  content: "";
+  width: 26px;
+  height: 1px;
+  background: currentColor;
+}
+
+.heroTitle {
+  margin: 0;
+  font-family: var(--dbk-font-serif);
+  font-weight: 700;
+  font-size: clamp(27px, 7.6vw, 44px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+  text-wrap: balance;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(6, 3, 18, 0.85), 0 0 34px rgba(6, 3, 18, 0.9);
+}
+
+.heroTitle em {
+  font-style: normal;
+  color: var(--dbk-foil-gold, #ffd98a);
+}
+
+@media (min-width: 768px) {
+  .hero {
+    margin: 0;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    border-radius: 28px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  }
+
+  .heroImg {
+    object-position: 50% 50%;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .heroCopy {
+    left: 32px;
+    right: 32px;
+    bottom: 28px;
+  }
+}
+
+/* ---------- 단계 머리 띠(객석·백스테이지) ---------- */
+.band {
+  position: relative;
+  height: 104px;
+  margin: 0 0 14px;
+  border-radius: 20px;
+  overflow: hidden;
+  background-color: #0b0618;
+  background-size: cover;
+  background-position: 50% 62%;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 18px 40px rgba(0, 0, 0, 0.4);
+}
+
+.band::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(7, 4, 22, 0.72) 0%, rgba(7, 4, 22, 0.1) 60%, rgba(7, 4, 22, 0.4) 100%);
+}
+
+.bandFan {
+  background-image: url("/images/destiny-bias/stage/fan-ocean-960.webp");
+}
+
+.bandBackstage {
+  background-image: url("/images/destiny-bias/stage/backstage-960.webp");
+  background-position: 50% 44%;
+}
+
+.bandLabel {
+  position: absolute;
+  z-index: 1;
+  left: 18px;
+  bottom: 14px;
+  margin: 0;
+  font-family: var(--dbk-font-poster);
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(6, 3, 18, 0.9);
+}
+
+.bandLabel b {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--dbk-font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--dbk-foil-gold, #ffd98a);
+}
+
+/* ---------- 계산 중: 객석 응원봉 물결 ---------- */
+.computingStage {
+  position: relative;
+  width: min(100%, 420px);
+  aspect-ratio: 3 / 2;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+.computingStage img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: dbkSway 2.4s ease-in-out infinite alternate;
+}
+
+.computingStage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.28) 50%, transparent 70%);
+  background-size: 240% 100%;
+  animation: dbkScan 1.2s linear infinite;
+  mix-blend-mode: screen;
+}
+
+/* ---------- 포토카드 앞면: 가상 아이돌 실루엣 + 유형 엠블럼 인장 ---------- */
+.pcIdol img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 18%;
+}
+
+/* 테마 색을 실루엣 조명에 입힌다 */
+.pcIdol::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, var(--pc-b), transparent 46%, var(--pc-c));
+  mix-blend-mode: soft-light;
+  opacity: 0.9;
+}
+
+.pcSeal {
+  position: absolute;
+  right: 18px;
+  top: 41%;
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 7px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 217, 138, 0.72);
+  background: rgba(12, 8, 28, 0.62);
+  box-shadow: inset 0 0 0 3px rgba(12, 8, 28, 0.4), inset 0 0 0 4px rgba(255, 217, 138, 0.24), 0 8px 18px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.pcSeal img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px var(--pc-glow));
+}
+
+/* 사진을 넣었을 때는 인장을 왼쪽 위 등급 아래로 작게 */
+.pcSealSmall {
+  width: 50px;
+  height: 50px;
+}
+
+@keyframes dbkHeroIn {
+  from {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dbkSway {
+  from {
+    transform: scale(1.04) translateX(-1%);
+  }
+  to {
+    transform: scale(1.08) translateX(1%);
+  }
+}
+
+@keyframes dbkScan {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroImg,
+  .computingStage img,
+  .computingStage::after {
+    animation: none;
+  }
+}

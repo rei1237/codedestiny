@@ -15,6 +15,7 @@ import { siteSeo } from "@/lib/seo/siteSeo";
 import { ASSETS } from "./chemiAssets";
 import { sameRef } from "./chemiStorage";
 import styles from "../../destiny-bias.module.css";
+import art from "../../stage-art.module.css";
 
 type Tab = "kpop" | "etc";
 
@@ -131,6 +132,12 @@ export default function IdolPicker({ recent, selected, isLoggedIn, onSelect, onB
 
   return (
     <section className={styles.picker} aria-labelledby="dbk-picker-title">
+      <div className={`${art.band} ${art.bandFan}`} aria-hidden>
+        <p className={art.bandLabel}>
+          Line-up
+          <b>Pick your bias</b>
+        </p>
+      </div>
       <div className={styles.stepHeader}>
         <button type="button" className={styles.backLink} onClick={onBack}>
           ← 처음으로

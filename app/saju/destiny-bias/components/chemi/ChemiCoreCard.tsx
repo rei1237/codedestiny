@@ -3,7 +3,7 @@
 import { forwardRef, useCallback, useRef, useState, type PointerEvent } from "react";
 import { useReducedMotion } from "framer-motion";
 import type { ChemiReport } from "../../engine/chemiReportBridge";
-import { typeSymbolSrc } from "./chemiAssets";
+import { idolSoloSrc, typeSymbolSrc } from "./chemiAssets";
 import { PHOTOCARD_THEMES, PhotocardBack, PhotocardFront, type PhotocardView } from "./PhotocardFace";
 import styles from "../../photocard.module.css";
 
@@ -25,6 +25,7 @@ export function toPhotocardView(report: ChemiReport, options: { themeKey: string
     typeName: result.chemiTypeNameKo,
     typeShort: result.chemiTypeShortKo,
     symbolSrc: typeSymbolSrc(result.chemiTypeId),
+    idolSrc: idolSoloSrc(result.partner.id, result.partner.groupId),
     oneLiner: copy.oneLiner,
     total: report.totalScore,
     grade: report.grade,

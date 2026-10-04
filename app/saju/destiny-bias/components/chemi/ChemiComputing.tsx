@@ -1,7 +1,8 @@
 "use client";
 
-import { ASSETS, stickerSrc } from "./chemiAssets";
+import { STAGE } from "./chemiAssets";
 import styles from "../../destiny-bias.module.css";
+import art from "../../stage-art.module.css";
 
 type Props = {
   partnerName: string;
@@ -11,9 +12,8 @@ type Props = {
 export default function ChemiComputing({ partnerName }: Props) {
   return (
     <section className={styles.computing} role="status" aria-live="polite" aria-busy="true">
-      <div className={styles.computingArt} aria-hidden>
-        <img src={ASSETS.miniLoading} alt="" width={160} height={160} />
-        <img className={`${styles.sticker} ${styles.stickerSpin}`} src={stickerSrc(2)} alt="" width={56} height={56} />
+      <div className={art.computingStage} aria-hidden>
+        <img src={STAGE.fanOcean} alt="" width={960} height={640} decoding="async" />
       </div>
       <p className={styles.stepLabel}>STEP 3 / 3</p>
       <h2 className={styles.stepTitle}>{partnerName}와 내 명식을 겹쳐 보는 중…</h2>

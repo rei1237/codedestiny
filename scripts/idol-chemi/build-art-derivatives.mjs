@@ -27,16 +27,22 @@ export const SELECTION = {
   'hype-charger': 1, 'push-pull': 1, 'cross-learn': 1, 'slow-burn': 1,
   'card-bg': 2, 'share-bg-square': 2, 'share-bg-story': 2,
   loading: 1, empty: 1, error: 1,
+  // 무대 아트(밤 공연장·가상 아이돌 실루엣). 시도 번호는 검수 뒤 고정한다.
+  'stage-hero': 2, 'stage-hero-tall': 2, 'stage-backdrop': 1,
+  'idol-solo-f1': 1, 'idol-solo-f2': 1, 'idol-solo-m1': 2, 'idol-solo-m2': 1,
+  backstage: 1, 'fan-ocean': 2,
+  'emblem-telepathy': 1, 'emblem-same-wave': 1, 'emblem-accel-brake': 2, 'emblem-locked-in': 1, 'emblem-quiet-care': 2,
+  'emblem-hype-charger': 2, 'emblem-push-pull': 1, 'emblem-cross-learn': 1, 'emblem-slow-burn': 1,
 };
 
 // Shipped derivative spec. kind: cover (opaque centre crop), og (png centre crop), story (opaque fit+pad), contain (transparent)
 const TYPES = ['telepathy', 'same-wave', 'accel-brake', 'locked-in', 'quiet-care', 'hype-charger', 'push-pull', 'cross-learn', 'slow-burn'];
 const SPECS = [
-  { asset: 'home-card', out: 'home-card-640.webp', w: 640, h: 427, kind: 'cover', max: 150 },
-  { asset: 'home-card', out: 'home-card-320.webp', w: 320, h: 213, kind: 'cover', max: 150 },
+  { asset: 'stage-hero', out: 'home-card-640.webp', w: 640, h: 427, kind: 'cover', max: 150 },
+  { asset: 'stage-hero', out: 'home-card-320.webp', w: 320, h: 213, kind: 'cover', max: 150 },
   { asset: 'hero', out: 'hero-1200.webp', w: 1200, h: 800, kind: 'cover', max: 220 },
   { asset: 'hero', out: 'hero-mobile-780.webp', w: 780, h: 520, kind: 'cover', max: 220 },
-  { asset: 'hero', out: 'og-default-1200x630.png', w: 1200, h: 630, kind: 'og', max: 1024 },
+  { asset: 'stage-hero', out: 'og-default-1200x630.png', w: 1200, h: 630, kind: 'og', max: 1024 },
   { asset: 'frame-member', out: 'frame-member.webp', w: 540, h: 810, kind: 'contain', max: 150 },
   ...[1, 2, 3, 4, 5, 6].map((n) => ({ asset: `s-0${n}`, out: `stickers/s-0${n}.webp`, w: 256, h: 256, kind: 'contain', max: 150 })),
   ...TYPES.map((id) => ({ asset: id, out: `types/${id}.webp`, w: 320, h: 320, kind: 'contain', max: 150 })),
@@ -46,6 +52,15 @@ const SPECS = [
   { asset: 'loading', out: 'mini/loading.webp', w: 240, h: 240, kind: 'contain', max: 150 },
   { asset: 'empty', out: 'mini/empty.webp', w: 240, h: 240, kind: 'contain', max: 150 },
   { asset: 'error', out: 'mini/error.webp', w: 240, h: 240, kind: 'contain', max: 150 },
+  // --- 무대 아트: 어두운 사진풍이라 품질을 낮춰 용량을 맞춘다(q) ---
+  { asset: 'stage-hero', out: 'stage/hero-1536.webp', w: 1536, h: 1024, kind: 'cover', max: 180, q: 72 },
+  { asset: 'stage-hero-tall', out: 'stage/hero-tall-780.webp', w: 780, h: 1170, kind: 'cover', max: 150, q: 72 },
+  { asset: 'stage-backdrop', out: 'stage/backdrop-720.webp', w: 720, h: 1080, kind: 'cover', max: 90, q: 62 },
+  { asset: 'stage-backdrop', out: 'stage/backdrop-1280.webp', w: 1280, h: 1280, kind: 'cover', max: 150, q: 62 },
+  ...['f1', 'f2', 'm1', 'm2'].map((k) => ({ asset: `idol-solo-${k}`, out: `stage/idol-${k}.webp`, w: 640, h: 960, kind: 'cover', max: 110, q: 74 })),
+  { asset: 'backstage', out: 'stage/backstage-960.webp', w: 960, h: 640, kind: 'cover', max: 120, q: 70 },
+  { asset: 'fan-ocean', out: 'stage/fan-ocean-960.webp', w: 960, h: 640, kind: 'cover', max: 120, q: 70 },
+  ...TYPES.map((id) => ({ asset: `emblem-${id}`, out: `stage/emblems/${id}.webp`, w: 320, h: 320, kind: 'contain', max: 60, pad: id === 'hype-charger' ? 100 : 0 })),
 ];
 
 const transparent = { r: 0, g: 0, b: 0, alpha: 0 };
@@ -79,14 +94,19 @@ async function build(spec, src) {
   fs.mkdirSync(path.dirname(dest), { recursive: true });
   const img = sharp(src);
   if (spec.kind === 'cover') {
-    await img.flatten({ background: '#FFF7EC' }).resize(spec.w, spec.h, { fit: 'cover', position: 'centre' }).webp(WEBP).toFile(dest);
+    await img.flatten({ background: spec.q ? '#070416' : '#FFF7EC' }).resize(spec.w, spec.h, { fit: 'cover', position: spec.pos || 'centre' })
+      .webp(spec.q ? { ...WEBP, quality: spec.q } : WEBP).toFile(dest);
   } else if (spec.kind === 'og') {
     await img.flatten({ background: '#FFF7EC' }).resize(spec.w, spec.h, { fit: 'cover', position: 'centre' })
       .png({ compressionLevel: 9, palette: true }).toFile(dest);
   } else if (spec.kind === 'story') {
     await (await fitPad(img, spec.w, spec.h)).webp(WEBP).toFile(dest);
   } else if (spec.kind === 'contain') {
-    await img.ensureAlpha().resize(spec.w, spec.h, { fit: 'contain', background: transparent })
+    // pad: 원본이 캔버스 끝에 닿은 도안은 투명 여백을 먼저 두른다(sharp 는 extend 를 resize 뒤에 적용하므로 버퍼로 끊는다)
+    const base = spec.pad
+      ? sharp(await img.ensureAlpha().extend({ top: spec.pad, bottom: spec.pad, left: spec.pad, right: spec.pad, background: transparent }).png().toBuffer())
+      : img;
+    await base.ensureAlpha().resize(spec.w, spec.h, { fit: 'contain', background: transparent })
       .webp({ ...WEBP, alphaQuality: 90 }).toFile(dest);
   }
   return dest;
