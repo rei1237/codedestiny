@@ -30,6 +30,17 @@ const details={
   legacy:{record:record('astrology'),content:{id:'',chapters:[{title:'첫 장',body:'첫 장 전체 내용'},{title:'마지막 장',body:'마지막 장 전체 내용'}],chart:{planets:[{name:'Sun',degree:12}]},html:'<table><tr><td>저장된 표</td></tr></table><script>window.fixtureXss=true</script>'}},
   partial:{record:record('fusion','partial',{status:'partial'}),content:{chapters:[{title:'첫 장',body:'부분 저장 내용'}]}},
 };
+// Compile the small set of routes before exercising browser history. A cold
+// development compiler can invalidate its own manifest during a redirect.
+for(const pathname of ['/consultations/','/records/','/records/view/','/fortune-tea-house/']) {
+  let response;
+  for(let attempt=0;attempt<3;attempt++) {
+    response=await fetch(origin+pathname);
+    await response.text();
+    if(response.ok)break;
+  }
+  assert.ok(response?.ok,`local fixture route failed to warm: ${pathname}`);
+}
 const browser=await chromium.launch({headless:true}); const evidence=[];
 let debugState;
 async function contextFor(width,scenario='normal') {
