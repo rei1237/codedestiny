@@ -192,6 +192,25 @@ test('엔진 성질: 결정론·개수·점수 범위·하드 필터·정렬',()
   assert.equal(run({schoolPreset:'kr-hunminjeongeum'}).candidates[0].sound.mapping,'hunminjeongeum');
 });
 
+test('자연스러움: 이름 사용 빈도가 어감·실용 감점이 되고 드문 글자에 표지를 단다',()=>{
+  const use=(ch,hangul)=>data.poolByChar.get(ch).readings.find((r)=>r.hangul===hangul).nameUse;
+  assert.equal(use('賣','매'),0);assert.ok(use('俊','준')>100);
+  const entry=data.poolByChar.get('俊');
+  assert.ok(E.unitPenalty(entry,{nameUse:0})>E.unitPenalty(entry,{nameUse:5}));
+  assert.equal(E.unitPenalty(entry,{nameUse:30}),E.unitPenalty(entry,{nameUse:3000}));
+  assert.equal(E.namePositionPenalty(['지','민'],data.syllableUse),0);
+  assert.ok(E.namePositionPenalty(['똥','깨'],data.syllableUse)>0);
+  const paid=run({},'paid');
+  // 사용 빈도가 없으면 상위 후보 대부분이 100점으로 묶여 tie 해시가 순위를 정했다(Phase 3 실측 69%).
+  assert.ok(new Set(paid.candidates.map((c)=>c.total.toFixed(6))).size>paid.candidates.length/2);
+  let flagged=0;
+  for(const c of paid.candidates)c.chars.forEach((ch,k)=>{
+    const rare=use(ch.ch,ch.hangul)<3;flagged+=rare?1:0;
+    assert.equal(c.reasonKeys.includes(`practical.${k}.rare-in-names`),rare,ch.ch);
+  });
+  assert.ok(flagged>0);
+});
+
 test('완화: 엄격 단계로 못 채우면 부족분만 다음 단계에서 채우고 키·고지를 남긴다',()=>{
   // 분쟁 글자만 남긴 풀: 무료는 3단계에서만 허용되고, 유료는 엄격 단계에서 허용된다.
   const pool=data.pool.filter((e)=>e.disputes.length>0&&e.jawon&&e.readings.some((r)=>r.hun)).slice(0,400);

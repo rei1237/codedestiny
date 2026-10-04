@@ -2,7 +2,7 @@
 // 탐색(candidates.ts)은 여기 함수로 만든 표를 미리 계산해 쓰고, 최종 후보는 scoreCandidate 로 처음부터 다시 계산한다 —
 // 두 경로가 같은 값을 내는지는 테스트가 본다.
 
-import { CONFIDENCE, DIST_BONUS, GRADE_VALUE, PRACTICAL, SAJU_PARTS, WEIGHTS } from "./config/weights";
+import { CONFIDENCE, DIST_BONUS, GRADE_VALUE, NATURALNESS, PRACTICAL, SAJU_PARTS, WEIGHTS } from "./config/weights";
 import type { SoundMapping, StrokeMethod } from "./config/school-presets";
 import type { BlacklistEntry, HanjaEntry, HanjaReading, NamingData } from "./data";
 import type { SajuNeeds } from "./saju-input";
@@ -53,15 +53,34 @@ export function sajuScore(entries: Pick<HanjaEntry, "jawon" | "confidence">[], n
   return clamp01(mean + distBonus(needs, entries.map((entry) => entry.jawon)));
 }
 
-/** 글자 하나의 실용 감점(불용 관행·확장 영역·기초한자 밖). */
-export function unitPenalty(entry: Pick<HanjaEntry, "tags" | "buryongLineages">): number {
+/** 이름 사용 횟수 → 드묾 0~1(0회 1, full 회 이상 0, 로그 포화). */
+export function rarity(use: number, full: number): number {
+  return 1 - Math.min(1, Math.log1p(use) / Math.log1p(full));
+}
+
+/** 글자 하나의 실용 감점(불용 관행·확장 영역·기초한자 밖·이 음으로 이름에 드묾). */
+export function unitPenalty(entry: Pick<HanjaEntry, "tags" | "buryongLineages">, reading: Pick<HanjaReading, "nameUse">): number {
   let penalty = 0;
   if (entry.buryongLineages >= 2) penalty += PRACTICAL.buryongMultiLineage;
   else if (entry.buryongLineages === 1) penalty += PRACTICAL.buryongSingleLineage;
   if (entry.tags.includes("ext-a")) penalty += PRACTICAL.extA;
   if (entry.tags.includes("ext-b") || entry.tags.includes("ext-c-plus")) penalty += PRACTICAL.extBPlus;
   if (!entry.tags.includes("basic-edu")) penalty += PRACTICAL.nonBasicEdu;
+  penalty += PRACTICAL.rareHanja * rarity(reading.nameUse, NATURALNESS.hanjaFull);
   return penalty;
+}
+
+/** 음절 하나의 자리별 감점 [첫째 자리, 둘째 자리, 외자]. 외자는 두 자리 사용을 합쳐 본다. */
+export function syllablePenalties(hangul: string, syllableUse: NamingData["syllableUse"]): [number, number, number] {
+  const [first, second] = syllableUse.get(hangul) ?? [0, 0];
+  const of = (use: number) => PRACTICAL.rareSyllable * rarity(use, NATURALNESS.syllableFull);
+  return [of(first), of(second), of(first + second)];
+}
+
+/** 이름 음절(1~2개)이 그 자리에서 드문 만큼의 감점. 탐색은 글자마다 syllablePenalties 를 미리 계산해 같은 순서로 더한다. */
+export function namePositionPenalty(nameSyllables: string[], syllableUse: NamingData["syllableUse"]): number {
+  if (nameSyllables.length === 1) return syllablePenalties(nameSyllables[0], syllableUse)[2];
+  return syllablePenalties(nameSyllables[0], syllableUse)[0] + syllablePenalties(nameSyllables[1], syllableUse)[1];
 }
 
 /** 음절 배열(성+이름) 전체에 걸린 감점: 인접 같은 소리, 모든 음절 받침, 이름 첫 음절 ㄹ. nameStart = 성 음절 수. */
@@ -86,9 +105,16 @@ export function blacklistHit(fullHangul: string, list: BlacklistEntry[]): Blackl
   return warn;
 }
 
-export function practicalScore(unitPenalties: number[], syllables: string[], nameStart: number, hit: BlacklistEntry | null): number {
+export function practicalScore(
+  unitPenalties: number[],
+  syllables: string[],
+  nameStart: number,
+  hit: BlacklistEntry | null,
+  syllableUse: NamingData["syllableUse"],
+): number {
   const warn = hit && hit.grade === "warn" ? PRACTICAL.blacklistWarn : 0;
-  return clamp01(1 - unitPenalties.reduce((a, b) => a + b, 0) - pairPenalty(syllables, nameStart) - warn);
+  const position = namePositionPenalty(syllables.slice(nameStart), syllableUse);
+  return clamp01(1 - unitPenalties.reduce((a, b) => a + b, 0) - pairPenalty(syllables, nameStart) - position - warn);
 }
 
 /** 이름 획수 쌍마다 변하지 않는 몫(수리·삼재·음양) — 탐색이 획수 쌍 단위로 한 번만 계산한다. */
@@ -172,7 +198,7 @@ export function scoreCandidate(
     samjae: GRADE_VALUE[base.samjae.grade],
     sound: flow.score,
     yinyang: base.yinyang,
-    practical: practicalScore(entries.map(unitPenalty), syllables, surname.strokes.length, hit),
+    practical: practicalScore(picks.map((p) => unitPenalty(p.entry, p.reading)), syllables, surname.strokes.length, hit, data.syllableUse),
   };
 
   const reasonKeys: string[] = [];
@@ -189,6 +215,7 @@ export function scoreCandidate(
     if (element && (p.entry.confidence ?? 0) < CONFIDENCE.full) reasonKeys.push(`char.${k}.low-confidence`);
     if (p.entry.disputes.length) reasonKeys.push(`char.${k}.disputed`);
     if (p.entry.buryongLineages > 0) reasonKeys.push(`practical.${k}.buryong`);
+    if (p.reading.nameUse < NATURALNESS.rareBelow) reasonKeys.push(`practical.${k}.rare-in-names`);
     if (COURT_VARIANT_BASIS.has(p.entry.basis)) reasonKeys.push(`char.${k}.court-code-variant`);
     if (!p.reading.hun) reasonKeys.push(`char.${k}.no-hun`);
   });

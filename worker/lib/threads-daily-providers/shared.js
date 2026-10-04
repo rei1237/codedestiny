@@ -12,7 +12,7 @@ import { threadsTextWeight } from "../threads.js";
 
 // API 상한(500)보다 낮게 — threads-daily-content.js 의 CHAIN_TEXT_LIMIT 과 같은 여유.
 export const POST_TEXT_LIMIT = 480;
-export const PROMPT_VERSION = "editorial-20261004-v1";
+export const PROMPT_VERSION = "editorial-20261004-v3";
 /** 반말 슬롯(띠별·사주·카르마)의 범위 고지. 날짜만 계산한 글이라는 사실은 말투가 바뀌어도 남긴다. */
 export const SCOPE_LINE = "재미로 보는 날짜 운세 · 개인 예측 아님";
 

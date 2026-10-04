@@ -31,7 +31,15 @@ export const PRACTICAL = Object.freeze({
   extA: 0.3, // 확장 A — 입력·글꼴 지원이 약하다
   extBPlus: 0.5, // 확장 B 이상(BMP 밖)
   nonBasicEdu: 0.05, // 교육용 기초한자 밖 — 읽기·쓰기 친숙도
+  rareHanja: 0.15, // 이 음으로 이름에 쓰인 적이 드문 글자(최대 — 사용 0회)
+  rareSyllable: 0.05, // 그 자리의 이름 음절로 드문 소리(최대 — 사용 0회)
 });
+
+/**
+ * 이름 사용 빈도(data/name-usage.v1.json — Wikidata 대한민국 국적 인물 집계)를 감점으로 바꾸는 포화점.
+ * 감점 = 최대 × (1 − min(1, ln(1+사용) / ln(1+full))). 사용이 rareBelow 미만이면 글자 표지 practical.<k>.rare-in-names.
+ */
+export const NATURALNESS = Object.freeze({ hanjaFull: 30, syllableFull: 30, rareBelow: 3 });
 
 export const SEARCH = Object.freeze({
   /** (획수, 소리오행) 칸마다 남기는 글자 수. 2자 이름은 칸 5개 × 획수 쌍 만큼 조합한다. */
