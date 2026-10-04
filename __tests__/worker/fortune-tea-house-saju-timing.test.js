@@ -359,6 +359,7 @@ test("tea-v2 derives server facts, ignores forged client pillars and snapshots c
   expect([202,503]).toContain(status);
   expect(callGeminiTextMock.mock.calls.length).toBeGreaterThan(0);
   const prompt=JSON.parse(callGeminiTextMock.mock.calls[0][1]);
+  expect(callGeminiTextMock.mock.calls[0][2].cache.keyExtra).toContain("yeoni-evidence-v2");
   expect(JSON.stringify(prompt)).not.toContain("위조명식");
   expect(JSON.stringify(prompt)).not.toContain("위조대운");
   const saved=await fakeDb.collection('fortune_tea_house_results').find({}).next();

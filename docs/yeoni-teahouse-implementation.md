@@ -73,3 +73,7 @@
 - 통합 후 check:fast: paid-gate-suite 88/88 및 npm test 통과. 이후 env-parity가 새 개발 디버그 플래그를 거부했다. 새 env를 늘리지 않고 제품 UI의 디버그 패널 연결을 제거, verify:env-parity 재실행 PASS.
 - 해당 SHA CI: Pages/Worker 빌드, Typecheck/lint 통과. Critical checks는 같은 env-parity 사유로 실패했으며 테스트 자체는 통과. 수정 SHA의 CI를 다시 확인한다.
 - 마지막 타로 캡처에서 부모 CSS 의존으로 카드가 늘어남을 발견. visualOnly 카드 스타일을 자체 모듈로 분리하고 화면 루트에서 로드해, 390px에서 약 90×135px(2:3)·역방향 180도·5장 전체 배열을 실측 확인했다. 카드 이름 뒤 조사는 '카드가'로 정리했다.
+
+- 공통 공유 컴포넌트의 tea 색상 토큰을 크림/찻잎 계열로 교체하고 스타일을 진입점에서 로드하여 밝은 결과 화면의 대비를 확인했다. 다른 브랜드의 공유 색상은 유지.
+- 새 consultationVersion=tea-v2의 LLM 캐시 keyExtra를 yeoni-evidence-v2로 분리. 기존 v4/v5 상담 키는 보존. 22개 사주 시기/타로 해석 테스트 및 LLM 복구 가드 통과.
+- 현재 코드의 모델은 공통 callGeminiText→callLLM의 gemini-2.5-flash. 이 라우트는 Workers AI fallback을 끈다. 그룹 최대 출력 12,000토큰, 62초/보완30초/전체86초 제한, checkpoint 그룹별 최대2회 기존 정책 유지. 실제 제공자 청구액은 호출하지 않아 측정하지 않았다.

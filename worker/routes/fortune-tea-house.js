@@ -4148,7 +4148,7 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
         // 🔴 프롬프트를 바꾼 PR 은 이 버전을 반드시 올린다. 결정론 캐시 TTL 이 30일이라
         // 버전을 그대로 두면 캐시된 구버전 응답이 재생되어 테스트는 통과하는데 프로덕션 효과가 0이 된다.
         // v2: timingFacts(대운·다년 세운) 도입 + 시기 규칙 + 합충형해파 요구 제거.
-        keyExtra: `tea-house-${consultationMode}-${group.key}-${isSajuFamilyMode(consultationMode) ? "v5" : "v4"}`,
+        keyExtra: `tea-house-${consultationMode}-${group.key}-${request.consultationVersion === "tea-v2" ? "yeoni-evidence-v2" : isSajuFamilyMode(consultationMode) ? "v5" : "v4"}`,
         minChars: group.minChars,
       },
     });
