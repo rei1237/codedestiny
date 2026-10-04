@@ -6,6 +6,8 @@ import {build} from 'esbuild';
 import {chromium,webkit,devices} from '@playwright/test';
 import {resolveProduct} from '../../worker/payments/catalog.js';
 import {legacyMoonstoneEnvelope} from '../../worker/payments/compat.js';
+import {listReviewProductSummaries} from '../../worker/lib/review-product-catalog.js';
+import {REVIEW_REWARD_AMOUNT} from '../../worker/lib/review-reward.js';
 export const QA_API_ORIGIN='https://yeongnyangi-qa.example.invalid';
 
 const user={id:'507f1f77bcf86cd799439011',_id:'507f1f77bcf86cd799439011',name:'QA 고객',email:'qa@example.invalid',phoneNumber:'01012345678',role:'user'};
@@ -71,6 +73,11 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
   if(path==='/api/auth/me')return send(state.auth?{ok:true,authenticated:true,user:authUser()}:{ok:false,authenticated:false,code:'UNAUTHORIZED'},state.auth?200:401);
   if(path==='/api/auth/refresh')return send({ok:false,code:'UNAUTHORIZED'},401);
   if(path==='/api/auth/login'){state.auth=true;return send({ok:true,authenticated:true,user:authUser()},200,{'Set-Cookie':'fortune_auth_role=user; Path=/; SameSite=Lax; Max-Age=3600'});}
+  // Completed result screens fetch the public review policy. Match the real
+  // products response, with an empty approved-review fixture and canonical policy.
+  if(path==='/api/reviews/products'&&request.method()==='GET')return send({ok:true,
+   rewardPolicy:{amount:REVIEW_REWARD_AMOUNT,currency:'moonstone',trigger:'approved'},
+   items:listReviewProductSummaries().map(product=>({...product,total:0,average:0}))});
   if(!state.auth&&path!=='/api/yeongnyangi/products')return send({ok:false,code:'UNAUTHORIZED',message:'QA 세션 만료'},401);
   if(path==='/api/payments/config')return send(config);
   if(path==='/api/me/payment-phone')return send({ok:true,hasPhone:true,phoneNumber:user.phoneNumber,phoneConsent:true});
@@ -134,6 +141,16 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
   }
   if(path===`/api/yeongnyangi/requests/${row.id}`){
    if(state.read503-->0)return send({code:'DATABASE_UNAVAILABLE',message:'QA 조회 실패'},503);
+   if(state.deliveryRefund){
+    // Mirror presentFortune: refund settlement retains the stored row but does
+    // not expose its chapters. Pending delivery refunds still expose saved text.
+    const refunded=row.state==='REFUNDED',refundPending=!refunded;
+    return send({ok:true,fortune:{...row,
+     chapters:refunded?[]:row.chapters.map(chapter=>{const visible={...chapter};delete visible.internalBasis;return visible;}),
+     recovery:{requestId:row.id,savedChapters:row.chapters.length,totalChapters:row.manifest.length,
+      refundPending,providerNeeded:false,retryable:false,canRetryNow:false,nextAttemptAt:null,
+      reviewRequired:false,nextAction:'support',autoResume:false}}});
+   }
    return send({ok:true,fortune:row});
   }
   if(path==='/api/yeongnyangi/requests'){
@@ -170,7 +187,7 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
  // A fixture server worker advances independently from browser HTTP requests.
  // The real queue/repository completion and retry rules are covered in worker tests.
  const worker=setInterval(()=>{
-  if(!row.paid||['COMPLETED','REFUNDED'].includes(row.state)||row.errorCode==='AUTOMATIC_RECOVERY_STOPPED')return;
+  if(!row.paid||['COMPLETED','REFUNDED'].includes(row.state)||['AUTOMATIC_RECOVERY_STOPPED','DELIVERY_REFUND_PENDING'].includes(row.errorCode))return;
   if(state.generate503>0&&row.chapters.length>=state.generationBoundary){state.generate503--;row.state='FORTUNE_FAILED';row.errorCode='AUTOMATIC_RECOVERY_STOPPED';row.recovery={requestId:row.id,canRetryNow:true};return;}
   if(state.holdGeneration&&row.chapters.length>=state.generationBoundary){row.state='GENERATING';return;}
   state.generates++;
@@ -309,7 +326,8 @@ export async function verifyMobilePayments({base,products,systemNames}){
     return !path||!navigationReads.has(path);
    });
    assert.deepEqual(pageErrors,[],'Browser page errors');
-   report.cases.push({name,status:'PASS',product:product.id,width,orders:f.state.orders.size,sdkCalls:f.state.sdk.length,confirmCalls:f.state.confirm,serverContextReads:f.state.resumeReads,chapters:f.row.chapters.length});
+   report.cases.push({name,status:'PASS',product:product.id,width,orders:f.state.orders.size,sdkCalls:f.state.sdk.length,confirmCalls:f.state.confirm,serverContextReads:f.state.resumeReads,chapters:f.row.chapters.length,
+    ...(f.state.deliveryRefund?{state:f.row.state,errorCode:f.row.errorCode,storedChapters:f.row.chapters.length,publicChapters:f.row.state==='REFUNDED'?0:f.row.chapters.length,generations:f.state.generates,activations:f.state.activates,moonstoneDeductions:f.state.monthlyDeductions}: {})});
    console.log(`[yeongnyangi:payment] PASS ${name}`);
   }catch(error){
    report.cases.push({name,status:'FAIL',message:error.message,unknown:f.state.unknown,pageErrors:f.state.errors,pageErrorDetails:f.state.pageErrorDetails,url:f.page.url(),paid:f.row.paid,chapters:f.row.chapters.length,confirmCalls:f.state.confirm,activations:f.state.activates,http:f.state.http,resources:f.state.resources,blockedExternal:f.state.blocked});
@@ -366,8 +384,49 @@ export async function verifyMobilePayments({base,products,systemNames}){
      await f.page.screenshot({path:`build-cache/yeongnyangi-payment-${engine.name()}-home.png`,fullPage:true});
      assert.equal(f.state.sdk.length,0);assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     });
-    for(const scenario of ['handler-delay','idle-return','no-redirect-poll','pending-webhook','read-503','activate-503','generation-failure','generation-interrupted','refund','foreign-request','foreign-order','wrong-product','external-return','abandon-back','abandon-from-result','tampered-url','reload-checkout','back-forward','double-click','concurrent-tabs','concurrent-pending-tabs','expired-login','pg-cancel-return','pg-failed-return','inline-payment','inline-cancel','inline-failure']){
+    for(const scenario of ['handler-delay','idle-return','no-redirect-poll','pending-webhook','read-503','activate-503','generation-failure','generation-interrupted','refund','delivery-refund-pending','delivery-refund-partial','foreign-request','foreign-order','wrong-product','external-return','abandon-back','abandon-from-result','tampered-url','reload-checkout','back-forward','double-click','concurrent-tabs','concurrent-pending-tabs','expired-login','pg-cancel-return','pg-failed-return','inline-payment','inline-cancel','inline-failure']){
      await check(browser,`${engine.name()}-${scenario}`,products[0],390,async f=>{
+      if(scenario.startsWith('delivery-refund-')){
+       const refunded=scenario==='delivery-refund-partial',savedText='QA 저장된 부분 상담 본문';
+       f.state.deliveryRefund=true;
+       Object.assign(f.row,{locale:'ko',paid:true,accessMethod:'DIRECT_KRW',
+        state:refunded?'REFUNDED':'FORTUNE_FAILED',errorCode:refunded?'DELIVERY_REFUNDED':'DELIVERY_REFUND_PENDING',
+        chapters:[{summary:'QA 저장된 부분 상담',analysis:[savedText],example:'QA 사례',advice:'QA 조언',persona:'QA 메시지',internalBasis:{fixture:true}}]});
+       const persisted=JSON.stringify(f.row.chapters);
+       const message=refunded?'환불된 상담이에요. 결제 내역에서 처리 상태를 확인해 주세요.':'복구 후에도 전체 상담을 제공하지 못해 환불을 확인하고 있어요. 다시 결제하지 말고 결제 내역에서 처리 상태를 확인해 주세요.';
+       for(const reload of [false,true]){
+        const response=f.page.waitForResponse(r=>new URL(r.url()).pathname===`/api/yeongnyangi/requests/${f.row.id}`&&r.request().method()==='GET'&&r.status()===200);
+        if(reload)await f.page.reload({waitUntil:'domcontentloaded'});
+        else await f.page.goto(base+resultPath(f.row.id),{waitUntil:'domcontentloaded'});
+        const {fortune}=await (await response).json();
+        assert.equal(fortune.state,f.row.state);assert.equal(fortune.errorCode,f.row.errorCode);
+        assert.equal(fortune.chapters.length,refunded?0:1);assert.equal(fortune.recovery.savedChapters,1);
+        assert.equal(fortune.recovery.refundPending,!refunded);assert.equal(fortune.recovery.providerNeeded,false);
+        assert.equal(fortune.recovery.canRetryNow,false);assert.equal(fortune.recovery.retryable,false);
+        await f.page.getByRole('heading',{name:`${f.row.product.name} · ${f.row.product.fishName}`,exact:true}).waitFor();
+        await f.page.getByText(message,{exact:true}).waitFor();
+        if(refunded){
+         assert.deepEqual(fortune.chapters,[]);assert.equal(await f.page.getByText(savedText,{exact:true}).count(),0);
+         assert.equal(await f.page.getByRole('status',{name:`${f.row.product.fishName} 수령 리액션`,exact:true}).count(),0);
+        }else{
+         assert.equal(fortune.chapters[0].internalBasis,undefined);
+         await f.page.getByText(savedText,{exact:true}).waitFor();
+         await f.page.getByText(`1 / ${f.row.manifest.length}개 챕터 저장됨`,{exact:true}).waitFor();
+         assert.equal(await f.page.getByText('네 이야기를 모두 펼쳐두었어. 천천히 읽어봐.',{exact:true}).count(),0);
+        }
+        assert.equal(await f.page.getByRole('button',{name:/기존 상담 복구하기|상담 시작하기|상담 이어가기|결제 방식 선택하기|결제 상태 다시 확인하기/}).count(),0);
+        assert.equal(await f.page.locator('a[href*="/checkout/"]').count(),0);
+        await f.page.waitForLoadState('load');await settleApiFixture(f);
+        assert.equal(JSON.stringify(f.row.chapters),persisted,'Readonly reopening must preserve the stored partial chapter');
+        assert.equal(f.state.generates,0);assert.equal(f.state.activates,0);assert.equal(f.state.creates,0);
+        assert.equal(f.state.sdk.length,0);assert.equal(f.state.orders.size,0);assert.equal(f.state.confirm,0);
+        assert.equal(f.state.monthlyDeductions,0);assert.deepEqual(f.state.monthlyRequests,[]);
+        const writes=f.state.http.filter(r=>r.method==='POST'&&(/^\/api\/billing\/(checkout|confirm|coin-gate)$/.test(r.path)||r.path==='/api/yeongnyangi/requests'||/^\/api\/yeongnyangi\/requests\/[^/]+\/(activate|generate|retry)$/.test(r.path)));
+        assert.deepEqual(writes,[],'Refund rereading must not start a request, retry, payment or debit');
+        assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+       }
+       return;
+      }
       if(scenario==='foreign-request'){
        await f.page.goto(base+checkoutPath(f.row).replace(f.row.id,'b'.repeat(64)));
        await f.page.locator('p[role="alert"]').waitFor();assert.equal(f.state.sdk.length,0);
