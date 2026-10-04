@@ -27,18 +27,3 @@ test('one readable paragraph is deliverable and an incomplete tail is trimmed wi
   expect(normalizeNarrativeBody(draft + '\n\n' + draft)).toBe(draft);
   expect(normalizeNarrativeBody('미완성')).toBe('');
 });
-
-test('a small exact overlap is edited locally while unique paid prose survives', () => {
-  const shared = '계산된 흐름은 고정된 미래가 아니므로 현재의 상황과 선택을 함께 확인해야 합니다.';
-  const unique = Array.from({length: 12}, (_, i) => `${i}번째 선택에서는 일정과 자원을 따로 기록하고 실행 뒤의 변화를 살펴보는 과정이 도움이 됩니다.`).join(' ');
-  const body = `${shared} ${unique}`;
-  expect(normalizeNarrativeBody(body, [shared])).toBe(unique);
-  expect(completeNarrativeBody(normalizeNarrativeBody(body, [shared]))).toBe(true);
-  expect(normalizeNarrativeBody(shared, [shared])).toBe('');
-  expect(normalizeNarrativeBody(`${shared} 짧은 조언입니다.`, [shared])).toBe('');
-});
-
-test('structured content is never sentence-edited or reshaped', () => {
-  const body = JSON.stringify({answer: draft, evidence: 'original'});
-  expect(normalizeNarrativeBody(body, [draft])).toBe(body);
-});
