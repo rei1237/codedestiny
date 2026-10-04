@@ -624,3 +624,26 @@
 #astroModalOverlay #astroBodyWrap .as-record .astro-birth-planet { grid-area: 1 / 1; }
 #astroModalOverlay #astroBodyWrap .as-record .astro-birth-sign { grid-area: 1 / 2; min-width: 0; }
 #astroModalOverlay #astroBodyWrap .as-record .astro-birth-open { grid-area: 1 / 3; position: static !important; margin: 0 !important; white-space: nowrap; }
+
+/* 목성의 흐름·연애 설렘 포인트: 그림 + 범례 한 줄 묶음, 본문은 정의 목록(금색 작은 표제 + 글). */
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-pair { display: grid; grid-template-columns: 132px minmax(0, 1fr); column-gap: var(--cd-sp-md, 16px); align-items: center; margin: 0 0 var(--cd-sp-md, 16px); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-fig { margin: 0; width: 132px; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-legend { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-legend > li { margin: 0; padding: 0 0 8px; border-bottom: 1px solid var(--as-rule); font-size: 15px; line-height: 1.5; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-legend > li { text-wrap: balance; word-break: keep-all; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-legend > li:last-child { padding-bottom: 0; border-bottom: 0; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-legend__k { display: block; color: var(--as-text-2) !important; font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-legend .astro-planet { color: var(--as-gold) !important; font-weight: 600; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-legend__note { color: var(--as-text-2) !important; font-size: 13px !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-retro { color: var(--as-text-2) !important; font-size: 13px; font-weight: 500; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-pair--love { grid-template-columns: 160px minmax(0, 1fr); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-pair--love .astro-ill-fig { width: 160px; }
+@media (min-width: 768px) {
+  #astroModalOverlay #astroBodyWrap .as-record .astro-ill-pair { grid-template-columns: 168px minmax(0, 1fr); column-gap: var(--cd-sp-xl, 36px); }
+  #astroModalOverlay #astroBodyWrap .as-record .astro-ill-fig { width: 168px; }
+}
+#astroModalOverlay #astroBodyWrap .as-record .astro-dl { display: grid; gap: var(--cd-sp-md, 16px); margin: 0; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-dl > div { display: grid; gap: 4px; padding-top: var(--cd-sp-md, 16px); border-top: 1px solid var(--as-rule); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-dl > div:first-child { padding-top: 0; border-top: 0; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-dl dt { color: var(--as-gold) !important; font-size: 13px; font-weight: 700; letter-spacing: .04em; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-dl dd { margin: 0; color: var(--as-text) !important; font-size: 15px; line-height: 1.75; }

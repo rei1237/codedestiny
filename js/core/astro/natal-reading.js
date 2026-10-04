@@ -1030,7 +1030,7 @@
     var C = 100, R0 = 94, R1 = 76, RA = 62, s = ((opt.sign % 12) + 12) % 12, pt = ringPt(C, 0), out = [];
     function arc(cls, a0, a1) { var p = pt(a0, RA), q = pt(a1, RA); return '<path class="' + cls + '" d="M' + f1(p[0]) + ' ' + f1(p[1]) + 'A' + RA + ' ' + RA + ' 0 0 0 ' + f1(q[0]) + ' ' + f1(q[1]) + '"/>'; }
     out.push('<svg class="as-ill as-ill-jupiter" viewBox="0 0 200 200" aria-hidden="true" focusable="false">');
-    out.push(zodiacRing(pt, C, R0, R1, 12, [s, (s + 1) % 12]));
+    out.push(zodiacRing(pt, C, R0, R1, 12, [s]));
     out.push('<circle class="as-ill-ring is-faint" cx="' + C + '" cy="' + C + '" r="' + RA + '"/>');
     out.push(arc('as-ill-path is-past', (s - 1) * 30, s * 30), arc('as-ill-path is-now', s * 30, s * 30 + 27));
     var tip = pt(s * 30 + 30, RA), a = pt(s * 30 + 25, RA + 5), b = pt(s * 30 + 25, RA - 5), j = pt(s * 30 + 15, RA);
@@ -1041,7 +1041,8 @@
     out.push('</svg>');
     return out.join('');
   }
-  /* 연애 설렘 포인트: 금성(끌림)·화성(행동)·하강점(짝) 삼각 성좌. 금성-화성 선은 조화면 실선, 긴장이면 점선, 그 밖은 옅은 실선. */
+  /* 연애 설렘 포인트: 금성(끌림)·화성(행동)·하강점(짝) 삼각 성좌. 금성-화성 선은 조화면 실선, 긴장이면 점선, 그 밖은 옅은 실선.
+   * 이름표는 그림 옆 범례가 맡는다 — 작은 그림 안 글자는 13px 를 못 지킨다. */
   function loveTriangleSvg(opt) {
     var C = 100, R0 = 94, R1 = 78, RP = 56, pt = ringPt(C, 0), out = [], pts = {};
     var marks = [['venus', opt.venus, '끌림'], ['mars', opt.mars, '행동'], ['dsc', opt.dsc, '짝']].filter(function (m) { return m[1] != null; });
@@ -1049,13 +1050,18 @@
     out.push(zodiacRing(pt, C, R0, R1, 11, marks.map(function (m) { return m[1]; })));
     var at = marks.length ? spread(marks.map(function (m) { return m[1] * 30 + 15; }), 34) : [];
     marks.forEach(function (m, i) { pts[m[0]] = pt(at[i], RP); });
-    function edge(a, b, cls) { if (pts[a] && pts[b]) out.push('<line class="' + cls + '" x1="' + f1(pts[a][0]) + '" y1="' + f1(pts[a][1]) + '" x2="' + f1(pts[b][0]) + '" y2="' + f1(pts[b][1]) + '"/>'); }
+    // 선은 노드 테두리 밖(r 15 + 2)에서 끊어 기호를 가로지르지 않게 한다.
+    function edge(a, b, cls) {
+      if (!pts[a] || !pts[b]) return;
+      var p = pts[a], q = pts[b], dx = q[0] - p[0], dy = q[1] - p[1], d = Math.sqrt(dx * dx + dy * dy), k = 17 / (d || 1);
+      if (d <= 34) return;
+      out.push('<line class="' + cls + '" x1="' + f1(p[0] + dx * k) + '" y1="' + f1(p[1] + dy * k) + '" x2="' + f1(q[0] - dx * k) + '" y2="' + f1(q[1] - dy * k) + '"/>');
+    }
     edge('venus', 'dsc', 'as-ill-edge'); edge('mars', 'dsc', 'as-ill-edge');
     edge('venus', 'mars', 'as-ill-edge is-main' + (opt.tone === 'tense' ? ' is-tense' : opt.tone === 'harmony' ? '' : ' is-soft'));
     marks.forEach(function (m) {
-      var p = pts[m[0]], lab = [C + (p[0] - C) * .5, C + (p[1] - C) * .5];
-      out.push('<circle class="as-ill-node" cx="' + f1(p[0]) + '" cy="' + f1(p[1]) + '" r="11"/>' + glyphUse(m[0], p[0], p[1], 14, 'as-ill-body is-key'));
-      out.push('<text class="as-ill-label" x="' + f1(lab[0]) + '" y="' + f1(lab[1] + 4) + '" text-anchor="middle">' + m[2] + '</text>');
+      var p = pts[m[0]];
+      out.push('<circle class="as-ill-node" cx="' + f1(p[0]) + '" cy="' + f1(p[1]) + '" r="15"/>' + glyphUse(m[0], p[0], p[1], 20, 'as-ill-body is-key'));
     });
     out.push('</svg>');
     return out.join('');

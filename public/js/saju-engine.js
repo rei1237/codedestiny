@@ -13423,6 +13423,9 @@ function renderAstroInsightLegacyNeon() {
     var _asG = function(k){ var N = window.AstroNatalReading; if(!N || !N.glyph) return ''; N.ensureGlyphSprite(); return N.glyph(k); };
     var _asGUse = function(k, x, y, size, cls){ var N = window.AstroNatalReading; if(!N || !N.glyphUse) return ''; N.ensureGlyphSprite(); return N.glyphUse(k, x, y, size, cls); };
     var _asIll = function(name, opt){ var N = window.AstroNatalReading; if(!N || typeof N[name] !== 'function') return ''; N.ensureGlyphSprite(); return N[name](opt); };
+    var vmToneGap = Math.min(venusMarsSignGap, 12 - venusMarsSignGap);
+    var loveIllSvg = _asIll('loveTriangleSvg', { venus: vi, mars: mi2, dsc: storyTimeKnown ? descIndex : null, tone: (vmToneGap === 0 || vmToneGap === 2 || vmToneGap === 4) ? 'harmony' : (vmToneGap === 3 || vmToneGap === 6) ? 'tense' : 'soft' });
+    var jupiterIllSvg = _asIll('jupiterArcSvg', { sign: jupiterIndex });
     var LIFE_SIGN_NAMES = ['양자리','황소자리','쌍둥이자리','게자리','사자자리','처녀자리','천칭자리','전갈자리','사수자리','염소자리','물병자리','물고기자리'];
     var lifePlacementByKey = {};
     placementData.forEach(function(p){ lifePlacementByKey[p.key] = p; });
@@ -14442,23 +14445,31 @@ function renderAstroInsightLegacyNeon() {
 
         +'<div class="astro-section">'
         +'<div class="astro-subhead">연애 설렘 포인트 - 마음이 켜지는 순간</div>'
-        +'<div class="astro-tags">'
-        +'<span class="astro-tag">끌리는 상대</span> <span class="astro-planet">'+_signPlain(descSign)+'</span>'
-        +' <span class="astro-tag">'+_asG('Venus')+'금성</span> <span class="astro-planet">'+_signPlain(venusSign)+(chart.planets.Venus&&chart.planets.Venus.retro?' <span style="color:#f87171;font-size:13px">역행</span>':'')+'</span>'
-        +' <span class="astro-tag">'+_asG('Mars')+'화성</span> <span class="astro-planet">'+_signPlain(marsSign)+(chart.planets.Mars&&chart.planets.Mars.retro?' <span style="color:#f87171;font-size:13px">역행</span>':'')+'</span>'
+        +'<div class="astro-ill-pair astro-ill-pair--love">'
+        +(loveIllSvg ? '<figure class="astro-ill-fig">'+loveIllSvg+'</figure>' : '')
+        +'<ul class="astro-ill-legend">'
+        +'<li><span class="astro-ill-legend__k">'+_asG('Venus')+'금성</span> <span class="astro-planet">'+_signPlain(venusSign)+(chart.planets.Venus&&chart.planets.Venus.retro?' <span class="astro-retro">역행</span>':'')+'</span></li>'
+        +'<li><span class="astro-ill-legend__k">'+_asG('Mars')+'화성</span> <span class="astro-planet">'+_signPlain(marsSign)+(chart.planets.Mars&&chart.planets.Mars.retro?' <span class="astro-retro">역행</span>':'')+'</span></li>'
+        +'<li><span class="astro-ill-legend__k">'+_asG('DSC')+'끌리는 상대</span> '+(storyTimeKnown ? '<span class="astro-planet">'+_signPlain(descSign)+'</span>' : '<span class="astro-ill-legend__note">출생 시간을 넣으면 보여요</span>')+'</li>'
+        +'</ul>'
         +'</div>'
         +'<div class="astro-desc">'
-        +'<p><b>끌림 포인트:</b> 금성 '+_friendlyHousePair(venusHousePair)+'은 무엇에 매력을 느끼는지, 화성 '+_friendlyHousePair(marsHousePair)+'은 다가가는 방식과 욕망의 방향을 보여줍니다. 끌리는 상대의 별자리 '+_signPlain(descSign)+'는 반복적으로 끌리는 관계의 패턴을 설명합니다.</p>'
-        +'<p><b>안정감 포인트:</b> 달 '+_friendlyHousePair(moonHousePair)+'이 원하는 안정 방식이 맞아야 관계 피로가 줄어듭니다. 연애와 동반자 주제가 강조되는 시기에는 설렘과 현실 조율을 같이 봐야 오래 갑니다.</p>'
-        +'<p><b>조심할 패턴:</b> '+(vmAspect || vmCalcFallback)+' 표현 속도 불일치가 누적되면 작은 오해가 커질 수 있으니, 감정 확인을 먼저 하고 결론은 나중에 내리는 순서를 지키세요.</p>'
+        +'<dl class="astro-dl">'
+        +'<div><dt>끌림</dt><dd>금성 '+_friendlyHousePair(venusHousePair)+'은 무엇에 매력을 느끼는지, 화성 '+_friendlyHousePair(marsHousePair)+'은 다가가는 방식과 욕망의 방향을 보여줍니다. 끌리는 상대의 별자리 '+_signPlain(descSign)+'는 반복적으로 끌리는 관계의 패턴을 설명합니다.</dd></div>'
+        +'<div><dt>안정감</dt><dd>달 '+_friendlyHousePair(moonHousePair)+'이 원하는 안정 방식이 맞아야 관계 피로가 줄어듭니다. 연애와 동반자 주제가 강조되는 시기에는 설렘과 현실 조율을 같이 봐야 오래 갑니다.</dd></div>'
+        +'<div><dt>조심할 패턴</dt><dd>'+(vmAspect || vmCalcFallback)+' 표현 속도 불일치가 누적되면 작은 오해가 커질 수 있으니, 감정 확인을 먼저 하고 결론은 나중에 내리는 순서를 지키세요.</dd></div>'
+        +'</dl>'
         +'</div>'
         +'</div>'
 
         +'<div class="astro-section">'
         +'<div class="astro-subhead">지금 운이 들어오는 길 - 목성의 흐름</div>'
-        +'<div class="astro-tags">'
-        +'<span class="astro-tag">'+_asG('Jupiter')+'지금의 목성</span> <span class="astro-planet">'+_signPlain(jupiterTransit)+'</span>'
-        +' <span style="color:#94a3b8;font-size:13px">('+now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+(now.getDate())+'일 기준)</span>'
+        +'<div class="astro-ill-pair">'
+        +(jupiterIllSvg ? '<figure class="astro-ill-fig">'+jupiterIllSvg+'</figure>' : '')
+        +'<ul class="astro-ill-legend">'
+        +'<li><span class="astro-ill-legend__k">'+_asG('Jupiter')+'지금의 목성</span> <span class="astro-planet">'+_signPlain(jupiterTransit)+'</span></li>'
+        +'<li class="astro-ill-legend__note">'+now.getFullYear()+'.'+(now.getMonth()+1)+'.'+now.getDate()+' 기준</li>'
+        +'</ul>'
         +'</div>'
         +'<div class="astro-desc">'
         +'<p>지금 하늘의 목성은 <b>'+_signPlain(jupiterTransit)+'</b>에 머물며 확장의 운을 자극하고 있습니다. 운은 갑자기 떨어지는 선물이 아니라, 이미 진행 중인 축을 넓힐 때 가장 안정적으로 들어옵니다.</p>'
