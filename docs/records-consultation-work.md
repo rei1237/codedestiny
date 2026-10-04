@@ -7,7 +7,7 @@
 - 화면: `/records/`, `/records/view/`, `/consultations/`. 대표 완료 결과에 저장 결과·전체 보관함 링크. 기존 직접 접근/공유 경로는 유지.
 - 추가 저장 누락 수정: 최애운명의 기존 cards POST에 완성 VM 저장 연결. 동일 사용자/저장 요청 재시도는 원자 upsert로 중복 방지한다.
 - 보존: 결제 가격/이용권/월정석/단건 결제, 인증 정책, 기존 저장 본문 및 스키마, TTL/공유 정책. 추가 요청으로 영냥이 최종 복구 실패의 자동 환불 정책만 명시적으로 변경했다. 실 DB/실 LLM/실결제/운영 인덱스/배포는 호출하지 않았다.
-- 검증: 신규 Worker mock 22개 PASS; 관련 기존 Node 54개 PASS; typecheck/eslint PASS; Worker dry-run PASS. 첫 전체 Jest 335 suite/5,009개 PASS. 첫 Node 전체는 2,424개 중 9개 실패 후 원인 수정과 영향 범위 재검증 완료(상세 연결표 참고). 최신 main 병합 후 check:fast/CI 최종 판정이 필요하다.
+- 검증: 신규 Worker mock 22개와 기존 Node 영향 범위 54개 PASS. 최신 환불·repository 영향 범위 mock 8개 suite/178개 PASS. typecheck/eslint/Worker dry-run PASS. 전체 공식 검사의 87개 가드가 통과했으나 Jest의 기존 repository mock 2개가 새 adapter export 누락으로 실패했다. 해당 mock을 수정하고 178개를 재검증했다. 이전 실패·중단 실행을 최종 통과로 보고하지 않으며 최종 check:fast/CI 판정은 종료 보고에 별도로 기록한다.
 - browser: 비식별 16개 서로 다른 시나리오 PASS, 360/390/430/1280px. 생성/결제/차감/쓰기 0회. 연속 실행의 개발 서버 manifest 오류로 마지막 3개는 분리 실행했고, 최종 Neo 대비 변경 후 Neo 상세를 재검증했다. `build-cache/records-hub/verification.json`에 실행별 근거를 남겼다. PNG도 같은 폴더다.
 - 디자인: 독립 A/B 검토, detector 0 findings. 검색 키보드 포커스·내부 필드 중복 수정. 외부 Codex 이미지에는 동일 캐릭터 local fixture를 사용했다.
 - 제약: TTL로 이미 삭제된 기록과 과거 서버 미저장 최애 결과는 복원할 수 없다. 실기기/native 웹뷰/운영 데이터·인덱스 explain/운영 R2 이미지/정량 대비는 미검증. 레거시 구조 필드 일부는 한국어 라벨이며 다른 언어는 후속 문체 검토가 필요하다.
@@ -19,4 +19,4 @@
 
 생성 claim/reconcile의 stale CAS, quota 복원 transaction 분리, 혼합 단건 결제의 할인 월정석 복원 누락, 웹훅 선확정(`refunded + CANCELLED`) 후 정산 재시도 누락을 수정했다. 외부 생성의 성공률이나 환불 완료 시각은 보장하지 않는다. 관련 mock 7개 suite/89개 PASS이며 실 PG·실 LLM·운영 정산 증거는 없다.
 
-최종 `verify:public-mirror-fresh` PASS. 공식 `check:fast --committed --base=main --head=HEAD`와 정확한 main SHA의 CI 결과는 종료 보고에 별도로 기록한다. 초기 전체 테스트, 중단된 공식 검사 또는 실패한 연속 dev browser 실행을 최종 통과로 취급하지 않는다.
+최신 main의 concern panel CSS를 충돌 없이 병합하고 정적 소스·미러 캐시를 재생성했다. 공식 `check:fast --committed-head --base=main --head=HEAD`와 정확한 main SHA의 CI 결과는 종료 보고에 별도로 기록한다. 초기 전체 테스트, 중단된 공식 검사 또는 실패한 연속 dev browser 실행을 최종 통과로 취급하지 않는다.
