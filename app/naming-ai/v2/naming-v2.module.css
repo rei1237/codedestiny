@@ -269,10 +269,14 @@
   background: url("/assets/naming-ai/v2/scene-hero-narrow.webp") center top / 100% auto no-repeat;
 }
 .certificate { padding: 6px; border-radius: 24px; background: var(--nv2-bg); }
-.certFrame { --nv2-scene: url("/assets/naming-ai/v2/scene-paper-narrow.webp"); padding: 40px 22px 30px; text-align: center; }
+/* 아래 여백 78px = 모서리 장식(10px + 64px) 위로 하단 정보·도장을 올린다(실측: 총점·오행 칩·완료 도장이 아래 두 모서리와 겹쳤다).
+   container-type 은 이름 글자 크기가 액자 안쪽 폭(cqi)을 따르게 한다. */
+.certFrame { --nv2-scene: url("/assets/naming-ai/v2/scene-paper-narrow.webp"); container-type: inline-size; padding: 40px 22px 78px; text-align: center; }
+/* 좁은 폭에서는 머리 줄(작명서 표제 + 둥근 도장)이 위 모서리 장식 안으로 들어간다(320px 실측) — 위 여백도 장식 아래로 내린다 */
+@media (max-width: 359px) { .certFrame { padding-top: 76px; } }
 @media (min-width: 720px) {
   .certWrap { padding-top: 30%; background-image: url("/assets/naming-ai/v2/scene-hero-wide.webp"); }
-  .certFrame { --nv2-scene: url("/assets/naming-ai/v2/scene-paper-wide.webp"); padding: 52px 48px 36px; }
+  .certFrame { --nv2-scene: url("/assets/naming-ai/v2/scene-paper-wide.webp"); padding: 52px 48px 78px; }
 }
 .certHead { display: flex; align-items: center; justify-content: center; gap: 12px; }
 .kicker { font-size: 15px; letter-spacing: 0.32em; color: var(--nv2-gold); }
@@ -280,7 +284,12 @@
 .certLead { margin: 8px auto 0; max-width: 34ch; color: var(--nv2-ink-soft); text-wrap: pretty; }
 .certPickLabel { margin: 26px 0 0; font-size: 13px; letter-spacing: 0.18em; color: var(--nv2-muted); }
 .certName { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; margin-top: 6px; }
-.certHanja { font-size: clamp(56px, 17vw, 96px); line-height: 1.1; letter-spacing: 0.08em; color: var(--nv2-ink); }
+/* 한 줄 고정 — 글자 수(--nv2-name-len)와 옆 도장(60px + 간격 10px)을 뺀 액자 안쪽 폭에 맞춰 줄인다.
+   글자당 폭 1.08em(자간 0.08em) + 여유. 실측 전: 360px 에서 金澤和, 390px 에서 南宮澤和 가 두 줄로 꺾였다. */
+.certHanja {
+  font-size: min(clamp(56px, 17vw, 96px), calc((100cqi - 78px) / (var(--nv2-name-len, 3) * 1.1)));
+  line-height: 1.1; letter-spacing: 0.08em; white-space: nowrap; color: var(--nv2-ink);
+}
 .certHangul { margin: 4px 0 0; font-family: var(--font-premium); font-size: 22px; letter-spacing: 0.4em; color: var(--nv2-gold); }
 .certChars { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; margin: 16px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--nv2-ink-soft); }
 .certChars li { display: inline-flex; align-items: baseline; gap: 6px; }

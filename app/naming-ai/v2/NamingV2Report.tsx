@@ -175,7 +175,7 @@ export default function NamingV2Report({ engine, narration, tier, exportExpand =
                 <p className={styles.certLead}>{copy.reportLead(surname.hangul)}</p>
                 <p className={styles.certPickLabel}>{copy.finalPickLabel}</p>
                 <div className={styles.certName}>
-                  <span className={cx(styles.han, styles.certHanja)} lang="ko">{surname.hanja}{pick.hanja}</span>
+                  <span className={cx(styles.han, styles.certHanja)} lang="ko" style={{ ["--nv2-name-len" as string]: [...`${surname.hanja}${pick.hanja}`].length }}>{surname.hanja}{pick.hanja}</span>
                   <Seal text={copy.sealNaming} size={60} tilt={-5} stamp={!exportExpand} />
                 </div>
                 <p className={styles.certHangul}>{fullHangul(pick)}</p>
