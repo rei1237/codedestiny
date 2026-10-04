@@ -294,7 +294,8 @@ export function runNamingEngine(input: NamingInput, options: NamingEngineOptions
       take[i] += extra;
       spare -= extra;
     });
-    groups.forEach((group, i) => selected.push(...group.slice(0, take[i])));
+    // 순위는 총점 순(같으면 고른 순서) — 1위가 "가장 높은 점수"라는 서술과 어긋나지 않게. 보충 추천은 그 뒤에 붙는다.
+    selected.push(...groups.flatMap((group, i) => group.slice(0, take[i])).sort((x, y) => y.candidate.total - x.candidate.total));
     if (groups.some((group) => !group.length)) notices.push("desired.unavailable");
     if (selected.length < count) {
       const before = selected.length;

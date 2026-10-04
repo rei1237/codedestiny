@@ -254,7 +254,9 @@ test('추천 방식: 성별마다 실제로 쓰이는 이름만 추천하고 해
 test('선택 방식: 고른 이름마다 한자 조합을 찾고 몫을 나누며 모자라면 알린다',()=>{
   const picked=run({strategy:'choose',desiredNames:[' 서윤','하은','지안','서윤']},'paid');
   assert.equal(picked.strategy,'choose');assert.deepEqual(picked.desiredNames,['서윤','하은','지안']);
-  assert.deepEqual(picked.candidates.map((c)=>c.hangul),[...Array(4).fill('서윤'),...Array(4).fill('하은'),...Array(4).fill('지안')]);
+  for(const name of ['서윤','하은','지안'])assert.equal(picked.candidates.filter((c)=>c.hangul===name).length,4);
+  // 순위는 총점 순이다(1위 = 최고점 — 서술의 "가장 높은 점수"와 맞는다).
+  assert.ok(picked.candidates.every((c,i,a)=>!i||a[i-1].total>=c.total),picked.candidates.map((c)=>c.total).join());
   assert.ok(picked.candidates.every((c)=>c.reasonKeys.includes('name.chosen')));
   assert.equal(new Set(picked.candidates.map((c)=>c.hanja.join(''))).size,12);
   assert.notEqual(picked.inputHash,run({}).inputHash);
