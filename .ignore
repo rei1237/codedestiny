@@ -241,7 +241,6 @@
 /public/styles/app-shell.css
 /public/styles/astro-reading.css
 /public/styles/basic-fortune-library.css
-/public/styles/core-ui.css
 /public/styles/cosmic-main.css
 /public/styles/destiny-flower-cosmic.css
 /public/styles/feature-marketing-detail.css
@@ -251,8 +250,6 @@
 /public/styles/fortune-consultation.css
 /public/styles/fortune-gateway.css
 /public/styles/fortune-ui-home.css
-/public/styles/fortune-ui.css
-/public/styles/home-funnel.css
 /public/styles/life-book.css
 /public/styles/mobile-bottom-nav.css
 /public/styles/mobile-lite.css
@@ -267,7 +264,6 @@
 /public/styles/tarot-love-mystic.css
 /public/styles/tarot-reunion-lighthouse.css
 /public/styles/tarot-year-fortune.css
-/public/styles/theme-tokens.css
 /public/styles/trust-stories.css
 /public/styles/yehwa-motifs-nav.css
 /public/styles/yehwa-motifs.css
