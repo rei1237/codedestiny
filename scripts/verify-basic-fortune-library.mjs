@@ -174,7 +174,10 @@ try {
         // The reading house lists every valid authored astrology article and opens one inline.
         assert.equal(await page.locator('#fr-astro-chart .astro-wheel-card').count(), 1);
         assert.equal(await page.locator('#fr-astro-chart').evaluate(el => el.closest('details') === null), true);
-        assert.equal(await page.locator('.fr-astro-nav a').count(), 5);
+        assert.equal(await page.locator('.fr-astro-nav a').count(), 7);
+        // Today's horoscope (free) and the 12-month flow (locked) lead the nav, and both targets exist.
+        assert.deepEqual(await page.locator('.fr-astro-nav a').evaluateAll(links => links.slice(0, 2).map(a => a.getAttribute('href'))), ['#fr-astro-today', '#fr-astro-year']);
+        assert.equal(await page.locator('#fr-astro-today #asToday, #fr-astro-year #asYear').count(), 2);
         const stories = page.locator('#fr-astro-articles .astro-house-story');
         await stories.first().waitFor({ timeout: 15000 });
         const astroCatalogue = JSON.parse(await fs.readFile(path.join(root, 'public/data/astro-reading/index.json'), 'utf8'))

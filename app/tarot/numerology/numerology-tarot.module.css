@@ -76,7 +76,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
   border: 1px solid var(--nt-line-soft);
   border-radius: 20px;
   background: rgba(9, 10, 35, 0.8);
@@ -85,6 +86,8 @@
 }
 
 .brand {
+  flex-shrink: 0;
+  white-space: nowrap;
   font-size: 22px;
   letter-spacing: -0.02em;
   color: var(--nt-gold);
@@ -101,16 +104,7 @@
 
 .ghostBtn,
 .lightBtn,
-.mainBtn {
-  border-radius: 12px;
-  border: 1px solid transparent;
-  padding: 9px 12px;
-  min-height: 44px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
-}
+.mainBtn {padding-inline-end:44px;background:var(--nt-gold);color:var(--nt-bg-0);border-color:var(--nt-line);box-shadow:var(--cd-shade-2);}
 
 .ghostBtn {
   background: rgba(255, 255, 255, 0.04);
@@ -1289,20 +1283,7 @@
 
 .resultCard .ghostBtn,
 .resultCard .lightBtn,
-.resultCard .mainBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border-radius: 999px;
-  font-family: inherit;
-  /* 🔴 전역 44px 탭 타깃을 낮추지 말 것. 결과 화면의 저장·공유·새 질문이 유일하게 미달이었다. */
-  min-height: 44px;
-  padding: 11px 18px;
-  font-size: 14px;
-  font-weight: 800;
-  line-height: 1.2;
-}
+.resultCard .mainBtn {padding-inline-end:44px;color:var(--nt-bg-0);border-color:var(--nt-line);background:var(--nt-gold);box-shadow:var(--cd-shade-2);}
 
 .actionIcon {
   flex: 0 0 auto;
@@ -1660,3 +1641,7 @@
     transform: none;
   }
 }
+
+.mainBtn::after {content:"";position:absolute;right:8px;top:calc(50% - 14px);width:28px;height:28px;background:var(--nt-bg-0);opacity:.4;pointer-events:none;-webkit-mask:var(--cd-button-sprig-mask) center/contain no-repeat;mask:var(--cd-button-sprig-mask) center/contain no-repeat;}
+:is(.ghostBtn,.lightBtn,.mainBtn):focus-visible {outline:2px solid var(--nt-gold);outline-offset:3px;}
+@media (prefers-reduced-motion: reduce) {:is(.ghostBtn,.lightBtn,.mainBtn) {transition:none;transform:none;}}

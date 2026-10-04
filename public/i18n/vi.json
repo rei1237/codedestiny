@@ -1341,6 +1341,7 @@
         "from10000": "From ₩10,000",
         "w30000": "₩30,000",
         "w50000": "₩50,000",
+        "w20000": "₩20,000",
         "from3000": "From ₩3,000"
       },
       "chip": {
@@ -1649,7 +1650,7 @@
       "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
       "passCta": "See all 4 passes",
       "moreTitle": "Khám phá xưởng của Yeoni",
-      "moreItems": "Daily readings · consultations · passes · stories",
+      "moreItems": "Daily readings · consultations · stories",
       "moreClose": "Show less",
       "searchLead": "Find the reading you need by concern, method or price.",
       "searchPlaceholder": "Love, money, a job move… search readings",
@@ -6831,7 +6832,8 @@
         "k1bs96nr": "Bản tóm tắt tác chiến lạnh lùng của Neo cho lựa chọn trước mắt",
         "n30000": "30.000 KRW",
         "n20000Price10000": "Từ 10.000 KRW",
-        "n50000": "50.000 KRW"
+        "n50000": "50.000 KRW",
+        "n30000Price20000": "20.000 KRW"
       }
     },
     "cdSigCardBody": {

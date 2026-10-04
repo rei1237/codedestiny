@@ -860,10 +860,7 @@ body:not(.neo-mode) #compatCard .inp::placeholder{color:#9a7d8c}
 	min-height: 2.75em;
 	line-height: 1.55;
 }
-#inputPage .card.input-section .btn-main {
-	min-height: 52px;
-	box-sizing: border-box;
-}
+#inputPage .card.input-section .btn-main {position:relative;width:100%;padding:14px 44px 14px 24px;background:var(--cd-cta-primary-bg);color:var(--cd-cta-primary-ink);border:1px solid var(--cd-cta-hairline);border-radius:var(--cd-r-control);font-size:1rem;font-weight:700;cursor:pointer;box-shadow:var(--cd-shade-2);font-family:inherit;min-height:var(--cd-btn-h);touch-action:manipulation;}
 #inputPage .card.input-section .fortune-point-notice {
 	min-height: 52px;
 	box-sizing: border-box;
@@ -991,25 +988,7 @@ body:not(.neo-mode) #compatCard .inp::placeholder{color:#9a7d8c}
 .modal-top-nav-astro{background:rgba(10,8,24,0.97);border-bottom:1px solid rgba(196,181,253,0.28)}
 .modal-top-nav-ziwei{background:rgba(9,5,21,0.97);border-bottom:1px solid rgba(232,121,249,0.3)}
 
-.modal-nav-home{
-  display:flex;
-  align-items:center;
-  gap:5px;
-  background:transparent;
-  border:none;
-  font-family:'Gowun Dodum',serif;
-  font-size:.88rem;
-  font-weight:700;
-  cursor:pointer;
-  padding:10px 4px;
-  /* 형제인 .modal-nav-close 에만 44px 하한이 있어 좌우가 비대칭이었다. 모바일 재정의
-     (styles/core-ui.css 의 font-size:.78rem/padding:8px 2px)가 걸리면 실높이 ≈31px 로
-     떨어진다 — 같은 줄의 닫기 버튼과 같은 하한을 준다. */
-  min-height:44px;
-  touch-action:manipulation;
-  -webkit-tap-highlight-color:transparent;
-  letter-spacing:.5px;
-}
+.modal-nav-home {display:inline-flex;align-items:center;justify-content:center;gap:8px;background:color-mix(in srgb,var(--cd-yehwa-line) 8%,transparent);border:1px solid var(--cd-hairline);border-radius:var(--cd-r-control);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;padding:8px 12px;min-height:44px;touch-action:manipulation;}
 .modal-nav-home-juyuk{color:rgba(220,185,80,0.9)}
 .modal-nav-home-sukuyo{color:rgba(180,150,255,0.9)}
 .modal-nav-home-astro{color:rgba(196,181,253,0.92)}
@@ -1026,21 +1005,7 @@ body:not(.neo-mode) #compatCard .inp::placeholder{color:#9a7d8c}
 .modal-nav-title-astro{color:rgba(232,213,163,0.72)}
 .modal-nav-title-ziwei{color:rgba(232,121,249,0.65)}
 
-.modal-nav-close{
-  position:relative;
-  z-index:2;
-  background:transparent;
-  font-family:'Gowun Dodum',serif;
-  font-size:.75rem;
-  font-weight:700;
-  cursor:pointer;
-  padding:10px 14px;
-  min-width:44px;
-  min-height:44px;
-  border-radius:10px;
-  touch-action:manipulation;
-  -webkit-tap-highlight-color:transparent;
-}
+.modal-nav-close {position:relative;z-index:2;background:color-mix(in srgb,var(--cd-yehwa-line) 8%,transparent);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;padding:8px 12px;min-width:44px;min-height:44px;border-radius:var(--cd-r-control);touch-action:manipulation;}
 .modal-nav-close-juyuk{border:1px solid rgba(220,185,80,0.45);color:rgba(220,185,80,0.9)}
 .modal-nav-close-sukuyo{border:1px solid rgba(180,150,255,0.4);color:rgba(180,150,255,0.9)}
 .modal-nav-close-astro{border:1px solid rgba(196,181,253,0.4);color:rgba(196,181,253,0.92)}
@@ -1076,14 +1041,12 @@ body:not(.neo-mode) #compatCard .inp::placeholder{color:#9a7d8c}
   color:#fff;border:none;border-radius:14px;font-size:clamp(1rem,4vw,1.08rem);font-weight:700;
   cursor:pointer;box-shadow:0 5px 18px rgba(255,139,167,.35);transition:transform .15s,box-shadow .15s;font-family:inherit;
   min-height:52px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.btn-main:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(255,139,167,.45)}
-.btn-main:active{transform:scale(.96);box-shadow:0 2px 10px rgba(255,139,167,.3);opacity:.9}
+.btn-main:hover {border-color:var(--cd-yehwa-line-deep);box-shadow:var(--cd-shade-2);}
+.btn-main:active {box-shadow:var(--cd-shade-1);}
 .btn-main:disabled{opacity:.55;cursor:not-allowed;transform:none}
-.btn-sub{width:100%;padding:15px;background:#fff;color:var(--pink);border:2px solid var(--pink-l);
-  border-radius:14px;font-size:1rem;font-weight:700;cursor:pointer;transition:all .25s;font-family:inherit;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.btn-sub:hover{background:#FFF5F8}
-.btn-sub:active{transform:scale(.97);background:#FFE8EF;box-shadow:0 1px 4px rgba(255,139,167,.2)}
+.btn-sub {width:100%;min-height:var(--cd-btn-h);padding:12px 24px;background:var(--cd-surface);color:var(--cd-text);border:1px solid var(--cd-line-strong);border-radius:var(--cd-r-control);font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;}
+.btn-sub:hover {background:var(--cd-surface-2);border-color:var(--cd-accent);}
+.btn-sub:active {background:var(--cd-surface-2);}
 
 /* 유명인 카테고리 탭 */
 .celeb-tab-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
@@ -17268,3 +17231,11 @@ body.neo-mode #resultPage #compatResult .compat-check-detail {
   #resultPage #sajuCard .char-box,
   #resultPage #summaryArea .saju-summary-nav a { transition: none !important; }
 }
+
+.btn-main::after {
+  content:"";position:absolute;width:28px;height:28px;right:8px;top:calc(50% - 14px);
+  background:var(--cd-yehwa-line);opacity:.7;pointer-events:none;
+  -webkit-mask:var(--cd-button-sprig-mask) center/contain no-repeat;
+  mask:var(--cd-button-sprig-mask) center/contain no-repeat;
+}
+:is(.btn-main,.btn-sub,.modal-nav-home,.modal-nav-close):focus-visible {outline:2px solid var(--cd-focus-ring);outline-offset:3px}

@@ -1,4 +1,8 @@
 .shell {
+  --cd-cta-primary-bg: #122237;
+  --cd-cta-primary-bg-2: #0b1526;
+  --cd-cta-primary-ink: #f6eed9;
+  --cd-cta-hairline: rgba(205, 172, 104, 0.65);
   min-height: 100svh;
   position: relative;
   isolation: isolate;
@@ -99,9 +103,12 @@
 }
 
 .bgmToggle {
-  position: fixed;
-  top: calc(16px + env(safe-area-inset-top, 0px));
-  right: calc(16px + env(safe-area-inset-right, 0px));
+  position: relative;
+  top: auto;
+  right: auto;
+  min-height: 44px;
+  width: fit-content;
+  margin: 12px max(16px, env(safe-area-inset-right, 0px)) 0 auto;
   z-index: 20;
   display: inline-flex;
   align-items: center;
@@ -860,18 +867,18 @@
 .vnGhostButton {
   min-height: 44px;
   flex: 0 0 auto;
-  border: 1px solid rgba(214, 188, 118, 0.46);
-  border-radius: 8px;
+  border: 1px solid var(--cd-cta-hairline);
+  border-radius: var(--cd-r-control);
   padding: 10px 14px;
-  color: rgba(255, 247, 222, 0.9);
-  background: rgba(5, 8, 16, 0.74);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: var(--cd-cta-primary-ink);
+  background: var(--cd-cta-primary-bg);
+  box-shadow: var(--cd-shade-2);
   font-size: 0.82rem;
   font-weight: 900;
   line-height: 1;
   cursor: pointer;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .vnGhostButton:hover {
@@ -881,80 +888,44 @@
 
 .vnStartButton {
   position: relative;
-  min-height: 72px;
+  min-height: 56px;
   display: inline-grid;
-  grid-template-columns: 64px minmax(0, auto);
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   flex: 0 1 auto;
   max-width: 100%;
   overflow: hidden;
-  border: 1px solid rgba(245, 212, 135, 0.72);
-  border-radius: 8px;
-  padding: 9px 22px 9px 11px;
-  color: #fff7de;
-  background:
-    linear-gradient(135deg, rgba(128, 24, 40, 0.96), rgba(17, 22, 38, 0.96) 48%, rgba(88, 68, 30, 0.9)),
-    rgba(5, 8, 16, 0.94);
-  box-shadow:
-    0 22px 54px rgba(0, 0, 0, 0.52),
-    0 0 38px rgba(245, 212, 135, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  border: 1px solid var(--cd-cta-hairline);
+  border-radius: var(--cd-r-control);
+  padding: 14px 24px;
+  color: var(--cd-cta-primary-ink);
+  background: var(--cd-cta-primary-bg);
+  box-shadow: var(--cd-shade-2);
   font-size: 0.9rem;
   font-weight: 950;
   line-height: 1;
   cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+
 }
 
 .vnStage[data-phase="prologue"] .vnStartButton {
   min-height: 60px;
-  grid-template-columns: 58px minmax(0, 1fr);
-  padding: 9px 20px 9px 10px;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 12px 20px;
   border-color: rgba(255, 226, 155, 0.82);
-  background:
-    linear-gradient(135deg, rgba(110, 28, 38, 0.98), rgba(15, 22, 39, 0.98) 52%, rgba(68, 65, 50, 0.94)),
-    rgba(5, 8, 16, 0.96);
-  box-shadow:
-    0 24px 58px rgba(0, 0, 0, 0.56),
-    0 0 36px rgba(245, 212, 135, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  background: var(--cd-cta-primary-bg);
+  box-shadow: var(--cd-shade-2);
+
 }
 
-.vnStartButton::before,
-.startButton::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  z-index: 0;
-  border-radius: inherit;
-  background:
-    linear-gradient(120deg, rgba(255, 255, 255, 0.18), transparent 34%, rgba(245, 212, 135, 0.1) 68%, transparent),
-    linear-gradient(90deg, transparent, rgba(180, 194, 224, 0.16), transparent);
-  opacity: 0.74;
-  pointer-events: none;
-}
-
-.vnStartButton::after,
-.startButton::after {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  inset: auto -20% -42% 18%;
-  height: 76%;
-  background: radial-gradient(circle, rgba(245, 212, 135, 0.28), transparent 62%);
-  opacity: 0.68;
-  pointer-events: none;
-}
 
 .vnStartButton:hover:not(:disabled),
 .startButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  border-color: rgba(255, 234, 168, 0.96);
-  box-shadow:
-    0 22px 46px rgba(0, 0, 0, 0.52),
-    0 0 34px rgba(245, 212, 135, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-color: #dac18c;
+  background: #1b3049;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
 }
 
 .vnStartButton:active:not(:disabled),
@@ -971,7 +942,6 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-.ctaOrbitFrame,
 .vnStartButton .ctaButtonCopy,
 .startButton .ctaButtonCopy,
 .startStampFrame,
@@ -980,15 +950,6 @@
   z-index: 1;
 }
 
-.ctaOrbitFrame {
-  width: 58px;
-  height: 44px;
-  flex: 0 0 58px;
-  border-radius: 6px;
-  background: transparent !important;
-  opacity: 0.94;
-  filter: drop-shadow(0 0 16px rgba(245, 212, 135, 0.42));
-}
 
 .lionSealFrame {
   width: 72px;
@@ -999,7 +960,6 @@
   filter: drop-shadow(0 0 18px rgba(245, 212, 135, 0.42));
 }
 
-.ctaOrbitImage,
 .lionSealImage {
   top: 0 !important;
   left: 0 !important;
@@ -1017,7 +977,7 @@
   display: grid;
   gap: 4px;
   align-content: center;
-  text-align: left;
+  text-align: center;
 }
 
 .ctaButtonCopy strong {
@@ -1028,7 +988,7 @@
   line-height: 1.08;
   word-break: keep-all;
   overflow-wrap: anywhere;
-  text-shadow: 0 1px 12px rgba(245, 212, 135, 0.26);
+  text-shadow: none;
 }
 
 .ctaButtonCopy em {
@@ -2740,23 +2700,19 @@
   justify-content: center;
   gap: 10px;
   overflow: hidden;
-  border: 1px solid rgba(255, 229, 148, 0.78);
-  border-radius: 8px;
+  border: 1px solid var(--cd-cta-hairline);
+  border-radius: var(--cd-r-control);
   padding: 13px 28px;
-  color: #fff7de;
-  background:
-    linear-gradient(135deg, rgba(10, 14, 24, 0.96), rgba(90, 60, 22, 0.86) 54%, rgba(133, 26, 35, 0.74)),
-    rgba(5, 8, 16, 0.92);
-  box-shadow:
-    0 20px 42px rgba(0, 0, 0, 0.42),
-    0 0 30px rgba(217, 184, 92, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  color: var(--cd-cta-primary-ink);
+  background: var(--cd-cta-primary-bg);
+  box-shadow: var(--cd-shade-2);
   font-family: var(--font-display);
   font-size: 1.06rem;
   font-weight: 950;
   line-height: 1.15;
   cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+
 }
 
 .startButton:disabled {
@@ -2765,11 +2721,6 @@
   box-shadow: none;
 }
 
-.startButton .ctaOrbitFrame {
-  width: 76px;
-  height: 57px;
-  flex-basis: 76px;
-}
 
 .startButton .ctaButtonCopy {
   text-align: center;
@@ -3953,11 +3904,6 @@
     letter-spacing: 0.08em;
   }
 
-  .startButton .ctaOrbitFrame {
-    width: 62px;
-    height: 46px;
-    flex-basis: 62px;
-  }
 
   .startStampFrame {
     width: 58px;
@@ -3970,7 +3916,7 @@
   }
 
   .badgeAward {
-    grid-template-columns: 58px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .badgeAwardImage {
@@ -4055,11 +4001,6 @@
     font-size: 0.6rem;
   }
 
-  .startButton .ctaOrbitFrame {
-    width: 50px;
-    height: 38px;
-    flex-basis: 50px;
-  }
 
   .startStampFrame {
     width: 52px;
@@ -4258,8 +4199,8 @@
   .vnStartButton {
     max-width: min(252px, calc(100vw - 24px));
     min-height: 56px;
-    grid-template-columns: 48px minmax(0, 1fr);
-    padding: 8px 12px 8px 8px;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px 16px;
     font-size: 0.78rem;
     line-height: 1.2;
     text-align: center;
@@ -4270,9 +4211,9 @@
   .vnStage[data-phase="prologue"] .vnStartButton {
     max-width: 100%;
     min-height: 52px;
-    grid-template-columns: 48px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     flex: 1 1 0;
-    padding: 8px 12px 8px 8px;
+    padding: 12px 16px;
   }
 
   .vnStage[data-phase="prologue"] .vnGhostButton {
@@ -4281,11 +4222,6 @@
     padding-inline: 12px;
   }
 
-  .vnStartButton .ctaOrbitFrame {
-    width: 48px;
-    height: 36px;
-    flex-basis: 48px;
-  }
 
   .vnStartButton .ctaButtonCopy strong {
     font-size: 0.88rem;

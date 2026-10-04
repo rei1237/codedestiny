@@ -1341,6 +1341,7 @@
         "from10000": "10,000ウォン〜",
         "w30000": "30,000ウォン",
         "w50000": "50,000ウォン",
+        "w20000": "20,000ウォン",
         "from3000": "3,000ウォン〜"
       },
       "chip": {
@@ -1649,7 +1650,7 @@
       "passNote": "Standard・Premium・VVIPは花ぶた占いに、Familyは花ぶたとヨンニャンイの有料リーディングに適用されます。購入済みの利用券は購入時の条件を維持します。",
       "passCta": "利用券4種を見る",
       "moreTitle": "ヨニのアトリエをもっと見る",
-      "moreItems": "Daily readings · consultations · passes · stories",
+      "moreItems": "Daily readings · consultations · stories",
       "moreClose": "Show less",
       "searchLead": "悩み・占術・価格から、いま必要な占いを探せます。",
       "searchPlaceholder": "恋愛、金運、転職…気になる占いを探す",
@@ -6831,7 +6832,8 @@
         "k1bs96nr": "Neo が冷静に突く、選択のための作戦ブリーフィング",
         "n30000": "30,000ウォン",
         "n20000Price10000": "10,000ウォン〜",
-        "n50000": "50,000ウォン"
+        "n50000": "50,000ウォン",
+        "n30000Price20000": "20,000ウォン"
       }
     },
     "cdSigCardBody": {

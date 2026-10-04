@@ -92,6 +92,21 @@ test('traditional dignities, rulers and the 1990 chart periods are computed by t
   assert.equal(timed('b3').periods.sect, 'night'); assert.equal(timed('b3').periods.firdaria.list[0].lord, 'Moon');
 });
 
+test('legacyPeriods hands the old block birthday- and sect-aware values', () => {
+  const at = (tag, today) => plain(reading.legacyPeriods(reading.build(charts[tag].chart, { timeKnown: true, today, birth: charts[tag].birth })));
+  // b1 (day, born 10-14): 35 before the birthday, 36 after — the old `year - birthYear` said 36 all of 2026.
+  assert.deepEqual(at('b1', '2026-10-04'), {
+    firdaria: { main: '달', sub: '화성', fromYear: 2021, toYear: 2030, sect: 'day' },
+    profection: { houseIdx: 11, signIdx: 9, lord: '토성', age: 35 }
+  });
+  assert.deepEqual(at('b1', '2026-10-20').profection, { houseIdx: 0, signIdx: 10, lord: '토성', age: 36 });
+  // b3 (night, 2001-07-21, age 25): night order Moon 9, Saturn 11, Jupiter 12 → Jupiter; Chaldean subs from Jupiter → Venus.
+  // The old day-only order would have said Mercury.
+  const b3 = at('b3', '2026-10-04').firdaria;
+  assert.equal(b3.sect, 'night'); assert.equal(b3.main, '목성'); assert.equal(b3.sub, '금성');
+  assert.deepEqual(plain(reading.legacyPeriods(untimed('b1'))), { firdaria: null, profection: null });
+});
+
 test('without a birth time no house, first-impression, MC or period claim is made', () => {
   for (const tag of Object.keys(charts)) {
     const model = untimed(tag);
@@ -122,7 +137,7 @@ test('the module stays pure: no clock, randomness, storage, DOM or requests', ()
 // Visible text of the story fragment, one line per element; sentences of 15+ characters are what a reader would notice repeating.
 const storyText = model => reading.render(model).replace(/<[^>]+>/g, '\n').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
 const sentencesOf = text => text.split(/\n+/).flatMap(l => l.split(/(?<=[.?!])\s+/)).map(s => s.trim()).filter(s => s.length >= 15 && !s.includes('·'));
-const BANNED = [/Placidus|Whole Sign|플라시더스|홀사인|\d+H\b/, /체감:|큰 흐름:|키워드:|자세히 보기/, /어스펙트|오브|orb|룰러/i, /\([A-Z][a-z]+\)/, /\)\)/, /^\d\)|\([a-c]\)/m, /#\S/];
+const BANNED = [/Placidus|Whole Sign|플라시더스|홀사인|\d+H\b/, /체감:|큰 흐름:|키워드:|자세히 보기/, /어스펙트|오브|orb|룰러/i, /\([A-Z][a-z]+\)/, /\)\)/, /^\d\)|\([a-c]\)/m, /#\S/, /\bMC\b|\bDesc\b|\bASC\b|H \//];
 
 test('every verdict can be turned into a "…지만" clause', () => {
   const { SIGN_STYLE, PROF, contrast } = reading._calc;

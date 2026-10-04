@@ -242,8 +242,23 @@ export interface Narration { source: "llm" | "llm-corrected" | "engine"; names: 
 export const NARRATION_NAME_COUNT = 6;
 export const NARRATION_LETTER_COUNT = 3;
 
+/** 하나씩 풀어 쓰는 후보(순위 순). 선택 방식이면 고른 이름마다 가장 높은 후보를 꼭 넣고 나머지를 순위대로 채운다. */
+export function narratedCandidates(view: EngineView): EngineCandidateView[] {
+  if (view.strategy !== "choose") return view.candidates.slice(0, NARRATION_NAME_COUNT);
+  const keep = new Set<number>();
+  for (const name of view.desiredNames || []) {
+    const best = view.candidates.find((candidate) => candidate.hangul === name);
+    if (best) keep.add(best.rank);
+  }
+  for (const candidate of view.candidates) {
+    if (keep.size >= NARRATION_NAME_COUNT) break;
+    keep.add(candidate.rank);
+  }
+  return view.candidates.filter((candidate) => keep.has(candidate.rank));
+}
+
 export function deterministicNarration(view: EngineView): Narration {
-  const top = view.candidates.slice(0, NARRATION_NAME_COUNT);
+  const top = narratedCandidates(view);
   return {
     source: "engine",
     names: top.map((candidate) => ({
@@ -340,11 +355,12 @@ export function engineChapterBody(id: number, view: EngineView, saju: SajuLines,
         "넷째, 실제로 쓰기 좋은지입니다. 교육용 기초한자인지, 불용한자 관행에 걸리는지, 첫소리 ㄹ이나 같은 음절 반복처럼 부르기 불편한 점이 없는지를 함께 보았습니다. 삼재는 학파마다 해석이 달라 참고 지표로만 반영했습니다.",
       ].join("\n\n");
     case 4: {
-      const detailed = view.candidates.slice(0, NARRATION_NAME_COUNT).map((candidate) => {
+      const told = narratedCandidates(view);
+      const detailed = told.map((candidate) => {
         const told = narrationFor(view, narration, candidate);
         return [`### ${candidate.rank}. ${fullName(view, candidate)}`, factParagraph(view, candidate), told.meaning, told.sajuSupport, told.soundFeel].join("\n\n");
       });
-      const rest = view.candidates.slice(NARRATION_NAME_COUNT);
+      const rest = view.candidates.filter((candidate) => !told.includes(candidate));
       if (rest.length) detailed.push(`그 밖에 ${rest.map((candidate) => fullName(view, candidate)).join(", ")}도 같은 기준으로 계산된 후보입니다.`);
       return detailed.join("\n\n");
     }
@@ -374,7 +390,7 @@ export function engineChapterBody(id: number, view: EngineView, saju: SajuLines,
         "뜻에서는 첫째 훈이 부정적인 뜻을 지닌 한자와 성별 관례상 어색한 글자를 걸렀습니다.",
       ].join("\n\n");
     case 8: {
-      const top = view.candidates.slice(0, NARRATION_NAME_COUNT);
+      const top = narratedCandidates(view);
       const charsWith = (flag: string) => [...new Set(top.flatMap((candidate) => candidate.chars.filter((char) => char.flags.includes(flag)).map((char) => char.ch)))];
       const variant = charsWith("court-code-variant");
       const lowConfidence = charsWith("low-confidence");

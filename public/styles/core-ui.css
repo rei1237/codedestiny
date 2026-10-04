@@ -1856,8 +1856,8 @@ a[href].btn,
   #juyukNavBar .modal-nav-home {
     justify-self: start;
     font-size: 0.86rem;
-    padding: 8px 2px;
-    gap: 3px;
+    padding: 8px 10px;
+    gap: 6px;
   }
   #sukuyoNavBar .modal-nav-close,
   #ziweiModalNavBar .modal-nav-close,
@@ -1911,8 +1911,8 @@ a[href].btn,
     #astroNavBar .modal-nav-home,
     #juyukNavBar .modal-nav-home {
       font-size: 0.86rem;
-      padding: 8px 0;
-      gap: 2px;
+      padding: 8px 8px;
+      gap: 4px;
     }
     #sukuyoNavBar .modal-nav-close,
     #ziweiModalNavBar .modal-nav-close,

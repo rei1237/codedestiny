@@ -303,7 +303,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   // 인생 총운은 분량이 3배(30,000자 vs 10,000자)라 2026-08-01 부터 별도 SKU 로 분리했다.
   "life-fortune-ai-consultation": { cost: 300, amountKRW: 30000, reason: "인생 총운 전문가 상담" },
   "astrology-ai-consultation": { cost: 300, amountKRW: 30000, reason: "점성술 전문가 상담" },
-  "neo-operation-room-consultation": { cost: 300, amountKRW: 30000, reason: "네오의 팩폭 작전실" },
+  "neo-operation-room-consultation": { cost: 200, amountKRW: 20000, reason: "네오의 팩폭 작전실" },
   "saju_ai_question_prompt": { cost: 100, reason: "사주 전문가 상담 결과 생성" },
   "ziwei_ai_prompt_generator": { cost: 50, reason: "자미두수 AI 질문 프롬프트 생성" },
   "astrology_ai_prompt_generator": { cost: 50, reason: "점성술 AI 질문 프롬프트 생성" },
@@ -606,7 +606,6 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "sukuyo_ai_prompt_generator",
   "vedic_prashna_prompt",
   "astro_monthly_transit",
-  "astro_yearly_transit",
   "premium-sukuyo-compat-extra",
   "destiny-compass-crossroads",
   "destiny-compass-life-voyage",
@@ -649,6 +648,8 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "astro_stellar_talent_room",
   "astro_stellar_relationship_room",
   "astro_stellar_growth_room",
+  // 앞으로 12개월 흐름 — 출생 차트와 실제 천체력으로 결정론 산출(LLM 미사용). 롤링 12개월을 계정에 영구 해금(A유형).
+  "astro_yearly_transit",
   "fun.quantumLotto.ritualReport",
   "sukyo_yearly_fortune_unlock",
   "sukuyo-relationship-encyclopedia",

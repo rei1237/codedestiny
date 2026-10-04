@@ -64,6 +64,13 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     consumer: { file: "worker/routes/sibyl.js", marker: "mapToSibylChapters" },
   },
   ...ASTROLOGY_STATIC_UNLOCKS,
+  sameSurface(
+    "astro_yearly_transit",
+    "unlock",
+    "js/saju-engine.js",
+    "_astroCounselPaidGate('astro_yearly_transit'",
+    "R.renderYearSection(",
+  ),
   ...SUKUYO_STATIC_PRODUCTS,
   {
     featureKey: "sukyo_yearly_fortune_unlock",
@@ -436,7 +443,6 @@ export const HISTORICAL_PAID_FEATURE_FIXTURES = Object.freeze([
 export const REGISTRY_ONLY_NON_LLM_KEYS = Object.freeze([
   "astro_basic_deep_pack",
   "astro_monthly_transit",
-  "astro_yearly_transit",
   "turtleIChing",
   "egyptOracle",
   "egyptian_oracle_ai_prompt",

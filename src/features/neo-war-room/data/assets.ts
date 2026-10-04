@@ -71,6 +71,11 @@ function buildSpriteSet(prefix: string, count: number, altPrefix: string) {
 }
 
 export const neoWarRoomAssets = {
+  briefing: {
+    explain: localNeoWarRoomAsset("/neo-operation-room/briefing/neo-explain-v1.webp", "네오가 핵심 판단을 설명하는 모습", "hero", "result-explain"),
+    caution: localNeoWarRoomAsset("/neo-operation-room/briefing/neo-caution-v1.webp", "네오가 잠시 멈출 행동을 짚는 모습", "hero", "result-caution"),
+    encourage: localNeoWarRoomAsset("/neo-operation-room/briefing/neo-encourage-v1.webp", "네오가 다음 행동을 응원하는 모습", "hero", "result-encourage"),
+  },
   hero: {
     portrait: destinyWarAsset(
       "네오 반신상 배경없음-Photoroom.webp",
