@@ -17477,3 +17477,15 @@
 
 .landingPigSlot { display: grid; place-items: end center; aspect-ratio: 266 / 338; }
 .page[data-stage="landing"] .landingPigSlot .landingPigMascot { width: 100%; margin: 0; }
+
+/* Tea menu dock stays in document flow so the host illustration remains visible. */
+.honeyRewardLayer.honeyRewardInline {
+  position: relative;
+  inset: auto;
+  width: min(360px, calc(100% - 32px));
+  margin: 8px auto 20px;
+  z-index: 4;
+}
+.honeyRewardInline .honeyHeaderDock { max-width: none; }
+.honeyRewardInline .honeyAlbumButton { grid-template-columns: 20px 1fr auto auto; }
+.honeyRewardInline .honeyAlbumText { overflow: visible; white-space: normal; text-overflow: clip; }

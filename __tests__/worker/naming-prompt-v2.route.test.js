@@ -140,8 +140,22 @@ it('결제 전 checkout 이 엔진 후보 수를 확인하고, v1 입력의 해�
  expect(few.status).toBe(400);expect((await few.json()).code).toBe('NAMING_ENGINE_TOO_FEW');
 });
 
+it('직접 고른 이름(nameStrategy choose)은 한글 이름을 엔진에 넘기고, 추천(기본)은 해시 키를 더하지 않는다',async()=>{
+ const V2={...BASE,surnameHanja:'金'};
+ const chosen=await post('/checkout',{input:{...V2,nameStrategy:'choose',desiredNames:['서윤',{hangul:'하은'}]}});
+ expect(chosen.status).toBe(200);
+ expect(engine.prepareNamingV2.mock.calls[0][0]).toMatchObject({nameStrategy:'choose',desiredNames:[{hangul:'서윤'},{hangul:'하은'}]});
+ const base=await (await post('/checkout',{input:V2})).json();
+ const recommend=await (await post('/checkout',{input:{...V2,nameStrategy:'recommend'}})).json();
+ expect(engine.prepareNamingV2.mock.calls[1][0]).not.toHaveProperty('nameStrategy');
+ expect(recommend.inputHash).toBe(base.inputHash);expect((await chosen.json()).inputHash).not.toBe(base.inputHash);
+});
+
 it.each([
  [{avoidChars:'凶'},'NAMING_SURNAME_HANJA_REQUIRED'],
+ [{nameStrategy:'choose',desiredNames:['서윤']},'NAMING_SURNAME_HANJA_REQUIRED'],
+ [{surnameHanja:'金',nameStrategy:'choose'},'NAMING_DESIRED_NAMES_INVALID'],
+ [{surnameHanja:'金',nameStrategy:'choose',desiredNames:['서윤아']},'NAMING_DESIRED_NAMES_INVALID'],
  [{surnameHanja:'Kim'},'NAMING_SURNAME_HANJA_INVALID'],
  [{surnameHanja:'金',nameLength:3},'NAMING_ENGINE_NAME_LENGTH'],
 ])('v2 입력 %j 는 결제 전에 400 %s',async(extra,code)=>{

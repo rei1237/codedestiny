@@ -127,6 +127,11 @@ test('뜻 거르기: 첫째 훈만 보고 반대 성별 호칭은 그 성별에�
   assert.equal(stageOf('妻','M'),null);assert.notEqual(stageOf('妻','F'),null);
   assert.equal(stageOf('夫','F'),null);assert.notEqual(stageOf('夫','M'),null);
   assert.equal(stageOf('死','N'),null);
+  // 疒부(병 이름)는 성별과 무관하게, 女부는 남자 이름에서만 뺀다(好·如 등 중립 글자 제외).
+  const disease=data.pool.find((e)=>e.radical===E.DISEASE_RADICAL);
+  assert.ok(disease);for(const g of ['M','F','N'])assert.equal(E.unitStage(disease,disease.readings[0],'paid',g),null,disease.ch);
+  assert.equal(stageOf('娟','M'),null);assert.notEqual(stageOf('娟','F'),null);
+  assert.notEqual(stageOf('好','M'),null);
   // 단위 시드는 접두 해시를 이어 계산한다 — FNV 상태 이어받기가 성립해야 결과 순서가 바뀌지 않는다.
   assert.equal(E.fnv1a('秉병',E.fnv1a('0123456789abcdef|')),E.fnv1a('0123456789abcdef|秉병'));
 });
@@ -137,19 +142,23 @@ test('빠른 경로 총점은 scoreCandidate 재계산과 같다(단계·외자�
     {nameLength:2,tier:'paid',surname:['남궁',['南','宮']],preset:'kr-hunminjeongeum'},
     {nameLength:1,tier:'free',surname:['이',['李']],preset:'kr-pil'},
     {nameLength:2,tier:'paid',surname:['김',['金']],preset:'kr-modern',fixed:{position:1,ch:'俊'}},
+    // 이름 목록 분기(추천 자연 이름·직접 고른 이름)도 같은 consider() 를 거친다.
+    {nameLength:2,tier:'paid',surname:['김',['金']],preset:'kr-modern',names:{allowed:['민준','서윤','지안'],perSyllable:12,minNameUse:3}},
+    {nameLength:1,tier:'free',surname:['이',['李']],preset:'kr-modern',names:{allowed:['윤'],perSyllable:Infinity,minNameUse:0}},
   ];
   let compared=0;
   for(const c of cases){
     const p=E.SCHOOL_PRESETS[c.preset];
     const surname=E.resolveSurname({hangul:c.surname[0],hanja:c.surname[1]},p.strokeMethod,data);
     const fixed=c.fixed?{position:c.fixed.position,entry:data.poolByChar.get(c.fixed.ch),hangul:null}:null;
-    const ctx={surname,needs,preset:p,data,nameLength:c.nameLength,gender:'F',fixed,avoid:new Set(),tier:c.tier,inputHash:'00112233aabbccdd'};
+    const ctx={surname,needs,preset:p,data,nameLength:c.nameLength,gender:'F',fixed,avoid:new Set(),tier:c.tier,inputHash:'00112233aabbccdd',names:c.names||null};
     const units=E.buildUnits(ctx);
     for(const stage of [0,3]){
       for(const hit of E.searchStage(ctx,units,stage,40)){
         const full=E.scoreCandidate(surname,hit.picks.map((u)=>({entry:u.entry,reading:u.reading})),needs,p,data);
         assert.ok(Math.abs(full.total-hit.total)<1e-9,`${c.preset} ${full.hanja.join('')} ${hit.total} vs ${full.total}`);
         assert.ok(hit.stage<=stage);
+        if(c.names)assert.ok(c.names.allowed.includes(full.hangul),full.hangul);
         compared++;
       }
     }
@@ -208,7 +217,66 @@ test('자연스러움: 이름 사용 빈도가 어감·실용 감점이 되고 �
     const rare=use(ch.ch,ch.hangul)<3;flagged+=rare?1:0;
     assert.equal(c.reasonKeys.includes(`practical.${k}.rare-in-names`),rare,ch.ch);
   });
+  // 추천 자연 이름은 이름에 쓰인 한자만 쓰므로, 드문 글자 표지는 직접 고른 드문 이름에서 확인한다.
+  assert.equal(flagged,0);
+  const chosen=run({strategy:'choose',desiredNames:['솔휘']});
+  for(const c of chosen.candidates)c.chars.forEach((ch,k)=>{
+    const rare=use(ch.ch,ch.hangul)<3;flagged+=rare?1:0;
+    assert.equal(c.reasonKeys.includes(`practical.${k}.rare-in-names`),rare,ch.ch);
+  });
   assert.ok(flagged>0);
+});
+
+test('추천 방식: 성별마다 실제로 쓰이는 이름만 추천하고 해시는 Phase 6.5 이전과 같다',()=>{
+  const male=E.naturalNames(data,'M',2),female=E.naturalNames(data,'F',2),neutral=E.naturalNames(data,'N',2);
+  assert.ok(male.length>500&&female.length>300&&neutral.length>100,[male.length,female.length,neutral.length].join());
+  assert.ok(male.includes('민준')&&!male.includes('서연')&&female.includes('서연')&&!female.includes('민준'));
+  assert.ok(!female.includes('영자')&&!female.includes('순자'),'최근 출생자가 없는 옛 이름은 뺀다');
+  assert.deepEqual(E.naturalNames(data,'M',2),male);
+  for(const gender of ['M','F','N']){
+    const r=run({gender},'paid');
+    const allowed=E.naturalNames(data,gender,2);
+    assert.equal(r.strategy,'recommend');assert.deepEqual(r.desiredNames,[]);
+    assert.ok(r.candidates.every((c)=>allowed.includes(c.hangul)&&c.reasonKeys.includes('name.natural')),gender);
+    assert.ok(!r.notices.includes('names.fallback'));
+  }
+  assert.equal(run({}).inputHash,run({strategy:'recommend'}).inputHash);
+  // 기본 입력의 해시 고정값 — 추천 모드가 해시 키를 더하면 진행 중 회차가 끊긴다.
+  assert.equal(run({}).inputHash,'26f30d8041189625');
+  // 외자도 성별 자연 이름에서 고른다.
+  const one=run({gender:'F',nameLength:1},'paid');
+  assert.ok(one.candidates.every((c)=>E.naturalNames(data,'F',1).includes(c.hangul)));
+});
+
+test('선택 방식: 고른 이름마다 한자 조합을 찾고 몫을 나누며 모자라면 알린다',()=>{
+  const picked=run({strategy:'choose',desiredNames:[' 서윤','하은','지안','서윤']},'paid');
+  assert.equal(picked.strategy,'choose');assert.deepEqual(picked.desiredNames,['서윤','하은','지안']);
+  assert.deepEqual(picked.candidates.map((c)=>c.hangul),[...Array(4).fill('서윤'),...Array(4).fill('하은'),...Array(4).fill('지안')]);
+  assert.ok(picked.candidates.every((c)=>c.reasonKeys.includes('name.chosen')));
+  assert.equal(new Set(picked.candidates.map((c)=>c.hanja.join(''))).size,12);
+  assert.notEqual(picked.inputHash,run({}).inputHash);
+  assert.notEqual(picked.inputHash,run({strategy:'choose',desiredNames:['서윤','하은']},'paid').inputHash);
+  // 한자를 못 찾는 이름은 몫을 앞 이름에 넘기고 고지한다. 외자도 그 이름의 길이로 찾는다.
+  const partial=run({strategy:'choose',desiredNames:['똥깨','윤']},'paid');
+  assert.ok(partial.notices.includes('desired.unavailable'));
+  const yoon=partial.candidates.filter((c)=>c.hangul==='윤');
+  assert.ok(partial.candidates.length===12&&yoon.length>=5&&partial.candidates.slice(0,yoon.length).every((c)=>c.hangul==='윤'));
+  // 쓰인 한자 조합이 적은 이름은 드문 한자로 무료 개수까지만 채우고, 나머지는 추천 이름으로 채운다.
+  const padded=run({strategy:'choose',desiredNames:['하람']},'paid');
+  assert.ok(padded.notices.includes('desired.padded'));
+  const own=padded.candidates.filter((c)=>c.hangul==='하람');
+  assert.ok(own.length>=5&&own.length<12);
+  assert.ok(padded.candidates.slice(own.length).every((c)=>c.reasonKeys.includes('name.natural')));
+  // 돌림자는 그 자리 음절이 맞는 이름에만 쓴다.
+  const dol=run({strategy:'choose',desiredNames:['민준','서연'],fixedChar:{position:1,ch:'俊'}},'paid');
+  assert.ok(dol.candidates.filter((c)=>c.hangul==='민준').every((c)=>c.hanja[1]==='俊'));
+  assert.ok(dol.candidates.filter((c)=>c.hangul==='서연').every((c)=>!c.hanja.includes('俊')));
+  assert.equal(code(()=>run({strategy:'choose'})),'input-invalid');
+  assert.equal(code(()=>run({strategy:'choose',desiredNames:[]})),'input-invalid');
+  assert.equal(code(()=>run({strategy:'choose',desiredNames:['서윤아']})),'input-invalid');
+  assert.equal(code(()=>run({strategy:'choose',desiredNames:['Seo']})),'input-invalid');
+  assert.equal(code(()=>run({strategy:'choose',desiredNames:['가','나','다','라','마','바']})),'input-invalid');
+  assert.equal(code(()=>run({strategy:'pick'})),'input-invalid');
 });
 
 test('완화: 엄격 단계로 못 채우면 부족분만 다음 단계에서 채우고 키·고지를 남긴다',()=>{

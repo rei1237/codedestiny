@@ -1,2 +1,40 @@
-.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;min-width:44px;max-width:100%;padding:12px 20px;border:1px solid transparent;border-radius:8px;font:inherit;font-size:.95rem;font-weight:600;line-height:1.5;cursor:pointer;overflow-wrap:anywhere;text-align:center}
-.primary{background:#466044;color:#fffdf4;border-color:#466044}.secondary{background:#ead4cb;color:#493831;border-color:#b69687}.ghost{background:#fffaf2;color:#45593e;border-color:#adb89e}.button:focus-visible{outline:3px solid #97674e;outline-offset:3px}.button:disabled{opacity:.55;cursor:default}.spin{animation:spin 1s linear infinite;flex-shrink:0}@keyframes spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  min-width: 44px;
+  max-width: 100%;
+  padding: 13px 22px;
+  border: 1px solid #ba925f;
+  border-radius: 12px;
+  font: inherit;
+  font-size: .95rem;
+  font-weight: 600;
+  line-height: 1.5;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  text-align: center;
+  touch-action: manipulation;
+}
+.primary {
+  background: linear-gradient(135deg, #803d5b, #632b47);
+  color: #fff4e8;
+  box-shadow: inset 0 1px 0 #ffe0b330, 0 5px 14px #48233a20;
+}
+.secondary { background: #efdee0; color: #613249; border-color: #bf999d; }
+.ghost { background: #fff9f3; color: #743b56; border-color: #bb929a; }
+.button:focus-visible { outline: 3px solid #a16c42; outline-offset: 4px; }
+.button:disabled { opacity: .55; cursor: default; box-shadow: none; }
+@media (hover: hover) {
+  .primary:not(:disabled):hover { background: #632743; border-color: #d1af7b; }
+  .secondary:not(:disabled):hover, .ghost:not(:disabled):hover { background: #f3e2e4; border-color: #a97482; }
+}
+.button:not(:disabled):active { filter: brightness(.95); }
+.spin { animation: spin 1s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: no-preference) {
+  .button { transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease; }
+}
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }

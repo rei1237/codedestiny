@@ -4,6 +4,7 @@ import { SAJU_CATEGORIES, resolveQuestionCategory } from "@/lib/fortune-tea-hous
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import type { FormEvent } from "react";
+import { Check } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import {
@@ -796,12 +797,15 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   return (
     <section className={`${styles.questionScene}`} aria-labelledby="teaQuestionTitle">
       <div className={styles.questionActor}>
-        <img className={styles.yeoniPortrait} src="/images/fortune-tea-house/renewal/pig-listening.webp" alt="" width="104" height="112" />
-        <p>{copy.welcomeNote}</p>
+        <img className={styles.yeoniPortrait} src="/images/fortune-tea-house/yeoni-moonlight-novel.webp" alt="" width="1536" height="1024" />
+        <div className={styles.questionInvitation}>
+          <p className={styles.chosenTea}>{selectedCup.name} · {selectedCup.topic}</p>
+          <h2 id="teaQuestionTitle">{copy.questionTitle}</h2>
+          <p>{copy.welcomeNote}</p>
+        </div>
       </div>
       <form id="tea-question-form" className={`${styles.questionPanel}`} onSubmit={handleSubmit}>
         <p className={styles.sceneEyebrow}>{copy.stepLabel}</p>
-        <h2 id="teaQuestionTitle">{copy.questionTitle}</h2>
         <p className={styles.sceneDescription}>{copy.questionGuide}</p>
         <section className={`${styles.questionFormSection}`} aria-labelledby="tarotQuestionSectionTitle">
           <div className={`${styles.questionSectionHeader}`}>
@@ -885,8 +889,9 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       onClick={() => setTarotSpread(option.id)}
                       disabled={isSubmitting}
                     >
-                      <strong>{copy[option.titleKey]} · {getFortuneTeaHouseConsultPriceLabel("tarot", option.id)}</strong>
+                      <strong>{copy[option.titleKey]}<Check size={17} className={styles.spreadCheck} aria-hidden="true" /></strong>
                       <span>{copy[option.descriptionKey]}</span>
+                      <span className={styles.spreadPrice}>{getFortuneTeaHouseConsultPriceLabel("tarot", option.id)}</span>
                     </button>
                   );
                 })}
@@ -932,7 +937,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                   disabled={isSubmitting}
                 >
                   <span className={styles.consultModeVisual}>
-                    <AssetImage className={styles.consultModeImage} src={`/images/fortune-tea-house/renewal/yeoni-${option.id === "sajuCompatibility" ? "saju" : option.id}.webp`} alt={copy[option.altKey]} priority={selected} />
+                    <AssetImage className={styles.consultModeImage} imageClassName={styles.consultModeArtwork} src={option.image} alt="" />
                   </span>
                   <span className={styles.consultModeCopy}>
                     <strong>{copy[option.titleKey]}</strong>
@@ -946,7 +951,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       </span>
                     </span>
                   </span>
-                  <span className={styles.consultModeMark} aria-hidden="true" />
+                  <span className={styles.consultModeMark} aria-hidden="true">{selected ? <Check size={18} /> : null}</span>
                 </button>
               );
             })}
@@ -1497,11 +1502,11 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
           </section>
         ) : null}
         <div className={`${styles.storyActions}`}>
-          <TeaHouseButton variant="ghost" onClick={onBack} disabled={isSubmitting}>
+          <TeaHouseButton className={styles.secondaryAction} variant="ghost" onClick={onBack} disabled={isSubmitting}>
             
             {copy.kchbatkz}
           </TeaHouseButton>
-          <TeaHouseButton type="submit" loading={isSubmitting}>
+          <TeaHouseButton className={styles.primaryAction} type="submit" loading={isSubmitting}>
             {copy.reviewButton}
           </TeaHouseButton>
         </div>

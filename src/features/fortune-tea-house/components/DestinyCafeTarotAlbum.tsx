@@ -13,6 +13,7 @@ import {
   type RefObject,
 } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   BookOpen,
   CheckCircle2,
@@ -23,13 +24,11 @@ import {
   Flower2,
   Leaf,
   Loader2,
-  Lock,
   Moon,
   RotateCcw,
   Search,
   SlidersHorizontal,
   Sparkles,
-  Sprout,
   X,
 } from "lucide-react";
 import type { FortuneTeaHouseHoneyDropsState } from "../data/consult";
@@ -45,13 +44,16 @@ import {
   type TarotAlbumSuit,
 } from "../data/tarotAlbumStories";
 import { authFetch } from "@/app/_lib/auth-client";
+import albumStyles from "../styles/tea-album.module.css";
+import { albumVisitCopy } from "../data/albumVisitCopy";
+import { TAROT_ALBUM_UNLOCK_COST } from "../lib/honeyDrops";
 import { normalizeHoneyDropsState } from "../lib/honeyDrops";
 import { getTarotCardImageCoverage } from "../lib/tarotCardImageMap";
 import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
-
+
+
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 import { useLocale } from "@/lib/i18n/useT";
-const TAROT_ALBUM_UNLOCK_COST = 10;
 const PDF_PAGE_WIDTH_PX = 794;
 const PDF_PAGE_HEIGHT_PX = 1123;
 
@@ -74,6 +76,7 @@ type TarotPdfStatus = {
 };
 
 type DestinyCafeTarotAlbumProps = {
+  onRequestRefresh: () => Promise<boolean>;
   isOpen: boolean;
   honeyDrops: FortuneTeaHouseHoneyDropsState | null;
   onClose: () => void;
@@ -285,6 +288,7 @@ export default function DestinyCafeTarotAlbum({
   honeyDrops,
   onClose,
   onHoneyDropsChange,
+  onRequestRefresh,
 }: DestinyCafeTarotAlbumProps) {
   const copy = useTeaHouseCopy("tarotAlbum", KO);
   const locale = useLocale();
@@ -330,16 +334,9 @@ export default function DestinyCafeTarotAlbum({
   const isAlbumUnlocked = Boolean(honeyDrops?.tarotAlbumUnlocked);
   const canUnlock = !isHoneyLoading && !isHoneyDisabled && !isAlbumUnlocked && currentHoneyDrops >= TAROT_ALBUM_UNLOCK_COST;
   const cardBackUrl = fortuneTeaHouseAssets.premium.tarotCardBack;
-  const albumCoverUrl = fortuneTeaHouseAssets.premium.tarotAlbumCover;
-  const honeyDropUrl = fortuneTeaHouseAssets.rewards.honeyDropCounter;
   const backgroundDesktopUrl = fortuneTeaHouseAssets.premium.landingDesktop;
   const backgroundMobileUrl = fortuneTeaHouseAssets.premium.landingMobile;
-  const yeoniCutoutUrl = fortuneTeaHouseAssets.yeoni.transparent.bust;
   const yeoniPoseFrames = fortuneTeaHouseAssets.yeoni.transparent.tarotPoseFrames;
-  const previewCards = useMemo(
-    () => albumCards.filter((card) => card.arcana === "major").slice(0, 5),
-    [albumCards],
-  );
   const isPdfBusy = Boolean(pdfStatus && ["preparing", "images", "stories", "rendering"].includes(pdfStatus.phase));
   const lockDialogue = isHoneyDisabled
     ? copy.kqcshbql
@@ -511,6 +508,8 @@ export default function DestinyCafeTarotAlbum({
           useCORS: true,
           allowTaint: false,
           logging: false,
+          // Capture one page without loading the other 80 pages into every canvas clone.
+          ignoreElements: element => element.hasAttribute("data-tarot-pdf-page") && element !== pages[index],
         });
         const imageData = canvas.toDataURL("image/jpeg", 0.82);
         pdf.addImage(imageData, "JPEG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
@@ -522,7 +521,7 @@ export default function DestinyCafeTarotAlbum({
       console.warn("[FortuneTeaHouse] Tarot album PDF failed", error);
       setPdfStatus({ phase: "error", message: copy[pdfMessageByPhase.error] });
     } finally {
-      window.setTimeout(() => setPdfCards([]), 800);
+      setPdfCards([]);
     }
     // copy 를 의존성에 둔다 — 빠뜨리면 로케일을 바꿔도 이 콜백이 옛 문구(PDF 파일명·진행 메시지)를 계속 쓴다.
   }, [albumCards, copy, isAlbumUnlocked, selectedCards]);
@@ -535,7 +534,7 @@ export default function DestinyCafeTarotAlbum({
 
   return (
     <div
-      className="fixed inset-0 z-[70] min-h-screen overflow-y-auto bg-gradient-to-b from-deep-indigo to-midnight-ink text-pearl-mist animate-fade-in-up"
+      className={cx(albumStyles.world, "fixed inset-0 z-[70] min-h-screen overflow-y-auto")}
       role="dialog"
       aria-modal="true"
       aria-labelledby="tarotAlbumTitle"
@@ -562,22 +561,19 @@ export default function DestinyCafeTarotAlbum({
         <X size={18} aria-hidden />
       </button>
 
-      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-16 sm:px-6 lg:px-8">
+      <section data-html2canvas-ignore="true" className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-16 sm:px-6 lg:px-8">
         {isAlbumUnlocked ? (
           <div className="flex flex-1 flex-col gap-5">
             <TarotAlbumHero
               currentHoneyDrops={currentHoneyDrops}
               totalCards={albumCards.length}
               selectedCount={selectedCount}
-              cardBackUrl={cardBackUrl}
-              albumCoverUrl={albumCoverUrl}
-              yeoniPoseFrames={yeoniPoseFrames}
               pdfBusy={isPdfBusy}
               onDownloadAll={() => handleDownloadPdf("all")}
               onDownloadSelected={() => handleDownloadPdf("selected")}
             />
             <TarotPdfStatusBox status={pdfStatus} />
-            <div className="sticky top-0 z-20 -mx-4 border-y border-white/10 bg-midnight-ink/78 px-4 py-3 backdrop-blur-2xl sm:top-3 sm:mx-0 sm:rounded-3xl sm:border sm:border-champagne-gold/15 sm:bg-midnight-ink/55">
+            <div className={albumStyles.toolbar}>
               <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(210px,260px)_minmax(260px,360px)] xl:items-center">
                 <TarotAlbumFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} />
                 <TarotAlbumSort sortMode={sortMode} onSortModeChange={setSortMode} />
@@ -585,7 +581,7 @@ export default function DestinyCafeTarotAlbum({
               </div>
               <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-2.5">
                 <p className="text-xs font-bold text-moonveil-silver" aria-live="polite">
-                  
+
                   {copy.kfe3rgpe} <span className="font-mono font-black tabular-nums text-champagne-gold">{filteredCards.length}</span>{copy.kskfjn2j}
                   {selectedCount ? (
                     <>
@@ -611,7 +607,7 @@ export default function DestinyCafeTarotAlbum({
                       disabled={isPdfBusy}
                     >
                       {isPdfBusy ? <Loader2 size={13} className="animate-spin" aria-hidden /> : <Download size={13} aria-hidden />}
-                      
+
                       {copy.kcbceqsz} {selectedCount}{copy.kjvmkajp}
                     </button>
                   ) : null}
@@ -634,7 +630,7 @@ export default function DestinyCafeTarotAlbum({
             />
             {!filteredCards.length ? (
               <p className="rounded-2xl border border-moonveil-silver/15 bg-white/[0.045] px-4 py-5 text-center text-sm leading-relaxed text-moonveil-silver/80">
-                
+
                 {copy.kibbunuu}
               </p>
             ) : null}
@@ -647,10 +643,8 @@ export default function DestinyCafeTarotAlbum({
             isUnlocking={isUnlocking}
             unlockMessage={unlockMessage}
             lockDialogue={lockDialogue}
-            honeyDropUrl={honeyDropUrl}
-            cardBackUrl={cardBackUrl}
-            yeoniCutoutUrl={yeoniCutoutUrl}
-            previewCards={previewCards}
+            guest={Boolean(honeyDrops && !honeyDrops.authenticated)}
+            onRequestRefresh={onRequestRefresh}
             onUnlock={async () => {
               if (isAlbumUnlocked) return;
               if (isHoneyLoading || isHoneyDisabled) {
@@ -716,185 +710,33 @@ export default function DestinyCafeTarotAlbum({
   );
 }
 
-function TarotAlbumHero({
-  currentHoneyDrops,
-  totalCards,
-  selectedCount,
-  cardBackUrl,
-  albumCoverUrl,
-  yeoniPoseFrames,
-  pdfBusy,
-  onDownloadAll,
-  onDownloadSelected,
-}: {
-  currentHoneyDrops: number;
-  totalCards: number;
-  selectedCount: number;
-  cardBackUrl: string;
-  albumCoverUrl: string;
-  yeoniPoseFrames: readonly string[];
-  pdfBusy: boolean;
-  onDownloadAll: () => void;
-  onDownloadSelected: () => void;
+function TarotAlbumHero({ currentHoneyDrops, totalCards, selectedCount, pdfBusy, onDownloadAll, onDownloadSelected }: {
+  currentHoneyDrops: number; totalCards: number; selectedCount: number; pdfBusy: boolean;
+  onDownloadAll: () => void; onDownloadSelected: () => void;
 }) {
   const copy = useTeaHouseCopy("tarotAlbum", KO);
-  return (
-    <header className="relative overflow-hidden rounded-[1.25rem] border border-champagne-gold/24 bg-midnight-ink/52 px-5 py-6 shadow-[0_0_70px_rgba(216,179,108,0.16)] backdrop-blur-xl sm:px-6 sm:py-8 md:px-10 md:py-12">
-      <span className="pointer-events-none absolute left-10 top-6 h-28 w-28 rounded-full bg-champagne-gold/10 blur-2xl" aria-hidden />
-      <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(237,239,245,.10),transparent_34%),linear-gradient(120deg,rgba(255,255,255,.05),transparent_45%)]" aria-hidden />
-      <span
-        className="pointer-events-none absolute -right-10 bottom-0 hidden h-[112%] w-[420px] bg-cover bg-center opacity-[0.28] mix-blend-screen blur-[0.2px] sm:block"
-        style={{
-          backgroundImage: `linear-gradient(90deg, rgba(10,14,26,0.9), rgba(10,14,26,0.24)), url("${albumCoverUrl}")`,
-        }}
-        aria-hidden
-      />
-      <MoonlitPetalField density="normal" />
-      <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] lg:items-center">
-        <div className="max-w-3xl">
-          <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-champagne-gold/25 bg-champagne-gold/10 px-4 py-2 text-[0.72rem] font-black uppercase tracking-[0.18em] text-champagne-gold">
-            <Sparkles size={14} aria-hidden />
-            MOONLIT TAROT ARCHIVE
-          </span>
-          <h2 id="tarotAlbumTitle" className="break-keep font-premium text-3xl font-black leading-tight text-champagne-gold drop-shadow-[0_2px_24px_rgba(216,179,108,.28)] sm:text-5xl lg:text-6xl">
-            
-            {copy.k1yzt0ya}
-          </h2>
-          <p className="mt-3 text-base font-semibold leading-relaxed text-pearl-mist sm:mt-4 sm:text-xl">
-            
-            {copy.kwxkbj5k}
-          </p>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-moonveil-silver sm:text-base">
-            
-            {copy.kampzo9z}
-          </p>
-          <div className="mt-6 flex flex-wrap items-center gap-2">
-            <TarotAlbumUnlockBadge />
-            <span className="inline-flex min-h-10 items-center rounded-full border border-moonveil-silver/15 bg-white/[0.055] px-4 text-sm font-bold text-moonveil-silver">
-              
-              {copy.kxj8ah4r} <span className="ml-1 font-mono tabular-nums">{currentHoneyDrops}</span>{copy.kewammtp}
-            </span>
-            <span className="inline-flex min-h-10 items-center rounded-full border border-moonveil-silver/15 bg-white/[0.055] px-4 text-sm font-bold text-moonveil-silver">
-              
-              {copy.ktz26j2g} <span className="ml-1 font-mono tabular-nums">{totalCards}</span>{copy.kskfjn2j}
-            </span>
-            <span className="inline-flex min-h-10 items-center rounded-full border border-moonveil-silver/15 bg-white/[0.055] px-4 text-sm font-bold text-moonveil-silver">
-              
-              {copy.kb6dudtb} <span className="ml-1 font-mono tabular-nums">{selectedCount}/{totalCards}</span>{copy.kskfjn2j}
-            </span>
-          </div>
-          <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <PdfActionButton onClick={onDownloadAll} disabled={pdfBusy} label={copy.kmzmv9si} />
-            <PdfActionButton onClick={onDownloadSelected} disabled={pdfBusy || selectedCount === 0} label={selectedCount ? copy.selectedPdfLabel.replace("{count}", String(selectedCount)) : copy.kvgpq4qo} />
-          </div>
-        </div>
-        <div className="relative mx-auto mt-1 w-full max-w-[220px] sm:max-w-[264px] lg:mt-0" aria-hidden>
-          <div
-            className="pointer-events-none absolute -left-4 bottom-1 z-0 h-[148px] w-[148px] sm:h-[188px] sm:w-[188px]"
-            style={{ transformOrigin: "50% 92%", animation: "tarotCharacterIdle 4.8s ease-in-out infinite" }}
-          >
-            <span
-              className="absolute left-1/2 top-[44%] h-[130%] w-[130%] -translate-x-1/2 -translate-y-1/2 rounded-full"
-              style={{ background: "radial-gradient(circle, rgba(255,246,214,.22), rgba(216,179,108,0) 62%)", mixBlendMode: "screen", animation: "tarotCharacterAura 5.2s ease-in-out infinite" }}
-            />
-            <span
-              aria-hidden
-              className="absolute inset-0 drop-shadow-[0_12px_18px_rgba(0,0,0,.45)]"
-              style={{
-                backgroundImage: `url("${yeoniPoseFrames[0]}")`,
-                backgroundRepeat: "no-repeat",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                animation: "tarotCharacterPoseCycle 6s linear infinite",
-              }}
-            />
-          </div>
-          <div className="relative z-10">
-            <TarotCardFan cardBackUrl={cardBackUrl} />
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function MoonlitPetalField({ density = "normal" }: { density?: "normal" | "rich" }) {
-  const petalCount = density === "rich" ? 5 : 3;
-  const starCount = density === "rich" ? 7 : 4;
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      {Array.from({ length: petalCount }).map((_, index) => (
-        <span
-          key={`petal-${index}`}
-          className="absolute block h-3 w-2.5"
-          style={{
-            left: `${9 + index * (82 / petalCount)}%`,
-            top: "-5%",
-            borderRadius: "62% 62% 55% 55% / 74% 74% 40% 40%",
-            background: "linear-gradient(158deg, rgba(244,190,209,.82), rgba(234,208,137,.66))",
-            mixBlendMode: "screen",
-            opacity: 0.5,
-            animation: `tarotPetalDrift ${6.4 + index * 1.1}s linear ${index * 1.4}s infinite`,
-          }}
-        />
-      ))}
-      {Array.from({ length: starCount }).map((_, index) => (
-        <span
-          key={`star-${index}`}
-          className="absolute block h-1 w-1 rounded-full"
-          style={{
-            left: `${11 + index * (78 / starCount)}%`,
-            top: `${14 + (index % 3) * 24}%`,
-            background: "radial-gradient(circle, rgba(237,239,245,.95), rgba(237,239,245,0) 70%)",
-            boxShadow: "0 0 7px rgba(232,213,163,.7)",
-            animation: `tarotTwinkle ${2.3 + (index % 3) * 0.7}s ease-in-out ${index * 0.4}s infinite alternate`,
-          }}
-        />
-      ))}
+  const visit = useTeaHouseCopy("albumVisit", albumVisitCopy);
+  return <header className={albumStyles.hero}>
+    <div className={albumStyles.heroCopy}>
+      <Image src="/images/fortune-tea-house/moonlight-lotus-ornament.webp" alt="" width={120} height={120} className={albumStyles.moonOrnament}/><span className={albumStyles.eyebrow}>{visit.chapter}</span>
+      <h2 id="tarotAlbumTitle">{copy.k1yzt0ya}</h2><p>{copy.kampzo9z}</p>
+      <div className={albumStyles.meta}><span>{copy.kq8n5rri}</span><span>{copy.kfe3rgpe} {totalCards}{copy.kskfjn2j}</span><span>{copy.khjystua} {currentHoneyDrops}</span></div>
+      <div className={albumStyles.actions}>
+        <PdfActionButton onClick={onDownloadAll} disabled={pdfBusy} label={copy.kmzmv9si}/>
+        <PdfActionButton onClick={onDownloadSelected} disabled={pdfBusy || selectedCount === 0} secondary label={selectedCount ? copy.selectedPdfLabel.replace("{count}", String(selectedCount)) : copy.kvgpq4qo}/>
+      </div><p className={albumStyles.note}>{visit.downloadNote}</p>
     </div>
-  );
-}
-
-function TarotCardFan({ cardBackUrl }: { cardBackUrl: string }) {
-  const offsets = [-2, -1, 0, 1, 2];
-  return (
-    <div className="group relative mx-auto flex h-[212px] w-full items-center justify-center sm:h-[300px]">
-      <span className="pointer-events-none absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-champagne-gold/12 blur-3xl transition-all duration-500 group-hover:bg-champagne-gold/20" aria-hidden />
-      <div className="relative h-[180px] w-[122px] transition-transform duration-500 ease-out group-hover:scale-[1.03] sm:h-[248px] sm:w-[168px]">
-        {offsets.map((offset) => {
-          const distance = Math.abs(offset);
-          return (
-            <span
-              key={offset}
-              className="absolute inset-0 overflow-hidden rounded-2xl border border-champagne-gold/25 bg-midnight-ink shadow-[0_0_40px_-5px_rgba(216,179,108,0.35),0_0_80px_-20px_rgba(156,135,212,0.25)]"
-              style={{
-                transform: `translateX(${offset * 27}px) translateY(${distance * 14}px) rotate(${offset * 8}deg) scale(${1 - distance * 0.05})`,
-                opacity: 1 - distance * 0.2,
-                zIndex: 5 - distance,
-              }}
-            >
-              <Image
-                src={cardBackUrl}
-                alt=""
-                fill
-                sizes="168px"
-                unoptimized
-                className="object-cover"
-              />
-              <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-white/5" />
-            </span>
-          );
-        })}
-      </div>
-    </div>
-  );
+    <Image className={albumStyles.heroArt} src="/images/fortune-tea-house/yeoni-moonlight-novel.webp" alt={visit.humanAlt} width={768} height={768} sizes="(max-width:700px) 100vw,45vw"/>
+  </header>;
 }
 
 function PdfActionButton({
   onClick,
   disabled,
   label,
+  secondary = false,
 }: {
+  secondary?: boolean;
   onClick: () => void;
   disabled: boolean;
   label: string;
@@ -902,25 +744,14 @@ function PdfActionButton({
   return (
     <button
       type="button"
-      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-champagne-gold/35 bg-champagne-gold/12 px-5 text-sm font-black text-champagne-gold shadow-[0_12px_34px_rgba(216,179,108,.14)] transition hover:-translate-y-0.5 hover:border-champagne-gold/60 hover:bg-champagne-gold/18 focus:outline-none focus:ring-2 focus:ring-champagne-gold/45 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
+      className={secondary ? albumStyles.secondary : albumStyles.primary}
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
     >
-      {disabled ? <Loader2 size={17} className="animate-spin" aria-hidden /> : <Download size={17} aria-hidden />}
+      <Download size={17} aria-hidden />
       {label}
     </button>
-  );
-}
-
-function TarotAlbumUnlockBadge() {
-  const copy = useTeaHouseCopy("tarotAlbum", KO);
-  return (
-    <span className="inline-flex min-h-10 items-center gap-2 rounded-full border border-champagne-gold/30 bg-champagne-gold/10 px-4 text-sm font-extrabold text-champagne-gold shadow-[0_0_24px_rgba(216,179,108,0.12)]">
-      <CheckCircle2 size={16} aria-hidden />
-      
-      {copy.kq8n5rri}
-    </span>
   );
 }
 
@@ -1058,7 +889,7 @@ function TarotAlbumGrid({
   onCoverCard: (card: TarotAlbumStoryCard) => void;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6" aria-live="polite">
+    <div className={albumStyles.shelf} aria-live="polite">
       {cards.map((card, index) => (
         <TarotAlbumCardItem
           key={card.id}
@@ -1179,7 +1010,7 @@ function TarotAlbumCardItem({
             <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(216,179,108,.16),transparent_46%)]" />
             <span className="pointer-events-none absolute inset-x-2 bottom-2 flex items-center justify-center gap-1 rounded-full border border-champagne-gold/25 bg-black/45 px-2 py-1 text-[0.62rem] font-black text-champagne-gold opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
               <Sparkles size={11} aria-hidden />
-              
+
               {copy.k1iqbrdw}
             </span>
           </button>
@@ -1274,137 +1105,26 @@ function MoonPhaseSeal({ full = false }: { full?: boolean }) {
   );
 }
 
-function TarotAlbumLockPanel({
-  currentHoneyDrops,
-  isHoneyLoading,
-  canUnlock,
-  isUnlocking,
-  unlockMessage,
-  lockDialogue,
-  honeyDropUrl,
-  cardBackUrl,
-  yeoniCutoutUrl,
-  previewCards,
-  onUnlock,
-}: {
-  currentHoneyDrops: number;
-  isHoneyLoading: boolean;
-  canUnlock: boolean;
-  isUnlocking: boolean;
-  unlockMessage: string;
-  lockDialogue: string;
-  honeyDropUrl: string;
-  cardBackUrl: string;
-  yeoniCutoutUrl: string;
-  previewCards: TarotAlbumStoryCard[];
-  onUnlock: () => void;
+function TarotAlbumLockPanel({ currentHoneyDrops, isHoneyLoading, canUnlock, isUnlocking, unlockMessage, lockDialogue, guest, onUnlock, onRequestRefresh }: {
+  currentHoneyDrops: number; isHoneyLoading: boolean; canUnlock: boolean; isUnlocking: boolean;
+  unlockMessage: string; lockDialogue: string; guest: boolean; onUnlock: () => void; onRequestRefresh: () => Promise<boolean>;
 }) {
   const copy = useTeaHouseCopy("tarotAlbum", KO);
-  const honeyCountText = isHoneyLoading ? copy.kactydpb : copy.honeyCountText.replace("{count}", String(currentHoneyDrops));
-
-  return (
-    <div className="grid flex-1 place-items-center py-6">
-      <div className="relative w-full max-w-4xl overflow-hidden rounded-[2rem] border border-twilight-violet/24 bg-midnight-ink/62 px-5 py-9 text-center shadow-[0_0_80px_rgba(156,135,212,0.2)] backdrop-blur-2xl sm:px-8 sm:py-12">
-        <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_-8%,rgba(237,239,245,.14),transparent_36%),radial-gradient(circle_at_16%_84%,rgba(156,135,212,.12),transparent_40%)]" aria-hidden />
-        <span className="pointer-events-none absolute -right-10 top-8 h-40 w-40 rounded-full bg-pearl-mist/12 blur-3xl" aria-hidden />
-        <MoonlitPetalField density="rich" />
-
-        <div className="pointer-events-none absolute -bottom-2 left-0 hidden w-40 opacity-55 sm:block lg:w-48" aria-hidden>
-          <div className="relative aspect-[3/4] w-full">
-            <Image src={yeoniCutoutUrl} alt="" fill sizes="192px" unoptimized className="object-contain object-bottom drop-shadow-[0_0_28px_rgba(156,135,212,.28)]" />
-          </div>
-        </div>
-
-        <div className="relative mx-auto mb-7 grid h-52 w-40 place-items-center sm:h-60 sm:w-48" aria-hidden>
-          <span className="absolute -right-10 -top-6 h-24 w-24 rounded-full bg-pearl-mist/70 shadow-[0_0_40px_rgba(237,239,245,.34)]" style={{ animation: "tarotMoonGlow 6.4s ease-in-out infinite" }}>
-            <span className="absolute -right-3 top-0 h-24 w-24 rounded-full bg-midnight-ink" />
-          </span>
-          <span className="absolute h-44 w-44 rounded-full bg-champagne-gold/12 blur-3xl sm:h-52 sm:w-52" />
-          <div className="relative h-52 w-[9.2rem] sm:h-60 sm:w-40" style={{ animation: "tarotGentleFloat 4s ease-in-out infinite" }}>
-            <span className="absolute inset-0 overflow-hidden rounded-[1.4rem] border border-champagne-gold/35 bg-midnight-ink shadow-[0_0_40px_-5px_rgba(216,179,108,0.4),0_0_90px_-20px_rgba(156,135,212,0.32)]">
-              <Image src={cardBackUrl} alt="" fill sizes="160px" unoptimized className="object-cover" />
-              <span className="absolute inset-0 bg-[radial-gradient(circle_at_50%_32%,rgba(216,179,108,.2),transparent_46%)]" />
-            </span>
-            <BloomSeal canBloom={canUnlock} />
-          </div>
-          <span className="absolute left-1/2 top-1/2 h-2 w-2 rounded-full bg-champagne-gold shadow-[0_0_10px_rgba(232,213,163,.9)]" style={{ animation: "tarotOrbit 9s linear infinite", ["--cd-orbit-r" as string]: "92px" } as CSSProperties} />
-          <span className="absolute left-1/2 top-1/2 h-1.5 w-1.5 rounded-full bg-pearl-mist shadow-[0_0_8px_rgba(237,239,245,.9)]" style={{ animation: "tarotOrbit 12s linear infinite reverse", ["--cd-orbit-r" as string]: "76px" } as CSSProperties} />
-        </div>
-
-        <div className="relative">
-          <p className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full border border-twilight-violet/38 bg-twilight-violet/10 px-4 py-2 text-[0.72rem] font-black uppercase tracking-[0.16em] text-champagne-gold shadow-[0_0_24px_rgba(156,135,212,.18)]">
-            <Lock size={13} aria-hidden />
-            MOONLIT TAROT ARCHIVE
-          </p>
-          <h2 id="tarotAlbumTitle" className="break-keep font-premium text-4xl font-black leading-tight text-champagne-gold drop-shadow-[0_2px_24px_rgba(216,179,108,.28)] sm:text-5xl">
-            
-            {copy.k1gzgjee}
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-pearl-mist sm:text-base">
-            
-            {copy.kwuaodmd}
-          </p>
-          <div className="mx-auto mt-6 grid max-w-lg grid-cols-2 gap-3">
-            <div className="relative overflow-hidden rounded-2xl border border-twilight-violet/24 bg-pearl-mist/[0.055] px-4 py-3 shadow-[inset_0_1px_0_rgba(237,239,245,.1)]">
-              <span className="relative mx-auto mb-1 block h-5 w-5 bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url("${honeyDropUrl}")` }} aria-hidden />
-              <span className="relative block text-xs font-extrabold text-moonveil-silver">{copy.khjystua}</span>
-              <strong className="relative mt-1 block font-mono text-2xl font-black tabular-nums text-champagne-gold">{honeyCountText}</strong>
-            </div>
-            <div className="relative overflow-hidden rounded-2xl border border-twilight-violet/24 bg-pearl-mist/[0.055] px-4 py-3 shadow-[inset_0_1px_0_rgba(237,239,245,.1)]">
-              <Flower2 className="relative mx-auto mb-1 text-twilight-violet" size={20} strokeWidth={1.7} aria-hidden />
-              <span className="relative block text-xs font-extrabold text-moonveil-silver">{copy.kxhy61lm}</span>
-              <strong className="relative mt-1 block font-mono text-2xl font-black tabular-nums text-champagne-gold">{TAROT_ALBUM_UNLOCK_COST}{copy.kewammtp}</strong>
-            </div>
-          </div>
-          <HoneyDropProgress current={currentHoneyDrops} total={TAROT_ALBUM_UNLOCK_COST} />
-          <button
-            type="button"
-            className={cx(
-              "mt-6 inline-flex min-h-12 w-full max-w-sm items-center justify-center gap-2 rounded-full border px-5 text-sm font-black transition focus:outline-none focus:ring-2 focus:ring-champagne-gold/55",
-              canUnlock && !isUnlocking
-                ? "border-champagne-gold/60 bg-gradient-to-r from-champagne-gold via-pearl-mist to-twilight-violet text-midnight-ink shadow-[0_18px_44px_rgba(216,179,108,.24)] hover:-translate-y-0.5 hover:shadow-[0_0_42px_rgba(216,179,108,.3)]"
-                : "cursor-not-allowed border-twilight-violet/28 bg-pearl-mist/[0.07] text-moonveil-silver shadow-[0_0_28px_rgba(156,135,212,.1)]"
-            )}
-            disabled={!canUnlock || isUnlocking}
-            onClick={onUnlock}
-          >
-            {isUnlocking ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <BookOpen size={18} aria-hidden />}
-            {isUnlocking ? copy.k1h4mohy : canUnlock ? copy.klirlgb2 : copy.kyny7lmn}
-          </button>
-          <div className="mx-auto mt-5 grid max-w-2xl grid-cols-[34px_minmax(0,1fr)] gap-3 rounded-2xl border border-twilight-violet/20 bg-midnight-ink/72 px-4 py-3 text-left text-sm leading-relaxed text-pearl-mist shadow-[0_18px_44px_rgba(5,2,14,.18)]">
-            <span className="relative mt-0.5 grid h-8 w-8 place-items-center rounded-full border border-champagne-gold/24 bg-champagne-gold/10 text-champagne-gold">
-              <Sparkles size={15} aria-hidden />
-            </span>
-            <p>"{unlockMessage || lockDialogue}"</p>
-          </div>
-
-          {previewCards.length ? (
-            <div className="relative mx-auto mt-7 max-w-xl">
-              <div className="flex items-center justify-center gap-2 sm:gap-3" aria-hidden>
-                {previewCards.map((card, index) => (
-                  <span
-                    key={card.id}
-                    className="relative aspect-[2/3] w-12 overflow-hidden rounded-lg border border-champagne-gold/20 bg-midnight-ink sm:w-16"
-                    style={{ transform: `translateY(${Math.abs(index - 2) * 6}px)` }}
-                  >
-                    {card.imageSrc ? (
-                      <Image src={card.imageSrc} alt="" fill sizes="64px" unoptimized loading="lazy" className="scale-110 object-cover blur-[10px] brightness-[.32]" />
-                    ) : null}
-                  </span>
-                ))}
-              </div>
-              <span className="pointer-events-none absolute inset-0 grid place-items-center">
-                <span className="rounded-full border border-champagne-gold/30 bg-midnight-ink/80 px-4 py-1.5 text-[0.72rem] font-black text-champagne-gold backdrop-blur-md">
-                  
-                  {copy.kqjhespg}
-                </span>
-              </span>
-            </div>
-          ) : null}
-        </div>
-      </div>
+  const visit = useTeaHouseCopy("albumVisit", albumVisitCopy);
+  const [refreshing, setRefreshing] = useState(false);
+  const progress = visit.progress.replace("{count}", String(currentHoneyDrops)).replace("{cost}", String(TAROT_ALBUM_UNLOCK_COST));
+  return <div className={albumStyles.lock}>
+    <div className={albumStyles.lockArt}><Image src="/images/fortune-tea-house/yeoni-moonlight-novel.webp" alt={visit.humanAlt} fill sizes="(max-width:700px) 100vw,45vw"/></div>
+    <div className={albumStyles.lockCopy}><Image src="/images/fortune-tea-house/moonlight-lotus-ornament.webp" alt="" width={110} height={110} className={albumStyles.moonOrnament}/>
+      <span className={albumStyles.eyebrow}>{visit.eyebrow}</span><h2 id="tarotAlbumTitle">{copy.k1yzt0ya}</h2><p>{visit.description.replace("{cost}", String(TAROT_ALBUM_UNLOCK_COST))}</p>
+      <span className={albumStyles.balance}>{guest ? visit.guest : isHoneyLoading ? visit.loading : progress}</span>
+      {!guest && <progress max={TAROT_ALBUM_UNLOCK_COST} value={Math.min(currentHoneyDrops,TAROT_ALBUM_UNLOCK_COST)} aria-label={progress}/>}
+      <div className={albumStyles.actions}>
+        {guest ? <Link className={albumStyles.primary} href="/login/?next=%2Ffortune-tea-house%2F">{visit.login}</Link> : <button type="button" className={albumStyles.primary} disabled={!canUnlock || isUnlocking} onClick={onUnlock}>{isUnlocking ? <Loader2 size={18} className="animate-spin" aria-hidden/> : <BookOpen size={18} aria-hidden/>}{isUnlocking ? copy.k1h4mohy : canUnlock ? copy.klirlgb2 : copy.kyny7lmn}</button>}
+        {!guest && <button type="button" className={albumStyles.secondary} disabled={refreshing} onClick={async () => { setRefreshing(true); try { await onRequestRefresh(); } finally { setRefreshing(false); } }}>{refreshing ? visit.loading : visit.retry}</button>}
+      </div><blockquote role="status">{unlockMessage || lockDialogue}</blockquote>
     </div>
-  );
+  </div>;
 }
 
 function TarotAlbumMotionStyles({ yeoniPoseFrames }: { yeoniPoseFrames: readonly string[] }) {
@@ -1527,69 +1247,6 @@ function TarotAlbumMotionStyles({ yeoniPoseFrames }: { yeoniPoseFrames: readonly
   );
 }
 
-function BloomSeal({ canBloom }: { canBloom: boolean }) {
-  return (
-    <span
-      className={cx(
-        "absolute -right-4 -top-4 grid h-16 w-16 place-items-center rounded-full border bg-midnight-ink/92 shadow-[0_0_30px_rgba(156,135,212,.24)]",
-        canBloom ? "border-champagne-gold/55 text-champagne-gold" : "border-twilight-violet/44 text-twilight-violet",
-      )}
-    >
-      <span className="absolute inset-2 rounded-full bg-[radial-gradient(circle_at_50%_22%,rgba(237,239,245,.16),transparent_42%)]" aria-hidden />
-      {canBloom ? <Flower2 className="relative drop-shadow-[0_0_12px_rgba(216,179,108,.38)]" size={28} strokeWidth={1.7} aria-hidden /> : <Sprout className="relative drop-shadow-[0_0_12px_rgba(156,135,212,.3)]" size={28} strokeWidth={1.8} aria-hidden />}
-    </span>
-  );
-}
-
-function HoneyDropProgress({
-  current,
-  total,
-}: {
-  current: number;
-  total: number;
-}) {
-  const copy = useTeaHouseCopy("tarotAlbum", KO);
-  const bounded = Math.max(0, Math.min(current, total));
-  const progress = total > 0 ? Math.round((bounded / total) * 100) : 0;
-
-  return (
-    <div className="mx-auto mt-6 w-full max-w-2xl">
-      <div className="relative h-24 overflow-hidden rounded-[2rem] border border-twilight-violet/26 bg-midnight-ink/72 px-3 shadow-[inset_0_2px_14px_rgba(0,0,0,.42),0_0_28px_rgba(156,135,212,.12)]">
-        <span className="absolute left-6 right-6 top-1/2 h-1 -translate-y-1/2 rounded-full bg-twilight-violet/30 shadow-[0_0_18px_rgba(156,135,212,.16)]" aria-hidden />
-        <span
-          className="absolute left-6 right-6 top-1/2 h-1 -translate-y-1/2 rounded-full bg-gradient-to-r from-champagne-gold via-twilight-violet to-pearl-mist shadow-[0_0_22px_rgba(237,239,245,.24)] transition-transform duration-500"
-          style={{ transform: `translateY(-50%) scaleX(${progress / 100})`, transformOrigin: "left center" }}
-          aria-hidden
-        />
-        <div className="absolute inset-x-3 top-1/2 grid grid-cols-10 items-center justify-items-center gap-0.5 -translate-y-1/2 sm:gap-2" aria-hidden>
-          {Array.from({ length: total }).map((_, index) => {
-            const isBloomed = index < bounded;
-            const isNewestBloom = isBloomed && index === bounded - 1;
-            return (
-              <span
-                key={index}
-                className={cx(
-                  "relative grid h-7 w-7 place-items-center rounded-full border transition sm:h-9 sm:w-9",
-                  isBloomed
-                    ? "border-champagne-gold/46 bg-champagne-gold/16 text-pearl-mist shadow-[0_0_16px_rgba(237,239,245,.24)]"
-                    : "border-twilight-violet/20 bg-deep-indigo/78 text-twilight-violet/58",
-                )}
-                style={isNewestBloom ? { animation: "tarotLavenderBloom 480ms cubic-bezier(0.2, 0.82, 0.24, 1) both" } : undefined}
-              >
-                {isBloomed ? <Flower2 size={17} strokeWidth={1.75} aria-hidden /> : <Sprout size={15} strokeWidth={1.8} aria-hidden />}
-              </span>
-            );
-          })}
-        </div>
-      </div>
-      <p className="mt-2 text-center text-xs font-black text-champagne-gold/84 font-mono">
-        
-        {copy.khjystua} {bounded} / {total}
-      </p>
-    </div>
-  );
-}
-
 function MoonlitCardPlaceholder({
   title,
   cardBackUrl,
@@ -1631,7 +1288,7 @@ function MoonlitCardPlaceholder({
       <Moon className={cx("relative drop-shadow-[0_0_18px_rgba(216,179,108,.24)]", gardenSeal ? "text-pearl-mist" : "text-champagne-gold", large ? "mb-4" : "mb-2")} size={large ? 42 : 26} strokeWidth={1.55} aria-hidden />
       <strong className={cx("relative font-premium font-black leading-tight", large ? "text-lg" : "text-sm")}>{title}</strong>
       <em className={cx("relative mt-2 max-w-[10rem] text-[0.68rem] font-bold not-italic leading-relaxed text-moonveil-silver/72", large ? "text-xs" : "")}>
-        
+
         {copy.krvhfnlu}
       </em>
     </span>
@@ -1749,7 +1406,7 @@ function TarotCardModal({
               aria-label={copy.kv2kg2cx}
             >
               <ChevronLeft size={16} aria-hidden />
-              
+
               {copy.k3anflqu}
             </button>
             <button
@@ -1758,7 +1415,7 @@ function TarotCardModal({
               onClick={onNext}
               aria-label={copy.kfvqms0a}
             >
-              
+
               {copy.khux287z}
               <ChevronRight size={16} aria-hidden />
             </button>
@@ -1837,7 +1494,7 @@ function TarotCardModal({
               aria-pressed={selectedForPdf}
             >
               {selectedForPdf ? <MoonPhaseSeal full /> : <MoonPhaseSeal />}
-              
+
               {copy.kb6dudtb}
             </button>
             <button
@@ -1848,7 +1505,7 @@ function TarotCardModal({
               aria-label={copy.cardSinglePdfAria.replace("{title}", card.titleKo)}
             >
               {pdfBusy ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <FileText size={16} aria-hidden />}
-              
+
               {copy.ksoa9rli}
             </button>
           </div>
@@ -1938,97 +1595,49 @@ function TarotAlbumPdfRender({
   );
 }
 
-const pdfPageStyle: CSSProperties = {
-  width: PDF_PAGE_WIDTH_PX,
-  minHeight: PDF_PAGE_HEIGHT_PX,
-  padding: "54px",
-  background: "radial-gradient(circle at 78% 8%, rgba(237,239,245,.10), transparent 28%), linear-gradient(145deg, #0A0E1A 0%, #1B2340 52%, #1B2A4D 100%)",
-  color: "#EDEFF5",
-  fontFamily: "CodeDestinyBody, Pretendard, Apple SD Gothic Neo, sans-serif",
-  position: "relative",
-  overflow: "hidden",
-};
-
-function PdfPageShell({
-  children,
-  pageNumber,
-}: {
-  children: ReactNode;
-  pageNumber?: number;
-}) {
-  return (
-    <section data-tarot-pdf-page style={pdfPageStyle}>
-      <div style={{ position: "absolute", inset: 24, border: "1px solid rgba(216,179,108,.2)", borderRadius: 28 }} />
-      <div style={{ position: "absolute", right: 64, top: 52, width: 88, height: 88, borderRadius: 999, background: "rgba(237,239,245,.78)", boxShadow: "0 0 36px rgba(237,239,245,.25)" }} />
-      <div style={{ position: "relative", zIndex: 1 }}>{children}</div>
-      {pageNumber ? (
-        <p style={{ position: "absolute", bottom: 28, right: 54, margin: 0, color: "rgba(237,239,245,.58)", fontSize: 12, fontWeight: 800 }}>
-          {pageNumber}
-        </p>
-      ) : null}
-    </section>
-  );
+const PDF_ORNAMENT = "/images/fortune-tea-house/moonlight-lotus-ornament.webp";
+const pdfInk = { title:"#462c3c", body:"#59474c", gold:"#876338", muted:"#786168", line:"#d8c5ac", paper:"#fbf5eb" };
+const pdfBody: CSSProperties = { margin:0, color:pdfInk.body, fontSize:14, lineHeight:1.65, fontWeight:400, wordBreak:"keep-all", overflowWrap:"break-word" };
+const pdfSectionTitle: CSSProperties = { margin:"0 0 8px", color:pdfInk.gold, fontSize:14, lineHeight:1.5, fontWeight:700 };
+function PdfPageShell({ children, pageNumber, dark=false }: { children:ReactNode; pageNumber?:number; dark?:boolean }) {
+  const copy=useTeaHouseCopy("tarotAlbum",KO);
+  return <section data-tarot-pdf-page style={{ width:PDF_PAGE_WIDTH_PX, minHeight:PDF_PAGE_HEIGHT_PX, boxSizing:"border-box", padding:"48px 52px 60px", position:"relative", overflow:"hidden", background:dark ? "#261326" : pdfInk.paper, color:dark ? "#fff0e8" : pdfInk.title, fontFamily:"CodeDestinyBody, Pretendard, Apple SD Gothic Neo, sans-serif" }}>
+    <div style={{ position:"absolute", inset:22, border:`1px solid ${dark ? "#9b796148" : "#cdb799"}`, pointerEvents:"none" }}/>
+    <div style={{ position:"absolute", inset:28, border:`1px solid ${dark ? "#9b796124" : "#e5d6c0"}`, pointerEvents:"none" }}/>
+    {!dark && <img src={PDF_ORNAMENT} alt="" style={{ position:"absolute", width:132, height:132, top:36, right:38, opacity:.34 }}/>}
+    <div style={{ position:"relative", zIndex:1 }}>{children}</div>
+    <footer style={{ position:"absolute", left:52, right:52, bottom:31, display:"flex", justifyContent:"space-between", paddingTop:10, borderTop:`1px solid ${dark ? "#9b796148" : "#d8c5ac"}`, color:dark ? "#d8c1ab" : pdfInk.muted, fontSize:10, letterSpacing:.6 }}><span>{copy.kkr3uulf}</span><span>{pageNumber ?? ""}</span></footer>
+  </section>;
 }
 
-function PdfCoverPage({ count, cardBackUrl }: { count: number; cardBackUrl: string }) {
+function PdfCoverPage({ count }: { count: number; cardBackUrl: string }) {
   const copy = useTeaHouseCopy("tarotAlbum", KO);
+  const visit = useTeaHouseCopy("albumVisit", albumVisitCopy);
   const locale = useLocale();
-  // 🔴 PDF 표지의 생성일도 활성 로케일을 따른다 — 예전에는 항상 한국식으로 찍혔다.
   const createdAt = new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(new Date());
-  return (
-    <PdfPageShell>
-      <div style={{ display: "grid", minHeight: 990, alignContent: "center", gridTemplateColumns: "minmax(0,1fr) 214px", alignItems: "center", gap: 40 }}>
-        <div style={{ display: "grid", gap: 22 }}>
-          <p style={{ margin: 0, color: "#D8B36C", fontSize: 15, fontWeight: 900, letterSpacing: 2 }}>{copy.kkr3uulf}</p>
-          <h1 style={{ margin: 0, maxWidth: 460, color: "#EDEFF5", fontSize: 56, lineHeight: 1.1, fontWeight: 950, letterSpacing: "-0.01em" }}>
-            
-            {copy.k1yzt0ya}
-          </h1>
-          <p style={{ margin: 0, maxWidth: 440, color: "rgba(200,170,255,.92)", fontSize: 20, lineHeight: 1.75, fontWeight: 700 }}>
-            
-            {copy.kfnkjoro}
-          </p>
-          <div style={{ display: "flex", gap: 12, marginTop: 18 }}>
-            <span style={{ border: "1px solid rgba(216,179,108,.32)", borderRadius: 999, padding: "10px 16px", color: "#D8B36C", fontSize: 13, fontWeight: 900 }}>
-              
-              {copy.kfe3rgpe} {count}{copy.kskfjn2j}
-            </span>
-            <span style={{ border: "1px solid rgba(156,135,212,.26)", borderRadius: 999, padding: "10px 16px", color: "#C8AAFF", fontSize: 13, fontWeight: 900 }}>
-              
-              {copy.kpuzku7s} {createdAt}
-            </span>
-          </div>
-        </div>
-        <div style={{ position: "relative", justifySelf: "center" }}>
-          <img
-            src={cardBackUrl}
-            crossOrigin="anonymous"
-            alt=""
-            style={{ width: 196, height: 274, objectFit: "cover", borderRadius: 22, border: "1px solid rgba(216,179,108,.4)", boxShadow: "0 0 44px -6px rgba(216,179,108,.42), 0 30px 60px rgba(0,0,0,.4)" }}
-          />
-        </div>
-      </div>
-    </PdfPageShell>
-  );
+  return <PdfPageShell dark>
+    <div style={{ position:"relative", height:590, margin:"-28px -28px 36px", overflow:"hidden", borderRadius:"12px 12px 0 0" }}>
+      <img src="/images/fortune-tea-house/yeoni-moonlight-novel.webp" alt="" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"65% center" }}/>
+      <div style={{ position:"absolute", inset:0, background:"linear-gradient(0deg,#241021,transparent 48%)" }}/>
+      <p style={{ position:"absolute", bottom:20, left:32, color:"#e8ca91", fontSize:15, letterSpacing:3 }}>{visit.chapter}</p>
+    </div>
+    <img src={PDF_ORNAMENT} alt="" style={{position:"absolute",right:-14,bottom:62,width:120,height:120,opacity:.7}}/>
+    <h1 style={{ margin:"0 0 24px", fontFamily:"CodeDestinySerif, Georgia, serif", fontSize:48, fontWeight:500, lineHeight:1.3, color:"#ffe8ea" }}>{copy.k1yzt0ya}</h1>
+    <p style={{ fontSize:19, lineHeight:1.9, color:"#e4ccd4", maxWidth:510 }}>{copy.kfnkjoro}</p>
+    <p style={{ marginTop:36, paddingTop:20, borderTop:"1px solid #a9816855", color:"#e8ca91", fontSize:13 }}>{copy.kfe3rgpe} {count}{copy.kskfjn2j} · {createdAt}</p>
+  </PdfPageShell>;
 }
 
-function PdfTocPage({ groups }: { groups: Array<{ title: string; cards: TarotAlbumStoryCard[] }> }) {
-  const copy = useTeaHouseCopy("tarotAlbum", KO);
-  return (
-    <PdfPageShell pageNumber={2}>
-      <h2 style={{ margin: "0 0 22px", color: "#EDEFF5", fontSize: 34, fontWeight: 950 }}>{copy.kdhtquzm}</h2>
-      <div style={{ display: "grid", gap: 18 }}>
-        {groups.map((group) => (
-          <section key={group.title} style={{ border: "1px solid rgba(216,179,108,.16)", borderRadius: 20, padding: 18, background: "rgba(255,255,255,.045)" }}>
-            <h3 style={{ margin: "0 0 10px", color: "#D8B36C", fontSize: 18, fontWeight: 950 }}>{group.title}</h3>
-            <p style={{ margin: 0, color: "rgba(156,135,212,.86)", fontSize: 13, lineHeight: 1.85, fontWeight: 700 }}>
-              {group.cards.map((card) => `${card.titleKo}(${card.titleEn})`).join(" · ")}
-            </p>
-          </section>
-        ))}
-      </div>
-    </PdfPageShell>
-  );
+function PdfTocPage({ groups }: { groups:Array<{title:string; cards:TarotAlbumStoryCard[]}> }) {
+  const copy=useTeaHouseCopy("tarotAlbum",KO);
+  return <PdfPageShell pageNumber={2}>
+    <p style={{...pdfSectionTitle, letterSpacing:2}}>{copy.kb6dudtb}</p>
+    <h2 style={{margin:"0 0 34px",fontSize:38,fontWeight:500,color:pdfInk.title}}>{copy.kdhtquzm}</h2>
+    <div style={{display:"grid",gap:18}}>{groups.map((group,index)=><section key={group.title} style={{paddingBottom:16,borderBottom:`1px solid ${pdfInk.line}`}}>
+      <h3 style={{margin:"0 0 12px",fontSize:19,fontWeight:600,color:pdfInk.title}}><span style={{color:pdfInk.gold,fontSize:12,marginRight:16}}>{String(index+1).padStart(2,"0")}</span>{group.title}</h3>
+      <p style={{...pdfBody,fontSize:13,lineHeight:1.9}}>{group.cards.map(card=>`${card.titleKo} (${card.titleEn})`).join(" · ")}</p>
+    </section>)}</div>
+  </PdfPageShell>;
 }
 
 function PdfCardPage({
@@ -2054,81 +1663,36 @@ function PdfCardPage({
     [copy.kajyhu4o, card.innerGrowthMeaning],
   ] as const;
 
-  return (
-    <PdfPageShell pageNumber={pageNumber}>
-      <div style={{ display: "grid", gridTemplateColumns: "210px 1fr", gap: 24 }}>
-        <div>
-          <img
-            src={imageSrc}
-            crossOrigin="anonymous"
-            alt=""
-            style={{ width: 196, height: 294, objectFit: "cover", borderRadius: 18, border: "1px solid rgba(216,179,108,.28)", boxShadow: "0 24px 46px rgba(0,0,0,.32)" }}
-            onError={(event) => {
-              event.currentTarget.src = cardBackUrl;
-            }}
-          />
-          <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {card.keywords.slice(0, 5).map((keyword) => (
-              <span key={keyword} style={{ border: "1px solid rgba(216,179,108,.18)", borderRadius: 999, padding: "5px 8px", color: "#D8B36C", fontSize: 10, fontWeight: 900 }}>
-                {keyword}
-              </span>
-            ))}
-          </div>
-        </div>
-        <div>
-          <p style={{ margin: "0 0 8px", color: "#D8B36C", fontSize: 12, fontWeight: 950, letterSpacing: 1.1 }}>
-            {card.suitLabel} · {card.element}
-          </p>
-          <h2 style={{ margin: 0, color: "#EDEFF5", fontSize: 30, lineHeight: 1.16, fontWeight: 950 }}>
-            {card.titleKo}
-          </h2>
-          <p style={{ margin: "4px 0 14px", color: "rgba(156,135,212,.86)", fontSize: 14, fontWeight: 800 }}>{card.titleEn}</p>
-          <p style={{ margin: "0 0 14px", color: "#EDEFF5", fontSize: 13, lineHeight: 1.65, fontWeight: 800 }}>
-            {card.shortSummary}
-          </p>
-          <section style={{ border: "1px solid rgba(216,179,108,.14)", borderRadius: 16, padding: 12, background: "rgba(255,255,255,.045)", marginBottom: 12 }}>
-            <h3 style={{ margin: "0 0 6px", color: "#D8B36C", fontSize: 13, fontWeight: 950 }}>{copy.kbx1lbox}</h3>
-            <p style={{ margin: 0, color: "rgba(237,239,245,.88)", fontSize: 11.2, lineHeight: 1.62, fontWeight: 650 }}>{card.story}</p>
-          </section>
-        </div>
+  return <PdfPageShell pageNumber={pageNumber}>
+    <div style={{display:"grid",gridTemplateColumns:"182px minmax(0,1fr)",gap:28,alignItems:"start"}}>
+      <div><img src={imageSrc} crossOrigin="anonymous" alt="" style={{width:182,height:273,objectFit:"cover",borderRadius:7,border:`1px solid ${pdfInk.line}`,boxShadow:"0 10px 20px #4a2a351c"}} onError={event=>{if(event.currentTarget.src!==cardBackUrl)event.currentTarget.src=cardBackUrl;}}/>
+        <p style={{margin:"14px 0 0",fontSize:12,lineHeight:1.8,color:pdfInk.gold}}>{card.keywords.slice(0,5).join(" · ")}</p>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 16 }}>
-        {sections.map(([title, body]) => (
-          <section key={title} style={{ border: "1px solid rgba(156,135,212,.14)", borderRadius: 14, padding: 10, background: "rgba(255,255,255,.04)" }}>
-            <h3 style={{ margin: "0 0 5px", color: "#D8B36C", fontSize: 11.4, fontWeight: 950 }}>{title}</h3>
-            <p style={{ margin: 0, color: "rgba(237,239,245,.84)", fontSize: 9.6, lineHeight: 1.58, fontWeight: 650 }}>{body}</p>
-          </section>
-        ))}
+      <div><p style={{...pdfSectionTitle,marginBottom:10,paddingRight:85,fontSize:12}}>{card.suitLabel} · {card.element}</p>
+        <h2 style={{margin:0,fontSize:34,lineHeight:1.3,fontWeight:500,color:pdfInk.title}}>{card.titleKo}</h2>
+        <p style={{margin:"6px 0 12px",fontSize:14,color:pdfInk.muted}}>{card.titleEn}</p>
+        <p style={{...pdfBody,fontSize:16,fontWeight:600,marginBottom:14}}>{card.shortSummary}</p>
+        <h3 style={pdfSectionTitle}>{copy.kbx1lbox}</h3><p style={pdfBody}>{card.story}</p>
       </div>
-      <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <section style={{ border: "1px solid rgba(216,179,108,.18)", borderRadius: 14, padding: 10, background: "rgba(216,179,108,.08)" }}>
-          <h3 style={{ margin: "0 0 5px", color: "#D8B36C", fontSize: 11.4, fontWeight: 950 }}>{copy.km05ijjs}</h3>
-          <p style={{ margin: 0, color: "rgba(237,239,245,.9)", fontSize: 9.8, lineHeight: 1.58, fontWeight: 700 }}>{card.yeoniMessage}</p>
-        </section>
-        <section style={{ border: "1px solid rgba(156,135,212,.18)", borderRadius: 14, padding: 10, background: "rgba(156,135,212,.07)" }}>
-          <h3 style={{ margin: "0 0 5px", color: "#9C87D4", fontSize: 11.4, fontWeight: 950 }}>{copy.kjcpkfd5}</h3>
-          <p style={{ margin: 0, color: "rgba(237,239,245,.9)", fontSize: 9.8, lineHeight: 1.58, fontWeight: 700 }}>{card.journalQuestion}</p>
-        </section>
-      </div>
-    </PdfPageShell>
-  );
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px 28px",marginTop:20,paddingTop:18,borderTop:`1px solid ${pdfInk.line}`}}>
+      {sections.map(([title,body])=><section key={title}><h3 style={pdfSectionTitle}>{title}</h3><p style={pdfBody}>{body}</p></section>)}
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24,marginTop:16,padding:"14px 20px",background:"#efe3db",borderRadius:6}}>
+      <section><h3 style={pdfSectionTitle}>{copy.km05ijjs}</h3><p style={{...pdfBody,fontSize:13}}>{card.yeoniMessage}</p></section>
+      <section><h3 style={pdfSectionTitle}>{copy.kjcpkfd5}</h3><p style={{...pdfBody,fontSize:13}}>{card.journalQuestion}</p></section>
+    </div>
+  </PdfPageShell>;
 }
 
-function PdfLastPage({ pageNumber }: { pageNumber: number }) {
-  const copy = useTeaHouseCopy("tarotAlbum", KO);
-  return (
-    <PdfPageShell pageNumber={pageNumber}>
-      <div style={{ display: "grid", minHeight: 990, alignContent: "center", gap: 20, textAlign: "center" }}>
-        <p style={{ margin: 0, color: "#D8B36C", fontSize: 15, fontWeight: 950, letterSpacing: 2 }}>{copy.kqjimwmt}</p>
-        <h2 style={{ margin: "0 auto", maxWidth: 560, color: "#EDEFF5", fontSize: 38, lineHeight: 1.35, fontWeight: 950 }}>
-          
-          {copy.kftcqqfx}
-        </h2>
-        <p style={{ margin: "0 auto", maxWidth: 520, color: "rgba(156,135,212,.86)", fontSize: 17, lineHeight: 1.8, fontWeight: 700 }}>
-          
-          {copy.k0iceshy}
-        </p>
-      </div>
-    </PdfPageShell>
-  );
+function PdfLastPage({ pageNumber }: { pageNumber:number }) {
+  const copy=useTeaHouseCopy("tarotAlbum",KO);
+  return <PdfPageShell pageNumber={pageNumber} dark>
+    <div style={{display:"grid",minHeight:990,alignContent:"center",gap:28,textAlign:"center"}}>
+      <img src={PDF_ORNAMENT} alt="" style={{width:260,height:260,objectFit:"contain",margin:"0 auto 12px"}}/>
+      <p style={{margin:0,color:"#e8ca91",fontSize:14,letterSpacing:3}}>{copy.kqjimwmt}</p>
+      <h2 style={{margin:"0 auto",maxWidth:540,color:"#ffe9e8",fontSize:34,lineHeight:1.5,fontWeight:500,wordBreak:"keep-all"}}>{copy.kftcqqfx}</h2>
+      <p style={{margin:"0 auto",maxWidth:500,color:"#dec4ce",fontSize:17,lineHeight:1.9,wordBreak:"keep-all"}}>{copy.k0iceshy}</p>
+    </div>
+  </PdfPageShell>;
 }

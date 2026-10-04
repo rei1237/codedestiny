@@ -180,8 +180,9 @@ function normalizeInput(raw = {}) {
 
 const nfc = (value, max) => clean(value, max).normalize("NFC");
 
-// v2 입력(성 한자·학파·돌림자·피할 글자). 🔴 성 한자가 없으면 키를 하나도 더하지 않는다 — v1 입력의 inputHash 가
+// v2 입력(성 한자·학파·돌림자·피할 글자·작명 방식). 🔴 성 한자가 없으면 키를 하나도 더하지 않는다 — v1 입력의 inputHash 가
 // 그대로 남아야 진행 중 v1 회차가 이어진다. 저장된 inputSnapshot 을 다시 거쳐도 같은 값이 나와야 한다(멱등).
+// 작명 방식은 "choose"(부모가 고른 한글 이름마다 한자 찾기)일 때만 nameStrategy 키를 둔다 — 추천(기본)은 키가 없어 이전 해시와 같다.
 function normalizeEngineFields(raw = {}) {
   const surnameHanja = nfc(raw.surnameHanja || raw.familyNameHanja, 10).replace(/\s+/g, "");
   const engineMode = clean(raw.engineMode, 20);
@@ -191,8 +192,9 @@ function normalizeEngineFields(raw = {}) {
   const fixedHangul = fixed ? nfc(fixed.hangul, 4) : "";
   const avoidSource = Array.isArray(raw.avoidChars) ? raw.avoidChars.join("") : String(raw.avoidChars ?? "");
   const avoidChars = [...new Set(Array.from(avoidSource.normalize("NFC")).filter((ch) => /\p{Script=Han}/u.test(ch)))].sort();
+  const choose = clean(raw.nameStrategy, 20) === "choose";
   if (!surnameHanja) {
-    if (engineMode || schoolPreset || fixedCh || avoidChars.length) {
+    if (engineMode || schoolPreset || fixedCh || avoidChars.length || choose) {
       throw createHttpError(400, "성씨 한자를 입력해 주세요.", { code: "NAMING_SURNAME_HANJA_REQUIRED" });
     }
     return {};
@@ -203,6 +205,7 @@ function normalizeEngineFields(raw = {}) {
     ...(schoolPreset ? { schoolPreset } : {}),
     fixedChar: fixedCh ? { position: toInt(fixed.position, 0), ch: fixedCh, ...(fixedHangul ? { hangul: fixedHangul } : {}) } : null,
     avoidChars,
+    ...(choose ? { nameStrategy: "choose" } : {}),
   };
 }
 
@@ -238,6 +241,13 @@ function validateInput(input) {
     }
     if (input.nameLength > 2) {
       throw createHttpError(400, "한자 작명은 이름 1~2자까지 지원합니다.", { code: "NAMING_ENGINE_NAME_LENGTH" });
+    }
+    if (input.nameStrategy === "choose") {
+      // 엔진과 같은 규칙(한글 1~2음절, 중복 제거 뒤 1~5개). 한자는 엔진이 찾으므로 한글만 본다.
+      const names = [...new Set(input.desiredNames.map((item) => item.hangul.normalize("NFC")))];
+      if (!names.length || names.length > 5 || names.some((name) => !/^[가-힣]{1,2}$/.test(name))) {
+        throw createHttpError(400, "고른 이름은 한글 1~2글자로 1~5개까지 입력해 주세요.", { code: "NAMING_DESIRED_NAMES_INVALID" });
+      }
     }
   }
 }

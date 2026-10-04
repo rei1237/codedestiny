@@ -17423,110 +17423,164 @@
     },
     "entryScenes": {
       "0": {
-        "eyebrow": "Moonlight spreading past the door",
-        "title": "You step into the tea house",
+        "eyebrow": "The last light in the moonlit lane",
+        "title": "The last light in the moonlit lane",
         "lines": {
           "0": {
-            "text": "As the door gives way, the noise of the alley outside settles slowly, like tea leaves.\nThe moonlight lights even the smallest mote, and a breath long shut away seeps inward.",
+            "text": "A small detour led to an unfamiliar lane. Beyond a low wall drifted the scent of flowers and the sound of a kettle.",
             "cta": "Step inside"
           },
           "1": {
-            "text": "On every table sit cups no one has touched yet.\nA different light floats in each, and that light seems to be waiting for the question you have not managed to name. Love and work, money and the mending of the heart — a different theme of the night rests quietly in every cup.",
+            "text": "The sign read “Destiny Tea House.” Light beneath the door made a small resting place at your feet.",
             "cta": "Look around carefully"
+          },
+          "2": {
+            "text": "Your phone fell quiet. The unsent words and the decision postponed all day were still there."
+          },
+          "3": {
+            "text": "The door opened at a touch. Moonlight crossed the table, beside an empty chair facing the window."
+          },
+          "4": {
+            "text": "“Is it too late to come in?”\nThe answer came from much closer to the floor than expected."
+          },
+          "5": {
+            "text": "Of course. Just close the door gently. Tonight the wind wants to come in before the moonlight."
           }
         }
       },
       "1": {
-        "eyebrow": "A small, round presence",
-        "title": "The flower piglet looks up at you",
+        "eyebrow": "A little keeper wearing a flower",
+        "title": "A little keeper wearing a flower",
         "lines": {
           "0": {
-            "text": "So you finally came.\nThe door recognized your sigh before I did, and opened. This tea house only opens, quietly, for someone ready to set a long-held question down on a cup.",
+            "text": "A pink flower pig peeked out from behind the chair. Her lotus and lavender ribbon matched the little sign outside.",
             "cta": "Say hello"
           },
           "1": {
-            "text": "Me? I am the doorkeeper here, and your first guide.\nEveryone calls me the flower piglet, but my real name is Yeoni.",
+            "text": "Surprised? Your host is smaller than expected. High shelves are tricky, but listening is no trouble at all.",
             "cta": "Look at the piglet"
           },
           "2": {
-            "text": "Not just anyone gets in here.\nOnly people with a question that has lived in them a long while — one they can no longer carry alone — ever find this door.",
+            "text": "Tiny hooves pushed the chair. At its clatter, she folded her ears, then smiled as though nothing had happened.",
             "cta": "Keep listening"
+          },
+          "3": {
+            "text": "This is a good seat. You can look outside whenever you need a pause in the conversation."
+          },
+          "4": {
+            "text": "My name is Yeoni. Flower Pig is fine, but I would be a little happier if you used my name."
+          },
+          "5": {
+            "text": "“Yeoni.” Her ribbon stirred when you said it. The unfamiliar room began to feel a little less strange."
           }
         }
       },
       "2": {
-        "eyebrow": "The hour for reading the heart's scent",
-        "title": "A heart that arrived before the words",
+        "eyebrow": "A feeling without a name",
+        "title": "A feeling without a name",
         "lines": {
           "0": {
-            "text": "Your heart gives off more than one scent.\nA little sweet, a little bitter, and a little of the scent that has been holding out to the end.",
+            "text": "If you do not know where to begin, you can start with how your day felt.",
             "cta": "Listen quietly"
           },
           "1": {
-            "text": "There is a name you never said, a sentence you never sent, and a hope you folded away while pretending you were fine.\nHere we read hearts like that one layer at a time, holding them against tea and cards, against the chart and the flow of ties.",
+            "text": "You nearly said you were fine. It was the familiar answer, but here another answer seemed possible.",
             "cta": "Catch your breath"
           },
           "2": {
-            "text": "It is all right.\nYou do not have to say it well here.\nThe heart reaches the cup before the words do, and Yeoni starts reading from that faint tremor.",
+            "text": "I used to be bad at waiting, too. Once I lifted the lid too soon and let the whole fragrance escape.",
             "cta": "Watch in silence"
           },
           "3": {
-            "text": "Only, to read this scent all the way through, I have to return to my own true grain for a moment.\nThe instant moonlight touches the cup, the direction of your heart comes through far more clearly.",
+            "text": "Now I stay beside the kettle while it warms. Sometimes a heart needs that, too: time without being hurried into an answer.",
             "cta": "Leave it to the moonlight"
+          },
+          "4": {
+            "text": "Yeoni asked nothing more. She set down the teaspoon and waited while you found your words."
+          },
+          "5": {
+            "text": "What would you like to set down here tonight?"
           }
         }
       },
       "3": {
-        "eyebrow": "The moment a lotus petal rises",
-        "title": "The moonlight changes a shape",
+        "eyebrow": "When moonlight touches the cup",
+        "title": "When moonlight touches the cup",
         "lines": {
           "0": {
-            "text": "As a soft moonlight pours over the cup, the piglet's small body is wrapped in gentle brightness.\nInside the light, that round shape slowly turns into the form of a person.",
+            "text": "I will prepare your tea now. You may be surprised, but I am not going anywhere.",
             "cta": "Watch the moonlight"
           },
           "1": {
-            "text": "When the light draws back, a beautiful woman with long, loose hair is standing there.\nShe looks so graceful and composed that it is hard to believe she was a piglet a moment ago.",
+            "text": "The window shadows shifted. Moonlight on the cup spread to the lotus in Yeoni’s hair.",
             "cta": "Meet Yeoni"
+          },
+          "2": {
+            "text": "Long sleeves settled through the light. The lavender ribbon remained, now stirring among waves of pink hair."
+          },
+          "3": {
+            "text": "A woman stood where the light faded. Before noticing the change, you recognized the kind eyes that had offered you a chair."
+          },
+          "4": {
+            "text": "It is still me, Yeoni. My appearance has changed, but I am still here to hear your story."
+          },
+          "5": {
+            "text": "Yeoni reached for a high tea tin. “This shape does have its uses.” You found yourself smiling."
           }
         }
       },
       "4": {
-        "eyebrow": "A name revealed across the cup",
-        "title": "Yeoni welcomes you",
+        "eyebrow": "Across the table from Yeoni",
+        "title": "Across the table from Yeoni",
         "lines": {
           "0": {
-            "text": "Welcome in. I am Yeoni.\nThe little piglet from before was me as well. If it startled you, let us say the cup laughed first.",
+            "text": "Yeoni sat across from you and turned the cup so its painted flower faced your seat.",
             "cta": "Look at Yeoni"
           },
           "1": {
-            "text": "At the door I keep a small, round shape and watch for a guest's first breath…\nbut I have spent a very long time learning to read the scent of destiny as it blooms out of a person's heart.",
+            "text": "This tea house does not fix your future in a sentence. We help you examine your concern from another angle.",
             "cta": "Nod"
           },
           "2": {
-            "text": "The question you brought is not a simple worry — it is a heart already moving, already beginning to find its answer inside you.\nI will not startle that current. I will hold it up to the light gently, but clearly.",
+            "text": "Tarot brings your question together with card symbols. It explores possibilities and choices, rather than claiming certainty about another person’s feelings.",
             "cta": "Entrust your heart"
           },
           "3": {
-            "text": "So from here on, you may speak as easily as you like.\nI did not come to judge your story. I came to sit beside you, so that you can trust your own heart again.",
+            "text": "Saju uses birth information to explore temperament and timing. It can offer a way to reflect on recurring choices.",
             "cta": "Look at the cups"
+          },
+          "4": {
+            "text": "Sukuyo is a separate system exploring two people’s lunar mansions and relationship direction. After choosing tea, you choose the reading method."
+          },
+          "5": {
+            "text": "Whatever we read, there will still be choices that belong to you. Shall we meet tonight’s teas?"
           }
         }
       },
       "5": {
-        "eyebrow": "The cup that will hold today's answer",
-        "title": "Shall we choose a cup of tea first?",
+        "eyebrow": "Six cups for tonight’s thoughts",
+        "title": "Six cups for tonight’s thoughts",
         "lines": {
           "0": {
-            "text": "From here you will choose for yourself the path you need most today — tarot, the birth chart, or the flow of ties.\nWhichever you open, I will follow the symbol you chose and read it deeply and calmly.",
+            "text": "Yeoni laid out six cups. Beneath the same moonlight, each held a different shade.",
             "cta": "Hear about the readings"
           },
           "1": {
-            "text": "Shall we choose a cup of tea first?\nDepending on which cup you take, the grain of the moonlight that falls on your worry shifts a little.",
+            "text": "Moonlit Lotus Tea is for love and reunion; Honey Peach Tea is for a connection just beginning.",
             "cta": "Look over the cups"
           },
           "2": {
-            "text": "You do not have to force an answer.\nThe cup your fingertips linger on, the light your eyes keep returning to, the scent that settles you for no reason — that is what will open today's door.",
+            "text": "Stardust Black Tea makes room for work and direction; Golden Cinnamon Tea for thoughts about income and spending.",
             "cta": "Go choose a cup"
+          },
+          "3": {
+            "text": "White Lotus Tea is for reflecting on a tired heart; Dark Moon Rice Tea for finding your boundaries and making a decision."
+          },
+          "4": {
+            "text": "Tea names the topic we will discuss. It is not a test that determines your fortune, so choose the cup closest to your concern."
+          },
+          "5": {
+            "text": "You can change your cup afterward, too. Shall we choose where your story begins?"
           }
         }
       }
@@ -19329,12 +19383,12 @@
       "library": "My readings",
       "account": "Account",
       "back": "Ggulggul Fortune",
-      "heading": "Is something\non your mind?",
-      "lead": "Set down the worries you could not share, and quietly explore the rhythms of your life.",
+      "heading": "A moonlit night,\na cup just for you",
+      "lead": "A flower pig welcomes you. A story unfolds across the table with Yeoni.",
       "intro": "Explore life's timing with Saju, today's choices with Tarot, and relationship dynamics with Sukuyo.",
-      "start": "Share what's on my mind",
+      "start": "Read Yeoni’s story",
       "sample": "See a reading example",
-      "heroAlt": "Flower-pig Yeoni offering tea in a warm tea house",
+      "heroAlt": "Human Yeoni offering tea in a moonlit tea house",
       "concerns": "What brings you here today?",
       "concernsHelp": "Choose a question for a suggested reading. You can edit the question and change the method.",
       "questions": {
@@ -19377,7 +19431,9 @@
       "cups": "Choose a teacup",
       "album": "Moonlit Tarot album",
       "guideTitle": "Before your reading",
-      "guide": "After checking your question and required details, you can review the scope and price. Readings support your choices; they do not establish the future or another person's feelings as fact."
+      "guide": "After checking your question and required details, you can review the scope and price. Readings support your choices; they do not establish the future or another person's feelings as fact.",
+      "resume": "Continue reading",
+      "restart": "Read from the beginning"
     },
     "confirmation": {
       "titleKo": "Review your reading",
@@ -19480,6 +19536,59 @@
           "future": "Possible direction"
         }
       }
+    },
+    "entryNovel": {
+      "title": "Yeoni’s moonlit story",
+      "narrator": "Moonlight journal",
+      "pig": "Flower Pig Yeoni",
+      "yeoni": "Yeoni",
+      "previous": "Previous",
+      "next": "Next",
+      "reveal": "Show full text",
+      "cups": "Choose tea",
+      "auto": "Auto read",
+      "pause": "Pause auto",
+      "log": "Dialogue log",
+      "close": "Close",
+      "art": "View illustration",
+      "return": "Return to story",
+      "humanAlt": "Human Yeoni offering tea in the moonlit tea house",
+      "pigAlt": "Flower Pig Yeoni welcoming a guest",
+      "choices": {
+        "0": "I feel a little tired",
+        "1": "There is someone on my mind",
+        "2": "I am not sure yet"
+      },
+      "replies": {
+        "0": "You do not need to try so hard tonight. While the tea steeps, let your heart rest a little.",
+        "1": "Then let us begin with what you have experienced, without assuming how that person feels.",
+        "2": "You do not need a name for it yet. If something comes to mind as you look at the cups, tell me then."
+      }
+    },
+    "teaMenuNovel": {
+      "title": "Which tea shall I pour tonight?",
+      "description": "Choose a cup close to your concern. Yeoni will open that story with you.",
+      "yeoniAlt": "Human Yeoni offering tea under the moonlight",
+      "menuAria": "Teas and reading topics",
+      "preview": "Tap a cup to discover what we can discuss together.",
+      "confirm": "Talk over this tea",
+      "topicNote": "Tea selects your topic. Choose Tarot, Saju or Sukuyo in the next step."
+    },
+    "albumVisit": {
+      "eyebrow": "Moonlit stories, collected drop by drop",
+      "title": "Your reflections, gathered in an album",
+      "description": "Each completed consultation earns one honey drop. Use {cost} drops to unlock 78 card stories and save them as a PDF.",
+      "open": "View the moonlit tarot album",
+      "unlocked": "Album unlocked · PDF available",
+      "progress": "Honey drops {count} / {cost}",
+      "loading": "Checking honey drops",
+      "guest": "Sign in to see your honey drops.",
+      "login": "Sign in to see honey drops",
+      "retry": "Check honey drops again",
+      "unavailable": "Honey drops could not be checked. Please try again shortly.",
+      "downloadNote": "Once unlocked, the album can be saved as a PDF without spending more honey drops.",
+      "chapter": "Yeoni’s moonlit library",
+      "humanAlt": "Human-form Yeoni sharing tarot stories in the moonlight"
     }
   },
   "fortuneVar": {

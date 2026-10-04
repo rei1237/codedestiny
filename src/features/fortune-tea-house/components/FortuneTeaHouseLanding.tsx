@@ -1,6 +1,9 @@
 "use client";
+import TeaHouseAlbumInvitation from "./TeaHouseAlbumInvitation";
+import type { FortuneTeaHouseHoneyDropsState } from "../data/consult";
 import Image from "next/image";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { readEntryBookmark } from "../lib/entryBookmark";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Flower2, UserRound } from "lucide-react";
 import type { FortuneTeaHouseConsultMode } from "../data/consult";
@@ -9,9 +12,9 @@ import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 import styles from "../styles/tea-house-home.module.css";
 const KO = {
  title:"연이의 운명 찻집",library:"내 상담함",account:"계정",back:"꿀꿀운세로",
- heading:"마음에 걸리는\n일이 있나요?",lead:"말하지 못했던 고민을 내려놓고, 내 운명의 흐름을 차분히 읽는 곳.",
+ heading:"달빛이 머무는 밤,\n당신을 위한 한 잔",lead:"꽃돼지의 인사로 시작해, 연이와 마주 앉는 이야기.",
  intro:"사주로 삶의 흐름을, 타로로 지금의 선택을, 숙요점으로 관계의 거리감을 살펴봐요.",
- start:"내 고민 이야기하기",sample:"상담 예시 보기",heroAlt:"따뜻한 찻집에서 차를 건네는 꽃돼지 연이",
+ start:"연이의 이야기 읽기",resume:"이야기 이어 읽기",restart:"처음부터 읽기",sample:"상담 예시 보기",heroAlt:"달빛 찻집에서 차를 건네는 인간형 연이",
  concerns:"오늘은 어떤 마음으로 오셨나요?",concernsHelp:"질문을 고르면 어울리는 상담을 안내해요. 질문도, 상담 방식도 바꿀 수 있어요.",
  questions:["그 사람과 나는 왜 자꾸 엇갈릴까?","다시 연락해도 괜찮을까?","지금 이 일을 계속해도 될까?","내 재물 흐름에서 무엇을 조심해야 할까?","두 선택 중 무엇을 먼저 살펴봐야 할까?","내 마음을 나도 모르겠어요"],
  methods:"나에게 맞는 상담 자리",choose:"이 상담 시작하기",
@@ -30,14 +33,17 @@ const KO = {
 };
 const modes=["saju","tarot","sukuyo"] as const;
 const questionModes:FortuneTeaHouseConsultMode[]=["sukuyo","tarot","saju","saju","tarot","tarot"];
-type Props={soundControl?:ReactNode;hasSeenPrologue:boolean;onEnter:(mode?:FortuneTeaHouseConsultMode,question?:string)=>void;onReplayPrologue:()=>void;onShowHistory:()=>void;onChooseCup?:()=>void;onOpenAlbum?:()=>void};
-export default function FortuneTeaHouseLanding({onEnter,onReplayPrologue,onShowHistory,onChooseCup,onOpenAlbum,soundControl}:Props){
+type Props={honeyDrops?:FortuneTeaHouseHoneyDropsState|null;soundControl?:ReactNode;hasSeenPrologue:boolean;onEnter:(mode?:FortuneTeaHouseConsultMode,question?:string)=>void;onReplayPrologue:()=>void;onResumePrologue?:()=>void;onShowHistory:()=>void;onChooseCup?:()=>void;onOpenAlbum?:()=>void};
+export default function FortuneTeaHouseLanding({onEnter,onReplayPrologue,onShowHistory,onChooseCup,onOpenAlbum,soundControl,onResumePrologue,honeyDrops=null}:Props){
  const copy=useTeaHouseCopy("homeV2",KO);
+ const [hasBookmark,setHasBookmark]=useState(false);
+ useEffect(()=>setHasBookmark(Boolean(readEntryBookmark())),[]);
  return <div className={styles.home}>
  <header className={styles.header}><Link href="/fortune-tea-house/" className={styles.brand}><Flower2 aria-hidden size={24}/>{copy.title}</Link><nav aria-label={copy.title}><button onClick={onShowHistory}><BookOpen size={18} aria-hidden/>{copy.library}</button><Link href="/login/?next=%2Ffortune-tea-house%2F"><UserRound size={18} aria-hidden/>{copy.account}</Link><Link href="/ggulggul/">{copy.back}</Link>{soundControl}</nav></header>
- <section className={styles.hero}><div className={styles.heroCopy}><h1>{copy.heading}</h1><p className={styles.lead}>{copy.lead}</p><p>{copy.intro}</p><div className={styles.actions}><button className={styles.primary} onClick={()=>onEnter()}>{copy.start}<ArrowRight aria-hidden size={18}/></button><a href="#tea-example">{copy.sample}</a></div></div><Image src="/images/fortune-tea-house/renewal/yeoni-tea-welcome.webp" width={1536} height={1024} alt={copy.heroAlt} priority sizes="(max-width:700px) 100vw,60vw" className={styles.heroImage}/></section>
+ <section className={styles.hero}><div className={styles.heroCopy}><h1>{copy.heading}</h1><p className={styles.lead}>{copy.lead}</p><p>{copy.intro}</p><div className={styles.actions}><button className={styles.primary} onClick={hasBookmark ? onResumePrologue : onReplayPrologue}>{hasBookmark ? copy.resume : copy.start}<ArrowRight aria-hidden size={18}/></button><button className={styles.secondary} onClick={onChooseCup}>{copy.cups}</button>{hasBookmark && <button onClick={onReplayPrologue}>{copy.restart}</button>}</div></div><Image src="/images/fortune-tea-house/yeoni-moonlight-novel.webp" width={1536} height={1024} alt={copy.heroAlt} priority sizes="(max-width:700px) 100vw,60vw" className={styles.heroImage}/></section>
+ {onOpenAlbum && <TeaHouseAlbumInvitation honeyDrops={honeyDrops} onOpen={onOpenAlbum}/>}
  <section className={styles.section} id="tea-concerns"><h2>{copy.concerns}</h2><p>{copy.concernsHelp}</p><div className={styles.questions}>{copy.questions.map((q,i)=><button key={i} onClick={()=>onEnter(questionModes[i],q)}>{q}<ArrowRight aria-hidden size={18}/></button>)}</div></section>
- <section className={styles.section}><h2>{copy.methods}</h2><div className={styles.methods}>{modes.map(mode=><article key={mode}><Image src={`/images/fortune-tea-house/renewal/yeoni-${mode}.webp`} alt="" width={720} height={480} sizes="(max-width:700px) 100vw,33vw"/><h3>{copy[mode]}</h3><strong>{copy[`${mode}Line`]}</strong><p>{copy[`${mode}Info`]}</p><span>{getFortuneTeaHouseConsultPriceLabel(mode)}</span><button onClick={()=>onEnter(mode)}>{copy.choose}<ArrowRight size={16} aria-hidden/></button></article>)}</div><p className={styles.note}>{copy.priceNote}</p><button className={styles.textButton} onClick={()=>onEnter("sajuCompatibility")}>{copy.compat}<ArrowRight size={16} aria-hidden/></button></section>
+ <section className={styles.section}><h2>{copy.methods}</h2><div className={styles.methods}>{modes.map(mode=><article key={mode}><Image src={`/images/fortune-tea-house/renewal/human-${mode === "saju" ? "explaining" : mode === "tarot" ? "advice" : "listening"}.webp`} alt="" width={720} height={480} sizes="(max-width:700px) 100vw,33vw"/><h3>{copy[mode]}</h3><strong>{copy[`${mode}Line`]}</strong><p>{copy[`${mode}Info`]}</p><span>{getFortuneTeaHouseConsultPriceLabel(mode)}</span><button onClick={()=>onEnter(mode)}>{copy.choose}<ArrowRight size={16} aria-hidden/></button></article>)}</div><p className={styles.note}>{copy.priceNote}</p><button className={styles.textButton} onClick={()=>onEnter("sajuCompatibility")}>{copy.compat}<ArrowRight size={16} aria-hidden/></button></section>
  <section className={`${styles.section} ${styles.preview}`} id="tea-example"><div><h2>{copy.previewTitle}</h2><p>{copy.welcomeHuman}</p><Image src="/images/fortune-tea-house/renewal/yeoni-human-welcome.webp" width={720} height={720} alt="" sizes="(max-width:700px) 100vw,40vw"/></div><article className={styles.letter}><span>{copy.example}</span><h3>{copy.exampleQuestion}</h3><p className={styles.answer}>{copy.exampleAnswer}</p><p>{copy.exampleBody}</p><ol>{copy.resultParts.map(p=><li key={p}>{p}</li>)}</ol></article></section>
  <section className={`${styles.section} ${styles.history}`}><div><h2>{copy.historyTitle}</h2><p>{copy.historyBody}</p></div><button className={styles.primary} onClick={onShowHistory}>{copy.library}<ArrowRight size={18} aria-hidden/></button></section>
  <footer className={`${styles.section} ${styles.visit}`}><h2>{copy.guideTitle}</h2><p>{copy.guide}</p><h3>{copy.optional}</h3><div className={styles.actions}><button onClick={onReplayPrologue}>{copy.prologue}</button><button onClick={onChooseCup}>{copy.cups}</button><button onClick={onOpenAlbum}>{copy.album}</button></div></footer>

@@ -46,164 +46,224 @@ export type TeaHouseEntrySceneData = {
 
 export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
   {
-    stage: "doorOpened",
-    eyebrow: "문 안쪽으로 번지는 달빛",
-    title: "찻집 안으로 들어섭니다",
-    actor: "none",
-    background: "interior1",
-    lines: [
+    "stage": "doorOpened",
+    "eyebrow": "달빛 골목의 마지막 불빛",
+    "title": "달빛 골목의 마지막 불빛",
+    "actor": "none",
+    "background": "interior1",
+    "lines": [
       {
-        speaker: "narration",
-        text: "문이 밀리자, 바깥 골목의 소리가 찻잎처럼 천천히 가라앉습니다.\n달빛은 먼지 하나까지 조용히 비추고, 오래 닫혀 있던 마음의 숨결이 안쪽으로 스며듭니다.",
-        cta: "안으로 들어가기",
+        "speaker": "narration",
+        "text": "돌아가는 길을 조금 벗어났을 뿐인데, 처음 보는 골목이 나타났다. 낮은 담장 너머로 꽃향기와 차 끓는 소리가 흘러왔다."
       },
       {
-        speaker: "narration",
-        text: "테이블마다 아직 손대지 않은 찻잔들이 놓여 있습니다.\n잔마다 다른 빛이 떠 있고, 그 빛은 당신이 미처 이름 붙이지 못한 질문을 기다리는 듯합니다. 사랑과 일, 돈과 마음의 회복처럼 서로 다른 밤의 주제가 잔마다 조용히 머물러 있습니다.",
-        cta: "조심히 둘러보기",
+        "speaker": "narration",
+        "text": "문패에는 ‘운명의 찻집’이라고 적혀 있었다. 문 아래로 새어 나오는 불빛이 신발 끝에 작은 자리를 내어주었다."
       },
-    ],
+      {
+        "speaker": "narration",
+        "text": "주머니 속 휴대전화가 잠잠해졌다. 보내지 못한 말도, 오늘 내내 미뤄 둔 결정도 여전히 거기 있었다."
+      },
+      {
+        "speaker": "narration",
+        "text": "손잡이에 손을 얹자 문이 가볍게 열렸다. 창호 너머 달빛이 식탁을 가로질렀고, 빈 의자 하나가 창가를 향해 놓여 있었다."
+      },
+      {
+        "speaker": "narration",
+        "text": "“늦은 시간인데, 들어가도 될까요?”\n대답은 예상보다 훨씬 낮은 곳에서 들려왔다."
+      },
+      {
+        "speaker": "꽃돼지?",
+        "text": "물론이죠. 다만 문은 살짝 닫아 주세요. 오늘은 달빛보다 바람이 먼저 들어오려고 하네요.",
+        "mood": "closing"
+      }
+    ]
   },
   {
-    stage: "pigGreeting",
-    eyebrow: "작고 둥근 인기척",
-    title: "꽃돼지?가 당신을 바라봅니다",
-    actor: "pig",
-    background: "interior1",
-    lines: [
+    "stage": "pigGreeting",
+    "eyebrow": "꽃을 단 작은 문지기",
+    "title": "꽃을 단 작은 문지기",
+    "actor": "pig",
+    "background": "interior1",
+    "lines": [
       {
-        speaker: "꽃돼지?",
-        text: "드디어 왔네.\n문이 먼저 네 한숨을 알아보고 열렸어. 운명의 찻집은 오래 품은 질문을 찻잔 위에 내려놓는 사람에게만 조용히 문을 열어.",
-        cta: "인사하기",
-        mood: "welcome",
+        "speaker": "narration",
+        "text": "분홍빛 꽃돼지가 의자 뒤에서 고개를 내밀었다. 머리 위 연꽃과 보랏빛 리본이, 방금 본 문패의 무늬와 꼭 닮아 있었다."
       },
       {
-        speaker: "꽃돼지?",
-        text: "나? 이 찻집의 문지기이자 첫 안내자.\n다들 나를 꽃돼지라고 부르지만, 사실 내 진짜 이름은 연이야.",
-        cta: "꽃돼지? 바라보기",
-        mood: "playful",
+        "speaker": "꽃돼지?",
+        "text": "놀랐어요? 찻집 주인이 생각보다 작죠. 높은 선반의 찻잎은 조금 곤란하지만, 손님 이야기를 듣는 데에는 문제없어요.",
+        "mood": "playful"
       },
       {
-        speaker: "꽃돼지?",
-        text: "여긴 아무나 들어오는 곳이 아니야.\n마음속에 오래 머문 질문이 있고, 그 질문을 더는 혼자만 데리고 있기 어려운 사람만 이 문을 찾게 되거든.",
-        cta: "계속 들어보기",
-        mood: "thinking",
+        "speaker": "narration",
+        "text": "작은 발이 의자를 밀었다. 덜컥, 하고 난 소리에 꽃돼지는 잠깐 귀를 접더니 아무 일도 없었다는 듯 웃었다."
       },
-    ],
+      {
+        "speaker": "꽃돼지?",
+        "text": "이 자리가 좋아요. 창밖도 볼 수 있고, 말하다 잠깐 쉬어 가기에도 편하거든요.",
+        "mood": "thinking"
+      },
+      {
+        "speaker": "꽃돼지?",
+        "text": "저는 연이예요. 꽃돼지라고 불러도 괜찮지만, 이름으로 불러 주면 조금 더 기쁠 것 같아요.",
+        "mood": "welcome"
+      },
+      {
+        "speaker": "narration",
+        "text": "“연이.” 이름을 부르자 리본 끝이 살짝 흔들렸다. 낯선 찻집이, 아주 조금 덜 낯설어졌다."
+      }
+    ]
   },
   {
-    stage: "pigDialogue",
-    eyebrow: "마음의 향을 읽는 시간",
-    title: "말보다 먼저 도착한 마음",
-    actor: "pig",
-    background: "interior1",
-    lines: [
+    "stage": "pigDialogue",
+    "eyebrow": "아직 이름 붙이지 못한 마음",
+    "title": "아직 이름 붙이지 못한 마음",
+    "actor": "pig",
+    "background": "interior1",
+    "lines": [
       {
-        speaker: "꽃돼지?",
-        text: "네 마음에서는 여러 향이 나.\n조금 달고, 조금 쓰고, 조금은 끝까지 참고 있는 향.",
-        cta: "가만히 듣기",
-        mood: "thinking",
+        "speaker": "꽃돼지?",
+        "text": "무슨 말을 먼저 해야 할지 모르겠다면, 오늘 하루가 어땠는지부터 시작해도 좋아요.",
+        "mood": "gentle"
       },
       {
-        speaker: "꽃돼지?",
-        text: "말하지 못한 이름도 있고, 보내지 못한 문장도 있고, 괜찮은 척 접어 둔 기대도 있네.\n이곳에서는 그런 마음을 차와 카드, 사주와 인연의 흐름에 비추어 한 겹씩 읽어.",
-        cta: "숨 고르기",
-        mood: "comfort",
+        "speaker": "narration",
+        "text": "괜찮았다고 말하려다가 멈췄다. 익숙한 대답인데, 이 방에서는 조금 다른 말을 해도 될 것 같았다."
       },
       {
-        speaker: "꽃돼지?",
-        text: "괜찮아.\n여기서는 잘 말하지 못해도 돼.\n마음은 말보다 먼저 찻잔 위에 도착하고, 연이는 그 미세한 떨림부터 읽으니까.",
-        cta: "조용히 바라보기",
-        mood: "comfort",
+        "speaker": "꽃돼지?",
+        "text": "사실 저도 기다리는 데 서툴렀어요. 찻물이 끓기도 전에 뚜껑을 열었다가, 향을 다 놓친 날도 있었죠.",
+        "mood": "comfort"
       },
       {
-        speaker: "꽃돼지?",
-        text: "다만 이 향을 끝까지 읽으려면, 나도 잠깐 본래의 결로 돌아가야 해.\n달빛이 찻잔에 닿는 순간, 네 마음의 방향이 더 또렷하게 들리거든.",
-        cta: "달빛에 맡기기",
-        mood: "gentle",
+        "speaker": "꽃돼지?",
+        "text": "그래서 지금은 물이 데워지는 동안 자리를 지켜요. 마음도 그럴 때가 있더라고요. 당장 답을 재촉하지 않아도 되는 시간.",
+        "mood": "thinking"
       },
-    ],
+      {
+        "speaker": "narration",
+        "text": "연이는 질문을 덧붙이지 않았다. 작은 찻숟가락을 내려놓고, 내가 말을 고르는 동안 조용히 기다렸다."
+      },
+      {
+        "speaker": "꽃돼지?",
+        "text": "오늘 이곳에서는, 어떤 마음부터 내려놓고 싶어요?",
+        "mood": "closing"
+      }
+    ]
   },
   {
-    stage: "transformPreview",
-    eyebrow: "연꽃잎이 떠오르는 순간",
-    title: "달빛이 모습을 바꿉니다",
-    actor: "transform",
-    background: "interior2",
-    lines: [
+    "stage": "transformPreview",
+    "eyebrow": "찻잔에 달이 닿는 순간",
+    "title": "찻잔에 달이 닿는 순간",
+    "actor": "transform",
+    "background": "interior2",
+    "lines": [
       {
-        speaker: "narration",
-        text: "찻잔 위로 은은한 달빛이 쏟아지자, 꽃돼지의 작은 몸이 부드러운 빛에 감싸입니다.\n둥글던 몸이 빛 속에서 천천히, 사람의 모습으로 바뀌어 갑니다.",
-        cta: "달빛을 바라보기",
+        "speaker": "꽃돼지?",
+        "text": "이제 차를 준비할게요. 조금 놀랄 수도 있지만, 자리를 떠나지는 않을 거예요.",
+        "mood": "gentle"
       },
       {
-        speaker: "narration",
-        text: "빛이 걷히자 그 자리에는 긴 머리를 늘어뜨린 아름다운 여성이 서 있습니다.\n방금까지 꽃돼지였다는 게 믿기지 않을 만큼, 우아하고 차분한 모습입니다.",
-        cta: "연이를 만난다",
+        "speaker": "narration",
+        "text": "창호의 그림자가 천천히 움직였다. 찻잔 가장자리에 걸린 달빛이 연이의 연꽃 장식으로 번졌다."
       },
-    ],
+      {
+        "speaker": "narration",
+        "text": "작은 발끝을 감싼 빛 사이로 긴 옷자락이 내려앉았다. 보랏빛 리본은 풀리지 않은 채, 분홍빛 머리카락 사이에서 다시 흔들렸다."
+      },
+      {
+        "speaker": "narration",
+        "text": "빛이 잦아들자 한 여인이 서 있었다. 달라진 모습보다 먼저 알아본 것은, 조금 전 의자를 내어주던 다정한 눈빛이었다."
+      },
+      {
+        "speaker": "연이",
+        "text": "아까 인사한 연이예요. 모습은 달라져도, 당신 이야기를 기다리는 마음은 그대로랍니다.",
+        "mood": "welcome"
+      },
+      {
+        "speaker": "narration",
+        "text": "연이는 높은 선반에서 찻잎 통을 꺼냈다. “이럴 때는 이 모습이 편하죠.” 그 말에, 나도 모르게 웃음이 났다."
+      }
+    ]
   },
   {
-    stage: "yeoniReveal",
-    eyebrow: "찻잔 너머로 드러난 이름",
-    title: "연이가 당신을 맞이합니다",
-    actor: "yeoni",
-    background: "interior2",
-    lines: [
+    "stage": "yeoniReveal",
+    "eyebrow": "마주 앉은 연이",
+    "title": "마주 앉은 연이",
+    "actor": "yeoni",
+    "background": "interior2",
+    "lines": [
       {
-        speaker: "연이",
-        text: "어서 와요. 저는 연이예요.\n아까의 꽃돼지?도 저예요. 조금 놀랐다면, 찻잔이 먼저 웃은 셈으로 해둘게요.",
-        cta: "연이 바라보기",
-        mood: "welcome",
+        "speaker": "narration",
+        "text": "연이는 맞은편에 앉아 찻잔을 돌려놓았다. 꽃이 그려진 면이 내 쪽을 향했다."
       },
       {
-        speaker: "연이",
-        text: "문 앞에서는 조금 작고 둥근 모습으로 손님의 첫 숨을 살피지만…\n사람의 마음에서 피어나는 운명의 향을 읽는 데에는 꽤 오래 마음을 들여 왔답니다.",
-        cta: "고개 끄덕이기",
-        mood: "playful",
+        "speaker": "연이",
+        "text": "이 찻집에서는 미래를 한 문장으로 정해 드리지는 않아요. 대신 지금의 고민을 여러 각도에서 살펴볼 수 있도록 도와드려요.",
+        "mood": "playful"
       },
       {
-        speaker: "연이",
-        text: "당신이 가져온 질문은 단순한 고민이 아니라, 이미 안쪽에서 답을 찾기 시작한 마음의 움직임이에요.\n연이는 그 흐름을 겁주지 않고, 부드럽지만 선명하게 비춰 드릴게요.",
-        cta: "마음 맡기기",
-        mood: "comfort",
+        "speaker": "연이",
+        "text": "타로는 지금의 질문과 카드의 상징을 함께 읽어요. 상대 마음도 확답하기보다, 관계에서 살펴볼 가능성과 선택지를 이야기해요.",
+        "mood": "comfort"
       },
       {
-        speaker: "연이",
-        text: "그러니까 지금부터는 편하게 말해도 돼요.\n저는 당신의 이야기를 판단하러 온 게 아니라, 당신이 다시 자기 마음을 믿을 수 있도록 옆에 앉으러 온 거예요.",
-        cta: "찻잔을 보기",
-        mood: "gentle",
+        "speaker": "연이",
+        "text": "사주는 출생 정보를 바탕으로 기질과 시기의 흐름을 살펴봐요. 익숙하게 반복한 선택을 돌아보는 데에도 도움이 될 수 있어요.",
+        "mood": "thinking"
       },
-    ],
+      {
+        "speaker": "연이",
+        "text": "숙요점은 두 사람의 숙과 관계 방향을 살펴보는 별도의 체계예요. 차를 고른 다음, 오늘 필요한 상담 방식을 직접 선택할 수 있어요.",
+        "mood": "welcome"
+      },
+      {
+        "speaker": "연이",
+        "text": "무슨 답이 나오든, 당신이 고를 수 있는 길을 남겨둘게요. 자, 이제 오늘의 차를 만나 볼까요?",
+        "mood": "closing"
+      }
+    ]
   },
   {
-    stage: "teaIntro",
-    eyebrow: "오늘의 답을 담을 찻잔",
-    title: "먼저 차를 한 잔 골라볼까요?",
-    actor: "tea",
-    background: "interior2",
-    lines: [
+    "stage": "teaIntro",
+    "eyebrow": "오늘의 마음을 담을 여섯 잔",
+    "title": "오늘의 마음을 담을 여섯 잔",
+    "actor": "tea",
+    "background": "interior2",
+    "lines": [
       {
-        speaker: "연이",
-        text: "이제부터는 타로와 사주, 그리고 인연의 흐름 중 오늘 가장 필요한 길을 직접 골라볼 거예요.\n어느 길을 열든, 연이는 선택한 상징을 따라 깊고 차분하게 읽어드립니다.",
-        cta: "상담 방식 듣기",
-        mood: "gentle",
+        "speaker": "narration",
+        "text": "연이가 찻잔 여섯 개를 펼쳤다. 같은 달빛 아래에서도 잔마다 다른 빛깔이 머물렀다."
       },
       {
-        speaker: "연이",
-        text: "먼저 차를 한 잔 골라볼까요?\n어떤 찻잔을 고르느냐에 따라, 오늘 당신의 고민을 비추는 달빛의 결이 조금씩 달라진답니다.",
-        cta: "찻잔 살펴보기",
-        mood: "welcome",
+        "speaker": "연이",
+        "text": "달빛 연꽃차는 연애와 재회, 꿀복숭아차는 막 시작되는 설렘을 이야기할 때 어울려요.",
+        "mood": "playful"
       },
       {
-        speaker: "연이",
-        text: "답을 억지로 정하지 않아도 괜찮아요.\n손끝이 머무는 잔, 눈길이 오래 가는 빛, 이유 없이 마음이 놓이는 향이 오늘의 문을 열어 줄 거예요.",
-        cta: "찻잔 고르러 가기",
-        mood: "closing",
+        "speaker": "연이",
+        "text": "별가루 홍차에는 일과 진로의 고민을, 황금 계피차에는 수입과 지출 같은 돈의 고민을 담아 보세요.",
+        "mood": "comfort"
       },
-    ],
-  },
-] as const;
+      {
+        "speaker": "연이",
+        "text": "백련 치유차는 지친 마음을 돌아볼 때, 흑월 현미차는 정리와 결단의 기준이 필요할 때 어울려요.",
+        "mood": "thinking"
+      },
+      {
+        "speaker": "연이",
+        "text": "차는 오늘 이야기할 주제예요. 어떤 운세가 나올지를 정하는 시험은 아니니, 고민에 가까운 잔을 편하게 골라 주세요.",
+        "mood": "welcome"
+      },
+      {
+        "speaker": "연이",
+        "text": "고른 뒤에도 다른 잔으로 바꿀 수 있어요. 당신 이야기가 시작될 자리를, 함께 골라 볼까요?",
+        "mood": "closing"
+      }
+    ]
+  }
+];
 
 export const flowerPigIdleLines: TeaHouseEntryLine[] = [
   {
