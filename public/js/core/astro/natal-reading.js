@@ -985,6 +985,94 @@
     if (!GLYPH[key]) return '';
     return '<use' + (cls ? ' class="' + cls + '"' : '') + ' href="#asg-' + key + '" x="' + (x - s / 2).toFixed(1) + '" y="' + (y - s / 2).toFixed(1) + '" width="' + s + '" height="' + s + '"/>';
   }
+
+  /* ── 서랍 일러스트: 사용자 차트 값으로 그리는 결정론 장식 SVG(aria-hidden). 휠과 같은 방향 — 왼쪽 끝이 ASC(시간 모르면 양자리 0°), 황도는 반시계. ── */
+  function f1(n) { return n.toFixed(1); }
+  function ringPt(C, rot) { return function (lon, r) { var t = (180 + lon - rot) * Math.PI / 180; return [C + r * Math.cos(t), C - r * Math.sin(t)]; }; }
+  /* 바깥 두 원 + 12칸 눈금 + 칸마다 별자리 기호. hi 는 금색으로 강조할 칸들. */
+  function zodiacRing(pt, C, R0, R1, gs, hi) {
+    var out = ['<circle class="as-ill-ring" cx="' + C + '" cy="' + C + '" r="' + R0 + '"/><circle class="as-ill-ring" cx="' + C + '" cy="' + C + '" r="' + R1 + '"/>'];
+    for (var s = 0; s < 12; s++) {
+      var a = pt(s * 30, R1), b = pt(s * 30, R0), g = pt(s * 30 + 15, (R0 + R1) / 2);
+      out.push('<line class="as-ill-tick" x1="' + f1(a[0]) + '" y1="' + f1(a[1]) + '" x2="' + f1(b[0]) + '" y2="' + f1(b[1]) + '"/>');
+      out.push(glyphUse(s, g[0], g[1], gs, 'as-ill-sign' + (hi && hi.indexOf(s) >= 0 ? ' is-hi' : '')));
+    }
+    return out.join('');
+  }
+  /* 내 탄생 별자리 성도: 12궁 원호 위 행성 점, 황경 순서로 잇는 금색 선, 점 안쪽에 행성 기호. */
+  function starMapSvg(opt) {
+    var C = 120, R0 = 114, R1 = 94, RDOT = 84, RG = 66, rot = opt.asc != null ? opt.asc : 0, pt = ringPt(C, rot), out = [];
+    var ps = (opt.planets || []).filter(function (p) { return isFinite(p.lon); }).slice().sort(function (a, b) { return a.lon - b.lon; });
+    var dl = ps.length ? spread(ps.map(function (p) { return p.lon; }), 5) : [];
+    out.push('<svg class="as-ill as-ill-starmap" viewBox="0 0 240 240" aria-hidden="true" focusable="false">');
+    out.push(zodiacRing(pt, C, R0, R1, 13, ps.filter(function (p) { return p.body === 'Sun' || p.body === 'Moon'; }).map(function (p) { return Math.floor(p.lon / 30) % 12; })));
+    if (opt.asc != null) {
+      [opt.asc, opt.asc + 180].forEach(function (t) { var l = pt(t, R1), r = pt(t, RG + 14); out.push('<line class="as-ill-axis" x1="' + f1(l[0]) + '" y1="' + f1(l[1]) + '" x2="' + f1(r[0]) + '" y2="' + f1(r[1]) + '"/>'); });
+    }
+    if (ps.length > 1) {
+      out.push('<polyline class="as-ill-link" points="' + ps.map(function (p, i) { var q = pt(dl[i], RDOT); return f1(q[0]) + ',' + f1(q[1]); }).join(' ') + '"/>');
+    }
+    var at = ps.length ? spread(ps.map(function (p) { return p.lon; }), 16) : [];
+    ps.forEach(function (p, i) {
+      var q = pt(at[i], RG);
+      if (gap(dl[i], at[i]) > 3) { var d = pt(dl[i], RDOT - 4), e = pt(at[i], RG + 8); out.push('<line class="as-ill-leader" x1="' + f1(d[0]) + '" y1="' + f1(d[1]) + '" x2="' + f1(e[0]) + '" y2="' + f1(e[1]) + '"/>'); }
+      out.push(glyphUse(p.body, q[0], q[1], 13, 'as-ill-body' + (p.body === 'Sun' || p.body === 'Moon' ? ' is-key' : '')));
+    });
+    ps.forEach(function (p, i) {
+      var key = p.body === 'Sun' || p.body === 'Moon', q = pt(dl[i], RDOT);
+      out.push('<circle class="as-ill-dot' + (key ? ' is-key' : '') + '" cx="' + f1(q[0]) + '" cy="' + f1(q[1]) + '" r="' + (key ? 3.4 : 2.4) + '"/>');
+    });
+    out.push('</svg>');
+    return out.join('');
+  }
+  /* 목성의 흐름: 지난 별자리는 점선, 지금 별자리는 금색 실선 호, 다음 별자리 기호를 금색으로. 가운데 기준일. */
+  function jupiterArcSvg(opt) {
+    var C = 100, R0 = 94, R1 = 76, RA = 62, s = ((opt.sign % 12) + 12) % 12, pt = ringPt(C, 0), out = [];
+    function arc(cls, a0, a1) { var p = pt(a0, RA), q = pt(a1, RA); return '<path class="' + cls + '" d="M' + f1(p[0]) + ' ' + f1(p[1]) + 'A' + RA + ' ' + RA + ' 0 0 0 ' + f1(q[0]) + ' ' + f1(q[1]) + '"/>'; }
+    out.push('<svg class="as-ill as-ill-jupiter" viewBox="0 0 200 200" aria-hidden="true" focusable="false">');
+    out.push(zodiacRing(pt, C, R0, R1, 12, [s, (s + 1) % 12]));
+    out.push('<circle class="as-ill-ring is-faint" cx="' + C + '" cy="' + C + '" r="' + RA + '"/>');
+    out.push(arc('as-ill-path is-past', (s - 1) * 30, s * 30), arc('as-ill-path is-now', s * 30, s * 30 + 27));
+    var tip = pt(s * 30 + 30, RA), a = pt(s * 30 + 25, RA + 5), b = pt(s * 30 + 25, RA - 5), j = pt(s * 30 + 15, RA);
+    out.push('<path class="as-ill-arrow" d="M' + f1(a[0]) + ' ' + f1(a[1]) + 'L' + f1(tip[0]) + ' ' + f1(tip[1]) + 'L' + f1(b[0]) + ' ' + f1(b[1]) + '"/>');
+    out.push('<circle class="as-ill-dot is-key" cx="' + f1(j[0]) + '" cy="' + f1(j[1]) + '" r="3.4"/>');
+    out.push(glyphUse('jupiter', C, C - 14, 20, 'as-ill-body is-key'));
+    if (opt.label) out.push('<text class="as-ill-label" x="' + C + '" y="' + (C + 18) + '" text-anchor="middle">' + esc(opt.label) + '</text>');
+    out.push('</svg>');
+    return out.join('');
+  }
+  /* 연애 설렘 포인트: 금성(끌림)·화성(행동)·하강점(짝) 삼각 성좌. 금성-화성 선은 조화면 실선, 긴장이면 점선, 그 밖은 옅은 실선. */
+  function loveTriangleSvg(opt) {
+    var C = 100, R0 = 94, R1 = 78, RP = 56, pt = ringPt(C, 0), out = [], pts = {};
+    var marks = [['venus', opt.venus, '끌림'], ['mars', opt.mars, '행동'], ['dsc', opt.dsc, '짝']].filter(function (m) { return m[1] != null; });
+    out.push('<svg class="as-ill as-ill-love" viewBox="0 0 200 200" aria-hidden="true" focusable="false">');
+    out.push(zodiacRing(pt, C, R0, R1, 11, marks.map(function (m) { return m[1]; })));
+    var at = marks.length ? spread(marks.map(function (m) { return m[1] * 30 + 15; }), 34) : [];
+    marks.forEach(function (m, i) { pts[m[0]] = pt(at[i], RP); });
+    function edge(a, b, cls) { if (pts[a] && pts[b]) out.push('<line class="' + cls + '" x1="' + f1(pts[a][0]) + '" y1="' + f1(pts[a][1]) + '" x2="' + f1(pts[b][0]) + '" y2="' + f1(pts[b][1]) + '"/>'); }
+    edge('venus', 'dsc', 'as-ill-edge'); edge('mars', 'dsc', 'as-ill-edge');
+    edge('venus', 'mars', 'as-ill-edge is-main' + (opt.tone === 'tense' ? ' is-tense' : opt.tone === 'harmony' ? '' : ' is-soft'));
+    marks.forEach(function (m) {
+      var p = pts[m[0]], lab = [C + (p[0] - C) * .5, C + (p[1] - C) * .5];
+      out.push('<circle class="as-ill-node" cx="' + f1(p[0]) + '" cy="' + f1(p[1]) + '" r="11"/>' + glyphUse(m[0], p[0], p[1], 14, 'as-ill-body is-key'));
+      out.push('<text class="as-ill-label" x="' + f1(lab[0]) + '" y="' + f1(lab[1] + 4) + '" text-anchor="middle">' + m[2] + '</text>');
+    });
+    out.push('</svg>');
+    return out.join('');
+  }
+  /* 차트 전체 요약 머리: 태양(위)·달(왼쪽 아래)·상승궁(오른쪽 아래) 세 기호의 작은 삼각 배치. 상승궁을 모르면 빈 원. */
+  function triadSvg(opt) {
+    var P = { sun: [60, 16], moon: [22, 66], asc: [98, 66] }, out = [];
+    out.push('<svg class="as-ill as-ill-triad" viewBox="0 0 120 84" aria-hidden="true" focusable="false">');
+    out.push('<path class="as-ill-edge' + (opt.ascKnown ? '' : ' is-soft') + '" d="M60 16L22 66L98 66Z"/>');
+    ['sun', 'moon', 'asc'].forEach(function (k) {
+      var p = P[k], open = k === 'asc' && !opt.ascKnown;
+      out.push('<circle class="as-ill-node' + (open ? ' is-open' : '') + '" cx="' + p[0] + '" cy="' + p[1] + '" r="13"/>');
+      if (!open) out.push(glyphUse(k, p[0], p[1], 15, 'as-ill-body is-key'));
+    });
+    out.push('</svg>');
+    return out.join('');
+  }
   function posRow(head, sign, house, mean) {
     return '<tr><th scope="row">' + head + '</th><td>' + sign + '</td>' + (house == null ? '' : '<td class="as-num">' + house + '</td>') + '<td class="as-mean">' + esc(mean) + '</td></tr>';
   }
@@ -1247,6 +1335,10 @@
     renderDeep: renderDeep,
     glyph: glyph,
     glyphUse: glyphUse,
+    starMapSvg: starMapSvg,
+    jupiterArcSvg: jupiterArcSvg,
+    loveTriangleSvg: loveTriangleSvg,
+    triadSvg: triadSvg,
     glyphSprite: glyphSprite,
     ensureGlyphSprite: ensureGlyphSprite,
     _calc: { SIGN: SIGN, KO: KO, RULER: RULER, dignity: dignity, houseOf: houseOf, aspectsOf: aspectsOf, degText: degText, jo: jo, contrast: contrast, fill: fill, SIGN_STYLE: SIGN_STYLE, PROF: PROF }

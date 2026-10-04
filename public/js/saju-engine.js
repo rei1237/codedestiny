@@ -13251,6 +13251,7 @@ function renderAstroInsightLegacyNeon() {
         key: pn,
         label: planetKr[pn],
         signIdx: sObj.idx,
+        lon: lon,
         longitudeText: _fmtLon(lon) + retro,
         hPlacidus: hPlacidus,
         hWhole: hWhole,
@@ -13421,6 +13422,7 @@ function renderAstroInsightLegacyNeon() {
     /* 서랍 기호는 natal-reading 의 SVG(한 굵기 선). 모듈이 없으면 기호 없이 글자만. */
     var _asG = function(k){ var N = window.AstroNatalReading; if(!N || !N.glyph) return ''; N.ensureGlyphSprite(); return N.glyph(k); };
     var _asGUse = function(k, x, y, size, cls){ var N = window.AstroNatalReading; if(!N || !N.glyphUse) return ''; N.ensureGlyphSprite(); return N.glyphUse(k, x, y, size, cls); };
+    var _asIll = function(name, opt){ var N = window.AstroNatalReading; if(!N || typeof N[name] !== 'function') return ''; N.ensureGlyphSprite(); return N[name](opt); };
     var LIFE_SIGN_NAMES = ['양자리','황소자리','쌍둥이자리','게자리','사자자리','처녀자리','천칭자리','전갈자리','사수자리','염소자리','물병자리','물고기자리'];
     var lifePlacementByKey = {};
     placementData.forEach(function(p){ lifePlacementByKey[p.key] = p; });
@@ -13512,12 +13514,19 @@ function renderAstroInsightLegacyNeon() {
         + '</details>';
     }).join('') || '<p class="astro-birth-empty">주요 어스펙트가 적게 나타나는 차트입니다. 대신 행성 위치 중심으로 해석할게요.</p>';
 
+    var birthSkySvg = _asIll('starMapSvg', {
+      planets: placementData.map(function(p){ return { body:p.key, lon:p.lon }; }),
+      asc: (storyTimeKnown && chart.asc && chart.asc.idx != null) ? Number(chart.asc.idx) * 30 + Number(chart.asc.deg || 0) : null
+    });
     var birthMapSectionHtml = ''
       + '<div class="astro-section astro-birth-map" id="astroBirthMapSection">'
       + '<div class="astro-birth-top">'
       + '<div class="astro-subhead" style="margin:0;">내 탄생 별자리 지도</div>'
       + '<button type="button" class="astro-birth-mode-btn" id="astroBirthModeToggle" aria-pressed="false">쉬운 보기 ON</button>'
       + '</div>'
+      + '<div class="astro-birth-overview">'
+      + (birthSkySvg ? '<figure class="astro-birth-sky">'+birthSkySvg+'</figure>' : '')
+      + '<div class="astro-birth-intro">'
       + '<p class="astro-birth-lead">태어난 순간 하늘에 새겨진 나만의 우주 설계도예요. 카드를 탭하면 각 행성이 삶에서 어떻게 작동하는지 자세히 펼쳐집니다.</p>'
       + '<details class="astro-fold"><summary>태양·달·상승궁이 놓인 자리</summary><div class="astro-birth-chip-row">'+birthMapSummaryChips+'</div></details>'
       + '<details class="astro-birth-help">'
@@ -13527,6 +13536,8 @@ function renderAstroInsightLegacyNeon() {
       + '<p class="astro-birth-advanced">시각이 몇 분만 달라도 경계 가까이의 행성은 옆 영역으로 옮겨 갈 수 있어요. 출생 시간을 모르면 영역은 읽지 않아요.</p>'
       + '</div>'
       + '</details>'
+      + '</div>'
+      + '</div>'
       + '<div class="astro-birth-grid">'+birthMapPlanetCardsHtml+'</div>'
       + (storyTimeKnown && fortunaSign !== '-' && spiritSign !== '-' ? '<p class="astro-birth-foot">특별한 두 점: 행운이 모이는 자리 '+_signPlain(fortunaSign)+_pairParen(fortunaHousePair)+' · 뜻이 모이는 자리 '+_signPlain(spiritSign)+_pairParen(spiritHousePair)+'.</p>' : '')
       + '</div>';
