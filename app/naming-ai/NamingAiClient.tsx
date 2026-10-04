@@ -2682,6 +2682,7 @@ export default function NamingAiClient() {
                       onChange={updateEngine}
                     />
                   ) : null}
+                  {showEngineBasis && form.engine.nameStrategy === "choose" ? null : (
                   <label className={`${LABEL} mt-3.5`}>
                     {copy.desiredNamesLabel}
                     <textarea
@@ -2693,6 +2694,7 @@ export default function NamingAiClient() {
                       className={FIELD}
                     />
                   </label>
+                  )}
                   <div className="mt-3.5 grid gap-3.5 sm:grid-cols-3">
                     <label className={LABEL}>
                       {copy.desiredSyllablesLabel}
