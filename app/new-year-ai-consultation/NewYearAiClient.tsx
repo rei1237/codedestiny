@@ -1,4 +1,5 @@
 "use client";
+import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -2334,6 +2335,7 @@ export default function NewYearAiConsultationPage() {
         </section>
       </section>
 
+      {status === "ready" && assistantMessages.length > 0 && <ReviewRewardBanner afterResult/>}
       <style>{NYAI_SEASON_CSS}</style>
       <style>{NYAI_READING_ROOM_CSS}</style>
       <style>{`

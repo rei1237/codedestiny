@@ -1,4 +1,5 @@
 import CustomerReviews from '@/app/components/CustomerReviews';
+import TrustStories from './TrustStories';
 import {founder} from '@/lib/brand/founder';
 import {visibleReviews} from '@/lib/brand/customer-reviews.mjs';
 import {EXPERTISE_FACTS} from '@/lib/brand/expertise-facts.mjs';
@@ -23,6 +24,7 @@ export default function FounderTrust(){
    </figure>
   </div>
   <CustomerReviews limit={3} titleId="founder-reviews-title"/>
+  <TrustStories/>
   <div className={styles.expertise}>
    <h3 className={styles.subtitle}>계산은 규칙대로, 해설은 AI가</h3>
    <ul>{EXPERTISE_FACTS.map(fact=><li key={fact.key}>{fact.ko}</li>)}</ul>

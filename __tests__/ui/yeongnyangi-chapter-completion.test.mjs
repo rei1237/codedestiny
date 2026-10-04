@@ -51,6 +51,15 @@ test('all 28 catalog products share the explicit one-chapter identity and comple
  assert.equal(seen.size,28);assert.equal(calls,28);
 });
 
+test('normal descriptions of continuing luck are not mistaken for a truncated response',()=>{
+ const body={...complete(),summary:'현재의 대운에서는 자원을 정리하는 흐름이 계속됩니다.'};
+ assert.equal(chapterDeliveryFailure(body,input.chapter),'');
+ for(const text of ['계속됩니다.','계속…','다음 응답에서 계속','이하 생략']){
+  const interrupted={...body,blocks:body.blocks.map((b,i)=>i?b:{...b,paragraphs:[...b.paragraphs,text]})};
+  assert.equal(chapterDeliveryFailure(interrupted,input.chapter),'CHAPTER_INCOMPLETE');
+ }
+});
+
 test('three major-luck inputs keep the purchased topic chapters and pass only supplied cycle evidence',async()=>{
  for(const [count,direction] of [[8,'forward'],[10,'reverse'],[12,'forward']]){
   const cycles=Array.from({length:count},(_,i)=>({index:i,startAge:3+i*10}));

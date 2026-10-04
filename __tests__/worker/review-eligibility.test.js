@@ -3,7 +3,7 @@ import { jest } from "@jest/globals";
 
 const USER = "507f1f77bcf86cd799439011";
 const OTHER = "507f1f77bcf86cd799439012";
-const rows = { execution: [], payment: [], points: [], entitlement: [] };
+const rows = { execution: [], payment: [], points: [], entitlement: [], consultation: [] };
 const read = (row, key) => key.split(".").reduce((value, part) => value?.[part], row);
 const matches = (row, match) => Object.entries(match).every(([key, expected]) => {
   const value = read(row, key);
@@ -39,6 +39,7 @@ const executionAggregate = aggregate("execution");
 const paymentAggregate = aggregate("payment");
 const pointAggregate = aggregate("points");
 const entitlementAggregate = aggregate("entitlement");
+const consultationAggregate = aggregate("consultation");
 const reviewLean = jest.fn(async () => []);
 const reviewFind = jest.fn(() => ({ select: () => ({ lean: reviewLean }) }));
 let listUsedReviewProducts, listReviewableProducts, findUsedReviewProduct;
@@ -59,6 +60,7 @@ beforeAll(async () => {
     ContentEntitlement: { aggregate: entitlementAggregate },
   }));
   await jest.unstable_mockModule("../../worker/lib/review-models.js", () => ({ Review: { find: reviewFind } }));
+  await jest.unstable_mockModule("../../worker/lib/yeongnyangi-models.js", () => ({ YeongnyangiRequest: { aggregate: consultationAggregate } }));
   ({ listUsedReviewProducts, listReviewableProducts, findUsedReviewProduct } = await import("../../worker/lib/review-eligibility.js"));
 });
 
@@ -102,6 +104,30 @@ test("완료된 실행만 인정하고 이용 기록이 없으면 비어 있다"
     { userId: USER, featureId: "saju_ai_question_prompt", status: "failed" },
   ];
   expect((await listUsedReviewProducts({ userId: USER })).map((item) => item.productId)).toEqual(["tarot"]);
+});
+
+test("영냥이는 결제만 한 상담을 제외하고 계정 소유자의 완료된 유료 상담을 연결한다", async () => {
+  const featureKey = "yeongnyangi-saju-tuna";
+  rows.payment = [{userId:USER,featureKey,status:"paid"}];
+  rows.points = [{userId:USER,featureKey,kind:"deduct"}];
+  expect(await listUsedReviewProducts({userId:USER})).toEqual([]);
+  globalThis.__codeDestinyReviewEligibilityCache.entries.clear();
+  rows.consultation = [
+    {_id:"done",userId:USER,featureKey,state:"COMPLETED",accessMethod:"DIRECT_KRW",paymentId:"paid-order",completedAt:new Date(10)},
+    {_id:"other",userId:OTHER,featureKey:"yeongnyangi-tarot-tuna",state:"COMPLETED",paymentId:"other-order"},
+    {_id:"pending",userId:USER,featureKey:"yeongnyangi-ziwei-tuna",state:"GENERATING",paymentId:"pending-order"},
+    {_id:"free",userId:USER,featureKey:"yeongnyangi-vedic-tuna",state:"COMPLETED",accessMethod:"ACCOUNT_FREE_TRIAL"},
+    {_id:"refund",userId:USER,featureKey:"yeongnyangi-sukuyo-tuna",state:"REFUNDED",paymentId:"refunded-order"},
+    {_id:"no-access",userId:USER,featureKey:"yeongnyangi-astrology-tuna",state:"COMPLETED"},
+  ];
+  expect(await listUsedReviewProducts({userId:USER})).toEqual([expect.objectContaining({
+    productId:"yeongnyangi",orderId:"done",featureKey,sources:["consultation"],
+  })]);
+});
+
+test.each(["FAMILY","SERVICE_PACK","MOONLIGHT_STONE"])("영냥이의 완료된 %s 상담도 기존 승인 보상 대상으로 연결한다", async accessMethod => {
+  rows.consultation=[{_id:accessMethod,userId:USER,featureKey:"yeongnyangi-saju-tuna",state:"COMPLETED",accessMethod}];
+  expect((await listReviewableProducts({userId:USER}))[0]).toMatchObject({productId:"yeongnyangi",alreadyReviewed:false});
 });
 
 test("일부 조회 실패는 캐시하지 않고 다음 요청에서 다시 조회한다", async () => {

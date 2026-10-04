@@ -67,7 +67,11 @@ function compute(input: any, tier: "free" | "paid"): { view: EngineView; display
   const snapshot = sajuSnapshotFromBirth(engineInput.birth as NamingBirth, engineInput.gender);
   if (!snapshot) throw new NamingEngineError("saju-unavailable", "생년월일로 사주를 계산하지 못했다");
   const result = runNamingEngine(engineInput, { tier, saju: sajuNeedsFromSnapshot(snapshot) });
-  return { view: engineView(result), displayEvidence: displayEvidenceOf(snapshot) };
+  const view = engineView(result);
+  const displayEvidence = displayEvidenceOf(snapshot);
+  // 결과 화면의 오행 요약이 저장 레코드만으로 그려지도록 원국 기둥·개수를 view 에 싣는다(엔진 계산과 무관).
+  view.saju = { ...view.saju, pillars: displayEvidence.pillars, counts: { ...displayEvidence.natal.counts } };
+  return { view, displayEvidence };
 }
 
 /** 유료(12개) — 결과 레코드에 저장할 view 와 사주 근거. */

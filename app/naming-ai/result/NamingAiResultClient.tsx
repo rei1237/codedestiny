@@ -18,6 +18,11 @@ import AiResultProse from "@/components/fortune/AiResultProse";
 import ConsultationShare from "@/components/fortune/ConsultationShare";
 import { namingShareChoices } from "@/lib/consultation-sharing";
 import { withCharacterBreaks, yeoniBreaks } from "@/components/fortune/result-character-breaks";
+import dynamic from "next/dynamic";
+import { isV2Engine, type V2Engine, type V2Narration } from "../v2/namingV2Types";
+
+// v2 작명서(엔진 결과가 있는 회차)만 받는다 — 기존 v1 결과는 아래 legacy 섹션이 그대로 그린다.
+const NamingV2Report = dynamic(() => import("../v2/NamingV2Report"), { ssr: false });
 
 type DesiredNameCandidate = { hangul?: string; hanjaCandidates?: string[]; note?: string };
 
@@ -75,6 +80,10 @@ type NamingResult = {
   model?: string;
   inputSnapshot?: NamingInputSnapshot | null;
   sajuSnapshot?: NamingSajuSnapshot | null;
+  /** v2 회차만 있다(워커 engineResultFields). 없으면 legacy v1 렌더 — 저장된 구 결과를 덮어쓰지 않는다. */
+  engineVersion?: string;
+  engine?: V2Engine | null;
+  narration?: V2Narration | null;
   generatedAt?: string | null;
 };
 
@@ -266,6 +275,7 @@ export default function NamingAiResultClient() {
 
   const input = result?.inputSnapshot || null;
   const saju = result?.sajuSnapshot || null;
+  const v2Engine: V2Engine | null = result && isV2Engine(result.engine) ? result.engine : null;
   const familyName = toText(input?.familyName) || COPY.notEntered;
   const generatedAt = result?.generatedAt ? new Date(result.generatedAt) : null;
   const generatedAtIntlLocale = INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()];
@@ -475,14 +485,19 @@ export default function NamingAiResultClient() {
               </dl>
             </header>
 
-            {input?.birthTimeUnknown && (
+            {!v2Engine && input?.birthTimeUnknown && (
               <section data-naming-pdf-page className="rounded-3xl border border-[#e8d5a3]/25 bg-[#e8d5a3]/[0.07] p-5 text-sm leading-7 text-[#f2e9d3]">
                 {COPY.hourUnknownNote}
               </section>
             )}
 
+            {/* v2 작명서 — 엔진이 계산한 후보·사주·비교·편지. 아래 v1 최종 추천·카드·사주 패널(과 시간 미상 고지)을 대신한다. */}
+            {v2Engine && (
+              <NamingV2Report engine={v2Engine} narration={result.narration || null} tier="paid" exportExpand={exportExpand} />
+            )}
+
             {/* 최종 추천 — 골드 글로우 히어로 */}
-            {finalPick && (
+            {!v2Engine && finalPick && (
               <section
                 data-naming-pdf-page
                 className={`relative overflow-hidden rounded-[28px] border border-[#e8d5a3]/40 bg-[linear-gradient(160deg,rgba(232,213,163,0.12),rgba(19,16,42,0.9)_58%)] p-7 sm:p-10 ${MOON_GLOW}`}
@@ -509,7 +524,7 @@ export default function NamingAiResultClient() {
             )}
 
             {/* 이름 후보 카드 */}
-            {otherCards.length > 0 && (
+            {!v2Engine && otherCards.length > 0 && (
               <section data-naming-pdf-page className={`${PANEL} p-6 sm:p-8`}>
                 <h2 className="text-xl font-black text-[#f4eeff] [font-family:var(--font-display)]">{COPY.cardsHeading}</h2>
                 <p className="mt-2 text-sm leading-7 text-[#c8aaff]/80">
@@ -536,7 +551,7 @@ export default function NamingAiResultClient() {
               </section>
             )}
 
-            {saju && (
+            {!v2Engine && saju && (
               <section data-naming-pdf-page className={`${PANEL} p-6 sm:p-8`}>
                 <h2 className="text-xl font-black text-[#f4eeff] [font-family:var(--font-display)]">{COPY.sajuHeading}</h2>
                 <div className="mt-4 grid grid-cols-2 gap-2 text-center text-sm sm:grid-cols-4">

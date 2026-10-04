@@ -1,4 +1,5 @@
 "use client";
+import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -1884,6 +1885,7 @@ export default function SukuyoCompatibilityAiClient() {
             </>
           ) : !result ? (
             <div className={styles.resultPanel}>
+              {consultation?.status === "completed" && <ReviewRewardBanner afterResult/>}
               <div className={styles.resultHeader}>
                 <p><Moon size={15} /> 상담실이 열렸습니다</p>
                 <h2>두 사람의 달빛 결을 이어 읽습니다</h2>
