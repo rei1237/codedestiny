@@ -110,7 +110,7 @@ export interface FortunePageMeta {
   offer?: Record<string, unknown>;
   /** 게시일 (ISO Date string). 기본값: undefined */
   publishedAt?: string;
-  /** 수정일 (ISO Date string). 없으면 current date */
+  /** 실제 콘텐츠 수정일 (ISO Date string). 없으면 수정일을 출력하지 않는다. */
   updatedAt?: string;
   /** 콘텐츠 언어. 기본값: "ko-KR" */
   inLanguage?: string;
@@ -229,7 +229,6 @@ export function buildFortuneJsonLd(opts: FortunePageMeta): string {
   const uniqueTitle = appendUniqueTitle(title, routeMetaCode);
   const uniqueDescription = appendUniqueDescription(description, routeMetaCode);
   const ogImage = buildOpenGraphImageUrl({ image: image || DEFAULT_OG_IMAGE_URL });
-  const now = new Date().toISOString();
 
   const data = {
     "@context": "https://schema.org",
@@ -251,7 +250,7 @@ export function buildFortuneJsonLd(opts: FortunePageMeta): string {
         ...(featureList.length > 0 ? { featureList } : {}),
         ...(keywords.length > 0 ? { keywords: keywords.join(", ") } : {}),
         ...(publishedAt ? { datePublished: new Date(publishedAt).toISOString() } : {}),
-        dateModified: updatedAt ? new Date(updatedAt).toISOString() : now,
+        ...(updatedAt ? { dateModified: new Date(updatedAt).toISOString() } : {}),
       },
       {
         // 현재 페이지를 WebPage로도 선언해 구글이 페이지 목적을 코드로 파악하게 함
