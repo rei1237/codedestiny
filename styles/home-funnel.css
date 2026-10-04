@@ -339,6 +339,107 @@ html.neo-mode #cdHomeFunnel #cdTodayHub .cd-today__tarot{border-color:#c4b5fd;co
 @media (min-width:1000px){}
 #cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__entry-copy>p:last-child,#cdHomeFunnel #cdTodayHub p{text-wrap:pretty}
 @media (max-width:640px){#cdHomeFunnel .cdh-share--compact{grid-template-columns:1fr;padding:16px 16px 18px}}
+
+/* 질문 패널 — 달빛 예화 표면과 버튼 위계(2026-10-05)
+   기존 질문·가격·링크 계약은 유지하고, 이 섹션 안에서만 상담 카드의 재질을 입힌다. */
+#cdHomeFunnel .cd-concern{
+  --cd-concern-line:color-mix(in srgb,var(--cdh-gold) 52%,var(--cdh-line));
+  --cd-concern-line-soft:color-mix(in srgb,var(--cdh-gold) 30%,var(--cdh-line));
+  --cd-concern-shadow:color-mix(in srgb,var(--cdh-ink) 18%,transparent);
+  --cd-concern-face:var(--cdh-card);
+  --cd-concern-well:color-mix(in srgb,var(--cdh-surface) 58%,var(--cdh-card));
+}
+#cdHomeFunnel .cd-concern__panel{
+  overflow:hidden;
+  padding:clamp(18px,3vw,30px) clamp(14px,3vw,28px) clamp(20px,3vw,30px);
+  border-color:var(--cd-concern-line);
+  background:radial-gradient(62% 72% at 94% 0,color-mix(in srgb,var(--cdh-gold-soft) 74%,transparent),transparent 72%),linear-gradient(160deg,var(--cd-concern-face),var(--cd-concern-well));
+  box-shadow:0 24px 48px -32px var(--cd-concern-shadow),inset 0 0 0 5px color-mix(in srgb,var(--cd-concern-face) 86%,transparent),inset 0 0 0 6px color-mix(in srgb,var(--cdh-gold) 24%,transparent);
+}
+#cdHomeFunnel .cd-concern__panel::before{
+  background:var(--cd-concern-face);
+  border-color:var(--cd-concern-line);
+}
+#cdHomeFunnel .cd-concern__panel::after{
+  content:"";
+  position:absolute;
+  top:18px;
+  right:24px;
+  z-index:0;
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  background:color-mix(in srgb,var(--cdh-gold-soft) 82%,var(--cd-concern-face));
+  box-shadow:inset -9px 4px 0 color-mix(in srgb,var(--cdh-gold) 24%,transparent),0 0 22px color-mix(in srgb,var(--cdh-gold) 20%,transparent);
+  opacity:.72;
+  pointer-events:none;
+}
+#cdHomeFunnel .cd-concern__panel>*{position:relative;z-index:1}
+#cdHomeFunnel .cd-concern__qs{gap:12px}
+#cdHomeFunnel .cd-concern__q-link{
+  position:relative;
+  min-height:164px;
+  padding:18px 18px 16px;
+  border-color:var(--cd-concern-line-soft);
+  border-radius:18px;
+  background:color-mix(in srgb,var(--cd-concern-face) 88%,var(--cdh-gold-soft));
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--cdh-gold-soft) 72%,transparent),0 14px 26px -24px var(--cd-concern-shadow);
+}
+#cdHomeFunnel .cd-concern__q-link::before{
+  content:"";
+  position:absolute;
+  top:16px;
+  right:16px;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--cdh-gold);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--cdh-gold) 12%,transparent);
+  opacity:.82;
+}
+#cdHomeFunnel .cd-concern__q-title{
+  padding-right:14px;
+  font-family:"CodeDestinySerifKR","Nanum Myeongjo","Gowun Batang",serif;
+  font-size:1.08rem;
+  font-weight:700;
+  line-height:1.45;
+}
+#cdHomeFunnel .cd-concern__q-sub{color:var(--cdh-muted);line-height:1.6}
+#cdHomeFunnel .cd-concern__q-badge{color:var(--cdh-gold);font-weight:700}
+#cdHomeFunnel .cd-concern__q-price{color:var(--cdh-ink)}
+#cdHomeFunnel .cd-concern__actions{
+  justify-content:center;
+  gap:10px;
+  padding-top:2px;
+}
+#cdHomeFunnel .cd-concern__free,#cdHomeFunnel .cd-concern__ask{
+  min-height:52px;
+  padding:11px 22px;
+  border-radius:999px;
+  font-size:.92rem;
+  font-weight:800;
+  letter-spacing:-.01em;
+}
+#cdHomeFunnel .cd-concern__free{
+  border-color:color-mix(in srgb,var(--cdh-gold) 62%,var(--cdh-accent));
+  background:var(--cdh-accent);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--cdh-gold-soft) 44%,transparent),0 14px 26px -16px color-mix(in srgb,var(--cdh-accent) 72%,transparent);
+}
+#cdHomeFunnel .cd-concern__ask{
+  color:var(--cdh-ink);
+  background:color-mix(in srgb,var(--cd-concern-face) 92%,transparent);
+  border-color:var(--cd-concern-line);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--cdh-gold-soft) 70%,transparent),0 10px 20px -18px var(--cd-concern-shadow);
+}
+#cdHomeFunnel .cd-concern__ask .cd-concern__q-price{color:var(--cdh-muted)}
+#cdHomeFunnel .cd-concern__free:hover{background:var(--cdh-accent);filter:brightness(1.08)}
+#cdHomeFunnel .cd-concern__ask:hover{border-color:var(--cdh-gold);background:var(--cd-concern-face)}
+#cdHomeFunnel .cd-concern__free:focus-visible,#cdHomeFunnel .cd-concern__ask:focus-visible{outline-color:var(--cdh-accent)}
+@media(max-width:520px){
+  #cdHomeFunnel .cd-concern__panel::after{top:14px;right:14px;width:36px;height:36px}
+  #cdHomeFunnel .cd-concern__q-link{min-height:0;padding:16px 15px 15px}
+  #cdHomeFunnel .cd-concern__free,#cdHomeFunnel .cd-concern__ask{width:100%}
+}
 /* 모든 운세 화면(2026-10-03 운세 정원 개편) — 검색·방식·고민 블록 #cdAllFortunesRoot.
    데스크톱은 시트 #cdAllFortunes, 모바일은 home-service-finder.js 가 '모든 운세' 개요 패널 맨 위로 옮긴다. */
 /* 정원 그림 안에 달이 있어 CSS 달 장식은 화면에서만 숨긴다(코드 유지 — 삭제는 승인 뒤). */
