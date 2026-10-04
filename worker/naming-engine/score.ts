@@ -150,6 +150,8 @@ export interface CandidateChar {
   hun: string | null;
   readingKind: HanjaReading["kind"];
   strokes: number;
+  /** 강희 부수 번호(1~214) — 화면의 부수 표기용 */
+  radical: number;
   jawon: Element | null;
   confidence: number | null;
   reviewed: boolean;
@@ -235,6 +237,7 @@ export function scoreCandidate(
       hun: p.reading.hun,
       readingKind: p.reading.kind,
       strokes: nameStrokes[k],
+      radical: p.entry.radical,
       jawon: p.entry.jawon,
       confidence: p.entry.confidence,
       reviewed: p.entry.reviewed,

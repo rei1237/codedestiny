@@ -156,4 +156,6 @@ test('서비스: 라우트 입력 → 엔진 입력, 정본 스냅샷으로 유�
   assert.ok(['wood','fire','earth','metal','water'].includes(paid.displayEvidence.pillars.d.gE));
   assert.ok(paid.view.candidates.every((c)=>!c.hanja.includes('龍')));
   assert.equal(Object.values(paid.displayEvidence.natal.counts).reduce((a,b)=>a+b,0),8);
+  assert.deepEqual(paid.view.saju.counts,paid.displayEvidence.natal.counts,'화면 요약용 원국 개수');assert.deepEqual(paid.view.saju.pillars,paid.displayEvidence.pillars);
+  assert.ok(paid.view.candidates.every((c)=>c.chars.every((ch)=>Number.isInteger(ch.radical)&&ch.radical>=1&&ch.radical<=214)),'부수 번호 1~214');
 });

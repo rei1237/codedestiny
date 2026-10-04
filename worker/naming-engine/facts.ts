@@ -16,6 +16,8 @@ export interface EngineCharView {
   hangul: string;
   hun: string | null;
   strokes: number;
+  /** 강희 부수 번호(1~214). 2026-10-04 이전 레코드에는 없다. */
+  radical?: number;
   jawon: Element | null;
   /** low-confidence · disputed · court-code-variant · no-hun · buryong · rare-in-names */
   flags: string[];
@@ -44,7 +46,16 @@ export interface EngineView {
   tier: string;
   relaxationStage: number;
   surname: { hangul: string; hanja: string; strokes: number[]; compound: boolean; source: string };
-  saju: { useful: Element[]; caution: Element[]; derivedSupport: Element[]; timeUnknown: boolean; jongConditional: boolean };
+  saju: {
+    useful: Element[];
+    caution: Element[];
+    derivedSupport: Element[];
+    timeUnknown: boolean;
+    jongConditional: boolean;
+    /** 원국 기둥·오행 개수(화면 요약용). 2026-10-04 이전 레코드에는 없다 — service.ts compute 가 채운다. */
+    pillars?: Record<string, { g: string; j: string; gE?: string }>;
+    counts?: Partial<Record<Element, number>>;
+  };
   notices: string[];
   candidates: EngineCandidateView[];
 }
@@ -62,6 +73,7 @@ function candidateView(candidate: NamedCandidate, rank: number): EngineCandidate
       hangul: char.hangul,
       hun: char.hun ? char.hun.slice(0, 80) : null,
       strokes: char.strokes,
+      radical: char.radical,
       jawon: char.jawon,
       flags: candidate.reasonKeys
         .filter((key) => key.startsWith(`char.${k}.`) || key === `practical.${k}.buryong` || key === `practical.${k}.rare-in-names`)
