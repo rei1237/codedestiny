@@ -6129,7 +6129,7 @@ var _SE_ZIWEI_COMPAT_RESUME_KIND = 'saju-engine-ziwei-compat';
 var _SE_SAJU_COMPAT_RESUME_KIND = 'saju-engine-saju-compat';
 /* 기본 사주 궁합 LLM 서비스화(50코인 선결제 → 서버 생성 → 보관함 스냅샷) 스위치.
    라우트·렌더러·보관함이 모두 배포된 뒤에만 켠다. 꺼져 있으면 runCompat/runCompatCore 는 기존 결정론 경로 그대로다. */
-var _SE_SAJU_COMPAT_LLM_ENABLED = false;
+var _SE_SAJU_COMPAT_LLM_ENABLED = true;
 
 function _seBuildAstroCelebResumeDescriptor(name, birth, hour) {
   if (!name || !birth) return null;
