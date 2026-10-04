@@ -1,5 +1,5 @@
 ---
-status: open
+status: active
 updated: 2026-10-04
 next: "새 세션 첫 문장: docs/handoff/2026-10-05-astro-timing-and-daily.md 를 읽고 §0 시작 절차부터 진행하라."
 ---
