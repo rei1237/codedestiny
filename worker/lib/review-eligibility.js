@@ -5,7 +5,8 @@
 //   - 코인 차감     → PointHistory (kind: "deduct")
 //   - 이용권 무료   → PointHistory (metadata.accessMethod: PASS/FAMILY)
 //   - 회당 결제 실행 → PaidExecutionRecord (가장 정확하지만 per_use만 커버)
-// 따라서 4개 소스 union이 불가피하다.
+//   - 영냥이 상담 → 완료된 YeongnyangiRequest (영수증만으로는 결과 완료를 판단하지 않음)
+// 따라서 위 소스들의 union이 필요하다.
 //
 // 🔴 paid-feature-access의 canAccessPaidFeature().allowed 를 재사용하면 안 된다 —
 // family 이용권 보유자는 한 번도 쓰지 않아도 전부 allowed가 되어 리뷰 게이트가 뚫린다.
@@ -24,6 +25,9 @@ import {
 } from "./review-product-catalog.js";
 import { Review } from "./review-models.js";
 import { createHttpError } from "./http.js";
+import { YeongnyangiRequest } from "./yeongnyangi-models.js";
+import { hasRequestAccess } from "../yeongnyangi/access-methods.js";
+import { YEONGNYANGI_PAID_FEATURE_KEYS } from "./paid-feature-registry.js";
 
 const SINGLE_PAYMENT_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
 const PASS_ACCESS_METHODS = new Set(["PASS", "FAMILY", "MONTHLY"]);
@@ -34,7 +38,7 @@ const PASS_ACCESS_METHODS = new Set(["PASS", "FAMILY", "MONTHLY"]);
 // 🔴 화이트리스트여야 한다. `!sources.includes("free")` 같은 블랙리스트로 쓰면 새 소스가
 // 생겼을 때 "구매로 간주"되는 쪽으로 실패한다 — 없는 결제를 있다고 말하는 방향이다.
 // 화이트리스트면 등록을 잊었을 때 배지가 안 붙는 쪽으로 실패한다.
-const PURCHASE_SOURCES = new Set(["execution", "payment", "coin", "pass", "entitlement"]);
+const PURCHASE_SOURCES = new Set(["execution", "payment", "coin", "pass", "entitlement", "consultation"]);
 
 // 리뷰쓰기 모달을 열 때(GET eligibility)와 실제 제출할 때(POST create)가 같은 세션에서
 // 수 초~수십 초 안에 같은 userId로 이 함수를 두 번 호출한다. TTL을 짧게 잡아 그 구간만
@@ -136,9 +140,10 @@ async function fetchUsedReviewProducts(normalizedUserId, env) {
     { $replaceRoot: { newRoot: "$latest" } },
     { $project: { featureId: 1, featureKey: 1, contentKey: 1, serviceKey: 1,
       completedAt: 1, consumedAt: 1, createdAt: 1, paidAt: 1, unlockedAt: 1,
-      executionId: 1, paymentId: 1, merchantUid: 1, orderId: 1, "metadata.accessMethod": 1 } },
+      executionId: 1, paymentId: 1, merchantUid: 1, orderId: 1, paymentClaimOrderId: 1, accessMethod: 1,
+      passEvidenceId: 1, moonstoneLedgerId: 1, packEntitlementId: 1, "metadata.accessMethod": 1 } },
   ]));
-  const [executions, payments, pointHistories, entitlements] = await Promise.all([
+  const [executions, payments, pointHistories, entitlements, consultations] = await Promise.all([
     latestByKey(PaidExecutionRecord, {
       userId: normalizedUserId,
       status: "completed",
@@ -164,11 +169,19 @@ async function fetchUsedReviewProducts(normalizedUserId, env) {
       userId: normalizedUserId,
       status: "ACTIVE",
     }, { contentKey: "$contentKey", serviceKey: "$serviceKey" }, "unlockedAt"),
+    paymentUserClause
+      ? latestByKey(YeongnyangiRequest, {
+        userId: paymentUserClause, state: "COMPLETED",
+        featureKey: { $in: YEONGNYANGI_PAID_FEATURE_KEYS },
+        accessMethod: { $nin: ["ACCOUNT_FREE_TRIAL"] },
+      }, "$featureKey", "completedAt")
+      : Promise.resolve([]),
   ]);
 
   const map = new Map();
 
   for (const row of executions || []) {
+    if (resolveReviewProductByFeatureKey(row?.featureId)?.productId === "yeongnyangi") continue;
     collect(map, resolveReviewProductByFeatureKey(row?.featureId), {
       featureKey: row?.featureId,
       orderId: row?.paymentId || row?.executionId,
@@ -178,6 +191,7 @@ async function fetchUsedReviewProducts(normalizedUserId, env) {
   }
 
   for (const row of payments || []) {
+    if (resolveReviewProductByFeatureKey(row?.featureKey)?.productId === "yeongnyangi") continue;
     collect(map, resolveReviewProductByFeatureKey(row?.featureKey), {
       featureKey: row?.featureKey,
       orderId: row?.merchantUid,
@@ -187,6 +201,7 @@ async function fetchUsedReviewProducts(normalizedUserId, env) {
   }
 
   for (const row of pointHistories || []) {
+    if (resolveReviewProductByFeatureKey(row?.featureKey)?.productId === "yeongnyangi") continue;
     // kind:"deduct"는 코인 차감·이용권 무료 통과(delta 0)·월정석 차감을 모두 덮는다
     // (billing.js:1752 pass_access 기록). accessMethod로 어느 쪽인지만 구분한다.
     const accessMethod = toText(row?.metadata?.accessMethod).toUpperCase();
@@ -200,11 +215,22 @@ async function fetchUsedReviewProducts(normalizedUserId, env) {
   }
 
   for (const row of entitlements || []) {
+    if (resolveReviewProductByContentKey(row?.contentKey, row?.serviceKey)?.productId === "yeongnyangi") continue;
     collect(map, resolveReviewProductByContentKey(row?.contentKey, row?.serviceKey), {
       featureKey: row?.contentKey,
       orderId: row?.orderId,
       usedAt: row?.unlockedAt,
       source: "entitlement",
+    });
+  }
+
+  // 영냥이는 결제 영수증만으로 상담 완료를 추정하지 않는다.
+  // 계정 범위의 완료된 저장 상담만 기존 후기·승인 보상 흐름에 연결한다.
+  for (const row of consultations || []) {
+    if (!hasRequestAccess(row) || row.accessMethod === "ACCOUNT_FREE_TRIAL") continue;
+    collect(map, resolveReviewProductByFeatureKey(row.featureKey), {
+      featureKey: row.featureKey, orderId: row.paymentClaimOrderId || row._id,
+      usedAt: row.completedAt || row.createdAt, source: "consultation",
     });
   }
 

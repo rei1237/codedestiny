@@ -1,4 +1,5 @@
 "use client";
+import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import { useFusionExpertCopy } from "./ExpertEvidence";
 
 import { useLocaleRequestScope, type LocaleRequestScope } from "@/app/hooks/useLocaleRequestScope";
@@ -3109,6 +3110,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </div>
         </li>}
       </ol>
+      {result && !loading && !stageTwoFailed && openedConsultationId && <ReviewRewardBanner afterResult/>}
       {result && <FusionResultRail result={result} generating={loading} exporting={exporting} onOpenSection={(key) => setOpenSection(key)} scopeRef={threadRef} storageKey={deliveryOwnerId && readingRequestId ? `cdFusionReading:${encodeURIComponent(deliveryOwnerId)}:${encodeURIComponent(readingRequestId)}` : ""} />}
       </div>
 

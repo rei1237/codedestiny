@@ -10,3 +10,14 @@
 .cd-review-invite__action:focus-visible{outline:3px solid var(--cd-text,#3c1830);outline-offset:4px}
 .cd-review-invite ::selection{background:#edd5e5;color:#3c1830}
 @media(max-width:540px){.cd-review-invite{grid-template-columns:minmax(0,1fr);gap:12px;padding:22px 18px;position:relative}.cd-review-invite__copy{position:relative;z-index:1}.cd-review-invite h2{padding-right:66px}.cd-review-invite__image,.cdh .cd-review-invite__image{position:absolute;width:72px;right:12px;top:12px}.cd-review-invite__action{width:100%}}
+
+.cd-review-invite--result{margin-block:28px;grid-template-columns:minmax(0,1fr) 140px;border-radius:var(--cd-r-card,20px);text-align:left;max-width:100%;box-sizing:border-box}
+.cd-review-invite--result .cd-review-invite__copy{min-width:0}
+.cd-review-invite--result h2{font-family:var(--font-serif,"CodeDestinySerifKR",serif);font-weight:700}
+.cd-review-invite--result .cd-review-invite__worth{display:inline-block;font-size:var(--cd-t-body);font-weight:500}
+.cd-review-invite--result[data-review-character="yeongnyangi"]{background:var(--yn-surface);color:var(--yn-ivory);border-color:var(--yn-line)}
+.cd-review-invite--result[data-review-character="yeongnyangi"] :is(h2,p){color:var(--yn-ivory)}
+.cd-review-invite--result[data-review-character="yeongnyangi"] .cd-review-invite__detail{color:var(--yn-muted)}
+.cd-review-invite--result[data-review-character="yeongnyangi"] .cd-review-invite__action{background:var(--yn-gold);color:var(--yn-deep)}
+.cd-review-invite--result[data-review-character="yeongnyangi"] .cd-review-invite__action:focus-visible{outline-color:var(--yn-gold)}
+@media(max-width:540px){.cd-review-invite--result{grid-template-columns:minmax(0,1fr);padding:20px 18px}.cd-review-invite--result h2{padding-right:66px}.cd-review-invite--result .cd-review-invite__image{width:72px;height:72px;object-fit:contain}.cd-review-invite--result .cd-review-invite__action{box-sizing:border-box;min-height:48px}}

@@ -1,6 +1,7 @@
 'use client';
 import {savedReportPassages} from '@/lib/fortune/report-passages';
 import ExternalImageGuide from './ExternalImageGuide';
+import ReviewRewardBanner from '@/app/components/ReviewRewardBanner';
 import type {AnalysisBasis} from '@/lib/fortune/analysis-basis';
 import {getCurrentLoadingLocale} from '@/constants/loadingMessages';
 
@@ -9,5 +10,5 @@ export default function PaidResultImageGuide({domain,status,content,basis}:{doma
  const passages=savedReportPassages(content);
  if(status!=='completed'||!passages.length)return null;
  const groups=(basis?.groups||[]).map(group=>({label:group.title,items:group.items.map(item=>({label:item.label,value:item.value}))}));
- return <ExternalImageGuide brand="ggulggul" domain={domain} locale={getCurrentLoadingLocale()} groups={groups} passages={passages}/>;
+ return <><ReviewRewardBanner afterResult locale={getCurrentLoadingLocale()}/><ExternalImageGuide brand="ggulggul" domain={domain} locale={getCurrentLoadingLocale()} groups={groups} passages={passages}/></>;
 }

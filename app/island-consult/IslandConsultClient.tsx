@@ -1,4 +1,5 @@
 "use client";
+import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
 
@@ -1091,6 +1092,7 @@ export default function IslandConsultClient() {
             <a className="ic-back" href="/ziwei-ai/" onClick={() => rememberZiweiAiPreset(result.palaceKey, form.question)}>명반 전체로 더 묻기 · 전문가 상담</a>
             <a className="ic-back" href="/destiny-island">← 운명의 섬으로</a>
           </div>
+          {result.status === "completed" && <ReviewRewardBanner afterResult/>}
           {consultPdfError && <p className="ic-err" role="alert">{consultPdfError}</p>}
         </article>
       )}
