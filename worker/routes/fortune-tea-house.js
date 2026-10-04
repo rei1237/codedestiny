@@ -4593,21 +4593,30 @@ async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, 
   return { ok: true, lockToken, checkpoint: existing?.generationCheckpoint, pending: pending ? { result: pending, generationMeta: existing.generationMeta || {} } : null };
 }
 
-async function markFortuneTeaHouseGenerationFailed({ auth, resultId, code, message, lockToken }) {
-  if (!auth?.userId) return;
+async function markFortuneTeaHouseGenerationFailed({ env, auth, resultId, code, message, lockToken }) {
+  if (!auth?.userId) return { marked: false, retryable: false };
   const userId = String(auth.userId);
   const now = new Date();
   const { results } = honeyCollections();
+  const filter = { userId, resultId, status: "generating", ...(lockToken ? { "generationLock.token": lockToken } : {}) };
+  // Read the reservation persisted before the provider call, not a stale in-memory
+  // attempt count. A retry reuses the same purchase and never resets this budget.
+  const stored = await withMongoRetry(env, () => results.findOne(filter, { projection: { generationCheckpoint: 1 } }));
+  if (!stored) return { marked: false, retryable: false };
+  const checkpoint = stored.generationCheckpoint;
+  const progress = checkpoint?.requestBody && checkpoint.groups?.length
+    ? teaCheckpointProgress(checkpoint, resultId) : null;
+  const retryable = Boolean(progress?.retryable) && !/BASIS_MISSING|INVALID_INPUT/.test(code || "");
   const failed = await results.updateOne(
-    { userId, resultId, status: "generating", ...(lockToken ? { "generationLock.token": lockToken } : {}) },
+    filter,
     {
       $set: {
-        status: "generation_failed",
+        status: retryable ? "partial" : "generation_failed",
         generationError: {
           code: cleanText(code || "FORTUNE_TEA_HOUSE_GENERATION_FAILED", 80),
           message: cleanText(message || "generation failed", 500),
           at: now.toISOString(),
-          retryable: true,
+          retryable,
         },
         updatedAt: now,
       },
@@ -4617,7 +4626,7 @@ async function markFortuneTeaHouseGenerationFailed({ auth, resultId, code, messa
     console.warn("[fortune-tea-house/consult] generation failure status update failed", error);
     return null;
   });
-  return Boolean(failed?.matchedCount);
+  return { marked: Boolean(failed?.matchedCount), retryable, progress };
 }
 
 function dateIso(value) {
@@ -5587,13 +5596,17 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
   } catch (error) {
     if(error.code==='RESULT_STORAGE_UNAVAILABLE'){await releaseFortuneTeaDelivery({auth:access.auth,resultId,lockToken:generation?.lockToken});return fortuneTeaStorageUnavailable(resultId);}
     const failedCurrentGeneration = await markFortuneTeaHouseGenerationFailed({
+      env,
       lockToken: generation?.lockToken,
       auth: access.auth,
       resultId,
       code: cleanText(error?.code || "FORTUNE_TEA_HOUSE_GENERATION_FAILED", 80),
       message: cleanText(error?.message || error, 500),
     });
-    if (access.deferredUsage && failedCurrentGeneration) {
+    if (failedCurrentGeneration.marked && failedCurrentGeneration.retryable) {
+      return json({ ...failedCurrentGeneration.progress, status: "partial" }, { status: 202 });
+    }
+    if (access.deferredUsage && failedCurrentGeneration.marked) {
       await callFortuneTeaDeferredUsageRoute({
         request,
         env,

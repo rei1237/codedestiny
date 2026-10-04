@@ -1,4 +1,6 @@
 "use client";
+import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
+import {shouldInvitePaidReview} from '@/js/review-reward-copy.mjs';
 import type { ReactNode } from "react";
 import ReadingCharts from "@/app/yeongnyangi/_components/ReadingCharts";
 import BlockChartHints from "@/app/yeongnyangi/_components/BlockChartHints";
@@ -141,6 +143,7 @@ export default function ConsultationResult({ row, onNew }: { row: ChatConsultati
     <div className={styles.result} data-consultation-result data-persona={row.persona}>
       {order.map((key) => sections[key]())}
 
+      {shouldInvitePaidReview(row) && <ReviewRewardBanner afterResult/>}
       {writing ? (
         <p className={styles.progress} role="status" aria-live="polite">
           남은 이야기를 이어서 쓰는 중이에요 · {chapters.length} / {manifest.length}

@@ -1,4 +1,5 @@
 "use client";
+import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -455,6 +456,7 @@ export default function NakshatraAiClient() {
           {phase === "error" && <button type="button" onClick={beginConsultation} className="mt-4 min-h-11 rounded-xl border border-amber-200/40 px-5 text-amber-100">{copy.aiResumeButton}</button>}
         </div>}
         <div ref={exportRootRef}>
+          {phase === "done" && <ReviewRewardBanner afterResult/>}
           <AiConsultDecks
             decks={decks}
             natal={identity}
