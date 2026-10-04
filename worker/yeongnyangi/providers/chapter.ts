@@ -236,7 +236,7 @@ const REPAIR_INSTRUCTIONS:Record<string,string>={
   CHAPTER_TOO_SHORT:LENGTH_REPAIR,
   CHAPTER_EVIDENCE_INCOMPLETE:'id가 evidence인 block의 sources에 이번 장에 제공된 체계마다 그 체계의 근거 ID를 1개 이상 넣는다. chapter.tier가 flounder·tuna·assorted·omakase이면 서로 다른 근거 ID를 2개 이상 넣는다.',
   INVALID_EVIDENCE:'sources에는 CALCULATED_DATA.facts의 id만 글자 그대로 넣는다. 모든 block에 sources를 1개 이상 넣고 최상위 sources에는 모든 blocks[].sources를 빠짐없이 합쳐 넣는다. label을 쓰거나 새 ID를 만들지 않는다.',
-  UNSUPPORTED_READING_CLAIM:'외도나 바람기를 퍼센트로 말하지 않는다. 반드시·무조건·100%를 재회·결혼·성공과 함께 쓰지 않는다. 암·질병·장기 이상을 진단하거나 확정하지 않는다. 오행이나 명식으로 치료할 수 있다고 말하지 않는다.',
+  UNSUPPORTED_READING_CLAIM:'외도나 바람기를 퍼센트로 말하지 않는다. 반드시·무조건·100%를 재회·결혼·성공과 함께 쓰지 않는다. 암·질병·장기 이상을 진단하거나 확정하지 않고, 병에 걸린다거나 질환이 생긴다고 단정하지 않는다. 오행이나 명식으로 치료할 수 있다고 말하지 않는다.',
   ASK_EVIDENCE_INCOMPLETE:'각 questionAnswers 항목의 factIds와 timingIds에는 해당 질문의 askFirstChapter.questions에 제공된 F/T ID만 넣는다. 인용한 F/T의 source.factId를 최상위 sources에도 넣는다. 근거가 없으면 evidenceStatus를 limited로 쓰고 제공되지 않은 근거를 만들지 않는다.',
   ASK_UNSUPPORTED_TIMING:'시기 답변은 해당 질문의 timingIds가 실제로 뒷받침하는 연도와 해상도 안에서만 쓴다. 시기 근거가 없으면 evidenceStatus를 limited로 두고 특정 사건 날짜를 쓰지 않는다.',
   ASK_UNSAFE_CLAIM:'F/T 내부 ID를 사용자 문장에 노출하지 않는다. 재회·결혼·성공을 확정하거나 100%라고 말하지 않는다.',

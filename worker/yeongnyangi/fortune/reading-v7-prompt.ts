@@ -31,6 +31,8 @@ const oneLine=(value:unknown)=>String(value??'').replace(/\s+/g,' ').trim();
 const BLOCK_CONTRACT='sectionContract의 id를 순서와 개수 그대로 하나씩 blocks로 만든다. 블록 하나가 인사이트 하나다. 한 블록 안에서 현상→근거→조건·시기→행동을 끝내고 블록을 더 쪼개거나 합치지 않는다. title은 구매 언어로 된 자연스러운 소제목이다. paragraphs는 각각 500자 이하, 보통 150~350자로 쓰고 소절 목표가 500자를 넘으면 문장 단위로 끊어 여러 문단으로 나눈다. 본문은 blocks에만 쓰고 analysis는 빈 배열, example과 advice는 빈 문자열이다. 장면은 id가 scene인 소절에만, 선택 비교는 id가 decision인 소절에만 쓴다. 그 소절이 없으면 장면도 선택도 쓰지 않는다.';
 const CITATION_CONTRACT='각 block의 sources에 그 블록에서 실제로 쓴 근거 ID를 1개 이상 넣고, 최상위 sources에는 모든 blocks[].sources의 합집합을 빠짐없이 넣는다. sources는 CALCULATED_DATA.facts의 id를 글자 그대로 쓰고 label을 쓰거나 새 ID를 만들지 않는다. 제공된 근거는 블록 전체에서 한 번 이상 인용한다.';
 const OWNERSHIP_RULE='owns의 사실만 이 장에서 새로 해설한다. references의 사실은 다른 장이 소유하므로 이번 해석을 잇는 한 문장으로만 가리키고 다시 설명하거나 근거로 펼치지 않는다.';
+// Shared by the health chapter of every system (saju·ziwei·vedic·astrology). Traditional reading of rhythm and care, never medicine.
+export const HEALTH_RULES='건강 장은 의학 판단이 아니라 전통 해석이 말하는 몸의 리듬과 컨디션 관리다. 질병명·진단·치료·복약·검사 수치를 말하지 않고, 특정 장기의 이상이나 병이 생길 시기를 단정하지 않는다. 관리 포인트는 수면·식사·운동·휴식·계절과 환경 변화 같은 생활 습관 수준으로만 쓴다. 걱정되는 증상은 의료진과 확인하라는 안내를 본문에 한 문장으로 넣는다.';
 const WRITING_CONTRACT='previousHighlights는 재사용 금지 목록이다. 앞 장의 결론을 단어만 바꾸어 다시 쓰지 않는다. 장면은 가상의 예시이며 실제 경험의 증거가 아니다. 실제 직업이나 동료가 있다고 단정하지 않는다. summary는 이번 장만의 결론으로 쓴다.';
 const TIMING_SCOPE:Record<ChapterSpecV7['timingRef'],string>={
   owner:'이 장이 이 시기 사실을 소유한다. 제공된 기간만 해설하고 다른 시기 장이 소유한 기간을 다시 설명하지 않는다.',
@@ -141,6 +143,7 @@ export function buildV7ChapterPrompt(input:V7PromptInput):V7PromptParts{
       citationContract:CITATION_CONTRACT,
       factOwnership:{owns:chapter.owns,references:chapter.refs,rule:OWNERSHIP_RULE},
       excludedSubjects:chapter.mustNotCover,
+      healthContract:chapter.key==='health'?HEALTH_RULES:undefined,
       timingScope:TIMING_SCOPE[chapter.timingRef],
       timingSummary:summary||undefined,
       highlightContract:`highlights에는 인사이트 단위마다 결론 한 줄을 넣는다(${chapter.minInsightUnits}개). previousHighlights에 있는 결론을 다시 쓰지 않는다.`,
