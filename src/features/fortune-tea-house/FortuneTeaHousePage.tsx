@@ -4,6 +4,7 @@
 import "./styles/tea-report.module.css";
 import "./styles/tea-library.module.css";
 import "./styles/tea-tarot-artwork.module.css";
+import "@/components/fortune/ConsultationShare.module.css";
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { trackEvent } from "@/lib/analytics";

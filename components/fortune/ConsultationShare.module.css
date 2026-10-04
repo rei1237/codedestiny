@@ -15,12 +15,12 @@
   min-width: 0;
 }
 .root[data-consultation-share="tea"] {
-  --share-surface: #24081a;
-  --share-field: #170611;
-  --share-ink: #fff1f7;
-  --share-muted: #edc9d8;
-  --share-accent: #f4bed1;
-  --share-line: #895569;
+  --share-surface: #f8f2e8;
+  --share-field: #fffdf7;
+  --share-ink: #40372f;
+  --share-muted: #655b4d;
+  --share-accent: #526a4c;
+  --share-line: #b4a991;
 }
 .root[data-consultation-share="karma"] {
   --share-surface: #17272d;
