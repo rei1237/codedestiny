@@ -120,6 +120,8 @@ test('사주 래퍼: 용신·기신을 받고 생해 주는 오행만 파생하�
 test('뜻 거르기: 첫째 훈만 보고 반대 성별 호칭은 그 성별에서만 뺀다',()=>{
   assert.equal(E.hasNegativeMeaning('죽을 사, 주검 사'),true);
   assert.equal(E.hasNegativeMeaning('두 이, 의심할 이'),false);
+  for(const ch of '到我味受帝之')assert.equal(E.awkwardForName(ch),true,ch);
+  for(const ch of '致至連丞云')assert.equal(E.awkwardForName(ch),false,ch);
   assert.equal(E.mismatchesGender('아내 처','M'),true);
   assert.equal(E.mismatchesGender('아내 처','F'),false);
   assert.equal(E.mismatchesGender('아내 처','N'),false);
@@ -185,6 +187,7 @@ test('엔진 성질: 결정론·개수·점수 범위·하드 필터·정렬',()
       assert.equal(new Set(c.hanja).size,c.hanja.length);
       for(const ch of c.chars){
         assert.equal(E.hasNegativeMeaning(ch.hun),false,ch.ch);
+        assert.equal(E.awkwardForName(ch.ch),false,ch.ch);
         assert.equal(E.mismatchesGender(ch.hun,'M'),false,ch.ch);
         if(result.tier==='free'&&!c.reasonKeys.includes('relaxed.stage-3'))assert.deepEqual(ch.disputes,[],ch.ch);
       }
