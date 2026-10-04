@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-04
-next: "Verify and deliver editorial v3 with money, love and work for all twelve animals. Prior v1 production proof does not cover this correction; review unrelated main changes before any new promotion."
+next: "Editorial v3 code is pushed to main. CI 37172070613 passed; obtain approval covering unrelated naming v2 changes before promoting production; prior v1 proof does not cover this correction."
 ---
 
 # Threads 발행 형식과 참여형 편성 인수인계
@@ -17,7 +17,8 @@ next: "Verify and deliver editorial v3 with money, love and work for all twelve 
 - `npm run verify:threads-daily-jobs`: 35개 통과. 366일 모든 띠의 분야 누락·복제·길이, 모델 장애/허위 본문 덮어쓰기 방지, 잠금/예약 경로 포함. 모델/DB/발행 API는 mock이며 실호출 0회.
 - `node scripts/preview-threads-editorial.mjs --date=2026-10-04`: 새 원문 미리보기 재생성, 첫날 12띠 전문·7일 편성·저녁 7편, 최대 길이 438/480. 예시 파일은 실제 게시 증거가 아니다.
 - 기존 자동화 `code-destiny-2027`을 v3 지침으로 갱신했다. 재조회 원문 일치·대체문자 0·기존 이름/ACTIVE/시간/대상 유지 확인. Instagram의 3띠씩 4장 카드 규칙은 별도로 유지하고 Threads만 2띠씩 6답글로 바꿨다. v3 운영 배포는 미확인임을 지침에 명시했다.
-- `npm run check:fast -- --plan`은 critical 전체 계약으로 승격했다. 로컬 실행에서 paid-gate-suite 88개·lint·typecheck·사이트맵·node 테스트 2,347개가 통과했다. 커밋 준비 시 마지막 Jest 단계는 진행 중이며 완료 결과는 `threads-domains-fast.log`와 main의 해당 SHA CI를 확인한다. `git diff --check` 및 `npm run verify:handoff-contract`(145개) 통과. 전체 완료 전 부분 결과를 전체 통과로 해석하지 않는다.
+- `npm run check:fast -- --plan`은 critical 전체 계약으로 승격했고 `npm run check:fast`는 exit 0으로 완료했다. paid-gate-suite 88개·lint·typecheck·사이트맵·node 테스트 2,347개·Jest 332묶음/4,969개·Worker dry-run이 통과했다. `git diff --check` 및 `npm run verify:handoff-contract`(145개)도 통과했다.
+- 수정 커밋 `f7fd23814`, 다른 세션의 최신 main을 보존해 통합·push한 SHA `d3f819ee98d46861b4a837318b83ecce372e2b30`. [main CI 37172070613](https://github.com/rei1237/codedestiny/actions/runs/37172070613)에서 해당 SHA의 전체 검사와 CI required가 success로 완료됐다. 2026-10-04 KST 운영 Pages/Worker 재조회는 모두 과거 v1 SHA `4886b9c99eaf10458e61fd38a73ed10f2868c79a`였다. v3 배포나 공개 게시 완료로 보고하지 않는다.
 - 공유 main의 다른 세션 파일을 보존하고 기존 격리 worktree를 재사용했다. 시작 기준 `0be871964422790f439c26d06fec24c14add7a80`에는 이전 운영 SHA 이후 다른 세션의 작명 v2 라우트/보고서 및 사주 표시 변경이 포함된다. 이들을 Threads 수정 승인만으로 운영 승격하지 않는다. v3의 배포·검증 결과는 후속에서 기록한다.
 
 ### 승인 후속 — 2026-10-04
@@ -74,5 +75,5 @@ next: "Verify and deliver editorial v3 with money, love and work for all twelve 
 재개 지시:
 
 ```text
-D:\Development\codedestiny-worktrees\threads-editorial-20261004-003257에서 D:\Development\codedestiny-worktrees\threads-editorial-20261004-003257\docs\handoff\threads-editorial-20261004.md를 읽고, editorial-20261004-v3의 main 커밋과 CI 결과를 확인하라. 과거 운영 SHA 4886b9c99eaf10458e61fd38a73ed10f2868c79a는 v1이다. v3와 함께 배포될 다른 세션 변경의 승인 범위를 확인한 후 운영 반영을 진행하고 정상 슬롯에서 12띠 × 재물운·연애운·일/직장운 및 답글 6개를 확인하라. 다른 세션의 미커밋 작업을 보존하고 시험 글이나 중복 게시를 만들지 마라.
+D:\Development\codedestiny-worktrees\threads-editorial-20261004-003257에서 D:\Development\codedestiny-worktrees\threads-editorial-20261004-003257\docs\handoff\threads-editorial-20261004.md를 읽고, main에 push된 editorial-20261004-v3 코드 SHA d3f819ee98d46861b4a837318b83ecce372e2b30와 CI 37172070613의 성공을 확인하라. 과거 운영 SHA 4886b9c99eaf10458e61fd38a73ed10f2868c79a는 v1이다. v3와 함께 배포될 다른 세션 변경의 승인 범위를 확인한 후 운영 반영을 진행하고 정상 슬롯에서 12띠 × 재물운·연애운·일/직장운 및 답글 6개를 확인하라. 다른 세션의 미커밋 작업을 보존하고 시험 글이나 중복 게시를 만들지 마라.
 ```
