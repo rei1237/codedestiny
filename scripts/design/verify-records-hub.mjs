@@ -86,10 +86,10 @@ try {
     await page.getByRole('searchbox').fill('계획');await page.waitForTimeout(500);await page.locator('main article').first().waitFor();
     await page.locator('main article a').nth(4).scrollIntoViewIfNeeded();await page.waitForTimeout(100);const readingTop=await page.evaluate(()=>scrollY);
     await page.locator('main article a').nth(4).click();await page.waitForFunction(()=>document.querySelector('main h1')?.textContent.includes('[화면 검증]'));
-    await page.goBack();await page.locator('main article').first().waitFor();assert.equal(await page.getByRole('searchbox').inputValue(),'계획');await page.waitForTimeout(300);assert.ok(Math.abs(await page.evaluate(()=>scrollY)-readingTop)<60,`archive scroll restored ${readingTop}`);
+    await page.goBack({waitUntil:'domcontentloaded'});await page.locator('main article').first().waitFor();assert.equal(await page.getByRole('searchbox').inputValue(),'계획');await page.waitForTimeout(300);assert.ok(Math.abs(await page.evaluate(()=>scrollY)-readingTop)<60,`archive scroll restored ${readingTop}`);
     await page.getByRole('button',{name:'대화 상담',exact:true}).click();await page.waitForFunction(()=>document.querySelectorAll('main article').length===6);
     assert.equal(await page.locator('main article a[href*="source=chat"] ').count(),6);
-    await page.locator('main article a').first().click();await page.getByText('대화의 전체 상세 내용',{exact:true}).waitFor();await page.goBack();await page.locator('main article').first().waitFor();assert.equal(await page.getByRole('button',{name:'대화 상담',exact:true}).getAttribute('aria-pressed'),'true');
+    await page.locator('main article a').first().click();await page.getByText('대화의 전체 상세 내용',{exact:true}).waitFor();await page.goBack({waitUntil:'domcontentloaded'});await page.locator('main article').first().waitFor();assert.equal(await page.getByRole('button',{name:'대화 상담',exact:true}).getAttribute('aria-pressed'),'true');
     await page.getByRole('searchbox').focus();assert.notEqual(await page.locator('main label').first().evaluate(node=>getComputedStyle(node).outlineStyle),'none');
     assert.equal(state.errors.length,0,JSON.stringify(state.errors));assert.equal(state.forbidden.length,0,JSON.stringify(state.forbidden));
     evidence.push({scenario:'layout-navigation-restore',width,hubBounds,archiveBounds,api:state.seen,passed:true});await context.close();
