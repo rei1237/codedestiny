@@ -1,42 +1,20 @@
-/* Display only: navigation handlers and visibility remain owned by AppChrome. */
-.button {
+.navigation {
   position: relative;
-  display: inline-flex;
+  z-index: 30;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  min-height: 44px;
-  border: 1px solid var(--cd-border);
-  border-radius: var(--cd-r-pill);
-  background: var(--cd-surface);
-  color: var(--cd-text);
-  box-shadow: var(--cd-shadow);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.2;
-  white-space: nowrap;
-  cursor: pointer;
-  pointer-events: auto;
-  touch-action: manipulation;
-  transition: border-color 180ms ease-out, background-color 180ms ease-out, transform 180ms ease-out;
+  flex-wrap: wrap;
+  gap: var(--cd-sp-sm);
+  box-sizing: border-box;
+  width: 100%;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--cd-hairline);
+  background: var(--cd-cta-primary-bg);
 }
-.back { width: 44px; padding: 0; }
-.home { gap: 4px; padding: 0 18px 0 4px; }
-.seal {
-  position: absolute;
-  inset: 0;
-  width: 44px;
-  height: 44px;
-  color: var(--cd-accent);
-  opacity: .65;
-  pointer-events: none;
-}
-.icon { position: relative; width: 18px; height: 18px; stroke-width: 1.8; }
-.homeSeal { position: relative; display: grid; place-items: center; width: 40px; height: 42px; }
-.homeSeal .seal { width: 40px; height: 42px; }
-.button:hover { border-color: var(--cd-accent); background: var(--cd-surface-2); transform: translateY(-2px); }
-.button:active { transform: translateY(0); }
-.button:focus-visible { outline: 2px solid var(--cd-accent); outline-offset: 4px; }
-.button:disabled { opacity: .5; cursor: default; transform: none; }
-@media (prefers-reduced-motion: reduce) { .button { transition: none; } }
+.button { flex-shrink: 0; }
+.navigation .back { padding-inline: 16px; background: var(--cd-cta-primary-bg-2); color: var(--cd-cta-primary-ink); border-color: var(--cd-cta-hairline); }
+.home { padding-inline: 18px 38px; }
+.icon { width: 18px; height: 18px; flex-shrink: 0; stroke-width: 1.8; }
+.back::after { display: none; }
+
+.navigation .button:focus-visible { outline-color: var(--cd-yehwa-line); }

@@ -136,19 +136,19 @@ const FEATURE_NAV_SELF_MANAGED_ROUTES = [
 const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
 type ChromeLocale = (typeof LOCALE_CODES)[number];
 
-const FEATURE_NAV_COPY: Record<ChromeLocale, { back: string; home: string }> = {
-  ko: { back: "이전 페이지로 이동", home: "홈" },
-  en: { back: "Go back", home: "Home" },
-  ja: { back: "前のページに戻る", home: "ホーム" },
-  "zh-CN": { back: "返回上一页", home: "首页" },
-  "zh-TW": { back: "返回上一頁", home: "首頁" },
-  vi: { back: "Quay lại trang trước", home: "Trang chủ" },
-  hi: { back: "पिछले पेज पर जाएं", home: "होम" },
-  es: { back: "Volver a la página anterior", home: "Inicio" },
-  fr: { back: "Retour à la page précédente", home: "Accueil" },
-  de: { back: "Zur vorherigen Seite", home: "Startseite" },
-  nl: { back: "Terug naar vorige pagina", home: "Start" },
-  ms: { back: "Kembali ke halaman sebelumnya", home: "Laman utama" },
+const FEATURE_NAV_COPY: Record<ChromeLocale, { back: string; backLabel: string; home: string }> = {
+  ko: { back: "이전 페이지로 이동", backLabel: "뒤로", home: "홈" },
+  en: { back: "Go back", backLabel: "Back", home: "Home" },
+  ja: { back: "前のページに戻る", backLabel: "戻る", home: "ホーム" },
+  "zh-CN": { back: "返回上一页", backLabel: "返回", home: "首页" },
+  "zh-TW": { back: "返回上一頁", backLabel: "返回", home: "首頁" },
+  vi: { back: "Quay lại trang trước", backLabel: "Quay lại", home: "Trang chủ" },
+  hi: { back: "पिछले पेज पर जाएं", backLabel: "वापस", home: "होम" },
+  es: { back: "Volver a la página anterior", backLabel: "Volver", home: "Inicio" },
+  fr: { back: "Retour à la page précédente", backLabel: "Retour", home: "Accueil" },
+  de: { back: "Zur vorherigen Seite", backLabel: "Zurück", home: "Startseite" },
+  nl: { back: "Terug naar vorige pagina", backLabel: "Terug", home: "Start" },
+  ms: { back: "Kembali ke halaman sebelumnya", backLabel: "Kembali", home: "Laman utama" },
 };
 
 function isUnsafePaymentReferrer(referrer: string) {
@@ -160,16 +160,6 @@ function isUnsafePaymentReferrer(referrer: string) {
   } catch {
     return true;
   }
-}
-
-function MoonlitNavSeal() {
-  return (
-    <svg className={styles.seal} viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M45 8a25 25 0 1 0 12 29M43 8a10 10 0 0 1-8-13 11 11 0 1 0 8 13" transform="translate(0 6)" />
-      <path d="M12 51c5-2 8-6 10-12M14 49c-6 0-7-5-6-8 5 0 8 3 6 8Zm4-5c-1-5 2-8 6-8 1 5-2 8-6 8ZM48 47c3-2 5-5 6-9M51 44c-5-1-6-4-5-7 4 0 6 3 5 7Z" />
-      <path d="m51 14 1.5 3.5L56 19l-3.5 1.5L51 24l-1.5-3.5L46 19l3.5-1.5Z" />
-    </svg>
-  );
 }
 
 function FeatureBackHomeNav() {
@@ -199,29 +189,28 @@ function FeatureBackHomeNav() {
   }, [router]);
 
   return (
-    // cd-feature-nav: 모바일에서 숨기는 표식. 하단 네비(.cd-mnav)가 홈 탭을 이미 갖고 있어
-    // 이 좌상단 고정 나브는 중복이면서 기능 화면 UI 를 덮는다. 숨김 규칙은 두 나브가 서로의
-    // 대체재이므로 같은 미디어 쿼리 안에 둔다 — styles/mobile-bottom-nav.css.
+    // The navigation owns its row in document flow so it cannot cover page content.
+    // cd-feature-nav remains the marker hidden when the mobile tab bar is mounted.
     <nav
       aria-label="Feature navigation"
-      className="cd-feature-nav pointer-events-none fixed left-3 top-[calc(env(safe-area-inset-top,0px)+12px)] z-[2147481200] flex items-center gap-2 sm:left-4"
+      className={`cd-feature-nav ${styles.navigation}`}
     >
       <button
         type="button"
         onClick={goBack}
-        className={`${styles.button} ${styles.back}`}
+        className={`cd-yehwa-button cd-yehwa-button--secondary ${styles.button} ${styles.back}`}
         aria-label={copy.back}
       >
-        <MoonlitNavSeal />
         <ArrowLeft className={styles.icon} aria-hidden="true" />
+        <span>{copy.backLabel}</span>
       </button>
       <button
         type="button"
         onClick={goHome}
-        className={`${styles.button} ${styles.home}`}
+        className={`cd-yehwa-button cd-yehwa-button--primary ${styles.button} ${styles.home}`}
         aria-label={copy.home}
       >
-        <span className={styles.homeSeal}><MoonlitNavSeal /><Home className={styles.icon} aria-hidden="true" /></span>
+        <Home className={styles.icon} aria-hidden="true" />
         <span>{copy.home}</span>
       </button>
     </nav>
