@@ -603,7 +603,6 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "sukuyo_ai_prompt_generator",
   "vedic_prashna_prompt",
   "astro_monthly_transit",
-  "astro_yearly_transit",
   "premium-sukuyo-compat-extra",
   "destiny-compass-crossroads",
   "destiny-compass-life-voyage",
@@ -646,6 +645,8 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "astro_stellar_talent_room",
   "astro_stellar_relationship_room",
   "astro_stellar_growth_room",
+  // 앞으로 12개월 흐름 — 출생 차트와 실제 천체력으로 결정론 산출(LLM 미사용). 롤링 12개월을 계정에 영구 해금(A유형).
+  "astro_yearly_transit",
   "fun.quantumLotto.ritualReport",
   "sukyo_yearly_fortune_unlock",
   "sukuyo-relationship-encyclopedia",

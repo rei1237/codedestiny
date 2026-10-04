@@ -408,8 +408,14 @@ for (const [file, text] of [
   for (const marker of ["emerald", "#e0985f", 'padStart(2, "0")', "uppercase tracking"]) {
     assertNotIncludes(file, text, marker);
   }
-  assertIncludes(file, text, "#0a0818");
-  assertIncludes(file, text, "#c4b5fd");
+  // 네오 팔레트는 2026-10-04 부터 naming-tone.module.css 에 모였다(v2 밝은 작명서는 같은 모듈의 .light 덮개).
+  assertIncludes(file, text, "naming-tone.module.css");
+}
+{
+  const toneFile = "app/naming-ai/naming-tone.module.css";
+  const toneText = fs.readFileSync(path.join(root, toneFile), "utf8");
+  assertIncludes(toneFile, toneText, "#0a0818");
+  assertIncludes(toneFile, toneText, "#c4b5fd");
 }
 
 if (failures.length) {

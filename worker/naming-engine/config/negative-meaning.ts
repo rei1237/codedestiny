@@ -17,6 +17,17 @@ export const NEGATIVE_GLOSSES: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * 뜻이 나쁘지는 않지만 이름 글자로 어색한 글자 — 글자 단위로 추천에서 뺀다(2026-10-04 Phase 6.6, 220건 표본 검수: 도아 到我·미경 味璟·수진 受陳·제인 帝麟).
+ * 뜻(훈) 단위로 막지 않는 이유: "이를"은 致·至·云, "이을"은 丞·連, "저"는 伊처럼 흔한 이름자와 훈을 나눈다.
+ * - 허사·대명사: 문장에서 기능만 하는 글자(之 갈·是 이·又 또·奈 어찌·我 나 …)
+ * - 이름 뜻으로 어색: 到 이를·味 맛·受 받을·制 억제할·補 기울·代 대신할·洗 씻을·焄 그을릴·革 가죽·魯 미련할·徒 무리·邏 순행할·垈 터
+ * - 帝 임금: 불용한자 관행에서 이름에 쓰지 않는 글자로 꼽는다
+ */
+export const AWKWARD_NAME_CHARS: ReadonlySet<string> = new Set(Array.from(
+  "之乎者也矣焉哉而於乃其厥此斯是兮以爾汝又且亦何奈那豈曷奚我吾余予俺彼伊" + "到味受制補代洗焄革魯徒邏垈帝",
+));
+
+/**
  * 첫째 훈이 한쪽 성별의 친족·호칭인 글자(妻 아내, 娘 아가씨, 夫 지아비 …)는 반대 성별 이름에서 뺀다.
  * 성별 "N"(정하지 않음)에는 적용하지 않는다. 수리의 성별 차등 해석(§5 genderNote, 기본 끔)과는 별개다.
  */
@@ -62,6 +73,10 @@ export function primaryGloss(hun: string | null): string {
 
 export function hasNegativeMeaning(hun: string | null): boolean {
   return NEGATIVE_GLOSSES.has(primaryGloss(hun));
+}
+
+export function awkwardForName(ch: string): boolean {
+  return AWKWARD_NAME_CHARS.has(ch);
 }
 
 export function mismatchesGender(hun: string | null, gender: "M" | "F" | "N"): boolean {
