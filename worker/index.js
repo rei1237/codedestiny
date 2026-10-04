@@ -524,6 +524,7 @@ const handleZiweiIslandReportRoutes = createLazyRouteHandler("./routes/ziwei-isl
 const handleDreamRoutes = createLazyRouteHandler("./routes/dream.js", () => import("./routes/dream.js"), "handleDreamRoutes");
 const handleDebugRoutes = createLazyRouteHandler("./routes/debug.js", () => import("./routes/debug.js"), "handleDebugRoutes");
 const handleYogaGuruRoutes = createLazyRouteHandler("./routes/yoga-guru.js", () => import("./routes/yoga-guru.js"), "handleYogaGuruRoutes");
+const handleSajuCompatBasicRoutes = createLazyRouteHandler("./routes/saju-compat-basic.js", () => import("./routes/saju-compat-basic.js"), "handleSajuCompatBasicRoutes");
 const handleDestinyFlowerRoutes = createLazyRouteHandler("./routes/destiny-flower.js", () => import("./routes/destiny-flower.js"), "handleDestinyFlowerRoutes");
 const handleSibylRoutes = createLazyRouteHandler("./routes/sibyl.js", () => import("./routes/sibyl.js"), "handleSibylRoutes");
 const handleOracleRoutes = createLazyRouteHandler("./routes/oracle.js", () => import("./routes/oracle.js"), "handleOracleRoutes");
@@ -1111,7 +1112,7 @@ const app = {
             service: "code-destiny-api-worker",
             mode: "worker-native",
             backendOnly: true,
-            nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "celestial-harmony", "premium", "ziwei-ai", "life-book-ai", "love-secret-ai", "karma-destiny-ai", "dream", "yoga-guru", "sibyl", "oracle", "kasi", "astro", "vedic", "soul-origin", "palm", "destiny-bias", "geo"],
+            nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "celestial-harmony", "premium", "ziwei-ai", "life-book-ai", "love-secret-ai", "karma-destiny-ai", "dream", "yoga-guru", "saju-compat-basic", "sibyl", "oracle", "kasi", "astro", "vedic", "soul-origin", "palm", "destiny-bias", "geo"],
             fallbackProxyMode: upstreamOrigin
               ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
               : "disabled",
@@ -1701,6 +1702,10 @@ const app = {
 
       if (url.pathname === "/api/yoga-guru" || url.pathname.startsWith("/api/yoga-guru/")) {
         return withCorsHeaders(request, env, await handleYogaGuruRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/saju-compat-basic" || url.pathname.startsWith("/api/saju-compat-basic/")) {
+        return withCorsHeaders(request, env, await handleSajuCompatBasicRoutes(request, env));
       }
 
       if (url.pathname === "/api/destiny-flower" || url.pathname.startsWith("/api/destiny-flower/")) {

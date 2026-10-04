@@ -88,7 +88,7 @@ describe("Premium access-control rules", () => {
 test.each([
   ["celestialHarmony", 50], ["sibylDominator", 50], ["geomancyOracle", 30],
   ["destinyCompassDeepReport", 50], ["petSajuReport", 30], ["petCompatReport", 30],
-  ["sukuyoPastLifeReading", 50], ["fptiPremium", 100],
+  ["sukuyoPastLifeReading", 50], ["fptiPremium", 100], ["sajuCompatBasic", 50],
 ])("%s uses the approved receipt floor %i for canonical and historical aliases", (reportType, expected) => {
   const rules = utils.buildAlternativePaymentRules(reportType);
   expect(rules.length).toBeGreaterThan(0);

@@ -27,6 +27,7 @@ export const PAID_COMPLETED_RESULT_ACCESS_FIXTURES = Object.freeze([
   { products: ["dream-psycho-analysis"], file: "worker/routes/dream.js", marker: "runPaidNarrativeDelivery" },
   { products: ["geomancy"], file: "worker/routes/oracle.js", marker: "runPaidNarrativeDelivery" },
   { products: ["yoga-guru-per-use"], file: "worker/routes/yoga-guru.js", marker: "runPaidNarrativeDelivery" },
+  { products: ["compat-saju-compatibility"], file: "worker/routes/saju-compat-basic.js", marker: "runPaidNarrativeDelivery" },
   { products: ["tarot-love-relationship"], file: "worker/lib/love-tarot-delivery.js", marker: "runPaidNarrativeDelivery" },
   { products: ["tarot-mindscan"], file: "worker/lib/mindscan-delivery.js", marker: "runPaidNarrativeDelivery" },
   { products: ["tarot-prompt-maker", "tarot-prompt-maker-standard", "tarot-prompt-maker-deep", "tarot-prompt-maker-master"], file: "worker/lib/tarot-oracle-delivery.js", marker: "runPaidNarrativeDelivery" },

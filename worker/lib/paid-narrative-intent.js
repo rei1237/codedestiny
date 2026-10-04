@@ -50,6 +50,7 @@ export const PAID_INTENT_EXCLUSIONS = Object.freeze({
   "fortune-chat-consultation": "free-slot and usage accounting live in the route; result GET reuses the newest record without a status filter",
   geomancy: "the gate records openGeomancyOracle while the route key is geomancy, so no consumption proves this key",
   "yoga-guru-per-use": "the route body takes sessionId from checkout evidence, so a pre-checkout body cannot match it",
+  "compat-saju-compatibility": "the route body carries the engine facts and the gate evidence from the finished checkout, so a pre-checkout intent cannot seed it",
 });
 
 export const paidIntentKey = (userId, featureKey, requestId) =>

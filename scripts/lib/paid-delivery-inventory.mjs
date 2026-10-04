@@ -23,6 +23,7 @@ export const LLM_DELIVERY_ADAPTERS=Object.freeze([
   [/^geomancy$/, 'worker/routes/oracle.js',null,'paid-narrative'],
   [/^dream-psycho-analysis$/, 'worker/routes/dream.js',null,'paid-narrative'],
   [/^yoga-guru-per-use$/, 'worker/routes/yoga-guru.js',null,'paid-narrative'],
+  [/^compat-saju-compatibility$/, 'worker/routes/saju-compat-basic.js',null,'paid-narrative'],
   [/^pet-(saju-ai-consultation|compatibility-ai)$/, 'worker/routes/pet-saju-ai.js',null,'paid-narrative'],
   [/^animal-totem-(basic|deep)$/, 'worker/routes/animal-totem.js',null,'paid-narrative'],
   [/^master-love-codex(?:-compat)?$/, 'worker/routes/master-love-codex.js','worker/lib/master-love-codex-recovery-task.js','chapter-checkpoint'],

@@ -228,6 +228,24 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     ];
   }
 
+  if (reportType === "sajuCompatBasic") {
+    const cost = FEATURE_KEY_PRICE_TABLE["compat-saju-compatibility"].cost;
+    return [
+      {
+        featureKey: "compat-saju-compatibility",
+        reason: "사주 궁합 분석",
+        minCost: cost,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "사주 궁합 분석",
+        minCost: cost,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
   if (reportType === "destinyCompassDeepReport") {
     return [
       {
@@ -1058,7 +1076,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     return allowed;
   }
 
-  if (["celestialHarmony", "geomancyOracle", "yogaGuruCourse", "petSajuReport", "petCompatReport", "destinyCompassDeepReport"].includes(normalizedReportType) && alternativeRules.length) {
+  if (["celestialHarmony", "geomancyOracle", "yogaGuruCourse", "sajuCompatBasic", "petSajuReport", "petCompatReport", "destinyCompassDeepReport"].includes(normalizedReportType) && alternativeRules.length) {
     for (let i = 0; i < alternativeRules.length; i += 1) {
       const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
       if (!evidence) continue;

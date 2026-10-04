@@ -93,13 +93,6 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     "_runZwCompatibilityCore",
   ),
   sameSurface(
-    "compat-saju-compatibility",
-    "per_use",
-    "js/saju-engine.js",
-    "featureKey: 'compat-saju-compatibility'",
-    "runCompatCore",
-  ),
-  sameSurface(
     "compat-sukuyo-compatibility",
     "per_use",
     "js/saju-engine-tarot-sukuyo-quantum.js",

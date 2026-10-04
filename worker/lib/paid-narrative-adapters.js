@@ -12,6 +12,7 @@ const SERVER_RESUME_PRODUCTS = Object.freeze({
   tarotOracleConsultation: ["tarot-prompt-maker", "tarot-prompt-maker-standard", "tarot-prompt-maker-deep", "tarot-prompt-maker-master"],
   geomancyOracle: ["geomancy"],
   yogaGuruCourse: ["yoga-guru-per-use"],
+  sajuCompatBasic: ["compat-saju-compatibility"],
   dreamPsychoAnalysis: ["dream-psycho-analysis"],
   petSajuReport: ["pet-saju-ai-consultation"],
   petCompatReport: ["pet-compatibility-ai"],
@@ -66,6 +67,10 @@ export async function loadPaidNarrativeAdapter(env, featureKey, reportType, user
     case "yogaGuruCourse": {
       const { yogaNarrativeAdapter } = await import("../routes/yoga-guru.js");
       return yogaNarrativeAdapter(env);
+    }
+    case "sajuCompatBasic": {
+      const { sajuCompatNarrativeAdapter } = await import("../routes/saju-compat-basic.js");
+      return sajuCompatNarrativeAdapter(env);
     }
     case "dreamPsychoAnalysis": {
       const { dreamPsychoNarrativeAdapter } = await import("../routes/dream.js");

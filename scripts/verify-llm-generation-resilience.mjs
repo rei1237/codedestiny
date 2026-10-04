@@ -899,7 +899,7 @@ const LLM_CALL_FILES = [
   "worker/routes/master-love-codex.js", "worker/routes/nakshatra-ai.js", "worker/lib/naming-report-delivery.js", "worker/lib/naming-report-delivery-v2.js",
   "worker/routes/neo-operation-room.js", "worker/routes/new-year-ai.js", "worker/routes/oracle.js",
   "worker/lib/paid-narrative-delivery.js", "worker/routes/sukuyo-compatibility-ai.js", "worker/routes/vedic-ai.js",
-  "worker/routes/yoga-guru.js", "worker/routes/ziwei-ai.js", "worker/routes/ziwei-deep-report.js",
+  "worker/routes/yoga-guru.js", "worker/routes/saju-compat-basic.js", "worker/routes/ziwei-ai.js", "worker/routes/ziwei-deep-report.js",
   "worker/routes/ziwei-island-ai.js", "worker/lib/fusion-fortune.js", "worker/lib/palm-vision.js",
 ];
 
@@ -916,6 +916,7 @@ const GATE_REQUIRED_FILES = [
   "worker/routes/neo-operation-room.js",
   "worker/lib/celestial-report-delivery.js",
   "worker/routes/yoga-guru.js",
+  "worker/routes/saju-compat-basic.js",
   "worker/routes/oracle.js",
 ];
 
@@ -999,7 +1000,7 @@ const EXPECTED_LLM_CALL_SITES = {
   // — 이 라우트에는 후속 질문 경로가 없어 프로즈 갈래는 호출자가 0이었다.
   "worker/lib/paid-narrative-delivery.js": 1, "worker/routes/sukuyo-compatibility-ai.js": 4, "worker/routes/vedic-ai.js": 1,
   // Ziwei: two checkpointed calls (body/meta), both disable fallback and use one bounded attempt; legacy helpers retain three calls.
-  "worker/routes/yoga-guru.js": 1, "worker/routes/ziwei-ai.js": 5, "worker/routes/ziwei-deep-report.js": 1,
+  "worker/routes/yoga-guru.js": 1, "worker/routes/saju-compat-basic.js": 1, "worker/routes/ziwei-ai.js": 5, "worker/routes/ziwei-deep-report.js": 1,
   "worker/routes/ziwei-island-ai.js": 1, "worker/lib/fusion-fortune.js": 1, "worker/lib/palm-vision.js": 2,
 };
 for (const [path, expected] of Object.entries(EXPECTED_LLM_CALL_SITES)) {
