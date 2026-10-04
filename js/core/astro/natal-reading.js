@@ -1174,8 +1174,21 @@
     };
   }
 
+  /* The older page block (saju-engine.js renderAstroInsightLegacyNeon) keys its firdaria and profection texts by Korean
+   * planet name and house index; this hands it the sect- and birthday-aware values instead of its own year arithmetic.
+   * A node firdaria (no planet text there) and an unknown birth time return null for that part. */
+  function legacyPeriods(model) {
+    var p = model && model.periods, f = p && p.firdaria, pr = p && p.profection, out = { firdaria: null, profection: null };
+    if (f && CORE.indexOf(f.current.lord) >= 0) {
+      out.firdaria = { main: KO[f.current.lord], sub: f.current.sub ? KO[f.current.sub.lord] : null, fromYear: f.current.fromYear, toYear: f.current.toYear, sect: f.sect };
+    }
+    if (pr) out.profection = { houseIdx: pr.house - 1, signIdx: pr.signIdx, lord: KO[pr.lord], age: pr.age };
+    return out;
+  }
+
   root.AstroNatalReading = {
     build: build,
+    legacyPeriods: legacyPeriods,
     render: render,
     renderChart: renderChart,
     renderDeep: renderDeep,

@@ -12706,6 +12706,35 @@ function renderAstroInsightLegacyNeon() {
     var jupiterIndex = (chartNow.planets.Jupiter && chartNow.planets.Jupiter.sign && chartNow.planets.Jupiter.sign.idx != null)
       ? chartNow.planets.Jupiter.sign.idx : 0;
 
+    /* ── 출생 차트 이야기 모델 (js/core/astro/natal-reading.js). 아래 옛 시기 블록도 이 값을 쓴다. 실패하면 기존 블록만 그린다. ── */
+    var storyModel = null;
+    var storyTimeKnown = !(birth.unknownHour === true || birth.timeDefault === true);
+    var storyToday = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    try {
+      if (window.AstroNatalReading) {
+        // 시간을 모르면 정오 차트로 읽으므로, 그날 달이 별자리를 바꿨는지 0시·23:59 차트로 따로 본다.
+        var storyMoonDay = storyTimeKnown ? null : [
+          calcAstroSwissChartOrThrow(y, m, d, 0, lat, lon, tz, houseSystem).moon.idx,
+          calcAstroSwissChartOrThrow(y, m, d, 23 + 59 / 60, lat, lon, tz, houseSystem).moon.idx
+        ];
+        var storyProfile = typeof window.__cdGetCurrentDestinyProfile === 'function' ? window.__cdGetCurrentDestinyProfile() : null;
+        storyModel = window.AstroNatalReading.build(chart, {
+          timeKnown: storyTimeKnown,
+          today: storyToday,
+          name: storyProfile && storyProfile.name ? storyProfile.name : '',
+          birth: { year: y, month: m, day: d, hour: h, minute: min },
+          moonDay: storyMoonDay
+        });
+      }
+    } catch (storyErr) {
+      storyModel = null;
+      if (window.console && console.warn) console.warn('[astro-story] model skipped:', storyErr && storyErr.message);
+    }
+    var astroPeriodModel = storyModel && window.AstroNatalReading.legacyPeriods
+      ? window.AstroNatalReading.legacyPeriods(storyModel) : { firdaria: null, profection: null };
+    /* 만 나이(생일 기준). 연도 뺄셈은 생일 전이면 1년 틀린다. */
+    var astroAgeFull = now.getFullYear() - y - ((now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)) ? 1 : 0);
+
     /* ── 별자리 인덱스 매핑 ── */
     var sunIndex  = (chart.sun  && chart.sun.idx  != null) ? chart.sun.idx  : 0;
     var moonIndex = (chart.moon && chart.moon.idx != null) ? chart.moon.idx : 0;
@@ -12912,7 +12941,7 @@ function renderAstroInsightLegacyNeon() {
          advice:'아침 운동 루틴으로 공격적인 에너지를 건전하게 발산하세요. 이 기간은 빠르게 시작하되, 마무리를 꼼꼼히 지어야 합니다. 불필요한 싸움은 피하되, 정당한 승부에서는 절대 물러서지 마세요.'}
     ];
     var firdariaMain = null, firdariaMainYearsLeft = 0;
-    var tempFirAge = now.getFullYear() - y;
+    var tempFirAge = astroAgeFull;
     for(var fi=0; fi < FIRDARIA_DAY.length*5; fi++){
         var fIdx = fi % FIRDARIA_DAY.length;
         if(tempFirAge < FIRDARIA_DAY[fIdx].years){
@@ -12923,9 +12952,21 @@ function renderAstroInsightLegacyNeon() {
         tempFirAge -= FIRDARIA_DAY[fIdx].years;
     }
     if(!firdariaMain) firdariaMain = FIRDARIA_DAY[0];
-    var firdariaSubPlanet = FIRDARIA_DAY[Math.floor((firdariaMain.years-firdariaMainYearsLeft)/(firdariaMain.years/7))%7].kr;
-    /* ── 피르다리아 서브 행성 상세 조합 해석 ── */
+    /* 부기간은 주기 행성부터 칼데아 순서(토성·목성·화성·태양·금성·수성·달)로 돈다. */
+    var FIRDARIA_CHALDEAN_KR = ['토성','목성','화성','태양','금성','수성','달'];
     var firdariaSubIdx = Math.floor((firdariaMain.years-firdariaMainYearsLeft)/(firdariaMain.years/7))%7;
+    var firdariaSubPlanet = FIRDARIA_CHALDEAN_KR[(FIRDARIA_CHALDEAN_KR.indexOf(firdariaMain.kr) + firdariaSubIdx) % 7];
+    var firdariaMainUntilYear = now.getFullYear() + firdariaMainYearsLeft;
+    /* 시간을 알면 섹트(낮/밤 차트)·만 나이를 반영한 natal-reading 값으로 바꾼다(밤 차트는 달부터 시작). */
+    if (astroPeriodModel.firdaria) {
+      for (var fpi = 0; fpi < FIRDARIA_DAY.length; fpi++) {
+        if (FIRDARIA_DAY[fpi].kr === astroPeriodModel.firdaria.main) { firdariaMain = FIRDARIA_DAY[fpi]; break; }
+      }
+      if (astroPeriodModel.firdaria.sub) firdariaSubPlanet = astroPeriodModel.firdaria.sub;
+      firdariaMainUntilYear = astroPeriodModel.firdaria.toYear;
+      firdariaMainYearsLeft = Math.max(0, firdariaMainUntilYear - now.getFullYear());
+    }
+    /* ── 피르다리아 서브 행성 상세 조합 해석 ── */
     var FIRDARIA_COMBO = {
         '태양_금성':'창조적 자기 표현에 풍요가 더해집니다. 아름다운 방식으로 이름을 알릴 최상의 타이밍 — 예술·미디어·퍼블릭 브랜딩에 집중하세요.',
         '태양_수성':'지성을 앞세워 리더십을 발휘하는 국면입니다. 중요한 발표·협상·출판에서 빛납니다. 말과 글로 자신의 브랜드를 강화하세요.',
@@ -12977,10 +13018,12 @@ function renderAstroInsightLegacyNeon() {
                     '7하우스(관계·계약)','8하우스(변환·심연)','9하우스(철학·여행)',
                     '10하우스(사회·명예)','11하우스(공동체·미래)','12하우스(영성·은둔)'];
     var PROFECTION_RULER = ['화성','금성','수성','달','태양','수성','금성','화성','목성','토성','토성','목성'];
-    var profHouseIdx = (now.getFullYear()-y) % 12;
+    /* PROFECTION_RULER 는 양자리부터의 별자리 지배 행성 표다 — 집 번호가 아니라 그해 별자리로 찾는다. */
+    var profHouseIdx = ((astroAgeFull % 12) + 12) % 12;
+    if (astroPeriodModel.profection) profHouseIdx = astroPeriodModel.profection.houseIdx;
     var profHouse    = HOUSE_KR[profHouseIdx];
     var profSign     = astrologer.signs[(ascIndex+profHouseIdx)%12];
-    var profRuler    = PROFECTION_RULER[profHouseIdx];
+    var profRuler    = PROFECTION_RULER[(ascIndex+profHouseIdx)%12];
     /* 프로펙션 상세 해석 데이터 */
     var profData = [
         {
@@ -14231,25 +14274,10 @@ function renderAstroInsightLegacyNeon() {
         + '</div></div>';
     }
 
-    /* ── 출생 차트 이야기 (js/core/astro/natal-reading.js). 실패하면 아래 기존 블록만 그린다. ── */
+    /* ── 출생 차트 이야기 (모델은 위에서 만든 storyModel). 실패하면 아래 기존 블록만 그린다. ── */
     var astroStoryHtml = '';
     try {
-      if (window.AstroNatalReading) {
-        var storyTimeKnown = !(birth.unknownHour === true || birth.timeDefault === true);
-        // 시간을 모르면 정오 차트로 읽으므로, 그날 달이 별자리를 바꿨는지 0시·23:59 차트로 따로 본다.
-        var storyMoonDay = storyTimeKnown ? null : [
-          calcAstroSwissChartOrThrow(y, m, d, 0, lat, lon, tz, houseSystem).moon.idx,
-          calcAstroSwissChartOrThrow(y, m, d, 23 + 59 / 60, lat, lon, tz, houseSystem).moon.idx
-        ];
-        var storyProfile = typeof window.__cdGetCurrentDestinyProfile === 'function' ? window.__cdGetCurrentDestinyProfile() : null;
-        var storyToday = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-        var storyModel = window.AstroNatalReading.build(chart, {
-          timeKnown: storyTimeKnown,
-          today: storyToday,
-          name: storyProfile && storyProfile.name ? storyProfile.name : '',
-          birth: { year: y, month: m, day: d, hour: h, minute: min },
-          moonDay: storyMoonDay
-        });
+      if (storyModel) {
         // #asChart 는 basicFortunePresentation 이 .astro-wheel-card 안으로 옮긴다.
         astroStoryHtml = window.AstroNatalReading.render(storyModel) + window.AstroNatalReading.renderChart(storyModel) + window.AstroNatalReading.renderDeep(storyModel);
       }
@@ -14546,7 +14574,7 @@ function renderAstroInsightLegacyNeon() {
         +'<div style="flex:1; min-width:130px; background:rgba(167,139,250,0.12); border-radius:10px; padding:12px; border:1px solid rgba(167,139,250,0.3); text-align:center;">'
         +'<div style="font-size:13px; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">메인 타임로드</div>'
         +'<div style="font-size:1.15rem; font-weight:900; color:#ddd6fe;">'+firdariaMain.planet+'</div>'
-        +'<div style="font-size:13px; color:#94a3b8; margin-top:4px;">잔여 약 '+firdariaMainYearsLeft+'년</div>'
+        +'<div style="font-size:13px; color:#94a3b8; margin-top:4px;">'+firdariaMainUntilYear+'년까지</div>'
         +'</div>'
         +'<div style="flex:1; min-width:130px; background:rgba(167,139,250,0.06); border-radius:10px; padding:12px; border:1px solid rgba(167,139,250,0.15); text-align:center;">'
         +'<div style="font-size:13px; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">서브 타임로드</div>'
