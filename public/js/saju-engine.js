@@ -29439,7 +29439,8 @@ async function _seSajuCompatSend(method, path, body, timeoutMs) {
 /* 결제 전 중복 안내: 같은 내 사주·유형·상대 이름으로 저장된 결과가 이미 있으면 한 번 알린다. 반환 true = 사용자가 "저장된 결과 열기"를 골랐다.
    비로그인·조회 실패·지연이면 조용히 건너뛴다 — 안내일 뿐 결제를 막지 않고, 새로 결제하면 새 구매다. */
 async function _seSajuCompatWantsSavedResult(kit, name, type) {
-  if (!getFortuneAuthToken()) return false;
+  // 웹은 세션 확인 뒤 localStorage 토큰을 지우고 쿠키가 정본이다 — 토큰만 보면 웹에서 안내가 영영 안 나온다.
+  if (!(typeof window.hasAuthToken === 'function' ? window.hasAuthToken() : getFortuneAuthToken())) return false;
   try {
     var reply = await _seSajuCompatSend('GET', kit.flow.SAJU_COMPAT_ARCHIVE_PATH, null, 3000);
     var view = kit.flow.classifySajuCompatArchiveReply(reply, 'list');
