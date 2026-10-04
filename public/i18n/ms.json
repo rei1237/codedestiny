@@ -1340,7 +1340,8 @@
         "w10000": "₩10,000",
         "from10000": "From ₩10,000",
         "w30000": "₩30,000",
-        "w50000": "₩50,000"
+        "w50000": "₩50,000",
+        "w20000": "₩20,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -6830,7 +6831,8 @@
         "k1bs96nr": "Taklimat operasi Neo yang dingin dan tepat tentang pilihan di hadapan anda",
         "n30000": "₩30,000",
         "n20000Price10000": "Dari ₩10,000",
-        "n50000": "₩50,000"
+        "n50000": "₩50,000",
+        "n30000Price20000": "₩20,000"
       }
     },
     "cdSigCardBody": {

@@ -404,5 +404,19 @@
     "de": "1 free after signing up · ₩3,000 each after",
     "nl": "1 free after signing up · ₩3,000 each after",
     "ms": "1 free after signing up · ₩3,000 each after"
+  },
+  "shell.cdSigCard.cdSigCardBody.n30000Price20000": {
+    "ko": "20,000원",
+    "en": "₩20,000",
+    "ja": "20,000ウォン",
+    "zh-CN": "20,000韩元",
+    "zh-TW": "20,000韓元",
+    "vi": "20.000 KRW",
+    "hi": "₩20,000",
+    "es": "₩20.000",
+    "fr": "20 000 ₩",
+    "de": "20.000 ₩",
+    "nl": "₩20.000",
+    "ms": "₩20,000"
   }
 }
