@@ -1,12 +1,24 @@
 ---
 status: active
 updated: 2026-10-04
-next: "Production release 37138792610 and matching live Pages/Worker SHA are verified. Confirm October 4 normal Threads slots and public reply chains at the existing 21:10 check; compare equal-age engagement without forcing extra posts."
+next: "Verify and deliver editorial v3 with money, love and work for all twelve animals. Prior v1 production proof does not cover this correction; review unrelated main changes before any new promotion."
 ---
 
 # Threads 발행 형식과 참여형 편성 인수인계
 
 ## 요청과 전달
+
+### 최신 수정 요청 — 각 띠의 분야별 운세가 우선
+
+사용자 원문: “아니 이런식으로 하면 안되고 각 띠마다 재물운, 연애운 등 구체적인 내용이 나와야한다.” 이전 v1의 생활 조언 중심 형식은 승인된 최종 문안으로 간주하지 않는다.
+
+- 교정 문안 버전 `editorial-20261004-v3`: 12띠 모두 재물운·연애운·일/직장운의 흐름과 실천, 총 36항목을 제공한다. 원글 1개 + 2띠씩 답글 6개이며 하루 독립 원글 편성은 유지한다.
+- 기존 역법·지지 관계를 분야별로 풀어 쓰고 개인 명식의 재성·배우자궁·직업운 계산이나 수입·연락·취업 결과를 만들어내지 않는다. 분야별 본문은 검수 문안이 담당하고 모델은 훅·질문만 생성한다. 기존 한 번의 호출은 유지하며 상한은 512토큰으로 축소한다.
+- `npm run verify:threads-daily-jobs`: 35개 통과. 366일 모든 띠의 분야 누락·복제·길이, 모델 장애/허위 본문 덮어쓰기 방지, 잠금/예약 경로 포함. 모델/DB/발행 API는 mock이며 실호출 0회.
+- `node scripts/preview-threads-editorial.mjs --date=2026-10-04`: 새 원문 미리보기 재생성, 첫날 12띠 전문·7일 편성·저녁 7편, 최대 길이 438/480. 예시 파일은 실제 게시 증거가 아니다.
+- 기존 자동화 `code-destiny-2027`을 v3 지침으로 갱신했다. 재조회 원문 일치·대체문자 0·기존 이름/ACTIVE/시간/대상 유지 확인. Instagram의 3띠씩 4장 카드 규칙은 별도로 유지하고 Threads만 2띠씩 6답글로 바꿨다. v3 운영 배포는 미확인임을 지침에 명시했다.
+- `npm run check:fast -- --plan`은 critical 전체 계약으로 승격했다. 로컬 실행에서 paid-gate-suite 88개·lint·typecheck·사이트맵·node 테스트 2,347개가 통과했다. 커밋 준비 시 마지막 Jest 단계는 진행 중이며 완료 결과는 `threads-domains-fast.log`와 main의 해당 SHA CI를 확인한다. `git diff --check` 및 `npm run verify:handoff-contract`(145개) 통과. 전체 완료 전 부분 결과를 전체 통과로 해석하지 않는다.
+- 공유 main의 다른 세션 파일을 보존하고 기존 격리 worktree를 재사용했다. 시작 기준 `0be871964422790f439c26d06fec24c14add7a80`에는 이전 운영 SHA 이후 다른 세션의 작명 v2 라우트/보고서 및 사주 표시 변경이 포함된다. 이들을 Threads 수정 승인만으로 운영 승격하지 않는다. v3의 배포·검증 결과는 후속에서 기록한다.
 
 ### 승인 후속 — 2026-10-04
 
@@ -30,7 +42,7 @@ next: "Production release 37138792610 and matching live Pages/Worker SHA are ver
 
 원격 main은 최신 변경을 합쳐 직접 push했다. 공유 `D:\Development\code-destiny`의 로컬 main은 다른 세션의 index.html·정적 미러·마케팅 로그·RSS 미커밋 변경 때문에 fast-forward가 거절됐다. 파일을 보존하고 격리 worktree에서 `git push origin HEAD:main`으로 전달했다. 공유 main에 reset/stash/강제 checkout을 하지 않는다. 이 작업의 검수 문서가 현재 worktree에 있으므로 로컬 main 동기화 후 배수한다.
 
-## 적용한 내용
+## 과거 v1 적용 이력 (분야별 형식은 위 v3가 대체)
 
 - Worker 기본 08:30 띠별·12:00 사주·20:30 마음 노트의 독립 원글 3편 유지. 띠별은 대상·연도 원글 + 3띠씩 4답글, 각 글 480자 이내.
 - 출생연도는 찾기용 대표 예시이며 입춘 경계 안내를 포함. 같은 역법·지지 관계를 사용하고 호통·인연 확정 문구를 교체.
@@ -53,8 +65,8 @@ next: "Production release 37138792610 and matching live Pages/Worker SHA are ver
 
 ## 다음 행동
 
-1. 운영 릴리스와 양쪽 live SHA 결과를 먼저 확인한다. 이미 성공한 동일 변경을 재배포하지 않는다. 운영 승인과 전체 CI는 위와 같이 확보됐다.
-2. 10월 4일 정상 Threads 슬롯의 원글·답글 공개 URL, 12띠 누락·연도·빈 줄·질문·링크·원글 개수를 확인한다. 첫 발행 전에는 형식의 공개 게시까지 완료했다고 기록하지 않는다. 즉시 시험 게시로 중복을 만들지 않는다.
+1. v3 커밋의 main CI 결과를 확인한다. 과거 v1 릴리스 성공을 v3 배포 성공으로 간주하지 않는다. 운영 승격에는 다른 세션의 작명 v2 라우트 등 추가 변경이 함께 들어가므로 그 범위의 승인을 확보한 후 GitHub Actions의 고정 SHA 릴리스로 진행한다.
+2. v3 운영 반영 후 정상 Threads 슬롯의 원글·답글 공개 URL, 12띠 × 3분야와 답글 6개·연도·빈 줄·질문·링크·원글 개수를 확인한다. 첫 발행 전에는 형식의 공개 게시까지 완료했다고 기록하지 않는다. 즉시 시험 게시로 중복을 만들지 않는다.
 3. 기존 Codex 21:10 점검에서 공개 이력을 확인하고 이후 24h/72h/7d 지표를 같은 경과시간에 기록한다. 실측 기준선과 14일 비교 원칙은 기획 문서를 따른다. 자기 답글을 독자 참여로 세지 않는다. 낮은 반응만으로 추가 원글을 발행하지 않는다.
 4. 예약 소개글·신년이 원글 4개째가 되지 않는지 확인한다. 수동 원글은 Worker가 자동 계정 한도로 차단하지 않으므로 사전 편성에 포함한다.
 5. 공유 main의 미커밋 변경 소유자가 정리한 뒤 fast-forward하고 원격 main에 포함된 이 worktree를 안전하게 배수한다. node_modules 정션은 공유 디렉터리를 삭제하지 않도록 먼저 링크만 제거한다.
@@ -62,5 +74,5 @@ next: "Production release 37138792610 and matching live Pages/Worker SHA are ver
 재개 지시:
 
 ```text
-D:\Development\codedestiny-worktrees\threads-editorial-20261004-003257에서 D:\Development\codedestiny-worktrees\threads-editorial-20261004-003257\docs\handoff\threads-editorial-20261004.md를 읽고, 릴리스 SHA 4886b9c99eaf10458e61fd38a73ed10f2868c79a 및 운영 실행 37138792610의 결과를 확인하라. 운영 승인은 이미 받았다. 정상 슬롯의 공개 URL·원글 수·띠별 답글 체인을 확인하고 자기 답글을 제외한 성과를 기록하라. 다른 세션의 미커밋 작업을 보존하고 시험 글이나 중복 배포를 만들지 마라.
+D:\Development\codedestiny-worktrees\threads-editorial-20261004-003257에서 D:\Development\codedestiny-worktrees\threads-editorial-20261004-003257\docs\handoff\threads-editorial-20261004.md를 읽고, editorial-20261004-v3의 main 커밋과 CI 결과를 확인하라. 과거 운영 SHA 4886b9c99eaf10458e61fd38a73ed10f2868c79a는 v1이다. v3와 함께 배포될 다른 세션 변경의 승인 범위를 확인한 후 운영 반영을 진행하고 정상 슬롯에서 12띠 × 재물운·연애운·일/직장운 및 답글 6개를 확인하라. 다른 세션의 미커밋 작업을 보존하고 시험 글이나 중복 게시를 만들지 마라.
 ```

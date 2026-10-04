@@ -2,9 +2,9 @@
 //
 // 근거는 하나다: 오늘 일진의 지지와 각 띠 지지의 관계(saju-shinsal.js getBranchPairRelations 정본).
 //   충 → clash, 육합·삼합 → good, 원진·형·파·해 → rough, 같은 지지 → same, 그 외 → plain.
-// 🔴 "조심할 띠"를 모델이 고르지 않는다. 띠마다 kind 가 계산으로 정해지고, 모델 문장이 kind 와
-//    반대 방향(clash 띠에 대박, good 띠에 조심)이면 그 문장을 버리고 kind 별 결정론 문장으로 간다.
-// 원글의 대상 띠·대표 연도에서 시작해 3띠씩 4개 답글로 근거와 실천을 전한다.
+// 띠마다 kind는 계산으로 정해진다. 분야별 본문은 검수 문안을 사용하고,
+// 모델 훅이 관계 해석과 반대 방향이면 결정론 훅으로 대체한다.
+// 원글의 대상 띠·대표 연도에서 시작해 2띠씩 6개 답글로 재물·연애·일/직장운을 전한다.
 
 import { BRANCH_HANGUL, BRANCH_HANJA, STEM_HANGUL, ganji } from "../../../lib/korean-calendar/index.js";
 import { getKstDateParts } from "../daily-fortune-task.js";
@@ -25,15 +25,65 @@ export const CTA = "내 띠 오늘 운세 자세히 보기";
 const ANIMALS = ["쥐", "소", "호랑이", "토끼", "용", "뱀", "말", "양", "원숭이", "닭", "개", "돼지"];
 const ANIMAL_EMOJI = ["🐭", "🐮", "🐯", "🐰", "🐲", "🐍", "🐴", "🐑", "🐵", "🐔", "🐶", "🐷"];
 const BAD_RELATIONS = ["원진", "형", "파", "해"];
-const LINE_MAX = 55;
 
-/** 띠 한 줄 결정론 문장. kind 마다 10개 — 같은 날 같은 kind 띠끼리는 겹치지 않게 고른다. */
-const LINE_POOL = Object.freeze({
-  good: ["혼자 풀던 일을 함께 살펴봐. 부탁할 때 필요한 도움을 한 가지로 좁혀 봐.", "안부가 떠오른 사람에게 짧게 연락해 봐. 답을 재촉하지 않는 여유도 남겨 둬.", "새로운 약속보다 이미 나눈 이야기를 이어가 봐. 작은 관심부터 표현해 봐.", "의견을 모을 때 공통점부터 찾아봐. 서로 원하는 조건을 하나씩 말해 봐.", "고마웠던 일을 구체적으로 전해 봐. 막연한 칭찬보다 그 장면을 말해 봐."],
-  clash: ["답장이 거슬리면 바로 결론 내리지 말고 다시 읽어 봐. 말투와 사실을 나눠 봐.", "일정이 바뀔 여유를 조금 남겨 둬. 이동 전에 시간과 장소부터 확인해 봐.", "서로 속도가 다르면 합의할 부분부터 정해 봐. 오늘 끝낼 범위를 줄여도 돼.", "하고 싶은 말은 메모에 먼저 써 봐. 감정이 가라앉은 뒤 필요한 말만 골라 봐.", "큰 결정을 서두르기보다 빠진 조건을 찾아봐. 확인할 질문 하나를 남겨 둬."],
-  rough: ["서운한 마음이 들면 의도를 추측하기보다 물어봐. 무슨 뜻인지 한 번 확인해 봐.", "작은 약속일수록 시간을 분명히 정해 봐. 서로 다르게 이해한 부분을 맞춰 봐.", "부탁을 받으면 내 일정부터 살펴봐. 할 수 있는 범위를 짧게 전해 봐.", "대화가 꼬이면 설명을 더하기보다 한 번 들어봐. 상대의 말을 요약해 봐.", "기억에 기대기보다 약속을 적어 둬. 날짜와 준비물을 함께 확인해 봐."],
-  same: ["익숙한 방식의 장점부터 써 봐. 다만 다른 의견을 들을 자리도 남겨 둬.", "내가 잘하는 일 하나에 집중해 봐. 모든 일을 내 방식으로 맞출 필요는 없어.", "반복되는 습관을 하나 살펴봐. 편해서 하는 일과 필요한 일을 나눠 봐.", "확신이 들 때 이유를 한 줄 적어 봐. 다른 선택의 장점도 하나 찾아봐.", "평소 맡던 역할을 돌아봐. 오늘은 도움받고 싶은 부분도 말해 봐."],
-  plain: ["큰 신호를 찾기보다 밀린 일 하나를 마쳐 봐. 작은 완료도 충분히 의미 있어.", "늘 하던 일의 순서를 바꿔 봐. 가장 부담이 적은 일부터 시작해 봐.", "오늘 쓸 수 있는 시간부터 세어 봐. 그 안에 끝낼 만큼만 계획해 봐.", "관계의 답을 급하게 정하지 않아도 돼. 오늘 주고받은 말부터 살펴봐.", "하루 끝에 해낸 일 하나를 적어 둬. 비교보다 내 속도를 확인해 봐."],
+// 일진↔띠 관계를 분야별 생활 장면으로 풀어낸 편집 문안이다.
+// 재성·관성·배우자궁 등을 새로 계산한 사실이나 개인별 예측으로 사용하지 않는다.
+// 세 분야는 모델 성공 여부와 무관하게 항상 제공한다. 모델은 원글 훅·질문만 다듬는다.
+const DOMAIN_FLOW = Object.freeze({
+  good: {
+    money: "함께 쓰는 돈의 조건을 맞추기 좋은 흐름이야.",
+    love: "작은 표현으로 관계를 가까이하기 좋은 날이야.",
+    work: "협업에서 막힌 일을 풀 실마리를 찾기 좋아.",
+  },
+  clash: {
+    money: "갑작스러운 지출로 예산이 흔들리기 쉬워.",
+    love: "마음보다 말이 앞서 서로 엇갈리기 쉬워.",
+    work: "일정이나 의견이 부딪히기 쉬운 흐름이야.",
+  },
+  rough: {
+    money: "작은 비용 차이가 부담으로 느껴지기 쉬워.",
+    love: "사소한 표현이 서운함으로 번지기 쉬운 날이야.",
+    work: "전달이 빠진 부분에서 일이 꼬이기 쉬워.",
+  },
+  same: {
+    money: "익숙한 소비가 반복되기 쉬운 흐름이야.",
+    love: "편안함은 커져도 표현이 익숙해지기 쉬워.",
+    work: "익숙한 업무에 강점이 살아나는 흐름이야.",
+  },
+  plain: {
+    money: "큰 변화보다 지출 관리가 중심인 흐름이야.",
+    love: "급한 진전보다 편안한 대화에 어울리는 날이야.",
+    work: "새 일을 벌이기보다 하던 일의 완성도가 중요해.",
+  },
+});
+
+// 같은 날짜에도 띠마다 구체적인 장면이 달라지도록 겹치지 않는 편집 초점을 순환한다.
+// 날짜별 순환은 장면 선택이며 새 점수·길흉 계산이 아니다.
+const DOMAIN_ACTIONS = Object.freeze({
+  money: [
+    "정기결제 중 안 쓰는 항목을 살펴봐.", "함께 쓴 비용의 정산 기준을 맞춰 봐.",
+    "구매 전 배송비까지 합쳐 비교해 봐.", "이번 주 꼭 나갈 돈부터 따로 남겨 둬.",
+    "할인보다 실제 쓸 물건인지 살펴봐.", "빌리거나 빌려줄 돈은 조건부터 정해.",
+    "소액 결제가 쌓인 항목을 확인해 봐.", "반품·환불 가능 기간을 확인해 봐.",
+    "모임 비용은 참석 전에 맞춰 봐.", "수입보다 먼저 지출 한도를 정해 봐.",
+    "견적은 추가 비용까지 확인해 봐.", "남아 있는 정산 금액을 확인해 봐.",
+  ],
+  love: [
+    "연락은 가벼운 안부부터 건네 봐.", "둘만의 약속은 시간까지 정해 봐.",
+    "고마웠던 장면을 하나 말해 봐.", "답장 속도보다 대화 내용을 살펴봐.",
+    "마음에 남은 장면부터 이야기해 봐.", "혼자 짐작한 마음은 직접 물어봐.",
+    "만나고 싶은 마음을 짧게 전해 봐.", "소개 자리에서는 공통 관심사를 찾아봐.",
+    "상대가 말한 작은 취향을 기억해 봐.", "연인과 각자 필요한 시간을 맞춰 봐.",
+    "다음 만남은 서로 편한 날을 골라 봐.", "확답을 재촉하기보다 내 뜻을 전해 봐.",
+  ],
+  work: [
+    "요청받은 일의 마감부터 확인해 봐.", "협업할 때 각자 맡을 범위를 정해 봐.",
+    "보낼 문서의 숫자를 다시 확인해 봐.", "밀린 회신 하나부터 마무리해 봐.",
+    "회의에서는 핵심 의견부터 말해 봐.", "새 업무는 완료 기준부터 맞춰 봐.",
+    "도움이 필요한 부분을 구체적으로 말해 봐.", "구직 연락은 지원한 역할을 다시 확인해 봐.",
+    "약속한 진행 상황을 먼저 공유해 봐.", "동시에 할 일보다 우선순위를 정해 봐.",
+    "수정 요청은 항목별로 적어 확인해 봐.", "끝낸 일의 결과를 짧게 정리해 둬.",
+  ],
 });
 
 // 문장이 kind 와 반대 방향인지 가르는 말. 반대 방향이면 그 문장을 버린다.
@@ -105,23 +155,22 @@ export function matchesKinds(text, facts, fixedKind = "") {
 }
 
 function fallbackLines(facts) {
-  const used = {};
-  return facts.animals.map((animal) => {
-    const pool = LINE_POOL[animal.kind];
-    const start = hashText(`${facts.dateLabel}:${animal.kind}`) % pool.length;
-    const offset = used[animal.kind] || 0;
-    used[animal.kind] = offset + 1;
-    return pool[(start + offset) % pool.length];
-  });
+  return facts.animals.map((animal, index) => [
+    ["money", "재물운"], ["love", "연애운"], ["work", "일/직장운"],
+  ].map(([domain, label]) => {
+    const actions = DOMAIN_ACTIONS[domain];
+    const action = actions[(hashText(`${facts.dateLabel}:${domain}`) + index) % actions.length];
+    return `${label}: ${DOMAIN_FLOW[animal.kind][domain]} ${action}`;
+  }).join("\n"));
 }
 
 function hookOptions(facts) {
   const good = facts.good.slice(0, 3).map((name) => `${name}띠`).join("·");
   return [
-    good && `${good}, 오늘은 먼저 안부를 건네 봐.`,
-    good && `${good}, 혼자보다 함께 풀 일을 찾아봐.`,
-    good && `${good}, 미뤄 둔 한마디가 있다면.`,
-    good && `${good}, 작은 관심부터 표현해 봐.`,
+    good && `${good}, 돈과 관계 모두 조건을 맞춰 봐.`,
+    good && `${good}, 오늘 재물운·연애운의 포인트.`,
+    good && `${good}, 돈 이야기와 마음 표현을 살펴봐.`,
+    good && `${good}, 재물·연애·일운을 같이 읽어 봐.`,
   ].filter(Boolean);
 }
 
@@ -132,8 +181,8 @@ function fallbackHook(facts, recent = []) {
   return Array.from({ length: options.length }, (_, i) => options[(start + i) % options.length]).find((hook) => !seen.has(hook)) || options[start];
 }
 
-function fallbackTip(facts) {
-  return "오늘은 먼저 연락하기, 내 페이스 지키기 중 어느 쪽이 필요해?";
+function fallbackTip() {
+  return "오늘 더 궁금한 건 재물운, 연애운, 일운 중 뭐야?";
 }
 
 function fallbackCopy(facts, recent = []) {
@@ -142,7 +191,8 @@ function fallbackCopy(facts, recent = []) {
 }
 
 const SYSTEM_PROMPT = [
-  "당신은 띠별 운세를 다정한 친구처럼 쓰는 에디터다. 대상 띠를 먼저 부르고 구체적인 행동을 제안한다. 자극적인 호통·모욕·길흉 확정은 금지다.",
+  "당신은 띠별 재물운·연애운·일/직장운 연속글의 원글 훅과 질문을 다듬는 에디터다. 대상 띠와 읽을 분야를 선명하게 보여 준다. 자극적인 호통·모욕·길흉 확정은 금지다.",
+  "12띠의 분야별 본문은 검수 문안으로 이미 제공된다. 본문·분야별 점수·금액·발생 사건을 새로 만들지 않는다.",
   "오늘은 날짜 일진과 각 띠의 관계만 다룬다. 개인 사주·궁합·상대 속마음을 말하지 않는다.",
   "kind 뜻: good=손발 맞음(육합·삼합), clash=정면으로 부딪힘(충), rough=자잘하게 삐걱(원진·형·파·해), same=같은 기운 겹침, plain=무난.",
   "good 띠에 경고를, clash·rough 띠에 대박·행운을 쓰지 않는다.",
@@ -158,9 +208,8 @@ export function buildPrompt(facts) {
     "",
     "다음 JSON 하나만 출력하라. 설명·코드펜스를 붙이지 마라.",
     "{",
-    '  "hook": "대상 띠와 오늘 해 볼 행동을 연결한 다정한 반말 한 줄. 행운이나 연락 결과는 확정하지 않는다. 40자 이내.",',
-    `  "lines": { "쥐": "그 띠 kind 에 맞는 일상 장면과 작은 실천 두 문장. 반말, ${LINE_MAX}자 이내", "소": "…", …12띠 모두 },`,
-    '  "tip": "본문의 실천과 이어지는 답하기 쉬운 선택 질문 하나. 생년월일·사연 공개 요구 금지. 반말, 40자 이내."',
+    '  "hook": "대상 띠와 재물운·연애운 중 한 분야 이상을 연결한 다정한 반말 한 줄. 수입·재회·연락 결과는 확정하지 않는다. 40자 이내.",',
+    '  "tip": "재물운·연애운·일운 중 독자가 궁금한 분야를 묻는 질문 하나. 생년월일·사연 공개 요구 금지. 반말, 40자 이내."',
     "}",
   ].join("\n");
 }
@@ -170,7 +219,7 @@ const VOCABULARY = ["육합", "삼합", "원진", "상충", "형살", "도화", 
 /** @returns {Promise<{copy: Object, model: string|null, rejected: string[]}>} */
 export async function writeCopy(env, facts, { generateImpl, recent = [] } = {}) {
   const fallback = fallbackCopy(facts, recent);
-  const generated = await generateJsonCopy(env, { type: TYPE, systemPrompt: SYSTEM_PROMPT, prompt: buildPrompt(facts), generateImpl, recent, maxOutputTokens: 2048 });
+  const generated = await generateJsonCopy(env, { type: TYPE, systemPrompt: SYSTEM_PROMPT, prompt: buildPrompt(facts), generateImpl, recent, maxOutputTokens: 512 });
   if (!generated) return { copy: fallback, model: null, rejected: [] };
 
   const allowed = [...new Set(facts.animals.flatMap((animal) => animal.relations))];
@@ -189,16 +238,7 @@ export async function writeCopy(env, facts, { generateImpl, recent = [] } = {}) 
     && featured.some((name) => text.includes(`${name}띠`))
     && facts.animals.every(({ name }) => !text.includes(`${name}띠`) || featured.includes(name)) });
   const tip = take("tip", generated.fields?.tip, { min: 6, max: 40, validate: (text) => matchesKinds(text, facts) });
-  const modelLines = generated.fields?.lines && typeof generated.fields.lines === "object" ? generated.fields.lines : {};
-  // 같은 문장을 여러 띠에 복붙한 줄은 두 번째부터 버린다 — 실호출에서 12줄 중 같은 문장이 4번 나왔다(2026-10-02).
-  const seen = new Set();
-  const lines = facts.animals.map((animal, index) => {
-    const text = take(`line:${animal.name}`, modelLines[animal.name], { min: 4, max: LINE_MAX, validate: (line) => matchesKinds(line, facts, animal.kind) && !seen.has(line) });
-    if (text) seen.add(text);
-    return text || fallback.lines[index];
-  });
-
-  const copy = { hook: hook || fallback.hook, tip: tip || fallback.tip, lines, body: lines.join(" / ") };
+  const copy = { ...fallback, hook: hook || fallback.hook, tip: tip || fallback.tip };
   return { copy, model: used ? generated.model || null : null, rejected };
 }
 
@@ -210,19 +250,19 @@ const RELATION_NOTE = {
   plain: "두 지지의 뚜렷한 관계 없음. 생활 리듬에 초점을 둬.",
 };
 
-/** 원글 1개 + 3띠씩 4개 답글. 출생연도는 찾기용이며 개인 명식으로 해석하지 않는다. */
+/** 원글 1개 + 2띠씩 6개 답글. 각 띠는 재물·연애·일/직장운 세 분야를 빠짐없이 제공한다. */
 export function format(facts, copy, _url) {
   const featured = facts.animals.filter((animal) => facts.good.includes(animal.name)).slice(0, 3);
   const label = (animal) => `${animal.name}띠 ${animal.years.join("·")}`;
   const root = [copy.hook, "", `🐷 ${facts.dateLabel} · ${facts.dayPillar.ko}일 띠별 운세`,
     ...featured.map((animal, index) => `${index + 1}. ${label(animal)}`),
-    "", "오늘 일진과 합의 관계를 이루는 띠들이야. 미뤄 둔 안부나 같이 풀 일을 떠올려 봐.",
-    "12띠의 이유와 실천은 아래에 이어 둘게.", copy.tip, SCOPE_LINE,
+    "", "오늘 일진과 합의 관계를 이루는 띠들이야. 돈의 조건과 마음의 표현을 맞춰 봐.",
+    "12띠 각각의 재물운·연애운·일/직장운을 아래에 이어 둘게.", copy.tip, SCOPE_LINE,
     "연도는 찾기용 · 연초 출생은 입춘 기준 확인", "#꿀꿀운세"].join("\n");
   const replies = [];
-  for (let start = 0; start < facts.animals.length; start += 3) {
-    replies.push(facts.animals.slice(start, start + 3).map((animal, offset) =>
-      `[${label(animal)}]\n${RELATION_NOTE[animal.kind]}\n→ ${copy.lines[start + offset]}`
+  for (let start = 0; start < facts.animals.length; start += 2) {
+    replies.push(facts.animals.slice(start, start + 2).map((animal, offset) =>
+      `[${label(animal)}]\n${copy.lines[start + offset]}\n풀이: ${RELATION_NOTE[animal.kind]}`
     ).join("\n\n"));
   }
   return [root, ...replies];
