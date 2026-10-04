@@ -178,7 +178,8 @@ test('ziwei, vedic, astrology, sukuyo, tarot: sub-IDs land on the catalog owners
  const dasha=resolved.find(x=>x.fixture==='vedic'&&x.tier==='tuna').ledger.facts.get('vedic.vimshottariDasha.arc').value;
  assert.ok(!JSON.stringify(dasha).includes('1997-02-10'),'birth-balance start date must not leak');
  const a=pick('astrology','tuna'),as=pick('astrology','salmon');
- assert.ok(a('tension').every(id=>/-(square|opposition)-|none-tension/.test(id))&&a('tension').length);
+ // Tension also owns the chart sect (astrology/derived.ts): the out-of-sect malefic reads as the sharpest tension.
+ assert.ok(a('tension').every(id=>/-(square|opposition)-|none-tension|\.chartSect$/.test(id))&&a('tension').includes('astrology.chartSect'));
  assert.ok(a('harmony').every(id=>/-(trine|sextile)-|none-harmony/.test(id))&&a('harmony').length);
  assert.ok(as('aspects').some(id=>id.includes('-conjunction-')||id.endsWith('none-conjunction')));
  // Tuna has no conjunction chapter: a conjunction goes to the earlier planet owner in manifest order.

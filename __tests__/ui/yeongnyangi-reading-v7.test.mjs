@@ -26,7 +26,7 @@ const sourceLabel=s=>label(s)==='relationMap'?'personA':label(s);
 const overlaps=(a,b)=>a===b||a.startsWith(b+'.')||b.startsWith(a+'.');
 const PREMIUM=/usefulGod|jong|majorLuck|vimshottariDasha|dasha|yogas|divisionalCharts|fourTransformations|sanFangSiZheng/;
 const PREMIUM_TITLE=/대운|용신|다샤|요가|분할도|사화|삼방사정|대한|나밤샤|다샴샤/;
-const FORBIDDEN_FIELD={saju:/heeshin|희신/i,ziwei:/lunar|yearlyFour/i,vedic:/transit|pratyantar/i,astrology:/ruler|dignit|element/i,sukuyo:/birthTimeContext/,tarot:/topSummary|quality|levelUp|questionType/};
+const FORBIDDEN_FIELD={saju:/heeshin|희신/i,ziwei:/lunar|yearlyFour/i,vedic:/transit|pratyantar/i,astrology:/transit|progress|chiron|lilith/i,sukuyo:/birthTimeContext/,tarot:/topSummary|quality|levelUp|questionType/};
 
 test('ownership: no two chapters own overlapping facts; owns come from the chapter inputs; anchor owns the refs',()=>{
  for(const {domain,kind,tier,chapters} of all){

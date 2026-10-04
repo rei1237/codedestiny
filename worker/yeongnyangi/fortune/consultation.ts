@@ -166,6 +166,7 @@ export const professionalEvidenceNames: Record<string, string> = {
   businessBasis: '사업운의 근거(재백·자녀·전택·관록궁과 궁간 비화)',
   palaces: '자미두수의 궁과 별 배치', bodyPalace: '신궁의 위치', planets: '행성의 위치',
   ascendant: '상승점', aspects: '행성 간 각도', houseCusps: '하우스의 경계',
+  houseRulers: '하우스 주인(전통 룰러)과 그 배치', chartSect: '주간·야간 차트(섹트)', elementBalance: '원소·모드 분포',
   vimshottariDasha: '빔쇼타리 다샤의 기간', cards: '뽑힌 카드와 위치별 상징',
   todaySaju: '오늘의 사주 일진', todaySukuyo: '오늘의 숙요 일운', todayVedic: '오늘의 베다 판창가와 타라 발라',
   todayNumerology: '오늘의 수비학 개인 수', sajuYearlyLuck: '사주 세운의 흐름', sajuMonthlyLuck: '사주 월운의 흐름',

@@ -80,7 +80,8 @@ export const V7_TERMS:Record<string,V7Term[]>={
     {term:'상승점',ids:['.ascendant'],anchor:true},
     {term:'태양',ids:['.planets.Sun'],anchor:true},
     {term:'중천점',ids:['.midheaven']},
-    ...fromPlanets(KO_PLANETS,'planets'),
+    // 하우스 주인·섹트·건강 근거(astrology/derived.ts)는 전통 행성을 부르므로 그 사실을 가진 장도 행성 이름을 쓸 수 있다.
+    ...fromPlanets(KO_PLANETS,'planets').map(t=>({...t,ids:[...t.ids,'.houseRulers.','.chartSect','.healthBasis']})),
     ...fromPlanets(KO_OUTER,'planets'),
   ],
   sukuyo:[{term:'본명숙',ids:['.personA'],anchor:true}],
@@ -88,8 +89,13 @@ export const V7_TERMS:Record<string,V7Term[]>={
 };
 /** House numbers are a pattern, not a word list. Vedic and astrology store them under different labels. */
 const HOUSE_LABEL:Record<string,string>={vedic:'houses',astrology:'houseCusps'};
-// 하우스 번호를 근거 문장에 쓰는 파생 사실: 요가는 켄드라·트리코나·두스타나 전부, 베다 건강은 1·6·8·12하우스.
-const HOUSE_EXTRA:Record<string,(house:number)=>string[]>={vedic:house=>['.yogas.',...([1,6,8,12].includes(house)?['.healthBasis']:[])]};
+// 하우스 번호를 근거 문장에 쓰는 파생 사실: 요가는 켄드라·트리코나·두스타나 전부, 베다 건강은 1·6·8·12하우스,
+// 점성술 하우스 주인은 주인이 앉은 어느 하우스든, 점성술 건강은 1·6·8·12하우스.
+const HEALTH_HOUSES=[1,6,8,12];
+const HOUSE_EXTRA:Record<string,(house:number)=>string[]>={
+  vedic:house=>['.yogas.',...(HEALTH_HOUSES.includes(house)?['.healthBasis']:[])],
+  astrology:house=>['.houseRulers.',...(HEALTH_HOUSES.includes(house)?['.healthBasis']:[])],
+};
 const HOUSE_TERM=/(\d{1,2})\s*번?\s*하우스/gu;
 
 const NORM=(s:string)=>s.normalize('NFC').replace(/\s+/g,' ').trim();

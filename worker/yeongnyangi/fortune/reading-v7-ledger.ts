@@ -8,6 +8,7 @@ import {formatPillar,sexagenaryYearIndexes} from '../../../lib/korean-calendar/i
 import {relationFromForwardDistance} from '../../lib/sukuyo-relation-core.js';
 import {SUKUYO_MANSIONS} from '../../lib/sukuyo-premium.js';
 import {VEDIC_YOGA_SLUGS} from './vedic/derived';
+import {ASTROLOGY_RULED_HOUSES} from './astrology/derived';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type O=Record<string,any>;
@@ -202,7 +203,9 @@ function vedic(label:string,v:O,k:Kit){
 }
 function astrology(label:string,v:O,k:Kit){
   switch(label){
-    case 'ascendant':case 'midheaven':return whole(k,label,v);
+    case 'ascendant':case 'midheaven':case 'chartSect':case 'elementBalance':case 'healthBasis':return whole(k,label,v);
+    // Traditional rulers of the 1·6·7·10 houses (astrology/derived.ts); an unowned row falls back to its planet.
+    case 'houseRulers':for(const r of list(v)){if(!ASTROLOGY_RULED_HOUSES.includes(r?.house)||!ASTRO_PLANETS.includes(r?.ruler)){k.unslug(label,r);continue;}k.emit(label,String(r.house),r,[`houseRulers.${r.house}`],[`planets.${r.ruler}`]);}return true;
     case 'northNode':case 'southNode':k.emit(label,null,v,[label],[`houseCusps.${v?.house}`]);return true;
     case 'planets':for(const [name,p] of Object.entries(v||{})){if(!ASTRO_PLANETS.includes(name)){k.unslug(label,name);continue;}k.emit(label,name,p,[`planets.${name}`],[`houseCusps.${p?.house}`]);}return true;
     case 'houseCusps':{
