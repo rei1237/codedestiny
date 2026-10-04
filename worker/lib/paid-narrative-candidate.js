@@ -1,17 +1,21 @@
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from './paid-report-quality.js';
+import { dedupeCodexBody } from './master-love-codex-quality.js';
 
 // Keep provider prose, removing exact duplicate paragraphs and an unfinished tail.
 // JSON products retain their adapter's validation; never treat JSON syntax as prose.
-export function normalizeNarrativeBody(body) {
+export function normalizeNarrativeBody(body, priorBodies = []) {
   if (typeof body !== 'string' || /^\s*[\[{]/u.test(body)) return body;
-  return [...new Set(body.split(/\n\s*\n/u).map(paragraph => {
+  const normalized = [...new Set(body.split(/\n\s*\n/u).map(paragraph => {
     const text = paragraph.trim();
     if (/[.!?。？！]["'”’)\]」』]*\s*$/u.test(text)) return text;
     const sentences = [...text.matchAll(/[.!?。？！]["'”’)\]」』]*(?=\s|$)/gu)];
     const last = sentences.at(-1);
     return last ? text.slice(0, last.index + last[0].length) : '';
   }).filter(Boolean))].join('\n\n');
+  const edited = dedupeCodexBody(normalized, priorBodies);
+  // Exact sentence edits reuse provider prose; a mostly copied answer still fails.
+  return countPaidReportBodyChars(edited) >= countPaidReportBodyChars(normalized) * 0.8 ? edited : '';
 }
 export function completeNarrativeBody(body) {
   if (typeof body !== 'string' || hasRepeatedReportPassage(body)) return false;
