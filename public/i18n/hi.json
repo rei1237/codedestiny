@@ -6655,7 +6655,7 @@
         },
         "library": "Library",
         "consultTab": {
-          "ariaLabel": "Chat with Yeoni & Neo"
+          "ariaLabel": "Choose a fortune consultation"
         },
         "libraryTab": {
           "ariaLabel": "My library"

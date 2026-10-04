@@ -7,6 +7,7 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { getAuthState, useAuthStore } from "@/app/_lib/auth-store";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import ConsultationShare from "@/components/fortune/ConsultationShare";
+import SavedRecordLink from "@/components/fortune/SavedRecordLink";
 import { teaHouseShareChoices } from "@/lib/consultation-sharing";
 import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseHoneyLetter } from "../data/consult";
@@ -31,6 +32,7 @@ import styles from "../styles/tea-report.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 import { useLocale } from "@/lib/i18n/useT";
 type TeaHouseResultSheetProps = {
+  readOnly?: boolean;
   result: FortuneTeaHouseConsultResponse;
   onRestart: () => void;
   onShowTarot: () => void;
@@ -379,6 +381,7 @@ export default function TeaHouseResultSheet({
   honeyDrops,
   onHoneyDropsChange,
   onResultUpdate,
+  readOnly = false,
 }: TeaHouseResultSheetProps) {
   const copy = useTeaHouseCopy("resultSheet", KO);
   const tenGodMeta = useTeaHouseCopy("tenGods", tenGodMetaMap, { skipKeys: TEN_GOD_SKIP_KEYS });
@@ -604,7 +607,7 @@ export default function TeaHouseResultSheet({
   }, []);
 
   useEffect(() => {
-    if (!result.honeyLetterPending || result.honeyLetter || !honeyOwner) return;
+    if (readOnly || !result.honeyLetterPending || result.honeyLetter || !honeyOwner) return;
     const resume = () => {
       if (document.visibilityState === "visible" && navigator.onLine) void honeyResumeRef.current();
     };
@@ -618,7 +621,7 @@ export default function TeaHouseResultSheet({
       window.removeEventListener("online", resume);
       document.removeEventListener("visibilitychange", resume);
     };
-  }, [result.honeyLetterPending, result.honeyLetter, result.resultId, honeyOwner]);
+  }, [readOnly, result.honeyLetterPending, result.honeyLetter, result.resultId, honeyOwner]);
 
   function saveResultAsTextFile() {
     try {
@@ -1020,7 +1023,7 @@ export default function TeaHouseResultSheet({
                   {/* 편지는 문단 분할 없이 원문 개행 그대로 (white-space: pre-line) */}
                   <p>{honeyLetter.body}</p>
                 </article>
-              ) : (
+              ) : readOnly ? null : (
                 <div className={styles.honeyLetterCta}>
                   <p>
                     
@@ -1053,6 +1056,7 @@ export default function TeaHouseResultSheet({
         ) : null}
 
         <ConsultationShare key={rawResult.resultId} brand="tea" choices={[{id:"invitation",label:copy.safeShareLabel,text:copy.safeShareText},...teaHouseShareChoices(rawResult)]} />
+        <SavedRecordLink source="tea" id={rawResult.resultId || ''} />
 
         <div className={`${styles.resultActions} `}>
           <TeaHouseButton onClick={onRestart}>{copy.kp3udmzq}</TeaHouseButton>

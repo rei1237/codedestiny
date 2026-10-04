@@ -644,7 +644,8 @@ export default function FortuneTeaHousePage() {
     if (!owner || pendingProbeRef.current || submitLockRef.current) return;
     pendingProbeRef.current = true;
     try {
-      const response = await authFetch("/api/fortune-tea-house/pending", { method: "GET", cache: "no-store" }, { retryOn401: false });
+      const recoverResultId = new URLSearchParams(window.location.search).get('recoverResultId');
+      const response = await authFetch(`/api/fortune-tea-house/pending${recoverResultId ? `?resultId=${encodeURIComponent(recoverResultId)}` : ''}`, { method: "GET", cache: "no-store" }, { retryOn401: false });
       if (response.status !== 202) return;
       const payload = await response.json() as FortuneTeaHouseConsultApiResponse;
       if (recoveryOwnerRef.current !== owner || submitLockRef.current || !payload.requestPayload) return;

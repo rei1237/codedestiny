@@ -532,6 +532,7 @@ const handleAnimalTotemRoutes = createLazyRouteHandler("./routes/animal-totem.js
 const handleKasiRoutes = createLazyRouteHandler("./routes/kasi.js", () => import("./routes/kasi.js"), "handleKasiRoutes");
 const handleUserRoutes = createLazyRouteHandler("./routes/user.js", () => import("./routes/user.js"), "handleUserRoutes");
 const handleProfileRoutes = createLazyRouteHandler("./routes/profile.js", () => import("./routes/profile.js"), "handleProfileRoutes");
+const handleRecordRoutes = createLazyRouteHandler("./routes/records.js", () => import("./routes/records.js"), "handleRecordRoutes");
 const handleProfileListRoute = createLazyRouteHandler("./routes/profile-list.js", () => import("./routes/profile-list.js"), "handleProfileListRoute", "api/profile");
 const handleAccessStateRoutes = createLazyRouteHandler("./routes/access-state.js", () => import("./routes/access-state.js"), "handleAccessStateRoutes", "api/me/access-state");
 // 영냥이(SoulCat) 결제 증빙 조회·소비 — Service Binding 전용, 단건 결제 증빙 경로
@@ -1510,6 +1511,10 @@ const app = {
 
       if (url.pathname === "/api/fortune-chat" || url.pathname.startsWith("/api/fortune-chat/")) {
         return withCorsHeaders(request, env, await handleFortuneChatRoutes(request, env, ctx));
+      }
+
+      if (url.pathname === "/api/records" || url.pathname.startsWith("/api/records/")) {
+        return withCorsHeaders(request, env, await handleRecordRoutes(request, env));
       }
 
       if (url.pathname === "/api/fortune-tea-house" || url.pathname.startsWith("/api/fortune-tea-house/")) {

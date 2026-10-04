@@ -3,7 +3,11 @@
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties } from "react";
+import { authFetch } from '@/app/_lib/auth-client';
+import { recordsCopy } from '@/lib/records/copy';
+import { savedRecordPath } from '@/lib/records/service-registry';
+import { useLocale } from '@/lib/i18n/useT';
 import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
 import {
   clearFeatureSessionDraft,
@@ -249,6 +253,23 @@ function InputField({
 }
 
 export default function DestinyBiasClient() {
+  const archiveCopy = recordsCopy(useLocale());
+  const [archiveId, setArchiveId] = useState(''), [savingRecord, setSavingRecord] = useState(false), [saveError, setSaveError] = useState(false);
+  const archiveRequest = useRef('');
+  const saveReading = useCallback(async (vm: DestinyBiasResultViewModel, requestId: string) => {
+    setSavingRecord(true); setSaveError(false);
+    try {
+      const response = await authFetch('/api/destiny-bias/cards', { method: 'POST', body: JSON.stringify({
+        recordRequestId: requestId, title: '최애운명 카드', summary: vm.chemistrySummary,
+        score: vm.totalScore, grade: vm.destinyGrade,
+        canonical: { version: 'destiny-bias-record-v1', viewModel: vm },
+      }), headers: { 'Content-Type': 'application/json' } });
+      const data = await response.json();
+      if (!response.ok || !data.ok || !data.item?.id) throw new Error('RECORD_SAVE_FAILED');
+      if (archiveRequest.current === requestId) setArchiveId(String(data.item.id));
+    } catch { if (archiveRequest.current === requestId) setSaveError(true); }
+    finally { if (archiveRequest.current === requestId) setSavingRecord(false); }
+  }, []);
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const { guardHandlers, shouldBlockClick } = useDestinyBiasTouchGuard();
@@ -742,6 +763,8 @@ export default function DestinyBiasClient() {
       };
 
       setResultVm(vm);
+      const recordRequest = crypto.randomUUID(); archiveRequest.current = recordRequest;
+      setArchiveId(''); void saveReading(vm, recordRequest);
       setUiStep(5);
       setToast(copy.clientAnalysisCompleteToast);
     } catch (analysisError) {
@@ -756,6 +779,7 @@ export default function DestinyBiasClient() {
       setAnalyzing(false);
     }
   }, [
+    saveReading,
     analyzing,
     biasInput.birthDateInput,
     biasInput.birthTimeInput,
@@ -1456,6 +1480,10 @@ export default function DestinyBiasClient() {
               <BiasDestinyShareCard vm={resultVm} />
 
               <section className="space-y-3">
+                <div className="flex flex-wrap items-center gap-3" aria-live="polite">
+                  {savingRecord ? <p>{archiveCopy.saving}</p> : archiveId ? <a className="inline-flex min-h-11 items-center rounded-xl border border-[var(--cd-border)] px-4" href={savedRecordPath('destiny-bias', archiveId)}>{archiveCopy.open}</a> : saveError ? <><p>{archiveCopy.saveError}</p><button type="button" className="min-h-11 rounded-xl border border-[var(--cd-border)] px-4" onClick={() => void saveReading(resultVm, archiveRequest.current)}>{archiveCopy.save}</button></> : null}
+                  <a className="inline-flex min-h-11 items-center rounded-xl border border-[var(--cd-border)] px-4" href="/records/">{archiveCopy.title}</a>
+                </div>
                 <p className="text-[11px] font-semibold tracking-[0.16em] text-[var(--bias-gold)]/85">{copy.clientSaveShareLabel} SAVE &amp; SHARE</p>
                 <DestinyBiasActionBar
                   onDownloadSvg={handleDownloadSvg}

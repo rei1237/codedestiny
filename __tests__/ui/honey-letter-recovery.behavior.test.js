@@ -80,7 +80,7 @@ test('server pending result resumes on mobile return and online with bounded tim
   const listeners = new Map(); const timers = new Map(); let calls = 0;
   const events = { addEventListener: (name, fn) => listeners.set(name, fn), removeEventListener: name => listeners.delete(name) };
   const state = {
-    result: { resultId: 'saved', honeyLetterPending: true }, honeyOwner: 'owner',
+    readOnly: false, result: { resultId: 'saved', honeyLetterPending: true }, honeyOwner: 'owner',
     honeyResumeRef: { current: () => { calls++; } },
     document: { ...events, visibilityState: 'visible' }, navigator: { onLine: true },
     window: { ...events, setTimeout: (fn, delay) => { timers.set(delay, fn); return delay; }, clearTimeout: id => timers.delete(id) },
@@ -91,4 +91,8 @@ test('server pending result resumes on mobile return and online with bounded tim
   assert.equal(calls, 2);
   state.document.visibilityState = 'hidden'; listeners.get('visibilitychange')(); assert.equal(calls, 2);
   cleanup(); assert.equal(timers.size, 0); assert.equal(listeners.size, 0);
+  state.readOnly = true;
+  const before = calls;
+  vm.runInNewContext(`(${recoveryEffect.arguments[0].getText(ast)})()`, state);
+  assert.equal(timers.size, 0); assert.equal(listeners.size, 0); assert.equal(calls, before);
 });
