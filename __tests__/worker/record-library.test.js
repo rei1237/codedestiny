@@ -186,3 +186,10 @@ test('new consultation snapshots remain read-only and partial chapter counts sta
   expect(library.recordStatus({state:'FORTUNE_FAILED'},source)).toBe('failed');
   expect(library.recordStatus({state:'PAID'},source)).toBe('generating');
 });
+
+test('shared Codex and life-book stores retain the actual billing variant and display identity',async()=>{
+  const {recordService}=await import('../../lib/records/service-registry.js');
+  expect(library.recordMetadata(recordService('codex'),{id:'compat',mode:'compat'}).serviceId).toBe('master-love-codex-compat');
+  const legacy=library.recordMetadata(recordService('life-book'),{id:'legacy',llmMeta:{input:{consultationType:'lifeFortune'}},featureKey:'life-book-ai-consultation'});
+  expect(legacy.serviceName).toBe('인생 총운');expect(legacy.serviceId).toBe('life-book-ai-consultation');
+});

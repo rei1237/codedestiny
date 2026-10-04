@@ -6,6 +6,7 @@ import { chromium } from 'playwright';
 import { RECORD_SERVICES, savedRecordPath } from '../../lib/records/service-registry.js';
 import { getMasterLoveCodexPlan } from '../../worker/lib/master-love-codex-prompt.mjs';
 const origin = process.env.RECORDS_TEST_ORIGIN || 'http://127.0.0.1:3194';
+const detailOnly = process.env.RECORDS_TEST_DETAIL_ONLY;
 assert.match(origin, /^http:\/\/(127\.0\.0\.1|localhost):\d+$/);
 const out = path.resolve('build-cache/records-hub'); fs.mkdirSync(out,{recursive:true});
 const user = {id:'64b7f2a1c3d4e5f601234567',_id:'64b7f2a1c3d4e5f601234567',name:'화면 검증',email:'fixture@example.invalid',hasLocalAuth:true};
@@ -24,6 +25,7 @@ const details={
   fusion:{record:record('fusion'),content:{result:fusion}},
   codex:{record:record('codex'),content:{id:'fixture',status:'completed',chapters:codex,totalCharCount:codex.reduce((n,row)=>n+row.body.length,0)}},
   chat:{record:record('chat','fixture',{status:'conversation'}),content:{characterId:'yeoni',messages:[{speaker:'user',text:'저장된 질문'},{speaker:'assistant',text:'저장된 답변',detail:'대화의 전체 상세 내용'}]}},
+  'chat-consultation':{record:record('chat-consultation'),content:{id:'fixture',persona:'neo',state:'COMPLETED',paid:true,locale:'ko',manifest:[{id:'one',title:'저장된 첫 상담',theme:'flow'},{id:'two',title:'저장된 마지막 상담',theme:'action'}],consultation:{question:text},product:{systems:['saju']},chapters:[{summary:'첫 상담 전체 요약',analysis:[text],advice:[text],persona:text},{summary:'마지막 상담 전체 요약',analysis:['마지막 상담 전체 본문'],advice:[text],persona:text}]}},
   tea:{record:record('tea','tea-fixture',{nativeHref:'/fortune-tea-house/?resultId=tea-fixture'}),content:tea},
   legacy:{record:record('astrology'),content:{id:'',chapters:[{title:'첫 장',body:'첫 장 전체 내용'},{title:'마지막 장',body:'마지막 장 전체 내용'}],chart:{planets:[{name:'Sun',degree:12}]},html:'<table><tr><td>저장된 표</td></tr></table><script>window.fixtureXss=true</script>'}},
   partial:{record:record('fusion','partial',{status:'partial'}),content:{chapters:[{title:'첫 장',body:'부분 저장 내용'}]}},
@@ -62,6 +64,7 @@ async function contextFor(width,scenario='normal') {
     return route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
   });
   const page=await context.newPage();page.setDefaultNavigationTimeout(120000);page.setDefaultTimeout(60000);page.on('pageerror',error=>errors.push(error.message));
+  if(detailOnly)page.on('response',response=>{if(response.url().includes('/api/records/detail'))void response.json().then(data=>console.log('Fixture detail',response.status(),data.record?.status,Object.keys(data.content||{})));});
   return {context,page,seen,forbidden,errors};
 }
 async function bounds(page,width) {
@@ -69,7 +72,7 @@ async function bounds(page,width) {
   assert.ok(box.scroll<=width+1,`overflow ${box.scroll} > ${width}`);assert.ok(box.bottom>=110,'navigation safe spacing');return box;
 }
 try {
-  for(const width of [360,390,430,1280]) {
+  for(const width of detailOnly?[]:[360,390,430,1280]) {
     const state=await contextFor(width);const {page,context}=state;
     await page.goto(origin+'/consultations/',{waitUntil:'domcontentloaded'});await page.getByRole('heading',{name:'지금, 어떤 답이 필요한가요?'}).waitFor();
     for(const source of RECORD_SERVICES.filter(row=>row.featured))assert.equal(await page.locator(`main a[href="${source.href}"]`).count(),1);
@@ -84,17 +87,21 @@ try {
     await page.locator('main article a').nth(4).scrollIntoViewIfNeeded();await page.waitForTimeout(100);const readingTop=await page.evaluate(()=>scrollY);
     await page.locator('main article a').nth(4).click();await page.waitForFunction(()=>document.querySelector('main h1')?.textContent.includes('[화면 검증]'));
     await page.goBack();await page.locator('main article').first().waitFor();assert.equal(await page.getByRole('searchbox').inputValue(),'계획');await page.waitForTimeout(300);assert.ok(Math.abs(await page.evaluate(()=>scrollY)-readingTop)<60,`archive scroll restored ${readingTop}`);
+    await page.getByRole('button',{name:'대화 상담',exact:true}).click();await page.waitForFunction(()=>document.querySelectorAll('main article').length===6);
+    assert.equal(await page.locator('main article a[href*="source=chat"] ').count(),6);
+    await page.locator('main article a').first().click();await page.getByText('대화의 전체 상세 내용',{exact:true}).waitFor();await page.goBack();await page.locator('main article').first().waitFor();assert.equal(await page.getByRole('button',{name:'대화 상담',exact:true}).getAttribute('aria-pressed'),'true');
+    await page.getByRole('searchbox').focus();assert.notEqual(await page.locator('main label').first().evaluate(node=>getComputedStyle(node).outlineStyle),'none');
     assert.equal(state.errors.length,0,JSON.stringify(state.errors));assert.equal(state.forbidden.length,0,JSON.stringify(state.forbidden));
     evidence.push({scenario:'layout-navigation-restore',width,hubBounds,archiveBounds,api:state.seen,passed:true});await context.close();
   }
-  for(const scenario of ['guest','empty','error','partial-error']) {
+  for(const scenario of detailOnly?[]:['guest','empty','error','partial-error']) {
     const state=await contextFor(390,scenario);await state.page.goto(origin+'/records/',{waitUntil:'domcontentloaded'});
     const expected={guest:'내 기록을 보려면 로그인해 주세요',empty:'아직 보관된 기록이 없어요',error:'기록을 불러오지 못했어요','partial-error':'일부 기록을 확인하지 못했어요'}[scenario];await state.page.getByText(expected,{exact:true}).waitFor();
     if(scenario==='partial-error')assert.equal(await state.page.locator('main article').count(),10);
     if(scenario==='error')assert.equal(await state.page.getByText('아직 보관된 기록이 없어요',{exact:true}).count(),0);
     await state.page.screenshot({path:path.join(out,`archive-${scenario}.png`),fullPage:true});evidence.push({scenario,passed:true,api:state.seen});await state.context.close();
   }
-  for(const source of ['neo','fusion','codex','chat','tea','astrology','partial']) {
+  for(const source of ['neo','fusion','codex','chat','chat-consultation','tea','astrology','partial'].filter(source=>!detailOnly||source===detailOnly)) {
     const state=await contextFor(390);const actual=source==='partial'?'fusion':source;
     await state.page.goto(origin+savedRecordPath(actual,source==='tea'?'tea-fixture':source==='partial'?'partial':'fixture'),{waitUntil:'domcontentloaded'});
     if(source==='tea')await state.page.getByText('[화면 검증] 연이의 상담 기록',{exact:true}).waitFor();
@@ -102,7 +109,8 @@ try {
     else if(source==='neo')await state.page.getByText('저장된 작전',{exact:true}).first().waitFor();
     else if(source==='fusion')await state.page.getByText('sajuSection 저장 섹션',{exact:true}).waitFor();
     else if(source==='chat')await state.page.getByText('대화의 전체 상세 내용',{exact:true}).waitFor();
-    else if(source==='partial')await state.page.getByText('부분 저장 내용',{exact:true}).waitFor();
+    else if(source==='chat-consultation')await state.page.getByText('마지막 상담 전체 본문',{exact:true}).waitFor();
+    else if(source==='partial'){try{await state.page.getByText('부분 저장 내용',{exact:true}).waitFor();}catch(error){console.log('Partial fixture failure',await state.page.locator('main').innerText(),state.errors,state.seen);throw error;}}
     else {await state.page.getByText('마지막 장 전체 내용',{exact:true}).waitFor();assert.equal(await state.page.locator('td').filter({hasText:'저장된 표'}).count(),1);assert.equal(await state.page.evaluate(()=>window.fixtureXss),undefined);}
     await state.page.reload({waitUntil:'domcontentloaded'});
     await state.page.waitForTimeout(2000);assert.equal(state.errors.length,0,JSON.stringify(state.errors));assert.equal(state.forbidden.length,0,JSON.stringify(state.forbidden));

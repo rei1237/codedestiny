@@ -13,18 +13,18 @@ export const RECORD_METADATA_PROJECTION = Object.freeze({
   _id: 1, id: 1, sessionId: 1, resultId: 1, executionKey: 1, createdAt: 1,
   title: 1, topic: 1, question: 1, userQuestion: 1, questionSummary: 1, selectedTopic: 1,
   status: 1, generationStatus: 1, premiumStatus: 1, stage: 1, mode: 1,
-  featureKey: 1, featureId: 1, serviceType: 1, reportType: 1, characterId: 1,
+  featureKey: 1, featureId: 1, serviceType: 1, reportType: 1, consultationType: 1, characterId: 1,
   state: 1, persona: 1, completedChapters: 1, questionExcerpt: 1, paymentId: 1, orderId: 1, merchantUid: 1,
   'snapshot.analysis.consultation.question': 1,
   'metadata.paidNarrative.body.question': 1, 'metadata.paidNarrative.body.userQuestion': 1,
   'metadata.paidNarrative.body.topic': 1, 'metadata.archive.title': 1,
   'result.title': 1, 'result.sessionTitle': 1, 'result.question': 1, 'result.questionSummary': 1, 'initialBriefing.operationTitle': 1,
-  'inputSummary.topic': 1,
+  'inputSummary.topic': 1, 'llmMeta.input.consultationType': 1,
 });
 export const readRecordField = (doc, path) => path.split('.').reduce((value, key) => value?.[key], doc);
 const clean = (value, size = 600) => typeof value === 'string' ? value.trim().slice(0, size) : '';
 const questionFields = ['question', 'userQuestion', 'questionSummary', 'selectedTopic', 'snapshot.analysis.consultation.question', 'inputSummary.topic', 'metadata.paidNarrative.body.question', 'metadata.paidNarrative.body.userQuestion', 'result.question', 'result.questionSummary'];
-const titleFields = ['title', 'topic', 'metadata.archive.title', 'metadata.paidNarrative.body.topic', 'result.title', 'result.sessionTitle', 'initialBriefing.operationTitle'];
+const titleFields = ['title', 'result.title', 'result.sessionTitle', 'initialBriefing.operationTitle', 'metadata.archive.title', 'metadata.paidNarrative.body.topic', 'topic'];
 export function recordStatus(doc, source) {
   const status = clean(doc.state || doc.premiumStatus || doc.generationStatus || doc.status, 40).toLowerCase();
   if (['refunded', 'cancelled', 'canceled', 'revoked'].includes(doc.status)) return 'revoked';
@@ -46,11 +46,11 @@ export function recordStatus(doc, source) {
 }
 export function recordMetadata(source, doc) {
   const id = String(doc[source.idField] || doc._id || '');
-  const featureKey = clean(doc.featureKey || doc.featureId || doc.serviceType || source.featureKey, 160);
+  const featureKey = clean(doc.featureKey || doc.featureId || doc.serviceType || (source.id === 'codex' && doc.mode === 'compat' ? 'master-love-codex-compat' : source.featureKey), 160);
   const product = featureKey && resolveReviewProductByFeatureKey(featureKey);
   const variant = SAVED_FEATURES[featureKey];
   const name = source.dynamic ? (variant?.name || product?.name || source.name) :
-    source.id === 'life-book' && featureKey === 'life-fortune-ai-consultation' ? '인생 총운' :
+    source.id === 'life-book' && (featureKey === 'life-fortune-ai-consultation' || (doc.consultationType || doc.llmMeta?.input?.consultationType) === 'lifeFortune') ? '인생 총운' :
       source.id === 'ziwei' && doc.serviceType === 'ziwei-island-palace-consult' ? '운명의 섬 12궁 상담' : source.name;
   const status = recordStatus(doc, source);
   return { id, source: source.id, key: `${source.id}:${id}`, serviceId: featureKey || source.id, serviceName: name,

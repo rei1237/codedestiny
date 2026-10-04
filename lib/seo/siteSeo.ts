@@ -391,6 +391,8 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
 };
 
 export const noindexPathPrefixes = [
+  '/records',
+  '/consultations',
   "/api",
   "/api-hello-test",
   "/admin",
