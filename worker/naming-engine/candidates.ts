@@ -6,7 +6,7 @@
 // 동음 블랙리스트는 상위 K 에 들 만한 조합에만 늦게 확인한다(block 은 버리고 warn 은 감점).
 
 import { CONFIDENCE, DIST_BONUS, PRACTICAL, SEARCH, WEIGHTS } from "./config/weights";
-import { hasNegativeMeaning, mismatchesGender } from "./config/negative-meaning";
+import { DISEASE_RADICAL, feminineCharForMale, hasNegativeMeaning, mismatchesGender } from "./config/negative-meaning";
 import type { SchoolPreset } from "./config/school-presets";
 import type { BlacklistEntry, HanjaEntry, HanjaReading, NamingData } from "./data";
 import type { SajuNeeds } from "./saju-input";
@@ -52,6 +52,11 @@ export interface SearchContext {
   avoid: ReadonlySet<string>;
   tier: Tier;
   inputHash: string;
+  /**
+   * 주면 이 한글 이름(성 제외, nameLength 음절)만 탐색한다 — 추천 모드의 성별 자연 이름, 선택 모드의 부모가 고른 이름.
+   * perSyllable = 음절마다 남기는 글자 수(순위 높은 순). minNameUse = 그 음으로 이름에 쓰인 횟수 하한(고정 글자 제외). 없으면 풀 전체 탐색.
+   */
+  names?: { allowed: readonly string[]; perSyllable: number; minNameUse: number } | null;
 }
 
 export interface SearchHit {
@@ -64,11 +69,12 @@ export interface SearchHit {
 }
 
 /**
- * 글자(음 단위)가 허용되는 최소 완화 단계. null 은 어떤 단계에서도 추천하지 않는다(첫째 훈이 부정 뜻·반대 성별 호칭).
+ * 글자(음 단위)가 허용되는 최소 완화 단계. null 은 어떤 단계에서도 추천하지 않는다(첫째 훈이 부정 뜻·반대 성별 호칭, 疒부, 남자 이름의 女부 글자).
  * 훈 없음·자원오행 신뢰도 하한 미만·무료의 분쟁 글자는 3단계에서만 허용한다.
  */
 export function unitStage(entry: HanjaEntry, reading: HanjaReading, tier: Tier, gender: "M" | "F" | "N"): number | null {
   if (hasNegativeMeaning(reading.hun) || mismatchesGender(reading.hun, gender)) return null;
+  if (entry.radical === DISEASE_RADICAL || feminineCharForMale(entry.ch, entry.radical, gender)) return null;
   const lowConfidence = !entry.jawon || (entry.confidence ?? 0) < CONFIDENCE.floor;
   const freeDisputed = tier === "free" && entry.disputes.length > 0;
   return !reading.hun || lowConfidence || freeDisputed ? 3 : 0;
@@ -279,6 +285,54 @@ export function searchStage(ctx: SearchContext, units: UnitSet, stage: number, k
     const stageNeeded = Math.max(gridMin, ...picks.map((p) => p.stage));
     heap.push({ picks, total, tie, stage: stageNeeded });
   };
+
+  if (ctx.names) {
+    // 이름 목록 탐색: 음절마다 순위 높은 글자 perSyllable 개끼리만 조합한다(고정 글자 자리는 전부).
+    const bySyllable = (list: Unit[], cap: number) => {
+      const grouped = new Map<string, Unit[]>();
+      for (const unit of list) {
+        const row = grouped.get(unit.reading.hangul);
+        if (row) row.push(unit);
+        else grouped.set(unit.reading.hangul, [unit]);
+      }
+      for (const [syllable, row] of grouped) grouped.set(syllable, row.sort(byRank).slice(0, cap));
+      return grouped;
+    };
+    const { perSyllable: cap, minNameUse } = ctx.names;
+    const used = open.filter((u) => u.reading.nameUse >= minNameUse);
+    const listFor = (position: number) => (ctx.fixed && ctx.fixed.position === position ? units.fixed : used);
+    const first = bySyllable(listFor(0), ctx.fixed?.position === 0 ? Infinity : cap);
+    const second = ctx.nameLength === 2 && ctx.fixed ? bySyllable(listFor(1), ctx.fixed.position === 1 ? Infinity : cap) : first;
+    const soundTable = ELEMENTS.flatMap((e) => ELEMENTS.map((f) => soundFlowOfElements(
+      ctx.nameLength === 1 ? [...surnameSound, e] : [...surnameSound, e, f]).score));
+    for (const name of ctx.names.allowed) {
+      const syllables = Array.from(name);
+      if (syllables.length !== ctx.nameLength) continue;
+      const rowA = first.get(syllables[0]);
+      if (!rowA) continue;
+      if (ctx.nameLength === 1) {
+        for (const x of rowA) {
+          const base = baseFor([x.strokes]);
+          const gs = gridStage(base.grades);
+          if (gs === null || gs > stage) continue;
+          consider([x], base, soundTable[x.sound * ELEMENTS.length], gs);
+        }
+        continue;
+      }
+      const rowB = second.get(syllables[1]);
+      if (!rowB) continue;
+      for (const x of rowA) {
+        for (const y of rowB) {
+          if (x.entry === y.entry) continue;
+          const base = baseFor([x.strokes, y.strokes]);
+          const gs = gridStage(base.grades);
+          if (gs === null || gs > stage) continue;
+          consider([x, y], base, soundTable[x.sound * ELEMENTS.length + y.sound], gs);
+        }
+      }
+    }
+    return heap.sorted();
+  }
 
   if (ctx.nameLength === 1) {
     const soundTable = ELEMENTS.map((e) => soundFlowOfElements([...surnameSound, e]).score);
