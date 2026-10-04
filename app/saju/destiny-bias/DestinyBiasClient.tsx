@@ -24,7 +24,7 @@ import { useAnalytics } from "@/app/hooks/useAnalytics";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
 import { getApiBaseUrl } from "@/app/_lib/api-config";
-import { authFetch } from "@/app/_lib/auth-client";
+import { authFetch, AUTH_SESSION_INVALIDATED_EVENT } from "@/app/_lib/auth-client";
 import { recordsCopy } from "@/lib/records/copy";
 import { savedRecordPath } from "@/lib/records/service-registry";
 import { useLocale } from "@/lib/i18n/useT";
@@ -284,11 +284,11 @@ export default function DestinyBiasClient() {
       setAuthRevision((revision) => revision + 1);
     };
     window.addEventListener("cd:auth-changed", refreshLogin);
-    window.addEventListener("cd:auth-session-invalidated", refreshLogin);
+    window.addEventListener(AUTH_SESSION_INVALIDATED_EVENT, refreshLogin);
     return () => {
       archiveMountedRef.current = false;
       window.removeEventListener("cd:auth-changed", refreshLogin);
-      window.removeEventListener("cd:auth-session-invalidated", refreshLogin);
+      window.removeEventListener(AUTH_SESSION_INVALIDATED_EVENT, refreshLogin);
     };
   }, []);
 

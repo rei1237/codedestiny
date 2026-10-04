@@ -38,8 +38,8 @@ if(!stateOnly && (!detailOnly || detailOnly==='destiny-bias')) {
   // The reader itself may only GET the persisted snapshot.
   const {build}=await import('esbuild');
   const bundle=await build({stdin:{contents:"export {buildChemiReport} from './app/saju/destiny-bias/engine/chemiReportBridge'; export {resolvePartner} from './lib/idol-chemi/index.js';",resolveDir:process.cwd(),loader:'ts'},bundle:true,write:false,platform:'node',format:'cjs'});
-  const module={exports:{}};new Function('require','module','exports',bundle.outputFiles[0].text)(createRequire(import.meta.url),module,module.exports);
-  const report=structuredClone(module.exports.buildChemiReport({user:{birthDate:'1995-03-14',calendarType:'solar'},partner:module.exports.resolvePartner({kind:'roster',id:'bts-jungkook'}),referenceDate:'2026-10-01'}));
+  const fixtureModule={exports:{}};new Function('require','module','exports',bundle.outputFiles[0].text)(createRequire(import.meta.url),fixtureModule,fixtureModule.exports);
+  const report=structuredClone(fixtureModule.exports.buildChemiReport({user:{birthDate:'1995-03-14',calendarType:'solar'},partner:fixtureModule.exports.resolvePartner({kind:'roster',id:'bts-jungkook'}),referenceDate:'2026-10-01'}));
   report.result.partner.displayName='테스트 최애';report.result.partner.groupLabel='검증 그룹';report.vm.biasName='테스트 최애';
   assert.equal(report.vm.userBirthDate,'');assert.equal(report.vm.biasBirthDate,'');assert.equal(report.vm.cardSvg,'');
   details['destiny-bias']={record:record('destiny-bias'),content:{canonical:{version:'destiny-bias-record-v1',viewModel:report.vm,chemiReport:report,themeKey:'lotus-moon'}}};
@@ -96,7 +96,10 @@ async function contextFor(width,scenario='normal') {
 async function bounds(page,width) {
   await page.waitForFunction(()=>{const main=document.querySelector('main');return main&&parseFloat(getComputedStyle(main).paddingBottom)>=110;});
   const box=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,bottom:parseFloat(getComputedStyle(document.querySelector('main')).paddingBottom)}));
-  assert.ok(box.scroll<=width+1,`overflow ${box.scroll} > ${width}`);assert.ok(box.bottom>=110,'navigation safe spacing');return box;
+  assert.ok(box.scroll<=width+1,`overflow ${box.scroll} > ${width}`);assert.ok(box.bottom>=110,'navigation safe spacing');
+  const previous=await page.evaluate(()=>scrollY);await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));await page.waitForTimeout(100);
+  const end=await page.evaluate(()=>{const nav=document.querySelector('nav.cd-mnav');const last=[...document.querySelectorAll('main article,main a,main button')].filter(node=>node.getClientRects().length).at(-1);return {lastBottom:last?.getBoundingClientRect().bottom,navTop:nav&&getComputedStyle(nav).display!=='none'?nav.getBoundingClientRect().top:innerHeight};});
+  assert.ok(typeof end.lastBottom==='number' && end.lastBottom<=Math.min(end.navTop,844)+1,JSON.stringify(end));await page.evaluate(y=>window.scrollTo(0,y),previous);return {...box,end};
 }
 try {
   for(const width of detailOnly||stateOnly?[]:[360,390,430,1280].filter(width=>!process.env.RECORDS_TEST_WIDTH||width===Number(process.env.RECORDS_TEST_WIDTH))) {

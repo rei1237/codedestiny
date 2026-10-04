@@ -51,7 +51,11 @@ const helpers = ['readLocalToken', 'isLoggedInNow', 'readArchiveOwner'].map(name
   assert.ok(node, `production auth helper ${name} must exist`);
   return node.getText(ast);
 }).join('\n');
+const authClientSource = await readFile(`${root}/app/_lib/auth-client.ts`, 'utf8');
+const invalidationConstant = authClientSource.match(/export (const AUTH_SESSION_INVALIDATED_EVENT = [^;]+;)/)?.[1];
+assert.ok(invalidationConstant, 'canonical invalidation event must exist');
 const harnessSource = `
+${invalidationConstant}
 const readSanitizedAuthUser = () => globalThis.__biasAuthUser;
 const authFetch = (...args) => globalThis.__biasAuthFetch(...args);
 const trackClick = () => {};
