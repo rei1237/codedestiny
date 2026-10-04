@@ -391,6 +391,7 @@
     "verify:oracle-consultation": "node scripts/verify-oracle-consultation.mjs",
     "verify:oracle-consultation-fallback": "node --experimental-strip-types --no-warnings scripts/verify-oracle-consultation-fallback.mjs",
     "verify:sun-recovery-copy": "node scripts/verify-sun-recovery-card-copy.mjs",
+    "verify:self-esteem-copy": "node scripts/verify-self-esteem-card-copy.mjs",
     "verify:mobile-feature-coverage": "node scripts/verify-mobile-feature-coverage.mjs",
     "verify:mobile-pricing-parity": "node scripts/inspect-mobile-pricing-parity.mjs --strict",
     "verify:mobile-entry-actions": "node scripts/verify-mobile-entry-actions.mjs",

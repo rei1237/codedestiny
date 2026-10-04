@@ -1341,7 +1341,8 @@
         "from10000": "From ₩10,000",
         "w30000": "₩30,000",
         "w50000": "₩50,000",
-        "w20000": "₩20,000"
+        "w20000": "₩20,000",
+        "from3000": "From ₩3,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1602,14 +1603,14 @@
       "pass": "Pässe",
       "login": "Anmelden",
       "account": "Mein Konto",
-      "offerTitle": "Saju aus 1:1-Beratungen für ₩300.000 – jetzt ab ₩1.000",
+      "offerTitle": "Saju aus 1:1-Beratungen für ₩300.000 – jetzt ab ₩3.000",
       "reviewsLead": "Echte KakaoTalk-Nachrichten von Neos 1:1-Klienten, im koreanischen Original zitiert. Auslassungen sind mit … markiert.",
       "reviewsBar": "1:1-Beratung mit Neo · KakaoTalk",
       "reviewsMeta": "Echte Stimme · mit Zustimmung veröffentlicht",
       "reviewsPosted": "im Blog veröffentlicht",
       "reviewsFine": "Die Stimmen geben persönliche Erfahrungen wieder und garantieren keine Ergebnisse. Saju-Deutungen dienen nur der Orientierung.",
-      "offerNote": "Die 1:1-Beratungen führte Neo persönlich; die Deutung für ₩1.000 entsteht aus einer Berechnungs-Engine mit KI-Kommentar.",
-      "offerCta": "Saju-Deutung für ₩1.000 ansehen →",
+      "offerNote": "Die 1:1-Beratungen führte Neo persönlich; die Deutung für ₩3.000 entsteht aus einer Berechnungs-Engine mit KI-Kommentar.",
+      "offerCta": "Saju-Deutung für ₩3.000 ansehen →",
       "expertiseTitle": "Berechnung nach Regeln, Kommentar von der KI",
       "expertise": {
         "engine": "Das Geburtsdiagramm entsteht nach festen Rechenregeln, die KI schreibt den Kommentar auf Basis dieses Ergebnisses. Nennt der Kommentar eine Tages- oder Stundensäule, die vom Ergebnis abweicht, verwirft der Server ihn.",
@@ -1702,7 +1703,11 @@
       "yeoniRoom": "Destiny Tea House",
       "yeoniRoomNote": "Talk things through with Yeoni",
       "neoRoom": "Neo’s strategy room",
-      "neoRoomNote": "Find your next step with Neo"
+      "neoRoomNote": "Find your next step with Neo",
+      "chemiKicker": "K-POP Bias Chemistry",
+      "chemiTitle": "You and your bias: what's the chemistry?",
+      "chemiNote": "Enter your birthday and get a photocard",
+      "chemiCta": "See my bias chemistry"
     },
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",

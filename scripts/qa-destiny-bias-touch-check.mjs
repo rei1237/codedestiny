@@ -28,7 +28,7 @@ const checks = [
   {
     name: "result gauge/sections and photocard ui wired",
     file: "app/saju/destiny-bias/DestinyBiasClient.tsx",
-    includes: ["BiasDestinyMainCard", "BiasDestinyScoreGauge", "BiasDestinyElementChart", "BiasDestinyFiveSections"],
+    includes: ["ChemiCoreCard", "ChemiTypeBadge", "ChemiEvidencePanel", "ChemiSections"],
   },
 ];
 
