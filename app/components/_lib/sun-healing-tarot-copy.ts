@@ -132,7 +132,7 @@ const SUN_HEALING_TAROT_COPY_EN: SunHealingTarotCopy = {
 
   overallFlowTitle: "Overall flow",
   routineEyebrow: "Today's recovery routine",
-  routineHeading: "A recovery action you can start in 10 minutes",
+  routineHeading: "Recovery actions to start today",
   affirmationLabel: "A sentence for you today",
 
   promptPanelKicker: "A recovery question to continue",
@@ -205,7 +205,7 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
 
     overallFlowTitle: "종합 흐름",
     routineEyebrow: "오늘의 회복 루틴",
-    routineHeading: "10분 안에 시작하는 회복 행동",
+    routineHeading: "오늘 시작하는 회복 행동",
     affirmationLabel: "오늘 나에게 건네는 문장",
 
     promptPanelKicker: "이어 볼 회복 질문",
@@ -276,7 +276,7 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
 
     overallFlowTitle: "総合的な流れ",
     routineEyebrow: "今日の回復ルーティン",
-    routineHeading: "10分で始められる回復行動",
+    routineHeading: "今日から始める回復行動",
     affirmationLabel: "今日の自分に贈る言葉",
 
     promptPanelKicker: "続けて見る回復の質問",
@@ -347,7 +347,7 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
 
     overallFlowTitle: "综合流向",
     routineEyebrow: "今日的疗愈日常",
-    routineHeading: "10分钟内就能开始的疗愈行动",
+    routineHeading: "今天就能开始的疗愈行动",
     affirmationLabel: "今天想对自己说的话",
 
     promptPanelKicker: "可以延续的疗愈问题",
@@ -418,7 +418,7 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
 
     overallFlowTitle: "綜合流向",
     routineEyebrow: "今日的療癒日常",
-    routineHeading: "10分鐘內就能開始的療癒行動",
+    routineHeading: "今天就能開始的療癒行動",
     affirmationLabel: "今天想對自己說的話",
 
     promptPanelKicker: "可以延續的療癒問題",
