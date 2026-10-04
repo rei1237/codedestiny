@@ -147,7 +147,7 @@ try {
     else await state.page.getByText(refreshedText,{exact:true}).first().waitFor();
     assert.equal(state.errors.length,0,JSON.stringify(state.errors));assert.equal(state.forbidden.length,0,JSON.stringify(state.forbidden));
     if(source==='neo')assert.equal(await state.page.getByText('selected Method',{exact:true}).count(),0);
-    if(source==='bias-partial')assert.equal(await state.page.locator('[data-saved-chemi]').count(),0);
+    if(source==='bias-partial'){assert.equal(await state.page.locator('[data-saved-chemi]').count(),0);assert.equal(await state.page.locator('[data-saved-bias-incomplete]').count(),1);const body=await state.page.locator('main').innerText();assert.ok(!/canonical|view Model|chemi Report|sub Scores|detailed Tabs|element Distribution/.test(body),'no internal snapshot keys');}
     if(source==='destiny-bias') {
       await state.page.getByRole('button',{name:/케미 리포트/}).click();
       await state.page.waitForSelector('#dbk-report-panel-report');

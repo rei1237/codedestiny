@@ -72,11 +72,19 @@ function Structure({ value, field = '' }: { value: unknown; field?: string }) {
     {nested.map(([key,item]) => <section key={key} className="min-w-0 space-y-3"><h3 className="text-lg font-semibold">{labels[key] || key.replace(/([a-z])([A-Z])/g, '$1 $2')}</h3><Structure value={item} field={key} /></section>)}
   </div>;
 }
+function IncompleteBiasReading({ row, notice, noBody }: { row: Record<string, unknown>; notice: string; noBody: string }) {
+  // Invalid card snapshots must never expose engine objects or fill missing facts.
+  // Older collection saves contain readable reportText/summary without a full VM.
+  const content = Object.fromEntries(['reportText', 'summary', 'content', 'text', 'reading', 'answer']
+    .filter(key => typeof row[key] === 'string' && String(row[key]).trim())
+    .map(key => [key === 'reportText' ? 'report' : key, row[key]]));
+  return <div data-saved-bias-incomplete className="space-y-5"><p className="text-sm leading-6">{notice}</p>{Object.keys(content).length ? <Structure value={content} /> : <p>{noBody}</p>}</div>;
+}
 export default function StoredReading({ source, serviceId, value }: { source: string; serviceId: string; value: unknown }) {
   const locale = useLocale(), c = recordsCopy(locale), row = object(value);
   const canonical = object(row.canonical), vm = object(canonical.viewModel);
   if (source === 'destiny-bias' && canonical.version === 'destiny-bias-record-v1' && Object.prototype.hasOwnProperty.call(canonical,'chemiReport')) {
-    if (!isStoredChemiReport(canonical.chemiReport)) return <Structure value={row} />;
+    if (!isStoredChemiReport(canonical.chemiReport)) return <IncompleteBiasReading row={row} notice={c.formatUnavailable} noBody={c.noBody} />;
     const report = canonical.chemiReport as ChemiReport;
     return <div data-saved-chemi className={`${biasStyles.page} space-y-6 rounded-[var(--cd-r-card)] p-4`} style={{background:'var(--dbk-cream)'}}><ChemiCoreCard report={report} themeKey={String(canonical.themeKey || '')} /><ChemiSections copy={report.copy} /><ChemiReportTabs vm={report.vm} /><ChemiEvidencePanel result={report.result} /></div>;
   }
@@ -84,6 +92,7 @@ export default function StoredReading({ source, serviceId, value }: { source: st
     const snapshot = vm as DestinyBiasResultViewModel;
     return <><div className={`${biasStyles.page} space-y-6 rounded-[var(--cd-r-card)] p-4`} style={{background:'var(--dbk-cream)'}}><BiasDestinyMainCard vm={snapshot} /><BiasDestinyElementChart vm={snapshot} /><BiasDestinyFiveSections vm={snapshot} /></div><Structure value={vm} /></>;
   }
+  if (source === 'destiny-bias') return <IncompleteBiasReading row={row} notice={c.formatUnavailable} noBody={c.noBody} />;
   if (source === 'chat-consultation' && Array.isArray(row.chapters) && Array.isArray(row.manifest)) return <ConsultationResult row={row as ChatConsultation} readOnly onNew={() => window.location.assign('/fortune-chat/')} />;
   if (source === 'fusion' && object(row.result).sajuSection) return <><div className={`${fusionStyles.page} rounded-[var(--cd-r-card)] p-3`}><ol className="space-y-5"><FusionResultThread result={row.result as FusionResult} openSection="" onToggleSection={() => {}} exporting /></ol></div><Structure value={Object.fromEntries(Object.entries(row).filter(([key]) => key !== 'result'))} /></>;
   if (source === 'neo' && row.initialBriefing) return <><SavedNeoDocuments session={row as NeoResultSession} locale={locale as LoadingLocale} /><Structure value={Object.fromEntries(Object.entries(row).filter(([key]) => !['initialBriefing','refinedOrder','question','selectedMethod','topic','compatSummary'].includes(key)))} /></>;
