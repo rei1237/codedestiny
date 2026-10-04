@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
+import "../../../../styles/fonts-serif.css";
+import "../destiny-bias-fonts.css";
+import stage from "../encore.module.css";
 
 interface MyDestinyBiasShellProps {
   children: React.ReactNode;
 }
 
+/** 최애운명 전체화면 셸 — 밤 공연장 무대(스포트라이트 빔·헤이즈·필름 그레인). 장식은 전부 CSS, 실존 굿즈·로고 모사 없음. */
 export default function MyDestinyBiasShell({ children }: MyDestinyBiasShellProps) {
   // Lock body scroll to this shell when mounted
   useEffect(() => {
@@ -17,18 +21,20 @@ export default function MyDestinyBiasShell({ children }: MyDestinyBiasShellProps
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[60] overflow-y-auto overflow-x-hidden bg-[#06020f] text-white [padding-top:env(safe-area-inset-top)] [padding-bottom:env(safe-area-inset-bottom)]">
-      <div
-        className="pointer-events-none absolute inset-0"
-        aria-hidden
-        style={{
-          background:
-            "radial-gradient(1200px 520px at 50% -8%, rgba(244,114,182,0.34), transparent 62%), radial-gradient(980px 460px at 80% 0%, rgba(34,211,238,0.28), transparent 58%), radial-gradient(760px 520px at 10% 8%, rgba(251,191,36,0.2), transparent 56%), linear-gradient(180deg, #09021a 0%, #05030e 62%, #070616 100%)",
-        }}
-      />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(248,113,113,0.12),rgba(255,255,255,0))] blur-2xl" aria-hidden />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(0deg,rgba(34,211,238,0.08),rgba(255,255,255,0))]" aria-hidden />
-
+    <div
+      className={`${stage.shell} fixed inset-0 z-[60] overflow-y-auto overflow-x-hidden [padding-top:env(safe-area-inset-top)] [padding-bottom:env(safe-area-inset-bottom)]`}
+    >
+      <div className={stage.backdrop} aria-hidden>
+        <span className={stage.photo} />
+        <span className={stage.haze} />
+        <span className={`${stage.beam} ${stage.beamLeft}`} />
+        <span className={`${stage.beam} ${stage.beamCenter}`} />
+        <span className={`${stage.beam} ${stage.beamRight}`} />
+        <span className={stage.rig} />
+        <span className={stage.crowd} />
+        <span className={stage.grain} />
+        <span className={stage.vignette} />
+      </div>
       <div className="relative z-10">{children}</div>
     </div>
   );

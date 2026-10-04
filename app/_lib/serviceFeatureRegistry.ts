@@ -475,43 +475,43 @@ const SERVICE_FEATURE_TRANSLATIONS = {
     },
     "bias-destiny": {
       "title": "최애운명",
-      "subtitle": "나의 사주 에너지와 최애 상징 에너지를 연결한 포토카드형 리딩",
-      "description": "사주 기반 에너지 지표를 활용해 최애와의 공명 포인트를 시각적으로 제시하는 팬덤 특화 운세 콘텐츠입니다.",
+      "subtitle": "내 최애와 나의 케미를 포토카드 한 장으로 보는 K-POP 팬 콘텐츠",
+      "description": "그룹과 멤버를 고르고 내 생일만 넣으면 케미 총점과 등급, 아홉 가지 케미 유형이 포토카드로 나오는 팬덤 특화 운세 콘텐츠입니다.",
       "heroImageAlt": "최애운명 대표 이미지",
-      "tags": ["최애운명", "팬덤", "포토카드", "사주 공명"],
-      "highlights": ["1회 분석형", "포토카드 스타일 결과"],
+      "tags": ["최애운명", "K-POP", "포토카드", "최애 케미"],
+      "highlights": ["무료 · 로그인 없이", "포토카드 스타일 결과"],
       "howItWorks": [
         {
-          "title": "프로필 입력",
-          "description": "나와 최애의 기본 정보를 입력합니다."
+          "title": "최애 고르기",
+          "description": "그룹을 고르고 멤버를 고른 뒤 내 생일을 넣습니다."
         },
         {
-          "title": "공명 계산",
-          "description": "내부 엔진으로 에너지 공명을 계산합니다."
+          "title": "케미 계산",
+          "description": "두 사람의 연주·월주·일주를 겹쳐 점수와 유형을 정합니다."
         },
         {
           "title": "카드 확인",
-          "description": "요약 카드와 행동 힌트를 확인합니다."
+          "description": "포토카드를 뒤집어 세부 점수를 보고 꾸며서 공유합니다."
         }
       ],
       "resultExamples": [
         {
-          "title": "공명 점수",
-          "description": "현재 공명 강도와 의미"
+          "title": "케미 총점과 등급",
+          "description": "세부 점수 여섯 가지와 LEGENDARY부터의 등급"
         },
         {
-          "title": "보완 포인트",
-          "description": "관계/덕질 루틴 보완 가이드"
+          "title": "케미 유형",
+          "description": "텔레파시부터 슬로우 번까지 아홉 가지"
         },
         {
-          "title": "오늘의 액션",
-          "description": "실행 가능한 1일 미션"
+          "title": "공유 카드",
+          "description": "피드용 1:1과 스토리용 9:16 이미지"
         }
       ],
       "seo": {
         "title": "최애운명 소개 | Code Destiny",
-        "description": "사주 에너지 기반으로 최애와의 공명 포인트를 읽는 최애운명 서비스 소개 페이지입니다.",
-        "keywords": ["최애운명", "팬덤 운세", "사주 공명", "포토카드 운세"]
+        "description": "내 최애와 나의 케미를 포토카드로 보는 최애운명 서비스 소개 페이지입니다.",
+        "keywords": ["최애운명", "최애 케미", "K-POP 궁합", "포토카드 운세"]
       },
       "premiumOptions": []
     },

@@ -65,6 +65,12 @@ typography:
     fontFamily: "'noto_sans_kr', 'noto_serif_kr', sans-serif"
   brand-feature:
     fontFamily: "'CodeDestinyDecorative', 'CodeDestinyPlayful', 'CodeDestinyNumerologyDisplay', 'CodeDestinyNumerologyPremium', 'Impact', 'Apple Color Emoji', sans-serif"
+  brand-stage-display:
+    fontFamily: "'DBK Bodoni', 'CodeDestinySerifLatin', 'CodeDestinySerifKR', Georgia, serif"
+    note: "최애운명(/saju/destiny-bias) 전용. DBK Bodoni = Bodoni Moda 700 Italic(OFL) 라틴 서브셋 — 포토카드 점수 숫자·영문 타이틀. 자체 호스팅 public/assets/destiny-bias/fonts/bodoni-moda-latin-700-italic.woff2, @font-face 는 app/saju/destiny-bias/destiny-bias-fonts.css(CSP font-src 'self'). 한글은 unicode-range 로 뒤 스택(나눔명조)에 내려간다. 다른 기능으로 넓히지 않는다."
+  brand-stage-poster:
+    fontFamily: "'DBK Shoulders', 'Pretendard Variable', 'Noto Sans KR', sans-serif"
+    note: "최애운명 전용. DBK Shoulders = Big Shoulders Display 800(OFL) 라틴 서브셋 — 티켓·에디션·등급 라벨(대문자, 넓은 자간). public/assets/destiny-bias/fonts/big-shoulders-display-latin-800.woff2. 본문에는 쓰지 않는다."
 rounded:
   sm: "8px"
   control: "12px"

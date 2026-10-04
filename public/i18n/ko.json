@@ -1550,7 +1550,11 @@
       "yeoniRoom": "운명의 찻집",
       "yeoniRoomNote": "연이와 함께 마음을 차근차근 풀어봐요",
       "neoRoom": "팩폭 전략실",
-      "neoRoomNote": "네오와 함께 다음 선택을 정리해요"
+      "neoRoomNote": "네오와 함께 다음 선택을 정리해요",
+      "chemiKicker": "K-POP 최애 케미",
+      "chemiTitle": "내 최애랑 나, 무슨 케미일까?",
+      "chemiNote": "생일만 넣으면 포토카드로 나와요",
+      "chemiCta": "내 최애와 케미 보기"
     },
     "chatEntry": {
       "title": "연이와 네오에게, 지금 가장 궁금한 한 가지",

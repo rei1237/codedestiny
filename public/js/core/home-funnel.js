@@ -223,6 +223,20 @@
     window.setTimeout(clearPortalOverlay, 2500);
   }
 
+  // 최애 케미 카드가 절반 이상 보였을 때 한 번만 노출을 센다. 개인정보는 싣지 않는다.
+  (function trackChemiCardImpression() {
+    var card = document.querySelector('[data-cdh-chemi]');
+    if (!card || typeof window.IntersectionObserver !== 'function') return;
+    var observer = new window.IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting || entry.intersectionRatio < 0.5) return;
+        observer.disconnect();
+        if (typeof window.cdTrack === 'function') window.cdTrack('home_card_impression', { card: 'destiny_bias_chemi', placement: 'home_top' });
+      });
+    }, { threshold: [0.5] });
+    observer.observe(card);
+  })();
+
   document.addEventListener('click', function (event) {
     var target = event.target instanceof Element ? event.target : null;
     if (!target) return;

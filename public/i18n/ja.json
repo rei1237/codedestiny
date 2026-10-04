@@ -1703,7 +1703,11 @@
       "yeoniRoom": "運命の茶屋",
       "yeoniRoomNote": "ヨニと少しずつ心をほどこう",
       "neoRoom": "ネオの戦略室",
-      "neoRoomNote": "ネオと次の選択を整理しよう"
+      "neoRoomNote": "ネオと次の選択を整理しよう",
+      "chemiKicker": "K-POP 推しケミ",
+      "chemiTitle": "推しとわたし、どんなケミ?",
+      "chemiNote": "誕生日を入れるだけでフォトカードに",
+      "chemiCta": "推しとのケミを見る"
     },
     "chatEntry": {
       "title": "ヨニとネオに、今いちばん気になるひとつを",
