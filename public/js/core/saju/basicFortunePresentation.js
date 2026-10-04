@@ -79,11 +79,11 @@
   }
   function localized(key) {
     var labels = {
-      ko: { missing: '출생 정보가 일부 비어 있어요. 프로필에서 시간과 장소를 확인해 주세요.', flow:'인생 흐름', consult:'맞춤 상담', asToday:'오늘의 별자리 운세', asStory:'나의 이야기', asChart:'출생 차트', asDeep:'깊이 읽기', asConsult:'상담', asLibrary:'읽을거리', asLegacyChart:'이전 차트 그림', asRecord:'이전 해석 기록' },
-      en: { missing: 'Some birth details are missing. Check the time and place in your profile.', flow:'Life periods', consult:'Consultation', asToday:'Today’s horoscope', asStory:'My story', asChart:'Birth chart', asDeep:'Deeper reading', asConsult:'Consultation', asLibrary:'Articles', asLegacyChart:'Previous chart view', asRecord:'Earlier reading' },
-      ja: { missing: '出生情報の一部が未入力です。プロフィールで時刻と場所をご確認ください。', flow:'人生の流れ', consult:'個別相談', asToday:'今日の星占い', asStory:'わたしの物語', asChart:'出生図', asDeep:'深く読む', asConsult:'相談', asLibrary:'読みもの', asLegacyChart:'以前のチャート表示', asRecord:'以前の解説' },
-      zh: { missing: '部分出生资料尚未填写。请在个人资料中确认时间和地点。', flow:'人生周期', consult:'专属咨询', asToday:'今日星座运势', asStory:'我的故事', asChart:'出生星盘', asDeep:'深入解读', asConsult:'咨询', asLibrary:'延伸阅读', asLegacyChart:'旧版星盘', asRecord:'旧版解读' },
-      'zh-TW': { missing: '部分出生資料尚未填寫。請在個人資料中確認時間和地點。', flow:'人生週期', consult:'專屬諮詢', asToday:'今日星座運勢', asStory:'我的故事', asChart:'出生星盤', asDeep:'深入解讀', asConsult:'諮詢', asLibrary:'延伸閱讀', asLegacyChart:'舊版星盤', asRecord:'舊版解讀' }
+      ko: { missing: '출생 정보가 일부 비어 있어요. 프로필에서 시간과 장소를 확인해 주세요.', flow:'인생 흐름', consult:'맞춤 상담', asToday:'오늘의 별자리 운세', asYear:'앞으로 12개월', asStory:'나의 이야기', asChart:'출생 차트', asDeep:'깊이 읽기', asConsult:'상담', asLibrary:'읽을거리', asLegacyChart:'이전 차트 그림', asRecord:'이전 해석 기록' },
+      en: { missing: 'Some birth details are missing. Check the time and place in your profile.', flow:'Life periods', consult:'Consultation', asToday:'Today’s horoscope', asYear:'Next 12 months', asStory:'My story', asChart:'Birth chart', asDeep:'Deeper reading', asConsult:'Consultation', asLibrary:'Articles', asLegacyChart:'Previous chart view', asRecord:'Earlier reading' },
+      ja: { missing: '出生情報の一部が未入力です。プロフィールで時刻と場所をご確認ください。', flow:'人生の流れ', consult:'個別相談', asToday:'今日の星占い', asYear:'これからの12か月', asStory:'わたしの物語', asChart:'出生図', asDeep:'深く読む', asConsult:'相談', asLibrary:'読みもの', asLegacyChart:'以前のチャート表示', asRecord:'以前の解説' },
+      zh: { missing: '部分出生资料尚未填写。请在个人资料中确认时间和地点。', flow:'人生周期', consult:'专属咨询', asToday:'今日星座运势', asYear:'未来12个月', asStory:'我的故事', asChart:'出生星盘', asDeep:'深入解读', asConsult:'咨询', asLibrary:'延伸阅读', asLegacyChart:'旧版星盘', asRecord:'旧版解读' },
+      'zh-TW': { missing: '部分出生資料尚未填寫。請在個人資料中確認時間和地點。', flow:'人生週期', consult:'專屬諮詢', asToday:'今日星座運勢', asYear:'未來12個月', asStory:'我的故事', asChart:'出生星盤', asDeep:'深入解讀', asConsult:'諮詢', asLibrary:'延伸閱讀', asLegacyChart:'舊版星盤', asRecord:'舊版解讀' }
     };
     var lang = document.documentElement.lang || 'ko';
     try { lang = localStorage.getItem('cd_lang') || lang; } catch (_) {}
@@ -767,7 +767,7 @@
     });
     root.querySelector('.fr-profile').after(hero);
     var nav = node('nav', 'fr-astro-nav'); nav.setAttribute('aria-label', t('astro'));
-    [['fr-astro-today', localized('asToday')], ['fr-astro-reading', localized('asStory')], ['fr-astro-chart', localized('asChart')], ['fr-astro-planets', localized('asDeep')], ['fr-astro-consult', localized('asConsult')], ['fr-astro-articles', localized('asLibrary')]].forEach(function (item) {
+    [['fr-astro-today', localized('asToday')], ['fr-astro-year', localized('asYear')], ['fr-astro-reading', localized('asStory')], ['fr-astro-chart', localized('asChart')], ['fr-astro-planets', localized('asDeep')], ['fr-astro-consult', localized('asConsult')], ['fr-astro-articles', localized('asLibrary')]].forEach(function (item) {
       var link = node('a', '', item[1]); link.href = '#' + item[0]; nav.appendChild(link);
     });
     hero.after(nav);
@@ -800,6 +800,9 @@
     // #asToday replaces that card when the transit model renders; the card stays as the fallback.
     var todaySection = collect('fr-astro-today', localized('asToday'), ['#asToday']);
     if (todaySection) todaySection.classList.add('fr-reading');
+    // #asYear holds the astro_yearly_transit gate (free month line + locked dates); collected so the record fold never buries it.
+    var yearSection = collect('fr-astro-year', localized('asYear'), ['#asYear']);
+    if (yearSection) yearSection.classList.add('fr-reading');
     var reading = collect('fr-astro-reading', localized('asStory'), ['#asStory', '.astro-flow-card']);
     if (reading) reading.classList.add('fr-reading');
     var planets = collect('fr-astro-planets', localized('asDeep'), ['#asDeep']);
@@ -831,7 +834,7 @@
         }, 0);
       });
     }
-    [todaySection, reading, chart, planets, consult].forEach(function (section) { if (section) root.appendChild(section); });
+    [todaySection, yearSection, reading, chart, planets, consult].forEach(function (section) { if (section) root.appendChild(section); });
     var extra = Array.from(root.children).filter(function (el) {
       return !el.matches('.fr-profile,.fr-hero,.fr-astro-nav,.astro-house-section,style,script');
     });
@@ -850,7 +853,7 @@
     // 점성술 "나의 이야기" 층(#asStory). 위 시트 뒤에 붙여 같은 특정성에서 이긴다. ?v= 는 위와 같은 규칙.
     if (!document.getElementById('astroReadingStyle')) {
       var storyLink = document.createElement('link'); storyLink.id = 'astroReadingStyle'; storyLink.rel = 'stylesheet';
-      storyLink.href = '/styles/astro-reading.css?v=build-d78b98862f34'; document.head.appendChild(storyLink);
+      storyLink.href = '/styles/astro-reading.css?v=build-84b32fe69613'; document.head.appendChild(storyLink);
     }
     ['sukuyo', 'ziwei', 'astro'].forEach(function (type) {
       var overlay = document.getElementById(type + 'ModalOverlay');

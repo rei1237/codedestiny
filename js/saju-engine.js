@@ -12677,6 +12677,16 @@ function _astroBuildNatalWheelCard(chart, birth, houseSystemLabel) {
   return { cardHtml: cardHtml };
 }
 
+/* 트랜싯 계산용 하늘 경도: Swiss 경도만 읽는 lonsAtMs, 없으면 calcAll. 오늘 카드·12개월 흐름이 같이 쓴다. */
+function _astroTransitLonsAt(lat, lon, houseSystem) {
+  return function (ms) {
+    var row = typeof AstroEngine.lonsAtMs === 'function' ? AstroEngine.lonsAtMs(ms) : null;
+    if (row) return row;
+    var t = new Date(ms);
+    return window.AstroTransits.lonsFromChart(AstroEngine.calcAll(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate(), t.getUTCHours() + t.getUTCMinutes() / 60 + t.getUTCSeconds() / 3600, lat, lon, 0, { houseSystem: houseSystem }));
+  };
+}
+
 function renderAstroInsightLegacyNeon() {
   var birth = window._astroBirth || window._ziweiBirth || { year:2000, month:1, day:1, hour:12, minute:0, lat:37.6, lon:127.0, tz:9 };
     var y = birth.year, m = birth.month, d = birth.day;
@@ -14304,12 +14314,7 @@ function renderAstroInsightLegacyNeon() {
 
     /* ── 오늘의 별자리 운세 (js/core/astro/transits.js + transit-reading.js): 오늘 실제 하늘 → 출생 차트.
        위치는 Swiss 경도만 읽는 lonsAtMs, 없으면 calcAll. 실패하면 아래 옛 "오늘의 핵심 흐름" 카드를 그린다. ── */
-    var astroLonsAt = function (ms) {
-      var row = typeof AstroEngine.lonsAtMs === 'function' ? AstroEngine.lonsAtMs(ms) : null;
-      if (row) return row;
-      var t = new Date(ms);
-      return window.AstroTransits.lonsFromChart(AstroEngine.calcAll(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate(), t.getUTCHours() + t.getUTCMinutes() / 60 + t.getUTCSeconds() / 3600, lat, lon, 0, { houseSystem: houseSystem }));
-    };
+    var astroLonsAt = _astroTransitLonsAt(lat, lon, houseSystem);
     var astroTodayHtml = '';
     try {
       if (window.AstroTransits && window.AstroTransitReading) {
@@ -34264,6 +34269,27 @@ function showQuantumResult() {
       + '</style>';
   }
 
+  /* 앞으로 12개월(유료 astro_yearly_transit): 무료 머리는 "가장 큰 변화의 달"만, 날짜·분야별 본문은 잠금.
+     js/core/astro/transits.js period() + transit-reading.js year(). LLM 없음. 실패하면 섹션을 그리지 않는다. */
+  function _astroCounselYearlyHtml(pack) {
+    if (!window.AstroTransits || !window.AstroTransitReading || !window.AstroNatalReading) return '';
+    try {
+      var birth = pack.birth || {};
+      var timeKnown = !(birth.unknownHour === true || birth.timeDefault === true);
+      var now = new Date();
+      var today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      var birthParts = { year: Number(birth.year), month: Number(birth.month), day: Number(birth.day), hour: birth.hour != null ? Number(birth.hour) : 12, minute: birth.minute != null ? Number(birth.minute) : 0 };
+      var periods = window.AstroNatalReading.build(pack.chart, { timeKnown: timeKnown, today: today, birth: birthParts }).periods;
+      var lonsAt = _astroTransitLonsAt(birth.lat || 37.6, birth.lon || 127.0, pack.houseSystem);
+      var p = window.AstroTransits.period(window.AstroTransits.natalOf(pack.chart, timeKnown), { today: today, tz: -now.getTimezoneOffset() / 60, lonsAt: lonsAt });
+      var R = window.AstroTransitReading, y = R.year(p, { periods: periods, birth: birthParts });
+      return R.renderYearSection(y, _astroCounselPaidGate('astro_yearly_transit', 30, '앞으로 12개월, 언제 무엇이 오는지', '큰 사건의 정확한 날짜, 달마다 볼 날, 일·연애·돈·관계·건강별로 좋은 때와 조심할 때를 열어 드려요.', R.renderYear(y)));
+    } catch (yearErr) {
+      if (window.console && console.warn) console.warn('[astro-year] skipped:', yearErr && yearErr.message);
+      return '';
+    }
+  }
+
   function _astroCounselPolishRestored(area, pack) {
     var wrap = area && area.querySelector ? area.querySelector('#astroBodyWrap') : null;
     if (!wrap) return;
@@ -34348,6 +34374,14 @@ function showQuantumResult() {
       details.appendChild(wheel);
       var restoredHero = wrap.querySelector('.astro-restored-hero');
       if (restoredHero) restoredHero.insertAdjacentElement('afterend', details);
+    }
+    if (!wrap.querySelector('#asYear')) {
+      var yearHtml = _astroCounselYearlyHtml(pack);
+      var todayCard = wrap.querySelector('#asToday');
+      var storyCard = wrap.querySelector('#asStory');
+      if (yearHtml && todayCard) todayCard.insertAdjacentHTML('afterend', yearHtml);
+      else if (yearHtml && storyCard) storyCard.insertAdjacentHTML('beforebegin', yearHtml);
+      else if (yearHtml) wrap.insertAdjacentHTML('afterbegin', yearHtml);
     }
     _astroCounselBindPaidGateObserver(area);
     _astroCounselApplyPaidGates();

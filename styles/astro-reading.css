@@ -220,6 +220,28 @@
   .as-reading .as-today-line { grid-column: 1 / -1; }
 }
 
+/* ── 앞으로 12개월(#asYear, 유료 astro_yearly_transit): 머리는 무료, .as-year-body 는 잠금 본문 ── */
+.as-reading.as-year { padding-bottom: var(--cd-sp-md, 16px); }
+.as-reading.as-year > .as-h3 { margin-bottom: var(--cd-sp-xs, 6px); font-family: var(--as-serif); }
+.as-reading .as-year-sub { max-width: 36em; margin-bottom: var(--cd-sp-md, 16px); color: var(--as-text-2); font-size: 15px; line-height: 1.7; }
+.as-reading .as-year-body > .as-h4 { margin-top: var(--cd-sp-lg, 24px); }
+.as-reading .as-year-body > .as-h4:first-child { margin-top: 0; }
+.as-reading :is(.as-year-big, .as-year-months) { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--as-rule); }
+.as-reading :is(.as-year-big, .as-year-months) > li { padding: 12px 0; border-bottom: 1px solid var(--as-rule); }
+.as-reading .as-year-when { color: var(--as-gold); font-size: 14px; font-weight: 600; line-height: 1.6; }
+.as-reading .as-year-text { margin: 2px 0 6px; color: var(--as-text); font-size: 16px; line-height: 1.75; }
+.as-reading .as-year-peak { margin-bottom: 8px; color: var(--as-text-2); font-size: 14px; line-height: 1.6; }
+.as-reading .as-year-month { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; color: var(--as-text); font-size: 16px; }
+.as-reading .as-year-level { flex: none; padding: 0 10px; border: 1px solid var(--as-rule); border-radius: var(--cd-r-pill, 999px); color: var(--as-text-2); font-size: 13px; font-weight: 600; line-height: 1.8; }
+.as-reading .as-year-months > li:is([data-level="top"], [data-level="big"]) .as-year-level { color: var(--as-gold); }
+.as-reading .as-year-months > li[data-level="top"] .as-year-level { border-color: var(--as-gold); }
+.as-reading .as-year-items { margin: 0 0 var(--cd-sp-xs, 6px); padding-left: 1.1em; }
+.as-reading .as-year-items > li { margin-bottom: 4px; color: var(--as-text); font-size: 15px; line-height: 1.7; }
+.as-reading .as-year-items > li::marker { color: var(--as-text-2); }
+.as-reading .as-year-fields { display: grid; gap: var(--cd-sp-md, 16px); }
+.as-reading .as-year-fields > section { padding-top: 12px; border-top: 1px solid var(--as-rule); }
+.as-reading .as-year-field { margin-bottom: 6px; color: var(--as-text); font-size: 17px; font-weight: 700; }
+
 /* ── 출생 차트(#asChart): 옛 .astro-wheel-card 를 호스트로 쓰고 카드 장식은 걷어 낸다 ── */
 #astroModalOverlay #astroBodyWrap .astro-wheel-card.as-wheel-host {
   margin: 0 !important;
