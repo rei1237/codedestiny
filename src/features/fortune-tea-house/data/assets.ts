@@ -206,9 +206,9 @@ export const fortuneTeaHouseAssets = {
     tenGodSheetMobile: "/images/fortune-tea-house/mobile/ten-gods-mobile.webp",
   },
   consultModes: {
-    tarot: teaHouseNoBackgroundAsset("운명의 찻집 타로.webp"),
-    saju: teaHouseNoBackgroundAsset("운명의 찻집 사주.webp"),
-    sukuyo: teaHouseNoBackgroundAsset("27숙 인연의 흐름.webp"),
+    tarot: "/images/fortune-tea-house/renewal/yeoni-tarot.webp",
+    saju: "/images/fortune-tea-house/renewal/yeoni-saju.webp",
+    sukuyo: "/images/fortune-tea-house/renewal/yeoni-sukuyo.webp",
   },
   tenGods: {
     sheet: tenGodSheetAsset,

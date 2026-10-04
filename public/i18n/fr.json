@@ -7102,6 +7102,12 @@
         "k11poz": "Inauspicious",
         "k1149f": "Neutral"
       }
+    },
+    "yeoniTeaV2": {
+      "alt": "Yeoni the flower pig offering tea",
+      "title": "Yeoni’s Destiny Tea House",
+      "description": "Explore your question and next steps through Saju, Tarot or Sukuyo.",
+      "pricing": "See consultation prices"
     }
   },
   "adsenseArticle": {
@@ -16138,7 +16144,8 @@
     "fiveElementBalance": {
       "eyebrow": "The grain the cup's scent rises along",
       "title": "Balance of the Five Elements",
-      "empty": "There is not enough birth information yet, so the detailed Five Elements balance stays folded."
+      "empty": "There is not enough birth information yet, so the detailed Five Elements balance stays folded.",
+      "method": "Each element's share of the weighted stems, branches and hidden stems. This is not a character count or success probability. The hour pillar is excluded when birth time is unknown."
     },
     "teaCupRitual": {
       "yeoniAlt": "Yeoni holding out the cup you chose",
@@ -16227,8 +16234,9 @@
       "loadingAlt": "A loading scene with a moonlit cup rising",
       "yeoniAria": "Yeoni handing over the cup",
       "progressAria": "Reading generation progress",
-      "delayNotice": "The reading is being woven a little deeper. If it lingers, please wait rather than refreshing.",
-      "retryNotice": "If the flow breaks, you can try the same question again from the input screen."
+      "delayNotice": "Your reading is still being written. You can check its progress again in My readings.",
+      "retryNotice": "If the flow breaks, you can try the same question again from the input screen.",
+      "libraryLink": "Continue in My readings"
     },
     "sajuPillarBoard": {
       "eyebrow": "The birth chart under moonlight",
@@ -16284,7 +16292,12 @@
         "minutes": "{n} min ago",
         "hours": "{n} hr ago",
         "days": "{n} days ago"
-      }
+      },
+      "pending": "Reading in progress",
+      "resume": "Continue from saved sections",
+      "pendingHelp": "Your question and access will be checked to resume the same reading.",
+      "login": "Sign in to open My readings",
+      "openError": "The reading could not be opened. Please select it again."
     },
     "teaCupSelection": {
       "eyebrow": "Six cups that answer the scent of a heart",
@@ -16758,7 +16771,7 @@
       "kexsvdzm": "Four Pillars compatibility rests only on the two charts. Yeoni will not invent an unknown time or what the other person privately feels.",
       "kfa7vknq": "Partner",
       "kfabu8cs": "Please set today's question above",
-      "kfdgstet": "5-card premium spread",
+      "kfdgstet": "5-card spread",
       "kfeelhij": "Four Pillars compatibility works out each chart from both birth dates, then reads the grain where the two flows meet. Without a birth time, we read the broad flow without the hour pillar.",
       "kfkxbrwx": "Parting · Crisis",
       "kfngvjey": "Sukuyo compatibility reading",
@@ -16772,7 +16785,7 @@
       "khkt6xha": "Sukuyo compatibility rests only on the calculated 27 mansions and the relational distance. Yeoni will not pronounce on hearts or endings she cannot see.",
       "khxnyk5k": "We'll fill the reading details from your saved profile card first.",
       "kjakx6mc": "The room of moonlit compatibility",
-      "kjbalv1m": "A quick, essential reading that lays out present · flow · advice in turn.",
+      "kjbalv1m": "Explore three perspectives on your question. Choose the layout in the next step.",
       "kjcqal1e": "Friend",
       "kjod6wtk": "The scene the cards open first",
       "kjprno0f": "A Four Pillars reading opens from your birth date. Without a birth time, we read the broad flow without the hour pillar.",
@@ -16784,7 +16797,7 @@
       "kkrkfupy": "Read with the Four Pillars",
       "kkxbjbaz": "Opening as a tarot reading means no birth details — just a deep read of your question and the symbols of the drawn cards.",
       "kl4sj6bx": "Set both birth dates side by side above.",
-      "klefzwx7": "Present · them/the situation · obstacle · possibility · advice — as many cards, as much depth.",
+      "klefzwx7": "Choose five positions for contact, relationships or money. Fit matters more than card count.",
       "klnifzy4": "We quietly unfold the distance between your 27 mansions and the rhythm of the bond under the moonlight.",
       "kltbw1nw": "We look calmly at the grain of the Five Elements and the Ten Gods, based on the flow you were born into.",
       "klz2wc0l": "The Destiny Tea House tarot reading image",
@@ -16801,7 +16814,7 @@
       "kpbfcw5q": "Lunar calendar",
       "kpshc3qv": "The flow you were born into, the balance of the Five Elements, the temperament that repeats and the timing to measure it by",
       "kpsrhcjk": "Their heart, the currents before a choice, one step you can take right now",
-      "kqblvqw4": "Following one symbol that surfaces over your question, we read the currents of your heart and the direction of the choice.",
+      "kqblvqw4": "Read the spread and connections between cards to consider your next action.",
       "kqnhrp3g": "Yeoni checks the distance across the 27 mansions and the type of bond first, and looks only at the flow of your question — never pronouncing on hearts she cannot see.",
       "kqpkxeui": "My chart",
       "kquxx9hu": "We'll lay the two charts side by side",
@@ -16838,7 +16851,15 @@
       "kzzksrnj": "We couldn't find a saved profile. Fill in the details below and the reading can open.",
       "categoryLabel": "Sujet de votre question",
       "categoryAuto": "Le déduire de la question",
-      "categoryClarify": "Quel sujet regarder en premier ? Choisissez-en un."
+      "categoryClarify": "Quel sujet regarder en premier ? Choisissez-en un.",
+      "welcomeNote": "It's okay to share something difficult to say. We'll explore the grounds relevant to your question.",
+      "stepLabel": "Question and details · 1 / 3",
+      "questionTitle": "What would you like to explore together?",
+      "questionGuide": "Write your question first, then choose a reading. Only the details needed for that method are requested.",
+      "reviewButton": "Review scope and price",
+      "leapMonth": "Lunar leap month",
+      "longitudeLabel": "Birthplace longitude (optional)",
+      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude."
     },
     "resultSheet": {
       "cardOrdinal": "Card {index} ·",
@@ -17000,7 +17021,9 @@
       "pdfSaved": "Saved the reading as a PDF.",
       "pdfFailed": "We couldn't save the PDF. Please try again in a moment.",
       "pdfFileName": "destiny-tea-house-{title}-{date}.pdf",
-      "honeyLetterResume": "Consulter à nouveau cette lettre"
+      "honeyLetterResume": "Consulter à nouveau cette lettre",
+      "safeShareLabel": "Tea house invitation without personal details",
+      "safeShareText": "A cup of tea with Yeoni, and time to quietly reflect on my feelings and choices."
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "Yes",
@@ -19300,6 +19323,163 @@
       "unavailable": "Aucun classement disponible : seuls la nature et la position sont présentés.",
       "helpful": "Même si sa nature traditionnelle est exigeante, ce thème lui attribue un rôle qui soutient l'équilibre.",
       "caution": "Il ne s'agit ni d'une mauvaise personne ni d'un destin fixé. Lisez ceci avec les conseils pratiques."
+    },
+    "homeV2": {
+      "title": "Yeoni's Destiny Tea House",
+      "library": "My readings",
+      "account": "Account",
+      "back": "Ggulggul Fortune",
+      "heading": "Is something\non your mind?",
+      "lead": "Set down the worries you could not share, and quietly explore the rhythms of your life.",
+      "intro": "Explore life's timing with Saju, today's choices with Tarot, and relationship dynamics with Sukuyo.",
+      "start": "Share what's on my mind",
+      "sample": "See a reading example",
+      "heroAlt": "Flower-pig Yeoni offering tea in a warm tea house",
+      "concerns": "What brings you here today?",
+      "concernsHelp": "Choose a question for a suggested reading. You can edit the question and change the method.",
+      "questions": {
+        "0": "Why do we keep missing each other?",
+        "1": "Would it be okay to reach out again?",
+        "2": "Should I keep doing this work?",
+        "3": "What should I watch for in my financial patterns?",
+        "4": "Which of these two choices should I examine first?",
+        "5": "I don't understand my own feelings"
+      },
+      "methods": "Find the right reading for you",
+      "choose": "Start this reading",
+      "saju": "Saju",
+      "sajuLine": "Your life's seasons and rhythms",
+      "sajuInfo": "Use birth details to explore tendencies and timing. Receive your chart, interpretation grounds, and practical advice.",
+      "tarot": "Tarot",
+      "tarotLine": "Your choices and feelings now",
+      "tarotInfo": "No birth date needed. Explore your question through selected cards, their positions, and how they connect.",
+      "sukuyo": "Sukuyo",
+      "sukuyoLine": "The space between two people",
+      "sukuyoInfo": "Use both people's birth details to explore lunar mansions and relationship direction, including attraction, misunderstandings, and conversation.",
+      "compat": "Saju compatibility readings are also available",
+      "priceNote": "Single-reading price. Pass and Moonstone eligibility is checked when you confirm the reading.",
+      "previewTitle": "A reading you can return to",
+      "example": "Format example — not a real customer's reading",
+      "exampleQuestion": "Should I continue this work?",
+      "exampleAnswer": "Before rushing a decision, separate what is exhausting you from what makes you want to continue.",
+      "exampleBody": "An actual reading answers your question using calculated facts or selected cards. This example contains no personal calculation.",
+      "resultParts": {
+        "0": "A direct answer to your question",
+        "1": "Interpretation grounds and limitations",
+        "2": "Actions you can take now",
+        "3": "A closing letter from Yeoni"
+      },
+      "historyTitle": "Past thoughts, continuing conversations",
+      "historyBody": "Revisit saved readings and continue readings still being generated or needing recovery.",
+      "welcomeHuman": "For deeper conversations, the same Yeoni sits beside you in her human form.",
+      "optional": "Explore the tea house at your own pace",
+      "prologue": "Yeoni's story",
+      "cups": "Choose a teacup",
+      "album": "Moonlit Tarot album",
+      "guideTitle": "Before your reading",
+      "guide": "After checking your question and required details, you can review the scope and price. Readings support your choices; they do not establish the future or another person's feelings as fact."
+    },
+    "confirmation": {
+      "titleKo": "Review your reading",
+      "question": "My question",
+      "price": "Single-reading price",
+      "scope": "Core answer · interpretation grounds · actions · Yeoni's letter",
+      "policy": "Pass and Moonstone eligibility is checked next. Follow-up questions are available only when included in your current entitlement.",
+      "edit": "Edit question",
+      "continue": "Check access and start",
+      "prepare": "Prepare cards for this question",
+      "spread": "A spread for your question",
+      "draw": "Confirm selected cards",
+      "auto": "Choose automatically",
+      "drawHelp": "The server shuffles 78 cards once and fixes their orientations. They fill positions in your selection order and remain unchanged after payment or retry.",
+      "login": "Sign in to keep your cards safely saved.",
+      "retry": "The cards could not be prepared. Please retry with the same question.",
+      "selected": "Selected card",
+      "ready": "Your selection is saved and will remain after payment.",
+      "selectCount": "Selected",
+      "terms": "Upright and reversed orientations are equally likely. Reversed does not always mean negative.",
+      "information": "Information for this reading",
+      "unknown": "Birth time unknown",
+      "solar": "Solar calendar",
+      "lunar": "Lunar calendar",
+      "leap": "Leap month"
+    },
+    "resultCompanion": {
+      "title": "Conversations with Yeoni",
+      "core": "My question and the core answer",
+      "basis": "Interpretation grounds",
+      "action": "Practical advice",
+      "letter": "Yeoni's letter",
+      "restore": "Return to where I was reading",
+      "method": {
+        "tarot": "Tarot",
+        "saju": "Saju",
+        "sajuCompatibility": "Saju compatibility",
+        "sukuyo": "Sukuyo"
+      }
+    },
+    "calculationPolicy": {
+      "title": "Calculation policy and limits",
+      "sajuCalendar": "Solar dates, lunar dates and leap months use the shared Korean calendar engine, including historical daylight saving for the specified time zone.",
+      "sajuTime": "Longitude adjusts local mean time, rounded to a minute. Corrected time from 23:00 uses the next day's pillar. Month pillars change at the actual solar-term instant.",
+      "sajuUnknown": "Unknown birth time excludes the hour pillar. Major-luck direction uses gender and the year stem's yin or yang; its start uses the solar-term interval. Missing required details defer that judgement.",
+      "sajuLimit": "Element proportions alone do not determine fortune. Strength and useful-element interpretations include seasonal grounds and their limitations.",
+      "sukuyo": "This service derives 27 mansions from the Moon's sidereal longitude. Results can differ from lunar month-and-day tables. Different calculation systems are not blended to adjust the result.",
+      "sukuyoTime": "Birth time is optional. When unknown, Korean-time noon is used. On dates near a mansion boundary, the actual time may change the result.",
+      "sukuyoRelation": "Relationships use forward and reverse distances across 27 mansions and the three-nine classification. Distance is not intimacy or success probability; each person's role depends on direction."
+    },
+    "spreadV2": {
+      "yn_knot_three": {
+        "title": "Untangling the situation",
+        "reason": "Connect the main obstacle, available resources and your next action.",
+        "positions": {
+          "knot": "The knot",
+          "resource": "Available resources",
+          "next_action": "Next action"
+        }
+      },
+      "yn_contact_first": {
+        "title": "Should I reach out first?",
+        "reason": "Explore your intention, communication, obstacles and boundaries before choosing whether to reach out.",
+        "positions": {
+          "my_wish": "What I hope for",
+          "current_communication": "Current communication",
+          "approach_barrier": "Barriers to contact",
+          "boundary": "Boundaries to respect",
+          "if_contact": "If I reach out"
+        }
+      },
+      "yn_new_bond_five": {
+        "title": "Making room for a new connection",
+        "reason": "Explore readiness, strengths, familiar patterns and practical ways to meet people.",
+        "positions": {
+          "readiness": "Readiness",
+          "charm": "Strengths to show",
+          "let_go": "Patterns to release",
+          "widen": "Broaden connections",
+          "begin_advice": "Advice for beginning"
+        }
+      },
+      "yn_money_pattern_five": {
+        "title": "My patterns with money",
+        "reason": "Explore attitudes, resources, recurring spending and a manageable habit.",
+        "positions": {
+          "attitude": "Current attitude",
+          "resource_use": "Using resources",
+          "drain_pattern": "Recurring drains",
+          "missed_task": "Overlooked tasks",
+          "habit": "A practical habit"
+        }
+      },
+      "trad_past_present_future": {
+        "title": "Past, present and possible direction",
+        "reason": "Connect the background, present conditions and a possible direction.",
+        "positions": {
+          "past": "Past",
+          "present": "Present",
+          "future": "Possible direction"
+        }
+      }
     }
   },
   "fortuneVar": {

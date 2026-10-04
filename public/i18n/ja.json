@@ -7102,6 +7102,12 @@
         "k11poz": "凶日",
         "k1149f": "平日"
       }
+    },
+    "yeoniTeaV2": {
+      "alt": "お茶を差し出す花ぶたヨニ",
+      "title": "ヨニの運命茶房",
+      "description": "四柱推命・タロット・宿曜で悩みの根拠と次の行動を考えます。",
+      "pricing": "相談ごとの料金を見る"
     }
   },
   "adsenseArticle": {
@@ -16138,7 +16144,8 @@
     "fiveElementBalance": {
       "eyebrow": "茶の香りが満ちていく筋目",
       "title": "五行の香りのバランス",
-      "empty": "出生の情報が十分でないため、五行の細かなバランスは開いていません。"
+      "empty": "出生の情報が十分でないため、五行の細かなバランスは開いていません。",
+      "method": "天干・地支・蔵干の重みの合計に対する各五行の割合です。文字数や成功確率ではなく、時刻不明では時柱を除きます。"
     },
     "teaCupRitual": {
       "yeoniAlt": "選んだ茶碗を差し出すヨニ",
@@ -16227,8 +16234,9 @@
       "loadingAlt": "月あかりの茶碗が浮かぶローディング場面",
       "yeoniAria": "茶碗を差し出すヨニ",
       "progressAria": "鑑定文の生成の進捗",
-      "delayNotice": "鑑定文をもう少し深く編んでいます。長くかかっても更新せず、少しお待ちください。",
-      "retryNotice": "流れが途切れたら、入力画面から同じ質問でもう一度お試しいただけます。"
+      "delayNotice": "相談文を作成中です。相談記録から進み具合を再確認できます。",
+      "retryNotice": "流れが途切れたら、入力画面から同じ質問でもう一度お試しいただけます。",
+      "libraryLink": "相談記録から続ける"
     },
     "sajuPillarBoard": {
       "eyebrow": "月あかりに照らされた命式",
@@ -16284,7 +16292,12 @@
         "minutes": "{n}分前",
         "hours": "{n}時間前",
         "days": "{n}日前"
-      }
+      },
+      "pending": "作成中の相談",
+      "resume": "保存済みの部分から続ける",
+      "pendingHelp": "質問と利用権を確認し、同じ相談を再開します。",
+      "login": "ログインして相談記録を開く",
+      "openError": "相談を開けませんでした。もう一度選んでください。"
     },
     "teaCupSelection": {
       "eyebrow": "心の香りに応える六つの茶碗",
@@ -16758,7 +16771,7 @@
       "kexsvdzm": "四柱推命の相性は、おふたりの命式だけを根拠にします。分からない時刻や相手の本心を、ヨニが作ることはありません。",
       "kfa7vknq": "恋人",
       "kfabu8cs": "上に今日の質問を置いてください",
-      "kfdgstet": "5カード プレミアムスプレッド",
+      "kfdgstet": "5枚のスプレッド",
       "kfeelhij": "四柱推命の相性は、おふたりの生年月日からそれぞれの命式を出したうえで、二つの流れが出会う筋目を一緒に読みます。出生時刻が分からない場合は、時柱なしで大きな流れを中心に見ます。",
       "kfkxbrwx": "別れ・危機",
       "kfngvjey": "宿曜の相性鑑定",
@@ -16772,7 +16785,7 @@
       "khkt6xha": "宿曜の相性は、計算された27宿と関係の距離だけを根拠にします。分からない気持ちや結末を、ヨニが断定することはありません。",
       "khxnyk5k": "保存されたプロフィールカードで、鑑定の情報を先に埋めます。",
       "kjakx6mc": "月あかりの相性の間",
-      "kjbalv1m": "現在・流れ・助言を順に広げる、速くて核心的なリーディングです。",
+      "kjbalv1m": "質問を3つの視点で読みます。次の段階で配置を変更できます。",
       "kjcqal1e": "友人",
       "kjod6wtk": "カードが最初に開く場面",
       "kjprno0f": "四柱推命の鑑定は生年月日から開きます。出生時刻が分からない場合は、時柱なしで大きな流れを中心に読みます。",
@@ -16784,7 +16797,7 @@
       "kkrkfupy": "四柱推命で見る",
       "kkxbjbaz": "タロット鑑定で開くと出生情報なしで、今の質問と選ばれたカードの象徴だけを深く読みます。",
       "kl4sj6bx": "上におふたりの生年月日を並べて置きます。",
-      "klefzwx7": "現在・相手/状況・障害・可能性・助言まで、カードの数だけ深く見ます。",
+      "klefzwx7": "連絡・縁・お金に合う5つの配置を選びます。枚数より質問との相性を大切にします。",
       "klnifzy4": "おふたりの27宿の距離と関係のリズムを、月あかりの下で静かに広げてみます。",
       "kltbw1nw": "生まれた流れをもとに、五行と十神の筋目を落ち着いて見ていきます。",
       "klz2wc0l": "運命の茶館 タロット鑑定の画像",
@@ -16801,7 +16814,7 @@
       "kpbfcw5q": "旧暦",
       "kpshc3qv": "生まれた流れ、五行のバランス、繰り返す気質と時期の基準",
       "kpsrhcjk": "相手の心、選択の気流、すぐ動ける一歩",
-      "kqblvqw4": "今の質問の上に浮かんだ一枚の象徴をたどり、心の気流と選択の方向を読みます。",
+      "kqblvqw4": "質問に合う配置とカード同士のつながりから、次の行動を考えます。",
       "kqnhrp3g": "ヨニは27宿の距離と関係のタイプをまず確かめ、見えない気持ちは断定しないまま、今の質問の流れだけを見ます。",
       "kqpkxeui": "わたしの命式",
       "kquxx9hu": "二つの命式を並べて置きます",
@@ -16838,7 +16851,15 @@
       "kzzksrnj": "保存されたプロフィールが見つかりませんでした。下の情報だけ埋めれば鑑定を開けます。",
       "categoryLabel": "今回の質問のテーマ",
       "categoryAuto": "質問から見つける",
-      "categoryClarify": "今回はどのテーマから見ましょうか。一つ選んでください。"
+      "categoryClarify": "今回はどのテーマから見ましょうか。一つ選んでください。",
+      "welcomeNote": "話しにくい悩みも大丈夫。質問に合う根拠を一緒に見ていきましょう。",
+      "stepLabel": "質問と情報 · 1 / 3",
+      "questionTitle": "どんな悩みを一緒に読みましょうか？",
+      "questionGuide": "先に質問を書いて相談方法を選んでください。その方法に必要な情報だけを伺います。",
+      "reviewButton": "内容と料金を確認する",
+      "leapMonth": "旧暦の閏月",
+      "longitudeLabel": "出生地の経度（任意）",
+      "longitudeHelp": "都市名から座標は推定しません。初期値はソウル126.978°です。海外出生の場合は現地の経度を入力してください。"
     },
     "resultSheet": {
       "cardOrdinal": "{index}枚目のカード ·",
@@ -17000,7 +17021,9 @@
       "pdfSaved": "相談結果をPDFで保存しました。",
       "pdfFailed": "PDFの保存に失敗しました。しばらくしてからもう一度お試しください。",
       "pdfFileName": "運命の茶館-{title}-{date}.pdf",
-      "honeyLetterResume": "同じ手紙をもう一度確認"
+      "honeyLetterResume": "同じ手紙をもう一度確認",
+      "safeShareLabel": "個人情報を含まない茶房への招待",
+      "safeShareText": "ヨニとお茶を一杯。気持ちと選択を静かに見つめる時間。"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "あり",
@@ -19300,6 +19323,163 @@
       "unavailable": "判定情報がないため、性質と位置だけを見ます。",
       "helpful": "伝統的には凶神でも、この命式ではバランスを助ける役割と判定されています。",
       "caution": "悪い人や決まった運命という意味ではありません。相談の対処法と一緒に見ましょう。"
+    },
+    "homeV2": {
+      "title": "ヨニの運命茶房",
+      "library": "私の相談記録",
+      "account": "アカウント",
+      "back": "クルクル占いへ",
+      "heading": "心にかかることが\nありますか？",
+      "lead": "言えなかった悩みを置いて、自分の流れを静かに見つめる場所。",
+      "intro": "四柱推命で人生の流れを、タロットで今の選択を、宿曜で二人の距離感を読みます。",
+      "start": "悩みを話す",
+      "sample": "相談の例を見る",
+      "heroAlt": "温かな茶房でお茶を差し出す花ぶたのヨニ",
+      "concerns": "今日はどんなお気持ちですか？",
+      "concernsHelp": "質問を選ぶと相談方法をご案内します。質問も方法も変更できます。",
+      "questions": {
+        "0": "なぜ二人はすれ違ってしまうの？",
+        "1": "もう一度連絡しても大丈夫？",
+        "2": "今の仕事を続けてもいい？",
+        "3": "お金の流れで何に気をつけるべき？",
+        "4": "二つの選択肢、何から考えればいい？",
+        "5": "自分の気持ちがわかりません"
+      },
+      "methods": "自分に合う相談の席",
+      "choose": "この相談を始める",
+      "saju": "四柱推命",
+      "sajuLine": "人生の季節と流れ",
+      "sajuInfo": "出生情報から気質と時期の流れを読み、命式・解釈の根拠・行動のヒントをお届けします。",
+      "tarot": "タロット",
+      "tarotLine": "今の選択と気持ち",
+      "tarotInfo": "生年月日は不要です。質問と選んだカードから、各位置の意味と組み合わせを読みます。",
+      "sukuyo": "宿曜",
+      "sukuyoLine": "二人の関係と距離",
+      "sukuyoInfo": "二人の出生情報から宿と関係の方向を読み、惹かれる点・誤解・対話の仕方を考えます。",
+      "compat": "二人の四柱推命の相性も読めます",
+      "priceNote": "単発料金です。利用券・月晶石の適用は相談確認の段階でご案内します。",
+      "previewTitle": "読み返せる相談記録",
+      "example": "構成例・実際のお客様の相談ではありません",
+      "exampleQuestion": "今の仕事を続けてもいいでしょうか？",
+      "exampleAnswer": "決断を急ぐ前に、疲れる理由と続けたい理由を分けて考えましょう。",
+      "exampleBody": "実際の相談では計算データやカードを根拠に答えます。この例には個人の計算結果は含まれません。",
+      "resultParts": {
+        "0": "質問への核心的な答え",
+        "1": "解釈の根拠と限界",
+        "2": "今できる行動",
+        "3": "ヨニからの結びの手紙"
+      },
+      "historyTitle": "過去の気持ちも、続くお話も",
+      "historyBody": "保存した相談を読み返し、作成中や復旧が必要な相談を続けられます。",
+      "welcomeHuman": "深いお話をするときは、同じヨニが人の姿で隣に座ります。",
+      "optional": "茶房をゆっくり歩く",
+      "prologue": "ヨニの物語",
+      "cups": "茶杯を選ぶ",
+      "album": "月明かりのタロットアルバム",
+      "guideTitle": "相談の前に",
+      "guide": "質問と必要情報を確認し、内容と料金をご案内します。相談は選択を支える解釈であり、未来や相手の気持ちを断定しません。"
+    },
+    "confirmation": {
+      "titleKo": "相談内容をご確認ください",
+      "question": "私の質問",
+      "price": "単発料金",
+      "scope": "核心の答え・解釈の根拠・行動・ヨニの手紙",
+      "policy": "利用券・月晶石の適用は次の段階で確認します。追加質問は現在の購入権利に含まれる場合のみ利用できます。",
+      "edit": "質問を修正する",
+      "continue": "利用権を確認して相談を始める",
+      "prepare": "この質問でカードを準備する",
+      "spread": "質問に合うカード配置",
+      "draw": "カード選択を確定する",
+      "auto": "自動で選ぶ",
+      "drawHelp": "サーバーで78枚を一度混ぜ、向きを固定します。選択順に配置され、決済からの復帰や再試行でも同じカードを読みます。",
+      "login": "カードを安全に保存するためログインしてください。",
+      "retry": "カードを準備できませんでした。同じ質問で再試行してください。",
+      "selected": "選んだカード",
+      "ready": "カード選択を保存しました。決済から戻っても続けられます。",
+      "selectCount": "選択",
+      "terms": "正逆は同じ確率です。逆位置が必ず悪い意味になるわけではありません。",
+      "information": "Information for this reading",
+      "unknown": "Birth time unknown",
+      "solar": "Solar calendar",
+      "lunar": "Lunar calendar",
+      "leap": "Leap month"
+    },
+    "resultCompanion": {
+      "title": "ヨニとのお話",
+      "core": "私の質問と核心の答え",
+      "basis": "解釈の根拠",
+      "action": "行動のヒント",
+      "letter": "ヨニの手紙",
+      "restore": "読んでいた場所へ",
+      "method": {
+        "tarot": "タロット",
+        "saju": "四柱推命",
+        "sajuCompatibility": "四柱推命の相性",
+        "sukuyo": "宿曜"
+      }
+    },
+    "calculationPolicy": {
+      "title": "計算基準と解釈の範囲",
+      "sajuCalendar": "陽暦・旧暦・閏月は共通の韓国暦エンジンで変換し、指定時間帯の過去の夏時間を反映します。",
+      "sajuTime": "経度で地方平均時を補正し分単位に丸めます。補正後23時から翌日の日柱を使い、月柱は実際の節入り時刻で区切ります。",
+      "sajuUnknown": "時刻不明では時柱を除きます。大運の方向は性別と年干の陰陽、開始は節気の間隔を使い、必要情報がなければ判断を保留します。",
+      "sajuLimit": "五行の割合だけで吉凶を決めません。身強・身弱や用神は季節などの根拠と限界を併せて読みます。",
+      "sukuyo": "当サービスは月の恒星黄経から27宿を算出します。旧暦の月日早見表と異なる場合があり、異なる方式を混ぜて補正しません。",
+      "sukuyoTime": "時刻は任意です。不明の場合は韓国時間の正午を使うため、宿の境界に近い日は実際の時刻で変わる可能性があります。",
+      "sukuyoRelation": "27宿の順行・逆行距離と三九の関係分類で読みます。距離は親密度や成功確率ではなく、方向によって二人の役割が変わります。"
+    },
+    "spreadV2": {
+      "yn_knot_three": {
+        "title": "Untangling the situation",
+        "reason": "Connect the main obstacle, available resources and your next action.",
+        "positions": {
+          "knot": "The knot",
+          "resource": "Available resources",
+          "next_action": "Next action"
+        }
+      },
+      "yn_contact_first": {
+        "title": "Should I reach out first?",
+        "reason": "Explore your intention, communication, obstacles and boundaries before choosing whether to reach out.",
+        "positions": {
+          "my_wish": "What I hope for",
+          "current_communication": "Current communication",
+          "approach_barrier": "Barriers to contact",
+          "boundary": "Boundaries to respect",
+          "if_contact": "If I reach out"
+        }
+      },
+      "yn_new_bond_five": {
+        "title": "Making room for a new connection",
+        "reason": "Explore readiness, strengths, familiar patterns and practical ways to meet people.",
+        "positions": {
+          "readiness": "Readiness",
+          "charm": "Strengths to show",
+          "let_go": "Patterns to release",
+          "widen": "Broaden connections",
+          "begin_advice": "Advice for beginning"
+        }
+      },
+      "yn_money_pattern_five": {
+        "title": "My patterns with money",
+        "reason": "Explore attitudes, resources, recurring spending and a manageable habit.",
+        "positions": {
+          "attitude": "Current attitude",
+          "resource_use": "Using resources",
+          "drain_pattern": "Recurring drains",
+          "missed_task": "Overlooked tasks",
+          "habit": "A practical habit"
+        }
+      },
+      "trad_past_present_future": {
+        "title": "Past, present and possible direction",
+        "reason": "Connect the background, present conditions and a possible direction.",
+        "positions": {
+          "past": "Past",
+          "present": "Present",
+          "future": "Possible direction"
+        }
+      }
     }
   },
   "fortuneVar": {

@@ -44,6 +44,22 @@ const alternatives = {
   "prop-notebook": "상담 기록 노트",
   "prop-card-back": "꽃과 찻잔 무늬의 장식용 카드 뒷면"
 };
+const screens = {
+  'character-sheet': ['art-reference'],
+  'yeoni-tea-welcome': ['home-hero', 'ggulggul-entry'],
+  'yeoni-human-welcome': ['home-result-preview'],
+  'yeoni-saju': ['home-method', 'question-method', 'saju-result'],
+  'yeoni-tarot': ['home-method', 'question-method'],
+  'yeoni-sukuyo': ['home-method', 'question-method', 'sukuyo-result'],
+  'pig-listening': ['question-intro'],
+  'pig-cheer': ['result-honey-letter'],
+  'human-letter': ['result-closing'],
+  'state-brewing': ['generation', 'library-pending'],
+  'state-completed': ['generation-complete'],
+  'state-empty': ['library-empty'],
+  'state-retry': ['generation-error', 'library-error'],
+  'prop-card-back': ['tarot-selection'],
+};
 const entries = [];
 for (const [source, columns, rows, names, usage] of packs) {
   const sourcePath = path.join(originals, source);
@@ -57,7 +73,7 @@ for (const [source, columns, rows, names, usage] of packs) {
     const destination = path.join(output, `${names[i]}.webp`);
     await sharp(sourcePath).extract({left,top,width,height}).resize({width: columns === 1 ? 1440 : 640, withoutEnlargement:true}).webp({quality:85,alphaQuality:100}).toFile(destination);
     const result = await sharp(destination).metadata();
-    entries.push({file:`/images/fortune-tea-house/renewal/${names[i]}.webp`,source:`assets/yeoni-teahouse/originals/${source}`,usage,alt:alternatives[names[i]],decorativeAlt:'',width:result.width,height:result.height,alpha:result.hasAlpha,bytes:(await stat(destination)).size,crop:{left,top,width,height},display:columns===1?'hero: right center; preserve face and cup':'contain for transparent cutouts; center for scenes'});
+    entries.push({file:`/images/fortune-tea-house/renewal/${names[i]}.webp`,source:`assets/yeoni-teahouse/originals/${source}`,usage,screens:screens[names[i]]||[],status:screens[names[i]]?'applied-or-reference':'available-not-mounted',alt:alternatives[names[i]],decorativeAlt:'',width:result.width,height:result.height,alpha:result.hasAlpha,bytes:(await stat(destination)).size,crop:{left,top,width,height},display:columns===1?'hero: right center; preserve face and cup':'contain for transparent cutouts; center for scenes'});
   }
 }
 await writeFile(path.join(output,'manifest.json'), JSON.stringify({version:'yeoni-art-20261004',generator:'OpenAI image generation tool',references:['canonical Yeoni profile 1','existing yeoni-sprite7-tarot-photoroom.webp'],entries},null,2)+'\n');

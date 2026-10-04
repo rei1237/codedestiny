@@ -5706,6 +5706,7 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
     featureKey: access.featureKey,
     pricing: access.pricing,
     consultationVersion: consultRequest.consultationVersion,
+    ...(consultRequest.consultationVersion === "tea-v2" ? { questionSummary: consultRequest.question } : {}),
     tarotSnapshot: fallback.tarotSnapshot,
     resultFormatVersion: fallback.resultFormatVersion,
     promptVersion: fallback.promptVersion,

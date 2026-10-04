@@ -8,7 +8,7 @@ import { isTeaHouseEntryStage } from "../data/entryStory";
 import type { TeaHouseStage } from "../data/story";
 import styles from "../styles/fortune-tea-house.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
-import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
+import room from "../styles/tea-room.module.css";
 
 type FortuneTeaHouseImmersiveShellProps = {
   stage: TeaHouseStage;
@@ -23,9 +23,11 @@ const KO = {
   homeAria: "Code Destiny 홈화면으로 바로가기",
   home: "홈으로",
 };
+const BRAND = { title: "연이의 운명 찻집" };
 
 export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBackToLanding, children }: FortuneTeaHouseImmersiveShellProps) {
   const copy = useTeaHouseCopy("shell", KO);
+  const brand = useTeaHouseCopy("homeV2", BRAND);
   const backgroundAssets = getStageBackgroundAssets(stage);
   const backgroundStyle = {
     "--tea-bg-desktop": `url("${backgroundAssets.desktop}")`,
@@ -36,6 +38,15 @@ export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBa
     "--tea-bg-position-mobile": backgroundAssets.mobilePosition,
   } as CSSProperties;
   const shouldShowBackButton = stage !== "landing";
+
+  if (stage === "landing") return <main>{children}</main>;
+  if (["questionInput", "scentLoading", "tarotReveal", "result"].includes(stage)) return (
+    <main className={room.room} data-stage={stage}>
+      <header className={room.header}><button type="button" onClick={onBackToLanding}>{copy.back}</button><Link href="/fortune-tea-house/">{brand.title}</Link><Link href="/ggulggul/" aria-label={copy.homeAria}>{copy.home}</Link></header>
+      {notice && <p className={room.notice} role="status">{notice}</p>}
+      {children}
+    </main>
+  );
 
   return (
     <main className={styles.page} data-stage={stage} style={backgroundStyle}>
@@ -50,11 +61,7 @@ export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBa
         {copy.home}
       </Link>
       <div className={styles.pageInner}>
-        {stage === "questionInput" ? (
-          <ExpertValueCards theme="yeoni" points={[{ title: "마음의 온도", description: "연이가 질문의 결을 먼저 살피고 지금 감정의 온도를 읽습니다." }, { title: "상징의 흐름", description: "찻잎과 카드가 보여주는 관계·선택의 신호를 부드럽게 엮습니다." }, { title: "다음 한 걸음", description: "겁을 주는 예언 대신 지금 덜 흔들릴 수 있는 선택을 남깁니다." }]} />
-        ) : null}
         {children}
-        {stage === "questionInput" ? <ExpertStickyCta theme="yeoni" targetId="tea-question-form" label="연이에게 상담 건네기" price="상담 이용 가격 확인" /> : null}
       </div>
       <div className={styles.shellMist} aria-hidden />
       {notice ? (

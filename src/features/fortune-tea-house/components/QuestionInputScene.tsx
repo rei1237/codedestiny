@@ -1,4 +1,5 @@
 "use client";
+import TeaConsultConfirmation from "./TeaConsultConfirmation";
 import { SAJU_CATEGORIES, resolveQuestionCategory } from "@/lib/fortune-tea-house/saju-category";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -13,15 +14,12 @@ import {
   type DestinyProfileCard,
 } from "@/app/_lib/profile-card-storage";
 import { fortuneTeaHouseAssets } from "../data/assets";
-import { getFortuneTeaHouseConsultPriceLabel, getFortuneTeaHouseResultButtonLabel } from "../data/consultPricing";
+import { getFortuneTeaHouseConsultPriceLabel } from "../data/consultPricing";
 import type { FortuneTeaHouseCalendarType, FortuneTeaHouseConsultMode, FortuneTeaHouseQuestionInput, FortuneTeaHouseSajuCompatInput, FortuneTeaHouseSukuyoInput, FortuneTeaTarotSpread } from "../data/consult";
 import { type TeaHouseCup } from "../data/teaCups";
 import AssetImage from "./AssetImage";
 import TeaHouseButton from "./TeaHouseButton";
-import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
-import TeaCupVisual from "./TeaCupVisual";
-import YeoniDialogueActor from "./YeoniDialogueActor";
-import styles from "../styles/fortune-tea-house.module.css";
+import styles from "../styles/tea-question.module.css";
 
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 type QuestionInputSceneProps = {
@@ -141,30 +139,6 @@ const tarotSpreadOptions: Array<{
   { id: "five", titleKey: "kfdgstet", descriptionKey: "klefzwx7" },
 ];
 
-const questionSceneUi =
-  "relative isolate min-h-svh overflow-hidden bg-[#080511] text-[#fffaf1] antialiased";
-const questionPanelUi =
-  "relative overflow-hidden rounded-[30px] border border-[#f6dfb7]/30 bg-gradient-to-br from-[#241337]/90 via-[#12091f]/90 to-[#080511]/95 shadow-[0_36px_104px_rgba(4,2,12,0.54),0_0_54px_rgba(206,196,255,0.14),inset_0_1px_0_rgba(255,255,255,0.18)] ring-1 ring-white/10 backdrop-blur-2xl";
-const questionSectionUi =
-  "rounded-[22px] border border-[#f6dfb7]/20 bg-white/[0.065] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_18px_48px_rgba(7,3,18,0.2)] ring-1 ring-white/5";
-const questionHeaderUi =
-  "[&>span]:border-[#f6dfb7]/30 [&>span]:bg-[#f6dfb7]/10 [&>span]:text-[#ffe8a6] [&>span]:shadow-[0_0_24px_rgba(246,223,183,0.18)] [&_h3]:font-[var(--tea-font-premium)] [&_h3]:text-[1.1rem] [&_h3]:text-[#fffaf1] [&_h3]:tracking-[0] [&_p]:font-[var(--tea-font-body)] [&_p]:leading-[1.78] [&_p]:text-white/70";
-const consultModeGridUi = "gap-4 lg:gap-5";
-const consultModeCardUi =
-  "rounded-3xl border-[#f6dfb7]/20 bg-gradient-to-br from-[#2a173e]/90 via-[#14091f]/90 to-[#080511]/95 shadow-[0_26px_74px_rgba(7,3,18,0.36),0_0_34px_rgba(206,196,255,0.08),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl transition-transform transition-shadow duration-300 hover:-translate-y-1 hover:border-[#f6dfb7]/50 hover:shadow-[0_34px_88px_rgba(7,3,18,0.48),0_0_46px_rgba(206,196,255,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffe8a6]/75 focus-visible:ring-offset-2 focus-visible:ring-offset-[#12071f] disabled:cursor-wait disabled:opacity-60";
-const questionLabelUi = "text-[#ffe8a6]/90";
-const questionInputUi =
-  "min-h-12 rounded-2xl border border-[#f6dfb7]/30 bg-[#0e0719]/80 px-4 font-[var(--tea-font-body)] text-[#fffaf1] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_12px_30px_rgba(7,3,18,0.16)] outline-none transition placeholder:text-white/40 focus:border-[#ffe8a6]/75 focus:ring-4 focus:ring-[#ffe8a6]/20 disabled:cursor-not-allowed disabled:opacity-55";
-const questionTextareaUi =
-  "rounded-[22px] border border-[#f6dfb7]/30 bg-[#0e0719]/80 px-4 py-4 font-[var(--tea-font-body)] leading-[1.78] text-[#fffaf1] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_16px_38px_rgba(7,3,18,0.18)] outline-none transition placeholder:text-white/40 focus:border-[#ffe8a6]/75 focus:ring-4 focus:ring-[#ffe8a6]/20 disabled:cursor-not-allowed disabled:opacity-55";
-const sukuyoCardUi =
-  "rounded-2xl border border-white/20 bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_18px_44px_rgba(7,3,18,0.16)]";
-const branchNoteUi =
-  "rounded-2xl border border-[#d7d4ff]/25 bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]";
-const tarotSpreadOptionUi =
-  "rounded-2xl border-[#f6dfb7]/20 bg-white/[0.055] shadow-[0_16px_38px_rgba(7,3,18,0.18),inset_0_1px_0_rgba(255,255,255,0.1)] transition duration-300 hover:-translate-y-0.5 hover:border-[#ffe8a6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffe8a6]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#12071f]";
-const actionRowUi = "items-stretch sm:items-center";
-
 type TeaHouseProfileOption = {
   optionId: string;
   profileId?: string;
@@ -260,6 +234,12 @@ function mapProfileToTeaHouseOption(profile: DestinyProfileCard): TeaHouseProfil
     키는 문구의 결정론적 해시라 같은 문구가 자동으로 한 키로 합쳐진다(정적 셸의 마커 도구와 같은 방식). */
 const CATEGORY_KO = { love: "연애·재회", compatibility: "궁합·관계", marriage: "결혼·출산", career: "직업·진로", wealth: "재물·사업", study: "학업·시험", health: "컨디션 관리", family: "가족·인간관계", timing: "이사·시기", annual: "올해의 흐름" };
 const KO = {
+  welcomeNote: "말하기 어려웠던 고민도 괜찮아요. 질문에 맞는 근거를 함께 살펴볼게요.",
+  stepLabel: "질문과 정보 · 1 / 3", questionTitle: "어떤 고민을 함께 읽어볼까요?",
+  questionGuide: "질문을 먼저 적고 상담 방식을 골라 주세요. 선택한 방식에 필요한 정보만 받아요.",
+  reviewButton: "상담 내용과 가격 확인", leapMonth: "음력 윤달", longitudeLabel: "출생지 경도 (선택)",
+  longitudeHelp: "도시명만으로 좌표를 추정하지 않아요. 기본값은 서울 126.978°이며, 해외 출생은 해당 지역 경도를 입력해 주세요.",
+
   categoryLabel: "이번 질문의 주제",
   categoryAuto: "질문에서 찾기",
   categoryClarify: "이번에는 어떤 주제를 먼저 살펴볼까요? 주제를 하나 골라 주세요.",
@@ -323,7 +303,7 @@ const KO = {
   kexsvdzm: "사주 궁합은 두 사람의 명식만 근거로 삼습니다. 모르는 시간이나 상대의 속마음은 연이가 지어내지 않아요.",
   kfa7vknq: "연인",
   kfabu8cs: "위에 오늘의 질문을 올려주세요",
-  kfdgstet: "5카드 프리미엄 스프레드",
+  kfdgstet: "5카드 스프레드",
   kfeelhij: "사주 궁합은 두 사람의 생년월일로 각각의 명식을 산출한 뒤, 두 흐름이 만나는 결을 함께 읽습니다. 출생시간을 모르면 시주 없이 큰 흐름 중심으로 봅니다.",
   kfkxbrwx: "이별 · 위기",
   kfngvjey: "숙요점 궁합 상담",
@@ -337,7 +317,7 @@ const KO = {
   khkt6xha: "숙요점 궁합은 계산된 27숙과 관계 거리만 근거로 삼습니다. 모르는 마음과 결말은 연이가 단정하지 않아요.",
   khxnyk5k: "저장된 프로필 카드로 상담 정보를 먼저 채울게요.",
   kjakx6mc: "달빛 궁합의 방",
-  kjbalv1m: "현재 · 흐름 · 조언을 차례로 펼치는 빠르고 핵심적인 리딩입니다.",
+  kjbalv1m: "상황과 자원, 다음 행동처럼 세 가지 관점으로 질문을 읽어요. 배열은 다음 단계에서 바꿀 수 있어요.",
   kjcqal1e: "친구",
   kjod6wtk: "카드가 먼저 여는 장면",
   kjprno0f: "사주 상담은 생년월일을 바탕으로 엽니다. 출생시간을 모르면 시주 없이 큰 흐름 중심으로 읽습니다.",
@@ -349,7 +329,7 @@ const KO = {
   kkrkfupy: "사주로 보기",
   kkxbjbaz: "타로 상담으로 열면 출생정보 없이, 지금 질문과 선택된 카드의 상징만 깊게 읽습니다.",
   kl4sj6bx: "위에 두 사람의 생년월일을 나란히 올립니다.",
-  klefzwx7: "현재 · 상대/상황 · 장애 · 가능성 · 조언까지, 카드 수만큼 더 깊게 봅니다.",
+  klefzwx7: "연락·인연·돈에 맞는 다섯 자리의 배열을 선택해요. 카드 수보다 질문에 맞는 구성이 중요해요.",
   klnifzy4: "두 사람의 27숙 거리와 관계 리듬을 달빛 아래 조용히 펼쳐봅니다.",
   kltbw1nw: "태어난 흐름을 바탕으로 오행과 십성의 결을 차분히 살펴봅니다.",
   klz2wc0l: "운명의 찻집 타로 상담 이미지",
@@ -366,7 +346,7 @@ const KO = {
   kpbfcw5q: "음력",
   kpshc3qv: "태어난 흐름, 오행의 균형, 반복되는 기질과 시기의 기준",
   kpsrhcjk: "상대의 마음, 선택의 기류, 바로 움직일 수 있는 한 걸음",
-  kqblvqw4: "지금 질문 위로 떠오른 한 장의 상징을 따라, 마음의 기류와 선택의 방향을 읽습니다.",
+  kqblvqw4: "질문에 맞는 카드 배열과 카드 사이의 연결을 읽고, 지금 선택할 수 있는 행동을 살펴봐요.",
   kqnhrp3g: "연이는 27숙의 거리와 관계 유형을 먼저 확인하고, 보이지 않는 마음은 단정하지 않은 채 지금 질문의 흐름만 살펴요.",
   kqpkxeui: "나의 명식",
   kquxx9hu: "두 사람의 명식을 나란히 놓아요",
@@ -429,27 +409,26 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   const [birthTime, setBirthTime] = useState(initialInput?.birthTime || "");
   const [birthTimeUnknown, setBirthTimeUnknown] = useState(Boolean(initialInput?.birthTimeUnknown));
   const [birthPlace, setBirthPlace] = useState(initialInput?.birthPlace || "");
+  const [isLeapMonth, setIsLeapMonth] = useState(Boolean(initialInput?.isLeapMonth));
+  const [longitude, setLongitude] = useState(initialInput?.longitude == null ? "" : String(initialInput.longitude));
   const [timezone, setTimezone] = useState(initialInput?.timezone || "Asia/Seoul");
   const [gender, setGender] = useState(initialInput?.gender || "");
   const [calendarType, setCalendarType] = useState<FortuneTeaHouseCalendarType>(initialInput?.calendarType || "solar");
   const [tarotSpread, setTarotSpread] = useState<FortuneTeaTarotSpread>(initialInput?.tarotSpread === "five" ? "five" : "three");
-  // 타로 금액은 선택한 스프레드(3카드 5,000원 / 5카드 7,000원)에 따라 달라진다.
-  const submitButtonLabel = getFortuneTeaHouseResultButtonLabel(
-    consultationMode,
-    priceLabelForMode(consultationMode, tarotSpread),
-    tarotSpread,
-  );
+  // 타로 상품은 스프레드로 구분하고 가격은 서버 레지스트리에서 읽는다.
   const [sukuyoInput, setSukuyoInput] = useState<FortuneTeaHouseSukuyoInput>(() => ({
     user: {
       name: initialInput?.sukuyo?.user?.name || initialInput?.nickname || "",
       birthDate: initialInput?.sukuyo?.user?.birthDate || "",
       calendarType: initialInput?.sukuyo?.user?.calendarType || "solar",
+      isLeapMonth: Boolean(initialInput?.sukuyo?.user?.isLeapMonth),
       gender: initialInput?.sukuyo?.user?.gender || "",
     },
     partner: {
       name: initialInput?.sukuyo?.partner?.name || "",
       birthDate: initialInput?.sukuyo?.partner?.birthDate || "",
       calendarType: initialInput?.sukuyo?.partner?.calendarType || "solar",
+      isLeapMonth: Boolean(initialInput?.sukuyo?.partner?.isLeapMonth),
       gender: initialInput?.sukuyo?.partner?.gender || "",
     },
     relationshipType: initialInput?.sukuyo?.relationshipType || copy.ktclbui2,
@@ -463,6 +442,9 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       birthTime: initialInput?.sajuCompatibility?.user?.birthTime || "",
       birthTimeUnknown: Boolean(initialInput?.sajuCompatibility?.user?.birthTimeUnknown),
       calendarType: initialInput?.sajuCompatibility?.user?.calendarType || "solar",
+      isLeapMonth: Boolean(initialInput?.sajuCompatibility?.user?.isLeapMonth),
+      timezone: initialInput?.sajuCompatibility?.user?.timezone || "Asia/Seoul",
+      longitude: initialInput?.sajuCompatibility?.user?.longitude,
       gender: initialInput?.sajuCompatibility?.user?.gender || "",
     },
     partner: {
@@ -471,6 +453,9 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       birthTime: initialInput?.sajuCompatibility?.partner?.birthTime || "",
       birthTimeUnknown: Boolean(initialInput?.sajuCompatibility?.partner?.birthTimeUnknown),
       calendarType: initialInput?.sajuCompatibility?.partner?.calendarType || "solar",
+      isLeapMonth: Boolean(initialInput?.sajuCompatibility?.partner?.isLeapMonth),
+      timezone: initialInput?.sajuCompatibility?.partner?.timezone || "Asia/Seoul",
+      longitude: initialInput?.sajuCompatibility?.partner?.longitude,
       gender: initialInput?.sajuCompatibility?.partner?.gender || "",
     },
     relationshipType: initialInput?.sajuCompatibility?.relationshipType || copy.kfa7vknq,
@@ -480,17 +465,20 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   const [questionCategory, setQuestionCategory] = useState(initialInput?.questionCategory || "");
   const [question, setQuestion] = useState(initialInput?.question || "");
   const [error, setError] = useState("");
+  const [confirmation, setConfirmation] = useState<FortuneTeaHouseQuestionInput | null>(null);
 
   // Keep the draft in this page's memory, never in a public URL or durable
   // storage. Returning to cup selection must not discard an unsubmitted form.
   useEffect(() => {
     onDraftChange?.({ consultationMode, nickname, profileId, birthDate, birthTime,
-      birthTimeUnknown, birthPlace, timezone, gender, calendarType, tarotSpread,
+      attemptId: initialInput?.question === question && initialInput?.consultationMode === consultationMode ? initialInput?.attemptId : undefined,
+      tarotSpreadId: initialInput?.tarotSpreadId, consultationVersion: "tea-v2",
+      birthTimeUnknown, birthPlace, timezone, gender, calendarType, tarotSpread, isLeapMonth, longitude: longitude === "" ? undefined : Number(longitude),
       sukuyo: sukuyoInput, sajuCompatibility: sajuCompatInput, question, questionCategory,
       concernTopic: selectedCup.topic });
   }, [onDraftChange, consultationMode, nickname, profileId, birthDate, birthTime,
     birthTimeUnknown, birthPlace, timezone, gender, calendarType, tarotSpread,
-    sukuyoInput, sajuCompatInput, question, questionCategory, selectedCup.topic]);
+    sukuyoInput, sajuCompatInput, question, questionCategory, selectedCup.topic, isLeapMonth, longitude]);
 
   const applyProfileOption = useCallback((option: TeaHouseProfileOption, announce = true) => {
     setSelectedProfileOptionId(option.optionId);
@@ -616,12 +604,14 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
         name: sukuyoInput.user.name?.trim(),
         birthDate: sukuyoInput.user.birthDate,
         calendarType: sukuyoInput.user.calendarType || "solar",
+        isLeapMonth: sukuyoInput.user.calendarType === "lunar" && Boolean(sukuyoInput.user.isLeapMonth),
         gender: sukuyoInput.user.gender,
       },
       partner: {
         name: sukuyoInput.partner.name?.trim(),
         birthDate: sukuyoInput.partner.birthDate,
         calendarType: sukuyoInput.partner.calendarType || "solar",
+        isLeapMonth: sukuyoInput.partner.calendarType === "lunar" && Boolean(sukuyoInput.partner.isLeapMonth),
         gender: sukuyoInput.partner.gender,
       },
       relationshipType: sukuyoInput.relationshipType || copy.ktclbui2,
@@ -667,6 +657,9 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
         birthTime: sajuCompatInput.user.birthTimeUnknown ? "" : sajuCompatInput.user.birthTime,
         birthTimeUnknown: Boolean(sajuCompatInput.user.birthTimeUnknown),
         calendarType: sajuCompatInput.user.calendarType || "solar",
+        isLeapMonth: sajuCompatInput.user.calendarType === "lunar" && Boolean(sajuCompatInput.user.isLeapMonth),
+        timezone: sajuCompatInput.user.timezone || "Asia/Seoul",
+        longitude: sajuCompatInput.user.longitude,
         gender: sajuCompatInput.user.gender,
       },
       partner: {
@@ -675,6 +668,9 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
         birthTime: sajuCompatInput.partner.birthTimeUnknown ? "" : sajuCompatInput.partner.birthTime,
         birthTimeUnknown: Boolean(sajuCompatInput.partner.birthTimeUnknown),
         calendarType: sajuCompatInput.partner.calendarType || "solar",
+        isLeapMonth: sajuCompatInput.partner.calendarType === "lunar" && Boolean(sajuCompatInput.partner.isLeapMonth),
+        timezone: sajuCompatInput.partner.timezone || "Asia/Seoul",
+        longitude: sajuCompatInput.partner.longitude,
         gender: sajuCompatInput.partner.gender,
       },
       relationshipType: sajuCompatInput.relationshipType || copy.kfa7vknq,
@@ -721,6 +717,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       .join(" ");
     return {
       consultationMode,
+      attemptId: initialInput?.question === question ? initialInput?.attemptId : undefined,
+      tarotSpreadId: initialInput?.question === question ? initialInput?.tarotSpreadId : undefined,
       nickname: consultationMode === "sukuyo" ? nextSukuyoInput.user.name || nickname.trim() : isCompat ? nextSajuCompatInput.user.name || nickname.trim() : nickname.trim(),
       concernTopic: selectedCup.topic,
       birthInfo: birthInfoSummary,
@@ -730,6 +728,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       birthTimeUnknown: consultationMode === "saju" || isCompat ? effectiveBirthTimeUnknown : undefined,
       birthPlace: consultationMode === "saju" ? birthPlace.trim() : undefined,
       timezone: consultationMode === "saju" ? timezone.trim() : undefined,
+      isLeapMonth: calendarType === "lunar" && isLeapMonth,
+      longitude: longitude === "" ? undefined : Number(longitude),
       gender: effectiveGender,
       calendarType: effectiveCalendarType,
       tarotSpread: consultationMode === "tarot" ? tarotSpread : undefined,
@@ -774,17 +774,14 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
         setError(copy.k3pdpqbx);
         return;
       }
-      if (!nextSukuyoInput.user.gender || !nextSukuyoInput.partner.gender) {
-        setError(copy.k3w39xmk);
-        return;
-      }
+
       if (!nextSukuyoInput.relationshipType) {
         setError(copy.kxbisp7m);
         return;
       }
     }
     setError("");
-    onSubmit(buildInput(nextQuestion));
+    setConfirmation(buildInput(nextQuestion));
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -794,95 +791,21 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
 
   const sukuyoAutoQuestionPreview = consultationMode === "sukuyo" ? buildSukuyoAutoQuestion() : "";
 
+  if (confirmation) return <TeaConsultConfirmation input={confirmation} cupId={selectedCup.id} onBack={() => setConfirmation(null)} onConfirm={onSubmit} busy={isSubmitting}/>;
+
   return (
-    <section className={`${styles.questionScene} ${questionSceneUi}`} aria-labelledby="teaQuestionTitle">
+    <section className={`${styles.questionScene}`} aria-labelledby="teaQuestionTitle">
       <div className={styles.questionActor}>
-        <div className={styles.questionOracleStage}>
-          <YeoniDialogueActor mood="comfort" isSpeaking={false} className={styles.yeoniPortrait} priority />
-          <div className={styles.questionCupAltar} aria-label={copy.cupAltarAria.replace("{cup}", selectedCup.name)}>
-            <TeaCupVisual cup={selectedCup} state="selected" size="large" className={styles.questionSelectedCup} />
-          </div>
-          <div className={styles.questionCupReading}>
-            <span>{copy.ko8tjcbj}</span>
-            <strong>{selectedCup.name}</strong>
-            <p>{selectedCup.yeoniSelectLine}</p>
-            <em>{selectedCup.selectionComment}</em>
-            <small>{selectedCup.description}</small>
-          </div>
-        </div>
+        <img className={styles.yeoniPortrait} src="/images/fortune-tea-house/renewal/pig-listening.webp" alt="" width="104" height="112" />
+        <p>{copy.welcomeNote}</p>
       </div>
-      <form id="tea-question-form" className={`${styles.questionPanel} ${questionPanelUi}`} onSubmit={handleSubmit}>
-        <p className={styles.sceneEyebrow}>{selectedCup.ritualTitle}</p>
-        <h2 id="teaQuestionTitle">{selectedCup.name}  {copy.kfabu8cs}</h2>
-        <p className={styles.sceneDescription}>
-          {selectedCup.summonLine}  {copy.k75rhwkc}
-        </p>
-        <TeaHouseDialogueBox
-          speaker="연이"
-          text={selectedCup.questionGuideLine}
-        />
-
-        <section className={`${styles.questionFormSection} ${questionSectionUi}`} aria-labelledby="consultModeSectionTitle">
-          <div className={`${styles.questionSectionHeader} ${questionHeaderUi}`}>
-            <span>A</span>
-            <div>
-              <h3 id="consultModeSectionTitle">{copy.ku0ockkt}</h3>
-              <p>{copy.kax27tqj}</p>
-            </div>
-          </div>
-          <div className={`${styles.consultModeGrid} ${consultModeGridUi}`} role="radiogroup" aria-label={copy.kxzymxwz}>
-            {consultModeOptions.map((option) => {
-              const selected = consultationMode === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  aria-label={`${copy[option.titleKey]}. ${copy[option.descriptionKey]}. ${copy[option.suitedForKey]}. ${option.id === "tarot"
-                    ? copy.tarotPriceLine.replace("{three}", getFortuneTeaHouseConsultPriceLabel("tarot", "three")).replace("{five}", getFortuneTeaHouseConsultPriceLabel("tarot", "five"))
-                    : priceLabelForMode(option.id)}`}
-                  className={`${styles.consultModeCard} ${consultModeCardUi}`}
-                  data-mode={option.id}
-                  data-selected={selected ? "true" : "false"}
-                  onClick={() => setConsultationMode(option.id)}
-                  disabled={isSubmitting}
-                >
-                  <span className={styles.consultModeVisual}>
-                    <AssetImage className={styles.consultModeImage} src={option.image} alt={copy[option.altKey]} priority={selected} />
-                  </span>
-                  <span className={styles.consultModeCopy}>
-                    <span className={styles.consultModeEyebrow}>{copy[option.eyebrowKey]}</span>
-                    <strong>{copy[option.titleKey]}</strong>
-                    <span className={styles.consultModeDescription}>{copy[option.descriptionKey]}</span>
-                    <em className={styles.consultModePromise}>{copy[option.promiseKey]}</em>
-                    <span className={styles.consultModeDetails}>
-                      <span>
-                        <b>{copy.k7dubap8}</b>
-                        {copy[option.readsKey]}
-                      </span>
-                      <span>
-                        <b>{copy.k3oztx3o}</b>
-                        {copy[option.suitedForKey]}
-                      </span>
-                      <span>
-                        <b>{copy.ksa9e9pj}</b>
-                        {option.id === "tarot"
-                          ? copy.tarotPriceLine.replace("{three}", getFortuneTeaHouseConsultPriceLabel("tarot", "three")).replace("{five}", getFortuneTeaHouseConsultPriceLabel("tarot", "five"))
-                          : priceLabelForMode(option.id)}
-                      </span>
-                    </span>
-                  </span>
-                  <span className={styles.consultModeMark} aria-hidden="true" />
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className={`${styles.questionFormSection} ${questionSectionUi}`} aria-labelledby="tarotQuestionSectionTitle">
-          <div className={`${styles.questionSectionHeader} ${questionHeaderUi}`}>
-            <span>B</span>
+      <form id="tea-question-form" className={`${styles.questionPanel}`} onSubmit={handleSubmit}>
+        <p className={styles.sceneEyebrow}>{copy.stepLabel}</p>
+        <h2 id="teaQuestionTitle">{copy.questionTitle}</h2>
+        <p className={styles.sceneDescription}>{copy.questionGuide}</p>
+        <section className={`${styles.questionFormSection}`} aria-labelledby="tarotQuestionSectionTitle">
+          <div className={`${styles.questionSectionHeader}`}>
+            <span>01</span>
             <div>
               <h3 id="tarotQuestionSectionTitle">{copy.kuyuobkw}</h3>
               <p>
@@ -895,22 +818,45 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             </div>
           </div>
           {consultationMode === "sukuyo" ? (
-            <div className={`${styles.sukuyoBranchNote} ${branchNoteUi}`}>
-              <AssetImage className={styles.sukuyoBranchImage} src={fortuneTeaHouseAssets.consultModes.sukuyo} alt={copy.kmayyz6o} />
-              <div>
-                <span>{copy.kjakx6mc}</span>
-                <strong>{selectedCup.name}  {copy.kl4sj6bx}</strong>
-                <p>{copy.kqnhrp3g}</p>
-              </div>
-            </div>
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaQuestion">
+
+              {copy.k0x5yuje}
+              <input
+                id="fortuneTeaQuestion"
+                className={`${styles.questionInput}`}
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                placeholder={copy.krvgpmfb}
+                disabled={isSubmitting}
+              />
+              <span className={styles.sukuyoAutoQuestionHint}>
+
+                {copy.autoQuestionNotice.replace("{question}", sukuyoAutoQuestionPreview)}
+              </span>
+            </label>
           ) : (
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaQuestion">
+
+              {copy.kk5nkpgf}
+              <textarea
+                id="fortuneTeaQuestion"
+                className={`${styles.questionTextarea}`}
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                placeholder={selectedCup.questionPlaceholder}
+                rows={4}
+                disabled={isSubmitting}
+              />
+            </label>
+          )}
+          {consultationMode === "sukuyo" ? null : (
             <div className={styles.questionFieldGrid}>
-              <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaNickname">
-                
+              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaNickname">
+
                 {copy.koolkprj}
                 <input
                   id="fortuneTeaNickname"
-                  className={`${styles.questionInput} ${questionInputUi}`}
+                  className={`${styles.questionInput}`}
                   value={nickname}
                   onChange={(event) => setNickname(event.target.value)}
                   placeholder={copy.k96qb2sx}
@@ -918,23 +864,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                   disabled={isSubmitting}
                 />
               </label>
-              <fieldset className={styles.concernTopicGroup}>
-                <legend>{copy.kzifs9il}</legend>
-                <div>
-                  {concernTopics.map((topic) => (
-                    <button
-                      className={styles.concernTopicButton}
-                      data-selected={selectedCup.topic === topic ? "true" : "false"}
-                      key={copy[CONCERN_TOPIC_LABEL[topic]]}
-                      type="button"
-                      disabled
-                    >
-                      {copy[CONCERN_TOPIC_LABEL[topic]]}
-                    </button>
-                  ))}
-                </div>
-                <p className={styles.topicSyncNotice}>{copy.topicSyncNotice.replace("{cup}", selectedCup.name).replace("{topic}", selectedCup.topic)}</p>
-              </fieldset>
+
             </div>
           )}
 
@@ -950,7 +880,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       type="button"
                       role="radio"
                       aria-checked={selected}
-                      className={`${styles.tarotSpreadOption} ${tarotSpreadOptionUi}`}
+                      className={`${styles.tarotSpreadOption}`}
                       data-selected={selected ? "true" : "false"}
                       onClick={() => setTarotSpread(option.id)}
                       disabled={isSubmitting}
@@ -965,51 +895,68 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
           ) : null}
 
           {consultationMode === "saju" ? (
-            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="tea-question-category">
+            <label className={`${styles.questionLabel}`} htmlFor="tea-question-category">
               {copy.categoryLabel}
-              <select id="tea-question-category" className={`${styles.questionInput} ${questionInputUi}`} value={questionCategory} onChange={event => setQuestionCategory(event.target.value)} disabled={isSubmitting}>
+              <select id="tea-question-category" className={`${styles.questionInput}`} value={questionCategory} onChange={event => setQuestionCategory(event.target.value)} disabled={isSubmitting}>
                 <option value="">{copy.categoryAuto}</option>
                 {SAJU_CATEGORIES.map(id => <option key={id} value={id}>{categories[id as keyof typeof categories]}</option>)}
               </select>
             </label>
           ) : null}
-          {consultationMode === "sukuyo" ? (
-            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaQuestion">
-              
-              {copy.k0x5yuje}
-              <input
-                id="fortuneTeaQuestion"
-                className={`${styles.questionInput} ${questionInputUi}`}
-                value={question}
-                onChange={(event) => setQuestion(event.target.value)}
-                placeholder={copy.krvgpmfb}
-                disabled={isSubmitting}
-              />
-              <span className={styles.sukuyoAutoQuestionHint}>
-                
-                {copy.autoQuestionNotice.replace("{question}", sukuyoAutoQuestionPreview)}
-              </span>
-            </label>
-          ) : (
-            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaQuestion">
-              
-              {copy.kk5nkpgf}
-              <textarea
-                id="fortuneTeaQuestion"
-                className={`${styles.questionTextarea} ${questionTextareaUi}`}
-                value={question}
-                onChange={(event) => setQuestion(event.target.value)}
-                placeholder={selectedCup.questionPlaceholder}
-                rows={7}
-                disabled={isSubmitting}
-              />
-            </label>
-          )}
+
+        </section>
+        <section className={`${styles.questionFormSection}`} aria-labelledby="consultModeSectionTitle">
+          <div className={`${styles.questionSectionHeader}`}>
+            <span>02</span>
+            <div>
+              <h3 id="consultModeSectionTitle">{copy.ku0ockkt}</h3>
+              <p>{copy.kax27tqj}</p>
+            </div>
+          </div>
+          <div className={`${styles.consultModeGrid}`} role="radiogroup" aria-label={copy.kxzymxwz}>
+            {consultModeOptions.map((option) => {
+              const selected = consultationMode === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  aria-label={`${copy[option.titleKey]}. ${copy[option.descriptionKey]}. ${copy[option.suitedForKey]}. ${option.id === "tarot"
+                    ? copy.tarotPriceLine.replace("{three}", getFortuneTeaHouseConsultPriceLabel("tarot", "three")).replace("{five}", getFortuneTeaHouseConsultPriceLabel("tarot", "five"))
+                    : priceLabelForMode(option.id)}`}
+                  className={`${styles.consultModeCard}`}
+                  data-mode={option.id}
+                  data-selected={selected ? "true" : "false"}
+                  onClick={() => setConsultationMode(option.id)}
+                  disabled={isSubmitting}
+                >
+                  <span className={styles.consultModeVisual}>
+                    <AssetImage className={styles.consultModeImage} src={`/images/fortune-tea-house/renewal/yeoni-${option.id === "sajuCompatibility" ? "saju" : option.id}.webp`} alt={copy[option.altKey]} priority={selected} />
+                  </span>
+                  <span className={styles.consultModeCopy}>
+                    <strong>{copy[option.titleKey]}</strong>
+                    <span className={styles.consultModeDescription}>{copy[option.descriptionKey]}</span>
+                    <span className={styles.consultModeDetails}>
+                      <span>
+                        <b>{copy.ksa9e9pj}</b>
+                        {option.id === "tarot"
+                          ? copy.tarotPriceLine.replace("{three}", getFortuneTeaHouseConsultPriceLabel("tarot", "three")).replace("{five}", getFortuneTeaHouseConsultPriceLabel("tarot", "five"))
+                          : priceLabelForMode(option.id)}
+                      </span>
+                    </span>
+                  </span>
+                  <span className={styles.consultModeMark} aria-hidden="true" />
+                </button>
+              );
+            })}
+          </div>
         </section>
 
+
         {consultationMode === "saju" ? (
-        <section className={`${styles.questionFormSection} ${questionSectionUi}`} aria-labelledby="sajuBirthSectionTitle">
-          <div className={`${styles.questionSectionHeader} ${questionHeaderUi}`}>
+        <section className={`${styles.questionFormSection}`} aria-labelledby="sajuBirthSectionTitle">
+          <div className={`${styles.questionSectionHeader}`}>
             <span>C</span>
             <div>
               <h3 id="sajuBirthSectionTitle">{copy.kadrsxnd}</h3>
@@ -1025,12 +972,12 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             {profileLoading ? (
               <p className={styles.profileLoadNotice}>{copy.kykwvjex}</p>
             ) : profileOptions.length > 1 ? (
-              <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaProfileSelect">
+              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaProfileSelect">
                 
                 {copy.kaiikl3r}
                 <select
                   id="fortuneTeaProfileSelect"
-                  className={`${styles.questionInput} ${questionInputUi}`}
+                  className={`${styles.questionInput}`}
                   value={selectedProfileOptionId}
                   onChange={(event) => {
                     const nextProfile = profileOptions.find((option) => option.optionId === event.target.value);
@@ -1057,17 +1004,17 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             {profileError ? <p className={styles.profileLoadError}>{profileError}</p> : null}
           </section>
           <div className={`${styles.questionFieldGrid} ${styles.birthInfoGrid}`}>
-            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaBirthDate">
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaBirthDate">
               
               {copy.kmfvupic}
-              <input id="fortuneTeaBirthDate" className={`${styles.questionInput} ${questionInputUi}`} {...birthDateTextInputProps(birthDate, (nextBirthDate) => setBirthDate(nextBirthDate))} disabled={isSubmitting} />
+              <input id="fortuneTeaBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(birthDate, (nextBirthDate) => setBirthDate(nextBirthDate))} disabled={isSubmitting} />
             </label>
-            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaBirthTime">
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaBirthTime">
               
               {copy.kcmffks2}
               <input
                 id="fortuneTeaBirthTime"
-                className={`${styles.questionInput} ${questionInputUi}`}
+                className={`${styles.questionInput}`}
                 type="time"
                 value={birthTime}
                 onChange={(event) => {
@@ -1091,21 +1038,21 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
               />
               <span>{copy.kh6vmzkk}</span>
             </label>
-            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaGender">
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaGender">
               
               {copy.kd3n64c3}
-              <select id="fortuneTeaGender" className={`${styles.questionInput} ${questionInputUi}`} value={gender} onChange={(event) => setGender(event.target.value)} disabled={isSubmitting}>
+              <select id="fortuneTeaGender" className={`${styles.questionInput}`} value={gender} onChange={(event) => setGender(event.target.value)} disabled={isSubmitting}>
                 <option value="">{copy.k7rysb4s}</option>
                 <option value="female">{copy.k3vw2jji}</option>
                 <option value="male">{copy.kkgzlpaa}</option>
               </select>
             </label>
-            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaCalendarType">
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaCalendarType">
               
               {copy.ksxyz0up}
               <select
                 id="fortuneTeaCalendarType"
-                className={`${styles.questionInput} ${questionInputUi}`}
+                className={`${styles.questionInput}`}
                 value={calendarType}
                 onChange={(event) => setCalendarType(event.target.value === "lunar" ? "lunar" : "solar")}
                 disabled={isSubmitting}
@@ -1114,30 +1061,32 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                 <option value="lunar">{copy.kpbfcw5q}</option>
               </select>
             </label>
-            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaBirthPlace">
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaBirthPlace">
               
               {copy.kxljhkhu}
               <input
                 id="fortuneTeaBirthPlace"
-                className={`${styles.questionInput} ${questionInputUi}`}
+                className={`${styles.questionInput}`}
                 value={birthPlace}
                 onChange={(event) => setBirthPlace(event.target.value)}
                 placeholder={copy.kcsiugqf}
                 disabled={isSubmitting}
               />
             </label>
-            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaTimezone">
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaTimezone">
               
               {copy.kd9cotur}
               <input
                 id="fortuneTeaTimezone"
-                className={`${styles.questionInput} ${questionInputUi}`}
+                className={`${styles.questionInput}`}
                 value={timezone}
                 onChange={(event) => setTimezone(event.target.value)}
                 placeholder="Asia/Seoul"
                 disabled={isSubmitting}
               />
             </label>
+            {calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={isLeapMonth} onChange={e => setIsLeapMonth(e.target.checked)} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
+            <label className={styles.questionLabel}>{copy.longitudeLabel}<input className={styles.questionInput} type="number" min="-180" max="180" step="0.001" value={longitude} onChange={e => setLongitude(e.target.value)} placeholder="126.978" disabled={isSubmitting}/><small>{copy.longitudeHelp}</small></label>
           </div>
           <p className={styles.birthOptionalNotice}>
             
@@ -1145,8 +1094,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
           </p>
         </section>
         ) : consultationMode === "sajuCompatibility" ? (
-          <section className={`${styles.questionFormSection} ${questionSectionUi}`} aria-labelledby="sajuCompatBirthSectionTitle">
-            <div className={`${styles.questionSectionHeader} ${questionHeaderUi}`}>
+          <section className={`${styles.questionFormSection}`} aria-labelledby="sajuCompatBirthSectionTitle">
+            <div className={`${styles.questionSectionHeader}`}>
               <span>C</span>
               <div>
                 <h3 id="sajuCompatBirthSectionTitle">{copy.kquxx9hu}</h3>
@@ -1155,15 +1104,15 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             </div>
 
             <div className={styles.sukuyoPairGrid}>
-              <article className={`${styles.sukuyoPersonCard} ${sukuyoCardUi}`}>
+              <article className={`${styles.sukuyoPersonCard}`}>
                 <span>{copy.kqpkxeui}</span>
                 <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatUserName">
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserName">
                     
                     {copy.kmkn5ed2}
                     <input
                       id="fortuneTeaSajuCompatUserName"
-                      className={`${styles.questionInput} ${questionInputUi}`}
+                      className={`${styles.questionInput}`}
                       value={sajuCompatInput.user.name || ""}
                       onChange={(event) => updateSajuCompatPerson("user", { name: event.target.value })}
                       placeholder={copy.kgr4ck0r}
@@ -1171,17 +1120,17 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       disabled={isSubmitting}
                     />
                   </label>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatUserBirthDate">
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserBirthDate">
                     
                     {copy.kmfvupic}
-                    <input id="fortuneTeaSajuCompatUserBirthDate" className={`${styles.questionInput} ${questionInputUi}`} {...birthDateTextInputProps(sajuCompatInput.user.birthDate || "", (nextBirthDate) => updateSajuCompatPerson("user", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
+                    <input id="fortuneTeaSajuCompatUserBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(sajuCompatInput.user.birthDate || "", (nextBirthDate) => updateSajuCompatPerson("user", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
                   </label>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatUserBirthTime">
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserBirthTime">
                     
                     {copy.kcmffks2}
                     <input
                       id="fortuneTeaSajuCompatUserBirthTime"
-                      className={`${styles.questionInput} ${questionInputUi}`}
+                      className={`${styles.questionInput}`}
                       type="time"
                       value={sajuCompatInput.user.birthTime || ""}
                       onChange={(event) => updateSajuCompatPerson("user", { birthTime: event.target.value, birthTimeUnknown: event.target.value ? false : sajuCompatInput.user.birthTimeUnknown })}
@@ -1198,12 +1147,12 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                     />
                     <span>{copy.k4te8nd5}</span>
                   </label>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatUserCalendar">
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserCalendar">
                     
                     {copy.ksxyz0up}
                     <select
                       id="fortuneTeaSajuCompatUserCalendar"
-                      className={`${styles.questionInput} ${questionInputUi}`}
+                      className={`${styles.questionInput}`}
                       value={sajuCompatInput.user.calendarType || "solar"}
                       onChange={(event) => updateSajuCompatPerson("user", { calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}
                       disabled={isSubmitting}
@@ -1212,12 +1161,15 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       <option value="lunar">{copy.kpbfcw5q}</option>
                     </select>
                   </label>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatUserGender">
+                  {sajuCompatInput.user.calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={Boolean(sajuCompatInput.user.isLeapMonth)} onChange={e => updateSajuCompatPerson("user", {isLeapMonth: e.target.checked})} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
+                  <label className={styles.questionLabel}>{copy.kd9cotur}<input className={styles.questionInput} value={sajuCompatInput.user.timezone || "Asia/Seoul"} onChange={e => updateSajuCompatPerson("user", {timezone:e.target.value})} disabled={isSubmitting}/></label>
+                  <label className={styles.questionLabel}>{copy.longitudeLabel}<input className={styles.questionInput} type="number" min="-180" max="180" step="0.001" value={sajuCompatInput.user.longitude ?? ""} onChange={e => updateSajuCompatPerson("user", {longitude:e.target.value === "" ? undefined : Number(e.target.value)})} disabled={isSubmitting}/><small>{copy.longitudeHelp}</small></label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserGender">
                     
                     {copy.kd3n64c3}
                     <select
                       id="fortuneTeaSajuCompatUserGender"
-                      className={`${styles.questionInput} ${questionInputUi}`}
+                      className={`${styles.questionInput}`}
                       value={sajuCompatInput.user.gender || ""}
                       onChange={(event) => updateSajuCompatPerson("user", { gender: event.target.value })}
                       disabled={isSubmitting}
@@ -1230,15 +1182,15 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                 </div>
               </article>
 
-              <article className={`${styles.sukuyoPersonCard} ${sukuyoCardUi}`}>
+              <article className={`${styles.sukuyoPersonCard}`}>
                 <span>{copy.kalghzsn}</span>
                 <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatPartnerName">
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerName">
                     
                     {copy.kmkn5ed2}
                     <input
                       id="fortuneTeaSajuCompatPartnerName"
-                      className={`${styles.questionInput} ${questionInputUi}`}
+                      className={`${styles.questionInput}`}
                       value={sajuCompatInput.partner.name || ""}
                       onChange={(event) => updateSajuCompatPerson("partner", { name: event.target.value })}
                       placeholder={copy.kdjowvdd}
@@ -1246,17 +1198,17 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       disabled={isSubmitting}
                     />
                   </label>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatPartnerBirthDate">
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerBirthDate">
                     
                     {copy.kmfvupic}
-                    <input id="fortuneTeaSajuCompatPartnerBirthDate" className={`${styles.questionInput} ${questionInputUi}`} {...birthDateTextInputProps(sajuCompatInput.partner.birthDate || "", (nextBirthDate) => updateSajuCompatPerson("partner", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
+                    <input id="fortuneTeaSajuCompatPartnerBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(sajuCompatInput.partner.birthDate || "", (nextBirthDate) => updateSajuCompatPerson("partner", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
                   </label>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatPartnerBirthTime">
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerBirthTime">
                     
                     {copy.kcmffks2}
                     <input
                       id="fortuneTeaSajuCompatPartnerBirthTime"
-                      className={`${styles.questionInput} ${questionInputUi}`}
+                      className={`${styles.questionInput}`}
                       type="time"
                       value={sajuCompatInput.partner.birthTime || ""}
                       onChange={(event) => updateSajuCompatPerson("partner", { birthTime: event.target.value, birthTimeUnknown: event.target.value ? false : sajuCompatInput.partner.birthTimeUnknown })}
@@ -1273,12 +1225,12 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                     />
                     <span>{copy.k4te8nd5}</span>
                   </label>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatPartnerCalendar">
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerCalendar">
                     
                     {copy.ksxyz0up}
                     <select
                       id="fortuneTeaSajuCompatPartnerCalendar"
-                      className={`${styles.questionInput} ${questionInputUi}`}
+                      className={`${styles.questionInput}`}
                       value={sajuCompatInput.partner.calendarType || "solar"}
                       onChange={(event) => updateSajuCompatPerson("partner", { calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}
                       disabled={isSubmitting}
@@ -1287,12 +1239,15 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       <option value="lunar">{copy.kpbfcw5q}</option>
                     </select>
                   </label>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatPartnerGender">
+                  {sajuCompatInput.partner.calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={Boolean(sajuCompatInput.partner.isLeapMonth)} onChange={e => updateSajuCompatPerson("partner", {isLeapMonth: e.target.checked})} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
+                  <label className={styles.questionLabel}>{copy.kd9cotur}<input className={styles.questionInput} value={sajuCompatInput.partner.timezone || "Asia/Seoul"} onChange={e => updateSajuCompatPerson("partner", {timezone:e.target.value})} disabled={isSubmitting}/></label>
+                  <label className={styles.questionLabel}>{copy.longitudeLabel}<input className={styles.questionInput} type="number" min="-180" max="180" step="0.001" value={sajuCompatInput.partner.longitude ?? ""} onChange={e => updateSajuCompatPerson("partner", {longitude:e.target.value === "" ? undefined : Number(e.target.value)})} disabled={isSubmitting}/><small>{copy.longitudeHelp}</small></label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerGender">
                     
                     {copy.kd3n64c3}
                     <select
                       id="fortuneTeaSajuCompatPartnerGender"
-                      className={`${styles.questionInput} ${questionInputUi}`}
+                      className={`${styles.questionInput}`}
                       value={sajuCompatInput.partner.gender || ""}
                       onChange={(event) => updateSajuCompatPerson("partner", { gender: event.target.value })}
                       disabled={isSubmitting}
@@ -1307,12 +1262,12 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             </div>
 
             <div className={styles.sukuyoMetaGrid}>
-              <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatRelationship">
+              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatRelationship">
                 
                 {copy.kbsnqume}
                 <select
                   id="fortuneTeaSajuCompatRelationship"
-                  className={`${styles.questionInput} ${questionInputUi}`}
+                  className={`${styles.questionInput}`}
                   value={sajuCompatInput.relationshipType || copy.kfa7vknq}
                   onChange={(event) => updateSajuCompatMeta({ relationshipType: event.target.value })}
                   disabled={isSubmitting}
@@ -1322,12 +1277,12 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                   ))}
                 </select>
               </label>
-              <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatFocus">
+              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatFocus">
                 
                 {copy.kydjxdvs}
                 <select
                   id="fortuneTeaSajuCompatFocus"
-                  className={`${styles.questionInput} ${questionInputUi}`}
+                  className={`${styles.questionInput}`}
                   value={sajuCompatInput.focus || copy.k0y7lflt}
                   onChange={(event) => updateSajuCompatMeta({ focus: event.target.value })}
                   disabled={isSubmitting}
@@ -1339,12 +1294,12 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
               </label>
             </div>
 
-            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatSituation">
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatSituation">
               
               {copy.k2jt4pbo} <span className={styles.optionalFieldMark}>{copy.kcbceqsz}</span>
               <textarea
                 id="fortuneTeaSajuCompatSituation"
-                className={`${styles.questionTextarea} ${styles.sukuyoSituationTextarea} ${questionTextareaUi}`}
+                className={`${styles.questionTextarea} ${styles.sukuyoSituationTextarea}`}
                 value={sajuCompatInput.currentSituation || ""}
                 onChange={(event) => updateSajuCompatMeta({ currentSituation: event.target.value })}
                 placeholder={copy.ksvgqqtb}
@@ -1358,8 +1313,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             </p>
           </section>
         ) : consultationMode === "sukuyo" ? (
-          <section className={`${styles.questionFormSection} ${questionSectionUi}`} aria-labelledby="sukuyoBirthSectionTitle">
-            <div className={`${styles.questionSectionHeader} ${questionHeaderUi}`}>
+          <section className={`${styles.questionFormSection}`} aria-labelledby="sukuyoBirthSectionTitle">
+            <div className={`${styles.questionSectionHeader}`}>
               <span>C</span>
               <div>
                 <h3 id="sukuyoBirthSectionTitle">{copy.kjtex1ko}</h3>
@@ -1368,15 +1323,15 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             </div>
 
             <div className={styles.sukuyoPairGrid}>
-              <article className={`${styles.sukuyoPersonCard} ${sukuyoCardUi}`}>
+              <article className={`${styles.sukuyoPersonCard}`}>
                 <span>{copy.keqlnlem}</span>
                 <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoUserName">
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserName">
                     
                     {copy.kmkn5ed2}
                     <input
                       id="fortuneTeaSukuyoUserName"
-                      className={`${styles.questionInput} ${questionInputUi}`}
+                      className={`${styles.questionInput}`}
                       value={sukuyoInput.user.name || ""}
                       onChange={(event) => updateSukuyoPerson("user", { name: event.target.value })}
                       placeholder={copy.kgr4ck0r}
@@ -1384,17 +1339,17 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       disabled={isSubmitting}
                     />
                   </label>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoUserBirthDate">
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserBirthDate">
                     
                     {copy.kmfvupic}
-                    <input id="fortuneTeaSukuyoUserBirthDate" className={`${styles.questionInput} ${questionInputUi}`} {...birthDateTextInputProps(sukuyoInput.user.birthDate || "", (nextBirthDate) => updateSukuyoPerson("user", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
+                    <input id="fortuneTeaSukuyoUserBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(sukuyoInput.user.birthDate || "", (nextBirthDate) => updateSukuyoPerson("user", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
                   </label>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoUserCalendar">
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserCalendar">
                     
                     {copy.ksxyz0up}
                     <select
                       id="fortuneTeaSukuyoUserCalendar"
-                      className={`${styles.questionInput} ${questionInputUi}`}
+                      className={`${styles.questionInput}`}
                       value={sukuyoInput.user.calendarType || "solar"}
                       onChange={(event) => updateSukuyoPerson("user", { calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}
                       disabled={isSubmitting}
@@ -1403,12 +1358,13 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       <option value="lunar">{copy.kpbfcw5q}</option>
                     </select>
                   </label>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoUserGender">
+                  {sukuyoInput.user.calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={Boolean(sukuyoInput.user.isLeapMonth)} onChange={e => updateSukuyoPerson("user", {isLeapMonth: e.target.checked})} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserGender">
                     
                     {copy.kd3n64c3}
                     <select
                       id="fortuneTeaSukuyoUserGender"
-                      className={`${styles.questionInput} ${questionInputUi}`}
+                      className={`${styles.questionInput}`}
                       value={sukuyoInput.user.gender || ""}
                       onChange={(event) => updateSukuyoPerson("user", { gender: event.target.value })}
                       disabled={isSubmitting}
@@ -1421,15 +1377,15 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                 </div>
               </article>
 
-              <article className={`${styles.sukuyoPersonCard} ${sukuyoCardUi}`}>
+              <article className={`${styles.sukuyoPersonCard}`}>
                 <span>{copy.k2lelfhi}</span>
                 <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoPartnerName">
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerName">
                     
                     {copy.kmkn5ed2}
                     <input
                       id="fortuneTeaSukuyoPartnerName"
-                      className={`${styles.questionInput} ${questionInputUi}`}
+                      className={`${styles.questionInput}`}
                       value={sukuyoInput.partner.name || ""}
                       onChange={(event) => updateSukuyoPerson("partner", { name: event.target.value })}
                       placeholder={copy.kdjowvdd}
@@ -1437,17 +1393,17 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       disabled={isSubmitting}
                     />
                   </label>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoPartnerBirthDate">
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerBirthDate">
                     
                     {copy.kmfvupic}
-                    <input id="fortuneTeaSukuyoPartnerBirthDate" className={`${styles.questionInput} ${questionInputUi}`} {...birthDateTextInputProps(sukuyoInput.partner.birthDate || "", (nextBirthDate) => updateSukuyoPerson("partner", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
+                    <input id="fortuneTeaSukuyoPartnerBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(sukuyoInput.partner.birthDate || "", (nextBirthDate) => updateSukuyoPerson("partner", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
                   </label>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoPartnerCalendar">
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerCalendar">
                     
                     {copy.ksxyz0up}
                     <select
                       id="fortuneTeaSukuyoPartnerCalendar"
-                      className={`${styles.questionInput} ${questionInputUi}`}
+                      className={`${styles.questionInput}`}
                       value={sukuyoInput.partner.calendarType || "solar"}
                       onChange={(event) => updateSukuyoPerson("partner", { calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}
                       disabled={isSubmitting}
@@ -1456,12 +1412,13 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       <option value="lunar">{copy.kpbfcw5q}</option>
                     </select>
                   </label>
-                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoPartnerGender">
+                  {sukuyoInput.partner.calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={Boolean(sukuyoInput.partner.isLeapMonth)} onChange={e => updateSukuyoPerson("partner", {isLeapMonth: e.target.checked})} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerGender">
                     
                     {copy.kd3n64c3}
                     <select
                       id="fortuneTeaSukuyoPartnerGender"
-                      className={`${styles.questionInput} ${questionInputUi}`}
+                      className={`${styles.questionInput}`}
                       value={sukuyoInput.partner.gender || ""}
                       onChange={(event) => updateSukuyoPerson("partner", { gender: event.target.value })}
                       disabled={isSubmitting}
@@ -1476,12 +1433,12 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             </div>
 
             <div className={styles.sukuyoMetaGrid}>
-              <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoRelationship">
+              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoRelationship">
                 
                 {copy.kbsnqume}
                 <select
                   id="fortuneTeaSukuyoRelationship"
-                  className={`${styles.questionInput} ${questionInputUi}`}
+                  className={`${styles.questionInput}`}
                   value={sukuyoInput.relationshipType || copy.ktclbui2}
                   onChange={(event) => updateSukuyoMeta({ relationshipType: event.target.value })}
                   disabled={isSubmitting}
@@ -1491,12 +1448,12 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                   ))}
                 </select>
               </label>
-              <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoFocus">
+              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoFocus">
                 
                 {copy.kydjxdvs}
                 <select
                   id="fortuneTeaSukuyoFocus"
-                  className={`${styles.questionInput} ${questionInputUi}`}
+                  className={`${styles.questionInput}`}
                   value={sukuyoInput.focus || copy.k0y7lflt}
                   onChange={(event) => updateSukuyoMeta({ focus: event.target.value })}
                   disabled={isSubmitting}
@@ -1508,12 +1465,12 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
               </label>
             </div>
 
-            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoSituation">
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoSituation">
               
               {copy.k2jt4pbo} <span className={styles.optionalFieldMark}>{copy.kcbceqsz}</span>
               <textarea
                 id="fortuneTeaSukuyoSituation"
-                className={`${styles.questionTextarea} ${styles.sukuyoSituationTextarea} ${questionTextareaUi}`}
+                className={`${styles.questionTextarea} ${styles.sukuyoSituationTextarea}`}
                 value={sukuyoInput.currentSituation || ""}
                 onChange={(event) => updateSukuyoMeta({ currentSituation: event.target.value })}
                 placeholder={copy.k4wmutlu}
@@ -1539,13 +1496,13 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             <p>{submitError}</p>
           </section>
         ) : null}
-        <div className={`${styles.storyActions} ${actionRowUi}`}>
+        <div className={`${styles.storyActions}`}>
           <TeaHouseButton variant="ghost" onClick={onBack} disabled={isSubmitting}>
             
             {copy.kchbatkz}
           </TeaHouseButton>
           <TeaHouseButton type="submit" loading={isSubmitting}>
-            {submitButtonLabel}
+            {copy.reviewButton}
           </TeaHouseButton>
         </div>
       </form>

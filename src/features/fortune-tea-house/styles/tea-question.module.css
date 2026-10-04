@@ -1,0 +1,46 @@
+.questionScene{max-width:880px;margin:0 auto;color:#303c31;padding:24px 20px 48px;font-family:var(--tea-font-body),sans-serif;line-height:1.7;overflow-wrap:anywhere}
+.questionPanel{min-width:0}
+.questionPanel h2{font-family:var(--tea-font-premium),serif;font-size:clamp(1.6rem,4vw,2.2rem);line-height:1.4;margin:8px 0 16px}
+.questionPanel h3{font-size:1.1rem;margin:0}
+.questionActor{display:flex;align-items:center;gap:16px;margin-bottom:24px;max-width:580px}
+.yeoniPortrait{width:104px;height:112px;object-fit:contain;flex-shrink:0}
+.sceneEyebrow{font-size:.8rem;letter-spacing:.1em;color:#647358}
+.sceneDescription{color:#626558}
+.questionFormSection{padding:24px 0;border-bottom:1px solid #dcdaca}
+.questionSectionHeader{display:flex;gap:12px;margin-bottom:20px;align-items:baseline}
+.questionSectionHeader>span{font-size:.8rem;color:#7b6951}
+.questionSectionHeader p{margin:4px 0;color:#65685c;font-size:.9rem}
+.questionLabel{display:grid;gap:8px;font-size:.92rem;font-weight:600;min-width:0;margin-bottom:16px}
+.questionInput,.questionTextarea,.sukuyoSituationTextarea{box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:12px;border:1px solid #a7ab99;border-radius:8px;background:#fffdf7;color:#303c31;font:inherit;font-size:16px;font-weight:400}
+.questionTextarea,.sukuyoSituationTextarea{line-height:1.8;resize:vertical}
+.questionScene :is(button,input,select,textarea):focus-visible{outline:3px solid #627b57;outline-offset:3px}
+.questionScene button{min-height:44px;cursor:pointer}
+.questionScene button:disabled{cursor:default;opacity:.55}
+.consultModeGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.consultModeCard{display:flex;gap:12px;padding:16px;border:1px solid #c6cbbb;border-radius:10px;background:#fffdf7;color:inherit;text-align:left;align-items:center}
+.consultModeCard[data-selected=true],.tarotSpreadOption[data-selected=true]{border:2px solid #4c694b;background:#eef2e8;padding:15px}
+.consultModeVisual{width:56px;flex-shrink:0}
+.consultModeImage{width:56px;height:64px;object-fit:cover;border-radius:5px}
+.consultModeCopy{display:grid;gap:5px;min-width:0}
+.consultModeCopy strong{font-size:1rem}
+.consultModeDescription{font-size:.82rem;line-height:1.6;color:#626558}
+.consultModeDetails{font-size:.85rem;color:#4c694b}
+.consultModeDetails b{margin-right:6px}
+.questionFieldGrid,.birthInfoGrid,.sukuyoMetaGrid,.sukuyoPersonFieldGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px}
+.sukuyoPairGrid{display:grid;gap:20px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.sukuyoPersonCard{padding:16px;background:#f0f1e8;border-radius:10px;min-width:0}
+.sukuyoPersonFieldGrid{grid-template-columns:1fr}
+.sukuyoPersonCard h4{margin:0 0 12px}
+.birthTimeUnknownToggle{display:flex;align-items:center;gap:10px;min-height:44px}
+.birthTimeUnknownToggle input{width:20px;height:20px;accent-color:#4c694b}
+.birthOptionalNotice,.profileLoadNotice,.sukuyoAutoQuestionHint,.optionalFieldMark{font-size:.85rem;color:#686a5d;font-weight:400}
+.profileLoadPanel{padding:16px;background:#edf1e7;border-radius:8px;margin-bottom:20px}
+.profileLoadHeader{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.profileLoadPanel button{background:#fffdf7;border:1px solid #899b81;border-radius:8px;padding:8px 12px;color:#374d34}
+.tarotSpreadSelector{border:0;padding:0;margin:16px 0;min-width:0}
+.tarotSpreadOptions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tarotSpreadOption{display:grid;gap:8px;text-align:left;padding:16px;border:1px solid #bfc6b4;border-radius:8px;background:#fffdf7;color:inherit}
+.tarotSpreadOption span{font-size:.85rem}
+.storyActions{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;padding:24px 0;position:sticky;bottom:0;background:#faf7ef;border-top:1px solid #dcdaca}
+.questionError,.profileLoadError,.questionSubmitErrorCard{padding:12px;border-left:3px solid #a44940;background:#fff0e8;color:#813a34}
+@media(max-width:600px){.questionScene{padding:20px 16px 24px}.consultModeGrid,.birthInfoGrid,.sukuyoPairGrid,.sukuyoMetaGrid,.questionFieldGrid{grid-template-columns:1fr}.consultModeCard{padding:12px}.consultModeCard[data-selected=true]{padding:11px}.storyActions{position:static}.storyActions>*{flex:1}.questionFormSection{padding:20px 0}.questionActor{font-size:.88rem}.yeoniPortrait{width:80px;height:96px}}

@@ -446,6 +446,7 @@ export type FortuneTeaHouseConsultResponse = {
     dominantElements?: string[];
     pillars?: FortuneTeaSajuPillar[];
     fiveElements?: FortuneTeaFiveElementBalance[];
+    elementMethod?: { source: string; scores: Record<string, number>; total: number };
     primaryTenGod?: FortuneTeaSajuTenGodReading;
     secondaryTenGods?: FortuneTeaSajuSecondaryTenGod[];
     deepSections?: FortuneTeaSajuDeepSection[];

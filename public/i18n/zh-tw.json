@@ -7102,6 +7102,12 @@
         "k11poz": "凶日",
         "k1149f": "平日"
       }
+    },
+    "yeoniTeaV2": {
+      "alt": "花豬妍妮遞上茶杯",
+      "title": "妍妮的命運茶館",
+      "description": "透過四柱、塔羅或宿曜，探索問題的依據和下一步行動。",
+      "pricing": "查看諮詢價格"
     }
   },
   "adsenseArticle": {
@@ -16138,7 +16144,8 @@
     "fiveElementBalance": {
       "eyebrow": "茶香滿溢的紋路",
       "title": "五行香氣的平衡",
-      "empty": "出生資訊還不夠，因此沒有展開五行的細部平衡。"
+      "empty": "出生資訊還不夠，因此沒有展開五行的細部平衡。",
+      "method": "這是天干、地支、藏干加權總值中各五行的占比，並非字數或成功機率。時間不明時排除時柱。"
     },
     "teaCupRitual": {
       "yeoniAlt": "遞出你所選茶杯的 Yeoni",
@@ -16227,8 +16234,9 @@
       "loadingAlt": "月光茶杯浮起的載入畫面",
       "yeoniAria": "遞出茶杯的 Yeoni",
       "progressAria": "諮詢文生成進度",
-      "delayNotice": "諮詢文正編織得更深一些。若停留較久，請不要重新整理，稍等片刻。",
-      "retryNotice": "若流程中斷，可在輸入頁面用同樣的問題再試一次。"
+      "delayNotice": "諮詢仍在產生中，可在我的諮詢中再次查看進度。",
+      "retryNotice": "若流程中斷，可在輸入頁面用同樣的問題再試一次。",
+      "libraryLink": "在我的諮詢中繼續"
     },
     "sajuPillarBoard": {
       "eyebrow": "月光映照的命盤",
@@ -16284,7 +16292,12 @@
         "minutes": "{n} 分鐘前",
         "hours": "{n} 小時前",
         "days": "{n} 天前"
-      }
+      },
+      "pending": "產生中的諮詢",
+      "resume": "從已儲存的部分繼續",
+      "pendingHelp": "確認問題與權益後繼續同一諮詢。",
+      "login": "登入並開啟我的諮詢",
+      "openError": "未能開啟諮詢，請再次選擇。"
     },
     "teaCupSelection": {
       "eyebrow": "回應心之香氣的六隻茶杯",
@@ -16758,7 +16771,7 @@
       "kexsvdzm": "四柱合婚只以兩張命盤為憑。不知道的時間或對方的心裡話，Yeoni 不會編造。",
       "kfa7vknq": "戀人",
       "kfabu8cs": "請把今天的問題放在上面",
-      "kfdgstet": "5張牌高級牌陣",
+      "kfdgstet": "五張牌陣",
       "kfeelhij": "四柱合婚會先用兩人的出生日期推算各自的命盤，再一起讀出兩股流向相遇的紋路。不知道出生時間時，就不帶時柱，以大方向為主。",
       "kfkxbrwx": "離別·危機",
       "kfngvjey": "宿曜合婚諮詢",
@@ -16772,7 +16785,7 @@
       "khkt6xha": "宿曜合婚只以推算出的27宿與關係距離為憑。看不見的心意與結局，Yeoni 不會斷言。",
       "khxnyk5k": "會先用你存好的檔案卡填入諮詢資訊。",
       "kjakx6mc": "月光合婚之室",
-      "kjbalv1m": "依序展開現在·流向·建議，快速而切中核心的解讀。",
+      "kjbalv1m": "從三個角度解讀問題，下一步可更改牌陣。",
       "kjcqal1e": "朋友",
       "kjod6wtk": "牌最先打開的場景",
       "kjprno0f": "四柱八字諮詢以出生日期開啟。不知道出生時間時，就不帶時柱，以大方向為主。",
@@ -16784,7 +16797,7 @@
       "kkrkfupy": "用四柱八字看",
       "kkxbjbaz": "以塔羅諮詢開啟就不需要出生資訊，只深讀此刻的問題與所抽牌的象徵。",
       "kl4sj6bx": "在上面把兩人的出生日期並排放好。",
-      "klefzwx7": "現在·對方/情境·阻礙·可能·建議，牌越多看得越深。",
+      "klefzwx7": "選擇適合聯繫、關係或金錢的五個位置，重點是契合問題而非牌數。",
       "klnifzy4": "在月光下靜靜展開兩人27宿的距離與關係的節奏。",
       "kltbw1nw": "以你出生的流向為本，從容察看五行與十神的紋路。",
       "klz2wc0l": "運命茶館塔羅諮詢圖像",
@@ -16801,7 +16814,7 @@
       "kpbfcw5q": "農曆",
       "kpshc3qv": "出生的流向、五行的平衡、反覆出現的氣質與時機的基準",
       "kpsrhcjk": "對方的心、抉擇的氣流、馬上能邁出的一步",
-      "kqblvqw4": "順著浮上此刻問題的那一張象徵，讀出心的氣流與抉擇的方向。",
+      "kqblvqw4": "結合牌陣與卡牌之間的聯繫，思考現在可以採取的行動。",
       "kqnhrp3g": "Yeoni 會先確認27宿的距離與關係類型，對看不見的心意不下斷言，只察看此刻問題的流向。",
       "kqpkxeui": "我的命盤",
       "kquxx9hu": "把兩張命盤並排放好",
@@ -16838,7 +16851,15 @@
       "kzzksrnj": "找不到存好的檔案。只要填上下面的資訊就能開始諮詢。",
       "categoryLabel": "這次問題的主題",
       "categoryAuto": "從問題中辨識",
-      "categoryClarify": "這次先看看哪個主題？請選擇一個。"
+      "categoryClarify": "這次先看看哪個主題？請選擇一個。",
+      "welcomeNote": "難以啟齒的煩惱也沒關係，我們一起查看與問題相關的依據。",
+      "stepLabel": "問題與資訊 · 1 / 3",
+      "questionTitle": "想一起探討什麼煩惱？",
+      "questionGuide": "先寫下問題，再選擇方式。只需提供該方式需要的資訊。",
+      "reviewButton": "確認內容與價格",
+      "leapMonth": "農曆閏月",
+      "longitudeLabel": "出生地經度（選填）",
+      "longitudeHelp": "不會根據城市名推測座標。預設首爾126.978°，海外出生請填寫當地經度。"
     },
     "resultSheet": {
       "cardOrdinal": "第 {index} 張牌 ·",
@@ -17000,7 +17021,9 @@
       "pdfSaved": "已將諮詢結果儲存為 PDF。",
       "pdfFailed": "PDF 儲存失敗，請稍後再試。",
       "pdfFileName": "運命茶館-{title}-{date}.pdf",
-      "honeyLetterResume": "再次查看同一封信"
+      "honeyLetterResume": "再次查看同一封信",
+      "safeShareLabel": "不含個人資訊的茶館邀請",
+      "safeShareText": "與妍妮喝杯茶，靜靜回顧心情與選擇。"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "有",
@@ -19300,6 +19323,163 @@
       "unavailable": "暫無判定資訊，因此只看性情與位置。",
       "helpful": "即使傳統性情歸為凶神，在這個命局中也被判定為有助於平衡的角色。",
       "caution": "這不代表壞人或注定的命運，請結合諮詢中的應對建議來看。"
+    },
+    "homeV2": {
+      "title": "妍妮的命運茶館",
+      "library": "我的諮詢",
+      "account": "帳戶",
+      "back": "返回咕咕運勢",
+      "heading": "有什麼事\n讓你牽掛嗎？",
+      "lead": "放下未能說出口的煩惱，靜靜梳理人生的節奏。",
+      "intro": "以四柱看人生節奏，以塔羅看當下選擇，以宿曜看關係距離。",
+      "start": "說說我的煩惱",
+      "sample": "查看諮詢範例",
+      "heroAlt": "花豬妍妮在溫暖的茶館遞上一杯茶",
+      "concerns": "今天想聊些什麼？",
+      "concernsHelp": "選擇問題後會推薦諮詢方式。問題和方式都可以修改。",
+      "questions": {
+        "0": "我們為什麼總是錯過彼此？",
+        "1": "可以再次聯絡對方嗎？",
+        "2": "這份工作還應該繼續嗎？",
+        "3": "我的財務模式有哪些需要留意的地方？",
+        "4": "兩個選擇之間，應該先考慮什麼？",
+        "5": "我也不明白自己的心情"
+      },
+      "methods": "找到適合你的諮詢",
+      "choose": "開始這項諮詢",
+      "saju": "四柱",
+      "sajuLine": "人生的季節與節奏",
+      "sajuInfo": "從出生資訊梳理氣質和時機，提供命盤、解讀依據與行動建議。",
+      "tarot": "塔羅",
+      "tarotLine": "當下的選擇與心情",
+      "tarotInfo": "無需出生日期，透過問題和所選牌，解讀各張牌的依據與組合。",
+      "sukuyo": "宿曜",
+      "sukuyoLine": "兩個人的關係與距離",
+      "sukuyoInfo": "根據雙方出生資訊查看本命宿與關係方向，探討吸引、誤解及溝通方式。",
+      "compat": "也可以查看雙方的四柱合盤",
+      "priceNote": "此為單次價格，諮詢確認階段會檢查通行證與月晶石資格。",
+      "previewTitle": "可以重讀的諮詢記錄",
+      "example": "內容結構範例，非真實客戶諮詢",
+      "exampleQuestion": "我應該繼續這份工作嗎？",
+      "exampleAnswer": "先別急著決定，分別梳理疲憊的原因和想繼續的理由。",
+      "exampleBody": "實際諮詢會依據計算資料或所選牌回答問題。本範例不含個人計算結果。",
+      "resultParts": {
+        "0": "問題的核心回答",
+        "1": "解讀依據與局限",
+        "2": "現在可以採取的行動",
+        "3": "妍妮的結語信箋"
+      },
+      "historyTitle": "過去的心情，延續的故事",
+      "historyBody": "重讀已儲存的諮詢，繼續產生中或需要復原的諮詢。",
+      "welcomeHuman": "深入交談時，同一個妍妮會以人形陪在你身旁。",
+      "optional": "慢慢逛逛茶館",
+      "prologue": "妍妮的故事",
+      "cups": "選擇茶杯",
+      "album": "月光塔羅圖鑑",
+      "guideTitle": "諮詢前請了解",
+      "guide": "確認問題與必要資訊後，會說明內容和價格。諮詢幫助你思考選擇，並不確定未來或對方的心意。"
+    },
+    "confirmation": {
+      "titleKo": "請確認諮詢內容",
+      "question": "我的問題",
+      "price": "單次價格",
+      "scope": "核心回答 · 解讀依據 · 行動建議 · 妍妮的信",
+      "policy": "下一步檢查通行證與月晶石資格。只有目前權益包含時才可追加提問。",
+      "edit": "修改問題",
+      "continue": "檢查權益並開始諮詢",
+      "prepare": "為這個問題準備牌組",
+      "spread": "適合問題的牌陣",
+      "draw": "確認所選牌",
+      "auto": "自動選擇",
+      "drawHelp": "伺服器將78張牌洗牌一次並固定方向，按選擇順序放入位置，付款返回或重試時保留原牌。",
+      "login": "請登入以安全儲存所選牌。",
+      "retry": "未能準備牌組，請用同一問題重試。",
+      "selected": "所選牌",
+      "ready": "所選牌已儲存，付款返回後可繼續。",
+      "selectCount": "已選",
+      "terms": "正逆位機率相同，逆位並不一定代表負面含義。",
+      "information": "Information for this reading",
+      "unknown": "Birth time unknown",
+      "solar": "Solar calendar",
+      "lunar": "Lunar calendar",
+      "leap": "Leap month"
+    },
+    "resultCompanion": {
+      "title": "與妍妮的交談",
+      "core": "我的問題與核心回答",
+      "basis": "解讀依據",
+      "action": "行動建議",
+      "letter": "妍妮的信",
+      "restore": "回到上次閱讀位置",
+      "method": {
+        "tarot": "塔羅",
+        "saju": "四柱",
+        "sajuCompatibility": "四柱合盤",
+        "sukuyo": "宿曜"
+      }
+    },
+    "calculationPolicy": {
+      "title": "計算標準與解讀範圍",
+      "sajuCalendar": "國曆、農曆和閏月使用共用韓國曆法引擎轉換，並反映指定時區的歷史日光節約時間。",
+      "sajuTime": "按經度修正地方平太陽時並取整到分鐘。修正後23點起使用次日日柱，月柱以實際節入時刻劃分。",
+      "sajuUnknown": "時間不明時排除時柱。大運方向依據性別與年干陰陽，起運依據節氣間隔，缺少必要資訊時暫不判斷。",
+      "sajuLimit": "不會只憑五行占比判斷吉凶，身強、身弱和用神會結合季節依據與解讀局限。",
+      "sukuyo": "本服務根據月亮恆星黃經計算27宿，可能與農曆月日查表法不同，不混用不同規則修正結果。",
+      "sukuyoTime": "出生時刻不是必填，未知時按韓國時間正午計算。接近宿界的日期可能因實際時刻不同而變化。",
+      "sukuyoRelation": "關係依據27宿順逆距離與三九分類。距離不是親密度或成功機率，雙方角色隨方向而變化。"
+    },
+    "spreadV2": {
+      "yn_knot_three": {
+        "title": "Untangling the situation",
+        "reason": "Connect the main obstacle, available resources and your next action.",
+        "positions": {
+          "knot": "The knot",
+          "resource": "Available resources",
+          "next_action": "Next action"
+        }
+      },
+      "yn_contact_first": {
+        "title": "Should I reach out first?",
+        "reason": "Explore your intention, communication, obstacles and boundaries before choosing whether to reach out.",
+        "positions": {
+          "my_wish": "What I hope for",
+          "current_communication": "Current communication",
+          "approach_barrier": "Barriers to contact",
+          "boundary": "Boundaries to respect",
+          "if_contact": "If I reach out"
+        }
+      },
+      "yn_new_bond_five": {
+        "title": "Making room for a new connection",
+        "reason": "Explore readiness, strengths, familiar patterns and practical ways to meet people.",
+        "positions": {
+          "readiness": "Readiness",
+          "charm": "Strengths to show",
+          "let_go": "Patterns to release",
+          "widen": "Broaden connections",
+          "begin_advice": "Advice for beginning"
+        }
+      },
+      "yn_money_pattern_five": {
+        "title": "My patterns with money",
+        "reason": "Explore attitudes, resources, recurring spending and a manageable habit.",
+        "positions": {
+          "attitude": "Current attitude",
+          "resource_use": "Using resources",
+          "drain_pattern": "Recurring drains",
+          "missed_task": "Overlooked tasks",
+          "habit": "A practical habit"
+        }
+      },
+      "trad_past_present_future": {
+        "title": "Past, present and possible direction",
+        "reason": "Connect the background, present conditions and a possible direction.",
+        "positions": {
+          "past": "Past",
+          "present": "Present",
+          "future": "Possible direction"
+        }
+      }
     }
   },
   "fortuneVar": {

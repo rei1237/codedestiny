@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
-import { Clock3, Heart, Moon, Sparkles, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { Heart, Moon, Sparkles } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import type { FortuneTeaHouseConsultMode, FortuneTeaHouseConsultResponse } from "../data/consult";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
+import styles from "../styles/tea-library.module.css";
 import { useLocale } from "@/lib/i18n/useT";
 
 type TeaHouseHistoryItem = {
@@ -17,6 +18,7 @@ type TeaHouseHistoryItem = {
 type TeaHouseHistoryPanelProps = {
   isOpen: boolean;
   onClose: () => void;
+  onResume: () => void;
   onSelectResult: (result: FortuneTeaHouseConsultResponse) => void;
 };
 
@@ -48,6 +50,8 @@ function formatRelativeDate(iso: string | undefined, copy: typeof KO, locale: st
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
     {n} 은 경과 시간 숫자로 치환된다 — 모든 로케일에서 그대로 둘 것. */
 const KO = {
+  pending: "완성 중인 상담", resume: "저장된 부분부터 이어보기", pendingHelp: "질문과 결제 권한을 확인해 같은 상담을 이어갑니다.",
+  login: "로그인하고 상담함 열기", openError: "상담을 열지 못했어요. 다시 선택해 주세요.",
   closeAria: "상담 기록 닫기",
   title: "지난 상담 기록",
   subtitle: "연이와 나눈 이야기를 다시 펼쳐볼 수 있어요.",
@@ -70,152 +74,66 @@ const KO = {
   },
 };
 
-export default function TeaHouseHistoryPanel({ isOpen, onClose, onSelectResult }: TeaHouseHistoryPanelProps) {
+export default function TeaHouseHistoryPanel({ isOpen, onClose, onSelectResult, onResume }: TeaHouseHistoryPanelProps) {
   const copy = useTeaHouseCopy("historyPanel", KO);
   const locale = useLocale();
   const [items, setItems] = useState<TeaHouseHistoryItem[]>([]);
-  const [status, setStatus] = useState<"idle" | "loading" | "error" | "ready">("idle");
+  const [status, setStatus] = useState<"loading" | "error" | "ready" | "login">("loading");
+  const [pending, setPending] = useState(false);
   const [openingResultId, setOpeningResultId] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
-
   const loadHistory = useCallback(async () => {
-    setStatus("loading");
+    setStatus("loading");setError("");
     try {
-      const response = await authFetch("/api/fortune-tea-house/results", { cache: "no-store" });
-      const payload = (await response.json().catch(() => null)) as { ok?: boolean; items?: TeaHouseHistoryItem[] } | null;
-      if (!response.ok || !payload?.ok) {
-        setStatus("error");
-        return;
-      }
-      setItems(Array.isArray(payload.items) ? payload.items : []);
-      setStatus("ready");
-    } catch {
-      setStatus("error");
-    }
-  }, []);
-
+      const [response, pendingResponse] = await Promise.all([
+        authFetch("/api/fortune-tea-house/results", { cache: "no-store" }),
+        authFetch("/api/fortune-tea-house/pending", { cache: "no-store" }),
+      ]);
+      if(response.status === 401){setStatus("login");return;}
+      const payload = await response.json();
+      if(!response.ok || !payload?.ok){setStatus("error");return;}
+      const progress = pendingResponse.ok ? await pendingResponse.json() : null;
+      setPending(Boolean(progress?.requestPayload));
+      setItems(Array.isArray(payload.items) ? payload.items : []);setStatus("ready");
+    }catch{setStatus("error");}
+  },[]);
   useEffect(() => {
-    if (!isOpen) return;
-    void loadHistory();
-    closeButtonRef.current?.focus();
-  }, [isOpen, loadHistory]);
-
-  if (!isOpen) return null;
-
-  async function openResult(resultId: string) {
-    if (openingResultId) return;
-    setOpeningResultId(resultId);
-    try {
-      const response = await authFetch(`/api/fortune-tea-house/results/${encodeURIComponent(resultId)}`, { cache: "no-store" });
-      const payload = (await response.json().catch(() => null)) as { ok?: boolean; result?: FortuneTeaHouseConsultResponse } | null;
-      if (!response.ok || !payload?.ok || !payload.result) {
-        setOpeningResultId(null);
-        return;
-      }
+    if(!isOpen)return;
+    const previous=document.activeElement as HTMLElement|null;
+    void loadHistory();closeButtonRef.current?.focus();
+    const overflow=document.body.style.overflow;document.body.style.overflow="hidden";
+    return()=>{document.body.style.overflow=overflow;previous?.focus();};
+  },[isOpen,loadHistory]);
+  if(!isOpen)return null;
+  async function openResult(resultId:string){
+    if(openingResultId)return;setOpeningResultId(resultId);setError("");
+    try{
+      const response=await authFetch(`/api/fortune-tea-house/results/${encodeURIComponent(resultId)}`,{cache:"no-store"});
+      const payload=await response.json();
+      if(!response.ok||!payload?.ok||!payload.result)throw new Error();
       onSelectResult(payload.result);
-    } catch {
-      setOpeningResultId(null);
-    }
+    }catch{setError(copy.openError);}finally{setOpeningResultId(null);}
   }
-
-  const handleBackdropMouseDown = (event: MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) onClose();
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-[70] min-h-screen overflow-y-auto bg-gradient-to-b from-deep-indigo to-midnight-ink text-pearl-mist animate-fade-in-up"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="fortuneTeaHistoryTitle"
-      onMouseDown={handleBackdropMouseDown}
-    >
-      <div className="pointer-events-none fixed inset-0" aria-hidden>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_18%_0%,rgba(216,179,108,.14),transparent_46%),radial-gradient(ellipse_at_82%_100%,rgba(156,135,212,.12),transparent_50%)]" />
-      </div>
-
-      <button
-        ref={closeButtonRef}
-        type="button"
-        className="fixed right-4 top-4 z-[75] grid h-11 w-11 place-items-center rounded-full border border-champagne-gold/25 bg-white/[0.07] text-champagne-gold shadow-[0_16px_40px_rgba(0,0,0,.35)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-champagne-gold/50 hover:bg-white/[0.11] focus:outline-none focus:ring-2 focus:ring-champagne-gold/50 sm:right-6 sm:top-6"
-        onClick={onClose}
-        aria-label={copy.closeAria}
-      >
-        <X size={18} aria-hidden />
-      </button>
-
-      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-2xl flex-col px-4 py-16 sm:px-6">
-        <header className="mb-6">
-          <p className="text-xs font-semibold uppercase tracking-wide text-champagne-gold/80">Tea House</p>
-          <h2 id="fortuneTeaHistoryTitle" className="mt-2 text-2xl font-medium text-pearl-mist sm:text-3xl">
-            {copy.title}
-          </h2>
-          <p className="mt-2 text-sm text-pearl-mist/70">{copy.subtitle}</p>
-        </header>
-
-        {status === "loading" || status === "idle" ? (
-          <div className="grid gap-3">
-            {[0, 1, 2].map((key) => (
-              <div key={key} className="h-20 animate-pulse rounded-2xl border border-white/10 bg-white/[0.04]" />
-            ))}
-          </div>
-        ) : null}
-
-        {status === "error" ? (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-center">
-            <p className="text-sm text-pearl-mist/80">{copy.loadError}</p>
-            <button
-              type="button"
-              className="mt-3 rounded-full border border-champagne-gold/40 px-4 py-2 text-sm font-semibold text-champagne-gold transition hover:bg-champagne-gold/10"
-              onClick={() => void loadHistory()}
-            >
-              {copy.retry}
-            </button>
-          </div>
-        ) : null}
-
-        {status === "ready" && items.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-8 text-center">
-            <Clock3 className="mx-auto mb-3 text-champagne-gold/70" size={28} aria-hidden />
-            <p className="text-sm text-pearl-mist/80">{copy.empty}</p>
-          </div>
-        ) : null}
-
-        {status === "ready" && items.length > 0 ? (
-          <ul className="grid gap-3">
-            {items.map((item) => {
-              const meta = CONSULTATION_MODE_META[item.consultationMode] || CONSULTATION_MODE_META.tarot;
-              const Icon = meta.icon;
-              const isOpening = openingResultId === item.resultId;
-              return (
-                <li key={item.resultId}>
-                  <button
-                    type="button"
-                    className="flex w-full min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-left transition hover:-translate-y-0.5 hover:border-champagne-gold/35 hover:bg-white/[0.07] focus:outline-none focus:ring-2 focus:ring-champagne-gold/40 disabled:opacity-60"
-                    onClick={() => void openResult(item.resultId)}
-                    disabled={isOpening}
-                  >
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-champagne-gold/25 bg-champagne-gold/10 text-champagne-gold">
-                      <Icon size={18} aria-hidden />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-center gap-2 text-xs font-semibold text-champagne-gold/80">
-                        <span>{copy.mode[item.consultationMode as keyof typeof copy.mode] || meta.label}</span>
-                        <span aria-hidden>·</span>
-                        <span>{formatRelativeDate(item.createdAt, copy, locale)}</span>
-                      </span>
-                      <span className="mt-1 block truncate text-sm text-pearl-mist/90">
-                        {item.questionSummary || copy.noSummary}
-                      </span>
-                    </span>
-                    {isOpening ? <span className="shrink-0 text-xs text-pearl-mist/60">{copy.opening}</span> : null}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        ) : null}
-      </section>
-    </div>
-  );
+  function keyDown(event:KeyboardEvent<HTMLDivElement>){
+    if(event.key==="Escape"){onClose();return;}
+    if(event.key!=="Tab")return;
+    const targets=Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button:not([disabled]),a[href],input:not([disabled]),[tabindex="0"]'));
+    const first=targets[0],last=targets[targets.length-1];
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+  }
+  return <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby="fortuneTeaHistoryTitle" onKeyDown={keyDown}>
+    <section className={styles.library}>
+      <button ref={closeButtonRef} type="button" className={styles.close} onClick={onClose}>{copy.closeAria}</button>
+      <header><p>YEONI'S TEA HOUSE</p><h2 id="fortuneTeaHistoryTitle">{copy.title}</h2><p>{copy.subtitle}</p></header>
+      {status==="loading"&&<p role="status">{copy.opening}</p>}
+      {status==="login"&&<a href="/login/?next=%2Ffortune-tea-house%2F%3Fhistory%3D1">{copy.login}</a>}
+      {status==="error"&&<div role="alert"><img src="/images/fortune-tea-house/renewal/state-retry.webp" width="140" height="150" alt=""/><p>{copy.loadError}</p><button onClick={()=>void loadHistory()}>{copy.retry}</button></div>}
+      {pending&&<article className={styles.pending}><img src="/images/fortune-tea-house/renewal/state-brewing.webp" width="80" height="90" alt=""/><div><h3>{copy.pending}</h3><p>{copy.pendingHelp}</p><button onClick={onResume}>{copy.resume}</button></div></article>}
+      {status==="ready"&&items.length===0&&<div className={styles.empty}><img src="/images/fortune-tea-house/renewal/state-empty.webp" width="200" height="190" alt=""/><p>{copy.empty}</p></div>}
+      <ul>{items.map(item=><li key={item.resultId}><button disabled={!!openingResultId} onClick={()=>void openResult(item.resultId)}><span>{copy.mode[item.consultationMode]||copy.mode.tarot} · {formatRelativeDate(item.createdAt,copy,locale)}</span><strong>{item.questionSummary||copy.noSummary}</strong>{openingResultId===item.resultId&&<span>{copy.opening}</span>}</button></li>)}</ul>
+      {error&&<p role="alert">{error}</p>}
+    </section>
+  </div>;
 }
