@@ -168,3 +168,19 @@ test('without a birth time the story names no house, first impression or MC and 
   assert.equal(heal.fit, null);
   assert.match(heal.caution, /인정받고 싶은 조급함.*완벽주의/);
 });
+
+test('the chart table shows each position as sign and 20°36′, houses only with a time, and the house footnote only when systems differ', () => {
+  for (const tag of Object.keys(charts)) {
+    const m = timed(tag), html = reading.renderChart(m);
+    for (const p of m.planets) assert.ok(html.includes(p.sign + '</span> <span class="as-deg">' + p.degText + '</span>'), tag + ' ' + p.body);
+    assert.equal((html.match(/<td class="as-num">/g) || []).length, m.planets.length + 2, tag);
+    assert.equal(html.includes('as-foot'), m.planets.some(p => p.house !== p.wholeHouse), tag);
+    const u = untimed(tag), uh = reading.renderChart(u);
+    assert.doesNotMatch(uh, /as-num|as-wheel-cusp|as-wheel-axis|ASC|MC|as-foot/, tag);
+    assert.equal(uh.includes('또는'), !!u.notes.moonSigns, tag);
+  }
+  const same = timed('b1');
+  same.planets.forEach(p => { p.wholeHouse = p.house; });
+  assert.doesNotMatch(reading.renderChart(same), /as-foot/);
+  assert.equal(reading._calc.degText(20.6), '20°36′');
+});

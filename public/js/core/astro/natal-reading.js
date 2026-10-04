@@ -847,6 +847,116 @@
   }
   function render(model) { return renderStory(model); }
 
+  /* ── 출생 차트 층(#asChart): 휠 + 접힌 행성 위치 표. 같은 chart 로 만든 model 만 쓴다. ── */
+  var SIGN_SHORT = ['양', '황소', '쌍둥이', '게', '사자', '처녀', '천칭', '전갈', '사수', '염소', '물병', '물고기'];
+  var WHEEL_NAME = { Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성', Jupiter: '목성', Saturn: '토성', Uranus: '천왕', Neptune: '해왕', Pluto: '명왕' };
+  /* Sign-neutral: the sign's colour comes from TONE. */
+  var MEANS = { Sun: '나를 드러내는 방식', Moon: '마음이 편해지는 방식', Mercury: '생각하고 말하는 방식', Venus: '좋아하고 아끼는 방식', Mars: '밀어붙이는 방식',
+    Jupiter: '기회를 넓히는 방식', Saturn: '책임을 지는 방식', Uranus: '변화를 맞는 방식', Neptune: '꿈꾸고 상상하는 방식', Pluto: '깊이 바뀌는 방식' };
+  var HARD = { square: 1, opposition: 1 };
+  /* Label angles for lons, at least sep° apart: cut the circle at its widest gap, then merge
+   * neighbouring groups that crowd each other and space each group evenly about its mean. */
+  function spread(lons, sep) {
+    var idx = lons.map(function (t, i) { return i; }).sort(function (x, y) { return lons[x] - lons[y]; });
+    var n = idx.length, cut = 0, widest = -1, seq = [], groups, out = [];
+    for (var i = 0; i < n; i++) {
+      var g = n === 1 ? 360 : norm(lons[idx[(i + 1) % n]] - lons[idx[i]]);
+      if (g > widest) { widest = g; cut = (i + 1) % n; }
+    }
+    for (var k = 0; k < n; k++) {
+      var j = idx[(cut + k) % n], t = lons[j];
+      if (k && t < seq[k - 1].o) t += 360;
+      seq.push({ j: j, o: t });
+    }
+    function place(gr) {
+      var c = gr.reduce(function (s, x) { return s + x.o; }, 0) / gr.length;
+      return gr.map(function (x, m) { return c + (m - (gr.length - 1) / 2) * sep; });
+    }
+    groups = seq.map(function (x) { return [x]; });
+    for (var merged = true; merged;) {
+      merged = false;
+      for (var q = 0; q + 1 < groups.length; q++) {
+        var A = place(groups[q]), B = place(groups[q + 1]);
+        if (B[0] - A[A.length - 1] < sep) { groups.splice(q, 2, groups[q].concat(groups[q + 1])); merged = true; break; }
+      }
+    }
+    groups.forEach(function (gr) { place(gr).forEach(function (t, m) { out[gr[m].j] = norm(t); }); });
+    return out;
+  }
+  function wheelSvg(model) {
+    var C = 160, R0 = 156, R1 = 128, RDOT = 118, RLAB = 92, RASP = 70;
+    var a = model.angles, rot = a ? a.asc : 0, out = [];
+    // ASC (0° Aries without a time) at 9 o'clock, zodiac counter-clockwise.
+    function pt(lon, r) { var t = (180 + lon - rot) * Math.PI / 180; return [C + r * Math.cos(t), C - r * Math.sin(t)]; }
+    function f(n) { return n.toFixed(1); }
+    function line(cls, lon1, r1, lon2, r2) {
+      var p = pt(lon1, r1), q = pt(lon2, r2);
+      return '<line class="' + cls + '" x1="' + f(p[0]) + '" y1="' + f(p[1]) + '" x2="' + f(q[0]) + '" y2="' + f(q[1]) + '"/>';
+    }
+    out.push('<svg class="as-wheel-svg" viewBox="-4 -4 328 328" aria-hidden="true" focusable="false">');
+    out.push('<circle class="as-wheel-ring" cx="160" cy="160" r="' + R0 + '"/><circle class="as-wheel-ring" cx="160" cy="160" r="' + R1 + '"/><circle class="as-wheel-ring is-faint" cx="160" cy="160" r="' + RASP + '"/>');
+    for (var s = 0; s < 12; s++) {
+      out.push(line('as-wheel-sector', s * 30, R1, s * 30, R0));
+      // Sign names run along the ring (3-letter names are wider than the band), upright on the lower half.
+      var tp = pt(s * 30 + 15, (R0 + R1) / 2), sa = norm(180 + s * 30 + 15 - rot), turn = sa > 180 ? 270 - sa : 90 - sa;
+      out.push('<text class="as-wheel-sign" x="' + f(tp[0]) + '" y="' + f(tp[1]) + '" transform="rotate(' + f(turn) + ' ' + f(tp[0]) + ' ' + f(tp[1]) + ')" text-anchor="middle" dominant-baseline="central">' + SIGN_SHORT[s] + '</text>');
+    }
+    if (a) {
+      a.cusps.forEach(function (c) { out.push(line('as-wheel-cusp', c, RASP, c, R1)); });
+      out.push(line('as-wheel-axis', a.asc, R1, a.asc + 180, R1), line('as-wheel-axis', a.mc, R1, a.mc + 180, R1));
+    }
+    var byBody = {};
+    model.planets.forEach(function (p) { byBody[p.body] = p; });
+    model.aspects.filter(function (x) { return byBody[x.a] && byBody[x.b] && x.type !== 'conjunction'; }).slice(0, 5).forEach(function (x) {
+      out.push(line('as-wheel-aspect' + (HARD[x.type] ? ' is-hard' : ''), byBody[x.a].lon, RASP, byBody[x.b].lon, RASP));
+    });
+    // Labels share one ring, pushed apart where planets crowd and tied to their dot by a leader.
+    var at = spread(model.planets.map(function (p) { return p.lon; }), 21);
+    var labs = model.planets.map(function (p, i) { return { p: p, t: at[i] }; });
+    // Dots within 4° of the previous one step 6 inward (clear of the label ring) so a conjunction reads as two points.
+    var prevLon = null, step = 0;
+    labs.slice().sort(function (x, y) { return x.p.lon - y.p.lon; }).forEach(function (l) {
+      step = prevLon != null && l.p.lon - prevLon < 4 ? (step + 1) % 2 : 0;
+      l.r = RDOT - step * 6; prevLon = l.p.lon;
+    });
+    // Leaders and labels first, every dot last, so no label halo covers a dot.
+    labs.forEach(function (l) {
+      var p = l.p, lp = pt(l.t, RLAB);
+      if (gap(p.lon, l.t) > 3 || l.r !== RDOT) out.push(line('as-wheel-leader', p.lon, l.r - 4, l.t, RLAB + 9));
+      out.push('<text class="as-wheel-label" x="' + f(lp[0]) + '" y="' + f(lp[1]) + '" text-anchor="middle" dominant-baseline="central">' + WHEEL_NAME[p.body] + '</text>');
+    });
+    labs.forEach(function (l) {
+      var p = l.p, key = p.body === 'Sun' || p.body === 'Moon', dot = pt(p.lon, l.r);
+      out.push('<circle class="as-wheel-dot' + (key ? ' is-key' : '') + (p.uncertain ? ' is-open' : '') + '" cx="' + f(dot[0]) + '" cy="' + f(dot[1]) + '" r="' + (key ? 3.6 : 2.6) + '"/>');
+    });
+    out.push('</svg>');
+    return out.join('');
+  }
+  function posRow(head, sign, house, mean) {
+    return '<tr><th scope="row">' + head + '</th><td>' + sign + '</td>' + (house == null ? '' : '<td class="as-num">' + house + '</td>') + '<td class="as-mean">' + esc(mean) + '</td></tr>';
+  }
+  function renderChart(model) {
+    var a = model.angles, h = [], moonSigns = model.notes.moonSigns;
+    var cap = a ? '왼쪽 끝이 첫인상(ASC)이에요. 굵은 두 축은 첫인상과 사회적 얼굴(MC)을, 가운데 선은 서로 영향을 크게 주고받는 행성을 이어요.'
+      : '태어난 시간을 몰라 집과 축은 그리지 않았어요. 왼쪽 끝이 양자리 0°예요.' + (moonSigns ? ' 달은 그날 별자리를 옮겨서 속이 빈 점으로 그렸어요.' : '');
+    h.push('<figure class="as-wheel">' + wheelSvg(model) + '<figcaption class="as-wheel-cap">' + esc(cap) + '</figcaption></figure>');
+    var rows = model.planets.map(function (p) {
+      var sign = p.uncertain ? SIGN[moonSigns[0]] + ' 또는 ' + SIGN[moonSigns[1]] : '<span class="as-sign">' + p.sign + '</span> <span class="as-deg">' + p.degText + '</span>';
+      var mean = p.uncertain ? '태어난 날 달이 별자리를 옮겨서 두 별자리의 결이 섞여 있어요.' : fill('{means:이} {tone} 편이에요.', { means: MEANS[p.body], tone: TONE[p.signIdx] });
+      return posRow(esc(p.ko) + (p.retro ? ' <span class="as-rx">역행</span>' : ''), sign, a ? p.house : null, mean);
+    });
+    if (a) {
+      rows.push(posRow('첫인상(ASC)', '<span class="as-sign">' + SIGN[a.ascSign] + '</span> <span class="as-deg">' + degText(a.asc % 30) + '</span>', 1, fill('처음 만난 사람에게 {face:으로} 보여요.', { face: FACE[a.ascSign] })));
+      rows.push(posRow('사회적 얼굴(MC)', '<span class="as-sign">' + SIGN[a.mcSign] + '</span> <span class="as-deg">' + degText(a.mc % 30) + '</span>', 10, TONE[a.mcSign] + ' 모습으로 기억되고 싶어 해요.'));
+    }
+    var diff = a ? model.planets.filter(function (p) { return p.house !== p.wholeHouse; }) : [];
+    var foot = diff.length ? '집은 플라시더스 방식으로 셌어요. 별자리 단위로 세면 ' + diff.map(function (p) { return josa(p.ko, '은') + ' ' + p.wholeHouse + '번째'; }).join(', ') + ' 집이에요.' : '';
+    h.push('<details class="as-pos"><summary>행성 위치 표</summary><table class="as-pos-table"><thead><tr><th scope="col">행성</th><th scope="col">별자리</th>'
+      + (a ? '<th scope="col" class="as-num">집</th>' : '') + '<th scope="col" class="as-mean">한 줄 의미</th></tr></thead><tbody>' + rows.join('') + '</tbody></table>'
+      + (foot ? '<p class="as-foot">' + esc(foot) + '</p>' : '') + '</details>');
+    return '<div class="as-reading as-chart' + (a ? '' : ' is-timeless') + '" id="asChart">' + h.join('') + '</div>';
+  }
+
   function context(chart, opts) {
     var timeKnown = opts.timeKnown !== false && !!(chart.asc && chart.mc);
     var cusps = timeKnown ? cuspsOf(chart) : null;
@@ -879,7 +989,7 @@
     CATS.forEach(function (c) { BUILDERS[c[0]](ctx).forEach(function (f) { if (f && f.data.anchor) reserved[f.key] = 1; }); });
     var planets = BODIES.filter(function (b) { return ctx.pos[b]; }).map(function (b) {
       var p = ctx.pos[b];
-      return { body: b, ko: KO[b], signIdx: p.signIdx, sign: SIGN[p.signIdx], deg: round1(p.deg), degText: degText(p.deg), house: p.house || null, wholeHouse: p.wholeHouse || null, retro: p.retro, dignity: p.dignity, angular: !!p.angular };
+      return { body: b, ko: KO[b], lon: round1(p.lon), uncertain: b === 'Moon' && !!ctx.moonSigns, signIdx: p.signIdx, sign: SIGN[p.signIdx], deg: round1(p.deg), degText: degText(p.deg), house: p.house || null, wholeHouse: p.wholeHouse || null, retro: p.retro, dignity: p.dignity, angular: !!p.angular };
     });
     var W = writer(), portrait = portraitOf(ctx, W);
     var categories = CATS.map(function (c) { return writeCategory(ctx, c[0], c[1], pickFactors(ctx, c[0], used, reserved), W); });
@@ -896,6 +1006,7 @@
       portrait: portrait,
       categories: categories,
       planets: planets,
+      angles: ctx.timeKnown ? { asc: round1(ctx.pos.ASC.lon), mc: round1(ctx.pos.MC.lon), ascSign: ctx.pos.ASC.signIdx, mcSign: ctx.pos.MC.signIdx, cusps: ctx.cusps.map(round1) } : null,
       aspects: ctx.aspects.slice(),
       periods: { age: ctx.age ? ctx.age.age : null, sect: ctx.sect, profection: ctx.profection, firdaria: ctx.firdaria },
       balance: ctx.balance,
@@ -907,6 +1018,7 @@
   root.AstroNatalReading = {
     build: build,
     render: render,
+    renderChart: renderChart,
     _calc: { SIGN: SIGN, KO: KO, RULER: RULER, dignity: dignity, houseOf: houseOf, aspectsOf: aspectsOf, degText: degText, jo: jo, contrast: contrast, fill: fill, SIGN_STYLE: SIGN_STYLE, PROF: PROF }
   };
 })(typeof window !== 'undefined' ? window : globalThis);

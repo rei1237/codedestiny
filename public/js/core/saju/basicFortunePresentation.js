@@ -79,11 +79,11 @@
   }
   function localized(key) {
     var labels = {
-      ko: { missing: '출생 정보가 일부 비어 있어요. 프로필에서 시간과 장소를 확인해 주세요.', flow:'인생 흐름', consult:'맞춤 상담', asStory:'나의 이야기', asChart:'출생 차트', asDeep:'깊이 읽기', asConsult:'상담', asLibrary:'읽을거리' },
-      en: { missing: 'Some birth details are missing. Check the time and place in your profile.', flow:'Life periods', consult:'Consultation', asStory:'My story', asChart:'Birth chart', asDeep:'Deeper reading', asConsult:'Consultation', asLibrary:'Articles' },
-      ja: { missing: '出生情報の一部が未入力です。プロフィールで時刻と場所をご確認ください。', flow:'人生の流れ', consult:'個別相談', asStory:'わたしの物語', asChart:'出生図', asDeep:'深く読む', asConsult:'相談', asLibrary:'読みもの' },
-      zh: { missing: '部分出生资料尚未填写。请在个人资料中确认时间和地点。', flow:'人生周期', consult:'专属咨询', asStory:'我的故事', asChart:'出生星盘', asDeep:'深入解读', asConsult:'咨询', asLibrary:'延伸阅读' },
-      'zh-TW': { missing: '部分出生資料尚未填寫。請在個人資料中確認時間和地點。', flow:'人生週期', consult:'專屬諮詢', asStory:'我的故事', asChart:'出生星盤', asDeep:'深入解讀', asConsult:'諮詢', asLibrary:'延伸閱讀' }
+      ko: { missing: '출생 정보가 일부 비어 있어요. 프로필에서 시간과 장소를 확인해 주세요.', flow:'인생 흐름', consult:'맞춤 상담', asStory:'나의 이야기', asChart:'출생 차트', asDeep:'깊이 읽기', asConsult:'상담', asLibrary:'읽을거리', asLegacyChart:'이전 차트 그림' },
+      en: { missing: 'Some birth details are missing. Check the time and place in your profile.', flow:'Life periods', consult:'Consultation', asStory:'My story', asChart:'Birth chart', asDeep:'Deeper reading', asConsult:'Consultation', asLibrary:'Articles', asLegacyChart:'Previous chart view' },
+      ja: { missing: '出生情報の一部が未入力です。プロフィールで時刻と場所をご確認ください。', flow:'人生の流れ', consult:'個別相談', asStory:'わたしの物語', asChart:'出生図', asDeep:'深く読む', asConsult:'相談', asLibrary:'読みもの', asLegacyChart:'以前のチャート表示' },
+      zh: { missing: '部分出生资料尚未填写。请在个人资料中确认时间和地点。', flow:'人生周期', consult:'专属咨询', asStory:'我的故事', asChart:'出生星盘', asDeep:'深入解读', asConsult:'咨询', asLibrary:'延伸阅读', asLegacyChart:'旧版星盘' },
+      'zh-TW': { missing: '部分出生資料尚未填寫。請在個人資料中確認時間和地點。', flow:'人生週期', consult:'專屬諮詢', asStory:'我的故事', asChart:'出生星盤', asDeep:'深入解讀', asConsult:'諮詢', asLibrary:'延伸閱讀', asLegacyChart:'舊版星盤' }
     };
     var lang = document.documentElement.lang || 'ko';
     try { lang = localStorage.getItem('cd_lang') || lang; } catch (_) {}
@@ -778,7 +778,19 @@
       });
       return section.children.length > 1 ? section : null;
     }
-    var chart = collect('fr-astro-chart', localized('asChart'), ['.astro-wheel-card']);
+    var chart = collect('fr-astro-chart', localized('asChart'), ['.astro-wheel-card', '#asChart']);
+    // #asChart skins the legacy wheel card in place, so the card stays the one .astro-wheel-card
+    // outside any fold; its old drawing and tables move into a closed fold beneath the new chart.
+    var asChart = chart && chart.querySelector('#asChart');
+    var wheelCard = chart && chart.querySelector('.astro-wheel-card');
+    if (asChart && wheelCard) {
+      var legacyChart = node('details', 'as-legacy-chart');
+      legacyChart.appendChild(node('summary', '', localized('asLegacyChart')));
+      while (wheelCard.firstChild) legacyChart.appendChild(wheelCard.firstChild);
+      wheelCard.classList.add('as-wheel-host');
+      wheelCard.appendChild(asChart);
+      wheelCard.appendChild(legacyChart);
+    }
     // The daily-flow card has no id of its own; reach it through the toggle it contains.
     var toggle = root.querySelector('#astroReadingModeToggle');
     var flowCard = toggle && toggle.closest('.astro-section');
@@ -812,7 +824,7 @@
     // 점성술 "나의 이야기" 층(#asStory). 위 시트 뒤에 붙여 같은 특정성에서 이긴다. ?v= 는 위와 같은 규칙.
     if (!document.getElementById('astroReadingStyle')) {
       var storyLink = document.createElement('link'); storyLink.id = 'astroReadingStyle'; storyLink.rel = 'stylesheet';
-      storyLink.href = '/styles/astro-reading.css?v=build-b136d6bc569d'; document.head.appendChild(storyLink);
+      storyLink.href = '/styles/astro-reading.css?v=build-d23dc8f99dab'; document.head.appendChild(storyLink);
     }
     ['sukuyo', 'ziwei', 'astro'].forEach(function (type) {
       var overlay = document.getElementById(type + 'ModalOverlay');

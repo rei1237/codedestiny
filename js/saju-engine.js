@@ -14243,13 +14243,15 @@ function renderAstroInsightLegacyNeon() {
         ];
         var storyProfile = typeof window.__cdGetCurrentDestinyProfile === 'function' ? window.__cdGetCurrentDestinyProfile() : null;
         var storyToday = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-        astroStoryHtml = window.AstroNatalReading.render(window.AstroNatalReading.build(chart, {
+        var storyModel = window.AstroNatalReading.build(chart, {
           timeKnown: storyTimeKnown,
           today: storyToday,
           name: storyProfile && storyProfile.name ? storyProfile.name : '',
           birth: { year: y, month: m, day: d, hour: h, minute: min },
           moonDay: storyMoonDay
-        }));
+        });
+        // #asChart 는 basicFortunePresentation 이 .astro-wheel-card 안으로 옮긴다.
+        astroStoryHtml = window.AstroNatalReading.render(storyModel) + window.AstroNatalReading.renderChart(storyModel);
       }
     } catch (storyErr) {
       astroStoryHtml = '';

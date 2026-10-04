@@ -3,7 +3,8 @@
  * 색은 .as-reading 의 --as-* 토큰에만 선언한다. 간격·반경·모션·폭은 DESIGN.md §7 의 --cd-* 를 쓴다.
  * 이 파일은 basicFortunePresentation.js init() 이 basic-fortune-library.css 뒤에 붙인다. */
 
-.as-reading {
+/* 토큰은 옛 휠 카드를 감싼 호스트(.as-wheel-host)에도 둔다 — 그 안의 접힌 옛 차트 요약이 같은 색을 쓴다. */
+:is(.as-reading, .as-wheel-host) {
   --as-ink-0: #0c0f1c;
   --as-ink-1: #12162a;
   --as-text: #efe9dc;
@@ -13,6 +14,8 @@
   --as-milky: rgba(214, 206, 186, .07);
   --as-serif: 'CodeDestinySerifKR', 'Nanum Myeongjo', 'AppleMyungjo', serif;
   --as-body: 'CodeDestinyBody', 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+}
+.as-reading {
   color: var(--as-text);
   font-family: var(--as-body);
   font-size: 16px;
@@ -169,6 +172,84 @@
 .as-reading .as-ev-list { padding-left: 1.15em; }
 .as-reading .as-ev-list > li { color: var(--as-text-2); font-size: 15px; line-height: 1.7; font-variant-numeric: tabular-nums; }
 
+/* ── 출생 차트(#asChart): 옛 .astro-wheel-card 를 호스트로 쓰고 카드 장식은 걷어 낸다 ── */
+#astroModalOverlay #astroBodyWrap .astro-wheel-card.as-wheel-host {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+.as-reading.as-chart { padding-top: var(--cd-sp-xs, 6px); }
+.as-reading .as-wheel { max-width: 400px; margin: 0 auto; }
+.as-reading .as-wheel-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.as-reading .as-wheel-ring { fill: none; stroke: rgba(239, 233, 220, .32); stroke-width: 1; }
+.as-reading .as-wheel-ring.is-faint { stroke: var(--as-rule); }
+.as-reading .as-wheel-sector, .as-reading .as-wheel-cusp { stroke: var(--as-rule); stroke-width: 1; }
+.as-reading .as-wheel-leader { stroke: var(--as-text-2); stroke-width: 1; opacity: .55; }
+.as-reading .as-wheel-axis { stroke: var(--as-text-2); stroke-width: 1.5; }
+.as-reading .as-wheel-aspect { stroke: var(--as-text-2); stroke-width: 1; opacity: .7; }
+.as-reading .as-wheel-aspect.is-hard { stroke-dasharray: 3 3; }
+.as-reading .as-wheel-sign { fill: var(--as-text-2); font-family: var(--as-body); font-size: 14px; font-weight: 500; }
+/* 잉크색 테두리를 글자 뒤에 깔아 축·커스프·지시선이 글자를 가로지르지 않게 한다. */
+.as-reading .as-wheel-label { fill: var(--as-text); font-family: var(--as-body); font-size: 14px; font-weight: 600; paint-order: stroke; stroke: var(--as-ink-0); stroke-width: 6px; stroke-linejoin: round; }
+.as-reading .as-wheel-dot { fill: var(--as-text); }
+.as-reading .as-wheel-dot.is-key { fill: var(--as-gold); stroke: var(--as-ink-1); stroke-width: 1.5; }
+.as-reading .as-wheel-dot.is-open { fill: var(--as-ink-1); stroke: var(--as-gold); stroke-width: 1.5; }
+.as-reading .as-wheel-cap { max-width: 36em; margin: 12px auto 0; color: var(--as-text-2); font-size: 15px; line-height: 1.7; }
+.as-reading .as-pos { margin-top: var(--cd-sp-lg, 24px); border-top: 1px solid var(--as-rule); border-bottom: 1px solid var(--as-rule); }
+:is(.as-reading .as-pos, .as-wheel-host > .as-legacy-chart) > summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 32px 0 0;
+  list-style: none;
+  cursor: pointer;
+  color: var(--as-text);
+  font-family: var(--as-body);
+  font-size: 16px;
+  font-weight: 600;
+}
+:is(.as-reading .as-pos, .as-wheel-host > .as-legacy-chart) > summary::-webkit-details-marker { display: none; }
+:is(.as-reading .as-pos, .as-wheel-host > .as-legacy-chart) > summary::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--as-text-2);
+  border-bottom: 1.5px solid var(--as-text-2);
+  transform: translateY(-75%) rotate(45deg);
+  transition: transform var(--cd-dur-fast, 120ms) ease;
+}
+:is(.as-reading .as-pos, .as-wheel-host > .as-legacy-chart)[open] > summary::after { transform: translateY(-25%) rotate(225deg); }
+:is(.as-reading .as-pos, .as-wheel-host > .as-legacy-chart) > summary:focus-visible { outline: 2px solid var(--as-gold); outline-offset: 2px; }
+.as-wheel-host > .as-legacy-chart { margin-top: var(--cd-sp-md, 16px); border-bottom: 1px solid var(--as-rule); }
+.as-wheel-host > .as-legacy-chart > summary { color: var(--as-text-2); font-size: 14px; }
+.as-reading .as-pos-table { width: 100%; margin-bottom: var(--cd-sp-sm, 10px); border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.as-reading .as-pos-table :is(th, td) { padding: 10px 12px 10px 0; border-top: 1px solid var(--as-rule); text-align: left; vertical-align: top; }
+.as-reading .as-pos-table thead th { border-top: 0; color: var(--as-text-2); font-size: 13px; font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
+.as-reading .as-pos-table tbody th { color: var(--as-text); font-size: 15px; font-weight: 600; white-space: nowrap; }
+.as-reading .as-pos-table td { color: var(--as-text); font-size: 15px; line-height: 1.7; }
+.as-reading .as-pos-table td:nth-of-type(1) { white-space: nowrap; }
+.as-reading .as-deg { color: var(--as-text-2); }
+.as-reading .as-pos-table .as-num { text-align: center; }
+@media (min-width: 600px) { .as-reading .as-sign { display: inline-block; min-width: 5.2em; } }
+.as-reading .as-rx { display: inline-block; margin-left: 4px; padding: 0 8px; border: 1px solid var(--as-rule); border-radius: var(--cd-r-pill, 999px); color: var(--as-text-2); font-size: 13px; font-weight: 500; line-height: 1.6; }
+.as-reading .as-foot { max-width: 36em; padding-bottom: var(--cd-sp-md, 16px); color: var(--as-text-2); font-size: 15px; line-height: 1.7; }
+@media (max-width: 599px) {
+  /* 좁은 화면: 한 행 = 행성·별자리·집 한 줄 + 의미 한 줄. 열 머리는 화면 읽기용으로만 남긴다. */
+  .as-reading .as-pos-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .as-reading .as-pos-table, .as-reading .as-pos-table tbody { display: block; }
+  .as-reading .as-pos-table tr { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 10px; row-gap: 2px; padding: 12px 0; border-top: 1px solid var(--as-rule); }
+  .as-reading .as-pos-table :is(th, td) { padding: 0; border: 0; }
+  .as-reading .as-pos-table td.as-num::before { content: '집 '; color: var(--as-text-2); font-size: 13px; }
+  .as-reading .as-pos-table td.as-mean { grid-column: 1 / -1; color: var(--as-text-2); }
+}
+
 @media (min-width: 480px) {
   .as-reading .as-fit { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cd-sp-md, 16px); }
   .as-reading .as-fit > div:only-child { grid-column: 1 / -1; }
@@ -180,5 +261,6 @@
   .as-reading .as-cover { padding-top: var(--cd-sp-xl, 36px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .as-reading :is(.as-cat, .as-why) > summary, .as-reading :is(.as-cat, .as-why) > summary::after { transition: none; }
+  .as-reading :is(.as-cat, .as-why) > summary, .as-reading :is(.as-cat, .as-why) > summary::after,
+  :is(.as-reading .as-pos, .as-wheel-host > .as-legacy-chart) > summary::after { transition: none; }
 }
