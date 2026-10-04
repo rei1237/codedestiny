@@ -244,15 +244,16 @@ export function runNamingEngine(input: NamingInput, options: NamingEngineOptions
   const mask = fixedChar?.position ?? null;
 
   // 추천: 그 성별에서 실제로 쓰이는 이름 × 이름에 실제로 쓰인 한자만 먼저 찾고, 모자라면 풀 전체에서 채운다.
-  const recommend = () => {
-    const allowed = naturalNames(data, ctx.gender, ctx.nameLength);
+  const recommend = (nameLength: 1 | 2 = ctx.nameLength) => {
+    const padCtx = nameLength === ctx.nameLength ? ctx : { ...ctx, nameLength };
+    const allowed = naturalNames(data, ctx.gender, nameLength);
     const natural = collect(
-      { ...ctx, names: { allowed, perSyllable: NATURAL_NAMES.perSyllable, minNameUse: NATURALNESS.rareBelow } },
+      { ...padCtx, names: { allowed, perSyllable: NATURAL_NAMES.perSyllable, minNameUse: NATURALNESS.rareBelow } },
       units, count - selected.length, selected.map((p) => p.candidate), seen, mask, "name.natural",
     );
     selected.push(...natural);
     if (selected.length >= count) return;
-    const general = collect(ctx, units, count - selected.length, selected.map((p) => p.candidate), seen, mask, null);
+    const general = collect(padCtx, units, count - selected.length, selected.map((p) => p.candidate), seen, mask, null);
     if (general.length) notices.push("names.fallback");
     selected.push(...general);
   };
@@ -297,7 +298,11 @@ export function runNamingEngine(input: NamingInput, options: NamingEngineOptions
     if (groups.some((group) => !group.length)) notices.push("desired.unavailable");
     if (selected.length < count) {
       const before = selected.length;
-      recommend();
+      // 보충 이름은 고른 이름들의 다수 글자 수를 따른다(외자만 고르면 외자로 채운다). 동률이거나 돌림자 자리가 그 길이 밖이면 입력 길이.
+      const ones = normalized.desiredNames.filter((name) => Array.from(name).length === 1).length;
+      const twos = normalized.desiredNames.length - ones;
+      const majority: 1 | 2 = ones > twos ? 1 : twos > ones ? 2 : ctx.nameLength;
+      recommend(ctx.fixed && ctx.fixed.position >= majority ? ctx.nameLength : majority);
       if (selected.length > before) notices.push("desired.padded");
     }
   } else {

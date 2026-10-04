@@ -270,6 +270,10 @@ test('선택 방식: 고른 이름마다 한자 조합을 찾고 몫을 나누�
   const own=padded.candidates.filter((c)=>c.hangul==='하람');
   assert.ok(own.length>=5&&own.length<12);
   assert.ok(padded.candidates.slice(own.length).every((c)=>c.reasonKeys.includes('name.natural')));
+  // 외자만 고르면 보충 이름도 외자다(입력 nameLength 2 와 무관).
+  const single=run({strategy:'choose',desiredNames:['윤']},'paid');
+  assert.ok(single.notices.includes('desired.padded'));
+  assert.ok(single.candidates.length===12&&single.candidates.every((c)=>c.hanja.length===1),single.candidates.map((c)=>c.hangul).join());
   // 돌림자는 그 자리 음절이 맞는 이름에만 쓴다.
   const dol=run({strategy:'choose',desiredNames:['민준','서연'],fixedChar:{position:1,ch:'俊'}},'paid');
   assert.ok(dol.candidates.filter((c)=>c.hangul==='민준').every((c)=>c.hanja[1]==='俊'));
