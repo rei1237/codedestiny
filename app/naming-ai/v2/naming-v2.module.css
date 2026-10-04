@@ -1,0 +1,411 @@
+/*
+ * 작명 v2 작명서(밤 한지) — 에셋 A1~A9 의 구조·모션. 색은 네오 정본 팔레트 값을 사설 네임스페이스(--nv2-*)로만 받는다.
+ * 🔴 --cd-* 를 재선언하지 않는다(DESIGN.md §7). 오행 색은 컴포넌트가 lib/five-element-colors 에서 인라인으로 준다.
+ * 🔴 --cd-bg 등을 var() 로 받지 않는 이유: App Router 에서 --cd-* 네오 값은 html[data-cd-theme="neo"](저장값 neo)일 때만
+ *    붙고 기본은 라이트다(app/layout.js 테마 스크립트 주석). 작명 화면은 기존 결과 화면처럼 늘 밤 한지라서,
+ *    love-secret-theme.module.css(--ls-*)와 같은 방식으로 네오 정본 값을 이 사설 네임스페이스 한 곳에만 둔다.
+ * 🔴 움직임은 전부 prefers-reduced-motion 에서 끈다.
+ */
+.scope {
+  --nv2-bg: #0a0818;
+  --nv2-surface: #13102a;
+  --nv2-ink: #f4eeff;
+  --nv2-ink-soft: #e6ddfa;
+  --nv2-muted: #c8aaff;
+  --nv2-violet: #c4b5fd;
+  --nv2-gold: #e8d5a3;
+  --nv2-gold-line: rgba(232, 213, 163, 0.55);
+  --nv2-gold-faint: rgba(232, 213, 163, 0.16);
+  --nv2-seal: #f08a8a; /* 오행 화(火) 토큰과 같은 값 — 낙관 인주 */
+  color: var(--nv2-ink);
+}
+
+/* 한자 글꼴 — 웹폰트가 덮지 못한 글자는 시스템 명조로(5f 결정: R2 미러 전까지 로컬·시스템 폴백) */
+.han {
+  font-family: "CodeDestinyHan", "CodeDestinySerifKR", "Noto Serif KR", "Noto Serif CJK KR", "Source Han Serif K", "Batang", "AppleMyungjo", serif;
+  font-feature-settings: "locl";
+}
+
+/* A9 저대비 문양 — 먹빛 한지 결(가는 섬유) + 구름 격자. 본문 대비에 영향이 없도록 알파를 아주 낮게 둔다. */
+.paper {
+  position: relative;
+  background-color: var(--nv2-surface);
+  --nv2-glow: radial-gradient(120% 80% at 50% 0%, rgba(232, 213, 163, 0.07), transparent 60%);
+  background-image:
+    var(--nv2-glow),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg fill='none' stroke='%23e8d5a3' stroke-opacity='.05' stroke-width='.6'%3E%3Cpath d='M0 23c40-6 70 9 160-3M0 71c55 8 90-10 160 4M0 118c35-9 95 7 160-2M31 0c-5 50 8 90-2 160M97 0c6 40-9 100 3 160'/%3E%3Ccircle cx='80' cy='80' r='22'/%3E%3Ccircle cx='0' cy='0' r='22'/%3E%3Ccircle cx='160' cy='160' r='22'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: auto, 160px 160px;
+}
+/* PDF(html2canvas)는 반쪽 타원 그라데이션을 밝은 직사각형으로 그린다 — 캡처 중에는 결만 남긴다 */
+.exporting .paper { --nv2-glow: none; }
+
+/* A1 액자 — 금선 이중 테두리 */
+.frame {
+  position: relative;
+  border-radius: 20px;
+  border: 1px solid var(--nv2-gold-line);
+  box-shadow: 0 0 44px -12px rgba(232, 213, 163, 0.28);
+  overflow: hidden;
+}
+/* PDF(html2canvas 1.4)는 바깥 box-shadow 를 액자 안쪽까지 금빛으로 칠한다(실측: 몸통 70% 가 회갈색) — 캡처 중에는 끈다 */
+.exporting .frame { box-shadow: none; }
+/* 안쪽 금선 — inset box-shadow 는 html2canvas(PDF)에서 십자선으로 깨져 테두리 요소로 그린다.
+   ::before 가 아니라 실제 요소다: html2canvas 는 의사 요소를 원본의 px 폭으로 복제해 캡처 폭이 달라지면(스크롤바 15px) 한쪽이 안으로 밀린다 */
+.frameLine {
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(232, 213, 163, 0.32);
+  border-radius: 15px;
+  pointer-events: none;
+}
+
+.corner {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  color: var(--nv2-gold);
+  opacity: 0.8;
+  pointer-events: none;
+}
+.cornerTL { top: 10px; left: 10px; }
+.cornerTR { top: 10px; right: 10px; }
+.cornerBL { bottom: 10px; left: 10px; }
+.cornerBR { bottom: 10px; right: 10px; }
+
+.medallionWrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nv2-gold);
+  opacity: 0.09;
+  pointer-events: none;
+}
+.medallion { display: block; width: min(78%, 420px); height: auto; aspect-ratio: 1; }
+/* 감싸는 span 을 채우는 svg — 위치·투명도는 span 이 갖는다(HanjiFrame 주석) */
+.fill { display: block; width: 100%; height: 100%; }
+
+.frameBody { position: relative; z-index: 1; }
+
+/* ── 공통 조각 ── */
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.seal { display: inline-block; flex: none; line-height: 0; }
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  min-height: 26px; padding: 2px 10px; border-radius: 999px;
+  border: 1px solid; font-size: 13px; font-weight: 600; line-height: 1.2; white-space: nowrap;
+}
+.badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 26px; padding: 2px 12px; border-radius: 999px;
+  border: 1px solid currentColor; font-size: 13px; font-weight: 700; line-height: 1.2;
+}
+.figure { margin: 0; display: grid; gap: 10px; justify-items: center; }
+.art { width: 100%; height: auto; max-width: 420px; overflow: visible; }
+.legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 16px; font-size: 13px; color: var(--nv2-ink-soft); }
+.legendItem { display: inline-flex; align-items: center; gap: 6px; }
+.caption { margin: 0; font-size: 13px; line-height: 1.6; color: var(--nv2-muted); text-align: center; text-wrap: pretty; }
+
+/* ── 원국 기둥 ── */
+.pillarRow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 360px; margin: 0 auto; }
+.pillarCell {
+  display: grid; justify-items: center; gap: 2px; padding: 10px 4px 12px;
+  border-radius: 12px; border: 1px solid var(--nv2-gold-faint); background: rgba(10, 8, 24, 0.35);
+}
+.pillarKey { font-size: 12px; color: var(--nv2-muted); }
+.ganji { font-size: 28px; line-height: 1.15; font-weight: 700; }
+.ganjiEmpty { font-size: 28px; line-height: 2.3; color: var(--nv2-muted); }
+.ganjiEl { font-size: 12px; line-height: 1.2; color: var(--nv2-ink-soft); white-space: nowrap; }
+
+/* ── A4 원형이정 ── */
+.pillars { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 720px) { .pillars { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.pillar {
+  position: relative; display: grid; justify-items: center; align-content: start; gap: 6px;
+  padding: 26px 10px 14px; border-radius: 12px; text-align: center;
+  border: 1px solid var(--nv2-gold-faint);
+  background: linear-gradient(180deg, rgba(232, 213, 163, 0.08), rgba(10, 8, 24, 0.35));
+}
+.pillarRoof { position: absolute; top: -9px; left: 8%; width: 84%; height: 20px; }
+.pillarHan { font-size: 30px; line-height: 1; color: var(--nv2-gold); }
+.pillarName { font-size: 13px; color: var(--nv2-muted); }
+.pillarValue { font-family: var(--font-premium); font-size: 30px; line-height: 1.05; color: var(--nv2-ink); font-variant-numeric: tabular-nums; }
+.formula { font-size: 13px; color: var(--nv2-ink-soft); font-variant-numeric: tabular-nums; }
+.formula .han { font-size: 15px; margin-right: 1px; color: var(--nv2-gold); }
+.formulaTerm { white-space: nowrap; }
+.pillarSuri { display: inline-flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; font-size: 12px; color: var(--nv2-muted); }
+
+/* ── A5 삼재 ── */
+.tiers { display: grid; justify-items: center; gap: 4px; }
+.tierWrap { display: grid; justify-items: center; gap: 4px; width: 100%; }
+.tier {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  min-height: 52px; padding: 8px 14px; border-radius: 10px; border: 1px solid;
+}
+.tierName { font-size: 14px; font-weight: 600; color: var(--nv2-ink); }
+.tierValue { font-family: var(--font-premium); font-size: 22px; color: var(--nv2-ink); font-variant-numeric: tabular-nums; }
+.tierLink { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; }
+.tierFoot { display: grid; justify-items: center; gap: 8px; margin-top: 8px; }
+
+/* ── A3 획수 카드 ── */
+.strokeCard {
+  display: grid; justify-items: center; align-content: start; gap: 6px;
+  padding: 16px 12px; border-radius: 14px; text-align: center;
+  border: 1px solid var(--nv2-gold-faint); background: rgba(10, 8, 24, 0.4);
+}
+.strokeCardCompact { padding: 12px 10px; opacity: 0.92; }
+.strokeHan { font-size: 64px; line-height: 1.05; color: var(--nv2-ink); }
+.strokeCardCompact .strokeHan { font-size: 44px; color: var(--nv2-ink-soft); }
+.strokeHun { display: grid; gap: 2px; font-size: 14px; color: var(--nv2-ink); }
+.strokeHun b { font-size: 18px; color: var(--nv2-gold); }
+.strokeHunText {
+  font-size: 13px; color: var(--nv2-muted); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.strokeCount { display: inline-flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--nv2-ink); }
+.tally { flex: none; }
+.strokeMeta { display: inline-flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; font-size: 13px; color: var(--nv2-muted); }
+.strokeMeta .han { font-size: 17px; color: var(--nv2-ink); }
+.flagRow { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+.flag { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px dashed var(--nv2-muted); color: var(--nv2-muted); }
+
+/* A8 두루마리 펼침 — 처음 그릴 때만 위에서 아래로 열린다 */
+.reveal {
+  animation: nv2-unroll 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes nv2-unroll {
+  from { clip-path: inset(0 0 100% 0 round 20px); opacity: 0.4; }
+  to { clip-path: inset(0 0 0 0 round 20px); opacity: 1; }
+}
+
+/* A2 이름이 보태는 오행 — 고리가 천천히 숨쉰다 */
+.pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nv2-pulse 2.4s ease-in-out infinite;
+}
+@keyframes nv2-pulse {
+  0%, 100% { opacity: 0.95; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(1.12); }
+}
+
+/* A6 상극 끊긴 선이 살짝 흐른다 */
+.flow {
+  animation: nv2-flow 1.6s linear infinite;
+}
+@keyframes nv2-flow {
+  to { stroke-dashoffset: -16; }
+}
+
+/* A7 낙관 — 찍히는 순간 */
+.stamp {
+  animation: nv2-stamp 520ms 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes nv2-stamp {
+  from { opacity: 0; transform: scale(1.35) rotate(-8deg); }
+  to { opacity: 1; transform: scale(1) rotate(var(--nv2-tilt, -4deg)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .pulse,
+  .flow,
+  .stamp {
+    animation: none;
+  }
+  .stamp { transform: rotate(var(--nv2-tilt, -4deg)); }
+}
+
+/* ── 작명서 본체(NamingV2Report) ── */
+.report {
+  display: grid;
+  gap: 28px;
+  width: 100%;
+  max-width: var(--cd-w-prose);
+  margin: 0 auto;
+  font-size: 15px;
+  line-height: 1.7;
+}
+.block {
+  display: grid;
+  gap: 16px;
+  padding: 22px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--nv2-gold-faint);
+  background: rgba(19, 16, 42, 0.72);
+}
+@media (min-width: 720px) { .block { padding: 28px 26px; } }
+.blockTitle { margin: 0; font-family: var(--font-premium); font-size: 21px; line-height: 1.4; color: var(--nv2-ink); text-wrap: balance; }
+.blockTitle .han { color: var(--nv2-gold); }
+.subTitle { margin: 12px 0 0; font-size: 16px; font-weight: 700; color: var(--nv2-gold); }
+.lead { margin: -6px 0 0; color: var(--nv2-ink-soft); text-wrap: pretty; }
+.note { margin: 0; font-size: 14px; color: var(--nv2-muted); text-wrap: pretty; }
+.chipRow { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
+.button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 44px; padding: 10px 18px; border-radius: 999px;
+  border: 1px solid var(--nv2-gold); background: var(--nv2-gold); color: var(--nv2-bg);
+  font: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.button:hover { background: var(--nv2-ink); border-color: var(--nv2-ink); }
+.button:focus-visible { outline: 2px solid var(--nv2-violet); outline-offset: 3px; }
+.button:disabled { opacity: 0.6; cursor: progress; }
+.buttonGhost { background: transparent; color: var(--nv2-ink); border-color: var(--nv2-gold-line); }
+.buttonGhost:hover { background: var(--nv2-gold-faint); color: var(--nv2-ink); border-color: var(--nv2-gold); }
+.buttonGhost[aria-pressed="true"] { background: var(--nv2-gold-faint); border-color: var(--nv2-gold); color: var(--nv2-gold); }
+
+/* 표지 작명서 — 이미지 저장 대상. 저장본도 같은 밤 한지 바탕을 가진다. */
+.certWrap { display: grid; }
+.certificate { padding: 6px; border-radius: 24px; background: var(--nv2-bg); }
+.certFrame { padding: 40px 22px 30px; text-align: center; }
+@media (min-width: 720px) { .certFrame { padding: 52px 48px 36px; } }
+.certHead { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.kicker { font-size: 15px; letter-spacing: 0.32em; color: var(--nv2-gold); }
+.certTitle { margin: 14px 0 0; font-family: var(--font-premium); font-size: clamp(24px, 6vw, 32px); line-height: 1.3; color: var(--nv2-ink); text-wrap: balance; }
+.certLead { margin: 8px auto 0; max-width: 34ch; color: var(--nv2-ink-soft); text-wrap: pretty; }
+.certPickLabel { margin: 26px 0 0; font-size: 13px; letter-spacing: 0.18em; color: var(--nv2-muted); }
+.certName { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; margin-top: 6px; }
+.certHanja { font-size: clamp(56px, 17vw, 96px); line-height: 1.1; letter-spacing: 0.08em; color: var(--nv2-ink); }
+.certHangul { margin: 4px 0 0; font-family: var(--font-premium); font-size: 22px; letter-spacing: 0.4em; color: var(--nv2-gold); }
+.certChars { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; margin: 16px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--nv2-ink-soft); }
+.certChars li { display: inline-flex; align-items: baseline; gap: 6px; }
+.certChars .han { font-size: 20px; color: var(--nv2-gold); }
+.certGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 24px auto 0; max-width: 420px; }
+.certGridCell {
+  display: grid; justify-items: center; gap: 4px; padding: 10px 2px;
+  border-top: 1px solid var(--nv2-gold-line); border-bottom: 1px solid var(--nv2-gold-faint);
+}
+.certGridCell .han { font-size: 20px; color: var(--nv2-gold); line-height: 1; }
+.certGridCell b { font-family: var(--font-premium); font-size: 20px; font-variant-numeric: tabular-nums; }
+.certFoot { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 26px; text-align: left; }
+.certFootInfo { display: grid; gap: 8px; }
+.certTotal { font-size: 14px; color: var(--nv2-muted); }
+.certTotal b { font-family: var(--font-premium); font-size: 26px; color: var(--nv2-ink); font-variant-numeric: tabular-nums; }
+.saveRow { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin-top: -12px; }
+
+/* 사주 요약 */
+.elementRows { display: grid; grid-template-columns: fit-content(140px) minmax(0, 1fr); align-items: center; gap: 10px; margin: 0; }
+.elementRows > div { display: contents; }
+.elementRows dt { font-size: 14px; color: var(--nv2-muted); word-break: keep-all; }
+.elementRows dd { margin: 0; }
+.pentagonFor { margin: 8px 0 0; text-align: center; font-size: 14px; color: var(--nv2-ink-soft); }
+.pentagonFor .han { color: var(--nv2-gold); font-size: 17px; }
+.notices {
+  display: grid; gap: 6px; margin: 0; padding: 14px 18px 14px 34px; border-radius: 14px;
+  border: 1px dashed var(--nv2-gold-line); font-size: 14px; color: var(--nv2-ink-soft);
+}
+
+/* 후보 카드 */
+.cards { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 720px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.card {
+  display: grid; align-content: start; gap: 8px; padding: 16px; border-radius: 16px;
+  border: 1px solid var(--nv2-gold-faint); background: rgba(10, 8, 24, 0.45);
+  transition: border-color 160ms ease;
+}
+.cardActive { border-color: var(--nv2-gold); }
+@media (min-width: 720px) { .cards > :last-child:nth-child(odd) { grid-column: 1 / -1; } }
+.cardTop { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.rank { font-size: 13px; font-weight: 700; color: var(--nv2-gold); }
+.total { font-size: 13px; color: var(--nv2-muted); }
+.total b { font-family: var(--font-premium); font-size: 20px; color: var(--nv2-ink); font-variant-numeric: tabular-nums; }
+.cardHanja { font-size: 40px; line-height: 1.15; letter-spacing: 0.06em; color: var(--nv2-ink); }
+.cardHangul { font-size: 16px; font-weight: 600; letter-spacing: 0.2em; color: var(--nv2-ink-soft); }
+.cardFill { font-size: 13px; color: var(--nv2-gold); }
+.cardGrades { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: var(--nv2-ink-soft); }
+.cardGrades .han { color: var(--nv2-gold); }
+.cardActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+
+/* 이름 상세 */
+.strokeRow { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 10px; }
+.twoCol { display: grid; gap: 20px; }
+@media (min-width: 720px) { .twoCol { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+.narration dl { display: grid; gap: 12px; margin: 8px 0 0; }
+.narration dt { font-size: 14px; font-weight: 700; color: var(--nv2-gold); }
+.narration dd { margin: 2px 0 0; color: var(--nv2-ink); text-wrap: pretty; }
+
+/* 비교 */
+.tableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.compareTable { width: 100%; min-width: 320px; border-collapse: collapse; font-size: 14px; }
+.compareTable th,
+.compareTable td { padding: 10px 8px; border-bottom: 1px solid var(--nv2-gold-faint); text-align: center; vertical-align: middle; }
+.compareTable tbody th { text-align: left; font-weight: 600; color: var(--nv2-muted); white-space: nowrap; }
+.compareHanja { display: block; font-size: 26px; line-height: 1.2; color: var(--nv2-ink); }
+.compareHangul { display: block; font-size: 13px; font-weight: 600; color: var(--nv2-ink-soft); }
+.compareTotal { font-family: var(--font-premium); font-size: 22px; font-variant-numeric: tabular-nums; }
+
+/* 편지 */
+.letterFrame { padding: 56px 22px 24px; }
+@media (min-width: 720px) { .letterFrame { padding: 60px 40px 28px; } }
+.letter { margin: 14px 0 0; white-space: pre-line; font-family: var(--font-premium); font-size: 16px; line-height: 1.95; color: var(--nv2-ink); text-wrap: pretty; }
+.letterSeal { display: flex; justify-content: flex-end; margin-top: 16px; }
+
+/* ── 입력(NamingEngineFields) ── */
+.fields {
+  display: grid;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid var(--nv2-gold-faint);
+  background: rgba(10, 8, 24, 0.5);
+}
+.field { display: grid; gap: 6px; }
+.fieldLabel { padding: 0; font-size: 14px; font-weight: 600; color: var(--nv2-ink-soft); }
+.fieldSub { font-size: 13px; color: var(--nv2-muted); }
+.fieldHint { display: block; font-size: 13px; font-weight: 400; line-height: 1.6; color: var(--nv2-muted); text-wrap: pretty; }
+.fieldWarn { margin: 0; font-size: 13px; font-weight: 600; color: var(--nv2-gold); }
+.fieldset { display: grid; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.fieldset:disabled { opacity: 0.6; }
+.input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(196, 181, 253, 0.2);
+  background: rgba(9, 7, 24, 0.7);
+  color: var(--nv2-ink);
+  font-size: 16px;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.input::placeholder { color: var(--nv2-muted); opacity: 0.8; }
+.input:focus { border-color: rgba(196, 181, 253, 0.6); box-shadow: 0 0 0 3px rgba(196, 181, 253, 0.14); }
+.input:disabled { opacity: 0.5; }
+.surnameChips { display: flex; flex-wrap: wrap; gap: 8px; }
+.surnameChip {
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: 52px; padding: 6px 14px; border-radius: 14px;
+  border: 1px solid var(--nv2-gold-faint); background: rgba(19, 16, 42, 0.8);
+  color: var(--nv2-ink); font: inherit; cursor: pointer; text-align: left;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+.surnameChip:hover { border-color: var(--nv2-gold-line); }
+.surnameChip:focus-visible { outline: 2px solid var(--nv2-violet); outline-offset: 2px; }
+.surnameChip[aria-pressed="true"] { border-color: var(--nv2-gold); background: var(--nv2-gold-faint); }
+.surnameChip:disabled { opacity: 0.5; cursor: not-allowed; }
+.surnameChipHan { font-size: 28px; line-height: 1; color: var(--nv2-gold); }
+.surnameChipMeta { font-size: 13px; color: var(--nv2-ink-soft); }
+.schoolList { display: grid; gap: 8px; }
+@media (min-width: 720px) { .schoolList { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.schoolOption {
+  display: flex; align-items: flex-start; gap: 10px;
+  min-height: 44px; padding: 12px; border-radius: 14px;
+  border: 1px solid var(--nv2-gold-faint); cursor: pointer;
+}
+.schoolOption:has(input:checked) { border-color: var(--nv2-gold); background: var(--nv2-gold-faint); }
+.schoolOption input { flex: none; width: 18px; height: 18px; margin-top: 2px; accent-color: var(--nv2-gold); }
+.schoolOption b { display: block; font-size: 14px; color: var(--nv2-ink); }
+.fixedRow { display: grid; gap: 8px; }
+@media (min-width: 560px) { .fixedRow { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); } }
+
+/* ── 무료 미리보기(NamingBasisPanel) ── */
+.basis { display: grid; gap: 18px; margin-top: 20px; }
+.basisHead {
+  display: grid; justify-items: start; gap: 10px; padding: 18px;
+  border-radius: 20px; border: 1px solid var(--nv2-gold-line); background: rgba(10, 8, 24, 0.5);
+}
+.basisHint { margin: 0; padding: 14px 18px; border-radius: 14px; border: 1px solid var(--nv2-gold-line); font-size: 14px; color: var(--nv2-ink-soft); text-wrap: pretty; }
