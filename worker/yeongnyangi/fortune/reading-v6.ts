@@ -34,13 +34,13 @@ const outlines:Record<DomainId,Outline>={
  ziwei:outline(`self|명궁·신궁으로 읽는 삶의 중심|lifePalace,bodyPalace,palaces[명궁]
  talent|관록궁으로 읽는 역할과 재능|palaces[관록궁]
  love|부부궁으로 읽는 관계의 방식|palaces[부부궁]
- money|재백궁으로 읽는 자원 관리|palaces[재백궁]`,
+ money|재백궁으로 읽는 자원 관리|palaces[재백궁],businessBasis`,
  `emotion|복덕궁과 마음의 만족|palaces[복덕궁]
  environment|천이궁과 환경을 대하는 태도|palaces[천이궁]
  relations|형제·노복궁과 협력의 조건|palaces[형제궁],palaces[노복궁]`,
  `home|전택궁과 생활의 기반|palaces[전택궁]
  balance|궁별 강점과 부담의 차이|palaces
- recovery|반복 선택과 회복의 조건|palaces[복덕궁],palaces[질액궁]`,
+ recovery|반복 선택과 회복의 조건|palaces[복덕궁],palaces[질액궁],healthBasis`,
  `triad|삼방사정으로 연결하는 삶의 구조|sanFangSiZheng,palaces
  transform|사화가 만드는 기회와 부담|fourTransformations,palaces
  current|현재 대한과 다음 전환|majorLuck

@@ -1,0 +1,350 @@
+/* 점성술 결과 "나의 이야기" 층 (js/core/astro/natal-reading.js 의 #asStory).
+ * 컨셉: 밤하늘 관측 기록 — 우주 장식은 표지에만, 본문은 잉크 바탕 위의 활자와 헤어라인.
+ * 색은 .as-reading 의 --as-* 토큰에만 선언한다. 간격·반경·모션·폭은 DESIGN.md §7 의 --cd-* 를 쓴다.
+ * 이 파일은 basicFortunePresentation.js init() 이 basic-fortune-library.css 뒤에 붙인다. */
+
+/* 토큰은 옛 휠 카드를 감싼 호스트(.as-wheel-host)에도 둔다 — 그 안의 접힌 옛 차트 요약이 같은 색을 쓴다. */
+:is(.as-reading, .as-wheel-host, .as-record) {
+  --as-ink-0: #0c0f1c;
+  --as-ink-1: #12162a;
+  --as-text: #efe9dc;
+  --as-text-2: #b9b3a6;
+  --as-gold: #d8b77a;
+  --as-rule: rgba(239, 233, 220, .14);
+  --as-milky: rgba(214, 206, 186, .07);
+  --as-serif: 'CodeDestinySerifKR', 'Nanum Myeongjo', 'AppleMyungjo', serif;
+  --as-body: 'CodeDestinyBody', 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+}
+.as-reading {
+  color: var(--as-text);
+  font-family: var(--as-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.75;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+.as-reading :is(h2, h3, h4, p, ul, dl, dd) { margin: 0; }
+
+/* ── 표지 ─────────────────────────────────────────── */
+.as-reading .as-cover {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: var(--cd-sp-lg, 24px) 0 var(--cd-sp-lg, 24px);
+  border-bottom: 1px solid var(--as-rule);
+}
+/* 은하수: 표지 뒤 저채도 대각 띠 하나. */
+.as-reading .as-cover::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -40% -20%;
+  background: linear-gradient(118deg, transparent 38%, var(--as-milky) 48%, var(--as-milky) 54%, transparent 64%);
+  pointer-events: none;
+}
+.as-reading .as-cover-sky { margin: 0 0 var(--cd-sp-md, 16px); color: var(--as-text-2); }
+/* 띠는 폭에 비례해 커지므로 상한을 둔다 — 라벨이 390 에서 13.4px, 상한에서 16.7px. */
+.as-reading .as-band { display: block; width: 100%; max-width: 400px; height: auto; overflow: visible; }
+.as-reading .as-band-line { stroke: currentColor; stroke-width: 1; opacity: .5; }
+.as-reading .as-band-tick { stroke: currentColor; stroke-width: 1; opacity: .35; }
+.as-reading .as-band-dot { fill: currentColor; opacity: .8; }
+.as-reading .as-band-dot.is-key { fill: var(--as-gold); opacity: 1; stroke: var(--as-ink-1); stroke-width: 1.5; }
+.as-reading .as-band-label { fill: var(--as-text-2); font-family: var(--as-body); font-size: 15px; font-weight: 600; }
+.as-reading .as-cover-kicker { margin-bottom: var(--cd-sp-xs, 6px); color: var(--as-text-2); font-size: 13px; letter-spacing: .04em; }
+.as-reading .as-portrait {
+  max-width: 16em;
+  color: var(--as-text);
+  font-family: var(--as-serif);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -.01em;
+}
+.as-reading .as-big3 { margin-top: var(--cd-sp-lg, 24px); padding: 0; list-style: none; border-top: 1px solid var(--as-rule); }
+.as-reading .as-big3-row {
+  display: grid;
+  grid-template-columns: 6.5em minmax(0, 1fr);
+  column-gap: var(--cd-sp-sm, 10px);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--as-rule);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.as-reading .as-big3-role { grid-row: span 2; padding-top: 2px; color: var(--as-text-2); font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+.as-reading .as-big3-sign { color: var(--as-text); font-size: 17px; font-weight: 600; }
+.as-reading .as-big3-phrase { color: var(--as-text-2); font-size: 15px; }
+.as-reading .as-time-note {
+  display: inline-block;
+  margin-top: var(--cd-sp-md, 16px);
+  padding: 4px 12px;
+  border: 1px solid var(--as-rule);
+  border-radius: var(--cd-r-pill, 999px);
+  color: var(--as-text-2);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ── 제목 ─────────────────────────────────────────── */
+.as-reading .as-h3 {
+  margin: var(--cd-sp-xl, 36px) 0 var(--cd-sp-sm, 10px);
+  color: var(--as-text);
+  font-family: var(--as-serif);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* ── 타고난 성향 ──────────────────────────────────── */
+.as-reading .as-para { padding: var(--cd-sp-md, 16px) 0 var(--cd-sp-lg, 24px); border-top: 1px solid var(--as-rule); }
+.as-reading .as-h4 { margin-bottom: var(--cd-sp-xs, 6px); color: var(--as-text); font-size: 18px; font-weight: 700; line-height: 1.5; }
+.as-reading .as-para > p { max-width: 36em; color: var(--as-text); font-size: 16px; line-height: 1.75; }
+.as-reading .as-ev-chips { display: flex; flex-wrap: wrap; gap: var(--cd-sp-xs, 6px); margin-top: 12px; }
+.as-reading .as-ev-chips > span {
+  padding: 2px 10px;
+  border: 1px solid var(--as-rule);
+  border-radius: var(--cd-r-pill, 999px);
+  color: var(--as-text-2);
+  font-size: 13px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 삶의 여섯 갈래 ───────────────────────────────── */
+.as-reading .as-cats { margin-bottom: var(--cd-sp-lg, 24px); }
+.as-reading .as-cat { border-top: 1px solid var(--as-rule); }
+.as-reading .as-cat:last-of-type { border-bottom: 1px solid var(--as-rule); }
+.as-reading .as-cat > summary {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 14px 36px 14px 0;
+  list-style: none;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color var(--cd-dur-fast, 120ms) ease;
+}
+.as-reading .as-cat > summary::-webkit-details-marker { display: none; }
+.as-reading :is(.as-cat, .as-why, .as-planet, .as-calc) > summary::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--as-text-2);
+  border-bottom: 1.5px solid var(--as-text-2);
+  transform: translateY(-75%) rotate(45deg);
+  transition: transform var(--cd-dur-fast, 120ms) ease;
+}
+.as-reading :is(.as-cat, .as-why, .as-planet, .as-calc)[open] > summary::after { transform: translateY(-25%) rotate(225deg); }
+.as-reading .as-cat > summary:hover { background-color: rgba(239, 233, 220, .03); }
+.as-reading :is(.as-cat, .as-why, .as-planet, .as-calc) > summary:focus-visible { outline: 2px solid var(--as-gold); outline-offset: 2px; }
+.as-reading .as-cat-title { color: var(--as-text-2); font-size: 13px; font-weight: 600; letter-spacing: .04em; line-height: 1.5; }
+.as-reading .as-cat-gist { color: var(--as-text); font-size: 17px; font-weight: 500; line-height: 1.55; }
+.as-reading .as-cat-body { display: grid; gap: var(--cd-sp-md, 16px); padding: var(--cd-sp-xs, 6px) 0 var(--cd-sp-lg, 24px); }
+.as-reading .as-label { display: block; margin-bottom: var(--cd-sp-xs, 6px); color: var(--as-text-2); font-size: 13px; font-weight: 600; letter-spacing: .02em; line-height: 1.5; }
+.as-reading .as-cat-body > .as-label { margin-bottom: -10px; }
+.as-reading .as-bullets { padding-left: 1.15em; }
+.as-reading .as-bullets > li { margin-bottom: var(--cd-sp-xs, 6px); color: var(--as-text); font-size: 16px; line-height: 1.7; }
+.as-reading .as-bullets > li::marker { color: var(--as-text-2); }
+.as-reading .as-scene { color: var(--as-text); font-size: 16px; line-height: 1.75; }
+.as-reading .as-fit { display: grid; gap: 12px; }
+.as-reading .as-fit > div { padding-top: 10px; border-top: 1px solid var(--as-rule); }
+.as-reading .as-fit dt { margin-bottom: 2px; color: var(--as-text-2); font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+.as-reading .as-fit dd { color: var(--as-text); font-size: 15px; line-height: 1.7; }
+.as-reading .as-action { padding-top: 10px; border-top: 1px solid var(--as-rule); color: var(--as-text); font-size: 16px; line-height: 1.7; }
+.as-reading .as-why > summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding-right: 32px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--as-text-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+.as-reading .as-why > summary::-webkit-details-marker { display: none; }
+.as-reading .as-ev-list { padding-left: 1.15em; }
+.as-reading .as-ev-list > li { color: var(--as-text-2); font-size: 15px; line-height: 1.7; font-variant-numeric: tabular-nums; }
+
+/* ── 출생 차트(#asChart): 옛 .astro-wheel-card 를 호스트로 쓰고 카드 장식은 걷어 낸다 ── */
+#astroModalOverlay #astroBodyWrap .astro-wheel-card.as-wheel-host {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+.as-reading.as-chart { padding-top: var(--cd-sp-xs, 6px); }
+.as-reading .as-wheel { max-width: 400px; margin: 0 auto; }
+.as-reading .as-wheel-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.as-reading .as-wheel-ring { fill: none; stroke: rgba(239, 233, 220, .32); stroke-width: 1; }
+.as-reading .as-wheel-ring.is-faint { stroke: var(--as-rule); }
+.as-reading .as-wheel-sector, .as-reading .as-wheel-cusp { stroke: var(--as-rule); stroke-width: 1; }
+.as-reading .as-wheel-leader { stroke: var(--as-text-2); stroke-width: 1; opacity: .55; }
+.as-reading .as-wheel-axis { stroke: var(--as-text-2); stroke-width: 1.5; }
+.as-reading .as-wheel-aspect { stroke: var(--as-text-2); stroke-width: 1; opacity: .7; }
+.as-reading .as-wheel-aspect.is-hard { stroke-dasharray: 3 3; }
+.as-reading .as-wheel-sign { fill: var(--as-text-2); font-family: var(--as-body); font-size: 14px; font-weight: 500; }
+/* 잉크색 테두리를 글자 뒤에 깔아 축·커스프·지시선이 글자를 가로지르지 않게 한다. */
+.as-reading .as-wheel-label { fill: var(--as-text); font-family: var(--as-body); font-size: 14px; font-weight: 600; paint-order: stroke; stroke: var(--as-ink-0); stroke-width: 6px; stroke-linejoin: round; }
+.as-reading .as-wheel-dot { fill: var(--as-text); }
+.as-reading .as-wheel-dot.is-key { fill: var(--as-gold); stroke: var(--as-ink-1); stroke-width: 1.5; }
+.as-reading .as-wheel-dot.is-open { fill: var(--as-ink-1); stroke: var(--as-gold); stroke-width: 1.5; }
+.as-reading .as-wheel-cap { max-width: 36em; margin: 12px auto 0; color: var(--as-text-2); font-size: 15px; line-height: 1.7; }
+.as-reading .as-pos { margin-top: var(--cd-sp-lg, 24px); border-top: 1px solid var(--as-rule); border-bottom: 1px solid var(--as-rule); }
+:is(.as-reading .as-pos, .as-wheel-host > .as-legacy-chart) > summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 32px 0 0;
+  list-style: none;
+  cursor: pointer;
+  color: var(--as-text);
+  font-family: var(--as-body);
+  font-size: 16px;
+  font-weight: 600;
+}
+:is(.as-reading .as-pos, .as-wheel-host > .as-legacy-chart) > summary::-webkit-details-marker { display: none; }
+:is(.as-reading .as-pos, .as-wheel-host > .as-legacy-chart) > summary::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--as-text-2);
+  border-bottom: 1.5px solid var(--as-text-2);
+  transform: translateY(-75%) rotate(45deg);
+  transition: transform var(--cd-dur-fast, 120ms) ease;
+}
+:is(.as-reading .as-pos, .as-wheel-host > .as-legacy-chart)[open] > summary::after { transform: translateY(-25%) rotate(225deg); }
+:is(.as-reading .as-pos, .as-wheel-host > .as-legacy-chart) > summary:focus-visible { outline: 2px solid var(--as-gold); outline-offset: 2px; }
+.as-wheel-host > .as-legacy-chart { margin-top: var(--cd-sp-md, 16px); border-bottom: 1px solid var(--as-rule); }
+.as-wheel-host > .as-legacy-chart > summary { color: var(--as-text-2); font-size: 14px; }
+.as-reading .as-pos-table { width: 100%; margin-bottom: var(--cd-sp-sm, 10px); border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.as-reading .as-pos-table :is(th, td) { padding: 10px 12px 10px 0; border-top: 1px solid var(--as-rule); text-align: left; vertical-align: top; }
+.as-reading .as-pos-table thead th { border-top: 0; color: var(--as-text-2); font-size: 13px; font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
+.as-reading .as-pos-table tbody th { color: var(--as-text); font-size: 15px; font-weight: 600; white-space: nowrap; }
+.as-reading .as-pos-table td { color: var(--as-text); font-size: 15px; line-height: 1.7; }
+.as-reading .as-pos-table td:nth-of-type(1) { white-space: nowrap; }
+.as-reading .as-deg { color: var(--as-text-2); }
+.as-reading .as-pos-table .as-num { text-align: center; }
+@media (min-width: 600px) { .as-reading .as-sign { display: inline-block; min-width: 5.2em; } }
+.as-reading .as-rx { display: inline-block; margin-left: 4px; padding: 0 8px; border: 1px solid var(--as-rule); border-radius: var(--cd-r-pill, 999px); color: var(--as-text-2); font-size: 13px; font-weight: 500; line-height: 1.6; }
+.as-reading .as-foot { max-width: 36em; padding-bottom: var(--cd-sp-md, 16px); color: var(--as-text-2); font-size: 15px; line-height: 1.7; }
+/* ── 깊이 읽기 (#asDeep) ─────────────────────────── */
+.as-reading.as-deep > .as-deep-part:first-child .as-h3 { margin-top: var(--cd-sp-xs, 6px); }
+.as-reading .as-planets { border-bottom: 1px solid var(--as-rule); }
+.as-reading .as-planet { border-top: 1px solid var(--as-rule); }
+.as-reading .as-planet > summary {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 2px;
+  align-items: baseline;
+  min-height: 44px;
+  padding: 14px 36px 14px 0;
+  list-style: none;
+  cursor: pointer;
+  transition: background-color var(--cd-dur-fast, 120ms) ease;
+}
+.as-reading .as-planet > summary::-webkit-details-marker { display: none; }
+.as-reading .as-planet > summary:hover { background-color: rgba(239, 233, 220, .03); }
+.as-reading .as-pl-name { color: var(--as-text); font-size: 17px; font-weight: 700; }
+.as-reading .as-pl-where { color: var(--as-text-2); font-size: 14px; font-variant-numeric: tabular-nums; }
+.as-reading .as-pl-line { grid-column: 1 / -1; color: var(--as-text); font-size: 16px; line-height: 1.65; }
+.as-reading .as-pl-body { max-width: 36em; padding: 0 0 var(--cd-sp-lg, 24px); color: var(--as-text); font-size: 16px; line-height: 1.75; }
+.as-reading .as-talk { margin: 0; padding: 0; list-style: none; border-bottom: 1px solid var(--as-rule); }
+.as-reading .as-talk-item { padding: var(--cd-sp-md, 16px) 0; border-top: 1px solid var(--as-rule); }
+.as-reading .as-talk-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; margin-bottom: var(--cd-sp-xs, 6px); }
+.as-reading .as-talk-pair { color: var(--as-text); font-size: 17px; font-weight: 700; }
+.as-reading .as-talk-kind { color: var(--as-gold); font-size: 14px; font-weight: 600; }
+.as-reading .as-talk-item.is-hard .as-talk-kind { color: var(--as-text); }
+.as-reading .as-talk-orb { color: var(--as-text-2); font-size: 13px; font-variant-numeric: tabular-nums; }
+.as-reading .as-talk-item > p { max-width: 36em; color: var(--as-text); font-size: 16px; line-height: 1.75; }
+.as-reading .as-period { padding: var(--cd-sp-md, 16px) 0; border-top: 1px solid var(--as-rule); }
+.as-reading .as-period > p, .as-reading .as-period-none, .as-reading .as-deep-part > p:not(.as-note) { max-width: 36em; color: var(--as-text); font-size: 16px; line-height: 1.75; }
+.as-reading .as-note { padding-top: 10px; border-top: 1px solid var(--as-rule); color: var(--as-text-2); font-size: 14px; line-height: 1.7; }
+.as-reading .as-balance { display: grid; gap: var(--cd-sp-md, 16px); margin-top: var(--cd-sp-md, 16px); }
+.as-reading .as-bars { display: grid; gap: 8px; }
+.as-reading .as-bar { display: grid; grid-template-columns: 3.5em minmax(0, 1fr) 3em; align-items: center; column-gap: 10px; }
+.as-reading .as-bar-name { color: var(--as-text); font-size: 15px; }
+.as-reading .as-bar-track { display: block; width: 100%; height: 6px; }
+.as-reading .as-bar-bg { fill: var(--as-rule); }
+.as-reading .as-bar-fill { fill: var(--as-gold); }
+.as-reading .as-bar-val { color: var(--as-text-2); font-size: 14px; text-align: right; font-variant-numeric: tabular-nums; }
+.as-reading .as-calc { margin-top: var(--cd-sp-xl, 36px); border-top: 1px solid var(--as-rule); border-bottom: 1px solid var(--as-rule); }
+/* 목록이 아닌 문단으로 시작하는 소구역도 제목 아래 같은 헤어라인을 둔다. */
+.as-reading.as-deep .as-h3:has(+ :is(p, .as-period-none)) { margin-bottom: 0; padding-bottom: var(--cd-sp-md, 16px); border-bottom: 1px solid var(--as-rule); }
+.as-reading.as-deep .as-h3 + :is(p, .as-period-none) { padding-top: var(--cd-sp-md, 16px); }
+.as-reading .as-big3-row:last-child { border-bottom: 0; }
+.as-reading .as-calc > summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 12px 36px 12px 0;
+  color: var(--as-text-2);
+  font-size: 15px;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+.as-reading .as-calc > summary::-webkit-details-marker { display: none; }
+.as-reading .as-calc > ul { max-width: 36em; padding: 0 0 var(--cd-sp-md, 16px) 1.15em; }
+.as-reading .as-calc > ul > li { margin-bottom: var(--cd-sp-xs, 6px); color: var(--as-text-2); font-size: 15px; line-height: 1.7; }
+@media (min-width: 600px) { .as-reading .as-balance { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cd-sp-lg, 24px); } }
+
+/* ── 이전 해석 기록: 엔진의 옛 블록을 통째로 담는 닫힌 서랍 ── */
+/* .fr-disclosure 가 !important 로 윗선을 긋는다 — 바로 위 계산 서랍의 아랫선이 그 몫을 하므로 두 줄로 겹치지 않게 지운다. */
+#astroModalOverlay #astroBodyWrap .as-record { border-top: 0 !important; border-bottom: 1px solid var(--as-rule); }
+#astroModalOverlay #astroBodyWrap .as-record > summary { min-height: 44px; color: var(--as-text-2); font-family: var(--as-body); font-size: 15px; }
+#astroModalOverlay #astroBodyWrap .as-record > summary:focus-visible { outline: 2px solid var(--as-gold); outline-offset: 2px; }
+/* 쉬운 보기(is-easy)가 옛 상세 층을 숨기던 규칙은 서랍 안에서는 서랍이 대신한다. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-detail-layer { display: block; }
+
+/* ── 구역 제목: 본문과 같은 세리프, 장식 대신 헤어라인 ── */
+#astroModalOverlay #astroBodyWrap.astro-reading-house .astro-house-section > .fr-heading {
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(239, 233, 220, .14);
+  font-family: 'CodeDestinySerifKR', 'Nanum Myeongjo', 'AppleMyungjo', serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+@media (min-width: 768px) { #astroModalOverlay #astroBodyWrap.astro-reading-house .astro-house-section > .fr-heading { font-size: 30px; } }
+#astroModalOverlay #astroBodyWrap.astro-reading-house .astro-house-section > .fr-heading::after { content: none; }
+
+@media (max-width: 599px) {
+  /* 좁은 화면: 한 행 = 행성·별자리·집 한 줄 + 의미 한 줄. 열 머리는 화면 읽기용으로만 남긴다. */
+  .as-reading .as-pos-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .as-reading .as-pos-table, .as-reading .as-pos-table tbody { display: block; }
+  .as-reading .as-pos-table tr { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 10px; row-gap: 2px; padding: 12px 0; border-top: 1px solid var(--as-rule); }
+  .as-reading .as-pos-table :is(th, td) { padding: 0; border: 0; }
+  .as-reading .as-pos-table td.as-num::before { content: '집 '; color: var(--as-text-2); font-size: 13px; }
+  .as-reading .as-pos-table td.as-mean { grid-column: 1 / -1; color: var(--as-text-2); }
+}
+
+@media (min-width: 480px) {
+  .as-reading .as-fit { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cd-sp-md, 16px); }
+  .as-reading .as-fit > div:only-child { grid-column: 1 / -1; }
+}
+@media (min-width: 768px) {
+  .as-reading .as-portrait { font-size: 40px; }
+  .as-reading .as-h3 { font-size: 24px; }
+  .as-reading .as-h4 { font-size: 20px; }
+  .as-reading .as-cover { padding-top: var(--cd-sp-xl, 36px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .as-reading :is(.as-cat, .as-why, .as-planet, .as-calc) > summary, .as-reading :is(.as-cat, .as-why, .as-planet, .as-calc) > summary::after,
+  :is(.as-reading .as-pos, .as-wheel-host > .as-legacy-chart) > summary::after { transition: none; }
+}

@@ -144,7 +144,7 @@ test('all offered modes preserve paid chapter depth and have complete unique tit
   const rows=consultationManifest(p,k);
   if(rows[0]?.version!=='destiny-book-v7')assert.equal(rows.length,p.chapterCount,`${p.id}/${k.id}`);
   else {
-   const counts={saju:[8,13,28],ziwei:[8,13,20],vedic:[8,13,23],astrology:[8,10,12],sukuyo:[6,8,10],'tarot:love':[5,7,9],'tarot:choice':[4,5,6]};
+   const counts={saju:[8,13,28],ziwei:[8,13,21],vedic:[8,13,23],astrology:[8,10,12],sukuyo:[6,8,10],'tarot:love':[5,7,9],'tarot:choice':[4,5,6]};
    assert.equal(rows.length,counts[p.domain==='tarot'?`tarot:${k.id}`:p.domain][['salmon','flounder','tuna'].indexOf(p.fishId)],`${p.id}/${k.id} v7 depth`);
   }
   assert.equal(new Set(rows.map(r=>r.title)).size,rows.length);

@@ -7,6 +7,8 @@ import {buildHiddenStemDetails,buildLuckNatalInteractions,tenGodFor} from '../..
 import {formatPillar,sexagenaryYearIndexes} from '../../../lib/korean-calendar/index.js';
 import {relationFromForwardDistance} from '../../lib/sukuyo-relation-core.js';
 import {SUKUYO_MANSIONS} from '../../lib/sukuyo-premium.js';
+import {VEDIC_YOGA_SLUGS} from './vedic/derived';
+import {ASTROLOGY_RULED_HOUSES} from './astrology/derived';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type O=Record<string,any>;
@@ -19,7 +21,7 @@ export const TEN_GOD_SLUGS:Record<string,string>={비견:'bigyeon',겁재:'geopj
 export const SHINSAL_SLUGS:Record<string,string>={도화살:'dohwa',홍염살:'hongyeom',화개살:'hwagae',역마살:'yeokma',천을귀인:'cheoneul',문창귀인:'munchang',양인살:'yangin',괴강살:'goegang',백호살:'baekho',공망:'gongmang',귀문관살:'gwimun',원진살:'wonjin'};
 export const PALACE_SLUGS:Record<string,string>={명궁:'myeong',형제궁:'hyeongje',부부궁:'bubu',자녀궁:'janyeo',재백궁:'jaebaek',질액궁:'jilaek',천이궁:'cheoni',노복궁:'nobok',관록궁:'gwallok',전택궁:'jeontaek',복덕궁:'bokdeok',부모궁:'bumo'};
 export const SUKUYO_ROLE_SLUGS:Record<string,string>={명:'myeong',영:'yeong',친:'chin',우:'u',쇠:'soe',안:'an',괴:'goe',성:'seong',위:'wi',업:'eop',태:'tae'};
-export const YOGA_SLUGS:Record<string,string>={'Gaja Kesari Yoga':'gajaKesari','Chandra Mangala Yoga':'chandraMangala','Dhana Yoga tendency':'dhana','Kendra benefic support':'kendraBenefic'};
+export const YOGA_SLUGS:Record<string,string>={'Gaja Kesari Yoga':'gajaKesari','Chandra Mangala Yoga':'chandraMangala','Dhana Yoga tendency':'dhana','Kendra benefic support':'kendraBenefic',...VEDIC_YOGA_SLUGS};
 export const ASPECT_FAMILY:Record<string,'tension'|'harmony'|'conjunction'>={conjunction:'conjunction',square:'tension',opposition:'tension',trine:'harmony',sextile:'harmony'};
 export const PILLAR_KEYS=['year','month','day','hour'];
 export const INTERACTION_KINDS=['stemCombinations','stemClashes','branchCombinations','branchClashes','branchHarms','branchBreaks','branchPunishments','threeHarmony','directionalGroups'];
@@ -130,7 +132,7 @@ function saju(label:string,v:O,k:Kit){
 }
 function ziwei(label:string,v:O,k:Kit){
   switch(label){
-    case 'lifePalace':case 'bodyPalace':case 'bureau':case 'sanFangSiZheng':return whole(k,label,v);
+    case 'lifePalace':case 'bodyPalace':case 'bureau':case 'sanFangSiZheng':case 'businessBasis':case 'healthBasis':return whole(k,label,v);
     case 'palaces':{
       const body=k.get('bodyPalace');
       for(const p of list(v)){const slug=PALACE_SLUGS[p.name];if(!slug){k.unslug(label,p.name);continue;}k.emit(label,slug,{...p,roles:[p.name==='명궁'?'명궁':null,p.name===body?'신궁':null].filter(Boolean)},[`palaces.${p.name}`]);}
@@ -165,7 +167,7 @@ function ziwei(label:string,v:O,k:Kit){
 }
 function vedic(label:string,v:O,k:Kit){
   switch(label){
-    case 'lagna':case 'moon':case 'sun':return whole(k,label,v);
+    case 'lagna':case 'moon':case 'sun':case 'healthBasis':return whole(k,label,v);
     case 'planets':for(const p of list(v)){if(!VEDIC_PLANETS.includes(p.name)){k.unslug(label,p.name);continue;}k.emit(label,p.name,p,[`planets.${p.name}`],[`houses.${p.house}`]);}return true;
     case 'houses':{
       const planets=list(k.get('planets'));
@@ -201,7 +203,9 @@ function vedic(label:string,v:O,k:Kit){
 }
 function astrology(label:string,v:O,k:Kit){
   switch(label){
-    case 'ascendant':case 'midheaven':return whole(k,label,v);
+    case 'ascendant':case 'midheaven':case 'chartSect':case 'elementBalance':case 'healthBasis':return whole(k,label,v);
+    // Traditional rulers of the 1·6·7·10 houses (astrology/derived.ts); an unowned row falls back to its planet.
+    case 'houseRulers':for(const r of list(v)){if(!ASTROLOGY_RULED_HOUSES.includes(r?.house)||!ASTRO_PLANETS.includes(r?.ruler)){k.unslug(label,r);continue;}k.emit(label,String(r.house),r,[`houseRulers.${r.house}`],[`planets.${r.ruler}`]);}return true;
     case 'northNode':case 'southNode':k.emit(label,null,v,[label],[`houseCusps.${v?.house}`]);return true;
     case 'planets':for(const [name,p] of Object.entries(v||{})){if(!ASTRO_PLANETS.includes(name)){k.unslug(label,name);continue;}k.emit(label,name,p,[`planets.${name}`],[`houseCusps.${p?.house}`]);}return true;
     case 'houseCusps':{
