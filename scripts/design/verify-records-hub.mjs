@@ -80,7 +80,7 @@ async function contextFor(width,scenario='normal') {
   debugState={context,page,seen,forbidden,errors};return debugState;
 }
 async function bounds(page,width) {
-  await page.waitForFunction(()=>parseFloat(getComputedStyle(document.querySelector('main')).paddingBottom)>=110);
+  await page.waitForFunction(()=>{const main=document.querySelector('main');return main&&parseFloat(getComputedStyle(main).paddingBottom)>=110;});
   const box=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,bottom:parseFloat(getComputedStyle(document.querySelector('main')).paddingBottom)}));
   assert.ok(box.scroll<=width+1,`overflow ${box.scroll} > ${width}`);assert.ok(box.bottom>=110,'navigation safe spacing');return box;
 }
@@ -126,7 +126,10 @@ try {
     else if(source==='partial'){try{await state.page.getByText('부분 저장 내용',{exact:true}).waitFor();}catch(error){console.log('Partial fixture failure',await state.page.locator('main').innerText(),state.errors,state.seen);throw error;}}
     else {await state.page.getByText('마지막 장 전체 내용',{exact:true}).waitFor();assert.equal(await state.page.locator('td').filter({hasText:'저장된 표'}).count(),1);assert.equal(await state.page.evaluate(()=>window.fixtureXss),undefined);}
     await state.page.reload({waitUntil:'domcontentloaded'});
-    await state.page.waitForTimeout(2000);assert.equal(state.errors.length,0,JSON.stringify(state.errors));assert.equal(state.forbidden.length,0,JSON.stringify(state.forbidden));
+    const refreshedText={tea:'[화면 검증] 연이의 상담 기록',neo:'저장된 작전',fusion:'sajuSection 저장 섹션',chat:'대화의 전체 상세 내용','chat-consultation':'마지막 상담 전체 본문',partial:'부분 저장 내용',astrology:'마지막 장 전체 내용'}[source];
+    if(source==='codex')await state.page.waitForSelector('#master-love-codex-document');
+    else await state.page.getByText(refreshedText,{exact:true}).first().waitFor();
+    assert.equal(state.errors.length,0,JSON.stringify(state.errors));assert.equal(state.forbidden.length,0,JSON.stringify(state.forbidden));
     if(source==='neo')assert.equal(await state.page.getByText('selected Method',{exact:true}).count(),0);
     if(source==='codex')await state.page.waitForFunction(()=>Array.from(document.images).filter(img=>img.src.includes('CodeDestinyNovel')).every(img=>img.complete&&img.naturalWidth>0));
     await bounds(state.page,390);await state.page.screenshot({path:path.join(out,`reading-${source}.png`),fullPage:true});evidence.push({scenario:'direct-refresh-'+source,passed:true,...(source==='codex'?{portrait:'offline local character fixture; production R2 unverified'}:{}),api:state.seen});await state.context.close();
