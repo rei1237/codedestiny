@@ -62,6 +62,7 @@ const FLAG_LABEL: Record<string, string> = {
   "court-code-variant": "법원 시스템 이체 코드 글자",
   "no-hun": "훈 미상",
   buryong: "일부 작명 관행상 불용 주의",
+  "rare-in-names": "이 음으로 이름에 쓰인 사례가 드묾",
 };
 
 const labels = (elements: string[]) => elements.map((e) => ELEMENT_LABEL[e as keyof typeof ELEMENT_LABEL] || e).join("·");

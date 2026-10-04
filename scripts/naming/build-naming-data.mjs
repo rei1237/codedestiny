@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// 작명 데이터 빌드 — data/naming/raw(원천 발췌) + data/naming/rules(규칙) + 검수 CSV → 생성물 5종 + 검수 CSV.
+// 작명 데이터 빌드 — data/naming/raw(원천 발췌) + data/naming/rules(규칙) + 검수 CSV → 생성물 6종 + 검수 CSV.
 //
 //   node scripts/naming/build-naming-data.mjs [--check]
 //
-// 생성물: worker/naming-engine/data/{hanja-pool,surnames,suri-81,samjae-125,sound-blacklist}.v1.json
+// 생성물: worker/naming-engine/data/{hanja-pool,surnames,suri-81,samjae-125,sound-blacklist,name-usage}.v1.json
 // 검수:   data/naming/review/*.csv (자문가가 review_* 열을 채워 돌려주면 rules/ 아래 판정 파일로 반영)
 // 결정론: 시각·난수 없음, dataVersion = 입력 파일·빌드 스크립트 내용 해시. --check 는 쓰지 않고 현재 파일과 비교만 한다.
 // 런타임(worker)은 이 스크립트를 import 하지 않는다. 과금 LLM 호출 없음.
@@ -40,6 +40,7 @@ const inputs = {
   samjaeSources: join(RAW, "samjae-125-sources.json"),
   buryongSources: join(RAW, "buryong-sources.json"),
   surnames: join(RAW, "kosis-surnames-2015.csv"),
+  nameUsage: join(RAW, "wikidata-name-usage.json"),
   suriRules: join(RULES, "suri-81.json"),
   samjaeRules: join(RULES, "samjae-125.json"),
   buryongRules: join(RULES, "buryong.json"),
@@ -545,10 +546,39 @@ function buildSurnames(pool) {
 
 // ═══ 출력 ═════════════════════════════════════════════════════════════════════
 /** 머리 필드는 stableJson, rows 는 한 줄에 한 행(diff 가 읽히도록). */
-function serialize(doc) {
-  const { rows, ...head } = doc;
+// ═══ 6. 이름 사용 빈도(Wikidata CC0) ════════════════════════════════════════════
+// 원천의 (한자, 음) 짝 중 풀에 실제 있는 인명용 음만 남기고 자리(첫·둘째·외자)를 합친다. 음절은 자리별 그대로.
+function buildNameUsage(pool) {
+  const src = readJson(inputs.nameUsage);
+  const h = Object.fromEntries(src.hanjaFields.map((f, i) => [f, i]));
+  const valid = new Set();
+  for (const row of pool.json.rows) for (const [hangul] of row[1]) valid.add(`${row[0]}\t${hangul}`);
+  const rows = src.hanja
+    .filter((r) => valid.has(`${r[h.ch]}\t${r[h.hangul]}`))
+    .map((r) => [r[h.ch], r[h.hangul], Math.round((r[h.first] + r[h.second] + r[h.single]) * 10) / 10]);
+  return {
+    json: {
+      schema: "naming-name-usage/1",
+      source: src.source,
+      license: src.license,
+      fetchedAt: src.fetchedAt,
+      filter: src.filter,
+      fields: ["ch", "hangul", "use"],
+      syllableFields: src.syllableFields,
+      rows,
+      syllableRows: src.syllables,
+    },
+    stats: { hanja: rows.length, droppedNotPoolReading: src.hanja.length - rows.length, syllables: src.syllables.length, persons: src.stats.persons },
+  };
+}
+
+/** 머리 JSON 한 줄 + 표마다 행 한 줄씩. 표가 rows 하나면 이전 형식과 바이트가 같다. */
+function serialize(doc, tables = ["rows"]) {
+  const head = { ...doc };
+  for (const table of tables) delete head[table];
   const headJson = stableJson({ dataVersion: DATA_VERSION, generatedBy: "scripts/naming/build-naming-data.mjs", ...head });
-  return `${headJson.slice(0, -1)},"rows":[\n${rows.map((r) => stableJson(r)).join(",\n")}\n]}\n`;
+  const body = tables.map((table) => `"${table}":[\n${doc[table].map((r) => stableJson(r)).join(",\n")}\n]`).join(",");
+  return `${headJson.slice(0, -1)},${body}}\n`;
 }
 
 const suri = buildSuri();
@@ -556,6 +586,7 @@ const samjae = buildSamjae();
 const blacklist = buildBlacklist();
 const pool = buildHanjaPool();
 const surnames = buildSurnames(pool);
+const nameUsage = buildNameUsage(pool);
 
 const outputs = {
   [join(OUT, "hanja-pool.v1.json")]: serialize(pool.json),
@@ -563,6 +594,7 @@ const outputs = {
   [join(OUT, "suri-81.v1.json")]: serialize(suri.json),
   [join(OUT, "samjae-125.v1.json")]: serialize(samjae.json),
   [join(OUT, "sound-blacklist.v1.json")]: serialize(blacklist.json),
+  [join(OUT, "name-usage.v1.json")]: serialize(nameUsage.json, ["rows", "syllableRows"]),
 };
 const csvOutputs = [
   [join(REVIEW_OUT, "hanja-pool-diff.csv"), pool.diff],
@@ -600,4 +632,5 @@ console.log(JSON.stringify({
   suri: suri.stats,
   samjae: samjae.stats,
   blacklist: blacklist.json.rows.length,
+  nameUsage: nameUsage.stats,
 }, null, 1));

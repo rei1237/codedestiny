@@ -7,7 +7,7 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {goldenHash,assertGoldenGenerationAllowed,importGoldenCheckpoint} from '../../scripts/lib/v7-golden-checkpoint.mjs';
 const run=(out,...args)=>spawnSync(process.execPath,['--require','./scripts/lib/mock-network-guard.cjs','scripts/yeongnyangi-v7-golden.mjs','--out',out,...args],{cwd:process.cwd(),encoding:'utf8',timeout:60000,windowsHide:true});
-test('explicit import preserves source and spent attempts, recovers tenth raw, and resumes only 11–24',()=>{
+test('explicit import preserves source and spent attempts, recovers tenth raw, and resumes only 11–28',()=>{
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'v7-import-'));
  try{
   const initial=path.join(root,'source'),out=path.join(root,'target');
@@ -29,7 +29,7 @@ test('explicit import preserves source and spent attempts, recovers tenth raw, a
   const resumed=run(out);assert.equal(resumed.status,0,resumed.stderr);
   state=JSON.parse(fs.readFileSync(path.join(out,'checkpoint.json')));
   assert.deepEqual(state.attempts.slice(0,source.attempts.length),source.attempts);
-  assert.deepEqual(state.attempts.slice(source.attempts.length).map(row=>row.ordinal),Array.from({length:14},(_,i)=>10+i));
+  assert.deepEqual(state.attempts.slice(source.attempts.length).map(row=>row.ordinal),Array.from({length:18},(_,i)=>10+i));
   const attempts=state.attempts.length;
   assert.equal(run(out).status,0);
   assert.equal(JSON.parse(fs.readFileSync(path.join(out,'checkpoint.json'))).attempts.length,attempts);
@@ -52,4 +52,8 @@ test('approval bound is persisted and cannot be extended or applied to earlier c
  assert.throws(()=>assertGoldenGenerationAllowed(state,'tuna',23),/budget exhausted/);
  state.approval.maxNewCalls=29;
  assert.throws(()=>assertGoldenGenerationAllowed(state,'tuna',23),/Approval scope changed/);
+ // A mock run may continue a longer book; the live approval stays pinned to chapters 10–23.
+ const longer={...state,approval:{tier:'tuna',fromOrdinal:10,toOrdinal:27,maxNewCalls:36},attempts:Array(54).fill({networkCalls:0})};
+ assert.doesNotThrow(()=>assertGoldenGenerationAllowed({...longer,mode:'mock'},'tuna',27));
+ assert.throws(()=>assertGoldenGenerationAllowed({...longer,mode:'live'},'tuna',27),/Approval scope changed/);
 });

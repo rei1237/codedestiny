@@ -1,4 +1,5 @@
 import { calculateScreenSaju } from './runtime';
+import { buildElementProfile, buildMovementSignals, buildRomanceTiming, buildSajuHealthBasis, buildTenGodProfile } from '../../../lib/saju-derived-signals.js';
 import { context, domain } from "../shared/domain";
 export const saju = domain(
   "saju",
@@ -27,6 +28,9 @@ strength/usefulGod는 휴리스틱이므로 조후·월령·통근 근거와 대
     if(r.jongVerdict==='rejected')limitations.push('생활 이력 확인 결과가 종격 흐름과 맞지 않아 일반격(억부) 용신으로 읽었습니다.');
     if(r.strengthVerdict==='rejected')limitations.push('지난 해 확인 결과에 따라 경계값에 있던 신강·신약 판단을 반대로 읽었습니다.');
     if(r.jong.confirmationRequired)limitations.push('종격은 기존 엔진이 찾은 후보입니다. 기존 서비스의 생활 이력 확인을 거치지 않은 용신·종격 해석은 조건부입니다.');
+    const timed = !!input.personA!.birthTime;
+    const pillars = {year:r.yearPillar, month:r.monthPillar, day:r.dayPillar, hour:r.hourPillar ?? null};
+    const elementProfile = buildElementProfile(r.fiveElements);
     const partner = input.personB ? await saju.calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},{...options,jongAnswer:undefined}) : undefined;
     const partnerFacts = partner ? Object.fromEntries(partner.facts.map(f=>[f.label,f.value])) : undefined;
     return context(
@@ -62,6 +66,11 @@ strength/usefulGod는 휴리스틱이므로 조후·월령·통근 근거와 대
         majorLuck: input.personA!.birthTime ? r.majorLuck : null,
         yearlyLuck: input.personA!.birthTime ? r.yearlyLuck : null,
         monthlyLuck: input.personA!.birthTime ? r.monthlyLuck : null,
+        elementProfile,
+        tenGodProfile: buildTenGodProfile({tenGodsByPillar:r.tenGodsByPillar, tenGods:r.tenGods, strength:r.strength}),
+        movementSignals: buildMovementSignals({pillars, natalInteractions:r.natalInteractions, shinsal:r.shinsal, yearlyLuck:timed ? r.yearlyLuck : null, majorLuck:timed ? r.majorLuck : null}),
+        romanceTiming: buildRomanceTiming({gender:input.personA!.gender, tenGodsByPillar:r.tenGodsByPillar, shinsal:r.shinsal, yearlyLuck:timed ? r.yearlyLuck : null, majorLuck:timed ? r.majorLuck : null}),
+        healthBasis: buildSajuHealthBasis({fiveElements:r.fiveElements, seasonalBalance:r.seasonalBalance, dayMaster:r.dayMaster, elementProfile}),
         calculationMeta: r.calculationMeta,
       },
       [...limitations,...(partner?.limitations.map(value=>`상대: ${value}`)||[])],

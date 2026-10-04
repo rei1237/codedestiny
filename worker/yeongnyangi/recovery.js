@@ -1,3 +1,4 @@
+import {CHAPTER_LEASE_MS,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
 import { canResumeStoredChapter } from './stored-chapter.js';
 import { connectDb, withMongoRetry } from '../lib/db.js';
 import { isDbUnavailableError } from '../lib/http.js';
@@ -8,12 +9,12 @@ import { activateFortune, generateNextChapter, providerReady } from './service';
 import { enqueueConsultation } from './queue.js';
 
 const ABANDONED_MS = 5 * 60 * 1000;
-const BUDGET_MS = 4 * 60 * 1000;
-const CHAPTER_RESERVE_MS = 105000; // existing 90s provider deadline + DB commit
+const BUDGET_MS = CHAPTER_LEASE_MS + 30000;
+const CHAPTER_RESERVE_MS = CHAPTER_LEASE_MS; // provider + analysis, validation and persisted commit
 const MAX_REQUESTS = 3;
 const TRANSIENT_HOLD_MS = 5 * 60 * 1000; // lands on the next ten-minute tick
 const PERMANENT_HOLD_MS = 24 * 60 * 60 * 1000;
-const STOPPED_IDLE_MS = 30 * 60 * 1000; // a user who closed the window is not waited on forever
+const STOPPED_IDLE_MS = 5 * 60 * 1000; // a user who closed the window is not waited on forever
 const HOLD_SCAN = 10;
 const ALERT_TIMEOUT_MS = 5000;
 
@@ -53,7 +54,7 @@ export function holdAlertMessage(row) {
     holdAutoResumes(row)
       ?`자동 재개: 생성 수정 배포 때 GENERATION_FIX_EPOCH 를 올리면 다음 크론에서 이어서 생성 (재개 ${Number(row.hold?.resumes || 0)}/${MAX_FIX_RESUMES})`
       :'자동 재개 없음: 운영자 확인 필요',
-    `수동: node scripts/recover-yeongnyangi-request.mjs --db code_destiny --request ${id} --attempts 3 --reason <사건> --operator <이름> (dry-run 진단 확인 후 --apply, 적용 전 상태 파일 자동 기록)`,
+    `진단: node scripts/recover-yeongnyangi-request.mjs --db code_destiny --request ${id} (기본 dry-run; 실행은 계획 해시와 결제 커밋 마커 예외 승인 후 --execute)`,
     '저장된 항목은 구매자가 계속 열람하며 추가 결제는 없음',
   ].join('\n')};
 }
@@ -157,6 +158,7 @@ export async function runYeongnyangiRecovery(env, options = {}) {
     if(!canGenerate&&!canResumeStoredChapter(candidate))continue;
     try{
       if(canGenerate&&env.YEONGNYANGI_QUEUE){await (options.enqueue || enqueueConsultation)(env,candidate);outcomes.push({outcome:'queued'});continue;}
+      if(canGenerate&&hasChapterDeliveryContract(candidate)){outcomes.push({outcome:'GENERATION_QUEUE_UNAVAILABLE'});continue;}
       const row=await generate(env,String(candidate.userId),String(candidate._id),'scheduled');
       outcomes.push({outcome:row.state});
       // A held lease or failed attempt waits for a future tick; never spin on it.

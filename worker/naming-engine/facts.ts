@@ -17,7 +17,7 @@ export interface EngineCharView {
   hun: string | null;
   strokes: number;
   jawon: Element | null;
-  /** low-confidence · disputed · court-code-variant · no-hun · buryong */
+  /** low-confidence · disputed · court-code-variant · no-hun · buryong · rare-in-names */
   flags: string[];
 }
 
@@ -64,7 +64,7 @@ function candidateView(candidate: NamedCandidate, rank: number): EngineCandidate
       strokes: char.strokes,
       jawon: char.jawon,
       flags: candidate.reasonKeys
-        .filter((key) => key.startsWith(`char.${k}.`) || key === `practical.${k}.buryong`)
+        .filter((key) => key.startsWith(`char.${k}.`) || key === `practical.${k}.buryong` || key === `practical.${k}.rare-in-names`)
         .map((key) => key.split(".").pop() as string),
     })),
     strokes: { surname: [...candidate.strokes.surname], name: [...candidate.strokes.name], method: candidate.strokes.method },

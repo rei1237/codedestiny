@@ -7,26 +7,27 @@ const {runtime}=await buildBenchmarkRuntime();
 const env={GEMINIF_API_KEY:'mock-never-sent',GEMINI_MODEL:'gemini-2.5-flash',WORKERS_AI_ENABLED:'false',LLM_DRY_RUN:'false'};
 const request={system:'Explain the calculated facts without inventing events.',domainRules:JSON.stringify({facts:['original']}),userQuestion:'What should I observe?',calculatedData:{},outputSchema:{type:'object',properties:{summary:{type:'string'}},required:['summary']},sectionTitles:[],maxOutputTokens:4096,outputBudgetVersion:'concise-reading-20260930'};
 const response=()=>new Response(JSON.stringify({candidates:[{content:{parts:[{text:'{"summary":"Preserve useful text without another generation."'}]},finishReason:'MAX_TOKENS'}],usageMetadata:{promptTokenCount:120,candidatesTokenCount:80,thoughtsTokenCount:10}}),{status:200});
-for(const locale of ['ko','en'])test(`budget bridge preserves production ${locale} request bytes and clipped-response recovery`,async()=>{
+for(const locale of ['ko','en'])test(`budget bridge preserves production ${locale} request bytes and rejects clipped paid output`,async()=>{
  const original=globalThis.fetch,reference=[];
  try{
   globalThis.fetch=async(url,options)=>{
    reference.push({kind:String(url).includes(':countTokens')?'count':'generate',body:options.body});
    return String(url).includes(':countTokens')?new Response('{"totalTokens":120}',{status:200}):response();
   };
-  const expected=await new runtime.CodeDestinyProvider(env).generate({...request,locale});
+  const provider=new runtime.CodeDestinyProvider(env);
+  await assert.rejects(provider.generate({...request,locale}),e=>e.code==='CHAPTER_TRUNCATED');
+  assert.equal(provider.receipt.finishReason,'MAX_TOKENS');
   assert.equal(reference.length,2);
   const actual=[],budget=new BenchmarkBudget([{id:'chapter',outputTokens:5120}],async()=>{});
-  const result=await runProductionBenchmarkCall({budget,id:'chapter',outputTokens:5120,
+  await assert.rejects(runProductionBenchmarkCall({budget,id:'chapter',outputTokens:5120,
    invoke:()=>new runtime.CodeDestinyProvider(env).generate({...request,locale}),
    setFetchHandler:handler=>{globalThis.fetch=handler||original;},saveRequest:async()=>{},saveResponse:async()=>{},
    exchange:async(kind,url,options)=>{
     actual.push({kind:kind==='countTokens'?'count':'generate',body:options.body});
     assert.equal(new URL(url).pathname,`/v1beta/models/gemini-2.5-flash:${kind}`);
     return kind==='countTokens'?new Response('{"totalTokens":120}',{status:200}):response();
-   }});
+   }}),e=>e.code==='CHAPTER_TRUNCATED');
   assert.deepEqual(actual,reference,'Every production count/generation byte, including locale/schema/defaults, must survive');
-  assert.deepEqual(result,expected,'Production clipped-response parser is not replaced');
   assert.equal(budget.state.generationCalls,1);
   assert.equal(JSON.parse(actual[1].body).generationConfig.thinkingConfig.thinkingBudget,1024);
   if(locale==='en')assert.match(actual[1].body,/English/);
