@@ -1603,9 +1603,9 @@ export function SavedNeoDocuments({ session, locale }: { session: NeoResultSessi
   const compat = session.compatScores ? { scores: session.compatScores, relationshipStatus: session.relationshipStatus || '', partnerBirthTimeUnknown: session.partnerBirthTimeUnknown === true } : null;
   return <div className={styles.savedDocuments}><div className={styles.documentStack}>
     <ResultSummaryCover session={session} methodName={methodLabel(session.selectedMethod || session.initialBriefing?.selectedMethod, locale)} badgeIndex={0} locale={locale} />
-    {session.initialBriefing?.operationTitle && <h2 className="text-xl font-semibold">{session.initialBriefing.operationTitle}</h2>}
+    {session.initialBriefing?.operationTitle && <h2 className="text-xl font-semibold text-[var(--cd-text)]">{session.initialBriefing.operationTitle}</h2>}
     {session.initialBriefing && <InitialBriefingDocument briefing={session.initialBriefing} compat={compat} evidenceFallbackLabel="" hasRefined badgeIndex={0} onOpenReality={() => {}} viewAll={viewAll} onViewAllChange={setViewAll} expandForExport={false} locale={locale} />}
-    {session.refinedOrder?.operationTitle && <h2 className="text-xl font-semibold">{session.refinedOrder.operationTitle}</h2>}
+    {session.refinedOrder?.operationTitle && <h2 className="text-xl font-semibold text-[var(--cd-text)]">{session.refinedOrder.operationTitle}</h2>}
     {session.refinedOrder && <RefinedOrderDocument refined={session.refinedOrder} badgeIndex={0} viewAll={viewAll} onViewAllChange={setViewAll} expandForExport={false} locale={locale} />}
   </div></div>;
 }
