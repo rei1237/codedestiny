@@ -88,6 +88,8 @@ function collectKoPaths(sourceText, koName, fileName = "ko.tsx") {
 /** 🔴 피처 밖은 보지 않는다. 검사 범위를 넓히려다 무관한 모듈을 읽는 사고를 막는다. */
 function resolveFeatureModule(root, featureDir, componentsDir, specifier) {
   const base = specifier.startsWith("@/") ? path.join(root, specifier.slice(2)) : path.resolve(componentsDir, specifier);
+  const sharedTeaGods = path.join(root, "lib/fortune-tea-house/ten-gods.mjs");
+  if (base === sharedTeaGods && fs.existsSync(base)) return base;
   if (base !== featureDir && !base.startsWith(featureDir + path.sep)) return null;
   for (const candidate of [`${base}.ts`, `${base}.tsx`, path.join(base, "index.ts")]) {
     if (fs.existsSync(candidate)) return candidate;

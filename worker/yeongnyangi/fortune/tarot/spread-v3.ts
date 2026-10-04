@@ -1,3 +1,4 @@
+import { commitDeck, selectDeckSlots } from "../../../../lib/tarot/committed-deck.mjs";
 import {TAROT_CARDS,buildImageCandidates} from '../../../../lib/tarot/tarot-cards.mjs';
 import {getMeaningByQuestion} from '../../../../lib/tarot/tarot-interpretation-engine.mjs';
 import {analyzeTarotCombinations} from '../../../../lib/tarot/tarot-combination-engine.mjs';
@@ -36,11 +37,6 @@ const meaningTypes:Record<string,string>={love:'relationship',work:'career',mone
 const manifestTopics:Record<string,string>={love:'love',work:'work',money:'money'};
 const questionTypeOf=(spread:Pick<Spread,'topic'>)=>meaningTypes[spread.topic]||'general';
 
-function randomIndex(size:number){
- const words=new Uint32Array(1),limit=0x100000000-(0x100000000%size);
- do{crypto.getRandomValues(words);}while(words[0]>=limit);
- return words[0]%size;
-}
 const label=(value:unknown,max:number)=>typeof value==='string'?value.replace(/\s+/g,' ').trim().slice(0,max):'';
 
 /** Validates the order-form spread, tier cap and optional inputs. Unknown fields are dropped, never stored. */
@@ -58,23 +54,10 @@ export function tarotSpreadOrder(body:any,fishId:string){
 }
 
 /** One crypto Fisher–Yates permutation of the whole deck, with each slot's orientation fixed before any pick. */
-export function commitTarotDeck():TarotDeck{
- const order=TAROT_CARDS.map(card=>card.code);
- for(let i=order.length-1;i>0;i--){const j=randomIndex(i+1);[order[i],order[j]]=[order[j],order[i]];}
- return {version:TAROT_DECK_VERSION,order,reversed:order.map(()=>randomIndex(2)===1)};
-}
-
-/** Manual picks must name exactly one distinct deck slot per position; auto uses the same rule over the same deck. */
-export function tarotPicks(body:any,cardCount:number):{method:'manual'|'auto';picks:number[]}{
- if(body?.auto===true&&body?.picks===undefined){
-  const slots=[...Array(TAROT_DECK_SIZE).keys()],picks:number[]=[];
-  while(picks.length<cardCount)picks.push(slots.splice(randomIndex(slots.length),1)[0]);
-  return {method:'auto',picks};
- }
- const picks=body?.picks;
- if(!Array.isArray(picks)||picks.length!==cardCount||!picks.every(n=>Number.isInteger(n)&&n>=0&&n<TAROT_DECK_SIZE)||new Set(picks).size!==cardCount)
-  throw new FortuneError('INVALID_TAROT_PICKS');
- return {method:'manual',picks:[...picks]};
+export function commitTarotDeck():TarotDeck { return commitDeck(); }
+export function tarotPicks(body:any,cardCount:number):{method:'manual'|'auto';picks:number[]} {
+ try { return selectDeckSlots(body,cardCount); }
+ catch { throw new FortuneError('INVALID_TAROT_PICKS'); }
 }
 
 const byDrawOrder=(spread:Spread)=>[...spread.positions].sort((x,y)=>x.drawOrder-y.drawOrder);

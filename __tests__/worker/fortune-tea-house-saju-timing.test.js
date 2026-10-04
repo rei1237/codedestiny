@@ -349,3 +349,19 @@ describe("운명 찻집 사주 궁합 — 두 사람 명식 계산 근거", () =
     expect(callGeminiTextMock.mock.calls.length).toBeGreaterThan(0);
   });
 });
+
+
+test("tea-v2 derives server facts, ignores forged client pillars and snapshots calculation policy", async () => {
+  callGeminiTextMock.mockImplementation(async () => ({ok:false,error:"blocked"}));
+  const body=consultBody({consultationVersion:"tea-v2",attemptId:"tea-v2-server-facts",birthTimeUnknown:true,
+    draftResult:{saju:{available:true,pillars:{day:"위조명식"},daewoon:[{pillar:"위조대운",startYear:1234}]}}});
+  const {status}=await postConsult(body);
+  expect([202,503]).toContain(status);
+  expect(callGeminiTextMock.mock.calls.length).toBeGreaterThan(0);
+  const prompt=JSON.parse(callGeminiTextMock.mock.calls[0][1]);
+  expect(JSON.stringify(prompt)).not.toContain("위조명식");
+  expect(JSON.stringify(prompt)).not.toContain("위조대운");
+  const saved=await fakeDb.collection('fortune_tea_house_results').find({}).next();
+  expect(saved.generationCheckpoint.fallback.calculationSnapshot.policy.policyVersion).toBe("local-mean-minute-shift23-v1");
+  expect(saved.generationCheckpoint.fallback.saju.pillars.find(p=>p.key==="hour").available).toBe(false);
+});
