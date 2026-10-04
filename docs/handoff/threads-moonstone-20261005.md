@@ -1,10 +1,21 @@
 ---
 status: active
-updated: 2026-10-03
-next: "Use the completed 10-card v2 campaign; verify operating price and moonstone discount plus the second Threads profile before October 5 at 09:00 KST publication."
+updated: 2026-10-04
+next: "Use v3/manifest.json and v3/posts.json; verify operating price, moonstone discount, improved chart UI and the second Threads profile before October 5 at 09:00 KST publication."
 ---
 
 # 10월 5일 고정 소개글·월정석 할인
+
+## 최신 정본 — 2026-10-04 스레드 설명형 10장 + 실제 서비스 소개
+
+이 절이 아래 과거 제작·전달 기록보다 우선한다. 최신 게시 정본은 `marketing/campaigns/2026-10-05/v3/manifest.json`, `v3/posts.json`과 `captions.md`이다. **threads-preview.html은 업로드용 10장 미리보기**, preview.html은 별도 서비스 소개 디자인이다. v2 및 과거 정치 사례 원고를 게시하지 않는다.
+
+- 1번 표지 SHA 유지. 2~10번은 기능 설명·실제 UI·조건을 넣은 1080×1350 JPEG. 모든 원고 500자 이내(최대 378자), 원본/규격/잘림 검증은 v3/validation.json과 layout-check.json.
+- `/about/` 정본에 승인 디자인을 연결했다. CMS, 운영자/정책 앵커, SEO/다국어 메타데이터를 유지한다. 실제 정적 라우트 생성기와 스타일 복사에도 반영. 상시 페이지에 미래 가격 숫자를 넣지 않았고 상담 선택·결제창 안내로 연결한다.
+- 최종 별도 시각 검토 SHIP: 카드 02~10과 실제 /about/ 모바일·데스크톱 캡처 14장. 360/390/430/1440 가로 넘침 없음, H1 하나, 내부 앵커 정상. FAQ 펼침과 소개 이미지 로딩 확인.
+- 정적 페이지 검사 8/8, 기존 소개 원문 검사 2/2, 스타일 미러 검사 통과. 대상 ESLint 오류 0(하드 내비게이션/기존 img 경고). 전체 check:fast는 기존 결제 정적 테스트 1개가 Windows CRLF에서 LF 정규식과 불일치해 실패(330 suites 통과, 1 실패). 해당 결제 소스/테스트는 HEAD 대비 변경 없음, CRLF를 LF로 정규화한 읽기 값에서는 패턴 일치. 결제 코드·테스트를 수정하지 않았다.
+- Codex 예약 `10-5-threads`는 v3로 갱신, 2026-10-05 09:00 KST 유지. 가격·월정석 부분 할인·개선 UI 운영 반영 확인이 게시 전 조건이며 운영 배포 완료나 Threads 네이티브 예약 완료를 뜻하지 않는다.
+
 
 ## 승인과 작업 위치
 
@@ -83,3 +94,13 @@ Chrome 공식 로그인 프로필 확인 당시 소개에 ‘천원’ 표현이
 - GitHub CI 37126103981: Build Pages and Worker, Typecheck and lint 성공. Static guards는 verify:public-mirror-fresh의 기존 index.html 및 public 언어별 미러 8개 불일치로 실패. 전체 CI 통과 아님. Main drift 37126103998도 같은 실패. Secret Scan, AI Locale Gate, Landing Watchdog 성공.
 - 로컬 check:fast는 doc-freshness와 여러 paid gate 통과 뒤 출력 정체로 중단. 이미지/원고/해시/레이아웃 대상 검증과 git diff --check는 통과.
 - 다음 행동: D:\Development\codedestiny-worktrees\moonstone-oct05-20261003-151816에서 이 문서와 가격 전환 문서를 읽고, 기존 public mirror 불일치는 해당 서비스 변경 담당 범위에서 확인한다. 10/5에는 운영 가격·부분 할인 및 실제 영냥이 계정을 확인한 뒤 v2/manifest.json과 posts.json으로 게시·고정한다. 운영 승격 승인 없이 승격하지 않는다.
+
+## 최신 요청 반영 — 설명형 홍보 개편
+
+이 절이 이전 캠페인 설명보다 우선한다. 사용자가 민감한 정치 이야기를 전부 제외하도록 정정했다. 현재 preview.html, 10번 카드, captions.md/posts.json에서 관련 사례·원문 링크를 제거했다. 과거 기록이나 이전 커밋의 원고를 게시에 재사용하지 않는다. heartbeat도 같은 지침으로 갱신했다.
+
+preview.html은 이미지 갤러리 대신 특징 설명형 랜딩이다. 무료 체험, 여섯 체계, 초융합, 계산 근거, 상담 보관, 외부 제작 프롬프트, 사람 상담 후기, 가입 혜택을 순서대로 설명한다. 1번 원본은 보존.
+
+이전 오행 캡처는 ReadingCharts의 계산 근거 부속 화면이었고 본문 SajuBoard와 다르다. 이번에는 ElementDistribution을 공유해 같은 색·아이콘·수치와 막대 비례로 표시한다. 실제 계산 값·결제·DB는 변경하지 않았다. 7번은 개선 실제 컴포넌트의 가상 입력 예시이며 운영 반영 전 표시. 게시 전에 운영 UI 반영도 확인한다.
+
+검증: 별도 시각 reviewer SHIP(1440 데스크톱·390 모바일 랜딩, 07/10 카드 및 차트 모바일). 차트 360/390/430 가로 넘침 없음. reading-visuals 8 tests 통과, 대상 ESLint 오류0/기존 img 경고7, diff --check 통과. check:fast는 paid-suite 출력 정체로 중단해 전체 통과로 표시하지 않는다. GitHub CI 최종 게이트 확인.

@@ -925,18 +925,18 @@
     "ms": "Please set today's question above"
   },
   "fortuneTeaHouse.questionInput.kfdgstet": {
-    "ko": "5카드 프리미엄 스프레드",
-    "en": "5-card premium spread",
-    "ja": "5カード プレミアムスプレッド",
-    "zh-CN": "5张牌高级牌阵",
-    "zh-TW": "5張牌高級牌陣",
-    "vi": "5-card premium spread",
-    "hi": "5-card premium spread",
-    "es": "5-card premium spread",
-    "fr": "5-card premium spread",
-    "de": "5-card premium spread",
-    "nl": "5-card premium spread",
-    "ms": "5-card premium spread"
+    "ko": "5카드 스프레드",
+    "en": "5-card spread",
+    "ja": "5枚のスプレッド",
+    "zh-CN": "五张牌阵",
+    "zh-TW": "五張牌陣",
+    "vi": "5-card spread",
+    "hi": "5-card spread",
+    "es": "5-card spread",
+    "fr": "5-card spread",
+    "de": "5-card spread",
+    "nl": "5-card spread",
+    "ms": "5-card spread"
   },
   "fortuneTeaHouse.questionInput.kfeelhij": {
     "ko": "사주 궁합은 두 사람의 생년월일로 각각의 명식을 산출한 뒤, 두 흐름이 만나는 결을 함께 읽습니다. 출생시간을 모르면 시주 없이 큰 흐름 중심으로 봅니다.",
@@ -1121,18 +1121,18 @@
     "ms": "The room of moonlit compatibility"
   },
   "fortuneTeaHouse.questionInput.kjbalv1m": {
-    "ko": "현재 · 흐름 · 조언을 차례로 펼치는 빠르고 핵심적인 리딩입니다.",
-    "en": "A quick, essential reading that lays out present · flow · advice in turn.",
-    "ja": "現在・流れ・助言を順に広げる、速くて核心的なリーディングです。",
-    "zh-CN": "依序展开现在·流向·建议，快速而切中核心的解读。",
-    "zh-TW": "依序展開現在·流向·建議，快速而切中核心的解讀。",
-    "vi": "A quick, essential reading that lays out present · flow · advice in turn.",
-    "hi": "A quick, essential reading that lays out present · flow · advice in turn.",
-    "es": "A quick, essential reading that lays out present · flow · advice in turn.",
-    "fr": "A quick, essential reading that lays out present · flow · advice in turn.",
-    "de": "A quick, essential reading that lays out present · flow · advice in turn.",
-    "nl": "A quick, essential reading that lays out present · flow · advice in turn.",
-    "ms": "A quick, essential reading that lays out present · flow · advice in turn."
+    "ko": "상황과 자원, 다음 행동처럼 세 가지 관점으로 질문을 읽어요. 배열은 다음 단계에서 바꿀 수 있어요.",
+    "en": "Explore three perspectives on your question. Choose the layout in the next step.",
+    "ja": "質問を3つの視点で読みます。次の段階で配置を変更できます。",
+    "zh-CN": "从三个角度解读问题，下一步可更改牌阵。",
+    "zh-TW": "從三個角度解讀問題，下一步可更改牌陣。",
+    "vi": "Explore three perspectives on your question. Choose the layout in the next step.",
+    "hi": "Explore three perspectives on your question. Choose the layout in the next step.",
+    "es": "Explore three perspectives on your question. Choose the layout in the next step.",
+    "fr": "Explore three perspectives on your question. Choose the layout in the next step.",
+    "de": "Explore three perspectives on your question. Choose the layout in the next step.",
+    "nl": "Explore three perspectives on your question. Choose the layout in the next step.",
+    "ms": "Explore three perspectives on your question. Choose the layout in the next step."
   },
   "fortuneTeaHouse.questionInput.kjcqal1e": {
     "ko": "친구",
@@ -1289,18 +1289,18 @@
     "ms": "Set both birth dates side by side above."
   },
   "fortuneTeaHouse.questionInput.klefzwx7": {
-    "ko": "현재 · 상대/상황 · 장애 · 가능성 · 조언까지, 카드 수만큼 더 깊게 봅니다.",
-    "en": "Present · them/the situation · obstacle · possibility · advice — as many cards, as much depth.",
-    "ja": "現在・相手/状況・障害・可能性・助言まで、カードの数だけ深く見ます。",
-    "zh-CN": "现在·对方/情境·阻碍·可能·建议，牌越多看得越深。",
-    "zh-TW": "現在·對方/情境·阻礙·可能·建議，牌越多看得越深。",
-    "vi": "Present · them/the situation · obstacle · possibility · advice — as many cards, as much depth.",
-    "hi": "Present · them/the situation · obstacle · possibility · advice — as many cards, as much depth.",
-    "es": "Present · them/the situation · obstacle · possibility · advice — as many cards, as much depth.",
-    "fr": "Present · them/the situation · obstacle · possibility · advice — as many cards, as much depth.",
-    "de": "Present · them/the situation · obstacle · possibility · advice — as many cards, as much depth.",
-    "nl": "Present · them/the situation · obstacle · possibility · advice — as many cards, as much depth.",
-    "ms": "Present · them/the situation · obstacle · possibility · advice — as many cards, as much depth."
+    "ko": "연락·인연·돈에 맞는 다섯 자리의 배열을 선택해요. 카드 수보다 질문에 맞는 구성이 중요해요.",
+    "en": "Choose five positions for contact, relationships or money. Fit matters more than card count.",
+    "ja": "連絡・縁・お金に合う5つの配置を選びます。枚数より質問との相性を大切にします。",
+    "zh-CN": "选择适合联系、关系或金钱的五个位置，重点是契合问题而非牌数。",
+    "zh-TW": "選擇適合聯繫、關係或金錢的五個位置，重點是契合問題而非牌數。",
+    "vi": "Choose five positions for contact, relationships or money. Fit matters more than card count.",
+    "hi": "Choose five positions for contact, relationships or money. Fit matters more than card count.",
+    "es": "Choose five positions for contact, relationships or money. Fit matters more than card count.",
+    "fr": "Choose five positions for contact, relationships or money. Fit matters more than card count.",
+    "de": "Choose five positions for contact, relationships or money. Fit matters more than card count.",
+    "nl": "Choose five positions for contact, relationships or money. Fit matters more than card count.",
+    "ms": "Choose five positions for contact, relationships or money. Fit matters more than card count."
   },
   "fortuneTeaHouse.questionInput.klnifzy4": {
     "ko": "두 사람의 27숙 거리와 관계 리듬을 달빛 아래 조용히 펼쳐봅니다.",
@@ -1527,18 +1527,18 @@
     "ms": "Their heart, the currents before a choice, one step you can take right now"
   },
   "fortuneTeaHouse.questionInput.kqblvqw4": {
-    "ko": "지금 질문 위로 떠오른 한 장의 상징을 따라, 마음의 기류와 선택의 방향을 읽습니다.",
-    "en": "Following one symbol that surfaces over your question, we read the currents of your heart and the direction of the choice.",
-    "ja": "今の質問の上に浮かんだ一枚の象徴をたどり、心の気流と選択の方向を読みます。",
-    "zh-CN": "顺着浮上此刻问题的那一张象徵，读出心的气流与抉择的方向。",
-    "zh-TW": "順著浮上此刻問題的那一張象徵，讀出心的氣流與抉擇的方向。",
-    "vi": "Following one symbol that surfaces over your question, we read the currents of your heart and the direction of the choice.",
-    "hi": "Following one symbol that surfaces over your question, we read the currents of your heart and the direction of the choice.",
-    "es": "Following one symbol that surfaces over your question, we read the currents of your heart and the direction of the choice.",
-    "fr": "Following one symbol that surfaces over your question, we read the currents of your heart and the direction of the choice.",
-    "de": "Following one symbol that surfaces over your question, we read the currents of your heart and the direction of the choice.",
-    "nl": "Following one symbol that surfaces over your question, we read the currents of your heart and the direction of the choice.",
-    "ms": "Following one symbol that surfaces over your question, we read the currents of your heart and the direction of the choice."
+    "ko": "질문에 맞는 카드 배열과 카드 사이의 연결을 읽고, 지금 선택할 수 있는 행동을 살펴봐요.",
+    "en": "Read the spread and connections between cards to consider your next action.",
+    "ja": "質問に合う配置とカード同士のつながりから、次の行動を考えます。",
+    "zh-CN": "结合牌阵与卡牌之间的联系，思考现在可以采取的行动。",
+    "zh-TW": "結合牌陣與卡牌之間的聯繫，思考現在可以採取的行動。",
+    "vi": "Read the spread and connections between cards to consider your next action.",
+    "hi": "Read the spread and connections between cards to consider your next action.",
+    "es": "Read the spread and connections between cards to consider your next action.",
+    "fr": "Read the spread and connections between cards to consider your next action.",
+    "de": "Read the spread and connections between cards to consider your next action.",
+    "nl": "Read the spread and connections between cards to consider your next action.",
+    "ms": "Read the spread and connections between cards to consider your next action."
   },
   "fortuneTeaHouse.questionInput.kqnhrp3g": {
     "ko": "연이는 27숙의 거리와 관계 유형을 먼저 확인하고, 보이지 않는 마음은 단정하지 않은 채 지금 질문의 흐름만 살펴요.",

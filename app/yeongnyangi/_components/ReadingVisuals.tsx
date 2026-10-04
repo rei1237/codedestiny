@@ -47,9 +47,18 @@ export function TimingTimeline({rows,locale,focus=[]}:{rows:TimingRow[];locale?:
  </section>;
 }
 
+export function ElementDistribution({elements,locale}:{elements:ElementRow[];locale?:ReadingLocale}){
+ const copy=visualCopy(locale),top=Math.max(1,...elements.map(e=>e.value));
+ return <ul className={styles.elements}>{elements.map(e=><li key={e.label}>
+  <span className={styles.elementName}><ElementIcon element={e.label}/>{chartTerm(e.label,locale)}</span>
+  <span className={styles.elementTrack} role="meter" aria-valuemin={0} aria-valuemax={top} aria-valuenow={e.value} aria-label={copy.elementCount(chartTerm(e.label,locale),e.value)}>
+   <span style={{width:`${e.value/top*100}%`,background:elementColor[e.label] || 'var(--yn-gold)'}}/></span>
+  <span className={styles.elementValue}>{e.value}</span>
+ </li>)}</ul>;
+}
+
 export function SajuBoard({pillars,elements,locale}:{pillars:{label:string;ganji:string;tenGod:string}[];elements:ElementRow[];locale?:ReadingLocale}){
  const copy=visualCopy(locale);
- const total=Math.max(1,elements.reduce((n,e)=>n+e.value,0)),top=Math.max(1,...elements.map(e=>e.value));
  return <section className={styles.panel} aria-labelledby="reading-saju-board">
   <div className={styles.panelHead}><h3 id="reading-saju-board" className={styles.panelTitle}><ElementIcon element="토" size={20}/>{copy.pillars}</h3>
    <img className={styles.headArt} src={artSrc('balance')} alt="" width={180} height={120} loading="lazy" decoding="async"/></div>
@@ -59,11 +68,7 @@ export function SajuBoard({pillars,elements,locale}:{pillars:{label:string;ganji
     <tr><th scope="row">{copy.tenGodRow}</th>{pillars.map(p=><td key={p.label}>{chartTerm(p.tenGod,locale)}</td>)}</tr></tbody>
   </table></div>}
   {elements.length>0&&<><h4 className={styles.subTitle}>{copy.elements}</h4><p className={styles.caption}>{copy.elementsCaption}</p>
-   <ul className={styles.elements}>{elements.map(e=><li key={e.label}>
-    <span className={styles.elementName}><ElementIcon element={e.label}/>{chartTerm(e.label,locale)}</span>
-    <span className={styles.elementTrack} role="meter" aria-valuemin={0} aria-valuemax={total} aria-valuenow={e.value} aria-label={copy.elementCount(chartTerm(e.label,locale),e.value)}>
-     <span style={{width:`${e.value/top*100}%`,background:elementColor[e.label] || 'var(--gold)'}}/></span>
-    <span className={styles.elementValue}>{e.value}</span></li>)}</ul></>}
+   <ElementDistribution elements={elements} locale={locale}/></>}
  </section>;
 }
 

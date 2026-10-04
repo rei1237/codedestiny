@@ -39,6 +39,9 @@ const fromSlugs=(table:Record<string,string>,label:string):V7Term[]=>
   Object.entries(table).map(([ko,slug])=>({term:ko,ids:[`.${label}.${slug}`]}));
 const fromPlanets=(table:Record<string,string>,label:string):V7Term[]=>
   Object.entries(table).map(([ko,name])=>({term:ko,ids:[`.${label}.${name}`]}));
+const SPOUSE_GODS=['정재','편재','정관','편관'];
+const BUSINESS_NAMED=['재백궁','자녀궁','전택궁','관록궁','복덕궁','부부궁','천이궁'];
+const HEALTH_NAMED=['질액궁','부모궁','복덕궁'];
 // 태양 and 달 are excluded from the planet tables: both are ordinary Korean words. Astrology keeps 태양 as a
 // reference point (design §4) because the sun sign is its anchor; vedic nodes keep their transliterated names.
 const KO_PLANETS:Record<string,string>={화성:'Mars',수성:'Mercury',목성:'Jupiter',금성:'Venus',토성:'Saturn'};
@@ -51,28 +54,34 @@ export const V7_TERMS:Record<string,V7Term[]>={
     {term:'일주',ids:['.pillars'],anchor:true},
     {term:'신강',ids:['.strengthHeuristic'],anchor:true},
     {term:'신약',ids:['.strengthHeuristic'],anchor:true},
-    {term:'오행',ids:['.fiveElements'],anchor:true},
-    ...fromSlugs(TEN_GOD_SLUGS,'tenGods'),
-    ...fromSlugs(SHINSAL_SLUGS,'shinsal'),
+    {term:'오행',ids:['.fiveElements','.elementProfile.balance','.elementProfile.traits'],anchor:true},
+    // The anchor owns the ten-god cluster profile, so it may name single ten gods; 역마 also belongs to the movement facts.
+    // Spouse stars and 도화·홍염 also belong to the romance timing facts (an id ending in '.' matches as a prefix).
+    ...fromSlugs(TEN_GOD_SLUGS,'tenGods').map(t=>({...t,ids:[...t.ids,'.tenGodProfile',...(SPOUSE_GODS.includes(t.term)?['.romanceTiming.']:[])]})),
+    ...fromSlugs(SHINSAL_SLUGS,'shinsal').map(t=>t.term==='역마살'?{...t,ids:[...t.ids,'.movementSignals.natal']}
+      :t.term==='도화살'||t.term==='홍염살'?{...t,ids:[...t.ids,'.romanceTiming.']}:t),
   ],
   ziwei:[
     {term:'명궁',ids:['.palaces.myeong','.lifePalace'],anchor:true},
     {term:'신궁',ids:['.bodyPalace'],anchor:true},
-    ...fromSlugs(PALACE_SLUGS,'palaces'),
-    ...fromPlanets(KO_TRANSFORMS,'fourTransformations'),
+    // 사업운·건강 근거 문장이 부르는 궁과 사화는 그 근거를 가진 장에서도 이름을 쓸 수 있다(ziwei/derived.ts).
+    ...fromSlugs(PALACE_SLUGS,'palaces').map(t=>({...t,ids:[...t.ids,...(BUSINESS_NAMED.includes(t.term)?['.businessBasis']:[]),...(HEALTH_NAMED.includes(t.term)?['.healthBasis']:[])]})),
+    ...fromPlanets(KO_TRANSFORMS,'fourTransformations').map(t=>({...t,ids:[...t.ids,'.businessBasis','.healthBasis']})),
   ],
   vedic:[
     {term:'라그나',ids:['.lagna'],anchor:true},
     {term:'나크샤트라',ids:['.lagna','.moon'],anchor:true},
-    ...fromPlanets(KO_PLANETS,'planets'),
-    {term:'라후',ids:['.planets.Rahu']},
-    {term:'케투',ids:['.planets.Ketu']},
+    // 요가의 성립 조건과 건강 근거(vedic/derived.ts)는 행성을 부르므로 그 사실을 가진 장도 행성 이름을 쓸 수 있다.
+    ...fromPlanets(KO_PLANETS,'planets').map(t=>({...t,ids:[...t.ids,'.yogas.','.healthBasis']})),
+    {term:'라후',ids:['.planets.Rahu','.healthBasis']},
+    {term:'케투',ids:['.planets.Ketu','.healthBasis']},
   ],
   astrology:[
     {term:'상승점',ids:['.ascendant'],anchor:true},
     {term:'태양',ids:['.planets.Sun'],anchor:true},
     {term:'중천점',ids:['.midheaven']},
-    ...fromPlanets(KO_PLANETS,'planets'),
+    // 하우스 주인·섹트·건강 근거(astrology/derived.ts)는 전통 행성을 부르므로 그 사실을 가진 장도 행성 이름을 쓸 수 있다.
+    ...fromPlanets(KO_PLANETS,'planets').map(t=>({...t,ids:[...t.ids,'.houseRulers.','.chartSect','.healthBasis']})),
     ...fromPlanets(KO_OUTER,'planets'),
   ],
   sukuyo:[{term:'본명숙',ids:['.personA'],anchor:true}],
@@ -80,6 +89,13 @@ export const V7_TERMS:Record<string,V7Term[]>={
 };
 /** House numbers are a pattern, not a word list. Vedic and astrology store them under different labels. */
 const HOUSE_LABEL:Record<string,string>={vedic:'houses',astrology:'houseCusps'};
+// 하우스 번호를 근거 문장에 쓰는 파생 사실: 요가는 켄드라·트리코나·두스타나 전부, 베다 건강은 1·6·8·12하우스,
+// 점성술 하우스 주인은 주인이 앉은 어느 하우스든, 점성술 건강은 1·6·8·12하우스.
+const HEALTH_HOUSES=[1,6,8,12];
+const HOUSE_EXTRA:Record<string,(house:number)=>string[]>={
+  vedic:house=>['.yogas.',...(HEALTH_HOUSES.includes(house)?['.healthBasis']:[])],
+  astrology:house=>['.houseRulers.',...(HEALTH_HOUSES.includes(house)?['.healthBasis']:[])],
+};
 const HOUSE_TERM=/(\d{1,2})\s*번?\s*하우스/gu;
 
 const NORM=(s:string)=>s.normalize('NFC').replace(/\s+/g,' ').trim();
@@ -134,7 +150,7 @@ const previousSentences=(previous:readonly V7Previous[])=>previous
 
 /** owns wins over refs: a chapter that owns the fact explains it as often as the insight needs. */
 function allowance(chapter:V7AuditChapter,ids:readonly string[],anchor:boolean){
-  const has=(list:readonly string[])=>list.some(id=>ids.some(suffix=>id.endsWith(suffix)));
+  const has=(list:readonly string[])=>list.some(id=>ids.some(suffix=>suffix.endsWith('.')?id.includes(suffix):id.endsWith(suffix)));
   if(has(chapter.owns))return Infinity;
   return anchor||has(chapter.refs)?1:0;
 }
@@ -174,7 +190,7 @@ export function auditV7Chapter(input:V7AuditInput):V7Audit{
       if(!houseLabel)continue;
       for(const match of unit.plain.matchAll(HOUSE_TERM)){
         const house=Number(match[1]);
-        if(house>=1&&house<=12)check(unit,`${house}하우스`,[`.${houseLabel}.${house}`],false);
+        if(house>=1&&house<=12)check(unit,`${house}하우스`,[`.${houseLabel}.${house}`,...(HOUSE_EXTRA[domain]?.(house)||[])],false);
       }
     }
   }

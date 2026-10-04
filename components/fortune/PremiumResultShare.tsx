@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Copy, Download, Share2 } from "lucide-react";
 import styles from "./PremiumResultShare.module.css";
+import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 
 type Choice = { id: string; label: string; text: string };
 type Props = {
@@ -83,7 +84,7 @@ export default function PremiumResultShare({ kind, title, ownerName, choices, pu
     } catch { setNotice(korean ? "복사하지 못했어요. 문구를 선택해 직접 복사해 주세요." : "Copy failed. Select the text manually."); }
   }
 
-  return <details ref={details} id={`${kind}-share-editor`} className={styles.root} data-premium-share={kind}>
+  return <><ReviewRewardBanner afterResult locale={korean ? "ko" : "en"}/><details ref={details} id={`${kind}-share-editor`} className={styles.root} data-premium-share={kind}>
     <summary><Share2 size={19} aria-hidden="true" />{korean ? "공유할 한 장 만들기" : "Create a share card"}</summary>
     <div className={styles.layout}>
       <div className={styles.controls}>
@@ -114,5 +115,5 @@ export default function PremiumResultShare({ kind, title, ownerName, choices, pu
         <figcaption>{korean ? "전송 전 카드 미리보기 · 친구에게는 공개 상담 링크만 전달됩니다." : "Preview before sending · Only the public consultation link is included."}</figcaption>
       </figure>
     </div>
-  </details>;
+  </details></>;
 }

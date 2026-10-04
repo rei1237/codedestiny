@@ -4,6 +4,7 @@ import type {ReadingChart} from '@/worker/yeongnyangi/fortune/reading-presentati
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {chartCopy,chartTerm,chartLimitation} from '../_lib/reading-chart-copy';
 import styles from './reading-v5.module.css';
+import {ElementDistribution} from './ReadingVisuals';
 import TarotCardArt from './TarotCardArt';
 import ZiweiReadingChart,{ziweiGroups} from './ZiweiReadingChart';
 import { yeongnyangiCardArt } from '@/lib/tarot/yeongnyangi-deck';
@@ -27,6 +28,7 @@ function Chart({chart,available,titles,locale}:{chart:ReadingChart;available:Set
  const [selected,setSelected]=useState(chart.groups[0]?.id);
  const group=chart.groups.find(g=>g.id===selected)||chart.groups[0];
  if(!group)return null;
+ const elementGroup=chart.domain==='saju'&&group.label.includes('오행 분포')&&group.items.length>0&&group.items.every(item=>item.value.trim()!==''&&Number.isFinite(Number(item.value))&&Number(item.value)>=0);
  const related=group.chapterIds.filter(id=>available.has(id));
  const timing=chart.groups.filter(g=>g.kind==='timing');
  const ziwei=ziweiGroups(chart);
@@ -39,7 +41,7 @@ function Chart({chart,available,titles,locale}:{chart:ReadingChart;available:Set
    <strong>{chartTerm(g.label,locale)}</strong>{['ziwei','vedic','tarot'].includes(chart.domain)&&<span>{chart.domain==='tarot'&&g.cardCode?yeongnyangiCardArt(g.cardCode,locale).name:g.items[0]?.value?chartTerm(g.items[0].value,locale):copy.none}</span>}
   </button>)}</div>}
   {timing.length>0&&<div className={styles.timeline} role="group" aria-label={copy.timingSelect}><h4>{copy.timing}</h4>{timing.map(g=><button type="button" key={g.id} aria-pressed={g.id===group.id} onClick={()=>setSelected(g.id)}>{chartTerm(g.label,locale)}</button>)}</div>}
-  {!ziwei&&<div className={styles.chartDetail} aria-live="polite"><h4>{chartTerm(group.label,locale)}</h4><dl>{group.items.map((item,i)=><div key={i}><dt>{chartTerm(item.label,locale)}</dt><dd>{chart.domain==='tarot'&&item.label==='카드'&&group.cardCode?yeongnyangiCardArt(group.cardCode,locale).name:chartTerm(item.value,locale)}{group.label.includes('오행 분포')&&Number.isFinite(Number(item.value))&&<meter min={0} max={Math.max(1,group.items.reduce((n,item)=>n+(Number(item.value)||0),0))} value={Number(item.value)} aria-label={copy.weight(chartTerm(item.label,locale))}/>}</dd></div>)}</dl>
+  {!ziwei&&<div className={styles.chartDetail} aria-live="polite"><h4>{chartTerm(group.label,locale)}</h4>{elementGroup?<ElementDistribution elements={group.items.map(item=>({label:item.label,value:Number(item.value)}))} locale={locale}/>:<dl>{group.items.map((item,i)=><div key={i}><dt>{chartTerm(item.label,locale)}</dt><dd>{chart.domain==='tarot'&&item.label==='카드'&&group.cardCode?yeongnyangiCardArt(group.cardCode,locale).name:chartTerm(item.value,locale)}</dd></div>)}</dl>}
    {related.length?<div><p>{copy.related}</p>{related.slice(0,2).map(id=><a key={id} href={`#chapter-${id}`}>{titles[id]}</a>)}{related.length>2&&<details><summary>{copy.more(related.length-2)}</summary>{related.slice(2).map(id=><a key={id} href={`#chapter-${id}`}>{titles[id]}</a>)}</details>}</div>:<p>{copy.empty}</p>}
   </div>}
   <details className={styles.limits}><summary>{copy.limits}</summary>{chart.limitations.map((limit,i)=><p key={i} lang={chartLimitation(limit,locale)===limit?'ko':locale}>{chartLimitation(limit,locale)}</p>)}</details>

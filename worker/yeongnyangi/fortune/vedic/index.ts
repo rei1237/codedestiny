@@ -2,6 +2,7 @@ import { calculateVedicAiChart } from "../../../lib/vedic-ai-chart.js";
 import { context, domain } from "../shared/domain";
 import { chartInput } from "../shared/time";
 import { FortuneError } from '../shared/contracts';
+import { buildVedicHealthBasis, buildVedicYogas, refineVedicRows } from "./derived";
 export const vedic = domain(
   "vedic",
   `Jyotish: sidereal Lahiri와 whole-sign bhava 체계다. 서양 tropical sign/Placidus와 혼용하지 않는다.
@@ -22,7 +23,16 @@ Dasha와 Antardasha는 같은 기간인지 확인하며 기간 없는 사건을 
       birthInfo: { ...input.personA!, birthPlace: input.personA!.birthPlace },
     }, { now: new Date(options.asOf || Date.now()) });
     if(chart.calculationMeta?.fallbackUsed) throw new FortuneError('PRECISE_EPHEMERIS_UNAVAILABLE',503);
-    const { chartSummary: _summary, ...facts } = chart;
+    const { chartSummary: _summary, ...engineFacts } = chart;
+    // 품위에 물라트리코나를 더하고, 고전 요가(성립 조건 포함)와 건강 근거를 덧붙인다(derived.ts). 엔진 출력은 그대로다.
+    const planets = refineVedicRows(engineFacts.planets);
+    const facts = {
+      ...engineFacts,
+      planets,
+      grahas: refineVedicRows(engineFacts.grahas),
+      yogas: [...(engineFacts.yogas || []), ...buildVedicYogas(planets, engineFacts.houses)],
+      healthBasis: buildVedicHealthBasis(planets, engineFacts.houses),
+    };
     return context("vedic", facts, [
       "요가·분할 차트는 원차트와 함께 해석합니다.",
       "분할 차트의 행성 배치는 완전한 분할 하우스 명반이 아닙니다.",

@@ -112,6 +112,7 @@
 /public/js/core/analytics.js
 /public/js/core/app-context.d.ts
 /public/js/core/app-context.js
+/public/js/core/astro/natal-reading.js
 /public/js/core/auth-hint.d.ts
 /public/js/core/auth-hint.js
 /public/js/core/bootstrapDestinyFlower.js
@@ -236,6 +237,7 @@
 /public/static/index.html
 /public/styles/README.md
 /public/styles/app-shell.css
+/public/styles/astro-reading.css
 /public/styles/basic-fortune-library.css
 /public/styles/core-ui.css
 /public/styles/cosmic-main.css
@@ -264,6 +266,7 @@
 /public/styles/tarot-reunion-lighthouse.css
 /public/styles/tarot-year-fortune.css
 /public/styles/theme-tokens.css
+/public/styles/trust-stories.css
 /public/styles/yehwa-motifs-nav.css
 /public/styles/yehwa-motifs.css
 /public/tadagochi.html

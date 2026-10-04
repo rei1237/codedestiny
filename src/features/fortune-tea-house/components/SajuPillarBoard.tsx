@@ -1,7 +1,7 @@
 "use client";
 
 import type { FortuneTeaSajuPillar } from "../data/consult";
-import styles from "../styles/fortune-tea-house.module.css";
+import styles from "../styles/tea-report.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type SajuPillarBoardProps = {

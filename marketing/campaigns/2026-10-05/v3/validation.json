@@ -1,0 +1,134 @@
+{
+  "schedule": "2026-10-05T09:00:00+09:00",
+  "originalPreserved": true,
+  "files": [
+    {
+      "number": 1,
+      "file": "../assets/official-three-characters.png",
+      "width": 1122,
+      "height": 1402,
+      "format": "png",
+      "sha256": "4ec18803662c6f463d07e5945c411bead11686b01c0efa151c6dca14a12e40f4"
+    },
+    {
+      "number": 2,
+      "file": "cards/02.jpg",
+      "width": 1080,
+      "height": 1350,
+      "format": "jpeg",
+      "sha256": "e141f2c452b9056880a9e144f395a28c1aab3936480c93fe04af9613b1dcf424"
+    },
+    {
+      "number": 3,
+      "file": "cards/03.jpg",
+      "width": 1080,
+      "height": 1350,
+      "format": "jpeg",
+      "sha256": "f879b049cc1c672c8c140b53ea66e400ed24b0d31529b70f465eb328c8b293bb"
+    },
+    {
+      "number": 4,
+      "file": "cards/04.jpg",
+      "width": 1080,
+      "height": 1350,
+      "format": "jpeg",
+      "sha256": "85d8ea2720ff3b5d178cc2a975bdfaa33032af996df5cfaaae425190f7f715c5"
+    },
+    {
+      "number": 5,
+      "file": "cards/05.jpg",
+      "width": 1080,
+      "height": 1350,
+      "format": "jpeg",
+      "sha256": "3bf75fb534730641042c4defa645d9493026b87b4e2eb2bfb9a3ba2b0d90560a"
+    },
+    {
+      "number": 6,
+      "file": "cards/06.jpg",
+      "width": 1080,
+      "height": 1350,
+      "format": "jpeg",
+      "sha256": "407fdcd42cc6f88d3d7b547666ce136b3108ac3ae951bbee08978aad00edf122"
+    },
+    {
+      "number": 7,
+      "file": "cards/07.jpg",
+      "width": 1080,
+      "height": 1350,
+      "format": "jpeg",
+      "sha256": "b812755560031c0f197fb6234a94626958c2ca4f0dc7b8ddd620a7daeee228c5"
+    },
+    {
+      "number": 8,
+      "file": "cards/08.jpg",
+      "width": 1080,
+      "height": 1350,
+      "format": "jpeg",
+      "sha256": "9499a1a0c233042138accd5d19b7998f1d699fa5c0869453adb37b1fa75718ed"
+    },
+    {
+      "number": 9,
+      "file": "cards/09.jpg",
+      "width": 1080,
+      "height": 1350,
+      "format": "jpeg",
+      "sha256": "d418bd82d85027043e443c5c6072d7729437e439bb6cb532ab3c948861c816b0"
+    },
+    {
+      "number": 10,
+      "file": "cards/10.jpg",
+      "width": 1080,
+      "height": 1350,
+      "format": "jpeg",
+      "sha256": "3e0f4d8920c040dc94d2cba52c9f0b721fca754eaa506fb5ba9d5079254e8a13"
+    }
+  ],
+  "postLengths": [
+    {
+      "id": "official",
+      "length": 368
+    },
+    {
+      "id": "yeongnyangi",
+      "length": 378
+    },
+    {
+      "id": "reply02",
+      "length": 154
+    },
+    {
+      "id": "reply03",
+      "length": 225
+    },
+    {
+      "id": "reply04",
+      "length": 169
+    },
+    {
+      "id": "reply05",
+      "length": 178
+    },
+    {
+      "id": "reply06",
+      "length": 177
+    },
+    {
+      "id": "reply07",
+      "length": 178
+    },
+    {
+      "id": "reply08",
+      "length": 215
+    },
+    {
+      "id": "reply09",
+      "length": 231
+    },
+    {
+      "id": "reply10",
+      "length": 243
+    }
+  ],
+  "layoutPassed": true,
+  "operatingChecks": "Pending scheduled price/discount/UI verification; not published."
+}

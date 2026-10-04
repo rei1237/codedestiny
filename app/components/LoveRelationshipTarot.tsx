@@ -1,4 +1,5 @@
 "use client";
+import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -835,6 +836,7 @@ export default function LoveRelationshipTarot() {
             </div>
           </section>
         ) : null}
+        {delivery?.saved && readingRaw && <ReviewRewardBanner afterResult locale={locale}/>}
       </div>
     </main>
   );

@@ -77,8 +77,10 @@
     "reply07": 178,
     "reply08": 215,
     "reply09": 231,
-    "reply10": 326
+    "reply10": 243
   },
-  "layout": "9/9 no footer overlap, images loaded",
-  "scope": "marketing only; no payment API, pricing or DB changes"
+  "layout": "reviewer SHIP: desktop1440/mobile390; chart360/390/430 no overflow; cards07/10 clear",
+  "scope": "marketing and chart presentation only; no calculation, billing, authentication or DB change",
+  "revision": "explanatory landing, neutral CTA and shared element chart",
+  "test": "reading-visuals 8/8; targeted ESLint exit0 (7 pre-existing img warnings); diff --check passed; check:fast stopped after paid-suite output stalled, not marked passed"
 }

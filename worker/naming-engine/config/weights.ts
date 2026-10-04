@@ -31,7 +31,15 @@ export const PRACTICAL = Object.freeze({
   extA: 0.3, // 확장 A — 입력·글꼴 지원이 약하다
   extBPlus: 0.5, // 확장 B 이상(BMP 밖)
   nonBasicEdu: 0.05, // 교육용 기초한자 밖 — 읽기·쓰기 친숙도
+  rareHanja: 0.15, // 이 음으로 이름에 쓰인 적이 드문 글자(최대 — 사용 0회)
+  rareSyllable: 0.05, // 그 자리의 이름 음절로 드문 소리(최대 — 사용 0회)
 });
+
+/**
+ * 이름 사용 빈도(data/name-usage.v1.json — Wikidata 대한민국 국적 인물 집계)를 감점으로 바꾸는 포화점.
+ * 감점 = 최대 × (1 − min(1, ln(1+사용) / ln(1+full))). 사용이 rareBelow 미만이면 글자 표지 practical.<k>.rare-in-names.
+ */
+export const NATURALNESS = Object.freeze({ hanjaFull: 30, syllableFull: 30, rareBelow: 3 });
 
 export const SEARCH = Object.freeze({
   /** (획수, 소리오행) 칸마다 남기는 글자 수. 2자 이름은 칸 5개 × 획수 쌍 만큼 조합한다. */
@@ -41,6 +49,17 @@ export const SEARCH = Object.freeze({
   paidCount: 12,
   mmrLambda: 0.7,
 });
+
+/**
+ * 추천 모드의 자연 이름(name-usage givenRows — Wikidata 1940년 이후 출생 대한민국 인물). 이 목록의 한글 이름만 먼저 탐색하고,
+ * 못 채우면 풀 전체 탐색으로 넘어간다(names.fallback). 성별 지정: 그 성별 사용 minUse 명 이상 · 그 성별 비율 minShare 이상 ·
+ * 1990년 이후 출생자 사용 minRecent 명 이상(영자·순자 같은 옛 이름을 뺀다). 성별 미정: 남녀 합 neutralMinTotal 이상 ·
+ * 적은 쪽 비율 neutralMinShare 이상 · 최근 사용 minRecent 이상. perSyllable = 음절마다 조합에 쓰는 글자 수.
+ */
+export const NATURAL_NAMES = Object.freeze({ minUse: 2, minShare: 0.7, minRecent: 1, neutralMinTotal: 3, neutralMinShare: 0.25, perSyllable: 12 });
+
+/** 선택 모드: 부모가 고른 한글 이름 최대 개수. */
+export const MAX_DESIRED_NAMES = 5;
 
 /** 완화 단계(§7): 0 엄격 → 1 원격·형격 흉 허용 → 2 정격 반길 허용 → 3 신뢰도 하한·훈 없음·무료 분쟁 제외 해제. 정격 흉은 끝까지 막는다. */
 export const MAX_RELAXATION_STAGE = 3;

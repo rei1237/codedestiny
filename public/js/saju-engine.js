@@ -12599,7 +12599,7 @@ function _astroBuildNatalWheelCard(chart, birth, houseSystemLabel) {
 
   svg.push('<circle cx="'+cx+'" cy="'+cy+'" r="58" fill="url(#astroWheelCore)" stroke="rgba(251,191,36,0.25)" stroke-width="1"/>');
   svg.push('<circle cx="'+cx+'" cy="'+cy+'" r="42" fill="none" stroke="rgba(125,211,252,0.25)" stroke-width="0.9" stroke-dasharray="2 4"/>');
-  svg.push('<text x="'+cx+'" y="'+(cy - 8)+'" text-anchor="middle" fill="rgba(253,230,138,0.9)" font-size="12" font-weight="800">NATAL WHEEL</text>');
+  svg.push('<text x="'+cx+'" y="'+(cy - 8)+'" text-anchor="middle" fill="rgba(253,230,138,0.9)" font-size="12" font-weight="800">'+(_sajuEngineCurrentLang() === 'ko' ? '출생 차트' : 'NATAL WHEEL')+'</text>');
   svg.push('<text x="'+cx+'" y="'+(cy + 10)+'" text-anchor="middle" fill="rgba(186,230,253,0.8)" font-size="9">ASC 기준 정밀 회전</text>');
   svg.push('</svg>');
 
@@ -12652,10 +12652,10 @@ function _astroBuildNatalWheelCard(chart, birth, houseSystemLabel) {
     + '<span>MC '+SIGN_GLYPH[Math.floor(_astroWheelNorm360(mcLon)/30)%12]+' '+SIGN_KO[Math.floor(_astroWheelNorm360(mcLon)/30)%12]+' '+_astroWheelFmtDeg(_astroWheelNorm360(mcLon) - (Math.floor(_astroWheelNorm360(mcLon)/30)%12)*30)+'</span>'
     + '</div>'
     + '<div class="astro-wheel-visual">'+svg.join('')+'</div>'
-    + '<div class="astro-wheel-tables">'
+    + '<details class="astro-fold astro-wheel-tables-fold"><summary>표로 보기 · 행성 위치와 각도 표</summary><div class="astro-wheel-tables">'
     + '<div class="astro-wheel-table-wrap"><div class="astro-wheel-table-title">행성 위치표</div><table class="astro-table astro-wheel-table"><thead><tr><th>행성</th><th>위치</th><th>하우스</th></tr></thead><tbody>'+planetRows+'</tbody></table></div>'
-    + '<div class="astro-wheel-table-wrap"><div class="astro-wheel-table-title">어스펙트 요약</div><table class="astro-table astro-wheel-table"><thead><tr><th>행성쌍</th><th>유형</th><th>오브</th></tr></thead><tbody>'+aspectRows+'</tbody></table></div>'
-    + '</div>'
+    + '<div class="astro-wheel-table-wrap"><div class="astro-wheel-table-title">어스펙트 요약</div><table class="astro-table astro-wheel-table"><thead><tr><th>행성쌍</th><th>유형</th><th>오차</th></tr></thead><tbody>'+aspectRows+'</tbody></table></div>'
+    + '</div></details>'
     + '</div>';
 
   return { cardHtml: cardHtml };
@@ -12796,8 +12796,8 @@ function renderAstroInsightLegacyNeon() {
     var fortunaSign = (chart.lots && chart.lots.fortuna) ? chart.lots.fortuna.sign : '-';
     var spiritSign  = (chart.lots && chart.lots.spirit)  ? chart.lots.spirit.sign  : '-';
 
-    var sunDeg  = chart.sun.deg  != null ? ' <span style="color:#94a3b8;font-size:0.78rem">'+chart.sun.deg.toFixed(2)+'°</span>' : '';
-    var moonDeg = chart.moon.deg != null ? ' <span style="color:#94a3b8;font-size:0.78rem">'+chart.moon.deg.toFixed(2)+'°</span>' : '';
+    var sunDeg  = chart.sun.deg  != null ? ' <span style="color:#94a3b8;font-size:13px">'+chart.sun.deg.toFixed(2)+'°</span>' : '';
+    var moonDeg = chart.moon.deg != null ? ' <span style="color:#94a3b8;font-size:13px">'+chart.moon.deg.toFixed(2)+'°</span>' : '';
 
     var vmAspect = '';
     var vi = chart.planets.Venus && chart.planets.Venus.sign ? chart.planets.Venus.sign.idx : 0;
@@ -13204,7 +13204,7 @@ function renderAstroInsightLegacyNeon() {
           a: pa,
           b: pb,
           name: asp.name,
-          text: planetKr[pa] + ' - ' + planetKr[pb] + ' : ' + asp.name + ' (orb ' + asp.orb.toFixed(2) + '°)',
+          text: planetKr[pa] + ' - ' + planetKr[pb] + ' : ' + asp.name + ' (오차 ' + asp.orb.toFixed(2) + '°)',
           orb: asp.orb
         });
       }
@@ -13243,8 +13243,8 @@ function renderAstroInsightLegacyNeon() {
     var ascHousePair = _housePairText(chart.asc);
 
     var PLANET_MEANINGS = {
-      Sun:{ label:_sajuEngineText("se_9552_prop_label"), icon:'☀️', meaning:'자아, 삶의 방향성, 의식적 목표, 내가 빛나는 방식', simple:'인생에서 내가 어떤 모습으로 살고 싶은지를 보여주는 중심 에너지', question:'나는 어떤 사람으로 빛나고 싶은가?', keywords:['자아','방향성','존재감','의식'] },
-      Moon:{ label:'달', icon:'🌙', meaning:'감정, 안정감, 무의식적 반응, 마음의 습관', simple:'혼자 있을 때의 진짜 마음과 안정감을 느끼는 방식을 보여줌', question:'나는 무엇을 해야 마음이 편안해지는가?', keywords:['감정','안정감','습관','회복'] },
+      Sun:{ label:_sajuEngineText("se_9552_prop_label"), icon:'\u2609\uFE0E', meaning:'자아, 삶의 방향성, 의식적 목표, 내가 빛나는 방식', simple:'인생에서 내가 어떤 모습으로 살고 싶은지를 보여주는 중심 에너지', question:'나는 어떤 사람으로 빛나고 싶은가?', keywords:['자아','방향성','존재감','의식'] },
+      Moon:{ label:'달', icon:'\u263D\uFE0E', meaning:'감정, 안정감, 무의식적 반응, 마음의 습관', simple:'혼자 있을 때의 진짜 마음과 안정감을 느끼는 방식을 보여줌', question:'나는 무엇을 해야 마음이 편안해지는가?', keywords:['감정','안정감','습관','회복'] },
       Mercury:{ label:_sajuEngineText("se_9554_prop_label"), icon:'☿', meaning:'생각, 말, 공부, 커뮤니케이션, 판단 방식', simple:'머리를 쓰는 방식과 말하는 스타일', question:'나는 어떻게 생각하고 표현하는가?', keywords:['생각','말','학습','표현'] },
       Venus:{ label:_sajuEngineText("se_9555_prop_label"), icon:'♀', meaning:'사랑, 취향, 매력, 관계, 즐거움', simple:'내가 끌리는 것, 사랑을 주고받는 방식', question:'나는 무엇을 아름답다고 느끼고 어떻게 사랑하는가?', keywords:['사랑','취향','매력','관계'] },
       Mars:{ label:_sajuEngineText("se_9556_prop_label"), icon:'♂', meaning:'행동력, 욕망, 추진력, 분노, 경쟁', simple:'내가 원하는 것을 얻기 위해 움직이는 방식', question:'나는 어떻게 도전하고 싸우는가?', keywords:['행동','추진력','도전','에너지'] },
@@ -13341,6 +13341,27 @@ function renderAstroInsightLegacyNeon() {
       var bTitle = Number.isFinite(bNum) ? _houseMeta(bNum).title : _sajuEngineText("se_9647_prop_title");
       return text + ' (체감: ' + aTitle + ' / 큰 흐름: ' + bTitle + ')';
     }
+    /* Life Area chips carry one idea each: planet, sign, Placidus house. Whole Sign is
+       shown only when it disagrees, so identical "12H / 12H" pairs never repeat. */
+    var LIFE_PLANET_GLYPHS = { Sun:'☉', Moon:'☽', Mercury:'☿', Venus:'♀', Mars:'♂', Jupiter:'♃', Saturn:'♄', Uranus:'♅', Neptune:'♆', Pluto:'♇' };
+    var LIFE_SIGN_GLYPHS = ['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+    var LIFE_SIGN_NAMES = ['양자리','황소자리','쌍둥이자리','게자리','사자자리','처녀자리','천칭자리','전갈자리','사수자리','염소자리','물병자리','물고기자리'];
+    var lifePlacementByKey = {};
+    placementData.forEach(function(p){ lifePlacementByKey[p.key] = p; });
+    function _lifeHouseOf(pKey){
+      var p = lifePlacementByKey[pKey];
+      return p ? (p.hPlacidus || p.hWhole || null) : null;
+    }
+    function _lifeChip(pKey){
+      var p = lifePlacementByKey[pKey];
+      var glyph = LIFE_PLANET_GLYPHS[pKey] || '✦';
+      if(!p) return '<span class="astro-life-chip">'+glyph+' '+(planetKr[pKey] || pKey)+'</span>';
+      var h = p.hPlacidus || p.hWhole;
+      var note = (p.hPlacidus && p.hWhole && p.hPlacidus !== p.hWhole)
+        ? ' <small title="'+_houseDiffLine(p.hPlacidus, p.hWhole)+'">(통하우스 기준 '+p.hWhole+')</small>'
+        : '';
+      return '<span class="astro-life-chip">'+glyph+' '+planetKr[pKey]+' · '+LIFE_SIGN_GLYPHS[p.signIdx]+' '+LIFE_SIGN_NAMES[p.signIdx]+(h ? ' · '+h+'하우스' : '')+note+'</span>';
+    }
 
     var quickHouseFocusCount = {};
     placementData.forEach(function(p){
@@ -13357,9 +13378,9 @@ function renderAstroInsightLegacyNeon() {
       : '상승궁 계산 정보 없음';
 
     var birthMapSummaryChips = [
-      { label:_sajuEngineText("se_9666_prop_label"), icon:'☀️', value:sunSign + ' · ' + sunHousePair },
-      { label:'달', icon:'🌙', value:moonSign + ' · ' + moonHousePair },
-      { label:_sajuEngineText("se_9668_prop_label"), icon:'⬆️', value:ascChipValue }
+      { label:_sajuEngineText("se_9666_prop_label"), icon:'\u2609\uFE0E', value:sunSign + ' · ' + sunHousePair },
+      { label:'달', icon:'\u263D\uFE0E', value:moonSign + ' · ' + moonHousePair },
+      { label:_sajuEngineText("se_9668_prop_label"), icon:'\u2191\uFE0E', value:ascChipValue }
     ].map(function(chip){
       return '<span class="astro-birth-chip"><b>'+chip.icon+' '+chip.label+'</b> '+chip.value+'</span>';
     }).join('');
@@ -13407,7 +13428,7 @@ function renderAstroInsightLegacyNeon() {
         + '<details class="astro-birth-aspect astro-aspect-story-card">'
         + '<summary>'
         + '<span class="astro-birth-aspect-title">'+pma.icon+' '+pma.label+' - '+pmb.icon+' '+pmb.label+' · '+a.name+'</span>'
-        + '<span class="astro-birth-aspect-orb">orb '+a.orb.toFixed(2)+'°</span>'
+        + '<span class="astro-birth-aspect-orb">오차 '+a.orb.toFixed(2)+'°</span>'
         + '</summary>'
         + '<div class="astro-birth-aspect-body">'
         + '<p>'+pma.label+'은(는) '+pma.meaning+'을, '+pmb.label+'은(는) '+pmb.meaning+'을 의미합니다.</p>'
@@ -13422,11 +13443,11 @@ function renderAstroInsightLegacyNeon() {
     var birthMapSectionHtml = ''
       + '<div class="astro-section astro-birth-map" id="astroBirthMapSection">'
       + '<div class="astro-birth-top">'
-      + '<div class="astro-subhead" style="margin:0;">🌌 내 탄생 별자리 지도</div>'
+      + '<div class="astro-subhead" style="margin:0;">내 탄생 별자리 지도</div>'
       + '<button type="button" class="astro-birth-mode-btn" id="astroBirthModeToggle" aria-pressed="false">쉬운 보기 ON</button>'
       + '</div>'
       + '<p class="astro-birth-lead">태어난 순간 하늘에 새겨진 나만의 우주 설계도예요. 카드를 탭하면 각 행성이 삶에서 어떻게 작동하는지 자세히 펼쳐집니다.</p>'
-      + '<div class="astro-birth-chip-row">'+birthMapSummaryChips+'</div>'
+      + '<details class="astro-fold"><summary>태양·달·상승궁이 놓인 하우스</summary><div class="astro-birth-chip-row">'+birthMapSummaryChips+'</div></details>'
       + '<details class="astro-birth-help">'
       + '<summary>하우스 해석 방식이 뭐예요? (Placidus vs Whole Sign)</summary>'
       + '<div class="astro-birth-help-body">'
@@ -13438,119 +13459,333 @@ function renderAstroInsightLegacyNeon() {
       + '<p class="astro-birth-foot">특수 포인트: 포르투나 '+fortunaSign+' ('+fortunaHousePair+') · 스피릿 '+spiritSign+' ('+spiritHousePair+'). 값이 없으면 현재 결과에는 포함되지 않았을 수 있어요.</p>'
       + '</div>';
 
+    /* Life Area Reading is assembled from the chart itself: each area has one anchor sign
+       (a planet's sign, or the sign on a whole-sign house cusp), a house stage, a scene and
+       the tightest unused aspect. Body copy stays Korean-only; area titles keep their i18n keys. */
+    var LIFE_ELEMENT_KEYS = ['fire','earth','air','water'];
+    var LIFE_FLAVOR = {
+      identity:[
+        ['먼저 불을 붙이는','생각보다 몸이 먼저 움직이고, 시작하는 순간 가장 살아 있다고 느껴요.','기다리는 시간이 길어지면 답답함이 먼저 올라오는 편이에요.'],
+        ['천천히 단단해지는','한 번 정한 길은 쉽게 바꾸지 않고 내 속도로 끝까지 가요.','손에 잡히는 결과와 편안한 감각이 있을 때 자신감이 붙어요.'],
+        ['호기심으로 움직이는','새로운 이야기와 정보를 만나면 눈빛부터 달라져요.','한 가지에 오래 묶이기보다 여러 갈래를 오가며 답을 찾아요.'],
+        ['품으로 지키는','가까운 사람을 챙길 때 가장 나다워진다고 느껴요.','겉은 조심스러워도 마음을 연 사람에게는 끝까지 든든해요.'],
+        ['무대에서 빛나는','내가 만든 것을 보여 주고 인정받을 때 힘이 크게 차올라요.','분위기를 이끄는 역할이 자연스럽게 맡겨지는 편이에요.'],
+        ['디테일로 증명하는','어수선한 것을 정리하고 더 낫게 다듬을 때 만족감이 커요.','말보다 꼼꼼한 결과로 신뢰를 얻는 쪽이에요.'],
+        ['균형을 맞추는','사람 사이의 온도를 읽고 모두가 편한 지점을 찾아내요.','아름답고 공정한 것에 마음이 먼저 움직여요.'],
+        ['깊이 파고드는','겉보다 속, 표면보다 진짜 이유를 알고 싶어 해요.','한 번 마음먹으면 쉽게 놓지 않는 집중력이 있어요.'],
+        ['더 멀리 보는','새로운 곳과 큰 의미를 찾아 나설 때 가장 생기 있어요.','솔직하고 낙천적인 말로 주변의 숨통을 틔워 줘요.'],
+        ['차근차근 올라가는','목표가 분명할 때 누구보다 꾸준히 밀고 가요.','책임을 맡으면 무게를 알면서도 끝까지 해내려 해요.'],
+        ['틀 밖에서 생각하는','남들이 당연하게 여기는 것에 "왜?"를 먼저 던져요.','혼자만의 자유와 사람들과의 연대를 함께 중요하게 여겨요.'],
+        ['결을 읽는','말하지 않은 분위기와 감정까지 섬세하게 느껴요.','상상력과 공감이 커서 다른 사람의 이야기에 쉽게 스며들어요.']
+      ],
+      love:[
+        ['한눈에 불붙는','끌리면 망설이기보다 먼저 다가가는 쪽이에요.','설렘이 식으면 마음도 빨리 식을 수 있어, 새로운 자극이 관계를 살려요.'],
+        ['천천히 데워지는','빨리 빠지기보다 시간을 두고 확인한 사람에게 깊게 마음을 줘요.','맛있는 식사, 편안한 스킨십처럼 감각으로 사랑을 느껴요.'],
+        ['대화로 반하는','말이 통하는 사람에게 가장 빨리 끌려요.','연락과 농담이 오가는 가벼운 리듬이 관계의 숨이 돼요.'],
+        ['다정하게 품는','상대를 챙기고 보살필 때 사랑을 실감해요.','안전하다고 느끼기 전까지는 마음을 쉽게 다 보이지 않아요.'],
+        ['화려하게 아끼는','사랑받는 느낌과 특별한 대우가 마음을 크게 움직여요.','좋아하는 사람에게는 아낌없이 표현하고 선물해요.'],
+        ['작은 배려로 사랑하는','거창한 말보다 세심한 챙김으로 마음을 보여 줘요.','상대의 사소한 습관까지 기억하는 편이에요.'],
+        ['우아하게 맞춰 가는','서로 존중하고 균형 잡힌 관계에 끌려요.','갈등보다 조율을 먼저 떠올리지만, 내 마음을 미루지 않는 연습도 필요해요.'],
+        ['깊게 하나 되는','가볍게 만나기보다 깊이 연결되는 관계를 원해요.','믿음이 생기면 누구보다 진하고 충실해요.'],
+        ['자유롭게 함께 가는','함께 웃고 모험할 수 있는 사람에게 끌려요.','구속감이 커지면 숨이 막혀, 각자의 공간을 존중할 때 오래 가요.'],
+        ['믿음으로 쌓는','진지하고 책임감 있는 관계를 원해요.','감정 표현은 느려도 행동으로 오래 증명해요.'],
+        ['친구처럼 사랑하는','우정 같은 편안함과 지적인 자극이 함께 있을 때 마음이 열려요.','관계 안에서도 나만의 공간과 자유가 꼭 필요해요.'],
+        ['꿈꾸듯 스며드는','로맨틱한 분위기와 정서적 교감에 쉽게 마음이 가요.','상대를 이상화하기 쉬워, 현실의 모습도 함께 보는 눈이 필요해요.']
+      ],
+      career:[
+        ['앞장서 개척하는','새 프로젝트를 여는 자리, 결정권이 있는 역할에서 빛나요.','속도와 추진력이 곧 평판이 되는 편이에요.'],
+        ['오래 가치를 쌓는','시간이 지날수록 값이 오르는 일, 손에 잡히는 결과를 만드는 일이 맞아요.','꾸준하고 믿음직하다는 평판이 커리어의 무기예요.'],
+        ['말과 글로 연결하는','정보를 다루고 사람을 잇는 일에서 재능이 드러나요.','한 가지 직함보다 여러 역할을 겸할 때 오히려 힘이 나요.'],
+        ['사람을 돌보는','누군가를 챙기고 안전한 환경을 만드는 일에서 인정받아요.','팀을 가족처럼 지키는 리더십이 있어요.'],
+        ['이름을 거는','내 색깔이 드러나는 일, 앞에 서서 보여 주는 일이 잘 맞아요.','자부심을 느낄 수 있는 일에서 성과가 크게 나요.'],
+        ['전문성으로 인정받는','정확함과 숙련이 필요한 일에서 신뢰를 얻어요.','문제를 고치고 개선하는 역할에서 존재감이 커져요.'],
+        ['조율로 빛나는','협상하고 중재하고 균형을 맞추는 자리에서 강해요.','감각과 미적 기준이 일의 품질을 끌어올려요.'],
+        ['판을 꿰뚫는','깊이 분석하고 위기를 다루는 일에서 실력이 드러나요.','보이지 않는 곳에서 큰 영향력을 쥐는 역할이 맞아요.'],
+        ['넓은 무대로 가는','가르치고 알리고 멀리 연결하는 일에서 가능성이 커요.','의미가 느껴지는 일에서 성과가 따라와요.'],
+        ['정상까지 오르는','체계와 목표가 분명한 곳에서 꾸준히 올라가요.','책임을 맡을수록 실력이 단단해지는 타입이에요.'],
+        ['새 판을 짜는','혁신과 기술, 공동체를 위한 일에서 재능이 살아나요.','기존 방식을 바꾸는 사람으로 기억되는 편이에요.'],
+        ['영감으로 일하는','창작, 치유, 돌봄처럼 마음을 다루는 일에서 빛나요.','정해진 틀보다 흐름을 타며 일할 때 결과가 좋아요.']
+      ],
+      money:[
+        ['과감하게 벌어 오는','기회가 보이면 빠르게 움직여 수입을 만드는 편이에요.','충동적으로 쓰는 돈만 잡으면 흐름이 훨씬 안정돼요.'],
+        ['차곡차곡 불리는','천천히 모으고 오래 지키는 데 강해요.','좋은 물건과 편안함에는 아끼지 않고 쓰는 편이에요.'],
+        ['여러 갈래로 버는','수입원이 하나보다 여럿일 때 마음이 편해요.','정보와 말솜씨가 돈이 되는 구조예요.'],
+        ['안전망부터 챙기는','비상금이나 집처럼 마음을 지켜 주는 자산을 중요하게 여겨요.','불안해서 쓰는 돈보다 안심하려고 모으는 돈이 더 커요.'],
+        ['통 크게 쓰는','나를 빛나게 하는 데 쓰는 돈은 아깝지 않아요.','자신 있게 내 가치를 매길 때 수입도 따라 커져요.'],
+        ['꼼꼼하게 관리하는','예산처럼 숫자로 정리될 때 안심이 돼요.','작게 새는 돈을 찾아 막는 감각이 좋아요.'],
+        ['함께 벌고 나누는','파트너십과 협업에서 수입 기회가 생기기 쉬워요.','예쁜 것에 쓰는 지출은 기준을 정해 두면 좋아요.'],
+        ['깊이 투자하는','한 번 믿은 곳에는 크게, 오래 걸어요.','공동 자산이나 큰돈을 다루는 감각이 있어요.'],
+        ['크게 보고 굴리는','돈을 경험과 배움, 넓은 기회에 쓰는 편이에요.','낙관이 커질 때는 한 번 더 따져 보는 습관이 도움이 돼요.'],
+        ['계획으로 쌓는','장기 계획과 원칙이 있을 때 자산이 가장 잘 커요.','쓸 때도 효율과 가치를 먼저 따져요.'],
+        ['색다르게 버는','남들이 안 하는 방식, 새로운 플랫폼에서 수입이 열리기 쉬워요.','돈으로 물건보다 자유를 사는 편이에요.'],
+        ['흐르듯 쓰고 채우는','마음이 가는 곳, 누군가를 돕는 곳으로 돈이 흘러가요.','경계를 정해 두면 새는 돈 없이 넉넉하게 쓸 수 있어요.']
+      ],
+      emotion:[
+        ['빨리 끓고 빨리 식는','감정이 생기면 바로 드러나고, 그만큼 빨리 털어 내요.','답답할 때는 몸을 움직이면 마음이 풀려요.'],
+        ['느긋하게 가라앉는','익숙한 공간, 맛있는 음식, 편안한 루틴이 마음을 지켜 줘요.','갑작스러운 변화 앞에서는 시간이 조금 필요해요.'],
+        ['말로 정리하는','마음이 복잡할 때 누군가에게 털어놓으면 금방 가벼워져요.','생각이 많아지면 감정보다 머리가 먼저 바빠져요.'],
+        ['깊이 품는','감정의 기억이 오래 남고, 가까운 사람의 기분에 쉽게 물들어요.','안전한 내 공간이 있을 때 가장 빨리 회복돼요.'],
+        ['따뜻한 관심이 필요한','알아봐 주고 칭찬받을 때 마음이 환해져요.','서운함도 크게 느끼지만, 표현하고 나면 뒤끝이 적어요.'],
+        ['정리하며 안정되는','주변이 정돈되고 할 일이 손에 잡힐 때 마음이 놓여요.','걱정이 생기면 혼자 점검하고 대비하는 편이에요.'],
+        ['조화 속에서 편안한','관계가 평화로울 때 마음도 고요해져요.','갈등을 피하려다 내 감정을 뒤로 미루기 쉬워요.'],
+        ['조용히 깊은','겉으로는 담담해 보여도 속의 감정은 아주 진해요.','믿을 수 있는 한두 사람에게만 진짜 마음을 꺼내요.'],
+        ['밝게 털어 내는','힘들어도 웃음과 새로운 계획으로 기운을 되찾아요.','답답한 감정은 산책이나 여행처럼 넓은 곳에서 풀려요.'],
+        ['단단하게 버티는','감정을 다스리고 할 일을 먼저 하려는 편이에요.','혼자 버티는 시간이 길어지면 지친 줄도 모르기 쉬워요.'],
+        ['한 발 떨어져 보는','감정에 휩쓸리기보다 거리를 두고 이해하려 해요.','혼자만의 시간이 보장될 때 마음이 편안해져요.'],
+        ['물들 듯 공감하는','다른 사람의 감정까지 내 것처럼 느끼는 감수성이 있어요.','음악, 그림, 물가처럼 감성을 채우는 곳에서 회복돼요.']
+      ],
+      healing:[
+        ['혼자 불태우는','말없이 혼자 밀어붙이다 지치는 순간이 와요.','아무도 모르게 하는 운동이나 몰입이 회복이 돼요.'],
+        ['감각으로 쉬는','몸이 편해야 마음도 쉬는 타입이에요.','좋은 잠, 따뜻한 차처럼 단순한 감각이 깊은 회복이 돼요.'],
+        ['생각을 내려놓는','머릿속 대화가 멈추지 않을 때 가장 피곤해져요.','글로 적어 바깥으로 꺼내면 머리가 조용해져요.'],
+        ['안에서 삭이는','다른 사람을 챙기다 내 서운함을 숨기기 쉬워요.','안전한 공간에서 마음껏 쉬는 시간이 회복의 시작이에요.'],
+        ['조용히 빛나는','드러내지 못한 인정 욕구가 쌓이면 지쳐요.','혼자 하는 창작이나 취미가 숨은 자신감을 채워 줘요.'],
+        ['걱정을 내려놓는','보이지 않는 곳까지 신경 쓰다 지치기 쉬워요.','"이 정도면 충분해"라고 선을 긋는 연습이 쉼이 돼요.'],
+        ['관계에서 숨 고르는','모두를 맞추다 정작 내 마음을 놓치기 쉬워요.','아름다운 것을 혼자 감상하는 시간이 균형을 되돌려요.'],
+        ['깊이 비워 내는','말하지 못한 감정이 속에서 오래 머물 수 있어요.','감정을 글이나 대화로 꺼내 놓으면 크게 가벼워져요.'],
+        ['의미를 찾아 쉬는','방향을 잃은 느낌이 들 때 가장 지쳐요.','혼자 떠나는 산책이나 새로운 배움이 마음의 숨통을 틔워 줘요.'],
+        ['책임을 내려놓는','아무도 시키지 않은 책임까지 혼자 지기 쉬워요.','일정에 "쉬는 칸"을 미리 그려 두면 회복이 쉬워져요.'],
+        ['혼자만의 자유로 쉬는','사람들 속에서도 외로움을 느낄 때가 있어요.','완전히 혼자인 시간과 새로운 생각이 에너지를 채워 줘요.'],
+        ['꿈결처럼 회복하는','경계가 흐려지면 남의 감정까지 떠안기 쉬워요.','음악, 명상, 물가에서의 시간이 마음을 맑게 해 줘요.']
+      ],
+      growth:[
+        ['스스로 서는 법을 배우는','남의 허락 없이 먼저 시작하는 용기가 인생 숙제예요.','작게라도 첫발을 떼는 경험이 쌓일수록 단단해져요.'],
+        ['나만의 가치를 쌓는','스스로의 가치를 믿고 지키는 법을 천천히 배워 가요.','안정에 매달리기보다 꾸준함을 자산으로 만들 때 단단해져요.'],
+        ['말에 무게를 싣는','생각을 정리해 분명하게 전하는 힘이 오래 키울 실력이에요.','배운 것을 하나로 엮어 내 것으로 만들 때 성장해요.'],
+        ['마음의 기반을 다지는','내 감정과 가족, 뿌리를 돌보는 일이 인생 숙제예요.','스스로에게 안전한 집이 되어 주는 법을 배우며 단단해져요.'],
+        ['당당하게 드러내는','남의 시선보다 내 기준으로 빛나는 법을 배워 가요.','작게라도 나를 표현한 경험이 쌓일수록 자신감이 굳어요.'],
+        ['완벽 대신 완성을 배우는','기준이 높은 만큼 "충분함"을 아는 것이 성장 과제예요.','꾸준한 습관이 쌓이면 누구보다 깊은 전문성이 생겨요.'],
+        ['관계의 균형을 배우는','맞춰 주는 것과 나를 지키는 것 사이의 균형이 인생 숙제예요.','약속과 기준을 분명히 할 때 관계가 오히려 오래 가요.'],
+        ['깊은 신뢰를 배우는','통제하려는 마음을 내려놓고 믿는 법을 배워 가요.','어려운 시기를 지나며 누구보다 강한 내면을 갖게 돼요.'],
+        ['믿음을 세우는','나만의 가치관과 철학을 세우는 것이 오랜 숙제예요.','배움을 꾸준히 쌓을 때 말에 무게가 실려요.'],
+        ['큰 책임을 감당하는','목표를 향한 인내와 리더십을 시간을 들여 완성해요.','스스로에게 너무 엄격하지 않을 때 더 멀리 가요.'],
+        ['나다움을 지키는','무리 속에서 나만의 목소리를 지키는 법을 배워 가요.','혼자의 생각을 함께하는 일로 연결할 때 크게 성장해요.'],
+        ['건강한 선을 긋는','공감과 희생 사이에 건강한 선을 긋는 것이 인생 숙제예요.','흐릿한 꿈을 구체적인 계획으로 바꿀수록 단단해져요.']
+      ]
+    };
+    var LIFE_SIGN_DUO = [
+      ['먼저 시작하는 용기가 강점이에요.','서두를수록 한 번만 더 확인하면 실수가 줄어요.'],
+      ['꾸준함과 현실 감각으로 신뢰를 얻어요.','변화가 필요할 땐 작은 실험부터 시작해 보세요.'],
+      ['정보를 빠르게 엮어 답을 찾아요.','할 일을 2~3개로 좁히면 산만함이 줄어요.'],
+      ['관계의 온도를 섬세하게 읽어요.','감정이 커질 땐 반응보다 쉬는 시간을 먼저 가져 보세요.'],
+      ['자신감으로 분위기를 이끌어요.','인정받고 싶은 마음이 커지면 작은 성취를 스스로 칭찬해 주세요.'],
+      ['세밀하게 다듬어 실력을 만들어요.','완벽보다 완료를 목표로 하면 훨씬 가벼워요.'],
+      ['조율하고 합의를 만드는 힘이 있어요.','결정이 늦어질 땐 기한을 정해 두면 편해요.'],
+      ['집중력으로 본질을 꿰뚫어요.','혼자 끌어안기보다 믿을 만한 대화 상대를 두세요.'],
+      ['넓게 보고 가능성을 키워요.','큰 목표는 이번 주에 할 만큼 잘게 쪼개 보세요.'],
+      ['꾸준한 실행으로 결과를 만들어요.','쉬는 일정도 업무처럼 미리 넣어 두세요.'],
+      ['새로운 관점으로 판을 바꿔요.','아이디어를 글로 남겨 공유하면 실행력이 붙어요.'],
+      ['공감과 직관으로 사람을 읽어요.','경계가 흐려질 땐 나만의 시간을 따로 지켜 주세요.']
+    ];
+    var LIFE_HOUSE_STAGE = { 1:'첫인상과 내 태도', 2:'돈과 재능, 스스로의 가치', 3:'말과 공부, 가까운 이웃', 4:'집과 가족, 마음의 뿌리', 5:'연애와 취미, 나를 표현하는 일', 6:'매일의 일과 몸 관리', 7:'연인·동료 같은 일대일 관계', 8:'깊은 신뢰와 함께 나누는 자원', 9:'배움과 여행, 삶의 의미', 10:'일과 사회적 평판', 11:'친구와 모임, 앞으로의 꿈', 12:'혼자만의 시간과 보이지 않는 마음' };
+    var LIFE_HOUSE_SCENES = {
+      1:'처음 만난 자리에서 내가 어떤 사람인지 자연스럽게 드러나는 순간',
+      2:'월급날 통장을 보며 이번 달 쓸 곳을 정하는 순간',
+      3:'메시지를 주고받거나 무언가를 새로 배우는 순간',
+      4:'하루를 마치고 집에 돌아와 문을 닫는 순간',
+      5:'좋아하는 사람이나 취미에 푹 빠져 시간 가는 줄 모르는 순간',
+      6:'평범한 평일, 할 일 목록을 하나씩 지워 가는 순간',
+      7:'마주 앉은 한 사람과 서로의 생각을 맞춰 가는 순간',
+      8:'누군가에게 깊은 고민이나 중요한 결정을 털어놓는 순간',
+      9:'낯선 곳에 가거나 새로운 생각에 눈이 번쩍 뜨이는 순간',
+      10:'일터에서 내 이름을 걸고 결과를 내놓는 순간',
+      11:'친구들과 앞으로 하고 싶은 일을 이야기하는 순간',
+      12:'모두 잠든 밤, 혼자 조용히 마음을 들여다보는 순간'
+    };
+    var LIFE_WEEKLY_ACTION = {
+      identity:['미뤄 둔 일 하나를 오늘 20분만 먼저 시작해 보세요.','이번 주에 끝낼 작은 일 하나를 정하고 끝까지 마쳐 보세요.','요즘 관심 가는 주제를 한 사람에게 이야기해 보세요.','하루 한 번, 지금 내 기분을 한 문장으로 적어 보세요.'],
+      love:['마음 가는 사람에게 먼저 가벼운 안부를 건네 보세요.','함께 맛있는 것을 먹는 시간을 한 번 만들어 보세요.','"요즘 어때?"로 시작하는 긴 대화를 한 번 나눠 보세요.','고마웠던 순간 하나를 말로 꼭 전해 보세요.'],
+      career:['새로운 제안 하나를 먼저 꺼내 보세요.','이번 주 결과물 하나를 보여 줄 수 있게 마감해 보세요.','도움이 될 사람 한 명에게 먼저 연락해 보세요.','함께 일하는 사람의 수고를 한 번 알아봐 주세요.'],
+      money:['이번 주 충동 지출 하나를 하루만 미뤄 보세요.','고정 지출 하나를 점검해 줄일 곳을 찾아보세요.','수입을 늘릴 아이디어 하나를 메모로 남겨 보세요.','마음이 불안할 때 쓴 돈이 있는지 한 번 돌아보세요.'],
+      emotion:['답답할 때 10분 걷기로 열을 빼 보세요.','잠들기 전 따뜻한 차 한 잔으로 하루를 닫아 보세요.','복잡한 마음을 믿는 사람에게 털어놓아 보세요.','오늘 느낀 감정 하나에 이름을 붙여 적어 보세요.'],
+      healing:['땀이 날 만큼 몸을 움직이는 시간을 하루 넣어 보세요.','이번 주 하루는 일찍 자는 날로 정해 보세요.','휴대폰을 내려놓고 30분 멍하니 있어 보세요.','좋아하는 음악을 틀고 아무것도 하지 않는 시간을 가져 보세요.'],
+      growth:['오래 미룬 도전 하나를 아주 작게 쪼개 첫걸음을 떼 보세요.','매일 같은 시간 15분, 한 가지 습관을 이어 가 보세요.','배우고 싶은 것 하나를 골라 첫 강의를 들어 보세요.','나를 지치게 하는 약속 하나를 정중히 줄여 보세요.']
+    };
+    var LIFE_ASPECT_TIP = {
+      '딱 맞는 각(합)':'두 힘이 한꺼번에 켜지니, 가장 중요한 목표 하나에 모아 써 보세요.',
+      '도움 각(육합)':'잘 풀렸던 방식을 기록해 두면 언제든 다시 꺼내 쓸 수 있어요.',
+      '긴장 각(직각)':'부딪힐 때는 결론을 하루 미루면 이 긴장이 추진력으로 바뀌어요.',
+      '편한 각(삼합)':'익숙한 재능에 작은 도전을 하나 섞으면 더 크게 자라요.',
+      '마주보는 각(충)':'상대를 탓하기 전에 내가 원하는 것을 먼저 말로 확인해 보세요.'
+    };
+    var LIFE_ELEMENT_REFILL = { fire:'몸을 움직여 열을 내는 시간', earth:'잘 먹고 일찍 자는 시간', air:'믿는 사람과 가볍게 수다 떠는 시간', water:'감정을 글로 흘려보내는 시간' };
+    function _lifeSignOf(pKey){ var p = lifePlacementByKey[pKey]; return p ? p.signIdx : null; }
+    function _lifeStageLine(pKey, tail){
+      var h = _lifeHouseOf(pKey);
+      if(!h || !LIFE_HOUSE_STAGE[h]) return null;
+      return planetKr[pKey]+'이 '+h+'하우스에 있어, '+LIFE_HOUSE_STAGE[h]+tail;
+    }
+    function _lifePointChip(label, idx){
+      return '<span class="astro-life-chip">'+label+' · '+LIFE_SIGN_GLYPHS[idx]+' '+LIFE_SIGN_NAMES[idx]+'</span>';
+    }
+    var lifeUsedAspect = {};
+    function _lifeAspectFor(keys){
+      for(var k=0; k<keys.length; k++){
+        for(var r=0; r<majorAspectRows.length; r++){
+          var row = majorAspectRows[r];
+          var id = row.a+'-'+row.b;
+          if(lifeUsedAspect[id] || (row.a !== keys[k] && row.b !== keys[k]) || !ASPECT_MEANINGS[row.name]) continue;
+          lifeUsedAspect[id] = true;
+          return row;
+        }
+      }
+      return null;
+    }
+    var lifeUsedSceneHouse = {};
+    function _lifeSceneFor(keys){
+      for(var k=0; k<keys.length; k++){
+        var h = _lifeHouseOf(keys[k]);
+        if(!h) continue;
+        if(!lifeUsedSceneHouse[h]){ lifeUsedSceneHouse[h] = true; return h; }
+      }
+      return null;
+    }
+    var houseTwoIdx = (ascIndex + 1) % 12;
+    var houseTwelveIdx = (ascIndex + 11) % 12;
+    var LIFE_ANCHORS = {
+      identity:{ sign:_lifeSignOf('Sun'), glyph:LIFE_PLANET_GLYPHS.Sun, label:'태양', scene:['Sun','Mercury'], aspect:['Sun'], extra:function(){ return '첫인상은 상승궁 '+LIFE_SIGN_NAMES[ascIndex]+', '+SIGN_MEANINGS[ascIndex].simple+'로 비쳐요.'; }, points:[['상승궁(ASC)', ascIndex]] },
+      love:{ sign:_lifeSignOf('Venus'), glyph:LIFE_PLANET_GLYPHS.Venus, label:'금성', scene:['Venus','Mars'], aspect:['Venus','Mars'], extra:function(){ var m = _lifeSignOf('Mars'); return m == null ? null : '다가가는 방식은 화성 '+LIFE_SIGN_NAMES[m]+', '+SIGN_MEANINGS[m].simple+'로 움직여요.'; } },
+      career:{ sign:mcIndex, glyph:LIFE_SIGN_GLYPHS[mcIndex], label:'천정(MC)', scene:['Saturn','Sun','Mars'], aspect:['Saturn','Sun'], extra:function(){ return _lifeStageLine('Sun', '에서 존재감이 커져요.'); }, points:[['천정(MC)', mcIndex]] },
+      money:{ sign:houseTwoIdx, glyph:LIFE_SIGN_GLYPHS[houseTwoIdx], label:'2하우스', scene:['Jupiter','Venus','Saturn'], aspect:['Jupiter','Venus'], extra:function(){ return _lifeStageLine('Jupiter', '에서 기회가 넓어지기 쉬워요.'); }, points:[['2하우스', houseTwoIdx]] },
+      emotion:{ sign:_lifeSignOf('Moon'), glyph:LIFE_PLANET_GLYPHS.Moon, label:'달', scene:['Moon','Venus'], aspect:['Moon'], extra:function(){ return _lifeStageLine('Moon', '에서 감정이 가장 크게 움직여요.'); } },
+      healing:{ sign:houseTwelveIdx, glyph:LIFE_SIGN_GLYPHS[houseTwelveIdx], label:'12하우스', scene:['Neptune','Moon','Pluto'], aspect:['Moon'], extra:function(){ var w = elemShortNames[elemWeakest]; return w && LIFE_ELEMENT_REFILL[elemWeakest] ? '차트에서 '+w+' 원소가 가장 적어요. 지칠 때는 '+LIFE_ELEMENT_REFILL[elemWeakest]+'이 빈 곳을 채워 줘요.' : null; }, points:[['12하우스', houseTwelveIdx]] },
+      growth:{ sign:_lifeSignOf('Saturn'), glyph:LIFE_PLANET_GLYPHS.Saturn, label:'토성', scene:['Jupiter','Pluto','Saturn'], aspect:['Saturn','Jupiter','Mars'], extra:function(){ return _lifeStageLine('Saturn', '에서 이 숙제를 자주 만나요.'); } }
+    };
+    var LIFE_AREA_ORDER = ['identity','love','career','money','emotion','healing','growth'];
+    var lifeAreaByKey = {};
+    LIFE_AREA_MAPPINGS.forEach(function(area){ lifeAreaByKey[area.key] = area; });
+
+    function _lifeAreaCard(area){
+      var anchor = LIFE_ANCHORS[area.key];
+      var signIdx = anchor ? anchor.sign : null;
+      var flavor = (signIdx != null && LIFE_FLAVOR[area.key]) ? LIFE_FLAVOR[area.key][signIdx] : null;
+      var chips = (anchor && anchor.points ? anchor.points.map(function(pt){ return _lifePointChip(pt[0], pt[1]); }) : [])
+        .concat(area.planets.slice(0, 3).map(_lifeChip)).join('');
+      if(!flavor){
+        return ''
+          + '<details class="astro-life-card" data-area="'+area.key+'">'
+          + '<summary><span class="astro-life-title">'+area.title+'</span></summary>'
+          + '<div class="astro-life-body"><p>'+area.fallback+'</p><p class="astro-life-evidence">'+chips+'</p></div>'
+          + '</details>';
+      }
+      var element = LIFE_ELEMENT_KEYS[signIdx % 4];
+      var traits = [flavor[1], flavor[2]];
+      var extra = anchor.extra();
+      if(extra) traits.push(extra);
+      var sceneHouse = _lifeSceneFor(anchor.scene);
+      var aspect = _lifeAspectFor(anchor.aspect);
+      var aspectHtml = '';
+      if(aspect){
+        var am = ASPECT_MEANINGS[aspect.name];
+        aspectHtml = '<p class="astro-life-aspect"><b>가장 강한 연결</b> '
+          + LIFE_PLANET_GLYPHS[aspect.a]+' '+planetKr[aspect.a]+' – '+LIFE_PLANET_GLYPHS[aspect.b]+' '+planetKr[aspect.b]
+          + ' · '+aspect.name+' · 오차 '+aspect.orb.toFixed(1)+'°<br>'+am.easyMeaning+'이에요. '+(LIFE_ASPECT_TIP[aspect.name] || '')+'</p>';
+      }
+      var duo = LIFE_SIGN_DUO[signIdx];
+      return ''
+        + '<details class="astro-life-card" data-area="'+area.key+'" data-element="'+element+'">'
+        + '<summary>'+_lifeConstellation(signIdx)+'<span class="astro-life-title">'+_lifeSigil(element)+area.title+'</span>'
+        + '<span class="astro-life-headline"><span class="astro-life-glyph" aria-hidden="true">'+anchor.glyph+'\uFE0E</span> '+flavor[0]+' '+anchor.label+' '+LIFE_SIGN_NAMES[signIdx]+'</span></summary>'
+        + '<div class="astro-life-body">'
+        + '<p class="astro-life-kicker">이런 사람이에요</p>'
+        + '<ul class="astro-life-traits">'+traits.map(function(t){ return '<li>'+t+'</li>'; }).join('')+'</ul>'
+        + (sceneHouse ? '<p class="astro-life-scene"><b>이런 장면에서 보여요</b> '+LIFE_HOUSE_SCENES[sceneHouse]+'</p>' : '')
+        + '<div class="astro-life-duo"><p><b>강점</b> '+duo[0]+'</p><p><b>주의</b> '+duo[1]+'</p></div>'
+        + aspectHtml
+        + '<p class="astro-life-action"><b>이번 주 해볼 한 가지</b> '+LIFE_WEEKLY_ACTION[area.key][signIdx % 4]+'</p>'
+        + '<p class="astro-life-evidence">'+chips+'</p>'
+        + '</div>'
+        + '</details>';
+    }
+
+    // 장식 SVG(전부 aria-hidden): 선·점은 currentColor 라 색은 basic-fortune-library.css 토큰이 정한다.
+    var LIFE_SIGIL_PATHS = { fire:'M8 2.5L14 13.5H2Z', earth:'M2 2.5H14L8 13.5ZM3 6.5H13', air:'M8 2.5L14 13.5H2ZM3 9.5H13', water:'M2 2.5H14L8 13.5Z' };
+    function _lifeSigil(element){
+      return LIFE_SIGIL_PATHS[element] ? '<svg class="astro-life-sigil" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="'+LIFE_SIGIL_PATHS[element]+'"/></svg>' : '';
+    }
+    // 12사인 별자리 약식 선화 — [별 좌표(100×60)], [이을 별 쌍], 가장 밝은 별 번호
+    var LIFE_CONSTELLATIONS = [
+      [[[12,34],[46,22],[62,30],[70,42]], [[0,1],[1,2],[2,3]], 1],
+      [[[16,10],[40,28],[50,36],[60,28],[86,8],[28,50]], [[0,1],[1,2],[2,3],[3,4],[2,5]], 2],
+      [[[18,8],[34,6],[20,30],[38,28],[22,54],[44,52]], [[0,1],[0,2],[2,4],[1,3],[3,5]], 1],
+      [[[50,6],[48,26],[28,50],[70,48]], [[0,1],[1,2],[1,3]], 1],
+      [[[30,48],[28,32],[38,18],[52,12],[62,22],[72,40],[92,46]], [[0,1],[1,2],[2,3],[3,4],[2,5],[5,6],[0,5]], 0],
+      [[[8,18],[28,26],[46,30],[62,22],[82,12],[52,48],[72,54]], [[0,1],[1,2],[2,3],[3,4],[2,5],[5,6]], 5],
+      [[[50,8],[28,28],[72,28],[30,52],[70,50]], [[0,1],[0,2],[1,2],[1,3],[2,4]], 0],
+      [[[8,12],[18,22],[30,28],[42,34],[54,42],[62,54],[76,56],[86,48],[84,38]], [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8]], 2],
+      [[[20,30],[36,22],[50,26],[48,42],[34,46],[20,42],[64,16],[72,36]], [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[2,6],[3,7]], 2],
+      [[[10,14],[30,32],[60,50],[88,22],[70,24],[48,20]], [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]], 3],
+      [[[10,12],[28,20],[44,16],[58,30],[46,44],[64,54],[84,44]], [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6]], 1],
+      [[[10,14],[22,6],[32,16],[20,22],[46,34],[68,50],[86,38],[94,50],[82,58]], [[0,1],[1,2],[2,3],[3,0],[2,4],[4,5],[5,6],[6,7],[7,8],[8,5]], 5]
+    ];
+    function _lifeConstellation(signIdx){
+      var c = LIFE_CONSTELLATIONS[signIdx];
+      if(!c) return '';
+      var d = c[1].map(function(e){ var a = c[0][e[0]], b = c[0][e[1]]; return 'M'+a[0]+' '+a[1]+'L'+b[0]+' '+b[1]; }).join('');
+      var stars = c[0].map(function(st, i){ return '<circle cx="'+st[0]+'" cy="'+st[1]+'" r="'+(i === c[2] ? 2.4 : 1.5)+'"/>'; }).join('');
+      return '<svg class="astro-life-constellation" viewBox="0 0 100 60" aria-hidden="true" focusable="false"><path d="'+d+'"/>'+stars+'</svg>';
+    }
+    // 섹션 머리 휠: 상승궁이 왼쪽 수평선, 황도는 반시계 — 사용자 실제 ☉·☽ 경도로 점을 놓는다.
+    function _lifeWheelSvg(){
+      var ascLon = _lonFromSignObj(chart.asc);
+      if(ascLon == null) return '';
+      function pt(lon, rad){ var t = Math.PI + (lon - ascLon) * Math.PI / 180; return (rad * Math.cos(t)).toFixed(1)+' '+(-rad * Math.sin(t)).toFixed(1); }
+      var ticks = '', signs = '';
+      for(var k=0; k<12; k++){
+        ticks += 'M'+pt(k*30, 76)+'L'+pt(k*30, 100);
+        var g = pt(k*30+15, 88).split(' ');
+        signs += '<text x="'+g[0]+'" y="'+g[1]+'">'+LIFE_SIGN_GLYPHS[k]+'\uFE0E</text>';
+      }
+      var sunLon = _lonFromSignObj(chart.sun), moonLon = _lonFromSignObj(chart.moon);
+      var marks = '';
+      if(sunLon != null && moonLon != null) marks += '<path class="astro-life-wheel__chord" d="M'+pt(sunLon, 64)+'L'+pt(moonLon, 48)+'"/>';
+      if(sunLon != null) marks += '<g class="astro-life-wheel__body" data-element="'+LIFE_ELEMENT_KEYS[chart.sun.idx % 4]+'" transform="translate('+pt(sunLon, 64)+')"><circle r="7" fill="none"/><circle r="2" stroke="none"/></g>';
+      if(moonLon != null) marks += '<g class="astro-life-wheel__body" data-element="'+LIFE_ELEMENT_KEYS[chart.moon.idx % 4]+'" transform="translate('+pt(moonLon, 48)+')"><path d="M-3 -7A7.4 7.4 0 1 1 -3 7A7 7 0 0 0 -3 -7Z" stroke="none"/></g>';
+      return '<svg class="astro-life-wheel" viewBox="-108 -108 216 216" aria-hidden="true" focusable="false">'
+        + '<circle class="astro-life-wheel__ring" r="100"/><circle class="astro-life-wheel__ring" r="76"/><circle class="astro-life-wheel__ring astro-life-wheel__ring--inner" r="34"/>'
+        + '<path class="astro-life-wheel__ring" d="'+ticks+'"/>'
+        + '<path class="astro-life-wheel__horizon" d="M'+pt(ascLon, 100)+'L'+pt(ascLon + 180, 100)+'"/>'
+        + '<g class="astro-life-wheel__signs">'+signs+'</g>'
+        + marks
+        + '</svg>';
+    }
+
     var lifeAreaSectionHtml = ''
       + '<div class="astro-section astro-life-area" id="astroLifeAreaSection">'
-      + '<div class="astro-subhead" style="margin-bottom:8px;">🧭 Life Area Reading</div>'
-      + '<p class="astro-birth-lead">핵심 요약 → 상세 해석 → 현실 조언 → 근거 칩 순서로, 각 삶의 영역을 따뜻하고 현실적으로 정리했습니다.</p>'
+      + '<div class="astro-subhead" style="margin-bottom:8px;">삶의 영역 리딩</div>'
+      + '<div class="astro-life-hero"><div>'
+      + '<p class="astro-birth-lead">태어난 순간의 행성 배치로 사랑·일·돈·마음을 당신 차트에 맞춰 읽었어요.</p>'
+      + '<p class="astro-life-hero-note">오른쪽 원은 태어난 순간의 하늘이에요. 왼쪽 점선 끝이 상승궁, 고리가 해, 초승달이 달이에요.</p>'
+      + '</div>'+_lifeWheelSvg()+'</div>'
       + '<div class="astro-life-grid">'
-      + LIFE_AREA_MAPPINGS.map(function(area){
-          var evidencePlanets = area.planets.slice(0, 3).map(function(pk){
-            var pm = _planetMeta(pk);
-            return '<span class="astro-life-chip">'+pm.icon+' '+pm.label+' '+_friendlyHousePair(_planetPairByKey(pk))+'</span>';
-          });
-          var evidenceHouses = area.houses.slice(0, 2).map(function(h){
-            var hm = _houseMeta(h);
-            return '<span class="astro-life-chip">'+hm.label+' '+hm.title+'</span>';
-          });
-          var evidence = evidencePlanets.concat(evidenceHouses).slice(0, 5).join('');
-
-          var body = (function(){
-            if(area.key === 'identity'){
-              return ''
-                + '<p><b>핵심 요약:</b> 나는 방향이 보일 때 에너지가 빠르게 살아나는 타입입니다. 생각을 오래 붙잡기보다 작은 실행으로 리듬을 만드는 편이 더 잘 맞아요.</p>'
-                + '<p><b>차트가 말하는 성향:</b> 태양 '+_friendlyHousePair(sunHousePair)+'과 수성 '+_friendlyHousePair(mercuryHousePair)+'은 의식적으로 추구하는 목표와 사고 방식이 서로 강하게 연결되어 있음을 보여줍니다. 상승궁 '+_friendlyHousePair(ascHousePair)+'은 처음에는 차분하고 단단한 인상을 만들지만, 가까워질수록 속의 열정이 분명해지는 흐름을 만듭니다. 혼자 있을 때는 머릿속 시뮬레이션이 길어질 수 있고, 그래서 시작 타이밍을 놓치면 스스로를 답답하게 느끼기 쉽습니다. 반대로 시작 버튼을 누르는 순간 집중력이 빠르게 붙고 존재감이 커집니다.</p>'
-                + '<p><b>현실에서 나타나는 모습:</b> 사람들은 당신을 신중하고 믿을 만한 사람으로 먼저 인식합니다. 그러나 실제로는 결정을 내리면 꽤 빠르게 밀고 나가는 면이 드러납니다. 익숙한 환경에서는 리더십이 자연스럽게 올라오는 편입니다.</p>'
-                + '<p><b>잘 쓰면 장점이 되는 부분:</b> 목표를 구조화하고 우선순위를 정리하는 능력이 강한 무기입니다. 배운 내용을 바로 실전에 옮기는 감각도 좋아서, 경험치가 빠르게 쌓이는 타입입니다.</p>'
-                + '<p><b>조심해야 할 패턴:</b> 완벽한 준비를 기다리다가 착수 시점이 늦어질 수 있습니다. 스스로에게 엄격해질수록 자책이 커지니, 진행률로 자신을 평가하는 습관이 필요합니다.</p>'
-                + '<p><b>오늘부터 적용할 조언:</b> 20분 안에 첫 초안을 만드는 규칙을 정해 보세요. 시작만 해도 전체 흐름이 눈에 띄게 부드러워집니다.</p>';
-            }
-            if(area.key === 'emotion'){
-              return ''
-                + '<p><b>핵심 요약:</b> 감정은 문제 해결보다 먼저 안정 루틴으로 다루는 것이 좋습니다. 마음이 쉬는 공간을 확보하면 관계와 일이 동시에 정리됩니다.</p>'
-                + '<p><b>차트가 말하는 성향:</b> 달 '+_friendlyHousePair(moonHousePair)+'은 감정이 섬세하게 작동하는 구조를 보여줍니다. 금성 '+_friendlyHousePair(venusHousePair)+'이 함께 강조되어, 관계의 말투와 분위기에 심리적 영향을 크게 받는 편입니다. 피곤할 때는 감정 설명보다 침묵이 먼저 나오기 쉬우므로, 스스로 상태를 먼저 이름 붙이는 과정이 중요합니다. 안정된 루틴이 있으면 정서 회복 속도가 빨라집니다.</p>'
-                + '<p><b>현실에서 나타나는 모습:</b> 평소에는 부드럽고 배려 깊게 반응하지만, 누적 피로가 쌓이면 갑자기 거리감을 둘 수 있습니다. 가까운 사람일수록 작은 말투 차이를 더 크게 느끼는 경향이 있습니다.</p>'
-                + '<p><b>잘 쓰면 장점이 되는 부분:</b> 공감력과 정서 감지력이 뛰어나 사람의 상태를 빠르게 읽습니다. 팀이나 관계에서 분위기 조율자로 강점을 발휘할 수 있습니다.</p>'
-                + '<p><b>조심해야 할 패턴:</b> 감정을 오래 누르면 어느 순간 과하게 반응할 수 있습니다. 혼자서만 정리하려고 버티면 회복 시간이 길어집니다.</p>'
-                + '<p><b>오늘부터 적용할 조언:</b> 감정이 흔들릴 때는 결론 대신 상태를 한 문장으로 기록하세요. "지금 나는 피곤해서 예민하다" 같은 문장이 큰 완충이 됩니다.</p>';
-            }
-            if(area.key === 'love'){
-              return ''
-                + '<p><b>핵심 요약:</b> 연애는 끌림의 강도보다 표현 속도와 안정감 조율이 핵심입니다. 마음이 켜지는 순간과 불안해지는 순간을 같이 관리해야 오래 갑니다.</p>'
-                + '<p><b>차트가 말하는 성향:</b> 금성 '+_friendlyHousePair(venusHousePair)+'은 끌리는 스타일과 사랑의 언어를 보여주고, 화성 '+_friendlyHousePair(marsHousePair)+'은 먼저 다가가는 방식과 욕구의 방향을 보여줍니다. 달 '+_friendlyHousePair(moonHousePair)+'이 원하는 안정 방식과 속도가 맞지 않으면 오해가 커질 수 있습니다. 5하우스/7하우스 주제가 활성화될수록 설렘은 커지지만, 관계 운영력도 함께 요구됩니다.</p>'
-                + '<p><b>현실에서 나타나는 모습:</b> 초반에는 호감 표현이 분명하지만, 상대 반응이 모호하면 빠르게 방어적으로 바뀔 수 있습니다. 신뢰가 생기면 헌신도가 높고 관계를 오래 지키려는 성향이 큽니다.</p>'
-                + '<p><b>잘 쓰면 장점이 되는 부분:</b> 진심을 행동으로 보여주는 힘이 큽니다. 서로의 리듬을 합의하면 깊고 안정적인 관계를 만들 수 있습니다.</p>'
-                + '<p><b>조심해야 할 패턴:</b> 마음 확인이 늦어지면 상상으로 결론을 내릴 수 있습니다. 표현을 참다가 한 번에 터뜨리는 방식은 피하는 편이 좋습니다.</p>'
-                + '<p><b>오늘부터 적용할 조언:</b> 감정이 생기면 질문형 말투로 시작해 보세요. "내가 이렇게 느끼는데, 너는 어때?"가 갈등 예방에 효과적입니다.</p>';
-            }
-            if(area.key === 'career'){
-              return ''
-                + '<p><b>핵심 요약:</b> 커리어는 단기 성과보다 신뢰 누적형 전략이 잘 맞습니다. 보이는 결과물과 루틴을 함께 관리할 때 성장 속도가 빨라집니다.</p>'
-                + '<p><b>차트가 말하는 성향:</b> MC '+mcSign+'와 10하우스 테마는 사회에서 인정받고 싶은 방향을 분명하게 보여줍니다. 토성 '+_friendlyHousePair(saturnHousePair)+'은 시간이 걸려도 실력을 굳히는 과제를 주고, 목성 '+_friendlyHousePair(jupiterHousePair)+'은 확장 기회를 열어 줍니다. 태양 '+_friendlyHousePair(sunHousePair)+'과 화성 '+_friendlyHousePair(marsHousePair)+'이 받쳐주면, 목표를 실행으로 전환하는 힘이 안정적으로 커집니다.</p>'
-                + '<p><b>현실에서 나타나는 모습:</b> 즉흥형 성과보다 시스템을 세팅할 때 강합니다. 혼자 집중할 때 결과물이 좋지만, 핵심 구간에서는 협업을 연결할 때 영향력이 더 커집니다.</p>'
-                + '<p><b>잘 쓰면 장점이 되는 부분:</b> 책임감, 지속성, 문제 해결력이 신뢰를 만듭니다. 반복 가능한 프로세스를 만들면 성과가 꾸준히 누적됩니다.</p>'
-                + '<p><b>조심해야 할 패턴:</b> 기준을 너무 높게 잡아 속도를 잃을 수 있습니다. 모든 일을 혼자 해결하려 하면 피로 누적이 빨라집니다.</p>'
-                + '<p><b>오늘부터 적용할 조언:</b> 이번 주 결과물 하나를 공개 가능한 형태로 마감하세요. 보여주는 습관이 커리어 운을 당깁니다.</p>';
-            }
-            if(area.key === 'money'){
-              return ''
-                + '<p><b>핵심 요약:</b> 재정 운은 절약 하나보다 재능의 단가를 올리는 전략에서 더 크게 열립니다. 돈 흐름은 가치 설계와 연결되어 있습니다.</p>'
-                + '<p><b>차트가 말하는 성향:</b> 2하우스와 8하우스 축은 개인 수익과 공동 자원의 균형을 보여줍니다. 금성 '+_friendlyHousePair(venusHousePair)+'은 돈을 버는 감각과 취향 기반 수익화를, 목성 '+_friendlyHousePair(jupiterHousePair)+'은 확장 기회를 시사합니다. 토성 '+_friendlyHousePair(saturnHousePair)+'은 안정 자산을 만드는 데 필요한 규율을 강조합니다.</p>'
-                + '<p><b>현실에서 나타나는 모습:</b> 필요한 곳에는 과감하지만, 기준이 없는 지출에는 후회가 남기 쉽습니다. 목표가 명확할 때 저축과 투자의 집중력이 올라갑니다.</p>'
-                + '<p><b>잘 쓰면 장점이 되는 부분:</b> 돈의 흐름을 구조화하는 능력이 좋습니다. 가치가 명확한 분야에서는 수익화 속도가 빨라질 수 있습니다.</p>'
-                + '<p><b>조심해야 할 패턴:</b> 감정 소비나 과도한 낙관으로 계획이 흐트러질 수 있습니다. 단기 수익만 좇으면 피로가 커집니다.</p>'
-                + '<p><b>오늘부터 적용할 조언:</b> 지출 카테고리 1개만 줄이고, 그 금액을 성장 투자 항목으로 이동해 보세요.</p>';
-            }
-            if(area.key === 'growth'){
-              return ''
-                + '<p><b>핵심 요약:</b> 성장은 편안함보다 약간의 불편함이 있는 구간에서 빠르게 일어납니다. 어렵게 느껴지는 과제가 장기 무기가 됩니다.</p>'
-                + '<p><b>차트가 말하는 성향:</b> 목성 '+_friendlyHousePair(jupiterHousePair)+'은 확장의 문을 열고, 토성 '+_friendlyHousePair(saturnHousePair)+'은 실력을 굳히는 책임을 줍니다. 명왕성 '+_friendlyHousePair(plutoHousePair)+'은 한 번 결심하면 삶의 체질을 바꾸는 깊은 변화를 유도합니다. 9하우스/10하우스/12하우스 주제가 함께 작동하면, 외적 성과와 내적 성숙이 동시에 요구됩니다.</p>'
-                + '<p><b>현실에서 나타나는 모습:</b> 처음에는 느리게 출발해도, 한 번 방향을 잡으면 강하게 밀고 갑니다. 남들이 포기하는 구간에서 실력이 쌓이는 스타일입니다.</p>'
-                + '<p><b>잘 쓰면 장점이 되는 부분:</b> 장기 프로젝트에서 버티는 힘이 큽니다. 배운 것을 구조로 만들어 재사용하는 능력이 좋습니다.</p>'
-                + '<p><b>조심해야 할 패턴:</b> 성장통을 실패로 오해하면 중간에 동력이 꺼질 수 있습니다. 완벽한 타이밍만 기다리면 기회를 놓칠 수 있습니다.</p>'
-                + '<p><b>오늘부터 적용할 조언:</b> 오래 미뤄둔 과제 하나를 30분 단위로 쪼개서 오늘 1회만 실행하세요.</p>';
-            }
-            return ''
-              + '<p><b>핵심 요약:</b> 내면 회복은 성과의 반대가 아니라 성과를 지키는 기반입니다. 감정 정리 시간이 있을수록 실행력이 오래 갑니다.</p>'
-              + '<p><b>차트가 말하는 성향:</b> 달 '+_friendlyHousePair(moonHousePair)+'과 해왕성 '+_friendlyHousePair(neptuneHousePair)+', 명왕성 '+_friendlyHousePair(plutoHousePair)+' 조합은 내면 감수성과 회복 루틴의 중요성을 강조합니다. 4하우스/8하우스/12하우스 테마가 강할수록 혼자 정리하는 시간이 필요하고, 깊은 감정은 천천히 해석하는 편이 안정적입니다. 잠깐 멈추는 선택이 오히려 다음 성과를 앞당기는 구조입니다.</p>'
-              + '<p><b>현실에서 나타나는 모습:</b> 겉으로는 괜찮아 보여도 속에서 피로가 누적될 수 있습니다. 혼자 있을 때 감정 해상도가 높아지는 타입입니다.</p>'
-              + '<p><b>잘 쓰면 장점이 되는 부분:</b> 통찰력, 직관, 공감의 깊이가 큽니다. 타인의 마음을 이해하는 능력이 관계 품질을 높여 줍니다.</p>'
-              + '<p><b>조심해야 할 패턴:</b> 회복 없이 버티면 작은 일에도 쉽게 과부하가 옵니다. 모든 감정을 혼자 해석하려 하면 고립감이 커질 수 있습니다.</p>'
-              + '<p><b>오늘부터 적용할 조언:</b> 잠들기 전 15분, 디지털 기기를 끄고 호흡과 기록으로 마음을 정리해 보세요.</p>';
-          })();
-
-          return ''
-            + '<details class="astro-life-card">'
-            + '<summary><span>'+area.title+' <small class="astro-life-summary-hint">핵심 요약부터 확인</small></span><span class="astro-birth-open">펼치기</span></summary>'
-            + '<div class="astro-life-body">'
-            + body
-            + '<p class="astro-life-evidence"><b>근거 칩:</b> '+evidence+'</p>'
-            + '</div>'
-            + '</details>';
-        }).join('')
+      + LIFE_AREA_ORDER.map(function(key){ return lifeAreaByKey[key] ? _lifeAreaCard(lifeAreaByKey[key]) : ''; }).join('')
       + '</div>'
       + '</div>';
 
     var aspectStorySectionHtml = ''
       + '<div class="astro-section astro-birth-map" id="astroAspectStorySection">'
-      + '<div class="astro-subhead" style="margin-bottom:8px;">⚡ 행성 각도 이야기</div>'
+      + '<div class="astro-subhead" style="margin-bottom:8px;">행성 각도 이야기</div>'
       + '<p class="astro-birth-lead">어스펙트는 행성끼리 맺는 각도입니다. 내 안에서 어떤 힘들이 서로 돕거나 긴장하는지 쉽게 풀어드립니다.</p>'
       + '<div class="astro-birth-aspects-wrap">'
-      + '<div class="astro-birth-aspects-title">주요 행성 각 (가까운 orb 우선)</div>'
+      + '<div class="astro-birth-aspects-title">주요 행성 각 (오차가 작은 순)</div>'
       + birthMapAspectsHtml
       + '</div>'
       + '</div>';
 
     var personalGuidanceSectionHtml = ''
       + '<div class="astro-section astro-personal-guidance" id="astroPersonalGuidanceSection">'
-      + '<div class="astro-subhead" style="margin-bottom:8px;">🪄 현실에서 쓰는 별자리 조언</div>'
+      + '<div class="astro-subhead" style="margin-bottom:8px;">현실에서 쓰는 별자리 조언</div>'
       + '<p class="astro-birth-lead">내 장점과 조심할 점을 오늘의 선택에 바로 적용하는 법</p>'
       + '<div class="astro-desc">'
       + '<p><b>1) 나의 강점 사용법:</b> 태양 '+_friendlyHousePair(sunHousePair)+', 수성 '+_friendlyHousePair(mercuryHousePair)+', 목성 '+_friendlyHousePair(jupiterHousePair)+' 조합은 통찰을 실행으로 연결할 때 힘이 커집니다. 정보를 빠르게 정리하고 핵심을 문장으로 구조화하면 설득력이 높아집니다. 관찰력과 책임감을 함께 쓰면 신뢰가 빠르게 쌓입니다.</p>'
+      + '</div>'
+      + '<details class="astro-fold"><summary>이어 읽기 · 약점이 터지는 순간, 관계와 일·돈의 처세, 오늘의 실행</summary>'
+      + '<div class="astro-desc">'
       + '<p><b>2) 약점이 터지는 상황:</b> 피로가 누적되거나 감정이 과열되면 결론을 서두르는 패턴이 나타날 수 있습니다. 특히 달 '+_friendlyHousePair(moonHousePair)+' 구간에서 마음이 불안정할 때는 과잉 사고나 회피 반응이 올라오기 쉽습니다. 이때는 즉답보다 간격을 두는 것이 손실을 줄입니다.</p>'
       + '<p><b>3) 사람 사이에서의 처세술:</b> 에너지를 빼앗는 관계는 말의 속도만 빠르고 감정 확인이 없는 관계입니다. 반대로 성장하는 관계는 내 리듬을 존중하면서도 현실 피드백을 주는 사람과 함께할 때 만들어집니다. 갈등이 생기면 단정형 말투보다 질문형 말투를 먼저 쓰는 것이 좋습니다. 너무 참고 버티기보다 경계선을 먼저 공유하세요.</p>'
       + '<p><b>4) 일과 돈에서의 처세술:</b> MC '+mcSign+'와 토성 '+_friendlyHousePair(saturnHousePair)+'은 누적 성장형 전략이 유리함을 보여줍니다. 단기 성과는 화성 '+_friendlyHousePair(marsHousePair)+'으로 당기고, 신뢰는 루틴과 납기 준수로 쌓는 방식이 좋습니다. 돈은 충동 소비를 줄이는 것보다 재능의 단가를 명확히 높이는 구조가 더 잘 맞습니다.</p>'
       + '<p><b>5) 오늘의 실행 조언:</b> (a) 오늘 가장 중요한 결정 1개는 20분 안에 초안을 만드세요. (b) 대화 전에 전달할 핵심 문장을 한 줄로 정리하세요. (c) 취침 전 15분은 완전 오프로 두고 감정 메모 3줄을 남기세요.</p>'
-      + '</div>'
+      + '</div></details>'
       + '</div>';
 
     var astroCanonicalSectionHtml = '';
@@ -13565,21 +13800,21 @@ function renderAstroInsightLegacyNeon() {
       + '<label for="astroAiPromptQuestionInput">지금 궁금한 이야기</label><span id="astroAiPromptCoinBalance" hidden></span>'
       + '<textarea class="fc-question" id="astroAiPromptQuestionInput" maxlength="'+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'" placeholder="' + _sajuEngineText("se_10474_attr_placeholder") + '"></textarea>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;">'
-      + '  <span id="astroAiPromptQuestionCount" style="font-size:11px;color:#93c5fd;">0 / '+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'</span>'
-      + '  <span style="font-size:11px;color:#93c5fd;">최소 '+ASTROLOGY_AI_PROMPT_MIN_LENGTH+'자 입력</span>'
+      + '  <span id="astroAiPromptQuestionCount" style="font-size:13px;color:#93c5fd;">0 / '+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'</span>'
+      + '  <span style="font-size:13px;color:#93c5fd;">최소 '+ASTROLOGY_AI_PROMPT_MIN_LENGTH+'자 입력</span>'
       + '</div>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">'
       + '  <button id="astroAiPromptGenerateBtn" type="button" class="fc-primary">상담 시작하기</button>'
-      + '  <button id="astroAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#0f172a,#0ea5e9);color:#fff;border:1px solid rgba(125,211,252,.42);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
+      + '  <button id="astroAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#0f172a,#0ea5e9);color:#fff;border:1px solid rgba(125,211,252,.42);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
       + '</div>'
       + '</div></details>'
-      + '<div class="fc-status" role="status" aria-live="polite" id="astroAiPromptStatus" style="margin-top:8px;font-size:12px;color:#cbd5e1;line-height:1.6;"></div>'
+      + '<div class="fc-status" role="status" aria-live="polite" id="astroAiPromptStatus" style="margin-top:8px;font-size:13px;color:#cbd5e1;line-height:1.6;"></div>'
       + '<div class="fc-report" id="astroAiPromptAnswer" style="display:none;"></div>'
       + '<details id="astroAiPromptOutputWrap" style="display:none;margin-top:11px;border:1px solid rgba(56,189,248,.28);border-radius:12px;background:rgba(2,18,38,.5);padding:9px 12px;">'
-      + '  <summary style="cursor:pointer;font-size:12px;font-weight:800;color:#7dd3fc;">📋 이 상담에 쓰인 프롬프트 보기 (무료 제공)</summary>'
-      + '  <div style="font-size:11px;color:#bae6fd;margin:8px 0 4px;line-height:1.55;">원하는 다른 AI에도 그대로 붙여 넣어 다시 활용할 수 있어요.</div>'
-      + '  <div id="astroAiPromptType" style="font-size:11px;color:#a5f3fc;font-weight:700;margin:6px 0;">질문 유형: 일반</div>'
-      + '  <textarea id="astroAiPromptOutput" readonly style="width:100%;min-height:180px;border-radius:10px;border:1px solid rgba(125,211,252,.34);background:rgba(2,6,23,.75);color:#e0f2fe;padding:10px;font-size:12px;line-height:1.6;box-sizing:border-box;resize:vertical;"></textarea>'
+      + '  <summary style="cursor:pointer;font-size:13px;font-weight:800;color:#7dd3fc;">📋 이 상담에 쓰인 프롬프트 보기 (무료 제공)</summary>'
+      + '  <div style="font-size:13px;color:#bae6fd;margin:8px 0 4px;line-height:1.55;">원하는 다른 AI에도 그대로 붙여 넣어 다시 활용할 수 있어요.</div>'
+      + '  <div id="astroAiPromptType" style="font-size:13px;color:#a5f3fc;font-weight:700;margin:6px 0;">질문 유형: 일반</div>'
+      + '  <textarea id="astroAiPromptOutput" readonly style="width:100%;min-height:180px;border-radius:10px;border:1px solid rgba(125,211,252,.34);background:rgba(2,6,23,.75);color:#e0f2fe;padding:10px;font-size:13px;line-height:1.6;box-sizing:border-box;resize:vertical;"></textarea>'
       + '</details>'
       + '</div>';
 
@@ -13590,25 +13825,29 @@ function renderAstroInsightLegacyNeon() {
       + '<span class="astro-price-pill astro-price-pill--free">기본 차트 무료</span>'
       + '</div>'
       + '<p class="astro-action-hub__lead">정밀 차트, 프롬프트, 직접 입력 궁합, 유명인 궁합 실험실을 한 화면에서 순서대로 볼 수 있게 배치했습니다. 궁합 계산은 실행 시 3,000원 결제 후 열립니다.</p>'
+      + '<details class="astro-fold astro-action-hub__fold"><summary>바로 가기 · 질문 작성, 두 사람 궁합, 유명인 궁합</summary>'
       + '<div class="astro-action-hub__constellation" aria-hidden="true"><span>☉</span><i></i><span>☽</span><i></i><span>ASC</span><i></i><span>♀</span><i></i><span>♂</span></div>'
       + '<div class="astro-action-hub__grid">'
       + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroAiPromptSection" aria-controls="astroAiPromptSection"><span class="astro-action-hub__glyph">✦</span><strong>AI 상담 받기</strong><span>차트 기반 맞춤 답변을 바로 생성합니다.</span><em>아래에 표시됨</em></button>'
       + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="asDirect_name" aria-controls="asDirect_name"><span class="astro-action-hub__glyph">☍</span><strong>상대 직접 입력 궁합 · 3,000원</strong><span>출생 정보와 도시로 두 사람의 시나스트리를 엽니다.</span><em>결제 후 분석</em></button>'
       + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroSynastrySection" aria-controls="astroSynastrySection"><span class="astro-action-hub__glyph">✧</span><strong>유명인 궁합 실험실 · 3,000원</strong><span>셀럽 차트와 나의 별자리 합을 비교합니다.</span><em>결제 후 분석</em></button>'
-      + '</div>'
+      + '</div></details>'
       + '</div>';
 
     masterInsight = '<div class="astro-section precision-insight-card astro-neon-accent astro-neon-accent-gold" style="margin-bottom:20px;">'
-      +'<div class="astro-subhead" style="color:#D4AF37;">🌌 차트 전체 요약</div>'
+      +'<div class="astro-subhead" style="color:#D4AF37;">차트 전체 요약</div>'
       +'<p class="astro-birth-lead" style="margin-bottom:8px;">당신의 차트가 말하는 핵심 분위기</p>'
-      +'<div class="astro-birth-chip-row" style="margin-bottom:10px;">'+birthMapSummaryChips+'</div>'
       +'<div class="astro-desc" style="font-size:0.95rem;white-space:normal;word-break:break-word;overflow-wrap:anywhere;max-width:100%;box-sizing:border-box;">'
       +'<p><b>1) 한눈에 보는 나의 기질</b><br>태양 <b>'+sunSign+'</b>(' + _friendlyHousePair(sunHousePair) + ')은 내가 의식적으로 추구하는 방향을, 달 <b>'+moonSign+'</b>(' + _friendlyHousePair(moonHousePair) + ')은 감정 안정 방식을 보여줍니다. 상승궁 <b>'+ascSign+'</b>(' + _friendlyHousePair(ascHousePair) + ')은 사람들이 처음 느끼는 인상과 삶을 대하는 태도를 설명합니다. 세 축이 함께 작동하면서 당신은 생각의 깊이와 실행력을 동시에 가져갈 수 있는 구조를 만듭니다. 에너지가 자주 모이는 무대는 <b>'+topHouseMetaQuick.title+'</b>이며, 이 영역에서 존재감이 가장 또렷해집니다.</p>'
+      +'</div>'
+      +'<details class="astro-fold"><summary>이어 읽기 · 겉과 속, 오래 갈수록 강해지는 힘, 주의할 패턴</summary>'
+      +'<div class="astro-birth-chip-row" style="margin-bottom:10px;">'+birthMapSummaryChips+'</div>'
+      +'<div class="astro-desc" style="font-size:0.95rem;white-space:normal;word-break:break-word;overflow-wrap:anywhere;max-width:100%;box-sizing:border-box;">'
       +'<p><b>2) 겉으로 보이는 나와 실제 속마음</b><br>겉으로는 상승궁의 톤 때문에 침착하고 단단해 보이지만, 실제 속마음은 달의 리듬에 따라 더 섬세하게 움직입니다. 이번 차트의 달 위상은 <b>'+astroMoonPhase+'</b>입니다. '+astroMoonPhaseAdvice+' 그래서 관계에서는 "이해받고 있다"는 감각이 매우 중요합니다. 겉과 속의 간격을 줄일수록 관계의 피로가 줄어듭니다.</p>'
       +'<p><b>3) 오래 갈수록 강해지는 부분</b><br>차트 룰러 <b>'+chartRuler+'</b>는 삶이 실제로 움직이는 손잡이입니다. 태양과 목성·토성 축은 빠른 반짝임보다 누적 성장에 강점을 줍니다. MC '+mcSign+' 방향성과 10하우스 테마를 꾸준히 밀면, 시간이 갈수록 실력과 평판이 함께 올라가는 흐름입니다. 처음에는 느리게 느껴질 수 있어도, 루틴이 자리 잡히면 결과의 안정감이 확연히 달라집니다.</p>'
       +'<p><b>4) 주의해야 할 내면 패턴</b><br>감정이 쌓일 때 즉시 결론을 내리거나, 반대로 결정을 계속 미루는 두 패턴 사이를 오갈 수 있습니다. 어스펙트 '+(majorAspectRows.length ? majorAspectRows[0].name : '정보 제한')+' 흐름은 성장을 밀어주지만, 과열 시에는 피로를 키울 수 있습니다. 완벽주의나 과잉 사고가 올라오는 날에는 속도보다 회복 루틴을 먼저 잡는 것이 안전합니다. 감정을 관리 대상으로 보는 습관이 판단의 질을 높여줍니다.</p>'
       +'<p><b>5) 오늘의 한 줄 정리</b><br>'+astroNodeAxisText+' 오늘의 당신은 <b>'+topHouseMetaQuick.title+'</b> 무대에서, 작지만 분명한 실행 하나를 끝낼 때 가장 빛납니다.</p>'
-      +'</div></div>';
+      +'</div></details></div>';
 
     var tightAspectText = majorAspectRows.length ? majorAspectRows[0].text : '타이트 주요각 없음';
     var retroText = retroPlanets.length ? retroPlanets.join(', ') : '역행 주요 행성 없음';
@@ -13717,17 +13956,17 @@ function renderAstroInsightLegacyNeon() {
       : '물 2잔 + 5분 스트레칭으로 멘탈 배터리 리부팅하기';
     function clampBriefScore(v){ return Math.max(55, Math.min(98, Math.round(v))); }
     var astroCategoryData = [
-      { icon:'🔥', title:_sajuEngineText("se_10026_prop_title"), score:clampBriefScore(64 + topFocusCount * 5 + (isActionMode ? 7 : 2)), mission:astroStarterMission },
-      { icon:'💘', title:_sajuEngineText("se_10027_prop_title"), score:clampBriefScore(60 + (axisGap === 6 ? 4 : 9) + ((retroPlanets || []).length >= 2 ? -3 : 5)), mission:astroRelationshipMission },
-      { icon:'💸', title:_sajuEngineText("se_10028_prop_title"), score:clampBriefScore(59 + ((topFocusHouse === 2 || topFocusHouse === 8) ? 11 : 4)), mission:astroMoneyMission },
-      { icon:'🫂', title:_sajuEngineText("se_10029_prop_title"), score:clampBriefScore(58 + (topFocusHouse === 11 ? 12 : 6) + (isActionMode ? 3 : 0)), mission:astroSocialMission },
-      { icon:'🧠', title:_sajuEngineText("se_10030_prop_title"), score:clampBriefScore(62 + ((retroPlanets || []).length >= 2 ? 5 : 1)), mission:astroSelfcareMission }
+      { title:_sajuEngineText("se_10026_prop_title"), score:clampBriefScore(64 + topFocusCount * 5 + (isActionMode ? 7 : 2)), mission:astroStarterMission },
+      { title:_sajuEngineText("se_10027_prop_title"), score:clampBriefScore(60 + (axisGap === 6 ? 4 : 9) + ((retroPlanets || []).length >= 2 ? -3 : 5)), mission:astroRelationshipMission },
+      { title:_sajuEngineText("se_10028_prop_title"), score:clampBriefScore(59 + ((topFocusHouse === 2 || topFocusHouse === 8) ? 11 : 4)), mission:astroMoneyMission },
+      { title:_sajuEngineText("se_10029_prop_title"), score:clampBriefScore(58 + (topFocusHouse === 11 ? 12 : 6) + (isActionMode ? 3 : 0)), mission:astroSocialMission },
+      { title:_sajuEngineText("se_10030_prop_title"), score:clampBriefScore(62 + ((retroPlanets || []).length >= 2 ? 5 : 1)), mission:astroSelfcareMission }
     ];
     var astroCategoryCardsHtml = astroCategoryData.map(function(item){
       return ''
         +'<div class="astro-neon-mini">'
         +'<div class="astro-neon-mini-head">'
-        +'<div class="astro-neon-mini-title">'+item.icon+' '+item.title+'</div>'
+        +'<div class="astro-neon-mini-title">'+item.title+'</div>'
         +'<div class="astro-neon-mini-score">'+item.score+'점</div>'
         +'</div>'
         +'<div class="astro-neon-mini-meter"><span style="width:'+item.score+'%"></span></div>'
@@ -13742,11 +13981,11 @@ function renderAstroInsightLegacyNeon() {
       + '<div class="astro-section astro-big3-snapshot" id="astroBig3Snapshot" style="margin-bottom:16px;">'
         + '<div class="astro-subhead" style="margin-bottom:8px;color:#fde68a;">태양 별자리·달 별자리·상승궁 핵심 요약</div>'
       + '<p class="astro-birth-lead">세 별자리는 각각 내가 향하는 방향, 마음이 쉬는 방식, 사람들이 처음 느끼는 인상을 보여줍니다.</p>'
-      + '<div class="astro-big3-grid">'
+      + '<details class="astro-fold"><summary>세 별자리가 오늘 하는 일</summary><div class="astro-big3-grid">'
         + '<div class="astro-big3-card"><div class="astro-big3-label">태양 별자리</div><strong>'+sunSign+'</strong><p>성장할수록 닮아가는 중심 방향입니다. 오늘은 '+topHouseTopic+'에서 '+sunStrategy+' 흐름이 살아납니다.</p></div>'
         + '<div class="astro-big3-card"><div class="astro-big3-label">달 별자리</div><strong>'+moonSign+'</strong><p>감정적으로 안정되는 방식입니다. 달 '+_friendlyHousePair(moonHousePair)+' 리듬을 챙기면 마음의 피로가 줄어듭니다.</p></div>'
       + '<div class="astro-big3-card"><div class="astro-big3-label">상승궁</div><strong>'+ascSign+'</strong><p>처음 보이는 분위기와 현실 대응 방식입니다. 상승궁 '+_friendlyHousePair(ascHousePair)+'은 오늘의 첫인상과 시작 방식을 비춥니다.</p></div>'
-      + '</div>'
+      + '</div></details>'
       + '</div>';
     var astroNeonCss = '<style id="astroNeonBriefingStyle">'
       +'.astro-body, .astro-body button, .astro-body input, .astro-body select, .astro-body textarea{font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif !important;}'
@@ -13755,7 +13994,7 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-body .astro-section:before{content:"";position:absolute;inset:0;background-image:radial-gradient(1px 1px at 18% 22%,rgba(255,255,255,.62),transparent),radial-gradient(1px 1px at 76% 28%,rgba(251,191,36,.5),transparent),radial-gradient(1px 1px at 58% 74%,rgba(125,211,252,.48),transparent);pointer-events:none;opacity:.45;}'
       +'.astro-body .astro-subhead{font-size:18px;font-weight:800;color:#c4b5fd;letter-spacing:-.01em;margin-bottom:10px;}'
       +'.astro-body .astro-tags{margin-bottom:10px;}'
-      +'.astro-body .astro-tag{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.25);background:rgba(15,23,42,.7);font-size:11px;color:#bae6fd;margin:0 5px 5px 0;}'
+      +'.astro-body .astro-tag{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.25);background:rgba(15,23,42,.7);font-size:13px;color:#bae6fd;margin:0 5px 5px 0;}'
       +'.astro-body .astro-desc p{margin:0 0 10px 0;font-size:14px;line-height:1.72;color:#e2e8f0;}'
       +'.astro-readable{font-size:15px;line-height:1.78;}'
       +'.astro-readable .astro-section{padding:16px;}'
@@ -13763,17 +14002,17 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-readable .astro-desc p{font-size:15px;line-height:1.82;margin-bottom:12px;letter-spacing:.004em;}'
       +'.astro-readable .astro-desc ul,.astro-readable .astro-desc li{line-height:1.78;}'
       +'.astro-readable .astro-core{font-size:14px;line-height:1.72;}'
-      +'.astro-readable .astro-tag{font-size:11.5px;}'
+      +'.astro-readable .astro-tag{font-size:13px;}'
       +'.astro-readable .astro-neon-soft-block{line-height:1.75;}'
       +'.astro-readable .table-wrapper{overflow:auto;-webkit-overflow-scrolling:touch;}'
       +'.astro-readable .astro-table th,.astro-readable .astro-table td{padding:8px 7px;line-height:1.62;}'
-      +'.astro-label{font-size:12px;color:#93c5fd;display:block;margin-bottom:4px;font-weight:700;letter-spacing:.01em;}'
+      +'.astro-label{font-size:13px;color:#93c5fd;display:block;margin-bottom:4px;font-weight:700;letter-spacing:.01em;}'
       +'.astro-body .astro-core{border:1px solid rgba(167,139,250,.28);background:rgba(76,29,149,.15);border-radius:12px;padding:10px;color:#ede9fe;font-size:13px;line-height:1.65;}'
       +'.astro-neon-syn-wrap{margin-top:10px;padding:12px;border-radius:14px;border:1px solid rgba(96,165,250,.35);background:linear-gradient(165deg,rgba(11,14,20,.92),rgba(15,29,58,.88) 46%,rgba(26,28,44,.9));box-shadow:0 12px 24px -20px rgba(56,189,248,.8),inset 0 1px 0 rgba(255,255,255,.06);}'
       +'.astro-neon-syn-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;}'
       +'.astro-neon-syn-title{font-size:13px;font-weight:800;color:#bae6fd;letter-spacing:.01em;}'
-      +'.astro-neon-syn-chip{padding:3px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.38);background:rgba(34,211,238,.12);font-size:11px;color:#cffafe;}'
-      +'.astro-neon-syn-wrap .astro-neon-mz-tip{margin:8px 0 0 0;font-size:12px;color:#a5f3fc;line-height:1.65;}'
+      +'.astro-neon-syn-chip{padding:3px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.38);background:rgba(34,211,238,.12);font-size:13px;color:#cffafe;}'
+      +'.astro-neon-syn-wrap .astro-neon-mz-tip{margin:8px 0 0 0;font-size:14px;color:#a5f3fc;line-height:1.65;}'
       +'.astro-neon-input,.astro-neon-select{width:100%;box-sizing:border-box;padding:8px 10px;border-radius:10px;background:rgba(10,18,38,.86);color:#f8fafc;border:1px solid rgba(125,211,252,.36);font-size:13px;outline:none;box-shadow:inset 0 0 0 1px rgba(56,189,248,.08);}'
       +'.astro-neon-input:focus,.astro-neon-select:focus{border-color:rgba(125,211,252,.7);box-shadow:0 0 0 2px rgba(56,189,248,.22);}'
       +'.astro-neon-cta{width:100%;padding:11px 12px;border-radius:11px;background:linear-gradient(135deg,#0891b2,#6366f1 55%,#8b5cf6);color:#fff;font-weight:800;font-size:13px;border:1px solid rgba(125,211,252,.45);cursor:pointer;letter-spacing:.35px;box-shadow:0 8px 22px -14px rgba(56,189,248,.85);transition:transform .15s ease, box-shadow .15s ease;}'
@@ -13790,29 +14029,29 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-neon-accent-violet{border-left:3px solid #a78bfa !important;background:linear-gradient(90deg,rgba(167,139,250,.1),rgba(15,23,42,0)) !important;}'
       +'.astro-neon-accent-cyan{border-left:3px solid #22d3ee !important;background:linear-gradient(90deg,rgba(34,211,238,.1),rgba(15,23,42,0)) !important;}'
       +'.astro-neon-soft-block{background:rgba(15,23,42,.52) !important;border:1px solid rgba(148,163,184,.24) !important;border-radius:11px !important;padding:12px !important;}'
-      +'.astro-syn-loading{font-size:12px;color:#cbd5e1;line-height:1.65;}'
+      +'.astro-syn-loading{font-size:14px;color:#cbd5e1;line-height:1.65;}'
       +'.astro-syn-header{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;}'
       +'.astro-syn-name{font-size:16px;font-weight:900;color:#f8fafc;letter-spacing:-.01em;}'
-      +'.astro-syn-pill{padding:3px 10px;border-radius:999px;border:1px solid rgba(125,211,252,.45);background:rgba(34,211,238,.14);font-size:11px;color:#cffafe;font-weight:700;}'
+      +'.astro-syn-pill{padding:3px 10px;border-radius:999px;border:1px solid rgba(125,211,252,.45);background:rgba(34,211,238,.14);font-size:13px;color:#cffafe;font-weight:700;}'
       +'.astro-syn-pill.gold{border-color:rgba(245,158,11,.44);background:rgba(245,158,11,.14);color:#fde68a;}'
-      +'.astro-syn-meta{font-size:11px;color:#94a3b8;border:1px solid rgba(148,163,184,.34);padding:3px 8px;border-radius:999px;}'
+      +'.astro-syn-meta{font-size:13px;color:#94a3b8;border:1px solid rgba(148,163,184,.34);padding:3px 8px;border-radius:999px;}'
       +'.astro-syn-score-row{display:grid;grid-template-columns:auto 1fr;gap:10px;margin-bottom:12px;align-items:start;}'
       +'.astro-syn-score-card{background:rgba(2,6,23,.7);border:1px solid rgba(125,211,252,.18);border-radius:12px;padding:13px;text-align:center;min-width:84px;}'
-      +'.astro-syn-score-label{font-size:10px;color:#a5b4fc;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}'
+      +'.astro-syn-score-label{font-size:13px;color:#a5b4fc;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}'
       +'.astro-syn-score-val{font-size:34px;font-weight:900;line-height:1;}'
-      +'.astro-syn-score-unit{font-size:10px;color:#64748b;margin-top:2px;}'
+      +'.astro-syn-score-unit{font-size:13px;color:#64748b;margin-top:2px;}'
       +'.astro-syn-summary{display:flex;flex-direction:column;gap:6px;}'
-      +'.astro-syn-type{font-size:12px;color:#e2e8f0;line-height:1.5;font-weight:700;}'
+      +'.astro-syn-type{font-size:13px;color:#e2e8f0;line-height:1.5;font-weight:700;}'
       +'.astro-syn-sign-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:3px;}'
-      +'.astro-syn-sign-item{padding:5px 7px;border-radius:7px;font-size:11px;}'
+      +'.astro-syn-sign-item{padding:5px 7px;border-radius:7px;font-size:13px;}'
       +'.astro-syn-sign-item.sun{background:rgba(251,191,36,.1);color:#fde68a;}'
       +'.astro-syn-sign-item.moon{background:rgba(148,163,184,.12);color:#e2e8f0;}'
       +'.astro-syn-sign-item.venus{background:rgba(244,114,182,.1);color:#fbcfe8;}'
       +'.astro-syn-sign-item.mars{background:rgba(239,68,68,.1);color:#fca5a5;}'
       +'.astro-syn-triple{display:grid;grid-template-columns:1fr;gap:7px;margin-bottom:12px;}'
       +'.astro-syn-card{border-radius:11px;padding:10px 12px;border:1px solid rgba(148,163,184,.22);background:rgba(15,23,42,.52);}'
-      +'.astro-syn-card h5{margin:0 0 5px 0;font-size:11px;letter-spacing:.02em;}'
-      +'.astro-syn-card p{margin:0;font-size:12px;color:#e2e8f0;line-height:1.6;word-break:keep-all;}'
+      +'.astro-syn-card h5{margin:0 0 5px 0;font-size:13px;letter-spacing:.02em;}'
+      +'.astro-syn-card p{margin:0;font-size:14px;color:#e2e8f0;line-height:1.6;word-break:keep-all;}'
       +'.astro-syn-card.love{border-color:rgba(244,114,182,.28);background:rgba(244,114,182,.08);}'
       +'.astro-syn-card.love h5{color:#f472b6;}'
       +'.astro-syn-card.work{border-color:rgba(251,191,36,.25);background:rgba(251,191,36,.08);}'
@@ -13820,58 +14059,58 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-syn-card.spirit{border-color:rgba(129,140,248,.24);background:rgba(129,140,248,.08);}'
       +'.astro-syn-card.spirit h5{color:#818cf8;}'
       +'.astro-syn-data{background:rgba(99,102,241,.1);border:1px solid rgba(129,140,248,.25);border-radius:10px;padding:10px;margin-bottom:12px;}'
-      +'.astro-syn-data-title{font-size:11px;color:#a5b4fc;font-weight:700;margin-bottom:6px;}'
-      +'.astro-syn-data-copy{font-size:12px;color:#e2e8f0;line-height:1.65;}'
-      +'.astro-syn-aspects-title{font-size:11px;color:#94a3b8;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}'
+      +'.astro-syn-data-title{font-size:13px;color:#a5b4fc;font-weight:700;margin-bottom:6px;}'
+      +'.astro-syn-data-copy{font-size:14px;color:#e2e8f0;line-height:1.65;}'
+      +'.astro-syn-aspects-title{font-size:13px;color:#94a3b8;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}'
       +'.astro-syn-aspects{display:flex;flex-direction:column;gap:4px;}'
       +'.astro-syn-aspect{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border-radius:7px;padding:6px 10px;}'
-      +'.astro-syn-aspect-main{font-size:11px;color:#e2e8f0;flex:1;}'
+      +'.astro-syn-aspect-main{font-size:13px;color:#e2e8f0;flex:1;}'
       +'.astro-syn-overlay{background:rgba(20,25,35,.6);border:1px solid rgba(129,140,248,.2);border-radius:10px;padding:10px;margin-bottom:12px;}'
-      +'.astro-syn-overlay-title{font-size:11px;color:#818cf8;font-weight:700;margin-bottom:6px;}'
-      +'.astro-syn-overlay-copy{font-size:12px;color:#e2e8f0;line-height:1.62;}'
-      +'.astro-syn-overlay-tip{font-size:11px;color:#94a3b8;margin-top:6px;line-height:1.55;}'
+      +'.astro-syn-overlay-title{font-size:13px;color:#818cf8;font-weight:700;margin-bottom:6px;}'
+      +'.astro-syn-overlay-copy{font-size:14px;color:#e2e8f0;line-height:1.62;}'
+      +'.astro-syn-overlay-tip{font-size:14px;color:#94a3b8;margin-top:6px;line-height:1.55;}'
       +'.astro-syn-shadow{background:rgba(15,23,42,.6);border-radius:10px;padding:12px;border:1px solid rgba(255,255,255,.07);}'
-      +'.astro-syn-shadow-title{font-size:11px;color:#94a3b8;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;}'
-      +'.astro-syn-shadow-good{font-size:12px;color:#86efac;margin-bottom:5px;line-height:1.5;}'
-      +'.astro-syn-shadow-bad{font-size:12px;color:#fca5a5;margin-bottom:8px;line-height:1.5;}'
-      +'.astro-syn-shadow-remedy{font-size:12px;background:rgba(129,140,248,.12);border-left:3px solid #818cf8;padding:8px 10px;border-radius:0 8px 8px 0;color:#c7d2fe;line-height:1.6;word-break:keep-all;}'
+      +'.astro-syn-shadow-title{font-size:13px;color:#94a3b8;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;}'
+      +'.astro-syn-shadow-good{font-size:14px;color:#86efac;margin-bottom:5px;line-height:1.5;}'
+      +'.astro-syn-shadow-bad{font-size:14px;color:#fca5a5;margin-bottom:8px;line-height:1.5;}'
+      +'.astro-syn-shadow-remedy{font-size:14px;background:rgba(129,140,248,.12);border-left:3px solid #818cf8;padding:8px 10px;border-radius:0 8px 8px 0;color:#c7d2fe;line-height:1.6;word-break:keep-all;}'
       +'.astro-syn-quick{margin:10px 0 12px 0;padding:10px 11px;border-radius:10px;background:rgba(56,189,248,.1);border:1px solid rgba(125,211,252,.28);}'
-      +'.astro-syn-quick-title{font-size:11px;color:#a5f3fc;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;}'
+      +'.astro-syn-quick-title{font-size:13px;color:#a5f3fc;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;}'
       +'.astro-syn-quick ul{margin:0;padding-left:16px;}'
-      +'.astro-syn-quick li{font-size:12px;line-height:1.66;color:#e2e8f0;margin-bottom:3px;}'
+      +'.astro-syn-quick li{font-size:14px;line-height:1.66;color:#e2e8f0;margin-bottom:3px;}'
       +'.astro-neon-wrap{position:relative;overflow:hidden;border-radius:22px;padding:16px;border:1px solid rgba(251,191,36,.34);background:linear-gradient(165deg,#080b14 0%,#0b1730 48%,#161b2b 100%);box-shadow:0 0 0 1px rgba(251,191,36,.12),0 24px 48px -30px rgba(56,189,248,.58),inset 0 1px 0 rgba(255,255,255,.07);}'
       +'.astro-neon-wrap:before{content:"";position:absolute;inset:0;background-image:linear-gradient(115deg,transparent 0 42%,rgba(125,211,252,.16) 42.2%,transparent 42.8% 100%),radial-gradient(1px 1px at 16% 26%,rgba(255,255,255,.72),transparent),radial-gradient(1px 1px at 34% 66%,rgba(251,191,36,.64),transparent),radial-gradient(1px 1px at 72% 22%,rgba(186,230,253,.64),transparent),radial-gradient(1px 1px at 86% 74%,rgba(255,255,255,.52),transparent);pointer-events:none;opacity:.65;}'
       +'.astro-neon-wrap:after{content:"";position:absolute;left:10%;right:10%;top:44%;border-top:1px solid rgba(251,191,36,.16);transform:rotate(-8deg);pointer-events:none;}'
       +'.astro-neon-head{position:relative;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;z-index:1;}'
-      +'.astro-neon-badge{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;border:1px solid rgba(125,211,252,.42);background:rgba(34,211,238,.12);color:#cffafe;font-size:11px;font-weight:700;letter-spacing:.02em;}'
+      +'.astro-neon-badge{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;border:1px solid rgba(125,211,252,.42);background:rgba(34,211,238,.12);color:#cffafe;font-size:13px;font-weight:700;letter-spacing:.02em;}'
       +'.astro-mode-row{position:relative;z-index:1;display:flex;justify-content:flex-end;margin-top:10px;}'
-      +'.astro-reading-mode-btn{min-height:36px;padding:7px 12px;border-radius:999px;border:1px solid rgba(251,191,36,.46);background:rgba(251,191,36,.12);color:#fef3c7;font-size:12px;font-weight:800;cursor:pointer;}'
+      +'.astro-reading-mode-btn{min-height:36px;padding:7px 12px;border-radius:999px;border:1px solid rgba(251,191,36,.46);background:rgba(251,191,36,.12);color:#fef3c7;font-size:13px;font-weight:800;cursor:pointer;}'
       +'.astro-reading-mode-btn[aria-pressed="true"]{border-color:rgba(125,211,252,.55);background:rgba(14,116,144,.24);color:#cffafe;}'
       +'.astro-reading-mode-btn:focus-visible{outline:2px solid #fde68a;outline-offset:2px;}'
       +'.astro-action-hub{position:relative;overflow:hidden;border-color:rgba(125,211,252,.34)!important;background:linear-gradient(150deg,rgba(8,18,38,.96),rgba(22,15,41,.92))!important;box-shadow:0 18px 42px -30px rgba(125,211,252,.75),inset 0 1px 0 rgba(255,255,255,.08);}'
       +'.astro-action-hub:before{content:"";position:absolute;inset:0;background-image:linear-gradient(115deg,transparent 0 48%,rgba(125,211,252,.12) 48.2%,transparent 48.8% 100%),linear-gradient(25deg,transparent 0 62%,rgba(251,191,36,.11) 62.2%,transparent 62.7% 100%);pointer-events:none;}'
       +'.astro-action-hub__titlebar{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;}'
-      +'.astro-action-hub__kicker,.astro-section-kicker{font-size:10px;color:#67e8f9;font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;}'
+      +'.astro-action-hub__kicker,.astro-section-kicker{font-size:13px;color:#67e8f9;font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;}'
       +'.astro-action-hub__lead{position:relative;z-index:1;margin:0;color:#dbeafe;font-size:13px;line-height:1.65;}'
-      +'.astro-action-hub__constellation{position:relative;z-index:1;display:flex;align-items:center;gap:7px;margin:12px 0;color:#fde68a;font-size:12px;font-weight:900;}'
+      +'.astro-action-hub__constellation{position:relative;z-index:1;display:flex;align-items:center;gap:7px;margin:12px 0;color:#fde68a;font-size:13px;font-weight:900;}'
       +'.astro-action-hub__constellation span{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:26px;border-radius:999px;border:1px solid rgba(251,191,36,.28);background:rgba(15,23,42,.68);color:#fef3c7;}'
       +'.astro-action-hub__constellation i{display:block;flex:1;min-width:18px;height:1px;background:linear-gradient(90deg,rgba(125,211,252,.12),rgba(251,191,36,.42),rgba(125,211,252,.12));}'
       +'.astro-action-hub__grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(156px,1fr));gap:9px;margin-top:11px;}'
       +'.astro-action-hub__btn{position:relative;min-height:112px;text-align:left;border-radius:14px;border:1px solid rgba(125,211,252,.28);background:linear-gradient(160deg,rgba(15,23,42,.78),rgba(30,27,75,.58));color:#e0f2fe;padding:12px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);}'
       +'.astro-action-hub__btn strong{display:block;color:#fef3c7;font-size:13px;margin:4px 0 5px;}'
-      +'.astro-action-hub__btn span{display:block;color:#bfdbfe;font-size:12px;line-height:1.5;}'
-      +'.astro-action-hub__btn em{display:inline-flex;margin-top:9px;border:1px solid rgba(251,191,36,.26);border-radius:999px;padding:3px 8px;color:#fde68a;background:rgba(120,53,15,.22);font-size:10px;font-style:normal;font-weight:900;}'
+      +'.astro-action-hub__btn span{display:block;color:#bfdbfe;font-size:13px;line-height:1.5;}'
+      +'.astro-action-hub__btn em{display:inline-flex;margin-top:9px;border:1px solid rgba(251,191,36,.26);border-radius:999px;padding:3px 8px;color:#fde68a;background:rgba(120,53,15,.22);font-size:13px;font-style:normal;font-weight:900;}'
       +'.astro-action-hub__glyph{width:28px;height:28px;border-radius:999px;display:inline-flex!important;align-items:center;justify-content:center;border:1px solid rgba(125,211,252,.32);background:rgba(8,47,73,.45);color:#bae6fd;font-size:13px!important;}'
       +'.astro-action-hub__btn:focus-visible{outline:2px solid #67e8f9;outline-offset:2px;}'
       +'.astro-section-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;}'
-      +'.astro-price-pill{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid rgba(251,191,36,.34);background:rgba(120,53,15,.24);color:#fde68a;font-size:11px;font-weight:900;padding:5px 9px;white-space:nowrap;}'
+      +'.astro-price-pill{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid rgba(251,191,36,.34);background:rgba(120,53,15,.24);color:#fde68a;font-size:13px;font-weight:900;padding:5px 9px;white-space:nowrap;}'
       +'.astro-price-pill--free{border-color:rgba(52,211,153,.34);background:rgba(6,78,59,.24);color:#bbf7d0;}'
       +'.astro-price-pill--prompt{border-color:rgba(125,211,252,.36);background:rgba(14,116,144,.22);color:#cffafe;}'
       +'.astro-prompt-panel,.astro-compat-panel{position:relative;overflow:hidden;}'
       +'.astro-prompt-panel:before,.astro-compat-panel:before{content:"";position:absolute;left:12px;right:12px;top:0;border-top:1px solid rgba(255,255,255,.08);pointer-events:none;}'
       +'.astro-paid-note{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 12px 0;padding:8px 10px;border-radius:12px;border:1px solid rgba(251,191,36,.38);background:rgba(120,53,15,.24);}'
-      +'.astro-paid-note strong{color:#fde68a;font-size:12px;}'
-      +'.astro-paid-note span{color:#fef3c7;font-size:11px;line-height:1.45;}'
+      +'.astro-paid-note strong{color:#fde68a;font-size:14px;}'
+      +'.astro-paid-note span{color:#fef3c7;font-size:14px;line-height:1.45;}'
       +'.astro-paid-note--pink{border-color:rgba(244,114,182,.38);background:rgba(131,24,67,.22);}'
       +'.astro-neon-panel{position:relative;z-index:1;margin-top:10px;padding:12px;border-radius:14px;border:1px solid rgba(148,163,184,.24);background:rgba(2,6,23,.54);backdrop-filter:blur(6px);}'
       +'.astro-neon-key{font-size:14px;line-height:1.62;color:#f8fafc;margin:0 0 7px 0;}'
@@ -13880,46 +14119,46 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-neon-mini{border-radius:13px;border:1px solid rgba(148,163,184,.22);background:rgba(15,23,42,.58);padding:11px;backdrop-filter:blur(4px);}'
       +'.astro-neon-mini-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}'
       +'.astro-neon-mini-title{font-size:14px;font-weight:700;color:#e0f2fe;letter-spacing:-.01em;}'
-      +'.astro-neon-mini-score{font-size:12px;font-weight:700;color:#67e8f9;}'
+      +'.astro-neon-mini-score{font-size:13px;font-weight:700;color:#67e8f9;}'
       +'.astro-neon-mini-meter{height:6px;border-radius:999px;background:rgba(30,41,59,.85);overflow:hidden;margin-top:7px;}'
       +'.astro-neon-mini-meter span{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#a855f7);box-shadow:0 0 12px rgba(34,211,238,.65);}'
-      +'.astro-neon-mini-copy{margin:7px 0 0 0;font-size:12px;line-height:1.6;color:#cbd5e1;}'
+      +'.astro-neon-mini-copy{margin:7px 0 0 0;font-size:14px;line-height:1.6;color:#cbd5e1;}'
       +'.astro-neon-actions{position:relative;z-index:1;margin-top:10px;border:1px solid rgba(125,211,252,.24);border-radius:14px;background:rgba(15,23,42,.58);padding:12px;}'
       +'.astro-neon-actions h4{margin:0 0 8px 0;font-size:14px;color:#cffafe;}'
       +'.astro-neon-actions ul{margin:0;padding-left:18px;color:#e2e8f0;font-size:13px;line-height:1.7;}'
-      +'.astro-neon-total{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#a5f3fc;}'
+      +'.astro-neon-total{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:#a5f3fc;}'
       +'.astro-neon-total strong{font-size:16px;color:#fff;}'
       +'.astro-big3-snapshot{border-color:rgba(251,191,36,.32) !important;background:linear-gradient(160deg,rgba(24,18,35,.94),rgba(8,17,35,.94)) !important;}'
       +'.astro-big3-grid{display:grid;grid-template-columns:1fr;gap:10px;}'
       +'.astro-big3-card{border:1px solid rgba(251,191,36,.24);border-radius:14px;background:rgba(15,23,42,.58);padding:12px;}'
-      +'.astro-big3-label{font-size:11px;color:#fde68a;font-weight:800;margin-bottom:5px;}'
+      +'.astro-big3-label{font-size:13px;color:#fde68a;font-weight:800;margin-bottom:5px;}'
       +'.astro-big3-card strong{display:block;color:#e0f2fe;font-size:16px;margin-bottom:6px;}'
-      +'.astro-big3-card p{margin:0;color:#cbd5e1;font-size:13px;line-height:1.68;}'
+      +'.astro-big3-card p{margin:0;color:#cbd5e1;font-size:14px;line-height:1.68;}'
       +'.astro-detail-layer{display:block;}'
       +'.astro-body.is-easy .astro-detail-layer{display:none;}'
       +'.astro-body.is-detail .astro-detail-layer{display:block;}'
       +'.astro-wheel-card{border:1px solid rgba(251,191,36,0.22) !important;background:linear-gradient(155deg,rgba(12,18,36,.95),rgba(7,12,26,.95)) !important;box-shadow:0 14px 28px -24px rgba(251,191,36,.65);}'
-      +'.astro-wheel-caption{margin:0 0 10px 0;color:#cbd5e1;font-size:12px;line-height:1.65;}'
-      +'.astro-wheel-warning{margin-bottom:10px;padding:8px 10px;border-radius:9px;border:1px solid rgba(251,113,133,.35);background:rgba(127,29,29,.2);color:#fecaca;font-size:12px;line-height:1.55;}'
+      +'.astro-wheel-caption{margin:0 0 10px 0;color:#cbd5e1;font-size:13px;line-height:1.65;}'
+      +'.astro-wheel-warning{margin-bottom:10px;padding:8px 10px;border-radius:9px;border:1px solid rgba(251,113,133,.35);background:rgba(127,29,29,.2);color:#fecaca;font-size:13px;line-height:1.55;}'
       +'.astro-wheel-summary{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}'
-      +'.astro-wheel-summary span{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1px solid rgba(125,211,252,.28);background:rgba(15,23,42,.68);color:#e2e8f0;font-size:11px;font-weight:700;}'
+      +'.astro-wheel-summary span{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1px solid rgba(125,211,252,.28);background:rgba(15,23,42,.68);color:#e2e8f0;font-size:13px;font-weight:700;}'
       +'.astro-wheel-visual{border-radius:14px;border:1px solid rgba(148,163,184,.2);background:radial-gradient(circle at 50% 35%,rgba(15,23,42,.95),rgba(2,6,23,.97));padding:8px;}'
       +'.astro-wheel-svg{display:block;width:100%;height:auto;}'
       +'.astro-wheel-tables{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}'
       +'.astro-wheel-table-wrap{border-radius:11px;border:1px solid rgba(148,163,184,.2);background:rgba(2,6,23,.42);padding:9px;}'
-      +'.astro-wheel-table-title{margin-bottom:6px;color:#bae6fd;font-size:12px;font-weight:700;letter-spacing:.01em;}'
-      +'.astro-wheel-table th,.astro-wheel-table td{font-size:12px;padding:6px 7px;line-height:1.55;}'
+      +'.astro-wheel-table-title{margin-bottom:6px;color:#bae6fd;font-size:13px;font-weight:700;letter-spacing:.01em;}'
+      +'.astro-wheel-table th,.astro-wheel-table td{font-size:13px;padding:6px 7px;line-height:1.55;}'
       +'.astro-birth-map{position:relative;border-color:rgba(125,211,252,.35) !important;background:linear-gradient(155deg,rgba(7,17,38,.95),rgba(15,23,42,.95)) !important;}'
       +'.astro-birth-map:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 20% 10%,rgba(56,189,248,.12),rgba(56,189,248,0) 40%),radial-gradient(circle at 80% 20%,rgba(167,139,250,.12),rgba(167,139,250,0) 42%);}'
       +'.astro-birth-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px;}'
-      +'.astro-birth-mode-btn{padding:7px 12px;border-radius:999px;border:1px solid rgba(125,211,252,.5);background:rgba(14,116,144,.25);color:#cffafe;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s ease;}'
+      +'.astro-birth-mode-btn{padding:7px 12px;border-radius:999px;border:1px solid rgba(125,211,252,.5);background:rgba(14,116,144,.25);color:#cffafe;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s ease;}'
       +'.astro-birth-mode-btn[aria-pressed="true"]{background:rgba(251,191,36,.18);border-color:rgba(251,191,36,.58);color:#fde68a;}'
       +'.astro-birth-mode-btn:focus-visible{outline:2px solid #67e8f9;outline-offset:2px;}'
       +'.astro-birth-lead{margin:0 0 10px 0;font-size:14px;line-height:1.72;color:#e2e8f0;}'
       +'.astro-birth-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}'
-      +'.astro-birth-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid rgba(148,163,184,.35);background:rgba(15,23,42,.65);font-size:12px;color:#e2e8f0;}'
+      +'.astro-birth-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid rgba(148,163,184,.35);background:rgba(15,23,42,.65);font-size:13px;color:#e2e8f0;}'
       +'.astro-birth-help{margin-bottom:10px;border:1px solid rgba(148,163,184,.3);border-radius:10px;background:rgba(15,23,42,.52);}'
-      +'.astro-birth-help > summary{cursor:pointer;padding:11px 12px;min-height:44px;color:#bae6fd;font-size:12px;font-weight:700;list-style:none;display:flex;align-items:center;}'
+      +'.astro-birth-help > summary{cursor:pointer;padding:11px 12px;min-height:44px;color:#bae6fd;font-size:13px;font-weight:700;list-style:none;display:flex;align-items:center;}'
       +'.astro-birth-help > summary::-webkit-details-marker{display:none;}'
       +'.astro-birth-help-body{padding:0 12px 10px 12px;color:#e2e8f0;font-size:13px;line-height:1.7;}'
       +'.astro-birth-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px;}'
@@ -13928,39 +14167,38 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-birth-card > summary::-webkit-details-marker{display:none;}'
       +'.astro-birth-card > summary:focus-visible{outline:2px solid #67e8f9;outline-offset:-2px;}'
       +'.astro-birth-planet{font-weight:800;color:#e0f2fe;font-size:13px;}'
-      +'.astro-birth-sign{color:#fef3c7;font-size:12px;font-weight:700;}'
-      +'.astro-birth-house{color:#a5f3fc;font-size:11px;}'
-      +'.astro-birth-keywords{font-size:11px;color:#c4b5fd;line-height:1.5;}'
-      +'.astro-birth-open{position:absolute;right:12px;top:12px;color:#67e8f9;font-size:11px;font-weight:700;}'
+      +'.astro-birth-sign{color:#fef3c7;font-size:13px;font-weight:700;}'
+      +'.astro-birth-house{color:#a5f3fc;font-size:13px;}'
+      +'.astro-birth-keywords{font-size:13px;color:#c4b5fd;line-height:1.5;}'
+      +'.astro-birth-open{position:absolute;right:12px;top:12px;color:#67e8f9;font-size:13px;font-weight:700;}'
       +'.astro-birth-card-body{padding:0 12px 10px 12px;color:#e2e8f0;font-size:13px;line-height:1.68;}'
       +'.astro-birth-card-body p{margin:0 0 7px 0;}'
-      +'.astro-birth-one-line{padding:7px 9px;border-radius:8px;border:1px solid rgba(148,163,184,.28);background:rgba(30,41,59,.42);font-size:12px;color:#bfdbfe;}'
+      +'.astro-birth-one-line{padding:7px 9px;border-radius:8px;border:1px solid rgba(148,163,184,.28);background:rgba(30,41,59,.42);font-size:13px;color:#bfdbfe;}'
       +'.astro-birth-aspects-wrap{border:1px solid rgba(148,163,184,.26);border-radius:11px;background:rgba(2,6,23,.36);padding:10px;}'
-      +'.astro-birth-aspects-title{font-size:12px;font-weight:800;color:#c4b5fd;margin-bottom:8px;}'
+      +'.astro-birth-aspects-title{font-size:13px;font-weight:800;color:#c4b5fd;margin-bottom:8px;}'
       +'.astro-birth-aspect{border:1px solid rgba(148,163,184,.2);border-radius:9px;background:rgba(15,23,42,.5);margin-bottom:7px;}'
       +'.astro-birth-aspect > summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 10px;min-height:44px;touch-action:manipulation;}'
       +'.astro-birth-aspect > summary::-webkit-details-marker{display:none;}'
-      +'.astro-birth-aspect-title{font-size:12px;color:#e2e8f0;font-weight:700;}'
-      +'.astro-birth-aspect-orb{font-size:11px;color:#67e8f9;white-space:nowrap;}'
-      +'.astro-birth-aspect-body{padding:0 10px 8px 10px;font-size:12px;color:#cbd5e1;line-height:1.65;}'
-      +'.astro-birth-empty{margin:0;font-size:12px;color:#cbd5e1;}'
-      +'.astro-birth-foot{margin:10px 0 0 0;font-size:12px;color:#93c5fd;line-height:1.65;}'
+      +'.astro-birth-aspect-title{font-size:13px;color:#e2e8f0;font-weight:700;}'
+      +'.astro-birth-aspect-orb{font-size:13px;color:#67e8f9;white-space:nowrap;}'
+      +'.astro-birth-aspect-body{padding:0 10px 8px 10px;font-size:13px;color:#cbd5e1;line-height:1.65;}'
+      +'.astro-birth-empty{margin:0;font-size:13px;color:#cbd5e1;}'
+      +'.astro-birth-foot{margin:10px 0 0 0;font-size:13px;color:#93c5fd;line-height:1.65;}'
       +'.astro-life-grid{display:grid;grid-template-columns:1fr;gap:10px;}'
       +'.astro-life-card{border:1px solid rgba(148,163,184,.24);border-radius:12px;background:linear-gradient(155deg,rgba(15,23,42,.74),rgba(17,24,39,.7));overflow:hidden;position:relative;}'
       +'.astro-life-card:before{content:"";position:absolute;inset:0;border-radius:12px;padding:1px;background:linear-gradient(135deg,rgba(167,139,250,.52),rgba(56,189,248,.42),rgba(99,102,241,.32));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.45;}'
-      +'.astro-life-card > summary{padding:13px 13px;min-height:48px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;color:#e2e8f0;font-size:13px;font-weight:700;list-style:none;gap:8px;}'
+      +'.astro-life-card > summary{padding:13px 13px;min-height:48px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;cursor:pointer;color:#e2e8f0;font-size:13px;font-weight:700;list-style:none;gap:2px;}'
       +'.astro-life-card > summary::-webkit-details-marker{display:none;}'
       +'.astro-life-card[open]{border-color:rgba(125,211,252,.5);box-shadow:0 18px 34px -24px rgba(56,189,248,.8),0 0 0 1px rgba(167,139,250,.28) inset;}'
-      +'.astro-life-body{padding:2px 13px 13px 13px;font-size:12px;color:#cbd5e1;line-height:1.78;}'
+      +'.astro-life-body{padding:2px 13px 13px 13px;font-size:13px;color:#cbd5e1;line-height:1.78;}'
       +'.astro-life-body p{margin:0 0 9px 0;}'
       +'.astro-life-body p:last-child{margin-bottom:2px;}'
       +'.astro-life-evidence{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}'
-      +'.astro-life-chip{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.25);background:rgba(15,23,42,.7);font-size:11px;color:#bae6fd;}'
-      +'.astro-life-summary-hint{display:inline-block;margin-left:6px;color:#93c5fd;font-size:10px;font-weight:600;opacity:.92;}'
+      +'.astro-life-chip{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.25);background:rgba(15,23,42,.7);font-size:13px;color:#bae6fd;}'
       +'.astro-mobile-grid{display:grid;grid-template-columns:1fr;gap:8px;}'
       +'.astro-mobile-card{border:1px solid rgba(125,211,252,.24);border-radius:10px;padding:10px;background:rgba(15,23,42,.52);}'
       +'.astro-mobile-card h4{margin:0 0 6px 0;font-size:13px;color:#a5f3fc;}'
-      +'.astro-mobile-card p{margin:0;font-size:12px;line-height:1.68;color:#cbd5e1;}'
+      +'.astro-mobile-card p{margin:0;font-size:14px;line-height:1.68;color:#cbd5e1;}'
       +'.astro-birth-map.is-beginner .astro-birth-advanced{display:none;}'
       +'.astro-birth-card,.astro-birth-aspect,.astro-life-card{transition:box-shadow .22s ease,border-color .22s ease,background-color .22s ease,transform .22s ease;}'
       +'.astro-birth-card:hover,.astro-birth-aspect:hover,.astro-life-card:hover{border-color:rgba(103,232,249,.42);box-shadow:0 12px 24px -16px rgba(34,211,238,.62);transform:translateY(-1px);}'
@@ -13993,9 +14231,37 @@ function renderAstroInsightLegacyNeon() {
         + '</div></div>';
     }
 
+    /* ── 출생 차트 이야기 (js/core/astro/natal-reading.js). 실패하면 아래 기존 블록만 그린다. ── */
+    var astroStoryHtml = '';
+    try {
+      if (window.AstroNatalReading) {
+        var storyTimeKnown = !(birth.unknownHour === true || birth.timeDefault === true);
+        // 시간을 모르면 정오 차트로 읽으므로, 그날 달이 별자리를 바꿨는지 0시·23:59 차트로 따로 본다.
+        var storyMoonDay = storyTimeKnown ? null : [
+          calcAstroSwissChartOrThrow(y, m, d, 0, lat, lon, tz, houseSystem).moon.idx,
+          calcAstroSwissChartOrThrow(y, m, d, 23 + 59 / 60, lat, lon, tz, houseSystem).moon.idx
+        ];
+        var storyProfile = typeof window.__cdGetCurrentDestinyProfile === 'function' ? window.__cdGetCurrentDestinyProfile() : null;
+        var storyToday = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        var storyModel = window.AstroNatalReading.build(chart, {
+          timeKnown: storyTimeKnown,
+          today: storyToday,
+          name: storyProfile && storyProfile.name ? storyProfile.name : '',
+          birth: { year: y, month: m, day: d, hour: h, minute: min },
+          moonDay: storyMoonDay
+        });
+        // #asChart 는 basicFortunePresentation 이 .astro-wheel-card 안으로 옮긴다.
+        astroStoryHtml = window.AstroNatalReading.render(storyModel) + window.AstroNatalReading.renderChart(storyModel) + window.AstroNatalReading.renderDeep(storyModel);
+      }
+    } catch (storyErr) {
+      astroStoryHtml = '';
+      if (window.console && console.warn) console.warn('[astro-story] render skipped:', storyErr && storyErr.message);
+    }
+
     var html = '<div class="astro-body astro-readable cosmic-theme star-container is-easy" id="astroBodyWrap">'
       + astroNeonCss
       + precisionNoticeHtml
+      + astroStoryHtml
       + astroActionHubHtml
       + astroAiPromptSectionHtml
       + (natalWheel && natalWheel.cardHtml ? natalWheel.cardHtml : '')
@@ -14003,7 +14269,7 @@ function renderAstroInsightLegacyNeon() {
       +'<div class="astro-section" style="margin-bottom:16px;">'
       +'<div class="astro-neon-wrap">'
       +'<div class="astro-neon-head">'
-      +'<div class="astro-subhead" style="margin:0;color:#a5f3fc;">✨ 오늘의 핵심 흐름</div>'
+      +'<div class="astro-subhead" style="margin:0;color:#a5f3fc;">오늘의 핵심 흐름</div>'
       +'<div class="astro-neon-badge">태양·달·상승궁 가이드</div>'
       +'</div>'
       +'<div class="astro-mode-row"><button type="button" class="astro-reading-mode-btn" id="astroReadingModeToggle" aria-pressed="false">전체 리딩 다시 펼치기</button></div>'
@@ -14021,7 +14287,7 @@ function renderAstroInsightLegacyNeon() {
       +'<li>'+astroRelationshipMission+'</li>'
       +'<li>'+astroSelfcareMission+'</li>'
       +'</ul>'
-      +'<p style="margin:8px 0 0 0;font-size:12px;color:#a5f3fc;"><b>행운을 여는 작은 의식:</b> '+astroBoosterColor+' 톤 + '+astroBoosterPlace+' + 물 한 잔 루틴 💧</p>'
+      +'<p style="margin:8px 0 0 0;font-size:14px;color:#a5f3fc;"><b>행운을 여는 작은 의식:</b> '+astroBoosterColor+' 톤 + '+astroBoosterPlace+' + 물 한 잔 루틴 💧</p>'
       +'</div>'
       +'</div>'
       +'</div>'
@@ -14035,27 +14301,27 @@ function renderAstroInsightLegacyNeon() {
       + mobileScenarioSectionHtml
 
         +'<div class="astro-section">'
-      +'<div class="astro-subhead">🌟 태양 별자리·달 별자리·상승궁 한눈에 보기</div>'
+      +'<div class="astro-subhead">태양 별자리·달 별자리·상승궁 한눈에 보기</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">☀ 태양</span> <span class="astro-planet">'+sunSign+'</span>'+sunDeg
         +' <span class="astro-tag">☽ 달</span> <span class="astro-planet">'+moonSign+'</span>'+moonDeg
         +' <span class="astro-tag">↑ Asc 상승궁</span> <span class="astro-planet">'+ascSign+'</span>'
         +'</div>'
         +'<div class="astro-desc">'
-      +'<p><b>☀️ 태양 별자리:</b> 성장할수록 닮아가는 나의 중심 방향입니다. '+sunCoreInterpretation+'</p>'
-      +'<p><b>🌙 달 별자리:</b> 감정적으로 안정되는 방식과 마음이 쉬는 공간을 보여줍니다. 달 '+_friendlyHousePair(moonHousePair)+' 리듬을 지키면 예민함이 줄고 관계 대화가 부드러워집니다.</p>'
-        +'<p><b>⬆ 상승궁:</b> 사람들이 처음 느끼는 인상과 현실을 대하는 태도입니다. 상승궁 '+_friendlyHousePair(ascHousePair)+'은 초반의 분위기를 만들고, 태양축은 시간이 지날수록 진짜 성향을 드러냅니다.</p>'
+      +'<p><b>\u2609\uFE0E 태양 별자리:</b> 성장할수록 닮아가는 나의 중심 방향입니다. '+sunCoreInterpretation+'</p>'
+      +'<p><b>\u263D\uFE0E 달 별자리:</b> 감정적으로 안정되는 방식과 마음이 쉬는 공간을 보여줍니다. 달 '+_friendlyHousePair(moonHousePair)+' 리듬을 지키면 예민함이 줄고 관계 대화가 부드러워집니다.</p>'
+        +'<p><b>\u2191\uFE0E 상승궁:</b> 사람들이 처음 느끼는 인상과 현실을 대하는 태도입니다. 상승궁 '+_friendlyHousePair(ascHousePair)+'은 초반의 분위기를 만들고, 태양축은 시간이 지날수록 진짜 성향을 드러냅니다.</p>'
         +'<p style="margin-top:8px;color:#cbd5e1;"><b>세 축의 조합:</b> '+axisGapDesc+' 경향이므로 의지와 감정이 서로 밀어주는 날엔 성과가 빠르고, 엇갈리는 날엔 속도 조절이 필요합니다. '+precisionComment+'</p>'
         +'</div>'
         +'<div class="astro-core">"가장 먼저 볼 포인트: 태양이 향하는 목표, 달이 쉬는 방식, 상승궁이 만드는 첫인상 이 세 가지를 같은 문장으로 연결해보세요."</div>'
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">🧠 생각·말투·성장 변수 - 수성·목성·외행성</div>'
+        +'<div class="astro-subhead">생각·말투·성장 변수 - 수성·목성·외행성</div>'
         +'<div class="astro-tags">'
-        +'<span class="astro-tag">☿ 수성</span> <span class="astro-planet">'+mercurySign+(chart.planets.Mercury&&chart.planets.Mercury.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
-        +' <span class="astro-tag">♃ 목성</span> <span class="astro-planet">'+jupiterSign+(chart.planets.Jupiter&&chart.planets.Jupiter.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
-        +' <span class="astro-tag">♄ 토성</span> <span class="astro-planet">'+saturnSign+(chart.planets.Saturn&&chart.planets.Saturn.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
+        +'<span class="astro-tag">☿ 수성</span> <span class="astro-planet">'+mercurySign+(chart.planets.Mercury&&chart.planets.Mercury.retro?' <span style="color:#f87171;font-size:13px">Rx</span>':'')+'</span>'
+        +' <span class="astro-tag">♃ 목성</span> <span class="astro-planet">'+jupiterSign+(chart.planets.Jupiter&&chart.planets.Jupiter.retro?' <span style="color:#f87171;font-size:13px">Rx</span>':'')+'</span>'
+        +' <span class="astro-tag">♄ 토성</span> <span class="astro-planet">'+saturnSign+(chart.planets.Saturn&&chart.planets.Saturn.retro?' <span style="color:#f87171;font-size:13px">Rx</span>':'')+'</span>'
         +'</div>'
         +'<div class="astro-desc">'
         +'<p><b>💬 수성:</b> 수성 '+_friendlyHousePair(mercuryHousePair)+'은 생각을 정리하는 방식과 말투의 설득 구조를 보여줍니다. 감정부터 말하기보다 맥락-핵심-요청 순서로 말하면 오해가 크게 줄어듭니다.</p>'
@@ -14065,12 +14331,12 @@ function renderAstroInsightLegacyNeon() {
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">🏆 커리어 방향 - 어디서 가장 빛나는가</div>'
+        +'<div class="astro-subhead">커리어 방향 - 어디서 가장 빛나는가</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">MC 천정(10H)</span> <span class="astro-planet">'+mcSign+'</span>'
         +' <span class="astro-tag">Desc 하강궁(7H)</span> <span class="astro-planet">'+descSign+'</span>'
         +' <span class="astro-tag">6H</span> <span class="astro-house">'+h6Sign+'</span>'
-        +' <span class="astro-tag">Saturn ♄</span> <span class="astro-planet">'+saturnSign+(chart.planets.Saturn&&chart.planets.Saturn.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
+        +' <span class="astro-tag">Saturn ♄</span> <span class="astro-planet">'+saturnSign+(chart.planets.Saturn&&chart.planets.Saturn.retro?' <span style="color:#f87171;font-size:13px">Rx</span>':'')+'</span>'
         +'</div>'
         +'<div class="astro-desc">'
         +'<p><b>신뢰를 얻는 방식:</b> 10하우스/MC '+mcSign+' 축은 공적 결과물로 평가받을 때 강점이 드러납니다. 태양 '+_friendlyHousePair(sunHousePair)+'과 화성 '+_friendlyHousePair(marsHousePair)+'이 받쳐주는 만큼, 결정 후 실행 속도는 충분히 빠른 편입니다.</p>'
@@ -14080,11 +14346,11 @@ function renderAstroInsightLegacyNeon() {
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">💘 연애 설렘 포인트 - 마음이 켜지는 순간</div>'
+        +'<div class="astro-subhead">연애 설렘 포인트 - 마음이 켜지는 순간</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">Desc 하강궁(7H)</span> <span class="astro-planet">'+descSign+'</span>'
-        +' <span class="astro-tag">Venus 금성 ♀</span> <span class="astro-planet">'+venusSign+(chart.planets.Venus&&chart.planets.Venus.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
-        +' <span class="astro-tag">Mars 화성 ♂</span> <span class="astro-planet">'+marsSign+(chart.planets.Mars&&chart.planets.Mars.retro?' <span style="color:#f87171;font-size:0.75rem">Rx</span>':'')+'</span>'
+        +' <span class="astro-tag">Venus 금성 ♀</span> <span class="astro-planet">'+venusSign+(chart.planets.Venus&&chart.planets.Venus.retro?' <span style="color:#f87171;font-size:13px">Rx</span>':'')+'</span>'
+        +' <span class="astro-tag">Mars 화성 ♂</span> <span class="astro-planet">'+marsSign+(chart.planets.Mars&&chart.planets.Mars.retro?' <span style="color:#f87171;font-size:13px">Rx</span>':'')+'</span>'
         +'</div>'
         +'<div class="astro-desc">'
         +'<p><b>끌림 포인트:</b> 금성 '+_friendlyHousePair(venusHousePair)+'은 무엇에 매력을 느끼는지, 화성 '+_friendlyHousePair(marsHousePair)+'은 다가가는 방식과 욕망의 방향을 보여줍니다. 하강궁 '+descSign+'은 반복적으로 끌리는 관계의 패턴을 설명합니다.</p>'
@@ -14094,10 +14360,10 @@ function renderAstroInsightLegacyNeon() {
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">🍀 지금 운이 들어오는 길 - 목성의 흐름</div>'
+        +'<div class="astro-subhead">지금 운이 들어오는 길 - 목성의 흐름</div>'
         +'<div class="astro-tags">'
         +'<span class="astro-tag">Jupiter ♃ Transit</span> <span class="astro-planet">'+jupiterTransit+'</span>'
-        +' <span style="color:#94a3b8;font-size:0.78rem">('+now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+(now.getDate())+'일 기준)</span>'
+        +' <span style="color:#94a3b8;font-size:13px">('+now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+(now.getDate())+'일 기준)</span>'
         +'</div>'
         +'<div class="astro-desc">'
         +'<p>지금 트랜짓 목성은 <b>'+jupiterTransit+'</b> 영역을 자극하고 있습니다. 운은 갑자기 떨어지는 선물이 아니라, 이미 진행 중인 축을 넓힐 때 가장 안정적으로 들어옵니다.</p>'
@@ -14107,7 +14373,7 @@ function renderAstroInsightLegacyNeon() {
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">⚡ 오늘 바로 써먹는 집중 포인트</div>'
+        +'<div class="astro-subhead">오늘 바로 써먹는 집중 포인트</div>'
         +'<div class="astro-desc">'
         +'<p><b>오늘 하면 좋은 행동:</b> '+focusHouseText+' 기준으로, <b>'+topHouseTopic+'</b> 관련 과제를 가장 먼저 착수하세요.</p>'
         +'<p><b>피해야 할 행동:</b> 감정이 과열된 상태에서 즉시 결론을 내리는 결정은 미루는 것이 안전합니다.</p>'
@@ -14117,7 +14383,7 @@ function renderAstroInsightLegacyNeon() {
         +'</div>'
 
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">🫶 나와 시너지가 나는 사람</div>'
+        +'<div class="astro-subhead">나와 시너지가 나는 사람</div>'
         +'<div class="astro-desc">'
         +'<p>당신과 시너지가 나는 사람은 감정 속도를 존중하면서도 현실 실행을 함께 맞춰주는 유형입니다. 반대로 말의 강도만 높고 감정 확인이 없는 관계는 에너지를 빠르게 소모시킬 수 있습니다.</p>'
         +'<p style="color:#cbd5e1;">친구는 대화 리듬이 맞는 사람, 동료는 약속과 품질 기준을 지키는 사람, 연인은 달 '+_friendlyHousePair(moonHousePair)+' 안정축을 이해해 주는 사람이 특히 잘 맞습니다. 관계 기준은 "속도보다 신뢰"로 두는 것이 좋습니다.</p>'
@@ -14145,10 +14411,10 @@ function renderAstroInsightLegacyNeon() {
 
         /* ── ★ 직접 입력 시나스트리 궁합 ── */
         +'<div class="astro-section astro-neon-accent astro-neon-accent-amber astro-compat-panel astro-compat-panel--direct">'
-        +'<div class="astro-section-title-row"><div class="astro-subhead" style="color:#f59e0b;margin-bottom:0;"><span aria-hidden="true">💫</span> 나의 시나스트리: 상대 직접 입력</div><span class="astro-price-pill">3,000원</span></div>'
+        +'<div class="astro-section-title-row"><div class="astro-subhead" style="color:#f59e0b;margin-bottom:0;">나의 시나스트리: 상대 직접 입력</div><span class="astro-price-pill">3,000원</span></div>'
         +'<div class="astro-paid-note"><strong>유료 궁합 분석 · 3,000원</strong><span>결제 확인 후 두 사람의 시나스트리 결과가 생성됩니다.</span></div>'
         +'<div class="astro-desc">'
-        +'<p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">'
+        +'<p style="font-size:14px;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">'
         +'상대 정보를 입력하면 두 사람의 궁합 지도를 확인할 수 있습니다. 태어난 시각을 모르면 12:00(정오)로 계산되며, 대화 템포에 대한 힌트도 함께 제공됩니다.'
         +'</p>'
         /* 입력 폼 */
@@ -14187,50 +14453,50 @@ function renderAstroInsightLegacyNeon() {
 
         /* ── ★ 점성술 유명인 시나스트리 궁합 (신규) ── */
         +'<div class="astro-section astro-neon-accent astro-neon-accent-indigo astro-compat-panel astro-compat-panel--celeb" id="astroSynastrySection">'
-        +'<div class="astro-section-title-row"><div class="astro-subhead" style="color:#818cf8;margin-bottom:0;">🌌 유명인 시나스트리 (셀럽 궁합 실험실)</div><span class="astro-price-pill">3,000원</span></div>'
+        +'<div class="astro-section-title-row"><div class="astro-subhead" style="color:#818cf8;margin-bottom:0;">유명인 시나스트리 (셀럽 궁합 실험실)</div><span class="astro-price-pill">3,000원</span></div>'
         +'<div class="astro-paid-note astro-paid-note--pink"><strong>유명인 궁합 분석 · 3,000원</strong><span>셀럽을 선택하면 결제 확인 후 궁합 리포트가 열립니다.</span></div>'
         +'<div class="astro-desc">'
 
         /* ── [✨ 천상의 지도: 당신의 성좌] ── */
         +'<div class="astro-neon-soft-block" style="margin-bottom:14px;">'
-        +'<div style="font-size:0.78rem;color:#818cf8;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">✨ 천상의 지도: 당신의 성좌</div>'
-        +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;">'
+        +'<div style="font-size:13px;color:#818cf8;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">✨ 천상의 지도: 당신의 성좌</div>'
+        +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:8px;">'
         +'<div style="background:rgba(251,191,36,0.1);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(251,191,36,0.25);">'
-        +'<div style="font-size:0.65rem;color:#fbbf24;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">☀ 태양</div>'
-        +'<div style="font-size:0.85rem;font-weight:800;color:#fde68a;line-height:1.2;">'+sunSign+'</div>'
-        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">핵심 자아</div>'
+        +'<div style="font-size:13px;color:#fbbf24;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">☀ 태양</div>'
+        +'<div style="font-size:14px;font-weight:800;color:#fde68a;line-height:1.2;">'+sunSign+'</div>'
+        +'<div style="font-size:13px;color:#94a3b8;margin-top:3px;">핵심 자아</div>'
         +'</div>'
         +'<div style="background:rgba(148,163,184,0.12);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(148,163,184,0.2);">'
-        +'<div style="font-size:0.65rem;color:#94a3b8;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">☽ 달</div>'
-        +'<div style="font-size:0.85rem;font-weight:800;color:#e2e8f0;line-height:1.2;">'+moonSign+'</div>'
-        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">감정 패턴</div>'
+        +'<div style="font-size:13px;color:#94a3b8;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">☽ 달</div>'
+        +'<div style="font-size:14px;font-weight:800;color:#e2e8f0;line-height:1.2;">'+moonSign+'</div>'
+        +'<div style="font-size:13px;color:#94a3b8;margin-top:3px;">감정 패턴</div>'
         +'</div>'
         +'<div style="background:rgba(244,114,182,0.1);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(244,114,182,0.2);">'
-        +'<div style="font-size:0.65rem;color:#f472b6;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">♀ 금성</div>'
-        +'<div style="font-size:0.85rem;font-weight:800;color:#fbcfe8;line-height:1.2;">'+venusSign+'</div>'
-        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">사랑의 언어</div>'
+        +'<div style="font-size:13px;color:#f472b6;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">♀ 금성</div>'
+        +'<div style="font-size:14px;font-weight:800;color:#fbcfe8;line-height:1.2;">'+venusSign+'</div>'
+        +'<div style="font-size:13px;color:#94a3b8;margin-top:3px;">사랑의 언어</div>'
         +'</div>'
         +'<div style="background:rgba(239,68,68,0.1);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(239,68,68,0.2);">'
-        +'<div style="font-size:0.65rem;color:#f87171;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">♂ 화성</div>'
-        +'<div style="font-size:0.85rem;font-weight:800;color:#fca5a5;line-height:1.2;">'+marsSign+'</div>'
-        +'<div style="font-size:0.65rem;color:#94a3b8;margin-top:3px;">욕망의 동력</div>'
+        +'<div style="font-size:13px;color:#f87171;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.7px;">♂ 화성</div>'
+        +'<div style="font-size:14px;font-weight:800;color:#fca5a5;line-height:1.2;">'+marsSign+'</div>'
+        +'<div style="font-size:13px;color:#94a3b8;margin-top:3px;">욕망의 동력</div>'
         +'</div>'
         +'</div>'
         +'</div>'
 
         /* ── [🎭 영혼의 쌍둥이: 나와 닮은 별의 인물] — 동적 렌더 컨테이너 ── */
         +'<div class="astro-neon-soft-block" style="margin-bottom:14px;border-color:rgba(52,211,153,0.25) !important;background:rgba(16,185,129,.08) !important;">'
-        +'<div style="font-size:0.78rem;color:#34d399;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">🎭 영혼의 쌍둥이: 나와 같은 별의 인물</div>'
-        +'<p style="font-size:0.82rem;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">사주 <b>CelebrityDB</b>에서 <b>'+sunSign+'</b> 태양 또는 <b>'+venusSign+'</b> 금성과 같은 기운을 가진 유명인을 자동으로 찾아드립니다.</p>'
+        +'<div style="font-size:13px;color:#34d399;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">🎭 영혼의 쌍둥이: 나와 같은 별의 인물</div>'
+        +'<p style="font-size:14px;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">사주 <b>CelebrityDB</b>에서 <b>'+sunSign+'</b> 태양 또는 <b>'+venusSign+'</b> 금성과 같은 기운을 가진 유명인을 자동으로 찾아드립니다.</p>'
         +'<div id="astroCosmicTwins" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;">'
-        +'<span style="color:#666;font-size:0.8rem;">✦ 분석 중...</span>'
+        +'<span style="color:var(--fr-muted);font-size:13px;">✦ 분석 중...</span>'
         +'</div>'
         +'</div>'
 
         /* ── [💍 운명의 시나스트리] — 유명인 선택 UI ── */
         +'<div class="astro-neon-soft-block" style="margin-bottom:14px;border-color:rgba(244,114,182,0.25) !important;background:rgba(244,114,182,.08) !important;">'
-        +'<div style="font-size:0.78rem;color:#f472b6;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">💍 운명의 시나스트리: 유명인 궁합 분석</div>'
-        +'<p style="font-size:0.82rem;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">셀럽을 고르면 네 차트와 바로 맞대결. 연애 케미, 협업 합, 감정 파동까지 한 번에 뜨는 코즈믹 랩이에요. 생시 미상은 12:00 기준이라 달/상승궁은 참고용으로 보고, 실제 성향은 대화 템포로 최종 체크해요.</p>'
+        +'<div style="font-size:13px;color:#f472b6;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">💍 운명의 시나스트리: 유명인 궁합 분석</div>'
+        +'<p style="font-size:14px;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">셀럽을 고르면 네 차트와 바로 맞대결. 연애 케미, 협업 합, 감정 파동까지 한 번에 뜨는 코즈믹 랩이에요. 생시 미상은 12:00 기준이라 달/상승궁은 참고용으로 보고, 실제 성향은 대화 템포로 최종 체크해요.</p>'
         /* 국가 탭 */
         +'<div id="astroCtryTabs" class="astro-neon-tab-row"></div>'
         /* 카테고리 탭 */
@@ -14238,7 +14504,7 @@ function renderAstroInsightLegacyNeon() {
         /* 검색 */
         +'<div style="position:relative;margin-bottom:8px;">'
         +'<input type="text" class="astro-neon-input" id="astroSyQ" placeholder="' + _sajuEngineText("se_11148_attr_placeholder") + '" autocomplete="off" style="padding-right:34px;">'
-        +'<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#888;pointer-events:none;font-size:0.9rem;">🔍</span>'
+        +'<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--fr-muted);pointer-events:none;font-size:14px;">🔍</span>'
         +'</div>'
         /* 유명인 버튼 목록 */
         +'<div id="astroSyCelebs" class="astro-neon-scroll"></div>'
@@ -14252,20 +14518,20 @@ function renderAstroInsightLegacyNeon() {
 
         /* ── 4원소 균형 (실시간) ── */
         +'<div class="astro-section">'
-        +'<div class="astro-subhead">🜂 4원소 균형 (Elemental Balance)</div>'
+        +'<div class="astro-subhead">4원소 균형</div>'
         +'<div class="astro-desc">'
         +'<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">'
         +['fire','earth','air','water'].map(function(el){
             var cfg={fire:['#f87171','🔥','불(Fire)'],earth:['#fde68a','🌿','흙(Earth)'],air:['#93c5fd','💨','공기(Air)'],water:['#34d399','💧','물(Water)']};
             var c=cfg[el]; var pct=elemPct[el];
             return '<div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px; border:1px solid rgba(255,255,255,0.07);">'
-                +'<div style="font-size:0.82rem; color:'+c[0]+'; font-weight:700; margin-bottom:6px;">'+c[1]+' '+c[2]+'</div>'
-                +'<div style="font-size:1.5rem; font-weight:900; color:'+c[0]+'; line-height:1;">'+pct+'<span style="font-size:0.75rem; color:#94a3b8; font-weight:400;">%</span></div>'
+                +'<div style="font-size:13px; color:'+c[0]+'; font-weight:700; margin-bottom:6px;">'+c[1]+' '+c[2]+'</div>'
+                +'<div style="font-size:1.5rem; font-weight:900; color:'+c[0]+'; line-height:1;">'+pct+'<span style="font-size:13px; color:#94a3b8; font-weight:400;">%</span></div>'
                 +'<div style="height:4px; background:#1e293b; border-radius:2px; margin-top:8px; overflow:hidden;"><div style="height:100%; width:'+pct+'%; background:'+c[0]+'; border-radius:2px;"></div></div>'
                 +'</div>';
         }).join('')
         +'</div>'
-        +'<div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px; font-size:0.88rem;">'
+        +'<div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px; font-size:14px;">'
         +'<span style="color:#fbbf24; font-weight:700;">지배 원소: '+elemDomNames[elemDominant]+'</span>'
         +'<p style="margin:6px 0 0 0; color:#cbd5e1; line-height:1.5;">'+elemDomDesc[elemDominant]+'</p>'
         +'</div>'
@@ -14274,51 +14540,51 @@ function renderAstroInsightLegacyNeon() {
 
         /* ── 피르다리아 (실시간) ── */
         +'<div class="astro-section astro-neon-accent astro-neon-accent-violet">'
-        +'<div class="astro-subhead" style="color:#a78bfa;">🪐 피르다리아 (Firdaria — 고전 시간 통치자)</div>'
+        +'<div class="astro-subhead" style="color:#a78bfa;">피르다리아 (인생 시기를 나누는 고전 기법)</div>'
         +'<div class="astro-desc">'
         +'<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">'
         +'<div style="flex:1; min-width:130px; background:rgba(167,139,250,0.12); border-radius:10px; padding:12px; border:1px solid rgba(167,139,250,0.3); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">메인 타임로드</div>'
+        +'<div style="font-size:13px; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">메인 타임로드</div>'
         +'<div style="font-size:1.15rem; font-weight:900; color:#ddd6fe;">'+firdariaMain.planet+'</div>'
-        +'<div style="font-size:0.7rem; color:#94a3b8; margin-top:4px;">잔여 약 '+firdariaMainYearsLeft+'년</div>'
+        +'<div style="font-size:13px; color:#94a3b8; margin-top:4px;">잔여 약 '+firdariaMainYearsLeft+'년</div>'
         +'</div>'
         +'<div style="flex:1; min-width:130px; background:rgba(167,139,250,0.06); border-radius:10px; padding:12px; border:1px solid rgba(167,139,250,0.15); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">서브 타임로드</div>'
+        +'<div style="font-size:13px; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">서브 타임로드</div>'
         +'<div style="font-size:1.15rem; font-weight:900; color:#c4b5fd;">'+firdariaSubPlanet+'</div>'
-        +'<div style="font-size:0.7rem; color:#94a3b8; margin-top:4px;">조율 에너지</div>'
+        +'<div style="font-size:13px; color:#94a3b8; margin-top:4px;">조율 에너지</div>'
         +'</div>'
         +'</div>'
-        +'<p style="font-size:0.95rem; color:#e2e8f0; line-height:1.7; margin-bottom:12px; font-weight:600;">'+(firdariaDynamic.theme || firdariaMain.theme)+'</p>'
-        +'<p style="font-size:0.84rem; color:#cbd5e1; line-height:1.65; margin:0 0 10px 0;">'+firdariaPrecisionNote+'</p>'
+        +'<p style="font-size:15px; color:#e2e8f0; line-height:1.7; margin-bottom:12px; font-weight:600;">'+(firdariaDynamic.theme || firdariaMain.theme)+'</p>'
+        +'<p style="font-size:14px; color:#cbd5e1; line-height:1.65; margin:0 0 10px 0;">'+firdariaPrecisionNote+'</p>'
         +'<div style="background:rgba(167,139,250,0.07); border-radius:10px; padding:14px; margin-bottom:10px; border:1px solid rgba(167,139,250,0.12);">'
-        +'<div style="color:#c4b5fd; font-weight:700; margin-bottom:6px; font-size:0.82rem;">📖 심층 해석</div>'
-        +'<p style="color:#cbd5e1; line-height:1.7; font-size:0.88rem; margin:0;">'+(firdariaDynamic.detail || firdariaMain.detail)+'</p>'
+        +'<div style="color:#c4b5fd; font-weight:700; margin-bottom:6px; font-size:13px;">📖 심층 해석</div>'
+        +'<p style="color:#cbd5e1; line-height:1.7; font-size:14px; margin:0;">'+(firdariaDynamic.detail || firdariaMain.detail)+'</p>'
         +'</div>'
         +'<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">'
         +'<div style="background:rgba(250,204,21,0.07); border-radius:10px; padding:12px; border:1px solid rgba(250,204,21,0.15);">'
-        +'<div style="color:#fde68a; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💼 커리어 천기</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.career || firdariaMain.career)+'</p>'
+        +'<div style="color:#fde68a; font-weight:700; font-size:13px; margin-bottom:5px;">💼 커리어 천기</div>'
+        +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+(firdariaDynamic.career || firdariaMain.career)+'</p>'
         +'</div>'
         +'<div style="background:rgba(244,114,182,0.07); border-radius:10px; padding:12px; border:1px solid rgba(244,114,182,0.15);">'
-        +'<div style="color:#f9a8d4; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💕 연애 & 관계</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.love || firdariaMain.love)+'</p>'
+        +'<div style="color:#f9a8d4; font-weight:700; font-size:13px; margin-bottom:5px;">💕 연애 & 관계</div>'
+        +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+(firdariaDynamic.love || firdariaMain.love)+'</p>'
         +'</div>'
         +'</div>'
         +'<div style="background:rgba(239,68,68,0.07); border-radius:10px; padding:12px; margin-bottom:10px; border:1px solid rgba(239,68,68,0.15);">'
-        +'<div style="color:#fca5a5; font-weight:700; font-size:0.8rem; margin-bottom:5px;">⚠️ 주의 및 건강</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.caution || firdariaMain.caution)+'</p>'
+        +'<div style="color:#fca5a5; font-weight:700; font-size:13px; margin-bottom:5px;">⚠️ 주의 및 건강</div>'
+        +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+(firdariaDynamic.caution || firdariaMain.caution)+'</p>'
         +'</div>'
         +'<div style="background:rgba(16,185,129,0.07); border-radius:10px; padding:12px; border:1px solid rgba(16,185,129,0.15);">'
-        +'<div style="color:#6ee7b7; font-weight:700; font-size:0.8rem; margin-bottom:5px;">✅ 핵심 행동 조언</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(firdariaDynamic.advice || firdariaMain.advice)+'</p>'
+        +'<div style="color:#6ee7b7; font-weight:700; font-size:13px; margin-bottom:5px;">✅ 핵심 행동 조언</div>'
+        +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+(firdariaDynamic.advice || firdariaMain.advice)+'</p>'
         +'</div>'
         +(function(){
             var comboKey = firdariaMain.kr+'_'+firdariaSubPlanet;
             var comboMsg = FIRDARIA_COMBO[comboKey];
             if(!comboMsg) return '';
             return '<div style="margin-top:10px; background:rgba(139,92,246,0.1); border-radius:10px; padding:12px; border:1px solid rgba(139,92,246,0.3);">'
-                +'<div style="color:#a78bfa; font-weight:700; font-size:0.8rem; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">✦ '+firdariaMain.kr+' × '+firdariaSubPlanet+' 콤보 에너지</div>'
-                +'<p style="color:#e2e8f0; font-size:0.85rem; line-height:1.65; margin:0;">'+comboMsg+'</p>'
+                +'<div style="color:#a78bfa; font-weight:700; font-size:13px; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">✦ '+firdariaMain.kr+' × '+firdariaSubPlanet+' 콤보 에너지</div>'
+                +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+comboMsg+'</p>'
                 +'</div>';
         })()
         +'</div>'
@@ -14326,49 +14592,49 @@ function renderAstroInsightLegacyNeon() {
 
         /* ── 연간 프로펙션 (실시간) ── */
         +'<div class="astro-section astro-neon-accent astro-neon-accent-cyan">'
-        +'<div class="astro-subhead" style="color:#22d3ee;">🌀 연간 프로펙션 (Annual Profection — '+now.getFullYear()+'년)</div>'
+        +'<div class="astro-subhead" style="color:#22d3ee;">연간 프로펙션 ('+now.getFullYear()+'년)</div>'
         +'<div class="astro-desc">'
         +'<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">'
         +'<div style="flex:1; min-width:110px; background:rgba(34,211,238,0.1); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.25); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">올해의 하우스</div>'
-        +'<div style="font-size:0.92rem; font-weight:800; color:#a5f3fc;">'+profHouse+'</div>'
+        +'<div style="font-size:13px; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">올해의 하우스</div>'
+        +'<div style="font-size:15px; font-weight:800; color:#a5f3fc;">'+profHouse+'</div>'
         +'</div>'
         +'<div style="flex:1; min-width:100px; background:rgba(34,211,238,0.08); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.2); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">지배 별자리</div>'
-        +'<div style="font-size:0.92rem; font-weight:800; color:#a5f3fc;">'+profSign+'</div>'
+        +'<div style="font-size:13px; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">지배 별자리</div>'
+        +'<div style="font-size:15px; font-weight:800; color:#a5f3fc;">'+profSign+'</div>'
         +'</div>'
         +'<div style="flex:1; min-width:100px; background:rgba(34,211,238,0.08); border-radius:10px; padding:12px; border:1px solid rgba(34,211,238,0.2); text-align:center;">'
-        +'<div style="font-size:0.72rem; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">올해의 행성</div>'
+        +'<div style="font-size:13px; color:#22d3ee; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">올해의 행성</div>'
         +'<div style="font-size:1.1rem; font-weight:900; color:#67e8f9;">'+profRuler+'</div>'
         +'</div>'
         +'</div>'
-        +'<p style="font-size:0.95rem; color:#e2e8f0; line-height:1.7; margin-bottom:12px; font-weight:600;">'+(profectionDynamic.theme || curProfData.theme)+'</p>'
-        +'<p style="font-size:0.84rem; color:#cbd5e1; line-height:1.65; margin:0 0 10px 0;">'+profectionPrecisionNote+'</p>'
+        +'<p style="font-size:15px; color:#e2e8f0; line-height:1.7; margin-bottom:12px; font-weight:600;">'+(profectionDynamic.theme || curProfData.theme)+'</p>'
+        +'<p style="font-size:14px; color:#cbd5e1; line-height:1.65; margin:0 0 10px 0;">'+profectionPrecisionNote+'</p>'
         +'<div style="background:rgba(34,211,238,0.06); border-radius:10px; padding:14px; margin-bottom:10px; border:1px solid rgba(34,211,238,0.12);">'
-        +'<div style="color:#67e8f9; font-weight:700; margin-bottom:6px; font-size:0.82rem;">📖 올해의 메시지</div>'
-        +'<p style="color:#cbd5e1; line-height:1.7; font-size:0.88rem; margin:0;">'+(profectionDynamic.detail || curProfData.detail)+'<br><br>'
+        +'<div style="color:#67e8f9; font-weight:700; margin-bottom:6px; font-size:13px;">📖 올해의 메시지</div>'
+        +'<p style="color:#cbd5e1; line-height:1.7; font-size:14px; margin:0;">'+(profectionDynamic.detail || curProfData.detail)+'<br><br>'
         +'지배 별자리 <b style="color:#a5f3fc">'+profSign+'</b>의 에너지가 이 하우스 주제를 채색하며, 올해 지배 행성 <b style="color:#67e8f9">'+profRuler+'</b>의 트랜짓 상태가 이 한 해의 실제 흐름을 결정합니다.</p>'
         +'</div>'
         +'<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">'
         +'<div style="background:rgba(250,204,21,0.07); border-radius:10px; padding:12px; border:1px solid rgba(250,204,21,0.15);">'
-        +'<div style="color:#fde68a; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💼 커리어 & 재물</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(profectionDynamic.career || curProfData.career)+'</p>'
+        +'<div style="color:#fde68a; font-weight:700; font-size:13px; margin-bottom:5px;">💼 커리어 & 재물</div>'
+        +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+(profectionDynamic.career || curProfData.career)+'</p>'
         +'</div>'
         +'<div style="background:rgba(244,114,182,0.07); border-radius:10px; padding:12px; border:1px solid rgba(244,114,182,0.15);">'
-        +'<div style="color:#f9a8d4; font-weight:700; font-size:0.8rem; margin-bottom:5px;">💕 연애 & 인간관계</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(profectionDynamic.love || curProfData.love)+'</p>'
+        +'<div style="color:#f9a8d4; font-weight:700; font-size:13px; margin-bottom:5px;">💕 연애 & 인간관계</div>'
+        +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+(profectionDynamic.love || curProfData.love)+'</p>'
         +'</div>'
         +'</div>'
         +'<div style="background:rgba(16,185,129,0.07); border-radius:10px; padding:12px; border:1px solid rgba(16,185,129,0.15);">'
-        +'<div style="color:#6ee7b7; font-weight:700; font-size:0.8rem; margin-bottom:5px;">✅ 이 해를 최대한 활용하는 법</div>'
-        +'<p style="color:#e2e8f0; font-size:0.83rem; line-height:1.65; margin:0;">'+(profectionDynamic.advice || curProfData.advice)+'</p>'
+        +'<div style="color:#6ee7b7; font-weight:700; font-size:13px; margin-bottom:5px;">✅ 이 해를 최대한 활용하는 법</div>'
+        +'<p style="color:#e2e8f0; font-size:14px; line-height:1.65; margin:0;">'+(profectionDynamic.advice || curProfData.advice)+'</p>'
         +'</div>'
         +'</div>'
         +'</div>'
 
         +'<div class="astro-expert">'
         +'<div class="expert-title">🗣️ 네오 & 연이의 코즈믹 카운슬링</div>'
-        +'<p style="margin:0 0 10px 0;color:#cbd5e1;font-size:12px;line-height:1.7;">오늘 차트가 말하는 진짜 핵심</p>'
+        +'<p style="margin:0 0 10px 0;color:#cbd5e1;font-size:14px;line-height:1.7;">오늘 차트가 말하는 진짜 핵심</p>'
         +'<div class="expert-msg">'
         +'<div class="expert-msg-row expert-msg-row--neo">'
         +'<span class="expert-avatar"><img class="expert-avatar-img" src="https://assets.code-destiny.com/cdn-cgi/image/width=240,quality=82,format=auto/DestinyWar/%EC%A0%84%EB%9E%B5%EC%8B%A4%20%EB%84%A4%EC%98%A4%20%EB%A9%94%EC%9D%B8-Photoroom.webp" alt="네오" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="expert-avatar-fallback" hidden>🔷</span></span>'
@@ -14721,14 +14987,14 @@ function renderAstroInsightLegacyNeon() {
       return ''
         + '<div class="astro-syn-prompt-card" data-astro-synastry-prompt-card="included-v20260615-quality-v2" style="margin-top:14px;border:1px solid rgba(125,211,252,.34);background:linear-gradient(145deg,rgba(8,13,32,.94),rgba(20,34,58,.9));border-radius:14px;padding:13px;box-shadow:0 16px 34px rgba(8,47,73,.26);">'
         + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px;">'
-        + '<div><div style="font-size:0.76rem;color:#a5f3fc;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;">Synastry Prompt Included</div><strong style="display:block;color:#fef3c7;font-size:0.96rem;">궁합 결과 기반 AI 상담 프롬프트</strong></div>'
-        + '<span style="border:1px solid rgba(134,239,172,.35);background:rgba(22,101,52,.22);color:#bbf7d0;border-radius:999px;padding:4px 8px;font-size:0.7rem;font-weight:900;">궁합 3,000원에 포함</span>'
+        + '<div><div style="font-size:13px;color:#a5f3fc;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;">Synastry Prompt Included</div><strong style="display:block;color:#fef3c7;font-size:0.96rem;">궁합 결과 기반 AI 상담 프롬프트</strong></div>'
+        + '<span style="border:1px solid rgba(134,239,172,.35);background:rgba(22,101,52,.22);color:#bbf7d0;border-radius:999px;padding:4px 8px;font-size:13px;font-weight:900;">궁합 3,000원에 포함</span>'
         + '</div>'
-        + '<p style="margin:0 0 8px 0;color:#cbd5e1;font-size:0.8rem;line-height:1.65;">방금 계산한 시너스트리 결과를 달·금성·화성·하우스 오버레이 중심의 깊은 관계 상담 흐름으로 이어갈 수 있습니다.</p>'
-        + '<textarea data-astro-synastry-prompt-output readonly style="width:100%;min-height:178px;border-radius:10px;border:1px solid rgba(125,211,252,.3);background:rgba(2,6,23,.74);color:#e0f2fe;padding:10px;font-size:0.78rem;line-height:1.66;box-sizing:border-box;resize:vertical;">' + _astroPromptEscapeHtml(prompt) + '</textarea>'
+        + '<p style="margin:0 0 8px 0;color:#cbd5e1;font-size:14px;line-height:1.65;">방금 계산한 시너스트리 결과를 달·금성·화성·하우스 오버레이 중심의 깊은 관계 상담 흐름으로 이어갈 수 있습니다.</p>'
+        + '<textarea data-astro-synastry-prompt-output readonly style="width:100%;min-height:178px;border-radius:10px;border:1px solid rgba(125,211,252,.3);background:rgba(2,6,23,.74);color:#e0f2fe;padding:10px;font-size:13px;line-height:1.66;box-sizing:border-box;resize:vertical;">' + _astroPromptEscapeHtml(prompt) + '</textarea>'
         + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">'
-        + '<span data-astro-synastry-prompt-status style="color:#93c5fd;font-size:0.74rem;">궁합 결제에 포함된 기본 프롬프트입니다.</span>'
-        + '<button type="button" data-astro-copy-synastry-prompt style="border:1px solid rgba(125,211,252,.42);background:linear-gradient(135deg,#0f172a,#0ea5e9);color:#fff;border-radius:10px;padding:9px 12px;font-size:0.78rem;font-weight:800;cursor:pointer;">프롬프트 복사</button>'
+        + '<span data-astro-synastry-prompt-status style="color:#93c5fd;font-size:13px;">궁합 결제에 포함된 기본 프롬프트입니다.</span>'
+        + '<button type="button" data-astro-copy-synastry-prompt style="border:1px solid rgba(125,211,252,.42);background:linear-gradient(135deg,#0f172a,#0ea5e9);color:#fff;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:800;cursor:pointer;">프롬프트 복사</button>'
         + '</div>'
         + '</div>';
     }
@@ -15146,17 +15412,17 @@ function renderAstroInsightLegacyNeon() {
                 twins.push({ c: c, r: r, matchSun: matchSun, flag: flag });
             });
             if (twins.length === 0) {
-                twinsDiv.innerHTML = '<span style="color:#666;font-size:0.8rem;">DB에서 같은 기운의 유명인을 찾지 못했습니다.</span>';
+                twinsDiv.innerHTML = '<span style="color:var(--fr-muted);font-size:13px;">DB에서 같은 기운의 유명인을 찾지 못했습니다.</span>';
             } else {
                 twinsDiv.innerHTML = twins.map(function(t) {
                     var tag = t.matchSun ? '☀ 같은 태양' : '♀ 같은 금성';
                     var tagClr = t.matchSun ? '#fbbf24' : '#f472b6';
                     return '<div onclick="window._astroPickCeleb('+JSON.stringify(t.c.name)+','+JSON.stringify(t.c.birth)+','+(t.c.hour||12)+')" '
-                        +'style="cursor:pointer;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:20px;padding:5px 11px;font-size:0.75rem;color:#a7f3d0;transition:all 0.2s;" '
+                        +'style="cursor:pointer;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:20px;padding:5px 11px;font-size:13px;color:#a7f3d0;transition:all 0.2s;" '
                         +'onmouseenter="this.style.background=\'rgba(52,211,153,0.2)\'" onmouseleave="this.style.background=\'rgba(52,211,153,0.08)\'">'
                         + t.flag + ' ' + t.c.name
-                        +'<span style="font-size:0.6rem;color:'+tagClr+';margin-left:4px;font-weight:700;">'+tag+'</span>'
-                        +'<span style="font-size:0.6rem;color:#fde68a;margin-left:6px;font-weight:800;">3,000원</span>'
+                        +'<span style="font-size:13px;color:'+tagClr+';margin-left:4px;font-weight:700;">'+tag+'</span>'
+                        +'<span style="font-size:13px;color:#fde68a;margin-left:6px;font-weight:800;">3,000원</span>'
                         +'</div>';
                 }).join('');
             }
@@ -15180,7 +15446,7 @@ function renderAstroInsightLegacyNeon() {
             });
             listDiv.innerHTML = '';
             if (filtered.length === 0) {
-                listDiv.innerHTML = '<span style="color:#666;font-size:0.8rem;padding:4px;">검색 결과가 없습니다.</span>';
+                listDiv.innerHTML = '<span style="color:var(--fr-muted);font-size:13px;padding:4px;">검색 결과가 없습니다.</span>';
                 return;
             }
             filtered.slice(0, 80).forEach(function(c) {
@@ -15188,7 +15454,7 @@ function renderAstroInsightLegacyNeon() {
                 var btn = document.createElement('button');
                 btn.type = 'button';
                 btn.textContent = flag + c.name + ' · 3,000원';
-                btn.style.cssText = 'padding:5px 11px;border-radius:999px;font-size:0.75rem;font-weight:700;letter-spacing:.01em;border:1px solid rgba(244,114,182,0.34);background:linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78));color:#fbcfe8;cursor:pointer;transition:all 0.2s;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
+                btn.style.cssText = 'padding:5px 11px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:.01em;border:1px solid rgba(244,114,182,0.34);background:linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78));color:#fbcfe8;cursor:pointer;transition:all 0.2s;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
                 btn.onmouseenter = function() { this.style.background='rgba(244,114,182,0.18)'; };
                 btn.onmouseleave = function() { this.style.background='linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78))'; };
                 btn.onclick = function() {
@@ -15200,7 +15466,7 @@ function renderAstroInsightLegacyNeon() {
             });
             if (filtered.length > 80) {
                 var note = document.createElement('span');
-                note.style.cssText = 'color:#666;font-size:0.73rem;padding:4px 6px;align-self:center;';
+                note.style.cssText = 'color:var(--fr-muted);font-size:13px;padding:4px 6px;align-self:center;';
                 note.textContent = '외 ' + (filtered.length - 80) + '명';
                 listDiv.appendChild(note);
             }
@@ -15213,10 +15479,10 @@ function renderAstroInsightLegacyNeon() {
                 var b = document.createElement('button'); b.type = 'button';
                 b.textContent = label; b.dataset.c = code;
                 var isA = code === '';
-                b.style.cssText = 'padding:4px 10px;border-radius:999px;font-size:0.72rem;font-weight:700;border:1px solid rgba(129,140,248,'+(isA?'0.7':'0.3')+');background:rgba(129,140,248,'+(isA?'0.18':'0.04')+');color:'+(isA?'#a5b4fc':'#7f8c8d')+';cursor:pointer;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
+                b.style.cssText = 'padding:4px 10px;border-radius:999px;font-size:13px;font-weight:700;border:1px solid rgba(129,140,248,'+(isA?'0.7':'0.3')+');background:rgba(129,140,248,'+(isA?'0.18':'0.04')+');color:'+(isA?'#a5b4fc':'var(--fr-muted)')+';cursor:pointer;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
                 b.onclick = function() {
                     ctryDiv.querySelectorAll('button').forEach(function(x){
-                        x.style.background='rgba(129,140,248,0.04)'; x.style.borderColor='rgba(129,140,248,0.3)'; x.style.color='#7f8c8d';
+                        x.style.background='rgba(129,140,248,0.04)'; x.style.borderColor='rgba(129,140,248,0.3)'; x.style.color='var(--fr-muted)';
                     });
                     this.style.background='rgba(129,140,248,0.18)'; this.style.borderColor='rgba(129,140,248,0.7)'; this.style.color='#a5b4fc';
                     _astroActiveCtry = this.dataset.c; _astroRenderCelebList();
@@ -15236,10 +15502,10 @@ function renderAstroInsightLegacyNeon() {
             ['전체'].concat(CELEB_CATS).forEach(function(c, i) {
                 var b = document.createElement('button'); b.type='button'; b.dataset.cat = i===0?'':c;
                 b.textContent = (ic[c]||'✨') + ' ' + c;
-                b.style.cssText = 'padding:4px 10px;border-radius:999px;font-size:0.72rem;font-weight:700;border:1px solid rgba(244,114,182,'+(i===0?'0.6':'0.25')+');background:rgba(244,114,182,'+(i===0?'0.15':'0.04')+');color:'+(i===0?'#f9a8d4':'#94a3b8')+';cursor:pointer;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
+                b.style.cssText = 'padding:4px 10px;border-radius:999px;font-size:13px;font-weight:700;border:1px solid rgba(244,114,182,'+(i===0?'0.6':'0.25')+');background:rgba(244,114,182,'+(i===0?'0.15':'0.04')+');color:'+(i===0?'#f9a8d4':'var(--fr-muted)')+';cursor:pointer;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
                 b.onclick = function() {
                     catDiv.querySelectorAll('button').forEach(function(x){
-                        x.style.background='rgba(244,114,182,0.04)'; x.style.borderColor='rgba(244,114,182,0.25)'; x.style.color='#94a3b8';
+                        x.style.background='rgba(244,114,182,0.04)'; x.style.borderColor='rgba(244,114,182,0.25)'; x.style.color='var(--fr-muted)';
                     });
                     this.style.background='rgba(244,114,182,0.15)'; this.style.borderColor='rgba(244,114,182,0.6)'; this.style.color='#f9a8d4';
                     _astroActiveCat = this.dataset.cat; _astroRenderCelebList();
@@ -15412,7 +15678,7 @@ function renderAstroInsightLegacyNeon() {
         .sort(function(a,b){ return Math.abs(b.weighted) - Math.abs(a.weighted); });
       if(!arr.length) return positive ? '강한 조화각 없음' : '강한 긴장각 없음';
       var r0 = arr[0];
-      return r0.pair + ' · ' + r0.asp.name + ' · orb ' + r0.asp.orb.toFixed(2) + '°';
+      return r0.pair + ' · ' + r0.asp.name + ' · 오차 ' + r0.asp.orb.toFixed(2) + '°';
     }
     function _syTopAspect(rows, positive){
       var arr = (rows || []).filter(function(r){ return positive ? r.weighted > 0 : r.weighted < 0; })
@@ -15670,7 +15936,7 @@ function renderAstroInsightLegacyNeon() {
                       html2 += '<div class="astro-syn-aspect">'
                             +'<span style="font-size:1rem;color:'+r.asp.color+';">'+r.asp.symbol+'</span>'
                         +'<span class="astro-syn-aspect-main">'+r.pair+'</span>'
-                      +'<span style="font-size:0.68rem;background:rgba('+( r.weighted>0?'52,211,153':'239,68,68' )+',0.15);color:'+r.asp.color+';padding:2px 7px;border-radius:10px;">'+r.asp.name+' · orb '+r.asp.orb.toFixed(2)+'°</span>'
+                      +'<span style="font-size:13px;background:rgba('+( r.weighted>0?'52,211,153':'239,68,68' )+',0.15);color:'+r.asp.color+';padding:2px 7px;border-radius:10px;">'+r.asp.name+' · 오차 '+r.asp.orb.toFixed(2)+'°</span>'
                             +'</div>';
                     });
                     html2 += '</div></div>';
@@ -15710,7 +15976,7 @@ function renderAstroInsightLegacyNeon() {
                 resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             } catch(e) {
               astroLatestCompatibilityResult = null;
-                resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:0.85rem;">시나스트리 계산 중 오류가 발생했습니다: ' + (e.message || e) + '</div></div>';
+                resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:14px;">시나스트리 계산 중 오류가 발생했습니다: ' + (e.message || e) + '</div></div>';
             }
         }, 50);
     };
@@ -15755,7 +16021,7 @@ function renderAstroInsightLegacyNeon() {
         var lonVal  = (lon != null) ? Number(lon) : 126.9780;
 
         if (!dateVal) {
-            resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:0.85rem;padding:4px 0;">⚠ 상대방의 생년월일을 입력해 주세요.</div></div>';
+            resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:14px;padding:4px 0;">⚠ 상대방의 생년월일을 입력해 주세요.</div></div>';
             return;
         }
 
@@ -15966,7 +16232,7 @@ function renderAstroInsightLegacyNeon() {
                       h += '<div class="astro-syn-aspect">'
                             +'<span style="font-size:1rem;color:'+r.asp.color+';">'+r.asp.symbol+'</span>'
                         +'<span class="astro-syn-aspect-main">'+r.pair+'</span>'
-                      +'<span style="font-size:0.68rem;background:rgba('+(r.weighted>0?'52,211,153':'239,68,68')+',0.15);color:'+r.asp.color+';padding:2px 7px;border-radius:10px;">'+r.asp.name+' · orb '+r.asp.orb.toFixed(2)+'°</span>'
+                      +'<span style="font-size:13px;background:rgba('+(r.weighted>0?'52,211,153':'239,68,68')+',0.15);color:'+r.asp.color+';padding:2px 7px;border-radius:10px;">'+r.asp.name+' · 오차 '+r.asp.orb.toFixed(2)+'°</span>'
                             +'</div>';
                     });
                     h += '</div></div>';
@@ -16018,7 +16284,7 @@ function renderAstroInsightLegacyNeon() {
                   resultDiv.appendChild(wHost);
                   cdEnsureCompatLlmReady(function () {
                     if (!window.CompatLlm || typeof window.CompatLlm.mountWesternFromPayload !== 'function') {
-                      wHost.innerHTML = '<div style="color:#fda4af;font-size:0.85rem;padding:10px;border-radius:10px;border:1px solid rgba(251,113,133,0.35);margin-top:10px;">AI 프롬프트 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</div>';
+                      wHost.innerHTML = '<div style="color:#fda4af;font-size:14px;padding:10px;border-radius:10px;border:1px solid rgba(251,113,133,0.35);margin-top:10px;">AI 프롬프트 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</div>';
                       return;
                     }
                     var mySunN = _sySignName(chart, 'Sun');
@@ -16104,7 +16370,7 @@ function renderAstroInsightLegacyNeon() {
                 }
             } catch(e) {
               astroLatestCompatibilityResult = null;
-                resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:0.85rem;">계산 중 오류가 발생했습니다: ' + (e.message || e) + '</div></div>';
+                resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:14px;">계산 중 오류가 발생했습니다: ' + (e.message || e) + '</div></div>';
             }
         }, 50);
     };
@@ -33852,7 +34118,7 @@ function showQuantumResult() {
     return ''
       + '<section class="astro-restored-hero" data-astro-basic-result="' + ASTRO_COUNSEL_MARKER + '">'
       + '<div class="astro-restored-hero__sky" aria-hidden="true"><span></span><span></span><span></span></div>'
-      + '<div class="astro-restored-hero__kicker">Western Astrology Restored</div>'
+      + '<div class="astro-restored-hero__kicker">서양 점성술 리딩</div>'
       + '<h3>당신의 별자리가 다시 말을 걸기 시작합니다</h3>'
       + '<p><b>' + _astroCounselEscape(sun.sign) + ' 태양</b>은 삶이 향하는 빛의 방향이고, <b>' + _astroCounselEscape(moon.sign) + ' 달</b>은 마음이 쉬어 가는 은밀한 항구입니다. <b>' + _astroCounselEscape(asc.sign) + ' 상승궁</b>은 세상에 처음 닿는 별빛이며, MC <b>' + _astroCounselEscape(mc.sign) + '</b>은 당신이 사회 속에 남길 이름의 결을 보여줍니다.</p>'
       + '<div class="astro-restored-hero__orbits">'
@@ -33880,21 +34146,21 @@ function showQuantumResult() {
       + '.astro-restored-hero__sky span:nth-child(1){width:220px;height:220px;right:-80px;top:-70px;}'
       + '.astro-restored-hero__sky span:nth-child(2){width:150px;height:150px;left:-52px;bottom:-54px;border-color:rgba(45,212,191,.18);}'
       + '.astro-restored-hero__sky span:nth-child(3){width:90px;height:90px;right:26%;bottom:22px;border-color:rgba(240,171,252,.18);}'
-      + '.astro-restored-hero__kicker{position:relative;color:#67e8f9;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;margin-bottom:7px;}'
+      + '.astro-restored-hero__kicker{position:relative;color:#67e8f9;font-size:13px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;margin-bottom:7px;}'
       + '.astro-restored-hero h3{position:relative;margin:0 0 9px 0;color:#fff7ed;font-size:24px;line-height:1.34;font-family:"Noto Serif KR","Noto Sans KR",serif;letter-spacing:0;}'
       + '.astro-restored-hero p{position:relative;margin:0;color:#dbeafe;font-size:14px;line-height:1.82;word-break:keep-all;}'
       + '.astro-restored-hero p b{color:#fef3c7;}'
       + '.astro-restored-hero__orbits{position:relative;display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:13px 0 12px;color:#fde68a;}'
-      + '.astro-restored-hero__orbits span{display:inline-flex;align-items:center;min-height:28px;border-radius:999px;border:1px solid rgba(251,191,36,.32);background:rgba(15,23,42,.58);padding:5px 9px;font-size:12px;font-weight:900;}'
+      + '.astro-restored-hero__orbits span{display:inline-flex;align-items:center;min-height:28px;border-radius:999px;border:1px solid rgba(251,191,36,.32);background:rgba(15,23,42,.58);padding:5px 9px;font-size:13px;font-weight:900;}'
       + '.astro-restored-hero__orbits i{display:block;flex:1;min-width:18px;height:1px;background:linear-gradient(90deg,rgba(125,211,252,.16),rgba(251,191,36,.5),rgba(240,171,252,.16));}'
       + '.astro-restored-hero__cards{position:relative;display:grid;grid-template-columns:1fr;gap:9px;}'
       + '.astro-restored-hero__cards article{border-radius:14px;border:1px solid rgba(125,211,252,.28);background:rgba(2,6,23,.42);padding:11px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);}'
       + '.astro-restored-hero__cards strong{display:block;color:#fef3c7;font-size:13px;margin-bottom:4px;}'
-      + '.astro-restored-hero__cards span{display:block;color:#c7f9ff;font-size:12px;line-height:1.65;}'
+      + '.astro-restored-hero__cards span{display:block;color:#c7f9ff;font-size:13px;line-height:1.65;}'
       + '.astro-restored-chart-details{border:1px solid rgba(125,211,252,.28);border-radius:16px;background:rgba(3,10,29,.48);margin:0 0 14px 0;overflow:hidden;}'
       + '.astro-restored-chart-details>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;padding:12px 13px;color:#fef3c7;font-weight:900;list-style:none;}'
       + '.astro-restored-chart-details>summary::-webkit-details-marker{display:none;}'
-      + '.astro-restored-chart-details>summary em{color:#93c5fd;font-size:11px;font-style:normal;font-weight:700;}'
+      + '.astro-restored-chart-details>summary em{color:#93c5fd;font-size:13px;font-style:normal;font-weight:700;}'
       + '.astro-restored-chart-details .astro-wheel-card{margin:0!important;border-radius:0!important;border-width:1px 0 0 0!important;}'
       + '.astro-cosmic-restored .astro-action-hub,.astro-cosmic-restored .astro-section{border-radius:16px!important;}'
       + '.astro-cosmic-restored .astro-action-hub,.astro-cosmic-restored .astro-prompt-panel,.astro-cosmic-restored .astro-compat-panel{border:1px solid rgba(125,211,252,.28)!important;background:linear-gradient(155deg,rgba(5,12,31,.94),rgba(18,22,52,.9) 54%,rgba(35,19,54,.86))!important;box-shadow:0 22px 52px -34px rgba(125,211,252,.8),inset 0 1px 0 rgba(255,255,255,.08)!important;}'
@@ -33902,8 +34168,8 @@ function showQuantumResult() {
       + '.astro-cosmic-restored .astro-compat-panel:before,.astro-cosmic-restored .astro-prompt-panel:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 8% 18%,rgba(251,191,36,.13),transparent 23%),radial-gradient(circle at 88% 18%,rgba(56,189,248,.12),transparent 26%),linear-gradient(120deg,transparent 0 60%,rgba(240,171,252,.07) 60.2%,transparent 61%);pointer-events:none;}'
       + '.astro-cosmic-restored .astro-compat-panel>*,.astro-cosmic-restored .astro-prompt-panel>*{position:relative;z-index:1;}'
       + '.astro-cosmic-restored .astro-paid-note{border:1px solid rgba(251,191,36,.28)!important;background:rgba(120,53,15,.18)!important;border-radius:13px!important;padding:10px 11px!important;margin:8px 0 12px!important;}'
-      + '.astro-cosmic-restored .astro-paid-note strong{display:block;color:#fef3c7;font-size:13px;margin-bottom:4px;}'
-      + '.astro-cosmic-restored .astro-paid-note span{display:block;color:#dbeafe;font-size:12px;line-height:1.65;}'
+      + '.astro-cosmic-restored .astro-paid-note strong{display:block;color:#fef3c7;font-size:14px;margin-bottom:4px;}'
+      + '.astro-cosmic-restored .astro-paid-note span{display:block;color:#dbeafe;font-size:14px;line-height:1.65;}'
       + '.astro-cosmic-restored .astro-neon-input,.astro-cosmic-restored .astro-neon-select,#astroAiPromptOutput{border-color:rgba(125,211,252,.34)!important;background:rgba(2,8,23,.72)!important;color:#eaf6ff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);}'
       + '.astro-cosmic-restored .astro-neon-cta{border-radius:999px!important;background:linear-gradient(135deg,#0ea5e9,#4f46e5 58%,#7c3aed)!important;box-shadow:0 16px 34px -20px rgba(56,189,248,.9)!important;}'
       + '.astro-stellar-archive{position:relative;border:1px solid rgba(251,191,36,.3);background:radial-gradient(circle at 18% 0%,rgba(251,191,36,.15),transparent 28%),radial-gradient(circle at 88% 12%,rgba(125,211,252,.12),transparent 30%),linear-gradient(160deg,rgba(7,12,28,.94),rgba(18,11,37,.9));border-radius:20px;padding:15px;margin:0 0 14px 0;overflow:hidden;}'
@@ -33942,11 +34208,11 @@ function showQuantumResult() {
       wrap.insertAdjacentHTML('afterbegin', _astroCounselRestoredHeroHtml(pack));
     }
 
-    _astroCounselSetText(wrap, '#astroActionHub .astro-action-hub__kicker', 'Constellation Gate');
-    _astroCounselSetText(wrap, '#astroActionHub .astro-subhead', '🌌 별의 문이 열렸습니다');
+    _astroCounselSetText(wrap, '#astroActionHub .astro-action-hub__kicker', '다음 단계');
+    _astroCounselSetText(wrap, '#astroActionHub .astro-subhead', '별의 문이 열렸습니다');
     _astroCounselSetText(wrap, '#astroActionHub .astro-action-hub__lead', '당신의 출생 차트 위로 성향, 오늘의 흐름, 관계 궁합으로 이어지는 별자리 지도가 펼쳐졌습니다. 필요한 순간 상대의 별을 겹쳐 시나스트리 궁합을 열어볼 수 있습니다.');
-    _astroCounselSetText(wrap, '#astroAiPromptSection .astro-section-kicker', 'Ask the Stars');
-    _astroCounselSetText(wrap, '#astroAiPromptSection .astro-subhead', '🌌 별에게 묻는 질문 만들기');
+    _astroCounselSetText(wrap, '#astroAiPromptSection .astro-section-kicker', '상담 질문');
+    _astroCounselSetText(wrap, '#astroAiPromptSection .astro-subhead', '별에게 묻는 질문 만들기');
     _astroCounselSetText(wrap, '#astroAiPromptSection .astro-birth-lead', '지금 차트의 별빛을 바탕으로, 실제 상담에 건넬 수 있는 질문 문장을 정돈합니다. 궁합을 본 뒤에는 두 사람의 시나스트리 흐름까지 함께 담깁니다.');
     _astroCounselSetText(wrap, '#astroAiPromptGenerateBtn', '상담 시작하기');
     _astroCounselSetText(wrap, '#astroAiPromptCopyBtn', '질문 문장 복사');
@@ -33966,7 +34232,7 @@ function showQuantumResult() {
       '관계의 궤도',
       '별자리 실험실'
     ]);
-    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-subhead', '💫 두 사람의 별을 겹쳐 보기');
+    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-subhead', '두 사람의 별을 겹쳐 보기');
     _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-paid-note strong', '시나스트리 궁합 · 3,000원');
     _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-paid-note span', '상대의 출생 정보를 더하면 두 별자리의 끌림과 긴장을 함께 읽습니다.');
     _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-neon-cta', '✦ 3,000원으로 두 사람의 별자리 궁합 보기');
@@ -33981,7 +34247,7 @@ function showQuantumResult() {
     var directCityEmpty = wrap.querySelector('#asDirect_city option[value=""]');
     if (directCityEmpty) directCityEmpty.textContent = '태어난 도시 선택';
     _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-desc > p', '상대의 별을 더하면 두 사람 사이의 끌림, 긴장, 안정감, 반복되는 관계 패턴이 하나의 하늘 지도처럼 드러납니다. 생시를 모를 때는 정오 기준으로 읽되, 달과 상승궁은 가능성의 범위로 보겠습니다.');
-    _astroCounselSetText(wrap, '#astroSynastrySection .astro-subhead', '🌌 유명인 별자리 궁합 실험실');
+    _astroCounselSetText(wrap, '#astroSynastrySection .astro-subhead', '유명인 별자리 궁합 실험실');
     _astroCounselSetText(wrap, '#astroSynastrySection .astro-paid-note strong', '유명인 시나스트리 · 3,000원');
     _astroCounselSetText(wrap, '#astroSynastrySection .astro-paid-note span', '선택한 인물의 별과 나의 별을 겹쳐 관계의 결을 읽습니다.');
     _astroCounselSetTexts(wrap, '#astroSynastrySection .astro-neon-soft-block > div:first-child', [
@@ -33989,7 +34255,7 @@ function showQuantumResult() {
       '유명인 별자리 궁합 선택'
     ]);
     _astroCounselSetPlaceholder(wrap, '#astroSyQ', '이름으로 찾기 · 예: 테일러, 아이유, 뉴진스');
-    _astroCounselSetText(wrap, '.astro-wheel-card .astro-subhead', '🪐 태어난 순간의 하늘 지도');
+    _astroCounselSetText(wrap, '.astro-wheel-card .astro-subhead', '태어난 순간의 하늘 지도');
     _astroCounselSetText(wrap, '.astro-wheel-card .astro-wheel-caption', '아래 표는 별자리 리딩의 원본 좌표입니다. 행성 위치와 각도는 참고용으로 보고, 실제 해석은 위아래의 상담 문장을 중심으로 읽어주세요.');
 
     if (!wrap.querySelector('[data-astro-deep-restored="' + ASTRO_COUNSEL_MARKER + '"]')) {
@@ -34097,53 +34363,53 @@ function showQuantumResult() {
       + '.astro-counsel{--gold:#f6d365;--cyan:#7dd3fc;--rose:#f0abfc;--ink:#e5edf8;color:var(--ink);font-family:"SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;}'
       + '.astro-counsel *{box-sizing:border-box;word-break:keep-all;}'
       + '.astro-counsel-hero{border:1px solid rgba(246,211,101,.34);background:linear-gradient(145deg,rgba(16,18,34,.96),rgba(10,31,45,.92));border-radius:16px;padding:18px;margin-bottom:14px;}'
-      + '.astro-counsel-kicker{font-size:11px;font-weight:900;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;}'
+      + '.astro-counsel-kicker{font-size:13px;font-weight:900;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;}'
       + '.astro-counsel h3{margin:0 0 10px 0;font-size:22px;line-height:1.34;color:#fff;}'
       + '.astro-counsel h4{margin:0 0 12px 0;font-size:18px;line-height:1.38;color:#fef3c7;}'
       + '.astro-counsel p{margin:0 0 10px 0;font-size:14px;line-height:1.78;color:#dbeafe;}'
       + '.astro-counsel-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}'
-      + '.astro-counsel-tags span{border:1px solid rgba(125,211,252,.3);background:rgba(14,116,144,.18);border-radius:999px;padding:5px 9px;font-size:12px;color:#cffafe;}'
+      + '.astro-counsel-tags span{border:1px solid rgba(125,211,252,.3);background:rgba(14,116,144,.18);border-radius:999px;padding:5px 9px;font-size:13px;color:#cffafe;}'
       + '.astro-counsel-basis{border:1px solid rgba(125,211,252,.26);background:rgba(8,47,73,.22);border-radius:12px;padding:11px;margin-top:12px;}'
       + '.astro-counsel-basis strong,.astro-counsel-integration b{display:block;color:#fef3c7;font-size:13px;margin-bottom:7px;}'
       + '.astro-counsel-basis div{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}'
-      + '.astro-counsel-basis span{border:1px solid rgba(246,211,101,.28);background:rgba(246,211,101,.1);border-radius:999px;padding:4px 8px;font-size:11px;color:#fde68a;font-weight:800;}'
-      + '.astro-counsel-basis p{margin:0!important;font-size:12.5px!important;color:#bfdbfe!important;line-height:1.7!important;}'
+      + '.astro-counsel-basis span{border:1px solid rgba(246,211,101,.28);background:rgba(246,211,101,.1);border-radius:999px;padding:4px 8px;font-size:13px;color:#fde68a;font-weight:800;}'
+      + '.astro-counsel-basis p{margin:0!important;font-size:14px!important;color:#bfdbfe!important;line-height:1.7!important;}'
       + '.astro-counsel-section{border:1px solid rgba(148,163,184,.24);background:linear-gradient(150deg,rgba(15,23,42,.92),rgba(24,18,39,.9));border-radius:16px;padding:15px;margin-bottom:14px;}'
       + '.astro-counsel-axis-grid,.astro-counsel-planet-grid,.astro-counsel-job-list{display:grid;grid-template-columns:1fr;gap:10px;}'
       + '.astro-counsel-axis,.astro-counsel-planet,.astro-counsel-job-list article{border:1px solid rgba(125,211,252,.24);background:rgba(2,6,23,.42);border-radius:12px;padding:13px;}'
       + '.astro-counsel-axis__top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}'
-      + '.astro-counsel-axis__top span,.astro-counsel-axis__meta{font-size:12px;color:#a5f3fc;font-weight:800;}'
+      + '.astro-counsel-axis__top span,.astro-counsel-axis__meta{font-size:13px;color:#a5f3fc;font-weight:800;}'
       + '.astro-counsel-axis__top strong{font-size:18px;color:#fff;}'
       + '.astro-counsel-axis__meta{margin-bottom:10px;color:#fde68a;}'
-      + '.astro-counsel-step b,.astro-counsel-life b{display:block;margin-bottom:4px;color:#fde68a;font-size:12px;}'
+      + '.astro-counsel-step b,.astro-counsel-life b{display:block;margin-bottom:4px;color:#fde68a;font-size:13px;}'
       + '.astro-counsel-step span,.astro-counsel-life span{display:block;}'
       + '.astro-counsel-life{border-left:3px solid var(--rose);padding-left:10px;color:#f5d0fe!important;}'
       + '.astro-counsel-mini-apply,.astro-counsel-apply{border:1px solid rgba(246,211,101,.28);background:rgba(246,211,101,.1);border-radius:11px;padding:10px;color:#fef3c7;font-size:13px;line-height:1.7;}'
       + '.astro-counsel-apply{margin-top:12px;display:flex;flex-direction:column;gap:3px;}'
       + '.astro-counsel-mini-apply{display:flex;flex-direction:column;gap:3px;}'
-      + '.astro-counsel-mini-apply b,.astro-counsel-apply b{color:#fff7cc;font-size:12px;}'
+      + '.astro-counsel-mini-apply b,.astro-counsel-apply b{color:#fff7cc;font-size:13px;}'
       + '.astro-counsel-integration{border:1px solid rgba(240,171,252,.28);background:rgba(88,28,135,.18);border-radius:12px;padding:12px;margin-top:10px;color:#f5d0fe;font-size:13px;line-height:1.72;}'
-      + '.astro-counsel-integration p{margin:0 0 8px 0!important;color:#f5d0fe!important;font-size:13px!important;line-height:1.72!important;}'
+      + '.astro-counsel-integration p{margin:0 0 8px 0!important;color:#f5d0fe!important;font-size:14px!important;line-height:1.72!important;}'
       + '.astro-counsel-integration p:last-child{margin-bottom:0!important;}'
       + '.astro-wheel-card{border:1px solid rgba(251,191,36,0.22)!important;background:linear-gradient(155deg,rgba(12,18,36,.95),rgba(7,12,26,.95))!important;box-shadow:0 14px 28px -24px rgba(251,191,36,.65);border-radius:16px;padding:15px;margin-bottom:14px;}'
-      + '.astro-wheel-caption{margin:0 0 10px 0;color:#cbd5e1;font-size:12px;line-height:1.65;}'
-      + '.astro-wheel-warning{margin-bottom:10px;padding:8px 10px;border-radius:9px;border:1px solid rgba(251,113,133,.35);background:rgba(127,29,29,.2);color:#fecaca;font-size:12px;line-height:1.55;}'
+      + '.astro-wheel-caption{margin:0 0 10px 0;color:#cbd5e1;font-size:13px;line-height:1.65;}'
+      + '.astro-wheel-warning{margin-bottom:10px;padding:8px 10px;border-radius:9px;border:1px solid rgba(251,113,133,.35);background:rgba(127,29,29,.2);color:#fecaca;font-size:13px;line-height:1.55;}'
       + '.astro-wheel-summary{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}'
-      + '.astro-wheel-summary span{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1px solid rgba(125,211,252,.28);background:rgba(15,23,42,.68);color:#e2e8f0;font-size:11px;font-weight:700;}'
+      + '.astro-wheel-summary span{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1px solid rgba(125,211,252,.28);background:rgba(15,23,42,.68);color:#e2e8f0;font-size:13px;font-weight:700;}'
       + '.astro-wheel-visual{border-radius:14px;border:1px solid rgba(148,163,184,.2);background:radial-gradient(circle at 50% 35%,rgba(15,23,42,.95),rgba(2,6,23,.97));padding:8px;}'
       + '.astro-wheel-svg{display:block;width:100%;height:auto;}'
       + '.astro-wheel-tables{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}'
       + '.astro-wheel-table-wrap{border-radius:11px;border:1px solid rgba(148,163,184,.2);background:rgba(2,6,23,.42);padding:9px;overflow:auto;}'
-      + '.astro-wheel-table-title{margin-bottom:6px;color:#bae6fd;font-size:12px;font-weight:800;}'
+      + '.astro-wheel-table-title{margin-bottom:6px;color:#bae6fd;font-size:13px;font-weight:800;}'
       + '.astro-wheel-table{width:100%;border-collapse:collapse;}'
-      + '.astro-wheel-table th,.astro-wheel-table td{font-size:12px;padding:6px 7px;line-height:1.55;border-bottom:1px solid rgba(148,163,184,.16);color:#dbeafe;text-align:left;}'
+      + '.astro-wheel-table th,.astro-wheel-table td{font-size:13px;padding:6px 7px;line-height:1.55;border-bottom:1px solid rgba(148,163,184,.16);color:#dbeafe;text-align:left;}'
       + '.astro-counsel-career-steps p span{display:block;margin-top:5px;color:#bae6fd;}'
       + '.astro-counsel-job-list article strong,.astro-counsel-planet strong{display:block;color:#fff;font-size:14px;margin-bottom:6px;}'
       + '.astro-counsel-job-list article span{display:block;color:#cbd5e1;font-size:13px;line-height:1.68;}'
       + '.astro-counsel-error{border:1px solid rgba(248,113,113,.35);border-radius:14px;background:rgba(127,29,29,.18);padding:16px;color:#fee2e2;}'
       + '@media (min-width:720px){.astro-counsel-axis-grid{grid-template-columns:repeat(3,minmax(0,1fr));}.astro-counsel-planet-grid,.astro-counsel-job-list{grid-template-columns:repeat(2,minmax(0,1fr));}.astro-counsel h3{font-size:26px;}}'
       + '@media (max-width:860px){.astro-wheel-tables{grid-template-columns:1fr;}}'
-      + '@media (max-width:560px){.astro-counsel{font-size:14px;}.astro-counsel-hero,.astro-counsel-section{border-radius:13px;padding:13px;}.astro-counsel p{font-size:13.5px;line-height:1.82;}.astro-counsel h3{font-size:20px;}.astro-counsel h4{font-size:17px;}}'
+      + '@media (max-width:560px){.astro-counsel{font-size:14px;}.astro-counsel-hero,.astro-counsel-section{border-radius:13px;padding:13px;}.astro-counsel p{font-size:14px;line-height:1.82;}.astro-counsel h3{font-size:20px;}.astro-counsel h4{font-size:17px;}}'
       + '</style>';
 
     area.innerHTML = css

@@ -17,6 +17,7 @@
 | `samjae-125-sources.json` | 삼재 125조합 길흉표 9곳(URL 은 파일 안) | 조합별 길흉 라벨(사실)만 발췌, 해설 본문 미수록 | `samjae-125.v1.json` |
 | `buryong-sources.json` | 작명 실무 불용한자 목록 7곳 + 권익기·김만태(2018) | 글자 목록과 출처 id 만, 사유 문장 미수록 | 풀 `cautions` `["buryong", 출처색인]`(경고 전용) |
 | `jawon-sources.json` | 자원오행 부수·자의 규칙 16곳(URL 은 파일 안) | 부수·글자 → 오행 배속(사실)만 발췌, 원문 문장 미수록 | 풀 `jawon`·`jawonBasis`·`confidence` |
+| `wikidata-name-usage.json` | Wikidata Query Service, 대한민국 국적 인물의 한국어·한자 이름표 2026-10-04 조회(질의·상류 sha256 은 파일 안, `scripts/naming/extract-name-usage.mjs`) | CC0 1.0 — 조건 없음. 자리별 음절·(한자, 음) 집계 수치만 보관, 인물 식별자·성명 원문 미수록 | `name-usage.v1.json` → 어감·실용 감점(이름에 드문 글자·자리에 드문 음절) |
 
 사실 정보만 발췌한 출처(81수리·삼재·불용·자원오행·efamily)는 표현이 아닌 사실이라는 판단으로 보관했다. 이 판단은 법률 자문을 거치지 않았다.
 해설 문장이 필요하면 새로 쓰고, 출처 문장을 옮기지 않는다.

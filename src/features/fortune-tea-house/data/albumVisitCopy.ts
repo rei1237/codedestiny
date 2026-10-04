@@ -1,0 +1,16 @@
+export const albumVisitCopy = {
+  eyebrow: "꿀방울로 엮는 달빛 예화",
+  title: "상담의 기억이, 한 권의 앨범으로",
+  description: "완료한 상담마다 꿀방울 1개가 모여요. {cost}개를 사용해 앨범을 열면 78장의 카드 이야기와 PDF를 간직할 수 있어요.",
+  open: "달빛 타로 앨범 보기",
+  unlocked: "앨범 해금 완료 · PDF 저장 가능",
+  progress: "꿀방울 {count} / {cost}개",
+  loading: "꿀방울 확인 중",
+  guest: "로그인하면 모은 꿀방울을 확인할 수 있어요.",
+  login: "로그인하고 꿀방울 확인하기",
+  retry: "꿀방울 다시 확인하기",
+  unavailable: "꿀방울을 확인하지 못했어요. 잠시 후 다시 확인해 주세요.",
+  downloadNote: "해금한 앨범은 꿀방울을 다시 사용하지 않고 PDF로 저장할 수 있어요.",
+  chapter: "연이의 달빛 서가",
+  humanAlt: "달빛 아래 타로 카드 이야기를 전하는 인간형 연이",
+};

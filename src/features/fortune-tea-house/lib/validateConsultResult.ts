@@ -28,7 +28,7 @@ export function ensureFirstSpreadCardConsistency(
       meaning: tarotSnapshot.meaning,
       reading: readingMentionsCard
         ? first.reading
-        : `${first.positionLabel} 자리에는 ${tarotSnapshot.nameKo}이 ${orientationLabel(tarotSnapshot.orientation)}으로 떠올라 ${tarotSnapshot.keywords.slice(0, 2).join(", ")}의 결을 비춥니다. 이 카드는 ${tarotSnapshot.meaning}`,
+        : `${first.positionLabel} 자리에는 ${tarotSnapshot.nameKo} 카드가 ${orientationLabel(tarotSnapshot.orientation)}으로 떠올라 ${tarotSnapshot.keywords.slice(0, 2).join(", ")}의 결을 비춥니다. 이 카드는 ${tarotSnapshot.meaning}`,
     },
     ...rest,
   ];

@@ -1,6 +1,7 @@
+import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import type { FortuneTeaHouseConsultMode, FortuneTeaTarotSpread } from "./consult";
 
-// 타로는 스프레드(3카드/5카드)에 따라 featureKey가 갈리며 가격은 모두 5,000원이다. 나머지 상담은 모드 단위.
+// Keep existing product keys; amounts are resolved from the server registry below.
 export type FortuneTeaHousePriceKey = FortuneTeaHouseConsultMode | "sajuCompatibility" | "tarotFive";
 
 export const fortuneTeaHouseConsultPricing: Record<FortuneTeaHousePriceKey, {
@@ -10,30 +11,39 @@ export const fortuneTeaHouseConsultPricing: Record<FortuneTeaHousePriceKey, {
 }> = {
   tarot: {
     featureKey: "fortune-tea-house-tarot-consultation",
-    amountKRW: 5000,
-    label: "5,000원",
+    amountKRW: 0,
+    label: "가격 확인 중",
   },
   tarotFive: {
     featureKey: "fortune-tea-house-tarot-five-consultation",
-    amountKRW: 5000,
-    label: "5,000원",
+    amountKRW: 0,
+    label: "가격 확인 중",
   },
   saju: {
     featureKey: "fortune-tea-house-saju-consultation",
-    amountKRW: 5000,
-    label: "5,000원",
+    amountKRW: 0,
+    label: "가격 확인 중",
   },
   sajuCompatibility: {
     featureKey: "fortune-tea-house-saju-compatibility-consultation",
-    amountKRW: 5000,
-    label: "5,000원",
+    amountKRW: 0,
+    label: "가격 확인 중",
   },
   sukuyo: {
     featureKey: "fortune-tea-house-sukuyo-compatibility-consultation",
-    amountKRW: 5000,
-    label: "5,000원",
+    amountKRW: 0,
+    label: "가격 확인 중",
   },
 };
+
+// The same resolver used by checkout owns every displayed amount.
+for (const item of Object.values(fortuneTeaHouseConsultPricing)) {
+  const pricing = resolveServerFeaturePricing({ featureKey: item.featureKey });
+  if (pricing) {
+    item.amountKRW = pricing.amountKRW;
+    item.label = new Intl.NumberFormat("ko-KR").format(pricing.amountKRW) + "원";
+  }
+}
 
 /** 타로 상담은 스프레드로 상품이 갈리므로, 모드+스프레드를 가격표 키로 변환한다. */
 export function resolveFortuneTeaHousePriceKey(mode: FortuneTeaHousePriceKey, tarotSpread?: FortuneTeaTarotSpread): FortuneTeaHousePriceKey {

@@ -39,6 +39,8 @@ on:
       - "worker/lib/**"
       - "worker/routes/**"
       - "worker/yeongnyangi/**"
+      # 작명 v2 서술 보고서(worker/naming-engine/report.ts)를 가드가 LLM 생성 파일로 연다(2026-10-04).
+      - "worker/naming-engine/**"
       # ── 게이트 자신 ───────────────────────────────────────
       - "scripts/verify-ai-locale-pipeline.mjs"
       - ".github/workflows/ai-locale-gate.yml"

@@ -15,6 +15,8 @@ import path from 'node:path';
 // The worker 천요 fix (全書 丑起正月) changes the 24 Ziwei-bearing request hashes; ids, prepares, validations and manifests stay.
 // Ziwei now charts the longitude+DST corrected birth clock (lib/ziwei-birth-clock.js) with a new chart note, so the same 24 request hashes change again; ids, prepares, validations and manifests stay.
 // saju.seasonalBalance (조후) joined the saju anchor refs, so the 8 saju v7 rows change prepare, requests and manifests; ids and validations stay.
+// ziwei.businessBasis·healthBasis (궁간 비화 사업운·질액궁 건강, ziwei/derived.ts) joined the Ziwei context and the evidence-name table, so the 16 Ziwei rows change prepare, requests, validations and manifests, the Ziwei fusions change prepare and requests, and every other row changes requests only; ids stay.
+// vedic planets·grahas dignity gains moolatrikona and yogas·healthBasis (클래식 요가 성립 조건·1·6·8·12하우스 주인 건강, vedic/derived.ts) joined the Vedic context, so only the Vedic rows and the Vedic fusions change; the evidence-name table already had healthBasis, so no other row moves and ids stay.
 // All calls are mocks: providers are stubbed, ask analysis falls back to its rules, time and randomness are fixed.
 // An intended change outside v7 wiring (engine, prompt, catalog) refreshes the table: YEONGNYANGI_INVARIANCE_PRINT=1.
 process.env.TZ='UTC';
@@ -27,7 +29,7 @@ const replacements={
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
   'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
 };
-const bundle=await build({stdin:{contents:"export {prepareFortune} from './worker/yeongnyangi/service'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {products} from './worker/yeongnyangi/payments/catalog'; export {topicIds} from './worker/yeongnyangi/fortune/topics'; export {readingLocale} from './worker/yeongnyangi/fortune/reading-locale'; export {analyzeAsk} from './worker/yeongnyangi/fortune/ask/analysis'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
+const bundle=await build({stdin:{contents:"export {prepareFortune} from './worker/yeongnyangi/service'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {products} from './worker/yeongnyangi/payments/catalog'; export {topicIds} from './worker/yeongnyangi/fortune/topics'; export {readingLocale} from './worker/yeongnyangi/fortune/reading-locale'; export {analyzeAsk} from './worker/yeongnyangi/fortune/ask/analysis'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {deliverChapter} from './worker/yeongnyangi/providers/delivery';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('reading-invariance-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const m=loaded.exports;
 
@@ -58,6 +60,9 @@ async function mockBody(input){
   return {...body,questionAnswers:assigned.map(q=>({questionId:q.id,answer:'주어진 근거로 지금의 선택지를 차분히 살펴보세요.',reason:'계산된 흐름을 바탕으로 선택지의 조건을 비교합니다.',
     timing:'정해진 시점보다 현재 흐름을 점검하는 기간으로 참고해 보세요.',action:'기록한 상황과 선택지를 나란히 적어 비교해 보세요.',...(input.ask?{factIds:[],timingIds:[],evidenceStatus:'limited'}:{})}))};
 }
+// End to end through the paid delivery gate (chapter-delivery-contract.js): every mock chapter the strict validator
+// accepts must also be delivered under the purchase's contract. Hashes above are untouched by this check.
+const deliveryFailures=[];
 async function chapterRun(row){
   const {snapshot}=row,requests=[],validated=[],previous=[];
   const checkpoint=row.generationCheckpoint;
@@ -70,6 +75,8 @@ async function chapterRun(row){
     try{await new m.StructuredChapterProvider(capture).generateChapter(input);}catch(error){requests.push(errorCode(error));}
     let result;
     if(body){try{result=m.validateChapter(body,input);validated.push(sha(result));}catch(error){validated.push(errorCode(error));}}
+    if(result)try{m.deliverChapter({...body,chapterId:chapter.id,complete:true},{...input,deliveryContract:snapshot.deliveryContract});}
+      catch(error){deliveryFailures.push(`${snapshot.product.id}:${snapshot.analysis.consultation?.consultationKind||'legacy'}#${ordinal}/${chapter.key||chapter.id}/${chapter.minimumChars} ${errorCode(error)}`);}
     if(chapter.key==='prevention')assert.ok(result,`prevention must deliver a valid mock chapter: ${snapshot.product.id}: ${validated.at(-1)}`);
     previous.push(result||{summary:`fixture ${ordinal}`,example:'',topics:[]});
   }
@@ -84,8 +91,11 @@ async function prepared(productId,kindId,extra={}){
     if(kind?.partner)body.partnerProfileId='partner';
     const row=await m.prepareFortune(env,'owner',body);
     const {snapshot}=row,{contexts,consultation,...analysis}=snapshot.analysis;
+    // Delivery metadata is deliberately new; retain the historical calculation,
+    // identity and manifest hashes and pin that metadata independently.
+    assert.equal(snapshot.deliveryContract,'chapter-delivery-20261004');
     const prepare={id:row._id,fingerprint:row.fingerprint,amountKRW:row.amountKRW,productId:row.productId,featureKey:row.featureKey,
-      checkpoint:row.generationCheckpoint?.version,snapshotKeys:Object.keys(snapshot).sort(),product:snapshot.product,manifest:snapshot.manifest,consultation,
+      checkpoint:row.generationCheckpoint?.version,snapshotKeys:Object.keys(snapshot).filter(key=>key!=='deliveryContract').sort(),product:snapshot.product,manifest:snapshot.manifest,consultation,
       analysisKeys:Object.keys(analysis).sort(),facts:Object.fromEntries(Object.entries(contexts).map(([d,c])=>[d,c.facts.map(f=>f.id)]))};
     return {id:row._id,prepare,...await chapterRun(row)};
   }finally{restore();}
@@ -110,131 +120,143 @@ const topicManifests=(p,k)=>sha(Object.fromEntries(m.topicIds.map(t=>[t,m.consul
 // so prepare and request hashes change for :ask rows only. IDs, validated prose and manifests stay fixed.
 // Persona register directive (2026-10-02): the reading contract now uses the shared builder's persona register
 // (the same text the provider appends with outputRegister:'persona'), so all 123 request hashes change; other columns fixed.
+// Saju derived signals (2026-10-04): elementProfile·tenGodProfile·movementSignals·healthBasis join the saju facts, the
+// v7 anchor/health/timing chapters and the mackerel self chapter, and their four names join the shared evidence-name
+// vocabulary every request carries. Saju rows change prepare/requests/validated/manifests (work·money and saju fusions
+// prepare/requests), every other row changes requests only, and all IDs stay fixed.
+// Saju v7 chapters (2026-10-04): romanceTiming (spouse star, 도화·홍염, day-branch links by year) joins the saju facts
+// and the shared vocabulary; elementProfile splits balance from traits; tuna gains elements·loveLuck·marriageLuck·movement.
+// Saju personal/ask change prepare/requests/validated/manifests, other saju rows prepare/requests, the rest requests only.
+// Astrology derived facts (2026-10-04): traditional dignity on planets, chartSect, houseRulers 1·6·7·10, elementBalance
+// and healthBasis join the astrology facts and the shared vocabulary. Astrology v7 rows change all but IDs, other astrology
+// and astrology-fusion rows prepare/requests, the rest requests only; all IDs stay fixed.
+// Health safety (2026-10-04): the health chapter of each system carries domainRules.healthContract (HEALTH_RULES), so the
+// 28 saju·ziwei·vedic·astrology v7 rows change requests only; IDs, prepare, validated and manifests stay fixed.
 // id prepare requests validated manifests — sha256(canonical JSON) prefixes, fixed 2026-09-28T03:00Z / Asia/Seoul.
 const EXPECTED = {
- "saju_mackerel:legacy": "19e2143ae891 84a531a78ff0 446786c8b4ac 6172c42c9384 8b73190c4eb8",
- "saju_mackerel:personal": "2b23e51ded9f 7273558c5395 149a7b94706b 376d7dcee78c 73f644833274",
- "saju_mackerel:compatibility": "5092e14d00c0 6d1228800c3b 3e204ea9bbfd a98f53fd2920 b4feb0e2060a",
- "saju_mackerel:love": "3b76aa003732 0f4285601d9b d5c24a88c170 445f0d8ece8d e387640606d4",
- "saju_mackerel:work": "955f508ab668 802caef226ec 3d36f20e5a6e 5dfc73127678 1dfa9237efd8",
- "saju_mackerel:money": "cdbe95c856e1 c0bcb52f7ccb 4f47a829554c c4202c21b93e 054738d4280d",
- "saju_mackerel:ask": "f5ee6960f26a 2c71108a4988 8fc0edccb2e4 475091f8aa6d ac4eb5435ab6",
- "saju_salmon:legacy": "57913d88b470 a93ddc930da5 9a90f16a918f 3693165b1f33 08f01b92e660",
- "saju_salmon:personal": "37f20270d48d db5d70e556f4 de836b3e2403 ef7d411955d0 138f780735b1",
- "saju_salmon:compatibility": "10f81d9a5876 f34b03e0b0c2 c9be3021fd00 eb7db84b3fbe de55f005535f",
- "saju_salmon:love": "145a385afb0f 6aac210d6b91 0cea854c7c78 ef1007d4876d 6913aca975af",
- "saju_salmon:work": "6089a129ebde 4570f26e3133 caf274f62c03 dc13148a2077 fa41008e9044",
- "saju_salmon:money": "52beec216bf4 f5042de44d43 b3a1b85b6574 e85058adb05e 6ae138fbccb6",
- "saju_salmon:ask": "de3672b4c9ac 51340521d2e7 31ab8a16082b fe6794e50d7e 138f780735b1",
- "saju_flounder:legacy": "55ae6a8298d8 bd50caa83994 e626e7bd91df 398450b1daee 6d0df7a238c4",
- "saju_flounder:personal": "d287003d59c7 4f1fe7bf13ab 33b812c427e4 798d5b253191 da44adee8773",
- "saju_flounder:compatibility": "3f437d5180e7 1b702b9f3670 435bd452f8b9 8635657f6703 c5bce8f8a3ca",
- "saju_flounder:love": "18057694882d 59eedfcc7ab4 05b4034cf4ea 759b63dd861e 45cdf76b8942",
- "saju_flounder:work": "901c2cbf9d64 9e08a6d18596 9ad092d1c6f4 4040723f2058 f7f756f6a7c3",
- "saju_flounder:money": "e75aad0e06b3 d4d21c2854c9 0f2a1de5e38b 5af2ce216b02 6c151b1de8ff",
- "saju_flounder:ask": "b090e65248a1 954459eab408 d4ec3723c99e 2c9d15563f30 da44adee8773",
- "saju_tuna:legacy": "c86fa6771aa8 d7c6a9f195c2 49675b57b44f a0c94fb8260a 7266f902c6d4",
- "saju_tuna:personal": "57914638d670 b68881988dad f2a27852e833 79c7c564f387 123cd9c8af01",
- "saju_tuna:compatibility": "b501d4ee1668 eac991d96a26 c9718bbf02cb 0c853e374e37 14b76362baa5",
- "saju_tuna:timing": "33b61ed630d4 14ad807272ff 9e106f9ea01f 850ca8de7463 d8509d5c00a7",
- "saju_tuna:love": "ca10e3762aa3 242ba3e59def bfd2207a1e4c dd60e7c70fc6 7c9b284576de",
- "saju_tuna:work": "0b472b29c308 3e03ba7eb4d8 1b665192a0a7 9a27d8152ce3 bcc5a192599a",
- "saju_tuna:money": "3864285d3e0a 8bcb66d43958 56a123a45f9c eddea4a1731b d0bff6c53db5",
- "saju_tuna:ask": "175aa391cc59 75387d064f1b a17a8a3b8279 6a33fd15613a 123cd9c8af01",
- "ziwei_mackerel:legacy": "d57f7a6310e3 abdcf7f8a5b6 f0103884472b e4b382fc07ca f0f57311a50f",
- "ziwei_mackerel:personal": "b09aead75e88 ab479c3d1a62 b01cc448513d 613a593bc74c 575175147460",
- "ziwei_mackerel:money": "99a39543089a 3a77bd3bad32 f17c635a7fe4 2d577b0f5465 a50ae1a95053",
- "ziwei_mackerel:ask": "4814fb775a44 ea29376a18b2 89b6d50dedf2 7e2c25d4dae9 279b65fe829c",
- "ziwei_salmon:legacy": "f9152fc93d31 31e858e62bda 58bd0ab0f8e9 bcfa0ba6906e 541dfb3677ed",
- "ziwei_salmon:personal": "4a698a5cf120 d18c0a715960 ee21f98e38fb b43270c880d1 f90adf448d6a",
- "ziwei_salmon:money": "e12f9df4e43f b344981e7f3c 49b83173965e f1f19a2b7409 251643d2a1ce",
- "ziwei_salmon:ask": "2c52e4de4878 0e67ef586584 5cbcb07b31d3 d3efc6ef4910 f90adf448d6a",
- "ziwei_flounder:legacy": "8a6ea911f8e1 a0a2da42deaa 6587c2041c2f 109192cf4aac 84d204935a81",
- "ziwei_flounder:personal": "979c73dabe33 66e222df402c 363227670c1f cb91862b4be6 e961ce567304",
- "ziwei_flounder:money": "1253bc270272 31165e69b460 5f0daae09dd8 284ec3b8cde9 8578838c07ca",
- "ziwei_flounder:ask": "473aca21e162 ff7b495e1784 bbc32faaa3f2 7509deb061d7 e961ce567304",
- "ziwei_tuna:legacy": "996ef1225e9c d2145c834251 7e269c632a01 91a2d37f2e61 f2f6719e832d",
- "ziwei_tuna:personal": "a817f1028734 c8a5495e0fed c936f75c85d2 c286f4903fe0 2b8b8b998443",
- "ziwei_tuna:money": "e435810f059b 7810bbe598a1 0a8f8c8d5a5f 6310635cf1f4 54b63770fa33",
- "ziwei_tuna:ask": "c7a6d3ef9c71 53cce3834842 3f803e54ba7c c3e41d52a1d0 2b8b8b998443",
- "sukuyo_mackerel:legacy": "5b57264b2d2f 184ab6ab826c 1d0dea3b5a48 0fcf0d66b984 09cac5e57c93",
- "sukuyo_mackerel:personal": "03c7f6a7165b d16b2a93dbc3 9285aaf79e2f 49345666bd18 60c2f71db056",
- "sukuyo_mackerel:compatibility": "7d84669df0ec 52090db8f04e 36eb4c4cf3de 2f84d874b2bd 7dd8a795e33d",
- "sukuyo_mackerel:relationship": "48ec4b51f111 cdfb1377dcfa 283059526733 981eb9605406 51c64f67c10e",
- "sukuyo_mackerel:ask": "f0d2e42536f5 1b1e86f61595 61ee85ddb4b4 d2b0d069839c c1b4a3466991",
- "sukuyo_salmon:legacy": "8e640965d4ac 8abfa6aee560 6d74b56077c9 c3ae5e8f2735 40764a5a48f1",
- "sukuyo_salmon:personal": "ac28ff653e5f 07d4ca895954 dd4f44ad4dc4 9814fc14064a c7963d52d5c2",
- "sukuyo_salmon:compatibility": "408731b2b641 bd06d4f10653 0254e92f96e7 9df9c3f1434c cc372c1aa463",
- "sukuyo_salmon:relationship": "f8d5f94d112b aeb485a7db8b 0cf79040ba3d 98068a649363 4a2ab417052e",
- "sukuyo_salmon:ask": "54b731135a8b 73ca30809948 7480cc1fecfc ab1985ef4e08 c7963d52d5c2",
- "sukuyo_flounder:legacy": "0f44842202b7 8f6a351b6519 77492bb8a0f0 5ccb039d632a 41630a4b9f1f",
- "sukuyo_flounder:personal": "704bf89b0e9d b6e1671ed1fb aea722ff6d30 eeae4d38448b 337c369df170",
- "sukuyo_flounder:compatibility": "818932a52708 714eb16884f5 655ea8895e9c 2304eee6e9a6 3b18417c9ffd",
- "sukuyo_flounder:relationship": "b5cd7a8f1501 a5cc456b07cf 1354829c86c4 6d1a77ac89dc b69fd6f8148e",
- "sukuyo_flounder:ask": "5a1025dd6a4c 961e7386ed13 a1e7dadcfe6a 7c11adb2741e 337c369df170",
- "sukuyo_tuna:legacy": "6b0d169cc015 f933d659800f 6c9b2eaeecc6 ef0aef6230ad bbdcc5db3d05",
- "sukuyo_tuna:personal": "1b034ca5a91a c396e120a7b9 b102b1757e80 844483faf4c1 933a3eee4cc4",
- "sukuyo_tuna:compatibility": "611b89dc2a1d 4514da9a896d 5ba07de19dc8 7be4b42fb211 cf557e59d9fd",
- "sukuyo_tuna:relationship": "f9f495f58621 d7c6947e8925 f867ca0ef845 08e96b3c39dc 6371bf908ad4",
- "sukuyo_tuna:ask": "5dff4de33afc ed58b9a4e802 de0ed0de410e 560109187680 933a3eee4cc4",
- "vedic_mackerel:legacy": "a1025b147e16 f31c5b29b77a b2e22379de1e 157f8ec92c43 0ab96e7ba746",
- "vedic_mackerel:personal": "65d9950f2575 beb666926420 5f3625f8c05b d56983683d0a 3b771e8d6049",
- "vedic_mackerel:ask": "578cac0d3cdd a719ef45dafd 749db59ba607 9f608f719a53 0f802baef856",
- "vedic_salmon:legacy": "ae4ae7ed41e5 85519216a266 85f380c55e1e a3733622132c d832b44c39d3",
- "vedic_salmon:personal": "e55f9cac05b1 e0f22f09ce28 dd5be7bfe13a 236c16a3eb0c ac338df4e9f4",
- "vedic_salmon:ask": "4868f52d5c31 6c5070abd66a e7ca86c85aad 18422a0edb74 ac338df4e9f4",
- "vedic_flounder:legacy": "dc377cefb135 265c81e0c249 0526fc176d3a a5b37804b873 f4c3879ba491",
- "vedic_flounder:personal": "7f52682910de ce9bd1b45a22 630301e5bafb 6c8eaef5a605 7d3b159ecd72",
- "vedic_flounder:ask": "cacbb035bb94 482637cceef7 8b9b4d131d7e e9be220bc41f 7d3b159ecd72",
- "vedic_tuna:legacy": "12ca77e8cd03 0fd0d909be92 5d47ceee3cee 6f49931d037d 9a50bce25627",
- "vedic_tuna:personal": "4860a9e84a54 5aa6b51901c5 05987bdea5fe 5441a5e47555 428ba79f9a99",
- "vedic_tuna:timing": "594534a5527b 42b8dc585424 b3daec60fcb1 e27b3c1646a7 d48d8fcb6c1c",
- "vedic_tuna:ask": "a1473f63b5b2 cf451427e75f 6d013d372243 ed27412b3ee6 428ba79f9a99",
- "astrology_mackerel:legacy": "a9a603b44b12 11ac47bfeac6 6ed9bf3d3b3b 0ab26bf80752 a01f7e3b5491",
- "astrology_mackerel:personal": "e0713fed4b5f d4af1c357178 242a93b9ef3c 21f42be82895 97192bfd920b",
- "astrology_mackerel:work": "f80b73aeb83f a61dc986347a 749cb3c335d2 8f712fbe7c2a e4a4f0f408bf",
- "astrology_mackerel:ask": "0bdcbf0900a0 a11717e3fd97 a25ffc4d3038 df6b6ff71777 91f01265e663",
- "astrology_salmon:legacy": "df56a6ff7943 25603cf66f7d 91eae0cda07b d8dcf8655d16 86295650d714",
- "astrology_salmon:personal": "6301b8b41b81 55b49d66d21e 9dc3af1a1e28 468c7f60a9de e9cd1e6be39e",
- "astrology_salmon:work": "18cb54020f2e a8fde25727d8 7a081f362f41 bbf1b074853a fff231879a7a",
- "astrology_salmon:ask": "6a6fa8d27028 6f2e9d3e787b fae68299f848 725e7c0786ae e9cd1e6be39e",
- "astrology_flounder:legacy": "4a56fa53a7e3 8aec54eeb82b cd605da9f81c 4543b7aa3ff3 30093a83fd6a",
- "astrology_flounder:personal": "f3d486aae66d cdac3adfc028 7ff0e830bc3e 9807b31cf2c6 1f6d2b4df594",
- "astrology_flounder:work": "7cdc3c5b790f 8cc376185f99 3c79d3b65293 fc1a121401e3 39c8e4a84a00",
- "astrology_flounder:ask": "0f1f3b061c3e 6e14e82cd068 1252588f0eaa a467423ce1a8 1f6d2b4df594",
- "astrology_tuna:legacy": "be1f5382c476 22888431f655 1b6757fb6e80 1792225f3938 448e1eeab4e4",
- "astrology_tuna:personal": "ec67dd2731cb 6488ed2bf0fb a807e3cd44de f9faf655b034 85918032d0e7",
- "astrology_tuna:work": "c7bb408b8666 847fd0b53890 e67b3c557b4c 7e19641312b0 22515b7f0512",
- "astrology_tuna:ask": "222f22dd779f 84b8061e780c cd1b83b3b190 0ac20bf61967 85918032d0e7",
- "tarot_mackerel:legacy": "b8697ff4eb9c 34a99c69f203 caf5c1fd6dcb 744acfb0228d 6aa275b457cb",
- "tarot_mackerel:choice": "d9101ea94d78 be70e135f2f8 36f9b5494e04 69ed41cb7f31 3040b60d8f9a",
- "tarot_mackerel:love": "40679d816dbe 0574a3031be3 e4f46d4f0171 94dcac1bb98c ec43dbbb0b03",
- "tarot_salmon:legacy": "3f2a60f7e8f5 62078e273468 bf0a5f92bfcb e07dff5f971b c3a12d10a0fe",
- "tarot_salmon:choice": "f3cfd282e806 9f84ed5677e5 051598320190 46778f85fe31 0847bd77ffd7",
- "tarot_salmon:love": "98862054f11b f54ef794f2f6 fcbdd3ae580f 92bb7cdeb91c 827911f6ce9f",
- "tarot_flounder:legacy": "2fbe5ba32198 a2fc0829bffc 5199577c0509 7ef6af5f5ccb 200019185775",
- "tarot_flounder:choice": "5d8961341ca3 519ef2f3fcf5 ecf69bdfda8e 5477b2d1cb4a 157bdc132835",
- "tarot_flounder:love": "8489a3eb6568 ff29e0aa0c49 2cab78d680e4 400e98cb574c cbc2d0bac5dd",
- "tarot_tuna:legacy": "396cd61fb96d 4288b3dbce8a f76d0557f7f1 1f1a9da039cc cdfa81f3a8a1",
- "tarot_tuna:choice": "b8f2fb0d9fa7 d108b4ea4dc2 ea2b0e98d71d 2b59965a8514 e4dde4d5d80d",
- "tarot_tuna:love": "1dd883f570df e658a6d42727 99b7b8877247 8ad984c34e5e f40bb48c0c1e",
- "fusion_saju_ziwei:legacy": "61fb1125d06d 4d88a0532a4e 19271ff006da e2ce9773a784 0d9429c32910",
- "fusion_saju_ziwei:personal": "526a58460331 49e39819c3d7 087653d01488 a47c9edb48cc bcdf0bda0fc4",
- "fusion_saju_ziwei:ask": "a344a559e66e ed97d849f890 7e2519214bc1 3da8e4cc8efd 0d9429c32910",
- "fusion_sukuyo_vedic:legacy": "fc7a166448a2 9a5034b5c12d bbdb61183e1f dee56456ba5c 5fb39dad10a6",
- "fusion_sukuyo_vedic:personal": "7d5cf9ba32e5 6622ca633026 b827935a625c 6d95d605a8a5 70b570d09783",
- "fusion_sukuyo_vedic:ask": "490edee3085d ca4cd00e8cea 9b60ed370dd0 b8c3fa27dfb2 5fb39dad10a6",
- "fusion_astrology_tarot:legacy": "7cca60637cb1 1de95ea04781 9515c7bf15cb deaca8cbfcc9 032738bbd603",
- "fusion_astrology_tarot:personal": "9240d186346f 1502fd826cb3 fee2f37989c6 a00536217799 0c5f90b748c0",
- "fusion_astrology_tarot:ask": "9df86cc8c6cb eee0ad780278 8f621a557e41 869558d03bd5 032738bbd603",
- "fusion_all:legacy": "0c0008f54613 2eccc40a7f2e 9afcc084249e 190a0088f6f3 6e8d23af93ea",
- "fusion_all:personal": "6a6de48b2330 3a9156dd0fe0 892d2d7217ed 78c18f7b6ec3 d3753452ec82",
- "fusion_all:ask": "3c010b57452b 7784c196650f 4d0988f3d0db 631de32565b5 6e8d23af93ea",
- "saju_salmon@timeUnknown": "71627c589411 c8ef0e197491 07b2aecab1aa fc4b9fca2d38 -",
- "saju_salmon@timeUnknown:ask": "b6114fe5862e 430f8c1a29a9 d2c9ec55c6ad 58351944556e -",
- "ziwei_salmon@noPlace": "4f372ab54262 44ed766a1b54 ee21f98e38fb b43270c880d1 -",
- "ziwei_salmon@noPlace:ask": "71a4244dee5b 34542d8b79c4 5cbcb07b31d3 d3efc6ef4910 -",
- "saju_mackerel@spirit": "b3266c0a3126 d5d82461ce72 776d19cdf40d c3b521dd1883 -"
+ "saju_mackerel:legacy": "19e2143ae891 9a8a353cbc1d 376333857e28 523f22b7e9d2 42f2c5c373fe",
+ "saju_mackerel:personal": "2b23e51ded9f 132a3f583aaf 491fdb26378e 576a177dd119 8c9adb9e6d01",
+ "saju_mackerel:compatibility": "5092e14d00c0 1df03aac9187 3a80e1605bb2 d850d63e7b8d 163444337fa9",
+ "saju_mackerel:love": "3b76aa003732 dfb5bb38d623 1ca624feb144 bd61958026a4 3e239ee154a7",
+ "saju_mackerel:work": "955f508ab668 a0af95dd59ac f2b5eb123ecb 5dfc73127678 1dfa9237efd8",
+ "saju_mackerel:money": "cdbe95c856e1 0d5bef3c07c4 b03b02eae569 c4202c21b93e 054738d4280d",
+ "saju_mackerel:ask": "f5ee6960f26a 1043cc5d3993 6f9f8d07f635 c518b7fcbe38 b9cb87c20d32",
+ "saju_salmon:legacy": "57913d88b470 4c5e05ad0dce 08254337bbd3 6e55eca0cd90 5a931b290957",
+ "saju_salmon:personal": "37f20270d48d f642df0faa53 fc9935de43ee ee73364e5e65 459c1c844aea",
+ "saju_salmon:compatibility": "10f81d9a5876 fa6f6051d113 4460b6158176 896fd690c8f2 5ee9aa8dd2ae",
+ "saju_salmon:love": "145a385afb0f 9d0be6beaf1e bc05cd9cad6e a0acd49a317c 8fe7b01b938d",
+ "saju_salmon:work": "6089a129ebde 904af6bee287 c79156973cf8 dc13148a2077 fa41008e9044",
+ "saju_salmon:money": "52beec216bf4 812d0d9b1f2f dde7f7b7710c e85058adb05e 6ae138fbccb6",
+ "saju_salmon:ask": "de3672b4c9ac e19313ad534c 95acce07e1ce d1ffd9baa627 459c1c844aea",
+ "saju_flounder:legacy": "55ae6a8298d8 e2ca01baf801 4d12decf52c1 f0eb4c1c53a6 d0a1fba4b309",
+ "saju_flounder:personal": "d287003d59c7 c1047fbce907 0ea59853b19b a056d8c0af1d 9092b43d5b23",
+ "saju_flounder:compatibility": "3f437d5180e7 0394a23c5ba5 10a7082a1546 506896de9240 3e8926b65705",
+ "saju_flounder:love": "18057694882d 43de4ea0175e 920912958ed2 f97f4074da08 703f985f1df5",
+ "saju_flounder:work": "901c2cbf9d64 e5475af23f27 74c4966496b4 6b4e32d9f821 686fbc52450a",
+ "saju_flounder:money": "e75aad0e06b3 e4e18bef7569 0fa388d43f8b 5af2ce216b02 6c151b1de8ff",
+ "saju_flounder:ask": "b090e65248a1 095913a1dd44 9446a5209ecd ea126435b7b9 9092b43d5b23",
+ "saju_tuna:legacy": "c86fa6771aa8 d2982dbb782d 5ae2bb74774b ef60db5db116 a19a748c8350",
+ "saju_tuna:personal": "57914638d670 e56b27809061 3597fbc6998e 525d3bdc1115 004fdfa8ed6a",
+ "saju_tuna:compatibility": "b501d4ee1668 750fc40c1671 0649286246c1 a38016580b21 6e327a0ca069",
+ "saju_tuna:timing": "33b61ed630d4 5f93585f748f d085deb2874b 77f281344d05 410bef112275",
+ "saju_tuna:love": "ca10e3762aa3 dcbe070eb157 9d1dfd826cee 0757839598d6 135beac68a67",
+ "saju_tuna:work": "0b472b29c308 0334f20aa85c b7b34fee0a62 1103bf8ee618 f96ef8e37722",
+ "saju_tuna:money": "3864285d3e0a 1080a5176ce0 92bbb6e382d2 eddea4a1731b d0bff6c53db5",
+ "saju_tuna:ask": "175aa391cc59 0d460131d3d5 81f87e3dd36f 53de150652b7 004fdfa8ed6a",
+ "ziwei_mackerel:legacy": "d57f7a6310e3 b4e86527c0b8 029e2e870bc1 a724a0893fc4 2371774a80c3",
+ "ziwei_mackerel:personal": "b09aead75e88 85acdc8cd48c a3655ff3a9a1 912682461437 4d36af752c53",
+ "ziwei_mackerel:money": "99a39543089a 8a5bfee4df3f 5f085b214098 057bccc22952 49682968473e",
+ "ziwei_mackerel:ask": "4814fb775a44 387d91eb64de 004944acc64c 5b7e32196b3a 11a73d36d268",
+ "ziwei_salmon:legacy": "f9152fc93d31 7764a2ae5660 139c93d110c8 24a1eb454199 3fbe37463d18",
+ "ziwei_salmon:personal": "4a698a5cf120 1bdd4e1ce1d5 c551ff4b3f19 dfaf78dcaa09 e53afa1fd005",
+ "ziwei_salmon:money": "e12f9df4e43f 98bdf51fb736 a579d96705a8 55c1ca0b38ee 5b9032100edd",
+ "ziwei_salmon:ask": "2c52e4de4878 49c4905150b2 9a027b0b26da cecb90defc5e e53afa1fd005",
+ "ziwei_flounder:legacy": "8a6ea911f8e1 bbf8f8fd24f2 8d17b55a2858 5d55ae525ab7 9201b10cbef5",
+ "ziwei_flounder:personal": "979c73dabe33 b5a899b22172 ae4c1cef17b8 fa9e4c4c4cd6 379f9e9c59c7",
+ "ziwei_flounder:money": "1253bc270272 ac33a79e2ae8 58d7a2558515 e3577ffba1ec 93ce966131ef",
+ "ziwei_flounder:ask": "473aca21e162 9047aabf6b61 5c04df34c06a e121d001222b 379f9e9c59c7",
+ "ziwei_tuna:legacy": "996ef1225e9c 4f201715fcfe 9daee3302a40 c2da084256c1 8d87087ff586",
+ "ziwei_tuna:personal": "a817f1028734 f31ee2cec915 524d03eab7f3 7f2cce5d925d 4f4beb638beb",
+ "ziwei_tuna:money": "e435810f059b cc98b3dbe541 58c55381e751 6bca0d46f96f f3746b2a9fe7",
+ "ziwei_tuna:ask": "c7a6d3ef9c71 14cf733f4906 f7c1fd3d0767 921ae83c354a 4f4beb638beb",
+ "sukuyo_mackerel:legacy": "5b57264b2d2f 184ab6ab826c 1c90eaedf87e 0fcf0d66b984 09cac5e57c93",
+ "sukuyo_mackerel:personal": "03c7f6a7165b d16b2a93dbc3 f4e7f752a4a6 49345666bd18 60c2f71db056",
+ "sukuyo_mackerel:compatibility": "7d84669df0ec 52090db8f04e 8da55bde25e1 2f84d874b2bd 7dd8a795e33d",
+ "sukuyo_mackerel:relationship": "48ec4b51f111 cdfb1377dcfa 97216091ecbe 981eb9605406 51c64f67c10e",
+ "sukuyo_mackerel:ask": "f0d2e42536f5 1b1e86f61595 0e9abb2fd67e d2b0d069839c c1b4a3466991",
+ "sukuyo_salmon:legacy": "8e640965d4ac 8abfa6aee560 092c55835d22 c3ae5e8f2735 40764a5a48f1",
+ "sukuyo_salmon:personal": "ac28ff653e5f 07d4ca895954 a106570ad4ca 9814fc14064a c7963d52d5c2",
+ "sukuyo_salmon:compatibility": "408731b2b641 bd06d4f10653 9d6abf152b21 9df9c3f1434c cc372c1aa463",
+ "sukuyo_salmon:relationship": "f8d5f94d112b aeb485a7db8b 379b4eda856e 98068a649363 4a2ab417052e",
+ "sukuyo_salmon:ask": "54b731135a8b 73ca30809948 c2ee1db8ef15 ab1985ef4e08 c7963d52d5c2",
+ "sukuyo_flounder:legacy": "0f44842202b7 8f6a351b6519 8d046ea2368e 5ccb039d632a 41630a4b9f1f",
+ "sukuyo_flounder:personal": "704bf89b0e9d b6e1671ed1fb a2728cb8aca7 eeae4d38448b 337c369df170",
+ "sukuyo_flounder:compatibility": "818932a52708 714eb16884f5 693532d33ef1 2304eee6e9a6 3b18417c9ffd",
+ "sukuyo_flounder:relationship": "b5cd7a8f1501 a5cc456b07cf f4a7f55c524a 6d1a77ac89dc b69fd6f8148e",
+ "sukuyo_flounder:ask": "5a1025dd6a4c 961e7386ed13 6efa4d48b254 7c11adb2741e 337c369df170",
+ "sukuyo_tuna:legacy": "6b0d169cc015 f933d659800f 3747113f182a ef0aef6230ad bbdcc5db3d05",
+ "sukuyo_tuna:personal": "1b034ca5a91a c396e120a7b9 33344b9e83e0 844483faf4c1 933a3eee4cc4",
+ "sukuyo_tuna:compatibility": "611b89dc2a1d 4514da9a896d 1955c6ce02dc 7be4b42fb211 cf557e59d9fd",
+ "sukuyo_tuna:relationship": "f9f495f58621 d7c6947e8925 2847d52e2968 08e96b3c39dc 6371bf908ad4",
+ "sukuyo_tuna:ask": "5dff4de33afc ed58b9a4e802 937051132483 560109187680 933a3eee4cc4",
+ "vedic_mackerel:legacy": "a1025b147e16 dcef2af90d8a 53f51f203ba0 157f8ec92c43 0ab96e7ba746",
+ "vedic_mackerel:personal": "65d9950f2575 09a93578633e b58eefee7551 d56983683d0a 3b771e8d6049",
+ "vedic_mackerel:ask": "578cac0d3cdd 88e81170502b a459c6e8a24f 9f608f719a53 0f802baef856",
+ "vedic_salmon:legacy": "ae4ae7ed41e5 1f71b7bcad25 3383e44f4ee0 a3733622132c d832b44c39d3",
+ "vedic_salmon:personal": "e55f9cac05b1 7d135a066c07 4ead54d003f8 dc655f5a6711 5474c6f3d686",
+ "vedic_salmon:ask": "4868f52d5c31 fb64954384d7 06a8612e56b0 a2ca79d5ec77 5474c6f3d686",
+ "vedic_flounder:legacy": "dc377cefb135 b930ce68b76e 2e8639aff415 a5b37804b873 f4c3879ba491",
+ "vedic_flounder:personal": "7f52682910de 8498b68c7467 3d887b9a054d f18b7fa49924 fc7c88f2f9c7",
+ "vedic_flounder:ask": "cacbb035bb94 9e6c4d83f88a 608ada726c7b acc64bcffe55 fc7c88f2f9c7",
+ "vedic_tuna:legacy": "12ca77e8cd03 6ce79a43150e ddc61292af50 6f49931d037d 9a50bce25627",
+ "vedic_tuna:personal": "4860a9e84a54 5d23e76eae68 eb065cde699c bac5fbae7e04 621ad1cb46ba",
+ "vedic_tuna:timing": "594534a5527b 548c3b9bc0a8 685b1c8e2910 e27b3c1646a7 d48d8fcb6c1c",
+ "vedic_tuna:ask": "a1473f63b5b2 e755bc391e35 e65a337e5ef5 358159b4a8a8 621ad1cb46ba",
+ "astrology_mackerel:legacy": "a9a603b44b12 c92947baeee4 3b50159039d6 0ab26bf80752 a01f7e3b5491",
+ "astrology_mackerel:personal": "e0713fed4b5f eb8756d45876 827a8f0af09f 21f42be82895 97192bfd920b",
+ "astrology_mackerel:work": "f80b73aeb83f c169d5005f0a 8ce54a7c60be 8f712fbe7c2a e4a4f0f408bf",
+ "astrology_mackerel:ask": "0bdcbf0900a0 9d88783f57c3 9ff92299a982 df6b6ff71777 91f01265e663",
+ "astrology_salmon:legacy": "df56a6ff7943 9c73a39d27d8 6d5d5105282a d8dcf8655d16 86295650d714",
+ "astrology_salmon:personal": "6301b8b41b81 ad8db0503d54 73063202fe45 edc0e569b3e5 72ca7e92b68c",
+ "astrology_salmon:work": "18cb54020f2e 736b66311684 9a874582ef9b bbf1b074853a fff231879a7a",
+ "astrology_salmon:ask": "6a6fa8d27028 c018758aaffc 0bedd18bf701 71418c9eabef 72ca7e92b68c",
+ "astrology_flounder:legacy": "4a56fa53a7e3 5f6d12ae1db0 dd24ad735a52 4543b7aa3ff3 30093a83fd6a",
+ "astrology_flounder:personal": "f3d486aae66d 293eb716762d f6f057ae4a44 0070521b42d3 6c9e8804cea9",
+ "astrology_flounder:work": "7cdc3c5b790f 9099db2abb9c 98271abcc8a9 fc1a121401e3 39c8e4a84a00",
+ "astrology_flounder:ask": "0f1f3b061c3e 3e6eb9128c19 2ca37aea2524 e4f5952623cc 6c9e8804cea9",
+ "astrology_tuna:legacy": "be1f5382c476 46492c165a85 2636e778e274 1792225f3938 448e1eeab4e4",
+ "astrology_tuna:personal": "ec67dd2731cb 52bd553fd704 093be9baea6f c288b9e85360 24cb225a6499",
+ "astrology_tuna:work": "c7bb408b8666 f6ac1df59b55 a6d03752ec02 7e19641312b0 22515b7f0512",
+ "astrology_tuna:ask": "222f22dd779f a569ec3a74ef ce1d87402ca2 2813db9d7031 24cb225a6499",
+ "tarot_mackerel:legacy": "b8697ff4eb9c 34a99c69f203 0ecc482caac0 744acfb0228d 6aa275b457cb",
+ "tarot_mackerel:choice": "d9101ea94d78 be70e135f2f8 e7fe2474302a 69ed41cb7f31 3040b60d8f9a",
+ "tarot_mackerel:love": "40679d816dbe 0574a3031be3 755a5ef7f104 94dcac1bb98c ec43dbbb0b03",
+ "tarot_salmon:legacy": "3f2a60f7e8f5 62078e273468 578ae030d636 e07dff5f971b c3a12d10a0fe",
+ "tarot_salmon:choice": "f3cfd282e806 9f84ed5677e5 4f0f892cbd7d 46778f85fe31 0847bd77ffd7",
+ "tarot_salmon:love": "98862054f11b f54ef794f2f6 aa02285381a0 92bb7cdeb91c 827911f6ce9f",
+ "tarot_flounder:legacy": "2fbe5ba32198 a2fc0829bffc 00bb3aef2d48 7ef6af5f5ccb 200019185775",
+ "tarot_flounder:choice": "5d8961341ca3 519ef2f3fcf5 393b8afe3c69 5477b2d1cb4a 157bdc132835",
+ "tarot_flounder:love": "8489a3eb6568 ff29e0aa0c49 cddbdcafb10a 400e98cb574c cbc2d0bac5dd",
+ "tarot_tuna:legacy": "396cd61fb96d 4288b3dbce8a 7d6abb35600c 1f1a9da039cc cdfa81f3a8a1",
+ "tarot_tuna:choice": "b8f2fb0d9fa7 d108b4ea4dc2 90db1e1ecc85 2b59965a8514 e4dde4d5d80d",
+ "tarot_tuna:love": "1dd883f570df e658a6d42727 e7c9bafb6b60 8ad984c34e5e f40bb48c0c1e",
+ "fusion_saju_ziwei:legacy": "61fb1125d06d 1d58df83637c 3c81f029eca0 e2ce9773a784 0d9429c32910",
+ "fusion_saju_ziwei:personal": "526a58460331 8c14376263cd 95de3733970c a47c9edb48cc bcdf0bda0fc4",
+ "fusion_saju_ziwei:ask": "a344a559e66e fb73e96e9059 0af8662eb448 3da8e4cc8efd 0d9429c32910",
+ "fusion_sukuyo_vedic:legacy": "fc7a166448a2 c02dac9d836e 8315fdb93cdd dee56456ba5c 5fb39dad10a6",
+ "fusion_sukuyo_vedic:personal": "7d5cf9ba32e5 7ed8855f0f69 6795431e95b9 6d95d605a8a5 70b570d09783",
+ "fusion_sukuyo_vedic:ask": "490edee3085d 08197ce5546a 0e5c08443b7b b8c3fa27dfb2 5fb39dad10a6",
+ "fusion_astrology_tarot:legacy": "7cca60637cb1 bffdb42fa724 81616f439673 deaca8cbfcc9 032738bbd603",
+ "fusion_astrology_tarot:personal": "9240d186346f aae3ecd5b053 9ccf77a10b71 a00536217799 0c5f90b748c0",
+ "fusion_astrology_tarot:ask": "9df86cc8c6cb a558ec2d2533 69aa4bab396c 869558d03bd5 032738bbd603",
+ "fusion_all:legacy": "0c0008f54613 d9a5cdccdb39 cc76f3eb1821 190a0088f6f3 6e8d23af93ea",
+ "fusion_all:personal": "6a6de48b2330 1600e73f3907 468ebd6b8072 78c18f7b6ec3 d3753452ec82",
+ "fusion_all:ask": "3c010b57452b fe2124496801 1830b1522837 631de32565b5 6e8d23af93ea",
+ "saju_salmon@timeUnknown": "71627c589411 283662ec44f7 bddaee2a0754 83e96cbac642 -",
+ "saju_salmon@timeUnknown:ask": "b6114fe5862e 756a22d690d7 45705f6b1668 86a2e75add4b -",
+ "ziwei_salmon@noPlace": "4f372ab54262 15abd3fbdd7d c551ff4b3f19 dfaf78dcaa09 -",
+ "ziwei_salmon@noPlace:ask": "71a4244dee5b c820c2173b06 9a027b0b26da cecb90defc5e -",
+ "saju_mackerel@spirit": "b3266c0a3126 1ed57ae6acec 776d19cdf40d c3b521dd1883 -"
 };
 
 test('new concise preparations preserve calculation and identity contracts across products',{timeout:600000},async()=>{
@@ -246,6 +268,7 @@ test('new concise preparations preserve calculation and identity contracts acros
     if(!extra.mode)actual[key+':ask']=row(await prepared(productId,'ask',extra),'-');
   }
   if(process.env.YEONGNYANGI_INVARIANCE_PRINT==='1')console.log('INVARIANCE_SNAPSHOT_BEGIN'+JSON.stringify(actual,null,1)+'INVARIANCE_SNAPSHOT_END');
+  assert.deepEqual(deliveryFailures,[],'every validated mock chapter must pass the delivery contract');
   // Fail closed: a new product or kind without a pinned row is not silently accepted.
   assert.deepEqual(Object.keys(actual).sort(),Object.keys(EXPECTED).sort());
   for(const key of Object.keys(EXPECTED))assert.equal(actual[key],EXPECTED[key],`${key}: id prepare requests validated manifests changed; refresh only for an intended change with YEONGNYANGI_INVARIANCE_PRINT=1`);

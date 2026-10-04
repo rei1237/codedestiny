@@ -33,9 +33,11 @@
 }
 .fortune-consultation *, .fortune-consultation *::before, .fortune-consultation *::after { box-sizing: border-box; }
 .fortune-consultation .fc-entry { display: grid; grid-template-columns: 1fr; }
-.fortune-consultation .fc-entry__scene { position:relative; display:block; margin:0; min-width:0; overflow:hidden; aspect-ratio:16 / 9; background:#171222; }
-.fortune-consultation .fc-entry__scene img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
-.fortune-consultation .fc-entry__scene figcaption {position:absolute;inset:auto 0 0;padding:32px 22px 18px;background:linear-gradient(transparent,#171222);color:#fff3ec;font-size:.8rem;line-height:1.7;}
+/* The scenes are 16:9 artwork; the frame keeps that ratio at every width so nothing is cropped,
+   and the caption sits in a band under the picture instead of over it. */
+.fortune-consultation .fc-entry__scene { position:relative; display:block; margin:0; min-width:0; overflow:hidden; background:#171222; }
+.fortune-consultation .fc-entry__scene img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; object-position: center; }
+.fortune-consultation .fc-entry__scene figcaption {padding:10px 22px 12px;background:#171222;color:#fff3ec;font-size:.8rem;line-height:1.7;}
 .fortune-consultation .fc-entry__copy { padding: 25px 22px 28px; min-width: 0; }
 .fortune-consultation .fc-entry h3 { margin: 0; color: var(--fc-ink); font: 700 clamp(1.55rem, 4.5vw, 2.4rem)/1.45 'MaruBuri', 'Noto Serif KR', serif; letter-spacing: -.035em; word-break: keep-all; }
 .fortune-consultation .fc-entry__name { margin: 12px 0 16px; font-size: .8rem; color: var(--fc-accent); font-weight: 800; }
@@ -80,10 +82,13 @@
 .fortune-consultation :focus-visible { outline: 3px solid var(--fc-accent); outline-offset: 4px; }
 .fortune-consultation ::selection { background: var(--fc-dark); color: var(--fc-light); }
 @container fc-consultation (min-width: 680px) {
-  .fortune-consultation .fc-entry { grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); }
-  .fortune-consultation .fc-entry h3 { font-size: clamp(1.55rem, 3.8cqi, 2.4rem); }
-  .fortune-consultation .fc-entry__scene { grid-column: 2; grid-row: 1; aspect-ratio: auto; min-height: 480px; }
-  .fortune-consultation .fc-entry__copy { grid-column: 1; grid-row: 1; padding: 40px 32px; align-self: center; }
+  /* Two columns: the scene becomes a full-height dark panel with the whole 16:9 picture centred in it,
+     so the copy column sets the card height and the CTA stays in the first screen. */
+  .fortune-consultation .fc-entry { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+  .fortune-consultation .fc-entry__scene { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; justify-content: center; }
+  .fortune-consultation .fc-entry__scene figcaption { padding-inline: 24px; }
+  .fortune-consultation .fc-entry__copy { grid-column: 1; grid-row: 1; align-self: center; padding: 36px 32px; }
+  .fortune-consultation .fc-entry h3 { font-size: clamp(1.45rem, 3.4cqi, 2.2rem); }
   .fortune-consultation .fc-form__body { padding-inline: 32px; }
   .fortune-consultation .fc-report { margin-inline: 32px; }
 }

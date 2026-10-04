@@ -896,7 +896,7 @@ const LLM_CALL_FILES = [
   "worker/lib/celestial-report-delivery.js", "worker/routes/destiny-compass-ai.js", "worker/routes/destiny-compass.js",
   "worker/routes/dream.js", "worker/routes/fortune-tea-house.js", "worker/routes/fortune.js",
   "worker/routes/karma-destiny-ai.js", "worker/routes/life-book-ai.js", "worker/routes/love-secret-ai.js",
-  "worker/routes/master-love-codex.js", "worker/routes/nakshatra-ai.js", "worker/lib/naming-report-delivery.js",
+  "worker/routes/master-love-codex.js", "worker/routes/nakshatra-ai.js", "worker/lib/naming-report-delivery.js", "worker/lib/naming-report-delivery-v2.js",
   "worker/routes/neo-operation-room.js", "worker/routes/new-year-ai.js", "worker/routes/oracle.js",
   "worker/lib/paid-narrative-delivery.js", "worker/routes/sukuyo-compatibility-ai.js", "worker/routes/vedic-ai.js",
   "worker/routes/yoga-guru.js", "worker/routes/ziwei-ai.js", "worker/routes/ziwei-deep-report.js",
@@ -991,6 +991,8 @@ const EXPECTED_LLM_CALL_SITES = {
   "worker/routes/dream.js": 0, "worker/routes/fortune-tea-house.js": 2, "worker/routes/fortune.js": 3,
   "worker/routes/karma-destiny-ai.js": 5, "worker/routes/life-book-ai.js": 1, "worker/routes/love-secret-ai.js": 2,
   "worker/routes/master-love-codex.js": 2, "worker/routes/nakshatra-ai.js": 1, "worker/lib/naming-report-delivery.js": 1,
+  // 작명 v2 1건: 서술·8장이 같은 호출부를 공유한다(요청당 1콜).
+  "worker/lib/naming-report-delivery-v2.js": 1,
   "worker/routes/neo-operation-room.js": 1, "worker/routes/new-year-ai.js": 2, "worker/routes/oracle.js": 1,
   // vedic 1건: 그룹 생성 하나로 웨이브 1(전 그룹 동시)·2(분량 미달)·3(품질 미달)이 모두 지나간다.
   // 구 2건은 단일 호출 상담(callConsultationLlm)의 JSON/프로즈 두 갈래였고, 그룹 전환으로 사라졌다
@@ -1091,6 +1093,10 @@ const PAID_PART_TARGETS = [
   ["worker/routes/dream.js", "minChars: 2000", 2000, "목표 2,600~3,100자", 2600, 3100, "maxOutputTokens: 9500", 9500],
   ["worker/routes/oracle.js", "minChars: 3000", 3000, "목표 3,900~4,600자", 3900, 4600, "maxOutputTokens: 11000", 11000],
   ["worker/lib/naming-report-delivery.js", "function chapterAccepted(state, id) { return Boolean(state.chapters?.[id]); }", 0, "목표 3,200~3,700자", 3200, 3700, "String(chapter.id), 9500)", 9500],
+  // 작명 v2(결정론 엔진 + 서술). 장 하한은 "교정 뒤 사실상 비었는지"만 본다. 서술 한 호출은 6후보×3필드×140자 + 편지 3×300자 = 3,420자에
+  // JSON 키 여유 약 500자. 필드 상한(220·450자)은 거부가 아니라 문장 경계 자르기다.
+  ["worker/naming-engine/report.ts", "const CHAPTER_MIN_CORRECTED_CHARS = 200;", 200, "목표 3,200~3,700자", 3200, 3700, "CHAPTER_MAX_OUTPUT_TOKENS = 9500;", 9500],
+  ["worker/naming-engine/report.ts", "const NARRATION_MIN_FIELD_CHARS = 20;", 20, "80~140자", 80, 3900, "NARRATION_MAX_OUTPUT_TOKENS = 9500;", 9500],
   // 천상의 조화 카드 한 호출은 긴 필드 여섯 개를 함께 쓴다.
   ["worker/lib/celestial-report-delivery.js", "? 500 : 40", 500, "목표 650~750자", 650, 6 * 750, "CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS,11000", 11000],
   ["worker/lib/relationship-report-delivery.js", "const RELATIONSHIP_PART_MIN_CHARS = 2000;", 2000, "목표 2600~3000자", 2600, 3000, "capTokens: 9500", 9500],

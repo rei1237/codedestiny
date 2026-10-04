@@ -34,7 +34,7 @@ https://code-destiny.com/saju/?utm_source=threads&utm_medium=social&utm_campaign
 이직 제안을 받았다면 고정급과 성과급, 결정 권한, 근무 시간을 따로 적어보세요. 아직 답을 못 들은 조건은 좋은 쪽으로 채우지 말고 미확인으로 남겨두고요.
 
 일과 보상의 고민 정리하기
-https://code-destiny.com/?question=money&utm_source=threads&utm_medium=social&utm_campaign=threads_queue_t03_v1#questions
+https://code-destiny.com/insights/ziwei-career-palace-action/?utm_source=threads&utm_medium=social&utm_campaign=threads_queue_t03_v1
 
 #꿀꿀운세
 
@@ -60,7 +60,7 @@ https://code-destiny.com/saju/?utm_source=threads&utm_medium=social&utm_campaign
 불안할 때는 이번 달 확정 지출과 아직 약속만 한 지출을 나눠 적어보세요. 내가 바꿀 수 있는 항목이 무엇인지 조금 더 선명해집니다.
 
 돈이 남지 않는 고민부터 살펴보기
-https://code-destiny.com/?question=money&utm_source=threads&utm_medium=social&utm_campaign=threads_queue_t05_v1#questions
+https://code-destiny.com/saju/?utm_source=threads&utm_medium=social&utm_campaign=threads_queue_t05_v1
 
 #꿀꿀운세
 
@@ -86,7 +86,7 @@ https://code-destiny.com/sukuyo/?utm_source=threads&utm_medium=social&utm_campai
 나는 어느 정도의 연락을 안심으로 느끼는지, 상대가 말한 기준은 무엇인지 나눠 적어보세요. 추측보다 확인할 질문이 먼저 보일 수 있어요.
 
 관계의 간격을 생각해 보기
-https://code-destiny.com/?question=distance&utm_source=threads&utm_medium=social&utm_campaign=threads_queue_t07_v1#questions
+https://code-destiny.com/ziwei/?utm_source=threads&utm_medium=social&utm_campaign=threads_queue_t07_v1
 
 #꿀꿀운세
 
@@ -129,7 +129,7 @@ https://code-destiny.com/saju/?utm_source=threads&utm_medium=social&utm_campaign
 가상 캐릭터 대화예요. 오늘의 선택을 돕는 질문으로 읽어주세요.
 
 갈림길의 질문부터 정리하기
-https://code-destiny.com/?question=choice&utm_source=threads&utm_medium=social&utm_campaign=threads_queue_t10_v1#questions
+https://code-destiny.com/yeongnyangi/?utm_source=threads&utm_medium=social&utm_campaign=threads_queue_t10_v1
 
 #꿀꿀운세
 

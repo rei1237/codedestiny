@@ -7,7 +7,7 @@ import path from 'node:path';
 import {build} from 'esbuild';
 // Design §6-3: the v7 fact ledger splits real engine facts into ASCII sub-IDs and pins each to one chapter. Flag OFF, no LLM.
 const Module=createRequire(import.meta.url)('node:module');
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-v7-ledger'; export {readingManifestV7,V7_ANCHOR_REFS} from './worker/yeongnyangi/fortune/reading-v7'; export {products} from './worker/yeongnyangi/payments/catalog'; export {domains} from './worker/yeongnyangi/fortune/index'; export {tenGodFor} from './worker/lib/life-book-ai-saju.js'; export {STEM_HANJA} from './lib/korean-calendar/index.js'; export {aspectBetween} from './worker/lib/swiss-ephemeris.js'; export {relationFromForwardDistance} from './worker/lib/sukuyo-relation-core.js'; export {SUKUYO_MANSIONS} from './worker/lib/sukuyo-premium.js';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-v7-ledger'; export {readingManifestV7,V7_ANCHOR_REFS} from './worker/yeongnyangi/fortune/reading-v7'; export {products} from './worker/yeongnyangi/payments/catalog'; export {domains} from './worker/yeongnyangi/fortune/index'; export {tenGodFor} from './worker/lib/life-book-ai-saju.js'; export {STEM_HANJA} from './lib/korean-calendar/index.js'; export {aspectBetween} from './worker/lib/swiss-ephemeris.js'; export {relationFromForwardDistance} from './worker/lib/sukuyo-relation-core.js'; export {SUKUYO_MANSIONS} from './worker/lib/sukuyo-premium.js'; export {VEDIC_YOGA_SLUGS} from './worker/yeongnyangi/fortune/vedic/derived';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const filename=path.resolve('yeongnyangi-reading-v7-ledger.test.cjs');
 const loaded=new Module(filename);
 loaded.filename=filename;
@@ -40,6 +40,8 @@ const resolved=cases.map(c=>({...c,...m.resolveV7Ledger(manifest(c.domain,c.tier
 // Must stay a full match of consultation.ts EVIDENCE_ID so a leaked sub-ID is redacted without a tail.
 const EVIDENCE_ID=/^(saju|ziwei|vedic|astrology|sukuyo|tarot)\.([A-Za-z][\w[\]-]*(?:\.[A-Za-z0-9][\w[\]-]*)*)$/;
 const TIMING_LABELS=/^(yearlyLuck|monthlyLuck|majorLuck|yearlyTimeline|minorLuck|vimshottariDasha)$/;
+// Dated derived facts (one per year or luck cycle) are timing facts too; their natal part is not.
+const isTiming=f=>TIMING_LABELS.test(f.label)||(/^(movementSignals|romanceTiming)$/.test(f.label)&&!/\.natal$/.test(f.id));
 const keysDeep=v=>Array.isArray(v)?v.flatMap(keysDeep):v&&typeof v==='object'?Object.entries(v).flatMap(([k,x])=>[k,...keysDeep(x)]):[];
 
 test('ownership: every chapter owns a concrete fact, no fact has two owners, refs point at anchor-owned facts',()=>{
@@ -55,7 +57,7 @@ test('ownership: every chapter owns a concrete fact, no fact has two owners, ref
     owner.set(id,c.key);
     assert.match(id,EVIDENCE_ID,`${where}: ${id} is not an ASCII evidence id`);
     assert.ok(id.startsWith(`${domain}.`),`${where}: ${id}`);
-    if(TIMING_LABELS.test(ledger.facts.get(id).label))assert.equal(c.theme,'timing',`${where}: timing fact ${id} owned by ${c.key}`);
+    if(isTiming(ledger.facts.get(id)))assert.equal(c.theme,'timing',`${where}: timing fact ${id} owned by ${c.key}`);
    }
   }
   const anchor=chapters[0];
@@ -111,10 +113,23 @@ test('saju: declared absence, pillar and interaction ownership, year ranges',()=
  // A clash between year and day goes to the first owner in manifest order (spouse owns the day pillar).
  const clash=[...tuna.ledger.facts.keys()].find(id=>id.startsWith('saju.natalInteractions.branchClashes.year-day'));
  assert.ok(clash&&own('spouse').includes(clash),clash);
- assert.deepEqual(own('yearNow'),['saju.yearlyLuck.2026','saju.yearlyLuck.2027']);
- assert.deepEqual(own('yearsAhead'),[2028,2029,2030,2031,2032,2033,2034,2035].map(y=>`saju.yearlyLuck.${y}`));
+ const luck=key=>own(key).filter(id=>id.startsWith('saju.yearlyLuck.'));
+ assert.deepEqual(luck('yearNow'),['saju.yearlyLuck.2026','saju.yearlyLuck.2027']);
+ assert.deepEqual(luck('yearsAhead'),[2028,2029,2030,2031,2032,2033,2034,2035].map(y=>`saju.yearlyLuck.${y}`));
+ // Movement facts: the natal reading plus one fact per dated year, all owned at tuna.
+ const movement=[...tuna.ledger.facts.keys()].filter(id=>id.startsWith('saju.movementSignals.'));
+ assert.ok(movement.includes('saju.movementSignals.natal')&&movement.some(id=>/\.20\d\d$/.test(id)),movement.join());
+ assert.deepEqual(movement.filter(id=>tuna.unowned.includes(id)),[]);
  assert.equal(own('months').length,12);
  assert.deepEqual(own('majorNow'),['saju.advancedFactors','saju.majorLuck.current']);
+ // Tuna gives moves and overseas luck one chapter: the natal reading, every dated year, the luck cycle and 역마살.
+ assert.deepEqual(movement.filter(id=>!own('movement').includes(id)),[]);
+ assert.ok(own('movement').includes('saju.movementSignals.major')&&own('movement').some(id=>id.startsWith('saju.shinsal.')),own('movement').join());
+ // Love and marriage timing split by year; the spouse chapter keeps the natal spouse star and attraction.
+ assert.ok(own('spouse').includes('saju.romanceTiming.natal'));
+ const rel=kind=>[...tuna.ledger.facts.keys()].filter(id=>id.startsWith(`saju.romanceTiming.${kind}.`));
+ assert.ok(rel('love').length&&rel('love').every(id=>own('loveLuck').includes(id)),rel('love').join());
+ assert.ok(rel('marriage').length&&rel('marriage').every(id=>own('marriageLuck').includes(id)),rel('marriage').join());
  assert.equal(tuna.ledger.facts.get('saju.majorLuck.current').value.cycle.startYear,2024);
  assert.equal(tuna.ledger.facts.get('saju.majorLuck.next').value.cycle.startYear,2034);
  // Salmon: the month-by-month facts ride along in yearNow; love keeps only 도화·홍염 plus 식상.
@@ -123,12 +138,18 @@ test('saju: declared absence, pillar and interaction ownership, year ranges',()=
  assert.equal(sOwn('yearNow').filter(id=>id.startsWith('saju.monthlyLuck.')).length,12);
  assert.deepEqual(sOwn('love'),['saju.tenGods.siksin','saju.tenGods.sanggwan','saju.shinsal.dohwa','saju.shinsal.hongyeom']);
  assert.ok(salmon.unowned.includes('saju.shinsal.baekho'));
+ // Salmon has no love-timing chapter, so yearNow carries this year's and next year's love, marriage and move signals.
+ const dated=[...salmon.ledger.facts.keys()].filter(id=>/^saju\.(romanceTiming\.(love|marriage)|movementSignals)\.(2026|2027)$/.test(id));
+ assert.ok(dated.length&&dated.every(id=>sOwn('yearNow').includes(id)),dated.join());
 });
 
 test('saju without a birth time: decision 7 rebuilds this year and next, and it matches the engine year luck',()=>{
  for(const r of resolved.filter(r=>r.fixture==='saju:noTime')){
   const yearNow=r.chapters.find(c=>c.key==='yearNow');
-  assert.deepEqual(yearNow.owns,['saju.yearlyLuck.2026','saju.yearlyLuck.2027']);
+  assert.deepEqual(yearNow.owns.filter(id=>id.startsWith('saju.yearlyLuck.')),['saju.yearlyLuck.2026','saju.yearlyLuck.2027']);
+  // Movement keeps its natal reading but no dated year without a birth time.
+  assert.ok(r.chapters.some(c=>c.owns.includes('saju.movementSignals.natal')),r.tier);
+  assert.ok(![...r.ledger.facts.keys()].some(id=>/^saju\.movementSignals\.\d/.test(id)));
   assert.ok(!r.ledger.facts.has('saju.pillarDetails.hour'));
   assert.ok(![...r.ledger.facts.keys()].some(id=>/monthlyLuck|majorLuck/.test(id)));
  }
@@ -157,7 +178,8 @@ test('ziwei, vedic, astrology, sukuyo, tarot: sub-IDs land on the catalog owners
  const dasha=resolved.find(x=>x.fixture==='vedic'&&x.tier==='tuna').ledger.facts.get('vedic.vimshottariDasha.arc').value;
  assert.ok(!JSON.stringify(dasha).includes('1997-02-10'),'birth-balance start date must not leak');
  const a=pick('astrology','tuna'),as=pick('astrology','salmon');
- assert.ok(a('tension').every(id=>/-(square|opposition)-|none-tension/.test(id))&&a('tension').length);
+ // Tension also owns the chart sect (astrology/derived.ts): the out-of-sect malefic reads as the sharpest tension.
+ assert.ok(a('tension').every(id=>/-(square|opposition)-|none-tension|\.chartSect$/.test(id))&&a('tension').includes('astrology.chartSect'));
  assert.ok(a('harmony').every(id=>/-(trine|sextile)-|none-harmony/.test(id))&&a('harmony').length);
  assert.ok(as('aspects').some(id=>id.includes('-conjunction-')||id.endsWith('none-conjunction')));
  // Tuna has no conjunction chapter: a conjunction goes to the earlier planet owner in manifest order.
@@ -200,7 +222,8 @@ test('fail-closed: every value an engine can emit has a slug, and every slug is 
  assert.deepEqual([...types].sort(),Object.keys(m.ASPECT_FAMILY).sort());
  const yogaNames=[...readFileSync('worker/lib/vedic-ai-chart.js','utf8').matchAll(/yogas\.push\(\{\s*name:\s*"([^"]+)"/g)].map(x=>x[1]);
  assert.ok(yogaNames.length>=4);
- assert.deepEqual([...new Set(yogaNames)].sort(),Object.keys(m.YOGA_SLUGS).sort());
+ // Engine yogas plus the classical yogas yeongnyangi derives itself (vedic/derived.ts).
+ assert.deepEqual([...new Set([...yogaNames,...Object.keys(m.VEDIC_YOGA_SLUGS)])].sort(),Object.keys(m.YOGA_SLUGS).sort());
  assert.deepEqual(facts('vedic').planets.map(p=>p.name).sort(),[...m.VEDIC_PLANETS].sort());
  assert.deepEqual(Object.keys(facts('vedic').divisionalCharts).filter(k=>k!=='d1').sort(),[...m.DIVISIONAL_KEYS].sort());
  assert.deepEqual(Object.keys(facts('astrology').planets).sort(),[...m.ASTRO_PLANETS].sort());

@@ -6,6 +6,7 @@ import surnamesJson from "./data/surnames.v1.json";
 import suriJson from "./data/suri-81.v1.json";
 import samjaeJson from "./data/samjae-125.v1.json";
 import blacklistJson from "./data/sound-blacklist.v1.json";
+import nameUsageJson from "./data/name-usage.v1.json";
 import { NamingEngineError, type Element, type Grade } from "./types";
 
 interface TabularFile {
@@ -16,7 +17,13 @@ interface TabularFile {
   [key: string]: unknown;
 }
 
-export interface HanjaReading { hangul: string; kind: "designated" | "dueum"; hun: string | null }
+export interface HanjaReading {
+  hangul: string;
+  kind: "designated" | "dueum";
+  hun: string | null;
+  /** 이 음으로 이름 글자에 쓰인 횟수(name-usage.v1.json, 자리 합). 없으면 0. */
+  nameUse: number;
+}
 export interface HanjaEntry {
   ch: string;
   readings: HanjaReading[];
@@ -46,6 +53,10 @@ export interface NamingData {
   suri: Map<number, SuriEntry>;
   samjae: Map<string, SamjaeEntry>;
   blacklist: BlacklistEntry[];
+  /** 이름 음절 → [첫째 자리, 둘째 자리] 사용 횟수(두 음절 이름 기준). */
+  syllableUse: Map<string, readonly [number, number]>;
+  /** 이름(성 제외, 1~2음절) → [남, 여, 남(1990년 이후 출생), 여(1990년 이후 출생)] 사용 인원. 추천 모드의 자연 이름 판정. */
+  givenUse: Map<string, readonly [number, number, number, number]>;
 }
 
 function columns(file: TabularFile, expectedSchema: string): Record<string, number> {
@@ -63,9 +74,25 @@ function decode(): NamingData {
   const suriFile = suriJson as unknown as TabularFile;
   const samjaeFile = samjaeJson as unknown as TabularFile;
   const blacklistFile = blacklistJson as unknown as TabularFile;
-  const versions = new Set([poolFile, surnamesFile, suriFile, samjaeFile, blacklistFile].map((f) => f.dataVersion));
-  // 다섯 파일은 한 빌드의 산출물이어야 한다. 섞이면 근거 키와 수치가 어긋난다.
+  const usageFile = nameUsageJson as unknown as TabularFile & {
+    syllableFields: string[]; syllableRows: unknown[][]; givenFields: string[]; givenRows: unknown[][];
+  };
+  const versions = new Set([poolFile, surnamesFile, suriFile, samjaeFile, blacklistFile, usageFile].map((f) => f.dataVersion));
+  // 여섯 파일은 한 빌드의 산출물이어야 한다. 섞이면 근거 키와 수치가 어긋난다.
   if (versions.size !== 1) throw new NamingEngineError("data-version-mismatch", [...versions].join(","));
+
+  const u = columns(usageFile, "naming-name-usage/1");
+  const hanjaUse = new Map<string, number>(usageFile.rows.map((row) => [`${row[u.ch]}|${row[u.hangul]}`, row[u.use] as number]));
+  const y = Object.fromEntries(usageFile.syllableFields.map((name, index) => [name, index]));
+  const syllableUse = new Map<string, readonly [number, number]>(usageFile.syllableRows.map((row) => [
+    row[y.hangul] as string,
+    [row[y.first] as number, row[y.second] as number] as const,
+  ]));
+  const v = Object.fromEntries(usageFile.givenFields.map((name, index) => [name, index]));
+  const givenUse = new Map<string, readonly [number, number, number, number]>(usageFile.givenRows.map((row) => [
+    row[v.given] as string,
+    [row[v.male] as number, row[v.female] as number, row[v.maleRecent] as number, row[v.femaleRecent] as number] as const,
+  ]));
 
   const sources = (poolFile.cautionSources as { id: string; lineage: string }[]) || [];
   const p = columns(poolFile, "naming-hanja-pool/1");
@@ -76,10 +103,11 @@ function decode(): NamingData {
       if (reasonKey !== "buryong") continue;
       for (const index of indexes) lineages.add(sources[index]?.lineage ?? String(index));
     }
+    const ch = row[p.ch] as string;
     return {
-      ch: row[p.ch] as string,
+      ch,
       readings: (row[p.readings] as [string, "designated" | "dueum", string | null][])
-        .map(([hangul, kind, hun]) => ({ hangul, kind, hun })),
+        .map(([hangul, kind, hun]) => ({ hangul, kind, hun, nameUse: hanjaUse.get(`${ch}|${hangul}`) ?? 0 })),
       radical: row[p.radical] as number,
       won: row[p.won] as number,
       pil: row[p.pil] as number,
@@ -133,6 +161,8 @@ function decode(): NamingData {
     suri,
     samjae,
     blacklist,
+    syllableUse,
+    givenUse,
   };
 }
 

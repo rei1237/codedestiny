@@ -197,6 +197,7 @@ describe("예전에 보안 계층을 통째로 빠져나가던 경로", () => {
     ["pet-saju-ai", "/api/pet-saju-ai/compat", "start"],
     ["guardian", "/api/guardian/generate-image", "start"],
     ["naming-prompt", "/api/naming-prompt/verify-payment", "ensure"],
+    ["naming-prompt", "/api/naming-prompt/basis", "basis"],
     ["ziwei-ai", "/api/ziwei-ai/basis", "basis"],
     ["vedic-ai", "/api/vedic-ai/basis", "basis"],
     ["astrology-ai", "/api/astrology-ai/basis", "basis"],

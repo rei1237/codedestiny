@@ -40,7 +40,7 @@ describe("Paid feature registry integrity", () => {
       "fortune-tea-house-saju-consultation": { cost: 50, amountKRW: 5000 },
       "fortune-tea-house-saju-compatibility-consultation": { cost: 50, amountKRW: 5000 },
       "fortune-tea-house-sukuyo-compatibility-consultation": { cost: 50, amountKRW: 5000 },
-      "neo-operation-room-consultation": { cost: 300, amountKRW: 30000 },
+      "neo-operation-room-consultation": { cost: 200, amountKRW: 20000 },
     };
 
     Object.entries(expected).forEach(([featureKey, price]) => {

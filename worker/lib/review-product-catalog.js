@@ -387,6 +387,13 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "pet-compatibility-ai",
     ]),
   },
+  {
+    productId: "yeongnyangi",
+    name: "사주보는 영냥이",
+    summary: "영냥이에게 받은 유료 상담과 리포트에 대한 이용 후기",
+    href: "/yeongnyangi/",
+    featureKeys: YEONGNYANGI_PAID_FEATURE_KEYS,
+  },
 ]);
 
 // 레지스트리에는 있지만 리뷰 상품으로 다루지 않는 featureKey. 정방향 커버리지
@@ -397,9 +404,6 @@ export const REVIEW_EXCLUDED_FEATURE_KEYS = Object.freeze([
   "sajuDiary",
   // 프로필 카드 추가/수정/삭제라는 UI 조작 과금이라 "상담·리포트 후기" 성격과 맞지 않는다.
   "profile-card-manage",
-  // 영냥이(SoulCat) 상품은 다른 서비스(yeongnyangi.* 워커)에서 소비되는 단건 결제 전용 증빙이라
-  // CD 리뷰 카탈로그의 상담·리포트 그룹에 속하지 않는다. 후기는 SoulCat 쪽에서 다룬다.
-  ...YEONGNYANGI_PAID_FEATURE_KEYS,
 ]);
 
 const PRODUCT_BY_ID = Object.freeze(

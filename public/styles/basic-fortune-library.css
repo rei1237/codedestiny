@@ -518,7 +518,11 @@ body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 
 /* Astrology birth-chart house: midnight indigo and silver. The legacy neon
    stylesheets stay in place; everything here only outranks them inside this overlay. */
-#astroModalOverlay.fr-astro { --fr-bg:#0a0d1c; --fr-surface:#141a30; --fr-ink:#eef1f8; --fr-muted:#a8b0c8; --fr-accent:#cdd6e8; --fr-rule:#2b3350; }
+#astroModalOverlay.fr-astro { --fr-bg:#0a0d1c; --fr-surface:#141a30; --fr-ink:#eef1f8; --fr-muted:#a8b0c8; --fr-accent:#cdd6e8; --fr-rule:#2b3350;
+  --fr-fs-body:16px; --fr-fs-text:15px; --fr-fs-small:14px; --fr-fs-label:13px;
+  --fr-el-fire:#e9b48c; --fr-el-earth:#b5c99a; --fr-el-air:#bdb8ee; --fr-el-water:#8ec3e0;
+  --fr-star:rgba(232,236,250,.9); --fr-milkyway:rgba(132,150,220,.06); --fr-milkyway-core:rgba(176,186,236,.1);
+  --fr-nebula-a:rgba(118,90,196,.14); --fr-nebula-b:rgba(56,118,186,.11); --fr-surface-glass:rgba(20,26,48,.86); --fr-rule-star:rgba(150,168,222,.24); --fr-starlight:rgba(214,222,246,.1); }
 body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:none !important; }
 #astroModalOverlay :is(#astroCardWrap, .astro-card) { padding:0 !important; margin:0 !important; border:0 !important; background:none !important; box-shadow:none !important; max-width:none !important; }
 #astroModalOverlay #astroResult { background:none !important; border:0 !important; padding:0 !important; margin:0 auto !important; max-width:var(--cd-w-prose, 760px) !important; }
@@ -545,11 +549,13 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #astroModalOverlay .fr-facts > div { display:block; }
 #astroModalOverlay .fr-facts dt { font-size:13px; letter-spacing:.04em; }
 #astroModalOverlay .fr-facts dd { margin:5px 0 4px; font-size:19px; font-family:'Gowun Batang','Gowun Dodum',serif; }
-#astroModalOverlay .fr-facts p { color:var(--fr-accent); font-size:13px; line-height:1.6; }
+#astroModalOverlay .fr-facts p { color:var(--fr-accent); font-size:var(--fr-fs-small); line-height:1.6; }
 #astroModalOverlay .fr-astro-nav { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; padding:12px 0; margin:20px 0 24px; border-bottom:1px solid var(--fr-rule); }
 #astroModalOverlay .fr-astro-nav a { display:flex; align-items:center; justify-content:center; text-align:center; min-height:44px; color:var(--fr-accent); font-size:14px; text-decoration:none; }
 #astroModalOverlay .astro-house-section { scroll-margin-top:80px; margin-bottom:40px; }
-#astroModalOverlay .astro-house-section > .fr-heading { padding-bottom:12px; border-bottom:1px solid var(--fr-rule); }
+/* 제목 아래 구분선(9단계): 왼쪽 별자리(별 여섯·선 다섯) + 오른쪽으로 사라지는 헤어라인. 마스크라 색은 토큰 하나만 쓴다. */
+#astroModalOverlay .astro-house-section > .fr-heading { position:relative; padding-bottom:16px; border-bottom:0; }
+#astroModalOverlay .astro-house-section > .fr-heading::after { content:''; position:absolute; left:0; right:0; bottom:0; height:10px; background:var(--fr-accent); opacity:.55; pointer-events:none; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 74 10'%3E%3Cpath d='M3 6.5L18 3L33 6L50 2.2L66 5.8L72 4' fill='none' stroke='currentColor' stroke-width='.7'/%3E%3Cg fill='currentColor'%3E%3Ccircle cx='3' cy='6.5' r='1.7'/%3E%3Ccircle cx='18' cy='3' r='1.1'/%3E%3Ccircle cx='33' cy='6' r='1.7'/%3E%3Ccircle cx='50' cy='2.2' r='1.1'/%3E%3Ccircle cx='66' cy='5.8' r='1.7'/%3E%3Ccircle cx='72' cy='4' r='1.1'/%3E%3C/g%3E%3C/svg%3E") 0 50% / 74px 10px no-repeat, linear-gradient(90deg, currentColor, transparent) 82px 50% / calc(100% - 82px) 1px no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 74 10'%3E%3Cpath d='M3 6.5L18 3L33 6L50 2.2L66 5.8L72 4' fill='none' stroke='currentColor' stroke-width='.7'/%3E%3Cg fill='currentColor'%3E%3Ccircle cx='3' cy='6.5' r='1.7'/%3E%3Ccircle cx='18' cy='3' r='1.1'/%3E%3Ccircle cx='33' cy='6' r='1.7'/%3E%3Ccircle cx='50' cy='2.2' r='1.1'/%3E%3Ccircle cx='66' cy='5.8' r='1.7'/%3E%3Ccircle cx='72' cy='4' r='1.1'/%3E%3C/g%3E%3C/svg%3E") 0 50% / 74px 10px no-repeat, linear-gradient(90deg, currentColor, transparent) 82px 50% / calc(100% - 82px) 1px no-repeat; }
 /* Flatten the neon card chrome so the report reads as one page, not stacked panels. */
 #astroModalOverlay #astroBodyWrap :is(.astro-section, .astro-action-hub, .astro-wheel-card, .precision-insight-card, .astro-cosmic-restored, .astro-stellar-archive, .astro-restored-hero) { background:var(--fr-surface) !important; border:1px solid var(--fr-rule) !important; border-radius:12px !important; box-shadow:none !important; padding:20px !important; margin:0 0 18px !important; }
 #astroModalOverlay #astroBodyWrap :is(.astro-section, .astro-cosmic-restored, .astro-stellar-archive, .astro-restored-hero)::before, #astroModalOverlay #astroBodyWrap :is(.astro-section, .astro-cosmic-restored, .astro-stellar-archive, .astro-restored-hero)::after { display:none !important; }
@@ -563,6 +569,55 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #astroModalOverlay #astroBodyWrap :is(.astro-wheel-visual, .astro-wheel-table-wrap) { background:none !important; border-color:var(--fr-rule) !important; }
 #astroModalOverlay #astroBodyWrap .astro-big3-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
 #astroModalOverlay #astroBodyWrap .astro-big3-card { min-width:0; background:#101632 !important; border:1px solid var(--fr-rule) !important; border-radius:10px !important; box-shadow:none !important; }
+/* 삶의 영역 카드: 접힌 상태에서도 영역 이름 + 세리프 헤드라인 한 줄로 훑는다. 원소색(--el)은 글리프·불릿 표식에만 쓴다. */
+#astroModalOverlay #astroBodyWrap .astro-life-grid { gap:var(--cd-sp-sm, 10px); }
+#astroModalOverlay #astroBodyWrap .astro-life-card { --el:var(--fr-accent); border:1px solid var(--fr-rule) !important; border-radius:var(--cd-r-sm, 8px) !important; background:var(--fr-bg) !important; box-shadow:none !important; transform:none !important; }
+#astroModalOverlay #astroBodyWrap .astro-life-card::before { display:none; }
+#astroModalOverlay #astroBodyWrap .astro-life-card[data-element="fire"] { --el:var(--fr-el-fire); }
+#astroModalOverlay #astroBodyWrap .astro-life-card[data-element="earth"] { --el:var(--fr-el-earth); }
+#astroModalOverlay #astroBodyWrap .astro-life-card[data-element="air"] { --el:var(--fr-el-air); }
+#astroModalOverlay #astroBodyWrap .astro-life-card[data-element="water"] { --el:var(--fr-el-water); }
+#astroModalOverlay #astroBodyWrap .astro-life-card > summary { position:relative; flex-direction:column; align-items:flex-start; justify-content:center; gap:2px; min-height:64px; padding:var(--cd-sp-sm, 10px) 44px var(--cd-sp-sm, 10px) var(--cd-sp-md, 16px); }
+#astroModalOverlay #astroBodyWrap .astro-life-card > summary::after { content:''; position:absolute; right:var(--cd-sp-md, 16px); top:50%; width:8px; height:8px; margin-top:-6px; border-right:1.5px solid var(--fr-muted); border-bottom:1.5px solid var(--fr-muted); transform:rotate(45deg); transition:transform var(--cd-dur-base, 220ms) ease; }
+#astroModalOverlay #astroBodyWrap .astro-life-card[open] > summary::after { margin-top:-2px; transform:rotate(-135deg); }
+#astroModalOverlay #astroBodyWrap .astro-life-title { color:var(--fr-muted); font-size:var(--fr-fs-label); font-weight:600; letter-spacing:.04em; }
+#astroModalOverlay #astroBodyWrap .astro-life-headline { color:var(--fr-ink); font:400 18px/1.5 var(--font-serif, "CodeDestinySerifKR", "Gowun Batang", "Nanum Myeongjo", Batang, serif); }
+/* ♈~♓ 는 Emoji_Presentation 문자라 세리프 폴백에서 컬러 이모지로 떴다(실측) — 렌더러가 글리프 뒤에 VS15(U+FE0E)를 붙인다. */
+#astroModalOverlay #astroBodyWrap .astro-life-glyph { color:var(--el); }
+#astroModalOverlay #astroBodyWrap .astro-life-body { padding:0 var(--cd-sp-md, 16px) var(--cd-sp-md, 16px); color:var(--fr-ink); font-size:var(--fr-fs-text); line-height:1.75; }
+#astroModalOverlay #astroBodyWrap .astro-life-body p { margin:0 0 var(--cd-sp-sm, 10px); }
+#astroModalOverlay #astroBodyWrap .astro-life-body b { display:block; margin-bottom:2px; color:var(--fr-accent); font-size:var(--fr-fs-label); font-weight:600; }
+#astroModalOverlay #astroBodyWrap .astro-life-kicker { color:var(--fr-accent); font-size:var(--fr-fs-small); font-weight:600; }
+#astroModalOverlay #astroBodyWrap .astro-life-traits { margin:0 0 var(--cd-sp-md, 16px); padding-left:20px; }
+#astroModalOverlay #astroBodyWrap .astro-life-traits li { margin-bottom:var(--cd-sp-xs, 6px); }
+#astroModalOverlay #astroBodyWrap .astro-life-traits li::marker { color:var(--el); }
+#astroModalOverlay #astroBodyWrap .astro-life-duo { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--cd-sp-sm, 10px); margin-bottom:var(--cd-sp-sm, 10px); }
+#astroModalOverlay #astroBodyWrap .astro-life-duo p { margin:0; padding:var(--cd-sp-sm, 10px) 12px; border:1px solid var(--fr-rule); border-radius:var(--cd-r-sm, 8px); }
+#astroModalOverlay #astroBodyWrap .astro-life-action { padding-top:var(--cd-sp-sm, 10px); border-top:1px solid var(--fr-rule); }
+/* 칩은 inline 흐름으로 둔다 — inline-flex 면 두 줄일 때 통하우스 꼬리가 별도 열로 갈라졌다(실측). */
+#astroModalOverlay #astroBodyWrap .astro-life-chip { display:inline-block; padding:4px 10px; border:1px solid var(--fr-rule); border-radius:var(--cd-r-sm, 8px); background:none; color:var(--fr-muted); font-size:var(--fr-fs-label); line-height:1.5; }
+#astroModalOverlay #astroBodyWrap .astro-life-chip small { font-size:inherit; white-space:nowrap; }
+/* 장식 SVG(5단계): 섹션 머리 휠·제목 앞 원소 시길·카드 오른쪽 위 별자리 선화. 선은 currentColor, 색은 토큰만 쓴다. */
+#astroModalOverlay #astroBodyWrap .astro-life-hero { display:grid; grid-template-columns:minmax(0,1fr) 136px; gap:var(--cd-sp-md, 16px); align-items:center; margin-bottom:var(--cd-sp-md, 16px); }
+#astroModalOverlay #astroBodyWrap .astro-life-hero .astro-birth-lead { margin:0; }
+#astroModalOverlay #astroBodyWrap .astro-life-hero-note { margin:var(--cd-sp-xs, 6px) 0 0; color:var(--fr-muted); font-size:var(--fr-fs-small); line-height:1.6; text-wrap:balance; }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel { display:block; width:100%; height:auto; color:var(--fr-accent); }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel__ring { fill:none; stroke:currentColor; stroke-width:.8; opacity:.45; }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel__ring--inner { opacity:.25; }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel__horizon { fill:none; stroke:currentColor; stroke-width:.8; stroke-dasharray:2 3; opacity:.6; }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel__chord { fill:none; stroke:currentColor; stroke-width:.8; opacity:.5; }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel__signs { fill:var(--fr-muted); font-size:15px; text-anchor:middle; dominant-baseline:central; }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel__body { color:var(--fr-accent); fill:currentColor; stroke:currentColor; stroke-width:1.4; }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel__body[data-element="fire"] { color:var(--fr-el-fire); }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel__body[data-element="earth"] { color:var(--fr-el-earth); }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel__body[data-element="air"] { color:var(--fr-el-air); }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel__body[data-element="water"] { color:var(--fr-el-water); }
+#astroModalOverlay #astroBodyWrap .astro-life-title { display:inline-flex; align-items:center; gap:var(--cd-sp-xs, 6px); }
+#astroModalOverlay #astroBodyWrap .astro-life-sigil { flex:none; width:14px; height:14px; fill:none; stroke:var(--el); stroke-width:1.4; stroke-linejoin:round; }
+#astroModalOverlay #astroBodyWrap .astro-life-constellation { position:absolute; top:var(--cd-sp-sm, 10px); right:40px; width:84px; height:50px; color:var(--el); opacity:.35; pointer-events:none; }
+#astroModalOverlay #astroBodyWrap .astro-life-constellation path { fill:none; stroke:currentColor; stroke-width:.9; }
+#astroModalOverlay #astroBodyWrap .astro-life-constellation circle { fill:currentColor; }
+#astroModalOverlay #astroBodyWrap .astro-life-card > summary > span { position:relative; }
 #astroModalOverlay .astro-house-journal { border-top:1px solid var(--fr-rule); padding-top:30px; margin-top:40px; scroll-margin-top:24px; }
 #astroModalOverlay .astro-house-journal > .fr-caption { max-width:720px; }
 #astroModalOverlay .astro-house-search { display:block; max-width:380px; margin:20px 0; color:var(--fr-muted); font-size:14px; }
@@ -586,6 +641,38 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #astroModalOverlay .astro-house-article-body ol { padding-left:22px; }
 #astroModalOverlay .astro-house-article-body table { display:block; max-width:100%; overflow-x:auto; border-collapse:collapse; }
 #astroModalOverlay .astro-house-article-body :is(td,th) { min-width:90px; padding:12px; border-bottom:1px solid var(--fr-rule); }
+/* 읽기 하한(6단계): 라벨 13px · 설명 14px. 상담 진입(4종 공용 fortune-consultation-entry.css)은 rem 이라
+   ≤480px 루트 14px 에서 10~12px 로 줄었다(실측) — 점성술 모달 안에서만 px 토큰으로 올리고, 다른 3종은 후속으로 둔다. */
+#astroModalOverlay .fr-brand { font-size:var(--fr-fs-label); }
+#astroModalOverlay .fortune-consultation :is(.fc-entry__scene figcaption, .fc-entry__name, .fc-entry__price, .fc-entry__topics, .fc-form__intro dt, .fc-examples button) { font-size:var(--fr-fs-label); }
+#astroModalOverlay .fortune-consultation :is(.fc-entry__note, .fc-entry__price span, .fc-form__intro p, .fc-form__intro dd) { font-size:var(--fr-fs-small); }
+#astroModalOverlay .fortune-consultation :is(.fc-entry__lead, .fc-form > summary) { font-size:var(--fr-fs-text); }
+#astroModalOverlay .fortune-consultation .fc-status { font-size:var(--fr-fs-small) !important; }
+/* 접기(8단계): 긴 문단·반복 블록은 그 블록만의 가치 한 줄 아래로 접는다(삭제 0). 화살표는 삶의 영역 카드와 같은 모양. */
+#astroModalOverlay #astroBodyWrap .astro-fold { margin:var(--cd-sp-sm, 10px) 0 0; border-top:1px solid var(--fr-rule); }
+#astroModalOverlay #astroBodyWrap .astro-fold > summary { position:relative; display:flex; align-items:center; min-height:44px; padding:var(--cd-sp-sm, 10px) 32px var(--cd-sp-sm, 10px) 0; color:var(--fr-accent); font-size:var(--fr-fs-text); font-weight:600; line-height:1.5; cursor:pointer; list-style:none; }
+#astroModalOverlay #astroBodyWrap .astro-fold > summary::-webkit-details-marker { display:none; }
+#astroModalOverlay #astroBodyWrap .astro-fold > summary::after { content:''; position:absolute; right:var(--cd-sp-xs, 6px); top:50%; width:8px; height:8px; margin-top:-6px; border-right:1.5px solid var(--fr-muted); border-bottom:1.5px solid var(--fr-muted); transform:rotate(45deg); transition:transform var(--cd-dur-base, 220ms) ease; }
+#astroModalOverlay #astroBodyWrap .astro-fold[open] > summary { margin-bottom:var(--cd-sp-xs, 6px); }
+#astroModalOverlay #astroBodyWrap .astro-fold[open] > summary::after { margin-top:-2px; transform:rotate(-135deg); }
+/* 우주·별자리·은하수(9단계): 하늘은 고정 오버레이 자체에 칠한다 — 대각선 은하수 띠와 모서리 성운 두 곳.
+   별은 오버레이 ::before 한 장(z-index:-1, 시트 아래)에 토큰 색을 깔고 SVG 마스크로 오려 낸다. 별 층은 고정이고 글은
+   스크롤되므로, 밝은 별(큰 별·작은 별)은 본문 칼럼(760px) 바깥 여백에만 남긴다(여백 그라데이션과 교집합) — 칼럼 안에서는
+   내비 라벨·제목 옆에 와서 "." "·" 로 읽히기 때문이다. 칼럼 안에는 2:1 미만 먼지 별(서로소 크기 두 타일)만 둔다. 타일 안 점 위치는 고정 시드
+   의사난수라 격자처럼 줄지어 보이지 않는다. 시트는 투명이라 하늘이 비치고 글만 지나간다. 움직임 없음, 이미지 파일·hex 없음. */
+#astroModalOverlay.fr-astro {
+  background:
+    linear-gradient(118deg, transparent 26%, var(--fr-milkyway) 40%, var(--fr-milkyway-core) 50%, var(--fr-milkyway) 60%, transparent 74%) 0 0 / 100% 100% no-repeat,
+    radial-gradient(70% 45% at 92% 4%, var(--fr-nebula-a), transparent 72%) 0 0 / 100% 100% no-repeat,
+    radial-gradient(60% 40% at 4% 96%, var(--fr-nebula-b), transparent 72%) 0 0 / 100% 100% no-repeat,
+    var(--fr-bg) !important;
+}
+#astroModalOverlay.fr-astro::before { content:''; position:absolute; inset:0; z-index:-1; pointer-events:none; background:var(--fr-star); -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='293' height='311'%3E%3Ccircle cx='202.1' cy='165.6' r='.64' fill-opacity='.16'/%3E%3Ccircle cx='277.9' cy='31.8' r='.61' fill-opacity='.19'/%3E%3Ccircle cx='83' cy='118.1' r='.69' fill-opacity='.17'/%3E%3Ccircle cx='202.4' cy='117.8' r='.59' fill-opacity='.18'/%3E%3Ccircle cx='45.3' cy='18.8' r='.58' fill-opacity='.17'/%3E%3Ccircle cx='139.2' cy='39' r='.56' fill-opacity='.21'/%3E%3Ccircle cx='24.4' cy='195' r='.62' fill-opacity='.15'/%3E%3Ccircle cx='196.4' cy='218' r='.65' fill-opacity='.22'/%3E%3Ccircle cx='138.1' cy='153.8' r='.6' fill-opacity='.15'/%3E%3Ccircle cx='225.7' cy='20.5' r='.55' fill-opacity='.16'/%3E%3C/svg%3E") 0 0 / 293px 311px repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='347' height='373'%3E%3Ccircle cx='155.5' cy='113.7' r='.53' fill-opacity='.15'/%3E%3Ccircle cx='292.2' cy='316.5' r='.65' fill-opacity='.13'/%3E%3Ccircle cx='121.7' cy='244.1' r='.6' fill-opacity='.18'/%3E%3Ccircle cx='67.5' cy='244.2' r='.62' fill-opacity='.18'/%3E%3Ccircle cx='269.7' cy='80.7' r='.54' fill-opacity='.15'/%3E%3Ccircle cx='80.7' cy='31.9' r='.59' fill-opacity='.18'/%3E%3Ccircle cx='34.4' cy='148.1' r='.65' fill-opacity='.16'/%3E%3Ccircle cx='143.6' cy='10.4' r='.58' fill-opacity='.16'/%3E%3Ccircle cx='341' cy='348.3' r='.54' fill-opacity='.19'/%3E%3Ccircle cx='335' cy='286.6' r='.51' fill-opacity='.19'/%3E%3Ccircle cx='108.6' cy='161.7' r='.55' fill-opacity='.15'/%3E%3Ccircle cx='328.6' cy='171.1' r='.52' fill-opacity='.13'/%3E%3C/svg%3E") 0 0 / 347px 373px repeat, linear-gradient(90deg, currentColor calc(50% - var(--cd-w-prose, 760px) / 2 - 44px), transparent calc(50% - var(--cd-w-prose, 760px) / 2 - 20px), transparent calc(50% + var(--cd-w-prose, 760px) / 2 + 20px), currentColor calc(50% + var(--cd-w-prose, 760px) / 2 + 44px)) 0 0 / 100% 100% no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='613' height='587'%3E%3Ccircle cx='304.3' cy='358.6' r='1.11' fill-opacity='.48'/%3E%3Ccircle cx='136.2' cy='82.8' r='1.07' fill-opacity='.46'/%3E%3Ccircle cx='580.4' cy='252.4' r='1.16' fill-opacity='.4'/%3E%3Ccircle cx='487' cy='65' r='1.14' fill-opacity='.44'/%3E%3Ccircle cx='152.9' cy='383.4' r='1' fill-opacity='.5'/%3E%3Ccircle cx='19.6' cy='36.2' r='1.25' fill-opacity='.4'/%3E%3C/svg%3E") 0 0 / 613px 587px repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='431' height='479'%3E%3Ccircle cx='80.6' cy='381.7' r='.71' fill-opacity='.31'/%3E%3Ccircle cx='228.1' cy='127.4' r='.77' fill-opacity='.29'/%3E%3Ccircle cx='174.6' cy='383.1' r='.79' fill-opacity='.26'/%3E%3Ccircle cx='106.3' cy='467' r='.74' fill-opacity='.27'/%3E%3Ccircle cx='292' cy='56' r='.71' fill-opacity='.26'/%3E%3Ccircle cx='421.8' cy='48.3' r='.84' fill-opacity='.29'/%3E%3Ccircle cx='273.6' cy='289.9' r='.8' fill-opacity='.31'/%3E%3Ccircle cx='46.3' cy='131.3' r='.71' fill-opacity='.32'/%3E%3Ccircle cx='375.6' cy='179.1' r='.76' fill-opacity='.28'/%3E%3Ccircle cx='8.6' cy='374.2' r='.79' fill-opacity='.26'/%3E%3C/svg%3E") 0 0 / 431px 479px repeat; -webkit-mask-composite:source-over, source-over, source-in, source-over, source-over; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='293' height='311'%3E%3Ccircle cx='202.1' cy='165.6' r='.64' fill-opacity='.16'/%3E%3Ccircle cx='277.9' cy='31.8' r='.61' fill-opacity='.19'/%3E%3Ccircle cx='83' cy='118.1' r='.69' fill-opacity='.17'/%3E%3Ccircle cx='202.4' cy='117.8' r='.59' fill-opacity='.18'/%3E%3Ccircle cx='45.3' cy='18.8' r='.58' fill-opacity='.17'/%3E%3Ccircle cx='139.2' cy='39' r='.56' fill-opacity='.21'/%3E%3Ccircle cx='24.4' cy='195' r='.62' fill-opacity='.15'/%3E%3Ccircle cx='196.4' cy='218' r='.65' fill-opacity='.22'/%3E%3Ccircle cx='138.1' cy='153.8' r='.6' fill-opacity='.15'/%3E%3Ccircle cx='225.7' cy='20.5' r='.55' fill-opacity='.16'/%3E%3C/svg%3E") 0 0 / 293px 311px repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='347' height='373'%3E%3Ccircle cx='155.5' cy='113.7' r='.53' fill-opacity='.15'/%3E%3Ccircle cx='292.2' cy='316.5' r='.65' fill-opacity='.13'/%3E%3Ccircle cx='121.7' cy='244.1' r='.6' fill-opacity='.18'/%3E%3Ccircle cx='67.5' cy='244.2' r='.62' fill-opacity='.18'/%3E%3Ccircle cx='269.7' cy='80.7' r='.54' fill-opacity='.15'/%3E%3Ccircle cx='80.7' cy='31.9' r='.59' fill-opacity='.18'/%3E%3Ccircle cx='34.4' cy='148.1' r='.65' fill-opacity='.16'/%3E%3Ccircle cx='143.6' cy='10.4' r='.58' fill-opacity='.16'/%3E%3Ccircle cx='341' cy='348.3' r='.54' fill-opacity='.19'/%3E%3Ccircle cx='335' cy='286.6' r='.51' fill-opacity='.19'/%3E%3Ccircle cx='108.6' cy='161.7' r='.55' fill-opacity='.15'/%3E%3Ccircle cx='328.6' cy='171.1' r='.52' fill-opacity='.13'/%3E%3C/svg%3E") 0 0 / 347px 373px repeat, linear-gradient(90deg, currentColor calc(50% - var(--cd-w-prose, 760px) / 2 - 44px), transparent calc(50% - var(--cd-w-prose, 760px) / 2 - 20px), transparent calc(50% + var(--cd-w-prose, 760px) / 2 + 20px), currentColor calc(50% + var(--cd-w-prose, 760px) / 2 + 44px)) 0 0 / 100% 100% no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='613' height='587'%3E%3Ccircle cx='304.3' cy='358.6' r='1.11' fill-opacity='.48'/%3E%3Ccircle cx='136.2' cy='82.8' r='1.07' fill-opacity='.46'/%3E%3Ccircle cx='580.4' cy='252.4' r='1.16' fill-opacity='.4'/%3E%3Ccircle cx='487' cy='65' r='1.14' fill-opacity='.44'/%3E%3Ccircle cx='152.9' cy='383.4' r='1' fill-opacity='.5'/%3E%3Ccircle cx='19.6' cy='36.2' r='1.25' fill-opacity='.4'/%3E%3C/svg%3E") 0 0 / 613px 587px repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='431' height='479'%3E%3Ccircle cx='80.6' cy='381.7' r='.71' fill-opacity='.31'/%3E%3Ccircle cx='228.1' cy='127.4' r='.77' fill-opacity='.29'/%3E%3Ccircle cx='174.6' cy='383.1' r='.79' fill-opacity='.26'/%3E%3Ccircle cx='106.3' cy='467' r='.74' fill-opacity='.27'/%3E%3Ccircle cx='292' cy='56' r='.71' fill-opacity='.26'/%3E%3Ccircle cx='421.8' cy='48.3' r='.84' fill-opacity='.29'/%3E%3Ccircle cx='273.6' cy='289.9' r='.8' fill-opacity='.31'/%3E%3Ccircle cx='46.3' cy='131.3' r='.71' fill-opacity='.32'/%3E%3Ccircle cx='375.6' cy='179.1' r='.76' fill-opacity='.28'/%3E%3Ccircle cx='8.6' cy='374.2' r='.79' fill-opacity='.26'/%3E%3C/svg%3E") 0 0 / 431px 479px repeat; mask-composite:add, add, intersect, add, add; }
+#astroModalOverlay.fr-astro .modal-sheet-base { background:transparent !important; }
+/* 카드: 반투명 밤하늘 면 + 얇은 별빛 테두리. 결제 보관함(.astro-stellar-archive)과 그 안쪽은 위 공통 면 규칙 그대로 둔다. */
+#astroModalOverlay #astroBodyWrap :is(.astro-section, .astro-action-hub, .astro-wheel-card, .precision-insight-card, .astro-cosmic-restored, .astro-restored-hero):not(.astro-stellar-archive, .astro-stellar-archive *) { background:var(--fr-surface-glass) !important; border-color:var(--fr-rule-star) !important; box-shadow:inset 0 1px 0 var(--fr-starlight) !important; }
+/* 접힘 표식: 텍스트 글리프 ✦(VS15) — 이모지 아님. */
+#astroModalOverlay #astroBodyWrap .astro-fold > summary::before { content:'\2726\FE0E'; flex:none; margin-right:var(--cd-sp-xs, 6px); color:var(--fr-accent); font-size:var(--fr-fs-label); line-height:1; }
 @media (min-width:768px) {
   #astroModalOverlay #astroBodyWrap.fr-report { padding:32px 36px 64px !important; }
   #astroModalOverlay .astro-house-articles { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -601,11 +688,17 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
   #astroModalOverlay .fr-facts > div { display:grid; grid-template-columns:62px 1fr; column-gap:12px; }
   #astroModalOverlay .fr-facts dt { font-size:13px; align-self:baseline; }
   #astroModalOverlay .fr-facts dd { margin:0; font-size:17px; }
-  #astroModalOverlay .fr-facts p { margin:4px 0 0; font-size:12px; }
+  #astroModalOverlay .fr-facts p { margin:4px 0 0; font-size:var(--fr-fs-small); }
   #astroModalOverlay .fr-astro-nav { grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px 8px; margin:14px 0 18px; padding:0 0 10px; }
-  #astroModalOverlay .fr-astro-nav a { min-height:40px; font-size:12px; }
+  #astroModalOverlay .fr-astro-nav a { min-height:44px; font-size:var(--fr-fs-small); line-height:1.4; }
   #astroModalOverlay #astroBodyWrap :is(.astro-section, .astro-action-hub, .astro-wheel-card, .precision-insight-card, .astro-cosmic-restored, .astro-stellar-archive, .astro-restored-hero) { padding:14px !important; }
   #astroModalOverlay #astroBodyWrap .astro-big3-grid { grid-template-columns:1fr; }
+  #astroModalOverlay #astroBodyWrap .astro-life-duo { grid-template-columns:1fr; }
+  #astroModalOverlay #astroBodyWrap .astro-life-headline { font-size:17px; }
+  #astroModalOverlay #astroBodyWrap .astro-life-hero { grid-template-columns:minmax(0,1fr) 104px; gap:var(--cd-sp-sm, 10px); }
+  /* 모바일은 헤드라인이 두 줄로 꺾여 별자리와 겹쳤다(실측) — 제목 줄 높이 안으로 줄이고, 7px 이하로 뭉개지는 12궁 기호 링은 숨긴다. */
+  #astroModalOverlay #astroBodyWrap .astro-life-constellation { top:4px; width:48px; height:29px; }
+  #astroModalOverlay #astroBodyWrap .astro-life-wheel__signs { display:none; }
   #astroModalOverlay .astro-house-story h4 { font-size:19px; line-height:1.5; }
   #astroModalOverlay .astro-house-article-reader { padding-top:18px; }
 }

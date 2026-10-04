@@ -50,7 +50,7 @@ export const V7_PARTS:Record<PartId,{label:string;theme:Theme}>={
 };
 export const V7_PART_ORDER=Object.keys(V7_PARTS) as PartId[];
 
-// tiers: s=salmon f=flounder t=tuna. An `s:`/`ft:` prefix limits one selector to those tiers.
+// tiers: s=salmon f=flounder t=tuna. An `s:`/`ft:` prefix limits one selector or cover item to those tiers.
 // inputs '' means the chapter reads exactly what it owns.
 export type V7Entry={key:string;part:PartId;tiers:string;title:string;inputs:string[];owns:string[];cover:string[];block?:'scene'|'decision';requires?:string[];fallback?:string[]};
 const words=(s:string)=>s.split(/\s+/).filter(Boolean);
@@ -62,12 +62,13 @@ const card=(key:string,tiers:string,title:string,positions:string[],cover:string
 
 export const v7Catalog:Record<string,V7Entry[]>={
   saju:[
-    e('anchor','base','sft','타고난 중심과 힘의 균형','','dayMaster pillars strengthHeuristic','기질의 중심/힘의 균형이 일상에 드러나는 방식/강점이 지나칠 때','scene'),
-    e('love','love','sft','끌림과 연애의 방식','shinsal s:tenGods s:tenGodsByPillar','shinsal.도화살 shinsal.홍염살 s:tenGods.식신 s:tenGods.상관','끌림이 생기는 자리/가까워지는 방식/연애가 흔들리는 조건','scene'),
+    e('anchor','base','sft','타고난 중심과 힘의 균형','','dayMaster pillars strengthHeuristic elementProfile.balance sf:elementProfile.traits tenGodProfile','sf:발달한 오행·십성이 만드는 기질/t:발달한 십성이 만드는 기질/힘의 균형이 일상에 드러나는 방식/강점이 지나칠 때','scene'),
+    e('elements','base','t','넘치는 기운과 모자란 기운','elementProfile','elementProfile.traits','넘치는 오행이 만드는 강점과 그림자/모자란 오행이 비워 두는 자리/치우친 기운을 생활에서 다루는 법','scene'),
+    e('love','love','sft','타고난 연애 스타일','shinsal s:tenGods s:tenGodsByPillar','shinsal.도화살 shinsal.홍염살 s:tenGods.식신 s:tenGods.상관','끌림이 생기는 자리/가까워지는 방식과 연애의 습관/연애가 흔들리는 조건','scene'),
     e('expression','love','f','마음을 전하는 표현','tenGods tenGodsByPillar','tenGods.식신 tenGods.상관','표현의 온도/말이 관계에 남기는 것/표현을 다듬는 법','scene'),
     e('siksin','love','t','다정하게 전하는 마음(식신)','tenGods tenGodsByPillar','tenGods.식신','다정함이 드러나는 방식/편안함이 주는 매력/여유가 느슨함이 될 때','scene'),
     e('sanggwan','love','t','날이 선 매력(상관)','tenGods tenGodsByPillar','tenGods.상관','날 선 표현이 끌어당기는 힘/말이 상처가 되는 순간/재치를 관계의 힘으로 쓰는 법','scene'),
-    e('spouse','marriage','sft','배우자 자리와 함께 사는 법','pillarDetails.day tenGodsByPillar.day natalInteractions','pillarDetails.day tenGodsByPillar.day natalInteractions.day','배우자 자리의 결/일지 합충이 만드는 결속과 긴장/함께 살 때의 역할','scene'),
+    e('spouse','marriage','sft','결혼운과 배우자 자리','pillarDetails.day tenGodsByPillar.day natalInteractions romanceTiming','pillarDetails.day tenGodsByPillar.day natalInteractions.day romanceTiming.natal','배우자 자리와 배우자성이 말하는 인연의 결/일지 합충이 만드는 결속과 긴장/함께 살 때의 역할','scene'),
     e('wealth','wealth','sf','돈이 모이고 새는 길','tenGods tenGodsByPillar','tenGods.정재 tenGods.편재','재성 구성이 말하는 돈의 흐름/모으는 방식과 새는 자리','decision'),
     e('jeongjae','wealth','t','지키고 쌓는 돈(정재)','tenGods tenGodsByPillar','tenGods.정재','꾸준히 쌓는 돈의 방식/지키는 힘이 막힘이 될 때','decision'),
     e('pyeonjae','wealth','t','굴리고 불리는 돈(편재)','tenGods tenGodsByPillar','tenGods.편재','기회를 잡는 돈의 감각/크게 움직일 때의 위험/불린 돈을 지키는 법','scene'),
@@ -83,30 +84,38 @@ export const v7Catalog:Record<string,V7Entry[]>={
     e('geopjae','relations','t','겨루는 사람(겁재)','tenGods tenGodsByPillar','tenGods.겁재','겨루는 사람이 나타나는 자리/경쟁이 자원을 흔드는 조건/경쟁을 협력으로 바꾸는 법','scene'),
     e('roots','relations','ft','부모와 뿌리','pillarDetails.year tenGodsByPillar.year natalInteractions','pillarDetails.year tenGodsByPillar.year natalInteractions.year','부모와 뿌리에서 받은 결/집안의 기대가 남긴 것/뿌리와 거리를 두는 법','scene'),
     e('children','relations','ft','자녀와 인생 후반','pillarDetails.hour tenGodsByPillar.hour natalInteractions','pillarDetails.hour tenGodsByPillar.hour natalInteractions.hour','자녀와 아랫사람과의 관계/인생 후반의 결/후반을 준비하는 법','scene'),
-    e('health','health','sft','몸의 리듬과 회복','','fiveElements seasonalBalance','치우친 기운이 드러나는 생활 리듬/계절·환경에 따른 컨디션/회복 습관'),
-    e('signals','depth','t','귀인·이동·강한 기운의 신호','shinsal','shinsal.천을귀인 shinsal.문창귀인 shinsal.역마살 shinsal.화개살 shinsal.양인살 shinsal.괴강살 shinsal.백호살 shinsal.공망 shinsal.귀문관살 shinsal.원진살','있는 신살의 뜻과 한계/도움과 이동의 통로/강한 기운을 다루는 법','scene'),
+    e('health','health','sft','몸의 리듬과 회복','','fiveElements seasonalBalance healthBasis','치우친 기운이 드러나는 생활 리듬/계절·환경에 따른 컨디션/회복 습관'),
+    e('signals','depth','t','귀인과 강한 기운의 신호','shinsal','shinsal.천을귀인 shinsal.문창귀인 shinsal.화개살 shinsal.양인살 shinsal.괴강살 shinsal.백호살 shinsal.공망 shinsal.귀문관살 shinsal.원진살','있는 신살의 뜻과 한계/도움이 들어오는 통로/강한 기운을 다루는 법','scene'),
     e('useful','depth','t','나를 살리는 기운(용신·종격 판정)','','usefulGod jong','용신의 근거와 한계/생활에서 보강하는 법/종격 여부가 바꾸는 해석'),
     e('majorArc','timing','t','대운으로 보는 인생의 굴곡','majorLuck','majorLuck.arc','지나온 대운이 남긴 굴곡/먼 대운의 방향/긴 주기를 읽는 법'),
     e('majorNow','timing','t','지금의 대운','majorLuck advancedFactors','majorLuck.current advancedFactors','지금 대운의 과제/지금 대운이 원국과 만나는 자리','decision'),
     e('majorNext','timing','t','다음 대운과 준비','majorLuck','majorLuck.next','다음 대운이 바꾸는 것/전환 전에 준비할 조건','decision'),
-    e('yearNow','timing','sft','올해와 내년','yearlyLuck s:monthlyLuck','yearlyLuck.Y0 yearlyLuck.Y1 s:monthlyLuck.M12','올해 세운의 흐름/내년 세운의 흐름','decision',
+    // Salmon and flounder cannot add chapters within the cost cap, so this year and next also carry love, marriage and movement.
+    e('yearNow','timing','sft','올해와 내년','yearlyLuck s:monthlyLuck sf:movementSignals sf:romanceTiming',
+      'yearlyLuck.Y0 yearlyLuck.Y1 s:monthlyLuck.M12 sf:movementSignals.natal sf:movementSignals.Y0-1 sf:romanceTiming.love.Y0-1 sf:romanceTiming.marriage.Y0-1',
+      'sf:올해 세운의 흐름과 연애·결혼·이동의 기회/sf:내년 세운의 흐름과 연애·결혼·이동의 기회/t:올해 세운의 흐름/t:내년 세운의 흐름','decision',
       {requires:['s:birthTime'],fallback:['s:dayMaster','s:pillarDetails']}),
     e('months','timing','ft','앞으로 12개월','monthlyLuck','monthlyLuck.M12','가까운 몇 달의 흐름/한 해 가운데 달라지는 달/달마다 점검할 것'),
     e('yearsAhead','timing','t','앞으로 8년의 세운','yearlyLuck','yearlyLuck.Y2-9','앞으로 몇 해의 큰 결/세운이 바뀌는 해/길게 준비할 일'),
+    e('loveLuck','timing','t','연애운의 흐름','romanceTiming','romanceTiming.love','연애의 기회가 들어오는 해/끌림이 강해지는 시기의 조건/인연을 붙잡는 준비','scene'),
+    e('marriageLuck','timing','t','결혼운이 움직이는 시기','romanceTiming','romanceTiming.marriage','결혼 신호가 드는 해와 대운/결정을 앞두고 따질 조건','decision'),
+    e('movement','timing','t','이동수와 해외운','movementSignals shinsal','movementSignals shinsal.역마살','타고난 이동 기질과 해외운(병존·역마·충)/이동과 해외 기회가 들어오는 해','decision'),
   ],
   ziwei:[
     e('anchor','base','sft','삶의 중심(명궁·신궁)','','lifePalace bodyPalace palaces.명궁 bureau','명궁 주성이 말하는 기질/신궁이 앉은 자리의 무게/오행국이 정하는 리듬','scene'),
     e('love','love','sft','마음이 끌리는 것과 연애의 즐거움','','palaces.복덕궁','마음이 끌리는 것/즐거움을 누리는 방식/마음이 지칠 때','scene'),
     e('spouse','marriage','sft','배우자 자리와 함께 사는 법','','palaces.부부궁','배우자 자리의 별/관계에서 반복되는 긴장/함께 살 때의 역할','scene'),
-    e('wealth','wealth','sft','돈의 그릇과 쌓는 방식','','palaces.재백궁 s:palaces.전택궁','돈을 버는 그릇/쌓고 지키는 방식','decision'),
+    e('wealth','wealth','sft','돈의 그릇과 쌓는 방식','','palaces.재백궁 s:palaces.전택궁 sf:businessBasis','돈을 버는 그릇/sf:사업으로 키우고 자산으로 지키는 방식/t:쌓고 지키는 방식','decision'),
     e('property','wealth','ft','집과 자산의 자리','','palaces.전택궁','집과 자산을 대하는 태도/자산이 늘어나는 조건/집이 부담이 될 때','scene'),
+    // 사업운은 재백궁만 보지 않는다 — 자녀궁(동업·투자·확장, 전택궁의 대궁)과 궁간 비화를 함께 본다. 참치만 독립 장(비용 상한).
+    e('business','wealth','t','사업운: 재백·자녀·전택의 흐름','businessBasis palaces.재백궁 palaces.자녀궁 palaces.전택궁 palaces.관록궁','businessBasis','재백궁과 자녀궁이 만드는 사업의 그릇/궁간 비화로 본 확장과 자산의 연결','decision'),
     e('career','career','sft','일하는 방식과 사회적 자리','','palaces.관록궁 s:palaces.천이궁','일하는 방식/사회적 자리/성장의 조건','scene'),
     e('travel','career','ft','바깥 무대와 이동','','palaces.천이궁','바깥 무대에서의 모습/이동이 주는 기회/낯선 환경에서 지킬 것','scene'),
     e('relations','relations','s','곁의 사람과 가족','','palaces.형제궁 palaces.노복궁 palaces.부모궁 palaces.자녀궁','형제·동료와의 거리/부모와 윗사람/자녀와 아랫사람','scene'),
     e('peers','relations','ft','형제·동료·친구','','palaces.형제궁 palaces.노복궁','형제와 동료/친구와 아랫사람의 도움/기대가 어긋날 때','scene'),
     e('parents','relations','ft','부모와 윗사람','','palaces.부모궁','부모와의 결/윗사람에게 받는 도움/거리를 두어야 할 때','scene'),
     e('children','relations','ft','자녀와 아랫사람','','palaces.자녀궁','자녀와의 결/아랫사람을 이끄는 방식/책임이 무거울 때','scene'),
-    e('health','health','sft','몸의 약한 고리와 회복','','palaces.질액궁','몸의 약한 고리/무리가 쌓이는 조건/회복 습관'),
+    e('health','health','sft','몸의 약한 고리와 회복','','palaces.질액궁 healthBasis','몸의 약한 고리/무리가 쌓이는 조건/회복 습관'),
     e('hwarok','depth','t','풀리는 곳(화록)','','fourTransformations.huaLu','화록이 앉은 자리/풀리는 흐름을 키우는 법/넘칠 때의 주의','scene'),
     e('hwagwon','depth','t','힘을 쥐는 곳(화권)','','fourTransformations.huaQuan','화권이 앉은 자리/힘을 쥐는 방식/힘이 고집이 될 때','scene'),
     e('hwagwa','depth','t','이름이 나는 곳(화과)','','fourTransformations.huaKe','화과가 앉은 자리/이름이 나는 방식/평판을 지키는 법','scene'),
@@ -133,7 +142,7 @@ export const v7Catalog:Record<string,V7Entry[]>={
     e('home','relations','ft','집과 어머니(4하우스)','','houses.4','집과 어머니의 결/마음이 쉬는 자리/집이 부담이 될 때','scene'),
     e('d7','relations','t','자녀(D7)','','divisionalCharts.d7','삽탐샤로 본 자녀/이어지는 것/책임이 무거울 때','scene'),
     e('d12','relations','t','부모(D12)','','divisionalCharts.d12','드와다샴샤로 본 부모/물려받은 결/거리를 두어야 할 때','scene'),
-    e('health','health','sft','몸과 회복(6하우스)','','houses.6 s:houses.8 s:houses.12','6하우스가 말하는 몸/무리가 쌓이는 조건/회복 습관'),
+    e('health','health','sft','몸과 회복(6하우스)','','houses.6 s:houses.8 s:houses.12 healthBasis','1·6·8·12하우스 주인이 말하는 몸의 기초/무리가 쌓이는 조건/회복 습관'),
     e('transformation','health','ft','위기와 변화(8하우스)','','houses.8','위기가 오는 자리/변화를 겪는 방식/다시 서는 법'),
     e('release','health','ft','소모와 쉼(12하우스)','','houses.12','소모가 생기는 자리/쉼이 필요한 신호/놓아주는 법'),
     e('yogas','depth','t','명식에 맺힌 요가','','yogas','맺힌 요가의 뜻/요가가 드러나는 조건/요가의 한계'),
@@ -144,15 +153,15 @@ export const v7Catalog:Record<string,V7Entry[]>={
     e('mdNext','timing','t','다음 마하다샤','vimshottariDasha.periods','vimshottariDasha.next','다음 마하다샤가 바꾸는 것/전환 전에 준비할 조건','decision'),
   ],
   astrology:[
-    e('anchor','base','sft','상승점과 태양','','ascendant planets.Sun houseCusps.1','첫인상과 태도/태양이 향하는 삶의 목표/둘이 어긋날 때','scene'),
+    e('anchor','base','sft','상승점과 태양','','ascendant planets.Sun houseCusps.1 houseRulers.1 elementBalance','첫인상과 태도(상승점과 차트 룰러)/태양이 향하는 삶의 목표/원소·모드 분포가 만드는 기질','scene'),
     e('emotion','base','sft','달과 감정의 결','','planets.Moon houseCusps.4','달이 말하는 감정의 결/마음이 편안한 조건/감정이 흔들릴 때','scene'),
-    e('love','love','sft','금성과 관계의 자리','','planets.Venus houseCusps.5 houseCusps.7','금성이 말하는 끌림/5·7하우스가 말하는 관계의 자리/관계가 흔들리는 조건','scene'),
+    e('love','love','sft','금성과 관계의 자리','','planets.Venus houseCusps.5 houseCusps.7 houseRulers.7','금성이 말하는 끌림/5·7하우스와 7하우스 주인이 말하는 관계의 자리/관계가 흔들리는 조건','scene'),
     e('wealth','wealth','sft','목성과 돈의 흐름','','planets.Jupiter houseCusps.2 houseCusps.8','목성이 말하는 돈의 흐름/2·8하우스가 말하는 나누고 불리는 자원','decision'),
-    e('career','career','sft','토성·MC 와 사회적 자리','','planets.Saturn midheaven houseCusps.10','토성이 말하는 책임/MC 가 가리키는 사회적 자리/성장의 조건','scene'),
+    e('career','career','sft','토성·MC 와 사회적 자리','','planets.Saturn midheaven houseCusps.10 houseRulers.10','토성이 말하는 책임/MC 와 10하우스 주인이 가리키는 사회적 자리/성장의 조건','scene'),
     e('communication','relations','sft','수성과 말·배움·모임','','planets.Mercury houseCusps.3 houseCusps.9 houseCusps.11','수성이 말하는 말과 생각/배움과 멀리 가는 길/모임과 동료','scene'),
-    e('health','health','sft','화성과 몸의 에너지','','planets.Mars houseCusps.6 houseCusps.12','화성이 말하는 몸의 에너지/무리가 쌓이는 조건/회복 습관'),
-    e('aspects','depth','s','행성들이 주고받는 긴장과 조화','aspects','aspects.tension aspects.harmony aspects.conjunction','긴장의 애스펙트/조화의 애스펙트/겹쳐 선 행성'),
-    e('tension','depth','ft','긴장의 애스펙트','aspects','aspects.tension','긴장이 걸린 행성들/긴장이 드러나는 상황/긴장을 힘으로 쓰는 법'),
+    e('health','health','sft','화성과 몸의 에너지','','planets.Mars houseCusps.6 houseCusps.12 houseRulers.6 healthBasis','화성과 6하우스 주인이 말하는 몸의 에너지/무리가 쌓이는 조건/회복 습관'),
+    e('aspects','depth','s','행성들이 주고받는 긴장과 조화','aspects chartSect','aspects.tension aspects.harmony aspects.conjunction chartSect','긴장의 애스펙트와 섹트 밖 흉성/조화의 애스펙트/겹쳐 선 행성'),
+    e('tension','depth','ft','긴장의 애스펙트','aspects chartSect','aspects.tension chartSect','긴장이 걸린 행성들과 섹트 밖 흉성/긴장이 드러나는 상황/긴장을 힘으로 쓰는 법'),
     e('harmony','depth','ft','조화의 애스펙트','aspects','aspects.harmony','조화가 흐르는 행성들/쉽게 풀리는 재능/조화에 기대기만 할 때'),
     e('generations','depth','f','세대 행성이 남긴 흔적','','planets.Uranus planets.Neptune planets.Pluto','천왕성이 남긴 변화/해왕성이 남긴 이상/명왕성이 남긴 깊이'),
     e('uranus','depth','t','천왕성','','planets.Uranus','천왕성이 앉은 자리/변화를 부르는 방식/급한 변화를 다루는 법'),
@@ -205,7 +214,7 @@ export const v7Catalog:Record<string,V7Entry[]>={
 // saju.seasonalBalance (조후, the element the chart needs) is owned by the health chapter, but every chapter cites the
 // same conclusion so no chapter names a different needed element.
 export const V7_ANCHOR_REFS:Record<DomainId,string[]>={
-  saju:['dayMaster','pillars','strengthHeuristic','seasonalBalance'],
+  saju:['dayMaster','pillars','strengthHeuristic','seasonalBalance','elementProfile.balance'],
   ziwei:['lifePalace','bodyPalace','palaces.명궁','bureau'],
   vedic:['lagna','houses.1'],
   astrology:['ascendant','planets.Sun','houseCusps.1'],
@@ -217,7 +226,7 @@ export const V7_FORBIDDEN:Record<DomainId,string[]>={
   saju:['희신','원진·반합·암합을 원국 합충으로 단정'],
   ziwei:['유년사화','빈 궁을 불운으로 단정','음력 생년월일'],
   vedic:['트랜짓','프라티얀타르다샤','D1 분할도'],
-  astrology:['하우스 룰러·품위·원소'],
+  astrology:['트랜짓·프로그레션','카이런·릴리스 등 감응점','천왕성·해왕성·명왕성을 하우스 주인으로 읽기'],
   sukuyo:['출생 시각 맥락'],
   tarot:['topSummary','quality','levelUpGuide','levelUpQuests','questionType'],
 };
@@ -268,6 +277,7 @@ export function readingManifestV7(p:Product,k:{id:string}):ChapterSpecV7[]{
   const forbidden=[...V7_FORBIDDEN[p.domain],...(tier==='tuna'?[]:NON_PREMIUM_FORBIDDEN[p.domain] || [])];
   return rows.map((r,i)=>{
     const owns=v7TierSelect(r.owns,tier);
+    const mustCover=v7TierSelect(r.cover,tier);
     const evidenceInputs=r.inputs.length?v7TierSelect(r.inputs,tier):owns;
     // A chapter never lists a fact it owns as a one-sentence reference (owns wins).
     const refs=r.key==='anchor'?[]:V7_ANCHOR_REFS[p.domain].filter(ref=>!owns.includes(ref));
@@ -280,7 +290,7 @@ export function readingManifestV7(p:Product,k:{id:string}):ChapterSpecV7[]{
       version:READING_V7_VERSION,tier,systems:p.systems,
       minTier:LETTER_TIER[r.tiers[0]],...(r.tiers.includes('t')?{}:{maxTier:LETTER_TIER[r.tiers[r.tiers.length-1]]}),
       titleKey:`yeongnyangi.v7.${catalogKey.replace(':','.')}.${r.key}`,partKey:`yeongnyangi.v7.part.${r.part}`,
-      evidenceInputs,owns,refs,mustCover:r.cover,minInsightUnits:r.cover.length,
+      evidenceInputs,owns,refs,mustCover,minInsightUnits:mustCover.length,
       mustNotCover:[...rows.filter(o=>o!==r).map(o=>o.title),...forbidden],
       timingRef,scene:r.block==='scene',decision:r.block==='decision',
       ...(requires.length?{requires,fallbackInputs}:{}),

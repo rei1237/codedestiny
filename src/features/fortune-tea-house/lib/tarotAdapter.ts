@@ -161,7 +161,7 @@ export function buildFortuneTeaTarotSpreadCards(
       positionId: position.positionId,
       positionLabel: position.positionLabel,
       positionMeaning: position.positionMeaning,
-      reading: `${position.positionLabel} 자리에는 ${card.nameKo}이 ${orientationLabel(orientation)}으로 떠올라 ${meaning.keywords.slice(0, 2).join(", ")}의 결을 비춥니다.`,
+      reading: `${position.positionLabel} 자리에는 ${card.nameKo} 카드가 ${orientationLabel(orientation)}으로 떠올라 ${meaning.keywords.slice(0, 2).join(", ")}의 결을 비춥니다.`,
     };
   });
   return { tarotSpread, tarotSpreadCards };

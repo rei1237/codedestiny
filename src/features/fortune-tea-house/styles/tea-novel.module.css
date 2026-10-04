@@ -1,0 +1,105 @@
+.world {
+  --novel-bg: #24081a;
+  --novel-surface: #3a0e28;
+  --novel-text: #fff1f7;
+  --novel-muted: #e4c5d6;
+  --novel-rose: #f4bed1;
+  --novel-gold: var(--cd-gold, #ead089);
+  --novel-border: color-mix(in srgb, var(--novel-rose) 38%, transparent);
+  color: var(--novel-text);
+  background: var(--novel-bg);
+  font-family: var(--tea-font-body, var(--font-body)), sans-serif;
+  line-height: 1.8;
+  isolation: isolate;
+}
+.world *, .world *::before, .world *::after { box-sizing: border-box; }
+.world ::selection { color: var(--novel-bg); background: var(--novel-rose); }
+.world :is(button,a,input):focus-visible { outline: 3px solid var(--novel-gold); outline-offset: 4px; }
+.world button { font: inherit; cursor: pointer; min-height: 44px; touch-action: manipulation; }
+.reader button, .menu button, .ritual button { color: inherit; }
+.world button:disabled { opacity: .45; cursor: default; }
+.world h2, .world h3 { font-family: var(--tea-font-premium, var(--font-display)), serif; text-wrap: balance; word-break: keep-all; overflow-wrap: anywhere; }
+.reader { position: relative; min-height: min(880px,100svh); display: flex; flex-direction: column; overflow: clip; }
+.illustration { position: absolute; inset: 0; z-index: -2; }
+.sceneImage { object-fit: cover; object-position: 64% 30%; }
+.illustration::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, color-mix(in srgb,var(--novel-bg) 70%,transparent), transparent 25%, transparent 48%,var(--novel-bg)); }
+.pigActor { position: absolute; right: 20%; top: 10%; width: min(32vw,280px); height: 45%; object-fit: contain; }
+.chapter { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; padding: 24px 40px; }
+.chapter h2 { margin: 0; font-size: clamp(1.15rem,2.5vw,1.8rem); }
+.chapter span { flex-shrink: 0; font-variant-numeric: tabular-nums; font-size: .85rem; }
+.readingPanel { margin: auto auto 0; width: min(100%,920px); padding: 270px 24px 24px; }
+.readerToolbar { display: flex; justify-content: flex-end; gap: 8px; padding: 0 0 8px; }
+.readerToolbar button, .readerControls button, .returnButton { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--novel-border); background: var(--novel-bg); padding: 8px 14px; border-radius: var(--cd-r-control,12px); }
+.readerToolbar button { font-size: .82rem; }
+.readerToolbar button[aria-pressed=true] { color: var(--novel-gold); border-color: var(--novel-gold); }
+.dialogue { display: block; width: 100%; text-align: left; border: 1px solid var(--novel-border); border-radius: var(--cd-r-card,20px); padding: 22px 28px 14px; background: color-mix(in srgb,var(--novel-bg) 96%,transparent); box-shadow: 0 18px 44px color-mix(in srgb,var(--novel-bg) 60%,transparent); }
+.speaker { display: block; color: var(--novel-gold); font-size: .9rem; margin-bottom: 10px; }
+.dialogueText { display: block; min-height: 3.8em; white-space: pre-line; font-family: var(--tea-font-premium, var(--font-display)),serif; font-size: clamp(1rem,1.8vw,1.16rem); line-height: 1.95; overflow-wrap: anywhere; }
+.nextHint { display: flex; justify-content: flex-end; align-items: center; gap: 8px; color: var(--novel-muted); font-size: .75rem; margin-top: 12px; }
+.readerControls { display: flex; justify-content: space-between; gap: 10px; margin-top: 12px; }
+.world .primary { background: var(--novel-rose); color: var(--novel-bg); border: 1px solid var(--novel-rose); font-weight: 700; padding: 12px 22px; display: inline-flex; gap: 12px; align-items: center; justify-content: center; border-radius: var(--cd-r-control,12px); }
+.responses { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.responses button { flex: 1; border: 1px solid var(--novel-gold); background: var(--novel-surface); padding: 10px; border-radius: var(--cd-r-control,12px); }
+.returnButton { align-self: center; margin: auto 20px 30px; }
+.log { color: var(--novel-text); background: var(--novel-bg); border: 1px solid var(--novel-border); width: min(680px,calc(100% - 24px)); max-height: 80svh; padding: 24px; border-radius: var(--cd-r-card,20px); overflow: auto; }
+.log::backdrop { background: color-mix(in srgb,var(--novel-bg) 80%,transparent); }
+.log header { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.log header button { border: 0; background: transparent; min-width: 44px; }
+.log p { white-space: pre-line; border-bottom: 1px solid var(--novel-border); padding-bottom: 16px; }
+.log p strong { display: block; color: var(--novel-gold); font-size: .85rem; margin-bottom: 8px; }
+.log h3 { color: var(--novel-rose); margin-top: 32px; }
+.menu { max-width: 1180px; margin: auto; padding: 32px; background: color-mix(in srgb,var(--novel-bg) 94%,transparent); }
+.menuIntro { display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 32px; }
+.menuIntro img { display: block; width: 100%; height: 320px; object-fit: cover; object-position: 65% 32%; border-radius: var(--cd-r-section,26px); }
+.menuIntro h2 { font-size: clamp(1.7rem,3vw,2.4rem); line-height: 1.4; margin: 0 0 16px; }
+.menuIntro p { color: var(--novel-muted); margin: 0; }
+.cups { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px 24px; margin-top: 30px; }
+.cup { display: flex; flex-direction: column; align-items: center; border: 1px solid transparent; border-bottom-color: var(--novel-border); background: transparent; border-radius: var(--cd-r-card,20px); padding: 12px; text-align: center; }
+.cup[data-selected=true] { border-color: var(--novel-gold); background: var(--novel-surface); }
+.cup strong { font-family: var(--tea-font-premium),serif; font-size: 1.1rem; }
+.cup small { font-size: .86rem; color: var(--novel-muted); }
+.cupVisual { max-width: 150px; }
+.cupPreview { margin-top: 28px; padding: 20px 0 0; border-top: 1px solid var(--novel-border); display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.cupPreview p { margin: 0; max-width: 55ch; color: var(--novel-muted); }
+.cupPreview strong { display: block; color: var(--novel-gold); margin-bottom: 6px; }
+.cupPreview button { flex-shrink: 0; }
+.ritual { max-width: 1080px; margin: auto; padding: 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 36px; align-items: center; }
+.ritualPortrait { width: 100%; height: 530px; object-fit: cover; object-position: 65% center; border-radius: var(--cd-r-section,26px); }
+.ritualCup { width: min(180px,45vw); margin: 0 auto; }
+.ritual h2 { font-size: clamp(1.7rem,3vw,2.5rem); line-height: 1.4; }
+.ritual p { color: var(--novel-muted); }
+.ritualActions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.ritualActions > button:not(.primary) { padding: 12px 18px; border: 1px solid var(--novel-border); border-radius: var(--cd-r-control,12px); background: transparent; }
+@media (max-width:700px) {
+ .reader { min-height: calc(100svh - 110px); }
+ .chapter { padding: 20px 16px; align-items: flex-start; }
+ .chapter h2 { max-width: 15ch; }
+ .sceneImage { object-position: 66% top; }
+ .illustration { bottom: 200px; }
+ .readingPanel { padding: 230px 12px 20px; }
+ .readerToolbar { gap: 5px; }
+ .readerToolbar button { padding: 6px 10px; }
+ .dialogue { padding: 18px; }
+ .dialogueText { min-height: 5.85em; }
+ .readerControls { flex-wrap: wrap; }
+ .readerControls button { font-size: .82rem; flex: 1; padding: 8px; }
+ .readerControls .primary { flex-basis: 100%; }
+ .responses { flex-direction: column; }
+ .pigActor { width: 45vw; right: 25%; top: 14%; height: 60%; }
+ .menu, .ritual { padding: 20px 16px 32px; }
+ .menuIntro { grid-template-columns: 1fr; gap: 22px; }
+ .menuIntro img { height: 240px; }
+ .cups { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px 8px; }
+ .cup { padding: 8px; }
+ .cup strong { font-size: 1rem; }
+ .cupPreview { display: block; }
+ .cupPreview button { width: 100%; margin-top: 18px; }
+ .ritual { grid-template-columns: 1fr; gap: 18px; }
+ .ritualPortrait { height: 300px; object-position: 65% 27%; }
+}
+@media (prefers-reduced-motion:no-preference) {
+ .transformation { position: absolute; inset: 0; background: var(--novel-rose); pointer-events:none; animation: revealMoon 1.8s ease-out both; }
+ @keyframes revealMoon { from { opacity: .85; } to { opacity: 0; } }
+ .cup { transition: background-color .2s, border-color .2s; }
+ .cup:hover { background: var(--novel-surface); }
+}

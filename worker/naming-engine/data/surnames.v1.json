@@ -1,4 +1,4 @@
-{"dataVersion":"naming-data-v1-bda138c29ebd","fields":["hangul","hanja","population","won","pil","compound"],"generatedBy":"scripts/naming/build-naming-data.mjs","note":"5인 이상 성씨만 수록. 같은 한자의 두음 표기(이/리 李)는 KOSIS 처럼 별도 행. 목록 밖 성씨는 엔진이 Unihan 획수로 직접 받는다(Phase 3).","schema":"naming-surnames/1","source":"국가데이터처, 「인구총조사」, 2015, 성씨ㆍ본관별 인구(5인 이상) - 전국 (KOSIS DT_1IN15SD), 2026.10.03 참조","rows":[
+{"dataVersion":"naming-data-v1-0992d0ac276e","fields":["hangul","hanja","population","won","pil","compound"],"generatedBy":"scripts/naming/build-naming-data.mjs","note":"5인 이상 성씨만 수록. 같은 한자의 두음 표기(이/리 李)는 KOSIS 처럼 별도 행. 목록 밖 성씨는 엔진이 Unihan 획수로 직접 받는다(Phase 3).","schema":"naming-surnames/1","source":"국가데이터처, 「인구총조사」, 2015, 성씨ㆍ본관별 인구(5인 이상) - 전국 (KOSIS DT_1IN15SD), 2026.10.03 참조","rows":[
 ["김","金",10689959,[8],[8],false],
 ["이","李",7306828,[7],[7],false],
 ["박","朴",4192074,[6],[6],false],

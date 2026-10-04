@@ -6,15 +6,16 @@ import FloatingPetals from "./FloatingPetals";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import { isTeaHouseEntryStage } from "../data/entryStory";
 import type { TeaHouseStage } from "../data/story";
-import styles from "../styles/fortune-tea-house.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
-import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
+import novel from "../styles/tea-novel.module.css";
+import room from "../styles/tea-room.module.css";
 
 type FortuneTeaHouseImmersiveShellProps = {
   stage: TeaHouseStage;
   notice?: string;
   onBackToLanding: () => void;
   children: ReactNode;
+  soundControl?: ReactNode;
 };
 
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다. */
@@ -23,9 +24,11 @@ const KO = {
   homeAria: "Code Destiny 홈화면으로 바로가기",
   home: "홈으로",
 };
+const BRAND = { title: "연이의 운명 찻집" };
 
-export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBackToLanding, children }: FortuneTeaHouseImmersiveShellProps) {
+export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBackToLanding, children, soundControl }: FortuneTeaHouseImmersiveShellProps) {
   const copy = useTeaHouseCopy("shell", KO);
+  const brand = useTeaHouseCopy("homeV2", BRAND);
   const backgroundAssets = getStageBackgroundAssets(stage);
   const backgroundStyle = {
     "--tea-bg-desktop": `url("${backgroundAssets.desktop}")`,
@@ -35,35 +38,18 @@ export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBa
     "--tea-bg-position-desktop": backgroundAssets.desktopPosition,
     "--tea-bg-position-mobile": backgroundAssets.mobilePosition,
   } as CSSProperties;
-  const shouldShowBackButton = stage !== "landing";
 
+  if (stage === "landing") return <main style={backgroundStyle}>{children}</main>;
   return (
-    <main className={styles.page} data-stage={stage} style={backgroundStyle}>
-      <FloatingPetals />
-      <div className={styles.backdropVeil} aria-hidden />
-      {shouldShowBackButton ? (
-        <button className={styles.backButton} type="button" onClick={onBackToLanding}>
-          {copy.back}
-        </button>
-      ) : null}
-      <Link className={styles.homeButton} href="/" aria-label={copy.homeAria}>
-        {copy.home}
-      </Link>
-      <div className={styles.pageInner}>
-        {stage === "questionInput" ? (
-          <ExpertValueCards theme="yeoni" points={[{ title: "마음의 온도", description: "연이가 질문의 결을 먼저 살피고 지금 감정의 온도를 읽습니다." }, { title: "상징의 흐름", description: "찻잎과 카드가 보여주는 관계·선택의 신호를 부드럽게 엮습니다." }, { title: "다음 한 걸음", description: "겁을 주는 예언 대신 지금 덜 흔들릴 수 있는 선택을 남깁니다." }]} />
-        ) : null}
-        {children}
-        {stage === "questionInput" ? <ExpertStickyCta theme="yeoni" targetId="tea-question-form" label="연이에게 상담 건네기" price="상담 이용 가격 확인" /> : null}
-      </div>
-      <div className={styles.shellMist} aria-hidden />
-      {notice ? (
-        <div className={styles.readyNotice} role="status">
-          {notice}
-        </div>
-      ) : null}
+    <main className={room.room + (isTeaHouseEntryStage(stage) || ["teaSelect", "teaCupRitual", "questionInput"].includes(stage) ? " " + novel.world + " " + room.moonlit : "")} data-stage={stage} style={backgroundStyle}>
+      <div className={room.atmosphere} aria-hidden><FloatingPetals /></div>
+      <header className={room.header}><button type="button" onClick={onBackToLanding}>{copy.back}</button><Link href="/fortune-tea-house/">{brand.title}</Link><Link href="/ggulggul/" aria-label={copy.homeAria}>{copy.home}</Link></header>
+      <div className={room.soundBar}>{soundControl}</div>
+      {notice && <p className={room.notice} role="status">{notice}</p>}
+      {children}
     </main>
   );
+
 }
 
 function getStageBackgroundAssets(stage: TeaHouseStage) {

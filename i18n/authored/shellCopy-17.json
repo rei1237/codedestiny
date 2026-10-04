@@ -1,0 +1,58 @@
+{
+  "shell.yeoniTeaV2.alt": {
+    "ko": "차를 건네는 꽃돼지 연이",
+    "en": "Yeoni the flower pig offering tea",
+    "ja": "お茶を差し出す花ぶたヨニ",
+    "zh-CN": "花猪妍妮递上茶杯",
+    "zh-TW": "花豬妍妮遞上茶杯",
+    "vi": "Yeoni the flower pig offering tea",
+    "hi": "Yeoni the flower pig offering tea",
+    "es": "Yeoni the flower pig offering tea",
+    "fr": "Yeoni the flower pig offering tea",
+    "de": "Yeoni the flower pig offering tea",
+    "nl": "Yeoni the flower pig offering tea",
+    "ms": "Yeoni the flower pig offering tea"
+  },
+  "shell.yeoniTeaV2.title": {
+    "ko": "연이의 운명 찻집",
+    "en": "Yeoni’s Destiny Tea House",
+    "ja": "ヨニの運命茶房",
+    "zh-CN": "妍妮的命运茶馆",
+    "zh-TW": "妍妮的命運茶館",
+    "vi": "Yeoni’s Destiny Tea House",
+    "hi": "Yeoni’s Destiny Tea House",
+    "es": "Yeoni’s Destiny Tea House",
+    "fr": "Yeoni’s Destiny Tea House",
+    "de": "Yeoni’s Destiny Tea House",
+    "nl": "Yeoni’s Destiny Tea House",
+    "ms": "Yeoni’s Destiny Tea House"
+  },
+  "shell.yeoniTeaV2.description": {
+    "ko": "사주·타로·숙요점으로 고민의 근거와 다음 행동을 살펴봐요.",
+    "en": "Explore your question and next steps through Saju, Tarot or Sukuyo.",
+    "ja": "四柱推命・タロット・宿曜で悩みの根拠と次の行動を考えます。",
+    "zh-CN": "通过四柱、塔罗或宿曜，探索问题的依据和下一步行动。",
+    "zh-TW": "透過四柱、塔羅或宿曜，探索問題的依據和下一步行動。",
+    "vi": "Explore your question and next steps through Saju, Tarot or Sukuyo.",
+    "hi": "Explore your question and next steps through Saju, Tarot or Sukuyo.",
+    "es": "Explore your question and next steps through Saju, Tarot or Sukuyo.",
+    "fr": "Explore your question and next steps through Saju, Tarot or Sukuyo.",
+    "de": "Explore your question and next steps through Saju, Tarot or Sukuyo.",
+    "nl": "Explore your question and next steps through Saju, Tarot or Sukuyo.",
+    "ms": "Explore your question and next steps through Saju, Tarot or Sukuyo."
+  },
+  "shell.yeoniTeaV2.pricing": {
+    "ko": "상담 방식별 요금 확인",
+    "en": "See consultation prices",
+    "ja": "相談ごとの料金を見る",
+    "zh-CN": "查看咨询价格",
+    "zh-TW": "查看諮詢價格",
+    "vi": "See consultation prices",
+    "hi": "See consultation prices",
+    "es": "See consultation prices",
+    "fr": "See consultation prices",
+    "de": "See consultation prices",
+    "nl": "See consultation prices",
+    "ms": "See consultation prices"
+  }
+}

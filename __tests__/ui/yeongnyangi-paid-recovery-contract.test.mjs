@@ -110,6 +110,17 @@ test('quality retries tell the provider what failed without leaking that correct
  assert.deepEqual(fixture.providerCalls,[1,2]);
 });
 
+test('historical duplicate failures classified as provider errors still supply a corrective retry prompt',async()=>{
+ const fixture=reset([{summary:'preserved-first'}]);
+ fixture.row.chapterAttempts[1]=2;
+ fixture.row.lastFailure={stage:'provider',code:'DUPLICATE_CHAPTER'};
+ await generateNextChapter(env,'owner',fixture.row._id);
+ assert.deepEqual(fixture.lastInput.repair,{code:'DUPLICATE_CHAPTER'});
+ assert.equal(fixture.row.chapters[0].summary,'preserved-first');
+ await generateNextChapter(env,'owner',fixture.row._id);
+ assert.equal(fixture.lastInput.repair,undefined);
+});
+
 test('question-analysis checkpoints keep purchase locale through chapter retry and completion',async()=>{
  for(const locale of ['en','ja']){
   const f=reset();f.failOnce=true;f.row.snapshot.locale=locale;

@@ -1,0 +1,23 @@
+.room{min-height:100svh;background:#faf7ef;color:#303c31;font-family:var(--tea-font-body),sans-serif;padding-bottom:40px;isolation:isolate}
+.room::before{content:"";position:fixed;inset:0;z-index:-2;background:linear-gradient(180deg,#faf7ef9e,#faf7efe8),var(--tea-bg-desktop) var(--tea-bg-position-desktop)/cover no-repeat;pointer-events:none}
+.atmosphere{position:fixed;inset:0;z-index:-1;opacity:.48;pointer-events:none}
+.soundBar{max-width:1080px;margin:auto;padding:4px 20px;display:flex;justify-content:flex-end}
+.soundToggle{display:inline-flex;align-items:center;gap:6px;min-height:44px;border:1px solid #c4b493;border-radius:20px;padding:8px 12px;background:#fffaf2;color:#455d45;cursor:pointer;font:inherit;font-size:.78rem}
+.soundToggle em{font-style:normal;font-size:.7rem}.soundToggle:focus-visible{outline:3px solid #95465c;outline-offset:3px}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1080px;margin:auto;padding:12px 20px;border-bottom:1px solid #dcdaca}
+.header a{color:inherit;text-decoration:none;font-size:.9rem;min-height:44px;display:flex;align-items:center}.header a:nth-child(2){font-family:var(--tea-font-premium),serif;font-weight:700}
+.header button{background:transparent;color:inherit;border:1px solid #b6bea8;border-radius:8px;min-height:44px;padding:8px 12px;cursor:pointer}
+.notice{max-width:760px;margin:12px auto;padding:12px;background:#edf1e7;line-height:1.7}
+.loading{max-width:620px;margin:0 auto;padding:40px 20px;text-align:center;line-height:1.8}.loading img{width:200px;height:220px;object-fit:contain;margin:auto}.loading h2{font-family:var(--tea-font-premium),serif;font-size:1.5rem}.loading progress{width:100%;accent-color:#56714a}.loading p{overflow-wrap:anywhere}.loading a{display:inline-flex;min-height:44px;align-items:center;color:#405b3e}
+@media(max-width:430px){.header{padding:10px 12px;gap:8px}.header a{font-size:.8rem}}
+@media(max-width:700px){.room::before{background-image:linear-gradient(180deg,#faf7efad,#faf7efe8),var(--tea-bg-mobile);background-position:center,var(--tea-bg-position-mobile)}.soundBar{padding:2px 12px}}
+@media(prefers-reduced-motion:reduce){.atmosphere{display:none}}
+
+:global(html[data-tea-stage]:not([data-tea-stage="landing"])) .publicGuide{display:none}
+
+/* Moonlight belongs to the entry and question scenes; result/recovery surfaces keep their contract. */
+.moonlit::before{background-image:linear-gradient(180deg,color-mix(in srgb,var(--novel-bg) 40%,transparent),color-mix(in srgb,var(--novel-bg) 88%,transparent)),var(--tea-bg-desktop)}
+.moonlit .header{border-color:var(--novel-border)}
+.moonlit .header button,.moonlit .soundToggle{background:var(--novel-bg);color:var(--novel-text);border-color:var(--novel-border)}
+.moonlit .notice{background:var(--novel-surface);color:var(--novel-text)}
+@media(max-width:700px){.moonlit::before{background-image:linear-gradient(180deg,color-mix(in srgb,var(--novel-bg) 55%,transparent),color-mix(in srgb,var(--novel-bg) 92%,transparent)),var(--tea-bg-mobile)}}

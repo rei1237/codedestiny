@@ -48,6 +48,7 @@ worker/naming-engine/            ← 순수 TS, Workers·Node 양쪽에서 impor
     suri-81.v1.json              81수리 등급(학파 대안·출처 포함)
     samjae-125.v1.json           삼재 125조합(5³) 등급(출처 라벨 포함)
     sound-blacklist.v1.json      놀림·비하 동음 블랙리스트(block/warn)
+    name-usage.v1.json           이름 사용 빈도 — (한자, 음)별 이름 글자 사용·자리별 음절 사용(Phase 5, Wikidata CC0)
   strokes.ts                     원획/필획, 부수 변형 환산, 숫자 한자 규칙
   suri.ts                        4격·삼재·외격, 81 환원, 수리오행·수리 음양
   sound.ts                       초성 추출, 두 매핑, 인접 상생/상극
@@ -233,6 +234,9 @@ interface NamedCandidate {
   초안의 분모 35 는 "각 항목 0~1 정규화"와 어긋나 25 로 바꿨다.
 - **어감·실용** = clamp01(1 − 감점 합): 불용 관행 1계열 0.05 · 2계열 이상 0.1, 확장 A 0.3, 확장 B 이상 0.5, 기초한자 밖 0.05,
   이름 첫 음절 ㄹ 0.1(신규), 같은 음절 반복 0.1, 성·이름 전부 받침 0.05, 동음 블랙리스트 경고 0.5. 발음 난이도·흔한 이름 중복·이니셜은 근거 데이터가 없어 미구현.
+  **자연스러움(Phase 5, 2026-10-04)**: 이름 사용 빈도(`name-usage.v1.json`, Wikidata CC0 대한민국 국적 인물 4.7만 명 집계)로 감점 = 최대 × (1 − min(1, ln(1+사용)/ln(1+30))).
+  글자(그 음으로 이름에 쓰인 횟수) 최대 0.15, 음절(그 자리 — 첫째·둘째, 외자는 두 자리 합) 최대 0.05. 사용 3회 미만 글자는 `practical.<k>.rare-in-names`.
+  가중치(35·25·15·15·5·5)는 그대로 — 새 축이 아니라 어감·실용 안의 감점이다. 도입 전 실측: 후보 1,054개 중 728개(69%)가 100점 → 도입 후 92개(8.7%).
 - **뜻 거르기(신규 하드 필터, 자문 검수 대상)**: 그 음의 첫째 훈 뜻풀이 말이 부정 뜻 목록(67어)이면 어느 단계에서도 추천하지 않는다.
   반대 성별 호칭(남자 이름에서 13어, 여자 이름에서 7어 — 妻·娘·夫 등)도 같다. 성별 미정(N)에는 성별 필터가 없다. 사용자 고정 글자는 면제.
 - **완화 단계**: 0 엄격(정격 길, 원·형격 흉 아님) → 1 원·형격 흉 허용 → 2 정격 반길 허용 → 3 훈 없는 글자 · 자원오행 미분류 또는 신뢰도 0.5 미만 · 무료 티어의 분쟁 글자 허용.
@@ -243,7 +247,7 @@ interface NamedCandidate {
 - **순한글 이름 모드**: `mode-unsupported` 로 거부(Phase 4 결정).
 - **법원 내부 코드 글자**(basis `adjudicated`·`law-basic-edu`, 17자): 점수 영향 없이 `char.<k>.court-code-variant` 태그만.
 - **근거 키**(`<k>` 는 이름 글자 위치, 0부터): `suri.<격>.<등급>` · `samjae.<등급>[.disputed]` · `sound.<k>.<관계>` · `saju.<k>.useful|support|caution|neutral.<오행>` · `saju.<k>.unclassified` ·
-  `char.<k>.low-confidence|disputed|court-code-variant|no-hun` · `practical.<k>.buryong` · `saju.fills-missing` · `yinyang.uniform` · `practical.initial-rieul` ·
+  `char.<k>.low-confidence|disputed|court-code-variant|no-hun` · `practical.<k>.buryong|rare-in-names` · `saju.fills-missing` · `yinyang.uniform` · `practical.initial-rieul` ·
   `practical.blacklist-<등급>` · `sound.school-sensitive`(다른 학파 매핑이면 소리오행 배열이 바뀜) · `relaxed.stage-N`.
 - **결과 고지 키**: `samjae.reference-only`(항상) · `saju.time-unknown` · `saju.jong-conditional` · `surname.pool-strokes` · `sound.school-differs` · `relaxed.stage-N` · `candidates.short`.
 - **오류 코드**: `input-invalid` · `mode-unsupported` · `preset-unknown` · `avoid-too-many` · `fixed-char-unknown` · `fixed-char-avoided` · `fixed-char-reading` · `surname-invalid` · `surname-unknown` · `saju-unavailable` · `data-schema`.
@@ -289,7 +293,7 @@ interface NamedCandidate {
 
 | 메서드·경로 | 용도 | 비고 |
 |---|---|---|
-| POST `/api/naming-prompt/candidates` (신규) | 무료 엔진 상위 5개 | LLM 0콜. 로그인 불필요. `runAiRouteWithSecurity` 버킷에 등록(`verify:worker-security-guards`) |
+| POST `/api/naming-prompt/basis` (신규) | 무료 엔진 상위 5개 | LLM 0콜. 로그인 불필요. 기존 `basis` 보안 버킷(분당 30회)을 재사용한다 — 새 접미사를 만들면 보안 계층이 그 경로를 버킷 미분류로 막는다 |
 | POST `/api/naming-prompt/checkout` | 기존 | 입력 스키마 확장(성 한자, 모드, 프리셋, 고정·기피 글자) |
 | POST `/api/naming-prompt/generate` | 기존 웨이브 | 새 실행은 `NAMING_ENGINE_VERSION` 에 따라 v2 경로. 1차 LLM "후보 생성" 단계를 엔진 계산으로 교체 |
 | GET `/api/naming-prompt/result/:id` | 기존 | `engineVersion` 이 없으면 v1 레거시 직렬화 |

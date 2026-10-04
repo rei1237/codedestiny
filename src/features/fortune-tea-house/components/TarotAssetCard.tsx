@@ -6,6 +6,7 @@ import type { FortuneTeaHouseConsultResponse } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import { resolveTarotCardImage } from "../lib/tarotCardImageMap";
 import styles from "../styles/fortune-tea-house.module.css";
+import artwork from "../styles/tea-tarot-artwork.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TarotAssetCardProps = {
@@ -88,7 +89,7 @@ export default function TarotAssetCard({
 
   return (
     <article
-      className={`${styles.tarotAssetCard} ${className}`}
+      className={`${visualOnly ? artwork.card : styles.tarotAssetCard} ${className}`}
       data-size={size}
       data-orientation={orientation}
       data-compact={compact ? "true" : "false"}
@@ -103,10 +104,10 @@ export default function TarotAssetCard({
         </div>
       ) : null}
 
-      <div className={styles.tarotAssetVisual} aria-label={copy.cardImageAria.replace("{name}", `${nameKo} ${nameEn}`)}>
+      <div className={visualOnly ? artwork.visual : styles.tarotAssetVisual} aria-label={copy.cardImageAria.replace("{name}", `${nameKo} ${nameEn}`)}>
         {cardImage && !imageFailed ? (
           <Image
-            className={styles.tarotAssetCrop}
+            className={visualOnly ? artwork.image : styles.tarotAssetCrop}
             src={cardImage.url}
             alt={copy.cardAlt.replace("{name}", `${nameKo} ${nameEn}`)}
             width={1024}
@@ -130,7 +131,7 @@ export default function TarotAssetCard({
           />
         ) : (
           visualOnly ? (
-            <span className={styles.tarotAssetVisualOnlyFallback} aria-hidden />
+            <span className={artwork.fallback} aria-hidden />
           ) : (
             <span className={styles.tarotAssetFallbackCard}>
               <strong>{nameKo}</strong>

@@ -92,6 +92,12 @@ export async function runRelationshipDelivery(env, auth, supplied, callbacks) {
       });
       stored = await save(filter, { llmMeta: { ...stored.llmMeta, limited: wave.limited } });
       if (wave.knownFailed) {
+        // An explicitly reviewed repair preserves the customer's original debit.
+        // Exhaustion stays visible and bounded; it must not trigger a new refund.
+        if (stored.llmMeta.recoveryNoRefund === true) {
+          stored = await save(filter, { status: 'partial', generationError: { reason: 'READING_INCOMPLETE' } });
+          return relationshipPending(stored);
+        }
         stored = await save(filter, { status: "generation_failed", generationError: { reason: "READING_INCOMPLETE" } });
         const refunded = await callbacks.refund(userId, body.idempotencyKey, sessionId, "READING_INCOMPLETE", stored.paymentId, stored.llmMeta.passRefund);
         return json({ ok: false, reason: "GENERATION_FAILED", retryable: false, sessionId, refunded }, { status: 503 });

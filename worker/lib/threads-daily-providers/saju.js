@@ -30,7 +30,7 @@ import {
 export const TYPE = "saju";
 export const PATH = "/saju/";
 export const HASHTAG = "오늘의사주";
-export const CTA = "내 사주 원국 무료로 까 보기";
+export const CTA = "내 사주 원국 살펴보기";
 
 const ELEMENTS = ["목", "화", "토", "금", "수"];
 const BRANCH_ANIMAL = { 子: "쥐", 丑: "소", 寅: "호랑이", 卯: "토끼", 辰: "용", 巳: "뱀", 午: "말", 未: "양", 申: "원숭이", 酉: "닭", 戌: "개", 亥: "돼지" };
@@ -131,7 +131,7 @@ function fallbackCopy(facts, recent = []) {
   const strong = facts.dominantElements.map((element) => `${element}(${ELEMENT_FEEL[element]})`).join("·");
   // 조사는 마지막 오행 글자 받침으로 — 목·금은 "이", 화·토·수는 "가".
   const particle = /[목금]$/.test(facts.dominantElements.at(-1) || "") ? "이" : "가";
-  return {hook:situationHook(TYPE,facts,recent),body:`오늘은 ${facts.dayPillar.ko}일. 날짜 글자 여섯 개 중에 ${strong}${particle} 제일 세. 그쪽으로 밀면 잘 풀리고, 거꾸로 가면 괜히 힘만 빠짐.`,tip:situationTip(TYPE,facts,recent)};
+  return {hook:situationHook(TYPE,facts,recent),body:`오늘은 ${facts.dayPillar.ko}일. 날짜의 여섯 글자에서는 ${strong}${particle} 많이 보여. 개수만으로 운이 좋다는 뜻은 아니야. 이 상징을 내 생활에 어떻게 쓰는지 돌아보는 힌트로 읽어 봐.`,tip:situationTip(TYPE,facts,recent)};
 }
 
 const SYSTEM_PROMPT = [
@@ -188,5 +188,5 @@ export function format(facts, copy, url) {
   if (facts.harmonyAnimals) lines.push(`· 손발 맞는 띠: ${facts.harmonyAnimals}`);
   if (facts.clashAnimals) lines.push(`· 부딪히기 쉬운 띠: ${facts.clashAnimals}`);
 
-  return renderPost({ head: lines.join("\n"),  cta: CTA, url, hashtag: HASHTAG });
+  return renderPost({ head: lines.join("\n"),  cta: CTA, url, hashtag: "꿀꿀운세" });
 }

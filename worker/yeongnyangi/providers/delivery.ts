@@ -10,13 +10,34 @@ import {attachTarotSafetyNotice} from '../fortune/tarot/master-reading';
 import {hasOutOfTierTerm,nearDuplicate,splitSectionParagraph} from '../fortune/reading-quality';
 import {sanitizeQuestionSkyBody} from '../fortune/question-sky-reading';
 import {blockAnchorNames,sanitizeBlockAnchors} from '../fortune/block-anchors';
+import {hasReadingSections} from '../fortune/reading-policy';
+import {CHAPTER_DELIVERY_VERSION,chapterDeliveryFailure} from '../chapter-delivery-contract.js';
 
 // The strict validator remains a diagnostic contract. Delivery accepts the
 // provider's useful text after local editing; it never invents missing insights.
-const unsafe = /(?:외도|바람기|바람끼).{0,12}\d+\s*%|(?:반드시|무조건|100%).{0,15}(?:재회|결혼|성공)|(?:암|질병|장기 이상)을?\s*(?:진단|확정)|(?:오행|명식).{0,20}(?:치료할 수|치료됩니다)|(?:guaranteed|100%|definitely).{0,35}(?:reunion|marriage|success)|(?:必ず|絶対|100%).{0,15}(?:復縁|結婚|成功)|(?:diagnos\w*|確定|診断).{0,20}(?:cancer|disease|癌|病気)/iu;
+const unsafe = /(?:외도|바람기|바람끼).{0,12}\d+\s*%|(?:반드시|무조건|100%).{0,15}(?:재회|결혼|성공)|(?:암|질병|장기 이상)을?\s*(?:진단|확정)|(?:오행|명식).{0,20}(?:치료할 수|치료됩니다)|(?:guaranteed|100%|definitely).{0,35}(?:reunion|marriage|success)|(?:必ず|絶対|100%).{0,15}(?:復縁|結婚|成功)|(?:diagnos\w*|確定|診断).{0,20}(?:cancer|disease|癌|病気)|(?:(?:질병|질환)(?:이|가|에)?\s*(?:생깁니다|생긴다|생길 것입니다|생길 겁니다|발생합니다|있습니다)|병에\s*걸(?:립니다|린다|릴 것입니다|릴 겁니다|리게 됩니다)|발병(?:합니다|한다|할 것입니다|할 겁니다))(?![가-힣])|(?:you will|you'll)\s+(?:develop|get|suffer from|be diagnosed with)\s+(?:an?\s+)?(?:\w+\s+)?(?:disease|illness|cancer)|(?:病気|疾患|がん)に(?:なります|かかります)/iu;
 const prose=(value:unknown)=>typeof value==='string'&&!/<\/?[a-z][^>]*>/i.test(value)?value.trim():'';
 const list=(value:unknown)=>Array.isArray(value)?value.map(prose).filter(Boolean):[];
 export function deliverChapter(raw:unknown,input:ChapterRequest):ChapterBody {
+  const contracted=input.deliveryContract===CHAPTER_DELIVERY_VERSION;
+  let candidate:any=raw;
+  if(typeof candidate==='string')try{candidate=JSON.parse(candidate);}catch{
+    if(contracted)throw new FortuneError('INVALID_CHAPTER');
+  }
+  if(contracted && (!candidate || candidate.chapterId!==input.chapter.id || candidate.complete!==true))throw new FortuneError('CHAPTER_INCOMPLETE');
+  // Gemini cannot enforce an empty-string enum. These fields are unused in
+  // sectioned books; normalize the new response before duplicate/shape checks.
+  if(candidate && Array.isArray(candidate.blocks) && candidate.blocks.length && hasReadingSections(input.chapter.version))
+    candidate={...candidate,analysis:[],example:'',advice:''};
+  const body=deliverChapterBody(candidate,input);
+  if(!contracted)return body;
+  const delivered={...body,chapterId:input.chapter.id,complete:true,deliveryVersion:CHAPTER_DELIVERY_VERSION};
+  const code=chapterDeliveryFailure(delivered,input.chapter);
+  if(code)throw new FortuneError(code);
+  return delivered;
+}
+
+function deliverChapterBody(raw:unknown,input:ChapterRequest):ChapterBody {
   try { return validateChapter(raw,input); } catch(error) {
     if(!(error instanceof FortuneError))throw error;
     // Which strict rule sent this chapter to local editing; the text itself is never logged.

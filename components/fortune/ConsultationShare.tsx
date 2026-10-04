@@ -7,6 +7,7 @@ import { trackEvent } from '@/lib/analytics';
 import { consultationShareBrands, consultationInvitationUrl, renderConsultationShareCard, trimShareText, type ConsultationShareBrand, type ConsultationShareChoice } from '@/lib/consultation-sharing';
 import styles from './ConsultationShare.module.css';
 import PublicInsightCard from './PublicInsightCard';
+import ReviewRewardBanner from '@/app/components/ReviewRewardBanner';
 
 type Props = { brand: ConsultationShareBrand; choices: ConsultationShareChoice[] };
 
@@ -86,7 +87,7 @@ export default function ConsultationShare({ brand, choices }: Props) {
     } finally { locked.current = false; setBusy(false); }
   }
 
-  return <><PublicInsightCard brand={brand} choices={choices} source="paid"/><details className={styles.root} data-consultation-share={brand} onToggle={event => {
+  return <>{!["astrology", "vedic"].includes(brand) && <ReviewRewardBanner afterResult/>}<PublicInsightCard brand={brand} choices={choices} source="paid"/><details className={styles.root} data-consultation-share={brand} onToggle={event => {
     setOpen(event.currentTarget.open); if (event.currentTarget.open) record('editor', 'opened');
   }}>
     <summary><Share2 size={20} aria-hidden="true" /> 마음에 남은 상담 공유하기</summary>

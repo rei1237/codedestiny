@@ -103,6 +103,28 @@ test('known invalid generation refunds only after failure state is verified',asy
  provider.mockImplementation(async()=>({ok:true,provider:'gemini',text:'{}'}));await start();await resume();const response=await resume();
  expect(response.status).toBe(503);expect((await response.json()).reason).toBe('GENERATION_FAILED');expect(refunds).toBe(1);
 });
+
+test('reviewed repair preserves the original debit when remaining generation fails',async()=>{
+ await start();const saved=clone(docs[0].llmMeta.delivery.parts);docs[0].llmMeta.recoveryNoRefund=true;
+ provider.mockImplementation(async()=>({ok:true,provider:'gemini',text:'{}'}));
+ await resume();const response=await resume();expect(response.status).toBe(202);
+ expect(docs[0].status).toBe('partial');expect(refunds).toBe(0);
+ for(const [id,part] of Object.entries(saved))expect(docs[0].llmMeta.delivery.parts[id]).toEqual(part);
+});
+
+test('one shared sentence is locally removed without buying a replacement response',async()=>{
+ const shared='서로 다른 상황을 충분히 살펴보고 실제로 확인한 대화의 조건을 중심으로 판단하는 것이 좋습니다.';
+ const base=provider.getMockImplementation();provider.mockImplementation(async(...args)=>{
+  const response=await base(...args),value=JSON.parse(response.text);
+  if(value.body)value.body=shared+'\n'+value.body;
+  return {...response,text:JSON.stringify(value)};
+ });
+ await start();await resume();expect((await resume()).status).toBe(200);
+ expect(provider).toHaveBeenCalledTimes(11);expect(refunds).toBe(0);
+ const parts=docs[0].llmMeta.delivery.parts;
+ expect(parts['0'].body).toContain(shared);expect(parts['1'].body).not.toContain(shared);
+ expect(docs[0].llmMeta.delivery.localEdits['1']).toBe('DUPLICATE_SENTENCES_REMOVED');
+});
 test('pass evidence survives separate requests without a payment transaction id',async()=>{
  provider.mockImplementation(async()=>({ok:true,provider:'gemini',text:'{}'}));
  await start();expect(docs[0].paymentId).toBe('');const response=await resume();

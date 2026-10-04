@@ -154,7 +154,8 @@ export function loadDictionary(locale: RuntimeLocale, namespace?: string): Promi
   const cached = cache.get(url);
   if (cached) return cached;
 
-  const request = fetch(url, { cache: "force-cache" })
+  // 파일명은 배포마다 같으므로 재방문 시 변경된 문구를 재검증한다. 페이지 안에서는 위 Promise를 재사용한다.
+  const request = fetch(url, { cache: "no-cache" })
     .then((response) => {
       if (!response.ok) throw new Error(`i18n fetch failed: ${url}`);
       return response.json() as Promise<Dictionary>;

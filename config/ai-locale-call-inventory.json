@@ -290,6 +290,21 @@
     ]
   },
   {
+    "file": "worker/lib/naming-report-delivery-v2.js",
+    "matches": [
+      {
+        "line": 3,
+        "kind": "import-or-injected-call",
+        "symbol": "./gemini.js"
+      },
+      {
+        "line": 38,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
     "file": "worker/lib/naming-report-delivery.js",
     "matches": [
       {

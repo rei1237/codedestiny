@@ -5,6 +5,7 @@ import {FortuneError} from './shared/contracts';
 import {READING_V6_VERSION,policyForReading,readingChapterCount} from './reading-policy';
 import {withReadingSections} from './reading-sections';
 import {topicCatalog,topicLabel,type TopicId} from './topics';
+import {HEALTH_RULES} from './reading-v7-prompt';
 
 type Row = {key:string;title:string;selectors:string[];theme:Theme};
 type Outline = Record<FishId,Row[]>;
@@ -17,7 +18,7 @@ const rows=(text:string):Row[]=>text.split('\n').map(s=>s.trim()).filter(Boolean
 });
 const outline=(mackerel:string,salmon:string,flounder:string,tuna:string):Outline=>({mackerel:rows(mackerel),salmon:rows(salmon),flounder:rows(flounder),tuna:rows(tuna)});
 const outlines:Record<DomainId,Outline>={
- saju:outline(`self|일간으로 읽는 나의 기질|dayMaster,pillarDetails
+ saju:outline(`self|일간으로 읽는 나의 기질|dayMaster,pillarDetails,tenGodProfile,elementProfile
  balance|오행과 계절의 균형|fiveElements,seasonalBalance,strengthHeuristic
  talent|재능과 일하는 방식|tenGods,tenGodsByPillar
  love|사랑과 가까운 관계|tenGodsByPillar,natalInteractions`,
@@ -34,13 +35,13 @@ const outlines:Record<DomainId,Outline>={
  ziwei:outline(`self|명궁·신궁으로 읽는 삶의 중심|lifePalace,bodyPalace,palaces[명궁]
  talent|관록궁으로 읽는 역할과 재능|palaces[관록궁]
  love|부부궁으로 읽는 관계의 방식|palaces[부부궁]
- money|재백궁으로 읽는 자원 관리|palaces[재백궁]`,
+ money|재백궁으로 읽는 자원 관리|palaces[재백궁],businessBasis`,
  `emotion|복덕궁과 마음의 만족|palaces[복덕궁]
  environment|천이궁과 환경을 대하는 태도|palaces[천이궁]
  relations|형제·노복궁과 협력의 조건|palaces[형제궁],palaces[노복궁]`,
  `home|전택궁과 생활의 기반|palaces[전택궁]
  balance|궁별 강점과 부담의 차이|palaces
- recovery|반복 선택과 회복의 조건|palaces[복덕궁],palaces[질액궁]`,
+ recovery|반복 선택과 회복의 조건|palaces[복덕궁],palaces[질액궁],healthBasis`,
  `triad|삼방사정으로 연결하는 삶의 구조|sanFangSiZheng,palaces
  transform|사화가 만드는 기회와 부담|fourTransformations,palaces
  current|현재 대한과 다음 전환|majorLuck
@@ -113,6 +114,14 @@ const evidenceAliases:Record<string,string[]>={
  recovery:['emotion','balance','conflict'],home:['money'],balance:['self','emotion'],
  tension:['interaction','conflict'],interaction:['tension','conflict'],
  next:['current'],year:['subperiod'],
+};
+// Lens-only evidence: derived facts that no personal outline row owns (2026-10-04).
+// Looked up before the outline catalog so health, marriage, movement and business read their own basis.
+const lensEvidence:Partial<Record<DomainId,Record<string,string[]>>>={
+ saju:{health:['healthBasis','elementProfile','fiveElements','seasonalBalance'],marriage:['romanceTiming','tenGodsByPillar','natalInteractions'],movement:['movementSignals','natalInteractions','pillarDetails']},
+ ziwei:{health:['healthBasis','palaces[질액궁,복덕궁,부모궁]'],business:['businessBasis','palaces[재백궁,자녀궁,전택궁,관록궁]']},
+ vedic:{health:['healthBasis','houses']},
+ astrology:{health:['healthBasis','houseRulers','planets.Mars','planets.Moon','planets.Saturn']},
 };
 
 // Dedicated question lenses. Each tier owns explicit additions; the source key
@@ -188,6 +197,62 @@ const focused:Record<string,Outline>={
  trust|신뢰를 회복할 조건|communication
  longterm|오래 유지할 합의|love
  observation|합의를 다시 살필 신호|recovery`),
+ health:outline(`constitution|타고난 몸의 리듬|health,self
+ pressure|무리가 쌓이는 조건|health,recovery
+ season|계절과 환경에 따른 컨디션|health,balance
+ restore|회복을 돕는 생활 습관|health,recovery`,
+ `energy|에너지를 쓰고 채우는 방식|health,self
+ emotion|마음의 긴장이 몸에 남는 방식|health,emotion
+ habit|컨디션을 흔드는 반복 습관|health,habit`,
+ `workload|일의 강도와 쉼의 균형|health,talent
+ relations|관계와 환경이 주는 부담|health,relations
+ signals|컨디션이 떨어질 때의 신호|health,recovery`,
+ `complex|건강 근거가 엇갈리는 지점|health,balance
+ alternatives|생활을 바꾸는 두 가지 방식|health,recovery
+ limits|해석으로 알 수 없는 부분|health
+ observation|생활에서 점검할 기록과 기준|health,habit`),
+ marriage:outline(`spouse|배우자 자리로 보는 결혼관|marriage,love
+ partner|끌리고 편안한 배우자상|marriage,love
+ communication|함께 살 때의 표현과 기대|marriage,communication
+ roles|생활과 책임의 분담|marriage,relations`,
+ `habit|결혼 생활에서 반복되는 선택|marriage,habit
+ money|살림과 자원을 대하는 방식|marriage,money
+ conflict|갈등이 시작되는 조건|marriage,conflict`,
+ `year|올해 결혼운의 흐름|marriage,year
+ boundary|가족과의 경계를 조율하기|marriage,boundary
+ trust|신뢰를 쌓는 생활 습관|marriage,communication`,
+ `current|현재 대운과 결혼의 시기|marriage,current
+ complex|결혼 근거가 엇갈리는 지점|marriage,interaction
+ longterm|오래 함께하기 위한 합의|marriage,love
+ observation|결정을 다시 살필 현실 신호|marriage,recovery`),
+ movement:outline(`nature|타고난 이동 기질|movement,self
+ clash|원국의 충이 만드는 변화|movement,interaction
+ abroad|해외와 먼 곳의 인연|movement
+ environment|맞는 환경과 거처|movement,environment`,
+ `career|일로 생기는 이동과 변화|movement,career
+ relations|관계와 가족이 이동에 주는 영향|movement,relations
+ habit|떠나고 머무르는 반복 선택|movement,habit`,
+ `year|올해 이동수의 흐름|movement,year
+ burden|이동이 부담이 되는 조건|movement,recovery
+ preparation|이동 전에 준비할 조건|movement,environment`,
+ `current|현재 대운의 이동과 정착|movement,current
+ complex|이동 신호가 엇갈리는 지점|movement,interaction
+ alternatives|떠나기와 머무르기의 조건|movement,environment
+ observation|결정을 점검할 현실 기준|movement,habit`),
+ business:outline(`money|재백궁으로 읽는 현금 흐름|business,money
+ expansion|자녀궁으로 읽는 동업과 확장|business
+ career|관록궁으로 읽는 사업의 형태|business,talent
+ home|전택궁으로 읽는 사업장과 자산|business,home`,
+ `relations|동업과 협력의 조건|business,relations
+ spending|확장이 자산을 깎는 조건|business,money
+ habit|사업 판단에서 반복되는 패턴|business,balance`,
+ `stability|지키는 사업과 키우는 사업|business,money
+ burden|사업의 부담과 회복|business,recovery
+ environment|맞는 시장과 환경|business,environment`,
+ `transform|사화가 사업에 만드는 기회와 부담|business,transform
+ current|현재 대한과 사업의 전환|business,current
+ complex|사업 근거가 엇갈리는 지점|business,triad
+ observation|사업을 점검할 현실 기준|business,habit`),
  timing:outline(`current|현재 시기의 핵심 과제|current
  self|현재 흐름과 타고난 기질|current,self
  strength|현재 강점이 살아나는 조건|current,talent
@@ -215,7 +280,7 @@ export function readingManifestV6(p:Product,topic='general',mode='personal',kind
  const pair=kind?.partner || mode!=='personal';
  const kindId=kind?.id || (pair?'compatibility':'personal');
  const focus=p.domain==='tarot'?undefined:focused[kindId];
- const evidence=(key:string)=>p.domain==='vedic'&&key==='next'?['vimshottariDasha.periods']:catalog[key]?.selectors || (evidenceAliases[key] || []).flatMap(alias=>catalog[alias]?.selectors || []);
+ const evidence=(key:string)=>p.domain==='vedic'&&key==='next'?['vimshottariDasha.periods']:lensEvidence[p.domain]?.[key] || catalog[key]?.selectors || (evidenceAliases[key] || []).flatMap(alias=>catalog[alias]?.selectors || []);
  let selected=tierRows(focus || outlines[p.domain],p.fishId as FishId).map(r=>({...r,selectors:focus?[...new Set(r.selectors.flatMap(evidence))]:r.selectors}));
  // Personal Sukuyo has no personB or inferred relationship type. Paired modes
  // use the stored two-person calculation, including both directions.
@@ -233,10 +298,12 @@ export function readingManifestV6(p:Product,topic='general',mode='personal',kind
  // Mackerel has only five chapters, so its closing action chapter gets the longest share instead of the shortest.
  const weights=selected.map(r=>r.key==='action'?(p.fishId==='mackerel'?1.3:.85):['useful','current','next','overlap','triad','transform','yoga','division','complex'].includes(r.key)?1.15:1);
  const sum=weights.reduce((a,b)=>a+b,0);
+ // Every chapter of the health menu, the closing actions included, follows the shared health contract.
+ const healthRule=kindId==='health'?` ${HEALTH_RULES}`:'';
  return selected.map((r,i)=>withReadingSections({id:`${p.fishId}-${String(i+1).padStart(2,'0')}`,ordinal:i,key:r.key,title:r.title,part:kind?.label || '나의 운세',theme:r.theme,
   version:READING_V6_VERSION,tier:p.fishId,systems:p.systems,
   factSelectors:{[p.domain]:[...new Set([...base[p.domain],...r.selectors])]},
-  focus:r.key==='action'?'앞 장의 결론을 반복하지 말고 가장 먼저 할 행동, 다음 행동, 멈추거나 수정할 관찰 기준을 우선순위로 제시한다.':`'${r.title}'이라는 고유 질문에 ${kind?.label || label || '선택한 운세'}의 계산 근거로 답한다. 다른 장의 질문이나 사례를 반복하지 않는다.`,
+  focus:r.key==='action'?'앞 장의 결론을 반복하지 말고 가장 먼저 할 행동, 다음 행동, 멈추거나 수정할 관찰 기준을 우선순위로 제시한다.'+healthRule:`'${r.title}'이라는 고유 질문에 ${kind?.label || label || '선택한 운세'}의 계산 근거로 답한다. 다른 장의 질문이나 사례를 반복하지 않는다.${healthRule}`,
   excludes:selected.filter(other=>other.key!==r.key).map(other=>other.title),
   minimumChars:Math.ceil(policy.minimum*weights[i]/sum),targetChars:[Math.ceil(policy.target[0]*weights[i]/sum),Math.ceil(policy.target[1]*weights[i]/sum)],
   periodScope:r.theme==='timing'?'저장된 계산 기준의 실제 기간만 설명한다. 자료가 없는 기간은 예측하지 않는다.':'출생 성향 또는 질문 당시의 상징이다. 계산하지 않은 미래 시기와 상대의 생각을 만들지 않는다.',
