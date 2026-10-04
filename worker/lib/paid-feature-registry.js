@@ -302,7 +302,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   // 인생 총운은 분량이 3배(30,000자 vs 10,000자)라 2026-08-01 부터 별도 SKU 로 분리했다.
   "life-fortune-ai-consultation": { cost: 300, amountKRW: 30000, reason: "인생 총운 전문가 상담" },
   "astrology-ai-consultation": { cost: 300, amountKRW: 30000, reason: "점성술 전문가 상담" },
-  "neo-operation-room-consultation": { cost: 300, amountKRW: 30000, reason: "네오의 팩폭 작전실" },
+  "neo-operation-room-consultation": { cost: 200, amountKRW: 20000, reason: "네오의 팩폭 작전실" },
   "saju_ai_question_prompt": { cost: 100, reason: "사주 전문가 상담 결과 생성" },
   "ziwei_ai_prompt_generator": { cost: 50, reason: "자미두수 AI 질문 프롬프트 생성" },
   "astrology_ai_prompt_generator": { cost: 50, reason: "점성술 AI 질문 프롬프트 생성" },
