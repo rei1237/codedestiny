@@ -19574,6 +19574,22 @@
       "preview": "点一只心仪的茶杯，看看可以一起聊些什么。",
       "confirm": "就着这杯茶聊聊",
       "topicNote": "茶代表咨询主题，下一步再选择塔罗、四柱或宿曜。"
+    },
+    "albumVisit": {
+      "eyebrow": "用蜜滴编织月下故事",
+      "title": "把咨询的记忆，收进一本画册",
+      "description": "每完成一次咨询可获得1颗蜜滴。使用{cost}颗解锁画册，即可阅读78张牌的故事并保存PDF。",
+      "open": "查看月光塔罗画册",
+      "unlocked": "画册已解锁 · 可保存PDF",
+      "progress": "蜜滴 {count} / {cost}颗",
+      "loading": "正在查询蜜滴",
+      "guest": "登录后可查看已收集的蜜滴。",
+      "login": "登录查看蜜滴",
+      "retry": "重新查询蜜滴",
+      "unavailable": "暂时无法查询蜜滴，请稍后重试。",
+      "downloadNote": "画册解锁后，保存PDF无需再次使用蜜滴。",
+      "chapter": "缘儿的月光书阁",
+      "humanAlt": "在月光下讲述塔罗故事的人形缘儿"
     }
   },
   "fortuneVar": {

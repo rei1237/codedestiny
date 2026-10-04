@@ -19574,6 +19574,22 @@
       "preview": "Tap a cup to discover what we can discuss together.",
       "confirm": "Talk over this tea",
       "topicNote": "Tea selects your topic. Choose Tarot, Saju or Sukuyo in the next step."
+    },
+    "albumVisit": {
+      "eyebrow": "Moonlit stories, collected drop by drop",
+      "title": "Your reflections, gathered in an album",
+      "description": "Each completed consultation earns one honey drop. Use {cost} drops to unlock 78 card stories and save them as a PDF.",
+      "open": "View the moonlit tarot album",
+      "unlocked": "Album unlocked · PDF available",
+      "progress": "Honey drops {count} / {cost}",
+      "loading": "Checking honey drops",
+      "guest": "Sign in to see your honey drops.",
+      "login": "Sign in to see honey drops",
+      "retry": "Check honey drops again",
+      "unavailable": "Honey drops could not be checked. Please try again shortly.",
+      "downloadNote": "Once unlocked, the album can be saved as a PDF without spending more honey drops.",
+      "chapter": "Yeoni’s moonlit library",
+      "humanAlt": "Human-form Yeoni sharing tarot stories in the moonlight"
     }
   },
   "fortuneVar": {

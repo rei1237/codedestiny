@@ -3,6 +3,8 @@ import type {
   FortuneTeaHouseHoneyDropsState,
 } from "../data/consult";
 
+export const TAROT_ALBUM_UNLOCK_COST = 10;
+
 function clampCount(value: unknown) {
   const count = Math.floor(Number(value));
   if (!Number.isFinite(count) || count < 0) return 0;

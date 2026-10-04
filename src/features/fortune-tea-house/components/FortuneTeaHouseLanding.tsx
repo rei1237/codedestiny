@@ -1,4 +1,6 @@
 "use client";
+import TeaHouseAlbumInvitation from "./TeaHouseAlbumInvitation";
+import type { FortuneTeaHouseHoneyDropsState } from "../data/consult";
 import Image from "next/image";
 import { useEffect, useState, type ReactNode } from "react";
 import { readEntryBookmark } from "../lib/entryBookmark";
@@ -31,14 +33,15 @@ const KO = {
 };
 const modes=["saju","tarot","sukuyo"] as const;
 const questionModes:FortuneTeaHouseConsultMode[]=["sukuyo","tarot","saju","saju","tarot","tarot"];
-type Props={soundControl?:ReactNode;hasSeenPrologue:boolean;onEnter:(mode?:FortuneTeaHouseConsultMode,question?:string)=>void;onReplayPrologue:()=>void;onResumePrologue?:()=>void;onShowHistory:()=>void;onChooseCup?:()=>void;onOpenAlbum?:()=>void};
-export default function FortuneTeaHouseLanding({onEnter,onReplayPrologue,onShowHistory,onChooseCup,onOpenAlbum,soundControl,onResumePrologue}:Props){
+type Props={honeyDrops?:FortuneTeaHouseHoneyDropsState|null;soundControl?:ReactNode;hasSeenPrologue:boolean;onEnter:(mode?:FortuneTeaHouseConsultMode,question?:string)=>void;onReplayPrologue:()=>void;onResumePrologue?:()=>void;onShowHistory:()=>void;onChooseCup?:()=>void;onOpenAlbum?:()=>void};
+export default function FortuneTeaHouseLanding({onEnter,onReplayPrologue,onShowHistory,onChooseCup,onOpenAlbum,soundControl,onResumePrologue,honeyDrops=null}:Props){
  const copy=useTeaHouseCopy("homeV2",KO);
  const [hasBookmark,setHasBookmark]=useState(false);
  useEffect(()=>setHasBookmark(Boolean(readEntryBookmark())),[]);
  return <div className={styles.home}>
  <header className={styles.header}><Link href="/fortune-tea-house/" className={styles.brand}><Flower2 aria-hidden size={24}/>{copy.title}</Link><nav aria-label={copy.title}><button onClick={onShowHistory}><BookOpen size={18} aria-hidden/>{copy.library}</button><Link href="/login/?next=%2Ffortune-tea-house%2F"><UserRound size={18} aria-hidden/>{copy.account}</Link><Link href="/ggulggul/">{copy.back}</Link>{soundControl}</nav></header>
  <section className={styles.hero}><div className={styles.heroCopy}><h1>{copy.heading}</h1><p className={styles.lead}>{copy.lead}</p><p>{copy.intro}</p><div className={styles.actions}><button className={styles.primary} onClick={hasBookmark ? onResumePrologue : onReplayPrologue}>{hasBookmark ? copy.resume : copy.start}<ArrowRight aria-hidden size={18}/></button><button className={styles.secondary} onClick={onChooseCup}>{copy.cups}</button>{hasBookmark && <button onClick={onReplayPrologue}>{copy.restart}</button>}</div></div><Image src="/images/fortune-tea-house/yeoni-moonlight-novel.webp" width={1536} height={1024} alt={copy.heroAlt} priority sizes="(max-width:700px) 100vw,60vw" className={styles.heroImage}/></section>
+ {onOpenAlbum && <TeaHouseAlbumInvitation honeyDrops={honeyDrops} onOpen={onOpenAlbum}/>}
  <section className={styles.section} id="tea-concerns"><h2>{copy.concerns}</h2><p>{copy.concernsHelp}</p><div className={styles.questions}>{copy.questions.map((q,i)=><button key={i} onClick={()=>onEnter(questionModes[i],q)}>{q}<ArrowRight aria-hidden size={18}/></button>)}</div></section>
  <section className={styles.section}><h2>{copy.methods}</h2><div className={styles.methods}>{modes.map(mode=><article key={mode}><Image src={`/images/fortune-tea-house/renewal/human-${mode === "saju" ? "explaining" : mode === "tarot" ? "advice" : "listening"}.webp`} alt="" width={720} height={480} sizes="(max-width:700px) 100vw,33vw"/><h3>{copy[mode]}</h3><strong>{copy[`${mode}Line`]}</strong><p>{copy[`${mode}Info`]}</p><span>{getFortuneTeaHouseConsultPriceLabel(mode)}</span><button onClick={()=>onEnter(mode)}>{copy.choose}<ArrowRight size={16} aria-hidden/></button></article>)}</div><p className={styles.note}>{copy.priceNote}</p><button className={styles.textButton} onClick={()=>onEnter("sajuCompatibility")}>{copy.compat}<ArrowRight size={16} aria-hidden/></button></section>
  <section className={`${styles.section} ${styles.preview}`} id="tea-example"><div><h2>{copy.previewTitle}</h2><p>{copy.welcomeHuman}</p><Image src="/images/fortune-tea-house/renewal/yeoni-human-welcome.webp" width={720} height={720} alt="" sizes="(max-width:700px) 100vw,40vw"/></div><article className={styles.letter}><span>{copy.example}</span><h3>{copy.exampleQuestion}</h3><p className={styles.answer}>{copy.exampleAnswer}</p><p>{copy.exampleBody}</p><ol>{copy.resultParts.map(p=><li key={p}>{p}</li>)}</ol></article></section>
