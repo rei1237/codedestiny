@@ -77,7 +77,6 @@ async function contextFor(width,scenario='normal') {
     return route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
   });
   const page=await context.newPage();page.setDefaultNavigationTimeout(120000);page.setDefaultTimeout(60000);page.on('pageerror',error=>errors.push(error.message));
-  if(detailOnly)page.on('response',response=>{if(response.url().includes('/api/records/detail'))void response.json().then(data=>console.log('Fixture detail',response.status(),data.record?.status,Object.keys(data.content||{})));});
   debugState={context,page,seen,forbidden,errors};return debugState;
 }
 async function bounds(page,width) {
