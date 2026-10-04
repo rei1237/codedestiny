@@ -29035,7 +29035,7 @@ function populateCelebList(){
     setCeleb({
       name: nameBtn.dataset.name,
       birth: nameBtn.dataset.birth,
-      hour: parseInt(nameBtn.dataset.hour)||12,
+      hour: isNaN(parseInt(nameBtn.dataset.hour, 10)) ? 12 : parseInt(nameBtn.dataset.hour, 10),
       minute: parseInt(nameBtn.dataset.minute)||0
     });
   });
@@ -29294,7 +29294,9 @@ async function runCompatCore(compatRunBtn, name, bd, type){
   var compatCalType = 'solar';
   for(var i=0; i<compatCalBtns.length; i++) { if(compatCalBtns[i].checked) { compatCalType = compatCalBtns[i].value; break; } }
 
-  var hour=parseInt(document.getElementById('compatBirthHour').value)||12;
+  /* 0시(자시)는 유효값이다 — `||12` 는 0 을 12 로 바꿔 상대 시주를 오염시킨다. 비었거나 숫자가 아닐 때만 12. */
+  var hourRaw=parseInt(document.getElementById('compatBirthHour').value, 10);
+  var hour=isNaN(hourRaw)?12:hourRaw;
   var minute=parseInt(document.getElementById('compatBirthMinute').value)||0;
 
   var actualDateInfo = await getActualSolarDateWithContext(bd, compatCalType, {
