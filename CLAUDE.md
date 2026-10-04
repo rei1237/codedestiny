@@ -18,7 +18,7 @@ GREEN은 관련 파일부터 수정하고, RED는 위험·검증·롤백을 먼�
 4. 수정 금지: .env*, package-lock.json, .wrangler/, dist/, out/, 마이그레이션 결과물, worker/wrangler.toml 구조. vars 예외는 참조 문서.
 5. 비밀정보 출력·저장·커밋 금지. 승인 연락처 예외는 참조 문서.
 6. 요청 밖 기능·라우트·콘텐츠 삭제 금지. 삭제는 소스·테스트·검증기 참조 확인 후 별도 변경으로 다룬다.
-7. 한 세션에서 요청을 끝까지 진행한다(자동 압축 허용). 단계마다 검증→commit, 안정 시점에 push. 인수인계 문서는 사용자 요청이나 외부 차단으로 멈출 때만 쓴다. 세션 시작 시 `git branch --show-current`와 `git status`로 main·clean을 확인하고 `git pull --ff-only` 한다.
+7. 한 세션에서 요청을 끝까지 진행한다(자동 압축 허용). 단계마다 검증→commit, 안정 시점에 push. 인수인계 문서는 사용자 요청이나 외부 차단으로 멈출 때만 쓴다. 세션 시작 시 `git branch --show-current`와 `git status`로 main·clean을 확인하고 `git pull --ff-only` 한다. 작업이 끝나면 정리까지가 완료다: 자기 인수인계 문서는 `status: done` 으로 닫고, 자기 워크트리는 배수(node_modules 정션 먼저 해제 → `git worktree remove --force` → 머지된 `wt/*` 브랜치 `git branch -d`)하고, 자기가 만든 임시 파일(`.tmp/`·`*.log`·스크래치)은 지운다. 다른 세션의 워크트리·문서·파일은 지우지 않고 보고만 한다.
 
 ## 코딩 원칙 (번호 유지)
 
