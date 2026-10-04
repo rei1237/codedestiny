@@ -1,5 +1,6 @@
 import roomStyles from "@/src/features/fortune-tea-house/styles/tea-room.module.css";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { siteSeo } from "@/lib/seo/siteSeo";
 import FortuneTeaHouseClient from "./FortuneTeaHouseClient";
 import ServiceIntroSection from "@/app/components/ServiceIntroSection";
@@ -120,6 +121,10 @@ export default function Page() {
           운세 결과는 지금의 마음을 정리하는 참고 자료입니다. 건강·법률·재무처럼 전문적인 판단이 필요한
           문제는 해당 분야의 도움을 함께 받으시길 권합니다.
         </p>
+        <nav aria-label="상담과 기록" className="flex flex-wrap gap-4">
+          <Link href="/consultations/" className="inline-flex min-h-11 items-center underline">고민에 맞는 상담 고르기</Link>
+          <Link href="/records/" className="inline-flex min-h-11 items-center underline">나의 기록 보관함</Link>
+        </nav>
       </ServiceIntroSection></div>
     </>
   );
