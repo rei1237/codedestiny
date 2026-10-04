@@ -1,0 +1,632 @@
+{
+  "version": "yeoni-art-20261004",
+  "generator": "OpenAI image generation tool",
+  "references": [
+    "canonical Yeoni profile 1",
+    "existing yeoni-sprite7-tarot-photoroom.webp"
+  ],
+  "entries": [
+    {
+      "file": "/images/fortune-tea-house/renewal/character-sheet.webp",
+      "source": "assets/yeoni-teahouse/originals/character-sheet.png",
+      "usage": "제작 기준: 정면·측면·후면, 두 모습의 대응 특징",
+      "screens": [
+        "art-reference"
+      ],
+      "status": "applied-or-reference",
+      "alt": "꽃돼지와 인간형 연이의 앞·옆·뒷모습, 표정과 공통 꽃 장식 기준",
+      "decorativeAlt": "",
+      "width": 1440,
+      "height": 960,
+      "alpha": false,
+      "bytes": 182806,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1536,
+        "height": 1024
+      },
+      "display": "hero: right center; preserve face and cup"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/yeoni-tea-welcome.webp",
+      "source": "assets/yeoni-teahouse/originals/yeoni-tea-welcome.png",
+      "usage": "홈 대표: 차를 건네는 꽃돼지 연이",
+      "screens": [
+        "home-hero",
+        "ggulggul-entry"
+      ],
+      "status": "applied-or-reference",
+      "alt": "찻집에서 손님에게 차를 건네는 꽃돼지 연이",
+      "decorativeAlt": "",
+      "width": 1440,
+      "height": 960,
+      "alpha": false,
+      "bytes": 89924,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1536,
+        "height": 1024
+      },
+      "display": "hero: right center; preserve face and cup"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/yeoni-human-welcome.webp",
+      "source": "assets/yeoni-teahouse/originals/consultation-scenes.png",
+      "usage": "홈 상담 방식·상담 도입",
+      "screens": [
+        "home-result-preview"
+      ],
+      "status": "applied-or-reference",
+      "alt": "창가 상담 테이블에서 손님을 맞이하는 인간형 연이",
+      "decorativeAlt": "",
+      "width": 640,
+      "height": 427,
+      "alpha": false,
+      "bytes": 64686,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 768,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/yeoni-saju.webp",
+      "source": "assets/yeoni-teahouse/originals/consultation-scenes.png",
+      "usage": "홈 상담 방식·상담 도입",
+      "screens": [
+        "home-method",
+        "question-method",
+        "saju-result"
+      ],
+      "status": "applied-or-reference",
+      "alt": "계절 그림과 상담 기록을 살펴보는 인간형 연이",
+      "decorativeAlt": "",
+      "width": 640,
+      "height": 427,
+      "alpha": false,
+      "bytes": 57834,
+      "crop": {
+        "left": 768,
+        "top": 0,
+        "width": 768,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/yeoni-tarot.webp",
+      "source": "assets/yeoni-teahouse/originals/consultation-scenes.png",
+      "usage": "홈 상담 방식·상담 도입",
+      "screens": [
+        "home-method",
+        "question-method"
+      ],
+      "status": "applied-or-reference",
+      "alt": "카드 뒷면을 펼치며 상담을 준비하는 인간형 연이",
+      "decorativeAlt": "",
+      "width": 640,
+      "height": 427,
+      "alpha": false,
+      "bytes": 68164,
+      "crop": {
+        "left": 0,
+        "top": 512,
+        "width": 768,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/yeoni-sukuyo.webp",
+      "source": "assets/yeoni-teahouse/originals/consultation-scenes.png",
+      "usage": "홈 상담 방식·상담 도입",
+      "screens": [
+        "home-method",
+        "question-method",
+        "sukuyo-result"
+      ],
+      "status": "applied-or-reference",
+      "alt": "달빛과 두 별의 연결을 살펴보는 인간형 연이",
+      "decorativeAlt": "",
+      "width": 640,
+      "height": 427,
+      "alpha": false,
+      "bytes": 61248,
+      "crop": {
+        "left": 768,
+        "top": 512,
+        "width": 768,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/pig-welcome.webp",
+      "source": "assets/yeoni-teahouse/originals/pig-reactions.png",
+      "usage": "꽃돼지 안내·입력·상태",
+      "screens": [],
+      "status": "available-not-mounted",
+      "alt": "반갑게 인사하는 꽃돼지 연이",
+      "decorativeAlt": "",
+      "width": 384,
+      "height": 512,
+      "alpha": true,
+      "bytes": 29882,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 384,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/pig-listening.webp",
+      "source": "assets/yeoni-teahouse/originals/pig-reactions.png",
+      "usage": "꽃돼지 안내·입력·상태",
+      "screens": [
+        "question-intro"
+      ],
+      "status": "applied-or-reference",
+      "alt": "고개를 기울여 경청하는 꽃돼지 연이",
+      "decorativeAlt": "",
+      "width": 384,
+      "height": 512,
+      "alpha": true,
+      "bytes": 28722,
+      "crop": {
+        "left": 384,
+        "top": 0,
+        "width": 384,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/pig-thinking.webp",
+      "source": "assets/yeoni-teahouse/originals/pig-reactions.png",
+      "usage": "꽃돼지 안내·입력·상태",
+      "screens": [],
+      "status": "available-not-mounted",
+      "alt": "차분하게 생각하는 꽃돼지 연이",
+      "decorativeAlt": "",
+      "width": 384,
+      "height": 512,
+      "alpha": true,
+      "bytes": 29446,
+      "crop": {
+        "left": 768,
+        "top": 0,
+        "width": 384,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/pig-empathy.webp",
+      "source": "assets/yeoni-teahouse/originals/pig-reactions.png",
+      "usage": "꽃돼지 안내·입력·상태",
+      "screens": [
+        "result-core-answer"
+      ],
+      "status": "applied-or-reference",
+      "alt": "마음을 헤아리는 꽃돼지 연이",
+      "decorativeAlt": "",
+      "width": 384,
+      "height": 512,
+      "alpha": true,
+      "bytes": 28612,
+      "crop": {
+        "left": 1152,
+        "top": 0,
+        "width": 384,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/pig-advice.webp",
+      "source": "assets/yeoni-teahouse/originals/pig-reactions.png",
+      "usage": "꽃돼지 안내·입력·상태",
+      "screens": [
+        "result-action-advice"
+      ],
+      "status": "applied-or-reference",
+      "alt": "조심스럽게 조언하는 꽃돼지 연이",
+      "decorativeAlt": "",
+      "width": 384,
+      "height": 512,
+      "alpha": true,
+      "bytes": 28314,
+      "crop": {
+        "left": 0,
+        "top": 512,
+        "width": 384,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/pig-cheer.webp",
+      "source": "assets/yeoni-teahouse/originals/pig-reactions.png",
+      "usage": "꽃돼지 안내·입력·상태",
+      "screens": [
+        "result-honey-letter"
+      ],
+      "status": "applied-or-reference",
+      "alt": "손님을 응원하는 꽃돼지 연이",
+      "decorativeAlt": "",
+      "width": 384,
+      "height": 512,
+      "alpha": true,
+      "bytes": 29876,
+      "crop": {
+        "left": 384,
+        "top": 512,
+        "width": 384,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/pig-completed.webp",
+      "source": "assets/yeoni-teahouse/originals/pig-reactions.png",
+      "usage": "꽃돼지 안내·입력·상태",
+      "screens": [],
+      "status": "available-not-mounted",
+      "alt": "상담 완료를 알리는 꽃돼지 연이",
+      "decorativeAlt": "",
+      "width": 384,
+      "height": 512,
+      "alpha": true,
+      "bytes": 29362,
+      "crop": {
+        "left": 768,
+        "top": 512,
+        "width": 384,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/pig-waiting.webp",
+      "source": "assets/yeoni-teahouse/originals/pig-reactions.png",
+      "usage": "꽃돼지 안내·입력·상태",
+      "screens": [],
+      "status": "available-not-mounted",
+      "alt": "차를 기다리는 꽃돼지 연이",
+      "decorativeAlt": "",
+      "width": 384,
+      "height": 512,
+      "alpha": true,
+      "bytes": 27930,
+      "crop": {
+        "left": 1152,
+        "top": 512,
+        "width": 384,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/human-listening.webp",
+      "source": "assets/yeoni-teahouse/originals/human-states.png",
+      "usage": "인간형 상담·결과 편지·상담함·복구",
+      "screens": [],
+      "status": "available-not-mounted",
+      "alt": "고민을 경청하는 인간형 연이",
+      "decorativeAlt": "",
+      "width": 415,
+      "height": 420,
+      "alpha": true,
+      "bytes": 65704,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 415,
+        "height": 420
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/human-explaining.webp",
+      "source": "assets/yeoni-teahouse/originals/human-states.png",
+      "usage": "인간형 상담·결과 편지·상담함·복구",
+      "screens": [],
+      "status": "available-not-mounted",
+      "alt": "상담 근거를 설명하는 인간형 연이",
+      "decorativeAlt": "",
+      "width": 415,
+      "height": 420,
+      "alpha": true,
+      "bytes": 70378,
+      "crop": {
+        "left": 415,
+        "top": 0,
+        "width": 415,
+        "height": 420
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/human-smile.webp",
+      "source": "assets/yeoni-teahouse/originals/human-states.png",
+      "usage": "인간형 상담·결과 편지·상담함·복구",
+      "screens": [],
+      "status": "available-not-mounted",
+      "alt": "따뜻하게 미소 짓는 인간형 연이",
+      "decorativeAlt": "",
+      "width": 416,
+      "height": 420,
+      "alpha": true,
+      "bytes": 68172,
+      "crop": {
+        "left": 830,
+        "top": 0,
+        "width": 416,
+        "height": 420
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/human-advice.webp",
+      "source": "assets/yeoni-teahouse/originals/human-states.png",
+      "usage": "인간형 상담·결과 편지·상담함·복구",
+      "screens": [],
+      "status": "available-not-mounted",
+      "alt": "차분하게 조언하는 인간형 연이",
+      "decorativeAlt": "",
+      "width": 415,
+      "height": 421,
+      "alpha": true,
+      "bytes": 68296,
+      "crop": {
+        "left": 0,
+        "top": 420,
+        "width": 415,
+        "height": 421
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/human-letter.webp",
+      "source": "assets/yeoni-teahouse/originals/human-states.png",
+      "usage": "인간형 상담·결과 편지·상담함·복구",
+      "screens": [
+        "result-closing"
+      ],
+      "status": "applied-or-reference",
+      "alt": "마무리 편지를 건네는 인간형 연이",
+      "decorativeAlt": "",
+      "width": 415,
+      "height": 421,
+      "alpha": true,
+      "bytes": 67882,
+      "crop": {
+        "left": 415,
+        "top": 420,
+        "width": 415,
+        "height": 421
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/state-brewing.webp",
+      "source": "assets/yeoni-teahouse/originals/human-states.png",
+      "usage": "인간형 상담·결과 편지·상담함·복구",
+      "screens": [
+        "generation",
+        "library-pending"
+      ],
+      "status": "applied-or-reference",
+      "alt": "상담을 준비하며 차를 우리는 꽃돼지 연이",
+      "decorativeAlt": "",
+      "width": 416,
+      "height": 421,
+      "alpha": true,
+      "bytes": 56522,
+      "crop": {
+        "left": 830,
+        "top": 420,
+        "width": 416,
+        "height": 421
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/state-completed.webp",
+      "source": "assets/yeoni-teahouse/originals/human-states.png",
+      "usage": "인간형 상담·결과 편지·상담함·복구",
+      "screens": [
+        "generation-complete"
+      ],
+      "status": "applied-or-reference",
+      "alt": "완성된 편지를 건네는 꽃돼지 연이",
+      "decorativeAlt": "",
+      "width": 415,
+      "height": 421,
+      "alpha": true,
+      "bytes": 40166,
+      "crop": {
+        "left": 0,
+        "top": 841,
+        "width": 415,
+        "height": 421
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/state-empty.webp",
+      "source": "assets/yeoni-teahouse/originals/human-states.png",
+      "usage": "인간형 상담·결과 편지·상담함·복구",
+      "screens": [
+        "library-empty"
+      ],
+      "status": "applied-or-reference",
+      "alt": "빈 쟁반과 함께 기다리는 꽃돼지 연이",
+      "decorativeAlt": "",
+      "width": 415,
+      "height": 421,
+      "alpha": true,
+      "bytes": 37434,
+      "crop": {
+        "left": 415,
+        "top": 841,
+        "width": 415,
+        "height": 421
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/state-retry.webp",
+      "source": "assets/yeoni-teahouse/originals/human-states.png",
+      "usage": "인간형 상담·결과 편지·상담함·복구",
+      "screens": [
+        "generation-error",
+        "library-error"
+      ],
+      "status": "applied-or-reference",
+      "alt": "다시 준비할 수 있도록 안내하는 꽃돼지 연이",
+      "decorativeAlt": "",
+      "width": 416,
+      "height": 421,
+      "alpha": true,
+      "bytes": 45828,
+      "crop": {
+        "left": 830,
+        "top": 841,
+        "width": 416,
+        "height": 421
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/prop-teacup.webp",
+      "source": "assets/yeoni-teahouse/originals/props.png",
+      "usage": "보조 소품·카드 선택",
+      "screens": [],
+      "status": "available-not-mounted",
+      "alt": "꽃무늬 찻잔",
+      "decorativeAlt": "",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "bytes": 41902,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 512,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/prop-teapot.webp",
+      "source": "assets/yeoni-teahouse/originals/props.png",
+      "usage": "보조 소품·카드 선택",
+      "screens": [],
+      "status": "available-not-mounted",
+      "alt": "연이의 꽃무늬 주전자",
+      "decorativeAlt": "",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "bytes": 45710,
+      "crop": {
+        "left": 512,
+        "top": 0,
+        "width": 512,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/prop-petals.webp",
+      "source": "assets/yeoni-teahouse/originals/props.png",
+      "usage": "보조 소품·카드 선택",
+      "screens": [],
+      "status": "available-not-mounted",
+      "alt": "연분홍 꽃잎",
+      "decorativeAlt": "",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "bytes": 24692,
+      "crop": {
+        "left": 1024,
+        "top": 0,
+        "width": 512,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/prop-envelope.webp",
+      "source": "assets/yeoni-teahouse/originals/props.png",
+      "usage": "보조 소품·카드 선택",
+      "screens": [
+        "result-letterhead"
+      ],
+      "status": "applied-or-reference",
+      "alt": "꽃 봉인이 있는 편지 봉투",
+      "decorativeAlt": "",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "bytes": 27616,
+      "crop": {
+        "left": 0,
+        "top": 512,
+        "width": 512,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/prop-notebook.webp",
+      "source": "assets/yeoni-teahouse/originals/props.png",
+      "usage": "보조 소품·카드 선택",
+      "screens": [],
+      "status": "available-not-mounted",
+      "alt": "상담 기록 노트",
+      "decorativeAlt": "",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "bytes": 55856,
+      "crop": {
+        "left": 512,
+        "top": 512,
+        "width": 512,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    },
+    {
+      "file": "/images/fortune-tea-house/renewal/prop-card-back.webp",
+      "source": "assets/yeoni-teahouse/originals/props.png",
+      "usage": "보조 소품·카드 선택",
+      "screens": [
+        "tarot-selection"
+      ],
+      "status": "applied-or-reference",
+      "alt": "꽃과 찻잔 무늬의 장식용 카드 뒷면",
+      "decorativeAlt": "",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "bytes": 37094,
+      "crop": {
+        "left": 1024,
+        "top": 512,
+        "width": 512,
+        "height": 512
+      },
+      "display": "contain for transparent cutouts; center for scenes"
+    }
+  ]
+}

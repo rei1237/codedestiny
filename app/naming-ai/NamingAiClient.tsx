@@ -25,7 +25,7 @@ import {
 import { stashNamingRetryPayload } from "./retryHandoff";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import dynamic from "next/dynamic";
-import NamingEngineFields, { INITIAL_ENGINE_FIELDS, engineRawInput, type EngineFieldsValue } from "./v2/NamingEngineFields";
+import NamingEngineFields, { INITIAL_ENGINE_FIELDS, engineRawInput, readNamingEngineOptIn, type EngineFieldsValue } from "./v2/NamingEngineFields";
 
 // 무료 한자 미리보기는 작명서 그림 묶음을 끌고 오므로 성씨 한자를 고른 뒤에만 받는다.
 const NamingBasisPanel = dynamic(() => import("./v2/NamingBasisPanel"), { ssr: false });
@@ -2024,6 +2024,7 @@ export default function NamingAiClient() {
   const copy = getNamingCopy(locale);
   const { seed, reload } = useAiProfileSeed();
   const [form, setForm] = useState<FormState>(() => ({ ...INITIAL_FORM, birthPlace: copy.defaultBirthPlace }));
+  const [engineOptIn] = useState(readNamingEngineOptIn);
   const defaultBirthPlaceRef = useRef(form.birthPlace);
   const [phase, setPhase] = useState<Phase>("idle");
   const [busy, setBusy] = useState(false);
@@ -2156,7 +2157,7 @@ export default function NamingAiClient() {
   const updateEngine = useCallback((patch: Partial<EngineFieldsValue>) => {
     setForm((prev) => ({ ...prev, engine: { ...prev.engine, ...patch } }));
   }, []);
-  const showEngineBasis = form.useHanja && Boolean(form.engine.surnameHanja) && form.nameLength <= 2;
+  const showEngineBasis = engineOptIn && form.useHanja && Boolean(form.engine.surnameHanja) && form.nameLength <= 2;
   const basisInput = useMemo(() => {
     if (!showEngineBasis || missing.length) return null;
     const raw = toRawInput(form);
@@ -2671,7 +2672,7 @@ export default function NamingAiClient() {
                       </select>
                     </label>
                   </div>
-                  {form.useHanja ? (
+                  {form.useHanja && engineOptIn ? (
                     <NamingEngineFields
                       locale={locale}
                       familyName={form.familyName}
@@ -2681,6 +2682,7 @@ export default function NamingAiClient() {
                       onChange={updateEngine}
                     />
                   ) : null}
+                  {showEngineBasis && form.engine.nameStrategy === "choose" ? null : (
                   <label className={`${LABEL} mt-3.5`}>
                     {copy.desiredNamesLabel}
                     <textarea
@@ -2692,6 +2694,7 @@ export default function NamingAiClient() {
                       className={FIELD}
                     />
                   </label>
+                  )}
                   <div className="mt-3.5 grid gap-3.5 sm:grid-cols-3">
                     <label className={LABEL}>
                       {copy.desiredSyllablesLabel}

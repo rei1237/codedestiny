@@ -1,7 +1,8 @@
 "use client";
 
 import type { SajuGuest } from "@/lib/fortune-tea-house/saju-guests";
-import { tenGodMetaMap, type TenGodId } from "../data/tenGods";
+import type { TenGodId } from "../data/tenGods";
+import { tenGodMetaMap } from "@/lib/fortune-tea-house/ten-gods.mjs";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 import styles from "./SajuGuestList.module.css";
 

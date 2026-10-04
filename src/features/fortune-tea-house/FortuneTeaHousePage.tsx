@@ -1,6 +1,16 @@
 "use client";
+// These light styles are shared by lazy consultation scenes and must be available
+// before a saved result is restored directly (without mounting the question form).
+import "./styles/tea-report.module.css";
+import "./styles/tea-library.module.css";
+import "./styles/tea-tarot-artwork.module.css";
+import "./styles/tea-result-companion.module.css";
+import { readEntryBookmark, saveEntryBookmark } from "./lib/entryBookmark";
+import roomStyles from "./styles/tea-room.module.css";
+import "@/components/fortune/ConsultationShare.module.css";
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import FortuneTeaHouseImmersiveShell from "./components/FortuneTeaHouseImmersiveShell";
@@ -88,7 +98,6 @@ type FortuneTeaBillingGateData = NonNullable<FortuneTeaBillingGateResult["data"]
 
 const DestinyCafeTarotAlbum = lazy(() => import("./components/DestinyCafeTarotAlbum"));
 const TeaHouseHistoryPanel = lazy(() => import("./components/TeaHouseHistoryPanel"));
-const FortuneTeaHouseDebugPanel = lazy(() => import("./components/FortuneTeaHouseDebugPanel"));
 const QuestionInputScene = lazy(() => import("./components/QuestionInputScene"));
 const ScentLoadingScene = lazy(() => import("./components/ScentLoadingScene"));
 const TarotRevealScene = lazy(() => import("./components/TarotRevealScene"));
@@ -309,6 +318,11 @@ function buildFortuneTeaQuestionInputFromRequestPayload(payload: FortuneTeaConsu
     gender: payload.gender,
     calendarType: payload.calendarType,
     tarotSpread: payload.tarotSpread,
+    attemptId: payload.attemptId,
+    tarotSpreadId: payload.tarotSpreadId,
+    consultationVersion: payload.consultationVersion,
+    isLeapMonth: payload.isLeapMonth,
+    longitude: payload.longitude,
     sukuyo: payload.sukuyo,
     sajuCompatibility: payload.sajuCompatibility,
     question: payload.question,
@@ -460,10 +474,9 @@ function getFortuneTeaBgmTrack(stage: TeaHouseStage) {
   return FORTUNE_TEA_BGM_TRACKS.moonlitTeaHouse;
 }
 
-function logSubmitStep(message: string, payload?: unknown) {
+function logSubmitStep(message: string, _payload?: unknown) {
   if (process.env.NODE_ENV !== "production") {
-    if (typeof payload === "undefined") console.info(`[FortuneTeaHouse Submit] ${message}`);
-    else console.info(`[FortuneTeaHouse Submit] ${message}`, payload);
+    console.info(`[FortuneTeaHouse Submit] ${message}`);
   }
 }
 
@@ -559,16 +572,34 @@ export default function FortuneTeaHousePage() {
   const [isEnteringTeaHouse, setIsEnteringTeaHouse] = useState(false);
   const [hasSeenEntryPrologue, setHasSeenEntryPrologue] = useState(false);
   const [isEntryPrologueSkipped, setIsEntryPrologueSkipped] = useState(false);
-  const [bgmEnabled, setBgmEnabled] = useState(true);
+  const [bgmEnabled, setBgmEnabled] = useState(false);
   const [isBgmPreferenceReady, setIsBgmPreferenceReady] = useState(false);
   const [bgmStatus, setBgmStatus] = useState<"idle" | "playing" | "blocked" | "off">("idle");
   const [selectedCup, setSelectedCup] = useState<TeaHouseCup | null>(null);
   const [questionInput, setQuestionInput] = useState<Partial<FortuneTeaHouseQuestionInput>>({});
+  const draftRestored = useRef(false);
+  useEffect(() => {
+    if (!authState.authReady || draftRestored.current) return;
+    draftRestored.current = true;
+    try {
+      const saved = JSON.parse(sessionStorage.getItem("cd_tea_question_draft") || "null");
+      if (saved && (saved.owner === (recoveryOwner || "guest") || saved.owner === "guest") && Date.now() - saved.at < 86400000) {
+        const cup = getTeaHouseCupById(saved.cupId);
+        if (cup && saved.input?.question) { setSelectedCup(cup); setQuestionInput(saved.input); setStage("questionInput"); }
+      }
+    } catch { /* A blocked or invalid session store does not block counselling. */ }
+    trackEvent("tea_home_entered", {});
+  }, [authState.authReady, recoveryOwner]);
+  useEffect(() => {
+    if (!draftRestored.current || stage !== "questionInput" || !selectedCup || (recoveryOwnerRef.current && recoveryOwnerRef.current !== recoveryOwner)) return;
+    try { sessionStorage.setItem("cd_tea_question_draft", JSON.stringify({owner: recoveryOwner || "guest", at: Date.now(), cupId:selectedCup.id, input:questionInput})); } catch { /* Optional draft recovery. */ }
+  }, [questionInput, selectedCup, stage, recoveryOwner]);
   const [partialSections, setPartialSections] = useState<Array<{key:string;title:string;body:string}>>([]);
   const [consultResult, setConsultResult] = useState<FortuneTeaHouseConsultResponse | null>(null);
   const [honeyDrops, setHoneyDrops] = useState<FortuneTeaHouseHoneyDropsState | null>(null);
   const [isTarotAlbumOpen, setIsTarotAlbumOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  useEffect(() => { if (new URLSearchParams(window.location.search).get("history") === "1") setIsHistoryOpen(true); }, []);
   const [honeyRewardBurstKey, setHoneyRewardBurstKey] = useState(0);
   const [honeyRewardMessage, setHoneyRewardMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -657,13 +688,36 @@ export default function FortuneTeaHousePage() {
       setSubmitError("이전 상담 요청이 남아 있어요. 다시 시작하면 같은 요청으로 전달을 확인해요.");
       setStage("questionInput");
     } else {
+      if (!previousOwner) {
+        try {
+          const draft = JSON.parse(sessionStorage.getItem("cd_tea_question_draft") || "null");
+          const cup = draft && getTeaHouseCupById(draft.cupId);
+          if (cup && draft.input?.question && (draft.owner === recoveryOwner || draft.owner === "guest") && Date.now() - draft.at < 86400000) {
+            setSelectedCup(cup); setQuestionInput(draft.input); setStage("questionInput");
+            if (recoveryOwner) void probeFortuneTeaPending(recoveryOwner);
+            return;
+          }
+        } catch { /* optional draft */ }
+      }
       setQuestionInput({});
       setSelectedCup(null);
       setSubmitError("");
       setStage("landing");
+      try { sessionStorage.removeItem("cd_tea_question_draft"); sessionStorage.removeItem("cd_tea_draw_attempt"); } catch { /* optional store */ }
       if (recoveryOwner) void probeFortuneTeaPending(recoveryOwner);
     }
   }, [recoveryOwner]);
+
+  useEffect(() => {
+    document.documentElement.dataset.teaStage = stage;
+    const existing = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    const original = existing?.content;
+    const meta = existing || document.createElement("meta");
+    meta.name = "robots";
+    if (!existing) document.head.appendChild(meta);
+    meta.content = stage === "landing" ? "index,follow" : "noindex,nofollow";
+    return () => { delete document.documentElement.dataset.teaStage; if (existing) existing.content = original || ""; else meta.remove(); };
+  }, [stage]);
 
   wakeBlockedRef.current = Boolean(consultResult);
   // 백그라운드로 내려간 탭은 폴링(최대 약 263초)이 소진된 뒤 questionInput 으로 떨어진다.
@@ -944,29 +998,27 @@ export default function FortuneTeaHousePage() {
     }
   }
 
-  function enterTeaHouse() {
-    if (isEnteringTeaHouse) return;
-    void playBgm();
-    setIsEntryPrologueSkipped(false);
-    if (hasSeenEntryPrologue) {
-      goToStage("teaSelect");
-      return;
-    }
-    setIsEnteringTeaHouse(true);
-    enterTimerRef.current = window.setTimeout(() => {
-      setIsEnteringTeaHouse(false);
-      goToStage("doorOpened");
-    }, 1280);
+  function enterTeaHouse(mode: FortuneTeaHouseConsultMode = "tarot", question = "") {
+    const cup = getTeaHouseCupById(mode === "saju" ? "star-black-tea" : "lotus-moon");
+    if (!cup) return;
+    trackEvent("tea_concern_selected", { method: mode });
+    trackEvent("tea_input_started", { method: mode });
+    setSelectedCup(cup);
+    setQuestionInput({ consultationMode: mode, question, concernTopic: cup.topic });
+    setSubmitError("");
+    goToStage("questionInput");
   }
 
-  function replayEntryPrologue() {
+  function replayEntryPrologue(resume = false) {
     if (isEnteringTeaHouse) return;
     void playBgm();
     setIsEntryPrologueSkipped(false);
+    const bookmark = resume ? readEntryBookmark() : null;
+    if (!resume) saveEntryBookmark(null);
     setIsEnteringTeaHouse(true);
     enterTimerRef.current = window.setTimeout(() => {
       setIsEnteringTeaHouse(false);
-      goToStage("doorOpened");
+      goToStage(bookmark?.stage || "doorOpened");
     }, 1280);
   }
 
@@ -1048,8 +1100,8 @@ export default function FortuneTeaHousePage() {
   async function submitQuestion(nextQuestionInput: FortuneTeaHouseQuestionInput, prepaid?: FortuneTeaPrepaidResume) {
     if (isSubmitting || submitLockRef.current) return;
     logSubmitStep("start");
-    logSubmitStep("selectedCup", selectedCup);
-    logSubmitStep("input", nextQuestionInput);
+
+
 
     const currentUser = getAuthState().user;
     const ownerId = toText(currentUser?.id || currentUser?.userId || currentUser?._id || currentUser?.uid);
@@ -1096,9 +1148,13 @@ export default function FortuneTeaHousePage() {
         birthTimeUnknown: nextQuestionInput.birthTimeUnknown,
         birthPlace: nextQuestionInput.birthPlace,
         timezone: nextQuestionInput.timezone,
+        longitude: nextQuestionInput.longitude,
+        isLeapMonth: nextQuestionInput.isLeapMonth,
         gender: nextQuestionInput.gender,
         calendarType: nextQuestionInput.calendarType,
         tarotSpread: nextQuestionInput.tarotSpread,
+        tarotSpreadId: nextQuestionInput.tarotSpreadId,
+        consultationVersion: nextQuestionInput.consultationVersion,
         sukuyo: nextQuestionInput.sukuyo,
         sajuCompatibility: nextQuestionInput.sajuCompatibility,
         question: nextQuestionInput.question,
@@ -1140,9 +1196,13 @@ export default function FortuneTeaHousePage() {
         birthTimeUnknown: nextQuestionInput.birthTimeUnknown,
         birthPlace: nextQuestionInput.birthPlace,
         timezone: nextQuestionInput.timezone,
+        longitude: nextQuestionInput.longitude,
+        isLeapMonth: nextQuestionInput.isLeapMonth,
         gender: nextQuestionInput.gender,
         calendarType: nextQuestionInput.calendarType,
         tarotSpread: nextQuestionInput.tarotSpread,
+        tarotSpreadId: nextQuestionInput.tarotSpreadId,
+        consultationVersion: nextQuestionInput.consultationVersion,
         sukuyo: nextQuestionInput.sukuyo,
         sajuCompatibility: nextQuestionInput.sajuCompatibility,
         question: nextQuestionInput.question,
@@ -1155,7 +1215,7 @@ export default function FortuneTeaHousePage() {
         ? prepaid.attemptId
         : carriedPaid
           ? carriedPaid.attemptId
-          : createFortuneTeaAttemptId(requestPayload);
+          : nextQuestionInput.attemptId || createFortuneTeaAttemptId(requestPayload);
       localPreviewResultId = attemptId;
       // 재개·이어받기는 결제가 이미 끝난 뒤라 '이용권 확인' 게이트를 다시 열지 않는다.
       if (!settledPayment) {
@@ -1234,6 +1294,7 @@ export default function FortuneTeaHousePage() {
             label: "가격 확인",
             message: "상담 가격과 결제 권한을 확인하고 있어요.",
           }));
+          trackEvent("tea_payment_started", { method: nextQuestionInput.consultationMode });
           const billing = await runFortuneTeaBillingGate(accessCheck.payload, nextQuestionInput, attemptId, buildResume({
             attemptId,
             cupId: activeCup.id,
@@ -1256,6 +1317,7 @@ export default function FortuneTeaHousePage() {
         }
       }
 
+      trackEvent("tea_access_confirmed", { method: nextQuestionInput.consultationMode });
       // 이용권 직접 통과도 같은 요청으로 복구한다. 원문/증빙을 저장한 뒤에만 생성한다.
       const initialConsultBody: FortuneTeaConsultPostBody = carriedPaid?.requestPayload
         || billingEvidenceBody || { ...requestPayloadWithAttempt, draftResult: localDraft };
@@ -1334,7 +1396,9 @@ export default function FortuneTeaHousePage() {
         }
         throw submitError;
       }
-      logSubmitStep("api result success", payload.generationMeta);
+      logSubmitStep("api result success");
+      trackEvent("tea_result_completed", { method: nextQuestionInput.consultationMode });
+      try { sessionStorage.removeItem("cd_tea_question_draft"); } catch { /* optional store */ }
       if (consultRunRef.current !== consultRunId) return;
       if (accessGateStarted) await completeFortuneTeaAccessGate(nextQuestionInput, attemptId);
       markGenerationComplete();
@@ -1379,7 +1443,8 @@ export default function FortuneTeaHousePage() {
       goToStage("result");
     } catch (error) {
       if (consultRunRef.current !== consultRunId) return;
-      logSubmitStep("error", error);
+      logSubmitStep("error");
+      trackEvent("tea_generation_error", { method: nextQuestionInput.consultationMode, code: "GENERATION_UNAVAILABLE" });
       const generationPending = error instanceof Error && (error as Error & { generationPending?: boolean }).generationPending;
       const blocksLocalPreview = error instanceof Error && (
         (error as Error & { paymentRequired?: boolean }).paymentRequired
@@ -1453,20 +1518,37 @@ export default function FortuneTeaHousePage() {
     </section>;
   }
 
+  const soundControl = <button
+        className={roomStyles.soundToggle}
+        type="button"
+        data-active={bgmEnabled && bgmStatus === "playing" ? "true" : "false"}
+        aria-label={bgmEnabled ? "운명의 찻집 배경 음악 끄기" : "운명의 찻집 배경 음악 켜기"}
+        aria-pressed={bgmEnabled}
+        onClick={toggleBgm}
+      >
+        <span aria-hidden>{bgmEnabled && bgmStatus === "playing" ? <Volume2 size={14} strokeWidth={2.4} /> : <VolumeX size={14} strokeWidth={2.4} />}</span>
+        <strong>BGM</strong>
+        <em>{bgmEnabled ? (bgmStatus === "playing" ? "ON" : "READY") : "OFF"}</em>
+      </button>;
+
   function renderScene() {
     if (stage === "landing") {
       return (
         <FortuneTeaHouseLanding
           hasSeenPrologue={hasSeenEntryPrologue}
+          soundControl={soundControl}
           onEnter={enterTeaHouse}
-          onReplayPrologue={replayEntryPrologue}
+          onChooseCup={() => goToStage("teaSelect")}
+          onOpenAlbum={() => setIsTarotAlbumOpen(true)}
+          onReplayPrologue={() => replayEntryPrologue()}
+          onResumePrologue={() => replayEntryPrologue(true)}
           onShowHistory={() => setIsHistoryOpen(true)}
         />
       );
     }
 
     if (isTeaHouseEntryStage(stage)) {
-      return <TeaHouseEntryScene stage={stage} onStageChange={goToStage} onComplete={completeEntryPrologue} />;
+      return <TeaHouseEntryScene stage={stage} onStageChange={goToStage} onComplete={completeEntryPrologue} onSkip={() => { setIsEntryPrologueSkipped(true); goToStage("teaSelect"); }} />;
     }
 
     if (stage === "teaSelect") {
@@ -1480,6 +1562,7 @@ export default function FortuneTeaHousePage() {
     if (stage === "questionInput" && selectedCup) {
       return (
         <>{renderSavedSections()}<QuestionInputScene
+          key={`${recoveryOwner}:${questionInput.attemptId || "draft"}`}
           selectedCup={selectedCup}
           initialInput={questionInput}
           onDraftChange={setQuestionInput}
@@ -1526,7 +1609,7 @@ export default function FortuneTeaHousePage() {
   }
 
   return (
-    <FortuneTeaHouseImmersiveShell stage={stage} notice={notice} onBackToLanding={returnToLanding}>
+    <FortuneTeaHouseImmersiveShell stage={stage} notice={notice} onBackToLanding={returnToLanding} soundControl={soundControl}>
       <audio
         ref={bgmAudioRef}
         className={styles.bgmAudio}
@@ -1534,21 +1617,11 @@ export default function FortuneTeaHousePage() {
         loop={stage !== "scentLoading"}
         preload="none"
       />
-      <button
-        className={styles.bgmToggle}
-        type="button"
-        data-active={bgmEnabled && bgmStatus === "playing" ? "true" : "false"}
-        aria-label={bgmEnabled ? "운명의 찻집 배경 음악 끄기" : "운명의 찻집 배경 음악 켜기"}
-        aria-pressed={bgmEnabled}
-        onClick={toggleBgm}
-      >
-        <span aria-hidden>{bgmEnabled && bgmStatus === "playing" ? <Volume2 size={14} strokeWidth={2.4} /> : <VolumeX size={14} strokeWidth={2.4} />}</span>
-        <strong>BGM</strong>
-        <em>{bgmEnabled ? (bgmStatus === "playing" ? "ON" : "READY") : "OFF"}</em>
-      </button>
 
-      {stage === "landing" ? (
+
+      {stage === "teaSelect" ? (
         <HoneyDropRewardOverlay
+          inline
           honeyDrops={honeyDrops}
           burstKey={honeyRewardBurstKey}
           message={honeyRewardMessage}
@@ -1572,8 +1645,10 @@ export default function FortuneTeaHousePage() {
         <Suspense fallback={<TeaHouseHistoryLoadingDialog onClose={() => setIsHistoryOpen(false)} />}>
           <TeaHouseHistoryPanel
             isOpen={isHistoryOpen}
+            onResume={() => { setIsHistoryOpen(false); if (recoveryOwner) void probeFortuneTeaPending(recoveryOwner); }}
             onClose={() => setIsHistoryOpen(false)}
             onSelectResult={(result) => {
+              trackEvent("tea_result_reopened", { method: result.consultationMode });
               setConsultResult(result);
               setIsHistoryOpen(false);
               goToStage("result");
@@ -1611,7 +1686,7 @@ export default function FortuneTeaHousePage() {
       <div className={styles.sceneFrame} aria-live="polite">
         <AnimatePresence mode="wait" initial={false}>
           <m.div
-            key={stage}
+            key={isTeaHouseEntryStage(stage) ? "entryNovel" : stage}
             className={styles.sceneStage}
             initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.992 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -1624,18 +1699,6 @@ export default function FortuneTeaHousePage() {
           </m.div>
         </AnimatePresence>
       </div>
-      {process.env.NODE_ENV !== "production" ? (
-        <Suspense fallback={null}>
-          <FortuneTeaHouseDebugPanel
-            stage={stage}
-            selectedCup={selectedCup}
-            questionInput={questionInput}
-            consultResult={consultResult}
-            lastError={submitError}
-            isSubmitting={isSubmitting}
-          />
-        </Suspense>
-      ) : null}
     </FortuneTeaHouseImmersiveShell>
   );
 }

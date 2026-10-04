@@ -2,10 +2,11 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { tenGodMetaMap, type TenGodId } from "../data/tenGods";
+import type { TenGodId } from "../data/tenGods";
+import { tenGodMetaMap } from "@/lib/fortune-tea-house/ten-gods.mjs";
 import { tenGodVisualAlts, tenGodVisualMap } from "../data/tenGodVisuals";
 import SpriteCrop from "./SpriteCrop";
-import styles from "../styles/fortune-tea-house.module.css";
+import styles from "../styles/tea-report.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TenGodSymbolCardProps = {

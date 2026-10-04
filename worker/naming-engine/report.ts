@@ -4,7 +4,8 @@
 
 import { salvageTruncatedJsonObject, trimToSentenceBoundary } from "../../lib/llm-text.js";
 import { normalizeNarrativeBody } from "../lib/paid-narrative-candidate.js";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { dedupeCodexBody } from "../lib/master-love-codex-quality.js";
+import { countPaidReportBodyChars } from "../lib/paid-report-quality.js";
 import { correctText, findViolations, type CheckContext, type Violation } from "./checker";
 import {
   ELEMENT_LABEL, GRADE_LABEL, GRID_LABEL, NARRATION_LETTER_COUNT, NARRATION_NAME_COUNT, RELATION_LABEL,
@@ -91,6 +92,9 @@ export function buildNamingV2Prompt(view: EngineView, saju: SajuLines & Record<s
   });
   const prefLines = [
     `성별: ${prefs.genderLabel || "미지정"} / 이름 길이: ${view.candidates[0]?.chars.length || 2}자 / 기준: ${PRESET_LABEL[prefs.schoolPreset] || prefs.schoolPreset}`,
+    view.strategy === "choose" && view.desiredNames?.length
+      ? `작명 방식: 부모가 고른 이름(${view.desiredNames.join(", ")})에 맞는 한자 조합을 찾았습니다. 후보가 모자라 덧붙인 이름이 있으면 고른 이름이 아닌 추천 이름입니다.`
+      : "",
     prefs.fixedChar ? `돌림자: ${prefs.fixedChar.position + 1}번째 글자 ${prefs.fixedChar.ch}${prefs.fixedChar.hangul ? `(${prefs.fixedChar.hangul})` : ""}` : "",
     prefs.avoidChars?.length ? `피할 글자: ${prefs.avoidChars.join(", ")}` : "",
     prefs.desiredType ? `원하는 이름 유형: ${prefs.desiredType}` : "",
@@ -293,10 +297,13 @@ export async function generateNamingWaveV2(snapshot: any, checkpoint: (state: Na
     const value = usable(ai) ? parseJson(ai.text) : null;
     const save = async () => {
       state.rawResponses = { ...state.rawResponses, [id]: ai?.rawText || ai?.text || "" };
-      const body = typeof value?.body === "string" ? normalizeNarrativeBody(value.body) : null;
-      const others = namingChaptersTextV2(Object.fromEntries(Object.entries(state.chapters).filter(([key]) => Number(key) !== id)));
+      // 같은 장 안·다른 장과 겹친 문장은 지우고 남은 서술을 쓴다(원칙 17 — 반복은 거부 대신 결정적 교정).
+      // 실호출(2026-10-04) 4장이 후보마다 같은 틀 문장을 되풀이해 두 번 모두 거부되고 결정론 장으로 넘어갔다.
+      const otherBodies = Object.entries(state.chapters).filter(([key]) => Number(key) !== id).map(([, chapter]) => chapter.body);
+      const raw = typeof value?.body === "string" ? normalizeNarrativeBody(value.body) : null;
+      const body = typeof raw === "string" ? dedupeCodexBody(raw, otherBodies) : null;
       if (!value || (value.evidenceHash && value.evidenceHash !== snapshot.evidenceHash) || typeof body !== "string"
-        || countPaidReportBodyChars(body) <= 0 || hasRepeatedReportPassage(body) || hasRepeatedReportPassage(`${others}\n${body}`)) {
+        || countPaidReportBodyChars(body) < (body === raw ? 1 : CHAPTER_MIN_CORRECTED_CHARS)) {
         if (ai?.ok) { state.invalidAttempts[id] = (state.invalidAttempts[id] || 0) + 1; await persist(); }
         return;
       }

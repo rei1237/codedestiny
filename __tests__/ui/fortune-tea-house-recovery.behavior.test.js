@@ -61,6 +61,7 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
   let succeed = false;
   const state = {
     ...api, Error, AbortController, console, isSubmitting: false,
+    trackEvent(_name, properties) { assert.ok(Object.keys(properties).every(key => ["method", "code"].includes(key)), "analytics must not include personal input"); },
     submitLockRef: { current: false }, submitSucceededRef: { current: false },
     consultRunRef: { current: 0 }, unusedPaidAttemptRef: { current: saved },
     pendingProbeRef: { current: false }, wakeBlockedRef: { current: false },

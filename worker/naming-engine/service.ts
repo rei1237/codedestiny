@@ -41,6 +41,10 @@ export function engineInputFromRoute(input: any): NamingInput {
     avoidChars: Array.isArray(input?.avoidChars) ? input.avoidChars : [],
     mode: input?.engineMode || "hanja",
     schoolPreset: input?.schoolPreset || undefined,
+    // 직접 고른 이름은 라우트 normalizeDesiredNames 결과({hangul, hanjaCandidates})에서 한글만 넘긴다(한자는 엔진이 찾는다).
+    ...(input?.nameStrategy === "choose"
+      ? { strategy: "choose" as const, desiredNames: (Array.isArray(input?.desiredNames) ? input.desiredNames : []).map((d: any) => String(d?.hangul ?? d ?? "")) }
+      : {}),
   };
 }
 

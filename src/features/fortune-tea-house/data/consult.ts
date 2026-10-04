@@ -12,6 +12,9 @@ export type FortuneTeaHouseSukuyoPersonInput = {
   name?: string;
   birthDate?: string;
   calendarType?: FortuneTeaHouseCalendarType;
+  isLeapMonth?: boolean;
+  timezone?: string;
+  longitude?: number;
   gender?: string;
 };
 
@@ -29,6 +32,9 @@ export type FortuneTeaHouseSajuCompatPersonInput = {
   birthTime?: string;
   birthTimeUnknown?: boolean;
   calendarType?: FortuneTeaHouseCalendarType;
+  isLeapMonth?: boolean;
+  timezone?: string;
+  longitude?: number;
   gender?: string;
   birthPlace?: string;
 };
@@ -56,9 +62,13 @@ export type FortuneTeaHouseConsultRequest = {
   birthTimeUnknown?: boolean;
   birthPlace?: string;
   timezone?: string;
+  isLeapMonth?: boolean;
+  longitude?: number;
   gender?: string;
   calendarType?: FortuneTeaHouseCalendarType;
   tarotSpread?: FortuneTeaTarotSpread;
+  tarotSpreadId?: string;
+  consultationVersion?: "tea-v2";
   sukuyo?: FortuneTeaHouseSukuyoInput;
   sajuCompatibility?: FortuneTeaHouseSajuCompatInput;
   selectedTeaCupId: string;
@@ -68,6 +78,7 @@ export type FortuneTeaHouseConsultRequest = {
 };
 
 export type FortuneTeaHouseQuestionInput = {
+  attemptId?: string;
   questionCategory?: string;
   consultationMode: FortuneTeaHouseConsultMode;
   nickname?: string;
@@ -79,9 +90,13 @@ export type FortuneTeaHouseQuestionInput = {
   birthTimeUnknown?: boolean;
   birthPlace?: string;
   timezone?: string;
+  isLeapMonth?: boolean;
+  longitude?: number;
   gender?: string;
   calendarType?: FortuneTeaHouseCalendarType;
   tarotSpread?: FortuneTeaTarotSpread;
+  tarotSpreadId?: string;
+  consultationVersion?: "tea-v2";
   sukuyo?: FortuneTeaHouseSukuyoInput;
   sajuCompatibility?: FortuneTeaHouseSajuCompatInput;
   question: string;
@@ -193,6 +208,8 @@ export type FortuneTeaSajuBirthSummary = {
   gender?: string;
   birthPlace?: string;
   timezone?: string;
+  isLeapMonth?: boolean;
+  longitude?: number;
 };
 
 export type FortuneTeaSajuTenGodReading = {
@@ -262,6 +279,9 @@ export type FortuneTeaSukuyoPersonSnapshot = {
   name: string;
   birthDate?: string;
   calendarType?: FortuneTeaHouseCalendarType;
+  isLeapMonth?: boolean;
+  timezone?: string;
+  longitude?: number;
   gender?: string;
   sukuyoName?: string;
   sukuyoHanja?: string;
@@ -350,6 +370,9 @@ export type FortuneTeaSajuCompatPersonSnapshot = {
   birthTime?: string;
   birthTimeUnknown?: boolean;
   calendarType?: FortuneTeaHouseCalendarType;
+  isLeapMonth?: boolean;
+  timezone?: string;
+  longitude?: number;
   gender?: string;
   dayMaster?: string;
   pillars?: {
@@ -388,6 +411,10 @@ export type FortuneTeaSajuCompatibilitySnapshot = {
 };
 
 export type FortuneTeaHouseConsultResponse = {
+  createdAt?: string;
+  promptVersion?: string;
+  calculationSnapshot?: {engine:string;version?:string;policy?:Record<string,unknown>;source?:string;basis?:unknown};
+  resultFormatVersion?: string;
   resultId?: string;
   consultationMode?: FortuneTeaHouseConsultMode;
   serviceScope?: FortuneTeaHouseServiceScope;
@@ -419,6 +446,7 @@ export type FortuneTeaHouseConsultResponse = {
     dominantElements?: string[];
     pillars?: FortuneTeaSajuPillar[];
     fiveElements?: FortuneTeaFiveElementBalance[];
+    elementMethod?: { source: string; scores: Record<string, number>; total: number };
     primaryTenGod?: FortuneTeaSajuTenGodReading;
     secondaryTenGods?: FortuneTeaSajuSecondaryTenGod[];
     deepSections?: FortuneTeaSajuDeepSection[];
@@ -443,6 +471,8 @@ export type FortuneTeaHouseConsultResponse = {
     reading: string;
   };
   tarotSpread?: FortuneTeaTarotSpread;
+  tarotSpreadId?: string;
+  consultationVersion?: "tea-v2";
   tarotSpreadCards?: FortuneTeaTarotSpreadCard[];
   cardInteractions?: FortuneTeaCardInteraction[];
   heartScent?: FortuneTeaHeartScent;

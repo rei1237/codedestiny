@@ -10,7 +10,7 @@ import SajuPillarBoard from "./SajuPillarBoard";
 import TeaHouseButton from "./TeaHouseButton";
 import TenGodSymbolCard from "./TenGodSymbolCard";
 import SajuGuestList from "./SajuGuestList";
-import styles from "../styles/fortune-tea-house.module.css";
+import styles from "../styles/tea-report.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TeaHouseSajuResultPanelProps = {
@@ -134,8 +134,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
         </div>
         <AssetImage
           className={styles.sajuResultYeoni}
-          src={fortuneTeaHouseAssets.yeoni.transparent.bust}
-          fallbackSrc={fortuneTeaHouseAssets.yeoni.bust}
+          src="/images/fortune-tea-house/renewal/yeoni-saju.webp"
           alt={copy.yeoniAlt}
         />
       </header>
@@ -183,9 +182,9 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
       </section>
 
       <SajuPillarBoard pillars={saju.pillars} />
-      <FiveElementBalance elements={saju.fiveElements} />
+      <FiveElementBalance elements={saju.fiveElements} method={saju.elementMethod} />
 
-      {categoryGauges.length ? (
+      {result.consultationVersion !== "tea-v2" && categoryGauges.length ? (
         <section className={styles.sajuPanelSection} aria-labelledby="sajuCategoryGaugeTitle" data-tea-pdf-section>
           <div className={styles.sajuPanelSectionHeader}>
             <span>{copy.gaugeEyebrow.replace("{cup}", result.teaCup.name)}</span>

@@ -45,6 +45,13 @@ test('delivery length only catches empty or cut-off replies: 75% of the minimum 
  assert.equal(chapterDeliveryFailure(short,input.chapter),'CHAPTER_TOO_SHORT');assert.throws(()=>m.deliverChapter(short,input));
 });
 
+test('a disease claim is removed sentence by sentence and the chapter is still delivered',()=>{
+ const raw=complete(),claim='내년에는 병에 걸립니다.';
+ const delivered=m.deliverChapter({...raw,blocks:raw.blocks.map((b,i)=>i?b:{...b,paragraphs:[`${b.paragraphs[0]} ${claim}`,...b.paragraphs.slice(1)]})},input);
+ assert.equal(delivered.complete,true);assert.ok(!JSON.stringify(delivered).includes(claim));
+ assert.ok(delivered.blocks[0].paragraphs.join(' ').includes(raw.blocks[0].paragraphs[0].trim().slice(0,20)));
+});
+
 test('all 28 catalog products share the explicit one-chapter identity and completion contract',async()=>{
  const seen=new Set();let calls=0;
  for(const p of m.products){
