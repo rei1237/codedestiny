@@ -173,7 +173,7 @@ test('a v6 chapter is not audited: the same repeated reference point passes unto
  assert.equal(count(prose(validated),'일간'),2,'v6 keeps its own quality rules');
 });
 
-test('all 24 v7 chapters retain valid drafts with repeated sentences but reject copied paragraphs and unsafe text',async()=>{
+test('all 28 v7 chapters retain valid drafts with repeated sentences but reject copied paragraphs and unsafe text',async()=>{
  const tuna=m.products.find(p=>p.readingKind==='single'&&p.domain==='saju'&&p.fishId==='tuna');
  const chapters=m.v7TimingSummaries(m.resolveV7Ledger(m.readingManifestV7(tuna,{id:'personal'}),sajuContext));
  const previous=[];
@@ -187,7 +187,7 @@ test('all 24 v7 chapters retain valid drafts with repeated sentences but reject 
   assert.equal(count(prose(draft),repeated),3);
   let prompt;
   const provider=new m.StructuredChapterProvider({generate:async request=>{
-   prompt=request;return {result:JSON.stringify(draft),provider:'mock',model:'24-chapter-fixture'};
+   prompt=request;return {result:JSON.stringify(draft),provider:'mock',model:'28-chapter-fixture'};
   }});
   const validated=m.validateChapter(await provider.generateChapter(input),input);
   assert.equal(prompt.promptVersion,'chapter-v7');
@@ -204,5 +204,5 @@ test('all 24 v7 chapters retain valid drafts with repeated sentences but reject 
   assert.throws(()=>m.validateChapter(unsafe,input),{code:'UNSUPPORTED_READING_CLAIM'});
   previous.push(validated);
  }
- assert.equal(previous.length,24);
+ assert.equal(previous.length,28);
 });

@@ -32,6 +32,8 @@ const factsFor=(chapter,ledger)=>m.explanationFacts(m.selectV7Facts(sajuContext,
 const resolved=Object.fromEntries(TIERS.map(tier=>[tier,m.v7TimingSummaries(m.resolveV7Ledger(manifest('saju',tier),sajuContext,{asOf}))]));
 const ledgers=Object.fromEntries(TIERS.map(tier=>[tier,m.resolveV7Ledger(manifest('saju',tier),sajuContext,{asOf}).ledger]));
 const TIMING_LABELS=/^(yearlyLuck|monthlyLuck|majorLuck|yearlyTimeline|minorLuck|vimshottariDasha)$/;
+// Dated derived facts (one per year or luck cycle) are timing facts too; their natal part is not.
+const isTiming=f=>TIMING_LABELS.test(f.label)||(/^(movementSignals|romanceTiming)$/.test(f.label)&&!/\.natal$/.test(f.id));
 
 const body=(n,highlights,topics)=>({summary:`요약 ${n}`,example:'',advice:'',persona:'',analysis:[],sources:[],highlights,topics});
 
@@ -116,7 +118,7 @@ test('summary chapters get the one-line timing summary and no timing facts; owne
   const where=`${tier}/${chapter.key}`;
   const facts=factsFor(chapter,ledgers[tier]);
   const parts=m.buildV7ChapterPrompt({chapter,facts,previous:[]});
-  const timing=facts.filter(f=>TIMING_LABELS.test(f.label));
+  const timing=facts.filter(isTiming);
   if(chapter.timingRef==='owner'){
    assert.equal(parts.domainRules.timingSummary,undefined,where);
    assert.ok(timing.length,`${where}: timing owner has no timing facts`);

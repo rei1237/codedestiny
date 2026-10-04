@@ -18,8 +18,10 @@ export function canonicalAskCategory(value: string): AskCategory {
 const relation: AskCategory[] = ['love', 'reunion', 'marriage', 'compatibility', 'relationships', 'family'];
 export function tagsForEvidence(label: string): AskCategory[] {
   if (/partner|relationship|relation|distance|synastry|compatibility|ashtakuta/i.test(label)) return relation;
+  if (/healthBasis/i.test(label)) return ['health', 'self', 'other'];
+  if (/movementSignals/i.test(label)) return ['move', 'career', 'job_change', 'business', 'timing', 'self', 'other'];
   if (/Luck|timeline|dasha|transit|today/i.test(label)) return [...ASK_CATEGORIES];
-  if (/tenGod|planet|palace|house|cards|reading|fiveElements|seasonal|dayMaster|pillars|personA|moon|lagna|ascendant/i.test(label))
+  if (/tenGod|planet|palace|house|cards|reading|fiveElements|elementProfile|seasonal|dayMaster|pillars|personA|moon|lagna|ascendant/i.test(label))
     return [...ASK_CATEGORIES];
   return ['self', 'other'];
 }

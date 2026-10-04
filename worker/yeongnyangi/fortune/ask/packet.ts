@@ -9,7 +9,8 @@ import { enrichZiweiContext } from '../ziwei/reading-facts';
 
 const fields: Record<DomainId, readonly string[]> = {
   saju: ['pillars','dayMaster','pillarDetails','fiveElements','tenGods','tenGodsByPillar','seasonalBalance',
-    'natalInteractions','strengthHeuristic','usefulGod','jong','shinsal','yearlyLuck','monthlyLuck','partnerChart','relationshipComparison','compatibility'],
+    'natalInteractions','strengthHeuristic','usefulGod','jong','shinsal','yearlyLuck','monthlyLuck',
+    'elementProfile','tenGodProfile','movementSignals','romanceTiming','healthBasis','partnerChart','relationshipComparison','compatibility'],
   ziwei: ['lifePalace','bodyPalace','palaces','fourTransformations','yearlyLuck','yearlyTimeline','sanFangSiZheng','bureau','compatibility'],
   astrology: ['planets','ascendant','midheaven','northNode','southNode','houseCusps','aspects','transits','synastry'],
   vedic: ['lagna','moon','sun','planets','houses','grahas','bhavas','moonNakshatra','rahuKetu','divisionalCharts',
@@ -29,7 +30,9 @@ const schools:Record<DomainId,string>={
 };
 const professional = /usefulGod|yongshin|heeShin|kijishin|jong|dasha|divisional|yogas|fourTransformations|sanFangSiZheng/i;
 const excluded = /majorLuck|daewoon|daeun|daehan|대운|대한|prompt|summaryForPrompt|axisScores|chartSummary|calculationMeta|image|url|^pct$|^verdict$|^doshas$|^lunar$|birthTimeContext/i;
-const unknownSaju = new Set(['dayMaster','pillars','pillarDetails','fiveElements','tenGods','tenGodsByPillar','seasonalBalance']);
+// The derived profiles read no hour pillar when the time is unknown; movementSignals and romanceTiming then carry no dated periods.
+const unknownSaju = new Set(['dayMaster','pillars','pillarDetails','fiveElements','tenGods','tenGodsByPillar','seasonalBalance',
+  'elementProfile','tenGodProfile','movementSignals','romanceTiming','healthBasis']);
 const unknownFields = /^(hour|h|hourPillar|시주)$/i;
 const record = (value: unknown): Record<string, any> =>
   value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, any> : {};
