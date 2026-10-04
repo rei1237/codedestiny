@@ -65,6 +65,18 @@ test('24 single products and every offered consultation have complete tier-speci
   }
  }
 });
+test('health, marriage, movement and business menus read their own derived basis; only health carries the health contract',()=>{
+ const basis={'saju:health':'healthBasis','saju:marriage':'romanceTiming','saju:movement':'movementSignals','ziwei:health':'healthBasis','ziwei:business':'businessBasis','vedic:health':'healthBasis','astrology:health':'healthBasis'};
+ const seen=new Set();
+ for(const p of singles)for(const k of m.consultationKinds[p.domain]){
+  const rows=legacyManifest(p,k),tag=`${p.id}/${k.id}`,fact=basis[`${p.domain}:${k.id}`];
+  if(fact){assert.equal(k.koOnly,true,tag);seen.add(`${p.domain}:${k.id}`);for(const c of rows.slice(0,-1))assert.ok(c.factSelectors[p.domain].includes(fact),`${tag}/${c.key}`);}
+  for(const c of rows)assert.equal(/의료진/.test(c.focus),k.id==='health',`${tag}/${c.key}`);
+ }
+ assert.deepEqual([...seen].sort(),Object.keys(basis).sort());
+ const ziweiBusiness=legacyManifest(singles.find(p=>p.id==='ziwei_mackerel'),m.consultationKinds.ziwei.find(k=>k.id==='business'));
+ assert.ok(ziweiBusiness[0].factSelectors.ziwei.includes('palaces[재백궁,자녀궁,전택궁,관록궁]'));
+});
 test('question consultations keep the full tier depth while internal checkpoints stay an implementation detail',()=>{
  for(const p of singles.filter(p=>p.domain!=='tarot')){
   const ask=m.consultationKinds[p.domain].find(k=>k.id==='ask');
