@@ -1,4 +1,6 @@
-# 연이 찻집 개편 진행 기록 (2026-10-04)
+# 연이 찻집 개편 구현 기록 (2026-10-04)
+
+status: done — 구현·mock 검증·main 전달 완료. 운영 미배포.
 
 ## 계약
 - 기존 로직 재사용·개선. 계산/타로/결제/권한/복구 복제 금지.
@@ -17,7 +19,7 @@
 - [x] 상태/반응/상담 에셋 적용 및 manifest (추가 배치용은 별도 표시)
 - [x] 결과·보관·공유·복구·분석·번역 키 연결 (일부 언어 영어 fallback)
 - [x] mock 및 모바일 360/390/430/desktop 검증 (물리 기기·실결제 제외)
-- [ ] commit/main 통합/push/CI
+- [x] commit/main 통합/push/CI
 
 ## 근거와 미검증
 - 공개 홈 실제 Chrome 캡처 확인: 프롤로그 중심, 기능·가격 비교 부족.
@@ -54,7 +56,7 @@
 - 관계 상대 순서: CBETA 宿曜經 T1299 三九祕宿品 https://cbetaonline.dila.edu.tw/zh-tw/T1299 (T21n1299_p0391b12 및 p0397c07-c10). 명/영/쇠/안/위/성/괴/우/친,9업,18태의 상대 순서를 기준 fixture로 고정. 원문 순서와 현대 서비스의 관계 조언은 구분한다.
 - 가까움/멀어짐은 전통 분류의 이름이며 실측 친밀도나 성공 확률이 아니다. 안괴를 파국·배신으로 확정하지 않는다.
 
-## 최종 구현 검증 (진행 중인 전달 기록)
+## 구현 검증 및 전달 기록
 - 360/390/430px 및 1440px Chrome viewport: 홈·입력·결과의 가로 넘침 없음. 실제 모바일 기기/OS 키보드 검증은 아님.
 - 사주(시간 미상), 5장 타로 자동 선택, 숙요 고정 표본을 mock 기존 권한으로 생성→상담함→재열람. 수동 3장 선택의 새로고침 복구도 확인.
 - 타로 펜타클7 정/완드9 역/소드4 정/연인 정/악마 정: 저장 결과 재열람 일치. 기존 카드 정본 5개 로딩과 역방향 CSS 180도 회전 확인.
@@ -85,3 +87,11 @@
 - 390px 결과에서 투명 테두리·꽃 장식·말풍선·배경 겹침 확인. 360px 결과 clientWidth=scrollWidth=345(스크롤바 제외), 가로 넘침 없음.
 - check:fast -- --base=17c4e9ab5c153d6d078c90b92628eb5e8eddfb6d exit 0. paid-gate 88/88, Jest 333 suites / 4984 tests, lint/typecheck 통과. 추가 UI 변경 후 typecheck exit 0.
 - d9eaa7a CI는 type/lint, critical, Pages/Worker build 통과. Static guards가 메인 카드 가격 누락을 검출하여 기존 레지스트리 검증 대상 가격 키를 복원했다. verify:home-service-registry PASS. 수정 SHA의 CI 확인은 전달 마지막 단계.- c4da9f728 CI의 빌드/type/lint는 통과. verify:payment-policy-md가 서버 레지스트리 초기화 전의 리터럴 0을 읽는 것을 확인하여 프런트 모듈을 번들·실행한 최종 가격과 정책 문서의 5종 가격을 대조하도록 수정했다. 상품 누락/중복 및 가격 차이는 계속 실패하며 정책 가격은 변경하지 않았다. 실제 대조 PASS.
+
+## 전달 완료
+- 최종 코드 SHA e59bfe07157031b995d5bec300a320ab30a357cc: main push 및 PR CI 전체 성공. https://github.com/rei1237/codedestiny/actions/runs/37199021220
+- Typecheck/lint, Pages/Worker build, Static guards, CI required 성공. 이 검증기 변경의 Critical lane은 변경 범위 판정에 따라 skip. 앞선 d9eaa7a의 Critical checks 및 로컬 333 suites/4984 tests는 통과했다.
+- UI SHA c4da9f72887de72917d855e896915453fc4c9bd7의 별도 Paid Flow Gates 성공. https://github.com/rei1237/codedestiny/actions/runs/37198388010
+- 공개 미러 freshness와 sitemap drift PASS. 기존 BGM 재생/정지 및 새로고침 OFF 유지, 새 공감·조언 이미지의 모바일 결과 캡처를 보존했다.
+- 지속 보관: C:/Users/user/Desktop/CodeDestiny-Yeoni-TeaHouse-20261004/ (미리보기, 13개 화면, 원본6장, WebP29개/약1.51MB, 적용 manifest, 전체 변경 목록, 검증 로그, 최종 보고). 같은 이름의 ZIP 제공.
+- 실제 LLM/PG/운영 DB/물리 기기 및 원어민 번역 검수는 미실행. 운영 승격은 하지 않았다. 이 문서는 코드·mock·CI 전달 완료 기록이며 실제 전문가 품질 및 운영 성공의 증거로 확대하지 않는다.
