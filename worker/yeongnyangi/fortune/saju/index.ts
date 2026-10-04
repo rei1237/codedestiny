@@ -1,5 +1,5 @@
 import { calculateScreenSaju } from './runtime';
-import { buildElementProfile, buildMovementSignals, buildSajuHealthBasis, buildTenGodProfile } from '../../../lib/saju-derived-signals.js';
+import { buildElementProfile, buildMovementSignals, buildRomanceTiming, buildSajuHealthBasis, buildTenGodProfile } from '../../../lib/saju-derived-signals.js';
 import { context, domain } from "../shared/domain";
 export const saju = domain(
   "saju",
@@ -69,6 +69,7 @@ strength/usefulGod는 휴리스틱이므로 조후·월령·통근 근거와 대
         elementProfile,
         tenGodProfile: buildTenGodProfile({tenGodsByPillar:r.tenGodsByPillar, tenGods:r.tenGods, strength:r.strength}),
         movementSignals: buildMovementSignals({pillars, natalInteractions:r.natalInteractions, shinsal:r.shinsal, yearlyLuck:timed ? r.yearlyLuck : null, majorLuck:timed ? r.majorLuck : null}),
+        romanceTiming: buildRomanceTiming({gender:input.personA!.gender, tenGodsByPillar:r.tenGodsByPillar, shinsal:r.shinsal, yearlyLuck:timed ? r.yearlyLuck : null, majorLuck:timed ? r.majorLuck : null}),
         healthBasis: buildSajuHealthBasis({fiveElements:r.fiveElements, seasonalBalance:r.seasonalBalance, dayMaster:r.dayMaster, elementProfile}),
         calculationMeta: r.calculationMeta,
       },

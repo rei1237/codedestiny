@@ -50,7 +50,7 @@ export const V7_PARTS:Record<PartId,{label:string;theme:Theme}>={
 };
 export const V7_PART_ORDER=Object.keys(V7_PARTS) as PartId[];
 
-// tiers: s=salmon f=flounder t=tuna. An `s:`/`ft:` prefix limits one selector to those tiers.
+// tiers: s=salmon f=flounder t=tuna. An `s:`/`ft:` prefix limits one selector or cover item to those tiers.
 // inputs '' means the chapter reads exactly what it owns.
 export type V7Entry={key:string;part:PartId;tiers:string;title:string;inputs:string[];owns:string[];cover:string[];block?:'scene'|'decision';requires?:string[];fallback?:string[]};
 const words=(s:string)=>s.split(/\s+/).filter(Boolean);
@@ -62,12 +62,13 @@ const card=(key:string,tiers:string,title:string,positions:string[],cover:string
 
 export const v7Catalog:Record<string,V7Entry[]>={
   saju:[
-    e('anchor','base','sft','타고난 중심과 힘의 균형','','dayMaster pillars strengthHeuristic elementProfile tenGodProfile','발달한 오행·십성이 만드는 기질/힘의 균형이 일상에 드러나는 방식/강점이 지나칠 때','scene'),
-    e('love','love','sft','끌림과 연애의 방식','shinsal s:tenGods s:tenGodsByPillar','shinsal.도화살 shinsal.홍염살 s:tenGods.식신 s:tenGods.상관','끌림이 생기는 자리/가까워지는 방식/연애가 흔들리는 조건','scene'),
+    e('anchor','base','sft','타고난 중심과 힘의 균형','','dayMaster pillars strengthHeuristic elementProfile.balance sf:elementProfile.traits tenGodProfile','sf:발달한 오행·십성이 만드는 기질/t:발달한 십성이 만드는 기질/힘의 균형이 일상에 드러나는 방식/강점이 지나칠 때','scene'),
+    e('elements','base','t','넘치는 기운과 모자란 기운','elementProfile','elementProfile.traits','넘치는 오행이 만드는 강점과 그림자/모자란 오행이 비워 두는 자리/치우친 기운을 생활에서 다루는 법','scene'),
+    e('love','love','sft','타고난 연애 스타일','shinsal s:tenGods s:tenGodsByPillar','shinsal.도화살 shinsal.홍염살 s:tenGods.식신 s:tenGods.상관','끌림이 생기는 자리/가까워지는 방식과 연애의 습관/연애가 흔들리는 조건','scene'),
     e('expression','love','f','마음을 전하는 표현','tenGods tenGodsByPillar','tenGods.식신 tenGods.상관','표현의 온도/말이 관계에 남기는 것/표현을 다듬는 법','scene'),
     e('siksin','love','t','다정하게 전하는 마음(식신)','tenGods tenGodsByPillar','tenGods.식신','다정함이 드러나는 방식/편안함이 주는 매력/여유가 느슨함이 될 때','scene'),
     e('sanggwan','love','t','날이 선 매력(상관)','tenGods tenGodsByPillar','tenGods.상관','날 선 표현이 끌어당기는 힘/말이 상처가 되는 순간/재치를 관계의 힘으로 쓰는 법','scene'),
-    e('spouse','marriage','sft','배우자 자리와 함께 사는 법','pillarDetails.day tenGodsByPillar.day natalInteractions','pillarDetails.day tenGodsByPillar.day natalInteractions.day','배우자 자리의 결/일지 합충이 만드는 결속과 긴장/함께 살 때의 역할','scene'),
+    e('spouse','marriage','sft','결혼운과 배우자 자리','pillarDetails.day tenGodsByPillar.day natalInteractions romanceTiming','pillarDetails.day tenGodsByPillar.day natalInteractions.day romanceTiming.natal','배우자 자리와 배우자성이 말하는 인연의 결/일지 합충이 만드는 결속과 긴장/함께 살 때의 역할','scene'),
     e('wealth','wealth','sf','돈이 모이고 새는 길','tenGods tenGodsByPillar','tenGods.정재 tenGods.편재','재성 구성이 말하는 돈의 흐름/모으는 방식과 새는 자리','decision'),
     e('jeongjae','wealth','t','지키고 쌓는 돈(정재)','tenGods tenGodsByPillar','tenGods.정재','꾸준히 쌓는 돈의 방식/지키는 힘이 막힘이 될 때','decision'),
     e('pyeonjae','wealth','t','굴리고 불리는 돈(편재)','tenGods tenGodsByPillar','tenGods.편재','기회를 잡는 돈의 감각/크게 움직일 때의 위험/불린 돈을 지키는 법','scene'),
@@ -84,15 +85,21 @@ export const v7Catalog:Record<string,V7Entry[]>={
     e('roots','relations','ft','부모와 뿌리','pillarDetails.year tenGodsByPillar.year natalInteractions','pillarDetails.year tenGodsByPillar.year natalInteractions.year','부모와 뿌리에서 받은 결/집안의 기대가 남긴 것/뿌리와 거리를 두는 법','scene'),
     e('children','relations','ft','자녀와 인생 후반','pillarDetails.hour tenGodsByPillar.hour natalInteractions','pillarDetails.hour tenGodsByPillar.hour natalInteractions.hour','자녀와 아랫사람과의 관계/인생 후반의 결/후반을 준비하는 법','scene'),
     e('health','health','sft','몸의 리듬과 회복','','fiveElements seasonalBalance healthBasis','치우친 기운이 드러나는 생활 리듬/계절·환경에 따른 컨디션/회복 습관'),
-    e('signals','depth','t','귀인·이동·강한 기운의 신호','shinsal','shinsal.천을귀인 shinsal.문창귀인 shinsal.역마살 shinsal.화개살 shinsal.양인살 shinsal.괴강살 shinsal.백호살 shinsal.공망 shinsal.귀문관살 shinsal.원진살','있는 신살의 뜻과 한계/도움과 이동의 통로/강한 기운을 다루는 법','scene'),
+    e('signals','depth','t','귀인과 강한 기운의 신호','shinsal','shinsal.천을귀인 shinsal.문창귀인 shinsal.화개살 shinsal.양인살 shinsal.괴강살 shinsal.백호살 shinsal.공망 shinsal.귀문관살 shinsal.원진살','있는 신살의 뜻과 한계/도움이 들어오는 통로/강한 기운을 다루는 법','scene'),
     e('useful','depth','t','나를 살리는 기운(용신·종격 판정)','','usefulGod jong','용신의 근거와 한계/생활에서 보강하는 법/종격 여부가 바꾸는 해석'),
     e('majorArc','timing','t','대운으로 보는 인생의 굴곡','majorLuck','majorLuck.arc','지나온 대운이 남긴 굴곡/먼 대운의 방향/긴 주기를 읽는 법'),
-    e('majorNow','timing','t','지금의 대운','majorLuck advancedFactors movementSignals','majorLuck.current advancedFactors movementSignals.major','지금 대운의 과제/지금 대운이 원국과 만나는 자리','decision'),
+    e('majorNow','timing','t','지금의 대운','majorLuck advancedFactors','majorLuck.current advancedFactors','지금 대운의 과제/지금 대운이 원국과 만나는 자리','decision'),
     e('majorNext','timing','t','다음 대운과 준비','majorLuck','majorLuck.next','다음 대운이 바꾸는 것/전환 전에 준비할 조건','decision'),
-    e('yearNow','timing','sft','올해와 내년','yearlyLuck s:monthlyLuck movementSignals','yearlyLuck.Y0 yearlyLuck.Y1 s:monthlyLuck.M12 movementSignals.natal movementSignals.Y0-1','올해 세운의 흐름/내년 세운의 흐름','decision',
+    // Salmon and flounder cannot add chapters within the cost cap, so this year and next also carry love, marriage and movement.
+    e('yearNow','timing','sft','올해와 내년','yearlyLuck s:monthlyLuck sf:movementSignals sf:romanceTiming',
+      'yearlyLuck.Y0 yearlyLuck.Y1 s:monthlyLuck.M12 sf:movementSignals.natal sf:movementSignals.Y0-1 sf:romanceTiming.love.Y0-1 sf:romanceTiming.marriage.Y0-1',
+      'sf:올해 세운의 흐름과 연애·결혼·이동의 기회/sf:내년 세운의 흐름과 연애·결혼·이동의 기회/t:올해 세운의 흐름/t:내년 세운의 흐름','decision',
       {requires:['s:birthTime'],fallback:['s:dayMaster','s:pillarDetails']}),
     e('months','timing','ft','앞으로 12개월','monthlyLuck','monthlyLuck.M12','가까운 몇 달의 흐름/한 해 가운데 달라지는 달/달마다 점검할 것'),
-    e('yearsAhead','timing','t','앞으로 8년의 세운','yearlyLuck movementSignals','yearlyLuck.Y2-9 movementSignals.Y2-9','앞으로 몇 해의 큰 결/세운이 바뀌는 해/길게 준비할 일'),
+    e('yearsAhead','timing','t','앞으로 8년의 세운','yearlyLuck','yearlyLuck.Y2-9','앞으로 몇 해의 큰 결/세운이 바뀌는 해/길게 준비할 일'),
+    e('loveLuck','timing','t','연애운의 흐름','romanceTiming','romanceTiming.love','연애의 기회가 들어오는 해/끌림이 강해지는 시기의 조건/인연을 붙잡는 준비','scene'),
+    e('marriageLuck','timing','t','결혼운이 움직이는 시기','romanceTiming','romanceTiming.marriage','결혼 신호가 드는 해와 대운/결정을 앞두고 따질 조건','decision'),
+    e('movement','timing','t','이동수와 해외운','movementSignals shinsal','movementSignals shinsal.역마살','타고난 이동 기질과 해외운(병존·역마·충)/이동과 해외 기회가 들어오는 해','decision'),
   ],
   ziwei:[
     e('anchor','base','sft','삶의 중심(명궁·신궁)','','lifePalace bodyPalace palaces.명궁 bureau','명궁 주성이 말하는 기질/신궁이 앉은 자리의 무게/오행국이 정하는 리듬','scene'),
@@ -205,7 +212,7 @@ export const v7Catalog:Record<string,V7Entry[]>={
 // saju.seasonalBalance (조후, the element the chart needs) is owned by the health chapter, but every chapter cites the
 // same conclusion so no chapter names a different needed element.
 export const V7_ANCHOR_REFS:Record<DomainId,string[]>={
-  saju:['dayMaster','pillars','strengthHeuristic','seasonalBalance','elementProfile'],
+  saju:['dayMaster','pillars','strengthHeuristic','seasonalBalance','elementProfile.balance'],
   ziwei:['lifePalace','bodyPalace','palaces.명궁','bureau'],
   vedic:['lagna','houses.1'],
   astrology:['ascendant','planets.Sun','houseCusps.1'],
@@ -268,6 +275,7 @@ export function readingManifestV7(p:Product,k:{id:string}):ChapterSpecV7[]{
   const forbidden=[...V7_FORBIDDEN[p.domain],...(tier==='tuna'?[]:NON_PREMIUM_FORBIDDEN[p.domain] || [])];
   return rows.map((r,i)=>{
     const owns=v7TierSelect(r.owns,tier);
+    const mustCover=v7TierSelect(r.cover,tier);
     const evidenceInputs=r.inputs.length?v7TierSelect(r.inputs,tier):owns;
     // A chapter never lists a fact it owns as a one-sentence reference (owns wins).
     const refs=r.key==='anchor'?[]:V7_ANCHOR_REFS[p.domain].filter(ref=>!owns.includes(ref));
@@ -280,7 +288,7 @@ export function readingManifestV7(p:Product,k:{id:string}):ChapterSpecV7[]{
       version:READING_V7_VERSION,tier,systems:p.systems,
       minTier:LETTER_TIER[r.tiers[0]],...(r.tiers.includes('t')?{}:{maxTier:LETTER_TIER[r.tiers[r.tiers.length-1]]}),
       titleKey:`yeongnyangi.v7.${catalogKey.replace(':','.')}.${r.key}`,partKey:`yeongnyangi.v7.part.${r.part}`,
-      evidenceInputs,owns,refs,mustCover:r.cover,minInsightUnits:r.cover.length,
+      evidenceInputs,owns,refs,mustCover,minInsightUnits:mustCover.length,
       mustNotCover:[...rows.filter(o=>o!==r).map(o=>o.title),...forbidden],
       timingRef,scene:r.block==='scene',decision:r.block==='decision',
       ...(requires.length?{requires,fallbackInputs}:{}),

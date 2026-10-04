@@ -33,13 +33,17 @@ export function buildElementProfile(fiveElements = {}) {
   const elements = ELEMENTS.map(element => {
     const ratio = Math.round(Number(ratios[element] || 0) * 10) / 10, count = Number(counts[element] || 0);
     const state = count === 0 ? '결핍' : ratio >= EXCESS_RATIO ? '과다' : ratio <= DEFICIENT_RATIO ? '부족' : '균형';
-    return {element, label:EL_KO[element], count, ratio, state,
-      ...(state === '과다' ? {temperament:TEMPERAMENT[element].excess} : state === '결핍' ? {temperament:TEMPERAMENT[element].none} : {})};
+    return {element, label:EL_KO[element], count, ratio, state};
   });
+  // balance (counts and states) and traits (temperament prose) are separate keys so a reading can cite one without the other.
+  const traits = elements.filter(e => e.state === '과다' || e.state === '결핍').map(({element, label, state}) =>
+    ({element, label, state, temperament:TEMPERAMENT[element][state === '과다' ? 'excess' : 'none']}));
   return {version:SAJU_SIGNALS_VERSION, elements,
-    excess:elements.filter(e => e.state === '과다').map(e => e.element),
-    missing:elements.filter(e => e.state === '결핍').map(e => e.element),
-    weak:elements.filter(e => e.state === '부족').map(e => e.element),
+    balance:{
+      excess:elements.filter(e => e.state === '과다').map(e => e.element),
+      missing:elements.filter(e => e.state === '결핍').map(e => e.element),
+      weak:elements.filter(e => e.state === '부족').map(e => e.element)},
+    traits,
     rule:`비율 ${EXCESS_RATIO}% 이상은 과다, ${DEFICIENT_RATIO}% 이하는 부족, 개수 0은 결핍이다. 과다 오행의 기질은 강점과 그림자를 함께 읽고, 개수만으로 신강·신약이나 용신을 확정하지 않는다.`};
 }
 
@@ -139,6 +143,51 @@ export function buildMovementSignals({ pillars = {}, natalInteractions = {}, shi
     periods, ...(major ? {majorLuck:major} : {}),
     rule:'충은 자리·환경·관계의 이동과 변동으로 읽고, 병존은 같은 기운이 반복되어 한곳에 머물기 어려운 결로 읽는다. 인신사해의 개수는 역마 성립이나 세력을 뜻하지 않는다. 이동수는 이사·이직·출장·유학·해외 활동처럼 활동 범위가 바뀌는 흐름이며 사고나 사건을 예언하지 않는다.',
     ...(rows(yearlyLuck).length ? {} : {limitation:'출생시간이 없거나 운 자료가 없어 해마다의 이동 시기는 다루지 않는다.'})};
+}
+
+// Traditional spouse star: wealth for men, officer for women; the 정 star is the marriage star proper.
+// Without a stated gender no spouse star is read, so the periods carry only 도화·홍염 and the day branch.
+const SPOUSE_STAR = {
+  male:{family:'재성', main:'정재', gods:['정재','편재']},
+  female:{family:'관성', main:'정관', gods:['정관','편관']},
+};
+const targetsOf = (shinsal, name) => rows(shinsal?.byName?.[name]?.targets).map(branchOf).filter(Boolean);
+const dayLinks = (interactions, key) => rows(interactions?.[key]).filter(c => rows(c.pillars).includes('day')).map(c => `일지 ${c.label}`);
+const luckStars = (row, gods) => [...new Set([row?.stemTenGod, rows(row?.hiddenStems)[0]?.tenGod])].filter(g => gods.includes(g));
+
+/** @param {{gender?:string, tenGodsByPillar?:Record<string,any>, shinsal?:any, yearlyLuck?:any[]|null, majorLuck?:any}} [input] */
+export function buildRomanceTiming({ gender = '', tenGodsByPillar = {}, shinsal = {}, yearlyLuck = null, majorLuck = null } = {}) {
+  const spouse = SPOUSE_STAR[gender] || null;
+  const peach = targetsOf(shinsal, '도화살'), hongyeom = targetsOf(shinsal, '홍염살');
+  const natalStars = spouse ? POSITIONS.flatMap(p => {
+    const x = tenGodsByPillar?.[p];
+    return x ? [[`${POS_KO[p]} 천간`, x.stemTenGod], [`${POS_KO[p]} 지지`, x.primaryHiddenTenGod]]
+      .filter(([, god]) => spouse.gods.includes(god)).map(([where, god]) => ({where, god})) : [];
+  }) : [];
+  const love = [], marriage = [];
+  for (const row of rows(yearlyLuck)) {
+    const branch = row.earthlyBranch || canonicalPreventionPillar(row.pillar)[1];
+    const combine = dayLinks(row.natalInteractions, 'branchCombinations');
+    const loveSignals = [...(spouse ? luckStars(row, spouse.gods).map(g => `배우자성 ${g}`) : []),
+      ...(peach.includes(branch) ? ['도화가 드는 해'] : []), ...(hongyeom.includes(branch) ? ['홍염이 드는 해'] : []), ...combine];
+    const marriageSignals = [...(spouse ? luckStars(row, [spouse.main]).map(g => `정배우자성 ${g}`) : []),
+      ...combine, ...dayLinks(row.natalInteractions, 'branchClashes')];
+    if (loveSignals.length) love.push({year:row.year, pillar:row.pillar, signals:loveSignals});
+    if (marriageSignals.length) marriage.push({year:row.year, pillar:row.pillar, signals:marriageSignals});
+  }
+  const current = majorLuck?.currentCycle;
+  const next = current ? rows(majorLuck?.cycles).find(c => c.index === current.index + 1) : null;
+  const cycle = c => c?.pillar ? {pillar:c.pillar, ageRange:`${c.startAge}-${c.endAge}`,
+    signals:[...(spouse ? luckStars(c, spouse.gods).map(g => `배우자성 ${g}`) : []),
+      ...dayLinks(c.natalInteractions, 'branchCombinations'), ...dayLinks(c.natalInteractions, 'branchClashes')]} : null;
+  const major = current ? {current:cycle(current), ...(next ? {next:cycle(next)} : {})} : null;
+  return {version:SAJU_SIGNALS_VERSION,
+    spouseStar:spouse ? {...spouse, natal:natalStars} : null,
+    attraction:{peach, hongyeom},
+    love, marriage, ...(major?.current ? {majorLuck:major} : {}),
+    rule:'배우자성은 남성 재성·여성 관성으로 보는 전통 기준이고, 일지는 배우자 자리다. 연애 신호는 배우자성·도화·홍염·일지 합이 드는 해, 결혼 신호는 정배우자성과 일지 합·충이 드는 해다. 일지 충은 배우자 자리의 변동(결혼·동거·이사·관계 재정비)으로 읽는다. 신호는 인연이 움직일 계기이며 만남·결혼·이별을 확정하지 않고, 비혼·동성 관계에 같은 기준을 강요하지 않는다.',
+    ...(spouse ? {} : {limitation:'성별 정보가 없어 배우자성은 판정하지 않는다.'}),
+    ...(rows(yearlyLuck).length ? {} : {periodLimitation:'출생시간이 없거나 운 자료가 없어 해마다의 연애·결혼 시기는 다루지 않는다.'})};
 }
 
 const HEALTH_ELEMENT = {

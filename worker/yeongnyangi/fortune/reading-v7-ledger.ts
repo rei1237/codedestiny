@@ -93,7 +93,22 @@ function saju(label:string,v:O,k:Kit){
     }
     case 'yearlyLuck':for(const x of list(v))k.emit(label,String(x.year),x,[`yearlyLuck.Y${x.year-k.baseYear}`]);return true;
     case 'monthlyLuck':for(const x of list(v))k.emit(label,`${x.start?.year}-${pad2(x.start?.month)}`,x,['monthlyLuck.M12']);return true;
-    case 'elementProfile':case 'tenGodProfile':case 'healthBasis':return whole(k,label,v);
+    case 'tenGodProfile':case 'healthBasis':return whole(k,label,v);
+    // The balance (counts and states) is an anchor reference; the temperament prose belongs to one chapter.
+    case 'elementProfile':{
+      const {traits,...balance}=v||{},all=list(traits);
+      k.emit(label,'balance',balance,['elementProfile.balance']);
+      k.emit(label,'traits',all.length?{traits:all}:{present:false,note:'과다·결핍 오행이 없어 기질이 한쪽으로 치우치지 않는다.'},['elementProfile.traits']);
+      return true;
+    }
+    case 'romanceTiming':{
+      const {love,marriage,majorLuck,...natal}=v||{};
+      k.emit(label,'natal',natal,['romanceTiming.natal']);
+      for(const x of list(love))k.emit(label,`love.${x.year}`,x,[`romanceTiming.love.Y${x.year-k.baseYear}`]);
+      for(const x of list(marriage))k.emit(label,`marriage.${x.year}`,x,[`romanceTiming.marriage.Y${x.year-k.baseYear}`]);
+      if(majorLuck)k.emit(label,'marriage.major',{majorLuck},['romanceTiming.marriage.major']);
+      return true;
+    }
     case 'movementSignals':{
       const {periods,majorLuck,...natal}=v||{};
       k.emit(label,'natal',natal,['movementSignals.natal']);

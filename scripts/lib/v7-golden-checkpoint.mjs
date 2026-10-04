@@ -3,6 +3,10 @@ import {createHash} from 'node:crypto';
 
 export const APPROVED_GOLDEN_SOURCE='287721af3aa391f4f0c1be11fd7df784a0a08db44b4243b971604fed47e4bbb4';
 export const goldenHash=value=>createHash('sha256').update(typeof value==='string'||Buffer.isBuffer(value)?value:JSON.stringify(value)).digest('hex');
+// The one live approval covered tuna chapters 10–23 of the reviewed 24-chapter source; nothing but a mock run widens it.
+const LIVE_APPROVAL={tier:'tuna',fromOrdinal:10,toOrdinal:23,maxNewCalls:28};
+// A mock import continues the rest of the current tuna book with the same two-attempt budget per chapter.
+const approvalFor=(mode,lastOrdinal)=>mode==='mock'?{tier:'tuna',fromOrdinal:10,toOrdinal:lastOrdinal,maxNewCalls:2*(lastOrdinal-9)}:LIVE_APPROVAL;
 
 // Explicit offline import; ordinary resume never falls back to this function.
 export function importGoldenCheckpoint({bytes,expectedHash,scope,books,identity,mode,validate,edits}){
@@ -66,13 +70,13 @@ export function importGoldenCheckpoint({bytes,expectedHash,scope,books,identity,
  return {...source,identity,chapters,stopped:undefined,
   migration:{sourceSha256:expectedHash,sourceIdentity:source.identity,baselineAttempts:source.attempts.length,
    edited:Boolean(edits),editsSha256:edits?goldenHash(edits):null},
-  approval:{tier:'tuna',fromOrdinal:10,toOrdinal:23,maxNewCalls:28}};
+  approval:approvalFor(mode,books.find(b=>b.tier==='tuna').manifest.length-1)};
 }
 
 export function assertGoldenGenerationAllowed(state,tier,ordinal){
  if(!state.migration)return;
  const a=state.approval;
- assert.deepEqual(a,{tier:'tuna',fromOrdinal:10,toOrdinal:23,maxNewCalls:28},'Approval scope changed');
+ assert.deepEqual(a,approvalFor(state.mode,a?.toOrdinal),'Approval scope changed');
  assert.equal(tier,a.tier,'Unapproved tier');
  assert.ok(ordinal>=a.fromOrdinal&&ordinal<=a.toOrdinal,'Unapproved chapter');
  // Reserve before calling. Tokenizer failures and interrupted attempts consume a slot too.

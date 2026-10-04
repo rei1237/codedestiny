@@ -32,6 +32,8 @@ for(const [key,{context,input}] of Object.entries(fixtures))matrices[key]=await 
 const months=v=>v.map(x=>`${x.start.year}-${String(x.start.month).padStart(2,'0')}`);
 const rolling=['2026-09','2026-10','2026-11','2026-12','2027-01','2027-02','2027-03','2027-04','2027-05','2027-06','2027-07','2027-08'];
 const TIMING_LABELS=/^(yearlyLuck|monthlyLuck|majorLuck|yearlyTimeline|minorLuck|vimshottariDasha)$/;
+// Dated derived facts (one per year or luck cycle) are timing facts too; their natal part is not.
+const isTiming=f=>TIMING_LABELS.test(f.label)||(/^(movementSignals|romanceTiming)$/.test(f.label)&&!/\.natal$/.test(f.id));
 
 test('saju matrix: 12 consecutive months from the pillar in force today, taken from the wrapper, JSON-stable',async()=>{
  const {context,input}=fixtures.saju,matrix=matrices.saju;
@@ -62,7 +64,7 @@ test('ledger with the stored matrix: timing facts stay with timing chapters and 
   const {ledger,unowned,chapters}=m.resolveV7Ledger(manifest('saju',tier),m.withV7Timing(fixtures.saju.context,stored),{asOf});
   assert.deepEqual(ledger.unclassified,[],tier);
   assert.deepEqual(unowned.filter(id=>id.startsWith('saju.monthlyLuck.')),[],tier);
-  for(const c of chapters)for(const id of c.owns)if(TIMING_LABELS.test(ledger.facts.get(id).label))assert.equal(c.theme,'timing',`${tier}: ${id} owned by ${c.key}`);
+  for(const c of chapters)for(const id of c.owns)if(isTiming(ledger.facts.get(id)))assert.equal(c.theme,'timing',`${tier}: ${id} owned by ${c.key}`);
   const monthOwner=chapters.find(c=>c.key===(tier==='salmon'?'yearNow':'months'));
   assert.deepEqual(monthOwner.owns.filter(id=>id.startsWith('saju.monthlyLuck.')),rolling.map(k=>`saju.monthlyLuck.${k}`),tier);
   if(tier==='tuna')assert.deepEqual(chapters.find(c=>c.key==='yearsAhead').owns.filter(id=>id.startsWith('saju.yearlyLuck.')),[2028,2029,2030,2031,2032,2033,2034,2035].map(y=>`saju.yearlyLuck.${y}`));

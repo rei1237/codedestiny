@@ -40,6 +40,8 @@ const resolved=cases.map(c=>({...c,...m.resolveV7Ledger(manifest(c.domain,c.tier
 // Must stay a full match of consultation.ts EVIDENCE_ID so a leaked sub-ID is redacted without a tail.
 const EVIDENCE_ID=/^(saju|ziwei|vedic|astrology|sukuyo|tarot)\.([A-Za-z][\w[\]-]*(?:\.[A-Za-z0-9][\w[\]-]*)*)$/;
 const TIMING_LABELS=/^(yearlyLuck|monthlyLuck|majorLuck|yearlyTimeline|minorLuck|vimshottariDasha)$/;
+// Dated derived facts (one per year or luck cycle) are timing facts too; their natal part is not.
+const isTiming=f=>TIMING_LABELS.test(f.label)||(/^(movementSignals|romanceTiming)$/.test(f.label)&&!/\.natal$/.test(f.id));
 const keysDeep=v=>Array.isArray(v)?v.flatMap(keysDeep):v&&typeof v==='object'?Object.entries(v).flatMap(([k,x])=>[k,...keysDeep(x)]):[];
 
 test('ownership: every chapter owns a concrete fact, no fact has two owners, refs point at anchor-owned facts',()=>{
@@ -55,7 +57,7 @@ test('ownership: every chapter owns a concrete fact, no fact has two owners, ref
     owner.set(id,c.key);
     assert.match(id,EVIDENCE_ID,`${where}: ${id} is not an ASCII evidence id`);
     assert.ok(id.startsWith(`${domain}.`),`${where}: ${id}`);
-    if(TIMING_LABELS.test(ledger.facts.get(id).label))assert.equal(c.theme,'timing',`${where}: timing fact ${id} owned by ${c.key}`);
+    if(isTiming(ledger.facts.get(id)))assert.equal(c.theme,'timing',`${where}: timing fact ${id} owned by ${c.key}`);
    }
   }
   const anchor=chapters[0];
@@ -119,7 +121,15 @@ test('saju: declared absence, pillar and interaction ownership, year ranges',()=
  assert.ok(movement.includes('saju.movementSignals.natal')&&movement.some(id=>/\.20\d\d$/.test(id)),movement.join());
  assert.deepEqual(movement.filter(id=>tuna.unowned.includes(id)),[]);
  assert.equal(own('months').length,12);
- assert.deepEqual(own('majorNow'),['saju.advancedFactors','saju.majorLuck.current','saju.movementSignals.major']);
+ assert.deepEqual(own('majorNow'),['saju.advancedFactors','saju.majorLuck.current']);
+ // Tuna gives moves and overseas luck one chapter: the natal reading, every dated year, the luck cycle and 역마살.
+ assert.deepEqual(movement.filter(id=>!own('movement').includes(id)),[]);
+ assert.ok(own('movement').includes('saju.movementSignals.major')&&own('movement').some(id=>id.startsWith('saju.shinsal.')),own('movement').join());
+ // Love and marriage timing split by year; the spouse chapter keeps the natal spouse star and attraction.
+ assert.ok(own('spouse').includes('saju.romanceTiming.natal'));
+ const rel=kind=>[...tuna.ledger.facts.keys()].filter(id=>id.startsWith(`saju.romanceTiming.${kind}.`));
+ assert.ok(rel('love').length&&rel('love').every(id=>own('loveLuck').includes(id)),rel('love').join());
+ assert.ok(rel('marriage').length&&rel('marriage').every(id=>own('marriageLuck').includes(id)),rel('marriage').join());
  assert.equal(tuna.ledger.facts.get('saju.majorLuck.current').value.cycle.startYear,2024);
  assert.equal(tuna.ledger.facts.get('saju.majorLuck.next').value.cycle.startYear,2034);
  // Salmon: the month-by-month facts ride along in yearNow; love keeps only 도화·홍염 plus 식상.
@@ -128,6 +138,9 @@ test('saju: declared absence, pillar and interaction ownership, year ranges',()=
  assert.equal(sOwn('yearNow').filter(id=>id.startsWith('saju.monthlyLuck.')).length,12);
  assert.deepEqual(sOwn('love'),['saju.tenGods.siksin','saju.tenGods.sanggwan','saju.shinsal.dohwa','saju.shinsal.hongyeom']);
  assert.ok(salmon.unowned.includes('saju.shinsal.baekho'));
+ // Salmon has no love-timing chapter, so yearNow carries this year's and next year's love, marriage and move signals.
+ const dated=[...salmon.ledger.facts.keys()].filter(id=>/^saju\.(romanceTiming\.(love|marriage)|movementSignals)\.(2026|2027)$/.test(id));
+ assert.ok(dated.length&&dated.every(id=>sOwn('yearNow').includes(id)),dated.join());
 });
 
 test('saju without a birth time: decision 7 rebuilds this year and next, and it matches the engine year luck',()=>{

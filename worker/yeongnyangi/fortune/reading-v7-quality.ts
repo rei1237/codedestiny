@@ -39,6 +39,7 @@ const fromSlugs=(table:Record<string,string>,label:string):V7Term[]=>
   Object.entries(table).map(([ko,slug])=>({term:ko,ids:[`.${label}.${slug}`]}));
 const fromPlanets=(table:Record<string,string>,label:string):V7Term[]=>
   Object.entries(table).map(([ko,name])=>({term:ko,ids:[`.${label}.${name}`]}));
+const SPOUSE_GODS=['정재','편재','정관','편관'];
 // 태양 and 달 are excluded from the planet tables: both are ordinary Korean words. Astrology keeps 태양 as a
 // reference point (design §4) because the sun sign is its anchor; vedic nodes keep their transliterated names.
 const KO_PLANETS:Record<string,string>={화성:'Mars',수성:'Mercury',목성:'Jupiter',금성:'Venus',토성:'Saturn'};
@@ -51,10 +52,12 @@ export const V7_TERMS:Record<string,V7Term[]>={
     {term:'일주',ids:['.pillars'],anchor:true},
     {term:'신강',ids:['.strengthHeuristic'],anchor:true},
     {term:'신약',ids:['.strengthHeuristic'],anchor:true},
-    {term:'오행',ids:['.fiveElements','.elementProfile'],anchor:true},
+    {term:'오행',ids:['.fiveElements','.elementProfile.balance','.elementProfile.traits'],anchor:true},
     // The anchor owns the ten-god cluster profile, so it may name single ten gods; 역마 also belongs to the movement facts.
-    ...fromSlugs(TEN_GOD_SLUGS,'tenGods').map(t=>({...t,ids:[...t.ids,'.tenGodProfile']})),
-    ...fromSlugs(SHINSAL_SLUGS,'shinsal').map(t=>t.term==='역마살'?{...t,ids:[...t.ids,'.movementSignals.natal']}:t),
+    // Spouse stars and 도화·홍염 also belong to the romance timing facts (an id ending in '.' matches as a prefix).
+    ...fromSlugs(TEN_GOD_SLUGS,'tenGods').map(t=>({...t,ids:[...t.ids,'.tenGodProfile',...(SPOUSE_GODS.includes(t.term)?['.romanceTiming.']:[])]})),
+    ...fromSlugs(SHINSAL_SLUGS,'shinsal').map(t=>t.term==='역마살'?{...t,ids:[...t.ids,'.movementSignals.natal']}
+      :t.term==='도화살'||t.term==='홍염살'?{...t,ids:[...t.ids,'.romanceTiming.']}:t),
   ],
   ziwei:[
     {term:'명궁',ids:['.palaces.myeong','.lifePalace'],anchor:true},
@@ -135,7 +138,7 @@ const previousSentences=(previous:readonly V7Previous[])=>previous
 
 /** owns wins over refs: a chapter that owns the fact explains it as often as the insight needs. */
 function allowance(chapter:V7AuditChapter,ids:readonly string[],anchor:boolean){
-  const has=(list:readonly string[])=>list.some(id=>ids.some(suffix=>id.endsWith(suffix)));
+  const has=(list:readonly string[])=>list.some(id=>ids.some(suffix=>suffix.endsWith('.')?id.includes(suffix):id.endsWith(suffix)));
   if(has(chapter.owns))return Infinity;
   return anchor||has(chapter.refs)?1:0;
 }
