@@ -84,4 +84,4 @@
 - 새로 생성한 pig-empathy/pig-advice/prop-envelope를 핵심 답변 말풍선·행동 조언·편지 머리말에 적용. 0.45초 등장 효과만 사용하고 모션 줄이기에서는 애니메이션 없이 즉시 읽힌다.
 - 390px 결과에서 투명 테두리·꽃 장식·말풍선·배경 겹침 확인. 360px 결과 clientWidth=scrollWidth=345(스크롤바 제외), 가로 넘침 없음.
 - check:fast -- --base=17c4e9ab5c153d6d078c90b92628eb5e8eddfb6d exit 0. paid-gate 88/88, Jest 333 suites / 4984 tests, lint/typecheck 통과. 추가 UI 변경 후 typecheck exit 0.
-- d9eaa7a CI는 type/lint, critical, Pages/Worker build 통과. Static guards가 메인 카드 가격 누락을 검출하여 기존 레지스트리 검증 대상 가격 키를 복원했다. verify:home-service-registry PASS. 수정 SHA의 CI 확인은 전달 마지막 단계.
+- d9eaa7a CI는 type/lint, critical, Pages/Worker build 통과. Static guards가 메인 카드 가격 누락을 검출하여 기존 레지스트리 검증 대상 가격 키를 복원했다. verify:home-service-registry PASS. 수정 SHA의 CI 확인은 전달 마지막 단계.- c4da9f728 CI의 빌드/type/lint는 통과. verify:payment-policy-md가 서버 레지스트리 초기화 전의 리터럴 0을 읽는 것을 확인하여 프런트 모듈을 번들·실행한 최종 가격과 정책 문서의 5종 가격을 대조하도록 수정했다. 상품 누락/중복 및 가격 차이는 계속 실패하며 정책 가격은 변경하지 않았다. 실제 대조 PASS.
