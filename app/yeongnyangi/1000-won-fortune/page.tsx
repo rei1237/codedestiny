@@ -75,7 +75,7 @@ const FAQS=[
 ];
 
 const TITLE=`천원 운세·천원사주 | ${FUN_PRICE} 재미 사주와 영냥이 상담`;
-const DESCRIPTION=`매력 클래스·인생 스킬 트리 등 재미 사주 콘텐츠 6종을 ${FUN_PRICE}에 여는 천원 운세 안내입니다. 사주·타로 등 여섯 체계의 영냥이 고등어 상담(${PRICE})의 예시와 가격, 이용 방법도 확인하세요.`;
+const DESCRIPTION=`매력 클래스·인생 스킬 트리 등 재미 사주 6종을 ${FUN_PRICE}에 여는 천원 운세 안내예요. 영냥이 고등어 상담(${PRICE}) 예시와 가격도 확인하세요.`;
 const OG_TITLE=TITLE;
 
 export const metadata:Metadata={

@@ -11,7 +11,7 @@ import styles from "./home-guide.module.css";
 
 const sourcePage = publicSeoPages.home;
 const HOME_TITLE = `${siteSeo.brandName} | 무료 사주·타로·오늘의 운세`;
-const HOME_DESCRIPTION = "꿀꿀 운세에서 오늘의 무료 운세와 사주·만세력, 타로 기본 풀이를 살펴보세요. 무료 이용 범위와 천원 사주 콘텐츠·영냥이 상담을 비교하고 내 질문에 맞는 서비스를 골라보세요.";
+const HOME_DESCRIPTION = "꿀꿀 운세에서 오늘의 무료 운세와 사주·만세력, 타로 기본 풀이를 살펴보세요. 무료 이용 범위와 천원 사주·영냥이 상담을 비교하고 내 질문에 맞는 서비스를 고르세요.";
 const HOME_SEO = {
   title: HOME_TITLE,
   description: HOME_DESCRIPTION,
