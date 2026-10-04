@@ -40,6 +40,8 @@ const fromSlugs=(table:Record<string,string>,label:string):V7Term[]=>
 const fromPlanets=(table:Record<string,string>,label:string):V7Term[]=>
   Object.entries(table).map(([ko,name])=>({term:ko,ids:[`.${label}.${name}`]}));
 const SPOUSE_GODS=['정재','편재','정관','편관'];
+const BUSINESS_NAMED=['재백궁','자녀궁','전택궁','관록궁','복덕궁','부부궁','천이궁'];
+const HEALTH_NAMED=['질액궁','부모궁','복덕궁'];
 // 태양 and 달 are excluded from the planet tables: both are ordinary Korean words. Astrology keeps 태양 as a
 // reference point (design §4) because the sun sign is its anchor; vedic nodes keep their transliterated names.
 const KO_PLANETS:Record<string,string>={화성:'Mars',수성:'Mercury',목성:'Jupiter',금성:'Venus',토성:'Saturn'};
@@ -62,8 +64,9 @@ export const V7_TERMS:Record<string,V7Term[]>={
   ziwei:[
     {term:'명궁',ids:['.palaces.myeong','.lifePalace'],anchor:true},
     {term:'신궁',ids:['.bodyPalace'],anchor:true},
-    ...fromSlugs(PALACE_SLUGS,'palaces'),
-    ...fromPlanets(KO_TRANSFORMS,'fourTransformations'),
+    // 사업운·건강 근거 문장이 부르는 궁과 사화는 그 근거를 가진 장에서도 이름을 쓸 수 있다(ziwei/derived.ts).
+    ...fromSlugs(PALACE_SLUGS,'palaces').map(t=>({...t,ids:[...t.ids,...(BUSINESS_NAMED.includes(t.term)?['.businessBasis']:[]),...(HEALTH_NAMED.includes(t.term)?['.healthBasis']:[])]})),
+    ...fromPlanets(KO_TRANSFORMS,'fourTransformations').map(t=>({...t,ids:[...t.ids,'.businessBasis','.healthBasis']})),
   ],
   vedic:[
     {term:'라그나',ids:['.lagna'],anchor:true},

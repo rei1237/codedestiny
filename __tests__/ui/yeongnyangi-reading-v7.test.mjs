@@ -52,7 +52,7 @@ test('ownership: no two chapters own overlapping facts; owns come from the chapt
 });
 
 test('chapter counts and insight units rise monotonically by tier',()=>{
- const expected={saju:[8,13,28],ziwei:[8,13,20],vedic:[8,13,23],astrology:[8,10,12],sukuyo:[6,8,10],'tarot:love':[5,7,9],'tarot:choice':[4,5,6]};
+ const expected={saju:[8,13,28],ziwei:[8,13,21],vedic:[8,13,23],astrology:[8,10,12],sukuyo:[6,8,10],'tarot:love':[5,7,9],'tarot:choice':[4,5,6]};
  const timing={saju:[1,2,9],ziwei:[1,2,4],vedic:[0,0,4],astrology:[0,0,0],sukuyo:[0,0,0],'tarot:love':[0,0,0],'tarot:choice':[0,0,0]};
  for(const [domain,kinds] of Object.entries(KINDS))for(const kind of kinds){
   const key=m.v7CatalogKey(domain,kind);

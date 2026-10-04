@@ -5,6 +5,7 @@ import {calculateRelationshipZiwei} from '../relationship-calculation';
 import type { FortuneDomain } from "../shared/contracts";
 import { ZIWEI_READING_FRAME } from "./reading-rules";
 import { enrichZiweiContext } from "./reading-facts";
+import {buildZiweiBusinessBasis,buildZiweiHealthBasis} from './derived';
 const base = domain(
   "ziwei",
   `한국 음력으로 계산된 자미두수 명반이다. 명궁·신궁·12궁과 주성/보조성/살성의 강약, 사화, 대궁·삼합(삼방사정)을 함께 읽는다.
@@ -37,6 +38,9 @@ ${ZIWEI_READING_FRAME}`,
         yearlyLuck: r.yearlyLuck,
         yearlyTimeline: Array.from({length:10},(_,i)=>calculateZiweiAiChart(input.personA!,{year:new Date(new Date(options.asOf||Date.now()).getTime()+9*3600000).getUTCFullYear()+i}).yearlyLuck),
         sanFangSiZheng: r.sanFangSiZheng,
+        // 재백궁+자녀궁(+전택·관록)을 궁간 비화로 이은 사업운 근거와 질액궁 중심 건강 근거(derived.ts).
+        businessBasis: buildZiweiBusinessBasis(r.palaces,r.uncertainty?.birthTimeUnknown===true),
+        healthBasis: buildZiweiHealthBasis(r.palaces,r.uncertainty?.birthTimeUnknown===true),
         bureau: r.bureau,
         lunar: r.lunar,
       },

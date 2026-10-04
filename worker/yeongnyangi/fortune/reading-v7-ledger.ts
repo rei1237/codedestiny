@@ -130,7 +130,7 @@ function saju(label:string,v:O,k:Kit){
 }
 function ziwei(label:string,v:O,k:Kit){
   switch(label){
-    case 'lifePalace':case 'bodyPalace':case 'bureau':case 'sanFangSiZheng':return whole(k,label,v);
+    case 'lifePalace':case 'bodyPalace':case 'bureau':case 'sanFangSiZheng':case 'businessBasis':case 'healthBasis':return whole(k,label,v);
     case 'palaces':{
       const body=k.get('bodyPalace');
       for(const p of list(v)){const slug=PALACE_SLUGS[p.name];if(!slug){k.unslug(label,p.name);continue;}k.emit(label,slug,{...p,roles:[p.name==='명궁'?'명궁':null,p.name===body?'신궁':null].filter(Boolean)},[`palaces.${p.name}`]);}

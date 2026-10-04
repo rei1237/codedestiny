@@ -163,6 +163,7 @@ export const professionalEvidenceNames: Record<string, string> = {
   elementProfile: '오행의 과다·결핍과 기질', tenGodProfile: '십성 군집의 발달과 조합',
   movementSignals: '이동수·해외운의 근거(역마·충·병존)', romanceTiming: '연애·결혼운의 시기 근거(배우자성·도화·일지 합충)',
   healthBasis: '생활 리듬과 컨디션 관리의 근거',
+  businessBasis: '사업운의 근거(재백·자녀·전택·관록궁과 궁간 비화)',
   palaces: '자미두수의 궁과 별 배치', bodyPalace: '신궁의 위치', planets: '행성의 위치',
   ascendant: '상승점', aspects: '행성 간 각도', houseCusps: '하우스의 경계',
   vimshottariDasha: '빔쇼타리 다샤의 기간', cards: '뽑힌 카드와 위치별 상징',

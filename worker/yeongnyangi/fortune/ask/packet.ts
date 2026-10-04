@@ -11,7 +11,7 @@ const fields: Record<DomainId, readonly string[]> = {
   saju: ['pillars','dayMaster','pillarDetails','fiveElements','tenGods','tenGodsByPillar','seasonalBalance',
     'natalInteractions','strengthHeuristic','usefulGod','jong','shinsal','yearlyLuck','monthlyLuck',
     'elementProfile','tenGodProfile','movementSignals','romanceTiming','healthBasis','partnerChart','relationshipComparison','compatibility'],
-  ziwei: ['lifePalace','bodyPalace','palaces','fourTransformations','yearlyLuck','yearlyTimeline','sanFangSiZheng','bureau','compatibility'],
+  ziwei: ['lifePalace','bodyPalace','palaces','fourTransformations','yearlyLuck','yearlyTimeline','sanFangSiZheng','businessBasis','healthBasis','bureau','compatibility'],
   astrology: ['planets','ascendant','midheaven','northNode','southNode','houseCusps','aspects','transits','synastry'],
   vedic: ['lagna','moon','sun','planets','houses','grahas','bhavas','moonNakshatra','rahuKetu','divisionalCharts',
     'yogas','vimshottariDasha','dashaPeriods','transits','ashtakuta'],
