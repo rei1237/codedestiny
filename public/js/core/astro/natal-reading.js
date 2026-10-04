@@ -932,6 +932,59 @@
     out.push('</svg>');
     return out.join('');
   }
+  /* ── 기호 스프라이트: OS 기호 폰트·이모지 대신 한 굵기 선으로 그린 SVG. 문서에 한 번 넣고 <use> 로 부른다. ── */
+  var GLYPH = {
+    sun: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/>',
+    moon: '<path d="M18 5A8 8 0 1 0 18 19A9 9 0 0 1 18 5z"/>',
+    mercury: '<circle cx="12" cy="12" r="4.5"/><path d="M12 16.5V22M9.5 19.5h5M8 3a4.5 4.5 0 0 0 8 0"/>',
+    venus: '<circle cx="12" cy="9" r="5.5"/><path d="M12 14.5V22M8.5 18.5h7"/>',
+    mars: '<circle cx="10" cy="14" r="5.5"/><path d="M14 10l6-6M15 4h5v5"/>',
+    jupiter: '<path d="M5 7.5c1.5-3 6-3.5 6 .5 0 3-3 6-6 8.5h14M15.5 3v18"/>',
+    saturn: '<path d="M8 3v14M5 6h6M8 12c1.5-2.5 7-2.5 7 1.5 0 3-3 4.5-3 6.5 0 1.2 1 1.6 2 1"/>',
+    uranus: '<path d="M6 4v9M18 4v9M6 8.5h12M12 4v11"/><circle cx="12" cy="18" r="2.5"/>',
+    neptune: '<path d="M5 5v4a7 7 0 0 0 14 0V5M12 4v17M8 18h8"/>',
+    pluto: '<path d="M6.5 7a5.5 5.5 0 0 0 11 0"/><circle cx="12" cy="7" r="2.4"/><path d="M12 12.5V22M8.5 18.5h7"/>',
+    aries: '<path d="M12 21V10M12 10C12 5 9.5 3 7 3.5S3.5 7 5 9.5M12 10c0-5 2.5-7 5-6.5S20.5 7 19 9.5"/>',
+    taurus: '<circle cx="12" cy="15" r="5.5"/><path d="M4 4c1 4 4 5.5 8 5.5s7-1.5 8-5.5"/>',
+    gemini: '<path d="M5 4c4 1.5 10 1.5 14 0M5 20c4-1.5 10-1.5 14 0M9 5v14M15 5v14"/>',
+    cancer: '<circle cx="7" cy="9.5" r="2.5"/><circle cx="17" cy="14.5" r="2.5"/><path d="M7 7c4-3 9-2.5 12.5 1M17 17c-4 3-9 2.5-12.5-1"/>',
+    leo: '<circle cx="7" cy="15" r="3"/><path d="M10 15c0-5-1-11 4-11s5 4.5 3 8.5-2.5 6 0 7.5c1 .6 2 .3 3-.5"/>',
+    virgo: '<path d="M4 6c1.5 0 2 1 2 2.5V18M6 8.5c0-3 4-3 4 0V18M10 8.5c0-3 4-3 4 0V15c0 3 2.5 4.5 5.5 3.5M14 11c3-1.5 6 0 5 3.5S15.5 20 13 21"/>',
+    libra: '<path d="M4 20h16M4 16h5a3.5 3.5 0 1 1 6 0h5"/>',
+    scorpio: '<path d="M3 6c1.5 0 2 1 2 2.5V18M5 8.5c0-3 4-3 4 0V18M9 8.5c0-3 4-3 4 0V18c0 1.5 1 2 2.5 2H20M17.5 17.5L20 20l-2.5 2.5"/>',
+    sagittarius: '<path d="M5 19L19 5M12 5h7v7M7.5 11.5l5 5"/>',
+    capricorn: '<path d="M3.5 6c1.5 0 2.5 1 3 3l2 7 2.5-10v9c0 3 2 5 5 5a2.8 2.8 0 1 0-2.6-3.8"/>',
+    aquarius: '<path d="M3 10l3-3 3 3 3-3 3 3 3-3 3 3M3 16.5l3-3 3 3 3-3 3 3 3-3 3 3"/>',
+    pisces: '<path d="M6 4c3.5 3 3.5 13 0 16M18 4c-3.5 3-3.5 13 0 16M5.5 12h13"/>',
+    asc: '<path d="M12 20V5M7 10l5-5 5 5M5 20h14"/>',
+    dsc: '<path d="M12 4v15M7 14l5 5 5-5M5 4h14"/>',
+    mc: '<path d="M4 19V6l8 9 8-9v13"/>'
+  };
+  var SIGN_GLYPH = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'];
+  var BODY_GLYPH = { Sun: 'sun', Moon: 'moon', Mercury: 'mercury', Venus: 'venus', Mars: 'mars', Jupiter: 'jupiter', Saturn: 'saturn', Uranus: 'uranus', Neptune: 'neptune', Pluto: 'pluto', ASC: 'asc', DSC: 'dsc', MC: 'mc' };
+  function glyphKey(k) { return typeof k === 'number' ? SIGN_GLYPH[((k % 12) + 12) % 12] : (BODY_GLYPH[k] || k); }
+  function glyphSprite() {
+    return '<svg class="as-glyph-sprite" id="asGlyphSprite" width="0" height="0" aria-hidden="true" focusable="false"><defs>' + Object.keys(GLYPH).map(function (k) {
+      return '<symbol id="asg-' + k + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + GLYPH[k] + '</symbol>';
+    }).join('') + '</defs></svg>';
+  }
+  /* 문서에 스프라이트가 없으면 body 끝에 한 번 넣는다. 결과 화면이 다시 그려져도 중복되지 않는다. */
+  function ensureGlyphSprite(doc) {
+    doc = doc || (typeof document !== 'undefined' ? document : null);
+    if (!doc || !doc.body || doc.getElementById('asGlyphSprite')) return;
+    doc.body.insertAdjacentHTML('beforeend', glyphSprite());
+  }
+  function glyph(k, cls) {
+    var key = glyphKey(k);
+    if (!GLYPH[key]) return '';
+    return '<svg class="as-glyph' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#asg-' + key + '"/></svg>';
+  }
+  /* SVG 안에서 (x, y) 를 가운데로 s 크기 기호를 놓는다. */
+  function glyphUse(k, x, y, s, cls) {
+    var key = glyphKey(k);
+    if (!GLYPH[key]) return '';
+    return '<use' + (cls ? ' class="' + cls + '"' : '') + ' href="#asg-' + key + '" x="' + (x - s / 2).toFixed(1) + '" y="' + (y - s / 2).toFixed(1) + '" width="' + s + '" height="' + s + '"/>';
+  }
   function posRow(head, sign, house, mean) {
     return '<tr><th scope="row">' + head + '</th><td>' + sign + '</td>' + (house == null ? '' : '<td class="as-num">' + house + '</td>') + '<td class="as-mean">' + esc(mean) + '</td></tr>';
   }
@@ -1192,6 +1245,10 @@
     render: render,
     renderChart: renderChart,
     renderDeep: renderDeep,
+    glyph: glyph,
+    glyphUse: glyphUse,
+    glyphSprite: glyphSprite,
+    ensureGlyphSprite: ensureGlyphSprite,
     _calc: { SIGN: SIGN, KO: KO, RULER: RULER, dignity: dignity, houseOf: houseOf, aspectsOf: aspectsOf, degText: degText, jo: jo, contrast: contrast, fill: fill, SIGN_STYLE: SIGN_STYLE, PROF: PROF }
   };
 })(typeof window !== 'undefined' ? window : globalThis);

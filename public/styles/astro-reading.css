@@ -573,3 +573,14 @@
   .as-reading :is(.as-cat, .as-why, .as-planet, .as-calc) > summary, .as-reading :is(.as-cat, .as-why, .as-planet, .as-calc) > summary::after,
   :is(.as-reading .as-pos, .as-wheel-host > .as-legacy-chart) > summary::after { transition: none; }
 }
+
+/* ── 기호: 한 굵기 선 SVG(natal-reading glyph). 스프라이트는 문서에 한 번, 보이지 않게. ── */
+.as-glyph-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.as-glyph { display: inline-block; flex: none; width: 1.05em; height: 1.05em; margin-right: .3em; vertical-align: -.16em; color: var(--as-gold); }
+#astroModalOverlay #astroBodyWrap .as-record .as-glyph { color: var(--as-gold); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-tag .as-glyph,
+#astroModalOverlay #astroBodyWrap .as-record .astro-life-chip .as-glyph,
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-chip .as-glyph { width: 14px; height: 14px; margin-right: 4px; vertical-align: -2px; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-life-glyph .as-glyph { width: 18px; height: 18px; margin: 0; }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel__signs { color: var(--fr-muted); }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel__signs use { fill: none; }
