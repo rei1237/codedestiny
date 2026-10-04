@@ -1097,7 +1097,7 @@
       h.push('<section class="as-deep-part" aria-labelledby="asDeepTalk"><h3 class="as-h3" id="asDeepTalk">행성끼리의 대화</h3><ol class="as-talk">');
       d.talk.forEach(function (t) {
         h.push('<li class="as-talk-item' + (HARD[t.type] ? ' is-hard' : '') + '"><div class="as-talk-head"><span class="as-talk-pair">' + esc(KO[t.a]) + '&nbsp;· ' + esc(KO[t.b]) + '</span>'
-          + '<span class="as-talk-kind">' + esc(t.kind) + '</span><span class="as-talk-orb">' + esc(t.closeness) + ' · 오차 ' + t.orb + '°</span></div><p>' + keep(t.text.join(' ')) + '</p></li>');
+          + '<span class="as-talk-kind">' + esc(t.kind) + '</span><span class="as-talk-orb">' + esc(t.closeness) + '</span></div><p>' + keep(t.text.join(' ')) + '</p></li>');
       });
       h.push('</ol></section>');
     }

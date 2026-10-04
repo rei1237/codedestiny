@@ -137,7 +137,7 @@ test('the module stays pure: no clock, randomness, storage, DOM or requests', ()
 // Visible text of the story fragment, one line per element; sentences of 15+ characters are what a reader would notice repeating.
 const storyText = model => reading.render(model).replace(/<[^>]+>/g, '\n').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
 const sentencesOf = text => text.split(/\n+/).flatMap(l => l.split(/(?<=[.?!])\s+/)).map(s => s.trim()).filter(s => s.length >= 15 && !s.includes('·'));
-const BANNED = [/Placidus|Whole Sign|플라시더스|홀사인|\d+H\b/, /체감:|큰 흐름:|키워드:|자세히 보기/, /어스펙트|오브|orb|룰러/i, /\([A-Z][a-z]+\)/, /\)\)/, /^\d\)|\([a-c]\)/m, /#\S/];
+const BANNED = [/Placidus|Whole Sign|플라시더스|홀사인|\d+H\b/, /체감:|큰 흐름:|키워드:|자세히 보기/, /어스펙트|오브|orb|룰러/i, /\([A-Z][a-z]+\)/, /\)\)/, /^\d\)|\([a-c]\)/m, /#\S/, /\bMC\b|\bDesc\b|\bASC\b|H \//];
 
 test('every verdict can be turned into a "…지만" clause', () => {
   const { SIGN_STYLE, PROF, contrast } = reading._calc;
