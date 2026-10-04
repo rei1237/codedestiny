@@ -5,14 +5,6 @@
 (function () {
   "use strict";
 
-  var POSITION_LABELS = {
-    past_debuff: "내 기준이 흐려지기 시작한 자리",
-    inner_monster: "거절 앞에서 마음이 작아지는 이유",
-    current_damage: "타인의 시선이 지금 마음을 소모시키는 지점",
-    mind_shield: "실망을 두려워하지 않고 나를 지키는 말",
-    levelup_mastery: "오늘 다시 붙잡을 나의 기준",
-  };
-
   var POSITION_ORDER = ["past_debuff", "inner_monster", "current_damage", "mind_shield", "levelup_mastery"];
 
   var GUIDE_LABELS = [
@@ -50,6 +42,59 @@
   })();
 
   var state = { cards: [], revealedCount: 0, reading: null };
+
+  /* 카드별 자존감 문구(js/tarot-self-esteem-card-copy.js)는 첫 드로우 무렵 지연 로드한다.
+   * 캐시 키는 이 스크립트 자신의 쿼리를 그대로 쓴다 — 수기 ?v= 를 박지 않기 위해서다.
+   * 따라서 문구 파일만 고치고 이 파일이 그대로면 키가 회전하지 않는다(문구 수정 때 함께 확인). */
+  var CARD_COPY_PATH = "/js/tarot-self-esteem-card-copy.js";
+  var ownScriptQuery = (function () {
+    try {
+      var el = document.currentScript;
+      if (!el || !el.src) el = document.querySelector('script[src*="tarot-self-esteem-experience.js"]');
+      var src = el && el.src ? String(el.src) : "";
+      var q = src.indexOf("?");
+      return q >= 0 ? src.slice(q) : "";
+    } catch (e) {
+      return "";
+    }
+  })();
+  var cardCopyPromise = null;
+
+  function getCardCopyTable() {
+    var table = window.__TSE_CARD_COPY__;
+    return table && typeof table === "object" ? table : null;
+  }
+
+  function loadCardCopy() {
+    if (getCardCopyTable()) return Promise.resolve(true);
+    if (cardCopyPromise) return cardCopyPromise;
+    cardCopyPromise = new Promise(function (resolve) {
+      var s = document.createElement("script");
+      s.src = CARD_COPY_PATH + ownScriptQuery;
+      s.async = true;
+      s.onload = function () { resolve(!!getCardCopyTable()); };
+      s.onerror = function () {
+        cardCopyPromise = null;
+        resolve(false);
+      };
+      (document.head || document.documentElement).appendChild(s);
+    });
+    return cardCopyPromise;
+  }
+
+  /* 문구가 늦어도 결과는 반드시 나온다 — 최대 waitMs 뒤에는 위치 템플릿으로 진행 */
+  function whenCardCopyReady(waitMs) {
+    return new Promise(function (resolve) {
+      var settled = false;
+      function finish() {
+        if (settled) return;
+        settled = true;
+        resolve();
+      }
+      loadCardCopy().then(finish, finish);
+      setTimeout(finish, waitMs);
+    });
+  }
   var TAROT_SELF_ESTEEM_COPY_BY_LOCALE = {
     ko: {
       positions: {
@@ -85,7 +130,7 @@
       promptRecoveryKey: "회복의 열쇠",
       promptCards: "펼쳐진 카드",
       promptGuide: "자기 기준 회복 가이드",
-      promptQuest: "7일 회복 연습",
+      promptQuest: "이번 주 회복 연습",
       promptTodayAction: "오늘의 실천",
       promptClosing: "이 흐름에서 내가 남의 시선을 맞추느라 잃어버린 기준, 다시 돌봐야 할 감정과 책임, 오늘 당장 지킬 수 있는 작은 경계를 차분히 봐주세요. 마지막에는 내 기준을 세우는 짧은 선언 3문장과 오늘 밤 실천할 회복 의식을 건네주세요.",
       promptOpeningFallback: "마음이 자기 기준을 되찾아야 하는 장면부터 짚어주세요.",
@@ -116,7 +161,7 @@
       fieldSignal: "카드가 비추는 반복 신호",
       fieldImpact: "마음에 남은 흔적",
       fieldRecovery: "회복 방향",
-      fieldPractice: "오늘의 연습",
+      fieldPractice: "다시 내 편에 서는 한 걸음",
       fieldCaution: "조심할 마음의 결론",
       fieldInnerSentence: "내면 문장",
       fieldHealingSentence: "회복 문장",
@@ -125,7 +170,7 @@
       woundStoryField: "반복되는 마음 이야기",
       recoveryPathField: "회복 순서",
       boundaryPracticeField: "자기 기준 연습",
-      sevenDayQuestTitle: "7일 회복 연습",
+      sevenDayQuestTitle: "이번 주 회복 연습",
       practiceSentenceField: "오늘의 연습 문장",
       questFallbackTitle: "회복 실천",
       difficultyLabel: "실천 강도",
@@ -631,6 +676,7 @@
     if (window._perf && window._perf.lockBody) window._perf.lockBody();
     else document.body.style.overflow = "hidden";
     resetTarotSelfEsteemFlow();
+    loadCardCopy();
   }
 
   function closeTarotSelfEsteemModal() {
@@ -669,8 +715,9 @@
   function triggerLevelUpConfetti() {
     var container = byId("tarotSelfEsteemConfetti");
     if (!container) return;
-    var colors = ["#FFD700", "#FF8C00", "#4FC3F7", "#FF6B9D", "#B388FF"];
-    for (var i = 0; i < 60; i++) {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var colors = ["#f6d98b", "#2dd4bf"];
+    for (var i = 0; i < 36; i++) {
       var p = document.createElement("span");
       p.className = "self-esteem-confetti-piece";
       p.style.left = Math.random() * 100 + "%";
@@ -733,6 +780,7 @@
     if (panel) panel.classList.add("ritual-burst");
 
     /* 무료 기능: 서버 드로우와 확률 분포가 동일하므로 네트워크 왕복 없이 로컬 덱에서 즉시 뽑는다 */
+    loadCardCopy();
     applyCardsAndShowDrawStage(drawFallbackCards());
   }
 
@@ -912,6 +960,121 @@
     return raw + (reversed ? " (" + tarotSelfEsteemOrientationLabel("reversed") + ")" : "");
   }
 
+  /* ─── 카드별 문구로 리딩 조합 (ko 전용) ───
+   * 문구 표가 없거나(로드 실패) 카드가 표에 없으면 null 을 돌려 기존 위치 템플릿을 그대로 쓴다. */
+  var SUIT_THEME = {
+    M: "메이저 아르카나가 {n}장 나왔습니다. 지금의 흔들림은 한때의 기분보다 삶의 큰 방향과 맞닿아 있습니다.",
+    W: "완드가 {n}장 나왔습니다. 하고 싶은 것을 드러내고 밀고 나가는 자리에서 기준이 가장 자주 흔들립니다.",
+    C: "컵이 {n}장 나왔습니다. 관계 속 감정과 서운함이 내 기준을 흐리는 가장 큰 통로입니다.",
+    S: "소드가 {n}장 나왔습니다. 머릿속 자기 비판과 누군가의 말 한마디가 마음을 가장 많이 소모시킵니다.",
+    P: "펜타클이 {n}장 나왔습니다. 일과 돈, 몸처럼 눈에 보이는 결과로 나를 평가하는 습관을 살펴볼 때입니다.",
+  };
+  var SUIT_BALANCED = "네 영역의 카드가 고르게 섞여 있습니다. 한 곳의 문제라기보다 일상 전반에서 기준을 다시 세우는 흐름입니다.";
+
+  var POSITION_LEADS = {
+    past_debuff: "처음 기준이 흐려지던 장면으로 돌아가 봅니다.",
+    inner_monster: "거절 앞에서 마음이 작아지는 이유는 이 카드에 담겨 있습니다.",
+    current_damage: "지금 마음을 가장 많이 소모시키는 지점을 짚어 봅니다.",
+    mind_shield: "실망을 두려워하지 않고 나를 지키는 힘은 이미 내 안에 있습니다.",
+    levelup_mastery: "이제 오늘 다시 붙잡을 기준을 정할 차례입니다.",
+  };
+
+  /* 숫자로 끝나는 카드명(완드 2 등)은 한자어 읽기로 받침을 판정한다 */
+  var DIGIT_BATCHIM = { "0": true, "1": true, "2": false, "3": true, "4": false, "5": false, "6": true, "7": true, "8": true, "9": false };
+
+  function finalJong(word) {
+    var s = String(word || "").replace(/[\s'"’”)\]]+$/, "");
+    if (!s) return -1;
+    var last = s.charAt(s.length - 1);
+    if (DIGIT_BATCHIM[last] != null) return DIGIT_BATCHIM[last] ? (last === "1" || last === "7" || last === "8" ? 8 : 1) : 0;
+    var code = last.charCodeAt(0);
+    if (code < 0xac00 || code > 0xd7a3) return 0;
+    return (code - 0xac00) % 28;
+  }
+
+  /* pair: "은/는", "이/가", "을/를", "으로/로" */
+  function withJosa(word, pair) {
+    var parts = pair.split("/");
+    var jong = finalJong(word);
+    var useFirst = jong > 0 && !(parts[0] === "으로" && jong === 8);
+    return word + (useFirst ? parts[0] : parts[1]);
+  }
+
+  function splitSentences(text) {
+    var list = String(text || "").match(/[^.!?]+[.!?]+/g);
+    return (list || [String(text || "")]).map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
+  function getCardCopy(card) {
+    var table = getCardCopyTable();
+    if (!table || !card) return null;
+    var entry = table[String(card.cardId || card.id || "")];
+    if (!entry) return null;
+    return entry[card.orientation === "reversed" ? "reversed" : "upright"] || null;
+  }
+
+  function composePositionBody(pos, copy) {
+    var lead = POSITION_LEADS[pos] || "";
+    var mirror = splitSentences(copy.mirror);
+    switch (pos) {
+      case "past_debuff":
+        return [lead, "그 무렵부터 이어진 것은 " + copy.wound + "입니다.", "그 반응은 결함이 아니라, 그때의 내가 관계를 지키려고 고른 방식이었습니다."].join(" ");
+      case "inner_monster":
+        return [lead, copy.mirror].join(" ");
+      case "current_damage":
+        return [lead, mirror[0], "지금 반복되는 것은 " + copy.wound + "입니다."].join(" ");
+      case "mind_shield":
+        return [lead, "이 카드가 건네는 방패는 " + copy.strength + "입니다.", "상대의 실망은 상대의 몫으로 두고, 이 힘을 내 쪽에 세워 두세요."].join(" ");
+      default:
+        return [lead, "이 카드가 알려 주는 기준은 " + copy.strength + "입니다.", "큰 결심보다 아래의 한 걸음이 그 기준을 오늘의 현실로 만듭니다."].join(" ");
+    }
+  }
+
+  function cardSuitKey(card) {
+    var id = String((card && (card.cardId || card.id)) || "");
+    var head = id.charAt(0);
+    return SUIT_THEME[head] ? head : "";
+  }
+
+  /* 1→3→5 키워드 흐름 + 우세 수트 + 역방향 수로 만드는 종합 문단 */
+  function buildSynthesisLine(cards, positionReadings) {
+    var list = POSITION_ORDER.map(function (pos, idx) { return findCardForPosition(cards, pos, idx); });
+    var steps = [0, 2, 4].map(function (i) {
+      var card = list[i] || {};
+      var item = positionReadings[i] || {};
+      var name = cleanReadingText(card.nameKr || card.name);
+      var kw = Array.isArray(item.keywords) && item.keywords.length ? cleanReadingText(item.keywords[0]) : "";
+      return name && kw ? { name: name, kw: kw } : null;
+    });
+    var sentences = [];
+    if (steps[0] && steps[1] && steps[2]) {
+      sentences.push(
+        steps[0].name + "의 '" + steps[0].kw + "'에서 시작된 마음이 " +
+        steps[1].name + "의 '" + withJosa(steps[1].kw + "'", "을/를") + " 지나, " +
+        steps[2].name + "의 '" + withJosa(steps[2].kw + "'", "으로/로") + " 이어집니다."
+      );
+    }
+    var counts = {};
+    list.forEach(function (card) {
+      var key = cardSuitKey(card);
+      if (key) counts[key] = (counts[key] || 0) + 1;
+    });
+    var top = "";
+    var topCount = 0;
+    var tie = false;
+    Object.keys(counts).forEach(function (key) {
+      if (counts[key] > topCount) { top = key; topCount = counts[key]; tie = false; }
+      else if (counts[key] === topCount) tie = true;
+    });
+    if (topCount >= 2 && !tie) sentences.push(SUIT_THEME[top].replace("{n}", String(topCount)));
+    else if (topCount <= 1) sentences.push(SUIT_BALANCED);
+    var reversed = list.filter(function (card) { return card && card.orientation === "reversed"; }).length;
+    if (reversed === 0) sentences.push("다섯 장 모두 정방향입니다. 회복할 힘이 이미 겉으로 드러나 있는 흐름입니다.");
+    else if (reversed >= 3) sentences.push("역방향이 " + reversed + "장입니다. 아직 안쪽에서 정리되지 않은 마음이 많으니, 서두르지 말고 한 장씩 천천히 읽어 주세요.");
+    else sentences.push("역방향 " + reversed + "장은 조금 더 천천히 들여다볼 자리를 알려 줍니다.");
+    return sentences.join(" ");
+  }
+
   function buildPositionFields(pos, card, item, idx) {
     /* 한국어는 아래 포지션별 심층 템플릿을 사용, 그 외 로케일은 공용 로컬라이즈 경로 사용 */
     if (tarotSelfEsteemCurrentLang() !== "ko") return buildLocalizedPositionFields(pos, card, item, idx);
@@ -921,7 +1084,7 @@
     var base = buildProfessionalPositionMessage(pos, card, source);
     var cardLabel = getPositionCardLabel(card, item);
     var orientation = (card && card.orientation === "reversed") || /\(역\)|역방향/.test(cardLabel) ? "reversed" : "upright";
-    var label = POSITION_LABELS[pos] || cleanReadingText(item && item.positionTitle) || ("포지션 " + (idx + 1));
+    var label = tarotSelfEsteemPositionLabel(pos, idx) || cleanReadingText(item && item.positionTitle) || ("포지션 " + (idx + 1));
     var templates = {
       past_debuff: {
         easyAnswer: base,
@@ -985,18 +1148,28 @@
       },
     };
     var t = templates[pos] || templates.levelup_mastery;
+    var copy = getCardCopy(card);
+    if (copy) {
+      t = Object.assign({}, t, {
+        easyAnswer: composePositionBody(pos, copy),
+        woundPattern: copy.wound + "입니다.",
+        recoveryReframe: withJosa(copy.strength, "이/가") + " 지금의 회복 자원입니다.",
+        actionPractice: copy.practice,
+        keywords: copy.keywords.slice(0, 3),
+      });
+    }
     return {
       positionIndex: Number(item && item.positionIndex ? item.positionIndex : idx + 1),
       positionKey: pos,
       positionTitle: label,
-      icon: cleanReadingText(item && item.icon) || "✦",
+      icon: cleanReadingText(item && item.icon),
       question: cleanReadingText(item && item.question) || label,
       cardName: cleanReadingText(item && item.cardName) || cardLabel,
       cardNameEn: cleanReadingText(item && item.cardNameEn) || cleanReadingText(card && card.name) || cardLabel,
       cardCode: cleanReadingText(item && item.cardCode) || cleanReadingText(card && (card.cardId || card.id)),
       orientation: cleanReadingText(item && item.orientation) || orientation,
       orientationLabel: cleanReadingText(item && item.orientationLabel) || (orientation === "reversed" ? "역방향" : "정방향"),
-      keywords: Array.isArray(item && item.keywords) && item.keywords.length ? item.keywords.slice(0, 5) : label.split(/\s+/).slice(0, 5),
+      keywords: Array.isArray(item && item.keywords) && item.keywords.length ? item.keywords.slice(0, 5) : (t.keywords || []),
       easyAnswer: cleanReadingText(item && item.easyAnswer) || t.easyAnswer,
       whyThisHappens: cleanReadingText(item && item.whyThisHappens) || t.whyThisHappens,
       realLifeExample: cleanReadingText(item && item.realLifeExample) || t.realLifeExample,
@@ -1026,6 +1199,8 @@
     var opening = cleanReadingText(src.opening || src.story) || tarotSelfEsteemText("fallbackOpening");
     var topSummary = src.topSummary && typeof src.topSummary === "object" ? src.topSummary : {};
     var levelupGuide = src.levelupGuide && typeof src.levelupGuide === "object" ? src.levelupGuide : {};
+    var isKo = tarotSelfEsteemCurrentLang() === "ko";
+    var synthesis = isKo ? buildSynthesisLine(cards, positionReadings) : "";
     return Object.assign({}, src, {
       opening: opening,
       pastDebuff: cleanReadingText(src.pastDebuff) || byKey.past_debuff.easyAnswer,
@@ -1035,11 +1210,11 @@
       levelupMastery: cleanReadingText(src.levelupMastery) || byKey.levelup_mastery.easyAnswer,
       levelupGuidance: cleanReadingText(src.levelupGuidance || src.advice) || tarotSelfEsteemText("fallbackGuidance"),
       topSummary: {
-        flowLine: cleanReadingText(topSummary.flowLine || topSummary.flow) || tarotSelfEsteemText("fiveCardFlow"),
+        flowLine: cleanReadingText(topSummary.flowLine || topSummary.flow) || synthesis || tarotSelfEsteemText("fiveCardFlow"),
         corePattern: cleanReadingText(topSummary.corePattern) || byKey.past_debuff.easyAnswer,
         rootCause: cleanReadingText(topSummary.rootCause) || byKey.inner_monster.whyThisHappens,
         mainDamage: cleanReadingText(topSummary.mainDamage) || byKey.current_damage.selfEsteemImpact,
-        recoveryKey: cleanReadingText(topSummary.recoveryKey) || tarotSelfEsteemText("recoveryKeyField"),
+        recoveryKey: cleanReadingText(topSummary.recoveryKey) || byKey.mind_shield.recoveryReframe,
         automaticThought: cleanReadingText(topSummary.automaticThought) || byKey.inner_monster.caution,
         todayAction: cleanReadingText(topSummary.todayAction) || byKey.levelup_mastery.actionPractice,
       },
@@ -1056,7 +1231,7 @@
           tarotSelfEsteemText("fallbackActionFour"),
           tarotSelfEsteemText("fallbackActionFive"),
         ],
-        practiceSentence: cleanReadingText(levelupGuide.practiceSentence) || tarotSelfEsteemText("fallbackActionOne"),
+        practiceSentence: cleanReadingText(levelupGuide.practiceSentence) || (isKo ? byKey.mind_shield.healingSentence : tarotSelfEsteemText("fallbackActionOne")),
       },
       levelupQuests: Array.isArray(src.levelupQuests) ? src.levelupQuests : [],
       actionPlan: Array.isArray(src.actionPlan) && src.actionPlan.length ? src.actionPlan : [
@@ -1070,13 +1245,20 @@
 
   function showTarotSelfEsteemFinalReading() {
     if (state.revealedCount < 5 || !state.cards.length) return;
-    /* 무료 기능: 인증이 강제되는 /api/tarot/reading 대신 로컬 결정적 리딩으로 즉시 결과 표시 */
-    state.reading = buildFallbackReading();
-    var draw = byId("tarotSelfEsteemDrawStage");
-    var result = byId("tarotSelfEsteemResultStage");
-    if (draw) draw.classList.remove("is-active");
-    if (result) result.classList.add("is-active");
-    renderTarotSelfEsteemResult();
+    /* 무료 기능: 인증이 강제되는 /api/tarot/reading 대신 로컬 결정적 리딩으로 결과 표시.
+     * 카드 문구 표를 최대 1.5초 기다리고, 늦으면 위치 템플릿으로라도 반드시 결과를 낸다. */
+    var btn = byId("tarotSelfEsteemFinalBtn");
+    if (btn) btn.disabled = true;
+    whenCardCopyReady(1500).then(function () {
+      state.reading = buildFallbackReading();
+      var draw = byId("tarotSelfEsteemDrawStage");
+      var result = byId("tarotSelfEsteemResultStage");
+      if (draw) draw.classList.remove("is-active");
+      if (result) result.classList.add("is-active");
+      var overlay = byId("tarotSelfEsteemOverlay");
+      if (overlay) overlay.scrollTop = 0;
+      renderTarotSelfEsteemResult();
+    });
   }
 
   function escapeHtml(s) {
@@ -1202,93 +1384,28 @@
     section.className = "tarot-self-esteem-section tarot-self-esteem-ai-prompt-panel";
     section.setAttribute("data-marker", "tarot-self-esteem-ai-prompt-bottom-v20260621");
     section.innerHTML =
-      '<p class="tarot-self-esteem-ai-prompt-kicker">' + escapeHtml(tarotSelfEsteemText("aiPromptKicker")) + '</p>' +
-      '<h3 class="tarot-self-esteem-ai-prompt-title">' + escapeHtml(tarotSelfEsteemText("aiPromptTitle")) + '</h3>' +
+      '<details class="tarot-self-esteem-ai-prompt-details">' +
+      '<summary class="tarot-self-esteem-ai-prompt-summary">' +
+      '<span class="tarot-self-esteem-ai-prompt-kicker">' + escapeHtml(tarotSelfEsteemText("aiPromptKicker")) + '</span>' +
+      '<span class="tarot-self-esteem-ai-prompt-title">' + escapeHtml(tarotSelfEsteemText("aiPromptTitle")) + '</span>' +
+      '</summary>' +
       '<p class="tarot-self-esteem-ai-prompt-lead">' + escapeHtml(tarotSelfEsteemText("aiPromptLead")) + '</p>' +
       '<textarea id="tarotSelfEsteemAiPromptOutput" class="tarot-self-esteem-ai-prompt-output" readonly></textarea>' +
       '<div class="tarot-self-esteem-ai-prompt-actions">' +
       '<button type="button" class="tarot-self-esteem-ai-prompt-copy" data-action="copyTarotSelfEsteemAiPrompt" data-action-pass-self="1">' + escapeHtml(tarotSelfEsteemText("copyPrompt")) + '</button>' +
       '<span id="tarotSelfEsteemAiPromptStatus" class="tarot-self-esteem-ai-prompt-status" aria-live="polite"></span>' +
-      '</div>';
+      '</div>' +
+      '</details>';
 
     var textarea = section.querySelector("#tarotSelfEsteemAiPromptOutput");
     if (textarea) textarea.value = promptText;
     container.appendChild(section);
   }
 
-  function typeWriter(el, text, options, callback) {
-    if (!el || text == null) {
-          if (typeof callback === "function") callback();
-          return;
-        }
-    var speed = (options && options.speed) != null ? options.speed : 22;
-    var idx = 0;
-    var str = String(text);
-    el.textContent = "";
-    function tick() {
-      if (idx >= str.length) {
-        if (typeof callback === "function") callback();
-        return;
-      }
-      idx += 1;
-      el.textContent = str.slice(0, idx);
-      setTimeout(tick, speed);
-    }
-    tick();
-  }
-
-  function runTypingSequence(container, sections, index, onComplete) {
-    if (!container || !Array.isArray(sections) || index >= sections.length) {
-      if (typeof onComplete === "function") onComplete();
-      return;
-    }
-    var item = sections[index];
-    var section = document.createElement("section");
-    section.className = item.highlight ? "tarot-self-esteem-section tarot-self-esteem-section--highlight" : "tarot-self-esteem-section";
-    var title = document.createElement("h4");
-    title.className = "tarot-self-esteem-section-title";
-    title.textContent = item.title;
-    section.appendChild(title);
-    if (item.listItems) {
-      var ul = document.createElement("ul");
-      ul.className = "tarot-self-esteem-advice-list";
-      section.appendChild(ul);
-      container.appendChild(section);
-      var listIdx = 0;
-      function addNextLi() {
-        if (listIdx >= item.listItems.length) {
-          var scrollEl = container;
-          if (scrollEl && scrollEl.scrollHeight > scrollEl.clientHeight) {
-            scrollEl.scrollTop = scrollEl.scrollHeight - scrollEl.clientHeight;
-          }
-          runTypingSequence(container, sections, index + 1, onComplete);
-          return;
-        }
-        var li = document.createElement("li");
-        li.textContent = "";
-        ul.appendChild(li);
-        typeWriter(li, item.listItems[listIdx], { speed: 18 }, function () {
-          listIdx += 1;
-          addNextLi();
-        });
-      }
-      addNextLi();
-    } else {
-      var p = document.createElement("p");
-      p.className = "tarot-self-esteem-section-text";
-      section.appendChild(p);
-      container.appendChild(section);
-      var scrollEl = container;
-      if (scrollEl && scrollEl.scrollHeight > scrollEl.clientHeight) {
-        scrollEl.scrollTop = scrollEl.scrollHeight - scrollEl.clientHeight;
-      }
-      typeWriter(p, item.text, { speed: 20 }, function () {
-        runTypingSequence(container, sections, index + 1, onComplete);
-      });
-    }
-  }
+  var detachLevelUpScroll = null;
 
   function attachLevelUpOnScroll(container) {
+    if (detachLevelUpScroll) detachLevelUpScroll();
     var banner = byId("tarotSelfEsteemLevelUpBanner");
     var levelUpShown = false;
     var ticking = false;
@@ -1322,26 +1439,11 @@
       });
     }
     container.addEventListener("scroll", onScroll, { passive: true });
+    detachLevelUpScroll = function () {
+      container.removeEventListener("scroll", onScroll);
+      detachLevelUpScroll = null;
+    };
     checkScroll();
-  }
-
-  function buildResultSections(r) {
-    var sections = [];
-    if (r.opening) {
-      sections.push({ title: tarotSelfEsteemText("openingMessage"), text: r.opening });
-    }
-    if (r.pastDebuff) sections.push({ title: "1. " + tarotSelfEsteemPositionLabel("past_debuff"), text: r.pastDebuff });
-    if (r.innerMonster) sections.push({ title: "2. " + tarotSelfEsteemPositionLabel("inner_monster"), text: r.innerMonster });
-    if (r.currentDamage) sections.push({ title: "3. " + tarotSelfEsteemPositionLabel("current_damage"), text: r.currentDamage });
-    if (r.mindShield) sections.push({ title: "4. " + tarotSelfEsteemPositionLabel("mind_shield"), text: r.mindShield });
-    if (r.levelupMastery) sections.push({ title: "5. " + tarotSelfEsteemPositionLabel("levelup_mastery"), text: r.levelupMastery });
-    if (r.levelupGuidance) {
-      sections.push({ title: tarotSelfEsteemText("recoveryGuide"), text: r.levelupGuidance, highlight: true });
-    }
-    if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
-      sections.push({ title: tarotSelfEsteemText("todayRecoveryPractice"), listItems: r.actionPlan });
-    }
-    return sections;
   }
 
   function renderTarotSelfEsteemResult() {
@@ -1384,62 +1486,32 @@
       });
     }
 
-    function addField(section, title, value, className) {
-      if (!String(value || "").trim()) return false;
-      var wrap = document.createElement("div");
-      wrap.className = "tse-self-esteem-field" + (className ? " " + className : "");
-      var h = document.createElement("p");
-      h.className = "tse-self-esteem-field-title";
-      h.textContent = title;
-      var p = document.createElement("p");
-      p.className = "tse-self-esteem-field-text";
-      p.textContent = String(value);
-      wrap.appendChild(h);
-      wrap.appendChild(p);
-      section.appendChild(wrap);
-      return true;
-    }
-
-    // Opening banner
+    // 오프닝
     if (r.opening) {
       var openDiv = document.createElement("div");
       openDiv.className = "tse-opening";
-      var openIcon = document.createElement("span");
-      openIcon.className = "tse-opening-icon";
-      openIcon.textContent = "✨";
       var openP = document.createElement("p");
       openP.className = "tse-opening-text";
       openP.textContent = r.opening;
-      openDiv.appendChild(openIcon);
       openDiv.appendChild(openP);
       container.appendChild(openDiv);
     }
 
-    if (r.topSummary && typeof r.topSummary === "object") {
-      var ts = r.topSummary;
-      var summaryFlow = cleanReadingText(ts.flowLine || ts.flow);
-      var summaryItems = [
-        [tarotSelfEsteemText("corePatternField"), ts.corePattern],
-        [tarotSelfEsteemText("rootCauseField"), ts.rootCause],
-        [tarotSelfEsteemText("mainDamageField"), ts.mainDamage],
-        [tarotSelfEsteemText("recoveryKeyField"), ts.recoveryKey],
-        [tarotSelfEsteemText("automaticThoughtField"), ts.automaticThought],
-        [tarotSelfEsteemText("todayActionField"), ts.todayAction],
-      ].filter(function (row) { return cleanReadingText(row[1]); });
-      if (summaryFlow || summaryItems.length) {
-        var summaryCard = document.createElement("div");
-        summaryCard.className = "tse-levelup-card tse-levelup-card--summary";
-        summaryCard.innerHTML =
-          '<p class="tse-levelup-title">' + escapeHtml(tarotSelfEsteemText("summaryTitle")) + '</p>' +
-          (summaryFlow ? '<p class="tse-levelup-body"><strong>' + escapeHtml(tarotSelfEsteemText("fiveCardFlow")) + ':</strong> ' + escapeHtml(summaryFlow) + '</p>' : '') +
-          (summaryItems.length ? '<ul class="tse-levelup-list">' + summaryItems.map(function (row) {
-            return '<li class="tse-levelup-item"><strong>' + escapeHtml(row[0]) + ':</strong> ' + escapeHtml(cleanReadingText(row[1])) + '</li>';
-          }).join("") + '</ul>' : '');
-        container.appendChild(summaryCard);
-      }
+    // 다섯 장의 흐름(종합)
+    var ts = r.topSummary && typeof r.topSummary === "object" ? r.topSummary : {};
+    var summaryFlow = cleanReadingText(ts.flowLine || ts.flow);
+    var summaryKey = cleanReadingText(ts.recoveryKey);
+    if (summaryFlow || summaryKey) {
+      var summaryCard = document.createElement("div");
+      summaryCard.className = "tse-levelup-card tse-levelup-card--summary";
+      summaryCard.innerHTML =
+        '<p class="tse-levelup-title">' + escapeHtml(tarotSelfEsteemText("fiveCardFlow")) + '</p>' +
+        (summaryFlow ? '<p class="tse-levelup-body">' + escapeHtml(summaryFlow) + '</p>' : '') +
+        (summaryKey ? '<p class="tse-summary-key"><span class="tse-summary-key-label">' + escapeHtml(tarotSelfEsteemText("recoveryKeyField")) + '</span>' + escapeHtml(summaryKey) + '</p>' : '');
+      container.appendChild(summaryCard);
     }
 
-
+    // 카드 다섯 장
     positionItems.forEach(function (item, idx) {
       if (!item) return;
       var card = null;
@@ -1453,20 +1525,30 @@
       var header = document.createElement("div");
       header.className = "tse-card-header";
 
-      var badge = document.createElement("span");
-      badge.className = "tse-card-badge";
-      badge.textContent = String(item.positionIndex || (idx + 1));
-
-      var icon = document.createElement("span");
-      icon.className = "tse-card-icon";
-      icon.textContent = String(item.icon || "✦");
+      if (card) {
+        var thumb = document.createElement("div");
+        thumb.className = "tse-card-thumb";
+        if (card.orientation === "reversed") thumb.setAttribute("data-reversed", "1");
+        var thumbImg = document.createElement("img");
+        thumbImg.alt = "";
+        thumbImg.loading = "lazy";
+        thumbImg.decoding = "async";
+        applyTarotImageWithFallback(thumbImg, thumb, card);
+        thumb.appendChild(thumbImg);
+        header.appendChild(thumb);
+      } else {
+        var badge = document.createElement("span");
+        badge.className = "tse-card-badge";
+        badge.textContent = String(item.positionIndex || (idx + 1));
+        header.appendChild(badge);
+      }
 
       var meta = document.createElement("div");
       meta.className = "tse-card-meta";
 
       var posLabel = document.createElement("span");
       posLabel.className = "tse-card-position";
-      posLabel.textContent = String(item.positionTitle || tarotSelfEsteemPositionLabel(item.positionKey, idx));
+      posLabel.textContent = String(item.positionIndex || (idx + 1)) + ". " + String(item.positionTitle || tarotSelfEsteemPositionLabel(item.positionKey, idx));
       meta.appendChild(posLabel);
 
       if (cardName) {
@@ -1476,85 +1558,70 @@
         meta.appendChild(nameEl);
       }
 
-      header.appendChild(badge);
-      header.appendChild(icon);
-      header.appendChild(meta);
-      insightCard.appendChild(header);
-
-      var intro = document.createElement("p");
-      intro.className = "tse-card-body";
-      intro.innerHTML =
-        (String(item.question || "").trim() ? "<strong>" + escapeHtml(tarotSelfEsteemText("questionLabel")) + ":</strong> " + escapeHtml(String(item.question)) + "<br>" : "") +
-        (cardName ? "<strong>" + escapeHtml(tarotSelfEsteemText("cardLabel")) + ":</strong> " + escapeHtml(cardName) + "<br>" : "") +
-        (String(item.orientationLabel || "").trim() ? "<strong>" + escapeHtml(tarotSelfEsteemText("directionLabel")) + ":</strong> " + escapeHtml(String(item.orientationLabel)) : "");
-      if (intro.innerHTML) insightCard.appendChild(intro);
-
-      [
-        { title: tarotSelfEsteemText("fieldQuickAnswer"), value: item.easyAnswer },
-        { title: tarotSelfEsteemText("fieldPatternReason"), value: item.whyThisHappens },
-        { title: tarotSelfEsteemText("fieldRealLife"), value: item.realLifeExample },
-        { title: tarotSelfEsteemText("fieldSignal"), value: item.woundPattern },
-        { title: tarotSelfEsteemText("fieldImpact"), value: item.selfEsteemImpact },
-        { title: tarotSelfEsteemText("fieldRecovery"), value: item.recoveryReframe },
-        { title: tarotSelfEsteemText("fieldPractice"), value: item.actionPractice },
-        { title: tarotSelfEsteemText("fieldCaution"), value: item.caution },
-        { title: tarotSelfEsteemText("fieldInnerSentence"), value: item.innerSentence },
-        { title: tarotSelfEsteemText("fieldHealingSentence"), value: item.healingSentence },
-      ].forEach(function (field) {
-        addField(insightCard, field.title, field.value);
-      });
-
-      var keywordValues = Array.isArray(item.keywords) ? item.keywords.slice(0, 5) : [];
+      var keywordValues = Array.isArray(item.keywords) ? item.keywords.slice(0, 3) : [];
       if (keywordValues.length) {
         var keywordWrap = document.createElement("div");
         keywordWrap.className = "tse-card-keywords";
         keywordValues.forEach(function (kw) {
           var chip = document.createElement("span");
           chip.className = "tse-keyword";
-          chip.textContent = "#" + kw;
+          chip.textContent = kw;
           keywordWrap.appendChild(chip);
         });
-        insightCard.appendChild(keywordWrap);
+        meta.appendChild(keywordWrap);
       }
 
-      if (String(item.todayAction || item.actionPractice || "").trim()) {
+      header.appendChild(meta);
+      insightCard.appendChild(header);
+
+      if (String(item.easyAnswer || "").trim()) {
+        var body = document.createElement("p");
+        body.className = "tse-card-body";
+        body.textContent = String(item.easyAnswer);
+        insightCard.appendChild(body);
+      }
+
+      var step = String(item.actionPractice || item.todayAction || "").trim();
+      if (step) {
         var action = document.createElement("p");
         action.className = "tse-card-action";
-        action.textContent = tarotSelfEsteemText("todayRecoveryPractice") + ": " + String(item.todayAction || item.actionPractice);
+        var actionLabel = document.createElement("span");
+        actionLabel.className = "tse-card-action-label";
+        actionLabel.textContent = tarotSelfEsteemText("fieldPractice");
+        action.appendChild(actionLabel);
+        action.appendChild(document.createTextNode(step));
         insightCard.appendChild(action);
       }
 
       container.appendChild(insightCard);
     });
 
-    if (r.levelupGuide && typeof r.levelupGuide === "object") {
-      var lvCard = document.createElement("div");
-      lvCard.className = "tse-levelup-card";
-      lvCard.innerHTML = '<p class="tse-levelup-title">' + escapeHtml(tarotSelfEsteemText("recoveryGuide")) + '</p>';
-      var guideFieldCount = 0;
-      if (addField(lvCard, tarotSelfEsteemText("flowField"), r.levelupGuide.flow)) guideFieldCount += 1;
-      if (addField(lvCard, tarotSelfEsteemText("rootPatternField"), r.levelupGuide.rootPattern)) guideFieldCount += 1;
-      if (addField(lvCard, tarotSelfEsteemText("woundStoryField"), r.levelupGuide.woundStory)) guideFieldCount += 1;
-      if (addField(lvCard, tarotSelfEsteemText("recoveryPathField"), r.levelupGuide.recoveryPath)) guideFieldCount += 1;
-      if (addField(lvCard, tarotSelfEsteemText("boundaryPracticeField"), r.levelupGuide.boundaryPractice)) guideFieldCount += 1;
-      if (Array.isArray(r.levelupGuide.sevenDayQuest) && r.levelupGuide.sevenDayQuest.length) {
-        var questTitle = document.createElement("p");
-        questTitle.className = "tse-self-esteem-field-title";
-        questTitle.textContent = tarotSelfEsteemText("sevenDayQuestTitle");
-        lvCard.appendChild(questTitle);
-        var questList = document.createElement("ul");
-        questList.className = "tse-levelup-list";
-        r.levelupGuide.sevenDayQuest.forEach(function (line) {
-          var li = document.createElement("li");
-          li.className = "tse-levelup-item";
-          li.textContent = line;
-          questList.appendChild(li);
-        });
-        lvCard.appendChild(questList);
-        guideFieldCount += 1;
-      }
-      if (addField(lvCard, tarotSelfEsteemText("practiceSentenceField"), r.levelupGuide.practiceSentence)) guideFieldCount += 1;
-      if (guideFieldCount) container.appendChild(lvCard);
+    // 이번 주 회복 연습
+    var guide = r.levelupGuide && typeof r.levelupGuide === "object" ? r.levelupGuide : {};
+    var weekly = Array.isArray(guide.sevenDayQuest) ? guide.sevenDayQuest : (Array.isArray(r.actionPlan) ? r.actionPlan : []);
+    if (weekly.length) {
+      var actionCard = document.createElement("div");
+      actionCard.className = "tse-action-card";
+      var actionTitle = document.createElement("p");
+      actionTitle.className = "tse-action-title";
+      actionTitle.textContent = tarotSelfEsteemText("sevenDayQuestTitle");
+      var ul = document.createElement("ul");
+      ul.className = "tse-quest-list";
+      weekly.forEach(function (itemText, i) {
+        var li = document.createElement("li");
+        li.className = "tse-quest-item";
+        var num = document.createElement("span");
+        num.className = "tse-quest-num";
+        num.textContent = String(i + 1);
+        var text = document.createElement("span");
+        text.textContent = String(itemText || "");
+        li.appendChild(num);
+        li.appendChild(text);
+        ul.appendChild(li);
+      });
+      actionCard.appendChild(actionTitle);
+      actionCard.appendChild(ul);
+      container.appendChild(actionCard);
     }
 
     if (Array.isArray(r.levelupQuests) && r.levelupQuests.length) {
@@ -1587,39 +1654,36 @@
       container.appendChild(questCard);
     }
 
-    if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
-      var actionCard = document.createElement("div");
-      actionCard.className = "tse-action-card";
-      var actionTitle = document.createElement("p");
-      actionTitle.className = "tse-action-title";
-      actionTitle.textContent = tarotSelfEsteemText("todayRecoveryPractice");
-      var ul = document.createElement("ul");
-      ul.className = "tse-quest-list";
-      r.actionPlan.forEach(function (itemText, i) {
-        var li = document.createElement("li");
-        li.className = "tse-quest-item";
-        var num = document.createElement("span");
-        num.className = "tse-quest-num";
-        num.textContent = String(i + 1);
-        var text = document.createElement("span");
-        text.textContent = itemText;
-        li.appendChild(num);
-        li.appendChild(text);
-        ul.appendChild(li);
-      });
-      actionCard.appendChild(actionTitle);
-      actionCard.appendChild(ul);
-      container.appendChild(actionCard);
+    // 마무리 카드 — 배너가 사라져도 마지막 문장이 결과 안에 남는다
+    var bannerTextEl = document.querySelector("#tarotSelfEsteemLevelUpBanner .tarot-self-esteem-levelup-text");
+    var closingHeadline = cleanReadingText(bannerTextEl && bannerTextEl.textContent);
+    var closingLine = cleanReadingText(guide.practiceSentence);
+    if (closingHeadline || closingLine) {
+      var closing = document.createElement("div");
+      closing.className = "tse-closing-card";
+      if (closingHeadline) {
+        var closingTitle = document.createElement("p");
+        closingTitle.className = "tse-closing-title";
+        closingTitle.textContent = closingHeadline;
+        closing.appendChild(closingTitle);
+      }
+      if (closingLine) {
+        var closingText = document.createElement("p");
+        closingText.className = "tse-closing-text";
+        closingText.textContent = closingLine;
+        closing.appendChild(closingText);
+      }
+      container.appendChild(closing);
     }
 
     renderTarotSelfEsteemAiPromptPanel(container, r, positionItems);
-    attachLevelUpOnScroll(container);
+    attachLevelUpOnScroll(byId("tarotSelfEsteemOverlay") || container);
   }
 
   function shareTarotSelfEsteemResult() {
     var r = state.reading;
     if (!r) return;
-    var text = "✨ [" + tarotSelfEsteemText("shareTitle") + "] ✨\n\n";
+    var text = "[" + tarotSelfEsteemText("shareTitle") + "]\n\n";
     if (r.opening) text += tarotSelfEsteemText("shareOpeningLabel") + ": " + r.opening + "\n\n";
     if (r.levelupMastery) text += tarotSelfEsteemText("shareMasteryLabel") + ": " + r.levelupMastery + "\n\n";
     text += tarotSelfEsteemText("shareLinkLabel") + ": https://code-destiny.com";
