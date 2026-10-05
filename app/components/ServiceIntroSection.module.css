@@ -1,0 +1,399 @@
+/* 기능 소개 카드 — 달빛 예화(月花) 공통 양식. 기능 페이지 18곳이 같은 카드를 쓴다.
+ *
+ * 마크업은 각 page.tsx 의 순수 h1/h2/h3/h4/p/ul/ol 이고 여기서 자손 선택자로만 입힌다
+ * (본문 문구·헤딩 레벨은 SEO 검사가 보므로 이 파일은 모양만 바꾼다).
+ * 장식 선(꽃가지 띠·반짝임·맺음 가지)의 기하는 ./service-intro/yehwaIntroMasks.generated.module.css
+ * (scripts/design/gen-yehwa-motifs.mjs 산출물)가 소유하고, 여기서는 색·크기·자리만 정한다.
+ * 🔴 마스크 박스 크기(.crest 300/240px, .sprig 132/110px, 반짝임 11px)를 바꾸면 생성기의 획 굵기 역보정도 같이 바꾼다.
+ * 🔴 장식은 카드 위·아래 여백 띠에만 둔다 — 본문 위를 지나가지 않는다(DESIGN.md Moonflower 규칙).
+ * 🔴 --cd-* 를 재선언하지 않는다(CSS Modules 는 커스텀 프로퍼티를 해시하지 않는다) — 사설 --si-* 만 쓴다. */
+
+/* 달빛 밤(기본) — 네오 Champagne Gold 계열 */
+.section {
+  --si-bg-top: #151c36;
+  --si-bg: #0d1325;
+  --si-glow: rgba(232, 213, 163, 0.075);
+  --si-border: rgba(232, 213, 163, 0.24);
+  --si-border-inner: rgba(232, 213, 163, 0.1);
+  --si-hi: rgba(255, 244, 220, 0.06);
+  --si-shade: rgba(4, 7, 20, 0.55);
+  --si-heading: #f6ecd6;
+  --si-eyebrow: rgba(240, 223, 180, 0.88);
+  --si-text: #d8d4ca;
+  --si-strong: #f6ecd6;
+  --si-ink: #e8d5a3;
+  --si-moon-hi: #fffaef;
+  --si-moon-mid: #f2e2bc;
+  --si-moon-lo: #c9b48a;
+
+  margin-inline: auto;
+  width: 100%;
+  max-width: 48rem;
+  padding: 1.5rem 1rem 3.5rem;
+  color: var(--si-text);
+}
+
+/* 연이(꽃돼지) — 연이 Dark 는 네이비가 아니라 딥 플럼(DESIGN.md "연이 Dark"). 표면·글자·선을 한 세트로 바꾼다. */
+.section[data-tone="yeoni"] {
+  --si-bg-top: #3a0e28;
+  --si-bg: #24081a;
+  --si-glow: rgba(174, 45, 104, 0.26);
+  --si-border: rgba(244, 190, 209, 0.38);
+  --si-border-inner: rgba(244, 190, 209, 0.13);
+  --si-hi: rgba(255, 241, 247, 0.08);
+  --si-shade: rgba(22, 2, 13, 0.55);
+  --si-heading: #fff1f7;
+  --si-eyebrow: rgba(255, 196, 222, 0.92);
+  --si-text: rgba(255, 214, 232, 0.88);
+  --si-strong: rgba(255, 196, 222, 0.98);
+  --si-ink: #d4af7a;
+  --si-moon-hi: #fffaf3;
+  --si-moon-mid: #fdf6f0;
+  --si-moon-lo: #e6cfa6;
+}
+
+.card {
+  position: relative;
+  border: 1px solid var(--si-border);
+  border-radius: var(--cd-r-section, 26px);
+  background:
+    radial-gradient(120% 58% at 50% 0%, var(--si-glow), transparent 62%),
+    linear-gradient(180deg, var(--si-bg-top), var(--si-bg));
+  box-shadow: inset 0 1px 0 var(--si-hi), 0 22px 44px -28px var(--si-shade);
+  /* 좁은 화면 안쪽 여백 16px — 이중 테(6px) 와 본문 사이 숨 공간. #1435 기준선(li 열 274px 수용)은 지킨다(실측 360px li 열 287→279px).
+     위·아래 64/60px 는 달·맺음 가지 장식 띠 — 본문은 이 띠 안으로 들어오지 않는다. */
+  padding: 4rem 1rem 3.75rem;
+}
+
+/* 이중 테 — 안쪽 가는 금선 한 줄 */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--si-border-inner);
+  border-radius: calc(var(--cd-r-section, 26px) - 6px);
+  pointer-events: none;
+}
+
+/* ── 상단 문장(紋章): 초승달 + 양옆 꽃가지 띠 ── */
+.crest {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  width: 240px;
+  height: 24px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.crest::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--si-ink);
+  opacity: 0.62;
+  -webkit-mask: var(--si-mask-vine) center / 100% 100% no-repeat;
+  mask: var(--si-mask-vine) center / 100% 100% no-repeat;
+}
+
+/* 달무리 — 가는 원 한 겹 + 은은한 빛 */
+.halo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  border: 1px solid color-mix(in srgb, var(--si-ink) 46%, transparent);
+  border-radius: 50%;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--si-ink) 22%, transparent);
+  transform: translate(-50%, -50%);
+}
+
+/* 초승달 — 아이보리는 불투명(DESIGN.md Moon Ivory: 반투명이면 흐린 유리 원이 된다), 오른쪽 위를 덜어 낸다 */
+.moon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 30%, var(--si-moon-hi), var(--si-moon-mid) 52%, var(--si-moon-lo));
+  transform: translate(-50%, -50%);
+  -webkit-mask: radial-gradient(circle at 74% 28%, transparent 0 39%, #000 calc(39% + 0.6px));
+  mask: radial-gradient(circle at 74% 28%, transparent 0 39%, #000 calc(39% + 0.6px));
+}
+
+/* ── 하단 맺음 꽃가지 ── */
+.sprig {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  width: 110px;
+  height: 40px;
+  background: var(--si-ink);
+  opacity: 0.5;
+  pointer-events: none;
+  -webkit-mask: var(--si-mask-sprig) center / 100% 100% no-repeat;
+  mask: var(--si-mask-sprig) center / 100% 100% no-repeat;
+}
+
+/* ── 본문 ── */
+.body {
+  position: relative;
+  z-index: 1;
+}
+
+.body > :first-child {
+  margin-top: 0;
+}
+
+.body h1,
+.body h2 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  color: var(--si-heading);
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  text-wrap: balance;
+}
+
+.body h1 {
+  font-size: 1.5rem;
+  line-height: 1.35;
+}
+
+/* 키워드 눈썹: h1 안의 span = 키워드 제목, 그 뒤 텍스트 = 고객 질문 (질문 우선 2026-10-02) */
+.body h1 > span {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+  letter-spacing: 0.01em;
+  color: var(--si-eyebrow);
+  word-break: keep-all;
+}
+
+.body h2 {
+  position: relative;
+  margin-top: 2.75rem;
+  padding-top: 1.75rem;
+  font-size: 1.28rem;
+  line-height: 1.45;
+}
+
+/* 섹션 구분 — 왼쪽 반짝임에서 오른쪽으로 사라지는 금선 */
+.body h2::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--si-ink) 42%, transparent), color-mix(in srgb, var(--si-ink) 10%, transparent) 62%, transparent);
+}
+
+.body h2::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 0;
+  width: 11px;
+  height: 11px;
+  background: var(--si-ink);
+  opacity: 0.85;
+  -webkit-mask: var(--si-mask-sparkle) center / 100% 100% no-repeat;
+  mask: var(--si-mask-sparkle) center / 100% 100% no-repeat;
+}
+
+/* 카드의 첫 제목은 상단 문장이 이미 연다 — 구분선을 겹치지 않는다 */
+.body > h2:first-child {
+  padding-top: 0;
+}
+
+.body > h2:first-child::before,
+.body > h2:first-child::after {
+  content: none;
+}
+
+/* 소제목 — 작은 금빛 라벨 + 미니 달 */
+.body h3 {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-top: 1.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--si-ink);
+  word-break: keep-all;
+}
+
+.body h3::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  /* 두 줄로 넘어가도 첫 줄 가운데에 붙는다(line-height 1.5em 기준) */
+  margin-top: calc(0.75em - 3.5px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 30%, var(--si-moon-hi), var(--si-moon-mid) 60%, var(--si-moon-lo));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--si-ink) 16%, transparent);
+}
+
+.body h4 {
+  margin-top: 1.5rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.55;
+  color: var(--si-heading);
+  word-break: keep-all;
+}
+
+.body p {
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.85;
+  color: var(--si-text);
+  word-break: keep-all;
+}
+
+.body h3 + p,
+.body h4 + p {
+  margin-top: 0.5rem;
+}
+
+.body ul,
+.body ol {
+  margin-top: 1rem;
+  padding-left: 0;
+  list-style: none;
+}
+
+.body li {
+  position: relative;
+  margin-top: 0.6rem;
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: var(--si-text);
+  word-break: keep-all;
+}
+
+.body ul > li {
+  padding-left: 1.4rem;
+}
+
+/* 목록 표식 — 기본 점 대신 작은 반짝임 */
+.body ul > li::before {
+  content: "";
+  position: absolute;
+  top: 0.55em;
+  left: 0.1rem;
+  width: 11px;
+  height: 11px;
+  background: var(--si-ink);
+  opacity: 0.9;
+  -webkit-mask: var(--si-mask-sparkle) center / 100% 100% no-repeat;
+  mask: var(--si-mask-sparkle) center / 100% 100% no-repeat;
+}
+
+.body ol {
+  counter-reset: si-step;
+}
+
+.body ol > li {
+  padding-left: 2.25rem;
+  counter-increment: si-step;
+}
+
+/* 순서 표식 — 가는 금 원 안의 명조 숫자 */
+.body ol > li::before {
+  content: counter(si-step);
+  position: absolute;
+  top: 0.18em;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--si-ink) 55%, transparent);
+  border-radius: 50%;
+  font-family: var(--font-serif);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--si-ink);
+}
+
+/* 호출부 클래스가 있으면 그쪽이 이기도록 우선순위를 0 으로 둔다 */
+:where(.body) strong {
+  font-weight: 700;
+  color: var(--si-strong);
+}
+
+:where(.body) a {
+  color: var(--si-heading);
+  text-decoration-color: color-mix(in srgb, var(--si-ink) 55%, transparent);
+  text-underline-offset: 4px;
+}
+
+@media (min-width: 640px) {
+  .card {
+    padding-inline: 1.25rem;
+  }
+
+  .crest {
+    width: 300px;
+    height: 30px;
+  }
+
+  .halo {
+    width: 30px;
+    height: 30px;
+  }
+
+  .moon {
+    width: 19px;
+    height: 19px;
+  }
+
+  .sprig {
+    right: 26px;
+    width: 132px;
+    height: 48px;
+  }
+
+  .card {
+    padding-bottom: 4.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .section {
+    padding-inline: 1.5rem;
+  }
+
+  .card {
+    padding: 4.5rem 2.25rem 4.5rem;
+  }
+
+  .card::before {
+    inset: 7px;
+    border-radius: calc(var(--cd-r-section, 26px) - 7px);
+  }
+
+  .body h1 {
+    font-size: 1.95rem;
+  }
+
+  .body h2 {
+    font-size: 1.5rem;
+  }
+
+  .body p,
+  .body li {
+    font-size: 1rem;
+  }
+}
