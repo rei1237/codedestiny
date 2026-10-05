@@ -72,17 +72,6 @@ export interface DestinyBiasCopy {
 
   myDestinyHeroDescription: string;
 
-  actionBarHeading: string;
-  actionBarSubtext: string;
-  savePhotocardButton: string;
-  shareButton: string;
-  shareToXButton: string;
-  shareToInstagramButton: string;
-  shareToKakaoButton: string;
-  saveSvgButton: string;
-  copyTextButton: string;
-  viewResultAgainButton: string;
-  tryAnotherButton: string;
 
   photocardBottomNote: string;
   photocardUploadedImageAltSuffix: string;
@@ -273,17 +262,6 @@ const DESTINY_BIAS_COPY_EN: DestinyBiasCopy = {
   myDestinyHeroDescription:
     "The moment your birthday energy meets your bias's stage aura ✨",
 
-  actionBarHeading: "Save and share your photocard 💜",
-  actionBarSubtext: "Save it and post straight to your story or feed — today's fandom log is complete!",
-  savePhotocardButton: "Save photocard",
-  shareButton: "Share",
-  shareToXButton: "Share to X (Twitter)",
-  shareToInstagramButton: "Share to Instagram",
-  shareToKakaoButton: "Share to KakaoTalk",
-  saveSvgButton: "Save SVG",
-  copyTextButton: "Copy text",
-  viewResultAgainButton: "View result again",
-  tryAnotherButton: "Try another bias",
 
   photocardBottomNote: "✦ This card holds the resonance between your two energies",
   photocardUploadedImageAltSuffix: "uploaded image",
@@ -475,17 +453,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
 
     myDestinyHeroDescription: "내 생일 에너지가 최애의 무대 아우라와 만나는 우주적인 순간을 포토카드로 담아드려요 ✨",
 
-    actionBarHeading: "포토카드 저장하고 공유해요 💜",
-    actionBarSubtext: "저장하고 바로 스토리/피드에 올리면 오늘 덕심 기록 완료!",
-    savePhotocardButton: "포토카드 저장하기",
-    shareButton: "공유하기",
-    shareToXButton: "X(트위터) 공유",
-    shareToInstagramButton: "인스타 공유",
-    shareToKakaoButton: "카카오 공유",
-    saveSvgButton: "SVG 저장",
-    copyTextButton: "텍스트 복사",
-    viewResultAgainButton: "결과 다시 보기",
-    tryAnotherButton: "다른 최애로 다시 해볼게요",
 
     photocardBottomNote: "✦ 이 카드엔 두 사람의 에너지 공명이 담겨 있어요",
     photocardUploadedImageAltSuffix: "업로드 이미지",
@@ -673,17 +640,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
 
     myDestinyHeroDescription: "あなたの誕生日エネルギーが推しのステージオーラと出会う宇宙的な瞬間をフォトカードに",
 
-    actionBarHeading: "フォトカードを保存してシェアしよう 💜",
-    actionBarSubtext: "保存してそのままストーリー/フィードに投稿すれば、今日の推し活記録完了！",
-    savePhotocardButton: "フォトカードを保存",
-    shareButton: "シェアする",
-    shareToXButton: "X(旧Twitter)でシェア",
-    shareToInstagramButton: "Instagramでシェア",
-    shareToKakaoButton: "カカオトークでシェア",
-    saveSvgButton: "SVGで保存",
-    copyTextButton: "テキストをコピー",
-    viewResultAgainButton: "結果をもう一度見る",
-    tryAnotherButton: "別の推しでもう一度試す",
 
     photocardBottomNote: "✦ このカードには二人のエネルギー共鳴が込められています",
     photocardUploadedImageAltSuffix: "アップロード画像",
@@ -871,17 +827,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
 
     myDestinyHeroDescription: "把你的生日能量与本命舞台气场相遇的宇宙瞬间,做成写真卡 ✨",
 
-    actionBarHeading: "保存并分享你的写真卡 💜",
-    actionBarSubtext: "保存后直接发布到限时动态或信息流,今日追星记录完成！",
-    savePhotocardButton: "保存写真卡",
-    shareButton: "分享",
-    shareToXButton: "分享到X(推特)",
-    shareToInstagramButton: "分享到Instagram",
-    shareToKakaoButton: "分享到KakaoTalk",
-    saveSvgButton: "保存SVG",
-    copyTextButton: "复制文本",
-    viewResultAgainButton: "再次查看结果",
-    tryAnotherButton: "换一个本命再试一次",
 
     photocardBottomNote: "✦ 这张卡片承载着两人能量的共鸣",
     photocardUploadedImageAltSuffix: "上传的图片",
@@ -1069,17 +1014,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
 
     myDestinyHeroDescription: "把你的生日能量與本命舞台氣場相遇的宇宙瞬間,做成寫真卡 ✨",
 
-    actionBarHeading: "保存並分享你的寫真卡 💜",
-    actionBarSubtext: "保存後直接發布到限時動態或動態消息,今日追星記錄完成！",
-    savePhotocardButton: "保存寫真卡",
-    shareButton: "分享",
-    shareToXButton: "分享到X(推特)",
-    shareToInstagramButton: "分享到Instagram",
-    shareToKakaoButton: "分享到KakaoTalk",
-    saveSvgButton: "保存SVG",
-    copyTextButton: "複製文字",
-    viewResultAgainButton: "再次查看結果",
-    tryAnotherButton: "換一個本命再試一次",
 
     photocardBottomNote: "✦ 這張卡片承載著兩人能量的共鳴",
     photocardUploadedImageAltSuffix: "上傳的圖片",
@@ -1268,17 +1202,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     myDestinyHeroDescription:
       "Khoảnh khắc vũ trụ khi năng lượng sinh nhật của bạn gặp hào quang sân khấu của thần tượng ✨",
 
-    actionBarHeading: "Lưu và chia sẻ thẻ ảnh của bạn 💜",
-    actionBarSubtext: "Lưu lại và đăng ngay lên story/feed — vậy là hoàn thành nhật ký fan hôm nay!",
-    savePhotocardButton: "Lưu thẻ ảnh",
-    shareButton: "Chia sẻ",
-    shareToXButton: "Chia sẻ lên X (Twitter)",
-    shareToInstagramButton: "Chia sẻ lên Instagram",
-    shareToKakaoButton: "Chia sẻ lên KakaoTalk",
-    saveSvgButton: "Lưu SVG",
-    copyTextButton: "Sao chép văn bản",
-    viewResultAgainButton: "Xem lại kết quả",
-    tryAnotherButton: "Thử với thần tượng khác",
 
     photocardBottomNote: "✦ Thẻ này chứa đựng sự cộng hưởng năng lượng của hai người",
     photocardUploadedImageAltSuffix: "ảnh đã tải lên",
@@ -1354,17 +1277,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     myDestinyHeroDescription:
       "वह ब्रह्मांडीय पल जब आपकी जन्मदिन ऊर्जा आपके बायस की स्टेज आभा से मिलती है ✨",
 
-    actionBarHeading: "अपना फ़ोटोकार्ड सेव और शेयर करें 💜",
-    actionBarSubtext: "सेव करें और सीधे स्टोरी/फ़ीड पर पोस्ट करें — आज की फैंडम डायरी पूरी!",
-    savePhotocardButton: "फ़ोटोकार्ड सेव करें",
-    shareButton: "शेयर करें",
-    shareToXButton: "X (ट्विटर) पर शेयर करें",
-    shareToInstagramButton: "इंस्टाग्राम पर शेयर करें",
-    shareToKakaoButton: "काकाओटॉक पर शेयर करें",
-    saveSvgButton: "SVG सेव करें",
-    copyTextButton: "टेक्स्ट कॉपी करें",
-    viewResultAgainButton: "फिर से परिणाम देखें",
-    tryAnotherButton: "किसी और बायस के साथ फिर आज़माएं",
 
     photocardBottomNote: "✦ इस कार्ड में दो लोगों की ऊर्जा की गूंज समाई है",
     photocardUploadedImageAltSuffix: "अपलोड की गई फ़ोटो",
@@ -1440,17 +1352,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     myDestinyHeroDescription:
       "El momento cósmico en que tu energía de cumpleaños se encuentra con el aura de escenario de tu bias ✨",
 
-    actionBarHeading: "Guarda y comparte tu tarjeta fotográfica 💜",
-    actionBarSubtext: "Guárdala y publícala directo en tu historia o feed: ¡diario de fandom de hoy completado!",
-    savePhotocardButton: "Guardar tarjeta",
-    shareButton: "Compartir",
-    shareToXButton: "Compartir en X (Twitter)",
-    shareToInstagramButton: "Compartir en Instagram",
-    shareToKakaoButton: "Compartir en KakaoTalk",
-    saveSvgButton: "Guardar SVG",
-    copyTextButton: "Copiar texto",
-    viewResultAgainButton: "Ver el resultado de nuevo",
-    tryAnotherButton: "Probar con otro bias",
 
     photocardBottomNote: "✦ Esta tarjeta guarda la resonancia entre las energías de ambos",
     photocardUploadedImageAltSuffix: "imagen subida",
@@ -1526,17 +1427,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     myDestinyHeroDescription:
       "Le moment cosmique où votre énergie d'anniversaire rencontre l'aura de scène de votre bias ✨",
 
-    actionBarHeading: "Enregistrez et partagez votre carte photo 💜",
-    actionBarSubtext: "Enregistrez-la et publiez-la directement en story/fil — journal de fandom du jour complet !",
-    savePhotocardButton: "Enregistrer la carte photo",
-    shareButton: "Partager",
-    shareToXButton: "Partager sur X (Twitter)",
-    shareToInstagramButton: "Partager sur Instagram",
-    shareToKakaoButton: "Partager sur KakaoTalk",
-    saveSvgButton: "Enregistrer en SVG",
-    copyTextButton: "Copier le texte",
-    viewResultAgainButton: "Revoir le résultat",
-    tryAnotherButton: "Essayer avec un autre bias",
 
     photocardBottomNote: "✦ Cette carte porte la résonance des énergies de vous deux",
     photocardUploadedImageAltSuffix: "image téléchargée",
@@ -1612,17 +1502,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     myDestinyHeroDescription:
       "Der kosmische Moment, in dem deine Geburtstagsenergie auf die Bühnenaura deines Bias trifft ✨",
 
-    actionBarHeading: "Speichere und teile deine Fotokarte 💜",
-    actionBarSubtext: "Speichern und direkt in Story/Feed posten — das heutige Fandom-Tagebuch ist komplett!",
-    savePhotocardButton: "Fotokarte speichern",
-    shareButton: "Teilen",
-    shareToXButton: "Auf X (Twitter) teilen",
-    shareToInstagramButton: "Auf Instagram teilen",
-    shareToKakaoButton: "Auf KakaoTalk teilen",
-    saveSvgButton: "Als SVG speichern",
-    copyTextButton: "Text kopieren",
-    viewResultAgainButton: "Ergebnis erneut ansehen",
-    tryAnotherButton: "Mit einem anderen Bias erneut versuchen",
 
     photocardBottomNote: "✦ Diese Karte trägt die Resonanz eurer beider Energien",
     photocardUploadedImageAltSuffix: "hochgeladenes Bild",
@@ -1698,17 +1577,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     myDestinyHeroDescription:
       "Het kosmische moment waarop jouw verjaardagsenergie de podiumaura van je bias ontmoet ✨",
 
-    actionBarHeading: "Sla je fotokaart op en deel hem 💜",
-    actionBarSubtext: "Sla hem op en post hem direct op je story/feed — het fandomlogboek van vandaag is compleet!",
-    savePhotocardButton: "Fotokaart opslaan",
-    shareButton: "Delen",
-    shareToXButton: "Delen op X (Twitter)",
-    shareToInstagramButton: "Delen op Instagram",
-    shareToKakaoButton: "Delen op KakaoTalk",
-    saveSvgButton: "SVG opslaan",
-    copyTextButton: "Tekst kopiëren",
-    viewResultAgainButton: "Resultaat opnieuw bekijken",
-    tryAnotherButton: "Probeer een andere bias",
 
     photocardBottomNote: "✦ Deze kaart draagt de resonantie van jullie beider energieën",
     photocardUploadedImageAltSuffix: "geüploade afbeelding",
@@ -1784,17 +1652,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     myDestinyHeroDescription:
       "Detik kosmik apabila tenaga hari lahir anda bertemu aura pentas bias anda ✨",
 
-    actionBarHeading: "Simpan dan kongsi kad foto anda 💜",
-    actionBarSubtext: "Simpan dan muat naik terus ke story/suapan — log fandom hari ini selesai!",
-    savePhotocardButton: "Simpan kad foto",
-    shareButton: "Kongsi",
-    shareToXButton: "Kongsi ke X (Twitter)",
-    shareToInstagramButton: "Kongsi ke Instagram",
-    shareToKakaoButton: "Kongsi ke KakaoTalk",
-    saveSvgButton: "Simpan SVG",
-    copyTextButton: "Salin teks",
-    viewResultAgainButton: "Lihat semula keputusan",
-    tryAnotherButton: "Cuba dengan bias lain",
 
     photocardBottomNote: "✦ Kad ini membawa resonansi tenaga kedua-dua orang",
     photocardUploadedImageAltSuffix: "imej yang dimuat naik",
