@@ -1,3 +1,5 @@
+import { resolveChemiGrade } from "@/lib/idol-chemi";
+
 type GradeMeta = {
   destinyGrade: string;
   gradeTitle: string;
@@ -60,44 +62,10 @@ function hashText(seed: string) {
   return hash >>> 0;
 }
 
+/** 등급표 정본은 lib/idol-chemi/engine/score.js(서버 공유 스냅샷도 같은 표를 쓴다). */
 export function getDestinyGrade(score: number): GradeMeta {
-  if (score >= 90) {
-    return {
-      destinyGrade: "LEGENDARY",
-      gradeTitle: "Soul Stage",
-      pairingTitle: "Miracle Pairing",
-    };
-  }
-
-  if (score >= 78) {
-    return {
-      destinyGrade: "SPECIAL",
-      gradeTitle: "Stage Chemistry",
-      pairingTitle: "Glowing Pairing",
-    };
-  }
-
-  if (score >= 66) {
-    return {
-      destinyGrade: "RARE",
-      gradeTitle: "Gentle Harmony",
-      pairingTitle: "Soft Spark Pairing",
-    };
-  }
-
-  if (score >= 54) {
-    return {
-      destinyGrade: "MOOD MATCH",
-      gradeTitle: "Growing Link",
-      pairingTitle: "Warm-Up Pairing",
-    };
-  }
-
-  return {
-    destinyGrade: "DISTANT SIGNAL",
-    gradeTitle: "Unstable Beat",
-    pairingTitle: "Slow Sync Pairing",
-  };
+  const row = resolveChemiGrade(score);
+  return { destinyGrade: row.grade, gradeTitle: row.gradeTitle, pairingTitle: row.pairingTitle };
 }
 
 export function getAuraTheme(seed: string, score: number) {

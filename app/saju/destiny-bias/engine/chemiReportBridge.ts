@@ -1,10 +1,10 @@
 // 최애운명 리포트 브리지 — 새 결정론 엔진(lib/idol-chemi: 9유형·근거 신호)과
 // 기존 클라이언트 엔진(analyzeDestinyBias: 총점·세부 점수·등급·팬덤 리포트·밈 레이어)을 한 객체로 묶는다.
 // 🔴 개인정보: 반환값 어디에도 생년월일을 싣지 않는다. 일련번호 해시에도 생일을 넣지 않는다.
-import { runChemi, type CalendarType, type ChemiCopy, type ChemiPartnerRecord, type ChemiResult } from "@/lib/idol-chemi";
+import { runChemi, type CalendarType, type ChemiCopy, type ChemiPartnerRecord, type ChemiPillars, type ChemiResult, type ChemiTypeId } from "@/lib/idol-chemi";
 import { buildSajuProfile } from "@/worker/lib/destiny-bias-engine.js";
 import { analyzeDestinyBias } from "./destinyBiasEngine";
-import { buildFavoriteDestinyFromSaju } from "./favoriteDestinyReading";
+import type { FavoriteChemistryType, FavoriteDestinyPillarInput } from "./favoriteDestinyReading";
 import { normalizeBirthDateInput } from "./birthEnergy";
 import type { DestinyBiasResultViewModel } from "../lib/types";
 
@@ -71,6 +71,24 @@ const MINOR_REPLACEMENTS: ReadonlyArray<readonly [string, string]> = [
   ["밀당", "티키타카"],
   ["썸", "케미"],
 ];
+
+// 9유형 → 기존 리딩 문구(무드 한 줄·해시태그)가 쓰는 10유형 중 가장 가까운 결.
+const LEGACY_TYPE_BY_CHEMI_TYPE: Record<ChemiTypeId, FavoriteChemistryType> = {
+  telepathy: "운명착붙형",
+  "same-wave": "잔잔응원형",
+  "accel-brake": "설렘폭발형",
+  "locked-in": "현실안정형",
+  "quiet-care": "힐링보호형",
+  "hype-charger": "덕심폭주형",
+  "push-pull": "티격태격중독형",
+  "cross-learn": "성장파트너형",
+  "slow-burn": "천천히스며드는형",
+};
+
+function toLegacyPillars(p: ChemiPillars): FavoriteDestinyPillarInput {
+  return { dayStem: p.day.stem, dayBranch: p.day.branch, yearStem: p.year.stem, yearBranch: p.year.branch };
+}
+
 export const MINOR_BANNED_WORDS = MINOR_REPLACEMENTS.slice(1).map(([word]) => word);
 
 export function toMinorSafeText(text: string): string {
@@ -130,6 +148,7 @@ export function buildChemiReport(input: ChemiReportInput): ChemiReport {
   const relationMood = relationPool.includes(rawRelation) ? rawRelation : DEFAULT_RELATION_MOOD;
   const userName = String(input.user.nickname || "").trim().slice(0, 12) || "나";
   const userSolar = toSolarDate(input.user.birthDate, input.user.calendarType);
+  const score = result.score;
 
   const legacy = analyzeDestinyBias({
     userName,
@@ -141,17 +160,20 @@ export function buildChemiReport(input: ChemiReportInput): ChemiReport {
     relationMood,
     themeKey: input.themeKey,
     themeLabel: input.themeLabel || "",
+    // 점수·등급·유형·명식은 케미 엔진 한 곳에서 온다. 기존 리딩은 이 값으로 문구만 만든다.
+    unified: {
+      pillars: { user: toLegacyPillars(result.pillars.user), favorite: toLegacyPillars(result.pillars.partner) },
+      scores: {
+        total: score.total, emotion: score.emotion, excitement: score.excitement, stability: score.stability,
+        fanBias: score.fanBias, longTerm: score.longTerm, communication: score.communication,
+      },
+      chemistryType: LEGACY_TYPE_BY_CHEMI_TYPE[result.chemiTypeId],
+      typeLabel: result.chemiTypeShortKo,
+    },
   });
-  const userBirth = normalizeBirthDateInput(userSolar);
-  const partnerBirth = normalizeBirthDateInput(partner.birthDate);
-  if (!userBirth.ok || !partnerBirth.ok) throw new Error("IDOL_CHEMI_BIRTH_DATE_INVALID");
-  const reading = buildFavoriteDestinyFromSaju(
-    { name: userName, birthDate: userBirth.value },
-    { name: partner.displayName, birthDate: partnerBirth.value },
-  );
 
   const issuedAt = referenceDate.split("-").join(".");
-  const serial = `CD-${fnv1a([partner.kind, partner.id, result.chemiTypeId, legacy.totalScore, referenceDate, biasMood, relationMood].join("|"))}`;
+  const serial = `CD-${fnv1a([partner.kind, partner.id, result.chemiTypeId, score.total, referenceDate, biasMood, relationMood].join("|"))}`;
 
   let vm: DestinyBiasResultViewModel = {
     ...legacy,
@@ -164,6 +186,8 @@ export function buildChemiReport(input: ChemiReportInput): ChemiReport {
     themeLabel: input.themeLabel || "",
     biasMood,
     relationMood,
+    // 화면 어디서든 유형 이름은 9유형 하나로 보인다.
+    chemistryType: result.chemiTypeShortKo,
   };
   if (minorMode) vm = mapStrings(vm, toMinorSafeText);
 
@@ -171,17 +195,17 @@ export function buildChemiReport(input: ChemiReportInput): ChemiReport {
   const subScores = order.map((key) => ({
     key,
     label: SUB_SCORE_LABELS[key][minorMode ? "minor" : "adult"],
-    value: Math.round(reading.scores[key]),
+    value: score[key],
   }));
 
   return {
     result,
     copy,
     vm,
-    totalScore: Math.round(legacy.totalScore),
+    totalScore: score.total,
     subScores,
-    grade: legacy.destinyGrade,
-    gradeTitle: legacy.gradeTitle,
+    grade: score.grade,
+    gradeTitle: score.gradeTitle,
     serial,
     issuedAt,
     minorMode,

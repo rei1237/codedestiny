@@ -15,13 +15,19 @@ import { incrementRateLimit } from "../lib/rate-limit.js";
 import { getSiteBaseUrl } from "../lib/og-card.js";
 import {
   DESTINY_BIAS_OG_FALLBACK_PATH,
+  DESTINY_BIAS_SHARE_LANDING_PATH,
   DESTINY_BIAS_SHARE_RATE_LIMIT_WINDOW_MS,
   DestinyBiasShareError,
+  buildDestinyBiasOgImageUrl,
+  buildDestinyBiasShareLandingUrl,
+  buildDestinyBiasShareUrl,
+  buildDestinyBiasSharePreviewHtml,
   createDestinyBiasShare,
   destinyBiasShareRateLimitSubject,
   destinyBiasShareRateLimitVerdict,
   findPublicDestinyBiasShare,
   isValidDestinyBiasShareId,
+  resolveShareOrigin,
 } from "../lib/destiny-bias-share.js";
 
 const FEATURE_KEYS = Object.freeze({
@@ -268,7 +274,7 @@ function shareErrorResponse(error) {
 }
 
 function buildShareOgUrl(request, shareId) {
-  return `${new URL(request.url).origin}/api/destiny-bias/share/${encodeURIComponent(shareId)}/og.png`;
+  return buildDestinyBiasOgImageUrl({ shareId, origin: new URL(request.url).origin });
 }
 
 // 순서: 레이트리밋 → 본문 → 서버 재계산·저장(result-share 라우트와 동일. 본문 파싱 전에 유량을 막는다).
@@ -320,6 +326,38 @@ async function handleGetShare(shareId, request, env) {
   );
 }
 
+// 크롤러용 미리보기: 결과별 og 메타를 담은 HTML. 사람은 스크립트로 정적 랜딩에 넘어간다.
+// 없는·만료된 id 도 랜딩으로 보낸다(랜딩이 만료 안내를 그린다).
+async function handleSharePreview(request, env) {
+  const url = new URL(request.url);
+  const shareId = String(url.searchParams.get("s") || "");
+  const origin = resolveShareOrigin({ requestUrl: request.url, env });
+  if (!isValidDestinyBiasShareId(shareId)) {
+    return new Response(null, { status: 302, headers: { Location: `${origin}${DESTINY_BIAS_SHARE_LANDING_PATH}`, "Cache-Control": "no-store" } });
+  }
+  const landingUrl = buildDestinyBiasShareLandingUrl({ shareId, origin, searchParams: url.searchParams });
+  await connectDb(env);
+  const snapshot = await findPublicDestinyBiasShare({ shareId });
+  if (!snapshot) {
+    return new Response(null, { status: 302, headers: { Location: landingUrl, "Cache-Control": "no-store" } });
+  }
+  const html = buildDestinyBiasSharePreviewHtml({
+    snapshot,
+    previewUrl: buildDestinyBiasShareUrl({ shareId, requestUrl: request.url, env }),
+    landingUrl,
+    ogImageUrl: buildDestinyBiasOgImageUrl({ shareId, origin }),
+  });
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "public, max-age=60, s-maxage=300",
+      "X-Robots-Tag": "noindex, nofollow",
+      "Referrer-Policy": "no-referrer",
+    },
+  });
+}
+
 function ogFallbackRedirect(env) {
   return new Response(null, {
     status: 302,
@@ -364,6 +402,10 @@ export async function handleDestinyBiasRoutes(request, env) {
 
     if (method === "POST" && path === "/share") {
       return await handleCreateShare(request, env);
+    }
+
+    if ((method === "GET" || method === "HEAD") && path === "/s") {
+      return await handleSharePreview(request, env);
     }
 
     const shareOgMatch = method === "GET" ? path.match(/^\/share\/([^/]+)\/og\.png$/) : null;

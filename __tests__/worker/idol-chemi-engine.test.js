@@ -30,7 +30,30 @@ describe("idol-chemi engine", () => {
     expect(a.rulesVersion).toBe("chemi-rules-1.0.0");
     expect(a.rosterVersion).toBe(partners.ROSTER_VERSION);
     expect(a.inputHash).toMatch(/^[0-9a-f]{8}$/);
-    expect(a.chemiIndex).toBeNull();
+    expect(a.scoreVersion).toBe("chemi-score-1.0.0");
+    expect(a.chemiIndex).toBe(a.score.total);
+  });
+
+  test("score: integer axes in range, grade from the shared table, spread across type fixtures", () => {
+    const fixtures = ["1988-01-25", "1988-01-01", "1988-01-16", "1988-01-04", "1988-04-07", "1988-01-13", "1988-01-07", "1988-02-16", "1988-02-07"];
+    const totals = fixtures.map((birthDate) => {
+      const { score } = run(birthDate, jin);
+      expect(Object.isFrozen(score)).toBe(true);
+      expect(Number.isInteger(score.total)).toBe(true);
+      expect(score.total).toBeGreaterThanOrEqual(40);
+      expect(score.total).toBeLessThanOrEqual(99);
+      for (const axis of engine.CHEMI_SCORE_AXES) {
+        expect(Number.isInteger(score[axis])).toBe(true);
+        expect(score[axis]).toBeGreaterThanOrEqual(20);
+        expect(score[axis]).toBeLessThanOrEqual(99);
+      }
+      const row = engine.resolveChemiGrade(score.total);
+      expect(score.grade).toBe(row.grade);
+      expect(score.gradeTitle).toBe(row.gradeTitle);
+      return score.total;
+    });
+    // 기존 엔진은 91.7% 가 한 등급에 몰렸다. 유형 픽스처끼리는 등급이 갈려야 한다.
+    expect(new Set(totals.map((t) => engine.resolveChemiGrade(t).grade)).size).toBeGreaterThanOrEqual(3);
   });
 
   test.each([
