@@ -11,7 +11,7 @@
     "homeGuide": {
       "kicker": "FORTUNE GUIDE",
       "title": "How to Read Saju, Tarot & Fortune",
-      "lead": "Code Destiny is a Korean fortune platform where you can explore Saju (Four Pillars), tarot, Zi Wei Dou Shu, Western and Vedic astrology, Sukuyo, and compatibility in one place — all from your birth date and time. We summarize what each reading looks at and how to read it, so even newcomers can follow along. Every interpretation is offered as a reference for self-reflection and calmer choices, never as a fixed prophecy.",
+      "lead": "Code Destiny brings Korean Saju (Four Pillars, also called BaZi), tarot, Zi Wei Dou Shu, Sukuyo, Western astrology and Vedic astrology together. Start with a birth chart when you want to understand recurring patterns, or choose tarot for a specific question. Saju uses birth details; tarot begins with your question and cards. Each guide explains its own method and links to the corresponding tool. Yeoni, Neo and Yeongnyangi offer different reading experiences within the same platform. Public guidance and optional paid consultations are described separately on each service page.",
       "sajuTitle": "Saju & Manseryeok",
       "sajuBody": "We build four pillars from the year, month, day, and hour of birth, then read the balance of the five elements, the ten gods, and the flow of major luck within the heavenly stems and earthly branches — looking at both your innate temperament and the rhythm of the current period.",
       "tarotTitle": "Tarot Reading",
@@ -1672,9 +1672,9 @@
       "libraryNote": "Records are kept in your signed-in account.",
       "searchTitle": "What would you like to read today?",
       "searchHint": "Search by reading name, worry, or a former service name.",
-      "heroTitle": "A little clarity",
-      "heroTitleEm": "for your heart",
-      "heroLead": "Yeoni’s fortune garden",
+      "heroTitle": "Korean Saju & tarot",
+      "heroTitleEm": "for your next step",
+      "heroLead": "Code Destiny · Birth charts, compatibility and a place for your questions",
       "heroPrimary": "Choose a reading",
       "allFortunes": "See all readings",
       "todayTerms": "Free · no sign-in · calculated from your birth-date profile card",
@@ -1799,6 +1799,14 @@
       "profileTitle": "My profile card",
       "cheer": "One small step today. I’m here to cheer you on.",
       "mascotAlt": "Yeoni the flower pig offering a lotus in encouragement"
+    },
+    "globalReading": {
+      "title": "Meet Yeongnyangi, your Korean reading guide",
+      "note": "Start with the question on your mind. Explore Korean Saju, tarot and astrology through a reading shaped around you.",
+      "cta": "Explore personal readings",
+      "arrival": "A quiet moment for the question that matters to you",
+      "recordsTitle": "Before Korea’s political turning point: dated Saju readings",
+      "recordsNote": "Compare earlier published readings about Yoon Suk Yeol and Lee Jae-myung with the events of 2025. Review the dates and original Korean posts for yourself. Past examples do not guarantee future predictions."
     }
   },
   "terms": {
@@ -2109,7 +2117,9 @@
       "usdHint": "International payment · Review USD total before paying",
       "rateNotice": "Converted from the existing KRW price. Exchange rate date: {date} (ECB).",
       "close": "Close and check payment status",
-      "wait": "Approve the payment in PayPal, then check its status here."
+      "wait": "Approve the payment in PayPal, then check its status here.",
+      "internationalLabel": "PayPal · International (USD)",
+      "internationalGuide": "Paying from outside Korea? Choose PayPal and review the USD total before approving. Other methods may require Korean payment details."
     },
     "loader": {
       "eyebrow": "Moonlight payment check",
@@ -6047,7 +6057,7 @@
     "sq_9794_attr_aria_label": "Sukuyo (27 Nakshatras) Relationship Radar Chart"
   },
   "shell": {
-    "CODEDESTINY": "Free Korean Saju, Tarot & Zi Wei Dou Shu | CODE DESTINY",
+    "CODEDESTINY": "Korean Saju, Tarot & Birth Charts | Code Destiny",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "Agree",

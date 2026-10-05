@@ -75,6 +75,14 @@
   filter: drop-shadow(0 15px 22px rgba(119, 31, 68, 0.18));
 }
 
+.summary {
+  max-width: 65ch;
+  margin: 16px 0 0;
+  color: var(--fi-ink);
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
 .content {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

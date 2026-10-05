@@ -1007,7 +1007,7 @@
    * "Translation pending" 을 보게 되고 가드는 초록이다.
    */
   function directPayMethodLabel(id) {
-    if (id === "PAYPAL") return "PayPal";
+    if (id === "PAYPAL") return checkoutText("payment.paypal.internationalLabel", "PayPal · 해외 결제 (USD)");
     if (id === "CARD") return checkoutText("payment.directModal.method.card", "신용카드 · 간편결제");
     if (id === "TRANSFER") return checkoutText("payment.directModal.method.transfer", "실시간 계좌이체");
     if (id === "KAKAOPAY") return checkoutText("payment.directModal.method.kakaopay", "카카오페이");
@@ -1189,6 +1189,8 @@
       + escape(checkoutText("payment.directModal.method.back", "뒤로")) + "</button>"
       + '<p class="cd-direct-payment-method-prompt" id="cdDirectPaymentMethodPrompt">'
       + escape(checkoutText("payment.directModal.method.prompt", "어떤 방법으로 결제할까요?")) + "</p>"
+      + '<p class="cd-direct-payment-method-prompt">'
+      + escape(checkoutText("payment.paypal.internationalGuide", "해외 결제는 PayPal을 선택해 주세요. 승인 전에 USD 금액을 확인할 수 있어요. 다른 수단은 한국 결제 환경에 따라 이용이 제한될 수 있어요.")) + "</p>"
       + '<div class="cd-direct-payment-method-grid" role="group" aria-labelledby="cdDirectPaymentMethodPrompt">'
       + cards + "</div>"
     );

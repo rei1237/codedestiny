@@ -50,7 +50,7 @@
 <!-- 앱(Capacitor) 판별 정본. checkout-entry 와 셸 인라인이 진입 분기에서 읽으므로 그보다 먼저 둔다.
      🔴 defer 금지 — 아래 부팅 게이트(cd-early-runtime-class-hoist)가 파싱 시점에 isApp() 을 부른다. -->
       <script src="/js/core/app-context.js?v=build-bcd47d1d364b"></script>
-      <script src="/js/core/checkout-entry.js?v=build-04bf2832bd55" defer></script>
+      <script src="/js/core/checkout-entry.js?v=build-8a0c30f91e41" defer></script>
 <!-- GA4 측정 ID. 값을 채우면 그 즉시 계측이 켜지고, 비어 있으면 analytics.js 가 통째로 no-op 이다
      (플레이스홀더가 배포돼도 안전하다). 공개 식별자라 소스에 그대로 두어도 된다.
      Next 라우트는 app/layout.js 가 NEXT_PUBLIC_GA_MEASUREMENT_ID 로 같은 전역을 주입한다. -->
@@ -901,7 +901,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <noscript><link rel="stylesheet" href="/styles/fonts-serif.css?v=build-f6348323021d"></noscript>
 <link rel="preload" href="/styles/cosmic-main.css?v=build-85433ecedad9" as="style">
 
-<title>無料 四柱推命・タロット・紫微斗数・相性占い | CODE DESTINY</title>
+<title>四柱推命・宿曜・タロット占い｜Code Destiny</title>
 
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="Code Destiny & 꿀꿀 운세 RSS" data-cd-trans-attr="title:seo.rssTitle" href="https://code-destiny.com/rss.xml">
@@ -924,7 +924,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <link rel="alternate" hreflang="x-default" href="https://code-destiny.com/ggulggul/">
 
 <!-- ═══ SEO: 기본 메타 (한국어 + 다국어 키워드) ═══ -->
-<meta name="description" content="四柱推命、紫微斗数、宿曜占星術、タロットから自分の傾向と選択を見つめる占いサービス。公開解説とAI鑑定の違い、各機能の利用条件をご案内します。"/>
+<meta name="description" content="韓国式四柱推命の命式、宿曜の本命宿と相性、紫微斗数の十二宮を日本語で。占術ごとの見方と必要な入力を確認し、今の悩みに合う占いを選べます。"/>
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <meta name="author" content="박병하">
 <meta name="language" content="Japanese">
@@ -939,20 +939,20 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <!-- ═══ OG 태그 (기본 한국어) ═══ -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="꿀꿀운세">
-<meta property="og:title" content="無料 四柱推命・タロット・紫微斗数・相性占い | CODE DESTINY">
-<meta property="og:description" content="四柱推命、紫微斗数、宿曜占星術、タロットから自分の傾向と選択を見つめる占いサービス。公開解説とAI鑑定の違い、各機能の利用条件をご案内します。">
+<meta property="og:title" content="四柱推命・宿曜・タロット占い｜Code Destiny">
+<meta property="og:description" content="韓国式四柱推命の命式、宿曜の本命宿と相性、紫微斗数の十二宮を日本語で。占術ごとの見方と必要な入力を確認し、今の悩みに合う占いを選べます。">
 <meta property="og:url" content="https://code-destiny.com/ja/">
 <meta property="og:locale" content="ja_JP">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-c327fad9e4e3">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-b43651f23b26">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="ハニーピッグ占い HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード">
 
 <!-- ═══ Twitter Card ═══ -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="無料 四柱推命・タロット・紫微斗数・相性占い | CODE DESTINY">
-<meta name="twitter:description" content="四柱推命、紫微斗数、宿曜占星術、タロットから自分の傾向と選択を見つめる占いサービス。公開解説とAI鑑定の違い、各機能の利用条件をご案内します。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-c327fad9e4e3">
+<meta name="twitter:title" content="四柱推命・宿曜・タロット占い｜Code Destiny">
+<meta name="twitter:description" content="韓国式四柱推命の命式、宿曜の本命宿と相性、紫微斗数の十二宮を日本語で。占術ごとの見方と必要な入力を確認し、今の悩みに合う占いを選べます。">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-b43651f23b26">
 <meta name="twitter:image:alt" content="ハニーピッグ占い HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード">
 <script type="application/ld+json">
 {
@@ -1104,8 +1104,8 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
       "@type": "WebPage",
       "@id": "https://code-destiny.com/ja/#webpage",
       "url": "https://code-destiny.com/ja/",
-      "name": "無料 四柱推命・タロット・紫微斗数・相性占い | CODE DESTINY",
-      "description": "四柱推命、紫微斗数、宿曜占星術、タロットから自分の傾向と選択を見つめる占いサービス。公開解説とAI鑑定の違い、各機能の利用条件をご案内します。",
+      "name": "四柱推命・宿曜・タロット占い｜Code Destiny",
+      "description": "韓国式四柱推命の命式、宿曜の本命宿と相性、紫微斗数の十二宮を日本語で。占術ごとの見方と必要な入力を確認し、今の悩みに合う占いを選べます。",
       "inLanguage": "ja",
       "isPartOf": {
         "@id": "https://code-destiny.com/#website"
@@ -1156,7 +1156,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-c327fad9e4e3",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-b43651f23b26",
       "width": 1200,
       "height": 630
     },
@@ -5568,12 +5568,13 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 .cd-yn-portal-overlay__scene{position:relative;display:grid;justify-items:center;width:min(100%,420px);text-align:center;animation:cdYnPortalArrival .64s cubic-bezier(.16,1,.3,1) both}
 .cd-yn-portal-overlay__moon{width:24px;height:24px;margin-bottom:22px;border-radius:50%;box-shadow:inset 6px -3px #e5c58e;transform:rotate(-20deg)}
 .cd-yn-portal-overlay__portrait{display:block;width:96px;height:112px;padding:5px;overflow:hidden;border:1px solid #bca476;border-radius:52px 52px 12px 12px;background:#21192e}
-.cd-yn-portal-overlay__portrait img{display:block;width:100%;height:100%;object-fit:cover;border-radius:46px 46px 8px 8px}
-.cd-yn-portal-overlay__title{margin:24px 0 8px;font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:clamp(22px,5vw,28px);font-weight:700;line-height:1.5;color:#f3eee5;word-break:keep-all}
+.cd-yn-portal-overlay__portrait img{display:block;width:100%;height:100%;object-fit:contain;border-radius:46px 46px 8px 8px}
+.cd-yn-portal-overlay__title{margin:24px 0 8px;font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:clamp(22px,5vw,28px);font-weight:700;line-height:1.5;color:#f3eee5;word-break:normal;overflow-wrap:anywhere;max-width:100%}
 .cd-yn-portal-overlay__note{margin:0;font-family:var(--font-body,sans-serif);font-size:13px;line-height:1.7;color:#bac9da;word-break:keep-all}
-.cd-yn-portal-overlay__line{width:64px;height:1px;margin-top:26px;background:#bca476}
+.cd-yn-portal-overlay__line{width:64px;height:1px;margin-top:26px;background:#bca476;transform-origin:center;animation:cdYnPortalLine .64s cubic-bezier(.16,1,.3,1) both}
+@keyframes cdYnPortalLine{from{transform:scaleX(.15);opacity:0}to{transform:scaleX(1);opacity:1}}
 @keyframes cdYnPortalVeil{from{opacity:0}40%,to{opacity:1}}
-@keyframes cdYnPortalArrival{0%{opacity:0;transform:translateY(10px)}38%,82%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-4px)}}
+@keyframes cdYnPortalArrival{0%{opacity:0;transform:translateY(10px)}38%,82%{opacity:1;transform:translateY(0)}100%{opacity:1;transform:translateY(0)}}
 @media (max-width:640px){}
 
 @media (prefers-reduced-motion:reduce){.cd-yn-portal-overlay,.cd-yn-portal-overlay *{animation:none!important}.cd-yn-portal-overlay{opacity:1}}
@@ -5601,7 +5602,7 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 .cdh-pass__btn{position:relative;padding-inline-end:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-height:var(--cd-btn-h);border-radius:var(--cd-r-control);background:var(--cd-cta-primary-bg);color:var(--cd-cta-primary-ink)!important;font-weight:800;text-decoration:none}
 :is(html,body).neo-mode .cdh-pass__mascot{background:#2a2242}
 :is(html,body).neo-mode .cdh-pass__badge{color:#1b1233!important}
-.cdh-more{border:1px solid var(--cdh-line);border-radius:24px;background:color-mix(in srgb,var(--cdh-surface) 80%,transparent)}
+.cdh-more{min-width:0;border:1px solid var(--cdh-line);border-radius:24px;background:color-mix(in srgb,var(--cdh-surface) 80%,transparent)}
 .cdh-more__summary{position:relative;isolation:isolate;display:flex;align-items:center;gap:16px;min-height:132px;padding:26px 28px;overflow:hidden;border-radius:23px;list-style:none;cursor:pointer;background:var(--cdh-card);box-shadow:inset 0 0 0 5px var(--cdh-bg),inset 0 0 0 6px color-mix(in srgb,var(--cdh-gold) 26%,transparent)}
 .cdh-more__summary::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,var(--cdh-card) 40%,transparent),var(--cdh-page-art) right 18% / 210px auto no-repeat;opacity:.6;pointer-events:none}
 .cdh-more__summary::-webkit-details-marker{display:none}
@@ -5964,13 +5965,22 @@ html.neo-mode #cdHomeFunnel { --cdh-page-art: url('/images/home/illustrated/moon
 .cdh-chemi__go { display: inline-flex; align-items: center; min-height: 48px; margin-top: 8px; padding: 0 18px; border-radius: 999px; background: #ffd98a; color: #1a1030; font-size: 14px; font-weight: 800; }
 #cdHomeFunnel .cdh-chemi:focus-visible { outline: 2px solid #9fe3ff; outline-offset: 3px; }
 @media (max-width:640px) { #cdHomeFunnel .cdh-chemi { margin: 16px 16px 0; } #cdHomeFunnel .cdh-chemi__art { width: 100%; object-position: 18% 30%; } #cdHomeFunnel .cdh-chemi::after { background: linear-gradient(90deg, rgba(18,11,38,.95) 0%, rgba(18,11,38,.86) 62%, rgba(18,11,38,.5) 100%); } .cdh-chemi__copy { padding: 20px; } .cdh-chemi__copy strong { font-size: 20px; } }
-.cdh-portals { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
+.cdh-portals { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+#cdHomeFunnel .cdh-yn-portal { grid-column: 1 / -1; grid-template-columns: minmax(0,1fr) 38%; min-height: 252px; }
+#cdHomeFunnel .cdh-yn-portal .cdh-portal__copy { max-width: 48rem; }
+#cdHomeFunnel .cdh-yn-portal .cdh-portal__copy strong { font-size: var(--cd-t-display); text-wrap: balance; }
+#cdHomeFunnel .cdh-yn-portal .cdh-portal__copy small { font-size: 1rem; overflow-wrap: anywhere; }
+.cdh-global-records { padding: 24px 0; color: var(--cdh-ink); }
+.cdh-global-records h2 { font-family: var(--font-serif); font-size: var(--cd-t-section); text-wrap: balance; }
+.cdh-global-records p { max-width: 70ch; color: var(--cdh-muted); line-height: 1.75; }
+.cdh-global-records nav { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.cdh-global-records a { display: inline-flex; align-items: center; min-height: 44px; color: var(--cdh-accent); text-decoration: underline; text-underline-offset: .25em; }
 #cdHomeFunnel .cdh-portal { position: relative; display: grid; grid-template-columns: minmax(0,1fr) 43%; min-height: 212px; overflow: hidden; border: 1px solid var(--cdh-line); border-radius: 18px; background: var(--cdh-card); box-shadow: 0 12px 32px -24px var(--cdh-ink); }
 #cdHomeFunnel .cdh-portal.cdh-persona--neo { display: none; }
 html.neo-mode #cdHomeFunnel .cdh-portal.cdh-persona--neo { display: grid; }
 html.neo-mode #cdHomeFunnel .cdh-portal.cdh-persona--yeoni { display: none; }
-.cdh-portal__copy { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 28px; }
-.cdh-portal__copy strong { color: var(--cdh-ink); font-family: 'CodeDestinySerifKR',serif; font-size: 24px; line-height: 1.4; word-break: keep-all; }
+.cdh-portal__copy { min-width: 0; position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 28px; }
+.cdh-portal__copy strong { color: var(--cdh-ink); font-family: 'CodeDestinySerifKR',serif; font-size: 24px; line-height: 1.4; word-break: normal; overflow-wrap: anywhere; }
 .cdh-portal__copy small { color: var(--cdh-muted); font-size: 13px; line-height: 1.7; word-break: keep-all; }
 .cdh-portal__go { display: inline-flex; align-items: center; min-height: 44px; margin-top: auto; color: var(--cdh-accent); font-size: 13px; font-weight: 700; }
 .cdh-portal__art { position: relative; min-width: 0; overflow: hidden; border-radius: 90px 0 0 0; }
@@ -5982,6 +5992,7 @@ html.neo-mode #cdHomeFunnel .cdh-portal.cdh-persona--yeoni { display: none; }
   html.neo-mode #cdHomeFunnel { --cdh-page-art: url('/images/home/illustrated/moon-floral-dark-480.webp'); }
   .cdh-portals { grid-template-columns: minmax(0,1fr); gap: 14px; }
   #cdHomeFunnel .cdh-portal { min-height: 176px; }
+  #cdHomeFunnel .cdh-yn-portal { grid-template-columns: minmax(0,1fr) 30%; }
   .cdh-portal__copy { gap: 7px; padding: 22px 18px; }
   .cdh-portal__copy strong { font-size: 20px; }
   .cdh-more__summary { padding: 24px 20px; }
@@ -9818,7 +9829,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   </section>
   <aside class="cdh-scene-lead"><span data-cd-trans="home.gardenCopy.publicRecordsTitle">10년 경력 명리학자 박병하(네오)의 공개 분석 기록</span> · <a href="/insights/presidential-saju-public-records/" data-cd-trans="home.gardenCopy.publicRecordsLink">날짜·원문·일치 범위 확인하기</a></aside>
   <p class="cdh-scene-lead"><a href="/yeongnyangi/" data-cd-trans="home.gardenCopy.brandOtherEntry">꿀꿀운세 영냥이 사주·타로 →</a></p>
-  <div class="cdh-slot" id="cdhQuickSlot"><section id="cdQuickServices" class="cdh-methods" aria-labelledby="cdQuickTitle" data-cd-funnel-section="quick_services" data-marker="cd-quick-services-fortune-pick-v20260912"><h2 id="cdQuickTitle" tabindex="-1" data-cd-trans="home.gardenCopy.quickTitle">어떤 운세를 볼까요?</h2><div class="cdh-methods-grid"><a class="cdh-method" data-cdh-free href="/saju/" data-action="cdOneStepFreeSajuEntry" data-cd-service-id="saju"><img src="/images/home/illustrated/method-saju-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.saju">사주</strong></a><a class="cdh-method" data-cd-service-id="ziwei" href="/ziwei/chart/" data-action="openZiweiModal"><img src="/images/home/illustrated/method-ziwei-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.ziwei">자미두수</strong></a><a class="cdh-method" data-cd-service-id="sukuyo" href="/sukuyo/" data-action="openSukuyoModal"><img src="/images/home/illustrated/method-sukuyo-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.sukuyo">숙요점</strong></a><a class="cdh-method" data-cd-service-id="vedic" href="/vedic/" data-action="navigateToVedic"><img src="/images/home/illustrated/method-vedic-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.vedic">베다점</strong></a><a class="cdh-method" data-cd-service-id="astrology" href="/astrology/" data-action="openAstroModal"><img src="/images/home/illustrated/method-astrology-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.astrology">점성술</strong></a><a class="cdh-method" data-cd-service-id="tarot" href="/tarot/" data-cd-open-collection="tarotCollection"><img src="/images/home/illustrated/method-tarot-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.tarot">타로</strong><small data-cd-trans="home.gardenCopy.tarotLibrary">타로 라이브러리</small></a></div></section></div>
+  <div class="cdh-slot" id="cdhQuickSlot"><section id="cdQuickServices" class="cdh-methods" aria-labelledby="cdQuickTitle" data-cd-funnel-section="quick_services" data-marker="cd-quick-services-fortune-pick-v20260912"><h2 id="cdQuickTitle" tabindex="-1" data-cd-trans="home.gardenCopy.quickTitle">어떤 운세를 볼까요?</h2><div class="cdh-methods-grid"><a class="cdh-method" data-cdh-free href="/ja/saju/" data-action="cdOneStepFreeSajuEntry" data-cd-service-id="saju"><img src="/images/home/illustrated/method-saju-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.saju">사주</strong></a><a class="cdh-method" data-cd-service-id="ziwei" href="/ja/ziwei/" data-action="openZiweiModal"><img src="/images/home/illustrated/method-ziwei-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.ziwei">자미두수</strong></a><a class="cdh-method" data-cd-service-id="sukuyo" href="/ja/sukuyo/" data-action="openSukuyoModal"><img src="/images/home/illustrated/method-sukuyo-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.sukuyo">숙요점</strong></a><a class="cdh-method" data-cd-service-id="vedic" href="/ja/vedic/" data-action="navigateToVedic"><img src="/images/home/illustrated/method-vedic-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.vedic">베다점</strong></a><a class="cdh-method" data-cd-service-id="astrology" href="/ja/astrology/" data-action="openAstroModal"><img src="/images/home/illustrated/method-astrology-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.astrology">점성술</strong></a><a class="cdh-method" data-cd-service-id="tarot" href="/ja/tarot/" data-cd-open-collection="tarotCollection"><img src="/images/home/illustrated/method-tarot-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.tarot">타로</strong><small data-cd-trans="home.gardenCopy.tarotLibrary">타로 라이브러리</small></a></div></section></div>
   <section class="cdh cdh-services cdh-search" id="cdhServices" aria-labelledby="cdhServicesTitle"><h2 class="cdh-sr-only" id="cdhServicesTitle" data-cd-trans="home.gardenCopy.searchTitle">어떤 운세가 궁금하세요?</h2><section data-cd-funnel-section="finder" class="cd-finder" id="cdFinder" aria-labelledby="cdhServicesTitle" data-marker="cd-finder-v20260819">
 
 <div class="fortune-gateway__discover" id="fortuneGatewayDiscover" data-fortune-gateway-discover>
@@ -9893,7 +9904,11 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   <div class="cdh-flow">
 
     <div class="cdh-portals">
-      <a class="cdh-portal cdh-room-link" href="/fortune-tea-house/">
+      <a class="cdh-portal cdh-yn-portal" href="/yeongnyangi/" data-cd-business-entry="paid" data-cd-portal-link data-cd-portal-placement="home_hero" aria-label="영냥이 상담 둘러보기" data-cd-trans-attr="aria-label:home.globalReading.cta">
+        <span class="cdh-portal__copy"><strong data-cd-trans="home.globalReading.title">영냥이의 달빛 점술방</strong><small data-cd-trans="home.globalReading.note">마음에 남은 질문부터 시작해요. 사주·타로·별자리의 흐름을 나의 이야기로 풀어드려요.</small><span class="cdh-portal__go" data-cd-trans="home.globalReading.cta">영냥이 상담 둘러보기</span></span>
+        <span class="cdh-portal__art" aria-hidden="true"><img class="cdh-portal__scene" src="/images/home/illustrated/yeongnyangi-room-320.webp" width="320" height="451" loading="lazy" decoding="async" alt=""><img class="cdh-portal__character" src="/assets/yeongnyangi/original/hero-480.webp" width="480" height="480" loading="lazy" decoding="async" alt=""></span>
+      </a>
+      <a class="cdh-portal cdh-room-link" href="/ja/fortune-tea-house/">
         <span class="cdh-portal__copy"><strong data-cd-trans="home.gardenCopy.yeoniRoom">운명의 찻집</strong><small data-cd-trans="home.gardenCopy.yeoniRoomNote">연이와 함께 마음을 차근차근 풀어봐요</small><span class="cdh-portal__go" aria-hidden="true">↗</span></span>
         <span class="cdh-portal__art" aria-hidden="true"><img class="cdh-portal__scene" src="/images/home/illustrated/yeoni-room-640.webp" width="1536" height="1024" loading="lazy" decoding="async" alt=""><img class="cdh-portal__character" src="/images/home/illustrated/yeoni-hanbok-240.webp" srcset="/images/home/illustrated/yeoni-hanbok-240.webp 240w, /images/home/illustrated/yeoni-hanbok-480.webp 480w" sizes="(max-width: 640px) 38vw, 250px" width="1024" height="1536" loading="lazy" decoding="async" alt=""></span>
       </a>
@@ -9901,11 +9916,9 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
         <span class="cdh-portal__copy"><strong data-cd-trans="home.gardenCopy.neoRoom">팩폭 전략실</strong><small data-cd-trans="home.gardenCopy.neoRoomNote">네오와 함께 다음 선택을 정리해요</small><span class="cdh-portal__go" aria-hidden="true">↗</span></span>
         <span class="cdh-portal__art" aria-hidden="true"><img class="cdh-portal__scene" src="/images/home/illustrated/neo-room-640.webp" width="1536" height="1024" loading="lazy" decoding="async" alt=""><img class="cdh-portal__character" src="/images/home/illustrated/neo-human-240.webp" srcset="/images/home/illustrated/neo-human-240.webp 240w, /images/home/illustrated/neo-human-480.webp 480w" sizes="(max-width: 640px) 38vw, 250px" width="362" height="540" loading="lazy" decoding="async" alt=""></span>
       </a>
-      <a class="cdh-portal cdh-yn-portal" href="/yeongnyangi/" data-cd-business-entry="paid" data-cd-portal-link data-cd-portal-placement="home_hero" aria-label="영냥이의 달빛 점술방 둘러보기">
-        <span class="cdh-portal__copy"><strong>영냥이의<br>달빛 점술방</strong><small>마음에 남은 질문,<br>고양이에게 살짝.</small><span class="cdh-portal__go">영냥이 만나러 가기 ↗</span></span>
-        <span class="cdh-portal__art" aria-hidden="true"><img class="cdh-portal__scene" src="/images/home/illustrated/yeongnyangi-room-320.webp" width="320" height="451" loading="lazy" decoding="async" alt=""><img class="cdh-portal__character" src="/assets/yeongnyangi/original/hero-480.webp" width="480" height="480" loading="lazy" decoding="async" alt=""></span>
-      </a>
+
     </div>
+<section class="cdh-global-records" aria-labelledby="cdGlobalRecordsTitle"><h2 id="cdGlobalRecordsTitle" data-cd-trans="home.globalReading.recordsTitle">한국의 정치적 전환, 그 전에 남긴 사주 기록</h2><p data-cd-trans="home.globalReading.recordsNote">윤석열·이재명에 대해 미리 공개한 해석과 2025년의 실제 사건을 비교해 보세요. 날짜와 원문을 통해 직접 판단할 수 있어요. 과거 사례가 미래의 적중을 보장하지는 않습니다.</p><nav aria-labelledby="cdGlobalRecordsTitle"><a href="https://blog.naver.com/neosaju/223444062729" target="_blank" rel="noopener noreferrer" lang="en">Yoon Suk Yeol · <time datetime="2024-05-12">2024.05.12</time> ↗</a><a href="https://blog.naver.com/neosaju/223459696339" target="_blank" rel="noopener noreferrer" lang="en">Lee Jae-myung · <time datetime="2024-05-27">2024.05.27</time> ↗</a></nav></section>
     <div class="cdh-slot" id="cdhConcern" tabindex="-1"><div id="cdhConcernSlot"><section data-cd-funnel-section="concern_pick" class="cd-concern" id="cdConcernPick" aria-labelledby="cdConcernPickTitle" data-marker="cd-concern-pick-v20260824">
         <div class="moon-section-head cd-concern__head">
           <span class="moon-section-kicker">START HERE</span>
@@ -9992,7 +10005,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
               </a>
             </li>
             <li class="cd-concern__q">
-              <a class="cd-concern__q-link" href="/fortune-tea-house/" data-cd-question="reunionClosure" data-cd-price-key="fortune-tea-house-tarot-consultation">
+              <a class="cd-concern__q-link" href="/ja/fortune-tea-house/" data-cd-question="reunionClosure" data-cd-price-key="fortune-tea-house-tarot-consultation">
                 <strong class="cd-concern__q-title" data-cd-trans data-key="home.concernPick.q.reunionClosure.t">이 마음, 어떻게 정리하면 좋을까?</strong>
                 <span class="cd-concern__q-sub" data-cd-trans data-key="home.concernPick.q.reunionClosure.s">연이와 카드·사주를 펼치며 지금 고를 수 있는 길을 찾아요</span>
                 <span class="cd-concern__q-badge"><span data-cd-trans data-key="home.concernPick.q.reunionClosure.b">타로·사주 · 운명의 찻집</span> <span class="cd-concern__q-price" data-cd-trans data-key="home.concernPick.price.w5000">5,000원</span></span>
@@ -10081,7 +10094,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
               </a>
             </li>
             <li class="cd-concern__q">
-              <a class="cd-concern__q-link" href="/destiny-compass/" data-cd-question="careerTurn" data-cd-price-key="destiny-compass-life-voyage">
+              <a class="cd-concern__q-link" href="/ja/destiny-compass/" data-cd-question="careerTurn" data-cd-price-key="destiny-compass-life-voyage">
                 <strong class="cd-concern__q-title" data-cd-trans data-key="home.concernPick.q.careerTurn.t">지금 방향을 바꿔도 될까?</strong>
                 <span class="cd-concern__q-sub" data-cd-trans data-key="home.concernPick.q.careerTurn.s">언제 움직이면 무리가 적은지, 무엇부터 정리할지 가늠해요</span>
                 <span class="cd-concern__q-badge"><span data-cd-trans data-key="home.concernPick.q.careerTurn.b">4체계 · 운명의 나침반</span> <span class="cd-concern__q-price" data-cd-trans data-key="home.concernPick.price.w5000">5,000원</span></span>
@@ -10223,7 +10236,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
               <span class="cd-sig-card__cta"><span data-cd-trans="shell.cdSigCardBody.cdSigCardCta.k1nezx6j">비책 열기</span> <i aria-hidden="true">→</i></span>
             </span>
           </a>
-          <a class="cd-sig-card cd-sig-card--featured" data-cd-service-id="fortune-tea-house" href="/fortune-tea-house/" aria-label="연이의 운명 찻집 입장하기" data-cd-trans-attr="aria-label:shell.cdSigGrid.ktlnhmn.ariaLabel" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span>
+          <a class="cd-sig-card cd-sig-card--featured" data-cd-service-id="fortune-tea-house" href="/ja/fortune-tea-house/" aria-label="연이의 운명 찻집 입장하기" data-cd-trans-attr="aria-label:shell.cdSigGrid.ktlnhmn.ariaLabel" data-pvw-paid="true"><span class="cd-yehwa-seal" aria-hidden="true"></span>
             <span class="cd-sig-card__media">
               <img class="cd-sig-card__img" width="1440" height="960" loading="lazy" decoding="async" src="/images/fortune-tea-house/renewal/yeoni-tea-welcome.webp" alt="차를 건네는 꽃돼지 연이" data-cd-trans-attr="alt:shell.yeoniTeaV2.alt">
             </span>
@@ -10275,7 +10288,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
         <div class="cd-pick-why" id="cdPickReason">
           <span class="cd-pick-why__mark" aria-hidden="true">✧</span>
           <p class="cd-pick-why__text"><span data-cd-trans="home.pickWhy.prefix">오늘은</span> <b id="cdPickWhyTitle" data-cd-trans="shell.cdPickReason.cdPickWhyText.kntw327">나크샤트라 결정판</b><span id="cdPickWhyJosa" data-cd-trans-skip>이</span> <span data-cd-trans="home.pickWhy.suffix">가장 잘 맞습니다.</span> <span id="cdPickWhyReason" data-cd-trans="shell.cdPickReason.cdPickWhyText.k1s5m1vr">동양 27수와 인도 나크샤트라를 함께 보면 같은 사주도 훨씬 또렷하게 읽힙니다.</span></p>
-          <a class="cd-pick-why__alt" id="cdPickWhyAlt" href="/fortune-tea-house/"><span data-cd-trans="shell.cdPickWhyAlt.k1d6ftfz">대신 운명의 찻집</span> <i aria-hidden="true">→</i></a>
+          <a class="cd-pick-why__alt" id="cdPickWhyAlt" href="/ja/fortune-tea-house/"><span data-cd-trans="shell.cdPickWhyAlt.k1d6ftfz">대신 운명의 찻집</span> <i aria-hidden="true">→</i></a>
         </div>
 </section></div></div>
     <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot"><section class="cdh-pass" aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
@@ -10426,7 +10439,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
           </div>
           <p class="cd-today__note" id="cdTodayHubNote" hidden></p>
           <div class="cd-today__actions">
-            <a class="cd-today__cta" href="/today/"><img class="cd-today__pig" src="/icons/app-logo-512.webp" width="512" height="512" alt="" decoding="async"><span data-cd-trans data-key="home.todayHub.ctaAll">오늘의 운세 전체 보기</span></a>
+            <a class="cd-today__cta" href="/ja/today/"><img class="cd-today__pig" src="/icons/app-logo-512.webp" width="512" height="512" alt="" decoding="async"><span data-cd-trans data-key="home.todayHub.ctaAll">오늘의 운세 전체 보기</span></a>
             <button class="cd-today__share" type="button" id="cdTodayHubShare" data-cd-trans data-key="home.todayHub.share">공유하기</button>
           </div>
         </div>
@@ -10468,7 +10481,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
           <li><a href="/ziwei-ai/"><span class="cd-ai-feats__glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg></span><strong data-cd-trans data-key="home.nav.aiZiwei">자미두수 전문가 상담</strong><span class="cd-ai-feats__meta" data-cd-trans data-key="home.nav.aiZiweiMeta">12궁 명반 개인 상담</span></a></li>
           <li><a href="/astrology-ai/"><span class="cd-ai-feats__glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><path d="M10.4 21.9a10 10 0 0 0 9.941-15.416"/><path d="M13.5 2.1a10 10 0 0 0-9.841 15.416"/></svg></span><strong data-cd-trans data-key="home.nav.aiAstro">점성술 전문가 상담</strong><span class="cd-ai-feats__meta" data-cd-trans data-key="home.nav.aiAstroMeta">네이탈 차트 심층 문답</span></a></li>
           <li><a href="/vedic-ai/"><span class="cd-ai-feats__glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 5h4"/><path d="M20 3v4"/><path d="M21.364 12.048A9 9 0 1 1 11.952 2.636"/></svg></span><strong data-cd-trans data-key="home.nav.aiVedic">베다점 전문가 상담</strong><span class="cd-ai-feats__meta" data-cd-trans data-key="home.nav.aiVedicMeta">라시·나크샤트라 리딩</span></a></li>
-          <li><a href="/sukuyo-compatibility-ai/"><span class="cd-ai-feats__glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg></span><strong data-cd-trans data-key="home.nav.aiSukuyo">숙요점 궁합 전문가 상담</strong><span class="cd-ai-feats__meta" data-cd-trans data-key="home.nav.aiSukuyoMeta">27숙 관계 상담</span></a></li>
+          <li><a href="/ja/sukuyo-compatibility-ai/"><span class="cd-ai-feats__glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg></span><strong data-cd-trans data-key="home.nav.aiSukuyo">숙요점 궁합 전문가 상담</strong><span class="cd-ai-feats__meta" data-cd-trans data-key="home.nav.aiSukuyoMeta">27숙 관계 상담</span></a></li>
           <li><a href="/karma-destiny-ai/"><span class="cd-ai-feats__glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"/></svg></span><strong data-cd-trans data-key="home.nav.aiKarma">운명의 업</strong><span class="cd-ai-feats__meta" data-cd-trans data-key="home.nav.aiKarmaMeta">카르마·전생 통합 상담</span></a></li>
           <li><a href="/naming-ai/"><span class="cd-ai-feats__glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg></span><strong data-cd-trans data-key="home.nav.aiNaming">전문가 작명소</strong><span class="cd-ai-feats__meta" data-cd-trans data-key="home.nav.aiNamingMeta">이름 풀이 · 작명</span></a></li>
           <li><a class="cd-ai-feats__all" href="#cdServiceIndex" data-cd-service-index-jump="1"><span class="cd-ai-feats__glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span><strong data-cd-trans data-key="home.nav.aiAll">전체 전문가 상담 보기</strong><span class="cd-ai-feats__meta" data-cd-trans data-key="home.nav.aiAllMeta">검색으로 찾기</span></a></li>
@@ -10614,26 +10627,26 @@ return you.name.restore();</span>
              유일한 페이지가 사이트 최상위 페이지를 가리키지 않고 있었다.
              번역은 가능한 한 기존 키를 재사용하고(궁합=compatTitle), 불가피한 5개만 신규로 넣었다
              (신규 키는 12로케일 전부를 요구한다 — ko/ja/zh-cn/zh-tw 실번역, 나머지는 영문). -->
-        <a href="/saju/" data-cd-trans="home.nav.saju">사주</a>
-        <a href="/tarot/" data-cd-trans="home.nav.tarot">타로</a>
-        <a href="/ziwei/" data-cd-trans="home.nav.ziwei">자미두수</a>
-        <a href="/astrology/" data-cd-trans="home.nav.astrology">점성술</a>
-        <a href="/sukuyo/" data-cd-trans="home.nav.sukuyo">숙요점</a>
-        <a href="/vedic/" data-cd-trans="home.nav.vedic">베다점</a>
+        <a href="/ja/saju/" data-cd-trans="home.nav.saju">사주</a>
+        <a href="/ja/tarot/" data-cd-trans="home.nav.tarot">타로</a>
+        <a href="/ja/ziwei/" data-cd-trans="home.nav.ziwei">자미두수</a>
+        <a href="/ja/astrology/" data-cd-trans="home.nav.astrology">점성술</a>
+        <a href="/ja/sukuyo/" data-cd-trans="home.nav.sukuyo">숙요점</a>
+        <a href="/ja/vedic/" data-cd-trans="home.nav.vedic">베다점</a>
         <a href="/nakshatra/" data-cd-trans="home.nav.nakshatra">나크샤트라</a>
         <a href="/manse/" data-cd-trans="home.homeGuide.linkManse">만세력</a>
-        <a href="/compatibility/" data-cd-trans="home.homeGuide.compatTitle">궁합</a>
+        <a href="/ja/compatibility/" data-cd-trans="home.homeGuide.compatTitle">궁합</a>
         <a href="/love/" data-cd-trans="home.homeGuide.linkLove">연애운</a>
         <a href="/dream/" data-cd-trans="home.homeGuide.linkDream">꿈해몽</a>
         <a href="/physiognomy/" data-cd-trans="home.homeGuide.linkPhysiognomy">관상</a>
-        <a href="/insights/" data-cd-trans="home.homeGuide.linkInsights">운세 인사이트</a>
+        <a href="/ja/insights/" data-cd-trans="home.homeGuide.linkInsights">운세 인사이트</a>
         <a href="/insights/famous-saju/" data-cd-trans="home.homeGuide.linkFamous">유명인 사주</a>
         <a href="/guides/" data-cd-trans="home.homeGuide.linkGuideHub">운세 가이드</a>
         <a href="/saju/guide/" data-cd-trans="home.homeGuide.linkSajuGuide">사주 입문 가이드</a>
         <a href="/tarot/guide/" data-cd-trans="home.homeGuide.linkTarotGuide">타로 가이드</a>
         <a href="/ja/faq/" data-cd-trans="home.homeGuide.linkFaq">자주 묻는 질문</a>
         <a href="/ja/about/" data-cd-trans="home.homeGuide.linkAbout">서비스 소개</a>
-        <a href="/fortune/" data-cd-trans="home.homeGuide.linkFortuneHub">띠·별자리 운세</a>
+        <a href="/ja/fortune/" data-cd-trans="home.homeGuide.linkFortuneHub">띠·별자리 운세</a>
         <a href="/saju/monthly/2026-09/" aria-label="2026년 9월 일간별 운세">일간별 월간 운세</a>
         <a href="/fortune/date/" aria-label="최근 30일 띠별 날짜 운세">날짜별 띠 운세</a>
         <a href="/stories/" data-cd-trans="home.homeGuide.linkStories">연이의 운명 노벨</a>
@@ -15295,7 +15308,7 @@ html.neo-mode body .cd-pick-why__alt:focus-visible{outline-color:#c4b5fd}
         <span class="moon-preview-card__name" data-cd-trans="shell.featureBegin.moonPreviewCard.k79pfmc">나크샤트라</span>
         <span class="moon-preview-card__meta" data-cd-trans="shell.featureBegin.moonPreviewCard.kry6axn">27수 달자리</span>
       </a>
-      <a class="moon-preview-card moon-collection-nav__link" href="/psychotest/" aria-label="심리테스트 바로가기" data-cd-trans-attr="aria-label:shell.featureBegin.k1rbp4zc.ariaLabel">
+      <a class="moon-preview-card moon-collection-nav__link" href="/ja/psychotest/" aria-label="심리테스트 바로가기" data-cd-trans-attr="aria-label:shell.featureBegin.k1rbp4zc.ariaLabel">
         <span class="moon-preview-card__sigil" aria-hidden="true">🧠</span>
         <span class="moon-preview-card__name" data-cd-trans="shell.featureBegin.moonPreviewCard.k53h7ds">심리테스트</span>
         <span class="moon-preview-card__meta" data-cd-trans="shell.featureBegin.moonPreviewCard.k1ujvbvb">가볍게 마음 보기</span>
@@ -17257,7 +17270,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu/"
                    aria-label="핀란드 주석점 시작" data-cd-trans-attr="aria-label:home.tiles.sikojenAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-c327fad9e4e3" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-b43651f23b26" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
@@ -17610,7 +17623,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 
                 <!-- 인생의 나침반 — 대표 운명 상담 섹션에서 이관(v20260729). 신규 data-cd-trans 키는 12로케일 전부 필요해 붙이지 않는다. -->
                 <a class="tarot-tile prem-card tarot-tile--destiny-compass pvc-prem-card"
-                        href="/destiny-compass/"
+                        href="/ja/destiny-compass/"
                         data-cd-marker="destiny-compass-vvip-card-v20260729"
                         aria-label="인생의 나침반 — 사주·자미두수로 지금 나아갈 방향을 잡는 길잡이" data-cd-trans-attr="aria-label:shell.premiumVvipCollection.featCollectionGrid.kkn0c7c.ariaLabel">
                   <div class="tarot-tile__img-wrap" data-img-src="/feature-details/assets/destiny-compass-320.webp" data-img-alt="인생의 나침반 — 네오와 연이가 사주·자미두수로 나아갈 방향을 잡아주는 길잡이">
@@ -17688,7 +17701,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                 </a>
 
                                 <a class="tarot-tile prem-card tarot-tile--sukyo-premium pvc-prem-card"
-                        href="/sukuyo-compatibility-ai/"
+                        href="/ja/sukuyo-compatibility-ai/"
                         data-coin-cost="300"
                         data-feature-key="sukuyo-compatibility-ai"
                         data-service-detail-href="/sukuyo-compatibility-ai/"
@@ -19741,7 +19754,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 
       <div class="fortune-lead-magnet-cta" style="margin-top:1.5rem; text-align:center; padding-top:1.25rem; border-top:1px solid rgba(255,255,255,0.1);">
         <p style="font-size:0.875rem; color:#94A3B8; margin-bottom:0.75rem;" data-cd-trans="shell.dailyFortuneCard.fortuneLeadMagnetCta.k1kuwldz">✨ 재물·애정·직장·건강 테마별 정밀 풀이와 시간대별 가이드를 확인하세요.</p>
-        <a href="/today/" class="cd-btn-today-pulse" style="display:inline-flex; align-items:center; justify-content:center; gap:0.5rem; background:linear-gradient(135deg, #f59e0b, #8b5cf6); color:#fff; font-weight:800; font-size:0.95rem; padding:0.75rem 1.75rem; border-radius:9999px; text-decoration:none; box-shadow:0 10px 25px -5px rgba(139,92,246,0.5); transition:all 0.3s ease;">
+        <a href="/ja/today/" class="cd-btn-today-pulse" style="display:inline-flex; align-items:center; justify-content:center; gap:0.5rem; background:linear-gradient(135deg, #f59e0b, #8b5cf6); color:#fff; font-weight:800; font-size:0.95rem; padding:0.75rem 1.75rem; border-radius:9999px; text-decoration:none; box-shadow:0 10px 25px -5px rgba(139,92,246,0.5); transition:all 0.3s ease;">
           <span data-cd-trans="shell.fortuneLeadMagnetCta.cdBtnTodayPulse.k1715eae">오늘의 운세 전체보기 리포트 →</span>
         </a>
       </div>
@@ -20736,7 +20749,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         <a class="cd-footer-link" href="/tarot/mingri/" data-cd-trans="footer.svc.tarot">타로</a>
         <a class="cd-footer-link" href="/ziwei/chart/" data-cd-trans="footer.svc.ziwei">자미두수</a>
         <a class="cd-footer-link" href="/astrology/cosmic/" data-cd-trans="footer.svc.astrology">점성술·숙요·베다</a>
-        <a class="cd-footer-link" href="/today/" data-cd-trans="footer.svc.daily">오늘의 운세</a>
+        <a class="cd-footer-link" href="/ja/today/" data-cd-trans="footer.svc.daily">오늘의 운세</a>
       </nav>
       <nav class="cd-footer-col" aria-label="전문가 상담 링크" data-cd-trans-attr="aria-label:shell.wrap.cdFooterShell.k1lyzj38.ariaLabel">
         <strong class="cd-footer-col__title" data-cd-trans="home.nav.aiConsult">전문가 상담</strong>
@@ -20756,7 +20769,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         <a class="cd-footer-link" href="/ja/faq/" data-cd-trans="footer.links.faq">자주 묻는 질문</a>
         <a class="cd-footer-link" href="/ja/contact/" data-cd-trans="footer.links.contact">문의하기</a>
         <a class="cd-footer-link" href="/saju/guide/" data-cd-trans="footer.support.guide">이용 가이드</a>
-        <a class="cd-footer-link" href="/insights/" data-cd-trans="footer.support.insights">운세 인사이트</a>
+        <a class="cd-footer-link" href="/ja/insights/" data-cd-trans="footer.support.insights">운세 인사이트</a>
       </nav>
       <nav class="cd-footer-col cd-footer-col--guides" aria-label="기능 가이드 링크" data-cd-trans-attr="aria-label:shell.wrap.cdFooterShell.ki07z7y.ariaLabel">
         <strong class="cd-footer-col__title" data-cd-trans="footer.groups.guides">기능 가이드</strong>
@@ -20872,7 +20885,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 <script defer src="/js/core/service-registry.js?v=build-a3ca68c281ac" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-df038725a76f" data-marker="cd-home-service-finder-v20260819"></script>
 <script defer src="/js/core/shell-sheet.js?v=build-4af43b6a03e3"></script>
-<script defer src="/js/core/home-funnel.js?v=build-d00d75650755"></script>
+<script defer src="/js/core/home-funnel.js?v=build-57221138010f"></script>
 <script defer src="/js/mobile-interaction-patch.js?v=build-8ce3e6040804" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-3696b77fdaf6" data-cd-mobile-delay="1"></script>
@@ -21004,7 +21017,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             content: {
               title: tr('kakaoReferral.kakaoTitle', 'Code Destiny 별빛 운세 초대'),
               description: tr('kakaoReferral.kakaoDescription', '이 카카오 공유 링크로 친구를 초대할 수 있어요.'),
-              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-c327fad9e4e3',
+              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-b43651f23b26',
               link: { mobileWebUrl: shareUrl, webUrl: shareUrl }
             },
             buttons: [
@@ -34389,7 +34402,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-c327fad9e4e3',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-b43651f23b26',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['20,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'20,000원 · 전문가 상담',ct:'paid',img:'https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp',fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:'/fuctionassets/naming.webp',fallbackCta:'작명 시작하기'},
@@ -34434,7 +34447,7 @@ function updateBadge() {
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',fallbackTitle:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'5,000원',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',fallbackTitle:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'5,000원',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',fallbackTitle:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎의 징조를 살폈습니다 — 왕실의 찻잎 문양이 오늘의 운명을 전합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'3,000원',ct:'paid',img:'/fuctionassets/london.webp'},
-    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-c327fad9e4e3'},
+    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-b43651f23b26'},
     '/destiny-poker.html':{cat:'데스티니 포커',fallbackTitle:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',fallbackTitle:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🔒 잠금 해제 10,000원',ct:'paid',img:'/fuctionassets/love code.webp'},
     openAstroModal:{cat:'점성술 · 기본 출생차트',fallbackTitle:'✨ 서양 점성술 기본 출생차트',tagline:'태양 별자리·달 별자리·상승궁과 MC로 나를 이해하는 5분 기본 리딩입니다.',feats:['출생 정보 신뢰도와 계산 기준 표시','태양 별자리·달 별자리·상승궁 3축 통합 해석','MC·10하우스·6하우스 기반 역할 조건','상대 차트 교차 분석은 시너스트리 궁합으로 확장'],cost:'✨ 기본 무료 · 시너스트리 궁합 3,000원',ct:'free',img:'/fuctionassets/jumsung.webp'},

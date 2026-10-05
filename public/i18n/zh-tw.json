@@ -11,7 +11,7 @@
     "homeGuide": {
       "kicker": "FORTUNE GUIDE",
       "title": "四柱八字·塔羅·運勢的解讀方法",
-      "lead": "Code Destiny 是一個韓語占卜平台，只需生日與出生時間，即可在一處查看四柱八字、塔羅、紫微斗數、西洋與吠陀占星、宿曜及合盤。為了讓初次接觸的人也能理清脈絡，我們簡要整理了每種占卜看什麼、怎麼讀。所有解讀都是幫助自我省察、整理當下選擇的參考資料，而非斷定未來的預言。",
+      "lead": "Code Destiny提供四柱八字、紫微斗數、宿曜、西洋占星、吠陀占星與塔羅的繁體中文入口。想了解長期的性格與選擇模式，可以從出生資訊對應的命盤開始；想梳理某個具體問題，可以選擇塔羅。八字需要出生資料，塔羅從問題與牌面出發，兩者不能套用同一解釋。每個介紹頁說明本體系的閱讀方法，並連結相應工具。妍伊、Neo與Yeongnyangi提供同一平台內不同風格的諮詢體驗。公開功能和可選付費諮詢的範圍，以對應服務頁說明為準。",
       "sajuTitle": "四柱八字·萬年曆",
       "sajuBody": "以出生的年、月、日、時立四柱，解讀天干地支中五行的平衡、十神與大運的流向。既看與生俱來的氣質，也看當前時期的節奏。",
       "tarotTitle": "塔羅解讀",
@@ -1672,9 +1672,9 @@
       "libraryNote": "紀錄保存在已登入的帳戶中。",
       "searchTitle": "你想看什麼運勢？",
       "searchHint": "可按運勢名稱、煩惱或舊服務名搜尋。",
-      "heroTitle": "今天的心事",
-      "heroTitleEm": "一起慢慢理清",
-      "heroLead": "花豬妍伊的運勢花園",
+      "heroTitle": "四柱八字與塔羅",
+      "heroTitleEm": "理清自己的下一步",
+      "heroLead": "Code Destiny · 紫微命盤、宿曜關係與個人問題解讀",
       "heroPrimary": "選擇運勢",
       "allFortunes": "查看全部運勢",
       "todayTerms": "免費 · 無需登入 · 依出生日期資料卡計算",
@@ -1799,6 +1799,14 @@
       "profileTitle": "我的檔案卡",
       "cheer": "今天也邁出一小步，我會為你加油。",
       "mascotAlt": "捧著蓮花為你加油的花豬妍伊"
+    },
+    "globalReading": {
+      "title": "靈喵的月光占卜室",
+      "note": "從你在意的問題出發，用四柱命理、塔羅與占星，梳理屬於你的生活脈絡。",
+      "cta": "查看個人解讀",
+      "arrival": "循著月光，走近你心中的問題",
+      "recordsTitle": "韓國政局轉折前公開的命理紀錄",
+      "recordsNote": "對照尹錫悅、李在明的早期公開解讀與2025年的實際事件。請查看日期與韓文原文，自行判斷。過往案例不保證未來預測準確。"
     }
   },
   "terms": {
@@ -2109,7 +2117,9 @@
       "usdHint": "海外付款 · 付款前確認美元金額",
       "rateNotice": "按現有韓元價格換算。匯率日期：{date} (ECB)。",
       "close": "關閉並查看付款狀態",
-      "wait": "在PayPal中核准付款後，在此查看付款狀態。"
+      "wait": "在PayPal中核准付款後，在此查看付款狀態。",
+      "internationalLabel": "PayPal · 國際付款（USD）",
+      "internationalGuide": "在韓國以外付款？請選擇PayPal，授權前可確認美元總額。其他方式可能需要韓國當地付款資料。"
     },
     "loader": {
       "eyebrow": "月光付款確認",
@@ -6047,7 +6057,7 @@
     "sq_9794_attr_aria_label": "宿曜姻緣雷達圖"
   },
   "shell": {
-    "CODEDESTINY": "CODE DESTINY | 免費四柱八字·塔羅·紫微斗數·合婚 — 運勢",
+    "CODEDESTINY": "八字排盤·紫微斗數·塔羅占卜｜Code Destiny",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "同意",

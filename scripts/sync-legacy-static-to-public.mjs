@@ -1,4 +1,5 @@
 import { brandCopy } from '../lib/seo/brand-copy.mjs';
+import { localizeHubLinks } from '../lib/i18n/localized-hub-links.mjs';
 import { syncSajuReadingPrices, syncYeongnyangiFishPrices } from './lib/sync-saju-reading-prices.mjs';
 /**
  * Copies root static assets → public/ (Cloudflare / static hosting).
@@ -469,9 +470,9 @@ const LOCALE_SHELL_SEO = {
     lang: "ja",
     ogLocale: "ja_JP",
     language: "Japanese",
-    title: "無料占い | 四柱推命・タロット・相性・今日の運勢 — CODE DESTINY",
+    title: "四柱推命・宿曜・タロット占い｜Code Destiny",
     description:
-      "四柱推命、紫微斗数、宿曜占星術、タロットから自分の傾向と選択を見つめる占いサービス。公開解説とAI鑑定の違い、各機能の利用条件をご案内します。",
+      "韓国式四柱推命の命式、宿曜の本命宿と相性、紫微斗数の十二宮を日本語で。占術ごとの見方と必要な入力を確認し、今の悩みに合う占いを選べます。",
     keywords:
       "四柱推命 無料, 占い 無料, タロット占い 無料, 今日の運勢, 相性占い, 紫微斗数, 宿曜占星術, 誕生日占い, 恋愛占い, 韓国 占い, 無料鑑定",
     appTitle: "Ggulggul Fortune",
@@ -483,9 +484,9 @@ const LOCALE_SHELL_SEO = {
     lang: "zh-CN",
     ogLocale: "zh_CN",
     language: "Chinese",
-    title: "免费算命 | 八字·塔罗·紫微斗数·今日运势 — CODE DESTINY",
+    title: "八字排盘·紫微斗数·塔罗占卜｜Code Destiny",
     description:
-      "通过四柱命理、紫微斗数、宿曜占星术与塔罗认识自己的行为和关系。阅读公开解说，了解AI解读的用途与局限，并在各功能页面确认使用条件。",
+      "从四柱八字、紫微斗数十二宫到宿曜关系与塔罗问题解读。用简体中文了解不同体系的输入与看盘顺序，选择适合自己的命盘或咨询入口。",
     keywords:
       "免费算命, 八字算命, 生辰八字, 塔罗牌占卜, 今日运势, 合婚配对, 紫微斗数, 宿曜占星, 星座运势, 姻缘测算",
     appTitle: "Ggulggul Fortune",
@@ -499,9 +500,9 @@ const LOCALE_SHELL_SEO = {
     lang: "zh-TW",
     ogLocale: "zh_TW",
     language: "Chinese",
-    title: "免費算命 | 八字·塔羅·紫微斗數·今日運勢 — CODE DESTINY",
+    title: "八字排盤·紫微斗數·塔羅占卜｜Code Destiny",
     description:
-      "透過四柱命理、紫微斗數、宿曜占星術與塔羅認識自己的行為和關係。閱讀公開解說，了解AI解讀的用途與局限，並在各功能頁面確認使用條件。",
+      "從四柱八字、紫微斗數十二宮到宿曜關係與塔羅問題解讀。用繁體中文了解不同體系的輸入與看盤順序，選擇適合自己的命盤或諮詢入口。",
     keywords:
       "免費算命, 八字算命, 生辰八字, 塔羅牌占卜, 今日運勢, 合婚配對, 紫微斗數, 宿曜占星, 星座運勢, 姻緣測算",
     appTitle: "Ggulggul Fortune",
@@ -513,9 +514,9 @@ const LOCALE_SHELL_SEO = {
     lang: "en",
     ogLocale: "en_US",
     language: "English",
-    title: "Free Fortune Telling | Saju, Tarot & Daily Horoscope — CODE DESTINY",
+    title: "Korean Saju, Tarot & Birth Charts | Code Destiny",
     description:
-      "Explore Saju, tarot, Zi Wei Dou Shu and Sukuyo for self-reflection. Read public guides and understand AI readings, their limits and each feature’s access terms.",
+      "Explore Korean Saju, Zi Wei Dou Shu, Sukuyo and tarot in English. Compare traditions, check birth-chart inputs and choose a reading for your question.",
     keywords:
       "free fortune telling, saju reading, four pillars of destiny, free tarot reading, daily horoscope, zi wei dou shu, compatibility test, korean astrology, birth chart",
     appTitle: "Ggulggul Fortune",
@@ -654,6 +655,7 @@ function applyShellPageIdentity(indexHtml, canonicalUrl) {
 function applyLocaleSeoMeta(indexHtml, localePath) {
   const seo = LOCALE_SHELL_SEO[localePath];
   if (!seo) return indexHtml;
+  indexHtml = localizeHubLinks(indexHtml, localePath.slice(1));
   const dictionary = JSON.parse(stripLeadingBom(readFileSync(resolve(publicDir, "i18n", seo.dictionaryFile))).toString("utf8"));
   const profileHeading = dictionary.home?.svcFinder?.profileHeading;
   if (profileHeading) indexHtml = indexHtml.replace(/content:\s*"마이 데스티니"/g, `content:${JSON.stringify(profileHeading)}`);
