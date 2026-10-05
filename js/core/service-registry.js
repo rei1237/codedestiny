@@ -43,6 +43,7 @@
  *   badge      결과 카드 배지
  *   roles      홈 배치 역할 — 'quick' | 'recommended'
  *   quickCollection  빠른 선택에서 개별 서비스 대신 여는 기존 컬렉션 ID
+ *   quickHref  빠른 선택의 JS 없는 허브 링크. action/quickCollection 동작은 유지한다.
  */
 window.__cdServiceRegistryMeta = {
   purposes: ["love", "money", "career", "family", "life", "today", "compatibility", "self", "etc"],
@@ -340,6 +341,7 @@ window.__cdServiceRegistry = [
   /* ── 운세 체계 허브 (무료 진입) ──────────────────────────────── */
   {
     id: "saju",
+    quickHref: "/saju/",
     name: "사주",
     question: "나는 어떤 결의 사람일까?",
     desc: "사주팔자로 보는 삶의 큰 흐름",
@@ -353,6 +355,7 @@ window.__cdServiceRegistry = [
   },
   {
     id: "tarot",
+    quickHref: "/tarot/",
     name: "타로",
     question: "지금 내 마음은 어떤 상태일까?",
     desc: "카드가 전하는 지금의 마음과 선택",
@@ -368,6 +371,7 @@ window.__cdServiceRegistry = [
   },
   {
     id: "ziwei",
+    quickHref: "/ziwei/chart/",
     name: "자미두수",
     question: "나에게 맞는 돈 버는 방식은 뭘까?",
     desc: "별자리 궁위로 보는 재물과 직업",
@@ -380,6 +384,7 @@ window.__cdServiceRegistry = [
   },
   {
     id: "sukuyo",
+    quickHref: "/sukuyo/",
     name: "숙요점",
     question: "이 사람과는 어떤 거리의 인연일까?",
     desc: "숙요로 보는 삶의 리듬",
@@ -394,6 +399,7 @@ window.__cdServiceRegistry = [
   },
   {
     id: "vedic",
+    quickHref: "/vedic/",
     name: "베다점",
     question: "지금의 변화는 우연일까, 전환점일까?",
     desc: "베다 점성술로 보는 운명의 지도",
@@ -406,6 +412,7 @@ window.__cdServiceRegistry = [
   },
   {
     id: "astrology",
+    quickHref: "/astrology/",
     name: "점성술",
     question: "나는 왜 이런 사람에게 끌릴까?",
     desc: "별자리로 보는 나와 관계의 흐름",
