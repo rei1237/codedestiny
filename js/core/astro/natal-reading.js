@@ -3,7 +3,10 @@
  * Houses are Placidus from chart.houseCuspsLon (whole sign from the ASC only when the cusps are missing).
  * Rulers are traditional so the chart's lord stays personal instead of becoming a generational planet.
  * Without a birth time every house, ASC, MC, sect, profection and firdaria claim is left out. */
-(function (root) {
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.AstroNatalReading = factory();
+})(typeof window !== 'undefined' ? window : globalThis, function () {
   'use strict';
   var SIGN = ['양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리', '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'];
   var ELEMENTS = ['fire', 'earth', 'air', 'water'];
@@ -1337,7 +1340,7 @@
     return out;
   }
 
-  root.AstroNatalReading = {
+  return {
     build: build,
     legacyPeriods: legacyPeriods,
     render: render,
@@ -1353,4 +1356,4 @@
     ensureGlyphSprite: ensureGlyphSprite,
     _calc: { SIGN: SIGN, KO: KO, RULER: RULER, dignity: dignity, houseOf: houseOf, aspectsOf: aspectsOf, degText: degText, jo: jo, contrast: contrast, fill: fill, SIGN_STYLE: SIGN_STYLE, PROF: PROF, HOUSE_ARENA: HOUSE_ARENA }
   };
-})(typeof window !== 'undefined' ? window : globalThis);
+});
