@@ -1,8 +1,9 @@
-# 꿀꿀 운세 (코드데스티니)
+# 꿀꿀운세 (코드데스티니)
 
 > 생년월일과 태어난 시각을 입력하면 사주·자미두수·숙요점·베다 점성술·서양 점성술·타로 여섯 체계로 운세를 읽어 주는 한국어 웹 서비스입니다. 각 체계를 그 체계의 기준으로 해석하고, 무료 기본 결과와 선택형 유료 AI 상담의 범위는 각 안내 페이지에서 구분합니다.
 
-- 사이트: https://code-destiny.com/
+- 꿀꿀운세 연이·네오 공식 입구: https://code-destiny.com/ggulggul/
+- 꿀꿀운세 영냥이 공식 입구: https://code-destiny.com/yeongnyangi/
 - 다른 이름: CODE DESTINY, Code Destiny, CodeDestiny, code-destiny, 코드데스티니, 코드 데스티니, CODEDESTINY, 꿀꿀운세, 꿀꿀 운세, 꿀꿀만세력, 꿀꿀 만세력
 - 운영자: 박병하(네오). 공개 분석 활동: https://blog.naver.com/neosaju · 소개: https://code-destiny.com/about/#author
 - 공식 서비스 블로그: https://blog.naver.com/goodbyejieun
@@ -50,6 +51,20 @@
 ## 브랜드
 
 - [꿀꿀 운세 브랜드 안내](https://code-destiny.com/kkul-kkul-unse/): Code Destiny와 꿀꿀운세, 꽃돼지 캐릭터 브랜드의 관계와 제공 서비스를 안내합니다.
+
+## 운영자와 공개 분석 기록
+원문 분석: 박병하(네오) · 10년 경력 명리학자. 이 비교 문서의 정리: Code Destiny 편집팀.
+- 기록 정본: https://code-destiny.com/insights/presidential-saju-public-records/
+확인일 2026-10-05. 아래 공개일은 현재 네이버 원문에 표시된 날짜입니다. 사건 전에 보존된 독립 웹 아카이브나 수정 이력은 확보하지 못했습니다. 따라서 현재 읽을 수 있는 본문이 게시 당시와 글자까지 같았다고 증명하지는 않습니다.
+2024-05-12부터 2025-04-04까지는 327일입니다. 따라서 이 항목을 사건 1년 전의 기록이라고 늘려 표현하지 않습니다. 2022년 글은 더 앞선 날짜가 표시되어 있지만, 정치계 변화라는 넓은 문장을 정확한 파면 날짜의 예고로 좁혀 읽지 않습니다.
+세 글 모두를 방식까지 맞혔다고 표현하지 않습니다. 특히 2024-05-27 글의 혁명이라는 방식과 실제 조기 선거는 일치하지 않습니다. 연도 언급과 방식은 표에서 따로 판정했습니다.
+
+## 직접 공개하는 1차 자료와 인용 기준
+- 현재 계산 기준과 가상 입력의 실제 어댑터 결과: https://code-destiny.com/insights/how-we-calculate-saju/
+- 23시·자정 경계의 입력과 네 기둥 비교: https://code-destiny.com/insights/midnight-birth-day-pillar/
+- 같은 출생정보의 두 체계 비교: https://code-destiny.com/compare/saju-vs-ziwei/
+- 분석 원문은 해당 공개자의 기록이며 실제 사건의 근거는 연결된 헌법재판소·선거관리위원회 자료입니다. 사이트의 회고 비교와 원문 분석을 구분해 인용하세요.
+인용에는 문서 제목·정본 URL·확인일을 함께 표시해 주세요. 계산 예시는 문화적 해석의 적중률을 검증한 자료가 아닙니다. 데이터 수정 시 본문과 변경일을 함께 고치며, 계산 예시의 값은 어댑터 검증으로 대조합니다. 날짜 운세는 해당 URL의 기준일을, 개인 상담 범위와 가격은 현재 서비스 안내를 확인하세요.
 
 ## 이용
 

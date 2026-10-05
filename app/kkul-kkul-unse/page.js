@@ -75,7 +75,7 @@ const FAQS = [
   {
     question: "꿀꿀 운세가 무엇인가요?",
     answer:
-      "꿀꿀 운세는 코드 데스티니(code-destiny.com)의 브랜드명으로, 생년월일 하나로 사주팔자·타로·궁합·신년운세를 무료로 볼 수 있는 서비스입니다.",
+      brandCopy('brandLead'),
   },
   {
     question: "꿀꿀 만세력과 꿀꿀 운세의 차이는?",
@@ -85,7 +85,7 @@ const FAQS = [
   {
     question: "꿀꿀 운세에서 어떤 운세를 볼 수 있나요?",
     answer:
-      "사주팔자와 만세력, 타로, 궁합, 자미두수, 숙요점, 점성술, 베다 점성술, 꿈해몽을 봅니다. 생년월일 하나면 대부분의 기본 해석을 무료로 확인할 수 있습니다.",
+      brandCopy('systemsScope'),
   },
   {
     question: "코드 데스티니와 꿀꿀 운세는 같은 곳인가요?",
@@ -143,7 +143,7 @@ const webPageJsonLd = {
     "@type": "WebSite",
     "@id": "https://code-destiny.com/#website",
     // 🔴 같은 @id 의 WebSite 다. lib/seo/siteSeo.ts 의 brandName 과 같아야 한다.
-    name: "꿀꿀 운세",
+    name: siteSeo.brandName,
     url: "https://code-destiny.com",
   },
   about: {
