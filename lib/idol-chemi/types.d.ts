@@ -91,6 +91,16 @@ export interface ChemiInput {
   referenceDate: string;
 }
 
+export type ChemiScoreAxis = "emotion" | "excitement" | "stability" | "fanBias" | "longTerm" | "communication";
+
+/** 6축 세부 점수 + 총점(40~99) + 등급. 서버·클라이언트가 같은 명식·신호로 계산한다. */
+export type ChemiScore = Readonly<Record<ChemiScoreAxis, number>> & {
+  readonly total: number;
+  readonly grade: string;
+  readonly gradeTitle: string;
+  readonly pairingTitle: string;
+};
+
 export interface ChemiResult {
   engineVersion: string;
   rulesVersion: string;
@@ -103,7 +113,10 @@ export interface ChemiResult {
   chemiTypeRuleKo: string;
   matchedSignalKeys: readonly string[];
   signalStrength: SignalStrength;
-  chemiIndex: null;
+  scoreVersion: string;
+  /** score.total 과 같다. */
+  chemiIndex: number;
+  score: ChemiScore;
   signals: readonly ChemiSignal[];
   dataGaps: readonly string[];
   minorMode: boolean;

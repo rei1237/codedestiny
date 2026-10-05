@@ -326,7 +326,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
                   <BookOpen size={14} /> 영냥이의 방 · 프롤로그
                 </span>
                 <strong>
-                  운명을 읽던 사람이 고양이가 된 밤. <br />영냥이의 가상 이야기
+                  대통령의 운세를 읽었던 네오. <br />이제는 네 이야기를 듣는다.
                 </strong>
                 <span className="text-link">
                   그날의 이야기 <ArrowRight size={15} />

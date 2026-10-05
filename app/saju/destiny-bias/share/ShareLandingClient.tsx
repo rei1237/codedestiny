@@ -13,6 +13,10 @@ type PublicShare = {
   chemiTypeNameKo: string;
   chemiTypeShortKo: string;
   oneLiner: string;
+  /** 서버 재계산 점수. 점수 도입 전에 만든 공유는 null. */
+  score: number | null;
+  grade: string | null;
+  gradeTitle: string | null;
   partner: { kind: "roster" | "preset"; id: string; displayName: string; groupLabel: string };
   nicknameDisplay: string | null;
   minorMode: boolean;
@@ -142,6 +146,13 @@ export default function ShareLandingClient() {
             <img src={typeSymbolSrc(share.chemiTypeId)} alt="" width={120} height={120} decoding="async" aria-hidden />
             <p className={styles.typeShort}>{share.chemiTypeShortKo}</p>
             <p className={styles.landingType}>{share.chemiTypeNameKo}</p>
+            {typeof share.score === "number" ? (
+              <p className={styles.landingGroup}>
+                <strong>{share.score}점</strong>
+                {share.grade ? ` · ${share.grade}` : ""}
+                {share.gradeTitle ? ` ${share.gradeTitle}` : ""}
+              </p>
+            ) : null}
             <p className={styles.landingOneLiner}>{share.oneLiner}</p>
           </div>
 
@@ -155,7 +166,7 @@ export default function ShareLandingClient() {
           </div>
 
           <p className={styles.helpText}>
-            공유 카드에는 유형과 한 줄 요약만 담겨요. 친구의 생일이나 상세 결과는 저장되지도, 보이지도 않아요. 오락용 콘텐츠이며 실제 인물의 성격·관계와는 무관해요.
+            공유 카드에는 유형·점수와 한 줄 요약만 담겨요. 친구의 생일이나 상세 결과는 저장되지도, 보이지도 않아요. 오락용 콘텐츠이며 실제 인물의 성격·관계와는 무관해요.
           </p>
         </section>
       </main>

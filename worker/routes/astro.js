@@ -103,7 +103,7 @@ function toJulianDayFromUtcDate(utcDate) {
   return jdn + decimalHour / 24;
 }
 
-function normalizeBasicAstrologyInput(body = {}) {
+export function normalizeBasicAstrologyInput(body = {}) {
   const source = body && typeof body === "object" ? body : {};
   const dateFromString = parseDateInput(source.date || source.birthDate || source.birth?.date || "");
   const timeFromString = parseTimeInput(source.time || source.birthTime || source.birth?.time || "");
@@ -325,6 +325,15 @@ async function handleAstrologyBasic(request, env) {
     }, { status: normalized.status || 400 });
   }
 
+  try {
+    const chart = await calculateBasicAstrologyChart(normalized.value, request, env);
+    return json(buildBasicAstrologyResponse(chart, normalized.value));
+  } catch (error) {
+    return basicAstrologyCalculationError(error);
+  }
+}
+
+export async function calculateBasicAstrologyChart(input, request, env) {
   const strictOnlyEnv = {
     ...(env || {}),
     ASTRO_SWISS_STRICT_ONLY: "1",
@@ -337,10 +346,10 @@ async function handleAstrologyBasic(request, env) {
     SWISS_API_WESTERN_PATH: "",
   };
 
-  try {
-    const chart = await getSwissWesternChart(strictOnlyEnv, normalizeChartInput(normalized.value), { requestUrl: request.url });
-    return json(buildBasicAstrologyResponse(chart, normalized.value));
-  } catch (error) {
+  return getSwissWesternChart(strictOnlyEnv, normalizeChartInput(input), { requestUrl: request.url });
+}
+
+function basicAstrologyCalculationError(error) {
     const message = String(error?.message || error || "Swiss astrology calculation failed.");
     const status = Number(error?.status) || 500;
     let code = "ASTRO_SWISS_CALC_FAILED";
@@ -359,7 +368,6 @@ async function handleAstrologyBasic(request, env) {
       code,
       message: isAuthoredClientError ? message : "Swiss astrology calculation failed.",
     }, { status });
-  }
 }
 
 async function handleAstroWesternChart(request, env) {
@@ -420,6 +428,10 @@ export async function handleAstroRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const pathname = new URL(request.url).pathname;
+    if (pathname === "/api/astro/basic-deep") {
+      const { handleAstroBasicDeep } = await import("./astro-basic-deep.js");
+      return await handleAstroBasicDeep(request, env);
+    }
     const isAIConsultationPost = method === "POST" && (
       pathname === "/api/astro/ai-consultation"
       || pathname === "/api/vedic/ai-consultation"

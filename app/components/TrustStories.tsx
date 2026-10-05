@@ -1,5 +1,5 @@
 import PublicRecordLink from './PublicRecordLink';
-import { PRESIDENTIAL_RECORDS, YEONGNYANGI_TESTIMONIAL as email, trustStoriesCopy as copy } from '@/lib/brand/trust-stories.mjs';
+import { PRESIDENTIAL_RECORDS, renderPresidentialReactionsHtml, YEONGNYANGI_TESTIMONIAL as email, trustStoriesCopy as copy } from '@/lib/brand/trust-stories.mjs';
 import '@/styles/trust-stories.css';
 
 export default function TrustStories() {
@@ -14,6 +14,7 @@ export default function TrustStories() {
         <a href={record.url} target="_blank" rel="noopener noreferrer">{copy.original}<span className="sr-only">: {record.title}</span></a>
       </li>)}</ol>
     </section>
+    <div dangerouslySetInnerHTML={{__html:renderPresidentialReactionsHtml()}} />
     <PublicRecordLink />
     <section className="cd-trust-stories__email" aria-labelledby="service-letter-title">
       <h3 id="service-letter-title">{copy.emailTitle}</h3><p className="cd-trust-stories__source">{email.source}</p>

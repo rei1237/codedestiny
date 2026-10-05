@@ -15,8 +15,6 @@ import {
 import {
   calculatePaidFeatureMembershipCreditCost,
   getPaidFeaturePaymentPolicy,
-  LEGACY_LOVE_CODE_FEATURE_KEYS,
-  LOVE_CODE_FEATURE_KEY,
   isDirectOrFamilyPaidFeatureKey,
   isDirectOnlyPaidFeatureKey,
   isPerUsePaidFeatureKey,
@@ -63,6 +61,7 @@ import {
   getUnlockedContentSnapshot,
   upsertPaidContentUnlock,
 } from "../lib/content-unlocks.js";
+import { hasUserScopedPermanentUnlock } from "../lib/paid-content-read-access.js";
 import {
   buildPassTerminationFields,
   isPassBudgetExhausted,
@@ -483,26 +482,6 @@ async function findActiveSajuProfileUnlock(env, { userId, profileId, featureKey,
     featureKey,
     ...(readContentKey ? { contentKey: readContentKey } : {}),
   });
-}
-
-// unlockedFeatures: 이번 요청의 인증 조회가 이미 읽어 온 User.unlockedFeatures.
-// 넘어오면 같은 필드를 User.exists 로 다시 묻지 않는다 — 아래 쿼리가 보는 필드와 **완전히 동일**하다
-// (BILLING_SNAPSHOT_USER_PROJECTION 에 unlockedFeatures 포함). 판정 근거가 바뀌지 않는 순수 왕복 제거다.
-async function hasUserScopedPermanentUnlock(env, { userId, featureKey, unlockedFeatures = null }) {
-  const key = normalizePaidFeatureKey(featureKey);
-  if (!userId || !key || !isUnlockPaidFeatureKey(key) || resolveSajuProfileUnlockContentKey(key)) {
-    return false;
-  }
-  if (Array.isArray(unlockedFeatures)) {
-    return unlockedFeatures.some((entry) => normalizePaidFeatureKey(entry) === key);
-  }
-  await connectDb(env);
-  const readKeys = key === LOVE_CODE_FEATURE_KEY ? [key, ...LEGACY_LOVE_CODE_FEATURE_KEYS] : [key];
-  const row = await User.exists({
-    _id: userId,
-    $or: [{ unlockedFeatures: { $in: readKeys } }, { paidFeatures: { $in: readKeys } }],
-  });
-  return Boolean(row);
 }
 
 async function upsertSajuProfileUnlockEntitlement(env, {
