@@ -1,5 +1,6 @@
 import Link from "next/link";
 import StoryIntegrityNote from "../components/StoryIntegrityNote";
+import YehwaCard from "../components/service-intro/YehwaCard";
 import { buildSeoMetadata } from "../../lib/seo";
 import { buildBreadcrumbJsonLd } from "../../lib/structured-data";
 import {
@@ -52,18 +53,18 @@ export default function StoriesHubPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(storiesBreadcrumbJsonLd) }}
       />
-      <header className="rounded-3xl border border-white/10 bg-[#10172b] px-5 py-7 md:px-8 md:py-9">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-100/70">Code Destiny Novel</p>
-        <h1 className="mt-3 break-keep text-3xl font-bold leading-tight text-amber-50 md:text-4xl">
+      <YehwaCard as="header">
+        <p>Code Destiny Novel</p>
+        <h1>
           연이의 운명 노벨
         </h1>
-        <p className="mt-4 break-keep text-sm leading-8 text-slate-300 md:text-base">
+        <p>
           알람 세 개를 다 끄고도 일어나지 못하던 아침, 깔린 적 없는 앱 하나가 화면에 떠 있었습니다.
           평범한 대학생 연이는 그 앱을 열고 꽃돼지의 몸으로 낯선 세계에 떨어집니다. 이 이야기는
           그가 십성의 섬과 자미두수·점성술·베다·타로의 네 하늘을 차례로 건너며 자기 이름을 되찾는
           70화 완결 창작 소설입니다.
         </p>
-        <p className="mt-4 break-keep text-sm leading-8 text-slate-300 md:text-base">
+        <p>
           전체 분량은 한글 약 {Math.round(TOTAL_KOREAN / 10000)}만 자, 처음부터 끝까지 읽는 데
           대략 {Math.round(TOTAL_MINUTES / 60)}시간 남짓 걸립니다. 아래 목차에서 원하는 화로 바로
           들어갈 수 있고, 연출과 음악이 함께 흐르는{" "}
@@ -72,22 +73,22 @@ export default function StoriesHubPage() {
           </a>
           으로도 같은 이야기를 읽을 수 있습니다.
         </p>
-      </header>
+      </YehwaCard>
 
-      <section id="world" className="mt-8 rounded-3xl border border-white/10 bg-[#0f172a] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">세계관 — 명식이 지도가 되는 곳</h2>
-        <p className="mt-4 break-keep text-sm leading-8 text-slate-300 md:text-base">
+      <YehwaCard as="section" id="world" ornament={false} className="mt-8">
+        <h2>세계관 — 명식이 지도가 되는 곳</h2>
+        <p>
           이 세계의 지형은 사주 명리학의 십성(十星)에서 왔습니다. 나와 같은 기운이 모인 비겁의 섬,
           만들고 표현하는 식상의 섬, 가진 것을 다루는 재성의 섬, 배우고 물려받는 인성의 도서관이
           차례로 이어집니다. 명식에서 어떤 기운이 강하고 어떤 기운이 비었는지가 그대로 지형이 되는
           셈이라, 연이가 어느 섬에서 헤매는지가 곧 그가 지금 무엇을 배우는 중인지를 말해 줍니다.
         </p>
-        <p className="mt-4 break-keep text-sm leading-8 text-slate-300 md:text-base">
+        <p>
           후반부에는 무대가 네 개의 하늘로 넓어집니다. 자미두수의 열두 궁, 점성술의 열두 집,
           베다의 스물일곱 낙샤트라, 타로의 스물두 장이 차례로 열리고, 그 모든 하늘을 먹어 드는
           일식 흑월과의 싸움이 이어집니다. 이야기가 진행될수록 보는 범위가 나에게서 세상으로 넓어집니다.
         </p>
-        <p className="mt-4 break-keep text-sm leading-8 text-slate-300 md:text-base">
+        <p>
           다만 작품 속 설정은 서사를 위해 각색한 것입니다. 각 체계의 실제 해석 규칙이 궁금하다면{" "}
           <Link href="/saju/ten-gods/" className="text-amber-100 underline">
             십성 해석 가이드
@@ -98,10 +99,10 @@ export default function StoriesHubPage() {
           </Link>
           을 함께 보시길 권합니다.
         </p>
-      </section>
+      </YehwaCard>
 
-      <section id="characters" className="mt-8 rounded-3xl border border-white/10 bg-[#0f172a] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">등장인물</h2>
+      <YehwaCard as="section" id="characters" ornament={false} className="mt-8">
+        <h2>등장인물</h2>
         <dl className="mt-4 space-y-3">
           {CHARACTERS.map((character) => (
             <div key={character.key} className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
@@ -110,10 +111,10 @@ export default function StoriesHubPage() {
             </div>
           ))}
         </dl>
-      </section>
+      </YehwaCard>
 
-      <section id="arcs" className="mt-8 rounded-3xl border border-white/10 bg-[#0f172a] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">{STORY_ARCS.length}개 아크 구성</h2>
+      <YehwaCard as="section" id="arcs" ornament={false} className="mt-8">
+        <h2>{STORY_ARCS.length}개 아크 구성</h2>
         <div className="mt-4 space-y-4">
           {STORY_ARCS.map((arc) => {
             const episodes = STORY_EPISODES.slice(arc.from, arc.to + 1);
@@ -138,10 +139,10 @@ export default function StoriesHubPage() {
             );
           })}
         </div>
-      </section>
+      </YehwaCard>
 
-      <section id="toc" className="mt-8 rounded-3xl border border-white/10 bg-[#11182b] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">전체 목차 — {STORY_EPISODES.length}화</h2>
+      <YehwaCard as="section" id="toc" ornament={false} className="mt-8">
+        <h2>전체 목차 — {STORY_EPISODES.length}화</h2>
         <ol className="mt-4 space-y-2">
           {STORY_EPISODES.map((episode) => (
             <li key={episode.slug}>
@@ -160,7 +161,7 @@ export default function StoriesHubPage() {
             </li>
           ))}
         </ol>
-      </section>
+      </YehwaCard>
 
       <StoryIntegrityNote />
     </main>
