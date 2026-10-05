@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     // 사이트 기본 OG 이미지(lib/seo/siteSeo.ts 의 defaultOgImage)와 같은 자산을 쓴다.
     images: [
       {
-        url: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=c0dc91b4a3",
+        url: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=42dedf5c85",
         width: 1200,
         height: 630,
         alt: tarotPromptMakerLayoutCopy.title,

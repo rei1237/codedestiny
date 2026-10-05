@@ -6,7 +6,8 @@
  *
  * 2배 해상도(2400x1260)로 찍고 sharp 로 1200x630 으로 줄여 금박 각인/세필선의
  * 안티에일리어싱을 살린다. 결과물은 public/og/ 에 떨어진다.
- *   - ggulggul    : 꿀꿀 운세(꽃돼지 연이) — 꿀꿀 셸·사이트 기본 OG
+ *   - ggulggul    : 꿀꿀 운세(꽃돼지 연이) — 꿀꿀 셸·사이트 기본 OG(한국어)
+ *   - ggulggul-*  : 같은 카드의 로케일판(vvip-card.html?lang=) — /en·/ja·/zh·/zh-tw 셸 og:image·공유 imageUrl
  *   - yeongnyangi : 영냥이 — app/yeongnyangi/** 메타·카카오 공유 imageUrl
  */
 import { chromium } from "playwright";
@@ -28,6 +29,10 @@ const OG_DIR = path.join(HERE, "..", "..", "public", "og");
 // 이미 캐시된 미리보기를 즉시 갱신하는 방법은 카카오 디버거의 캐시 초기화뿐이다.
 const CARDS = [
   { id: "ggulggul", source: "vvip-card.html", output: "code-destiny-og-vvip.png" },
+  { id: "ggulggul-en", source: "vvip-card.html", query: "?lang=en", output: "code-destiny-og-en.png" },
+  { id: "ggulggul-ja", source: "vvip-card.html", query: "?lang=ja", output: "code-destiny-og-ja.png" },
+  { id: "ggulggul-zh", source: "vvip-card.html", query: "?lang=zh-CN", output: "code-destiny-og-zh.png" },
+  { id: "ggulggul-zh-tw", source: "vvip-card.html", query: "?lang=zh-TW", output: "code-destiny-og-zh-tw.png" },
   { id: "yeongnyangi", source: "yeongnyangi-card.html", output: "yeongnyangi-og.png" },
 ];
 
@@ -48,7 +53,7 @@ try {
       viewport: { width: WIDTH, height: HEIGHT },
       deviceScaleFactor: 2,
     });
-    await page.goto(pathToFileURL(path.join(HERE, card.source)).href, { waitUntil: "networkidle" });
+    await page.goto(pathToFileURL(path.join(HERE, card.source)).href + (card.query || ""), { waitUntil: "networkidle" });
     await page.evaluate(() => document.fonts.ready);
 
     // 캐릭터 그림이 비어 나가면 카드가 의미를 잃는다 — 하나라도 못 불러오면 렌더를 세운다.

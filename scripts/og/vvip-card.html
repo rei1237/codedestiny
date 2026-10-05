@@ -5,15 +5,17 @@
 <title>꿀꿀 운세 — OG Card 1200x630</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Nanum+Myeongjo:wght@700;800&family=Jost:wght@400;500;600&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Nanum+Myeongjo:wght@700;800&family=Jost:wght@400;500;600&family=Noto+Sans+KR:wght@400;500&family=Noto+Serif+JP:wght@700;900&family=Noto+Serif+SC:wght@700;900&family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+JP:wght@400;500&family=Noto+Sans+SC:wght@400;500&family=Noto+Sans+TC:wght@400;500&display=swap" rel="stylesheet">
 <style>
   /* ============================================================
      꿀꿀 운세 — 링크 공유 카드 (Open Graph 1200x630)
 
-     구성: 좌측 = 꽃돼지 연이 단독 주인공(금빛 초승달 아래 책 읽는 연이)
+     구성: 좌측 = 꽃돼지 연이 단독 주인공(두 손을 볼에 모은 치비 연이)
            우측 = 호기심을 여는 헤드라인 + 한 줄 설명 + 무료 진입 칩
-     캐릭터는 기존 자산 public/assets/mascot/yeoni-reading-guide-v1.png 를 그대로 쓴다.
-     출력: public/og/code-destiny-og-vvip.png (파일명 영구 고정 — render-og-card.mjs 참고)
+     캐릭터는 기존 자산 public/images/fortune-tea-house/flower-pig-cheer.webp 를 그대로 쓴다.
+     로케일: ?lang=ko|en|ja|zh-CN|zh-TW (아래 COPY 사전). 브랜드 표기는 로케일 셸 SEO
+     (scripts/sync-legacy-static-to-public.mjs LOCALE_SHELL_SEO)와 같다.
+     출력: public/og/code-destiny-og-vvip.png(ko) 외 로케일별 — 파일명 영구 고정, render-og-card.mjs 참고
      ============================================================ */
 
   :root {
@@ -200,13 +202,13 @@
     z-index: -1;
   }
 
-  /* 원본 1254² 캔버스 안 인물 영역(1179x1099 @ 51,96)만 보이도록 배율·오프셋을 맞춘다. */
+  /* 원본 512² 캔버스 안 인물 영역(327x408 @ 89,50)이 무대(460x428) 가운데 꽉 차도록 배율·오프셋을 맞춘다. */
   .hero__art {
     position: absolute;
-    width: 488px;
-    height: 488px;
-    left: -19px;
-    top: -37px;
+    width: 527px;
+    height: 527px;
+    left: -30px;
+    top: -46px;
     filter: drop-shadow(0 10px 18px rgba(20, 2, 12, .55));
   }
 
@@ -344,6 +346,18 @@
     color: rgba(210, 190, 240, .78);
     text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
   }
+
+  /* ---------- 로케일 글꼴: 한글 명조/고딕에 없는 가나·한자를 같은 결의 Noto 로 ---------- */
+  html[lang="en"] .headline { font-size: 46px; line-height: 1.2; }
+  html[lang="en"] .sub { font-size: 20px; }
+  html[lang="ja"] .headline, html[lang="ja"] .eyebrow b { font-family: 'Noto Serif JP', serif; font-weight: 900; }
+  html[lang="zh-CN"] .headline, html[lang="zh-CN"] .eyebrow b { font-family: 'Noto Serif SC', serif; font-weight: 900; }
+  html[lang="zh-TW"] .headline, html[lang="zh-TW"] .eyebrow b { font-family: 'Noto Serif TC', serif; font-weight: 900; }
+  html[lang="ja"] :is(.sub, .chip) { font-family: 'Noto Sans JP', sans-serif; }
+  html[lang="zh-CN"] :is(.sub, .chip) { font-family: 'Noto Sans SC', sans-serif; }
+  html[lang="zh-TW"] :is(.sub, .chip) { font-family: 'Noto Sans TC', sans-serif; }
+  html:is([lang="ja"], [lang="zh-CN"], [lang="zh-TW"]) .headline { font-size: 50px; }
+  html:is([lang="ja"], [lang="zh-CN"], [lang="zh-TW"]) .sub { font-size: 20px; }
 </style>
 </head>
 <body>
@@ -411,17 +425,17 @@
       </svg>
 
       <div class="hero">
-        <img class="hero__art" alt="금빛 초승달 아래 방석에 앉아 책을 펼쳐 읽는 꽃돼지 연이"
-             src="../../public/assets/mascot/yeoni-reading-guide-v1.png">
+        <img class="hero__art" alt="두 손을 볼에 모으고 활짝 웃는 꽃돼지 연이"
+             src="../../public/images/fortune-tea-house/flower-pig-cheer.webp">
       </div>
 
       <div class="copy">
-        <div class="eyebrow"><b>꿀꿀 운세</b><i></i>HONEY FORTUNE</div>
+        <div class="eyebrow"><b data-k="brand">꿀꿀 운세</b><i></i>HONEY FORTUNE</div>
         <div class="rule"></div>
-        <div class="headline">당신이 태어난 날,<br><em>하늘이 남긴 한 줄</em></div>
-        <div class="sub">꽃돼지 연이가 사주 · 타로 · 별자리로<br>그 한 줄을 조용히 읽어 드려요</div>
+        <div class="headline" data-k="headline">당신이 태어난 날,<br><em>하늘이 남긴 한 줄</em></div>
+        <div class="sub" data-k="sub">꽃돼지 연이가 사주 · 타로 · 별자리로<br>그 한 줄을 조용히 읽어 드려요</div>
         <div class="chip">
-          오늘의 운세 · 무료로 열어보기
+          <span data-k="chip">오늘의 운세 · 무료로 열어보기</span>
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4 L13 10 L7 16" fill="none" stroke="#2a0718" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
       </div>
@@ -435,5 +449,29 @@
 
   <div class="domain">code-destiny.com</div>
 </div>
+<script>
+  // 로케일 카피 — render-og-card.mjs 가 ?lang= 로 연다. 사전에 없는 값이면 한국어 그대로 둔다.
+  const COPY = {
+    en: { brand: "Ggulggul Fortune", alt: "Yeoni the flower pig, beaming with both hands on her cheeks",
+          headline: "The day you were born,<br><em>the sky left you a line</em>",
+          sub: "Yeoni the flower pig gently reads it<br>through Saju, tarot and the stars", chip: "Today's fortune · Open free" },
+    ja: { brand: "ハニーピッグ占い", alt: "両手をほっぺに添えてにっこり笑う花豚ヨニ",
+          headline: "あなたが生まれた日、<br><em>空が残した一行</em>",
+          sub: "花豚ヨニが四柱推命・タロット・星占いで<br>その一行をそっと読み解きます", chip: "今日の運勢 · 無料でひらく" },
+    "zh-CN": { brand: "蜜豚运势", alt: "双手捧着脸颊、笑得灿烂的花猪 Yeoni",
+          headline: "你出生的那一天，<br><em>天空留下的一句话</em>",
+          sub: "花猪 Yeoni 用八字 · 塔罗 · 星座<br>为你轻轻读出那句话", chip: "今日运势 · 免费打开" },
+    "zh-TW": { brand: "蜜豚運勢", alt: "雙手捧著臉頰、笑得燦爛的花豬 Yeoni",
+          headline: "你出生的那一天，<br><em>天空留下的一句話</em>",
+          sub: "花豬 Yeoni 用八字 · 塔羅 · 星座<br>為你輕輕讀出那句話", chip: "今日運勢 · 免費打開" },
+  };
+  const lang = new URLSearchParams(location.search).get("lang");
+  const copy = COPY[lang];
+  if (copy) {
+    document.documentElement.lang = lang;
+    for (const el of document.querySelectorAll("[data-k]")) el.innerHTML = copy[el.dataset.k];
+    document.querySelector(".hero__art").alt = copy.alt;
+  }
+</script>
 </body>
 </html>

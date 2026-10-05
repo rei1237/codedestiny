@@ -87,7 +87,7 @@ export const siteSeo = {
   titleTemplate: "%s",
   defaultDescription:
     "꿀꿀 운세는 꽃돼지 연이·네오와 영냥이가 함께하는 사주·타로·운세 상담 서비스입니다. 나의 기질과 관계, 일과 돈의 흐름을 살펴보세요.",
-  defaultOgImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=c0dc91b4a3",
+  defaultOgImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=42dedf5c85",
   twitterCard: "summary_large_image",
   organization: {
     // 회사 이름(운영자 확인, 2026-08-16). 브랜드(brandName = 꿀꿀 운세)와 의도적으로 다르다.
