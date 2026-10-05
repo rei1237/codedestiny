@@ -7,6 +7,9 @@ import {
   DESTINY_BIAS_SHARE_RATE_LIMIT_MAX,
   DESTINY_BIAS_SHARE_TTL_MS,
   buildDestinyBiasOgHtml,
+  buildDestinyBiasOgImageUrl,
+  buildDestinyBiasShareLandingUrl,
+  buildDestinyBiasSharePreviewHtml,
   collectDestinyBiasOgGlyphs,
   computeDestinyBiasShareContentHash,
   createDestinyBiasShare,
@@ -83,7 +86,8 @@ describe("destiny-bias share — storage", () => {
 
     expect(created.reused).toBe(false);
     expect(created.snapshot.shareId).toMatch(DESTINY_BIAS_SHARE_ID_PATTERN);
-    expect(created.shareUrl).toBe(`https://code-destiny.com/saju/destiny-bias/share/?s=${created.snapshot.shareId}`);
+    // 퍼뜨리는 링크는 크롤러용 미리보기 페이지(사람은 정적 랜딩으로 넘어간다).
+    expect(created.shareUrl).toBe(`https://code-destiny.com/api/destiny-bias/s?s=${created.snapshot.shareId}`);
     expect(created.snapshot.partner).toMatchObject({ kind: "roster", id: "bts-jungkook" });
     expect(created.snapshot.nicknameDisplay).toBe("민지");
     expect(created.snapshot.minorMode).toBe(false);
@@ -194,8 +198,32 @@ describe("destiny-bias share — rate limit and OG", () => {
     expect(html).toContain("민지 &amp; &quot;지&quot;");
     expect(html).toContain(created.snapshot.chemiTypeNameKo);
     expect(html).toContain("오락용");
+    expect(html).toContain(`${created.snapshot.score}`);
+    expect(html).toContain(created.snapshot.grade);
     const glyphs = collectDestinyBiasOgGlyphs(created.snapshot, "code-destiny.com");
     expect(glyphs).toContain("케");
     expect(glyphs).not.toContain("<");
+  });
+
+  it("builds a crawler preview page with per-share og:image and a script hop to the static landing", async () => {
+    const model = createMemoryModel();
+    const created = await createDestinyBiasShare({ input: { ...input, nickname: "민지</script>" }, requestUrl, env, now: NOW, model });
+    const shareId = created.snapshot.shareId;
+    const landingUrl = buildDestinyBiasShareLandingUrl({
+      shareId,
+      origin: "https://code-destiny.com",
+      searchParams: new URLSearchParams("utm_source=kakao&utm_medium=share&evil=<x>"),
+    });
+    expect(landingUrl).toBe(`https://code-destiny.com/saju/destiny-bias/share/?s=${shareId}&utm_source=kakao&utm_medium=share`);
+    const ogImageUrl = buildDestinyBiasOgImageUrl({ shareId, origin: "https://code-destiny.com" });
+    const html = buildDestinyBiasSharePreviewHtml({ snapshot: created.snapshot, previewUrl: created.shareUrl, landingUrl, ogImageUrl });
+    expect(html).toContain(`<meta property="og:image" content="${ogImageUrl}">`);
+    expect(ogImageUrl).toMatch(/\/og\.png\?v=/);
+    expect(html).toContain(`og:url" content="${created.shareUrl}"`);
+    expect(html).toContain(`${created.snapshot.score}점`);
+    expect(html).toContain("location.replace(");
+    expect(html).not.toContain("http-equiv"); // 따라가는 크롤러가 기본 카드를 읽지 않게
+    expect(html).not.toContain("1995");
+    expect(html.match(/<\/script>/g)).toHaveLength(1); // 닉네임으로 스크립트를 닫지 못한다
   });
 });
