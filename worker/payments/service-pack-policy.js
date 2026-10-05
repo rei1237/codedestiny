@@ -7,14 +7,14 @@ import { paymentError } from './errors.js';
 const PACK_USES = Object.freeze([5, 10, 20]);
 export const SERVICE_PACK_PLANS = Object.freeze(Object.fromEntries([
   ['mackerel', '고등어', [12000, 21000, 36000]],
-  ['salmon', '연어', [21600, 37800, 64800]],
-  ['flounder', '광어', [28800, 50400, 86400]],
-  ['tuna', '참치', [42000, 73500, 126000]],
+  ['salmon', '연어', [36000, 63000, 108000]],
+  ['flounder', '광어', [60000, 105000, 180000]],
+  ['tuna', '참치', [120000, 210000, 360000]],
 ].flatMap(([fishId, label, prices]) => ['small', 'medium', 'large'].map((size, index) => [
   `yeongnyangi-pack-${fishId}-${size}-v3`,
   Object.freeze({ name: `${label} 세트 ${PACK_USES[index]}회`, fishId,
     priceKRW: prices[index], totalUses: PACK_USES[index], validityDays: 30,
-    policyVersion: 'yeongnyangi-pack-20261005' }),
+    policyVersion: 'yeongnyangi-pack-20261005-ratio-corrected' }),
 ]))));
 const FISH = Object.freeze(['mackerel','salmon','flounder','tuna']);
 

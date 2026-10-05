@@ -60,9 +60,9 @@ describe("versioned flower passes", () => {
     expect(tea.every(([, value]) => value.amountKRW === 5000 && value.cost === 50)).toBe(true);
     expect(FEATURE_KEY_PRICE_TABLE["fusion-fortune-consultation"]).toMatchObject({ cost: 500, amountKRW: 50000 });
     expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-saju-mackerel"].amountKRW).toBe(3000);
-    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-fusion-all"]).toMatchObject({ cost: 300, amountKRW: 30000, paymentScope: "direct_or_family" });
+    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-fusion-all"]).toMatchObject({ cost: 800, amountKRW: 80000, paymentScope: "direct_or_family" });
     for (const key of ["yeongnyangi-fusion-saju-ziwei", "yeongnyangi-fusion-sukuyo-vedic", "yeongnyangi-fusion-astrology-tarot"]) {
-      expect(FEATURE_KEY_PRICE_TABLE[key].amountKRW).toBe(14800);
+      expect(FEATURE_KEY_PRICE_TABLE[key].amountKRW).toBe(50000);
     }
   });
 });
