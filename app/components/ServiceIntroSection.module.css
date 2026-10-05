@@ -6,10 +6,20 @@
  * (scripts/design/gen-yehwa-motifs.mjs 산출물)가 소유하고, 여기서는 색·크기·자리만 정한다.
  * 🔴 마스크 박스 크기(.crest 300/240px, .sprig 132/110px, 반짝임 11px)를 바꾸면 생성기의 획 굵기 역보정도 같이 바꾼다.
  * 🔴 장식은 카드 위·아래 여백 띠에만 둔다 — 본문 위를 지나가지 않는다(DESIGN.md Moonflower 규칙).
+ * 표면·장식·서체는 YehwaCard(./service-intro/YehwaCard.tsx)가 그리고, ServiceIntroSection 은 그 위에 바깥 열 여백만 더한다.
+ * 정보 화면(인사이트 허브·연이 노벨 허브·자미두수 명반 안내)도 같은 YehwaCard 를 쓴다 — 페이지의 첫 카드만 달·꽃 장식, 나머지는 plain.
  * 🔴 --cd-* 를 재선언하지 않는다(CSS Modules 는 커스텀 프로퍼티를 해시하지 않는다) — 사설 --si-* 만 쓴다. */
 
-/* 달빛 밤(기본) — 네오 Champagne Gold 계열 */
+/* 바깥 열 — 기능 페이지 하단 소개 카드 자리 */
 .section {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 48rem;
+  padding: 1.5rem 1rem 3.5rem;
+}
+
+/* 달빛 밤(기본) — 네오 Champagne Gold 계열 */
+.card {
   --si-bg-top: #151c36;
   --si-bg: #0d1325;
   --si-glow: rgba(232, 213, 163, 0.075);
@@ -26,15 +36,11 @@
   --si-moon-mid: #f2e2bc;
   --si-moon-lo: #c9b48a;
 
-  margin-inline: auto;
-  width: 100%;
-  max-width: 48rem;
-  padding: 1.5rem 1rem 3.5rem;
   color: var(--si-text);
 }
 
 /* 연이(꽃돼지) — 연이 Dark 는 네이비가 아니라 딥 플럼(DESIGN.md "연이 Dark"). 표면·글자·선을 한 세트로 바꾼다. */
-.section[data-tone="yeoni"] {
+.card[data-tone="yeoni"] {
   --si-bg-top: #3a0e28;
   --si-bg: #24081a;
   --si-glow: rgba(174, 45, 104, 0.26);
@@ -147,8 +153,8 @@
   margin-top: 0;
 }
 
-.body h1,
-.body h2 {
+.body h1:not([class]),
+.body h2:not([class]) {
   font-family: var(--font-serif);
   font-weight: 700;
   color: var(--si-heading);
@@ -157,13 +163,13 @@
   text-wrap: balance;
 }
 
-.body h1 {
+.body h1:not([class]) {
   font-size: 1.5rem;
   line-height: 1.35;
 }
 
 /* 키워드 눈썹: h1 안의 span = 키워드 제목, 그 뒤 텍스트 = 고객 질문 (질문 우선 2026-10-02) */
-.body h1 > span {
+.body h1:not([class]) > span {
   display: block;
   margin-bottom: 0.6rem;
   font-family: var(--font-body);
@@ -175,7 +181,7 @@
   word-break: keep-all;
 }
 
-.body h2 {
+.body h2:not([class]) {
   position: relative;
   margin-top: 2.75rem;
   padding-top: 1.75rem;
@@ -184,7 +190,7 @@
 }
 
 /* 섹션 구분 — 왼쪽 반짝임에서 오른쪽으로 사라지는 금선 */
-.body h2::before {
+.body h2:not([class])::before {
   content: "";
   position: absolute;
   top: 0;
@@ -194,7 +200,7 @@
   background: linear-gradient(90deg, color-mix(in srgb, var(--si-ink) 42%, transparent), color-mix(in srgb, var(--si-ink) 10%, transparent) 62%, transparent);
 }
 
-.body h2::after {
+.body h2:not([class])::after {
   content: "";
   position: absolute;
   top: -5px;
@@ -208,17 +214,17 @@
 }
 
 /* 카드의 첫 제목은 상단 문장이 이미 연다 — 구분선을 겹치지 않는다 */
-.body > h2:first-child {
+.body > h2:not([class]):first-child {
   padding-top: 0;
 }
 
-.body > h2:first-child::before,
-.body > h2:first-child::after {
+.body > h2:not([class]):first-child::before,
+.body > h2:not([class]):first-child::after {
   content: none;
 }
 
 /* 소제목 — 작은 금빛 라벨 + 미니 달 */
-.body h3 {
+.body h3:not([class]) {
   display: flex;
   align-items: flex-start;
   gap: 0.55rem;
@@ -231,7 +237,7 @@
   word-break: keep-all;
 }
 
-.body h3::before {
+.body h3:not([class])::before {
   content: "";
   flex: none;
   width: 7px;
@@ -243,7 +249,7 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--si-ink) 16%, transparent);
 }
 
-.body h4 {
+.body h4:not([class]) {
   margin-top: 1.5rem;
   font-size: 0.98rem;
   font-weight: 700;
@@ -252,7 +258,7 @@
   word-break: keep-all;
 }
 
-.body p {
+.body p:not([class]) {
   margin-top: 1rem;
   font-size: 0.9375rem;
   line-height: 1.85;
@@ -260,19 +266,19 @@
   word-break: keep-all;
 }
 
-.body h3 + p,
-.body h4 + p {
+.body h3:not([class]) + p:not([class]),
+.body h4:not([class]) + p:not([class]) {
   margin-top: 0.5rem;
 }
 
-.body ul,
-.body ol {
+.body ul:not([class]),
+.body ol:not([class]) {
   margin-top: 1rem;
   padding-left: 0;
   list-style: none;
 }
 
-.body li {
+.body li:not([class]) {
   position: relative;
   margin-top: 0.6rem;
   font-size: 0.9375rem;
@@ -281,12 +287,12 @@
   word-break: keep-all;
 }
 
-.body ul > li {
+.body ul:not([class]) > li:not([class]) {
   padding-left: 1.4rem;
 }
 
 /* 목록 표식 — 기본 점 대신 작은 반짝임 */
-.body ul > li::before {
+.body ul:not([class]) > li:not([class])::before {
   content: "";
   position: absolute;
   top: 0.55em;
@@ -299,17 +305,17 @@
   mask: var(--si-mask-sparkle) center / 100% 100% no-repeat;
 }
 
-.body ol {
+.body ol:not([class]) {
   counter-reset: si-step;
 }
 
-.body ol > li {
+.body ol:not([class]) > li:not([class]) {
   padding-left: 2.25rem;
   counter-increment: si-step;
 }
 
 /* 순서 표식 — 가는 금 원 안의 명조 숫자 */
-.body ol > li::before {
+.body ol:not([class]) > li:not([class])::before {
   content: counter(si-step);
   position: absolute;
   top: 0.18em;
@@ -325,6 +331,77 @@
   font-weight: 700;
   line-height: 1;
   color: var(--si-ink);
+}
+
+/* 제목 위 눈썹 — h1 바로 앞의 첫 문단(정보 화면 헤더의 영문 꼬리표 등) */
+.body > p:not([class]):first-child:has(+ h1) {
+  margin: 0 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--si-eyebrow);
+}
+
+/* ── FAQ 문항 ──
+ * 질문(h3|h4) + 답(p) 을 묶은 div, 또는 dl > div > dt + dd 가 한 문항이다.
+ * 질문 앞 명조 Q, 문항 사이 가는 금선. 질문은 제목이라 명조, 답은 본문이라 고딕(Quiet Body Rule).
+ * :has 를 모르는 브라우저에서는 위의 h3 라벨 모양으로 남는다(깨지지 않는다).
+ * 🔴 이 파일의 본문 규칙은 클래스 없는 요소에만 걸린다(:not([class])) — 자체 클래스를 가진 목록·상자(노벨 목차·아크 카드 등)는
+ *    제 모양을 지키고, FAQ·명조 제목·반짝임 목록은 순수 마크업에만 입혀진다. */
+.body dl:not([class]) {
+  margin-top: 1rem;
+}
+
+.body div:not([class]):has(> :is(h3, h4):first-child + p),
+.body dl:not([class]) > div:not([class]) {
+  margin-top: 1.1rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid color-mix(in srgb, var(--si-ink) 16%, transparent);
+}
+
+.body div:not([class]):has(> :is(h3, h4):first-child + p) > :is(h3, h4):first-child,
+.body dl:not([class]) > div:not([class]) > dt:not([class]) {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.6;
+  letter-spacing: -0.005em;
+  color: var(--si-heading);
+  word-break: keep-all;
+}
+
+/* Q 는 장식이라 읽기 도구에는 빈 문자열로 준다(alt 문법을 모르면 첫 줄 "Q" 가 남는다) */
+.body div:not([class]):has(> :is(h3, h4):first-child + p) > :is(h3, h4):first-child::before,
+.body dl:not([class]) > div:not([class]) > dt:not([class])::before {
+  content: "Q";
+  content: "Q" / "";
+  flex: none;
+  width: 1rem;
+  height: auto;
+  margin-top: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.55;
+  color: var(--si-ink);
+}
+
+.body div:not([class]):has(> :is(h3, h4):first-child + p) > p,
+.body dl:not([class]) > div:not([class]) > dd:not([class]) {
+  margin: 0.45rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.85;
+  color: var(--si-text);
+  word-break: keep-all;
 }
 
 /* 호출부 클래스가 있으면 그쪽이 이기도록 우선순위를 0 으로 둔다 */
@@ -384,16 +461,35 @@
     border-radius: calc(var(--cd-r-section, 26px) - 7px);
   }
 
-  .body h1 {
+  .body h1:not([class]) {
     font-size: 1.95rem;
   }
 
-  .body h2 {
+  .body h2:not([class]) {
     font-size: 1.5rem;
   }
 
-  .body p,
-  .body li {
+  .body p:not([class]),
+  .body li:not([class]) {
     font-size: 1rem;
+  }
+}
+
+/* 넓은 화면: 답을 질문 글머리(Q 뒤)에 맞춘다. 좁은 화면은 본문 열을 지키려고 들여 쓰지 않는다. */
+@media (min-width: 640px) {
+  .body div:not([class]):has(> :is(h3, h4):first-child + p) > p,
+  .body dl:not([class]) > div:not([class]) > dd:not([class]) {
+    padding-left: 1.65rem;
+  }
+}
+
+/* ── plain: 달·꽃 장식 없는 카드 ── 같은 페이지의 두 번째 카드부터. 장식 띠가 없으니 위아래 여백도 본문용으로 줄인다. */
+.card.plain {
+  padding: 1.75rem 1rem 1.9rem;
+}
+
+@media (min-width: 768px) {
+  .card.plain {
+    padding: 2.25rem 2.25rem 2.4rem;
   }
 }
