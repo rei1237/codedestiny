@@ -8,8 +8,7 @@ import neoTheme from '@/src/features/neo-war-room/neo-operation-room-result.modu
 export const recordButton = styles.button;
 export default function RecordFrame({ title, lead, children, view = 'library', reading = '' }: { title: string; lead?: string; children: ReactNode; view?: 'library' | 'hub' | 'result'; reading?: string }) {
   const c = recordsCopy(useLocale());
-  const night = ['neo','fusion','sukuyo','astrology','vedic','prashna','tarot-year','tarot-love','tarot-mindscan','tarot-oracle','celestial','nakshatra'].includes(reading);
-  return <main className={`${styles.page} ${night ? neoTheme.savedDocuments + ' ' + styles.nightFrame : ''}`} data-record-view={view} data-reading-family={reading || undefined}>
+  return <main className={`${styles.page} ${neoTheme.savedDocuments} ${styles.nightFrame}`} data-record-view={view} data-reading-family={reading || undefined}>
     <div className={styles.frame}>
       <nav className={styles.navigation} aria-label={title}>
         <a className={styles.back} href={view === 'result' ? '/records/' : '/ggulggul/'}><ArrowLeft size={18} aria-hidden />{view === 'result' ? c.back : c.home}</a>

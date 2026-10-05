@@ -76,7 +76,50 @@
 @media (prefers-reduced-motion: reduce) { .page *, .page *::before, .page *::after { animation: none !important; scroll-behavior: auto !important; transition: none !important; } }
 
 
-.nightFrame { --record-focus:var(--nr-accent); --record-bg: var(--nr-bg); --record-text: var(--nr-text); --record-muted: var(--nr-muted); --saved-night: var(--nr-bg); --saved-night-text: var(--nr-text); --saved-night-accent: var(--nr-gold); --saved-night-border: var(--nr-border); }
+/* Archive-local Moonlight palette; native readers retain their own themes. */
+.savedLetter {
+  /* The original letter combines paper colors and theme tokens: keep them paired. */
+  color-scheme: light;
+  --cd-bg: #fffaf7;
+  --cd-surface: rgba(255, 255, 255, .96);
+  --cd-surface-2: rgba(255, 247, 250, .84);
+  --cd-text: #3c1830;
+  --cd-text-muted: #70445c;
+  --cd-accent: #b31955;
+  --cd-accent-soft: #f4bed1;
+  --cd-border: rgba(216, 63, 120, .16);
+  --cd-focus-ring: #b31955;
+  color: var(--cd-text);
+  background: var(--cd-bg);
+  border-radius: var(--cd-r-section);
+  padding: clamp(16px, 3vw, 32px);
+}
+.nightFrame {
+  color-scheme: dark;
+  --cd-bg: var(--nr-bg);
+  --cd-surface: var(--nr-surface);
+  --cd-surface-2: #0a0818;
+  --cd-text: var(--nr-text);
+  --cd-text-muted: var(--nr-muted);
+  --cd-accent: var(--nr-accent);
+  --cd-accent-soft: rgba(167, 139, 250, .24);
+  --cd-border: rgba(196, 181, 253, .32);
+  --cd-focus-ring: var(--nr-gold);
+  --cd-gold: var(--nr-gold);
+  --cd-gold-soft: #f4e9c8;
+  --cd-yehwa-line: var(--nr-gold);
+  --cd-yehwa-line-2: var(--nr-accent);
+  --cd-yehwa-line-deep: var(--nr-gold);
+  --cd-yehwa-ivory: #dcc48e;
+  --record-focus: var(--nr-gold);
+  --record-bg: var(--nr-bg);
+  --record-text: var(--nr-text);
+  --record-muted: var(--nr-muted);
+  --saved-night: var(--nr-bg);
+  --saved-night-text: var(--nr-text);
+  --saved-night-accent: var(--nr-gold);
+  --saved-night-border: var(--nr-border);
+}
 
 .consultation[data-service='tea'] .consultArt img { object-fit: contain; padding: 12px 20px 0; object-position: center bottom; }
 .consultation[data-service='tea'] .consultCopy { border-top: 1px solid var(--cd-yehwa-line); }

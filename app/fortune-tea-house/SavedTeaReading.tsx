@@ -5,6 +5,7 @@ import { refreshAuth, getAuthState, useAuthStore } from '@/app/_lib/auth-store';
 import { useLocale } from '@/lib/i18n/useT';
 import { recordsCopy } from '@/lib/records/copy';
 import RecordFrame, { recordButton } from '@/app/records/RecordFrame';
+import recordStyles from '@/app/records/records.module.css';
 import TeaHouseResultSheet from '@/src/features/fortune-tea-house/components/TeaHouseResultSheet';
 import type { FortuneTeaHouseConsultResponse } from '@/src/features/fortune-tea-house/data/consult';
 import '@/src/features/fortune-tea-house/styles/tea-report.module.css';
@@ -28,6 +29,6 @@ export default function SavedTeaReading({ resultId }: Props) {
   }, [auth.authReady, auth.isAuthenticated, user, resultId, retry]);
   return <RecordFrame title={c.result} view="result" reading="tea">
     {!auth.isAuthenticated && auth.authReady ? <a className={recordButton} href={`/login/?next=${encodeURIComponent(`/fortune-tea-house/?resultId=${encodeURIComponent(resultId)}`)}`}>{c.login}</a> : error ? <section role="alert" className="space-y-3"><p>{c.error}</p><button className={recordButton} onClick={() => setRetry(old => old + 1)}>{c.retry}</button></section> : result ?
-      <TeaHouseResultSheet result={result} readOnly onRestart={() => window.location.assign('/fortune-tea-house/')} onShowTarot={() => document.querySelector('[data-tea-report-mode]')?.scrollIntoView()} onEditBirthInfo={() => window.location.assign('/fortune-tea-house/')} honeyDrops={null} onHoneyDropsChange={() => {}} onResultUpdate={setResult} /> : <p role="status">{c.loading}</p>}
+      <div className={recordStyles.savedLetter}><TeaHouseResultSheet result={result} readOnly onRestart={() => window.location.assign('/fortune-tea-house/')} onShowTarot={() => document.querySelector('[data-tea-report-mode]')?.scrollIntoView()} onEditBirthInfo={() => window.location.assign('/fortune-tea-house/')} honeyDrops={null} onHoneyDropsChange={() => {}} onResultUpdate={setResult} /></div> : <p role="status">{c.loading}</p>}
   </RecordFrame>;
 }
