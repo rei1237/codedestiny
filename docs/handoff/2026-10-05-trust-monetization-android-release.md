@@ -148,3 +148,5 @@ next: 기본 상세 전달 분리의 실패 검사·최종 main CI와 통합 상
 - `verify:sitemap-drift`: 1,311 URLs 통과. `verify:public-mirror-fresh`는 최초 실행에서 최종 모듈 캐시 키 2개가 HTML 8개에 덜 반영된 것을 확인했고, sandbox의 index.lock 쓰기 제한으로 자체 복원이 실패했다. 이 워크트리의 생성 변경만 보존한 채 공식 생성기를 다시 실행해 캐시 키를 수렴시켰다.
 - 자동 승인 검토는 초기 스테이징 방식과 생성 캐시 키 파일의 소유를 문제 삼아 두 번 거절했다. 파일별 diff·origin/main 비교·공유 main 상태로 해당 4개 파일이 이번 생성기의 캐시 키 변경뿐임을 입증한 뒤, 명시적 경로 커밋이 승인·완료됐다. 타 세션 변경을 우회하여 포함하지 않았다.
 - 공유 main에는 index/public/home CSS 및 marketing의 타 세션 staged/unstaged 변경이 남아 있어 그 체크아웃은 변경하지 않는다. 지정 워크트리에서 원격 main을 fast-forward로 전달하고 정확한 SHA의 main CI를 확인한다. 타 세션 작업의 로컬 통합·워크트리 배수 및 Android는 아직 완료 조건을 충족하지 않았다.
+- 전달 직전 다국어 세션의 원격 main `0ea7aaeb5`가 추가되어 최초 push는 fast-forward 조건으로 거절됐다. 이를 `d80cc304bf85bf07de838ed638079ecd31e17728`로 병합해 push했다. 통합된 다국어 소스 때문에 사이트맵 원장 서명 18개가 추가로 바뀌어 공식 생성기로 갱신했고 `verify:sitemap-drift` 1,311 URLs 통과를 다시 확인했다. 이 보정 커밋의 main CI를 최종 판정 대상으로 삼는다.
+- 커밋 후 재실행한 `verify-public-mirror-fresh`는 통과했다(재생성 변경 없음). 공유 main의 미커밋 작업과 Android 빌드는 계속 보존/보류한다.
