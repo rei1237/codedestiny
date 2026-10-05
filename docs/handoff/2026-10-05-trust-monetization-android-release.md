@@ -157,3 +157,5 @@ next: 기본 상세 전달 분리의 실패 검사·최종 main CI와 통합 상
 - 런타임 문구/메뉴/결제 정책은 유지하고 `Object.fromEntries<RelationshipCopy>`로 값 타입을 명시했다. 기존 테스트는 다국어 지원 계약에 맞게 한국어 전용 기대값만 보정했다. 건강 근거와 의료 안내, 고정 타로 배열 검증은 유지했다.
 - `npm run typecheck` exit 0, 관련 기존/다국어 Node 테스트 35/35 통과. 타입 변경에 연결된 사이트맵 서명 1개를 공식 생성기로 갱신했다.
 - 최종 통합 코드의 빌드/critical 검사까지 확인하기 위해 `PR CI`를 `full_ci=true`로 실행한다. 이 워크플로는 배포/Android 빌드가 아니다. 결과는 실제 실행 SHA와 함께 최종 보고한다.
+- `7a34ed606` 자동 main CI `37334579346`가 critical 전체 검증을 실행했다. Typecheck/lint, Pages/Worker build, Critical checks는 success. 같은 SHA의 수동 대기 실행 `37334609338`은 중복이라 취소했다.
+- Static guards는 삭제한 fallback 디버그 함수 `_formatUtcFromLocal`이 UTC 함수 등재 목록에 남아 있어 실패했다. 사라진 항목과 관련 주석만 정리했고 `npm run verify:shell-korean-calendar` 96건 통과. 검사 조건을 완화하거나 날짜 계산 코드를 변경하지 않았다. 이 보정 커밋의 main CI를 확인한다.
