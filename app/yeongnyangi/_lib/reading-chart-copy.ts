@@ -3,6 +3,7 @@ import {isNativeChartLocale,nativeChartCopy,nativeChartTerm,nativeVisualCopy} fr
 import {nativeChartLimitation} from './chart-limitation-locales';
 import {consultationInputCopy} from './consultation-input-copy';
 import {tarotPositionCopy} from './tarot-position-copy';
+import {tarotSpreadStoredLabel} from './tarot-spread-catalog-locales';
 
 const ko={section:'운세별 계산 근거',heading:'이야기의 바탕을 펼쳐볼까?',select:'근거 선택',none:'배치된 행성 없음',wheel:'저장된 황경과 하우스 경계로 그린 출생 차트. 아래 목록에서 행성별 설명을 선택할 수 있어요.',timingSelect:'계산된 시기 선택',timing:'저장된 시기의 흐름',related:'이 근거와 연결된 이야기',more:(n:number)=>`관련 이야기 ${n}개 더 보기`,empty:'관련 이야기가 저장되면 이곳에서 이어 읽을 수 있어요.',limits:'계산 방식과 해석의 한계',weight:(label:string)=>`${label}의 가중치`,sourceStored:'구매 당시 저장된 계산 근거',sourceCards:'서버에 저장된 카드 배열'};
 type Copy=typeof ko;
@@ -21,6 +22,7 @@ const terms:Record<string,[string,string]>={
 export function chartTerm(value:string,locale?:ReadingLocale):string{
  if(!locale||locale==='ko')return value;
  const tarotPosition=tarotPositionCopy(value,locale);if(tarotPosition)return tarotPosition;
+ const spreadPosition=tarotSpreadStoredLabel(value,locale);if(spreadPosition)return spreadPosition;
  if(isNativeChartLocale(locale)){
   const term=nativeChartTerm(value,locale);if(term)return term;
   if(value.startsWith('계산된 시기 · '))return `${chartCopy(locale).timing} · ${chartTerm(value.slice('계산된 시기 · '.length),locale)}`;

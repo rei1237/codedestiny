@@ -2,7 +2,8 @@
 import {useEffect,useRef,useState} from 'react';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,checkoutPath,type FortuneRecord,type PublicTarotSpread} from '../../_lib/api';
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
-import {tarotSpreadCopy as copy} from '../../_lib/tarot-spread-copy';
+import {tarotSpreadCopyFor} from '../../_lib/tarot-spread-locales';
+import {localizedTarotSpread} from '../../_lib/tarot-spread-catalog-locales';
 import TarotCardArt from '../TarotCardArt';
 import TarotSpreadLayout,{type SlotCard} from './TarotSpreadLayout';
 import styles from './tarot-spread.module.css';
@@ -19,7 +20,8 @@ function remember(id:string,picks:number[]){try{sessionStorage.setItem(key(id),J
 function forget(id:string){try{sessionStorage.removeItem(key(id));}catch{/* nothing stored */}}
 
 /** The buyer picks face-down cards from the committed deck before checkout. Faces stay hidden until payment. */
-export default function TarotCardPick({row,spread,siteLocale,onRow}:{row:FortuneRecord;spread:PublicTarotSpread;siteLocale?:ReadingLocale;onRow:(row:FortuneRecord)=>void}){
+export default function TarotCardPick({row,spread:source,siteLocale,onRow}:{row:FortuneRecord;spread:PublicTarotSpread;siteLocale?:ReadingLocale;onRow:(row:FortuneRecord)=>void}){
+ const locale=siteLocale||row.locale||'ko',copy=tarotSpreadCopyFor(locale),spread=localizedTarotSpread(source,locale);
  const [picks,setPicks]=useState<number[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[ready,setReady]=useState(false);
  const lock=useRef(false);
  const order=[...spread.positions].sort((a,b)=>a.drawOrder-b.drawOrder);
@@ -43,20 +45,20 @@ export default function TarotCardPick({row,spread,siteLocale,onRow}:{row:Fortune
    setError(e instanceof FortuneApiError&&e.message?`${copy.failed} (${e.code})`:copy.failed);
   }finally{lock.current=false;setBusy(false);}
  }
- return <section className={styles.pick} aria-labelledby="tarot-pick-heading" lang="ko">
+ return <section className={styles.pick} aria-labelledby="tarot-pick-heading" lang={locale}>
   <header>
    <h2 id="tarot-pick-heading">{copy.pickHeading}</h2>
    <p>{spread.title} · {copy.cards(count)}</p>
    <p>{drawn?copy.sealed:copy.pickIntro}</p>
    <p className={styles.progress} role="status" aria-live="polite">{copy.pickProgress(drawn?count:picks.length,count)}{current?` · ${copy.pickNow(current.label)}`:picks.length===count||drawn?` · ${copy.pickDone}`:''}</p>
   </header>
-  <TarotSpreadLayout spread={spread} cards={cards} active={current?.id} list={false} numbering="draw"/>
+  <TarotSpreadLayout locale={locale} spread={spread} cards={cards} active={current?.id} list={false} numbering="draw"/>
   {!drawn&&<>
    <div className={styles.deck} role="group" aria-label={copy.pickHeading}>{Array.from({length:spread.deckSize},(_,slot)=>{
     const at=picks.indexOf(slot),picked=at>=0;
     return <button type="button" key={slot} aria-pressed={picked} disabled={busy||!ready||picked||picks.length>=count}
      aria-label={picked?`${copy.pickCard(slot+1)} · ${copy.pickedAs(order[at].label)}`:copy.pickCard(slot+1)} onClick={()=>toggle(slot)}>
-     <TarotCardArt/>{picked&&<span>{at+1}</span>}
+     <TarotCardArt locale={locale}/>{picked&&<span>{at+1}</span>}
     </button>;
    })}</div>
    <div className={styles.actions}>
@@ -67,7 +69,7 @@ export default function TarotCardPick({row,spread,siteLocale,onRow}:{row:Fortune
    <p className={styles.hint}>{copy.autoHint}</p>
   </>}
   {drawn&&<div className={styles.actions}><a className={styles.primary} href={checkoutPath(row,siteLocale)}>{copy.toCheckout}</a></div>}
-  <ol className={styles.positions}>{order.map((position,i)=><li key={position.id} data-active={current?.id===position.id||undefined}><b>{i+1}</b><div><strong>{position.label}</strong><span>{position.question}</span></div></li>)}</ol>
+  <ol className={styles.positions}>{order.map((position,i)=><li key={position.id} data-active={current?.id===position.id||undefined}><b>{i+1}</b><div><strong>{position.label}</strong>{position.question&&<span>{position.question}</span>}</div></li>)}</ol>
   {error&&<p role="alert">{error}</p>}
  </section>;
 }

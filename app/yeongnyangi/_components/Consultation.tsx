@@ -46,16 +46,17 @@ import {tarotConsultation} from '@/worker/yeongnyangi/fortune/tarot/consultation
 import {TAROT_SPREAD_KIND} from '@/worker/yeongnyangi/fortune/tarot/spread-v3';
 import {tierAllowsSpread} from '@/lib/tarot/yeongnyangi-spread-catalog.mjs';
 import TarotSpreadPlanner,{emptyTarotPlan,plannedSpread,plannedInputs,restoreTarotPlan,fishName,type TarotPlan} from './tarot/TarotSpreadPlanner';
-import {tarotSpreadCopy} from '../_lib/tarot-spread-copy';
+import {tarotSpreadCopyFor} from '../_lib/tarot-spread-locales';
+import {localizedTarotSpread} from '../_lib/tarot-spread-catalog-locales';
 const loginDraftKey='yeongnyangi:consultation-login-draft';
 const hasReviews=visibleReviews().length>0;
-// Korean tarot opens on the question-first spread order; other locales fall back to their first kind (koOnly effect below).
-const defaultKind=(domainId:string,site:string)=>domainId==='tarot'&&site==='ko'?consultationKinds.tarot.find(k=>k.id===TAROT_SPREAD_KIND)!:consultationKinds[domainId][0];
+// Every locale opens tarot on the question-first spread order.
+const defaultKind=(domainId:string)=>domainId==='tarot'?consultationKinds.tarot.find(k=>k.id===TAROT_SPREAD_KIND)!:consultationKinds[domainId][0];
 export default function Consultation(){
  const [relationshipStage,setRelationshipStage]=useState(''),[relationshipQuestionId,setRelationshipQuestionId]=useState('');
  const [participants,setParticipants]=useState({self:'',partner:''});
  const {locale,setLocale,siteLocale,fallback}=useReadingLanguage();
- const ui=consultationLocaleCopy(siteLocale);
+ const ui=consultationLocaleCopy(siteLocale),tarotSpreadCopy=tarotSpreadCopyFor(siteLocale);
  const relationshipCopy=relationshipCopyFor(siteLocale),relationshipAdvice=relationshipMethodCopy(siteLocale).advice;
  const kindLabel=(id:string)=>siteLocale==='ko'?consultationKinds[domain].find(k=>k.id===id)?.label||localizedKind(id,siteLocale):localizedKind(id,siteLocale);
  const tierLabel=(item:Product)=>siteLocale==='ko'?(item.readingKind==='single'?item.fishName:consultationTitle(item)):item.readingKind==='single'?localizedTier(item.fishId,siteLocale):item.systems.map(id=>localizedSystem(id,siteLocale)).join(' + ');
@@ -89,7 +90,8 @@ export default function Consultation(){
  },[ready,product]);
  const kind=consultationKinds[domain].find(k=>k.id===kindId)||consultationKinds[domain][0];
  const tarotSpec=domain==='tarot'?tarotConsultation(kind.id):undefined;
- const tarotSpread=domain==='tarot'&&kind.id===TAROT_SPREAD_KIND?plannedSpread(tarotPlan,question,product.fishId):undefined;
+ const tarotSpread=domain==='tarot'&&kind.id===TAROT_SPREAD_KIND?plannedSpread(tarotPlan,question,product.fishId,siteLocale):undefined;
+ const tarotSpreadView=tarotSpread?localizedTarotSpread(tarotSpread,siteLocale):undefined;
  const relationship=isRelationshipReading(domain,kind.id);
  useEffect(()=>{
   if(siteLocale==='ko'||!kind.koOnly)return;
@@ -148,7 +150,7 @@ export default function Consultation(){
   const selected=products.find(p=>p.id===params.get('product'))||(requested==='fusion'?products.find(p=>p.readingKind==='pair'):undefined)||products.find(p=>p.domain===requested&&p.fishId===params.get('fish')&&p.readingKind==='single')||products.find(p=>p.domain===requested&&p.readingKind==='single')||products[0];
   setProductId(selected.id);setDomain(selected.readingKind==='single'?selected.domain:'fusion');
   const nextDomain=consultationDomain(selected);
-  const requestedKind=consultationKinds[nextDomain].find(k=>k.id===params.get('consultationKind'))||(params.get('topic')?consultationKinds[nextDomain].find(k=>k.id==='ask'):undefined)||defaultKind(nextDomain,siteLocale);
+  const requestedKind=consultationKinds[nextDomain].find(k=>k.id===params.get('consultationKind'))||(params.get('topic')?consultationKinds[nextDomain].find(k=>k.id==='ask'):undefined)||defaultKind(nextDomain);
   setKindId(requestedKind.id);
   if(requestedKind.koOnly)setLocale('ko');
   const entryQuestion=getQuestionGuide(params.get("questionId"));
@@ -224,7 +226,7 @@ export default function Consultation(){
   }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginWithDraft();else setError(siteLocale!=='ko'?inputCopy.consultationError:e instanceof Error?e.message:inputCopy.consultationError);}
   finally{lock.current=false;setBusy(false);}
  }
- function chooseDomain(next:string){const first=defaultKind(next,siteLocale);setKindId(first.id);setTopicId('general');setQuestion('');setDomain(next);setProductId(products.find(p=>next==='fusion'?p.readingKind!=='single':p.domain===next&&p.readingKind==='single')!.id);setPartnerId('');setError('');}
+ function chooseDomain(next:string){const first=defaultKind(next);setKindId(first.id);setTopicId('general');setQuestion('');setDomain(next);setProductId(products.find(p=>next==='fusion'?p.readingKind!=='single':p.domain===next&&p.readingKind==='single')!.id);setPartnerId('');setError('');}
  function chooseKind(id:string){const next=consultationKinds[domain].find(k=>k.id===id)!;setKindId(id);if(next.koOnly)setLocale('ko');setPartnerId('');setError('');if(!supportsKind(product,next))setProductId(products.find(p=>consultationDomain(p)===domain&&supportsKind(p,next))!.id);}
  function chooseRelationshipEngine(next:DomainId){const tarotKind=relationshipQuestionId==='contact'?'contact':relationshipQuestionId==='reunion'?'reunion':['feelings','flirting'].includes(relationshipQuestionId)?'feelings':'compatibility';setDomain(next);setKindId(next==='tarot'?tarotKind:'compatibility');setProductId(next+'_mackerel');setTopicId('relationship');setRelationshipStage('consultation');setError('');}
  if(relationshipStage&&relationshipStage!=='consultation')return <RelationshipJourney locale={siteLocale} stage={relationshipStage} setStage={setRelationshipStage} questionId={relationshipQuestionId} onQuestion={(id,text)=>{setRelationshipQuestionId(id);setQuestion(text);}} participants={participants} onParticipants={setParticipants} profileState={profileState} partnerId={partnerId} onPartner={setPartnerId} onEngine={chooseRelationshipEngine}/>;
@@ -245,14 +247,14 @@ export default function Consultation(){
    <aside className={styles.consultationGuide} aria-label={ui.summary}>
     <img className={styles.guideCat} src="/assets/yeongnyangi/profiles/welcome.webp" width={168} height={171} alt="Yeongnyangi"/>
     <h2>{ui.guideTitle}</h2><p>{ui.guideIntro}</p>
-    <dl className={styles.consultationSummary}><div><dt>{ui.summary}</dt><dd>{tarotSpread?.title||kindLabel(kind.id)} · {tierLabel(product)}</dd></div><div><dt>{ui.profile}</dt><dd>{tarotOnly?localizedSystem('tarot',siteLocale):selectedProfile?.name||inputCopy.pickerPrompt}</dd></div><div><dt>{ui.structure}</dt><dd>{preview.length} {ui.chapters}</dd></div><div><dt>{ui.methodTitle}</dt><dd>{siteLocale==='ko'?readingFeatures[domain]:localizedSystem(domain,siteLocale)}</dd></div><div><dt>{ui.paymentTitle}</dt><dd>{ui.payment} · {price(product.priceKRW)}</dd></div></dl>
+    <dl className={styles.consultationSummary}><div><dt>{ui.summary}</dt><dd>{tarotSpreadView?.title||kindLabel(kind.id)} · {tierLabel(product)}</dd></div><div><dt>{ui.profile}</dt><dd>{tarotOnly?localizedSystem('tarot',siteLocale):selectedProfile?.name||inputCopy.pickerPrompt}</dd></div><div><dt>{ui.structure}</dt><dd>{preview.length} {ui.chapters}</dd></div><div><dt>{ui.methodTitle}</dt><dd>{siteLocale==='ko'?readingFeatures[domain]:localizedSystem(domain,siteLocale)}</dd></div><div><dt>{ui.paymentTitle}</dt><dd>{ui.payment} · {price(product.priceKRW)}</dd></div></dl>
     <p className={styles.guideNote}><Sparkles size={16} aria-hidden="true"/>{ui.about}</p>
     {siteLocale==='ko'&&hasReviews&&<details className={styles.consultationReviews}><summary>네오 1:1 상담 실제 후기 보기</summary><p>네오가 사람 1:1 상담에서 받은 후기예요. 여기서 고르는 상담은 AI가 작성해요.</p><CustomerReviews limit={2} variant="inline"/></details>}
    </aside>
    <div className={`${styles.form} ${styles.consultationForm}`}>
    {relationship&&tarotOnly&&<><label>{relationshipCopy.self}<input maxLength={40} value={participants.self} onChange={e=>setParticipants({...participants,self:e.target.value})}/></label><label>{relationshipCopy.partner}<input maxLength={40} value={participants.partner} onChange={e=>setParticipants({...participants,partner:e.target.value})}/></label><p>{relationshipCopy.symbolism}</p></>}
-   {tarotSpread?<>{guest&&<p>{inputCopy.loginHint}</p>}<TarotSpreadPlanner question={question} onQuestion={setQuestion} plan={tarotPlan} onPlan={plan=>{setTarotPlan(plan);setTierNotice('');}} tier={product.fishId} disabled={busy} notice={tierNotice}
-    onTier={(fishId,cards)=>{const next=choices.find(item=>item.fishId===fishId);if(next){setProductId(next.id);setTierNotice(tarotSpreadCopy.tierRaised(fishName(fishId),cards));}}}/></>:tarotOnly?<section className={styles.questionIntro} lang={siteLocale}><h2>{inputCopy.tarotHeading}</h2><p>{inputCopy.tarotIntro}</p>{guest&&<p>{inputCopy.loginHint}</p>}</section>:<>
+   {tarotSpread?<>{guest&&<p>{inputCopy.loginHint}</p>}<TarotSpreadPlanner locale={siteLocale} question={question} onQuestion={setQuestion} plan={tarotPlan} onPlan={plan=>{setTarotPlan(plan);setTierNotice('');}} tier={product.fishId} disabled={busy} notice={tierNotice}
+    onTier={(fishId,cards)=>{const next=choices.find(item=>item.fishId===fishId);if(next){setProductId(next.id);setTierNotice(tarotSpreadCopy.tierRaised(fishName(fishId,siteLocale),cards));}}}/></>:tarotOnly?<section className={styles.questionIntro} lang={siteLocale}><h2>{inputCopy.tarotHeading}</h2><p>{inputCopy.tarotIntro}</p>{guest&&<p>{inputCopy.loginHint}</p>}</section>:<>
     <ProfilePicker state={profileState} locale={siteLocale}/>
     {!guest&&selectedProfile&&<div className={styles.birthDetails}>
     <label><input type="checkbox" checked={timeUnknown} onChange={e=>setTimeUnknown(e.target.checked)}/> {inputCopy.timeUnknown}</label>
@@ -276,9 +278,9 @@ export default function Consultation(){
   <p lang={siteLocale}>{ui.depthHint} {kind.question&&ui.questionHint}</p>
   {domain!=='fusion'&&<p lang={siteLocale} data-reading-depth-note>{readingDepthCopy(siteLocale).sharedTopics}</p>}
   <div className={`${styles.fishes} ${domain==='fusion'?styles.fusionChoices:''}`} role="group" aria-label={siteLocale==='ko'?'생선 상품':ui.depth}>{choices.map(item=><button key={item.id} onClick={()=>{setProductId(item.id);setTierNotice('');}} aria-pressed={productId===item.id} disabled={!!tarotSpread&&!tierAllowsSpread(item.fishId,tarotSpread)}>
-   <img src={siteLocale==='ko'?item.image:item.reactionAsset} alt="" width={240} height={108}/><strong>{tierLabel(item)}</strong><span className={styles.fishPrice}>{siteLocale==='ko'&&<LaunchPlannedPrice amount={plannedPriceFor(item.fishId,item.priceKRW)}/>}{siteLocale==='ko'&&plannedPriceFor(item.fishId,item.priceKRW)!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(item.priceKRW)}</span><span className={styles.fishScope}>{consultationManifest(item,kind,topicId).length} {ui.chapters}{productId===item.id&&<b>{ui.selected}</b>}</span>{domain!=='fusion'&&<small>{targetRange(item)} {ui.target}</small>}{tarotSpread&&!tierAllowsSpread(item.fishId,tarotSpread)&&tarotSpread.minTier&&<small>{tarotSpreadCopy.tierLocked(tarotSpread.cardCount,fishName(tarotSpread.minTier))}</small>}{readingTierDepth(item.fishId,siteLocale)?<small data-reading-tier-depth={item.fishId}>{readingTierDepth(item.fishId,siteLocale)}</small>:siteLocale==='ko'&&<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>}
+   <img src={siteLocale==='ko'?item.image:item.reactionAsset} alt="" width={240} height={108}/><strong>{tierLabel(item)}</strong><span className={styles.fishPrice}>{siteLocale==='ko'&&<LaunchPlannedPrice amount={plannedPriceFor(item.fishId,item.priceKRW)}/>}{siteLocale==='ko'&&plannedPriceFor(item.fishId,item.priceKRW)!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(item.priceKRW)}</span><span className={styles.fishScope}>{consultationManifest(item,kind,topicId).length} {ui.chapters}{productId===item.id&&<b>{ui.selected}</b>}</span>{domain!=='fusion'&&<small>{targetRange(item)} {ui.target}</small>}{tarotSpread&&!tierAllowsSpread(item.fishId,tarotSpread)&&tarotSpread.minTier&&<small>{tarotSpreadCopy.tierLocked(tarotSpread.cardCount,fishName(tarotSpread.minTier,siteLocale))}</small>}{readingTierDepth(item.fishId,siteLocale)?<small data-reading-tier-depth={item.fishId}>{readingTierDepth(item.fishId,siteLocale)}</small>:siteLocale==='ko'&&<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>}
   </button>)}</div>
-   <details className={styles.manifestPreview}><summary>{tarotSpread?.title||kindLabel(kind.id)} · {preview.length} {ui.chapters} · {ui.contents}</summary><ol>{preview.map((chapter,i)=>{
+   <details className={styles.manifestPreview}><summary>{tarotSpreadView?.title||kindLabel(kind.id)} · {preview.length} {ui.chapters} · {ui.contents}</summary><ol>{preview.map((chapter,i)=>{
     const head=v7PartHead(preview,i,siteLocale);
     return <li key={chapter.id}>{head&&<b className={styles.partHeading}>{head}</b>}{v7Label(chapter.titleKey,siteLocale)||(siteLocale==='ko'?chapter.title:`${localizedKind(kind.id,siteLocale)} · ${i+1}`)}</li>;
    })}</ol></details>

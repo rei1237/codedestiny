@@ -2,18 +2,21 @@
 import type {CSSProperties} from 'react';
 import type {TarotSpreadSlot} from '../../_lib/api';
 import {yeongnyangiCardArt} from '@/lib/tarot/yeongnyangi-deck';
-import {tarotSpreadCopy as copy} from '../../_lib/tarot-spread-copy';
+import {tarotSpreadCopyFor} from '../../_lib/tarot-spread-locales';
+import {localizedTarotSpread} from '../../_lib/tarot-spread-catalog-locales';
+import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import TarotCardArt from '../TarotCardArt';
 import styles from './tarot-spread.module.css';
 
-export type SpreadShape={title:string;positions:readonly {id:string;label:string;question:string;drawOrder:number;readOrder:number}[];
+export type SpreadShape={id?:string;title:string;positions:readonly {id:string;label:string;question:string;drawOrder:number;readOrder:number}[];
  layout:{kind:string;slots:readonly TarotSpreadSlot[]};symmetry?:{a:readonly string[];b:readonly string[]}};
 // open=false draws a face-down card in the slot (picked, not yet revealed); no entry leaves the slot empty.
 export type SlotCard={cardCode?:string;reversed?:boolean;open:boolean};
 
 /** One spread drawn from its stored slots: desktop and mobile coordinates, the Celtic crossing card, A/B sides. */
 // numbering='draw' labels slots in pick order (the pick screen); everything else uses the reading order.
-export default function TarotSpreadLayout({spread,cards={},active,size='mini',list=true,locale='ko',numbering='read'}:{spread:SpreadShape;cards?:Record<string,SlotCard|undefined>;active?:string;size?:'mini'|'full';list?:boolean;locale?:string;numbering?:'read'|'draw'}){
+export default function TarotSpreadLayout({spread:source,cards={},active,size='mini',list=true,locale='ko',numbering='read'}:{spread:SpreadShape;cards?:Record<string,SlotCard|undefined>;active?:string;size?:'mini'|'full';list?:boolean;locale?:ReadingLocale;numbering?:'read'|'draw'}){
+ const copy=tarotSpreadCopyFor(locale),spread=localizedTarotSpread(source,locale);
  const slots=spread.layout.slots,max=(pick:(slot:TarotSpreadSlot)=>number)=>Math.max(1,...slots.map(pick));
  const byId=new Map(spread.positions.map(position=>[position.id,position]));
  const side=(id:string)=>spread.symmetry?.a.includes(id)?'a':spread.symmetry?.b.includes(id)?'b':undefined;
@@ -36,7 +39,7 @@ export default function TarotSpreadLayout({spread,cards={},active,size='mini',li
   </div>
   {list&&<ol className={styles.positions}>{ordered.map(position=>{
    const card=cards[position.id];
-   return <li key={position.id} data-active={active===position.id||undefined}><b>{position.readOrder}</b><div><strong>{position.label}</strong><span>{position.question}</span>{cardName(card)&&<em>{cardName(card)}</em>}</div></li>;
+   return <li key={position.id} data-active={active===position.id||undefined}><b>{position.readOrder}</b><div><strong>{position.label}</strong>{position.question&&<span>{position.question}</span>}{cardName(card)&&<em>{cardName(card)}</em>}</div></li>;
   })}</ol>}
  </div>;
 }
