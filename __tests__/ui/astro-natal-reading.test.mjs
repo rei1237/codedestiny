@@ -1,16 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import vm from 'node:vm';
+import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 
 // Fixture charts are calcAstroSwissChartOrThrow(...) results dumped once from the browser (Swiss wasm, Placidus):
 // b1 1990-10-14 14:30 Seoul, b2 1985-03-02 06:10 Busan, b3 2001-07-21 22:45 Seoul, x1–x12 more Seoul births.
 // `noon` is the same day at 12:00 (what the page uses without a birth time); moonDay is the Moon's sign at 00:00 and 23:59.
-const source = readFileSync('js/core/astro/natal-reading.js', 'utf8');
+const source = readFileSync('worker/lib/astro-natal-reading.cjs', 'utf8');
 const charts = JSON.parse(readFileSync('__tests__/fixtures/astro-natal-charts.json', 'utf8'));
-const context = vm.createContext({});
-vm.runInContext(source, context);
-const reading = context.AstroNatalReading;
+const reading = createRequire(import.meta.url)('../../worker/lib/astro-natal-reading.cjs');
 const TODAY = '2026-10-04';
 const SIGN = ['양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리', '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'];
 const BODIES = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
