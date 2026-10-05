@@ -65,7 +65,7 @@ export default function Page() {
   return (
     <>
       <FortuneTeaHouseClient />
-      <div className={roomStyles.publicGuide}><ServiceIntroSection label="운명의 찻집 안내">
+      <div className={roomStyles.publicGuide}><ServiceIntroSection label="운명의 찻집 안내" tone="yeoni">
         <h2>연이의 운명 찻집 이용 안내</h2>
         <p>
           운명의 찻집은 달빛이 머무는 자리에 놓인 작은 상담소입니다. 문을 열면 꽃돼지 연이가 손님을

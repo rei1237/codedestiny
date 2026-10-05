@@ -327,6 +327,8 @@ App Router 에는 표면 계열이 셋 있고, 서로 대체재가 아니다. �
 
 시스템 페이지(404·에러 바운더리)는 `app/components/SystemNotice.tsx` 를 쓴다 — `.policy-doc` 골격만 재사용하는 얇은 래퍼이고 문구는 전부 호출부가 넘긴다.
 
+기능 페이지 하단 소개 카드(서비스 설명·진행 순서·FAQ)는 `app/components/ServiceIntroSection.tsx` 하나가 그린다(2026-10-05 달빛 예화 양식, 18개 라우트). 명조 h1·h2, 상단 초승달+꽃가지 띠, 하단 맺음 가지, 반짝임 목록 표식이고 사설 토큰은 `--si-*`(`ServiceIntroSection.module.css`)다. 장식 선은 생성기 `scripts/design/gen-yehwa-motifs.mjs` 산출물 `app/components/service-intro/yehwaIntroMasks.generated.module.css` 의 CSS 마스크다 — 손으로 경로를 박지 않는다. 연이 화면은 `tone="yeoni"`(딥 플럼) 한 세트로만 바꾼다. 바로 아래 `ImmersiveRelatedLinks` 의 `dark` 톤은 같은 표면 값을 쓴다.
+
 ## 9. Theme Axes — 실제로는 4갈래다
 
 "다크/라이트"라는 한마디로 부를 수 없다. 이 저장소에는 서로 연동되지 않는 테마 축이 **4개** 있다(2026-09-05 실측). 화면 하나를 고칠 때 **어느 축 위에 있는지 먼저 확인한다.**
