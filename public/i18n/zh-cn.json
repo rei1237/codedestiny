@@ -11,7 +11,7 @@
     "homeGuide": {
       "kicker": "FORTUNE GUIDE",
       "title": "四柱八字·塔罗·运势的解读方法",
-      "lead": "Code Destiny 是一个韩语占卜平台，只需生日与出生时间，即可在一处查看四柱八字、塔罗、紫微斗数、西洋与吠陀占星、宿曜及合盘。为了让初次接触的人也能理清脉络，我们简要整理了每种占卜看什么、怎么读。所有解读都是帮助自我省察、整理当下选择的参考资料，而非断定未来的预言。",
+      "lead": "Code Destiny提供四柱八字、紫微斗数、宿曜、西洋占星、吠陀占星与塔罗的简体中文入口。想了解长期的性格与选择模式，可以从出生信息对应的命盘开始；想梳理某个具体问题，可以选择塔罗。八字需要出生资料，塔罗从问题与牌面出发，两者不能套用同一解释。每个介绍页说明本体系的阅读方法，并连接相应工具。妍伊、Neo与Yeongnyangi提供同一平台内不同风格的咨询体验。公开功能和可选付费咨询的范围，以对应服务页说明为准。",
       "sajuTitle": "四柱八字·万年历",
       "sajuBody": "以出生的年、月、日、时立四柱，解读天干地支中五行的平衡、十神与大运的流向。既看与生俱来的气质，也看当前时期的节奏。",
       "tarotTitle": "塔罗解读",
@@ -1672,9 +1672,9 @@
       "libraryNote": "记录保存在已登录的账户中。",
       "searchTitle": "你想看什么运势？",
       "searchHint": "可按运势名称、烦恼或旧服务名搜索。",
-      "heroTitle": "今天的心事",
-      "heroTitleEm": "一起慢慢理清",
-      "heroLead": "花猪妍伊的运势花园",
+      "heroTitle": "四柱八字与塔罗",
+      "heroTitleEm": "理清自己的下一步",
+      "heroLead": "Code Destiny · 紫微命盘、宿曜关系与个人问题解读",
       "heroPrimary": "选择运势",
       "allFortunes": "查看全部运势",
       "todayTerms": "免费 · 无需登录 · 按出生日期资料卡计算",
@@ -6057,7 +6057,7 @@
     "sq_9794_attr_aria_label": "宿曜姻缘雷达图"
   },
   "shell": {
-    "CODEDESTINY": "CODE DESTINY | 免费四柱八字·塔罗·紫微斗数·合婚 — 每日运势",
+    "CODEDESTINY": "八字排盘·紫微斗数·塔罗占卜｜Code Destiny",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "同意",

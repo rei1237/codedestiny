@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { publicRecordCopy, PUBLIC_RECORD_PATH } from '../lib/seo/public-record-copy.mjs';
+import { FEATURE_INTRODUCTIONS } from '../lib/i18n/feature-introductions.mjs';
 /**
  * llms.txt 생성기 (https://llmstxt.org).
  *
@@ -144,6 +145,20 @@ lines.push(`- 환불 정책: ${siteBaseUrl}/terms/#refund-policy`);
 lines.push(`- 서비스 소개: ${siteBaseUrl}/about/`);
 lines.push(`- 문의: ${siteBaseUrl}/contact/`);
 lines.push("");
+
+// Use the same reviewed, visible locale copy as the entry pages, not a second
+// promotional description. Only existing translated hubs are listed here.
+for (const [locale, dictionaryName] of Object.entries({ ja: 'ja', en: 'en', zh: 'zh-cn', 'zh-tw': 'zh-tw' })) {
+  const dictionary = JSON.parse(readFileSync(resolve(rootDir, 'public/i18n', `${dictionaryName}.json`), 'utf8'));
+  lines.push(`## ${dictionary.shell.CODEDESTINY}`);
+  lines.push(dictionary.home.homeGuide.lead);
+  lines.push(`- [${dictionary.shell.CODEDESTINY}](${siteBaseUrl}/${locale}/)`);
+  for (const topic of ['saju', 'ziwei', 'sukuyo']) {
+    const label = FEATURE_INTRODUCTIONS[topic]?.[locale]?.heading || dictionary.home.nav[topic];
+    lines.push(`- [${label}](${siteBaseUrl}/${locale}/${topic}/)`);
+  }
+  lines.push('');
+}
 
 const body = `${lines.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd()}\n`;
 
