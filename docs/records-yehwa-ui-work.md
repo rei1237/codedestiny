@@ -1,5 +1,5 @@
 ---
-status: in_progress
+status: done
 ---
 # 달빛 예화 기록 읽기 구현
 
@@ -22,8 +22,8 @@ Operate: 목록 검색과 재열람. Read: 서비스 고유의 전체 결과.
 - [x] 서비스별 표시 분기 정본 추가
 - [x] 서비스별 원본 표시부 연결·호환 처리
 - [x] mock 자동 검사·실제 화면 및 독립 검토
-- [ ] main 통합·push·정확한 SHA CI
-- [ ] 자기 작업 정리
+- [x] main 통합·push·정확한 SHA CI
+- [x] 자기 검증 자료 보존·배수 준비 (문서 전달 후 자기 워크트리만 제거)
 
 ## 증거 경계
 현재 구현·검증 진행 중. 기존 문서의 CI·18개 브라우저 사례를 이번 결과로 인용하지 않는다. 원래 결과 컴포넌트에 부수효과가 있으면 표시부만 사용한다. 저장되지 않은 차트·사진·TTL 삭제 결과는 복원하지 않는다.
@@ -126,3 +126,54 @@ visual_checker: 바디그래프 저장 전용 highContrast의 비활성 선은 �
 `verification-final.json`은 전체229 실행과 마지막 영향 범위 재검증을 합친 자료다. `before-*`는 오늘05시 기존 캡처의 보존 사본이며 이번 실행에서 과거 코드를 다시 실행한 것은 아니다.
 Next dev는 작업트리 안 build-cache 캡처/로그 쓰기에도 재컴파일되어 manifest 오류가 났다. 검증 출력만 `RECORDS_TEST_OUTPUT`으로 작업트리 밖에 옮겨 해결했으며 임시 next.config 변경은 남기지 않았다. 실패 실행은 통과 사례에 포함하지 않았다.
 실결제·실LLM·운영 DB 쓰기·운영 승격·실기기 및 외부 R2 가용성은 검증하지 않았다. 인연의 서 원격 초상화는 같은 캐릭터의 로컬 에셋 mock으로 대체했다. 저장되어 있지 않은 자료의 복원이나 임의 계산은 하지 않는다.
+
+
+## 수정 파일
+- `__tests__/fixtures/records-reading-fixtures.mjs`
+- `__tests__/ui/records-reading-content.test.mjs`
+- `__tests__/worker/record-library.test.js`
+- `app/consultations/ConsultationHub.tsx`
+- `app/destiny-compass/_components/SavedCompassReport.tsx`
+- `app/destiny-compass/_components/saved-report.module.css`
+- `app/fortune-chat/consultation.module.css`
+- `app/fortune-tea-house/SavedTeaReading.tsx`
+- `app/fusion-fortune/FusionResultThread.tsx`
+- `app/human-design/_components/BodyGraph.tsx`
+- `app/human-design/_components/bodygraph.module.css`
+- `app/records/RecordFrame.tsx`
+- `app/records/RecordsClient.tsx`
+- `app/records/records.module.css`
+- `app/records/view/SavedCharts.tsx`
+- `app/records/view/SavedFptiReading.tsx`
+- `app/records/view/SavedReadingParts.tsx`
+- `app/records/view/SavedRecordClient.tsx`
+- `app/records/view/SavedServiceReading.tsx`
+- `app/records/view/SavedSupplementalReadings.tsx`
+- `app/records/view/StoredReading.tsx`
+- `app/records/view/saved-reading.module.css`
+- `app/relationship-boundary-test/RelationshipBoundaryTestClient.tsx`
+- `app/relationship-boundary-test/RelationshipReportParts.tsx`
+- `app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.tsx`
+- `app/vedic-ai/VedicAiClient.module.css`
+- `app/vedic-ai/VedicAiClient.tsx`
+- `components/fortune/AstrologyChartWheel.tsx`
+- `config/sitemap-lastmod.json`
+- `docs/records-yehwa-ui-work.md`
+- `lib/records/reading-content.d.ts`
+- `lib/records/reading-content.js`
+- `lib/records/reading-registry.d.ts`
+- `lib/records/reading-registry.js`
+- `scripts/design/verify-records-hub.mjs`
+- `src/features/fortune-tea-house/styles/tea-report.module.css`
+- `src/features/neo-war-room/NeoOperationRoomResultPage.tsx`
+
+변경 의미: 보관함/허브의 정보 위계와 서비스별 저장 결과 표시만 개선했다. 원본 페이지에서는 표시부 추출·저장용 옵션만 추가했다. 공개 API·DB 스키마·결제/가격·인증·환불 로직 변경은 없다. main 통합 커밋에 포함된 다른 세션의 가격/공통 안내 변경은 이 구현 커밋의 수정 파일이 아니다.
+
+
+## 전달 완료
+- 구현: `a7513f5f9` (37개 파일).
+- 원격 main 통합: `6e54208d3630c4eda0153d64fcca0b1fa8c47f60`. 지정 문서 커밋 `63a530328865a7bd7e4185c705493c13ab6f5f81`의 조상 포함도 확인했다.
+- 정확한 통합 SHA의 CI required: **success**. https://github.com/rei1237/codedestiny/actions/runs/37288763278 — Critical checks / Build Pages and Worker / Static guards / Typecheck and lint 모두 success.
+- 최신 main 통합 후 찻집4폭 및 허브/보관함4폭 재검증도 PASS. 생성 원장 충돌은 최신 main 원장을 기준으로 합쳐진 소스에서 재생성했고 `verify:sitemap-drift`가 통과했다.
+- 공유 로컬 main은 다른 세션의 staged/미커밋 파일과 `.git/index.lock` 때문에 이동하지 않았다. 원격 main에 비강제 push했으며 다른 세션의 파일·잠금·워크트리는 보존했다.
+- 작업 자료는 위 외부 evidence 폴더에 유지한다. 이 완료 문서의 전달 확인 후 node_modules 정션을 먼저 해제하고 자기 워크트리/머지된 브랜치만 배수한다. 최종 실행 결과는 같은 폴더의 `delivery.json`에 남긴다.
