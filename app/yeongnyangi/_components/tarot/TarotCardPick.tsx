@@ -21,7 +21,7 @@ function forget(id:string){try{sessionStorage.removeItem(key(id));}catch{/* noth
 
 /** The buyer picks face-down cards from the committed deck before checkout. Faces stay hidden until payment. */
 export default function TarotCardPick({row,spread:source,siteLocale,onRow}:{row:FortuneRecord;spread:PublicTarotSpread;siteLocale?:ReadingLocale;onRow:(row:FortuneRecord)=>void}){
- const locale=siteLocale||row.locale||'ko',copy=tarotSpreadCopyFor(locale),spread=localizedTarotSpread(source,locale);
+ const locale=row.locale||'ko',copy=tarotSpreadCopyFor(locale),spread=localizedTarotSpread(source,locale);
  const [picks,setPicks]=useState<number[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[ready,setReady]=useState(false);
  const lock=useRef(false);
  const order=[...spread.positions].sort((a,b)=>a.drawOrder-b.drawOrder);

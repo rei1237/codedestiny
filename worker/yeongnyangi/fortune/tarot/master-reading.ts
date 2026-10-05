@@ -5,11 +5,12 @@ import type {DomainContext} from '../shared/contracts';
 import {FortuneError} from '../shared/contracts';
 import type {ReadingLocale} from '../reading-locale';
 import {savedTarotConsultation,tarotConsultationPrompt} from './consultation-prompt';
+import {canonicalTarotProse} from './reading-vocabulary';
 
 type SavedCard={cardId?:string;code?:string;name?:string;nameKo?:string;nameKr?:string;position?:string;positionKey?:string;orientation?:string};
 
 const SUIT_ELEMENT:Record<string,string>={wands:'fire/action',cups:'water/emotion',swords:'air/thought',pentacles:'earth/reality'};
-const CRISIS=/(?:자살|자해|죽고\s*싶|삶을\s*끝|극단적\s*선택|suicid|self[- ]?harm|kill\s+myself|end\s+my\s+life|自殺|自伤|自傷|死にたい|不想活|结束生命|結束生命)/iu;
+const CRISIS=/(?:자살|자해|죽고\s*싶|삶을\s*끝|극단적\s*선택|suicid|self[- ]?harm|kill\s+myself|end\s+my\s+life|自殺|自伤|自傷|死にたい|不想活|结束生命|結束生命|tự\s*tử|tự\s*làm\s*hại|muốn\s*chết|आत्महत्या|खुद\s*को\s*नुकसान|मरना\s*चाह|matarme|hacerme\s*daño|quiero\s*morir|me\s*tuer|me\s*faire\s*du\s*mal|veux\s*mourir|selbstmord|mich\s*(?:selbst\s*)?(?:töten|verletzen)|sterben\s*will|zelfmoord|mezelf\s*(?:doden|verwonden)|wil\s*sterven|bunuh\s*diri|mencederakan\s*diri|mahu\s*mati)/iu;
 const SAFETY_NOTICE:Record<ReadingLocale,string>={
  ko:'지금 자신을 해칠 생각이 있거나 당장 안전하지 않다면, 카드 해석보다 안전이 먼저예요. 혼자 있지 말고 가까운 사람과 지역 응급기관에 바로 도움을 요청해 주세요.',
  en:'If you may hurt yourself or are not safe right now, your safety comes before this reading. Stay with someone you trust and contact local emergency or crisis support now.',
@@ -73,10 +74,10 @@ export function buildTarotMasterContract(context:DomainContext,question:unknown,
 }
 
 function prose(body:ChapterBody){return [body.title,body.summary,body.persona,...body.analysis,...body.highlights,...body.topics,...(body.blocks||[]).flatMap(block=>[block.title,...block.paragraphs]),...(body.questionAnswers||[]).flatMap(answer=>[answer.answer,answer.reason,answer.timing,answer.action])].filter(Boolean).join('\n');}
-export function validateTarotChapter(body:ChapterBody,context:DomainContext){
+export function validateTarotChapter(body:ChapterBody,context:DomainContext,locale:ReadingLocale='ko'){
  const saved=savedTarotCards(context);
  if(!saved.length)return;
- const content=prose(body);
+ const content=canonicalTarotProse(prose(body),context,locale);
  const allowed=new Map(saved.map(card=>{
   const code=text(card.cardId||card.code).toUpperCase();
   const model=TAROT_CARDS.find(item=>item.code===code);
