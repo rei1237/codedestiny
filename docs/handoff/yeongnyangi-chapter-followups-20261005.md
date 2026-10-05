@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-05
-next: "이 문서의 '후속 과제' 1번(연어 건강 장 계절 사실 오류)부터 원인을 실측하고, 사주 facts 에 출생 계절을 결정적으로 넣어 mock invariance·골든 없이 고친다."
+next: "후속 과제 2번(근거 밖 문장 가지치기가 많은 장): d:\tmp\yeongnyangi-golden-20261004\state-raw.json 에서 장별 제거 수를 집계해 상위 장의 focus·refs 를 보강한다."
 ---
 
 # 영냥이 챕터 확장 후속 과제 인수인계
@@ -28,6 +28,7 @@ next: "이 문서의 '후속 과제' 1번(연어 건강 장 계절 사실 오류
 - 추정 원인(미검증): 사주 facts 에 출생 계절 이름이 없고 `seasonalBalance`(조후, `worker/yeongnyangi/fortune/saju/runtime.ts:119`)의 '따뜻함·건조' 신호만 있어 모델이 계절을 지어낸다. `healthBasis` 는 `worker/yeongnyangi/fortune/saju/index.ts:73` 에서 만든다.
 - 방향: 월지→계절(寅卯辰 봄, 巳午未 여름, 申酉戌 가을, 亥子丑 겨울)을 facts 에 결정적으로 넣고, 건강 장 focus 에 "계절은 근거의 값만 쓴다"를 명시한다. 품질 게이트로 계절 불일치를 잡을 수 있으면 거부가 아니라 해당 문장 제거로 처리한다(원칙 17).
 - 검증: 파생 단위 테스트 + invariance(`YEONGNYANGI_INVARIANCE_PRINT=1`, 바뀐 사주 행만). 과금 실호출은 별도 1회 승인 없이는 하지 않는다.
+- **결과(2026-10-05, `2521ebc10`)**: 추정 원인은 틀렸다 — 실측하니 `seasonalBalance.season='봄'` 은 이미 근거에 있었고, 모델이 `type:'warm'` 을 여름 출생으로 읽었다. ① `healthBasis.climate.birthSeason` + "따뜻함·건조함은 계절이 아니다" 규칙(`worker/lib/saju-derived-signals.js`) ② `correctNatalClaims` 가 월지 계절과 다른 "○○(철)에 태어나/태생" 문장을 제거(참 계절을 함께 말하는 설명·완곡·일반론·상대 문장은 유지). invariance 123행 중 사주 11행 requests 만 변경. 실호출 재확인은 하지 않았다(다음 골든 때 확인).
 
 ### 2. 근거 밖 문장 가지치기가 많은 장
 - 골든에서 근거 밖 사실로 잘린 문장이 많은 장이 있었다(예: 참치 t25 에서 `V7_FOREIGN_FACT` 21문장). 분량은 통과했지만 모델이 근거 밖 내용을 많이 쓴다는 뜻이다.
