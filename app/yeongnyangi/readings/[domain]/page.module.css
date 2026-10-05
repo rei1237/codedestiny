@@ -1,4 +1,4 @@
-.page {max-width:680px;margin:0 auto;padding:24px 20px 48px;color:#eadff0;background:#171425;border-radius:20px}
-.page h1 {font-family:var(--font-display),serif;color:#f1d3a3;font-size:clamp(27px,6vw,40px);line-height:1.4;word-break:keep-all;text-wrap:balance;margin:0 0 16px}
+.page {max-width:680px;margin:0 auto;padding:24px 20px 48px;color:var(--yn-ivory);background:var(--yn-night);border-radius:20px}
+.page h1 {font-family:var(--font-display),serif;color:var(--yn-gold);font-size:clamp(27px,6vw,40px);line-height:1.4;word-break:keep-all;text-wrap:balance;margin:0 0 16px}
 .page>p {line-height:1.7;margin:0 0 20px}
-.art {display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:12px}
+.art {display:block;width:100%;height:auto;max-height:220px;object-fit:contain;border-radius:12px}

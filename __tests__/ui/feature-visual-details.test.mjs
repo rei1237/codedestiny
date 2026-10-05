@@ -3,10 +3,37 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { renderFeatureDetailPanels } from '../../js/feature-detail-panels.mjs';
+import { getBillingFeaturePricing } from '../../worker/lib/billing-feature-registry.js';
 
 const catalog = JSON.parse(fs.readFileSync('public/feature-details/catalog.json', 'utf8'));
 const sharedHero = '/feature-details/assets/feature-detail-shared-hero-v1-960.webp';
 const shell = fs.readFileSync('index.html', 'utf8');
+
+test('catalog products resolved by billing have an honest, readable sample before the outline', () => {
+  let checked = 0;
+  for (const entry of catalog) {
+    // A free calculator may expose a paid extension under the same billing key.
+    if (entry.accessType === 'free') continue;
+    const billing = getBillingFeaturePricing({ featureKey: entry.featureKey });
+    if (!billing.ok && entry.accessType !== 'paid') continue;
+    const detail = JSON.parse(fs.readFileSync(`public/feature-details/${entry.slug}.json`, 'utf8'));
+    assert.ok(detail.sample?.text, `${entry.slug}: paid introduction needs a sample`);
+    const fragment = JSDOM.fragment(renderFeatureDetailPanels(detail));
+    const article = fragment.querySelector('article');
+    assert.ok(article.children[1].classList.contains('fortuneSample'), `${entry.slug}: sample must follow hero`);
+    assert.match(fragment.querySelector('.fortuneSampleNote').textContent, /예시/);
+    assert.ok(fragment.querySelector('.fortuneSamplePage').textContent.includes(detail.sample.text));
+    checked++;
+  }
+  assert.ok(checked > 20, 'billing-backed coverage unexpectedly empty');
+});
+
+test('human consultation testimonials are identified separately from AI product results', () => {
+  const detail = JSON.parse(fs.readFileSync('public/feature-details/life-book-ai.json', 'utf8'));
+  const fragment = JSDOM.fragment(renderFeatureDetailPanels(detail));
+  assert.match(fragment.querySelector('.fortuneFounder').textContent, /사람에게 받은 1:1 상담·강의/);
+  assert.match(fragment.querySelector('.fortuneFounder').textContent, /이 상품의 AI 결과 이용 후기와는 구분/);
+});
 
 test('tile popup preserves the selected product art before hydration', () => {
   assert.ok(shell.includes("var imgSrc=(tileImage&&(tileImage.currentSrc||tileImage.getAttribute('src')))||d.img||'';"));
