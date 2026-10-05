@@ -1,8 +1,9 @@
 "use client";
 import {getQuestionGuide} from "@/lib/fortune/question-journey";
 import RelationshipJourney from './RelationshipJourney';
-import {relationshipCopy} from '../_lib/relationship-copy';
-import {isRelationshipReading,relationshipAdvice,relationshipQuestions} from '@/worker/yeongnyangi/fortune/relationship-contract';
+import {relationshipCopyFor} from '../_lib/relationship-locales';
+import {relationshipMethodCopy} from '../_lib/relationship-method-copy';
+import {isRelationshipReading,relationshipQuestions} from '@/worker/yeongnyangi/fortune/relationship-contract';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import {consultationKinds,consultationDomain,supportsKind,consultationManifest} from '@/worker/yeongnyangi/fortune/consultation-kinds';
 import {consultationTitle,fusionDescription} from '../_lib/consultation-copy';
@@ -55,6 +56,7 @@ export default function Consultation(){
  const [participants,setParticipants]=useState({self:'',partner:''});
  const {locale,setLocale,siteLocale,fallback}=useReadingLanguage();
  const ui=consultationLocaleCopy(siteLocale);
+ const relationshipCopy=relationshipCopyFor(siteLocale),relationshipAdvice=relationshipMethodCopy(siteLocale).advice;
  const kindLabel=(id:string)=>siteLocale==='ko'?consultationKinds[domain].find(k=>k.id===id)?.label||localizedKind(id,siteLocale):localizedKind(id,siteLocale);
  const tierLabel=(item:Product)=>siteLocale==='ko'?(item.readingKind==='single'?item.fishName:consultationTitle(item)):item.readingKind==='single'?localizedTier(item.fishId,siteLocale):item.systems.map(id=>localizedSystem(id,siteLocale)).join(' + ');
  const price=(amount:number)=>siteLocale==='ko'?amount.toLocaleString('ko-KR')+'원':readingPrice(amount,siteLocale);
@@ -225,7 +227,7 @@ export default function Consultation(){
  function chooseDomain(next:string){const first=defaultKind(next,siteLocale);setKindId(first.id);setTopicId('general');setQuestion('');setDomain(next);setProductId(products.find(p=>next==='fusion'?p.readingKind!=='single':p.domain===next&&p.readingKind==='single')!.id);setPartnerId('');setError('');}
  function chooseKind(id:string){const next=consultationKinds[domain].find(k=>k.id===id)!;setKindId(id);if(next.koOnly)setLocale('ko');setPartnerId('');setError('');if(!supportsKind(product,next))setProductId(products.find(p=>consultationDomain(p)===domain&&supportsKind(p,next))!.id);}
  function chooseRelationshipEngine(next:DomainId){const tarotKind=relationshipQuestionId==='contact'?'contact':relationshipQuestionId==='reunion'?'reunion':['feelings','flirting'].includes(relationshipQuestionId)?'feelings':'compatibility';setDomain(next);setKindId(next==='tarot'?tarotKind:'compatibility');setProductId(next+'_mackerel');setLocale('ko');setTopicId('relationship');setRelationshipStage('consultation');setError('');}
- if(relationshipStage&&relationshipStage!=='consultation')return <RelationshipJourney stage={relationshipStage} setStage={setRelationshipStage} questionId={relationshipQuestionId} onQuestion={(id,text)=>{setRelationshipQuestionId(id);setQuestion(text);}} participants={participants} onParticipants={setParticipants} profileState={profileState} partnerId={partnerId} onPartner={setPartnerId} onEngine={chooseRelationshipEngine}/>;
+ if(relationshipStage&&relationshipStage!=='consultation')return <RelationshipJourney locale={siteLocale} stage={relationshipStage} setStage={setRelationshipStage} questionId={relationshipQuestionId} onQuestion={(id,text)=>{setRelationshipQuestionId(id);setQuestion(text);}} participants={participants} onParticipants={setParticipants} profileState={profileState} partnerId={partnerId} onPartner={setPartnerId} onEngine={chooseRelationshipEngine}/>;
  return <section className={`${styles.consultation} ${styles.consultationRoom}`}>
   {relationshipStage&&<button onClick={()=>setRelationshipStage('question')}>{relationshipCopy.change}</button>}
   <header className={styles.consultationHeader}><div><h1>{ui.title}</h1><p>{ui.intro}</p></div><Moon size={36} strokeWidth={1} aria-hidden="true"/></header>
@@ -267,7 +269,7 @@ export default function Consultation(){
    </>}
    {!tarotSpread&&(kind.question||kind.partner&&relationshipQuestionId)&&<section className={styles.questionSection} aria-label={askCopy.heading} lang={siteLocale}><h2>{tarotOnly?inputCopy.tarotHeading:askCopy.heading}</h2><p>{askCopy.intro}</p>
    {kind.id==='ask'&&<><label htmlFor="consultation-topic">{askCopy.topic}</label><select id="consultation-topic" value={topicId} onChange={e=>{setTopicId(e.target.value);trackEvent('concern_selected',{service:'yeongnyangi',domain,topic_id:e.target.value});}}><option value="general">{askCopy.general}</option>{Object.keys(topicCatalog).map(id=><option value={id} key={id}>{askCopy.topics[id as keyof typeof topicCatalog]}</option>)}</select></>}
-   <label htmlFor="consultation-question">{askCopy.question}</label><textarea id="consultation-question" rows={4} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder={tarotSpec?.prompt||askCopy.placeholder}/>
+   <label htmlFor="consultation-question">{askCopy.question}</label><textarea id="consultation-question" rows={4} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder={siteLocale==='ko'?tarotSpec?.prompt||askCopy.placeholder:askCopy.placeholder}/>
    {kind.id==='ask'&&siteLocale==='ko'&&<AskPeriodPicker question={question} onQuestion={setQuestion} disabled={busy}/>}
    </section>}
   <h2 className={styles.selectionHeading} lang={siteLocale}>{ui.depth}</h2>
