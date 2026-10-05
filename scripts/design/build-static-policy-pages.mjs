@@ -35,6 +35,7 @@ await build({
       builder.onLoad({ filter: /[\\/]about[\\/]service-intro(?:-fonts)?\.css$/ }, (args) => ({
         contents: '', loader: 'css', resolveDir: path.dirname(args.path),
       }));
+      builder.onLoad({ filter: /[\\/]styles[\\/]trust-stories\.css$/ }, () => ({ contents: '', loader: 'css' }));
       builder.onResolve({ filter: /^next\/(link|image)$/ }, (args) => ({ path: args.path, namespace: 'static-html' }));
       builder.onLoad({ filter: /.*/, namespace: 'static-html' }, (args) => ({
         resolveDir: root,
@@ -93,7 +94,7 @@ for (let index = 0; index < STATIC_POLICY_ROUTES.length; index += 1) {
   if (route.key === 'contact') main = main.replace(/<form\b/, `<form data-policy-contact data-support-email="${escape(email)}"`);
   main = main.replace('<main ', '<main id="policyContent" ');
   const phone = String(business.phone || '');
-  const pressStyles = route.key === 'about' ? `<link rel="stylesheet" href="/styles/press-coverage.css"><link rel="stylesheet" href="/styles/service-intro.css?v=${introVersion}">` : '';
+  const pressStyles = route.key === 'about' ? `<link rel="stylesheet" href="/styles/trust-stories.css"><link rel="stylesheet" href="/styles/press-coverage.css"><link rel="stylesheet" href="/styles/service-intro.css?v=${introVersion}">` : '';
   const contactScript = route.key === 'contact'
     ? `<script src="/js/static-policy-contact.js?v=${contactVersion}" defer></script><noscript><p class="policy-nojs">문의는 <a href="mailto:${escape(email)}">${escape(email)}</a>로 보내주세요. 입력 내용을 자동으로 전송하지 않습니다.</p></noscript>`
     : '';

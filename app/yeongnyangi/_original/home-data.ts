@@ -1,3 +1,4 @@
+import { PRESIDENTIAL_RECORDS } from "@/lib/brand/trust-stories.mjs";
 import { domainRegistry } from "./domain-registry";
 
 export const services = [
@@ -191,6 +192,7 @@ export type StoryScene = {
   choices?: { label: string; reply: string }[];
   after?: string;
   portrait?: boolean;
+  recordUrl?: string;
   mood: "quiet" | "gold" | "storm" | "warm";
   line: string;
   text: string;
@@ -199,22 +201,24 @@ export type StoryScene = {
 // Neo is the creator's name. The curse and transformation are fictional worldbuilding.
 export const story: StoryScene[] = [
   {
-    title: "사람들은 그를 네오라고 불렀다",
+    title: "대통령의 운세를 읽었던 네오",
     background: "story-room", character: "prologue-human-calm", portrait: true, mood: "quiet",
-    line: "“이름은 네오. 어려운 호칭 말고, 그렇게 불러.”",
+    line: "“대통령의 운세를 읽었던 네오. 이제는 네 이야기를 듣는다.”",
     text: "밤마다 서재의 불은 가장 늦게 꺼졌다. 네오는 식어버린 차 옆에 사람들의 생일과 고민을 적었다. 사람들은 그를 ‘네오’라고 불렀다.\n\n남의 내일을 읽고도 자기 내일은 비워두는 사람. 누가 밥은 먹었느냐고 물으면, 늘 다음 장을 넘기던 사람이었다.",
   },
   {
-    title: "첫 번째 예언, 꺼진 촛불",
+    title: "2024년에 남긴, 2025년의 기록",
+    recordUrl: PRESIDENTIAL_RECORDS[1].url,
     background: "story-room", character: "prologue-human-smile", portrait: true, mood: "gold",
-    line: "“그 자리에 닿는 길이, 네가 생각한 길은 아닐 거야.”",
-    text: "모두가 고개를 젓던 밤, 네오는 한 사람의 운세에서 높은 자리를 읽었다. 돌아가야 할 길과 기다려야 할 시간을 종이에 남겼다. 그리고 그 말은 현실이 되었다.\n\n축하가 쏟아졌다. 네오는 짧게 웃으며 찻잔을 들었다. 그 순간 촛불 하나가 꺼졌다. 창문은 닫혀 있었다. 그는 심지를 다듬었고, 하늘은 그 침묵을 첫 번째 경고로 남겼다.",
+    line: "“흔들릴 시기를 기록해 두었어. 그때 쓴 글은 아직 남아 있어.”",
+    text: "2024년 5월 12일, 네오는 블로그에 윤석열 대통령의 ‘2025년 탄핵 가능성’을 남겼다. 2025년으로 가며 운이 꺾이고 송사가 걸린다는 해석이었다. 이후 탄핵소추와 파면이 이어졌고, 독자들은 ‘성지순례’라며 그 글을 다시 찾아왔다.\n\n여기서부터는 그 기록에서 피어난 영냥이의 전설이다. 축하가 쏟아졌다. 네오는 짧게 웃으며 찻잔을 들었다. 그 순간 촛불 하나가 꺼졌다. 창문은 닫혀 있었다. 그는 심지를 다듬었고, 하늘은 그 침묵을 첫 번째 경고로 남겼다.",
   },
   {
-    title: "두 번째 예언, 박수 뒤의 천둥",
+    title: "또 하나의 대통령 기록, 박수 뒤의 천둥",
+    recordUrl: PRESIDENTIAL_RECORDS[2].url,
     background: "story-curse", character: "prologue-human-calm", portrait: true, mood: "storm",
     line: "“두 사람의 운명을 읽었는데… 내 것은 왜 한 줄도 안 보이지.”",
-    text: "이번에는 이미 높은 자리에 앉은 다른 사람이었다. 네오는 그 자리가 흔들리는 끝을 읽었다. 듣기 좋은 말로 고치라는 권유에도, 적어둔 문장을 지우지 않았다.\n\n두 번째 운세마저 적중한 밤. 사람들은 그의 재주를 이야기했지만, 서재에는 천둥 소리만 들어왔다. 펼쳐둔 책에서 자신의 이름이 한 글자씩 번지고 있었다. 환호가 닿기도 전에, 문이 안쪽에서 잠겼다.",
+    text: "2024년 5월 27일에는 이재명의 대통령 가능 시기를 2025년으로 짚었다. 이재명은 2025년 조기 대선에서 당선됐다. 다만 원문이 말한 ‘혁명’과 실제 선거 과정은 구분해서 읽어야 한다. 시기에 관한 기록을 모든 과정의 적중이라고 부를 수는 없으니까.\n\n이야기 속 사람들은 그의 재주를 이야기했지만, 서재에는 천둥 소리만 들어왔다. 펼쳐둔 책에서 자신의 이름이 한 글자씩 번지고 있었다. 환호가 닿기도 전에, 문이 안쪽에서 잠겼다.",
   },
   {
     title: "맞혔다는 이유로 내리는 벌",
@@ -257,7 +261,7 @@ export const story: StoryScene[] = [
   {
     title: "네 내일을 맞히기 전에",
     background: "room-780", character: "prologue-cat", mood: "warm",
-    line: "“앉아. 멸치는 작아도, 네 이야기는 대충 안 들어.”",
+    line: "“불안한 날에는 우산이, 선택 앞에서는 나침반이 되어줄게.”",
     text: "방문이 다시 열렸다. 이번에는 너였다. 영냥이는 습관처럼 네 얼굴을 살피다, 질문을 바꾸었다. 무엇이 될지보다, 오늘 무엇 때문에 여기까지 왔는지를 먼저 물었다.\n\n창가에는 아직 금이 간 거울이 있다. 슬픔이 끝난 것은 아니다. 다만 그 앞에서 혼자 밤을 새우던 고양이가, 이제 네 쪽으로 찻잔을 밀어준다. 너의 이야기가 시작될 만큼의 자리를 남겨두면서.",
   },
 ];

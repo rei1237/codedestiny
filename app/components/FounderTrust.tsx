@@ -15,7 +15,7 @@ export default function FounderTrust(){
   <div className={styles.intro}>
    <div className={styles.copy}>
     <p className={styles.eyebrow}>{founder.credential}</p>
-    <h2 id="founder-records-title" className={styles.title}>{founder.offerHeadline(price)}</h2>
+    <h2 id="founder-records-title" className={styles.title}>{'대통령 예측 기록에서, 지금 당신의 고민으로'}</h2>
     <p className={styles.lead}>네오가 1:1 상담과 강의에서 받은 실제 카톡 후기와, 지금 {price} 상담이 계산되는 방식을 그대로 보여드려요.</p>
     {reviewCount>0&&<a className={styles.primary} href="#founder-reviews">실제 후기 {reviewCount}개 읽기 <span aria-hidden="true">↓</span></a>}
    </div>
@@ -23,8 +23,8 @@ export default function FounderTrust(){
     <img src="/assets/yeongnyangi/original/records-scroll-2d-960.webp" srcSet="/assets/yeongnyangi/original/records-scroll-2d-480.webp 480w, /assets/yeongnyangi/original/records-scroll-2d-960.webp 960w" sizes="(min-width: 860px) 440px, calc(100vw - 44px)" width={960} height={640} alt="" loading="lazy" decoding="async"/>
    </figure>
   </div>
-  <CustomerReviews limit={3} titleId="founder-reviews-title"/>
   <TrustStories/>
+  <CustomerReviews limit={3} titleId="founder-reviews-title"/>
   <div className={styles.expertise}>
    <h3 className={styles.subtitle}>계산은 규칙대로, 해설은 AI가</h3>
    <ul>{EXPERTISE_FACTS.map(fact=><li key={fact.key}>{fact.ko}</li>)}</ul>
