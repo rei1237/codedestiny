@@ -69,10 +69,10 @@ test('relationship intents survive profile edits and provider outages; uncertain
  globalThis.__kindTest.profileOverride=()=>{throw Error('must read original intent before profiles');};
  try{assert.equal(await prepareFortune({},'relation-replay',ziwei),saved);}finally{delete globalThis.__kindTest.profileOverride;}
 });
-test('relationship pre-purchase validation rejects missing partner, foreign owner, unknown time and unsupported locale',async()=>{
+test('relationship pre-purchase validation rejects missing partner, foreign owner, unknown time and unsupported language codes',async()=>{
  for(const domain of ['ziwei','vedic','astrology']){
   await assert.rejects(()=>prepareFortune(env,'owner',{...relationRequest(domain),partnerProfileId:undefined}),e=>e.code==='PARTNER_REQUIRED');
-  await assert.rejects(()=>prepareFortune(env,'owner',{...relationRequest(domain),locale:'en'}),e=>e.code==='READING_LOCALE_UNAVAILABLE');
+  await assert.rejects(()=>prepareFortune(env,'owner',{...relationRequest(domain),locale:'zz'}),e=>e.code==='READING_LOCALE_UNAVAILABLE');
   await assert.rejects(()=>prepareFortune(env,'owner',{...relationRequest(domain),partnerTimeUnknown:true}),e=>e.code==='BIRTH_TIME_REQUIRED');
  }
  await assert.rejects(()=>prepareFortune(env,'owner',{...relationRequest('tarot'),participants:{self:'나'}}),e=>e.code==='PARTICIPANT_NAMES_REQUIRED');
@@ -112,7 +112,7 @@ test('relationship copy references exist and every tier retains all required rep
  const journey=await readFile('app/yeongnyangi/_components/RelationshipJourney.tsx','utf8');
  for(const match of journey.matchAll(/copy\.(\w+)/g))assert.ok(relationshipCopy[match[1]],match[1]);
  for(const domain of ['ziwei','vedic','astrology','tarot']){
-  const kinds=consultationKinds[domain].filter(k=>k.koOnly);
+  const kinds=consultationKinds[domain].filter(k=>['love','marriage','compatibility'].includes(k.id));
   for(const kind of kinds){
    const tiers=products.filter(p=>p.domain===domain&&p.readingKind==='single');
    const all=tiers.map(p=>consultationManifest(p,kind).flatMap(c=>c.sections.map(s=>s.title)));
@@ -216,15 +216,29 @@ test('only general ask menus save private evidence packets; tarot v2 keeps its o
  assert.equal(globalThis.__kindTest.calls,0);
 });
 
-test('choice and love keep every output locale while seven new tarot menus stay Korean-only',async()=>{
- for(const locale of loaded.exports.readingLocales)for(const consultationKind of ['choice','love']){
-  const row=await prepareFortune(env,'tarot-locale-owner',{...body,productId:'tarot_mackerel',consultationKind,question:`${locale} 언어 결과`,locale});
+test('all nine ordinary tarot menus preserve each of the twelve output locales',async()=>{
+ for(const locale of loaded.exports.readingLocales)for(const consultationKind of ['choice','love','feelings','contact','reunion','compatibility','career','money','healing']){
+  const row=await prepareFortune(env,'tarot-locale-owner',{...body,productId:'tarot_mackerel',consultationKind,question:'What should I consider before taking the next step?',locale,...(consultationKind==='compatibility'?{participants:{self:'Alex',partner:'Sam'}}:{})});
   assert.equal(row.snapshot.locale,locale);
   assert.equal(row.snapshot.analysis.consultation.tarotConsultation.kind,consultationKind);
+  assert.equal(presentFortune({...row,paymentId:'mock-paid',state:'COMPLETED'}).locale,locale);
  }
- for(const consultationKind of ['feelings','contact','reunion','compatibility','career','money','healing']){
-  await assert.rejects(()=>prepareFortune(env,'tarot-locale-owner',{...body,productId:'tarot_mackerel',consultationKind,question:'한국어 전용 범위',locale:'en',...(consultationKind==='compatibility'?{participants:{self:'나',partner:'상대'}}:{})}),error=>error.code==='READING_LOCALE_UNAVAILABLE');
+ assert.equal(globalThis.__kindTest.calls,0);
+});
+
+test('expanded chart menus preserve language through preparation, provider request and saved reread',async()=>{
+ const expanded={saju:['health','marriage','movement'],ziwei:['health','business','love','marriage','compatibility'],vedic:['health','compatibility'],astrology:['health','compatibility']};
+ for(const locale of loaded.exports.readingLocales)for(const [domain,kinds] of Object.entries(expanded))for(const kind of kinds){
+  const row=await prepareFortune(env,'expanded-locale-owner',{...relationRequest(domain,kind),locale});
+  assert.equal(row.snapshot.locale,locale);
+  assert.equal(row.snapshot.analysis.consultation.consultationKind,kind);
+  const chapter=row.snapshot.manifest[0];let sent;
+  await new loaded.exports.StructuredChapterProvider({generate:async request=>{sent=request;return {result:{},provider:'mock',model:'fixture'};}}).generateChapter({locale,chapter,analysis:row.snapshot.analysis,previous:[]});
+  assert.equal(sent.locale,locale);
+  assert.equal(JSON.parse(sent.domainRules).outputLocale,locale);
+  assert.equal(presentFortune({...row,paymentId:'mock-paid',state:'COMPLETED'}).locale,locale);
  }
+ assert.equal(globalThis.__kindTest.calls,0);
 });
 
 test('tarot retries reuse the first stored draw; storage uncertainty blocks a new draw',async()=>{

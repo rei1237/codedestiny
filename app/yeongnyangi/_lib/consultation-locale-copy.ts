@@ -1,4 +1,5 @@
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
+import {expandedKindLabel} from './expanded-kind-copy';
 
 const ko={
  title:'무엇부터 읽어볼까?',intro:'궁금한 운세를 고르고, 네 이야기를 들려줘.',
@@ -67,5 +68,5 @@ const domainIds=['saju','ziwei','sukuyo','vedic','astrology','tarot','fusion'];
 const kindIds=['personal','compatibility','timing','love','work','money','ask','relationship','choice'];
 const tierIds=['mackerel','salmon','flounder','tuna','assorted','omakase'];
 export const localizedSystem=(id:string,locale:ReadingLocale)=>consultationLocaleCopy(locale).systems[domainIds.indexOf(id)]||id;
-export const localizedKind=(id:string,locale:ReadingLocale)=>consultationLocaleCopy(locale).kinds[kindIds.indexOf(id)]||id;
+export const localizedKind=(id:string,locale:ReadingLocale)=>consultationLocaleCopy(locale).kinds[kindIds.indexOf(id)]||expandedKindLabel(id,locale)||id;
 export const localizedTier=(id:string,locale:ReadingLocale)=>consultationLocaleCopy(locale).tiers[tierIds.indexOf(id)]||id;

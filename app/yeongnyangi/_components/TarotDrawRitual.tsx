@@ -1,5 +1,5 @@
 'use client';
-import {relationshipCopy} from '../_lib/relationship-copy';
+import {relationshipCopyFor} from '../_lib/relationship-locales';
 import {useEffect,useMemo,useState,type CSSProperties} from 'react';
 import NextImage from 'next/image';
 import {Volume2,VolumeX} from 'lucide-react';
@@ -7,6 +7,7 @@ import type {ReadingChart} from '@/worker/yeongnyangi/fortune/reading-presentati
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {yeongnyangiCardArt} from '@/lib/tarot/yeongnyangi-deck';
 import {tarotRitualCopy} from '../_lib/tarot-ritual-copy';
+import {chartTerm} from '../_lib/reading-chart-copy';
 import TarotCardArt from './TarotCardArt';
 import styles from '../yeongnyangi.module.css';
 import relationshipStyles from './relationship.module.css';
@@ -34,6 +35,7 @@ function chime(){
 }
 
 export default function TarotDrawRitual({requestId,chart,locale,onComplete}:{requestId:string;chart:ReadingChart;locale?:ReadingLocale;onComplete:()=>void}){
+ const relationshipCopy=relationshipCopyFor(locale||'ko');
  const copy=tarotRitualCopy(locale),cards=chart.groups.filter(group=>group.kind!=='timing'&&group.cardCode);
  const [ready,setReady]=useState(false),[stage,setStage]=useState<Stage>('focus'),[selected,setSelected]=useState<number[]>([]),[revealed,setRevealed]=useState(0),[breath,setBreath]=useState(3),[sound,setSound]=useState(false),[particles,setParticles]=useState(12);
  const groupTitle=selected.length===0?relationshipCopy.drawSelf:selected.length===1?relationshipCopy.drawPartner:relationshipCopy.drawTogether;
@@ -90,7 +92,7 @@ export default function TarotDrawRitual({requestId,chart,locale,onComplete}:{req
     const open=index<revealed,next=index===revealed,art=yeongnyangiCardArt(card.cardCode,locale),major=card.cardCode?.startsWith('M');
     return <button type="button" key={card.id} className={major?styles.majorCard:undefined} data-open={open} disabled={!next} aria-label={open?`${art.name} · ${card.reversed?copy.reversed:copy.upright}`:copy.revealCard(index+1)} onClick={()=>reveal(index)}>
      <span className={styles.flipCard}><span className={styles.flipBack}><TarotCardArt/></span><span className={styles.flipFront}><TarotCardArt cardCode={card.cardCode} locale={locale} className={card.reversed?styles.ritualReversed:undefined}/></span></span>
-     <strong>{open?art.name:card.label}</strong><small>{open?(card.reversed?copy.reversed:copy.upright):next?copy.revealCard(index+1):''}</small>{major&&open&&<i>{copy.major}</i>}
+     <strong>{open?art.name:chartTerm(card.label,locale)}</strong><small>{open?(card.reversed?copy.reversed:copy.upright):next?copy.revealCard(index+1):''}</small>{major&&open&&<i>{copy.major}</i>}
     </button>;
    })}</div>
    {revealed===cards.length&&<button type="button" className={styles.ritualPrimary} onClick={()=>advance('reading')}>{copy.continue}</button>}
