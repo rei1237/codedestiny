@@ -87,7 +87,7 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
     {index===timingAt&&timingLate&&<TimingTimeline rows={timing} focus={focus} locale={row.locale}/>}
     {visual&&index===0&&saju&&<SajuBoard pillars={saju.pillars} elements={saju.elements} locale={row.locale}/>}
     {visual&&chapter.persona?<MascotBubble expression={expressionFor(row.manifest[index].theme,index)} text={chapter.persona} locale={row.locale}/>:<blockquote>{chapter.persona}</blockquote>}<a href="#reading-progress">{copy.top}</a>
-   </article>{index===0&&row.tarotSpread&&spreadMap&&<TarotSpreadResult locale={row.locale} spread={row.tarotSpread} cards={spreadMap}/>}{breaks.has(index)&&<Interlude art={breaks.get(index)!}/>}</Fragment>)}
+   </article>{index===0&&row.tarotSpread&&spreadMap&&<TarotSpreadResult spread={row.tarotSpread} locale={row.locale} cards={spreadMap}/>}{breaks.has(index)&&<Interlude art={breaks.get(index)!}/>}</Fragment>)}
   </div>
  </div>;
 }

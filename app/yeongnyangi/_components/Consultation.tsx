@@ -1,6 +1,7 @@
 "use client";
 import {getQuestionGuide} from "@/lib/fortune/question-journey";
 import RelationshipJourney from './RelationshipJourney';
+import {additionalKindDescription} from '../_lib/consultation-kind-copy';
 import {relationshipCopyFor} from '../_lib/relationship-locales';
 import {relationshipMethodCopy} from '../_lib/relationship-method-copy';
 import {isRelationshipReading,relationshipQuestions} from '@/worker/yeongnyangi/fortune/relationship-contract';
@@ -237,12 +238,12 @@ export default function Consultation(){
   {locale==='ko'&&<div className={styles.kindChoices} role="group" aria-label={voiceStyleCopy.heading}>{(['banmal','honorific'] as const).map(value=><button key={value} type="button" aria-pressed={voiceStyle===value} disabled={busy} onClick={()=>setVoiceStyle(value)}><strong>{voiceStyleCopy[value]}</strong><span>{voiceStyleCopy[value==='banmal'?'banmalNote':'honorificNote']}</span></button>)}</div>}
   {<a className={styles.spiritEntry} href={`/yeongnyangi/fortune/?mode=spirit&lang=${siteLocale}`}><img src="/assets/yeongnyangi/spirit/eastern-oracle.webp" width={64} height={68} alt=""/><span><strong>{spiritEntryCopy.title}</strong><br/>{spiritEntryCopy.description}</span></a>}
   <div className={styles.tabs} role="group" aria-label={siteLocale==='ko'?'운세 종류':ui.methodTitle}>{[...Object.entries(systemNames),['fusion','복합 운세']].map(([id,label])=><button key={id} aria-pressed={domain===id} onClick={()=>chooseDomain(id)}>{siteLocale==='ko'?label:localizedSystem(id,siteLocale)}</button>)}</div>
-  <div className={styles.kindChoices} role="group" aria-label={siteLocale==='ko'?'상담 종류':ui.summary}>{consultationKinds[domain].filter(item=>!item.koOnly||siteLocale==='ko').sort((a,b)=>Number(b.id===TAROT_SPREAD_KIND)-Number(a.id===TAROT_SPREAD_KIND)).map(item=><button key={item.id} aria-pressed={kind.id===item.id} onClick={()=>chooseKind(item.id)}><strong>{kindLabel(item.id)}</strong>{siteLocale==='ko'&&<span>{item.description}</span>}</button>)}</div>
+  <div className={styles.kindChoices} role="group" aria-label={siteLocale==='ko'?'상담 종류':ui.summary}>{consultationKinds[domain].filter(item=>!item.koOnly||siteLocale==='ko').sort((a,b)=>Number(b.id===TAROT_SPREAD_KIND)-Number(a.id===TAROT_SPREAD_KIND)).map(item=><button key={item.id} aria-pressed={kind.id===item.id} onClick={()=>chooseKind(item.id)}><strong>{kindLabel(item.id)}</strong>{(siteLocale==='ko'||additionalKindDescription(item.id,siteLocale))&&<span>{siteLocale==='ko'?item.description:additionalKindDescription(item.id,siteLocale)}</span>}</button>)}</div>
 
-  {relationship&&<div className={styles.systemDescription}><h2>{kind.label}</h2><p>{relationshipAdvice[domain as DomainId]}</p>{domain==='ziwei'&&<><p>{relationshipCopy.timeHint} <a href="/yeongnyangi/fortune/?domain=tarot&consultationKind=compatibility">타로 궁합 보기</a></p><p>{relationshipCopy.overseas}</p></>}</div>}
+  {relationship&&<div className={styles.systemDescription}><h2>{kindLabel(kind.id)}</h2><p>{relationshipAdvice[domain as DomainId]}</p>{domain==='ziwei'&&<><p>{relationshipCopy.timeHint} <a href="/yeongnyangi/fortune/?domain=tarot&consultationKind=compatibility">{localizedSystem('tarot',siteLocale)} · {relationshipCopy.entry}</a></p><p>{relationshipCopy.overseas}</p></>}</div>}
   {siteLocale!=='ko'?<div className={styles.systemDescription}><strong>{localizedSystem(domain,siteLocale)}</strong><p>{ui.method}</p></div>:domain==='fusion'?<p className={styles.systemDescription}>{fusionDescription(product)||'서로 다른 운세 체계의 공통점과 차이점을 구분해 깊이 읽어요.'}</p>:<div className={styles.systemDescription}><strong>{systemCopy?.cardTitle}</strong><p>{systemCopy?.description}</p><p>{systemCopy?.detail}</p></div>}
   {domain==='fusion'&&<p className={styles.systemDescription}>{ui.afterPayment}</p>}
-  {siteLocale==='ko'&&tarotOnly&&!tarotSpread&&<TarotConsultationGuide kindId={kind.id} tier={product.fishId} chapterCount={preview.length}/>}
+  {tarotOnly&&!tarotSpread&&<TarotConsultationGuide locale={siteLocale} kindId={kind.id} tier={product.fishId} chapterCount={preview.length}/>}
   <div className={styles.consultationDesk}>
    <aside className={styles.consultationGuide} aria-label={ui.summary}>
     <img className={styles.guideCat} src="/assets/yeongnyangi/profiles/welcome.webp" width={168} height={171} alt="Yeongnyangi"/>

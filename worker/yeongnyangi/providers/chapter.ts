@@ -1,4 +1,5 @@
 import {symbolicLocaleContract,symbolicSectionIds,symbolicBasisSchema,validateSymbolicLocale} from '../fortune/symbolic-locale';
+import {tarotReadingVocabulary} from '../fortune/tarot/reading-vocabulary';
 import {isConciseReading,conciseOutputTokens} from '../fortune/concise-reading';
 import {CHAPTER_DELIVERY_VERSION} from '../chapter-delivery-contract.js';
 import {conciseReadingPrompt} from '../fortune/concise-reading-prompt';
@@ -196,7 +197,7 @@ export function validateChapter(
   }
   validateReadingLanguage(v,readingLocale(input.locale));
   validateReadingQuality(v,input.chapter,input.previous,input.locale,{lengthRepair:LENGTH_FAILURES.includes(input.repair?.code||''),...(symbolic&&nativeLocale!=='ko'?{requiredSectionIds:symbolicSectionIds(input.chapter)}:{})});
-  if(input.analysis.contexts.tarot)validateTarotChapter(v,input.analysis.contexts.tarot);
+  if(input.analysis.contexts.tarot)validateTarotChapter(v,input.analysis.contexts.tarot,readingLocale(input.locale));
   if(input.chapter.version===READING_V7_VERSION){
     // v7 has no fixed 'evidence' section: every insight unit carries its own citation, so the rule moves onto
     // the blocks themselves. validateReadingQuality already rejected a block without sources, so what is left
@@ -429,6 +430,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         topic:input.analysis.topicId,
         periodScope:input.chapter.periodScope,
         independence:"같은 천문 관측을 공유하는 숙요·베다·점성술은 독립된 세 증거가 아니다. 타로는 질문 당시 상징이며 천문 사실의 교차검증 수에 포함하지 않는다. 근거 일치도는 적중 확률이 아니다.",
+        ...(locale!=='ko'&&input.analysis.contexts.tarot?{tarotVocabulary:tarotReadingVocabulary(input.analysis.contexts.tarot,locale)}:{}),
         tarotMaster: input.analysis.contexts.tarot?buildTarotMasterContract(input.analysis.contexts.tarot,input.analysis.question,input.chapter):undefined,
         domain: contexts.map((c) => domainRules[c.domain]),
         task: taskRules[input.chapter.theme],

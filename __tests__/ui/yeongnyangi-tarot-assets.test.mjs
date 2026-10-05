@@ -52,12 +52,13 @@ test('Yeon resolution remains the existing caretaro URL and brand mistakes fail'
   assert.throws(() => getTarotDeck('misspelled'));
 });
 
-test('non-site reading languages fall back to English, never Korean', () => {
-  assert.equal(getYeongnyangiDeckText('tarot.M18.name', 'fr'), 'The Moon');
+test('supported reading languages use native names; unsupported languages fall back to English', () => {
+  assert.equal(getYeongnyangiDeckText('tarot.M18.name', 'fr'), 'La Lune');
+  assert.equal(getYeongnyangiDeckText('tarot.M18.name', 'pt'), 'The Moon');
   assert.equal(getYeongnyangiDeckText('tarot.M18.name', 'zh-CN'), '月亮');
   const normal = resolveTarotDeckCard({ brand: 'yeongnyangi', cardCode: 'm00' });
   assert.equal(normal.src, manifest.cards[0].files.std);
   assert.equal(normal.fallback, false);
-  assert.equal(getYeongnyangiDeckText('tarot.P14.name', 'fr'), 'King of Pentacles');
+  assert.equal(getYeongnyangiDeckText('tarot.P14.name', 'fr'), 'Roi de Deniers');
   for (const entry of manifest.cards) assert.equal(resolveTarotDeckCard({ brand: 'yeongnyangi', cardCode: entry.id }).src, entry.files.std);
 });
