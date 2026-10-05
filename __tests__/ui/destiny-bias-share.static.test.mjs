@@ -36,3 +36,14 @@ test("공유 링크·초대 링크 URL 에 생일이 실리지 않는다", () =>
   assert.match(client, /credentials: "omit"/);
   assert.match(client, /\/api\/destiny-bias\/share/);
 });
+
+test("최애 사진 넣기는 결과 카드 바로 아래에 있고, 사진은 이미지 저장에만 들어간다", () => {
+  const picker = read("app/saju/destiny-bias/components/chemi/BiasPhotoPicker.tsx");
+  assert.match(picker, /최애 사진으로 포토카드 만들기/);
+  assert.match(picker, /type="file" accept="image\/\*"/);
+  const core = client.indexOf("<ChemiCoreCard");
+  const pickerAt = client.indexOf("<BiasPhotoPicker");
+  assert.ok(core > 0 && pickerAt > core && pickerAt < client.indexOf("<ChemiShareBar"));
+  assert.match(client, /exportShareCardBlob\(\)\]\)/);
+  assert.match(client, /await exportShareCardBlob\(true\)/);
+});
