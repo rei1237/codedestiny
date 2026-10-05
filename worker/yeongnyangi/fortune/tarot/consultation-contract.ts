@@ -7,13 +7,13 @@ export const TAROT_CONSULTATION_VERSION='yeongnyangi-tarot-consultation-v2';
 export const tarotConsultations={
  choice:{label:'지금의 선택',spreadId:'three_card_cause_process_outcome',questionType:'general',topic:'general',koOnly:false,prompt:'지금 어떤 선택을 고민하고 있나요?'},
  love:{label:'사랑과 관계',spreadId:'relationship_six_card',questionType:'relationship',topic:'love',koOnly:false,prompt:'두 사람 사이에서 이해하고 싶은 장면을 알려 주세요.'},
- feelings:{label:'그 사람 마음',spreadId:'mindscan_five_card',questionType:'exMind',topic:'love',koOnly:true,prompt:'상대의 어떤 말이나 행동이 마음에 남았나요?'},
- contact:{label:'연락의 흐름',spreadId:'yeongnyangi_contact_five',questionType:'relationship',topic:'love',koOnly:true,prompt:'마지막 소통과 지금 고민하는 행동을 알려 주세요.'},
- reunion:{label:'재회와 관계 회복',spreadId:'reunion_lighthouse_five_card',questionType:'reunion',topic:'love',koOnly:true,prompt:'관계가 멀어진 이유와 다시 확인하고 싶은 점은 무엇인가요?'},
- compatibility:{label:'두 사람 궁합',spreadId:'yeongnyangi_compatibility_six',questionType:'relationship',topic:'relationship',koOnly:true,prompt:'함께 이어가고 싶은 관계와 조율할 점을 알려 주세요.'},
- career:{label:'일과 진로',spreadId:'job_change_seven_card',questionType:'career',topic:'work',koOnly:true,prompt:'지금의 일과 생각 중인 변화는 무엇인가요?'},
- money:{label:'돈과 생활',spreadId:'yeongnyangi_money_five',questionType:'money',topic:'money',koOnly:true,prompt:'수입·지출·생활에서 바꾸고 싶은 습관을 알려 주세요.'},
- healing:{label:'마음 회복',spreadId:'healing_rising_four_card',questionType:'currentMind',topic:'general',koOnly:true,prompt:'요즘 마음을 지치게 하는 일과 필요한 도움은 무엇인가요?'},
+ feelings:{label:'그 사람 마음',spreadId:'mindscan_five_card',questionType:'exMind',topic:'love',koOnly:false,prompt:'상대의 어떤 말이나 행동이 마음에 남았나요?'},
+ contact:{label:'연락의 흐름',spreadId:'yeongnyangi_contact_five',questionType:'relationship',topic:'love',koOnly:false,prompt:'마지막 소통과 지금 고민하는 행동을 알려 주세요.'},
+ reunion:{label:'재회와 관계 회복',spreadId:'reunion_lighthouse_five_card',questionType:'reunion',topic:'love',koOnly:false,prompt:'관계가 멀어진 이유와 다시 확인하고 싶은 점은 무엇인가요?'},
+ compatibility:{label:'두 사람 궁합',spreadId:'yeongnyangi_compatibility_six',questionType:'relationship',topic:'relationship',koOnly:false,prompt:'함께 이어가고 싶은 관계와 조율할 점을 알려 주세요.'},
+ career:{label:'일과 진로',spreadId:'job_change_seven_card',questionType:'career',topic:'work',koOnly:false,prompt:'지금의 일과 생각 중인 변화는 무엇인가요?'},
+ money:{label:'돈과 생활',spreadId:'yeongnyangi_money_five',questionType:'money',topic:'money',koOnly:false,prompt:'수입·지출·생활에서 바꾸고 싶은 습관을 알려 주세요.'},
+ healing:{label:'마음 회복',spreadId:'healing_rising_four_card',questionType:'currentMind',topic:'general',koOnly:false,prompt:'요즘 마음을 지치게 하는 일과 필요한 도움은 무엇인가요?'},
 } as const;
 export type TarotConsultationId=keyof typeof tarotConsultations;
 export function tarotConsultation(id:unknown){

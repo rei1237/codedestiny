@@ -49,7 +49,9 @@ function fixedWorld(){
 }
 
 const env={GEMINIF_API_KEY:'mock-never-sent',LLM_DRY_RUN:'false'};
-const kindsFor=p=>[undefined,...m.consultationKinds[m.consultationDomain(p)]].filter(k=>!k||!k.koOnly&&m.supportsKind(p,k));
+// Pin the original golden-table scope independently of current language availability.
+const legacyExcluded={saju:['health','marriage','movement'],ziwei:['health','business','love','marriage','compatibility'],vedic:['health','compatibility'],astrology:['health','compatibility'],tarot:['feelings','contact','reunion','compatibility','career','money','healing','spread']};
+const kindsFor=p=>[undefined,...m.consultationKinds[m.consultationDomain(p)]].filter(k=>!k||!legacyExcluded[m.consultationDomain(p)]?.includes(k.id)&&m.supportsKind(p,k));
 // New Korean relationship contracts have dedicated calculation/manifest tests; these hashes pin legacy products.
 const variants={'saju_salmon@timeUnknown':{profileId:'notime'},'ziwei_salmon@noPlace':{profileId:'noplace'},'saju_mackerel@spirit':{mode:'spirit-v1',topicId:'relationship',spirit:{relationship:'헤어진 사이',topic:'space',situation:'차단한 상황'}}};
 
