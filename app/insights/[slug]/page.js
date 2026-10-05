@@ -61,6 +61,9 @@ const INSIGHT_DETAIL_PAGE_TEXT_TRANSLATIONS = {
 };
 
 function getStaticInsightImage(article) {
+  if (`/insights/${article?.slug}/` === PUBLIC_RECORD_PATH) {
+    return { src: article.ogImage, alt: publicRecordCopy.ko.heading, width: 1200, height: 630 };
+  }
   const bag = [
     article?.slug,
     article?.title,

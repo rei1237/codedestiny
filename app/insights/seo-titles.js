@@ -15,7 +15,11 @@
  * 두고 표시 폭 60 이하를 지킨다. 강제는 `scripts/verify-adsense-readiness.mjs` 의
  * `verifyIndexableTitleWidth` 가 산출물에서 사이트맵 URL 전량을 훑어서 한다.
  */
+import { publicRecordCopy, PUBLIC_RECORD_PATH } from '../../lib/seo/public-record-copy.mjs';
+
 export const INSIGHT_SEO_TITLES = {
+  "sukuyo-three-group-types-guide": "숙요점 근·중·원거리 — 표지 읽는 법",
+  [PUBLIC_RECORD_PATH.split('/').filter(Boolean).at(-1)]: publicRecordCopy.ko.title,
   "ten-gods-beginner-map": "십성 입문: 일간·오행·음양의 관계",
   "astrology-vs-saju-differences": "점성술과 사주: 계산·해석 기준 비교",
   "africa-divination-traditions-deep-guide": "아프리카 점복 전통 — 이파(Ifa)와 공동체의 지혜",
@@ -49,7 +53,7 @@ export const INSIGHT_SEO_TITLES = {
   "saju-and-tarot-combined-reading-framework": "사주+타로 통합 리딩 — 두 체계 함께 쓰기",
   "saju-compatibility-how-to": "사주 궁합 보는 법 — 일간·오행·십성 총정리",
   "saju-how-to-read-step-by-step-beginner-guide": "사주 입문 — 사주팔자와 네 기둥 개념",
-  "saju-job-change-timing-checklist-2026": "이직 타이밍 체크리스트 — 명리학 15단계",
+  "saju-job-change-timing-checklist-2026": "이직 타이밍 — 사주와 현실 조건 나누기",
   "saju-without-birth-time-three-pillars-guide": "출생시간 모를 때 사주: 확정할 수 있는 범위",
   "singang-sinyak-judgment-complete-guide": "신강·신약 판단법 — 일간 강약 읽는 기준",
   "sleep-rhythm-energy-and-luck-connection": "수면 리듬과 운의 관계 — 시진 숙면 가이드",
@@ -64,7 +68,7 @@ export const INSIGHT_SEO_TITLES = {
   "sukuyo-conflict-repair-dialogue-templates": "숙요점 갈등 회복 — 재조정하는 대화법",
   "sukuyo-couple-finance-rhythm-guide": "숙요점 커플 재정 리듬 — 돈과 사랑의 관계",
   "sukuyo-day-by-day-rhythm-usage": "숙요점 일상 리듬 활용법 — 반복 습관의 힘",
-  "sukuyo-eishin": "숙요점 영친관계 — 영친 궁합이 편안한 이유",
+  "sukuyo-eishin": "영친관계 읽는 법 — 궁합과 실제 관계 구분",
   "sukuyo-friendship-teamwork-guide": "숙요점 우정·팀워크 — 친구와 동료의 인연",
   "sukuyo-love-communication-rules": "숙요점 연애 소통 규칙 — 전달 방식의 힘",
   "sukuyo-love": "숙요점 연애 궁합 — 6유형을 대화에 쓰는 법",
