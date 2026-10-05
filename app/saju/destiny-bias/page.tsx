@@ -5,8 +5,8 @@ import ServiceIntroSection from "../../components/ServiceIntroSection";
 
 const DESTINY_BIAS_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "최애운명 - 내 최애와 나의 K-POP 케미 포토카드 | Code Destiny",
-    description: "그룹과 멤버를 고르고 내 생일만 넣으면 최애와 나의 케미 총점, 등급, 아홉 가지 케미 유형이 포토카드로 나옵니다. 로그인 없이 무료, 생일은 공유 카드에 들어가지 않습니다.",
+    title: "최애운명 - 내 최애와 K-POP 케미 포토카드 | Code Destiny",
+    description: "그룹과 멤버를 고르고 내 생일만 넣으면 최애와 나의 케미 총점과 등급, 아홉 가지 유형이 포토카드로 나옵니다. 로그인 없이 무료.",
     ogTitle: "내 최애랑 나, 무슨 케미일까? - 최애운명",
     ogDescription: "생일만 넣으면 최애와 나의 케미가 포토카드로 나와요. 무료 · 로그인 없이.",
     ogAlt: "응원봉 불빛이 가득한 콘서트 무대 — 최애운명",

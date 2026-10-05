@@ -799,7 +799,7 @@ export const SERVICE_MAP = {
   },
   "saju/destiny-bias": {
     component: FeatureLandingPage,
-    title: "최애운명 - 내 최애와 나의 K-POP 케미 포토카드",
+    title: "최애운명 - 내 최애와 K-POP 케미 포토카드",
     h1: "최애운명",
     description:
       "그룹과 멤버를 고르고 내 생일만 넣으면, 최애와 나의 케미 총점과 등급, 아홉 가지 케미 유형이 포토카드 한 장으로 나옵니다.",
