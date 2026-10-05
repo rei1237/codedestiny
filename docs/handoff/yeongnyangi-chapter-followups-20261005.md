@@ -1,0 +1,62 @@
+---
+status: active
+updated: 2026-10-05
+next: "이 문서의 '후속 과제' 1번(연어 건강 장 계절 사실 오류)부터 원인을 실측하고, 사주 facts 에 출생 계절을 결정적으로 넣어 mock invariance·골든 없이 고친다."
+---
+
+# 영냥이 챕터 확장 후속 과제 인수인계
+
+이전 세션(581c5dd9, 2026-10-03~05)은 영냥이 챕터 확장을 **운영 반영까지 끝냈다.** 이 문서는 그 작업 중 발견했지만 범위 밖이라 보고만 한 결함·부채를 다음 세션이 이어서 처리하도록 정리한 것이다. 항목마다 독립 커밋으로 처리한다.
+
+## 첫 행동
+
+1. `CLAUDE.md` 확인 → `git branch --show-current`·`git status`. 루트 체크아웃에 다른 세션 미커밋 파일이 있으면 `scripts/create-safe-worktree.ps1` 로 워크트리를 만든다(호출할 때 `2>&1` 를 붙이지 않는다 — git stderr 가 Stop 오류가 되어 중단된다).
+2. `git fetch origin` 후 아래 앵커 줄 번호를 origin/main 기준으로 다시 확인한다(이 문서의 줄 번호는 `f30acbafb` 기준).
+3. 영냥이 AI·DB 작업이므로 [ai-and-db](../context/ai-and-db.md) 와 [yeongnyangi-ask](../context/yeongnyangi-ask.md) 를 먼저 읽는다.
+
+## 이미 끝난 것 (다시 하지 않는다)
+
+- 운영 반영: 1차 `2710b06f2`(Release run 37190726210) — 사주 파생(오행 과다·십성 성격·이동수/해외운·연애/결혼운·건강 근거), 자미 사업운(재백·자녀·전택·관록 + 궁간 비화)·건강, 베다·점성술 파생, 전달 계약 분량 하한 `minimumChars×0.5`.
+- 커밋 7(`15c769bb4`, 건강 장 질병 단정 차단 HEALTH_RULES)·8(`1d415f6cd`, 상담 메뉴 7개)은 다른 세션의 `d4a2c8a19` 운영 승격(run 37258689540)에 포함돼 운영 반영됐다.
+- 설계 문서: `docs/design/yeongnyangi-chapter-expansion.md`.
+- 골든 1회(사주 개인 연어·광어·참치 49장, gemini-2.5-flash, 658.2원, 위반 0, 재시도 0): 원문 `d:\tmp\yeongnyangi-golden-20261004\golden-full.md`, 요약 `summary.json`, 원시 `state-raw.json`. **로컬 파일이며 레포에 없다.** 커밋 7·8 이 들어간 6691a4160 트리로 생성했다.
+
+## 후속 과제 (추천 순서)
+
+### 1. 연어 건강 장 계절 사실 오류 — 고객 품질, 우선
+- 골든 fixture(1998-02-28 출생, 寅월=봄)의 연어 7장 본문: "불 기운이 강한 **여름철에 태어나**…너는 **봄의 시작과 함께**…" — 한 문단 안에서 계절이 모순된다(`golden-full.md` 206행).
+- 추정 원인(미검증): 사주 facts 에 출생 계절 이름이 없고 `seasonalBalance`(조후, `worker/yeongnyangi/fortune/saju/runtime.ts:119`)의 '따뜻함·건조' 신호만 있어 모델이 계절을 지어낸다. `healthBasis` 는 `worker/yeongnyangi/fortune/saju/index.ts:73` 에서 만든다.
+- 방향: 월지→계절(寅卯辰 봄, 巳午未 여름, 申酉戌 가을, 亥子丑 겨울)을 facts 에 결정적으로 넣고, 건강 장 focus 에 "계절은 근거의 값만 쓴다"를 명시한다. 품질 게이트로 계절 불일치를 잡을 수 있으면 거부가 아니라 해당 문장 제거로 처리한다(원칙 17).
+- 검증: 파생 단위 테스트 + invariance(`YEONGNYANGI_INVARIANCE_PRINT=1`, 바뀐 사주 행만). 과금 실호출은 별도 1회 승인 없이는 하지 않는다.
+
+### 2. 근거 밖 문장 가지치기가 많은 장
+- 골든에서 근거 밖 사실로 잘린 문장이 많은 장이 있었다(예: 참치 t25 에서 `V7_FOREIGN_FACT` 21문장). 분량은 통과했지만 모델이 근거 밖 내용을 많이 쓴다는 뜻이다.
+- `state-raw.json` 에서 장별 제거 수를 집계해 상위 장의 focus·refs 를 보강한다. 거절 조건을 늘리지 않는다.
+
+### 3. 모바일 상담 메뉴 CSS (기존 결함, UI)
+- 영냥이 운세 화면의 상담 종류 버튼 그룹(`kindChoices`, 390px): ① 한국어가 음절 단위로 줄바꿈된다(`word-break: keep-all` 누락 추정) ② 설명이 한 줄인 버튼은 내용이 가운데로 몰린다.
+- [design-canon](../context/design-canon.md) 을 먼저 읽고, headed 브라우저로 화면을 띄워 확인한다.
+
+### 4. 점성술 광어·참치 `aspects.none-conjunction` 담당 장 없음 (기존 결함)
+- ft 등급에 `aspects.conjunction` 소유 장이 없고 none 사실에 폴백 레벨이 없어 원장에서 미소유로 남는다. '.houseRulers.' 접두 사실과 ledger unknown fact 경고도 같은 축에서 함께 본다.
+- 위치: `worker/yeongnyangi/fortune/astrology/`, `worker/yeongnyangi/fortune/reading-v7-ledger.ts`.
+
+### 5. 다른 자미 상품에 사업운 로직 미적용
+- 재백·자녀·전택·관록 + 궁간 비화 사업운은 영냥이 전용 `worker/yeongnyangi/fortune/ziwei/derived.ts` 에만 있다. ziwei-ai 템플릿·심층 리포트는 미적용. 공용 엔진 반환값을 바꾸면 다른 상품 프롬프트·비용이 흔들리므로 상품별 파생으로 붙인다.
+- 레거시 자미 money 선택자: `worker/yeongnyangi/fortune/consultation-kinds.ts:73` (`palaces[관록궁,재백궁,전택궁]` — 사업운 메뉴와 겹침 정리 필요 여부 판단).
+
+### 6. 사주 엔진 의심 (실측 필요, 엔진 축)
+- 도충이 거의 항상 성립하는 것으로 보임, 비견 집계에 일간이 포함되는 것으로 보임. 둘 다 추정이다. 고치기 전에 여러 명식으로 실측하고, 메모리 `fortune-engine-facts`(KASI 데이터 오류 등) 과 외부 만세력으로 대조한다.
+
+### 7. 테스트·도구 부채
+- 비용 테스트(`__tests__/ui/yeongnyangi-reading-v7.test.mjs`)가 예방 장(`worker/yeongnyangi/fortune/prevention.ts:73` `withPreventionReading`, 광어·참치 +1장)을 세지 않는다. 광어 +1장을 시도했다가 예방 장 포함 시 ask 비율 .1041 > .1 로 기각한 이력이 있다.
+- 가끔 실패: `sync-main-freshness`(단독 실행 16/16 통과), `tarot-year-premium`.
+- `scripts/yeongnyangi-v7-golden.mjs` 의 live 모드는 Phase 4 이어하기 전용으로 잠겨 있다(135·152·153행 부근). 새 골든을 돌리려면 1회 실행 모드를 정식으로 추가하는 편이 낫다(이전 세션은 스크래치 실행기로 대체했고 그 파일은 삭제됨).
+- 영냥이 Browser Shadow 가 `f68e081a1`(리뷰 초대 배너)부터 `settleApiFixture 'Fixture checkpoint timed out'` 으로 실패. shadow 라 게이트는 아니다.
+- 작은 부채: ledger 주석 "flag-off" 낡음, 정적 장 수 표기(당시 `page.tsx:171` 로 기록했으나 f30acbafb 에서 줄이 이동해 위치 재확인 필요 — `git grep -n "장" app/yeongnyangi`), `Library.tsx` koOnly id 표시, signals 라벨, 시간 미상 참치의 timing 소유, timing·spouse 가지치기, fusion 파생 사실 미연결.
+
+## 규칙 메모
+
+- 과금 LLM 실호출은 정확한 1회 승인 후에만. 실행하면 생성 본문 자체를 사용자에게 보고하고 전체 원문 파일 경로를 준다.
+- 운영 승격은 명시적 1회 요청 때만. 승인 뒤 main 에 다른 세션 코드가 올라오면 범위를 다시 묻는다. 확인과 dispatch 는 한 명령.
+- 각 항목이 끝나면 이 문서의 해당 절에 결과(SHA)를 적고, 전부 끝나면 `status: done` 으로 닫는다.
