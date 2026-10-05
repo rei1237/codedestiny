@@ -553,17 +553,17 @@
     "file": "worker/routes/fortune-tea-house.js",
     "matches": [
       {
-        "line": 2,
+        "line": 6,
         "kind": "import-or-injected-call",
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 4106,
+        "line": 4129,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 5198,
+        "line": 5232,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -868,27 +868,27 @@
         "symbol": "../lib/structured-consultation.js"
       },
       {
-        "line": 1640,
+        "line": 1654,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       },
       {
-        "line": 1650,
+        "line": 1664,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 1684,
+        "line": 1698,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 1824,
+        "line": 1838,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       },
       {
-        "line": 1873,
+        "line": 1887,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       }

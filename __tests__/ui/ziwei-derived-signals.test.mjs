@@ -39,3 +39,20 @@ test('실제 명반에서도 최대 6줄, 줄당 120자 이하', () => {
     for (const line of lines) assert.ok(line.length <= ZIWEI_BUSINESS_MAX_LINE_CHARS, line);
   }
 });
+
+test('자미 AI 상담: 사업운 줄은 achievement 묶음 프롬프트에만, 다른 묶음·meta 에는 없다', async () => {
+  const {__ziweiAiTestUtils:{SECTION_GROUP_SPECS, buildSectionGroupPrompt, buildMetaPrompt}} = await import('../../worker/routes/ziwei-ai.js');
+  const input = {birthInfo:{name:'테스트', gender:'남성', birthDate:'1980-01-01', birthTime:'14:10', calendarType:'solar'}, topic:'사업운', userQuestion:'동업을 해도 될까요'};
+  const c = calculateZiweiAiChart({birthInfo:input.birthInfo}, {year:2026});
+  const heading = '[사업운 근거';
+  const expected = formatZiweiBusinessLines(buildZiweiBusinessBasis(c.palaces));
+  for (const group of SECTION_GROUP_SPECS) {
+    const prompt = buildSectionGroupPrompt(input, c, group);
+    if (group.id === 'achievement') {
+      assert.ok(prompt.includes(heading));
+      for (const line of expected) assert.ok(prompt.includes(`- ${line}`), line);
+    } else assert.ok(!prompt.includes(heading), group.id);
+  }
+  assert.ok(!buildMetaPrompt(input, c).includes(heading));
+  assert.ok(!JSON.stringify(c).includes('사업운'), '차트 JSON 은 그대로');
+});
