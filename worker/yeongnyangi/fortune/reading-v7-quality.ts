@@ -40,6 +40,7 @@ const fromSlugs=(table:Record<string,string>,label:string):V7Term[]=>
 const fromPlanets=(table:Record<string,string>,label:string):V7Term[]=>
   Object.entries(table).map(([ko,name])=>({term:ko,ids:[`.${label}.${name}`]}));
 const SPOUSE_GODS=['정재','편재','정관','편관'];
+const TEN_GOD_CARRIERS=['.pillarDetails.','.tenGodsByPillar.','.majorLuck.','.yearlyLuck.','.monthlyLuck.'];
 const BUSINESS_NAMED=['재백궁','자녀궁','전택궁','관록궁','복덕궁','부부궁','천이궁'];
 const HEALTH_NAMED=['질액궁','부모궁','복덕궁'];
 // 태양 and 달 are excluded from the planet tables: both are ordinary Korean words. Astrology keeps 태양 as a
@@ -57,7 +58,9 @@ export const V7_TERMS:Record<string,V7Term[]>={
     {term:'오행',ids:['.fiveElements','.elementProfile.balance','.elementProfile.traits'],anchor:true},
     // The anchor owns the ten-god cluster profile, so it may name single ten gods; 역마 also belongs to the movement facts.
     // Spouse stars and 도화·홍염 also belong to the romance timing facts (an id ending in '.' matches as a prefix).
-    ...fromSlugs(TEN_GOD_SLUGS,'tenGods').map(t=>({...t,ids:[...t.ids,'.tenGodProfile',...(SPOUSE_GODS.includes(t.term)?['.romanceTiming.']:[])]})),
+    // Pillar, hidden-stem, 대운·세운·월운 facts each carry their own ten gods (stemTenGod·hiddenStems), so a chapter
+    // owning one may name any ten god: the 2026-10-04 golden pruned 117 such sentences as foreign.
+    ...fromSlugs(TEN_GOD_SLUGS,'tenGods').map(t=>({...t,ids:[...t.ids,'.tenGodProfile',...TEN_GOD_CARRIERS,...(SPOUSE_GODS.includes(t.term)?['.romanceTiming.']:[])]})),
     ...fromSlugs(SHINSAL_SLUGS,'shinsal').map(t=>t.term==='역마살'?{...t,ids:[...t.ids,'.movementSignals.natal']}
       :t.term==='도화살'||t.term==='홍염살'?{...t,ids:[...t.ids,'.romanceTiming.']}:t),
   ],
