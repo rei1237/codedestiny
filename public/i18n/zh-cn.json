@@ -1799,6 +1799,14 @@
       "profileTitle": "我的档案卡",
       "cheer": "今天也迈出一小步，我会为你加油。",
       "mascotAlt": "捧着莲花为你加油的花猪妍伊"
+    },
+    "globalReading": {
+      "title": "灵喵的月光占卜室",
+      "note": "从你在意的问题出发，用四柱命理、塔罗与占星，梳理属于你的生活脉络。",
+      "cta": "查看个人解读",
+      "arrival": "循着月光，走近你心中的问题",
+      "recordsTitle": "韩国政局转折前公开的命理记录",
+      "recordsNote": "对照尹锡悦、李在明的早期公开解读与2025年的实际事件。请查看日期和韩文原文，自行判断。过往案例不保证未来预测准确。"
     }
   },
   "terms": {
@@ -2109,7 +2117,9 @@
       "usdHint": "海外支付 · 付款前确认美元金额",
       "rateNotice": "按现有韩元价格换算。汇率日期：{date} (ECB)。",
       "close": "关闭并查看支付状态",
-      "wait": "在PayPal中批准付款后，在此查看支付状态。"
+      "wait": "在PayPal中批准付款后，在此查看支付状态。",
+      "internationalLabel": "PayPal · 国际支付（USD）",
+      "internationalGuide": "在韩国以外付款？请选择PayPal，授权前可确认美元总额。其他方式可能需要韩国本地支付信息。"
     },
     "loader": {
       "eyebrow": "月光支付确认",

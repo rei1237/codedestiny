@@ -157,12 +157,13 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 .cd-yn-portal-overlay__scene{position:relative;display:grid;justify-items:center;width:min(100%,420px);text-align:center;animation:cdYnPortalArrival .64s cubic-bezier(.16,1,.3,1) both}
 .cd-yn-portal-overlay__moon{width:24px;height:24px;margin-bottom:22px;border-radius:50%;box-shadow:inset 6px -3px #e5c58e;transform:rotate(-20deg)}
 .cd-yn-portal-overlay__portrait{display:block;width:96px;height:112px;padding:5px;overflow:hidden;border:1px solid #bca476;border-radius:52px 52px 12px 12px;background:#21192e}
-.cd-yn-portal-overlay__portrait img{display:block;width:100%;height:100%;object-fit:cover;border-radius:46px 46px 8px 8px}
-.cd-yn-portal-overlay__title{margin:24px 0 8px;font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:clamp(22px,5vw,28px);font-weight:700;line-height:1.5;color:#f3eee5;word-break:keep-all}
+.cd-yn-portal-overlay__portrait img{display:block;width:100%;height:100%;object-fit:contain;border-radius:46px 46px 8px 8px}
+.cd-yn-portal-overlay__title{margin:24px 0 8px;font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:clamp(22px,5vw,28px);font-weight:700;line-height:1.5;color:#f3eee5;word-break:normal;overflow-wrap:anywhere;max-width:100%}
 .cd-yn-portal-overlay__note{margin:0;font-family:var(--font-body,sans-serif);font-size:13px;line-height:1.7;color:#bac9da;word-break:keep-all}
-.cd-yn-portal-overlay__line{width:64px;height:1px;margin-top:26px;background:#bca476}
+.cd-yn-portal-overlay__line{width:64px;height:1px;margin-top:26px;background:#bca476;transform-origin:center;animation:cdYnPortalLine .64s cubic-bezier(.16,1,.3,1) both}
+@keyframes cdYnPortalLine{from{transform:scaleX(.15);opacity:0}to{transform:scaleX(1);opacity:1}}
 @keyframes cdYnPortalVeil{from{opacity:0}40%,to{opacity:1}}
-@keyframes cdYnPortalArrival{0%{opacity:0;transform:translateY(10px)}38%,82%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-4px)}}
+@keyframes cdYnPortalArrival{0%{opacity:0;transform:translateY(10px)}38%,82%{opacity:1;transform:translateY(0)}100%{opacity:1;transform:translateY(0)}}
 @media (max-width:640px){}
 
 
@@ -191,7 +192,7 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 .cdh-pass__btn{position:relative;padding-inline-end:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-height:var(--cd-btn-h);border-radius:var(--cd-r-control);background:var(--cd-cta-primary-bg);color:var(--cd-cta-primary-ink)!important;font-weight:800;text-decoration:none}
 :is(html,body).neo-mode .cdh-pass__mascot{background:#2a2242}
 :is(html,body).neo-mode .cdh-pass__badge{color:#1b1233!important}
-.cdh-more{border:1px solid var(--cdh-line);border-radius:24px;background:color-mix(in srgb,var(--cdh-surface) 80%,transparent)}
+.cdh-more{min-width:0;border:1px solid var(--cdh-line);border-radius:24px;background:color-mix(in srgb,var(--cdh-surface) 80%,transparent)}
 .cdh-more__summary{position:relative;isolation:isolate;display:flex;align-items:center;gap:16px;min-height:132px;padding:26px 28px;overflow:hidden;border-radius:23px;list-style:none;cursor:pointer;background:var(--cdh-card);box-shadow:inset 0 0 0 5px var(--cdh-bg),inset 0 0 0 6px color-mix(in srgb,var(--cdh-gold) 26%,transparent)}
 .cdh-more__summary::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,var(--cdh-card) 40%,transparent),var(--cdh-page-art) right 18% / 210px auto no-repeat;opacity:.6;pointer-events:none}
 .cdh-more__summary::-webkit-details-marker{display:none}
@@ -554,13 +555,22 @@ html.neo-mode #cdHomeFunnel { --cdh-page-art: url('/images/home/illustrated/moon
 .cdh-chemi__go { display: inline-flex; align-items: center; min-height: 48px; margin-top: 8px; padding: 0 18px; border-radius: 999px; background: #ffd98a; color: #1a1030; font-size: 14px; font-weight: 800; }
 #cdHomeFunnel .cdh-chemi:focus-visible { outline: 2px solid #9fe3ff; outline-offset: 3px; }
 @media (max-width:640px) { #cdHomeFunnel .cdh-chemi { margin: 16px 16px 0; } #cdHomeFunnel .cdh-chemi__art { width: 100%; object-position: 18% 30%; } #cdHomeFunnel .cdh-chemi::after { background: linear-gradient(90deg, rgba(18,11,38,.95) 0%, rgba(18,11,38,.86) 62%, rgba(18,11,38,.5) 100%); } .cdh-chemi__copy { padding: 20px; } .cdh-chemi__copy strong { font-size: 20px; } }
-.cdh-portals { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
+.cdh-portals { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+#cdHomeFunnel .cdh-yn-portal { grid-column: 1 / -1; grid-template-columns: minmax(0,1fr) 38%; min-height: 252px; }
+#cdHomeFunnel .cdh-yn-portal .cdh-portal__copy { max-width: 48rem; }
+#cdHomeFunnel .cdh-yn-portal .cdh-portal__copy strong { font-size: var(--cd-t-display); text-wrap: balance; }
+#cdHomeFunnel .cdh-yn-portal .cdh-portal__copy small { font-size: 1rem; overflow-wrap: anywhere; }
+.cdh-global-records { padding: 24px 0; color: var(--cdh-ink); }
+.cdh-global-records h2 { font-family: var(--font-serif); font-size: var(--cd-t-section); text-wrap: balance; }
+.cdh-global-records p { max-width: 70ch; color: var(--cdh-muted); line-height: 1.75; }
+.cdh-global-records nav { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.cdh-global-records a { display: inline-flex; align-items: center; min-height: 44px; color: var(--cdh-accent); text-decoration: underline; text-underline-offset: .25em; }
 #cdHomeFunnel .cdh-portal { position: relative; display: grid; grid-template-columns: minmax(0,1fr) 43%; min-height: 212px; overflow: hidden; border: 1px solid var(--cdh-line); border-radius: 18px; background: var(--cdh-card); box-shadow: 0 12px 32px -24px var(--cdh-ink); }
 #cdHomeFunnel .cdh-portal.cdh-persona--neo { display: none; }
 html.neo-mode #cdHomeFunnel .cdh-portal.cdh-persona--neo { display: grid; }
 html.neo-mode #cdHomeFunnel .cdh-portal.cdh-persona--yeoni { display: none; }
-.cdh-portal__copy { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 28px; }
-.cdh-portal__copy strong { color: var(--cdh-ink); font-family: 'CodeDestinySerifKR',serif; font-size: 24px; line-height: 1.4; word-break: keep-all; }
+.cdh-portal__copy { min-width: 0; position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 28px; }
+.cdh-portal__copy strong { color: var(--cdh-ink); font-family: 'CodeDestinySerifKR',serif; font-size: 24px; line-height: 1.4; word-break: normal; overflow-wrap: anywhere; }
 .cdh-portal__copy small { color: var(--cdh-muted); font-size: 13px; line-height: 1.7; word-break: keep-all; }
 .cdh-portal__go { display: inline-flex; align-items: center; min-height: 44px; margin-top: auto; color: var(--cdh-accent); font-size: 13px; font-weight: 700; }
 .cdh-portal__art { position: relative; min-width: 0; overflow: hidden; border-radius: 90px 0 0 0; }
@@ -572,6 +582,7 @@ html.neo-mode #cdHomeFunnel .cdh-portal.cdh-persona--yeoni { display: none; }
   html.neo-mode #cdHomeFunnel { --cdh-page-art: url('/images/home/illustrated/moon-floral-dark-480.webp'); }
   .cdh-portals { grid-template-columns: minmax(0,1fr); gap: 14px; }
   #cdHomeFunnel .cdh-portal { min-height: 176px; }
+  #cdHomeFunnel .cdh-yn-portal { grid-template-columns: minmax(0,1fr) 30%; }
   .cdh-portal__copy { gap: 7px; padding: 22px 18px; }
   .cdh-portal__copy strong { font-size: 20px; }
   .cdh-more__summary { padding: 24px 20px; }
