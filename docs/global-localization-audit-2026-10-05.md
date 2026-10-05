@@ -27,9 +27,10 @@
 검증(로컬 mock):
 - `npm run check:fast -- --plan`, `npm run check:fast`: critical 계획 실행. paid guards 87/88 통과, Jest 343 suites/5,149 통과. Node 최초 2,656개 중 4개 실패는 현지화 fixture/기대값 3건과 불필요한 타로 검증 확장 1건이었다. 확장은 되돌렸고 실패한 검사 55개를 재실행해 모두 통과했다.
 - 불변성 표 123→199개 조합. 기존 123행 변화 없음. v3의 결제 전 `AWAITING_DRAW`는 별도 테스트에서 12개 저장 locale로 검증한다.
-- 새 현지화 테스트 36개, 안전/기존 v6/v7 품질 검사 62개 통과. `npm run lint`, `npm run typecheck`, Worker dry-run 및 check:fast의 나머지 정책 검사 통과. 날짜 변경으로 생긴 sitemap drift는 기존 생성기로 갱신 후 재검증한다.
+- 새 현지화 테스트 36개, 안전/기존 v6/v7 품질 검사 62개 통과. `npm run lint`, `npm run typecheck`, Worker dry-run 및 check:fast의 나머지 정책 검사 통과. 날짜 변경으로 생긴 sitemap drift는 기존 생성기로 갱신하고 URL 1,311개의 일치를 확인했다.
 - 실제 Next 로컬 mock 화면: 해외 11언어 플래너·관계 단계, 360/390/430px 모바일과 1440px 데스크톱. 한글 누출·가로 넘침·브라우저 오류 없음. 일본어/프랑스어 저장 상담을 영어 사이트에서 열어 카드 선택 복원→공개→결과의 저장 언어 유지 확인. 실 API·PG·LLM 호출 없음.
 - 시각 증빙: `C:/Users/user/.codex/visualizations/2026/10/05/01a10c99-2dc9-7cc3-b71c-27157a8a1c7d/global-localization/`의 `browser-results.json`, `relationship-ja-430-viewport.png`, `result-fr-390.png` 등. 번역은 코드/mock 검증이며 원어민 감수나 실 LLM 품질 검증이 아니다.
+- 동시 작업 통합: 원격 main의 `82956d2c8`, `a619966d6`에서 같은 상담 메뉴·관계·배열 UI를 먼저 현지화했다. 해당 UI/사전 정본을 재사용하고 이 작업의 전용 설명, 저장 언어 우선, 카드명/방향 검증과 안전 fixture를 합쳤다. 배열 사전은 서버/클라이언트가 함께 읽는 `lib/tarot/yeongnyangi-spread-locales.ts`로 공유하고 기존 UI import 경로를 유지했다. 결제·점성술 등 다른 세션의 변경은 그대로 보존했다.
 
 ## 남아 있는 전체 유료 콘텐츠 현지화 범위
 

@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-10-05
-next: 공개 차트·요약과 상세 본문을 분리하고 프런트·PDF·공유를 서버 상세 조회로 연결한다. Android는 다른 세션 통합 및 main CI 확인 전 보류한다.
+updated: 2026-10-06
+next: 기본 상세 전달 분리의 실패 검사·최종 main CI와 통합 상태를 확인한다. Android는 다른 세션 통합 및 main CI 확인 전 보류한다.
 ---
 
 # 프롤로그·유료 콘텐츠 정비 → Android 출시
@@ -118,3 +118,44 @@ next: 공개 차트·요약과 상세 본문을 분리하고 프런트·PDF·공
 - 원격 통합: origin/main 15f2f09e8041270affeb4782ad3e0d40ee4a0653을 지정 워크트리에 merge한 커밋은 2c951021e. 공유 main의 더러운 인덱스를 건드리지 않고 dc0160fa596a042fbc09f53fdcc39c493a63c48d를 원격 main으로 fast-forward push했다.
 - main CI [37324381265](https://github.com/rei1237/codedestiny/actions/runs/37324381265): `Critical checks`, `Typecheck and lint`, `Build Pages and Worker` 모두 success. `Static guards`는 이 문서의 기존 `in-progress` 상태값과 `next` 누락으로 실패하여 `CI required`도 failure였다. 허용 상태 `active`와 다음 행동을 추가했으며 이 문서 수정 SHA의 main CI를 최종 확인한다. 코드/빌드 실패로 기록하지 않으며 실패 자체를 통과로 바꾸어 보고하지 않는다.
 - 구매 전환 세션은 완료, SEO 세션은 active로 확인. 공유 main에는 index.html·홈 CSS·public 로케일 미러의 타 세션 staged/unstaged 변경이 공존한다. 덮어쓰기·stash 없이 보존하고 Android는 계속 보류한다.
+
+## 2026-10-06 후속 — 기본 상세 전달 분리 (검증 진행)
+
+- 승인 범위: 무료 차트·요약과 기존 구매 권리를 유지한 채 공개 상세·fallback·PDF·공유를 서버 조회 경로에 연결. Android는 다른 세션 통합 및 최종 main CI 확인 전 빌드 금지.
+- origin/main `49e6e52b07b247b04e5f1e11c9219f86f784c1fb`를 지정 워크트리에 fast-forward 통합했다. 공유 main의 타 세션 staged/unstaged 변경은 보존했다.
+- `js/core/astro/natal-reading.js`에는 차트·짧은 요약·시기 계산·기호만 남기고, 상세 문장 생성기는 `worker/lib/astro-natal-reading.cjs`로 분리했다. 서버는 공개 계산부를 공통으로 사용한다. 기존/분리 후 모델과 상세 HTML을 30개 차트·시간 유무 조합으로 대조해 동일함을 확인했다.
+- 정상 렌더러의 상세와 예전 상세 fallback을 제거하고 양쪽 모두 `AstroBasicDeep.mount`로 연결했다. 별도 상품인 궁합·연간·stellar 상세 게이트는 유지했다. 이 작업은 기본 `astro_basic_deep_pack` 전달 경계이며, 모든 점성술 상품과 다른 체계의 서버 이관 완료를 뜻하지 않는다.
+- 신규 클라이언트는 기존 인증 요청 도우미로 `POST /api/astro/basic-deep`를 읽는다. 로컬 해금 플래그는 본문을 열지 못하며, 조회 자체가 결제·이용권·월정석을 소비하지 않는다. 402에서만 기존 상품·서버 가격으로 공용 해금 버튼을 표시한다. 신규 상품·가격·DB·권한 판정 규칙 변경 없음.
+- 계정·프로필 변경 및 오래된 비동기 응답은 본문을 폐기한다. PDF는 저장 직전 서버에서 다시 읽고, 실패하면 이전 화면으로 출력하지 않는다. 브라우저 인쇄의 PDF 저장 기능을 사용하며 파일 저장 완료·실기기 WebView 지원은 아직 검증하지 않았다.
+- 공유에는 `[data-astro-public-summary]`만 사용한다. 상세·상태 문구나 출생 정보를 공유 URL에 넣지 않는다. 첫 공유 클릭의 모듈 로더와 점성술 모달 열기/닫기의 `aria-hidden` 누락도 보완했다.
+- targeted 실측: `astro-basic-delivery.test.mjs` 8/8, worker `astro-basic-deep.test.js` 29/29, natal/transit Node 24/24 통과. 공개 차트·요약·시기 계산의 서버와의 일치, 401/402/503, 로컬 권한 위조, 재시도, 계정/프로필/화면 변경, PDF 재검증 거절, 공유 범위를 확인했다.
+- 브라우저 재현 명령: `node scripts/verify-astro-basic-delivery.mjs`. 모든 API mock, 외부 요청 차단. 360/390/430/1280px 가로 넘침 없음·버튼 44px 이상, 무료 차트, 구매자 상세, 무료 요약 공유, PDF 인쇄 호출 성공/권한 재확인 실패, 강제 legacy 렌더 실패 fallback 통과. pageerror 0. 화면 검토 에이전트도 새 CTA 가림·넘침 없음 확인.
+- `impeccable detect` 신규 클라이언트 지적 0. 기존 CSS에는 기존 글자 크기 advisory가 있으며 수치 대비 검증과 동일하지 않다.
+- `check:fast` 첫 실행은 제거된 코드의 빈 줄 공백을 지적해 수정했다. 재실행은 `npm test` 실패를 보고하고 나머지 결제 가드를 실행 중이다. 아직 전체 통과로 보고하지 않는다. 실패 원인·최종 CI·전달 상태는 후속 기록을 따른다.
+- Android/APK/AAB, 실결제, 유료 LLM, 운영 DB 쓰기, 운영 승격은 실행하지 않았다.
+
+### 후속 검증 결과
+
+- `check:fast`의 결제 가드 88개 중 86개 통과. 전체 Jest는 343 suites / 5,149 tests 통과. Node는 2,630개 중 2,629개 통과했고, 단일 실패는 수정 도중 `index-inline-runtime.js`와 public 미러가 달라진 동기화 검사였다. 다른 실패인 `verify:ai-consultation-flows`도 수정 도중 `saju-engine.js` 미러 불일치였다. 기능 오류로 추정하지 않고 실제 실패 출력을 확인했다.
+- 최종 `sync:public` 후 실패 검사만 재실행: `node --test __tests__/ui/luck-sync-diary-planner.static.test.js` 11/11 통과, `npm run verify:ai-consultation-flows` 통과. 전체 check:fast 재실행·통과로 표기하지 않는다.
+- 변경 모듈 ESLint: 0 errors, 기존 var 문법을 보존한 이관 코드 등의 336 warnings. 자동 포맷/전체 리팩터링 없음.
+- 재현 가능한 브라우저 검사도 접근성 버튼 이름 조회와 PDF 인쇄 호출 포함 재실행 통과. 실기기 PDF 저장 및 실결제 증거는 아니다.
+- 날짜 전환에 따른 sitemap 드리프트를 발견해 공식 생성기로 갱신한다. 최종 커밋/CI는 아래 전달 기록이 정본이다.
+
+### 커밋 및 통합
+
+- 기능 커밋 `724b7e9df`, 사이트맵 커밋 `f11c18b80` 생성. 최신 origin/main `90ba16948`(다른 세션의 destiny-bias 변경 및 KST 날짜 전환 포함)을 `4bf687e9f47c451398fdc1fd7de488999b493048`로 충돌 없이 통합했다.
+- `verify:sitemap-drift`: 1,311 URLs 통과. `verify:public-mirror-fresh`는 최초 실행에서 최종 모듈 캐시 키 2개가 HTML 8개에 덜 반영된 것을 확인했고, sandbox의 index.lock 쓰기 제한으로 자체 복원이 실패했다. 이 워크트리의 생성 변경만 보존한 채 공식 생성기를 다시 실행해 캐시 키를 수렴시켰다.
+- 자동 승인 검토는 초기 스테이징 방식과 생성 캐시 키 파일의 소유를 문제 삼아 두 번 거절했다. 파일별 diff·origin/main 비교·공유 main 상태로 해당 4개 파일이 이번 생성기의 캐시 키 변경뿐임을 입증한 뒤, 명시적 경로 커밋이 승인·완료됐다. 타 세션 변경을 우회하여 포함하지 않았다.
+- 공유 main에는 index/public/home CSS 및 marketing의 타 세션 staged/unstaged 변경이 남아 있어 그 체크아웃은 변경하지 않는다. 지정 워크트리에서 원격 main을 fast-forward로 전달하고 정확한 SHA의 main CI를 확인한다. 타 세션 작업의 로컬 통합·워크트리 배수 및 Android는 아직 완료 조건을 충족하지 않았다.
+- 전달 직전 다국어 세션의 원격 main `0ea7aaeb5`가 추가되어 최초 push는 fast-forward 조건으로 거절됐다. 이를 `d80cc304bf85bf07de838ed638079ecd31e17728`로 병합해 push했다. 통합된 다국어 소스 때문에 사이트맵 원장 서명 18개가 추가로 바뀌어 공식 생성기로 갱신했고 `verify:sitemap-drift` 1,311 URLs 통과를 다시 확인했다. 이 보정 커밋의 main CI를 최종 판정 대상으로 삼는다.
+- 커밋 후 재실행한 `verify-public-mirror-fresh`는 통과했다(재생성 변경 없음). 공유 main의 미커밋 작업과 Android 빌드는 계속 보존/보류한다.
+
+### 통합 CI 보정
+
+- `1b6c93af8` main CI `37333666868` 실패를 확인했다. 다국어 세션 통합 파일 `relationship-locales.ts`의 `Object.fromEntries` 타입 추론(TS2352)과 기존 테스트 두 곳의 한국어 전용 기대값이 원인이었다.
+- 런타임 문구/메뉴/결제 정책은 유지하고 `Object.fromEntries<RelationshipCopy>`로 값 타입을 명시했다. 기존 테스트는 다국어 지원 계약에 맞게 한국어 전용 기대값만 보정했다. 건강 근거와 의료 안내, 고정 타로 배열 검증은 유지했다.
+- `npm run typecheck` exit 0, 관련 기존/다국어 Node 테스트 35/35 통과. 타입 변경에 연결된 사이트맵 서명 1개를 공식 생성기로 갱신했다.
+- 최종 통합 코드의 빌드/critical 검사까지 확인하기 위해 `PR CI`를 `full_ci=true`로 실행한다. 이 워크플로는 배포/Android 빌드가 아니다. 결과는 실제 실행 SHA와 함께 최종 보고한다.
+- `7a34ed606` 자동 main CI `37334579346`가 critical 전체 검증을 실행했다. Typecheck/lint, Pages/Worker build, Critical checks는 success. 같은 SHA의 수동 대기 실행 `37334609338`은 중복이라 취소했다.
+- Static guards는 삭제한 fallback 디버그 함수 `_formatUtcFromLocal`이 UTC 함수 등재 목록에 남아 있어 실패했다. 사라진 항목과 관련 주석만 정리했고 `npm run verify:shell-korean-calendar` 96건 통과. 검사 조건을 완화하거나 날짜 계산 코드를 변경하지 않았다. 이 보정 커밋의 main CI를 확인한다.

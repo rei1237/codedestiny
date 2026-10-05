@@ -70,7 +70,7 @@ test('health, marriage, movement and business menus read their own derived basis
  const seen=new Set();
  for(const p of singles)for(const k of m.consultationKinds[p.domain]){
   const rows=legacyManifest(p,k),tag=`${p.id}/${k.id}`,fact=basis[`${p.domain}:${k.id}`];
-  if(fact){assert.equal(k.koOnly,false,tag);seen.add(`${p.domain}:${k.id}`);for(const c of rows.slice(0,-1))assert.ok(c.factSelectors[p.domain].includes(fact),`${tag}/${c.key}`);}
+  if(fact){assert.notEqual(k.koOnly,true,tag);seen.add(`${p.domain}:${k.id}`);for(const c of rows.slice(0,-1))assert.ok(c.factSelectors[p.domain].includes(fact),`${tag}/${c.key}`);}
   for(const c of rows)assert.equal(/의료진/.test(c.focus),k.id==='health',`${tag}/${c.key}`);
  }
  assert.deepEqual([...seen].sort(),Object.keys(basis).sort());

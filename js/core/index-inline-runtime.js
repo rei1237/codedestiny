@@ -1952,9 +1952,10 @@ var __cdLazyActionLoaders = {
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
   // 도달 후 첫 공유 탭이 아직 로드 전이면 조용히 아무 반응 없이 죽었다(setGender와
   // 같은 계열의 버그 — 위 주석 참고).
-  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-b2ea98d3f343'); },
-  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-b2ea98d3f343'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-b2ea98d3f343'); },
+  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-977e322a7b8d'); },
+  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-977e322a7b8d'); },
+  shareAstroKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-977e322a7b8d'); },
+  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-977e322a7b8d'); },
   openSajuCompatArchive: function() { return __cdLoadScriptOnce('/js/saju-compat-archive.js?v=build-b1d1aa1db384'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
@@ -2254,12 +2255,12 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-dc965ec9fb77',
+    '/js/saju-engine.js?v=build-ed2a4c85c767',
       '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-8462367e20dc',
-    '/js/core/saju/basicFortunePresentation.js?v=build-3696b77fdaf6',
+    '/js/core/saju/basicFortunePresentation.js?v=build-2717009bad85',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
     '/js/core/saju/reportDashboard.js?v=build-d6ddaebcaf1e',
     '/js/saju-engine-continuation.js?v=build-8d68ebe282a3',
@@ -8377,7 +8378,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-dc965ec9fb77',
+      '/js/saju-engine.js?v=build-ed2a4c85c767',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-8462367e20dc'
   ];
@@ -8396,7 +8397,7 @@ function __cdEnsureBirthModalDepsLoaded() {
   if (__cdBirthModalDepsLoadPromise) return __cdBirthModalDepsLoadPromise;
   var presentationReady = window.BasicFortunePresentation
     ? Promise.resolve()
-    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-3696b77fdaf6');
+    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-2717009bad85');
   var tasks = [presentationReady];
   if (
     typeof _ModalProfileState === 'undefined' ||
@@ -8946,7 +8947,7 @@ function openAstroModal(_retried) {
         var overlay = document.getElementById('astroModalOverlay');
         var cardWrap = document.getElementById('astroCardWrap');
         var noProfile = document.getElementById('astroNoProfile');
-        if (overlay) overlay.style.display = 'flex';
+        if (overlay) { overlay.style.display = 'flex'; overlay.setAttribute('aria-hidden', 'false'); }
         if (cardWrap) cardWrap.style.display = 'block';
         if (noProfile) noProfile.style.display = 'none';
         if (typeof window.renderAstroSwissUnavailable === 'function') {
@@ -8963,6 +8964,7 @@ function openAstroModal(_retried) {
   var profiles = _dpNormalizeProfileListForFeature(s ? s.list() : []);
   var profile = _dpNormalizeProfileForFeature(s ? s.current() : null);
   overlay.style.display = 'flex';
+  overlay.setAttribute('aria-hidden', 'false');
   overlay.style.overflow = 'hidden';
   var sh = document.getElementById('astroModalSheet');
   if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
@@ -9077,7 +9079,7 @@ function _cdAstroWaitForProfileHydration(overlay, theme) {
 }
 function closeAstroModal() {
   var o = document.getElementById('astroModalOverlay');
-  if (o) { o.style.display = 'none'; _cdAstroCleanupHydrationWait(o); o.__cdAstroHydrateWaited = false; }
+  if (o) { o.style.display = 'none'; o.setAttribute('aria-hidden', 'true'); _cdAstroCleanupHydrationWait(o); o.__cdAstroHydrateWaited = false; }
   _ModalProfileState.unsubscribe('astro');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }

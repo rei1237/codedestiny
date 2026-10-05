@@ -3,19 +3,6 @@ import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 // Stable kind IDs, shared by menus and saved reading headings. Korean stays in the source catalog.
 export const additionalKindIds=['health','marriage','movement','business','feelings','contact','reunion','career','healing','spread'] as const;
 type Labels=readonly [string,string,string,string,string,string,string,string,string,string];
-export const additionalKindLabels:Record<Exclude<ReadingLocale,'ko'>,Labels>={
- en:['Wellbeing and rhythms','Marriage and shared life','Moving and living abroad','Business direction','Feelings and signals','Communication','Reconnection','Work and direction','Emotional recovery','A spread for your question'],
- ja:['健康と生活リズム','結婚と暮らし','移動と海外生活','事業の方向性','気持ちとサイン','連絡の流れ','復縁と関係の修復','仕事と進路','心の回復','質問に合うスプレッド'],
- 'zh-CN':['健康与生活节奏','婚姻与共同生活','迁移与海外生活','事业经营方向','情感与信号','沟通的走向','复合与关系修复','工作与方向','情绪修复','按问题选择牌阵'],
- 'zh-TW':['健康與生活節奏','婚姻與共同生活','遷移與海外生活','事業經營方向','情感與訊號','溝通的走向','復合與關係修復','工作與方向','情緒修復','依問題選擇牌陣'],
- vi:['Sức khỏe và nhịp sống','Hôn nhân và cuộc sống chung','Chuyển nơi ở và ra nước ngoài','Hướng kinh doanh','Cảm xúc và tín hiệu','Nhịp giao tiếp','Kết nối lại','Công việc và hướng đi','Hồi phục tinh thần','Trải bài theo câu hỏi'],
- hi:['सेहत और दिनचर्या','विवाह और साझा जीवन','स्थान परिवर्तन और विदेश','व्यवसाय की दिशा','भावनाएँ और संकेत','संवाद का रुझान','फिर से जुड़ना','काम और दिशा','भावनात्मक सुधार','सवाल के अनुसार कार्ड विन्यास'],
- es:['Bienestar y ritmos','Matrimonio y convivencia','Mudanzas y vida en el extranjero','Rumbo del negocio','Sentimientos y señales','Comunicación','Reconectar','Trabajo y rumbo','Recuperación emocional','Tirada para tu pregunta'],
- fr:['Bien-être et rythmes','Mariage et vie commune','Déménagement et vie à l’étranger','Orientation de l’activité','Sentiments et signes','Communication','Renouer le lien','Travail et orientation','Équilibre émotionnel','Un tirage pour votre question'],
- de:['Wohlbefinden und Rhythmus','Ehe und Zusammenleben','Umzug und Leben im Ausland','Geschäftliche Ausrichtung','Gefühle und Signale','Kommunikation','Wiederannäherung','Arbeit und Orientierung','Emotionale Erholung','Legung für deine Frage'],
- nl:['Welzijn en ritme','Huwelijk en samenleven','Verhuizen en leven in het buitenland','Zakelijke richting','Gevoelens en signalen','Communicatie','Opnieuw verbinden','Werk en richting','Emotioneel herstel','Legging voor je vraag'],
- ms:['Kesejahteraan dan rentak hidup','Perkahwinan dan hidup bersama','Berpindah dan hidup di luar negara','Hala tuju perniagaan','Perasaan dan petunjuk','Komunikasi','Menghubungkan semula','Kerja dan hala tuju','Pemulihan emosi','Susunan untuk soalan anda'],
-};
 // Descriptions explain the purpose without turning symbolic health readings into diagnosis.
 export const additionalKindDescriptions:Record<Exclude<ReadingLocale,'ko'>,Labels>={
  en:['Explore daily rhythms and recovery habits through this tradition’s symbols, without medical diagnosis.','Consider partnership patterns and the conditions for sharing a life.','Reflect on relocation, unfamiliar environments and preparation for change.','Examine how you build resources, cooperate and manage business uncertainty.','Explore the signals you have noticed without claiming to know another person’s thoughts.','Consider communication patterns, boundaries and your next step.','Review recurring difficulties and the conditions for a mutually welcome reconnection.','Compare your current work, strengths and possible changes.','Make room for tired feelings and identify support you can reach for.','Choose a card layout that fits the question and compare its scope before continuing.'],
@@ -30,10 +17,6 @@ export const additionalKindDescriptions:Record<Exclude<ReadingLocale,'ko'>,Label
  nl:['Bekijk je ritme en herstelgewoonten via symboliek, zonder medische diagnose.','Onderzoek relatiepatronen en voorwaarden voor een leven samen.','Denk na over verhuizen, een nieuwe omgeving en voorbereiding op verandering.','Bekijk middelen, samenwerking en onzekerheid in je onderneming.','Onderzoek waargenomen signalen zonder andermans gedachten als feit te presenteren.','Bekijk communicatiepatronen, grenzen en je volgende stap.','Onderzoek terugkerende problemen en voorwaarden voor toenadering die beiden willen.','Vergelijk je huidige werk, sterke kanten en mogelijke veranderingen.','Geef vermoeide gevoelens ruimte en zoek bereikbare steun.','Kies een passende legging en bekijk de inhoud voordat je doorgaat.'],
  ms:['Renungkan rentak harian dan tabiat pemulihan melalui simbol tradisi ini, tanpa diagnosis perubatan.','Terokai corak hubungan dan syarat untuk hidup bersama.','Fikirkan perpindahan, persekitaran baharu dan persediaan untuk perubahan.','Teliti sumber, kerjasama dan ketidakpastian dalam perniagaan.','Terokai petunjuk yang diperhatikan tanpa mendakwa mengetahui fikiran orang lain.','Pertimbangkan corak komunikasi, batas dan langkah seterusnya.','Tinjau kesukaran berulang dan syarat untuk mendekati semula dengan persetujuan bersama.','Bandingkan kerja semasa, kekuatan dan perubahan yang mungkin.','Beri ruang kepada emosi yang letih dan kenal pasti sokongan yang boleh dicapai.','Pilih susunan yang sesuai dan semak skopnya sebelum meneruskan.'],
 };
-export function additionalKindLabel(id:string,locale:ReadingLocale){
- const index=additionalKindIds.indexOf(id as typeof additionalKindIds[number]);
- return locale==='ko'||index<0?undefined:additionalKindLabels[locale][index];
-}
 export function additionalKindDescription(id:string,locale:ReadingLocale){
  const index=additionalKindIds.indexOf(id as typeof additionalKindIds[number]);
  return locale==='ko'||index<0?undefined:additionalKindDescriptions[locale][index];

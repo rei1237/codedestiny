@@ -803,7 +803,7 @@
     // #asYear holds the astro_yearly_transit gate (free month line + locked dates); collected so the record fold never buries it.
     var yearSection = collect('fr-astro-year', localized('asYear'), ['#asYear']);
     if (yearSection) yearSection.classList.add('fr-reading');
-    var reading = collect('fr-astro-reading', localized('asStory'), ['#asStory', '.astro-flow-card']);
+    var reading = collect('fr-astro-reading', localized('asStory'), ['#asStory', '.astro-flow-card', '[data-astro-server-detail]']);
     if (reading) reading.classList.add('fr-reading');
     var planets = collect('fr-astro-planets', localized('asDeep'), ['#asDeep']);
     // .astro-stellar-archive carries four paid unlocks; it moves with the other gates so
@@ -853,7 +853,7 @@
     // 점성술 "나의 이야기" 층(#asStory). 위 시트 뒤에 붙여 같은 특정성에서 이긴다. ?v= 는 위와 같은 규칙.
     if (!document.getElementById('astroReadingStyle')) {
       var storyLink = document.createElement('link'); storyLink.id = 'astroReadingStyle'; storyLink.rel = 'stylesheet';
-      storyLink.href = '/styles/astro-reading.css?v=build-e7c13ce86c9d'; document.head.appendChild(storyLink);
+      storyLink.href = '/styles/astro-reading.css?v=build-e2557271b0c6'; document.head.appendChild(storyLink);
     }
     ['sukuyo', 'ziwei', 'astro'].forEach(function (type) {
       var overlay = document.getElementById(type + 'ModalOverlay');

@@ -608,8 +608,8 @@ function shareAstroKakao() {
     var name = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
       ? ((window.DestinyProfileManager.storage.current() || {}).name || '나')
       : (window.USER_NAME || '나');
-    var section = document.getElementById('astroResult');
-    var preview = section ? _trimShareText(section.innerText, 240) : '';
+    var section = astroSection.querySelector('[data-astro-public-summary]');
+    var preview = section ? _trimShareText(section.innerText || section.textContent, 240) : '';
     var base = cdBuildShareUrl('astro');
     var text = '✨ [점성술 코즈믹 차트 결과 공유]\n\n'
       + name + '님의 점성술 분석 결과입니다.\n'

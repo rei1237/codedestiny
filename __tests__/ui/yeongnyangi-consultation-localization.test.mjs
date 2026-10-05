@@ -11,17 +11,18 @@ import {tarotQuestionPresets,recommendTarotSpread,questionFeatures} from '../../
 import {getYeongnyangiDeckText} from '../../lib/tarot/yeongnyangi-deck-copy.mjs';
 const bundle=await build({stdin:{contents:`
  export * from './worker/yeongnyangi/fortune/reading-locale';
- export * from './worker/yeongnyangi/fortune/localized-claim-safety';
+ export {hasUnsupportedLocalizedClaim as hasLocalizedUnsupportedClaim} from './worker/yeongnyangi/fortune/localized-claims';
  export {validateReadingQuality} from './worker/yeongnyangi/fortune/reading-quality';
  export * from './worker/yeongnyangi/fortune/tarot/reading-vocabulary';
  export {validateTarotChapter,isCrisisQuestion} from './worker/yeongnyangi/fortune/tarot/master-reading';
  export {chartLimitation} from './app/yeongnyangi/_lib/reading-chart-copy';
  export * from './worker/yeongnyangi/fortune/tarot/consultation-contract';
  export * from './app/yeongnyangi/_lib/relationship-copy';
- export * from './app/yeongnyangi/_lib/tarot-catalog-locales';
+ export {relationshipCopyFor} from './app/yeongnyangi/_lib/relationship-locales';
+ export * from './lib/tarot/yeongnyangi-display-locales';
  export * from './app/yeongnyangi/_lib/tarot-spread-locales';
- export * from './app/yeongnyangi/_lib/tarot-spread-copy';
- export * from './app/yeongnyangi/_lib/tarot-input-locales';
+
+ export {tarotPlanCopy} from './app/yeongnyangi/_lib/tarot-plan-locales';
  export * from './app/yeongnyangi/_lib/consultation-kind-copy';
  import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';
  import Relationship from './app/yeongnyangi/_components/RelationshipJourney';
@@ -42,8 +43,6 @@ const native=m.readingLocales.filter(l=>l!=='ko');
 const bad={en:'You will develop cancer.',ja:'あなたは病気になります。','zh-CN':'你将患上癌症。','zh-TW':'你將患上癌症。',vi:'Bạn sẽ mắc ung thư.',hi:'आपको कैंसर होगा।',es:'Tendrás cáncer.',fr:'Vous développerez un cancer.',de:'Du wirst Krebs bekommen.',nl:'Je zult kanker krijgen.',ms:'Anda akan menghidap kanser.'};
 const safe={en:'This reading cannot diagnose disease.',ja:'この鑑定は病気を診断しません。','zh-CN':'本解读不能诊断疾病。','zh-TW':'本解讀不能診斷疾病。',vi:'Bài luận không chẩn đoán bệnh.',hi:'यह पाठ बीमारी का निदान नहीं करता।',es:'Esta lectura no diagnostica enfermedades.',fr:'Cette lecture ne diagnostique pas de maladie.',de:'Diese Deutung diagnostiziert keine Krankheit.',nl:'Deze lezing stelt geen diagnose.',ms:'Bacaan ini bukan diagnosis penyakit.'};
 for(const locale of native)test(`${locale}: complete menus, relationship journey, spreads and input choices`,()=>{
- assert.equal(m.spreadLocaleRows[locale].length,m.spreadCopyKeys.length);
- assert.equal(m.additionalKindLabels[locale].length,m.additionalKindIds.length);
  assert.equal(m.additionalKindDescriptions[locale].length,m.additionalKindIds.length);
  const copy=m.relationshipCopyFor(locale);
  for(const key of Object.keys(m.relationshipCopy)){
@@ -57,8 +56,8 @@ for(const locale of native)test(`${locale}: complete menus, relationship journey
   assert.deepEqual(localized.positions.map(p=>[p.id,p.drawOrder,p.readOrder]),spread.positions.map(p=>[p.id,p.drawOrder,p.readOrder]));
   assert.doesNotMatch(localized.title+localized.summary+localized.positions.map(p=>p.label+p.question).join(''),/[가-힣]|undefined/);
  }
- for(const preset of tarotQuestionPresets)assert.doesNotMatch(m.tarotInputLabel(preset.id,locale,preset.question),/[가-힣]/);
- for(const key of ['week','month','dating','getting_to_know','one_sided','separated','no_contact','contact_refused','married'])assert.doesNotMatch(m.tarotInputLabel(key,locale,'한국어',true),/[가-힣]/);
+ for(const preset of m.tarotPlanCopy(locale).presets)assert.doesNotMatch(preset.question,/[가-힣]/);
+ for(const label of [...Object.values(m.tarotPlanCopy(locale).periods),...Object.values(m.tarotPlanCopy(locale).relations)])assert.doesNotMatch(label,/[가-힣]/);
  assert.doesNotMatch(m.renderRelationship(locale),/[가-힣]/);
  assert.doesNotMatch(m.renderPlanner(locale),/[가-힣]|undefined/);
  for(const id of Object.keys(m.tarotConsultations))for(const position of m.tarotConsultationSpread(id).positions)assert.doesNotMatch(m.localizedTarotPosition(position.label,locale),/[가-힣]/);
@@ -71,7 +70,6 @@ test('healing safety routes native crisis questions without classifying ordinary
 });
 test('every catalog row covers exactly eleven non-Korean locales',()=>{
  for(const [id,row] of Object.entries(m.tarotCatalogRows))assert.equal(row.split('|').length,native.length,id);
- for(const [id,row] of Object.entries(m.tarotInputRows))assert.equal(row.split('|').length,native.length,id);
 });
 test('native free-text questions select the existing job-change and month layouts',()=>{
  for(const question of ['Should I change jobs?','転職を考えています','想换工作','想換工作','Tôi muốn đổi việc','नौकरी बदलनी चाहिए?','¿Debo cambiar de trabajo?','Dois-je changer de travail ?','Ich überlege einen Jobwechsel','Zal ik van baan veranderen?','Patutkah saya bertukar kerja?'])assert.equal(recommendTarotSpread({question,fishId:'tuna'}).primary,'yn_stay_leave_nine',question);

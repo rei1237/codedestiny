@@ -2,12 +2,12 @@
 import Image from 'next/image';
 import {ArrowLeft,ArrowRight,Check,ChevronDown} from 'lucide-react';
 import {useEffect,useRef} from 'react';
-import {relationshipQuestions,relationshipAdvice} from '@/worker/yeongnyangi/fortune/relationship-contract';
-import {systemNames} from '@/worker/yeongnyangi/payments/catalog';
-import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
-import {relationshipCopyFor,relationshipQuestionsFor,relationshipAdviceFor} from '../_lib/relationship-copy';
-import {localizedSystem} from '../_lib/consultation-locale-copy';
+import {relationshipMethodCopy} from '../_lib/relationship-method-copy';
+import {localizedSystem,localizedKind} from '../_lib/consultation-locale-copy';
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
+
+import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
+import {relationshipCopyFor} from '../_lib/relationship-locales';
 import {profileKey,useProfiles} from '../_lib/use-profiles';
 import ProfilePicker from './ProfilePicker';
 import styles from './relationship.module.css';
@@ -17,7 +17,8 @@ export default function RelationshipJourney({locale='ko',stage,setStage,question
  participants:{self:string;partner:string};onParticipants:(v:{self:string;partner:string})=>void;
  profileState:ReturnType<typeof useProfiles>;partnerId:string;onPartner:(s:string)=>void;onEngine:(id:DomainId)=>void;
 }){
- const copy=relationshipCopyFor(locale),relationshipQuestions=relationshipQuestionsFor(locale),relationshipAdvice=relationshipAdviceFor(locale);
+ const method=relationshipMethodCopy(locale),relationshipQuestions=method.questions,relationshipAdvice=method.advice;
+ const copy={...relationshipCopyFor(locale),steps:method.steps};
  const selected=relationshipQuestions.find(q=>q.id===questionId),profiles=profileState.profiles;
  const complete=participants.self.trim()&&participants.partner.trim();
  const self=profiles.find(p=>profileKey(p)===profileState.profileId),partner=profiles.find(p=>profileKey(p)===partnerId);
@@ -29,16 +30,16 @@ export default function RelationshipJourney({locale='ko',stage,setStage,question
  const previousStage=useRef(stage);
  useEffect(()=>{if(previousStage.current!==stage){heading.current?.focus();previousStage.current=stage;}},[stage]);
  const renderEngine=(d:DomainId,featured=false)=><article key={d} className={featured?styles.recommended:styles.engine}>
-  <div className={styles.engineHeading}><h3>{localizedSystem(d,locale)} · {copy.entry}</h3>{featured&&<span className={styles.recommendation}><Check size={14} aria-hidden="true"/>{copy.recommended}</span>}</div>
+  <div className={styles.engineHeading}><h3>{localizedSystem(d,locale)} · {localizedKind('compatibility',locale)}</h3>{featured&&<span className={styles.recommendation}><Check size={14} aria-hidden="true"/>{copy.recommended}</span>}</div>
   <p className={styles.engineDescription}>{relationshipAdvice[d]}</p>
   {d!=='tarot'&&(!hasBirth||d!=='saju'&&!hasTime)&&<p className={styles.requirement}>{copy.missingBirth}</p>}
-  <button type="button" className={featured?styles.primary:styles.secondary} onClick={()=>onEngine(d)}>{localizedSystem(d,locale)} {copy.start}<ArrowRight size={18} aria-hidden="true"/></button>
+  <button type="button" className={featured?styles.primary:styles.secondary} onClick={()=>onEngine(d)}>{localizedSystem(d,locale)} · {copy.start}<ArrowRight size={18} aria-hidden="true"/></button>
  </article>;
- return <section className={styles.journey} aria-label={copy.entry}>
+ return <section className={styles.journey} aria-label={copy.entry} lang={locale}>
   <ol className={styles.steps} aria-label={copy.progress}>{copy.steps.map((label,index)=><li key={label} aria-current={step===index?'step':undefined} className={index<step?styles.finished:undefined}><span aria-hidden="true">{index<step?<Check size={14}/>:index+1}</span>{label}</li>)}</ol>
   <div className={styles.layout}>
    <aside className={styles.companion} aria-label={copy.entry}>
-    <Image className={styles.scene} src="/assets/yeongnyangi/reading-art/insight.webp" width={720} height={480} sizes="(max-width: 759px) 100vw, 340px" alt=""/>
+    <Image className={styles.scene} src="/assets/yeongnyangi/reading-art/insight.webp" width={720} height={480} sizes="(max-width: 759px) 100vw, 340px" alt="Yeongnyangi"/>
     <p className={styles.companionCopy}>{copy.description}</p>
    </aside>
    <div className={styles.content}>

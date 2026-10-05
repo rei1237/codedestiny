@@ -15,20 +15,20 @@ import {getYeongnyangiSpread} from '../../../lib/tarot/yeongnyangi-spread-catalo
 export type ConsultationKind = {id:string;label:string;description:string;topic:string;partner?:boolean;professional?:boolean;question?:boolean;koOnly?:boolean};
 const ask:ConsultationKind={id:'ask',label:'무엇이든 물어보기',description:'선택한 운세로 궁금한 이야기 살펴보기',topic:'general',question:true};
 const kind=(id:string,label:string,description:string,topic='general',extra:Partial<ConsultationKind>={}):ConsultationKind=>({id,label,description,topic,...extra});
-// Localized input, output and safety fixtures cover every standard consultation kind.
-const health=(description:string)=>kind('health','건강운',description,'general',{koOnly:false});
-const compatibility=kind('compatibility','두 사람의 궁합','끌림부터 함께 사는 조건까지','relationship',{partner:true,question:true,koOnly:false});
+// Display labels and output validation support every reading locale.
+const health=(description:string)=>kind('health','건강운',description,'general');
+const compatibility=kind('compatibility','두 사람의 궁합','끌림부터 함께 사는 조건까지','relationship',{partner:true,question:true});
 const tarotKinds:ConsultationKind[]=(Object.entries(tarotConsultations) as [TarotConsultationId,(typeof tarotConsultations)[TarotConsultationId]][])
  .map(([id,spec])=>kind(id,spec.label,spec.prompt,spec.topic,{question:true,koOnly:spec.koOnly}))
- // Question-first v3: the question picks a catalog spread; the order form sends tarotSpreadId with this kind.
- .concat(kind(TAROT_SPREAD_KIND,'질문으로 고르는 배열','고민에 맞는 카드 배열을 영냥이가 골라 줘요','general',{question:true,koOnly:false}));
+ // The question picks a catalog spread; the order form sends tarotSpreadId with this kind.
+ .concat(kind(TAROT_SPREAD_KIND,'질문으로 고르는 배열','고민에 맞는 카드 배열을 영냥이가 골라 줘요','general',{question:true}));
 // Menus restored from SoulCat src/data/fortune.ts; calculations and purchases stay in Code Destiny.
 export const consultationKinds:Record<string,ConsultationKind[]>={
- saju:[kind('personal','사주 해석','기질과 삶의 바탕'),kind('compatibility','궁합','두 사람의 명식과 관계의 차이','relationship',{partner:true}),kind('timing','대운','현재 대운과 다음 전환','luck',{professional:true}),kind('love','연애와 인연','마음이 움직이는 방식','love'),kind('work','일과 적성','내 힘이 쓰이는 자리','work'),kind('money','재물','쌓고 지키는 습관','money'),health('오행이 말하는 몸의 리듬과 회복 습관'),kind('marriage','결혼운','배우자 자리와 결혼의 시기','love',{koOnly:false}),kind('movement','이동수·해외운','역마·충·병존으로 보는 이동과 해외','general',{koOnly:false}),ask],
+ saju:[kind('personal','사주 해석','기질과 삶의 바탕'),kind('compatibility','궁합','두 사람의 명식과 관계의 차이','relationship',{partner:true}),kind('timing','대운','현재 대운과 다음 전환','luck',{professional:true}),kind('love','연애와 인연','마음이 움직이는 방식','love'),kind('work','일과 적성','내 힘이 쓰이는 자리','work'),kind('money','재물','쌓고 지키는 습관','money'),health('오행이 말하는 몸의 리듬과 회복 습관'),kind('marriage','결혼운','배우자 자리와 결혼의 시기','love'),kind('movement','이동수·해외운','역마·충·병존으로 보는 이동과 해외','general'),ask],
  sukuyo:[kind('personal','본명숙','27숙으로 살펴보는 나의 바탕'),kind('compatibility','두 사람의 궁합','끌림과 거리, 관계의 방향','relationship',{partner:true}),kind('relationship','관계 유지','서로의 속도를 이해하는 법','relationship',{partner:true}),ask],
  vedic:[kind('personal','베다 차트','라그나·달·나크샤트라'),compatibility,kind('timing','다샤의 시기 흐름','삶의 시기와 변화의 결','luck',{professional:true}),health('1·6·8·12하우스로 보는 몸의 리듬'),ask],
  astrology:[kind('personal','출생 차트','감정·욕망·관계의 패턴'),compatibility,kind('work','재능과 일','내가 빛나는 환경','work'),health('화성과 6하우스로 보는 몸의 에너지'),ask],
- ziwei:[kind('personal','명반 해석','삶의 중심과 타고난 결'),kind('money','일과 재물','관록궁·재백궁의 연결','money'),kind('business','사업운','재백궁·자녀궁으로 보는 사업의 흐름','money',{koOnly:false}),kind('love','연애운','끌림과 표현, 반복되는 마음의 패턴','love',{koOnly:false}),kind('marriage','결혼운','배우자상과 함께 사는 조건','love',{koOnly:false}),health('질액궁·복덕궁으로 보는 몸의 리듬'),compatibility,ask],
+ ziwei:[kind('personal','명반 해석','삶의 중심과 타고난 결'),kind('money','일과 재물','관록궁·재백궁의 연결','money'),kind('business','사업운','재백궁·자녀궁으로 보는 사업의 흐름','money'),kind('love','연애운','끌림과 표현, 반복되는 마음의 패턴','love'),kind('marriage','결혼운','배우자상과 함께 사는 조건','love'),health('질액궁·복덕궁으로 보는 몸의 리듬'),compatibility,ask],
  tarot:tarotKinds,
  fusion:[kind('personal','종합 해석','서로 다른 체계의 공통점과 차이'),ask],
 };

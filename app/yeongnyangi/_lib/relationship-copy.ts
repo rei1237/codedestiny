@@ -1,6 +1,3 @@
-import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
-import {relationshipQuestions,relationshipAdvice} from '@/worker/yeongnyangi/fortune/relationship-contract';
-import {relationshipLocales} from './relationship-locales';
 export const relationshipCopy={
  entry:'궁합 보기',intro:'그 사람과 나, 어떤 이야기가 이어질까?',description:'끌림과 서로 다른 마음의 속도, 오래 함께할 조건을 영냥이와 살펴봐요.',
  question:'지금 가장 궁금한 이야기',people:'두 사람을 소개해 주세요',engine:'어떤 방식으로 읽어볼까요?',
@@ -19,18 +16,3 @@ export const relationshipCopy={
  confirmSelf:'내 마음의 자리로 펼치기',confirmPartner:'상대의 자리로 펼치기',confirmTogether:'관계의 흐름 펼치기',
  complete:'두 사람의 이야기 읽기',recommended:'질문에 맞는 추천',missingBirth:'출생정보를 보완한 뒤 이용할 수 있어요.',
 } as const;
-
-export function relationshipCopyFor(locale:ReadingLocale='ko'){
- if(locale==='ko')return relationshipCopy;
- const c=relationshipLocales[locale];
- return {...c,steps:[c.question,c.people,c.engine],progress:c.entry,selectedQuestion:c.question,
-  questionHint:c.description,peopleHint:c.namesRequired,engineHint:c.recommended,selfRole:c.self,partnerRole:c.partner,
-  selfPlaceholder:c.self,partnerPlaceholder:c.partner,tarotHint:c.birthHint,partnerProfilePlaceholder:c.partnerProfile,
-  confirmSelf:c.drawSelf,confirmPartner:c.drawPartner,confirmTogether:c.drawTogether,complete:c.start};
-}
-export function relationshipQuestionsFor(locale:ReadingLocale='ko'){
- return relationshipQuestions.map((q,i)=>({...q,label:locale==='ko'?q.label:relationshipLocales[locale].questions[i]}));
-}
-export function relationshipAdviceFor(locale:ReadingLocale='ko'){
- return locale==='ko'?relationshipAdvice:Object.fromEntries(['saju','ziwei','sukuyo','vedic','astrology','tarot'].map((id,i)=>[id,relationshipLocales[locale].advice[i]]));
-}

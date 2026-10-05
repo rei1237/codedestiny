@@ -2,7 +2,7 @@ import {tarotConsultation,tarotConsultationSpread,type TarotConsultationId} from
 import type {PackageId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {consultationLocaleCopy,localizedKind} from '../_lib/consultation-locale-copy';
-import {tarotSpreadCopyFor} from '../_lib/tarot-spread-copy';
+import {tarotSpreadCopyFor} from '../_lib/tarot-spread-locales';
 import {readingTierDepth} from '../_lib/reading-depth-copy';
 import {localizedTarotPosition} from '@/lib/tarot/yeongnyangi-display-locales';
 import styles from './tarot-consultation.module.css';

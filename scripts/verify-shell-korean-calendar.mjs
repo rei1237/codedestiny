@@ -1007,14 +1007,13 @@ function extractFunctionSource(source, name) {
     { key: "js/saju-engine.js:_kasiPartsOf", why: "같은 정규화의 셸 사본 — ⑮-c 가 동일성을 잡는다" },
     { key: "js/saju-engine.js:_shiftDatePartsByDays", why: "날짜 축만 미는 시프트(시·분 없음)" },
     { key: "js/saju-engine.js:_cdCivilDayPillar", why: "일진 60갑자 — UTC 일련번호" },
-    { key: "js/saju-engine.js:_formatUtcFromLocal", why: "디버그 표시용 UTC 문자열" },
     { key: "js/luck-sync-diary.js:_addDaysToParts", why: "부품 시프트(시·분 보존)" },
     { key: "js/saju-engine-tarot-sukuyo-quantum.js:renderQuantumStrategy", why: "현재 순간을 KST 부품으로 변환해 세운·월운을 조회한다(출생 시각 정규화 아님)" },
   ]);
 
   const MARKERS = Object.freeze(["Date.UTC(", "getUTCFullYear()", "getUTCMonth()+1"]);
   // 🔴 공백을 전부 지우고 본다 — `getUTCMonth() + 1` 과 `getUTCMonth()+1` 이 갈리면
-  // 포맷 한 칸에 발견이 무너진다(`_formatUtcFromLocal` 이 실제로 후자다).
+  // 포맷 한 칸에 발견이 무너지지 않게 한다.
   const dense = (s) => s.replace(/\s+/g, "");
   const markerHits = fnRows.filter((r) => MARKERS.every((k) => dense(r.fp).includes(k)));
   const innermostHits = markerHits.filter(

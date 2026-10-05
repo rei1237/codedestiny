@@ -1,7 +1,16 @@
-/* 점성술 결과 "나의 이야기" 층 (js/core/astro/natal-reading.js 의 #asStory).
+/* 점성술 무료 요약과 서버에서 전달한 상세 해석.
  * 컨셉: 밤하늘 관측 기록 — 우주 장식은 표지에만, 본문은 잉크 바탕 위의 활자와 헤어라인.
  * 색은 .as-reading 의 --as-* 토큰에만 선언한다. 간격·반경·모션·폭은 DESIGN.md §7 의 --cd-* 를 쓴다.
  * 이 파일은 basicFortunePresentation.js init() 이 basic-fortune-library.css 뒤에 붙인다. */
+
+.as-detail-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-block: 16px 24px; }
+.as-detail-button { min-height: 44px; padding: 10px 16px; border: 1px solid var(--as-gold); border-radius: var(--cd-radius-md, 12px); color: var(--as-text); background: var(--as-ink-1); font: inherit; cursor: pointer; }
+.as-detail-button:hover { background: var(--as-milky); }
+.as-detail-button:focus-visible { outline: 2px solid var(--as-gold); outline-offset: 3px; }
+.as-detail-button:disabled { opacity: .6; cursor: wait; }
+.as-detail-button[hidden] { display: none; }
+.as-authorized-detail { min-width: 0; }
+.as-detail-print-frame { position: fixed; width: 1px; height: 1px; border: 0; bottom: 0; left: 0; }
 
 /* 토큰은 옛 휠 카드를 감싼 호스트(.as-wheel-host)에도 둔다 — 그 안의 접힌 옛 차트 요약이 같은 색을 쓴다. */
 :is(.as-reading, .as-wheel-host, .as-record) {

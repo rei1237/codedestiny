@@ -1,6 +1,7 @@
 import {getYeongnyangiDeckText} from '../../../../lib/tarot/yeongnyangi-deck-copy.mjs';
 import {TAROT_CARDS} from '../../../../lib/tarot/tarot-cards.mjs';
-import {localizedTarotPosition,tarotCatalogLabel} from '../../../../lib/tarot/yeongnyangi-display-locales';
+import {localizedTarotPosition} from '../../../../lib/tarot/yeongnyangi-display-locales';
+import {tarotSpreadPosition} from '../../../../lib/tarot/yeongnyangi-spread-locales';
 import type {ReadingLocale} from '../reading-locale';
 import type {DomainContext} from '../shared/contracts';
 import {savedTarotConsultation} from './consultation-prompt';
@@ -17,7 +18,7 @@ export function tarotReadingVocabulary(context:DomainContext,locale:ReadingLocal
   orientations:tarotOrientation[locale],
   cards:TAROT_CARDS.filter(card=>saved.has(card.code)).map(card=>({id:card.code,name:getYeongnyangiDeckText(`tarot.${card.code}.name`,locale)})),
   positions:(evidence?.cards||[]).map(card=>({id:card.positionKey,original:card.positionLabel,label:
-   evidence?.version==='yeongnyangi-tarot-consultation-v3'?tarotCatalogLabel(card.positionKey,locale)||card.positionLabel:localizedTarotPosition(card.positionLabel,locale)}))};
+   evidence?.version==='yeongnyangi-tarot-consultation-v3'?tarotSpreadPosition(card.positionKey,card.positionLabel,locale):localizedTarotPosition(card.positionLabel,locale)}))};
 }
 const escape=(text:string)=>text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 // Normalize explicit card mentions into the existing validator's canonical vocabulary.
