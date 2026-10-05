@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-05
-next: "docs/handoff/yeongnyangi-price-20261005.md 의 '남은 절차'부터 이어서 진행해줘. 고등어 3,000원 체계와 천원 사주 콘텐츠가 main 에 올라갔는지 확인하고, 운영 승격은 범위를 다시 보여 준 뒤 내 승인을 받아"
+next: "docs/handoff/yeongnyangi-price-20261005.md 의 '남은 절차' 3번 운영 승격부터 이어서 진행해줘. 다른 세션 작업이 끝났는지 확인하고, 운영 실측 SHA 이후 승격 범위를 다시 보여 준 뒤 내 승인을 받아"
 ---
 
 # 영냥이 정식 가격 시행 (2026-10-05)
@@ -43,14 +43,16 @@ next: "docs/handoff/yeongnyangi-price-20261005.md 의 '남은 절차'부터 이�
 - C2 7059a967a 천원 콘텐츠 6종·MIN_PASS 10·앱 무료 통과 거부(`isAppFreeFeature`)
 - 2a579744e core 사전(shellCopy·homeQuestions) 재병합·월정석 할인 테스트 PG 하한
 - C3 b8c95a1af 문구: `/yeongnyangi/1000-won-fortune/` 를 천원 사주 콘텐츠 허브로(URL 유지), 홈·랜딩 다음 단계·엔티티 레지스트리 문구
-- C4 문서(이 커밋): payment-gating 10-05 절, payment-policy-flow, CONTEXT_AUDIT, play-billing-app, PLAY_CONSOLE_TASKS, 이 문서
+- C4 5d7e8f13d 문서: payment-gating 10-05 절, payment-policy-flow, CONTEXT_AUDIT, play-billing-app, PLAY_CONSOLE_TASKS, 이 문서
+- 8d283cd5d 천원 허브·홈 meta description 을 SERP 폭 160 안으로(첫 push d8bd2d268 이 CI adsense-readiness 에서 181·167>160 으로 실패 — check:fast 는 이 빌드 가드를 안 돈다)
+- 4e8181f99 머지 뒤 정적 셸 캐시 키 재생성. main CI required·Build·Deploy staging 성공, `verify:staging` PASS(Pages·Worker 4e8181f99), 스테이징 허브·영냥이 홈 HTML 에 새 가격만(9,900·체험가 0건)
 
 ## 남은 절차
 
-1. 워크트리에서 origin/main 머지 → `npm run sync:public`·`sitemap:generate`·`llms:generate` → `git push origin HEAD:main` → main `CI required` 확인.
-2. `npm run verify:staging -- --sha=<40자리>`. 스테이징에서 금액 표시까지만 확인(실결제 금지).
-3. 운영 승격: 마지막 승격 이후 main 의 다른 세션 커밋 목록을 보여 주고, 섞여 있으면 재승인. 확인과 dispatch 는 한 명령. 이후 `npm run verify:release`.
-4. 이 문서 `status: done`, 워크트리 A·B·현재 정리(node_modules 정션 먼저 끊기).
+1. ~~main 머지·push·CI~~ 완료(4e8181f99).
+2. ~~verify:staging~~ 완료.
+3. **보류 중 — 사용자 결정(10-05 06시경): "다른 세션 마무리까지 대기"**. 승격은 main HEAD 전체만 가능하다(`target_sha` 는 pages_only 전용인데 이번 변경은 워커 포함). 10-05 06시 기준 운영 실측 SHA 2710b06f2(`https://code-destiny.com/version.json`) 이후 138커밋 중 131개가 다른 세션 것 — 영냥이 배달 실패 환불·할인 월정석 복구(worker/yeongnyangi/*refund*), 찻집 복원, 저장 풀이 허브, 최애운명 개편, 작명·점성술·타로·네오 등. 재개 시 운영 실측 SHA 를 다시 재고 범위를 보여 준 뒤 재승인. 운영 승격: 마지막 승격 이후 main 의 다른 세션 커밋 목록을 보여 주고, 섞여 있으면 재승인. 확인과 dispatch 는 한 명령. 이후 `npm run verify:release`.
+4. 승격·`verify:release` 뒤 이 문서 `status: done`. 워크트리 A·B·현재(yn-price-3000)는 10-05 에 정리했다. 남은 것: 머지 안 된 폐기안 브랜치 `wt/yn-price-1005-20261002-161442`(9,900 체계, 8커밋)와 `wt/yn-trial-ends-notice-20261002-160254` — 사용자 확인 뒤 `git branch -D`.
 
 ## 롤백
 
