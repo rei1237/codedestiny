@@ -147,11 +147,18 @@ export default function ShareLandingClient() {
             <p className={styles.typeShort}>{share.chemiTypeShortKo}</p>
             <p className={styles.landingType}>{share.chemiTypeNameKo}</p>
             {typeof share.score === "number" ? (
-              <p className={styles.landingGroup}>
-                <strong>{share.score}점</strong>
-                {share.grade ? ` · ${share.grade}` : ""}
-                {share.gradeTitle ? ` ${share.gradeTitle}` : ""}
-              </p>
+              <div className={styles.landingScoreBlock}>
+                <p className={styles.landingScore}>
+                  {share.score}
+                  <small>점</small>
+                </p>
+                {share.grade ? (
+                  <p className={styles.landingGrade}>
+                    {share.grade}
+                    {share.gradeTitle ? <em>{share.gradeTitle}</em> : null}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
             <p className={styles.landingOneLiner}>{share.oneLiner}</p>
           </div>

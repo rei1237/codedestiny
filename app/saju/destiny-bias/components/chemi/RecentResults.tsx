@@ -19,6 +19,10 @@ export default function RecentResults({ items, onReplay }: Props) {
       <ul className={styles.recentList}>
         {items.slice(0, 6).map((item) => {
           const meta = CHEMI_TYPE_BY_ID[item.chemiTypeId];
+          const score =
+            typeof item.totalScore === "number" && Number.isFinite(item.totalScore) && item.totalScore >= 0 && item.totalScore <= 100
+              ? `${Math.round(item.totalScore)}점${typeof item.grade === "string" && /^[A-Z][A-Z ]{0,19}$/.test(item.grade) ? ` · ${item.grade}` : ""}`
+              : "";
           return (
             <li key={`${item.partner.kind}:${item.partner.id}`}>
               <button type="button" className={styles.recentItem} onClick={() => onReplay(item.partner)}>
@@ -26,6 +30,7 @@ export default function RecentResults({ items, onReplay }: Props) {
                 <span className={styles.recentMeta}>
                   <strong>{item.partnerName}</strong>
                   <small>{item.groupLabel}</small>
+                  {score ? <small className={styles.recentScore}>{score}</small> : null}
                 </span>
               </button>
             </li>

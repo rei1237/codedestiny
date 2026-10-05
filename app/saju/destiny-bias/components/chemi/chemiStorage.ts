@@ -15,6 +15,9 @@ export type RecentResultEntry = {
   oneLiner: string;
   minorMode: boolean;
   engineVersion: string;
+  /** 점수 통일(chemi-score) 이후 저장분만 있다. */
+  totalScore?: number;
+  grade?: string;
   at: string;
 };
 
