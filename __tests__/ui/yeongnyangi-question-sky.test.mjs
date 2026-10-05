@@ -1,3 +1,4 @@
+import {RUNTIME_LOCALES} from '../../lib/i18n/locale-normalize.js';
 import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -138,4 +139,16 @@ test('two-stage output strips unknown image slots, limits placements, and reject
  const deepClean=api.sanitizeQuestionSkyBody(base,deep);
  assert.deepEqual(deepClean.visualSlots,{followup:'wink'});assert.equal(deepClean.followUpSuggestions,undefined);
  assert.throws(()=>api.validateQuestionSkyTwoStage({...clean,summary:'재회할까요?'},first,'재회할까요?'),/QUESTION_REPEAT/);
+});
+
+test('free horary exports a native result directive in every language without provider calls',async()=>{
+ for(const locale of RUNTIME_LOCALES){
+  const result=await api.prepareHoraryPrompt({}, {locale,question:'Which job should I consider?',questionSky:{...input,topic:'work'}},now);
+  assert.equal(result.kind,'calculated');assert.equal(result.version,'horary-free-v1');
+  assert.match(result.prompt,/Swiss Ephemeris/);
+  if(locale!=='ko'){
+   assert.doesNotMatch(JSON.stringify({title:result.title,summary:result.summary,basis:result.basis,paragraphs:result.paragraphs}),/[가-힣]/u);
+   assert.match(result.prompt,/OUTPUT LANGUAGE/);assert.doesNotMatch(result.prompt,/읽기 쉬운 한국어 문단/);
+  }
+ }
 });

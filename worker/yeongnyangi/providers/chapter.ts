@@ -1,3 +1,5 @@
+import {symbolicLocaleContract,symbolicSectionIds,symbolicBasisSchema,validateSymbolicLocale} from '../fortune/symbolic-locale';
+import {tarotReadingVocabulary} from '../fortune/tarot/reading-vocabulary';
 import {isConciseReading,conciseOutputTokens} from '../fortune/concise-reading';
 import {CHAPTER_DELIVERY_VERSION} from '../chapter-delivery-contract.js';
 import {conciseReadingPrompt} from '../fortune/concise-reading-prompt';
@@ -181,15 +183,21 @@ export function validateChapter(
     )
   )
     throw new FortuneError("DUPLICATE_CHAPTER");
-  if(input.analysis.consultation?.spirit)validateSpiritChapter(v,input.analysis.contexts.saju!,input.analysis.consultation.spirit);
+  const nativeLocale=readingLocale(input.locale);
+  const symbolic=Boolean(input.analysis.consultation?.spirit||input.analysis.consultation?.questionSky);
+  if(input.analysis.consultation?.spirit){
+    if(nativeLocale==='ko')validateSpiritChapter(v,input.analysis.contexts.saju!,input.analysis.consultation.spirit);
+    else validateSymbolicLocale(v,spiritEvidence(input.analysis.contexts.saju!),input.chapter,nativeLocale,'spirit',input.analysis.consultation.spirit.boundary);
+  }
   if(input.analysis.consultation?.questionSky){
     v=sanitizeQuestionSkyBody(v,input.chapter);
-    validateSkyChapter(v,Object.values(input.analysis.contexts)[0],input.analysis.consultation.questionSky);
+    if(nativeLocale==='ko')validateSkyChapter(v,Object.values(input.analysis.contexts)[0],input.analysis.consultation.questionSky);
+    else validateSymbolicLocale(v,Object.values(input.analysis.contexts)[0],input.chapter,nativeLocale,'sky',input.analysis.consultation.questionSky.boundary);
     validateQuestionSkyTwoStage(v,input.chapter,input.analysis.question || '');
   }
   validateReadingLanguage(v,readingLocale(input.locale));
-  validateReadingQuality(v,input.chapter,input.previous,input.locale,{lengthRepair:LENGTH_FAILURES.includes(input.repair?.code||'')});
-  if(input.analysis.contexts.tarot)validateTarotChapter(v,input.analysis.contexts.tarot);
+  validateReadingQuality(v,input.chapter,input.previous,input.locale,{lengthRepair:LENGTH_FAILURES.includes(input.repair?.code||''),...(symbolic&&nativeLocale!=='ko'?{requiredSectionIds:symbolicSectionIds(input.chapter)}:{})});
+  if(input.analysis.contexts.tarot)validateTarotChapter(v,input.analysis.contexts.tarot,readingLocale(input.locale));
   if(input.chapter.version===READING_V7_VERSION){
     // v7 has no fixed 'evidence' section: every insight unit carries its own citation, so the rule moves onto
     // the blocks themselves. validateReadingQuality already rejected a block without sources, so what is left
@@ -352,6 +360,8 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
       ...(askPrompt?.evidence.facts || []).map(fact=>fact.source.factId),
       ...(askPrompt?.evidence.timing || []).map(period=>period.source.factId)])];
     const questionCount=assignedQuestions.length;
+    const nativeSymbolic=locale!=='ko'&&(sky||spirit)?symbolicLocaleContract(locale,input.chapter,Boolean(sky?.boundary||spirit?.boundary)):undefined;
+    const blockSectionIds=input.chapter.sections?.map(s=>s.id)||(nativeSymbolic?symbolicSectionIds(input.chapter):undefined);
     // ask-period-v1 consultations only: period contract, review slot and the larger per-answer budget.
     const periodContract=askPrompt?.version==='ask-first-chapter-v3';
     const answerChars=periodContract?ASK_PERIOD_ANSWER_CHARS:480;
@@ -420,6 +430,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         topic:input.analysis.topicId,
         periodScope:input.chapter.periodScope,
         independence:"같은 천문 관측을 공유하는 숙요·베다·점성술은 독립된 세 증거가 아니다. 타로는 질문 당시 상징이며 천문 사실의 교차검증 수에 포함하지 않는다. 근거 일치도는 적중 확률이 아니다.",
+        ...(locale!=='ko'&&input.analysis.contexts.tarot?{tarotVocabulary:tarotReadingVocabulary(input.analysis.contexts.tarot,locale)}:{}),
         tarotMaster: input.analysis.contexts.tarot?buildTarotMasterContract(input.analysis.contexts.tarot,input.analysis.question,input.chapter):undefined,
         domain: contexts.map((c) => domainRules[c.domain]),
         task: taskRules[input.chapter.theme],
@@ -430,7 +441,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         themes: isStructuredReading(input.chapter.version) ? undefined : input.analysis.themes,
         ...(sky?{professionalEvidenceNames:undefined,domain:undefined,task:undefined,paidScope:undefined,
           evidencePresentation:'구조화된 질문의 결을 쉬운 말로 설명한다. 내부 ID는 sources에만 쓴다.',
-          timeContract:'사건 시기를 예측하지 않는다.',questionSkyContract:skyRules(sky,facts)}:{}),
+          timeContract:'사건 시기를 예측하지 않는다.',questionSkyContract:{...skyRules(sky,facts),...(nativeSymbolic||{})}}:{}),
         ...(skyTwoStage?{twoStageQuestionSky:{
           stage:input.chapter.ordinal===0?'first':'followup',
           firstResult:'첫 문장은 질문을 다시 말하지 않는 결론이다. 결론 뒤에는 계산 근거 1~2개, 그 근거가 허용하는 시기·조건의 경계, 지금 할 행동 하나, 짧은 영냥이 한마디만 새 정보로 쓴다. 누구에게나 적용되는 덕담, 양다리 결론, 앞 문장의 재서술을 쓰지 않는다. followUpSuggestions에는 이번 결과에서만 나온 5~180자 심화 질문 3개를 쓴다.',
@@ -441,15 +452,16 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         ...(spirit?{professionalEvidenceNames:undefined,domain:undefined,task:undefined,paidScope:undefined,
           evidencePresentation:'전문 용어 대신 구조화된 성향을 쉬운 말로 설명한다. 내부 ID는 sources에만 쓴다.',
           timeContract:'사건 시기를 예측하지 않는다.',
-          spiritContract:spiritRules(spirit,input.analysis.contexts.saju!)}:{}),
+          spiritContract:{...spiritRules(spirit,input.analysis.contexts.saju!),...(nativeSymbolic||{})}}:{}),
         // v7 keeps its contract in one module: these keys replace depth, the block/citation contracts and the
         // previous-chapter carry. Everything a v6 chapter sends above stays exactly where it is.
         ...(v7Parts?v7Parts.domainRules:{}),
         ...(isConciseReading(input.chapter)?conciseReadingPrompt(input.chapter,{domains:contexts.map(c=>c.domain),plainLanguageOnly:Boolean(sky||spirit),questionCount}):{}),
+        ...(nativeSymbolic?{blockContract:nativeSymbolic.blockContract,sectionContract:input.chapter.sections||nativeSymbolic.sections}:{}),
       }),
       calculatedData: facts,
       userQuestion: askPrompt?escapeAskData(input.analysis.question||''):input.followupQuestion || input.analysis.question||"",
-      outputSchema: withBlockAnchorsSchema({...schema,required:[...(input.deliveryContract?['chapterId','complete']:[]),...(locale!=='ko'?['title']:[]),...(isStructuredReading(input.chapter.version)?[...schema.required,"blocks"]:schema.required),...(questionCount?['questionAnswers']:[]),...(skyTwoStage&&input.chapter.ordinal===0?['followUpSuggestions','visualSlots']:skyTwoStage?['visualSlots']:[])],properties:{...schema.properties,...(input.deliveryContract?{chapterId:{type:'string',enum:[input.chapter.id]},complete:{type:'boolean',description:'True only after completing this chapter and every required section. Write this field last.'}}:{}),...(locale!=='ko'?{title:{type:'string',description:'A concise chapter heading in the purchase language, faithfully reflecting chapter.title and focus.'}}:{}),...(hasReadingSections(input.chapter.version)?{example:{type:"string",enum:[""]},advice:{type:"string",enum:[""]},analysis:{type:"array",maxItems:0,items:{type:"string"}}}:{}),...(skyTwoStage?{visualSlots:{type:'object',additionalProperties:false,properties:input.chapter.ordinal===0?{opening:{type:'string',enum:['mystic','focus','sure','warm','wink']},verdict:{type:'string',enum:['mystic','focus','sure','warm','wink']},closing:{type:'string',enum:['mystic','focus','sure','warm','wink']}}:{followup:{type:'string',enum:['mystic','focus','sure','warm','wink']}}},...(input.chapter.ordinal===0?{followUpSuggestions:{type:'array',minItems:3,maxItems:3,items:{type:'string',minLength:5,maxLength:180}}}:{})}:{}),...(questionCount?{questionAnswers:{type:'array',minItems:questionCount,maxItems:questionCount,items:{type:'object',additionalProperties:false,required:['questionId','answer','reason','timing','action',...(askPrompt?['factIds','timingIds','evidenceStatus']:[]),...(periodContract?['review']:[])],properties:{...Object.fromEntries(['answer','reason','timing','action',...(periodContract?['review']:[])].map(k=>[k,{type:'string'}])),questionId:{type:'string',...(questionCount?{enum:assignedQuestions.map(q=>q.id)}:{})},...(askPrompt?{factIds:{type:'array',items:{type:'string',...(askFactIds.length?{enum:askFactIds}:{})}},timingIds:{type:'array',items:{type:'string',...(askTimingIds.length?{enum:askTimingIds}:{})}},evidenceStatus:{type:'string',enum:['grounded','limited']}}:{})}}}}:{}),...(isStructuredReading(input.chapter.version)?{blocks:{type:"array",minItems:input.chapter.sections?.length || 2,maxItems:input.chapter.sections?.length || 8,items:{type:"object",additionalProperties:false,required:input.chapter.sections?["id","title","paragraphs","sources"]:["title","paragraphs"],properties:{...(input.chapter.sections?{id:{type:"string",enum:input.chapter.sections.map(s=>s.id)},sources:{type:"array",minItems:1,items:{type:"string",enum:sourceIds}}}:{}),title:{type:"string"},paragraphs:{type:"array",minItems:1,items:{type:"string"}}}}}}:{}),...(v7Parts?v7Parts.outputSchema:{}),sources:{
+      outputSchema: withBlockAnchorsSchema({...schema,required:[...(input.deliveryContract?['chapterId','complete']:[]),...(locale!=='ko'?['title']:[]),...(isStructuredReading(input.chapter.version)?[...schema.required,"blocks"]:schema.required),...(questionCount?['questionAnswers',...(nativeSymbolic?['internalBasis']:[])]:[]),...(skyTwoStage&&input.chapter.ordinal===0?['followUpSuggestions','visualSlots']:skyTwoStage?['visualSlots']:[])],properties:{...schema.properties,...(nativeSymbolic&&questionCount?{internalBasis:symbolicBasisSchema(assignedQuestions.map(q=>q.id),sourceIds)}:{}),...(input.deliveryContract?{chapterId:{type:'string',enum:[input.chapter.id]},complete:{type:'boolean',description:'True only after completing this chapter and every required section. Write this field last.'}}:{}),...(locale!=='ko'?{title:{type:'string',description:'A concise chapter heading in the purchase language, faithfully reflecting chapter.title and focus.'}}:{}),...(hasReadingSections(input.chapter.version)?{example:{type:"string",enum:[""]},advice:{type:"string",enum:[""]},analysis:{type:"array",maxItems:0,items:{type:"string"}}}:{}),...(skyTwoStage?{visualSlots:{type:'object',additionalProperties:false,properties:input.chapter.ordinal===0?{opening:{type:'string',enum:['mystic','focus','sure','warm','wink']},verdict:{type:'string',enum:['mystic','focus','sure','warm','wink']},closing:{type:'string',enum:['mystic','focus','sure','warm','wink']}}:{followup:{type:'string',enum:['mystic','focus','sure','warm','wink']}}},...(input.chapter.ordinal===0?{followUpSuggestions:{type:'array',minItems:3,maxItems:3,items:{type:'string',minLength:5,maxLength:180}}}:{})}:{}),...(questionCount?{questionAnswers:{type:'array',minItems:questionCount,maxItems:questionCount,items:{type:'object',additionalProperties:false,required:['questionId','answer','reason','timing','action',...(askPrompt?['factIds','timingIds','evidenceStatus']:[]),...(periodContract?['review']:[])],properties:{...Object.fromEntries(['answer','reason','timing','action',...(periodContract?['review']:[])].map(k=>[k,{type:'string'}])),questionId:{type:'string',...(questionCount?{enum:assignedQuestions.map(q=>q.id)}:{})},...(askPrompt?{factIds:{type:'array',items:{type:'string',...(askFactIds.length?{enum:askFactIds}:{})}},timingIds:{type:'array',items:{type:'string',...(askTimingIds.length?{enum:askTimingIds}:{})}},evidenceStatus:{type:'string',enum:['grounded','limited']}}:{})}}}}:{}),...(isStructuredReading(input.chapter.version)?{blocks:{type:"array",minItems:blockSectionIds?.length || 2,maxItems:blockSectionIds?.length || 8,items:{type:"object",additionalProperties:false,required:blockSectionIds?["id","title","paragraphs","sources"]:["title","paragraphs"],properties:{...(blockSectionIds?{id:{type:"string",enum:blockSectionIds},sources:{type:"array",minItems:1,items:{type:"string",enum:sourceIds}}}:{}),title:{type:"string"},paragraphs:{type:"array",minItems:1,items:{type:"string"}}}}}}:{}),...(v7Parts?v7Parts.outputSchema:{}),sources:{
         type:'array',minItems:1,
         description:'해석에 실제 사용한 FortuneFact.id만 그대로 선택한다. 괄호, 설명, 번역을 덧붙이지 않는다.',
         items:{type:'string',enum:sourceIds},

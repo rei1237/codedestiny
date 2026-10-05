@@ -32,6 +32,7 @@ const GROUP_SILHOUETTE: Record<string, "f" | "m"> = {
   "stray-kids": "m",
   txt: "m",
   enhypen: "m",
+  riize: "m",
   twice: "f",
   blackpink: "f",
   newjeans: "f",
@@ -39,6 +40,9 @@ const GROUP_SILHOUETTE: Record<string, "f" | "m"> = {
   aespa: "f",
   "le-sserafim": "f",
   gidle: "f",
+  illit: "f",
+  babymonster: "f",
+  nmixx: "f",
 };
 
 function hashText(text: string) {

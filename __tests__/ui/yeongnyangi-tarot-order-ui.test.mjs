@@ -115,7 +115,10 @@ test('the finished reading shows the stored spread with every card open, the per
 
 test('after payment a v3 order reveals on its own layout, the map follows the core answer, and share/report never read the inputs',()=>{
  const result=read('app/yeongnyangi/_components/Result.tsx'),book=read('app/yeongnyangi/_components/ReadingBook.tsx');
- assert.match(result,/row\.tarotSpread&&spreadReveal\?<TarotSpreadReveal requestId=\{row\.id\}/);
+ const reveal=result.match(/row\.tarotSpread&&spreadReveal\?<TarotSpreadReveal\b([^<>]*?)\/>/);
+ assert.ok(reveal,'saved v3 spreads use their own reveal');
+ assert.match(reveal[1],/requestId=\{row\.id\}/);
+ assert.match(reveal[1],/locale=\{row\.locale\}/,'reveal uses the saved purchase language');
  assert.match(result,/:<TarotDrawRitual requestId=\{row\.id\} chart=\{tarotChart\}/,'v2 keeps its ritual');
  assert.match(book,/index===0&&row\.tarotSpread&&spreadMap&&<TarotSpreadResult/);
  for(const file of ['app/yeongnyangi/_lib/summary-report.ts','app/yeongnyangi/_lib/result-share.ts','worker/yeongnyangi/report-share.js'])
