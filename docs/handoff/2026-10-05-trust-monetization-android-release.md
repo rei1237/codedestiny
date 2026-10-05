@@ -60,7 +60,7 @@ updated: 2026-10-05
 | 자미두수 / openZiweiModal, /ziwei/chart/ | 명반 무료, 기존 대한·부부궁·12궁·상징·생애/연간 별도 잠금 | ziwei_decade_luck / love_deep / twelve_palaces / symbolic_layer / life_yearly_flow 각 5,000원; island-deep-report 3,000원 | 정적 셸 일부 _cdGateBody 사용. worker/routes/ziwei-daehan.js는 프로필 구매 및 hasUnlockedContent 확인. island-report는 별도 서버 판정 | 5,000원 기존 상품을 3,000원으로 내리지 않음. 신규 독립 상세분 존재 여부를 화면·PDF·공유 경로까지 더 조사 |
 | 숙요 / openSukuyoModal | 본성 심화·인연 도감·궁합 확장·연간 등 기존 별도 게이트 | sukuyo-nature-deep-dive / relationship-encyclopedia 등 3,000원, AI·전생·월별은 기존 정책 별도 | js/saju-engine-tarot-sukuyo-quantum.js의 SY_PAID_FEATURES, syRequirePaidSukuyoFeature, _syRevealNatureDeepDiveCore로 이어짐. 전체 전달 보호는 미검증 | 기존 3,000원 기능 재사용. 남는 무료 해석의 독립 가치·중복을 검토한 뒤에만 신규 상품 결정 |
 
-**유료화 구현은 아직 하지 않았다.** 가격·권한·API·DB·결제 로직 변경 없음. 잠금 버튼만 추가하는 수정은 승인한 서버 보호 기준을 충족하지 못하므로 하지 않았다. 기존 구매의 새 영구 권한과 레거시 읽기 호환은 worker/lib/content-unlocks.js를 우선 재사용한다. island-report의 User.unlockedFeatures 단독 조회를 새 코드에 복제하지 말 것.
+**아래는 인계 시점의 조사 기록이다.** 후속 서버 조회 구현은 문서 마지막의 진행 기록을 따른다. 신규 판매와 프런트 상세 잠금 전환은 아직 하지 않았다. 기존 구매의 새 영구 권한과 레거시 읽기 호환은 worker/lib/content-unlocks.js를 우선 재사용한다. island-report의 User.unlockedFeatures 단독 조회를 새 코드에 복제하지 말 것.
 
 ### 검증 실측과 환경 오류
 
@@ -82,7 +82,7 @@ updated: 2026-10-05
 
 ## 다음 행동
 
-격리 작업 디렉터리의 b70240a5a 커밋을 출발점으로, 점성술 기존 astro_basic_deep_pack 권한을 사용하는 서버 상세 전달 경로를 구현한다. 콘텐츠 커밋은 끝났고 public mirror freshness도 통과했다. 무료 요약/상세 분리 전에 유료 판매를 새로 켜지 않는다. 다른 세션 통합 전 앱 빌드는 보류한다.
+서버 상세 조회 경로의 후속 검증·전달 상태는 아래 진행 기록을 따른다. 이어서 공개 계산·차트·요약과 서버 전용 상세 해석을 분리하고, 기존 상세 fallback·PDF·공유 호출부를 서버 전달에 연결한다. 이 분리가 끝나기 전 유료 판매를 새로 켜지 않는다. 다른 세션 통합 및 정확한 main SHA CI 통과 전 앱 빌드를 하지 않는다.
 
 ## 서버 경계 구현 시 주의점
 
@@ -96,3 +96,19 @@ updated: 2026-10-05
 - 공유 main 재확인 SHA: a13ee2a647cdeddbebfdd0e373ea0378398593f2. 홈 index.html, styles/home-funnel.css와 public 미러는 타 세션 staged/unstaged 변경이 공존한다. 이 작업의 index/public 미러와 겹치므로 덮어쓰기·stash·부분 혼합 없이 통합 대기.
 - 가격·결제 권한 코드는 아직 수정하지 않았으며 2단계는 조사까지만 완료. Android·스토어 이미지 제작은 시작하지 않았다.
 - 이 문서는 전체 요청이 미완료여서 status: in-progress를 유지한다. 다른 세션에서 이어갈 수 있도록 미통합 작업과 워크트리를 보존한다.
+
+## 후속 구현 — 기본 점성술 서버 상세 조회
+
+- 시작 SHA: e6fda368dff49c65f97ac88f83e36dd09c2e52c3. 이 절은 위의 과거 전달 상태보다 우선한다.
+- 범위: 서버 상세 전달 경로부터 구현. 신규 상품·판매 활성화·Android 빌드는 없음.
+- 경로: `POST /api/astro/basic-deep`. POST는 출생 정보가 URL에 남지 않게 하는 읽기 요청이며 DB 쓰기나 이용권·월정석 소비가 없다. GET은 405.
+- 입력: `date` 또는 `birthDate`(YYYY-MM-DD), `time` 또는 `birthTime`(HH:mm), `timezone`(IANA 또는 숫자 오프셋), `latitude`/`longitude`(숫자), 선택 `name`, `timeKnown`(기본 true). 시각 미상은 `timeKnown:false`로 요청한다.
+- 성공 응답: `{ok:true, unlocked:true, featureKey, asOf, report, html}`. `asOf`는 서버 KST 날짜. 기존 해석 모델과 본문 HTML이며 모든 응답은 no-store. 클라이언트가 보낸 chart·profileId·userId·unlocked는 권한이나 계산 근거로 사용하지 않는다.
+- 인증 계정의 `astro_basic_deep_pack`만 사용. `findActivePaidContentUnlock`의 활성·만료·계정 스코프 판정을 재사용하고, `User.unlockedFeatures` 및 `User.paidFeatures`의 기존 구매도 호환한다. `billing.js`의 계정 구매 읽기 함수를 `worker/lib/paid-content-read-access.js`로 추출해 같은 계약을 사용한다. 조회에는 이용권 자동 해금, 차감, 권한 캐시를 넣지 않았다.
+- 미로그인 401, 미구매 402(기존 registry 가격), 권한 DB/인증 인프라 실패 503, 잘못된 입력 400. DB 실패를 미구매로 처리하지 않는다.
+- 서버 Swiss 차트를 기존 `AstroNatalReading`의 순수 생성기에 전달한다. 시각 미상은 정오 차트·당일 시작/끝 달 별자리를 계산하고 하우스·피르다리아·프로펙션 단정을 제외한다. 유료 LLM 호출 없음.
+- `natal-reading.js`에 CommonJS 내보내기를 추가해 동일 생성기를 서버에서 재사용했다. 브라우저 API `build/render/renderChart/renderDeep/legacyPeriods/glyph`는 유지. 기존 무료 `/api/astrology/basic` 응답과 무인증 계약도 유지.
+- **보호 범위 한계:** 새 API만 권한으로 보호된다. 공개 `natal-reading.js`, `renderAstroInsightLegacyNeon`, 기존 상세 fallback·PDF·공유 경로는 아직 서버 전용으로 이관하지 않았다. 전체 상세 유료 보호가 완료됐다고 보고하거나 판매를 새로 켜면 안 된다.
+- 실측: 새 경로+시간대 Jest 45/45, 기존 natal-reading Node 검사 14/14 통과. `npm run sync:public` 성공. `npm run check:fast -- --plan` critical 승격 확인. `npm run check:fast` 실행 중(완료 결과로 갱신 필요).
+- 미러 검사는 미커밋 변경 때문에 판정 불가로 종료했다. 커밋 후 `node scripts/verify-public-mirror-fresh.mjs`를 다시 실행한다.
+- 통합 재확인: origin/main은 15f2f09e8041270affeb4782ad3e0d40ee4a0653. 구매 전환 세션은 완료, SEO 세션은 active. 공유 main에는 index.html·홈 CSS·public 로케일 미러의 타 세션 staged/unstaged 변경이 공존한다. 덮어쓰기·stash 없이 보존하고 Android는 계속 보류한다.
