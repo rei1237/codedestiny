@@ -242,7 +242,7 @@ export function buildSajuHealthBasis({ fiveElements = {}, seasonalBalance = {}, 
   const temperature = JOHU_TEMPERATURE[seasonalBalance?.type], moisture = JOHU_MOISTURE[seasonalBalance?.moistType];
   return {version:SAJU_SIGNALS_VERSION, focus,
     dayMaster:DAY_MASTER_VIEW[dayMaster] ? {stem:dayMaster, ...DAY_MASTER_VIEW[dayMaster]} : null,
-    climate:{type:seasonalBalance?.type || null, moistType:seasonalBalance?.moistType || null, ...(temperature ? {temperature} : {}), ...(moisture ? {moisture} : {})},
-    rule:'장부 이름은 오행의 상징적 생활 리듬이다. 질병·진단·치료·복약을 말하지 않고 수면·식사·움직임·휴식 습관으로만 설명한다. 걱정되는 증상은 의료진 확인을 권한다.',
+    climate:{birthSeason:seasonalBalance?.season || null, type:seasonalBalance?.type || null, moistType:seasonalBalance?.moistType || null, ...(temperature ? {temperature} : {}), ...(moisture ? {moisture} : {})},
+    rule:'장부 이름은 오행의 상징적 생활 리듬이다. 질병·진단·치료·복약을 말하지 않고 수면·식사·움직임·휴식 습관으로만 설명한다. 걱정되는 증상은 의료진 확인을 권한다. 태어난 계절은 월지로 정한 climate.birthSeason 만 쓴다. 따뜻함·건조함은 오행의 온도이지 태어난 계절이 아니다.',
     disclaimer:SAJU_HEALTH_DISCLAIMER};
 }

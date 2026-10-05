@@ -140,7 +140,7 @@ test('relationship timing: without gender no spouse star is read, and without lu
 });
 
 test('health basis: out-of-balance elements become rhythm and care notes with the report disclaimer and no medical claims', () => {
-  const basis = buildSajuHealthBasis({fiveElements:earthHeavy, seasonalBalance:{type:'cold', moistType:'wet'}, dayMaster:'戊'});
+  const basis = buildSajuHealthBasis({fiveElements:earthHeavy, seasonalBalance:{type:'cold', moistType:'wet', season:'겨울'}, dayMaster:'戊'});
   const focus = Object.fromEntries(basis.focus.map(f => [f.element, f]));
   assert.deepEqual(Object.keys(focus), ['wood', 'fire', 'earth', 'metal', 'water']);
   assert.equal(focus.earth.rhythm, '비위 리듬');
@@ -148,6 +148,8 @@ test('health basis: out-of-balance elements become rhythm and care notes with th
   assert.match(focus.metal.message, /경계와 정리/);
   assert.equal(basis.dayMaster.stem, '戊');
   assert.ok(basis.climate.temperature && basis.climate.moisture);
+  assert.equal(basis.climate.birthSeason, '겨울');
+  assert.match(basis.rule, /climate\.birthSeason 만 쓴다/);
   assert.equal(basis.disclaimer, SAJU_HEALTH_DISCLAIMER);
   const prose = JSON.stringify([basis.focus, basis.dayMaster, basis.climate]);
   assert.doesNotMatch(prose, /질환|질병|병에 걸|당뇨|고혈압|처방|복용/);

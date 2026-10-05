@@ -20,6 +20,11 @@ const dayMasterBefore=()=>new RegExp(`(${READER})(${STEM_CLAIM})(\\s*일간)`,'g
 const STRENGTH=/(?:극)?신(강|약)(?:한|인)?\s*(?:편|사주|명식|구조|쪽|타입|체질|사람)?\s*(?:이야|야|이에요|예요|이다|다|입니다|이지|이거든|이라서|이니까|이고|해|하다|해요|합니다|하거든|하지|하고|해서|하니까)(?=[\s.,!?…~]|$)/u;
 const HEDGED=/라면|이면|으면|더라도|어도|보여|보이|처럼|같아|같은|수도|수 있|일지|인지|아니|않|보다|오해|흔히|보통|일반적으로/u;
 const OTHER_PERSON=/상대|그 사람|그분|파트너|두 사람|둘 다|연인|배우자|아이|부모/u;
+// The birth season is the month branch's (입춘 starts 寅 = 봄). A warm chart is not a summer birth.
+const BRANCH_SEASON:Record<string,string>={寅:'봄',卯:'봄',辰:'봄',巳:'여름',午:'여름',未:'여름',申:'가을',酉:'가을',戌:'가을',亥:'겨울',子:'겨울',丑:'겨울'};
+const SEASON_WORD='(?<![가-힣])(?:초|늦|이른|한)?(봄|여름|가을|겨울)';
+const BORN_SEASON=new RegExp(`${SEASON_WORD}(?:철|날)?(?:\\s*에\\s*(?:태어|출생)|\\s*태생)`,'u');
+const GENERIC_BIRTH=/태어난\s*(?:사람|이들|분)|태생인\s*사람/u;
 
 const hanja=(ganji:string)=>[HANJA_STEMS[KO_STEMS.indexOf(ganji[0])]||ganji[0],...(ganji.length>1?[HANJA_BRANCHES[KO_BRANCHES.indexOf(ganji[1])]||ganji[1]]:[])].join('');
 const inScript=(truth:string,sample:string)=>/[가-힣]/u.test(sample)
@@ -41,6 +46,8 @@ export function correctNatalClaims(body:ChapterBody,facts:NatalFacts,locale='ko'
   if(locale!=='ko'||!pillars||typeof pillars!=='object')return {body,replaced:0,dropped:0};
   const dayMaster=typeof facts.dayMaster==='string'&&HANJA_STEMS.includes(facts.dayMaster[0])?facts.dayMaster[0]:undefined;
   const isStrong=typeof facts.strength?.isStrong==='boolean'?facts.strength.isStrong:undefined;
+  const season=typeof pillars.month==='string'?BRANCH_SEASON[pillars.month[1]]:undefined;
+  const namesSeason=(text:string,name:string)=>[...text.matchAll(new RegExp(SEASON_WORD,'gu'))].some(m=>m[1]===name);
   let replaced=0,dropped=0;
   const sentence=(s:string)=>{
     let drop=false;
@@ -60,6 +67,11 @@ export function correctNatalClaims(body:ChapterBody,facts:NatalFacts,locale='ko'
     if(!drop&&isStrong!==undefined&&!(/신강/u.test(next)&&/신약/u.test(next))&&!HEDGED.test(next)&&!OTHER_PERSON.test(next)){
       const claim=next.match(STRENGTH);
       if(claim&&(claim[1]==='강')!==isStrong)drop=true;
+    }
+    // A sentence that also names the true season ('달력은 겨울 끝이지만 사주로는 봄') is an explanation, not a claim.
+    if(!drop&&season){
+      const claim=next.match(BORN_SEASON);
+      if(claim&&claim[1]!==season&&!namesSeason(next,season)&&!HEDGED.test(next)&&!OTHER_PERSON.test(next)&&!GENERIC_BIRTH.test(next))drop=true;
     }
     if(drop){dropped++;return '';}
     return next;

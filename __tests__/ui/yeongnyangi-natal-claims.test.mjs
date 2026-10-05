@@ -34,6 +34,17 @@ test('an assertive strength claim that contradicts the engine is dropped; hedged
  assert.equal(run(['너는 신약한 편이야. 쉬어 가.']).dropped,0);
 });
 
+test('a birth season that contradicts the month branch is dropped; the true season, explanations and partners stay',()=>{
+ // Golden 2026-10-04 salmon health chapter (month 甲寅 = 봄): the warm chart was written as a summer birth.
+ const spring={...facts,pillars:{...facts.pillars,month:'甲寅'}};
+ const kept=['너는 이른 봄에 태어나 기운이 솟아.','달력으로는 늦겨울에 태어났지만 사주로는 봄이야.','여름에 태어난 사람은 더위를 잘 타.','상대는 가을에 태어났어.','한여름에 태어난 것처럼 뜨거워.'];
+ const r=run(['월령을 볼 때, 불 기운이 강한 여름철에 태어나 따뜻하고 건조한 기운이 강조되거든. 너는 겨울 태생이야. 그래서 몸이 쉽게 달아올라.',...kept],spring);
+ assert.equal(r.body.blocks[0].paragraphs[0],'그래서 몸이 쉽게 달아올라.');
+ assert.deepEqual(r.body.blocks[0].paragraphs.slice(1),kept);
+ assert.equal(r.dropped,2);
+ assert.equal(run(['너는 여름철에 태어났어.'],{...facts,pillars:{...facts.pillars,month:null}}).dropped,0);
+});
+
 test('correct claims, general explanations and other locales are untouched',()=>{
  const text=['네 일주는 癸未야. 갑목 일간인 사람은 곧게 뻗는 편이야. 너는 癸水 일간이야.'];
  assert.equal(run(text).body.blocks[0].paragraphs[0],text[0]);
