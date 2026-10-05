@@ -30,7 +30,7 @@ const replacements={
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
   'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
 };
-const bundle=await build({stdin:{contents:"export {prepareFortune} from './worker/yeongnyangi/service'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {products} from './worker/yeongnyangi/payments/catalog'; export {topicIds} from './worker/yeongnyangi/fortune/topics'; export {readingLocale} from './worker/yeongnyangi/fortune/reading-locale'; export {analyzeAsk} from './worker/yeongnyangi/fortune/ask/analysis'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {deliverChapter} from './worker/yeongnyangi/providers/delivery';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
+const bundle=await build({stdin:{contents:"export {prepareFortune,snapshotAnalysis} from './worker/yeongnyangi/service'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {products} from './worker/yeongnyangi/payments/catalog'; export {topicIds} from './worker/yeongnyangi/fortune/topics'; export {readingLocale} from './worker/yeongnyangi/fortune/reading-locale'; export {analyzeAsk} from './worker/yeongnyangi/fortune/ask/analysis'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {deliverChapter} from './worker/yeongnyangi/providers/delivery';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('reading-invariance-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const m=loaded.exports;
 
@@ -69,7 +69,7 @@ async function chapterRun(row){
   const checkpoint=row.generationCheckpoint;
   const ask=checkpoint?{analysis:await m.analyzeAsk(snapshot.analysis.consultation,async()=>{throw new Error('mock: rules only');}),evidence:checkpoint.evidence}:undefined;
   for(const [ordinal,chapter] of snapshot.manifest.entries()){
-    const input={locale:m.readingLocale(snapshot.locale),chapter,analysis:snapshot.analysis,previous:[...previous],repair:undefined,ask:ordinal===0?ask:undefined};
+    const input={locale:m.readingLocale(snapshot.locale),chapter,analysis:m.snapshotAnalysis(snapshot),previous:[...previous],repair:undefined,ask:ordinal===0?ask:undefined};
     let body;
     try{body=await mockBody(input);}catch(error){body=undefined;validated.push(`mock ${errorCode(error)}`);}
     const capture={async generate(request){requests.push(sha(request));return {provider:'mock',model:'mock',result:body};}};
@@ -145,12 +145,12 @@ const EXPECTED={
  "saju_mackerel:money": "a42529c1b816 75c5e3c6501b b03b02eae569 c4202c21b93e 054738d4280d",
  "saju_mackerel:ask": "9c26b8b2a079 8db4e749508c 3eeb0bda19a1 c518b7fcbe38 b9cb87c20d32",
  "saju_salmon:legacy": "6ea319fe103e 0dc33184f830 08254337bbd3 6e55eca0cd90 5a931b290957",
- "saju_salmon:personal": "60ac2e292645 4695fb413a4d bf16c38b32b1 ee73364e5e65 459c1c844aea",
+ "saju_salmon:personal": "60ac2e292645 4695fb413a4d 4e8bcd8e5026 ee73364e5e65 459c1c844aea",
  "saju_salmon:compatibility": "14428f346332 99b474f5e7c1 4460b6158176 896fd690c8f2 5ee9aa8dd2ae",
  "saju_salmon:love": "16ce63fe064e e6472662cce0 bc05cd9cad6e a0acd49a317c 8fe7b01b938d",
  "saju_salmon:work": "94fef2275d30 9b0fd9954140 c79156973cf8 dc13148a2077 fa41008e9044",
  "saju_salmon:money": "f7e328d0b23f 14b3411d749e dde7f7b7710c e85058adb05e 6ae138fbccb6",
- "saju_salmon:ask": "f0299a55e43b d52f37c7e45d ce058e78bfdc d1ffd9baa627 459c1c844aea",
+ "saju_salmon:ask": "f0299a55e43b d52f37c7e45d 2bb2cbd61fb7 d1ffd9baa627 459c1c844aea",
  "saju_flounder:legacy": "b171df7043e4 af1c22e82ee4 4d12decf52c1 f0eb4c1c53a6 d0a1fba4b309",
  "saju_flounder:personal": "4c7f91af40fc 6fee2523280a 88de205379bb a056d8c0af1d 9092b43d5b23",
  "saju_flounder:compatibility": "244de253e3e7 59997d89b779 10a7082a1546 506896de9240 3e8926b65705",

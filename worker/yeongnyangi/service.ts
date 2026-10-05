@@ -58,7 +58,7 @@ import { hasRequestAccess } from './access-methods.js';
  * context so the rebuilt fact ledger resolves the same IDs prepare assigned. Snapshots without one are
  * returned untouched, so v6 and older requests keep their exact stored analysis.
  */
-function snapshotAnalysis(snapshot:any) {
+export function snapshotAnalysis(snapshot:any) {
   const matrix=snapshot?.v7Timing;
   if(!matrix)return snapshot.analysis;
   const contexts=snapshot.analysis.contexts;
