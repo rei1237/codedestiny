@@ -4,6 +4,7 @@ import { INSIGHT_SEED_ARTICLES, getInsightSeedBySlug } from "./seed-articles";
 import { getFeatureGuidesByTopic } from "./feature-guides";
 import { getPhase3HubGuide } from "./phase3-editorial-content";
 import EditorNote from "../components/EditorNote";
+import YehwaCard from "../components/service-intro/YehwaCard";
 
 function topicMatcher(topic) {
   const normalized = String(topic || "all").toLowerCase();
@@ -186,9 +187,9 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 text-slate-100 md:px-6 md:py-10">
-      <header className="rounded-3xl border border-white/10 bg-[#10172b] px-5 py-6 md:px-8 md:py-8">
-        <h1 className="text-2xl font-semibold text-amber-50 md:text-4xl">{title}</h1>
-        <p className="mt-4 text-sm leading-7 text-slate-300 md:text-base">{intro}</p>
+      <YehwaCard as="header">
+        <h1>{title}</h1>
+        <p>{intro}</p>
         <div className="mt-5 flex flex-wrap gap-2">
           <Link href={serviceCtaPath} className="rounded-xl border border-amber-200/40 bg-amber-200/10 px-4 py-2 text-sm hover:bg-amber-200/20">
             관련 기능 바로 시작하기
@@ -197,27 +198,27 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
             인사이트 전체 보기
           </Link>
         </div>
-      </header>
+      </YehwaCard>
 
       {/* 이 컴포넌트가 <main> 을 소유해서 호출부에서 노트를 끼울 수 없다. curatedSlugs 와
           같은 선택적 prop 으로 받는다 — 안 넘기면 null 이라 나머지 허브 7개의 출력은 그대로다. */}
       <EditorNote note={editorNote} className="mt-6" />
 
       {guide ? (
-        <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f1629] px-5 py-6 md:px-8 md:py-8">
-          <h2 className="text-xl font-semibold text-amber-100">{guide.heading}</h2>
+        <YehwaCard as="section" ornament={false} className="mt-6">
+          <h2>{guide.heading}</h2>
           {guide.paragraphs.map((paragraph, index) => (
-            <p key={index} className="mt-4 break-keep text-sm leading-7 text-slate-300 md:text-base">
+            <p key={index}>
               {paragraph}
             </p>
           ))}
-        </section>
+        </YehwaCard>
       ) : null}
 
       {sources.length > 0 ? (
-        <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f1629] px-5 py-6 md:px-8 md:py-8">
-          <h2 className="text-xl font-semibold text-amber-100">해석의 근거 — 참고 원전</h2>
-          <p className="mt-3 break-keep text-sm leading-7 text-slate-300 md:text-base">
+        <YehwaCard as="section" ornament={false} className="mt-6">
+          <h2>해석의 근거 — 참고 원전</h2>
+          <p>
             이 허브의 글은 아래 문헌에서 전해 내려온 해석 규칙을 바탕으로 정리했습니다. 다만 같은
             원전을 두고도 유파마다 강조점이 달라, 여기서 소개하는 내용이 유일한 정답은 아닙니다.
           </p>
@@ -230,7 +231,7 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
             ))}
           </ul>
           {storyLink ? (
-            <p className="mt-4 break-keep text-sm leading-7 text-slate-300">
+            <p>
               이 체계를 이야기로 먼저 만나 보고 싶다면{" "}
               <Link href={storyLink.href} className="text-amber-100 underline">
                 {storyLink.label}
@@ -238,7 +239,7 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
               도 함께 읽어 보세요.
             </p>
           ) : null}
-        </section>
+        </YehwaCard>
       ) : null}
 
       {featureGuides.length > 0 ? (
@@ -259,8 +260,8 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
         </section>
       ) : null}
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f1629] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">추천 글</h2>
+      <YehwaCard as="section" ornament={false} className="mt-6">
+        <h2>추천 글</h2>
         <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           {recommendedItems.map((article, index) => (
             <Link
@@ -278,10 +279,10 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
             </Link>
           ))}
         </div>
-      </section>
+      </YehwaCard>
 
-      {latestItems.length > 0 && <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f1525] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">이어서 읽기</h2>
+      {latestItems.length > 0 && <YehwaCard as="section" ornament={false} className="mt-6">
+        <h2>이어서 읽기</h2>
         <ul className="mt-4 space-y-2">
           {latestItems.map((article) => (
             <li key={`latest-${article.slug}`} className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
@@ -291,10 +292,10 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
             </li>
           ))}
         </ul>
-      </section>}
+      </YehwaCard>}
 
-      {(beginnerGuides.length > 0 || topicKey === 'ziwei') && <section className="mt-6 rounded-3xl border border-white/10 bg-[#11182b] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">초보자 가이드</h2>
+      {(beginnerGuides.length > 0 || topicKey === 'ziwei') && <YehwaCard as="section" ornament={false} className="mt-6">
+        <h2>초보자 가이드</h2>
         {topicKey === "ziwei" ? (
           <div className="mt-4 rounded-2xl border border-amber-200/15 bg-amber-100/[0.05] px-4 py-4">
             <p className="text-xs text-amber-100/75">별도 입문 문서</p>
@@ -313,10 +314,10 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
             </li>
           ))}
         </ul>
-      </section>}
+      </YehwaCard>}
 
-      {practicalGuides.length > 0 && <section className="mt-6 rounded-3xl border border-white/10 bg-[#11182b] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">실전 해석 글</h2>
+      {practicalGuides.length > 0 && <YehwaCard as="section" ornament={false} className="mt-6">
+        <h2>실전 해석 글</h2>
         <ul className="mt-4 space-y-2">
           {practicalGuides.map((article) => (
             <li key={`practical-${article.slug}`} className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
@@ -326,13 +327,13 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
             </li>
           ))}
         </ul>
-      </section>}
+      </YehwaCard>}
 
       {topicKey === "ziwei" ? (
-        <section className="mt-6 rounded-3xl border border-amber-200/15 bg-[#0f1629] px-5 py-6 md:px-8 md:py-8" aria-labelledby="ziwei-all-articles-title">
+        <YehwaCard as="section" ornament={false} className="mt-6" aria-labelledby="ziwei-all-articles-title">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 id="ziwei-all-articles-title" className="text-xl font-semibold text-amber-100">자미두수 인사이트 전체 글</h2>
+              <h2 id="ziwei-all-articles-title" className="font-[family-name:var(--font-serif)] text-xl font-bold tracking-[-0.01em] text-[#f6ecd6]">자미두수 인사이트 전체 글</h2>
               <p className="mt-2 text-sm leading-7 text-slate-300">이미 작성된 자미두수 글을 주제별로 골라 읽어보세요. 제목을 누르면 본문 전체가 열립니다.</p>
             </div>
             <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-slate-300">{items.length}편</span>
@@ -355,7 +356,7 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
               </Link>
             ))}
           </div>
-        </section>
+        </YehwaCard>
       ) : null}
     </main>
   );
