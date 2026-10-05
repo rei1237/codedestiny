@@ -5,6 +5,7 @@ import type {
   ChemiPartnerRecord,
   ChemiPartnerRef,
   ChemiResult,
+  ChemiScoreAxis,
   ChemiSignal,
   ChemiTypeId,
   ChemiTypeMeta,
@@ -37,6 +38,10 @@ export const DATA_GAP_USER_HOUR: string;
 export const CHEMI_TYPES: readonly ChemiTypeMeta[];
 export const CHEMI_TYPE_IDS: readonly ChemiTypeId[];
 export const CHEMI_TYPE_BY_ID: Readonly<Record<ChemiTypeId, ChemiTypeMeta>>;
+export const CHEMI_SCORE_VERSION: string;
+export const CHEMI_SCORE_AXES: readonly ChemiScoreAxis[];
+export const CHEMI_GRADES: readonly { min: number; grade: string; gradeTitle: string; pairingTitle: string }[];
+export function resolveChemiGrade(total: number): { min: number; grade: string; gradeTitle: string; pairingTitle: string };
 export function computeFullAge(birthIso: string, referenceIso: string): number | null;
 export function computeChemi(input: ChemiInput): ChemiResult;
 export function resolveSignalStrength(signals: readonly ChemiSignal[]): SignalStrength;

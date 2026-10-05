@@ -3,6 +3,7 @@ import {
   buildFavoriteDestinyFromSaju,
   sanitizeFavoriteDestinyText,
   validateFavoriteDestinyReading,
+  type FavoriteDestinyUnifiedInput,
 } from "./favoriteDestinyReading";
 import { createDestinyBiasCardSvg } from "../utils/createDestinyBiasSvg";
 import { createBiasEnergySvg } from "../utils/createBiasEnergySvg";
@@ -29,6 +30,8 @@ export type DestinyBiasAnalyzeInput = {
   relationMood: string;
   themeKey?: string;
   themeLabel: string;
+  /** 케미 엔진과 명식·점수·유형을 통일할 때(chemiReportBridge). */
+  unified?: FavoriteDestinyUnifiedInput;
 };
 
 export type DestinyBiasAnalyzeResult = {
@@ -164,7 +167,8 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
       name: biasName,
       birthDate: normalizedBiasBirth.value,
       birthTimeInput: input.biasBirthTimeInput,
-    }
+    },
+    input.unified ? { unified: input.unified } : undefined
   );
 
   const validation = validateFavoriteDestinyReading(reading);

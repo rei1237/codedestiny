@@ -1846,6 +1846,11 @@ const destinyBiasShareSchema = new mongoose.Schema({
   chemiTypeNameKo: { type: String, required: true, trim: true, maxlength: 80 },
   chemiTypeShortKo: { type: String, required: true, trim: true, maxlength: 40 },
   signalStrength: { type: String, enum: ["high", "medium", "low"], required: true },
+  // 서버 재계산 점수(lib/idol-chemi computeChemiScore). 도입 전 문서와 호환되게 선택 필드.
+  score: { type: Number, min: 0, max: 100, default: null },
+  grade: { type: String, trim: true, maxlength: 40, default: null },
+  gradeTitle: { type: String, trim: true, maxlength: 60, default: null },
+  scoreVersion: { type: String, trim: true, maxlength: 60, default: null },
   oneLiner: { type: String, required: true, trim: true, maxlength: 160 },
   partnerKind: { type: String, enum: ["roster", "preset"], required: true },
   partnerId: { type: String, required: true, trim: true, maxlength: 80 },

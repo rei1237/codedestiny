@@ -27,6 +27,7 @@ export const DESTINY_BIAS_SHARE_RATE_LIMIT_MAX = 10;
 export const DESTINY_BIAS_SHARE_NICKNAME_MAX = 20;
 export const DESTINY_BIAS_SHARE_ID_PATTERN = /^dbs_[A-Za-z0-9_-]{24,80}$/;
 export const DESTINY_BIAS_SHARE_LANDING_PATH = "/saju/destiny-bias/share/";
+export const DESTINY_BIAS_SHARE_PREVIEW_PATH = "/api/destiny-bias/s";
 export const DESTINY_BIAS_OG_FALLBACK_PATH = "/images/destiny-bias/og-default-1200x630.png";
 
 const CALENDAR_TYPES = Object.freeze(["solar", "lunar", "lunar_leap"]);
@@ -156,6 +157,11 @@ export function projectDestinyBiasShare(normalized) {
     chemiTypeNameKo: sanitizeShareText(typeMeta?.nameKo || result.chemiTypeNameKo, 80),
     chemiTypeShortKo: sanitizeShareText(typeMeta?.shortKo || result.chemiTypeShortKo, 40),
     signalStrength: result.signalStrength,
+    // 점수·등급도 서버 재계산값만 싣는다(요청 본문에 score 가 있어도 읽지 않는다).
+    score: result.score.total,
+    grade: sanitizeShareText(result.score.grade, 40),
+    gradeTitle: sanitizeShareText(result.score.gradeTitle, 60),
+    scoreVersion: String(result.scoreVersion),
     oneLiner: sanitizeShareText(copy.oneLiner, 160),
     partnerKind: result.partner.kind,
     partnerId: result.partner.id,
@@ -175,11 +181,14 @@ async function sha256Hex(text) {
   return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-/** 같은 (유형·최애·닉네임·버전) → 같은 링크. 생일은 해시 재료에도 넣지 않는다. */
+/** 같은 (유형·점수·최애·닉네임·버전) → 같은 링크. 생일은 해시 재료에도 넣지 않는다. */
 export function computeDestinyBiasShareContentHash(projected) {
   const material = [
     projected.chemiTypeId,
     projected.signalStrength,
+    // 점수가 빠지면 유형·최애가 같은 다른 사람의 링크(다른 점수)를 재사용하게 된다.
+    projected.score,
+    projected.scoreVersion,
     projected.oneLiner,
     projected.partnerKind,
     projected.partnerId,
@@ -201,6 +210,10 @@ export function toPublicDestinyBiasShare(record) {
     chemiTypeNameKo: String(value.chemiTypeNameKo),
     chemiTypeShortKo: String(value.chemiTypeShortKo),
     signalStrength: String(value.signalStrength),
+    // 점수 도입 전 문서에는 없다 → null(화면은 점수 줄을 숨긴다).
+    score: Number.isFinite(value.score) ? Number(value.score) : null,
+    grade: value.grade ? String(value.grade) : null,
+    gradeTitle: value.gradeTitle ? String(value.gradeTitle) : null,
     oneLiner: String(value.oneLiner),
     partner: {
       kind: String(value.partnerKind),
@@ -224,8 +237,9 @@ export function resolveShareOrigin({ requestUrl, env = {} } = {}) {
   return configured || new URL(requestUrl).origin;
 }
 
+/** 사람들이 퍼뜨리는 링크 = 크롤러용 미리보기 페이지(사람은 곧바로 정적 랜딩으로 넘어간다). */
 export function buildDestinyBiasShareUrl({ shareId, requestUrl, env = {} } = {}) {
-  return `${resolveShareOrigin({ requestUrl, env })}${DESTINY_BIAS_SHARE_LANDING_PATH}?s=${encodeURIComponent(String(shareId))}`;
+  return `${resolveShareOrigin({ requestUrl, env })}${DESTINY_BIAS_SHARE_PREVIEW_PATH}?s=${encodeURIComponent(String(shareId))}`;
 }
 
 export async function createDestinyBiasShare({ input, requestUrl, env = {}, now = new Date(), model = DestinyBiasShare } = {}) {
@@ -282,17 +296,23 @@ export async function findPublicDestinyBiasShare({ shareId, now = new Date(), mo
 
 /* ---------------- OG 카드 HTML (satori 용 마크업만; 렌더는 destiny-bias-share-og.js) ---------------- */
 
+// 밤 무대 팔레트(app/saju/destiny-bias/destiny-bias.module.css 의 --dbk-* 와 같은 값).
 const OG_ACCENT = Object.freeze({
-  telepathy: "#7a5cff",
-  "same-wave": "#3d5afe",
-  "accel-brake": "#ff7ab6",
-  "locked-in": "#3d5afe",
-  "quiet-care": "#7a5cff",
-  "hype-charger": "#ff7ab6",
-  "push-pull": "#ff7ab6",
-  "cross-learn": "#3d5afe",
-  "slow-burn": "#7a5cff",
+  telepathy: "#c3adff",
+  "same-wave": "#9fe3ff",
+  "accel-brake": "#ff8fd0",
+  "locked-in": "#9fe3ff",
+  "quiet-care": "#c3adff",
+  "hype-charger": "#ff8fd0",
+  "push-pull": "#ff8fd0",
+  "cross-learn": "#9fe3ff",
+  "slow-burn": "#c3adff",
 });
+const OG_INK = "#f7f1ff";
+const OG_INK_SOFT = "#cfc4ea";
+const OG_GOLD = "#ffd98a";
+// 디자인을 바꾸면 올린다. og.png 는 immutable 캐시라 주소가 바뀌어야 크롤러가 새 카드를 받는다.
+export const DESTINY_BIAS_OG_DESIGN_VERSION = "stage-1";
 
 const HTML_ESCAPES = Object.freeze({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" });
 
@@ -300,22 +320,81 @@ function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (ch) => HTML_ESCAPES[ch]);
 }
 
-export function buildDestinyBiasOgHtml(snapshot, brandDomain = "code-destiny.com") {
-  const accent = OG_ACCENT[snapshot.chemiTypeId] || "#7a5cff";
-  const who = snapshot.nicknameDisplay
+function shareWho(snapshot) {
+  return snapshot.nicknameDisplay
     ? `${snapshot.nicknameDisplay} × ${snapshot.partner.displayName}`
     : `나 × ${snapshot.partner.displayName}`;
+}
+
+export function buildDestinyBiasOgHtml(snapshot, brandDomain = "code-destiny.com") {
+  const accent = OG_ACCENT[snapshot.chemiTypeId] || "#c3adff";
   const group = snapshot.partner.groupLabel ? ` · ${snapshot.partner.groupLabel}` : "";
+  const hasScore = Number.isFinite(snapshot.score);
+  // 점수가 있으면 오른쪽 점수 기둥만큼 본문 폭을 줄인다.
+  const textRight = hasScore ? 400 : 80;
+  const scoreBlock = hasScore
+    ? `<div style="display:flex;position:absolute;right:80px;top:150px;width:260px;height:300px;flex-direction:column;align-items:center;justify-content:center;border-radius:36px;border:2px solid ${accent};background:rgba(20,10,48,0.72);">
+    <div style="display:flex;font-size:26px;letter-spacing:4px;color:${OG_INK_SOFT};">CHEMI</div>
+    <div style="display:flex;align-items:flex-end;"><div style="display:flex;font-size:120px;line-height:1;font-weight:700;color:${OG_INK};">${escapeHtml(snapshot.score)}</div><div style="display:flex;font-size:36px;margin:0 0 14px 6px;color:${OG_INK_SOFT};">점</div></div>
+    <div style="display:flex;margin-top:14px;font-size:26px;font-weight:700;letter-spacing:2px;color:${OG_GOLD};">${escapeHtml(snapshot.grade || "")}</div>
+  </div>`
+    : "";
   // satori: 자식이 둘 이상인 요소는 display:flex 필수, 배치는 절대좌표(og-card.js 실측 메모와 동일).
-  return `<div style="display:flex;position:relative;width:1200px;height:630px;background:#fff8f0;font-family:'Noto Sans KR';">
-  <div style="display:flex;position:absolute;left:0;top:0;width:1200px;height:14px;background:${accent};"></div>
-  <div style="display:flex;position:absolute;left:80px;top:72px;font-size:24px;letter-spacing:4px;color:${accent};font-weight:700;">최애운명 · 케미 유형</div>
-  <div style="display:flex;position:absolute;left:80px;top:122px;font-size:30px;color:#4b4560;">${escapeHtml(who)}${escapeHtml(group)}</div>
-  <div style="display:flex;position:absolute;left:80px;right:80px;top:196px;font-size:66px;line-height:1.22;color:#1f1a2e;font-weight:700;">${escapeHtml(snapshot.chemiTypeNameKo)}</div>
-  <div style="display:flex;position:absolute;left:80px;right:80px;top:372px;font-size:32px;line-height:1.5;color:#4b4560;">${escapeHtml(snapshot.oneLiner)}</div>
-  <div style="display:flex;position:absolute;left:80px;bottom:64px;font-size:24px;color:#1f1a2e;font-weight:700;">꿀꿀운세</div>
-  <div style="display:flex;position:absolute;right:80px;bottom:66px;font-size:22px;color:#6b6875;">${escapeHtml(brandDomain)} · 오락용</div>
+  // 밤 콘서트 무대: 어두운 바탕 + 위에서 떨어지는 두 줄기 조명. 사진·얼굴·로고는 그리지 않는다.
+  return `<div style="display:flex;position:relative;width:1200px;height:630px;background:linear-gradient(180deg,#0a0616 0%,#160a30 62%,#2a1650 100%);font-family:'Noto Sans KR';">
+  <div style="display:flex;position:absolute;left:-120px;top:-260px;width:760px;height:760px;border-radius:380px;background:radial-gradient(circle,rgba(195,173,255,0.30) 0%,rgba(195,173,255,0) 70%);"></div>
+  <div style="display:flex;position:absolute;right:-160px;top:-280px;width:760px;height:760px;border-radius:380px;background:radial-gradient(circle,rgba(255,143,208,0.24) 0%,rgba(255,143,208,0) 70%);"></div>
+  <div style="display:flex;position:absolute;left:0;bottom:0;width:1200px;height:10px;background:${accent};"></div>
+  <div style="display:flex;position:absolute;left:80px;top:72px;font-size:24px;letter-spacing:4px;color:${accent};font-weight:700;">최애운명 · 케미 카드</div>
+  <div style="display:flex;position:absolute;left:80px;right:${textRight}px;top:122px;font-size:30px;color:${OG_INK_SOFT};">${escapeHtml(shareWho(snapshot))}${escapeHtml(group)}</div>
+  <div style="display:flex;position:absolute;left:80px;right:${textRight}px;top:196px;font-size:62px;line-height:1.22;color:${OG_INK};font-weight:700;">${escapeHtml(snapshot.chemiTypeNameKo)}</div>
+  <div style="display:flex;position:absolute;left:80px;right:${textRight}px;top:380px;font-size:30px;line-height:1.5;color:${OG_INK_SOFT};">${escapeHtml(snapshot.oneLiner)}</div>
+  ${scoreBlock}
+  <div style="display:flex;position:absolute;left:80px;bottom:52px;font-size:24px;color:${OG_INK};font-weight:700;">꿀꿀운세</div>
+  <div style="display:flex;position:absolute;right:80px;bottom:54px;font-size:22px;color:${OG_INK_SOFT};">${escapeHtml(brandDomain)} · 오락용</div>
 </div>`;
+}
+
+/* ---------------- 크롤러용 미리보기(바운스) 페이지 ----------------
+ * 공유 랜딩은 정적 export 라 og 메타를 공유 id 별로 바꿀 수 없다(모든 링크가 기본 카드로 보인다).
+ * 그래서 사람들이 퍼뜨리는 링크는 이 워커 페이지이고, 크롤러는 여기서 결과별 og:image 를 읽고,
+ * 사람은 스크립트로 정적 랜딩에 넘어간다. meta refresh 는 쓰지 않는다 — 따라가는 크롤러가
+ * 정적 랜딩의 기본 카드를 읽어 버린다.
+ */
+
+const FORWARDED_QUERY_KEYS = Object.freeze(["utm_source", "utm_medium", "utm_campaign"]);
+
+export function buildDestinyBiasShareLandingUrl({ shareId, origin, searchParams } = {}) {
+  const url = new URL(DESTINY_BIAS_SHARE_LANDING_PATH, origin);
+  url.searchParams.set("s", String(shareId));
+  for (const key of FORWARDED_QUERY_KEYS) {
+    const value = String(searchParams?.get?.(key) || "").slice(0, 60);
+    if (/^[\w.-]+$/.test(value)) url.searchParams.set(key, value);
+  }
+  return url.toString();
+}
+
+export function buildDestinyBiasOgImageUrl({ shareId, origin }) {
+  return `${origin}/api/destiny-bias/share/${encodeURIComponent(String(shareId))}/og.png?v=${DESTINY_BIAS_OG_DESIGN_VERSION}`;
+}
+
+export function buildDestinyBiasSharePreviewHtml({ snapshot, previewUrl, landingUrl, ogImageUrl }) {
+  const scoreText = Number.isFinite(snapshot.score) ? ` ${snapshot.score}점` : "";
+  const title = `${shareWho(snapshot)} 케미${scoreText} · ${snapshot.chemiTypeShortKo || snapshot.chemiTypeNameKo}`;
+  const description = snapshot.oneLiner;
+  // 스크립트 문자열 안에서 </script> 로 빠져나가지 못하게 < 를 이스케이프한다.
+  const landingJs = JSON.stringify(String(landingUrl)).replace(/</g, "\\u003c");
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">`
+    + `<title>${escapeHtml(title)} | 꿀꿀운세</title>`
+    + `<meta property="og:type" content="website"><meta property="og:site_name" content="꿀꿀운세">`
+    + `<meta property="og:url" content="${escapeHtml(previewUrl)}"><meta property="og:title" content="${escapeHtml(title)}">`
+    + `<meta property="og:description" content="${escapeHtml(description)}"><meta property="og:image" content="${escapeHtml(ogImageUrl)}">`
+    + `<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">`
+    + `<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${escapeHtml(title)}">`
+    + `<meta name="twitter:description" content="${escapeHtml(description)}"><meta name="twitter:image" content="${escapeHtml(ogImageUrl)}">`
+    + `<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0a0616;color:#f7f1ff;font:16px/1.6 system-ui,sans-serif}a{color:#ffd98a}</style>`
+    + `<script>location.replace(${landingJs});</script></head>`
+    + `<body><main><p>${escapeHtml(title)}</p><p><a href="${escapeHtml(landingUrl)}">공유된 케미 카드 보기</a></p></main></body></html>`;
 }
 
 export function collectDestinyBiasOgGlyphs(snapshot, brandDomain) {

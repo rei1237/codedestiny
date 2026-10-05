@@ -268,14 +268,49 @@ function parseBirthStatus(timeInput?: string): BirthStatus {
   return "dateOnly";
 }
 
-function buildChart(birthDate: string): BasicChart {
-  const p = parseBirthDate(birthDate);
-  const jdn = toJdn(p.year, p.month, p.day);
-  const dayStem = STEMS[mod(jdn + 9, 10)];
-  const dayBranch = BRANCHES[mod(jdn + 1, 12)];
-  const y = p.month < 2 || (p.month === 2 && p.day < 4) ? p.year - 1 : p.year;
-  const yearStem = STEMS[mod(y - 4, 10)];
-  const yearBranch = BRANCHES[mod(y - 4, 12)];
+/** 통일 명식(lib/idol-chemi buildChemiPillars) 의 연·일주 — 한글 간지. */
+export type FavoriteDestinyPillarInput = { dayStem: string; dayBranch: string; yearStem: string; yearBranch: string };
+
+/**
+ * 케미 엔진(lib/idol-chemi)과 출처를 통일할 때 넘긴다. 주면 명식·점수·유형을 여기서 다시 계산하지 않고
+ * 받은 값으로 문구만 만든다(점수와 유형이 한 결과 안에서 어긋나지 않게).
+ */
+export type FavoriteDestinyUnifiedInput = {
+  pillars: { user: FavoriteDestinyPillarInput; favorite: FavoriteDestinyPillarInput };
+  scores: FavoriteDestinyScore;
+  chemistryType: FavoriteChemistryType;
+  /** 요약 문장에 넣을 유형 이름. */
+  typeLabel: string;
+};
+
+const STEM_BY_KO = Object.fromEntries(Object.entries(STEM_META).map(([hanja, meta]) => [meta.ko, hanja]));
+const BRANCH_BY_KO = Object.fromEntries(Object.entries(BRANCH_META).map(([hanja, meta]) => [meta.ko, hanja]));
+
+function pickPillar(map: Record<string, string>, ko: string) {
+  const hanja = map[ko];
+  if (!hanja) throw new Error("FAVORITE_DESTINY_PILLAR_INVALID");
+  return hanja;
+}
+
+function buildChart(birthDate: string, unified?: FavoriteDestinyPillarInput): BasicChart {
+  let dayStem: string;
+  let dayBranch: string;
+  let yearStem: string;
+  let yearBranch: string;
+  if (unified) {
+    dayStem = pickPillar(STEM_BY_KO, unified.dayStem);
+    dayBranch = pickPillar(BRANCH_BY_KO, unified.dayBranch);
+    yearStem = pickPillar(STEM_BY_KO, unified.yearStem);
+    yearBranch = pickPillar(BRANCH_BY_KO, unified.yearBranch);
+  } else {
+    const p = parseBirthDate(birthDate);
+    const jdn = toJdn(p.year, p.month, p.day);
+    dayStem = STEMS[mod(jdn + 9, 10)];
+    dayBranch = BRANCHES[mod(jdn + 1, 12)];
+    const y = p.month < 2 || (p.month === 2 && p.day < 4) ? p.year - 1 : p.year;
+    yearStem = STEMS[mod(y - 4, 10)];
+    yearBranch = BRANCHES[mod(y - 4, 12)];
+  }
 
   const dayElement = STEM_META[dayStem].element;
   const yearElement = STEM_META[yearStem].element;
@@ -409,10 +444,11 @@ function countCoreSajuSignals(reading: FavoriteDestinyReading) {
 export function buildFavoriteDestinyFromSaju(
   userChartInput: { name: string; birthDate: string; birthTimeInput?: string },
   favoriteChartInput: { name: string; birthDate: string; birthTimeInput?: string },
-  options?: { generatedAt?: string; cardId?: string }
+  options?: { generatedAt?: string; cardId?: string; unified?: FavoriteDestinyUnifiedInput }
 ): FavoriteDestinyReading {
-  const userChart = buildChart(userChartInput.birthDate);
-  const favoriteChart = buildChart(favoriteChartInput.birthDate);
+  const unified = options?.unified;
+  const userChart = buildChart(userChartInput.birthDate, unified?.pillars.user);
+  const favoriteChart = buildChart(favoriteChartInput.birthDate, unified?.pillars.favorite);
 
   const dayMasterRelation = relationLabel(userChart.dayElement, favoriteChart.dayElement);
 
@@ -538,7 +574,7 @@ export function buildFavoriteDestinyFromSaju(
     stability += 4;
   }
 
-  const scores: FavoriteDestinyScore = {
+  const scores: FavoriteDestinyScore = unified ? { ...unified.scores } : {
     emotion: clamp(emotion, 30, 96),
     excitement: clamp(excitement, 28, 98),
     stability: clamp(stability, 24, 95),
@@ -548,13 +584,15 @@ export function buildFavoriteDestinyFromSaju(
     total: 0,
   };
 
-  scores.total = clamp(
-    scores.emotion * 0.2 + scores.excitement * 0.16 + scores.stability * 0.2 + scores.fanBias * 0.16 + scores.longTerm * 0.16 + scores.communication * 0.12,
-    40,
-    99
-  );
+  if (!unified) {
+    scores.total = clamp(
+      scores.emotion * 0.2 + scores.excitement * 0.16 + scores.stability * 0.2 + scores.fanBias * 0.16 + scores.longTerm * 0.16 + scores.communication * 0.12,
+      40,
+      99
+    );
+  }
 
-  const chemistryType = buildChemistryType(scores, {
+  const chemistryType = unified ? unified.chemistryType : buildChemistryType(scores, {
     dayMasterRelation,
     dayBranchRelation: `${BRANCH_META[userChart.dayBranch].ko}-${BRANCH_META[favoriteChart.dayBranch].ko}`,
     fiveElementBalance,
@@ -723,7 +761,7 @@ export function buildFavoriteDestinyFromSaju(
 
   const gradeWord = scores.total >= 78 ? "찰떡같이 잘 맞는" : scores.total >= 60 ? "은근히 잘 통하는" : "천천히 깊어지는";
   const summary = sanitizeFavoriteDestinyText(
-    `${josa(favoriteChartInput.name, "와과")} 당신은 ${gradeWord} '${chemistryType}' 케미예요. 사주로 보면 ${fiveElementBalance} 흐름이 핵심이고, 서로의 다른 기운을 채워줄수록 더 좋아지는 궁합이에요.`
+    `${josa(favoriteChartInput.name, "와과")} 당신은 ${gradeWord} '${unified?.typeLabel || chemistryType}' 케미예요. 사주로 보면 ${fiveElementBalance} 흐름이 핵심이고, 서로의 다른 기운을 채워줄수록 더 좋아지는 궁합이에요.`
   );
 
   // MZ 재미 레이어 (정적 계산)
