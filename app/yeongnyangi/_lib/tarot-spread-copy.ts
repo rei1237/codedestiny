@@ -1,4 +1,8 @@
-// Korean-only chrome for the v3 question-first tarot order and card pick (UI is 해요체; 영냥이's own lines end in ~냥).
+import {readingLocale,type ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
+import {nativeSpreadCopy} from './tarot-spread-locales';
+import {tarotRitualCopy} from './tarot-ritual-copy';
+import {additionalKindDescription} from './consultation-kind-copy';
+// Original Korean wording stays unchanged for existing readers.
 export const tarotSpreadCopy={
  questionHeading:'무엇이 궁금해요?',
  questionIntro:'고민을 한 문장으로 적어 주세요. 질문의 모양을 보고 영냥이가 맞는 카드 배열을 골라 줘요.',
@@ -54,3 +58,18 @@ export const tarotSpreadCopy={
  optionsLine:(a:string,b:string)=>`A: ${a} · B: ${b}`,
  reversed:'역방향',upright:'정방향',
 } as const;
+
+export function tarotSpreadCopyFor(value:ReadingLocale|string='ko'){
+ const locale=readingLocale(value);
+ if(locale==='ko')return tarotSpreadCopy;
+ const c=nativeSpreadCopy(locale),ritual=tarotRitualCopy(locale);
+ return {...c,questionHeading:c.questionLabel,questionIntro:additionalKindDescription('spread',locale)!,
+  cards:(n:number)=>`${c.cardsLabel}: ${n}`,tierNeeded:(fish:string)=>`${c.tierNotice} (${fish})`,
+  optionPlaceholderA:c.optionA,optionPlaceholderB:c.optionB,previewPositions:c.previewHeading,
+  tierRaised:(fish:string,n:number)=>`${c.tierNotice} (${fish} · ${n})`,tierLocked:(n:number,fish:string)=>`${c.cardsLabel}: ${n} · ${fish}`,
+  pickHeading:ritual.chooseTitle,pickProgress:(k:number,n:number)=>`${c.cardsLabel}: ${k} / ${n}`,
+  pickNow:(label:string)=>`${ritual.chooseTitle}: ${label}`,pickCard:ritual.cardBack,pickedAs:(label:string)=>`${ritual.selected}: ${label}`,
+  mapLabel:(title:string)=>`${c.resultHeading}: ${title}`,revealHeading:ritual.revealTitle,revealNext:(n:number,label:string)=>`${ritual.revealCard(n)} · ${label}`,
+  revealDone:c.pickDone,periodLine:(period:string)=>`${c.periodLabel}: ${period}`,optionsLine:(a:string,b:string)=>`A: ${a} · B: ${b}`,
+  upright:ritual.upright,reversed:ritual.reversed};
+}

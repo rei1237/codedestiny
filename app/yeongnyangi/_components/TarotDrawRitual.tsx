@@ -1,5 +1,5 @@
 'use client';
-import {relationshipCopy} from '../_lib/relationship-copy';
+import {relationshipCopyFor} from '../_lib/relationship-copy';
 import {useEffect,useMemo,useState,type CSSProperties} from 'react';
 import NextImage from 'next/image';
 import {Volume2,VolumeX} from 'lucide-react';
@@ -34,6 +34,7 @@ function chime(){
 }
 
 export default function TarotDrawRitual({requestId,chart,locale,onComplete}:{requestId:string;chart:ReadingChart;locale?:ReadingLocale;onComplete:()=>void}){
+ const relationshipCopy=relationshipCopyFor(locale);
  const copy=tarotRitualCopy(locale),cards=chart.groups.filter(group=>group.kind!=='timing'&&group.cardCode);
  const [ready,setReady]=useState(false),[stage,setStage]=useState<Stage>('focus'),[selected,setSelected]=useState<number[]>([]),[revealed,setRevealed]=useState(0),[breath,setBreath]=useState(3),[sound,setSound]=useState(false),[particles,setParticles]=useState(12);
  const groupTitle=selected.length===0?relationshipCopy.drawSelf:selected.length===1?relationshipCopy.drawPartner:relationshipCopy.drawTogether;

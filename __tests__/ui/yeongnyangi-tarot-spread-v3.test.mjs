@@ -49,7 +49,11 @@ test('spread choice respects the tier card cap and drops inputs the spread does 
  await assert.rejects(()=>prepareFortune(env,'owner',order({tarotSpreadId:'yn_stay_leave_nine'})),e=>e.code==='SPREAD_TIER_UNAVAILABLE');
  await assert.rejects(()=>prepareFortune(env,'owner',order({tarotSpreadId:'trad_celtic_cross_ten',productId:'tarot_flounder'})),e=>e.code==='SPREAD_TIER_UNAVAILABLE');
  await assert.rejects(()=>prepareFortune(env,'owner',order({tarotSpreadId:'unknown'})),e=>e.code==='INVALID_TAROT_SPREAD');
- await assert.rejects(()=>prepareFortune(env,'owner',order({locale:'en'})),e=>e.code==='READING_LOCALE_UNAVAILABLE');
+ for(const locale of ['ko','en','ja','zh-CN','zh-TW','vi','hi','es','fr','de','nl','ms']){
+  const localized=await prepareFortune(env,'locale-owner',order({locale}));
+  assert.equal(localized.snapshot.locale,locale);assert.equal(localized.state,'AWAITING_DRAW');
+  assert.equal(presentFortune(localized).charts,undefined);
+ }
  const nine=await prepareFortune(env,'owner',order({productId:'tarot_flounder',tarotSpreadId:'yn_stay_leave_nine',question:'지금 회사에 남을까, 이직할까?'}));
  assert.equal(nine.snapshot.tarotSpread.cardCount,9);
  const row=await prepareFortune(env,'owner',order({tarotInputs:{options:{a:'A',b:'B'},period:'month',relationStatus:'contact_refused',birth:'1990-01-01'}}));

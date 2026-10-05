@@ -1,3 +1,4 @@
+import {localizedTarotPosition} from '@/lib/tarot/yeongnyangi-display-locales';
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {isNativeChartLocale,nativeChartCopy,nativeChartTerm,nativeVisualCopy} from './reading-chart-locales';
 import {nativeChartLimitation} from './chart-limitation-locales';
@@ -19,6 +20,7 @@ const terms:Record<string,[string,string]>={
 };
 export function chartTerm(value:string,locale?:ReadingLocale):string{
  if(!locale||locale==='ko')return value;
+ const position=localizedTarotPosition(value,locale);if(position!==value)return position;
  if(isNativeChartLocale(locale)){
   const term=nativeChartTerm(value,locale);if(term)return term;
   if(value.startsWith('계산된 시기 · '))return `${chartCopy(locale).timing} · ${chartTerm(value.slice('계산된 시기 · '.length),locale)}`;
@@ -37,6 +39,8 @@ export function chartTerm(value:string,locale?:ReadingLocale):string{
 }
 
 const limitations:Record<string,[string,string]>={
+ '부부궁은 부처궁(夫妻宮)과 같은 자리입니다. 자녀궁으로 임신·출산 가능성을 판정하지 않습니다.':['The marriage palace is the spouse palace (夫妻宮). The children palace does not determine the possibility of pregnancy or childbirth.','夫婦宮は夫妻宮と同じ宮です。子女宮から妊娠・出産の可能性は判断しません。'],
+ '해외 출생은 출생지 진태양시와 한국 음양력 코어를 사용합니다. 균시차는 일 단위 근사이며 경계 시각 해석에는 주의가 필요합니다.':['Births outside Korea use local apparent solar time and the Korean lunisolar calendar engine. The equation of time is approximated by day, so readings near time boundaries require care.','海外出生には出生地の真太陽時と韓国の陰陽暦計算を用います。均時差は日単位の近似のため、時刻の境界付近の解釈には注意が必要です。'],
  '강약·용신은 월령·통근·조후와 함께 읽는 참고 판단입니다.':['Strength and useful element are indicative judgments read with birth month, roots and seasonal balance.','強弱や用神は、月令・通根・寒暖のバランスと合わせて読む参考判断です。'],
  '한국 표준시 출생 기준입니다.':['Based on birth time in Korea Standard Time.','韓国標準時の出生時刻を基準にしています。'],
  '출생시간 미상: 시주와 정확한 대운 시작 시점은 해석하지 않습니다.':['Birth time unknown: the hour pillar and exact start of major luck periods are not interpreted.','出生時刻が不明のため、時柱と大運の正確な開始時点は解釈しません。'],

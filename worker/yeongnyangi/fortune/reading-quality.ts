@@ -3,6 +3,7 @@ import { FortuneError } from './shared/contracts';
 import { hasReadingSections, isStructuredReading, READING_V7_VERSION } from './reading-policy';
 import {allowsPreventionBalance,hasPrevention} from './prevention';
 import {hasUnsupportedPreventionClaim} from '../../lib/fortune-prevention.js';
+import {hasLocalizedUnsupportedClaim} from './localized-claim-safety';
 
 const normalize=(s:string)=>s.normalize('NFC').replace(/\s+/g,' ').trim();
 export const SECTION_PARAGRAPH_LIMIT=500;
@@ -131,11 +132,11 @@ export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,prev
  // v7 edits repeated sentences after the original draft passes the hard checks below.
  // Whole/near-copied paragraphs above still fail; v6 keeps its existing sentence rejection.
  if(chapter.version!==READING_V7_VERSION&&sentences.length-new Set(sentences).size>1)throw new FortuneError('DUPLICATE_CHAPTER');
- const content=[...passages,body.summary,body.persona,...body.highlights,
+ const content=[body.title,...(body.blocks||[]).map(b=>b.title),...passages,body.summary,body.persona,...body.highlights,
   ...(body.questionAnswers || []).flatMap(a=>[a.answer,a.reason,a.timing,a.action])].join('\n');
  if(hasPrevention(chapter)&&hasUnsupportedPreventionClaim(content))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
+ if(hasLocalizedUnsupportedClaim(content,locale))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
  if(/(?:외도|바람기|바람끼).{0,12}\d+\s*%|(?:반드시|무조건|100%).{0,15}(?:재회|결혼|성공)|(?:암|질병|장기 이상)을?\s*(?:진단|확정)|(?:오행|명식).{0,20}(?:치료할 수|치료됩니다)|(?:(?:질병|질환)(?:이|가|에)?\s*(?:생깁니다|생긴다|생길 것입니다|생길 겁니다|발생합니다|있습니다)|병에\s*걸(?:립니다|린다|릴 것입니다|릴 겁니다|리게 됩니다)|발병(?:합니다|한다|할 것입니다|할 겁니다))(?![가-힣])/.test(content))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
- if(locale!=='ko'&&/(?:guaranteed|100%|definitely).{0,35}(?:reunion|marriage|success)|(?:必ず|絶対|100%).{0,15}(?:復縁|結婚|成功)|(?:diagnos\w*|確定|診断).{0,20}(?:cancer|disease|癌|病気)|(?:you will|you'll)\s+(?:develop|get|suffer from|be diagnosed with)\s+(?:an?\s+)?(?:\w+\s+)?(?:disease|illness|cancer)|(?:病気|疾患|がん)に(?:なります|かかります)/i.test(content))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
  if(hasOutOfTierTerm(content,chapter,locale))throw new FortuneError('TIER_SCOPE_VIOLATION');
  const chapterCount=bodyCharacterCount(body),floor=chapterFloor(chapter);
  if(!lengthRepair&&chapterCount<floor)throw new FortuneError('CHAPTER_TOO_SHORT',400,`chapter:${chapterCount}/${floor}`);

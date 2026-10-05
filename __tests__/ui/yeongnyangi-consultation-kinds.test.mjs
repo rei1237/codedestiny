@@ -72,7 +72,7 @@ test('relationship intents survive profile edits and provider outages; uncertain
 test('relationship pre-purchase validation rejects missing partner, foreign owner, unknown time and unsupported locale',async()=>{
  for(const domain of ['ziwei','vedic','astrology']){
   await assert.rejects(()=>prepareFortune(env,'owner',{...relationRequest(domain),partnerProfileId:undefined}),e=>e.code==='PARTNER_REQUIRED');
-  await assert.rejects(()=>prepareFortune(env,'owner',{...relationRequest(domain),locale:'en'}),e=>e.code==='READING_LOCALE_UNAVAILABLE');
+  assert.equal((await prepareFortune(env,'owner',{...relationRequest(domain),locale:'en'})).snapshot.locale,'en');
   await assert.rejects(()=>prepareFortune(env,'owner',{...relationRequest(domain),partnerTimeUnknown:true}),e=>e.code==='BIRTH_TIME_REQUIRED');
  }
  await assert.rejects(()=>prepareFortune(env,'owner',{...relationRequest('tarot'),participants:{self:'나'}}),e=>e.code==='PARTICIPANT_NAMES_REQUIRED');
@@ -103,7 +103,7 @@ test('overseas solar clock agrees with independent Swiss EOT within the declared
 test('relationship copy references exist and every tier retains all required report topics',async()=>{
  const {readFile}=await import('node:fs/promises');
  const source=await readFile('app/yeongnyangi/_lib/relationship-copy.ts','utf8');
- const compiled=await build({stdin:{contents:source,loader:'ts'},format:'esm',write:false});
+ const compiled=await build({stdin:{contents:source,loader:'ts',resolveDir:process.cwd()+'/app/yeongnyangi/_lib'},bundle:true,platform:'node',format:'esm',write:false});
  const {relationshipCopy}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
  for(const file of ['app/yeongnyangi/_components/Consultation.tsx','app/yeongnyangi/_components/TarotDrawRitual.tsx','app/yeongnyangi/_original/FortuneHome.tsx']){
   const content=await readFile(file,'utf8');
@@ -112,7 +112,7 @@ test('relationship copy references exist and every tier retains all required rep
  const journey=await readFile('app/yeongnyangi/_components/RelationshipJourney.tsx','utf8');
  for(const match of journey.matchAll(/copy\.(\w+)/g))assert.ok(relationshipCopy[match[1]],match[1]);
  for(const domain of ['ziwei','vedic','astrology','tarot']){
-  const kinds=consultationKinds[domain].filter(k=>k.koOnly);
+  const kinds=consultationKinds[domain].filter(k=>['compatibility','love','marriage'].includes(k.id));
   for(const kind of kinds){
    const tiers=products.filter(p=>p.domain===domain&&p.readingKind==='single');
    const all=tiers.map(p=>consultationManifest(p,kind).flatMap(c=>c.sections.map(s=>s.title)));
@@ -216,14 +216,16 @@ test('only general ask menus save private evidence packets; tarot v2 keeps its o
  assert.equal(globalThis.__kindTest.calls,0);
 });
 
-test('choice and love keep every output locale while seven new tarot menus stay Korean-only',async()=>{
+test('all v2 tarot menus keep every output locale',async()=>{
  for(const locale of loaded.exports.readingLocales)for(const consultationKind of ['choice','love']){
   const row=await prepareFortune(env,'tarot-locale-owner',{...body,productId:'tarot_mackerel',consultationKind,question:`${locale} 언어 결과`,locale});
   assert.equal(row.snapshot.locale,locale);
   assert.equal(row.snapshot.analysis.consultation.tarotConsultation.kind,consultationKind);
  }
- for(const consultationKind of ['feelings','contact','reunion','compatibility','career','money','healing']){
-  await assert.rejects(()=>prepareFortune(env,'tarot-locale-owner',{...body,productId:'tarot_mackerel',consultationKind,question:'한국어 전용 범위',locale:'en',...(consultationKind==='compatibility'?{participants:{self:'나',partner:'상대'}}:{})}),error=>error.code==='READING_LOCALE_UNAVAILABLE');
+ for(const locale of loaded.exports.readingLocales)for(const consultationKind of ['feelings','contact','reunion','compatibility','career','money','healing']){
+  const row=await prepareFortune(env,'tarot-locale-owner',{...body,productId:'tarot_mackerel',consultationKind,question:'Localized reading',locale,...(consultationKind==='compatibility'?{participants:{self:'A',partner:'B'}}:{})});
+  assert.equal(row.snapshot.locale,locale);
+  assert.equal(row.snapshot.analysis.consultation.tarotConsultation.kind,consultationKind);
  }
 });
 

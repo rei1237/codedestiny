@@ -1,3 +1,4 @@
+import {additionalKindLabel} from './consultation-kind-copy';
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 
 const ko={
@@ -67,5 +68,5 @@ const domainIds=['saju','ziwei','sukuyo','vedic','astrology','tarot','fusion'];
 const kindIds=['personal','compatibility','timing','love','work','money','ask','relationship','choice'];
 const tierIds=['mackerel','salmon','flounder','tuna','assorted','omakase'];
 export const localizedSystem=(id:string,locale:ReadingLocale)=>consultationLocaleCopy(locale).systems[domainIds.indexOf(id)]||id;
-export const localizedKind=(id:string,locale:ReadingLocale)=>consultationLocaleCopy(locale).kinds[kindIds.indexOf(id)]||id;
+export const localizedKind=(id:string,locale:ReadingLocale)=>additionalKindLabel(id,locale)||consultationLocaleCopy(locale).kinds[kindIds.indexOf(id)]||id;
 export const localizedTier=(id:string,locale:ReadingLocale)=>consultationLocaleCopy(locale).tiers[tierIds.indexOf(id)]||id;

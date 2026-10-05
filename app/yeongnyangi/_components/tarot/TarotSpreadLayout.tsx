@@ -2,7 +2,7 @@
 import type {CSSProperties} from 'react';
 import type {TarotSpreadSlot} from '../../_lib/api';
 import {yeongnyangiCardArt} from '@/lib/tarot/yeongnyangi-deck';
-import {tarotSpreadCopy as copy} from '../../_lib/tarot-spread-copy';
+import {tarotSpreadCopyFor} from '../../_lib/tarot-spread-copy';
 import TarotCardArt from '../TarotCardArt';
 import styles from './tarot-spread.module.css';
 
@@ -14,6 +14,7 @@ export type SlotCard={cardCode?:string;reversed?:boolean;open:boolean};
 /** One spread drawn from its stored slots: desktop and mobile coordinates, the Celtic crossing card, A/B sides. */
 // numbering='draw' labels slots in pick order (the pick screen); everything else uses the reading order.
 export default function TarotSpreadLayout({spread,cards={},active,size='mini',list=true,locale='ko',numbering='read'}:{spread:SpreadShape;cards?:Record<string,SlotCard|undefined>;active?:string;size?:'mini'|'full';list?:boolean;locale?:string;numbering?:'read'|'draw'}){
+ const copy=tarotSpreadCopyFor(locale);
  const slots=spread.layout.slots,max=(pick:(slot:TarotSpreadSlot)=>number)=>Math.max(1,...slots.map(pick));
  const byId=new Map(spread.positions.map(position=>[position.id,position]));
  const side=(id:string)=>spread.symmetry?.a.includes(id)?'a':spread.symmetry?.b.includes(id)?'b':undefined;
