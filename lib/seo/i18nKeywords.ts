@@ -440,7 +440,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
   "rows": [
     [
       "入力",
-      "自分の生年月日。相性を見るときは相手の生年月日も使います。"
+      "生年月日・出生時刻・当時の時間帯を使います。相性では相手の情報も入力します。時刻不明なら仮の時刻による参考結果で、宿の境界では結果が変わることがあります。"
     ],
     [
       "基本の枠組み",
@@ -467,7 +467,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "宿曜 相性",
       relatedKeywords: ["27宿", "栄親", "業胎", "安壊"],
       valuePoints: [
-  "自分の生年月日。相性を見るときは相手の生年月日も使います。",
+  "生年月日・出生時刻・当時の時間帯を使います。相性では相手の情報も入力します。時刻不明なら仮の時刻による参考結果で、宿の境界では結果が変わることがあります。",
   "27宿。道具が示す暦と計算の前提を確認します。",
   "命・業胎・栄親・友衰・安壊・危成。それぞれ異なる関わり方を表します。"
 ],
@@ -502,7 +502,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
   "rows": [
     [
       "输入",
-      "自己的出生日期；配对时也需要对方的出生日期。"
+      "使用出生日期、时间及当时的时区；配对时也需对方资料。不知道时间时，结果基于默认时间，仅供参考，在月宿边界附近可能变化。"
     ],
     [
       "体系",
@@ -529,7 +529,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "宿曜相性",
       relatedKeywords: ["27宿", "荣亲关系", "业胎关系", "安坏关系"],
       valuePoints: [
-  "自己的出生日期；配对时也需要对方的出生日期。",
+  "使用出生日期、时间及当时的时区；配对时也需对方资料。不知道时间时，结果基于默认时间，仅供参考，在月宿边界附近可能变化。",
   "27宿。先确认工具显示的历法与计算前提。",
   "命、业胎、荣亲、友衰、安坏、危成，分别描述不同的相处模式。"
 ],
@@ -564,7 +564,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
   "rows": [
     [
       "輸入",
-      "自己的出生日期；配對時也需要對方的出生日期。"
+      "使用出生日期、時間及當時的時區；配對時也需對方資料。不知道時間時，結果基於預設時間，僅供參考，在月宿邊界附近可能變化。"
     ],
     [
       "體系",
@@ -591,7 +591,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "宿曜相性",
       relatedKeywords: ["27宿", "榮親關係", "業胎關係", "安壞關係"],
       valuePoints: [
-  "自己的出生日期；配對時也需要對方的出生日期。",
+  "使用出生日期、時間及當時的時區；配對時也需對方資料。不知道時間時，結果基於預設時間，僅供參考，在月宿邊界附近可能變化。",
   "27宿。先確認工具顯示的曆法與計算前提。",
   "命、業胎、榮親、友衰、安壞、危成，分別描述不同的相處模式。"
 ],
@@ -626,7 +626,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
   "rows": [
     [
       "Input",
-      "Your birth date; add the other person’s birth date for compatibility."
+      "Birth date, birth time and the time zone at birth; add the other person’s details for compatibility. An unknown time uses a default, so the birth star may change near a boundary."
     ],
     [
       "Framework",
@@ -653,7 +653,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "sukuyo compatibility",
       relatedKeywords: ["27 mansions", "eishin", "gyoutai", "ankai"],
       valuePoints: [
-  "Your birth date; add the other person’s birth date for compatibility.",
+  "Birth date, birth time and the time zone at birth; add the other person’s details for compatibility. An unknown time uses a default, so the birth star may change near a boundary.",
   "27 birth stars. Confirm the calendar and calculation convention shown by the tool.",
   "Mei, Gyotai, Eishin, Yusui, Ankai and Kisei describe different relationship patterns."
 ],
