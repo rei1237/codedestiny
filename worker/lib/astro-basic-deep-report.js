@@ -1,4 +1,4 @@
-import natalReading from "../../js/core/astro/natal-reading.js";
+import natalReading from "./astro-natal-reading.cjs";
 import { createHttpError } from "./http.js";
 
 const BODIES = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];

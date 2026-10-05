@@ -54,8 +54,7 @@ test('Yeongnyangi wording does not mutate the legacy mindscan spread',()=>{
  const before=JSON.stringify(getSpreadDefinition('mindscan_five_card'));
  tarotConsultationSpread('feelings');
  assert.equal(JSON.stringify(getSpreadDefinition('mindscan_five_card')),before);
- assert.equal(tarotConsultations.choice.koOnly,false);assert.equal(tarotConsultations.love.koOnly,false);
- for(const id of ids.filter(id=>!['choice','love'].includes(id)))assert.equal(tarotConsultations[id].koOnly,false);
+ for(const id of ids)assert.equal(tarotConsultations[id].koOnly,false,id);
 });
 test('new draws preserve unique cards, exact positions and scoped meaning types',()=>{
  for(const id of ids){

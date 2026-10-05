@@ -35,7 +35,7 @@ beforeAll(async () => {
   ({ resolvePaidContentUnlockTarget } = await import("../../worker/lib/content-unlocks.js"));
   ({ hasPurchasedAccountContentAccess } = await import("../../worker/lib/paid-content-read-access.js"));
   ({ getBillingFeaturePricing } = await import("../../worker/lib/billing-feature-registry.js"));
-  natalReading = (await import("../../js/core/astro/natal-reading.js")).default;
+  natalReading = (await import("../../worker/lib/astro-natal-reading.cjs")).default;
 });
 const fixture = JSON.parse(readFileSync("__tests__/fixtures/astro-natal-charts.json", "utf8")).b1;
 const FEATURE_KEY = "astro_basic_deep_pack";
