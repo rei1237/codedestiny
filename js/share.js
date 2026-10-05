@@ -528,6 +528,45 @@ function cdPrimeReferralParams(){
   } catch (_) { __cdShareReferral = {}; }
 }
 
+// 공유 링크는 지금 보고 있는 언어의 셸로 연다 — 셸마다 자기 언어 미리보기 카드(og:image)를 갖는다
+// (scripts/sync-legacy-static-to-public.mjs LOCALE_SHELL_SEO·scripts/og/render-og-card.mjs).
+// 셸이 없는 언어는 영어 셸 + ?lang= 로 열어 미리보기는 영어, 본문은 그 언어로 보인다.
+var CD_SHARE_LOCALE_SHELLS = {
+  'ko': { path: '/ggulggul/', og: 'code-destiny-og-vvip.png' },
+  'en': { path: '/en/', og: 'code-destiny-og-en.png' },
+  'ja': { path: '/ja/', og: 'code-destiny-og-ja.png' },
+  'zh-CN': { path: '/zh/', og: 'code-destiny-og-zh.png' },
+  'zh-TW': { path: '/zh-tw/', og: 'code-destiny-og-zh-tw.png' }
+};
+function cdShareLocaleTarget(){
+  var lang = 'ko';
+  try {
+    if (typeof window.cdGetCurrentLanguage === 'function') lang = String(window.cdGetCurrentLanguage() || 'ko');
+    else lang = document.documentElement.getAttribute('data-cd-lang') || 'ko';
+  } catch (_) {}
+  var shell = CD_SHARE_LOCALE_SHELLS[lang];
+  if (shell) return { path: shell.path, og: shell.og, query: '' };
+  return { path: CD_SHARE_LOCALE_SHELLS.en.path, og: CD_SHARE_LOCALE_SHELLS.en.og, query: 'lang=' + encodeURIComponent(lang) };
+}
+// 서버가 준 공유 URL(카카오 추천 등)의 경로를 현재 언어 셸로 바꾼다. 쿼리(ref·rs·via)는 그대로 둔다.
+function cdLocalizeShareUrl(url){
+  try {
+    var target = cdShareLocaleTarget();
+    var parsed = new URL(String(url));
+    parsed.pathname = target.path;
+    if (target.query && !parsed.searchParams.has('lang')) parsed.searchParams.set('lang', target.query.slice('lang='.length));
+    return parsed.toString();
+  } catch (_) { return url; }
+}
+// 미리보기 카드 URL 의 파일명만 현재 언어 카드로 바꾼다(?v= 캐시 키 유지).
+function cdLocalizeShareImage(imageUrl){
+  return String(imageUrl).replace(/code-destiny-og-vvip\.png/, cdShareLocaleTarget().og);
+}
+if (typeof window !== 'undefined') {
+  window.cdLocalizeShareUrl = cdLocalizeShareUrl;
+  window.cdLocalizeShareImage = cdLocalizeShareImage;
+}
+
 // contentId 로 "결제 유도 지점" 딥링크 URL을 만든다(리퍼럴 파라미터 자동 부착).
 function cdBuildShareUrl(contentId){
   var origin = 'https://code-destiny.com';
@@ -535,7 +574,9 @@ function cdBuildShareUrl(contentId){
     if (window.location && window.location.origin && /^https?:/.test(window.location.origin)) origin = window.location.origin;
   } catch (_) {}
   var action = Object.prototype.hasOwnProperty.call(CD_SHARE_ACTION_MAP, contentId) ? CD_SHARE_ACTION_MAP[contentId] : '';
+  var target = cdShareLocaleTarget();
   var qs = [];
+  if (target.query) qs.push(target.query);
   if (action) qs.push('action=' + encodeURIComponent(action));
   var r = cdReadCachedReferral() || {};
   if (r.ref) {
@@ -543,7 +584,7 @@ function cdBuildShareUrl(contentId){
     if (r.rs) qs.push('rs=' + encodeURIComponent(r.rs));
     qs.push('via=' + encodeURIComponent(r.via || 'kakao_reward'));
   }
-  return origin + '/' + (qs.length ? ('?' + qs.join('&')) : '');
+  return origin + target.path + (qs.length ? ('?' + qs.join('&')) : '');
 }
 
 if (typeof window !== 'undefined') {

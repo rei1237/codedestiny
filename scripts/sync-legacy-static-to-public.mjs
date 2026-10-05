@@ -479,6 +479,8 @@ const LOCALE_SHELL_SEO = {
     imageAlt:
       "ハニーピッグ占い HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード",
     dictionaryFile: "ja.json",
+    // 공유 미리보기 카드(scripts/og/render-og-card.mjs ggulggul-*) — 한국어 문구 카드 대신 이 로케일 문구 카드.
+    ogImage: "code-destiny-og-ja.png",
   },
   "/zh": {
     lang: "zh-CN",
@@ -493,6 +495,8 @@ const LOCALE_SHELL_SEO = {
     imageAlt:
       "蜜豚运势 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡",
     dictionaryFile: "zh-cn.json",
+    // 공유 미리보기 카드(scripts/og/render-og-card.mjs ggulggul-*) — 한국어 문구 카드 대신 이 로케일 문구 카드.
+    ogImage: "code-destiny-og-zh.png",
   },
   // zh-TW 는 zh(간체)와 분리된 별도 로케일이다(lib/i18n/locales.ts). 문구를 zh 에서
   // 물려주면 대만 사용자에게 간체가 그대로 나가므로 번체 문구를 따로 둔다.
@@ -509,6 +513,8 @@ const LOCALE_SHELL_SEO = {
     imageAlt:
       "蜜豚運勢 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡",
     dictionaryFile: "zh-tw.json",
+    // 공유 미리보기 카드(scripts/og/render-og-card.mjs ggulggul-*) — 한국어 문구 카드 대신 이 로케일 문구 카드.
+    ogImage: "code-destiny-og-zh-tw.png",
   },
   "/en": {
     lang: "en",
@@ -523,6 +529,8 @@ const LOCALE_SHELL_SEO = {
     imageAlt:
       "Honey Pig Fortune HONEY FORTUNE — a CODE DESTINY calling card with a cameo of Yeoni the flower pig and an overview of the service",
     dictionaryFile: "en.json",
+    // 공유 미리보기 카드(scripts/og/render-og-card.mjs ggulggul-*) — 한국어 문구 카드 대신 이 로케일 문구 카드.
+    ogImage: "code-destiny-og-en.png",
   },
 };
 
@@ -698,7 +706,12 @@ function applyLocaleSeoMeta(indexHtml, localePath) {
       `<meta name="apple-mobile-web-app-title" content="${seo.appTitle}">`,
     )
     .replace(/<meta property="og:image:alt" content="[^"]*">/i, `<meta property="og:image:alt" content="${seo.imageAlt}">`)
-    .replace(/<meta name="twitter:image:alt" content="[^"]*">/i, `<meta name="twitter:image:alt" content="${seo.imageAlt}">`);
+    .replace(/<meta name="twitter:image:alt" content="[^"]*">/i, `<meta name="twitter:image:alt" content="${seo.imageAlt}">`)
+    // og:image·twitter:image 는 파일명만 바꾸고 ?v= 캐시 키는 그대로 둔다.
+    .replace(
+      /(<meta (?:property="og:image"|name="twitter:image") content="https:\/\/code-destiny\.com\/og\/)code-destiny-og-vvip\.png/gi,
+      `$1${seo.ogImage}`,
+    );
   return applyShellPageIdentity(localizedHtml, canonicalUrl);
 }
 
