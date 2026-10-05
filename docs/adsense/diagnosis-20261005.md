@@ -54,3 +54,7 @@ Impeccable context와 원고 파일 detector를 실행했다. UI 전체 접근�
 - `node scripts/ensure-ads-txt.mjs --check`: root/public 레코드 일치.
 - `npm run sitemap:generate`: 1,311 URL. 의미 품질이나 Google 색인 완료를 뜻하지 않는다.
 - `npm run check:fast -- --plan`과 `npm run check:fast` 실행. 내용 해시 파일의 교체를 삭제로 판정하여 전체 mock 게이트로 자동 승격됨. 결과는 전달 시점에 별도 기록한다.
+
+- 최종 변경 파일 ESLint: exit 0. 최신 원격 main 위 재적용 후 sitemap drift와 기존 편집 원장 재검증 통과.
+- 확대된 check:fast는 npm test 통과(510.1초), profile-current-switch 통과까지 확인했다. 생성 사본 교체로 확대된 나머지 전체 로컬 검사는 중단했으며 check:fast 전체 통과로 기록하지 않는다. 공식 전체 판정은 main CI에서 확인한다.
+- 공유 체크아웃 main의 fast-forward 시도는 기존 `.git/index.lock`으로 중단됐다. 다른 세션 잠금·미커밋·스테이징 변경은 보존했다. 최신 origin/main을 기반으로 격리 커밋을 재적용했으며 원격 main 전달은 강제 push 없이 수행한다.
