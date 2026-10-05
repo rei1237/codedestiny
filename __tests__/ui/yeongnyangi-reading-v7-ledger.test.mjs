@@ -184,6 +184,13 @@ test('ziwei, vedic, astrology, sukuyo, tarot: sub-IDs land on the catalog owners
  assert.ok(as('aspects').some(id=>id.includes('-conjunction-')||id.endsWith('none-conjunction')));
  // Tuna has no conjunction chapter: a conjunction goes to the earlier planet owner in manifest order.
  assert.deepEqual(a('uranus'),['astrology.planets.Uranus','astrology.aspects.Neptune-conjunction-Uranus']);
+ // A chart without a conjunction declares the absence; with no conjunction chapter it goes to the first aspect chapter.
+ const noConjunction={...contexts.astrology,facts:contexts.astrology.facts.map(f=>f.label==='aspects'?{...f,value:f.value.filter(x=>x.type!=='conjunction')}:f)};
+ for(const tier of TIERS){
+  const {chapters,unowned}=m.resolveV7Ledger(manifest('astrology',tier,'personal'),noConjunction,{asOf});
+  assert.deepEqual(unowned,[],tier);
+  assert.equal(chapters.find(c=>c.owns.includes('astrology.aspects.none-conjunction'))?.key,tier==='salmon'?'aspects':'tension',tier);
+ }
  assert.ok(as('wealth').includes('astrology.planets.Uranus'),'salmon: Uranus (8th house) falls back to the wealth chapter');
  const s=pick('sukuyo','tuna'),ss=pick('sukuyo','salmon');
  assert.ok(s('an').length===3&&s('an').every(id=>/^sukuyo\.relationMap\.an\.\d+$/.test(id)));

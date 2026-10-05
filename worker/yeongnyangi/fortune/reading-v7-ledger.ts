@@ -221,7 +221,10 @@ function astrology(label:string,v:O,k:Kit){
         const [x,y]=[a.p1,a.p2].sort();seen.add(family);
         k.emit(label,id(`${x}-${a.type}-${y}`),a,[`aspects.${family}`],[`planets.${a.p1}`,`planets.${a.p2}`],[`houseCusps.${planets[a.p1]?.house}`,`houseCusps.${planets[a.p2]?.house}`]);
       }
-      for(const family of ['tension','harmony','conjunction'])if(!seen.has(family))k.emit(label,`none-${family}`,{family,present:false},[`aspects.${family}`]);
+      // A declared absence has no planets to fall back to: tiers without that family's chapter (flounder·tuna have no
+      // conjunction chapter) hand it to the first aspect chapter in manifest order.
+      const families=['tension','harmony','conjunction'];
+      for(const family of families)if(!seen.has(family))k.emit(label,`none-${family}`,{family,present:false},[`aspects.${family}`],families.map(f=>`aspects.${f}`));
       return true;
     }
   }
