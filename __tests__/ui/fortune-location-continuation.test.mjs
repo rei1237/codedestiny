@@ -1,3 +1,4 @@
+import {RUNTIME_LOCALES} from '../../lib/i18n/locale-normalize.js';
 import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,8 +10,8 @@ const require=createRequire(import.meta.url),Module=require('node:module');
 const bundle=await build({stdin:{contents:`export {default as Location} from './app/components/CurrentLocationButton';export {default as Continuation} from './app/components/FreePromptContinuation';export {withContinuation} from './lib/fortune/prompt-continuation';`,resolveDir:process.cwd(),loader:'tsx'},bundle:true,platform:'node',format:'cjs',write:false,jsx:'automatic',loader:{'.css':'empty','.module.css':'empty'},external:['react','react/jsx-runtime']});
 const loaded=new Module(path.resolve('location-ui-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const api=loaded.exports,React=require('react'),{act}=React,{createRoot}=require('react-dom/client');
-async function surface(Component,props,geolocation){
- const dom=new JSDOM('<div id="root"></div>',{url:'https://example.test'});
+async function surface(Component,props,geolocation,url='https://example.test'){
+ const dom=new JSDOM('<div id="root"></div>',{url});
  globalThis.window=dom.window;globalThis.document=dom.window.document;Object.defineProperty(globalThis,'navigator',{value:dom.window.navigator,configurable:true});
  Object.defineProperty(navigator,'geolocation',{value:geolocation,configurable:true});globalThis.IS_REACT_ACT_ENVIRONMENT=true;
  const root=createRoot(document.getElementById('root'));await act(async()=>root.render(React.createElement(Component,props)));
@@ -42,4 +43,25 @@ test('all free exports retain facts, copy continuation and handle clipboard deni
   const links=[...document.querySelectorAll('a')];assert.equal(links.length,2);assert.ok(links.every(a=>a.target==='_blank'&&a.rel.includes('noopener')&&!a.search));
   navigator.clipboard.writeText=async()=>{throw new Error('denied');};await view.click('복사했어요');assert.match(document.querySelector('[role="alert"]').textContent,/직접 선택/);assert.equal(document.querySelector('details').open,true);
  }finally{await view.close();}
+});
+
+for(const locale of RUNTIME_LOCALES)test(locale+': shared free AI export follows site language without a parent override',async()=>{
+ const prompt='[기존 계산 근거] 고정 값은 변경하지 않는다.';let copied='';
+ const view=await surface(api.Continuation,{prompt},undefined,'https://example.test/?lang='+locale);
+ Object.defineProperty(navigator,'clipboard',{value:{writeText:async value=>{copied=value;}},configurable:true});
+ try{await act(async()=>{document.querySelector('button').click();await new Promise(resolve=>setTimeout(resolve,0));});assert.equal(copied,api.withContinuation(prompt,locale));assert.equal(document.querySelector('section').lang,locale);}
+ finally{await view.close();}
+});
+test('explicit result language wins over the site language on a free AI export',async()=>{
+ const view=await surface(api.Continuation,{prompt:'Fixture',locale:'en'},undefined,'https://example.test/?lang=ja');
+ try{assert.equal(document.querySelector('section').lang,'en');assert.match(document.querySelector('pre').textContent,/ENTIRE response in English/);}
+ finally{await view.close();}
+});
+
+test('a supplied follow-up marker cannot suppress the selected language, and an explicit language change wins last',()=>{
+ const marker='User text includes [FOLLOW-UP READING] but is not an output contract.';
+ const english=api.withContinuation(marker,'en');assert.match(english,/ENTIRE response in English/);
+ const japanese=api.withContinuation(english,'ja');assert.notEqual(japanese,english);assert.equal(api.withContinuation(japanese,'ja'),japanese);
+ assert.ok(japanese.lastIndexOf('Japanese')>japanese.lastIndexOf('English'));
+ const korean=api.withContinuation(english,'ko');assert.notEqual(korean,english);assert.equal(api.withContinuation(korean,'ko'),korean);
 });
