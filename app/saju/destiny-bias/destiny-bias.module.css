@@ -1955,3 +1955,78 @@
     transition: none;
   }
 }
+
+/* 공유 랜딩: 납작한 유리판 대신 무대 위 홀로 카드 + 금색 점수 배지 */
+.landingCard {
+  isolation: isolate;
+  border: 0;
+  background-color: rgba(30, 16, 62, 0.78);
+  box-shadow:
+    0 0 0 1px rgba(255, 217, 138, 0.22),
+    0 0 48px rgba(196, 160, 255, 0.32),
+    0 24px 60px rgba(4, 1, 14, 0.6);
+}
+
+.landingCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: conic-gradient(from 210deg, #ffd98a, #ff8fd0, #9fe3ff, #c9a7ff, #ffd98a);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.landingScoreBlock {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin: 4px 0;
+}
+
+.landingScore {
+  margin: 0;
+  font-family: var(--dbk-font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 64px;
+  line-height: 0.95;
+  color: var(--dbk-gold);
+  text-shadow: 0 0 28px rgba(255, 217, 138, 0.5);
+}
+
+.landingScore small {
+  margin-left: 4px;
+  font-family: var(--dbk-font-serif);
+  font-style: normal;
+  font-size: 22px;
+}
+
+.landingGrade {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 8px;
+  margin: 0;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 217, 138, 0.45);
+  border-radius: 999px;
+  background: rgba(255, 217, 138, 0.1);
+  font-family: var(--dbk-font-poster);
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  color: var(--dbk-gold);
+}
+
+.landingGrade em {
+  font-family: var(--dbk-font-display);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: #fff;
+}

@@ -175,24 +175,19 @@
 }
 
 .canvas[data-ratio="square"] .pair {
-  font-size: 50px;
+  font-size: 60px;
 }
 
-.canvas[data-ratio="square"] .score {
-  font-size: 132px;
-}
-
-/* 등급은 카드 안 배지와 겹쳐 오른쪽 열에서는 뺀다 */
-.canvas[data-ratio="square"] .grade {
+/* 점수·등급·유형은 카드 안(보석 배지·하단 유형)에 이미 있어 오른쪽 열에서는 뺀다 */
+.canvas[data-ratio="square"] .score,
+.canvas[data-ratio="square"] .grade,
+.canvas[data-ratio="square"] .type {
   display: none;
 }
 
-.canvas[data-ratio="square"] .type {
-  font-size: 28px;
-}
-
 .canvas[data-ratio="square"] .oneLiner {
-  font-size: 25px;
+  margin-top: 40px;
+  font-size: 34px;
 }
 
 /* ---------- 9:16 (1080×1920): 위 문구, 가운데 카드, 아래 한 줄 ---------- */
