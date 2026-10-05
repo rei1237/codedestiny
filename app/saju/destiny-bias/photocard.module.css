@@ -695,6 +695,54 @@
   color: #ff9bb8;
 }
 
+/* 결과 카드 바로 아래 「최애 사진으로 포토카드 만들기」 */
+.photoPicker {
+  margin: 0;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  border-color: rgba(255, 217, 138, 0.42);
+}
+
+.photoPickerBody {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.photoThumb {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 84px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  background: rgba(255, 255, 255, 0.06);
+  display: grid;
+  place-items: center;
+  color: var(--dbk-foil-gold, #ffd98a);
+  font-size: 22px;
+}
+
+.photoThumb[data-empty] {
+  border-style: dashed;
+}
+
+.photoThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoPicker .decoRow {
+  min-width: 0;
+}
+
+.photoPicker .decoPhotoBtn {
+  border-color: var(--dbk-foil-gold, #ffd98a);
+  background: rgba(255, 217, 138, 0.12);
+}
+
 .decoFile {
   position: absolute;
   width: 1px;
