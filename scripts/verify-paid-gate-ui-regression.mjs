@@ -491,8 +491,10 @@ const neoSubmitSource = section(
   "} catch (caught) {",
   "neo operation room submit flow"
 );
-assertBefore(neoSubmitSource, "beginPaidFeatureGateCheck({", "postJson<EnsureAccessResult>(API_ENDPOINTS.ensureAccess", "neo operation room opens paid gate before ensure-access API");
-assertContains(neoSubmitSource, "completePaidFeatureGateCheck({", "neo operation room completes paid gate after access");
+assertBefore(neoSubmitSource, "await runBillingCoinGate({", "await startBriefing(", "neo operation room resolves shared checkout before generation");
+assert.ok(!neoSubmitSource.includes("API_ENDPOINTS.ensureAccess"), "neo checkout must not wait for an access preflight");
+assertContains(neoSubmitSource, "if (!gate.ok || !gate.data)", "neo requires a successful shared gate before generation");
+assertContains(neoSubmitSource, "submitLockRef.current", "neo blocks duplicate submissions before checkout");
 assertContains(neoOperationRoomSource, "failPaidFeatureGateCheck({", "neo operation room shows paid gate failure");
 
 for (const feature of reactGateFirstFeatureSources) {
