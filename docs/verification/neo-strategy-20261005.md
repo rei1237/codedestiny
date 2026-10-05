@@ -36,6 +36,7 @@
 - ko/en/ja/zh-CN/zh-TW 긴 문장 PDF 생성·렌더 확인. 영어 9쪽, 나머지 각 8쪽, 빈 페이지 0, 원문 링크 보존. PDF는 브라우저 글꼴을 그린 이미지 방식이다.
 - 독립 UI 리뷰 `ship`: 입구·결제·홈·전략서·PDF 및 결과 화면. 전용 프리셋 대신 일반 리뷰 에이전트 사용. 글자 크기 advisory 5건은 비차단.
 - 이미지 출처와 정확한 생성 프롬프트: `docs/design/neo-strategy-assets.json`, 각 신규 WebP의 JSON sidecar.
+- 첫 후속 main CI에서 Critical checks·타입·lint는 통과했다. 빌드 후 SEO 검사에서 전략서 페이지의 루트 description 상속을 검출해 전용 description·canonical·googleBot 비색인 정보를 추가했다. Linux 미러 검사에서 발견된 홈 CSS 줄바꿈에 따른 빈 줄·검색 제외 목록 차이는 LF 원본으로 재생성했다.
 
 ## 범위와 제한
 
