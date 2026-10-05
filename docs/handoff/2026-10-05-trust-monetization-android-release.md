@@ -150,3 +150,10 @@ next: 기본 상세 전달 분리의 실패 검사·최종 main CI와 통합 상
 - 공유 main에는 index/public/home CSS 및 marketing의 타 세션 staged/unstaged 변경이 남아 있어 그 체크아웃은 변경하지 않는다. 지정 워크트리에서 원격 main을 fast-forward로 전달하고 정확한 SHA의 main CI를 확인한다. 타 세션 작업의 로컬 통합·워크트리 배수 및 Android는 아직 완료 조건을 충족하지 않았다.
 - 전달 직전 다국어 세션의 원격 main `0ea7aaeb5`가 추가되어 최초 push는 fast-forward 조건으로 거절됐다. 이를 `d80cc304bf85bf07de838ed638079ecd31e17728`로 병합해 push했다. 통합된 다국어 소스 때문에 사이트맵 원장 서명 18개가 추가로 바뀌어 공식 생성기로 갱신했고 `verify:sitemap-drift` 1,311 URLs 통과를 다시 확인했다. 이 보정 커밋의 main CI를 최종 판정 대상으로 삼는다.
 - 커밋 후 재실행한 `verify-public-mirror-fresh`는 통과했다(재생성 변경 없음). 공유 main의 미커밋 작업과 Android 빌드는 계속 보존/보류한다.
+
+### 통합 CI 보정
+
+- `1b6c93af8` main CI `37333666868` 실패를 확인했다. 다국어 세션 통합 파일 `relationship-locales.ts`의 `Object.fromEntries` 타입 추론(TS2352)과 기존 테스트 두 곳의 한국어 전용 기대값이 원인이었다.
+- 런타임 문구/메뉴/결제 정책은 유지하고 `Object.fromEntries<RelationshipCopy>`로 값 타입을 명시했다. 기존 테스트는 다국어 지원 계약에 맞게 한국어 전용 기대값만 보정했다. 건강 근거와 의료 안내, 고정 타로 배열 검증은 유지했다.
+- `npm run typecheck` exit 0, 관련 기존/다국어 Node 테스트 35/35 통과. 타입 변경에 연결된 사이트맵 서명 1개를 공식 생성기로 갱신했다.
+- 최종 통합 코드의 빌드/critical 검사까지 확인하기 위해 `PR CI`를 `full_ci=true`로 실행한다. 이 워크플로는 배포/Android 빌드가 아니다. 결과는 실제 실행 SHA와 함께 최종 보고한다.
