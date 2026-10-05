@@ -1,3 +1,5 @@
+import PublicRecordLink from '../components/PublicRecordLink';
+import { publicRecordCopy } from '../../lib/seo/public-record-copy.mjs';
 import { brandCopy } from '../../lib/seo/brand-copy.mjs';
 import { PRESS_COVERAGE } from "../../lib/seo/press-coverage.mjs";
 import PressCoverage from "../components/PressCoverage";
@@ -69,6 +71,7 @@ const SERVICES = [
 ];
 
 const FAQS = [
+  ...publicRecordCopy.ko.faqs.slice(1),
   {
     question: "꿀꿀 운세가 무엇인가요?",
     answer:
@@ -233,6 +236,7 @@ export default function KkulKkulUnsePage() {
         </div>
       </section>
 
+      <PublicRecordLink />
       <PressCoverage />
       <section className={styles.sectionBand} aria-labelledby="brandHistoryHeading">
         <div className={styles.sectionHeader}>

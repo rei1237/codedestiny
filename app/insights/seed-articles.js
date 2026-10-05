@@ -1,3 +1,4 @@
+import { PUBLIC_RECORD_ARTICLE } from './public-record-article';
 import { actualContentDate } from "../../lib/content/editorial-review.mjs";
 import { INSIGHT_ARTICLES } from "./articles";
 import { getExplicitInsightTopic, getInsightTopicLabel } from "./insight-topic";
@@ -954,7 +955,7 @@ function buildSeedArticle(article, index) {
   };
 }
 
-const MERGED_INSIGHT_ARTICLES = [...SEO_GROWTH_ARTICLES, ...INSIGHT_ARTICLES];
+const MERGED_INSIGHT_ARTICLES = [PUBLIC_RECORD_ARTICLE, ...SEO_GROWTH_ARTICLES, ...INSIGHT_ARTICLES];
 
 export const INSIGHT_SEED_ARTICLES = Array.from(
   new Map(

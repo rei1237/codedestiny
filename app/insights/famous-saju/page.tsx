@@ -1,3 +1,4 @@
+import PublicRecordLink from '../../components/PublicRecordLink';
 import Image from "next/image";
 import Link from "next/link";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
@@ -225,6 +226,7 @@ export default function FamousSajuInsightIndexPage() {
             <p className="mt-5 text-base leading-8 text-slate-300">
               {famousSajuInsightCopy.intro}
             </p>
+            <PublicRecordLink />
             <p className="mt-3 text-sm text-slate-400">
               아래 태그와 검색으로 인물·분야를 좁혀 볼 수 있습니다. 출생 시간이 확인되지 않은
               인물은 시주를 비운 삼주 기준으로 계산하며, 그 사실을 상세 페이지에 함께 적습니다.

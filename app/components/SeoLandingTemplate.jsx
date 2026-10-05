@@ -1,3 +1,4 @@
+import PublicRecordLink from './PublicRecordLink';
 import { getIntentCopy } from '../../lib/seo/intent-copy.mjs';
 import {FreeQuestionNext} from "./QuestionJourney";
 import { Fragment } from "react";
@@ -309,6 +310,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
           <p className="mt-4 break-keep text-[0.98rem] leading-[1.9] text-[#51475c]">{page.intro || page.description}</p>
         </section>}
 
+        {intent && <PublicRecordLink />}
         {intent && <p className="mt-5 text-sm leading-7"><Link href={intent.href} className="underline underline-offset-4">{intent.label}</Link></p>}
 
         {/* 세 덩어리는 성격이 다르다 — 순서(사용 방법), 목록(제공 결과), 각주(면책).

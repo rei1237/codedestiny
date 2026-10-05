@@ -36,3 +36,11 @@ Status: active. Approved: 2026-10-05. Production deployment: pending separate ap
 검증: verify-seo-birth-examples 4/4 PASS; verify-yeongnyangi-engines 35 contracts PASS (mock 네트워크 차단, 실 LLM·PG 없음). 엔진 파일은 변경하지 않았다. source/adapter 검증이며 실제 배포 HTML과 색인 변화 증명은 아니다. Phase 1 로컬 Yeti/Googlebot curl은 두 UA 모두 200; 변경된 App Router 본문은 최종 staging curl에서 별도 확인해야 한다.
 
 check:fast의 88개 gate 중 npm test에서 옛 action href 조건 2건이 실패했다. 승인된 허브 href 기준으로 두 테스트를 갱신한 후 관련 6 tests PASS. 전체 재검증 및 main CI는 최종 단계에 수행한다.
+
+## Phase 3 — 대통령 사주 공개 기록
+
+신규 정본 /insights/presidential-saju-public-records/를 기존 인사이트 발행 경로에 추가했다. 공개일·원문·사건 공공 출처·시점·방식을 분리한 표, 판정 기준, 327일 간격, 사건 전 보존본 미확보 한계를 명시했다. 세 번째 글은 연도 일치와 방식 불일치를 함께 표기했다. 정리 문서의 저자는 편집팀으로 두고 원문 분석자를 박병하로 구분했다.
+
+홈 첫 화면 아래·영냥이 가이드·6체계 허브·About·유명인 허브·브랜드 안내에서 연결한다. 표 요약 OG 1200×630과 가시 FAQ 3개를 추가했다. 신규 URL은 생성 사이트맵 1,311개에 포함했다. 본문 단순 태그 제거 길이 2,297자(브라우저 가시 글자 수와 다른 source 측정).
+
+원문 직접 열람은 Phase 0에서 수행했다. 현재 원문 날짜와 사건 전 수정 불변성을 혼동하지 않는다. 적중률·유일·100%·방식까지 적중 문구는 사용하지 않았다. 네이버 블로그 자동 발행·프로필 수정은 수행하지 않았으며 사용자 체크리스트로 넘긴다. 운영 반영 후 원문 링크·표·FAQ·OG의 curl/공유 미리보기와 D+14/D+30 브랜드·인용을 확인한다.
