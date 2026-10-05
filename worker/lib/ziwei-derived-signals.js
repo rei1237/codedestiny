@@ -120,6 +120,26 @@ export function buildZiweiBusinessBasis(palaces,birthTimeUnknown=false){
   ...(birthTimeUnknown?{limitation:TIME_LIMITATION}:{})};
 }
 
+// 프롬프트 줄 상한. 실측(2026-10-05, 1950~2009년 2,880명반): 연결 문장 1~10개(중앙 4~5), 최장 85자.
+export const ZIWEI_BUSINESS_MAX_LINKS=4;
+export const ZIWEI_BUSINESS_MAX_LINE_CHARS=120;
+// 궁 사이를 잇는 문장이 새 정보다(생년사화는 이미 차트·확정값에 있다). 주고받음 > 궁간 비화·자화 > 생년사화 순으로 싣는다.
+/** @param {string} line */
+const linkRank=line=>line.includes('주고받는다')?0:line.includes('에 생년 ')?2:1;
+/** @param {string} line */
+const clip=line=>line.length>ZIWEI_BUSINESS_MAX_LINE_CHARS?`${line.slice(0,ZIWEI_BUSINESS_MAX_LINE_CHARS-1)}…`:line;
+
+/** 사업운 근거를 프롬프트용 한국어 줄로 만든다. 머리말("사업운 근거:" 등)과 목록 기호는 호출부가 붙인다.
+ * 네 궁 역할 1줄 + 연결 최대 4줄 + 시간 미상 한계 1줄 = 최대 6줄, 줄당 120자 이하.
+ * @param {ReturnType<typeof buildZiweiBusinessBasis>|null|undefined} basis @returns {string[]} */
+export function formatZiweiBusinessLines(basis){
+ if(!basis||!Array.isArray(basis.links))return [];
+ const roles=(basis.palaces||[]).map(p=>p&&`${p.palace}=${p.role}`).filter(Boolean);
+ const links=basis.links.map((line,i)=>({line,i})).sort((a,b)=>linkRank(a.line)-linkRank(b.line)||a.i-b.i)
+  .slice(0,ZIWEI_BUSINESS_MAX_LINKS).map(x=>x.line);
+ return [roles.length?`네 궁의 역할: ${roles.join(', ')}`:'',...links,basis.limitation||''].filter(Boolean).map(clip);
+}
+
 /** @type {Record<string,string>} */
 const HEALTH_ROLE={질액궁:'몸의 약한 고리와 무리가 쌓이는 곳',부모궁:'질액궁의 대궁 — 타고난 체질의 바탕',복덕궁:'마음의 여유와 정신적 회복'};
 // 화기를 보낸 궁이 가리키는 생활 영역. 그 영역의 부담이 몸의 리듬으로 번지는 조건을 말한다.
