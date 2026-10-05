@@ -8,11 +8,15 @@ import {
   DESTINY_BIAS_SHARE_TTL_MS,
   buildDestinyBiasOgHtml,
   collectDestinyBiasOgGlyphs,
+  computeDestinyBiasShareContentHash,
   createDestinyBiasShare,
   destinyBiasShareRateLimitVerdict,
   findPublicDestinyBiasShare,
+  normalizeDestinyBiasShareInput,
+  projectDestinyBiasShare,
   resolveReferenceDate,
 } from "../../worker/lib/destiny-bias-share.js";
+import { runChemi } from "../../lib/idol-chemi/index.js";
 
 const NOW = new Date("2026-10-04T03:00:00.000Z"); // KST 2026-10-04 12:00
 const USER_BIRTH = "1995-03-14";
@@ -93,6 +97,44 @@ describe("destiny-bias share — storage", () => {
     const record = model.records[0];
     expect(record.expiresAt.getTime() - record.createdAt.getTime()).toBe(DESTINY_BIAS_SHARE_TTL_MS);
     expect(DESTINY_BIAS_SHARE_TTL_MS).toBe(90 * 24 * 60 * 60 * 1000);
+  });
+
+  it("stores the server-recomputed score and grade, ignoring client-sent values", async () => {
+    const model = createMemoryModel();
+    const { result } = runChemi({
+      user: { birthDate: USER_BIRTH, calendarType: "solar" },
+      partner: { kind: "roster", id: "bts-jungkook" },
+      referenceDate: "2026-10-04",
+    });
+    const created = await createDestinyBiasShare({
+      input: { ...input, score: 100, grade: "LEGENDARY", totalScore: 100 },
+      requestUrl,
+      env,
+      now: NOW,
+      model,
+    });
+    expect(created.snapshot.score).toBe(result.score.total);
+    expect(created.snapshot.grade).toBe(result.score.grade);
+    expect(created.snapshot.gradeTitle).toBe(result.score.gradeTitle);
+    expect(model.records[0].scoreVersion).toBe(result.scoreVersion);
+  });
+
+  it("does not reuse another share whose score differs (score is in the content hash)", async () => {
+    const base = projectDestinyBiasShare(normalizeDestinyBiasShareInput(input, NOW));
+    const same = await computeDestinyBiasShareContentHash(base);
+    const other = await computeDestinyBiasShareContentHash({ ...base, score: base.score + 1 });
+    expect(other).not.toBe(same);
+  });
+
+  it("reads back pre-score shares with null score fields", async () => {
+    const model = createMemoryModel();
+    const created = await createDestinyBiasShare({ input, requestUrl, env, now: NOW, model });
+    const record = model.records[0];
+    delete record.score;
+    delete record.grade;
+    delete record.gradeTitle;
+    const found = await findPublicDestinyBiasShare({ shareId: created.snapshot.shareId, now: NOW, model });
+    expect(found).toMatchObject({ score: null, grade: null, gradeTitle: null });
   });
 
   it("reuses the same share for identical content and hides the nickname when not opted in", async () => {

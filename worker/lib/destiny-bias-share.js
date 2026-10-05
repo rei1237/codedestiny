@@ -156,6 +156,11 @@ export function projectDestinyBiasShare(normalized) {
     chemiTypeNameKo: sanitizeShareText(typeMeta?.nameKo || result.chemiTypeNameKo, 80),
     chemiTypeShortKo: sanitizeShareText(typeMeta?.shortKo || result.chemiTypeShortKo, 40),
     signalStrength: result.signalStrength,
+    // 점수·등급도 서버 재계산값만 싣는다(요청 본문에 score 가 있어도 읽지 않는다).
+    score: result.score.total,
+    grade: sanitizeShareText(result.score.grade, 40),
+    gradeTitle: sanitizeShareText(result.score.gradeTitle, 60),
+    scoreVersion: String(result.scoreVersion),
     oneLiner: sanitizeShareText(copy.oneLiner, 160),
     partnerKind: result.partner.kind,
     partnerId: result.partner.id,
@@ -175,11 +180,14 @@ async function sha256Hex(text) {
   return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-/** 같은 (유형·최애·닉네임·버전) → 같은 링크. 생일은 해시 재료에도 넣지 않는다. */
+/** 같은 (유형·점수·최애·닉네임·버전) → 같은 링크. 생일은 해시 재료에도 넣지 않는다. */
 export function computeDestinyBiasShareContentHash(projected) {
   const material = [
     projected.chemiTypeId,
     projected.signalStrength,
+    // 점수가 빠지면 유형·최애가 같은 다른 사람의 링크(다른 점수)를 재사용하게 된다.
+    projected.score,
+    projected.scoreVersion,
     projected.oneLiner,
     projected.partnerKind,
     projected.partnerId,
@@ -201,6 +209,10 @@ export function toPublicDestinyBiasShare(record) {
     chemiTypeNameKo: String(value.chemiTypeNameKo),
     chemiTypeShortKo: String(value.chemiTypeShortKo),
     signalStrength: String(value.signalStrength),
+    // 점수 도입 전 문서에는 없다 → null(화면은 점수 줄을 숨긴다).
+    score: Number.isFinite(value.score) ? Number(value.score) : null,
+    grade: value.grade ? String(value.grade) : null,
+    gradeTitle: value.gradeTitle ? String(value.gradeTitle) : null,
     oneLiner: String(value.oneLiner),
     partner: {
       kind: String(value.partnerKind),
