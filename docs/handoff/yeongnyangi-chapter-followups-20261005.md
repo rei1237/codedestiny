@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-05
-next: "후속 과제 3번(모바일 상담 메뉴 CSS): design-canon 을 먼저 읽고 390px headed 브라우저로 kindChoices 줄바꿈·정렬을 확인한다."
+next: "후속 과제 4번(점성술 광어·참치 aspects.none-conjunction 담당 장 없음): worker/yeongnyangi/fortune/reading-v7-ledger.ts 에서 none 사실의 소유 폴백을 확인한다."
 ---
 
 # 영냥이 챕터 확장 후속 과제 인수인계
@@ -38,6 +38,8 @@ next: "후속 과제 3번(모바일 상담 메뉴 CSS): design-canon 을 먼저 
 ### 3. 모바일 상담 메뉴 CSS (기존 결함, UI)
 - 영냥이 운세 화면의 상담 종류 버튼 그룹(`kindChoices`, 390px): ① 한국어가 음절 단위로 줄바꿈된다(`word-break: keep-all` 누락 추정) ② 설명이 한 줄인 버튼은 내용이 가운데로 몰린다.
 - [design-canon](../context/design-canon.md) 을 먼저 읽고, headed 브라우저로 화면을 띄워 확인한다.
+- **결과(2026-10-05, `e34842876`)**: 390px 실측으로 두 증상 모두 확인 — 5개 도메인 단어 중간 줄바꿈 25곳(`불/러요` 등), 한 줄짜리 설명 버튼만 내용이 5~7px 아래로 밀림. `.kindChoices button` 에 `align-content:start; word-break:keep-all; overflow-wrap:anywhere`(같은 파일 `.fusionChoices` 관용구) → 0곳·전 버튼 위 여백 13px·320px 가로 넘침 0. 범위 밖 관찰(보고만): 영냥 신점 카드 "인연/의 흐름", 언어 안내 "재/열람에도" 단어 중간 줄바꿈.
+- 부수 발견: `check:fast` 가 CSS 한 줄에 약 20분 걸렸다. ① 스크래치 `.tmp/` 가 gitignore 밖이라 미분류로 fail-closed → 결제 게이트 스위트 ② `app/**` 편집 때마다 재생성되는 `config/sitemap-lastmod.json` 이 `^config/` shared 로 critical. `.tmp/` 무시 + 원장 예외(`scripts/lib/verification-plan.mjs`)로 같은 변경은 standard.
 
 ### 4. 점성술 광어·참치 `aspects.none-conjunction` 담당 장 없음 (기존 결함)
 - ft 등급에 `aspects.conjunction` 소유 장이 없고 none 사실에 폴백 레벨이 없어 원장에서 미소유로 남는다. '.houseRulers.' 접두 사실과 ledger unknown fact 경고도 같은 축에서 함께 본다.
