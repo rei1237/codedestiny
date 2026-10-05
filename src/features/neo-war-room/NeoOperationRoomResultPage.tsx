@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle2, Download, Loader2, Lock } from "lucide-react";
+import { BookOpen, Download, Loader2, Lock } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { receiveNeoBriefing } from "./paid-delivery";
@@ -22,6 +22,7 @@ import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
 import NeoCompatSummaryCard, { type NeoCompatSummary } from "./components/NeoCompatSummaryCard";
 import NeoVisualBriefing, { NeoBriefingArt, neoBriefingExcerpt } from "./components/NeoVisualBriefing";
 import NeoResultChapters from "./components/NeoResultChapters";
+import { getNeoBookCopy } from "./data/strategy-book";
 import { getNeoVisualCopy } from "./data/visual-copy";
 import { type NeoWarRoomConsultMode, neoWarRoomAssets } from "./data/assets";
 import { getLocalizedNeoWarRoomMethodDefinition, getLocalizedNeoWarRoomMethodRegistry } from "./data/method-registry";
@@ -30,10 +31,8 @@ import {
   buildNeoSincereLetterParagraphs,
   getNeoResultAdjustWithTiming,
   getNeoResultBadgeVaultAriaLabel,
-  getNeoResultBadgeVaultRemainingMsg,
   getNeoResultCopy,
   getNeoResultGeneratingBody,
-  getNeoResultLetterLockBody,
   getNeoResultVerdictWithStatus,
 } from "./data/result-copy";
 import styles from "./neo-operation-room-result.module.css";
@@ -375,10 +374,6 @@ function toBadgeAwardState(badge: NeoBadgeState | null | undefined): NeoBadgeAwa
   };
 }
 
-function getSessionId(session: NeoResultSession) {
-  return String(session.sessionId || session.id || "").trim();
-}
-
 function getBadgeStampStyle(index: number) {
   const safeIndex = Math.max(0, Math.min(NEO_RESULT_BADGE_COUNT - 1, index));
   const column = safeIndex % NEO_RESULT_BADGE_COLUMNS;
@@ -446,8 +441,6 @@ export default function NeoOperationRoomResultPage() {
     awardedNow: false,
   });
   const [neoBenefitsUnlocked, setNeoBenefitsUnlocked] = useState(false);
-  const [benefitUnlocking, setBenefitUnlocking] = useState(false);
-  const [benefitUnlockError, setBenefitUnlockError] = useState("");
   const documentRef = useRef<HTMLElement | null>(null);
   const resultSealGate = useSpritePlaybackGate<HTMLDivElement>({ pauseWhenOffscreen: false });
 
@@ -594,43 +587,6 @@ export default function NeoOperationRoomResultPage() {
     return receiveNeoBriefing<NeoResultSession>(resultId, partial => { if (isCurrent()) setSession(partial); }, isCurrent, "", "refinement");
   }
 
-  async function handleUnlockNeoBenefits() {
-    if (!session || benefitUnlocking || neoBenefitsUnlocked) return;
-    if (isLocalPreview) {
-      setBenefitUnlockError(resultCopy.previewUnlockNotice);
-      return;
-    }
-    const sessionId = getSessionId(session);
-    if (!sessionId) {
-      setBenefitUnlockError(resultCopy.missingSessionKeyError);
-      return;
-    }
-    setBenefitUnlocking(true);
-    setBenefitUnlockError("");
-    try {
-      const response = await authFetch("/api/neo-operation-room/badges/unlock-benefits", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId }),
-      });
-      const data = (await response.json().catch(() => ({}))) as { ok?: boolean; reason?: string; badge?: NeoBadgeState };
-      const nextAward = toBadgeAwardState(data.badge);
-      if (nextAward) setBadgeAward((current) => ({ ...current, count: nextAward.count, currentBadgeIndex: nextAward.currentBadgeIndex }));
-      if (response.ok && data?.ok) {
-        setNeoBenefitsUnlocked(true);
-        setPdfError("");
-      } else {
-        setBenefitUnlockError(data?.reason === "missing_key"
-          ? resultCopy.missingSessionKeyError
-          : resultCopy.unlockGenericHint);
-      }
-    } catch {
-      setBenefitUnlockError(resultCopy.unlockErrorGeneric);
-    } finally {
-      setBenefitUnlocking(false);
-    }
-  }
-
   async function handlePdfDownload() {
     const element = documentRef.current;
     if (!element || pdfLoading) return;
@@ -725,7 +681,7 @@ export default function NeoOperationRoomResultPage() {
   const isFailed = Boolean(error) || session?.status === "generation_failed";
   const heroOperationTitle = refined?.operationTitle || briefing?.operationTitle || resultCopy.heroTitle;
   const heroStatus = refined ? resultCopy.actionBarRefinedDone : resultCopy.actionBarInitialDone;
-  const canUnlockNeoBenefits = !isGenerating && !neoBenefitsUnlocked && !isLocalPreview && badgeAward.count >= NEO_LETTER_BADGE_COST;
+
   const neoLetterText = useMemo(
     () => neoBenefitsUnlocked && session ? buildNeoSincereLetter(session, methodLabel(selectedMethod, dialogueLocale), dialogueLocale) : "",
     [neoBenefitsUnlocked, selectedMethod, session, dialogueLocale],
@@ -745,7 +701,6 @@ export default function NeoOperationRoomResultPage() {
     if (isLocalPreview) {
       setBadgeAward({ count: 0, currentBadgeIndex: 0, awardedNow: false });
       setNeoBenefitsUnlocked(false);
-      setBenefitUnlockError("");
       return;
     }
     // 휘장 잔량/해금 여부는 서버(session.badge)가 원천. 적립(멱등)은 서버가 이 세션 로드에서 처리한다.
@@ -755,7 +710,6 @@ export default function NeoOperationRoomResultPage() {
     if (session.badge && session.badge.authenticated !== false) {
       setNeoBenefitsUnlocked(Boolean(session.badge.benefitsUnlocked));
     }
-    setBenefitUnlockError("");
   }, [attemptId, isFailed, isGenerating, isLocalPreview, session]);
 
   return (
@@ -843,10 +797,14 @@ export default function NeoOperationRoomResultPage() {
               locale={dialogueLocale}
               badgeIndex={badgeAward.currentBadgeIndex}
             />
-            <NeoVisualBriefing briefing={briefing} refined={refined} locale={dialogueLocale} />
-            {!isGenerating && !isFailed ? (
-              <ConsultationShare key={`${session.id || session.sessionId}-${Boolean(session.refinedOrder)}`} brand="neo" choices={neoShareChoices(session)} />
-            ) : null}
+            <nav className={styles.readerNav} aria-label={resultCopy.actionBarAria}>
+              <a href="#neo-result-details">{getNeoVisualCopy(dialogueLocale).details}</a>
+              <Link href="/neo-operation-room/strategy-books/"><BookOpen size={17} aria-hidden />{getNeoBookCopy(dialogueLocale).title}</Link>
+            </nav>
+            <details className={styles.strategyOverview} open={exportExpand}>
+              <summary><span>{getNeoVisualCopy(dialogueLocale).overview}</span><span aria-hidden="true">＋</span></summary>
+              <NeoVisualBriefing briefing={briefing} refined={refined} locale={dialogueLocale} />
+            </details>
             {briefing ? (
               <InitialBriefingDocument
                 briefing={briefing}
@@ -883,24 +841,15 @@ export default function NeoOperationRoomResultPage() {
                 locale={dialogueLocale}
               />
             ) : null}
-            <BadgeVaultPanel badgeAward={badgeAward} benefitsUnlocked={neoBenefitsUnlocked} locale={dialogueLocale} />
+            <BadgeVaultPanel badgeAward={badgeAward} locale={dialogueLocale} />
             <section className={styles.actionBar} aria-label={resultCopy.actionBarAria}>
               <div className={styles.actionCopy}>
                 <span>{isGenerating ? resultCopy.generatingTitle : refined ? "Final Order Ready" : "Briefing Ready"}</span>
                 <strong>{isGenerating ? resultCopy.generatingTitle : refined ? resultCopy.actionBarRefinedDone : resultCopy.actionBarInitialDone}</strong>
               </div>
               <div className={styles.actionButtons}>
-                <button
-                  type="button"
-                  className={styles.benefitButton}
-                  data-loading={benefitUnlocking ? "true" : "false"}
-                  data-unlocked={neoBenefitsUnlocked ? "true" : "false"}
-                  disabled={benefitUnlocking || neoBenefitsUnlocked || !canUnlockNeoBenefits}
-                  onClick={handleUnlockNeoBenefits}
-                >
-                  {benefitUnlocking ? <Loader2 className={styles.spinIcon} aria-hidden="true" /> : neoBenefitsUnlocked ? <CheckCircle2 aria-hidden="true" /> : <Lock aria-hidden="true" />}
-                  <span>{benefitUnlocking ? resultCopy.benefitBusy : neoBenefitsUnlocked ? resultCopy.benefitDone : resultCopy.benefitCta}</span>
-                </button>
+                <Link className={styles.benefitButton} href="/neo-operation-room/strategy-books/"><BookOpen aria-hidden="true" /><span>{getNeoBookCopy(dialogueLocale).title}</span></Link>
+                {neoBenefitsUnlocked && (
                 <button
                   type="button"
                   className={styles.pdfButton}
@@ -911,26 +860,16 @@ export default function NeoOperationRoomResultPage() {
                 >
                   {pdfLoading ? <Loader2 className={styles.spinIcon} aria-hidden="true" /> : neoBenefitsUnlocked ? <Download aria-hidden="true" /> : <Lock aria-hidden="true" />}
                   <span>{pdfLoading ? resultCopy.pdfBusy : neoBenefitsUnlocked ? resultCopy.pdfReady : resultCopy.pdfLocked}</span>
-                </button>
+                </button>) }
               </div>
-              {benefitUnlockError ? <p className={styles.unlockError} role="alert">{benefitUnlockError}</p> : null}
               {pdfError ? <p className={styles.pdfError} role="alert">{pdfError}</p> : null}
             </section>
-            {neoLetterText ? (
-              <NeoSincereLetter letter={neoLetterText} locale={dialogueLocale} />
-            ) : (
-              <NeoLetterLockCard
-                badgeAward={badgeAward}
-                benefitsUnlocked={neoBenefitsUnlocked}
-                canUnlock={canUnlockNeoBenefits}
-                unlocking={benefitUnlocking}
-                unlockError={benefitUnlockError}
-                onUnlock={handleUnlockNeoBenefits}
-                locale={dialogueLocale}
-              />
-            )}
+            {neoLetterText && <NeoSincereLetter letter={neoLetterText} locale={dialogueLocale} />}
             {!isLocalPreview && !isGenerating && !isFailed && <SavedRecordLink source="neo" id={session.id || session.sessionId || ''} />}
             <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => { if (!isGenerating) setShowRealityForm(true); }} hasRefined={Boolean(refined)} locale={dialogueLocale} />
+            {!isGenerating && !isFailed ? (
+              <ConsultationShare key={`${session.id || session.sessionId}-${Boolean(session.refinedOrder)}`} brand="neo" choices={neoShareChoices(session)} />
+            ) : null}
           </section>
         </div>
       ) : null}
@@ -959,15 +898,10 @@ function LionBadgeStamp({ badgeIndex, className = "" }: { badgeIndex: number; cl
   );
 }
 
-function BadgeVaultPanel({ badgeAward, benefitsUnlocked, locale }: { badgeAward: NeoBadgeAwardState; benefitsUnlocked: boolean; locale: LoadingLocale }) {
+function BadgeVaultPanel({ badgeAward, locale }: { badgeAward: NeoBadgeAwardState; locale: LoadingLocale }) {
   const resultCopy = getNeoResultCopy(locale);
   const progress = Math.min(NEO_LETTER_BADGE_COST, badgeAward.count);
-  const remaining = Math.max(0, NEO_LETTER_BADGE_COST - progress);
-  const message = benefitsUnlocked
-    ? resultCopy.badgeVaultUnlockedMsg
-    : remaining === 0
-      ? resultCopy.badgeVaultReadyMsg
-      : getNeoResultBadgeVaultRemainingMsg(remaining, locale);
+  const message = getNeoBookCopy(locale).rule;
   return (
     <div className={styles.badgeVault}>
       <LionBadgeStamp badgeIndex={badgeAward.currentBadgeIndex} className={styles.badgeVaultStamp} />
@@ -982,42 +916,6 @@ function BadgeVaultPanel({ badgeAward, benefitsUnlocked, locale }: { badgeAward:
         ))}
       </div>
     </div>
-  );
-}
-
-function NeoLetterLockCard({
-  badgeAward,
-  benefitsUnlocked,
-  canUnlock,
-  unlocking,
-  unlockError,
-  onUnlock,
-  locale,
-}: {
-  badgeAward: NeoBadgeAwardState;
-  benefitsUnlocked: boolean;
-  canUnlock: boolean;
-  unlocking: boolean;
-  unlockError: string;
-  onUnlock: () => void;
-  locale: LoadingLocale;
-}) {
-  const resultCopy = getNeoResultCopy(locale);
-  const progress = Math.min(NEO_LETTER_BADGE_COST, badgeAward.count);
-  return (
-    <article className={styles.neoLetterLockCard}>
-      <header className={styles.documentHeader}>
-        <h2>{benefitsUnlocked ? resultCopy.letterUnlockedTitle : resultCopy.letterLockedTitle}</h2>
-      </header>
-      <p>{getNeoResultLetterLockBody(progress, NEO_LETTER_BADGE_COST, locale)}</p>
-      <div className={styles.neoLetterLockActions}>
-        <button type="button" disabled={!canUnlock || unlocking || benefitsUnlocked} onClick={onUnlock}>
-          {unlocking ? <Loader2 className={styles.spinIcon} aria-hidden="true" /> : benefitsUnlocked ? <CheckCircle2 aria-hidden="true" /> : <Lock aria-hidden="true" />}
-          <span>{unlocking ? resultCopy.benefitBusy : benefitsUnlocked ? resultCopy.letterUnlockDone : resultCopy.benefitCta}</span>
-        </button>
-      </div>
-      {unlockError ? <p className={styles.unlockError} role="alert">{unlockError}</p> : null}
-    </article>
   );
 }
 
@@ -1049,14 +947,12 @@ function ResultSummaryCover({ session, methodName, locale }: {
   const firstAction = toDisplayText(refined?.thisWeekFirstStep || refined?.actionAlternatives?.[0]?.action || briefing?.actionOrders?.[0]);
   return (
     <article className={`${styles.documentCard} ${styles.summaryCover}`} data-neo-pdf-page>
+      {session.question ? <div className={styles.summaryQuestion}><strong>{copy.question}</strong><p>{neoBriefingExcerpt(session.question, 150)}</p></div> : null}
       <div className={styles.briefingSummary}>
-        <div className={styles.summaryMain}>
-          {session.question ? <div className={styles.summaryQuestion}><strong>{copy.question}</strong><p>{neoBriefingExcerpt(session.question, 150)}</p></div> : null}
           <h2>{copy.verdict}</h2>
-          {judgement ? <p className={styles.keyJudgement}>{neoBriefingExcerpt(judgement)}</p> : <p>{resultCopy.generatingBodyDefault}</p>}
-        </div>
         <NeoBriefingArt pose="explain" priority />
       </div>
+      {judgement ? <p className={styles.keyJudgement}>{neoBriefingExcerpt(judgement)}</p> : <p>{resultCopy.generatingBodyDefault}</p>}
       {firstAction ? <section className={styles.firstAction}><h3>{copy.firstAction}</h3><p>{neoBriefingExcerpt(firstAction, 180)}</p></section> : null}
       <div className={styles.summaryMeta}><span>{methodName}</span>{session.topic ? <span>{getNeoTopicLabel(session.topic, locale)}</span> : null}<time>{formatDateKey(session.updatedAt || session.createdAt)}</time></div>
     </article>
@@ -1351,7 +1247,7 @@ function InitialBriefingDocument({
     .filter((page) => page.when)
     .map((page) => ({ id: page.id, label: page.label, content: page.content }));
   return (
-    <article className={styles.documentCard} data-neo-pdf-page>
+    <article id="neo-result-details" className={styles.documentCard} data-neo-pdf-page>
       <header className={styles.documentHeader}>
         <h2>{visualCopy.details}</h2>
       </header>
@@ -1589,7 +1485,6 @@ function CtaDeck({ attemptId, hasRefined, onOpenReality, locale }: { attemptId: 
     <nav className={styles.ctaDeck} aria-label={resultCopy.ctaDeckAria}>
       <button type="button" onClick={onOpenReality}>{hasRefined ? resultCopy.realityFormTitle : formCopy["realityPanel.submitIdle"]}</button>
       <Link href="/neo-operation-room" prefetch={false}>{resultCopy.retryLink}</Link>
-      <Link href="/neo-operation-room" prefetch={false}>{resultCopy.ctaOtherMethod}</Link>
       <Link href="/fortune-tea-house">{resultCopy.ctaTeaHouse}</Link>
       {attemptId ? <Link href={`/neo-operation-room/result?attemptId=${encodeURIComponent(attemptId)}`}>{resultCopy.ctaReopen}</Link> : null}
     </nav>

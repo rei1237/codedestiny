@@ -391,6 +391,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
 };
 
 export const noindexPathPrefixes = [
+  '/neo-operation-room/strategy-books',
   '/records',
   '/consultations',
   "/api",

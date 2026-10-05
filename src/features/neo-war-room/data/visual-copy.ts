@@ -1,6 +1,7 @@
 import type { LoadingLocale } from "@/constants/loadingMessages";
 
 const ko = {
+  overview: "전략 요약과 판단 근거",
   title: "네오가 짚어주는 핵심", question: "당신이 남긴 질문", verdict: "네오의 핵심 판단",
   firstAction: "먼저 할 한 가지", strengths: "살려야 할 강점", cautions: "조절해야 할 습관",
   pattern: "반복을 끊는 지점", repeated: "반복되는 선택", pressure: "지금 부딪히는 지점", strategy: "바꿀 방향",
@@ -13,6 +14,7 @@ const ko = {
 type VisualCopy = { [K in keyof typeof ko]: string };
 const translations: Partial<Record<Exclude<LoadingLocale, "ko">, VisualCopy>> = {
   en: {
+    overview: "Strategy overview and reasoning",
     title: "NEO's essential briefing", question: "Your question", verdict: "NEO's key assessment", firstAction: "One action to start",
     strengths: "Strengths to use", cautions: "Habits to adjust", pattern: "Where to break the pattern", repeated: "Repeated choices",
     pressure: "Current friction", strategy: "A new direction", relationship: "How you see each other", towardPartner: "You → Partner", towardMe: "Partner → You",
@@ -21,6 +23,7 @@ const translations: Partial<Record<Exclude<LoadingLocale, "ko">, VisualCopy>> = 
     detailsHint: "Open each chapter for the reasoning and detailed advice behind the briefing.", expand: "Expand all", collapse: "Collapse all", readMore: "Full text", day: "Day", steps: "Action plan",
   },
   ja: {
+    overview: "戦略の要点と判断の根拠",
     title: "ネオが伝える要点", question: "あなたの質問", verdict: "ネオの判断", firstAction: "まず一つ行うこと",
     strengths: "活かしたい強み", cautions: "調整したい習慣", pattern: "繰り返しを断つポイント", repeated: "繰り返す選択",
     pressure: "今ぶつかる課題", strategy: "変える方向", relationship: "お互いを見る方向", towardPartner: "あなた → 相手", towardMe: "相手 → あなた",
@@ -29,6 +32,7 @@ const translations: Partial<Record<Exclude<LoadingLocale, "ko">, VisualCopy>> = 
     detailsHint: "各章を開いて、判断の根拠と詳しい助言を確認できます。", expand: "すべて開く", collapse: "すべて閉じる", readMore: "全文", day: "日目", steps: "行動計画",
   },
   "zh-CN": {
+    overview: "策略要点与判断依据",
     title: "尼奥解说重点", question: "你的问题", verdict: "尼奥的核心判断", firstAction: "先做一件事",
     strengths: "值得发挥的优势", cautions: "需要调整的习惯", pattern: "打破重复的切入点", repeated: "重复的选择",
     pressure: "当前的阻力", strategy: "改变的方向", relationship: "彼此的视角", towardPartner: "你 → 对方", towardMe: "对方 → 你",
@@ -37,6 +41,7 @@ const translations: Partial<Record<Exclude<LoadingLocale, "ko">, VisualCopy>> = 
     detailsHint: "展开各章，了解判断依据和详细建议。", expand: "全部展开", collapse: "全部收起", readMore: "详细原文", day: "天", steps: "行动计划",
   },
   "zh-TW": {
+    overview: "策略重點與判斷依據",
     title: "尼奧解說重點", question: "你的問題", verdict: "尼奧的核心判斷", firstAction: "先做一件事",
     strengths: "值得發揮的優勢", cautions: "需要調整的習慣", pattern: "打破重複的切入點", repeated: "重複的選擇",
     pressure: "當前的阻力", strategy: "改變的方向", relationship: "彼此的視角", towardPartner: "你 → 對方", towardMe: "對方 → 你",

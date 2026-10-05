@@ -554,7 +554,7 @@ html.neo-mode #cdHomeFunnel { --cdh-page-art: url('/images/home/illustrated/moon
 .cdh-chemi__go { display: inline-flex; align-items: center; min-height: 48px; margin-top: 8px; padding: 0 18px; border-radius: 999px; background: #ffd98a; color: #1a1030; font-size: 14px; font-weight: 800; }
 #cdHomeFunnel .cdh-chemi:focus-visible { outline: 2px solid #9fe3ff; outline-offset: 3px; }
 @media (max-width:640px) { #cdHomeFunnel .cdh-chemi { margin: 16px 16px 0; } #cdHomeFunnel .cdh-chemi__art { width: 100%; object-position: 18% 30%; } #cdHomeFunnel .cdh-chemi::after { background: linear-gradient(90deg, rgba(18,11,38,.95) 0%, rgba(18,11,38,.86) 62%, rgba(18,11,38,.5) 100%); } .cdh-chemi__copy { padding: 20px; } .cdh-chemi__copy strong { font-size: 20px; } }
-.cdh-portals { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+.cdh-portals { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
 #cdHomeFunnel .cdh-portal { position: relative; display: grid; grid-template-columns: minmax(0,1fr) 43%; min-height: 212px; overflow: hidden; border: 1px solid var(--cdh-line); border-radius: 18px; background: var(--cdh-card); box-shadow: 0 12px 32px -24px var(--cdh-ink); }
 #cdHomeFunnel .cdh-portal.cdh-persona--neo { display: none; }
 html.neo-mode #cdHomeFunnel .cdh-portal.cdh-persona--neo { display: grid; }

@@ -4,7 +4,7 @@
   --nr-bg: #0a0818;
   --nr-surface: #13102a;
   --nr-text: #f4eeff;
-  --nr-muted: #c8aaff;
+  --nr-muted: #c3bacf;
   --nr-accent: #c4b5fd;
   --nr-gold: #e8d5a3;
   --nr-border: color-mix(in srgb, var(--nr-accent) 25%, transparent);
@@ -38,19 +38,14 @@
   position: fixed;
   inset: 0;
   z-index: -1;
-  background:
-    linear-gradient(90deg, rgba(2, 5, 12, 0.96), rgba(5, 10, 20, 0.86), rgba(5, 7, 12, 0.82)),
-    var(--neo-bg-desktop, none);
+  background: var(--nr-bg);
 }
 
 .bg::after {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(circle at 18% 12%, rgba(214, 188, 118, 0.16), transparent 32%),
-    radial-gradient(circle at 88% 22%, rgba(185, 34, 43, 0.14), transparent 26%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 86px);
+  background: radial-gradient(ellipse at 50% 0, rgba(196, 181, 253, 0.06), transparent 55%);
 }
 
 .hero {
@@ -149,11 +144,10 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
   align-items: center;
-  border: 1px solid rgba(214, 188, 118, 0.3);
+  border: 1px solid var(--nr-border);
   border-radius: 8px;
   padding: 14px;
-  background: rgba(5, 10, 22, 0.82);
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+  background: var(--nr-surface);
 }
 
 .actionCopy {
@@ -331,13 +325,10 @@
 .stateCard {
   display: grid;
   gap: 16px;
-  border: 1px solid rgba(214, 188, 118, 0.34);
+  border: 1px solid var(--nr-border);
   border-radius: 14px;
   padding: clamp(18px, 3vw, 30px);
-  background:
-    linear-gradient(135deg, rgba(7, 12, 24, 0.94), rgba(11, 20, 39, 0.9)),
-    radial-gradient(circle at 16% 8%, rgba(214, 188, 118, 0.12), transparent 34%);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+  background: var(--nr-surface);
 }
 
 .documentCard[data-version="v2"] {
@@ -551,10 +542,10 @@
   border-radius: var(--cd-r-control, 12px);
   padding: 10px 16px;
   color: #fff7de;
-  background: linear-gradient(135deg, rgba(143, 31, 43, 0.78), rgba(214, 188, 118, 0.28));
+  background: #342a47;
   font: inherit;
   font-size: 0.95rem;
-  font-weight: 950;
+  font-weight: 600;
   text-decoration: none;
   cursor: pointer;
   transition: transform var(--cd-dur-fast, 120ms) ease, border-color var(--cd-dur-fast, 120ms) ease, background var(--cd-dur-fast, 120ms) ease, box-shadow var(--cd-dur-fast, 120ms) ease;
@@ -567,7 +558,7 @@
 .ctaDeck a:hover,
 .ctaDeck button:hover {
   border-color: rgba(255, 240, 184, 0.88);
-  background: linear-gradient(135deg, rgba(143, 31, 43, 0.9), rgba(214, 188, 118, 0.4));
+  background: #463759;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
   transform: translateY(-1px);
 }
@@ -927,9 +918,9 @@
 }
 
 
-.briefingSummary { display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 20px; align-items: center; }
-.summaryMain { min-width: 0; }
-.summaryMain h2 { margin: 0 0 12px; color: var(--nr-gold); font-size: var(--cd-t-section); font-family: var(--font-display); }
+.briefingSummary { display: flex; justify-content: space-between; gap: 20px; align-items: center; }
+.briefingSummary h2 { margin: 0; color: var(--nr-gold); font-size: var(--cd-t-section); font-family: var(--font-display); }
+.briefingSummary .briefingArt { width: 64px; flex-shrink: 0; }
 .summaryQuestion strong { font-weight: 600; }
 .summaryQuestion p { margin: 4px 0 0; }
 .keyJudgement { margin: 0; font-size: var(--cd-t-card); line-height: 1.8; font-weight: 600; color: var(--nr-text); overflow-wrap: anywhere; }
@@ -971,6 +962,14 @@
 .evidenceSection { padding-block: 24px; border-block: 1px solid var(--nr-border); }
 .evidenceSection > div + div { margin-top: 20px; }
 .chapterReader { min-width: 0; }
+.readerNav { display: flex; flex-wrap: wrap; gap: 12px 24px; padding-block: 4px; }
+.readerNav a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--nr-gold); text-underline-offset: 5px; font-size: var(--cd-t-body); }
+.strategyOverview { border-block: 1px solid var(--nr-border); }
+.strategyOverview > summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; padding-block: 12px; color: var(--nr-text); list-style: none; cursor: pointer; font-size: var(--cd-t-card); font-weight: 600; }
+.strategyOverview > summary::-webkit-details-marker { display: none; }
+.strategyOverview[open] > summary > span:last-child { transform: rotate(45deg); }
+.strategyOverview > .visualBriefing { padding-block: 20px 32px; }
+.documentCard { scroll-margin-top: 24px; }
 .chapterToolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
 .chapterToolbar p { margin: 0; color: var(--nr-muted); font-size: var(--cd-t-body); line-height: 1.6; }
 .chapterToolbar button { flex-shrink: 0; min-height: var(--cd-btn-h); padding: 8px 16px; border: 1px solid var(--nr-border); border-radius: var(--cd-r-control); background: transparent; color: var(--nr-text); font: inherit; cursor: pointer; }
@@ -985,8 +984,9 @@
 .chapterReader[data-export="true"] summary svg { display: none; }
 
 @media (max-width: 680px) {
-  .briefingSummary { grid-template-columns: minmax(0, 1fr) 92px; gap: 12px; align-items: start; }
-  .summaryMain h2 { font-size: var(--cd-t-card); margin-bottom: 8px; }
+  .briefingSummary { gap: 12px; }
+  .briefingSummary h2 { font-size: var(--cd-t-card); }
+  .briefingSummary .briefingArt { width: 48px; }
   .summaryQuestion { margin-bottom: 12px; }
   .keyJudgement { font-size: 1rem; line-height: 1.75; }
   .strengthComparison, .patternFlow, .relationshipMap { grid-template-columns: minmax(0, 1fr); gap: 20px; }

@@ -1,3 +1,12 @@
+.consultationValue { max-width: 1120px; margin: 0 auto; padding: 48px 24px; }
+.consultationValueIntro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 40px; margin-bottom: 28px; }
+.consultationValueIntro img { width: 100%; height: auto; border-radius: var(--cd-r-control); }
+.consultationValueIntro h2 { font-family: var(--font-display, var(--font-body)); font-size: clamp(1.6rem, 3vw, 2.3rem); line-height: 1.5; }
+.consultationValueIntro p { line-height: 1.8; }
+.consultationValueIntro a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; text-underline-offset: 5px; }
+.strategyBookHint { font-size: .9rem; opacity: .85; }
+@media (max-width: 640px) { .consultationValueIntro { grid-template-columns: 1fr; gap: 18px; } .consultationValue { padding: 28px 20px; } }
+
 .shell {
   --cd-cta-primary-bg: #122237;
   --cd-cta-primary-bg-2: #0b1526;
@@ -152,6 +161,8 @@
 
 .vnStage {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: min(1280px, 100%);
   min-height: calc(100svh - clamp(36px, 6vw, 84px));
   margin: 0 auto;
@@ -226,7 +237,7 @@
   margin: 0;
   color: #fff5d7;
   font-family: var(--font-display);
-  font-size: clamp(3.8rem, 8.5vw, 8rem);
+  font-size: clamp(3rem, 6vw, 5.5rem);
   font-weight: 950;
   line-height: 0.94;
   letter-spacing: 0;
@@ -622,11 +633,8 @@
 }
 
 .vnDialogueBox {
-  position: absolute;
-  left: clamp(18px, 4vw, 56px);
-  right: clamp(18px, 4vw, 56px);
-  /* 하단 네비(.cd-mnav) 위로 올라온다. 네비가 없는 뷰포트에서는 0 이라 그대로 바닥에 붙는다. */
-  bottom: calc(clamp(18px, 4vw, 42px) + var(--cd-mnav-offset, 0px));
+  position: relative;
+  margin: auto clamp(18px, 4vw, 56px) calc(clamp(18px, 4vw, 42px) + var(--cd-mnav-offset, 0px));
   z-index: 5;
   display: grid;
   gap: 10px;
@@ -4147,10 +4155,7 @@
   }
 
   .vnDialogueBox {
-    left: 12px;
-    right: 12px;
-    /* safe-area 는 하단 네비가 이미 처리하므로 둘 중 큰 값만 쓴다(이중 가산 방지). */
-    bottom: calc(10px + max(var(--cd-mnav-offset, 0px), env(safe-area-inset-bottom, 0px)));
+    margin: auto 12px calc(10px + max(var(--cd-mnav-offset, 0px), env(safe-area-inset-bottom, 0px)));
     min-height: 132px;
     padding: 13px 14px;
   }

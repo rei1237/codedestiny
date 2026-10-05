@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-05",
+  "assets": [
+    {
+      "path": "public/neo-operation-room/strategy-room-v1.webp",
+      "prompt": "Create one premium editorial fantasy illustration asset for Code Destiny Neo strategy consultation website. Use provided image as STYLE reference only for detailed Korean fantasy romance webtoon artistry, navy purple fabric and champagne gold finish. Draw a quiet inviting strategy study at twilight, arched windows, subtle star chart, a desk with neatly arranged parchment maps and a closed deep violet book, warm soft lamp, elegant believable architectural detailing. No people. Wide 16:9 horizontal composition, focal objects on right half, dark restful left half suitable for overlay text added later in code. Sophisticated, calm, approachable, not military intimidation. No text, no letters, no UI, no watermark. Finely painted environment, premium illustrated novel setting, deep plum navy lavender champagne gold.",
+      "tool": "built-in image_gen",
+      "original": "exec-6c88bc23-052b-4c73-9c0b-fbbf49307369.png",
+      "reference": "public/neo-operation-room/briefing/neo-explain-v1.webp",
+      "encoding": "WebP; generated PNG retained in Codex"
+    },
+    {
+      "path": "public/neo-operation-room/strategy-explain-v1.webp",
+      "prompt": "Create a premium horizontal 3:2 editorial illustration for Neo's strategy consultation website. Reference image is the EXACT character identity: retain same youthful adult man, silver tousled hair, icy blue eyes, elegant navy purple military-inspired fantasy coat with champagne gold embroidery, black gloves. Show him seated comfortably at a luxurious study desk, gently explaining a few handwritten but UNREADABLE blank diagram marks on parchment, one open hand welcoming viewer. Friendly composed strategist, subtle smile, no scolding or intimidation. Mid-shot, character on right half; elegant star chart papers and a closed violet book in foreground. Refined Korean romance fantasy webtoon illustration matching reference. Warm violet twilight and gold desk light. Detailed hands anatomically natural. No readable text, no captions, no buttons or UI. Quiet inviting atmosphere, high-end story artwork.",
+      "tool": "built-in image_gen",
+      "original": "exec-f0734a3b-3528-4084-9651-d117126474dd.png",
+      "reference": "public/neo-operation-room/briefing/neo-explain-v1.webp",
+      "encoding": "WebP; generated PNG retained in Codex"
+    },
+    {
+      "path": "public/neo-operation-room/strategy-book-cover-v1.webp",
+      "prompt": "Premium illustrated book cover background for a personal strategy journal PDF. Flat frontal cover artwork, portrait A4 aspect ratio, no mockup perspective. Deep navy plum leather and subtle woven silk texture, refined thin champagne-gold botanical filigree at corners, a small elegant gold lion crest near bottom third, restrained etched star-chart arcs, beautiful rich tactile luxury bookbinding. Large uncluttered dark central and upper area for a Korean book title typeset later in code. Calm invitation to reflect on one's choices. Sophisticated fantasy editorial art, delicate balanced composition, no readable text, no lettering, no typography, no UI, no watermark, not a busy magic poster.",
+      "tool": "built-in image_gen",
+      "original": "exec-0b3e151d-58cc-4fc1-8974-b4249c04a009.png",
+      "reference": null,
+      "encoding": "WebP; generated PNG retained in Codex"
+    }
+  ]
+}

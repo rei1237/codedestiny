@@ -4,11 +4,13 @@ import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
+import { getNeoWelcome } from "./data/welcome";
+import { getNeoBookCopy } from "./data/strategy-book";
 import { receiveNeoBriefing } from "./paid-delivery";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { toDisplayText } from "@/lib/llm-text";
-import { buildResizedAssetUrl } from "@/lib/r2-public-url";
+import Link from "next/link";
 import {
   failPaidFeatureGateCheck,
   runBillingCoinGate,
@@ -415,253 +417,6 @@ const methodIntroDialogues = [
   },
 ] as const;
 
-const neoLandingDialogues = [
-  "왔냐. 여긴 마음을 달래기 전에, 네 선택의 기준을 먼저 세우는 전략 상담실이다.",
-  "문이 닫히면 핑계가 아니라 사실을 올려놓는다. 어디서 같은 선택을 반복했는지부터 본다.",
-  "오늘 볼 건 운이 좋고 나쁘다가 아니다. 네가 왜 비슷한 장면에서 계속 힘을 잃는지다.",
-  "사주든 별자리든 지도는 다르다. 목적은 네가 다시 움직일 기준을 찾는 것이다.",
-  "겁먹을 필요 없다. 감정의 안개를 판단 가능한 문장으로 바꾸는 과정이다.",
-  "네가 오래 미룬 질문이 있다면, 그게 오늘 첫 번째 단서다.",
-  "사자 휘장은 겁주는 표식이 아니다. 다시 기준을 세우겠다는 신호다.",
-  "준비됐으면 앉아라. 이제부터는 막연한 불운이 아니라 반복된 선택 구조를 본다.",
-] as const;
-
-const neoPrologueDialogues: readonly NeoPrologueLine[] = [
-  {
-    id: "system-unlock",
-    speaker: "system",
-    speakerLabel: "작전실 시스템",
-    text: "전략실 잠금 해제.\n감정 소음 차단, 판단 회로 정렬 완료.",
-    scene: "intro",
-    character: "hidden",
-    effect: "signal",
-  },
-  {
-    id: "story-door-open",
-    speaker: "narration",
-    speakerLabel: "내레이션",
-    text: "육중한 문이 열리고, 차가운 빛이 바닥을 가른다.\n중앙 홀로그램 위로 한 문장이 떠오른다.",
-    scene: "signal",
-    character: "hidden",
-    effect: "signal",
-  },
-  {
-    id: "system-creed",
-    speaker: "system",
-    speakerLabel: "작전실 시스템",
-    text: "운명은 착한 사람을 돕지 않는다.\n제 문제를 정면으로 마주할 사람에게만 길을 연다.",
-    scene: "signal",
-    character: "shadow",
-    effect: "signal",
-  },
-  {
-    id: "customer-room-check",
-    speaker: "customer",
-    speakerLabel: "고객",
-    text: "여기… 그냥 운세 보는 곳이 아니었나.",
-    scene: "intro",
-    character: "shadow",
-    effect: "signal",
-  },
-  {
-    id: "story-lion-seal",
-    speaker: "narration",
-    speakerLabel: "내레이션",
-    text: "정면 벽의 황금 사자 휘장에 불이 들어온다.\n그리고 휘장 속 사자가, 천천히 눈을 뜬다.",
-    scene: "lionReveal",
-    character: "lion",
-    effect: "seal",
-  },
-  {
-    id: "lion-first-word",
-    speaker: "lion",
-    speakerLabel: "황금 사자",
-    text: "겁먹지 마라.\n너를 이 방까지 끌고 온 건, 네 발이 아니라 네가 미뤄 둔 문제다.",
-    scene: "lionReveal",
-    character: "lion",
-    effect: "seal",
-  },
-  {
-    id: "customer-startled",
-    speaker: "customer",
-    speakerLabel: "고객",
-    text: "…지금, 사자가 말한 건가요?",
-    scene: "lionReveal",
-    character: "lion",
-    effect: "seal",
-  },
-  {
-    id: "lion-pattern-read",
-    speaker: "lion",
-    speakerLabel: "황금 사자",
-    text: "놀랄 건 그게 아니지.\n너는 같은 자리에서 몇 번을 물러섰는지, 이미 알고 있으면서 세지 않았다.",
-    scene: "patternAudit",
-    character: "lion",
-    effect: "seal",
-  },
-  {
-    id: "customer-defense",
-    speaker: "customer",
-    speakerLabel: "고객",
-    text: "…그건, 그때는 어쩔 수 없었어요.",
-    scene: "patternAudit",
-    character: "lion",
-    effect: "seal",
-  },
-  {
-    id: "lion-name-problem",
-    speaker: "lion",
-    speakerLabel: "황금 사자",
-    text: "어쩔 수 없었다는 말은, 아직 이름을 안 붙였다는 뜻이다.\n이름 없는 문제는 평생 같은 얼굴로 다시 온다.",
-    scene: "nameReveal",
-    character: "lion",
-    effect: "seal",
-  },
-  {
-    id: "lion-offer-power",
-    speaker: "lion",
-    speakerLabel: "황금 사자",
-    text: "묻겠다.\n힘을 원하나?",
-    scene: "nameReveal",
-    character: "lion",
-    effect: "seal",
-  },
-  {
-    id: "lion-define-power",
-    speaker: "lion",
-    speakerLabel: "황금 사자",
-    text: "여기서 힘이란 운을 바꾸는 요행이 아니다.\n네 상황을 정확히 보고, 다음 한 수를 스스로 고르는 능력이다.",
-    scene: "nameReveal",
-    character: "lion",
-    effect: "seal",
-  },
-  {
-    id: "customer-accept",
-    speaker: "customer",
-    speakerLabel: "고객",
-    text: "…원해요.\n이번엔 제대로 알고 싶어요.",
-    scene: "nameReveal",
-    character: "lion",
-    effect: "seal",
-  },
-  {
-    id: "story-lion-transform",
-    speaker: "narration",
-    speakerLabel: "내레이션",
-    text: "사자의 몸이 황금빛으로 무너지며 다시 짜인다.\n네 발로 서 있던 짐승이, 두 발로 선 사람의 형상으로 바뀐다.",
-    scene: "transformation",
-    character: "morph",
-    effect: "morph",
-  },
-  {
-    id: "system-protocol",
-    speaker: "system",
-    speakerLabel: "작전실 시스템",
-    text: "인장 해제, 인간형 전환 완료.\n팩폭 프로토콜 가동.",
-    scene: "transformation",
-    character: "morph",
-    effect: "morph",
-  },
-  {
-    id: "story-human-reveal",
-    speaker: "narration",
-    speakerLabel: "내레이션",
-    text: "빛이 흩어진 자리에, 사자의 눈빛을 그대로 가진 남자가 서 있다.",
-    scene: "humanNeo",
-    character: "humanNeo",
-    effect: "arrival",
-  },
-  {
-    id: "neo-self-intro",
-    speaker: "neo",
-    speakerLabel: "네오",
-    text: "네오다.\n방금 그 사자, 나다. 이 모습이 대화하기엔 편하지.",
-    scene: "humanNeo",
-    character: "humanNeo",
-    effect: "arrival",
-  },
-  {
-    id: "neo-blunt-first",
-    speaker: "neo",
-    speakerLabel: "네오",
-    text: "미리 말해 두지.\n네 운은 나쁜 게 아니다. 운이 없는 게 아니라, 전략이 없는 쪽에 가깝다.",
-    scene: "strategyRoom",
-    character: "humanNeo",
-    effect: "arrival",
-  },
-  {
-    id: "neo-room-role",
-    speaker: "neo",
-    speakerLabel: "네오",
-    text: "여긴 위로를 파는 곳이 아니다.\n네가 외면한 자리를 정확히 짚어 주는 곳이지.",
-    scene: "strategyRoom",
-    character: "humanNeo",
-    effect: "arrival",
-  },
-  {
-    id: "neo-final-briefing",
-    speaker: "neo",
-    speakerLabel: "네오",
-    text: "상처받을 각오 됐나. 좋아, 그럼 시작하자.\n네가 이름 붙이길 피한 문제, 내가 대신 정확히 불러 주겠다.",
-    scene: "final",
-    character: "humanNeo",
-    effect: "arrival",
-    notification: {
-      title: "전략실 연결 완료",
-      body: "현재 전선, 출생 좌표, 질문, 직면 강도가 작전판에 오른다.",
-    },
-    cta: {
-      label: "운명 전략실 입장하기",
-      helperText: "막힌 흐름을 기준과 다음 행동으로 정리한다.",
-    },
-  },
-] as const;
-
-// 🔴 이 두 표는 위 neoLandingDialogues/neoPrologueDialogues 의 ko 원문과 별개다(cmsText 오버라이드가
-// 없는 페이지 로컬 데이터라 dialogues.ts 와 다른 파일에 둔다). ko 이거나 표에 없으면 원문을 그대로 쓴다.
-const NEO_LANDING_DIALOGUE_TEXT: Partial<Record<Exclude<LoadingLocale, "ko">, readonly string[]>> = {
-  en: [
-    "You came. Before we soothe your feelings, this is a strategy room that sets the standard for your choices first.",
-    "Once the door closes, we lay out facts, not excuses. We start by looking at where you repeated the same choice.",
-    "What we look at today isn't good or bad luck. It's why you keep losing your footing in similar scenes.",
-    "Whether it's Saju or the stars, the maps differ. The goal is finding the standard by which you'll move again.",
-    "No need to be scared. This is a process of turning the fog of your emotions into sentences you can actually judge.",
-    "If there's a question you've long put off, that's today's first clue.",
-    "The lion emblem isn't a symbol meant to scare you. It's a signal that you're ready to set the standard again.",
-    "If you're ready, sit down. From here we look not at vague bad luck, but the structure of your repeated choices.",
-  ],
-  ja: [
-    "来たか。ここは心を慰める前に、お前の選択の基準をまず立てる戦略相談室だ。",
-    "扉が閉まれば、言い訳ではなく事実を並べる。どこで同じ選択を繰り返したかから見る。",
-    "今日見るのは運が良い悪いじゃない。お前がなぜ似た場面で力を失い続けるかだ。",
-    "四柱推命でも星座でも地図は違う。目的はお前が再び動くための基準を見つけることだ。",
-    "怖がる必要はない。感情の霧を判断できる文章に変える過程だ。",
-    "お前が長く先延ばしにしてきた質問があるなら、それが今日最初の手がかりだ。",
-    "獅子の紋章は脅す印じゃない。もう一度基準を立てるという合図だ。",
-    "準備ができたなら座れ。これからは漠然とした不運ではなく、繰り返された選択の構造を見る。",
-  ],
-  "zh-CN": [
-    "来了。这里不是先安抚情绪的地方，而是先为你的选择立下标准的战略咨询室。",
-    "门一旦关上，摆上桌面的就不是借口，而是事实。先看你在哪里反复做出同样的选择。",
-    "今天要看的不是运气好坏，而是你为什么总在相似的场景里失去力量。",
-    "无论是四柱还是星座，地图都不同。目的是找到能让你重新行动的标准。",
-    "不必害怕。这是把情绪的迷雾转化为可以判断的句子的过程。",
-    "如果有一个你拖延已久的问题，那就是今天的第一条线索。",
-    "狮徽不是用来吓唬人的标志，而是要重新立下标准的信号。",
-    "准备好了就坐下。从现在开始，我们看的不是模糊的厄运，而是反复出现的选择结构。",
-  ],
-  "zh-TW": [
-    "來了。這裡不是先安撫情緒的地方，而是先為你的選擇立下標準的戰略諮詢室。",
-    "門一旦關上，擺上桌面的就不是藉口，而是事實。先看你在哪裡反覆做出同樣的選擇。",
-    "今天要看的不是運氣好壞，而是你為什麼總在相似的場景裡失去力量。",
-    "無論是四柱還是星座，地圖都不同。目的是找到能讓你重新行動的標準。",
-    "不必害怕。這是把情緒的迷霧轉化為可以判斷的句子的過程。",
-    "如果有一個你拖延已久的問題，那就是今天的第一條線索。",
-    "獅徽不是用來嚇唬人的標誌，而是要重新立下標準的信號。",
-    "準備好了就坐下。從現在開始，我們看的不是模糊的厄運，而是反覆出現的選擇結構。",
-  ],
-};
-
 const NEO_SPEAKER_NAME: Partial<Record<LoadingLocale, string>> = {
   ko: "네오",
   en: "Neo",
@@ -687,130 +442,16 @@ function neoWidgetText(key: keyof typeof NEO_WIDGET_TEXT, locale: LoadingLocale)
   return NEO_WIDGET_TEXT[key][locale] || NEO_WIDGET_TEXT[key].en || NEO_WIDGET_TEXT[key].ko!;
 }
 
-function localizeNeoLandingLine(text: string, index: number, locale: LoadingLocale): string {
-  if (locale === "ko") return text;
-  // 표에 없는 로케일은 ko 로 새지 않고 en 으로 대신한다.
-  return NEO_LANDING_DIALOGUE_TEXT[locale as Exclude<LoadingLocale, "ko">]?.[index] ?? NEO_LANDING_DIALOGUE_TEXT.en?.[index] ?? text;
+const neoLandingDialogues = getNeoWelcome("ko").scenes;
+const neoPrologueDialogues: readonly NeoPrologueLine[] = neoLandingDialogues.map((text, index) => ({
+  id: String(index), speaker: "neo", speakerLabel: "NEO", text,
+  scene: "intro", character: "humanNeo", effect: "none",
+}));
+function localizeNeoLandingLine(_text: string, index: number, locale: LoadingLocale): string {
+  return getNeoWelcome(locale).scenes[index];
 }
-
-type NeoPrologueOverride = { text: string; speakerLabel: string; notification?: { title: string; body: string }; cta?: { label: string; helperText: string } };
-
-const NEO_PROLOGUE_TEXT: Partial<Record<Exclude<LoadingLocale, "ko">, Record<string, NeoPrologueOverride>>> = {
-  en: {
-    "system-unlock": { text: "Strategy room unlocked.\nEmotional noise blocked, judgment circuits aligned.", speakerLabel: "War Room System" },
-    "story-door-open": { text: "The massive door opens, and cold light cuts across the floor.\nA single sentence rises above the central hologram.", speakerLabel: "Narration" },
-    "system-creed": { text: "Fate doesn't help the good.\nIt only opens a path for those who face their own problems head-on.", speakerLabel: "War Room System" },
-    "customer-room-check": { text: "This place... wasn't it just a fortune-telling spot?", speakerLabel: "Client" },
-    "story-lion-seal": { text: "The golden lion emblem on the front wall lights up.\nAnd the lion within the emblem slowly opens its eyes.", speakerLabel: "Narration" },
-    "lion-first-word": { text: "Don't be afraid.\nWhat dragged you into this room wasn't your own feet — it was the problem you kept putting off.", speakerLabel: "Golden Lion" },
-    "customer-startled": { text: "...did the lion just speak?", speakerLabel: "Client" },
-    "lion-pattern-read": { text: "That's not what should surprise you.\nYou already know how many times you've retreated at the same spot — you just haven't counted.", speakerLabel: "Golden Lion" },
-    "customer-defense": { text: "...that was — I had no choice back then.", speakerLabel: "Client" },
-    "lion-name-problem": { text: "\"I had no choice\" just means you haven't named it yet.\nAn unnamed problem keeps coming back wearing the same face, for life.", speakerLabel: "Golden Lion" },
-    "lion-offer-power": { text: "I'll ask you.\nDo you want power?", speakerLabel: "Golden Lion" },
-    "lion-define-power": { text: "Power here isn't some fluke that changes your luck.\nIt's the ability to see your situation exactly as it is and choose your next move yourself.", speakerLabel: "Golden Lion" },
-    "customer-accept": { text: "...I want it.\nThis time, I want to really know.", speakerLabel: "Client" },
-    "story-lion-transform": { text: "The lion's body crumbles into golden light and reforms.\nThe beast that stood on four legs becomes the shape of a man standing on two.", speakerLabel: "Narration" },
-    "system-protocol": { text: "Seal released, human form transformation complete.\nFact-punch protocol activated.", speakerLabel: "War Room System" },
-    "story-human-reveal": { text: "Where the light scatters and fades, a man stands — still carrying the lion's exact gaze.", speakerLabel: "Narration" },
-    "neo-self-intro": { text: "I'm Neo.\nThat lion just now — that was me. This form's just easier to talk in.", speakerLabel: "Neo" },
-    "neo-blunt-first": { text: "Let me say this up front.\nYour luck isn't bad. It's less that you lack luck, and more that you lack strategy.", speakerLabel: "Neo" },
-    "neo-room-role": { text: "This isn't a place that sells comfort.\nIt's a place that points exactly at what you've been looking away from.", speakerLabel: "Neo" },
-    "neo-final-briefing": {
-      text: "Ready to get hurt a little? Good, then let's start.\nThe problem you avoided naming — I'll name it for you, precisely.",
-      speakerLabel: "Neo",
-      notification: { title: "Strategy room connected", body: "Your current front, birth coordinates, question, and confrontation intensity are now on the operation board." },
-      cta: { label: "Enter the Destiny Strategy Room", helperText: "Turns your blocked flow into a standard and a next action." },
-    },
-  },
-  ja: {
-    "system-unlock": { text: "戦略室のロック解除。\n感情ノイズ遮断、判断回路の整列完了。", speakerLabel: "作戦室システム" },
-    "story-door-open": { text: "重厚な扉が開き、冷たい光が床を切り裂く。\n中央ホログラムの上に一文が浮かび上がる。", speakerLabel: "ナレーション" },
-    "system-creed": { text: "運命は善人を助けない。\n自分の問題に正面から向き合う者にだけ道を開く。", speakerLabel: "作戦室システム" },
-    "customer-room-check": { text: "ここって…ただの占いの場所じゃなかったのか。", speakerLabel: "客" },
-    "story-lion-seal": { text: "正面の壁の黄金の獅子紋章に灯りが入る。\nそして紋章の中の獅子が、ゆっくりと目を開く。", speakerLabel: "ナレーション" },
-    "lion-first-word": { text: "怖がるな。\nお前をこの部屋まで引きずり込んだのは、お前の足じゃない。お前が先延ばしにした問題だ。", speakerLabel: "黄金の獅子" },
-    "customer-startled": { text: "…今、獅子が喋ったんですか?", speakerLabel: "客" },
-    "lion-pattern-read": { text: "驚くべきはそこじゃない。\nお前は同じ場所で何度退いたか、すでに知っていながら数えなかった。", speakerLabel: "黄金の獅子" },
-    "customer-defense": { text: "…それは、あの時は仕方なかったんです。", speakerLabel: "客" },
-    "lion-name-problem": { text: "仕方なかったという言葉は、まだ名前をつけていないという意味だ。\n名前のない問題は、一生同じ顔で再び現れる。", speakerLabel: "黄金の獅子" },
-    "lion-offer-power": { text: "聞く。\n力が欲しいか?", speakerLabel: "黄金の獅子" },
-    "lion-define-power": { text: "ここでいう力とは、運を変える僥倖じゃない。\nお前の状況を正確に見て、次の一手を自分で選ぶ能力だ。", speakerLabel: "黄金の獅子" },
-    "customer-accept": { text: "…欲しいです。\n今度こそちゃんと知りたいです。", speakerLabel: "客" },
-    "story-lion-transform": { text: "獅子の体が黄金の光となって崩れ、再び編み直される。\n四本足で立っていた獣が、二本足で立つ人の姿に変わる。", speakerLabel: "ナレーション" },
-    "system-protocol": { text: "封印解除、人型変換完了。\nファクトパンチ・プロトコル起動。", speakerLabel: "作戦室システム" },
-    "story-human-reveal": { text: "光が消えた場所に、獅子の眼差しをそのまま持つ男が立っている。", speakerLabel: "ナレーション" },
-    "neo-self-intro": { text: "ネオだ。\nさっきの獅子、それが俺だ。この姿の方が話しやすいだろ。", speakerLabel: "ネオ" },
-    "neo-blunt-first": { text: "先に言っておく。\nお前の運は悪くない。運がないんじゃなく、戦略がない方に近い。", speakerLabel: "ネオ" },
-    "neo-room-role": { text: "ここは慰めを売る場所じゃない。\nお前が目を背けた場所を正確に指し示す場所だ。", speakerLabel: "ネオ" },
-    "neo-final-briefing": {
-      text: "傷つく覚悟はできたか。よし、それなら始めよう。\nお前が名付けるのを避けてきた問題、俺が代わりに正確に呼んでやる。",
-      speakerLabel: "ネオ",
-      notification: { title: "戦略室接続完了", body: "現在の戦線、出生座標、質問、直面強度が作戦盤に上がる。" },
-      cta: { label: "運命戦略室に入室する", helperText: "詰まった流れを基準と次の行動に整理する。" },
-    },
-  },
-  "zh-CN": {
-    "system-unlock": { text: "战略室解锁。\n情绪噪音屏蔽，判断回路校准完成。", speakerLabel: "作战室系统" },
-    "story-door-open": { text: "厚重的门缓缓打开，冷冽的光划过地面。\n中央全息投影上浮现出一句话。", speakerLabel: "旁白" },
-    "system-creed": { text: "命运不会帮助好人。\n只会为敢于直面自己问题的人开路。", speakerLabel: "作战室系统" },
-    "customer-room-check": { text: "这里…不是普通的算命场所吗。", speakerLabel: "客人" },
-    "story-lion-seal": { text: "正面墙上的黄金狮徽亮了起来。\n徽章中的狮子，缓缓睁开了双眼。", speakerLabel: "旁白" },
-    "lion-first-word": { text: "别害怕。\n把你拖到这个房间来的，不是你的双脚，而是你一直拖延的问题。", speakerLabel: "黄金狮子" },
-    "customer-startled": { text: "…刚才，是狮子在说话吗？", speakerLabel: "客人" },
-    "lion-pattern-read": { text: "该吃惊的不是那个。\n你其实早就知道自己在同一个地方退缩了多少次，只是没有数过。", speakerLabel: "黄金狮子" },
-    "customer-defense": { text: "…那是…那时候真的没办法。", speakerLabel: "客人" },
-    "lion-name-problem": { text: "所谓「没办法」，只是意味着你还没给它命名。\n没有名字的问题，一辈子都会以同样的面孔再次出现。", speakerLabel: "黄金狮子" },
-    "lion-offer-power": { text: "我问你。\n你想要力量吗？", speakerLabel: "黄金狮子" },
-    "lion-define-power": { text: "这里所说的力量，不是改变运气的侥幸。\n而是准确看清你的处境，并自己选择下一步的能力。", speakerLabel: "黄金狮子" },
-    "customer-accept": { text: "…我想要。\n这次，我想真正弄明白。", speakerLabel: "客人" },
-    "story-lion-transform": { text: "狮子的身躯化作金光崩解，又重新编织成形。\n那只四足而立的野兽，变成了双足站立的人形。", speakerLabel: "旁白" },
-    "system-protocol": { text: "封印解除，人形转换完成。\n真相直击协议启动。", speakerLabel: "作战室系统" },
-    "story-human-reveal": { text: "光芒散去之处，站着一个男人，眼神依旧带着狮子的锐利。", speakerLabel: "旁白" },
-    "neo-self-intro": { text: "我是尼奥。\n刚才那头狮子，就是我。这个样子说话方便多了。", speakerLabel: "尼奥" },
-    "neo-blunt-first": { text: "先说清楚。\n你的运气并不差。与其说是没运气，不如说是没有战略。", speakerLabel: "尼奥" },
-    "neo-room-role": { text: "这里不是贩卖安慰的地方。\n而是精准指出你一直逃避的那个点的地方。", speakerLabel: "尼奥" },
-    "neo-final-briefing": {
-      text: "做好受伤的准备了吗？好，那就开始吧。\n你一直逃避命名的问题，我来替你精准点破。",
-      speakerLabel: "尼奥",
-      notification: { title: "战略室连接完成", body: "当前战线、出生坐标、问题与直面强度都已呈上作战板。" },
-      cta: { label: "进入命运战略室", helperText: "把卡住的流向整理成标准与下一步行动。" },
-    },
-  },
-  "zh-TW": {
-    "system-unlock": { text: "戰略室解鎖。\n情緒噪音屏蔽，判斷迴路校準完成。", speakerLabel: "作戰室系統" },
-    "story-door-open": { text: "厚重的門緩緩打開，冷冽的光劃過地面。\n中央全息投影上浮現出一句話。", speakerLabel: "旁白" },
-    "system-creed": { text: "命運不會幫助好人。\n只會為敢於直面自己問題的人開路。", speakerLabel: "作戰室系統" },
-    "customer-room-check": { text: "這裡…不是普通的算命場所嗎。", speakerLabel: "客人" },
-    "story-lion-seal": { text: "正面牆上的黃金獅徽亮了起來。\n徽章中的獅子，緩緩睜開了雙眼。", speakerLabel: "旁白" },
-    "lion-first-word": { text: "別害怕。\n把你拖到這個房間來的，不是你的雙腳，而是你一直拖延的問題。", speakerLabel: "黃金獅子" },
-    "customer-startled": { text: "…剛才，是獅子在說話嗎？", speakerLabel: "客人" },
-    "lion-pattern-read": { text: "該吃驚的不是那個。\n你其實早就知道自己在同一個地方退縮了多少次，只是沒有數過。", speakerLabel: "黃金獅子" },
-    "customer-defense": { text: "…那是…那時候真的沒辦法。", speakerLabel: "客人" },
-    "lion-name-problem": { text: "所謂「沒辦法」，只是意味著你還沒給它命名。\n沒有名字的問題，一輩子都會以同樣的面孔再次出現。", speakerLabel: "黃金獅子" },
-    "lion-offer-power": { text: "我問你。\n你想要力量嗎？", speakerLabel: "黃金獅子" },
-    "lion-define-power": { text: "這裡所說的力量，不是改變運氣的僥倖。\n而是準確看清你的處境，並自己選擇下一步的能力。", speakerLabel: "黃金獅子" },
-    "customer-accept": { text: "…我想要。\n這次，我想真正弄明白。", speakerLabel: "客人" },
-    "story-lion-transform": { text: "獅子的身軀化作金光崩解，又重新編織成形。\n那隻四足而立的野獸，變成了雙足站立的人形。", speakerLabel: "旁白" },
-    "system-protocol": { text: "封印解除，人形轉換完成。\n真相直擊協議啟動。", speakerLabel: "作戰室系統" },
-    "story-human-reveal": { text: "光芒散去之處，站著一個男人，眼神依舊帶著獅子的銳利。", speakerLabel: "旁白" },
-    "neo-self-intro": { text: "我是尼歐。\n剛才那頭獅子，就是我。這個樣子說話方便多了。", speakerLabel: "尼歐" },
-    "neo-blunt-first": { text: "先說清楚。\n你的運氣並不差。與其說是沒運氣，不如說是沒有戰略。", speakerLabel: "尼歐" },
-    "neo-room-role": { text: "這裡不是販賣安慰的地方。\n而是精準指出你一直逃避的那個點的地方。", speakerLabel: "尼歐" },
-    "neo-final-briefing": {
-      text: "做好受傷的準備了嗎？好，那就開始吧。\n你一直逃避命名的問題，我來替你精準點破。",
-      speakerLabel: "尼歐",
-      notification: { title: "戰略室連接完成", body: "當前戰線、出生座標、問題與直面強度都已呈上作戰板。" },
-      cta: { label: "進入命運戰略室", helperText: "把卡住的流向整理成標準與下一步行動。" },
-    },
-  },
-};
-
 function localizeNeoPrologueLine(line: NeoPrologueLine, locale: LoadingLocale): NeoPrologueLine {
-  if (locale === "ko") return line;
-  // 표에 없는 로케일은 ko 로 새지 않고 en 으로 대신한다.
-  const override = NEO_PROLOGUE_TEXT[locale as Exclude<LoadingLocale, "ko">]?.[line.id] ?? NEO_PROLOGUE_TEXT.en?.[line.id];
-  return override ? { ...line, ...override } : line;
+  return { ...line, text: getNeoWelcome(locale).scenes[Number(line.id)] };
 }
 
 const getNeoPrologueCharacterAsset = (character: NeoPrologueCharacter): NeoWarRoomAsset => {
@@ -1496,6 +1137,8 @@ export default function NeoOperationRoomPage() {
   const [isSpriteMobile, setIsSpriteMobile] = useState(false);
   const [dialogueLocale, setDialogueLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const heroHeaderText = getNeoHeroHeaderText(dialogueLocale);
+  const welcome = getNeoWelcome(dialogueLocale);
+  const bookCopy = getNeoBookCopy(dialogueLocale);
   const methodSectionText = getMethodSectionText(dialogueLocale);
   const formCopy = getNeoFormCopy(dialogueLocale);
   const paidGateCopy = getNeoPaidGateCopy(dialogueLocale);
@@ -1701,16 +1344,15 @@ export default function NeoOperationRoomPage() {
   const activeHeroEffect = activePrologueLine?.effect || "none";
   const heroScenePhase = isPrologueActive ? "prologue" : "landing";
   const warRoomScene = showCommandDeck ? "command" : heroScenePhase;
-  const heroActionLabel = activePrologueLine?.cta?.label || neoWidgetText("enterWarRoom", dialogueLocale);
-  const heroActionMeta = activePrologueLine?.cta?.helperText || (hasSeenPrologue ? "Prologue Cleared" : "Operation Entry");
+  const heroActionLabel = welcome.start;
   const heroDialogueHint = isPrologueActive && isLastPrologueStep
       ? neoWidgetText("readyToEnter", dialogueLocale)
       : neoWidgetText("next", dialogueLocale);
-  const showHeroActionButton = !isPrologueActive || isLastPrologueStep;
-  const showTopicSelect = Boolean(method);
+  const showHeroActionButton = true;
+  const showTopicSelect = true;
   const showBirthInfo = Boolean(method && topic);
   const showIntensitySelect = Boolean(method && topic && hasBirthCoordinates);
-  const showQuestionInput = Boolean(method && topic && hasBirthCoordinates && intensity);
+  const showQuestionInput = true;
   const activeActorState: NeoWarRoomEmotionState = busy || previewOperationMap || displayBriefing || displayRefinedOrder || validationErrors.length || errorMessage
     ? activeCommandDialogue.emotionState || actorState
     : !method
@@ -1773,26 +1415,15 @@ export default function NeoOperationRoomPage() {
   const commandActorIsTalking = Boolean(commandActorTalkFrames?.length);
   const neoBadgeStampAsset = isSpriteMobile ? neoWarRoomAssets.badges.resultStampMobile : neoWarRoomAssets.badges.resultStamp;
   const commandFlowSteps = [
-    { id: "method", label: formCopy["commandFlow.stepMethod"], targetId: "neo-method-title", done: Boolean(method), active: !method },
-    { id: "topic", label: formCopy["commandFlow.stepTopic"], targetId: "neo-topic-title", done: Boolean(topic), active: Boolean(method) && !topic },
+    { id: "concern", label: formCopy["commandFlow.stepQuestion"], targetId: "neo-question-title", done: questionReady && Boolean(topic), active: !questionReady || !topic },
+    { id: "method", label: formCopy["commandFlow.stepMethod"], targetId: "neo-method-title", done: Boolean(method), active: questionReady && Boolean(topic) && !method },
     { id: "birth", label: formCopy["commandFlow.stepBirth"], targetId: "neo-profile-title", done: hasBirthCoordinates, active: Boolean(method && topic) && !hasBirthCoordinates },
     { id: "intensity", label: formCopy["commandFlow.stepIntensity"], targetId: "neo-intensity-title", done: Boolean(intensity), active: Boolean(method && topic && hasBirthCoordinates) && !intensity },
-    { id: "question", label: formCopy["commandFlow.stepQuestion"], targetId: "neo-question-title", done: questionReady, active: Boolean(method && topic && hasBirthCoordinates && intensity) && !questionReady },
-    { id: "launch", label: formCopy["commandFlow.stepLaunch"], targetId: "neo-operation-launch", done: operationReady, active: Boolean(method && topic && hasBirthCoordinates && intensity && questionReady) },
+    { id: "launch", label: formCopy["commandFlow.stepLaunch"], targetId: "neo-operation-launch", done: operationReady, active: operationReady },
   ];
-  const commandStepHint = !method
-    ? formCopy["commandFlow.hintChooseMethod"]
-    : !topic
-      ? formCopy["commandFlow.hintChooseTopic"]
-      : !hasBirthCoordinates
-        ? formCopy["commandFlow.hintBirth"]
-        : !intensity
-          ? formCopy["commandFlow.hintIntensity"]
-          : !questionReady
-            ? getNeoCommandStepQuestionHint(questionShortfall, dialogueLocale)
-            : operationReady
-              ? formCopy["commandFlow.hintReady"]
-              : formCopy["commandFlow.hintLaunchReady"];
+  const commandStepHint = !questionReady ? getNeoCommandStepQuestionHint(questionShortfall, dialogueLocale)
+    : !topic ? formCopy["commandFlow.hintChooseTopic"] : !method ? formCopy["commandFlow.hintChooseMethod"]
+    : !hasBirthCoordinates ? formCopy["commandFlow.hintBirth"] : !intensity ? formCopy["commandFlow.hintIntensity"] : formCopy["commandFlow.hintLaunchReady"];
   const bgmStatusLabel =
     bgmStatus === "playing"
       ? "ON"
@@ -1804,9 +1435,9 @@ export default function NeoOperationRoomPage() {
 
   const backgroundStyle = {
     // 배경은 CSS 변수로 나가 NeoWarRoomAssetImage 를 우회하므로 리사이즈를 여기서 직접 건다.
-    "--neo-bg-desktop": `url("${buildResizedAssetUrl(neoWarRoomAssets.backgrounds.desktop.src, { width: 1600, quality: 82 })}")`,
-    "--neo-bg-mobile": `url("${buildResizedAssetUrl(neoWarRoomAssets.backgrounds.mobile.src, { width: 820, quality: 82 })}")`,
-    "--neo-prologue-bg": `url("${neoWarRoomAssets.backgrounds.strategyCity.src}")`,
+    "--neo-bg-desktop": 'url("/neo-operation-room/strategy-room-v1.webp")',
+    "--neo-bg-mobile": 'url("/neo-operation-room/strategy-room-v1.webp")',
+    "--neo-prologue-bg": 'url("/neo-operation-room/strategy-room-v1.webp")',
   } as CSSProperties;
   const playNeoBgm = useCallback(async (forceEnabled = false) => {
     const audio = bgmAudioRef.current;
@@ -2533,13 +2164,12 @@ export default function NeoOperationRoomPage() {
       >
         <div className={styles.vnStage} data-phase={heroScenePhase} data-effect={activeHeroEffect}>
           <div className={styles.vnCopy}>
-            <p className={styles.eyebrow}>Lion Seal War Room</p>
             <h1 id="neo-operation-room-title" aria-label={heroHeaderText.titleAria}>
               <span>{heroHeaderText.titleLines[0]}</span>
               <span>{heroHeaderText.titleLines[1]}</span>
               <span>{heroHeaderText.titleLines[2]}</span>
             </h1>
-            <p className={styles.subtitle}>{heroHeaderText.subtitle}</p>
+            <p className={styles.subtitle}>{welcome.lead}</p>
             <div className={styles.entryBrief} aria-label={heroHeaderText.entryBriefAria}>
               {getEntryBriefingItems(dialogueLocale).map((item) => (
                 <span key={item.label}>
@@ -2658,7 +2288,7 @@ export default function NeoOperationRoomPage() {
                 >
                   <span className={styles.ctaButtonCopy}>
                     <strong>{heroActionLabel}</strong>
-                    {isPrologueActive ? null : <em>{heroActionMeta}</em>}
+
                   </span>
                 </button>
               ) : null}
@@ -2667,6 +2297,15 @@ export default function NeoOperationRoomPage() {
         </div>
       </section>
       ) : null}
+
+      {!showOperationMap && !displayBriefing && !displayRefinedOrder && <section className={styles.consultationValue} aria-label={welcome.results}>
+        <div className={styles.consultationValueIntro}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/neo-operation-room/strategy-explain-v1.webp" alt="" width={1200} height={800} loading="lazy" />
+          <div><h2>{welcome.results}</h2><p>{welcome.lead}</p><Link href="/neo-operation-room/strategy-books/">{bookCopy.title} →</Link><p className={styles.strategyBookHint}>{bookCopy.rule}</p></div>
+        </div>
+        <ExpertValueCards theme="neo" points={welcome.points} />
+      </section>}
 
       {showOperationMap ? (
         <section
@@ -2740,7 +2379,7 @@ export default function NeoOperationRoomPage() {
 
       {showCommandDeck ? (
       <>
-      <ExpertValueCards theme="neo" points={[{ title: "판세 정리", description: "지금 반복되는 선택과 관계의 패턴을 네오의 언어로 정리합니다." }, { title: "팩폭 근거", description: "허황된 위로 대신 입력한 정보와 선택에서 확인되는 신호를 짚습니다." }, { title: "실행 작전", description: "이번 주에 바로 적용할 수 있는 순서와 금지할 행동을 남깁니다." }]} />
+
       <form id="neo-operation-command-deck" className={styles.commandDeck} data-entered="true" onSubmit={handleSubmit}>
         <NeoWarRoomAssetImage
           asset={neoWarRoomAssets.decor.asset1}
@@ -2767,45 +2406,71 @@ export default function NeoOperationRoomPage() {
           </div>
           <p className={styles.commandStepHint}>{commandStepHint}</p>
         </section>
-        <section className={styles.sealPerkPreview} aria-label={formCopy["sealPerk.ariaLabel"]}>
-          <div className={styles.sealPerkSeal}>
-            <NeoWarRoomAssetImage
-              asset={neoWarRoomAssets.hero.lionSeal}
-              alt={formCopy["sealPerk.imageAlt"]}
-              sizes="88px"
-              className={styles.sealPerkSealFrame}
-              imageClassName={styles.sealPerkSealImage}
-            />
-          </div>
-          <div className={styles.sealPerkCopy}>
-            <span className={styles.sealPerkEyebrow}>Lion Seal Reward</span>
-            <strong className={styles.sealPerkTitle}>{formCopy["sealPerk.title"]}</strong>
-            <p className={styles.sealPerkDesc}>
-              {formCopy["sealPerk.desc"]}
-            </p>
-            <ul className={styles.sealPerkList}>
-              <li>
-                <em className={styles.sealPerkLock} aria-hidden="true">{formCopy["sealPerk.lockLabel"]}</em>
-                <span>
-                  <strong>{formCopy["sealPerk.letterTitle"]}</strong>
-                  {formCopy["sealPerk.letterDesc"]}
-                </span>
-              </li>
-              <li>
-                <em className={styles.sealPerkLock} aria-hidden="true">{formCopy["sealPerk.lockLabel"]}</em>
-                <span>
-                  <strong>{formCopy["sealPerk.pdfTitle"]}</strong>
-                  {formCopy["sealPerk.pdfDesc"]}
-                </span>
-              </li>
-            </ul>
-          </div>
-        </section>
         <div className={styles.commandLayout}>
           <div className={styles.commandFields}>
-            <section className={styles.deckSection} aria-labelledby="neo-method-title">
+            {showQuestionInput ? (
+            <section className={styles.deckSection} aria-labelledby="neo-question-title">
               <div className={styles.sectionHead}>
                 <span>01</span>
+                <h2 id="neo-question-title">{formCopy["questionInput.title"]}</h2>
+              </div>
+              <label className={styles.questionLabel} htmlFor="neo-operation-question">
+                {formCopy["questionInput.label"]}
+              </label>
+              <textarea
+                id="neo-operation-question"
+                className={styles.questionInput}
+                value={question}
+                maxLength={600}
+                placeholder={formCopy["questionInput.placeholder"]}
+                onChange={(event) => {
+                  resetPendingFlow();
+                  setLastCommandChoice(null);
+                  setQuestion(event.target.value);
+                }}
+              />
+              <div className={styles.inputMeta}>
+                <span>{question.length}/600</span>
+                <span>
+                  {selectedMethod?.label || formCopy["questionInput.methodUnselected"]} · {(topic && getNeoTopicLabel(topic, dialogueLocale)) || formCopy["questionInput.topicUnselected"]} · {selectedIntensity?.label || formCopy["questionInput.intensityUnselected"]}
+                </span>
+              </div>
+              {!questionReady ? (
+                <p className={styles.questionHint}>{getNeoQuestionHint(questionShortfall, dialogueLocale)}</p>
+              ) : null}
+            </section>
+            ) : null}
+
+            {showTopicSelect ? (
+            <section className={styles.deckSection} aria-labelledby="neo-topic-title">
+              <div className={styles.sectionHead}>
+                <span>01</span>
+                <h2 id="neo-topic-title">{formCopy["topicSelect.title"]}</h2>
+              </div>
+              <div className={styles.topicGrid}>
+                {topicOptions.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={styles.choiceButton}
+                    data-active={topic === item ? "true" : "false"}
+                    aria-pressed={topic === item}
+                    onClick={() => {
+                      resetPendingFlow();
+                      setTopic(item);
+                      setLastCommandChoice({ kind: "topic", value: item });
+                    }}
+                  >
+                    {getNeoTopicLabel(item, dialogueLocale)}
+                  </button>
+                ))}
+              </div>
+            </section>
+            ) : null}
+
+            <section className={styles.deckSection} aria-labelledby="neo-method-title">
+              <div className={styles.sectionHead}>
+                <span>02</span>
                 <h2 id="neo-method-title">{methodSectionText.title}</h2>
               </div>
               <div className={styles.methodGrid}>
@@ -2873,33 +2538,6 @@ export default function NeoOperationRoomPage() {
                 ))}
               </div>
             </section>
-
-            {showTopicSelect ? (
-            <section className={styles.deckSection} aria-labelledby="neo-topic-title">
-              <div className={styles.sectionHead}>
-                <span>02</span>
-                <h2 id="neo-topic-title">{formCopy["topicSelect.title"]}</h2>
-              </div>
-              <div className={styles.topicGrid}>
-                {topicOptions.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    className={styles.choiceButton}
-                    data-active={topic === item ? "true" : "false"}
-                    aria-pressed={topic === item}
-                    onClick={() => {
-                      resetPendingFlow();
-                      setTopic(item);
-                      setLastCommandChoice({ kind: "topic", value: item });
-                    }}
-                  >
-                    {getNeoTopicLabel(item, dialogueLocale)}
-                  </button>
-                ))}
-              </div>
-            </section>
-            ) : null}
 
             {showBirthInfo ? (
             <section className={styles.deckSection} aria-labelledby="neo-profile-title">
@@ -3170,39 +2808,6 @@ export default function NeoOperationRoomPage() {
                   <strong>{formCopy["intensitySelect.roarWarningTitle"]}</strong>
                   <p>{formCopy["intensitySelect.roarWarningBody"]}</p>
                 </aside>
-              ) : null}
-            </section>
-            ) : null}
-
-            {showQuestionInput ? (
-            <section className={styles.deckSection} aria-labelledby="neo-question-title">
-              <div className={styles.sectionHead}>
-                <span>05</span>
-                <h2 id="neo-question-title">{formCopy["questionInput.title"]}</h2>
-              </div>
-              <label className={styles.questionLabel} htmlFor="neo-operation-question">
-                {formCopy["questionInput.label"]}
-              </label>
-              <textarea
-                id="neo-operation-question"
-                className={styles.questionInput}
-                value={question}
-                maxLength={600}
-                placeholder={formCopy["questionInput.placeholder"]}
-                onChange={(event) => {
-                  resetPendingFlow();
-                  setLastCommandChoice(null);
-                  setQuestion(event.target.value);
-                }}
-              />
-              <div className={styles.inputMeta}>
-                <span>{question.length}/600</span>
-                <span>
-                  {selectedMethod?.label || formCopy["questionInput.methodUnselected"]} · {(topic && getNeoTopicLabel(topic, dialogueLocale)) || formCopy["questionInput.topicUnselected"]} · {selectedIntensity?.label || formCopy["questionInput.intensityUnselected"]}
-                </span>
-              </div>
-              {!questionReady ? (
-                <p className={styles.questionHint}>{getNeoQuestionHint(questionShortfall, dialogueLocale)}</p>
               ) : null}
             </section>
             ) : null}
