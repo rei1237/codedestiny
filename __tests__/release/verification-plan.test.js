@@ -33,6 +33,8 @@ for (const [name, files, tier, builds] of [
   ['payment', ['lib/payment/portone.ts'], 'critical', [true, true]],
   ['unknown', ['new-unclassified.xyz'], 'critical', [true, true]],
   ['shared', ['lib/shared.ts'], 'critical', [true, true]],
+  ['shared config', ['config/feature-flags.json'], 'critical', [true, true]],
+  ['UI with regenerated sitemap ledger', ['app/components/Button.tsx', 'config/sitemap-lastmod.json'], 'standard', [true, false]],
   ['test only', ['__tests__/worker/example.test.js'], 'critical', [true, false]],
   ['mirror', ['public/js/core/pass-verdict.js'], 'critical', [true, true]],
   ['mixed', ['docs/a.md', 'worker/routes/payments.js'], 'critical', [true, true]],
