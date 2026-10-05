@@ -6,14 +6,11 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSPr
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { receiveNeoBriefing } from "./paid-delivery";
 import { authFetch } from "@/app/_lib/auth-client";
-import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
+import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { toDisplayText } from "@/lib/llm-text";
 import { buildResizedAssetUrl } from "@/lib/r2-public-url";
 import {
-  beginPaidFeatureGateCheck,
-  completePaidFeatureGateCheck,
   failPaidFeatureGateCheck,
-  formatPaymentWon,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
@@ -169,10 +166,6 @@ type NeoSession = {
   versionHistory?: Array<{ version?: number; documentType?: string; operationTitle?: string; createdAt?: string }>;
   resultUrl?: string;
 };
-type EnsureAccessResult =
-  | { ok: true; accessToken: string; accessType: AccessType; consultation?: NeoSession | null }
-  | { ok: false; reason: "PAYMENT_REQUIRED"; paymentPayload: Record<string, unknown> }
-  | { ok: false; reason: "LOGIN_REQUIRED" | "INVALID_INPUT" | "PAYMENT_VERIFY_FAILED" | "PAYMENT_CANCELLED" | "LLM_ERROR" | "CALCULATION_ERROR" | "SERVER_ERROR"; message?: string };
 type NeoCommandSpriteConfig = {
   state: NeoWarRoomEmotionState;
   variant: NeoSpriteVariant;
@@ -1298,11 +1291,6 @@ function toText(value: unknown) {
   return toDisplayText(value);
 }
 
-function toPositiveInteger(value: unknown) {
-  const numberValue = Number(value);
-  return Number.isFinite(numberValue) && numberValue > 0 ? Math.floor(numberValue) : 0;
-}
-
 function getBriefingFrontline(briefing?: NeoBriefing | null) {
   return briefing?.frontlineSummary || briefing?.coreDiagnosis || "";
 }
@@ -1486,7 +1474,6 @@ export default function NeoOperationRoomPage() {
   const [refineError, setRefineError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [consultPriceLabel, setConsultPriceLabel] = useState("");
   const [resultUrl, setResultUrl] = useState("");
   const [operationStageIndex, setOperationStageIndex] = useState(0);
   const [dialogueSeed, setDialogueSeed] = useState(0);
@@ -1512,6 +1499,7 @@ export default function NeoOperationRoomPage() {
   const methodSectionText = getMethodSectionText(dialogueLocale);
   const formCopy = getNeoFormCopy(dialogueLocale);
   const paidGateCopy = getNeoPaidGateCopy(dialogueLocale);
+  const submitLockRef = useRef(false);
   const idempotencyKeyRef = useRef("");
   // 저장된 요청키를 되돌려 지울 때 쓰는 지문. 상태(pendingAccess)는 비동기 핸들러 클로저에서
   // 낡은 값을 보므로 ref 로 둔다.
@@ -1614,9 +1602,9 @@ export default function NeoOperationRoomPage() {
   const showLaunchConfirm = Boolean(method && topic && hasBirthCoordinates && intensity && questionReady);
   // 발사 확인 배지의 가격 표시. 예전에는 /api/billing/unlock-status 를 쳐서 priceKRW 하나만 뽑아 썼는데,
   // 같은 금액을 빌드타임 레지스트리(worker/lib/paid-feature-registry.js)에서 네트워크 0으로 얻을 수 있다.
-  // 결제 확정 후에는 아래에서 서버가 준 실제 금액(consultPriceLabel)이 이 값을 덮는다.
+  // 표시 가격은 정본 레지스트리에서, 결제 금액과 권한은 공용 결제 게이트에서 확인한다.
   const registryConsultPrice = useServerPrice({ featureKey: FEATURE_KEY });
-  const displayConsultPriceLabel = consultPriceLabel || registryConsultPrice.label;
+  const displayConsultPriceLabel = registryConsultPrice.label;
   const lastChoiceDialogue = useMemo(() => {
     if (lastCommandChoice?.kind === "method" && method === lastCommandChoice.value) return getNeoMethodDialogue(method, dialogueSeed, dialogueLocale);
     if (lastCommandChoice?.kind === "topic" && topic === lastCommandChoice.value) return getNeoTopicDialogue(topic, dialogueSeed, dialogueLocale);
@@ -2330,6 +2318,7 @@ export default function NeoOperationRoomPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy || submitLockRef.current) return;
     const errors = validateNeoWarRoomInput(validationInput, dialogueLocale);
     setValidationErrors(errors);
     if (errors.length) {
@@ -2373,85 +2362,38 @@ export default function NeoOperationRoomPage() {
     setRefineError("");
     setResultUrl("");
     setErrorMessage("");
-    setStatusMessage(paidGateCopy.checkingAccessMessage);
-    setFlowPhase("checking");
+    submitLockRef.current = true;
+    const isCurrent = captureOwner();
+    setFlowPhase("payment");
     setOperationReady(false);
-    beginPaidFeatureGateCheck({
-      featureKey: FEATURE_KEY,
-      requestId: idempotencyKey,
-      title: paidGateCopy.checkingTitle,
-      reason: FEATURE_TITLE,
-      paymentMode: "MEMBERSHIP_PASS",
-    });
-
+    setStatusMessage(paidGateCopy.confirmingPassMessage);
     try {
-      // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED 등)는 재시도로 흡수한다 — 하드 "이용권 확인 실패"로 굳지 않게.
-      const { response, data } = await runAccessCheckWithTransientRetry(
-        () => postJson<EnsureAccessResult>(API_ENDPOINTS.ensureAccess, payload, idempotencyKey),
-        { onRetry: () => setStatusMessage(paidGateCopy.retryAfterUnstableMessage) },
-      );
-      if (data.ok) {
-        completePaidFeatureGateCheck({
-          featureKey: FEATURE_KEY,
-          requestId: idempotencyKey,
-          title: paidGateCopy.completeTitle,
-          reason: FEATURE_TITLE,
-          paymentMode: "MEMBERSHIP_PASS",
-          message: paidGateCopy.completeMessage,
-        });
-        if (data.consultation?.initialBriefing) {
-          completeWithSession(data.consultation);
-          return;
-        }
-        await startBriefing(idempotencyKey, payload, { accessToken: data.accessToken, accessType: data.accessType });
-        return;
-      }
-      if (data.reason === "LOGIN_REQUIRED" || response.status === 401) throw new Error("LOGIN_REQUIRED");
-      if (data.reason === "INVALID_INPUT") throw new Error("INVALID_INPUT");
-      // 재시도를 소진하고도 일시적 장애가 지속되면 과금 없이 소프트 종료(이용권 결함으로 오인하지 않게).
-      if (isRetriableResultPollFailure(response.status, data)) throw new Error("TEMPORARY_UNAVAILABLE");
-      if (data.reason !== "PAYMENT_REQUIRED") throw new Error(data.reason || "SERVER_ERROR");
-
-      setFlowPhase("payment");
-      setStatusMessage(paidGateCopy.confirmingPassMessage);
-      const paymentPayload = asRecord(data.paymentPayload);
-      const runtimeGate = asRecord(paymentPayload.runtimeGate);
-      const gateCoinPrice = toPositiveInteger(runtimeGate.coinPrice ?? runtimeGate.cost ?? paymentPayload.coinPrice ?? paymentPayload.cost);
-      const gatePaymentAmount = toPositiveInteger(runtimeGate.paymentAmount ?? paymentPayload.paymentAmount ?? runtimeGate.totalAmount ?? paymentPayload.totalAmount);
-      const gateAmountKRW = toPositiveInteger(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? paymentPayload.amountKRW ?? paymentPayload.amountKrw ?? gatePaymentAmount);
-      const gateMembershipCreditCost = toPositiveInteger(runtimeGate.membershipCreditCost ?? paymentPayload.membershipCreditCost);
-      const displayAmountKRW = gateAmountKRW || gatePaymentAmount;
-      if (displayAmountKRW > 0) setConsultPriceLabel(formatPaymentWon(displayAmountKRW));
+      // 공용 게이트가 로컬 이용권 스냅샷과 결제창을 소유한다.
+      // 서버 선확인으로 로그인/결제창 진입을 막지 않는다. /start가 최종 증빙을 검증한다.
       const gate = await runBillingCoinGate({
-        ...runtimeGate,
         featureKey: FEATURE_KEY,
-        categoryKey: toText(runtimeGate.categoryKey || paymentPayload.categoryKey || "premium-consultation"),
-        subFeatureKey: toText(runtimeGate.subFeatureKey || paymentPayload.subFeatureKey || FEATURE_KEY),
-        reason: toText(runtimeGate.reason || paymentPayload.reason || FEATURE_TITLE),
+        categoryKey: "premium-consultation",
+        subFeatureKey: FEATURE_KEY,
+        reason: FEATURE_TITLE,
         requestId: idempotencyKey,
         idempotencyKey,
-        cost: gateCoinPrice || undefined,
-        coinPrice: gateCoinPrice || undefined,
-        amountKRW: gateAmountKRW || undefined,
-        amountKrw: gateAmountKRW || undefined,
-        paymentAmount: gatePaymentAmount || gateAmountKRW || undefined,
-        priceKRW: gateAmountKRW || gatePaymentAmount || undefined,
-        membershipCreditCost: gateMembershipCreditCost || undefined,
-        productId: toText(runtimeGate.productId || paymentPayload.productId || "neo-operation-room"),
-        productType: toText(runtimeGate.productType || paymentPayload.productType || "neo-operation-room"),
-        serviceType: toText(runtimeGate.serviceType || paymentPayload.serviceType || FEATURE_KEY),
+        productId: "neo-operation-room",
+        productType: "neo-operation-room",
+        serviceType: FEATURE_KEY,
         resume: buildResume({
           idempotencyKey,
           inputFingerprint,
           payload: packPaidResumeArg(payload),
         }),
       });
+      if (!isCurrent()) return;
       if (!gate.ok || !gate.data) {
         const code = toText(gate.error?.code || (gate.status === 401 ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED")).toUpperCase();
         throw new Error(code === "PAYMENT_CANCELLED" ? "PAYMENT_CANCELLED" : code === "AUTH_REQUIRED" ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED");
       }
       await startBriefing(idempotencyKey, payload, extractPaymentContext(gate, idempotencyKey));
     } catch (caught) {
+      if (!isCurrent()) return;
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
       const paymentCancelled = code === "PAYMENT_CANCELLED";
       // 생성 단계(LLM/계산/지연) 실패는 결제·이용권 문제가 아니므로 게이트 문구를 분리한다(오표시 방지).
@@ -2478,6 +2420,8 @@ export default function NeoOperationRoomPage() {
       setOperationReady(false);
       setStatusMessage("");
       setErrorMessage(getNeoErrorCopy(code, dialogueLocale) || getNeoErrorCopy("SERVER_ERROR", dialogueLocale));
+    } finally {
+      submitLockRef.current = false;
     }
   }
 
@@ -3317,7 +3261,7 @@ export default function NeoOperationRoomPage() {
                           ? formCopy["launchConfirm.ctaAnalyzing"]
                           : formCopy["launchConfirm.ctaStart"]}
                   </strong>
-                  <em>{busy ? "Mapping Fate" : "Lion Seal Command"}</em>
+                  <em>{busy ? "Preparing Consultation" : "Consultation"}</em>
                 </span>
               </button>
               <p className={styles.startHint}>
