@@ -1,6 +1,7 @@
 ---
-status: in-progress
+status: active
 updated: 2026-10-05
+next: 공개 차트·요약과 상세 본문을 분리하고 프런트·PDF·공유를 서버 상세 조회로 연결한다. Android는 다른 세션 통합 및 main CI 확인 전 보류한다.
 ---
 
 # 프롤로그·유료 콘텐츠 정비 → Android 출시
@@ -95,7 +96,7 @@ updated: 2026-10-05
 
 - 공유 main 재확인 SHA: a13ee2a647cdeddbebfdd0e373ea0378398593f2. 홈 index.html, styles/home-funnel.css와 public 미러는 타 세션 staged/unstaged 변경이 공존한다. 이 작업의 index/public 미러와 겹치므로 덮어쓰기·stash·부분 혼합 없이 통합 대기.
 - 가격·결제 권한 코드는 아직 수정하지 않았으며 2단계는 조사까지만 완료. Android·스토어 이미지 제작은 시작하지 않았다.
-- 이 문서는 전체 요청이 미완료여서 status: in-progress를 유지한다. 다른 세션에서 이어갈 수 있도록 미통합 작업과 워크트리를 보존한다.
+- 이 문서는 전체 요청이 미완료여서 status: active를 유지한다. 후속 상세 분리 작업을 이어갈 수 있도록 지정 워크트리를 보존한다.
 
 ## 후속 구현 — 기본 점성술 서버 상세 조회
 
@@ -114,5 +115,6 @@ updated: 2026-10-05
 - 후속 `npm run typecheck` 및 `npm run build:worker` 통과. Worker dry-run gzip 4,147.34 KiB, 실제 배포 없음. Wrangler의 사용자 폴더 로그 쓰기는 sandbox EPERM이었으나 번들 생성과 dry-run은 exit 0. APK/AAB 빌드 없음.
 - `node scripts/verify-public-mirror-fresh.mjs`: 처음에는 미커밋으로 판정 불가, 구현 커밋 후 재실행 OK(재생성 변경 없음).
 - `config/payment-freeze.json`의 billing.js 성장 상한은 6,368→6,347줄로 가드가 자동 축소했으며 구현 커밋에 포함. 결제 정책이나 해시 가드를 완화하지 않았다.
-- 원격 통합: origin/main 15f2f09e8041270affeb4782ad3e0d40ee4a0653을 지정 워크트리에 merge한 커밋은 2c951021e. 이번 전달은 공유 main의 더러운 인덱스를 건드리지 않고 이 통합 결과를 원격 main으로 fast-forward push한다. 이 기록 시점의 push·main CI는 아직 대기이며, 확인 후 아래에 증거를 추가한다.
+- 원격 통합: origin/main 15f2f09e8041270affeb4782ad3e0d40ee4a0653을 지정 워크트리에 merge한 커밋은 2c951021e. 공유 main의 더러운 인덱스를 건드리지 않고 dc0160fa596a042fbc09f53fdcc39c493a63c48d를 원격 main으로 fast-forward push했다.
+- main CI [37324381265](https://github.com/rei1237/codedestiny/actions/runs/37324381265): `Critical checks`, `Typecheck and lint`, `Build Pages and Worker` 모두 success. `Static guards`는 이 문서의 기존 `in-progress` 상태값과 `next` 누락으로 실패하여 `CI required`도 failure였다. 허용 상태 `active`와 다음 행동을 추가했으며 이 문서 수정 SHA의 main CI를 최종 확인한다. 코드/빌드 실패로 기록하지 않으며 실패 자체를 통과로 바꾸어 보고하지 않는다.
 - 구매 전환 세션은 완료, SEO 세션은 active로 확인. 공유 main에는 index.html·홈 CSS·public 로케일 미러의 타 세션 staged/unstaged 변경이 공존한다. 덮어쓰기·stash 없이 보존하고 Android는 계속 보류한다.
