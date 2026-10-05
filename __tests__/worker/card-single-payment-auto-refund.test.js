@@ -82,6 +82,7 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({
     connectDb: jest.fn(async () => undefined),
     withMongoRetry: jest.fn(async (_env, operation) => operation()),
+    mongoTransactionOptions: jest.fn(() => ({})),
     // 라우트가 실제로 쓰는 것은 ObjectId 유효성 판정 하나다 — 24자리 hex 만 통과시켜
     // "빈 paymentDocId 는 환불 대상이 아니다" 를 테스트가 실제로 물게 한다.
     mongoose: { Types: { ObjectId: { isValid: (value) => /^[0-9a-fA-F]{24}$/.test(String(value || "")) } } },

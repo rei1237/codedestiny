@@ -151,8 +151,10 @@ export async function listRecords(userId, params, readPage = async (source, quer
   const search = clean(params.get('q'), 160), group = params.get('group') || 'all';
   if (!['all', 'report', 'chat', 'chart'].includes(group)) throw cursorError();
   const size = Math.max(1, Math.min(30, Number(params.get('limit')) || 20));
-  const cursor = decodeRecordCursor(params.get('cursor'), userId, `${group}:${search}`);
-  const sources = RECORD_SERVICES.filter(source => (group === 'all' || source.group === group || source.dynamic) && !cursor.done.includes(source.id));
+  const sourceId = params.get('source') || '';
+  if (sourceId && !RECORD_SERVICES.some(source => source.id === sourceId)) throw cursorError();
+  const cursor = decodeRecordCursor(params.get('cursor'), userId, `${group}:${search}${sourceId ? ':source=' + sourceId : ''}`);
+  const sources = RECORD_SERVICES.filter(source => (!sourceId || source.id === sourceId) && (group === 'all' || source.group === group || source.dynamic) && !cursor.done.includes(source.id));
   const pages = [];
   for (let offset = 0; offset < sources.length; offset += 4) {
     pages.push(...await Promise.all(sources.slice(offset, offset + 4).map(async source => {

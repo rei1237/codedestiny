@@ -74,6 +74,15 @@ beforeEach(()=>{
 afterEach(()=>{for(const value of collections.values()){expect(value.insertOne).not.toHaveBeenCalled();expect(value.updateOne).not.toHaveBeenCalled();}});
 const request = (path='',method='GET')=>new Request(`https://test.invalid/api/records${path}`,{method});
 const seed = (id, day, extra={})=>({_id:new mongoose.Types.ObjectId(id.padStart(24,'0')),id:`record-${id}`,userId:owner,createdAt:new Date(`2026-10-${day}T01:00:00Z`),status:'completed',topic:'비식별 질문',...extra});
+test('Neo source selection pages only owned Neo records and isolates its cursor', async()=>{
+  stores.neoOperationRoomConsultations=[seed('1','01'),seed('2','02'),seed('3','03',{userId:foreign})];
+  const first=await (await route(request('?source=neo&limit=1'),{})).json();
+  expect(first.items).toHaveLength(1); expect(first.items[0].source).toBe('neo'); expect(first.nextCursor).toBeTruthy();
+  const next=await (await route(request(`?source=neo&limit=1&cursor=${encodeURIComponent(first.nextCursor)}`),{})).json();
+  expect(next.items).toHaveLength(1); expect(next.items[0].id).not.toBe(first.items[0].id);
+  expect((await route(request(`?cursor=${encodeURIComponent(first.nextCursor)}`),{})).status).toBe(400);
+  expect((await route(request('?source=unknown'),{})).status).toBe(400);
+});
 test('coverage: every owned consultation model and raw result store is registered',async()=>{
   const {RECORD_SERVICES}=await import('../../lib/records/service-registry.js');
   expect(new Set(RECORD_SERVICES.map(source=>source.id)).size).toBe(RECORD_SERVICES.length);

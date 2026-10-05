@@ -1,3 +1,4 @@
+import { handleNeoStrategyBooks } from "./neo-strategy-books.js";
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
@@ -1526,39 +1527,9 @@ async function spendNeoBadges(request, env, sessionId) {
     return { ok: true, badge: neoBadgePayload(wallet, { authenticated: true, benefitsUnlocked: true }) };
   }
 
-  const now = new Date();
-  // 원자 조건부 차감: 잔액이 5 이상일 때만 modifiedCount=1.
-  const deducted = await wallets.updateOne(
-    { userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE, balance: { $gte: NEO_BADGE_LETTER_COST } },
-    { $inc: { balance: -NEO_BADGE_LETTER_COST, totalSpent: NEO_BADGE_LETTER_COST }, $set: { updatedAt: now } },
-  );
-  if (!deducted.modifiedCount) {
-    const wallet = await wallets.findOne({ userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE });
-    return { ok: false, reason: "not_enough", badge: neoBadgePayload(wallet, { authenticated: true }) };
-  }
-
-  try {
-    await ledgers.insertOne({
-      _id: spendId,
-      userId: cleanUserId,
-      type: "spend",
-      amount: NEO_BADGE_LETTER_COST,
-      reason: "NEO_OPERATION_ROOM_BENEFIT_UNLOCK",
-      serviceScope: NEO_BADGE_SCOPE,
-      relatedSessionId: cleanSessionId,
-      createdAt: now,
-    });
-  } catch (error) {
-    if (Number(error?.code) !== 11000) throw error;
-    // 동시 요청이 먼저 이 세션을 해금함 — 방금 뺀 5를 되돌려 이중 차감을 막는다.
-    await wallets.updateOne(
-      { userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE },
-      { $inc: { balance: NEO_BADGE_LETTER_COST, totalSpent: -NEO_BADGE_LETTER_COST }, $set: { updatedAt: new Date() } },
-    );
-  }
-
+  // 기존 해금은 위에서 재조회한다. 신규 개별 PDF/편지 교환은 차감 없이 종료한다.
   const wallet = await wallets.findOne({ userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE });
-  return { ok: true, badge: neoBadgePayload(wallet, { authenticated: true, benefitsUnlocked: true }) };
+  return { ok: false, reason: "STRATEGY_BOOK_REQUIRED", badge: neoBadgePayload(wallet, { authenticated: true }), strategyBooksUrl: "/neo-operation-room/strategy-books/" };
 }
 
 async function handleEnsureAccess(request, env) {
@@ -1915,6 +1886,7 @@ export async function handleNeoOperationRoomRoutes(request, env = {}, ctx = null
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/neo-operation-room");
   try {
+    if (path === "/strategy-books" || path.startsWith("/strategy-books/")) return await handleNeoStrategyBooks(request, env, path, ensureNeoBadgeBackfill);
     if (method === "GET" && path === "/result") return await handleResult(request, env);
     if (method === "GET" && path.startsWith("/result/")) return await handleResult(request, env, path.slice("/result/".length));
     if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);

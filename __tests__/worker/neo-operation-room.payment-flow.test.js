@@ -85,6 +85,7 @@ beforeAll(async () => {
   }));
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({
     connectDb: jest.fn(async () => undefined),
+    mongoTransactionOptions: jest.fn(() => ({})),
     withMongoRetry: jest.fn(async (_env, operation) => operation()),
     mongoose: { Types: { ObjectId: { isValid: jest.fn(() => true) } } },
     resetMongooseConnection: jest.fn(async () => undefined),

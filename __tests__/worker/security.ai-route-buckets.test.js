@@ -135,6 +135,15 @@ async function callAiSecurity(serviceKey, pathname, method = "POST") {
   return { result, endpoints: RATE_LIMIT_CALLS.map((call) => call.endpoint) };
 }
 
+test('strategy books use badge-spend quota only for issuance and read quota for reopening', async () => {
+  const issued = await callAiSecurity('neo-operation-room', '/api/neo-operation-room/strategy-books');
+  expect(issued.result.ok).toBe(true); expect(issued.endpoints[0]).toBe('ai:neo-operation-room:unlock');
+  for (const path of ['/api/neo-operation-room/strategy-books', '/api/neo-operation-room/strategy-books/nsb_example']) {
+    const opened = await callAiSecurity('neo-operation-room', path, 'GET');
+    expect(opened.result.ok).toBe(true); expect(opened.endpoints[0]).toBe('ai:neo-operation-room:read');
+  }
+});
+
 describe("enforceAiRouteSecurity 의 /generate 일일 버킷", () => {
   test("웨이브형 서비스의 /generate 는 /start 와 다른 버킷을 쓴다", async () => {
     const start = await callAiSecurity("human-design-report", "/api/human-design-report/start");

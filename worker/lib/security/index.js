@@ -521,9 +521,12 @@ export const AI_ACTION_PER_MINUTE = Object.freeze({
   [AI_FALLBACK_ACTION]: 30,
 });
 
-export function aiActionFromPath(path = "", serviceKey = "") {
+export function aiActionFromPath(path = "", serviceKey = "", method = "GET") {
   const normalized = cleanText(path, 200).toLowerCase();
   const service = cleanText(serviceKey, 80).toLowerCase();
+  // A book issues once per click; opening/listing/exporting reads saved content.
+  // Use the existing badge-spend quota (10/min) for POST and read quota for GET.
+  if (service === "neo-operation-room" && /^\/api\/neo-operation-room\/strategy-books(?:\/|$)/.test(normalized)) return method.toUpperCase() === "POST" ? "unlock" : "read";
   if (/\/generate$/.test(normalized)) {
     return WAVE_GENERATE_SERVICES.has(cleanText(serviceKey, 80)) ? "generate" : "start";
   }
@@ -606,7 +609,7 @@ async function isOwnedCheckpointResume(request, env, serviceKey, userId) {
 }
 
 export async function enforceAiRouteSecurity({ request, env, serviceKey = "ai", path = "", userId = "" } = {}) {
-  let action = aiActionFromPath(path, serviceKey);
+  let action = aiActionFromPath(path, serviceKey, request.method);
   const auth = userId ? null : await getOptionalUserFromRequest(request, env).catch(() => null);
   const resolvedUserId = userId || String(auth?.userId || "");
   if ((action === "start" || (serviceKey === "naming-prompt" && action === "generate") || (serviceKey === "animal-totem" && action === "other"))
