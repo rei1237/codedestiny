@@ -6,9 +6,9 @@ import { salvageTruncatedJsonObject, trimToSentenceBoundary } from "../../lib/ll
 import { normalizeNarrativeBody } from "../lib/paid-narrative-candidate.js";
 import { dedupeCodexBody } from "../lib/master-love-codex-quality.js";
 import { countPaidReportBodyChars } from "../lib/paid-report-quality.js";
-import { correctText, findViolations, type CheckContext, type Violation } from "./checker";
+import { correctText, findViolations, fixNarrativeFacts, relationPhrase, type CheckContext, type Violation } from "./checker";
 import {
-  ELEMENT_LABEL, GRADE_LABEL, GRID_LABEL, NARRATION_LETTER_COUNT, RELATION_LABEL, narratedCandidates,
+  ELEMENT_LABEL, GRADE_LABEL, GRID_LABEL, NARRATION_LETTER_COUNT, narratedCandidates,
   deterministicNarration, engineCards, engineChapterBody, firstHun, fullName,
   letterText, meaningText, sajuSupportText, soundFeelText,
   type EngineView, type Narration, type SajuLines,
@@ -81,13 +81,15 @@ export function buildNamingV2Prompt(view: EngineView, saju: SajuLines & Record<s
       const flags = char.flags.map((flag) => FLAG_LABEL[flag]).filter(Boolean);
       return `${char.ch}(${char.hangul}) 훈 '${firstHun(char.hun) || "미상"}' · ${char.strokes}획 · 자원오행 ${char.jawon ? ELEMENT_LABEL[char.jawon] : "미분류"}${flags.length ? ` · ${flags.join(", ")}` : ""}`;
     });
-    const sound = candidate.sound.elements.map((element, k) => `${[...syllables, ...Array.from(candidate.hangul)][k]} ${ELEMENT_LABEL[element]}`).join(" → ");
+    const spoken = [...syllables, ...Array.from(candidate.hangul)];
+    const sound = candidate.sound.elements.map((element, k) => `${spoken[k]} ${ELEMENT_LABEL[element]}`).join(" → ");
+    const flow = candidate.sound.elements.slice(1).map((element, k) => `${spoken[k]}→${spoken[k + 1]} ${relationPhrase(candidate.sound.elements[k], element)}`).join(" · ");
     return [
       `${candidate.rank}. ${fullName(view, candidate)} · 엔진 총점 ${candidate.total}`,
       `   글자: ${chars.join(" / ")}`,
       `   수리 4격: ${GRID_NAMES.map((grid) => `${GRID_LABEL[grid]} ${candidate.grids[grid]}(${GRADE_LABEL[candidate.grades[grid]]})`).join(" · ")}`,
       `   삼재(참고): ${labels(candidate.samjae.combo)} ${GRADE_LABEL[candidate.samjae.grade]}`,
-      `   소리오행: ${sound} (${candidate.sound.relations.map((relation) => RELATION_LABEL[relation]).join("·")})`,
+      `   소리오행: ${sound} (${flow})`,
     ].join("\n");
   });
   const prefLines = [
@@ -124,7 +126,9 @@ export function buildNamingV2Prompt(view: EngineView, saju: SajuLines & Record<s
     "- 한자·획수·수리 4격·오행 값은 위 표에 있는 것만 쓰세요. 새로 계산하거나 다른 숫자를 쓰지 말고, 표에 없는 한자를 쓰지 마세요.",
     "- 후보를 새로 만들거나 순위를 바꾸지 마세요.",
     "- 이름이 운명을 정한다고 단정하지 마세요. 성공·재물·건강을 보장하거나 공포를 주는 표현, 다른 이름을 깎아내리는 표현을 쓰지 마세요.",
-    "- 삼재는 학파마다 해석이 달라 참고 지표로만 다루세요.",
+    "- 삼재는 학파마다 해석이 달라 참고 지표로만 다루세요. 삼재는 천격·인격·지격 수리의 끝자리로 정한 오행 세 개의 조합이며 초성·중성·종성과는 관계없습니다.",
+    "- 오행의 생극 방향을 뒤집지 마세요. 상생은 목생화·화생토·토생금·금생수·수생목, 상극은 목극토·토극수·수극화·화극금·금극목입니다. 소리오행 관계는 표에 적힌 방향 그대로 쓰세요.",
+    "- 한자의 자원오행은 표에 적힌 값만 쓰세요. 성씨 한자의 자원오행은 이 계산에 쓰지 않으므로 성씨 한자에 오행을 붙이지 마세요.",
   ].filter((line, index, all) => line !== "" || all[index - 1] !== "").join("\n");
 }
 
@@ -201,7 +205,7 @@ export function acceptNarration(value: any, ctx: CheckContext): Narration | null
   let replaced = 0;
   let filled = 0;
   const pick = (raw: unknown, scope: typeof top, fallback: string, max: number) => {
-    const text = fieldText(raw);
+    const text = fixNarrativeFacts(fieldText(raw), view).text;
     if (!text) { filled++; return fallback; }
     if (countPaidReportBodyChars(text) < NARRATION_MIN_FIELD_CHARS || findViolations(text, ctx, scope).length) { replaced++; return fallback; }
     accepted++;
@@ -326,7 +330,7 @@ export async function generateNamingWaveV2(snapshot: any, checkpoint: (state: Na
         if (ai?.ok) { state.invalidAttempts[id] = (state.invalidAttempts[id] || 0) + 1; await persist(); }
         return;
       }
-      const corrected = correctText(body, ctx);
+      const corrected = correctText(fixNarrativeFacts(body, ctx.view).text, ctx);
       const rawTitle = String(value.title || title).replace(/[\r\n#]/g, " ").trim().slice(0, 120);
       const chapterTitle = rawTitle && !findViolations(rawTitle, ctx).length ? rawTitle : title;
       if (!corrected.violations.length) {
