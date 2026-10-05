@@ -1,9 +1,9 @@
 # K-POP 로스터 검증 원장
 
 - 데이터 정본: `lib/idol-chemi/data/roster.js`
-- `ROSTER_VERSION`: `kpop-roster-2026.10-v1`
-- `ROSTER_CHECKED_ON`: `2026-10-04`
-- 범위: 12그룹 76명 (현재 활동 라인업만)
+- `ROSTER_VERSION`: `kpop-roster-2026.10-v2`
+- `ROSTER_CHECKED_ON`: `2026-10-06`
+- 범위: 16그룹 100명 (현재 활동 라인업만)
 
 ## 검증 절차
 
@@ -15,7 +15,7 @@
 6. `aliases`는 검색용 문자열이다: 한글 활동명 변형, 영문, 로마자 표기, 비하적이지 않은 널리 쓰이는 팬 애칭, 그룹 약칭. **법적 본명은 그것이 곧 공개 활동명인 경우(안유진·장원영·김채원 등)에만** 넣는다.
 7. `id`는 `"<groupId>-<stageNameEn 소문자 kebab>"` (예 `bts-jungkook`, `seventeen-s-coups`, `stray-kids-i-n`).
 
-## 그룹별 로그 (2026-10-04 조회)
+## 그룹별 로그 (v1 2026-10-04 조회, v2 2026-10-06 조회)
 
 | 그룹 | 멤버 수 | 출처 1 | 출처 2 | 불일치/비고 |
 |---|---:|---|---|---|
@@ -31,8 +31,12 @@
 | Stray Kids (스트레이 키즈) | 8 | Kprofiles `kprofiles.com/stray-kids-members-profile/` | Wikipedia (ko) `ko.wikipedia.org/wiki/스트레이_키즈` | 불일치 없음. 우진(2019 탈퇴) 미수록. |
 | TXT (투모로우바이투게더) | 5 | Kprofiles `kprofiles.com/txt-members-profile/` | Wikipedia (ko) `ko.wikipedia.org/wiki/투모로우바이투게더` | 불일치 없음. |
 | ENHYPEN (엔하이픈) | 6 | Kprofiles `kprofiles.com/enhypen-members-profile/` | Wikipedia (ko) `ko.wikipedia.org/wiki/엔하이픈` | 불일치 없음. **희승은 2026-03-10 그룹 탈퇴, 솔로 EVAN 으로 활동**(Kprofiles·en Wikipedia·Billboard 일치; ko Wikipedia 는 "일시적으로 탈퇴" 표기이나 소속사가 03-15 복귀 불가를 재확인) → 절차 5에 따라 미수록. 기대값 7 → 실측 6. |
+| RIIZE (라이즈) | 6 | Kprofiles `kprofiles.com/riize-members-profile/` | Wikipedia (ko) `ko.wikipedia.org/wiki/라이즈_(음악_그룹)` | v2(2026-10-06 조회). 불일치 없음. 승한(2024-10-13 탈퇴) 미수록. |
+| ILLIT (아일릿) | 5 | Kprofiles `kprofiles.com/illit-members-profile/` | Wikipedia (ko) `ko.wikipedia.org/wiki/아일릿` | v2(2026-10-06 조회). 불일치 없음. 모카는 2026-06부터 활동 중단이나 멤버 지위 유지 → active(사유 미기록). 이로하는 미성년 → 엔진 minorMode 가 우정 문구로 처리. |
+| BABYMONSTER (베이비몬스터) | 7 | Kprofiles `kprofiles.com/babymonster-members-profile/` | Namu Wiki `namu.wiki/w/BABYMONSTER` | v2(2026-10-06 조회). 불일치 없음. ko/en Wikipedia 는 멤버 생년월일이 없어 라인업 확인에만 쓰고 출처 2는 나무위키로 대체. 데뷔 연도는 7인 정식 데뷔(2024-04-01) 기준(Kprofiles 는 프리데뷔 2023-11-27). 라미는 2025-05부터 활동 중단이나 멤버 지위 유지 → active(사유 미기록). 복귀 주장 팬 게시물은 확인 불가로 미반영. 미성년 멤버는 minorMode. |
+| NMIXX (엔믹스) | 6 | Kprofiles `kprofiles.com/nmixx-profile/` | Wikipedia (ko) `ko.wikipedia.org/wiki/엔믹스` | v2(2026-10-06 조회). 불일치 없음. 지니(2022-12-09 탈퇴) 미수록. 구 URL `kprofiles.com/nmixx-members-profile/`는 404. |
 
-합계: 12그룹 76명. `missing` 플래그가 붙은 멤버 0명, `inactive` 0명.
+합계: 16그룹 100명 (v1 12그룹 76명 + v2 4그룹 24명). `missing` 플래그가 붙은 멤버 0명, `inactive` 0명.
 
 ### 보조 확인 (라인업 변동 교차 검증)
 
@@ -42,12 +46,7 @@
 
 ## 제외한 그룹과 이유
 
-| 그룹 | 이유 |
-|---|---|
-| RIIZE | v1 범위 밖. 라인업 변동(2024~) 재확인 필요 → **v2 예정** |
-| ILLIT | v1 범위 밖 → **v2 예정** |
-| BABYMONSTER | v1 범위 밖 → **v2 예정** |
-| NMIXX | v1 범위 밖 → **v2 예정** |
+v1 에서 v2 예정으로 미뤘던 RIIZE·ILLIT·BABYMONSTER·NMIXX 는 v2(2026-10-06)에 수록했다. 현재 제외 그룹 없음.
 
 ## 금지 사항
 
@@ -64,3 +63,4 @@ node -e "import('./lib/idol-chemi/data/roster.js').then(m=>{const g=m.ROSTER_GRO
 ```
 
 2026-10-04 실측 출력: `12 groups 76 members`
+2026-10-06 실측 출력(v2): `16 groups 100 members`
