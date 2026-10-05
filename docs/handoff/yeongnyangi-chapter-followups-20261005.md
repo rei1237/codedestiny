@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-05
-next: "후속 과제 4번(점성술 광어·참치 aspects.none-conjunction 담당 장 없음): worker/yeongnyangi/fortune/reading-v7-ledger.ts 에서 none 사실의 소유 폴백을 확인한다."
+next: "후속 과제 5번(다른 자미 상품에 사업운 로직 미적용): worker/yeongnyangi/fortune/ziwei/derived.ts 와 ziwei-ai 템플릿·심층 리포트의 자미 근거 경로를 비교한다."
 ---
 
 # 영냥이 챕터 확장 후속 과제 인수인계
@@ -44,6 +44,7 @@ next: "후속 과제 4번(점성술 광어·참치 aspects.none-conjunction 담�
 ### 4. 점성술 광어·참치 `aspects.none-conjunction` 담당 장 없음 (기존 결함)
 - ft 등급에 `aspects.conjunction` 소유 장이 없고 none 사실에 폴백 레벨이 없어 원장에서 미소유로 남는다. '.houseRulers.' 접두 사실과 ledger unknown fact 경고도 같은 축에서 함께 본다.
 - 위치: `worker/yeongnyangi/fortune/astrology/`, `worker/yeongnyangi/fortune/reading-v7-ledger.ts`.
+- **결과(2026-10-05, `4b3ce1e4d`·`b01d884a4`)**: ① 합이 하나도 없는 차트에서만 생긴다(실측한 실제 차트 4개는 모두 합이 있어 미발생, 실제 빈도는 미측정). 합을 지운 합성 context 로 광어·참치 미소유 `[aspects.none-conjunction]` 재현 → none 사실에 2단계 태그(애스펙트 계열 셋)를 붙여 목차상 첫 애스펙트 장(긴장)이 소유. 실제 합은 지금처럼 행성 장으로 간다. ② unknown fact 경고(`saju.monthlyLuck.*` 128건)는 운영 결함이 아니라 invariance 테스트가 `snapshot.analysis` 를 그대로 써서(운영은 `service.ts` `snapshotAnalysis` 가 시기 행렬 재적용) 생긴 하네스 불일치 → 테스트가 `snapshotAnalysis` 를 쓰게 해 경고 0, 123행 중 사주 연어 2행 requests 해시만 갱신. ③ `'.houseRulers.'` 는 품질 감사의 의도된 용어 허용 접두(하우스 주인은 어느 행성·하우스든 될 수 있음)이고 원장 소유는 테스트가 이미 확인 — 손대지 않음.
 
 ### 5. 다른 자미 상품에 사업운 로직 미적용
 - 재백·자녀·전택·관록 + 궁간 비화 사업운은 영냥이 전용 `worker/yeongnyangi/fortune/ziwei/derived.ts` 에만 있다. ziwei-ai 템플릿·심층 리포트는 미적용. 공용 엔진 반환값을 바꾸면 다른 상품 프롬프트·비용이 흔들리므로 상품별 파생으로 붙인다.
