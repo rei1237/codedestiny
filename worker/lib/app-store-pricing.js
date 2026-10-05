@@ -25,6 +25,7 @@ export const APP_PASS_DURATION_DAYS = 30;
 
 // 이 코인가 이하 콘텐츠는 앱에서 무료로 통과시킨다.
 // 현재 해당하는 것은 음악 트랙 다운로드 하나뿐이다(10코인/₩1,000, lib/music-access-policy.js).
+// 2026-10-05 천원 사주 콘텐츠 6종도 10코인이지만 APP_PAID_LOW_PRICE_FEATURE_KEYS 로 무료 통과에서 뺀다.
 // ₩1,000 은 Play KRW 최저 판매가 근처라 SKU 를 만들지 않고 앱에서는 무료로 둔다.
 // (웹 ₩300 → ₩1,000 인상 전에도 3코인이라 앱 무료였다. 이 값을 5로 되돌리면 앱에서 음악 구매가
 //  Play 티어 미등록 503 으로 하드블록된다 — 되돌리지 말 것.)
@@ -46,6 +47,8 @@ const CONTENT_TIER_TABLE = Object.freeze([
   // (docs/pricing/PLAY_CONSOLE_TASKS.md). 등록 전까지 앱에서 이 구간만 티어 미등록 503 이다.
   { productId: "cd_content_tier_14", amountKRW: 7000, webAmountKRW: 7000, coinPrices: Object.freeze([70]) },
   { productId: "cd_content_tier_06", amountKRW: 10000, webAmountKRW: 10000, coinPrices: Object.freeze([100]) },
+  // 2026-10-05: 200코인을 쓰던 영냥이 모둠이 14,800원으로 바뀌어 현행 상품이 없다. Play 에 등록된 ID 라
+  // 과거 영수증 복원용으로 보존한다(tier_14 와 같다).
   { productId: "cd_content_tier_09", amountKRW: 20000, webAmountKRW: 20000, coinPrices: Object.freeze([200]) },
   { productId: "cd_content_tier_10", amountKRW: 30000, webAmountKRW: 30000, coinPrices: Object.freeze([300]) },
   // 2026-09-01 폐기: cd_content_tier_11(390코인/₩39,000)·cd_content_tier_13(700코인/₩70,000).
@@ -82,7 +85,9 @@ const PASS_TIER_TABLE = Object.freeze([
 
 // 웹에는 존재하지만 Play Console SKU를 아직 만들지 않은 가격대. 네이티브 결제는 대체 SKU로
 // 내리지 않고 APP_SKU_NOT_VERIFIED로 실패 폐쇄한다.
-export const APP_UNVERIFIED_CONTENT_COIN_PRICES = Object.freeze([500]);
+// 2026-10-05: 영냥이 정식 가격 중 티어가 없는 54·72·105·148코인(5,400·7,200·10,500·14,800원)도 Play SKU 를 만들기 전까지 여기에 둔다.
+// 앱에서 영냥이 상담 결제는 그때까지 실패 폐쇄된다(웹 결제는 그대로).
+export const APP_UNVERIFIED_CONTENT_COIN_PRICES = Object.freeze([54, 72, 105, 148, 500]);
 export function isAppUnverifiedContentCoinPrice(value) {
   return APP_UNVERIFIED_CONTENT_COIN_PRICES.includes(Math.floor(Number(value)));
 }
@@ -115,6 +120,24 @@ function toCoinPrice(value) {
 export function isAppFreeCoinPrice(value) {
   const coinPrice = toCoinPrice(value);
   return coinPrice > 0 && coinPrice <= APP_FREE_MAX_COIN_PRICE;
+}
+
+// 2026-10-05 천원 사주 콘텐츠(웹 1,000원·10코인)는 가격이 무료 구간에 들지만 앱에서도 돈을 받는다
+// (사용자 확정 "앱에서도 천원이더라도 돈은 받도록"). ₩1,000 Play SKU 가 없으므로 등록 전까지
+// 앱 결제는 APP_SKU_NOT_VERIFIED 로 실패 폐쇄된다. 영냥이(yeongnyangi-*)도 무료 통과하지 않는다.
+export const APP_PAID_LOW_PRICE_FEATURE_KEYS = Object.freeze([
+  "rpt_specialCharmCard",
+  "rpt_skillTreeCard",
+  "rpt_energyCoordCard",
+  "rpt_villainCard",
+  "rpt_secretHouseEntryCard",
+  "fun.quantumLotto.ritualReport",
+]);
+
+export function isAppFreeFeature(featureKey, coinPrice) {
+  const key = String(featureKey || "").trim();
+  if (key.startsWith("yeongnyangi-") || APP_PAID_LOW_PRICE_FEATURE_KEYS.includes(key)) return false;
+  return isAppFreeCoinPrice(coinPrice);
 }
 
 /**

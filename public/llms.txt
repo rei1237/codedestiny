@@ -6,7 +6,7 @@
 - 다른 이름: CODE DESTINY, Code Destiny, CodeDestiny, code-destiny, 코드데스티니, 코드 데스티니, CODEDESTINY, 꿀꿀운세, 꿀꿀 운세, 꿀꿀만세력, 꿀꿀 만세력
 - 운영자: 박병하(네오). 공개 분석 활동: https://blog.naver.com/neosaju · 소개: https://code-destiny.com/about/#author
 - 공식 서비스 블로그: https://blog.naver.com/goodbyejieun
-- 캐릭터 브랜드: 영냥이(대표 상담 콘텐츠), 꽃돼지(기존 브랜드 캐릭터)
+- 캐릭터 브랜드: 꽃돼지 연이·네오(꿀꿀 운세), 영냥이(연결된 상담 콘텐츠)
 - 언어: 한국어(기본), 일본어 `/ja/`, 중국어 간체 `/zh/`, 중국어 번체 `/zh-tw/`, 영어 `/en/`
 
 ## 콘텐츠의 성격
@@ -37,7 +37,7 @@
 
 ## 통합 리포트
 
-- [영냥이 천원 운세·천원사주 상담 안내](https://code-destiny.com/yeongnyangi/1000-won-fortune/): Code Destiny의 영냥이 천원운세 안내. 사주·타로·자미두수·숙요점·베다점·서양 점성술 중 한 체계의 고등어 상담을 고르고, AI 해설 방식·단건 결제·상품별 가격·결과 예시·재열람 방법을 확인합니다.
+- [천원 운세·천원사주와 영냥이 상담 안내](https://code-destiny.com/yeongnyangi/1000-won-fortune/): Code Destiny의 천원 운세 안내. 1,000원 재미 사주 콘텐츠 6종과, 사주·타로·자미두수·숙요점·베다점·서양 점성술 중 한 체계의 영냥이 고등어 상담을 고르고, AI 해설 방식·단건 결제·상품별 가격·결과 예시·재열람 방법을 확인합니다.
 - [초융합 운세](https://code-destiny.com/fusion-fortune/): 사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로를 각 체계의 기준으로 읽고 AI가 공통점과 차이를 한 리포트로 정리합니다.
 - [휴먼 디자인 이용 안내](https://code-destiny.com/human-design/guide/): 무료 바디그래프의 타입·권위·센터를 읽는 순서와 필요한 입력, 유료 리포트의 범위를 안내합니다.
 

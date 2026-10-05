@@ -20,6 +20,8 @@ import { namingShareChoices } from "@/lib/consultation-sharing";
 import { withCharacterBreaks, yeoniBreaks } from "@/components/fortune/result-character-breaks";
 import dynamic from "next/dynamic";
 import { isV2Engine, type V2Engine, type V2Narration } from "../v2/namingV2Types";
+import { readNamingEngineOptIn } from "../v2/engineOptIn";
+import tone from "../naming-tone.module.css";
 
 // v2 작명서(엔진 결과가 있는 회차)만 받는다 — 기존 v1 결과는 아래 legacy 섹션이 그대로 그린다.
 const NamingV2Report = dynamic(() => import("../v2/NamingV2Report"), { ssr: false });
@@ -114,10 +116,10 @@ const GENDER_LABELS: Record<string, string> = { M: COPY.genderM, F: COPY.genderF
 // 생성 대기 중 회전 문구 — 작명가의 실제 작업 순서를 그대로 들려준다.
 const WAIT_STEPS = COPY.waitSteps;
 
-// 네오 정본(달빛 다크) 스코프 — DESIGN.md: bg #0a0818/#13102a, 강조 violet #c4b5fd, 골드 #e8d5a3.
+// 셸 색은 naming-tone.module.css(--nm-*) — 기본은 네오 밤 값 그대로, v2 작명서일 때만 밝은 연이 표지 값.
 // Glow-Not-Shadow: 회색 드롭섀도 대신 평상시 플랫, 강조 지점만 브랜드 색 글로우.
-const PANEL = "rounded-[28px] border border-[#c4b5fd]/20 bg-[#13102a]/70";
-const VIOLET_GLOW = "shadow-[0_0_0_1px_rgba(167,139,250,0.14),0_0_28px_-10px_rgba(147,51,234,0.4)]";
+const PANEL = "rounded-[28px] border border-[color:var(--nm-l-c4b5fd-20)] bg-[color:var(--nm-b-13102a-70)]";
+const VIOLET_GLOW = "[box-shadow:var(--nm-glow)]";
 const MOON_GLOW = "shadow-[0_0_44px_-8px_rgba(232,213,163,0.34),0_0_90px_-30px_rgba(167,139,250,0.28)]";
 
 function toText(value: unknown) {
@@ -276,6 +278,10 @@ export default function NamingAiResultClient() {
   const input = result?.inputSnapshot || null;
   const saju = result?.sajuSnapshot || null;
   const v2Engine: V2Engine | null = result && isV2Engine(result.engine) ? result.engine : null;
+  // 밝은 셸: v2 작명서면 켠다. 결과를 받기 전(대기·오류)에는 같은 탭의 v2 opt-in 을 따른다 — 서버 렌더와 맞추려고 마운트 뒤에 읽는다.
+  const [optInTone, setOptInTone] = useState(false);
+  useEffect(() => { setOptInTone(readNamingEngineOptIn()); }, []);
+  const lightTone = result ? Boolean(v2Engine) : optInTone;
   const familyName = toText(input?.familyName) || COPY.notEntered;
   const generatedAt = result?.generatedAt ? new Date(result.generatedAt) : null;
   const generatedAtIntlLocale = INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()];
@@ -347,7 +353,7 @@ export default function NamingAiResultClient() {
       await exportResultPdf({
         captureTargets: ["#naming-ai-result-document [data-naming-pdf-page]"],
         fileName: `naming-ai-result-${executionId}.pdf`,
-        backgroundColor: "#0a0818",
+        backgroundColor: lightTone ? "#fffaf7" : "#0a0818",
         cover: {
           title: COPY.pdfTitle(familyName),
           subtitle: `${toText(input?.birthDate) || COPY.birthDateMissing}${calendarLabel(input) ? ` (${calendarLabel(input)})` : ""}${COPY.pdfSubtitleSuffix}`,
@@ -366,10 +372,10 @@ export default function NamingAiResultClient() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0a0818] text-[#f4eeff] [font-family:var(--font-body)]">
-      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(178deg,#0a0818_0%,#13102a_44%,#090718_100%)]" aria-hidden="true" />
+    <main className={`${tone.shell} ${lightTone ? tone.light : ""} relative min-h-screen overflow-hidden bg-[color:var(--nm-b-0a0818)] text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-body)]`}>
+      <div className="pointer-events-none fixed inset-0 [background-image:var(--nm-backdrop-r)]" aria-hidden="true" />
       <div
-        className="pointer-events-none fixed inset-0 opacity-70 [background:radial-gradient(560px_360px_at_18%_-4%,rgba(167,139,250,0.16),transparent_70%),radial-gradient(480px_320px_at_86%_8%,rgba(232,213,163,0.1),transparent_70%)]"
+        className="pointer-events-none fixed inset-0 opacity-70 [background:var(--nm-aura-r)]"
         aria-hidden="true"
       />
 
@@ -377,7 +383,7 @@ export default function NamingAiResultClient() {
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/naming-ai"
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#c4b5fd]/25 bg-[#13102a]/60 px-5 text-sm font-bold text-[#f4eeff] transition hover:border-[#c4b5fd]/55 hover:bg-[#c4b5fd]/10"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[color:var(--nm-l-c4b5fd-25)] bg-[color:var(--nm-b-13102a-60)] px-5 text-sm font-bold text-[color:var(--nm-t-f4eeff)] transition hover:border-[color:var(--nm-l-c4b5fd-55)] hover:bg-[color:var(--nm-b-c4b5fd-10)]"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             {COPY.backToStudio}
@@ -387,10 +393,10 @@ export default function NamingAiResultClient() {
               type="button"
               onClick={() => void handlePdfDownload()}
               disabled={pdfLoading || pending || result?.status !== "completed" && result?.saved === false}
-              className={`inline-flex min-h-11 items-center gap-2 rounded-full bg-[#c4b5fd] px-5 text-sm font-black text-[#0a0818] transition hover:bg-[#d5cafe] disabled:cursor-not-allowed disabled:opacity-60 ${VIOLET_GLOW}`}
+              className={`inline-flex min-h-11 items-center gap-2 rounded-full bg-[color:var(--nm-b-c4b5fd)] px-5 text-sm font-black text-[color:var(--nm-t-0a0818)] transition hover:bg-[color:var(--nm-b-d5cafe)] disabled:cursor-not-allowed disabled:opacity-60 ${VIOLET_GLOW}`}
             >
               {pdfLoading
-                ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0a0818]/30 border-t-[#0a0818] motion-reduce:animate-none" aria-hidden="true" />
+                ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-[color:var(--nm-l-0a0818-30)] border-t-[color:var(--nm-l-0a0818)] motion-reduce:animate-none" aria-hidden="true" />
                 : <Download className="h-4 w-4" aria-hidden="true" />}
               {pdfLoading ? COPY.pdfMaking : COPY.pdfSave}
             </button>
@@ -399,14 +405,14 @@ export default function NamingAiResultClient() {
 
         {pending && !loading && <section className={`${PANEL} mb-6 p-5`} aria-live="polite">
           <p>{result?.completedChapters?.length || 0}/8 · {COPY.openingSaved}</p>
-          <button type="button" onClick={() => void handleRetry()} className="mt-3 min-h-11 rounded-full border border-[#c4b5fd]/40 px-5">{COPY.retry}</button>
+          <button type="button" onClick={() => void handleRetry()} className="mt-3 min-h-11 rounded-full border border-[color:var(--nm-l-c4b5fd-40)] px-5">{COPY.retry}</button>
         </section>}
         {loading && (
           <div className={`${PANEL} min-h-[60vh] p-7 sm:p-10`}>
-            <p className="text-lg font-black text-[#f4eeff] [font-family:var(--font-display)] sm:text-xl" aria-live="polite">
+            <p className="text-lg font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)] sm:text-xl" aria-live="polite">
               {pending ? `${WAIT_STEPS[waitStep]}…` : COPY.openingSaved}
             </p>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-[#c8aaff]/80">
+            <p className="mt-3 max-w-xl text-sm leading-7 text-[color:var(--nm-t-c8aaff-80)]">
               {COPY.waitingBody}
             </p>
             {pending && (
@@ -414,21 +420,21 @@ export default function NamingAiResultClient() {
                 {WAIT_STEPS.map((step, index) => (
                   <li
                     key={step}
-                    className={`flex items-center gap-2.5 transition-colors duration-200 ${index === waitStep ? "text-[#e8d5a3]" : "text-[#c8aaff]/45"}`}
+                    className={`flex items-center gap-2.5 transition-colors duration-200 ${index === waitStep ? "text-[color:var(--nm-t-e8d5a3)]" : "text-[color:var(--nm-t-c8aaff-45)]"}`}
                   >
-                    <span className={`h-1.5 w-1.5 rounded-full ${index === waitStep ? "bg-[#e8d5a3]" : "bg-[#c4b5fd]/30"}`} />
+                    <span className={`h-1.5 w-1.5 rounded-full ${index === waitStep ? "bg-[color:var(--nm-b-e8d5a3)]" : "bg-[color:var(--nm-b-c4b5fd-30)]"}`} />
                     {step}
                   </li>
                 ))}
               </ol>
             )}
             <div className="mt-8 grid gap-3" aria-hidden="true">
-              <div className="h-28 animate-pulse rounded-3xl bg-[#c4b5fd]/[0.07] motion-reduce:animate-none" />
+              <div className="h-28 animate-pulse rounded-3xl bg-[color:var(--nm-b-c4b5fd-7)] motion-reduce:animate-none" />
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="h-36 animate-pulse rounded-3xl bg-[#c4b5fd]/[0.07] motion-reduce:animate-none" />
-                <div className="h-36 animate-pulse rounded-3xl bg-[#c4b5fd]/[0.05] motion-reduce:animate-none" />
+                <div className="h-36 animate-pulse rounded-3xl bg-[color:var(--nm-b-c4b5fd-7)] motion-reduce:animate-none" />
+                <div className="h-36 animate-pulse rounded-3xl bg-[color:var(--nm-b-c4b5fd-5)] motion-reduce:animate-none" />
               </div>
-              <div className="h-52 animate-pulse rounded-3xl bg-[#c4b5fd]/[0.04] motion-reduce:animate-none" />
+              <div className="h-52 animate-pulse rounded-3xl bg-[color:var(--nm-b-c4b5fd-4)] motion-reduce:animate-none" />
             </div>
           </div>
         )}
@@ -436,22 +442,22 @@ export default function NamingAiResultClient() {
         {!loading && error && (
           <div className={`${PANEL} grid min-h-[60vh] place-items-center p-8 text-center`}>
             <div className="max-w-md">
-              <AlertCircle className="mx-auto h-9 w-9 text-[#c4b5fd]" aria-hidden="true" />
-              <h1 className="mt-4 text-2xl font-black text-[#f4eeff] [font-family:var(--font-display)]">
+              <AlertCircle className="mx-auto h-9 w-9 text-[color:var(--nm-t-c4b5fd)]" aria-hidden="true" />
+              <h1 className="mt-4 text-2xl font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">
                 {failed ? COPY.headingGenerateFailed : COPY.headingCannotOpen}
               </h1>
-              <p className="mt-3 text-sm leading-7 text-[#c8aaff]/85">{error}</p>
+              <p className="mt-3 text-sm leading-7 text-[color:var(--nm-t-c8aaff-85)]">{error}</p>
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                 <button
                   type="button"
                   onClick={handleRetry}
-                  className={`inline-flex min-h-11 items-center gap-2 rounded-full bg-[#c4b5fd] px-5 text-sm font-black text-[#0a0818] transition hover:bg-[#d5cafe] ${VIOLET_GLOW}`}
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-full bg-[color:var(--nm-b-c4b5fd)] px-5 text-sm font-black text-[color:var(--nm-t-0a0818)] transition hover:bg-[color:var(--nm-b-d5cafe)] ${VIOLET_GLOW}`}
                 >
                   {COPY.retry}
                 </button>
                 <Link
                   href="/naming-ai"
-                  className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#c4b5fd]/25 bg-[#13102a]/60 px-5 text-sm font-bold text-[#f4eeff] transition hover:border-[#c4b5fd]/55"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[color:var(--nm-l-c4b5fd-25)] bg-[color:var(--nm-b-13102a-60)] px-5 text-sm font-bold text-[color:var(--nm-t-f4eeff)] transition hover:border-[color:var(--nm-l-c4b5fd-55)]"
                 >
                   {COPY.backToStudio}
                 </Link>
@@ -465,16 +471,16 @@ export default function NamingAiResultClient() {
             {/* 표지 — 작명첩의 첫 장 */}
             <header data-naming-pdf-page className={`${PANEL} relative overflow-hidden p-7 sm:p-10`}>
               <span
-                className="pointer-events-none absolute -right-4 -top-8 select-none text-[9rem] font-black leading-none text-[#e8d5a3]/[0.08] [font-family:var(--font-display)] sm:text-[12rem]"
+                className="pointer-events-none absolute -right-4 -top-8 select-none text-[9rem] font-black leading-none text-[color:var(--nm-t-e8d5a3-8)] [font-family:var(--font-display)] sm:text-[12rem]"
                 aria-hidden="true"
               >
                 名
               </span>
-              <p className="text-sm font-bold text-[#c8aaff]/80">{COPY.brandLine}</p>
-              <h1 className="mt-3 text-3xl font-black leading-tight text-[#f4eeff] [font-family:var(--font-display)] [text-wrap:balance] sm:text-5xl">
+              <p className="text-sm font-bold text-[color:var(--nm-t-c8aaff-80)]">{COPY.brandLine}</p>
+              <h1 className="mt-3 text-3xl font-black leading-tight text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)] [text-wrap:balance] sm:text-5xl">
                 {COPY.pdfTitle(familyName)}
               </h1>
-              <p className="mt-4 max-w-3xl text-base leading-8 text-[#e6ddfa]">
+              <p className="mt-4 max-w-3xl text-base leading-8 text-[color:var(--nm-t-e6ddfa)]">
                 {COPY.coverBody}
               </p>
               <dl className="mt-6 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
@@ -486,7 +492,7 @@ export default function NamingAiResultClient() {
             </header>
 
             {!v2Engine && input?.birthTimeUnknown && (
-              <section data-naming-pdf-page className="rounded-3xl border border-[#e8d5a3]/25 bg-[#e8d5a3]/[0.07] p-5 text-sm leading-7 text-[#f2e9d3]">
+              <section data-naming-pdf-page className="rounded-3xl border border-[color:var(--nm-l-e8d5a3-25)] bg-[color:var(--nm-b-e8d5a3-7)] p-5 text-sm leading-7 text-[color:var(--nm-t-f2e9d3)]">
                 {COPY.hourUnknownNote}
               </section>
             )}
@@ -500,22 +506,22 @@ export default function NamingAiResultClient() {
             {!v2Engine && finalPick && (
               <section
                 data-naming-pdf-page
-                className={`relative overflow-hidden rounded-[28px] border border-[#e8d5a3]/40 bg-[linear-gradient(160deg,rgba(232,213,163,0.12),rgba(19,16,42,0.9)_58%)] p-7 sm:p-10 ${MOON_GLOW}`}
+                className={`relative overflow-hidden rounded-[28px] border border-[color:var(--nm-l-e8d5a3-40)] bg-[linear-gradient(160deg,rgba(232,213,163,0.12),rgba(19,16,42,0.9)_58%)] p-7 sm:p-10 ${MOON_GLOW}`}
               >
-                <p className="text-sm font-bold text-[#e8d5a3]">{COPY.finalPickLabel}</p>
+                <p className="text-sm font-bold text-[color:var(--nm-t-e8d5a3)]">{COPY.finalPickLabel}</p>
                 <div className="mt-4 flex flex-wrap items-end gap-x-5 gap-y-2">
-                  <h2 className="text-5xl font-black leading-none text-[#f4eeff] [font-family:var(--font-display)] sm:text-6xl">
+                  <h2 className="text-5xl font-black leading-none text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)] sm:text-6xl">
                     {familyName !== COPY.notEntered ? familyName : ""}{toText(finalPick.name)}
                   </h2>
                   {finalPickCard?.hanja && (
-                    <p className="text-2xl font-bold text-[#e8d5a3] sm:text-3xl">{toText(finalPickCard.hanja)}</p>
+                    <p className="text-2xl font-bold text-[color:var(--nm-t-e8d5a3)] sm:text-3xl">{toText(finalPickCard.hanja)}</p>
                   )}
                 </div>
                 {finalPickCard?.meaning && (
-                  <p className="mt-3 text-base font-semibold text-[#e6ddfa]">{toText(finalPickCard.meaning)}</p>
+                  <p className="mt-3 text-base font-semibold text-[color:var(--nm-t-e6ddfa)]">{toText(finalPickCard.meaning)}</p>
                 )}
                 {finalPick.reason && (
-                  <p className="mt-4 max-w-3xl text-base leading-8 text-[#f4eeff] [font-family:var(--font-premium)]">
+                  <p className="mt-4 max-w-3xl text-base leading-8 text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-premium)]">
                     “{toText(finalPick.reason)}”
                   </p>
                 )}
@@ -526,24 +532,24 @@ export default function NamingAiResultClient() {
             {/* 이름 후보 카드 */}
             {!v2Engine && otherCards.length > 0 && (
               <section data-naming-pdf-page className={`${PANEL} p-6 sm:p-8`}>
-                <h2 className="text-xl font-black text-[#f4eeff] [font-family:var(--font-display)]">{COPY.cardsHeading}</h2>
-                <p className="mt-2 text-sm leading-7 text-[#c8aaff]/80">
+                <h2 className="text-xl font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">{COPY.cardsHeading}</h2>
+                <p className="mt-2 text-sm leading-7 text-[color:var(--nm-t-c8aaff-80)]">
                   {COPY.cardsSub}
                 </p>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                   {otherCards.map((card, index) => (
                     <article
                       key={`${toText(card.name)}-${index}`}
-                      className="rounded-3xl border border-[#c4b5fd]/20 bg-[#0a0818]/55 p-5 transition duration-200 hover:border-[#c4b5fd]/45 hover:shadow-[0_0_24px_-8px_rgba(147,51,234,0.4)]"
+                      className="rounded-3xl border border-[color:var(--nm-l-c4b5fd-20)] bg-[color:var(--nm-b-0a0818-55)] p-5 transition duration-200 hover:border-[color:var(--nm-l-c4b5fd-45)] hover:[box-shadow:var(--nm-hover-glow-r)]"
                     >
                       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                        <h3 className="text-2xl font-black text-[#f4eeff] [font-family:var(--font-display)]">
+                        <h3 className="text-2xl font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">
                           {familyName !== COPY.notEntered ? familyName : ""}{toText(card.name)}
                         </h3>
-                        {card.hanja && <p className="text-lg font-bold text-[#c4b5fd]">{toText(card.hanja)}</p>}
+                        {card.hanja && <p className="text-lg font-bold text-[color:var(--nm-t-c4b5fd)]">{toText(card.hanja)}</p>}
                       </div>
-                      {card.meaning && <p className="mt-1.5 text-sm font-semibold text-[#e6ddfa]">{toText(card.meaning)}</p>}
-                      {card.summary && <p className="mt-2 text-sm leading-6 text-[#c8aaff]/85">{toText(card.summary)}</p>}
+                      {card.meaning && <p className="mt-1.5 text-sm font-semibold text-[color:var(--nm-t-e6ddfa)]">{toText(card.meaning)}</p>}
+                      {card.summary && <p className="mt-2 text-sm leading-6 text-[color:var(--nm-t-c8aaff-85)]">{toText(card.summary)}</p>}
                       <NameCardPills card={card} tone="violet" className="mt-3.5" />
                     </article>
                   ))}
@@ -553,12 +559,12 @@ export default function NamingAiResultClient() {
 
             {!v2Engine && saju && (
               <section data-naming-pdf-page className={`${PANEL} p-6 sm:p-8`}>
-                <h2 className="text-xl font-black text-[#f4eeff] [font-family:var(--font-display)]">{COPY.sajuHeading}</h2>
+                <h2 className="text-xl font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">{COPY.sajuHeading}</h2>
                 <div className="mt-4 grid grid-cols-2 gap-2 text-center text-sm sm:grid-cols-4">
                   {pillarRows.map(([labelText, value]) => (
-                    <div key={labelText} className="rounded-2xl border border-[#c4b5fd]/15 bg-[#0a0818]/55 px-2 py-3.5">
-                      <p className="text-xs font-bold text-[#c8aaff]/70">{labelText}</p>
-                      <p className="mt-1 font-black text-[#f4eeff]">{toText(value) || "-"}</p>
+                    <div key={labelText} className="rounded-2xl border border-[color:var(--nm-l-c4b5fd-15)] bg-[color:var(--nm-b-0a0818-55)] px-2 py-3.5">
+                      <p className="text-xs font-bold text-[color:var(--nm-t-c8aaff-70)]">{labelText}</p>
+                      <p className="mt-1 font-black text-[color:var(--nm-t-f4eeff)]">{toText(value) || "-"}</p>
                     </div>
                   ))}
                 </div>
@@ -575,7 +581,7 @@ export default function NamingAiResultClient() {
 
             {hasPreferenceCard && (
               <section data-naming-pdf-page className={`${PANEL} p-6 sm:p-8`}>
-                <h2 className="text-xl font-black text-[#f4eeff] [font-family:var(--font-display)]">{COPY.requestHeading}</h2>
+                <h2 className="text-xl font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">{COPY.requestHeading}</h2>
                 <dl className="mt-4 grid gap-2 text-sm leading-7">
                   {input?.desiredType && <SajuRow label={COPY.rowDesiredType} value={toText(input.desiredType)} wide />}
                   {preferenceItems.length > 0 && <SajuRow label={COPY.rowPreference} value={preferenceItems.join(", ")} wide />}
@@ -584,9 +590,9 @@ export default function NamingAiResultClient() {
                   {input?.blockedSyllables?.length ? <SajuRow label={COPY.rowBlockedSyllables} value={input.blockedSyllables.join(", ")} wide /> : null}
                   {input?.desiredNames?.length ? (
                     <div className="sm:col-span-2">
-                      <dt className="font-black text-[#c4b5fd]">{COPY.preThoughtCandidates}</dt>
+                      <dt className="font-black text-[color:var(--nm-t-c4b5fd)]">{COPY.preThoughtCandidates}</dt>
                       <dd className="mt-1">
-                        <ul className="list-disc space-y-1 pl-5 text-[#e6ddfa]">
+                        <ul className="list-disc space-y-1 pl-5 text-[color:var(--nm-t-e6ddfa)]">
                           {input.desiredNames.map((candidate, index) => (
                             <li key={`${candidate.hangul || "candidate"}-${index}`}>
                               {toText(candidate.hangul) || COPY.nameMissing}
@@ -628,52 +634,52 @@ export default function NamingAiResultClient() {
                 open={promptOpen || exportExpand}
                 onToggle={(event) => setPromptOpen(event.currentTarget.open)}
               >
-                <summary className="cursor-pointer list-none rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c4b5fd]/50 [&::-webkit-details-marker]:hidden">
+                <summary className="cursor-pointer list-none rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--nm-r-c4b5fd-50)] [&::-webkit-details-marker]:hidden">
                   <span className="flex items-center justify-between gap-3">
                     <span className="flex items-center gap-3.5">
-                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-[#c4b5fd]/25 bg-[#c4b5fd]/10">
-                        <ScrollText className="h-5 w-5 text-[#c4b5fd]" aria-hidden="true" />
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-[color:var(--nm-l-c4b5fd-25)] bg-[color:var(--nm-b-c4b5fd-10)]">
+                        <ScrollText className="h-5 w-5 text-[color:var(--nm-t-c4b5fd)]" aria-hidden="true" />
                       </span>
                       <span>
-                        <span className="block text-lg font-black text-[#f4eeff] [font-family:var(--font-display)]">{COPY.promptHeading}</span>
-                        <span className="mt-0.5 block text-xs text-[#c8aaff]/70">{COPY.promptSub}</span>
+                        <span className="block text-lg font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">{COPY.promptHeading}</span>
+                        <span className="mt-0.5 block text-xs text-[color:var(--nm-t-c8aaff-70)]">{COPY.promptSub}</span>
                       </span>
                     </span>
-                    <span className="text-xs font-bold text-[#c4b5fd] transition group-open:rotate-180" aria-hidden="true">▾</span>
+                    <span className="text-xs font-bold text-[color:var(--nm-t-c4b5fd)] transition group-open:rotate-180" aria-hidden="true">▾</span>
                   </span>
                 </summary>
                 <div className="mt-5">
-                  <p className="text-sm leading-7 text-[#c8aaff]/85">
+                  <p className="text-sm leading-7 text-[color:var(--nm-t-c8aaff-85)]">
                     {COPY.promptBody}
                   </p>
                   <div className="mt-4 flex justify-end">
                     <button
                       type="button"
                       onClick={() => void handleCopyPrompt()}
-                      className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-[#c4b5fd]/30 bg-[#c4b5fd]/10 px-4 text-xs font-bold text-[#f4eeff] transition hover:border-[#c4b5fd]/60 hover:bg-[#c4b5fd]/20"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-[color:var(--nm-l-c4b5fd-30)] bg-[color:var(--nm-b-c4b5fd-10)] px-4 text-xs font-bold text-[color:var(--nm-t-f4eeff)] transition hover:border-[color:var(--nm-l-c4b5fd-60)] hover:bg-[color:var(--nm-b-c4b5fd-20)]"
                     >
-                      {copied ? <Check className="h-3.5 w-3.5 text-[#e8d5a3]" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
+                      {copied ? <Check className="h-3.5 w-3.5 text-[color:var(--nm-t-e8d5a3)]" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
                       {copied ? COPY.copied : COPY.copyPrompt}
                     </button>
                   </div>
                   <pre
-                    className={`mt-3 whitespace-pre-wrap break-words rounded-3xl border border-[#c4b5fd]/15 bg-[#090718]/80 p-5 text-xs leading-6 text-[#d8cff0] ${exportExpand ? "" : "max-h-[480px] overflow-auto"}`}
+                    className={`mt-3 whitespace-pre-wrap break-words rounded-3xl border border-[color:var(--nm-l-c4b5fd-15)] bg-[color:var(--nm-b-090718-80)] p-5 text-xs leading-6 text-[color:var(--nm-t-d8cff0)] ${exportExpand ? "" : "max-h-[480px] overflow-auto"}`}
                   >
                     {result.generatedPrompt}
                   </pre>
-                  <p className="mt-3 text-xs text-[#c8aaff]/55">
+                  <p className="mt-3 text-xs text-[color:var(--nm-t-c8aaff-55)]">
                     {[result.provider, result.model].filter(Boolean).join(" / ") || COPY.aiGenerated} · {generatedAtLabel}
                   </p>
                 </div>
               </details>
             )}
 
-            <footer data-naming-pdf-page className="rounded-3xl border border-[#c4b5fd]/15 bg-[#13102a]/45 p-5 text-xs leading-6 text-[#c8aaff]/70">
+            <footer data-naming-pdf-page className="rounded-3xl border border-[color:var(--nm-l-c4b5fd-15)] bg-[color:var(--nm-b-13102a-45)] p-5 text-xs leading-6 text-[color:var(--nm-t-c8aaff-70)]">
               {COPY.disclaimer(generatedAtLabel)}
             </footer>
 
             {pdfError && (
-              <section className="rounded-3xl border border-rose-300/30 bg-rose-400/10 p-4 text-sm leading-7 text-rose-50" role="alert">
+              <section className={`rounded-3xl border p-4 text-sm leading-7 ${lightTone ? "border-[color:var(--nm-alert-line)] bg-[color:var(--nm-alert-fill)] text-[color:var(--nm-alert-ink)]" : "border-rose-300/30 bg-rose-400/10 text-rose-50"}`} role="alert">
                 {pdfError}
               </section>
             )}
@@ -690,8 +696,8 @@ export default function NamingAiResultClient() {
 function CoverRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline gap-2.5">
-      <dt className="shrink-0 text-xs font-bold text-[#c8aaff]/70">{label}</dt>
-      <dd className="break-words font-bold text-[#f4eeff]">{value}</dd>
+      <dt className="shrink-0 text-xs font-bold text-[color:var(--nm-t-c8aaff-70)]">{label}</dt>
+      <dd className="break-words font-bold text-[color:var(--nm-t-f4eeff)]">{value}</dd>
     </div>
   );
 }
@@ -699,8 +705,8 @@ function CoverRow({ label, value }: { label: string; value: string }) {
 function SajuRow({ label, value, wide = false }: { label: string; value: string; wide?: boolean }) {
   return (
     <div className={wide ? "sm:col-span-2" : undefined}>
-      <dt className="inline font-black text-[#c4b5fd]">{label}</dt>
-      <dd className="inline pl-2 text-[#e6ddfa]">{value || "-"}</dd>
+      <dt className="inline font-black text-[color:var(--nm-t-c4b5fd)]">{label}</dt>
+      <dd className="inline pl-2 text-[color:var(--nm-t-e6ddfa)]">{value || "-"}</dd>
     </div>
   );
 }
@@ -713,8 +719,8 @@ function NameCardPills({ card, tone, className = "" }: { card: NamingNameCard; t
   ].filter(Boolean);
   if (!pills.length) return null;
   const pillClass = tone === "gold"
-    ? "border-[#e8d5a3]/35 bg-[#e8d5a3]/10 text-[#f2e9d3]"
-    : "border-[#c4b5fd]/25 bg-[#c4b5fd]/[0.08] text-[#e6ddfa]";
+    ? "border-[color:var(--nm-l-e8d5a3-35)] bg-[color:var(--nm-b-e8d5a3-10)] text-[color:var(--nm-t-f2e9d3)]"
+    : "border-[color:var(--nm-l-c4b5fd-25)] bg-[color:var(--nm-b-c4b5fd-8)] text-[color:var(--nm-t-e6ddfa)]";
   return (
     <ul className={`flex flex-wrap gap-2 ${className}`}>
       {pills.map((pill) => (
@@ -729,9 +735,9 @@ function NameCardPills({ card, tone, className = "" }: { card: NamingNameCard; t
 function NamingResultSection({ title, body }: { title: string; body: string }) {
   return (
     <article data-naming-pdf-page className={`${PANEL} p-6 sm:p-8`}>
-      <h2 className="text-xl font-black text-[#f4eeff] [font-family:var(--font-display)] [text-wrap:balance] sm:text-2xl">{title}</h2>
+      <h2 className="text-xl font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)] [text-wrap:balance] sm:text-2xl">{title}</h2>
       <div className="mt-4 border-t border-[#c4b5fd]/12 pt-4">
-        <AiResultProse value={body} className="text-[#e6ddfa]" />
+        <AiResultProse value={body} className="text-[color:var(--nm-t-e6ddfa)]" />
       </div>
     </article>
   );

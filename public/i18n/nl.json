@@ -1340,7 +1340,9 @@
         "w10000": "₩10,000",
         "from10000": "From ₩10,000",
         "w30000": "₩30,000",
-        "w50000": "₩50,000"
+        "w50000": "₩50,000",
+        "w20000": "₩20,000",
+        "from3000": "From ₩3,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1601,14 +1603,14 @@
       "pass": "Passen",
       "login": "Inloggen",
       "account": "Mijn account",
-      "offerTitle": "Saju uit 1-op-1-consulten van ₩300.000, nu vanaf ₩1.000",
+      "offerTitle": "Saju uit 1-op-1-consulten van ₩300.000, nu vanaf ₩3.000",
       "reviewsLead": "Echte KakaoTalk-berichten van Neo’s 1-op-1-cliënten, geciteerd in het oorspronkelijke Koreaans. Weglatingen zijn gemarkeerd met ….",
       "reviewsBar": "1-op-1-consult met Neo · KakaoTalk",
       "reviewsMeta": "Echte review · gepubliceerd met toestemming",
       "reviewsPosted": "op de blog geplaatst",
       "reviewsFine": "Reviews weerspiegelen persoonlijke ervaringen en garanderen geen resultaat. Saju-lezingen zijn alleen ter referentie.",
-      "offerNote": "De 1-op-1-consulten deed Neo zelf; de lezing van ₩1.000 komt van een rekenengine met AI-toelichting.",
-      "offerCta": "Bekijk de Saju-lezing van ₩1.000 →",
+      "offerNote": "De 1-op-1-consulten deed Neo zelf; de lezing van ₩3.000 komt van een rekenengine met AI-toelichting.",
+      "offerCta": "Bekijk de Saju-lezing van ₩3.000 →",
       "expertiseTitle": "Berekening volgens vaste regels, toelichting door AI",
       "expertise": {
         "engine": "De geboortekaart wordt met vaste rekenregels opgesteld en de AI schrijft de toelichting op basis van dat resultaat. Noemt de toelichting een dag- of uurpilaar die afwijkt van de berekening, dan wijst de server die af.",
@@ -1648,7 +1650,7 @@
       "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
       "passCta": "See all 4 passes",
       "moreTitle": "Ontdek Yeoni’s atelier",
-      "moreItems": "Daily readings · consultations · passes · stories",
+      "moreItems": "Daily readings · consultations · records · stories",
       "moreClose": "Show less",
       "searchLead": "Find the reading you need by concern, method or price.",
       "searchPlaceholder": "Love, money, a job move… search readings",
@@ -1702,7 +1704,11 @@
       "yeoniRoomNote": "Talk things through with Yeoni",
       "neoRoom": "Neo’s strategy room",
       "neoRoomNote": "Find your next step with Neo",
-      "librarySajuCompat": "Saju compatibility records"
+      "librarySajuCompat": "Saju compatibility records",
+      "chemiKicker": "K-POP Bias Chemistry",
+      "chemiTitle": "You and your bias: what's the chemistry?",
+      "chemiNote": "Enter your birthday and get a photocard",
+      "chemiCta": "See my bias chemistry"
     },
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
@@ -6139,7 +6145,7 @@
         },
         "library": "Library",
         "consultTab": {
-          "ariaLabel": "Chat with Yeoni & Neo"
+          "ariaLabel": "Choose a fortune consultation"
         },
         "libraryTab": {
           "ariaLabel": "My library"
@@ -6831,7 +6837,8 @@
         "k1bs96nr": "Neo's koelbloedige operatiebriefing over de keuze die voor je ligt",
         "n30000": "₩30.000",
         "n20000Price10000": "Vanaf ₩10.000",
-        "n50000": "₩50.000"
+        "n50000": "₩50.000",
+        "n30000Price20000": "₩20.000"
       }
     },
     "cdSigCardBody": {

@@ -2712,14 +2712,6 @@ export default function NeoOperationRoomPage() {
                   data-phase={heroScenePhase}
                   onClick={isPrologueActive ? revealCommandDeck : enterWarRoom}
                 >
-                  <NeoWarRoomAssetImage
-                    asset={neoWarRoomAssets.decor.asset1}
-                    alt=""
-                    sizes="72px"
-                    resizeWidth={160}
-                    className={styles.ctaOrbitFrame}
-                    imageClassName={styles.ctaOrbitImage}
-                  />
                   <span className={styles.ctaButtonCopy}>
                     <strong>{heroActionLabel}</strong>
                     {isPrologueActive ? null : <em>{heroActionMeta}</em>}

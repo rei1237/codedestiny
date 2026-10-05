@@ -2,7 +2,7 @@ import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 
 const ko={
  title:'무엇부터 읽어볼까?',intro:'궁금한 운세를 고르고, 네 이야기를 들려줘.',
- pitch:'영냥이가 질문에 맞춰 바로 풀어주는 상담. 천원대부터 시작하는 상담 구성을 비교해 보세요.',
+ pitch:'영냥이가 질문에 맞춰 바로 풀어주는 상담. 고등어부터 오마카세까지 상담 구성을 비교해 보세요.',
  about:'전통 운세의 계산 근거를 바탕으로 AI가 작성하는 맞춤 상담이에요.',
  languageHint:'결과는 선택한 언어로 작성해요. 결제 후 복구와 재열람에도 같은 언어를 유지해요.',
  fallback:'지원하지 않는 언어여서 영어를 기본으로 선택했어요. 목록에서 결과 언어를 다시 골라 주세요.',

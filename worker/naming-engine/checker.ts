@@ -3,6 +3,7 @@
 
 import { factParagraph, type EngineCandidateView, type EngineView } from "./facts";
 import { GRID_NAMES, type GridName } from "./suri";
+import { CONTROLS, ELEMENTS, GENERATES, type Element } from "./types";
 
 export type ViolationKind = "cjk" | "strokes" | "su" | "grid" | "forbidden";
 export interface Violation { kind: ViolationKind; detail: string }
@@ -162,4 +163,121 @@ export function correctText(text: string, ctx: CheckContext): CorrectionResult {
     }
   }
   return { text: kept.join("\n\n"), violations, replaced, dropped, stripped };
+}
+
+// ── 사실 교정(실호출 2026-10-05: "木극金"·"금생토" 생극 방향 뒤집힘, 叡=金·성씨 金=水 자원오행 오기, "삼재=초성·중성·종성").
+// 위반으로 세지 않는다 — 재시도·계산값 문단 대체 없이, 뒤집힌 생극은 그 자리에서 바로잡고 틀린 사실을 단정한 문장만 뺀다.
+const EL_KO: Readonly<Record<Element, string>> = { wood: "목", fire: "화", earth: "토", metal: "금", water: "수" };
+const EL_HAN: Readonly<Record<Element, string>> = { wood: "木", fire: "火", earth: "土", metal: "金", water: "水" };
+const ELEMENT_OF: Readonly<Record<string, Element>> = Object.fromEntries(
+  ELEMENTS.flatMap((element) => [[EL_KO[element], element], [EL_HAN[element], element]]),
+);
+const isHanToken = (token: string) => HAN.test(token);
+const tokenLike = (sample: string, element: Element) => (isHanToken(sample) ? EL_HAN[element] : EL_KO[element]);
+
+/** 이웃한 두 오행의 관계를 방향까지 적는다("상극 금극목"). 프롬프트 표가 쓴다. */
+export function relationPhrase(a: Element, b: Element): string {
+  if (a === b) return "비화";
+  if (GENERATES[a] === b) return `상생 ${EL_KO[a]}생${EL_KO[b]}`;
+  if (GENERATES[b] === a) return `상생 ${EL_KO[b]}생${EL_KO[a]}`;
+  if (CONTROLS[a] === b) return `상극 ${EL_KO[a]}극${EL_KO[b]}`;
+  return `상극 ${EL_KO[b]}극${EL_KO[a]}`;
+}
+
+const RELATION_RE = /(?<![가-힣])([목화토금수木火土金水])(생|극|生|剋|克)([목화토금수木火土金水])/gu;
+const PARTICLE_AFTER_RE = /(?<=[생극生剋克])([목화토금수木火土金水])((?:\([^)]*\))?['"‘’“”」』]?)(은|는|이|가|을|를|과|와)(?![가-힣])/gu;
+const PARTICLE_PAIR: Readonly<Record<string, [string, string]>> = { 은: ["은", "는"], 는: ["은", "는"], 이: ["이", "가"], 가: ["이", "가"], 을: ["을", "를"], 를: ["을", "를"], 과: ["과", "와"], 와: ["과", "와"] };
+/** 바뀐 끝 글자(목·금은 받침 있음)에 맞춰 바로 뒤 조사를 고른다. */
+const particleFor = (particle: string, element: Element) => {
+  const pair = PARTICLE_PAIR[particle];
+  return pair ? pair[(EL_KO[element].charCodeAt(0) - 0xac00) % 28 ? 0 : 1] : particle;
+};
+const NEGATED_AFTER = /^\)?\s*(\([^)]*\))?\s*(이|가)?\s*아(닌|니)/u;
+/** 뒤집힌 생극("木극金" → "金극木")은 고치고, 종류부터 틀린 단정("목생금 흐름")은 문장째 뺄 신호를 준다. 부정("목생금이 아닌")은 둔다. */
+function fixRelations(sentence: string): { text: string; swapped: number; wrong: boolean } {
+  let swapped = 0;
+  let wrong = false;
+  const text = sentence.replace(RELATION_RE, (whole, x: string, rel: string, y: string, offset: number) => {
+    const a = ELEMENT_OF[x];
+    const b = ELEMENT_OF[y];
+    if (a === b) return whole;
+    const table = rel === "생" || rel === "生" ? GENERATES : CONTROLS;
+    if (table[a] === b) return whole;
+    if (table[b] === a) { swapped++; return `${tokenLike(x, b)}${rel}${tokenLike(y, a)}`; }
+    if (!NEGATED_AFTER.test(sentence.slice(offset + whole.length))) wrong = true;
+    return whole;
+  });
+  if (!swapped) return { text, swapped, wrong };
+  const fixed = text.replace(PARTICLE_AFTER_RE, (_whole, last: string, between: string, particle: string) => `${last}${between}${particleFor(particle, ELEMENT_OF[last])}`);
+  return { text: fixed, swapped, wrong };
+}
+
+const PAIR_RE = /([\p{Script=Han}])\(([가-힣])\)|([가-힣])\(([\p{Script=Han}])\)/gu;
+const ELEMENT_MENTION_RE = /([목화토금수])\(([木火土金水])\)/gu;
+const ELEMENT_BIND_WINDOW = 45;
+const SOUND_SENTENCE = /소리|발음|→/u;
+
+interface HanFact { readings: Set<string>; jawon: Element | null; surname: boolean }
+function hanFacts(view: EngineView): Map<string, HanFact> {
+  const facts = new Map<string, HanFact>();
+  const add = (ch: string, reading: string, jawon: Element | null, surname: boolean) => {
+    const fact = facts.get(ch) || { readings: new Set<string>(), jawon, surname };
+    fact.readings.add(reading);
+    facts.set(ch, fact);
+  };
+  const surnameReadings = Array.from(view.surname.hangul);
+  Array.from(view.surname.hanja).forEach((ch, k) => add(ch, surnameReadings[k] || "", null, true));
+  for (const candidate of view.candidates) for (const char of candidate.chars) add(char.ch, char.hangul, char.jawon, false);
+  return facts;
+}
+
+/** "금(金)" 꼴 오행 언급마다 바로 앞의 한자(가장 가까운 것)를 그 오행의 주인으로 읽는다. 성씨 한자에는 자원오행을 붙이지 않는다(계산에 안 쓰임). */
+function wrongJawonClaim(sentence: string, facts: Map<string, HanFact>): boolean {
+  if (SOUND_SENTENCE.test(sentence)) return false;
+  const pairs = [...sentence.matchAll(PAIR_RE)].flatMap((m) => {
+    const ch = m[1] || m[4];
+    const reading = m[2] || m[3];
+    const fact = facts.get(ch);
+    if (!fact || !fact.readings.has(reading) || (ELEMENT_OF[ch] && EL_KO[ELEMENT_OF[ch]] === reading)) return [];
+    return [{ ch, fact, end: (m.index as number) + m[0].length }];
+  });
+  for (const m of sentence.matchAll(ELEMENT_MENTION_RE)) {
+    const element = ELEMENT_OF[m[1]];
+    const at = m.index as number;
+    if (element !== ELEMENT_OF[m[2]]) continue;
+    const owner = pairs.filter((pair) => pair.end <= at && at - pair.end <= ELEMENT_BIND_WINDOW).pop();
+    if (!owner) continue;
+    if (owner.fact.surname ? ELEMENT_OF[owner.ch] !== element : owner.fact.jawon && owner.fact.jawon !== element) return true;
+  }
+  return false;
+}
+
+const SAMJAE_MISDEFINED = (sentence: string) => /삼재/u.test(sentence) && /초성|중성|종성/u.test(sentence);
+
+export interface FactFixResult { text: string; swapped: number; dropped: number }
+
+/** 본문·서술 필드의 오행 사실 교정. 줄·문장 단위로 보고, 고칠 것이 없는 줄은 글자 하나 바꾸지 않는다. 소제목 줄은 빼지 않는다. */
+export function fixNarrativeFacts(text: string, view: EngineView): FactFixResult {
+  const facts = hanFacts(view);
+  let swapped = 0;
+  let dropped = 0;
+  const lines = String(text || "").split("\n").map((line) => {
+    if (!line.trim()) return line;
+    const heading = /^\s*#/u.test(line);
+    let changed = false;
+    const sentences = line.split(/(?<=[.!?。])\s+/u).map((sentence) => {
+      const fixed = fixRelations(sentence);
+      swapped += fixed.swapped;
+      if (fixed.swapped) changed = true;
+      if (!heading && (fixed.wrong || wrongJawonClaim(fixed.text, facts) || SAMJAE_MISDEFINED(fixed.text))) {
+        dropped++;
+        changed = true;
+        return "";
+      }
+      return fixed.text;
+    });
+    return changed ? sentences.filter(Boolean).join(" ") : line;
+  });
+  const out = lines.join("\n").replace(/\n{3,}/g, "\n\n").replace(/^\n+|\n+$/g, "");
+  return { text: dropped || swapped ? out : String(text || ""), swapped, dropped };
 }

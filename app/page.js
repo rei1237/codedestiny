@@ -11,7 +11,7 @@ import styles from "./home-guide.module.css";
 
 const sourcePage = publicSeoPages.home;
 const HOME_TITLE = `${siteSeo.brandName} | 무료 사주·타로·오늘의 운세`;
-const HOME_DESCRIPTION = "꿀꿀 운세에서 오늘의 무료 운세와 사주·만세력, 타로 기본 풀이를 살펴보세요. 무료 이용 범위와 영냥이 천원 상담을 비교하고 내 질문에 맞는 서비스를 골라보세요.";
+const HOME_DESCRIPTION = "꿀꿀 운세에서 오늘의 무료 운세와 사주·만세력, 타로 기본 풀이를 살펴보세요. 무료 이용 범위와 천원 사주·영냥이 상담을 비교하고 내 질문에 맞는 서비스를 고르세요.";
 const HOME_SEO = {
   title: HOME_TITLE,
   description: HOME_DESCRIPTION,
@@ -113,7 +113,7 @@ export default function HomePage() {
         <Link href="/today/">오늘의 무료 운세 보기</Link>
         <Link href="/today/#daily-tarot">무료 타로 세 장 펼치기</Link>
         <Link href="/saju/">무료 사주·만세력 알아보기</Link>
-        <Link href="/yeongnyangi/1000-won-fortune/">영냥이 천원 상담 보기</Link>
+        <Link href="/yeongnyangi/1000-won-fortune/">천원 운세·영냥이 상담 보기</Link>
         <Link href="/yeongnyangi/library/">구매한 상담 다시 열기</Link>
       </nav>
       <PressCoverage />
@@ -129,7 +129,7 @@ export default function HomePage() {
         </div>
       </section>
       <section aria-labelledby="personalFortuneGuideTitle">
-        <h2 id="personalFortuneGuideTitle">무료 운세와 천원 상담은 어떻게 다른가요?</h2>
+        <h2 id="personalFortuneGuideTitle">무료 운세와 영냥이 상담은 어떻게 다른가요?</h2>
         <p>무료 운세에서는 공개된 기본 풀이와 계산 결과를 살펴볼 수 있어요. 영냥이 상담은 관계·일·돈처럼 직접 남긴 질문을 계산 결과나 카드 상징과 연결해 읽는 별도 유료 서비스입니다. 기본 결과만 확인하려면 무료 도구를, 나의 상황을 덧붙여 질문하고 싶다면 상담 예시를 먼저 읽어보세요.</p>
         <p><Link href="/yeongnyangi/1000-won-fortune/">천원 운세·천원사주 가격과 상담 예시 비교하기</Link>에서 체계별 입력 정보와 상품 구성을 확인할 수 있어요. 두 사람의 숙요 궁합처럼 별도 유료인 기능은 각 서비스의 이용 안내를 확인해 주세요.</p>
       </section>

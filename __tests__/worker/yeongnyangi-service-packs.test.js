@@ -21,7 +21,7 @@ const subscription={tier:'family',isActive:true,expiresAt:new Date('2099-10-30')
 function fixture() {
  const db=makeFakePaymentDb({uniqueKeys:[['merchantUid'],['userId','idempotencyKey','paymentType']]});
  db.rows.push({_id:USER,points:0,recentConsumeRequestIds:[],profileSubscription:structuredClone(subscription)},
-  {_id:ID,userId:USER,featureKey:consultation.featureKey,amountKRW:1000,state:'CREATED',paymentId:null,accessMethod:null,
+  {_id:ID,userId:USER,featureKey:consultation.featureKey,amountKRW:consultation.priceKRW,state:'CREATED',paymentId:null,accessMethod:null,
    paymentClaimOrderId:'',chapters:[],completedChapters:0,leaseUntil:null});
  return {db,get user(){return db.rows.find(r=>String(r._id)===USER)},get row(){return db.rows.find(r=>r._id===ID)}};
 }
@@ -69,7 +69,7 @@ test('each allowed system consumes one use and replay consumes none',async()=>{
  const f=fixture(),right=await purchase(f);
  for(const [index,featureKey] of product.packSnapshot.eligibleFeatureKeys.entries()){
   const id=String(index+1).repeat(64),requestId='yn-'+id;
-  f.db.rows.push({_id:id,userId:USER,featureKey,amountKRW:1000,state:'CREATED',paymentId:null,accessMethod:null,paymentClaimOrderId:''});
+  f.db.rows.push({_id:id,userId:USER,featureKey,amountKRW:product.packSnapshot.unitPriceKRW,state:'CREATED',paymentId:null,accessMethod:null,paymentClaimOrderId:''});
   await consume(f,right,requestId);expect((await consume(f,right,requestId)).replayed).toBe(true);
  }
  expect(f.db.rows.find(r=>r.type==='service_pack').remainingUses).toBe(7);
@@ -90,7 +90,7 @@ test('concurrent use of one consultation produces one receipt and one decrement'
 });
 test.each(['PASS','MOONLIGHT_STONE'])('reserved %s excludes pack consumption and keeps its count',async method=>{
  const f=fixture(),right=await purchase(f);
- await reserveFortuneFunding(f.db,{userId:USER,requestId:RID,featureKey:consultation.featureKey,coinCost:10,method});
+ await reserveFortuneFunding(f.db,{userId:USER,requestId:RID,featureKey:consultation.featureKey,coinCost:consultation.priceKRW/100,method});
  await expect(consume(f,right)).rejects.toMatchObject({code:'MOONSTONE_IN_PROGRESS'});
  expect(f.db.rows.find(r=>r.type==='service_pack').remainingUses).toBe(13);
 });
@@ -279,24 +279,24 @@ test.each(['cancellationReviewRequired','yeongnyangiRefundPending','right-revoke
  expect(f.db.rows.find(r=>r.type==='service_pack').remainingUses).toBe(13);
 });
 
-const approvedFish=[['mackerel',1000,[4500,8500,16000]],['salmon',3000,[13500,25500,48000]],['flounder',5000,[22500,42500,80000]],['tuna',10000,[45000,85000,160000]]];
+const approvedFish=[['mackerel',3000,[12000,21000,36000]],['salmon',5400,[21600,37800,64800]],['flounder',7200,[28800,50400,86400]],['tuna',10500,[42000,73500,126000]]];
 const counts=[5,10,20];
-test.each(approvedFish)('%s catalog fixes approved 2026-10-01 prices, counts and 30-day duration',(fish,unit,prices)=>{
+test.each(approvedFish)('%s catalog fixes approved 2026-10-05 prices, counts and 30-day duration',(fish,unit,prices)=>{
  ['small','medium','large'].forEach((size,i)=>{
-  const offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-'+size+'-v2');
-  expect(offer.packSnapshot).toMatchObject({fishId:fish,unitPriceKRW:unit,totalUses:counts[i],priceKRW:prices[i],validityDays:30,policyVersion:'yeongnyangi-pack-20261001'});
-  // Approved discount ladder: 10/15/20% off the same-fish single price.
-  expect(prices[i]).toBe(unit*counts[i]*[0.9,0.85,0.8][i]);
+  const offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-'+size+'-v3');
+  expect(offer.packSnapshot).toMatchObject({fishId:fish,unitPriceKRW:unit,totalUses:counts[i],priceKRW:prices[i],validityDays:30,policyVersion:'yeongnyangi-pack-20261005'});
+  // Approved discount ladder: 20/30/40% off the same-fish single price.
+  expect(prices[i]).toBe(unit*counts[i]*[80,70,60][i]/100);
   expect(offer.allowedPaymentMethods).toEqual(['DIRECT_KRW']);
   const right={type:'service_pack',status:'granted',packSnapshot:offer.packSnapshot,remainingUses:counts[i],expiresAt:new Date('2099-01-01')};
   for(const [otherFish,otherPrice] of approvedFish)for(const system of ['saju','ziwei','sukuyo','vedic','astrology','tarot']){
    expect(servicePackCoverage(right,'yeongnyangi-'+system+'-'+otherFish,otherPrice).covered).toBe(otherFish===fish);
   }
-  for(const suffix of ['saju-ziwei','sukuyo-vedic','astrology-tarot','all'])expect(servicePackCoverage(right,'yeongnyangi-fusion-'+suffix,suffix==='all'?50000:20000).covered).toBe(false);
+  for(const suffix of ['saju-ziwei','sukuyo-vedic','astrology-tarot','all'])expect(servicePackCoverage(right,'yeongnyangi-fusion-'+suffix,suffix==='all'?30000:14800).covered).toBe(false);
  });
 });
 test.each(approvedFish.flatMap(([fish])=>approvedFish.map(([target,price])=>[fish,target,price])))('%s pack quote/consume only serves %s when identical',async(fish,target,amount)=>{
- const f=fixture(),offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v2');
+ const f=fixture(),offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v3');
  const order=await createServicePackOrder(f.db,{userId:USER,product:offer,idempotencyKey:'approved',env:{}});
  await __paymentsContextTestUtils.settleVerifiedOrder(f.db,{},{order,pg:{pgTransactionId:'mock-approved',paidAt:new Date(),summary:{mock:true}}});
  const right=f.db.rows.find(r=>r.type==='service_pack');
@@ -308,8 +308,8 @@ test.each(approvedFish.flatMap(([fish])=>approvedFish.map(([target,price])=>[fis
  else{await expect(consume(f,right)).rejects.toMatchObject({code:'SERVICE_PACK_NOT_COVERED'});expect(f.db.rows.find(r=>r.type==='service_pack').remainingUses).toBe(offer.packSnapshot.totalUses);expect(f.row.paymentClaimOrderId).toBe('');}
 });
 
-test.each(approvedFish)('%s moonstones deduct the displayed five-times alliance amount',async(fish,amount)=>{
- const f=fixture(),item=resolveProduct({featureKey:'yeongnyangi-saju-'+fish}),expected=amount/2;
+test.each(approvedFish)('%s moonstones deduct the restored 10 KRW per stone amount',async(fish,amount)=>{
+ const f=fixture(),item=resolveProduct({featureKey:'yeongnyangi-saju-'+fish}),expected=amount/10;
  Object.assign(f.row,{featureKey:item.featureKey,amountKRW:amount});
  f.user.profileSubscription.membershipCreditBalance=expected;
  f.user.profileSubscription.membershipCreditLots[0].amount=expected;
@@ -319,4 +319,13 @@ test.each(approvedFish)('%s moonstones deduct the displayed five-times alliance 
  expect(f.user.profileSubscription.membershipCreditBalance).toBe(0);
  await spendMoonstone(f.db,{userId:USER,product:item,purchaseId:RID});
  expect(f.user.profileSubscription.membershipCreditBalance).toBe(0);
+});
+test('a pack bought before the 2026-10-05 price rise keeps covering its own fish at the new price',()=>{
+ const legacy={...resolveServicePackProduct('yeongnyangi-pack-mackerel-small-v3').packSnapshot,
+  planId:'yeongnyangi-pack-mackerel-small-v2',policyVersion:'yeongnyangi-pack-20261001',priceKRW:4500,unitPriceKRW:1000};
+ const right={type:'service_pack',status:'granted',packSnapshot:legacy,remainingUses:5,expiresAt:new Date('2099-01-01')};
+ expect(servicePackCoverage(right,'yeongnyangi-saju-mackerel',3000).covered).toBe(true);
+ expect(servicePackCoverage(right,'yeongnyangi-saju-salmon',5400).covered).toBe(false);
+ // A snapshot priced above the current consultation is never honoured blindly.
+ expect(servicePackCoverage({...right,packSnapshot:{...legacy,unitPriceKRW:12000}},'yeongnyangi-saju-mackerel',3000).covered).toBe(false);
 });

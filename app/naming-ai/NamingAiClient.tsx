@@ -25,6 +25,7 @@ import {
 import { stashNamingRetryPayload } from "./retryHandoff";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import dynamic from "next/dynamic";
+import tone from "./naming-tone.module.css";
 import NamingEngineFields, { INITIAL_ENGINE_FIELDS, engineRawInput, readNamingEngineOptIn, type EngineFieldsValue } from "./v2/NamingEngineFields";
 
 // 무료 한자 미리보기는 작명서 그림 묶음을 끌고 오므로 성씨 한자를 고른 뒤에만 받는다.
@@ -1959,10 +1960,10 @@ function makeRequestId(prefix: string) {
 }
 
 // ── 네오 정본(달빛 다크) 스코프 클래스 — DESIGN.md 팔레트/Glow-Not-Shadow 준수 ──
-const FIELD = "w-full rounded-2xl border border-[#c4b5fd]/20 bg-[#090718]/70 px-4 py-3 text-base text-[#f4eeff] outline-none transition placeholder:text-[#a294cf] focus:border-[#c4b5fd]/60 focus:shadow-[0_0_0_3px_rgba(196,181,253,0.14)] disabled:opacity-50";
-const LABEL = "flex flex-col gap-1.5 text-sm font-semibold text-[#e6ddfa]";
-const PANEL = "rounded-[28px] border border-[#c4b5fd]/20 bg-[#13102a]/70";
-const VIOLET_GLOW = "shadow-[0_0_0_1px_rgba(167,139,250,0.14),0_0_28px_-10px_rgba(147,51,234,0.4)]";
+const FIELD = "w-full rounded-2xl border border-[color:var(--nm-l-c4b5fd-20)] bg-[color:var(--nm-b-090718-70)] px-4 py-3 text-base text-[color:var(--nm-t-f4eeff)] outline-none transition placeholder:text-[color:var(--nm-t-a294cf)] focus:border-[color:var(--nm-l-c4b5fd-60)] focus:[box-shadow:var(--nm-focus-ring)] disabled:opacity-50";
+const LABEL = "flex flex-col gap-1.5 text-sm font-semibold text-[color:var(--nm-t-e6ddfa)]";
+const PANEL = "rounded-[28px] border border-[color:var(--nm-l-c4b5fd-20)] bg-[color:var(--nm-b-13102a-70)]";
+const VIOLET_GLOW = "[box-shadow:var(--nm-glow)]";
 
 // 세부 취향 선택 칩 — 자유 입력을 대체하지 않고 위에 얹는다. 고르면 해당 입력칸에 쉼표로 붙고,
 // 다시 누르면 빠진다. 분위기 옵션은 초안 추천이 쓰는 STYLE_PRESETS 라벨·무드를 그대로 재사용해
@@ -1998,8 +1999,8 @@ function ChipGroup({
             disabled={disabled}
             className={`min-h-11 rounded-full border px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50 ${
               active
-                ? "border-[#e8d5a3]/70 bg-[#e8d5a3]/20 text-[#f7efdc]"
-                : "border-[#e8d5a3]/25 bg-[#e8d5a3]/[0.06] text-[#f2e9d3] hover:border-[#e8d5a3]/55"
+                ? "border-[color:var(--nm-l-e8d5a3-70)] bg-[color:var(--nm-b-e8d5a3-20)] text-[color:var(--nm-t-f7efdc)]"
+                : "border-[color:var(--nm-l-e8d5a3-25)] bg-[color:var(--nm-b-e8d5a3-6)] text-[color:var(--nm-t-f2e9d3)] hover:border-[color:var(--nm-l-e8d5a3-55)]"
             }`}
           >
             {option}
@@ -2425,10 +2426,12 @@ export default function NamingAiClient() {
   const showGeneratingCard = busy && (phase === "verifying" || phase === "generating");
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0a0818] px-4 py-9 text-[#f4eeff] [font-family:var(--font-body)] sm:py-12">
-      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(178deg,#0a0818_0%,#13102a_46%,#090718_100%)]" aria-hidden="true" />
+    // 셸 색은 naming-tone.module.css(--nm-*) — v1 은 네오 밤 값 그대로, v2 opt-in 일 때만 밝은 연이 표지 값(작명서와 같은 바탕).
+    // 위 여백 pt-20 — AppChrome 좌상단 고정 나브(top 12px + 44px)가 히어로 머리를 덮지 않게 결과 화면과 같은 값.
+    <main className={`${tone.shell} ${engineOptIn ? tone.light : ""} relative min-h-screen overflow-hidden bg-[color:var(--nm-b-0a0818)] px-4 pb-9 pt-20 text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-body)] sm:pb-12`}>
+      <div className="pointer-events-none fixed inset-0 [background-image:var(--nm-backdrop-l)]" aria-hidden="true" />
       <div
-        className="pointer-events-none fixed inset-0 opacity-70 [background:radial-gradient(620px_380px_at_14%_-6%,rgba(167,139,250,0.17),transparent_70%),radial-gradient(520px_340px_at_88%_4%,rgba(232,213,163,0.1),transparent_70%)]"
+        className="pointer-events-none fixed inset-0 opacity-70 [background:var(--nm-aura-l)]"
         aria-hidden="true"
       />
 
@@ -2436,27 +2439,27 @@ export default function NamingAiClient() {
         {/* 히어로 */}
         <header className={`${PANEL} relative overflow-hidden p-7 sm:p-10`}>
           <span
-            className="pointer-events-none absolute -right-3 -top-9 select-none text-[8.5rem] font-black leading-none text-[#c4b5fd]/[0.07] [font-family:var(--font-display)] sm:text-[11rem]"
+            className="pointer-events-none absolute -right-3 -top-9 select-none text-[8.5rem] font-black leading-none text-[color:var(--nm-t-c4b5fd-7)] [font-family:var(--font-display)] sm:text-[11rem]"
             aria-hidden="true"
           >
             名
           </span>
-          <span className="inline-flex w-max items-center gap-2 rounded-full border border-[#c4b5fd]/30 bg-[#c4b5fd]/10 px-3.5 py-1.5 text-xs font-bold text-[#dcd2fb]">
+          <span className="inline-flex w-max items-center gap-2 rounded-full border border-[color:var(--nm-l-c4b5fd-30)] bg-[color:var(--nm-b-c4b5fd-10)] px-3.5 py-1.5 text-xs font-bold text-[color:var(--nm-t-dcd2fb)]">
             {copy.heroBadge}
           </span>
-          <h2 className="mt-4 text-3xl font-black leading-tight text-[#f4eeff] [font-family:var(--font-display)] [text-wrap:balance] sm:text-5xl">
+          <h2 className="mt-4 text-3xl font-black leading-tight text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)] [text-wrap:balance] sm:text-5xl">
             {copy.heroTitle}
           </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#c8aaff]/85 sm:text-base">
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[color:var(--nm-t-c8aaff-85)] sm:text-base">
             {copy.heroDescription}
           </p>
-          <ul className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[#e6ddfa]">
+          <ul className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[color:var(--nm-t-e6ddfa)]">
             {copy.heroPills.map((pill) => (
-              <li key={pill} className="rounded-full border border-[#c4b5fd]/20 bg-[#0a0818]/50 px-3 py-1.5">{pill}</li>
+              <li key={pill} className="rounded-full border border-[color:var(--nm-l-c4b5fd-20)] bg-[color:var(--nm-b-0a0818-50)] px-3 py-1.5">{pill}</li>
             ))}
           </ul>
           <div className="mt-4">
-            <PriceBadge featureKey={FEATURE_KEY} />
+            <PriceBadge featureKey={FEATURE_KEY} className={engineOptIn ? "inline-flex items-center rounded-full border border-[color:var(--nm-badge-line)] bg-[color:var(--nm-badge-fill)] px-3 py-1 text-xs font-bold text-[color:var(--nm-badge-ink)]" : undefined} />
           </div>
         </header>
 
@@ -2484,15 +2487,15 @@ export default function NamingAiClient() {
                       aria-current={active ? "step" : undefined}
                       className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-bold transition ${
                         active
-                          ? "border-[#c4b5fd]/60 bg-[#c4b5fd]/15 text-[#f4eeff]"
+                          ? "border-[color:var(--nm-l-c4b5fd-60)] bg-[color:var(--nm-b-c4b5fd-15)] text-[color:var(--nm-t-f4eeff)]"
                           : done
-                            ? "border-[#e8d5a3]/35 bg-[#e8d5a3]/[0.07] text-[#f2e9d3]"
-                            : "border-[#c4b5fd]/15 bg-[#13102a]/50 text-[#c8aaff]/75 hover:border-[#c4b5fd]/40"
+                            ? "border-[color:var(--nm-l-e8d5a3-35)] bg-[color:var(--nm-b-e8d5a3-7)] text-[color:var(--nm-t-f2e9d3)]"
+                            : "border-[color:var(--nm-l-c4b5fd-15)] bg-[color:var(--nm-b-13102a-50)] text-[color:var(--nm-t-c8aaff-75)] hover:border-[color:var(--nm-l-c4b5fd-40)]"
                       }`}
                     >
                       <span
                         className={`grid h-5 w-5 place-items-center rounded-full text-[11px] font-black ${
-                          done ? "bg-[#e8d5a3] text-[#0a0818]" : active ? "bg-[#c4b5fd] text-[#0a0818]" : "bg-[#c4b5fd]/20 text-[#dcd2fb]"
+                          done ? "bg-[color:var(--nm-b-e8d5a3)] text-[color:var(--nm-t-0a0818)]" : active ? "bg-[color:var(--nm-b-c4b5fd)] text-[color:var(--nm-t-0a0818)]" : "bg-[color:var(--nm-b-c4b5fd-20)] text-[color:var(--nm-t-dcd2fb)]"
                         }`}
                         aria-hidden="true"
                       >
@@ -2507,11 +2510,11 @@ export default function NamingAiClient() {
               {step === 0 && (
                 <section className={`${PANEL} p-6 sm:p-7`}>
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5">
-                    <h2 className="text-lg font-black text-[#f4eeff] [font-family:var(--font-display)]">{copy.step0Heading}</h2>
+                    <h2 className="text-lg font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">{copy.step0Heading}</h2>
                     <button
                       type="button"
                       onClick={() => void reload()}
-                      className="rounded-full border border-[#c4b5fd]/30 bg-[#c4b5fd]/10 px-3.5 py-1.5 text-xs font-bold text-[#dcd2fb] transition hover:border-[#c4b5fd]/60 hover:bg-[#c4b5fd]/20"
+                      className="rounded-full border border-[color:var(--nm-l-c4b5fd-30)] bg-[color:var(--nm-b-c4b5fd-10)] px-3.5 py-1.5 text-xs font-bold text-[color:var(--nm-t-dcd2fb)] transition hover:border-[color:var(--nm-l-c4b5fd-60)] hover:bg-[color:var(--nm-b-c4b5fd-20)]"
                       aria-label={copy.reloadButtonAria}
                     >
                       {copy.reloadButton}
@@ -2581,14 +2584,14 @@ export default function NamingAiClient() {
                       />
                     </label>
                   </div>
-                  <div className="mt-4 flex flex-wrap gap-5 text-sm text-[#e6ddfa]">
+                  <div className="mt-4 flex flex-wrap gap-5 text-sm text-[color:var(--nm-t-e6ddfa)]">
                     <label className="flex min-h-11 items-center gap-2">
                       <input
                         type="checkbox"
                         checked={form.birthTimeUnknown}
                         onChange={(event) => updateForm({ birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })}
                         disabled={busy}
-                        className="h-4 w-4 accent-[#c4b5fd]"
+                        className="h-4 w-4 [accent-color:var(--nm-a-c4b5fd)]"
                       />
                       {copy.birthTimeUnknownCheckbox}
                     </label>
@@ -2598,7 +2601,7 @@ export default function NamingAiClient() {
                         checked={form.isLeapMonth}
                         onChange={(event) => updateForm({ isLeapMonth: event.target.checked })}
                         disabled={busy}
-                        className="h-4 w-4 accent-[#c4b5fd]"
+                        className="h-4 w-4 [accent-color:var(--nm-a-c4b5fd)]"
                       />
                       {copy.leapMonthCheckbox}
                     </label>
@@ -2611,7 +2614,7 @@ export default function NamingAiClient() {
 
               {step === 1 && (
                 <section className={`${PANEL} p-6 sm:p-7`}>
-                  <h2 className="text-lg font-black text-[#f4eeff] [font-family:var(--font-display)]">{copy.step1Heading}</h2>
+                  <h2 className="text-lg font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">{copy.step1Heading}</h2>
                   <div className="mt-4 grid gap-3.5 sm:grid-cols-2">
                     <label className={LABEL}>
                       {copy.familyNameLabel}
@@ -2624,11 +2627,11 @@ export default function NamingAiClient() {
                         disabled={busy}
                         className={FIELD}
                       />
-                      <span className="text-xs font-normal text-[#c8aaff]/70">
+                      <span className="text-xs font-normal text-[color:var(--nm-t-c8aaff-70)]">
                         {copy.familyNameHint}
                       </span>
                       {familyNameLooksLikeFullName && (
-                        <span className="text-xs font-semibold text-[#e8d5a3]">
+                        <span className="text-xs font-semibold text-[color:var(--nm-t-e8d5a3)]">
                           {copy.familyNameLooksFullWarning}
                         </span>
                       )}
@@ -2735,16 +2738,16 @@ export default function NamingAiClient() {
                   </div>
 
                   {recommendation && (
-                    <div className="mt-5 rounded-3xl border border-[#c4b5fd]/15 bg-[#0a0818]/50 p-5">
+                    <div className="mt-5 rounded-3xl border border-[color:var(--nm-l-c4b5fd-15)] bg-[color:var(--nm-b-0a0818-50)] p-5">
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <h3 className="text-base font-black text-[#f4eeff] [font-family:var(--font-display)]">{copy.freeDraftHeading}</h3>
-                        <span className="text-xs font-semibold text-[#e8d5a3]">{copy.freeDraftBadge}</span>
+                        <h3 className="text-base font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">{copy.freeDraftHeading}</h3>
+                        <span className="text-xs font-semibold text-[color:var(--nm-t-e8d5a3)]">{copy.freeDraftBadge}</span>
                       </div>
-                      <p className="mt-1.5 text-xs leading-relaxed text-[#c8aaff]/75">{recommendation.status}</p>
+                      <p className="mt-1.5 text-xs leading-relaxed text-[color:var(--nm-t-c8aaff-75)]">{recommendation.status}</p>
                       {/* ja·zh-CN·zh-TW·en 은 자기 문화권의 실재 이름 목록에서 고르므로 고지가 비어 있다.
                           라틴 풀로 폴백하는 일곱 로케일만, 유료 작명첩과 초안의 출처가 다름을 밝힌다. */}
                       {copy.freeDraftPoolNote ? (
-                        <p className="mt-1.5 text-xs leading-relaxed text-[#e8d5a3]/80">{copy.freeDraftPoolNote}</p>
+                        <p className="mt-1.5 text-xs leading-relaxed text-[color:var(--nm-t-e8d5a3-80)]">{copy.freeDraftPoolNote}</p>
                       ) : null}
                       <div className="mt-3.5 grid gap-2 sm:grid-cols-2">
                         {recommendation.candidates.length ? recommendation.candidates.map((item) => (
@@ -2752,13 +2755,13 @@ export default function NamingAiClient() {
                             key={item.name}
                             type="button"
                             onClick={() => applyCandidate(item)}
-                            className="rounded-2xl border border-[#c4b5fd]/20 bg-[#13102a]/70 p-3.5 text-left transition hover:border-[#c4b5fd]/55 hover:shadow-[0_0_20px_-8px_rgba(147,51,234,0.4)]"
+                            className="rounded-2xl border border-[color:var(--nm-l-c4b5fd-20)] bg-[color:var(--nm-b-13102a-70)] p-3.5 text-left transition hover:border-[color:var(--nm-l-c4b5fd-55)] hover:[box-shadow:var(--nm-hover-glow-l)]"
                           >
-                            <span className="block text-sm font-black text-[#f4eeff]">{item.fullName}</span>
-                            <span className="mt-0.5 block text-xs text-[#c8aaff]/75">{item.note}</span>
+                            <span className="block text-sm font-black text-[color:var(--nm-t-f4eeff)]">{item.fullName}</span>
+                            <span className="mt-0.5 block text-xs text-[color:var(--nm-t-c8aaff-75)]">{item.note}</span>
                           </button>
                         )) : (
-                          <p className="rounded-2xl border border-dashed border-[#c4b5fd]/25 p-3.5 text-xs text-[#c8aaff]/70 sm:col-span-2">
+                          <p className="rounded-2xl border border-dashed border-[color:var(--nm-l-c4b5fd-25)] p-3.5 text-xs text-[color:var(--nm-t-c8aaff-70)] sm:col-span-2">
                             {copy.freeDraftEmpty}
                           </p>
                         )}
@@ -2770,7 +2773,7 @@ export default function NamingAiClient() {
                               key={mood}
                               type="button"
                               onClick={() => applyMood(mood)}
-                              className="rounded-full border border-[#e8d5a3]/25 bg-[#e8d5a3]/[0.06] px-3 py-1.5 text-xs font-semibold text-[#f2e9d3] transition hover:border-[#e8d5a3]/55"
+                              className="rounded-full border border-[color:var(--nm-l-e8d5a3-25)] bg-[color:var(--nm-b-e8d5a3-6)] px-3 py-1.5 text-xs font-semibold text-[color:var(--nm-t-f2e9d3)] transition hover:border-[color:var(--nm-l-e8d5a3-55)]"
                             >
                               {mood}
                             </button>
@@ -2791,8 +2794,8 @@ export default function NamingAiClient() {
 
               {step === 2 && (
                 <section className={`${PANEL} p-6 sm:p-7`}>
-                  <h2 className="text-lg font-black text-[#f4eeff] [font-family:var(--font-display)]">{copy.step2Heading}</h2>
-                  <p className="mt-1.5 text-xs leading-relaxed text-[#c8aaff]/75">
+                  <h2 className="text-lg font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">{copy.step2Heading}</h2>
+                  <p className="mt-1.5 text-xs leading-relaxed text-[color:var(--nm-t-c8aaff-75)]">
                     {copy.step2Intro}
                   </p>
                   <div className="mt-4 grid gap-3.5">
@@ -2921,26 +2924,26 @@ export default function NamingAiClient() {
 
             <aside className={`${PANEL} flex h-max flex-col gap-4 p-6 sm:p-7 lg:sticky lg:top-6`}>
               <div>
-                <h2 className="text-lg font-black text-[#f4eeff] [font-family:var(--font-display)]">{copy.sidebarHeading}</h2>
-                <p className="mt-1.5 text-sm leading-relaxed text-[#c8aaff]/85">
+                <h2 className="text-lg font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">{copy.sidebarHeading}</h2>
+                <p className="mt-1.5 text-sm leading-relaxed text-[color:var(--nm-t-c8aaff-85)]">
                   {copy.sidebarDescription}
                 </p>
               </div>
 
-              <dl className="grid gap-1.5 rounded-3xl border border-[#c4b5fd]/15 bg-[#0a0818]/50 p-4 text-sm">
+              <dl className="grid gap-1.5 rounded-3xl border border-[color:var(--nm-l-c4b5fd-15)] bg-[color:var(--nm-b-0a0818-50)] p-4 text-sm">
                 <SummaryRow label={copy.summaryBirthLabel} value={form.birthDate ? `${form.birthDate} · ${form.calendarType === "lunar" ? copy.calendarLunar : copy.calendarSolar}${form.birthTimeUnknown ? copy.summaryTimeUnknownSuffix : form.birthTime ? ` · ${form.birthTime}` : ""}` : copy.summaryNotEntered} done={stepDone[0]} />
                 <SummaryRow label={copy.summaryFamilyLabel} value={form.familyName.trim() ? `${form.familyName.trim()} · ${form.nameLength}${copy.summaryCharSuffix}` : copy.summaryNotEntered} done={stepDone[1]} />
                 <SummaryRow label={copy.summaryPreferenceLabel} value={stepDone[2] ? copy.summaryEntered : copy.summaryOptional} done={stepDone[2]} optional />
               </dl>
 
               {busy && (
-                <p className="rounded-2xl border border-[#c4b5fd]/25 bg-[#c4b5fd]/[0.07] px-4 py-3 text-sm font-semibold text-[#e6ddfa]" aria-live="polite">
+                <p className="rounded-2xl border border-[color:var(--nm-l-c4b5fd-25)] bg-[color:var(--nm-b-c4b5fd-7)] px-4 py-3 text-sm font-semibold text-[color:var(--nm-t-e6ddfa)]" aria-live="polite">
                   {phase === "checking" ? copy.busyChecking : copy.busyPayment}
                 </p>
               )}
 
               {error && (
-                <p role="alert" className="rounded-2xl border border-rose-300/40 bg-rose-950/30 px-4 py-3 text-sm text-rose-100">
+                <p role="alert" className={`rounded-2xl border px-4 py-3 text-sm ${engineOptIn ? "border-[color:var(--nm-alert-line)] bg-[color:var(--nm-alert-fill)] text-[color:var(--nm-alert-ink)]" : "border-rose-300/40 bg-rose-950/30 text-rose-100"}`}>
                   {error}
                 </p>
               )}
@@ -2948,7 +2951,7 @@ export default function NamingAiClient() {
               <button
                 type="submit"
                 disabled={busy || missing.length > 0}
-                className={`min-h-12 rounded-full bg-[linear-gradient(135deg,#c4b5fd,#e8d5a3)] px-5 text-sm font-black text-[#0a0818] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 ${VIOLET_GLOW}`}
+                className={`min-h-12 rounded-full [background-image:var(--nm-seal-fill)] px-5 text-sm font-black text-[color:var(--nm-t-0a0818)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 ${VIOLET_GLOW}`}
               >
                 {busy
                   ? copy.submitBusy
@@ -2961,13 +2964,13 @@ export default function NamingAiClient() {
                 <button
                   type="button"
                   onClick={() => void handleRetry()}
-                  className="min-h-11 rounded-full border border-[#c4b5fd]/35 bg-[#c4b5fd]/10 px-5 text-sm font-bold text-[#e6ddfa] transition hover:bg-[#c4b5fd]/20"
+                  className="min-h-11 rounded-full border border-[color:var(--nm-l-c4b5fd-35)] bg-[color:var(--nm-b-c4b5fd-10)] px-5 text-sm font-bold text-[color:var(--nm-t-e6ddfa)] transition hover:bg-[color:var(--nm-b-c4b5fd-20)]"
                 >
                   {copy.retryButton}
                 </button>
               )}
 
-              <p className="text-xs leading-relaxed text-[#c8aaff]/65">
+              <p className="text-xs leading-relaxed text-[color:var(--nm-t-c8aaff-65)]">
                 {copy.footerNote}
               </p>
             </aside>
@@ -2985,8 +2988,8 @@ function StepMoveButton({ onClick, label, subtle = false }: { onClick: () => voi
       onClick={onClick}
       className={`inline-flex min-h-11 items-center rounded-full px-5 text-sm font-bold transition ${
         subtle
-          ? "border border-[#c4b5fd]/20 bg-transparent text-[#c8aaff]/85 hover:border-[#c4b5fd]/45 hover:text-[#f4eeff]"
-          : "border border-[#c4b5fd]/40 bg-[#c4b5fd]/12 text-[#f4eeff] hover:bg-[#c4b5fd]/22"
+          ? "border border-[color:var(--nm-l-c4b5fd-20)] bg-transparent text-[color:var(--nm-t-c8aaff-85)] hover:border-[color:var(--nm-l-c4b5fd-45)] hover:text-[color:var(--nm-t-f4eeff)]"
+          : "border border-[color:var(--nm-l-c4b5fd-40)] bg-[#c4b5fd]/12 text-[color:var(--nm-t-f4eeff)] hover:bg-[#c4b5fd]/22"
       }`}
     >
       {label}
@@ -2997,11 +3000,11 @@ function StepMoveButton({ onClick, label, subtle = false }: { onClick: () => voi
 function SummaryRow({ label, value, done, optional = false }: { label: string; value: string; done: boolean; optional?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <dt className="flex shrink-0 items-center gap-1.5 text-xs font-bold text-[#c8aaff]/70">
-        <span className={`h-1.5 w-1.5 rounded-full ${done ? "bg-[#e8d5a3]" : optional ? "bg-[#c4b5fd]/25" : "bg-[#c4b5fd]/45"}`} aria-hidden="true" />
+      <dt className="flex shrink-0 items-center gap-1.5 text-xs font-bold text-[color:var(--nm-t-c8aaff-70)]">
+        <span className={`h-1.5 w-1.5 rounded-full ${done ? "bg-[color:var(--nm-b-e8d5a3)]" : optional ? "bg-[color:var(--nm-b-c4b5fd-25)]" : "bg-[color:var(--nm-b-c4b5fd-45)]"}`} aria-hidden="true" />
         {label}
       </dt>
-      <dd className="truncate text-right text-sm font-semibold text-[#e6ddfa]">{value}</dd>
+      <dd className="truncate text-right text-sm font-semibold text-[color:var(--nm-t-e6ddfa)]">{value}</dd>
     </div>
   );
 }
@@ -3028,15 +3031,15 @@ function NamingGeneratingCard({ phase }: { phase: Phase }) {
 
   return (
     <section className={`${PANEL} p-7 sm:p-10`} aria-live="polite">
-      <h2 className="text-xl font-black text-[#f4eeff] [font-family:var(--font-display)] sm:text-2xl">
+      <h2 className="text-xl font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)] sm:text-2xl">
         {copy.generatingSteps[Math.min(activeStep, copy.generatingSteps.length - 1)]}…
       </h2>
-      <p className="mt-2 max-w-xl text-sm leading-7 text-[#c8aaff]/80">
+      <p className="mt-2 max-w-xl text-sm leading-7 text-[color:var(--nm-t-c8aaff-80)]">
         {copy.generatingSubtitle}
       </p>
       <div className="mt-6 h-2 overflow-hidden rounded-full bg-[#c4b5fd]/12" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
         <div
-          className="h-full rounded-full bg-[linear-gradient(90deg,#a78bfa,#c4b5fd,#e8d5a3)] transition-[width] duration-700 ease-out"
+          className="h-full rounded-full [background-image:var(--nm-progress)] transition-[width] duration-700 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -3047,12 +3050,12 @@ function NamingGeneratingCard({ phase }: { phase: Phase }) {
             <li
               key={stepLabel}
               className={`flex items-center gap-2.5 transition-colors duration-200 ${
-                stepState === "active" ? "text-[#e8d5a3]" : stepState === "done" ? "text-[#c8aaff]/80" : "text-[#c8aaff]/40"
+                stepState === "active" ? "text-[color:var(--nm-t-e8d5a3)]" : stepState === "done" ? "text-[color:var(--nm-t-c8aaff-80)]" : "text-[color:var(--nm-t-c8aaff-40)]"
               }`}
             >
               <span
                 className={`grid h-[18px] w-[18px] place-items-center rounded-full text-[10px] font-black ${
-                  stepState === "done" ? "bg-[#c4b5fd]/70 text-[#0a0818]" : stepState === "active" ? "bg-[#e8d5a3] text-[#0a0818]" : "bg-[#c4b5fd]/15 text-[#c8aaff]/60"
+                  stepState === "done" ? "bg-[color:var(--nm-b-c4b5fd-70)] text-[color:var(--nm-t-0a0818)]" : stepState === "active" ? "bg-[color:var(--nm-b-e8d5a3)] text-[color:var(--nm-t-0a0818)]" : "bg-[color:var(--nm-b-c4b5fd-15)] text-[color:var(--nm-t-c8aaff-60)]"
                 }`}
                 aria-hidden="true"
               >
@@ -3064,9 +3067,9 @@ function NamingGeneratingCard({ phase }: { phase: Phase }) {
         })}
       </ol>
       <div className="mt-7 grid gap-3 sm:grid-cols-3" aria-hidden="true">
-        <div className="h-24 animate-pulse rounded-3xl bg-[#c4b5fd]/[0.08] motion-reduce:animate-none" />
-        <div className="h-24 animate-pulse rounded-3xl bg-[#c4b5fd]/[0.06] motion-reduce:animate-none" />
-        <div className="h-24 animate-pulse rounded-3xl bg-[#e8d5a3]/[0.06] motion-reduce:animate-none" />
+        <div className="h-24 animate-pulse rounded-3xl bg-[color:var(--nm-b-c4b5fd-8)] motion-reduce:animate-none" />
+        <div className="h-24 animate-pulse rounded-3xl bg-[color:var(--nm-b-c4b5fd-6)] motion-reduce:animate-none" />
+        <div className="h-24 animate-pulse rounded-3xl bg-[color:var(--nm-b-e8d5a3-6)] motion-reduce:animate-none" />
       </div>
     </section>
   );

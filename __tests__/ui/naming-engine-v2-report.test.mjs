@@ -163,3 +163,56 @@ test('서비스: 라우트 입력 → 엔진 입력, 정본 스냅샷으로 유�
   assert.deepEqual(paid.view.saju.counts,paid.displayEvidence.natal.counts,'화면 요약용 원국 개수');assert.deepEqual(paid.view.saju.pillars,paid.displayEvidence.pillars);
   assert.ok(paid.view.candidates.every((c)=>c.chars.every((ch)=>Number.isInteger(ch.radical)&&ch.radical>=1&&ch.radical<=214)),'부수 번호 1~214');
 });
+
+test('선택 방식: 고른 이름마다 가장 높은 후보를 하나씩 풀어 쓴다(순위 6 밖이어도)',()=>{
+  const desiredNames=['서윤','하은','지아','수아','예린'];
+  const chosen=E.engineView(E.runNamingEngine({surname:{hangul:'김',hanja:['金']},gender:'F',nameLength:2,strategy:'choose',desiredNames},{tier:'paid',saju:needs}));
+  const told=E.narratedCandidates(chosen);
+  assert.ok(told.length>=6,String(told.length));
+  for(const name of desiredNames)if(chosen.candidates.some((c)=>c.hangul===name))assert.ok(told.some((c)=>c.hangul===name),name);
+  assert.deepEqual(E.deterministicNarration(chosen).names.map((entry)=>entry.rank),told.map((c)=>c.rank));
+  const ch4=E.engineChapterBody(4,chosen,lines,null);
+  for(const c of told)assert.ok(ch4.includes(`### ${c.rank}. ${E.fullName(chosen,c)}`),c.hangul);
+  // 추천 방식은 그대로 상위 6.
+  assert.deepEqual(E.narratedCandidates(view).map((c)=>c.rank),[1,2,3,4,5,6]);
+});
+
+test('장 본문 정규화: 소제목·굵은 줄은 남기고, 짝 없는 ** 와 "미 미치" 반복은 고친다',()=>{
+  const raw='앞 문장입니다.\n\n### 사주 분석: 타고난 기운\n\n### 1. 김서윤(金序潤)\n\n첫 후보는 좋은 영향을 미 미치는 이름입니다.\n\n**1. 작명학적 완성도를 원하신다면: 김예린(金譽潾)**\n\n**강조가 닫히지 않은 문단입니다.\n\n끝나지 않은 문장';
+  const out=E.normalizeNamingBody(raw);
+  assert.equal(out,'앞 문장입니다.\n\n### 사주 분석: 타고난 기운\n\n### 1. 김서윤(金序潤)\n\n첫 후보는 좋은 영향을 미치는 이름입니다.\n\n**1. 작명학적 완성도를 원하신다면: 김예린(金譽潾)**\n\n강조가 닫히지 않은 문단입니다.');
+  assert.equal(E.normalizeNamingBody('그 이름이 이 이름입니다.'),'그 이름이 이 이름입니다.');
+});
+
+test('생극 방향이 뒤집힌 서술은 그 자리에서 바로잡고 조사도 맞춘다',()=>{
+  const out=E.fixNarrativeFacts('김(목) → 서(금)는 木극金이 되지만, 이어지는 금생토는 부드럽습니다.',view);
+  assert.equal(out.text,'김(목) → 서(금)는 金극木이 되지만, 이어지는 토생금은 부드럽습니다.');
+  assert.equal(out.swapped,2);
+  const kept='목생금이 아닌 상극(金극木)입니다. 수생목은 자연스럽습니다.';
+  assert.equal(E.fixNarrativeFacts(kept,view).text,kept);
+  assert.equal(E.fixNarrativeFacts('첫 문장입니다. 목생금 흐름이라 좋습니다.',view).text,'첫 문장입니다.');
+});
+
+test('자원오행을 틀리게 붙인 문장과 성씨 한자에 오행을 붙인 문장만 뺀다',()=>{
+  const char=view.candidates.flatMap((c)=>c.chars).find((c)=>c.jawon);
+  const KO={wood:'목(木)',fire:'화(火)',earth:'토(土)',metal:'금(金)',water:'수(水)'};
+  const wrong=Object.keys(KO).find((el)=>el!==char.jawon);
+  const right=`${char.ch}(${char.hangul})은 ${KO[char.jawon]}의 기운입니다.`;
+  const text=`${right} ${char.ch}(${char.hangul})은 ${KO[wrong]}의 기운입니다. 성씨 金(김)은 수(水)로 보기도 합니다.`;
+  const out=E.fixNarrativeFacts(text,view);
+  assert.equal(out.text,right);assert.equal(out.dropped,2);
+  assert.equal(E.fixNarrativeFacts('### 김(목) → 서(금)\n\n소리 흐름입니다.',view).text,'### 김(목) → 서(금)\n\n소리 흐름입니다.');
+});
+
+test('삼재를 초성·중성·종성으로 설명한 문장은 뺀다',()=>{
+  const out=E.fixNarrativeFacts('삼재는 이름의 초성, 중성, 종성의 기운 조합을 봅니다. 참고 지표로만 보세요.',view);
+  assert.equal(out.text,'참고 지표로만 보세요.');
+});
+
+test('프롬프트는 소리오행 생극 방향과 삼재·성씨 오행 규칙을 적는다',()=>{
+  const prompt=E.buildNamingV2Prompt(view,lines,prefs);
+  assert.match(prompt,/김→\S+ (비화|상생 [목화토금수]생[목화토금수]|상극 [목화토금수]극[목화토금수])/);
+  assert.match(prompt,/초성·중성·종성과는 관계없습니다/);
+  assert.match(prompt,/성씨 한자에 오행을 붙이지 마세요/);
+  assert.equal(E.relationPhrase('wood','metal'),'상극 금극목');assert.equal(E.relationPhrase('metal','earth'),'상생 토생금');
+});

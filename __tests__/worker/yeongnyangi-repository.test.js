@@ -107,7 +107,8 @@ const AccountUsage=model(()=>accounts,'account'),unused=model(()=>[],'unused');
 jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment,User,PointHistory,MonthlyCreditLedger:model(()=>[],'monthly-ledger'),
   GuardianFortuneAccountUsage:AccountUsage,GuardianFortuneAnonymousMerge:unused,GuardianFortuneGenerationAttempt:unused,GuardianFortuneGuestUsage:unused}));
 jest.unstable_mockModule('../../worker/lib/entitlement-policy.js',()=>({resolveCanonicalEntitlement:user=>user?.profileSubscription || {}}));
-jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({consumePassForFeature:consumePass,refundPassCoverage:refundPass,refundYeongnyangiMoonstone:refundMoonstone}));
+jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({consumePassForFeature:consumePass,refundPassCoverage:refundPass,refundYeongnyangiMoonstone:refundMoonstone,
+  consultationRefundDb:session=>{expect(activeOperations).toBeGreaterThan(0);expect(session.withTransaction).toEqual(expect.any(Function));return {session};}}));
 jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:verifyPerUse}));
 jest.unstable_mockModule('../../worker/payments/passes.js',()=>({passUsageEvidenceId:()=> '507f1f77bcf86cd799439099'}));
 let repo;

@@ -157,7 +157,7 @@ export default function NamingV2Report({ engine, narration, tier, exportExpand =
   }
 
   const compared = compare.map((rank) => candidates.find((c) => c.rank === rank)).filter((c): c is V2Candidate => Boolean(c));
-  const seriesColors = ["var(--nv2-violet)", "var(--nv2-gold)", elementTone("water").color];
+  const seriesColors = ["var(--nv2-seal)", "var(--nv2-ornament)", elementTone("water").color];
   const selectedNarration = narrationOf(selected);
 
   return (
@@ -174,9 +174,9 @@ export default function NamingV2Report({ engine, narration, tier, exportExpand =
                 <h2 className={styles.certTitle}>{copy.reportTitle}</h2>
                 <p className={styles.certLead}>{copy.reportLead(surname.hangul)}</p>
                 <p className={styles.certPickLabel}>{copy.finalPickLabel}</p>
-                <div className={styles.certName}>
-                  <span className={cx(styles.han, styles.certHanja)} lang="ko" style={{ ["--nv2-name-len" as string]: [...`${surname.hanja}${pick.hanja}`].length }}>{surname.hanja}{pick.hanja}</span>
-                  <Seal text={copy.sealNaming} size={60} tilt={-5} stamp={!exportExpand} />
+                <div className={styles.certName} style={{ ["--nv2-name-len" as string]: [...`${surname.hanja}${pick.hanja}`].length }}>
+                  <span className={cx(styles.han, styles.certHanja)} lang="ko">{surname.hanja}{pick.hanja}</span>
+                  <Seal text={copy.sealNaming} size={60} tilt={-5} stamp={!exportExpand} fluid className={styles.certSeal} />
                 </div>
                 <p className={styles.certHangul}>{fullHangul(pick)}</p>
                 <ul className={styles.certChars}>
@@ -326,7 +326,7 @@ export default function NamingV2Report({ engine, narration, tier, exportExpand =
           </div>
           <div>
             <h3 className={styles.subTitle}>{copy.radarTitle}</h3>
-            <ScoreRadar copy={copy} series={[{ key: String(selected.rank), label: fullHangul(selected), scores: selected.scores, color: "var(--nv2-violet)" }]} />
+            <ScoreRadar copy={copy} series={[{ key: String(selected.rank), label: fullHangul(selected), scores: selected.scores, color: "var(--nv2-seal)" }]} />
           </div>
         </div>
 

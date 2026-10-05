@@ -51,7 +51,7 @@ export default function YeongnyangiGuide(){
     <p>질문 · 선택할 때마다 오래 망설여요. 어떻게 결정하는 연습을 하면 좋을까요?</p>
     <p>영냥이 · 세부적인 차이를 살피는 태도는 네 장점이야. 다만 모든 불확실성이 사라질 때까지 기다리지는 말자. 되돌릴 수 있는 작은 선택부터 기한을 정해 두면, 결정하는 감각이 조금씩 몸에 붙을 거야.</p>
    </blockquote>
-   <p><a href="/yeongnyangi/1000-won-fortune/#example">천원 상담 예시와 체계별 목차 자세히 보기</a></p>
+   <p><a href="/yeongnyangi/1000-won-fortune/#example">상담 예시와 체계별 목차 자세히 보기</a></p>
    <SampleExposure targetId="yn-example" itemId={single('saju','mackerel').cdFeatureKey}/>
   </section>
 

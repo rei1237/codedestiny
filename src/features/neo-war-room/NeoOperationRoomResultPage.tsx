@@ -13,13 +13,16 @@ import { buildResizedAssetUrl } from "@/lib/r2-public-url";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import ConsultationShare from "@/components/fortune/ConsultationShare";
+import SavedRecordLink from "@/components/fortune/SavedRecordLink";
 import { neoShareChoices } from "@/lib/consultation-sharing";
-import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
-import { neoInitialBreaks, neoRefinedBreaks, withCharacterBreaks } from "@/components/fortune/result-character-breaks";
+import { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import NeoFactPunch from "./components/NeoFactPunch";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
 import NeoCompatSummaryCard, { type NeoCompatSummary } from "./components/NeoCompatSummaryCard";
+import NeoVisualBriefing, { NeoBriefingArt, neoBriefingExcerpt } from "./components/NeoVisualBriefing";
+import NeoResultChapters from "./components/NeoResultChapters";
+import { getNeoVisualCopy } from "./data/visual-copy";
 import { type NeoWarRoomConsultMode, neoWarRoomAssets } from "./data/assets";
 import { getLocalizedNeoWarRoomMethodDefinition, getLocalizedNeoWarRoomMethodRegistry } from "./data/method-registry";
 import { getNeoRealityCheckLabel, getNeoFormCopy, getNeoTopicLabel } from "./data/form-copy";
@@ -31,7 +34,6 @@ import {
   getNeoResultCopy,
   getNeoResultGeneratingBody,
   getNeoResultLetterLockBody,
-  getNeoResultTocPageFallback,
   getNeoResultVerdictWithStatus,
 } from "./data/result-copy";
 import styles from "./neo-operation-room-result.module.css";
@@ -56,7 +58,7 @@ type NeoCompatSections = {
   };
 };
 
-type NeoBriefing = NeoCompatSections & {
+export type NeoBriefing = NeoCompatSections & {
   selectedMethod?: NeoWarRoomConsultMode;
   operationTitle?: string;
   neoOpening?: string;
@@ -83,7 +85,7 @@ type NeoBriefing = NeoCompatSections & {
   nextStepPrompt?: string;
 };
 
-type NeoRefinedOrder = {
+export type NeoRefinedOrder = {
   selectedMethod?: NeoWarRoomConsultMode;
   operationTitle?: string;
   neoReview?: string;
@@ -98,7 +100,7 @@ type NeoRefinedOrder = {
   tsundereClosing?: string;
 };
 
-type NeoResultSession = {
+export type NeoResultSession = {
   ok: true;
   id?: string;
   sessionId?: string;
@@ -638,7 +640,7 @@ export default function NeoOperationRoomResultPage() {
     }
     setPdfLoading(true);
     setPdfError("");
-    // 페이지 뷰어가 숨긴 장(display:none)은 html2canvas에서 빈 캔버스가 되므로 전부 펼친 뒤 캡처한다.
+    // 접힌 상담 원문을 전부 펼쳐 캡처한다. exportExpand는 독자의 펼침 상태를 바꾸지 않는다.
     setExportExpand(true);
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
     await new Promise((resolve) => setTimeout(resolve, 120));
@@ -765,17 +767,6 @@ export default function NeoOperationRoomResultPage() {
           <h1 id="neo-result-title">{heroOperationTitle}</h1>
           <p>{isGenerating ? resultCopy.heroSubtitleGenerating : resultCopy.heroSubtitleReady}</p>
         </div>
-        <div className={styles.heroVisual} aria-hidden="true">
-          <NeoWarRoomAssetImage
-            asset={neoWarRoomAssets.hero.fullbody}
-            fallbackSrc="/neo-operation-room/sprites/transparent/neo-transparent-s1-f01.webp"
-            alt=""
-            priority
-            sizes="(max-width: 768px) 62vw, 360px"
-            className={styles.neoPortrait}
-            imageClassName={styles.neoPortraitImage}
-          />
-        </div>
       </section>
 
       {localPreviewEnabled ? (
@@ -852,6 +843,7 @@ export default function NeoOperationRoomResultPage() {
               locale={dialogueLocale}
               badgeIndex={badgeAward.currentBadgeIndex}
             />
+            <NeoVisualBriefing briefing={briefing} refined={refined} locale={dialogueLocale} />
             {!isGenerating && !isFailed ? (
               <ConsultationShare key={`${session.id || session.sessionId}-${Boolean(session.refinedOrder)}`} brand="neo" choices={neoShareChoices(session)} />
             ) : null}
@@ -937,6 +929,7 @@ export default function NeoOperationRoomResultPage() {
                 locale={dialogueLocale}
               />
             )}
+            {!isLocalPreview && !isGenerating && !isFailed && <SavedRecordLink source="neo" id={session.id || session.sessionId || ''} />}
             <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => { if (!isGenerating) setShowRealityForm(true); }} hasRefined={Boolean(refined)} locale={dialogueLocale} />
           </section>
         </div>
@@ -1042,56 +1035,30 @@ function NeoSincereLetter({ letter, locale }: { letter: string; locale: LoadingL
   );
 }
 
-function ResultSummaryCover({
-  session,
-  methodName,
-  badgeIndex,
-  locale,
-}: {
+function ResultSummaryCover({ session, methodName, locale }: {
   session: NeoResultSession;
   methodName: string;
   badgeIndex: number;
   locale: LoadingLocale;
 }) {
+  const copy = getNeoVisualCopy(locale);
   const resultCopy = getNeoResultCopy(locale);
-  const briefing = session.initialBriefing || null;
-  const refined = session.refinedOrder || null;
-  const issuedAt = formatDateKey(session.updatedAt || session.createdAt);
-  const formCopy = getNeoFormCopy(locale);
-  const highlightedResult = toDisplayText(refined?.verdict?.statement || briefing?.frontlineSummary);
-  const highlightedLabel = refined?.verdict?.status
-    ? getNeoResultVerdictWithStatus(toDisplayText(refined.verdict.status), locale)
-    : formCopy["briefing.frontlineLabel"];
+  const briefing = session.initialBriefing;
+  const refined = session.refinedOrder || session.pendingRefinedOrder;
+  const judgement = toDisplayText(refined?.verdict?.statement || getBriefingFrontline(briefing));
+  const firstAction = toDisplayText(refined?.thisWeekFirstStep || refined?.actionAlternatives?.[0]?.action || briefing?.actionOrders?.[0]);
   return (
     <article className={`${styles.documentCard} ${styles.summaryCover}`} data-neo-pdf-page>
-      <header className={styles.documentHeader}>
-        <h2>{refined?.operationTitle || briefing?.operationTitle || resultCopy.heroTitle}</h2>
-      </header>
-      <div className={styles.summaryGrid}>
-        <section>
-          <span>{resultCopy.summaryMethodLabel}</span>
-          <strong>{methodName}</strong>
-        </section>
-        <section>
-          <span>{resultCopy.summaryTopicLabel}</span>
-          <strong>{session.topic ? getNeoTopicLabel(session.topic, locale) : resultCopy.summaryTopicFallback}</strong>
-        </section>
-        <section>
-          <span>{resultCopy.summaryIssuedLabel}</span>
-          <strong>{issuedAt}</strong>
-        </section>
+      <div className={styles.briefingSummary}>
+        <div className={styles.summaryMain}>
+          {session.question ? <div className={styles.summaryQuestion}><strong>{copy.question}</strong><p>{neoBriefingExcerpt(session.question, 150)}</p></div> : null}
+          <h2>{copy.verdict}</h2>
+          {judgement ? <p className={styles.keyJudgement}>{neoBriefingExcerpt(judgement)}</p> : <p>{resultCopy.generatingBodyDefault}</p>}
+        </div>
+        <NeoBriefingArt pose="explain" priority />
       </div>
-      {highlightedResult ? (
-        <section className={styles.summaryHighlight} aria-label={highlightedLabel}>
-          <span>{highlightedLabel}</span>
-          <p>{highlightedResult}</p>
-        </section>
-      ) : null}
-      {session.question ? <p className={styles.summaryQuestion}>{session.question}</p> : null}
-      <div className={styles.summarySeal}>
-        <LionBadgeStamp badgeIndex={badgeIndex} className={styles.stampImageFrame} />
-        <p>{session.status !== "completed" ? resultCopy.generatingTitle : refined ? resultCopy.summaryRefinedNote : resultCopy.summaryInitialNote}</p>
-      </div>
+      {firstAction ? <section className={styles.firstAction}><h3>{copy.firstAction}</h3><p>{neoBriefingExcerpt(firstAction, 180)}</p></section> : null}
+      <div className={styles.summaryMeta}><span>{methodName}</span>{session.topic ? <span>{getNeoTopicLabel(session.topic, locale)}</span> : null}<time>{formatDateKey(session.updatedAt || session.createdAt)}</time></div>
     </article>
   );
 }
@@ -1121,7 +1088,7 @@ function InitialBriefingDocument({
 }) {
   const resultCopy = getNeoResultCopy(locale);
   const formCopy = getNeoFormCopy(locale);
-  const [activePage, setActivePage] = useState(0);
+  const visualCopy = getNeoVisualCopy(locale);
   const frontlineSummary = getBriefingFrontline(briefing);
   const repeatedChoice = getBriefingRepeatedChoice(briefing);
   const misalignedFlow = getBriefingMisalignedFlow(briefing);
@@ -1154,14 +1121,6 @@ function InitialBriefingDocument({
       id: "briefing-judgement",
       label: resultCopy.tabJudgement,
       when: Boolean(toDisplayText(briefing.neoOpening) || toDisplayText(repeatedChoice.description)),
-      // "네오의 첫 판단" 페이지는 홀수라 cadence 삽화 대상에서 빠진다. 인접한 "긴급 작전"이
-      // s1-f01을 받으므로 중복감을 피해 다른 시퀀스를 직접 배정한다(로컬 webp 재사용).
-      breakImage: {
-        src: "/neo-operation-room/sprites/transparent/neo-transparent-s3-f01.webp",
-        width: 362,
-        height: 543,
-        className: styles.neoBustBreak,
-      },
       content: (
         <>
           <Section title={resultCopy.firstJudgementTitle} body={briefing.neoOpening} />
@@ -1172,7 +1131,7 @@ function InitialBriefingDocument({
     {
       id: "briefing-innate",
       label: resultCopy.tabInnate,
-      when: Boolean(toDisplayText(briefing.innateNature?.description) || toDisplayText(briefing.innateStrength?.description)),
+      when: Boolean(toDisplayText(briefing.innateNature?.description) || briefing.innateNature?.keyTraits?.length || toDisplayText(briefing.innateStrength?.description) || briefing.innateStrength?.strongPoints?.length || briefing.innateStrength?.weakPoints?.length),
       content: (
         <>
           <Section title={briefing.innateNature?.title || formCopy["briefing.innateNatureFallback"]} body={briefing.innateNature?.description} list={briefing.innateNature?.keyTraits} />
@@ -1180,8 +1139,8 @@ function InitialBriefingDocument({
             title={briefing.innateStrength?.title || formCopy["briefing.innateStrengthFallback"]}
             body={briefing.innateStrength?.description}
             list={[
-              ...(briefing.innateStrength?.strongPoints || []).map((point) => `💪 ${toDisplayText(point)}`),
-              ...(briefing.innateStrength?.weakPoints || []).map((point) => `⚠ ${toDisplayText(point)}`),
+              ...(briefing.innateStrength?.strongPoints || []).map((point) => toDisplayText(point)),
+              ...(briefing.innateStrength?.weakPoints || []).map((point) => toDisplayText(point)),
             ]}
           />
         </>
@@ -1205,7 +1164,7 @@ function InitialBriefingDocument({
       label: resultCopy.tabCompatMutual,
       when: Boolean(
         toDisplayText(briefing.mutualRead?.towardPartner?.description)
-          || toDisplayText(briefing.mutualRead?.towardMe?.description),
+          || toDisplayText(briefing.mutualRead?.towardMe?.description) || briefing.mutualRead?.towardPartner?.signals?.length || briefing.mutualRead?.towardMe?.signals?.length || toDisplayText(briefing.mutualRead?.coreKeyword),
       ),
       content: (
         <>
@@ -1238,7 +1197,7 @@ function InitialBriefingDocument({
       id: "briefing-compat-conflict",
       label: resultCopy.tabCompatConflict,
       when: Boolean(
-        toDisplayText(briefing.conflictPattern?.trigger) || toDisplayText(briefing.conflictPattern?.resolution),
+        toDisplayText(briefing.conflictPattern?.trigger) || toDisplayText(briefing.conflictPattern?.escalation) || briefing.conflictPattern?.dialogue?.length || toDisplayText(briefing.conflictPattern?.resolution),
       ),
       // 챕터 제목(conflictPattern.title)은 목차 라벨이 이미 이름을 대므로 본문에 다시 찍지 않는다.
       content: (
@@ -1287,7 +1246,7 @@ function InitialBriefingDocument({
     {
       id: "briefing-topic",
       label: resultCopy.tabTopic,
-      when: Boolean(toDisplayText(briefing.topicStyle?.description) || briefing.topicAreas?.length),
+      when: Boolean(toDisplayText(briefing.topicStyle?.description) || briefing.topicStyle?.keyPoints?.length || briefing.topicAreas?.length),
       content: (
         <>
           <Section title={briefing.topicStyle?.title || formCopy["briefing.topicStyleFallback"]} body={briefing.topicStyle?.description} list={briefing.topicStyle?.keyPoints} />
@@ -1300,7 +1259,7 @@ function InitialBriefingDocument({
     {
       id: "briefing-timing",
       label: resultCopy.tabTiming,
-      when: Boolean(toDisplayText(briefing.topicTiming?.description) || toDisplayText(briefing.originalStrategy?.description)),
+      when: Boolean(toDisplayText(briefing.topicTiming?.description) || briefing.topicTiming?.windows?.length || toDisplayText(briefing.originalStrategy?.description) || briefing.originalStrategy?.keyRules?.length),
       content: (
         <>
           <Section title={briefing.topicTiming?.title || formCopy["briefing.topicTimingFallback"]} body={briefing.topicTiming?.description} list={briefing.topicTiming?.windows} />
@@ -1390,26 +1349,19 @@ function InitialBriefingDocument({
   ];
   const pages: ResultViewerPage[] = pageCandidates
     .filter((page) => page.when)
-    .map((page) => ({ id: page.id, label: page.label, content: page.content, breakImage: page.breakImage }));
+    .map((page) => ({ id: page.id, label: page.label, content: page.content }));
   return (
     <article className={styles.documentCard} data-neo-pdf-page>
       <header className={styles.documentHeader}>
-        <h2>{toDisplayText(briefing.operationTitle) || formCopy["briefing.fallbackTitle"]}</h2>
+        <h2>{visualCopy.details}</h2>
       </header>
-      {/* 전체 보기·PDF 펼침에서는 모든 장이 이미 보이므로 목차는 감춘다. */}
-      {!viewAll && !expandForExport ? (
-        <ResultDeckToc pages={pages} activePage={activePage} onSelect={setActivePage} label={resultCopy.docBriefingTocAria} locale={locale} />
-      ) : null}
-      <PagedResultViewer
-        pages={withCharacterBreaks(pages, neoInitialBreaks, styles.neoBustBreak)}
-        deckLabel={formCopy["briefing.eyebrow"]}
-        className={styles.pagedViewer}
-        pageClassName={styles.neoPage}
+      <NeoResultChapters
+        pages={pages}
+        label={resultCopy.docBriefingTocAria}
         viewAll={viewAll}
         onViewAllChange={onViewAllChange}
-        activePage={activePage}
-        onPageChange={setActivePage}
         expandForExport={expandForExport}
+        locale={locale}
       />
     </article>
   );
@@ -1489,7 +1441,6 @@ function RefinedOrderDocument({
 }) {
   const resultCopy = getNeoResultCopy(locale);
   const formCopy = getNeoFormCopy(locale);
-  const [activePage, setActivePage] = useState(0);
   const closing = toDisplayText(refined.tsundereClosing);
   const pageCandidates: Array<ResultViewerPage & { when: boolean }> = [
     {
@@ -1584,55 +1535,15 @@ function RefinedOrderDocument({
       <header className={styles.documentHeader}>
         <h2>{toDisplayText(refined.operationTitle) || formCopy["refinedOrder.fallbackTitle"]}</h2>
       </header>
-      {!viewAll && !expandForExport ? (
-        <ResultDeckToc pages={pages} activePage={activePage} onSelect={setActivePage} label={resultCopy.docRefinedTocAria} locale={locale} />
-      ) : null}
-      <PagedResultViewer
-        pages={withCharacterBreaks(pages, neoRefinedBreaks, styles.neoBustBreak)}
-        deckLabel={formCopy["refinedOrder.eyebrow"]}
-        className={styles.pagedViewer}
-        pageClassName={styles.neoPage}
+      <NeoResultChapters
+        pages={pages}
+        label={resultCopy.docRefinedTocAria}
         viewAll={viewAll}
         onViewAllChange={onViewAllChange}
-        activePage={activePage}
-        onPageChange={setActivePage}
         expandForExport={expandForExport}
+        locale={locale}
       />
     </article>
-  );
-}
-
-// 세로로 긴 덱을 순서대로만 넘기게 두지 않는 목차. PagedResultViewer 가 이미 가진
-// activePage/onPageChange 를 연결할 뿐이라 뷰어 로직은 새로 만들지 않는다.
-// (정본 패턴: app/love-secret-ai/result/LoveSecretAiResultClient.tsx)
-function ResultDeckToc({
-  pages,
-  activePage,
-  onSelect,
-  label,
-  locale,
-}: {
-  pages: ResultViewerPage[];
-  activePage: number;
-  onSelect: (index: number) => void;
-  label: string;
-  locale: LoadingLocale;
-}) {
-  if (pages.length < 2) return null;
-  return (
-    <nav className={styles.deckToc} aria-label={label}>
-      {pages.map((page, index) => (
-        <button
-          key={page.id}
-          type="button"
-          onClick={() => onSelect(index)}
-          data-active={activePage === index ? "true" : "false"}
-          aria-current={activePage === index ? "true" : undefined}
-        >
-          {page.label || getNeoResultTocPageFallback(index + 1, locale)}
-        </button>
-      ))}
-    </nav>
   );
 }
 
@@ -1683,4 +1594,18 @@ function CtaDeck({ attemptId, hasRefined, onOpenReality, locale }: { attemptId: 
       {attemptId ? <Link href={`/neo-operation-room/result?attemptId=${encodeURIComponent(attemptId)}`}>{resultCopy.ctaReopen}</Link> : null}
     </nav>
   );
+}
+
+// Archive presentation only. It never mounts the page's generation, badges,
+// refinement or purchase effects; documents share their original renderer.
+export function SavedNeoDocuments({ session, locale }: { session: NeoResultSession; locale: LoadingLocale }) {
+  const [viewAll, setViewAll] = useState(true);
+  const compat = session.compatScores ? { scores: session.compatScores, relationshipStatus: session.relationshipStatus || '', partnerBirthTimeUnknown: session.partnerBirthTimeUnknown === true } : null;
+  return <div className={styles.savedDocuments}><div className={styles.documentStack}>
+    <ResultSummaryCover session={session} methodName={methodLabel(session.selectedMethod || session.initialBriefing?.selectedMethod, locale)} badgeIndex={0} locale={locale} />
+    {session.initialBriefing?.operationTitle && <h2 className="text-xl font-semibold text-[var(--cd-text)]">{session.initialBriefing.operationTitle}</h2>}
+    {session.initialBriefing && <InitialBriefingDocument briefing={session.initialBriefing} compat={compat} evidenceFallbackLabel="" hasRefined badgeIndex={0} onOpenReality={() => {}} viewAll={viewAll} onViewAllChange={setViewAll} expandForExport={false} locale={locale} />}
+    {session.refinedOrder?.operationTitle && <h2 className="text-xl font-semibold text-[var(--cd-text)]">{session.refinedOrder.operationTitle}</h2>}
+    {session.refinedOrder && <RefinedOrderDocument refined={session.refinedOrder} badgeIndex={0} viewAll={viewAll} onViewAllChange={setViewAll} expandForExport={false} locale={locale} />}
+  </div></div>;
 }

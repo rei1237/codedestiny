@@ -799,14 +799,14 @@ export const SERVICE_MAP = {
   },
   "saju/destiny-bias": {
     component: FeatureLandingPage,
-    title: "최애운명 - 사주 기반 팬덤 공명 분석",
+    title: "최애운명 - 내 최애와 K-POP 케미 포토카드",
     h1: "최애운명",
     description:
-      "나의 사주 기운과 최애의 상징 에너지가 나란히 놓이며, 공명 점수와 오행 보완, 십성 역할, 오늘의 작은 액션이 카드처럼 떠오릅니다.",
+      "그룹과 멤버를 고르고 내 생일만 넣으면, 최애와 나의 케미 총점과 등급, 아홉 가지 케미 유형이 포토카드 한 장으로 나옵니다.",
     seoText:
-      "최애운명은 팬덤의 애정을 사주 공명으로 읽어, 나의 오행 리듬이 소중한 존재의 상징과 어떻게 울리는지 비춥니다.",
+      "최애운명은 두 사람의 연주·월주·일주를 겹쳐 케미 점수와 유형을 정하고, 생일이 들어가지 않는 공유 카드로 만들어 주는 팬덤 오락 콘텐츠입니다.",
     ogImage: "https://code-destiny.com/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp",
-    landingPoints: ["내 사주 × 최애 사주 공명 점수", "오행 보완/십성 역할 제안", "무료 분석 카드"],
+    landingPoints: ["내 최애 × 나 케미 총점과 등급", "아홉 가지 케미 유형", "무료 포토카드와 공유 이미지"],
     localized: DESTINY_BIAS_LOCALIZED,
     keywords: [
       "최애운명",

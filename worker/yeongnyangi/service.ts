@@ -1,4 +1,5 @@
 import {CHAPTER_DELIVERY_VERSION,chapterQualityFailure,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
+import {deliveryRefundPending} from './terminal-refund-policy.js';
 import { correctedFortune } from "./reading-correction.js";
 import { storedChapterDraft, canResumeStoredChapter } from './stored-chapter.js';
 import {conciseReadingManifest} from './fortune/concise-reading';
@@ -434,13 +435,14 @@ export function presentFortune(row: any) {
   const correctionApplied = row !== originalRow;
   const symbolic=Boolean(row.snapshot.analysis.consultation?.spirit||row.snapshot.analysis.consultation?.questionSky);
   const errorCode=row.errorCode==='ASK_LIMITED_REVIEW_REQUIRED'?'GENERATION_REVIEW_REQUIRED':row.errorCode;
-  const complete=row.state==='COMPLETED',awaitingFollowup=row.state==='AWAITING_FOLLOWUP',awaitingDraw=row.state==='AWAITING_DRAW',blocked=row.state==='REFUNDED'||errorCode==='PAYMENT_NOT_ACTIVE';
+  const refundPending=deliveryRefundPending(row)&&row.state!=='REFUNDED';
+  const complete=row.state==='COMPLETED',awaitingFollowup=row.state==='AWAITING_FOLLOWUP',awaitingDraw=row.state==='AWAITING_DRAW',blocked=row.state==='REFUNDED'||refundPending||errorCode==='PAYMENT_NOT_ACTIVE';
   // A held order is still being recovered server-side: saved chapters stay readable and nothing asks the buyer to pay or chase.
   const held=!complete&&!blocked&&errorCode==='GENERATION_REVIEW_REQUIRED';
   // The buyer may retry a stopped chapter, or a held one whose budget ran out, a capped number of times.
   const canRetryNow=userCanRetry(row);
   const recovery={requestId:String(row._id),savedChapters:row.chapters.length,totalChapters:row.snapshot.manifest.length,
-    providerNeeded:!complete&&!awaitingFollowup&&!awaitingDraw&&row.chapters.length<row.snapshot.manifest.length,retryable:!complete&&!awaitingFollowup&&!awaitingDraw&&!blocked&&!held,
+    refundPending,providerNeeded:!complete&&!blocked&&!awaitingFollowup&&!awaitingDraw&&row.chapters.length<row.snapshot.manifest.length,retryable:!complete&&!awaitingFollowup&&!awaitingDraw&&!blocked&&!held,
     canRetryNow,nextAttemptAt:row.nextAttemptAt || null,reviewRequired:held,
     nextAction:complete?'reread':awaitingDraw?'draw':blocked?'support':canRetryNow?'retry':held?'held':'wait',autoResume:held&&holdAutoResumes(row)};
   return {id:row._id,locale:readingLocale(row.snapshot.locale),profileId:row.profileId,productId:row.productId,state:row.state,

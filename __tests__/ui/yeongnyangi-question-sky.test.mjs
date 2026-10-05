@@ -126,7 +126,7 @@ test('new prashna product accepts one initial question and uses the two-stage ma
  assert.throws(()=>api.validateSkyInput({mode:'prashna-v1',productId:'saju_mackerel',question:oneQuestion,questionSky:{...input,question:oneQuestion}}),/INVALID_READING_MODE/);
  const context=api.projectQuestionChart(chart,value).context,product=api.getProduct('saju_flounder');
  const manifest=api.questionSkyTwoStageManifest(context);
- assert.equal(product.priceKRW,5000);assert.equal(manifest.length,2);assert.deepEqual(manifest.map(c=>c.minimumChars),[3000,8000]);
+ assert.equal(product.priceKRW,7200);assert.equal(manifest.length,2);assert.deepEqual(manifest.map(c=>c.minimumChars),[3000,8000]);
  assert.ok(manifest.every(c=>c.focus&&c.requiredSections.length>=2));
 });
 test('two-stage output strips unknown image slots, limits placements, and rejects question repetition',()=>{

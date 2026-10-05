@@ -83,11 +83,11 @@ test('static home shell carries the featured reviews verbatim alongside the rest
 
 test('founder trust renders every review once with disclaimers alongside historical records',async()=>{
  const html=await renderFounderTrust();
- assert.match(html,/1회 30만원 1:1 상담으로 풀던 사주를, 이제 천원에/);
+ assert.match(html,/1회 30만원 1:1 상담으로 풀던 사주를, 이제 3,000원에/);
  assert.equal(html.match(/<article/g).length,visibleReviews().length);
  assert.match(html,new RegExp(`후기 ${visibleReviews().length-3}개 더 보기`));
  assert.match(html,/개인 경험에 따른 후기이며 결과를 보장하지 않습니다\. 사주 풀이는 참고용 정보입니다\./);
- assert.match(html,/천원 상담은 계산 엔진과 AI 해설로 제공돼요/);
+ assert.match(html,/3,000원 상담은 계산 엔진과 AI 해설로 제공돼요/);
  assert.equal(html.match(/<li>/g).length,EXPERTISE_FACTS.length+PRESIDENTIAL_RECORDS.length);
  const document=new JSDOM(html).window.document;
  for(const record of PRESIDENTIAL_RECORDS) assert.ok(document.querySelector(`a[href="${record.url}"]`));

@@ -183,22 +183,23 @@ export const FEATURE_KEY_REASON_COSTS = Object.freeze(
 );
 
 // 영냥이 책 상품은 Family 이용권 권리를 유지하고 월정석을 제휴 가치로 받는다.
-// 일반 이용권은 제외하며 1,000원 상담은 월정석 500개다(2026-09-30 사용자 요청).
+// 일반 이용권은 제외하며 월정석은 1개당 10원으로 복원한다(2026-10-03 승인, 10-05 가격 전환).
+// 2026-10-05 정식 가격: 10-02 에 정한 9,900원 체계를 10-04 사용자 요청으로 같은 비율(×0.302, 100원 단위)로 낮췄다.
 // 가격 정본은 SoulCat server/payments/catalog.ts 와 같아야 한다(6 체계 × 4 어종 + 퓨전 4종).
 const YEONGNYANGI_SYSTEMS = Object.freeze({
   saju: "사주", ziwei: "자미두수", sukuyo: "숙요", vedic: "베다점", astrology: "서양 점성술", tarot: "타로",
 });
 const YEONGNYANGI_FISH = Object.freeze({
-  mackerel: ["고등어", 1000], salmon: ["연어", 3000], flounder: ["광어", 5000], tuna: ["참치", 10000],
+  mackerel: ["고등어", 3000], salmon: ["연어", 5400], flounder: ["광어", 7200], tuna: ["참치", 10500],
 });
 const YEONGNYANGI_FUSIONS = Object.freeze([
-  ["fusion-saju-ziwei", "사주 + 자미두수", "생선 모둠 세트", 20000],
-  ["fusion-sukuyo-vedic", "숙요 + 베다점", "생선 모둠 세트", 20000],
-  ["fusion-astrology-tarot", "서양 점성술 + 타로", "생선 모둠 세트", 20000],
-  ["fusion-all", "사주 + 자미두수 + 숙요 + 베다점 + 서양 점성술 + 타로", "생선 오마카세", 50000],
+  ["fusion-saju-ziwei", "사주 + 자미두수", "생선 모둠 세트", 14800],
+  ["fusion-sukuyo-vedic", "숙요 + 베다점", "생선 모둠 세트", 14800],
+  ["fusion-astrology-tarot", "서양 점성술 + 타로", "생선 모둠 세트", 14800],
+  ["fusion-all", "사주 + 자미두수 + 숙요 + 베다점 + 서양 점성술 + 타로", "생선 오마카세", 30000],
 ]);
 function buildYeongnyangiEntry(name, fishName, amountKRW) {
-  return { cost: amountKRW / 100, amountKRW, reason: `영냥이 ${name} ${fishName}`, paymentScope: "direct_or_family", membershipCreditAllowed: true, membershipCreditMultiplier: 5 };
+  return { cost: amountKRW / 100, amountKRW, reason: `영냥이 ${name} ${fishName}`, paymentScope: "direct_or_family", membershipCreditAllowed: true, membershipCreditMultiplier: 1 };
 }
 const YEONGNYANGI_RAW_PRICE_ENTRIES = Object.freeze(Object.fromEntries([
   ...Object.entries(YEONGNYANGI_SYSTEMS).flatMap(([system, name]) =>
@@ -302,7 +303,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   // 인생 총운은 분량이 3배(30,000자 vs 10,000자)라 2026-08-01 부터 별도 SKU 로 분리했다.
   "life-fortune-ai-consultation": { cost: 300, amountKRW: 30000, reason: "인생 총운 전문가 상담" },
   "astrology-ai-consultation": { cost: 300, amountKRW: 30000, reason: "점성술 전문가 상담" },
-  "neo-operation-room-consultation": { cost: 300, amountKRW: 30000, reason: "네오의 팩폭 작전실" },
+  "neo-operation-room-consultation": { cost: 200, amountKRW: 20000, reason: "네오의 팩폭 작전실" },
   "saju_ai_question_prompt": { cost: 100, reason: "사주 전문가 상담 결과 생성" },
   "ziwei_ai_prompt_generator": { cost: 50, reason: "자미두수 AI 질문 프롬프트 생성" },
   "astrology_ai_prompt_generator": { cost: 50, reason: "점성술 AI 질문 프롬프트 생성" },
@@ -323,7 +324,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "astro_stellar_relationship_room": { cost: 30, reason: "점성술 봉인된 별의 방 관계의 문" },
   "astro_stellar_growth_room": { cost: 30, reason: "점성술 봉인된 별의 방 과제와 변화" },
   "astro_monthly_transit": { cost: 30, reason: "점성술 월간 트랜짓 운세" },
-  "astro_yearly_transit": { cost: 30, reason: "점성술 연간 트랜짓 운세" },
+  "astro_yearly_transit": { cost: 30, reason: "점성술 앞으로 12개월 흐름" },
   "new-year-ai-consultation": { cost: 300, amountKRW: 30000, reason: "신년운세 전문가 상담" },
   "love-secret-ai-consultation": { cost: 300, amountKRW: 30000, reason: "연애 비책 전문가 상담" },
   // 대상자 1인의 관계 경계 성향을 매 회차 분석하는 상담이다. 영구 해금으로 등록하면
@@ -363,14 +364,16 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "premium-naming-prompt": { cost: 300, amountKRW: 30000, reason: "사주 맞춤 작명 프롬프트 생성" },
   "premium-sukuyo-compat-extra": { cost: 30, reason: "숙요점 정밀 궁합 확장 분석" },
   "profile-card-manage": { cost: 50, reason: "프로필 카드 추가/수정/삭제" },
-  rpt_specialCharmCard: { cost: 30, reason: "나의 매력 클래스 영구 해금" },
+  // 2026-10-05 천원 사주 콘텐츠: 결정론(LLM 없음) 재미 리포트 6종은 1,000원이다. "천원 운세" 이름의 근거이므로
+  // 가격을 바꾸면 app/yeongnyangi/1000-won-fortune/ 빌드 가드가 멈춘다. 앱(Google Play)은 ₩1,000 SKU 가 없어 실패 폐쇄.
+  rpt_specialCharmCard: { cost: 10, amountKRW: 1000, reason: "나의 매력 클래스 영구 해금" },
   rpt_quantumCard: { cost: 50, reason: "퀀텀 명리 엔진 영구 해금" },
   rpt_healthReportCard: { cost: 50, reason: "명리 헬스 리포트 영구 해금" },
-  rpt_skillTreeCard: { cost: 30, reason: "인생 스킬 트리 영구 해금" },
-  rpt_energyCoordCard: { cost: 30, reason: "사주로 보는 여행지 영구 해금" },
-  rpt_villainCard: { cost: 30, reason: "빌런 블랙리스트 영구 해금" },
-  rpt_secretHouseEntryCard: { cost: 30, reason: "시크릿 하우스 영구 해금" },
-  "fun.quantumLotto.ritualReport": { cost: 30, reason: "달빛 럭키 리추얼 리포트" },
+  rpt_skillTreeCard: { cost: 10, amountKRW: 1000, reason: "인생 스킬 트리 영구 해금" },
+  rpt_energyCoordCard: { cost: 10, amountKRW: 1000, reason: "사주로 보는 여행지 영구 해금" },
+  rpt_villainCard: { cost: 10, amountKRW: 1000, reason: "빌런 블랙리스트 영구 해금" },
+  rpt_secretHouseEntryCard: { cost: 10, amountKRW: 1000, reason: "시크릿 하우스 영구 해금" },
+  "fun.quantumLotto.ritualReport": { cost: 10, amountKRW: 1000, reason: "달빛 럭키 리추얼 리포트" },
   ...YEONGNYANGI_RAW_PRICE_ENTRIES,
 });
 
@@ -603,7 +606,6 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "sukuyo_ai_prompt_generator",
   "vedic_prashna_prompt",
   "astro_monthly_transit",
-  "astro_yearly_transit",
   "premium-sukuyo-compat-extra",
   "destiny-compass-crossroads",
   "destiny-compass-life-voyage",
@@ -646,6 +648,8 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "astro_stellar_talent_room",
   "astro_stellar_relationship_room",
   "astro_stellar_growth_room",
+  // 앞으로 12개월 흐름 — 출생 차트와 실제 천체력으로 결정론 산출(LLM 미사용). 롤링 12개월을 계정에 영구 해금(A유형).
+  "astro_yearly_transit",
   "fun.quantumLotto.ritualReport",
   "sukyo_yearly_fortune_unlock",
   "sukuyo-relationship-encyclopedia",

@@ -1838,6 +1838,34 @@ const resultSharedSnapshotSchema = new mongoose.Schema({
 resultSharedSnapshotSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 resultSharedSnapshotSchema.index({ feature: 1, createdAt: -1 });
 
+// 최애운명(K-POP 케미) 공유 스냅샷. 본문은 **서버가 재계산**해 공개 요약만 저장한다 —
+// 입력 생일은 어떤 필드에도 들어가지 않는다(worker/lib/destiny-bias-share.js 가 1차, 여기 스키마가 2차).
+const destinyBiasShareSchema = new mongoose.Schema({
+  shareId: { type: String, required: true, unique: true, trim: true, maxlength: 96, index: true },
+  chemiTypeId: { type: String, required: true, trim: true, maxlength: 40 },
+  chemiTypeNameKo: { type: String, required: true, trim: true, maxlength: 80 },
+  chemiTypeShortKo: { type: String, required: true, trim: true, maxlength: 40 },
+  signalStrength: { type: String, enum: ["high", "medium", "low"], required: true },
+  oneLiner: { type: String, required: true, trim: true, maxlength: 160 },
+  partnerKind: { type: String, enum: ["roster", "preset"], required: true },
+  partnerId: { type: String, required: true, trim: true, maxlength: 80 },
+  partnerName: { type: String, required: true, trim: true, maxlength: 60 },
+  groupId: { type: String, trim: true, maxlength: 80, default: null },
+  groupLabel: { type: String, trim: true, maxlength: 60, default: "" },
+  nicknameDisplay: { type: String, trim: true, maxlength: 20, default: null },
+  minorMode: { type: Boolean, required: true, default: false },
+  engineVersion: { type: String, required: true, trim: true, maxlength: 60 },
+  rosterVersion: { type: String, required: true, trim: true, maxlength: 60 },
+  copyVersion: { type: String, required: true, trim: true, maxlength: 60 },
+  status: { type: String, enum: ["active", "deleted", "expired"], default: "active" },
+  contentHash: { type: String, trim: true, maxlength: 80, sparse: true, unique: true },
+  createdAt: { type: Date, required: true, default: Date.now },
+  // expiresAt 는 TTL 인덱스로만 색인(resultSharedSnapshotSchema 와 같은 충돌 회피).
+  expiresAt: { type: Date, required: true },
+}, { collection: "destinyBiasShares" });
+destinyBiasShareSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+destinyBiasShareSchema.index({ chemiTypeId: 1, createdAt: -1 });
+
 const fusionFortuneGenerationAttemptSchema = new mongoose.Schema({
   requestId: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
   userId: { type: mongoose.Schema.Types.ObjectId, required: true },
@@ -2020,6 +2048,8 @@ export const GuardianFortuneGenerationAttempt = scopedModel(mongoose.models.Guar
   || mongoose.model("GuardianFortuneGenerationAttempt", guardianFortuneGenerationAttemptSchema));
 export const GuardianFortuneSharedSnapshot = scopedModel(mongoose.models.GuardianFortuneSharedSnapshot
   || mongoose.model("GuardianFortuneSharedSnapshot", guardianFortuneSharedSnapshotSchema));
+export const DestinyBiasShare = scopedModel(mongoose.models.DestinyBiasShare
+  || mongoose.model("DestinyBiasShare", destinyBiasShareSchema));
 export const ResultSharedSnapshot = scopedModel(mongoose.models.ResultSharedSnapshot
   || mongoose.model("ResultSharedSnapshot", resultSharedSnapshotSchema));
 export const FusionFortuneGenerationAttempt = scopedModel(mongoose.models.FusionFortuneGenerationAttempt

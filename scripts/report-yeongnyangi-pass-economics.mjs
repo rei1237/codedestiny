@@ -90,7 +90,9 @@ const products = runtime.products.map(product => {
     ...worst, llmCapScenarioKRW: round(worst.llmCost), operationsProvisionKRW: assumptions['operations-per-consultation-krw'],
     totalCapScenarioKRW: round(worst.llmCost + assumptions['operations-per-consultation-krw']) };
 });
-const welcome = products.filter(product => product.priceKRW === 1000);
+// Entry tier = mackerel. Its LLM cost does not depend on the sale price, so the price rise
+// (2026-10-05, 1,000 → 9,900) does not move these offline scenarios.
+const welcome = products.filter(product => product.fishId === 'mackerel');
 // Dedicated packs are offline candidates only: no price, expiry, renewal or
 // redemption policy is created by this arithmetic. Monthly sales are scenarios.
 const entryCost = Math.max(...welcome.map(product => product.totalCapScenarioKRW));

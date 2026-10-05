@@ -10,6 +10,19 @@ import {
   readJson,
 } from "../lib/http.js";
 import { DestinyBiasCard, User } from "../lib/models.js";
+import { createHash } from 'node:crypto';
+import { incrementRateLimit } from "../lib/rate-limit.js";
+import { getSiteBaseUrl } from "../lib/og-card.js";
+import {
+  DESTINY_BIAS_OG_FALLBACK_PATH,
+  DESTINY_BIAS_SHARE_RATE_LIMIT_WINDOW_MS,
+  DestinyBiasShareError,
+  createDestinyBiasShare,
+  destinyBiasShareRateLimitSubject,
+  destinyBiasShareRateLimitVerdict,
+  findPublicDestinyBiasShare,
+  isValidDestinyBiasShareId,
+} from "../lib/destiny-bias-share.js";
 
 const FEATURE_KEYS = Object.freeze({
   analyze: "destiny-bias-analyze",
@@ -188,7 +201,13 @@ async function handleCreateCard(request, env) {
     throw createHttpError(400, "저장할 카드 내용이 비어 있습니다.", { code: "INVALID_CARD_PAYLOAD" });
   }
 
-  const created = await DestinyBiasCard.create(payload);
+  const requestId = String(body?.recordRequestId || '');
+  if (requestId && !/^[a-zA-Z0-9_-]{8,100}$/.test(requestId)) throw createHttpError(400, '저장 요청을 확인해 주세요.', { code: 'INVALID_RECORD_REQUEST' });
+  // Default _id uniqueness makes the same owner's save request repeatable.
+  // Clients predating recordRequestId retain their existing save contract.
+  const created = requestId ? await DestinyBiasCard.findOneAndUpdate({
+    _id: new mongoose.Types.ObjectId(createHash('sha256').update(`${auth.userId}:${requestId}`).digest('hex').slice(0,24)), userId: payload.userId,
+  }, { $setOnInsert: payload }, { upsert: true, new: true }).lean() : await DestinyBiasCard.create(payload);
   return json({ ok: true, item: serializeCard(created) }, { status: 201 });
 }
 
@@ -236,6 +255,104 @@ async function handleDeleteCard(path, request, env) {
   return json({ ok: true, deletedId: id });
 }
 
+
+/* ---------------- 최애운명(K-POP 케미) 공유 스냅샷 — 게스트 허용 ---------------- */
+
+async function sha256Hex(text) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(text)));
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function shareErrorResponse(error) {
+  return json({ ok: false, error: error.code, message: error.message }, { status: error.status || 400 });
+}
+
+function buildShareOgUrl(request, shareId) {
+  return `${new URL(request.url).origin}/api/destiny-bias/share/${encodeURIComponent(shareId)}/og.png`;
+}
+
+// 순서: 레이트리밋 → 본문 → 서버 재계산·저장(result-share 라우트와 동일. 본문 파싱 전에 유량을 막는다).
+async function handleCreateShare(request, env) {
+  await connectDb(env);
+  const subject = destinyBiasShareRateLimitSubject(request);
+  const limit = await incrementRateLimit({
+    subjectHash: await sha256Hex(`destiny-bias-share:${subject}`),
+    endpoint: "destiny_bias_share_create",
+    windowMs: DESTINY_BIAS_SHARE_RATE_LIMIT_WINDOW_MS,
+    env,
+  });
+  const verdict = destinyBiasShareRateLimitVerdict({ count: limit.count, resetAt: limit.resetAt });
+  if (verdict) {
+    return json(
+      { ok: false, error: verdict.error, message: verdict.message, retryAfterSeconds: verdict.retryAfterSeconds },
+      { status: 429, headers: { "Retry-After": String(verdict.retryAfterSeconds) } },
+    );
+  }
+
+  const body = await readJson(request);
+  try {
+    const created = await createDestinyBiasShare({ input: body, requestUrl: request.url, env });
+    return json(
+      {
+        ok: true,
+        shareId: created.snapshot.shareId,
+        shareUrl: created.shareUrl,
+        ogUrl: buildShareOgUrl(request, created.snapshot.shareId),
+        snapshot: created.snapshot,
+        reused: created.reused,
+      },
+      { status: created.reused ? 200 : 201 },
+    );
+  } catch (error) {
+    if (error instanceof DestinyBiasShareError) return shareErrorResponse(error);
+    throw error;
+  }
+}
+
+async function handleGetShare(shareId, request, env) {
+  if (!isValidDestinyBiasShareId(shareId)) return notFound();
+  await connectDb(env);
+  const snapshot = await findPublicDestinyBiasShare({ shareId });
+  if (!snapshot) return notFound();
+  return json(
+    { ok: true, snapshot, ogUrl: buildShareOgUrl(request, shareId) },
+    { headers: { "Cache-Control": "public, max-age=60, s-maxage=300" } },
+  );
+}
+
+function ogFallbackRedirect(env) {
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: `${getSiteBaseUrl(env)}${DESTINY_BIAS_OG_FALLBACK_PATH}`,
+      "Cache-Control": "public, max-age=60",
+    },
+  });
+}
+
+// workers-og 는 동적 import — 플레인 node(테스트)에서 .wasm 로딩이 깨지므로 호출 시점에만 올린다.
+async function handleShareOgImage(shareId, request, env) {
+  if (!isValidDestinyBiasShareId(shareId)) return ogFallbackRedirect(env);
+  try {
+    await connectDb(env);
+    const snapshot = await findPublicDestinyBiasShare({ shareId });
+    if (!snapshot) return ogFallbackRedirect(env);
+    const { renderDestinyBiasOgPng } = await import("../lib/destiny-bias-share-og.js");
+    const brandDomain = new URL(getSiteBaseUrl(env)).hostname;
+    const image = await renderDestinyBiasOgPng(snapshot, brandDomain);
+    return new Response(image.body, {
+      status: 200,
+      headers: {
+        "Content-Type": "image/png",
+        "Cache-Control": "public, max-age=31536000, immutable",
+      },
+    });
+  } catch (error) {
+    console.warn("[destiny-bias] share og render failed", { shareId, message: String(error?.message || error) });
+    return ogFallbackRedirect(env);
+  }
+}
+
 export async function handleDestinyBiasRoutes(request, env) {
   try {
     const method = String(request.method || "GET").toUpperCase();
@@ -243,6 +360,20 @@ export async function handleDestinyBiasRoutes(request, env) {
 
     if (method === "GET" && path === "/og") {
       return handleOgImage(request);
+    }
+
+    if (method === "POST" && path === "/share") {
+      return await handleCreateShare(request, env);
+    }
+
+    const shareOgMatch = method === "GET" ? path.match(/^\/share\/([^/]+)\/og\.png$/) : null;
+    if (shareOgMatch) {
+      return await handleShareOgImage(decodeURIComponent(shareOgMatch[1]), request, env);
+    }
+
+    const shareMatch = method === "GET" ? path.match(/^\/share\/([^/]+)$/) : null;
+    if (shareMatch) {
+      return await handleGetShare(decodeURIComponent(shareMatch[1]), request, env);
     }
 
     if (method === "POST" && path === "/cards") {

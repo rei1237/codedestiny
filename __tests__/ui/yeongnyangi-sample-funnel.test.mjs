@@ -33,7 +33,7 @@ test('question CTA selects a supported mackerel consultation and sample precedes
  const {products,consultationKinds,supportsKind}=sandbox.module.exports;
  const product=products.find(p=>p.domain===params.get('domain')&&p.fishId===params.get('fish')&&p.readingKind==='single');
  const kind=consultationKinds[product.domain].find(k=>k.id===params.get('consultationKind'));
- assert.equal(product.priceKRW,1000);assert.equal(kind.question,true);assert.equal(supportsKind(product,kind),true);
+ assert.equal(product.priceKRW,3000);assert.equal(kind.question,true);assert.equal(supportsKind(product,kind),true);
  assert.ok(page.indexOf('id="example"')<page.indexOf('id="systems"'));
  assert.match(page,/실제 고객 데이터나 AI가 생성한 상담 원문이 아니/);
 });

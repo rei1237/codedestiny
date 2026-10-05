@@ -474,5 +474,61 @@
     "de": "Find your next step with Neo",
     "nl": "Find your next step with Neo",
     "ms": "Find your next step with Neo"
+  },
+  "home.gardenCopy.chemiKicker": {
+    "ko": "K-POP 최애 케미",
+    "en": "K-POP Bias Chemistry",
+    "ja": "K-POP 推しケミ",
+    "zh-CN": "K-POP 本命默契",
+    "zh-TW": "K-POP 本命默契",
+    "vi": "K-POP Bias Chemistry",
+    "hi": "K-POP Bias Chemistry",
+    "es": "K-POP Bias Chemistry",
+    "fr": "K-POP Bias Chemistry",
+    "de": "K-POP Bias Chemistry",
+    "nl": "K-POP Bias Chemistry",
+    "ms": "K-POP Bias Chemistry"
+  },
+  "home.gardenCopy.chemiTitle": {
+    "ko": "내 최애랑 나, 무슨 케미일까?",
+    "en": "You and your bias: what's the chemistry?",
+    "ja": "推しとわたし、どんなケミ?",
+    "zh-CN": "我和本命,是什么默契?",
+    "zh-TW": "我和本命,是什麼默契?",
+    "vi": "You and your bias: what's the chemistry?",
+    "hi": "You and your bias: what's the chemistry?",
+    "es": "You and your bias: what's the chemistry?",
+    "fr": "You and your bias: what's the chemistry?",
+    "de": "You and your bias: what's the chemistry?",
+    "nl": "You and your bias: what's the chemistry?",
+    "ms": "You and your bias: what's the chemistry?"
+  },
+  "home.gardenCopy.chemiNote": {
+    "ko": "생일만 넣으면 포토카드로 나와요",
+    "en": "Enter your birthday and get a photocard",
+    "ja": "誕生日を入れるだけでフォトカードに",
+    "zh-CN": "只要输入生日,就能生成小卡",
+    "zh-TW": "只要輸入生日,就能生成小卡",
+    "vi": "Enter your birthday and get a photocard",
+    "hi": "Enter your birthday and get a photocard",
+    "es": "Enter your birthday and get a photocard",
+    "fr": "Enter your birthday and get a photocard",
+    "de": "Enter your birthday and get a photocard",
+    "nl": "Enter your birthday and get a photocard",
+    "ms": "Enter your birthday and get a photocard"
+  },
+  "home.gardenCopy.chemiCta": {
+    "ko": "내 최애와 케미 보기",
+    "en": "See my bias chemistry",
+    "ja": "推しとのケミを見る",
+    "zh-CN": "查看我和本命的默契",
+    "zh-TW": "查看我和本命的默契",
+    "vi": "See my bias chemistry",
+    "hi": "See my bias chemistry",
+    "es": "See my bias chemistry",
+    "fr": "See my bias chemistry",
+    "de": "See my bias chemistry",
+    "nl": "See my bias chemistry",
+    "ms": "See my bias chemistry"
   }
 }

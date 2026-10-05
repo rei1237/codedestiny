@@ -154,18 +154,18 @@
     "ms": "Library"
   },
   "shell.cdMobileBottomNav.cdMobileBottomNavMain.consultTab.ariaLabel": {
-    "ko": "연이·네오 상담",
-    "en": "Chat with Yeoni & Neo",
-    "ja": "ヨニ・ネオに相談",
-    "zh-CN": "与 Yeoni·Neo 咨询",
-    "zh-TW": "與 Yeoni·Neo 諮詢",
-    "vi": "Chat with Yeoni & Neo",
-    "hi": "Chat with Yeoni & Neo",
-    "es": "Chat with Yeoni & Neo",
-    "fr": "Chat with Yeoni & Neo",
-    "de": "Chat with Yeoni & Neo",
-    "nl": "Chat with Yeoni & Neo",
-    "ms": "Chat with Yeoni & Neo"
+    "ko": "운명 상담 고르기",
+    "en": "Choose a fortune consultation",
+    "ja": "運命相談を選ぶ",
+    "zh-CN": "选择命运咨询",
+    "zh-TW": "選擇命運諮詢",
+    "vi": "Choose a fortune consultation",
+    "hi": "Choose a fortune consultation",
+    "es": "Choose a fortune consultation",
+    "fr": "Choose a fortune consultation",
+    "de": "Choose a fortune consultation",
+    "nl": "Choose a fortune consultation",
+    "ms": "Choose a fortune consultation"
   },
   "shell.cdMobileBottomNav.cdMobileBottomNavMain.libraryTab.ariaLabel": {
     "ko": "내 보관함",

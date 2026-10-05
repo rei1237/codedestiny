@@ -58,7 +58,7 @@ async function receive(f,g,{userId=RECIPIENT,now=NOW}={}){
  return claimGift(f.db,{userId,tokenHash:g.tokenHash,now});
 }
 function fortune(f,userId=RECIPIENT,id='f'.repeat(64),featureKey='yeongnyangi-saju-mackerel'){
- const row={_id:id,__collection:YeongnyangiRequest.modelName,userId,featureKey,amountKRW:1000,state:'CREATED',
+ const row={_id:id,__collection:YeongnyangiRequest.modelName,userId,featureKey,amountKRW:product.packSnapshot.unitPriceKRW,state:'CREATED',
   paymentClaimOrderId:'',paymentId:null,accessMethod:null,chapters:[],completedChapters:0,leaseUntil:null};
  f.db.rows.push(row);return {row,requestId:'yn-'+id};
 }

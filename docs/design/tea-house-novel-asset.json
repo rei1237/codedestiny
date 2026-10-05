@@ -14,5 +14,17 @@
   "direction": "User requested human-form Yeoni after transformation as primary visual; flower pig limited to prologue greeting.",
   "prompt": "Create one polished 3:2 landscape key art for a Korean moonlight visual novel tea house. Preserve reference adult woman's face, long wavy pink hair, pink eyes, lotus hair ornament, lavender ribbon, dignified pink and lavender flowing hanbok. Flower-pig model sheet informs signature lotus and lavender motifs only. Human woman only, no pigs, no chibi, no animal features. Waist-up at right-center offering a porcelain teacup with both hands. Moonlit Korean tea pavilion, deep plum lattice windows, ivory moon at left, blush flowers, rose curtains, warm gold lantern. Premium romantic painterly light-novel illustration. No text, UI, logos, borders or collage.",
   "processing": "Sharp resized to max 1536px and WebP quality 86. Original generated PNG retained in Codex generated_images.",
-  "unused": "Earlier flower-pig scene was not integrated following the user's correction."
+  "unused": "Earlier flower-pig scene was not integrated following the user's correction.",
+  "moonlightOrnament": {
+    "asset": "public/images/fortune-tea-house/moonlight-lotus-ornament.webp",
+    "source": "exec-52b797d2-e629-4d5e-b7d2-5e92a73c55a9.png",
+    "tool": "built-in image_gen",
+    "transparent": true,
+    "dimensions": [
+      900,
+      900
+    ],
+    "bytes": 242344,
+    "direction": "Painterly ivory crescent with champagne gold rim, blush blossoms and lotus. Used on moonlit album UI and printed book pages; replaces plain circular moon."
+  }
 }

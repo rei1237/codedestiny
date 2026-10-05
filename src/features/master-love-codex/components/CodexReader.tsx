@@ -48,6 +48,7 @@ import { masterLoveCodexBilling, MASTER_LOVE_CODEX_TOTAL_CHAPTERS } from "../con
 import { codexChapterStateLabel, useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 import ConsultationShare from "@/components/fortune/ConsultationShare";
+import SavedRecordLink from "@/components/fortune/SavedRecordLink";
 import { masterLoveCodexShareChoices } from "@/lib/consultation-sharing";
 
 export type CodexChapter = CodexChapterData & { symbol?: string; chars?: number };
@@ -394,6 +395,7 @@ export default function CodexReader({
       </div>
 
       {/* 소장 */}
+      {sealed && <SavedRecordLink source="codex" id={sessionId || ''} />}
       <div className={`${styles.measure} pb-4 text-center`}>
         <CodexReveal forceVisible={isExporting}>
           <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading || !sealed} className={styles.cta}>

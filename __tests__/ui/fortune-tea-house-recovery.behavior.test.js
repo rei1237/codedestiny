@@ -60,7 +60,7 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
   let serial = 0;
   let succeed = false;
   const state = {
-    ...api, Error, AbortController, console, isSubmitting: false,
+    ...api, Error, AbortController, URLSearchParams, console, isSubmitting: false,
     trackEvent(_name, properties) { assert.ok(Object.keys(properties).every(key => ["method", "code"].includes(key)), "analytics must not include personal input"); },
     submitLockRef: { current: false }, submitSucceededRef: { current: false },
     consultRunRef: { current: 0 }, unusedPaidAttemptRef: { current: saved },
@@ -95,7 +95,7 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
     },
     isFortuneTeaGenerationPending: () => false, normalizeHoneyDropsState: () => null,
     Date: { now: (() => { let n = 0; return () => (n += 2000); })() },
-    window: { ...window, setTimeout: fn => { fn(); return 1; }, clearTimeout() {} },
+    window: { ...window, location: window.location || { search: '' }, setTimeout: fn => { fn(); return 1; }, clearTimeout() {} },
   };
   vm.createContext(state);
   vm.runInContext(functionSource("submitQuestion"), state);

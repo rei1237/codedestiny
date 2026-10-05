@@ -100,20 +100,24 @@ function makeNativeDb(session) { return {
   updateOne(Model, filter, update, options) {
     return Model.collection.updateOne(filter, update, { ...options, session });
   },
+  insertOne(Model, document, options) {
+    return Model.collection.insertOne(document, { ...options, session });
+  },
   findOneAndUpdate(Model, filter, update, options) {
     return Model.collection.findOneAndUpdate(filter, update, { ...options, session });
   },
 }; }
 const nativeDb = makeNativeDb();
+export const consultationRefundDb = session => session ? makeNativeDb(session) : nativeDb;
 
 // The same request-scoped adapter keeps pack proof checks on the caller's session.
 export async function findYeongnyangiServicePackEvidence({row,userId,session=null,commitMarker=''}) {
   const {findServicePackUseEvidence}=await import('../payments/service-packs.js');
   return findServicePackUseEvidence(makeNativeDb(session),{userId,requestId:'yn-'+row._id,featureKey:row.featureKey,commitMarker});
 }
-export async function refundYeongnyangiServicePack({userId,requestId}) {
+export async function refundYeongnyangiServicePack({userId,requestId,terminal=false}) {
   const {restoreFailedServicePackUse}=await import('../payments/service-packs.js');
-  return restoreFailedServicePackUse(nativeDb,{userId,requestId:'yn-'+requestId});
+  return restoreFailedServicePackUse(nativeDb,{userId,requestId:'yn-'+requestId,terminal});
 }
 
 // Reuse the existing scoped native transaction adapter for one terminal refund.

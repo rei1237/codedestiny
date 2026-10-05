@@ -1,5 +1,16 @@
 # 결제 시스템 & 잠금 콘텐츠 — 상세 규칙
 
+## 2026-10-05 시행: 영냥이 정식가(고등어 3,000원)와 천원 사주 콘텐츠
+
+2026-10-04 사용자 결정으로 10-02에 준비한 9,900원 체계(고등어 9,900·연어 17,900 …)는 폐기하고 그 표에 0.302를 곱해 100원 단위로 맞춘 값을 시행한다. 이 절이 아래 2026-10-02 체험가 절의 예정가 숫자와 2026-10-01 절의 팩 가격보다 우선한다.
+
+- 영냥이 단건(`worker/lib/paid-feature-registry.js`): 고등어 3,000 · 연어 5,400 · 광어 7,200 · 참치 10,500 · 모둠(3종 각) 14,800 · 오마카세 30,000원. 코인=원÷100, 월정석 배수 1(1개=10원, 2026-10-03 절의 혼합 결제 그대로).
+- 생선 팩(`worker/payments/service-pack-policy.js`, `yeongnyangi-pack-*-v3`, policy `yeongnyangi-pack-20261005`): 같은 생선 단건 합계에서 5·10·20회 20%·30%·40% 할인. 고등어 12,000/21,000/36,000 · 연어 21,600/37,800/64,800 · 광어 28,800/50,400/86,400 · 참치 42,000/73,500/126,000원. 30일·자동갱신 없음·웹 단건 PG 전용은 그대로다. 이미 팔린 팩은 `packSnapshot`으로 판정하고, `servicePackCoverage`는 `0 < 스냅샷 단가 ≤ 현재 단가`인 같은 생선 상담에 적용한다.
+- 체험가 종료: `lib/brand/launch-offer.ts` `active:false`. 예정가 숫자는 실결제가와 같게 두었다.
+- 천원 사주 콘텐츠 6종(cost 10, amountKRW 1,000, billingType `unlock` 영구 해금, LLM 없음): `rpt_specialCharmCard`·`rpt_skillTreeCard`·`rpt_energyCoordCard`·`rpt_villainCard`·`rpt_secretHouseEntryCard`·`fun.quantumLotto.ritualReport`. 표시는 `js/core/saju/reportDashboard.js`와 `js/saju-engine-tarot-sukuyo-quantum.js`가 하드코딩하므로 레지스트리와 함께 바꾼다. `/yeongnyangi/1000-won-fortune/`(URL·"천원 운세" 이름 유지)는 이 6종의 허브이며 빌드 가드가 6개 키의 amountKRW===1000을 요구한다.
+- 이용권 하한: `MIN_PASS_COVERABLE_COIN`·`FAMILY_MIN_PASS_COVERABLE_COIN` 30→10(`worker/lib/profile-limits.js`, verify:pass-tier-policy가 레지스트리 최저가와 같기를 요구). 천원 콘텐츠를 되돌리면 이 값도 함께 되돌린다.
+- 앱(Google Play): 30코인(tier ₩3,000)·300코인(₩30,000)은 기존 SKU로 판매. 54·72·105·148코인은 `APP_UNVERIFIED_CONTENT_COIN_PRICES`로 실패 폐쇄. 천원 콘텐츠 6종은 무료 구간(≤10코인)이어도 `isAppFreeFeature`가 무료 통과를 거부해 SKU 등록 전까지 `APP_SKU_NOT_VERIFIED`(503)로 닫힌다(사용자 결정 "앱에서도 천원이더라도 돈은 받도록"). 음악 10코인 무료 통과는 유지.
+
 ## 2026-10-03 승인: 10월 5일 영냥이 월정석 할인
 
 기존 10월 5일 정식 가격 전환과 함께 영냥이의 월정석 배수를 5에서 1로 복원한다(1개=10원). 가입 보상 500개·지급분별 30일 만료는 그대로다. 사용자가 직접 선택한 수량을 상담 단건 결제에서 할인하고 남은 금액을 PG로 결제한다. Family·전액 월정석 선택은 유지하며 횟수권 구매에는 적용하지 않는다. 결제 미확정 상태에서 선택 수량을 바꾸거나 예약된 월정석을 재사용하지 않는다. 주문·차감·원장은 원자적으로 예약하고, PG 실패/전액 취소가 서버에서 확정되었을 때만 멱등 복원한다. 클라이언트가 창을 닫았다는 사실만으로는 복원하지 않는다. 혼합 결제는 웹 원화 상담에만 적용하며 PG 최소 잔여 금액을 지킨다. 가격 전환 전에는 이 할인을 활성화하지 않는다. 실결제·운영 DB·운영 승격은 개발 검증에 포함하지 않는다.

@@ -37,7 +37,8 @@ test('monthly fifty-pack review exposes mackerel margin limits independently of 
   assert.equal(pack.regimes.twoAttemptsPerChapterKRW.targetMetWithoutSignup,pack.fishId!=='mackerel');
  }
  const mackerel=review.packs.find(pack=>pack.fishId==='mackerel');
- assert.equal(mackerel.thirtyPercentMarginPossibleBelowDirectPriceEvenAtInfiniteVolume,false);
+ // 2026-10-05: at 3,000 the mackerel direct price leaves room for a 30% margin (at 1,000 it did not).
+ assert.equal(mackerel.thirtyPercentMarginPossibleBelowDirectPriceEvenAtInfiniteVolume,true);
  assert.ok(review.costs.every(row=>row.firstAttemptSuccessKRW<row.hypotheticalOneBookRetryKRW&&row.hypotheticalOneBookRetryKRW<row.twoAttemptsPerChapterKRW));
  const allMackerel=review.monthlyFiftyPackMixes.find(mix=>mix.name==='all_mackerel');
  assert.ok(allMackerel.scenarios.find(row=>row.signupRedemptions===100).operatingProfitScenarioKRW<0);

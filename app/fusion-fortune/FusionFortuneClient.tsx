@@ -26,6 +26,7 @@ import { FUSION_ORB_BY_KEY, FUSION_ORBS, type FusionSystemKey } from "./fusionOr
 import { FusionRecentList, type FusionRecentItem } from "./FusionRecentList";
 import { FusionResultRail } from "./FusionResultRail";
 import { FusionResultThread } from "./FusionResultThread";
+import SavedRecordLink from "@/components/fortune/SavedRecordLink";
 import {
   FusionOrb,
   ThreadBubble,
@@ -3085,6 +3086,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         </li>}
 
         {result && <FusionResultThread result={result} openSection={openSection} onToggleSection={toggleSection} exporting={exporting} stageTwoGenerating={loading} />}
+        {result && !loading && !stageTwoFailed && <SavedRecordLink source="fusion" id={openedConsultationId} />}
 
         {result && stageTwoFailed && !loading && <li>
           <div role="status" className="rounded-[1.375rem] border border-[rgba(232,213,163,0.3)] bg-[rgba(232,213,163,0.08)] px-4 py-4 sm:px-6">

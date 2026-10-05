@@ -8556,7 +8556,12 @@ function openSukuyoModal(_retried) {
   var overlay = document.getElementById('sukuyoModalOverlay');
   if (!overlay) return;
   if (!_retried) {
-    if (__cdSukuyoModalState.open) return __cdSukuyoModalState.pending || true;
+    // 의존성 로딩 중이거나 실제로 보일 때만 중복 진입이다. closeSukuyoModal 을 거치지 않고
+    // 감춰지면(모바일 백스택 일괄 닫기 등) open=true 가 남아 재열기가 영구히 막힌다.
+    if (__cdSukuyoModalState.open) {
+      if (__cdSukuyoModalState.pending) return __cdSukuyoModalState.pending;
+      if (overlay.style.display !== 'none' && getComputedStyle(overlay).display !== 'none') return true;
+    }
     __cdSukuyoModalState.open = true;
     __cdSukuyoModalState.generation += 1;
     var generation = __cdSukuyoModalState.generation;
@@ -9401,6 +9406,10 @@ function _resetTarotUI() {
   window.curTarotCat = null;
   window.isReading = false;
   if (window.tarotThreeCardState) window.tarotThreeCardState = { cards: [], revealedIndex: -1 };
+  // 확대 보기 중에 닫으면 z-index 9998 전체화면 막(tarotFocusOverlay)이 남아 홈 전체를 덮는다.
+  if (cardEl) cardEl.classList.remove('divine-focus');
+  var focusOverlay = document.getElementById('tarotFocusOverlay');
+  if (focusOverlay) focusOverlay.classList.remove('active');
 }
 function resetTarotForCategorySelection() {
   var overlay = document.getElementById('tarotModalOverlay');
@@ -9414,7 +9423,11 @@ function openTarotModal() {
   if (!overlay) return;
   var state = window.__cdTarotModalState || { open: false, generation: 0, pending: null };
   window.__cdTarotModalState = state;
-  if (state.open) return state.pending || true;
+  // 플래그만 믿으면 ESC 로 전체화면을 빠져나가거나 백스택이 노드를 감춘 뒤
+  // open=true 가 남아 재열기가 영구히 막힌다. 실제로 보일 때만 중복 진입으로 본다.
+  if (state.open && overlay.style.display !== 'none' && getComputedStyle(overlay).display !== 'none') {
+    return state.pending || true;
+  }
   state.open = true;
   state.generation += 1;
   var generation = state.generation;
