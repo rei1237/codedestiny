@@ -12,6 +12,8 @@ type Props = {
   onShareCard: () => void;
   onSaveImage: () => void;
   onInviteFriend: () => void;
+  onShareToX: () => void;
+  onShareToInstagram: () => void;
   onPickAnother: () => void;
   onSaveCollection: () => void;
 };
@@ -25,6 +27,8 @@ export default function ChemiShareBar({
   onShareCard,
   onSaveImage,
   onInviteFriend,
+  onShareToX,
+  onShareToInstagram,
   onPickAnother,
   onSaveCollection,
 }: Props) {
@@ -44,6 +48,17 @@ export default function ChemiShareBar({
           다른 최애와 보기
         </button>
       </div>
+      <details className={styles.shareMore}>
+        <summary className={styles.linkButton}>더 보기</summary>
+        <div className={styles.shareMoreGrid}>
+          <button type="button" className={styles.ctaGhost} onClick={onShareToX} disabled={busy}>
+            X에 올리기
+          </button>
+          <button type="button" className={styles.ctaGhost} onClick={onShareToInstagram} disabled={busy}>
+            인스타 스토리용
+          </button>
+        </div>
+      </details>
       {canSaveCollection ? (
         <button type="button" className={styles.linkButton} onClick={onSaveCollection} disabled={busy || savedToCollection}>
           {savedToCollection ? "내 컬렉션에 저장됨 ✓" : "내 컬렉션에 저장 (생일 제외)"}

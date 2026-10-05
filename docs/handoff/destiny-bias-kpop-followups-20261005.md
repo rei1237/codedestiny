@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-05
-next: "1단계(점수·유형 출처 통일 설계)부터 — 아래 '시작 전 확인'을 먼저 실측하고 진행."
+next: "1~5단계 완료(세션 ecd34e07). 남은 것은 선택 과제 6(로스터 v2, 생일 출처 확인 멤버만)뿐 — 요청이 있을 때 새 문서로 시작."
 ---
 
 # 최애운명 K-POP 케미 개편 — 남은 한계 개선 + 기존 엔진 살리기
@@ -28,6 +28,22 @@ next: "1단계(점수·유형 출처 통일 설계)부터 — 아래 '시작 전
 비로그인 허용 / 전부 결정론(LLM 없음) / 프리셋 295 유지 / 주소 유지 `/saju/destiny-bias`, 공유 `/saju/destiny-bias/share/?s=<id>` / 점수·등급 전부 표시 / 사진 업로드는 기기 안에서만(저장 이미지에만, 공유 파일·링크엔 없음) / 무드·테마·사진은 결과 뒤 「포카 꾸미기」 / 페이지 전체 밤 콘서트 무대 디자인.
 
 불변 제약: 생일은 카드·URL·저장 문서·localStorage·분석 이벤트에 넣지 않음. 한쪽이라도 만 19세 미만이면 우정·팀워크 표현만, 만 14세 미만 차단. 실존 인물 얼굴·로고 그림 금지(가상 실루엣만). 로컬 API 는 실 DB 에 붙으므로 Playwright 는 `/api/*` 를 반드시 가로챈다.
+
+## 결과 (세션 ecd34e07, main 반영, 운영 승격 안 함)
+
+- 0단계 실측: 일주 100% 일치, 연주는 입춘 경계 42일 차이 → 통일은 새 엔진 명식 사용.
+- 1단계 `1bdb38469` 점수·유형 통일(chemi-score-1.0.0): 점수 폭 49~68 → 48~99, 유형 간 역전 28.4% → 15.9%, 전 등급 도달.
+- 2단계 `d0031b180` 공유 스냅샷에 서버 재계산 score·grade(해시에 score 포함).
+- 3단계 `d19a94e93` 결과별 OG(밤무대+점수, `?v=stage-1`)와 미리보기 바운스 `/api/destiny-bias/s?s=<id>`.
+- 4단계 `5716833ae` 죽은 Hero·AlbumStage·albumAssets·LoadingScreen·birthEnergy 3함수+copy 키 삭제(deletion-auditor SAFE),
+  `6cdb0e8e9` 최근 결과에 점수·등급, 공유 「더 보기」(X intent / 인스타 = 카드 저장+링크 복사), `9c79cf440` 구 ActionBar+copy 키 삭제.
+  `buildRuleBasedDestinyReport`(worker/lib/destiny-bias-engine.js) 는 채택 안 함 — 구 엔진 점수라 1단계 통일과 충돌하고, 사용자 일간(생일 유래)을 공개면에 드러낸다.
+- 5단계 `fce99afbe` 공유 랜딩 홀로 카드·금색 점수/등급 배지, 정사각 공유 카드 오른쪽 열 중복 제거(점수·등급·유형은 카드 안에만), 객석 보케 불규칙 타일(1280 점 격자 해소). visual-checker 전후 비교 3항목 통과.
+  · 고정 뒤로/홈 겹침: 제품 버튼 겹침 없음(Next 개발 배지뿐) → 조치 불요. 흰 테두리·이모지: 현재 화면에 없음.
+  · 홈 카드 390: 판정 통과(실루엣 머리가 부제 끝에 붙어 보이나 대비 6.4:1+, 잘림 없음). `home-funnel.css` 는 루트에 다른 세션 미커밋이 있어 손대지 않음 — 원하면 모바일 아트를 오른쪽 아래로 미는 후속 과제.
+  · `CodeDestinySerifKR` fonts.check false: 로컬 오리진 CORS 탓(assets.code-destiny.com ACAO 는 https://code-destiny.com 만) → 운영 결함 아님.
+- 머지: `7a05e261d`, `5748d9930`, `e55959338`(origin/main). 검증: tsc 0, jest 343 스위트/5149 통과, check:fast 통과.
+- 참고: `5748d9930` 의 PR CI 실패는 다른 세션 handoff frontmatter(54aef0158 에서 수정)였다.
 
 ## 남은 한계 → 할 일 (단계 = 커밋)
 
