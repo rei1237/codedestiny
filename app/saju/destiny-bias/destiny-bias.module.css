@@ -178,7 +178,10 @@
 .ctaGhost {
   width: 100%;
   min-width: 0;
-  white-space: nowrap;
+  /* 기본 글꼴에선 한 줄, 큰 시스템 글꼴에선 단어 단위로 줄을 바꿔 버튼 밖으로 넘치지 않게 한다. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
   font-size: 14px;
   padding: 0 12px;
   color: var(--dbk-ink);
@@ -612,6 +615,9 @@
 }
 
 .textInput {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
   min-height: 52px;
   padding: 0 16px;
   border-radius: 14px;
@@ -752,6 +758,8 @@
 /* ---------- ⑤ 결과 핵심 카드 ---------- */
 .result {
   display: grid;
+  /* 자식의 min-content(큰 글꼴에서 입력칸·제목 줄)가 열을 화면보다 넓히지 않게 막는다. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
 }
 
@@ -1198,7 +1206,7 @@
 
 .shareGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -1398,6 +1406,7 @@
 /* ---------- 공유 카드(1080 캔버스 + 축소 미리보기) ---------- */
 .shareCardSection {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   padding: 18px 16px;
   border-radius: var(--dbk-radius);
@@ -1595,10 +1604,14 @@
 
 .shareNickRow {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
 }
 
 .shareNickInput {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
   min-height: 48px;
   padding: 0 14px;
   border-radius: 12px;
@@ -1724,7 +1737,8 @@
 }
 
 .sectionTitle small {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .shareCanvas[data-ratio="square"] .shareCanvasPanel {
