@@ -20,6 +20,7 @@
     "dev:next": "node --require=./scripts/next-manifest-read-guard.cjs ./node_modules/next/dist/bin/next dev",
     "dev:local-auth-api": "node scripts/local-dev-auth-api.mjs",
     "handoff": "node scripts/dev/create-handoff.mjs",
+    "verify:seo-birth-examples": "node scripts/verify-seo-birth-examples.mjs",
     "seo:check": "node scripts/check-seo-health.mjs",
     "seo:audit": "node scripts/seo-audit.mjs",
     "seo:audit:complete": "node scripts/audit-seo-adsense-i18n.mjs",

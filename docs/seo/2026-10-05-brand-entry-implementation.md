@@ -28,3 +28,11 @@ Status: active. Approved: 2026-10-05. Production deployment: pending separate ap
 ### 다음 측정과 계정 작업
 
 운영 반영일 D가 확정되면 D+14/D+30에 두 입구의 브랜드 SERP·GSC URL별 쿼리·AI 인용을 재측정한다. 최근 3일은 집계 비교에서 제외한다. 기존 10월 18일 자동화는 별도 이전 배포 측정이므로 덮어쓰지 않는다. 사용자는 신규 sitemap index 제출과 두 입구의 우선 수집 요청, Cloudflare 실제 봇 로그 확인이 필요하다.
+
+## Phase 2 — 기존 검색의도 콘텐츠 보강
+
+6체계 허브에 질문 직답·각 체계의 확인 기준·근거 문서 링크를 추가하고 메타를 구분했다. 기존 사주 계산법·야자시 글을 현재 어댑터의 지역 평균시 정책으로 정정하고, 같은 잘못된 설명이 있던 서비스 비교 글도 함께 정정했다. 가상 입력 4건의 실제 네 기둥과 보정 시각을 본문 표로 공개했다. 사주 vs 자미두수 페이지는 기존 검증된 동일 출생정보의 두 결과를 나란히 보여준다. 기존 2027 정미년 글은 입춘·띠·토정비결·개인 월운과 계획 예시를 구분하고 기존 신년 상담으로 연결했다. 신규 템플릿 페이지를 대량 생성하지 않았다.
+
+검증: verify-seo-birth-examples 4/4 PASS; verify-yeongnyangi-engines 35 contracts PASS (mock 네트워크 차단, 실 LLM·PG 없음). 엔진 파일은 변경하지 않았다. source/adapter 검증이며 실제 배포 HTML과 색인 변화 증명은 아니다. Phase 1 로컬 Yeti/Googlebot curl은 두 UA 모두 200; 변경된 App Router 본문은 최종 staging curl에서 별도 확인해야 한다.
+
+check:fast의 88개 gate 중 npm test에서 옛 action href 조건 2건이 실패했다. 승인된 허브 href 기준으로 두 테스트를 갱신한 후 관련 6 tests PASS. 전체 재검증 및 main CI는 최종 단계에 수행한다.

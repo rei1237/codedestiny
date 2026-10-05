@@ -7,7 +7,7 @@ import { INSIGHT_SEO_TITLES } from "../seo-titles";
 import { INSIGHT_SEO_DESCRIPTIONS } from "../seo-descriptions";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { SEO_LANDING_PAGES } from "../../../lib/seo-landing-pages";
-import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/structured-data";
+import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
 import ContentIntegrityNote from "../../components/ContentIntegrityNote";
 import { FusionCrossSell } from "../../components/FusionCrossSell";
 import styles from "../insight-article.module.css";
@@ -340,6 +340,7 @@ export default async function InsightArticlePage({ params }) {
           </section>
         ) : null}
       </article>
+      {['how-we-calculate-saju', 'midnight-birth-day-pillar', 'why-saju-results-differ-between-services', 'presidential-saju-public-records'].includes(slug) && article.faq?.length > 0 ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFaqPageJsonLd(article.faq)).replace(/</g, '\\u003c') }} /> : null}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
     </main>
