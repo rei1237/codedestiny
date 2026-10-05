@@ -329,6 +329,8 @@ App Router 에는 표면 계열이 셋 있고, 서로 대체재가 아니다. �
 
 기능 페이지 하단 소개 카드(서비스 설명·진행 순서·FAQ)는 `app/components/ServiceIntroSection.tsx` 하나가 그린다(2026-10-05 달빛 예화 양식, 18개 라우트). 명조 h1·h2, 상단 초승달+꽃가지 띠, 하단 맺음 가지, 반짝임 목록 표식이고 사설 토큰은 `--si-*`(`ServiceIntroSection.module.css`)다. 장식 선은 생성기 `scripts/design/gen-yehwa-motifs.mjs` 산출물 `app/components/service-intro/yehwaIntroMasks.generated.module.css` 의 CSS 마스크다 — 손으로 경로를 박지 않는다. 연이 화면은 `tone="yeoni"`(딥 플럼) 한 세트로만 바꾼다. 바로 아래 `ImmersiveRelatedLinks` 의 `dark` 톤은 같은 표면 값을 쓴다.
 
+카드 표면은 `app/components/service-intro/YehwaCard.tsx` 가 소유한다. 정보 화면(InsightTopicArchive 주제 허브, `/stories/`, `/ziwei/chart/` 안내)도 같은 카드를 쓰며 **첫 카드만 달·꽃 장식**, 나머지는 `ornament={false}`(plain)다. 카드 안 서체 규칙은 **클래스 없는 요소에만** 걸린다(`.body tag:not([class])`) — 클래스를 단 목록·박스는 자기 Tailwind 모양을 유지한다. FAQ 는 `<div><h3|h4>질문</h3><p>답</p></div>` 또는 `<dl><div><dt/><dd/></div></dl>` 로 쓰면 명조 금빛 「Q」 표식 + 금빛 헤어라인 구분이 자동으로 붙는다.
+
 ## 9. Theme Axes — 실제로는 4갈래다
 
 "다크/라이트"라는 한마디로 부를 수 없다. 이 저장소에는 서로 연동되지 않는 테마 축이 **4개** 있다(2026-09-05 실측). 화면 하나를 고칠 때 **어느 축 위에 있는지 먼저 확인한다.**
