@@ -20,6 +20,8 @@ next: "다음 세션에서 함께 제공된 프롬프트를 읽고, 달빛 예�
 - 마지막 기능 구현 SHA: `d0953b251b202fbe441e68d8c3638e451c9750ea`; [main CI](https://github.com/rei1237/codedestiny/actions/runs/37234443442) 전체 성공, 340개 suite/5,084개 테스트. 이 수치를 새 UI 검증 결과로 재사용하지 않는다.
 - 스테이징 반영은 **사용자 확인**이다. 이번 문서 작성에서는 URL·배포 SHA·실제 화면을 다시 검증하지 않았다.
 
+문서 전달: 로컬 `wt/records-yehwa-handoff-20261005-121511`에 문서만 커밋했다. 공유 main의 `.git/index.lock` 때문에 fast-forward·push·새 main CI는 보류됐다. 다른 Git 프로세스가 있어 잠금을 삭제하지 않았다. 두 문서는 primary의 동일 경로에도 복사했다. 다음 세션은 잠금 소유 작업의 종료를 확인한 뒤 문서 커밋의 main 반영 여부부터 점검한다. `git log -1 wt/records-yehwa-handoff-20261005-121511`로 문서 전달 SHA를 확인할 수 있다.
+
 현재 main에는 다른 세션의 HTML·CSS·RSS·marketing 변경과 9개 staged 파일이 있다. 초기 `git status --short`로 재확인하고 절대 섞지 않는다. 동시 작업은 현행 안전 워크트리 절차를 따른다. 기존 작업 워크트리는 제거됐으므로 옛 경로로 재개하지 않는다.
 
 ## 구현 대상과 정본
