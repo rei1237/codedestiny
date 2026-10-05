@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: active
+updated: 2026-10-05
+next: main CI 결과를 확인하고 한국어 전용 관계·타로·건강·symbolic 상담의 입력과 검증기를 현지화한다.
 ---
 # 해외 현지화 및 영냥이 진입 개선
 요청: 해외 PayPal 안내, 전체 유료 콘텐츠 로케일 현지화, 미국 등 해외 시장 용어/마케팅, 대통령 분석 기록 강조, 영냥이 메인 강조 및 고급 전환.
@@ -29,3 +31,5 @@ status: in-progress
 - 최초 커밋 29be3801ebc05e5734f09be4cfd637f937155c6f. origin/main dc0160fa5를 5f1b43732097bd9fbab2b1e2c1b6daaeecad1bd3에 충돌 없이 병합. 생성 HTML 캐시 키를 재생성함.
 - public mirror 최초 커밋에서 PASS. 병합 후 재생성 필요 발견; sandbox의 index.lock 권한 때문에 검사 자체 복원은 실패했으며 재생성 결과를 다음 커밋에 포함한다.
 - 최종 JA360 카드298px/본문 넘침없음. 스크린샷: C:/Users/user/.codex/visualizations/2026/10/05/01a10c55-5ccf-7a23-94b0-464fa841c850/global-localization/ja-360.png.
+
+최종 보완: lint 대상 0 errors/376 기존 warning, sitemap --check PASS, merged public mirror PASS. Git 공유 main 기존 index.lock으로 로컬 병합 불가. origin/main 추가 변경은 격리 worktree에서 병합, 생성 ledger 충돌만 최신 원격 정본에서 재생성했다. push는 강제 옵션 없이 main으로만 시도한다.
