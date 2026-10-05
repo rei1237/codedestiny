@@ -1799,6 +1799,14 @@
       "profileTitle": "My profile card",
       "cheer": "One small step today. I’m here to cheer you on.",
       "mascotAlt": "Yeoni the flower pig offering a lotus in encouragement"
+    },
+    "globalReading": {
+      "title": "Tu lectura personal con Yeongnyangi",
+      "note": "Empieza por lo que te preocupa. Explora el Saju coreano, el tarot y la astrología con una lectura centrada en ti.",
+      "cta": "Explorar lecturas personales",
+      "arrival": "Un momento de calma para tu pregunta",
+      "recordsTitle": "Lecturas de Saju anteriores al giro político de Corea",
+      "recordsNote": "Compara las lecturas publicadas sobre Yoon Suk Yeol y Lee Jae-myung con los hechos de 2025. Consulta las fechas y los originales en coreano. Los ejemplos pasados no garantizan predicciones futuras."
     }
   },
   "terms": {
@@ -2109,7 +2117,9 @@
       "usdHint": "Pago internacional · Revisa el total en USD antes de pagar",
       "rateNotice": "Convertido del precio actual en KRW. Fecha del tipo de cambio: {date} (ECB).",
       "close": "Cerrar y comprobar el pago",
-      "wait": "Autoriza el pago en PayPal y consulta su estado aquí."
+      "wait": "Autoriza el pago en PayPal y consulta su estado aquí.",
+      "internationalLabel": "PayPal · Pago internacional (USD)",
+      "internationalGuide": "¿Pagas desde fuera de Corea? Elige PayPal y revisa el total en USD antes de autorizar. Otros métodos pueden requerir datos de pago coreanos."
     },
     "loader": {
       "eyebrow": "Cheque de pago a la luz de la luna",

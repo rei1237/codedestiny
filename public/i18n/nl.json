@@ -1799,6 +1799,14 @@
       "profileTitle": "My profile card",
       "cheer": "One small step today. I’m here to cheer you on.",
       "mascotAlt": "Yeoni the flower pig offering a lotus in encouragement"
+    },
+    "globalReading": {
+      "title": "Jouw persoonlijke duiding met Yeongnyangi",
+      "note": "Begin met de vraag die je bezighoudt. Ontdek Koreaans Saju, tarot en astrologie in een duiding die aansluit bij jouw situatie.",
+      "cta": "Persoonlijke duidingen bekijken",
+      "arrival": "Een rustig moment voor jouw vraag",
+      "recordsTitle": "Saju-duidingen van vóór Korea’s politieke omslag",
+      "recordsNote": "Vergelijk eerdere duidingen over Yoon Suk Yeol en Lee Jae-myung met de gebeurtenissen van 2025. Bekijk zelf de datums en Koreaanse bronteksten. Voorbeelden uit het verleden garanderen geen toekomstige voorspellingen."
     }
   },
   "terms": {
@@ -2109,7 +2117,9 @@
       "usdHint": "Internationale betaling · Controleer het USD-bedrag vooraf",
       "rateNotice": "Omgerekend van de bestaande KRW-prijs. Wisselkoersdatum: {date} (ECB).",
       "close": "Sluiten en betaalstatus bekijken",
-      "wait": "Keur de betaling goed in PayPal en bekijk hier de status."
+      "wait": "Keur de betaling goed in PayPal en bekijk hier de status.",
+      "internationalLabel": "PayPal · Internationaal betalen (USD)",
+      "internationalGuide": "Betaal je van buiten Korea? Kies PayPal en controleer het totaal in USD voordat je bevestigt. Andere methoden kunnen Koreaanse betaalgegevens vereisen."
     },
     "loader": {
       "eyebrow": "Moonlight-betalingscontrole",

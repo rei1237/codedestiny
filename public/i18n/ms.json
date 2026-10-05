@@ -1799,6 +1799,14 @@
       "profileTitle": "My profile card",
       "cheer": "One small step today. I’m here to cheer you on.",
       "mascotAlt": "Yeoni the flower pig offering a lotus in encouragement"
+    },
+    "globalReading": {
+      "title": "Bacaan peribadi bersama Yeongnyangi",
+      "note": "Mulakan dengan persoalan di fikiran anda. Terokai Saju Korea, tarot dan astrologi melalui bacaan yang disesuaikan dengan situasi anda.",
+      "cta": "Lihat bacaan peribadi",
+      "arrival": "Sejenak ketenangan untuk persoalan anda",
+      "recordsTitle": "Bacaan Saju sebelum perubahan politik Korea",
+      "recordsNote": "Bandingkan bacaan terdahulu tentang Yoon Suk Yeol dan Lee Jae-myung dengan peristiwa 2025. Semak tarikh dan catatan asal bahasa Korea sendiri. Contoh lalu tidak menjamin ketepatan ramalan akan datang."
     }
   },
   "terms": {
@@ -2109,7 +2117,9 @@
       "usdHint": "Bayaran antarabangsa · Semak jumlah USD sebelum membayar",
       "rateNotice": "Ditukar daripada harga KRW sedia ada. Tarikh kadar tukaran: {date} (ECB).",
       "close": "Tutup dan semak status bayaran",
-      "wait": "Luluskan bayaran dalam PayPal, kemudian semak statusnya di sini."
+      "wait": "Luluskan bayaran dalam PayPal, kemudian semak statusnya di sini.",
+      "internationalLabel": "PayPal · Bayaran antarabangsa (USD)",
+      "internationalGuide": "Membayar dari luar Korea? Pilih PayPal dan semak jumlah USD sebelum meluluskan. Kaedah lain mungkin memerlukan butiran pembayaran Korea."
     },
     "loader": {
       "eyebrow": "Cek pembayaran Moonlight",

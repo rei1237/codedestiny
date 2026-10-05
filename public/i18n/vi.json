@@ -1799,6 +1799,14 @@
       "profileTitle": "My profile card",
       "cheer": "One small step today. I’m here to cheer you on.",
       "mascotAlt": "Yeoni the flower pig offering a lotus in encouragement"
+    },
+    "globalReading": {
+      "title": "Phòng luận giải ánh trăng của Yeongnyangi",
+      "note": "Bắt đầu từ điều bạn đang băn khoăn. Khám phá Saju Hàn Quốc, tarot và chiêm tinh qua lời giải dành riêng cho bạn.",
+      "cta": "Khám phá các bài luận giải",
+      "arrival": "Một khoảnh khắc yên tĩnh cho điều bạn quan tâm",
+      "recordsTitle": "Các bài Saju công bố trước bước ngoặt chính trị Hàn Quốc",
+      "recordsNote": "Đối chiếu các bài luận giải trước đây về Yoon Suk Yeol và Lee Jae-myung với sự kiện năm 2025. Xem ngày đăng và bài gốc tiếng Hàn để tự đánh giá. Ví dụ quá khứ không bảo đảm dự đoán tương lai."
     }
   },
   "terms": {
@@ -2109,7 +2117,9 @@
       "usdHint": "Thanh toán quốc tế · Kiểm tra số tiền USD trước khi trả",
       "rateNotice": "Quy đổi từ giá KRW hiện tại. Ngày tỷ giá: {date} (ECB).",
       "close": "Đóng và kiểm tra trạng thái",
-      "wait": "Xác nhận thanh toán trong PayPal, sau đó kiểm tra trạng thái tại đây."
+      "wait": "Xác nhận thanh toán trong PayPal, sau đó kiểm tra trạng thái tại đây.",
+      "internationalLabel": "PayPal · Thanh toán quốc tế (USD)",
+      "internationalGuide": "Thanh toán ngoài Hàn Quốc? Chọn PayPal và kiểm tra tổng tiền USD trước khi xác nhận. Các phương thức khác có thể yêu cầu thông tin thanh toán tại Hàn Quốc."
     },
     "loader": {
       "eyebrow": "Séc thanh toán ánh trăng",

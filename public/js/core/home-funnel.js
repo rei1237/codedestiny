@@ -210,8 +210,14 @@
     doc.classList.add('cd-yn-portal-active');
     var overlay = document.createElement('div');
     overlay.className = 'cd-yn-portal-overlay';
-    overlay.setAttribute('aria-hidden', 'true');
+    overlay.setAttribute('role', 'status');
+    overlay.setAttribute('aria-live', 'polite');
     overlay.innerHTML = '<div class="cd-yn-portal-overlay__scene"><span class="cd-yn-portal-overlay__moon" aria-hidden="true"></span><span class="cd-yn-portal-overlay__portrait"><img src="/assets/yeongnyangi/original/hero-480.webp" width="480" height="480" alt="" decoding="async"></span><p class="cd-yn-portal-overlay__title">영냥이의 달빛 점술방</p><p class="cd-yn-portal-overlay__note">달빛을 따라, 이야기가 이어지는 곳으로</p><span class="cd-yn-portal-overlay__line" aria-hidden="true"></span></div>';
+    // Use textContent: translations must never become executable markup.
+    if (typeof window.cdTranslate === 'function') {
+      overlay.querySelector('.cd-yn-portal-overlay__title').textContent = window.cdTranslate('home.globalReading.title', {}, '영냥이의 달빛 점술방');
+      overlay.querySelector('.cd-yn-portal-overlay__note').textContent = window.cdTranslate('home.globalReading.arrival', {}, '달빛을 따라, 당신의 질문이 닿는 곳으로');
+    }
     document.body.appendChild(overlay);
     window.setTimeout(function () {
       try {
