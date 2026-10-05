@@ -29,7 +29,6 @@ export interface DestinyBiasCopy {
   journeyLongTermLabel: string;
 
   shareCardMyDestinyLabel: string;
-  albumCoverAltSuffix: string;
 
   stageStep1Label: string;
   stageStep1Desc: string;
@@ -70,11 +69,6 @@ export interface DestinyBiasCopy {
   scoreGaugeStabilityLabel: string;
   scoreGaugeChemiLabel: string;
 
-  heroTitle: string;
-  heroDescription: string;
-  heroEnterButton: string;
-  heroSkipButton: string;
-  heroSyncText: string;
 
   myDestinyHeroDescription: string;
 
@@ -95,8 +89,6 @@ export interface DestinyBiasCopy {
   defaultChemistryType: string;
 
   // 아래는 EN/JA/ZH-CN/ZH-TW만 채운다 — 나머지 로케일은 getDestinyBiasCopy()가 EN과 병합해 자동 폴백한다.
-  loadingSyncLine1?: string;
-  loadingSyncLine2?: string;
   defaultShareKeywords?: string[];
   scoreSuffix?: string;
 
@@ -235,7 +227,6 @@ const DESTINY_BIAS_COPY_EN: DestinyBiasCopy = {
   journeyLongTermLabel: "What keeps you attached long-term",
 
   shareCardMyDestinyLabel: "My Destiny Bias",
-  albumCoverAltSuffix: "album cover",
 
   stageStep1Label: "Check your fan profile",
   stageStep1Desc: "We read your Saju energy from your name and birth date.",
@@ -278,12 +269,6 @@ const DESTINY_BIAS_COPY_EN: DestinyBiasCopy = {
   scoreGaugeStabilityLabel: "Stability",
   scoreGaugeChemiLabel: "One-line chemistry",
 
-  heroTitle: "My Destiny Bias Live Stage",
-  heroDescription:
-    "We sync the rhythm of your Saju energy with your bias's stage wavelength to find the fan signal resonating strongest right now.\nA spotlight reading begins the moment you enter.",
-  heroEnterButton: "Enter the stage",
-  heroSkipButton: "Skip rehearsal, analyze now",
-  heroSyncText: "Syncing the stage sound with your destiny signal",
 
   myDestinyHeroDescription:
     "The moment your birthday energy meets your bias's stage aura ✨",
@@ -304,8 +289,6 @@ const DESTINY_BIAS_COPY_EN: DestinyBiasCopy = {
   photocardUploadedImageAltSuffix: "uploaded image",
   defaultChemistryType: "Quiet Support Type",
 
-  loadingSyncLine1: "The stage is opening",
-  loadingSyncLine2: "and the two rhythms are syncing ✨",
   defaultShareKeywords: ["starlight", "resonance", "chemistry"],
   scoreSuffix: " pts",
 
@@ -447,7 +430,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     journeyLongTermLabel: "오래 좋아하게 만드는 요소",
 
     shareCardMyDestinyLabel: "나의 최애운명",
-    albumCoverAltSuffix: "앨범 커버",
 
     stageStep1Label: "팬 프로필 체크",
     stageStep1Desc: "이름과 생년월일로 내 사주 에너지를 읽습니다.",
@@ -490,12 +472,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     scoreGaugeStabilityLabel: "안정",
     scoreGaugeChemiLabel: "한줄 케미",
 
-    heroTitle: "최애운명 라이브 스테이지",
-    heroDescription:
-      "사주 에너지의 박자와 최애의 무대 파장을 맞춰, 지금 가장 강하게 공명하는 팬심 시그널을 찾아냅니다.\n입장과 동시에 스포트라이트 리딩이 시작됩니다.",
-    heroEnterButton: "스테이지 입장하기",
-    heroSkipButton: "리허설 없이 바로 분석",
-    heroSyncText: "무대 음향과 운명 시그널을 동기화 중입니다",
 
     myDestinyHeroDescription: "내 생일 에너지가 최애의 무대 아우라와 만나는 우주적인 순간을 포토카드로 담아드려요 ✨",
 
@@ -515,8 +491,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     photocardUploadedImageAltSuffix: "업로드 이미지",
     defaultChemistryType: "잔잔응원형",
 
-    loadingSyncLine1: "무대가 열리고",
-    loadingSyncLine2: "두 사람의 리듬이 동기화 중이에요 ✨",
     defaultShareKeywords: ["별빛", "공명", "케미"],
     scoreSuffix: "점",
 
@@ -654,7 +628,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     journeyLongTermLabel: "長く好きでいさせる要素",
 
     shareCardMyDestinyLabel: "私の推し運命",
-    albumCoverAltSuffix: "アルバムカバー",
 
     stageStep1Label: "ファンプロフィールチェック",
     stageStep1Desc: "名前と生年月日からあなたの四柱推命エネルギーを読み取ります。",
@@ -697,12 +670,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     scoreGaugeStabilityLabel: "安定",
     scoreGaugeChemiLabel: "一言ケミ",
 
-    heroTitle: "推し運命ライブステージ",
-    heroDescription:
-      "四柱推命エネルギーのリズムと推しのステージの波長を合わせ、今いちばん強く共鳴するファン心シグナルを見つけます。\n入場と同時にスポットライト診断が始まります。",
-    heroEnterButton: "ステージに入場する",
-    heroSkipButton: "リハーサルなしですぐ診断",
-    heroSyncText: "ステージの音響と運命シグナルを同期しています",
 
     myDestinyHeroDescription: "あなたの誕生日エネルギーが推しのステージオーラと出会う宇宙的な瞬間をフォトカードに",
 
@@ -722,8 +689,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     photocardUploadedImageAltSuffix: "アップロード画像",
     defaultChemistryType: "静かな応援タイプ",
 
-    loadingSyncLine1: "ステージが開き",
-    loadingSyncLine2: "二人のリズムが同期しています ✨",
     defaultShareKeywords: ["星明かり", "共鳴", "ケミ"],
     scoreSuffix: "点",
 
@@ -861,7 +826,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     journeyLongTermLabel: "让你长久喜欢下去的要素",
 
     shareCardMyDestinyLabel: "我的命定本命",
-    albumCoverAltSuffix: "专辑封面",
 
     stageStep1Label: "粉丝档案确认",
     stageStep1Desc: "根据姓名和出生日期解读你的四柱能量。",
@@ -904,12 +868,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     scoreGaugeStabilityLabel: "稳定度",
     scoreGaugeChemiLabel: "一句话缘分",
 
-    heroTitle: "命定本命现场舞台",
-    heroDescription:
-      "将你的四柱能量节奏与本命的舞台波长同步,找到此刻共鸣最强的粉丝信号。\n入场的瞬间,聚光灯解读即刻开始。",
-    heroEnterButton: "进入舞台",
-    heroSkipButton: "跳过彩排直接分析",
-    heroSyncText: "正在同步舞台音效与命运信号",
 
     myDestinyHeroDescription: "把你的生日能量与本命舞台气场相遇的宇宙瞬间,做成写真卡 ✨",
 
@@ -929,8 +887,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     photocardUploadedImageAltSuffix: "上传的图片",
     defaultChemistryType: "静静守护型",
 
-    loadingSyncLine1: "舞台正在开启",
-    loadingSyncLine2: "两人的节奏正在同步 ✨",
     defaultShareKeywords: ["星光", "共鸣", "缘分"],
     scoreSuffix: "分",
 
@@ -1068,7 +1024,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     journeyLongTermLabel: "讓你長久喜歡下去的要素",
 
     shareCardMyDestinyLabel: "我的命定本命",
-    albumCoverAltSuffix: "專輯封面",
 
     stageStep1Label: "粉絲檔案確認",
     stageStep1Desc: "根據姓名與出生日期解讀你的四柱能量。",
@@ -1111,12 +1066,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     scoreGaugeStabilityLabel: "穩定度",
     scoreGaugeChemiLabel: "一句話緣分",
 
-    heroTitle: "命定本命現場舞台",
-    heroDescription:
-      "將你的四柱能量節奏與本命的舞台波長同步,找到此刻共鳴最強的粉絲信號。\n入場的瞬間,聚光燈解讀即刻開始。",
-    heroEnterButton: "進入舞台",
-    heroSkipButton: "跳過彩排直接分析",
-    heroSyncText: "正在同步舞台音效與命運信號",
 
     myDestinyHeroDescription: "把你的生日能量與本命舞台氣場相遇的宇宙瞬間,做成寫真卡 ✨",
 
@@ -1136,8 +1085,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     photocardUploadedImageAltSuffix: "上傳的圖片",
     defaultChemistryType: "靜靜守護型",
 
-    loadingSyncLine1: "舞台正在開啟",
-    loadingSyncLine2: "兩人的節奏正在同步 ✨",
     defaultShareKeywords: ["星光", "共鳴", "緣分"],
     scoreSuffix: "分",
 
@@ -1275,7 +1222,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     journeyLongTermLabel: "Điều giữ chân bạn lâu dài",
 
     shareCardMyDestinyLabel: "Định mệnh thần tượng của tôi",
-    albumCoverAltSuffix: "bìa album",
 
     stageStep1Label: "Kiểm tra hồ sơ fan",
     stageStep1Desc: "Đọc năng lượng Saju của bạn từ tên và ngày sinh.",
@@ -1318,12 +1264,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     scoreGaugeStabilityLabel: "Ổn định",
     scoreGaugeChemiLabel: "Hợp duyên một dòng",
 
-    heroTitle: "Sân khấu trực tiếp Định Mệnh Thần Tượng",
-    heroDescription:
-      "Đồng bộ nhịp năng lượng Saju của bạn với tần sóng sân khấu của thần tượng, tìm ra tín hiệu fan cộng hưởng mạnh nhất lúc này.\nBài đọc dưới ánh đèn sân khấu bắt đầu ngay khi bạn bước vào.",
-    heroEnterButton: "Bước vào sân khấu",
-    heroSkipButton: "Bỏ qua tổng duyệt, phân tích ngay",
-    heroSyncText: "Đang đồng bộ âm thanh sân khấu với tín hiệu định mệnh",
 
     myDestinyHeroDescription:
       "Khoảnh khắc vũ trụ khi năng lượng sinh nhật của bạn gặp hào quang sân khấu của thần tượng ✨",
@@ -1368,7 +1308,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     journeyLongTermLabel: "लंबे समय तक जोड़े रखने वाली चीज़",
 
     shareCardMyDestinyLabel: "मेरा डेस्टिनी बायस",
-    albumCoverAltSuffix: "एल्बम कवर",
 
     stageStep1Label: "फैन प्रोफ़ाइल जांचें",
     stageStep1Desc: "आपके नाम और जन्मतिथि से आपकी साजू ऊर्जा पढ़ी जाती है।",
@@ -1411,12 +1350,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     scoreGaugeStabilityLabel: "स्थिरता",
     scoreGaugeChemiLabel: "एक-पंक्ति केमिस्ट्री",
 
-    heroTitle: "माय डेस्टिनी बायस लाइव स्टेज",
-    heroDescription:
-      "आपकी साजू ऊर्जा की लय को बायस की स्टेज तरंग से मिलाकर, अभी सबसे तेज़ गूंजने वाला फैन सिग्नल खोजा जाता है।\nप्रवेश करते ही स्पॉटलाइट रीडिंग शुरू हो जाती है।",
-    heroEnterButton: "स्टेज में प्रवेश करें",
-    heroSkipButton: "रिहर्सल छोड़ें, सीधे विश्लेषण करें",
-    heroSyncText: "स्टेज की ध्वनि को डेस्टिनी सिग्नल से सिंक किया जा रहा है",
 
     myDestinyHeroDescription:
       "वह ब्रह्मांडीय पल जब आपकी जन्मदिन ऊर्जा आपके बायस की स्टेज आभा से मिलती है ✨",
@@ -1461,7 +1394,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     journeyLongTermLabel: "Lo que te mantiene enganchado a largo plazo",
 
     shareCardMyDestinyLabel: "Mi Destino Bias",
-    albumCoverAltSuffix: "portada del álbum",
 
     stageStep1Label: "Revisa tu perfil de fan",
     stageStep1Desc: "Leemos tu energía Saju a partir de tu nombre y fecha de nacimiento.",
@@ -1504,12 +1436,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     scoreGaugeStabilityLabel: "Estabilidad",
     scoreGaugeChemiLabel: "Química en una línea",
 
-    heroTitle: "Escenario en vivo de Mi Destino Bias",
-    heroDescription:
-      "Sincronizamos el ritmo de tu energía Saju con la frecuencia del escenario de tu bias para encontrar la señal de fan que resuena más fuerte ahora mismo.\nLa lectura bajo los focos comienza justo al entrar.",
-    heroEnterButton: "Entrar al escenario",
-    heroSkipButton: "Saltar el ensayo, analizar ya",
-    heroSyncText: "Sincronizando el sonido del escenario con la señal del destino",
 
     myDestinyHeroDescription:
       "El momento cósmico en que tu energía de cumpleaños se encuentra con el aura de escenario de tu bias ✨",
@@ -1554,7 +1480,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     journeyLongTermLabel: "Ce qui vous garde attaché sur la durée",
 
     shareCardMyDestinyLabel: "Mon Destin Bias",
-    albumCoverAltSuffix: "pochette d'album",
 
     stageStep1Label: "Vérifiez votre profil de fan",
     stageStep1Desc: "Nous lisons votre énergie Saju à partir de votre nom et de votre date de naissance.",
@@ -1597,12 +1522,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     scoreGaugeStabilityLabel: "Stabilité",
     scoreGaugeChemiLabel: "Alchimie en une ligne",
 
-    heroTitle: "Scène en direct de Mon Destin Bias",
-    heroDescription:
-      "Nous synchronisons le rythme de votre énergie Saju avec la fréquence de scène de votre bias pour trouver le signal de fan qui résonne le plus fort maintenant.\nLa lecture sous les projecteurs commence dès l'entrée.",
-    heroEnterButton: "Entrer sur scène",
-    heroSkipButton: "Passer la répétition, analyser tout de suite",
-    heroSyncText: "Synchronisation du son de la scène avec le signal du destin",
 
     myDestinyHeroDescription:
       "Le moment cosmique où votre énergie d'anniversaire rencontre l'aura de scène de votre bias ✨",
@@ -1647,7 +1566,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     journeyLongTermLabel: "Was dich langfristig hält",
 
     shareCardMyDestinyLabel: "Mein Destiny Bias",
-    albumCoverAltSuffix: "Albumcover",
 
     stageStep1Label: "Fan-Profil prüfen",
     stageStep1Desc: "Wir lesen deine Saju-Energie aus Name und Geburtsdatum.",
@@ -1690,12 +1608,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     scoreGaugeStabilityLabel: "Stabilität",
     scoreGaugeChemiLabel: "Chemie in einer Zeile",
 
-    heroTitle: "Live-Bühne von Mein Destiny Bias",
-    heroDescription:
-      "Wir synchronisieren den Rhythmus deiner Saju-Energie mit der Bühnenwellenlänge deines Bias, um das gerade stärkste Fan-Signal zu finden.\nDie Spotlight-Analyse beginnt in dem Moment, in dem du eintrittst.",
-    heroEnterButton: "Bühne betreten",
-    heroSkipButton: "Probe überspringen, sofort analysieren",
-    heroSyncText: "Bühnensound wird mit dem Schicksalssignal synchronisiert",
 
     myDestinyHeroDescription:
       "Der kosmische Moment, in dem deine Geburtstagsenergie auf die Bühnenaura deines Bias trifft ✨",
@@ -1740,7 +1652,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     journeyLongTermLabel: "Wat je op lange termijn vasthoudt",
 
     shareCardMyDestinyLabel: "Mijn Destiny Bias",
-    albumCoverAltSuffix: "albumhoes",
 
     stageStep1Label: "Controleer je fanprofiel",
     stageStep1Desc: "We lezen je Saju-energie uit je naam en geboortedatum.",
@@ -1783,12 +1694,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     scoreGaugeStabilityLabel: "Stabiliteit",
     scoreGaugeChemiLabel: "Chemie in één regel",
 
-    heroTitle: "Livepodium van Mijn Destiny Bias",
-    heroDescription:
-      "We synchroniseren het ritme van je Saju-energie met de podiumgolflengte van je bias om het fansignaal te vinden dat nu het sterkst resoneert.\nDe spotlight-analyse begint zodra je binnenkomt.",
-    heroEnterButton: "Betreed het podium",
-    heroSkipButton: "Sla repetitie over, analyseer direct",
-    heroSyncText: "Podiumgeluid wordt gesynchroniseerd met het lotssignaal",
 
     myDestinyHeroDescription:
       "Het kosmische moment waarop jouw verjaardagsenergie de podiumaura van je bias ontmoet ✨",
@@ -1833,7 +1738,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     journeyLongTermLabel: "Perkara yang mengekalkan minat anda dalam jangka panjang",
 
     shareCardMyDestinyLabel: "Destiny Bias Saya",
-    albumCoverAltSuffix: "kulit album",
 
     stageStep1Label: "Semak profil peminat",
     stageStep1Desc: "Kami membaca tenaga Saju anda daripada nama dan tarikh lahir.",
@@ -1876,12 +1780,6 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     scoreGaugeStabilityLabel: "Kestabilan",
     scoreGaugeChemiLabel: "Kimia satu baris",
 
-    heroTitle: "Pentas Langsung Destiny Bias Saya",
-    heroDescription:
-      "Kami menyelaraskan rentak tenaga Saju anda dengan gelombang pentas bias anda untuk mencari isyarat peminat yang paling kuat bergema sekarang.\nBacaan spotlight bermula sebaik sahaja anda masuk.",
-    heroEnterButton: "Masuk ke pentas",
-    heroSkipButton: "Langkau latihan, analisis terus",
-    heroSyncText: "Menyelaraskan bunyi pentas dengan isyarat destini",
 
     myDestinyHeroDescription:
       "Detik kosmik apabila tenaga hari lahir anda bertemu aura pentas bias anda ✨",
