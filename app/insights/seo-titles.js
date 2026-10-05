@@ -15,7 +15,10 @@
  * 두고 표시 폭 60 이하를 지킨다. 강제는 `scripts/verify-adsense-readiness.mjs` 의
  * `verifyIndexableTitleWidth` 가 산출물에서 사이트맵 URL 전량을 훑어서 한다.
  */
+import { publicRecordCopy, PUBLIC_RECORD_PATH } from '../../lib/seo/public-record-copy.mjs';
+
 export const INSIGHT_SEO_TITLES = {
+  [PUBLIC_RECORD_PATH.split('/').filter(Boolean).at(-1)]: publicRecordCopy.ko.title,
   "ten-gods-beginner-map": "십성 입문: 일간·오행·음양의 관계",
   "astrology-vs-saju-differences": "점성술과 사주: 계산·해석 기준 비교",
   "africa-divination-traditions-deep-guide": "아프리카 점복 전통 — 이파(Ifa)와 공동체의 지혜",
