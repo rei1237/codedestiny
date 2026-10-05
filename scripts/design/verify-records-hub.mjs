@@ -3,15 +3,16 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
-import { RECORD_SERVICES, savedRecordPath } from '../../lib/records/service-registry.js';
+import { RECORD_SERVICES, SAVED_FEATURES, savedRecordPath } from '../../lib/records/service-registry.js';
 import { getMasterLoveCodexPlan } from '../../worker/lib/master-love-codex-prompt.mjs';
+import { additionalSourceFixtures, sharedFeatureFixtures, finalBody } from '../../__tests__/fixtures/records-reading-fixtures.mjs';
 import { createRequire } from 'node:module';
 const origin = process.env.RECORDS_TEST_ORIGIN || 'http://127.0.0.1:3194';
 const detailOnly = process.env.RECORDS_TEST_DETAIL_ONLY;
 const stateOnly = process.env.RECORDS_TEST_SCENARIO;
 const hubOnly = process.env.RECORDS_TEST_HUB_ONLY === '1';
 assert.match(origin, /^http:\/\/(127\.0\.0\.1|localhost):\d+$/);
-const out = path.resolve('build-cache/records-hub'); fs.mkdirSync(out,{recursive:true});
+const out = path.resolve(process.env.RECORDS_TEST_OUTPUT || 'build-cache/records-hub'); fs.mkdirSync(out,{recursive:true});
 const user = {id:'64b7f2a1c3d4e5f601234567',_id:'64b7f2a1c3d4e5f601234567',name:'화면 검증',email:'fixture@example.invalid',hasLocalAuth:true};
 const record = (source,id='fixture',extra={}) => {
   const service=RECORD_SERVICES.find(row=>row.id===source);
@@ -33,7 +34,7 @@ const details={
   legacy:{record:record('astrology'),content:{id:'',chapters:[{title:'첫 장',body:'첫 장 전체 내용'},{title:'마지막 장',body:'마지막 장 전체 내용'}],chart:{planets:[{name:'Sun',degree:12}]},html:'<table><tr><td>저장된 표</td></tr></table><script>window.fixtureXss=true</script>'}},
   partial:{record:record('fusion','partial',{status:'partial'}),content:{chapters:[{title:'첫 장',body:'부분 저장 내용'}]}},
 };
-if(!stateOnly && (!detailOnly || detailOnly==='destiny-bias')) {
+if(!stateOnly && (!detailOnly || detailOnly.split(',').includes('destiny-bias'))) {
   // Build a synthetic, local calculation before opening the saved reader.
   // The reader itself may only GET the persisted snapshot.
   const {build}=await import('esbuild');
@@ -45,6 +46,22 @@ if(!stateOnly && (!detailOnly || detailOnly==='destiny-bias')) {
   details['destiny-bias']={record:record('destiny-bias'),content:{canonical:{version:'destiny-bias-record-v1',viewModel:report.vm,chemiReport:report,themeKey:'lotus-moon'}}};
 }
 details['bias-partial']={record:record('destiny-bias','broken',{status:'partial'}),content:{reportText:'남아 있는 저장 내용',canonical:{version:'destiny-bias-record-v1',viewModel:{totalScore:1,detailedTabs:[null],elementDistribution:{user:{}}},chemiReport:{totalScore:1,subScores:[],copy:{points:[]},result:{pillars:{user:{}}},vm:{detailedTabs:[]}}}}};
+for(const [source,content] of Object.entries(additionalSourceFixtures)) details[source]={record:record(source),content};
+for(const [feature,content] of Object.entries(sharedFeatureFixtures)) details[feature]={record:record('paid-results',feature,{serviceId:feature,serviceName:SAVED_FEATURES[feature].name,title:'[화면 검증] '+SAVED_FEATURES[feature].name}),content:{report:content}};
+const {build:buildNamingFixture}=await import('esbuild');
+const namingBundle=await buildNamingFixture({stdin:{contents:"export * from './worker/naming-engine/service'; export * from './worker/naming-engine/engine'; export * from './worker/naming-engine/report';",resolveDir:process.cwd(),loader:'ts'},bundle:true,write:false,platform:'node',format:'cjs'});
+const namingModule={exports:{}};new Function('require','module','exports',namingBundle.outputFiles[0].text)(createRequire(import.meta.url),namingModule,namingModule.exports);
+const namingEngine=namingModule.exports.engineView(namingModule.exports.runNamingEngine({surname:{hangul:'김',hanja:['金']},gender:'M',nameLength:2},{tier:'paid',saju:{useful:['metal','earth'],caution:['fire','wood','water'],support:[],natalCounts:{wood:2,fire:3,earth:2,metal:0,water:1},timeUnknown:false,jongConditional:false,basis:'fixture'}}));
+const compatibilityCases={
+ 'island':{source:'ziwei',content:{serviceType:'ziwei-island-palace-consult',palaceKey:'명궁',palaceTitle:'나의 중심',result:{sections:{last:{title:'저장된 궁의 편지',body:finalBody}}}},expected:finalBody},
+ 'naming-modern':{source:'legacy-naming',content:{engine:namingEngine,narration:namingModule.exports.deterministicNarration(namingEngine)},expected:'김'},
+ 'empty-body':{source:'paid-results',content:{},expected:'아직 읽을 수 있는 결과가 저장되지 않았어요.'},
+ 'legacy-text':{source:'legacy-naming',content:'과거 작명 상담의 마지막 본문',expected:'과거 작명 상담의 마지막 본문'},
+ 'generating-body':{source:'paid-results',status:'generating',content:{chapters:[{title:'저장된 첫 장',body:'생성 중 남아 있는 본문'}]},expected:'생성 중 남아 있는 본문'},
+ 'failed-body':{source:'paid-results',status:'failed',content:{chapters:[{title:'남아 있는 장',body:'실패 전 저장된 본문'}]},expected:'실패 전 저장된 본문'},
+ 'restricted':{source:'paid-results',content:{},expected:'취소·환불'},
+};
+for(const [id,row] of Object.entries(compatibilityCases))details[id]={record:record(row.source,id,{status:row.status||'completed'}),content:row.content};
 // Compile the small set of routes before exercising browser history. A cold
 // development compiler can invalidate its own manifest during a redirect.
 for(const pathname of ['/consultations/','/records/','/records/view/','/fortune-tea-house/']) {
@@ -56,6 +73,7 @@ for(const pathname of ['/consultations/','/records/','/records/view/','/fortune-
   }
   assert.ok(response?.ok,`local fixture route failed to warm: ${pathname}`);
 }
+const axeSource=fs.readFileSync('node_modules/axe-core/axe.min.js','utf8');
 const browser=await chromium.launch({headless:true}); const evidence=[];
 let debugState;
 async function contextFor(width,scenario='normal') {
@@ -84,14 +102,24 @@ async function contextFor(width,scenario='normal') {
         const offset=Number(url.searchParams.get('cursor')||0);
         data={ok:true,items:selected.slice(offset,offset+10),failures:scenario==='partial-error'?[{source:'fusion',name:'초융합 운세'}]:[],nextCursor:offset+10<selected.length?String(offset+10):scenario==='partial-error'?'24':null};
       }
-    } else if(url.pathname==='/api/records/detail')data={ok:true,...details[url.searchParams.get('id')==='broken'?'bias-partial':url.searchParams.get('id')==='partial'?'partial':url.searchParams.get('source')==='astrology'?'legacy':url.searchParams.get('source')]};
+    } else if(url.pathname==='/api/records/detail')data={ok:true,...details[details[url.searchParams.get('id')]?url.searchParams.get('id'):url.searchParams.get('id')==='broken'?'bias-partial':url.searchParams.get('id')==='partial'?'partial':url.searchParams.get('source')==='astrology'?'legacy':url.searchParams.get('source')]};
     else if(url.pathname.startsWith('/api/fortune-tea-house/results/'))data={ok:true,result:tea};
     else if(url.pathname.startsWith('/api/profile'))data={ok:true,profiles:[],currentId:''};
     else if(/subscription|access-state|pass/.test(url.pathname))data={ok:true,user,subscription:{tier:'none',isActive:false},access:{unlocked:[],features:{}},entitlements:[]};
+    if(url.pathname==='/api/records/detail'&&url.searchParams.get('id')==='restricted'){status=403;data={ok:false};}
     return route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
   });
   const page=await context.newPage();page.setDefaultNavigationTimeout(120000);page.setDefaultTimeout(60000);page.on('pageerror',error=>errors.push(error.message));
   debugState={context,page,seen,forbidden,errors};return debugState;
+}
+async function audit(page) {
+  await page.addScriptTag({content:axeSource});
+  const result=await page.evaluate(async()=>{
+    const axe=await window.axe.run(document.querySelector('main'),{runOnly:{type:'rule',values:['color-contrast','button-name','link-name','label','aria-valid-attr-value']}});
+    const controls=[...document.querySelectorAll('main button,main a,main summary,main input')].filter(n=>n.getClientRects().length);
+    return {violations:axe.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))})),incomplete:axe.incomplete.map(v=>({id:v.id,count:v.nodes.length})),smallTargets:controls.filter(n=>n.getBoundingClientRect().height<43.9||n.getBoundingClientRect().width<43.9).map(n=>({text:n.textContent.trim().slice(0,45),width:n.getBoundingClientRect().width,height:n.getBoundingClientRect().height})),smallInputs:controls.filter(n=>n.matches('input')&&parseFloat(getComputedStyle(n).fontSize)<16).length,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches};
+  });
+  return result;
 }
 async function bounds(page,width) {
   await page.waitForFunction(()=>{const main=document.querySelector('main');return main&&parseFloat(getComputedStyle(main).paddingBottom)>=110;});
@@ -99,7 +127,7 @@ async function bounds(page,width) {
   assert.ok(box.scroll<=width+1,`overflow ${box.scroll} > ${width}`);assert.ok(box.bottom>=110,'navigation safe spacing');
   const previous=await page.evaluate(()=>scrollY);await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));await page.waitForTimeout(100);
   const end=await page.evaluate(()=>{const nav=document.querySelector('nav.cd-mnav');const last=[...document.querySelectorAll('main article,main a,main button')].filter(node=>node.getClientRects().length).at(-1);return {lastBottom:last?.getBoundingClientRect().bottom,navTop:nav&&getComputedStyle(nav).display!=='none'?nav.getBoundingClientRect().top:innerHeight};});
-  assert.ok(typeof end.lastBottom==='number' && end.lastBottom<=Math.min(end.navTop,844)+1,JSON.stringify(end));await page.evaluate(y=>window.scrollTo(0,y),previous);return {...box,end};
+  assert.ok(typeof end.lastBottom==='number' && end.lastBottom<=Math.min(end.navTop,844)+1,JSON.stringify(end));await page.evaluate(y=>window.scrollTo(0,y),previous);const accessibility=await audit(page);assert.deepEqual(accessibility.violations,[],JSON.stringify(accessibility.violations));assert.deepEqual(accessibility.smallTargets,[],JSON.stringify(accessibility.smallTargets));assert.equal(accessibility.smallInputs,0);return {...box,end,audit:accessibility};
 }
 try {
   for(const width of detailOnly||stateOnly?[]:[360,390,430,1280].filter(width=>!process.env.RECORDS_TEST_WIDTH||width===Number(process.env.RECORDS_TEST_WIDTH))) {
@@ -131,8 +159,9 @@ try {
     if(scenario==='error')assert.equal(await state.page.getByText('아직 보관된 기록이 없어요',{exact:true}).count(),0);
     await state.page.screenshot({path:path.join(out,`archive-${scenario}.png`),fullPage:true});evidence.push({scenario,passed:true,api:state.seen});await state.context.close();
   }
-  for(const source of (stateOnly||hubOnly?[]:['neo','fusion','codex','chat','chat-consultation','tea','astrology','partial','destiny-bias','bias-partial']).filter(source=>!detailOnly||source===detailOnly)) {
-    const state=await contextFor(390);const actual=source==='partial'?'fusion':source==='bias-partial'?'destiny-bias':source;
+  for(const source of (stateOnly||hubOnly?[]:['neo','fusion','codex','chat','chat-consultation','tea','astrology','partial','destiny-bias','bias-partial']).filter(source=>!detailOnly||detailOnly.split(',').includes(source))) {
+    for(const width of [360,390,430,1280].filter(width=>!process.env.RECORDS_TEST_WIDTH||width===Number(process.env.RECORDS_TEST_WIDTH))) {
+    const state=await contextFor(width);const actual=source==='partial'?'fusion':source==='bias-partial'?'destiny-bias':source;
     await state.page.goto(origin+savedRecordPath(actual,source==='tea'?'tea-fixture':source==='partial'?'partial':source==='bias-partial'?'broken':'fixture'),{waitUntil:'domcontentloaded'});
     if(source==='tea')await state.page.getByText('[화면 검증] 연이의 상담 기록',{exact:true}).waitFor();
     else if(source==='codex')await state.page.waitForSelector('#master-love-codex-document');
@@ -164,8 +193,43 @@ try {
       await state.page.getByRole('button',{name:/FRONT/}).waitFor();
     }
     if(source==='codex')await state.page.waitForFunction(()=>Array.from(document.images).filter(img=>img.src.includes('CodeDestinyNovel')).every(img=>img.complete&&img.naturalWidth>0));
-    await bounds(state.page,390);assert.equal(state.errors.length,0,JSON.stringify(state.errors));await state.page.screenshot({path:path.join(out,`reading-${source}.png`),fullPage:true});evidence.push({scenario:'direct-refresh-'+source,passed:true,...(source==='codex'?{portrait:'offline local character fixture; production R2 unverified'}:{}),api:state.seen});await state.context.close();
+    if(source==='chat-consultation')await state.page.waitForFunction(()=>{const node=document.querySelector('[data-saved-consultation]');return node&&getComputedStyle(node).getPropertyValue('--ink').trim()==='#f4ead6';});
+    if(source==='fusion')assert.equal(await state.page.getByRole('button',{name:/접기/}).count(),0);
+    const layout=await bounds(state.page,width);assert.equal(state.forbidden.length,0,JSON.stringify(state.forbidden));assert.equal(state.errors.length,0,JSON.stringify(state.errors));await state.page.screenshot({path:path.join(out,`reading-${source}-${width}.png`),fullPage:true});evidence.push({scenario:'direct-refresh-'+source,width,layout,passed:true,...(source==='codex'?{portrait:'offline local character fixture; production R2 unverified'}:{}),api:state.seen});await state.context.close();
+  }
+
+  }
+  for(const [key,fixture] of (stateOnly||hubOnly?[]:Object.entries({...additionalSourceFixtures,...sharedFeatureFixtures})).filter(([key])=>!detailOnly||detailOnly.split(',').includes(key))) {
+    for(const width of [360,390,430,1280].filter(width=>!process.env.RECORDS_TEST_WIDTH||width===Number(process.env.RECORDS_TEST_WIDTH))) {
+      const state=await contextFor(width), shared=!!sharedFeatureFixtures[key];
+      await state.page.goto(origin+savedRecordPath(shared?'paid-results':key,shared?key:'fixture'),{waitUntil:'domcontentloaded'});
+      await state.page.getByText(finalBody,{exact:false}).first().waitFor();
+      await state.page.reload({waitUntil:'domcontentloaded'});
+      await state.page.getByText(finalBody,{exact:false}).first().waitFor();
+      for(const summary of await state.page.locator('main details > summary').all()) {
+        await summary.click(); await summary.click();
+      }
+      assert.equal(state.errors.length,0,JSON.stringify(state.errors));assert.equal(state.forbidden.length,0,JSON.stringify(state.forbidden));
+      if(key==='vedic_ai_prompt_generator'){assert.equal(await state.page.getByText('VedicChartResult',{exact:true}).count(),0);assert.equal(await state.page.getByRole('button',{name:/PDF/}).first().isEnabled(),true);}
+      const layout=await bounds(state.page,width);
+      await state.page.screenshot({path:path.join(out,`reading-${key}-${width}.png`),fullPage:true});
+      evidence.push({scenario:'source-feature-'+key,width,passed:true,layout,api:state.seen});await state.context.close();
+    }
+  }
+
+  if(!detailOnly&&!hubOnly&&!stateOnly)for(const [id,row] of Object.entries(compatibilityCases)) {
+   for(const width of ([ 'island','naming-modern' ].includes(id)?[360,390,430,1280]:[390]).filter(width=>!process.env.RECORDS_TEST_WIDTH||width===Number(process.env.RECORDS_TEST_WIDTH))) {
+    const state=await contextFor(width);
+    await state.page.goto(origin+savedRecordPath(row.source,id),{waitUntil:'domcontentloaded'});
+    await state.page.getByText(row.expected,{exact:id!=='naming-modern'}).first().waitFor();
+    await state.page.reload({waitUntil:'domcontentloaded'});
+    await state.page.getByText(row.expected,{exact:id!=='naming-modern'}).first().waitFor();
+    if(id==='naming-modern'){const choices=state.page.locator('main button[aria-pressed]');if(await choices.count()>2){await choices.nth(2).click();await choices.nth(3).click();await choices.nth(3).click();}}
+    assert.equal(state.errors.length,0,JSON.stringify(state.errors));assert.equal(state.forbidden.length,0);
+    await state.page.screenshot({path:path.join(out,`compatibility-${id}-${width}.png`),fullPage:true});
+    evidence.push({scenario:'compatibility-'+id,width,passed:true,layout:await bounds(state.page,width),api:state.seen});await state.context.close();
+   }
   }
 } catch(error){console.log('Fixture browser failure',debugState?.page.url(),debugState?.errors,debugState?.seen,await debugState?.page.locator('body').innerText());throw error;}
-finally {fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify(evidence,null,2));await browser.close();}
+finally {fs.writeFileSync(path.join(out,`verification-${detailOnly||stateOnly||(hubOnly?'hub':'all')}-${process.env.RECORDS_TEST_WIDTH||'all'}.json`),JSON.stringify(evidence,null,2));await browser.close();}
 console.log(`PASS ${evidence.length} browser scenarios — fixtures only; provider/payment/write requests zero.`);

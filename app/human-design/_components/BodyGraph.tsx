@@ -48,6 +48,7 @@ type Props = {
    * 이 모드가 없으면 반쯤 그려진 채널이 PDF 에 실린다.
    */
   staticRender?: boolean;
+  highContrast?: boolean;
 };
 
 const MIN_ZOOM = 1;
@@ -84,7 +85,7 @@ function halfPath(path: ChannelPath, half: "a" | "b"): string {
   return `M${from.x} ${from.y}Q${control.x} ${control.y} ${path.mid.x} ${path.mid.y}`;
 }
 
-export default function BodyGraph({ chart, locale, selection, onSelect, interactive = true, staticRender = false }: Props) {
+export default function BodyGraph({ chart, locale, selection, onSelect, interactive = true, staticRender = false, highContrast = false }: Props) {
   const ghost = chart === null;
   /** 탭·확대·도구 줄이 붙는 조건. 고스트는 원래 상호작용이 없었으므로 함께 묶는다. */
   const live = interactive && !ghost;
@@ -282,6 +283,7 @@ export default function BodyGraph({ chart, locale, selection, onSelect, interact
     <figure
       className={styles.wrap}
       data-ghost={ghost ? "true" : undefined}
+      data-high-contrast={highContrast ? "true" : undefined}
       data-static={staticRender ? "true" : undefined}
     >
       <div className={styles.stage}>

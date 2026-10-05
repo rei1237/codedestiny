@@ -462,3 +462,5 @@
 .wrap[data-static="true"] .stage {
   max-width: 100%;
 }
+
+.wrap[data-high-contrast="true"] { --hd-idle:var(--hd-ink-dim); --hd-undefined-stroke:var(--hd-ink-dim); }

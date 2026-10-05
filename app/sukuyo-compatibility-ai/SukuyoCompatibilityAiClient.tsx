@@ -1972,3 +1972,11 @@ export default function SukuyoCompatibilityAiClient() {
     </main>
   );
 }
+
+/** Saved records use only the display components, never the access/generation controller. */
+export function SavedSukuyoSummary({ value }: { value: unknown }) {
+  const result = value && typeof value === 'object' ? value as Partial<CompatResult> : {};
+  const meta = result.meta;
+  if (!meta?.person_a || !meta.person_b || !meta.relation || !meta.scores || !['destiny','harmony','emotion','growth','stability','total'].every(key => typeof meta.scores[key] === 'number' && Number.isFinite(meta.scores[key]))) return null;
+  return <div><CompatSummaryHeader meta={meta}/>{meta.axes && <AxisStarSection axes={meta.axes} notes={result.scoreNotes} forceVisible/>}<TraitCompareTable a={meta.person_a} b={meta.person_b}/></div>;
+}

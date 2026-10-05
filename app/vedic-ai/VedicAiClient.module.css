@@ -2025,3 +2025,13 @@
     transition: none !important;
   }
 }
+
+/* Stored report labels retain contrast without altering the generation screen. */
+.savedReading .chartDataGrid dt,
+.savedReading .chartSummaryCard small { color:var(--vd-text-dim); }
+.savedReading .medallionSans,
+.savedReading .cardLabelSans,
+.savedReading .structuredHeader p,
+.savedReading .chartDetail summary { color:var(--vd-saffron-lit); }
+
+.savedReading button {min-height:44px;min-width:44px;}

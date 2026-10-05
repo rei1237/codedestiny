@@ -26,11 +26,12 @@ import { useFusionSharedCopy } from "./_lib/copy";
 import { countSectionChars, countTimingChars, readingMinutes } from "./_lib/reading";
 import styles from "./fusion-fortune.module.css";
 
-export function FusionResultThread({ result, openSection, onToggleSection, exporting, stageTwoGenerating = false }: {
+export function FusionResultThread({ result, openSection, onToggleSection, exporting, readOnly = false, stageTwoGenerating = false }: {
   result: Result;
   openSection: string;
   onToggleSection: (key: string) => void;
   exporting: boolean;
+  readOnly?: boolean;
   /** 1단계만 도착했고 2단계 스트림이 도는 중 — 요약·시기·판정 자리에 대기 말풍선을 둔다. */
   stageTwoGenerating?: boolean;
 }) {
@@ -75,7 +76,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
         <ThreadBubble systemKey={systemKey} deferRender exporting={exporting}>
           <ThreadSpeaker label={systemKey === "fusion" ? expertCopy.narrator : copy.systemLabels[systemKey]} meta={sectionMeta(countSectionChars(result[key]))} />
           <h3 className="m-0">
-            <button
+            {readOnly ? <span className={`${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)]`}>{result[key].title}</span> : <button
               type="button"
               aria-expanded={expanded}
               aria-controls={`fusion-section-${key}`}
@@ -84,7 +85,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
             >
               <span className="min-w-0">{result[key].title}</span>
               <b className="shrink-0 rounded-full border border-white/[0.16] px-3 py-1 text-[0.74rem] font-normal text-white/75">{expanded ? copy.collapseButton : copy.viewEvidenceButton}</b>
-            </button>
+            </button>}
           </h3>
           {keySentence && <p className="m-0 mt-3.5 grid max-w-[72ch] grid-cols-1 gap-2 rounded-xl bg-black/25 px-4 py-3.5 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-baseline sm:gap-3.5">
             <span className="text-[0.7rem] uppercase tracking-[0.2em] text-[color:var(--tint-label)]">{copy.keySentenceLabel}</span>
@@ -108,7 +109,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
         <ThreadBubble systemKey="fusion" deferRender exporting={exporting}>
           <ThreadSpeaker label={copy.whenWhatSpeaker} meta={sectionMeta(countTimingChars(result.timingAndAction))} />
           <h3 className="m-0">
-            <button
+            {readOnly ? <span className={`${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)]`}>{result.timingAndAction.title}</span> : <button
               type="button"
               aria-expanded={expanded}
               aria-controls="fusion-section-timing"
@@ -117,7 +118,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
             >
               <span className="min-w-0">{result.timingAndAction.title}</span>
               <b className="shrink-0 rounded-full border border-white/[0.16] px-3 py-1 text-[0.74rem] font-normal text-white/75">{expanded ? copy.collapseButton : copy.viewActionButton}</b>
-            </button>
+            </button>}
           </h3>
           {expanded && <div id="fusion-section-timing" className="mt-3 border-t border-white/[0.07] pt-4">
             <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.timingAndAction.content}</p>

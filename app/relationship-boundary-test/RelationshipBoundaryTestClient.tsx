@@ -12,7 +12,8 @@ import { useAuthStore, refreshAuth } from "@/app/_lib/auth-store";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { runRelationshipReader } from "@/lib/relationship-paid-reader.js";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
-import { chapterScene, gradeScene, type Grade } from "./scenes";
+import { type Grade } from "./scenes";
+import { RelationshipReportHero, RelationshipReportChapters } from "./RelationshipReportParts";
 
 const FEATURE_KEY = "relationship-boundary-test";
 const RESUME_KIND = "relationship-boundary-test";
@@ -155,17 +156,9 @@ export default function RelationshipBoundaryTestClient({ embedded = false }: { e
 
   if (result) {
     const complete = result.status === "completed";
-    const gradeLabel = result.grade === "high" ? "경계를 선명하게 할 때" : result.grade === "medium" ? "거리 조절을 살펴볼 때" : "약속을 이어 가는 힘";
-    const hero = gradeScene(result.grade);
     return <main className={embedded ? "rt-page rt-page--embedded" : "rt-page"}><article className="rt-shell">
       {/* 등급 컷이 히어로다 — 8장 중 유일하게 결과값에 따라 달라지고, 유일한 16:9 라 모바일에서 점수를 가리지 않는다. */}
-      <figure className="rt-hero-scene">
-        <Image src={hero.src} alt={hero.alt} width={hero.width} height={hero.height} sizes="(max-width: 760px) 100vw, 760px" priority={!embedded} />
-        <figcaption className="rt-hero-overlay">
-          <div className="rt-score-row"><div><p className="rt-score-label">관계 경계 지수</p><h2 className="rt-score-level">{gradeLabel}</h2></div><div className="rt-score-number">{result.score}<small> / 100</small></div></div>
-          <div className="rt-gauge" role="meter" aria-label="관계 경계 지수" aria-valuemin={0} aria-valuemax={100} aria-valuenow={result.score}><span style={{width: result.score + "%"}} /></div>
-        </figcaption>
-      </figure>
+      <RelationshipReportHero grade={result.grade} score={result.score} priority={!embedded} />
       <div className="rt-body">
         {!complete && <div className="rt-summary" aria-live="polite"><p>{result.completedParts?.length || 0}/{result.totalParts || 11} 부분 저장 · {working ? "다음 장면을 쓰고 있어요." : "저장된 장면부터 읽을 수 있어요."}</p>{error && <p role="alert">{error}</p>}<button type="button" disabled={working} className="min-h-11 underline" onClick={() => void recover()}>{working ? "이어서 작성 중" : "같은 결과 이어서 생성하기"}</button></div>}
         {!embedded && <h1 className="rt-title">그 사람의 바람끼는?</h1>}
@@ -174,17 +167,7 @@ export default function RelationshipBoundaryTestClient({ embedded = false }: { e
         <h2 className="rt-why-title">이 사람은 왜 이런 흐름이 나왔을까?</h2>
         <ul className="rt-factor-list">{result.scoreFactors.map((factor, index) => <li className="rt-factor-item" key={index}><Sparkles aria-hidden="true" size={16} /><p>{factor}</p></li>)}</ul>
         <nav aria-label="리포트 목차" className="my-6 flex flex-wrap gap-x-4 gap-y-2">{result.sections.map((section, index) => <a className="min-h-11 py-2 underline" key={index} href={`#relationship-chapter-${index}`} onClick={() => { setReadingChapter(index); if (readingKey) try { localStorage.setItem(readingKey, String(index)); } catch {} }}>{index + 1}. {section.title}</a>)}<a className="min-h-11 py-2 underline" href={`#relationship-chapter-${readingChapter}`}>읽던 장으로 이동</a></nav>
-        <div className="rt-reading">{result.sections.map((section, index) => {
-          // 🔴 임베드(iframe)에서는 장면을 그리지 않는다. 부모가 iframe 높이를 콘텐츠 전체
-          //    높이로 맞춰 두어서 lazy 로딩도 sticky 도 성립하지 않는다.
-          const scene = embedded ? null : chapterScene(index);
-          return <section className="rt-reading-chapter" id={`relationship-chapter-${index}`} style={{ scrollMarginTop: "7rem" }} key={index}>
-            {scene && <figure className="rt-scene"><Image src={scene.src} alt={scene.alt} width={scene.width} height={scene.height} sizes="(max-width: 760px) 100vw, 760px" loading="lazy" decoding="async" /></figure>}
-            <span className="rt-chapter-number">{String(index + 1).padStart(2, "0")}</span><h2>{section.title}</h2>
-            {!section.body && <p>이 장면을 작성하고 있어요.</p>}
-            {section.body.split(/\n\s*\n/).filter(Boolean).map((paragraph, paragraphIndex) => <p key={paragraphIndex}>{paragraph}</p>)}
-          </section>;
-        })}</div>
+        <RelationshipReportChapters sections={result.sections} embedded={embedded} />
         {complete && <><aside className="rt-one-line"><strong>관계를 위한 마지막 메시지</strong><p>{result.finalMessage}</p></aside><button type="button" className="mt-6 min-h-11 underline" onClick={() => { remember(null, ""); requestIdRef.current = ""; setResult(null); setTarget(EMPTY_TARGET); setPhase("form"); setError(""); const url = new URL(location.href); url.searchParams.delete("sessionId"); history.replaceState(history.state, "", url); }}>새 대상 분석하기</button></>}
       </div>
     </article></main>;

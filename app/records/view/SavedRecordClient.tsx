@@ -8,6 +8,8 @@ import { recordsCopy } from '@/lib/records/copy';
 import RecordFrame, { recordButton } from '../RecordFrame';
 import type { SavedRecord } from '../RecordsClient';
 import StoredReading from './StoredReading';
+import { readingView } from '@/lib/records/reading-registry';
+import styles from '../records.module.css';
 
 type Detail = { ok: boolean; record: SavedRecord; content: unknown };
 export default function SavedRecordClient() {
@@ -41,15 +43,15 @@ export default function SavedRecordClient() {
     })();
     return () => controller.abort();
   }, [auth.authReady, auth.isAuthenticated, user, source, id, retry, c.error, c.revoked]);
-  return <RecordFrame title={detail?.record.title || c.result} lead={detail?.record.serviceName} view="result">
+  return <RecordFrame title={detail?.record.title || c.result} lead={detail?.record.serviceName} view="result" reading={readingView(source, detail?.record.serviceId || "").family}>
     {auth.status === 'error' || auth.status === 'temporarilyOffline' ? <section role="alert" className="space-y-3"><h2 className="text-xl font-semibold">{c.error}</h2><button className={recordButton} onClick={() => void refreshAuth({silent:true}).catch(() => {})}>{c.retry}</button></section> : auth.authReady && !auth.isAuthenticated ? <section className="space-y-3"><h2 className="text-xl font-semibold">{c.loginTitle}</h2><p>{c.loginLead}</p><a className={recordButton} href={`/login/?next=${encodeURIComponent(`/records/view/?source=${encodeURIComponent(source)}&id=${encodeURIComponent(id)}`)}`}>{c.login}</a></section> : <>
       {loading && <p role="status">{c.loading}</p>}
       {error && <section role="alert" className="space-y-3"><h2 className="text-xl font-semibold">{error}</h2><button className={recordButton} onClick={() => setRetry(old => old + 1)}>{c.retry}</button></section>}
       {detail && <>
-        {detail.record.question && <p className="mb-6 whitespace-pre-wrap break-words text-base leading-relaxed">{detail.record.question}</p>}
+        {detail.record.question && <p className={styles.readingQuestion}>{detail.record.question}</p>}
         {!['completed', 'saved', 'conversation'].includes(detail.record.status) && <section role="status" className="mb-6 space-y-3 rounded-[var(--cd-r-card)] border border-[var(--cd-border)] p-4"><p className="font-semibold">{(c as Record<string,string>)[detail.record.status] || c.saved}</p><p>{detail.record.status==='refund_pending'?c.refundLead:c.partialLead}</p><a className={recordButton} href={detail.record.recoveryHref || '/points/history/'}>{c.recover}</a></section>}
-        <StoredReading source={source} serviceId={detail.record.serviceId} value={detail.content} />
-        <div className="mt-8 flex flex-wrap gap-3"><a className={recordButton} href="/records/">{c.back}</a><a className={recordButton} href={detail.record.startHref}>{c.newConsult}</a></div>
+        <StoredReading source={source} serviceId={detail.record.serviceId} status={detail.record.status} value={detail.content} />
+        <div className={styles.readingActions}><a className={recordButton} href="/records/">{c.back}</a><a className={recordButton} href={detail.record.startHref}>{c.newConsult}</a></div>
       </>}
     </>}
   </RecordFrame>;

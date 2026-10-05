@@ -5,6 +5,7 @@ import { useLocale } from '@/lib/i18n/useT';
 import { recordsCopy } from '@/lib/records/copy';
 import { PriceBadge } from '@/app/components/PriceBadge';
 import RecordFrame, { recordButton } from '@/app/records/RecordFrame';
+import styles from '@/app/records/records.module.css';
 
 const hubTranslations: Record<string, Record<string, [string, string, string]>> = {
   en: {
@@ -38,16 +39,18 @@ const hubTranslations: Record<string, Record<string, [string, string, string]>> 
 };
 export default function ConsultationHub() {
   const locale = useLocale(), c = recordsCopy(locale);
+  const renderService = (service: typeof RECORD_SERVICES[number]) => {
+    const [name, description, format] = locale === 'ko' ? [service.name, service.description, service.format] : hubTranslations[locale]?.[service.id] || hubTranslations.en[service.id];
+    return <article key={service.id} className={styles.consultation} data-service={service.id}>
+      <div className={styles.consultArt}><img src={service.image} alt="" width="640" height="360" loading="lazy" /></div>
+      <div className={styles.consultCopy}><h2>{name}</h2><p className={styles.consultDescription}>{description}</p><p className={styles.consultFormat}>{format}</p>
+        <div className={styles.consultActions}><div className="space-y-1 text-sm font-semibold"><p>{c.price} {service.id === 'codex' && (locale === 'ko' ? '개인판 ' : 'Personal ')}<PriceBadge featureKey={service.featureKey} className="font-semibold text-[var(--cd-accent)]" /></p>{service.id === 'codex' && <p>{locale === 'ko' ? '궁합판 ' : 'Compatibility '}<PriceBadge featureKey="master-love-codex-compat" className="font-semibold text-[var(--cd-accent)]" /></p>}</div><a className={recordButton} href={service.href}>{c.detail}<ArrowUpRight size={16} aria-hidden /></a></div>
+      </div>
+    </article>;
+  };
   return <RecordFrame title={c.hubTitle} lead={c.hubLead} view="hub">
-    <div className="space-y-5">{RECORD_SERVICES.filter(service => service.featured || service.hub).sort((a,b) => Number(!!b.featured) - Number(!!a.featured)).map(service => {
-      const [name, description, format] = locale === 'ko' ? [service.name, service.description, service.format] : hubTranslations[locale]?.[service.id] || hubTranslations.en[service.id];
-      return <article key={service.id} className={`overflow-hidden rounded-[var(--cd-r-section)] border border-[var(--cd-border)] bg-[var(--cd-surface)] ${service.featured ? 'sm:flex' : 'flex items-start'}`}>
-        <img src={service.image} alt="" width="640" height="360" loading="lazy" className={service.featured ? 'aspect-[16/9] w-full object-cover sm:aspect-square sm:w-48 sm:self-stretch' : 'm-4 mr-0 aspect-square w-16 shrink-0 rounded-[var(--cd-r-md)] object-cover sm:w-24'} />
-        <div className="min-w-0 flex-1 p-5 sm:p-6"><h2 className="text-xl font-bold">{name}</h2><p className="mt-2 text-base leading-relaxed">{description}</p><p className="mt-3 text-sm leading-relaxed text-[var(--cd-text-muted)]">{format}</p>
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3"><div className="space-y-1 text-sm font-semibold"><p>{c.price} {service.id === 'codex' && (locale === 'ko' ? '개인판 ' : 'Personal ')}<PriceBadge featureKey={service.featureKey} className="font-semibold text-[var(--cd-accent)]" /></p>{service.id === 'codex' && <p>{locale === 'ko' ? '궁합판 ' : 'Compatibility '}<PriceBadge featureKey="master-love-codex-compat" className="font-semibold text-[var(--cd-accent)]" /></p>}</div><a className={recordButton} href={service.href}>{c.detail}<ArrowUpRight size={16} aria-hidden /></a></div>
-        </div>
-      </article>;
-    })}</div>
-    <section className="mt-9 border-t border-[var(--cd-border)] pt-7"><h2 className="text-xl font-semibold">{c.characters}</h2><p className="mt-2 leading-relaxed text-[var(--cd-text-muted)]">{c.charactersLead}</p><div className="mt-4 flex flex-wrap gap-3"><a className={recordButton} href="/fortune-chat/?character=yeoni">{c.yeoni}</a><a className={recordButton} href="/fortune-chat/?character=neo">{c.neo}</a></div></section>
+    <div className={styles.featured}>{RECORD_SERVICES.filter(service => service.featured).map(renderService)}</div>
+    <div className={styles.secondary}>{RECORD_SERVICES.filter(service => service.hub && !service.featured).map(renderService)}</div>
+    <section className={styles.characters}><h2>{c.characters}</h2><p>{c.charactersLead}</p><div className={styles.characterLinks}><a className={recordButton} href="/fortune-chat/?character=yeoni"><img src="/images/fortune-tea-house/flower-pig-honey-hug.webp" alt="" width="48" height="48" loading="lazy" />{c.yeoni}<ArrowUpRight size={16} aria-hidden /></a><a className={recordButton} href="/fortune-chat/?character=neo"><img src="/neo-operation-room/lion-seal-loading.webp" alt="" width="48" height="48" loading="lazy" />{c.neo}<ArrowUpRight size={16} aria-hidden /></a></div></section>
   </RecordFrame>;
 }

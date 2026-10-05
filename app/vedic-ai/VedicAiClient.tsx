@@ -2412,13 +2412,13 @@ function bhavaRows(chart: Record<string, unknown>) {
   }));
 }
 
-function dashaRows(chart: Record<string, unknown>) {
+function dashaRows(chart: Record<string, unknown>, savedOnly = false) {
   const vimshottari = asRecord(chart.vimshottariDasha);
   const legacyDasha = asRecord(chart.dasha);
   const periods = Array.isArray(vimshottari.periods)
     ? vimshottari.periods.map(asRecord)
     : (Array.isArray(legacyDasha.periods) ? legacyDasha.periods.map(asRecord) : []);
-  return periods.slice(0, 10).map((period) => ({
+  return (savedOnly ? periods : periods.slice(0, 10)).map((period) => ({
     lord: chartDisplayValue(period.lord),
     startDate: chartDisplayValue(period.startDate, String(period.start || "").slice(0, 10)),
     endDate: chartDisplayValue(period.endDate, String(period.end || "").slice(0, 10)),
@@ -2426,7 +2426,7 @@ function dashaRows(chart: Record<string, unknown>) {
   }));
 }
 
-function BasicVedicChartData({ chart }: { chart: Record<string, unknown> }) {
+function BasicVedicChartData({ chart, savedOnly = false }: { chart: Record<string, unknown>; savedOnly?: boolean }) {
   const copy = useVedicAiCopy();
   const lagna = chartPoint(chart, "lagna");
   const moon = chartPoint(chart, "moon");
@@ -2437,9 +2437,9 @@ function BasicVedicChartData({ chart }: { chart: Record<string, unknown> }) {
   const currentMahadasha = asRecord(vimshottari.currentMahadasha);
   const hasLagna = Boolean(chart.lagna && typeof chart.lagna === "object");
   const rows = [
-    ["Zodiac", chartDisplayValue(config.zodiac, "sidereal")],
+    ["Zodiac", chartDisplayValue(config.zodiac, savedOnly ? undefined : "sidereal")],
     ["Ayanamsa", chartDisplayValue(config.ayanamsa, chart.ayanamsa)],
-    ["Bhava", chartDisplayValue(config.bhavaSystem, "whole-sign")],
+    ["Bhava", chartDisplayValue(config.bhavaSystem, savedOnly ? undefined : "whole-sign")],
     [copy.lagnaBilingual, hasLagna ? joinChartValues(chartPointSign(lagna), lagna.degreeInRashi || lagna.degree, lagna.nakshatra, lagna.pada ? copy.padaSuffix(toText(lagna.pada)) : "") : copy.birthTimeRequiredFallback],
     [copy.moonNakshatraBilingual, joinChartValues(moonNakshatra.name || chartPointNakshatra(moon), moonNakshatra.pada ? copy.padaSuffix(toText(moonNakshatra.pada)) : moon.pada ? copy.padaSuffix(toText(moon.pada)) : "", moonNakshatra.lord)],
     [copy.currentDashaBilingual, chartDisplayValue(currentMahadasha.lord, dasha.currentLord, dasha.currentMahadasha)],
@@ -2447,7 +2447,7 @@ function BasicVedicChartData({ chart }: { chart: Record<string, unknown> }) {
   const planets = planetRows(chart, copy);
   const rashis = rashiRows(chart);
   const bhavas = bhavaRows(chart);
-  const dashas = dashaRows(chart);
+  const dashas = dashaRows(chart, savedOnly);
   // vimshottariDasha.currentMahadasha에 시작/종료 날짜가 없을 때(레거시 저장분 등),
   // 같은 다샤 목(lord)의 상세 기간 행에서 날짜를 대신 가져온다.
   const currentDashaLord = chartDisplayValue(currentMahadasha.lord, dasha.currentLord, dasha.currentMahadasha);
@@ -2457,7 +2457,7 @@ function BasicVedicChartData({ chart }: { chart: Record<string, unknown> }) {
     <section className={styles.basicChartData} aria-label={copy.chartDetailAriaLabel}>
       <div className={styles.basicChartHeader}>
         <span>{copy.chartDetailHeading}</span>
-        <strong>VedicChartResult</strong>
+        {!savedOnly && <strong>VedicChartResult</strong>}
       </div>
       {!hasLagna ? (
         <p className={styles.chartNotice}>{copy.noLagnaNotice}</p>
@@ -2792,12 +2792,14 @@ export function StructuredReadingResult({
   name,
   basis = null,
   completed = true,
+  savedOnly = false,
 }: {
   reading: { scores: Record<string, unknown>; sections: Record<string, unknown> };
   chart: Record<string, unknown>;
   name: string;
   basis?: AnalysisBasis | null;
   completed?: boolean;
+  savedOnly?: boolean;
 }) {
   const copy = useVedicAiCopy();
   const lagna = chartPoint(chart, "lagna");
@@ -2841,7 +2843,7 @@ export function StructuredReadingResult({
   const dashaMeta = getGrahaMeta(String(currentMahadasha.lord || dasha.currentLord || ""));
 
   return (
-    <div className={styles.structuredResult} id="vedic-result-body">
+    <div className={`${styles.structuredResult} ${savedOnly ? styles.savedReading : ""}`} id="vedic-result-body">
       <div className={styles.structuredHeader}>
         <div className={styles.structuredHeaderTitle}>
           <p>{copy.jyotishEyebrow}</p>
@@ -2908,11 +2910,11 @@ export function StructuredReadingResult({
       </div>
 
       <div className={styles.revealItem} style={{ animationDelay: "280ms" }}>
-        <BasicVedicChartData chart={chart} />
+        <BasicVedicChartData chart={chart} savedOnly={savedOnly} />
       </div>
 
       <section className={`${styles.scorePanel} ${styles.revealItem}`} style={{ animationDelay: "350ms" }}>
-        {Object.entries(copy.scoreLabels).map(([key, label]) => (
+        {Object.entries(copy.scoreLabels).filter(([key])=>!savedOnly || (typeof reading.scores[key]==='number' && Number.isFinite(reading.scores[key]))).map(([key, label]) => (
           <div key={key}>
             <span>{label}({key})</span>
             <strong>{scoreValue(reading.scores[key])}</strong>

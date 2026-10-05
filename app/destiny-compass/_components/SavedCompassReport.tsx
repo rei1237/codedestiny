@@ -14,13 +14,19 @@ export function SavedCompassReport({ reportId }: { reportId: string }) {
     <p role="status" aria-live="polite">{sections.length} / 10</p>
     {report.error && <p role="alert">{report.error}</p>}
     {report.canRetryWaveB && <button type="button" onClick={report.retryWaveB}>{copy.retrySynthesisButton}</button>}
-    <details className={styles.outline}><summary>{copy.deepReportGateReason}</summary>
-    <nav aria-label={copy.deepReportGateReason} className={styles.contents}>
+    <CompassSavedChapters sections={sections.filter((s): s is NonNullable<typeof s> => !!s)} title={copy.deepReportGateReason} />
+  </main>;
+}
+
+export function CompassSavedChapters({sections,title}: {sections:{key:string;title:string;body:string}[];title:string}) {
+ return <div className={styles.reading}>
+    <details className={styles.outline}><summary>{title}</summary>
+    <nav aria-label={title} className={styles.contents}>
       {sections.map(section => <a key={section!.key} href={`#saved-${section!.key}`}>{section!.title}</a>)}
     </nav></details>
     {sections.map(section => <section key={section!.key} id={`saved-${section!.key}`} className={styles.chapter} data-saved-compass-chapter>
       <h2>{section!.title}</h2>
       <div className={styles.body}>{section!.body}</div>
     </section>)}
-  </main>;
+ </div>;
 }

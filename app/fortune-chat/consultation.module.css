@@ -268,7 +268,8 @@
 /* ── 네오 세계: 별빛 전략실. 기존 네오 화면(남색 #050713·금색 #f8e7b6)과 같은 계열.
    🔴 표면·글자·강조색을 한 세트로 바꾼다(반쪽 테마 금지). 강조 버튼은 금색 위 남색 글자다.
    `main.starlight` 로 .room(다른 모듈의 클래스 하나)보다 확실히 이긴다. ── */
-main.starlight {
+main.starlight,
+.starlight[data-saved-consultation] {
   color-scheme: dark;
   --ink: #f4ead6;
   --muted: #bdb6d0;

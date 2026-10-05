@@ -26,7 +26,7 @@ export default function SavedTeaReading({ resultId }: Props) {
       .catch(() => { if (!controller.signal.aborted) setError(true); });
     return () => controller.abort();
   }, [auth.authReady, auth.isAuthenticated, user, resultId, retry]);
-  return <RecordFrame title={c.result} view="result">
+  return <RecordFrame title={c.result} view="result" reading="tea">
     {!auth.isAuthenticated && auth.authReady ? <a className={recordButton} href={`/login/?next=${encodeURIComponent(`/fortune-tea-house/?resultId=${encodeURIComponent(resultId)}`)}`}>{c.login}</a> : error ? <section role="alert" className="space-y-3"><p>{c.error}</p><button className={recordButton} onClick={() => setRetry(old => old + 1)}>{c.retry}</button></section> : result ?
       <TeaHouseResultSheet result={result} readOnly onRestart={() => window.location.assign('/fortune-tea-house/')} onShowTarot={() => document.querySelector('[data-tea-report-mode]')?.scrollIntoView()} onEditBirthInfo={() => window.location.assign('/fortune-tea-house/')} honeyDrops={null} onHoneyDropsChange={() => {}} onResultUpdate={setResult} /> : <p role="status">{c.loading}</p>}
   </RecordFrame>;

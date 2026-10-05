@@ -27,7 +27,7 @@ const ANGLE_AXIS_COLOR: Record<"ASC" | "MC" | "DSC" | "IC", string> = {
   IC: "rgba(134,239,172,0.68)",
 };
 
-export default function AstrologyChartWheel({ chart, className = "" }: { chart: RawWesternChart; className?: string }) {
+export default function AstrologyChartWheel({ chart, className = "", highContrast = false }: { chart: RawWesternChart; className?: string; highContrast?: boolean }) {
   const data = normalizeChartData(chart);
   const ascRotation = data.angles.asc?.absoluteDegree ?? 0;
   const signs = getZodiacSigns();
@@ -40,9 +40,9 @@ export default function AstrologyChartWheel({ chart, className = "" }: { chart: 
 
   return (
     <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className={className} role="img" aria-label="출생 천궁도">
-      <circle cx={CENTER} cy={CENTER} r={SIGN_RING_R} fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="1" />
-      <circle cx={CENTER} cy={CENTER} r={HOUSE_RING_R} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-      <circle cx={CENTER} cy={CENTER} r={ASPECT_RING_R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+      <circle cx={CENTER} cy={CENTER} r={SIGN_RING_R} fill="none" stroke={highContrast ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.14)"} strokeWidth="1" />
+      <circle cx={CENTER} cy={CENTER} r={HOUSE_RING_R} fill="none" stroke={highContrast ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.1)"} strokeWidth="1" />
+      <circle cx={CENTER} cy={CENTER} r={ASPECT_RING_R} fill="none" stroke={highContrast ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.08)"} strokeWidth="1" />
 
       {/* 황도 12궁 눈금 + 글리프 */}
       {signs.map((sign) => {
@@ -55,7 +55,7 @@ export default function AstrologyChartWheel({ chart, className = "" }: { chart: 
         return (
           <g key={sign.key}>
             <path d={describeArc(CENTER, CENTER, SIGN_RING_R, startAngle, endAngle)} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="14" />
-            <line x1={tick.x} y1={tick.y} x2={tickInner.x} y2={tickInner.y} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+            <line x1={tick.x} y1={tick.y} x2={tickInner.x} y2={tickInner.y} stroke={highContrast ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.1)"} strokeWidth="1" />
             <text x={label.x} y={label.y} textAnchor="middle" dominantBaseline="middle" fontSize="13" fill="rgba(226,222,255,0.75)">
               {sign.glyph}
             </text>
@@ -73,8 +73,8 @@ export default function AstrologyChartWheel({ chart, className = "" }: { chart: 
         const isAngleHouse = house.house === 1 || house.house === 10;
         return (
           <g key={house.house}>
-            <line x1={outer.x} y1={outer.y} x2={inner.x} y2={inner.y} stroke={isAngleHouse ? "rgba(251,191,36,0.5)" : "rgba(255,255,255,0.12)"} strokeWidth={isAngleHouse ? 1.6 : 1} />
-            <text x={label.x} y={label.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="rgba(226,222,255,0.5)">
+            <line x1={outer.x} y1={outer.y} x2={inner.x} y2={inner.y} stroke={highContrast ? "rgba(226,222,255,0.75)" : isAngleHouse ? "rgba(251,191,36,0.5)" : "rgba(255,255,255,0.12)"} strokeWidth={isAngleHouse ? 1.6 : 1} />
+            <text x={label.x} y={label.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill={highContrast ? "rgba(226,222,255,0.85)" : "rgba(226,222,255,0.5)"}>
               {house.house}
             </text>
           </g>
@@ -92,7 +92,7 @@ export default function AstrologyChartWheel({ chart, className = "" }: { chart: 
           <line
             key={aspect.id}
             x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y}
-            stroke={ASPECT_COLOR[aspect.type]}
+            stroke={highContrast ? ASPECT_COLOR[aspect.type].replace(/[\d.]+\)$/, "0.85)") : ASPECT_COLOR[aspect.type]}
             strokeWidth={aspect.type === "conjunction" ? 1 : 1.2}
             strokeDasharray={aspect.type === "opposition" || aspect.type === "square" ? "4 3" : undefined}
           />

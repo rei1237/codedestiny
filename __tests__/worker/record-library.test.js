@@ -193,3 +193,16 @@ test('shared Codex and life-book stores retain the actual billing variant and di
   const legacy=library.recordMetadata(recordService('life-book'),{id:'legacy',llmMeta:{input:{consultationType:'lifeFortune'}},featureKey:'life-book-ai-consultation'});
   expect(legacy.serviceName).toBe('인생 총운');expect(legacy.serviceId).toBe('life-book-ai-consultation');
 });
+
+test('every shared product retains its display identity and complete saved body',async()=>{
+  const { SAVED_FEATURES }=await import('../../lib/records/service-registry.js');
+  for(const [featureId,feature] of Object.entries(SAVED_FEATURES)) {
+    const chapters=Array.from({length:7},(_,index)=>({title:`저장된 장 ${index+1}`,body:`저장된 본문 ${index+1}`}));
+    stores.paid_execution_records=[seed('1','01',{featureId,result:{report:{chapters}}})];
+    const detail=await library.readRecord(owner,'paid-results','000000000000000000000001');
+    expect(detail.record.serviceId).toBe(featureId);
+    expect(detail.record.serviceName).toBe(feature.name);
+    expect(detail.content.report.chapters).toEqual(chapters);
+    expect(detail.content.report.chapters[6].body).toBe('저장된 본문 7');
+  }
+});

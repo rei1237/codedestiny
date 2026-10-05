@@ -13,3 +13,7 @@
 
 .outline { margin-block: 24px; }
 .outline summary { cursor: pointer; min-height: 44px; padding-block: 12px; color: #e4d4ff; }
+
+.reading { background:#100e23; color:#f5efff; padding:clamp(16px,3vw,32px); border-radius:12px; }
+.reading a { color:#e4d4ff; }
+.reading :focus-visible { outline:3px solid #ddbdff; outline-offset:4px; }

@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
-import { Search, ArrowUpRight } from 'lucide-react';
+import { Search, ArrowUpRight, BookOpen, MessageCircleHeart } from 'lucide-react';
 import { authFetch } from '@/app/_lib/auth-client';
 import { getAuthState, refreshAuth, useAuthStore } from '@/app/_lib/auth-store';
 import { useLocale } from '@/lib/i18n/useT';
 import { recordsCopy } from '@/lib/records/copy';
 import RecordFrame, { recordButton } from './RecordFrame';
+import { recordService } from '@/lib/records/service-registry';
+import styles from './records.module.css';
 
 export type SavedRecord = { id: string; source: string; key: string; serviceId: string; serviceName: string; title: string; question: string; createdAt: string | null; status: string; character: string; group: string; href: string; startHref: string; nativeHref: string; recoveryHref?: string };
 type Page = { ok: boolean; items: SavedRecord[]; failures: { source: string; name: string }[]; nextCursor?: string | null; retryCursor?: string };
@@ -81,18 +83,24 @@ export default function RecordsClient() {
   const statusLabel = (status: string) => (c as Record<string, string>)[status] || c.saved;
   return <RecordFrame title={c.title} lead={c.lead}>
     {auth.status === 'error' || auth.status === 'temporarilyOffline' ? <section role="alert" className="space-y-3 py-8"><h2 className="text-xl font-semibold">{c.error}</h2><p>{c.errorLead}</p><button className={recordButton} onClick={() => void refreshAuth({ silent: true }).catch(() => {})}>{c.retry}</button></section> : auth.authReady && !auth.isAuthenticated ? <section className="space-y-3 py-8"><h2 className="text-xl font-semibold">{c.loginTitle}</h2><p>{c.loginLead}</p><a className={recordButton} href="/login/?next=%2Frecords%2F">{c.login}</a></section> : <>
-      <div className="mb-5 space-y-4">
-        <label className="flex min-h-12 items-center gap-3 rounded-[var(--cd-r-control)] border border-[var(--cd-border)] bg-[var(--cd-surface)] px-4 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--cd-accent)]"><Search size={20} aria-hidden /><span className="sr-only">{c.search}</span><input type="search" value={search} onChange={event => { restore.current = { y: 0, pages: 1 }; setSearch(event.target.value); }} placeholder={c.search} className="min-w-0 flex-1 bg-transparent py-3 text-base outline-none placeholder:text-[var(--cd-text-muted)]" /></label>
-        <div className="flex flex-wrap gap-2" aria-label={c.title}>{(['all','report','chat','chart'] as const).map(value => <button key={value} type="button" className={`${recordButton} ${group === value ? 'bg-[var(--cd-accent-soft)] text-[var(--cd-text)] ring-1 ring-[var(--cd-accent)]' : ''}`} aria-pressed={group === value} onClick={() => { restore.current = { y: 0, pages: 1 }; setGroup(value); }}>{c[value]}</button>)}</div>
+      <div className={styles.tools}>
+        <label className={styles.search}><Search size={20} aria-hidden /><span className="sr-only">{c.search}</span><input type="search" value={search} onChange={event => { restore.current = { y: 0, pages: 1 }; setSearch(event.target.value); }} placeholder={c.search} className="min-w-0 flex-1 bg-transparent py-3 text-base outline-none placeholder:text-[var(--cd-text-muted)]" /></label>
+        <div className={styles.filters} aria-label={c.title}>{(['all','report','chat','chart'] as const).map(value => <button key={value} type="button" className={`${recordButton} ${group === value ? 'bg-[var(--cd-accent-soft)] text-[var(--cd-text)] ring-1 ring-[var(--cd-accent)]' : ''}`} aria-pressed={group === value} onClick={() => { restore.current = { y: 0, pages: 1 }; setGroup(value); }}>{c[value]}</button>)}</div>
         <p className="text-sm text-[var(--cd-text-muted)]">{c.latest}</p>
       </div>
       {!!failures.length && <section role="status" className="mb-5 rounded-[var(--cd-r-card)] border border-[var(--cd-border)] p-4"><p className="font-semibold">{c.partialError}</p><p className="my-2 text-sm">{failures.map(item => item.name).join(' · ')}</p><button className={recordButton} onClick={() => void loadMore()} disabled={loading}>{c.retry}</button></section>}
       {error && <section role="alert" className="mb-5 space-y-3 rounded-[var(--cd-r-card)] border border-[var(--cd-border)] p-5"><h2 className="font-semibold">{c.error}</h2><p>{c.errorLead}</p><button className={recordButton} onClick={() => cursor ? void loadMore() : setRetry(old => old + 1)} disabled={loading}>{c.retry}</button></section>}
-      <div className="space-y-3">{items.map(item => <article key={item.key} className="min-w-0 rounded-[var(--cd-r-card)] border border-[var(--cd-border)] bg-[var(--cd-surface)] p-5">
-        <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--cd-text-muted)]"><span className="font-semibold">{item.serviceName}</span><span>{statusLabel(item.status)}</span>{item.character && <span>{item.character === 'neo' ? '네오' : '연이'}</span>}</div>
-        <h2 className="line-clamp-2 break-words text-lg font-semibold leading-relaxed">{item.title}</h2>{item.question && <p className="mt-2 line-clamp-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--cd-text-muted)]">{item.question}</p>}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3"><time dateTime={item.createdAt || undefined} className="text-sm tabular-nums text-[var(--cd-text-muted)]">{item.createdAt ? new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(item.createdAt)) : ''}</time><a className={recordButton} href={item.href}>{['completed','conversation','saved'].includes(item.status) ? c.open : c.result}<ArrowUpRight size={16} aria-hidden /></a></div>
-      </article>)}</div>
+      <div className={styles.shelf}>{items.map(item => {
+        const service = recordService(item.source);
+        return <article key={item.key} className={styles.record}>
+          {service?.image ? <img className={styles.recordArt} src={service.image} alt="" width="76" height="100" loading="lazy" /> : <span className={styles.recordSymbol} aria-hidden="true">{item.group === 'chat' ? <MessageCircleHeart size={26} /> : <BookOpen size={26} />}</span>}
+          <div className={styles.recordBody}>
+            <div className={styles.recordMeta}><strong>{item.serviceName}</strong><span>{statusLabel(item.status)}</span>{item.character && <span>{item.character === 'neo' ? '네오' : '연이'}</span>}</div>
+            <h2 className="line-clamp-2">{item.title}</h2>{item.question && <p className={`${styles.recordQuestion} line-clamp-2`}>{item.question}</p>}
+            <div className={styles.recordFooter}><time dateTime={item.createdAt || undefined}>{item.createdAt ? new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(item.createdAt)) : ''}</time><a className={recordButton} href={item.href}>{['completed','conversation','saved'].includes(item.status) ? c.open : c.result}<ArrowUpRight size={16} aria-hidden /></a></div>
+          </div>
+        </article>;
+      })}</div>
       {loading && <div role="status" className="my-5 space-y-3"><p className="text-sm">{c.loading}</p>{!items.length && [1,2,3].map(id => <div key={id} aria-hidden className="h-36 animate-pulse rounded-[var(--cd-r-card)] bg-[var(--cd-surface)]" />)}</div>}
       {!loading && !error && !failures.length && !items.length && <section className="space-y-3 py-9"><h2 className="text-xl font-semibold">{search || group !== 'all' ? c.emptySearch : c.empty}</h2><p className="text-[var(--cd-text-muted)]">{c.emptyLead}</p><a className={recordButton} href="/consultations/">{c.hub}</a></section>}
       {cursor && !loading && <button className={`${recordButton} mt-5 w-full`} onClick={() => void loadMore()}>{c.more}</button>}
