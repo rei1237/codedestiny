@@ -18,3 +18,8 @@ export function splitLocaleSitemaps(xml) {
     urls.join("\n") + '\n</urlset>\n',
   ]));
 }
+
+// Keep the aggregate URL set for existing consumers; advertise one index to crawlers.
+export function sitemapIndex(siteUrl) {
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + SITEMAP_LOCALES.map(locale => `  <sitemap><loc>${siteUrl}/sitemap-${locale}.xml</loc></sitemap>`).join("\n") + '\n</sitemapindex>\n';
+}

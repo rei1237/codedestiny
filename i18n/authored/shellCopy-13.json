@@ -28,7 +28,7 @@
     "ms": "Search by reading name, worry, or a former service name."
   },
   "home.gardenCopy.heroTitle": {
-    "ko": "오늘의 마음을",
+    "ko": "꿀꿀운세에서",
     "en": "A little clarity",
     "ja": "今日の気持ちを",
     "zh-CN": "今天的心事",
@@ -56,7 +56,7 @@
     "ms": "for your heart"
   },
   "home.gardenCopy.heroLead": {
-    "ko": "꽃돼지 연이의 운세 정원",
+    "ko": "코드데스티니 · 꽃돼지 연이의 운세 정원",
     "en": "Yeoni’s fortune garden",
     "ja": "花ブタ・ヨニの占いの庭",
     "zh-CN": "花猪妍伊的运势花园",
@@ -350,7 +350,7 @@
     "ms": "Try other words or clear some filters."
   },
   "home.gardenCopy.neoHeroTitle": {
-    "ko": "복잡한 고민,",
+    "ko": "꿀꿀운세에서",
     "en": "A tangled question,",
     "ja": "複雑な悩み、",
     "zh-CN": "纷乱的烦恼，",
@@ -378,7 +378,7 @@
     "ms": "a clearer next step"
   },
   "home.gardenCopy.neoHeroLead": {
-    "ko": "네오의 별빛 전략실",
+    "ko": "코드데스티니 · 네오의 별빛 전략실",
     "en": "Neo’s starlit strategy room",
     "ja": "ネオの星明かり戦略室",
     "zh-CN": "尼奥的星光策略室",
@@ -530,5 +530,47 @@
     "de": "See my bias chemistry",
     "nl": "See my bias chemistry",
     "ms": "See my bias chemistry"
+  },
+  "home.gardenCopy.brandOtherEntry": {
+    "ko": "꿀꿀운세 영냥이 사주·타로 →",
+    "en": "Ggulggul Fortune: Yeongnyangi Saju & Tarot →",
+    "ja": "Ggulggul Fortune：ヨンニャンイの四柱推命・タロット →",
+    "zh-CN": "Ggulggul Fortune：灵喵四柱与塔罗 →",
+    "zh-TW": "Ggulggul Fortune：靈喵四柱與塔羅 →",
+    "vi": "Ggulggul Fortune: Saju và Tarot với Yeongnyangi →",
+    "hi": "Ggulggul Fortune: Yeongnyangi साजू और टैरो →",
+    "es": "Ggulggul Fortune: Saju y tarot con Yeongnyangi →",
+    "fr": "Ggulggul Fortune : Saju et tarot avec Yeongnyangi →",
+    "de": "Ggulggul Fortune: Saju und Tarot mit Yeongnyangi →",
+    "nl": "Ggulggul Fortune: Saju en tarot met Yeongnyangi →",
+    "ms": "Ggulggul Fortune: Saju dan Tarot bersama Yeongnyangi →"
+  },
+  "home.gardenCopy.publicRecordsTitle": {
+    "ko": "10년 경력 명리학자 박병하(네오)의 공개 분석 기록",
+    "en": "Public analysis records by Park Byung-ha (Neo), a Saju practitioner with 10 years of experience",
+    "ja": "10年の経験を持つ四柱推命家パク・ビョンハ（ネオ）の公開分析記録",
+    "zh-CN": "十年经验命理学者朴秉河（Neo）的公开分析记录",
+    "zh-TW": "十年經驗命理學者朴秉河（Neo）的公開分析紀錄",
+    "vi": "Hồ sơ phân tích công khai của Park Byung-ha (Neo), chuyên gia Saju với 10 năm kinh nghiệm",
+    "hi": "10 वर्षों के अनुभव वाले साजू विशेषज्ञ Park Byung-ha (Neo) के सार्वजनिक विश्लेषण अभिलेख",
+    "es": "Análisis públicos de Park Byung-ha (Neo), especialista en Saju con 10 años de experiencia",
+    "fr": "Analyses publiques de Park Byung-ha (Neo), spécialiste du Saju avec 10 ans d’expérience",
+    "de": "Öffentliche Analysen von Park Byung-ha (Neo), Saju-Berater mit 10 Jahren Erfahrung",
+    "nl": "Openbare analyses van Park Byung-ha (Neo), Saju-adviseur met 10 jaar ervaring",
+    "ms": "Rekod analisis awam Park Byung-ha (Neo), pengamal Saju berpengalaman 10 tahun"
+  },
+  "home.gardenCopy.publicRecordsLink": {
+    "ko": "날짜·원문·일치 범위 확인하기",
+    "en": "Compare dates, original posts and outcomes",
+    "ja": "日付・原文・一致する範囲を確認",
+    "zh-CN": "查看日期、原文与吻合范围",
+    "zh-TW": "查看日期、原文與吻合範圍",
+    "vi": "Đối chiếu ngày, bài gốc và kết quả",
+    "hi": "तारीखें, मूल लेख और परिणाम की तुलना करें",
+    "es": "Comparar fechas, textos originales y resultados",
+    "fr": "Comparer les dates, textes originaux et résultats",
+    "de": "Daten, Originaltexte und Ergebnisse vergleichen",
+    "nl": "Vergelijk datums, oorspronkelijke teksten en uitkomsten",
+    "ms": "Bandingkan tarikh, catatan asal dan hasil"
   }
 }

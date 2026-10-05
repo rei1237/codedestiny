@@ -1,3 +1,4 @@
+import PublicRecordLink from '../components/PublicRecordLink';
 import ServiceIntroduction from "./ServiceIntroduction";
 import PressCoverage from "../components/PressCoverage";
 import { policyPageClass } from "../components/PolicyGuide";
@@ -53,6 +54,7 @@ export default function AboutPage() {
   return (
     <main className="about-service-page">
       <ServiceIntroduction text={aboutPageText} />
+      <div className="cd-main-shell"><PublicRecordLink /></div>
       <div id="service-details" className={`cd-main-shell ${policyPageClass}`}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <header><h2>{aboutPageText("title")}</h2><p>{aboutPageText("intro")}</p></header>

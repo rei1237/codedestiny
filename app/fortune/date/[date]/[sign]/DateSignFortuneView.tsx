@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { brandCopy } from "@/lib/seo/brand-copy.mjs";
 import type { DateSignViewModel } from "@/lib/fortune/build-view";
 
 const CARD = "rounded-2xl border border-[#f4bed1]/70 bg-white/85 p-5 dark:border-[rgba(244,190,209,0.30)] dark:bg-[#2e0a20]/60";
@@ -26,7 +27,7 @@ function ScoreBar({ label, score }: { label: string; score: number }) {
   );
 }
 
-export default function DateSignFortuneView({ vm }: { vm: DateSignViewModel }) {
+export default function DateSignFortuneView({ vm, faqs }: { vm: DateSignViewModel; faqs: { question: string; answer: string }[] }) {
   const { profile, entry, score } = vm;
   const [year, month, day] = vm.date.split("-").map(Number);
   const dateTitleLabel = `${year}년 ${month}월 ${day}일`;
@@ -137,6 +138,14 @@ export default function DateSignFortuneView({ vm }: { vm: DateSignViewModel }) {
             <Link href="/fortune/monthly" className="inline-flex min-h-11 items-center rounded-full border border-[#b31955]/35 bg-[#b31955]/[0.06] px-4 text-sm font-bold text-[#b31955] dark:text-[rgba(255,196,222,0.96)]">월간 운세 허브</Link>
             <Link href="/saju/monthly/2026-09" className="inline-flex min-h-11 items-center rounded-full border border-[#b31955]/35 bg-[#b31955]/[0.06] px-4 text-sm font-bold text-[#b31955] dark:text-[rgba(255,196,222,0.96)]">일간별 월간 사주 운세</Link>
           </div>
+        </section>
+
+        <section className="mt-8" aria-labelledby="date-faq-heading">
+          <h2 id="date-faq-heading" className="text-lg font-extrabold">{brandCopy('faqHeading')}</h2>
+          {faqs.map(faq => <details key={faq.question} className={`mt-3 ${CARD}`}>
+            <summary className="cursor-pointer font-bold">{faq.question}</summary>
+            <p className={`mt-3 text-sm leading-7 ${MUTED}`}>{faq.answer}</p>
+          </details>)}
         </section>
 
         <p className={`mt-12 break-keep text-xs leading-6 ${MUTED}`}>

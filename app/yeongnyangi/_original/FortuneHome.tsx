@@ -257,7 +257,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
           </section>
           <nav className="hero-secondary-links" aria-label="다른 서비스와 상담 기록">
             <a className="hero-free-invitation" href="/yeongnyangi/room/#daily-tarot">
-              <Image src="/assets/yeongnyangi/fish/reaction-anchovy.webp" width={144} height={144} alt="멸치를 들고 기다리는 영냥이"/>
+              <Image src="/assets/yeongnyangi/fish/reaction-anchovy-288.webp" width={144} height={140} alt="멸치를 들고 기다리는 영냥이"/>
               <span><strong>무료 운세, 나랑 놀다 갈래?</strong><span>오늘의 타로 세 장부터 가볍게 펼쳐봐.</span><b>무료 운세 보러 가기 <ArrowRight size={18}/></b></span>
             </a>
             <div className="hero-category-links">

@@ -196,11 +196,18 @@ async function assertLiveSitemap(localUrls) {
   const declarations = [...robots.matchAll(/^Sitemap:\s*(\S+)/gim)].map(match => match[1]);
   if (!declarations.length) fail("live robots.txt has no sitemap declarations");
   const liveSet = new Set();
-  for (const declared of declarations) {
+  const pending = [...declarations];
+  const visited = new Set();
+  while (pending.length) {
+    const declared = pending.shift();
+    if (visited.has(declared)) continue;
+    visited.add(declared);
+    if (visited.size > 20) fail("too many sitemap children");
     if (new URL(declared).origin !== LIVE_ORIGIN) fail("live robots sitemap must use the production host");
     const response = await fetch(declared, { signal: AbortSignal.timeout(30000) });
     if (response.status !== 200) fail(`declared sitemap is not 200: ${declared}`);
     const xml = await response.text();
+    if (xml.includes('<sitemapindex')) { pending.push(...parseSitemapUrls(xml)); continue; }
     if (!xml.includes('<urlset')) fail(`expected language URL sitemap: ${declared}`);
     for (const url of parseSitemapUrls(xml)) liveSet.add(url);
   }

@@ -12,12 +12,12 @@ const quickSection = home.match(/id="cdQuickServices"[\s\S]*?<\/section>/)?.[0] 
 assert.ok(quickSection, "홈 무료 바로 시작 섹션을 찾지 못했습니다");
 
 const expectedQuickLinks = [
-  'href="/?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry"',
-  'href="#tarotCollection" data-cd-open-collection="tarotCollection"',
+  'href="/saju/" data-action="cdOneStepFreeSajuEntry"',
+  'href="/tarot/" data-cd-open-collection="tarotCollection"',
   'href="/ziwei/chart/" data-action="openZiweiModal"',
-  'href="/index.html?action=openSukuyoModal" data-action="openSukuyoModal"',
-  'href="/index.html?action=openAstroModal" data-action="openAstroModal"',
-  'href="/index.html?action=navigateToVedic" data-action="navigateToVedic"',
+  'href="/sukuyo/" data-action="openSukuyoModal"',
+  'href="/astrology/" data-action="openAstroModal"',
+  'href="/vedic/" data-action="navigateToVedic"',
 ];
 for (const link of expectedQuickLinks) assert.ok(quickSection.includes(link), `직접 기능 링크가 없습니다: ${link}`);
 assert.doesNotMatch(quickSection, /openTarotModal/, 'home tarot opens the service library, not a card draw');
@@ -26,15 +26,7 @@ const template = read('templates/home-funnel.html');
 assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhServices"'), 'methods precede search');
 assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhMore"'), 'methods are outside the fold');
 
-for (const seoRoot of [
-  'href="/saju/" data-cd-service-id="saju"',
-  'href="/tarot/" data-action="openTarotModal" data-cd-service-id="tarot"',
-  'href="/ziwei/" data-action="openZiweiModal" data-cd-service-id="ziwei"',
-  'href="/sukuyo/" data-action="openSukuyoModal" data-cd-service-id="sukuyo"',
-  'href="/astrology/" data-action="openAstroModal" data-cd-service-id="astrology"',
-]) {
-  assert.equal(quickSection.includes(seoRoot), false, `SEO 허브 링크가 홈 바로가기에서 남아 있습니다: ${seoRoot}`);
-}
+assert.doesNotMatch(quickSection, /href="[^"]*\?action=/, "crawler links must use real hubs while JS actions remain available");
 
 for (const entry of [
   ['daily-fortune', '/today/', null],

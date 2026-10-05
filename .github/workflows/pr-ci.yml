@@ -247,6 +247,9 @@ jobs:
       # 라우트를 건너뛰었고 ②낡은 추적본으로 검증한 #1079 가 CI 에서 터졌으며 ③#1099 가
       # lastmod 52개를 낡은 채로 남겼다. 기존 verify:sitemap 은 배포 워크플로에만 있어
       # 전부 머지 뒤에야 알 수 있었다.
+      - name: Verify published birth-boundary examples against the service adapter
+        run: npm run verify:seo-birth-examples
+
       - name: Verify the tracked sitemap matches its sources
         run: npm run verify:sitemap-drift
 

@@ -1,3 +1,5 @@
+import { PUBLIC_RECORD_PATH } from './seo/public-record-copy.mjs';
+import { PRESS_COVERAGE } from './seo/press-coverage.mjs';
 import { toAbsoluteUrl } from "./seo";
 import { siteSeo } from "./seo/siteSeo";
 import { FUSION_FORTUNE_PROFILE } from "./seo/entity-registry.mjs";
@@ -40,7 +42,8 @@ export function buildAuthorPersonJsonLd() {
     jobTitle: SITE_AUTHOR.jobTitle,
     description: SITE_AUTHOR.description,
     knowsAbout: SITE_AUTHOR.knowsAbout,
-    url: `${siteSeo.siteUrl}/about`,
+    url: `${siteSeo.siteUrl}/about/`,
+    subjectOf: { "@type": "Article", url: `${siteSeo.siteUrl}${PUBLIC_RECORD_PATH}` },
     worksFor: {
       "@type": "Organization",
       "@id": `${siteSeo.siteUrl}/#organization`,
@@ -83,6 +86,7 @@ export function buildOrganizationJsonLd() {
     taxID: BUSINESS_IDENTITY.registrationNumber,
     founder: {
       "@type": "Person",
+      "@id": `${siteSeo.siteUrl}/#author`,
       name: BUSINESS_IDENTITY.representative,
     },
     knowsAbout: [
@@ -99,6 +103,7 @@ export function buildOrganizationJsonLd() {
       { "@type": "Thing", name: "서양 점성술" },
       { "@type": "Thing", name: "타로" },
     ],
+    subjectOf: { "@type": "NewsArticle", url: PRESS_COVERAGE.url, headline: PRESS_COVERAGE.headline, datePublished: PRESS_COVERAGE.datePublished },
     sameAs: siteSeo.sameAs,
   };
 }

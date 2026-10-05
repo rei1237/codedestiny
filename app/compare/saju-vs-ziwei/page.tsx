@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { comparisonCopy } from "@/lib/seo/intent-copy.mjs";
+import { SEO_READING_EXAMPLES } from "@/lib/seo-reading-examples";
 import GuideCta from "@/app/components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import { generatePageMetadata } from "@/lib/generate-page-metadata";
@@ -108,6 +110,17 @@ export default function SajuVsZiweiPage() {
           사주와 자미두수는 같은 생년월일을 재료로 쓰지만 서로 다른 것을 세웁니다. 사주는 태어난 순간을 네 기둥으로 세워 기질과 힘의 방향을 읽고, 자미두수는 열두 궁에 별을 배치해 삶의 영역별 흐름을 읽습니다. 그래서 두 결과가 다르게 보이는 것은 어느 한쪽이 틀렸기 때문이 아니라, 애초에 다른 질문에 답하고 있기 때문입니다.
         </p>
       </header>
+
+      <section className="cd-card">
+        <h2>{comparisonCopy.ko.heading}</h2>
+        <p>{SEO_READING_EXAMPLES['/saju'].input}</p>
+        <dl>
+          <dt>{comparisonCopy.ko.saju}</dt><dd>{SEO_READING_EXAMPLES['/saju'].fact}</dd>
+          <dt>{comparisonCopy.ko.ziwei}</dt><dd>{SEO_READING_EXAMPLES['/ziwei'].fact}</dd>
+        </dl>
+        <p>{comparisonCopy.ko.note}</p>
+        <Link href="/insights/how-we-calculate-saju/">{comparisonCopy.ko.link}</Link>
+      </section>
 
       <section className="cd-card">
         <h2>한눈에 보는 차이</h2>

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { publicRecordCopy, PUBLIC_RECORD_PATH } from '../lib/seo/public-record-copy.mjs';
 /**
  * llms.txt 생성기 (https://llmstxt.org).
  *
@@ -80,7 +81,8 @@ lines.push(
     "운세를 읽어 주는 한국어 웹 서비스입니다. 각 체계를 그 체계의 기준으로 해석하고, 무료 기본 결과와 선택형 유료 AI 상담의 범위는 각 안내 페이지에서 구분합니다.",
 );
 lines.push("");
-lines.push(`- 사이트: ${siteBaseUrl}/`);
+lines.push(`- 꿀꿀운세 연이·네오 공식 입구: ${siteBaseUrl}/ggulggul/`);
+lines.push(`- 꿀꿀운세 영냥이 공식 입구: ${siteBaseUrl}/yeongnyangi/`);
 lines.push(`- 다른 이름: ${aliasLine}`);
 lines.push(`- 운영자: 박병하(네오). 공개 분석 활동: https://blog.naver.com/neosaju · 소개: ${siteBaseUrl}/about/#author`);
 lines.push(`- 공식 서비스 블로그: https://blog.naver.com/goodbyejieun`);
@@ -114,6 +116,20 @@ for (const section of SECTIONS) {
   lines.push("");
 }
 
+lines.push("## 운영자와 공개 분석 기록");
+lines.push(publicRecordCopy.ko.author);
+lines.push('- 기록 정본: ' + siteBaseUrl + PUBLIC_RECORD_PATH);
+lines.push(publicRecordCopy.ko.provenance);
+lines.push(publicRecordCopy.ko.interval);
+lines.push(publicRecordCopy.ko.faqs[0].answer);
+lines.push("");
+lines.push("## 직접 공개하는 1차 자료와 인용 기준");
+lines.push("- 현재 계산 기준과 가상 입력의 실제 어댑터 결과: " + siteBaseUrl + "/insights/how-we-calculate-saju/");
+lines.push("- 23시·자정 경계의 입력과 네 기둥 비교: " + siteBaseUrl + "/insights/midnight-birth-day-pillar/");
+lines.push("- 같은 출생정보의 두 체계 비교: " + siteBaseUrl + "/compare/saju-vs-ziwei/");
+lines.push("- 분석 원문은 해당 공개자의 기록이며 실제 사건의 근거는 연결된 헌법재판소·선거관리위원회 자료입니다. 사이트의 회고 비교와 원문 분석을 구분해 인용하세요.");
+lines.push("인용에는 문서 제목·정본 URL·확인일을 함께 표시해 주세요. 계산 예시는 문화적 해석의 적중률을 검증한 자료가 아닙니다. 데이터 수정 시 본문과 변경일을 함께 고치며, 계산 예시의 값은 어댑터 검증으로 대조합니다. 날짜 운세는 해당 URL의 기준일을, 개인 상담 범위와 가격은 현재 서비스 안내를 확인하세요.");
+lines.push("");
 lines.push("## 이용");
 lines.push("");
 // 🔴 금액을 적지 않는다(파일 상단 주석 참고). 무료·유료의 **구조**만 밝힌다.

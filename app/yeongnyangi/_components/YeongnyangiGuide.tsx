@@ -1,3 +1,4 @@
+import PublicRecordLink from '@/app/components/PublicRecordLink';
 import {products,systemNames,packages,type Product} from '@/worker/yeongnyangi/payments/catalog';
 import {depthDescriptions} from '@/worker/yeongnyangi/fortune/reading-policy';
 import {consultationChapterCounts} from '@/worker/yeongnyangi/fortune/consultation-kinds';
@@ -44,6 +45,7 @@ export default function YeongnyangiGuide(){
    </ul>
   </section>
 
+  <PublicRecordLink />
   <section id="yn-example" aria-labelledby="yn-example-title">
    <h2 id="yn-example-title">상담 예시 한 단락</h2>
    <p className={styles.note}>아래는 가상 입력으로 만든 편집 예시예요. 실제 고객 데이터나 AI가 생성한 상담 원문이 아니에요.</p>

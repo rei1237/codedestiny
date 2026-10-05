@@ -1,3 +1,5 @@
+import PublicRecordLink from './PublicRecordLink';
+import { getIntentCopy } from '../../lib/seo/intent-copy.mjs';
 import {FreeQuestionNext} from "./QuestionJourney";
 import { Fragment } from "react";
 import Link from "next/link";
@@ -168,6 +170,7 @@ function SectionHead({ id, title, label }) {
 }
 
 export default function SeoLandingTemplate({ page, hero = null }) {
+  const intent = getIntentCopy(page?.path);
   const copy = page?.templateCopy || SEO_LANDING_TEMPLATE_COPY.ko;
   const faqs = mergeFaqs(page?.faqs);
   const topicProfile = getSeoRouteProfile(page?.path);
@@ -306,6 +309,9 @@ export default function SeoLandingTemplate({ page, hero = null }) {
           <h2 id="sajuIntroduction" className="font-[family-name:var(--font-serif)] text-2xl font-bold">사주, 나를 이해하는 여덟 글자</h2>
           <p className="mt-4 break-keep text-[0.98rem] leading-[1.9] text-[#51475c]">{page.intro || page.description}</p>
         </section>}
+
+        {intent && <PublicRecordLink />}
+        {intent && <p className="mt-5 text-sm leading-7"><Link href={intent.href} className="underline underline-offset-4">{intent.label}</Link></p>}
 
         {/* 세 덩어리는 성격이 다르다 — 순서(사용 방법), 목록(제공 결과), 각주(면책).
             같은 크기 카드 세 장으로 찍어내면 형태가 내용을 배신한다. */}

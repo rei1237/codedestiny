@@ -1,3 +1,4 @@
+import { publicRecordCopy, PUBLIC_RECORD_PATH } from '../../../lib/seo/public-record-copy.mjs';
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { INSIGHT_SEED_ARTICLES, getInsightSeedBySlug, getInsightSeedRelated } from "../seed-articles";
@@ -7,7 +8,7 @@ import { INSIGHT_SEO_TITLES } from "../seo-titles";
 import { INSIGHT_SEO_DESCRIPTIONS } from "../seo-descriptions";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { SEO_LANDING_PAGES } from "../../../lib/seo-landing-pages";
-import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/structured-data";
+import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd, buildAuthorPersonJsonLd } from "../../../lib/structured-data";
 import ContentIntegrityNote from "../../components/ContentIntegrityNote";
 import { FusionCrossSell } from "../../components/FusionCrossSell";
 import styles from "../insight-article.module.css";
@@ -60,6 +61,9 @@ const INSIGHT_DETAIL_PAGE_TEXT_TRANSLATIONS = {
 };
 
 function getStaticInsightImage(article) {
+  if (`/insights/${article?.slug}/` === PUBLIC_RECORD_PATH) {
+    return { src: article.ogImage, alt: publicRecordCopy.ko.heading, width: 1200, height: 630 };
+  }
   const bag = [
     article?.slug,
     article?.title,
@@ -221,6 +225,10 @@ export default async function InsightArticlePage({ params }) {
     datePublished: article.publishedAt || undefined,
     dateModified: article.updatedAt || undefined,
   });
+  if (slug === PUBLIC_RECORD_PATH.split('/').filter(Boolean).at(-1)) {
+    articleJsonLd.about = buildAuthorPersonJsonLd();
+    articleJsonLd.citation = publicRecordCopy.ko.rows.map(row => ({ '@type': 'CreativeWork', url: row.url, name: row.title, author: { '@id': 'https://code-destiny.com/#author' } }));
+  }
   const breadcrumb = buildBreadcrumbJsonLd([
     { name: "꿀꿀 운세 홈", path: "/" },
     { name: "운세 인사이트", path: "/insights" },
@@ -340,6 +348,7 @@ export default async function InsightArticlePage({ params }) {
           </section>
         ) : null}
       </article>
+      {['how-we-calculate-saju', 'midnight-birth-day-pillar', 'why-saju-results-differ-between-services', 'presidential-saju-public-records'].includes(slug) && article.faq?.length > 0 ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFaqPageJsonLd(article.faq)).replace(/</g, '\\u003c') }} /> : null}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
     </main>
