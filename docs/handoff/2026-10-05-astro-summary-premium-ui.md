@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-10-05
-next: "완료. §6 결제 목록 전체 동기화는 사용자 승인 대기(§10 완료 기록 참고)."
+next: "완료. §6 은 사용자 승인(10-05) 뒤 전체 카탈로그 동기화로 처리(§10 마지막 항목)."
 ---
 
 # 점성술 "차트 전체 요약" 서랍 고급화 + 낡은 결제 목록·범위 밖 결함 정리
@@ -253,3 +253,8 @@ next: "완료. §6 결제 목록 전체 동기화는 사용자 승인 대기(§1
   - 상단 바 이모지.
   - check:fast 의 yeongnyangi-tarot-spread-v3 플래키.
   - 1280 인용문의 한글 가짜 기울임.
+- §6 후속(10-05, 사용자 승인 "다음 단계 진행해"): 표시명 "점성술 앞으로 12개월 흐름" 커밋 c63aa9f09 → 생성기 재생성 단독 커밋.
+  - p0·purchase-journey 재생성. p0 priceKRW 변경 123건은 모두 현재 catalog 가격과 일치(불일치 0). 추가·삭제 0, 158종.
+  - 09-27 스냅샷은 그대로 두고 `docs/verification/paid-delivery-inventory-20261005.json` 새로 생성(paid-gate-auditor 판정: reliability 문서의 09-27 수치 69·10 보존).
+  - purchase-journey `--check` exit 0. entrypoints 는 여전히 [].
+  - 손대지 않음: `docs/payments/payment-inventory.*`(생성기 삭제됨, 09-08 수작업 스냅샷), `docs/payment-resume-audit/inventory.*`(CI 미배선).
