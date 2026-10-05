@@ -144,7 +144,7 @@
   });
 
   // 하단 탭 보관함·마이와 /?action= 딥링크의 진입점(index-inline-runtime.js 허용목록과 짝).
-  window.cdOpenLibrary = function () { return window.CodeDestinyShellSheet.open('cdLibrarySheet'); };
+  window.cdOpenLibrary = function () { window.location.assign('/records/'); return true; };
   window.cdOpenAccount = function () { return window.CodeDestinyShellSheet.open('cdAccountSheet'); };
 
   window.CodeDestinyShellSheet = {

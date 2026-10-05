@@ -190,7 +190,7 @@
   function bodyLabel(ctx, body) {
     var p = ctx.pos[body], parts = [KO[body]];
     parts.push(body === 'Moon' && ctx.moonSigns ? SIGN[ctx.moonSigns[0]] + ' 또는 ' + SIGN[ctx.moonSigns[1]] : SIGN[p.signIdx]);
-    if (p.house && body !== 'ASC' && body !== 'MC') parts.push(p.house + '번째 집');
+    if (p.house && body !== 'ASC' && body !== 'MC') parts.push(HOUSE_ARENA[p.house - 1] + '의 자리');
     return parts.join(' · ');
   }
   function evBody(ctx, body, aspect) {
@@ -204,7 +204,7 @@
     }
     return e;
   }
-  function evHouse(ctx, n) { var s = ctx.cuspSign(n); return { body: 'house', house: n, signIdx: s, label: n + '번째 집 · ' + SIGN[s] + '에서 시작' }; }
+  function evHouse(ctx, n) { var s = ctx.cuspSign(n); return { body: 'house', house: n, signIdx: s, label: HOUSE_ARENA[n - 1] + '의 자리 · ' + SIGN[s] + '에서 시작' }; }
 
   /* ── category factors ── */
   function factor(key, kind, w, data, ev) { return { key: key, kind: kind, w: w, data: data, ev: ev.filter(Boolean) }; }
@@ -258,7 +258,7 @@
     var pr = ctx.profection;
     if (!pr) return null;
     return factor('profection', 'profection', w, { house: pr.house, signIdx: pr.signIdx, lord: pr.lord, lordHouse: ctx.pos[pr.lord].house, anchor: !!anchor },
-      [{ body: 'profection', house: pr.house, signIdx: pr.signIdx, label: '올해의 주제 집 · ' + pr.house + '번째 집 · ' + SIGN[pr.signIdx] }, evBody(ctx, pr.lord)]);
+      [{ body: 'profection', house: pr.house, signIdx: pr.signIdx, label: '올해의 주제 · ' + HOUSE_ARENA[pr.house - 1] + '의 자리 · ' + SIGN[pr.signIdx] }, evBody(ctx, pr.lord)]);
   }
   function firdariaF(ctx, w) {
     var f = ctx.firdaria;
@@ -490,20 +490,20 @@
   };
   var HOUSE_EXTRA = ['특히 {at} 이런 모습이 잘 드러나요.', '{at} 이 힘이 자주 쓰여요.'];
   var HOUSE_FRAME = {
-    'love:5': '설렘의 자리인 5번째 집이 {sign}에서 시작해, {tone} 데이트에 마음이 열려요.',
-    'love:7': '짝의 자리인 7번째 집이 {sign}에서 시작해, {need:을} 주는 상대와 잘 맞아요.',
-    'money:8': '함께 나누는 돈의 자리인 8번째 집이 {sign}에서 시작해, 공동의 돈은 {manner} 다루는 게 좋아요.',
-    'people:11': '친구와 모임의 자리인 11번째 집이 {sign}에서 시작해, {tone} 모임에서 인연이 넓어져요.',
-    'people:7': '일대일 관계의 자리인 7번째 집이 {sign}에서 시작해, 가까운 사이엔 {need:이} 중요해요.',
-    'people:3': '말과 이웃의 자리인 3번째 집이 {sign}에서 시작해, 가까운 사람과는 {manner} 이야기해요.',
-    'work:6': '매일의 일을 맡는 6번째 집이 {sign}에서 시작해, 일과는 {manner} 꾸리는 게 맞아요.',
-    'heal:4': '집과 뿌리의 자리인 4번째 집이 {sign}에서 시작해, {tone} 공간에서 마음이 쉬어요.',
-    'heal:12': '혼자만의 쉼을 뜻하는 12번째 집이 {sign}에서 시작해, 쉴 때는 {manner} 비워 내는 게 좋아요.',
-    'heal:6': '몸의 리듬을 맡는 6번째 집이 {sign}에서 시작해, 생활 리듬은 {manner} 지키면 편해요.'
+    'love:5': '설렘의 자리가 {sign}에서 시작해, {tone} 데이트에 마음이 열려요.',
+    'love:7': '짝의 자리가 {sign}에서 시작해, {need:을} 주는 상대와 잘 맞아요.',
+    'money:8': '함께 나누는 돈의 자리가 {sign}에서 시작해, 공동의 돈은 {manner} 다루는 게 좋아요.',
+    'people:11': '친구와 모임의 자리가 {sign}에서 시작해, {tone} 모임에서 인연이 넓어져요.',
+    'people:7': '일대일 관계의 자리가 {sign}에서 시작해, 가까운 사이엔 {need:이} 중요해요.',
+    'people:3': '말과 이웃의 자리가 {sign}에서 시작해, 가까운 사람과는 {manner} 이야기해요.',
+    'work:6': '매일의 일을 맡는 자리가 {sign}에서 시작해, 일과는 {manner} 꾸리는 게 맞아요.',
+    'heal:4': '집과 뿌리의 자리가 {sign}에서 시작해, {tone} 공간에서 마음이 쉬어요.',
+    'heal:12': '혼자만의 쉼을 뜻하는 자리가 {sign}에서 시작해, 쉴 때는 {manner} 비워 내는 게 좋아요.',
+    'heal:6': '몸의 리듬을 맡는 자리가 {sign}에서 시작해, 생활 리듬은 {manner} 지키면 편해요.'
   };
   var RULER_LINE = {
-    money: '돈의 자리 주인인 {ruler:이} {n}번째 집에 있어, {at} 돈의 흐름이 생기기 쉬워요.',
-    work: '사회에서 보이는 모습의 주인인 {ruler:이} {n}번째 집에 있어, {at} 일의 실마리가 보여요.'
+    money: '돈의 자리를 다스리는 {ruler} 덕분에 {at} 돈의 흐름이 생기기 쉬워요.',
+    work: '사회에서 보이는 모습을 다스리는 {ruler} 덕분에 {at} 일의 실마리가 보여요.'
   };
   var OCC_FRAME = {
     'money:2': '돈의 자리에 {bodies:이} 있어, {force:이} 벌고 쓰는 방식에 묻어나요.',
@@ -512,8 +512,8 @@
   };
   var ASC_PEOPLE = '첫인상 별자리가 {sign:이라}, 새로운 사람과도 {manner} 관계를 시작해요.';
   var HOUSE_OF = {
-    'work:Sun': ['태양이 {n}번째 집에 있어, {at} 가장 당신답게 빛나요.'],
-    'heal:Neptune': ['해왕성이 {n}번째 집에 있어 {at} 마음이 쉽게 젖어 들어요.', '이 자리엔 부드러운 경계가 필요해요.']
+    'work:Sun': ['태양은 {at} 가장 당신답게 빛나요.'],
+    'heal:Neptune': ['해왕성의 영향으로 {at} 마음이 쉽게 젖어 들어요.', '이 자리엔 부드러운 경계가 필요해요.']
   };
   /* Pairs of bodies (in BODIES order): [easy, hard] clause after "A와 B가 …사이라". */
   var PAIR = {
@@ -684,7 +684,7 @@
         if (cat === 'growth' && d.body === 'Saturn') return [W.take([SIGN_STYLE.growth[d.signIdx][0] + '.']), extraLine(ctx, d.body, W)].filter(Boolean);
         return [W.take([fill((PLANET_ROLE[cat] || {})[d.body] || ROLE_FALLBACK, W.vars(d.signIdx, { body: KO[d.body] }))]), extraLine(ctx, d.body, W)].filter(Boolean);
       case 'cusp':
-        return [W.take([fill(HOUSE_FRAME[cat + ':' + d.house] || '{n}번째 집이 {sign}에서 시작해, 이 영역에서는 {manner} 움직여요.', W.vars(d.signIdx, { n: d.house }))])].filter(Boolean);
+        return [W.take([fill(HOUSE_FRAME[cat + ':' + d.house] || '{arena}의 자리가 {sign}에서 시작해, 이 영역에서는 {manner} 움직여요.', W.vars(d.signIdx, { n: d.house, arena: HOUSE_ARENA[d.house - 1] }))])].filter(Boolean);
       case 'angle':
         return [W.take([fill(ASC_PEOPLE, W.vars(d.signIdx))])].filter(Boolean);
       case 'occupants':
@@ -769,8 +769,8 @@
     if (st) {
       energy.push(W.take([st.kind === 'sign'
         ? fill('{bodies:이} 모두 {sign}에 모여 있어, 그 별자리의 색이 삶 전체에 짙게 배어 있어요.', { bodies: names(st.bodies), sign: SIGN[st.value] })
-        : fill('{bodies:이} 모두 {n}번째 집에 모여 있어, {arena:이} 삶의 큰 무대가 돼요.', { bodies: names(st.bodies), n: st.value, arena: HOUSE_ARENA[st.value - 1] })]));
-      energyEv.push('몰림 · ' + (st.kind === 'sign' ? SIGN[st.value] : st.value + '번째 집') + ' · ' + st.bodies.map(function (x) { return KO[x]; }).join('·'));
+        : fill('{bodies:이} 모두 {arena}의 자리에 모여 있어, 이 영역이 삶의 큰 무대가 돼요.', { bodies: names(st.bodies), n: st.value, arena: HOUSE_ARENA[st.value - 1] })]));
+      energyEv.push('몰림 · ' + (st.kind === 'sign' ? SIGN[st.value] : HOUSE_ARENA[st.value - 1] + '의 자리') + ' · ' + st.bodies.map(function (x) { return KO[x]; }).join('·'));
     }
     paras.push({ key: 'energy', title: '에너지의 결', text: energy.filter(Boolean), evidence: energyEv });
 
@@ -932,6 +932,157 @@
     out.push('</svg>');
     return out.join('');
   }
+  /* ── 기호 스프라이트: OS 기호 폰트·이모지 대신 한 굵기 선으로 그린 SVG. 문서에 한 번 넣고 <use> 로 부른다. ── */
+  var GLYPH = {
+    sun: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/>',
+    moon: '<path d="M18 5A8 8 0 1 0 18 19A9 9 0 0 1 18 5z"/>',
+    mercury: '<circle cx="12" cy="12" r="4.5"/><path d="M12 16.5V22M9.5 19.5h5M8 3a4.5 4.5 0 0 0 8 0"/>',
+    venus: '<circle cx="12" cy="9" r="5.5"/><path d="M12 14.5V22M8.5 18.5h7"/>',
+    mars: '<circle cx="10" cy="14" r="5.5"/><path d="M14 10l6-6M15 4h5v5"/>',
+    jupiter: '<path d="M5 7.5c1.5-3 6-3.5 6 .5 0 3-3 6-6 8.5h14M15.5 3v18"/>',
+    saturn: '<path d="M8 3v14M5 6h6M8 12c1.5-2.5 7-2.5 7 1.5 0 3-3 4.5-3 6.5 0 1.2 1 1.6 2 1"/>',
+    uranus: '<path d="M6 4v9M18 4v9M6 8.5h12M12 4v11"/><circle cx="12" cy="18" r="2.5"/>',
+    neptune: '<path d="M5 5v4a7 7 0 0 0 14 0V5M12 4v17M8 18h8"/>',
+    pluto: '<path d="M6.5 7a5.5 5.5 0 0 0 11 0"/><circle cx="12" cy="7" r="2.4"/><path d="M12 12.5V22M8.5 18.5h7"/>',
+    aries: '<path d="M12 21V10M12 10C12 5 9.5 3 7 3.5S3.5 7 5 9.5M12 10c0-5 2.5-7 5-6.5S20.5 7 19 9.5"/>',
+    taurus: '<circle cx="12" cy="15" r="5.5"/><path d="M4 4c1 4 4 5.5 8 5.5s7-1.5 8-5.5"/>',
+    gemini: '<path d="M5 4c4 1.5 10 1.5 14 0M5 20c4-1.5 10-1.5 14 0M9 5v14M15 5v14"/>',
+    cancer: '<circle cx="7" cy="9.5" r="2.5"/><circle cx="17" cy="14.5" r="2.5"/><path d="M7 7c4-3 9-2.5 12.5 1M17 17c-4 3-9 2.5-12.5-1"/>',
+    leo: '<circle cx="7" cy="15" r="3"/><path d="M10 15c0-5-1-11 4-11s5 4.5 3 8.5-2.5 6 0 7.5c1 .6 2 .3 3-.5"/>',
+    virgo: '<path d="M4 6c1.5 0 2 1 2 2.5V18M6 8.5c0-3 4-3 4 0V18M10 8.5c0-3 4-3 4 0V15c0 3 2.5 4.5 5.5 3.5M14 11c3-1.5 6 0 5 3.5S15.5 20 13 21"/>',
+    libra: '<path d="M4 20h16M4 16h5a3.5 3.5 0 1 1 6 0h5"/>',
+    scorpio: '<path d="M3 6c1.5 0 2 1 2 2.5V18M5 8.5c0-3 4-3 4 0V18M9 8.5c0-3 4-3 4 0V18c0 1.5 1 2 2.5 2H20M17.5 17.5L20 20l-2.5 2.5"/>',
+    sagittarius: '<path d="M5 19L19 5M12 5h7v7M7.5 11.5l5 5"/>',
+    capricorn: '<path d="M3.5 6c1.5 0 2.5 1 3 3l2 7 2.5-10v9c0 3 2 5 5 5a2.8 2.8 0 1 0-2.6-3.8"/>',
+    aquarius: '<path d="M3 10l3-3 3 3 3-3 3 3 3-3 3 3M3 16.5l3-3 3 3 3-3 3 3 3-3 3 3"/>',
+    pisces: '<path d="M6 4c3.5 3 3.5 13 0 16M18 4c-3.5 3-3.5 13 0 16M5.5 12h13"/>',
+    asc: '<path d="M12 20V5M7 10l5-5 5 5M5 20h14"/>',
+    dsc: '<path d="M12 4v15M7 14l5 5 5-5M5 4h14"/>',
+    mc: '<path d="M4 19V6l8 9 8-9v13"/>'
+  };
+  var SIGN_GLYPH = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'];
+  var BODY_GLYPH = { Sun: 'sun', Moon: 'moon', Mercury: 'mercury', Venus: 'venus', Mars: 'mars', Jupiter: 'jupiter', Saturn: 'saturn', Uranus: 'uranus', Neptune: 'neptune', Pluto: 'pluto', ASC: 'asc', DSC: 'dsc', MC: 'mc' };
+  function glyphKey(k) { return typeof k === 'number' ? SIGN_GLYPH[((k % 12) + 12) % 12] : (BODY_GLYPH[k] || k); }
+  function glyphSprite() {
+    return '<svg class="as-glyph-sprite" id="asGlyphSprite" width="0" height="0" aria-hidden="true" focusable="false"><defs>' + Object.keys(GLYPH).map(function (k) {
+      return '<symbol id="asg-' + k + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + GLYPH[k] + '</symbol>';
+    }).join('') + '</defs></svg>';
+  }
+  /* 문서에 스프라이트가 없으면 body 끝에 한 번 넣는다. 결과 화면이 다시 그려져도 중복되지 않는다. */
+  function ensureGlyphSprite(doc) {
+    doc = doc || (typeof document !== 'undefined' ? document : null);
+    if (!doc || !doc.body || doc.getElementById('asGlyphSprite')) return;
+    doc.body.insertAdjacentHTML('beforeend', glyphSprite());
+  }
+  function glyph(k, cls) {
+    var key = glyphKey(k);
+    if (!GLYPH[key]) return '';
+    return '<svg class="as-glyph' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#asg-' + key + '"/></svg>';
+  }
+  /* SVG 안에서 (x, y) 를 가운데로 s 크기 기호를 놓는다. */
+  function glyphUse(k, x, y, s, cls) {
+    var key = glyphKey(k);
+    if (!GLYPH[key]) return '';
+    return '<use' + (cls ? ' class="' + cls + '"' : '') + ' href="#asg-' + key + '" x="' + (x - s / 2).toFixed(1) + '" y="' + (y - s / 2).toFixed(1) + '" width="' + s + '" height="' + s + '"/>';
+  }
+
+  /* ── 서랍 일러스트: 사용자 차트 값으로 그리는 결정론 장식 SVG(aria-hidden). 휠과 같은 방향 — 왼쪽 끝이 ASC(시간 모르면 양자리 0°), 황도는 반시계. ── */
+  function f1(n) { return n.toFixed(1); }
+  function ringPt(C, rot) { return function (lon, r) { var t = (180 + lon - rot) * Math.PI / 180; return [C + r * Math.cos(t), C - r * Math.sin(t)]; }; }
+  /* 바깥 두 원 + 12칸 눈금 + 칸마다 별자리 기호. hi 는 금색으로 강조할 칸들. */
+  function zodiacRing(pt, C, R0, R1, gs, hi) {
+    var out = ['<circle class="as-ill-ring" cx="' + C + '" cy="' + C + '" r="' + R0 + '"/><circle class="as-ill-ring" cx="' + C + '" cy="' + C + '" r="' + R1 + '"/>'];
+    for (var s = 0; s < 12; s++) {
+      var a = pt(s * 30, R1), b = pt(s * 30, R0), g = pt(s * 30 + 15, (R0 + R1) / 2);
+      out.push('<line class="as-ill-tick" x1="' + f1(a[0]) + '" y1="' + f1(a[1]) + '" x2="' + f1(b[0]) + '" y2="' + f1(b[1]) + '"/>');
+      out.push(glyphUse(s, g[0], g[1], gs, 'as-ill-sign' + (hi && hi.indexOf(s) >= 0 ? ' is-hi' : '')));
+    }
+    return out.join('');
+  }
+  /* 내 탄생 별자리 성도: 12궁 원호 위 행성 점, 황경 순서로 잇는 금색 선, 점 안쪽에 행성 기호. */
+  function starMapSvg(opt) {
+    var C = 120, R0 = 114, R1 = 94, RDOT = 84, RG = 66, rot = opt.asc != null ? opt.asc : 0, pt = ringPt(C, rot), out = [];
+    var ps = (opt.planets || []).filter(function (p) { return isFinite(p.lon); }).slice().sort(function (a, b) { return a.lon - b.lon; });
+    var dl = ps.length ? spread(ps.map(function (p) { return p.lon; }), 5) : [];
+    out.push('<svg class="as-ill as-ill-starmap" viewBox="0 0 240 240" aria-hidden="true" focusable="false">');
+    out.push(zodiacRing(pt, C, R0, R1, 13, ps.filter(function (p) { return p.body === 'Sun' || p.body === 'Moon'; }).map(function (p) { return Math.floor(p.lon / 30) % 12; })));
+    if (opt.asc != null) {
+      [opt.asc, opt.asc + 180].forEach(function (t) { var l = pt(t, R1), r = pt(t, RG + 14); out.push('<line class="as-ill-axis" x1="' + f1(l[0]) + '" y1="' + f1(l[1]) + '" x2="' + f1(r[0]) + '" y2="' + f1(r[1]) + '"/>'); });
+    }
+    if (ps.length > 1) {
+      out.push('<polyline class="as-ill-link" points="' + ps.map(function (p, i) { var q = pt(dl[i], RDOT); return f1(q[0]) + ',' + f1(q[1]); }).join(' ') + '"/>');
+    }
+    var at = ps.length ? spread(ps.map(function (p) { return p.lon; }), 16) : [];
+    ps.forEach(function (p, i) {
+      var q = pt(at[i], RG);
+      if (gap(dl[i], at[i]) > 3) { var d = pt(dl[i], RDOT - 4), e = pt(at[i], RG + 8); out.push('<line class="as-ill-leader" x1="' + f1(d[0]) + '" y1="' + f1(d[1]) + '" x2="' + f1(e[0]) + '" y2="' + f1(e[1]) + '"/>'); }
+      out.push(glyphUse(p.body, q[0], q[1], 13, 'as-ill-body' + (p.body === 'Sun' || p.body === 'Moon' ? ' is-key' : '')));
+    });
+    ps.forEach(function (p, i) {
+      var key = p.body === 'Sun' || p.body === 'Moon', q = pt(dl[i], RDOT);
+      out.push('<circle class="as-ill-dot' + (key ? ' is-key' : '') + '" cx="' + f1(q[0]) + '" cy="' + f1(q[1]) + '" r="' + (key ? 3.4 : 2.4) + '"/>');
+    });
+    out.push('</svg>');
+    return out.join('');
+  }
+  /* 목성의 흐름: 지난 별자리는 점선, 지금 별자리는 금색 실선 호, 다음 별자리 기호를 금색으로. 가운데 기준일. */
+  function jupiterArcSvg(opt) {
+    var C = 100, R0 = 94, R1 = 76, RA = 62, s = ((opt.sign % 12) + 12) % 12, pt = ringPt(C, 0), out = [];
+    function arc(cls, a0, a1) { var p = pt(a0, RA), q = pt(a1, RA); return '<path class="' + cls + '" d="M' + f1(p[0]) + ' ' + f1(p[1]) + 'A' + RA + ' ' + RA + ' 0 0 0 ' + f1(q[0]) + ' ' + f1(q[1]) + '"/>'; }
+    out.push('<svg class="as-ill as-ill-jupiter" viewBox="0 0 200 200" aria-hidden="true" focusable="false">');
+    out.push(zodiacRing(pt, C, R0, R1, 12, [s]));
+    out.push('<circle class="as-ill-ring is-faint" cx="' + C + '" cy="' + C + '" r="' + RA + '"/>');
+    out.push(arc('as-ill-path is-past', (s - 1) * 30, s * 30), arc('as-ill-path is-now', s * 30, s * 30 + 27));
+    var tip = pt(s * 30 + 30, RA), a = pt(s * 30 + 25, RA + 5), b = pt(s * 30 + 25, RA - 5), j = pt(s * 30 + 15, RA);
+    out.push('<path class="as-ill-arrow" d="M' + f1(a[0]) + ' ' + f1(a[1]) + 'L' + f1(tip[0]) + ' ' + f1(tip[1]) + 'L' + f1(b[0]) + ' ' + f1(b[1]) + '"/>');
+    out.push('<circle class="as-ill-dot is-key" cx="' + f1(j[0]) + '" cy="' + f1(j[1]) + '" r="3.4"/>');
+    out.push(glyphUse('jupiter', C, C - 14, 20, 'as-ill-body is-key'));
+    if (opt.label) out.push('<text class="as-ill-label" x="' + C + '" y="' + (C + 18) + '" text-anchor="middle">' + esc(opt.label) + '</text>');
+    out.push('</svg>');
+    return out.join('');
+  }
+  /* 연애 설렘 포인트: 금성(끌림)·화성(행동)·하강점(짝) 삼각 성좌. 금성-화성 선은 조화면 실선, 긴장이면 점선, 그 밖은 옅은 실선.
+   * 이름표는 그림 옆 범례가 맡는다 — 작은 그림 안 글자는 13px 를 못 지킨다. */
+  function loveTriangleSvg(opt) {
+    var C = 100, R0 = 94, R1 = 78, RP = 56, pt = ringPt(C, 0), out = [], pts = {};
+    var marks = [['venus', opt.venus, '끌림'], ['mars', opt.mars, '행동'], ['dsc', opt.dsc, '짝']].filter(function (m) { return m[1] != null; });
+    out.push('<svg class="as-ill as-ill-love" viewBox="0 0 200 200" aria-hidden="true" focusable="false">');
+    out.push(zodiacRing(pt, C, R0, R1, 11, marks.map(function (m) { return m[1]; })));
+    var at = marks.length ? spread(marks.map(function (m) { return m[1] * 30 + 15; }), 34) : [];
+    marks.forEach(function (m, i) { pts[m[0]] = pt(at[i], RP); });
+    // 선은 노드 테두리 밖(r 15 + 2)에서 끊어 기호를 가로지르지 않게 한다.
+    function edge(a, b, cls) {
+      if (!pts[a] || !pts[b]) return;
+      var p = pts[a], q = pts[b], dx = q[0] - p[0], dy = q[1] - p[1], d = Math.sqrt(dx * dx + dy * dy), k = 17 / (d || 1);
+      if (d <= 34) return;
+      out.push('<line class="' + cls + '" x1="' + f1(p[0] + dx * k) + '" y1="' + f1(p[1] + dy * k) + '" x2="' + f1(q[0] - dx * k) + '" y2="' + f1(q[1] - dy * k) + '"/>');
+    }
+    edge('venus', 'dsc', 'as-ill-edge'); edge('mars', 'dsc', 'as-ill-edge');
+    edge('venus', 'mars', 'as-ill-edge is-main' + (opt.tone === 'tense' ? ' is-tense' : opt.tone === 'harmony' ? '' : ' is-soft'));
+    marks.forEach(function (m) {
+      var p = pts[m[0]];
+      out.push('<circle class="as-ill-node" cx="' + f1(p[0]) + '" cy="' + f1(p[1]) + '" r="15"/>' + glyphUse(m[0], p[0], p[1], 20, 'as-ill-body is-key'));
+    });
+    out.push('</svg>');
+    return out.join('');
+  }
+  /* 차트 전체 요약 머리: 태양(위)·달(왼쪽 아래)·상승궁(오른쪽 아래) 세 기호의 작은 삼각 배치. 상승궁을 모르면 빈 원. */
+  function triadSvg(opt) {
+    var P = { sun: [60, 16], moon: [22, 66], asc: [98, 66] }, out = [];
+    out.push('<svg class="as-ill as-ill-triad" viewBox="0 0 120 84" aria-hidden="true" focusable="false">');
+    // 선은 노드 테두리 밖(r 13 + 2)에서 끊어 기호를 가로지르지 않게 한다.
+    [['sun', 'moon'], ['moon', 'asc'], ['asc', 'sun']].forEach(function (e) {
+      var p = P[e[0]], q = P[e[1]], dx = q[0] - p[0], dy = q[1] - p[1], k = 15 / Math.sqrt(dx * dx + dy * dy);
+      out.push('<line class="as-ill-edge' + (opt.ascKnown ? '' : ' is-soft') + '" x1="' + f1(p[0] + dx * k) + '" y1="' + f1(p[1] + dy * k) + '" x2="' + f1(q[0] - dx * k) + '" y2="' + f1(q[1] - dy * k) + '"/>');
+    });
+    ['sun', 'moon', 'asc'].forEach(function (k) {
+      var p = P[k], open = k === 'asc' && !opt.ascKnown;
+      out.push('<circle class="as-ill-node' + (open ? ' is-open' : '') + '" cx="' + p[0] + '" cy="' + p[1] + '" r="13"/>');
+      if (!open) out.push(glyphUse(k, p[0], p[1], 15, 'as-ill-body is-key'));
+    });
+    out.push('</svg>');
+    return out.join('');
+  }
   function posRow(head, sign, house, mean) {
     return '<tr><th scope="row">' + head + '</th><td>' + sign + '</td>' + (house == null ? '' : '<td class="as-num">' + house + '</td>') + '<td class="as-mean">' + esc(mean) + '</td></tr>';
   }
@@ -988,7 +1139,7 @@
     fixed: '한번 정하면 지켜 내는 {sign}에 놓인 {body:은} 오래 꾸준히 버티는 쪽으로 힘을 써요.',
     mutable: '상황에 맞춰 바뀌는 {sign}에 놓인 {body:은} 그때그때 유연하게 힘을 써요.'
   };
-  var DEEP_HOUSE = ['{n}번째 집({arena})에 있어서, {at} 이 힘이 가장 잘 드러나요.', '삶의 무대는 {n}번째 집({arena})이라, {at} 자주 쓰여요.', '{n}번째 집({arena})에 놓여 {at} 먼저 깨어나요.'];
+  var DEEP_HOUSE = ['이 힘은 {at} 가장 잘 드러나요.', '삶의 무대가 {arena:이라}, 그 안에서 자주 쓰여요.', '{at} 이 힘이 먼저 깨어나요.'];
   var DEEP_SPARE = ['잘 쓰면 {gift:이} 되고, 지나치면 {shadow:으로} 기울어요.', '이 자리에서는 {need:이} 있을 때 힘이 제대로 나와요.'];
   var RETRO_LINE = '태어날 때 역행 중이라, 이 힘을 밖으로 쓰기 전에 안으로 곱씹는 흐름이 있어요.';
   var ASPECT_TERM = { conjunction: '합', sextile: '육분', square: '사각', trine: '삼분', opposition: '대립' };
@@ -1022,7 +1173,7 @@
     if (third) s.push(third);
     return {
       body: body, ko: KO[body],
-      where: (pair ? SIGN[pair[0]] + ' 또는 ' + SIGN[pair[1]] : SIGN[p.signIdx]) + (p.house ? ' · ' + p.house + '번째 집' : ''),
+      where: (pair ? SIGN[pair[0]] + ' 또는 ' + SIGN[pair[1]] : SIGN[p.signIdx]) + (p.house ? ' · ' + HOUSE_ARENA[p.house - 1] + '의 자리' : ''),
       retro: !!p.retro,
       line: W.take([line]) || line,
       text: s.filter(Boolean)
@@ -1046,7 +1197,7 @@
       }
       if (pr) {
         periods.items.push({ key: 'profection', title: '올해의 주제 집', text: [
-          fill('{age}세인 올해는 {n}번째 집, {arena}의 해예요.', { age: pr.age, n: pr.house, arena: HOUSE_ARENA[pr.house - 1] }),
+          fill('{age}세인 올해는 {arena:이} 중심이 되는 해예요.', { age: pr.age, n: pr.house, arena: HOUSE_ARENA[pr.house - 1] }),
           W.take([PROF[pr.house - 1][1]]),
           fill('이 해의 주인 행성은 {lord:이에요}.', { lord: KO[pr.lord] }) + (LORD_TIP[pr.lord] ? ' ' + LORD_TIP[pr.lord] + '.' : '')
         ].filter(Boolean) });
@@ -1192,6 +1343,14 @@
     render: render,
     renderChart: renderChart,
     renderDeep: renderDeep,
-    _calc: { SIGN: SIGN, KO: KO, RULER: RULER, dignity: dignity, houseOf: houseOf, aspectsOf: aspectsOf, degText: degText, jo: jo, contrast: contrast, fill: fill, SIGN_STYLE: SIGN_STYLE, PROF: PROF }
+    glyph: glyph,
+    glyphUse: glyphUse,
+    starMapSvg: starMapSvg,
+    jupiterArcSvg: jupiterArcSvg,
+    loveTriangleSvg: loveTriangleSvg,
+    triadSvg: triadSvg,
+    glyphSprite: glyphSprite,
+    ensureGlyphSprite: ensureGlyphSprite,
+    _calc: { SIGN: SIGN, KO: KO, RULER: RULER, dignity: dignity, houseOf: houseOf, aspectsOf: aspectsOf, degText: degText, jo: jo, contrast: contrast, fill: fill, SIGN_STYLE: SIGN_STYLE, PROF: PROF, HOUSE_ARENA: HOUSE_ARENA }
   };
 })(typeof window !== 'undefined' ? window : globalThis);

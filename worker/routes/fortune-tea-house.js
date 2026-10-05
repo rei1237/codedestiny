@@ -4855,10 +4855,11 @@ async function handleFortuneTeaHousePending(request, env) {
     if (!auth?.userId)
         return json({ ok: false }, { status: 401 });
     let doc;
+    const recoverResultId = cleanText(new URL(request.url).searchParams.get('resultId'), 180);
     try {
         await connectDb(env);
         const { results } = honeyCollections();
-        doc = await results.find({ userId: String(auth.userId), serviceScope: FORTUNE_TEA_HOUSE_SCOPE, status: { $in: ['generating', 'delivery_pending'] }, 'generationCheckpoint.requestBody': { $exists: true } }).sort({ updatedAt: -1 }).limit(1).next();
+        doc = await results.find({ userId: String(auth.userId), serviceScope: FORTUNE_TEA_HOUSE_SCOPE, ...(recoverResultId ? { resultId: recoverResultId } : {}), status: { $in: ['generating', 'delivery_pending'] }, 'generationCheckpoint.requestBody': { $exists: true } }).sort({ updatedAt: -1 }).limit(1).next();
     }
     catch {
         return fortuneTeaStorageUnavailable('pending');

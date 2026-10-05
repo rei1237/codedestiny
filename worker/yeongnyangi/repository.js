@@ -1,5 +1,6 @@
 import {CHAPTER_DELIVERY_VERSION,CHAPTER_LEASE_MS,chapterDeliveryFailure,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
 import { storedChapterDraft } from './stored-chapter.js';
+import { deliveryRefundPending, terminalRestoreFilter } from './terminal-refund-policy.js';
 import { mongoose, mongoTransactionOptions, withMongoRetry } from '../lib/db.js';
 import { Payment } from '../lib/models.js';
 import { createHttpError } from '../lib/http.js';
@@ -85,6 +86,7 @@ export function userCanRetryHold(row = {}) {
 // Whether the buyer's retry button can move the order. A stopped chapter escalates through a user grant,
 // the system retry, then a user hold retry; a held chapter only while its user hold retries last.
 export function userCanRetry(row = {}) {
+  if(deliveryRefundPending(row))return false;
   if(!hasChapterDeliveryContract(row)&&Number(row.chapterAttempts?.[savedChapters(row)] || 0)>=AUTOMATIC_CHAPTER_ATTEMPTS)return false;
   if(['COMPLETED','REFUNDED'].includes(row.state)||!hasRequestAccess(row))return false;
   if(row.errorCode!=='AUTOMATIC_RECOVERY_STOPPED')return userCanRetryHold(row);
@@ -153,6 +155,7 @@ export function ownerId(id) {
 export async function readRequest(env, userId, requestId) {
   const row = await withMongoRetry(env, () => YeongnyangiRequest.findOne({_id:requestId,userId:ownerId(userId)}).lean(),readOptions);
   if (!row) throw failure(404,'FORTUNE_NOT_FOUND');
+  if(deliveryRefundPending(row))return row;
   if (requestAccessMethod(row)==='DIRECT_KRW' && row.state !== 'REFUNDED') {
     const payment = await withMongoRetry(env, () => Payment.findOne({_id:row.paymentId,userId:ownerId(userId)}).select('status metadata.consumedBy metadata.unlockRevoked metadata.yeongnyangiRefundPending refundLock').lean(),readOptions);
     const refunded = payment && ['refunded','cancelled'].includes(payment.status);
@@ -320,7 +323,7 @@ async function attachFreeTrial(env, userId, requestId, consume) {
 }
 
 // A free consultation that delivered nothing gives the account's free use back, exactly once.
-async function restoreFreeTrial(env,userId,requestId) {
+async function restoreFreeTrial(env,userId,requestId,terminal=false) {
   const {restoreGuardianFortuneFreeTrial}=await import('../lib/guardian-fortune-usage.js');
   return withMongoRetry(env,async()=>{
     const session=await (scopeConnection() || mongoose).startSession();
@@ -329,7 +332,7 @@ async function restoreFreeTrial(env,userId,requestId) {
       await session.withTransaction(async()=>{
         restored=false;
         const request=await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:ownerId(userId),accessMethod:'ACCOUNT_FREE_TRIAL',
-          state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0},
+          state:'FORTUNE_FAILED',...terminalRestoreFilter(terminal)},
         {$set:{state:'REFUNDED',errorCode:'FREE_TRIAL_RESTORED',leaseToken:'',leaseUntil:null}},{new:true,session}).lean();
         if(!request)return;
         if(!await restoreGuardianFortuneFreeTrial({userId:ownerId(userId),requestId:chatPaymentRequestId(requestId),session}))
@@ -402,6 +405,7 @@ export async function attachPayment(env, userId, requestId, expectedCharge, opti
 }
 
 async function reconcileAttemptLimit(env,userId,current) {
+  if(deliveryRefundPending(current))return current;
   const requestId=String(current._id),total=current.snapshot?.manifest?.length || 0;
   if(!['PAID','FORTUNE_FAILED','GENERATING'].includes(current.state)||!total||current.chapters.length>=total||
     ['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(current.errorCode)||
@@ -418,6 +422,7 @@ async function reconcileAttemptLimit(env,userId,current) {
     const now=new Date();
     const stopped=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate({
       _id:requestId,userId:ownerId(userId),state:{$in:['PAID','FORTUNE_FAILED','GENERATING']},
+      'generationCheckpoint.deliveryRefund.status':{$ne:'pending'},
       chapters:{$size:ordinal},attempts:current.attempts,leaseToken:current.leaseToken,
       errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','PAYMENT_NOT_ACTIVE']},
       $and:[pinGrant('manualRecoveryGrants',ordinal,manualGrants),pinGrant('systemRecoveryGrants',ordinal,systemGrants)],
@@ -434,6 +439,7 @@ async function reconcileAttemptLimit(env,userId,current) {
 
 export async function claimChapter(env, userId, requestId, source = 'queue', options = {}) {
   const current = await readRequest(env,userId,requestId);
+  if(deliveryRefundPending(current))throw failure(409,'DELIVERY_REFUND_PENDING');
   const accessMethod=requestAccessMethod(current);
   if (!accessMethod) throw failure(402,'PAYMENT_REQUIRED');
   if(accessMethod!=='DIRECT_KRW')await assertFamilyEvidence(env,current,userId);
@@ -466,6 +472,7 @@ export async function claimChapter(env, userId, requestId, source = 'queue', opt
   const attemptKey=`chapterAttempts.${ordinal}`;
   const claim = session => YeongnyangiRequest.findOneAndUpdate({
     _id:requestId,userId:ownerId(userId),state:{$in:['PAID','FORTUNE_FAILED','GENERATING']},
+    'generationCheckpoint.deliveryRefund.status':{$ne:'pending'},
     chapters:{$size:current.chapters.length},
     ...(options.storedOnly?{[`generationCheckpoint.chapterDrafts.${ordinal}.body`]:{$exists:true,$ne:null}}:{}),
     errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED']},
@@ -529,7 +536,7 @@ async function completeStoredRequest(env, userId, requestId, total, token = '') 
     try{
       let result=null;
       await session.withTransaction(async()=>{
-        const filter={_id:requestId,userId:owner,...(token?{state:'GENERATING'}:{$or:[{state:{$in:['PAID','FORTUNE_FAILED']}},{state:'GENERATING',leaseUntil:{$lte:new Date()}}]}),completedChapters:total,
+        const filter={_id:requestId,userId:owner,'generationCheckpoint.deliveryRefund.status':{$ne:'pending'},...(token?{state:'GENERATING'}:{$or:[{state:{$in:['PAID','FORTUNE_FAILED']}},{state:'GENERATING',leaseUntil:{$lte:new Date()}}]}),completedChapters:total,
           [`chapters.${total-1}`]:{$exists:true},...(token?{leaseToken:token}:{})};
         const stored=await YeongnyangiRequest.findOne(filter).session(session).lean();
         if(!stored||!Array.isArray(stored.chapters)||stored.chapters.length!==total)return;
@@ -673,24 +680,50 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
       maxCoveredCoin:row.passMaxCoveredCoin || (row.passTier==='family'||!row.passTier?999999999:0),passPolicyVersion:row.passPolicyVersion}});
 }
 
-// Pass quota first (idempotent per request through its receipt), then the use record and the request together.
-async function restorePassQuota(env,userId,requestId,access,{cycleKey,cost,evidenceId,restorePass=null}) {
+// Partial delivery refunds require a durable terminal reservation first. That
+// reservation blocks every generation/retry before the existing receipt restores.
+export async function refundReservedDelivery(env,userId,requestId) {
+  const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:ownerId(userId),
+    state:'FORTUNE_FAILED',...terminalRestoreFilter(true)}).lean(),readOptions);
+  if(!row)return false;
+  const method=requestAccessMethod(row);
+  if(method==='MOONLIGHT_STONE') {
+    const {refundYeongnyangiMoonstone}=await loadFamilyLedger();
+    return Boolean((await refundYeongnyangiMoonstone({userId,requestId,terminal:true})).refunded);
+  }
+  if(method==='SERVICE_PACK') {
+    const {refundYeongnyangiServicePack}=await loadFamilyLedger();
+    return Boolean((await refundYeongnyangiServicePack({userId,requestId,terminal:true})).restored);
+  }
+  if(method==='FAMILY')return restorePassQuota(env,userId,requestId,{accessMethod:'FAMILY'},
+    {cycleKey:row.passCycleKey,cost:row.passCoinCost,evidenceId:row.passEvidenceId,terminal:true,
+      restorePass:{tier:row.passTier || 'family',expiresAt:row.passCycleKey,monthlyLimitCoin:row.passMonthlyLimitCoin,
+        profileLimit:row.passProfileLimit || 0,maxCoveredCoin:row.passMaxCoveredCoin || 999999999,passPolicyVersion:row.passPolicyVersion}});
+  if(method==='ACCOUNT_FREE_TRIAL')return restoreFreeTrial(env,userId,requestId,true);
+  return false;
+}
+
+// Request, usage proof, quota and refund receipt commit in the same transaction.
+async function restorePassQuota(env,userId,requestId,access,{cycleKey,cost,evidenceId,restorePass=null,terminal=false}) {
   const owner=ownerId(userId);
-  const [{PointHistory},{refundPassCoverage}]=await Promise.all([loadFamilyIdentity(),loadFamilyLedger()]);
-  const refunded=await refundPassCoverage({userId,cycleKey,cost,refundId:`yeongnyangi:${requestId}`,restorePass});
-  if(!refunded.refunded)return false;
+  const [{PointHistory},{refundPassCoverage,consultationRefundDb}]=await Promise.all([loadFamilyIdentity(),loadFamilyLedger()]);
   return withMongoRetry(env,async()=>{
     const session=await (scopeConnection() || mongoose).startSession();
     try{
       let restored=false;
       await session.withTransaction(async()=>{
+        const request=await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:owner,...access,
+          state:'FORTUNE_FAILED',...terminalRestoreFilter(terminal)},
+        {$set:{state:'REFUNDED',errorCode:'PASS_QUOTA_RESTORED',leaseToken:'',leaseUntil:null}},{new:true,session}).lean();
+        if(!request)return;
         const evidence=await PointHistory.findOneAndUpdate({_id:evidenceId,userId:owner,
           'metadata.refundedForServiceExecution':{$ne:true}},{$set:{'metadata.refundedForServiceExecution':true,'metadata.refundedAt':new Date()}},{new:true,session}).lean();
-        if(!evidence)return;
-        const request=await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:owner,...access,
-          state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0},
-        {$set:{state:'REFUNDED',errorCode:'PASS_QUOTA_RESTORED',leaseToken:'',leaseUntil:null}},{new:true,session}).lean();
-        restored=Boolean(request);
+        if(!evidence)throw failure(503,'PASS_REFUND_EVIDENCE_PENDING');
+        const tx=consultationRefundDb(session);
+        const refunded=await refundPassCoverage({userId,cycleKey,cost,refundId:`yeongnyangi:${requestId}`,restorePass,
+          db:{...tx,transaction:run=>run(tx)}});
+        if(!refunded.refunded)throw failure(503,'PASS_QUOTA_RESTORE_PENDING');
+        restored=true;
       },mongoTransactionOptions());
       return restored;
     }finally{await session.endSession();}
@@ -775,7 +808,7 @@ export async function resumeHeldAfterFix(env,row) {
 // Buyer retry of a held chapter: USER_HOLD_RETRY_GRANT more attempts, USER_HOLD_RETRY_LIMIT times per chapter.
 // The payment is re-checked first and the counter is pinned, so duplicate clicks grant once. Attempts are never
 // reset (the request cap grows by the same grant) and hold.epoch is untouched, so a later fix still resumes it.
-export async function resumeHeldByUser(env,userId,requestId) {
+export async function resumeHeldByUser(env,userId,requestId,source='user') {
   const current=await readRequest(env,userId,requestId);
   if(!userCanRetryHold(current))return current;
   const ordinal=current.chapters.length,used=grantCount(current.hold?.userRetries,ordinal),manual=grantCount(current.manualRecoveryGrants,ordinal),reason=heldReason(current),now=new Date();
@@ -783,8 +816,24 @@ export async function resumeHeldByUser(env,userId,requestId) {
     errorCode:'GENERATION_REVIEW_REQUIRED',chapters:{$size:ordinal},$and:[pinGrant('hold.userRetries',ordinal,used),pinGrant('manualRecoveryGrants',ordinal,manual)]},
   {$set:{state:'PAID',errorCode:'',nextAttemptAt:null,queuedUntil:null,leaseToken:'',leaseUntil:null,'hold.alertPending':false},
   $inc:{[`hold.userRetries.${ordinal}`]:1,[`manualRecoveryGrants.${ordinal}`]:USER_HOLD_RETRY_GRANT},
-  $push:{recoveryAudit:{kind:'user_retry_after_hold',source:'user',chapter:ordinal,at:now,code:reason}}},{new:true}).lean());
+  $push:{recoveryAudit:{kind:source==='scheduled'?'system_final_retry':'user_retry_after_hold',source,chapter:ordinal,at:now,code:reason}}},{new:true}).lean());
   return resumed || readRequest(env,userId,requestId);
+}
+
+// A durable validated draft needs storage, not another paid provider attempt.
+export async function resumeHeldStoredChapter(env,row) {
+  const userId=String(row.userId),requestId=String(row._id),current=await readRequest(env,userId,requestId);
+  const ordinal=current.chapters.length;
+  if(deliveryRefundPending(current)||!storedChapterDraft(current)||current.state!=='FORTUNE_FAILED'||
+    !['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED'].includes(current.errorCode)||
+    new Date(current.leaseUntil || 0).getTime()>Date.now())return null;
+  return withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:ownerId(userId),
+    state:'FORTUNE_FAILED',errorCode:current.errorCode,chapters:{$size:ordinal},
+    'generationCheckpoint.deliveryRefund.status':{$ne:'pending'},
+    [`generationCheckpoint.chapterDrafts.${ordinal}.body`]:{$exists:true,$ne:null},
+    $or:[{leaseUntil:null},{leaseUntil:{$lte:new Date()}}]},
+    {$set:{state:'PAID',errorCode:'',nextAttemptAt:null,queuedUntil:null,'hold.alertPending':false},
+      $push:{recoveryAudit:{kind:'stored_draft_recovery',source:'scheduled',chapter:ordinal,at:new Date()}}},{new:true}).lean());
 }
 
 // A hold this epoch will not resume is stamped so it stops occupying the scan.

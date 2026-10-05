@@ -382,6 +382,161 @@
 /* 쉬운 보기(is-easy)가 옛 상세 층을 숨기던 규칙은 서랍 안에서는 서랍이 대신한다. */
 #astroModalOverlay #astroBodyWrap .as-record .astro-detail-layer { display: block; }
 
+/* ── 서랍 안 옛 블록을 관측 기록 문법으로: 상자 대신 여백과 헤어라인, 색은 --as-* 만 ──
+ * 옛 규칙(astroNeonCss·basic-fortune-library.css·엔진 인라인 style)은 지우지 않고 여기서 덮는다.
+ * 2 id + 클래스 + !important 라 bfl 의 !important 와 인라인 일반 선언을 모두 이긴다. */
+#astroModalOverlay #astroBodyWrap .as-record {
+  --fr-accent: var(--as-gold); --fr-ink: var(--as-text); --fr-muted: var(--as-text-2); --fr-rule: var(--as-rule); --fr-surface: transparent; --fr-bg: transparent;
+  color: var(--as-text);
+}
+/* 글자색은 부모를 따른다 — 네온 팔레트(하늘·보라·분홍)가 인라인과 astroNeonCss 에 흩어져 있어 요소별로 끊는다. 아래 클래스 규칙이 위계를 다시 세운다. */
+#astroModalOverlay #astroBodyWrap .as-record .fr-disclosure-body :where(div, p, li, span, b, strong, em, small, h3, h4, h5, dt, dd, label, article) { color: inherit !important; }
+#astroModalOverlay #astroBodyWrap .as-record :is(.astro-section, .precision-insight-card, .astro-restored-hero, .astro-cosmic-restored) {
+  margin: 0 !important;
+  padding: var(--cd-sp-xl, 36px) 0 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+#astroModalOverlay #astroBodyWrap .as-record .astro-section .astro-section { padding-top: var(--cd-sp-lg, 24px) !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero__sky { display: none !important; }
+
+/* 제목: 세리프 700 + 아래 헤어라인. 인라인 color(#fde68a·#D4AF37 등)도 덮는다. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-subhead,
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero > h3 {
+  margin: 0 0 var(--cd-sp-md, 16px) !important;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--as-rule);
+  color: var(--as-text) !important;
+  font-family: var(--as-serif) !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  line-height: 1.45 !important;
+  letter-spacing: -.01em;
+  text-wrap: pretty;
+  word-break: keep-all;
+}
+/* 히어로 문장 제목은 두 줄 균형이 낫다("다시 / 말을 걸기 시작합니다"). */
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero > h3 { text-wrap: balance; }
+@media (min-width: 768px) {
+  #astroModalOverlay #astroBodyWrap .as-record .astro-subhead,
+  #astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero > h3 { font-size: 22px !important; }
+}
+
+/* 위계: 본문 --as-text, 보조 --as-text-2, 작은 라벨만 금색. */
+#astroModalOverlay #astroBodyWrap .as-record :is(.fr-caption, .astro-life-hero-note, .astro-birth-house, .astro-birth-keywords, .astro-birth-aspect-orb, .astro-life-evidence, .astro-life-scene, .astro-life-aspect, .astro-syn-meta, .astro-syn-overlay-tip) { color: var(--as-text-2) !important; }
+#astroModalOverlay #astroBodyWrap .as-record :is(.astro-label, .astro-big3-label, .astro-section-kicker, .astro-restored-hero__kicker, .astro-life-title, .astro-life-kicker, .astro-life-glyph, .astro-restored-hero__cards strong, .astro-birth-aspects-title, .expert-list-label, .astro-desc b, .astro-life-body b, [style*="font-size:13px"][style*="font-weight:700"]) {
+  color: var(--as-gold) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: .04em;
+}
+#astroModalOverlay #astroBodyWrap .as-record .astro-life-card { --el: var(--as-gold) !important; }
+
+/* 읽는 글: p·li 15px 이상, 같은 줄 간격. */
+#astroModalOverlay #astroBodyWrap .as-record :is(p, li) { font-size: 15px !important; line-height: 1.75 !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-desc { font-size: 15px !important; line-height: 1.75; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero > p { font-size: 16px !important; }
+
+/* 안쪽 카드는 상자를 걷고 윗선 하나로 나눈다. 인라인 반투명 배경(rgba) 패널도 같은 줄로 정리한다 — 그래프 막대는 hex 배경이라 남는다. */
+#astroModalOverlay #astroBodyWrap .as-record :is(.astro-big3-card, .astro-life-card, .astro-birth-card, .astro-birth-help, .astro-birth-aspects-wrap, .astro-birth-aspect, .astro-birth-one-line, .astro-restored-hero__cards > article, .astro-life-duo p, .astro-neon-soft-block, .astro-neon-syn-wrap, .astro-neon-panel, .astro-syn-card, .astro-syn-data, .astro-syn-overlay, .astro-syn-shadow, .astro-syn-quick, .astro-syn-score-card, [style*="background:rgba"]) {
+  padding-inline: 0 !important;
+  border: 0 !important;
+  border-top: 1px solid var(--as-rule) !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+#astroModalOverlay #astroBodyWrap .as-record .astro-life-card > summary { padding-left: 0 !important; padding-right: 36px !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-life-card > summary::after { right: 8px !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-life-body { padding-inline: 0 !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-life-constellation { right: 36px; }
+/* 탄생 지도 머리: 제목과 쉬운 보기 버튼을 한 줄에 두고 헤어라인은 줄 전체에. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-top { align-items: flex-end; margin-bottom: var(--cd-sp-md, 16px); padding-bottom: 12px; border-bottom: 1px solid var(--as-rule); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-top > .astro-subhead { padding-bottom: 0; border-bottom: 0; }
+/* 행성 항목: 이름(본문) → 별자리(금) → 영역·키워드(보조), 자세히 보기는 금색 셰브런. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-grid { column-gap: var(--cd-sp-xl, 36px); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-card > summary { padding: 12px 0 !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-card-body { padding-inline: 0 !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-planet { font-weight: 700; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-sign { color: var(--as-gold) !important; font-weight: 600; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-open { right: 0 !important; color: var(--as-gold) !important; font-size: 13px; font-weight: 600; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-open::after { content: ''; display: inline-block; width: 6px; height: 6px; margin: 0 2px 2px 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); transition: transform var(--cd-dur-fast, 120ms) ease; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-card[open] .astro-birth-open::after { transform: rotate(-135deg); margin-bottom: -2px; }
+
+/* 핵심 한 줄: 짧은 금색 선 아래 세리프 한 줄. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-core {
+  position: relative;
+  margin: var(--cd-sp-md, 16px) 0 !important;
+  padding: 14px 0 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  color: var(--as-text) !important;
+  font-family: var(--as-serif);
+  font-size: 16px !important;
+  font-weight: 700;
+  line-height: 1.7 !important;
+}
+#astroModalOverlay #astroBodyWrap .as-record .astro-core::before { content: ''; position: absolute; top: 0; left: 0; width: 28px; height: 1px; background: var(--as-gold); }
+
+/* 칩: 투명 바탕 + 헤어라인. */
+#astroModalOverlay #astroBodyWrap .as-record :is(.astro-tag, .astro-birth-chip, .astro-life-chip, .astro-restored-hero__orbits > span, .astro-syn-pill, .astro-neon-syn-chip) {
+  border: 1px solid var(--as-rule) !important;
+  border-radius: var(--cd-r-sm, 8px) !important;
+  background: none !important;
+  box-shadow: none !important;
+  color: var(--as-text-2) !important;
+  font-size: 13px !important;
+}
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero__orbits > i { background: var(--as-rule) !important; box-shadow: none !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-mode-btn {
+  min-height: 44px;
+  border: 1px solid var(--as-rule) !important;
+  border-radius: var(--cd-r-sm, 8px) !important;
+  background: none !important;
+  box-shadow: none !important;
+  color: var(--as-text-2) !important;
+}
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-mode-btn:focus-visible { outline: 2px solid var(--as-gold); outline-offset: 2px; }
+
+/* 접힘: 44px 탭 영역, hover, 금색 초점, 120ms 마커 회전. */
+#astroModalOverlay #astroBodyWrap .as-record :is(.astro-fold, .astro-birth-help) > summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 32px 10px 0 !important;
+  color: var(--as-text-2) !important;
+  font-size: 15px !important;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+#astroModalOverlay #astroBodyWrap .as-record :is(.astro-fold, .astro-birth-help) > summary::-webkit-details-marker { display: none; }
+#astroModalOverlay #astroBodyWrap .as-record :is(.astro-fold, .astro-birth-help) > summary::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -5px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--cd-dur-fast, 120ms) ease;
+}
+#astroModalOverlay #astroBodyWrap .as-record :is(.astro-fold, .astro-birth-help)[open] > summary::after { transform: rotate(-135deg); }
+#astroModalOverlay #astroBodyWrap .as-record :is(.astro-fold, .astro-birth-help, .astro-life-card, .astro-birth-card, .astro-birth-aspect) > summary:hover { color: var(--as-text) !important; }
+#astroModalOverlay #astroBodyWrap .as-record details > summary:focus-visible { outline: 2px solid var(--as-gold); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  #astroModalOverlay #astroBodyWrap .as-record :is(.astro-fold, .astro-birth-help) > summary::after,
+  #astroModalOverlay #astroBodyWrap .as-record .astro-birth-open::after { transition: none; }
+}
+
 /* ── 구역 제목: 본문과 같은 세리프, 장식 대신 헤어라인 ── */
 #astroModalOverlay #astroBodyWrap.astro-reading-house .astro-house-section > .fr-heading {
   padding-bottom: 12px;
@@ -418,3 +573,103 @@
   .as-reading :is(.as-cat, .as-why, .as-planet, .as-calc) > summary, .as-reading :is(.as-cat, .as-why, .as-planet, .as-calc) > summary::after,
   :is(.as-reading .as-pos, .as-wheel-host > .as-legacy-chart) > summary::after { transition: none; }
 }
+
+/* ── 기호: 한 굵기 선 SVG(natal-reading glyph). 스프라이트는 문서에 한 번, 보이지 않게. ── */
+.as-glyph-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.as-glyph { display: inline-block; flex: none; width: 1.05em; height: 1.05em; margin-right: .3em; vertical-align: -.16em; color: var(--as-gold); }
+#astroModalOverlay #astroBodyWrap .as-record .as-glyph { color: var(--as-gold); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-tag .as-glyph,
+#astroModalOverlay #astroBodyWrap .as-record .astro-life-chip .as-glyph,
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-chip .as-glyph { width: 14px; height: 14px; margin-right: 4px; vertical-align: -2px; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-life-glyph .as-glyph { width: 18px; height: 18px; margin: 0; }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel__signs { color: var(--fr-muted); }
+#astroModalOverlay #astroBodyWrap .astro-life-wheel__signs use { fill: none; }
+
+/* ── 서랍 일러스트(성도·목성 호·연애 삼각·요약 삼각): 차트 값으로 그린 장식 SVG. 금색 하나와 옅은 선만. ── */
+#astroModalOverlay #astroBodyWrap .as-record .as-ill { display: block; width: 100%; height: auto; overflow: visible; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill :is(.as-ill-ring, .as-ill-tick, .as-ill-axis, .as-ill-leader, .as-ill-path, .as-ill-arrow, .as-ill-edge, .as-ill-node, .as-ill-link) { fill: none; vector-effect: non-scaling-stroke; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-ring { stroke: var(--as-text-2); stroke-width: 1; opacity: .38; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-ring.is-faint { stroke-dasharray: 2 4; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-tick { stroke: var(--as-text-2); stroke-width: 1; opacity: .38; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-sign { color: var(--as-text-2); fill: none; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-sign.is-hi { color: var(--as-gold); }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-axis { stroke: var(--as-text-2); stroke-width: 1; stroke-dasharray: 3 3; opacity: .7; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-link { stroke: var(--as-gold); stroke-width: 1; opacity: .55; stroke-linejoin: round; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-leader { stroke: var(--as-text-2); stroke-width: .75; opacity: .6; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-body { color: var(--as-text); fill: none; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-body.is-key { color: var(--as-gold); }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-dot { fill: var(--as-text-2); }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-dot.is-key { fill: var(--as-gold); }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-path { stroke-width: 1.5; stroke-linecap: round; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-path.is-past { stroke: var(--as-text-2); stroke-dasharray: 2 4; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-path.is-now, #astroModalOverlay #astroBodyWrap .as-record .as-ill-arrow { stroke: var(--as-gold); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-label { fill: var(--as-text-2); font: 600 13px/1 var(--as-body); letter-spacing: .02em; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-edge { stroke: var(--as-text-2); stroke-width: 1; opacity: .7; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-edge.is-main { stroke: var(--as-gold); stroke-width: 1.5; opacity: 1; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-edge.is-tense { stroke-dasharray: 3 4; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-edge.is-soft { opacity: .55; }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-node { stroke: var(--as-gold); stroke-width: 1; fill: var(--as-ink-0); }
+#astroModalOverlay #astroBodyWrap .as-record .as-ill-node.is-open { stroke: var(--as-text-2); stroke-dasharray: 2 3; }
+
+/* 내 탄생 별자리 지도: 성도 + 안내를 한 묶음으로, 행성 카드는 한 줄 머리(행성·별자리) + 보조 줄. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-overview { display: grid; gap: var(--cd-sp-md, 16px); margin-bottom: var(--cd-sp-md, 16px); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-sky { margin: 0 auto; width: min(240px, 72vw); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-intro > :last-child { margin-bottom: 0; }
+@media (min-width: 768px) {
+  #astroModalOverlay #astroBodyWrap .as-record .astro-birth-overview { grid-template-columns: 240px minmax(0, 1fr); column-gap: var(--cd-sp-xl, 36px); align-items: center; }
+  #astroModalOverlay #astroBodyWrap .as-record .astro-birth-sky { width: 240px; }
+}
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-card > summary { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 8px; row-gap: 2px; align-items: baseline; }
+#astroModalOverlay #astroBodyWrap .as-record :is(.astro-birth-house, .astro-birth-keywords) { grid-column: 1 / -1; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-planet { grid-area: 1 / 1; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-sign { grid-area: 1 / 2; min-width: 0; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-birth-open { grid-area: 1 / 3; position: static !important; margin: 0 !important; white-space: nowrap; }
+
+/* 목성의 흐름·연애 설렘 포인트: 그림 + 범례 한 줄 묶음, 본문은 정의 목록(금색 작은 표제 + 글). */
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-pair { display: grid; grid-template-columns: 132px minmax(0, 1fr); column-gap: var(--cd-sp-md, 16px); align-items: center; margin: 0 0 var(--cd-sp-md, 16px); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-fig { margin: 0; width: 132px; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-legend { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-legend > li { margin: 0; padding: 0 0 8px; border-bottom: 1px solid var(--as-rule); font-size: 15px; line-height: 1.5; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-legend > li { text-wrap: balance; word-break: keep-all; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-legend > li:last-child { padding-bottom: 0; border-bottom: 0; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-legend__k { display: block; color: var(--as-text-2) !important; font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-legend .astro-planet { color: var(--as-gold) !important; font-weight: 600; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-legend__note { color: var(--as-text-2) !important; font-size: 13px !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-retro { color: var(--as-text-2) !important; font-size: 13px; font-weight: 500; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-pair--love { grid-template-columns: 160px minmax(0, 1fr); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-ill-pair--love .astro-ill-fig { width: 160px; }
+@media (min-width: 768px) {
+  #astroModalOverlay #astroBodyWrap .as-record .astro-ill-pair { grid-template-columns: 168px minmax(0, 1fr); column-gap: var(--cd-sp-xl, 36px); }
+  #astroModalOverlay #astroBodyWrap .as-record .astro-ill-fig { width: 168px; }
+}
+#astroModalOverlay #astroBodyWrap .as-record .astro-dl { display: grid; gap: var(--cd-sp-md, 16px); margin: 0; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-dl > div { display: grid; gap: 4px; padding-top: var(--cd-sp-md, 16px); border-top: 1px solid var(--as-rule); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-dl > div:first-child { padding-top: 0; border-top: 0; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-dl dt { color: var(--as-gold) !important; font-size: 13px; font-weight: 700; letter-spacing: .04em; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-dl dd { margin: 0; color: var(--as-text) !important; font-size: 15px; line-height: 1.75; }
+
+/* 차트 전체 요약·한눈에 보기·생각·커리어·집중 포인트·히어로·시너지: 같은 문법(금색 작은 표제 + 본문, 헤어라인). */
+/* 금색 한 줄(오늘의 한 줄 정리): 기존 핵심 한 줄(.astro-core) 위에 작은 금색 표제. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-quote__k { display: block; margin-bottom: 4px; color: var(--as-gold) !important; font-family: var(--as-body); font-size: 13px; font-weight: 600; letter-spacing: .04em; }
+/* 정의 목록·이어 읽기 문단 안 강조는 표제가 아니라 본문 굵기 — 옛 ".astro-desc b = 금색 13px" 표제 규칙에서 뺀다. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-desc :is(.astro-dl dd, .astro-fold-cont) b { color: var(--as-text) !important; font-size: inherit !important; font-weight: 700 !important; letter-spacing: normal; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-fold-cont { margin: 0 0 var(--cd-sp-md, 16px); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-desc + .astro-fold { margin-top: var(--cd-sp-md, 16px); }
+/* 히어로 궤도 칩: 4개가 한 줄에 못 들면 2×2 로 — 하나만 혼자 줄바꿈되지 않게. 사이 선은 격자에서 뺀다. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero__orbits { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero__orbits > i { display: none !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero__orbits > span { justify-content: flex-start; min-height: 36px; }
+/* 시너지 목록: 굵은 첫 줄을 금색 작은 표제로, 점 대신 헤어라인. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-core:has(> ul) { font-family: var(--as-body); font-weight: 400; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-core > ul { margin: 0 !important; padding: 0 !important; list-style: none; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-core > ul > li { margin: 0 !important; padding: 12px 0; border-top: 1px solid var(--as-rule); }
+#astroModalOverlay #astroBodyWrap .as-record .astro-core > ul > li:first-child { padding-top: 0; border-top: 0; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-core > ul > li > b:first-child { display: block; margin-bottom: 4px; color: var(--as-gold) !important; font-size: 13px; font-weight: 600; letter-spacing: .04em; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-core > ul > li > b:first-child + br { display: none; }
+/* 칩 줄: 이름표 칩 + 값은 한 묶음으로 줄바꿈. 핵심 한 줄 안 강조는 앞뒤 문장 글꼴을 그대로. 히어로 3칸 본문은 다른 본문과 같은 15px. */
+#astroModalOverlay #astroBodyWrap .as-record .astro-tag-pair { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: 6px; white-space: nowrap; margin: 0 8px 8px 0; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-quote b { font: inherit !important; color: inherit !important; letter-spacing: inherit; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero__cards > article > span { font-size: 15px !important; line-height: 1.7; }
+/* 출생 시간 모름: 히어로 궤도의 상승궁·목표 자리는 한 줄 안내로(격자 전체 폭). */
+#astroModalOverlay #astroBodyWrap .as-record .astro-restored-hero__orbits > span.is-note { grid-column: 1 / -1; color: var(--as-text-2) !important; font-size: 13px !important; }
+#astroModalOverlay #astroBodyWrap .as-record .astro-big3-card strong .astro-ill-legend__note { font-family: var(--as-body); font-weight: 500; }

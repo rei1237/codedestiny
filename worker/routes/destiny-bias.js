@@ -10,6 +10,7 @@ import {
   readJson,
 } from "../lib/http.js";
 import { DestinyBiasCard, User } from "../lib/models.js";
+import { createHash } from 'node:crypto';
 import { incrementRateLimit } from "../lib/rate-limit.js";
 import { getSiteBaseUrl } from "../lib/og-card.js";
 import {
@@ -200,7 +201,13 @@ async function handleCreateCard(request, env) {
     throw createHttpError(400, "저장할 카드 내용이 비어 있습니다.", { code: "INVALID_CARD_PAYLOAD" });
   }
 
-  const created = await DestinyBiasCard.create(payload);
+  const requestId = String(body?.recordRequestId || '');
+  if (requestId && !/^[a-zA-Z0-9_-]{8,100}$/.test(requestId)) throw createHttpError(400, '저장 요청을 확인해 주세요.', { code: 'INVALID_RECORD_REQUEST' });
+  // Default _id uniqueness makes the same owner's save request repeatable.
+  // Clients predating recordRequestId retain their existing save contract.
+  const created = requestId ? await DestinyBiasCard.findOneAndUpdate({
+    _id: new mongoose.Types.ObjectId(createHash('sha256').update(`${auth.userId}:${requestId}`).digest('hex').slice(0,24)), userId: payload.userId,
+  }, { $setOnInsert: payload }, { upsert: true, new: true }).lean() : await DestinyBiasCard.create(payload);
   return json({ ok: true, item: serializeCard(created) }, { status: 201 });
 }
 

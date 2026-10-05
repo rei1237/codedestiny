@@ -63,19 +63,17 @@ export const MOBILE_TABS: readonly MobileTab[] = [
     glyph: "✦",
     shellAction: ALL_FORTUNES_ACTION,
   },
-  // 셸에서는 home-funnel.js 가 지금 테마(연이·네오)에 맞춰 ?character= 를 붙인다.
-  { key: "consult", label: "상담", href: "/fortune-chat/", ariaLabel: "연이·네오 상담", glyph: "✿",
+  { key: "consult", label: "상담", href: "/consultations/", ariaLabel: "운명 상담 고르기", glyph: "✿",
     transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.consult",
     ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.consultTab.ariaLabel" },
   {
     key: "library",
     label: "보관함",
-    href: `/?action=${LIBRARY_SHEET_ACTION}`,
+    href: "/records/",
     ariaLabel: "내 보관함",
     transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.library",
     ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.libraryTab.ariaLabel",
     glyph: "▤",
-    shellAction: LIBRARY_SHEET_ACTION,
   },
   {
     key: "my",
@@ -93,6 +91,8 @@ const TAB_KEYS: readonly MobileTabKey[] = MOBILE_TABS.map((tab) => tab.key);
 
 /** pathname prefix → 탭 key. 위에서부터 먼저 맞는 것을 쓴다(구체적인 것이 앞). */
 const PATH_RULES: ReadonlyArray<{ prefix: string; key: MobileTabKey }> = [
+  { prefix: "/consultations", key: "consult" },
+  { prefix: "/records", key: "library" },
   { prefix: "/fortune-chat", key: "consult" },
   { prefix: "/yeongnyangi/library", key: "library" },
   { prefix: "/points", key: "my" },

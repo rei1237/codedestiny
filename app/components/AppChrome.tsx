@@ -223,8 +223,10 @@ export default function AppChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "/";
   const isImmersiveFortuneRoute = IMMERSIVE_FORTUNE_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const isAuthRoute = AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
-  const hideChrome = pathname === "/" || isAuthRoute || isImmersiveFortuneRoute || CHROMELESS_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
-  const selfManagedNav = FEATURE_NAV_SELF_MANAGED_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
+  const isRecordsSurface = pathname === '/consultations' || pathname.startsWith('/consultations/') || pathname === '/records' || pathname.startsWith('/records/');
+  const showRecordsTabs = isRecordsSurface && !pathname.startsWith('/records/view');
+  const hideChrome = pathname === "/" || isRecordsSurface || isAuthRoute || isImmersiveFortuneRoute || CHROMELESS_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
+  const selfManagedNav = isRecordsSurface || FEATURE_NAV_SELF_MANAGED_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const showFeatureNav = !isAuthRoute && !isImmersiveFortuneRoute && pathname !== HOME_ROUTE && !selfManagedNav && (
     hideChrome
     || FEATURE_NAV_EXTRA_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))
@@ -248,7 +250,8 @@ export default function AppChrome({ children }: { children: ReactNode }) {
           MobileBottomNav itself). Every chromeless route (auth, immersive-fortune,
           and the rest of CHROMELESS_ROUTES) owns its own in-page exit control instead —
           same boundary as the header/footer/banner above (hideChrome). */}
-      {!isAppShellRoute && !hideChrome && <MobileBottomNav />}
+        {!isAppShellRoute && !hideChrome && <MobileBottomNav />}
+        {!isAppShellRoute && hideChrome && showRecordsTabs && <MobileBottomNav />}
     </LazyMotion>
   );
 }

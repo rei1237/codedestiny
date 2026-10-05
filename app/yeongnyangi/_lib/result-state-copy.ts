@@ -14,3 +14,19 @@ export const resultStateCopy=(locale?:ReadingLocale):Copy=>{
  return {...copy,retryBusy:copy.loading,retryAlt:copy.retryTitle,paidWarningKnown:copy.paidWarning,serverResume:copy.generating,
   saved:(n,total)=>`${copy.saved}: ${n}/${total}`,answering:copy.generating,greeting:ui.title,result:copy.view,reviewRequired:copy.held};
 };
+
+const deliveryRefundMessages: Record<string,string> = {
+ ko:'복구 후에도 전체 상담을 제공하지 못해 환불을 확인하고 있어요. 다시 결제하지 말고 결제 내역에서 처리 상태를 확인해 주세요.',
+ en:'We could not deliver the full reading after recovery and are processing its refund. Do not pay again; check payment history for confirmation.',
+ ja:'復旧後も鑑定全体を提供できなかったため返金を確認しています。再度支払わず、支払い履歴で処理状況をご確認ください。',
+ 'zh-CN':'恢复后仍未能提供完整咨询，正在确认退款。请勿再次付款，请在付款记录中查看处理状态。',
+ 'zh-TW':'復原後仍無法提供完整諮詢，正在確認退款。請勿再次付款，請在付款紀錄中查看處理狀態。',
+ de:'Nach der Wiederherstellung konnte die vollständige Beratung nicht geliefert werden. Die Rückerstattung wird bearbeitet. Bitte nicht erneut bezahlen; prüfen Sie den Zahlungsverlauf.',
+ es:'No pudimos entregar la consulta completa tras recuperarla. Estamos tramitando el reembolso. No pagues de nuevo; revisa el historial de pagos.',
+ fr:'La consultation complète reste indisponible après la récupération. Le remboursement est en cours. Ne payez pas à nouveau ; consultez votre historique de paiements.',
+ hi:'पुनर्प्राप्ति के बाद भी पूरी परामर्श सामग्री नहीं मिल सकी। धनवापसी की पुष्टि की जा रही है। दोबारा भुगतान न करें; भुगतान इतिहास देखें।',
+ ms:'Bacaan penuh tidak dapat disampaikan selepas pemulihan. Bayaran balik sedang diproses. Jangan bayar lagi; semak sejarah pembayaran.',
+ nl:'Na herstel kon de volledige lezing niet worden geleverd. De terugbetaling wordt verwerkt. Betaal niet opnieuw; controleer de betaalgeschiedenis.',
+ vi:'Sau khi khôi phục vẫn chưa thể cung cấp toàn bộ nội dung tư vấn. Đang xác nhận hoàn tiền. Vui lòng không thanh toán lại và kiểm tra lịch sử thanh toán.',
+};
+export const deliveryRefundCopy = (locale?:string) => deliveryRefundMessages[locale || 'ko'] || deliveryRefundMessages.en;

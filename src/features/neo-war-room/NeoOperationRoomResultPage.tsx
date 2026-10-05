@@ -13,6 +13,7 @@ import { buildResizedAssetUrl } from "@/lib/r2-public-url";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import ConsultationShare from "@/components/fortune/ConsultationShare";
+import SavedRecordLink from "@/components/fortune/SavedRecordLink";
 import { neoShareChoices } from "@/lib/consultation-sharing";
 import { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
@@ -99,7 +100,7 @@ export type NeoRefinedOrder = {
   tsundereClosing?: string;
 };
 
-type NeoResultSession = {
+export type NeoResultSession = {
   ok: true;
   id?: string;
   sessionId?: string;
@@ -928,6 +929,7 @@ export default function NeoOperationRoomResultPage() {
                 locale={dialogueLocale}
               />
             )}
+            {!isLocalPreview && !isGenerating && !isFailed && <SavedRecordLink source="neo" id={session.id || session.sessionId || ''} />}
             <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => { if (!isGenerating) setShowRealityForm(true); }} hasRefined={Boolean(refined)} locale={dialogueLocale} />
           </section>
         </div>
@@ -1592,4 +1594,18 @@ function CtaDeck({ attemptId, hasRefined, onOpenReality, locale }: { attemptId: 
       {attemptId ? <Link href={`/neo-operation-room/result?attemptId=${encodeURIComponent(attemptId)}`}>{resultCopy.ctaReopen}</Link> : null}
     </nav>
   );
+}
+
+// Archive presentation only. It never mounts the page's generation, badges,
+// refinement or purchase effects; documents share their original renderer.
+export function SavedNeoDocuments({ session, locale }: { session: NeoResultSession; locale: LoadingLocale }) {
+  const [viewAll, setViewAll] = useState(true);
+  const compat = session.compatScores ? { scores: session.compatScores, relationshipStatus: session.relationshipStatus || '', partnerBirthTimeUnknown: session.partnerBirthTimeUnknown === true } : null;
+  return <div className={styles.savedDocuments}><div className={styles.documentStack}>
+    <ResultSummaryCover session={session} methodName={methodLabel(session.selectedMethod || session.initialBriefing?.selectedMethod, locale)} badgeIndex={0} locale={locale} />
+    {session.initialBriefing?.operationTitle && <h2 className="text-xl font-semibold text-[var(--cd-text)]">{session.initialBriefing.operationTitle}</h2>}
+    {session.initialBriefing && <InitialBriefingDocument briefing={session.initialBriefing} compat={compat} evidenceFallbackLabel="" hasRefined badgeIndex={0} onOpenReality={() => {}} viewAll={viewAll} onViewAllChange={setViewAll} expandForExport={false} locale={locale} />}
+    {session.refinedOrder?.operationTitle && <h2 className="text-xl font-semibold text-[var(--cd-text)]">{session.refinedOrder.operationTitle}</h2>}
+    {session.refinedOrder && <RefinedOrderDocument refined={session.refinedOrder} badgeIndex={0} viewAll={viewAll} onViewAllChange={setViewAll} expandForExport={false} locale={locale} />}
+  </div></div>;
 }

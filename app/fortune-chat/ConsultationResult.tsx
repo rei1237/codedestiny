@@ -39,7 +39,7 @@ function Body({ chapter, charts }: { chapter: ChapterBody; charts?: ReadingChart
  * 흐름 → 시기 → 행동, 네오는 핵심 판단 → 지금 할 일 → 시기 → 판단 근거 → 판세 → 장별 브리핑. 마무리는 늘 끝이다.
  * 저장된 챕터만 그리며, 생성 중이면 남은 챕터 수를 함께 알린다.
  */
-export default function ConsultationResult({ row, onNew }: { row: ChatConsultation; onNew: () => void }) {
+export default function ConsultationResult({ row, onNew, readOnly = false }: { row: ChatConsultation; onNew: () => void; readOnly?: boolean }) {
   const chapters = row.chapters || [];
   const manifest = row.manifest || [];
   const first = chapters[0];
@@ -143,7 +143,7 @@ export default function ConsultationResult({ row, onNew }: { row: ChatConsultati
     <div className={styles.result} data-consultation-result data-persona={row.persona}>
       {order.map((key) => sections[key]())}
 
-      {shouldInvitePaidReview(row) && <ReviewRewardBanner afterResult/>}
+      {!readOnly && shouldInvitePaidReview(row) && <ReviewRewardBanner afterResult/>}
       {writing ? (
         <p className={styles.progress} role="status" aria-live="polite">
           남은 이야기를 이어서 쓰는 중이에요 · {chapters.length} / {manifest.length}

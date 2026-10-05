@@ -1650,7 +1650,7 @@
       "passNote": "Standard、Premium、VVIP 适用于花猪运势，Family 适用于花猪和灵喵的付费解读。已购买的使用券保持购买时的条件。",
       "passCta": "查看4种使用券",
       "moreTitle": "探索妍伊的工作室",
-      "moreItems": "Daily readings · consultations · stories",
+      "moreItems": "Daily readings · consultations · records · stories",
       "moreClose": "Show less",
       "searchLead": "按烦恼、占法和价格，找到你现在需要的运势。",
       "searchPlaceholder": "恋爱、财运、跳槽……搜索想看的运势",
@@ -6144,7 +6144,7 @@
         },
         "library": "收藏夹",
         "consultTab": {
-          "ariaLabel": "与 Yeoni·Neo 咨询"
+          "ariaLabel": "选择命运咨询"
         },
         "libraryTab": {
           "ariaLabel": "我的收藏夹"

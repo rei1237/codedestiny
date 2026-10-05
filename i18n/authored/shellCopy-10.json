@@ -225,17 +225,17 @@
   },
   "home.gardenCopy.moreItems": {
     "ko": "오늘의 운세 · 상담 · 기록과 이야기",
-    "en": "Daily readings · consultations · stories",
-    "ja": "Daily readings · consultations · stories",
-    "zh-CN": "Daily readings · consultations · stories",
-    "zh-TW": "Daily readings · consultations · stories",
-    "vi": "Daily readings · consultations · stories",
-    "hi": "Daily readings · consultations · stories",
-    "es": "Daily readings · consultations · stories",
-    "fr": "Daily readings · consultations · stories",
-    "de": "Daily readings · consultations · stories",
-    "nl": "Daily readings · consultations · stories",
-    "ms": "Daily readings · consultations · stories"
+    "en": "Daily readings · consultations · records · stories",
+    "ja": "Daily readings · consultations · records · stories",
+    "zh-CN": "Daily readings · consultations · records · stories",
+    "zh-TW": "Daily readings · consultations · records · stories",
+    "vi": "Daily readings · consultations · records · stories",
+    "hi": "Daily readings · consultations · records · stories",
+    "es": "Daily readings · consultations · records · stories",
+    "fr": "Daily readings · consultations · records · stories",
+    "de": "Daily readings · consultations · records · stories",
+    "nl": "Daily readings · consultations · records · stories",
+    "ms": "Daily readings · consultations · records · stories"
   },
   "home.gardenCopy.moreClose": {
     "ko": "접기",

@@ -111,6 +111,8 @@ export async function runYeongnyangiRecovery(env, options = {}) {
   const canGenerate=(options.providerReady || providerReady)(env);
   const clock=options.clock || Date.now, now=clock(), deadline=now+BUDGET_MS;
   await (options.connectDb || connectDb)(env);
+  const settle=options.settleRefunds || (await import('./terminal-refund.js')).settleDeliveryRefunds;
+  const refundOutcomes=await settle(env,{now});
   const activate=options.activate || activateFortune, generate=options.generate || generateNextChapter;
   const paidOrders=(requestId,extra={})=>withMongoRetry(env,()=>Payment.find({
     requestId,...extra,
@@ -165,6 +167,7 @@ export async function runYeongnyangiRecovery(env, options = {}) {
       if(row.state==='PAID' && row.chapters.length>candidate.chapters.length)pending.push(row);
     }catch(error){outcomes.push({outcome:String(error?.code || 'GENERATION_FAILED').slice(0,80)});}
   }
+  outcomes.push(...refundOutcomes);
   console.log('[yeongnyangi-recovery]',JSON.stringify({scanned:candidates.length,outcomes}));
   return {ok:true,scanned:candidates.length,outcomes,...(!canGenerate?{storedOnly:true}:{})};
 }

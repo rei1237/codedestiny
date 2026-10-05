@@ -1,4 +1,5 @@
 import {jest} from '@jest/globals';
+jest.unstable_mockModule('../../worker/yeongnyangi/terminal-refund.js',()=>({settleDeliveryRefunds:async()=>[]}));
 let orders=[],candidates=[],held=[],stopped=[],alerts=[],filters=[];
 const chain=(rows)=>({sort:()=>chain(rows),limit:()=>chain(rows),lean:async()=>rows});
 jest.unstable_mockModule('../../worker/lib/db.js',()=>({connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));

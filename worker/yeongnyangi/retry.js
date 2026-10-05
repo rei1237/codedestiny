@@ -2,10 +2,12 @@ import {readRequest,attachPayment,resumeRequest,resumeHeldByUser,userCanRetryHol
 import {enqueueConsultation} from './queue.js';
 import {resolveChargeAmountKRW} from '../lib/portone.js';
 import {createHttpError} from '../lib/http.js';
+import {deliveryRefundPending} from './terminal-refund-policy.js';
 const failure=code=>createHttpError(code==='GENERATION_QUEUE_UNAVAILABLE'?503:409,code,{code});
 const hasRequestAccess=row=>Boolean(row?.paymentId||row?.accessMethod==='FAMILY'||row?.passEvidenceId);
 export async function retryFortune(env, userId, requestId) {
   let row=await readRequest(env,userId,requestId);
+  if(deliveryRefundPending(row))throw failure('DELIVERY_REFUND_PENDING');
   if(row.state==='COMPLETED')return row;
   if(row.state==='REFUNDED'||row.errorCode==='PAYMENT_NOT_ACTIVE')throw failure('PAYMENT_NOT_ACTIVE');
   if(row.errorCode==='ASK_LIMITED_REVIEW_REQUIRED'||row.errorCode==='GENERATION_REVIEW_REQUIRED'&&!userCanRetryHold(row))throw failure('GENERATION_REVIEW_REQUIRED');

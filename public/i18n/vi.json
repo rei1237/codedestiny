@@ -1650,7 +1650,7 @@
       "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
       "passCta": "See all 4 passes",
       "moreTitle": "Khám phá xưởng của Yeoni",
-      "moreItems": "Daily readings · consultations · stories",
+      "moreItems": "Daily readings · consultations · records · stories",
       "moreClose": "Show less",
       "searchLead": "Find the reading you need by concern, method or price.",
       "searchPlaceholder": "Love, money, a job move… search readings",
@@ -6144,7 +6144,7 @@
         },
         "library": "Library",
         "consultTab": {
-          "ariaLabel": "Chat with Yeoni & Neo"
+          "ariaLabel": "Choose a fortune consultation"
         },
         "libraryTab": {
           "ariaLabel": "My library"

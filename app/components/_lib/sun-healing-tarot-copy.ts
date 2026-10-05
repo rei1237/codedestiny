@@ -50,19 +50,13 @@ export interface SunHealingTarotCopy {
   adviceHeading: string;
   adviceFallback: string;
 
-  cardSummaryEyebrow: string;
-  cardSummaryHeading: string;
   cardDetailEyebrow: string;
   cardDetailHeading: string;
-  meaningLabel: string;
-  shadowLabel: string;
-  recoveryActionLabel: string;
 
   overallFlowTitle: string;
   routineEyebrow: string;
   routineHeading: string;
   affirmationLabel: string;
-  qualityEnhancedNote: string;
 
   promptPanelKicker: string;
   promptPanelTitle: string;
@@ -71,8 +65,6 @@ export interface SunHealingTarotCopy {
   promptCopiedStatus: string;
   promptCopyManualStatus: string;
 
-  loginRequiredAlert: string;
-  delayedAlert: string;
   fetchErrorAlert: string;
   linkCopiedAlert: string;
   shareUnsupportedAlert: string;
@@ -125,19 +117,13 @@ const SUN_HEALING_TAROT_COPY_EN: SunHealingTarotCopy = {
   adviceHeading: "A reading that returns light to the marks on your heart",
   adviceFallback: "Instead of treating your current feelings as a problem, we translate the symbols the cards revealed into a recoverable scene and words.",
 
-  cardSummaryEyebrow: "A four-card summary",
-  cardSummaryHeading: "Four scenes reflected in your heart today",
   cardDetailEyebrow: "A recovery message per card",
   cardDetailHeading: "The recovery sentence each card offers",
-  meaningLabel: "What the card reveals",
-  shadowLabel: "Something to watch carefully",
-  recoveryActionLabel: "Today's recovery action",
 
   overallFlowTitle: "Overall flow",
   routineEyebrow: "Today's recovery routine",
-  routineHeading: "A recovery action you can start in 10 minutes",
+  routineHeading: "Recovery actions to start today",
   affirmationLabel: "A sentence for you today",
-  qualityEnhancedNote: "The four sun messages have come together into a calmer whole.",
 
   promptPanelKicker: "A recovery question to continue",
   promptPanelTitle: "Reflect once more on what the sun left behind",
@@ -146,8 +132,6 @@ const SUN_HEALING_TAROT_COPY_EN: SunHealingTarotCopy = {
   promptCopiedStatus: "Copied.",
   promptCopyManualStatus: "Please select and copy it manually.",
 
-  loginRequiredAlert: "You need to log in to open a recovery reading. Please log in and try again.",
-  delayedAlert: "Preparing the reading is taking longer than expected. Please refresh the page and check again.",
   fetchErrorAlert: "Something went wrong while loading the reading. Please try again shortly.",
   linkCopiedAlert: "Link copied.",
   shareUnsupportedAlert: "Sharing isn't supported in this environment.",
@@ -201,19 +185,13 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     adviceHeading: "마음의 흔적 위에 빛을 돌려놓는 해석",
     adviceFallback: "지금의 마음을 문제로 만들지 않고, 카드가 비춘 상징을 회복 가능한 장면과 말로 정리합니다.",
 
-    cardSummaryEyebrow: "4장 카드 요약",
-    cardSummaryHeading: "오늘 마음에 비친 네 장면",
     cardDetailEyebrow: "카드별 회복 메시지",
     cardDetailHeading: "각 카드가 건네는 회복 문장",
-    meaningLabel: "카드가 비춘 의미",
-    shadowLabel: "조심히 살필 부분",
-    recoveryActionLabel: "오늘의 회복 행동",
 
     overallFlowTitle: "종합 흐름",
     routineEyebrow: "오늘의 회복 루틴",
-    routineHeading: "10분 안에 시작하는 회복 행동",
+    routineHeading: "오늘 시작하는 회복 행동",
     affirmationLabel: "오늘 나에게 건네는 문장",
-    qualityEnhancedNote: "네 장의 태양 메시지가 한결 차분한 결로 모였습니다.",
 
     promptPanelKicker: "이어 볼 회복 질문",
     promptPanelTitle: "태양이 남긴 문장을 한 번 더 비추기",
@@ -222,8 +200,6 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     promptCopiedStatus: "복사되었습니다.",
     promptCopyManualStatus: "직접 선택해 복사해 주세요.",
 
-    loginRequiredAlert: "회복 리딩을 열려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
-    delayedAlert: "해석 준비가 지연되고 있습니다. 페이지를 새로고침한 뒤 다시 확인해 주세요.",
     fetchErrorAlert: "해석을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
     linkCopiedAlert: "링크를 복사했습니다.",
     shareUnsupportedAlert: "공유를 지원하지 않는 환경입니다.",
@@ -275,19 +251,13 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     adviceHeading: "心の跡の上に光を取り戻す解釈",
     adviceFallback: "今の気持ちを問題にするのではなく、カードが映した象徴を回復可能な場面と言葉に整理します。",
 
-    cardSummaryEyebrow: "4枚のカードまとめ",
-    cardSummaryHeading: "今日心に映った4つの場面",
     cardDetailEyebrow: "カードごとの回復メッセージ",
     cardDetailHeading: "各カードが贈る回復の言葉",
-    meaningLabel: "カードが映した意味",
-    shadowLabel: "注意して見守るべきこと",
-    recoveryActionLabel: "今日の回復行動",
 
     overallFlowTitle: "総合的な流れ",
     routineEyebrow: "今日の回復ルーティン",
-    routineHeading: "10分で始められる回復行動",
+    routineHeading: "今日から始める回復行動",
     affirmationLabel: "今日の自分に贈る言葉",
-    qualityEnhancedNote: "4つの太陽のメッセージが、より落ち着いた形にまとまりました。",
 
     promptPanelKicker: "続けて見る回復の質問",
     promptPanelTitle: "太陽が残した言葉をもう一度照らす",
@@ -296,8 +266,6 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     promptCopiedStatus: "コピーしました。",
     promptCopyManualStatus: "直接選択してコピーしてください。",
 
-    loginRequiredAlert: "回復リーディングを開くにはログインが必要です。ログイン後、もう一度お試しください。",
-    delayedAlert: "解読の準備に時間がかかっています。ページを更新してもう一度ご確認ください。",
     fetchErrorAlert: "解読の読み込み中に問題が発生しました。しばらくしてからもう一度お試しください。",
     linkCopiedAlert: "リンクをコピーしました。",
     shareUnsupportedAlert: "この環境では共有がサポートされていません。",
@@ -349,19 +317,13 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     adviceHeading: "在心灵的痕迹上重新点亮光芒的解读",
     adviceFallback: "不将此刻的心情视为问题，而是把卡牌映照出的象征整理成可以疗愈的场景与话语。",
 
-    cardSummaryEyebrow: "四张牌摘要",
-    cardSummaryHeading: "今日映照在心中的四个场景",
     cardDetailEyebrow: "每张牌的疗愈讯息",
     cardDetailHeading: "每张牌传递的疗愈话语",
-    meaningLabel: "卡牌映照的含义",
-    shadowLabel: "需要谨慎留意之处",
-    recoveryActionLabel: "今日的疗愈行动",
 
     overallFlowTitle: "综合流向",
     routineEyebrow: "今日的疗愈日常",
-    routineHeading: "10分钟内就能开始的疗愈行动",
+    routineHeading: "今天就能开始的疗愈行动",
     affirmationLabel: "今天想对自己说的话",
-    qualityEnhancedNote: "四条太阳讯息汇聚成了更为沉稳的整体。",
 
     promptPanelKicker: "可以延续的疗愈问题",
     promptPanelTitle: "再次映照太阳留下的话语",
@@ -370,8 +332,6 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     promptCopiedStatus: "已复制。",
     promptCopyManualStatus: "请手动选择并复制。",
 
-    loginRequiredAlert: "开启疗愈解读需要先登录，请登录后重试。",
-    delayedAlert: "解读准备时间较长，请刷新页面后再次确认。",
     fetchErrorAlert: "加载解读时出现问题，请稍后再试。",
     linkCopiedAlert: "已复制链接。",
     shareUnsupportedAlert: "当前环境不支持分享。",
@@ -423,19 +383,13 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     adviceHeading: "在心靈的痕跡上重新點亮光芒的解讀",
     adviceFallback: "不將此刻的心情視為問題，而是把卡牌映照出的象徵整理成可以療癒的場景與話語。",
 
-    cardSummaryEyebrow: "四張牌摘要",
-    cardSummaryHeading: "今日映照在心中的四個場景",
     cardDetailEyebrow: "每張牌的療癒訊息",
     cardDetailHeading: "每張牌傳遞的療癒話語",
-    meaningLabel: "卡牌映照的含義",
-    shadowLabel: "需要謹慎留意之處",
-    recoveryActionLabel: "今日的療癒行動",
 
     overallFlowTitle: "綜合流向",
     routineEyebrow: "今日的療癒日常",
-    routineHeading: "10分鐘內就能開始的療癒行動",
+    routineHeading: "今天就能開始的療癒行動",
     affirmationLabel: "今天想對自己說的話",
-    qualityEnhancedNote: "四條太陽訊息匯聚成了更為沉穩的整體。",
 
     promptPanelKicker: "可以延續的療癒問題",
     promptPanelTitle: "再次映照太陽留下的話語",
@@ -444,8 +398,6 @@ const SUN_HEALING_TAROT_COPY: Partial<Record<LoadingLocale, SunHealingTarotCopy>
     promptCopiedStatus: "已複製。",
     promptCopyManualStatus: "請手動選擇並複製。",
 
-    loginRequiredAlert: "開啟療癒解讀需要先登入，請登入後重試。",
-    delayedAlert: "解讀準備時間較長，請重新整理頁面後再次確認。",
     fetchErrorAlert: "載入解讀時出現問題，請稍後再試。",
     linkCopiedAlert: "已複製連結。",
     shareUnsupportedAlert: "目前環境不支援分享。",

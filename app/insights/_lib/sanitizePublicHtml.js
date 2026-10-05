@@ -85,7 +85,7 @@ function sanitizeNumericDimension(rawValue) {
   return String(normalized);
 }
 
-export function sanitizePublicInsightHtml(rawHtml) {
+export function sanitizePublicInsightHtml(rawHtml, { tables = false } = {}) {
   let html = String(rawHtml || "");
 
   html = html
@@ -95,7 +95,7 @@ export function sanitizePublicInsightHtml(rawHtml) {
 
   html = html.replace(/<\/?([a-z0-9-]+)([^>]*)>/gi, (fullTag, rawName, rawAttrs = "") => {
     const tagName = String(rawName || "").toLowerCase();
-    if (!ALLOWED_TAGS.has(tagName)) return "";
+    if (!ALLOWED_TAGS.has(tagName) && !(tables && /^(table|thead|tbody|tfoot|tr|th|td|caption)$/.test(tagName))) return "";
 
     if (fullTag.startsWith("</")) {
       return `</${tagName}>`;

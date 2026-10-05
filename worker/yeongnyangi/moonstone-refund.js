@@ -6,10 +6,11 @@ import { calculatePaidFeatureMembershipCreditCost } from '../lib/paid-feature-re
 import { findMoonstoneSpendEvidence, moonstoneSpendRefundFilter } from '../lib/moonstone-spend-proof.js';
 import { restoreMonthlyCreditLot } from '../lib/monthly-credit-store.js';
 import { toObjectId } from '../payments/db.js';
+import { terminalRestoreFilter } from './terminal-refund-policy.js';
 
 const failure=code=>Object.assign(new Error(code),{code,status:503});
 // perUse: a fortune-chat consultation paid with moonlight stones (PER_USE ledger proof under fc-<id>).
-export async function refundTerminalMoonstone(db,{userId,requestId,perUse=false}={}) {
+export async function refundTerminalMoonstone(db,{userId,requestId,perUse=false,terminal=false}={}) {
   const owner=toObjectId(userId),id=String(requestId || '').replace(/^(yn|fc)-/,''),rid=(perUse?'fc-':'yn-')+id;
   if(!owner||!/^[a-f0-9]{64}$/.test(id))return {refunded:false};
   const sourceId='service-exec-refund:exec:yeongnyangi:'+id;
@@ -26,8 +27,7 @@ export async function refundTerminalMoonstone(db,{userId,requestId,perUse=false}
     // A saved draft remains deliverable. A valid lease owns generation/recovery.
     const now=new Date();
     const reserved=await tx.findOneAndUpdate(YeongnyangiRequest,{...identity,
-      state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0,
-      'chapters.0':{$exists:false},'generationCheckpoint.chapterDrafts.0':{$exists:false},
+      state:'FORTUNE_FAILED',...terminalRestoreFilter(terminal),
       $or:[{leaseUntil:null},{leaseUntil:{$exists:false}},{leaseUntil:{$lte:now}}]},
       {$set:{state:'REFUNDED',errorCode:'MONTHLY_CREDIT_RESTORED',leaseToken:'',leaseUntil:null}},
       {returnDocument:'after'});

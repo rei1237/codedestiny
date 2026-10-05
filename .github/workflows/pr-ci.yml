@@ -866,6 +866,7 @@ jobs:
           npm run verify:hero-contrast
           npm run verify:rpt-preview-cta
           npm run verify:sun-recovery-copy
+          npm run verify:self-esteem-copy
           npm run verify:feature-marketing-schema
           npm run verify:static-asset-cache-keys
           npm run verify:i18n-no-hardcoded-korean

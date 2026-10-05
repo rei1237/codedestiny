@@ -24,6 +24,10 @@ import { useAnalytics } from "@/app/hooks/useAnalytics";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
 import { getApiBaseUrl } from "@/app/_lib/api-config";
+import { authFetch, AUTH_SESSION_INVALIDATED_EVENT } from "@/app/_lib/auth-client";
+import { recordsCopy } from "@/lib/records/copy";
+import { savedRecordPath } from "@/lib/records/service-registry";
+import { useLocale } from "@/lib/i18n/useT";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { readCurrentDestinyProfile, resolveDestinyProfileBirthParts } from "@/app/_lib/profile-card-storage";
 import {
@@ -67,7 +71,7 @@ import {
 import styles from "./destiny-bias.module.css";
 
 type Step = "hook" | "pick" | "info" | "computing" | "result";
-type Outcome = { report: ChemiReport; result: ChemiResult; copy: ChemiCopy; partner: ChemiPartnerRecord };
+type Outcome = { report: ChemiReport; result: ChemiResult; copy: ChemiCopy; partner: ChemiPartnerRecord; recordRequestId: string; recordThemeKey: string };
 type Moods = { biasMood: string; relationMood: string };
 type ProfileSeed = { birthDateInput: string; calendarType: CalendarType; fromProfile: boolean };
 type StoredAuthUser = { id?: string; userId?: string; birthDate?: string } | null;
@@ -144,6 +148,11 @@ function isLoggedInNow() {
   }
 }
 
+function readArchiveOwner() {
+  const user = readSanitizedAuthUser() as StoredAuthUser;
+  return String(user?.id || user?.userId || "");
+}
+
 function todayKst() {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
   const get = (t: string) => parts.find((p) => p.type === t)?.value || "";
@@ -215,6 +224,7 @@ async function downloadBlob(blob: Blob, filename: string) {
 }
 
 export default function DestinyBiasClient() {
+  const archiveCopy = recordsCopy(useLocale());
   const router = useRouter();
   // 정적 export 에서 useSearchParams 는 Suspense 경계를 요구하므로 마운트 시 location 을 직접 읽는다.
   const [searchParams] = useState(() => (typeof window === "undefined" ? null : new URLSearchParams(window.location.search)));
@@ -234,6 +244,10 @@ export default function DestinyBiasClient() {
   const [shareBusy, setShareBusy] = useState(false);
   const [shareStatus, setShareStatus] = useState<ShareBarStatus>(null);
   const [savedToCollection, setSavedToCollection] = useState(false);
+  const [archiveId, setArchiveId] = useState("");
+  const [savingRecord, setSavingRecord] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  const [authRevision, setAuthRevision] = useState(0);
   const [hydrated, setHydrated] = useState(false);
 
   const [shareRatio, setShareRatio] = useState<ShareRatio>("square");
@@ -252,6 +266,130 @@ export default function DestinyBiasClient() {
   const shareCacheRef = useRef<{ key: string; value: CreatedShare } | null>(null);
   const computingTokenRef = useRef(0);
   const entryTrackedRef = useRef(false);
+  const activeRecordRef = useRef("");
+  const archiveMountedRef = useRef(false);
+  const recordRequestsRef = useRef(new Map<string, Promise<string | null>>());
+  const completedRecordsRef = useRef(new Map<string, string>());
+
+  useEffect(() => {
+    archiveMountedRef.current = true;
+    let owner = readArchiveOwner();
+    const refreshLogin = () => {
+      const nextOwner = readArchiveOwner();
+      if (nextOwner !== owner || !isLoggedInNow()) {
+        setArchiveId(""); setSavedToCollection(false); setSaveError(false); setSavingRecord(false);
+      }
+      owner = nextOwner;
+      setLoggedIn(isLoggedInNow());
+      setAuthRevision((revision) => revision + 1);
+    };
+    window.addEventListener("cd:auth-changed", refreshLogin);
+    window.addEventListener(AUTH_SESSION_INVALIDATED_EVENT, refreshLogin);
+    return () => {
+      archiveMountedRef.current = false;
+      window.removeEventListener("cd:auth-changed", refreshLogin);
+      window.removeEventListener(AUTH_SESSION_INVALIDATED_EVENT, refreshLogin);
+    };
+  }, []);
+
+  const clearRecordState = useCallback(() => {
+    activeRecordRef.current = "";
+    setArchiveId("");
+    setSaveError(false);
+    setSavingRecord(false);
+    setSavedToCollection(false);
+  }, []);
+
+  const publishOutcome = useCallback((next: Outcome) => {
+    activeRecordRef.current = next.recordRequestId;
+    setArchiveId("");
+    setSaveError(false);
+    setSavingRecord(false);
+    setSavedToCollection(false);
+    setOutcome(next);
+  }, []);
+
+  // Auto-save, collection save and retry share one request and server idempotency key.
+  // The stored report contains display data only: never persist info, raw partner or photos.
+  const saveReading = useCallback((next: Outcome): Promise<string | null> => {
+    const requestId = next.recordRequestId;
+    if (activeRecordRef.current !== requestId || !isLoggedInNow()) return Promise.resolve(null);
+    const owner = readArchiveOwner();
+    if (!owner) {
+      if (archiveMountedRef.current && activeRecordRef.current === requestId) {
+        setSavingRecord(false); setSaveError(true); setSavedToCollection(false);
+      }
+      return Promise.resolve(null);
+    }
+    const requestKey = `${owner}:${requestId}`;
+    const sameRecordAndOwner = () => archiveMountedRef.current && activeRecordRef.current === requestId && readArchiveOwner() === owner;
+    const isCurrent = () => sameRecordAndOwner() && isLoggedInNow();
+    const finishedId = completedRecordsRef.current.get(requestKey);
+    if (finishedId) {
+      if (isCurrent()) { setArchiveId(finishedId); setSavedToCollection(true); setSaveError(false); }
+      return Promise.resolve(finishedId);
+    }
+    const running = recordRequestsRef.current.get(requestKey);
+    if (running) return running;
+    if (!isLoggedInNow()) return Promise.resolve(null);
+    if (isCurrent()) { setSavingRecord(true); setSaveError(false); }
+    const job = (async () => {
+      try {
+        const { report, result, copy } = next;
+        const response = await authFetch("/api/destiny-bias/cards", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            recordRequestId: requestId,
+            title: `${result.partner.displayName} × 나 = ${result.chemiTypeNameKo}`,
+            headline: copy.oneLiner,
+            summary: copy.points.map((point) => point.text).join(" "),
+            themeKey: next.recordThemeKey,
+            score: report.totalScore,
+            grade: report.grade,
+            reportText: [copy.oneLiner, ...copy.points.map((point) => `${point.label}\n${point.text}\n${point.evidenceKo}`), copy.scenario.text, copy.caution.text, copy.caution.evidenceKo, copy.finish.text, ...copy.notices].join("\n\n"),
+            canonical: {
+              version: "destiny-bias-record-v1",
+              viewModel: report.vm,
+              themeKey: next.recordThemeKey,
+              chemiTypeId: result.chemiTypeId,
+              partner: result.partner,
+              engineVersion: result.engineVersion,
+              rulesVersion: result.rulesVersion,
+              rosterVersion: result.rosterVersion,
+              copyVersion: copy.copyVersion,
+              signals: result.matchedSignalKeys,
+              minorMode: result.minorMode,
+              // The bridge strips raw birthdays and birthday-bearing SVGs. Store
+              // the complete report, not Outcome.partner (which contains birthDate).
+              chemiReport: report,
+            },
+          }),
+        });
+        if (response.status === 401 && sameRecordAndOwner()) {
+          setSavingRecord(false); setSaveError(true); setSavedToCollection(false); setLoggedIn(false);
+        }
+        const payload = await response.json();
+        if (!response.ok || !payload?.ok || typeof payload.item?.id !== "string" || !payload.item.id) throw new Error("RECORD_SAVE_FAILED");
+        const id = payload.item.id as string;
+        completedRecordsRef.current.set(requestKey, id);
+        if (isCurrent()) { setArchiveId(id); setSavedToCollection(true); setSaveError(false); }
+        return id;
+      } catch {
+        if (isCurrent()) setSaveError(true);
+        return null;
+      } finally {
+        recordRequestsRef.current.delete(requestKey);
+        if (isCurrent()) setSavingRecord(false);
+      }
+    })();
+    recordRequestsRef.current.set(requestKey, job);
+    return job;
+  }, []);
+
+  useEffect(() => {
+    if (outcome && loggedIn) void saveReading(outcome);
+  }, [authRevision, outcome, loggedIn, saveReading]);
 
   const groups = useMemo(() => listRosterGroups(), []);
   const groupNames = useMemo(() => groups.map((g) => g.nameKo), [groups]);
@@ -339,14 +477,14 @@ export default function DestinyBiasClient() {
     (next: ChemiPartnerRecord) => {
       setPartner(next);
       setInfoError("");
-      setSavedToCollection(false);
+      clearRecordState();
       setShareStatus(null);
       setRecentPartners(pushRecentPartner({ kind: next.kind, id: next.id }));
       trackFunnelStep({ funnel: FUNNEL, step: "idol_selected", stepIndex: 2 });
       trackClick("destiny_bias_idol_selected", { partner_kind: next.kind, group_id: next.groupId || "preset" });
       setStep("info");
     },
-    [trackClick, trackFunnelStep],
+    [clearRecordState, trackClick, trackFunnelStep],
   );
 
   const compute = useCallback(
@@ -359,7 +497,7 @@ export default function DestinyBiasClient() {
         return;
       }
       setInfoError("");
-      setSavedToCollection(false);
+      clearRecordState();
       setShareStatus(null);
       const token = ++computingTokenRef.current;
       setStep("computing");
@@ -375,7 +513,7 @@ export default function DestinyBiasClient() {
           themeLabel: PHOTOCARD_THEMES.find((theme) => theme.key === themeKey)?.label,
           referenceDate: todayKst(),
         });
-        next = { report, result: report.result, copy: report.copy, partner: target };
+        next = { report, result: report.result, copy: report.copy, partner: target, recordRequestId: crypto.randomUUID(), recordThemeKey: themeKey };
       } catch (caught) {
         failure = engineErrorMessage(caught);
       }
@@ -389,7 +527,7 @@ export default function DestinyBiasClient() {
         setStep("info");
         return;
       }
-      setOutcome(next);
+      publishOutcome(next);
       setResultSeq((value) => value + 1);
       setStep("result");
       setRecentResults(
@@ -417,7 +555,7 @@ export default function DestinyBiasClient() {
         source,
       });
     },
-    [from, moods, reduceMotion, themeKey, trackClick, trackFunnelStep],
+    [clearRecordState, from, moods, publishOutcome, reduceMotion, themeKey, trackClick, trackFunnelStep],
   );
 
   /** 무드를 바꾸면 같은 입력으로 리포트만 다시 만든다(계산 화면·스크롤 이동 없음). */
@@ -435,13 +573,13 @@ export default function DestinyBiasClient() {
           themeLabel: PHOTOCARD_THEMES.find((theme) => theme.key === themeKey)?.label,
           referenceDate: todayKst(),
         });
-        setOutcome({ report, result: report.result, copy: report.copy, partner: outcome.partner });
+        publishOutcome({ report, result: report.result, copy: report.copy, partner: outcome.partner, recordRequestId: crypto.randomUUID(), recordThemeKey: themeKey });
         trackClick("destiny_bias_deco_mood", { kind: patch.biasMood ? "bias" : "relation" });
       } catch {
         // 재계산 실패 시 직전 결과를 그대로 둔다.
       }
     },
-    [info, moods, outcome, themeKey, trackClick],
+    [info, moods, outcome, publishOutcome, themeKey, trackClick],
   );
 
   const handleInfoSubmit = useCallback(() => {
@@ -478,11 +616,12 @@ export default function DestinyBiasClient() {
 
   const resetToPick = useCallback(() => {
     computingTokenRef.current += 1;
+    clearRecordState();
     setOutcome(null);
     setShareStatus(null);
     setStep("pick");
     trackClick("destiny_bias_pick_another");
-  }, [trackClick]);
+  }, [clearRecordState, trackClick]);
 
   const shareTitle = outcome ? `${outcome.partner.displayName} × 나 = ${outcome.result.chemiTypeNameKo}` : "최애운명";
 
@@ -632,50 +771,13 @@ export default function DestinyBiasClient() {
 
   const handleSaveCollection = useCallback(async () => {
     if (!outcome || shareBusy || savedToCollection) return;
-    const token = readLocalToken();
-    setShareBusy(true);
-    try {
-      const apiBase = String(getApiBaseUrl() || "").trim();
-      const { result, copy } = outcome;
-      const response = await fetch(`${apiBase}/api/destiny-bias/cards`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({
-          title: shareTitle,
-          headline: copy.oneLiner,
-          summary: copy.points.map((p) => p.text).join(" "),
-          themeKey,
-          score: outcome.report.totalScore,
-          grade: outcome.report.grade,
-          reportText: [copy.scenario.text, copy.caution.text, copy.finish.text].join("\n\n"),
-          canonical: {
-            chemiTypeId: result.chemiTypeId,
-            partner: result.partner,
-            engineVersion: result.engineVersion,
-            rulesVersion: result.rulesVersion,
-            rosterVersion: result.rosterVersion,
-            copyVersion: copy.copyVersion,
-            signals: result.matchedSignalKeys,
-            minorMode: result.minorMode,
-          },
-        }),
-      });
-      if (response.status === 401) {
-        setLoggedIn(false);
-        setShareStatus({ tone: "warn", text: "로그인이 풀렸어요. 다시 로그인하면 저장할 수 있어요." });
-        return;
-      }
-      if (!response.ok) throw new Error(`HTTP_${response.status}`);
-      setSavedToCollection(true);
-      setShareStatus({ tone: "ok", text: "컬렉션에 저장했어요." });
-      trackClick("destiny_bias_collection_save", { chemi_type_id: result.chemiTypeId });
-    } catch (caught) {
-      setShareStatus({ tone: "warn", text: friendlyErrorMessage(caught, "저장에 실패했어요. 잠시 후 다시 시도해 주세요.") });
-    } finally {
-      setShareBusy(false);
+    const next = outcome;
+    const owner = readArchiveOwner();
+    const id = await saveReading(next);
+    if (id && archiveMountedRef.current && activeRecordRef.current === next.recordRequestId && readArchiveOwner() === owner && isLoggedInNow()) {
+      trackClick("destiny_bias_collection_save", { chemi_type_id: next.result.chemiTypeId });
     }
-  }, [outcome, savedToCollection, shareBusy, shareTitle, themeKey, trackClick]);
+  }, [outcome, saveReading, savedToCollection, shareBusy, trackClick]);
 
   const stickyLabel = step === "hook" ? "내 최애 고르기" : step === "info" ? "케미 계산하기" : "";
   const stickyAction = () => {
@@ -722,6 +824,15 @@ export default function DestinyBiasClient() {
           <section className={styles.result} aria-labelledby="dbk-result-title">
             <h2 id="dbk-result-title" className="sr-only">케미 결과</h2>
             <ChemiCoreCard ref={coreCardRef} report={outcome.report} themeKey={themeKey} photoUrl={photoUrl} />
+            <div className="flex flex-wrap items-center gap-3" aria-live="polite">
+              {savingRecord ? <p>{archiveCopy.saving}</p> : archiveId ? (
+                <a className="inline-flex min-h-11 items-center rounded-xl border border-[var(--cd-border)] px-4" href={savedRecordPath("destiny-bias", archiveId)}>{archiveCopy.open}</a>
+              ) : saveError ? <>
+                <p>{archiveCopy.saveError}</p>
+                {loggedIn ? <button type="button" className="min-h-11 rounded-xl border border-[var(--cd-border)] px-4" onClick={() => void handleSaveCollection()}>{archiveCopy.save}</button> : <p>{archiveCopy.loginLead}</p>}
+              </> : null}
+              <a className="inline-flex min-h-11 items-center rounded-xl border border-[var(--cd-border)] px-4" href="/records/">{archiveCopy.title}</a>
+            </div>
             <ChemiShareBar
               busy={shareBusy}
               status={shareStatus}

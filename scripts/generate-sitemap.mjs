@@ -74,6 +74,8 @@ const excludedExactSitemapPaths = new Set([
 // public/_headers 의 X-Robots-Tag: noindex 정책과 동기화 유지할 것.
 // noindex 경로를 사이트맵에 넣으면 GSC/네이버에서 "제출된 URL에 noindex" 오류가 난다.
 const noindexPathPrefixes = [
+  '/records',
+  '/consultations',
   "/animal/physio",
   // 개인 다이어리 — 검색 대상이 아니다(로그인 없이도 열리지만 내용은 전부 사용자 기기 안에 있다).
   "/diary",
