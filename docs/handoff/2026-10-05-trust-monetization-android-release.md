@@ -19,7 +19,7 @@ updated: 2026-10-05
 - 브랜치: wt/trust-monetization-20261005-221557 (동시 작업 예외, PR 생성 안 함)
 - 기준 SHA: cd22b8a9a581baf0f882b8355dae92d4466ff86c
 - 콘텐츠 구현 커밋: 00479d172e613effba5c346e73707bf0b04bcbba.
-- 마지막 코드/검사 커밋: b70240a5ab6bf9c43427e29c9f9a8bf6249c23c1. main 통합·push·CI는 아직 없음.
+- 서버 상세 조회 구현 커밋: 75aa0fde8 (기존 콘텐츠 검사 커밋 b70240a5a 이후). 최신 전달·검증 상태는 문서 마지막 절을 따른다.
 - 개발 검증은 mock. 실결제·유료 LLM·운영 DB 쓰기·Play 업로드·공개 출시·운영 승격 미실행.
 
 ## 동시 작업과 앱 빌드 대기
@@ -109,6 +109,10 @@ updated: 2026-10-05
 - 서버 Swiss 차트를 기존 `AstroNatalReading`의 순수 생성기에 전달한다. 시각 미상은 정오 차트·당일 시작/끝 달 별자리를 계산하고 하우스·피르다리아·프로펙션 단정을 제외한다. 유료 LLM 호출 없음.
 - `natal-reading.js`에 CommonJS 내보내기를 추가해 동일 생성기를 서버에서 재사용했다. 브라우저 API `build/render/renderChart/renderDeep/legacyPeriods/glyph`는 유지. 기존 무료 `/api/astrology/basic` 응답과 무인증 계약도 유지.
 - **보호 범위 한계:** 새 API만 권한으로 보호된다. 공개 `natal-reading.js`, `renderAstroInsightLegacyNeon`, 기존 상세 fallback·PDF·공유 경로는 아직 서버 전용으로 이관하지 않았다. 전체 상세 유료 보호가 완료됐다고 보고하거나 판매를 새로 켜면 안 된다.
-- 실측: 새 경로+시간대 Jest 45/45, 기존 natal-reading Node 검사 14/14 통과. `npm run sync:public` 성공. `npm run check:fast -- --plan` critical 승격 확인. `npm run check:fast` 실행 중(완료 결과로 갱신 필요).
-- 미러 검사는 미커밋 변경 때문에 판정 불가로 종료했다. 커밋 후 `node scripts/verify-public-mirror-fresh.mjs`를 다시 실행한다.
-- 통합 재확인: origin/main은 15f2f09e8041270affeb4782ad3e0d40ee4a0653. 구매 전환 세션은 완료, SEO 세션은 active. 공유 main에는 index.html·홈 CSS·public 로케일 미러의 타 세션 staged/unstaged 변경이 공존한다. 덮어쓰기·stash 없이 보존하고 Android는 계속 보류한다.
+- 실측: 새 경로+시간대 Jest 45/45, 기존 natal-reading Node 검사 14/14 통과. `npm run sync:public` 성공. `npm run check:fast -- --plan` critical 승격 확인.
+- `npm run check:fast`: 전체 `npm test`와 결제·권한 가드 88/88, lint-changed, 전체 lint 통과 후 사이트맵 원장 드리프트로 exit 1. `npm run sitemap:generate`로 관련 콘텐츠 8개 서명을 갱신하고 `npm run verify:sitemap-drift` 재검증 통과(1,311 URLs). 전체 check:fast를 다시 실행하지 않았으므로 전체 통과라고 보고하지 않는다.
+- 후속 `npm run typecheck` 및 `npm run build:worker` 통과. Worker dry-run gzip 4,147.34 KiB, 실제 배포 없음. Wrangler의 사용자 폴더 로그 쓰기는 sandbox EPERM이었으나 번들 생성과 dry-run은 exit 0. APK/AAB 빌드 없음.
+- `node scripts/verify-public-mirror-fresh.mjs`: 처음에는 미커밋으로 판정 불가, 구현 커밋 후 재실행 OK(재생성 변경 없음).
+- `config/payment-freeze.json`의 billing.js 성장 상한은 6,368→6,347줄로 가드가 자동 축소했으며 구현 커밋에 포함. 결제 정책이나 해시 가드를 완화하지 않았다.
+- 원격 통합: origin/main 15f2f09e8041270affeb4782ad3e0d40ee4a0653을 지정 워크트리에 merge한 커밋은 2c951021e. 이번 전달은 공유 main의 더러운 인덱스를 건드리지 않고 이 통합 결과를 원격 main으로 fast-forward push한다. 이 기록 시점의 push·main CI는 아직 대기이며, 확인 후 아래에 증거를 추가한다.
+- 구매 전환 세션은 완료, SEO 세션은 active로 확인. 공유 main에는 index.html·홈 CSS·public 로케일 미러의 타 세션 staged/unstaged 변경이 공존한다. 덮어쓰기·stash 없이 보존하고 Android는 계속 보류한다.
