@@ -1,5 +1,5 @@
 ---
-status: open
+status: active
 updated: 2026-10-05
 next: "1단계(점수·유형 출처 통일 설계)부터 — 아래 '시작 전 확인'을 먼저 실측하고 진행."
 ---

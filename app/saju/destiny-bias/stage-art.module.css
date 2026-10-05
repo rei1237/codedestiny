@@ -73,6 +73,7 @@
   line-height: 1.2;
   letter-spacing: -0.02em;
   word-break: keep-all;
+  overflow-wrap: anywhere;
   text-wrap: balance;
   color: #fff;
   text-shadow: 0 2px 4px rgba(6, 3, 18, 0.85), 0 0 34px rgba(6, 3, 18, 0.9);

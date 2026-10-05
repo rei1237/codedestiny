@@ -43,6 +43,7 @@ import ChemiComputing from "./components/chemi/ChemiComputing";
 import ChemiReportTabs from "./components/chemi/ChemiReportTabs";
 import ChemiCoreCard, { toPhotocardView } from "./components/chemi/ChemiCoreCard";
 import PhotocardDeco from "./components/chemi/PhotocardDeco";
+import BiasPhotoPicker from "./components/chemi/BiasPhotoPicker";
 import { DEFAULT_PHOTOCARD_THEME, PHOTOCARD_THEMES } from "./components/chemi/PhotocardFace";
 import {
   DEFAULT_BIAS_MOOD,
@@ -254,7 +255,7 @@ export default function DestinyBiasClient() {
   const [shareNickname, setShareNickname] = useState("");
   const [showNickname, setShowNickname] = useState(true);
 
-  // 포카 꾸미기: 무드는 리포트를 다시 계산하고, 테마·사진은 표시만 바꾼다. 사진은 메모리에만 둔다.
+  // 포카 꾸미기·최애 사진: 무드는 리포트를 다시 계산하고, 테마·사진은 표시만 바꾼다. 사진은 메모리에만 둔다.
   const [themeKey, setThemeKey] = useState<string>(DEFAULT_PHOTOCARD_THEME);
   const [moods, setMoods] = useState<Moods>({ biasMood: DEFAULT_BIAS_MOOD, relationMood: DEFAULT_RELATION_MOOD });
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -824,6 +825,13 @@ export default function DestinyBiasClient() {
           <section className={styles.result} aria-labelledby="dbk-result-title">
             <h2 id="dbk-result-title" className="sr-only">케미 결과</h2>
             <ChemiCoreCard ref={coreCardRef} report={outcome.report} themeKey={themeKey} photoUrl={photoUrl} />
+            <BiasPhotoPicker
+              photoUrl={photoUrl}
+              onPhotoChange={(next) => {
+                setPhotoUrl(next);
+                trackClick("destiny_bias_deco_photo", { action: next ? "set" : "clear" });
+              }}
+            />
             <div className="flex flex-wrap items-center gap-3" aria-live="polite">
               {savingRecord ? <p>{archiveCopy.saving}</p> : archiveId ? (
                 <a className="inline-flex min-h-11 items-center rounded-xl border border-[var(--cd-border)] px-4" href={savedRecordPath("destiny-bias", archiveId)}>{archiveCopy.open}</a>
@@ -860,17 +868,12 @@ export default function DestinyBiasClient() {
               biasMood={outcome.report.vm.biasMood}
               relationMood={outcome.report.vm.relationMood}
               relationMoods={outcome.report.minorMode ? RELATION_MOODS_MINOR : RELATION_MOODS}
-              hasPhoto={Boolean(photoUrl)}
               onThemeChange={(key) => {
                 setThemeKey(key);
                 trackClick("destiny_bias_deco_theme", { theme: key });
               }}
               onBiasMoodChange={(biasMood) => handleMoodChange({ biasMood })}
               onRelationMoodChange={(relationMood) => handleMoodChange({ relationMood })}
-              onPhotoChange={(next) => {
-                setPhotoUrl(next);
-                trackClick("destiny_bias_deco_photo", { action: next ? "set" : "clear" });
-              }}
             />
             <ChemiSections copy={outcome.copy} />
             <ChemiReportTabs vm={outcome.report.vm} onOpen={(tab) => trackClick("destiny_bias_report_tab", { tab })} />
