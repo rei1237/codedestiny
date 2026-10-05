@@ -10,7 +10,7 @@ const INDEXABLE_LOCALE_BADGE = SEO_INDEXABLE_LOCALES.map((locale) => locale.toUp
 
 const TEMPLATE_UI_COPY = {
   ko: {
-    heroTagline: "GLOBAL FORTUNE LANDING",
+    heroTagline: "CODE DESTINY",
     heroCaption: "오늘의 흐름을 빠르게 읽고, 필요한 해석으로 바로 이동",
     keyPoints: "핵심 포인트",
     spotlight: "추천 서비스",
@@ -24,7 +24,7 @@ const TEMPLATE_UI_COPY = {
     refund: "환불정책",
   },
   ja: {
-    heroTagline: "GLOBAL FORTUNE LANDING",
+    heroTagline: "CODE DESTINY",
     heroCaption: "今日の流れをつかみ、必要な解釈へすぐ移動",
     keyPoints: "要点",
     spotlight: "おすすめサービス",
@@ -38,7 +38,7 @@ const TEMPLATE_UI_COPY = {
     refund: "返金ポリシー",
   },
   zh: {
-    heroTagline: "GLOBAL FORTUNE LANDING",
+    heroTagline: "CODE DESTINY",
     heroCaption: "先看今日趋势，再进入更深层解读",
     keyPoints: "核心要点",
     spotlight: "推荐服务",
@@ -54,7 +54,7 @@ const TEMPLATE_UI_COPY = {
   // 🔴 zh-TW 가 없으면 아래 조회가 en 으로 떨어져 **번체 방문자가 영어 UI** 를 본다.
   //    /zh-tw 는 lib/i18n/locales.ts 의 PUBLIC_LOCALES 에 든 색인 대상 로케일이다.
   "zh-TW": {
-    heroTagline: "GLOBAL FORTUNE LANDING",
+    heroTagline: "CODE DESTINY",
     heroCaption: "先看今日趨勢，再進入更深層解讀",
     keyPoints: "核心要點",
     spotlight: "推薦服務",
@@ -68,7 +68,7 @@ const TEMPLATE_UI_COPY = {
     refund: "退款政策",
   },
   en: {
-    heroTagline: "GLOBAL FORTUNE LANDING",
+    heroTagline: "CODE DESTINY",
     heroCaption: "Start with daily guidance, move into deeper readings",
     keyPoints: "Key Points",
     spotlight: "Recommended Services",
@@ -272,6 +272,16 @@ export default function I18nSeoPageTemplate({
           </div>
         </div>
       </section>
+
+      {content.facts && <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f172a] px-5 py-6 md:px-8 md:py-8">
+        <table className="w-full table-fixed text-left text-sm leading-7">
+          <caption className="mb-4 text-left text-xl font-semibold text-amber-100">{content.facts.heading}</caption>
+          <tbody>{content.facts.rows.map(([label, value]) => <tr key={label} className="border-b border-white/10">
+            <th scope="row" className="w-1/3 break-words py-3 pr-3 align-top font-semibold text-amber-50">{label}</th>
+            <td className="break-words py-3 text-slate-200">{value}</td>
+          </tr>)}</tbody>
+        </table>
+      </section>}
 
       <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f172a] px-5 py-6 md:px-8 md:py-8">
         <h2 className="text-xl font-semibold text-amber-100">{ui.keyPoints}</h2>

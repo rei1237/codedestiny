@@ -24,7 +24,11 @@ export default function PublicFeatureIntroduction({ locale, topic }) {
     <header className={styles.hero}>
       <div className={styles.heroCopy}>
         <h1>{copy.heading}</h1>
-        <p className={styles.updated}>{ui.updated}: <time dateTime="2026-09-08">2026-09-08</time></p>
+        {copy.summary && <>
+          <p className={styles.summary}>{copy.summary}</p>
+          <a className={styles.cta} href={ctaHref}>{ui.start}</a>
+        </>}
+        <p className={styles.updated}>{ui.updated}: <time dateTime={copy.updated || "2026-09-08"}>{copy.updated || "2026-09-08"}</time></p>
       </div>
       <Image className={styles.pig} src="/icons/app-logo-512.webp" alt="Code Destiny" width={512} height={512} sizes="(max-width: 720px) 88px, 132px" priority />
     </header>
@@ -48,6 +52,10 @@ export default function PublicFeatureIntroduction({ locale, topic }) {
         </details>)}
         <p className={styles.caution}>{ui.caution}</p>
       </section>
+      {copy.sources && <section className={styles.section}>
+        <h2>{copy.sourcesHeading}</h2>
+        <ul>{copy.sources.map(source => <li key={source.href}><Link href={source.href}>{source.label}</Link></li>)}</ul>
+      </section>}
     </div>
     <nav className={styles.related} aria-label={ui.related}>
       {INTRO_TOPICS.filter(key => key !== topic && FEATURE_INTRODUCTIONS[key][locale]).map(key => <Link key={key} href={`/${locale}/${key}/`}>{FEATURE_INTRODUCTIONS[key][locale].heading}</Link>)}

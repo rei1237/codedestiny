@@ -73,3 +73,31 @@
 - 환불 정책: https://code-destiny.com/terms/#refund-policy
 - 서비스 소개: https://code-destiny.com/about/
 - 문의: https://code-destiny.com/contact/
+
+## 四柱推命・宿曜・タロット占い｜Code Destiny
+Code Destinyは、韓国式四柱推命、タロット、紫微斗数、宿曜、西洋占星術、ヴェーダ占星術を日本語で探せる占いサービスです。自分の傾向を知りたいときは出生情報を使う命式・命盤から、具体的な悩みを整理したいときは質問に合うタロットから選べます。四柱推命とタロットでは必要な入力も読み方も異なります。各解説から対応する鑑定画面へ進み、公開機能と有料相談の範囲を確認できます。ヨニ、ネオ、ヨンニャンイは同じCode Destiny内で異なる相談体験を案内します。
+- [四柱推命・宿曜・タロット占い｜Code Destiny](https://code-destiny.com/ja/)
+- [韓国式四柱推命の命式と五行を読む](https://code-destiny.com/ja/saju/)
+- [紫微斗数](https://code-destiny.com/ja/ziwei/)
+- [宿曜](https://code-destiny.com/ja/sukuyo/)
+
+## Korean Saju, Tarot & Birth Charts | Code Destiny
+Code Destiny brings Korean Saju (Four Pillars, also called BaZi), tarot, Zi Wei Dou Shu, Sukuyo, Western astrology and Vedic astrology together. Start with a birth chart when you want to understand recurring patterns, or choose tarot for a specific question. Saju uses birth details; tarot begins with your question and cards. Each guide explains its own method and links to the corresponding tool. Yeoni, Neo and Yeongnyangi offer different reading experiences within the same platform. Public guidance and optional paid consultations are described separately on each service page.
+- [Korean Saju, Tarot & Birth Charts | Code Destiny](https://code-destiny.com/en/)
+- [Korean Saju: read your Four Pillars birth chart](https://code-destiny.com/en/saju/)
+- [Zi Wei](https://code-destiny.com/en/ziwei/)
+- [Sukuyo](https://code-destiny.com/en/sukuyo/)
+
+## 八字排盘·紫微斗数·塔罗占卜｜Code Destiny
+Code Destiny提供四柱八字、紫微斗数、宿曜、西洋占星、吠陀占星与塔罗的简体中文入口。想了解长期的性格与选择模式，可以从出生信息对应的命盘开始；想梳理某个具体问题，可以选择塔罗。八字需要出生资料，塔罗从问题与牌面出发，两者不能套用同一解释。每个介绍页说明本体系的阅读方法，并连接相应工具。妍伊、Neo与Yeongnyangi提供同一平台内不同风格的咨询体验。公开功能和可选付费咨询的范围，以对应服务页说明为准。
+- [八字排盘·紫微斗数·塔罗占卜｜Code Destiny](https://code-destiny.com/zh/)
+- [四柱八字：从日主与五行读懂命盘](https://code-destiny.com/zh/saju/)
+- [紫微斗数](https://code-destiny.com/zh/ziwei/)
+- [宿曜](https://code-destiny.com/zh/sukuyo/)
+
+## 八字排盤·紫微斗數·塔羅占卜｜Code Destiny
+Code Destiny提供四柱八字、紫微斗數、宿曜、西洋占星、吠陀占星與塔羅的繁體中文入口。想了解長期的性格與選擇模式，可以從出生資訊對應的命盤開始；想梳理某個具體問題，可以選擇塔羅。八字需要出生資料，塔羅從問題與牌面出發，兩者不能套用同一解釋。每個介紹頁說明本體系的閱讀方法，並連結相應工具。妍伊、Neo與Yeongnyangi提供同一平台內不同風格的諮詢體驗。公開功能和可選付費諮詢的範圍，以對應服務頁說明為準。
+- [八字排盤·紫微斗數·塔羅占卜｜Code Destiny](https://code-destiny.com/zh-tw/)
+- [四柱八字：從日主與五行讀懂命盤](https://code-destiny.com/zh-tw/saju/)
+- [紫微鬥數](https://code-destiny.com/zh-tw/ziwei/)
+- [宿曜](https://code-destiny.com/zh-tw/sukuyo/)
