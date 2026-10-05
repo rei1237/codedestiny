@@ -1,10 +1,26 @@
 ---
-status: active
+status: done
 updated: 2026-10-05
-next: "1단계(공용 모듈 추출, 동작 불변): worker/yeongnyangi/fortune/ziwei/derived.ts 의 순수 로직을 worker/lib/ziwei-derived-signals.js 로 옮기고 derived.ts 는 재수출만 남긴다. 영냥이 invariance 해시가 하나도 바뀌지 않아야 한다."
+next: "없음 — 1~4단계 main 반영, 5단계는 판단·보고로 종료. 운영 승격은 별도 1회 요청 때만."
 ---
 
 # 자미 사업운 근거를 다른 자미 상품과 공유 — 설계·인수인계
+
+## 결과 (2026-10-05, 세션 854d63b7)
+
+| 단계 | 커밋 | 실측 |
+|---|---|---|
+| 1 공용 모듈 추출 | `a570e6955` | derived 5 + invariance 1 통과, 해시 변경 0. 구 TS↔신 JS 무작위 명반 5000×3함수·비정상 입력 diff 0 |
+| 2 `formatZiweiBusinessLines` | `2b8ea3d2e` | 역할 1줄 + 연결 최대 4줄(궁 사이 → 대궁 충 → 생년사화 순) + 한계 1줄, 줄당 ≤120자. 실제 명반 2,880개: 연결 1~10개, 최장 85자 |
+| 3 자미 AI `achievement` 묶음 | `cc4dbe966` | 7회 중 1회, 평균 +410자(최대 489, 약 2.5%). 근거 검사는 존재 검사라 재시도 증가 경로 없음. `ziwei-ai-chart.js` 부분 mock 2곳에 사화 표 추가 |
+| 4 심화 PDF 4장 | `c3a1f662c` | `children`·`wealth`·`career`·`property` 만. 리포트당 평균 +1,533자(최대 1,892, 약 4.5%). 출력 상한(9000) 불변. 네 장은 프롬프트 기반 장 캐시가 새로 생성됨 |
+| 5 판단 | 코드 변경 없음 | 아래 |
+
+5단계 판단:
+- **영냥이 legacy money 선택자(`consultation-kinds.ts:73`)**: 바꾸지 않는다. 자미 단일 상품은 `catalog.ts` `MANIFEST_VERSION`=v6 이라 `:63` 에서 v6 로 먼저 반환되고, v6 money 는 이미 `businessBasis` 를 쓴다(`reading-v6.ts:38`). spirit 모드(v4)는 클라이언트가 `consultationKind` 를 보내지 않아(`SpiritConsultation.tsx:31`) `:66` 에서 반환, fusion 은 kind 가 personal·ask 뿐. 정상 신규 주문의 도달 경로 0(정적 실측) — v6 이전 주문 재생성·비정상 요청만 남는다.
+- **섬 궁 상담(`palace-prompts.js` `palaceFactsBlock`)**: 넣지 않는다. 자녀궁(자녀·창작)·전택궁(거처) 상담의 초점이 사업이 아니라 줄을 넣으면 주제가 끌려간다. 재백·관록 궁 상담에만 넣을지는 상품 판단이 필요해 보고만 한다.
+- 표기 오류: 아래 검증 절의 `verify:ziwei-basic-consult-prompt` 는 package.json 에 없다. 대신 `verify:ziwei-personality-context` 를 돌렸다.
+- 과금 LLM 실호출 0회(전부 mock).
 
 출처: [영냥이 챕터 후속 과제](yeongnyangi-chapter-followups-20261005.md) 5번. 이전 세션(616d0488)이 설계까지 하고, 구현은 새 세션이 이 문서로 이어 간다.
 사용자 요청(2026-10-05): "다른 리포트에서도 로직을 공유하도록 설계" → **이 설계 방향은 승인된 범위**다. RED(유료 상품 프롬프트)이므로 시작할 때 위험·검증·롤백을 한 번 보고하고, 범위를 다시 묻지 않고 진행한다.
