@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-05
-next: "후속 과제 2번(근거 밖 문장 가지치기가 많은 장): d:\tmp\yeongnyangi-golden-20261004\state-raw.json 에서 장별 제거 수를 집계해 상위 장의 focus·refs 를 보강한다."
+next: "후속 과제 4번(점성술 광어·참치 aspects.none-conjunction 담당 장 없음): worker/yeongnyangi/fortune/reading-v7-ledger.ts 에서 none 사실의 소유 폴백을 확인한다."
 ---
 
 # 영냥이 챕터 확장 후속 과제 인수인계
@@ -33,10 +33,13 @@ next: "후속 과제 2번(근거 밖 문장 가지치기가 많은 장): d:\tmp\
 ### 2. 근거 밖 문장 가지치기가 많은 장
 - 골든에서 근거 밖 사실로 잘린 문장이 많은 장이 있었다(예: 참치 t25 에서 `V7_FOREIGN_FACT` 21문장). 분량은 통과했지만 모델이 근거 밖 내용을 많이 쓴다는 뜻이다.
 - `state-raw.json` 에서 장별 제거 수를 집계해 상위 장의 focus·refs 를 보강한다. 거절 조건을 늘리지 않는다.
+- **결과(2026-10-05, `bdc69c62b`)**: 모델 문제가 아니라 감사 오탐이었다. 원본 초안을 재감사해 기록과 일치(FOREIGN 117·ANCHOR_REPEAT 66)를 확인했고, 잘린 문장은 거의 전부 그 장이 소유한 기둥·세운·월운·대운 사실의 십신 해석이었다(예: t24 "2028년 식신", 자녀 장 시주 상관). 십신 용어가 `tenGods.<slug>`·`tenGodProfile` 에만 묶여 있던 것을 `.pillarDetails.`·`.tenGodsByPillar.`·`.majorLuck.`·`.yearlyLuck.`·`.monthlyLuck.` 소유에도 허용(`reading-v7-quality.ts` `TEN_GOD_CARRIERS`) → 같은 초안 재감사 FOREIGN 117→7. 남은 7은 단일 십신 장이 다른 십신을 말한 진짜 위반. focus·refs 는 바꾸지 않았다. 남은 관찰: ANCHOR_REPEAT 66(시기 장의 일간 반복 등)은 설계 규칙대로 둠 — 다음 골든에서 분량 영향이 크면 재검토.
 
 ### 3. 모바일 상담 메뉴 CSS (기존 결함, UI)
 - 영냥이 운세 화면의 상담 종류 버튼 그룹(`kindChoices`, 390px): ① 한국어가 음절 단위로 줄바꿈된다(`word-break: keep-all` 누락 추정) ② 설명이 한 줄인 버튼은 내용이 가운데로 몰린다.
 - [design-canon](../context/design-canon.md) 을 먼저 읽고, headed 브라우저로 화면을 띄워 확인한다.
+- **결과(2026-10-05, `e34842876`)**: 390px 실측으로 두 증상 모두 확인 — 5개 도메인 단어 중간 줄바꿈 25곳(`불/러요` 등), 한 줄짜리 설명 버튼만 내용이 5~7px 아래로 밀림. `.kindChoices button` 에 `align-content:start; word-break:keep-all; overflow-wrap:anywhere`(같은 파일 `.fusionChoices` 관용구) → 0곳·전 버튼 위 여백 13px·320px 가로 넘침 0. 범위 밖 관찰(보고만): 영냥 신점 카드 "인연/의 흐름", 언어 안내 "재/열람에도" 단어 중간 줄바꿈.
+- 부수 발견: `check:fast` 가 CSS 한 줄에 약 20분 걸렸다. ① 스크래치 `.tmp/` 가 gitignore 밖이라 미분류로 fail-closed → 결제 게이트 스위트 ② `app/**` 편집 때마다 재생성되는 `config/sitemap-lastmod.json` 이 `^config/` shared 로 critical. `.tmp/` 무시 + 원장 예외(`scripts/lib/verification-plan.mjs`)로 같은 변경은 standard.
 
 ### 4. 점성술 광어·참치 `aspects.none-conjunction` 담당 장 없음 (기존 결함)
 - ft 등급에 `aspects.conjunction` 소유 장이 없고 none 사실에 폴백 레벨이 없어 원장에서 미소유로 남는다. '.houseRulers.' 접두 사실과 ledger unknown fact 경고도 같은 축에서 함께 본다.

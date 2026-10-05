@@ -24,6 +24,23 @@ const order=['mackerel','salmon','flounder','tuna','assorted','omakase'];
 const TRIAL={mackerel:1000,salmon:3000,flounder:5000,tuna:10000,assorted:20000,omakase:50000};
 const whileActive=fn=>{const before=mod.launchOffer.active;mod.launchOffer.active=true;try{return fn();}finally{mod.launchOffer.active=before;}};
 
+test('all 28 catalog products follow the user-confirmed fish ratio and fusion prices',()=>{
+ const approved={mackerel:3000,salmon:9000,flounder:15000,tuna:30000,assorted:50000,omakase:80000};
+ assert.equal(mod.products.length,28);
+ for(const product of mod.products)assert.equal(product.priceKRW,approved[product.fishId],product.id);
+ assert.deepEqual(mod.launchOffer.plannedPriceKRW,approved);
+});
+
+test('static home fish prices agree with the consultation catalog in every published shell',()=>{
+ for(const file of ['index.html','public/index.html','public/ggulggul/index.html','public/static/index.html','public/en/index.html','public/ja/index.html','public/zh/index.html','public/zh-tw/index.html']){
+  const html=readFileSync(file,'utf8');
+  for(const fish of ['mackerel','salmon','flounder','tuna']){
+   const match=html.match(new RegExp(`<b data-yeongnyangi-price="${fish}">([^<]+)</b>`));
+   assert.equal(match?.[1],unitPrice(fish).toLocaleString('ko-KR')+'원',`${file}: ${fish}`);
+  }
+ }
+});
+
 test('the offer has ended: planned prices are now the catalog prices and nothing shows a planned price',()=>{
  assert.equal(mod.launchOffer.active,false);
  assert.deepEqual(Object.keys(mod.launchOffer.plannedPriceKRW),order);
@@ -34,7 +51,7 @@ test('the offer has ended: planned prices are now the catalog prices and nothing
  for(const plan of Object.values(SERVICE_PACK_PLANS))assert.equal(mod.plannedPackPriceFor(plan.fishId,unitPrice(plan.fishId),plan.priceKRW),null,plan.name);
 });
 
-// 2026-10-05 가격(×0.302)은 모둠·오마카세가 체험가보다 낮다. 예정가는 실가보다 높을 때만 보인다.
+// 예정가는 실가보다 높을 때만 보인다. 종료된 체험가 문구가 재노출되지 않도록 확인한다.
 test('while active, a planned price shows only above the trial price and the ladder still climbs',()=>whileActive(()=>{
  const planned=order.map(fish=>mod.launchOffer.plannedPriceKRW[fish]);
  planned.forEach((price,i)=>{if(i)assert.ok(price>planned[i-1],order[i]);});

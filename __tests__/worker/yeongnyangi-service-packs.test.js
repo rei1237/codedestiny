@@ -279,12 +279,12 @@ test.each(['cancellationReviewRequired','yeongnyangiRefundPending','right-revoke
  expect(f.db.rows.find(r=>r.type==='service_pack').remainingUses).toBe(13);
 });
 
-const approvedFish=[['mackerel',3000,[12000,21000,36000]],['salmon',5400,[21600,37800,64800]],['flounder',7200,[28800,50400,86400]],['tuna',10500,[42000,73500,126000]]];
+const approvedFish=[['mackerel',3000,[12000,21000,36000]],['salmon',9000,[36000,63000,108000]],['flounder',15000,[60000,105000,180000]],['tuna',30000,[120000,210000,360000]]];
 const counts=[5,10,20];
 test.each(approvedFish)('%s catalog fixes approved 2026-10-05 prices, counts and 30-day duration',(fish,unit,prices)=>{
  ['small','medium','large'].forEach((size,i)=>{
   const offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-'+size+'-v3');
-  expect(offer.packSnapshot).toMatchObject({fishId:fish,unitPriceKRW:unit,totalUses:counts[i],priceKRW:prices[i],validityDays:30,policyVersion:'yeongnyangi-pack-20261005'});
+  expect(offer.packSnapshot).toMatchObject({fishId:fish,unitPriceKRW:unit,totalUses:counts[i],priceKRW:prices[i],validityDays:30,policyVersion:'yeongnyangi-pack-20261005-ratio-corrected'});
   // Approved discount ladder: 20/30/40% off the same-fish single price.
   expect(prices[i]).toBe(unit*counts[i]*[80,70,60][i]/100);
   expect(offer.allowedPaymentMethods).toEqual(['DIRECT_KRW']);
@@ -292,7 +292,7 @@ test.each(approvedFish)('%s catalog fixes approved 2026-10-05 prices, counts and
   for(const [otherFish,otherPrice] of approvedFish)for(const system of ['saju','ziwei','sukuyo','vedic','astrology','tarot']){
    expect(servicePackCoverage(right,'yeongnyangi-'+system+'-'+otherFish,otherPrice).covered).toBe(otherFish===fish);
   }
-  for(const suffix of ['saju-ziwei','sukuyo-vedic','astrology-tarot','all'])expect(servicePackCoverage(right,'yeongnyangi-fusion-'+suffix,suffix==='all'?30000:14800).covered).toBe(false);
+  for(const suffix of ['saju-ziwei','sukuyo-vedic','astrology-tarot','all'])expect(servicePackCoverage(right,'yeongnyangi-fusion-'+suffix,suffix==='all'?80000:50000).covered).toBe(false);
  });
 });
 test.each(approvedFish.flatMap(([fish])=>approvedFish.map(([target,price])=>[fish,target,price])))('%s pack quote/consume only serves %s when identical',async(fish,target,amount)=>{
@@ -325,7 +325,7 @@ test('a pack bought before the 2026-10-05 price rise keeps covering its own fish
   planId:'yeongnyangi-pack-mackerel-small-v2',policyVersion:'yeongnyangi-pack-20261001',priceKRW:4500,unitPriceKRW:1000};
  const right={type:'service_pack',status:'granted',packSnapshot:legacy,remainingUses:5,expiresAt:new Date('2099-01-01')};
  expect(servicePackCoverage(right,'yeongnyangi-saju-mackerel',3000).covered).toBe(true);
- expect(servicePackCoverage(right,'yeongnyangi-saju-salmon',5400).covered).toBe(false);
+ expect(servicePackCoverage(right,'yeongnyangi-saju-salmon',9000).covered).toBe(false);
  // A snapshot priced above the current consultation is never honoured blindly.
  expect(servicePackCoverage({...right,packSnapshot:{...legacy,unitPriceKRW:12000}},'yeongnyangi-saju-mackerel',3000).covered).toBe(false);
 });

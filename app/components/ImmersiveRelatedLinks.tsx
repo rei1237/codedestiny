@@ -96,15 +96,16 @@ const CURATED_LINK_LABELS: Record<string, string> = {
   "/ziwei/animal-destiny": "자미두수 영혼 동물",
 };
 
-/* ServiceIntroSection(app/components/ServiceIntroSection.tsx)과 같은 토큰을 쓴다 — 그 패널
-   바로 아래에 붙는 경우가 9개라, 색이 갈리면 두 블록이 서로 다른 페이지처럼 보인다.
+/* ServiceIntroSection(app/components/ServiceIntroSection.module.css 의 달빛 밤 --si-*)과 같은 값을 쓴다 —
+   그 패널 바로 아래에 붙는 경우가 9개라, 색이 갈리면 두 블록이 서로 다른 페이지처럼 보인다.
+   2026-10-05 달빛 예화 공통 양식: 표면(밤하늘 그라디언트·금빛 테)과 명조 제목만 맞췄다. 링크 마크업은 그대로다.
    light 는 /yeon-star-hug 하나뿐이다(그 라우트만 크림색 배경 위에 흰 카드를 쌓는다). */
 const TONE = {
   dark: {
     section: "mx-auto w-full max-w-3xl px-4 pb-14 md:px-6",
-    panel: "rounded-3xl border border-white/10 bg-[#10172b] px-5 py-6 md:px-8",
-    heading: "text-sm font-semibold text-amber-100",
-    link: "inline-flex min-h-11 items-center rounded-full border border-white/15 px-4 text-sm text-slate-200 transition hover:border-amber-100/50 hover:text-amber-50",
+    panel: "rounded-[26px] border border-[rgba(232,213,163,0.24)] bg-[linear-gradient(180deg,#151c36,#0d1325)] px-5 py-6 shadow-[inset_0_1px_0_rgba(255,244,220,0.06)] md:px-8",
+    heading: "font-[family-name:var(--font-serif)] text-base font-bold tracking-[-0.01em] text-[#f6ecd6]",
+    link: "inline-flex min-h-11 items-center rounded-full border border-[rgba(232,213,163,0.22)] px-4 text-sm text-[#d8d4ca] transition hover:border-[rgba(232,213,163,0.6)] hover:text-[#f6ecd6]",
   },
   light: {
     section: "mx-auto w-full max-w-[1440px] px-4 pb-10 md:px-6 lg:px-8",

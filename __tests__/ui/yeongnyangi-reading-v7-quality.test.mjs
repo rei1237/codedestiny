@@ -41,6 +41,15 @@ test('ownership: the owner explains its fact freely, another chapter naming it i
  assert.ok(pruned.restored>0);
 });
 
+test('ownership: pillar and luck facts carry their own ten gods, a single ten-god chapter still does not',()=>{
+ const rows=[['insight-1','2028년에는 식신이 천간에 들어 손이 바빠집니다.','지지의 상관은 말이 앞서는 흐름입니다.']];
+ for(const owns of [['saju.yearlyLuck.2028'],['saju.monthlyLuck.2026-10'],['saju.majorLuck.arc'],['saju.tenGodsByPillar.hour'],['saju.pillarDetails.year']])
+  assert.deepEqual(audit(bodyOf(rows),spec(owns,['saju.dayMaster'])).violations,[],owns[0]);
+ const other=audit(bodyOf(rows),spec(['saju.tenGods.jeonggwan'],['saju.dayMaster']));
+ assert.equal(other.code,m.V7_FOREIGN_FACT,'a single ten-god chapter may not name the others');
+ assert.equal(other.violations.length,2);
+});
+
 test('reference points: one sentence may point at an anchor, the second explanation is flagged',()=>{
  const rows=[['insight-1','일간의 성향은 앞 장에서 다룬 기준점입니다.','일간이 무엇을 뜻하는지 다시 풀어 보면 이렇습니다.','상관은 표현하는 힘을 뜻합니다.']];
  const chapter=spec(['saju.tenGods.sanggwan'],['saju.dayMaster','saju.pillars']);

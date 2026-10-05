@@ -702,7 +702,7 @@
 @media(prefers-reduced-motion:reduce) { .page .retryButton { transition:none; transform:none; } }
 
 .kindChoices { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0; }
-.kindChoices button { display: grid; gap: 6px; min-height: 64px; padding: 12px 16px; text-align: left; color: var(--yn-ivory); background: var(--yn-night); border: 1px solid var(--yn-line); border-radius: 12px; cursor: pointer; }
+.kindChoices button { display: grid; align-content: start; gap: 6px; min-height: 64px; padding: 12px 16px; text-align: left; word-break: keep-all; overflow-wrap: anywhere; color: var(--yn-ivory); background: var(--yn-night); border: 1px solid var(--yn-line); border-radius: 12px; cursor: pointer; }
 .kindChoices button[aria-pressed="true"] { border-color: #e9c78d; background: var(--yn-raised); }
 .kindChoices button span { font-size: .85rem; line-height: 1.5; }
 .kindChoices button:focus-visible { outline: 2px solid #e9c78d; outline-offset: 3px; }
