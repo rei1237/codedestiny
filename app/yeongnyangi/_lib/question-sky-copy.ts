@@ -1,3 +1,5 @@
+import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
+import {nativeQuestionSkyCopy,nativeSymbolicCopy,nativeSymbolicTopic} from './symbolic-locales';
 import {SPIRIT_NOTICE} from '@/worker/yeongnyangi/fortune/spirit-contract';
 
 export const questionSkyCopy={
@@ -8,7 +10,7 @@ export const questionSkyCopy={
       description:'질문이 떠오른 순간의 기운과 자리에서, 선택에 비친 상징과 관계의 조건을 살펴보는 전통 상담 방식이야.',notice:SPIRIT_NOTICE,
       questionLabel:'영냥이에게 궁금한 한 가지',questionPlaceholder:'가장 알고 싶은 한 가지를 적어줘.',
       topicLabel:'궁금한 주제',topicHelp:'고른 주제보다 직접 적어준 질문을 먼저 살펴볼게.',relationshipLabel:'그 사람과 나의 관계',
-      cityLabel:'질문이 떠올랐을 때 내가 있던 도시',cityPlaceholder:'질문자 도시 선택',locationConfirmed:'확인한 현재 위치를 사용할게. 시간대:',
+      cityLabel:'질문이 떠올랐을 때 내가 있던 도시',cityPlaceholder:'질문자 도시 선택',locationConfirmed:'확인한 현재 위치를 사용할게. 시간대:',locationQuestion:'질문이 떠오른 당시에도 이곳에 있었나요?',locationApply:'질문 당시 장소로 적용',
       cityHelp:'도시를 선택하면 도시 중심, 현재 위치에 동의하면 확인한 위치를 사용해. 상대방의 위치가 아니라 질문 당시 네가 있던 장소야.',
       timeLabel:'질문이 떠오른 날짜와 시각',timeHelp:'기억하는 시각을 그대로 적어줘. 시간대는 도시를 기준으로 서버에서 확인하고 저장해. 정확히 기억나지 않으면 임의로 채우지 말고 질문을 새로 정리한 순간을 기준으로 해줘. 출생정보는 필요하지 않아.',
       situationLabel:'이미 알고 있는 상황',situationPlaceholder:'이름과 주소 대신 네가 알고 있는 상황만 적어줘.',boundaryLabel:'상대가 연락을 거절하거나 차단한 상황이에요',
@@ -31,4 +33,9 @@ export const questionSkyCopy={
 } as const;
 
 export const questionSkyTopicCopy:Record<string,string>={relationship:'관계의 흐름',space:'공간의 기운',contact:'연락',reunion:'재회',work:'일과 진로',money:'재물',home:'주거와 이사',study:'시험과 공부',travel:'이동과 여행',general:'그 밖의 질문'};
-export const questionSkyCopyFor=()=>questionSkyCopy.ko;
+export const questionSkyCopyFor=(locale:ReadingLocale='ko')=>locale==='ko'?questionSkyCopy.ko:nativeQuestionSkyCopy(locale);
+export const questionSkyTopicFor=(id:string,locale:ReadingLocale='ko')=>locale==='ko'?questionSkyTopicCopy[id]:nativeSymbolicTopic(id,locale);
+export function spiritExtraCopy(locale:ReadingLocale='ko'){
+ if(locale!=='ko')return nativeSymbolicCopy(locale);
+ return {birthIntro:'현재 계산에는 네 생년월일이 필요해. 출생시간은 몰라도 돼. 모르는 정보는 채워 넣지 않고 해석 범위를 줄일게.',birthUnknown:'이번 상담에서는 내 출생시간을 미상으로 보기',birthTiming:'질문 시각과 시간대는 접수할 때 서버에서 확정해 저장해. 질문자 지역이나 상대방 위치는 수집하지 않아.',spiritIntro:'그 사람이 궁금한 마음부터, 조용히 펼쳐보자. 알 수 있는 흐름과 알 수 없는 자리를 나누어 읽어줄게.',spiritScope:'현재 풀이는 네 출생 성향을 바탕으로 관계에서의 선택을 살펴봐. 상대방의 정보는 받지 않으며, 공간의 분위기와 연락·재회의 시기는 좁혀 해석할 근거가 없어.',relationshipPick:'관계 선택',login:'로그인하고 상담 시작하기',saved:'저장됨',freeDone:'호라리 계산을 마쳤어'};
+}

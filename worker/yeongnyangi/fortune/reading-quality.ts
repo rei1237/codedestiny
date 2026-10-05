@@ -106,7 +106,7 @@ export function hasOutOfTierTerm(text:string,chapter:ChapterSpec,locale='ko'):bo
   (locale!=='ko'&&/\b(?:yongshin|heeshin|daewoon|mahadasha|antardasha)\b|用神|喜神|大運|マハーダシャー|アンタルダシャー/i.test(scoped));
 }
 
-export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,previous:Partial<ChapterBody>[],locale='ko',{lengthRepair=false}:{lengthRepair?:boolean}={}){
+export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,previous:Partial<ChapterBody>[],locale='ko',{lengthRepair=false,requiredSectionIds}:{lengthRepair?:boolean;requiredSectionIds?:string[]}={}){
  if(!isStructuredReading(chapter.version))return;
  const v5=hasReadingSections(chapter.version);
  if(!Array.isArray(body.blocks)||body.blocks.length<2||body.blocks.length>(v5?20:8)||body.blocks.some(b=>!b||typeof b.title!=='string'||!b.title.trim()||!Array.isArray(b.paragraphs)||!b.paragraphs.length||b.paragraphs.some(p=>typeof p!=='string'||!p.trim()||Array.from(p).length>(v5?SECTION_PARAGRAPH_LIMIT:5000)||/<\/?[a-z][^>]*>/i.test(p))))throw new FortuneError('INVALID_CHAPTER_BLOCKS',400,blockShapeIssue(body,chapter,v5));
@@ -142,5 +142,5 @@ export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,prev
  if(hasUnsupportedLocalizedClaim(content,readingLocale(locale)))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
  const chapterCount=bodyCharacterCount(body),floor=chapterFloor(chapter);
  if(!lengthRepair&&chapterCount<floor)throw new FortuneError('CHAPTER_TOO_SHORT',400,`chapter:${chapterCount}/${floor}`);
- if(!v5&&chapter.requiredSections?.some(title=>!body.blocks!.some(b=>b.title===title)))throw new FortuneError('CHAPTER_DEPTH_INCOMPLETE');
+ if(!v5&&(requiredSectionIds?body.blocks?.length!==requiredSectionIds.length||requiredSectionIds.some((id,i)=>body.blocks?.[i]?.id!==id):chapter.requiredSections?.some(title=>!body.blocks!.some(b=>b.title===title))))throw new FortuneError('CHAPTER_DEPTH_INCOMPLETE');
 }

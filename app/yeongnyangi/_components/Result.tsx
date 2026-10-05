@@ -178,7 +178,7 @@ export default function Result(){
   const askReading=!!row?.consultation?.questions?.length;
  const unpaid=!!row&&!row.paid&&row.state!=='REFUNDED';
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
-  {row.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product}/>}
+  {row.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product} locale={row.locale}/>}
   <SpiritResult row={row} onRow={setRow}/>
   {row.state==='COMPLETED'&&<>{shouldInvitePaidReview(row)&&<ReviewRewardBanner afterResult brand="yeongnyangi" locale={row.locale||'ko'}/>}<ResultBridge row={row} locale={row.locale}/><ResultSharing key={row.id} row={row}/></>}
   {row.state==='REFUNDED'?<p>{stateCopy.refunded}</p>:!row.paid?<><p>{stateCopy.paymentRequired}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button>{!error&&<a href={checkoutPath(row,siteLocale)}>{copy.checkout}</a>}</>:!['COMPLETED','AWAITING_FOLLOWUP'].includes(row.state)&&<>

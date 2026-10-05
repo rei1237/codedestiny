@@ -99,7 +99,7 @@ export default function Consultation(){
   setKindId(fallbackKind.id);setLocale(siteLocale);setRelationshipStage('');setError('');
  },[siteLocale,domain,kind.id]);
  const systemCopy=domain==='fusion'?null:getFortuneCopy(domain as 'saju'|'ziwei'|'sukuyo'|'vedic'|'astrology'|'tarot',kind.id);
- const spiritEntryCopy=questionSkyCopyFor().entry;
+ const spiritEntryCopy=questionSkyCopyFor(siteLocale).entry;
  const askCopy=askPhase5Copy(siteLocale).input;
  const preview=conciseReadingManifest(consultationManifest(product,kind,topicId,tarotSpread));
  // New purchase previews use the same concise manifest as preparation. Saved results keep their own manifest.
@@ -235,7 +235,7 @@ export default function Consultation(){
   <header className={styles.consultationHeader}><div><h1>{ui.title}</h1><p>{ui.intro}</p></div><Moon size={36} strokeWidth={1} aria-hidden="true"/></header>
   <ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/>
   {locale==='ko'&&<div className={styles.kindChoices} role="group" aria-label={voiceStyleCopy.heading}>{(['banmal','honorific'] as const).map(value=><button key={value} type="button" aria-pressed={voiceStyle===value} disabled={busy} onClick={()=>setVoiceStyle(value)}><strong>{voiceStyleCopy[value]}</strong><span>{voiceStyleCopy[value==='banmal'?'banmalNote':'honorificNote']}</span></button>)}</div>}
-  {siteLocale==='ko'&&<a className={styles.spiritEntry} href="/yeongnyangi/fortune/?mode=spirit"><img src="/assets/yeongnyangi/spirit/eastern-oracle.webp" width={64} height={68} alt=""/><span><strong>{spiritEntryCopy.title}</strong><br/>{spiritEntryCopy.description}</span></a>}
+  {<a className={styles.spiritEntry} href={`/yeongnyangi/fortune/?mode=spirit&lang=${siteLocale}`}><img src="/assets/yeongnyangi/spirit/eastern-oracle.webp" width={64} height={68} alt=""/><span><strong>{spiritEntryCopy.title}</strong><br/>{spiritEntryCopy.description}</span></a>}
   <div className={styles.tabs} role="group" aria-label={siteLocale==='ko'?'운세 종류':ui.methodTitle}>{[...Object.entries(systemNames),['fusion','복합 운세']].map(([id,label])=><button key={id} aria-pressed={domain===id} onClick={()=>chooseDomain(id)}>{siteLocale==='ko'?label:localizedSystem(id,siteLocale)}</button>)}</div>
   <div className={styles.kindChoices} role="group" aria-label={siteLocale==='ko'?'상담 종류':ui.summary}>{consultationKinds[domain].filter(item=>!item.koOnly||siteLocale==='ko').sort((a,b)=>Number(b.id===TAROT_SPREAD_KIND)-Number(a.id===TAROT_SPREAD_KIND)).map(item=><button key={item.id} aria-pressed={kind.id===item.id} onClick={()=>chooseKind(item.id)}><strong>{kindLabel(item.id)}</strong>{siteLocale==='ko'&&<span>{item.description}</span>}</button>)}</div>
 

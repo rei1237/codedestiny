@@ -133,5 +133,5 @@ test('ordinary consultation cannot regress to three options or reset the selecte
  assert.match(ui,/ReadingLanguageSelect/);
  assert.doesNotMatch(service,/!askEvidenceEnabled.*READING_LOCALE_UNAVAILABLE/);
  assert.match(service,/outputContext:row\.snapshot\.outputContext/);
- assert.match(service,/body\.mode && locale!=='ko'/,'out-of-scope symbolic safety stays Korean');
+ assert.doesNotMatch(service,/body\.mode && locale!=='ko'/,'symbolic modes use native evidence validation');
 });

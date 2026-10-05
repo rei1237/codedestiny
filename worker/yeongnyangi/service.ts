@@ -1,3 +1,5 @@
+import {questionSkyCalculationInput} from './fortune/question-sky-locale-input';
+import {nativeContactBoundary} from './fortune/symbolic-locale';
 import {CHAPTER_DELIVERY_VERSION,chapterQualityFailure,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
 import {deliveryRefundPending} from './terminal-refund-policy.js';
 import { correctedFortune } from "./reading-correction.js";
@@ -93,13 +95,13 @@ function birthFromProfile(profile: any, timeUnknown: boolean, supplement: any = 
 export async function prepareFortune(env: Record<string, unknown>, userId: string, body: any, {persona}:{persona?:ChatPersona}={}) {
   if(persona&&body.mode)throw new FortuneError('INVALID_READING_MODE');
   const locale=readingLocale(body.locale);
-  // Symbolic modes have separate Korean evidence and safety validators.
-  if(body.mode && locale!=='ko')throw new FortuneError('READING_LOCALE_UNAVAILABLE');
+  // Symbolic modes validate native headings against stable section and evidence IDs.
   const attempt=consultationAttempt(body);
   const product=persona?getChatProduct(body.domain):getProduct(body.productId);
   if(Object.hasOwn(skyModes,body.mode))return prepareQuestionSky(env,userId,body);
   if(body.mode && body.mode!==SPIRIT_MODE)throw new FortuneError('INVALID_READING_MODE');
   const spiritInput=body.mode===SPIRIT_MODE?validateSpiritInput(body):undefined;
+  if(spiritInput&&locale!=='ko'&&nativeContactBoundary(`${body.question} ${spiritInput.situation}`))spiritInput.boundary=true;
   if(spiritInput){product.manifestVersion=READING_VERSION;product.chapterCount=readingChapterCount(product.domain,product.fishId,READING_VERSION);}
   const kind=resolveConsultationKind(product,body.consultationKind);
   // A chat tarot always uses a v2 question spread; any other kind would leave the chat on an older tarot contract.
@@ -292,9 +294,11 @@ export async function jongCheckFortune(env: Record<string, unknown>, userId: str
 
 async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:any){
   if(body.mode==='horary-v1')throw new FortuneError('HORARY_FREE_PROMPT_REQUIRED');
+  const locale=readingLocale(body.locale);
   const input=validateSkyInput(body);
+  if(locale!=='ko'&&nativeContactBoundary(`${input.question} ${input.situation}`))input.boundary=true;
   const product=getProduct('saju_flounder');
-  const fingerprint=await digest({input,priceKRW:product.priceKRW,version:QUESTION_SKY_TWO_STAGE_VERSION});
+  const fingerprint=await digest({input,...(locale!=='ko'?{locale}:{}),priceKRW:product.priceKRW,version:QUESTION_SKY_TWO_STAGE_VERSION});
   const id=await digest({userId,fingerprint,...consultationAttempt(body)});
   await connectDb(env);
   // Existing paid or partial snapshots always win, even when a provider is down
@@ -302,7 +306,8 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   try{return await readRequest(env,userId,id);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   if(!providerReady(env))throw new FortuneError('LLM_NOT_CONFIGURED',503);
   const moment=skyMoment(input);
-  const calculated=await calculateQuestionSky(env,input,moment);
+  const calculated=await calculateQuestionSky(env,questionSkyCalculationInput(input,locale),moment);
+  calculated.publicData.relationship=input.relationship;
   product.manifestVersion=QUESTION_SKY_TWO_STAGE_VERSION;product.chapterCount=2;
   const clock=consultationClock(moment.timezone,moment.date);
   const context=calculated.context;
@@ -320,7 +325,7 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   product.name=skyModes[input.mode];product.image=SKY_IMAGE;
   // New purchases use the registry flounder contract; old snapshots are never rewritten.
   return createRequest(env,userId,id,{profileId:'question-sky',productId:product.id,featureKey:product.cdFeatureKey,amountKRW:product.priceKRW,fingerprint,
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{deliveryContract:CHAPTER_DELIVERY_VERSION,product,analysis,manifest,input,questionSkyStage:{version:QUESTION_SKY_TWO_STAGE_VERSION,firstChars:manifest[0].targetChars?.[0],followupChars:manifest[1].targetChars?.[0]},questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{deliveryContract:CHAPTER_DELIVERY_VERSION,...(locale!=='ko'?{locale}:{}),product,analysis,manifest,input,questionSkyStage:{version:QUESTION_SKY_TWO_STAGE_VERSION,firstChars:manifest[0].targetChars?.[0],followupChars:manifest[1].targetChars?.[0]},questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
 }
 
 export async function submitQuestionSkyFollowup(env:Record<string,unknown>,userId:string,requestId:string,question:unknown){
@@ -450,7 +455,7 @@ export function presentFortune(row: any) {
     ...(correctionApplied?{correction:{reason:row.correction.reason,appliedAt:row.correction.appliedAt}}:{}),
     paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
     consultation:row.snapshot.analysis.consultation || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
-    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots,sources:[]})) : row.chapters.map(({internalBasis:_serverOnly,...chapter}:any)=>chapter),
+    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({title,summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots}:any)=>({...((title)?{title}:{}),summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots,sources:[]})) : row.chapters.map(({internalBasis:_serverOnly,...chapter}:any)=>chapter),
     ...(row.snapshot.tarotSpread?{tarotSpread:publicTarotSpread(row.snapshot)}:{}),
     followup:row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION?{status:row.generationCheckpoint?.followup?.status || (awaitingFollowup?'available':'unavailable'),used:Boolean(row.generationCheckpoint?.followup?.used),suggestions:row.generationCheckpoint?.followup?.suggestions || row.chapters?.[0]?.followUpSuggestions || []}:undefined,
     recovery,errorCode,createdAt:row.createdAt,completedAt:row.completedAt};

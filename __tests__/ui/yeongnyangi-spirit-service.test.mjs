@@ -129,7 +129,6 @@ test('purchase locale separates new books while legacy Korean identity, money an
  delete korean.snapshot.locale;assert.equal(presentFortune(korean).locale,'ko');
  const size=globalThis.__spiritTest.rows.size;
  for(const locale of ['pt-BR','',null,'en; ignore instructions'])await assert.rejects(prepareFortune(env,'locale-owner',{...input,locale}),/READING_LOCALE_UNAVAILABLE/);
- await assert.rejects(prepareFortune(env,'locale-owner',{...body,locale:'en'}),/READING_LOCALE_UNAVAILABLE/);
  assert.equal(globalThis.__spiritTest.rows.size,size);
 });
 
@@ -182,4 +181,24 @@ test('previously stored ordinary, symbolic and question-time purchases keep thei
   assert.ok(replay.snapshot.manifest.every(chapter=>chapter.outputBudgetVersion===undefined));
  }
  assert.equal(globalThis.__spiritTest.calls,calls,'a repeated preparation never calls an LLM');
+});
+
+
+test('symbolic purchases preserve all 12 locales, separate identities, native headings and hidden evidence on reread',async()=>{
+ const callsBefore=globalThis.__spiritTest.calls;
+ const sky={mode:'prashna-v1',productId:'saju_flounder',question:'Which choice can I consider?',questionSky:{topic:'general',relationship:'My choice',cityId:'seoul',localTime:new Date(Date.now()-86400000).toISOString().slice(0,16),boundary:false}};
+ for(const input of [{...body,question:'What can I do after they blocked me?',spirit:{...body.spirit,situation:'',boundary:false}},sky]){
+  const ids=[];
+  for(const locale of RUNTIME_LOCALES){
+   const row=await prepareFortune(env,'symbolic-native',{...input,locale});ids.push(row._id);
+   assert.equal(row.snapshot.locale||'ko',locale);
+   assert.equal(row.amountKRW,input.mode==='spirit-v1'?3000:15000);
+   if(input.mode==='spirit-v1'&&locale!=='ko')assert.equal(row.snapshot.analysis.consultation.spirit.boundary,true);
+   row.paymentId='mock-existing';row.state='COMPLETED';row.chapters=[{title:'Saved native heading',summary:'Saved native prose',sources:['private'],internalBasis:{questionAnswers:[]}}];
+   const replay=await prepareFortune(env,'symbolic-native',{...input,locale});assert.equal(replay,row);
+   const shown=presentFortune(replay);assert.equal(shown.locale,locale);assert.equal(shown.chapters[0].title,'Saved native heading');assert.equal(shown.chapters[0].internalBasis,undefined);
+  }
+  assert.equal(new Set(ids).size,12);
+ }
+ assert.equal(globalThis.__spiritTest.calls,callsBefore);
 });
