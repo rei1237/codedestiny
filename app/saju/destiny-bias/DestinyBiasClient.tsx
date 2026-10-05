@@ -541,6 +541,8 @@ export default function DestinyBiasClient() {
           oneLiner: next.copy.oneLiner,
           minorMode: next.result.minorMode,
           engineVersion: next.result.engineVersion,
+          totalScore: next.report.totalScore,
+          grade: next.report.grade,
           at: new Date().toISOString(),
         }),
       );
@@ -770,6 +772,50 @@ export default function DestinyBiasClient() {
     }
   }, [ensureShare, exportShareCardBlob, outcome, shareBusy, shareRatio, trackFunnelStep, trackShare]);
 
+  /** X 글쓰기 창. 팝업 차단을 피하려고 창을 먼저 연 뒤 공유 링크가 준비되면 주소를 채운다. */
+  const handleShareToX = useCallback(async () => {
+    if (!outcome || shareBusy) return;
+    const popup = window.open("about:blank", "_blank");
+    if (popup) popup.opener = null;
+    setShareBusy(true);
+    try {
+      const { share } = await ensureShare();
+      const url = share ? withShareUtm(share.shareUrl, "x") : buildInviteUrl(outcome.partner, "x");
+      const text = `내 최애 ${outcome.partner.displayName}와 나는 「${outcome.result.chemiTypeNameKo}」 #최애운명`;
+      const intent = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+      if (popup) popup.location.href = intent;
+      else window.location.href = intent;
+      trackShare({ feature: "destiny-bias-chemi", channel: "x" });
+      setShareStatus({ tone: "ok", text: "X 글쓰기 창을 열었어요. 링크에는 생일이 들어가지 않아요." });
+    } finally {
+      setShareBusy(false);
+    }
+  }, [ensureShare, outcome, shareBusy, trackShare]);
+
+  /** 인스타그램은 웹 공유 주소가 없어 카드 저장 + 링크 복사 후 스토리 업로드를 안내한다. */
+  const handleShareToInstagram = useCallback(async () => {
+    if (!outcome || shareBusy) return;
+    setShareBusy(true);
+    setShareStatus({ tone: "info", text: "인스타그램용 카드를 준비하는 중…" });
+    try {
+      const [{ share }, blob] = await Promise.all([ensureShare(), exportShareCardBlob(true)]);
+      if (blob) await downloadBlob(blob, `chemi-${outcome.partner.id}-${outcome.result.chemiTypeId}-${shareRatio}.png`);
+      const url = share ? withShareUtm(share.shareUrl, "instagram") : buildInviteUrl(outcome.partner, "instagram");
+      const copied = await shareThrough("copy", { title: shareTitle, text: "", url });
+      trackShare({ feature: "destiny-bias-chemi", channel: "etc" });
+      const saved = blob ? "카드를 저장" : "";
+      const linked = copied.status === "copied" ? "링크를 복사" : "";
+      const done = [saved, linked].filter(Boolean).join("하고 ");
+      setShareStatus(
+        done
+          ? { tone: "ok", text: `${done}했어요. 인스타그램 스토리에 카드를 올리고 링크 스티커에 붙여 넣어 주세요.` }
+          : { tone: "warn", text: `카드를 만들지 못했어요. 화면을 캡처하고 이 주소를 붙여 넣어 주세요: ${url}` },
+      );
+    } finally {
+      setShareBusy(false);
+    }
+  }, [ensureShare, exportShareCardBlob, outcome, shareBusy, shareRatio, shareTitle, trackShare]);
+
   const handleSaveCollection = useCallback(async () => {
     if (!outcome || shareBusy || savedToCollection) return;
     const next = outcome;
@@ -849,6 +895,8 @@ export default function DestinyBiasClient() {
               onShareCard={() => void handleShareCard()}
               onSaveImage={() => void handleSaveImage()}
               onInviteFriend={() => void handleInvite()}
+              onShareToX={() => void handleShareToX()}
+              onShareToInstagram={() => void handleShareToInstagram()}
               onPickAnother={resetToPick}
               onSaveCollection={() => void handleSaveCollection()}
             />
