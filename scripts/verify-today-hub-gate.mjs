@@ -16,6 +16,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { JSDOM } from "jsdom";
+import { localizeHubLinks } from "../lib/i18n/localized-hub-links.mjs";
 
 const rootDir = process.cwd();
 // 🔴 이 블록을 가진 셸은 **전부** 여기 있어야 한다. public/zh-tw/index.html 은 같은 블록을
@@ -128,7 +129,9 @@ for (const rel of SHELLS.slice(1)) {
     fail(String(error.message));
     continue;
   }
-  if (other !== block) fail(`${rel}: 허브 블록이 루트 index.html 과 다릅니다(6개 셸은 동일해야 합니다).`);
+  // Locale shells use the generated localized hub links; every other byte must still match.
+  const expected = localizeHubLinks(block, rel.split("/")[1]);
+  if (other !== expected) fail(`${rel}: 현지화 링크를 적용한 정본 허브 블록과 다릅니다.`);
 }
 
 // ── 2) 프로필 카드 없음 → 결과를 그리지 않는다 ──────────────────────────
