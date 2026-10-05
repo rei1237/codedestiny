@@ -324,7 +324,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "astro_stellar_relationship_room": { cost: 30, reason: "점성술 봉인된 별의 방 관계의 문" },
   "astro_stellar_growth_room": { cost: 30, reason: "점성술 봉인된 별의 방 과제와 변화" },
   "astro_monthly_transit": { cost: 30, reason: "점성술 월간 트랜짓 운세" },
-  "astro_yearly_transit": { cost: 30, reason: "점성술 연간 트랜짓 운세" },
+  "astro_yearly_transit": { cost: 30, reason: "점성술 앞으로 12개월 흐름" },
   "new-year-ai-consultation": { cost: 300, amountKRW: 30000, reason: "신년운세 전문가 상담" },
   "love-secret-ai-consultation": { cost: 300, amountKRW: 30000, reason: "연애 비책 전문가 상담" },
   // 대상자 1인의 관계 경계 성향을 매 회차 분석하는 상담이다. 영구 해금으로 등록하면
