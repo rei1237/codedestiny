@@ -4,6 +4,7 @@ import { buildFaqPageJsonLd } from "../../../lib/structured-data";
 import ZiweiChartClientLoader from "./ZiweiChartClientLoader";
 import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
 import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
+import YehwaCard from "../../components/service-intro/YehwaCard";
 
 const ZIWEI_CHART_METADATA_COPY = {
   ko: {
@@ -149,29 +150,29 @@ export default function ZiweiChartPage() {
         <ZiweiChartClientLoader />
       </div>
       <section className="mx-auto w-full max-w-3xl break-keep px-4 pb-8 md:px-6" aria-labelledby="ziwei-chart-guide-title">
-        <div className="rounded-3xl border border-white/10 bg-[#10172b] px-5 py-6 md:px-8">
-          <h2 id="ziwei-chart-guide-title" className="text-xl font-bold text-amber-100">자미두수 명반이란</h2>
-          <p className="mt-3 text-sm leading-7 text-slate-300">
+        <YehwaCard>
+          <h2 id="ziwei-chart-guide-title">자미두수 명반이란</h2>
+          <p>
             자미두수 명반은 태어난 음력 월·일·시로 열두 궁의 자리를 정하고, 그 위에 자미성을 비롯한 별을 배치한 한 장의 지도입니다. 명궁에서 출발해 재백·관록·부부궁으로 옮겨 가며 읽고, 태어난 해의 천간으로 정해지는 사화가 힘이 모이는 궁을 가리킵니다.
           </p>
-          <h3 className="mt-6 text-base font-semibold text-slate-100">계산 예시 — 가상 입력 1997년 2월 10일 오후 2시 30분, 서울</h3>
-          <p className="mt-2 text-sm leading-7 text-slate-300">
+          <h3>계산 예시 — 가상 입력 1997년 2월 10일 오후 2시 30분, 서울</h3>
+          <p>
             실제 고객 사례가 아니라 계산 순서를 보여 주는 가상 입력입니다. 한국 음력 정월 초사흘 未시라 명궁은 未궁(주성 천량), 신궁은 酉궁인 복덕궁에 놓입니다. 명궁 未궁의 간지가 丁未(납음 천하수)라 수이국이 되고, 수이국과 초사흘로 자미성은 寅궁(질액궁)에 천부와 함께 앉습니다. 丁년 사화는 재백궁 태음에 화록, 복덕궁 천동에 화권, 천이궁 천기에 화과, 부부궁 거문에 화기로 붙습니다. 규칙을 보여 주는 예시일 뿐 재물이나 결혼을 판정한 결과가 아닙니다.
           </p>
-          <h3 className="mt-6 text-base font-semibold text-slate-100">자주 묻는 질문</h3>
-          <dl className="mt-2 space-y-4">
+          <h3>자주 묻는 질문</h3>
+          <dl>
             {ZIWEI_CHART_FAQS.map((item) => (
               <div key={item.question}>
-                <dt className="text-sm font-semibold text-slate-100">{item.question}</dt>
-                <dd className="mt-1 text-sm leading-7 text-slate-300">{item.answer}</dd>
+                <dt>{item.question}</dt>
+                <dd>{item.answer}</dd>
               </div>
             ))}
           </dl>
           <nav className="mt-6 flex flex-wrap gap-2" aria-label="자미두수 명반 관련 안내">
-            <Link href="/ziwei/guide" className="inline-flex min-h-11 items-center rounded-full border border-white/15 px-4 text-sm text-slate-200 transition hover:border-amber-100/50 hover:text-amber-50">자미두수 명반 읽는 법</Link>
-            <Link href="/ziwei" className="inline-flex min-h-11 items-center rounded-full border border-white/15 px-4 text-sm text-slate-200 transition hover:border-amber-100/50 hover:text-amber-50">자미두수 12궁과 사화 해설</Link>
+            <Link href="/ziwei/guide" className="inline-flex min-h-11 items-center rounded-full border border-[rgba(232,213,163,0.22)] px-4 text-sm text-[#d8d4ca] transition hover:border-[rgba(232,213,163,0.6)] hover:text-[#f6ecd6]">자미두수 명반 읽는 법</Link>
+            <Link href="/ziwei" className="inline-flex min-h-11 items-center rounded-full border border-[rgba(232,213,163,0.22)] px-4 text-sm text-[#d8d4ca] transition hover:border-[rgba(232,213,163,0.6)] hover:text-[#f6ecd6]">자미두수 12궁과 사화 해설</Link>
           </nav>
-        </div>
+        </YehwaCard>
       </section>
       <ImmersiveRelatedLinks fromPath="/ziwei/chart" />
     </main>
