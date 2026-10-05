@@ -1,3 +1,4 @@
+import { brandCopy } from '../lib/seo/brand-copy.mjs';
 import { syncSajuReadingPrices, syncYeongnyangiFishPrices } from './lib/sync-saju-reading-prices.mjs';
 /**
  * Copies root static assets → public/ (Cloudflare / static hosting).
@@ -700,9 +701,9 @@ function applyLocaleSeoMeta(indexHtml, localePath) {
 }
 
 const GGULGGUL_SHELL_SEO = {
-  title: "꿀꿀 운세 | 연이·네오 사주·타로 상담",
+  title: brandCopy('ggulggulTitle'),
   description:
-    "무료 사주풀이·오늘의 운세는 꿀꿀 운세에서. 10년 경력 명리학자가 만든 연이·네오 사주·타로 상담으로 기질과 관계, 지금의 고민을 편하게 살펴보세요.",
+    brandCopy('ggulggulDescription'),
   canonicalUrl: "https://code-destiny.com/ggulggul/",
 };
 

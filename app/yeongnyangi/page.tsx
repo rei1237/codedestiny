@@ -1,19 +1,20 @@
+import {brandCopy} from '@/lib/seo/brand-copy.mjs';
 import type {Metadata} from 'next';
 import {siteSeo} from '@/lib/seo/siteSeo';
 import {yeongnyangiOgImage} from './_lib/share-image';
 import {buildBreadcrumbJsonLd,buildFaqPageJsonLd,buildServiceJsonLd,buildWebPageJsonLd} from '@/lib/structured-data';
 import Home from './_components/Home';
 import KoreanOnly from './_components/KoreanOnly';
-import YeongnyangiGuide,{LOWEST_PRICE,YEONGNYANGI_FAQS} from './_components/YeongnyangiGuide';
+import YeongnyangiGuide,{YEONGNYANGI_FAQS} from './_components/YeongnyangiGuide';
 // 색인 대상(2026-10-02): "사주 보는 고양이"·"영냥이" 브랜드 검색의 대표 URL 이다. 문장급 본문은
 // YeongnyangiGuide 가 서버 HTML 로 싣는다(이전 286단위 → noindex 였다). 천원 의도 검색은 /yeongnyangi/1000-won-fortune/ 몫.
 // Service 에 Offer 를 붙이지 않는다 — 가격은 본문 표가 결제 카탈로그에서 읽는다(verify:paid-service-offer).
 const PATH='/yeongnyangi/';
-const TITLE=`사주 보는 고양이 영냥이 | ${LOWEST_PRICE}부터 운세 상담 · ${siteSeo.brandName}`;
-const DESCRIPTION=`사주 보는 고양이 영냥이가 사주·자미두수·숙요·베다·점성술·타로 중 한 체계로 내 고민을 챕터별로 읽어 드려요. 고등어 상담 ${LOWEST_PRICE}부터, 결과는 내 상담에 보관돼요.`;
+const TITLE=brandCopy('yeongnyangiTitle');
+const DESCRIPTION=brandCopy('yeongnyangiDescription');
 const URL_=`https://code-destiny.com${PATH}`;
 export const metadata:Metadata={title:{absolute:TITLE},description:DESCRIPTION,
- keywords:['사주 보는 고양이','사주보는고양이','사주보는 고양이','영냥이','꿀꿀 운세','천원 운세'],
+ keywords:['사주 보는 고양이','사주보는고양이','사주보는 고양이','영냥이','꿀꿀운세','꿀꿀 운세','코드데스티니'],
  alternates:{canonical:URL_},robots:{index:true,follow:true},
  openGraph:{type:'website',locale:'ko_KR',url:URL_,siteName:siteSeo.brandName,title:TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage]},
  twitter:{card:'summary_large_image',title:TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage.url]}};

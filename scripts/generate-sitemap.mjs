@@ -1,7 +1,7 @@
 import { actualContentDate } from "../lib/content/editorial-review.mjs";
 import { INTRO_TOPICS, introductionRoutes } from "../lib/i18n/feature-introductions.mjs";
 import { TRUST_KEYS, trustRoutes } from "../lib/i18n/public-trust-copy.mjs";
-import { splitLocaleSitemaps } from "./lib/locale-sitemaps.mjs";
+import { splitLocaleSitemaps, sitemapIndex } from "./lib/locale-sitemaps.mjs";
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { register } from "node:module";
 import { resolve } from "node:path";
@@ -862,7 +862,7 @@ async function main() {
 
   writeFileSync(sitemapRootPath, xml, "utf8");
   writeFileSync(sitemapPublicPath, xml, "utf8");
-  for (const [name, content] of Object.entries(splitLocaleSitemaps(xml))) {
+  for (const [name, content] of Object.entries({ ...splitLocaleSitemaps(xml), "sitemap-index.xml": sitemapIndex("https://code-destiny.com") })) {
     writeFileSync(resolve(rootDir, name), content, "utf8");
     writeFileSync(resolve(rootDir, "public", name), content, "utf8");
   }
@@ -936,7 +936,7 @@ function assertNoDrift(xml, ledgerSerialized, urlCount, volatilePaths = new Set(
     },
   ];
 
-  for (const [name, content] of Object.entries(splitLocaleSitemaps(xml))) {
+  for (const [name, content] of Object.entries({ ...splitLocaleSitemaps(xml), "sitemap-index.xml": sitemapIndex("https://code-destiny.com") })) {
     for (const prefix of ["", "public/"]) targets.push({ label: `${prefix}${name}`, path: resolve(rootDir, `${prefix}${name}`), expected: content, normalize: normalizeXml });
   }
 

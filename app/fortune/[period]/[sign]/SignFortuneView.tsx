@@ -1,3 +1,4 @@
+import { brandCopy } from '@/lib/seo/brand-copy.mjs';
 /**
  * 별자리·띠 운세 본문 — 기간 4종 공용. 서버 컴포넌트.
  *
@@ -374,8 +375,8 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
           </h2>
           <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
             {profile.kind === "zodiac"
-              ? locale === "en" ? "This comparison uses elemental trines and opposite signs." : locale === "ja" ? "同じ元素のトラインと向かい合う宮を基準に見ます。" : locale === "zh-CN" ? "以同元素三分相和对宫关系作为参考。" : "以同元素三分相與對宮關係作為參考。"
-              : locale === "en" ? "This comparison uses the three-harmony and clash relationships of the zodiac." : locale === "ja" ? "十二支の三合と冲を基準に見ます。" : locale === "zh-CN" ? "以十二生肖的三合与相冲关系作为参考。" : "以十二生肖的三合與相沖關係作為參考。"}
+              ? locale === "ko" ? brandCopy('zodiacComparison') : locale === "en" ? "This comparison uses elemental trines and opposite signs." : locale === "ja" ? "同じ元素のトラインと向かい合う宮を基準に見ます。" : locale === "zh-CN" ? "以同元素三分相和对宫关系作为参考。" : "以同元素三分相與對宮關係作為參考。"
+              : locale === "ko" ? brandCopy('animalComparison') : locale === "en" ? "This comparison uses the three-harmony and clash relationships of the zodiac." : locale === "ja" ? "十二支の三合と冲を基準に見ます。" : locale === "zh-CN" ? "以十二生肖的三合与相冲关系作为参考。" : "以十二生肖的三合與相沖關係作為參考。"}
           </p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div className="rounded-2xl border border-[#0f766e]/25 bg-[#0f766e]/[0.05] p-5 dark:border-emerald-300/25 dark:bg-emerald-400/[0.07]">

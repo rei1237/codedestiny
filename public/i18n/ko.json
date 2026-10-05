@@ -1519,9 +1519,9 @@
       "libraryNote": "기록은 로그인한 계정에 보관돼요.",
       "searchTitle": "어떤 운세가 궁금하세요?",
       "searchHint": "운세 이름, 고민, 예전 서비스 이름으로 찾아보세요.",
-      "heroTitle": "오늘의 마음을",
+      "heroTitle": "꿀꿀운세에서",
       "heroTitleEm": "차근차근 풀어봐요",
-      "heroLead": "꽃돼지 연이의 운세 정원",
+      "heroLead": "코드데스티니 · 꽃돼지 연이의 운세 정원",
       "heroPrimary": "운세 골라보기",
       "allFortunes": "모든 운세 보기",
       "todayTerms": "무료 · 로그인 없이 · 생년월일 프로필 카드로 계산해요",
@@ -1542,9 +1542,9 @@
       "allBrowse": "카테고리로 둘러보기",
       "allEmpty": "찾는 운세가 없어요",
       "allEmptyHint": "다른 말로 찾거나 조건을 풀어 보세요.",
-      "neoHeroTitle": "복잡한 고민,",
+      "neoHeroTitle": "꿀꿀운세에서",
       "neoHeroNext": "다음 수를 찾아봐요",
-      "neoHeroLead": "네오의 별빛 전략실",
+      "neoHeroLead": "코드데스티니 · 네오의 별빛 전략실",
       "quickTitle": "어떤 운세를 볼까요?",
       "tarotLibrary": "타로 라이브러리",
       "yeoniRoom": "운명의 찻집",
@@ -1555,7 +1555,8 @@
       "chemiKicker": "K-POP 최애 케미",
       "chemiTitle": "내 최애랑 나, 무슨 케미일까?",
       "chemiNote": "생일만 넣으면 포토카드로 나와요",
-      "chemiCta": "내 최애와 케미 보기"
+      "chemiCta": "내 최애와 케미 보기",
+      "brandOtherEntry": "꿀꿀운세 영냥이 사주·타로 →"
     },
     "chatEntry": {
       "title": "연이와 네오에게, 지금 가장 궁금한 한 가지",

@@ -28,7 +28,7 @@
     "ms": "Search by reading name, worry, or a former service name."
   },
   "home.gardenCopy.heroTitle": {
-    "ko": "오늘의 마음을",
+    "ko": "꿀꿀운세에서",
     "en": "A little clarity",
     "ja": "今日の気持ちを",
     "zh-CN": "今天的心事",
@@ -56,7 +56,7 @@
     "ms": "for your heart"
   },
   "home.gardenCopy.heroLead": {
-    "ko": "꽃돼지 연이의 운세 정원",
+    "ko": "코드데스티니 · 꽃돼지 연이의 운세 정원",
     "en": "Yeoni’s fortune garden",
     "ja": "花ブタ・ヨニの占いの庭",
     "zh-CN": "花猪妍伊的运势花园",
@@ -350,7 +350,7 @@
     "ms": "Try other words or clear some filters."
   },
   "home.gardenCopy.neoHeroTitle": {
-    "ko": "복잡한 고민,",
+    "ko": "꿀꿀운세에서",
     "en": "A tangled question,",
     "ja": "複雑な悩み、",
     "zh-CN": "纷乱的烦恼，",
@@ -378,7 +378,7 @@
     "ms": "a clearer next step"
   },
   "home.gardenCopy.neoHeroLead": {
-    "ko": "네오의 별빛 전략실",
+    "ko": "코드데스티니 · 네오의 별빛 전략실",
     "en": "Neo’s starlit strategy room",
     "ja": "ネオの星明かり戦略室",
     "zh-CN": "尼奥的星光策略室",
@@ -530,5 +530,19 @@
     "de": "See my bias chemistry",
     "nl": "See my bias chemistry",
     "ms": "See my bias chemistry"
+  },
+  "home.gardenCopy.brandOtherEntry": {
+    "ko": "꿀꿀운세 영냥이 사주·타로 →",
+    "en": "Ggulggul Fortune: Yeongnyangi Saju & Tarot →",
+    "ja": "Ggulggul Fortune：ヨンニャンイの四柱推命・タロット →",
+    "zh-CN": "Ggulggul Fortune：灵喵四柱与塔罗 →",
+    "zh-TW": "Ggulggul Fortune：靈喵四柱與塔羅 →",
+    "vi": "Ggulggul Fortune: Saju và Tarot với Yeongnyangi →",
+    "hi": "Ggulggul Fortune: Yeongnyangi साजू और टैरो →",
+    "es": "Ggulggul Fortune: Saju y tarot con Yeongnyangi →",
+    "fr": "Ggulggul Fortune : Saju et tarot avec Yeongnyangi →",
+    "de": "Ggulggul Fortune: Saju und Tarot mit Yeongnyangi →",
+    "nl": "Ggulggul Fortune: Saju en tarot met Yeongnyangi →",
+    "ms": "Ggulggul Fortune: Saju dan Tarot bersama Yeongnyangi →"
   }
 }

@@ -84,7 +84,7 @@ export default function DateAnimalFortunePage({ params }: { params: PageParams }
 
   return (
     <>
-      <DateSignFortuneView vm={vm} />
+      <DateSignFortuneView vm={vm} faqs={faqs} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />

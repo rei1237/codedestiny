@@ -1,4 +1,5 @@
 'use client';
+import {brandCopy} from '@/lib/seo/brand-copy.mjs';
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,BookOpen,PawPrint} from 'lucide-react';
 import {products} from '@/worker/yeongnyangi/payments/catalog';
@@ -16,8 +17,8 @@ export default function NightHero(){
  return <section className={styles.hero} aria-labelledby="hero-title">
   <picture className={styles.room}><source media="(max-width: 699px)" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.webp"/><img src="/assets/yeongnyangi/night/consultation-room.webp" width={1440} height={960} alt="" fetchPriority="high"/></picture>
   <div className={styles.copy}>
-   <h1 id="hero-title">사주보는 고양이,<br/><span>영냥이에게 물어봐.</span></h1>
-   <p>타고난 성향부터 지금의 고민까지.<br/>사주·별·카드의 흐름을 읽고,<br className={styles.mobileBreak}/> 네가 해볼 선택을 함께 정리해.</p>
+   <h1 id="hero-title">{brandCopy('yeongnyangiHeading')}<br/><span>영냥이에게 물어봐.</span></h1>
+   <p>{brandCopy('yeongnyangiLead')}</p>
    <div className={styles.actions}>
     <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>지금 궁금한 질문 고르기<ArrowRight size={19} aria-hidden="true"/></a>
     <a className={styles.secondary} href="#readings"><BookOpen size={18} aria-hidden="true"/>상담 종류 살펴보기</a>

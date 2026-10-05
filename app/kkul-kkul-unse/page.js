@@ -1,3 +1,4 @@
+import { brandCopy } from '../../lib/seo/brand-copy.mjs';
 import { PRESS_COVERAGE } from "../../lib/seo/press-coverage.mjs";
 import PressCoverage from "../components/PressCoverage";
 import Link from "next/link";
@@ -19,8 +20,7 @@ const SEO = {
     "꿀꿀운세와 꽃돼지 캐릭터로 기억하는 Code Destiny의 사주·만세력·점성술·AI 상담 서비스를 소개합니다.",
 };
 
-const BRAND_ALIAS_SENTENCE =
-  "꿀꿀 운세는 꿀꿀운세로 붙여 쓰기도 하는 한국어 서비스명입니다. Code Destiny는 영문 플랫폼 이름이며, 사주보는 고양이 영냥이는 대표 상담 콘텐츠입니다. 기존 꽃돼지 캐릭터와 운세 서비스도 같은 사이트에서 계속 이용할 수 있습니다.";
+const BRAND_ALIAS_SENTENCE = brandCopy('aliases');
 
 const FUSION_FORTUNE_SUMMARY =
   "초융합 운세는 사주, 자미두수, 숙요점, 베다 점성술(Jyotish), 서양 점성술, 타로처럼 서로 다른 체계의 관점을 AI가 교차해 하나의 자기성찰 리포트로 정리하는 CODE DESTINY의 대표 해석 방법론입니다.";
@@ -203,20 +203,19 @@ export default function KkulKkulUnsePage() {
 
       <section className={styles.heroSection} aria-labelledby="kkulKkulUnseTitle">
         <div className={styles.heroCopy}>
-          <p className={styles.heroKicker}>Code Destiny / 꿀꿀 운세</p>
-          <h1 id="kkulKkulUnseTitle" className={styles.heroTitle}>꿀꿀 운세 — 무료 사주·타로·궁합 통합 플랫폼</h1>
+          <p className={styles.heroKicker}>{brandCopy('name')} / Code Destiny</p>
+          <h1 id="kkulKkulUnseTitle" className={styles.heroTitle}>{brandCopy('brandHeading')}</h1>
           <p className={styles.heroLead}>
-            꿀꿀 운세는 &apos;꿀꿀 만세력&apos;으로 시작해 코드 데스티니(Code Destiny)로 성장한 무료 운세 플랫폼입니다.
-            사주팔자, 타로, 자미두수, 숙요점을 한곳에서 살피며 오늘의 흐름을 부드럽게 열어 줍니다.
+            {brandCopy('brandLead')}
           </p>
           {/* 브랜드 앵커("꿀꿀 운세")는 대표 URL /ggulggul/ 로만 보낸다. 같은 앵커로 /manse 를 가리키면
               브랜드 쿼리에서 만세력 페이지가 홈을 밀어내는 지금 상태가 유지된다. */}
           <div className={styles.ctaRow}>
             <Link className={`${styles.ctaButton} ${styles.ctaPrimary}`} href="/ggulggul/">
-              꿀꿀 운세 홈에서 무료로 시작
+              {brandCopy('ggulggulLink')}
             </Link>
-            <Link className={`${styles.ctaButton} ${styles.ctaSecondary}`} href="/manse">
-              만세력 사주 보기
+            <Link className={`${styles.ctaButton} ${styles.ctaSecondary}`} href="/yeongnyangi/">
+              {brandCopy('yeongnyangiLink')}
             </Link>
           </div>
         </div>
