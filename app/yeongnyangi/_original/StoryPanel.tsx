@@ -38,9 +38,10 @@ export default function StoryPanel({step,onPrevious,onNext,onClose,onReading,sou
     <h2>{scene.title}</h2><span className="story-page-number">{String(step+1).padStart(2,'0')} / {String(story.length).padStart(2,'0')}</span>
     {scene.text.split('\n\n').map((text,index)=><p key={`${step}-${index}`}>{text}</p>)}
     <blockquote>{scene.line}</blockquote>
+    {scene.recordUrl&&<p><a href={scene.recordUrl} target="_blank" rel="noopener noreferrer">게시일과 예측 원문 확인하기 ↗</a></p>}
    </div>
    {scene.choices&&<div className="story-choices"><p>이 순간, 네가 곁에 있다면.</p><div>{scene.choices.map((choice,index)=><button type="button" key={choice.label} aria-pressed={choices[step]===index} onClick={()=>setChoices(previous=>({...previous,[step]:index}))}>{choice.label}</button>)}</div><p className="story-choice-reply" role="status">{choices[step]!==undefined?scene.choices[choices[step]].reply:''}</p></div>}
-   {step===0&&<p className="story-fiction-note">네오라는 이름에서 시작한 영냥이의 세계관 이야기입니다. 하늘의 저주와 고양이 변신은 창작 설정입니다.</p>}
+   {step===0&&<p className="story-fiction-note">실제 공개 분석 기록에서 시작한 영냥이의 세계관 이야기입니다. 과거 사례가 앞으로의 결과를 보장하지는 않습니다. 하늘의 저주와 고양이 변신은 창작 설정입니다.</p>}
   </div>
   <div className="story-controls">
    <button className="icon-button" aria-label="이전 장면" disabled={step===0} onClick={onPrevious}><ArrowLeft size={19}/></button>

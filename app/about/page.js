@@ -1,3 +1,5 @@
+import TrustStories from '../components/TrustStories';
+import { FOUNDER_RECOLLECTION } from '../../lib/brand/trust-stories.mjs';
 import PublicRecordLink from '../components/PublicRecordLink';
 import ServiceIntroduction from "./ServiceIntroduction";
 import PressCoverage from "../components/PressCoverage";
@@ -100,6 +102,10 @@ export default function AboutPage() {
           id="author" 는 ContentIntegrityNote 의 "저자 소개" 링크(/about#author)가 착지하는 앵커다. */}
       <section className="cd-card" id="author">
         <h2>{aboutPageText("editorial.title")}</h2>
+        <TrustStories />
+        <h3>네오의 회고 · 다시 사람들의 이야기를 듣기까지</h3>
+        <blockquote>{FOUNDER_RECOLLECTION}</blockquote>
+        <p>불안한 날에는 우산이, 선택 앞에서는 나침반이 되어드릴게요.</p>
         <figure style={{ margin: "0 0 16px" }}>
           <img
             src="/assets/yeongnyangi/original/records-scroll-960.webp"
