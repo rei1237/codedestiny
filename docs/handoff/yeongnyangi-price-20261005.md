@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-05
-next: "docs/handoff/yeongnyangi-price-20261005.md 의 '남은 절차' 3번 운영 승격부터 이어서 진행해줘. 다른 세션 작업이 끝났는지 확인하고, 운영 실측 SHA 이후 승격 범위를 다시 보여 준 뒤 내 승인을 받아"
+next: "완료. 운영 d4a2c8a19 승격·verify:release 통과(10-05). 남은 것은 Play Console SKU 등록(사람 손)과 폐기안 브랜치 2개 삭제 여부 사용자 확인뿐이다."
 ---
 
 # 영냥이 정식 가격 시행 (2026-10-05)
@@ -51,8 +51,8 @@ next: "docs/handoff/yeongnyangi-price-20261005.md 의 '남은 절차' 3번 운�
 
 1. ~~main 머지·push·CI~~ 완료(4e8181f99).
 2. ~~verify:staging~~ 완료.
-3. **보류 중 — 사용자 결정(10-05 06시경): "다른 세션 마무리까지 대기"**. 승격은 main HEAD 전체만 가능하다(`target_sha` 는 pages_only 전용인데 이번 변경은 워커 포함). 10-05 06시 기준 운영 실측 SHA 2710b06f2(`https://code-destiny.com/version.json`) 이후 138커밋 중 131개가 다른 세션 것 — 영냥이 배달 실패 환불·할인 월정석 복구(worker/yeongnyangi/*refund*), 찻집 복원, 저장 풀이 허브, 최애운명 개편, 작명·점성술·타로·네오 등. 재개 시 운영 실측 SHA 를 다시 재고 범위를 보여 준 뒤 재승인. 운영 승격: 마지막 승격 이후 main 의 다른 세션 커밋 목록을 보여 주고, 섞여 있으면 재승인. 확인과 dispatch 는 한 명령. 이후 `npm run verify:release`.
-4. 승격·`verify:release` 뒤 이 문서 `status: done`. 워크트리 A·B·현재(yn-price-3000)는 10-05 에 정리했다. 남은 것: 머지 안 된 폐기안 브랜치 `wt/yn-price-1005-20261002-161442`(9,900 체계, 8커밋)와 `wt/yn-trial-ends-notice-20261002-160254` — 사용자 확인 뒤 `git branch -D`.
+3. ~~운영 승격~~ 완료(10-05 12시경 KST). 사용자 재승인 2회: 결제 카탈로그 동기화(c63aa9f09 표시명·59a81fcc1 문서) push 뒤 한 번에 → 작명 v2 기본 화면(5249779df)이 섞여 작명 세션 verify:staging PASS 뒤 한 번에. 범위 운영 2710b06f2 → d4a2c8a19(비머지 약 145커밋, 다른 세션 작업 포함). run 37258689540 success(롤백 skipped), drift in-sync(Pages·Worker d4a2c8a19), 운영 /yeongnyangi/ 3,000원·5,400원, 천원 허브 1,000원, 체험가 문구 0. `npm run verify:release` EXIT 0(로컬 체크아웃 기준 정적 검사).
+4. ~~이 문서 `status: done`~~ 완료. 워크트리 A·B·현재(yn-price-3000)는 10-05 에 정리했다. 남은 것: 머지 안 된 폐기안 브랜치 `wt/yn-price-1005-20261002-161442`(9,900 체계, 8커밋)와 `wt/yn-trial-ends-notice-20261002-160254` — 사용자 확인 뒤 `git branch -D`.
 
 ## 롤백
 
