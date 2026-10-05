@@ -19,6 +19,7 @@
 
 import { formatStarWithBrightness } from "./ziwei-ai-chart.js";
 import { ZIWEI_STRENGTH_LEGEND } from "../../lib/ziwei-star-strength.js";
+import { buildZiweiBusinessBasis, formatZiweiBusinessLines } from "./ziwei-derived-signals.js";
 
 export const ZIWEI_DEEP_PDF_META = Object.freeze({
   featureKey: "ziwei-deep-pdf",
@@ -245,6 +246,16 @@ function buildConsultationLines(consultation) {
   return lines;
 }
 
+// 사업운 근거(궁간 비화)는 재백·자녀·전택·관록 네 장에만 넣는다. 명반 JSON·다른 장은 그대로.
+const BUSINESS_BASIS_CHAPTERS = Object.freeze(["children", "wealth", "career", "property"]);
+function buildBusinessBasisLines(chart, chapter) {
+  if (!BUSINESS_BASIS_CHAPTERS.includes(chapter?.id)) return [];
+  const lines = formatZiweiBusinessLines(buildZiweiBusinessBasis(chart?.palaces, chart?.uncertainty?.birthTimeUnknown === true));
+  return lines.length
+    ? ["", "[사업운 근거 — 재백궁·자녀궁·전택궁·관록궁의 궁간 비화 계산값. 이 장에서 근거로 쓰고, 여기 없는 연결은 만들지 마라]", ...lines.map((line) => `- ${line}`)]
+    : [];
+}
+
 /**
  * 특정 챕터의 LLM 프롬프트를 만든다.
  * @param {object} chart  calculateZiweiAiChart(...) 결과
@@ -270,6 +281,7 @@ export function buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultat
     "",
     "[명반 데이터]",
     chartText,
+    ...buildBusinessBasisLines(chart, chapter),
     "",
     `[이번 장] ${chapter.title}`,
     `[해석 범위] ${chapter.scope}`,

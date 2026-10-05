@@ -56,3 +56,19 @@ test('자미 AI 상담: 사업운 줄은 achievement 묶음 프롬프트에만, 
   assert.ok(!buildMetaPrompt(input, c).includes(heading));
   assert.ok(!JSON.stringify(c).includes('사업운'), '차트 JSON 은 그대로');
 });
+
+test('심화 PDF: 사업운 줄은 재백·자녀·관록·전택 네 장에만, health 등 다른 장에는 없다', async () => {
+  const {ZIWEI_DEEP_CHAPTERS, buildZiweiDeepChapterPrompt} = await import('../../worker/lib/ziwei-deep-report-prompt.mjs');
+  const birthInfo = {name:'테스트', gender:'여성', birthDate:'1987-06-15', birthTime:'08:20', calendarType:'solar'};
+  const c = calculateZiweiAiChart({birthInfo}, {year:2026});
+  const expected = formatZiweiBusinessLines(buildZiweiBusinessBasis(c.palaces));
+  const withBasis = ['children', 'wealth', 'career', 'property'];
+  for (const chapter of ZIWEI_DEEP_CHAPTERS) {
+    const prompt = buildZiweiDeepChapterPrompt(c, birthInfo, chapter);
+    if (withBasis.includes(chapter.id)) {
+      assert.ok(prompt.includes('[사업운 근거'), chapter.id);
+      for (const line of expected) assert.ok(prompt.includes(`- ${line}`), `${chapter.id}: ${line}`);
+    } else assert.ok(!prompt.includes('[사업운 근거'), chapter.id);
+  }
+  assert.ok(ZIWEI_DEEP_CHAPTERS.some(chapter => chapter.id === 'health'));
+});
