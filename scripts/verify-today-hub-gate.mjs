@@ -120,7 +120,7 @@ const PROFILE = {
 
 const block = extractBlock(SHELLS[0]);
 
-// ── 1) 셸 6종이 같은 블록을 미러링하는가 ────────────────────────────────
+// ── 1) 셸이 같은 블록을 미러링하고 현지어 허브 링크만 변환하는가 ────────────────────────────────
 for (const rel of SHELLS.slice(1)) {
   let other;
   try {
@@ -129,9 +129,9 @@ for (const rel of SHELLS.slice(1)) {
     fail(String(error.message));
     continue;
   }
-  // Locale shells use the generated localized hub links; every other byte must still match.
-  const expected = localizeHubLinks(block, rel.split("/")[1]);
-  if (other !== expected) fail(`${rel}: 현지화 링크를 적용한 정본 허브 블록과 다릅니다.`);
+  const locale = /^public\/(en|ja|zh|zh-tw)\//.exec(rel)?.[1];
+  const expected = locale ? localizeHubLinks(block, locale) : block;
+  if (other !== expected) fail(`${rel}: 허브 블록이 현지어 링크를 적용한 루트 정본과 다릅니다.`);
 }
 
 // ── 2) 프로필 카드 없음 → 결과를 그리지 않는다 ──────────────────────────
