@@ -38,6 +38,7 @@ import {
 import { applyZiweiHanjaToStructuredText, stripEmptyParens } from "../lib/ziwei-hanja.js";
 import { buildZiweiDomainBriefLines, getZiweiPromptTemplate, resolveZiweiDomainFromFocus } from "../lib/ziwei-ai-prompt-templates.mjs";
 import { buildZiweiPersonalityContextLines } from "../lib/ziwei-personality-context.js";
+import { buildZiweiBusinessBasis, formatZiweiBusinessLines } from "../lib/ziwei-derived-signals.js";
 
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
@@ -1395,6 +1396,17 @@ function buildConsultationHeaderLines(input, chart) {
   ].filter(Boolean);
 }
 
+// 사업운 근거(재백·자녀·전택·관록궁 궁간 비화, worker/lib/ziwei-derived-signals.js). 공통 헤더에 넣으면 7회 호출 전부에
+// 실리므로 career·wealth 를 쓰는 묶음(achievement)에만 붙인다. 차트 JSON 에는 싣지 않는다(verify:ziwei-worker-chart-facts 길이 상한).
+const BUSINESS_BASIS_SECTIONS = Object.freeze(["career", "wealth"]);
+function buildBusinessBasisLines(chart, sectionKeys) {
+  if (!sectionKeys.some((key) => BUSINESS_BASIS_SECTIONS.includes(key))) return [];
+  const lines = formatZiweiBusinessLines(buildZiweiBusinessBasis(chart?.palaces, chart?.uncertainty?.birthTimeUnknown === true));
+  return lines.length
+    ? ["[사업운 근거 — 재백궁·자녀궁·전택궁·관록궁의 궁간 비화 계산값. career·wealth 에서 근거로 쓰고, 여기 없는 연결은 만들지 마세요]", ...lines.map((line) => `- ${line}`)]
+    : [];
+}
+
 // 전 섹션 공통 규칙. 한자는 서버(worker/lib/ziwei-hanja.js)가 붙이므로 여기서는 쓰지 못하게 막는다.
 function buildSharedSectionRuleLines(chart) {
   return [
@@ -1482,6 +1494,8 @@ function buildSectionGroupPrompt(input, chart, group) {
 
   return [
     ...buildConsultationHeaderLines(input, chart),
+    "",
+    ...buildBusinessBasisLines(chart, sectionKeys),
     "",
     group.focus ? `[이번에 쓸 부분] ${group.focus}` : "",
     "",
