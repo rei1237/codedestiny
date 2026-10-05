@@ -22,5 +22,5 @@ export const relationshipLocales=Object.fromEntries(Object.entries(rows).map(([l
  if(values.length!==keys.length)throw new Error(`Relationship copy shape: ${locale} ${values.length}/${keys.length}`);
  const copy=Object.fromEntries(keys.map((key,i)=>[key,values[i]])) as Omit<RelationshipCopy,'steps'>;
  return [locale,{...copy,steps:[copy.question,copy.people,copy.engine]}];
-})) as Record<Exclude<ReadingLocale,'ko'>,RelationshipCopy>;
+})) as Record<string,RelationshipCopy>;
 export const relationshipCopyFor=(locale:ReadingLocale='ko'):RelationshipCopy=>locale==='ko'?relationshipCopy:relationshipLocales[locale];
