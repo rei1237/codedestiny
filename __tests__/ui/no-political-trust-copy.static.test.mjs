@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { trustStoriesCopy } from '../../lib/brand/trust-stories.mjs';
 
 // 신뢰·마케팅의 정치 주장은 제한한다. 2026-10-04 사용자 요청으로 날짜·원문을 갖춘 기존 기록 3건만 복원한다.
 const ROOTS = ['app', 'templates', 'lib/brand', 'lib/seo/public-record-copy.mjs', 'js/feature-detail-panels.mjs', 'i18n/authored', 'store-assets'];
@@ -21,6 +22,7 @@ const ALLOWED = {
   'app/insights/public-record-article.js': { count: 3, reason: '2026-10-05 승인한 원문 3건의 날짜·사건·일치 한계 비교 문서' },
   'templates/home-funnel.html': { count: 1, reason: '2026-10-06 사용자 요청: 중복 정치 사례 소개 제거, 상단 공개 기록 페이지 경로만 유지' },
   'i18n/authored/globalReading-01.json': { count: 2, reason: '2026-10-05 해외 현지화 요청: 기존 공개 기록 소개 번역, 미래 적중 보장 제외' },
+  'i18n/authored/homeOverseas-01.json': { count: 3, reason: '2026-10-06 현지화 요청: 기존 공개 기록 제목·설명을 번역 키로 이동. 아래에서 기존 원문과 정확히 대조' },
   'app/saju/destiny-bias/lib/celebrityProfiles.ts': { count: 2, reason: '유명인 사주 데이터(정치인 프로필) — 인물 데이터, 유지' },
   'i18n/authored/shellRuntime-05.json': { count: 18, reason: '유명인 사주 소개 문구(역대 대통령 경력) — 인물 데이터, 유지' },
   'i18n/authored/shellRuntime-12.json': { count: 3, reason: '유명인 인생 단계 라벨 — 인물 데이터, 유지' },
@@ -35,6 +37,8 @@ function* walk(entry) {
 }
 
 test('user-facing sources restrict political terms to celebrity data and owner-requested original records', () => {
+  const home = JSON.parse(readFileSync('i18n/authored/homeOverseas-01.json', 'utf8'));
+  for (const key of ['recordsTitle', 'recordsLead']) assert.equal(home['home.overseasCopy.' + key].ko, trustStoriesCopy[key]);
   const found = {};
   for (const root of ROOTS) {
     for (const file of walk(root)) {
