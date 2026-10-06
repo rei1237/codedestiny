@@ -92,6 +92,10 @@ const server=http.createServer((req,res)=>{
     await page.locator('[data-da-sec="vedic"]').screenshot({path:path.join(out,'vedic-'+width+'.png')});
     await page.locator('[data-da-sec="habits"]').screenshot({path:path.join(out,'habits-'+width+'.png')});
     await card.evaluate(el=>{el.querySelectorAll('details[data-da-chapter]').forEach(d=>d.open=false);el.scrollIntoView({block:'start'});});
+    await page.evaluate(()=>window.scrollTo({top:window.scrollY+document.getElementById('destinyAnatomyCard').getBoundingClientRect().top-20,behavior:'instant'}));
+    await page.locator('[data-da-sec="hero"]').screenshot({path:path.join(out,'hero-'+width+'.png')});
+    await page.locator('[data-da-sec="brain"]').screenshot({path:path.join(out,'brain-'+width+'.png')});
+    await page.evaluate(()=>window.scrollTo({top:window.scrollY+document.getElementById('destinyAnatomyCard').getBoundingClientRect().top-20,behavior:'instant'}));
     await page.waitForTimeout(180);await page.screenshot({path:path.join(out,'screen-'+width+'.png')});
    }
    if(width===390){const d=page.waitForEvent('download');await page.locator('[data-da-act="save"]').click();await (await d).saveAs(path.join(out,'share-'+L+'.png'));}

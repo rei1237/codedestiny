@@ -44,7 +44,7 @@
       toggle: {hd: '휴먼 디자인', chakra: '차크라', both: '함께 보기'},
       chakraNote: '차크라는 휴먼 디자인 센터와 다른 체계예요. 건강 상태가 아니라 상징적인 주제로만 읽어요.',
       chakraLevel: {bright: '밝게', steady: '고르게', quiet: '조용히'},
-      vedicTitle: '베다로 본 마음과 몸',
+      vedicTitle: '베다점으로 돌아보는 나의 리듬',
       crossTitle: '서로 다른 운명 체계가 동시에 말하는 당신',
       badge: {saju: '사주', hd: '휴먼 디자인', fusion: '융합'},
       insightTitle: {thinking: '생각의 기본 방식', decision: '결정 방식', people: '사람 · 일 · 돈을 대하는 방식'},
@@ -254,7 +254,7 @@
       "even": "고르게 드러난 오행",
       "intro": "오행의 비중은 몸의 건강 점수가 아니에요. 강한 기운은 자주 쓰는 방식, 작은 기운은 의식적으로 돌아볼 주제로 읽어요. 과하게 몰린 기운도 일상의 균형을 흐트러뜨리는 모습으로 해석할 수 있어요.",
       "chakraSource": "차크라의 크기와 밝기는 사주 십성·오행을 상징적으로 옮긴 값이에요. 베다점의 행성 계산값이나 실제 신체 상태를 나타내지 않아요.",
-      "vedicSource": "베다점은 라그나에서 별자리 하나를 한 하우스로 세어 6하우스와 주인 행성을 구해요. 아래는 그 전통적 주제를 생활 점검에 연결한 예시이며, 신체 상태를 예측하지 않아요.",
+      "vedicSource": "베다점의 계산 결과를 일상에 연결해 읽어요. 몸의 상태를 맞히는 설명은 아니에요.",
       "hdSource": "센터의 정의·열림은 휴먼 디자인에서 설명하는 패턴이에요. 장기의 상태나 활동 능력을 판정하지 않아요. 내 경험에 맞는 부분만 참고하세요.",
       "relation": "먼저 내 속도를 설명해 보세요. “지금 답하기보다 조금 생각한 뒤 이야기하고 싶어요”처럼 필요한 시간과 경계를 말로 전할 수 있어요.",
       "chapters": [
@@ -606,9 +606,9 @@
         }
       },
       "vedicKind": {
-        "moon": "달 별자리로 본 마음",
-        "lagna": "라그나로 본 몸의 결",
-        "sixth": "6하우스로 본 회복 방식"
+        "moon": "찬드라 라시 · 마음의 리듬",
+        "lagna": "라그나 · 나의 기본 리듬",
+        "sixth": "6바바 · 일상 관리"
       },
       "sign": {
         "Aries": "양자리",
@@ -3876,6 +3876,114 @@
     return String(tpl).replace(/\{(\w+)\}/g, function (m, k) { return vars && vars[k] != null ? String(vars[k]) : m; });
   }
 
+  var SIMPLE_COPY = {
+  "ko": {
+    "labels": [
+      "나답게",
+      "영감",
+      "실속",
+      "계획",
+      "생각"
+    ],
+    "notes": {
+      "circuit": "어떤 생각에 가장 오래 머무는지 가볍게 읽어봐요.",
+      "decision": "내가 편안한 속도로 결정해도 괜찮아요.",
+      "body": "오늘 하나만 골라, 쉬는 시간을 만들어봐요."
+    },
+    "vedic": "나의 베다점 차트",
+    "show": "12바바 펼쳐 보기",
+    "house": "바바",
+    "lagna": "라그나 · 출발점",
+    "sixth": "6바바 · 일상 리듬",
+    "ruler": "6바바의 주인 행성",
+    "note": "라그나는 차트의 출발점, 라시는 별자리, 바바는 삶의 영역이에요. 계산된 라그나와 6바바만 읽고, 없는 행성 위치는 채우지 않아요."
+  },
+  "en": {
+    "labels": [
+      "My pace",
+      "Ideas",
+      "Value",
+      "Plans",
+      "Reflection"
+    ],
+    "notes": {
+      "circuit": "Notice where your thoughts tend to linger.",
+      "decision": "You can decide at a pace that feels right for you.",
+      "body": "Choose one small way to make room for rest today."
+    },
+    "vedic": "Your Vedic chart",
+    "show": "Explore the 12 Bhavas",
+    "house": "Bhava",
+    "lagna": "Lagna · starting point",
+    "sixth": "Sixth Bhava · daily rhythm",
+    "ruler": "Sixth Bhava ruler",
+    "note": "Lagna is the chart’s starting point, Rashi a zodiac sign, and Bhava a life area. Only the calculated Lagna and sixth Bhava are interpreted; missing planetary positions stay blank."
+  },
+  "ja": {
+    "labels": [
+      "自分軸",
+      "アイデア",
+      "実用",
+      "計画",
+      "思考"
+    ],
+    "notes": {
+      "circuit": "どんな考えに長く留まるか、気軽に読んでみましょう。",
+      "decision": "自分が心地よいペースで決めても大丈夫。",
+      "body": "今日は一つだけ、休める余白を作ってみましょう。"
+    },
+    "vedic": "あなたのヴェーダ図",
+    "show": "12バーヴァを開く",
+    "house": "バーヴァ",
+    "lagna": "ラグナ・出発点",
+    "sixth": "第6バーヴァ・生活リズム",
+    "ruler": "第6バーヴァの支配星",
+    "note": "ラグナは出発点、ラーシは星座、バーヴァは生活の領域です。計算済みのラグナと第6バーヴァを読み、未取得の惑星位置は補いません。"
+  },
+  "zh-CN": {
+    "labels": [
+      "我的节奏",
+      "灵感",
+      "实用",
+      "计划",
+      "思考"
+    ],
+    "notes": {
+      "circuit": "轻松看看，哪些念头停留得更久。",
+      "decision": "按让自己舒服的节奏做决定就好。",
+      "body": "今天选一件小事，给休息留点空间。"
+    },
+    "vedic": "你的吠陀占星图",
+    "show": "展开12个 Bhava",
+    "house": "Bhava",
+    "lagna": "Lagna · 起点",
+    "sixth": "第6 Bhava · 日常节奏",
+    "ruler": "第6 Bhava 守护星",
+    "note": "Lagna 是起点，Rashi 是星座，Bhava 是生活领域。这里只解读已计算的 Lagna 与第6 Bhava，不补造缺失的行星位置。"
+  },
+  "zh-TW": {
+    "labels": [
+      "我的節奏",
+      "靈感",
+      "實用",
+      "計畫",
+      "思考"
+    ],
+    "notes": {
+      "circuit": "輕鬆看看，哪些念頭停留得更久。",
+      "decision": "按讓自己舒服的節奏做決定就好。",
+      "body": "今天選一件小事，給休息留點空間。"
+    },
+    "vedic": "你的吠陀占星圖",
+    "show": "展開12個 Bhava",
+    "house": "Bhava",
+    "lagna": "Lagna · 起點",
+    "sixth": "第6 Bhava · 日常節奏",
+    "ruler": "第6 Bhava 守護星",
+    "note": "Lagna 是起點，Rashi 是星座，Bhava 是生活領域。這裡只解讀已計算的 Lagna 與第6 Bhava，不補造缺失的行星位置。"
+  }
+};
+
   var CHART_COPY = {
   "ko": {
     "hd": "나의 활동·회복 회로",
@@ -4072,8 +4180,9 @@
     var allThoughts = s.ranked.map(function (axis) { return {axis: axis, name: A[axis].name, line: A[axis].thought, top: s.topThoughts.indexOf(axis) >= 0, luck: luckOf(axis)}; });
     // 밈 뇌구조 — 칸 배치(engine)에 축별 짤 문구·스티커를 붙인다. 스티커는 데이터에서만 나온다(과열 축·대운 축·1위).
     var memeGeo = s.meme;
+    var simple = SIMPLE_COPY[L] || SIMPLE_COPY.en;
     var memeOf = function (axis) {
-      return {axis: axis, name: A[axis].name, god: A[axis].god, line: A[axis].meme,
+      return {axis: axis, label: simple.labels[AXES.indexOf(axis)], name: A[axis].name, god: A[axis].god, line: A[axis].meme,
         hot: s.overloadPatterns.indexOf(axis) >= 0, luck: luckOf(axis), top: !s.balanced && axis === s.ranked[0]};
     };
     var memeText = memeGeo ? {
@@ -4137,6 +4246,7 @@
       .sort(function (a, b) { return (b.emphasis || 0) - (a.emphasis || 0); })[0];
     var yeoniText = {
       label: Y.label,
+      short: simple.notes,
       circuit: s.balanced ? Y.circuit.balanced : fill(Y.circuit.base, {top: A[top].name, second: A[secondAxis].name}),
       engines: hotAxis ? fill(Y.engines.over, {name: A[hotAxis].name}) : fill(Y.engines.low, {name: A[s.ranked[s.ranked.length - 1]].name}),
       elements: (el.ratios[hiEl] || 0) - (el.ratios[loEl] || 0) < 10 ? Y.elements.even
@@ -4186,7 +4296,7 @@
       vedic: vedicText,
       mbUi: C.mb.ui,
       recovery: C.recovery,
-      charts: CHART_COPY[L] || CHART_COPY.en,
+      charts: Object.assign({}, CHART_COPY[L] || CHART_COPY.en, {vedic: simple.vedic, show: simple.show, house: simple.house, lagna: simple.lagna, sixth: simple.sixth, ruler: simple.ruler, vedicNote: simple.note}),
       vedicChart: vedic && vedic.available && vedic.lagna ? {lagna: MB.sign[vedic.lagna], sixth: MB.sign[vedic.sixthSign], ruler: MB.graha[vedic.sixthLord], houses: root.DestinyAnatomyEngine._canon.SIGNS.map(function (_, i, signs) { return {house: i + 1, sign: MB.sign[signs[(signs.indexOf(vedic.lagna) + i) % 12]]}; })} : null,
       habits: habitRows,
       insights: insights,

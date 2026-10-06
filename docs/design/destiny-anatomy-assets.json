@@ -1,0 +1,53 @@
+{
+  "tool": "built-in image_gen",
+  "intent": "Decorative editorial images; calculated charts remain deterministic SVG",
+  "prompts": {
+    "brain": "Use case: stylized-concept. Asset type: one premium editorial spot illustration for a Korean moonlit fortune journal UI. A restrained hand-painted storybook illustration, fine muted antique-gold ink lines, luminous ivory, pale sage, dusty rose and moonstone blue watercolor, delicate paper-grain within the painted forms. Genuine transparent background. Centered isolated subject with generous empty margin, visually legible when displayed at 120px. Quiet sophisticated Korean moonlit illustration mood, not childish, no glitter shower, no dense ornaments, no shadow outside the subject. No text, letters, numerals, labels, logo, watermark or health/medical imagery. This is decorative art, not a calculated chart. Subject: an elegant side-profile silhouette facing left, formed from translucent moonstone porcelain and thin gold contour. In the upper head, five spacious soft colored glass-like pieces symbolize thoughts, completely blank and clean, with one small crescent moon resting above. No face details beyond a simple eyelid; no pig, no body. Balanced airy composition.",
+    "vedic": "Use case: stylized-concept. Asset type: one premium editorial spot illustration for a Korean moonlit fortune journal UI. A restrained hand-painted storybook illustration, fine muted antique-gold ink lines, luminous ivory, pale sage, dusty rose and moonstone blue watercolor, delicate paper-grain within the painted forms. Genuine transparent background. Centered isolated subject with generous empty margin, visually legible when displayed at 120px. Quiet sophisticated Korean moonlit illustration mood, not childish, no glitter shower, no dense ornaments, no shadow outside the subject. No text, letters, numerals, labels, logo, watermark or health/medical imagery. This is decorative art, not a calculated chart. Subject: a single finely crafted Indian Jyotisha chart manuscript medallion, a clean square rotated slightly with a subtle diamond-in-square geometric Bhava framework drawn in antique gold, resting against a small crescent moon. Warm ivory parchment, one restrained lotus bud beside it. No Western zodiac glyphs, no constellation animals, no planets assigned to boxes, no labels. Calm precise uncluttered geometry.",
+    "hd": "Use case: stylized-concept. Asset type: one premium editorial spot illustration for a Korean moonlit fortune journal UI. A restrained hand-painted storybook illustration, fine muted antique-gold ink lines, luminous ivory, pale sage, dusty rose and moonstone blue watercolor, delicate paper-grain within the painted forms. Genuine transparent background. Centered isolated subject with generous empty margin, visually legible when displayed at 120px. Quiet sophisticated Korean moonlit illustration mood, not childish, no glitter shower, no dense ornaments, no shadow outside the subject. No text, letters, numerals, labels, logo, watermark or health/medical imagery. This is decorative art, not a calculated chart. Subject: a delicate Human Design inspired contemplative figure emblem: nine small translucent gemstone geometric centers arranged vertically around an airy human silhouette, connected by a few extremely fine gold threads. Moonstone, pale sage and dusty rose, understated hand-painted texture. No seven-chakra rainbow, no glowing organs, no labels or numbers, no activation or health claims. An editorial symbol, not a real person's BodyGraph."
+  },
+  "assets": [
+    {
+      "path": "public/images/destiny-anatomy/moonlit-brain-v1-384.webp",
+      "width": 343,
+      "height": 384,
+      "alpha": true,
+      "bytes": 31832
+    },
+    {
+      "path": "public/images/destiny-anatomy/moonlit-brain-v1-768.webp",
+      "width": 686,
+      "height": 768,
+      "alpha": true,
+      "bytes": 101468
+    },
+    {
+      "path": "public/images/destiny-anatomy/moonlit-vedic-v1-384.webp",
+      "width": 384,
+      "height": 384,
+      "alpha": true,
+      "bytes": 33052
+    },
+    {
+      "path": "public/images/destiny-anatomy/moonlit-vedic-v1-768.webp",
+      "width": 768,
+      "height": 768,
+      "alpha": true,
+      "bytes": 104838
+    },
+    {
+      "path": "public/images/destiny-anatomy/moonlit-hd-v1-384.webp",
+      "width": 256,
+      "height": 384,
+      "alpha": true,
+      "bytes": 36376
+    },
+    {
+      "path": "public/images/destiny-anatomy/moonlit-hd-v1-768.webp",
+      "width": 512,
+      "height": 768,
+      "alpha": true,
+      "bytes": 108910
+    }
+  ]
+}

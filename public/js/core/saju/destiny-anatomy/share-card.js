@@ -28,9 +28,9 @@
       viewBox: m.viewBox, head: m.head, ear: m.ear, eye: m.eye, cheek: m.cheek, box: m.box, inner: m.inner || m.box,
       luckMark: m.luckMark || '', comboLabel: m.comboLabel || '',
       cells: m.cells.map(function (c) {
-        return {axis: c.axis, line: c.line, pct: c.pct, x: c.x, y: c.y, w: c.w, h: c.h, top: !!c.top, hot: !!c.hot, luck: c.luck || null};
+        return {axis: c.axis, label: c.label, line: c.line, pct: c.pct, x: c.x, y: c.y, w: c.w, h: c.h, top: !!c.top, hot: !!c.hot, luck: c.luck || null};
       }),
-      legend: (m.legend || []).map(function (c) { return {axis: c.axis, god: c.god, name: c.name, line: c.line, pct: c.pct}; })
+      legend: (m.legend || []).map(function (c) { return {axis: c.axis, god: c.god, name: c.label, line: c.line, pct: c.pct}; })
     } : null;
     return {
       question: t.recovery.shareQuestion,
@@ -159,13 +159,13 @@
 
   /* 칸 하나의 글자 — 큰 글자부터 줄여 가며 문장+% 가 들어가는 크기를 찾는다. 안 들어가면 %만, 그것도 안 되면 비운다. */
   function drawCell(ctx, p, m, c, X, Y, Wc, Hc) {
-    var stk = (c.top ? '✦' : '') + (c.hot ? '✧' : '') + (c.luck && m.luckMark ? m.luckMark : '');
+    var stk = '';
     var pct = c.pct + '%';
-    var fam = p.display, wt = p.displayWeight;
+    var fam = p.font, wt = 600;
     var fit = null;
-    [46, 40, 34, 29].some(function (size) {
+    [36, 32, 28, 24].some(function (size) {
       setFont(ctx, wt, size, fam);
-      var lines = wrap(ctx, c.line, Wc - 30, 3, true);
+      var lines = wrap(ctx, c.label, Wc - 18, 2, true);
       if (!lines) return false;
       var pctSize = Math.round(size * .9);
       var hgt = lines.length * size * 1.2 + pctSize * 1.3;
@@ -175,7 +175,7 @@
     });
     ctx.save();
     ctx.shadowColor = p.brain;
-    ctx.shadowBlur = 6;
+    ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 2;
     ctx.textAlign = 'center';
     var cx = X + Wc / 2;
@@ -183,16 +183,7 @@
       var label = (stk ? stk + ' ' : '') + pct;
       setFont(ctx, 800, size, ctx.__font);
       while (size > 16 && ctx.measureText(label).width + size * .8 > Wc - 8) { size--; setFont(ctx, 800, size, ctx.__font); }
-      if (c.hot) {
-        var tw = ctx.measureText(label).width + size * .8;
-        ctx.save();
-        ctx.shadowColor = 'transparent';
-        ctx.fillStyle = p.ink;
-        roundRect(ctx, cx - tw / 2, y - size * .92, tw, size * 1.22, size * .61);
-        ctx.fill();
-        ctx.restore();
-        ctx.fillStyle = p.bg;
-      } else ctx.fillStyle = p.line;
+      ctx.fillStyle = p.line;
       ctx.fillText(label, cx, y);
     };
     if (fit) {
@@ -222,7 +213,7 @@
     ctx.strokeStyle = p.art;
     ctx.lineWidth = .7;
     ctx.globalAlpha = .42;
-    ctx.stroke(new P('M20 282V154a160 142 0 0 1 320 0v128M26 278V155a154 135 0 0 1 308 0v123'));
+    ctx.stroke(new P('M20 282V154a160 142 0 0 1 320 0v128'));
     ctx.globalAlpha = 1;
     ctx.fillStyle = p.moon;
     ctx.fill(new P(MOON));
@@ -337,10 +328,6 @@
       ctx.lineWidth = 2;
       ctx.stroke();
       var tx = x + 84;
-      if (r.god) {
-        text(ctx, r.god, tx, mid + 11, 30, p.gold, 700);
-        tx += ctx.measureText(r.god).width + 16;
-      }
       setFont(ctx, 600, 32, ctx.__font);
       var name = r.name;
       var room = x + w - 150 - tx;

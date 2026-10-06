@@ -35,19 +35,20 @@
     }
   }
 
-  // 표지 문장(紋章) — 달창 두 겹 테 + 초승달 + 매화 가지 + 구름 + 별. 장식이라 읽지 않는다.
-  var CREST = '<svg class="da-crest" viewBox="0 0 96 96" aria-hidden="true" focusable="false"><circle class="da-crest__ring" cx="48" cy="48" r="45"/><circle class="da-crest__ring da-crest__ring--in" cx="48" cy="48" r="40"/><path class="da-crest__moon" d="M58 22A26 26 0 1 0 58 74A29 29 0 0 1 58 22Z"/><path class="da-crest__art" d="M20 75C33 68 45 63 60 61M41 65C41 58 45 54 50 53M52 62C56 65 63 66 68 63"/><path class="da-crest__art" d="M60 34c2-4 8-4 10 0 3-1 6 1 6 4H58c-2 0-1-4 2-4Z"/><circle class="da-crest__petal" cx="68" cy="59.6" r="2.8"/><circle class="da-crest__petal" cx="71.2" cy="61.9" r="2.8"/><circle class="da-crest__petal" cx="70" cy="65.8" r="2.8"/><circle class="da-crest__petal" cx="66" cy="65.8" r="2.8"/><circle class="da-crest__petal" cx="64.8" cy="61.9" r="2.8"/><circle class="da-crest__bloom" cx="68" cy="63" r="1.7"/><circle class="da-crest__petal" cx="50" cy="50" r="2.5"/><circle class="da-crest__petal" cx="52.9" cy="52.1" r="2.5"/><circle class="da-crest__petal" cx="51.8" cy="55.4" r="2.5"/><circle class="da-crest__petal" cx="48.2" cy="55.4" r="2.5"/><circle class="da-crest__petal" cx="47.1" cy="52.1" r="2.5"/><circle class="da-crest__bloom" cx="50" cy="53" r="1.5"/><path class="da-crest__star" d="M72 20l1.2 3.3 3.3 1.2-3.3 1.2-1.2 3.3-1.2-3.3-3.3-1.2 3.3-1.2Z"/><path class="da-crest__star" d="M30 30l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z"/></svg>';
+  // Editorial WEBP illustrations are decorative, never a substitute for calculated charts.
+  function illustration(kind) {
+    var src = '/images/destiny-anatomy/moonlit-' + kind + '-v1-';
+    return '<img class="da-illustration da-illustration--' + kind + '" src="' + src + '384.webp" srcset="' + src + '384.webp 1x, ' + src + '768.webp 2x" width="128" height="144" alt="" aria-hidden="true" loading="lazy" decoding="async">';
+  }
 
   function heroHtml(t, variant) {
     var ui = t.ui;
-    return '<header class="da-hero" data-da-sec="hero">' + CREST +
-      '<div class="da-hero__meta"><span class="sec-tier-badge sec-tier-badge--free">' + esc(ui.free) + '</span>' +
-      '<span class="da-eyebrow">' + esc(ui.subtitle) + '</span></div>' +
+    return '<header class="da-hero" data-da-sec="hero">' + illustration('brain') +
       '<h3 class="sec-title da-title" id="destinyAnatomyTitle">' + esc(ui.title) + '</h3>' +
       '<p class="da-hero__q">' + esc(t.comboTitle) + '</p>' +
       '<p class="da-hero__intro">' + esc(t.mindLine) + '</p>' +
       '<button type="button" class="da-btn da-btn--ghost" data-da-act="share">' + esc(ui.shareAction) + '</button>' +
-      '<p class="da-hero__intro">' + esc(ui.intro) + '</p></header>';
+      '</header>';
   }
 
   /* 밈 뇌구조 — 옆얼굴 윤곽 안 둥근 뇌 상자를 엔진 비율대로 나눈 그림(engine.memeBrain). 칸 안엔 짧은 속마음과 %.
@@ -62,21 +63,10 @@
     reflection: '<pattern id="daPat-reflection" width="6" height="6" patternUnits="userSpaceOnUse"><line class="da-pat" x1="0" y1="3" x2="6" y2="3"/></pattern>'
   };
   // 샤갈풍 밤하늘 장식(예화 금선) — 초승달·별·떠다니는 꽃가지·바이올린. 데이터가 아니라 장식이라 머리 바깥 여백에만 둔다.
-  var MEME_ART =
-    '<path class="da-meme__window" d="M20 282V154a160 142 0 0 1 320 0v128M26 278V155a154 135 0 0 1 308 0v123"/>' +
-    '<path class="da-meme__moon" d="M44 22a20 20 0 1 0 22 30a16 16 0 1 1-22-30Z"/>' +
-    '<path class="da-meme__star" d="M92 14l2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/><path class="da-meme__star" d="M18 92l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5Z"/>' +
-    '<path class="da-meme__star" d="M340 30l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5Z"/><path class="da-meme__star" d="M316 8l1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1Z"/>' +
-    '<g class="da-meme__float"><path class="da-meme__art" d="M14 288c10-14 16-28 18-46M24 266c-8-2-12-8-10-14 7 0 11 6 10 14Zm4-12c0-8 5-12 11-11 0 7-5 11-11 11Zm4-14c-4-6-2-12 3-14 4 5 2 11-3 14Z"/><circle class="da-meme__petal" cx="33" cy="232.8" r="3.4"/><circle class="da-meme__petal" cx="37" cy="235.7" r="3.4"/><circle class="da-meme__petal" cx="35.5" cy="240.4" r="3.4"/><circle class="da-meme__petal" cx="30.5" cy="240.4" r="3.4"/><circle class="da-meme__petal" cx="29" cy="235.7" r="3.4"/><circle class="da-meme__bloom" cx="33" cy="237" r="2"/></g>' +
-    '<g class="da-meme__float" style="animation-delay:-3s"><g transform="translate(326 252) rotate(-28)"><path class="da-meme__art da-meme__violin" d="M0 0C8 0 12 4 12 10C12 14 7 15 7 19C7 23 14 23 14 31C14 40 8 44 0 44C-8 44-14 40-14 31C-14 23-7 23-7 19C-7 15-12 14-12 10C-12 4-8 0 0 0Z"/><path class="da-meme__art" d="M-1.6 0V-19H1.6V0M0-19C0-24 5-25 5.5-21.5C6-18.5 2.5-18 2.4-20M-1.6-15H-4.5M1.6-13H4.5M-5 16.5C-6 20-4 23-5.2 26.5M5 16.5C6 20 4 23 5.2 26.5M-4.5 28H4.5M-1.6 31L0 40L1.6 31M-.7-17V31M.7-17V31M-16 42L18-4"/></g></g>';
+  var MEME_ART = '<path class="da-meme__window" d="M20 282V154a160 142 0 0 1 320 0v128"/>' +
+    '<path class="da-meme__moon" d="M44 22a20 20 0 1 0 22 30a16 16 0 1 1-22-30Z"/>';
   function memeSwatch(axis) {
-    return '<svg class="da-meme__sw" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><rect class="da-meme__fill da-ax-' + esc(axis) + '" x="1" y="1" width="16" height="16" rx="4"/>' +
-      '<rect fill="url(#daPat-' + esc(axis) + ')" x="1" y="1" width="16" height="16" rx="4"/></svg>';
-  }
-  function memeStickers(m, c) {
-    return (c.top ? '<span class="da-stk da-stk--top">✦</span>' : '') +
-      (c.hot ? '<span class="da-stk da-stk--hot">✧</span>' : '') +
-      (c.luck ? '<span class="da-stk da-stk--luck da-tone-' + esc(c.luck) + '">' + esc(m.luckMark) + '</span>' : '');
+    return '<svg class="da-meme__sw" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><rect class="da-meme__fill da-ax-' + esc(axis) + '" x="1" y="1" width="16" height="16" rx="4"/>' + '</svg>';
   }
   function memeHtml(t) {
     var m = t.meme;
@@ -87,25 +77,21 @@
     m.cells.forEach(function (c) {
       var cw = Math.max(0, c.w - MEME_GAP), ch = Math.max(0, c.h - MEME_GAP);
       var geo = 'x="' + (c.x + g) + '" y="' + (c.y + g) + '" width="' + cw + '" height="' + ch + '" rx="' + Math.min(10, cw / 3, ch / 3).toFixed(2) + '"';
-      rects += '<rect class="da-meme__fill da-ax-' + esc(c.axis) + '" ' + geo + '/><rect class="da-meme__pat" fill="url(#daPat-' + esc(c.axis) + ')" ' + geo + '/>' +
-        '<rect class="da-meme__sheen" fill="url(#daGlass)" ' + geo + '/>';
-      cells += '<div class="da-meme__cell da-ax-' + esc(c.axis) + ' is-' + esc(c.tier) + (c.hot ? ' is-hot' : '') + (c.luck ? ' is-luck da-tone-' + esc(c.luck) : '') +
+      rects += '<rect class="da-meme__fill da-ax-' + esc(c.axis) + '" ' + geo + '/>';
+      cells += '<div class="da-meme__cell da-ax-' + esc(c.axis) + ' is-' + esc(c.tier) + (c.luck ? ' is-luck da-tone-' + esc(c.luck) : '') +
         '" data-da-axis="' + esc(c.axis) + '" data-da-tier="' + esc(c.tier) + '" style="left:' + pc(c.x + g, vb[2]) + ';top:' + pc(c.y + g, vb[3]) +
         ';width:' + pc(c.w - MEME_GAP, vb[2]) + ';height:' + pc(c.h - MEME_GAP, vb[3]) + '">' +
-        '<span class="da-meme__stk">' + memeStickers(m, c) + '</span>' +
-        '<span class="da-meme__line">' + esc(c.line) + '</span><b class="da-meme__pct">' + c.pct + '%</b></div>';
+        '<span class="da-meme__line">' + esc(c.label) + '</span><b class="da-meme__pct">' + c.pct + '%</b></div>';
     });
     Object.keys(MEME_PATTERNS).forEach(function (k) { pats += MEME_PATTERNS[k]; });
     pats += '<linearGradient id="daGlass" x1="0" y1="0" x2="1" y2="1"><stop class="da-sheen-a" offset="0"/><stop class="da-sheen-b" offset=".55"/></linearGradient>';
     var tierOf = {};
     m.cells.forEach(function (c) { tierOf[c.axis] = c.tier; });
     var legend = m.legend.map(function (c) {
-      var chips = (c.hot ? '<span class="da-chip da-chip--hot">✧ ' + esc(m.hotLabel) + '</span>' : '') +
-        (c.luck ? '<span class="da-chip da-tone-' + esc(c.luck) + '">' + esc(m.luckMark + ' ' + m.luckLabel) + '</span>' : '');
       return '<li class="da-meme__row da-ax-' + esc(c.axis) + (c.luck ? ' is-luck da-tone-' + esc(c.luck) : '') + '" data-da-axis="' + esc(c.axis) + '">' +
-        memeSwatch(c.axis) + '<span class="da-meme__god">' + esc(c.god) + '</span><span class="da-meme__name">' + esc(c.name) + '</span>' + chips +
+        memeSwatch(c.axis) + '<span class="da-meme__name">' + esc(c.label) + '</span>' +
         '<b class="da-meme__rowpct">' + c.pct + '%</b>' +
-        '<span class="da-meme__rowline' + (tierOf[c.axis] === 'full' ? ' da-sr' : '') + '">“' + esc(c.line) + '”</span></li>';
+        '<span class="da-meme__rowline">“' + esc(c.line) + '”</span></li>';
     }).join('');
     var box = 'x="' + b.x + '" y="' + b.y + '" width="' + b.w + '" height="' + b.h + '" rx="' + b.r + '"';
     var n = m.inner || b, inner = 'x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" rx="' + n.r + '"';
@@ -118,7 +104,7 @@
       '<div class="da-meme__cells">' + cells + '</div></div>' +
       '<figcaption class="da-meme__caption">' + esc(m.caption) + '</figcaption>' +
       '<ol class="da-meme__legend">' + legend + '</ol>' +
-      (m.comboTitle ? '<p class="da-meme__combo"><span>' + esc(m.comboLabel) + '</span> <b>' + esc(m.comboTitle) + '</b></p>' : '') + '</figure>';
+      '</figure>';
   }
 
   /* 칸 글자 넘침 교정 — 실제 크기를 재서 full(문구+%) → mid(이모지+%) → dot(색만) 으로 낮춘다.
@@ -130,14 +116,14 @@
     var cells = container && container.querySelectorAll ? container.querySelectorAll('.da-meme__cell') : [];
     for (var i = 0; i < cells.length; i++) {
       var el = cells[i];
-      var k = Math.max(0, TIERS.indexOf(el.getAttribute('data-da-tier')));
+      var k = 0;
       var setTier = function (tier) {
         TIERS.forEach(function (x) { el.classList.toggle('is-' + x, x === tier); });
       };
       setTier(TIERS[k]);
       while (k < TIERS.length - 1 && (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1)) setTier(TIERS[++k]);
       var line = container.querySelector('.da-meme__row[data-da-axis="' + el.getAttribute('data-da-axis') + '"] .da-meme__rowline');
-      if (line) line.classList.toggle('da-sr', k <= 1);
+      if (line) line.classList.remove('da-sr');
     }
   }
 
@@ -162,19 +148,10 @@
 
   function brainHtml(model, t, state) {
     var ui = t.ui;
-    var thoughts = t.thoughts.map(function (x) {
-      return '<li class="da-thought' + (x.luck ? ' is-luck da-tone-' + esc(x.luck) : '') + '"><span class="da-thought__line">“' + esc(x.line) + '”</span><span class="da-thought__name">' + esc(x.name) + luckChip(ui, x.luck) + '</span></li>';
-    }).join('');
-    var rest = t.allThoughts.filter(function (x) { return !x.top; });
-    var restHtml = rest.length ? '<ul class="da-thoughts da-thoughts--rest" id="daThoughtsRest"' + (state.thoughtsOpen ? '' : ' hidden') + '>' +
-      rest.map(function (x) { return '<li class="da-thought da-thought--quiet' + (x.luck ? ' is-luck da-tone-' + esc(x.luck) : '') + '"><span class="da-thought__line">“' + esc(x.line) + '”</span><span class="da-thought__name">' + esc(x.name) + luckChip(ui, x.luck) + '</span></li>'; }).join('') + '</ul>' +
-      '<button type="button" class="da-link" data-da-act="thoughts" aria-controls="daThoughtsRest" aria-expanded="' + (state.thoughtsOpen ? 'true' : 'false') + '">' +
-      esc(state.thoughtsOpen ? ui.lessThoughts : ui.moreThoughts) + '</button>' : '';
     return '<section class="da-sec da-brain" data-da-sec="brain" aria-labelledby="daBrainTitle">' +
       '<h4 class="da-h" id="daBrainTitle">' + esc(ui.brainTitle) + '</h4>' +
       '<p class="da-lead">' + esc(model.saju.brainHeadline) + '</p>' +
       memeHtml(t) +
-      '<ul class="da-thoughts">' + thoughts + '</ul>' + restHtml + luckHtml(t) +
       (state.open ? '' : '<div class="da-explore"><button type="button" class="da-btn da-btn--primary" data-da-act="explore" aria-controls="daBody" aria-expanded="false">' + esc(ui.explore) + '</button>' +
         '<p class="da-explore__note">' + esc(ui.exploreNote) + '</p></div>') +
       '</section>';
@@ -186,7 +163,7 @@
       '<h4 class="da-h" id="daCircuitTitle">' + esc(ui.circuitTitle) + '</h4>' +
       '<p class="da-combo">' + esc(t.comboTitle) + '</p>' +
       '<p class="da-p">' + esc(t.comboText) + (t.toneNote ? ' ' + esc(t.toneNote) : '') + '</p>' +
-      '<p class="da-sequence">' + esc(t.sequence) + '</p>' +
+      '<p class="da-sequence">' + esc(t.sequence) + '</p>' + luckHtml(t) +
       '</section>';
   }
 
@@ -362,9 +339,9 @@
   function vedicChartHtml(t) {
     var v = t.vedicChart, c = t.charts;
     if (!v) return '';
-    return '<figure class="da-vchart"><figcaption class="da-sub">' + esc(c.vedic) + '</figcaption><ol class="da-vchart__houses">' + v.houses.map(function (h) {
+    return '<figure class="da-vchart"><figcaption class="da-sub">' + esc(c.vedic) + '</figcaption><details data-mobile-detail-keep-open data-da-entry="vedic-bhavas"><summary>' + esc(c.show) + '</summary><ol class="da-vchart__houses">' + v.houses.map(function (h) {
       return '<li class="' + (h.house === 1 || h.house === 6 ? 'is-key' : '') + '"><span>' + h.house + ' · ' + esc(c.house) + '</span><strong>' + esc(h.sign) + '</strong></li>';
-    }).join('') + '</ol><p class="da-note">' + esc(c.vedicNote) + '</p><dl class="da-mb">' + [[c.lagna, v.lagna], [c.sixth, v.sixth], [c.ruler, v.ruler]].map(function (r) { return '<div class="da-mb__row"><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>'; }).join('') + '</dl>' + mindBody(t.mbUi, '', c.vedicAction, '', '', c.vedicCheck) + '</figure>';
+    }).join('') + '</ol></details><p class="da-note">' + esc(c.vedicNote) + '</p><dl class="da-mb">' + [[c.lagna, v.lagna], [c.sixth, v.sixth], [c.ruler, v.ruler]].map(function (r) { return '<div class="da-mb__row"><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>'; }).join('') + '</dl>' + mindBody(t.mbUi, '', c.vedicAction, '', '', c.vedicCheck) + '</figure>';
   }
 
   function bodySvg(t, view) {
@@ -404,7 +381,7 @@
           mindBody(mbUi, c.mind, c.body, mbUi.region, c.theme, c.check) + '</details></li>';
       }).join('') + '</ul><p class="da-note">' + esc(ui.chakraNote) + '</p>';
     }
-    return '<section class="da-sec da-body" data-da-sec="body" aria-labelledby="daBodyTitle"><h4 class="da-h" id="daBodyTitle">' + esc(ui.bodyTitle) + '</h4>' +
+    return '<section class="da-sec da-body" data-da-sec="body" aria-labelledby="daBodyTitle">' + (t.hd ? illustration('hd') : '') + '<h4 class="da-h" id="daBodyTitle">' + esc(ui.bodyTitle) + '</h4>' +
       '<p class="da-note da-mb-lead">' + esc(mbUi.lead) + '</p>' +
       toggle + '<div class="da-body__grid">' + bodySvg(t, view) + '<div class="da-body__list">' + list + '</div></div>' +
       '<p class="da-note da-mb-note" role="note">' + esc(mbUi.note) + '</p></section>';
@@ -433,7 +410,7 @@
       }).join('') + '</div>';
     };
     var hasBody = t.vedic.some(function (v) { return v.group === 'body'; });
-    return '<section class="da-sec" data-da-sec="vedic" aria-labelledby="daVedicTitle"><h4 class="da-h" id="daVedicTitle">' + esc(t.ui.vedicTitle) + '</h4>' +
+    return '<section class="da-sec" data-da-sec="vedic" aria-labelledby="daVedicTitle">' + illustration('vedic') + '<h4 class="da-h" id="daVedicTitle">' + esc(t.ui.vedicTitle) + '</h4>' +
       '<p class="da-note">' + esc(t.recovery.vedicSource) + '</p>' +
       vedicChartHtml(t) + group('mind', mbUi.vedicMind) + group('body', mbUi.vedicBody) +
       (hasBody ? '<p class="da-note da-mb-note" role="note">' + esc(mbUi.note) + '</p>' : '') + '</section>';
@@ -464,11 +441,11 @@
   var YEONI_POSE = {circuit: 'thinking', engines: 'listening', elements: 'cheer', decision: 'advice', body: 'empathy', vedic: 'waiting', fusion: 'completed', ask: 'welcome'};
   var YEONI_PETAL = '<svg class="da-yeoni__petal" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="4.2" r="2.6"/><circle cx="11.6" cy="6.8" r="2.6"/><circle cx="10.2" cy="11" r="2.6"/><circle cx="5.8" cy="11" r="2.6"/><circle cx="4.4" cy="6.8" r="2.6"/><circle class="da-yeoni__bloom" cx="8" cy="8" r="1.7"/></svg>';
   function yeoniNoteHtml(t, id) {
-    var y = t.yeoni, line = y && y[id];
+    var y = t.yeoni, line = y && y.short && y.short[id];
     if (!line || !YEONI_POSE[id]) return '';
     return '<aside class="da-yeoni" data-da-yeoni="' + esc(id) + '" aria-label="' + esc(y.label) + '">' +
       '<img class="da-yeoni__pig" src="' + YEONI_POSE_DIR + YEONI_POSE[id] + '.webp" width="72" height="96" alt="" loading="lazy" decoding="async">' +
-      '<div class="da-yeoni__bubble"><p class="da-yeoni__label">' + YEONI_PETAL + esc(y.label) + '</p><p class="da-yeoni__msg">' + esc(line) + '</p></div></aside>';
+      '<div class="da-yeoni__bubble"><p class="da-yeoni__msg">' + esc(line) + '</p></div></aside>';
   }
   function summaryHtml(model, t) {
     var ui = t.ui;

@@ -107,18 +107,18 @@
 .da-meme__outline { fill: none; stroke: var(--da-art); stroke-width: 2.2; }
 .da-meme__cells { position: absolute; inset: 0; }
 .da-meme__cell { position: absolute; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-  padding: 4px 6px; overflow: hidden; text-align: center; color: var(--da-ink); font-size: clamp(11px, 4cqi, 17px); line-height: 1.18; }
+  padding: 4px 6px; overflow: hidden; text-align: center; color: var(--da-ink); font-size: clamp(12px, 4cqi, 17px); line-height: 1.45; }
 .da-meme__stk { display: inline-flex; align-items: center; gap: 3px; line-height: 1; }
 .da-meme__stk:empty { display: none; }
 .da-stk { display: inline-grid; place-items: center; font-size: 1.05em; transform: rotate(-8deg); }
 .da-stk--luck { width: 1.35em; height: 1.35em; border-radius: 50%; font-size: .85em; font-weight: 900; transform: none;
   background: var(--da-ink); color: var(--da-bg); }
-.da-meme__line { max-width: 100%; font-family: var(--font-display); font-weight: 400; letter-spacing: 0; text-shadow: 0 1px 2px var(--da-bg-deep); }
+.da-meme__line { max-width: 100%; font-family: var(--font-display); font-weight: 400; letter-spacing: 0; text-shadow: none; }
 :lang(ja) .da-meme__line, :lang(zh) .da-meme__line { font-family: var(--font-body); font-weight: 800; }
 :lang(ko) .da-meme__line, :lang(ko) .da-meme__caption, :lang(ko) .da-meme__rowline, :lang(ko) .da-meme__combo { word-break: keep-all; }
 .da-meme__pct { font-size: .82em; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--da-ink); text-shadow: 0 1px 2px var(--da-bg-deep); }
 .da-meme__cell.is-hot .da-meme__pct { padding: 0 6px; border-radius: var(--cd-r-pill); background: var(--da-ink); color: var(--da-bg); }
-.da-meme__cell.is-tight { padding: 2px 3px; gap: 3px; font-size: clamp(10px, 3.3cqi, 14px); line-height: 1.08; }
+.da-meme__cell.is-tight { padding: 3px; gap: 3px; font-size: 12px; line-height: 1.35; }
 .da-meme__cell.is-mid, .da-meme__cell.is-pct { flex-direction: row; gap: 3px; padding: 2px; }
 .da-meme__cell.is-mid .da-meme__line, .da-meme__cell.is-pct .da-meme__line, .da-meme__cell.is-pct .da-meme__stk, .da-meme__cell.is-dot > * { display: none; }
 .da-meme__cell.is-tight .da-meme__pct, .da-meme__cell.is-mid .da-meme__pct, .da-meme__cell.is-pct .da-meme__pct { font-size: max(11px, .9em); font-weight: 900; }
@@ -126,11 +126,11 @@
 .is-lit .da-stk--luck { animation: da-drift 3s var(--cd-ease-out) infinite; }
 .da-meme__caption { margin: 8px 0 var(--cd-sp-sm); text-align: center; text-wrap: balance; font-size: .78rem; color: var(--da-muted); }
 .da-meme__legend { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; border-top: 1px solid var(--da-line); }
-.da-meme__row { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 9px 2px; border-bottom: 1px solid var(--da-line); }
+.da-meme__row { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 13px 2px; border-bottom: 1px solid var(--da-line); }
 .da-meme__sw { flex: none; width: 18px; height: 18px; }
 .da-meme__god { font-weight: 800; }
 .da-meme__name { color: var(--da-muted); }
-.da-meme__name::before { content: "· "; }
+.da-meme__name { font-weight: 600; color: var(--da-ink); }
 .da-meme__rowpct { margin-left: auto; font-family: var(--da-serif); font-weight: 700; color: var(--da-gold); font-variant-numeric: lining-nums tabular-nums; }
 .da-meme__rowline { flex-basis: 100%; padding-left: 26px; font-size: .86rem; color: var(--da-muted); line-height: 1.5; }
 .da-meme__row .da-chip { margin-left: 0; }
@@ -457,84 +457,60 @@
 
 /* ── 꽃돼지 밝은 톤(10-06) — 연이(기본) 테마에서는 크림·장밋빛 꽃 카드. 네오 테마는 위의 달빛 밤 창을 그대로 쓴다.
  * :where() 접두사는 명시도 0 — 같은 명시도의 기존 규칙을 순서로만 이긴다. 표지·종이 --da-* 를 한 세트로 바꾼다(반쪽 오버라이드 금지). */
-:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard {
-  --da-bg: color-mix(in srgb, var(--cd-gold-soft) 35%, var(--cd-bg));
-  --da-bg-deep: color-mix(in srgb, var(--cd-accent-soft) 38%, var(--cd-bg));
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard, :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-body-wrap {
+  --da-bg: color-mix(in srgb, var(--cd-gold-soft) 16%, var(--cd-bg));
+  --da-bg-deep: color-mix(in srgb, var(--cd-map-sand) 12%, var(--cd-bg));
   --da-bg-lift: var(--cd-surface);
-  --da-ink: var(--cd-text);
-  --da-muted: var(--cd-text-muted);
-  --da-accent: var(--cd-accent);
-  --da-gold: color-mix(in srgb, var(--cd-accent) 72%, var(--cd-text));
-  --da-line: var(--cd-border);
-  --da-soft: color-mix(in srgb, var(--cd-accent-soft) 45%, transparent);
-  --da-surface: var(--cd-surface-2);
-  --da-glow: color-mix(in srgb, var(--cd-accent-soft) 70%, transparent);
-  --da-art: color-mix(in srgb, var(--cd-accent) 70%, var(--cd-gold));
-  background:
-    radial-gradient(130px 90px at 92% 0, color-mix(in srgb, var(--cd-gold) 55%, transparent), transparent 100%),
-    radial-gradient(420px 240px at 100% 0, color-mix(in srgb, var(--cd-accent-soft) 42%, transparent), transparent 70%),
-    radial-gradient(90% 50% at 0% 100%, color-mix(in srgb, var(--cd-accent-soft) 48%, transparent), transparent 70%),
-    linear-gradient(170deg, var(--da-bg) 0%, var(--da-bg-deep) 100%);
+  --da-ink: color-mix(in srgb, var(--cd-text) 86%, var(--cd-map-ink));
+  --da-muted: color-mix(in srgb, var(--da-ink) 76%, var(--da-bg));
+  --da-accent: color-mix(in srgb, var(--cd-gold) 42%, var(--cd-text));
+  --da-gold: var(--da-accent);
+  --da-line: color-mix(in srgb, var(--cd-gold) 28%, transparent);
+  --da-soft: color-mix(in srgb, var(--cd-map-sand) 15%, var(--da-bg));
+  --da-surface: var(--da-bg-lift);
+  --da-glow: transparent;
+  --da-art: color-mix(in srgb, var(--cd-gold) 78%, var(--cd-text));
+  --da-tone: var(--da-art);
+  background: var(--da-bg);
   border-color: var(--da-line);
-  box-shadow: var(--cd-shadow);
+  box-shadow: none;
 }
-:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-body-wrap {
-  --da-bg: color-mix(in srgb, var(--cd-gold-soft) 25%, var(--cd-bg));
-  --da-bg-deep: color-mix(in srgb, var(--cd-accent-soft) 30%, var(--cd-bg));
-  --da-bg-lift: var(--cd-surface);
-  --da-ink: var(--cd-text);
-  --da-muted: var(--cd-text-muted);
-  --da-accent: var(--cd-accent);
-  --da-gold: color-mix(in srgb, var(--cd-accent) 72%, var(--cd-text));
-  --da-line: var(--cd-border);
-  --da-soft: color-mix(in srgb, var(--cd-accent-soft) 40%, transparent);
-  --da-surface: color-mix(in srgb, var(--cd-accent-soft) 14%, transparent);
-  --da-glow: color-mix(in srgb, var(--cd-accent-soft) 60%, transparent);
-  --da-art: color-mix(in srgb, var(--cd-accent) 70%, var(--cd-gold));
-  --da-tone: var(--da-gold);
-  background:
-    radial-gradient(260px 140px at 100% 0, color-mix(in srgb, var(--cd-accent-soft) 32%, transparent), transparent 100%),
-    linear-gradient(180deg, color-mix(in srgb, var(--cd-gold-soft) 80%, transparent), transparent 140px),
-    var(--da-bg);
-  box-shadow: 0 1px 0 var(--cd-surface) inset, 0 18px 40px -24px color-mix(in srgb, var(--cd-accent) 40%, transparent), 0 0 0 1px var(--da-line);
-}
-:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-btn--primary,
-:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-body-wrap .da-btn--primary {
-  background: var(--cd-cta); color: var(--cd-cta-text); border-color: color-mix(in srgb, var(--cd-gold) 60%, transparent); box-shadow: 0 6px 18px -8px var(--da-glow);
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-btn--primary, :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-body-wrap .da-btn--primary {
+  background: var(--da-ink); color: var(--da-bg-lift); border-color: var(--da-ink); box-shadow: none;
 }
 /* 뇌 칸: 보석색 대신 파스텔 사탕색 — 진한 자두색 글자 대비 4.5:1 이상(밝기 고정). */
-:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-meme__fill { fill: color-mix(in srgb, var(--da-ax) 34%, var(--cd-bg)); }
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-meme__fill { fill: color-mix(in srgb, var(--da-ax) 20%, var(--cd-bg)); }
 @supports (color: oklch(from red l c h)) {
-  :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-meme__fill { fill: oklch(from var(--da-ax) .89 calc(c * .6) h); }
+  :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-meme__fill { fill: oklch(from var(--da-ax) .91 calc(c * .20) h); }
   :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-meme__fill.da-ax-reality,
-  :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-ax-reality .da-meme__fill { fill: oklch(from var(--da-ax) .9 calc(c * .7) calc(h - 10)); }
+  :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-ax-reality .da-meme__fill { fill: oklch(from var(--da-ax) .93 calc(c * .22) calc(h - 10)); }
 }
 :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-meme__brain { fill: var(--cd-surface); }
 :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-sheen-a { stop-color: var(--cd-surface); stop-opacity: .55; }
-:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard :is(.da-meme__line, .da-meme__pct) { text-shadow: 0 1px 0 var(--cd-surface); }
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard :is(.da-meme__line, .da-meme__pct) { text-shadow: none; }
 :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-meme__cheek { fill: color-mix(in srgb, var(--cd-accent-soft) 85%, var(--da-bg-lift)); }
 :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-meme__art.da-meme__violin { fill: color-mix(in srgb, var(--cd-accent-soft) 60%, transparent); }
 :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard :is(.da-meme__petal, .da-crest__petal) { fill: var(--cd-accent-soft); }
 :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard :is(.da-meme__bloom, .da-crest__bloom) { fill: var(--cd-gold); }
 :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard :is(.da-meme__moon, .da-crest__moon) { fill: color-mix(in srgb, var(--cd-gold) 72%, var(--cd-text)); }
 :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard :is(.da-meme__star, .da-crest__star) { fill: color-mix(in srgb, var(--cd-gold) 66%, var(--cd-text)); }
-:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-mindline { background: linear-gradient(135deg, var(--da-bg-lift), color-mix(in srgb, var(--cd-accent-soft) 30%, var(--da-bg))); }
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-mindline { background: transparent; }
 /* 고른 대운은 장밋빛 — 밝은 카드에 차가운 민트 패널이 섞이지 않게. */
-:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-tone-steady { --da-tone: var(--cd-accent); }
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-tone-steady { --da-tone: var(--da-art); }
 
 /* 연이의 해설 — 챕터 제목 아래 꽃돼지 연이 + 말풍선. 색은 종이 시트의 --da-* 만 쓴다(꽃돼지·neo 양쪽이 그대로 따라온다). */
-#destinyAnatomyCard .da-yeoni { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: var(--cd-sp-md); align-items: center; margin: 0 0 var(--cd-sp-lg); }
-#destinyAnatomyCard .da-yeoni__pig { display: block; width: 72px; height: 96px; object-fit: contain; filter: drop-shadow(0 4px 6px color-mix(in srgb, var(--da-ink) 16%, transparent)); }
-#destinyAnatomyCard .da-yeoni__bubble { --da-yeoni-edge: color-mix(in srgb, var(--da-accent) 30%, var(--da-line)); position: relative; padding: var(--cd-sp-sm) var(--cd-sp-md); border-radius: var(--cd-r-md); background: var(--da-bg-lift); border: 1px solid var(--da-yeoni-edge); }
-#destinyAnatomyCard .da-yeoni__bubble::before { content: ''; position: absolute; left: -7px; top: calc(50% - 6px); width: 12px; height: 12px; background: var(--da-bg-lift); border-left: 1px solid var(--da-yeoni-edge); border-bottom: 1px solid var(--da-yeoni-edge); transform: rotate(45deg); }
+#destinyAnatomyCard .da-yeoni { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: var(--cd-sp-md); align-items: center; margin: 0 0 var(--cd-sp-lg); }
+#destinyAnatomyCard .da-yeoni__pig { display: block; width: 40px; height: 54px; object-fit: contain; }
+#destinyAnatomyCard .da-yeoni__bubble { padding: 0; }
+
 #destinyAnatomyCard .da-yeoni__label { display: flex; align-items: center; gap: 5px; margin: 0 0 2px; font-family: var(--da-serif); font-size: .8rem; font-weight: 700; letter-spacing: .06em; color: var(--da-accent); }
 #destinyAnatomyCard .da-yeoni__petal { flex: none; width: 14px; height: 14px; fill: color-mix(in srgb, var(--da-accent) 50%, var(--da-bg-lift)); }
 #destinyAnatomyCard .da-yeoni__bloom { fill: var(--da-gold); }
 #destinyAnatomyCard .da-yeoni__msg { margin: 0; font-family: var(--da-serif-text); font-size: .98rem; line-height: 1.75; color: var(--da-ink); text-wrap: pretty; }
 @media (max-width: 380px) {
-  #destinyAnatomyCard .da-yeoni { grid-template-columns: 48px minmax(0, 1fr); gap: 10px; }
-  #destinyAnatomyCard .da-yeoni__pig { width: 48px; height: 64px; }
-  #destinyAnatomyCard .da-yeoni__bubble { padding: var(--cd-sp-sm) 12px; }
+  #destinyAnatomyCard .da-yeoni { grid-template-columns: 40px minmax(0, 1fr); gap: 10px; }
+  #destinyAnatomyCard .da-yeoni__pig { width: 40px; height: 54px; }
+  #destinyAnatomyCard .da-yeoni__bubble { padding: 0; }
 }
 
 /* ── 오행 상생 메달리온 · 십성 엠블럼 메달 ─────────────────────────────
@@ -636,7 +612,7 @@
 #destinyAnatomyCard .da-meme { --da-art: color-mix(in srgb, var(--cd-map-gold) 75%, var(--da-ink)); }
 #destinyAnatomyCard .da-meme__window { fill: none; stroke: var(--da-art); stroke-width: .7; opacity: .42; }
 #destinyAnatomyCard .da-meme__head, #destinyAnatomyCard .da-meme__outline { stroke: var(--da-art); stroke-width: 1.15; }
-#destinyAnatomyCard .da-meme__line { font-family: var(--da-serif); font-weight: 600; }
+#destinyAnatomyCard .da-meme__line { font-family: var(--font-body); font-weight: 600; line-height: 1.45; text-shadow: none; }
 #destinyAnatomyCard .da-meme__float { animation: none; }
 #destinyAnatomyCard .da-stk { color: var(--da-art); text-shadow: none; }
 #destinyAnatomyCard .da-hdg, #destinyAnatomyCard .da-vchart { margin: var(--cd-sp-md) 0; }
@@ -650,9 +626,18 @@
 #destinyAnatomyCard .da-hdg__gate text { fill: var(--da-bg-lift); font: 700 15px var(--font-body); text-anchor: middle; }
 #destinyAnatomyCard .da-connections { border-block: 1px solid var(--da-line); padding-block: var(--cd-sp-sm); }
 #destinyAnatomyCard .da-connections li { margin-block: var(--cd-sp-xs); }
+#destinyAnatomyCard .da-vchart > details > summary { min-height: 44px; padding-block: var(--cd-sp-sm); cursor: pointer; }
 #destinyAnatomyCard .da-vchart__houses { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: var(--cd-sp-xs); }
 #destinyAnatomyCard .da-vchart__houses li { padding: var(--cd-sp-sm); border: 1px solid var(--da-line); border-radius: var(--cd-r-sm); }
 #destinyAnatomyCard .da-vchart__houses .is-key { border-color: var(--da-art); background: var(--da-soft); }
 #destinyAnatomyCard .da-vchart__houses span { display: block; color: var(--da-muted); font-size: .75rem; }
 #destinyAnatomyCard .da-vchart__houses strong { display: block; font: 600 .9rem/1.5 var(--da-serif); overflow-wrap: anywhere; }
 @media (max-width: 480px) { #destinyAnatomyCard .da-vchart__houses { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+
+#destinyAnatomyCard .da-illustration { display: block; width: 112px; height: 128px; object-fit: contain; margin: 0 auto var(--cd-sp-md); }
+#destinyAnatomyCard .da-hero { text-align: center; padding-block: var(--cd-sp-md); }
+#destinyAnatomyCard .da-hero__q { margin-block: var(--cd-sp-md) var(--cd-sp-sm); text-wrap: balance; }
+#destinyAnatomyCard .da-hero__intro { max-width: 34ch; margin: 0 auto var(--cd-sp-md); }
+#destinyAnatomyCard .da-illustration--hd { height: 152px; }
+#destinyAnatomyCard .da-illustration--vedic { height: 112px; }
+#destinyAnatomyCard .da-meme__line { white-space: normal; word-break: keep-all; }

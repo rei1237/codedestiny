@@ -170,7 +170,7 @@ test('대운: 닫힘 상태에도 흐름 패널이 보이고, 대운 회로마�
   for (const [lang, score, tone] of [['ko', 72, 'tailwind'], ['en', 50, 'steady'], ['ja', 20, 'headwind']]) {
     const el = doc.createElement('div');
     const m = luckModel(ctx, lang, score);
-    R.render(el, m, {variant: 'A'});
+    R.render(el, m, {variant: 'A', open: true});
     const panel = el.querySelector('[data-da-luck]');
     assert.ok(panel && panel.classList.contains(`da-tone-${tone}`), lang);
     assert.equal(el.querySelectorAll('.da-meme__row.is-luck').length, m.luck.axes.length);
@@ -271,4 +271,16 @@ test('공유 실행: 취소는 저장하지 않고, 파일 공유 미지원·오
   assert.equal((await S.share(m,{mode:'share'})).status,'saved'); assert.equal(downloads,2);
   dom.window.HTMLCanvasElement.prototype.toBlob=cb=>cb(null);
   await assert.rejects(()=>S.share(m,{mode:'save'})); assert.equal(downloads,2);
+});
+
+test('첫 화면은 짧은 생각 이름과 범례만 읽고 전문 해설은 챕터에 둔다', () => {
+  const {ctx, doc} = setup('');
+  const el = doc.createElement('div');
+  const m = luckModel(ctx, 'ko', 72);
+  ctx.DestinyAnatomyRender.render(el, m, {});
+  assert.equal(el.querySelector('[data-da-luck]'), null);
+  assert.equal(el.querySelector('.da-stk,.da-meme__pat,.da-meme__sheen'), null);
+  assert.ok([...el.querySelectorAll('.da-meme__line')].every(n => n.textContent.length <= 3));
+  assert.equal(el.querySelectorAll('.da-meme__rowline:not(.da-sr)').length, 5);
+  assert.match(el.querySelector('.da-illustration').getAttribute('src'), /\.webp$/);
 });
