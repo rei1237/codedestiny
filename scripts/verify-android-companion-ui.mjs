@@ -8,13 +8,14 @@ import assert from 'node:assert/strict';
 const root=process.cwd(),out=path.resolve(root,'output/android-20261007/ui-mock');
 await mkdir(out,{recursive:true});
 const mocks={
+  'next/navigation':'export const usePathname=()=>new URLSearchParams(location.search).get("testPath")||"/lock-screen-fortune/index.html";',
   '@/app/hooks/useAiProfileSeed': 'export const useAiProfileSeed=()=>({seed:null,seedVersion:0});',
   '@/app/_lib/api-config':'export const getApiUrl=p=>p;',
   '../_lib/auth-client':'export const isMobileAppRuntime=()=>true;',
   '@/constants/loadingMessages':'export const getCurrentLoadingLocale=()=>window.TEST_LOCALE||"ko"; export const INTL_LOCALE_BY_LOADING_LOCALE={ko:"ko-KR",en:"en-US",ja:"ja-JP","zh-CN":"zh-CN"};',
   './cms/build-text':'export const cmsLines=(a,b,c,fallback)=>fallback;',
 };
-const result=await build({stdin:{contents:'import React from "react";import {createRoot} from "react-dom/client";import App from "./app/lock-screen-fortune/LockScreenFortuneClient";createRoot(document.getElementById("root")).render(<App/>);',resolveDir:root,loader:'tsx'},bundle:true,write:false,format:'iife',jsx:'automatic',platform:'browser',tsconfig:path.join(root,'tsconfig.json'),plugins:[{name:'mock-boundaries',setup(b){b.onResolve({filter:/.*/},a=>a.path in mocks?{path:a.path,namespace:'mock'}:undefined);b.onLoad({filter:/.*/,namespace:'mock'},a=>({contents:mocks[a.path],loader:'js'}));}}]});
+const result=await build({stdin:{contents:'import React from "react";import {createRoot} from "react-dom/client";import App from "./app/lock-screen-fortune/LockScreenFortuneClient";import OfflineOverlay from "./app/components/OfflineOverlay";createRoot(document.getElementById("root")).render(<><App/><OfflineOverlay/></>);',resolveDir:root,loader:'tsx'},bundle:true,write:false,format:'iife',jsx:'automatic',platform:'browser',tsconfig:path.join(root,'tsconfig.json'),plugins:[{name:'mock-boundaries',setup(b){b.onResolve({filter:/.*/},a=>a.path in mocks?{path:a.path,namespace:'mock'}:undefined);b.onLoad({filter:/.*/,namespace:'mock'},a=>({contents:mocks[a.path],loader:'js'}));}}]});
 const bundle=result.outputFiles[0].text;
 const cssdir=path.join(root,'dist/_next/static/css');
 const css=(await Promise.all((await readdir(cssdir)).filter(f=>f.endsWith('.css')).map(f=>readFile(path.join(cssdir,f),'utf8')))).join('\n')+'\n'+await readFile(path.join(root,'app/lock-screen-fortune/companion.css'),'utf8');
@@ -54,6 +55,13 @@ try{
    await page.evaluate(()=>document.documentElement.style.fontSize='32px');
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'200% font overflow');
    await page.screenshot({path:path.join(out,'ko-yeoni-large-text.png'),fullPage:true});
+   await page.evaluate(()=>{document.documentElement.style.fontSize='16px';Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>false});window.dispatchEvent(new Event('offline'));});
+   assert.equal(await page.getByText('인터넷 연결이 끊겼어요',{exact:true}).count(),0,'offline reader must remain available');
+   assert.equal(await page.locator('.cd-companion-sentence').isVisible(),true);
+   await page.screenshot({path:path.join(out,'ko-yeoni-offline.png'),fullPage:true});
+   await page.addInitScript(()=>Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>false}));
+   await page.goto(origin+'/?testPath=/points/');
+   await page.getByText('인터넷 연결이 끊겼어요',{exact:true}).waitFor();
   }
   assert.deepEqual(errors,[]);evidence.push({locale,widths:[360,390,412,768],errors,overflow:false,kind:'React component with mocked native/profile/API boundaries'});await context.close();
  }

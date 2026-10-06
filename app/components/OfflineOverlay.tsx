@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type OfflineCopy = {
@@ -79,6 +80,7 @@ function resolveOfflineCopy(locale: LoadingLocale) {
 
 export default function OfflineOverlay() {
   const [isOffline, setIsOffline] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     setIsOffline(typeof navigator !== "undefined" && navigator.onLine === false);
@@ -94,7 +96,10 @@ export default function OfflineOverlay() {
     };
   }, []);
 
-  if (!isOffline) return null;
+  // This bundled reader owns its offline state: quotes/affirmations remain available,
+  // while the personal daily card explains when today's server result is unavailable.
+  const offlineReader = /^\/lock-screen-fortune(?:\/index\.html)?\/?$/.test(pathname || "");
+  if (!isOffline || offlineReader) return null;
 
   const copy = resolveOfflineCopy(getCurrentLoadingLocale());
 
