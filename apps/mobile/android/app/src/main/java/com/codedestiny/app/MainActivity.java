@@ -142,7 +142,8 @@ public class MainActivity extends BridgeActivity {
         try {
             boolean lockEnabled = getSharedPreferences(CodeDestinyLockScreenPlugin.PREFS, MODE_PRIVATE)
                     .getBoolean(CodeDestinyLockScreenPlugin.KEY_ENABLED, false);
-            if (lockEnabled) LockScreenForegroundService.start(getApplicationContext());
+            LockScreenForegroundService.stop(getApplicationContext());
+            if (lockEnabled) LockScreenAlarmScheduler.rescheduleFromPrefs(getApplicationContext());
         } catch (Exception ignored) {}
 
         scheduleSplashHandoff();

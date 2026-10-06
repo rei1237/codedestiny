@@ -1,4 +1,5 @@
 "use client";
+import DailyCompanionEntry from "@/app/components/DailyCompanionEntry";
 
 import Link from "next/link";
 import { ChevronRight, MoonStar, Sparkles } from "lucide-react";
@@ -95,6 +96,7 @@ export default function AppHomeClient() {
         </Link>
       </header>
 
+      <DailyCompanionEntry/>
       <section className="cd-app-surface cd-app-enter mx-4 mt-3 p-4" aria-label={copy.todayRecommendLabel}>
         <p className="m-0 text-xs font-black" style={{ color: "var(--cd-app-accent)" }}>{copy.todayRecommendLabel}</p>
         <h1 className="cd-app-title mt-2" style={{ color: "var(--cd-app-gold)" }}>{copy.heroHeadline}</h1>

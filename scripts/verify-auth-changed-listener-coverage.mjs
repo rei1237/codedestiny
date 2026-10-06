@@ -159,6 +159,11 @@ const REGISTRY = {
   },
   "scripts/app-native-bridge.js#0": {
     expr: "function (event) {",
+    verdict: "filtered",
+    why: "계정 변경 시 공개 알림 스냅샷과 표시된 알림을 폐기한다. 이용권 갱신 되울림은 무시한다.",
+  },
+  "scripts/app-native-bridge.js#1": {
+    expr: "function (event) {",
     verdict: "benign",
     why: "Zero-Tap 자격증명 해제. event === 'logout' 게이트가 먼저라 두 되울림에는 아예 진입하지 않는다. fetch 없음(네이티브 clear 1회).",
     mustMatch: /"logout"/,

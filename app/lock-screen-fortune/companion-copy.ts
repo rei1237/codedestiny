@@ -1,0 +1,26 @@
+export const COMPANION_COPY = {
+  ko: { savedDone: '문구를 저장했어요.', unavailable: '오늘의 결과를 아직 받지 못했어요. 연결을 확인하고 다시 시도해 주세요.', retry: '다시 확인하기', title: '영냥이의 오늘 한마디', quote: '명언', affirmation: '긍정 확언', daily: '일일 운세', close: '앱으로 돌아가기', previous: '이전', next: '다음', settings: '잠금화면 설정', quiet: '조용한 시간', start: '시작', end: '종료', privacy: '개인 운세는 잠금 해제 후 앱에서 확인해요. 생년월일·상담·결제 정보는 알림에 표시하지 않아요.', test: '테스트 알림', posted: '알림을 게시했어요. 잠금화면 표시는 시스템 설정을 따라요.', blocked: '알림을 게시하지 못했어요. 기능과 시스템 알림 설정을 확인해 주세요.', system: '시스템 알림 설정', enabled: '선호 시간에 알림을 받아요. 절전 상태에서는 늦게 도착할 수 있어요.', textSize: '글자 크기는 앱 안의 카드에 적용돼요. 알림은 시스템 글자 크기를 따라요.', privateSummary: '오늘의 운세는 잠금 해제 후 앱에서 확인해 주세요.', source: '기존 오프라인 참고 해석 · 기준일 KST', web: '웹과 같은 오늘의 운세 보기', noContent: '설정에서 보고 싶은 콘텐츠를 선택해 주세요.', ownLine: '오늘 할 수 있는 한 가지부터 시작해도 충분해.', ownAuthor: '영냥이의 한마디', ownAffirmation: '나는 내 속도로 한 걸음씩 나아가도 괜찮아.', kind: '표시할 콘텐츠', saved: '문구 저장', shared: '공유', themeCharacter: '캐릭터', yeongnyangi: '영냥이' },
+  en: { savedDone: 'Text saved.', unavailable: 'Today’s result is not available yet. Check your connection and try again.', retry: 'Try again', title: 'A daily word from Yeongnyangi', quote: 'Quote', affirmation: 'Affirmation', daily: 'Daily fortune', close: 'Back to app', previous: 'Previous', next: 'Next', settings: 'Lock screen settings', quiet: 'Quiet hours', start: 'From', end: 'Until', privacy: 'Open the app after unlocking to read your fortune. Birth details, consultations and payments are never shown in notifications.', test: 'Test notification', posted: 'Notification posted. Visibility depends on system settings.', blocked: 'Could not post. Check the feature switch and system notification settings.', system: 'System notification settings', enabled: 'Receive reminders near your preferred times. Battery saving may delay them.', textSize: 'Text size applies to cards inside the app. Notifications use system text size.', privateSummary: 'Unlock and open the app to view your daily fortune.', source: 'Existing offline reference reading · KST date', web: 'Open the shared daily fortune', noContent: 'Choose content in settings.', ownLine: 'Starting with one small thing today is enough.', ownAuthor: 'A word from Yeongnyangi', ownAffirmation: 'I can move forward one step at my own pace.', kind: 'Content to show', saved: 'Save text', shared: 'Share', themeCharacter: 'Character', yeongnyangi: 'Yeongnyangi' },
+  ja: { savedDone: '文章を保存しました。', unavailable: '今日の結果をまだ取得できていません。接続を確認して再試行してください。', retry: '再試行', title: 'ヨンニャンイの今日のひとこと', quote: '名言', affirmation: 'アファメーション', daily: '今日の運勢', close: 'アプリに戻る', previous: '前へ', next: '次へ', settings: 'ロック画面の設定', quiet: '通知を控える時間', start: '開始', end: '終了', privacy: '個人の運勢はロック解除後にアプリで確認できます。生年月日・相談・決済情報は通知に表示しません。', test: 'テスト通知', posted: '通知を投稿しました。表示はシステム設定に従います。', blocked: '通知できませんでした。機能とシステム通知の設定をご確認ください。', system: 'システムの通知設定', enabled: '希望時刻の前後に通知します。省電力状態では遅れることがあります。', textSize: '文字サイズはアプリ内カードに適用されます。通知はシステムの文字サイズを使います。', privateSummary: 'ロックを解除してアプリで今日の運勢をご確認ください。', source: '既存のオフライン参考解釈 · 韓国標準時', web: '共通の今日の運勢を見る', noContent: '設定で表示する内容を選んでください。', ownLine: '今日できる小さなことから始めれば十分。', ownAuthor: 'ヨンニャンイのひとこと', ownAffirmation: '自分のペースで、一歩ずつ進んでいい。', kind: '表示する内容', saved: '文章を保存', shared: '共有', themeCharacter: 'キャラクター', yeongnyangi: 'ヨンニャンイ' },
+  'zh-CN': { savedDone: '文字已保存。', unavailable: '尚未获取今日结果，请检查网络后重试。', retry: '重试', title: '灵喵今日一语', quote: '名言', affirmation: '积极肯定', daily: '今日运势', close: '返回应用', previous: '上一条', next: '下一条', settings: '锁屏设置', quiet: '免打扰时段', start: '开始', end: '结束', privacy: '请解锁后在应用中查看个人运势。通知不会显示出生日期、咨询或付款信息。', test: '测试通知', posted: '通知已发布，是否显示取决于系统设置。', blocked: '未能发布通知，请检查功能开关和系统通知设置。', system: '系统通知设置', enabled: '在偏好时间附近接收提醒，省电模式可能延迟通知。', textSize: '字号设置适用于应用内卡片，通知使用系统字号。', privateSummary: '请解锁后在应用中查看今日运势。', source: '现有离线参考解读 · 韩国标准时间', web: '查看共同的今日运势', noContent: '请在设置中选择内容。', ownLine: '从今天能做的一件小事开始，就已经足够。', ownAuthor: '灵喵一语', ownAffirmation: '我可以按自己的步调，一步一步向前。', kind: '显示内容', saved: '保存文字', shared: '分享', themeCharacter: '角色', yeongnyangi: '灵喵' },
+} as const;
+export function companionCopy(locale: string) {
+  return COMPANION_COPY[locale as keyof typeof COMPANION_COPY] || COMPANION_COPY.en;
+}
+
+const SYSTEM_LABELS: Record<string, Record<string, string>> = {
+  en: { saju: 'Four pillars', sukuyo: 'Sukuyo', astro: 'Western astrology', vedic: 'Vedic astrology', ziwei: 'Zi Wei Dou Shu' },
+  ja: { saju: '四柱推命', sukuyo: '宿曜', astro: '西洋占星術', vedic: 'インド占星術', ziwei: '紫微斗数' },
+  'zh-CN': { saju: '四柱', sukuyo: '宿曜', astro: '西方占星', vedic: '吠陀占星', ziwei: '紫微斗数' },
+};
+export function systemLabel(locale: string, key: string, fallback: string) {
+  return locale === 'ko' ? fallback : (SYSTEM_LABELS[locale] || SYSTEM_LABELS.en)[key] || fallback;
+}
+const CATEGORY_LABELS: Record<string, string[]> = {
+  en: ['Resilience','Self-care','Courage','Growth','Self-worth','Relationships','Gratitude','Peace','Dreams','Wisdom','Health','Abundance'],
+  ja: ['立ち直る力','セルフケア','勇気','成長','自己尊重','人間関係','感謝','心の平和','夢','知恵','健康','豊かさ'],
+  'zh-CN': ['韧性','自我照顾','勇气','成长','自我尊重','关系','感恩','平静','梦想','智慧','健康','丰盛'],
+};
+export function categoryLabel(locale: string, index: number, fallback: string) {
+  return locale === 'ko' ? fallback : (CATEGORY_LABELS[locale] || CATEGORY_LABELS.en)[index] || fallback;
+}

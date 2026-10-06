@@ -289,7 +289,12 @@ export async function shrinkOversizedImages(dist = DIST) {
   let rewritten = 0;
   let skipped = 0;
   let freed = 0;
-  for (const image of images) {
+  let cursor = 0;
+  // A bounded pool keeps large existing asset libraries from serializing release builds.
+  // Each worker owns a distinct file; encoding settings and size safeguards are unchanged.
+  async function resizeWorker() {
+   while (cursor < images.length) {
+    const image = images[cursor++];
     const input = await fs.readFile(image);
     const before = input.length;
     const ext = path.extname(image).toLowerCase();
@@ -319,7 +324,9 @@ export async function shrinkOversizedImages(dist = DIST) {
     await fs.writeFile(image, output);
     rewritten += 1;
     freed += before - output.length;
+   }
   }
+  await Promise.all(Array.from({ length: Math.min(4, images.length) }, resizeWorker));
   return { rewritten, skipped, freed, total: images.length };
 }
 
