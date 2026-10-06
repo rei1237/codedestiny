@@ -1076,10 +1076,12 @@ function buildSajuHiddenStemExposures(hiddenStems, pillarRows, luckRows, power) 
   });
 }
 
-export function buildSajuAdvancedFactors(sajuResult, engineContext) {
+export function buildSajuAdvancedFactors(sajuResult, engineContext, options = {}) {
   const pillarRows = normalizeSajuPillarRows(sajuResult);
   const dayStem = pillarRows.find((row) => row.position === "day")?.stem || engineContext?.quantum?.dayStem || "";
-  const luckRows = normalizeSajuLuckRows(sajuResult, engineContext);
+  // Explicit rows let a caller compare one simultaneous period (or natal only).
+  // Existing callers retain normalization and its current-year fallback.
+  const luckRows = options.luckRows ?? normalizeSajuLuckRows(sajuResult, engineContext);
   const promptConfig = normalizeSajuPromptConfig(sajuResult);
   const hiddenStems = buildSajuHiddenStemItems(pillarRows, dayStem);
   const hiddenStemExposures = buildSajuHiddenStemExposures(hiddenStems, pillarRows, luckRows, sajuResult?.power);

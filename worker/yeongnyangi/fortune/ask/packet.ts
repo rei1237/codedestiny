@@ -6,6 +6,7 @@ import { ASK_EVIDENCE_VERSION, type AskCategory, type AskFact, type AskTiming, t
 import { tagsForEvidence } from './categories';
 import { evidenceWindow, periodOverlaps } from './window';
 import { enrichZiweiContext } from '../ziwei/reading-facts';
+import {projectAdvancedFactors} from '../saju/cycle-evidence';
 
 const fields: Record<DomainId, readonly string[]> = {
   saju: ['pillars','dayMaster','pillarDetails','fiveElements','tenGods','tenGodsByPillar','seasonalBalance',
@@ -67,6 +68,8 @@ function pieces(label: string, value: unknown): [string, unknown][] {
 type Range = {from: string; to: string; resolution: EvidenceResolution};
 function timingRange(label: string, value: unknown, today: string): Range | undefined {
   const v = record(value);
+  if(label==='majorLuck'&&Number.isInteger(v.startYear)&&Number.isInteger(v.endYear)&&v.startYear>0&&v.endYear>=v.startYear)
+    return {from:String(v.startYear),to:String(v.endYear),resolution:'period'};
   if (/^today/.test(label)) return {from:today,to:today,resolution:'day'};
   if (/yearly/.test(label) && Number.isInteger(v.year))
     return {from:String(v.year),to:String(v.year),resolution:'year'};
@@ -89,6 +92,7 @@ function timingRange(label: string, value: unknown, today: string): Range | unde
   }
 }
 function timedPieces(label: string, value: unknown): [string, unknown][] {
+  if(label==='majorLuck')return (record(value).cycles||[]).map((cycle:Record<string,unknown>)=>[String(cycle.index),cycle]);
   if (label === 'vimshottariDasha') {
     const v=record(value);
     return ['currentMahadasha','currentAntardasha'].flatMap(key=>v[key]?[[key,v[key]] as [string,unknown]]:[]);
@@ -116,7 +120,9 @@ export function buildEvidencePacket(input: PacketInput): EvidencePacket {
     for(const fact of ctx.facts) {
       const mapped=cross[fact.label], [system,label]=mapped || [domain,fact.label];
       if(mapped&&input.birthProfileAvailable===false)continue;
-      if(!mapped&&!fields[domain].includes(label)) continue;
+      const cycleEvidence=input.includeSajuCycles&&domain==='saju'&&['majorLuck','advancedFactors'].includes(label);
+      if(!mapped&&!fields[domain].includes(label)&&!cycleEvidence) continue;
+      if(cycleEvidence&&!premium)continue;
       if(label==='vimshottariDasha'&&ctx.facts.some(f=>f.label==='dashaPeriods'))continue;
       if(label==='yearlyTimeline'&&ctx.facts.some(f=>f.label==='yearlyLuck'&&Array.isArray(f.value)))continue;
       if(!premium&&professional.test(label)) continue;
@@ -135,9 +141,9 @@ export function buildEvidencePacket(input: PacketInput): EvidencePacket {
       if(relationship&&input.partnerTimeKnown===undefined) {note('PARTNER_NOT_PROVIDED',system);continue;}
       for(const [path,raw] of timedPieces(label,fact.value)) {
         const range=timingRange(label,raw,input.today);
-        const isTiming=/^today|yearly|monthlyLuck|transits|[Dd]asha/.test(label);
-        if(isTiming && (!range || !periodOverlaps(range.from,range.to,window))) continue;
-        let value=explanationFacts(clean(raw,premium,input.birthTimeKnown));
+        const isTiming=/^today|yearly|monthlyLuck|transits|[Dd]asha|^majorLuck$/.test(label);
+        if(isTiming && (!range || label!=='majorLuck'&&!periodOverlaps(range.from,range.to,window))) continue;
+        let value=explanationFacts(clean(label==='advancedFactors'?projectAdvancedFactors(record(raw)):raw,premium,input.birthTimeKnown));
         if(system==='ziwei'&&/yearly/.test(label)) {
           // The current engine copies natal palace transformations into yearlyLuck.
           // Do not present them as newly calculated annual stem transformations.
@@ -152,13 +158,13 @@ export function buildEvidencePacket(input: PacketInput): EvidencePacket {
         if(!hasValue(value)) continue;
         atoms.push({
           group:range?'timing':relationship?'relationship':system==='tarot'?'cards':'structure',
-          label:label+(path?'.'+path:''),value,tags:tagsForEvidence(label),subject,
+          label:label+(path?'.'+path:''),value,tags:tagsForEvidence(cycleEvidence||input.includeSajuCycles&&['natalInteractions','romanceTiming','strengthHeuristic','usefulGod','jong'].includes(label)?'pillars':label),subject,
           timeDependent:system==='saju'
             ? (['pillars','pillarDetails','tenGodsByPillar'].includes(label)?unknownFields.test(path)
               : ['dayMaster','seasonalBalance'].includes(label)?false
                 : unknownSaju.has(label)?input.birthTimeKnown:true)
             : system!=='tarot'&&system!=='numerology',
-          access:professional.test(label)?'professional':'standard',
+          access:cycleEvidence||professional.test(label)?'professional':'standard',
           source:{system,contextDomain:domain,factId:fact.id,path,
             engineVersion:mapped?'code-destiny-daily-cross-v1':ctx.engineVersion},
           ...range,

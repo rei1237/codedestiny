@@ -5,6 +5,7 @@ import type { AskAnalysis } from './analysis';
 import type { EvidencePacket } from './contracts';
 import { buildAskFirstChapterPrompt } from './prompt';
 import { periodOverlaps } from './window';
+import {hasPurposeCounsel} from '../counsel-purpose';
 
 type Answer = NonNullable<ChapterBody['questionAnswers']>[number] & {
   factIds?: unknown;
@@ -17,8 +18,9 @@ const uniqueIds = (value: unknown, allowed: Set<string>) => Array.isArray(value)
   new Set(value).size === value.length;
 
 // A written date the period itself does not supply: anything but a requested range's first or last day (or its month).
-function datesBeyondPeriod(text: string, restated: Set<string>) {
-  return [...text.matchAll(/(20\d{2})[-/.년]\s*(\d{1,2})(?:[-/.월]\s*(\d{1,2}))?/gu)].some(([, y, m, d]) => {
+function datesBeyondPeriod(text: string, restated: Set<string>, extended=false) {
+  const pattern=extended?/((?:19|20|21)\d{2})[-/.년]\s*(\d{1,2})(?:[-/.월]\s*(\d{1,2}))?/gu:/(20\d{2})[-/.년]\s*(\d{1,2})(?:[-/.월]\s*(\d{1,2}))?/gu;
+  return [...text.matchAll(pattern)].some(([, y, m, d]) => {
     const month = `${y}-${m.padStart(2, '0')}`;
     return !restated.has(d ? `${month}-${d.padStart(2, '0')}` : month);
   });
@@ -37,6 +39,7 @@ function normalizeReview(value: unknown) {
 /** Validate private model citations before the public chapter is stored. */
 export function validateAskChapter(body: ChapterBody, consultation: Consultation, analysis: AskAnalysis, packet: EvidencePacket): ChapterBody {
   const guide = buildAskFirstChapterPrompt(consultation, analysis, packet);
+  const purpose=hasPurposeCounsel(consultation);
   if (!guide.questions.length) return body;
   const answers = body.questionAnswers as Answer[] | undefined;
   if (!Array.isArray(answers) || answers.length !== guide.questions.length)
@@ -62,20 +65,20 @@ export function validateAskChapter(body: ChapterBody, consultation: Consultation
     if (!question.needsTiming && timingIds.length)
       throw new FortuneError('ASK_UNSUPPORTED_TIMING');
     if (answer.evidenceStatus === 'limited' && datesBeyondPeriod(
-      [answer.answer,answer.reason,answer.timing,answer.action].join('\n'), restated))
+      [answer.answer,answer.reason,answer.timing,answer.action].join('\n'), restated,purpose))
       throw new FortuneError('ASK_UNSUPPORTED_TIMING');
     for (const id of [...factIds, ...timingIds]) {
       const source = (facts.get(id) || timing.get(id))?.source.factId;
       if (!source || !body.sources.includes(source)) throw new FortuneError('ASK_EVIDENCE_INCOMPLETE');
     }
     if (answer.evidenceStatus === 'grounded' && question.needsTiming) {
-      if (guide.requestedPeriod.start && guide.requestedPeriod.end &&
+      if (!question.majorQuestion && guide.requestedPeriod.start && guide.requestedPeriod.end &&
           timingIds.some(id => timing.get(id)!.relation !== 'in-effect' && !periodOverlaps(timing.get(id)!.from,timing.get(id)!.to,
             {from:guide.requestedPeriod.start!,to:guide.requestedPeriod.end!})))
         throw new FortuneError('ASK_UNSUPPORTED_TIMING');
       const citedPeriods = timingIds.map(id => timing.get(id)!);
-      if (datesBeyondPeriod(answer.timing, restated) &&
-          citedPeriods.every(period => period.resolution === 'year'))
+      if (datesBeyondPeriod(answer.timing, restated,purpose) &&
+          citedPeriods.every(period => period.resolution === 'year'||purpose&&period.from.length===4))
         throw new FortuneError('ASK_UNSUPPORTED_TIMING');
       const citedYears = new Set(timingIds.flatMap(id => {
         const period = timing.get(id)!;
@@ -83,7 +86,7 @@ export function validateAskChapter(body: ChapterBody, consultation: Consultation
         return Number.isInteger(first) && Number.isInteger(last) && last - first <= 30
           ? Array.from({length: last - first + 1}, (_, i) => String(first + i)) : [];
       }));
-      for (const year of answer.timing.match(/20\d{2}/g) || [])
+      for (const year of answer.timing.match(purpose?/(?:19|20|21)\d{2}/g:/20\d{2}/g) || [])
         if (year !== guide.asOf.slice(0, 4) && !citedYears.has(year)) throw new FortuneError('ASK_UNSUPPORTED_TIMING');
     }
   }

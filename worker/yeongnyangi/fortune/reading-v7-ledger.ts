@@ -122,6 +122,11 @@ function saju(label:string,v:O,k:Kit){
       const {cycles:all,currentCycle,...rest}=v||{},cycles=list(all);
       const cur=currentCycle?cycles.find(c=>c.index===currentCycle.index)||currentCycle:null;
       const next=cur?cycles.find(c=>c.index===cur.index+1):cycles.find(c=>c.startYear>k.baseYear);
+      if(v.counselVersion){
+        for(const cycle of cycles)k.emit(label,`cycle${cycle.index}`,{direction:rest.direction,cycle},
+          [`majorLuck.cycle${cycle.index}`],[cycle===cur?'majorLuck.current':cycle===next?'majorLuck.next':'majorLuck.arc']);
+        return true;
+      }
       k.emit(label,'current',cur?{direction:rest.direction,cycle:cur}:{present:false,limitation:'지금 대운 주기를 확인할 수 없다.'},['majorLuck.current']);
       k.emit(label,'next',next?{direction:rest.direction,cycle:next}:{present:false,limitation:'다음 대운 주기를 확인할 수 없다.'},['majorLuck.next']);
       k.emit(label,'arc',{...rest,cycles:cycles.filter(c=>c!==cur&&c!==next)},['majorLuck.arc']);

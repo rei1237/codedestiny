@@ -18,6 +18,7 @@ export interface ReadingSectionSpec {
   targetChars: [number, number];
 }
 export interface ChapterSpec {
+  counsel?: {version:string;focus:string;cycleIndexes?:number[]};
   preventionVersion?: string;
   outputBudgetVersion?: string;
   sections?: ReadingSectionSpec[];

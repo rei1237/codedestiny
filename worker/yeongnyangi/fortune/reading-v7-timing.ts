@@ -78,11 +78,13 @@ export function v7TimingSummaries(resolved:ReturnType<typeof resolveV7Ledger>,as
   const parts:string[]=[];
   let owner:(typeof chapters)[number]|undefined;
   for(const [pattern,format] of SUMMARY_PARTS[ledger.domain]||[]){
-    const id=`${ledger.domain}.${pattern.replace('{Y0}',String(ledger.baseYear))}`,fact=ledger.facts.get(id);
+    const id=`${ledger.domain}.${pattern.replace('{Y0}',String(ledger.baseYear))}`;
+    const fact=ledger.facts.get(id)||(ledger.domain==='saju'&&pattern==='majorLuck.current'
+      ?[...ledger.facts.values()].find(f=>f.label==='majorLuck'&&(f.value as O)?.cycle?.isCurrent):undefined);
     const text=fact&&format(fact.value as O,beforeLichun);
     if(!text)continue;
     parts.push(text);
-    owner??=ownerOf(id);
+    owner??=ownerOf(fact?.id||id);
   }
   owner??=chapters.find(c=>c.timingRef==='owner');
   const line=oneLine(owner?(parts.length?`${parts.join(' · ')} — 자세한 흐름은 「${owner.title}」 장에서 다룬다.`:`시기의 흐름은 「${owner.title}」 장에서 다룬다.`):parts.join(' · '));
