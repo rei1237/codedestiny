@@ -24,6 +24,8 @@ import { buildPeriodFaqs } from "@/lib/fortune/period-faqs";
 import { markerAttrs } from "@/lib/fortune/i18n-marker";
 import { fortuneLocaleSegment, FORTUNE_COPY, getLocalizedPeriodReading, langBoxText, getLocalizedProfile, periodLabel as localizedPeriodLabel, sajuInsightText, type FortuneLocale } from "@/lib/fortune/localization";
 import YeoniPortrait, { moodForScore } from "../YeoniPortrait";
+import { tomorrowReadingCopy } from "@/lib/i18n/fortune-hub-copy.mjs";
+import tomorrowStyles from "../tomorrow.module.css";
 
 const SCORE_AXES = [
   { key: "love", label: "애정운", section: "love" },
@@ -116,6 +118,8 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
   const vm = localizeViewModel(sourceVm, locale);
   const { profile, entry, period, score } = vm;
   const copy = FORTUNE_COPY[locale];
+  const tomorrowCopy = tomorrowReadingCopy[locale];
+  const preparationReading = getLocalizedPeriodReading(profile, period, locale, getPeriodReading(profile.id, period, profile.reading));
   const currentPeriodLabel = localizedPeriodLabel(period, locale);
   const kindLabel = profile.kind === "zodiac" ? copy.zodiac : copy.animal;
   const siblings = getSiblingProfiles(profile.kind).map((item) => getLocalizedProfile(item, locale));
@@ -160,7 +164,26 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
           <YeoniPortrait mood={moodForScore(score.overall)} size={104} priority className="mt-1" />
         </header>
 
+        {period !== "tomorrow" && (
         <p className={`mt-5 break-keep text-sm leading-7 ${MUTED}`}>{FORTUNE_EDITORIAL_DISCLOSURE[locale]}</p>
+        )}
+
+        {period === "tomorrow" && (
+          <section aria-labelledby="preparation-heading" className={tomorrowStyles.preparation}>
+            <h2 id="preparation-heading">{tomorrowCopy.heading}</h2>
+            <p>{preparationReading}</p>
+            <p className={tomorrowStyles.note}>{tomorrowCopy.note}</p>
+            <nav className={tomorrowStyles.jumpLinks}>
+              <a href="#score-heading">{tomorrowCopy.scores}</a>
+              <a href="#facts-heading">{tomorrowCopy.evidence}</a>
+              <a href="#lucky-heading">{tomorrowCopy.points}</a>
+            </nav>
+          </section>
+        )}
+
+        {period === "tomorrow" && (
+        <p className={`mt-5 break-keep text-sm leading-7 ${MUTED}`}>{FORTUNE_EDITORIAL_DISCLOSURE[locale]}</p>
+        )}
 
         {/* 기간별 기준 값 — 매 기간 실제로 다른 값이다 */}
         <section aria-labelledby="facts-heading" className={`mt-8 p-5 ${CARD}`}>
@@ -365,10 +388,12 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
           <h3 className={`mt-5 break-keep text-sm font-extrabold ${ACCENT}`}>{copy.habit}</h3>
           <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>{profile.luckyHabit}</p>
 
+          {period !== "tomorrow" && (<>
           <h3 className={`mt-5 break-keep text-sm font-extrabold ${ACCENT}`}>{copy.reading}</h3>
           <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
-            {getLocalizedPeriodReading(profile, period, locale, getPeriodReading(profile.id, period, profile.reading))}
+            {preparationReading}
           </p>
+          </>)}
         </section>
 
         {/* 궁합 */}
