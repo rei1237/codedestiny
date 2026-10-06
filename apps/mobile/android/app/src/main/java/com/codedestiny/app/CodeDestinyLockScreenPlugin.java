@@ -149,10 +149,14 @@ public class CodeDestinyLockScreenPlugin extends Plugin {
 
     @PluginMethod
     public void openNotificationSettings(PluginCall call) {
-        Intent settings = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                .putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
-        if (Build.VERSION.SDK_INT < 26) settings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                Uri.parse("package:" + getContext().getPackageName()));
+        Intent settings;
+        if (Build.VERSION.SDK_INT >= 26) {
+            settings = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
+        } else {
+            settings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.parse("package:" + getContext().getPackageName()));
+        }
         getActivity().startActivity(settings);
         call.resolve();
     }
