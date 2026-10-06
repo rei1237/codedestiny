@@ -1,5 +1,5 @@
 ---
-status: verifying
+status: active
 updated: 2026-10-07
 next: "원격 main으로 안전한 fast-forward push 후 정확한 SHA의 CI required를 확인하고 문서를 완료 처리한다. 공유 로컬 main은 다른 세션 변경 때문에 전진 불가."
 ---
