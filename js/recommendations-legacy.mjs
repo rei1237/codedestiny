@@ -47,7 +47,7 @@ export async function mountRecommendation(host, input, anchor = null) {
           link.addEventListener('click', () => track('click', p.id));
         }
       });
-      const more = node('a', copy.more, section); more.href = '/recommendations/';
+      const more = node('a', copy.more, section); more.href = '/recommendations/?brand=ggulggul';
       more.addEventListener('click', () => { browser.rememberRecommendationContext(context); track('more'); });
       const dismiss = node('button', copy.dismiss, section);
       dismiss.addEventListener('click', () => { track('dismiss'); cleanup(); });
