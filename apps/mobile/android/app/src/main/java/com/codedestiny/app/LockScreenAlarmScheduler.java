@@ -14,7 +14,7 @@ import java.util.Calendar;
 
 /**
  * 알림 시간 설정({enabled, alarms:[{on,time,label}]})을 AlarmManager 로 예약한다.
- * Doze 를 통과하도록 setExactAndAllowWhileIdle 를 쓰되, 정확 알람 권한이 없으면 근사 예약으로 폴백한다.
+ * 비정확 예약으로 배터리를 보호한다. 정각 실행은 보장하지 않는다.
  */
 final class LockScreenAlarmScheduler {
     private static final int MAX_SLOTS = 8;
@@ -23,6 +23,7 @@ final class LockScreenAlarmScheduler {
 
     static void schedule(Context ctx, String json) {
         cancelAll(ctx);
+        if (!ctx.getSharedPreferences(CodeDestinyLockScreenPlugin.PREFS, Context.MODE_PRIVATE).getBoolean(CodeDestinyLockScreenPlugin.KEY_ENABLED, false)) return;
         if (json == null || json.isEmpty()) return;
         try {
             JSONObject root = new JSONObject(json);
@@ -51,16 +52,12 @@ final class LockScreenAlarmScheduler {
             payload.put("enabled", enabled && p.optBoolean("enabled", false));
             payload.put("alarms", p.optJSONArray("alarms"));
             schedule(ctx, payload.toString());
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { cancelAll(ctx); }
     }
 
     private static void scheduleOne(Context ctx, AlarmManager am, int idx, String time, String label) {
-        int hour = 9, min = 0;
-        try {
-            String[] parts = time.split(":");
-            hour = Integer.parseInt(parts[0].trim());
-            min = Integer.parseInt(parts[1].trim());
-        } catch (Exception ignored) {}
+        int minuteOfDay = LockScreenPolicy.minutes(time, 540);
+        int hour = minuteOfDay / 60, min = minuteOfDay % 60;
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, hour);
         cal.set(Calendar.MINUTE, min);
@@ -70,16 +67,7 @@ final class LockScreenAlarmScheduler {
             cal.add(Calendar.DAY_OF_YEAR, 1);
         }
         PendingIntent pi = alarmIntent(ctx, idx, label);
-        boolean canExact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms();
-        try {
-            if (canExact) {
-                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pi);
-            } else {
-                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pi);
-            }
-        } catch (SecurityException e) {
-            am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pi);
-        }
+        am.setWindow(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 30 * 60 * 1000L, pi);
     }
 
     private static void cancelAll(Context ctx) {

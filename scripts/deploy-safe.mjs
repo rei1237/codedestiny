@@ -29,7 +29,7 @@ import { assertWorkerBaseIsFresh } from "./lib/worker-deploy-base-guard.mjs";
 import { assertProductionDeployIsCi } from "./lib/production-deploy-guard.mjs";
 import { assertWorkerBindingBudget } from "./lib/worker-binding-budget.mjs";
 import { cloudflareTransport } from "./lib/cloudflare-transport.mjs";
-import { awaitPagesPreviewReady } from "./lib/pages-preview-readiness.mjs";
+import { awaitPagesDeploymentReady } from "./lib/pages-deployment-readiness.mjs";
 
 const root = process.cwd();
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -818,10 +818,9 @@ async function smoke(base, apiOrigin = "", skipApi = false) {
  * 그 실패는 진짜 산출물 문제다. 순서만 바로잡는다.
  */
 /**
- * 방금 만든 Pages 배포본 자체를 검사한다. `pages.url` 은 배포 고유 URL 이라 **하나의 불변 배포본만**
- * 서빙하므로 세대 혼입이 없다 — 여기서 404 가 나오면 기다린다고 생기지 않는 진짜 산출물 문제이고,
- * 그때는 롤백이 옳다. 판정을 결정적인 지점으로 옮겨 두면, 아래 별칭 검사를 무르게 해도
- * "자산이 진짜 빠진 배포"가 통과하지는 않는다.
+ * 준비가 확인된 Pages 배포본 자체를 검사한다. `pages.url` 은 하나의 불변 배포본을 가리키지만,
+ * 새 URL도 처음에는404를 반환할 수 있다(37495274015 실측). 호출부가 준비를 확인한 뒤 여기서
+ * 모든 참조 자산을 엄격히 검사한다. 준비되지 않거나 자산이 빠진 배포는 승격을 완료할 수 없다.
  */
 function verifyDeployedArtifact(value, deploymentUrl) {
   run(
@@ -1069,7 +1068,10 @@ async function promote(value, state, yes) {
       rollback: { pagesDeploymentId: oldPages?.id || "", workerVersionId: oldWorker?.versionId || "" },
     };
     writeState(next);
-    // ① 배포본 자체가 완전한지. 불변 URL 이라 결정적이고, 여기서 깨지면 롤백이 옳다.
+    // A new production URL also needs propagation before its unchanged strict
+    // artifact check. Immutable URLs briefly returned 404 in run 37495274015.
+    await awaitPagesDeploymentReady(pages.url, value.git.head);
+    // ① 준비된 배포본 자체가 완전한지. 여기서 깨지면 롤백이 옳다.
     verifyDeployedArtifact(value, pages.url);
     // ② 별칭이 전환됐는지. 관측 전용 — 전환 지연으로 릴리스를 되돌리지 않는다.
     awaitProductionAssets(value, targetOrigin(value));
@@ -1124,7 +1126,7 @@ async function promote(value, state, yes) {
 // 이어지는 deploy:production 이 무조건 거부된다.
 async function previewAndSmoke() {
   const preview = await previewStage();
-  await awaitPagesPreviewReady(preview.state.preview.pages.url, preview.state.git.commit);
+  await awaitPagesDeploymentReady(preview.state.preview.pages.url, preview.state.git.commit);
   // workers.dev preview aliases do not carry the Pages custom-domain routing
   // used by /api. Validate preview rendering here; production smoke below
   // remains the authoritative API health and guest-boundary check.

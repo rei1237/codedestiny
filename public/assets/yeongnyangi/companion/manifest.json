@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "created": "2026-10-07",
+  "characterRules": {
+    "yeongnyangi": "Original round fluffy white face, purple eyes, compact body, celestial navy hat/cloak and gold ornaments",
+    "yeoni": "Canonical lotus ornament, purple scarf, round pink snout and brown eyes; big head, small hooves, compact body"
+  },
+  "items": [
+    {
+      "file": "public/assets/yeongnyangi/companion/quote.webp",
+      "width": 480,
+      "height": 480,
+      "alpha": true,
+      "bytes": 55398,
+      "sha256": "5e47e79a07338298e8b77d0b0b8da0a822d70315730136a34bcc2b2054733deb",
+      "screen": "명언 상세",
+      "source": "imagegen; original/hero-800.webp identity reference"
+    },
+    {
+      "file": "public/assets/yeongnyangi/companion/daily.webp",
+      "width": 480,
+      "height": 480,
+      "alpha": true,
+      "bytes": 61294,
+      "sha256": "18125433b4c92cabdbdce3bbef9219530418bceb4d05a15f23ff6731757ea7a1",
+      "screen": "일일 운세 상세",
+      "source": "imagegen; original/hero-800.webp identity reference"
+    },
+    {
+      "file": "public/assets/yeongnyangi/companion/yeoni.webp",
+      "width": 462,
+      "height": 480,
+      "alpha": true,
+      "bytes": 36794,
+      "sha256": "89fce4663fd3f35677ed2e0c3ac158939942150a9ef9ba31bf411188878b631d",
+      "screen": "연이 선택 상세, Android notification largeIcon",
+      "source": "imagegen; user canonical 연이 프로필1.png identity reference"
+    },
+    {
+      "file": "public/assets/yeongnyangi/original/hero-480.webp",
+      "width": 480,
+      "height": 480,
+      "alpha": true,
+      "bytes": 46648,
+      "sha256": "67ec80ab408a12332501e4585d2dcf4a86846e48dc3772fabc02cbad103fc6e7",
+      "screen": "홈 진입, 확언 상세, 기본 알림",
+      "source": "existing original asset reused"
+    },
+    {
+      "file": "public/images/fortune-tea-house/flower-pig-single-a.webp",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "bytes": 75274,
+      "sha256": "1553c09f2b4d86a2f58fd42846ad3e350d056bbd7baa160620646f7cf9611ab5",
+      "screen": "기존 pig1 설정 상세/알림",
+      "source": "existing asset reused"
+    },
+    {
+      "file": "public/images/fortune-tea-house/flower-pig-single-b.webp",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "bytes": 51696,
+      "sha256": "ac86343750bdfb83cb44aec6bda86059b295284ee5413b4724307cc236b4310a",
+      "screen": "기존 pig2 설정 상세/알림",
+      "source": "existing asset reused"
+    }
+  ],
+  "backgrounds": "Existing BACKGROUNDS CSS choices preserved; text is rendered separately",
+  "notificationSmallIcon": "apps/mobile/android/app/src/main/res/drawable/ic_stat_yeongnyangi.xml (authored monochrome vector)",
+  "appIcon": "Existing Yeongnyangi adaptive foreground preserved; added monochrome layer",
+  "limitations": [
+    "Rest/loading use existing base art; no distinct new rest/animation pose",
+    "Notification artwork size/layout is controlled by Android/OEM"
+  ]
+}

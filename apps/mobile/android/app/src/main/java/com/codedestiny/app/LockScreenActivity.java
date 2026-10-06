@@ -4,24 +4,16 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Build;
 import android.os.Bundle;
-import android.view.WindowManager;
 
 import androidx.core.content.ContextCompat;
+import androidx.activity.OnBackPressedCallback;
 
-import com.getcapacitor.BridgeActivity;
-
-/**
- * 실제 폰 잠금화면 위에 오늘의 문장(웹 라우트 /lock-screen-fortune)을 표시하는 Activity.
- *
- * 화면이 켜질 때 LockScreenForegroundService 가 이 Activity 를 띄운다(YESSI 형 자동 오버레이).
- * setShowWhenLocked/setTurnScreenOn 으로 키가드 위에 뜨고, 사용자가 "Yes!" 를 스와이프하면
- * 플러그인 dismiss() 가 ACTION_DISMISS 브로드캐스트를 보내 이 Activity 를 닫는다(→ 원래 잠금화면 복귀).
- */
-public class LockScreenActivity extends BridgeActivity {
+/** Notification detail. The system keyguard must be dismissed before this Activity is visible. */
+public class LockScreenActivity extends MainActivity {
     static final String ACTION_DISMISS = "com.codedestiny.app.LOCK_DISMISS";
     private static final String LOCK_URL = "https://localhost/lock-screen-fortune/index.html";
+    private boolean ready;
 
     private final BroadcastReceiver dismissReceiver = new BroadcastReceiver() {
         @Override
@@ -33,32 +25,36 @@ public class LockScreenActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        registerPlugin(CodeDestinyLockScreenPlugin.class);
-        registerPlugin(CodeDestinyStatusBarPlugin.class);
-        applyKeyguardFlags();
+        // Share the main Activity's route resolver, SDK registration and safe WebView setup.
         super.onCreate(savedInstanceState);
+        ready = true;
 
         // 기본 시작 경로(/index.html) 대신 잠금화면 몰입 라우트를 로드한다(확장자 있는 실제 파일 경로).
-        try {
-            getBridge().getWebView().post(() -> {
-                try { getBridge().getWebView().loadUrl(LOCK_URL); } catch (Exception ignored) {}
-            });
-        } catch (Exception ignored) {}
+        openContent(getIntent());
 
         IntentFilter filter = new IntentFilter(ACTION_DISMISS);
         ContextCompat.registerReceiver(this, dismissReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override public void handleOnBackPressed() { handleDetailBack(); }
+        });
     }
 
-    private void applyKeyguardFlags() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true);
-            setTurnScreenOn(true);
-        } else {
-            getWindow().addFlags(
-                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                            | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                            | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        }
+    private void openContent(Intent intent) {
+        try {
+            getBridge().getWebView().post(() -> {
+                try { String kind = intent.getStringExtra("contentKind");
+                    if (!"quote".equals(kind) && !"affirmation".equals(kind) && !"daily".equals(kind)) kind = "daily";
+                    getBridge().getWebView().loadUrl(LOCK_URL + "?content=" + kind); } catch (Exception ignored) {}
+            });
+        } catch (Exception ignored) {}
+
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (ready) openContent(intent);
     }
 
     @Override
@@ -67,9 +63,11 @@ public class LockScreenActivity extends BridgeActivity {
         super.onDestroy();
     }
 
-    @Override
-    public void onBackPressed() {
-        // 잠금화면에서 하드웨어 뒤로가기는 오버레이 닫기로만 처리(홈으로 새지 않게).
-        finish();
+    private void handleDetailBack() {
+        getBridge().getWebView().evaluateJavascript("Boolean(window.__cdLockBack && window.__cdLockBack())", handled -> {
+            if ("true".equals(handled)) return;
+            if (getBridge().getWebView().canGoBack()) getBridge().getWebView().goBack();
+            else finish();
+        });
     }
 }

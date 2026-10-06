@@ -1,3 +1,4 @@
+import "./companion.css";
 import type { Metadata } from "next";
 import LockScreenFortuneClient from "./LockScreenFortuneClient";
 

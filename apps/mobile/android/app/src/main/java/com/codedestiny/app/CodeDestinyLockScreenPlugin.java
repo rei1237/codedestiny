@@ -20,10 +20,10 @@ import com.getcapacitor.annotation.PermissionCallback;
 /**
  * 웹 UI(/lock-screen-fortune)와 네이티브 잠금화면 사이의 브리지.
  *   getState/setState  — 설정·통계·읽은목록을 SharedPreferences 로 공유(네이티브가 예약/표시에 사용).
- *   setEnabled         — 마스터 ON/OFF → 포그라운드 서비스 시작/중지(ON 시 13+ 알림 권한 요청 포함).
+ *   setEnabled         — 마스터 ON/OFF → 비정확 알림 예약/취소(ON 시 13+ 알림 권한 요청 포함).
  *   scheduleAlarms     — 알림 시간 예약(AlarmManager).
- *   dismiss            — "Yes!" 스와이프 → LockScreenActivity 닫기.
- *   requestOverlayPermission — '다른 앱 위에 표시' 권한 설정 화면 열기(자동 오버레이 필수).
+ *   dismiss            — 기존 브리지 호환: LockScreenActivity 닫기.
+ *   requestOverlayPermission — 기존 브리지 호환 no-op.
  */
 @CapacitorPlugin(
         name = "CodeDestinyLockScreen",
@@ -44,13 +44,24 @@ public class CodeDestinyLockScreenPlugin extends Plugin {
     public void getState(PluginCall call) {
         JSObject ret = new JSObject();
         ret.put("value", prefs().getString(KEY_STATE, ""));
-        ret.put("canOverlay", Settings.canDrawOverlays(getContext()));
+        ret.put("enabled", prefs().getBoolean(KEY_ENABLED, false));
+        ret.put("notificationsAllowed", LockScreenNotify.allowed(getContext()));
+        ret.put("presentation", "notification");
         call.resolve(ret);
     }
 
     @PluginMethod
     public void setState(PluginCall call) {
-        prefs().edit().putString(KEY_STATE, call.getString("value", "")).apply();
+        String value = call.getString("value", "");
+        try {
+            org.json.JSONObject next = new org.json.JSONObject(value);
+            org.json.JSONObject previous = new org.json.JSONObject(prefs().getString(KEY_STATE, "{}"));
+            org.json.JSONObject oldOptions = previous.optJSONObject("prefs");
+            org.json.JSONObject options = next.optJSONObject("prefs");
+            if (options == null) { call.reject("INVALID_SETTINGS"); return; }
+            if (oldOptions != null && !oldOptions.toString().equals(options.toString())) LockScreenNotify.cancelContent(getContext());
+            prefs().edit().putString(KEY_STATE, value).apply();
+        } catch (org.json.JSONException e) { call.reject("INVALID_SETTINGS"); return; }
         LockScreenAlarmScheduler.rescheduleFromPrefs(getContext().getApplicationContext());
         call.resolve();
     }
@@ -61,9 +72,10 @@ public class CodeDestinyLockScreenPlugin extends Plugin {
         prefs().edit().putBoolean(KEY_ENABLED, enabled).apply();
         Context app = getContext().getApplicationContext();
         if (enabled) {
-            LockScreenForegroundService.start(app);
+            LockScreenForegroundService.stop(app);
+            LockScreenAlarmScheduler.rescheduleFromPrefs(app);
             // Android 13+ 는 POST_NOTIFICATIONS 를 런타임으로 받아야 시간 알림이 보인다.
-            // 서비스는 권한과 무관하게 돌므로 먼저 켜 두고, 미허용이면 여기서 한 번 묻는다.
+            // 기능 선택은 보존하되 미허용이면 여기서 한 번 묻는다.
             // getPermissionState 까지 try 안에 둔다: vc41 릴리스에서 R8 이 이 호출을
             // `throw null` 로 접어 설정 ON 즉시 앱이 죽었다(2026-09-01, proguard-rules.pro 참조).
             // 근본원인은 keep 규칙으로 고쳤지만, Capacitor 브리지가 플러그인 예외를
@@ -80,13 +92,15 @@ public class CodeDestinyLockScreenPlugin extends Plugin {
             }
         } else {
             LockScreenForegroundService.stop(app);
+            LockScreenAlarmScheduler.rescheduleFromPrefs(app);
+            LockScreenNotify.cancelContent(app);
         }
         call.resolve();
     }
 
     @PermissionCallback
     private void onNotificationsPermission(PluginCall call) {
-        // 거부돼도 기능 자체(화면 켜짐 오버레이)는 동작하므로 결과와 무관하게 성공으로 닫는다.
+        // 거부해도 상세 카드와 다른 앱 기능은 계속 사용할 수 있다.
         call.resolve();
     }
 
@@ -105,15 +119,41 @@ public class CodeDestinyLockScreenPlugin extends Plugin {
 
     @PluginMethod
     public void requestOverlayPermission(PluginCall call) {
-        Context ctx = getContext();
-        try {
-            if (!Settings.canDrawOverlays(ctx)) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:" + ctx.getPackageName()));
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                ctx.startActivity(intent);
-            }
-        } catch (Exception ignored) {}
+        // Legacy web bundles may call this. No overlay permission is requested anymore.
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void setPublicContent(PluginCall call) {
+        String value = call.getString("value", "{}");
+        if (value.length() > 12000) { call.reject("CONTENT_TOO_LARGE"); return; }
+        try { new org.json.JSONObject(value); }
+        catch (org.json.JSONException e) { call.reject("INVALID_CONTENT"); return; }
+        prefs().edit().putString(LockScreenNotify.SNAPSHOT, value).apply();
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void testNotification(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("posted", LockScreenNotify.postContent(getContext(), 4800, true));
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void clearNotifications(PluginCall call) {
+        LockScreenNotify.cancelContent(getContext());
+        prefs().edit().remove(LockScreenNotify.SNAPSHOT).apply();
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void openNotificationSettings(PluginCall call) {
+        Intent settings = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
+        if (Build.VERSION.SDK_INT < 26) settings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.parse("package:" + getContext().getPackageName()));
+        getActivity().startActivity(settings);
         call.resolve();
     }
 }

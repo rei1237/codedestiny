@@ -13,11 +13,12 @@ public class BootReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         if (action == null) return;
-        if (!Intent.ACTION_BOOT_COMPLETED.equals(action) && !Intent.ACTION_MY_PACKAGE_REPLACED.equals(action)) return;
+        if (!Intent.ACTION_BOOT_COMPLETED.equals(action) && !Intent.ACTION_MY_PACKAGE_REPLACED.equals(action)
+                && !Intent.ACTION_TIMEZONE_CHANGED.equals(action) && !Intent.ACTION_TIME_CHANGED.equals(action)) return;
         Context app = context.getApplicationContext();
         SharedPreferences prefs = app.getSharedPreferences(CodeDestinyLockScreenPlugin.PREFS, Context.MODE_PRIVATE);
         if (prefs.getBoolean(CodeDestinyLockScreenPlugin.KEY_ENABLED, false)) {
-            LockScreenForegroundService.start(app);
+            LockScreenNotify.cancelContent(app);
             LockScreenAlarmScheduler.rescheduleFromPrefs(app);
         }
     }

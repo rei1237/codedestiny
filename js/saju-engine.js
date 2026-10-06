@@ -8117,7 +8117,7 @@ function _mountSajuQuestionPromptCard() {
   var html = _buildSajuQuestionPromptHtml();
   var resultPage = document.getElementById('resultPage');
   if (!resultPage || resultPage.style.display === 'none') return false;
-  var targetCard = resultPage.querySelector('#sajuCard');
+  var targetCard = resultPage.querySelector('#destinyAnatomyCard') || resultPage.querySelector('#sajuCard');
   if (!targetCard) return false;
   targetCard.insertAdjacentHTML('afterend', html);
 
@@ -9886,7 +9886,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
             analysisCard.insertAdjacentHTML('afterend', aiPromptHtml);
           }
         }
-        if (analysisCard) analysisCard.insertAdjacentHTML('afterend', questionPromptHtml);
+        if (analysisCard) (resultPage.querySelector('#destinyAnatomyCard') || analysisCard).insertAdjacentHTML('afterend', questionPromptHtml);
         _bindSajuQuestionPromptCard(document.getElementById('sajuQuestionPromptGeneratorCard'));
 
       } catch (e) {

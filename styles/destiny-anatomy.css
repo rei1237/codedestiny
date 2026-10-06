@@ -641,3 +641,37 @@
 #destinyAnatomyCard .da-illustration--hd { height: 152px; }
 #destinyAnatomyCard .da-illustration--vedic { height: 112px; }
 #destinyAnatomyCard .da-meme__line { white-space: normal; word-break: keep-all; }
+
+/* Compact entry under the four pillars; the long report opens only on request. */
+#destinyAnatomyCard .da-entry { display: flex; align-items: center; gap: var(--cd-sp-lg); cursor: pointer; list-style: none; min-height: 144px; }
+#destinyAnatomyCard .da-entry::-webkit-details-marker { display: none; }
+#destinyAnatomyCard .da-entry::marker { content: ''; }
+#destinyAnatomyCard .da-entry__art { flex: 0 0 104px; }
+#destinyAnatomyCard .da-entry__art .da-illustration { width: 104px; height: 128px; margin: 0; }
+#destinyAnatomyCard .da-entry__copy { display: block; min-width: 0; }
+#destinyAnatomyCard .da-entry__title { display: block; font: 700 var(--cd-t-section)/1.45 var(--da-serif); color: var(--da-ink); text-wrap: balance; }
+#destinyAnatomyCard .da-entry__description { display: block; margin-block: var(--cd-sp-sm); max-width: 40ch; font-size: var(--cd-t-body); line-height: 1.65; color: var(--da-muted); word-break: keep-all; }
+#destinyAnatomyCard .da-entry__action { display: inline-flex; align-items: center; gap: var(--cd-sp-sm); min-height: 44px; font-size: var(--cd-t-body); font-weight: 700; color: var(--da-ink); }
+#destinyAnatomyCard .da-entry__action svg { flex: none; }
+#destinyAnatomyCard .da-entry__close, #destinyAnatomyCard .da-report[open] .da-entry__open { display: none; }
+#destinyAnatomyCard .da-report[open] .da-entry__close { display: inline; }
+#destinyAnatomyCard .da-report[open] .da-entry__action svg { transform: rotate(180deg); }
+#destinyAnatomyCard .da-report__content { padding-block-start: var(--cd-sp-lg); border-block-start: 1px solid var(--da-line); }
+#destinyAnatomyCard .da-report__close { display: flex; margin: var(--cd-sp-lg) auto 0; }
+#destinyAnatomyCard .da-chart-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cd-sp-lg); margin-block-start: var(--cd-sp-lg); }
+#destinyAnatomyCard .da-chart-link { display: flex; align-items: center; gap: var(--cd-sp-md); padding-block: var(--cd-sp-lg); border-block: 1px solid var(--da-line); color: var(--da-ink); text-decoration: none; }
+#destinyAnatomyCard .da-chart-link .da-illustration { flex: 0 0 64px; width: 64px; height: 88px; margin: 0; }
+#destinyAnatomyCard .da-chart-link > span { min-width: 0; overflow-wrap: anywhere; }
+#destinyAnatomyCard .da-chart-link strong { font: 700 var(--cd-t-card)/1.5 var(--da-serif); }
+#destinyAnatomyCard .da-chart-link__description { display: block; margin-block: var(--cd-sp-xs); color: var(--da-muted); font-size: var(--cd-t-body); line-height: 1.65; overflow-wrap: anywhere; }
+#destinyAnatomyCard .da-chart-link__action { display: inline-flex; align-items: center; gap: var(--cd-sp-xs); min-height: 44px; font-size: var(--cd-t-body); font-weight: 700; }
+#destinyAnatomyCard .da-chart-link__action svg { flex: none; }
+#destinyAnatomyCard .da-chart-link:hover .da-chart-link__action { text-decoration: underline; text-underline-offset: .25em; }
+#destinyAnatomyCard .da-chart-link:focus-visible { outline: 2px solid var(--da-gold); outline-offset: 4px; }
+@media (max-width: 600px) {
+  #destinyAnatomyCard .da-entry { gap: var(--cd-sp-md); }
+  #destinyAnatomyCard .da-entry__art { flex-basis: 80px; }
+  #destinyAnatomyCard .da-entry__art .da-illustration { width: 80px; height: 104px; }
+  #destinyAnatomyCard .da-chart-links { grid-template-columns: 1fr; gap: 0; }
+  #destinyAnatomyCard .da-chart-link + .da-chart-link { border-block-start: 0; }
+}
