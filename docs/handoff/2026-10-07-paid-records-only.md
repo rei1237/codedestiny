@@ -86,3 +86,6 @@ D:\Development\code-destiny\.codex-worktrees\paid-records-only-20261007-024230�
 - 재개 후 관련 Jest 4 suites / 33 tests, Node 16 tests, verify:human-design-report 및 git diff --check 모두 통과. LLM 실호출 0회.
 - check:fast 계획은 critical. 기존 전체 실행 실패 기록을 그대로 유지하며, 전체 검증의 최종 판정은 정확한 pushed SHA의 GitHub CI에서 확인한다.
 - 공유 main 작업 파일 83개 SHA256 및 스테이징 9개 raw 항목을 전달 전 스냅샷으로 비교한다. 원격 main은 HEAD:main refspec으로 전달하며 force push는 사용하지 않는다.
+- 최초 전달 SHA 9258ec4487c430fe3590f2e85fce2f7876b3d930 이후 문서 status 허용값을 active로 바로잡음(29c627e3972034d4e534a32584ffbf9e1187ffeb). verify:handoff-contract 162개 통과.
+- verify:sitemap-drift에서 원장 서명 불일치 발견. sitemap:generate로 /saju/destiny-bias/와 /fortune-tea-house/ 2개 signature만 갱신. URL, lastmod, 실제 콘텐츠 및 정책은 변경 없음.
+- 공유 main 원본 HEAD, 83개 작업 파일 SHA256, 9개 스테이징 raw 항목이 모두 전달 전과 일치함을 확인. 사용자가 요청한 원격 main 반영은 완료했고, 로컬 공유 main의 전진은 다른 세션 작업 정리 후 별도 수행해야 한다.
