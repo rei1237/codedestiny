@@ -607,58 +607,33 @@ html.neo-mode #cdHomeFunnel { --cdh-page-art: url('/images/home/illustrated/moon
 #cdHomeFunnel .cdh-yn-portal .cdh-portal__copy { max-width: 48rem; }
 #cdHomeFunnel .cdh-yn-portal .cdh-portal__copy strong { font-size: var(--cd-t-display); text-wrap: balance; }
 #cdHomeFunnel .cdh-yn-portal .cdh-portal__copy small { font-size: 1rem; overflow-wrap: anywhere; }
-/* 공개 기록: 해석과 원문을 나란히 읽는 예화 편지 표면. */
-#cdHomeFunnel .cdh-global-records {
-  position:relative; isolation:isolate; display:grid;
-  grid-template-columns:minmax(0,1.35fr) minmax(240px,1fr); align-items:center;
-  gap:clamp(24px,4vw,48px); padding:clamp(24px,3vw,40px);
-  border:1px solid color-mix(in srgb,var(--cdh-gold) 40%,var(--cdh-line));
-  border-radius:var(--cd-r-section);
-  background:linear-gradient(135deg,var(--cdh-card),color-mix(in srgb,var(--cdh-gold-soft) 38%,var(--cdh-card)));
-  box-shadow:0 18px 40px -32px color-mix(in srgb,var(--cdh-gold) 60%,transparent);
-  color:var(--cdh-ink);
-}
-.cdh-global-records::before {
-  content:""; position:absolute; inset:8px; z-index:-1;
-  border:1px solid color-mix(in srgb,var(--cdh-gold) 16%,transparent);
-  border-radius:calc(var(--cd-r-section) - 8px); pointer-events:none;
-}
-.cdh-global-records::after {
-  content:""; position:absolute; right:22px; top:12px; z-index:-1;
-  width:180px; height:100px; background:var(--cdh-gold); opacity:.12; pointer-events:none;
-  -webkit-mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat;
-  mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat;
-}
-#cdHomeFunnel .cdh-global-records h2 {
-  max-width:24ch; font-family:var(--font-serif,"CodeDestinySerifKR",serif);
-  font-size:var(--cd-t-section); font-weight:700; line-height:1.6; text-wrap:balance;
-}
-.cdh-global-records p { max-width:68ch; margin-top:var(--cd-sp-md); color:var(--cdh-muted); font-size:var(--cd-t-body); line-height:1.9; }
-.cdh-global-records nav { display:grid; gap:var(--cd-sp-sm); min-width:0; }
-.cdh-global-records a {
-  display:flex; align-items:center; justify-content:space-between; gap:var(--cd-sp-md);
-  min-width:0; min-height:80px; padding:var(--cd-sp-md) var(--cd-sp-lg);
-  border:1px solid color-mix(in srgb,var(--cdh-gold) 30%,var(--cdh-line));
-  border-radius:var(--cd-r-md); background:var(--cdh-card); color:var(--cdh-ink);
-  text-decoration:none; transition:border-color var(--cd-dur-fast),background var(--cd-dur-fast);
-}
-.cdh-global-records__entry { display:grid; gap:4px; min-width:0; }
-.cdh-global-records__entry>span { font-family:var(--font-serif,"CodeDestinySerifKR",serif); font-size:var(--cd-t-card); font-weight:700; overflow-wrap:anywhere; }
-.cdh-global-records time { color:var(--cdh-muted); font-size:var(--cd-t-body); font-variant-numeric:tabular-nums; letter-spacing:.06em; }
-.cdh-global-records svg { flex:none; color:var(--cdh-gold); }
-.cdh-global-records a:hover { border-color:var(--cdh-gold); background:color-mix(in srgb,var(--cdh-gold-soft) 36%,var(--cdh-card)); }
-.cdh-global-records a:focus-visible { outline:3px solid var(--cdh-accent); outline-offset:3px; }
-.cdh-global-records ::selection { background:var(--cdh-surface); color:var(--cdh-ink); }
-@media(max-width:800px) {
-  #cdHomeFunnel .cdh-global-records { grid-template-columns:minmax(0,1fr); gap:var(--cd-sp-lg); }
-  #cdHomeFunnel .cdh-global-records h2 { max-width:32ch; }
-  .cdh-global-records nav { grid-template-columns:repeat(2,minmax(0,1fr)); }
-}
-@media(max-width:520px) {
-  #cdHomeFunnel .cdh-global-records { padding:var(--cd-sp-lg); }
-  .cdh-global-records nav { grid-template-columns:minmax(0,1fr); }
-  .cdh-global-records a { padding:var(--cd-sp-md); min-height:76px; }
-}
+/* 네오 저자 소개: 확인된 경력과 동의된 후기 원문. */
+#cdHomeFunnel .cdh-author{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(160px,.55fr) minmax(0,1.45fr);gap:var(--cd-sp-xl);padding:var(--cd-sp-xl);border:1px solid color-mix(in srgb,var(--cdh-gold) 40%,var(--cdh-line));border-radius:var(--cd-r-section);background:var(--cdh-card);color:var(--cdh-ink)}
+.cdh-author::after{content:"";position:absolute;inset:12px 16px auto auto;z-index:-1;width:180px;height:100px;background:var(--cdh-gold);opacity:.12;pointer-events:none;-webkit-mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat;mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat}
+.cdh-author__portrait{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:0;padding:var(--cd-sp-md);border-radius:var(--cd-r-section);background:var(--cdh-gold-soft)}
+#cdHomeFunnel .cdh-author__portrait img{display:block;width:100%;max-width:220px;height:auto;object-fit:contain}
+.cdh-author__portrait>span{margin:var(--cd-sp-md) 0;color:var(--cdh-gold);font-family:var(--font-serif,serif);font-size:var(--cd-t-card);letter-spacing:.12em}
+.cdh-author__copy{min-width:0}
+#cdHomeFunnel .cdh-author h2{font-family:var(--font-serif,"CodeDestinySerifKR",serif);font-size:var(--cd-t-section);font-weight:700;line-height:1.5;text-wrap:balance}
+.cdh-author__lead{max-width:65ch;margin-top:var(--cd-sp-md)!important;color:var(--cdh-muted);font-size:var(--cd-t-body);line-height:1.9;word-break:keep-all}
+.cdh-author__experience{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--cd-sp-md);margin:var(--cd-sp-lg) 0;padding:var(--cd-sp-lg) 0;border-block:1px solid var(--cdh-line);list-style:none}
+.cdh-author__experience li{display:flex;flex-direction:column;gap:var(--cd-sp-sm);min-width:0}
+.cdh-author__experience strong{font-size:var(--cd-t-body);line-height:1.6;color:var(--cdh-ink);word-break:keep-all}
+.cdh-author__experience span{font-size:var(--cd-t-caption);line-height:1.8;color:var(--cdh-muted);word-break:keep-all}
+#cdHomeFunnel .cdh-author__reviews h3{font-family:var(--font-serif,serif);font-size:var(--cd-t-card);line-height:1.6}
+.cdh-author__reviews>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--cd-sp-lg);margin-top:var(--cd-sp-md)}
+.cdh-author__reviews figure{margin:0;min-width:0}
+.cdh-author__reviews blockquote{margin:0;font-family:var(--font-serif,serif);font-size:var(--cd-t-card);line-height:1.8;color:var(--cdh-ink);word-break:keep-all}
+.cdh-author__reviews figcaption{margin-top:var(--cd-sp-sm);font-size:var(--cd-t-caption);line-height:1.8;color:var(--cdh-muted)}
+.cdh-author__note{margin-top:var(--cd-sp-lg)!important;color:var(--cdh-muted);font-size:var(--cd-t-caption);line-height:1.8;word-break:keep-all}
+.cdh-author nav{display:flex;flex-wrap:wrap;align-items:center;gap:var(--cd-sp-md);margin-top:var(--cd-sp-md)}
+.cdh-author nav a{display:inline-flex;align-items:center;justify-content:center;gap:var(--cd-sp-sm);min-height:44px;padding:var(--cd-sp-sm) var(--cd-sp-md);border:1px solid var(--cdh-line);border-radius:var(--cd-r-control);color:var(--cdh-ink);font-size:var(--cd-t-body);font-weight:700;text-decoration:none;word-break:keep-all}
+.cdh-author nav a:first-child{background:var(--cdh-gold-soft)}
+.cdh-author nav a:hover{border-color:var(--cdh-gold)}
+.cdh-author nav a:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px}
+.cdh-author svg{flex:none;color:var(--cdh-gold)}
+@media(max-width:800px){#cdHomeFunnel .cdh-author{grid-template-columns:minmax(0,1fr);gap:var(--cd-sp-lg);padding:var(--cd-sp-lg)}.cdh-author__portrait{justify-self:center;width:min(100%,220px)}#cdHomeFunnel .cdh-author__portrait img{max-width:144px}.cdh-author__portrait>span{margin:var(--cd-sp-sm) 0}}
+@media(max-width:520px){.cdh-author__experience{grid-template-columns:minmax(0,1fr)}.cdh-author__experience li{gap:4px}.cdh-author__reviews>div{grid-template-columns:minmax(0,1fr);gap:var(--cd-sp-md)}}
 #cdHomeFunnel .cdh-portal { position: relative; display: grid; grid-template-columns: minmax(0,1fr) 43%; min-height: 212px; overflow: hidden; border: 1px solid var(--cdh-line); border-radius: 18px; background: var(--cdh-card); box-shadow: 0 12px 32px -24px var(--cdh-ink); }
 #cdHomeFunnel .cdh-portal.cdh-persona--neo { display: none; }
 html.neo-mode #cdHomeFunnel .cdh-portal.cdh-persona--neo { display: grid; }
@@ -719,8 +694,8 @@ html body #cdFinalCtaBand{padding:24px 16px;margin:8px auto 28px;border:0;backgr
   :is(#emailSubBoxHome,#emailSubBox) .btn-subscribe{width:100%}
   #cdSiteFooter .cd-footer-brandcol{padding-bottom:20px}
 }
-/* 공개 분석 기록과 영냥이 진입 — 달빛 예화 표면 */
-#cdHomeFunnel .cdh-public-bridges{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:var(--cd-sp-md);margin:var(--cd-sp-lg) clamp(16px,3vw,40px)}
+/* 공개 분석 기록 — 달빛 예화 표면 */
+#cdHomeFunnel .cdh-public-bridges{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--cd-sp-md);margin:var(--cd-sp-lg) clamp(16px,3vw,40px)}
 #cdHomeFunnel .cdh-public-bridge{
   position:relative; isolation:isolate; display:grid;
   grid-template-columns:44px minmax(0,1fr) 24px; align-content:center; align-items:center;
@@ -740,4 +715,4 @@ html body #cdFinalCtaBand{padding:24px 16px;margin:8px auto 28px;border:0;backgr
 #cdHomeFunnel .cdh-public-bridge:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px}
 @media(max-width:800px){#cdHomeFunnel .cdh-public-bridges{grid-template-columns:minmax(0,1fr);gap:var(--cd-sp-sm)}#cdHomeFunnel .cdh-public-bridge{min-height:96px;padding:20px;column-gap:12px}}
 @media(max-width:520px){#cdHomeFunnel .cdh-public-bridge{grid-template-columns:36px minmax(0,1fr) 20px;padding:18px 16px}#cdHomeFunnel .cdh-public-bridge__seal{width:36px;height:36px}#cdHomeFunnel .cdh-public-bridge__arrow{width:20px;height:20px}}
-@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cdh-public-bridge,.cdh-global-records a{transition:none}}
+@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cdh-public-bridge,.cdh-author nav a{transition:none}}

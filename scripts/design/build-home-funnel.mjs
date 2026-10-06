@@ -6,6 +6,7 @@ import { CURRENT_PASS_PLANS } from '../../lib/payment/pass-policy.js';
 import { splitReviews, postedMonth } from '../../lib/brand/customer-reviews.mjs';
 import { EXPERTISE_FACTS } from '../../lib/brand/expertise-facts.mjs';
 import { renderTrustStoriesHtml } from '../../lib/brand/trust-stories.mjs';
+import { renderNeoHomeIntroduction } from '../../lib/brand/neo-home-introduction.mjs';
 import { KRW_PER_COIN, MEMBERSHIP_CREDIT_PER_COIN } from '../../worker/lib/billing-policy.js';
 
 const original = readFileSync('index.html', 'utf8');
@@ -50,6 +51,7 @@ const nodes = {
 const vars = Object.fromEntries(Object.entries(nodes).map(([key, node]) => [key, htmlOf(node, key)]));
 vars.pressCoverage = renderPressCoverageHtml();
 vars.trustStories = renderTrustStoriesHtml();
+vars.neoIntroduction = renderNeoHomeIntroduction();
 vars.reviewKrwPerStone = KRW_PER_COIN / MEMBERSHIP_CREDIT_PER_COIN;
 const won = value => Number(value).toLocaleString('ko-KR') + '원';
 vars.pass = `<section class="cdh-pass" aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">

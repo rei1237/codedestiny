@@ -161,6 +161,33 @@
   object-fit: contain;
 }
 
+/* Text-bearing public-record artwork must remain visible at its native ratio. */
+.recordHero {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.recordHero h1 {
+  max-width: 26ch;
+}
+
+.recordHero .heroVisual {
+  min-height: 0;
+  height: auto;
+  background: var(--ia-card);
+}
+
+.recordHero .heroVisual > img:first-child {
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 1200 / 630;
+  object-fit: contain;
+}
+
+.recordHero .pigNote {
+  position: static;
+  margin: 16px;
+}
+
 .readingLead,
 .prose,
 .readingNav,

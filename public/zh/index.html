@@ -943,7 +943,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="从四柱八字、紫微斗数十二宫到宿曜关系与塔罗问题解读。用简体中文了解不同体系的输入与看盘顺序，选择适合自己的命盘或咨询入口。">
 <meta property="og:url" content="https://code-destiny.com/zh/">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-zh.png?v=build-6bb082774cb4">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-zh.png?v=build-1afae1791893">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="蜜豚运势 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡">
@@ -952,7 +952,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="八字排盘·紫微斗数·塔罗占卜｜Code Destiny">
 <meta name="twitter:description" content="从四柱八字、紫微斗数十二宫到宿曜关系与塔罗问题解读。用简体中文了解不同体系的输入与看盘顺序，选择适合自己的命盘或咨询入口。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-zh.png?v=build-6bb082774cb4">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-zh.png?v=build-1afae1791893">
 <meta name="twitter:image:alt" content="蜜豚运势 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡">
 <script type="application/ld+json">
 {
@@ -1156,7 +1156,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-6bb082774cb4",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-1afae1791893",
       "width": 1200,
       "height": 630
     },
@@ -6030,58 +6030,33 @@ html.neo-mode #cdHomeFunnel { --cdh-page-art: url('/images/home/illustrated/moon
 #cdHomeFunnel .cdh-yn-portal .cdh-portal__copy { max-width: 48rem; }
 #cdHomeFunnel .cdh-yn-portal .cdh-portal__copy strong { font-size: var(--cd-t-display); text-wrap: balance; }
 #cdHomeFunnel .cdh-yn-portal .cdh-portal__copy small { font-size: 1rem; overflow-wrap: anywhere; }
-/* 공개 기록: 해석과 원문을 나란히 읽는 예화 편지 표면. */
-#cdHomeFunnel .cdh-global-records {
-  position:relative; isolation:isolate; display:grid;
-  grid-template-columns:minmax(0,1.35fr) minmax(240px,1fr); align-items:center;
-  gap:clamp(24px,4vw,48px); padding:clamp(24px,3vw,40px);
-  border:1px solid color-mix(in srgb,var(--cdh-gold) 40%,var(--cdh-line));
-  border-radius:var(--cd-r-section);
-  background:linear-gradient(135deg,var(--cdh-card),color-mix(in srgb,var(--cdh-gold-soft) 38%,var(--cdh-card)));
-  box-shadow:0 18px 40px -32px color-mix(in srgb,var(--cdh-gold) 60%,transparent);
-  color:var(--cdh-ink);
-}
-.cdh-global-records::before {
-  content:""; position:absolute; inset:8px; z-index:-1;
-  border:1px solid color-mix(in srgb,var(--cdh-gold) 16%,transparent);
-  border-radius:calc(var(--cd-r-section) - 8px); pointer-events:none;
-}
-.cdh-global-records::after {
-  content:""; position:absolute; right:22px; top:12px; z-index:-1;
-  width:180px; height:100px; background:var(--cdh-gold); opacity:.12; pointer-events:none;
-  -webkit-mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat;
-  mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat;
-}
-#cdHomeFunnel .cdh-global-records h2 {
-  max-width:24ch; font-family:var(--font-serif,"CodeDestinySerifKR",serif);
-  font-size:var(--cd-t-section); font-weight:700; line-height:1.6; text-wrap:balance;
-}
-.cdh-global-records p { max-width:68ch; margin-top:var(--cd-sp-md); color:var(--cdh-muted); font-size:var(--cd-t-body); line-height:1.9; }
-.cdh-global-records nav { display:grid; gap:var(--cd-sp-sm); min-width:0; }
-.cdh-global-records a {
-  display:flex; align-items:center; justify-content:space-between; gap:var(--cd-sp-md);
-  min-width:0; min-height:80px; padding:var(--cd-sp-md) var(--cd-sp-lg);
-  border:1px solid color-mix(in srgb,var(--cdh-gold) 30%,var(--cdh-line));
-  border-radius:var(--cd-r-md); background:var(--cdh-card); color:var(--cdh-ink);
-  text-decoration:none; transition:border-color var(--cd-dur-fast),background var(--cd-dur-fast);
-}
-.cdh-global-records__entry { display:grid; gap:4px; min-width:0; }
-.cdh-global-records__entry>span { font-family:var(--font-serif,"CodeDestinySerifKR",serif); font-size:var(--cd-t-card); font-weight:700; overflow-wrap:anywhere; }
-.cdh-global-records time { color:var(--cdh-muted); font-size:var(--cd-t-body); font-variant-numeric:tabular-nums; letter-spacing:.06em; }
-.cdh-global-records svg { flex:none; color:var(--cdh-gold); }
-.cdh-global-records a:hover { border-color:var(--cdh-gold); background:color-mix(in srgb,var(--cdh-gold-soft) 36%,var(--cdh-card)); }
-.cdh-global-records a:focus-visible { outline:3px solid var(--cdh-accent); outline-offset:3px; }
-.cdh-global-records ::selection { background:var(--cdh-surface); color:var(--cdh-ink); }
-@media(max-width:800px) {
-  #cdHomeFunnel .cdh-global-records { grid-template-columns:minmax(0,1fr); gap:var(--cd-sp-lg); }
-  #cdHomeFunnel .cdh-global-records h2 { max-width:32ch; }
-  .cdh-global-records nav { grid-template-columns:repeat(2,minmax(0,1fr)); }
-}
-@media(max-width:520px) {
-  #cdHomeFunnel .cdh-global-records { padding:var(--cd-sp-lg); }
-  .cdh-global-records nav { grid-template-columns:minmax(0,1fr); }
-  .cdh-global-records a { padding:var(--cd-sp-md); min-height:76px; }
-}
+/* 네오 저자 소개: 확인된 경력과 동의된 후기 원문. */
+#cdHomeFunnel .cdh-author{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(160px,.55fr) minmax(0,1.45fr);gap:var(--cd-sp-xl);padding:var(--cd-sp-xl);border:1px solid color-mix(in srgb,var(--cdh-gold) 40%,var(--cdh-line));border-radius:var(--cd-r-section);background:var(--cdh-card);color:var(--cdh-ink)}
+.cdh-author::after{content:"";position:absolute;inset:12px 16px auto auto;z-index:-1;width:180px;height:100px;background:var(--cdh-gold);opacity:.12;pointer-events:none;-webkit-mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat;mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat}
+.cdh-author__portrait{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:0;padding:var(--cd-sp-md);border-radius:var(--cd-r-section);background:var(--cdh-gold-soft)}
+#cdHomeFunnel .cdh-author__portrait img{display:block;width:100%;max-width:220px;height:auto;object-fit:contain}
+.cdh-author__portrait>span{margin:var(--cd-sp-md) 0;color:var(--cdh-gold);font-family:var(--font-serif,serif);font-size:var(--cd-t-card);letter-spacing:.12em}
+.cdh-author__copy{min-width:0}
+#cdHomeFunnel .cdh-author h2{font-family:var(--font-serif,"CodeDestinySerifKR",serif);font-size:var(--cd-t-section);font-weight:700;line-height:1.5;text-wrap:balance}
+.cdh-author__lead{max-width:65ch;margin-top:var(--cd-sp-md)!important;color:var(--cdh-muted);font-size:var(--cd-t-body);line-height:1.9;word-break:keep-all}
+.cdh-author__experience{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--cd-sp-md);margin:var(--cd-sp-lg) 0;padding:var(--cd-sp-lg) 0;border-block:1px solid var(--cdh-line);list-style:none}
+.cdh-author__experience li{display:flex;flex-direction:column;gap:var(--cd-sp-sm);min-width:0}
+.cdh-author__experience strong{font-size:var(--cd-t-body);line-height:1.6;color:var(--cdh-ink);word-break:keep-all}
+.cdh-author__experience span{font-size:var(--cd-t-caption);line-height:1.8;color:var(--cdh-muted);word-break:keep-all}
+#cdHomeFunnel .cdh-author__reviews h3{font-family:var(--font-serif,serif);font-size:var(--cd-t-card);line-height:1.6}
+.cdh-author__reviews>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--cd-sp-lg);margin-top:var(--cd-sp-md)}
+.cdh-author__reviews figure{margin:0;min-width:0}
+.cdh-author__reviews blockquote{margin:0;font-family:var(--font-serif,serif);font-size:var(--cd-t-card);line-height:1.8;color:var(--cdh-ink);word-break:keep-all}
+.cdh-author__reviews figcaption{margin-top:var(--cd-sp-sm);font-size:var(--cd-t-caption);line-height:1.8;color:var(--cdh-muted)}
+.cdh-author__note{margin-top:var(--cd-sp-lg)!important;color:var(--cdh-muted);font-size:var(--cd-t-caption);line-height:1.8;word-break:keep-all}
+.cdh-author nav{display:flex;flex-wrap:wrap;align-items:center;gap:var(--cd-sp-md);margin-top:var(--cd-sp-md)}
+.cdh-author nav a{display:inline-flex;align-items:center;justify-content:center;gap:var(--cd-sp-sm);min-height:44px;padding:var(--cd-sp-sm) var(--cd-sp-md);border:1px solid var(--cdh-line);border-radius:var(--cd-r-control);color:var(--cdh-ink);font-size:var(--cd-t-body);font-weight:700;text-decoration:none;word-break:keep-all}
+.cdh-author nav a:first-child{background:var(--cdh-gold-soft)}
+.cdh-author nav a:hover{border-color:var(--cdh-gold)}
+.cdh-author nav a:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px}
+.cdh-author svg{flex:none;color:var(--cdh-gold)}
+@media(max-width:800px){#cdHomeFunnel .cdh-author{grid-template-columns:minmax(0,1fr);gap:var(--cd-sp-lg);padding:var(--cd-sp-lg)}.cdh-author__portrait{justify-self:center;width:min(100%,220px)}#cdHomeFunnel .cdh-author__portrait img{max-width:144px}.cdh-author__portrait>span{margin:var(--cd-sp-sm) 0}}
+@media(max-width:520px){.cdh-author__experience{grid-template-columns:minmax(0,1fr)}.cdh-author__experience li{gap:4px}.cdh-author__reviews>div{grid-template-columns:minmax(0,1fr);gap:var(--cd-sp-md)}}
 #cdHomeFunnel .cdh-portal { position: relative; display: grid; grid-template-columns: minmax(0,1fr) 43%; min-height: 212px; overflow: hidden; border: 1px solid var(--cdh-line); border-radius: 18px; background: var(--cdh-card); box-shadow: 0 12px 32px -24px var(--cdh-ink); }
 #cdHomeFunnel .cdh-portal.cdh-persona--neo { display: none; }
 html.neo-mode #cdHomeFunnel .cdh-portal.cdh-persona--neo { display: grid; }
@@ -6142,8 +6117,8 @@ html body #cdFinalCtaBand{padding:24px 16px;margin:8px auto 28px;border:0;backgr
   :is(#emailSubBoxHome,#emailSubBox) .btn-subscribe{width:100%}
   #cdSiteFooter .cd-footer-brandcol{padding-bottom:20px}
 }
-/* 공개 분석 기록과 영냥이 진입 — 달빛 예화 표면 */
-#cdHomeFunnel .cdh-public-bridges{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:var(--cd-sp-md);margin:var(--cd-sp-lg) clamp(16px,3vw,40px)}
+/* 공개 분석 기록 — 달빛 예화 표면 */
+#cdHomeFunnel .cdh-public-bridges{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--cd-sp-md);margin:var(--cd-sp-lg) clamp(16px,3vw,40px)}
 #cdHomeFunnel .cdh-public-bridge{
   position:relative; isolation:isolate; display:grid;
   grid-template-columns:44px minmax(0,1fr) 24px; align-content:center; align-items:center;
@@ -6163,7 +6138,7 @@ html body #cdFinalCtaBand{padding:24px 16px;margin:8px auto 28px;border:0;backgr
 #cdHomeFunnel .cdh-public-bridge:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px}
 @media(max-width:800px){#cdHomeFunnel .cdh-public-bridges{grid-template-columns:minmax(0,1fr);gap:var(--cd-sp-sm)}#cdHomeFunnel .cdh-public-bridge{min-height:96px;padding:20px;column-gap:12px}}
 @media(max-width:520px){#cdHomeFunnel .cdh-public-bridge{grid-template-columns:36px minmax(0,1fr) 20px;padding:18px 16px}#cdHomeFunnel .cdh-public-bridge__seal{width:36px;height:36px}#cdHomeFunnel .cdh-public-bridge__arrow{width:20px;height:20px}}
-@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cdh-public-bridge,.cdh-global-records a{transition:none}}
+@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cdh-public-bridge,.cdh-author nav a{transition:none}}
 </style>
 <link rel="stylesheet" href="/styles/my-garden.css?v=build-db1f20b10cff">
 <link rel="stylesheet" href="/styles/press-coverage.css">
@@ -9958,18 +9933,13 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
       <img class="cdh-persona--neo" data-character="neo" src="/images/home/illustrated/neo-character-480.webp" srcset="/images/home/illustrated/neo-character-320.webp 320w, /images/home/illustrated/neo-character-480.webp 480w, /images/home/illustrated/neo-character-800.webp 800w" sizes="(max-width: 640px) 46vw, 400px" alt="" width="1280" height="1280" decoding="async">
     </div>
   </section>
-  <nav class="cdh-public-bridges" aria-label="공개 분석 기록과 영냥이 상담">
+  <nav class="cdh-public-bridges" aria-label="공개 분석 기록">
     <a class="cdh-public-bridge" href="/insights/presidential-saju-public-records/">
       <span class="cdh-public-bridge__seal" aria-hidden="true"></span>
       <span class="cdh-sr-only">NEO · PUBLIC ANALYSIS</span>
       <strong data-cd-trans="home.gardenCopy.publicRecordsTitle">10년 경력 명리학자 박병하(네오)의 공개 분석 기록</strong>
       <span class="cdh-public-bridge__detail" data-cd-trans="home.gardenCopy.publicRecordsLink">날짜·원문·일치 범위 확인하기</span>
       <svg class="cdh-public-bridge__arrow" aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
-    </a>
-    <a class="cdh-public-bridge" href="/zh/yeongnyangi/" data-cd-localized-route="yeongnyangi">
-      <span class="cdh-public-bridge__seal" aria-hidden="true"></span>
-      <span class="cdh-sr-only">HONEY FORTUNE · YEONGNYANGI</span>
-      <strong data-cd-trans="home.gardenCopy.brandOtherEntry">꿀꿀운세 영냥이 사주·타로 →</strong>
     </a>
   </nav>
   <div class="cdh-slot" id="cdhQuickSlot"><section id="cdQuickServices" class="cdh-methods" aria-labelledby="cdQuickTitle" data-cd-funnel-section="quick_services" data-marker="cd-quick-services-fortune-pick-v20260912"><h2 id="cdQuickTitle" tabindex="-1" data-cd-trans="home.gardenCopy.quickTitle">어떤 운세를 볼까요?</h2><div class="cdh-methods-grid"><a class="cdh-method" data-cdh-free href="/zh/saju/" data-action="cdOneStepFreeSajuEntry" data-cd-service-id="saju"><img src="/images/home/illustrated/method-saju-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.saju">사주</strong></a><a class="cdh-method" data-cd-service-id="ziwei" href="/zh/ziwei/" data-action="openZiweiModal"><img src="/images/home/illustrated/method-ziwei-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.ziwei">자미두수</strong></a><a class="cdh-method" data-cd-service-id="sukuyo" href="/zh/sukuyo/" data-action="openSukuyoModal"><img src="/images/home/illustrated/method-sukuyo-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.sukuyo">숙요점</strong></a><a class="cdh-method" data-cd-service-id="vedic" href="/zh/vedic/" data-action="navigateToVedic"><img src="/images/home/illustrated/method-vedic-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.vedic">베다점</strong></a><a class="cdh-method" data-cd-service-id="astrology" href="/zh/astrology/" data-action="openAstroModal"><img src="/images/home/illustrated/method-astrology-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.astrology">점성술</strong></a><a class="cdh-method" data-cd-service-id="tarot" href="/zh/tarot/" data-cd-open-collection="tarotCollection"><img src="/images/home/illustrated/method-tarot-160.webp" width="160" height="160" alt="" decoding="async"><strong data-cd-trans data-key="home.fortunePick.tarot">타로</strong><small data-cd-trans="home.gardenCopy.tarotLibrary">타로 라이브러리</small></a></div></section></div>
@@ -10047,7 +10017,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   <div class="cdh-flow">
 
     <div class="cdh-portals">
-      <a class="cdh-portal cdh-yn-portal" href="/yeongnyangi/" data-cd-business-entry="paid" data-cd-portal-link data-cd-portal-placement="home_hero" aria-label="영냥이 상담 둘러보기" data-cd-trans-attr="aria-label:home.globalReading.cta">
+      <a class="cdh-portal cdh-yn-portal" href="/zh/yeongnyangi/" data-cd-localized-route="yeongnyangi" data-cd-business-entry="paid" data-cd-portal-link data-cd-portal-placement="home_hero" aria-label="영냥이 상담 둘러보기" data-cd-trans-attr="aria-label:home.globalReading.cta">
         <span class="cdh-portal__copy"><strong data-cd-trans="home.globalReading.title">영냥이의 달빛 점술방</strong><small data-cd-trans="home.globalReading.note">마음에 남은 질문부터 시작해요. 사주·타로·별자리의 흐름을 나의 이야기로 풀어드려요.</small><span class="cdh-portal__go" data-cd-trans="home.globalReading.cta">영냥이 상담 둘러보기</span></span>
         <span class="cdh-portal__art" aria-hidden="true"><img class="cdh-portal__scene" src="/images/home/illustrated/yeongnyangi-room-320.webp" width="320" height="451" loading="lazy" decoding="async" alt=""><img class="cdh-portal__character" src="/assets/yeongnyangi/original/hero-480.webp" width="480" height="480" loading="lazy" decoding="async" alt=""></span>
       </a>
@@ -10061,22 +10031,17 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
       </a>
 
     </div>
-    <section class="cdh-global-records" aria-labelledby="cdGlobalRecordsTitle">
-      <div class="cdh-global-records__copy">
-        <h2 id="cdGlobalRecordsTitle" data-cd-trans="home.globalReading.recordsTitle">한국의 정치적 전환, 그 전에 남긴 사주 기록</h2>
-        <p data-cd-trans="home.globalReading.recordsNote">윤석열·이재명에 대해 미리 공개한 해석과 2025년의 실제 사건을 비교해 보세요. 날짜와 원문을 통해 직접 판단할 수 있어요. 과거 사례가 미래의 적중을 보장하지는 않습니다.</p>
-      </div>
-      <nav aria-labelledby="cdGlobalRecordsTitle">
-        <a href="https://blog.naver.com/neosaju/223444062729" target="_blank" rel="noopener noreferrer" lang="en">
-          <span class="cdh-global-records__entry"><span>Yoon Suk Yeol</span><time datetime="2024-05-12">2024.05.12</time></span>
-          <svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>
-        </a>
-        <a href="https://blog.naver.com/neosaju/223459696339" target="_blank" rel="noopener noreferrer" lang="en">
-          <span class="cdh-global-records__entry"><span>Lee Jae-myung</span><time datetime="2024-05-27">2024.05.27</time></span>
-          <svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>
-        </a>
-      </nav>
-    </section>
+    <section class="cdh-author" aria-labelledby="cdhAuthorTitle" lang="ko">
+    <div class="cdh-author__portrait"><img src="/images/home/illustrated/neo-human-480.webp" width="362" height="540" loading="lazy" decoding="async" alt=""><span>NEO</span></div>
+    <div class="cdh-author__copy">
+      <h2 id="cdhAuthorTitle">명리학자 박병하, 네오</h2>
+      <p class="cdh-author__lead">10년째 명리를 공부하고 사람들의 고민을 듣고 있습니다. 사주를 삶의 맥락으로 풀고, 지금 선택할 수 있는 방향을 함께 찾습니다.</p>
+      <ul class="cdh-author__experience"><li><strong>10년의 명리 공부와 상담</strong><span>타고난 기질을 현실의 관계와 선택으로 읽습니다.</span></li><li><strong>직접 진행한 1:1 상담</strong><span>사람마다 다른 고민과 상황을 듣고 해석해 왔습니다.</span></li><li><strong>사주 강의와 공개 글</strong><span>해석의 근거를 설명하고, 블로그에 분석 기록을 남겼습니다.</span></li></ul>
+      <div class="cdh-author__reviews"><h3>상담과 강의를 경험한 분들의 말</h3><div><figure data-review-id="kakao-077"><blockquote><p>“신기하고 시원한 기분입니다”</p></blockquote><figcaption>1:1 상담 이용자 · 카카오톡 후기 발췌</figcaption></figure><figure data-review-id="kakao-006"><blockquote><p>“저는 진짜 알차게 들엇습니다”</p></blockquote><figcaption>사주 강의 수강생 · 카카오톡 후기 발췌</figcaption></figure></div></div>
+      <p class="cdh-author__note">네오가 직접 진행한 1:1 상담과 사주 강의의 후기 일부입니다. AI 상담과는 다른 서비스이며, 개인의 경험이 같은 결과를 보장하지는 않습니다.</p>
+      <nav aria-label="네오 소개와 후기"><a href="/about/#author">네오와 서비스 소개<svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a href="#cdhReviewsTitle">상담 후기 더 읽기</a></nav>
+    </div>
+  </section>
     <div class="cdh-slot" id="cdhConcern" tabindex="-1"><div id="cdhConcernSlot"><section data-cd-funnel-section="concern_pick" class="cd-concern" id="cdConcernPick" aria-labelledby="cdConcernPickTitle" data-marker="cd-concern-pick-v20260824">
         <div class="moon-section-head cd-concern__head">
           <span class="moon-section-kicker">START HERE</span>
@@ -10444,9 +10409,24 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
         </div>
         </div>
         <div class="cd-pick-why" id="cdPickReason">
-          <span class="cd-pick-why__mark" aria-hidden="true">✧</span>
+          <div class="cd-pick-why__recommendation">
+          <img class="cd-pick-why__character" id="cdPickWhyCharacter" src="/images/home/illustrated/yeoni-character-320.webp" width="1280" height="1280" loading="lazy" decoding="async" alt="">
+          <div class="cd-pick-why__copy">
           <p class="cd-pick-why__text"><span data-cd-trans="home.pickWhy.prefix">오늘은</span> <b id="cdPickWhyTitle" data-cd-trans="shell.cdPickReason.cdPickWhyText.kntw327">나크샤트라 결정판</b><span id="cdPickWhyJosa" data-cd-trans-skip>이</span> <span data-cd-trans="home.pickWhy.suffix">가장 잘 맞습니다.</span> <span id="cdPickWhyReason" data-cd-trans="shell.cdPickReason.cdPickWhyText.k1s5m1vr">동양 27수와 인도 나크샤트라를 함께 보면 같은 사주도 훨씬 또렷하게 읽힙니다.</span></p>
-          <a class="cd-pick-why__alt" id="cdPickWhyAlt" href="/zh/fortune-tea-house/"><span data-cd-trans="shell.cdPickWhyAlt.k1d6ftfz">대신 운명의 찻집</span> <i aria-hidden="true">→</i></a>
+          <div class="cd-pick-why__actions">
+            <a class="cd-pick-why__go" id="cdPickWhyOpen" href="/nakshatra/"><span data-cd-trans="shell.fortuneGatewayDoor.fortuneGatewayDoorGo.kkmvgqi">상담 시작하기</span><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+            <a class="cd-pick-why__alt" id="cdPickWhyAlt" href="/zh/fortune-tea-house/"><span data-cd-trans="shell.cdPickWhyAlt.k1d6ftfz">대신 운명의 찻집</span></a>
+          </div>
+          </div>
+          </div>
+          <a class="cd-pick-why__yeongnyangi" href="/zh/yeongnyangi/" data-cd-localized-route="yeongnyangi">
+            <img class="cd-pick-why__character" src="/assets/yeongnyangi/original/hero-480.webp" width="480" height="480" loading="lazy" decoding="async" alt="">
+            <span class="cd-pick-why__copy">
+              <strong data-cd-trans="home.globalReading.title">영냥이의 달빛 점술방</strong>
+              <span class="cd-pick-why__note" data-cd-trans="home.globalReading.note">마음에 남은 질문부터 시작해요. 사주·타로·별자리의 흐름을 나의 이야기로 풀어드려요.</span>
+              <span class="cd-pick-why__go"><span data-cd-trans="home.globalReading.cta">영냥이 상담 둘러보기</span><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+            </span>
+          </a>
         </div>
 </section></div></div>
     <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot"><section class="cdh-pass" aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
@@ -12318,23 +12298,27 @@ html.neo-mode body .cd-atmos__layer--near{background-image:radial-gradient(1.1px
 /* 모바일은 패럴럭스 없이 정적 그라디언트만 — 히어로 이미지(LCP)+꽃잎 10+별 16 이 이미 도는 화면이다. */
 @media (max-width:767px){ #cdHomeAtmos .cd-atmos__layer{transform:none} }
 
-/* ── ③ 추천 이유 카드 — 카드가 아니라 '메모' 로 읽히도록 파선 테두리 ── */
-.cd-pick-why{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin:14px 0 0;padding:11px 14px;border-radius:16px;border:1px dashed color-mix(in srgb,var(--cd-accent,#b31955) 30%,transparent);background:color-mix(in srgb,var(--cd-surface,#fff) 48%,transparent)}
-.cd-pick-why__mark{flex:0 0 auto;font-size:15px;line-height:1;color:var(--cd-sig-gold);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--cd-sig-gold) 60%,transparent))}
-html body .cd-sig .cd-pick-why__text{flex:1 1 240px;margin:0;font-size:12.5px;line-height:1.62;color:color-mix(in srgb,var(--cd-text,#3c1830) 82%,transparent);text-align:left;text-wrap:pretty}
-.cd-pick-why__text b{font-weight:800;color:var(--cd-text,#3c1830)}
+/* ── ③ 캐릭터가 안내하는 추천 상담 — 대표 상담 바로 아래 ── */
+.cd-pick-why{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--cd-sp-lg);margin:var(--cd-sp-lg) 0 0}
+.cd-pick-why__recommendation,.cd-pick-why__yeongnyangi{position:relative;isolation:isolate;display:grid;grid-template-columns:104px minmax(0,1fr);align-items:center;gap:var(--cd-sp-md);min-width:0;padding:var(--cd-sp-lg);border:1px solid var(--cdh-line);border-radius:var(--cd-r-card);background:var(--cdh-card);color:var(--cdh-ink);text-decoration:none}
+.cd-pick-why__recommendation::after,.cd-pick-why__yeongnyangi::after{content:"";position:absolute;inset:auto 12px 10px auto;z-index:-1;width:100px;height:60px;background:var(--cdh-gold);opacity:.12;pointer-events:none;-webkit-mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat;mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat}
+html body .cd-sig .cd-pick-why__character{display:block;width:104px;height:128px;max-width:100%;object-fit:contain;border:0;border-radius:0;background:none;box-shadow:none}
+.cd-pick-why__copy{display:flex;flex-direction:column;align-items:flex-start;gap:var(--cd-sp-sm);min-width:0}
+html body .cd-sig .cd-pick-why__text{margin:0;font-size:var(--cd-t-body);line-height:1.75;color:var(--cdh-muted);text-align:left;word-break:keep-all;overflow-wrap:anywhere;text-wrap:pretty}
+.cd-pick-why__text b,.cd-pick-why__copy>strong{font-family:var(--font-serif,"CodeDestinySerifKR",serif);font-size:var(--cd-t-card);font-weight:700;color:var(--cdh-ink);line-height:1.5;word-break:keep-all}
+.cd-pick-why__note{font-size:var(--cd-t-body);line-height:1.75;color:var(--cdh-muted);word-break:keep-all;overflow-wrap:anywhere}
+.cd-pick-why__actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--cd-sp-sm)}
+.cd-pick-why__go{display:inline-flex;align-items:center;justify-content:center;gap:var(--cd-sp-sm);min-height:44px;padding:10px 14px;border:1px solid color-mix(in srgb,var(--cdh-gold) 36%,var(--cdh-line));border-radius:var(--cd-r-control);background:var(--cdh-gold-soft);color:var(--cdh-ink);font-size:var(--cd-t-body);font-weight:800;text-decoration:none;word-break:keep-all}
+.cd-pick-why__go svg{flex:none}
+.cd-pick-why__go:hover,.cd-pick-why__yeongnyangi:hover{border-color:var(--cdh-gold)}
+.cd-pick-why__yeongnyangi:focus-visible,.cd-pick-why__go:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px}
 /* 조사(이/가)는 한국어에서만 문장에 필요하다. 다른 로케일은 접미 문구가 조사를 품으므로
    여기서 숨긴다 — JS 타이밍과 무관하게 확실히 사라지도록 CSS 로 건다. */
 html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
-.cd-pick-why__alt{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:0 6px;font-size:12.5px;font-weight:800;text-decoration:none;color:var(--cd-accent,#b31955)}
-.cd-pick-why__alt i{font-style:normal;transition:transform .22s ease}
+.cd-pick-why__alt{display:inline-flex;align-items:center;min-height:44px;padding:0 6px;font-size:var(--cd-t-body);font-weight:700;text-decoration:underline;text-underline-offset:4px;color:var(--cdh-muted)}
 .cd-pick-why__alt:focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px;border-radius:8px}
-@media (hover:hover) and (pointer:fine){ .cd-pick-why__alt:hover i{transform:translateX(3px)} }
-html.neo-mode body .cd-pick-why{border-color:rgba(196,181,253,.34);background:rgba(19,16,42,.4)}
-html.neo-mode body .cd-pick-why__text{color:rgba(244,238,255,.84)!important}
-html.neo-mode body .cd-pick-why__text b{color:#f4eeff}
-html.neo-mode body .cd-pick-why__alt{color:#c4b5fd}
-html.neo-mode body .cd-pick-why__alt:focus-visible{outline-color:#c4b5fd}
+@media(max-width:1000px){.cd-pick-why{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:520px){.cd-pick-why__recommendation,.cd-pick-why__yeongnyangi{grid-template-columns:80px minmax(0,1fr);gap:var(--cd-sp-sm);padding:var(--cd-sp-md)}html body .cd-sig .cd-pick-why__character{width:80px;height:112px}.cd-pick-why__go{padding-inline:10px}}
 
 /* ── ④ 대표 상담 — 모바일 스와이프 캐러셀.
       body{touch-action:pan-y}(863행) 때문에 중첩 가로 스크롤러의 손가락 팬이 막힐 수 있어,
@@ -12587,6 +12571,10 @@ html.neo-mode body .cd-pick-why__alt:focus-visible{outline-color:#c4b5fd}
             var whyJosa = document.getElementById('cdPickWhyJosa');
             var whyReason = document.getElementById('cdPickWhyReason');
             var whyAlt = document.getElementById('cdPickWhyAlt');
+            var whyOpen = document.getElementById('cdPickWhyOpen');
+            var whyCharacter = document.getElementById('cdPickWhyCharacter');
+            if (whyOpen) whyOpen.href = r.pick.href;
+            if (whyCharacter) whyCharacter.src = r.key === 'neo' ? '/images/home/illustrated/neo-character-320.webp' : '/images/home/illustrated/yeoni-character-320.webp';
             if (whyTitle && _cdPickLangIsKo()) whyTitle.textContent = r.pick.title;
             if (whyJosa) whyJosa.textContent = _cdPickLangIsKo() ? (hasBatchim(r.pick.title) ? '이' : '가') : '';
             if (whyReason && _cdPickLangIsKo()) whyReason.textContent = (r.source === 'intent' ? '최근 관심사를 반영했어요. ' : '오늘의 별자리 기운에 맞췄어요. ') + r.pick.why;
@@ -17428,7 +17416,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu/"
                    aria-label="핀란드 주석점 시작" data-cd-trans-attr="aria-label:home.tiles.sikojenAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-6bb082774cb4" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-1afae1791893" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
@@ -21177,7 +21165,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     if (!shareUrl) return Promise.reject(new Error('share_url_missing'));
     // 지금 보고 있는 언어의 셸·미리보기 카드로 공유한다(js/share.js). 아직 안 실렸으면 서버 URL 그대로.
     if (typeof window.cdLocalizeShareUrl === 'function') shareUrl = window.cdLocalizeShareUrl(shareUrl);
-    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-6bb082774cb4';
+    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-1afae1791893';
     if (typeof window.cdLocalizeShareImage === 'function') shareImageUrl = window.cdLocalizeShareImage(shareImageUrl);
     renderShareUrl(shareUrl, tr('kakaoReferral.rewardReady', '초대 링크가 준비됐어요. 친구 가입 완료 시 추천 보상이 지급됩니다.'));
     return loadKakaoSdk(payload.kakaoJavascriptKey).then(function(ok){
@@ -34573,7 +34561,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-6bb082774cb4',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-1afae1791893',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['20,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'20,000원 · 전문가 상담',ct:'paid',img:'https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp',fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:'/fuctionassets/naming.webp',fallbackCta:'작명 시작하기'},
@@ -34618,7 +34606,7 @@ function updateBadge() {
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',fallbackTitle:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'5,000원',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',fallbackTitle:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'5,000원',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',fallbackTitle:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎의 징조를 살폈습니다 — 왕실의 찻잎 문양이 오늘의 운명을 전합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'3,000원',ct:'paid',img:'/fuctionassets/london.webp'},
-    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-6bb082774cb4'},
+    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-1afae1791893'},
     '/destiny-poker.html':{cat:'데스티니 포커',fallbackTitle:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',fallbackTitle:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🔒 잠금 해제 10,000원',ct:'paid',img:'/fuctionassets/love code.webp'},
     openAstroModal:{cat:'점성술 · 기본 출생차트',fallbackTitle:'✨ 서양 점성술 기본 출생차트',tagline:'태양 별자리·달 별자리·상승궁과 MC로 나를 이해하는 5분 기본 리딩입니다.',feats:['출생 정보 신뢰도와 계산 기준 표시','태양 별자리·달 별자리·상승궁 3축 통합 해석','MC·10하우스·6하우스 기반 역할 조건','상대 차트 교차 분석은 시너스트리 궁합으로 확장'],cost:'✨ 기본 무료 · 시너스트리 궁합 3,000원',ct:'free',img:'/fuctionassets/jumsung.webp'},

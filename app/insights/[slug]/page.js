@@ -244,7 +244,7 @@ export default async function InsightArticlePage({ params }) {
           <span>{article.category || copy.fallbackKeyword}</span>
         </nav>
 
-        <header className={styles.hero}>
+        <header className={`/insights/${slug}/` === PUBLIC_RECORD_PATH ? `${styles.hero} ${styles.recordHero}` : styles.hero}>
           <div className={styles.heroCopy}>
             <div className={styles.metaRow}>
               <span>{article.category || copy.fallbackKeyword}</span>
@@ -260,7 +260,7 @@ export default async function InsightArticlePage({ params }) {
             </div>
           </div>
           <figure className={styles.heroVisual}>
-            <img src={image.src} alt={image.alt || `${article.title} 대표 이미지`} width="1600" height="900" />
+            <img src={image.src} alt={image.alt || `${article.title} 대표 이미지`} width={image.width || 1600} height={image.height || 900} />
             <figcaption className={styles.pigNote}>
               <img src="/icons/app-logo-512.webp" alt="" width="512" height="512" />
               <span>{copy.figureCaption}</span>
