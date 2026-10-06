@@ -288,6 +288,8 @@ function sajuFixture() {
     pollTimer: null, pollAttempts: 0, pollErrorStreak: 0, pollNotFoundStreak: 0, POLL_MAX_ATTEMPTS: 120,
     activePendingJob: null, requestLocale: 'ko', requestInFlight: false, resumeBtn: null,
     _sajuPromptOwnerId: () => 'fixture-owner',
+    _sajuPromptResolveProfileId: () => 'fixture-profile',
+    clearVisibleConsultation: () => { ctx.activePendingJob = null; }, clearPaidEvidence() {},
     setTimeout: fn => { timers.set(++id, fn); return id; }, clearTimeout: key => timers.delete(key),
     stopProgress() {}, setLoading() {}, setProgress() {},
     rememberPendingJob: job => { ctx.activePendingJob = job; },
@@ -299,7 +301,7 @@ function sajuFixture() {
   return { ctx, events, tick: async () => { const batch = [...timers.values()]; timers.clear(); batch.forEach(fn => fn()); await flush(); } };
 }
 for (const boundary of ['status', 'result', 'old-cycle']) {
-  test(`saju drops stale ${boundary} response without clearing paid job`, async () => {
+  test(`saju drops stale ${boundary} response and retires the previous locale in-memory job`, async () => {
     const f = sajuFixture(), status = deferred(), result = deferred();
     f.ctx._sajuPromptFetchStatus = () => status.promise;
     f.ctx._sajuPromptFetchResult = () => result.promise;
@@ -310,7 +312,7 @@ for (const boundary of ['status', 'result', 'old-cycle']) {
     if (boundary === 'old-cycle') f.ctx.pollPendingJob({ requestId: 'paid-2' }, true);
     result.resolve({ payload: { resultText: 'old' } }); await flush();
     assert.equal(f.events.length, 0);
-    assert.equal(f.ctx.activePendingJob.requestId, boundary === 'old-cycle' ? 'paid-2' : 'paid-1');
+    assert.equal(f.ctx.activePendingJob?.requestId ?? null, boundary === 'old-cycle' ? 'paid-2' : null);
   });
 }
 test('saju still delivers the current paid result without a locale change', async () => {

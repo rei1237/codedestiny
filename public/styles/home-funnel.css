@@ -607,11 +607,15 @@ html.neo-mode #cdHomeFunnel { --cdh-page-art: url('/images/home/illustrated/moon
 #cdHomeFunnel .cdh-yn-portal .cdh-portal__copy { max-width: 48rem; }
 #cdHomeFunnel .cdh-yn-portal .cdh-portal__copy strong { font-size: var(--cd-t-display); text-wrap: balance; }
 #cdHomeFunnel .cdh-yn-portal .cdh-portal__copy small { font-size: 1rem; overflow-wrap: anywhere; }
-.cdh-global-records { padding: 24px 0; color: var(--cdh-ink); }
-.cdh-global-records h2 { font-family: var(--font-serif); font-size: var(--cd-t-section); text-wrap: balance; }
-.cdh-global-records p { max-width: 70ch; color: var(--cdh-muted); line-height: 1.75; }
-.cdh-global-records nav { display: flex; flex-wrap: wrap; gap: 8px 24px; }
-.cdh-global-records a { display: inline-flex; align-items: center; min-height: 44px; color: var(--cdh-accent); text-decoration: underline; text-underline-offset: .25em; }
+.cdh-global-records { position: relative; isolation: isolate; display: grid; gap: 12px; overflow: hidden; padding: clamp(22px,3vw,36px); border: 1px solid color-mix(in srgb,var(--cdh-gold) 34%,var(--cdh-line)); border-radius: 24px; background: radial-gradient(circle at 100% 0,color-mix(in srgb,var(--cdh-gold) 10%,transparent),transparent 35%),linear-gradient(145deg,var(--cdh-card),color-mix(in srgb,var(--cdh-gold) 6%,var(--cdh-surface))); box-shadow: 0 18px 42px -32px color-mix(in srgb,var(--cdh-gold) 56%,var(--cdh-ink)),inset 0 1px 0 color-mix(in srgb,var(--cdh-gold-soft) 54%,transparent); color: var(--cdh-ink); }
+.cdh-global-records::after { position: absolute; top: 12px; right: 18px; z-index: -1; width: clamp(96px,13vw,156px); height: clamp(64px,8vw,94px); background: var(--cdh-gold); opacity: .2; pointer-events: none; content: ""; -webkit-mask: var(--cd-yehwa-mask-branch-spray) center/contain no-repeat; mask: var(--cd-yehwa-mask-branch-spray) center/contain no-repeat; }
+.cdh-global-records h2 { max-width: 38ch; font-family: var(--font-serif,"CodeDestinySerifKR",serif); font-size: clamp(1.45rem,2.3vw,2rem); font-weight: 700; line-height: 1.45; text-wrap: balance; }
+.cdh-global-records p { max-width: 68ch; color: var(--cdh-muted); line-height: 1.8; }
+.cdh-global-records nav { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 4px; }
+.cdh-global-records a { display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; min-height: 52px; padding: 10px 15px; border: 1px solid color-mix(in srgb,var(--cdh-gold) 34%,var(--cdh-line)); border-radius: 14px; background: color-mix(in srgb,var(--cdh-card) 88%,transparent); color: var(--cdh-accent); font-size: .9rem; font-weight: 700; text-decoration: none; transition: border-color .18s ease,box-shadow .18s ease,transform .18s ease; }
+.cdh-global-records a:hover { transform: translateY(-1px); border-color: color-mix(in srgb,var(--cdh-gold) 72%,var(--cdh-line)); box-shadow: 0 8px 20px -16px var(--cdh-gold); }
+.cdh-global-records a:focus-visible { outline: 3px solid var(--cdh-accent); outline-offset: 3px; }
+@media (max-width:640px) { .cdh-global-records { gap: 10px; padding: 22px 18px; border-radius: 20px; } .cdh-global-records::after { top: 8px; right: 10px; width: 96px; height: 60px; opacity: .14; } .cdh-global-records h2 { max-width: 24ch; font-size: clamp(1.3rem,6vw,1.55rem); } .cdh-global-records p { font-size: .9rem; } .cdh-global-records nav { grid-template-columns: minmax(0,1fr); gap: 8px; } .cdh-global-records a { min-height: 48px; } }
 #cdHomeFunnel .cdh-portal { position: relative; display: grid; grid-template-columns: minmax(0,1fr) 43%; min-height: 212px; overflow: hidden; border: 1px solid var(--cdh-line); border-radius: 18px; background: var(--cdh-card); box-shadow: 0 12px 32px -24px var(--cdh-ink); }
 #cdHomeFunnel .cdh-portal.cdh-persona--neo { display: none; }
 html.neo-mode #cdHomeFunnel .cdh-portal.cdh-persona--neo { display: grid; }
@@ -672,3 +676,16 @@ html body #cdFinalCtaBand{padding:24px 16px;margin:8px auto 28px;border:0;backgr
   :is(#emailSubBoxHome,#emailSubBox) .btn-subscribe{width:100%}
   #cdSiteFooter .cd-footer-brandcol{padding-bottom:20px}
 }
+/* 공개 분석 기록과 영냥이 진입 — 달빛 예화 표면 */
+#cdHomeFunnel .cdh-public-bridges{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:12px;margin:0 0 18px}
+#cdHomeFunnel .cdh-public-bridge{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-content:center;align-items:center;column-gap:14px;row-gap:4px;min-width:0;min-height:82px;padding:14px 18px;border:1px solid color-mix(in srgb,var(--cdh-gold) 36%,var(--cdh-line));border-radius:18px;background:radial-gradient(42% 130% at 100% 0,color-mix(in srgb,var(--cdh-gold-soft) 82%,transparent),transparent 78%),linear-gradient(145deg,color-mix(in srgb,var(--cdh-card) 96%,var(--cdh-gold-soft)),var(--cdh-card));box-shadow:0 13px 28px -24px color-mix(in srgb,var(--cdh-ink) 34%,transparent),inset 0 1px 0 color-mix(in srgb,var(--cdh-gold-soft) 84%,transparent);text-decoration:none;color:var(--cdh-ink);transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease}
+#cdHomeFunnel .cdh-public-bridge::before{content:"";position:absolute;inset:7px;border:1px solid color-mix(in srgb,var(--cdh-gold) 14%,transparent);border-radius:12px;pointer-events:none}
+#cdHomeFunnel .cdh-public-bridge>*{position:relative;grid-column:1;min-width:0}
+#cdHomeFunnel .cdh-public-bridge__eyebrow{color:var(--cdh-gold);font:700 .64rem/1.35 "CodeDestinySerifLatin",Georgia,serif;letter-spacing:.13em;text-transform:uppercase}
+#cdHomeFunnel .cdh-public-bridge strong{padding-right:14px;font:700 clamp(.94rem,1.35vw,1.08rem)/1.45 "CodeDestinySerifKR","Nanum Myeongjo","Gowun Batang",serif;letter-spacing:-.025em;overflow-wrap:anywhere}
+#cdHomeFunnel .cdh-public-bridge__detail{color:var(--cdh-muted);font-size:.78rem;line-height:1.5}
+#cdHomeFunnel .cdh-public-bridge__arrow{grid-column:2;grid-row:1/4;align-self:center;color:var(--cdh-gold);font-size:1.2rem;font-weight:700}
+#cdHomeFunnel .cdh-public-bridge:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--cdh-gold) 68%,var(--cdh-line));box-shadow:0 17px 30px -23px color-mix(in srgb,var(--cdh-ink) 44%,transparent),inset 0 1px 0 color-mix(in srgb,var(--cdh-gold-soft) 84%,transparent)}
+#cdHomeFunnel .cdh-public-bridge:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px}
+@media(max-width:700px){#cdHomeFunnel .cdh-public-bridges{grid-template-columns:1fr;gap:9px;margin-bottom:14px}#cdHomeFunnel .cdh-public-bridge{min-height:76px;padding:12px 16px}}
+@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cdh-public-bridge{transition:none}}

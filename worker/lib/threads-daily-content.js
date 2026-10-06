@@ -166,10 +166,10 @@ export function buildThreadsPostChain(env, now = Date.now(), copy = null) {
   const ctx = buildThreadsDayContext(env, now);
   if (!ctx) return [];
 
-  const { card, base, pick, day, groups } = ctx;
+  const { card, pick, day, groups } = ctx;
   const posts = [];
 
-  // ── 루트: 날짜 · 일진 · 오늘의 기둥 · 하루 총평 · 오늘과 합/충하는 띠 · 사이트 진입 링크
+  // ── 루트: 날짜 · 일진 · 오늘의 기둥 · 하루 총평 · 오늘과 합/충하는 띠
   const zodiacLines = renderItems(findSection(card, "zodiac"));
   // 🔴 천간·지지 줄은 AI 서문이 들어와도 남겨 둔다 — 서문이 card.body 를 대체하면 그 두 오행이
   // 루트에서 통째로 사라진다(예전 체인의 '① 오늘의 기둥' 답글이 하던 몫이다).
@@ -184,7 +184,7 @@ export function buildThreadsPostChain(env, now = Date.now(), copy = null) {
       copy?.intro || `${card.headline}. ${card.body}`,
       ...(zodiacLines.length ? ["", ...zodiacLines] : []),
       "",
-      `일간별로 이어서 답니다. 오늘의 운세 → ${base}/fortune/`,
+      "일간별로 이어서 답니다. 서비스 바로가기는 프로필 링크에서 확인해 주세요.",
     ].join("\n"),
   );
 
@@ -195,7 +195,7 @@ export function buildThreadsPostChain(env, now = Date.now(), copy = null) {
     const lines = [`${marks[index]} ${group.hanja} ${group.rows.map((row) => row.stemKo).join("·")} 일간`, "", ...blocks];
 
     // 요일 코너는 마지막 답글 끝에 붙인다 — 링크 하나짜리 글을 따로 두면 체인이 7글이 된다.
-    if (index === groups.length - 1) lines.push(`${pick.label} — ${pick.line}`, `${base}${pick.path}`);
+    if (index === groups.length - 1) lines.push(`${pick.label} — ${pick.line}`);
 
     posts.push(lines.join("\n").trimEnd());
   });

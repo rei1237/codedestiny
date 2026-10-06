@@ -201,7 +201,7 @@ export function animalDayRelation(animalId: string, ilchin: string): DayRelation
     badge: `일진 ${dayKo}`,
     badgeI18n: { key: "fortuneTpl.animalNeutralBadge", vars: { branch: ref(BRANCH_KEY, day, dayKo) } },
     detailI18n: { key: "fortuneTpl.animalNeutral", vars: { branch: ref(BRANCH_KEY, day, dayKo) } },
-    detail: `오늘 일진의 지지는 ${dayKo}로, 이 띠와 특별한 합이나 충을 이루지 않습니다. 외부 변수가 적은 만큼 결과가 자기 준비대로 나오는 날입니다. 평소 미뤄 둔 일을 처리하기에 무난합니다.`,
+    detail: `오늘 일진의 지지는 ${dayKo}입니다. 이 표시는 삼합·충·비화에 해당하지 않는다는 뜻이며, 육합 등 다른 관계는 점수의 산출 근거에서 따로 확인합니다. 이것만으로 외부 변수가 적거나 준비한 대로 결과가 나온다고 예측할 수는 없습니다.`,
   };
 }
 

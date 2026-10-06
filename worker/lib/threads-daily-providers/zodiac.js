@@ -12,6 +12,7 @@ import { getBranchPairRelations } from "../saju-shinsal.js";
 import {
   CASUAL_RULES,
   SCOPE_LINE,
+  THREADS_PROFILE_LINK_CTA,
   acceptCopyField,
   generateJsonCopy,
   kstDateLabel,
@@ -258,7 +259,7 @@ export function format(facts, copy, _url) {
     ...featured.map((animal, index) => `${index + 1}. ${label(animal)}`),
     "", "오늘 일진과 합의 관계를 이루는 띠들이야. 돈의 조건과 마음의 표현을 맞춰 봐.",
     "12띠 각각의 재물운·연애운·일/직장운을 아래에 이어 둘게.", copy.tip, SCOPE_LINE,
-    "연도는 찾기용 · 연초 출생은 입춘 기준 확인", "#꿀꿀운세"].join("\n");
+    "연도는 찾기용 · 연초 출생은 입춘 기준 확인", THREADS_PROFILE_LINK_CTA, "#꿀꿀운세"].join("\n");
   const replies = [];
   for (let start = 0; start < facts.animals.length; start += 2) {
     replies.push(facts.animals.slice(start, start + 2).map((animal, offset) =>

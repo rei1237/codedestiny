@@ -391,6 +391,8 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
 };
 
 export const noindexPathPrefixes = [
+  // 날짜별 보관 화면은 재방문 도구다. 기간별 정본과 반복되는 360개 URL은 검색에서 제외한다.
+  "/fortune/date",
   '/neo-operation-room/strategy-books',
   '/records',
   '/consultations',

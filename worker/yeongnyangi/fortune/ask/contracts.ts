@@ -60,6 +60,7 @@ export interface EvidencePacket {
 }
 // Only engine results enter this boundary. No raw profile, question, or user ID.
 export interface PacketInput {
+  includeSajuCycles?: boolean;
   contexts: Partial<Record<DomainId, DomainContext>>;
   today: string;
   locale?: string;

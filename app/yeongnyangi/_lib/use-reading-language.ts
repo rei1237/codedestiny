@@ -1,4 +1,5 @@
 'use client';
+import {usePathname} from 'next/navigation';
 import {useEffect,useRef,useState} from 'react';
 import {getCurrentLoadingLocale} from '@/constants/loadingMessages';
 import {readingLocale,type ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
@@ -7,23 +8,31 @@ export function resolveReadingLanguage(value:unknown):{locale:ReadingLocale;fall
   try { return {locale:readingLocale(value),fallback:false}; }
   catch { return {locale:'en',fallback:true}; }
 }
+function localeFromPathname(pathname:string):ReadingLocale|null {
+  const segment=String(pathname||'').split('/').filter(Boolean)[0]||'';
+  const normalized=segment.toLowerCase();
+  if(normalized==='zh')return 'zh-CN';
+  if(normalized==='zh-tw')return 'zh-TW';
+  try{return normalized?readingLocale(normalized):null;}catch{return null;}
+}
 // The result override is local to this consultation. It never writes cd_lang.
 export function useReadingLanguage(){
-  const [siteLocale,setSiteLocale]=useState<ReadingLocale>('ko');
-  const [locale,setValue]=useState<ReadingLocale>('ko');
+  const pathLocale=localeFromPathname(usePathname()||'');
+  const [siteLocale,setSiteLocale]=useState<ReadingLocale>(pathLocale||'ko');
+  const [locale,setValue]=useState<ReadingLocale>(pathLocale||'ko');
   const [fallback,setFallback]=useState(false);
   const overridden=useRef(false);
   useEffect(()=>{
     const sync=()=>{
       const query=new URLSearchParams(window.location.search).get('lang');
-      const selection=resolveReadingLanguage(query||getCurrentLoadingLocale());
+      const selection=resolveReadingLanguage(query||pathLocale||getCurrentLoadingLocale());
       setSiteLocale(selection.locale);setFallback(selection.fallback);
       if(!overridden.current)setValue(selection.locale);
     };
     sync();
     window.addEventListener('cd:locale-ready',sync);window.addEventListener('languagechange',sync);
     return()=>{window.removeEventListener('cd:locale-ready',sync);window.removeEventListener('languagechange',sync);};
-  },[]);
+  },[pathLocale]);
   function setLocale(value:ReadingLocale){overridden.current=true;setValue(value);setFallback(false);}
   return {locale,setLocale,siteLocale,fallback};
 }

@@ -18,12 +18,12 @@ const FAQS = [
   {
     question: "날짜별 띠 운세는 얼마나 오래 볼 수 있나요?",
     answer:
-      "공개 날짜별 띠 운세는 한국 표준시 기준 최근 30일을 보관합니다. 날짜가 지나면 새 archive가 갱신되고 오래된 페이지는 목록과 사이트맵에서 빠집니다.",
+      "공개 날짜별 띠 운세는 한국 표준시 기준 최근 30일을 보관합니다. 새 자료가 발행되면 목록을 갱신합니다. 날짜별 보관 화면은 다시 읽기 위한 자료로, 검색용 사이트맵에는 포함하지 않습니다.",
   },
   {
     question: "오늘의 띠 운세와 날짜별 운세는 무엇이 다른가요?",
     answer:
-      "오늘의 띠 운세는 현재 날짜에 맞춰 바뀌는 rolling 페이지이고, 날짜별 띠 운세는 특정 날짜의 일진 근거와 총운·재물운·연애운·직장운·건강운을 다시 확인하는 고정 페이지입니다.",
+      "오늘의 띠 운세는 기준일에 맞춰 갱신하는 화면이고, 날짜별 띠 운세는 특정 날짜의 일진 근거와 총운·재물운·연애운·직장운·건강운을 다시 확인하는 고정 페이지입니다.",
   },
   {
     question: "원숭이띠처럼 특정 띠의 날짜 운세는 어디서 보나요?",
@@ -33,13 +33,14 @@ const FAQS = [
 ];
 
 export function generateMetadata() {
-  return buildSeoMetadata({
+  const metadata = buildSeoMetadata({
     path: PATH,
     title: TITLE,
     description:
       "최근 30일의 날짜별 띠 운세를 한곳에서 확인하세요. 12띠별 총운·재물운·연애운·직장운·건강운과 일진 근거를 날짜별로 정리합니다.",
     keywords: ["날짜별 띠 운세", "띠별 날짜 운세", "최근 30일 띠 운세", "원숭이띠 날짜 운세"],
   });
+  return { ...metadata, robots: { index: false, follow: true, googleBot: { index: false, follow: true } } };
 }
 
 function formatDate(date: string) {

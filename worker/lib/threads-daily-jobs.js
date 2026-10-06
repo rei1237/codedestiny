@@ -1,4 +1,5 @@
 // Threads 유형별 일일 발행 Job — 띠별 08:30 / 사주 12:00 / 카르마 20:30 KST(2026-10-02 개편).
+// 매주 수요일 12:00 은 사주 Job 의 잠금·게시 슬롯을 유지한 채 다섯 서비스 홍보가 차례로 대신한다.
 // 자미두수·베다·수비학은 용어가 읽히지 않아 조회수가 없어 기본으로 끈다 — 코드는 보존, enableVar 로 재가동.
 //
 // 매 10분 크론(worker/index.js 의 PAYMENT_RECONCILE_CRON 분기)이 부른다. 워커 크론 구조는 그대로 두고
@@ -18,7 +19,7 @@ import { getEnv } from "./env.js";
 import { notifyCronTaskFailures } from "./cron-failure-alert.js";
 import { getKstDateKey, getSiteBaseUrl } from "./daily-fortune-task.js";
 import { getThreadsPostMode, getThreadsSkipReason, isSwitchOn, runChannel } from "./sns-daily-post-task.js";
-import { postThreadsChain } from "./threads.js";
+import { getThreadsPromoMedia, postThreadsChain } from "./threads.js";
 import { buildUtmUrl, PROMPT_VERSION, repeatsRecent } from "./threads-daily-providers/shared.js";
 import * as zodiacProvider from "./threads-daily-providers/zodiac.js";
 import * as karmaProvider from "./threads-daily-providers/karma.js";
@@ -26,6 +27,7 @@ import * as sajuProvider from "./threads-daily-providers/saju.js";
 import * as ziweiProvider from "./threads-daily-providers/ziwei.js";
 import * as vedicProvider from "./threads-daily-providers/vedic.js";
 import * as numerologyProvider from "./threads-daily-providers/numerology.js";
+import { createThreadsBrandPromoProvider, getWeeklyThreadsBrandPromo } from "./threads-daily-providers/brand-promo.js";
 
 export const THREADS_JOB_ENDPOINT = "cron:sns-threads-daily";
 
@@ -143,10 +145,10 @@ export async function publishThreadsJob(env, { type, provider, now, fetchImpl, g
     return { ok: false, status: 0, error: `format_threw: ${errorMessage(error)}`, ref: { ...base, ids: [] } };
   }
 
-  const editorial = {promptVersion:PROMPT_VERSION, locale:"ko", topic:type, contentType:type === "karma" ? "conversation" : "daily_reflection",
+  const editorial = {promptVersion:PROMPT_VERSION, locale:"ko", topic:type, contentType:provider.CONTENT_TYPE || (type === "karma" ? "conversation" : "daily_reflection"),
     hook:written.copy.hook, body:written.copy.body, text, destinationUrl,
     campaignId:new URL(destinationUrl).searchParams.get("utm_campaign"),
-    sourceBasis:type === "karma" ? `editorial_theme:${facts.themeId}` : `canonical_engine:${type}:${base.date}:Asia/Seoul`, recentCompared:recent.length};
+    sourceBasis:provider.SOURCE_BASIS || (type === "karma" ? `editorial_theme:${facts.themeId}` : `canonical_engine:${type}:${base.date}:Asia/Seoul`), recentCompared:recent.length};
   if (repeatsRecent(written.copy, recent)) return {ok:false,status:0,error:"editorial_review_required",
     ref:{...base,...editorial,ids:[],reviewRequired:true}};
   // provider 가 [본 글, 답글…] 을 돌려주면 체인으로 낸다(띠별: 티저 + 12띠 답글). 링크·CTA 는 본 글에 있다.
@@ -154,7 +156,7 @@ export async function publishThreadsJob(env, { type, provider, now, fetchImpl, g
   editorial.text = texts[0];
   if (texts.length > 1) editorial.replies = texts.slice(1);
   base.posts = texts.length;
-  const result = await postThreadsChain(env, { texts, fetchImpl });
+  const result = await postThreadsChain(env, { texts, fetchImpl, media: getThreadsPromoMedia(type, getSiteBaseUrl(env)) });
   const ids = Array.isArray(result.ids) ? result.ids : [];
   const ref = { ...base, ...editorial, publishUncertain: Boolean(result.publishUncertain), containerId: result.containerId || null, ids, postId: ids[0] || null, aiModel: written.model || null, rejected: written.rejected || [] };
   if (!result.ok) {
@@ -227,11 +229,14 @@ export async function runThreadsDailyJobs(env, options = {}) {
       jobs[job.type] = { ok: true, skipped: "outside_window" };
       continue;
     }
-    if (!providers[job.type]) {
+    const promo = job.type === "saju" ? getWeeklyThreadsBrandPromo(dateKey) : null;
+    const contentType = promo?.type || job.type;
+    const provider = promo ? createThreadsBrandPromoProvider(promo) : providers[job.type];
+    if (!provider) {
       jobs[job.type] = { ok: true, skipped: "provider_missing" };
       continue;
     }
-    due.push({ job, offset });
+    due.push({ job, offset, contentType, provider });
   }
 
   if (!only) {
@@ -253,15 +258,15 @@ export async function runThreadsDailyJobs(env, options = {}) {
     catch (error) { for (const {job} of due) if (!jobs[job.type]) jobs[job.type] = {ok:false,stage:"history",error:errorMessage(error)}; }
   }
   const pending = due.filter(({ job }) => !jobs[job.type]);
-  const settled = await Promise.allSettled(pending.map(({ job }) => runLocked({
+  const settled = await Promise.allSettled(pending.map(({ job, contentType, provider }) => runLocked({
     env,
     now,
     endpoint: THREADS_JOB_ENDPOINT,
     keyHash: `${dateKey}:threads:${job.type}`,
     send: () => publishThreadsJob(env, {
       recent,
-      type: job.type,
-      provider: providers[job.type],
+      type: contentType,
+      provider,
       now,
       fetchImpl: options.fetchImpl,
       generateImpl: options.generateImpl,

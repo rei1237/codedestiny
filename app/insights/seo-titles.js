@@ -56,7 +56,7 @@ export const INSIGHT_SEO_TITLES = {
   "saju-job-change-timing-checklist-2026": "이직 타이밍 — 사주와 현실 조건 나누기",
   "saju-without-birth-time-three-pillars-guide": "출생시간 모를 때 사주: 확정할 수 있는 범위",
   "singang-sinyak-judgment-complete-guide": "신강·신약 판단법 — 일간 강약 읽는 기준",
-  "sleep-rhythm-energy-and-luck-connection": "수면 리듬과 운의 관계 — 시진 숙면 가이드",
+  "sleep-rhythm-energy-and-luck-connection": "잠을 설친 날 — 운세와 수면 기록 구분하기",
   "sukuyo-27-guardian-animals-origin-guide": "27숙 수호동물 유래 — 역사적 근거와 상징",
   "sukuyo-27-mansions": "27숙 이름과 본명숙 계산법",
   "sukuyo-ankai": "숙요점 안괴관계 — 근거리·중거리·원거리 안괴 궁합",

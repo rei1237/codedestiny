@@ -9,6 +9,7 @@
 import { getKstDateParts } from "../daily-fortune-task.js";
 import {
   CASUAL_RULES,
+  THREADS_PROFILE_LINK_CTA,
   generateJsonCopy,
   kstDateLabel,
   mergeCopy,
@@ -245,5 +246,5 @@ export function format(facts, copy, _url) {
     copy.tip,
     `🌙 ${facts.dateLabel} 연이의 마음 노트 · ${SCOPE}`,
   ];
-  return [...lines, "#꿀꿀운세"].join("\n");
+  return [...lines, "", THREADS_PROFILE_LINK_CTA, "#꿀꿀운세"].join("\n");
 }

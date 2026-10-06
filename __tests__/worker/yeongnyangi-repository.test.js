@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import {CHAPTER_DELIVERY_VERSION as deliveryVersion} from '../../worker/yeongnyangi/chapter-delivery-contract.js';
 const owner='507f1f77bcf86cd799439011', other='507f1f77bcf86cd799439022';
 let loseStoredDraftAtClaim=false;
+let loseDraftAcknowledgement=false;
 let requests=[],payments=[],evidences=[],accounts=[],familyUser=null,failWrite=false,failFinalRead=false,failFinalComplete=false,refundBeforeFinalization=false,tail=Promise.resolve(),activeOperations=0;
 const consumePass=jest.fn(),refundPass=jest.fn(),refundMoonstone=jest.fn(),verifyPerUse=jest.fn();
 const get=(row,key)=>key.split('.').reduce((v,k)=>v?.[k],row);
@@ -81,6 +82,9 @@ function model(source,kind) {
         for(const [key,value] of Object.entries(update.$inc||{}))set(row,key,(get(row,key)||0)+value);
         for(const [key,value] of Object.entries(update.$push||{}))(row[key]??=[]).push(value);
       }
+      if(loseDraftAcknowledgement && Object.keys(update.$set||{}).some(key=>key.startsWith('generationCheckpoint.chapterDrafts.'))){
+        loseDraftAcknowledgement=false;throw Object.assign(new Error('lost draft acknowledgement'),{transientDraft:true});
+      }
       return {modifiedCount:row?1:0};
     }),
   };
@@ -98,8 +102,10 @@ const startSession=async()=>{
 }};};
 jest.unstable_mockModule('../../worker/lib/db.js',()=>({
   mongoose:{...mongoose,models:{YeongnyangiRequest:RequestModel},startSession},
-  connectDb:async()=>{},withMongoRetry:async(_env,fn)=>{
-    activeOperations++;try{return await fn();}finally{activeOperations--;}
+  connectDb:async()=>{},withMongoRetry:async(_env,fn,options={})=>{
+    activeOperations++;try{return await fn();}catch(error){
+      if(error.transientDraft && options.retries!==0)return await fn();throw error;
+    }finally{activeOperations--;}
   },mongoTransactionOptions:()=>txOptions,
   isTransientMongoError:()=>false,
 }));
@@ -596,6 +602,18 @@ test('a rejected draft is retried within seconds under the three-attempt cap; th
   }
   expect(requests[0]).toMatchObject({errorCode:'AUTOMATIC_RECOVERY_STOPPED',nextAttemptAt:null,lastFailure:{code:'INVALID_CHAPTER_BLOCKS',stage:'quality'}});
   expect(requests[0].recoveryAudit.at(-1)).toMatchObject({kind:'automatic_recovery_stopped',code:'INVALID_CHAPTER_BLOCKS',detail:'paragraph_too_long:action'});
+});
+
+test('a lost draft acknowledgement retries the same checkpoint without spending another chapter attempt',async()=>{
+  await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
+  const claim=await repo.claimChapter({},owner,'id');
+  const attempts=JSON.stringify(requests[0].chapterAttempts);
+  const draft={raw:'original provider response',body:{summary:'original saved result'}};
+  loseDraftAcknowledgement=true;
+  await repo.saveChapterDraft({},owner,'id',claim.token,0,draft);
+  expect(requests[0].generationCheckpoint.chapterDrafts[0]).toEqual(draft);
+  expect(JSON.stringify(requests[0].chapterAttempts)).toBe(attempts);
+  expect(requests[0].leaseToken).toBe(claim.token);
 });
 
 test.each(['queue','scheduled'])('a durable draft survives storage interruption via %s without a new generation reservation',async source=>{

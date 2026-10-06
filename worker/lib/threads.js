@@ -26,6 +26,26 @@ const THREADS_API_VERSION = "v1.0";
 // 여기서는 자르지 않고 **거절한다**. 조용히 잘린 글이 공개 채널에 나가는 것보다 안 나가는 게 낫다.
 export const THREADS_TEXT_LIMIT = 500;
 
+export const THREADS_PROMO_ASSETS = Object.freeze({
+  general: { path: "/assets/kakao-crm/yeongnyangi-ask.png", altText: "별이 비친 상담실에서 고민을 듣는 흰 고양이 영냥이" },
+  zodiac: { path: "/assets/yeongnyangi/hero.webp", altText: "Code Destiny의 운세 길잡이 영냥이" },
+  saju: { path: "/assets/kakao-crm/yeongnyangi-ask.png", altText: "마음에 걸리는 질문을 듣는 영냥이의 사주 상담" },
+  karma: { path: "/images/fortune-tea-house/renewal/yeoni-tea-welcome.webp", altText: "따뜻한 차와 함께 마음을 맞이하는 운명의 찻집 연이" },
+  neo: { path: "/assets/threads/neo-human-strategy-briefing-v1.png", altText: "은발의 인간형 네오가 달빛 아래 작전 지도를 살피며 상담하는 장면" },
+  ggulggul: { path: "/assets/kakao-crm/yeoni-weekly.png", altText: "꽃돼지 연이가 이번 주 운세를 소개하는 장면" },
+  "tea-house": { path: "/feature-details/assets/fortune-tea-house-og.webp", altText: "달빛 찻집에서 질문과 운세 카드를 살피는 운명의 찻집" },
+  yeongnyangi: { path: "/assets/kakao-crm/yeongnyangi-ask.png", altText: "별이 비친 상담실에서 고민을 듣는 흰 고양이 영냥이" },
+  "master-love-codex": { path: "/feature-details/assets/master-love-codex-og.webp", altText: "달빛 아래 펼쳐진 마스터 인연의 서" },
+  ziwei: { path: "/assets/yeongnyangi/readings/ziwei-v5.webp", altText: "영냥이와 함께 살펴보는 자미두수 상담" },
+  vedic: { path: "/assets/yeongnyangi/readings/vedic-v5.webp", altText: "영냥이와 함께 살펴보는 베다점 상담" },
+  numerology: { path: "/assets/yeongnyangi/readings/tarot-v5.webp", altText: "영냥이와 함께 펼쳐 보는 상징 카드 상담" },
+});
+
+export function getThreadsPromoMedia(type, baseUrl) {
+  const asset = THREADS_PROMO_ASSETS[String(type || "").toLowerCase()] || THREADS_PROMO_ASSETS.general;
+  return { imageUrl: new URL(asset.path, baseUrl).toString(), altText: asset.altText };
+}
+
 /**
  * Threads 가 세는 길이. 문서상 상한은 "500자"인데 **이모지는 UTF-8 바이트로 계산한다** —
  * 🌙 한 글자가 3자로 잡힌다. 그래서 String#length 나 [...text].length 로 재면 상한을 넘겨 놓고도
@@ -168,8 +188,10 @@ async function waitForContainerReady(doFetch, token, containerId, options = {}) 
  * 텍스트 글 하나를 발행한다(컨테이너 생성 → 상태확인 → 발행).
  * @param {string} [replyToId] 있으면 그 글의 답글로 붙는다.
  */
-async function publishOneThread(doFetch, token, text, replyToId, waitOptions) {
-  const params = { media_type: "TEXT", text };
+async function publishOneThread(doFetch, token, text, replyToId, waitOptions, media) {
+  const params = media
+    ? { media_type: "IMAGE", image_url: media.imageUrl, alt_text: media.altText, text }
+    : { media_type: "TEXT", text };
   if (replyToId) params.reply_to_id = replyToId;
 
   const container = await callThreadsApi(doFetch, token, "me/threads", params);
@@ -200,6 +222,7 @@ async function publishOneThread(doFetch, token, text, replyToId, waitOptions) {
  * @param {Object} env
  * @param {Object} options
  * @param {string[]} options.texts 발행할 글들. 각 THREADS_TEXT_LIMIT 이하여야 한다.
+ * @param {{imageUrl:string,altText:string}} [options.media] 루트 게시물에 첨부할 공개 이미지. 답글에는 붙지 않는다.
  * @param {Function} [options.fetchImpl] 검증용 주입구. 기본값은 전역 fetch.
  * @param {Function} [options.sleepImpl] 컨테이너 상태 재확인 대기 주입구. 기본값은 실제 setTimeout.
  * @param {number} [options.maxAttempts] 컨테이너 상태 확인 최대 횟수.
@@ -207,7 +230,7 @@ async function publishOneThread(doFetch, token, text, replyToId, waitOptions) {
  * @returns {Promise<{ok: boolean, status: number, ids: string[], error?: string, code?: number|null, permanent?: boolean, failedAt?: number}>}
  */
 export async function postThreadsChain(env, options = {}) {
-  const { texts, fetchImpl, sleepImpl, maxAttempts, intervalMs } = options;
+  const { texts, fetchImpl, sleepImpl, maxAttempts, intervalMs, media } = options;
   const waitOptions = { sleepImpl, maxAttempts, intervalMs };
 
   const token = getEnv(env, "THREADS_ACCESS_TOKEN");
@@ -216,10 +239,20 @@ export async function postThreadsChain(env, options = {}) {
     return { ok: false, status: 0, ids: [], error: "missing_access_token", permanent: true };
   }
 
-  const chain = Array.isArray(texts) ? texts.map((item) => String(item ?? "").trim()).filter(Boolean) : [];
+  const chain = Array.isArray(texts)
+    ? texts.map((item) => String(item ?? "").replace(/(?:https?:\/\/|www\.)[^\s<>]+/giu, "").trim()).filter(Boolean)
+    : [];
   if (!chain.length) {
     console.error("[THREADS] 본문이 비어 있다 — 발행을 건너뛴다.");
     return { ok: false, status: 0, ids: [], error: "empty_text", permanent: false };
+  }
+
+  if (media) {
+    let imageUrl;
+    try { imageUrl = new URL(String(media.imageUrl || "")); } catch (_error) { imageUrl = null; }
+    if (!imageUrl || imageUrl.protocol !== "https:" || !String(media.altText || "").trim()) {
+      return { ok: false, status: 0, ids: [], error: "invalid_media", permanent: true };
+    }
   }
 
   const tooLong = chain.findIndex((item) => threadsTextWeight(item) > THREADS_TEXT_LIMIT);
@@ -232,7 +265,7 @@ export async function postThreadsChain(env, options = {}) {
   const ids = [];
 
   for (let index = 0; index < chain.length; index += 1) {
-    const result = await publishOneThread(doFetch, token, chain[index], ids[ids.length - 1], waitOptions);
+    const result = await publishOneThread(doFetch, token, chain[index], ids[ids.length - 1], waitOptions, index === 0 ? media : null);
     if (!result.ok) {
       return { ...result, ids, failedAt: index };
     }

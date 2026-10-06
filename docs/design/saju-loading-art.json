@@ -1,0 +1,9 @@
+{
+  "asset": "/images/saju/lotus-bloom-loading-640.webp",
+  "createdAt": "2026-10-06",
+  "generator": "built-in image_gen",
+  "purpose": "Saju calculation loader; replaces rejected geometric SVG",
+  "prompt": "A premium hand-painted natural lotus blossom, three-quarter frontal view, sculptural overlapping organically curved petals, delicate veins, blush ivory interiors and dusty rose tips, burgundy folds and champagne-gold stamens. Refined Korean botanical album, watercolor and gouache on silk, volumetric softness and subtle pigment texture. One flower fills 80% of square, short sepals, true transparent background for warm ivory and deep plum UI. No text, landscape, vector outlines, cartoon, neon or glitter.",
+  "source": "exec-42a1d874-16a9-4c7c-9f51-2b57b9496622.png",
+  "delivery": "640px WebP; alpha preserved; no runtime generation or external API"
+}

@@ -7,6 +7,7 @@ import { FortuneError } from '../shared/contracts';
 import { yearGanji } from '../consultation';
 import { periodOverlaps } from './window';
 import { ASK_PERIOD_RESOLVER } from './period';
+import {hasPurposeCounsel,isMajorQuestion,questionCycles,purposeGuide} from '../counsel-purpose';
 
 // Where a period sits against the consultation date, so '올해' is never read off the first listed year.
 const relation = (from: string, to: string, asOf: string) =>
@@ -30,19 +31,27 @@ export function buildAskFirstChapterPrompt(consultation: Consultation, analysis:
   const inEffect = new Set<string>();
   const questions = analysis.questions.map(item => {
     const selected = sliceEvidencePacket(packet, item.category);
+    const text=consultation.questions.find(q=>q.id===item.questionId)!.text;
+    const majorQuestion=hasPurposeCounsel(consultation)&&isMajorQuestion(text);
+    const cycles=majorQuestion?questionCycles(text,consultation.asOf,selected.timing.filter(t=>t.label.startsWith('majorLuck.')).map(t=>t.value as any)):[];
+    const cycleIds=new Set(cycles.map(c=>c.index));
     // A 월운 starts at its 절입 instant and runs to the next one, so the pillar already running when the request
     // starts is evidence for it (e.g. '이번 주' between two terms, or 1~7 October under 酉월).
     const running = periodContract && start ? selected.timing
       .filter(period => period.source.system === 'saju' && period.label.startsWith('monthlyLuck') && period.resolution === 'instant' && period.from.slice(0, 10) < start)
       .sort((a, b) => a.from.localeCompare(b.from)).at(-1) : undefined;
     if (running) inEffect.add(running.id);
-    selected.timing = selected.timing.filter(period => inRequest(period) || period.id === running?.id);
+    selected.timing = selected.timing.filter(period => period.label.startsWith('majorLuck.')
+      ? majorQuestion&&cycleIds.has((period.value as any).index)
+      : majorQuestion?cycles.some(c=>periodOverlaps(period.from,period.to,{from:String(c.startYear),to:String(c.endYear)}))
+        : inRequest(period) || period.id === running?.id);
     for (const fact of selected.facts) facts.set(fact.id, fact);
     // A resolved period is the whole consultation's subject, so any in-period evidence is offered to every question.
-    const needsTiming = item.needsTiming || (periodContract && consultation.period.kind === 'requested' && selected.timing.length > 0);
+    const needsTiming = majorQuestion || item.needsTiming || (periodContract && consultation.period.kind === 'requested' && selected.timing.length > 0);
     if (needsTiming) for (const period of selected.timing) timing.set(period.id, period);
     return {
       questionId: item.questionId, category: item.category, needsTiming,
+      ...(hasPurposeCounsel(consultation)?{purpose:purposeGuide('',item.category),majorQuestion}:{}),
       factIds: selected.facts.map(fact => fact.id),
       timingIds: needsTiming ? selected.timing.map(period => period.id) : [],
     };

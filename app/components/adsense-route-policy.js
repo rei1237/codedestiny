@@ -33,6 +33,7 @@ const BLOCKED_EXACT_PATHS = new Set([
 ]);
 
 const BLOCKED_PREFIXES = [
+  "/fortune/date",
   "/admin",
   "/api",
   "/api-hello-test",

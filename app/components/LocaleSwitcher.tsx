@@ -177,7 +177,17 @@ export function LocaleSwitcher({preservePath=false,locale}:{preservePath?:boolea
             <Link
               key={locale.code}
               role="menuitem"
-              href={preservePath?`${pathname}?${new URLSearchParams({...Object.fromEntries(typeof window==='undefined'?[]:new URLSearchParams(window.location.search)),lang:locale.code})}`:getLocalizedHref(pathname, locale)}
+              href={preservePath?(()=>{
+                const normalized=normalizePathname(pathname);
+                const routeKey=getRouteKeyByLocalizedPath(normalized);
+                const localized=routeKey==='yeongnyangi'
+                  ? (locale.routeLocale?I18N_ROUTE_MAP.yeongnyangi[locale.routeLocale]:I18N_ROUTE_MAP.yeongnyangi.ko)
+                  : routeKey&&locale.routeLocale?I18N_ROUTE_MAP[routeKey][locale.routeLocale]:normalized;
+                const query=new URLSearchParams(typeof window==='undefined'?'':window.location.search);
+                query.set('lang',locale.code);
+                const hash=typeof window==='undefined'?'':window.location.hash;
+                return `${localized}?${query.toString()}${hash}`;
+              })():getLocalizedHref(pathname, locale)}
               hrefLang={locale.hrefLang}
               lang={locale.hrefLang}
               onClick={(event) => {

@@ -3,6 +3,7 @@ import { TRUST_LOCALES } from "./public-trust-copy.mjs";
 
 export const I18N_ROUTE_KEYS = [
   "home",
+  "yeongnyangi",
   "ziwei",
   "sukuyo",
   "today",
@@ -22,6 +23,13 @@ export const I18N_ROUTE_MAP: Record<I18nRouteKey, Record<Locale, string>> = {
     zh: "/zh",
     "zh-TW": "/zh-tw",
     en: "/en",
+  },
+  yeongnyangi: {
+    ko: "/yeongnyangi",
+    ja: "/ja/yeongnyangi",
+    zh: "/zh/yeongnyangi",
+    "zh-TW": "/zh-tw/yeongnyangi",
+    en: "/en/yeongnyangi",
   },
   ziwei: {
     ko: "/ziwei",
@@ -156,6 +164,7 @@ export function getLocalizedPublicHref(href: string, locale: Locale): string {
   let localized = path;
 
   if (path === "/index.html") localized = locale === "ko" ? path : I18N_ROUTE_MAP.home[locale];
+  else if (path === "/yeongnyangi") localized = I18N_ROUTE_MAP.yeongnyangi[locale];
   else if (path === "/insights") localized = I18N_ROUTE_MAP.insights[locale];
   else {
     const policyKey = PUBLIC_POLICY_ROUTE_KEY_BY_PATH[path as keyof typeof PUBLIC_POLICY_ROUTE_KEY_BY_PATH];

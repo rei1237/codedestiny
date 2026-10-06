@@ -188,6 +188,8 @@ const privateNoindexRoutes = [
 ];
 
 const xRobotsNoindexHeaderPatterns = [
+  "/fortune/date",
+  "/fortune/date/*",
   '/neo-operation-room/strategy-books',
   '/neo-operation-room/strategy-books/*',
   "/animal/physio",

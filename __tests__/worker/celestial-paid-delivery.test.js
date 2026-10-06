@@ -101,7 +101,7 @@ test('two simultaneous resumes cannot claim the same released lease even with eq
  for(let n=0;n<100&&provider.mock.calls.length<8;n++)await new Promise(resolve=>setImmediate(resolve));
  expect(provider).toHaveBeenCalledTimes(8);release();
  expect((await first).status).toBe(202);expect((await second).status).toBe(202);
- expect(new Date(docs[0].retentionUntil)-new Date(docs[0].createdAt)).toBe(90*86400000);
+ expect(docs[0].retentionUntil).toBeNull();
 });
 test('original locale survives a differently localized resume request',async()=>{
  const {runWithAiLocale,getAmbientAiLocale}=await import('../../worker/lib/ai-locale-context.js');const locales=[],base=provider.getMockImplementation();provider.mockImplementation((...args)=>{locales.push(getAmbientAiLocale());return base(...args);});

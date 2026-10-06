@@ -9,7 +9,6 @@ import { inspectCheckpointBeforeTimeoutRefund } from "./checkpoint-refund-guard.
 
 const DEFAULT_TIMEOUT_SECONDS = 600;
 const DEFAULT_LOCK_SECONDS = 45;
-const DEFAULT_RETENTION_DAYS = 14;
 const DEFAULT_SOFT_ABANDON_GRACE_SECONDS = 900;
 const REFUND_LOCK_SECONDS = 90;
 /** 승인이 끝나 환불 대상이 되는 Payment 상태. "paid" 는 V2(orders.js markOrderPaid)의 종착 상태다. */
@@ -56,11 +55,6 @@ function normalizeCost(value) {
   const n = Number(value);
   if (!Number.isFinite(n) || n < 0) return 0;
   return Math.floor(n);
-}
-
-function toRetentionUntil(startedAt) {
-  const base = startedAt instanceof Date ? startedAt : nowDate();
-  return new Date(base.getTime() + DEFAULT_RETENTION_DAYS * 86400000);
 }
 
 function toTimeoutAt(startedAt, timeoutSeconds) {
@@ -1421,7 +1415,6 @@ export async function startServiceExecution(env, userId, payload = {}) {
 
   const startedAt = nowDate();
   const timeoutAt = toTimeoutAt(startedAt, payload.timeoutSeconds);
-  const retentionUntil = toRetentionUntil(startedAt);
 
   const update = {
     $setOnInsert: {
@@ -1456,7 +1449,7 @@ export async function startServiceExecution(env, userId, payload = {}) {
       generationStartedAt: startedAt,
       refundStatus: "none",
       metadata,
-      retentionUntil,
+      retentionUntil: null,
     },
     $set: {
       heartbeatAt: startedAt,

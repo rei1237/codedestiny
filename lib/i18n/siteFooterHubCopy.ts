@@ -212,7 +212,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     kicker: "Constellation Navigation",
     title: "서비스 링크 허브",
     subtitle:
-      "주요 운세와 랜딩 페이지를 성좌 지도로 재배열해 탐색 흐름과 검색 신호를 함께 강화했습니다.",
+      "궁금한 주제의 운세를 고르고, 이용 방법과 해석의 기준을 함께 살펴보세요.",
     linkNavSuffix: "링크",
     groupTitles: {
       "group.core": "핵심 운세",
@@ -347,7 +347,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     kicker: "Constellation Navigation",
     title: "サービスリンクハブ",
     subtitle:
-      "主要な占いとランディングページを星座マップとして並べ直し、回遊のしやすさと検索シグナルの両方を強めています。",
+      "気になるテーマの占いを選び、使い方と解釈の基準を確認できます。",
     linkNavSuffix: "リンク",
     groupTitles: {
       "group.core": "主要な占い",
@@ -483,7 +483,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     kicker: "Constellation Navigation",
     title: "服务链接中心",
     subtitle:
-      "我们把主要运势与落地页重新排布为星座地图，同时增强浏览动线与搜索信号。",
+      "按你关心的主题选择解读，并了解使用方法和解读依据。",
     linkNavSuffix: "链接",
     groupTitles: {
       "group.core": "核心运势",
@@ -618,7 +618,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     kicker: "Constellation Navigation",
     title: "服務連結中心",
     subtitle:
-      "我們把主要運勢與到達頁重新排布為星座地圖，同時強化瀏覽動線與搜尋訊號。",
+      "依你關心的主題選擇解讀，並了解使用方式和解讀依據。",
     linkNavSuffix: "連結",
     groupTitles: {
       "group.core": "核心運勢",
@@ -753,7 +753,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     kicker: "Constellation Navigation",
     title: "Service Link Hub",
     subtitle:
-      "The main readings and landing pages are laid out as a constellation map, strengthening both the browsing path and the search signal.",
+      "Choose a reading for your question, then explore how to use it and understand its interpretation.",
     linkNavSuffix: "links",
     groupTitles: {
       "group.core": "Core Readings",

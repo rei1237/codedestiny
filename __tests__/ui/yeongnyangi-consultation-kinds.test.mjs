@@ -20,6 +20,31 @@ const {prepareFortune,presentFortune,generateNextChapter,jongCheckFortune}=loade
 const {consultationKinds,consultationDomain,consultationManifest,supportsKind,resolveConsultationKind,products,selectChapterFacts}=loaded.exports;
 const env={GEMINIF_API_KEY:'mock-never-sent',LLM_DRY_RUN:'false'};
 const body={productId:'saju_mackerel',profileId:'self',timezone:'Asia/Seoul',topicId:'general'};
+
+test('new tuna timing and ask purchases deliver every stored cycle with private purpose metadata',async()=>{
+ for(const kind of ['timing','ask']){
+  const row=await prepareFortune(env,'purpose-'+kind,{...body,productId:'saju_tuna',consultationKind:kind,
+   ...(kind==='ask'?{question:'과거부터 미래까지 대운 전체를 설명해줘?\n올해 연애운은?'}:{})});
+  const {analysis,manifest,product}=row.snapshot;
+  const major=analysis.contexts.saju.facts.find(f=>f.label==='majorLuck').value;
+  assert.equal(analysis.consultation.counselVersion,'purpose-counsel-v1');
+  assert.equal(manifest.length,product.chapterCount);
+  assert.deepEqual(manifest.flatMap(c=>c.counsel?.cycleIndexes||[]),major.cycles.map(c=>c.index));
+  for(const chapter of manifest.filter(c=>c.counsel?.cycleIndexes)){
+   let sent;await new loaded.exports.StructuredChapterProvider({generate:async r=>{sent=r;return {result:{},provider:'mock',model:'fixture'};}}).generateChapter({locale:'ko',chapter,analysis,previous:[]});
+   const facts=sent.calculatedData.facts.filter(f=>f.label==='majorLuck');
+   const actual=facts.flatMap(f=>f.value.cycles||[f.value.cycle]);
+   assert.deepEqual(actual.map(c=>c.index),chapter.counsel.cycleIndexes);
+   assert.ok(actual.every(c=>c.interpretation?.version==='saju-cycle-evidence-v1'));
+   assert.ok(JSON.parse(sent.domainRules).counselPurpose.writing);
+  }
+  const visible=presentFortune(row);
+  assert.equal(visible.consultation.counselVersion,undefined);
+  assert.ok(visible.manifest.every(c=>c.counsel===undefined));
+  if(kind==='ask')assert.equal(row.generationCheckpoint.evidence.timing.filter(t=>t.label.startsWith('majorLuck.')).length,major.cycles.length);
+ }
+ assert.equal(globalThis.__kindTest.calls,0);
+});
 const relationRequest=(domain,kind='compatibility')=>({...body,productId:domain+'_mackerel',consultationKind:kind,question:'우리 관계에서 조율할 점은 무엇인가요?',...(kind==='compatibility'&&domain!=='tarot'?{partnerProfileId:'partner'}:{}),...(domain==='tarot'?{participants:{self:'나비',partner:'별'}}:{})});
 test('relationship modes generate all chapters from saved facts without paid calls',async()=>{
  for(const [domain,kind] of [['ziwei','love'],['ziwei','marriage'],['ziwei','compatibility'],['vedic','compatibility'],['astrology','compatibility'],['tarot','compatibility']]){
