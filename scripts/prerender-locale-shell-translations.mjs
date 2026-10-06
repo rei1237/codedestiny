@@ -64,6 +64,19 @@ function extractTransKey(attrs) {
   return fromInlineValue ? fromInlineValue[1] : "";
 }
 
+// Use the same data-cd-vars contract as the browser so search engines see prices,
+// not unresolved {amount} tokens before JavaScript loads.
+function interpolateShellVars(value, attrs, dictionary) {
+  const match = /\sdata-cd-vars=(['"])(.*?)\1/.exec(attrs);
+  if (!match) return value;
+  const vars = JSON.parse(match[2].replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, '&'));
+  return value.replace(/\{(\w+)\}/g, (token, key) => {
+    const raw = vars[key];
+    if (raw == null) return token;
+    return typeof raw === 'string' && raw.startsWith('@') ? dictionary[raw.slice(1)] || raw : String(raw);
+  });
+}
+
 function translateShell(html, dictionary) {
   let textReplaced = 0;
   let attrReplaced = 0;
@@ -79,7 +92,7 @@ function translateShell(html, dictionary) {
 
       textReplaced += 1;
       const withOrigin = `${attrs} data-cd-origin-text="${escapeAttribute(text)}"`;
-      return `<${tag}${withOrigin}>${escapeHtmlText(translated)}</${tag}>`;
+      return `<${tag}${withOrigin}>${escapeHtmlText(interpolateShellVars(translated, attrs, dictionary))}</${tag}>`;
     },
   );
 
@@ -98,7 +111,7 @@ function translateShell(html, dictionary) {
       const current = new RegExp(`\\s${attrName}="([^"]*)"`).exec(nextAttrs);
       if (!current) continue;
 
-      nextAttrs = nextAttrs.replace(current[0], ` ${attrName}="${escapeAttribute(translated)}"`);
+      nextAttrs = nextAttrs.replace(current[0], ` ${attrName}="${escapeAttribute(interpolateShellVars(translated, attrs, dictionary))}"`);
       nextAttrs += ` ${originName}="${escapeAttribute(current[1])}"`;
       attrReplaced += 1;
     }
