@@ -137,6 +137,7 @@
   }
 
   function getSavedLang() {
+    if (window.__cdAppLanguage) return normalizeLang(window.__cdAppLanguage);
     // 현재 페이지에서 누른 언어는 유지하고, 첫 진입은 React와 같은 URL 우선순위를 쓴다.
     if (selectedPageLang) return selectedPageLang;
     var urlLang = getUrlLang();
@@ -566,6 +567,7 @@
     clearLegacyTranslateCookie();
     setSavedLang(lang);
     markSavedLangAck(lang);
+    window.dispatchEvent(new CustomEvent('cd:locale-ready', { detail: { lang: lang, source: 'user' } }));
     syncLanguageUiSoon(lang);
     closeLanguageMenu();
     var localizedHomeHref = getLocalizedHomeHref(lang);
@@ -582,6 +584,13 @@
   }
 
   window.changeLanguage = nativeChangeLanguage;
+  window.addEventListener('cd:locale-ready', function (event) {
+    if (!event.detail || event.detail.source !== 'android') return;
+    selectedPageLang = normalizeLang(event.detail.lang);
+    setSavedLang(selectedPageLang);
+    syncLanguageUiSoon(selectedPageLang);
+    void applyNativeTranslations(selectedPageLang);
+  });
   window.cdApplyNativeTranslations = applyNativeTranslations;
   window.cdGetCurrentLanguage = getSavedLang;
   window.cdTranslate = function (key, vars, fallback) {

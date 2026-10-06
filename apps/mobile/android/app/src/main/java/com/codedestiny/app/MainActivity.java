@@ -80,6 +80,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(CodeDestinyBillingPlugin.class);
         // 자사 절대 URL 네비게이션이 외부 브라우저로 새는 것을 네이티브에서 최종 차단한다.
         registerPlugin(CodeDestinyNavigationPlugin.class);
+        registerPlugin(CodeDestinyLocalePlugin.class);
         // 셸 applyTheme 이 부르는 Capacitor.Plugins.StatusBar.setStyle 의 실제 구현.
         // 이게 없으면 네오(다크) 전환 시 상태바 아이콘이 다크로 남아 보이지 않는다.
         registerPlugin(CodeDestinyStatusBarPlugin.class);
