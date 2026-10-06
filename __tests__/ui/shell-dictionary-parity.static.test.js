@@ -44,6 +44,7 @@ function collectMarkers() {
   const document = new JSDOM(read("index.html")).window.document;
   const texts = new Map();
   const attrs = new Map();
+  const interpolations = new Map();
   const add = (map, key, value) => {
     if (!map.has(key)) map.set(key, new Set());
     map.get(key).add(norm(value));
@@ -53,6 +54,15 @@ function collectMarkers() {
     // 마커는 두 형태다: data-cd-trans="키" 또는 값 없는 data-cd-trans + data-key="키"
     const key = node.getAttribute("data-cd-trans") || node.getAttribute("data-key") || "";
     if (key) add(texts, key, node.textContent || "");
+    if (key && node.hasAttribute('data-cd-vars')) {
+      const vars = JSON.parse(node.getAttribute('data-cd-vars'));
+      const source = lookup(ko, key);
+      if (typeof source === 'string') {
+        const rendered = source.replace(/\{(\w+)\}/g, (token, name) => String(vars[name] ?? token));
+        if (!interpolations.has(key)) interpolations.set(key, new Map());
+        interpolations.get(key).set(norm(node.textContent || ''), norm(rendered));
+      }
+    }
   }
 
   for (const node of document.querySelectorAll("[data-cd-trans-attr]")) {
@@ -65,11 +75,11 @@ function collectMarkers() {
     }
   }
 
-  return { texts, attrs };
+  return { texts, attrs, interpolations };
 }
 
-const { texts, attrs } = collectMarkers();
 const ko = JSON.parse(read("public/i18n/ko.json"));
+const { texts, attrs, interpolations } = collectMarkers();
 
 test("셸 텍스트 마커를 전수 발견한다", () => {
   assert.ok(
@@ -104,6 +114,7 @@ test("ko.json 값이 셸 마크업 문구와 같다", () => {
       const value = lookup(ko, key);
       if (value === undefined) continue; // 위 테스트가 따로 잡는다
       if (markups.has(norm(value))) continue;
+      if (kind === '텍스트' && [...markups].every(markup => interpolations.get(key)?.get(markup) === markup)) continue;
       drift.push(`${kind} ${key}\n    셸  : ${[...markups].join(" | ")}\n    사전: ${norm(value)}`);
     }
   }

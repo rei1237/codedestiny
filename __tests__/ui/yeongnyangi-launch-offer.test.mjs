@@ -35,7 +35,7 @@ test('static home fish prices agree with the consultation catalog in every publi
  for(const file of ['index.html','public/index.html','public/ggulggul/index.html','public/static/index.html','public/en/index.html','public/ja/index.html','public/zh/index.html','public/zh-tw/index.html']){
   const html=readFileSync(file,'utf8');
   for(const fish of ['mackerel','salmon','flounder','tuna']){
-   const match=html.match(new RegExp(`<b data-yeongnyangi-price="${fish}">([^<]+)</b>`));
+   const match=html.match(new RegExp(`<b data-yeongnyangi-price="${fish}"[^>]*>([^<]+)</b>`));
    assert.equal(match?.[1],unitPrice(fish).toLocaleString('ko-KR')+'원',`${file}: ${fish}`);
   }
  }
