@@ -1,6 +1,12 @@
+---
+status: done
+updated: 2026-10-06
+next: '운영 활성화·실기기 native 공유는 별도 확인. 전달 검증은 이 문서 변경 커밋의 main CI를 확인.'
+---
+
 # 운명 구조도 구현 및 검증
 
-- status: implemented
+- 구현 상태: 완료
 - 기준 작업: Claude의 wt/destiny-anatomy-20261006-121559, f2e69f5f9
 - 범위: 정적 사주 결과의 엔진·5개 언어 문구·SVG·공유 카드·공개 안내. 결제/인증/API/DB 정책 변경 없음.
 
@@ -21,8 +27,9 @@
 - 전체 요소 스크린샷에는 content-visibility:auto 캡처 최적화만 해제. 이전 미리보기 기록을 재사용하지 않았다.
 - 공유 취소/실패/저장 분기, 개인정보 allow-list, 오행/면적 비율, 시간 미상, 정본 생성물 일치 테스트 포함.
 - impeccable detector: 기존 AI 질문 옆의 두꺼운 선 1건 수정. 기존 세밀한 도표용 글자 크기의 advisory는 수치·도표 가독성에 맞춰 유지.
-- check:fast 첫 실행은 sitemap 원장 드리프트에서 중단. 소스 완료 뒤 생성 및 재검증 필요. 최종 전달 결과는 커밋/CI 기록을 확인.
+- check:fast 첫 실행은 sitemap 원장 드리프트에서 중단. 소스 완료 뒤 재생성했고 sitemap:check 및 public-mirror-fresh가 통과했다. 통합본 check:fast와 정확한 push SHA의 CI 결과는 최종 전달 보고에서 확인한다.
 
 ## 유지 및 남은 확인
 
 가격·이용권·월정석·단건 결제, 인증, 기존 API 응답과 DB 구조 유지. 실 LLM·실결제·운영 DB·운영 배포는 실행하지 않는다. native 공유 패널과 실제 기기 저장 UX, 운영 활성화는 별도 확인이다. 일반 생활 안내의 참고: NHS 수면 안내(https://www.nhs.uk/every-mind-matters/mental-wellbeing-tips/how-to-fall-asleep-faster-and-sleep-better/). 운세 해석의 의학적 근거로 사용하지 않는다.
+
