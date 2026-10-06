@@ -108,3 +108,16 @@ status: implemented
 - 마지막 공통 해외 템플릿 변경은 targeted ESLint와 영어 홈·일본 자미두수·번체 숙요점6개 UA 응답으로 추가 확인했다. 총 curl40개, 모두200. 실제 질문 문구의 원본 HTML 포함 확인.
 - `verify:fortune-period-axis`: 24종×4기간96편, 기간 간 중복<0.45·sign 간 중복<0.5·FAQ 기간 정합 통과. 이는 기존 정적 검증기의 기준이며 검색엔진의 품질 평가 점수는 아니다.
 - 디자인 도구의 프로젝트 문서/sidecar 스키마 노후 알림은 발견했으나 이번 작업에서 전체 디자인 문서를 재정비하지 않았다. 필요하면 별도 `impeccable init`/`document` 작업으로 정리할 수 있다.
+
+## 추가 요청: 꿀꿀 운세 브랜드 검색 (10/7)
+
+- 브랜드를 바꾸지 않는다. `꿀꿀 운세`와 붙여쓰기 `꿀꿀운세`는 같은 서비스임을 유지한다. 브랜드 안내의 첫 문단과 가시 FAQ에 공식 도메인, `/ggulggul/`, `/yeongnyangi/`를 명시했다. FAQ 스키마는 같은 배열을 사용한다.
+- Chrome Google 한국어 검색 `꿀꿀운세` 첫 페이지에서 code-destiny.com은 보이지 않았다. 개인화 켜진 대한민국 단일 관측이다. 카카오 채널과 Threads/Instagram은 노출됐다. AI 개요는 카카오 채널을 출처로 사용했고 사이트를 인용하지 않았다.
+- 특히 Threads 검색결과에는 ‘꿀꿀운세에서 사주 달빛정원으로 바꿨다’는 문장이 보였다. 외부 표면의 이름 충돌 단서다. 해당 글의 작성·수정 이력 전체를 검증한 것은 아니며 게시물은 수정하지 않았다.
+- GSC `/ggulggul/`: 색인 생성됨, Googlebot 스마트폰 최근 크롤링2026-10-07 03:24:55, 가져오기성공, 크롤링/색인허용, 사용자canonical과 Google선택canonical 모두 검사URL. **수집 자체가 안 된 상태가 아니라 브랜드 쿼리에서 노출되지 않는 상태다.** 단일 원인을 확정하지 않는다.
+- 운영 curl: `/`는 `/ggulggul/`로 이동 후200, `/ggulggul/` 정본은 자신. `/yeongnyangi/`도 자신을 정본으로200/index,follow. 브랜드 제목·가시 H1 존재. 기존 대표URL을 다시 뒤집지 않았다.
+- 외부 프로필 안내 문안(미발행): `꿀꿀 운세(꿀꿀운세)는 Code Destiny의 운세·상담 서비스입니다. 공식 웹사이트는 https://code-destiny.com/이며, 연이·네오 상담은 /ggulggul/, 사주보는 고양이 영냥이는 /yeongnyangi/에서 만날 수 있습니다.` 이 문안은 이름 정합성 제안이며 자동게시하지 않았다.
+- Google 첫 페이지 노출은 보장하지 않는다. 별도 노출 측정에서 `/ggulggul/`·`/yeongnyangi/` 각각 O/X와 실제 순위를 기록한다.
+- 해외UI 보충: 번체 화면이 한국어로 보인 것은 Chrome `translated-ltr` 및476개 번역font 노드로 확인된 브라우저 자동번역이다. 초기 H1과 원본SSR은 번체. 설정은 변경하지 않았다.
+- GSC `/yeongnyangi/`도 색인 생성됨, 최근 크롤링2026-10-03 15:08:20, 스마트폰Googlebot, 가져오기성공, 사용자/Google정본 일치. 10/7 `/ggulggul/`와 `/yeongnyangi/` 모두 직접 재색인 요청했고 각각 ‘색인 생성 요청됨’ 우선순위 크롤링 대기열 접수를 확인했다. 새 코드의 운영 배포나 순위 상승을 의미하지 않는다.
+- 브랜드 추가 검증: Googlebot curl localhost `/kkul-kkul-unse/` 200, JS 없이 main 안 공식입구 질문과 FAQPage 존재. 관련 static26 tests 및 ESLint 통과. 마지막 sitemap drift955URL 일치. shared dependency 서명 변경은 원장에 반영하되 내용이 바뀌지 않은 기간 페이지의 lastmod는 보존했다.
