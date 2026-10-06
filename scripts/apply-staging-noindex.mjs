@@ -83,10 +83,23 @@ export function rewriteHeaders(text) {
   if (!range) {
     throw new Error("_headers 에 `/*` 블록이 없습니다. 전역 X-Robots-Tag 를 넣을 자리가 없으면 스테이징이 헤더 없이 나갑니다.");
   }
-  if (globHasRobotsTag(lines, range)) return { text, changed: false };
+  if (!globHasRobotsTag(lines, range)) lines.splice(range.start + 1, 0, ROBOTS_TAG_HEADER);
 
-  lines.splice(range.start + 1, 0, ROBOTS_TAG_HEADER);
-  return { text: lines.join("\n"), changed: true };
+  // Pages 미리보기는 pages.dev 출처지만 Next 클라이언트의 API 정본은 staging 도메인이다.
+  // 산출물의 모든 CSP(/music* 포함)에만 좁은 허용 주소를 추가한다. 운영 헤더는 그대로다.
+  const sources = ["https://staging.code-destiny.com/api/", "https://www.google.com/g/collect"];
+  const next = lines.map(line => {
+    if (!/^\s*Content-Security-Policy:/i.test(line)) return line;
+    if (!/\bconnect-src\s+[^;]+/.test(line)) throw new Error("스테이징 CSP 에 connect-src 가 없습니다.");
+    const updated = line.replace(/\bconnect-src\s+([^;]+)/, (_match, list) => {
+      const allowed = list.trim().split(/\s+/);
+      for (const source of sources) if (!allowed.includes(source)) allowed.push(source);
+      return `connect-src ${allowed.join(" ")}`;
+    });
+    if (updated.length > 2000) throw new Error("스테이징 CSP 가 Pages 헤더 줄 길이 제한을 넘었습니다.");
+    return updated;
+  }).join("\n");
+  return { text: next, changed: next !== text };
 }
 
 /**
@@ -161,6 +174,18 @@ function runSelfTest() {
 
   const twice = rewriteHeaders(headers.text);
   expect(!twice.changed, "이미 있으면 두 번 넣지 않아야 한다.");
+
+  const cspFixture = "/*\n" + ROBOTS_TAG_HEADER + "\n  Content-Security-Policy: default-src 'self'; connect-src 'self'; object-src 'none'\n\n/music*\n  Content-Security-Policy: default-src 'self'; connect-src 'self'; object-src 'none'\n";
+  const csp = rewriteHeaders(cspFixture);
+  expect(csp.changed, "noindex 헤더가 이미 있어도 미리보기 CSP 를 보완해야 한다.");
+  expect((csp.text.match(/https:\/\/staging.code-destiny.com\/api\//g) || []).length === 2, "경로별 CSP 도 스테이징 API 를 허용해야 한다.");
+  expect((csp.text.match(/https:\/\/www.google.com\/g\/collect/g) || []).length === 2, "기존 Analytics 수집 요청의 정확한 경로를 허용해야 한다.");
+  expect(csp.text.includes("connect-src 'self' https://staging.code-destiny.com/api/ https://www.google.com/g/collect; object-src 'none'"), "다른 보안 지시문은 유지해야 한다.");
+  expect(!rewriteHeaders(csp.text).changed, "CSP 허용 주소가 중복되면 안 된다.");
+  const actualHeaders = readFileSync(resolve("_headers"), "utf8");
+  const actualCsp = rewriteHeaders(actualHeaders);
+  expect(actualCsp.text.split(/\r?\n/).filter(line => /Content-Security-Policy:/.test(line)).every(line => line.length <= 2000), "실제 CSP 도 Pages 2000자 제한 안에 있어야 한다.");
+  expect(readFileSync(resolve("_headers"), "utf8") === actualHeaders, "운영 헤더 정본은 수정하면 안 된다.");
 
   // 🔴 이 레포의 실제 _headers 모양. 다른 경로에 이미 X-Robots-Tag 가 있어도 전역 블록에는
   //    반드시 넣어야 한다. 예전 픽스처에 이 경우가 없어서 결함이 그대로 통과했다.
