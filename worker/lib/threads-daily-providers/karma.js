@@ -245,5 +245,5 @@ export function format(facts, copy, _url) {
     copy.tip,
     `🌙 ${facts.dateLabel} 연이의 마음 노트 · ${SCOPE}`,
   ];
-  return [...lines, "#꿀꿀운세"].join("\n");
+  return [...lines, "", "더 자세한 내용은 프로필 링크에서 확인해 주세요.", "#꿀꿀운세"].join("\n");
 }

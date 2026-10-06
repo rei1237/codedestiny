@@ -18,7 +18,7 @@ import { getEnv } from "./env.js";
 import { notifyCronTaskFailures } from "./cron-failure-alert.js";
 import { getKstDateKey, getSiteBaseUrl } from "./daily-fortune-task.js";
 import { getThreadsPostMode, getThreadsSkipReason, isSwitchOn, runChannel } from "./sns-daily-post-task.js";
-import { postThreadsChain } from "./threads.js";
+import { getThreadsPromoMedia, postThreadsChain } from "./threads.js";
 import { buildUtmUrl, PROMPT_VERSION, repeatsRecent } from "./threads-daily-providers/shared.js";
 import * as zodiacProvider from "./threads-daily-providers/zodiac.js";
 import * as karmaProvider from "./threads-daily-providers/karma.js";
@@ -154,7 +154,7 @@ export async function publishThreadsJob(env, { type, provider, now, fetchImpl, g
   editorial.text = texts[0];
   if (texts.length > 1) editorial.replies = texts.slice(1);
   base.posts = texts.length;
-  const result = await postThreadsChain(env, { texts, fetchImpl });
+  const result = await postThreadsChain(env, { texts, fetchImpl, media: getThreadsPromoMedia(type, getSiteBaseUrl(env)) });
   const ids = Array.isArray(result.ids) ? result.ids : [];
   const ref = { ...base, ...editorial, publishUncertain: Boolean(result.publishUncertain), containerId: result.containerId || null, ids, postId: ids[0] || null, aiModel: written.model || null, rejected: written.rejected || [] };
   if (!result.ok) {

@@ -266,8 +266,8 @@ export function mergeCopy(generated, rules, fallback) {
  * (태그를 붙인 뒤 자르면 태그가 먼저 잘린다 — appendRootHashtag 와 같은 규약).
  * 🔴 CTA·링크도 본문보다 먼저 예산을 잡는다 — 길이가 넘쳐도 유입 경로는 잘리지 않는다.
  */
-export function renderPost({ head, extra = "", cta, url, hashtag }, limit = POST_TEXT_LIMIT) {
-  const tail = `\n\n${cta}\n→ ${url}\n\n#${hashtag}`;
+export function renderPost({ head, extra = "", cta, hashtag }, limit = POST_TEXT_LIMIT) {
+  const tail = `\n\n${cta}\n더 자세한 내용은 프로필 링크에서 확인해 주세요.\n\n#${hashtag}`;
   const budget = limit - threadsTextWeight(tail);
   // extra(한 줄 팁)는 통째로 들어갈 때만 붙인다 — 문장 중간에서 "…" 로 끊긴 팁보다 없는 편이 낫다.
   const lines = String(head).split("\n");

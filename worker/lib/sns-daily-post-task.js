@@ -3,7 +3,7 @@ import { IdempotencyKey } from "./models.js";
 import { getEnv } from "./env.js";
 import { getKstDateKey, getKstDateParts, getSiteBaseUrl, getTodayPillars } from "./daily-fortune-task.js";
 import { escapeTelegramHtml, sendTelegramMessage } from "./telegram.js";
-import { postThreadsChain } from "./threads.js";
+import { getThreadsPromoMedia, postThreadsChain } from "./threads.js";
 import { buildThreadsDayContext, buildThreadsPostChain } from "./threads-daily-content.js";
 import { writeDailyThreadsCopy } from "./threads-ai-writer.js";
 
@@ -397,7 +397,11 @@ async function sendThreadsChannel(env, now, fetchImpl, generateImpl) {
     console.error("[CRON] SNS Daily Post: Threads 본문을 만들지 못했다 — 발행을 건너뛴다.");
     return { ok: false, status: 0, error: "empty_chain", ref: { posts: 0 } };
   }
-  const result = await postThreadsChain(env, { texts, fetchImpl });
+  const result = await postThreadsChain(env, {
+    texts,
+    fetchImpl,
+    media: getThreadsPromoMedia("general", getSiteBaseUrl(env)),
+  });
   return {
     ...result,
     ref: {

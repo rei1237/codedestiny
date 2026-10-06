@@ -49,7 +49,7 @@ const entry = [
   `export { calculateUniversalNumbers } from ${abs("lib/numerology/personal-day.mjs")};`,
   `export { computeTodaySky } from ${abs("worker/lib/today-sky.js")};`,
   `export { getDailyChainThreadsSkipReason, getThreadsSkipReason } from ${abs("worker/lib/sns-daily-post-task.js")};`,
-  `export { threadsTextWeight } from ${abs("worker/lib/threads.js")};`,
+  `export { threadsTextWeight, getThreadsPromoMedia, THREADS_PROMO_ASSETS } from ${abs("worker/lib/threads.js")};`,
   `export { PALACE_FACET } from ${abs("worker/lib/island/report-star-data.js")};`,
 ].join("\n");
 
@@ -86,7 +86,7 @@ try {
 } finally {
   fs.rmSync(bundleFile, { force: true });
 }
-const { jobs, shared, zodiac, karma, saju, ziwei, vedic, numerology, calculateUniversalNumbers, computeTodaySky, getDailyChainThreadsSkipReason, threadsTextWeight, PALACE_FACET } = m;
+const { jobs, shared, zodiac, karma, saju, ziwei, vedic, numerology, calculateUniversalNumbers, computeTodaySky, getDailyChainThreadsSkipReason, threadsTextWeight, getThreadsPromoMedia, THREADS_PROMO_ASSETS, PALACE_FACET } = m;
 
 const runJobs=(env,options={})=>jobs.runThreadsDailyJobs(env,{readRecent:async()=>[],...options});
 let passed = 0;
@@ -418,11 +418,12 @@ await check("366일 × 6유형 × (결정론/최대 길이 모델 문안), 띠�
         const weight = threadsTextWeight(text);
         worst = Math.max(worst, weight);
         assert.ok(weight <= shared.POST_TEXT_LIMIT, `${type} ${i} weight ${weight}`);
+        assert.ok(!/https?:\/\//i.test([text, ...replies].join("\n")), `${type} ${i} 본문에 직접 링크가 있다`);
+        assert.ok(text.includes("프로필 링크에서 확인해 주세요."), `${type} ${i} 프로필 안내가 없다`);
         if (type === "zodiac" || type === "karma") {
           assert.ok(text.endsWith("#꿀꿀운세"));
-          assert.ok(!text.includes("http"), `${type} 질문형 게시물에 홍보 링크`);
         } else {
-          assert.ok(text.endsWith(`→ ${url}\n\n#${type === "saju" ? "꿀꿀운세" : provider.HASHTAG}`), `${type} ${i} 꼬리가 잘렸다`);
+          assert.ok(text.endsWith(`더 자세한 내용은 프로필 링크에서 확인해 주세요.\n\n#${type === "saju" ? "꿀꿀운세" : provider.HASHTAG}`), `${type} ${i} 꼬리가 잘렸다`);
           assert.ok(text.includes(provider.CTA));
         }
         assert.ok(text.includes(facts.dateLabel), `${type} date missing`);
@@ -438,13 +439,23 @@ TIP=${written.copy.tip}`);
   globalThis.__swissPlanets = { Sun: 170, Moon: 200 };
   console.log(`    (최대 weight ${worst})`);
 });
-await check("UTM 링크와 대상 경로 실재", async () => {
+await check("내부 유입 측정 URL과 대상 경로 실재", async () => {
   assert.equal(shared.buildUtmUrl("https://c.com", "/today?tab=saju", "saju"), "https://c.com/today?tab=saju&utm_source=threads&utm_medium=social&utm_campaign=daily_saju");
   assert.equal(shared.buildUtmUrl("https://c.com", "/ziwei/", "ziwei"), "https://c.com/ziwei/?utm_source=threads&utm_medium=social&utm_campaign=daily_ziwei");
   assert.ok(fs.existsSync(path.join(ROOT, "app/today/page.js")));
   assert.ok(fs.existsSync(path.join(ROOT, "app/ziwei/page.js")));
   const hub = fs.readFileSync(path.join(ROOT, "app/today/TodayHubClient.tsx"), "utf8");
   assert.match(hub, /URLSearchParams\(window\.location\.search\)\.get\("tab"\)/, "/today 가 ?tab= 을 읽지 않는다");
+});
+await check("Threads 홍보 이미지 유형별 매핑과 공개 정적 자산", async () => {
+  for (const [type, asset] of Object.entries(THREADS_PROMO_ASSETS)) {
+    const media = getThreadsPromoMedia(type, "https://code-destiny.com/");
+    assert.ok(media.imageUrl.startsWith("https://code-destiny.com/"), `${type} image URL origin`);
+    assert.equal(media.altText, asset.altText, `${type} image alt text`);
+    assert.ok(fs.existsSync(path.join(ROOT, "public", asset.path.slice(1))), `${type} image asset missing: ${asset.path}`);
+  }
+  const neo = getThreadsPromoMedia("neo", "https://code-destiny.com/");
+  assert.match(neo.imageUrl, /neo-lion-strategy-v1\.png$/);
 });
 
 console.log("▶ ⑦ 모델 필드 검증");

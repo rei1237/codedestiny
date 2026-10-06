@@ -432,7 +432,8 @@ function jsonResponse(body, status = 200) {
 
   assert.ok(chain[0].includes("2026-01-02"), "루트 글에 주입한 날짜가 없다 — 시각 인자가 무시된다(⑩)");
   assert.ok(chain[0].includes("(금)"), "루트 글에 요일이 없다(⑩)");
-  assert.ok(chain[0].includes("https://code-destiny.com/fortune/"), "루트 글에 오늘의 운세 링크가 없다(⑩)");
+  assert.ok(chain[0].includes("프로필 링크에서 확인해 주세요."), "루트 글에 프로필 링크 안내가 없다(⑩)");
+  assert.ok(!/https?:\/\//i.test(chain.join("\n")), "자동 게시 체인에 직접 링크가 남았다(⑩)");
   // 🔴 AI 서문이 card.body 를 대체해도 오늘의 기둥(천간·지지)은 루트에 남아야 한다.
   assert.ok(
     chain[0].includes("천간:") && chain[0].includes("지지:"),
@@ -564,13 +565,14 @@ function jsonResponse(body, status = 200) {
       (컨테이너 생성 → 상태확인 → 발행). 중간에 실패하면 이미 나간 글(ids)과 멈춘 지점(failedAt)을
       그대로 돌려준다. */
 {
-  const texts = ["첫 글", "둘째 글", "셋째 글", "넷째 글"];
+  const texts = ["첫 글 https://example.com/fortune", "둘째 글", "셋째 글", "넷째 글"];
   const calls = [];
   let seq = 0;
   const result = await postThreadsChain(
     { THREADS_ACCESS_TOKEN: "test-token" },
     {
       texts,
+      media: { imageUrl: "https://code-destiny.com/assets/threads/test.png", altText: "테스트 이미지" },
       sleepImpl: async () => {},
       fetchImpl: async (url, init) => {
         const urlStr = String(url);
@@ -597,8 +599,15 @@ function jsonResponse(body, status = 200) {
     const status = calls[index * 3 + 1];
     const publish = calls[index * 3 + 2];
     assert.ok(create.url.endsWith("/me/threads"), `${index + 1}번째 컨테이너 생성 엔드포인트가 틀렸다(⑮)`);
-    assert.equal(create.params.get("media_type"), "TEXT", `${index + 1}번째 글의 media_type 이 TEXT 가 아니다(⑮)`);
-    assert.equal(create.params.get("text"), texts[index], `${index + 1}번째 글 본문이 바뀌었다(⑮)`);
+    assert.equal(create.params.get("media_type"), index === 0 ? "IMAGE" : "TEXT", `${index + 1}번째 글의 media_type 이 틀렸다(⑮)`);
+    assert.equal(create.params.get("text"), index === 0 ? "첫 글" : texts[index], `${index + 1}번째 글 본문이 바뀌었다(⑮)`);
+    assert.ok(!/https?:\/\//i.test(create.params.get("text")), `${index + 1}번째 글에 직접 링크가 남았다(⑮)`);
+    if (index === 0) {
+      assert.equal(create.params.get("image_url"), "https://code-destiny.com/assets/threads/test.png", "루트 이미지 URL 이 다르다(⑮)");
+      assert.equal(create.params.get("alt_text"), "테스트 이미지", "루트 이미지 대체 텍스트가 다르다(⑮)");
+    } else {
+      assert.equal(create.params.get("image_url"), null, "답글에도 이미지가 첨부됐다(⑮)");
+    }
     assert.equal(status.kind, "status", `${index + 1}번째 글이 상태확인 없이 발행됐다(⑮)`);
     assert.ok(publish.url.endsWith("/me/threads_publish"), `${index + 1}번째 발행 엔드포인트가 틀렸다(⑮)`);
     assert.equal(publish.params.get("creation_id"), `id-${index * 2 + 1}`, `${index + 1}번째 발행이 다른 컨테이너를 가리킨다(⑮)`);
