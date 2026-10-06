@@ -1,7 +1,7 @@
 ---
-status: blocked
+status: verifying
 updated: 2026-10-07
-next: "공유 main의 index.lock 소유 세션을 확인해 정리한 뒤, 미커밋 변경을 보존하며 이 워크트리를 main에 반영하고 push 및 CI를 확인한다."
+next: "원격 main으로 안전한 fast-forward push 후 정확한 SHA의 CI required를 확인하고 문서를 완료 처리한다. 공유 로컬 main은 다른 세션 변경 때문에 전진 불가."
 ---
 
 # 무료 결과 서버 저장 및 보관함 다시 보기 제외
@@ -76,3 +76,13 @@ next: "공유 main의 index.lock 소유 세션을 확인해 정리한 뒤, 미�
 ## 복사 가능한 재개 지시
 
 D:\Development\code-destiny\.codex-worktrees\paid-records-only-20261007-024230에서 D:\Development\code-destiny\.codex-worktrees\paid-records-only-20261007-024230\docs\handoff\2026-10-07-paid-records-only.md를 읽고, 코드 커밋 4417bd7cf63b1642e766d67d93c1d1748d3147f6 및 브랜치 wt/paid-records-only-20261007-024230을 확인한 뒤, 공유 main의 .git/index.lock 소유 확인 및 안전한 정리부터 진행하라. 다른 세션의 변경을 보존하면서 main 반영, git push origin main, 정확한 SHA의 CI required 확인을 완료하라.
+
+## 재개 세션 전달 진행 (2026-10-07)
+
+- 요청 브랜치와 마지막 커밋 c153d60a141f3b7a1107b0a44cae789d8a653f32 일치, 재개 당시 작업 워크트리 clean 확인.
+- 공유 index.lock: 0바이트, 2026-10-05 08:09:02 UTC부터 변경 없음. 프로세스 조회 결과 Git 쓰기 작업 없이 fsmonitor 데몬만 존재. FileShare.None 독점 열기 성공으로 열린 파일 핸들 없음 확인 후 잠금을 이름 변경해 안전하게 격리.
+- 공유 main fast-forward는 타 세션의 수정/스테이징/미추적 파일 충돌로 Git이 거부. 해당 체크아웃의 파일, 스테이징 변경, HEAD를 그대로 보존하며 stash/reset/강제 덮어쓰기를 하지 않음.
+- 작업 워크트리에서 origin/main 4edfb575ea381df4b96cd1cc57033ad64633b855 병합 성공, 충돌 없음. 병합 커밋 6db52d5048fc61164485f3f4bd6c4e6d64adc320.
+- 재개 후 관련 Jest 4 suites / 33 tests, Node 16 tests, verify:human-design-report 및 git diff --check 모두 통과. LLM 실호출 0회.
+- check:fast 계획은 critical. 기존 전체 실행 실패 기록을 그대로 유지하며, 전체 검증의 최종 판정은 정확한 pushed SHA의 GitHub CI에서 확인한다.
+- 공유 main 작업 파일 83개 SHA256 및 스테이징 9개 raw 항목을 전달 전 스냅샷으로 비교한다. 원격 main은 HEAD:main refspec으로 전달하며 force push는 사용하지 않는다.
