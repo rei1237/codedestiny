@@ -104,13 +104,29 @@ test("듣기만 하고 아무도 안 쏘는 cd:* 이벤트가 새로 생기지 �
   );
 });
 
-test("로케일 갱신은 cd:locale-ready 한 이름으로만 배선된다", () => {
-  const localeNames = [...scan.listened.keys()].filter((name) => /locale|lang/.test(name)).sort();
+// Native selection is an input command, and app-language synchronizes native state.
+// Neither is an alternative UI-ready event. Keep their listeners confined to adapters.
+const NATIVE_LOCALE_LISTENERS = {
+  "cd:language-selected": ["scripts/app-native-bridge.js"],
+  "cd:app-language": ["app/components/LocaleRuntimeBridge.tsx", "app/components/LocaleSwitcher.tsx", "js/cd-lang-native.js"],
+};
+
+test("네이티브 로케일 입출력은 지정한 어댑터에만 배선된다", () => {
+  for (const [name, owners] of Object.entries(NATIVE_LOCALE_LISTENERS)) {
+    assert.deepEqual([...(scan.listened.get(name) || [])].sort(), [...owners].sort(),
+      name + "는 UI 갱신용 별칭이 아니라 네이티브 어댑터 채널입니다.");
+    assert.ok(scan.dispatched.has(name), name + " dispatcher가 없습니다.");
+  }
+});
+
+test("일반 UI 로케일 갱신은 cd:locale-ready 한 이름으로만 배선된다", () => {
+  const localeNames = [...scan.listened.keys()]
+    .filter((name) => /locale|lang/.test(name) && !Object.hasOwn(NATIVE_LOCALE_LISTENERS, name)).sort();
   assert.deepEqual(
     localeNames,
     ["cd:locale-ready"],
-    `로케일 이벤트 이름이 다시 갈라졌습니다: ${localeNames.join(", ")}. ` +
-      "브리지가 쏘는 이름은 cd:locale-ready 하나뿐입니다(app/components/LocaleRuntimeBridge.tsx).",
+    `일반 UI 로케일 이벤트 이름이 다시 갈라졌습니다: ${localeNames.join(", ")}. ` +
+      "UI 갱신은 cd:locale-ready를 사용하고 네이티브 입출력은 지정된 어댑터 안에 유지합니다.",
   );
 });
 
