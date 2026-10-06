@@ -8,11 +8,10 @@
 // 🔴 차트는 무료다. 과금 지점은 프리미엄 리포트(featureKey `human-design-report`)로 옮겼고,
 //    그 라우트는 worker/routes/human-design-report.js 가 따로 갖는다. 여기에 결제 검사를
 //    되살리지 말 것 — 무료 계약은 scripts/verify-human-design.mjs 가 강제한다.
-// 🔴 무료지만 **로그인은 필요하다**. 아카이브 키가 userId 이고, 결과를 다시 열거나 리포트로
-//    이어가려면 계정이 있어야 한다.
+// 🔴 무료지만 **로그인은 필요하다**. 유료 리포트 소유권과 계산 레이트리밋에 계정을 쓴다.
 // 🔴 무료가 되면 Swiss Ephemeris WASM 계산이 무과금 CPU 가 된다. 그래서 **실제 계산 직전에만**
 //    사용자당 레이트리밋을 건다(정본: worker/routes/destiny-compass.js 의 아이솔레이트 버킷).
-//    아카이브 히트는 계산이 아니므로 세지 않는다 — 재열람을 벌주지 않기 위해서다.
+//    무료 차트 결과는 응답으로만 전달하고 서버에 저장하지 않는다.
 //
 // 🔴 /interpretation 은 왜 은퇴했나
 // ─────────────────────────────────────────────────────────────────────────────
@@ -21,29 +20,20 @@
 // 무료로 풀면 AI 해석이 통째로 무료로 열린다. 그래서 무료화와 같은 배포에서 생성을 끊었다.
 // 이미 결제해 저장된 해석은 계속 읽힌다(아래 handleInterpretation).
 //
-// 재열람
-// ─────────────────────────────────────────────────────────────────────────────
-// 차트는 같은 출생 데이터면 항상 같은 결과다. (userId, inputHash, calculationVersion) 조합의
-// 저장 문서가 있으면 재계산 없이 그대로 돌려준다.
+// 차트는 같은 출생 데이터면 항상 같은 결과다. 유료 리포트는 결제 확인 후 자체 계산한다.
 
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
-import { HumanDesignCalculation, HumanDesignInterpretation } from "../lib/models.js";
+import { HumanDesignInterpretation } from "../lib/models.js";
 import { calculateHumanDesignChart } from "../lib/human-design-ephemeris.js";
-import { CALCULATION_VERSION } from "../../lib/human-design/version.js";
 // 🔴 입력 정규화와 inputHash 는 유료 리포트 라우트와 **같은 것**을 써야 한다.
 //    리포트가 이 해시로 계산 문서를 찾기 때문이다(worker/lib/human-design-birth-input.js 주석).
-import { clean, computeInputHash, inputHashSource, isValidBirth, normalizeBirthBody, sha256Hex } from "../lib/human-design-birth-input.js";
+import { clean, inputHashSource, isValidBirth, normalizeBirthBody, sha256Hex } from "../lib/human-design-birth-input.js";
 import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { HUMAN_DESIGN_AI_PROMPT_VERSION } from "../lib/human-design-ai-prompt.js";
 
-// 🔴 결제 키가 아니라 **아카이브 문서 id 접두사**다. 무료화 전 결제 키와 같은 문자열을 쓰는
-//    이유는 이미 저장된 문서의 id 를 그대로 이어받기 위해서이고, 바꾸면 옛 아카이브가 고아가 된다.
-//    결제에는 쓰이지 않는다 — 리포트의 결제 키는 human-design-report 이고 다른 파일에 있다.
-const ARCHIVE_ID_PREFIX = "human-design-chart";
-
-// 🔴 무과금 WASM 계산 보호. 실제 계산 직전에만 세므로 아카이브 재열람은 영향받지 않는다.
+// 🔴 무과금 WASM 계산 보호. 실제 계산 직전에만 센다.
 const CALC_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const CALC_RATE_LIMIT_MAX = 20;
 const calcBuckets = new Map();
@@ -77,44 +67,6 @@ function degraded() {
     { ok: false, retryable: true, reason: "TEMPORARILY_UNAVAILABLE", message: MESSAGES.degraded },
     { status: 503, headers: { "Cache-Control": "no-store" } },
   );
-}
-
-/**
- * 저장된 차트를 찾는다. DB 가 흔들려도 본문을 막지 않으므로 실패는 null 로 접는다.
- *
- * 🔴 withMongoRetry 는 (env, operation) 순서다. 콜백을 첫 인자로 넘기면 operation 이 undefined 가
- *    되어 TypeError 가 나고, 아래 catch 가 그걸 삼켜 "DB 장애처럼 보이는 영구 실패"가 된다.
- *    2026-09 이전까지 이 파일 4곳이 전부 그 상태였고 아카이브가 한 번도 동작하지 않았다.
- *    재발 방지는 scripts/verify-no-nested-retry.mjs 가 레포 전역으로 막는다.
- */
-async function findArchivedChart(env, userId, inputHash) {
-  try {
-    await connectDb(env);
-    return await withMongoRetry(env, () => HumanDesignCalculation.findOne({
-      userId,
-      inputHash,
-      calculationVersion: CALCULATION_VERSION,
-    }).lean());
-  } catch (error) {
-    console.error("[human-design] archive lookup failed", String(error?.message || error).slice(0, 200));
-    return null;
-  }
-}
-
-/** 아카이브 기록. 실패해도 사용자에게는 차트를 준다 — 저장은 부가 기능이다. */
-async function archiveChart(env, doc) {
-  try {
-    await connectDb(env);
-    await withMongoRetry(env, () => HumanDesignCalculation.updateOne(
-      { userId: doc.userId, idempotencyKey: doc.idempotencyKey },
-      { $setOnInsert: doc },
-      { upsert: true },
-    ));
-    return true;
-  } catch (error) {
-    console.error("[human-design] archive write failed", String(error?.message || error).slice(0, 200));
-    return false;
-  }
 }
 
 /**
@@ -158,26 +110,6 @@ async function handleChart(request, env) {
   const inputHash = await sha256Hex(inputHashSource(input));
   timer.mark("BIRTH_DATA");
 
-  // 같은 출생 데이터를 다시 열면 재계산 없이 저장본을 준다.
-  const archived = await findArchivedChart(env, auth.userId, inputHash);
-  if (archived?.calculation) {
-    timer.mark("ARCHIVE_HIT");
-    return json(
-      // 🔴 inputHash 를 함께 내보낸다. 프리미엄 리포트 화면이 **결제창을 띄우기 전에**
-      //    "이 차트로 이미 산 리포트가 있는가" 를 /human-design-report/result?inputHash= 로
-      //    물어봐야 하기 때문이다(요구 30·32 — 재열람에 AI 를 다시 부르지 않는다).
-      //    본인 인증 요청에만 나가고 조회도 userId 로 묶여 있어 남의 해시를 알아도 쓸 데가 없다.
-      { ok: true, free: true, reused: true, inputHash, chart: archived.calculation, pipeline: timer.stages, authDetail: authTimings },
-      { headers: { "Cache-Control": "no-store" } },
-    );
-  }
-
-  // 히트 경로는 위에서 ARCHIVE_HIT 으로 이미 쟀다. 미스 경로의 조회 비용은 여기서만 보인다 —
-  // 안 재면 아래 CHART 에 섞여 들어가 "계산이 느리다"로 잘못 읽힌다.
-  timer.mark("ARCHIVE_LOOKUP");
-
-  // 🔴 여기서부터가 무과금 WASM 계산이다. 아카이브 히트는 위에서 이미 빠져나갔으므로
-  //    이 상한은 "새 차트를 몇 개나 만들 수 있는가" 만 센다.
   if (!allowCalculation(auth.userId)) {
     return json(
       { ok: false, retryable: true, reason: "RATE_LIMITED", message: MESSAGES.rateLimited },
@@ -204,31 +136,6 @@ async function handleChart(request, env) {
   }
   timer.mark("CHART");
 
-  const idempotencyKey = clean(body?.idempotencyKey || body?.requestId, 180) || `${ARCHIVE_ID_PREFIX}:${inputHash}`;
-  await archiveChart(env, {
-    id: `${ARCHIVE_ID_PREFIX}:${auth.userId}:${inputHash}`,
-    userId: auth.userId,
-    profileId: clean(body?.profileId, 120),
-    idempotencyKey,
-    inputHash,
-    birthInput: chart.birthInput,
-    calculationVersion: chart.calculationVersion,
-    ephemerisVersion: chart.ephemerisVersion,
-    mappingVersion: chart.mappingVersion,
-    nodeMode: chart.nodeMode,
-    calculation: chart,
-    designMomentUtc: chart.moments?.designUtc || "",
-    hdType: chart.type,
-    authority: chart.authority,
-    profile: chart.profile,
-    definition: chart.definition,
-    accessType: "free",
-    accessSource: "free",
-    billingRequestId: "",
-    calculatedAt: new Date(),
-  });
-  timer.mark("ARCHIVE");
-
   return json(
     { ok: true, free: true, reused: false, inputHash, chart, pipeline: timer.stages, authDetail: authTimings },
     { headers: { "Cache-Control": "no-store" } },
@@ -244,6 +151,8 @@ async function handleChart(request, env) {
 //
 // 남긴 것은 **이미 결제해 저장된 해석의 읽기**뿐이다. 새 분석은 프리미엄 리포트가 맡는다.
 
+// 과거 유료 해석의 calculationId 연결을 유지한다.
+const ARCHIVE_ID_PREFIX = "human-design-chart";
 const REPORT_REPLACEMENT_PATH = "/api/human-design-report/start";
 
 /**

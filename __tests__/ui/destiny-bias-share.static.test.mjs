@@ -30,11 +30,10 @@ test("공유 랜딩 페이지는 noindex 이고 정적 OG 를 쓴다", () => {
 });
 
 test("공유 링크·초대 링크 URL 에 생일이 실리지 않는다", () => {
-  const urlBuilders = client.match(/function (buildInviteUrl|withShareUtm)[\s\S]*?\n}/g) || [];
-  assert.equal(urlBuilders.length, 2);
+  const urlBuilders = client.match(/function (buildInviteUrl)[\s\S]*?\n}/g) || [];
+  assert.equal(urlBuilders.length, 1);
   for (const source of urlBuilders) assert.doesNotMatch(source, /birth/i);
-  assert.match(client, /credentials: "omit"/);
-  assert.match(client, /\/api\/destiny-bias\/share/);
+  assert.doesNotMatch(client, /\/api\/destiny-bias\/(share|cards)/);
 });
 
 test("최애 사진 넣기는 결과 카드 바로 아래에 있고, 사진은 이미지 저장에만 들어간다", () => {
@@ -44,6 +43,6 @@ test("최애 사진 넣기는 결과 카드 바로 아래에 있고, 사진은 �
   const core = client.indexOf("<ChemiCoreCard");
   const pickerAt = client.indexOf("<BiasPhotoPicker");
   assert.ok(core > 0 && pickerAt > core && pickerAt < client.indexOf("<ChemiShareBar"));
-  assert.match(client, /exportShareCardBlob\(\)\]\)/);
+  assert.match(client, /await exportShareCardBlob\(\)/);
   assert.match(client, /await exportShareCardBlob\(true\)/);
 });

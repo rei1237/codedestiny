@@ -854,7 +854,7 @@ if (chartRoute && ephemeris) {
   check("인증 분해를 응답에 실어 밖에서 읽을 수 있다",
     /authDetail: authTimings/.test(routeCode));
   check("인증 구간을 잰다", /timer\.mark\("AUTH"\)/.test(routeCode));
-  check("아카이브 조회 미스 구간을 잰다", /timer\.mark\("ARCHIVE_LOOKUP"\)/.test(routeCode));
+  check("무료 차트는 아카이브를 조회하거나 저장하지 않는다", !/findArchivedChart|archiveChart/.test(routeCode));
   check("계산 내부 단계를 타이머에 배선한다", /onStage: \(stage\) => timer\.mark\(stage\)/.test(routeCode));
 
   const ephemerisCode = codeLines(ephemeris);
