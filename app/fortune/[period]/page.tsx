@@ -26,6 +26,8 @@ import {
 import { getSiblingProfiles, type SignProfile } from "@/lib/fortune/sign-profiles";
 import { FusionCrossSell } from "@/app/components/FusionCrossSell";
 import YeoniPortrait from "./YeoniPortrait";
+import { getPeriodReading } from "@/lib/fortune/period-readings";
+import tomorrowStyles from "./tomorrow.module.css";
 
 export const dynamicParams = false;
 
@@ -121,9 +123,9 @@ function SignCard({ vm, period }: { vm: ReturnType<typeof buildSignViewModel>; p
           </span>
         </span>
         <span className={`mt-1 block text-[11px] ${MUTED}`}>{profile.rangeLabel}</span>
-        <span className={`mt-2 block text-xs font-bold ${ACCENT}`}>{vm.entry.keyword.kr}</span>
+        <span className={`mt-2 block text-xs font-bold ${ACCENT}`}>{period === "tomorrow" ? fortuneHubCopy.ko.preparation : vm.entry.keyword.kr}</span>
         <span className={`mt-1 block break-keep text-xs leading-6 ${MUTED}`}>
-          {vm.entry.sections.overall.kr}
+          {period === "tomorrow" ? getPeriodReading(profile.id, period, profile.reading) : vm.entry.sections.overall.kr}
         </span>
       </Link>
     </li>
@@ -137,6 +139,7 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
   const { hub } = seo;
   const period = hub.period;
   const label = PERIOD_LABEL[period];
+  const copy = fortuneHubCopy.ko;
   const sample = hub.models[0];
   const zodiacModels = hub.models.filter((m) => m.profile.kind === "zodiac");
   const animalModels = hub.models.filter((m) => m.profile.kind === "animal");
@@ -197,6 +200,14 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
             <span className={ACCENT}>{label} 운세</span>
           </nav>
 
+          {period === "tomorrow" ? (
+            <header className={tomorrowStyles.hero}>
+              <h1>{copy.tomorrowHeading}</h1>
+              <p className={tomorrowStyles.date}>{sample.rangeLabel}</p>
+              <p className={tomorrowStyles.lead}>{copy.tomorrowLead}</p>
+              <p className={tomorrowStyles.intro}>{copy.tomorrowIntro}</p>
+            </header>
+          ) : (
           <header className="mt-6 flex items-start gap-4 sm:gap-6">
             <div className="min-w-0 flex-1">
               <p className={`text-xs font-bold tracking-wider ${ACCENT}`}>{sample.rangeLabel}</p>
@@ -214,6 +225,25 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
             </div>
             <YeoniPortrait mood="greet" size={104} priority className="mt-1 hidden sm:block" />
           </header>
+
+          )}
+          {period === "tomorrow" && (
+            <nav aria-labelledby="choose-sign-heading" className={tomorrowStyles.selector}>
+              <h2 id="choose-sign-heading">{copy.chooseSign}</h2>
+              {[{ heading: copy.chooseAnimal, models: animalModels }, { heading: copy.chooseZodiac, models: zodiacModels }].map((group) => (
+                <div key={group.heading}>
+                  <h3>{group.heading}</h3>
+                  <ul className={tomorrowStyles.links}>
+                    {group.models.map((model) => (
+                      <li key={model.profile.id}>
+                        <Link href={`/fortune/tomorrow/${model.profile.id}/`}>{model.profile.nameKo}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </nav>
+          )}
 
           <section aria-labelledby="facts-heading" className={`mt-8 p-5 ${CARD}`}>
             <h2 id="facts-heading" className={`break-keep text-sm font-extrabold ${ACCENT}`}>
@@ -276,6 +306,15 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
                   정유월(丁酉月)의 절기 흐름과 일간·월간 십성 관계, 일간별 재물운·연애운·직업운·건강운을 살펴봅니다.
                 </span>
               </Link>
+            </section>
+          )}
+
+          {period === "tomorrow" && (
+            <section aria-labelledby="reading-guide-heading" className={tomorrowStyles.guide}>
+              <h2 id="reading-guide-heading">{copy.readingGuide}</h2>
+              <ol>{copy.readingSteps.map((step) => (
+                <li key={step.title}><h3>{step.title}</h3><p>{step.body}</p></li>
+              ))}</ol>
             </section>
           )}
 

@@ -99,6 +99,7 @@ function saveLocalePreference(localeCode: LocaleCode) {
     window.localStorage.setItem("cd_lang_explicit", "1");
   } catch {}
   setLocaleCookie(localeCode);
+  window.dispatchEvent(new CustomEvent("cd:language-selected", { detail: { lang: localeCode } }));
 }
 
 function getLocalizedHref(pathname: string, targetLocale: LocaleItem) {
@@ -119,12 +120,20 @@ export function LocaleSwitcher({preservePath=false,locale}:{preservePath?:boolea
 
   const [savedLocale, setSavedLocale] = React.useState<LocaleItem>(LOCALE_SWITCHER_LABELS[0]);
   const [open, setOpen] = React.useState(false);
+  const [appLocale, setAppLocale] = React.useState<LocaleCode | undefined>();
 
   React.useEffect(() => {
     setSavedLocale(readSavedLocale());
+    const syncAppLocale = () => {
+      const lang = (window as typeof window & { __cdAppLanguage?: string }).__cdAppLanguage;
+      if (lang) setAppLocale(normalizeStoredLocale(lang));
+    };
+    syncAppLocale();
+    window.addEventListener("cd:app-language", syncAppLocale);
+    return () => window.removeEventListener("cd:app-language", syncAppLocale);
   }, []);
 
-  const current = React.useMemo(() => LOCALE_SWITCHER_LABELS.find(item=>item.code===locale)||detectLocaleFromPath(pathname)||savedLocale, [locale,pathname,savedLocale]);
+  const current = React.useMemo(() => LOCALE_SWITCHER_LABELS.find(item=>item.code===(appLocale||locale))||detectLocaleFromPath(pathname)||savedLocale, [appLocale,locale,pathname,savedLocale]);
   const currentLabel = current.shortLabel;
   const copy = LOCALE_SWITCHER_COPY[current.code] || LOCALE_SWITCHER_COPY.ko;
 

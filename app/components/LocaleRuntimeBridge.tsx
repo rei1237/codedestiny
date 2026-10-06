@@ -152,6 +152,12 @@ export default function LocaleRuntimeBridge() {
     };
     const lang = writeLocale(resolveRuntimeLang());
     applyAppTranslations(lang);
+    const onAppLanguage = (event: Event) => {
+      const next = writeLocale((event as CustomEvent<{ lang: string }>).detail.lang);
+      void applyAppTranslations(next);
+    };
+    window.addEventListener("cd:app-language", onAppLanguage);
+    return () => window.removeEventListener("cd:app-language", onAppLanguage);
   }, []);
 
   return null;

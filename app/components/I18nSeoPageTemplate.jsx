@@ -1,4 +1,5 @@
 import PublicReadingGuide from "./PublicReadingGuide";
+import { entryHook } from "../../lib/i18n/entry-hooks.mjs";
 import Link from "next/link";
 import { SEO_SITE_CONFIG } from "../../lib/seo/siteConfig";
 import { LOCALE_CONFIG, SEO_INDEXABLE_LOCALES } from "../../lib/i18n/locales";
@@ -144,6 +145,7 @@ export default function I18nSeoPageTemplate({
   inLanguage,
 }) {
   const ui = TEMPLATE_UI_COPY[locale] || TEMPLATE_UI_COPY.en;
+  const hook = entryHook(stripLocalePrefix(currentPath) === "/" ? "home" : stripLocalePrefix(currentPath), locale.toLowerCase());
   // 정책 URL 은 로케일마다 슬러그가 다르다(ko 는 /terms, 나머지는 /{loc}/terms-of-service).
   // lib/i18n/routes.ts 의 I18N_POLICY_ROUTE_MAP 이 정본이며 사이트맵도 같은 값을 쓴다.
   const policyHref = (key) => {
@@ -229,7 +231,7 @@ export default function I18nSeoPageTemplate({
           <div>
             <p className="text-[11px] font-semibold tracking-[0.18em] text-cyan-200/85">{ui.heroTagline}</p>
             <h1 className="mt-2 text-2xl font-black leading-tight text-amber-50 md:text-4xl">{content.h1}</h1>
-            <p className="mt-4 text-sm leading-7 text-slate-200 md:text-base">{content.intro}</p>
+            <p className="mt-4 text-sm leading-7 text-slate-200 md:text-base">{hook && <strong>{hook} </strong>}{content.intro}</p>
 
             <div className="mt-4 flex flex-wrap gap-2 text-[11px] md:text-xs">
               <span className="rounded-full border border-emerald-200/35 bg-emerald-900/25 px-3 py-1.5 font-semibold text-emerald-100">{content.mainKeyword}</span>
