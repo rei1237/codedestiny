@@ -4378,6 +4378,75 @@
     return out.join('\n');
   }
 
+  var ENTRY_COPY = {
+  "ko": {
+    "title": "나의 뇌, 신체 구조는?",
+    "description": "머릿속 생각부터 나에게 맞는 쉼의 리듬까지, 한 장씩 들여다봐요.",
+    "open": "내 구조도 펼쳐 보기",
+    "close": "구조도 접기",
+    "linksTitle": "다른 차트로 더 알아보기",
+    "hdTitle": "휴먼 디자인",
+    "hdDescription": "결정하는 방식과 활동·휴식의 리듬을 차트로 살펴봐요.",
+    "hdAction": "휴먼 디자인 보기",
+    "vedicTitle": "베다점",
+    "vedicDescription": "라그나와 라시, 나크샤트라로 나의 성향을 더 깊이 읽어요.",
+    "vedicAction": "베다점 보기"
+  },
+  "en": {
+    "title": "Inside my mind and body",
+    "description": "Explore your thought patterns and the everyday rhythms that help you recharge.",
+    "open": "Explore my map",
+    "close": "Close my map",
+    "linksTitle": "Explore the connected charts",
+    "hdTitle": "Human Design",
+    "hdDescription": "Explore how you make decisions, stay active and rest.",
+    "hdAction": "Explore Human Design",
+    "vedicTitle": "Vedic astrology",
+    "vedicDescription": "Read your tendencies through Lagna, Rashi and Nakshatra.",
+    "vedicAction": "Explore Vedic astrology"
+  },
+  "ja": {
+    "title": "私の思考と体のリズムは？",
+    "description": "頭の中の思考から、自分に合う休息のリズムまで。",
+    "open": "私の構造図を開く",
+    "close": "構造図を閉じる",
+    "linksTitle": "ほかのチャートでもっと知る",
+    "hdTitle": "ヒューマンデザイン",
+    "hdDescription": "決め方と活動・休息のリズムをチャートで見てみましょう。",
+    "hdAction": "ヒューマンデザインを見る",
+    "vedicTitle": "ヴェーダ占星術",
+    "vedicDescription": "ラグナ、ラーシ、ナクシャトラから自分の傾向を読みます。",
+    "vedicAction": "ヴェーダ占星術を見る"
+  },
+  "zh-CN": {
+    "title": "我的思维与身体节奏？",
+    "description": "从脑海里的想法，到适合自己的日常休息节奏。",
+    "open": "展开我的结构图",
+    "close": "收起结构图",
+    "linksTitle": "通过其他星图继续了解",
+    "hdTitle": "人类图",
+    "hdDescription": "了解自己的决策方式与活动、休息节奏。",
+    "hdAction": "查看人类图",
+    "vedicTitle": "吠陀占星",
+    "vedicDescription": "通过拉格纳、拉希与纳克沙特拉深入了解自己的倾向。",
+    "vedicAction": "查看吠陀占星"
+  },
+  "zh-TW": {
+    "title": "我的思維與身體節奏？",
+    "description": "從腦海裡的想法，到適合自己的日常休息節奏。",
+    "open": "展開我的結構圖",
+    "close": "收起結構圖",
+    "linksTitle": "透過其他星圖繼續了解",
+    "hdTitle": "人類圖",
+    "hdDescription": "了解自己的決策方式與活動、休息節奏。",
+    "hdAction": "查看人類圖",
+    "vedicTitle": "吠陀占星",
+    "vedicDescription": "透過拉格納、拉希與納克沙特拉深入了解自己的傾向。",
+    "vedicAction": "查看吠陀占星"
+  }
+};
+  LOCALES.forEach(function (locale) { COPY[locale].ui.entry = ENTRY_COPY[locale]; });
+
   var api = {LOCALES: LOCALES, AXES: AXES, COPY: COPY, resolveLocale: resolveLocale, compose: compose, aiPrompt: aiPrompt};
   root.DestinyAnatomyCopy = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

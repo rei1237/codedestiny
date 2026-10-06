@@ -8,6 +8,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { buildSeoMetadata } from "@/lib/seo";
 import { siteSeo } from "@/lib/seo/siteSeo";
+import { fortuneHubCopy } from "@/lib/i18n/fortune-hub-copy.mjs";
 import {
   buildBreadcrumbJsonLd,
   buildCollectionPageJsonLd,
@@ -58,7 +59,9 @@ function seoText(periodParam: string) {
     path: `/fortune/${hub.period}`,
     // 상세 페이지와 같은 규약 — 브랜드 접미사 없이 약 28자. "별자리 12종·띠 12종" 은
     // 검색어가 아니라 설명이므로 제목에서 빼고 description·H1 에 남긴다.
-    title: `${title} 운세 ${sample.titleDateLabel} | 무료 별자리·띠별 운세`,
+    title: hub.period === "tomorrow"
+      ? fortuneHubCopy.ko.tomorrowQuestionTitle.replace("{date}", sample.titleDateLabel)
+      : `${title} 운세 ${sample.titleDateLabel} | 무료 별자리·띠별 운세`,
     // 🔴 주간만 문장 구조가 다르다. 다른 세 기간은 `일진 甲戌`·`월건 丙申` 처럼 값 하나가
     //    산출 근거지만, 주간의 facts[0] 은 `기간 2026-08-24 ~ 2026-08-30` 이라 바로 앞
     //    rangeLabel 의 재진술이다. 그 28폭 때문에 설명이 SERP 한계(160)를 넘겨 `…` 로

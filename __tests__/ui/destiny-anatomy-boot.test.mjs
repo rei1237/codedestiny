@@ -32,9 +32,10 @@ function model(ctx, lang, opts = {}) {
 }
 const secs = (el) => [...el.querySelectorAll('[data-da-sec]')].map((x) => x.getAttribute('data-da-sec'));
 
-test('플래그: 운영 호스트는 꺼짐, 로컬·스테이징만 켜짐', () => {
-  assert.equal(B.PRODUCTION_ENABLED, false);
-  for (const h of ['code-destiny.com', 'www.code-destiny.com', 'code-destiny.pages.dev', 'x.workers.dev', '']) assert.equal(B.isEnabled(h), false, h);
+test('플래그: 사주 결과 진입을 운영에서도 제공하고 LLM은 꺼둔다', () => {
+  assert.equal(B.PRODUCTION_ENABLED, true);
+  assert.equal(B.NARRATE_ENABLED, false);
+  for (const h of ['code-destiny.com', 'www.code-destiny.com', 'code-destiny.pages.dev', 'x.workers.dev', '']) assert.equal(B.isEnabled(h), true, h);
   for (const h of ['localhost', '127.0.0.1', 'staging.code-destiny.com']) assert.equal(B.isEnabled(h), true, h);
 });
 
@@ -67,8 +68,9 @@ test('화면: 공유를 먼저 보여주고 세 챕터로 읽으며 치환자가
   const R = ctx.DestinyAnatomyRender;
   const el = doc.createElement('div');
   R.render(el, model(ctx, 'ko'), {variant: 'B'});
-  assert.deepEqual(secs(el), ['hero', 'brain', 'share']);
-  assert.ok(el.querySelector('[data-da-act="explore"]'));
+  assert.equal(el.querySelector('[data-da-report]').open, false);
+  assert.match(el.querySelector('[data-da-trigger]').textContent, /나의 뇌, 신체 구조는/);
+  assert.equal(el.querySelector('[data-da-act="explore"]'), null);
   R.render(el, model(ctx, 'ko', {hdChart: HD}), {variant: 'B', open: true, view: 'both', layer: 'ready'});
   assert.deepEqual(secs(el), ['hero', 'brain', 'share', 'summary', 'circuit', 'engines', 'elements', 'decision', 'fusion', 'habits', 'body', 'ask', 'cta']);
   // 목차는 실제로 그려진 장(공유·CTA 제외)과 같은 수다. 연이의 한마디는 첫 장 편지로 들어간다.
@@ -82,7 +84,7 @@ test('화면: 공유를 먼저 보여주고 세 챕터로 읽으며 치환자가
   assert.equal(el.querySelectorAll('.da-chakra').length, 7);
   // 결과 안 대상이 있는 CTA 만 스크롤 버튼이 된다. 새 결제 게이트 표식은 없다.
   const ctas = [...el.querySelectorAll('[data-da-cta]')].map((x) => x.getAttribute('data-da-cta'));
-  assert.deepEqual(ctas, ['love', 'compat', 'luck', 'hd']);
+  assert.deepEqual(ctas, ['hd', 'vedic', 'love', 'compat', 'luck']);
   assert.equal(el.querySelector('[data-cd-cross-sell],[data-cd-funnel-section]'), null);
 });
 
@@ -146,7 +148,7 @@ test('AI 질문: 계산값·이어서 상담 지시만 담고 출생 정보·간
 test('셸 배선: 억부 카드 뒤·대운 앞, 숨김 시작, 자산은 버전 붙은 지연 로드', () => {
   const html = readFileSync('index.html', 'utf8');
   const at = html.indexOf('id="destinyAnatomyCard"');
-  assert.ok(at > html.indexOf('id="ukbuCard"') && at < html.indexOf('id="daewunCard"'));
+  assert.ok(at > html.indexOf('id="sajuCard"') && at < html.indexOf('id="iljuCard"'));
   const tag = html.slice(html.lastIndexOf('<section', at), html.indexOf('</section>', at));
   assert.match(tag, /\shidden\s/);
   for (const k of ['css', 'engine', 'hdcopy', 'copy', 'render', 'share']) assert.match(tag, new RegExp(`data-da-${k}="/[^"]+\\?v=[\\w-]+"`), k);
@@ -278,9 +280,21 @@ test('첫 화면은 짧은 생각 이름과 범례만 읽고 전문 해설은 �
   const el = doc.createElement('div');
   const m = luckModel(ctx, 'ko', 72);
   ctx.DestinyAnatomyRender.render(el, m, {});
-  assert.equal(el.querySelector('[data-da-luck]'), null);
+  assert.ok(el.querySelector('[data-da-luck]').closest('[data-da-chapter="thinking"]'));
   assert.equal(el.querySelector('.da-stk,.da-meme__pat,.da-meme__sheen'), null);
   assert.ok([...el.querySelectorAll('.da-meme__line')].every(n => n.textContent.length <= 3));
   assert.equal(el.querySelectorAll('.da-meme__rowline:not(.da-sr)').length, 5);
   assert.match(el.querySelector('.da-illustration').getAttribute('src'), /\.webp$/);
+});
+
+test('진입 카드와 연결 링크는 5개 언어에서 같은 기능 경로를 쓰고 개인 정보를 전달하지 않는다', () => {
+ const {ctx,doc}=setup(),el=doc.createElement('div');
+ for(const lang of ['ko','en','ja','zh-CN','zh-TW']) {
+  ctx.DestinyAnatomyRender.render(el,model(ctx,lang),{});
+  const d=el.querySelector('[data-da-report]'); assert.equal(d.open,false);
+  assert.ok(d.hasAttribute('data-mobile-detail-keep-open'));
+  assert.deepEqual([...el.querySelectorAll('.da-chart-link')].map(a=>a.getAttribute('href')),['/human-design/?from=destiny_anatomy','/vedic/?from=destiny_anatomy']);
+  assert.ok(el.querySelector('[data-da-trigger]').textContent.length>20);
+  assert.doesNotMatch(el.textContent,/undefined|NaN/);
+ }
 });

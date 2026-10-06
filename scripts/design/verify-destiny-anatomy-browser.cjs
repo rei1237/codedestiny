@@ -57,7 +57,15 @@ const server=http.createServer((req,res)=>{
  // Only disable that capture optimization; keep the real page, calculation and layout.
  await card.evaluate(el=>el.style.contentVisibility='visible');
  await card.screenshot({path:path.join(out,'card.png')});
- await page.locator('[data-da-act="explore"]').click();
+ assert.equal(await card.evaluate(el=>el.previousElementSibling.id),'sajuCard');
+ assert.equal(await page.locator('[data-da-report]').evaluate(el=>el.open),false);
+ for(const width of [360,390,430,1280]) {
+  await page.setViewportSize({width,height:900});
+  await card.screenshot({path:path.join(out,'entry-'+width+'.png')});
+  assert.ok((await card.boundingBox()).height<300);
+ }
+ await page.setViewportSize({width:390,height:900});
+ await page.locator('[data-da-trigger]').focus(); await page.keyboard.press('Enter');
  assert.equal(await page.locator('[data-da-act="login"]').count(),1);
  await page.locator('[data-da-chapter="recovery"] > summary').click();
  await page.locator('[data-da-entry="chakra-root"] > summary').click();
@@ -65,12 +73,17 @@ const server=http.createServer((req,res)=>{
  const dl=page.waitForEvent('download');await page.locator('[data-da-act="save"]').click();await (await dl).saveAs(path.join(out,'share-ko.png'));
  // Login fixture, real deferred layer fetch and late repaint.
  await page.evaluate(()=>{window.__dpHasLoginSession=()=>true;window.dispatchEvent(new Event('cd:saju-summary-ready'));});
- await page.locator('[data-da-act="explore"]').click();
+ await page.locator('[data-da-trigger]').click();
  await page.locator('[data-da-chapter="recovery"] > summary').click();
  await page.waitForSelector('[data-da-view="both"]',{state:'attached'});
  assert.equal(await page.locator('[data-da-chapter="recovery"]').evaluate(el=>el.open),true);
  await page.locator('[data-da-view="both"]').click();
  assert.equal(await page.locator('[data-da-view="both"]').evaluate(el=>el===document.activeElement),true);
+ await page.locator('[data-da-act="collapse"]').click();
+ assert.equal(await page.locator('[data-da-report]').evaluate(el=>el.open),false);
+ assert.equal(await page.locator('[data-da-trigger]').evaluate(el=>el===document.activeElement),true);
+ await page.keyboard.press('Enter');
+ assert.equal(await page.locator('[data-da-chapter="recovery"]').evaluate(el=>el.open),true);
  const results=[];
  for(const width of [360,390,430,1280]){
   await page.setViewportSize({width,height:900});
@@ -89,6 +102,7 @@ const server=http.createServer((req,res)=>{
    });
    results.push({width,locale:L,...measure});
    if(L==='ko'){
+    await page.locator('.da-chart-links').screenshot({path:path.join(out,'links-'+width+'.png')});
     await page.locator('[data-da-sec="body"]').screenshot({path:path.join(out,'body-'+width+'.png')});
     await page.locator('[data-da-sec="vedic"]').screenshot({path:path.join(out,'vedic-'+width+'.png')});
     await page.locator('[data-da-sec="habits"]').screenshot({path:path.join(out,'habits-'+width+'.png')});

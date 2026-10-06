@@ -44,7 +44,7 @@
   function heroHtml(t, variant) {
     var ui = t.ui;
     return '<header class="da-hero" data-da-sec="hero">' + illustration('brain') +
-      '<h3 class="da-title" id="destinyAnatomyTitle">' + esc(ui.title) + '</h3>' +
+      '<h3 class="da-title" id="daReportTitle">' + esc(ui.title) + '</h3>' +
       '<p class="da-hero__q">' + esc(t.comboTitle) + '</p>' +
       '<p class="da-hero__intro">' + esc(t.mindLine) + '</p>' +
       '<button type="button" class="da-btn da-btn--ghost" data-da-act="share">' + esc(ui.shareAction) + '</button>' +
@@ -152,8 +152,6 @@
       '<h4 class="da-h" id="daBrainTitle">' + esc(ui.brainTitle) + '</h4>' +
       '<p class="da-lead">' + esc(model.saju.brainHeadline) + '</p>' +
       memeHtml(t) +
-      (state.open ? '' : '<div class="da-explore"><button type="button" class="da-btn da-btn--primary" data-da-act="explore" aria-controls="daBody" aria-expanded="false">' + esc(ui.explore) + '</button>' +
-        '<p class="da-explore__note">' + esc(ui.exploreNote) + '</p></div>') +
       '</section>';
   }
 
@@ -499,7 +497,7 @@
     hd: {href: '/human-design/?from=destiny_anatomy'}
   };
   function ctaHtml(t) {
-    var items = t.cta.map(function (c) {
+    var items = t.cta.filter(function (c) { return c.id !== 'hd'; }).map(function (c) {
       var tg = CTA_TARGET[c.id];
       if (!tg) return '';
       var inner = '<span class="da-cta__q">' + esc(c.q) + '</span><span class="da-cta__label">' + esc(c.label) + '</span>';
@@ -521,6 +519,22 @@
       }).join('') + '</section>';
   }
 
+  function entryHtml(ui) {
+    var e = ui.entry;
+    return '<summary class="da-entry" data-da-trigger><span class="da-entry__art">' + illustration('brain') + '</span>' +
+      '<span class="da-entry__copy"><span class="da-entry__title" id="destinyAnatomyTitle">' + esc(e.title) + '</span><span class="da-entry__description">' + esc(e.description) + '</span>' +
+      '<span class="da-entry__action"><span class="da-entry__open">' + esc(e.open) + '</span><span class="da-entry__close">' + esc(e.close) + '</span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span></summary>';
+  }
+
+  function chartLinksHtml(ui) {
+    var e = ui.entry;
+    return '<nav class="da-chart-links" aria-label="' + esc(e.linksTitle) + '">' + ['hd', 'vedic'].map(function (id) {
+      var href = id === 'hd' ? '/human-design/' : '/vedic/';
+      return '<a class="da-chart-link" href="' + href + '?from=destiny_anatomy" data-da-act="cta" data-da-cta="' + id + '">' + illustration(id) +
+        '<span><strong>' + esc(e[id + 'Title']) + '</strong><span class="da-chart-link__description">' + esc(e[id + 'Description']) + '</span><span class="da-chart-link__action">' + esc(e[id + 'Action']) + '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span></a>';
+    }).join('') + '</nav>';
+  }
+
   function render(container, model, opts) {
     var state = opts || {}, t = model.text, ui = t.ui, variant = state.variant || 'A';
     // Opt out of the shell first-paint collapse: this renderer owns disclosure state.
@@ -532,7 +546,7 @@
     var html = section('hero', ui, function () { return heroHtml(t, variant); }) +
       section('brain', ui, function () { return brainHtml(model, t, state); }) +
       section('share', ui, function () { return shareHtml(t, state); });
-    if (state.open) {
+    {
       var safe = function (id, fn) { return section(id, ui, fn); };
       var groups = [
         {guide: 'circuit', content: function () { return safe('circuit', function () { return circuitHtml(model, t); }) + safe('engines', function () { return enginesHtml(model, t); }) + safe('elements', function () { return elementsHtml(model, t); }); }},
@@ -544,10 +558,10 @@
           var c = t.recovery.chapters[i];
           return '<details data-mobile-detail-keep-open class="da-chapter" data-da-chapter="' + esc(c.id) + '"><summary><span class="da-chapter__title">' + esc(c.title) + '</span><span class="da-chapter__hint">' + esc(c.hint) + '</span></summary>' +
             '<div class="da-chapter__content">' + yeoniNoteHtml(t, g.guide) + g.content() + '</div></details>';
-        }).join('') + safe('ask', function () { return askHtml(t, state); }) + safe('cta', function () { return ctaHtml(t); }) +
+        }).join('') + chartLinksHtml(ui) + safe('ask', function () { return askHtml(t, state); }) + safe('cta', function () { return ctaHtml(t); }) +
         '<p class="da-disclaimer">' + esc(ui.disclaimer) + '</p></div>';
     }
-    container.innerHTML = html;
+    container.innerHTML = '<details class="da-report" data-da-report data-mobile-detail-keep-open' + (state.open ? ' open' : '') + '>' + entryHtml(ui) + '<div class="da-report__content">' + html + '<button type="button" class="da-btn da-btn--ghost da-report__close" data-da-act="collapse">' + esc(ui.entry.close) + '</button></div></details>';
     open.forEach(function (entry) { var d = container.querySelector('details[' + entry[0] + '="' + entry[1] + '"]'); if (d) d.open = true; });
     container.setAttribute('data-da-locale', model.locale || '');
     container.setAttribute('data-da-variant', variant);
