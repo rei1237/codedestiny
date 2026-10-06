@@ -4705,7 +4705,7 @@ function extractSixPastTestingYears(jongResult, p) {
   return {best: bestYears.sort(function(a,b){return a.y-b.y;}), worst: worstYears.sort(function(a,b){return a.y-b.y;})};
 }
 
-function showJongVerificationModal(jongResult, p) {
+function showJongVerificationModal(jongResult, p, run) {
   return new Promise(function(resolve) {
       var parsedYrs = extractSixPastTestingYears(jongResult, p);
       var bestText = parsedYrs.best.map(function(y){return y.y+"년(" + y.g + y.z + ")"}).join(', ');
@@ -4752,11 +4752,18 @@ function showJongVerificationModal(jongResult, p) {
 
       overlay.appendChild(box);
       document.body.appendChild(overlay);
+      function dismissCancelled() { overlay.remove(); resolve(jongResult); }
+      if (run) run.signal.addEventListener('abort', dismissCancelled, { once: true });
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-label', '종격 확인');
+      overlay.querySelector('#btnJongSubmit').focus();
 
       overlay.querySelector('#btnJongSubmit').onclick = function() {
           var bestAns = overlay.querySelector('input[name="best_ans"]:checked').value;
           var worstAns = overlay.querySelector('input[name="worst_ans"]:checked').value;
 
+          if (run) run.signal.removeEventListener('abort', dismissCancelled);
           document.body.removeChild(overlay);
 
           if (bestAns === 'yes' && worstAns === 'yes') {
@@ -4903,13 +4910,14 @@ function saveSajuLoginDraft() {
     fields: fields, gender: GENDER || window._gender, timeUnknown: window.__cdBirthTimeUnknown === true, calendar: calendar ? calendar.value : 'solar' };
   sessionStorage.setItem(SAJU_LOGIN_DRAFT_KEY, JSON.stringify(draft));
 }
-async function ensureSajuResultSession() {
+async function ensureSajuResultSession(run) {
   if (sajuResultSessionPending) return sajuResultSessionPending;
   sajuResultSessionPending = (async function() {
     var status = 'unavailable';
     try {
-      if (typeof window.__dpVerifyResultSession === 'function') status = await window.__dpVerifyResultSession();
+      if (typeof window.__dpVerifyResultSession === 'function') status = await _sajuCalculationWait(window.__dpVerifyResultSession(), run);
     } catch (_) {}
+    if (run && run.signal.aborted) return false;
     if (status === 'authenticated') return true;
     if (status !== 'guest') {
       setSajuFormStatus('로그인 상태를 확인하지 못했어요. 입력은 그대로 두고 잠시 후 다시 눌러 주세요.', 'error');
@@ -5077,81 +5085,99 @@ async function agreeAndCalculate() {
   await startSajuCalculationFlow();
 }
 
+// Each run owns its waits and overlay; pagehide invalidates late continuations.
+var sajuCalculationRun = null;
+function _sajuSetCalculationLoading(visible, state) {
+  var overlay = document.getElementById('sajuCalcLoadingOverlay');
+  if (!overlay) return;
+  if (visible && overlay.parentElement !== document.body) document.body.appendChild(overlay);
+  overlay.classList.toggle('saju-calc-loading-overlay--visible', visible);
+  overlay.setAttribute('aria-hidden', visible ? 'false' : 'true');
+  overlay.dataset.state = state;
+}
+function _sajuWaitForPaint() {
+  return new Promise(function(resolve) {
+    var done = false, first, second;
+    var timer = setTimeout(finish, 120);
+    function finish() {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      if (typeof cancelAnimationFrame === 'function') {
+        cancelAnimationFrame(first); cancelAnimationFrame(second);
+      }
+      resolve();
+    }
+    if (typeof requestAnimationFrame === 'function') {
+      first = requestAnimationFrame(function() { second = requestAnimationFrame(finish); });
+    }
+  });
+}
+function _sajuCalculationWait(task, run, timeoutMs) {
+  return new Promise(function(resolve, reject) {
+    var settled = false;
+    var timer = timeoutMs === 0 ? null : setTimeout(function() {
+      finish(new Error('처리 시간이 길어지고 있어요. 입력은 그대로 두고 다시 시도해 주세요.'));
+    }, timeoutMs || 15000);
+    function cancel() { var error = new Error('Calculation cancelled'); error.name = 'AbortError'; finish(error); }
+    function finish(error, value) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (run) run.signal.removeEventListener('abort', cancel);
+      if (error) reject(error); else resolve(value);
+    }
+    if (run) {
+      run.signal.addEventListener('abort', cancel, { once: true });
+      if (run.signal.aborted) cancel();
+    }
+    Promise.resolve(task).then(function(value) { finish(null, value); }, function(error) { finish(error); });
+  });
+}
 async function startSajuCalculationFlow() {
-  if (!validateSajuFormBeforeLogin()) return;
-  if (typeof window.cdTrack === 'function') {
-    window.cdTrack('free_saju_started', { signed_in: !!(typeof window.__dpHasLoginSession === 'function' && window.__dpHasLoginSession()) });
-  }
-  var bd=_cdReadBirthDateInput('birthDate');
-  if(!bd){setSajuFormStatus('생년월일을 YYYYMMDD 숫자 8자리로 입력해 주세요.', 'error', 'birthDate');return;}
+  if (sajuCalculationRun || !validateSajuFormBeforeLogin()) return;
+  var bd = _cdReadBirthDateInput('birthDate');
+  if (!bd) { setSajuFormStatus('생년월일을 YYYYMMDD 숫자 8자리로 입력해 주세요.', 'error', 'birthDate'); return; }
   var selectedGender = String(GENDER || window._gender || '').trim().toUpperCase();
   if (selectedGender !== 'M' && selectedGender !== 'F') {
-    setSajuFormStatus('성별을 선택해 주세요.', 'error', 'btnF');
-    return;
+    setSajuFormStatus('성별을 선택해 주세요.', 'error', 'btnF'); return;
   }
   GENDER = selectedGender;
   window._gender = selectedGender;
-  if (!await ensureSajuResultSession()) return;
+  var run = new AbortController();
+  sajuCalculationRun = run;
+  function cancelRun() { run.abort(); }
+  window.addEventListener('pagehide', cancelRun, { once: true });
   try {
-    if (location && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-      console.debug('[saju] submit input', {
-        name: String((document.getElementById('nameInput') || {}).value || '').trim(),
-        birthDate: bd,
-        gender: selectedGender
-      });
+    _sajuSetCalculationLoading(false, 'checking');
+    setSajuFormStatus('입력 정보를 확인하고 있어요.', 'info');
+    if (!await _sajuCalculationWait(ensureSajuResultSession(run), run)) return;
+    if (!await _sajuCalculationWait(checkFortunePointEligibility(), run)) return;
+    if (typeof window.cdTrack === 'function') window.cdTrack('free_saju_started', { signed_in: true });
+    _sajuSetCalculationLoading(true, 'calculating');
+    await _sajuCalculationWait(_sajuWaitForPaint(), run);
+    setSajuFormStatus('사주 원국을 살펴보고 있어요.', 'info');
+    await calculate(run);
+    if (run.signal.aborted) return;
+    var resultPage = document.getElementById('resultPage');
+    var style = resultPage && window.getComputedStyle(resultPage);
+    if (!style || style.display === 'none' || style.visibility === 'hidden' || resultPage.getAttribute('aria-busy') === 'true') return;
+    _sajuSetCalculationLoading(false, 'completed');
+    try { sessionStorage.removeItem(SAJU_LOGIN_DRAFT_KEY); } catch (_) {}
+    clearSajuFormStatus();
+    await _sajuCalculationWait(consumeFortunePointAfterCalculation(), run);
+  } catch (error) {
+    if (error.name !== 'AbortError') {
+      console.error('[saju] calculate flow failed', error);
+      setSajuFormStatus('사주 분석을 완료하지 못했어요. 입력은 그대로 두고 잠시 후 다시 시도해 주세요.', 'error', 'birthDate');
     }
-  } catch (_) {}
-
-  var canProceed = await checkFortunePointEligibility();
-  if (!canProceed) return;
-
-  // 만세력 책 로더 기능 제거: 클릭 즉시 계산 실행
-  var _spinner = document.getElementById('sajuCalcLoadingOverlay');
-  var _spinnerShownAt = 0;
-  if (_spinner) {
-    // #destinyCardForm 은 backdrop-filter/contain 때문에 fixed 자손의 containing block이 되어
-    // 뷰포트 전체를 덮지 못한다. body 로 옮겨 그 영향에서 벗어나게 한다.
-    if (_spinner.parentElement !== document.body) {
-      document.body.appendChild(_spinner);
+  } finally {
+    window.removeEventListener('pagehide', cancelRun);
+    if (sajuCalculationRun === run) {
+      _sajuSetCalculationLoading(false, 'idle');
+      sajuCalculationRun = null;
     }
-    _spinner.classList.add('saju-calc-loading-overlay--visible');
-    _spinner.setAttribute('aria-hidden', 'false');
-    _spinnerShownAt = Date.now();
-    // calculate()는 대부분 동기 렌더링이라, 페인트를 강제로 양보하지 않으면
-    // 오버레이가 화면에 그려지기도 전에 메인 스레드가 계산으로 막혀 버린다.
-    await new Promise(function(resolve) {
-      requestAnimationFrame(function(){ requestAnimationFrame(resolve); });
-    });
   }
-  setSajuFormStatus('사주 원국을 계산하는 중입니다.', 'info');
-  var _hideSpinner = async function() {
-    if (!_spinner) return;
-    var _elapsed = Date.now() - _spinnerShownAt;
-    var _minVisibleMs = 550;
-    if (_elapsed < _minVisibleMs) {
-      await new Promise(function(resolve){ setTimeout(resolve, _minVisibleMs - _elapsed); });
-    }
-    _spinner.classList.remove('saju-calc-loading-overlay--visible');
-    _spinner.setAttribute('aria-hidden', 'true');
-  };
-  try {
-    await calculate();
-  } catch (calcErr) {
-    console.error('[saju] calculate flow failed', calcErr);
-    await _hideSpinner();
-    setSajuFormStatus('사주 원국 계산을 완료하지 못했습니다. 프로필 정보를 확인한 뒤 다시 시도해 주세요.', 'error', 'birthDate');
-    return;
-  }
-  await _hideSpinner();
-
-  var resultPage = document.getElementById('resultPage');
-  var isResultVisible = !!(resultPage && resultPage.style.display !== 'none');
-  if (!isResultVisible) return;
-
-  try { sessionStorage.removeItem(SAJU_LOGIN_DRAFT_KEY); } catch (_) {}
-
-  clearSajuFormStatus();
-  await consumeFortunePointAfterCalculation();
 }
 
 setTimeout(function(){
@@ -5274,8 +5300,8 @@ function invokeOptionalGlobalRendererWithRetry(fnName, args, options) {
 /* ═══════════════════════════════════════
    STEP 6: 메인 계산
 ═══════════════════════════════════════ */
-async function calculate(){
-  if (!await ensureSajuResultSession()) return;
+async function calculate(run){
+  if (!await _sajuCalculationWait(ensureSajuResultSession(run), run)) return;
   var existingCharm=document.getElementById('specialCharmCard');
   if(existingCharm)existingCharm.remove();
 
@@ -5346,18 +5372,21 @@ async function calculate(){
   var bLat  = opt ? parseFloat(opt.getAttribute('data-lat'))  : 37.6;
   var bBaseTzOff = opt ? parseFloat(opt.getAttribute('data-base-tz') || opt.getAttribute('data-tz') || '9') : 9;
 
-  var actualDateInfo = await getActualSolarDateWithContext(bd, calType, {
+  var actualDateInfo = await _sajuCalculationWait(getActualSolarDateWithContext(bd, calType, {
     hour: hour,
     minute: minute,
     second: 0,
     latitude: bLat,
     longitude: bLong,
     tzOffsetHours: bBaseTzOff,
-    setCurrent: true
-  });
+    setCurrent: false
+  }), run);
   if(!actualDateInfo) { setSajuFormStatus('날짜 변환에 실패했습니다. 다시 확인해 주세요.', 'error', 'birthDate'); return; }
 
   var primaryDateCtx = actualDateInfo.context || null;
+  if (primaryDateCtx && window.KasiCalendarService && typeof window.KasiCalendarService.setCurrentContext === 'function') {
+    window.KasiCalendarService.setCurrentContext(primaryDateCtx);
+  }
   var year=actualDateInfo.y, month=actualDateInfo.m, day=actualDateInfo.d;
   var inputTimeStr = String(hour).padStart(2,'0')+':'+String(minute).padStart(2,'0')+':00';
 
@@ -5492,7 +5521,7 @@ async function calculate(){
     var kasiHourPair = normalizedKasiPillars.hour ? parseKasiGanjiPair(normalizedKasiPillars.hour.ganji) : null;
     if (!kasiYearPair || !kasiMonthPair || !kasiDayPair || !kasiHourPair) {
       try {
-        var localPillarCtx = await resolvePrimaryCalendarContext({
+        var localPillarCtx = await _sajuCalculationWait(resolvePrimaryCalendarContext({
           calendarType: 'solar',
           year: year,
           month: month,
@@ -5503,7 +5532,7 @@ async function calculate(){
           latitude: bLat,
           longitude: bLong,
           tzOffsetHours: bTzOff
-        }, { setCurrent: true, localOnly: true });
+        }, { setCurrent: false, localOnly: true }), run);
         pillarDateCtx = repairGanjiContextFromLocal(localPillarCtx, {
           year: year,
           month: month,
@@ -5525,6 +5554,7 @@ async function calculate(){
           )
         );
       } catch (localPillarErr) {
+        if (localPillarErr.name === 'AbortError') throw localPillarErr;
         console.error('[saju] local pillar context failed', {
           input: {
             year: year,
@@ -5613,7 +5643,12 @@ async function calculate(){
     G_JONG_VERIFIED = null;
     // 종격/가종격 모두 검증 모달로 사용자 확인
     if (_tj.isJong) {
-      _tj = await showJongVerificationModal(_tj, p);
+      _sajuSetCalculationLoading(false, 'confirming');
+      try {
+        _tj = await _sajuCalculationWait(showJongVerificationModal(_tj, p, run), run, 0);
+      } finally {
+        if (!run || !run.signal.aborted) _sajuSetCalculationLoading(true, 'calculating');
+      }
       // 사용자 확정본을 원본 생년월일시 입력 키와 함께 보관 — 이후 앰비언트 재계산이 되돌리지 못하게 한다
       G_JONG_VERIFIED = { key: _jongVerifiedKey(bd, calType, hour, minute), result: _tj };
     }
@@ -5781,6 +5816,7 @@ async function calculate(){
         '<b style="color:#2196F3">신약 사주</b> — 억부+조후 통합 판단');
 
   }catch(err){
+    if (err.name === 'AbortError') return;
     console.error(err);
     setSajuFormStatus('사주 계산 오류: ' + getUserFacingSajuErrorMessage(err), 'error', 'birthDate');
     try {
@@ -8018,6 +8054,7 @@ function _buildSajuQuestionPromptHtml() {
     return '<label><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="' + item[0] + '"' + (i === 0 ? ' checked' : '') + '>' + item[1] + '</label>';
   }).join('');
   return '<div id="sajuQuestionPromptGeneratorCard" class="consultation-saju" data-reading-mode="' + _sajuPromptReadPersonaMode() + '" data-saju-analysis-only="true" data-cd-marker="saju-ai-standard-gate-llm-progress-v20260706 consultation-persona-ux-v1">'
+    + '<details class="saju-consultation-disclosure" data-saju-ai-disclosure><summary><span>나의 사주 상담</span><span data-saju-ai-disclosure-label>열기</span><span class="saju-consultation-disclosure__close">접기</span></summary><div class="saju-consultation-disclosure__body">'
     + '<section id="sajuConsultationEntry" class="consultation-entry" aria-label="명식이 답하는 사주 AI 상담">'
     + '<picture class="consultation-entry__visual" data-saju-ai-mode-content="pig"><source media="(max-width: 759px)" srcset="/images/consultation/saju-yeoni-entry-v2-640.webp"><img class="consultation-entry__art" src="/images/consultation/saju-yeoni-entry-v2-1280.webp" srcset="/images/consultation/saju-yeoni-entry-v2-640.webp 640w, /images/consultation/saju-yeoni-entry-v2-1280.webp 1280w" sizes="(min-width: 760px) min(100vw, 1280px), 100vw" width="1280" height="853" loading="lazy" decoding="async" alt="달빛 서재에서 여덟 글자의 명식 두루마리를 읽는 꽃돼지 연이"></picture>'
     + '<div class="consultation-entry__visual consultation-entry__visual--neo" data-saju-ai-mode-content="neo"><img class="consultation-entry__art consultation-entry__art--neo" src="/images/fortune-chat/persona/neo-world-greet.webp" width="368" height="368" loading="lazy" decoding="async" alt="선택의 기준을 함께 정리하는 가디언 네오"></div>'
@@ -8046,7 +8083,7 @@ function _buildSajuQuestionPromptHtml() {
     + '<div data-saju-ai-progress-card class="consultation-progress" style="display:none"><strong data-saju-ai-progress-message>상담 준비 중</strong><p>저장된 진행 상태를 확인하고 있어요. 창을 나갔다 돌아와도 같은 상담을 이어 받을 수 있습니다.</p><div data-saju-ai-basis-live style="display:none"></div></div>'
     + '<div data-saju-ai-output-panel class="consultation-report" style="display:none"><header><h3>명식이 열어 준 상담문</h3><p data-saju-ai-save-state></p><div class="consultation-report__actions"><button data-saju-ai-save-result type="button">저장하기</button><button data-saju-ai-copy-result type="button">내용 복사</button><button data-saju-ai-share-result type="button">공유하기</button><button data-saju-ai-reset-result type="button">다시 질문하기</button></div></header>'
     + '<div data-saju-ai-result-summary></div><div data-saju-ai-result-question></div><div data-saju-ai-result-basis></div><div data-saju-ai-output-text></div></div>'
-    + '<textarea data-saju-ai-output readonly hidden aria-label="상담 결과 원문"></textarea></div>';
+    + '<textarea data-saju-ai-output readonly hidden aria-label="상담 결과 원문"></textarea></div></details></div>';
 }
 
 function _mountSajuQuestionPromptCard() {
@@ -8114,6 +8151,14 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var liveBasisRequested = false;
   if (!inputEl || !countEl || !generateBtn || !regenerateBtn || !outputEl || !outputPanel || !outputTextEl || !copyBtn || !saveBtn || !shareBtn || !resetBtn || !statusEl) return;
 
+  var disclosure = rootEl.querySelector('[data-saju-ai-disclosure]');
+  var disclosureLabel = rootEl.querySelector('[data-saju-ai-disclosure-label]');
+  function openConsultation() { if (disclosure) disclosure.open = true; }
+  function setRevisitLabel(text) { if (disclosureLabel) disclosureLabel.textContent = text; }
+  if (disclosure) disclosure.addEventListener('toggle', function() {
+    if (disclosure.open && !isLoading && !currentResultPayload && archiveBtn && archiveBtn.style.display === 'inline-flex') archiveBtn.click();
+  });
+  var userRequestedReading = false;
   var isLoading = false;
   var progressTimer = null;
   var progressPercent = 0;
@@ -8138,6 +8183,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var continuationCount = 0;
   var requestLocale = _sajuEngineCurrentLang();
   var requestOwner = _sajuPromptOwnerId();
+  var requestProfile = _sajuPromptResolveProfileId();
   function applyPersonaMode(mode, announce) {
     currentPersonaMode = mode === 'neo' ? 'neo' : 'pig';
     rootEl.setAttribute('data-reading-mode', currentPersonaMode);
@@ -8155,17 +8201,48 @@ function _bindSajuQuestionPromptCard(rootEl) {
     var epoch = localeEpoch;
     var locale = _sajuEngineCurrentLang();
     var owner = _sajuPromptOwnerId();
-    return function() { return owner === _sajuPromptOwnerId() && epoch === localeEpoch && locale === _sajuEngineCurrentLang() && rootEl.isConnected !== false; };
+    var profile = _sajuPromptResolveProfileId();
+    return function() { return profile === _sajuPromptResolveProfileId() && owner === _sajuPromptOwnerId() && epoch === localeEpoch && locale === _sajuEngineCurrentLang() && rootEl.isConnected !== false; };
   }
   function discardForLocaleChange() {
     var next = _sajuEngineCurrentLang();
     if (next === requestLocale) return;
+    clearVisibleConsultation();
+    clearPaidEvidence();
     requestLocale = next;
     localeEpoch += 1;
     stopPolling();
     stopProgress();
-    if (!requestInFlight) setLoading(false);
+    requestInFlight = false;
+    setLoading(false);
     if (resumeBtn && activePendingJob) resumeBtn.style.display = 'inline-flex';
+  }
+  function clearVisibleConsultation() {
+    rootEl.removeAttribute('data-saju-reading-open');
+    userRequestedReading = false;
+    currentResultPayload = null;
+    activePendingJob = null;
+    outputEl.value = ''; outputTextEl.innerHTML = ''; outputPanel.style.display = 'none';
+    var editorial = outputPanel.querySelector('[data-paid-editorial-report]');
+    if (editorial) editorial.remove();
+    if (summaryEl) summaryEl.innerHTML = '';
+    if (questionEl) questionEl.innerHTML = '';
+    if (basisEl) basisEl.innerHTML = '';
+    if (disclosure) disclosure.open = false;
+    if (archiveBtn) archiveBtn.style.display = 'none';
+    if (resumeBtn) resumeBtn.style.display = 'none';
+    setRevisitLabel('열기');
+  }
+  function discardForProfileChange() {
+    if (requestProfile === _sajuPromptResolveProfileId()) return;
+    requestProfile = _sajuPromptResolveProfileId();
+    localeEpoch += 1;
+    stopPolling(); stopProgress(); clearPaidEvidence();
+    clearVisibleConsultation();
+    requestInFlight = false;
+    setLoading(false);
+    inputEl.value = '';
+    _sajuPromptSetStatus(statusEl, '프로필이 변경되었어요. 해당 프로필로 사주를 다시 분석해 주세요.', 'info');
   }
   function discardForAccountChange(event) {
     var source = event && event.detail && event.detail.source;
@@ -8173,6 +8250,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     var owner = _sajuPromptOwnerId();
     if (owner === requestOwner && (owner || !event || event.type !== 'cd:auth-changed')) return;
     requestOwner = owner;
+    clearVisibleConsultation();
     localeEpoch += 1;
     stopPolling(); stopProgress(); clearPaidEvidence();
     activePendingJob = null; currentResultPayload = null; requestInFlight = false;
@@ -8192,6 +8270,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   window.addEventListener('cd:locale-ready', discardForLocaleChange);
   window.addEventListener('cd:auth-changed', discardForAccountChange);
   window.addEventListener('storage', discardForAccountChange);
+  document.addEventListener('destinyProfileChanged', discardForProfileChange);
   window._sajuPromptLocaleCleanup = function() {
     localeEpoch += 1;
     stopPolling();
@@ -8200,6 +8279,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
     window.removeEventListener('cd:locale-ready', discardForLocaleChange);
     window.removeEventListener('cd:auth-changed', discardForAccountChange);
     window.removeEventListener('storage', discardForAccountChange);
+    document.removeEventListener('destinyProfileChanged', discardForProfileChange);
+    window.removeEventListener('pageshow', resumeOnWake);
+    window.removeEventListener('focus', resumeOnWake);
+    window.removeEventListener('online', resumeOnWake);
+    document.removeEventListener('visibilitychange', resumeOnVisible);
     if (entryObserver) entryObserver.disconnect();
   };
 
@@ -8354,6 +8438,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   }
   function setLoading(next) {
     isLoading = !!next;
+    if (isLoading) { userRequestedReading = true; openConsultation(); }
     if (!isLoading && paidResumeDone) { paidResumeDone(false); paidResumeDone = null; }
     inputEl.disabled = isLoading;
     generateBtn.disabled = isLoading;
@@ -8415,6 +8500,9 @@ function _bindSajuQuestionPromptCard(rootEl) {
       window.CDPaidEditorialReport.mount({host:outputPanel,completed:true,paid:true,resultText:text,title:'나의 사주 AI 상담 보고서',locale:_sajuEngineCurrentLang(),domain:'saju',analysisBasis:payload.analysisBasis});
     }
     updateSavedState();
+    openConsultation();
+    rootEl.setAttribute('data-saju-reading-open', 'true');
+    setRevisitLabel('저장된 상담 보기');
     outputPanel.style.display = 'block';
     if (payload.status === 'completed') outputPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
@@ -8623,6 +8711,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     _requestSajuQuestionPrompt(question, privacyOptions, domain, {
       paidEvidence: reusePaidEvidence ? lastPaidEvidence : null,
       onPaidEvidence: function(evidence) {
+        if (!isCurrent()) return;
         rememberPendingJob({
           requestId: evidence && evidence.requestId,
           profileId: _sajuPromptResolveProfileId(),
@@ -8633,6 +8722,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
         });
       },
       onJobRequestReady: function(job) {
+        if (!isCurrent()) return;
         // 게이트(이용권/결제) 통과 후에만 생성 단계로 진입한다.
         accessConfirmed = true;
         rememberPendingJob(job);
@@ -8782,13 +8872,14 @@ function _bindSajuQuestionPromptCard(rootEl) {
   // "눌러서 이어보기" 계약이 새로고침마다 자동 이어받기로 깨진다.
   function resumeOnWake(event) {
     if (event && event.type === 'pageshow' && !event.persisted) return;
-    if (!activePendingJob || isLoading) return;
+    if (!userRequestedReading || !activePendingJob || isLoading || rootEl.isConnected === false) return;
     resumePendingJob();
   }
   window.addEventListener('pageshow', resumeOnWake);
   window.addEventListener('focus', resumeOnWake);
   window.addEventListener('online', resumeOnWake);
-  document.addEventListener('visibilitychange', function() { if (!document.hidden) resumeOnWake(); });
+  function resumeOnVisible() { if (!document.hidden) resumeOnWake(); }
+  document.addEventListener('visibilitychange', resumeOnVisible);
 
   inputEl.addEventListener('input', function() {
     // 결제 후 생성 실패 → "추가 결제 없이 다시 생성" 상태에서 오타 수정 등 사소한 편집만 해도
@@ -8859,6 +8950,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     });
   });
   resetBtn.addEventListener('click', function() {
+    rootEl.removeAttribute('data-saju-reading-open');
     outputEl.value = '';
     outputTextEl.innerHTML = '';
     if (summaryEl) summaryEl.innerHTML = '';
@@ -8919,6 +9011,8 @@ function _bindSajuQuestionPromptCard(rootEl) {
     // 완료된 기록은 새 질문과 분리한다. 저장소와 결제 복구 증빙은 그대로 둔다.
     if (!archiveBtn) return;
     archiveBtn.style.display = 'inline-flex';
+    archiveBtn.textContent = '저장된 상담 보기';
+    setRevisitLabel('저장된 상담 보기');
     var archiveIsCurrent = captureLocaleScope();
     archiveBtn.addEventListener('click', function() {
       if (!archiveIsCurrent() || isLoading) return;
@@ -8933,6 +9027,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var restoredJob = _sajuPromptReadPendingJob(currentProfileId);
   if (restoredJob && (restoredJob.requestId || restoredJob.jobId || restoredJob.executionId)) {
     activePendingJob = restoredJob;
+    setRevisitLabel('이전 상담 이어보기');
     if (restoredJob.question) inputEl.value = restoredJob.question;
     if (restoredJob.domain != null) {
       var restoredDomain = rootEl.querySelector('[data-saju-ai-domain][value="' + String(restoredJob.domain || '').replace(/"/g, '\\"') + '"]');
@@ -8960,6 +9055,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
           return;
         }
         rememberPendingJob(payload);
+        setRevisitLabel('이전 상담 이어보기');
         if (payload.question) inputEl.value = payload.question;
         updateCount();
         if (resumeBtn) resumeBtn.style.display = 'inline-flex';

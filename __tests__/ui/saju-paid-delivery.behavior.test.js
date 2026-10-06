@@ -10,7 +10,7 @@ const names = new Set(['_bindSajuQuestionPromptCard', '_sajuPromptOwnerId', '_sa
 const code = ast.statements.filter(n => ts.isFunctionDeclaration(n) && names.has(n.name?.text)).map(n => n.getText(ast)).join('\n');
 function setup() {
   const fields = ['question', 'count', 'generate', 'regenerate', 'resume', 'archive', 'output', 'output-panel', 'output-text', 'copy-result', 'save-result', 'share-result', 'reset-result', 'save-state', 'status', 'result-summary', 'result-question', 'result-basis', 'mode-status'];
-  const dom = new JSDOM('<input id="themeCheckbox" type="checkbox"><main data-reading-mode="pig">' + fields.map(key => `<${key === 'question' || key === 'output' ? 'textarea' : key.startsWith('result-') || key === 'output-text' || key === 'mode-status' ? 'div' : 'button'} data-saju-ai-${key}></${key === 'question' || key === 'output' ? 'textarea' : key.startsWith('result-') || key === 'output-text' || key === 'mode-status' ? 'div' : 'button'}>`).join('') + '<button data-saju-ai-mode-button data-saju-mode="pig"></button><button data-saju-ai-mode-button data-saju-mode="neo"></button></main>', { url: 'https://mock.invalid', pretendToBeVisual: true });
+  const dom = new JSDOM('<input id="themeCheckbox" type="checkbox"><main data-reading-mode="pig"><details data-saju-ai-disclosure><summary>나의 사주 상담 <span data-saju-ai-disclosure-label>열기</span></summary>' + fields.map(key => `<${key === 'question' || key === 'output' ? 'textarea' : key.startsWith('result-') || key === 'output-text' || key === 'mode-status' ? 'div' : 'button'} data-saju-ai-${key}></${key === 'question' || key === 'output' ? 'textarea' : key.startsWith('result-') || key === 'output-text' || key === 'mode-status' ? 'div' : 'button'}>`).join('') + '<button data-saju-ai-mode-button data-saju-mode="pig"></button><button data-saju-ai-mode-button data-saju-mode="neo"></button></details></main>', { url: 'https://mock.invalid', pretendToBeVisual: true });
   const w = dom.window;
   w.localStorage.setItem('fortune_auth_user', JSON.stringify({ id: 'owner' }));
   w.HTMLElement.prototype.scrollIntoView = function() {};
@@ -64,7 +64,7 @@ test('storage failure retains original pending job and allows another same-job r
   h.close();
 });
 
-test('pageshow bfcache restore resumes the pending job without a click, but a fresh pageshow does not', async () => {
+test('fresh and bfcache pageshow leave unrequested saved jobs collapsed', async () => {
   const h = setup();
   h.bind();
   assert.equal(h.posts.length, 0);
@@ -77,16 +77,18 @@ test('pageshow bfcache restore resumes the pending job without a click, but a fr
   restored.persisted = true;
   h.w.dispatchEvent(restored);
   await tick();
-  assert.deepEqual(h.posts, [{ resumeJobId: 'job' }]);
+  assert.deepEqual(h.posts, []);
+  assert.equal(h.root.querySelector('[data-saju-ai-disclosure]').open, false);
   h.close();
 });
 
-test('window focus after backgrounding resumes the pending job without a click', async () => {
+test('window focus does not start an unrequested saved job', async () => {
   const h = setup();
   h.bind();
   h.w.dispatchEvent(new h.w.Event('focus'));
   await tick();
-  assert.deepEqual(h.posts, [{ resumeJobId: 'job' }]);
+  assert.deepEqual(h.posts, []);
+  assert.equal(h.root.querySelector('[data-saju-ai-disclosure]').open, false);
   h.close();
 });
 
@@ -246,5 +248,53 @@ test('numbered chapter subtitles retain text and belong to the correct reading g
   assert.ok(el.querySelectorAll('section')[1].textContent.includes('올해의 흐름 (참고)은 단정할 수 없습니다.'));
   assert.equal(h.ctx._sajuPromptChapterTitle('올해의 흐름 (참고)'),'');
   assert.match(el.querySelector('nav a').title,/올해의 흐름/);
+  h.close();
+});
+
+test('disclosure opens saved report without POST and folding preserves it', async () => {
+  const h = setup();
+  h.ctx._sajuPromptClearPendingJob('p');
+  h.ctx._sajuPromptStoreSavedResult({profileId:'p',resultId:'saved',resultText:'보관된 상담'});
+  h.bind();
+  const disclosure=h.root.querySelector('[data-saju-ai-disclosure]');
+  assert.equal(disclosure.open,false);
+  assert.equal(h.root.querySelector('[data-saju-ai-disclosure-label]').textContent,'저장된 상담 보기');
+  disclosure.open=true; await tick();
+  assert.match(h.root.querySelector('[data-saju-ai-output-text]').textContent,/보관된 상담/);
+  disclosure.open=false; await tick(); disclosure.open=true; await tick();
+  assert.match(h.root.querySelector('[data-saju-ai-output-text]').textContent,/보관된 상담/);
+  assert.equal(h.posts.length,0);
+  h.close();
+});
+test('profile and locale changes discard old replies and close the reader', async () => {
+  for (const scope of ['profile','locale']) {
+    const h=setup(); let release;
+    h.respond(()=>new Promise(resolve=>{release=resolve;}));
+    h.bind(); h.root.querySelector('[data-saju-ai-resume]').click(); await tick();
+    assert.equal(h.root.querySelector('[data-saju-ai-disclosure]').open,true);
+    if(scope==='profile') {
+      h.ctx._sajuPromptResolveProfileId=()=> 'other';
+      h.w.document.dispatchEvent(new h.w.CustomEvent('destinyProfileChanged'));
+    } else {
+      h.ctx._sajuEngineCurrentLang=()=> 'en';
+      h.w.dispatchEvent(new h.w.Event('languagechange'));
+    }
+    release({ok:true,payload:{status:'completed',saved:true,resultText:'이전 범위의 결과'}});
+    await tick();
+    assert.equal(h.root.querySelector('[data-saju-ai-disclosure]').open,false);
+    assert.equal(h.root.querySelector('[data-saju-ai-output-text]').textContent,'');
+    assert.equal(h.root.querySelector('[data-saju-ai-generate]').disabled,false);
+    h.close();
+  }
+});
+test('a user-started failed continuation can recover on focus', async () => {
+  const h=setup();
+  h.respond(async()=>({ok:false,status:503,payload:{error:'temporary'}}));
+  h.bind(); h.root.querySelector('[data-saju-ai-resume]').click(); await tick();
+  const before=h.posts.length;
+  h.respond(async()=>({ok:true,payload:{status:'completed',saved:true,resultText:'복구된 상담'}}));
+  h.w.dispatchEvent(new h.w.Event('focus')); await tick();
+  assert.ok(h.posts.length>before);
+  assert.match(h.root.querySelector('[data-saju-ai-output-text]').textContent,/복구된 상담/);
   h.close();
 });
