@@ -1,23 +1,24 @@
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 type Tier='mackerel'|'salmon'|'flounder'|'tuna';
 type Copy={sharedTopics:string;tiers:Record<Tier,string>};
-// Describes the tierDepth writing contract in concise-reading-prompt.ts.
-// Depth is reasoning within each chapter's evidence, not a per-chapter length guarantee.
-const copies:Record<ReadingLocale,Copy>={
- ko:{sharedTopics:'같은 주제도 상위 상담에서는 원인·조건·선택을 더 세밀하게 풀어봐요. 상담 종류에 따라 별도 심화 장이 더해져요.',tiers:{mackerel:'핵심 판단과 근거, 먼저 해볼 행동을 간결하게.',salmon:'고등어에 더해, 왜 그런 흐름이 생기고 생활에서 어떻게 드러나는지까지.',flounder:'연어에 더해, 서로 다른 근거와 조건을 비교하고 상황별 대안까지.',tuna:'광어에 더해, 근거의 우선순위와 조건별 선택, 행동 뒤 점검할 신호까지.'}},
- en:{sharedTopics:'Higher tiers explore the causes, conditions and choices within shared topics in more detail. Additional specialist chapters depend on the reading type.',tiers:{mackerel:'A clear conclusion, its basis and a first step.',salmon:'Why the pattern arises and how it may appear in daily life.',flounder:'Contrasting evidence, changing conditions and practical alternatives.',tuna:'Which evidence takes priority, choices by situation and signs to review after acting.'}},
- ja:{sharedTopics:'共通するテーマも、上位の鑑定では原因・条件・選択をより細かく読み解きます。鑑定の種類に応じて専門的な章が加わります。',tiers:{mackerel:'中心となる判断と根拠、まず試せる行動を簡潔に。',salmon:'その流れが生まれる理由と、日常での表れ方まで。',flounder:'異なる根拠や条件を比べ、状況に応じた選択肢まで。',tuna:'根拠の優先順位、条件別の選択と行動後に確かめる兆候まで。'}},
- 'zh-CN':{sharedTopics:'同样的主题，在更深入的档位中会细分原因、条件与选择。不同咨询类型还会增加专项章节。',tiers:{mackerel:'简明说明核心判断、依据与第一步行动。',salmon:'进一步解释形成原因，以及日常生活中可能的表现。',flounder:'比较不同依据与适用条件，梳理各情境下的替代选择。',tuna:'说明依据的优先顺序、条件对应的选择，以及行动后需观察的信号。'}},
- 'zh-TW':{sharedTopics:'同樣的主題，在更深入的方案中會細分原因、條件與選擇。不同諮詢類型還會增加專項章節。',tiers:{mackerel:'簡明說明核心判斷、依據與第一步行動。',salmon:'進一步解釋形成原因，以及日常生活中可能的表現。',flounder:'比較不同依據與適用條件，梳理各情境下的替代選擇。',tuna:'說明依據的優先順序、條件對應的選擇，以及行動後需觀察的訊號。'}},
- vi:{sharedTopics:'Với cùng chủ đề, gói chuyên sâu phân tích kỹ hơn nguyên nhân, điều kiện và lựa chọn. Các chương chuyên đề bổ sung tùy loại bài luận.',tiers:{mackerel:'Kết luận chính, cơ sở và bước đầu tiên thật rõ ràng.',salmon:'Vì sao mô thức xuất hiện và có thể biểu hiện thế nào trong đời sống.',flounder:'So sánh các căn cứ, điều kiện khác nhau và phương án theo hoàn cảnh.',tuna:'Ưu tiên căn cứ nào, chọn theo điều kiện và theo dõi dấu hiệu sau hành động.'}},
- hi:{sharedTopics:'उच्च स्तर के पाठ समान विषयों के कारणों, परिस्थितियों और विकल्पों को अधिक विस्तार से समझाते हैं। पाठ के प्रकार के अनुसार विशेष अध्याय भी जुड़ते हैं।',tiers:{mackerel:'मुख्य निष्कर्ष, उसका आधार और पहला कदम संक्षेप में।',salmon:'ढर्रा क्यों बनता है और रोज़मर्रा में कैसे दिख सकता है।',flounder:'अलग आधारों और शर्तों की तुलना तथा परिस्थिति के अनुसार विकल्प।',tuna:'आधारों की प्राथमिकता, शर्तों के अनुसार चुनाव और कदम उठाने के बाद जाँचने योग्य संकेत।'}},
- es:{sharedTopics:'Los niveles superiores profundizan en las causas, condiciones y opciones de los temas compartidos. Los capítulos especializados adicionales dependen del tipo de lectura.',tiers:{mackerel:'Una conclusión clara, su fundamento y un primer paso.',salmon:'Por qué surge el patrón y cómo puede aparecer en la vida cotidiana.',flounder:'Fundamentos distintos, condiciones y alternativas según la situación.',tuna:'Qué fundamento priorizar, cómo elegir y qué señales revisar después de actuar.'}},
- fr:{sharedTopics:'Les formules supérieures approfondissent les causes, les conditions et les choix des thèmes communs. Des chapitres spécialisés s’ajoutent selon le type de lecture.',tiers:{mackerel:'Une conclusion claire, son fondement et un premier pas.',salmon:'Pourquoi le schéma apparaît et comment il peut se manifester au quotidien.',flounder:'Comparer les éléments, les conditions et les alternatives selon la situation.',tuna:'Hiérarchiser les éléments, choisir selon les conditions et observer les signes après l’action.'}},
- de:{sharedTopics:'Höhere Stufen betrachten Ursachen, Bedingungen und Entscheidungen gemeinsamer Themen genauer. Zusätzliche Fachkapitel hängen von der Art der Deutung ab.',tiers:{mackerel:'Eine klare Kernaussage, ihre Grundlage und ein erster Schritt.',salmon:'Warum das Muster entsteht und wie es sich im Alltag zeigen kann.',flounder:'Unterschiedliche Grundlagen, Bedingungen und Handlungsalternativen vergleichen.',tuna:'Grundlagen gewichten, situationsbezogen wählen und nach dem Handeln Signale prüfen.'}},
- nl:{sharedTopics:'Hogere niveaus gaan dieper in op oorzaken, voorwaarden en keuzes binnen gedeelde onderwerpen. Extra verdiepende hoofdstukken hangen af van het type lezing.',tiers:{mackerel:'Een duidelijke conclusie, de onderbouwing en een eerste stap.',salmon:'Waarom het patroon ontstaat en hoe het in het dagelijks leven kan verschijnen.',flounder:'Verschillende aanwijzingen, voorwaarden en alternatieven per situatie vergelijken.',tuna:'Aanwijzingen afwegen, per situatie kiezen en signalen na je actie bekijken.'}},
- ms:{sharedTopics:'Peringkat lebih mendalam menghuraikan sebab, keadaan dan pilihan bagi topik yang sama. Bab khusus tambahan bergantung pada jenis bacaan.',tiers:{mackerel:'Kesimpulan utama, asasnya dan langkah pertama secara ringkas.',salmon:'Mengapa corak muncul dan bagaimana ia mungkin terlihat dalam kehidupan harian.',flounder:'Membandingkan asas, syarat dan pilihan mengikut keadaan.',tuna:'Keutamaan asas, pilihan mengikut syarat dan tanda yang diperhatikan selepas bertindak.'}},
+// One expert reasoning standard; historical chapter scope and purchase snapshots stay unchanged.
+const copies:Record<ReadingLocale,{sharedTopics:string;approach:string}>={
+"ko":{sharedTopics:"모든 생선에서 질문에 필요한 가장 깊은 분석을 제공해요. 상담 범위가 달라도 근거를 살피고 설명하는 품질은 같아요.",approach:"근거의 우선순위와 조건별 선택, 행동 뒤 점검할 신호까지."},
+"en":{sharedTopics:"Every fish uses the same high standard of analysis and explanation within the chosen consultation scope.",approach:"Which evidence takes priority, choices by situation and signs to review after acting."},
+"ja":{sharedTopics:"どの魚のプランでも、選んだ相談範囲について同じ高い水準で根拠を検討し、深く説明します。",approach:"根拠の優先順位、条件別の選択と行動後に確かめる兆候まで。"},
+"zh-CN":{sharedTopics:"所有鱼种咨询都以同样高的标准，在所选范围内深入分析依据并清楚解释。",approach:"说明依据的优先顺序、条件对应的选择，以及行动后需观察的信号。"},
+"zh-TW":{sharedTopics:"所有魚種諮詢都以同樣高的標準，在所選範圍內深入分析依據並清楚解釋。",approach:"說明依據的優先順序、條件對應的選擇，以及行動後需觀察的訊號。"},
+"vi":{sharedTopics:"Mọi gói cá đều phân tích căn cứ và giải thích chuyên sâu theo cùng tiêu chuẩn cao trong phạm vi tư vấn đã chọn.",approach:"Ưu tiên căn cứ nào, chọn theo điều kiện và theo dõi dấu hiệu sau hành động."},
+"hi":{sharedTopics:"हर मछली योजना में चुने गए परामर्श दायरे के भीतर एक ही उच्च मानक से आधारों का गहरा विश्लेषण और स्पष्ट व्याख्या मिलती है।",approach:"आधारों की प्राथमिकता, शर्तों के अनुसार चुनाव और कदम उठाने के बाद जाँचने योग्य संकेत।"},
+"es":{sharedTopics:"Todos los planes ofrecen el mismo alto nivel de análisis y explicación dentro del alcance elegido.",approach:"Qué fundamento priorizar, cómo elegir y qué señales revisar después de actuar."},
+"fr":{sharedTopics:"Chaque formule offre le même niveau approfondi d’analyse et d’explication dans le cadre de la consultation choisie.",approach:"Hiérarchiser les éléments, choisir selon les conditions et observer les signes après l’action."},
+"de":{sharedTopics:"Jeder Fisch bietet innerhalb des gewählten Beratungsumfangs denselben hohen Standard an fundierter Analyse und Erklärung.",approach:"Grundlagen gewichten, situationsbezogen wählen und nach dem Handeln Signale prüfen."},
+"nl":{sharedTopics:"Elke vis biedt binnen de gekozen adviesomvang dezelfde hoge kwaliteit van grondige analyse en uitleg.",approach:"Aanwijzingen afwegen, per situatie kiezen en signalen na je actie bekijken."},
+"ms":{sharedTopics:"Semua pelan ikan memberikan analisis mendalam dan penjelasan dengan standard tinggi yang sama dalam skop konsultasi yang dipilih.",approach:"Keutamaan asas, pilihan mengikut syarat dan tanda yang diperhatikan selepas bertindak."}
 };
-export const readingDepthCopy=(locale:ReadingLocale='ko'):Copy=>copies[locale];
+export function readingDepthCopy(locale:ReadingLocale='ko'):Copy {
+ const c=copies[locale];return {sharedTopics:c.sharedTopics,tiers:{mackerel:c.approach,salmon:c.approach,flounder:c.approach,tuna:c.approach}};
+}
 export function readingTierDepth(tier:string,locale:ReadingLocale='ko'):string|undefined {
- return copies[locale].tiers[tier as Tier];
+ return ['mackerel','salmon','flounder','tuna'].includes(tier)?copies[locale].approach:undefined;
 }

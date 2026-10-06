@@ -1,5 +1,8 @@
 ---
-status: deferred
+status: active
+updated: 2026-10-07
+next: "영냥이 main CI 확인 후 다른 세션 변경을 보존하며 로컬과 원격 차이를 읽기 전용 진단"
+deferred_by_user: true
 owner: local-main-parity-followup
 priority: after-yeongnyangi
 ---
@@ -12,6 +15,7 @@ priority: after-yeongnyangi
 
 - 공유 체크아웃: D:\Development\code-destiny
 - 상담 기능 커밋: cec3236bb
+- 마지막 후속 권한 보호 코드 커밋: 58319c51985daeffaf62ab53afb5c4b637f74ebd
 - 최신 원격 main 통합 커밋: d05aec7d652a1b0dc84ad69b4c845039e1cf94cd
 - 이 시점의 공유 로컬 main HEAD: a13ee2a64. origin/main 기준은 bc021415ee06ec6de02a9e79d9fc4abefeec0e30이었다.
 - 공유 main에는 다른 세션의 staged/unstaged 변경이 다수 있다. 이 작업은 이를 변경·커밋·stash·reset하지 않았다.

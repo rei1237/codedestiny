@@ -11,7 +11,7 @@ test('public product comparisons use the same default consultation chapters as p
   assert.equal(offer.price,product.priceKRW);
  }
 });
-test('every described tier has a distinct writing contract without raising the shared chapter budget',()=>{
+test('all fish share expert writing quality while historical chapter budgets stay fixed',()=>{
  const targets=[];const approaches=[];
  for(const tier of ['mackerel','salmon','flounder','tuna']){
   const p=m.products.find(p=>p.id==='saju_'+tier);
@@ -21,13 +21,13 @@ test('every described tier has a distinct writing contract without raising the s
   approaches.push(contract.approach);if(tier!=='mackerel')targets.push(chapter.targetChars);
   assert.equal(JSON.stringify(chapter),before,'describing depth must not mutate generation targets');
  }
- assert.equal(new Set(approaches).size,4);assert.deepEqual(targets[0],targets[1]);assert.deepEqual(targets[1],targets[2]);
+ assert.equal(new Set(approaches).size,1);assert.deepEqual(targets[0],targets[1]);assert.deepEqual(targets[1],targets[2]);
 });
-test('all twelve locales explain shared topics and distinct tier depth without numeric promises',()=>{
+test('all twelve locales explain the same expert depth without numeric promises',()=>{
  for(const locale of m.readingLocales){
   const copy=m.readingDepthCopy(locale);assert.ok(copy.sharedTopics.trim());
   const texts=['mackerel','salmon','flounder','tuna'].map(tier=>m.readingTierDepth(tier,locale));
-  assert.equal(new Set(texts).size,4);for(const text of [copy.sharedTopics,...texts]){assert.ok(text.trim());assert.doesNotMatch(text,/[0-9]/);if(locale!=='ko')assert.doesNotMatch(text,/[가-힣]/);}
+  assert.equal(new Set(texts).size,1);for(const text of [copy.sharedTopics,...texts]){assert.ok(text.trim());assert.doesNotMatch(text,/[0-9]/);if(locale!=='ko')assert.doesNotMatch(text,/[가-힣]/);}
  }
  assert.equal(m.readingTierDepth('assorted'),undefined,'fusion retains its own contract');
 });
