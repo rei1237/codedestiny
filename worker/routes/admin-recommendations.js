@@ -34,7 +34,7 @@ export async function handleAdminRecommendationRoutes(path, request, env) {
       const product = cleanProduct(body);
       const existing = await withMongoRetry(env, () => RecommendationProduct.findById(product.id).lean());
       if (!existing) {
-        const count = await withMongoRetry(env, () => RecommendationProduct.countDocuments({}));
+        const count = await withMongoRetry(env, () => RecommendationProduct.countDocuments({ _id: { $gt: '' } }));
         if (count >= 500) return json({ error: 'catalogue_limit', message: '수동 카탈로그 한도는 500개입니다.' }, { status: 409 });
       }
       // Every edit invalidates approval; an operator must recheck changed facts.

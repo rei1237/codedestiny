@@ -140,3 +140,6 @@ node scripts/capture-recommendations-mock.cjs
 ```
 
 주소는 해당 작업의 dev 출력에 맞춘다. 스크립트는 루프백 외 요청을 모두 차단하며 가짜 관리자 토큰과 메모리 카탈로그만 쓴다. 테스트 초안은 서버 종료 시 사라지고 운영 상품 수에 포함하지 않는다.
+
+- CI 보완: 추천 페이지의 전용 description 선언, 카탈로그 개수 조회의 _id 인덱스 조건, 관련 서비스 소스 변경에 따른 사이트맵 서명 재생성. 로컬 mongo-query-index-shapes 위반 0, sitemap-drift 일치 확인.
+- 기능 변경 CI의 전체 Jest: 345개 스위트·5,174개 테스트 통과. 최종 main CI 상태는 별도 전달 보고서에서 정확한 SHA와 함께 기록한다.
