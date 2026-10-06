@@ -140,6 +140,12 @@
 /public/js/core/payment-service.js
 /public/js/core/premium-chapter-orchestrator.js
 /public/js/core/saju/basicFortunePresentation.js
+/public/js/core/saju/destiny-anatomy/boot.js
+/public/js/core/saju/destiny-anatomy/copy.js
+/public/js/core/saju/destiny-anatomy/engine.js
+/public/js/core/saju/destiny-anatomy/hd-copy.generated.js
+/public/js/core/saju/destiny-anatomy/render.js
+/public/js/core/saju/destiny-anatomy/share-card.js
 /public/js/core/saju/dopamineResult.js
 /public/js/core/saju/extremeTResult.js
 /public/js/core/saju/modalProfileState.js
@@ -250,6 +256,7 @@
 /public/styles/basic-fortune-library.css
 /public/styles/core-ui.css
 /public/styles/cosmic-main.css
+/public/styles/destiny-anatomy.css
 /public/styles/destiny-flower-cosmic.css
 /public/styles/feature-marketing-detail.css
 /public/styles/feature-visual-detail.css

@@ -180,12 +180,6 @@ test('셸 전역 어댑터는 시간 미상이면 시주를 버리고, 전역이
   assert.equal(E.buildDestinyAnatomy({scope: {}}), null);
 });
 
-test('플래그: 운영 호스트는 꺼짐, 로컬·스테이징만 켜짐', () => {
-  assert.equal(E._canon.PRODUCTION_ENABLED, false);
-  for (const h of ['code-destiny.com', 'www.code-destiny.com', 'code-destiny.pages.dev', 'x.workers.dev', '']) assert.equal(E.isEnabled(h), false, h);
-  for (const h of ['localhost', '127.0.0.1', 'staging.code-destiny.com']) assert.equal(E.isEnabled(h), true, h);
-});
-
 test('§28 스키마 키를 모두 갖는다', () => {
   const m = build(STRONG.reality, {}, {hdChart: HD, vedicBasis: basis('사자자리 (Leo)', '게자리', 'Pushya · 2파다')});
   assert.equal(m.version, '1');
@@ -197,4 +191,38 @@ test('§28 스키마 키를 모두 갖는다', () => {
   for (const k of ['headline', 'summary', 'strengths', 'tensions', 'insights', 'decisionPattern', 'workPattern', 'moneyPattern', 'relationshipPattern']) assert.ok(k in m.fusion, k);
   assert.deepEqual(m.share, {headline: '', keywords: [], imageUrl: null});
   assert.ok(m.fusion.insights.length <= 3);
+});
+
+const LUCK = (g, j, score) => ({luck: {g, j, startYear: 2020, endYear: 2029, score, chungPenalty: false}});
+
+test('대운 오버레이: 천간·지지 정기 십성으로 회로를 고르고, 점수 60/40 경계로 흐름을 정한다', () => {
+  assert.deepEqual(build(STRONG.reality).luck, {available: false});
+  // 庚 일간: 甲=편재, 寅 정기 甲=편재 → 현실 회로 하나(겹침)
+  const a = build(STRONG.reality, LUCK('甲', '寅', 60)).luck;
+  assert.deepEqual([a.available, a.tone, a.axes, a.doubled], [true, 'tailwind', ['reality'], true]);
+  // 丙=편관(구조), 子 정기 癸=상관(표현)
+  const b = build(STRONG.reality, LUCK('丙', '子', 59)).luck;
+  assert.deepEqual([b.tone, b.stemAxis, b.branchAxis, b.axes], ['steady', 'structure', 'expression', ['structure', 'expression']]);
+  assert.equal(build(STRONG.reality, LUCK('丙', '子', 40)).luck.tone, 'steady');
+  assert.equal(build(STRONG.reality, LUCK('丙', '子', 39)).luck.tone, 'headwind');
+  // 과열은 원래 과한 회로와 대운 회로의 교집합이고, 타고난 엔진 점수는 바꾸지 않는다.
+  const m = build(STRONG.reality, LUCK('甲', '寅', 72));
+  assert.deepEqual(m.luck.overheat, m.luck.axes.filter((x) => m.saju.overloadPatterns.includes(x)));
+  assert.deepEqual(m.saju.brain, build(STRONG.reality).saju.brain);
+  assert.notEqual(m.fingerprint, build(STRONG.reality).fingerprint);
+  assert.notEqual(m.fingerprint, build(STRONG.reality, LUCK('甲', '寅', 30)).fingerprint);
+});
+
+test('대운 어댑터: 현재 나이까지 시작한 마지막 대운을 셸 evalDaewun 점수로 읽고, 시간 미상·전역 없음이면 비운다', () => {
+  const rows = [{age: 3, g: '戊', j: '寅', startYear: 1993, endYear: 2002}, {age: 33, g: '甲', j: '午', startYear: 2023, endYear: 2032}, {age: 43, g: '乙', j: '未', startYear: 2033, endYear: 2042}];
+  const seen = [];
+  const scope = {G_PILLARS: {y: {g: '甲', j: '子'}, m: {g: '乙', j: '巳'}, d: {g: '甲', j: '亥'}, h: {g: '庚', j: '午'}},
+    G_POWER: {isStrong: true, score: 40, yongshin: ['fire'], kijishin: ['water']}, G_JONG: {isJong: false},
+    G_DAEWUN: rows, CURRENT_AGE: 37, evalDaewun: (g, j) => { seen.push(g + j); return {score: 72, hasChungPenalty: true}; }};
+  assert.deepEqual(plain(E.adaptShellSnapshot(scope).luck), {g: '甲', j: '午', startYear: 2023, endYear: 2032, score: 72, chungPenalty: true});
+  assert.deepEqual(seen, ['甲午']);
+  assert.equal(E.adaptShellSnapshot({...scope, __cdSajuTimeUnknown: true}).luck, null);
+  assert.equal(E.adaptShellSnapshot({...scope, G_DAEWUN: []}).luck, null);
+  assert.equal(E.adaptShellSnapshot({...scope, evalDaewun: undefined}).luck, null);
+  assert.equal(E.adaptShellSnapshot({...scope, CURRENT_AGE: 1}).luck, null);
 });

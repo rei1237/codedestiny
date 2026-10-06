@@ -1,0 +1,229 @@
+/* 운명 구조도(DESTINY ANATOMY) — 무료 사주 결과 안 섹션. boot.js 가 플래그가 켜진 호스트에서만 지연 로드한다.
+ * 🔴 색은 --cd-* 토큰만 참조한다(새 하드코딩 색·다크 접두사·색 구성표 미디어쿼리 금지 — design-canon §4). 연이·네오 테마는 토큰이 바꾼다.
+ * 탭 영역 44px 이상, 360px 폭 우선, prefers-reduced-motion 이면 움직이지 않는다. */
+#destinyAnatomyCard {
+  --da-ink: var(--cd-text);
+  --da-muted: var(--cd-text-muted);
+  --da-accent: var(--cd-accent);
+  --da-gold: var(--cd-gold);
+  --da-line: var(--cd-border);
+  --da-soft: var(--cd-accent-soft);
+  --da-surface: var(--cd-surface-2);
+  --da-glow: color-mix(in srgb, var(--cd-gold) 55%, transparent);
+  color: var(--da-ink);
+  overflow: hidden;
+}
+#destinyAnatomyCard[hidden] { display: none; }
+
+/* ── 공통 ── */
+.da-sec { margin-top: var(--cd-sp-lg); padding-top: var(--cd-sp-lg); border-top: 1px solid var(--da-line); }
+.da-sec:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.da-h { margin: 0 0 var(--cd-sp-sm); font-size: 1.05rem; line-height: 1.4; color: var(--da-ink); }
+.da-sub { margin: var(--cd-sp-md) 0 var(--cd-sp-xs); font-size: .95rem; color: var(--da-ink); }
+.da-lead { margin: 0 0 var(--cd-sp-sm); font-size: 1rem; line-height: 1.6; font-weight: 600; }
+.da-p { margin: 0 0 var(--cd-sp-sm); line-height: 1.7; }
+.da-p--quiet, .da-note { color: var(--da-muted); font-size: .9rem; line-height: 1.6; }
+.da-note { margin: var(--cd-sp-xs) 0 0; }
+.da-sec--error { text-align: center; padding: var(--cd-sp-lg) var(--cd-sp-md); border: 1px dashed var(--da-line); border-radius: var(--cd-r-md); }
+.da-sec--error p { margin: 0 0 var(--cd-sp-sm); color: var(--da-muted); }
+
+.da-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--cd-sp-xs);
+  min-height: 44px; padding: 0 var(--cd-sp-lg); border-radius: var(--cd-r-pill);
+  font: inherit; font-weight: 700; cursor: pointer; border: 1px solid transparent;
+  transition: transform var(--cd-dur-fast) var(--cd-ease-out), box-shadow var(--cd-dur-fast) var(--cd-ease-out);
+}
+.da-btn--primary { background: linear-gradient(135deg, var(--cd-cta-primary-bg), var(--cd-cta-primary-bg-2)); color: var(--cd-cta-primary-ink); box-shadow: var(--cd-elev-1); }
+.da-btn--ghost { background: var(--cd-cta-ghost-fill); color: var(--cd-cta-ghost-ink); border-color: var(--cd-cta-ghost-line); }
+.da-btn:active { transform: scale(.98); }
+.da-btn:focus-visible, .da-link:focus-visible, .da-cta:focus-visible, .da-toggle__btn:focus-visible, .da-engine summary:focus-visible {
+  outline: 2px solid var(--da-accent); outline-offset: 2px;
+}
+.da-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0; background: none; border: 0; color: var(--da-accent); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.da-actions { display: flex; flex-wrap: wrap; gap: var(--cd-sp-sm); }
+.da-tags { display: flex; flex-wrap: wrap; gap: var(--cd-sp-xs); margin: var(--cd-sp-xs) 0; }
+.da-tag { padding: 4px 10px; border-radius: var(--cd-r-pill); background: var(--da-soft); color: var(--da-ink); font-size: .85rem; }
+.da-bullets { margin: var(--cd-sp-xs) 0; padding-left: 1.2em; line-height: 1.6; }
+.da-source { margin: var(--cd-sp-xs) 0 0; font-size: .8rem; color: var(--da-muted); }
+
+/* ── Hero ── */
+.da-hero__meta { display: flex; align-items: center; gap: var(--cd-sp-sm); flex-wrap: wrap; }
+.da-eyebrow { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--da-muted); }
+.da-title { margin: var(--cd-sp-xs) 0; }
+.da-hero__q { margin: var(--cd-sp-sm) 0 var(--cd-sp-xs); font-size: 1.15rem; line-height: 1.5; font-weight: 700; }
+.da-hero__intro { margin: 0; color: var(--da-muted); line-height: 1.6; }
+
+/* ── Brain Map ── */
+.da-brain__svg { display: block; width: 100%; max-width: 420px; height: auto; margin: var(--cd-sp-sm) auto; }
+.da-brain__shell { fill: color-mix(in srgb, var(--cd-accent-soft) 45%, transparent); stroke: var(--da-line); stroke-width: 1.5; }
+.da-brain__fold { fill: none; stroke: var(--da-line); stroke-width: 1.2; stroke-linecap: round; }
+.da-brain__link { stroke: var(--da-accent); stroke-opacity: .28; stroke-linecap: round; }
+.da-brain__link.is-core { stroke: var(--da-gold); stroke-opacity: .8; }
+.da-brain__core { fill: var(--cd-surface); stroke: var(--da-accent); stroke-width: 2; }
+.da-lv-dominant .da-brain__core { fill: var(--da-accent); }
+.da-lv-strong .da-brain__core { fill: color-mix(in srgb, var(--cd-accent) 60%, var(--cd-surface)); }
+.da-lv-moderate .da-brain__core { fill: color-mix(in srgb, var(--cd-accent) 28%, var(--cd-surface)); }
+.da-brain__glow { fill: var(--da-glow); opacity: 0; }
+.da-brain__label { fill: var(--da-ink); font-size: 11px; font-weight: 700; text-anchor: middle; paint-order: stroke; stroke: var(--cd-surface); stroke-width: 3px; stroke-linejoin: round; }
+.is-lit .da-brain__glow { opacity: .9; animation: da-pulse 3.2s var(--cd-ease-out) infinite; transform-box: fill-box; transform-origin: center; }
+
+.da-thoughts { margin: var(--cd-sp-sm) 0; padding: 0; list-style: none; display: grid; gap: var(--cd-sp-xs); }
+.da-thought { padding: var(--cd-sp-sm) var(--cd-sp-md); border-radius: var(--cd-r-md); background: var(--da-surface); border: 1px solid var(--da-line); line-height: 1.6; }
+.da-thought__name { display: block; font-size: .78rem; font-weight: 700; color: var(--da-accent); }
+.da-thought__line { display: block; }
+.da-thought--quiet { background: transparent; }
+
+/* ── 사고회로 ── */
+.da-combo { margin: 0 0 var(--cd-sp-xs); font-size: 1.05rem; font-weight: 700; }
+.da-sequence { display: inline-block; margin: var(--cd-sp-xs) 0 var(--cd-sp-sm); padding: 6px 12px; border-radius: var(--cd-r-pill); border: 1px solid var(--da-line); background: var(--da-surface); font-size: .88rem; font-weight: 600; line-height: 1.5; }
+.da-nyang { margin: var(--cd-sp-sm) 0 0; padding: var(--cd-sp-sm) var(--cd-sp-md); border-radius: var(--cd-r-md); background: color-mix(in srgb, var(--cd-gold-soft) 70%, transparent); border: 1px solid var(--da-line); line-height: 1.6; }
+.da-nyang p { margin: 0; }
+.da-nyang__label { display: block; font-size: .78rem; font-weight: 700; color: var(--da-muted); }
+
+/* ── 5 Engines ── */
+.da-engine { border: 1px solid var(--da-line); border-radius: var(--cd-r-md); background: var(--da-surface); margin-bottom: var(--cd-sp-xs); }
+.da-engine summary { list-style: none; display: grid; grid-template-columns: 1fr auto; grid-template-areas: 'name level' 'meter meter'; gap: 6px var(--cd-sp-sm); align-items: center; min-height: 44px; padding: var(--cd-sp-sm) var(--cd-sp-md); cursor: pointer; }
+.da-engine summary::-webkit-details-marker { display: none; }
+.da-engine__name { grid-area: name; font-weight: 700; }
+.da-engine__name small { margin-left: 6px; font-weight: 500; color: var(--da-muted); }
+.da-engine__level { grid-area: level; font-size: .8rem; color: var(--da-muted); }
+.da-engine summary .da-meter { grid-area: meter; }
+.da-engine__body { padding: 0 var(--cd-sp-md) var(--cd-sp-md); }
+.da-q { margin: 0 0 var(--cd-sp-xs); font-weight: 600; }
+.da-meter { display: block; height: 8px; border-radius: var(--cd-r-pill); background: color-mix(in srgb, var(--cd-accent-soft) 55%, transparent); overflow: hidden; }
+.da-meter__fill { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--da-accent), var(--da-gold)); transform-origin: left; }
+.is-lit .da-meter__fill { animation: da-grow var(--cd-dur-emph) var(--cd-ease-out) both; }
+
+/* ── 오행 ── */
+.da-els { display: grid; gap: var(--cd-sp-xs); margin: 0; padding: 0; list-style: none; }
+.da-el { display: grid; grid-template-columns: 3.2em 1fr 3em; align-items: center; gap: var(--cd-sp-sm); }
+.da-el__name { font-weight: 700; }
+.da-el__pct { text-align: right; font-variant-numeric: tabular-nums; color: var(--da-muted); font-size: .88rem; }
+.da-el__words { grid-column: 2 / -1; font-size: .82rem; color: var(--da-muted); }
+.da-el.is-dominant .da-el__name { color: var(--da-accent); }
+.da-el.is-missing .da-meter__fill { background: var(--da-line); }
+
+/* ── 안내·로딩 ── */
+.da-notice { display: grid; gap: var(--cd-sp-sm); justify-items: start; padding: var(--cd-sp-md); border-radius: var(--cd-r-md); background: var(--da-surface); border: 1px solid var(--da-line); }
+.da-notice p { margin: 0; line-height: 1.6; }
+.da-notice--loading { grid-auto-flow: column; justify-content: start; align-items: center; }
+.da-spin { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--da-line); border-top-color: var(--da-accent); animation: da-spin 900ms linear infinite; }
+
+/* ── Decision Core ── */
+.da-bridge { margin: 0 0 var(--cd-sp-sm); color: var(--da-muted); line-height: 1.6; }
+.da-hd-type { margin: 0 0 var(--cd-sp-xs); font-size: 1.05rem; font-weight: 700; }
+.da-facts { display: grid; grid-template-columns: auto 1fr; gap: 6px var(--cd-sp-md); margin: var(--cd-sp-sm) 0; }
+.da-facts > div, .da-rows > div { display: contents; }
+.da-facts dt { color: var(--da-muted); font-size: .88rem; }
+.da-facts dd { margin: 0; font-weight: 600; }
+.da-core { padding: var(--cd-sp-sm) var(--cd-sp-md); border: 1px solid var(--da-line); background: color-mix(in srgb, var(--cd-gold-soft) 60%, transparent); border-radius: var(--cd-r-md); }
+
+/* ── Energy Body ── */
+.da-toggle { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: var(--cd-sp-sm); border-radius: var(--cd-r-pill); background: var(--da-surface); border: 1px solid var(--da-line); }
+.da-toggle__btn { min-height: 40px; min-width: 64px; padding: 0 var(--cd-sp-md); border-radius: var(--cd-r-pill); border: 0; background: transparent; color: var(--da-ink); font: inherit; font-weight: 600; cursor: pointer; }
+.da-toggle__btn[aria-pressed='true'] { background: var(--da-accent); color: var(--cd-surface); }
+.da-body__grid { display: grid; grid-template-columns: minmax(120px, 160px) 1fr; gap: var(--cd-sp-md); align-items: start; }
+.da-body__svg { width: 100%; height: auto; }
+.da-body__shape { fill: color-mix(in srgb, var(--cd-accent-soft) 40%, transparent); stroke: var(--da-line); stroke-width: 1.5; }
+.da-body__spine { stroke: var(--da-line); stroke-width: 1.5; stroke-dasharray: 3 5; }
+.da-chakra__halo { fill: var(--da-glow); opacity: 0; transition: opacity var(--cd-dur-base) var(--cd-ease-out); }
+.da-chakra__dot { fill: var(--cd-surface); stroke: var(--da-gold); stroke-width: 2; }
+.da-ck-bright .da-chakra__dot { fill: var(--da-gold); }
+.da-ck-steady .da-chakra__dot { fill: color-mix(in srgb, var(--cd-gold) 45%, var(--cd-surface)); }
+.is-lit .da-ck-bright .da-chakra__halo { opacity: .8; }
+.da-center { fill: var(--cd-surface); stroke: var(--da-accent); stroke-width: 1.5; }
+.da-center.is-defined { fill: var(--da-accent); }
+.da-centers, .da-chakras { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: .88rem; }
+.da-centers__item, .da-chakras__item { padding: 6px 0; border-bottom: 1px solid var(--da-line); line-height: 1.5; }
+.da-centers__name { font-weight: 700; }
+.da-centers__state { margin-left: 6px; font-size: .78rem; color: var(--da-muted); }
+.da-centers__role { display: block; color: var(--da-muted); }
+
+/* ── Cross Insight ── */
+.da-insight { padding: var(--cd-sp-sm) var(--cd-sp-md); margin-bottom: var(--cd-sp-xs); border-radius: var(--cd-r-md); border: 1px solid var(--da-line); background: var(--da-surface); }
+.da-insight .da-sub { margin: var(--cd-sp-xs) 0; font-weight: 700; }
+.da-insight .da-p { margin: 0; }
+.da-badge { display: inline-block; padding: 2px 8px; border-radius: var(--cd-r-pill); font-size: .72rem; font-weight: 700; border: 1px solid var(--da-line); }
+.da-badge--saju { background: var(--da-soft); color: var(--da-ink); }
+.da-badge--hd { background: var(--cd-surface); color: var(--da-accent); border-color: var(--da-accent); }
+.da-badge--fusion { background: color-mix(in srgb, var(--cd-gold) 40%, var(--cd-surface)); color: var(--da-ink); }
+
+/* ── 한눈에 ── */
+.da-mindline { margin: 0 0 var(--cd-sp-sm); padding: var(--cd-sp-md); border-radius: var(--cd-r-md); background: linear-gradient(135deg, var(--da-soft), color-mix(in srgb, var(--cd-gold-soft) 80%, transparent)); font-size: 1.05rem; font-weight: 700; line-height: 1.55; }
+.da-core-engine { margin: 0 0 var(--cd-sp-sm); color: var(--da-muted); }
+.da-rows { display: grid; grid-template-columns: auto 1fr; gap: 6px var(--cd-sp-md); margin: 0 0 var(--cd-sp-sm); }
+.da-rows dt { color: var(--da-muted); font-size: .88rem; white-space: nowrap; }
+.da-rows dd { margin: 0; line-height: 1.55; }
+
+/* ── 공유·CTA ── */
+.da-share__status { min-height: 1.4em; }
+.da-cta-list { display: grid; gap: var(--cd-sp-xs); margin: 0; padding: 0; list-style: none; }
+.da-cta { display: grid; gap: 2px; width: 100%; min-height: 56px; padding: var(--cd-sp-sm) var(--cd-sp-md); border-radius: var(--cd-r-md); border: 1px solid var(--da-line); background: var(--da-surface); color: var(--da-ink); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.da-cta__q { font-size: .88rem; color: var(--da-muted); }
+.da-cta__label { font-weight: 700; color: var(--da-accent); }
+.da-cta__label::after { content: ' →'; }
+.da-disclaimer { margin: var(--cd-sp-lg) 0 0; font-size: .78rem; line-height: 1.6; color: var(--da-muted); }
+
+/* ── 스켈레톤 ── */
+.da-skeleton { display: grid; gap: var(--cd-sp-sm); }
+.da-skel { display: block; border-radius: var(--cd-r-sm); background: linear-gradient(90deg, var(--da-soft), var(--da-surface), var(--da-soft)); background-size: 200% 100%; animation: da-shimmer 1.4s linear infinite; }
+.da-skel--title { height: 24px; width: 55%; }
+.da-skel--line { height: 14px; width: 100%; }
+.da-skel--short { width: 60%; }
+.da-skel--brain { height: 200px; border-radius: var(--cd-r-card); }
+
+/* ── 점등 ── */
+.da-body-wrap .da-sec { opacity: .001; transform: translateY(12px); transition: opacity var(--cd-dur-emph) var(--cd-ease-out), transform var(--cd-dur-emph) var(--cd-ease-out); }
+.da-body-wrap .da-sec.is-lit { opacity: 1; transform: none; }
+
+/* ── 지금 대운 오버레이 — 순풍(금)·고른(주색)·맞바람(옅은 점선). 길흉을 빨강·초록으로 단정하지 않는다. ── */
+.da-tone-tailwind { --da-tone: var(--da-gold); }
+.da-tone-steady { --da-tone: var(--da-accent); }
+.da-tone-headwind { --da-tone: var(--da-muted); }
+.da-brain__flow { fill: none; stroke: var(--da-tone); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 2 9; opacity: .85; }
+.da-brain__flow.da-tone-headwind { stroke-dasharray: 6 6; opacity: .6; }
+.is-lit .da-brain__flow { animation: da-flow 2.4s linear infinite; }
+.is-lit .da-brain__flow.da-tone-headwind { animation-duration: 4.8s; }
+.da-brain__orbit { fill: none; stroke: var(--da-tone); stroke-width: 2; stroke-dasharray: 3 5; transform-box: fill-box; transform-origin: center; }
+.is-lit .da-brain__orbit { animation: da-spin 14s linear infinite; }
+.is-luck .da-brain__label { fill: var(--da-ink); }
+.da-brain__legend { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 var(--cd-sp-sm); font-size: .8rem; color: var(--da-muted); }
+.da-key { width: 22px; height: 0; border-top: 2px dotted var(--da-tone); }
+.da-chip { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: var(--cd-r-pill); font-size: .68rem; font-weight: 700; vertical-align: 1px;
+  color: var(--da-ink); background: color-mix(in srgb, var(--da-tone) 22%, var(--cd-surface)); border: 1px solid var(--da-tone); }
+.da-thought.is-luck { border-color: var(--da-tone, var(--da-line)); }
+.da-luck { position: relative; margin: var(--cd-sp-md) 0; padding: var(--cd-sp-md); border-radius: var(--cd-r-card); overflow: hidden;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--da-tone) 16%, var(--cd-surface)) 0%, var(--cd-surface) 70%);
+  border: 1px solid color-mix(in srgb, var(--da-tone) 55%, var(--cd-border)); }
+.da-luck__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: var(--cd-sp-xs); }
+.da-luck__eyebrow { font-size: .74rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--da-muted); }
+.da-luck__period { padding: 2px 10px; border-radius: var(--cd-r-pill); font-size: .78rem; font-weight: 700; color: var(--da-ink); background: var(--cd-surface); border: 1px solid var(--da-line); }
+.da-luck__title { margin: 0 0 var(--cd-sp-xs); font-size: 1rem; font-weight: 700; line-height: 1.5; }
+.da-luck__tone { display: inline-block; margin-left: 4px; padding: 2px 10px; border-radius: var(--cd-r-pill); font-size: .78rem; vertical-align: 1px;
+  color: var(--da-ink); background: color-mix(in srgb, var(--da-tone) 30%, var(--cd-surface)); }
+.da-thoughts--luck .da-thought { background: var(--cd-surface); border-color: color-mix(in srgb, var(--da-tone) 45%, var(--cd-border)); }
+.da-thoughts--luck .da-thought__name { color: var(--da-ink); }
+.da-luck__heat { margin: 0 0 var(--cd-sp-sm); padding: var(--cd-sp-xs) var(--cd-sp-sm); border-radius: var(--cd-r-md); font-size: .9rem; line-height: 1.6;
+  background: var(--da-surface); border: 1px dashed var(--da-line); }
+.da-engine__name .da-chip { margin-left: 8px; }
+
+@keyframes da-flow { to { stroke-dashoffset: -44; } }
+@keyframes da-pulse { 0%, 100% { transform: scale(1); opacity: .55; } 50% { transform: scale(1.18); opacity: .95; } }
+@keyframes da-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes da-spin { to { transform: rotate(360deg); } }
+@keyframes da-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+@media (max-width: 380px) {
+  .da-body__grid { grid-template-columns: 1fr; }
+  .da-body__svg { max-width: 160px; margin: 0 auto; }
+  .da-btn { padding: 0 var(--cd-sp-md); }
+}
+@media (min-width: 720px) {
+  .da-thoughts { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .da-cta-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #destinyAnatomyCard *, #destinyAnatomyCard *::before, #destinyAnatomyCard *::after { animation: none !important; transition: none !important; }
+  .da-body-wrap .da-sec { opacity: 1; transform: none; }
+  .is-lit .da-brain__glow { opacity: .7; }
+}
