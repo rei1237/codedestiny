@@ -10,7 +10,7 @@ const request={system:'fixture',domainRules:'fixture',userQuestion:'fixture',cal
 
 test('paid chapter and analysis use separate owner-scoped caches and honor rejected-output bypass',async()=>{
  setResponse({ok:true,text:'{}',provider:'gemini'});
- const scoped=new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-used'},{requestId:'purchase',sectionGroup:'1'},{owner:'owner',skipRead:true});
+ const scoped=new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-used',LLM_DRY_RUN:'false'},{requestId:'purchase',sectionGroup:'1'},{owner:'owner',skipRead:true});
  await scoped.generate(request);
  const chapter=getOptions().cache;
  assert.equal(chapter.skipRead,true);assert.equal(chapter.deterministic,true);
