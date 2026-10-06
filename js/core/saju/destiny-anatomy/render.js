@@ -355,6 +355,24 @@
       '<p class="da-letter__sign">' + esc(ui.nyangSign) + '</p></div></div>';
   }
 
+  /* 챕터마다 꽃돼지 연이가 제목 아래에서 한두 문장으로 풀어 준다. 포즈는 차방 결과에서 쓰는 꽃돼지 안내 자산(renewal, 투명 배경)이고
+   * 챕터별로 하나씩 고정한다. 그림은 장식이라 alt 를 비우고, 해설 문장이 내용을 맡는다. */
+  var YEONI_POSE_DIR = '/images/fortune-tea-house/renewal/pig-';
+  var YEONI_POSE = {circuit: 'thinking', engines: 'listening', elements: 'cheer', decision: 'advice', body: 'empathy', vedic: 'waiting', fusion: 'completed', ask: 'welcome'};
+  var YEONI_PETAL = '<svg class="da-yeoni__petal" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="4.2" r="2.6"/><circle cx="11.6" cy="6.8" r="2.6"/><circle cx="10.2" cy="11" r="2.6"/><circle cx="5.8" cy="11" r="2.6"/><circle cx="4.4" cy="6.8" r="2.6"/><circle class="da-yeoni__bloom" cx="8" cy="8" r="1.7"/></svg>';
+  function yeoniNoteHtml(t, id) {
+    var y = t.yeoni, line = y && y[id];
+    if (!line || !YEONI_POSE[id]) return '';
+    return '<aside class="da-yeoni" data-da-yeoni="' + esc(id) + '" aria-label="' + esc(y.label) + '">' +
+      '<img class="da-yeoni__pig" src="' + YEONI_POSE_DIR + YEONI_POSE[id] + '.webp" width="72" height="96" alt="" loading="lazy" decoding="async">' +
+      '<div class="da-yeoni__bubble"><p class="da-yeoni__label">' + YEONI_PETAL + esc(y.label) + '</p><p class="da-yeoni__msg">' + esc(line) + '</p></div></aside>';
+  }
+  function withYeoni(html, t, id) {
+    var at = html ? html.indexOf('</h4>') : -1;
+    var note = at < 0 ? '' : yeoniNoteHtml(t, id);
+    return note ? html.slice(0, at + 5) + note + html.slice(at + 5) : html;
+  }
+
   function summaryHtml(model, t) {
     var ui = t.ui;
     return '<section class="da-sec da-summary" data-da-sec="summary" aria-labelledby="daSummaryTitle"><h4 class="da-h" id="daSummaryTitle">' + esc(ui.summaryTitle) + '</h4>' +
@@ -444,7 +462,7 @@
         ['vedic', function () { return vedicHtml(t); }],
         ['fusion', function () { return insightsHtml(t); }],
         ['ask', function () { return askHtml(t, state); }]
-      ].map(function (c) { return {id: c[0], html: section(c[0], ui, c[1])}; }).filter(function (c) { return c.html; });
+      ].map(function (c) { return {id: c[0], html: section(c[0], ui, function () { return withYeoni(c[1](), t, c[0]); })}; }).filter(function (c) { return c.html; });
       html += '<div class="da-body-wrap" id="daBody">' +
         section('report', ui, function () { return reportHeadHtml(t, chapters.map(function (c) { return c.id; })); }) +
         chapters.map(function (c) { return c.html; }).join('') +

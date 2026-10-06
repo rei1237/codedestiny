@@ -521,3 +521,18 @@
 :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-mindline { background: linear-gradient(135deg, var(--da-bg-lift), color-mix(in srgb, var(--cd-accent-soft) 30%, var(--da-bg))); }
 /* 고른 대운은 장밋빛 — 밝은 카드에 차가운 민트 패널이 섞이지 않게. */
 :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-tone-steady { --da-tone: var(--cd-accent); }
+
+/* 연이의 해설 — 챕터 제목 아래 꽃돼지 연이 + 말풍선. 색은 종이 시트의 --da-* 만 쓴다(꽃돼지·neo 양쪽이 그대로 따라온다). */
+#destinyAnatomyCard .da-yeoni { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: var(--cd-sp-md); align-items: center; margin: 0 0 var(--cd-sp-lg); }
+#destinyAnatomyCard .da-yeoni__pig { display: block; width: 72px; height: 96px; object-fit: contain; filter: drop-shadow(0 4px 6px color-mix(in srgb, var(--da-ink) 16%, transparent)); }
+#destinyAnatomyCard .da-yeoni__bubble { --da-yeoni-edge: color-mix(in srgb, var(--da-accent) 30%, var(--da-line)); position: relative; padding: var(--cd-sp-sm) var(--cd-sp-md); border-radius: var(--cd-r-md); background: var(--da-bg-lift); border: 1px solid var(--da-yeoni-edge); }
+#destinyAnatomyCard .da-yeoni__bubble::before { content: ''; position: absolute; left: -7px; top: calc(50% - 6px); width: 12px; height: 12px; background: var(--da-bg-lift); border-left: 1px solid var(--da-yeoni-edge); border-bottom: 1px solid var(--da-yeoni-edge); transform: rotate(45deg); }
+#destinyAnatomyCard .da-yeoni__label { display: flex; align-items: center; gap: 5px; margin: 0 0 2px; font-family: var(--da-serif); font-size: .8rem; font-weight: 700; letter-spacing: .06em; color: var(--da-accent); }
+#destinyAnatomyCard .da-yeoni__petal { flex: none; width: 14px; height: 14px; fill: color-mix(in srgb, var(--da-accent) 50%, var(--da-bg-lift)); }
+#destinyAnatomyCard .da-yeoni__bloom { fill: var(--da-gold); }
+#destinyAnatomyCard .da-yeoni__msg { margin: 0; font-family: var(--da-serif-text); font-size: .98rem; line-height: 1.75; color: var(--da-ink); text-wrap: pretty; }
+@media (max-width: 380px) {
+  #destinyAnatomyCard .da-yeoni { grid-template-columns: 48px minmax(0, 1fr); gap: 10px; }
+  #destinyAnatomyCard .da-yeoni__pig { width: 48px; height: 64px; }
+  #destinyAnatomyCard .da-yeoni__bubble { padding: var(--cd-sp-sm) 12px; }
+}

@@ -153,6 +153,18 @@ test('compose: HD 센터 9·차크라 7·베다는 정신·신체 결을 갖고,
   assert.ok(!n.text.vedic.some((r) => r.kind === 'lagna' || r.kind === 'sixth'));
 });
 
+test('compose: 연이 해설은 챕터 8곳에 붙고, 계산된 축·HD 권위로 문장을 고른다', () => {
+  const chapters = ['circuit', 'engines', 'elements', 'decision', 'body', 'vedic', 'fusion', 'ask'];
+  for (const L of ['ko', 'en', 'ja', 'zh-CN', 'zh-TW']) {
+    const m = build(FIXTURES.reality, L, {}, {hdChart: HD, vedicBasis: VEDIC});
+    for (const k of chapters) assert.ok(m.text.yeoni[k] && m.text.yeoni[k].trim(), `${L} yeoni.${k}`);
+    if (!m.saju.balanced) assert.ok(m.text.yeoni.circuit.includes(CP.COPY[L].axes[m.saju.dominantEngines[0]].name), `${L} circuit 1위 축`);
+    assert.ok(m.text.yeoni.decision.includes(m.text.hd.authorityName), `${L} decision 권위`);
+    const plain = build(FIXTURES.reality, L);
+    assert.equal(plain.text.yeoni.decision, CP.COPY[L].yeoni.decision.none);
+  }
+});
+
 test('compose: 신약 재성 1위는 strained 톤 문장을 붙이고 단정 조합 문구를 그대로 두지 않는다', () => {
   const m = build(FIXTURES.weakReality, 'ko');
   assert.equal(m.saju.combo.tone, 'strained');

@@ -446,6 +446,38 @@
         Saturn: '천천히, 꾸준히 회복하는 타입이에요. 같은 시간에 자고 일어나는 루틴이 가장 잘 맞아요.'
       }
     },
+    yeoni: {
+      label: '연이의 해설',
+      circuit: {
+        base: '제가 보기에 당신 머리의 중심은 ‘{top}’ 칸이고, 바로 곁에 ‘{second}’ 칸이 붙어 있어요. 두 칸이 같은 쪽을 볼 때 가장 당신다운 선택이 나와요.',
+        balanced: '어느 한 칸이 혼자 앞서지 않는 고른 머리예요. 상황마다 꺼내 쓰는 엔진이 달라서, 지금 어떤 칸을 쓰는지 알아차리는 것만으로도 힘이 돼요.'
+      },
+      engines: {
+        over: '‘{name}’ 칸이 조금 달아올라 있어요. 잘하는 일일수록 쉬는 시간을 먼저 정해 두면 오래 갈 수 있어요.',
+        low: '점수가 낮은 칸은 약점이 아니라 덜 쓴 근육이에요. ‘{name}’ 칸에는 작은 일부터 맡겨 보세요.'
+      },
+      elements: {
+        base: '오행에서는 ‘{strong}’ 기운이 가장 진하고 ‘{weak}’ 기운이 가장 옅어요. 옅은 쪽은 생활 리듬으로 조금씩 채워 가면 충분해요.',
+        even: '오행이 비교적 고르게 놓여 있어요. 지친 날엔 가장 편한 리듬부터 되찾아 보세요.'
+      },
+      decision: {
+        hd: '휴먼 디자인으로 보면 당신의 결정 열쇠는 ‘{authority}’ 쪽이에요. 마음이 급한 날일수록 이 방식을 한 번 떠올려 주세요.',
+        none: '휴먼 디자인 층이 아직 비어 있어도 괜찮아요. 위의 머리 지도만으로도 당신이 무엇을 기준으로 고르는지는 충분히 보여요.'
+      },
+      body: {
+        base: '몸 지도는 몸 상태를 판정하지 않고 생활 리듬만 읽어요. 차크라로는 ‘{chakra}’ 자리가 가장 밝게 켜져 있으니, 그쪽 감각을 아껴 주세요.',
+        even: '몸 지도는 몸 상태를 판정하지 않고 생활 리듬만 읽어요. 유난히 튀는 자리가 없어서, 잠과 식사 같은 기본 리듬이 가장 큰 힘이 돼요.'
+      },
+      vedic: {
+        base: '베다에서 달은 마음이 쉬어 가는 자리예요. 지친 날엔 아래 달의 결부터 읽어 보세요. 무엇이 당신을 회복시키는지 금방 떠오를 거예요.'
+      },
+      fusion: {
+        base: '세 지도가 같은 말을 하는 곳은 꽤 믿어도 되는 당신의 결이에요. 서로 다르게 말하는 곳은 상황에 따라 꺼내 쓰는 다른 얼굴이고요.'
+      },
+      ask: {
+        base: '여기까지 읽은 내용을 그대로 들고 다른 AI에게 물어봐도 좋아요. 이름과 생일은 빼 두었으니 마음 편히 이어서 이야기해 보세요.'
+      }
+    },
     nyang: {
       selfDrive: '당신 머릿속에는 운전대가 하나 있네요. 가끔은 조수석에 앉아 풍경을 보셔도 길은 사라지지 않아요.',
       expression: '당신을 움직이는 연료는 재미예요. 지루한 일은 작게 나눠 놀이처럼 시작해 보세요.',
@@ -959,6 +991,38 @@
         Saturn: 'You recover slowly and steadily. Sleeping and waking at the same times suits you best.'
       }
     },
+    yeoni: {
+      label: 'Yeoni explains',
+      circuit: {
+        base: 'As I read it, the center of your mind is the “{top}” room, with “{second}” right beside it. When those two face the same way, your most you-like choices appear.',
+        balanced: 'No single room runs ahead here — it is an even mind. You reach for different engines in different moments, so simply noticing which one you are using already helps.'
+      },
+      engines: {
+        over: 'The “{name}” room is running a little hot. The better you are at something, the more it helps to set your rest time first.',
+        low: 'A low score is not a weakness, just a muscle used less. Try handing the “{name}” room small tasks first.'
+      },
+      elements: {
+        base: 'In your five elements, {strong} runs deepest and {weak} is the faintest. You can fill the faint side little by little through daily rhythm.',
+        even: 'Your five elements sit fairly evenly. On tired days, start by returning to whichever rhythm feels easiest.'
+      },
+      decision: {
+        hd: 'In Human Design, your key to deciding is “{authority}”. On rushed days especially, please bring this way to mind once.',
+        none: 'It is fine that the Human Design layer is still empty. The head map above already shows clearly what you choose by.'
+      },
+      body: {
+        base: 'This body map does not judge your health; it only reads daily rhythm. Among the chakras, the {chakra} spot glows brightest, so take good care of that sense.',
+        even: 'This body map does not judge your health; it only reads daily rhythm. No spot stands out much, so basic rhythms like sleep and meals give you the most strength.'
+      },
+      vedic: {
+        base: 'In Vedic astrology the Moon is where the mind rests. On tired days, read the Moon line below first — what restores you will come to mind quickly.'
+      },
+      fusion: {
+        base: 'Where all three maps say the same thing, you can trust it as your own grain. Where they differ, those are the other faces you bring out depending on the moment.'
+      },
+      ask: {
+        base: 'You can carry what you have read here to another AI and ask. I left out your name and birth date, so feel free to keep talking.'
+      }
+    },
     nyang: {
       selfDrive: 'There is a steering wheel in your mind. Now and then, take the passenger seat and enjoy the view — the road will still be there.',
       expression: 'Joy is what moves you. Cut a dull task into small pieces and begin it like play.',
@@ -1414,6 +1478,38 @@
         Saturn: 'ゆっくり、着実に回復するタイプです。同じ時間に寝て起きるルーティンがいちばん合います。'
       }
     },
+    yeoni: {
+      label: 'ヨニの解説',
+      circuit: {
+        base: 'わたしが見るに、あなたの頭の真ん中は「{top}」の部屋で、すぐ隣に「{second}」の部屋があります。ふたつが同じ方を向くとき、いちばんあなたらしい選択が生まれます。',
+        balanced: 'どれかひとつの部屋だけが先走らない、バランスのとれた頭です。場面ごとに使うエンジンが変わるので、今どの部屋を使っているかに気づくだけでも力になります。'
+      },
+      engines: {
+        over: '「{name}」の部屋が少し熱くなっています。得意なことほど、先に休む時間を決めておくと長く続けられます。',
+        low: '点数の低い部屋は弱点ではなく、あまり使っていない筋肉です。「{name}」の部屋には小さなことから任せてみてください。'
+      },
+      elements: {
+        base: '五行では「{strong}」の気がいちばん濃く、「{weak}」の気がいちばん薄いです。薄いほうは暮らしのリズムで少しずつ満たしていけば十分です。',
+        even: '五行が比較的バランスよく並んでいます。疲れた日は、いちばん楽なリズムから取り戻してみてください。'
+      },
+      decision: {
+        hd: 'ヒューマンデザインで見ると、あなたの決め方の鍵は「{authority}」です。気持ちが急ぐ日ほど、この方法を一度思い出してください。',
+        none: 'ヒューマンデザインの層がまだ空いていても大丈夫です。上の頭の地図だけでも、あなたが何を基準に選ぶかは十分見えています。'
+      },
+      body: {
+        base: 'この体の地図は体の状態を判定せず、暮らしのリズムだけを読みます。チャクラでは「{chakra}」の場所がいちばん明るく灯っているので、その感覚を大切にしてください。',
+        even: 'この体の地図は体の状態を判定せず、暮らしのリズムだけを読みます。目立って偏った場所がないので、睡眠や食事のような基本のリズムがいちばんの力になります。'
+      },
+      vedic: {
+        base: 'ヴェーダ占星術で月は心が休む場所です。疲れた日は、下の月の行から読んでみてください。何があなたを回復させるのか、すぐに思い浮かぶはずです。'
+      },
+      fusion: {
+        base: '三つの地図が同じことを言う場所は、かなり信じてよいあなたの持ち味です。食い違う場所は、場面に応じて取り出す別の顔です。'
+      },
+      ask: {
+        base: 'ここまで読んだ内容をそのまま別のAIに持っていって聞いてみても大丈夫です。名前と生年月日は外してあるので、安心して続きを話してみてください。'
+      }
+    },
     nyang: {
       selfDrive: 'あなたの頭の中にはハンドルがひとつあります。ときには助手席で景色を眺めても、道は消えませんよ。',
       expression: 'あなたを動かす燃料は楽しさです。退屈な作業は小さく分けて、遊びのように始めてみてください。',
@@ -1815,6 +1911,38 @@
         Jupiter: '“适度”是恢复的关键。一点点减少过量饮食和过度劳累，身体会变轻盈。',
         Venus: '你通过快乐与美来恢复。喜欢的音乐、香气和一顿美味的饭，都能给你很大的力量。',
         Saturn: '你是慢慢地、稳定地恢复的类型。每天在同一时间睡觉和起床的作息最适合你。'
+      }
+    },
+    yeoni: {
+      label: 'Yeoni 的解读',
+      circuit: {
+        base: '在我看来，你头脑的中心是「{top}」这一格，紧挨着的是「{second}」。当这两格朝同一个方向时，最像你的选择就会出现。',
+        balanced: '这是没有哪一格独自领先的均衡头脑。不同场合会用到不同的引擎，只要察觉自己此刻在用哪一格，就已经是一种力量。'
+      },
+      engines: {
+        over: '「{name}」这一格有点过热了。越是擅长的事，越要先定好休息的时间，才能走得长久。',
+        low: '分数低的格子不是弱点，只是用得少的肌肉。可以先把小事交给「{name}」这一格试试。'
+      },
+      elements: {
+        base: '五行里「{strong}」的气最浓，「{weak}」的气最淡。淡的一边，用生活节奏一点点补上就足够了。',
+        even: '你的五行分布比较均匀。疲惫的日子里，先从最舒服的节奏找回状态吧。'
+      },
+      decision: {
+        hd: '从人类图来看，你做决定的钥匙是「{authority}」。越是着急的日子，越请先想起这个方式。',
+        none: '人类图这一层暂时空着也没关系。光看上面的头脑地图，也能清楚看出你是按什么来做选择的。'
+      },
+      body: {
+        base: '这张身体地图不判定身体状况，只读生活节律。脉轮中「{chakra}」的位置亮得最明显，请好好珍惜那份感觉。',
+        even: '这张身体地图不判定身体状况，只读生活节律。没有特别突出的位置，所以睡眠、饮食这样的基本节律最能给你力量。'
+      },
+      vedic: {
+        base: '在吠陀占星里，月亮是心灵休息的地方。疲惫的日子，先读下面月亮那一行，很快就会想起是什么让你恢复。'
+      },
+      fusion: {
+        base: '三张地图说法一致的地方，是相当值得信任的你的本色。说法不同的地方，是你随场合拿出来的另一张面孔。'
+      },
+      ask: {
+        base: '可以把这里读到的内容直接带去问其他 AI。名字和生日我已经去掉了，放心继续聊吧。'
       }
     },
     nyang: {
@@ -2220,6 +2348,38 @@
         Saturn: '你是慢慢地、穩定地恢復的類型。每天在同一時間睡覺和起床的作息最適合你。'
       }
     },
+    yeoni: {
+      label: 'Yeoni 的解讀',
+      circuit: {
+        base: '在我看來，你頭腦的中心是「{top}」這一格，緊挨著的是「{second}」。當這兩格朝同一個方向時，最像你的選擇就會出現。',
+        balanced: '這是沒有哪一格獨自領先的均衡頭腦。不同場合會用到不同的引擎，只要察覺自己此刻在用哪一格，就已經是一種力量。'
+      },
+      engines: {
+        over: '「{name}」這一格有點過熱了。越是擅長的事，越要先定好休息的時間，才能走得長久。',
+        low: '分數低的格子不是弱點，只是用得少的肌肉。可以先把小事交給「{name}」這一格試試。'
+      },
+      elements: {
+        base: '五行裡「{strong}」的氣最濃，「{weak}」的氣最淡。淡的一邊，用生活節奏一點點補上就足夠了。',
+        even: '你的五行分布比較均勻。疲憊的日子裡，先從最舒服的節奏找回狀態吧。'
+      },
+      decision: {
+        hd: '從人類圖來看，你做決定的鑰匙是「{authority}」。越是著急的日子，越請先想起這個方式。',
+        none: '人類圖這一層暫時空著也沒關係。光看上面的頭腦地圖，也能清楚看出你是按什麼來做選擇的。'
+      },
+      body: {
+        base: '這張身體地圖不判定身體狀況，只讀生活節律。脈輪中「{chakra}」的位置亮得最明顯，請好好珍惜那份感覺。',
+        even: '這張身體地圖不判定身體狀況，只讀生活節律。沒有特別突出的位置，所以睡眠、飲食這樣的基本節律最能給你力量。'
+      },
+      vedic: {
+        base: '在吠陀占星裡，月亮是心靈休息的地方。疲憊的日子，先讀下面月亮那一行，很快就會想起是什麼讓你恢復。'
+      },
+      fusion: {
+        base: '三張地圖說法一致的地方，是相當值得信任的你的本色。說法不同的地方，是你隨場合拿出來的另一張面孔。'
+      },
+      ask: {
+        base: '可以把這裡讀到的內容直接帶去問其他 AI。名字和生日我已經去掉了，放心繼續聊吧。'
+      }
+    },
     nyang: {
       selfDrive: '您的腦海裡有一個方向盤。偶爾坐到副駕駛看看風景，路也不會消失。',
       expression: '推動您的燃料是樂趣。把無聊的事切成小塊，像遊戲一樣開始吧。',
@@ -2417,6 +2577,31 @@
     summaryRows.push({id: 'money', label: C.ui.row.money, value: C.money[model.fusion.moneyPattern.split('|')[1]] || C.money[top]});
     summaryRows.push({id: 'relationship', label: C.ui.row.relationship, value: C.relationship[second || top]});
 
+    // 챕터마다 연이가 건네는 해설 — 이미 계산된 값(1·2위 축, 과열 축, 오행 강약, HD 권위, 밝은 차크라)으로만 고른다.
+    var Y = C.yeoni;
+    var secondAxis = s.ranked.filter(function (a) { return a !== top; })[0];
+    var hotAxis = s.overloadPatterns.filter(function (a) { return A[a]; })[0];
+    var ELS = ['wood', 'fire', 'earth', 'metal', 'water'];
+    var hiEl = ELS[0], loEl = ELS[0];
+    ELS.forEach(function (e) {
+      if ((el.ratios[e] || 0) > (el.ratios[hiEl] || 0)) hiEl = e;
+      if ((el.ratios[e] || 0) < (el.ratios[loEl] || 0)) loEl = e;
+    });
+    var brightChakra = model.chakra.items.filter(function (c) { return c.level === 'bright'; })
+      .sort(function (a, b) { return (b.emphasis || 0) - (a.emphasis || 0); })[0];
+    var yeoniText = {
+      label: Y.label,
+      circuit: s.balanced ? Y.circuit.balanced : fill(Y.circuit.base, {top: A[top].name, second: A[secondAxis].name}),
+      engines: hotAxis ? fill(Y.engines.over, {name: A[hotAxis].name}) : fill(Y.engines.low, {name: A[s.ranked[s.ranked.length - 1]].name}),
+      elements: (el.ratios[hiEl] || 0) - (el.ratios[loEl] || 0) < 10 ? Y.elements.even
+        : fill(Y.elements.base, {strong: C.elements[hiEl].name, weak: C.elements[loEl].name}),
+      decision: hdText && hdText.authorityName ? fill(Y.decision.hd, {authority: hdText.authorityName}) : Y.decision.none,
+      body: brightChakra ? fill(Y.body.base, {chakra: C.chakra[brightChakra.id].name}) : Y.body.even,
+      vedic: Y.vedic.base,
+      fusion: Y.fusion.base,
+      ask: Y.ask.base
+    };
+
     model.locale = L;
     model.text = {
       ui: C.ui,
@@ -2447,6 +2632,7 @@
       mindLine: mindLine,
       summary: summaryRows,
       nyang: C.nyang[top],
+      yeoni: yeoniText,
       cta: C.cta
     };
     model.text.aiPrompt = aiPrompt(model);
