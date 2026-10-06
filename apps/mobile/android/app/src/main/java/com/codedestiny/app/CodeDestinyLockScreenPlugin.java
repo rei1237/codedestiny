@@ -102,6 +102,9 @@ public class CodeDestinyLockScreenPlugin extends Plugin {
     private void onNotificationsPermission(PluginCall call) {
         // 거부해도 상세 카드와 다른 앱 기능은 계속 사용할 수 있다.
         call.resolve();
+        // Android's permission sheet does not consistently emit WebView focus.
+        // Refresh the open settings sheet from the actual OS permission state.
+        getBridge().triggerWindowJSEvent("focus");
     }
 
     @PluginMethod
