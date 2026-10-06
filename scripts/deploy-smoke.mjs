@@ -246,6 +246,13 @@ async function stablePageContent(page) {
 async function checkPages() {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, userAgent: "CodeDestinySafeDeploySmoke/1.0" });
+  // This journey checks the Korean /ggulggul/ shell. Use the real explicit
+  // language choice so the CI runner's country cannot redirect it elsewhere.
+  // Country selection remains covered by visitor-country-routing.test.mjs.
+  await context.addCookies([
+    { name: "cd_locale", value: "ko", url: base },
+    { name: "cd_locale_explicit", value: "1", url: base },
+  ]);
   const page = await context.newPage();
   page.on("pageerror", (error) => browserErrors.push("pageerror: " + error.message));
   page.on("console", (message) => {
