@@ -121,3 +121,7 @@ status: implemented
 - 해외UI 보충: 번체 화면이 한국어로 보인 것은 Chrome `translated-ltr` 및476개 번역font 노드로 확인된 브라우저 자동번역이다. 초기 H1과 원본SSR은 번체. 설정은 변경하지 않았다.
 - GSC `/yeongnyangi/`도 색인 생성됨, 최근 크롤링2026-10-03 15:08:20, 스마트폰Googlebot, 가져오기성공, 사용자/Google정본 일치. 10/7 `/ggulggul/`와 `/yeongnyangi/` 모두 직접 재색인 요청했고 각각 ‘색인 생성 요청됨’ 우선순위 크롤링 대기열 접수를 확인했다. 새 코드의 운영 배포나 순위 상승을 의미하지 않는다.
 - 브랜드 추가 검증: Googlebot curl localhost `/kkul-kkul-unse/` 200, JS 없이 main 안 공식입구 질문과 FAQPage 존재. 관련 static26 tests 및 ESLint 통과. 마지막 sitemap drift955URL 일치. shared dependency 서명 변경은 원장에 반영하되 내용이 바뀌지 않은 기간 페이지의 lastmod는 보존했다.
+
+### 사이트맵 최종 상태 갱신
+
+10/7 마지막 GSC 확인에서 새 `sitemap-index.xml`이 **Sitemap 색인 / 성공 / 마지막 읽음10/7 / 발견582페이지**로 바뀌었다. 위 최초 읽기 오류는 초기 관측이며 최종 상태는 성공이다. 발견582는 XML955개 전체 색인을 의미하지 않는다. `gsc-sitemap-success.jpg` 증빙 저장. 두 브랜드 입구 재색인 접수도 완료. 외부 처리 성공과 브랜드 첫 페이지 노출은 별개다.
