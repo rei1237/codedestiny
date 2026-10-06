@@ -1,0 +1,219 @@
+{
+  "collection": "serviceexecutiontransactions",
+  "capturedBeforeRepair": "2026-10-06T09:59:48Z",
+  "indexes": [
+    {
+      "v": 2,
+      "key": {
+        "_id": 1
+      },
+      "name": "_id_"
+    },
+    {
+      "v": 2,
+      "key": {
+        "status": 1
+      },
+      "name": "status_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "productId": 1
+      },
+      "name": "productId_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "jobId": 1
+      },
+      "name": "jobId_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "userId": 1,
+        "executionKey": 1
+      },
+      "name": "userId_1_executionKey_1",
+      "unique": true
+    },
+    {
+      "v": 2,
+      "key": {
+        "retentionUntil": 1
+      },
+      "name": "retentionUntil_1",
+      "expireAfterSeconds": 0
+    },
+    {
+      "v": 2,
+      "key": {
+        "profileId": 1
+      },
+      "name": "profileId_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "merchantUid": 1
+      },
+      "name": "merchantUid_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "lock.until": 1
+      },
+      "name": "lock.until_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "reportType": 1
+      },
+      "name": "reportType_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "premiumStatus": 1
+      },
+      "name": "premiumStatus_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "userId": 1
+      },
+      "name": "userId_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "status": 1,
+        "timeoutAt": 1,
+        "nextRetryAt": 1
+      },
+      "name": "status_1_timeoutAt_1_nextRetryAt_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "refundStatus": 1
+      },
+      "name": "refundStatus_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "paymentId": 1,
+        "serviceId": 1,
+        "jobId": 1
+      },
+      "name": "paymentId_1_serviceId_1_jobId_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "sourceTransactionId": 1
+      },
+      "name": "sourceTransactionId_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "nextRetryAt": 1
+      },
+      "name": "nextRetryAt_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "serviceId": 1
+      },
+      "name": "serviceId_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "orderId": 1
+      },
+      "name": "orderId_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "deliveryStatus": 1
+      },
+      "name": "deliveryStatus_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "timeoutAt": 1
+      },
+      "name": "timeoutAt_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "reportId": 1
+      },
+      "name": "reportId_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "sessionId": 1
+      },
+      "name": "sessionId_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "coinTransactionId": 1
+      },
+      "name": "coinTransactionId_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "refundIdempotencyKey": 1
+      },
+      "name": "refundIdempotencyKey_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "featureKey": 1
+      },
+      "name": "featureKey_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "idempotencyKey": 1
+      },
+      "name": "idempotencyKey_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "impUid": 1
+      },
+      "name": "impUid_1"
+    },
+    {
+      "v": 2,
+      "key": {
+        "paymentId": 1
+      },
+      "name": "paymentId_1"
+    }
+  ],
+  "protectedDocuments": 3,
+  "protectedDocumentSetHash": "efa3169d1168fe4e3af5adac4cc1fbcedec8fb01eadf6646c37e688b8fc68380",
+  "warning": "Historical index definitions only. Never recreate the broad TTL in production."
+}
