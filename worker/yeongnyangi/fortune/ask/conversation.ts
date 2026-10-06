@@ -1,3 +1,4 @@
+import {deliveryRefundPending} from '../../terminal-refund-policy.js';
 import {validateReadingClaims} from '../reading-quality';
 import {FortuneError} from '../shared/contracts';
 import {hasRequestAccess} from '../../access-methods.js';
@@ -11,7 +12,7 @@ export function conversationView(row:any){
  const contract=row.snapshot?.questionContract;
  if(contract?.version!==QUESTION_POLICY_VERSION)return undefined;
  const c:Conversation=row.generationCheckpoint?.conversation||empty();
- const ready=row.state==='COMPLETED'&&hasRequestAccess(row);
+ const ready=row.state==='COMPLETED'&&!deliveryRefundPending(row)&&hasRequestAccess(row);
  return {limit:contract.followups,used:c.used,remaining:Math.max(0,contract.followups-c.used),closed:c.closed||contract.followups===0,
   ready,pending:ready&&c.pending?{id:c.pending.id,question:c.pending.question,retryAt:c.pending.until}:undefined,
   exchanges:ready?c.exchanges.map(({id,question,reply})=>({id,question,kind:reply.kind,text:reply.text})):[]};

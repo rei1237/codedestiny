@@ -63,3 +63,16 @@ test('owner and historical funding proof protect followups; close never removes 
  assert.equal(t.row.generationCheckpoint.conversation.used,0);assert.equal(t.row.chapters.length,1);
  await assert.rejects(questionConversation({},user,id,body),/QUESTION_CONVERSATION_CLOSED/);
 });
+
+
+test('pending refund and revocation during generation never store or consume a followup',async()=>{
+ const t=globalThis.__conversationTest;
+ t.row.generationCheckpoint={deliveryRefund:{status:'pending'}};
+ await assert.rejects(questionConversation({},user,id,body),/FOLLOWUP_NOT_AVAILABLE/);assert.equal(t.calls,0);
+ delete t.row.generationCheckpoint;
+ let release;t.barrier=new Promise(r=>release=r);
+ const pending=questionConversation({},user,id,body);await new Promise(r=>setImmediate(r));
+ t.row.state='REFUNDED';release();
+ await assert.rejects(pending,/FOLLOWUP_NOT_AVAILABLE/);
+ assert.equal(t.row.generationCheckpoint.conversation.used,0);assert.equal(t.row.generationCheckpoint.conversation.exchanges.length,0);
+});

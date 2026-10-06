@@ -1,3 +1,4 @@
+import {deliveryRefundPending} from './terminal-refund-policy.js';
 import {connectDb,withMongoRetry} from '../lib/db.js';
 import {YeongnyangiRequest,ownerId,readRequest} from './repository.js';
 import {hasRequestAccess} from './access-methods.js';
@@ -21,7 +22,7 @@ export async function questionConversation(env:any,userId:string,id:string,body:
  await connectDb(env);
  let row=await readRequest(env,userId,id);
  const contract=row.snapshot?.questionContract;
- if(contract?.version!==QUESTION_POLICY_VERSION||row.state!=='COMPLETED'||!hasRequestAccess(row))throw new FortuneError('FOLLOWUP_NOT_AVAILABLE',409);
+ if(contract?.version!==QUESTION_POLICY_VERSION||row.state!=='COMPLETED'||deliveryRefundPending(row)||!hasRequestAccess(row))throw new FortuneError('FOLLOWUP_NOT_AVAILABLE',409);
  const current:Conversation|undefined=row.generationCheckpoint?.conversation;
  if(body.action==='close'){
   if(current?.pending&&current.pending.until>Date.now())throw new FortuneError('QUESTION_FOLLOWUP_BUSY',409);
@@ -47,7 +48,8 @@ export async function questionConversation(env:any,userId:string,id:string,body:
   });
   if(!response.ok||response.isMock||!response.text||response.truncated||response.finishReason==='MAX_TOKENS')throw new FortuneError('FORTUNE_PROVIDER_FAILED',502);
   const reply=validateFollowup(response.text,new Set(facts.map((f:any)=>f.id)));
-  await readRequest(env,userId,id); // Recheck funding/revocation before persisting.
+  const funded=await readRequest(env,userId,id); // Recheck funding/revocation before persisting.
+  if(funded.state!=='COMPLETED'||deliveryRefundPending(funded)||!hasRequestAccess(funded))throw new FortuneError('FOLLOWUP_NOT_AVAILABLE',409);
   await saveConversation(env,userId,id,next,finishConversation(next,token,reply,contract.followups));
   const reread=await readRequest(env,userId,id);
   if(!reread.generationCheckpoint?.conversation?.exchanges.some((e:Exchange)=>e.id===body.id))throw new FortuneError('RESULT_STORAGE_UNAVAILABLE',503);
