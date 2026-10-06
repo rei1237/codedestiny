@@ -566,7 +566,9 @@
     closeLanguageMenu();
     var localizedHomeHref = getLocalizedHomeHref(lang);
     if (localizedHomeHref) {
-      window.location.assign(localizedHomeHref);
+      applyNativeTranslations(lang).finally(function () {
+        window.location.assign(localizedHomeHref);
+      });
       return;
     }
     applyNativeTranslations(lang).finally(function () {
