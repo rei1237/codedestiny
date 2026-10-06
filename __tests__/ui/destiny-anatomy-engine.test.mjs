@@ -226,3 +226,18 @@ test('대운 어댑터: 현재 나이까지 시작한 마지막 대운을 셸 ev
   assert.equal(E.adaptShellSnapshot({...scope, evalDaewun: undefined}).luck, null);
   assert.equal(E.adaptShellSnapshot({...scope, CURRENT_AGE: 1}).luck, null);
 });
+
+test('밈 뇌구조: 칸은 안쪽 상자를 겹침 없이 채우고 넓이 = share, 퍼센트 합 100, 비율 0 엔진은 칸이 없다', () => {
+  for (const p of Object.values(STRONG)) {
+    const meme = build(p).saju.meme;
+    const n = meme.inner, area = n.w * n.h;
+    assert.equal(meme.cells.reduce((a, c) => a + c.pct, 0), 100);
+    for (const c of meme.cells) {
+      assert.ok(c.share > 0);
+      assert.ok(Math.abs(c.w * c.h / area - c.share) < 0.01, `${c.axis} 넓이 ${c.w * c.h / area} ≠ ${c.share}`);
+      assert.ok(c.x >= n.x - 0.01 && c.y >= n.y - 0.01 && c.x + c.w <= n.x + n.w + 0.01 && c.y + c.h <= n.y + n.h + 0.01, `${c.axis} 상자 밖`);
+    }
+  }
+  const meme = E.memeBrain({ranked: ['reality', 'structure', 'selfDrive'], engines: {reality: {share: 0.7}, structure: {share: 0.3}, selfDrive: {share: 0}}});
+  assert.deepEqual(meme.cells.map((c) => c.axis), ['reality', 'structure']);
+});

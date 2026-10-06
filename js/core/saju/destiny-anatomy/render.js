@@ -9,8 +9,6 @@
 
   var AXES = ['selfDrive', 'expression', 'reality', 'structure', 'reflection'];
   var GOD_HAN = {'비견':'比肩', '겁재':'劫財', '식신':'食神', '상관':'傷官', '편재':'偏財', '정재':'正財', '편관':'偏官', '정관':'正官', '편인':'偏印', '정인':'正印'};
-  // Brain Map 좌표(viewBox 320×240). 앞쪽=표현·현실, 위=사고·책임, 가운데=주체.
-  var NODE = {reflection: [112, 82], structure: [212, 80], selfDrive: [162, 122], expression: [98, 152], reality: [222, 152]};
   // 에너지 바디 좌표(viewBox 200×400). HD 센터는 바디그래프 배치를 몸에 얹은 근사다.
   var HD_POS = {HEAD: [100, 26, 'up'], AJNA: [100, 66, 'down'], THROAT: [100, 112, 'square'], G: [100, 168, 'diamond'], HEART: [130, 186, 'up'],
     SPLEEN: [66, 238, 'right'], SOLAR_PLEXUS: [134, 238, 'left'], SACRAL: [100, 262, 'square'], ROOT: [100, 308, 'square']};
@@ -49,41 +47,94 @@
       '<p class="da-hero__intro">' + esc(ui.intro) + '</p></header>';
   }
 
-  function brainSvg(model, t) {
-    var s = model.saju;
-    var ranked = s.ranked;
-    var lines = '';
-    AXES.forEach(function (a, i) {
-      AXES.slice(i + 1).forEach(function (b) {
-        var w = (s.engines[a].score * s.engines[b].score) / 10000;
-        var core = ranked.slice(0, 3).indexOf(a) >= 0 && ranked.slice(0, 3).indexOf(b) >= 0;
-        lines += '<line class="da-brain__link' + (core ? ' is-core' : '') + '" x1="' + NODE[a][0] + '" y1="' + NODE[a][1] + '" x2="' + NODE[b][0] + '" y2="' + NODE[b][1] +
-          '" stroke-width="' + (0.6 + w * 3.2).toFixed(2) + '"/>';
-      });
+  /* 밈 뇌구조 — 옆얼굴 윤곽 안 둥근 뇌 상자를 엔진 비율대로 나눈 그림(engine.memeBrain). 칸 안엔 짧은 속마음과 %.
+   * 축마다 색 + 무늬(색만으로 구분하지 않는다)를 주고, 범례 견본도 같은 무늬를 쓴다.
+   * 그림은 장식(aria-hidden)이고 아래 범례 목록이 같은 내용을 글로 준다. 칸 글자가 넘치면 fitMeme 이 한 단계씩 낮춘다. */
+  var MEME_GAP = 3;
+  var MEME_PATTERNS = {
+    selfDrive: '<pattern id="daPat-selfDrive" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line class="da-pat" x1="0" y1="0" x2="0" y2="7"/></pattern>',
+    expression: '<pattern id="daPat-expression" width="7" height="7" patternUnits="userSpaceOnUse"><circle class="da-pat da-pat--dot" cx="3.5" cy="3.5" r="1.1"/></pattern>',
+    reality: '<pattern id="daPat-reality" width="8" height="8" patternUnits="userSpaceOnUse"></pattern>',
+    structure: '<pattern id="daPat-structure" width="8" height="8" patternUnits="userSpaceOnUse"><path class="da-pat" d="M0 0H8M0 0V8"/></pattern>',
+    reflection: '<pattern id="daPat-reflection" width="6" height="6" patternUnits="userSpaceOnUse"><line class="da-pat" x1="0" y1="3" x2="6" y2="3"/></pattern>'
+  };
+  // 샤갈풍 밤하늘 장식(예화 금선) — 초승달·별·떠다니는 꽃가지·바이올린. 데이터가 아니라 장식이라 머리 바깥 여백에만 둔다.
+  var MEME_ART =
+    '<path class="da-meme__moon" d="M44 22a20 20 0 1 0 22 30a16 16 0 1 1-22-30Z"/>' +
+    '<path class="da-meme__star" d="M92 14l2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/><path class="da-meme__star" d="M18 92l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5Z"/>' +
+    '<path class="da-meme__star" d="M340 30l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5Z"/><path class="da-meme__star" d="M316 8l1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1Z"/>' +
+    '<g class="da-meme__float"><path class="da-meme__art" d="M14 288c10-14 16-28 18-46M24 266c-8-2-12-8-10-14 7 0 11 6 10 14Zm4-12c0-8 5-12 11-11 0 7-5 11-11 11Zm4-14c-4-6-2-12 3-14 4 5 2 11-3 14Z"/><circle class="da-meme__petal" cx="33" cy="232.8" r="3.4"/><circle class="da-meme__petal" cx="37" cy="235.7" r="3.4"/><circle class="da-meme__petal" cx="35.5" cy="240.4" r="3.4"/><circle class="da-meme__petal" cx="30.5" cy="240.4" r="3.4"/><circle class="da-meme__petal" cx="29" cy="235.7" r="3.4"/><circle class="da-meme__bloom" cx="33" cy="237" r="2"/></g>' +
+    '<g class="da-meme__float" style="animation-delay:-3s"><g transform="translate(326 252) rotate(-28)"><path class="da-meme__art da-meme__violin" d="M0 0C8 0 12 4 12 10C12 14 7 15 7 19C7 23 14 23 14 31C14 40 8 44 0 44C-8 44-14 40-14 31C-14 23-7 23-7 19C-7 15-12 14-12 10C-12 4-8 0 0 0Z"/><path class="da-meme__art" d="M-1.6 0V-19H1.6V0M0-19C0-24 5-25 5.5-21.5C6-18.5 2.5-18 2.4-20M-1.6-15H-4.5M1.6-13H4.5M-5 16.5C-6 20-4 23-5.2 26.5M5 16.5C6 20 4 23 5.2 26.5M-4.5 28H4.5M-1.6 31L0 40L1.6 31M-.7-17V31M.7-17V31M-16 42L18-4"/></g></g>';
+  function memeSwatch(axis) {
+    return '<svg class="da-meme__sw" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><rect class="da-meme__fill da-ax-' + esc(axis) + '" x="1" y="1" width="16" height="16" rx="4"/>' +
+      '<rect fill="url(#daPat-' + esc(axis) + ')" x="1" y="1" width="16" height="16" rx="4"/></svg>';
+  }
+  function memeStickers(m, c) {
+    return (c.top ? '<span class="da-stk da-stk--top">👑</span>' : '') +
+      (c.hot ? '<span class="da-stk da-stk--hot">🔥</span>' : '') +
+      (c.luck ? '<span class="da-stk da-stk--luck da-tone-' + esc(c.luck) + '">' + esc(m.luckMark) + '</span>' : '');
+  }
+  function memeHtml(t) {
+    var m = t.meme;
+    if (!m || !m.cells.length) return '';
+    var vb = m.viewBox.split(' ').map(Number), b = m.box, g = MEME_GAP / 2;
+    var pc = function (v, base) { return (v / base * 100).toFixed(3) + '%'; };
+    var rects = '', cells = '', pats = '';
+    m.cells.forEach(function (c) {
+      var cw = Math.max(0, c.w - MEME_GAP), ch = Math.max(0, c.h - MEME_GAP);
+      var geo = 'x="' + (c.x + g) + '" y="' + (c.y + g) + '" width="' + cw + '" height="' + ch + '" rx="' + Math.min(10, cw / 3, ch / 3).toFixed(2) + '"';
+      rects += '<rect class="da-meme__fill da-ax-' + esc(c.axis) + '" ' + geo + '/><rect class="da-meme__pat" fill="url(#daPat-' + esc(c.axis) + ')" ' + geo + '/>' +
+        '<rect class="da-meme__sheen" fill="url(#daGlass)" ' + geo + '/>';
+      cells += '<div class="da-meme__cell da-ax-' + esc(c.axis) + ' is-' + esc(c.tier) + (c.hot ? ' is-hot' : '') + (c.luck ? ' is-luck da-tone-' + esc(c.luck) : '') +
+        '" data-da-axis="' + esc(c.axis) + '" data-da-tier="' + esc(c.tier) + '" style="left:' + pc(c.x + g, vb[2]) + ';top:' + pc(c.y + g, vb[3]) +
+        ';width:' + pc(c.w - MEME_GAP, vb[2]) + ';height:' + pc(c.h - MEME_GAP, vb[3]) + '">' +
+        '<span class="da-meme__stk">' + memeStickers(m, c) + '</span>' +
+        '<span class="da-meme__line">' + esc(c.line) + '</span><b class="da-meme__pct">' + c.pct + '%</b></div>';
     });
-    // 대운 = 바깥에서 흘러드는 10년의 기운. 켠 회로에만 위에서 내려오는 흐름선을 긋는다(점수는 바꾸지 않는다).
-    var luck = t.luck;
-    var flows = '';
-    if (luck) luck.axes.forEach(function (a) {
-      var p = NODE[a];
-      flows += '<path class="da-brain__flow da-tone-' + esc(luck.tone) + '" d="M160 2Q' + ((160 + p[0]) / 2).toFixed(1) + ' ' + (p[1] * 0.35).toFixed(1) + ' ' + p[0] + ' ' + p[1] + '"/>';
-    });
-    var nodes = '';
-    t.engines.forEach(function (e) {
-      var p = NODE[e.axis];
-      var r = 9 + e.score * 0.17;
-      var top = s.topThoughts.indexOf(e.axis) >= 0;
-      nodes += '<g class="da-brain__node da-lv-' + esc(e.level) + (top ? ' is-top' : '') + (e.luck ? ' is-luck' : '') + '">' +
-        (top ? '<circle class="da-brain__glow" cx="' + p[0] + '" cy="' + p[1] + '" r="' + (r + 10).toFixed(1) + '"/>' : '') +
-        (e.luck ? '<circle class="da-brain__orbit da-tone-' + esc(e.luck) + '" cx="' + p[0] + '" cy="' + p[1] + '" r="' + (r + 6).toFixed(1) + '"/>' : '') +
-        '<circle class="da-brain__core" cx="' + p[0] + '" cy="' + p[1] + '" r="' + r.toFixed(1) + '"/>' +
-        '<text class="da-brain__label" x="' + p[0] + '" y="' + (p[1] + r + 14).toFixed(1) + '" text-anchor="middle">' + esc(e.name) + '</text></g>';
-    });
-    var label = s.brainHeadline + (luck ? ' · ' + luck.toneLabel + ': ' + luck.thoughts.map(function (x) { return x.name; }).join(', ') : '');
-    return '<svg class="da-brain__svg" viewBox="0 0 320 240" role="img" aria-label="' + esc(label) + '">' +
-      '<path class="da-brain__shell" d="M58 132C38 84 88 30 160 34C232 30 288 72 272 126C288 168 242 206 186 199C166 216 120 215 104 197C68 201 42 170 58 132Z"/>' +
-      '<path class="da-brain__fold" d="M160 38C150 82 174 122 158 196M86 96C104 104 118 98 128 110M236 98C218 108 206 100 194 114M90 176C108 166 124 176 136 166M232 174C214 164 200 174 188 164"/>' +
-      lines + flows + nodes + '</svg>';
+    Object.keys(MEME_PATTERNS).forEach(function (k) { pats += MEME_PATTERNS[k]; });
+    pats += '<linearGradient id="daGlass" x1="0" y1="0" x2="1" y2="1"><stop class="da-sheen-a" offset="0"/><stop class="da-sheen-b" offset=".55"/></linearGradient>';
+    var tierOf = {};
+    m.cells.forEach(function (c) { tierOf[c.axis] = c.tier; });
+    var legend = m.legend.map(function (c) {
+      var chips = (c.hot ? '<span class="da-chip da-chip--hot">🔥 ' + esc(m.hotLabel) + '</span>' : '') +
+        (c.luck ? '<span class="da-chip da-tone-' + esc(c.luck) + '">' + esc(m.luckMark + ' ' + m.luckLabel) + '</span>' : '');
+      return '<li class="da-meme__row da-ax-' + esc(c.axis) + (c.luck ? ' is-luck da-tone-' + esc(c.luck) : '') + '" data-da-axis="' + esc(c.axis) + '">' +
+        memeSwatch(c.axis) + '<span class="da-meme__god">' + esc(c.god) + '</span><span class="da-meme__name">' + esc(c.name) + '</span>' + chips +
+        '<b class="da-meme__rowpct">' + c.pct + '%</b>' +
+        '<span class="da-meme__rowline' + (tierOf[c.axis] === 'full' ? ' da-sr' : '') + '">“' + esc(c.line) + '”</span></li>';
+    }).join('');
+    var box = 'x="' + b.x + '" y="' + b.y + '" width="' + b.w + '" height="' + b.h + '" rx="' + b.r + '"';
+    var n = m.inner || b, inner = 'x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" rx="' + n.r + '"';
+    return '<figure class="da-meme">' +
+      '<div class="da-meme__stage" aria-hidden="true" style="aspect-ratio:' + vb[2] + ' / ' + vb[3] + '">' +
+      '<svg class="da-meme__svg" viewBox="' + esc(m.viewBox) + '" focusable="false"><defs><clipPath id="daMemeClip"><rect ' + inner + '/></clipPath>' + pats + '</defs>' +
+      MEME_ART + '<path class="da-meme__head" d="' + esc(m.head) + '"/><path class="da-meme__ear" d="' + esc(m.ear) + '"/>' +
+      '<path class="da-meme__eye" d="' + esc(m.eye) + '"/><circle class="da-meme__cheek" cx="' + m.cheek.cx + '" cy="' + m.cheek.cy + '" r="' + m.cheek.r + '"/>' +
+      '<rect class="da-meme__brain" ' + box + '/><g clip-path="url(#daMemeClip)">' + rects + '</g><rect class="da-meme__outline" ' + box + '/></svg>' +
+      '<div class="da-meme__cells">' + cells + '</div></div>' +
+      '<figcaption class="da-meme__caption">' + esc(m.caption) + '</figcaption>' +
+      '<ol class="da-meme__legend">' + legend + '</ol>' +
+      (m.comboTitle ? '<p class="da-meme__combo"><span>' + esc(m.comboLabel) + '</span> <b>' + esc(m.comboTitle) + '</b></p>' : '') + '</figure>';
+  }
+
+  /* 칸 글자 넘침 교정 — 실제 크기를 재서 full(문구+%) → mid(이모지+%) → dot(색만) 으로 낮춘다.
+     낮춘 칸의 문구는 범례에서 보이게 한다. 매번 처음 단계부터 다시 재므로 화면이 넓어지면 되돌아간다. */
+  // full → tight(글자 축소) → mid(속마음 숨김, 스티커·% 한 줄) → pct(%만) → dot(빈 칸). 범례 속마음은 칸에 문장이 보이면 숨긴다.
+  // 칸 문장은 어절 중간에서 끊지 않는다(overflow-wrap 없음) — 넘치면 scrollWidth 로 잡혀 다음 단계로 내려간다.
+  var TIERS = ['full', 'tight', 'mid', 'pct', 'dot'];
+  function fitMeme(container) {
+    var cells = container && container.querySelectorAll ? container.querySelectorAll('.da-meme__cell') : [];
+    for (var i = 0; i < cells.length; i++) {
+      var el = cells[i];
+      var k = Math.max(0, TIERS.indexOf(el.getAttribute('data-da-tier')));
+      var setTier = function (tier) {
+        TIERS.forEach(function (x) { el.classList.toggle('is-' + x, x === tier); });
+      };
+      setTier(TIERS[k]);
+      while (k < TIERS.length - 1 && (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1)) setTier(TIERS[++k]);
+      var line = container.querySelector('.da-meme__row[data-da-axis="' + el.getAttribute('data-da-axis') + '"] .da-meme__rowline');
+      if (line) line.classList.toggle('da-sr', k <= 1);
+    }
   }
 
   function luckChip(ui, tone) {
@@ -118,8 +169,7 @@
     return '<section class="da-sec da-brain" data-da-sec="brain" aria-labelledby="daBrainTitle">' +
       '<h4 class="da-h" id="daBrainTitle">' + esc(ui.brainTitle) + '</h4>' +
       '<p class="da-lead">' + esc(model.saju.brainHeadline) + '</p>' +
-      brainSvg(model, t) +
-      (t.luck ? '<p class="da-brain__legend"><span class="da-key da-tone-' + esc(t.luck.tone) + '" aria-hidden="true"></span>' + esc(ui.luckLegend) + ' · ' + esc(t.luck.toneLabel) + '</p>' : '') +
+      memeHtml(t) +
       '<ul class="da-thoughts">' + thoughts + '</ul>' + restHtml + luckHtml(t) +
       (state.open ? '' : '<button type="button" class="da-btn da-btn--primary" data-da-act="explore" aria-controls="daBody" aria-expanded="false">' + esc(ui.explore) + '</button>') +
       '</section>';
@@ -160,7 +210,7 @@
     var ui = t.ui, el = t.elements;
     var max = Math.max.apply(null, el.items.map(function (x) { return x.ratio || 0; })) || 1;
     var bars = el.items.map(function (x) {
-      var pct = Math.round((x.ratio || 0) * 100);
+      var pct = Math.round(x.ratio || 0);
       return '<li class="da-el' + (x.id === model.elementLayer.dominant ? ' is-dominant' : '') + (pct === 0 ? ' is-missing' : '') + '">' +
         '<span class="da-el__name">' + esc(x.name) + '</span><span class="da-meter"><span class="da-meter__fill" style="width:' + Math.round((x.ratio || 0) / max * 100) + '%"></span></span>' +
         '<span class="da-el__pct">' + pct + '%</span><span class="da-el__words">' + esc(x.words) + '</span></li>';
@@ -340,7 +390,7 @@
       '<button type="button" class="da-btn da-btn--ghost" data-da-act="retry">' + esc(ui.retry) + '</button></div>';
   }
 
-  var api = {render: render, renderSkeleton: renderSkeleton, renderError: renderError, CTA_TARGET: CTA_TARGET};
+  var api = {render: render, renderSkeleton: renderSkeleton, renderError: renderError, fitMeme: fitMeme, CTA_TARGET: CTA_TARGET};
   root.DestinyAnatomyRender = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);

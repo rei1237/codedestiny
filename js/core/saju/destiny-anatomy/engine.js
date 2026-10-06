@@ -383,6 +383,77 @@
     };
   }
 
+  /* 밈 뇌구조 — 왼쪽을 보는 옆얼굴(viewBox 360×300) 안 두개골 자리에 모서리가 둥근 뇌 상자를 두고,
+   * 그 상자를 엔진 비율대로 나눈다(squarified treemap). 칸 넓이 = 상자 넓이 × share(양수 비율 합으로 정규화) — 상자는
+   * 깎이지 않으므로 넓이가 그대로 맞고, 둥근 모서리·칸 간격은 그림에서만 생긴다. 비율 0 엔진은 칸이 없다(빈칸·가짜 칸 금지).
+   * 퍼센트는 최대 나머지 방식으로 합 100. 머리 윤곽은 자체 디자인(이마·코·입술·턱·목·뒷머리). */
+  var MEME_VIEW = '0 0 360 300';
+  var MEME_BOX = {x: 96, y: 54, w: 204, h: 142, r: 30};
+  var MEME_HEAD = 'M128 300L126 262C104 258 78 252 66 240C58 232 60 222 62 216C54 214 50 208 54 202C48 198 48 192 54 188' +
+    'C46 186 38 182 36 176C34 170 44 160 50 152C54 140 56 128 58 116C62 56 120 18 190 18C270 18 336 66 334 138' +
+    'C332 190 306 222 290 236C282 256 280 280 282 300Z';
+  var MEME_EAR = 'M226 224C222 210 232 200 244 204C256 208 254 228 244 234C238 238 232 236 230 230';
+  var MEME_EYE = 'M68 150C73 156 81 156 86 150';
+  var MEME_CHEEK = {cx: 86, cy: 208, r: 9};
+  // 칸은 외곽선 안쪽 5 만큼 들어간 상자에 깐다 — 위·아래·옆 칸이 같은 여백을 갖고 외곽선에 묻히지 않는다.
+  var MEME_PAD = 5;
+  var MEME_INNER = {x: MEME_BOX.x + MEME_PAD, y: MEME_BOX.y + MEME_PAD, w: MEME_BOX.w - 2 * MEME_PAD, h: MEME_BOX.h - 2 * MEME_PAD, r: MEME_BOX.r - MEME_PAD};
+  function percents(values) {
+    var total = values.reduce(function (a, v) { return a + v; }, 0);
+    if (!total) return values.map(function () { return 0; });
+    var exact = values.map(function (v) { return v / total * 100; });
+    var out = exact.map(Math.floor);
+    var left = 100 - out.reduce(function (a, v) { return a + v; }, 0);
+    exact.map(function (v, i) { return {i: i, r: v - Math.floor(v)}; })
+      .sort(function (a, b) { return (b.r - a.r) || (a.i - b.i); })
+      .slice(0, left).forEach(function (x) { out[x.i] += 1; });
+    return out;
+  }
+  function squarify(areas, box) {
+    var out = [], rect = {x: box.x, y: box.y, w: box.w, h: box.h}, row = [], rest = areas.slice();
+    function worst(r, side) {
+      var s = r.reduce(function (a, v) { return a + v; }, 0);
+      return Math.max.apply(null, r.map(function (v) { return Math.max(side * side * v / (s * s), s * s / (side * side * v)); }));
+    }
+    function lay(r) {
+      var s = r.reduce(function (a, v) { return a + v; }, 0);
+      if (rect.w >= rect.h) {
+        var cw = s / rect.h, y = rect.y;
+        r.forEach(function (v) { out.push({x: rect.x, y: y, w: cw, h: v / cw}); y += v / cw; });
+        rect.x += cw; rect.w -= cw;
+      } else {
+        var rh = s / rect.w, x = rect.x;
+        r.forEach(function (v) { out.push({x: x, y: rect.y, w: v / rh, h: rh}); x += v / rh; });
+        rect.y += rh; rect.h -= rh;
+      }
+    }
+    while (rest.length) {
+      var side = Math.min(rect.w, rect.h);
+      if (!row.length || worst(row.concat(rest[0]), side) <= worst(row, side)) row.push(rest.shift());
+      else { lay(row); row = []; }
+    }
+    if (row.length) lay(row);
+    return out;
+  }
+  function memeBrain(brain) {
+    var axes = brain.ranked.filter(function (k) { return brain.engines[k].share > 0; });
+    var shares = axes.map(function (k) { return brain.engines[k].share; });
+    var total = shares.reduce(function (a, v) { return a + v; }, 0);
+    var pct = percents(shares);
+    var area = MEME_INNER.w * MEME_INNER.h;
+    var rects = total ? squarify(shares.map(function (v) { return v / total * area; }), MEME_INNER) : [];
+    var r2 = function (n) { return Math.round(n * 100) / 100; };
+    return {
+      viewBox: MEME_VIEW, head: MEME_HEAD, ear: MEME_EAR, eye: MEME_EYE, cheek: MEME_CHEEK, box: MEME_BOX, inner: MEME_INNER,
+      cells: axes.map(function (k, i) {
+        var c = rects[i];
+        // 처음 고르는 칸 글자 단계 — 화면에서는 실제 글자 넘침을 재서 한 단계씩 낮춘다(render.fitMeme).
+        var tier = c.w >= 40 && c.h >= 40 ? 'full' : c.w >= 22 && c.h >= 22 ? 'mid' : 'dot';
+        return {axis: k, share: shares[i] / total, pct: pct[i], x: r2(c.x), y: r2(c.y), w: r2(c.w), h: r2(c.h), tier: tier};
+      })
+    };
+  }
+
   function fingerprint(snap, hd, vedic) {
     var p = snap.pillars;
     var parts = [VERSION, ['y', 'm', 'd', 'h'].map(function (k) { return p[k] ? p[k].g + p[k].j : '--'; }).join(''), snap.timeUnknown ? 'tu' : 'tk',
@@ -433,7 +504,8 @@
         brainHeadline: '',
         brainDescription: '',
         strengths: brain.strengths,
-        overloadPatterns: brain.overloadPatterns
+        overloadPatterns: brain.overloadPatterns,
+        meme: memeBrain(brain)
       },
       luck: luck,
       fiveElements: elements.ratios,
@@ -470,6 +542,8 @@
     adaptVedicBasis: adaptVedicBasis,
     computeFusion: computeFusion,
     computeLuck: computeLuck,
+    memeBrain: memeBrain,
+    percents: percents,
     fingerprint: fingerprint,
     buildDestinyAnatomy: buildDestinyAnatomy,
     _canon: {SIGNS: SIGNS, SIGNS_KO: SIGNS_KO, NAKSHATRA_LORD: NAKSHATRA_LORD}

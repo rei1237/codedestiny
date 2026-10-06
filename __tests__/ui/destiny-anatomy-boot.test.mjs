@@ -127,8 +127,8 @@ test('대운: 닫힘 상태에도 흐름 패널이 보이고, 대운 회로마�
     R.render(el, m, {variant: 'A'});
     const panel = el.querySelector('[data-da-luck]');
     assert.ok(panel && panel.classList.contains(`da-tone-${tone}`), lang);
-    assert.equal(el.querySelectorAll('.da-brain__flow').length, m.luck.axes.length);
-    assert.equal(el.querySelectorAll('.da-brain__node.is-luck').length, m.luck.axes.length);
+    assert.equal(el.querySelectorAll('.da-meme__row.is-luck').length, m.luck.axes.length);
+    assert.equal(el.querySelectorAll('.da-meme__cell.is-luck').length, m.text.meme.cells.filter((c) => c.luck).length);
     assert.equal(panel.querySelectorAll('.da-thought').length, m.luck.axes.length);
     assert.ok(!/undefined|null|NaN|\{\w+\}/.test(el.textContent), lang);
     if (lang !== 'ko') assert.ok(!/[가-힣]/.test(panel.textContent), lang);
@@ -136,7 +136,7 @@ test('대운: 닫힘 상태에도 흐름 패널이 보이고, 대운 회로마�
   // 대운을 못 읽으면 패널·흐름선이 아예 없다(빈 자리 표시 금지).
   const el = doc.createElement('div');
   R.render(el, model(ctx, 'ko'), {variant: 'A'});
-  assert.equal(el.querySelector('[data-da-luck],.da-brain__flow'), null);
+  assert.equal(el.querySelector('[data-da-luck],.da-meme__row.is-luck,.da-stk--luck'), null);
 });
 
 test('공유 카드: 원국 글자·대운 간지·연도를 싣지 않는다', () => {

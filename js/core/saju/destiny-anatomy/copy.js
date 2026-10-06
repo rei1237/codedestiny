@@ -9,6 +9,9 @@
 
   var AXES = ['selfDrive', 'expression', 'reality', 'structure', 'reflection'];
   var LOCALES = ['ko', 'en', 'ja', 'zh-CN', 'zh-TW'];
+  // 밈 뇌구조 스티커 — 로케일과 무관한 그림 글자. 바람 스티커는 대운 흐름 톤별.
+  // 뇌구조 칸의 대운 표시 — 작은 크기에서도 읽히는 화살표(이모지는 작으면 덩어리로 보였다, 10-06 실측).
+  var LUCK_MARK = {tailwind: '↗', steady: '→', headwind: '↘'};
 
   var COPY = {};
 
@@ -17,9 +20,10 @@
       title: '운명 구조도', subtitle: 'DESTINY ANATOMY', free: 'FREE',
       intro: '방금 본 사주로 내 머릿속 사고 엔진부터 에너지 구조까지 한 장의 설계도로 펼쳐 봤어요.',
       explore: '내 머릿속 자세히 보기',
-      brainTitle: '사주 기반 Brain Map',
-      brainHeadline: '당신 머릿속의 가장 큰 비중은 {name}',
-      brainHeadlineBalanced: '다섯 엔진이 고르게 돌아가는 머릿속',
+      brainTitle: '내 뇌구조 (사주 ver.)',
+      brainHeadline: '내 머릿속 지분 1위는 {name}',
+      brainHeadlineBalanced: '다섯 엔진이 사이좋게 지분을 나눠 가졌어요',
+      memeHot: '과열', memeCombo: '조합 별명', memeCaption: '칸 크기는 사주 십성 비중 그대로예요 · 재미로 보는 뇌구조',
       moreThoughts: '나머지 생각 보기', lessThoughts: '접기',
       circuitTitle: '영냥이가 읽은 당신의 사고회로',
       sequence: '{a} → {b} → {c} 순으로 머리를 쓰는 경향이 있어요.',
@@ -59,7 +63,7 @@
         headwind: '지금 10년은 {names} 회로에 맞바람이 부는 시기예요. 이 생각들이 자주 떠오르지만, 속도를 조절할수록 단단해져요.'
       },
       luckOverheat: '{names} 회로는 원래도 강한데 대운까지 겹쳐요. 과열되지 않게 쉬는 틈을 일정에 넣어 두세요.',
-      luckLegend: '대운이 켠 회로', luckChip: '대운',
+      luckChip: '대운',
       luckNote: '타고난 엔진 점수는 그대로 두고, 지금 대운이 어느 회로를 켜는지만 겹쳐 봤어요.',
       timeUnknown: '정확한 출생시간이 있다면 에너지 구조까지 볼 수 있어요.',
       loginNeeded: '로그인하면 휴먼 디자인 에너지 구조와 베다 감정 레이어까지 이어서 볼 수 있어요.',
@@ -76,27 +80,27 @@
       D: '내 사주를 정신에서 몸까지 펼쳐봤습니다'
     },
     axes: {
-      selfDrive: {name: '주체성', short: '주체', god: '비겁', question: '나는 뭘 원하는가?', thought: '내가 결정하고 싶어',
+      selfDrive: {name: '주체성', short: '주체', god: '비겁', question: '나는 뭘 원하는가?', thought: '내가 결정하고 싶어', meme: '내 방식대로',
         keywords: ['독립', '자기주도', '경쟁', '자기 방식', '경계'],
         strong: ['자신의 방식대로 결정하고 싶어해요', '지나치게 통제받는 상황을 답답해해요', '경쟁 상황에서 오히려 에너지가 생길 수 있어요'],
         over: ['고집이 세질 수 있어요', '경쟁이 과열되기 쉬워요', '내 몫에 민감해질 수 있어요', '사람과 자원이 흩어질 수 있어요'],
         mind: '스스로 방향을 정하고', pull: '스스로 방향을 정하려는 힘이 강해요.'},
-      expression: {name: '표현과 자극', short: '표현', god: '식상', question: '재밌는 건 없나?', thought: '재밌는 거 없나?',
+      expression: {name: '표현과 자극', short: '표현', god: '식상', question: '재밌는 건 없나?', thought: '재밌는 거 없나?', meme: '일단 해보자!',
         keywords: ['표현', '말', '창작', '콘텐츠', '새로운 자극'],
         strong: ['말하고 표현하고 만들어낼 때 에너지가 생겨요', '새로운 경험과 자극에 빠르게 반응해요'],
         over: ['주의가 여러 곳으로 흩어질 수 있어요', '권태를 빨리 느낄 수 있어요', '루틴을 답답해할 수 있어요', '당장의 재미를 먼저 고르기 쉬워요'],
         mind: '재미와 표현에서 힘을 얻고', pull: '새로운 자극과 표현에서 에너지가 붙어요.'},
-      reality: {name: '현실과 결과', short: '현실', god: '재성', question: '그래서 이게 뭐가 남는데?', thought: '이게 돈이 될까?',
+      reality: {name: '현실과 결과', short: '현실', god: '재성', question: '그래서 이게 뭐가 남는데?', thought: '이게 돈이 될까?', meme: '남는 게 있나?',
         keywords: ['성과', '효율', '관리', '결과', '목표'],
         strong: ['이론보다 현실적인 결과를 중요하게 생각해요', '시간과 돈을 들였을 때 실제로 무엇을 얻는지 확인하려 해요'],
         over: ['돈·성과·효율 자체가 압박이 될 수 있어요', '결과가 안 보이면 쉽게 지칠 수 있어요'],
         mind: '생각은 현실적이고', pull: '머리는 빨리 현실적인 결과를 확인하고 싶어 해요.'},
-      structure: {name: '책임과 기준', short: '책임', god: '관성', question: '이걸 제대로 하고 있는가?', thought: '제대로 해야 하는데',
+      structure: {name: '책임과 기준', short: '책임', god: '관성', question: '이걸 제대로 하고 있는가?', thought: '제대로 해야 하는데', meme: '선은 지켜야지',
         keywords: ['책임', '규칙', '평가', '기준', '성취'],
         strong: ['역할과 책임을 중요하게 생각해요', '사회적인 기준과 해야 할 일을 의식하기 쉬워요'],
         over: ['스스로를 지나치게 검열할 수 있어요', '책임을 혼자 떠안기 쉬워요', '평가에 대한 압박을 크게 느낄 수 있어요'],
         mind: '기준을 세우고 지키며', pull: '제대로 해내야 한다는 기준이 먼저 켜져요.'},
-      reflection: {name: '생각과 흡수', short: '사고', god: '인성', question: '혹시 내가 놓친 게 있을까?', thought: '혹시 내가 놓친 게 있나?',
+      reflection: {name: '생각과 흡수', short: '사고', god: '인성', question: '혹시 내가 놓친 게 있을까?', thought: '혹시 내가 놓친 게 있나?', meme: '생각 좀 할게',
         keywords: ['공부', '정보', '직관', '검증', '의미'],
         strong: ['생각하고 이해해야 움직일 수 있어요', '하나의 현상에서도 의미를 찾으려 해요'],
         over: ['걱정이 길어질 수 있어요', '분석이 지나쳐질 수 있어요', '같은 생각을 반복하기 쉬워요', '행동이 늦어질 수 있어요'],
@@ -257,9 +261,10 @@
       title: 'Destiny Anatomy', subtitle: 'DESTINY ANATOMY', free: 'FREE',
       intro: 'From the chart you just read, we mapped your thinking engines and energy structure into a single blueprint.',
       explore: 'Explore my mind',
-      brainTitle: 'Saju Brain Map',
-      brainHeadline: 'The biggest share of your mind: {name}',
-      brainHeadlineBalanced: 'A mind where all five engines run evenly',
+      brainTitle: 'My brain, saju edition',
+      brainHeadline: 'Biggest stake in my brain: {name}',
+      brainHeadlineBalanced: 'Five engines splitting my brain evenly',
+      memeHot: 'Overheated', memeCombo: 'Combo nickname', memeCaption: 'Cell size = your saju ten-god share · just for fun',
       moreThoughts: 'Show the other thoughts', lessThoughts: 'Hide',
       circuitTitle: 'Your thought circuit, as Yeongnyangi reads it',
       sequence: 'You tend to use your mind in this order: {a} → {b} → {c}.',
@@ -299,7 +304,7 @@
         headwind: 'This decade, a headwind blows against your {names} circuit. These thoughts come up often, and pacing yourself makes them sturdier.'
       },
       luckOverheat: 'Your {names} circuit is already strong, and the luck cycle adds to it. Leave room for rest so it does not overheat.',
-      luckLegend: 'Switched on by your luck cycle', luckChip: 'Luck',
+      luckChip: 'Luck',
       luckNote: 'Your inborn engine scores stay the same. This only overlays which circuits your current luck cycle switches on.',
       timeUnknown: 'With an exact birth time, you can see your energy structure too.',
       loginNeeded: 'Log in to continue with your Human Design energy structure and Vedic emotional layer.',
@@ -316,27 +321,27 @@
       D: 'My Saju, unfolded from mind to body'
     },
     axes: {
-      selfDrive: {name: 'Self-drive', short: 'Self', god: 'Companion stars', question: 'What do I want?', thought: 'I want to decide this myself',
+      selfDrive: {name: 'Self-drive', short: 'Self', god: 'Companion stars', question: 'What do I want?', thought: 'I want to decide this myself', meme: 'My way',
         keywords: ['Independence', 'Self-direction', 'Competition', 'My own way', 'Boundaries'],
         strong: ['You want to decide in your own way', 'Being over-controlled feels stifling', 'Competition can energize you'],
         over: ['Stubbornness can grow', 'Competition can overheat', 'You may get sensitive about your share', 'People and resources can scatter'],
         mind: 'Sets your own course,', pull: 'Your drive to set your own course is strong.'},
-      expression: {name: 'Expression & stimulation', short: 'Expression', god: 'Output stars', question: 'Is there anything fun?', thought: 'Anything fun out there?',
+      expression: {name: 'Expression & stimulation', short: 'Expression', god: 'Output stars', question: 'Is there anything fun?', thought: 'Anything fun out there?', meme: "Let's try it!",
         keywords: ['Expression', 'Speech', 'Creation', 'Content', 'New stimuli'],
         strong: ['Speaking, expressing and making things energize you', 'You react quickly to new experiences and stimuli'],
         over: ['Attention can scatter', 'Boredom can come quickly', 'Routine can feel confining', 'Instant fun may come first'],
         mind: 'Fueled by fun and expression,', pull: 'New stimuli and expression are what get you going.'},
-      reality: {name: 'Reality & results', short: 'Reality', god: 'Wealth stars', question: 'So what does this actually leave me with?', thought: 'Will this pay off?',
+      reality: {name: 'Reality & results', short: 'Reality', god: 'Wealth stars', question: 'So what does this actually leave me with?', thought: 'Will this pay off?', meme: "What's in it?",
         keywords: ['Results', 'Efficiency', 'Management', 'Outcomes', 'Goals'],
         strong: ['You value real results over theory', 'You check what you actually gain for the time and money you put in'],
         over: ['Money, results and efficiency can become pressure', 'You may tire when results are not visible'],
         mind: 'Practical in thought,', pull: 'Your mind wants to confirm real results quickly.'},
-      structure: {name: 'Responsibility & standards', short: 'Responsibility', god: 'Authority stars', question: 'Am I doing this right?', thought: 'I have to do this properly',
+      structure: {name: 'Responsibility & standards', short: 'Responsibility', god: 'Authority stars', question: 'Am I doing this right?', thought: 'I have to do this properly', meme: 'Rules first',
         keywords: ['Responsibility', 'Rules', 'Evaluation', 'Standards', 'Achievement'],
         strong: ['You take roles and responsibilities seriously', 'You are aware of social standards and what needs doing'],
         over: ['You may censor yourself too much', 'You may carry responsibility alone', 'Evaluation can weigh on you'],
         mind: 'Setting and keeping standards,', pull: 'The standard of doing it right switches on first.'},
-      reflection: {name: 'Thought & absorption', short: 'Thinking', god: 'Resource stars', question: 'Did I miss anything?', thought: 'Did I miss something?',
+      reflection: {name: 'Thought & absorption', short: 'Thinking', god: 'Resource stars', question: 'Did I miss anything?', thought: 'Did I miss something?', meme: 'Let me think',
         keywords: ['Study', 'Information', 'Intuition', 'Verification', 'Meaning'],
         strong: ['You need to think and understand before you move', 'You look for meaning even in a single event'],
         over: ['Worry can linger', 'Analysis can run too long', 'The same thought can loop', 'Action can be delayed'],
@@ -497,9 +502,10 @@
       title: '運命構造図', subtitle: 'DESTINY ANATOMY', free: 'FREE',
       intro: 'いま見た四柱推命から、頭の中の思考エンジンからエネルギー構造までを一枚の設計図に広げました。',
       explore: '頭の中をくわしく見る',
-      brainTitle: '四柱推命ブレインマップ',
-      brainHeadline: 'あなたの頭の中でいちばん大きいのは「{name}」',
-      brainHeadlineBalanced: '五つのエンジンが均等に回る頭の中',
+      brainTitle: '私の脳内構造（四柱推命ver.）',
+      brainHeadline: '脳内シェア1位は「{name}」',
+      brainHeadlineBalanced: '5つのエンジンが仲良く脳内を山分け中',
+      memeHot: '過熱', memeCombo: 'コンボのあだ名', memeCaption: 'マスの大きさ＝四柱推命の十星バランス・お遊び版',
       moreThoughts: 'ほかの思考も見る', lessThoughts: '閉じる',
       circuitTitle: '英ニャンが読んだあなたの思考回路',
       sequence: '{a} → {b} → {c} の順に頭を使う傾向があります。',
@@ -539,7 +545,7 @@
         headwind: 'この10年は「{names}」の回路に向かい風が吹く時期。こうした考えがよく浮かびますが、ペースを整えるほど強くなれます。'
       },
       luckOverheat: '「{names}」の回路はもともと強く、そこに大運が重なります。オーバーヒートしないよう、休む時間を予定に入れておきましょう。',
-      luckLegend: '大運がオンにした回路', luckChip: '大運',
+      luckChip: '大運',
       luckNote: '生まれ持ったエンジンの点数はそのまま。今の大運がどの回路をオンにしているかだけを重ねています。',
       timeUnknown: '正確な出生時間があれば、エネルギー構造まで見られます。',
       loginNeeded: 'ログインすると、ヒューマンデザインのエネルギー構造とインド占星術の感情レイヤーまで続けて見られます。',
@@ -556,27 +562,27 @@
       D: 'わたしの四柱推命を心から体まで広げてみました'
     },
     axes: {
-      selfDrive: {name: '主体性', short: '主体', god: '比劫', question: 'わたしは何を望んでいる？', thought: '自分で決めたい',
+      selfDrive: {name: '主体性', short: '主体', god: '比劫', question: 'わたしは何を望んでいる？', thought: '自分で決めたい', meme: '自分流でいく',
         keywords: ['独立', '自己主導', '競争', '自分のやり方', '境界'],
         strong: ['自分のやり方で決めたいタイプです', '過度に管理されると窮屈に感じます', '競争の場面でかえって力が湧くことがあります'],
         over: ['頑固になりやすいです', '競争が過熱しやすいです', '自分の取り分に敏感になりがちです', '人や資源が分散しやすいです'],
         mind: '自分で方向を決め、', pull: '自分で方向を決めようとする力が強いです。'},
-      expression: {name: '表現と刺激', short: '表現', god: '食傷', question: '何かおもしろいことはない？', thought: 'おもしろいことないかな？',
+      expression: {name: '表現と刺激', short: '表現', god: '食傷', question: '何かおもしろいことはない？', thought: 'おもしろいことないかな？', meme: 'とりあえずやろ！',
         keywords: ['表現', '言葉', '創作', 'コンテンツ', '新しい刺激'],
         strong: ['話す・表現する・つくるときに力が湧きます', '新しい経験や刺激にすばやく反応します'],
         over: ['注意があちこちに散りやすいです', '飽きが早く来ることがあります', 'ルーティンを窮屈に感じがちです', '目先の楽しさを優先しやすいです'],
         mind: '楽しさと表現から力を得て、', pull: '新しい刺激と表現でエンジンがかかります。'},
-      reality: {name: '現実と結果', short: '現実', god: '財星', question: 'で、結局何が残るの？', thought: 'これ、お金になる？',
+      reality: {name: '現実と結果', short: '現実', god: '財星', question: 'で、結局何が残るの？', thought: 'これ、お金になる？', meme: '何が残る？',
         keywords: ['成果', '効率', '管理', '結果', '目標'],
         strong: ['理論より現実的な結果を大切にします', '時間やお金をかけたとき、実際に何が得られるかを確かめようとします'],
         over: ['お金・成果・効率そのものがプレッシャーになることがあります', '結果が見えないと疲れやすいです'],
         mind: '考え方は現実的で、', pull: '頭は早く現実的な結果を確かめたがります。'},
-      structure: {name: '責任と基準', short: '責任', god: '官星', question: 'ちゃんとできている？', thought: 'ちゃんとやらなきゃ',
+      structure: {name: '責任と基準', short: '責任', god: '官星', question: 'ちゃんとできている？', thought: 'ちゃんとやらなきゃ', meme: '筋は通さなきゃ',
         keywords: ['責任', 'ルール', '評価', '基準', '達成'],
         strong: ['役割と責任を大切にします', '社会的な基準ややるべきことを意識しやすいです'],
         over: ['自分を厳しく検閲しすぎることがあります', '責任をひとりで抱えこみやすいです', '評価へのプレッシャーを強く感じがちです'],
         mind: '基準を立てて守りながら、', pull: 'きちんとやり遂げるという基準がまず働きます。'},
-      reflection: {name: '思考と吸収', short: '思考', god: '印星', question: '何か見落としていない？', thought: '何か見落としてないかな？',
+      reflection: {name: '思考と吸収', short: '思考', god: '印星', question: '何か見落としていない？', thought: '何か見落としてないかな？', meme: 'ちょっと考える',
         keywords: ['学び', '情報', '直感', '検証', '意味'],
         strong: ['考えて理解してから動けるタイプです', 'ひとつの出来事にも意味を探そうとします'],
         over: ['心配が長引くことがあります', '分析しすぎることがあります', '同じ考えをくり返しやすいです', '行動が遅れがちです'],
@@ -737,9 +743,10 @@
       title: '命运结构图', subtitle: 'DESTINY ANATOMY', free: 'FREE',
       intro: '用你刚看完的八字，把脑中的思考引擎到能量结构展开成一张设计图。',
       explore: '细看我的脑内',
-      brainTitle: '八字脑图',
-      brainHeadline: '你脑中占比最大的是「{name}」',
-      brainHeadlineBalanced: '五个引擎均衡运转的大脑',
+      brainTitle: '我的脑内构造（八字版）',
+      brainHeadline: '脑内占比第一：「{name}」',
+      brainHeadlineBalanced: '五个引擎平分了整个大脑',
+      memeHot: '过热', memeCombo: '组合外号', memeCaption: '格子大小＝八字十神占比 · 图个乐',
       moreThoughts: '查看其他想法', lessThoughts: '收起',
       circuitTitle: '英喵读到的你的思考回路',
       sequence: '你倾向按 {a} → {b} → {c} 的顺序用脑。',
@@ -779,7 +786,7 @@
         headwind: '这十年，「{names}」回路正迎着逆风。这些想法常常冒出来，放慢节奏反而会更稳。'
       },
       luckOverheat: '「{names}」回路本来就强，大运又叠加在上面。给日程留出休息的空隙，别让它过热。',
-      luckLegend: '大运点亮的回路', luckChip: '大运',
+      luckChip: '大运',
       luckNote: '与生俱来的引擎分数保持不变，这里只叠加当前大运点亮了哪些回路。',
       timeUnknown: '如果有准确的出生时间，还能看到能量结构。',
       loginNeeded: '登录后可以继续查看人类图能量结构与吠陀情绪层。',
@@ -796,27 +803,27 @@
       D: '把我的八字从精神到身体展开来看'
     },
     axes: {
-      selfDrive: {name: '主体性', short: '主体', god: '比劫', question: '我想要什么？', thought: '我想自己决定',
+      selfDrive: {name: '主体性', short: '主体', god: '比劫', question: '我想要什么？', thought: '我想自己决定', meme: '按我的来',
         keywords: ['独立', '自主', '竞争', '自己的方式', '边界'],
         strong: ['想按自己的方式做决定', '被过度控制时会觉得憋闷', '在竞争中反而可能更有干劲'],
         over: ['容易变得固执', '竞争容易过热', '对自己的份额会比较敏感', '人和资源容易分散'],
         mind: '自己定方向，', pull: '想自己决定方向的力量很强。'},
-      expression: {name: '表达与刺激', short: '表达', god: '食伤', question: '有没有好玩的？', thought: '有没有好玩的？',
+      expression: {name: '表达与刺激', short: '表达', god: '食伤', question: '有没有好玩的？', thought: '有没有好玩的？', meme: '先试试再说！',
         keywords: ['表达', '说话', '创作', '内容', '新刺激'],
         strong: ['说话、表达、创造时最有能量', '对新的体验和刺激反应很快'],
         over: ['注意力容易分散', '容易很快感到厌倦', '容易觉得日常规律很憋闷', '容易优先选择眼前的乐趣'],
         mind: '从乐趣与表达中获得力量，', pull: '新的刺激和表达会让你动起来。'},
-      reality: {name: '现实与结果', short: '现实', god: '财星', question: '所以这到底能留下什么？', thought: '这能赚钱吗？',
+      reality: {name: '现实与结果', short: '现实', god: '财星', question: '所以这到底能留下什么？', thought: '这能赚钱吗？', meme: '能剩下啥？',
         keywords: ['成果', '效率', '管理', '结果', '目标'],
         strong: ['比起理论更看重现实的结果', '投入时间和金钱时，会确认实际能得到什么'],
         over: ['金钱、成果和效率本身可能变成压力', '看不到结果时容易疲惫'],
         mind: '想法务实，', pull: '脑子想尽快确认现实的结果。'},
-      structure: {name: '责任与标准', short: '责任', god: '官星', question: '我这样做对吗？', thought: '得好好做才行',
+      structure: {name: '责任与标准', short: '责任', god: '官星', question: '我这样做对吗？', thought: '得好好做才行', meme: '规矩得守',
         keywords: ['责任', '规则', '评价', '标准', '成就'],
         strong: ['重视角色与责任', '容易意识到社会标准和该做的事'],
         over: ['可能对自己审视过严', '容易独自扛下责任', '可能强烈感受到被评价的压力'],
         mind: '立标准、守标准，', pull: '“要做好”的标准会最先启动。'},
-      reflection: {name: '思考与吸收', short: '思考', god: '印星', question: '我是不是漏掉了什么？', thought: '我是不是漏了什么？',
+      reflection: {name: '思考与吸收', short: '思考', god: '印星', question: '我是不是漏掉了什么？', thought: '我是不是漏了什么？', meme: '让我想想',
         keywords: ['学习', '信息', '直觉', '验证', '意义'],
         strong: ['要先想清楚、理解了才能行动', '即使是一件小事也想找出意义'],
         over: ['担心可能持续很久', '分析可能过度', '容易反复想同一件事', '行动可能被推迟'],
@@ -977,9 +984,10 @@
       title: '命運結構圖', subtitle: 'DESTINY ANATOMY', free: 'FREE',
       intro: '用你剛看完的八字，把腦中的思考引擎到能量結構展開成一張設計圖。',
       explore: '細看我的腦內',
-      brainTitle: '八字腦圖',
-      brainHeadline: '你腦中占比最大的是「{name}」',
-      brainHeadlineBalanced: '五個引擎均衡運轉的大腦',
+      brainTitle: '我的腦內構造（八字版）',
+      brainHeadline: '腦內占比第一：「{name}」',
+      brainHeadlineBalanced: '五個引擎平分了整個大腦',
+      memeHot: '過熱', memeCombo: '組合外號', memeCaption: '格子大小＝八字十神占比 · 圖個樂',
       moreThoughts: '查看其他想法', lessThoughts: '收起',
       circuitTitle: '英喵讀到的你的思考迴路',
       sequence: '你傾向按 {a} → {b} → {c} 的順序用腦。',
@@ -1019,7 +1027,7 @@
         headwind: '這十年，「{names}」迴路正迎著逆風。這些想法常常冒出來，放慢節奏反而會更穩。'
       },
       luckOverheat: '「{names}」迴路本來就強，大運又疊加在上面。給行程留出休息的空隙，別讓它過熱。',
-      luckLegend: '大運點亮的迴路', luckChip: '大運',
+      luckChip: '大運',
       luckNote: '與生俱來的引擎分數保持不變，這裡只疊加當前大運點亮了哪些迴路。',
       timeUnknown: '如果有準確的出生時間，還能看到能量結構。',
       loginNeeded: '登入後可以繼續查看人類圖能量結構與吠陀情緒層。',
@@ -1036,27 +1044,27 @@
       D: '把我的八字從精神到身體展開來看'
     },
     axes: {
-      selfDrive: {name: '主體性', short: '主體', god: '比劫', question: '我想要什麼？', thought: '我想自己決定',
+      selfDrive: {name: '主體性', short: '主體', god: '比劫', question: '我想要什麼？', thought: '我想自己決定', meme: '照我的來',
         keywords: ['獨立', '自主', '競爭', '自己的方式', '界線'],
         strong: ['想按自己的方式做決定', '被過度控制時會覺得憋悶', '在競爭中反而可能更有幹勁'],
         over: ['容易變得固執', '競爭容易過熱', '對自己的份額會比較敏感', '人和資源容易分散'],
         mind: '自己定方向，', pull: '想自己決定方向的力量很強。'},
-      expression: {name: '表達與刺激', short: '表達', god: '食傷', question: '有沒有好玩的？', thought: '有沒有好玩的？',
+      expression: {name: '表達與刺激', short: '表達', god: '食傷', question: '有沒有好玩的？', thought: '有沒有好玩的？', meme: '先試試再說！',
         keywords: ['表達', '說話', '創作', '內容', '新刺激'],
         strong: ['說話、表達、創造時最有能量', '對新的體驗和刺激反應很快'],
         over: ['注意力容易分散', '容易很快感到厭倦', '容易覺得日常規律很憋悶', '容易優先選擇眼前的樂趣'],
         mind: '從樂趣與表達中獲得力量，', pull: '新的刺激和表達會讓你動起來。'},
-      reality: {name: '現實與結果', short: '現實', god: '財星', question: '所以這到底能留下什麼？', thought: '這能賺錢嗎？',
+      reality: {name: '現實與結果', short: '現實', god: '財星', question: '所以這到底能留下什麼？', thought: '這能賺錢嗎？', meme: '能剩下啥？',
         keywords: ['成果', '效率', '管理', '結果', '目標'],
         strong: ['比起理論更看重現實的結果', '投入時間和金錢時，會確認實際能得到什麼'],
         over: ['金錢、成果和效率本身可能變成壓力', '看不到結果時容易疲憊'],
         mind: '想法務實，', pull: '腦子想盡快確認現實的結果。'},
-      structure: {name: '責任與標準', short: '責任', god: '官星', question: '我這樣做對嗎？', thought: '得好好做才行',
+      structure: {name: '責任與標準', short: '責任', god: '官星', question: '我這樣做對嗎？', thought: '得好好做才行', meme: '規矩得守',
         keywords: ['責任', '規則', '評價', '標準', '成就'],
         strong: ['重視角色與責任', '容易意識到社會標準和該做的事'],
         over: ['可能對自己審視過嚴', '容易獨自扛下責任', '可能強烈感受到被評價的壓力'],
         mind: '立標準、守標準，', pull: '「要做好」的標準會最先啟動。'},
-      reflection: {name: '思考與吸收', short: '思考', god: '印星', question: '我是不是漏掉了什麼？', thought: '我是不是漏了什麼？',
+      reflection: {name: '思考與吸收', short: '思考', god: '印星', question: '我是不是漏掉了什麼？', thought: '我是不是漏了什麼？', meme: '讓我想想',
         keywords: ['學習', '資訊', '直覺', '驗證', '意義'],
         strong: ['要先想清楚、理解了才能行動', '即使是一件小事也想找出意義'],
         over: ['擔心可能持續很久', '分析可能過度', '容易反覆想同一件事', '行動可能被推遲'],
@@ -1315,6 +1323,28 @@
     function luckOf(axis) { return luckText && luckText.axes.indexOf(axis) >= 0 ? luckText.tone : null; }
     var thoughts = s.topThoughts.map(function (axis) { return {axis: axis, name: A[axis].name, line: A[axis].thought, luck: luckOf(axis)}; });
     var allThoughts = s.ranked.map(function (axis) { return {axis: axis, name: A[axis].name, line: A[axis].thought, top: s.topThoughts.indexOf(axis) >= 0, luck: luckOf(axis)}; });
+    // 밈 뇌구조 — 칸 배치(engine)에 축별 짤 문구·스티커를 붙인다. 스티커는 데이터에서만 나온다(과열 축·대운 축·1위).
+    var memeGeo = s.meme;
+    var memeOf = function (axis) {
+      return {axis: axis, name: A[axis].name, god: A[axis].god, line: A[axis].meme,
+        hot: s.overloadPatterns.indexOf(axis) >= 0, luck: luckOf(axis), top: !s.balanced && axis === s.ranked[0]};
+    };
+    var memeText = memeGeo ? {
+      viewBox: memeGeo.viewBox, head: memeGeo.head, ear: memeGeo.ear, eye: memeGeo.eye, cheek: memeGeo.cheek, box: memeGeo.box, inner: memeGeo.inner,
+      caption: C.ui.memeCaption, hotLabel: C.ui.memeHot, comboLabel: C.ui.memeCombo, comboTitle: combo.title,
+      luckLabel: C.ui.luckChip, luckMark: luckText ? LUCK_MARK[luckText.tone] : null,
+      cells: memeGeo.cells.map(function (c) {
+        var m = memeOf(c.axis);
+        m.pct = c.pct; m.x = c.x; m.y = c.y; m.w = c.w; m.h = c.h; m.tier = c.tier;
+        return m;
+      }),
+      legend: s.ranked.map(function (axis) {
+        var m = memeOf(axis);
+        var cell = memeGeo.cells.filter(function (c) { return c.axis === axis; })[0];
+        m.pct = cell ? cell.pct : 0;
+        return m;
+      })
+    } : null;
     var seq = s.ranked.slice(0, 3).map(function (a) { return A[a].short; });
 
     var el = model.elementLayer;
@@ -1356,6 +1386,7 @@
       comboTitle: combo.title,
       comboText: combo.text,
       toneNote: toneNote,
+      meme: memeText,
       engines: s.ranked.map(function (axis) {
         var e = s.engines[axis], a = A[axis];
         return {axis: axis, name: a.name, god: a.god, question: a.question, keywords: a.keywords, strong: a.strong, over: a.over,

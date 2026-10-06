@@ -18,6 +18,9 @@
   // 서버 narrate 예산(24초)보다 길게 — 서버가 결정론으로 답할 시간을 준다.
   var NARRATE_TIMEOUT_MS = 32000;
   var NARRATE_URL = '/api/destiny-anatomy/narrate';
+  // 문장은 copy.js 정적 문구가 정본이다(10-06 결정: LLM 최소). false 면 narrate 요청을 아예 보내지 않는다.
+  // 켜려면 이 상수와 워커 ENABLE_DESTINY_ANATOMY_REAL_LLM 둘 다 바꾸고, 실호출은 별도 1회 승인을 받는다.
+  var NARRATE_ENABLED = false;
   var FALLBACK_UI = {
     ko: {error: '운명 구조도를 불러오지 못했어요', retry: '다시 불러오기'},
     en: {error: 'We could not load your Destiny Anatomy', retry: 'Try again'}
@@ -82,7 +85,7 @@
   }
 
   var api = {isEnabled: isEnabled, PRODUCTION_ENABLED: PRODUCTION_ENABLED, pickVariant: pickVariant, birthRequest: birthRequest,
-    narrateBase: narrateBase, acceptNarration: acceptNarration, mergeNarration: mergeNarration};
+    narrateBase: narrateBase, acceptNarration: acceptNarration, mergeNarration: mergeNarration, NARRATE_ENABLED: NARRATE_ENABLED};
   root.DestinyAnatomyBoot = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 
@@ -168,6 +171,27 @@
       if (d) d.open = true;
     });
     observeSections();
+    fitMeme();
+  }
+
+  /* 밈 뇌구조 칸 글자가 넘치면 render.fitMeme 이 단계를 낮춘다. 폭이 바뀌거나 글꼴이 늦게 붙으면 다시 잰다. */
+  var memeWatch = null;
+  function fitMeme() {
+    var R = root.DestinyAnatomyRender;
+    if (!R || typeof R.fitMeme !== 'function') return;
+    try { R.fitMeme(card); } catch (e) { /* 맞춤 실패는 그림만 그대로 둔다 */ }
+    if (memeWatch) return;
+    memeWatch = true;
+    if (typeof root.ResizeObserver === 'function') {
+      var lastW = 0;
+      new root.ResizeObserver(function (entries) {
+        var w = Math.round(entries[0].contentRect.width);
+        if (w !== lastW) { lastW = w; try { R.fitMeme(card); } catch (e) { /* 무시 */ } }
+      }).observe(card);
+    }
+    if (doc.fonts && doc.fonts.ready && typeof doc.fonts.ready.then === 'function') {
+      doc.fonts.ready.then(function () { try { R.fitMeme(card); } catch (e) { /* 무시 */ } });
+    }
   }
 
   function showError() {
@@ -247,7 +271,7 @@
     if (hit && typeof hit === 'object') mergeNarration(model, hit);
   }
   function narrate() {
-    if (!state.open || !model || model.narrated || typeof root.fetch !== 'function') return;
+    if (!NARRATE_ENABLED || !state.open || !model || model.narrated || typeof root.fetch !== 'function') return;
     var nb = narrateBase(model);
     if (!nb || narrations[nb.key]) return;
     narrations[nb.key] = 'pending';

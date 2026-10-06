@@ -1,18 +1,33 @@
 /* 운명 구조도(DESTINY ANATOMY) — 무료 사주 결과 안 섹션. boot.js 가 플래그가 켜진 호스트에서만 지연 로드한다.
  * 🔴 색은 --cd-* 토큰만 참조한다(새 하드코딩 색·다크 접두사·색 구성표 미디어쿼리 금지 — design-canon §4). 연이·네오 테마는 토큰이 바꾼다.
  * 탭 영역 44px 이상, 360px 폭 우선, prefers-reduced-motion 이면 움직이지 않는다. */
+/* 달빛 예화 밤 창(10-06): 연이·네오 어느 테마에서도 같은 밤하늘 카드 — 테마 분기 없는 :root 지도 토큰(--cd-map-*·--cd-node-*)을 섞는다.
+ * 표면·글자·강조를 한 세트로 바꾼다(반쪽 오버라이드 금지). 금빛 선 = 예화 라인아트, 보석빛 칸 = 샤갈 스테인드글라스. */
 #destinyAnatomyCard {
-  --da-ink: var(--cd-text);
-  --da-muted: var(--cd-text-muted);
-  --da-accent: var(--cd-accent);
-  --da-gold: var(--cd-gold);
-  --da-line: var(--cd-border);
-  --da-soft: var(--cd-accent-soft);
-  --da-surface: var(--cd-surface-2);
-  --da-glow: color-mix(in srgb, var(--cd-gold) 55%, transparent);
+  --da-bg: color-mix(in srgb, var(--cd-map-ink) 62%, var(--cd-cta-primary-bg-2));
+  --da-bg-deep: color-mix(in srgb, var(--cd-map-ink) 28%, var(--cd-cta-primary-bg-2));
+  --da-bg-lift: color-mix(in srgb, var(--cd-map-ink-soft) 55%, var(--da-bg));
+  --da-ink: color-mix(in srgb, var(--cd-map-space-0) 52%, var(--cd-map-sand));
+  --da-muted: color-mix(in srgb, var(--da-ink) 72%, var(--da-bg));
+  --da-accent: var(--cd-map-gold-bright);
+  --da-gold: var(--cd-map-gold-bright);
+  --da-line: color-mix(in srgb, var(--cd-map-gold) 30%, transparent);
+  --da-soft: color-mix(in srgb, var(--cd-map-ink-soft) 50%, transparent);
+  --da-surface: color-mix(in srgb, var(--da-bg-lift) 70%, transparent);
+  --da-glow: color-mix(in srgb, var(--cd-map-gold-bright) 50%, transparent);
+  --da-art: var(--cd-map-gold);
+  --da-serif: var(--font-serif, 'CodeDestinySerifLatin', 'CodeDestinySerifKR', 'Nanum Myeongjo', serif);
   color: var(--da-ink);
+  background:
+    radial-gradient(120px 78px at 92% 0, color-mix(in srgb, var(--cd-map-gold-bright) 46%, transparent), transparent 100%),
+    radial-gradient(420px 240px at 100% 0, color-mix(in srgb, var(--cd-map-gold) 10%, transparent), transparent 70%),
+    radial-gradient(90% 50% at 0% 100%, color-mix(in srgb, var(--cd-node-fog) 22%, transparent), transparent 70%),
+    linear-gradient(170deg, var(--da-bg) 0%, var(--da-bg-deep) 100%);
+  border-color: var(--da-line);
   overflow: hidden;
 }
+#destinyAnatomyCard .da-title, #destinyAnatomyCard .da-h, #destinyAnatomyCard .da-hero__q { font-family: var(--da-serif); color: var(--da-ink); letter-spacing: -.01em; }
+#destinyAnatomyCard .da-eyebrow { font-family: var(--da-serif); color: var(--da-gold); letter-spacing: .22em; }
 #destinyAnatomyCard[hidden] { display: none; }
 
 /* ── 공통 ── */
@@ -33,8 +48,8 @@
   font: inherit; font-weight: 700; cursor: pointer; border: 1px solid transparent;
   transition: transform var(--cd-dur-fast) var(--cd-ease-out), box-shadow var(--cd-dur-fast) var(--cd-ease-out);
 }
-.da-btn--primary { background: linear-gradient(135deg, var(--cd-cta-primary-bg), var(--cd-cta-primary-bg-2)); color: var(--cd-cta-primary-ink); box-shadow: var(--cd-elev-1); }
-.da-btn--ghost { background: var(--cd-cta-ghost-fill); color: var(--cd-cta-ghost-ink); border-color: var(--cd-cta-ghost-line); }
+.da-btn--primary { background: linear-gradient(135deg, var(--cd-map-gold-bright), var(--cd-map-gold)); color: var(--da-bg-deep); box-shadow: 0 6px 18px -8px var(--da-glow); }
+.da-btn--ghost { background: transparent; color: var(--da-ink); border-color: var(--da-line); }
 .da-btn:active { transform: scale(.98); }
 .da-btn:focus-visible, .da-link:focus-visible, .da-cta:focus-visible, .da-toggle__btn:focus-visible, .da-engine summary:focus-visible {
   outline: 2px solid var(--da-accent); outline-offset: 2px;
@@ -53,19 +68,76 @@
 .da-hero__q { margin: var(--cd-sp-sm) 0 var(--cd-sp-xs); font-size: 1.15rem; line-height: 1.5; font-weight: 700; }
 .da-hero__intro { margin: 0; color: var(--da-muted); line-height: 1.6; }
 
-/* ── Brain Map ── */
-.da-brain__svg { display: block; width: 100%; max-width: 420px; height: auto; margin: var(--cd-sp-sm) auto; }
-.da-brain__shell { fill: color-mix(in srgb, var(--cd-accent-soft) 45%, transparent); stroke: var(--da-line); stroke-width: 1.5; }
-.da-brain__fold { fill: none; stroke: var(--da-line); stroke-width: 1.2; stroke-linecap: round; }
-.da-brain__link { stroke: var(--da-accent); stroke-opacity: .28; stroke-linecap: round; }
-.da-brain__link.is-core { stroke: var(--da-gold); stroke-opacity: .8; }
-.da-brain__core { fill: var(--cd-surface); stroke: var(--da-accent); stroke-width: 2; }
-.da-lv-dominant .da-brain__core { fill: var(--da-accent); }
-.da-lv-strong .da-brain__core { fill: color-mix(in srgb, var(--cd-accent) 60%, var(--cd-surface)); }
-.da-lv-moderate .da-brain__core { fill: color-mix(in srgb, var(--cd-accent) 28%, var(--cd-surface)); }
-.da-brain__glow { fill: var(--da-glow); opacity: 0; }
-.da-brain__label { fill: var(--da-ink); font-size: 11px; font-weight: 700; text-anchor: middle; paint-order: stroke; stroke: var(--cd-surface); stroke-width: 3px; stroke-linejoin: round; }
-.is-lit .da-brain__glow { opacity: .9; animation: da-pulse 3.2s var(--cd-ease-out) infinite; transform-box: fill-box; transform-origin: center; }
+/* ── 밈 뇌구조 v2 — 옆얼굴 안 둥근 뇌 상자. 칸 넓이 = 엔진 비율. 색은 지도 노드 토큰을 표면색과 섞고, 축마다 무늬를 더한다. ── */
+.da-ax-selfDrive { --da-ax: var(--cd-node-forest); }
+.da-ax-expression { --da-ax: var(--cd-node-fog); }
+.da-ax-reality { --da-ax: var(--cd-node-castle); }
+.da-ax-structure { --da-ax: var(--cd-node-city); }
+.da-ax-reflection { --da-ax: var(--cd-node-lake); }
+.da-meme { margin: var(--cd-sp-sm) 0 0; }
+.da-meme__stage { position: relative; width: 100%; max-width: 460px; margin: 0 auto; container-type: inline-size; }
+.da-meme__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.da-meme__head { fill: var(--da-bg-lift); stroke: var(--da-art); stroke-width: 2.2; stroke-linejoin: round; }
+.da-meme__ear, .da-meme__eye { fill: none; stroke: var(--da-art); stroke-width: 2.2; stroke-linecap: round; }
+.da-meme__cheek { fill: color-mix(in srgb, var(--cd-node-castle) 62%, var(--da-bg-lift)); }
+.da-meme__brain { fill: var(--da-bg-deep); }
+.da-meme__fill { fill: color-mix(in srgb, var(--da-ax) 46%, var(--da-bg-deep)); }
+/* 보석색: 축 토큰의 색상·채도는 살리고 밝기만 고정해 아이보리 글자 대비 4.5:1 이상을 지킨다(sRGB 섞기는 흙빛이 된다). */
+@supports (color: oklch(from red l c h)) {
+  .da-meme__fill { fill: oklch(from var(--da-ax) .44 calc(c * .95) h); }
+  /* 노랑 계열은 어두우면 갈색이 된다 — 호박·구리 쪽으로 색상을 살짝 돌리고 채도를 올린다. */
+  .da-meme__fill.da-ax-reality, .da-ax-reality .da-meme__fill { fill: oklch(from var(--da-ax) .47 calc(c * 1.2) calc(h - 24)); }
+}
+.da-meme__sheen { pointer-events: none; }
+.da-sheen-a { stop-color: var(--da-ink); stop-opacity: .13; }
+.da-sheen-b { stop-color: var(--da-ink); stop-opacity: 0; }
+.da-meme__art.da-meme__violin { fill: color-mix(in srgb, var(--cd-map-gold) 26%, transparent); }
+.da-meme__petal { fill: var(--cd-node-fog); }
+.da-meme__bloom { fill: var(--cd-map-gold-bright); }
+.da-meme__art { fill: none; stroke: var(--da-art); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.da-meme__moon { fill: var(--cd-map-gold-bright); }
+.da-meme__star { fill: var(--cd-map-gold-bright); transform-box: fill-box; transform-origin: center; }
+.is-lit .da-meme__star { animation: da-twinkle 3.2s var(--cd-ease-out) infinite; }
+.is-lit .da-meme__star:nth-of-type(2n) { animation-delay: -1.4s; }
+.da-meme__float { transform-box: fill-box; }
+.is-lit .da-meme__float { animation: da-float 6s ease-in-out infinite; }
+.da-meme__pat { pointer-events: none; }
+.da-pat { stroke: var(--da-ink); stroke-width: 1; opacity: .16; }
+.da-pat--dot { fill: var(--da-ink); stroke: none; opacity: .22; }
+.da-meme__outline { fill: none; stroke: var(--da-art); stroke-width: 2.2; }
+.da-meme__cells { position: absolute; inset: 0; }
+.da-meme__cell { position: absolute; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  padding: 4px 6px; overflow: hidden; text-align: center; color: var(--da-ink); font-size: clamp(11px, 4cqi, 17px); line-height: 1.18; }
+.da-meme__stk { display: inline-flex; align-items: center; gap: 3px; line-height: 1; }
+.da-meme__stk:empty { display: none; }
+.da-stk { display: inline-grid; place-items: center; font-size: 1.05em; transform: rotate(-8deg); }
+.da-stk--luck { width: 1.35em; height: 1.35em; border-radius: 50%; font-size: .85em; font-weight: 900; transform: none;
+  background: var(--da-ink); color: var(--da-bg); }
+.da-meme__line { max-width: 100%; font-family: var(--font-display); font-weight: 400; letter-spacing: 0; text-shadow: 0 1px 2px var(--da-bg-deep); }
+:lang(ja) .da-meme__line, :lang(zh) .da-meme__line { font-family: var(--font-body); font-weight: 800; }
+:lang(ko) .da-meme__line, :lang(ko) .da-meme__caption, :lang(ko) .da-meme__rowline, :lang(ko) .da-meme__combo { word-break: keep-all; }
+.da-meme__pct { font-size: .82em; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--da-ink); text-shadow: 0 1px 2px var(--da-bg-deep); }
+.da-meme__cell.is-hot .da-meme__pct { padding: 0 6px; border-radius: var(--cd-r-pill); background: var(--da-ink); color: var(--da-bg); }
+.da-meme__cell.is-tight { padding: 2px 3px; gap: 3px; font-size: clamp(10px, 3.3cqi, 14px); line-height: 1.08; }
+.da-meme__cell.is-mid, .da-meme__cell.is-pct { flex-direction: row; gap: 3px; padding: 2px; }
+.da-meme__cell.is-mid .da-meme__line, .da-meme__cell.is-pct .da-meme__line, .da-meme__cell.is-pct .da-meme__stk, .da-meme__cell.is-dot > * { display: none; }
+.da-meme__cell.is-tight .da-meme__pct, .da-meme__cell.is-mid .da-meme__pct, .da-meme__cell.is-pct .da-meme__pct { font-size: max(11px, .9em); font-weight: 900; }
+.is-lit .da-stk--hot { animation: da-wiggle 1.6s var(--cd-ease-out) infinite; }
+.is-lit .da-stk--luck { animation: da-drift 3s var(--cd-ease-out) infinite; }
+.da-meme__caption { margin: 8px 0 var(--cd-sp-sm); text-align: center; text-wrap: balance; font-size: .78rem; color: var(--da-muted); }
+.da-meme__legend { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; border-top: 1px solid var(--da-line); }
+.da-meme__row { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 9px 2px; border-bottom: 1px solid var(--da-line); }
+.da-meme__sw { flex: none; width: 18px; height: 18px; }
+.da-meme__god { font-weight: 800; }
+.da-meme__name { color: var(--da-muted); }
+.da-meme__name::before { content: "· "; }
+.da-meme__rowpct { margin-left: auto; font-family: var(--da-serif); font-weight: 700; color: var(--da-gold); font-variant-numeric: lining-nums tabular-nums; }
+.da-meme__rowline { flex-basis: 100%; padding-left: 26px; font-size: .86rem; color: var(--da-muted); line-height: 1.5; }
+.da-meme__row .da-chip { margin-left: 0; }
+.da-chip--hot { border-color: var(--da-accent); background: color-mix(in srgb, var(--da-accent) 14%, var(--da-bg)); }
+.da-meme__combo { margin: 10px 0 0; text-align: center; font-size: .9rem; color: var(--da-muted); }
+.da-meme__combo b { color: var(--da-gold); font-family: var(--da-serif); }
+.da-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 .da-thoughts { margin: var(--cd-sp-sm) 0; padding: 0; list-style: none; display: grid; gap: var(--cd-sp-xs); }
 .da-thought { padding: var(--cd-sp-sm) var(--cd-sp-md); border-radius: var(--cd-r-md); background: var(--da-surface); border: 1px solid var(--da-line); line-height: 1.6; }
@@ -76,9 +148,9 @@
 /* ── 사고회로 ── */
 .da-combo { margin: 0 0 var(--cd-sp-xs); font-size: 1.05rem; font-weight: 700; }
 .da-sequence { display: inline-block; margin: var(--cd-sp-xs) 0 var(--cd-sp-sm); padding: 6px 12px; border-radius: var(--cd-r-pill); border: 1px solid var(--da-line); background: var(--da-surface); font-size: .88rem; font-weight: 600; line-height: 1.5; }
-.da-nyang { margin: var(--cd-sp-sm) 0 0; padding: var(--cd-sp-sm) var(--cd-sp-md); border-radius: var(--cd-r-md); background: color-mix(in srgb, var(--cd-gold-soft) 70%, transparent); border: 1px solid var(--da-line); line-height: 1.6; }
+.da-nyang { margin: var(--cd-sp-sm) 0 0; padding: var(--cd-sp-sm) var(--cd-sp-md); border-radius: var(--cd-r-md); background: var(--da-bg-lift); border: 1px solid var(--da-line); border-left: 3px solid var(--da-gold); line-height: 1.6; }
 .da-nyang p { margin: 0; }
-.da-nyang__label { display: block; font-size: .78rem; font-weight: 700; color: var(--da-muted); }
+.da-nyang__label { display: block; font-size: .78rem; font-weight: 700; color: var(--da-gold); letter-spacing: .04em; }
 
 /* ── 5 Engines ── */
 .da-engine { border: 1px solid var(--da-line); border-radius: var(--cd-r-md); background: var(--da-surface); margin-bottom: var(--cd-sp-xs); }
@@ -90,7 +162,7 @@
 .da-engine summary .da-meter { grid-area: meter; }
 .da-engine__body { padding: 0 var(--cd-sp-md) var(--cd-sp-md); }
 .da-q { margin: 0 0 var(--cd-sp-xs); font-weight: 600; }
-.da-meter { display: block; height: 8px; border-radius: var(--cd-r-pill); background: color-mix(in srgb, var(--cd-accent-soft) 55%, transparent); overflow: hidden; }
+.da-meter { display: block; height: 8px; border-radius: var(--cd-r-pill); background: color-mix(in srgb, var(--da-soft) 55%, transparent); overflow: hidden; }
 .da-meter__fill { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--da-accent), var(--da-gold)); transform-origin: left; }
 .is-lit .da-meter__fill { animation: da-grow var(--cd-dur-emph) var(--cd-ease-out) both; }
 
@@ -116,22 +188,22 @@
 .da-facts > div, .da-rows > div { display: contents; }
 .da-facts dt { color: var(--da-muted); font-size: .88rem; }
 .da-facts dd { margin: 0; font-weight: 600; }
-.da-core { padding: var(--cd-sp-sm) var(--cd-sp-md); border: 1px solid var(--da-line); background: color-mix(in srgb, var(--cd-gold-soft) 60%, transparent); border-radius: var(--cd-r-md); }
+.da-core { padding: var(--cd-sp-sm) var(--cd-sp-md); border: 1px solid var(--da-line); background: var(--da-bg-lift); border-radius: var(--cd-r-md); }
 
 /* ── Energy Body ── */
 .da-toggle { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: var(--cd-sp-sm); border-radius: var(--cd-r-pill); background: var(--da-surface); border: 1px solid var(--da-line); }
 .da-toggle__btn { min-height: 40px; min-width: 64px; padding: 0 var(--cd-sp-md); border-radius: var(--cd-r-pill); border: 0; background: transparent; color: var(--da-ink); font: inherit; font-weight: 600; cursor: pointer; }
-.da-toggle__btn[aria-pressed='true'] { background: var(--da-accent); color: var(--cd-surface); }
+.da-toggle__btn[aria-pressed='true'] { background: var(--da-accent); color: var(--da-bg); }
 .da-body__grid { display: grid; grid-template-columns: minmax(120px, 160px) 1fr; gap: var(--cd-sp-md); align-items: start; }
 .da-body__svg { width: 100%; height: auto; }
-.da-body__shape { fill: color-mix(in srgb, var(--cd-accent-soft) 40%, transparent); stroke: var(--da-line); stroke-width: 1.5; }
+.da-body__shape { fill: color-mix(in srgb, var(--da-soft) 40%, transparent); stroke: var(--da-line); stroke-width: 1.5; }
 .da-body__spine { stroke: var(--da-line); stroke-width: 1.5; stroke-dasharray: 3 5; }
 .da-chakra__halo { fill: var(--da-glow); opacity: 0; transition: opacity var(--cd-dur-base) var(--cd-ease-out); }
-.da-chakra__dot { fill: var(--cd-surface); stroke: var(--da-gold); stroke-width: 2; }
+.da-chakra__dot { fill: var(--da-bg); stroke: var(--da-gold); stroke-width: 2; }
 .da-ck-bright .da-chakra__dot { fill: var(--da-gold); }
-.da-ck-steady .da-chakra__dot { fill: color-mix(in srgb, var(--cd-gold) 45%, var(--cd-surface)); }
+.da-ck-steady .da-chakra__dot { fill: color-mix(in srgb, var(--da-gold) 45%, var(--da-bg)); }
 .is-lit .da-ck-bright .da-chakra__halo { opacity: .8; }
-.da-center { fill: var(--cd-surface); stroke: var(--da-accent); stroke-width: 1.5; }
+.da-center { fill: var(--da-bg); stroke: var(--da-accent); stroke-width: 1.5; }
 .da-center.is-defined { fill: var(--da-accent); }
 .da-centers, .da-chakras { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: .88rem; }
 .da-centers__item, .da-chakras__item { padding: 6px 0; border-bottom: 1px solid var(--da-line); line-height: 1.5; }
@@ -145,11 +217,11 @@
 .da-insight .da-p { margin: 0; }
 .da-badge { display: inline-block; padding: 2px 8px; border-radius: var(--cd-r-pill); font-size: .72rem; font-weight: 700; border: 1px solid var(--da-line); }
 .da-badge--saju { background: var(--da-soft); color: var(--da-ink); }
-.da-badge--hd { background: var(--cd-surface); color: var(--da-accent); border-color: var(--da-accent); }
-.da-badge--fusion { background: color-mix(in srgb, var(--cd-gold) 40%, var(--cd-surface)); color: var(--da-ink); }
+.da-badge--hd { background: var(--da-bg); color: var(--da-accent); border-color: var(--da-accent); }
+.da-badge--fusion { background: color-mix(in srgb, var(--da-gold) 40%, var(--da-bg)); color: var(--da-ink); }
 
 /* ── 한눈에 ── */
-.da-mindline { margin: 0 0 var(--cd-sp-sm); padding: var(--cd-sp-md); border-radius: var(--cd-r-md); background: linear-gradient(135deg, var(--da-soft), color-mix(in srgb, var(--cd-gold-soft) 80%, transparent)); font-size: 1.05rem; font-weight: 700; line-height: 1.55; }
+.da-mindline { margin: 0 0 var(--cd-sp-sm); padding: var(--cd-sp-md); border-radius: var(--cd-r-md); background: linear-gradient(135deg, var(--da-bg-lift), color-mix(in srgb, var(--cd-node-fog) 24%, var(--da-bg))); border: 1px solid var(--da-line); font-size: 1.05rem; font-weight: 700; line-height: 1.55; }
 .da-core-engine { margin: 0 0 var(--cd-sp-sm); color: var(--da-muted); }
 .da-rows { display: grid; grid-template-columns: auto 1fr; gap: 6px var(--cd-sp-md); margin: 0 0 var(--cd-sp-sm); }
 .da-rows dt { color: var(--da-muted); font-size: .88rem; white-space: nowrap; }
@@ -178,38 +250,31 @@
 
 /* ── 지금 대운 오버레이 — 순풍(금)·고른(주색)·맞바람(옅은 점선). 길흉을 빨강·초록으로 단정하지 않는다. ── */
 .da-tone-tailwind { --da-tone: var(--da-gold); }
-.da-tone-steady { --da-tone: var(--da-accent); }
+.da-tone-steady { --da-tone: var(--cd-node-lake); }
 .da-tone-headwind { --da-tone: var(--da-muted); }
-.da-brain__flow { fill: none; stroke: var(--da-tone); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 2 9; opacity: .85; }
-.da-brain__flow.da-tone-headwind { stroke-dasharray: 6 6; opacity: .6; }
-.is-lit .da-brain__flow { animation: da-flow 2.4s linear infinite; }
-.is-lit .da-brain__flow.da-tone-headwind { animation-duration: 4.8s; }
-.da-brain__orbit { fill: none; stroke: var(--da-tone); stroke-width: 2; stroke-dasharray: 3 5; transform-box: fill-box; transform-origin: center; }
-.is-lit .da-brain__orbit { animation: da-spin 14s linear infinite; }
-.is-luck .da-brain__label { fill: var(--da-ink); }
-.da-brain__legend { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 var(--cd-sp-sm); font-size: .8rem; color: var(--da-muted); }
-.da-key { width: 22px; height: 0; border-top: 2px dotted var(--da-tone); }
 .da-chip { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: var(--cd-r-pill); font-size: .68rem; font-weight: 700; vertical-align: 1px;
-  color: var(--da-ink); background: color-mix(in srgb, var(--da-tone) 22%, var(--cd-surface)); border: 1px solid var(--da-tone); }
+  color: var(--da-ink); background: color-mix(in srgb, var(--da-tone) 22%, var(--da-bg)); border: 1px solid var(--da-tone); }
 .da-thought.is-luck { border-color: var(--da-tone, var(--da-line)); }
 .da-luck { position: relative; margin: var(--cd-sp-md) 0; padding: var(--cd-sp-md); border-radius: var(--cd-r-card); overflow: hidden;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--da-tone) 16%, var(--cd-surface)) 0%, var(--cd-surface) 70%);
-  border: 1px solid color-mix(in srgb, var(--da-tone) 55%, var(--cd-border)); }
+  background: linear-gradient(180deg, color-mix(in srgb, var(--da-tone) 16%, var(--da-bg)) 0%, var(--da-bg) 70%);
+  border: 1px solid color-mix(in srgb, var(--da-tone) 55%, var(--da-line)); }
 .da-luck__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: var(--cd-sp-xs); }
 .da-luck__eyebrow { font-size: .74rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--da-muted); }
-.da-luck__period { padding: 2px 10px; border-radius: var(--cd-r-pill); font-size: .78rem; font-weight: 700; color: var(--da-ink); background: var(--cd-surface); border: 1px solid var(--da-line); }
+.da-luck__period { padding: 2px 10px; border-radius: var(--cd-r-pill); font-size: .78rem; font-weight: 700; color: var(--da-ink); background: var(--da-bg); border: 1px solid var(--da-line); }
 .da-luck__title { margin: 0 0 var(--cd-sp-xs); font-size: 1rem; font-weight: 700; line-height: 1.5; }
 .da-luck__tone { display: inline-block; margin-left: 4px; padding: 2px 10px; border-radius: var(--cd-r-pill); font-size: .78rem; vertical-align: 1px;
-  color: var(--da-ink); background: color-mix(in srgb, var(--da-tone) 30%, var(--cd-surface)); }
-.da-thoughts--luck .da-thought { background: var(--cd-surface); border-color: color-mix(in srgb, var(--da-tone) 45%, var(--cd-border)); }
+  color: var(--da-ink); background: color-mix(in srgb, var(--da-tone) 30%, var(--da-bg)); }
+.da-thoughts--luck .da-thought { background: var(--da-bg); border-color: color-mix(in srgb, var(--da-tone) 45%, var(--da-line)); }
 .da-thoughts--luck .da-thought__name { color: var(--da-ink); }
 .da-luck__heat { margin: 0 0 var(--cd-sp-sm); padding: var(--cd-sp-xs) var(--cd-sp-sm); border-radius: var(--cd-r-md); font-size: .9rem; line-height: 1.6;
   background: var(--da-surface); border: 1px dashed var(--da-line); }
 .da-engine__name .da-chip { margin-left: 8px; }
 
-@keyframes da-flow { to { stroke-dashoffset: -44; } }
-@keyframes da-pulse { 0%, 100% { transform: scale(1); opacity: .55; } 50% { transform: scale(1.18); opacity: .95; } }
 @keyframes da-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes da-twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+@keyframes da-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes da-wiggle { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(10deg) scale(1.15); } }
+@keyframes da-drift { 0%, 100% { transform: translateX(0) rotate(-10deg); } 50% { transform: translateX(3px) rotate(-2deg); } }
 @keyframes da-spin { to { transform: rotate(360deg); } }
 @keyframes da-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
@@ -225,5 +290,4 @@
 @media (prefers-reduced-motion: reduce) {
   #destinyAnatomyCard *, #destinyAnatomyCard *::before, #destinyAnatomyCard *::after { animation: none !important; transition: none !important; }
   .da-body-wrap .da-sec { opacity: 1; transform: none; }
-  .is-lit .da-brain__glow { opacity: .7; }
 }
