@@ -5010,6 +5010,12 @@ export async function handleAdminRoutes(request, env) {
       return await handleAdminFeedbackRoutes(path.slice("/feedback".length) || "/", request, env, adminContext);
     }
 
+    if (path === "/recommendations" || path.startsWith("/recommendations/")) {
+      await authorizeAdminRequest(request, env);
+      const { handleAdminRecommendationRoutes } = await import("./admin-recommendations.js");
+      return await handleAdminRecommendationRoutes(path.slice("/recommendations".length) || "/", request, env);
+    }
+
     if (path === "/kakao-crm" || path.startsWith("/kakao-crm/")) {
       const adminContext = await authorizeAdminRequest(request, env);
       const { handleAdminKakaoCrmRoutes } = await import("./admin-kakao-crm.js");

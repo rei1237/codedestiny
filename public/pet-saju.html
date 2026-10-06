@@ -1473,6 +1473,7 @@ function renderReport(){
   }
   host.appendChild(el("p", "field__hint", "의학적 진단이 아니라 생활 관리 관점의 안내입니다."));
   petDeliveryControls(host,'report');
+  if (petDeliveryRecords.report && petDeliveryRecords.report.status === 'completed') import('/js/recommendations-legacy.mjs').then(function(m){return m.mountRecommendation(host,{service:'pet-saju-ai-consultation',species:state.profile && state.profile.species});}).catch(function(){});
 }
 
 /* ═══ 12) 궁합 ═══ */
@@ -1725,6 +1726,11 @@ function renderCompatResult(){
   row.appendChild(again);
   host.appendChild(row);
   petDeliveryControls(host,'compat');
+  if (petDeliveryRecords.compat && petDeliveryRecords.compat.status === 'completed') {
+    var recommendationSpecies = (state.compat.pets || []).map(function(p){return p.species;});
+    var sameSpecies = recommendationSpecies.length && recommendationSpecies.every(function(s){return s === recommendationSpecies[0];}) ? recommendationSpecies[0] : '';
+    import('/js/recommendations-legacy.mjs').then(function(m){return m.mountRecommendation(host,{service:'pet-compatibility-ai',species:sameSpecies});}).catch(function(){});
+  }
 }
 
 /* ═══ 13) 저장한 아이 ═══ */

@@ -1,5 +1,6 @@
 "use client";
 
+import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -867,6 +868,7 @@ export default function NeoOperationRoomResultPage() {
             {neoLetterText && <NeoSincereLetter letter={neoLetterText} locale={dialogueLocale} />}
             {!isLocalPreview && !isGenerating && !isFailed && <SavedRecordLink source="neo" id={session.id || session.sessionId || ''} />}
             <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => { if (!isGenerating) setShowRealityForm(true); }} hasRefined={Boolean(refined)} locale={dialogueLocale} />
+            {!isGenerating && !isFailed && !isLocalPreview && <RecommendationResult service="neo-operation-room-consultation" brand="neo" locale={dialogueLocale}/>}
             {!isGenerating && !isFailed ? (
               <ConsultationShare key={`${session.id || session.sessionId}-${Boolean(session.refinedOrder)}`} brand="neo" choices={neoShareChoices(session)} />
             ) : null}

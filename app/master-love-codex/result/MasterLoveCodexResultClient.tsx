@@ -8,6 +8,7 @@
  * 회당 결제지만 결과는 서버에 영구 저장되므로 이 화면은 재결제 없이 열린다.
  */
 
+import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
@@ -399,6 +400,7 @@ export default function MasterLoveCodexResultClient() {
         mode={session.mode === "compat" ? "compat" : "solo"}
         accessType={session.accessType || ""}
       />
+      {session.status === "completed" && <RecommendationResult service="master-love-codex"/>}
     </>
   );
 }

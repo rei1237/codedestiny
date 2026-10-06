@@ -1,4 +1,5 @@
 "use client";
+import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
 
 import { useEffect, useState } from "react";
@@ -257,6 +258,7 @@ export default function VedicAiResultClient() {
             </Link>
           </div>
         </footer>
+        {consultation.status === "completed" && <RecommendationResult service="vedic-ai-consultation"/>}
       </section>
     </main>
   );

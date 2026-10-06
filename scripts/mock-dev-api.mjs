@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { createRecommendationMock } from './fixtures/mock-recommendations.mjs';
 import { createTeaMock } from './fixtures/mock-tea-house.mjs';
 import { pathToFileURL } from 'node:url';
 import { sajuResponse, ziweiResponse, tarotResponse, nakshatraAiResponse } from './fixtures/mock-dev-responses.mjs';
@@ -37,6 +38,7 @@ export function createMockApiServer() {
   // Process-local storage: restart clears sessions and profiles, never touches Mongo.
   const profiles = new Map();
   const teaMock = createTeaMock();
+  const recommendationMock = createRecommendationMock();
   let loggedIn = false;
   return http.createServer(async (req, res) => {
     const send = (status, body) => {
@@ -57,6 +59,7 @@ export function createMockApiServer() {
       }
       const body = raw ? JSON.parse(raw) : {};
       const route = `${req.method} ${path}`;
+      if (recommendationMock(route, body, req.headers['x-admin-token'], send)) return;
       if (await teaMock(route, body, loggedIn ? 'mock-user' : null, send)) return;
       if (route === 'GET /api/payments/pass-offers') {
         const { listCurrentPassOffers } = await import('../worker/lib/pass-sale-policy.js');

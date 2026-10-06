@@ -1,0 +1,6 @@
+.cd-recommendations,.cd-recommendations-disclosure{background:var(--cd-surface);color:var(--cd-text);border:1px solid var(--cd-border);padding:20px;margin:24px 0;border-radius:var(--cd-r-card);line-height:1.7;overflow-wrap:anywhere}
+.cd-recommendations-disclosure{font-size:14px}.cd-recommendations h2{font-size:1.4rem;margin:0 0 16px}.cd-recommendations-products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin:24px 0}
+.cd-recommendations article{min-width:0}.cd-recommendations img{width:100%;height:180px;object-fit:contain}.cd-recommendations h3{font-size:1.1rem}
+.cd-recommendations a,.cd-recommendations button,.cd-recommendations select{display:inline-flex;align-items:center;min-height:44px;padding:10px 14px;border:1px solid var(--cd-accent);border-radius:var(--cd-r-control);color:var(--cd-text);background:var(--cd-surface);margin:8px 8px 0 0;font-size:16px;text-underline-offset:4px}
+.cd-recommendations :focus-visible{outline:3px solid var(--cd-accent);outline-offset:3px}
+@media(max-width:700px){.cd-recommendations-products{grid-template-columns:1fr}.cd-recommendations article{border-bottom:1px solid var(--cd-border);padding-bottom:20px}.cd-recommendations img{width:140px;height:140px}}

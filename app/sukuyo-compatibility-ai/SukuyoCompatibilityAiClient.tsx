@@ -1,4 +1,5 @@
 "use client";
+import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -996,7 +997,7 @@ function QuoteWelcomeCard({ quote }: { quote: string }) {
   );
 }
 
-function CompatResultModal({ result, onClose, onDownloadError, basis = null }: { result: CompatResult; onClose: () => void; onDownloadError: (message: string) => void; basis?: AnalysisBasis | null }) {
+function CompatResultModal({ result, onClose, onDownloadError, basis = null, completed = false }: { completed?: boolean; result: CompatResult; onClose: () => void; onDownloadError: (message: string) => void; basis?: AnalysisBasis | null }) {
   const copy = useSukuyoCompatCopy();
   const [isDownloading, setIsDownloading] = useState(false);
   const { meta, sections } = result;
@@ -1157,6 +1158,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
             />
           </div>
         </section>
+        {completed && <RecommendationResult service="sukuyo-compatibility-ai"/>}
       </div>
 
       {/* PDF 저장용 전체 렌더 — 화면 밖에 배치해 html2canvas 캡처에만 사용 */}
@@ -1967,6 +1969,7 @@ export default function SukuyoCompatibilityAiClient() {
           onClose={() => setResultOpen(false)}
           onDownloadError={setError}
           basis={consultation?.analysisBasis || basis}
+          completed={consultation?.status === "completed" && !busy}
         />
       )}
     </main>

@@ -1,4 +1,5 @@
 "use client";
+import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
 
 import Link from "next/link";
@@ -819,6 +820,7 @@ export default function AstrologyAiResultClient() {
             <ConsultationShare brand="astrology" choices={shareChoices} />
           </div>
         )}
+        {!loading && consultation?.status === "completed" && !error && <RecommendationResult service="astrology-ai-consultation"/>}
       </section>
     </main>
   );

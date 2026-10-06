@@ -1278,6 +1278,11 @@ const app = {
         return await handleOgRoutes(request, env);
       }
 
+      if (url.pathname === "/api/recommendations" || url.pathname.startsWith("/api/recommendations/")) {
+        const { handleRecommendationRoutes } = await import("./routes/recommendations.js");
+        return withCorsHeaders(request, env, await handleRecommendationRoutes(request, env));
+      }
+
       if (url.pathname.startsWith("/api/kakao-crm/")) {
         const { handleKakaoCrmRoutes } = await import("./routes/kakao-crm.js");
         return withCorsHeaders(request, env, await handleKakaoCrmRoutes(request, env));

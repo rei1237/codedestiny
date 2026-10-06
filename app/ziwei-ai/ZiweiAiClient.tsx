@@ -1,4 +1,5 @@
 "use client";
+import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -1431,6 +1432,7 @@ export default function ZiweiAiPage() {
                   ))}
                 </div>
               </div>
+              {consultation.status === "completed" && !busy && <RecommendationResult service="ziwei-ai-consultation"/>}
             </>
           )}
         </div>

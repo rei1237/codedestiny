@@ -1,0 +1,79 @@
+{
+  "measurements": [
+    {
+      "width": 360,
+      "documentWidth": 360,
+      "overflow": false,
+      "adVisible": true
+    },
+    {
+      "width": 390,
+      "documentWidth": 390,
+      "overflow": false,
+      "adVisible": true
+    },
+    {
+      "width": 430,
+      "documentWidth": 430,
+      "overflow": false,
+      "adVisible": true
+    },
+    {
+      "width": 1280,
+      "documentWidth": 1280,
+      "overflow": false,
+      "adVisible": true
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "blocked": "https://assets.code-destiny.com"
+    },
+    {
+      "blocked": "https://assets.code-destiny.com"
+    },
+    {
+      "blocked": "https://assets.code-destiny.com"
+    },
+    {
+      "blocked": "https://assets.code-destiny.com"
+    },
+    "/api/admin/recommendations/",
+    "/api/admin/recommendations/metrics",
+    "/api/admin/recommendations/",
+    "/api/admin/recommendations/metrics",
+    "/api/admin/recommendations/product",
+    "/api/admin/recommendations/",
+    "/api/admin/recommendations/metrics",
+    "/api/admin/recommendations/preview",
+    {
+      "blocked": "https://assets.code-destiny.com"
+    },
+    {
+      "blocked": "https://assets.code-destiny.com"
+    },
+    {
+      "blocked": "https://assets.code-destiny.com"
+    },
+    {
+      "blocked": "https://assets.code-destiny.com"
+    },
+    {
+      "blocked": "https://assets.code-destiny.com"
+    },
+    {
+      "blocked": "https://assets.code-destiny.com"
+    },
+    {
+      "blocked": "https://assets.code-destiny.com"
+    },
+    {
+      "blocked": "https://assets.code-destiny.com"
+    }
+  ],
+  "publicOff": true,
+  "adminDraftCrud": true,
+  "previewLinksDisabled": true,
+  "externalRequestsBlocked": true
+}

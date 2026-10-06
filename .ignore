@@ -191,6 +191,10 @@
 /public/js/oracle-kcg.js
 /public/js/psycho-dream-analyzer-freuds-study.js
 /public/js/pwa-install-prompt.js
+/public/js/recommendations-browser.mjs
+/public/js/recommendations-copy.mjs
+/public/js/recommendations-core.mjs
+/public/js/recommendations-legacy.mjs
 /public/js/review-reward-copy.mjs
 /public/js/review-reward-invite.mjs
 /public/js/runtime-stability.js
@@ -273,6 +277,7 @@
 /public/styles/mobile-totem-flower-fix.css
 /public/styles/my-garden.css
 /public/styles/press-coverage.css
+/public/styles/recommendations.css
 /public/styles/review-reward.css
 /public/styles/saju-entry-flow.css
 /public/styles/saju-reading.css

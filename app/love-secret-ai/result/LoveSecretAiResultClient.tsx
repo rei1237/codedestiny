@@ -1,4 +1,5 @@
 "use client";
+import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -1112,6 +1113,7 @@ export default function LoveSecretAiResultClient() {
             expandForExport={exporting}
           />
         )}
+        {isShareReady && <RecommendationResult service="love-secret-ai"/>}
       </section>
     </main>
   );
