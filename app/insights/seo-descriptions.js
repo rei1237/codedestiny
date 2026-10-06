@@ -51,7 +51,7 @@ export const INSIGHT_SEO_DESCRIPTIONS = {
   "saju-job-change-timing-checklist-2026": "이직 고민을 직무·채용 조건·준비 기록으로 점검하고, 대운·세운·십성의 상징을 실제 채용 결과와 구분합니다. 임의의 운세 점수 대신 확인할 질문을 정리했습니다.",
   "saju-without-birth-time-three-pillars-guide": "출생시간이 없으면 시주 외에도 절입일의 연·월주와 날짜 경계의 일주가 달라질 수 있습니다. 후보 명식과 대운 시작 시점의 한계를 설명합니다.",
   "singang-sinyak-judgment-complete-guide": "신강·신약은 좋고 나쁨이 아니라 일간의 에너지 균형을 설명하는 개념입니다. 월령·득지·득세를 종합하는 판단 순서와 자주 하는 오해를 정리했습니다.",
-  "sleep-rhythm-energy-and-luck-connection": "좋은 운의 시기가 와도 몸이 지쳐 있으면 기회를 놓칩니다. 명리학 12시진과 현대 수면과학의 일주기 리듬을 견주어 숙면 루틴을 정리했습니다.",
+  "sleep-rhythm-energy-and-luck-connection": "시진의 상징과 건강 정보를 구분합니다. 수면·생활 조건·감정을 따로 기록하는 예시와 CDC·NHLBI의 공식 수면 안내를 확인하세요.",
   "sukuyo-27-guardian-animals-origin-guide": "27숙 수호동물은 원전에 명시되지 않은 후대의 상징 해석입니다. 인도 나크샤트라 요니 체계와 한국식 동물 상징표를 비교해 역사적 근거를 가려냅니다.",
   "sukuyo-27-mansions": "27숙의 이름과 상징, Code Destiny의 항성 달 황경 계산을 설명합니다. 구간 배정 예시와 음력 날짜표·베다 나크샤트라를 비교할 때 확인할 조건을 짚습니다.",
   "sukuyo-ankai": "숙요점 안괴관계는 안(安)의 안정과 괴(壞)의 변화가 함께 오는 인연입니다. 근거리·중거리·원거리 안괴의 체감 차이와 연애·결혼·직장에서의 특징을 정리했습니다.",
