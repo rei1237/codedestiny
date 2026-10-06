@@ -3,7 +3,8 @@
  * 🔴 계산하지 않는다. model.text(문장)와 model.saju/elementLayer/chakra(숫자)만 읽는다.
  * 🔴 데이터가 없는 층은 그리지 않는다(placeholder 금지). HD 가 없으면 안내 문구만 둔다.
  * 섹션마다 따로 감싸서 한 섹션이 깨져도 그 자리만 "다시 불러오기"로 바뀐다. 클릭·계측은 boot.js 가 data-da-act 로 받는다.
- * 순서는 요청서 §31: Hero → Brain Map → Top Thoughts → 5 Engines → 오행 → Decision Core → Energy Body → Cross Insight → 한눈에 → 공유 → CTA. */
+ * 순서: 표지(Hero → Brain Map) → 펼친 리포트(목차 → 01 한눈에+연이의 한마디 → 사고회로 → 5 Engines → 오행 → Decision Core → Energy Body → 베다 → Cross Insight → AI 질문) → 공유 → CTA.
+ * 펼친 본문은 아이보리 종이 보고서다 — 장 번호는 CSS 카운터, 목차는 실제로 그려진 섹션에서 만든다. */
 (function (root) {
   'use strict';
 
@@ -37,9 +38,12 @@
     }
   }
 
+  // 표지 문장(紋章) — 달창 두 겹 테 + 초승달 + 매화 가지 + 구름 + 별. 장식이라 읽지 않는다.
+  var CREST = '<svg class="da-crest" viewBox="0 0 96 96" aria-hidden="true" focusable="false"><circle class="da-crest__ring" cx="48" cy="48" r="45"/><circle class="da-crest__ring da-crest__ring--in" cx="48" cy="48" r="40"/><path class="da-crest__moon" d="M58 22A26 26 0 1 0 58 74A29 29 0 0 1 58 22Z"/><path class="da-crest__art" d="M20 75C33 68 45 63 60 61M41 65C41 58 45 54 50 53M52 62C56 65 63 66 68 63"/><path class="da-crest__art" d="M60 34c2-4 8-4 10 0 3-1 6 1 6 4H58c-2 0-1-4 2-4Z"/><circle class="da-crest__petal" cx="68" cy="59.6" r="2.8"/><circle class="da-crest__petal" cx="71.2" cy="61.9" r="2.8"/><circle class="da-crest__petal" cx="70" cy="65.8" r="2.8"/><circle class="da-crest__petal" cx="66" cy="65.8" r="2.8"/><circle class="da-crest__petal" cx="64.8" cy="61.9" r="2.8"/><circle class="da-crest__bloom" cx="68" cy="63" r="1.7"/><circle class="da-crest__petal" cx="50" cy="50" r="2.5"/><circle class="da-crest__petal" cx="52.9" cy="52.1" r="2.5"/><circle class="da-crest__petal" cx="51.8" cy="55.4" r="2.5"/><circle class="da-crest__petal" cx="48.2" cy="55.4" r="2.5"/><circle class="da-crest__petal" cx="47.1" cy="52.1" r="2.5"/><circle class="da-crest__bloom" cx="50" cy="53" r="1.5"/><path class="da-crest__star" d="M72 20l1.2 3.3 3.3 1.2-3.3 1.2-1.2 3.3-1.2-3.3-3.3-1.2 3.3-1.2Z"/><path class="da-crest__star" d="M30 30l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z"/></svg>';
+
   function heroHtml(t, variant) {
     var ui = t.ui;
-    return '<header class="da-hero" data-da-sec="hero">' +
+    return '<header class="da-hero" data-da-sec="hero">' + CREST +
       '<div class="da-hero__meta"><span class="sec-tier-badge sec-tier-badge--free">' + esc(ui.free) + '</span>' +
       '<span class="da-eyebrow">' + esc(ui.subtitle) + '</span></div>' +
       '<h3 class="sec-title da-title" id="destinyAnatomyTitle">' + esc(ui.title) + '</h3>' +
@@ -171,7 +175,8 @@
       '<p class="da-lead">' + esc(model.saju.brainHeadline) + '</p>' +
       memeHtml(t) +
       '<ul class="da-thoughts">' + thoughts + '</ul>' + restHtml + luckHtml(t) +
-      (state.open ? '' : '<button type="button" class="da-btn da-btn--primary" data-da-act="explore" aria-controls="daBody" aria-expanded="false">' + esc(ui.explore) + '</button>') +
+      (state.open ? '' : '<div class="da-explore"><button type="button" class="da-btn da-btn--primary" data-da-act="explore" aria-controls="daBody" aria-expanded="false">' + esc(ui.explore) + '</button>' +
+        '<p class="da-explore__note">' + esc(ui.exploreNote) + '</p></div>') +
       '</section>';
   }
 
@@ -182,7 +187,6 @@
       '<p class="da-combo">' + esc(t.comboTitle) + '</p>' +
       '<p class="da-p">' + esc(t.comboText) + (t.toneNote ? ' ' + esc(t.toneNote) : '') + '</p>' +
       '<p class="da-sequence">' + esc(t.sequence) + '</p>' +
-      '<div class="da-nyang"><span class="da-nyang__label">' + esc(ui.nyangLabel) + '</span><p>' + esc(t.nyang) + '</p></div>' +
       '</section>';
   }
 
@@ -315,13 +319,56 @@
       }).join('') + '</section>';
   }
 
+  /* 연이의 한마디 — 리포트 첫 장의 편지. 연이 마크(/ggulggul/ 머리말과 같은 자산)를 금 테 인장 안에 둔다. */
+  var YEONI_MARK = '/images/yeoni/welcome/yeoni-mark-v1-';
+  function letterHtml(t) {
+    var ui = t.ui;
+    return '<div class="da-letter"><div class="da-letter__seal" aria-hidden="true">' +
+      '<img src="' + YEONI_MARK + '96.webp" srcset="' + YEONI_MARK + '96.webp 1x, ' + YEONI_MARK + '192.webp 2x" width="56" height="56" alt="" loading="lazy" decoding="async">' +
+      '<svg class="da-letter__ring" viewBox="0 0 72 72" aria-hidden="true" focusable="false"><circle cx="36" cy="36" r="34.5"/><circle class="da-letter__ring-in" cx="36" cy="36" r="31"/></svg></div>' +
+      '<div class="da-letter__text"><p class="da-letter__label">' + esc(ui.nyangLabel) + '</p><p class="da-letter__msg">' + esc(t.nyang) + '</p>' +
+      '<p class="da-letter__sign">' + esc(ui.nyangSign) + '</p></div></div>';
+  }
+
   function summaryHtml(model, t) {
     var ui = t.ui;
     return '<section class="da-sec da-summary" data-da-sec="summary" aria-labelledby="daSummaryTitle"><h4 class="da-h" id="daSummaryTitle">' + esc(ui.summaryTitle) + '</h4>' +
+      letterHtml(t) +
       '<p class="da-mindline">' + esc(t.mindLine) + '</p>' +
       '<p class="da-core-engine"><span>' + esc(ui.coreEngine) + '</span> ' + esc(model.fusion.headline) + '</p>' +
       '<dl class="da-rows">' + t.summary.map(function (r) { return '<div><dt>' + esc(r.label) + '</dt><dd>' + esc(r.value) + '</dd></div>'; }).join('') + '</dl>' +
       '<p class="da-tags">' + model.share.keywords.map(function (k) { return '<span class="da-tag">#' + esc(k) + '</span>'; }).join('') + '</p></section>';
+  }
+
+  /* "나는 어떤 사람이야?" — 계산값만 담은 질문(copy.aiPrompt)을 복사하고 외부 AI 를 새 탭으로 연다. 자동 전송은 없다. */
+  var AI_TARGETS = {
+    chatgpt: {label: 'ChatGPT', url: 'https://chatgpt.com/'},
+    gemini: {label: 'Gemini', url: 'https://gemini.google.com/app'},
+    claude: {label: 'Claude', url: 'https://claude.ai/new'}
+  };
+  function askHtml(t, state) {
+    var ui = t.ui;
+    if (!t.aiPrompt) return '';
+    var ais = Object.keys(AI_TARGETS).map(function (k) {
+      return '<button type="button" class="da-btn da-btn--ghost da-ask__ai" data-da-act="ask" data-da-ai="' + k + '">' + esc(ui.askOpen.replace('{ai}', AI_TARGETS[k].label)) + '</button>';
+    }).join('');
+    return '<section class="da-sec da-ask" data-da-sec="ask" aria-labelledby="daAskTitle"><h4 class="da-h" id="daAskTitle">' + esc(ui.askTitle) + '</h4>' +
+      '<p class="da-p">' + esc(ui.askLead) + '</p>' +
+      '<div class="da-ask__actions"><button type="button" class="da-btn da-btn--primary" data-da-act="ask" data-da-ai="copy">' + esc(ui.askCopy) + '</button>' +
+      '<div class="da-ask__ais" role="group" aria-label="' + esc(ui.askNav) + '">' + ais + '</div></div>' +
+      '<p class="da-note da-ask__status" role="status" aria-live="polite">' + esc(state.askStatus || '') + '</p>' +
+      '<details class="da-ask__view"' + (state.askView ? ' open' : '') + '><summary>' + esc(ui.askView) + '</summary>' +
+      '<pre class="da-ask__prompt" tabindex="0">' + esc(t.aiPrompt) + '</pre></details>' +
+      '<p class="da-note">' + esc(ui.askPrivacy) + '</p></section>';
+  }
+
+  /* 리포트 머리 — 무료 리포트 표식 + 목차. 목차는 실제로 그려진 장에서만 만든다(비어 빠진 베다 등은 없다). */
+  function reportHeadHtml(t, ids) {
+    var ui = t.ui;
+    return '<div class="da-report-head"><p class="da-report__label"><span>' + esc(ui.reportLabel) + '</span><span>' + esc(ui.brand) + '</span></p>' +
+      '<p class="da-report__title">' + esc(ui.title) + '</p>' +
+      '<p class="da-toc__title">' + esc(ui.tocTitle) + '</p><ol class="da-toc">' +
+      ids.map(function (id) { return '<li>' + esc(ui.toc[id] || '') + '</li>'; }).join('') + '</ol></div>';
   }
 
   function shareHtml(t, state) {
@@ -362,15 +409,20 @@
     var html = section('hero', ui, function () { return heroHtml(t, variant); }) +
       section('brain', ui, function () { return brainHtml(model, t, state); });
     if (state.open) {
+      var chapters = [
+        ['summary', function () { return summaryHtml(model, t); }],
+        ['circuit', function () { return circuitHtml(model, t); }],
+        ['engines', function () { return enginesHtml(model, t); }],
+        ['elements', function () { return elementsHtml(model, t); }],
+        ['decision', function () { return decisionHtml(model, t, state); }],
+        ['body', function () { return bodyHtml(model, t, state); }],
+        ['vedic', function () { return vedicHtml(t); }],
+        ['fusion', function () { return insightsHtml(t); }],
+        ['ask', function () { return askHtml(t, state); }]
+      ].map(function (c) { return {id: c[0], html: section(c[0], ui, c[1])}; }).filter(function (c) { return c.html; });
       html += '<div class="da-body-wrap" id="daBody">' +
-        section('circuit', ui, function () { return circuitHtml(model, t); }) +
-        section('engines', ui, function () { return enginesHtml(model, t); }) +
-        section('elements', ui, function () { return elementsHtml(model, t); }) +
-        section('decision', ui, function () { return decisionHtml(model, t, state); }) +
-        section('body', ui, function () { return bodyHtml(model, t, state); }) +
-        section('vedic', ui, function () { return vedicHtml(t); }) +
-        section('fusion', ui, function () { return insightsHtml(t); }) +
-        section('summary', ui, function () { return summaryHtml(model, t); }) +
+        section('report', ui, function () { return reportHeadHtml(t, chapters.map(function (c) { return c.id; })); }) +
+        chapters.map(function (c) { return c.html; }).join('') +
         section('share', ui, function () { return shareHtml(t, state); }) +
         section('cta', ui, function () { return ctaHtml(t); }) +
         '<p class="da-disclaimer">' + esc(ui.disclaimer) + '</p></div>';
@@ -390,7 +442,7 @@
       '<button type="button" class="da-btn da-btn--ghost" data-da-act="retry">' + esc(ui.retry) + '</button></div>';
   }
 
-  var api = {render: render, renderSkeleton: renderSkeleton, renderError: renderError, fitMeme: fitMeme, CTA_TARGET: CTA_TARGET};
+  var api = {render: render, renderSkeleton: renderSkeleton, renderError: renderError, fitMeme: fitMeme, CTA_TARGET: CTA_TARGET, AI_TARGETS: AI_TARGETS};
   root.DestinyAnatomyRender = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);

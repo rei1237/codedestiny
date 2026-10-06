@@ -148,9 +148,6 @@
 /* ── 사고회로 ── */
 .da-combo { margin: 0 0 var(--cd-sp-xs); font-size: 1.05rem; font-weight: 700; }
 .da-sequence { display: inline-block; margin: var(--cd-sp-xs) 0 var(--cd-sp-sm); padding: 6px 12px; border-radius: var(--cd-r-pill); border: 1px solid var(--da-line); background: var(--da-surface); font-size: .88rem; font-weight: 600; line-height: 1.5; }
-.da-nyang { margin: var(--cd-sp-sm) 0 0; padding: var(--cd-sp-sm) var(--cd-sp-md); border-radius: var(--cd-r-md); background: var(--da-bg-lift); border: 1px solid var(--da-line); border-left: 3px solid var(--da-gold); line-height: 1.6; }
-.da-nyang p { margin: 0; }
-.da-nyang__label { display: block; font-size: .78rem; font-weight: 700; color: var(--da-gold); letter-spacing: .04em; }
 
 /* ── 5 Engines ── */
 .da-engine { border: 1px solid var(--da-line); border-radius: var(--cd-r-md); background: var(--da-surface); margin-bottom: var(--cd-sp-xs); }
@@ -192,7 +189,7 @@
 
 /* ── Energy Body ── */
 .da-toggle { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: var(--cd-sp-sm); border-radius: var(--cd-r-pill); background: var(--da-surface); border: 1px solid var(--da-line); }
-.da-toggle__btn { min-height: 40px; min-width: 64px; padding: 0 var(--cd-sp-md); border-radius: var(--cd-r-pill); border: 0; background: transparent; color: var(--da-ink); font: inherit; font-weight: 600; cursor: pointer; }
+.da-toggle__btn { min-height: 44px; min-width: 64px; padding: 0 var(--cd-sp-md); border-radius: var(--cd-r-pill); border: 0; background: transparent; color: var(--da-ink); font: inherit; font-weight: 600; cursor: pointer; }
 .da-toggle__btn[aria-pressed='true'] { background: var(--da-accent); color: var(--da-bg); }
 .da-body__grid { display: grid; grid-template-columns: minmax(120px, 160px) 1fr; gap: var(--cd-sp-md); align-items: start; }
 .da-body__svg { width: 100%; height: auto; }
@@ -269,6 +266,149 @@
 .da-luck__heat { margin: 0 0 var(--cd-sp-sm); padding: var(--cd-sp-xs) var(--cd-sp-sm); border-radius: var(--cd-r-md); font-size: .9rem; line-height: 1.6;
   background: var(--da-surface); border: 1px dashed var(--da-line); }
 .da-engine__name .da-chip { margin-left: 8px; }
+
+/* ── 펼친 리포트: 아이보리 종이 보고서(10-06) ──
+ * 표지(밤 창: Hero·뇌구조) 아래 본문은 종이 위 진한 남색 잉크 — 긴 글을 읽는 면이라 대비·행간을 우선한다.
+ * 같은 --da-* 이름을 종이 값으로 한 세트 재정의한다(본문 규칙은 그대로 따라온다). 잉크 9.7:1, 보조 5.5:1, 금 글자 4.9:1(실측 계산).
+ * :root 지도 토큰만 섞는다 — 테마 분기·새 색 없음. */
+#destinyAnatomyCard .da-body-wrap {
+  --da-bg: color-mix(in srgb, var(--cd-star-near) 82%, var(--cd-map-sand));
+  --da-bg-deep: color-mix(in srgb, var(--cd-star-near) 64%, var(--cd-map-sand));
+  --da-bg-lift: color-mix(in srgb, var(--cd-star-near) 92%, var(--cd-map-sand));
+  --da-ink: var(--cd-map-ink);
+  --da-muted: var(--cd-map-ink-soft);
+  --da-accent: color-mix(in srgb, var(--cd-map-gold-deep) 60%, var(--cd-map-ink));
+  --da-gold: var(--cd-map-gold-deep);
+  --da-line: color-mix(in srgb, var(--cd-map-gold-deep) 30%, transparent);
+  --da-soft: color-mix(in srgb, var(--cd-map-sand) 55%, transparent);
+  --da-surface: color-mix(in srgb, var(--cd-map-sand) 22%, transparent);
+  --da-glow: color-mix(in srgb, var(--cd-map-gold) 35%, transparent);
+  --da-art: var(--cd-map-gold-deep);
+  --da-tone: var(--da-gold);
+  counter-reset: da-ch;
+  margin: var(--cd-sp-lg) 0 0;
+  padding: clamp(20px, 5vw, 40px) clamp(16px, 4.5vw, 40px) clamp(20px, 4vw, 32px);
+  border-radius: var(--cd-r-card);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--cd-map-gold) 9%, transparent), transparent 120px),
+    var(--da-bg);
+  color: var(--da-ink);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--cd-star-near) 70%, transparent) inset, 0 18px 40px -24px var(--da-bg-deep), 0 0 0 1px var(--da-line);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+#destinyAnatomyCard .da-body-wrap .da-p { line-height: 1.8; }
+#destinyAnatomyCard .da-body-wrap .da-sec { margin-top: calc(var(--cd-sp-lg) * 1.6); padding-top: calc(var(--cd-sp-lg) * 1.25); }
+#destinyAnatomyCard .da-body-wrap .da-h { margin-bottom: var(--cd-sp-md); font-size: 1.22rem; line-height: 1.4; font-weight: 700; }
+#destinyAnatomyCard .da-body-wrap .da-sub { font-size: 1.02rem; font-weight: 700; }
+#destinyAnatomyCard .da-body-wrap .da-note, #destinyAnatomyCard .da-body-wrap .da-p--quiet { font-size: .92rem; }
+/* 장 번호 — 목차 순서와 같다(공유·CTA 는 장이 아니다). */
+.da-body-wrap > [data-da-sec]:not([data-da-sec="report"]):not([data-da-sec="share"]):not([data-da-sec="cta"]) { counter-increment: da-ch; }
+.da-body-wrap > [data-da-sec]:not([data-da-sec="report"]):not([data-da-sec="share"]):not([data-da-sec="cta"]) > .da-h:first-of-type::before {
+  content: counter(da-ch, decimal-leading-zero); display: block; margin-bottom: 2px;
+  font-family: var(--da-serif); font-size: .8rem; font-weight: 700; letter-spacing: .24em; color: var(--da-accent);
+}
+.da-body-wrap > [data-da-sec="share"], .da-body-wrap > [data-da-sec="cta"] { border-top-style: double; border-top-width: 3px; }
+
+/* 리포트 머리·목차 */
+.da-report-head { padding-bottom: var(--cd-sp-md); border-bottom: 1px solid var(--da-line); }
+.da-report__label { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px var(--cd-sp-sm); margin: 0; font-family: var(--da-serif); font-size: .74rem; font-weight: 700; letter-spacing: .2em; color: var(--da-accent); }
+.da-report__title { margin: var(--cd-sp-xs) 0 var(--cd-sp-md); padding-bottom: var(--cd-sp-sm); border-bottom: 3px double var(--da-line); font-family: var(--da-serif); font-size: 1.5rem; font-weight: 700; line-height: 1.3; }
+.da-toc__title { margin: 0 0 var(--cd-sp-xs); font-size: .82rem; font-weight: 700; letter-spacing: .08em; color: var(--da-muted); }
+.da-toc { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px var(--cd-sp-md); margin: 0; padding: 0 0 0 2.1em; list-style: decimal-leading-zero; font-size: .92rem; line-height: 1.7; }
+.da-toc li::marker { font-family: var(--da-serif); font-weight: 700; color: var(--da-accent); }
+
+/* 01 한눈에 — 연이의 편지 + 인용 + 표 */
+.da-letter { display: grid; grid-template-columns: 64px 1fr; gap: var(--cd-sp-md); align-items: start; margin: 0 0 var(--cd-sp-lg); padding: var(--cd-sp-md) var(--cd-sp-md) var(--cd-sp-sm);
+  border-radius: var(--cd-r-md); background: var(--da-bg-lift); border: 1px solid var(--da-line); box-shadow: 0 0 0 4px var(--da-bg), 0 0 0 5px var(--da-line); }
+.da-letter__seal { position: relative; width: 64px; height: 64px; }
+.da-letter__seal img { position: absolute; inset: 4px; width: 56px; height: 56px; border-radius: 50%; object-fit: cover; background: var(--da-bg-deep); }
+.da-letter__ring { position: absolute; inset: 0; width: 64px; height: 64px; fill: none; stroke: var(--da-gold); stroke-width: 1.5; }
+.da-letter__ring-in { stroke-width: .8; stroke-dasharray: 2 3; }
+.da-letter__label { margin: 0 0 4px; font-family: var(--da-serif); font-size: .82rem; font-weight: 700; letter-spacing: .08em; color: var(--da-accent); }
+.da-letter__msg { margin: 0; font-family: var(--da-serif); font-size: 1.05rem; line-height: 1.85; }
+.da-letter__sign { margin: var(--cd-sp-xs) 0 0; text-align: right; font-family: var(--da-serif); font-size: .9rem; color: var(--da-muted); }
+#destinyAnatomyCard .da-body-wrap .da-mindline { padding: 0 0 0 var(--cd-sp-md); background: none; border: 0; border-left: 3px solid var(--da-gold); border-radius: 0;
+  font-family: var(--da-serif); font-size: 1.15rem; line-height: 1.7; }
+#destinyAnatomyCard .da-body-wrap .da-rows { gap: 0; margin-top: var(--cd-sp-md); border-top: 1px solid var(--da-ink); }
+#destinyAnatomyCard .da-body-wrap .da-rows dt, #destinyAnatomyCard .da-body-wrap .da-rows dd { padding: 10px 0; border-bottom: 1px solid var(--da-line); }
+#destinyAnatomyCard .da-body-wrap .da-rows dt { padding-right: var(--cd-sp-md); font-weight: 700; color: var(--da-muted); }
+#destinyAnatomyCard .da-body-wrap .da-facts dt { color: var(--da-muted); }
+
+/* 종이 위 상자는 줄로 — 카드 상자를 덜어 보고서처럼 */
+#destinyAnatomyCard .da-body-wrap .da-engine { margin: 0; border: 0; border-bottom: 1px solid var(--da-line); border-radius: 0; background: none; }
+#destinyAnatomyCard .da-body-wrap .da-engine:first-of-type { border-top: 1px solid var(--da-line); }
+#destinyAnatomyCard .da-body-wrap .da-engine summary { padding: var(--cd-sp-sm) 0; }
+#destinyAnatomyCard .da-body-wrap .da-engine__body { padding: 0 0 var(--cd-sp-md); }
+#destinyAnatomyCard .da-body-wrap .da-insight { margin: 0 0 var(--cd-sp-md); padding: 0; border: 0; border-radius: 0; background: none; }
+#destinyAnatomyCard .da-body-wrap .da-core, #destinyAnatomyCard .da-body-wrap .da-notice { background: var(--da-surface); }
+#destinyAnatomyCard .da-body-wrap .da-btn--primary { background: var(--da-ink); color: var(--da-bg); box-shadow: 0 6px 16px -10px var(--da-ink); }
+#destinyAnatomyCard .da-body-wrap .da-cta { background: var(--da-bg-lift); }
+
+/* AI 질문 */
+.da-ask__actions { display: grid; gap: var(--cd-sp-sm); justify-items: start; }
+.da-ask__ais { display: flex; flex-wrap: wrap; gap: var(--cd-sp-xs); }
+.da-ask__status { min-height: 1.6em; }
+.da-ask__view { margin: var(--cd-sp-xs) 0; }
+.da-ask__view summary { display: inline-flex; align-items: center; min-height: 44px; cursor: pointer; font-weight: 600; color: var(--da-accent); text-decoration: underline; text-underline-offset: 3px; }
+.da-ask__view summary:focus-visible, .da-ask__prompt:focus-visible { outline: 2px solid var(--da-accent); outline-offset: 2px; }
+.da-ask__prompt { max-height: 280px; margin: var(--cd-sp-xs) 0 0; padding: var(--cd-sp-md); overflow: auto; border-radius: var(--cd-r-md); background: var(--da-surface); border: 1px solid var(--da-line);
+  font: .85rem/1.7 var(--font-mono, ui-monospace, monospace); white-space: pre-wrap; word-break: break-word; color: var(--da-ink); user-select: text; }
+
+/* 표지 문장·펼침 안내 */
+.da-crest { float: right; width: 76px; height: 76px; margin: 0 0 var(--cd-sp-xs) var(--cd-sp-sm); }
+.da-crest__ring { fill: none; stroke: var(--da-art); stroke-width: 1.4; }
+.da-crest__ring--in { stroke-width: .8; stroke-dasharray: 1.5 3; }
+.da-crest__moon { fill: var(--cd-map-gold-bright); }
+.da-crest__art { fill: none; stroke: var(--da-art); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.da-crest__petal { fill: var(--cd-node-fog); }
+.da-crest__bloom, .da-crest__star { fill: var(--cd-map-gold-bright); }
+.da-hero::after { content: ''; display: block; clear: both; }
+.da-explore { display: grid; justify-items: center; gap: var(--cd-sp-xs); margin-top: var(--cd-sp-md); text-align: center; }
+.da-explore__note { margin: 0; max-width: 34em; font-size: .88rem; line-height: 1.6; color: var(--da-muted); }
+
+/* 가독성 다듬기(visual-checker 판정 반영) */
+/* 한국어는 어절 단위로만 줄을 바꾼다 — "휴먼 디/자인" 같은 단어 중간 끊김 방지. ja/zh 는 기본 규칙. */
+#destinyAnatomyCard:lang(ko) { word-break: keep-all; overflow-wrap: break-word; }
+#destinyAnatomyCard:lang(ja) { line-break: strict; }
+#destinyAnatomyCard .da-toggle { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); width: 100%; max-width: 420px; }
+#destinyAnatomyCard .da-toggle__btn { min-width: 0; padding: 4px var(--cd-sp-xs); line-height: 1.25; }
+/* 긴 글은 대문자 전용 라틴 세리프(Cinzel)를 건너뛴다 — 짧은 라벨·제목만 그 얼굴을 쓴다. */
+#destinyAnatomyCard { --da-serif-text: 'CodeDestinySerifKR', 'CodeDestinyHan', 'Nanum Myeongjo', 'Gowun Batang', 'Noto Serif KR', Georgia, serif; }
+#destinyAnatomyCard :is(.da-letter__msg, .da-letter__sign), #destinyAnatomyCard .da-body-wrap .da-mindline { font-family: var(--da-serif-text); }
+#destinyAnatomyCard .da-body-wrap { --da-accent: color-mix(in srgb, var(--cd-map-gold-deep) 50%, var(--cd-map-ink)); }
+/* 보고서 머리 → 01장: 이중선·빈 띠 없이 장 구분선 하나만 */
+#destinyAnatomyCard .da-body-wrap > [data-da-sec="report"] { margin-top: 0; padding-top: 0; border-top: 0; }
+.da-report-head { padding-bottom: 0; border-bottom: 0; }
+/* 목차 — 번호를 칸 안에 그려 2열에서도 겹치지 않는다 */
+.da-toc { list-style: none; padding: 0; counter-reset: da-toc; }
+.da-toc li { display: grid; grid-template-columns: 2.1em 1fr; align-items: baseline; counter-increment: da-toc; }
+.da-toc li::before { content: counter(da-toc, decimal-leading-zero); font-family: var(--da-serif); font-size: .82rem; font-weight: 700; font-variant-numeric: lining-nums tabular-nums; color: var(--da-accent); }
+#destinyAnatomyCard .da-body-wrap .da-bridge { margin-bottom: var(--cd-sp-lg); }
+#destinyAnatomyCard .da-body-wrap [data-da-sec="elements"] .da-h + .da-note { margin: calc(var(--cd-sp-xs) * -1) 0 var(--cd-sp-md); }
+#destinyAnatomyCard .da-body-wrap .da-engine__name small { display: block; margin: 2px 0 0; }
+/* AI 질문 — 같은 폭 버튼, 빈 상태 줄은 자리를 차지하지 않는다 */
+.da-ask__actions { justify-items: stretch; }
+.da-ask__ais { display: grid; grid-template-columns: repeat(auto-fit, minmax(11em, 1fr)); }
+#destinyAnatomyCard .da-body-wrap .da-engine__level { align-self: start; }
+#destinyAnatomyCard .da-body-wrap .da-els { gap: var(--cd-sp-sm); margin-bottom: var(--cd-sp-md); }
+#destinyAnatomyCard .da-body-wrap .da-el { row-gap: 2px; }
+.da-share .da-note:not(.da-share__status) { margin-bottom: var(--cd-sp-md); }
+.da-share .da-actions { display: grid; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .da-share .da-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.da-share__status { min-height: 0; margin: 0; }
+.da-share__status:not(:empty) { margin-top: var(--cd-sp-xs); }
+@media (max-width: 480px) { #destinyAnatomyCard .da-body__grid { grid-template-columns: 1fr; } #destinyAnatomyCard .da-body__svg { max-width: 180px; margin: 0 auto; } }
+.da-ask__ais .da-btn { width: 100%; justify-content: center; }
+.da-ask__status { min-height: 0; margin: 0; }
+.da-ask__status:not(:empty) { margin-top: var(--cd-sp-xs); }
+.da-share .da-actions .da-btn { flex: 1 1 auto; justify-content: center; }
+@media (max-width: 380px) {
+  .da-toc { grid-template-columns: 1fr; }
+  .da-crest { width: 60px; height: 60px; }
+  .da-letter { grid-template-columns: 1fr; }
+  #destinyAnatomyCard .da-body-wrap { padding-inline: 12px; }
+}
 
 @keyframes da-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes da-twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }

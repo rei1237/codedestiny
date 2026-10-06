@@ -70,7 +70,11 @@ test('화면: 닫힘엔 히어로·뇌 지도만, 열면 §31 순서로 그리�
   assert.deepEqual(secs(el), ['hero', 'brain']);
   assert.ok(el.querySelector('[data-da-act="explore"]'));
   R.render(el, model(ctx, 'ko', {hdChart: HD}), {variant: 'B', open: true, view: 'both', layer: 'ready'});
-  assert.deepEqual(secs(el), ['hero', 'brain', 'circuit', 'engines', 'elements', 'decision', 'body', 'fusion', 'summary', 'share', 'cta']);
+  assert.deepEqual(secs(el), ['hero', 'brain', 'summary', 'circuit', 'engines', 'elements', 'decision', 'body', 'fusion', 'ask', 'share', 'cta']);
+  // 목차는 실제로 그려진 장(공유·CTA 제외)과 같은 수다. 연이의 한마디는 첫 장 편지로 들어간다.
+  assert.equal(el.querySelectorAll('.da-toc li').length, 8);
+  assert.ok(el.querySelector('[data-da-sec="summary"] .da-letter .da-letter__msg').textContent.length > 10);
+  assert.deepEqual([...el.querySelectorAll('[data-da-act="ask"]')].map((x) => x.getAttribute('data-da-ai')), ['copy', 'chatgpt', 'gemini', 'claude']);
   assert.ok(!/undefined|null|NaN|\{\w+\}/.test(el.textContent), el.textContent.match(/.{20}(undefined|null|NaN|\{\w+\}).{20}/)?.[0]);
   assert.equal(el.querySelectorAll('.da-insight').length, 3);
   assert.equal(el.querySelectorAll('.da-center').length, 9);
@@ -95,6 +99,23 @@ test('화면: HD 가 없으면 안내만 두고, 한 섹션이 깨져도 그 자
   const broken = el.querySelector('.da-sec--error[data-da-sec="engines"]');
   assert.ok(broken && broken.querySelector('[data-da-act="retry"]'));
   assert.ok(el.querySelector('[data-da-sec="summary"]') && el.querySelector('[data-da-sec="elements"]'));
+});
+
+test('AI 질문: 계산값·이어서 상담 지시만 담고 출생 정보·간지·연도는 싣지 않는다', () => {
+  const {ctx} = setup();
+  for (const lang of ['ko', 'en', 'ja', 'zh-CN', 'zh-TW']) {
+    const m = model(ctx, lang, {hdChart: HD});
+    const p = m.text.aiPrompt;
+    assert.ok(p.includes(m.text.comboTitle), lang);
+    for (const x of m.text.meme.legend) assert.ok(p.includes(x.pct + '%'), lang);
+    assert.ok(p.includes(lang === 'ko' ? '[이어서 상담하기]' : '[FOLLOW-UP READING]'), lang);
+    assert.ok(!/(19|20)\d\d|[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]/.test(p), lang + ': ' + p.match(/.{20}((19|20)\d\d|[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]).{20}/)?.[0]);
+    assert.ok(!/undefined|null|NaN|\{\w+\}/.test(p), lang);
+    if (lang !== 'ko') {
+      assert.ok(!/[가-힣]/.test(p), lang);
+      assert.ok(/Please answer in \S/.test(p), lang);
+    }
+  }
 });
 
 test('셸 배선: 억부 카드 뒤·대운 앞, 숨김 시작, 자산은 버전 붙은 지연 로드', () => {
