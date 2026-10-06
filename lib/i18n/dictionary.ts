@@ -256,8 +256,6 @@ export async function repairUnmarkedKoreanText(locale: RuntimeLocale): Promise<n
 /** URL → 직접 선택 → IP 국가 → 이전 자동 설정 순으로 현재 로케일을 정한다. */
 export function detectLocale(): RuntimeLocale {
   if (typeof window === "undefined") return "ko";
-  const appLanguage = (window as typeof window & { __cdAppLanguage?: string }).__cdAppLanguage;
-  if (appLanguage) return normalizeLocale(appLanguage);
   // The static language selector already owns the current page selection.
   try {
     const runtime = window as unknown as { __cdNativeLangBound?: boolean; cdGetCurrentLanguage?: () => string };

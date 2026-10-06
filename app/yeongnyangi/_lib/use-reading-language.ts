@@ -25,8 +25,7 @@ export function useReadingLanguage(){
   useEffect(()=>{
     const sync=()=>{
       const query=new URLSearchParams(window.location.search).get('lang');
-      const appLanguage=(window as typeof window & {__cdAppLanguage?:string}).__cdAppLanguage;
-      const selection=resolveReadingLanguage(appLanguage||query||pathLocale||getCurrentLoadingLocale());
+      const selection=resolveReadingLanguage(query||pathLocale||getCurrentLoadingLocale());
       setSiteLocale(selection.locale);setFallback(selection.fallback);
       if(!overridden.current)setValue(selection.locale);
     };

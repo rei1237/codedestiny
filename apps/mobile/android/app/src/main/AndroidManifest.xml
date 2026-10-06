@@ -8,7 +8,6 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:localeConfig="@xml/locales_config"
         android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
@@ -17,7 +16,7 @@
         tools:targetApi="31">
 
         <activity
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
@@ -54,17 +53,12 @@
         <!-- 알림 상세. 시스템 잠금 해제 후 /lock-screen-fortune 을 연다. -->
         <activity
             android:name=".LockScreenActivity"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleInstance"
             android:taskAffinity=""
             android:excludeFromRecents="true"
             android:exported="false" />
-
-        <service android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
-            android:enabled="false" android:exported="false">
-            <meta-data android:name="autoStoreLocales" android:value="true" />
-        </service>
 
         <!-- 재부팅/업데이트/시간 변경 후 동의한 비정확 알림 예약 복원. -->
         <receiver

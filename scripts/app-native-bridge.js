@@ -22,69 +22,6 @@
   if (window.__cdAppNativeBridgeInstalled) return;
   window.__cdAppNativeBridgeInstalled = true;
 
-  // Capture the pre-hydration choice; page initialization may write a route default.
-  var previousAppLanguage = "";
-  try {
-    if (window.localStorage.getItem("cd_lang_explicit") === "1" || /(?:^|;\s*)cd_locale_explicit=1(?:;|$)/.test(document.cookie)) {
-      previousAppLanguage = window.localStorage.getItem("cd_lang") || "";
-    }
-  } catch (e) { /* Storage can be unavailable; the OS preference still works. */ }
-
-  function installAppLocaleBridge() {
-    var plugin = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CodeDestinyLocale;
-    if (!plugin || typeof plugin.initialize !== "function") return;
-    var revision = 0;
-    var ready = false;
-    var pendingSelection = "";
-    var activeLanguage = "";
-
-    function applyLanguage(state) {
-      if (!state || !state.language) return;
-      var lang = state.language;
-      var url = new URL(window.location.href);
-      if (lang === activeLanguage && url.searchParams.get("lang") === lang) return;
-      activeLanguage = lang;
-      window.__cdAppLanguage = lang;
-      url.searchParams.set("lang", lang);
-      // No reload: consultation inputs and open detail/settings remain in place.
-      window.history.replaceState(window.history.state, "", url.href);
-      try {
-        window.localStorage.setItem("cd_lang", lang);
-        window.localStorage.setItem("cd_locale_ack", "1");
-      } catch (e) { /* noop */ }
-      document.cookie = "cd_locale=" + encodeURIComponent(lang) + "; Path=/; SameSite=Lax; Max-Age=31536000";
-      document.cookie = "cd_locale_ack=1; Path=/; SameSite=Lax; Max-Age=31536000";
-      document.documentElement.setAttribute("lang", lang);
-      document.documentElement.setAttribute("data-cd-lang", lang);
-      window.dispatchEvent(new CustomEvent("cd:app-language", { detail: { lang: lang } }));
-      window.dispatchEvent(new CustomEvent("cd:locale-ready", { detail: { lang: lang } }));
-    }
-
-    function selectLanguage(lang) {
-      var request = ++revision;
-      // Keep URL detection consistent even on a picker that does not navigate.
-      applyLanguage({ language: lang });
-      return plugin.setLanguage({ language: lang }).then(function (state) {
-        if (request === revision) applyLanguage(state);
-      }).catch(function () { /* Retain the user's web choice; never retry in a loop. */ });
-    }
-
-    window.addEventListener("cd:language-selected", function (event) {
-      var lang = event.detail && event.detail.lang;
-      if (!lang) return;
-      pendingSelection = lang;
-      if (ready) void selectLanguage(lang);
-    });
-    plugin.addListener("languageChanged", function (state) {
-      if (ready) { revision++; applyLanguage(state); }
-    });
-    plugin.initialize({ language: previousAppLanguage }).then(function (state) {
-      ready = true;
-      if (pendingSelection) void selectLanguage(pendingSelection);
-      else applyLanguage(state);
-    }).catch(function () { /* Older/native-unavailable builds keep the existing web language. */ });
-  }
-
   window.__CODE_DESTINY_RUNTIME_TARGET = "mobile-app";
   try {
     document.documentElement.dataset.runtimeTarget = "mobile-app";
@@ -1302,7 +1239,6 @@
   installThemeMutationProbe();
 
   function boot() {
-    installAppLocaleBridge();
     installAppUrlListener();
     installBackButton();
     installOfflineNotice();
