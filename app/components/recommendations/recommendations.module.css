@@ -13,7 +13,7 @@
 .disclosure{font-size:14px;line-height:1.75;color:var(--rec-ink,var(--cd-text));background:var(--rec-surface,var(--cd-surface));padding:18px 20px;border:1px solid var(--rec-line,var(--cd-border));border-radius:var(--cd-r-control);margin:0 0 20px;overflow-wrap:anywhere}
 .tabs,.actions{display:flex;flex-wrap:wrap;gap:8px 20px;margin:28px 0}
 .tabs{border-bottom:1px solid var(--rec-line);padding-bottom:4px;scroll-margin-top:80px}
-.tabs button,.actions button,.back,.actions a{min-height:44px;display:inline-flex;gap:8px;align-items:center;padding:10px 0;color:inherit;text-underline-offset:5px}
+.tabs button,.actions button,.back,.actions a{min-width:44px;min-height:44px;display:inline-flex;gap:8px;align-items:center;padding:10px 0;color:inherit;text-underline-offset:5px}
 .back{text-decoration:none;font-size:14px}.back:hover{text-decoration:underline}.back svg{flex-shrink:0}
 .tabs button{border:0;border-bottom:2px solid transparent;background:transparent;color:var(--rec-muted);font-size:15px}
 .tabs button[aria-pressed=true]{border-bottom-color:var(--rec-accent);color:var(--rec-accent);font-weight:700}

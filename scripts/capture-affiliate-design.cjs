@@ -43,7 +43,7 @@ const path = require('path');
           const ratio=(a,b)=>{const x=lum(s.getPropertyValue(a)),y=lum(s.getPropertyValue(b));return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);};
           return ['--rec-ink','--rec-muted','--rec-accent'].map(c=>({token:c,ratio:Math.min(...['--rec-bg','--rec-surface','--rec-raised'].map(bg=>ratio(c,bg)))}));
         })(),
-        controls:[...document.querySelectorAll('[data-recommendation-browse] button,[data-recommendation-browse] select,[data-recommendation-browse] input,[data-recommendation-browse] a')].filter(e=>e.getBoundingClientRect().height<44).map(e=>e.textContent)}));
+        controls:[...document.querySelectorAll('[data-recommendation-browse] button,[data-recommendation-browse] select,[data-recommendation-browse] input,[data-recommendation-browse] a')].filter(e=>e.getBoundingClientRect().height<44 || e.getBoundingClientRect().width<44).map(e=>e.textContent)}));
       measurements.push({brand,...measure});
     }
     await page.setViewportSize({width:390,height:4200});
