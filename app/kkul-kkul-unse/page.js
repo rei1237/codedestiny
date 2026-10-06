@@ -71,6 +71,10 @@ const SERVICES = [
 ];
 
 const FAQS = [
+  {
+    question: brandCopy('officialSiteQuestion'),
+    answer: brandCopy('officialSiteAnswer'),
+  },
   ...publicRecordCopy.ko.faqs.slice(1),
   {
     question: "꿀꿀 운세가 무엇인가요?",

@@ -5,6 +5,7 @@ import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../lib/structured-data";
 import styles from "./PublicFeatureIntroduction.module.css";
 import { trustRoutes } from "../../lib/i18n/public-trust-copy.mjs";
+import { entryHook, ENTRY_HOOK_UPDATED } from "../../lib/i18n/entry-hooks.mjs";
 
 export function introductionMetadata(locale, topic) {
   const copy = FEATURE_INTRODUCTIONS[topic][locale];
@@ -14,6 +15,7 @@ export function introductionMetadata(locale, topic) {
 export default function PublicFeatureIntroduction({ locale, topic }) {
   const copy = FEATURE_INTRODUCTIONS[topic][locale];
   const ui = INTRO_UI[locale];
+  const hook = entryHook(topic, locale);
   const faq = [...(copy.faqs || []), { question: ui.question, answer: ui.answer }];
   const graph = [
     buildBreadcrumbJsonLd([{ name: ui.home, path: `/${locale}/` }, { name: copy.heading, path: introductionRoutes(topic)[locale] }]),
@@ -24,11 +26,11 @@ export default function PublicFeatureIntroduction({ locale, topic }) {
     <header className={styles.hero}>
       <div className={styles.heroCopy}>
         <h1>{copy.heading}</h1>
-        {copy.summary && <>
-          <p className={styles.summary}>{copy.summary}</p>
+        {(hook || copy.summary) && <>
+          <p className={styles.summary}>{hook && <strong>{hook} </strong>}{copy.summary || copy.description}</p>
           <a className={styles.cta} href={ctaHref}>{ui.start}</a>
         </>}
-        <p className={styles.updated}>{ui.updated}: <time dateTime={copy.updated || "2026-09-08"}>{copy.updated || "2026-09-08"}</time></p>
+        <p className={styles.updated}>{ui.updated}: <time dateTime={hook ? ENTRY_HOOK_UPDATED : copy.updated || "2026-09-08"}>{hook ? ENTRY_HOOK_UPDATED : copy.updated || "2026-09-08"}</time></p>
       </div>
       <Image className={styles.pig} src="/icons/app-logo-512.webp" alt="Code Destiny" width={512} height={512} sizes="(max-width: 720px) 88px, 132px" priority />
     </header>

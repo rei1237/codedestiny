@@ -1,0 +1,41 @@
+.hero {
+  margin-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--cd-line-strong);
+}
+.hero h1, .preparation h2, .guide h2 {
+  font-family: var(--font-serif);
+  text-wrap: balance;
+}
+.hero h1 { font-size: var(--cd-t-display); line-height: 1.4; }
+.date { margin-top: .75rem; font-variant-numeric: tabular-nums; }
+.lead { margin-top: 1rem; max-width: 42rem; font-size: var(--cd-t-card); line-height: 1.8; word-break: keep-all; }
+.intro { margin-top: .5rem; max-width: 42rem; line-height: 1.9; word-break: keep-all; }
+.selector, .guide { margin-top: 2rem; }
+.selector h2, .guide h2 { font-size: var(--cd-t-section); }
+.selector h3 { margin-top: 1.25rem; font-size: var(--cd-t-body); }
+.links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin-top: .75rem; }
+.links a, .jumpLinks a {
+  display: flex; align-items: center; justify-content: center; min-height: 44px;
+  padding: .5rem; border: 1px solid var(--cd-border); border-radius: var(--cd-r-control);
+  background: var(--cd-surface); color: var(--cd-text); text-align: center; font-weight: 600;
+}
+.links a:hover, .jumpLinks a:hover { border-color: var(--cd-accent); }
+.links a:focus-visible, .jumpLinks a:focus-visible { outline: 2px solid var(--cd-accent); outline-offset: 3px; }
+.preparation {
+  margin-top: 1.5rem; padding: 1.5rem;
+  border: 1px solid var(--cd-border); border-radius: var(--cd-r-section);
+  background: var(--cd-surface); color: var(--cd-text);
+}
+.preparation h2 { font-size: var(--cd-t-section); line-height: 1.5; }
+.preparation p { margin-top: .75rem; line-height: 1.9; word-break: keep-all; }
+.preparation .note { font-size: var(--cd-t-caption); color: var(--cd-text-muted); }
+.jumpLinks { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; font-size: var(--cd-t-caption); }
+.jumpLinks a { flex: 1 1 auto; padding-inline: .75rem; }
+.guide ol { margin-top: 1rem; display: grid; gap: 1.25rem; }
+.guide h3 { font-weight: 700; }
+.guide p { margin-top: .5rem; line-height: 1.9; word-break: keep-all; }
+@media (min-width: 640px) {
+  .links { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .guide ol { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
+}
