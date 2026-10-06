@@ -84,7 +84,8 @@ const server=http.createServer((req,res)=>{
     const box=el.getBoundingClientRect();
     const overflow=[...el.querySelectorAll('*')].filter(n=>{const r=n.getBoundingClientRect();return r.width&&r.height&&(r.right>box.right+2||r.left<box.left-2);}).map(n=>n.className?.baseVal||n.className||n.tagName).filter(n=>!String(n).includes('sr-only'));
     const smallTargets=[...el.querySelectorAll('button,summary')].filter(n=>{const r=n.getBoundingClientRect();return r.width&&r.height&&r.height<43;}).map(n=>n.textContent.slice(0,40));
-    return {overflow,smallTargets,centerCount:el.querySelectorAll('.da-hdg__center').length,chakraCount:el.querySelectorAll('.da-chakra').length,brokenImages:[...el.querySelectorAll('img')].filter(i=>i.complete&&!i.naturalWidth).map(i=>i.src),error:!!el.querySelector('.da-sec--error')};
+    const opaqueArt=[...el.querySelectorAll('.da-illustration')].filter(n=>getComputedStyle(n).backgroundColor!=='rgba(0, 0, 0, 0)').map(n=>n.src);
+    return {overflow,smallTargets,opaqueArt,centerCount:el.querySelectorAll('.da-hdg__center').length,chakraCount:el.querySelectorAll('.da-chakra').length,brokenImages:[...el.querySelectorAll('img')].filter(i=>i.complete&&!i.naturalWidth).map(i=>i.src),error:!!el.querySelector('.da-sec--error')};
    });
    results.push({width,locale:L,...measure});
    if(L==='ko'){
@@ -103,8 +104,8 @@ const server=http.createServer((req,res)=>{
  }
  const report={source:'real static shell, real saju calculation; authentication and chart responses mocked; all other API and external traffic blocked',capture:'content-visibility:auto optimization disabled for whole-element captures only',results,errors,apis};
  fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify(report,null,2));
- console.log('verification',JSON.stringify({cases:results.length,defects:results.filter(r=>r.overflow.length||r.smallTargets.length||r.brokenImages.length||r.error),errors}));
+ console.log('verification',JSON.stringify({cases:results.length,defects:results.filter(r=>r.overflow.length||r.smallTargets.length||r.brokenImages.length||r.opaqueArt.length||r.error),errors}));
  assert.equal(apis.filter(r=>r.path.includes('/narrate')||/payments|checkout/.test(r.path)).length,0);
- assert.equal(results.filter(r=>r.overflow.length||r.smallTargets.length||r.brokenImages.length||r.error).length,0);
+ assert.equal(results.filter(r=>r.overflow.length||r.smallTargets.length||r.brokenImages.length||r.opaqueArt.length||r.error).length,0);
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});

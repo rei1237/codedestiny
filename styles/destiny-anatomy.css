@@ -64,7 +64,7 @@
 /* ── Hero ── */
 .da-hero__meta { display: flex; align-items: center; gap: var(--cd-sp-sm); flex-wrap: wrap; }
 .da-eyebrow { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--da-muted); }
-.da-title { margin: var(--cd-sp-xs) 0; }
+.da-title { margin: var(--cd-sp-xs) 0; font-size: var(--cd-t-section); }
 .da-hero__q { margin: var(--cd-sp-sm) 0 var(--cd-sp-xs); font-size: 1.15rem; line-height: 1.5; font-weight: 700; }
 .da-hero__intro { margin: 0; color: var(--da-muted); line-height: 1.6; }
 
@@ -500,7 +500,7 @@
 
 /* 연이의 해설 — 챕터 제목 아래 꽃돼지 연이 + 말풍선. 색은 종이 시트의 --da-* 만 쓴다(꽃돼지·neo 양쪽이 그대로 따라온다). */
 #destinyAnatomyCard .da-yeoni { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: var(--cd-sp-md); align-items: center; margin: 0 0 var(--cd-sp-lg); }
-#destinyAnatomyCard .da-yeoni__pig { display: block; width: 40px; height: 54px; object-fit: contain; }
+#destinyAnatomyCard .da-yeoni__pig { background: transparent; display: block; width: 40px; height: 54px; object-fit: contain; }
 #destinyAnatomyCard .da-yeoni__bubble { padding: 0; }
 
 #destinyAnatomyCard .da-yeoni__label { display: flex; align-items: center; gap: 5px; margin: 0 0 2px; font-family: var(--da-serif); font-size: .8rem; font-weight: 700; letter-spacing: .06em; color: var(--da-accent); }
@@ -634,7 +634,7 @@
 #destinyAnatomyCard .da-vchart__houses strong { display: block; font: 600 .9rem/1.5 var(--da-serif); overflow-wrap: anywhere; }
 @media (max-width: 480px) { #destinyAnatomyCard .da-vchart__houses { grid-template-columns: repeat(3,minmax(0,1fr)); } }
 
-#destinyAnatomyCard .da-illustration { display: block; width: 112px; height: 128px; object-fit: contain; margin: 0 auto var(--cd-sp-md); }
+#destinyAnatomyCard .da-illustration { background: transparent; display: block; width: 112px; height: 128px; object-fit: contain; margin: 0 auto var(--cd-sp-md); }
 #destinyAnatomyCard .da-hero { text-align: center; padding-block: var(--cd-sp-md); }
 #destinyAnatomyCard .da-hero__q { margin-block: var(--cd-sp-md) var(--cd-sp-sm); text-wrap: balance; }
 #destinyAnatomyCard .da-hero__intro { max-width: 34ch; margin: 0 auto var(--cd-sp-md); }

@@ -44,7 +44,7 @@
   function heroHtml(t, variant) {
     var ui = t.ui;
     return '<header class="da-hero" data-da-sec="hero">' + illustration('brain') +
-      '<h3 class="sec-title da-title" id="destinyAnatomyTitle">' + esc(ui.title) + '</h3>' +
+      '<h3 class="da-title" id="destinyAnatomyTitle">' + esc(ui.title) + '</h3>' +
       '<p class="da-hero__q">' + esc(t.comboTitle) + '</p>' +
       '<p class="da-hero__intro">' + esc(t.mindLine) + '</p>' +
       '<button type="button" class="da-btn da-btn--ghost" data-da-act="share">' + esc(ui.shareAction) + '</button>' +
