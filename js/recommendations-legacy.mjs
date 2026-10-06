@@ -1,4 +1,4 @@
-import { RECOMMENDATIONS_RELEASED, normalizeContext, validateAffiliateUrl, serviceRule, INTERESTS } from './recommendations-core.mjs';
+import { RECOMMENDATIONS_RELEASED, normalizeContext, validateAffiliateUrl, validImageUrl, serviceRule, INTERESTS } from './recommendations-core.mjs';
 const mounted = new WeakMap();
 export async function mountRecommendation(host, input, anchor = null) {
   if (!RECOMMENDATIONS_RELEASED || !host?.isConnected) return;
@@ -37,7 +37,7 @@ export async function mountRecommendation(host, input, anchor = null) {
       const grid = node('div', '', section); grid.className = 'cd-recommendations-products';
       data.products.slice(0, 3).forEach(p => {
         const article = node('article', '', grid);
-        if (p.imageUrl) { const image = node('img', '', article); image.src = p.imageUrl; image.alt = p.title; image.loading = 'lazy'; image.referrerPolicy = 'no-referrer'; image.width = 240; image.height = 180; image.onerror = () => { image.remove(); node('p', copy.image, article); }; }
+        if (validImageUrl(p.imageUrl)) { const image = node('img', '', article); image.referrerPolicy = 'no-referrer'; image.loading = 'lazy'; image.alt = p.title; image.src = p.imageUrl; image.width = 240; image.height = 180; image.onerror = () => { image.remove(); node('p', copy.image, article); }; }
         node('h3', p.title, article); node('p', p.reason, article);
         (p.attributes || []).forEach(a => node('p', a, article));
         node('p', p.price == null ? copy.price : new Intl.NumberFormat(undefined, { style: 'currency', currency: 'KRW' }).format(p.price) + ' · ' + new Date(p.priceVerifiedAt).toLocaleString(), article);

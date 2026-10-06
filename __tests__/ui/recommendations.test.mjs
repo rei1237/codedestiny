@@ -90,6 +90,8 @@ test('all integration service keys resolve without payment registry edits', () =
 test('direct anchors remain independent of analytics and existing mobile router is reused', () => {
   const ui=readFileSync(new URL('../../app/components/recommendations/RecommendationSurface.jsx',import.meta.url),'utf8');
   assert.match(ui,/href={product.affiliateUrl}/); assert.match(ui,/rel="sponsored noopener"/); assert.match(ui,/referrerPolicy="no-referrer"/); assert.doesNotMatch(ui,/window.open|preventDefault|location.assign/);
+  const legacy=readFileSync(new URL('../../js/recommendations-legacy.mjs',import.meta.url),'utf8');
+  assert.ok(legacy.indexOf("image.referrerPolicy = 'no-referrer'") < legacy.indexOf('image.src = p.imageUrl'));
   const mobile=readFileSync(new URL('../../apps/mobile/android/app/src/main/java/com/codedestiny/app/CodeDestinyNavigationPlugin.java',import.meta.url),'utf8');
   assert.match(mobile,/return openCustomTab\(url.toString\(\)\)/);
   const route=readFileSync(new URL('../../worker/routes/admin.js',import.meta.url),'utf8');
