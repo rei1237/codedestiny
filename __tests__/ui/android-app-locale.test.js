@@ -32,7 +32,7 @@ function setup({ language = 'de', previous = '', missing = false, delayed = fals
   };
   const document = { cookie: '', documentElement: { setAttribute() {} } };
   vm.runInNewContext(installer + ';installAppLocaleBridge()', { window, document, URL, previousAppLanguage: previous, CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } } });
-  return { window, storage, calls, emitted, native: state => nativeListener(state), init: state => resolveInit(state), select: lang => window.dispatchEvent({ type: 'cd:language-selected', detail: { lang } }) };
+  return { window, storage, calls, emitted, native: state => nativeListener(state), init: state => resolveInit(state), select: lang => window.dispatchEvent({ type: 'cd:locale-ready', detail: { lang, source: 'user' } }) };
 }
 test('OS locale replaces stale URL without navigation or losing detail/history', async () => {
   const ctx = setup(); await flush();
@@ -50,6 +50,7 @@ test('explicit previous choice is offered only to native migration', async () =>
 test('only explicit picker events write native locale; OS reset never echoes', async () => {
   const ctx = setup(); await flush();
   ctx.select('zh-TW'); await flush();
+  ctx.window.dispatchEvent({ type: 'cd:locale-ready', detail: { lang: 'ko' } });
   ctx.native({ language: 'en', followsSystem: true }); await flush();
   assert.equal(ctx.storage.get('cd_lang'), 'en');
   assert.deepEqual(ctx.calls, [['initialize', ''], ['set', 'zh-TW']]);

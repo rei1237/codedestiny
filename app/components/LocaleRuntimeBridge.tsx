@@ -153,11 +153,13 @@ export default function LocaleRuntimeBridge() {
     const lang = writeLocale(resolveRuntimeLang());
     applyAppTranslations(lang);
     const onAppLanguage = (event: Event) => {
-      const next = writeLocale((event as CustomEvent<{ lang: string }>).detail.lang);
+      const detail = (event as CustomEvent<{ lang: string; source?: string }>).detail;
+      if (detail?.source !== "android") return;
+      const next = writeLocale(detail.lang);
       void applyAppTranslations(next);
     };
-    window.addEventListener("cd:app-language", onAppLanguage);
-    return () => window.removeEventListener("cd:app-language", onAppLanguage);
+    window.addEventListener("cd:locale-ready", onAppLanguage);
+    return () => window.removeEventListener("cd:locale-ready", onAppLanguage);
   }, []);
 
   return null;

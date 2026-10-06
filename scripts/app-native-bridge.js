@@ -56,8 +56,7 @@
       document.cookie = "cd_locale_ack=1; Path=/; SameSite=Lax; Max-Age=31536000";
       document.documentElement.setAttribute("lang", lang);
       document.documentElement.setAttribute("data-cd-lang", lang);
-      window.dispatchEvent(new CustomEvent("cd:app-language", { detail: { lang: lang } }));
-      window.dispatchEvent(new CustomEvent("cd:locale-ready", { detail: { lang: lang } }));
+      window.dispatchEvent(new CustomEvent("cd:locale-ready", { detail: { lang: lang, source: "android" } }));
     }
 
     function selectLanguage(lang) {
@@ -69,7 +68,8 @@
       }).catch(function () { /* Retain the user's web choice; never retry in a loop. */ });
     }
 
-    window.addEventListener("cd:language-selected", function (event) {
+    window.addEventListener("cd:locale-ready", function (event) {
+      if (!event.detail || event.detail.source !== "user") return;
       var lang = event.detail && event.detail.lang;
       if (!lang) return;
       pendingSelection = lang;

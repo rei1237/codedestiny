@@ -99,7 +99,7 @@ function saveLocalePreference(localeCode: LocaleCode) {
     window.localStorage.setItem("cd_lang_explicit", "1");
   } catch {}
   setLocaleCookie(localeCode);
-  window.dispatchEvent(new CustomEvent("cd:language-selected", { detail: { lang: localeCode } }));
+  window.dispatchEvent(new CustomEvent("cd:locale-ready", { detail: { lang: localeCode, source: "user" } }));
 }
 
 function getLocalizedHref(pathname: string, targetLocale: LocaleItem) {
@@ -129,8 +129,8 @@ export function LocaleSwitcher({preservePath=false,locale}:{preservePath?:boolea
       if (lang) setAppLocale(normalizeStoredLocale(lang));
     };
     syncAppLocale();
-    window.addEventListener("cd:app-language", syncAppLocale);
-    return () => window.removeEventListener("cd:app-language", syncAppLocale);
+    window.addEventListener("cd:locale-ready", syncAppLocale);
+    return () => window.removeEventListener("cd:locale-ready", syncAppLocale);
   }, []);
 
   const current = React.useMemo(() => LOCALE_SWITCHER_LABELS.find(item=>item.code===(appLocale||locale))||detectLocaleFromPath(pathname)||savedLocale, [appLocale,locale,pathname,savedLocale]);

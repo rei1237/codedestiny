@@ -567,7 +567,7 @@
     clearLegacyTranslateCookie();
     setSavedLang(lang);
     markSavedLangAck(lang);
-    window.dispatchEvent(new CustomEvent('cd:language-selected', { detail: { lang: lang } }));
+    window.dispatchEvent(new CustomEvent('cd:locale-ready', { detail: { lang: lang, source: 'user' } }));
     syncLanguageUiSoon(lang);
     closeLanguageMenu();
     var localizedHomeHref = getLocalizedHomeHref(lang);
@@ -584,7 +584,8 @@
   }
 
   window.changeLanguage = nativeChangeLanguage;
-  window.addEventListener('cd:app-language', function (event) {
+  window.addEventListener('cd:locale-ready', function (event) {
+    if (!event.detail || event.detail.source !== 'android') return;
     selectedPageLang = normalizeLang(event.detail.lang);
     setSavedLang(selectedPageLang);
     syncLanguageUiSoon(selectedPageLang);
