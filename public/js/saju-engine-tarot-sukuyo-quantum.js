@@ -3046,6 +3046,7 @@ function _runShowTarotFinalInterpretation() {
         if (guide) guide.textContent = '✨ 세 장의 명리 흐름이 완성되었습니다.';
         if (msgEl) msgEl.innerHTML = '🌟 카드와 십성의 신호를 오늘의 선택 기준으로 옮겨보세요.';
         setMyeongriTarotAiPromptPanel(aiPrompt);
+        import('/js/recommendations-legacy.mjs').then(function(m){return m.mountRecommendation(document.getElementById('tarotResultContainer'),{service:'legacy-tarot'});}).catch(function(){});
       });
     }, 350);
   }, 80);

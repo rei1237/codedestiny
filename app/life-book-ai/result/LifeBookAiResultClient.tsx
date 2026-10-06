@@ -1,4 +1,5 @@
 "use client";
+import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 import Link from "next/link";
@@ -1971,6 +1972,7 @@ function LifeBookResultContent() {
           />
         )}
 
+        {result?.status === "completed" && <RecommendationResult service="life-book-ai"/>}
         <ResultActionDock
           pdfLoading={pdfLoading}
           onDownloadPdf={() => void handlePdfDownload()}

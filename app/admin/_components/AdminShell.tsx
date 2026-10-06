@@ -37,6 +37,7 @@ interface AdminNavItem {
 
 /** 좌측 네비의 단일 정본. 순서가 곧 화면 순서다. */
 const ADMIN_NAV: AdminNavItem[] = [
+  { href: "/admin/recommendations", label: "생활 추천", Icon: LayoutList, hint: "승인 전 상품·공식 링크 검수" },
   { href: "/admin/kakao-crm", label: "카카오 CRM", Icon: MessageSquare, hint: "소재·발송 검토·비용 정산" },
   { href: "/admin/content", label: "글 편집", Icon: FileText, hint: "블로그·인사이트 작성과 발행" },
   { href: "/admin/prompts", label: "프롬프트 랩", Icon: Sparkles, hint: "운세별 프롬프트를 결제 없이 확인" },

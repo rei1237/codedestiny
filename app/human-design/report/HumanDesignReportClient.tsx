@@ -14,6 +14,7 @@
 // 🔴 화면이 리포트 문장을 만들지 않는다. 모든 본문은 lib/human-design/report-plan.js 가 만든
 //    블록에서 오고, PDF 는 같은 함수의 같은 배열을 조판한다.
 
+import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import ConsultationShare from "@/components/fortune/ConsultationShare";
@@ -262,6 +263,7 @@ export default function HumanDesignReportClient({ locale: localeOverride }: { lo
               ))}
             </article>
           </div>
+          {phase === "reading" && doc?.status === "completed" && <RecommendationResult service="human-design-report" locale={locale}/>}
         </div>
       )}
     </main>

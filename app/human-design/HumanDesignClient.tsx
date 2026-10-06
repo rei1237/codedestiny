@@ -18,6 +18,7 @@
 //    진입 시점에 보여 줄 실제 차트가 없고, 남의 샘플 차트를 채워 넣으면 결제 전 화면이
 //    AdSense 렌더 텍스트 게이트 대상이 되면서 "남의 결과"를 내 결과처럼 보이게 한다.
 
+import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -706,6 +707,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
         )}
       </div>
 
+      {chart && !loading && !error && <RecommendationResult service="human-design-chart" locale={locale}/>}
       {chart && selection && (
         <DetailSheet chart={chart} locale={locale} selection={selection} onClose={() => setSelection(null)} />
       )}

@@ -2255,14 +2255,14 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-7e132396e9f4',
+    '/js/saju-engine.js?v=build-6f9b1b5ad09e',
       '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-8462367e20dc',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-2e24d7c0b30a',
     '/js/core/saju/basicFortunePresentation.js?v=build-2717009bad85',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
-    '/js/core/saju/reportDashboard.js?v=build-d6ddaebcaf1e',
+    '/js/core/saju/reportDashboard.js?v=build-7a37dcf9058e',
     '/js/saju-engine-continuation.js?v=build-8d68ebe282a3',
     '/js/entertain-engine.js?v=build-c3b89a46c12c',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
@@ -8378,9 +8378,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-7e132396e9f4',
+      '/js/saju-engine.js?v=build-6f9b1b5ad09e',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-8462367e20dc'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-2e24d7c0b30a'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일

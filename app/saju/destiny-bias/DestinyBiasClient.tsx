@@ -4,6 +4,7 @@
 // 7단계: hook → pick → info → computing → result(core) → details → share.
 // 계산은 전부 결정론(lib/idol-chemi). 생년월일은 메모리·프로필 카드에서만 쓰고 저장·URL·카드에 넣지 않는다.
 
+import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useReducedMotion } from "framer-motion";
@@ -929,6 +930,7 @@ export default function DestinyBiasClient() {
             <MemberSwitcher current={outcome.partner} onSwitch={handleSwitch} />
             <TypeCollection collected={collected} currentTypeId={outcome.result.chemiTypeId} />
             <RecentResults items={recentResults.filter((r) => r.partner.id !== outcome.partner.id)} onReplay={handleReplay} />
+            <RecommendationResult service="destiny-bias" groupId={outcome.partner.groupId || ""}/>
             <p className={styles.footLinks}>
               <button type="button" className={styles.linkButton} onClick={() => router.push("/saju/")}>
                 다른 사주 콘텐츠 보기

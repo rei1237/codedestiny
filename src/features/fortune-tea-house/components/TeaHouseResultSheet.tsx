@@ -1,4 +1,6 @@
 "use client";
+import { getFortuneTeaHouseConsultFeatureKey } from "../data/consultPricing";
+import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import TeaResultCompanion from "./TeaResultCompanion";
 
 import type { CSSProperties } from "react";
@@ -1071,6 +1073,7 @@ export default function TeaHouseResultSheet({
             </TeaHouseButton>
           )}
         </div>
+        <RecommendationResult service={getFortuneTeaHouseConsultFeatureKey(consultationMode, result.tarotSpread)} brand="yeoni"/>
         {saveStatus ? <strong className={styles.honeyLetterStatus} aria-live="polite">{saveStatus}</strong> : null}
       </article>
     </section>
