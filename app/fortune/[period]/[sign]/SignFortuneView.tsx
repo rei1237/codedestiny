@@ -1,3 +1,4 @@
+import { FORTUNE_EDITORIAL_DISCLOSURE } from "@/lib/fortune/editorial-disclosure";
 import { brandCopy } from '@/lib/seo/brand-copy.mjs';
 /**
  * 별자리·띠 운세 본문 — 기간 4종 공용. 서버 컴포넌트.
@@ -158,6 +159,8 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
           </div>
           <YeoniPortrait mood={moodForScore(score.overall)} size={104} priority className="mt-1" />
         </header>
+
+        <p className={`mt-5 break-keep text-sm leading-7 ${MUTED}`}>{FORTUNE_EDITORIAL_DISCLOSURE[locale]}</p>
 
         {/* 기간별 기준 값 — 매 기간 실제로 다른 값이다 */}
         <section aria-labelledby="facts-heading" className={`mt-8 p-5 ${CARD}`}>
@@ -491,7 +494,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
         ) : null}
 
         <p className={`mt-12 break-keep text-xs leading-6 ${MUTED}`}>
-          {locale === "ko" ? "이 페이지의 점수는 해당 기간의 일진·월건·절기·달의 위치를 실제로 계산해 각 별자리와 띠의 기질에 대입한 값이며, 산출 근거를 위에 그대로 표시하고 있습니다. 사람이 매일 손으로 쓰는 글이 아니므로 같은 기간이면 언제 열어도 결과가 같습니다. 결과는 참고 자료이며 의료·법률·투자 판단을 대신하지 않습니다." : locale === "en" ? "Scores use calculated pillars, solar terms and lunar positions. Their basis is shown above. Readings are generated from these inputs, rather than written by hand each day. They are for reference and do not replace medical, legal or investment advice." : locale === "ja" ? "スコアは日柱・月柱・節気・月の位置を計算して導き、根拠を上に示しています。毎日手書きする文章ではなく、計算値に基づくリーディングです。参考情報であり、医療・法律・投資の判断に代わるものではありません。" : locale === "zh-CN" ? "评分根据日柱、月柱、节气和月亮位置计算，依据已列于上方。解读由这些数据生成，并非每日人工撰写。结果仅供参考，不能替代医疗、法律或投资判断。" : "評分根據日柱、月柱、節氣和月亮位置計算，依據已列於上方。解讀由這些資料生成，並非每日人工撰寫。結果僅供參考，不能替代醫療、法律或投資判斷。"}
+          {locale === "ko" ? "기준일과 산출 항목을 확인하고, 실제 상황과 다른 해석은 적용하지 마세요." : locale === "en" ? "Check the reference date and calculation inputs. Set aside interpretations that do not fit your circumstances." : locale === "ja" ? "基準日と計算項目を確認し、実際の状況に合わない解釈は採用しないでください。" : locale === "zh-CN" ? "请核对基准日期和计算项目，不要套用与实际情况不符的解读。" : "請核對基準日期和計算項目，不要套用與實際情況不符的解讀。"}
         </p>
       </div>
     </main>

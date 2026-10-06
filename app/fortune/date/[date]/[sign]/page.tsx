@@ -37,12 +37,13 @@ export function generateMetadata({ params }: { params: PageParams }) {
   const { vm } = page;
   const title = `${dateTitleLabel(vm.date)} ${vm.profile.nameKo} 운세`;
   const description = `${title}. 일진 ${vm.facts[0].value}, 월건 ${vm.facts[1].value}를 기준으로 총운·재물운·연애운·직장운·건강운을 정리합니다.`;
-  return buildSeoMetadata({
+  const metadata = buildSeoMetadata({
     path: page.path,
     title,
     description,
     keywords: [title, `${vm.profile.nameKo} 일진 운세`, `${vm.profile.nameKo} 재물운`, `${vm.profile.nameKo} 연애운`],
   });
+  return { ...metadata, robots: { index: false, follow: true, googleBot: { index: false, follow: true } } };
 }
 
 function buildDateFaqs(page: NonNullable<ReturnType<typeof resolvePage>>) {
@@ -51,12 +52,12 @@ function buildDateFaqs(page: NonNullable<ReturnType<typeof resolvePage>>) {
     {
       question: `${dateTitleLabel(vm.date)} ${vm.profile.nameKo} 운세는 무엇을 기준으로 하나요?`,
       answer:
-        `해당 날짜의 일진 ${vm.facts[0].value}, 월건 ${vm.facts[1].value}, 음력 날짜와 절기 값을 계산한 뒤 ${vm.profile.nameKo}의 띠 기질에 대입합니다. 총운·재물운·연애운·직장운·건강운은 기존 날짜 운세 패키지의 결정론적 결과를 사용합니다.`,
+        `해당 날짜의 일진 ${vm.facts[0].value}, 월건 ${vm.facts[1].value}, 음력 날짜와 절기 값을 계산한 뒤 ${vm.profile.nameKo}의 띠 기질에 대입합니다. 점수는 서비스의 상징 해석 규칙으로 산출하며, 생활 조언 문장은 미리 작성한 문구 중 날짜와 띠에 따라 선택합니다. 통계적 예측이나 개인 상담 결과는 아닙니다.`,
     },
     {
       question: `오늘의 ${vm.profile.nameKo} 운세와 날짜 페이지는 어떻게 다른가요?`,
       answer:
-        "오늘의 운세는 현재 날짜로 움직이는 rolling 페이지이고, 날짜 페이지는 URL의 특정 날짜를 기준으로 보관된 결과를 보여 줍니다. 지난 날짜의 일진과 해석을 다시 확인하거나 검색 결과에서 바로 해당 날짜로 들어올 때 날짜 페이지를 이용할 수 있습니다.",
+        "오늘의 운세는 기준일에 맞춰 갱신하는 화면이고, 날짜 페이지는 URL의 특정 날짜를 기준으로 보관된 결과를 보여 줍니다. 지난 날짜의 일진과 해석을 다시 확인하려면 날짜 목록에서 찾아볼 수 있습니다.",
     },
     {
       question: `${vm.profile.nameKo} 운세를 사주 일간별 운세와 함께 봐도 되나요?`,

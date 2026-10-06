@@ -59,7 +59,7 @@ test("신규 SEO route source와 정적 sitemap coverage가 계획과 일치한�
   const monthlyUrls = sitemap.match(/<loc>https:\/\/code-destiny\.com\/saju\/monthly\/2026-09(?:\/[^<]+)?\/?<\/loc>/g) ?? [];
   const dateUrls = sitemap.match(/<loc>https:\/\/code-destiny\.com\/fortune\/date\/\d{4}-\d{2}-\d{2}\/[a-z]+\/?<\/loc>/g) ?? [];
   assert.equal(monthlyUrls.length, 11);
-  assert.equal(dateUrls.length, 30 * 12);
+  assert.equal(dateUrls.length, 0, "날짜 보관 페이지는 검색용 원고가 아니다");
 });
 
 test("날짜 archive의 공개 보관 기간은 30일이고 tomorrow 계산용 파일은 31일이다", () => {

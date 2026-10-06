@@ -69,7 +69,7 @@ export default function DateSignFortuneView({ vm, faqs }: { vm: DateSignViewMode
           <p className={`mt-5 break-keep text-sm leading-7 ${MUTED}`}>
             이 페이지의 일진은 {vm.facts.find((fact) => fact.label === "일진")?.value}이며, 월건은
             {" "}{vm.facts.find((fact) => fact.label === "월건")?.value}입니다. 띠의 상징만 나열하지 않고 날짜에서 나온 값을
-            {profile.nameKo}의 기질에 대입해 총운·재물운·연애운·직장운·건강운으로 나누었습니다.
+            {profile.nameKo}의 상징에 대입해 항목별 참고 점수를 계산합니다. 점수는 사건의 발생 확률이나 건강 상태를 뜻하지 않습니다. 생활 조언은 미리 작성한 문구를 날짜와 띠에 따라 선택한 내용이며 개인의 실제 상황을 판독한 결과가 아닙니다.
           </p>
         </section>
 

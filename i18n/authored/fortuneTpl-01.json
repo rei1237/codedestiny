@@ -85,18 +85,18 @@
     "ms": "Trine · {trine}"
   },
   "fortuneTpl.animalNeutral": {
-    "ko": "오늘 일진의 지지는 {branch}로, 이 띠와 특별한 합이나 충을 이루지 않습니다. 외부 변수가 적은 만큼 결과가 자기 준비대로 나오는 날입니다. 평소 미뤄 둔 일을 처리하기에 무난합니다.",
-    "en": "Today's day-branch is {branch}, which forms no particular union or clash with this sign. With few outside variables, the day returns results in proportion to your own preparation. A fine day for clearing what you have been putting off.",
-    "ja": "今日の日辰の地支は{branch}で、この干支と特別な合も冲もつくりません。外部の変数が少ないぶん、結果が自分の準備どおりに出る日です。普段先送りにしていたことを片づけるのに無難です。",
-    "zh-CN": "今天日辰的地支是{branch}，与这个属相既不成合也不成冲。外部变量少，结果就照你自己的准备来。适合把一直往后放的事处理掉。",
-    "zh-TW": "今天日辰的地支是{branch}，與這個生肖既不成合也不成沖。外部變數少，結果就照你自己的準備來。適合把一直往後放的事處理掉。",
-    "vi": "Today's day-branch is {branch}, which forms no particular union or clash with this sign. With few outside variables, the day returns results in proportion to your own preparation. A fine day for clearing what you have been putting off.",
-    "hi": "Today's day-branch is {branch}, which forms no particular union or clash with this sign. With few outside variables, the day returns results in proportion to your own preparation. A fine day for clearing what you have been putting off.",
-    "es": "Today's day-branch is {branch}, which forms no particular union or clash with this sign. With few outside variables, the day returns results in proportion to your own preparation. A fine day for clearing what you have been putting off.",
-    "fr": "Today's day-branch is {branch}, which forms no particular union or clash with this sign. With few outside variables, the day returns results in proportion to your own preparation. A fine day for clearing what you have been putting off.",
-    "de": "Today's day-branch is {branch}, which forms no particular union or clash with this sign. With few outside variables, the day returns results in proportion to your own preparation. A fine day for clearing what you have been putting off.",
-    "nl": "Today's day-branch is {branch}, which forms no particular union or clash with this sign. With few outside variables, the day returns results in proportion to your own preparation. A fine day for clearing what you have been putting off.",
-    "ms": "Today's day-branch is {branch}, which forms no particular union or clash with this sign. With few outside variables, the day returns results in proportion to your own preparation. A fine day for clearing what you have been putting off."
+    "ko": "오늘 일진의 지지는 {branch}입니다. 이 표시는 삼합·충·비화에 해당하지 않는다는 뜻이며, 육합 등 다른 관계는 점수의 산출 근거에서 따로 확인합니다. 이것만으로 외부 변수가 적거나 준비한 대로 결과가 나온다고 예측할 수는 없습니다.",
+    "en": "The day-branch is {branch}. This label means there is no trine, clash or same-branch match in this comparison. Other relationships, including six-harmony pairs, appear separately in the score breakdown. It does not predict fewer outside disruptions or guarantee results from preparation.",
+    "ja": "日辰の地支は{branch}です。この表示は三合・冲・同支に該当しないことを示します。六合などの別の関係はスコアの根拠で確認してください。外部の変化が少ないことや、準備どおりの結果を保証するものではありません。",
+    "zh-CN": "日辰地支为{branch}。此标记表示在这项比较中不属于三合、相冲或同支；六合等其他关系会在评分依据中另行展示。这并不意味着外部变化较少，也不能保证准备一定带来预期结果。",
+    "zh-TW": "日辰地支為{branch}。此標記表示在這項比較中不屬於三合、相沖或同支；六合等其他關係會在評分依據中另行展示。這不表示外部變化較少，也不能保證準備一定帶來預期結果。",
+    "vi": "The day-branch is {branch}. This label means there is no trine, clash or same-branch match in this comparison. Other relationships, including six-harmony pairs, appear separately in the score breakdown. It does not predict fewer outside disruptions or guarantee results from preparation.",
+    "hi": "The day-branch is {branch}. This label means there is no trine, clash or same-branch match in this comparison. Other relationships, including six-harmony pairs, appear separately in the score breakdown. It does not predict fewer outside disruptions or guarantee results from preparation.",
+    "es": "The day-branch is {branch}. This label means there is no trine, clash or same-branch match in this comparison. Other relationships, including six-harmony pairs, appear separately in the score breakdown. It does not predict fewer outside disruptions or guarantee results from preparation.",
+    "fr": "The day-branch is {branch}. This label means there is no trine, clash or same-branch match in this comparison. Other relationships, including six-harmony pairs, appear separately in the score breakdown. It does not predict fewer outside disruptions or guarantee results from preparation.",
+    "de": "The day-branch is {branch}. This label means there is no trine, clash or same-branch match in this comparison. Other relationships, including six-harmony pairs, appear separately in the score breakdown. It does not predict fewer outside disruptions or guarantee results from preparation.",
+    "nl": "The day-branch is {branch}. This label means there is no trine, clash or same-branch match in this comparison. Other relationships, including six-harmony pairs, appear separately in the score breakdown. It does not predict fewer outside disruptions or guarantee results from preparation.",
+    "ms": "The day-branch is {branch}. This label means there is no trine, clash or same-branch match in this comparison. Other relationships, including six-harmony pairs, appear separately in the score breakdown. It does not predict fewer outside disruptions or guarantee results from preparation."
   },
   "fortuneTpl.animalNeutralBadge": {
     "ko": "일진 {branch}",

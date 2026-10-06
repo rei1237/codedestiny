@@ -138,124 +138,149 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
     },
   },
   {
-    id: "insightSukuyoBasics",
-    slugByLocale: {
-      ko: "sukuyo-basics",
-      ja: "sukuyo-basics-jp",
-      zh: "sukuyo-basics-zh",
+    "id": "insightSukuyoBasics",
+    "slugByLocale": {
+      "ko": "sukuyo-basics",
+      "ja": "sukuyo-basics-jp",
+      "zh": "sukuyo-basics-zh",
       "zh-TW": "sukuyo-basics-tw",
-      en: "sukuyo-basics-en",
+      "en": "sukuyo-basics-en"
     },
-    titleByLocale: {
-      ko: "숙요점 관계 해석: 갈등 패턴 읽는 법",
-      ja: "宿曜の関係解釈: 衝突パターンの読み方",
-      zh: "宿曜关系解读：冲突模式怎么看",
-      "zh-TW": "宿曜關係解讀：衝突模式怎麼看",
-      en: "Sukuyo Relationship Reading: Conflict Pattern Basics",
+    "titleByLocale": {
+      "ko": "숙요점 계산 결과가 다를 때: 본명숙·방향·시간 확인법",
+      "en": "Why Sukuyo results differ: inputs, boundaries and direction",
+      "ja": "宿曜の結果が違うとき：入力・境界・方向の確認",
+      "zh": "宿曜结果不同怎么办：核对输入、边界与方向",
+      "zh-TW": "宿曜結果不同怎麼辦：核對輸入、邊界與方向"
     },
-    descriptionByLocale: {
-      ko: "숙요점을 통해 관계의 반복 갈등, 소통 리듬, 회복 타이밍을 함께 읽고 현실적인 대화 기준으로 정리하는 실전 가이드입니다.",
-      ja: "宿曜を使って、人間関係で繰り返される衝突のパターンと回復に適したタイミングを読み解き、現実的な対話の指針へ整理する実践ガイドです。",
-      zh: "通过宿曜识别人际关系中反复出现的冲突循环与修复窗口，帮助你把它整理成现实中可用的沟通节奏与相处参考。",
-      "zh-TW": "透過宿曜識別人際關係中反覆出現的衝突循環與修復窗口，幫助你把它整理成現實中可用的溝通節奏與相處參考。",
-      en: "A practical guide to identifying recurring conflict and recovery windows with Sukuyo.",
+    "descriptionByLocale": {
+      "ko": "음력 날짜표와 달 황경 계산을 구분하고, 13도 20분 경계와 두 사람의 관계 방향을 예시로 확인합니다.",
+      "en": "Compare a lunar-date table with the service’s Moon-longitude method, then check segment boundaries and relationship direction.",
+      "ja": "旧暦の日付表と月の黄経による計算を区別し、13度20分の境界と関係を数える方向を具体例で確認します。",
+      "zh": "区分农历日期表与月球黄经算法，用13度20分的分界和双向计数示例核对结果。",
+      "zh-TW": "區分農曆日期表與月球黃經算法，用13度20分的分界和雙向計數範例核對結果。"
     },
-    h1ByLocale: {
-      ko: "숙요점 기본: 관계 충돌 패턴과 회복 타이밍",
-      ja: "宿曜の基本: 関係衝突と回復タイミング",
-      zh: "宿曜基础：关系冲突与修复节奏",
-      "zh-TW": "宿曜基礎：關係衝突與修復節奏",
-      en: "Sukuyo Basics: Conflict Cycles and Recovery Timing",
+    "h1ByLocale": {
+      "ko": "숙요점 계산 결과가 다를 때: 본명숙·방향·시간 확인법",
+      "en": "Why Sukuyo results differ: inputs, boundaries and direction",
+      "ja": "宿曜の結果が違うとき：入力・境界・方向の確認",
+      "zh": "宿曜结果不同怎么办：核对输入、边界与方向",
+      "zh-TW": "宿曜結果不同怎麼辦：核對輸入、邊界與方向"
     },
-    bodyByLocale: {
-      ko: [
-        "숙요점은 관계의 감정 온도와 소통 리듬을 구조적으로 볼 수 있는 해석 체계입니다.",
-        "기준은 태어난 날 달이 머문 자리입니다. 하늘의 길을 스물일곱 구역으로 나누고 그중 어디에 달이 있었는지로 자신의 별자리, 곧 명수를 정합니다. 태양이 아니라 달을 본다는 점이 서양 별자리와 가장 크게 다른 지점입니다.",
-        "두 사람의 명수가 스물일곱 자리 안에서 서로 몇 칸 떨어져 있는지를 세어 관계의 성격을 읽습니다. 가까운 자리인지 마주 보는 자리인지에 따라 편안함, 끌림, 긴장 같은 서로 다른 결이 나온다고 봅니다.",
-        "갈등이 반복되는 시점과 완화되는 시점을 함께 기록하면 실생활 대응 전략을 세우기 쉬워집니다.",
-        "특히 한쪽에서 본 거리와 상대가 본 거리가 다를 수 있다는 점이 중요합니다. 같은 관계인데 한 사람은 편하다고 느끼고 다른 사람은 부담을 느끼는 상황을 이 비대칭으로 설명하는 경우가 많습니다.",
-        "숙요점의 뿌리는 당대에 한역된 문수사리보살급제선소설길흉시일선악수요경, 줄여서 숙요경으로 알려진 문헌입니다. 인도의 나크샤트라 체계가 불교 경전을 통해 동아시아로 전해지며 자리 잡은 흐름이라, 나크샤트라와 이름과 순서가 상당 부분 겹칩니다.",
-        "점수 자체보다 상호작용 패턴을 관찰하는 것이 실전 활용에 더 도움이 됩니다.",
-        "관계의 결과를 미리 정해 두는 도구가 아니라, 반복되는 장면을 알아차리고 대화 방식을 조정해 보는 참고 틀로 쓰시길 권합니다. 사람의 선택이 바뀌면 관계의 흐름도 달라집니다.",
+    "bodyByLocale": {
+      "ko": [
+        "같은 생일을 넣었는데 다른 사이트와 본명숙이 다르다면, 먼저 계산 방식을 확인해야 합니다. 전통 음력 날짜표로 숙을 찾는 방식과 달의 실제 위치를 나누는 방식은 같은 절차가 아닙니다. 이 글은 Code Destiny에서 표시하는 값을 확인하는 순서입니다.",
+        "현재 서비스는 입력한 순간의 지구 중심 라히리 항성 달 황경을 27등분합니다. 한 구간은 360도를 27로 나눈 13도 20분입니다. 황경이 13도 19분인 예와 13도 21분인 예는 경계 양쪽에 있으므로 구간 번호가 달라집니다. 이는 설명을 위한 가상 좌표이며 특정 사람의 출생 계산 결과가 아닙니다.",
+        "계산을 비교할 때는 양력·음력 입력 구분, 출생 시각, 시간대가 같은지 적어 두세요. 출생 시간을 모르는 경우 임의로 넣은 시각을 사실처럼 취급하면 안 됩니다. 특히 달이 구간 경계 가까이에 있을 때는 시간의 불확실성이 본명숙 분류에 영향을 줄 수 있습니다.",
+        "두 사람을 비교할 때는 본명숙 이름뿐 아니라 누구에서 누구를 향해 세는지도 확인합니다. 27칸의 원에서 A를 0번, B를 5번에 놓으면 A에서 B까지는 5칸, B에서 A까지는 22칸입니다. 이 산술 예시는 방향이 바뀌는 이유를 보여 줄 뿐, 두 사람의 감정이나 특정 관계군을 판정하지 않습니다.",
+        "관계군의 이름과 실제 생활의 기록은 분리해 보세요. 예를 들어 답장이 늦어 불안했다면 본명숙으로 상대의 속마음을 정하지 말고, 답장을 기다린 시간·미리 합의한 연락 방식·상대가 직접 설명한 사정을 적습니다. 다음 대화에서는 “바쁠 때 언제쯤 답할 수 있는지만 알려줄 수 있을까?”처럼 확인 가능한 부탁을 해 볼 수 있습니다.",
+        "계산으로 재현할 수 있는 것은 좌표와 분류입니다. 관계가 좋아질 확률, 연락이 올 날짜, 결혼이나 이별 여부는 이 분류만으로 검증되지 않습니다. 결과가 다를 때는 더 마음에 드는 해석을 고르기보다 입력과 계산 기준을 나란히 비교하세요."
       ],
-      ja: [
-        "宿曜は関係の感情温度と会話リズムを構造的に確認できる分析法です。",
-        "基準になるのは生まれた日に月が位置していた場所です。天の道を二十七の区画に分け、そのどこに月があったかで自分の星、すなわち命宿を決めます。太陽ではなく月を見る点が西洋の星座と最も大きく異なります。",
-        "二人の命宿が二十七の並びの中で何区画離れているかを数えて関係の性質を読みます。近い位置か向かい合う位置かによって、心地よさ、引き合い、緊張といった異なる質感が現れると考えます。",
-        "衝突が起こりやすい時期と緩和しやすい時期を記録すると対処がしやすくなります。",
-        "重要なのは、自分から見た距離と相手から見た距離が異なり得るという点です。同じ関係なのに一方は気楽に感じ、もう一方は負担を感じるという状況を、この非対称で説明する場合が多くあります。",
-        "宿曜の源流は唐代に漢訳された文殊師利菩薩及諸仙所説吉凶時日善悪宿曜経、略して宿曜経として知られる文献です。インドのナクシャトラ体系が仏教経典を通じて東アジアに伝わり定着した流れであり、名称と並び順がナクシャトラとかなり重なります。",
-        "点数より相互作用パターンに注目する方が実生活で役立ちます。",
-        "関係の結末をあらかじめ決める道具ではなく、繰り返される場面に気づき会話の仕方を調整するための参考枠としてお使いください。人の選択が変われば関係の流れも変わります。",
+      "en": [
+        "If two sites assign different mansions to the same birthday, compare their methods before comparing their interpretations. A traditional lunar-date lookup and a division of the Moon’s longitude are different procedures. This guide explains the values used by Code Destiny.",
+        "The service divides geocentric Lahiri sidereal Moon longitude at the entered moment into 27 segments. Each spans 360/27 degrees, or 13 degrees 20 minutes. Illustrative longitudes of 13 degrees 19 minutes and 13 degrees 21 minutes fall on opposite sides of the first boundary. These are invented coordinates for explaining the arithmetic, not a person’s calculated chart.",
+        "Check the calendar input, birth time and time zone together. If the time is unknown, an assumed time is not a verified birth time. Close to a segment boundary, that uncertainty can change the mansion classification.",
+        "Direction also matters when comparing two positions. On a 27-position circle, put A at 0 and B at 5: the forward distance from A to B is 5, while B to A is 22. This demonstrates directional counting; it does not establish either person’s feelings or assign a relationship type.",
+        "Keep relationship labels separate from observations. If a late reply made you anxious, record how long you waited, what communication you had agreed on, and what the other person actually said. A useful next question might be: “When you are busy, could you let me know roughly when you can reply?” The mansion label cannot answer for them.",
+        "Coordinates and classifications can be reproduced from the inputs. A probability of reconciliation, a date of contact, or a decision about marriage cannot be verified from that classification alone. When results differ, compare the inputs and method instead of choosing the most reassuring story."
       ],
-      zh: [
-        "宿曜可以结构化观察关系中的情绪温度与沟通节奏。",
-        "判断的基准是出生当天月亮所在的位置。把天空的轨道分成二十七个区段，看月亮当时落在哪一段，据此确定本人的星宿，也就是命宿。看月亮而非太阳，是它与西洋星座最大的差别。",
-        "数一数两人的命宿在二十七个位置中相隔几段，据此解读关系的性质。位置相邻还是彼此相对，会呈现出安适、吸引、紧张等不同的质地。",
-        "同时记录冲突高发时段和缓和窗口，更容易制定实际沟通策略。",
-        "值得注意的是，自己看到的距离与对方看到的距离可能并不相同。同一段关系里一方觉得轻松、另一方却感到负担，常常可以用这种不对称来说明。",
-        "宿曜的源头是唐代汉译的文殊师利菩萨及诸仙所说吉凶时日善恶宿曜经，通称宿曜经。它是印度的纳沙特拉体系经由佛教经典传入东亚后定型的脉络，因此名称与次序与纳沙特拉有相当程度的重合。",
-        "与其关注单一分数，不如关注互动模式本身。",
-        "它不是预先判定关系结局的工具，而是帮助你察觉反复出现的场景、调整沟通方式的参考框架。人的选择改变，关系的走向也会随之改变。",
+      "ja": [
+        "同じ誕生日でもサイトによって本命宿が違う場合、解釈より先に計算方法を比べます。旧暦の日付表から宿を探す方法と、月の黄経を区切る方法は別の手順です。ここではCode Destinyが表示する値の確認方法を説明します。",
+        "現在のサービスは入力した瞬間の地心・ラヒリ方式の恒星黄経を27等分します。一つの区間は360度÷27、つまり13度20分です。説明用の座標13度19分と13度21分は境界の両側にあるため、区間番号が変わります。これは架空の座標例であり、特定の人の出生計算ではありません。",
+        "比較するときは暦の入力区分、出生時刻、タイムゾーンをそろえてください。時刻不明の人に仮の時刻を入れても、確認済みの出生時刻にはなりません。月が区間の境界に近い場合、その不確かさで本命宿の分類が変わることがあります。",
+        "二人を比べるときは数える方向も確認します。27個の位置を持つ円でAを0、Bを5に置くと、AからBへは5、BからAへは22進みます。これは方向の違いを示す算術例であり、相手の感情や特定の関係型を判定するものではありません。",
+        "関係の名称と実際の出来事は分けて記録します。返信が遅くて不安だったなら、待った時間、連絡についての合意、相手が直接話した事情を書いてみます。「忙しいときは、いつごろ返事できそうかだけ教えてもらえる？」というように、確認できるお願いへ変えてください。",
+        "入力から再現できるのは座標と分類です。復縁の確率、連絡が来る日、結婚や別れの判断は、この分類だけでは検証できません。結果が違うときは安心できる物語を選ぶより、入力と方法を並べて確認してください。"
+      ],
+      "zh": [
+        "同一生日在不同网站得到不同本命宿时，先比较算法。查农历日期表与划分月球黄经不是同一过程。本文说明Code Destiny目前使用的数值与核对步骤。",
+        "服务把输入时刻的地心拉希里恒星制月球黄经分成27段，每段为360度除以27，即13度20分。假设黄经分别为13度19分和13度21分，两者位于第一条分界的两侧，区段编号便会改变。这是假设坐标示例，不是某位用户的出生计算。",
+        "比较时要统一公历或农历输入、出生时间与时区。时间不详时，代填的时刻不能当作已确认的出生时间。月球接近区段边界时，这种不确定性可能改变本命宿分类。",
+        "两人的关系还涉及计数方向。在27个位置的圆环上，假设A在0、B在5，从A到B顺数5格，从B到A则是22格。这个例子只解释方向差异，不代表双方感情，也不据此判定某种关系类型。",
+        "把关系标签与实际事件分开记录。例如因回复迟而不安，可以记下等待多久、双方约定的联系方式，以及对方亲口说明的情况。下一次可以问：“忙的时候，能否告诉我大概什么时候方便回复？”宿的名称不能代替对方回答。",
+        "可以根据输入复现的是坐标和分类。复合概率、联系日期、结婚或分手的决定，不能仅靠这项分类验证。结果不同时，应并列核对输入与算法，而不是选择最令人安心的解释。"
       ],
       "zh-TW": [
-        "宿曜可以結構化觀察關係中的情緒溫度與溝通節奏。",
-        "判斷的基準是出生當天月亮所在的位置。把天空的軌道分成二十七個區段，看月亮當時落在哪一段，據此確定本人的星宿，也就是命宿。看月亮而非太陽，是它與西洋星座最大的差別。",
-        "數一數兩人的命宿在二十七個位置中相隔幾段，據此解讀關係的性質。位置相鄰還是彼此相對，會呈現出安適、吸引、緊張等不同的質地。",
-        "同時記錄衝突高發時段和緩和窗口，更容易制定實際溝通策略。",
-        "值得注意的是，自己看到的距離與對方看到的距離可能並不相同。同一段關係裡一方覺得輕鬆、另一方卻感到負擔，常常可以用這種不對稱來說明。",
-        "宿曜的源頭是唐代漢譯的《文殊師利菩薩及諸仙所說吉凶時日善惡宿曜經》，通稱宿曜經。它是印度的納沙特拉體系經由佛教經典傳入東亞後定型的脈絡，因此名稱與次序與納沙特拉有相當程度的重合。",
-        "與其關注單一分數，不如關注互動模式本身。",
-        "它不是預先判定關係結局的工具，而是幫助你察覺反覆出現的場景、調整溝通方式的參考框架。人的選擇改變，關係的走向也會隨之改變。",
-      ],
-      en: [
-        "Sukuyo helps you read emotional rhythm and communication patterns in relationships.",
-        "The starting point is where the moon sat on the day you were born. The sky path is divided into twenty-seven segments, and whichever one held the moon becomes your mansion. Reading the moon rather than the sun is the sharpest difference from Western sun signs.",
-        "Relationship character is read by counting how many segments apart two people's mansions fall across those twenty-seven positions. Adjacent placements and opposing placements are described as producing different textures, such as ease, attraction, or tension.",
-        "Tracking both conflict-heavy windows and recovery windows makes practical planning easier.",
-        "One detail matters more than it first appears: the distance measured from your side can differ from the distance measured from theirs. That asymmetry is often how the tradition explains a relationship where one person feels comfortable and the other feels strained.",
-        "The lineage traces to a Tang-era Chinese translation of a Buddhist text on auspicious and inauspicious days and lunar mansions, commonly shortened to the Sukuyo Sutra. It carries the Indian nakshatra system into East Asia, which is why the names and ordering overlap substantially with nakshatra.",
-        "Pattern awareness is usually more useful than a single compatibility score.",
-        "Use it as a frame for noticing repeating scenes and adjusting how you talk, not as a device that settles how a relationship ends. When people change what they choose, the pattern changes with them.",
-      ],
+        "同一生日在不同網站得到不同本命宿時，先比較算法。查農曆日期表與劃分月球黃經不是同一過程。本文說明Code Destiny目前使用的數值與核對步驟。",
+        "服務把輸入時刻的地心拉希里恆星制月球黃經分成27段，每段為360度除以27，即13度20分。假設黃經分別為13度19分和13度21分，兩者位於第一條分界的兩側，區段編號便會改變。這是假設座標範例，不是某位使用者的出生計算。",
+        "比較時要統一國曆或農曆輸入、出生時間與時區。時間不詳時，代填的時刻不能當作已確認的出生時間。月球接近區段邊界時，這種不確定性可能改變本命宿分類。",
+        "兩人的關係還涉及計數方向。在27個位置的圓環上，假設A在0、B在5，從A到B順數5格，從B到A則是22格。這個例子只解釋方向差異，不代表雙方感情，也不據此判定某種關係類型。",
+        "把關係標籤與實際事件分開記錄。例如因回覆遲而不安，可以記下等待多久、雙方約定的聯絡方式，以及對方親口說明的情況。下一次可以問：「忙的時候，能否告訴我大概什麼時候方便回覆？」宿的名稱不能代替對方回答。",
+        "可以根據輸入重現的是座標和分類。復合機率、聯絡日期、結婚或分手的決定，不能僅靠這項分類驗證。結果不同時，應並列核對輸入與算法，而不是選擇最令人安心的解釋。"
+      ]
     },
-    faqByLocale: {
-      ko: [
-        { question: "숙요점은 어떤 관계에 쓰나요?", answer: "연인뿐 아니라 친구, 가족, 동료 관계에도 활용할 수 있습니다." },
-        { question: "결과를 어떻게 활용하나요?", answer: "갈등 고위험 시점과 대화 방식 개선 포인트를 미리 준비하는 데 활용하세요." },
-        { question: "27수와 인도 나크샤트라는 어떤 관계인가요?", answer: "같은 뿌리에서 갈라진 체계입니다. 숙요점은 인도의 나크샤트라가 불교 경전을 통해 동아시아로 전해진 흐름이라 이름과 순서가 상당 부분 겹치지만, 이후 동아시아에서 관계 해석 중심으로 발전하며 강조점이 달라졌습니다." },
-        { question: "상대와 제가 본 결과가 다른데 오류인가요?", answer: "오류가 아니라 이 체계의 특징입니다. 거리를 세는 방향이 서로 반대라 한쪽에서 편안한 자리가 상대에게는 다르게 읽힐 수 있습니다. 두 방향을 함께 보면 관계의 온도 차를 이해하는 데 도움이 됩니다." },
-        { question: "궁합이 나쁘게 나오면 관계를 정리해야 하나요?", answer: "그렇게 쓰는 도구가 아닙니다. 어떤 장면에서 어긋나기 쉬운지를 미리 알아 두고 대화 방식을 조정하는 용도로 보시길 권합니다. 중요한 결정은 두 사람의 실제 대화와 선택으로 정하는 것이 맞습니다." },
+    "faqByLocale": {
+      "ko": [
+        {
+          "question": "다른 사이트와 본명숙이 다르면 오류인가요?",
+          "answer": "반드시 오류는 아닙니다. 음력 날짜표인지 달 황경 방식인지, 입력 시각과 시간대가 같은지 먼저 확인하세요. 기준이 같은데도 차이가 남으면 입력값과 결과 화면을 첨부해 문의할 수 있습니다."
+        },
+        {
+          "question": "출생 시간을 모르면 어떻게 읽나요?",
+          "answer": "시간 미상이라는 조건을 남겨 두세요. 임의 시각으로 나온 한 결과를 확정하지 말고, 경계에 가까운지와 시간에 따라 분류가 달라질 수 있는지를 확인합니다."
+        },
+        {
+          "question": "관계 방향이 다르면 상대 마음도 다른가요?",
+          "answer": "방향별 계산 표지는 상대의 감정을 측정하지 않습니다. 상대의 의사는 직접 대화하고 실제 행동을 통해 확인해야 합니다."
+        }
       ],
-      ja: [
-        { question: "どんな関係に使えますか？", answer: "恋人だけでなく、友人・家族・職場関係にも使えます。" },
-        { question: "どう活用すればよいですか？", answer: "衝突が起きやすい時期を把握し、会話設計を先に準備するのが有効です。" },
-        { question: "二十七宿とインドのナクシャトラはどう関係しますか？", answer: "同じ源から分かれた体系です。宿曜はインドのナクシャトラが仏教経典を通じて東アジアに伝わった流れで、名称と並び順がかなり重なりますが、その後は東アジアで関係解釈を中心に発展し強調点が変わりました。" },
-        { question: "相手と自分で結果が違うのは誤りですか？", answer: "誤りではなく、この体系の特徴です。距離を数える向きが互いに逆になるため、一方にとって心地よい位置が相手には違って読まれることがあります。両方向を併せて見ると温度差の理解に役立ちます。" },
-        { question: "相性が悪いと出たら関係を整理すべきですか？", answer: "そのように使う道具ではありません。どんな場面ですれ違いやすいかを先に知り、会話の仕方を調整する用途としてご覧ください。大事な判断は二人の実際の対話と選択で決めるのが適切です。" },
+      "en": [
+        {
+          "question": "Does a different result mean a calculation error?",
+          "answer": "Not necessarily. Compare lunar-date lookup versus Moon longitude, then the entered time and time zone. If identical methods and inputs still disagree, contact support with those inputs and result screens."
+        },
+        {
+          "question": "What if my birth time is unknown?",
+          "answer": "Keep that uncertainty visible. Do not treat a result from an assumed hour as definitive, especially near a segment boundary."
+        },
+        {
+          "question": "Does a reversed direction reveal different feelings?",
+          "answer": "No. A directional label does not measure emotions. Ask the person and consider their actual behaviour."
+        }
       ],
-      zh: [
-        { question: "适用于哪些关系？", answer: "不仅适用于情侣，也适用于朋友、家人、同事关系。" },
-        { question: "如何实际应用结果？", answer: "提前识别高风险沟通时段，并准备更稳妥的表达策略。" },
-        { question: "二十七宿与印度的纳沙特拉有什么关系？", answer: "两者同源。宿曜是印度纳沙特拉经由佛教经典传入东亚的脉络，名称与次序相当重合，但此后在东亚以关系解读为中心发展，侧重点有所不同。" },
-        { question: "我和对方看到的结果不一样，是出错了吗？", answer: "不是出错，而是这一体系的特点。计数方向彼此相反，因此一方觉得舒适的位置，对方读来可能不同。把两个方向合起来看，有助于理解彼此的温差。" },
-        { question: "如果显示合不来，是不是该结束关系？", answer: "它不是这样使用的工具。建议把它当作提前了解在哪些场景容易错开、进而调整沟通方式的参考。重要决定应由两人实际的对话与选择来定。" },
+      "ja": [
+        {
+          "question": "他のサイトと違えば計算ミスですか？",
+          "answer": "必ずしもそうではありません。旧暦の日付表か月の黄経かを確認し、時刻とタイムゾーンも比べてください。"
+        },
+        {
+          "question": "出生時刻が分からない場合は？",
+          "answer": "時刻不明という条件を残し、仮の時刻の結果を確定としないでください。特に区間の境界付近では注意が必要です。"
+        },
+        {
+          "question": "方向が逆なら相手の気持ちも分かりますか？",
+          "answer": "方向別の名称は感情を測りません。相手の意思は直接の会話と実際の行動で確認してください。"
+        }
+      ],
+      "zh": [
+        {
+          "question": "与其他网站不同就是算错了吗？",
+          "answer": "不一定。先区分日期表和月球黄经算法，再比较时间与时区。相同方法及输入仍不一致时，可提供输入和结果页面联系支持。"
+        },
+        {
+          "question": "不知道出生时间怎么办？",
+          "answer": "保留时间不详这一条件，不把代填时刻的结果当作定论，尤其要注意区段边界。"
+        },
+        {
+          "question": "反向关系能看出对方心情吗？",
+          "answer": "不能。方向标签不测量感情，应通过直接沟通与实际行为了解对方意愿。"
+        }
       ],
       "zh-TW": [
-        { question: "適用於哪些關係？", answer: "不僅適用於情侶，也適用於朋友、家人、同事關係。" },
-        { question: "如何實際應用結果？", answer: "提前識別高風險溝通時段，並準備更穩妥的表達策略。" },
-        { question: "二十七宿與印度的納沙特拉有什麼關係？", answer: "兩者同源。宿曜是印度納沙特拉經由佛教經典傳入東亞的脈絡，名稱與次序相當重合，但此後在東亞以關係解讀為中心發展，側重點有所不同。" },
-        { question: "我和對方看到的結果不一樣，是出錯了嗎？", answer: "不是出錯，而是這一體系的特點。計數方向彼此相反，因此一方覺得舒適的位置，對方讀來可能不同。把兩個方向合起來看，有助於理解彼此的溫差。" },
-        { question: "如果顯示合不來，是不是該結束關係？", answer: "它不是這樣使用的工具。建議把它當作提前了解在哪些場景容易錯開、進而調整溝通方式的參考。重要決定應由兩人實際的對話與選擇來定。" },
-      ],
-      en: [
-        { question: "What relationships can it support?", answer: "It works for couples, friends, family, and team communication." },
-        { question: "How should I use the output?", answer: "Use it to anticipate high-friction periods and prepare better communication choices." },
-        { question: "How do the twenty-seven mansions relate to Indian nakshatra?", answer: "They share a root. Sukuyo carries the nakshatra system into East Asia through Buddhist texts, so names and ordering overlap substantially, though East Asian practice later centred on relationship reading and shifted its emphasis." },
-        { question: "My result and my partner's result disagree. Is that an error?", answer: "It is a property of the system rather than an error. Distance is counted in opposite directions, so a placement that reads as easy from one side can read differently from the other. Looking at both directions helps explain a gap in how each person experiences the relationship." },
-        { question: "If compatibility looks poor, should I end the relationship?", answer: "That is not what this is for. Use it to see which situations tend to go sideways and to adjust how you talk about them. Decisions that matter belong to the actual conversations and choices the two of you make." },
-      ],
-    },
+        {
+          "question": "與其他網站不同就是算錯了嗎？",
+          "answer": "不一定。先區分日期表和月球黃經算法，再比較時間與時區。相同方法及輸入仍不一致時，可提供輸入與結果頁面聯絡支援。"
+        },
+        {
+          "question": "不知道出生時間怎麼辦？",
+          "answer": "保留時間不詳這項條件，不把代填時刻的結果當作定論，尤其要注意區段邊界。"
+        },
+        {
+          "question": "反向關係能看出對方心情嗎？",
+          "answer": "不能。方向標籤不測量感情，應透過直接溝通與實際行為了解對方意願。"
+        }
+      ]
+    }
   },
 ];
 
