@@ -104,29 +104,28 @@ test("듣기만 하고 아무도 안 쏘는 cd:* 이벤트가 새로 생기지 �
   );
 });
 
-// Native selection is an input command, and app-language synchronizes native state.
-// Neither is an alternative UI-ready event. Keep their listeners confined to adapters.
-const NATIVE_LOCALE_LISTENERS = {
-  "cd:language-selected": ["scripts/app-native-bridge.js"],
-  "cd:app-language": ["app/components/LocaleRuntimeBridge.tsx", "app/components/LocaleSwitcher.tsx", "js/cd-lang-native.js"],
-};
-
-test("네이티브 로케일 입출력은 지정한 어댑터에만 배선된다", () => {
-  for (const [name, owners] of Object.entries(NATIVE_LOCALE_LISTENERS)) {
-    assert.deepEqual([...(scan.listened.get(name) || [])].sort(), [...owners].sort(),
-      name + "는 UI 갱신용 별칭이 아니라 네이티브 어댑터 채널입니다.");
-    assert.ok(scan.dispatched.has(name), name + " dispatcher가 없습니다.");
+// Keep the command/state distinction introduced by the native adapter contract,
+// but encode it in the canonical event payload instead of adding event aliases.
+test("네이티브 로케일 입출력은 source로 구분하고 준비 이벤트를 되울리지 않는다", () => {
+  const read = file => fs.readFileSync(path.join(root, file), "utf8");
+  const native = read("scripts/app-native-bridge.js");
+  assert.match(native, /source:\s*["']android["']/);
+  assert.match(native, /event\.detail\.source\s*!==\s*["']user["']/);
+  for (const file of ["app/components/LocaleSwitcher.tsx", "js/cd-lang-native.js"]) {
+    assert.match(read(file), /source:\s*["']user["']/);
   }
+  assert.match(read("app/components/LocaleRuntimeBridge.tsx"), /detail\?\.source\s*!==\s*["']android["']/);
+  assert.match(read("js/cd-lang-native.js"), /event\.detail\.source\s*!==\s*["']android["']/);
 });
 
 test("일반 UI 로케일 갱신은 cd:locale-ready 한 이름으로만 배선된다", () => {
   const localeNames = [...scan.listened.keys()]
-    .filter((name) => /locale|lang/.test(name) && !Object.hasOwn(NATIVE_LOCALE_LISTENERS, name)).sort();
+    .filter((name) => /locale|lang/.test(name)).sort();
   assert.deepEqual(
     localeNames,
     ["cd:locale-ready"],
     `일반 UI 로케일 이벤트 이름이 다시 갈라졌습니다: ${localeNames.join(", ")}. ` +
-      "UI 갱신은 cd:locale-ready를 사용하고 네이티브 입출력은 지정된 어댑터 안에 유지합니다.",
+      "UI 갱신은 cd:locale-ready를 사용하고 네이티브 입출력은 source로 구분합니다.",
   );
 });
 

@@ -53,4 +53,6 @@ next: 생선 상담 변경 완료 및 main CI 확인 후 최종 Android 빌드. 
 - 최초 구현 030741a48은 2076d9709에서 되돌렸다. 대체 구현은 기존 cd:locale-ready 이벤트 하나에 source=user/android를 실어 명시 선택과 OS 갱신을 구분한다. 기존 이벤트 규약을 변경하거나 검사를 완화하지 않았다.
 - 사이트맵 실패는 다른 세션의 b1a0707b4 원장 갱신을 받은 뒤 통과했다. Android 세션이 사이트맵 로직을 수정하지 않았다.
 - 대체 구현·이벤트 규약·사이트맵 회귀 합계 18/18 통과. 네이티브 Java/Manifest/localeConfig는 앞서 API36에서 확인한 구현과 동일하며 최종 앱 재빌드는 생선 작업 완료 뒤 수행한다.
-- 전달 SHA/CI 최종 상태/automationId는 output/android-20261007/locale-delivery.json을 따른다. heartbeat id=android, 30분 간격. 최종 빌드와 업로드는 아직 실행하지 않음.
+- 전달 SHA/CI 최종 상태/automationId는 output/android-20261007/locale-delivery.json을 따른다. heartbeat id=android, 사용자 후속 요청에 따라 2시간 간격. 최종 빌드와 업로드는 아직 실행하지 않음.
+
+- 동시 세션 ea877f23e가 추가한 네이티브 명령/상태 구분 검증은 유지하되, 대체 구현의 canonical 이벤트 source payload 계약으로 갱신했다. 이벤트 별칭 허용 예외를 남기지 않았고 실제 동작 회귀도 검사했다.
