@@ -12,7 +12,7 @@ const routes = JSON.parse(readFileSync(new URL("../../public/_routes.json", impo
 
 test("both home entry paths redirect before any intermediate HTML or client JavaScript", async () => {
   for (const path of ["/", "/index.html"]) {
-    assert.ok(routes.include.includes(path), `${path} must reach the Pages Worker`);
+    assert.ok(routes.include.some(rule => rule === path || (rule.endsWith('*') && path.startsWith(rule.slice(0, -1)))), `${path} must reach the Pages Worker`);
     for (const method of ["GET", "HEAD"]) {
       const response = await worker.fetch(new Request(`https://code-destiny.com${path}`, { method }), {
         ASSETS: { fetch() { throw new Error("The intermediate page must never be served"); } },

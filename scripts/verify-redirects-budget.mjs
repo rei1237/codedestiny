@@ -150,14 +150,27 @@ if (routesText === null) {
   process.exit(1);
 }
 let routesInclude = [];
+let routesExclude = [];
 try {
-  routesInclude = JSON.parse(routesText).include || [];
+  const routes = JSON.parse(routesText);
+  routesInclude = routes.include || [];
+  routesExclude = routes.exclude || [];
 } catch (error) {
   console.error(`[redirects-budget] public/_routes.json 파싱 실패: ${error.message}`);
   process.exit(1);
 }
+const routeCovers = (rule, path) => rule === path || (rule.endsWith('*') && path.startsWith(rule.slice(0, -1)));
+for (const [name, rules] of [["include", routesInclude], ["exclude", routesExclude]]) {
+  for (let i = 0; i < rules.length; i++) {
+    for (let j = i + 1; j < rules.length; j++) {
+      if (routeCovers(rules[i], rules[j]) || routeCovers(rules[j], rules[i])) {
+        fail(`public/_routes.json ${name} 규칙이 중복된다: ${rules[i]} / ${rules[j]}. Cloudflare Pages 가 배포를 거부한다.`);
+      }
+    }
+  }
+}
 for (const marker of workerIncludes) {
-  if (!routesInclude.includes(marker)) {
+  if (!routesInclude.some(rule => routeCovers(rule, marker)) || routesExclude.some(rule => routeCovers(rule, marker))) {
     fail(`public/_worker.js 가 "${marker}" 를 처리한다고 선언했는데 public/_routes.json 의 include 에 없다. 그 리다이렉트는 실행되지 않는다.`);
   }
 }

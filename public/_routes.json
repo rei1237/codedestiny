@@ -1,28 +1,7 @@
 {
   "version": 1,
   "include": [
-    "/*",
-    "/",
-    "/index.html",
-    "/api/*",
-    "/share*",
-    "/rss.xml",
-    "/insights/rss.xml",
-    "/fortune/*",
-    "/insights/famous-saju/*",
-    "/de-de",
-    "/de-de/*",
-    "/es-es",
-    "/es-es/*",
-    "/fr-fr",
-    "/fr-fr/*",
-    "/hi-in",
-    "/hi-in/*",
-    "/ms-my",
-    "/ms-my/*",
-    "/nl-nl",
-    "/nl-nl/*",
-    "/yeongnyangi/free-fortune*"
+    "/*"
   ],
   "exclude": ["/_next/*", "/assets/*", "/js/*", "/styles/*", "/i18n/*", "/fonts/*", "/icons/*", "/images/*", "/audio/*"]
 }
