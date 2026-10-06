@@ -24,11 +24,6 @@ import KakaoSdk from "@/app/components/KakaoSdk";
 import { useAnalytics } from "@/app/hooks/useAnalytics";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
-import { getApiBaseUrl } from "@/app/_lib/api-config";
-import { authFetch, AUTH_SESSION_INVALIDATED_EVENT } from "@/app/_lib/auth-client";
-import { recordsCopy } from "@/lib/records/copy";
-import { savedRecordPath } from "@/lib/records/service-registry";
-import { useLocale } from "@/lib/i18n/useT";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { readCurrentDestinyProfile, resolveDestinyProfileBirthParts } from "@/app/_lib/profile-card-storage";
 import {
@@ -73,7 +68,7 @@ import {
 import styles from "./destiny-bias.module.css";
 
 type Step = "hook" | "pick" | "info" | "computing" | "result";
-type Outcome = { report: ChemiReport; result: ChemiResult; copy: ChemiCopy; partner: ChemiPartnerRecord; recordRequestId: string; recordThemeKey: string };
+type Outcome = { report: ChemiReport; result: ChemiResult; copy: ChemiCopy; partner: ChemiPartnerRecord };
 type Moods = { biasMood: string; relationMood: string };
 type ProfileSeed = { birthDateInput: string; calendarType: CalendarType; fromProfile: boolean };
 type StoredAuthUser = { id?: string; userId?: string; birthDate?: string } | null;
@@ -150,11 +145,6 @@ function isLoggedInNow() {
   }
 }
 
-function readArchiveOwner() {
-  const user = readSanitizedAuthUser() as StoredAuthUser;
-  return String(user?.id || user?.userId || "");
-}
-
 function todayKst() {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
   const get = (t: string) => parts.find((p) => p.type === t)?.value || "";
@@ -186,12 +176,6 @@ function buildInviteUrl(partner: ChemiPartnerRef, channel: string) {
   const origin = typeof window !== "undefined" ? window.location.origin : "https://code-destiny.com";
   const key = partner.kind === "roster" ? "m" : "p";
   return `${origin}${FEATURE_PATH}?${key}=${encodeURIComponent(partner.id)}&utm_source=${encodeURIComponent(channel)}&utm_medium=share&utm_campaign=public_share`;
-}
-
-type CreatedShare = { shareUrl: string; ogUrl: string };
-
-function withShareUtm(shareUrl: string, channel: string) {
-  return `${shareUrl}&utm_source=${encodeURIComponent(channel)}&utm_medium=share&utm_campaign=public_share`;
 }
 
 async function waitForImages(node: HTMLElement) {
@@ -226,7 +210,6 @@ async function downloadBlob(blob: Blob, filename: string) {
 }
 
 export default function DestinyBiasClient() {
-  const archiveCopy = recordsCopy(useLocale());
   const router = useRouter();
   // 정적 export 에서 useSearchParams 는 Suspense 경계를 요구하므로 마운트 시 location 을 직접 읽는다.
   const [searchParams] = useState(() => (typeof window === "undefined" ? null : new URLSearchParams(window.location.search)));
@@ -245,11 +228,6 @@ export default function DestinyBiasClient() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [shareBusy, setShareBusy] = useState(false);
   const [shareStatus, setShareStatus] = useState<ShareBarStatus>(null);
-  const [savedToCollection, setSavedToCollection] = useState(false);
-  const [archiveId, setArchiveId] = useState("");
-  const [savingRecord, setSavingRecord] = useState(false);
-  const [saveError, setSaveError] = useState(false);
-  const [authRevision, setAuthRevision] = useState(0);
   const [hydrated, setHydrated] = useState(false);
 
   const [shareRatio, setShareRatio] = useState<ShareRatio>("square");
@@ -264,135 +242,8 @@ export default function DestinyBiasClient() {
 
   const coreCardRef = useRef<HTMLDivElement | null>(null);
   const shareCanvasRef = useRef<HTMLDivElement | null>(null);
-  // 같은 입력으로 공유를 다시 누르면 서버를 또 부르지 않는다(메모리 한정 — 생일이 키에 들어가므로 저장 금지).
-  const shareCacheRef = useRef<{ key: string; value: CreatedShare } | null>(null);
   const computingTokenRef = useRef(0);
   const entryTrackedRef = useRef(false);
-  const activeRecordRef = useRef("");
-  const archiveMountedRef = useRef(false);
-  const recordRequestsRef = useRef(new Map<string, Promise<string | null>>());
-  const completedRecordsRef = useRef(new Map<string, string>());
-
-  useEffect(() => {
-    archiveMountedRef.current = true;
-    let owner = readArchiveOwner();
-    const refreshLogin = () => {
-      const nextOwner = readArchiveOwner();
-      if (nextOwner !== owner || !isLoggedInNow()) {
-        setArchiveId(""); setSavedToCollection(false); setSaveError(false); setSavingRecord(false);
-      }
-      owner = nextOwner;
-      setLoggedIn(isLoggedInNow());
-      setAuthRevision((revision) => revision + 1);
-    };
-    window.addEventListener("cd:auth-changed", refreshLogin);
-    window.addEventListener(AUTH_SESSION_INVALIDATED_EVENT, refreshLogin);
-    return () => {
-      archiveMountedRef.current = false;
-      window.removeEventListener("cd:auth-changed", refreshLogin);
-      window.removeEventListener(AUTH_SESSION_INVALIDATED_EVENT, refreshLogin);
-    };
-  }, []);
-
-  const clearRecordState = useCallback(() => {
-    activeRecordRef.current = "";
-    setArchiveId("");
-    setSaveError(false);
-    setSavingRecord(false);
-    setSavedToCollection(false);
-  }, []);
-
-  const publishOutcome = useCallback((next: Outcome) => {
-    activeRecordRef.current = next.recordRequestId;
-    setArchiveId("");
-    setSaveError(false);
-    setSavingRecord(false);
-    setSavedToCollection(false);
-    setOutcome(next);
-  }, []);
-
-  // Auto-save, collection save and retry share one request and server idempotency key.
-  // The stored report contains display data only: never persist info, raw partner or photos.
-  const saveReading = useCallback((next: Outcome): Promise<string | null> => {
-    const requestId = next.recordRequestId;
-    if (activeRecordRef.current !== requestId || !isLoggedInNow()) return Promise.resolve(null);
-    const owner = readArchiveOwner();
-    if (!owner) {
-      if (archiveMountedRef.current && activeRecordRef.current === requestId) {
-        setSavingRecord(false); setSaveError(true); setSavedToCollection(false);
-      }
-      return Promise.resolve(null);
-    }
-    const requestKey = `${owner}:${requestId}`;
-    const sameRecordAndOwner = () => archiveMountedRef.current && activeRecordRef.current === requestId && readArchiveOwner() === owner;
-    const isCurrent = () => sameRecordAndOwner() && isLoggedInNow();
-    const finishedId = completedRecordsRef.current.get(requestKey);
-    if (finishedId) {
-      if (isCurrent()) { setArchiveId(finishedId); setSavedToCollection(true); setSaveError(false); }
-      return Promise.resolve(finishedId);
-    }
-    const running = recordRequestsRef.current.get(requestKey);
-    if (running) return running;
-    if (!isLoggedInNow()) return Promise.resolve(null);
-    if (isCurrent()) { setSavingRecord(true); setSaveError(false); }
-    const job = (async () => {
-      try {
-        const { report, result, copy } = next;
-        const response = await authFetch("/api/destiny-bias/cards", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            recordRequestId: requestId,
-            title: `${result.partner.displayName} × 나 = ${result.chemiTypeNameKo}`,
-            headline: copy.oneLiner,
-            summary: copy.points.map((point) => point.text).join(" "),
-            themeKey: next.recordThemeKey,
-            score: report.totalScore,
-            grade: report.grade,
-            reportText: [copy.oneLiner, ...copy.points.map((point) => `${point.label}\n${point.text}\n${point.evidenceKo}`), copy.scenario.text, copy.caution.text, copy.caution.evidenceKo, copy.finish.text, ...copy.notices].join("\n\n"),
-            canonical: {
-              version: "destiny-bias-record-v1",
-              viewModel: report.vm,
-              themeKey: next.recordThemeKey,
-              chemiTypeId: result.chemiTypeId,
-              partner: result.partner,
-              engineVersion: result.engineVersion,
-              rulesVersion: result.rulesVersion,
-              rosterVersion: result.rosterVersion,
-              copyVersion: copy.copyVersion,
-              signals: result.matchedSignalKeys,
-              minorMode: result.minorMode,
-              // The bridge strips raw birthdays and birthday-bearing SVGs. Store
-              // the complete report, not Outcome.partner (which contains birthDate).
-              chemiReport: report,
-            },
-          }),
-        });
-        if (response.status === 401 && sameRecordAndOwner()) {
-          setSavingRecord(false); setSaveError(true); setSavedToCollection(false); setLoggedIn(false);
-        }
-        const payload = await response.json();
-        if (!response.ok || !payload?.ok || typeof payload.item?.id !== "string" || !payload.item.id) throw new Error("RECORD_SAVE_FAILED");
-        const id = payload.item.id as string;
-        completedRecordsRef.current.set(requestKey, id);
-        if (isCurrent()) { setArchiveId(id); setSavedToCollection(true); setSaveError(false); }
-        return id;
-      } catch {
-        if (isCurrent()) setSaveError(true);
-        return null;
-      } finally {
-        recordRequestsRef.current.delete(requestKey);
-        if (isCurrent()) setSavingRecord(false);
-      }
-    })();
-    recordRequestsRef.current.set(requestKey, job);
-    return job;
-  }, []);
-
-  useEffect(() => {
-    if (outcome && loggedIn) void saveReading(outcome);
-  }, [authRevision, outcome, loggedIn, saveReading]);
-
   const groups = useMemo(() => listRosterGroups(), []);
   const groupNames = useMemo(() => groups.map((g) => g.nameKo), [groups]);
   const totalMembers = useMemo(() => groups.reduce((n, g) => n + g.memberCount, 0), [groups]);
@@ -479,14 +330,13 @@ export default function DestinyBiasClient() {
     (next: ChemiPartnerRecord) => {
       setPartner(next);
       setInfoError("");
-      clearRecordState();
       setShareStatus(null);
       setRecentPartners(pushRecentPartner({ kind: next.kind, id: next.id }));
       trackFunnelStep({ funnel: FUNNEL, step: "idol_selected", stepIndex: 2 });
       trackClick("destiny_bias_idol_selected", { partner_kind: next.kind, group_id: next.groupId || "preset" });
       setStep("info");
     },
-    [clearRecordState, trackClick, trackFunnelStep],
+    [trackClick, trackFunnelStep],
   );
 
   const compute = useCallback(
@@ -499,7 +349,6 @@ export default function DestinyBiasClient() {
         return;
       }
       setInfoError("");
-      clearRecordState();
       setShareStatus(null);
       const token = ++computingTokenRef.current;
       setStep("computing");
@@ -515,7 +364,7 @@ export default function DestinyBiasClient() {
           themeLabel: PHOTOCARD_THEMES.find((theme) => theme.key === themeKey)?.label,
           referenceDate: todayKst(),
         });
-        next = { report, result: report.result, copy: report.copy, partner: target, recordRequestId: crypto.randomUUID(), recordThemeKey: themeKey };
+        next = { report, result: report.result, copy: report.copy, partner: target };
       } catch (caught) {
         failure = engineErrorMessage(caught);
       }
@@ -529,7 +378,7 @@ export default function DestinyBiasClient() {
         setStep("info");
         return;
       }
-      publishOutcome(next);
+      setOutcome(next);
       setResultSeq((value) => value + 1);
       setStep("result");
       setRecentResults(
@@ -559,7 +408,7 @@ export default function DestinyBiasClient() {
         source,
       });
     },
-    [clearRecordState, from, moods, publishOutcome, reduceMotion, themeKey, trackClick, trackFunnelStep],
+    [from, moods, reduceMotion, themeKey, trackClick, trackFunnelStep],
   );
 
   /** 무드를 바꾸면 같은 입력으로 리포트만 다시 만든다(계산 화면·스크롤 이동 없음). */
@@ -577,13 +426,13 @@ export default function DestinyBiasClient() {
           themeLabel: PHOTOCARD_THEMES.find((theme) => theme.key === themeKey)?.label,
           referenceDate: todayKst(),
         });
-        publishOutcome({ report, result: report.result, copy: report.copy, partner: outcome.partner, recordRequestId: crypto.randomUUID(), recordThemeKey: themeKey });
+        setOutcome({ report, result: report.result, copy: report.copy, partner: outcome.partner });
         trackClick("destiny_bias_deco_mood", { kind: patch.biasMood ? "bias" : "relation" });
       } catch {
         // 재계산 실패 시 직전 결과를 그대로 둔다.
       }
     },
-    [info, moods, outcome, publishOutcome, themeKey, trackClick],
+    [info, moods, outcome, themeKey, trackClick],
   );
 
   const handleInfoSubmit = useCallback(() => {
@@ -620,12 +469,11 @@ export default function DestinyBiasClient() {
 
   const resetToPick = useCallback(() => {
     computingTokenRef.current += 1;
-    clearRecordState();
     setOutcome(null);
     setShareStatus(null);
     setStep("pick");
     trackClick("destiny_bias_pick_another");
-  }, [clearRecordState, trackClick]);
+  }, [trackClick]);
 
   const shareTitle = outcome ? `${outcome.partner.displayName} × 나 = ${outcome.result.chemiTypeNameKo}` : "최애운명";
 
@@ -660,52 +508,16 @@ export default function DestinyBiasClient() {
     }
   }, [shareRatio]);
 
-  /** 서버에 공개 요약을 만들고 공유 링크를 받는다. 본문은 서버가 재계산하므로 입력만 보낸다. */
-  const ensureShare = useCallback(async (): Promise<{ share: CreatedShare | null; rateLimited: boolean }> => {
-    if (!outcome) return { share: null, rateLimited: false };
-    const nickname = showNickname ? shareNickname.trim() : "";
-    const key = [outcome.partner.kind, outcome.partner.id, info.birthDateInput, info.calendarType, nickname].join("|");
-    if (shareCacheRef.current?.key === key) return { share: shareCacheRef.current.value, rateLimited: false };
-    try {
-      const apiBase = String(getApiBaseUrl() || "").trim();
-      const response = await fetch(`${apiBase}/api/destiny-bias/share`, {
-        method: "POST",
-        credentials: "omit",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          user: {
-            birthDate: toIsoDate(info.birthDateInput),
-            calendarType: info.calendarType,
-            isLeapMonth: info.calendarType === "lunar_leap",
-          },
-          partner: { kind: outcome.partner.kind, id: outcome.partner.id },
-          nickname,
-          showNickname: Boolean(nickname),
-          referenceDate: todayKst(),
-        }),
-      });
-      if (response.status === 429) return { share: null, rateLimited: true };
-      const payload = await response.json().catch(() => null);
-      if (!response.ok || !payload?.ok || typeof payload.shareUrl !== "string") return { share: null, rateLimited: false };
-      const value = { shareUrl: payload.shareUrl, ogUrl: String(payload.ogUrl || "") };
-      shareCacheRef.current = { key, value };
-      return { share: value, rateLimited: false };
-    } catch {
-      return { share: null, rateLimited: false };
-    }
-  }, [info, outcome, shareNickname, showNickname]);
-
   const handleShareCard = useCallback(async () => {
     if (!outcome || shareBusy) return;
     setShareBusy(true);
     setShareStatus({ tone: "info", text: "공유 카드를 준비하는 중…" });
     trackFunnelStep({ funnel: FUNNEL, step: "share_click", stepIndex: 5 });
     try {
-      const [{ share, rateLimited }, blob] = await Promise.all([ensureShare(), exportShareCardBlob()]);
-      // 공유 링크를 못 만들어도(오프라인·한도) 초대 링크로는 공유할 수 있게 둔다.
-      const urlFor = (channel: string) => (share ? withShareUtm(share.shareUrl, channel) : buildInviteUrl(outcome.partner, channel));
+      const blob = await exportShareCardBlob();
+      const urlFor = (channel: string) => buildInviteUrl(outcome.partner, channel);
       const text = `${outcome.copy.oneLiner} — 내 최애 ${outcome.partner.displayName}와 나는 「${outcome.result.chemiTypeNameKo}」`;
-      const ogImage = share?.ogUrl || `${window.location.origin}/images/destiny-bias/og-default-1200x630.png`;
+      const ogImage = `${window.location.origin}/images/destiny-bias/og-default-1200x630.png`;
 
       let status = "unavailable";
       let channel: "link" | "etc" | "kakao" = "link";
@@ -736,31 +548,21 @@ export default function DestinyBiasClient() {
       else if (status === "copied") {
         setShareStatus({
           tone: "ok",
-          text: rateLimited
-            ? "공유 요청이 잠시 많아 초대 링크를 복사했어요. 친구가 같은 최애와 케미를 볼 수 있어요."
-            : "공유 링크를 복사했어요. 원하는 곳에 붙여 넣어 주세요.",
+          text: "친구 초대 링크를 복사했어요. 원하는 곳에 붙여 넣어 주세요.",
         });
       } else if (status === "cancelled") setShareStatus(null);
       else setShareStatus({ tone: "warn", text: `복사가 막혀 있어요. 이 주소를 직접 보내 주세요: ${urlFor("copy")}` });
     } finally {
       setShareBusy(false);
     }
-  }, [ensureShare, exportShareCardBlob, outcome, shareBusy, shareTitle, trackFunnelStep, trackShare]);
+  }, [exportShareCardBlob, outcome, shareBusy, shareTitle, trackFunnelStep, trackShare]);
 
   const handleSaveImage = useCallback(async () => {
     if (!outcome || shareBusy) return;
     setShareBusy(true);
     setShareStatus({ tone: "info", text: "카드 이미지를 만드는 중…" });
     try {
-      let blob = await exportShareCardBlob(true);
-      if (!blob) {
-        // 폴백: 서버가 그린 1200×630 카드. 이때만 공유 스냅샷이 필요하다.
-        const { share } = await ensureShare();
-        if (share?.ogUrl) {
-          const response = await fetch(share.ogUrl, { credentials: "omit" });
-          if (response.ok) blob = await response.blob();
-        }
-      }
+      const blob = await exportShareCardBlob(true);
       if (!blob) throw new Error("IMAGE_EXPORT_EMPTY");
       await downloadBlob(blob, `chemi-${outcome.partner.id}-${outcome.result.chemiTypeId}-${shareRatio}.png`);
       trackShare({ feature: "destiny-bias-chemi", channel: "download" });
@@ -771,17 +573,16 @@ export default function DestinyBiasClient() {
     } finally {
       setShareBusy(false);
     }
-  }, [ensureShare, exportShareCardBlob, outcome, shareBusy, shareRatio, trackFunnelStep, trackShare]);
+  }, [exportShareCardBlob, outcome, shareBusy, shareRatio, trackFunnelStep, trackShare]);
 
-  /** X 글쓰기 창. 팝업 차단을 피하려고 창을 먼저 연 뒤 공유 링크가 준비되면 주소를 채운다. */
+  /** X 글쓰기 창에 생일 없는 친구 초대 링크를 넣는다. */
   const handleShareToX = useCallback(async () => {
     if (!outcome || shareBusy) return;
     const popup = window.open("about:blank", "_blank");
     if (popup) popup.opener = null;
     setShareBusy(true);
     try {
-      const { share } = await ensureShare();
-      const url = share ? withShareUtm(share.shareUrl, "x") : buildInviteUrl(outcome.partner, "x");
+      const url = buildInviteUrl(outcome.partner, "x");
       const text = `내 최애 ${outcome.partner.displayName}와 나는 「${outcome.result.chemiTypeNameKo}」 #최애운명`;
       const intent = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
       if (popup) popup.location.href = intent;
@@ -791,7 +592,7 @@ export default function DestinyBiasClient() {
     } finally {
       setShareBusy(false);
     }
-  }, [ensureShare, outcome, shareBusy, trackShare]);
+  }, [outcome, shareBusy, trackShare]);
 
   /** 인스타그램은 웹 공유 주소가 없어 카드 저장 + 링크 복사 후 스토리 업로드를 안내한다. */
   const handleShareToInstagram = useCallback(async () => {
@@ -799,9 +600,9 @@ export default function DestinyBiasClient() {
     setShareBusy(true);
     setShareStatus({ tone: "info", text: "인스타그램용 카드를 준비하는 중…" });
     try {
-      const [{ share }, blob] = await Promise.all([ensureShare(), exportShareCardBlob(true)]);
+      const blob = await exportShareCardBlob(true);
       if (blob) await downloadBlob(blob, `chemi-${outcome.partner.id}-${outcome.result.chemiTypeId}-${shareRatio}.png`);
-      const url = share ? withShareUtm(share.shareUrl, "instagram") : buildInviteUrl(outcome.partner, "instagram");
+      const url = buildInviteUrl(outcome.partner, "instagram");
       const copied = await shareThrough("copy", { title: shareTitle, text: "", url });
       trackShare({ feature: "destiny-bias-chemi", channel: "etc" });
       const saved = blob ? "카드를 저장" : "";
@@ -815,17 +616,7 @@ export default function DestinyBiasClient() {
     } finally {
       setShareBusy(false);
     }
-  }, [ensureShare, exportShareCardBlob, outcome, shareBusy, shareRatio, shareTitle, trackShare]);
-
-  const handleSaveCollection = useCallback(async () => {
-    if (!outcome || shareBusy || savedToCollection) return;
-    const next = outcome;
-    const owner = readArchiveOwner();
-    const id = await saveReading(next);
-    if (id && archiveMountedRef.current && activeRecordRef.current === next.recordRequestId && readArchiveOwner() === owner && isLoggedInNow()) {
-      trackClick("destiny_bias_collection_save", { chemi_type_id: next.result.chemiTypeId });
-    }
-  }, [outcome, saveReading, savedToCollection, shareBusy, trackClick]);
+  }, [exportShareCardBlob, outcome, shareBusy, shareRatio, shareTitle, trackShare]);
 
   const stickyLabel = step === "hook" ? "내 최애 고르기" : step === "info" ? "케미 계산하기" : "";
   const stickyAction = () => {
@@ -879,27 +670,15 @@ export default function DestinyBiasClient() {
                 trackClick("destiny_bias_deco_photo", { action: next ? "set" : "clear" });
               }}
             />
-            <div className="flex flex-wrap items-center gap-3" aria-live="polite">
-              {savingRecord ? <p>{archiveCopy.saving}</p> : archiveId ? (
-                <a className="inline-flex min-h-11 items-center rounded-xl border border-[var(--cd-border)] px-4" href={savedRecordPath("destiny-bias", archiveId)}>{archiveCopy.open}</a>
-              ) : saveError ? <>
-                <p>{archiveCopy.saveError}</p>
-                {loggedIn ? <button type="button" className="min-h-11 rounded-xl border border-[var(--cd-border)] px-4" onClick={() => void handleSaveCollection()}>{archiveCopy.save}</button> : <p>{archiveCopy.loginLead}</p>}
-              </> : null}
-              <a className="inline-flex min-h-11 items-center rounded-xl border border-[var(--cd-border)] px-4" href="/records/">{archiveCopy.title}</a>
-            </div>
             <ChemiShareBar
               busy={shareBusy}
               status={shareStatus}
-              canSaveCollection={loggedIn}
-              savedToCollection={savedToCollection}
               onShareCard={() => void handleShareCard()}
               onSaveImage={() => void handleSaveImage()}
               onInviteFriend={() => void handleInvite()}
               onShareToX={() => void handleShareToX()}
               onShareToInstagram={() => void handleShareToInstagram()}
               onPickAnother={resetToPick}
-              onSaveCollection={() => void handleSaveCollection()}
             />
             <ChemiShareCard
               ref={shareCanvasRef}

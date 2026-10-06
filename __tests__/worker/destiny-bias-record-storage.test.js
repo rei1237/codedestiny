@@ -1,34 +1,47 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
-let route, user, docs, upserts;
-const owner='64b7f2a1c3d4e5f601234567', other='64b7f2a1c3d4e5f601234568';
-beforeAll(async()=>{
-  const db=await import('../../worker/lib/db.js');
-  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{}}));
-  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({requireAuth:async()=>{
-    if(!user){const {createHttpError}=await import('../../worker/lib/http.js');throw createHttpError(401,'Login required');}
-    return {userId:user};
-  }}));
-  jest.unstable_mockModule('../../worker/lib/models.js',()=>({
-    AbuseScore:{},DestinyBiasShare:{},
-    User:{findById:()=>({select:()=>({lean:async()=>({_id:user})})})},
-    DestinyBiasCard:{findOneAndUpdate:(query,update)=>({lean:async()=>{
-      upserts.push(query);const key=String(query._id);if(!docs.has(key))docs.set(key,{_id:query._id,...update.$setOnInsert});return docs.get(key);
-    }}),create:async()=>{throw new Error('Non-idempotent write forbidden in fixture');}},
-  }));
-  ({handleDestinyBiasRoutes:route}=await import('../../worker/routes/destiny-bias.js'));
+let route;
+const database = jest.fn(() => { throw new Error('Free results must not access storage'); });
+const authenticate = jest.fn(() => { throw new Error('Retired storage needs no authentication'); });
+const findPublicShare = jest.fn();
+beforeAll(async () => {
+  const db = await import('../../worker/lib/db.js');
+  jest.unstable_mockModule('../../worker/lib/db.js', () => ({ ...db, connectDb: database }));
+  jest.unstable_mockModule('../../worker/lib/auth.js', () => ({ requireAuth: authenticate }));
+  const share = await import('../../worker/lib/destiny-bias-share.js');
+  jest.unstable_mockModule('../../worker/lib/destiny-bias-share.js', () => ({ ...share, findPublicDestinyBiasShare: findPublicShare }));
+  ({ handleDestinyBiasRoutes: route } = await import('../../worker/routes/destiny-bias.js'));
 });
-beforeEach(()=>{user=owner;docs=new Map();upserts=[];});
-const save=(id='fixture-save-key')=>route(new Request('https://fixture.invalid/api/destiny-bias/cards',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recordRequestId:id,title:'최애운명 카드',summary:'비식별 저장 예시',canonical:{version:'destiny-bias-record-v1',viewModel:{chemistrySummary:'비식별 결과'}}})}));
-test('same authenticated owner and save request store one result across retries',async()=>{
-  const first=await save(),second=await save();expect(first.status).toBe(201);expect(second.status).toBe(201);
-  expect((await first.json()).item.id).toBe((await second.json()).item.id);expect(docs.size).toBe(1);
-  expect(upserts[0].userId.toHexString()).toBe(owner);
+
+test('existing public share remains readable with its OG image URL', async () => {
+  const shareId = 'dbs_0123456789abcdef0123456789abcdef';
+  const snapshot = { shareId, result: { score: 88 } };
+  database.mockResolvedValueOnce(undefined);
+  findPublicShare.mockResolvedValueOnce(snapshot);
+  const response = await route(new Request('https://fixture.invalid/api/destiny-bias/share/' + shareId), {});
+  expect(response.status).toBe(200);
+  const body = await response.json();
+  expect(body).toMatchObject({ ok: true, snapshot });
+  const ogUrl = new URL(body.ogUrl);
+  expect(ogUrl.origin).toBe('https://fixture.invalid');
+  expect(ogUrl.pathname).toBe('/api/destiny-bias/share/' + shareId + '/og.png');
+  expect(ogUrl.searchParams.get('v')).toBeTruthy();
+  expect(database).toHaveBeenCalledTimes(1);
+  expect(findPublicShare).toHaveBeenCalledWith({ shareId });
+  expect(authenticate).not.toHaveBeenCalled();
 });
-test('owners never collide and anonymous saves cannot write',async()=>{
-  await save();user=other;await save();expect(docs.size).toBe(2);
-  user='';expect((await save()).status).toBe(401);expect(docs.size).toBe(2);
+beforeEach(() => { database.mockClear(); authenticate.mockClear(); });
+test.each(['cards', 'share'])('%s creation is retired before auth, parsing or database writes', async path => {
+  const response = await route(new Request('https://fixture.invalid/api/destiny-bias/' + path, { method: 'POST', body: 'invalid JSON' }), {});
+  expect(response.status).toBe(410);
+  expect(await response.json()).toMatchObject({ ok: false, error: 'FREE_RESULT_STORAGE_DISABLED' });
+  expect(database).not.toHaveBeenCalled();
+  expect(authenticate).not.toHaveBeenCalled();
 });
-test('invalid retry identifiers cannot create a record',async()=>{
-  expect((await save('invalid/key')).status).toBe(400);expect(docs.size).toBe(0);
+test('legacy collection listing returns no free cards and no storage access', async () => {
+  const response = await route(new Request('https://fixture.invalid/api/destiny-bias/cards'), {});
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({ items: [], pagination: { total: 0 }, gates: { canSaveCollection: false } });
+  expect(database).not.toHaveBeenCalled();
+  expect(authenticate).not.toHaveBeenCalled();
 });

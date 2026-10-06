@@ -15,6 +15,7 @@ function matches(doc, filter) {
       return Object.entries(test).every(([op, value]) => {
         if (op === '$exists') return (actual !== undefined) === value;
         if (op === '$in') return value.some(item => comparable(item) === comparable(actual));
+        if (op === '$nin') return !value.some(item => comparable(item) === comparable(actual));
         if (op === '$ne') return comparable(actual) !== comparable(value);
         if (op === '$lte') return comparable(actual) <= comparable(value);
         if (op === '$lt') return comparable(actual) < comparable(value);
@@ -96,13 +97,14 @@ test('coverage: every owned consultation model and raw result store is registere
   const {RECORD_SERVICES}=await import('../../lib/records/service-registry.js');
   expect(new Set(RECORD_SERVICES.map(source=>source.id)).size).toBe(RECORD_SERVICES.length);
   const required=['NewYearAiConsultation','KarmaDestinyAiConsultation','ZiweiAiConsultation','ZiweiDeepReport','LoveSecretAiConsultation','MasterLoveCodexSession','LifeBookAiConsultation','SukuyoCompatibilityAiConsultation','VedicAiConsultation','AstrologyAiConsultation','NeoOperationRoomConsultation','NakshatraAiConsultation','HumanDesignCalculation','HumanDesignInterpretation','HumanDesignReport','DestinyCompassReport','RelationshipBoundaryTest','FortuneChatSession','FusionFortuneConsultation','ServiceExecutionTransaction','PaidExecutionRecord','Payment'];
-  required.push('DestinyBiasCard');
+  const excludedFreeModels=['DestinyBiasCard'];
+  expect(RECORD_SERVICES.some(source=>source.model==='DestinyBiasCard')).toBe(false);
   expect(new Set(RECORD_SERVICES.filter(source=>source.model).map(source=>source.model))).toEqual(new Set(required));
   expect(RECORD_SERVICES.filter(source=>source.collection).map(source=>source.collection)).toEqual(expect.arrayContaining(['fortune_tea_house_results','yeongnyangi_requests']));
   // Newly added result-bearing schemas must make this contract fail until classified.
   const schemas=readFileSync(new URL('../../worker/lib/models.js',import.meta.url),'utf8');
   const exported=[...schemas.matchAll(/export const (\w*(?:Consultation|Report|Calculation|Interpretation|CodexSession))\s*= scopedModel/g)].map(match=>match[1]);
-  for(const model of exported)expect(required).toContain(model);
+  for(const model of exported)expect([...required,...excludedFreeModels]).toContain(model);
 });
 test('list and detail enforce ownership on the server, including legacy String/ObjectId owner types',async()=>{
   stores.neoOperationRoomConsultations=[seed('1','01'),seed('2','02',{userId:new mongoose.Types.ObjectId(owner)}),seed('3','03',{userId:foreign})];
@@ -223,4 +225,17 @@ test('every shared product retains its display identity and complete saved body'
     expect(detail.content.report.chapters).toEqual(chapters);
     expect(detail.content.report.chapters[6].body).toBe('저장된 본문 7');
   }
+});
+
+
+test('free results are absent from lists and direct detail URLs while paid results remain readable',async()=>{
+  stores.destinyBiasCards=[seed('1','01')];
+  stores.humanDesignCalculations=[seed('2','02',{accessType:'free'}),seed('3','03',{accessType:'paid'})];
+  stores.serviceexecutiontransactions=[seed('4','04',{executionKey:'free',featureKey:'destiny-bias-analyze',metadata:{archive:{title:'무료'}}}),seed('5','05',{executionKey:'paid',featureKey:'tarot-prompt-maker',metadata:{archive:{title:'유료'}}}),seed('6','06',{executionKey:'trial',featureKey:'tarot-prompt-maker',accessType:'free_trial',metadata:{archive:{title:'체험'}}})];
+  stores.paid_execution_records=[seed('7','06',{featureId:'free-unknown',result:{report:'무료'}}),seed('8','06',{featureId:'tarot-prompt-maker',result:{report:'유료'}})];
+  const listed=await library.listRecords(owner,new URLSearchParams());
+  expect(listed.items.map(row=>row.id)).toEqual(['000000000000000000000008','paid','record-3']);
+  for(const [source,id] of [['destiny-bias','000000000000000000000001'],['human-design-chart','record-2'],['executions','free'],['executions','trial'],['paid-results','000000000000000000000007']])expect((await route(request('/detail?'+new URLSearchParams({source,id})))).status).toBe(404);
+  expect((await route(request('/detail?source=human-design-chart&id=record-3'))).status).toBe(200);
+  expect((await route(request('/detail?source=executions&id=paid'))).status).toBe(200);
 });

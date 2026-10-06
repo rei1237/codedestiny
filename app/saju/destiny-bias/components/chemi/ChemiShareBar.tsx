@@ -7,30 +7,24 @@ export type ShareBarStatus = { tone: "info" | "ok" | "warn"; text: string } | nu
 type Props = {
   busy: boolean;
   status: ShareBarStatus;
-  canSaveCollection: boolean;
-  savedToCollection: boolean;
   onShareCard: () => void;
   onSaveImage: () => void;
   onInviteFriend: () => void;
   onShareToX: () => void;
   onShareToInstagram: () => void;
   onPickAnother: () => void;
-  onSaveCollection: () => void;
 };
 
-/** 결과 하단 액션. 공유·저장·초대·재시도 4버튼 + (로그인) 컬렉션 저장. */
+/** 결과 하단 액션. 공유·저장·초대·재시도 4버튼. */
 export default function ChemiShareBar({
   busy,
   status,
-  canSaveCollection,
-  savedToCollection,
   onShareCard,
   onSaveImage,
   onInviteFriend,
   onShareToX,
   onShareToInstagram,
   onPickAnother,
-  onSaveCollection,
 }: Props) {
   return (
     <div className={styles.shareBar}>
@@ -59,13 +53,7 @@ export default function ChemiShareBar({
           </button>
         </div>
       </details>
-      {canSaveCollection ? (
-        <button type="button" className={styles.linkButton} onClick={onSaveCollection} disabled={busy || savedToCollection}>
-          {savedToCollection ? "내 컬렉션에 저장됨 ✓" : "내 컬렉션에 저장 (생일 제외)"}
-        </button>
-      ) : (
-        <p className={styles.helpText}>로그인하면 결과를 컬렉션에 저장해 다른 기기에서도 볼 수 있어요. 결과 보기와 공유는 로그인 없이 가능해요.</p>
-      )}
+      <p className={styles.helpText}>무료 결과는 서버에 보관하지 않아요. 필요한 카드는 이미지로 저장해 주세요.</p>
       <p className={styles.shareStatus} role="status" aria-live="polite" data-tone={status?.tone || ""}>
         {status?.text || ""}
       </p>

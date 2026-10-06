@@ -1,96 +1,25 @@
 import { requireAuth } from "../lib/auth.js";
 import { connectDb, mongoose } from "../lib/db.js";
 import {
-  createHttpError,
   getRoutePath,
   handleRouteError,
   json,
   methodNotAllowed,
   notFound,
-  readJson,
 } from "../lib/http.js";
-import { DestinyBiasCard, User } from "../lib/models.js";
-import { createHash } from 'node:crypto';
-import { incrementRateLimit } from "../lib/rate-limit.js";
+import { DestinyBiasCard } from "../lib/models.js";
 import { getSiteBaseUrl } from "../lib/og-card.js";
 import {
   DESTINY_BIAS_OG_FALLBACK_PATH,
   DESTINY_BIAS_SHARE_LANDING_PATH,
-  DESTINY_BIAS_SHARE_RATE_LIMIT_WINDOW_MS,
-  DestinyBiasShareError,
   buildDestinyBiasOgImageUrl,
   buildDestinyBiasShareLandingUrl,
   buildDestinyBiasShareUrl,
   buildDestinyBiasSharePreviewHtml,
-  createDestinyBiasShare,
-  destinyBiasShareRateLimitSubject,
-  destinyBiasShareRateLimitVerdict,
   findPublicDestinyBiasShare,
   isValidDestinyBiasShareId,
   resolveShareOrigin,
 } from "../lib/destiny-bias-share.js";
-
-const FEATURE_KEYS = Object.freeze({
-  analyze: "destiny-bias-analyze",
-  premiumTheme: "destiny-bias-theme-premium",
-  collectionSave: "destiny-bias-collection-save",
-  deepProfile: "destiny-bias-deep-profile",
-});
-
-function normalizeText(value, maxLen = 1200) {
-  return String(value || "").trim().slice(0, maxLen);
-}
-
-function parsePositiveInt(value, fallback, min, max) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return fallback;
-  return Math.max(min, Math.min(max, Math.floor(n)));
-}
-
-function normalizeThemeKey(value) {
-  const key = normalizeText(value, 40).toLowerCase();
-  return key || "moonlight_neon";
-}
-
-function serializeCard(item) {
-  return {
-    id: String(item?._id || ""),
-    userId: String(item?.userId || ""),
-    title: normalizeText(item?.title, 160),
-    headline: normalizeText(item?.headline, 240),
-    summary: normalizeText(item?.summary, 1200),
-    themeKey: normalizeThemeKey(item?.themeKey),
-    score: Math.max(0, Math.min(100, Number(item?.score || 0))),
-    grade: normalizeText(item?.grade, 8),
-    reportText: String(item?.reportText || ""),
-    canonical: item?.canonical || null,
-    sharePayload: item?.sharePayload || null,
-    createdAt: item?.createdAt || null,
-    updatedAt: item?.updatedAt || null,
-  };
-}
-
-function parseCardsQuery(request) {
-  const url = new URL(request.url);
-  return {
-    page: parsePositiveInt(url.searchParams.get("page"), 1, 1, 100000),
-    limit: parsePositiveInt(url.searchParams.get("limit"), 12, 1, 60),
-  };
-}
-
-function buildGateState(auth, user) {
-  // 최애운명은 전면 무료 기능이라 프리미엄 테마도 항상 열려 있다.
-  const canUsePremiumTheme = true;
-  const canSaveCollection = Boolean(auth);
-  return {
-    isLoggedIn: Boolean(auth),
-    points: Number.isFinite(Number(user?.points)) ? Number(user.points) : 0,
-    profileTier: String(user?.profileSubscription?.tier || "free"),
-    canUsePremiumTheme,
-    canSaveCollection,
-    featureKeys: FEATURE_KEYS,
-  };
-}
 
 function escapeXml(value) {
   return String(value || "")
@@ -176,75 +105,6 @@ function handleOgImage(request) {
   });
 }
 
-async function handleCreateCard(request, env) {
-  const auth = await requireAuth(request, env);
-  await connectDb(env);
-
-  const [user, body] = await Promise.all([
-    User.findById(auth.userId).select("_id").lean(),
-    readJson(request),
-  ]);
-
-  if (!user) throw createHttpError(401, "로그인이 필요합니다.", { code: "UNAUTHORIZED" });
-
-  // 최애운명은 전면 무료 기능이라 컬렉션 저장 개수 제한도 두지 않는다.
-
-  const payload = {
-    userId: new mongoose.Types.ObjectId(auth.userId),
-    title: normalizeText(body?.title, 160) || "최애운명 카드",
-    headline: normalizeText(body?.headline, 240),
-    summary: normalizeText(body?.summary, 1200),
-    themeKey: normalizeThemeKey(body?.themeKey),
-    score: Math.max(0, Math.min(100, Number(body?.score || 0))),
-    grade: normalizeText(body?.grade, 8),
-    reportText: String(body?.reportText || "").slice(0, 30000),
-    canonical: body?.canonical && typeof body.canonical === "object" ? body.canonical : null,
-    sharePayload: body?.sharePayload && typeof body.sharePayload === "object" ? body.sharePayload : null,
-    source: "destiny-bias-api",
-  };
-
-  if (!payload.reportText && !payload.summary) {
-    throw createHttpError(400, "저장할 카드 내용이 비어 있습니다.", { code: "INVALID_CARD_PAYLOAD" });
-  }
-
-  const requestId = String(body?.recordRequestId || '');
-  if (requestId && !/^[a-zA-Z0-9_-]{8,100}$/.test(requestId)) throw createHttpError(400, '저장 요청을 확인해 주세요.', { code: 'INVALID_RECORD_REQUEST' });
-  // Default _id uniqueness makes the same owner's save request repeatable.
-  // Clients predating recordRequestId retain their existing save contract.
-  const created = requestId ? await DestinyBiasCard.findOneAndUpdate({
-    _id: new mongoose.Types.ObjectId(createHash('sha256').update(`${auth.userId}:${requestId}`).digest('hex').slice(0,24)), userId: payload.userId,
-  }, { $setOnInsert: payload }, { upsert: true, new: true }).lean() : await DestinyBiasCard.create(payload);
-  return json({ ok: true, item: serializeCard(created) }, { status: 201 });
-}
-
-async function handleListCards(request, env) {
-  const auth = await requireAuth(request, env);
-  await connectDb(env);
-  const { page, limit } = parseCardsQuery(request);
-
-  const [items, total, user] = await Promise.all([
-    DestinyBiasCard.find({ userId: auth.userId })
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean(),
-    DestinyBiasCard.countDocuments({ userId: auth.userId }),
-    User.findById(auth.userId).select("profileSubscription points").lean(),
-  ]);
-
-  return json({
-    ok: true,
-    items: items.map((item) => serializeCard(item)),
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.max(1, Math.ceil(total / limit)),
-    },
-    gates: buildGateState(auth, user),
-  });
-}
-
 async function handleDeleteCard(path, request, env) {
   const auth = await requireAuth(request, env);
   await connectDb(env);
@@ -264,55 +124,8 @@ async function handleDeleteCard(path, request, env) {
 
 /* ---------------- 최애운명(K-POP 케미) 공유 스냅샷 — 게스트 허용 ---------------- */
 
-async function sha256Hex(text) {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(text)));
-  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-function shareErrorResponse(error) {
-  return json({ ok: false, error: error.code, message: error.message }, { status: error.status || 400 });
-}
-
 function buildShareOgUrl(request, shareId) {
   return buildDestinyBiasOgImageUrl({ shareId, origin: new URL(request.url).origin });
-}
-
-// 순서: 레이트리밋 → 본문 → 서버 재계산·저장(result-share 라우트와 동일. 본문 파싱 전에 유량을 막는다).
-async function handleCreateShare(request, env) {
-  await connectDb(env);
-  const subject = destinyBiasShareRateLimitSubject(request);
-  const limit = await incrementRateLimit({
-    subjectHash: await sha256Hex(`destiny-bias-share:${subject}`),
-    endpoint: "destiny_bias_share_create",
-    windowMs: DESTINY_BIAS_SHARE_RATE_LIMIT_WINDOW_MS,
-    env,
-  });
-  const verdict = destinyBiasShareRateLimitVerdict({ count: limit.count, resetAt: limit.resetAt });
-  if (verdict) {
-    return json(
-      { ok: false, error: verdict.error, message: verdict.message, retryAfterSeconds: verdict.retryAfterSeconds },
-      { status: 429, headers: { "Retry-After": String(verdict.retryAfterSeconds) } },
-    );
-  }
-
-  const body = await readJson(request);
-  try {
-    const created = await createDestinyBiasShare({ input: body, requestUrl: request.url, env });
-    return json(
-      {
-        ok: true,
-        shareId: created.snapshot.shareId,
-        shareUrl: created.shareUrl,
-        ogUrl: buildShareOgUrl(request, created.snapshot.shareId),
-        snapshot: created.snapshot,
-        reused: created.reused,
-      },
-      { status: created.reused ? 200 : 201 },
-    );
-  } catch (error) {
-    if (error instanceof DestinyBiasShareError) return shareErrorResponse(error);
-    throw error;
-  }
 }
 
 async function handleGetShare(shareId, request, env) {
@@ -391,6 +204,10 @@ async function handleShareOgImage(shareId, request, env) {
   }
 }
 
+function freeStorageDisabled() {
+  return json({ ok: false, error: "FREE_RESULT_STORAGE_DISABLED", message: "무료 결과는 서버에 저장하지 않아요. 이미지는 기기에 저장해 주세요." }, { status: 410, headers: { "Cache-Control": "no-store" } });
+}
+
 export async function handleDestinyBiasRoutes(request, env) {
   try {
     const method = String(request.method || "GET").toUpperCase();
@@ -401,7 +218,7 @@ export async function handleDestinyBiasRoutes(request, env) {
     }
 
     if (method === "POST" && path === "/share") {
-      return await handleCreateShare(request, env);
+      return freeStorageDisabled();
     }
 
     if ((method === "GET" || method === "HEAD") && path === "/s") {
@@ -419,11 +236,11 @@ export async function handleDestinyBiasRoutes(request, env) {
     }
 
     if (method === "POST" && path === "/cards") {
-      return await handleCreateCard(request, env);
+      return freeStorageDisabled();
     }
 
     if (method === "GET" && path === "/cards") {
-      return await handleListCards(request, env);
+      return json({ ok: true, items: [], pagination: { page: 1, limit: 12, total: 0, totalPages: 1 }, gates: { canSaveCollection: false, canUsePremiumTheme: true } }, { headers: { "Cache-Control": "no-store" } });
     }
 
     if (method === "DELETE" && /^\/cards\/[^/]+$/.test(path)) {
@@ -433,9 +250,7 @@ export async function handleDestinyBiasRoutes(request, env) {
     if (["GET", "POST", "PATCH", "PUT", "DELETE"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
-    // exposeMessage 를 켜지 않는다 — 이 라우트가 던지는 것은 전부 createHttpError 라
-    // handleRouteError 의 HttpError 분기가 저자 메시지를 그대로 돌려준다(플래그와 무관).
-    // 플래그가 실제로 여는 것은 예상 밖 오류의 원문뿐이고, 거기엔 Mongo 토폴로지가 섞인다.
+    // 예상 밖 DB 오류의 원문은 응답에 노출하지 않는다.
     return handleRouteError(error, {
       request,
       env,

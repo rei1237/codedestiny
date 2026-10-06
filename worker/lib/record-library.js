@@ -4,6 +4,7 @@ import { scopeConnection } from './db-scope-connection.js';
 import { RECORD_SERVICES, SAVED_FEATURES, savedRecordPath } from '../../lib/records/service-registry.js';
 import { resolveReviewProductByFeatureKey } from './review-product-catalog.js';
 import { isStoredPaidResultRevoked } from './paid-result-revocation.js';
+import { listServerPricedFeatureKeys, normalizePaidFeatureKey, getPaidFeatureBillingType } from './paid-feature-registry.js';
 import { createHttpError } from './http.js';
 import { getMasterLoveCodexPlan } from './master-love-codex-prompt.mjs';
 import { getMasterLoveCodexCompatPlan } from './master-love-codex-compat-prompt.mjs';
@@ -74,7 +75,19 @@ function collectionFor(source) {
   const db = (scopeConnection() || mongoose.connection).db;
   return db.collection(source.collection || models[source.model].collection.collectionName);
 }
+const paidRecordFeatureKeys = [...new Set([...listServerPricedFeatureKeys(), ...Object.keys(SAVED_FEATURES)])].filter(key => {
+  const normalized = normalizePaidFeatureKey(key);
+  return getPaidFeatureBillingType(key) && normalized !== 'human-design-chart' && !normalized.startsWith('destiny-bias-');
+});
+
 export function sourceCondition(source) {
+  return { $and: [resultCondition(source),
+    { accessType: { $nin: ['free', 'free_trial'] }, accessSource: { $nin: ['free', 'free_trial'] } },
+    ...(source.dynamic ? [{ [source.id === 'executions' ? 'featureKey' : 'featureId']: { $in: paidRecordFeatureKeys } }] : []),
+  ] };
+}
+
+function resultCondition(source) {
   if (source.id === 'chat') return { 'messages.0': { $exists: true } };
   if (source.where) return source.where;
   if (source.id === 'executions') return { reportType: { $ne: 'expertFollowUp' }, $or: [
