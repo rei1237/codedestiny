@@ -16,6 +16,7 @@ import {
   AFFIRMATION_CATEGORIES,
   getDailyLockScreenContent,
   getDailyLockScreenSequence,
+  getPublicLockScreenPools,
   getKstDateKey,
   type LockScreenCard,
   type LockScreenContent,
@@ -982,7 +983,10 @@ export default function LockScreenFortuneClient() {
   useEffect(() => {
     if (!state || !content) return;
     const snapshot = {
-      locale, dateKey: content.dateKey, version: 2,
+      locale, dateKey: content.dateKey, version: 3,
+      publicPools: locale === "ko" ? getPublicLockScreenPools(state.prefs.affirmationCats) : {
+        quote: [`${extra.ownLine} — ${extra.ownAuthor}`], affirmation: [extra.ownAffirmation],
+      },
       quote: { title: extra.quote, text: locale === "ko" ? `${content.quote.text} — ${content.quote.author}` : `${extra.ownLine} — ${extra.ownAuthor}` },
       affirmation: { title: extra.affirmation, text: locale === "ko" ? content.affirmation : extra.ownAffirmation },
       daily: { title: extra.daily, text: extra.privateSummary }, privateSummary: extra.privateSummary,

@@ -82,10 +82,18 @@ final class LockScreenNotify {
             if (card == null) return false;
             SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
             String localDate = date.format(now.getTime());
-            String key = localDate + "|" + TimeZone.getDefault().getID() + "|" + snapshot.optString("locale") + "|" + kind;
+            String key = localDate + "|" + TimeZone.getDefault().getID() + "|" + snapshot.optString("locale") + "|" + snapshot.optInt("version", 2) + "|" + kind;
             if (!test && key.equals(prefs.getString("posted_" + id, ""))) return false;
             String title = card.optString("title", "CODE DESTINY");
             String text = card.optString("text");
+            JSONObject pools = snapshot.optJSONObject("publicPools");
+            if (!"daily".equals(kind) && pools != null) {
+                org.json.JSONArray pool = pools.optJSONArray(kind);
+                if (pool != null && pool.length() > 0) {
+                    int index = LockScreenPolicy.contentIndex(now.getTimeInMillis(), pool.length(), "quote".equals(kind) ? 5 : 7);
+                    text = pool.optString(index, text);
+                }
+            }
             if (text.isEmpty()) return false;
             // Daily is always a generic invitation. It must never contain cached personal fortune.
             if ("daily".equals(kind)) text = snapshot.optString("privateSummary", "CODE DESTINY");

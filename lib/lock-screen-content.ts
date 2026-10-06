@@ -803,14 +803,27 @@ function pick<T>(pool: readonly T[], dayNumber: number, offset: number): T {
 }
 
 // 선택된 확언 분야(cats)가 있으면 그 분야만, 없으면 전체(core 포함)에서 결정론적으로 하나 고른다.
-function pickAffirmation(dayNumber: number, cats?: readonly string[]): string {
+function affirmationPool(cats?: readonly string[]): readonly LockScreenAffirmation[] {
   let pool: readonly LockScreenAffirmation[] = AFFIRMATIONS;
   if (cats && cats.length > 0) {
     const wanted = new Set(cats);
     const filtered = AFFIRMATIONS.filter((a) => wanted.has(a.cat));
     if (filtered.length > 0) pool = filtered;
   }
-  return pick(pool, dayNumber, 7).text;
+  return pool;
+}
+
+function pickAffirmation(dayNumber: number, cats?: readonly string[]): string {
+  return pick(affirmationPool(cats), dayNumber, 7).text;
+}
+
+// Only public CMS phrases, never profile data or personal fortune results.
+// Native reminders use these same pools/offsets without a network or LLM request.
+export function getPublicLockScreenPools(cats?: readonly string[]) {
+  return {
+    quote: QUOTES.map(item => `${item.text} — ${item.author}`),
+    affirmation: affirmationPool(cats).map(item => item.text),
+  };
 }
 
 // 오늘(또는 주어진 날짜)의 잠금화면 콘텐츠 세트를 결정론적으로 반환한다.

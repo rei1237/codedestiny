@@ -32,7 +32,7 @@ const origin=`http://127.0.0.1:${server.address().port}`;
 const browser=await chromium.launch({channel:'chromium',headless:true,args:['--disable-background-networking']});
 const evidence=[];
 try{
- for(const locale of ['ko','en','ja','zh-CN']){
+ for(const locale of ['ko','en','ja','zh-CN','zh-TW','vi','hi','es','fr','de','nl','ms']){
   const context=await browser.newContext({viewport:{width:390,height:844},locale});
   await context.route('**/*',route=>route.request().url().startsWith(origin)?route.continue():route.abort());
   await context.addInitScript(({locale})=>{window.TEST_LOCALE=locale;window.Capacitor={isNativePlatform:()=>true,Plugins:{CodeDestinyLockScreen:{getState:async()=>({enabled:false,value:'',notificationsAllowed:false}),setState:async()=>{},setPublicContent:async()=>{},setEnabled:async()=>{},scheduleAlarms:async()=>{},testNotification:async()=>({posted:false}),openNotificationSettings:async()=>{}}}};},{locale});

@@ -126,7 +126,7 @@ public class CodeDestinyLockScreenPlugin extends Plugin {
     @PluginMethod
     public void setPublicContent(PluginCall call) {
         String value = call.getString("value", "{}");
-        if (value.length() > 12000) { call.reject("CONTENT_TOO_LARGE"); return; }
+        if (value.length() > 100000) { call.reject("CONTENT_TOO_LARGE"); return; }
         try { new org.json.JSONObject(value); }
         catch (org.json.JSONException e) { call.reject("INVALID_CONTENT"); return; }
         prefs().edit().putString(LockScreenNotify.SNAPSHOT, value).apply();
