@@ -26,6 +26,13 @@
  * 라벨은 lib/seo-landing-pages.js 의 ctaLabel 보이스를 따른다.
  */
 export const GUIDE_CTA_TARGETS = {
+  "/saju/destiny-anatomy": {
+    from: "destiny-anatomy-guide", kicker: "내 사주부터 살펴보기",
+    heading: "내 명식과 오행을 먼저 확인해 보세요",
+    body: "운명 구조도 공개 전에도 기본 사주에서 나의 네 기둥과 오행을 확인할 수 있어요.",
+    primary: {href: "/saju", label: "기본 사주 보기", note: "생년월일과 출생 시각 입력"},
+    secondary: [{href: "/saju/guide", label: "사주 이용 안내"}],
+  },
   "/saju/guide": {
     from: "saju-guide",
     kicker: "바로 해보기",

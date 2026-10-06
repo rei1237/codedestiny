@@ -145,7 +145,7 @@ test('placeholder 금지: 알 수 없는 HD 타입·권위나 빈 베다는 avai
 
 test('베다 있음: 라그나·달·나크샤트라를 정본 이름으로 읽고 성향 키를 만든다', () => {
   const v = plain(E.adaptVedicBasis(basis('사자자리 (Leo)', '게자리', 'Pushya · 2파다')));
-  assert.deepEqual(v, {available: true, lagna: 'Leo', moonSign: 'Cancer', sixthLord: 'Saturn', nakshatra: 'Pushya',
+  assert.deepEqual(v, {available: true, lagna: 'Leo', moonSign: 'Cancer', sixthSign: 'Capricorn', sixthLord: 'Saturn', nakshatra: 'Pushya',
     traits: [{kind: 'emotion', key: 'water'}, {kind: 'instinct', key: 'Saturn'}, {kind: 'frame', key: 'fire'}]});
   const noLagna = plain(E.adaptVedicBasis(basis('출생시간 미상으로 확정하지 않음', '양자리', 'Ashwini')));
   assert.equal(noLagna.lagna, '');

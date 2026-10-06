@@ -18,6 +18,9 @@
   // 서버 narrate 예산(24초)보다 길게 — 서버가 결정론으로 답할 시간을 준다.
   var NARRATE_TIMEOUT_MS = 32000;
   var NARRATE_URL = '/api/destiny-anatomy/narrate';
+  // 문장은 copy.js 정적 문구가 정본이다(10-06 결정: LLM 최소). false 면 narrate 요청을 아예 보내지 않는다.
+  // 켜려면 이 상수와 워커 ENABLE_DESTINY_ANATOMY_REAL_LLM 둘 다 바꾸고, 실호출은 별도 1회 승인을 받는다.
+  var NARRATE_ENABLED = false;
   var FALLBACK_UI = {
     ko: {error: '운명 구조도를 불러오지 못했어요', retry: '다시 불러오기'},
     en: {error: 'We could not load your Destiny Anatomy', retry: 'Try again'}
@@ -82,7 +85,7 @@
   }
 
   var api = {isEnabled: isEnabled, PRODUCTION_ENABLED: PRODUCTION_ENABLED, pickVariant: pickVariant, birthRequest: birthRequest,
-    narrateBase: narrateBase, acceptNarration: acceptNarration, mergeNarration: mergeNarration};
+    narrateBase: narrateBase, acceptNarration: acceptNarration, mergeNarration: mergeNarration, NARRATE_ENABLED: NARRATE_ENABLED};
   root.DestinyAnatomyBoot = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 
@@ -99,7 +102,7 @@
   var lit = {};
   var fired = {};
   var observer = null;
-  var state = {variant: 'A', open: false, thoughtsOpen: false, view: 'hd', copied: false};
+  var state = {variant: 'A', open: false, thoughtsOpen: false, view: 'hd', copied: false, askStatus: '', askView: false};
 
   function lang() {
     try { if (typeof root._sajuEngineCurrentLang === 'function') return root._sajuEngineCurrentLang(); } catch (e) { /* 셸 언어 판정 실패 */ }
@@ -158,16 +161,40 @@
   }
 
   function paint() {
+    var focus = doc.activeElement;
+    var focusView = focus && card.contains(focus) ? focus.getAttribute("data-da-view") : null;
     var openEngines = [];
     var prev = card.querySelectorAll('details[data-da-engine][open]');
     for (var i = 0; i < prev.length; i++) openEngines.push(prev[i].getAttribute('data-da-engine'));
     root.DestinyAnatomyRender.render(card, model, {variant: state.variant, open: state.open, thoughtsOpen: state.thoughtsOpen,
-      view: state.view, layer: layerState(), copied: state.copied});
+      view: state.view, layer: layerState(), copied: state.copied, askStatus: state.askStatus, askView: state.askView});
     openEngines.forEach(function (axis) {
       var d = card.querySelector('details[data-da-engine="' + axis + '"]');
       if (d) d.open = true;
     });
+    if (focusView) { var focusButton = card.querySelector('[data-da-view="' + focusView + '"]'); if (focusButton) focusButton.focus({preventScroll: true}); }
     observeSections();
+    fitMeme();
+  }
+
+  /* 밈 뇌구조 칸 글자가 넘치면 render.fitMeme 이 단계를 낮춘다. 폭이 바뀌거나 글꼴이 늦게 붙으면 다시 잰다. */
+  var memeWatch = null;
+  function fitMeme() {
+    var R = root.DestinyAnatomyRender;
+    if (!R || typeof R.fitMeme !== 'function') return;
+    try { R.fitMeme(card); } catch (e) { /* 맞춤 실패는 그림만 그대로 둔다 */ }
+    if (memeWatch) return;
+    memeWatch = true;
+    if (typeof root.ResizeObserver === 'function') {
+      var lastW = 0;
+      new root.ResizeObserver(function (entries) {
+        var w = Math.round(entries[0].contentRect.width);
+        if (w !== lastW) { lastW = w; try { R.fitMeme(card); } catch (e) { /* 무시 */ } }
+      }).observe(card);
+    }
+    if (doc.fonts && doc.fonts.ready && typeof doc.fonts.ready.then === 'function') {
+      doc.fonts.ready.then(function () { try { R.fitMeme(card); } catch (e) { /* 무시 */ } });
+    }
   }
 
   function showError() {
@@ -247,7 +274,7 @@
     if (hit && typeof hit === 'object') mergeNarration(model, hit);
   }
   function narrate() {
-    if (!state.open || !model || model.narrated || typeof root.fetch !== 'function') return;
+    if (!NARRATE_ENABLED || !state.open || !model || model.narrated || typeof root.fetch !== 'function') return;
     var nb = narrateBase(model);
     if (!nb || narrations[nb.key]) return;
     narrations[nb.key] = 'pending';
@@ -365,19 +392,78 @@
     if (method === 'copy') { copyLink(); return; }
     var SC = root.DestinyAnatomyShareCard;
     if (SC && typeof SC.share === 'function') {
-      Promise.resolve(SC.share(model, {mode: method, url: shareUrl(), lang: model.locale})).then(function (ok) {
-        if (ok) cdTrack('destiny_anatomy_share_success', {method: method});
-      }, function () { copyLink(); });
+      Promise.resolve(SC.share(model, {mode: method, url: shareUrl(), lang: model.locale})).then(function (result) {
+        var status = result && result.status;
+        if (status === 'shared' || status === 'saved') {
+          cdTrack('destiny_anatomy_share_success', {method: status === 'saved' ? 'save' : method});
+          setShareStatus(model.text.recovery[status]);
+        } else if (status === 'cancelled') setShareStatus(model.text.recovery.cancelled);
+      }, function () { setShareStatus(model.text.recovery.failed); });
       return;
     }
     var nav = root.navigator;
     if (method === 'share' && nav && typeof nav.share === 'function') {
       nav.share({title: model.text.ui.title, text: model.share.headline, url: shareUrl()}).then(function () {
         cdTrack('destiny_anatomy_share_success', {method: 'share'});
-      }, function () { /* 사용자가 닫음 */ });
+      }, function (err) { setShareStatus(model.text.recovery[err && err.name === 'AbortError' ? 'cancelled' : 'failed']); });
       return;
     }
     copyLink();
+  }
+
+  /* 클립보드 복사 — 막힌 브라우저는 숨긴 textarea 로 한 번 더, 그래도 안 되면 false(질문 전문을 펼쳐 직접 복사하게 한다). */
+  function copyText(text) {
+    return new Promise(function (resolve) {
+      var legacy = function () {
+        try {
+          var ta = doc.createElement('textarea');
+          ta.value = text;
+          ta.setAttribute('readonly', '');
+          ta.style.position = 'fixed';
+          ta.style.top = '-1000px';
+          ta.style.opacity = '0';
+          doc.body.appendChild(ta);
+          ta.select();
+          var ok = typeof doc.execCommand === 'function' && doc.execCommand('copy');
+          doc.body.removeChild(ta);
+          resolve(!!ok);
+        } catch (e) { resolve(false); }
+      };
+      try {
+        if (root.navigator && root.navigator.clipboard && root.navigator.clipboard.writeText) {
+          root.navigator.clipboard.writeText(text).then(function () { resolve(true); }, legacy);
+          return;
+        }
+      } catch (e) { /* 아래 대체 */ }
+      legacy();
+    });
+  }
+  function setAskStatus(text) {
+    state.askStatus = text;
+    var el = card.querySelector('.da-ask__status');
+    if (el) el.textContent = text;
+  }
+  /* "나는 어떤 사람이야?" — 복사를 먼저 시작하고 같은 탭 동작 안에서 새 탭을 연다(팝업 차단 회피).
+   * noopener 로 연 창은 늘 null 을 돌려주므로 차단 여부를 반환값으로 판정하지 않는다 — 안내 문구가 확인 방법을 알려 준다. */
+  function askAi(target) {
+    var R = root.DestinyAnatomyRender;
+    var ai = target !== 'copy' && R && R.AI_TARGETS ? R.AI_TARGETS[target] : null;
+    var u = ui();
+    cdTrack('destiny_anatomy_ai_prompt', {target: ai ? target : 'copy'});
+    var copying = copyText(model.text.aiPrompt || '');
+    if (ai) {
+      try { root.open(ai.url, '_blank', 'noopener,noreferrer'); } catch (e) { /* 새 탭 실패는 안내 문구가 대신한다 */ }
+    }
+    copying.then(function (ok) {
+      if (!ok) {
+        state.askView = true;
+        var view = card.querySelector('.da-ask__view');
+        if (view) view.open = true;
+        setAskStatus(u.askCopyFail);
+        return;
+      }
+      setAskStatus(ai ? u.askOpened.replace('{ai}', ai.label) : u.askCopied);
+    });
   }
 
   function scrollToId(id) {
@@ -417,6 +503,8 @@
         var next = root.location.pathname + root.location.search + '#destinyAnatomyCard';
         if (typeof root.__cdOpenLoginRequiredModal === 'function') root.__cdOpenLoginRequiredModal({reason: 'destiny_anatomy', nextPath: next});
         else root.location.href = '/login/?next=' + encodeURIComponent(next);
+      } else if (act === 'ask') {
+        askAi(btn.getAttribute('data-da-ai') || 'copy');
       } else if (act === 'share' || act === 'save' || act === 'copy') {
         share(act);
       } else if (act === 'cta') {
@@ -431,8 +519,17 @@
     }
   }
 
+  var chapterOpen = {};
   function onToggle(ev) {
     var d = ev.target;
+    if (d && d.matches && d.matches('details[data-da-chapter]')) {
+      var id = d.getAttribute('data-da-chapter');
+      if (d.open && !chapterOpen[id]) cdTrack('destiny_anatomy_chapter_open', {chapter: id});
+      chapterOpen[id] = d.open;
+      if (d.open) fitMeme();
+      return;
+    }
+    if (d && d.matches && d.matches('details.da-ask__view')) { state.askView = d.open; return; }
     if (!d || !d.matches || !d.matches('details[data-da-engine]') || !d.open) return;
     cdTrack('destiny_anatomy_engine_click', {engine: d.getAttribute('data-da-engine')});
   }

@@ -161,6 +161,8 @@
   }
 
   function paint() {
+    var focus = doc.activeElement;
+    var focusView = focus && card.contains(focus) ? focus.getAttribute("data-da-view") : null;
     var openEngines = [];
     var prev = card.querySelectorAll('details[data-da-engine][open]');
     for (var i = 0; i < prev.length; i++) openEngines.push(prev[i].getAttribute('data-da-engine'));
@@ -170,6 +172,7 @@
       var d = card.querySelector('details[data-da-engine="' + axis + '"]');
       if (d) d.open = true;
     });
+    if (focusView) { var focusButton = card.querySelector('[data-da-view="' + focusView + '"]'); if (focusButton) focusButton.focus({preventScroll: true}); }
     observeSections();
     fitMeme();
   }
@@ -389,16 +392,20 @@
     if (method === 'copy') { copyLink(); return; }
     var SC = root.DestinyAnatomyShareCard;
     if (SC && typeof SC.share === 'function') {
-      Promise.resolve(SC.share(model, {mode: method, url: shareUrl(), lang: model.locale})).then(function (ok) {
-        if (ok) cdTrack('destiny_anatomy_share_success', {method: method});
-      }, function () { copyLink(); });
+      Promise.resolve(SC.share(model, {mode: method, url: shareUrl(), lang: model.locale})).then(function (result) {
+        var status = result && result.status;
+        if (status === 'shared' || status === 'saved') {
+          cdTrack('destiny_anatomy_share_success', {method: status === 'saved' ? 'save' : method});
+          setShareStatus(model.text.recovery[status]);
+        } else if (status === 'cancelled') setShareStatus(model.text.recovery.cancelled);
+      }, function () { setShareStatus(model.text.recovery.failed); });
       return;
     }
     var nav = root.navigator;
     if (method === 'share' && nav && typeof nav.share === 'function') {
       nav.share({title: model.text.ui.title, text: model.share.headline, url: shareUrl()}).then(function () {
         cdTrack('destiny_anatomy_share_success', {method: 'share'});
-      }, function () { /* 사용자가 닫음 */ });
+      }, function (err) { setShareStatus(model.text.recovery[err && err.name === 'AbortError' ? 'cancelled' : 'failed']); });
       return;
     }
     copyLink();
@@ -512,8 +519,16 @@
     }
   }
 
+  var chapterOpen = {};
   function onToggle(ev) {
     var d = ev.target;
+    if (d && d.matches && d.matches('details[data-da-chapter]')) {
+      var id = d.getAttribute('data-da-chapter');
+      if (d.open && !chapterOpen[id]) cdTrack('destiny_anatomy_chapter_open', {chapter: id});
+      chapterOpen[id] = d.open;
+      if (d.open) fitMeme();
+      return;
+    }
     if (d && d.matches && d.matches('details.da-ask__view')) { state.askView = d.open; return; }
     if (!d || !d.matches || !d.matches('details[data-da-engine]') || !d.open) return;
     cdTrack('destiny_anatomy_engine_click', {engine: d.getAttribute('data-da-engine')});

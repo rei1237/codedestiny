@@ -302,6 +302,7 @@
       lagna: lagna >= 0 ? SIGNS[lagna] : '',
       moonSign: moon >= 0 ? SIGNS[moon] : '',
       // 6하우스 = 라그나에서 여섯째 별자리(전체 별자리 하우스, worker/lib/vedic-ai-chart.js 와 같은 방식). 출생시간이 없으면 비운다.
+      sixthSign: lagna >= 0 ? SIGNS[(lagna + 5) % 12] : '',
       sixthLord: lagna >= 0 ? SIGN_LORDS[(lagna + 5) % 12] : '',
       nakshatra: nak,
       traits: traits
@@ -484,7 +485,7 @@
     var elements = computeElementLayer(snap, tables);
     var combo = pickCombo(brain, snap);
     var hd = snap.timeUnknown ? {available: false, reason: 'time-unknown'} : adaptHumanDesign(opts.hdChart);
-    var vedic = adaptVedicBasis(opts.vedicBasis);
+    var vedic = snap.timeUnknown ? {available: false, reason: "time-unknown"} : adaptVedicBasis(opts.vedicBasis);
     var chakra = computeChakra(brain, elements);
     var luck = computeLuck(snap, tables, brain);
     var fusion = computeFusion(brain, combo, hd, vedic);

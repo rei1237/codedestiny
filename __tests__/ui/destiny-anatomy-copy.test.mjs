@@ -178,3 +178,43 @@ test('compose: 미저작 로케일은 영어로, 별칭은 정본 로케일로 �
   }
   assert.equal(build(FIXTURES.reality, 'fr').text.ui.title, 'Destiny Anatomy');
 });
+
+test('생활 점검: 실제 오행 비율과 베다 6하우스를 밝히고 건강 상태를 판정하지 않는다',()=>{
+  for(const L of ['ko','en','ja','zh-CN','zh-TW']){
+    const m=build(FIXTURES.reality,L,{}, {hdChart:HD,vedicBasis:VEDIC});
+    assert.ok(m.text.habits.length>=1 && m.text.habits.length<=2);
+    for(const h of m.text.habits){
+      assert.ok(h.basis.includes(Math.round(m.elementLayer.ratios[h.id])+'%'));
+      assert.ok(h.check.length>8 && h.action.length>20);
+    }
+    const sixth=m.text.vedic.find(v=>v.kind==='sixth');
+    assert.ok(sixth.title.includes(CP.COPY[L].mb.sign.Capricorn));
+    assert.ok(sixth.title.includes(CP.COPY[L].mb.graha.Saturn));
+    assert.ok(sixth.check);
+    assert.ok(m.text.hd.centers.every(c=>c.check && c.body));
+    assert.ok(m.text.chakra.every(c=>c.check && c.body));
+    assert.doesNotMatch(JSON.stringify(m.text),/송과선|갑상선|면역계|pineal|thyroid|immune system|松果|甲状腺|甲狀腺/);
+    const unknown=build(FIXTURES.reality,L,{timeUnknown:true},{hdChart:HD,vedicBasis:VEDIC});
+    assert.equal(unknown.text.hd,null); assert.deepEqual(unknown.text.vedic,[]);
+  }
+  const m=build(FIXTURES.reality,'ko');
+  assert.match(m.text.recovery.chakraSource,/사주 십성·오행/);
+  assert.match(m.text.recovery.chakraSource,/베다점.*나타내지/);
+});
+
+test('상세 차트는 정본 연결과 계산된 라그나를 사용하고 누락된 차트는 만들지 않는다', () => {
+  const m = build(FIXTURES.selfDrive, 'ko', {}, {hdChart: {...HD, activeGates: [12, 22, 64], channels: [{channelId: '12-22'}]}, vedicBasis: VEDIC});
+  assert.deepEqual(m.text.hd.gates, [12, 22, 64]);
+  assert.deepEqual(m.text.hd.channels.map(c => c.id), ['12-22']);
+  assert.equal(m.text.vedicChart.houses.length, 12);
+  assert.equal(m.text.vedicChart.houses[0].sign, m.text.vedicChart.lagna);
+  assert.equal(m.text.vedicChart.houses[5].sign, m.text.vedicChart.sixth);
+  assert.equal(m.text.vedicChart.ruler, '토성');
+  const absent = build(FIXTURES.selfDrive, 'ko');
+  assert.equal(absent.text.vedicChart, null);
+  assert.equal(absent.text.hd, null);
+  const geometry = ctx.DestinyAnatomyHdCopy.geometry;
+  assert.equal(geometry.centers.length, 9);
+  assert.equal(geometry.channels.length, 36);
+  assert.equal(geometry.gates.length, 64);
+});

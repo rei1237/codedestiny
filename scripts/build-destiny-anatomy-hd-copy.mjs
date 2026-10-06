@@ -9,6 +9,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { VIEWBOX, CENTER_SHAPE_LIST, CHANNEL_PATH_LIST, GATE_POSITION_LIST } from "../lib/human-design/bodygraph-geometry.js";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(root, "js/core/saju/destiny-anatomy/hd-copy.generated.js");
 const LOCALES = ["ko", "en", "ja", "zh-CN", "zh-TW"];
@@ -54,12 +56,14 @@ export async function renderHdCopy() {
     strategy: mapEntries(m.STRATEGY_COPY, (v, l) => bilingual(v, l), "STRATEGY_COPY"),
     definition: mapEntries(m.DEFINITION_COPY, (v, l) => bilingual(v, l), "DEFINITION_COPY"),
   };
+  const geometry = {viewBox: VIEWBOX, centers: CENTER_SHAPE_LIST, channels: CHANNEL_PATH_LIST, gates: GATE_POSITION_LIST};
   return [
     "/* 자동 생성 — 직접 고치지 말 것. node scripts/build-destiny-anatomy-hd-copy.mjs",
     " * 정본: app/human-design/_copy/index.ts · lib/human-design/display-names.js (verify:destiny-anatomy 가 신선도를 검사한다). */",
     "(function (root) {",
     "  'use strict';",
     `  var HD_COPY = ${JSON.stringify(data, null, 2).replace(/\n/g, "\n  ")};`,
+    `  HD_COPY.geometry = ${JSON.stringify(geometry)};`,
     "  root.DestinyAnatomyHdCopy = HD_COPY;",
     "  if (typeof module !== 'undefined' && module.exports) module.exports = HD_COPY;",
     "})(typeof window === 'undefined' ? globalThis : window);",

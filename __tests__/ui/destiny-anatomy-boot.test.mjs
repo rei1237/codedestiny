@@ -62,22 +62,23 @@ test('출생 요청: 셸 값을 그대로 옮기고, 시간 미상·시간대 �
   assert.equal('latitude' in noPlace.hd, false);
 });
 
-test('화면: 닫힘엔 히어로·뇌 지도만, 열면 §31 순서로 그리고 치환자가 없다', () => {
+test('화면: 공유를 먼저 보여주고 세 챕터로 읽으며 치환자가 없다', () => {
   const {ctx, doc} = setup('<div id="compatCard"></div><div id="daewunCard"></div>');
   const R = ctx.DestinyAnatomyRender;
   const el = doc.createElement('div');
   R.render(el, model(ctx, 'ko'), {variant: 'B'});
-  assert.deepEqual(secs(el), ['hero', 'brain']);
+  assert.deepEqual(secs(el), ['hero', 'brain', 'share']);
   assert.ok(el.querySelector('[data-da-act="explore"]'));
   R.render(el, model(ctx, 'ko', {hdChart: HD}), {variant: 'B', open: true, view: 'both', layer: 'ready'});
-  assert.deepEqual(secs(el), ['hero', 'brain', 'summary', 'circuit', 'engines', 'elements', 'decision', 'body', 'fusion', 'ask', 'share', 'cta']);
+  assert.deepEqual(secs(el), ['hero', 'brain', 'share', 'summary', 'circuit', 'engines', 'elements', 'decision', 'fusion', 'habits', 'body', 'ask', 'cta']);
   // 목차는 실제로 그려진 장(공유·CTA 제외)과 같은 수다. 연이의 한마디는 첫 장 편지로 들어간다.
-  assert.equal(el.querySelectorAll('.da-toc li').length, 8);
+  assert.equal(el.querySelectorAll('details[data-da-chapter]').length, 3);
+  assert.equal(el.querySelectorAll('details[data-da-chapter][open]').length, 0);
   assert.ok(el.querySelector('[data-da-sec="summary"] .da-letter .da-letter__msg').textContent.length > 10);
   assert.deepEqual([...el.querySelectorAll('[data-da-act="ask"]')].map((x) => x.getAttribute('data-da-ai')), ['copy', 'chatgpt', 'gemini', 'claude']);
   assert.ok(!/undefined|null|NaN|\{\w+\}/.test(el.textContent), el.textContent.match(/.{20}(undefined|null|NaN|\{\w+\}).{20}/)?.[0]);
   assert.equal(el.querySelectorAll('.da-insight').length, 3);
-  assert.equal(el.querySelectorAll('.da-center').length, 9);
+  assert.equal(el.querySelectorAll('.da-hdg__center').length, 9);
   assert.equal(el.querySelectorAll('.da-chakra').length, 7);
   // 결과 안 대상이 있는 CTA 만 스크롤 버튼이 된다. 새 결제 게이트 표식은 없다.
   const ctas = [...el.querySelectorAll('[data-da-cta]')].map((x) => x.getAttribute('data-da-cta'));
@@ -192,6 +193,10 @@ test('공유 카드: 원국 글자·대운 간지·연도를 싣지 않는다', 
     const c = S.content(luckModel(ctx, lang, 72));
     const s = JSON.stringify(c);
     assert.ok(c.luck && c.engines.length === 5 && c.mindLine, lang);
+    // v2: 화면과 같은 뇌구조 — 칸 비율 합 100, 범례 5축, 칸 문구는 정적 짤 문구.
+    assert.ok(c.meme && c.meme.cells.length > 0 && c.meme.legend.length === 5, lang);
+    assert.equal(c.meme.cells.reduce((a, x) => a + x.pct, 0), 100, lang);
+    assert.ok(c.meme.cells.every((x) => typeof x.line === 'string' && x.line && Number.isFinite(x.w)), lang);
     assert.ok(!/[乙未己卯庚丑壬午丙子]|2021|2030/.test(s), `${lang}: ${s.match(/.{12}([乙未己卯庚丑壬午丙子]|2021|2030).{12}/)?.[0]}`);
   }
   assert.equal(S.content(null), null);
@@ -217,4 +222,53 @@ test('문장 다듬기: 원문 키로 묶고, 형식이 맞는 LLM 응답만 문
   assert.equal(m.share.headline, '다듬은 한 줄이에요.');
   assert.deepEqual(m.text.insights.map((i) => i.title), titles);
   assert.ok(m.text.insights.every((i) => i.body === '다듬은 문장이에요.'));
+});
+
+test('접기 상태: 지연 데이터가 도착해도 사용자가 열고 닫은 챕터와 센터를 유지한다', () => {
+  const {ctx,doc}=setup(), el=doc.createElement('div'), R=ctx.DestinyAnatomyRender;
+  R.render(el,model(ctx,'ko'),{open:true,layer:'loading'});
+  el.querySelector('[data-da-chapter="recovery"]').open=true;
+  el.querySelector('[data-da-entry="chakra-root"]').open=true;
+  R.render(el,model(ctx,'ko',{hdChart:HD}),{open:true,view:'both',layer:'ready'});
+  assert.ok(el.querySelector('[data-da-chapter="recovery"]').open);
+  assert.ok(el.querySelector('[data-da-entry="chakra-root"]').open);
+  assert.equal(el.querySelector('[data-da-chapter="thinking"]').open,false);
+  el.querySelector('[data-da-chapter="recovery"]').open=false;
+  R.render(el,model(ctx,'ko',{hdChart:HD}),{open:true,view:'both',layer:'ready'});
+  assert.equal(el.querySelector('[data-da-chapter="recovery"]').open,false);
+});
+
+test('공유 데이터 허용목록: 건강·이름·출생 입력은 결과 객체에 섞여도 내보내지 않는다',()=>{
+  const {ctx}=setup(); const m=model(ctx,'ko',{hdChart:HD});
+  m.name='PRIVATE_NAME'; m.birthDate='PRIVATE_BIRTH'; m.text.habits[0].action='PRIVATE_HEALTH';
+  m.text.hd.centers[0].organ='PRIVATE_ORGAN';
+  const c=ctx.DestinyAnatomyShareCard.content(m), json=JSON.stringify(c);
+  assert.doesNotMatch(json,/PRIVATE_/);
+  assert.equal(c.question,m.text.recovery.shareQuestion);
+});
+
+test('공유 실행: 취소는 저장하지 않고, 파일 공유 미지원·오류는 이미지 저장으로 구분한다',async()=>{
+  const {ctx,dom,doc}=setup('<section id="destinyAnatomyCard"></section>');
+  const m=model(ctx,'ko'); let downloads=0;
+  const canvasContext=new Proxy({}, {get(target,key){
+    if(key==='measureText') return text=>({width:String(text).length*12});
+    if(key==='createLinearGradient' || key==='createRadialGradient') return ()=>({addColorStop(){}});
+    return key in target ? target[key] : ()=>{};
+  }, set(target,key,value){target[key]=value; return true;}});
+  dom.window.HTMLCanvasElement.prototype.getContext=()=>canvasContext;
+  dom.window.HTMLCanvasElement.prototype.toBlob=cb=>cb(new Blob(['png'],{type:'image/png'}));
+  dom.window.HTMLAnchorElement.prototype.click=()=>{downloads++;};
+  ctx.getComputedStyle=()=>({color:'rgb(50, 20, 30)',fontFamily:'sans-serif',getPropertyValue:()=> 'sans-serif'});
+  ctx.setTimeout=()=>0; ctx.File=File; ctx.URL={createObjectURL:()=> 'blob:test',revokeObjectURL(){}};
+  ctx.navigator={canShare:()=>true,share:()=>Promise.reject({name:'AbortError'})};
+  const S=ctx.DestinyAnatomyShareCard;
+  assert.equal((await S.share(m,{mode:'share'})).status,'cancelled'); assert.equal(downloads,0);
+  ctx.navigator.share=()=>Promise.resolve();
+  assert.equal((await S.share(m,{mode:'share'})).status,'shared'); assert.equal(downloads,0);
+  ctx.navigator.share=()=>Promise.reject({name:'NotAllowedError'});
+  assert.equal((await S.share(m,{mode:'share'})).status,'saved'); assert.equal(downloads,1);
+  ctx.navigator.canShare=()=>false;
+  assert.equal((await S.share(m,{mode:'share'})).status,'saved'); assert.equal(downloads,2);
+  dom.window.HTMLCanvasElement.prototype.toBlob=cb=>cb(null);
+  await assert.rejects(()=>S.share(m,{mode:'save'})); assert.equal(downloads,2);
 });

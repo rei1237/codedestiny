@@ -151,6 +151,7 @@ export default function SajuTenGodsPage() {
         <Link href="/saju/guide" className="cd-chip">사주 기본 가이드</Link>
         <Link href="/saju/five-elements" className="cd-chip">오행 가이드</Link>
         <Link href="/saju/monthly/2026-09" className="cd-chip">2026년 9월 일간별 운세</Link>
+        <Link href="/saju/destiny-anatomy" className="cd-chip">사주 뇌구조와 운명 구조도</Link>
         <Link href="/manse" className="cd-chip">만세력 보기</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
         <Link href="/editorial-policy" className="cd-chip">콘텐츠 제작 원칙</Link>

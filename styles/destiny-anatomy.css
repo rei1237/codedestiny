@@ -328,7 +328,7 @@
 .da-letter__label { margin: 0 0 4px; font-family: var(--da-serif); font-size: .82rem; font-weight: 700; letter-spacing: .08em; color: var(--da-accent); }
 .da-letter__msg { margin: 0; font-family: var(--da-serif); font-size: 1.05rem; line-height: 1.85; }
 .da-letter__sign { margin: var(--cd-sp-xs) 0 0; text-align: right; font-family: var(--da-serif); font-size: .9rem; color: var(--da-muted); }
-#destinyAnatomyCard .da-body-wrap .da-mindline { padding: 0 0 0 var(--cd-sp-md); background: none; border: 0; border-left: 3px solid var(--da-gold); border-radius: 0;
+#destinyAnatomyCard .da-body-wrap .da-mindline { padding: 0 0 0 var(--cd-sp-md); background: none; border: 0; border-left: 1px solid var(--da-line); border-radius: 0;
   font-family: var(--da-serif); font-size: 1.15rem; line-height: 1.7; }
 #destinyAnatomyCard .da-body-wrap .da-rows { gap: 0; margin-top: var(--cd-sp-md); border-top: 1px solid var(--da-ink); }
 #destinyAnatomyCard .da-body-wrap .da-rows dt, #destinyAnatomyCard .da-body-wrap .da-rows dd { padding: 10px 0; border-bottom: 1px solid var(--da-line); }
@@ -612,3 +612,47 @@
 .da-engine__tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 4px; }
 .da-engine__tags .da-chip { margin-left: 0; }
 .da-engine__name small { margin-left: 0; }
+
+/* Three reading chapters: native, keyboard-accessible disclosures. */
+#destinyAnatomyCard .da-chapter { border-block-start: 1px solid var(--da-line); }
+#destinyAnatomyCard .da-chapter > summary { cursor: pointer; padding: var(--cd-sp-lg) 0; min-height: 44px; color: var(--da-ink); }
+#destinyAnatomyCard .da-chapter__title { font: 700 var(--cd-t-section)/1.45 var(--da-serif-text); }
+#destinyAnatomyCard .da-chapter__hint { display: block; margin-block-start: var(--cd-sp-xs); color: var(--da-muted); font: 400 var(--cd-t-body)/1.7 var(--font-body); }
+#destinyAnatomyCard .da-chapter__content { padding-block-end: var(--cd-sp-lg); }
+#destinyAnatomyCard .da-body-wrap .da-h::before { content: none; }
+#destinyAnatomyCard .da-body-wrap .da-h { display: block; }
+#destinyAnatomyCard .da-body-wrap .da-sec { counter-increment: none; }
+#destinyAnatomyCard .da-centers, #destinyAnatomyCard .da-chakras { list-style: none; padding: 0; }
+#destinyAnatomyCard :is(.da-centers__item,.da-chakras__item) { display: block; }
+#destinyAnatomyCard :is(.da-centers__item,.da-chakras__item) > summary { min-height: 44px; cursor: pointer; padding-block: var(--cd-sp-xs); line-height: 1.8; }
+#destinyAnatomyCard .da-centers__state { margin-inline-start: var(--cd-sp-sm); }
+#destinyAnatomyCard .da-habit { padding-block: var(--cd-sp-md); border-block-end: 1px solid var(--da-line); }
+#destinyAnatomyCard .da-share__status:empty { display: none; }
+#destinyAnatomyCard summary:focus-visible { outline: 2px solid var(--da-gold); outline-offset: 4px; border-radius: var(--cd-r-sm); }
+#destinyAnatomyCard .da-mb { max-width: 70ch; }
+@media (max-width: 480px) { #destinyAnatomyCard .da-mb { grid-template-columns: 1fr; gap: var(--cd-sp-xs); } #destinyAnatomyCard .da-mb dd { margin-bottom: var(--cd-sp-sm); } #destinyAnatomyCard .da-mb dt { justify-self: start; } }
+
+/* Moonlit illustration: fine gold lines on a luminous paper surface. */
+#destinyAnatomyCard .da-meme { --da-art: color-mix(in srgb, var(--cd-map-gold) 75%, var(--da-ink)); }
+#destinyAnatomyCard .da-meme__window { fill: none; stroke: var(--da-art); stroke-width: .7; opacity: .42; }
+#destinyAnatomyCard .da-meme__head, #destinyAnatomyCard .da-meme__outline { stroke: var(--da-art); stroke-width: 1.15; }
+#destinyAnatomyCard .da-meme__line { font-family: var(--da-serif); font-weight: 600; }
+#destinyAnatomyCard .da-meme__float { animation: none; }
+#destinyAnatomyCard .da-stk { color: var(--da-art); text-shadow: none; }
+#destinyAnatomyCard .da-hdg, #destinyAnatomyCard .da-vchart { margin: var(--cd-sp-md) 0; }
+#destinyAnatomyCard .da-hdg svg { width: 100%; max-width: 300px; display: block; margin-inline: auto; }
+#destinyAnatomyCard .da-hdg__wire { fill: none; stroke: var(--da-line); stroke-width: 5; }
+#destinyAnatomyCard .da-hdg__wire.is-active { stroke: var(--da-gold); stroke-dasharray: 6 4; }
+#destinyAnatomyCard .da-hdg__wire.is-complete { stroke: var(--da-art); stroke-width: 7; }
+#destinyAnatomyCard .da-hdg__center { fill: var(--da-bg-lift); stroke: var(--da-art); stroke-width: 2; }
+#destinyAnatomyCard .da-hdg__center.is-defined { fill: color-mix(in srgb, var(--da-gold) 36%, var(--da-bg-lift)); }
+#destinyAnatomyCard .da-hdg__gate circle { fill: var(--da-ink); }
+#destinyAnatomyCard .da-hdg__gate text { fill: var(--da-bg-lift); font: 700 15px var(--font-body); text-anchor: middle; }
+#destinyAnatomyCard .da-connections { border-block: 1px solid var(--da-line); padding-block: var(--cd-sp-sm); }
+#destinyAnatomyCard .da-connections li { margin-block: var(--cd-sp-xs); }
+#destinyAnatomyCard .da-vchart__houses { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: var(--cd-sp-xs); }
+#destinyAnatomyCard .da-vchart__houses li { padding: var(--cd-sp-sm); border: 1px solid var(--da-line); border-radius: var(--cd-r-sm); }
+#destinyAnatomyCard .da-vchart__houses .is-key { border-color: var(--da-art); background: var(--da-soft); }
+#destinyAnatomyCard .da-vchart__houses span { display: block; color: var(--da-muted); font-size: .75rem; }
+#destinyAnatomyCard .da-vchart__houses strong { display: block; font: 600 .9rem/1.5 var(--da-serif); overflow-wrap: anywhere; }
+@media (max-width: 480px) { #destinyAnatomyCard .da-vchart__houses { grid-template-columns: repeat(3,minmax(0,1fr)); } }

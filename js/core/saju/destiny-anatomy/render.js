@@ -3,16 +3,13 @@
  * 🔴 계산하지 않는다. model.text(문장)와 model.saju/elementLayer/chakra(숫자)만 읽는다.
  * 🔴 데이터가 없는 층은 그리지 않는다(placeholder 금지). HD 가 없으면 안내 문구만 둔다.
  * 섹션마다 따로 감싸서 한 섹션이 깨져도 그 자리만 "다시 불러오기"로 바뀐다. 클릭·계측은 boot.js 가 data-da-act 로 받는다.
- * 순서: 표지(Hero → Brain Map) → 펼친 리포트(목차 → 01 한눈에+연이의 한마디 → 사고회로 → 5 Engines → 오행 → Decision Core → Energy Body → 베다 → Cross Insight → AI 질문) → 공유 → CTA.
- * 펼친 본문은 아이보리 종이 보고서다 — 장 번호는 CSS 카운터, 목차는 실제로 그려진 섹션에서 만든다. */
+ * 순서: 별명·뇌구조·공유 → 요약 → 생각/관계/회복 세 챕터 → AI 질문 → CTA.
+ * 펼친 본문은 밝은 종이 보고서이며 native details 상태를 추가 데이터 수신 후에도 유지한다. */
 (function (root) {
   'use strict';
 
   var AXES = ['selfDrive', 'expression', 'reality', 'structure', 'reflection'];
   var GOD_HAN = {'비견':'比肩', '겁재':'劫財', '식신':'食神', '상관':'傷官', '편재':'偏財', '정재':'正財', '편관':'偏官', '정관':'正官', '편인':'偏印', '정인':'正印'};
-  // 에너지 바디 좌표(viewBox 200×400). HD 센터는 바디그래프 배치를 몸에 얹은 근사다.
-  var HD_POS = {HEAD: [100, 26, 'up'], AJNA: [100, 66, 'down'], THROAT: [100, 112, 'square'], G: [100, 168, 'diamond'], HEART: [130, 186, 'up'],
-    SPLEEN: [66, 238, 'right'], SOLAR_PLEXUS: [134, 238, 'left'], SACRAL: [100, 262, 'square'], ROOT: [100, 308, 'square']};
   var CHAKRA_Y = {crown: 22, thirdEye: 66, throat: 112, heart: 172, solarPlexus: 220, sacral: 262, root: 306};
 
   function esc(v) {
@@ -47,7 +44,9 @@
       '<div class="da-hero__meta"><span class="sec-tier-badge sec-tier-badge--free">' + esc(ui.free) + '</span>' +
       '<span class="da-eyebrow">' + esc(ui.subtitle) + '</span></div>' +
       '<h3 class="sec-title da-title" id="destinyAnatomyTitle">' + esc(ui.title) + '</h3>' +
-      '<p class="da-hero__q">' + esc(t.hero[variant] || t.hero.A) + '</p>' +
+      '<p class="da-hero__q">' + esc(t.comboTitle) + '</p>' +
+      '<p class="da-hero__intro">' + esc(t.mindLine) + '</p>' +
+      '<button type="button" class="da-btn da-btn--ghost" data-da-act="share">' + esc(ui.shareAction) + '</button>' +
       '<p class="da-hero__intro">' + esc(ui.intro) + '</p></header>';
   }
 
@@ -64,6 +63,7 @@
   };
   // 샤갈풍 밤하늘 장식(예화 금선) — 초승달·별·떠다니는 꽃가지·바이올린. 데이터가 아니라 장식이라 머리 바깥 여백에만 둔다.
   var MEME_ART =
+    '<path class="da-meme__window" d="M20 282V154a160 142 0 0 1 320 0v128M26 278V155a154 135 0 0 1 308 0v123"/>' +
     '<path class="da-meme__moon" d="M44 22a20 20 0 1 0 22 30a16 16 0 1 1-22-30Z"/>' +
     '<path class="da-meme__star" d="M92 14l2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/><path class="da-meme__star" d="M18 92l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5Z"/>' +
     '<path class="da-meme__star" d="M340 30l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5Z"/><path class="da-meme__star" d="M316 8l1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1Z"/>' +
@@ -74,8 +74,8 @@
       '<rect fill="url(#daPat-' + esc(axis) + ')" x="1" y="1" width="16" height="16" rx="4"/></svg>';
   }
   function memeStickers(m, c) {
-    return (c.top ? '<span class="da-stk da-stk--top">👑</span>' : '') +
-      (c.hot ? '<span class="da-stk da-stk--hot">🔥</span>' : '') +
+    return (c.top ? '<span class="da-stk da-stk--top">✦</span>' : '') +
+      (c.hot ? '<span class="da-stk da-stk--hot">✧</span>' : '') +
       (c.luck ? '<span class="da-stk da-stk--luck da-tone-' + esc(c.luck) + '">' + esc(m.luckMark) + '</span>' : '');
   }
   function memeHtml(t) {
@@ -100,7 +100,7 @@
     var tierOf = {};
     m.cells.forEach(function (c) { tierOf[c.axis] = c.tier; });
     var legend = m.legend.map(function (c) {
-      var chips = (c.hot ? '<span class="da-chip da-chip--hot">🔥 ' + esc(m.hotLabel) + '</span>' : '') +
+      var chips = (c.hot ? '<span class="da-chip da-chip--hot">✧ ' + esc(m.hotLabel) + '</span>' : '') +
         (c.luck ? '<span class="da-chip da-tone-' + esc(c.luck) + '">' + esc(m.luckMark + ' ' + m.luckLabel) + '</span>' : '');
       return '<li class="da-meme__row da-ax-' + esc(c.axis) + (c.luck ? ' is-luck da-tone-' + esc(c.luck) : '') + '" data-da-axis="' + esc(c.axis) + '">' +
         memeSwatch(c.axis) + '<span class="da-meme__god">' + esc(c.god) + '</span><span class="da-meme__name">' + esc(c.name) + '</span>' + chips +
@@ -276,7 +276,7 @@
     var rows = t.engines.map(function (e) {
       var src = e.source.map(function (g) { return godName(g, model.locale); }).filter(Boolean).join(' · ');
       var list = function (arr) { return '<ul class="da-bullets">' + arr.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'; };
-      return '<details class="da-engine da-ax-' + esc(e.axis) + ' da-lv-' + esc(e.level) + '" data-da-engine="' + esc(e.axis) + '">' +
+      return '<details data-mobile-detail-keep-open class="da-engine da-ax-' + esc(e.axis) + ' da-lv-' + esc(e.level) + '" data-da-engine="' + esc(e.axis) + '">' +
         '<summary class="da-engine__head"><span class="da-engine__medal">' + medalSvg(e.axis) + '</span><span class="da-engine__name"><span class="da-engine__title">' + esc(e.name) + '</span><span class="da-engine__tags"><small>' + esc(e.god) + '</small>' + luckChip(ui, e.luck) + '</span></span>' +
         '<span class="da-engine__level">' + esc(e.levelLabel) + '</span>' +
         '<span class="da-meter" aria-hidden="true"><span class="da-meter__fill" style="width:' + Math.max(4, Math.min(100, e.score)) + '%"></span></span></summary>' +
@@ -332,19 +332,43 @@
       '</section>';
   }
 
-  function shape(kind, x, y, r) {
-    var p;
-    if (kind === 'up') p = [[x, y - r], [x + r, y + r * 0.8], [x - r, y + r * 0.8]];
-    else if (kind === 'down') p = [[x - r, y - r * 0.8], [x + r, y - r * 0.8], [x, y + r]];
-    else if (kind === 'left') p = [[x + r * 0.8, y - r], [x + r * 0.8, y + r], [x - r, y]];
-    else if (kind === 'right') p = [[x - r * 0.8, y - r], [x - r * 0.8, y + r], [x + r, y]];
-    else if (kind === 'diamond') p = [[x, y - r * 1.2], [x + r * 1.2, y], [x, y + r * 1.2], [x - r * 1.2, y]];
-    else p = [[x - r, y - r], [x + r, y - r], [x + r, y + r], [x - r, y + r]];
-    return p.map(function (q) { return q[0].toFixed(1) + ',' + q[1].toFixed(1); }).join(' ');
+  function hdGraph(t) {
+    var geo = root.DestinyAnatomyHdCopy.geometry, h = t.hd, active = h.gates;
+    var point = function (p) { return p.x + ' ' + p.y; };
+    var lines = geo.channels.map(function (c) {
+      var full = h.channels.some(function (x) { return x.id === c.channelId; });
+      return [[c.a, c.controlA, c.mid, c.gateA], [c.b, c.controlB, c.mid, c.gateB]].map(function (v) {
+        var on = full || active.indexOf(v[3]) >= 0;
+        return '<path class="da-hdg__wire' + (full ? ' is-complete' : on ? ' is-active' : '') + '" d="M' + point(v[0]) + (v[1] ? 'Q' + point(v[1]) + ' ' : 'L') + point(v[2]) + '"/>';
+      }).join('');
+    }).join('');
+    var centers = geo.centers.map(function (c) {
+      var defined = h.centers.some(function (x) { return x.id === c.center && x.defined; });
+      return '<polygon class="da-hdg__center' + (defined ? ' is-defined' : '') + '" points="' + c.polygon + '"/>';
+    }).join('');
+    var gates = geo.gates.filter(function (g) { return active.indexOf(g.gate) >= 0; }).map(function (g) {
+      return '<g class="da-hdg__gate"><circle cx="' + g.x + '" cy="' + g.y + '" r="14"/><text x="' + g.x + '" y="' + (g.y + 5) + '">' + g.gate + '</text></g>';
+    }).join('');
+    return '<figure class="da-hdg"><figcaption class="da-sub">' + esc(t.charts.hd) + '</figcaption><svg viewBox="0 0 540 1000" aria-hidden="true" focusable="false">' + lines + centers + gates + '</svg><p class="da-note">' + esc(t.charts.legend) + '</p></figure>';
+  }
+
+  function hdConnections(t) {
+    var h = t.hd, c = t.charts;
+    return '<div class="da-connections"><h5 class="da-sub">' + esc(c.channels) + '</h5>' +
+      (h.channels.length ? '<ul>' + h.channels.map(function (v) { return '<li><strong>' + esc(v.id) + '</strong> · ' + esc(v.label) + '</li>'; }).join('') + '</ul>' : '<p class="da-note">' + esc(c.none) + '</p>') +
+      '<p class="da-p"><strong>' + esc(c.gates) + '</strong> · ' + esc(h.gates.join(' · ')) + '</p>' + mindBody(t.mbUi, '', c.action, '', '', c.check) + '</div>';
+  }
+
+  function vedicChartHtml(t) {
+    var v = t.vedicChart, c = t.charts;
+    if (!v) return '';
+    return '<figure class="da-vchart"><figcaption class="da-sub">' + esc(c.vedic) + '</figcaption><ol class="da-vchart__houses">' + v.houses.map(function (h) {
+      return '<li class="' + (h.house === 1 || h.house === 6 ? 'is-key' : '') + '"><span>' + h.house + ' · ' + esc(c.house) + '</span><strong>' + esc(h.sign) + '</strong></li>';
+    }).join('') + '</ol><p class="da-note">' + esc(c.vedicNote) + '</p><dl class="da-mb">' + [[c.lagna, v.lagna], [c.sixth, v.sixth], [c.ruler, v.ruler]].map(function (r) { return '<div class="da-mb__row"><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>'; }).join('') + '</dl>' + mindBody(t.mbUi, '', c.vedicAction, '', '', c.vedicCheck) + '</figure>';
   }
 
   function bodySvg(t, view) {
-    var showHd = !!t.hd && view !== 'chakra';
+    if (t.hd && view !== 'chakra') return '<div class="da-body__diagrams">' + hdGraph(t) + (view === 'both' ? bodySvg(t, 'chakra') : '') + '</div>';
     var showChakra = view !== 'hd' || !t.hd;
     var chakra = showChakra ? t.chakra.map(function (c) {
       var y = CHAKRA_Y[c.id];
@@ -352,14 +376,9 @@
       return '<g class="da-chakra da-ck-' + esc(c.level) + '"><circle class="da-chakra__halo" cx="100" cy="' + y + '" r="' + (r + 7).toFixed(1) + '"/>' +
         '<circle class="da-chakra__dot" cx="100" cy="' + y + '" r="' + r.toFixed(1) + '"/></g>';
     }).join('') : '';
-    var centers = showHd ? t.hd.centers.map(function (c) {
-      var p = HD_POS[c.id];
-      if (!p) return '';
-      return '<polygon class="da-center' + (c.defined ? ' is-defined' : '') + '" points="' + shape(p[2], p[0], p[1], 11) + '"/>';
-    }).join('') : '';
     return '<svg class="da-body__svg" viewBox="0 0 200 400" role="img" aria-hidden="true">' +
       '<path class="da-body__shape" d="M100 4C120 4 132 20 132 42C132 62 122 78 112 84L112 94C134 98 158 108 164 130L176 214C178 226 166 230 162 218L150 150L148 228C148 252 144 270 140 286L136 390C136 398 116 398 116 390L106 300L94 300L84 390C84 398 64 398 64 390L60 286C56 270 52 252 52 228L50 150L38 218C34 230 22 226 24 214L36 130C42 108 66 98 88 94L88 84C78 78 68 62 68 42C68 20 80 4 100 4Z"/>' +
-      '<line class="da-body__spine" x1="100" y1="18" x2="100" y2="310"/>' + chakra + centers + '</svg>';
+      '<line class="da-body__spine" x1="100" y1="18" x2="100" y2="310"/>' + chakra + '</svg>';
   }
 
   function bodyHtml(model, t, state) {
@@ -369,20 +388,20 @@
       return '<button type="button" class="da-toggle__btn" data-da-act="view" data-da-view="' + v + '" aria-pressed="' + (view === v ? 'true' : 'false') + '">' + esc(ui.toggle[v]) + '</button>';
     }).join('') + '</div>' : '';
     var mbUi = t.mbUi;
-    var list = '';
+    var list = '<p class="da-note">' + esc(view === 'hd' ? t.recovery.hdSource : t.recovery.chakraSource) + '</p>';
     if (t.hd && view !== 'chakra') {
       list += '<ul class="da-centers">' + t.hd.centers.map(function (c) {
-        return '<li class="da-centers__item' + (c.defined ? ' is-defined' : '') + '"><span class="da-centers__name">' + esc(c.name) + '</span>' +
-          '<span class="da-centers__state">' + esc(c.defined ? ui.centerDefined : ui.centerOpen) + '</span>' +
+        return '<li><details data-mobile-detail-keep-open data-da-entry="hd-' + esc(c.id) + '" class="da-centers__item' + (c.defined ? ' is-defined' : '') + '"><summary><span class="da-centers__name">' + esc(c.name) + '</span>' +
+          '<span class="da-centers__state">' + esc(c.defined ? ui.centerDefined : ui.centerOpen) + '</span></summary>' +
           (c.role ? '<span class="da-centers__role">' + esc(c.role) + '</span>' : '') +
-          mindBody(mbUi, c.mind, c.body, mbUi.organ, c.organ) + '</li>';
-      }).join('') + '</ul>';
+          mindBody(mbUi, c.mind, c.body, mbUi.organ, c.role, c.check) + '</details></li>';
+      }).join('') + '</ul>' + hdConnections(t);
     }
     if (view !== 'hd') {
       list += '<ul class="da-chakras">' + t.chakra.map(function (c) {
-        return '<li class="da-chakras__item da-ck-' + esc(c.level) + '"><span class="da-centers__name">' + esc(c.name) + '</span>' +
-          '<span class="da-centers__state">' + esc(c.levelLabel) + '</span><span class="da-centers__role">' + esc(c.theme) + '</span>' +
-          mindBody(mbUi, c.mind, c.body, mbUi.region, c.region) + '</li>';
+        return '<li><details data-mobile-detail-keep-open data-da-entry="chakra-' + esc(c.id) + '" class="da-chakras__item da-ck-' + esc(c.level) + '"><summary><span class="da-centers__name">' + esc(c.name) + '</span>' +
+          '<span class="da-centers__state">' + esc(c.levelLabel) + '</span></summary><span class="da-centers__role">' + esc(c.theme) + '</span>' +
+          mindBody(mbUi, c.mind, c.body, mbUi.region, c.theme, c.check) + '</details></li>';
       }).join('') + '</ul><p class="da-note">' + esc(ui.chakraNote) + '</p>';
     }
     return '<section class="da-sec da-body" data-da-sec="body" aria-labelledby="daBodyTitle"><h4 class="da-h" id="daBodyTitle">' + esc(ui.bodyTitle) + '</h4>' +
@@ -392,8 +411,9 @@
   }
 
   /* 정신·신체 두 줄 + 상징 연결(기관·부위). 값이 빈 줄은 그리지 않는다. */
-  function mindBody(mbUi, mind, body, tagLabel, tag) {
+  function mindBody(mbUi, mind, body, tagLabel, tag, check) {
     var rows = (mind ? '<div class="da-mb__row da-mb--mind"><dt>' + esc(mbUi.mind) + '</dt><dd>' + esc(mind) + '</dd></div>' : '') +
+      (check ? '<div class="da-mb__row"><dt>' + esc(mbUi.check) + '</dt><dd>' + esc(check) + '</dd></div>' : '') +
       (body ? '<div class="da-mb__row da-mb--body"><dt>' + esc(mbUi.body) + '</dt><dd>' + esc(body) + '</dd></div>' : '');
     return (rows ? '<dl class="da-mb">' + rows + '</dl>' : '') +
       (tag ? '<p class="da-mb__tag"><span>' + esc(tagLabel) + '</span> ' + esc(tag) + '</p>' : '');
@@ -408,12 +428,14 @@
       return '<div class="da-vgroup da-mb--' + g + '"><p class="da-vgroup__h">' + esc(label) + '</p>' + rows.map(function (v) {
         return '<div class="da-vrow"><p class="da-sub">' + esc(v.title) + '</p>' +
           (v.region ? '<p class="da-mb__tag"><span>' + esc(mbUi.region) + '</span> ' + esc(v.region) + '</p>' : '') +
-          '<p class="da-p">' + esc(v.body) + '</p></div>';
+          (v.check ? '<p class="da-p"><strong>' + esc(mbUi.check) + '</strong> ' + esc(v.check) + '</p>' : '') +
+          '<p class="da-p">' + (v.check ? '<strong>' + esc(mbUi.body) + '</strong> ' : '') + esc(v.body) + '</p></div>';
       }).join('') + '</div>';
     };
     var hasBody = t.vedic.some(function (v) { return v.group === 'body'; });
     return '<section class="da-sec" data-da-sec="vedic" aria-labelledby="daVedicTitle"><h4 class="da-h" id="daVedicTitle">' + esc(t.ui.vedicTitle) + '</h4>' +
-      group('mind', mbUi.vedicMind) + group('body', mbUi.vedicBody) +
+      '<p class="da-note">' + esc(t.recovery.vedicSource) + '</p>' +
+      vedicChartHtml(t) + group('mind', mbUi.vedicMind) + group('body', mbUi.vedicBody) +
       (hasBody ? '<p class="da-note da-mb-note" role="note">' + esc(mbUi.note) + '</p>' : '') + '</section>';
   }
 
@@ -448,12 +470,6 @@
       '<img class="da-yeoni__pig" src="' + YEONI_POSE_DIR + YEONI_POSE[id] + '.webp" width="72" height="96" alt="" loading="lazy" decoding="async">' +
       '<div class="da-yeoni__bubble"><p class="da-yeoni__label">' + YEONI_PETAL + esc(y.label) + '</p><p class="da-yeoni__msg">' + esc(line) + '</p></div></aside>';
   }
-  function withYeoni(html, t, id) {
-    var at = html ? html.indexOf('</h4>') : -1;
-    var note = at < 0 ? '' : yeoniNoteHtml(t, id);
-    return note ? html.slice(0, at + 5) + note + html.slice(at + 5) : html;
-  }
-
   function summaryHtml(model, t) {
     var ui = t.ui;
     return '<section class="da-sec da-summary" data-da-sec="summary" aria-labelledby="daSummaryTitle"><h4 class="da-h" id="daSummaryTitle">' + esc(ui.summaryTitle) + '</h4>' +
@@ -481,23 +497,15 @@
       '<div class="da-ask__actions"><button type="button" class="da-btn da-btn--primary" data-da-act="ask" data-da-ai="copy">' + esc(ui.askCopy) + '</button>' +
       '<div class="da-ask__ais" role="group" aria-label="' + esc(ui.askNav) + '">' + ais + '</div></div>' +
       '<p class="da-note da-ask__status" role="status" aria-live="polite">' + esc(state.askStatus || '') + '</p>' +
-      '<details class="da-ask__view"' + (state.askView ? ' open' : '') + '><summary>' + esc(ui.askView) + '</summary>' +
+      '<details data-mobile-detail-keep-open class="da-ask__view"' + (state.askView ? ' open' : '') + '><summary>' + esc(ui.askView) + '</summary>' +
       '<pre class="da-ask__prompt" tabindex="0">' + esc(t.aiPrompt) + '</pre></details>' +
       '<p class="da-note">' + esc(ui.askPrivacy) + '</p></section>';
-  }
-
-  /* 리포트 머리 — 무료 리포트 표식 + 목차. 목차는 실제로 그려진 장에서만 만든다(비어 빠진 베다 등은 없다). */
-  function reportHeadHtml(t, ids) {
-    var ui = t.ui;
-    return '<div class="da-report-head"><p class="da-report__label"><span>' + esc(ui.reportLabel) + '</span><span>' + esc(ui.brand) + '</span></p>' +
-      '<p class="da-report__title">' + esc(ui.title) + '</p>' +
-      '<p class="da-toc__title">' + esc(ui.tocTitle) + '</p><ol class="da-toc">' +
-      ids.map(function (id) { return '<li>' + esc(ui.toc[id] || '') + '</li>'; }).join('') + '</ol></div>';
   }
 
   function shareHtml(t, state) {
     var ui = t.ui;
     return '<section class="da-sec da-share" data-da-sec="share" aria-labelledby="daShareTitle"><h4 class="da-h" id="daShareTitle">' + esc(ui.shareTitle) + '</h4>' +
+      '<p class="da-p">' + esc(t.recovery.shareQuestion) + '</p>' +
       '<p class="da-note">' + esc(ui.shareSub) + '</p><div class="da-actions">' +
       '<button type="button" class="da-btn da-btn--primary" data-da-act="share">' + esc(ui.shareAction) + '</button>' +
       '<button type="button" class="da-btn da-btn--ghost" data-da-act="save">' + esc(ui.saveAction) + '</button>' +
@@ -525,33 +533,45 @@
     return '<section class="da-sec da-ctas" data-da-sec="cta" aria-labelledby="daCtaTitle"><h4 class="da-h" id="daCtaTitle">' + esc(t.ui.ctaTitle) + '</h4><ul class="da-cta-list">' + items + '</ul></section>';
   }
 
+  function habitsHtml(t) {
+    var h = t.recovery;
+    return '<section class="da-sec" data-da-sec="habits" aria-labelledby="daHabitsTitle"><h4 class="da-h" id="daHabitsTitle">' + esc(h.title) + '</h4>' +
+      '<p class="da-note">' + esc(h.intro) + '</p>' + t.habits.map(function (r) {
+        return '<article class="da-habit"><h5 class="da-sub">' + esc(r.title) + '</h5><dl class="da-mb">' +
+          [[h.basis, r.basis], [h.check, r.check], [h.action, r.action]].map(function (row) {
+            return '<div class="da-mb__row"><dt>' + esc(row[0]) + '</dt><dd>' + esc(row[1]) + '</dd></div>';
+          }).join('') + '</dl></article>';
+      }).join('') + '</section>';
+  }
+
   function render(container, model, opts) {
-    var state = opts || {};
-    var t = model.text;
-    var ui = t.ui;
-    var variant = state.variant || 'A';
+    var state = opts || {}, t = model.text, ui = t.ui, variant = state.variant || 'A';
+    // Opt out of the shell first-paint collapse: this renderer owns disclosure state.
+    // DOM is the source of truth for native disclosures, including async layer repaint.
+    var open = [];
+    container.querySelectorAll('details[open][data-da-chapter], details[open][data-da-entry]').forEach(function (d) {
+      open.push([d.hasAttribute('data-da-chapter') ? 'data-da-chapter' : 'data-da-entry', d.getAttribute('data-da-chapter') || d.getAttribute('data-da-entry')]);
+    });
     var html = section('hero', ui, function () { return heroHtml(t, variant); }) +
-      section('brain', ui, function () { return brainHtml(model, t, state); });
+      section('brain', ui, function () { return brainHtml(model, t, state); }) +
+      section('share', ui, function () { return shareHtml(t, state); });
     if (state.open) {
-      var chapters = [
-        ['summary', function () { return summaryHtml(model, t); }],
-        ['circuit', function () { return circuitHtml(model, t); }],
-        ['engines', function () { return enginesHtml(model, t); }],
-        ['elements', function () { return elementsHtml(model, t); }],
-        ['decision', function () { return decisionHtml(model, t, state); }],
-        ['body', function () { return bodyHtml(model, t, state); }],
-        ['vedic', function () { return vedicHtml(t); }],
-        ['fusion', function () { return insightsHtml(t); }],
-        ['ask', function () { return askHtml(t, state); }]
-      ].map(function (c) { return {id: c[0], html: section(c[0], ui, function () { return withYeoni(c[1](), t, c[0]); })}; }).filter(function (c) { return c.html; });
-      html += '<div class="da-body-wrap" id="daBody">' +
-        section('report', ui, function () { return reportHeadHtml(t, chapters.map(function (c) { return c.id; })); }) +
-        chapters.map(function (c) { return c.html; }).join('') +
-        section('share', ui, function () { return shareHtml(t, state); }) +
-        section('cta', ui, function () { return ctaHtml(t); }) +
+      var safe = function (id, fn) { return section(id, ui, fn); };
+      var groups = [
+        {guide: 'circuit', content: function () { return safe('circuit', function () { return circuitHtml(model, t); }) + safe('engines', function () { return enginesHtml(model, t); }) + safe('elements', function () { return elementsHtml(model, t); }); }},
+        {guide: 'decision', content: function () { return safe('decision', function () { return decisionHtml(model, t, state); }) + '<p class="da-p">' + esc(t.recovery.relation) + '</p>' + safe('fusion', function () { return insightsHtml(t); }); }},
+        {guide: 'body', content: function () { return safe('habits', function () { return habitsHtml(t); }) + safe('body', function () { return bodyHtml(model, t, state); }) + safe('vedic', function () { return vedicHtml(t); }); }}
+      ];
+      html += '<div class="da-body-wrap" id="daBody">' + safe('summary', function () { return summaryHtml(model, t); }) +
+        groups.map(function (g, i) {
+          var c = t.recovery.chapters[i];
+          return '<details data-mobile-detail-keep-open class="da-chapter" data-da-chapter="' + esc(c.id) + '"><summary><span class="da-chapter__title">' + esc(c.title) + '</span><span class="da-chapter__hint">' + esc(c.hint) + '</span></summary>' +
+            '<div class="da-chapter__content">' + yeoniNoteHtml(t, g.guide) + g.content() + '</div></details>';
+        }).join('') + safe('ask', function () { return askHtml(t, state); }) + safe('cta', function () { return ctaHtml(t); }) +
         '<p class="da-disclaimer">' + esc(ui.disclaimer) + '</p></div>';
     }
     container.innerHTML = html;
+    open.forEach(function (entry) { var d = container.querySelector('details[' + entry[0] + '="' + entry[1] + '"]'); if (d) d.open = true; });
     container.setAttribute('data-da-locale', model.locale || '');
     container.setAttribute('data-da-variant', variant);
   }

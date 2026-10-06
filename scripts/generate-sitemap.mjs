@@ -183,6 +183,7 @@ const coreRoutes = [
   { path: "/yeongnyangi", changefreq: "weekly", priority: 0.9 },
   // 천원사주 허브. 무료 키워드는 /saju/ 등 무료 랜딩의 몫이고, 이 페이지는 1,000원 재미 사주 콘텐츠와 영냥이 고등어 상담 안내를 맡는다.
   { path: "/yeongnyangi/1000-won-fortune", changefreq: "weekly", priority: 0.8 },
+  { path: "/saju/destiny-anatomy", changefreq: "monthly", priority: 0.76 },
   { path: "/human-design/guide", changefreq: "monthly", priority: 0.7 },
   { path: "/saju", changefreq: "daily", priority: 0.98 },
   { path: "/manse", changefreq: "daily", priority: 0.98 },

@@ -92,27 +92,27 @@
       D: '내 사주를 정신에서 몸까지 펼쳐봤습니다'
     },
     axes: {
-      selfDrive: {name: '주체성', short: '주체', god: '비겁', question: '나는 뭘 원하는가?', thought: '내가 결정하고 싶어', meme: '내 방식대로',
+      selfDrive: {name: '주체성', short: '주체', god: '비겁', question: '나는 뭘 원하는가?', thought: '내가 결정하고 싶어', meme: "내 페이스는 내가 정함",
         keywords: ['독립', '자기주도', '경쟁', '자기 방식', '경계'],
         strong: ['자신의 방식대로 결정하고 싶어해요', '지나치게 통제받는 상황을 답답해해요', '경쟁 상황에서 오히려 에너지가 생길 수 있어요'],
         over: ['고집이 세질 수 있어요', '경쟁이 과열되기 쉬워요', '내 몫에 민감해질 수 있어요', '사람과 자원이 흩어질 수 있어요'],
         mind: '스스로 방향을 정하고', pull: '스스로 방향을 정하려는 힘이 강해요.'},
-      expression: {name: '표현과 자극', short: '표현', god: '식상', question: '재밌는 건 없나?', thought: '재밌는 거 없나?', meme: '일단 해보자!',
+      expression: {name: '표현과 자극', short: '표현', god: '식상', question: '재밌는 건 없나?', thought: '재밌는 거 없나?', meme: "아이디어 또 장바구니행",
         keywords: ['표현', '말', '창작', '콘텐츠', '새로운 자극'],
         strong: ['말하고 표현하고 만들어낼 때 에너지가 생겨요', '새로운 경험과 자극에 빠르게 반응해요'],
         over: ['주의가 여러 곳으로 흩어질 수 있어요', '권태를 빨리 느낄 수 있어요', '루틴을 답답해할 수 있어요', '당장의 재미를 먼저 고르기 쉬워요'],
         mind: '재미와 표현에서 힘을 얻고', pull: '새로운 자극과 표현에서 에너지가 붙어요.'},
-      reality: {name: '현실과 결과', short: '현실', god: '재성', question: '그래서 이게 뭐가 남는데?', thought: '이게 돈이 될까?', meme: '남는 게 있나?',
+      reality: {name: '현실과 결과', short: '현실', god: '재성', question: '그래서 이게 뭐가 남는데?', thought: '이게 돈이 될까?', meme: "가성비 레이더 켜짐",
         keywords: ['성과', '효율', '관리', '결과', '목표'],
         strong: ['이론보다 현실적인 결과를 중요하게 생각해요', '시간과 돈을 들였을 때 실제로 무엇을 얻는지 확인하려 해요'],
         over: ['돈·성과·효율 자체가 압박이 될 수 있어요', '결과가 안 보이면 쉽게 지칠 수 있어요'],
         mind: '생각은 현실적이고', pull: '머리는 빨리 현실적인 결과를 확인하고 싶어 해요.'},
-      structure: {name: '책임과 기준', short: '책임', god: '관성', question: '이걸 제대로 하고 있는가?', thought: '제대로 해야 하는데', meme: '선은 지켜야지',
+      structure: {name: '책임과 기준', short: '책임', god: '관성', question: '이걸 제대로 하고 있는가?', thought: '제대로 해야 하는데', meme: "계획표에 진심인 편",
         keywords: ['책임', '규칙', '평가', '기준', '성취'],
         strong: ['역할과 책임을 중요하게 생각해요', '사회적인 기준과 해야 할 일을 의식하기 쉬워요'],
         over: ['스스로를 지나치게 검열할 수 있어요', '책임을 혼자 떠안기 쉬워요', '평가에 대한 압박을 크게 느낄 수 있어요'],
         mind: '기준을 세우고 지키며', pull: '제대로 해내야 한다는 기준이 먼저 켜져요.'},
-      reflection: {name: '생각과 흡수', short: '사고', god: '인성', question: '혹시 내가 놓친 게 있을까?', thought: '혹시 내가 놓친 게 있나?', meme: '생각 좀 할게',
+      reflection: {name: '생각과 흡수', short: '사고', god: '인성', question: '혹시 내가 놓친 게 있을까?', thought: '혹시 내가 놓친 게 있나?', meme: "생각 탭 여러 개 켜짐",
         keywords: ['공부', '정보', '직관', '검증', '의미'],
         strong: ['생각하고 이해해야 움직일 수 있어요', '하나의 현상에서도 의미를 찾으려 해요'],
         over: ['걱정이 길어질 수 있어요', '분석이 지나쳐질 수 있어요', '같은 생각을 반복하기 쉬워요', '행동이 늦어질 수 있어요'],
@@ -244,206 +244,488 @@
       },
       frame: {fire: '세상을 도전과 가능성의 무대로 보는 편이에요.', earth: '세상을 차근차근 쌓아 가는 현실로 보는 편이에요.', air: '세상을 연결과 아이디어의 네트워크로 보는 편이에요.', water: '세상을 감정과 관계의 흐름으로 보는 편이에요.'}
     },
+    recovery: {
+      "title": "사주로 돌아보는 생활 리듬",
+      "basis": "해석 근거",
+      "check": "나에게 묻기",
+      "action": "오늘 해볼 일",
+      "strong": "비중이 큰 기운",
+      "low": "비중이 작은 기운",
+      "even": "고르게 드러난 오행",
+      "intro": "오행의 비중은 몸의 건강 점수가 아니에요. 강한 기운은 자주 쓰는 방식, 작은 기운은 의식적으로 돌아볼 주제로 읽어요. 과하게 몰린 기운도 일상의 균형을 흐트러뜨리는 모습으로 해석할 수 있어요.",
+      "chakraSource": "차크라의 크기와 밝기는 사주 십성·오행을 상징적으로 옮긴 값이에요. 베다점의 행성 계산값이나 실제 신체 상태를 나타내지 않아요.",
+      "vedicSource": "베다점은 라그나에서 별자리 하나를 한 하우스로 세어 6하우스와 주인 행성을 구해요. 아래는 그 전통적 주제를 생활 점검에 연결한 예시이며, 신체 상태를 예측하지 않아요.",
+      "hdSource": "센터의 정의·열림은 휴먼 디자인에서 설명하는 패턴이에요. 장기의 상태나 활동 능력을 판정하지 않아요. 내 경험에 맞는 부분만 참고하세요.",
+      "relation": "먼저 내 속도를 설명해 보세요. “지금 답하기보다 조금 생각한 뒤 이야기하고 싶어요”처럼 필요한 시간과 경계를 말로 전할 수 있어요.",
+      "chapters": [
+        {
+          "id": "thinking",
+          "title": "생각과 성향",
+          "hint": "내 생각의 기본값과 오행의 균형"
+        },
+        {
+          "id": "relationships",
+          "title": "결정과 관계",
+          "hint": "나에게 맞는 결정 속도와 관계의 간격"
+        },
+        {
+          "id": "recovery",
+          "title": "몸과 회복 루틴",
+          "hint": "전통 해석을 일상 점검과 작은 실천으로"
+        }
+      ],
+      "shareQuestion": "너는 어떤 생각이 제일 커?",
+      "saved": "이미지를 저장했어요.",
+      "cancelled": "공유를 취소했어요.",
+      "shared": "공유했어요.",
+      "failed": "공유를 마치지 못했어요. 이미지 저장이나 링크 복사를 이용해 주세요.",
+      "routines": [
+        {
+          "title": "쉼의 간격",
+          "check": "일을 끝내기 전에 다음 일을 붙이고 있나요?",
+          "action": "오늘 일정 사이에 잠깐 쉬는 자리를 먼저 남겨 보세요. 쉬고 난 뒤 다시 하고 싶은 일을 하나만 골라요."
+        },
+        {
+          "title": "편안한 움직임",
+          "check": "오래 같은 자세로 지내고 있나요?",
+          "action": "몸 상태에 맞는 가벼운 움직임이나 짧은 산책을 골라 보세요. 불편하면 멈추고 강도를 낮춰요."
+        },
+        {
+          "title": "작은 시작",
+          "check": "완벽하게 정리하느라 시작을 미루고 있나요?",
+          "action": "해야 할 일에서 가장 작은 한 단계를 적어 보세요. 오늘 할 것과 내일 해도 될 것을 나눠요."
+        },
+        {
+          "title": "식사의 여유",
+          "check": "바쁘다는 이유로 식사 시간을 자꾸 뒤로 미루나요?",
+          "action": "오늘은 편하게 식사할 시간을 일정에 남겨 보세요. 나에게 맞는 속도로 먹으며 하루의 흐름을 돌아봐요."
+        },
+        {
+          "title": "나만의 공간",
+          "check": "다른 사람의 속도에 맞추느라 혼자 쉴 틈이 없었나요?",
+          "action": "잠시 알림을 내려놓고 편하게 머물 곳을 골라 보세요. 혼자 있고 싶은 시간을 가까운 사람에게 알려도 좋아요."
+        },
+        {
+          "title": "약속의 경계",
+          "check": "쉬고 싶은데도 거절하기 어려운 약속이 있나요?",
+          "action": "지킬 수 있는 약속과 조정할 약속을 나눠 보세요. “오늘은 여기까지 할게요”라는 말도 선택지예요."
+        },
+        {
+          "title": "정보를 내려놓기",
+          "check": "쉬는 중에도 화면을 계속 확인하고 있나요?",
+          "action": "알림을 잠시 끄고 하던 일에서 눈을 떼어 보세요. 떠오르는 생각은 메모에 남기고 나중에 확인해요."
+        },
+        {
+          "title": "감정의 여백",
+          "check": "지금의 기분만으로 급히 답하려고 하나요?",
+          "action": "중요한 답을 보내기 전 기분과 필요한 것을 한 줄씩 적어 보세요. 생각할 시간이 필요하면 먼저 말해도 괜찮아요."
+        },
+        {
+          "title": "잠들기 전 정리",
+          "check": "하루를 마무리할 시간이 일정에 남아 있나요?",
+          "action": "잠들기 전 하던 일을 마칠 시간을 정해 보세요. 내일 할 일은 적어 두고 편안한 일상 루틴으로 마무리해요."
+        }
+      ]
+    },
     mb: {
-      ui: {
-        mind: '정신',
-        body: '신체',
-        organ: '상징 연결',
-        region: '상징 부위',
-        lord: '주인 별',
-        lead: '센터와 차크라마다 마음의 결과 몸의 리듬을 함께 읽어요.',
-        vedicMind: '마음',
-        vedicBody: '몸',
-        note: '정신·신체 문장은 전통 체계의 상징을 생활 리듬으로 옮긴 거예요. 의학적 판단이 아니니, 몸이 불편하거나 마음이 오래 무거우면 의사나 전문가와 상담하세요.'
+      "ui": {
+        "mind": "정신",
+        "body": "오늘 해볼 일",
+        "organ": "해석 근거",
+        "region": "해석 근거",
+        "lord": "주인 별",
+        "lead": "센터의 정의·열림은 휴먼 디자인에서 설명하는 패턴이에요. 장기의 상태나 활동 능력을 판정하지 않아요. 내 경험에 맞는 부분만 참고하세요.",
+        "vedicMind": "마음",
+        "vedicBody": "몸",
+        "note": "정신·신체 문장은 전통 체계의 상징을 생활 리듬으로 옮긴 거예요. 의학적 판단이 아니니, 몸이 불편하거나 마음이 오래 무거우면 의사나 전문가와 상담하세요.",
+        "check": "나에게 묻기"
       },
-      center: {
-        HEAD: {
-          organ: '송과선',
-          mind: {defined: '스스로 질문을 꾸준히 만들어 내요. 영감이 안에서 솟는 편이라 혼자 생각하는 시간이 연료가 돼요.', open: '남의 질문과 고민을 내 것처럼 품기 쉬워요. ‘이게 정말 내 질문일까?’ 하고 걸러 보면 머리가 가벼워져요.'},
-          body: {defined: '생각이 밤까지 이어지기 쉬워요. 잠들기 전 메모로 머릿속을 비우는 습관이 잘 맞아요.', open: '정보가 많은 날엔 머리가 먼저 피곤해져요. 화면을 끄고 눈을 쉬는 짧은 틈이 리듬을 되찾아 줘요.'}
+      "center": {
+        "HEAD": {
+          "organ": "잠들기 전 정리",
+          "mind": {
+            "defined": "스스로 질문을 꾸준히 만들어 내요. 영감이 안에서 솟는 편이라 혼자 생각하는 시간이 연료가 돼요.",
+            "open": "남의 질문과 고민을 내 것처럼 품기 쉬워요. ‘이게 정말 내 질문일까?’ 하고 걸러 보면 머리가 가벼워져요."
+          },
+          "body": {
+            "defined": "잠들기 전 하던 일을 마칠 시간을 정해 보세요. 내일 할 일은 적어 두고 편안한 일상 루틴으로 마무리해요.",
+            "open": "알림을 잠시 끄고 하던 일에서 눈을 떼어 보세요. 떠오르는 생각은 메모에 남기고 나중에 확인해요."
+          },
+          "check": {
+            "defined": "하루를 마무리할 시간이 일정에 남아 있나요?",
+            "open": "쉬는 중에도 화면을 계속 확인하고 있나요?"
+          }
         },
-        AJNA: {
-          organ: '뇌하수체',
-          mind: {defined: '생각하는 방식이 일정하고 확신이 있어요. 한 번 정리한 관점을 오래 지켜요.', open: '여러 관점을 유연하게 오가요. 확신을 서두르지 않을 때 오히려 판단이 넓어져요.'},
-          body: {defined: '고민을 붙잡고 있으면 눈과 어깨가 굳기 쉬워요. 생각이 맴돌 땐 몸을 움직여 흐름을 바꿔 보세요.', open: '머리를 쓸 때와 쉴 때의 경계가 흐려지기 쉬워요. 공부·일 시간을 정해 두면 머리가 덜 지쳐요.'}
+        "AJNA": {
+          "organ": "작은 시작",
+          "mind": {
+            "defined": "생각하는 방식이 일정하고 확신이 있어요. 한 번 정리한 관점을 오래 지켜요.",
+            "open": "여러 관점을 유연하게 오가요. 확신을 서두르지 않을 때 오히려 판단이 넓어져요."
+          },
+          "body": {
+            "defined": "해야 할 일에서 가장 작은 한 단계를 적어 보세요. 오늘 할 것과 내일 해도 될 것을 나눠요.",
+            "open": "알림을 잠시 끄고 하던 일에서 눈을 떼어 보세요. 떠오르는 생각은 메모에 남기고 나중에 확인해요."
+          },
+          "check": {
+            "defined": "완벽하게 정리하느라 시작을 미루고 있나요?",
+            "open": "쉬는 중에도 화면을 계속 확인하고 있나요?"
+          }
         },
-        THROAT: {
-          organ: '갑상선 · 부갑상선',
-          mind: {defined: '말과 행동으로 드러내는 길이 열려 있어요. 표현할 때 생각이 정리되는 편이에요.', open: '분위기에 따라 말이 많아지거나 줄어들어요. 꼭 필요할 때만 꺼내도 충분히 전해져요.'},
-          body: {defined: '말을 많이 한 날엔 목과 어깨가 먼저 신호를 보내요. 따뜻한 물과 목 스트레칭이 잘 맞아요.', open: '주목받으려 애쓰면 에너지가 빨리 새요. 말하기 전 한 박자 쉬는 호흡이 목을 아껴 줘요.'}
+        "THROAT": {
+          "organ": "쉼의 간격",
+          "mind": {
+            "defined": "말과 행동으로 드러내는 길이 열려 있어요. 표현할 때 생각이 정리되는 편이에요.",
+            "open": "분위기에 따라 말이 많아지거나 줄어들어요. 꼭 필요할 때만 꺼내도 충분히 전해져요."
+          },
+          "body": {
+            "defined": "오늘 일정 사이에 잠깐 쉬는 자리를 먼저 남겨 보세요. 쉬고 난 뒤 다시 하고 싶은 일을 하나만 골라요.",
+            "open": "지킬 수 있는 약속과 조정할 약속을 나눠 보세요. “오늘은 여기까지 할게요”라는 말도 선택지예요."
+          },
+          "check": {
+            "defined": "일을 끝내기 전에 다음 일을 붙이고 있나요?",
+            "open": "쉬고 싶은데도 거절하기 어려운 약속이 있나요?"
+          }
         },
-        G: {
-          organ: '간 · 혈액',
-          mind: {defined: '나다움과 방향 감각이 안정적이에요. 환경이 바뀌어도 정체성이 크게 흔들리지 않아요.', open: '함께하는 사람과 장소에 따라 내가 달라져요. 좋은 장소를 고르는 감각이 곧 방향이 돼요.'},
-          body: {defined: '방향을 잃었다고 느끼면 몸도 처져요. 걷기처럼 앞으로 나아가는 움직임이 리듬을 살려요.', open: '공간의 분위기를 몸으로 먼저 느껴요. 머무는 곳이 불편하면 자리를 바꾸는 것만으로 컨디션이 달라져요.'}
+        "G": {
+          "organ": "편안한 움직임",
+          "mind": {
+            "defined": "나다움과 방향 감각이 안정적이에요. 환경이 바뀌어도 정체성이 크게 흔들리지 않아요.",
+            "open": "함께하는 사람과 장소에 따라 내가 달라져요. 좋은 장소를 고르는 감각이 곧 방향이 돼요."
+          },
+          "body": {
+            "defined": "몸 상태에 맞는 가벼운 움직임이나 짧은 산책을 골라 보세요. 불편하면 멈추고 강도를 낮춰요.",
+            "open": "잠시 알림을 내려놓고 편하게 머물 곳을 골라 보세요. 혼자 있고 싶은 시간을 가까운 사람에게 알려도 좋아요."
+          },
+          "check": {
+            "defined": "오래 같은 자세로 지내고 있나요?",
+            "open": "다른 사람의 속도에 맞추느라 혼자 쉴 틈이 없었나요?"
+          }
         },
-        HEART: {
-          organ: '심장 · 위 · 담낭 · 흉선',
-          mind: {defined: '약속과 의지력이 꾸준해요. 스스로 정한 목표를 지켜 내는 힘이 있어요.', open: '내 가치를 증명하고 싶어지기 쉬워요. 이미 충분하다는 감각이 마음을 편하게 해요.'},
-          body: {defined: '의지로 밀어붙인 뒤엔 확실한 휴식이 필요해요. 일한 만큼 쉬는 리듬이 잘 맞아요.', open: '무리한 약속은 가슴과 위의 긴장으로 이어지기 쉬워요. 지킬 수 있는 만큼만 약속하는 게 몸을 지켜요.'}
+        "HEART": {
+          "organ": "쉼의 간격",
+          "mind": {
+            "defined": "약속과 의지력이 꾸준해요. 스스로 정한 목표를 지켜 내는 힘이 있어요.",
+            "open": "내 가치를 증명하고 싶어지기 쉬워요. 이미 충분하다는 감각이 마음을 편하게 해요."
+          },
+          "body": {
+            "defined": "오늘 일정 사이에 잠깐 쉬는 자리를 먼저 남겨 보세요. 쉬고 난 뒤 다시 하고 싶은 일을 하나만 골라요.",
+            "open": "지킬 수 있는 약속과 조정할 약속을 나눠 보세요. “오늘은 여기까지 할게요”라는 말도 선택지예요."
+          },
+          "check": {
+            "defined": "일을 끝내기 전에 다음 일을 붙이고 있나요?",
+            "open": "쉬고 싶은데도 거절하기 어려운 약속이 있나요?"
+          }
         },
-        SOLAR_PLEXUS: {
-          organ: '신장 · 췌장 · 신경계',
-          mind: {defined: '감정이 파도처럼 오르내려요. 한순간의 기분보다 며칠의 흐름을 보고 정할 때 선명해져요.', open: '주변 감정을 스펀지처럼 흡수해요. ‘이 기분이 누구 것인지’ 구분하면 마음이 가벼워져요.'},
-          body: {defined: '감정의 파도가 몸의 리듬에도 실려요. 기분이 높을 땐 무리하지 말고, 낮을 땐 쉬어 가세요.', open: '갈등이 있는 자리에선 몸이 먼저 긴장해요. 혼자 있는 시간에 숨을 고르며 감정을 털어 내 보세요.'}
+        "SOLAR_PLEXUS": {
+          "organ": "감정의 여백",
+          "mind": {
+            "defined": "감정이 파도처럼 오르내려요. 한순간의 기분보다 며칠의 흐름을 보고 정할 때 선명해져요.",
+            "open": "주변 감정을 스펀지처럼 흡수해요. ‘이 기분이 누구 것인지’ 구분하면 마음이 가벼워져요."
+          },
+          "body": {
+            "defined": "중요한 답을 보내기 전 기분과 필요한 것을 한 줄씩 적어 보세요. 생각할 시간이 필요하면 먼저 말해도 괜찮아요.",
+            "open": "잠시 알림을 내려놓고 편하게 머물 곳을 골라 보세요. 혼자 있고 싶은 시간을 가까운 사람에게 알려도 좋아요."
+          },
+          "check": {
+            "defined": "지금의 기분만으로 급히 답하려고 하나요?",
+            "open": "다른 사람의 속도에 맞추느라 혼자 쉴 틈이 없었나요?"
+          }
         },
-        SACRAL: {
-          organ: '생식 기관',
-          mind: {defined: '좋아하는 일에 반응하는 힘이 크고 꾸준해요. ‘하고 싶다’는 몸의 대답이 좋은 나침반이에요.', open: '남의 에너지에 맞춰 더 오래 일하기 쉬워요. 언제 충분한지 아는 감각이 중요해요.'},
-          body: {defined: '하루 에너지를 다 쓰고 잘 때 잠이 깊어요. 몸을 충분히 쓰는 일과가 잘 맞아요.', open: '지치기 전에 눕는 습관이 리듬을 지켜요. 다른 사람의 속도에 맞춰 끝까지 버티지 않아도 돼요.'}
+        "SACRAL": {
+          "organ": "편안한 움직임",
+          "mind": {
+            "defined": "좋아하는 일에 반응하는 힘이 크고 꾸준해요. ‘하고 싶다’는 몸의 대답이 좋은 나침반이에요.",
+            "open": "남의 에너지에 맞춰 더 오래 일하기 쉬워요. 언제 충분한지 아는 감각이 중요해요."
+          },
+          "body": {
+            "defined": "몸 상태에 맞는 가벼운 움직임이나 짧은 산책을 골라 보세요. 불편하면 멈추고 강도를 낮춰요.",
+            "open": "오늘 일정 사이에 잠깐 쉬는 자리를 먼저 남겨 보세요. 쉬고 난 뒤 다시 하고 싶은 일을 하나만 골라요."
+          },
+          "check": {
+            "defined": "오래 같은 자세로 지내고 있나요?",
+            "open": "일을 끝내기 전에 다음 일을 붙이고 있나요?"
+          }
         },
-        SPLEEN: {
-          organ: '림프 · 비장 · 면역계',
-          mind: {defined: '순간의 직감이 또렷해요. ‘지금은 아니야’라는 작은 신호를 잘 들어요.', open: '익숙한 사람과 습관에 기대고 싶어질 때가 있어요. 놓아야 할 것을 알아차리는 게 성장의 열쇠예요.'},
-          body: {defined: '몸의 작은 신호를 빨리 알아채는 편이에요. 그 신호를 넘기지 않는 것만으로 컨디션을 지켜요.', open: '환경이 바뀌면 몸이 민감하게 반응해요. 잠과 식사 시간을 일정하게 두면 몸이 든든해져요.'}
+        "SPLEEN": {
+          "organ": "나만의 공간",
+          "mind": {
+            "defined": "순간의 직감이 또렷해요. ‘지금은 아니야’라는 작은 신호를 잘 들어요.",
+            "open": "익숙한 사람과 습관에 기대고 싶어질 때가 있어요. 놓아야 할 것을 알아차리는 게 성장의 열쇠예요."
+          },
+          "body": {
+            "defined": "잠시 알림을 내려놓고 편하게 머물 곳을 골라 보세요. 혼자 있고 싶은 시간을 가까운 사람에게 알려도 좋아요.",
+            "open": "잠들기 전 하던 일을 마칠 시간을 정해 보세요. 내일 할 일은 적어 두고 편안한 일상 루틴으로 마무리해요."
+          },
+          "check": {
+            "defined": "다른 사람의 속도에 맞추느라 혼자 쉴 틈이 없었나요?",
+            "open": "하루를 마무리할 시간이 일정에 남아 있나요?"
+          }
         },
-        ROOT: {
-          organ: '부신',
-          mind: {defined: '압박을 일정한 속도로 다뤄요. 마감이 있어도 페이스를 잃지 않는 편이에요.', open: '서두르라는 압박을 크게 느껴요. ‘급한 일이 정말 급한가?’를 묻는 습관이 마음을 지켜요.'},
-          body: {defined: '긴장한 뒤엔 확실히 풀어 주는 시간이 필요해요. 발바닥을 땅에 대고 천천히 걷는 게 좋아요.', open: '압박이 쌓이면 몸이 쉽게 조급해져요. 할 일을 작게 나눠 한 번에 하나씩 끝내 보세요.'}
+        "ROOT": {
+          "organ": "쉼의 간격",
+          "mind": {
+            "defined": "압박을 일정한 속도로 다뤄요. 마감이 있어도 페이스를 잃지 않는 편이에요.",
+            "open": "서두르라는 압박을 크게 느껴요. ‘급한 일이 정말 급한가?’를 묻는 습관이 마음을 지켜요."
+          },
+          "body": {
+            "defined": "오늘 일정 사이에 잠깐 쉬는 자리를 먼저 남겨 보세요. 쉬고 난 뒤 다시 하고 싶은 일을 하나만 골라요.",
+            "open": "해야 할 일에서 가장 작은 한 단계를 적어 보세요. 오늘 할 것과 내일 해도 될 것을 나눠요."
+          },
+          "check": {
+            "defined": "일을 끝내기 전에 다음 일을 붙이고 있나요?",
+            "open": "완벽하게 정리하느라 시작을 미루고 있나요?"
+          }
         }
       },
-      chakra: {
-        crown: {
-          region: '정수리',
-          mind: {
-            bright: '의미와 큰 그림을 찾는 마음이 강해요. 왜 하는지가 분명할 때 힘이 나요.',
-            steady: '현실과 의미 사이 균형이 잡혀 있어요. 가끔 큰 그림을 떠올리면 방향이 선명해져요.',
-            quiet: '지금 눈앞의 일에 집중하는 편이에요. 하루 한 번 ‘왜’를 묻는 시간이 마음을 넓혀 줘요.'
+      "chakra": {
+        "crown": {
+          "region": "의미 · 방향 · 초월",
+          "mind": {
+            "bright": "의미와 큰 그림을 찾는 마음이 강해요. 왜 하는지가 분명할 때 힘이 나요.",
+            "steady": "현실과 의미 사이 균형이 잡혀 있어요. 가끔 큰 그림을 떠올리면 방향이 선명해져요.",
+            "quiet": "지금 눈앞의 일에 집중하는 편이에요. 하루 한 번 ‘왜’를 묻는 시간이 마음을 넓혀 줘요."
           },
-          body: {
-            bright: '생각이 위로 몰리기 쉬워요. 산책처럼 몸을 땅에 붙이는 활동으로 균형을 잡아요.',
-            steady: '머리와 몸의 리듬이 고르게 맞는 편이에요. 일정한 잠 시간이 이 균형을 지켜 줘요.',
-            quiet: '몸을 쓰는 감각은 좋지만 쉼이 짧아지기 쉬워요. 조용히 눈을 감는 5분이 머리를 맑게 해요.'
+          "body": {
+            "bright": "잠들기 전 하던 일을 마칠 시간을 정해 보세요. 내일 할 일은 적어 두고 편안한 일상 루틴으로 마무리해요.",
+            "steady": "잠들기 전 하던 일을 마칠 시간을 정해 보세요. 내일 할 일은 적어 두고 편안한 일상 루틴으로 마무리해요.",
+            "quiet": "잠들기 전 하던 일을 마칠 시간을 정해 보세요. 내일 할 일은 적어 두고 편안한 일상 루틴으로 마무리해요."
+          },
+          "check": {
+            "bright": "하루를 마무리할 시간이 일정에 남아 있나요?",
+            "steady": "하루를 마무리할 시간이 일정에 남아 있나요?",
+            "quiet": "하루를 마무리할 시간이 일정에 남아 있나요?"
           }
         },
-        thirdEye: {
-          region: '이마 · 미간 · 눈',
-          mind: {
-            bright: '관찰력과 상상력이 뛰어나요. 남들이 못 본 패턴을 먼저 알아채요.',
-            steady: '직관과 사실을 함께 확인해요. 떠오른 생각을 적어 두면 통찰이 쌓여요.',
-            quiet: '눈앞의 사실을 믿는 편이에요. 가끔 상상의 여지를 두면 새로운 길이 보여요.'
+        "thirdEye": {
+          "region": "통찰 · 상상 · 관찰",
+          "mind": {
+            "bright": "관찰력과 상상력이 뛰어나요. 남들이 못 본 패턴을 먼저 알아채요.",
+            "steady": "직관과 사실을 함께 확인해요. 떠오른 생각을 적어 두면 통찰이 쌓여요.",
+            "quiet": "눈앞의 사실을 믿는 편이에요. 가끔 상상의 여지를 두면 새로운 길이 보여요."
           },
-          body: {
-            bright: '눈과 이마에 긴장이 몰리기 쉬워요. 먼 곳을 바라보며 눈을 쉬게 해 주세요.',
-            steady: '보는 일과 쉬는 일의 균형이 괜찮아요. 화면을 보는 틈틈이 눈을 감아 주세요.',
-            quiet: '생각보다 몸이 먼저 움직여요. 잠들기 전 조명을 낮추면 쉼이 깊어져요.'
+          "body": {
+            "bright": "알림을 잠시 끄고 하던 일에서 눈을 떼어 보세요. 떠오르는 생각은 메모에 남기고 나중에 확인해요.",
+            "steady": "알림을 잠시 끄고 하던 일에서 눈을 떼어 보세요. 떠오르는 생각은 메모에 남기고 나중에 확인해요.",
+            "quiet": "알림을 잠시 끄고 하던 일에서 눈을 떼어 보세요. 떠오르는 생각은 메모에 남기고 나중에 확인해요."
+          },
+          "check": {
+            "bright": "쉬는 중에도 화면을 계속 확인하고 있나요?",
+            "steady": "쉬는 중에도 화면을 계속 확인하고 있나요?",
+            "quiet": "쉬는 중에도 화면을 계속 확인하고 있나요?"
           }
         },
-        throat: {
-          region: '목 · 턱 · 어깨',
-          mind: {
-            bright: '말과 글로 생각을 풀어내는 힘이 커요. 표현할수록 마음이 정리돼요.',
-            steady: '필요한 말은 하고 아낄 말은 아껴요. 솔직함과 배려 사이 균형이 좋아요.',
-            quiet: '마음을 말로 꺼내기까지 시간이 걸려요. 짧은 메모로 먼저 표현해 보세요.'
+        "throat": {
+          "region": "표현 · 전달",
+          "mind": {
+            "bright": "말과 글로 생각을 풀어내는 힘이 커요. 표현할수록 마음이 정리돼요.",
+            "steady": "필요한 말은 하고 아낄 말은 아껴요. 솔직함과 배려 사이 균형이 좋아요.",
+            "quiet": "마음을 말로 꺼내기까지 시간이 걸려요. 짧은 메모로 먼저 표현해 보세요."
           },
-          body: {
-            bright: '목과 턱에 힘이 들어가기 쉬워요. 말을 많이 한 날엔 따뜻한 차로 목을 쉬게 해 주세요.',
-            steady: '목과 어깨의 리듬이 고른 편이에요. 자세를 자주 바꾸는 것만으로 충분해요.',
-            quiet: '하고 싶은 말을 삼키면 턱과 어깨가 굳기 쉬워요. 흥얼거리거나 소리 내 읽는 것도 좋아요.'
+          "body": {
+            "bright": "지킬 수 있는 약속과 조정할 약속을 나눠 보세요. “오늘은 여기까지 할게요”라는 말도 선택지예요.",
+            "steady": "지킬 수 있는 약속과 조정할 약속을 나눠 보세요. “오늘은 여기까지 할게요”라는 말도 선택지예요.",
+            "quiet": "지킬 수 있는 약속과 조정할 약속을 나눠 보세요. “오늘은 여기까지 할게요”라는 말도 선택지예요."
+          },
+          "check": {
+            "bright": "쉬고 싶은데도 거절하기 어려운 약속이 있나요?",
+            "steady": "쉬고 싶은데도 거절하기 어려운 약속이 있나요?",
+            "quiet": "쉬고 싶은데도 거절하기 어려운 약속이 있나요?"
           }
         },
-        heart: {
-          region: '가슴 · 폐 · 팔',
-          mind: {
-            bright: '사람과 연결될 때 에너지가 차올라요. 다정함이 가장 큰 무기예요.',
-            steady: '주는 마음과 받는 마음이 고르게 오가요. 관계의 온도를 잘 맞춰요.',
-            quiet: '마음을 쉽게 열지 않는 편이에요. 믿는 한 사람에게 먼저 마음을 나눠 보세요.'
+        "heart": {
+          "region": "연결 · 관계 · 애착",
+          "mind": {
+            "bright": "사람과 연결될 때 에너지가 차올라요. 다정함이 가장 큰 무기예요.",
+            "steady": "주는 마음과 받는 마음이 고르게 오가요. 관계의 온도를 잘 맞춰요.",
+            "quiet": "마음을 쉽게 열지 않는 편이에요. 믿는 한 사람에게 먼저 마음을 나눠 보세요."
           },
-          body: {
-            bright: '남을 챙기다 내 숨이 짧아지기 쉬워요. 가슴을 펴고 깊게 숨 쉬는 시간을 가져요.',
-            steady: '호흡과 마음의 박자가 잘 맞는 편이에요. 가벼운 유산소 운동이 이 리듬을 지켜요.',
-            quiet: '긴장하면 어깨가 말리고 숨이 얕아져요. 팔을 크게 벌리는 스트레칭이 잘 맞아요.'
+          "body": {
+            "bright": "중요한 답을 보내기 전 기분과 필요한 것을 한 줄씩 적어 보세요. 생각할 시간이 필요하면 먼저 말해도 괜찮아요.",
+            "steady": "중요한 답을 보내기 전 기분과 필요한 것을 한 줄씩 적어 보세요. 생각할 시간이 필요하면 먼저 말해도 괜찮아요.",
+            "quiet": "중요한 답을 보내기 전 기분과 필요한 것을 한 줄씩 적어 보세요. 생각할 시간이 필요하면 먼저 말해도 괜찮아요."
+          },
+          "check": {
+            "bright": "지금의 기분만으로 급히 답하려고 하나요?",
+            "steady": "지금의 기분만으로 급히 답하려고 하나요?",
+            "quiet": "지금의 기분만으로 급히 답하려고 하나요?"
           }
         },
-        solarPlexus: {
-          region: '명치 · 위장',
-          mind: {bright: '스스로 밀고 나가는 의지가 강해요. 목표가 생기면 불이 붙어요.', steady: '의지와 여유가 고르게 섞여 있어요. 할 때와 쉴 때를 잘 구분해요.', quiet: '남이 정한 속도를 따라가기 쉬워요. 작은 일이라도 스스로 정해 보세요.'},
-          body: {
-            bright: '긴장이 배와 명치로 먼저 와요. 식사를 서두르지 않는 습관이 몸을 편하게 해요.',
-            steady: '소화 리듬이 비교적 고른 편이에요. 규칙적인 식사 시간이 이 리듬을 지켜요.',
-            quiet: '기운이 낮을 땐 배를 따뜻하게 두면 좋아요. 아침에 몸을 데우는 작은 루틴을 만들어 보세요.'
+        "solarPlexus": {
+          "region": "의지 · 자기 추진 · 감정",
+          "mind": {
+            "bright": "스스로 밀고 나가는 의지가 강해요. 목표가 생기면 불이 붙어요.",
+            "steady": "의지와 여유가 고르게 섞여 있어요. 할 때와 쉴 때를 잘 구분해요.",
+            "quiet": "남이 정한 속도를 따라가기 쉬워요. 작은 일이라도 스스로 정해 보세요."
+          },
+          "body": {
+            "bright": "오늘 일정 사이에 잠깐 쉬는 자리를 먼저 남겨 보세요. 쉬고 난 뒤 다시 하고 싶은 일을 하나만 골라요.",
+            "steady": "오늘 일정 사이에 잠깐 쉬는 자리를 먼저 남겨 보세요. 쉬고 난 뒤 다시 하고 싶은 일을 하나만 골라요.",
+            "quiet": "오늘 일정 사이에 잠깐 쉬는 자리를 먼저 남겨 보세요. 쉬고 난 뒤 다시 하고 싶은 일을 하나만 골라요."
+          },
+          "check": {
+            "bright": "일을 끝내기 전에 다음 일을 붙이고 있나요?",
+            "steady": "일을 끝내기 전에 다음 일을 붙이고 있나요?",
+            "quiet": "일을 끝내기 전에 다음 일을 붙이고 있나요?"
           }
         },
-        sacral: {
-          region: '아랫배 · 골반',
-          mind: {
-            bright: '즐거움과 창작 욕구가 풍부해요. 좋아하는 걸 할 때 아이디어가 솟아요.',
-            steady: '즐거움과 책임을 적당히 오가요. 취미 하나가 삶의 윤활유가 돼요.',
-            quiet: '해야 할 일 위주로 살기 쉬워요. 이유 없이 즐거운 일을 일정에 넣어 보세요.'
+        "sacral": {
+          "region": "욕망 · 즐거움 · 창조",
+          "mind": {
+            "bright": "즐거움과 창작 욕구가 풍부해요. 좋아하는 걸 할 때 아이디어가 솟아요.",
+            "steady": "즐거움과 책임을 적당히 오가요. 취미 하나가 삶의 윤활유가 돼요.",
+            "quiet": "해야 할 일 위주로 살기 쉬워요. 이유 없이 즐거운 일을 일정에 넣어 보세요."
           },
-          body: {
-            bright: '기분 좋은 일에 몸을 많이 쓰는 편이에요. 즐긴 뒤 충분히 쉬는 것까지가 리듬이에요.',
-            steady: '골반과 허리의 리듬이 고른 편이에요. 오래 앉아 있었다면 골반을 돌려 풀어 주세요.',
-            quiet: '오래 앉아 있으면 아랫배와 허리가 무거워지기 쉬워요. 춤이나 가벼운 걷기로 흐름을 깨워요.'
+          "body": {
+            "bright": "몸 상태에 맞는 가벼운 움직임이나 짧은 산책을 골라 보세요. 불편하면 멈추고 강도를 낮춰요.",
+            "steady": "몸 상태에 맞는 가벼운 움직임이나 짧은 산책을 골라 보세요. 불편하면 멈추고 강도를 낮춰요.",
+            "quiet": "몸 상태에 맞는 가벼운 움직임이나 짧은 산책을 골라 보세요. 불편하면 멈추고 강도를 낮춰요."
+          },
+          "check": {
+            "bright": "오래 같은 자세로 지내고 있나요?",
+            "steady": "오래 같은 자세로 지내고 있나요?",
+            "quiet": "오래 같은 자세로 지내고 있나요?"
           }
         },
-        root: {
-          region: '꼬리뼈 · 다리 · 발',
-          mind: {
-            bright: '현실 감각과 안정 욕구가 강해요. 기반이 탄탄할 때 마음이 놓여요.',
-            steady: '안정과 변화를 고르게 받아들여요. 기본 루틴이 있으면 새 도전도 편해요.',
-            quiet: '발이 땅에 덜 닿은 듯 들뜨기 쉬워요. 고정 루틴 하나가 마음의 닻이 돼요.'
+        "root": {
+          "region": "안정 · 기반 · 현실 감각",
+          "mind": {
+            "bright": "현실 감각과 안정 욕구가 강해요. 기반이 탄탄할 때 마음이 놓여요.",
+            "steady": "안정과 변화를 고르게 받아들여요. 기본 루틴이 있으면 새 도전도 편해요.",
+            "quiet": "발이 땅에 덜 닿은 듯 들뜨기 쉬워요. 고정 루틴 하나가 마음의 닻이 돼요."
           },
-          body: {
-            bright: '다리와 허리에 힘이 좋은 편이에요. 너무 오래 버티기보다 중간중간 풀어 주세요.',
-            steady: '하체 리듬이 고른 편이에요. 꾸준한 걷기가 이 균형을 지켜요.',
-            quiet: '하체가 무겁게 느껴질 때가 있어요. 따뜻한 족욕이나 천천히 걷기가 잘 맞아요.'
+          "body": {
+            "bright": "오늘은 편하게 식사할 시간을 일정에 남겨 보세요. 나에게 맞는 속도로 먹으며 하루의 흐름을 돌아봐요.",
+            "steady": "오늘은 편하게 식사할 시간을 일정에 남겨 보세요. 나에게 맞는 속도로 먹으며 하루의 흐름을 돌아봐요.",
+            "quiet": "오늘은 편하게 식사할 시간을 일정에 남겨 보세요. 나에게 맞는 속도로 먹으며 하루의 흐름을 돌아봐요."
+          },
+          "check": {
+            "bright": "바쁘다는 이유로 식사 시간을 자꾸 뒤로 미루나요?",
+            "steady": "바쁘다는 이유로 식사 시간을 자꾸 뒤로 미루나요?",
+            "quiet": "바쁘다는 이유로 식사 시간을 자꾸 뒤로 미루나요?"
           }
         }
       },
-      vedicKind: {moon: '달 별자리로 본 마음', lagna: '라그나로 본 몸의 결', sixth: '6하우스로 본 회복 방식'},
-      sign: {
-        Aries: '양자리',
-        Taurus: '황소자리',
-        Gemini: '쌍둥이자리',
-        Cancer: '게자리',
-        Leo: '사자자리',
-        Virgo: '처녀자리',
-        Libra: '천칭자리',
-        Scorpio: '전갈자리',
-        Sagittarius: '사수자리',
-        Capricorn: '염소자리',
-        Aquarius: '물병자리',
-        Pisces: '물고기자리'
+      "vedicKind": {
+        "moon": "달 별자리로 본 마음",
+        "lagna": "라그나로 본 몸의 결",
+        "sixth": "6하우스로 본 회복 방식"
       },
-      graha: {Sun: '태양', Moon: '달', Mars: '화성', Mercury: '수성', Jupiter: '목성', Venus: '금성', Saturn: '토성'},
-      moon: {
-        Aries: '감정이 빠르게 불붙고 빠르게 식어요. 바로 표현하고 털어 내는 게 마음을 편하게 해요.',
-        Taurus: '마음이 안정될 때 가장 행복해요. 익숙한 공간과 맛있는 음식이 큰 위로가 돼요.',
-        Gemini: '감정을 말과 대화로 풀어요. 수다 한 번이 마음 정리의 지름길이에요.',
-        Cancer: '감정이 깊고 보살피는 마음이 커요. 안전한 내 공간이 있을 때 마음이 회복돼요.',
-        Leo: '인정받을 때 마음이 환해져요. 스스로를 칭찬하는 습관이 자존감을 지켜요.',
-        Virgo: '마음이 불안하면 정리하고 분석해요. 완벽하지 않아도 괜찮다는 말을 스스로에게 들려주세요.',
-        Libra: '조화로운 관계에서 마음이 편해요. 갈등을 피하기보다 부드럽게 말하는 연습이 좋아요.',
-        Scorpio: '감정을 깊이 품고 쉽게 드러내지 않아요. 믿는 사람에게 털어놓을 때 마음이 가벼워져요.',
-        Sagittarius: '자유와 의미를 찾을 때 마음이 살아나요. 여행이나 새로운 배움이 기분을 바꿔 줘요.',
-        Capricorn: '감정보다 책임을 먼저 챙겨요. 무언가를 해낸 뒤엔 쉬어도 된다고 스스로 허락해 주세요.',
-        Aquarius: '감정을 한 발 떨어져서 바라봐요. 혼자만의 시간과 마음 맞는 친구가 둘 다 필요해요.',
-        Pisces: '공감력이 크고 상상이 풍부해요. 음악이나 그림처럼 감정을 흘려보낼 통로가 있으면 좋아요.'
+      "sign": {
+        "Aries": "양자리",
+        "Taurus": "황소자리",
+        "Gemini": "쌍둥이자리",
+        "Cancer": "게자리",
+        "Leo": "사자자리",
+        "Virgo": "처녀자리",
+        "Libra": "천칭자리",
+        "Scorpio": "전갈자리",
+        "Sagittarius": "사수자리",
+        "Capricorn": "염소자리",
+        "Aquarius": "물병자리",
+        "Pisces": "물고기자리"
       },
-      lagna: {
-        Aries: {region: '머리 · 얼굴', body: '에너지가 머리 쪽으로 몰리기 쉬워요. 열이 오를 땐 잠깐 멈추고 식히는 시간을 가져요.'},
-        Taurus: {region: '목 · 목구멍', body: '목과 어깨에 피로가 쌓이기 쉬워요. 천천히 먹고 목을 따뜻하게 두는 게 잘 맞아요.'},
-        Gemini: {region: '어깨 · 팔 · 호흡', body: '바쁘면 호흡이 얕아지기 쉬워요. 손을 쉬게 하고 깊게 숨 쉬는 틈을 두세요.'},
-        Cancer: {region: '가슴 · 위', body: '감정이 위장 리듬에 실리기 쉬워요. 편안한 분위기에서 식사하는 게 몸을 도와요.'},
-        Leo: {region: '심장 · 등', body: '열정적으로 달리다 등이 뻣뻣해지기 쉬워요. 가슴을 펴는 스트레칭과 충분한 잠이 좋아요.'},
-        Virgo: {region: '장 · 소화', body: '걱정이 소화 리듬에 먼저 나타나요. 규칙적인 식사와 가벼운 산책이 잘 맞아요.'},
-        Libra: {region: '허리 · 신장', body: '균형이 깨지면 허리가 먼저 무거워져요. 오래 앉았다면 허리를 펴고 물을 자주 마셔요.'},
-        Scorpio: {region: '골반 · 아랫배', body: '긴장을 아랫배에 담아 두기 쉬워요. 따뜻한 목욕과 깊은 호흡으로 풀어 주세요.'},
-        Sagittarius: {region: '엉덩이 · 허벅지', body: '움직여야 기분이 풀리는 몸이에요. 걷기나 하이킹처럼 큰 근육을 쓰는 활동이 좋아요.'},
-        Capricorn: {region: '무릎 · 뼈대', body: '버티는 힘이 강한 만큼 관절을 아껴 주세요. 무리한 운동보다 꾸준한 스트레칭이 맞아요.'},
-        Aquarius: {region: '종아리 · 발목 · 순환', body: '오래 서 있거나 앉아 있으면 다리가 무거워져요. 자주 일어나 순환을 깨워 주세요.'},
-        Pisces: {region: '발 · 잠', body: '몸이 분위기와 피로에 민감해요. 충분한 잠과 발을 따뜻하게 두는 습관이 리듬을 지켜요.'}
+      "graha": {
+        "Sun": "태양",
+        "Moon": "달",
+        "Mars": "화성",
+        "Mercury": "수성",
+        "Jupiter": "목성",
+        "Venus": "금성",
+        "Saturn": "토성"
       },
-      sixth: {
-        Sun: '햇볕과 규칙적인 일과로 회복해요. 아침 햇살을 받으며 걷는 시간이 잘 맞아요.',
-        Moon: '마음이 편해야 몸도 회복돼요. 익숙한 사람·공간에서 쉬는 시간이 가장 큰 회복이에요.',
-        Mars: '몸을 움직여서 회복하는 타입이에요. 땀 흘린 뒤엔 충분히 식히는 시간도 챙겨요.',
-        Mercury: '머리를 비울 때 회복돼요. 일기·정리·가벼운 퍼즐처럼 생각을 정돈하는 활동이 좋아요.',
-        Jupiter: '‘적당히’가 회복의 열쇠예요. 과식과 과로를 조금씩 덜어 내면 몸이 가벼워져요.',
-        Venus: '즐거움과 아름다움으로 회복해요. 좋아하는 음악·향·맛있는 한 끼가 큰 힘이 돼요.',
-        Saturn: '천천히, 꾸준히 회복하는 타입이에요. 같은 시간에 자고 일어나는 루틴이 가장 잘 맞아요.'
+      "moon": {
+        "Aries": "감정이 빠르게 불붙고 빠르게 식어요. 바로 표현하고 털어 내는 게 마음을 편하게 해요.",
+        "Taurus": "마음이 안정될 때 가장 행복해요. 익숙한 공간과 맛있는 음식이 큰 위로가 돼요.",
+        "Gemini": "감정을 말과 대화로 풀어요. 수다 한 번이 마음 정리의 지름길이에요.",
+        "Cancer": "감정이 깊고 보살피는 마음이 커요. 안전한 내 공간이 있을 때 마음이 회복돼요.",
+        "Leo": "인정받을 때 마음이 환해져요. 스스로를 칭찬하는 습관이 자존감을 지켜요.",
+        "Virgo": "마음이 불안하면 정리하고 분석해요. 완벽하지 않아도 괜찮다는 말을 스스로에게 들려주세요.",
+        "Libra": "조화로운 관계에서 마음이 편해요. 갈등을 피하기보다 부드럽게 말하는 연습이 좋아요.",
+        "Scorpio": "감정을 깊이 품고 쉽게 드러내지 않아요. 믿는 사람에게 털어놓을 때 마음이 가벼워져요.",
+        "Sagittarius": "자유와 의미를 찾을 때 마음이 살아나요. 여행이나 새로운 배움이 기분을 바꿔 줘요.",
+        "Capricorn": "감정보다 책임을 먼저 챙겨요. 무언가를 해낸 뒤엔 쉬어도 된다고 스스로 허락해 주세요.",
+        "Aquarius": "감정을 한 발 떨어져서 바라봐요. 혼자만의 시간과 마음 맞는 친구가 둘 다 필요해요.",
+        "Pisces": "공감력이 크고 상상이 풍부해요. 음악이나 그림처럼 감정을 흘려보낼 통로가 있으면 좋아요."
+      },
+      "lagna": {
+        "Aries": {
+          "region": "쉼의 간격",
+          "body": "오늘 일정 사이에 잠깐 쉬는 자리를 먼저 남겨 보세요. 쉬고 난 뒤 다시 하고 싶은 일을 하나만 골라요.",
+          "check": "일을 끝내기 전에 다음 일을 붙이고 있나요?"
+        },
+        "Taurus": {
+          "region": "식사의 여유",
+          "body": "오늘은 편하게 식사할 시간을 일정에 남겨 보세요. 나에게 맞는 속도로 먹으며 하루의 흐름을 돌아봐요.",
+          "check": "바쁘다는 이유로 식사 시간을 자꾸 뒤로 미루나요?"
+        },
+        "Gemini": {
+          "region": "정보를 내려놓기",
+          "body": "알림을 잠시 끄고 하던 일에서 눈을 떼어 보세요. 떠오르는 생각은 메모에 남기고 나중에 확인해요.",
+          "check": "쉬는 중에도 화면을 계속 확인하고 있나요?"
+        },
+        "Cancer": {
+          "region": "나만의 공간",
+          "body": "잠시 알림을 내려놓고 편하게 머물 곳을 골라 보세요. 혼자 있고 싶은 시간을 가까운 사람에게 알려도 좋아요.",
+          "check": "다른 사람의 속도에 맞추느라 혼자 쉴 틈이 없었나요?"
+        },
+        "Leo": {
+          "region": "편안한 움직임",
+          "body": "몸 상태에 맞는 가벼운 움직임이나 짧은 산책을 골라 보세요. 불편하면 멈추고 강도를 낮춰요.",
+          "check": "오래 같은 자세로 지내고 있나요?"
+        },
+        "Virgo": {
+          "region": "작은 시작",
+          "body": "해야 할 일에서 가장 작은 한 단계를 적어 보세요. 오늘 할 것과 내일 해도 될 것을 나눠요.",
+          "check": "완벽하게 정리하느라 시작을 미루고 있나요?"
+        },
+        "Libra": {
+          "region": "약속의 경계",
+          "body": "지킬 수 있는 약속과 조정할 약속을 나눠 보세요. “오늘은 여기까지 할게요”라는 말도 선택지예요.",
+          "check": "쉬고 싶은데도 거절하기 어려운 약속이 있나요?"
+        },
+        "Scorpio": {
+          "region": "감정의 여백",
+          "body": "중요한 답을 보내기 전 기분과 필요한 것을 한 줄씩 적어 보세요. 생각할 시간이 필요하면 먼저 말해도 괜찮아요.",
+          "check": "지금의 기분만으로 급히 답하려고 하나요?"
+        },
+        "Sagittarius": {
+          "region": "편안한 움직임",
+          "body": "몸 상태에 맞는 가벼운 움직임이나 짧은 산책을 골라 보세요. 불편하면 멈추고 강도를 낮춰요.",
+          "check": "오래 같은 자세로 지내고 있나요?"
+        },
+        "Capricorn": {
+          "region": "쉼의 간격",
+          "body": "오늘 일정 사이에 잠깐 쉬는 자리를 먼저 남겨 보세요. 쉬고 난 뒤 다시 하고 싶은 일을 하나만 골라요.",
+          "check": "일을 끝내기 전에 다음 일을 붙이고 있나요?"
+        },
+        "Aquarius": {
+          "region": "나만의 공간",
+          "body": "잠시 알림을 내려놓고 편하게 머물 곳을 골라 보세요. 혼자 있고 싶은 시간을 가까운 사람에게 알려도 좋아요.",
+          "check": "다른 사람의 속도에 맞추느라 혼자 쉴 틈이 없었나요?"
+        },
+        "Pisces": {
+          "region": "잠들기 전 정리",
+          "body": "잠들기 전 하던 일을 마칠 시간을 정해 보세요. 내일 할 일은 적어 두고 편안한 일상 루틴으로 마무리해요.",
+          "check": "하루를 마무리할 시간이 일정에 남아 있나요?"
+        }
+      },
+      "sixth": {
+        "Sun": "오늘 일정 사이에 잠깐 쉬는 자리를 먼저 남겨 보세요. 쉬고 난 뒤 다시 하고 싶은 일을 하나만 골라요.",
+        "Moon": "잠들기 전 하던 일을 마칠 시간을 정해 보세요. 내일 할 일은 적어 두고 편안한 일상 루틴으로 마무리해요.",
+        "Mars": "몸 상태에 맞는 가벼운 움직임이나 짧은 산책을 골라 보세요. 불편하면 멈추고 강도를 낮춰요.",
+        "Mercury": "알림을 잠시 끄고 하던 일에서 눈을 떼어 보세요. 떠오르는 생각은 메모에 남기고 나중에 확인해요.",
+        "Jupiter": "해야 할 일에서 가장 작은 한 단계를 적어 보세요. 오늘 할 것과 내일 해도 될 것을 나눠요.",
+        "Venus": "잠시 알림을 내려놓고 편하게 머물 곳을 골라 보세요. 혼자 있고 싶은 시간을 가까운 사람에게 알려도 좋아요.",
+        "Saturn": "지킬 수 있는 약속과 조정할 약속을 나눠 보세요. “오늘은 여기까지 할게요”라는 말도 선택지예요."
+      },
+      "sixthCheck": {
+        "Sun": "일을 끝내기 전에 다음 일을 붙이고 있나요?",
+        "Moon": "하루를 마무리할 시간이 일정에 남아 있나요?",
+        "Mars": "오래 같은 자세로 지내고 있나요?",
+        "Mercury": "쉬는 중에도 화면을 계속 확인하고 있나요?",
+        "Jupiter": "완벽하게 정리하느라 시작을 미루고 있나요?",
+        "Venus": "다른 사람의 속도에 맞추느라 혼자 쉴 틈이 없었나요?",
+        "Saturn": "쉬고 싶은데도 거절하기 어려운 약속이 있나요?"
       }
     },
     yeoni: {
@@ -579,31 +861,31 @@
       D: 'My Saju, unfolded from mind to body'
     },
     axes: {
-      selfDrive: {name: 'Self-drive', short: 'Self', god: 'Companion stars', question: 'What do I want?', thought: 'I want to decide this myself', meme: 'My way',
+      selfDrive: {name: 'Self-drive', short: 'Self', god: 'Companion stars', question: 'What do I want?', thought: 'I want to decide this myself', meme: "My pace, my rules",
         keywords: ['Independence', 'Self-direction', 'Competition', 'My own way', 'Boundaries'],
         strong: ['You want to decide in your own way', 'Being over-controlled feels stifling', 'Competition can energize you'],
         over: ['Stubbornness can grow', 'Competition can overheat', 'You may get sensitive about your share', 'People and resources can scatter'],
-        mind: 'Sets your own course,', pull: 'Your drive to set your own course is strong.'},
-      expression: {name: 'Expression & stimulation', short: 'Expression', god: 'Output stars', question: 'Is there anything fun?', thought: 'Anything fun out there?', meme: "Let's try it!",
+        mind: 'Sets their own course,', pull: 'Your drive to set your own course is strong.'},
+      expression: {name: 'Expression & stimulation', short: 'Expression', god: 'Output stars', question: 'Is there anything fun?', thought: 'Anything fun out there?', meme: "Another idea in the cart",
         keywords: ['Expression', 'Speech', 'Creation', 'Content', 'New stimuli'],
         strong: ['Speaking, expressing and making things energize you', 'You react quickly to new experiences and stimuli'],
         over: ['Attention can scatter', 'Boredom can come quickly', 'Routine can feel confining', 'Instant fun may come first'],
-        mind: 'Fueled by fun and expression,', pull: 'New stimuli and expression are what get you going.'},
-      reality: {name: 'Reality & results', short: 'Reality', god: 'Wealth stars', question: 'So what does this actually leave me with?', thought: 'Will this pay off?', meme: "What's in it?",
+        mind: 'Thrives on fun and expression,', pull: 'New stimuli and expression are what get you going.'},
+      reality: {name: 'Reality & results', short: 'Reality', god: 'Wealth stars', question: 'So what does this actually leave me with?', thought: 'Will this pay off?', meme: "Value radar: on",
         keywords: ['Results', 'Efficiency', 'Management', 'Outcomes', 'Goals'],
         strong: ['You value real results over theory', 'You check what you actually gain for the time and money you put in'],
         over: ['Money, results and efficiency can become pressure', 'You may tire when results are not visible'],
-        mind: 'Practical in thought,', pull: 'Your mind wants to confirm real results quickly.'},
-      structure: {name: 'Responsibility & standards', short: 'Responsibility', god: 'Authority stars', question: 'Am I doing this right?', thought: 'I have to do this properly', meme: 'Rules first',
+        mind: 'Thinks practically,', pull: 'Your mind wants to confirm real results quickly.'},
+      structure: {name: 'Responsibility & standards', short: 'Responsibility', god: 'Authority stars', question: 'Am I doing this right?', thought: 'I have to do this properly', meme: "Personally attached to the plan",
         keywords: ['Responsibility', 'Rules', 'Evaluation', 'Standards', 'Achievement'],
         strong: ['You take roles and responsibilities seriously', 'You are aware of social standards and what needs doing'],
         over: ['You may censor yourself too much', 'You may carry responsibility alone', 'Evaluation can weigh on you'],
-        mind: 'Setting and keeping standards,', pull: 'The standard of doing it right switches on first.'},
-      reflection: {name: 'Thought & absorption', short: 'Thinking', god: 'Resource stars', question: 'Did I miss anything?', thought: 'Did I miss something?', meme: 'Let me think',
+        mind: 'Sets and keeps clear standards,', pull: 'The standard of doing it right switches on first.'},
+      reflection: {name: 'Thought & absorption', short: 'Thinking', god: 'Resource stars', question: 'Did I miss anything?', thought: 'Did I miss something?', meme: "Too many thought tabs open",
         keywords: ['Study', 'Information', 'Intuition', 'Verification', 'Meaning'],
         strong: ['You need to think and understand before you move', 'You look for meaning even in a single event'],
         over: ['Worry can linger', 'Analysis can run too long', 'The same thought can loop', 'Action can be delayed'],
-        mind: 'Thinking deeply before moving,', pull: 'You gather and review information until you feel sure.'}
+        mind: 'Thinks deeply before acting,', pull: 'You gather and review information until you feel sure.'}
     },
     combo: {
       'selfDrive+expression': {title: 'Expresses in their own way', text: 'You come alive when you can decide freely and express freely.'},
@@ -731,264 +1013,488 @@
       },
       frame: {fire: 'You tend to see the world as a stage of challenge and possibility.', earth: 'You tend to see the world as a reality built step by step.', air: 'You tend to see the world as a network of connections and ideas.', water: 'You tend to see the world as a flow of feelings and relationships.'}
     },
+    recovery: {
+      "title": "Everyday rhythms through Saju",
+      "basis": "Reading basis",
+      "check": "Ask yourself",
+      "action": "Try today",
+      "strong": "Most represented element",
+      "low": "Least represented element",
+      "even": "Evenly represented elements",
+      "intro": "Element proportions are not health scores. A prominent element suggests a familiar pattern; a quieter one offers a theme to reflect on. An overused strength can also become an imbalance in everyday habits.",
+      "chakraSource": "Chakra size and brightness symbolically translate Saju ten-god and element patterns. They are not Vedic planetary calculations or measurements of your body.",
+      "vedicSource": "The sixth house and its ruler are derived by counting whole signs from the Vedic ascendant. These traditional themes offer prompts for everyday reflection, not predictions about your body.",
+      "hdSource": "Defined and open centers describe patterns within Human Design. They do not assess organs or physical capacity. Keep only what fits your lived experience.",
+      "relation": "Explain your pace before deciding. You might say, “I would like some time to think before answering.” Naming the time and space you need can make a conversation clearer.",
+      "chapters": [
+        {
+          "id": "thinking",
+          "title": "Thoughts & tendencies",
+          "hint": "Your thinking patterns and five-element balance"
+        },
+        {
+          "id": "relationships",
+          "title": "Decisions & relationships",
+          "hint": "Your decision pace and personal boundaries"
+        },
+        {
+          "id": "recovery",
+          "title": "Body & recovery routines",
+          "hint": "Traditional themes, practical questions and small steps"
+        }
+      ],
+      "shareQuestion": "Which thought takes up the most room in your head?",
+      "saved": "Image saved.",
+      "cancelled": "Sharing cancelled.",
+      "shared": "Shared.",
+      "failed": "Sharing did not finish. Try saving the image or copying the link.",
+      "routines": [
+        {
+          "title": "Room to rest",
+          "check": "Do you start the next task before pausing?",
+          "action": "Leave a short break between tasks today. Afterwards, choose just one thing to return to."
+        },
+        {
+          "title": "Comfortable movement",
+          "check": "Have you stayed in the same position for a long time?",
+          "action": "Choose gentle movement or a short walk that suits how you feel. Stop or ease off if it feels uncomfortable."
+        },
+        {
+          "title": "A small start",
+          "check": "Are you waiting for a perfect plan before starting?",
+          "action": "Write down the smallest next step. Separate what needs doing today from what can wait."
+        },
+        {
+          "title": "Time for a meal",
+          "check": "Does being busy keep pushing meals aside?",
+          "action": "Leave a comfortable space for a meal in your day. Eat at a pace that works for you and notice your daily rhythm."
+        },
+        {
+          "title": "Your own space",
+          "check": "Have you had any quiet time away from other people’s pace?",
+          "action": "Put notifications aside and choose a comfortable place to pause. Let someone close know if you need time alone."
+        },
+        {
+          "title": "Manageable commitments",
+          "check": "Are you accepting plans when you would rather rest?",
+          "action": "Separate the promises you can keep from those you need to adjust. “That is enough for today” is an option."
+        },
+        {
+          "title": "Less input",
+          "check": "Are you still checking a screen during breaks?",
+          "action": "Turn off notifications briefly and look away from the task. Leave new thoughts in a note to revisit later."
+        },
+        {
+          "title": "Emotional breathing room",
+          "check": "Are you rushing to reply based on this moment’s mood?",
+          "action": "Before an important reply, note how you feel and what you need. It is fine to ask for time to think."
+        },
+        {
+          "title": "Winding down",
+          "check": "Have you left time to close the day?",
+          "action": "Choose a point to finish your tasks before bed. Note tomorrow’s tasks and return to a comfortable evening routine."
+        }
+      ]
+    },
     mb: {
-      ui: {
-        mind: 'Mind',
-        body: 'Body',
-        organ: 'Traditional link',
-        region: 'Body area',
-        lord: 'Ruling planet',
-        lead: 'Each center and chakra is read twice: the grain of your mind and the rhythm of your body.',
-        vedicMind: 'Mind',
-        vedicBody: 'Body',
-        note: 'These mind and body lines translate the symbols of traditional systems into everyday rhythms. They are not medical advice — if your body feels unwell or your mood stays heavy for a long time, please talk to a doctor or a qualified professional.'
+      "ui": {
+        "mind": "Mind",
+        "body": "Try today",
+        "organ": "Reading basis",
+        "region": "Reading basis",
+        "lord": "Ruling planet",
+        "lead": "Defined and open centers describe patterns within Human Design. They do not assess organs or physical capacity. Keep only what fits your lived experience.",
+        "vedicMind": "Mind",
+        "vedicBody": "Body",
+        "note": "These mind and body lines translate the symbols of traditional systems into everyday rhythms. They are not medical advice — if your body feels unwell or your mood stays heavy for a long time, please talk to a doctor or a qualified professional.",
+        "check": "Ask yourself"
       },
-      center: {
-        HEAD: {
-          organ: 'Pineal gland',
-          mind: {
-            defined: 'You keep generating your own questions. Inspiration rises from within, so time alone with your thoughts is your fuel.',
-            open: 'You easily carry other people\'s questions as if they were yours. Asking \'Is this really my question?\' lightens your head.'
+      "center": {
+        "HEAD": {
+          "organ": "Winding down",
+          "mind": {
+            "defined": "You keep generating your own questions. Inspiration rises from within, so time alone with your thoughts is your fuel.",
+            "open": "You easily carry other people's questions as if they were yours. Asking 'Is this really my question?' lightens your head."
           },
-          body: {
-            defined: 'Thoughts tend to run late into the night. Emptying your head onto a note before bed suits you well.',
-            open: 'On information-heavy days your head tires first. Short breaks with the screen off and your eyes resting bring your rhythm back.'
+          "body": {
+            "defined": "Choose a point to finish your tasks before bed. Note tomorrow’s tasks and return to a comfortable evening routine.",
+            "open": "Turn off notifications briefly and look away from the task. Leave new thoughts in a note to revisit later."
+          },
+          "check": {
+            "defined": "Have you left time to close the day?",
+            "open": "Are you still checking a screen during breaks?"
           }
         },
-        AJNA: {
-          organ: 'Pituitary gland',
-          mind: {
-            defined: 'Your way of thinking is consistent and sure. Once you settle on a view, you hold it for a long time.',
-            open: 'You move flexibly between perspectives. Your judgement grows wider when you don\'t rush to certainty.'
+        "AJNA": {
+          "organ": "A small start",
+          "mind": {
+            "defined": "Your way of thinking is consistent and sure. Once you settle on a view, you hold it for a long time.",
+            "open": "You move flexibly between perspectives. Your judgement grows wider when you don't rush to certainty."
           },
-          body: {
-            defined: 'Holding on to a worry can stiffen your eyes and shoulders. When thoughts circle, move your body to shift the flow.',
-            open: 'The line between thinking time and rest time blurs easily. Setting fixed hours for study or work keeps your head fresher.'
+          "body": {
+            "defined": "Write down the smallest next step. Separate what needs doing today from what can wait.",
+            "open": "Turn off notifications briefly and look away from the task. Leave new thoughts in a note to revisit later."
+          },
+          "check": {
+            "defined": "Are you waiting for a perfect plan before starting?",
+            "open": "Are you still checking a screen during breaks?"
           }
         },
-        THROAT: {
-          organ: 'Thyroid · parathyroid',
-          mind: {
-            defined: 'Your path to expressing through words and action is open. Speaking is how your thoughts get organised.',
-            open: 'You talk more or less depending on the room. Speaking only when it truly matters is enough to be heard.'
+        "THROAT": {
+          "organ": "Room to rest",
+          "mind": {
+            "defined": "Your path to expressing through words and action is open. Speaking is how your thoughts get organised.",
+            "open": "You talk more or less depending on the room. Speaking only when it truly matters is enough to be heard."
           },
-          body: {
-            defined: 'After a talkative day, your throat and shoulders signal first. Warm water and neck stretches suit you.',
-            open: 'Straining for attention drains your energy fast. A breath\'s pause before you speak spares your throat.'
+          "body": {
+            "defined": "Leave a short break between tasks today. Afterwards, choose just one thing to return to.",
+            "open": "Separate the promises you can keep from those you need to adjust. “That is enough for today” is an option."
+          },
+          "check": {
+            "defined": "Do you start the next task before pausing?",
+            "open": "Are you accepting plans when you would rather rest?"
           }
         },
-        G: {
-          organ: 'Liver · blood',
-          mind: {
-            defined: 'Your sense of self and direction is steady. Even when your surroundings change, your identity holds.',
-            open: 'Who you are shifts with the people and places around you. Your knack for choosing good places becomes your direction.'
+        "G": {
+          "organ": "Comfortable movement",
+          "mind": {
+            "defined": "Your sense of self and direction is steady. Even when your surroundings change, your identity holds.",
+            "open": "Who you are shifts with the people and places around you. Your knack for choosing good places becomes your direction."
           },
-          body: {
-            defined: 'When you feel directionless, your body slumps too. Forward motion like walking revives your rhythm.',
-            open: 'You feel the mood of a space in your body first. If a place feels off, simply moving can change how you feel.'
+          "body": {
+            "defined": "Choose gentle movement or a short walk that suits how you feel. Stop or ease off if it feels uncomfortable.",
+            "open": "Put notifications aside and choose a comfortable place to pause. Let someone close know if you need time alone."
+          },
+          "check": {
+            "defined": "Have you stayed in the same position for a long time?",
+            "open": "Have you had any quiet time away from other people’s pace?"
           }
         },
-        HEART: {
-          organ: 'Heart · stomach · gallbladder · thymus',
-          mind: {
-            defined: 'Your promises and willpower are consistent. You have the strength to keep goals you set for yourself.',
-            open: 'You may feel the urge to prove your worth. Sensing that you are already enough puts your heart at ease.'
+        "HEART": {
+          "organ": "Room to rest",
+          "mind": {
+            "defined": "Your promises and willpower are consistent. You have the strength to keep goals you set for yourself.",
+            "open": "You may feel the urge to prove your worth. Sensing that you are already enough puts your heart at ease."
           },
-          body: {
-            defined: 'After pushing on willpower, you need real rest. A rhythm of resting as much as you work suits you.',
-            open: 'Overpromising tends to show up as tension in your chest and stomach. Promising only what you can keep protects your body.'
+          "body": {
+            "defined": "Leave a short break between tasks today. Afterwards, choose just one thing to return to.",
+            "open": "Separate the promises you can keep from those you need to adjust. “That is enough for today” is an option."
+          },
+          "check": {
+            "defined": "Do you start the next task before pausing?",
+            "open": "Are you accepting plans when you would rather rest?"
           }
         },
-        SOLAR_PLEXUS: {
-          organ: 'Kidneys · pancreas · nervous system',
-          mind: {
-            defined: 'Your emotions rise and fall like waves. Decisions get clearer when you watch the flow over days, not a single mood.',
-            open: 'You soak up the feelings around you like a sponge. Sorting out \'whose feeling is this?\' lightens your heart.'
+        "SOLAR_PLEXUS": {
+          "organ": "Emotional breathing room",
+          "mind": {
+            "defined": "Your emotions rise and fall like waves. Decisions get clearer when you watch the flow over days, not a single mood.",
+            "open": "You soak up the feelings around you like a sponge. Sorting out 'whose feeling is this?' lightens your heart."
           },
-          body: {
-            defined: 'Your emotional waves ride on your body\'s rhythm too. Don\'t overdo it on highs, and slow down on lows.',
-            open: 'In tense rooms your body tightens first. Use time alone to steady your breath and shake the feelings off.'
+          "body": {
+            "defined": "Before an important reply, note how you feel and what you need. It is fine to ask for time to think.",
+            "open": "Put notifications aside and choose a comfortable place to pause. Let someone close know if you need time alone."
+          },
+          "check": {
+            "defined": "Are you rushing to reply based on this moment’s mood?",
+            "open": "Have you had any quiet time away from other people’s pace?"
           }
         },
-        SACRAL: {
-          organ: 'Reproductive organs',
-          mind: {
-            defined: 'Your response to what you love is strong and lasting. Your body\'s \'yes, I want this\' is a good compass.',
-            open: 'You may work longer to match other people\'s energy. Knowing when you have had enough matters.'
+        "SACRAL": {
+          "organ": "Comfortable movement",
+          "mind": {
+            "defined": "Your response to what you love is strong and lasting. Your body's 'yes, I want this' is a good compass.",
+            "open": "You may work longer to match other people's energy. Knowing when you have had enough matters."
           },
-          body: {
-            defined: 'You sleep deeply when you have used up the day\'s energy. Days that use your body fully suit you.',
-            open: 'Lying down before you are exhausted protects your rhythm. You don\'t need to hold out at someone else\'s pace.'
+          "body": {
+            "defined": "Choose gentle movement or a short walk that suits how you feel. Stop or ease off if it feels uncomfortable.",
+            "open": "Leave a short break between tasks today. Afterwards, choose just one thing to return to."
+          },
+          "check": {
+            "defined": "Have you stayed in the same position for a long time?",
+            "open": "Do you start the next task before pausing?"
           }
         },
-        SPLEEN: {
-          organ: 'Lymph · spleen · immune system',
-          mind: {
-            defined: 'Your in-the-moment instinct is clear. You hear the small signal that says \'not now\'.',
-            open: 'Sometimes you want to lean on familiar people and habits. Noticing what to let go of is your key to growth.'
+        "SPLEEN": {
+          "organ": "Your own space",
+          "mind": {
+            "defined": "Your in-the-moment instinct is clear. You hear the small signal that says 'not now'.",
+            "open": "Sometimes you want to lean on familiar people and habits. Noticing what to let go of is your key to growth."
           },
-          body: {
-            defined: 'You notice your body\'s small signals quickly. Simply not ignoring them keeps you in good shape.',
-            open: 'Your body reacts sensitively when your surroundings change. Regular sleep and meal times make you feel sturdier.'
+          "body": {
+            "defined": "Put notifications aside and choose a comfortable place to pause. Let someone close know if you need time alone.",
+            "open": "Choose a point to finish your tasks before bed. Note tomorrow’s tasks and return to a comfortable evening routine."
+          },
+          "check": {
+            "defined": "Have you had any quiet time away from other people’s pace?",
+            "open": "Have you left time to close the day?"
           }
         },
-        ROOT: {
-          organ: 'Adrenal glands',
-          mind: {
-            defined: 'You handle pressure at a steady pace. Even with deadlines, you rarely lose your stride.',
-            open: 'You feel the push to hurry strongly. Asking \'Is this urgent thing really urgent?\' protects your peace.'
+        "ROOT": {
+          "organ": "Room to rest",
+          "mind": {
+            "defined": "You handle pressure at a steady pace. Even with deadlines, you rarely lose your stride.",
+            "open": "You feel the push to hurry strongly. Asking 'Is this urgent thing really urgent?' protects your peace."
           },
-          body: {
-            defined: 'After tension, you need time to truly unwind. Walking slowly with your feet on the ground helps.',
-            open: 'When pressure piles up, your body gets restless. Break tasks into small pieces and finish one at a time.'
+          "body": {
+            "defined": "Leave a short break between tasks today. Afterwards, choose just one thing to return to.",
+            "open": "Write down the smallest next step. Separate what needs doing today from what can wait."
+          },
+          "check": {
+            "defined": "Do you start the next task before pausing?",
+            "open": "Are you waiting for a perfect plan before starting?"
           }
         }
       },
-      chakra: {
-        crown: {
-          region: 'Crown of the head',
-          mind: {
-            bright: 'You strongly seek meaning and the big picture. You find strength when the \'why\' is clear.',
-            steady: 'You balance reality and meaning well. Recalling the big picture now and then sharpens your direction.',
-            quiet: 'You focus on what is right in front of you. Asking \'why\' once a day widens your mind.'
+      "chakra": {
+        "crown": {
+          "region": "meaning · direction · transcendence",
+          "mind": {
+            "bright": "You strongly seek meaning and the big picture. You find strength when the 'why' is clear.",
+            "steady": "You balance reality and meaning well. Recalling the big picture now and then sharpens your direction.",
+            "quiet": "You focus on what is right in front of you. Asking 'why' once a day widens your mind."
           },
-          body: {
-            bright: 'Your energy tends to gather upward. Grounding activities like walks restore balance.',
-            steady: 'Your head and body keep a fairly even rhythm. A regular bedtime protects that balance.',
-            quiet: 'You use your body well but your rests run short. Five quiet minutes with eyes closed clears your head.'
+          "body": {
+            "bright": "Choose a point to finish your tasks before bed. Note tomorrow’s tasks and return to a comfortable evening routine.",
+            "steady": "Choose a point to finish your tasks before bed. Note tomorrow’s tasks and return to a comfortable evening routine.",
+            "quiet": "Choose a point to finish your tasks before bed. Note tomorrow’s tasks and return to a comfortable evening routine."
+          },
+          "check": {
+            "bright": "Have you left time to close the day?",
+            "steady": "Have you left time to close the day?",
+            "quiet": "Have you left time to close the day?"
           }
         },
-        thirdEye: {
-          region: 'Forehead · brow · eyes',
-          mind: {
-            bright: 'Your observation and imagination are sharp. You spot patterns others miss.',
-            steady: 'You check intuition against facts. Writing down what comes to you builds insight.',
-            quiet: 'You trust the facts in front of you. Leaving a little room for imagination reveals new paths.'
+        "thirdEye": {
+          "region": "insight · imagination · observation",
+          "mind": {
+            "bright": "Your observation and imagination are sharp. You spot patterns others miss.",
+            "steady": "You check intuition against facts. Writing down what comes to you builds insight.",
+            "quiet": "You trust the facts in front of you. Leaving a little room for imagination reveals new paths."
           },
-          body: {
-            bright: 'Tension gathers easily around your eyes and forehead. Rest them by gazing into the distance.',
-            steady: 'Your balance of looking and resting is fine. Close your eyes now and then between screens.',
-            quiet: 'Your body moves before your thoughts. Dimming the lights before bed deepens your rest.'
+          "body": {
+            "bright": "Turn off notifications briefly and look away from the task. Leave new thoughts in a note to revisit later.",
+            "steady": "Turn off notifications briefly and look away from the task. Leave new thoughts in a note to revisit later.",
+            "quiet": "Turn off notifications briefly and look away from the task. Leave new thoughts in a note to revisit later."
+          },
+          "check": {
+            "bright": "Are you still checking a screen during breaks?",
+            "steady": "Are you still checking a screen during breaks?",
+            "quiet": "Are you still checking a screen during breaks?"
           }
         },
-        throat: {
-          region: 'Throat · jaw · shoulders',
-          mind: {
-            bright: 'You are strong at untangling thoughts in speech and writing. The more you express, the clearer you feel.',
-            steady: 'You say what\'s needed and hold back what isn\'t. Your balance of honesty and care is good.',
-            quiet: 'It takes time to put your feelings into words. Try a short note first.'
+        "throat": {
+          "region": "expression · communication",
+          "mind": {
+            "bright": "You are strong at untangling thoughts in speech and writing. The more you express, the clearer you feel.",
+            "steady": "You say what's needed and hold back what isn't. Your balance of honesty and care is good.",
+            "quiet": "It takes time to put your feelings into words. Try a short note first."
           },
-          body: {
-            bright: 'Your throat and jaw tense up easily. After a talkative day, rest your throat with a warm tea.',
-            steady: 'Your neck and shoulders keep an even rhythm. Changing posture often is enough.',
-            quiet: 'Swallowing what you want to say can stiffen your jaw and shoulders. Humming or reading aloud helps.'
+          "body": {
+            "bright": "Separate the promises you can keep from those you need to adjust. “That is enough for today” is an option.",
+            "steady": "Separate the promises you can keep from those you need to adjust. “That is enough for today” is an option.",
+            "quiet": "Separate the promises you can keep from those you need to adjust. “That is enough for today” is an option."
+          },
+          "check": {
+            "bright": "Are you accepting plans when you would rather rest?",
+            "steady": "Are you accepting plans when you would rather rest?",
+            "quiet": "Are you accepting plans when you would rather rest?"
           }
         },
-        heart: {
-          region: 'Chest · lungs · arms',
-          mind: {
-            bright: 'Connecting with people fills you with energy. Warmth is your greatest strength.',
-            steady: 'Giving and receiving flow evenly. You read the temperature of a relationship well.',
-            quiet: 'You don\'t open up easily. Try sharing your heart first with one person you trust.'
+        "heart": {
+          "region": "connection · relationships · attachment",
+          "mind": {
+            "bright": "Connecting with people fills you with energy. Warmth is your greatest strength.",
+            "steady": "Giving and receiving flow evenly. You read the temperature of a relationship well.",
+            "quiet": "You don't open up easily. Try sharing your heart first with one person you trust."
           },
-          body: {
-            bright: 'Caring for others can leave you short of breath. Take time to open your chest and breathe deeply.',
-            steady: 'Your breath and heart keep good time together. Light cardio protects this rhythm.',
-            quiet: 'Under tension your shoulders curl and your breath gets shallow. Wide arm-opening stretches suit you.'
+          "body": {
+            "bright": "Before an important reply, note how you feel and what you need. It is fine to ask for time to think.",
+            "steady": "Before an important reply, note how you feel and what you need. It is fine to ask for time to think.",
+            "quiet": "Before an important reply, note how you feel and what you need. It is fine to ask for time to think."
+          },
+          "check": {
+            "bright": "Are you rushing to reply based on this moment’s mood?",
+            "steady": "Are you rushing to reply based on this moment’s mood?",
+            "quiet": "Are you rushing to reply based on this moment’s mood?"
           }
         },
-        solarPlexus: {
-          region: 'Upper belly · digestion',
-          mind: {
-            bright: 'Your drive to push forward on your own is strong. A goal lights you up.',
-            steady: 'Your will and ease are well mixed. You know when to act and when to rest.',
-            quiet: 'You tend to follow a pace others set. Try deciding small things for yourself.'
+        "solarPlexus": {
+          "region": "will · self-drive · emotion",
+          "mind": {
+            "bright": "Your drive to push forward on your own is strong. A goal lights you up.",
+            "steady": "Your will and ease are well mixed. You know when to act and when to rest.",
+            "quiet": "You tend to follow a pace others set. Try deciding small things for yourself."
           },
-          body: {
-            bright: 'Tension lands in your belly first. Not rushing your meals keeps your body comfortable.',
-            steady: 'Your digestion keeps a fairly even rhythm. Regular mealtimes protect it.',
-            quiet: 'On low-energy days, keep your belly warm. Build a small morning routine that warms you up.'
+          "body": {
+            "bright": "Leave a short break between tasks today. Afterwards, choose just one thing to return to.",
+            "steady": "Leave a short break between tasks today. Afterwards, choose just one thing to return to.",
+            "quiet": "Leave a short break between tasks today. Afterwards, choose just one thing to return to."
+          },
+          "check": {
+            "bright": "Do you start the next task before pausing?",
+            "steady": "Do you start the next task before pausing?",
+            "quiet": "Do you start the next task before pausing?"
           }
         },
-        sacral: {
-          region: 'Lower belly · pelvis',
-          mind: {
-            bright: 'You are rich in joy and the urge to create. Ideas flow when you do what you love.',
-            steady: 'You move comfortably between fun and duty. One hobby keeps life running smoothly.',
-            quiet: 'You tend to live by your to-do list. Put something fun for no reason into your schedule.'
+        "sacral": {
+          "region": "desire · pleasure · creation",
+          "mind": {
+            "bright": "You are rich in joy and the urge to create. Ideas flow when you do what you love.",
+            "steady": "You move comfortably between fun and duty. One hobby keeps life running smoothly.",
+            "quiet": "You tend to live by your to-do list. Put something fun for no reason into your schedule."
           },
-          body: {
-            bright: 'You put a lot of body into things that feel good. Resting well afterwards is part of the rhythm.',
-            steady: 'Your pelvis and lower back keep an even rhythm. After long sitting, loosen up with hip circles.',
-            quiet: 'Long sitting can make your lower belly and back feel heavy. Wake the flow with dancing or a light walk.'
+          "body": {
+            "bright": "Choose gentle movement or a short walk that suits how you feel. Stop or ease off if it feels uncomfortable.",
+            "steady": "Choose gentle movement or a short walk that suits how you feel. Stop or ease off if it feels uncomfortable.",
+            "quiet": "Choose gentle movement or a short walk that suits how you feel. Stop or ease off if it feels uncomfortable."
+          },
+          "check": {
+            "bright": "Have you stayed in the same position for a long time?",
+            "steady": "Have you stayed in the same position for a long time?",
+            "quiet": "Have you stayed in the same position for a long time?"
           }
         },
-        root: {
-          region: 'Tailbone · legs · feet',
-          mind: {
-            bright: 'Your sense of reality and need for stability are strong. A solid base puts your mind at ease.',
-            steady: 'You take stability and change in stride. A basic routine makes new challenges easier.',
-            quiet: 'You can feel a little ungrounded. One fixed routine becomes an anchor for your mind.'
+        "root": {
+          "region": "stability · foundation · sense of reality",
+          "mind": {
+            "bright": "Your sense of reality and need for stability are strong. A solid base puts your mind at ease.",
+            "steady": "You take stability and change in stride. A basic routine makes new challenges easier.",
+            "quiet": "You can feel a little ungrounded. One fixed routine becomes an anchor for your mind."
           },
-          body: {
-            bright: 'Your legs and lower back are strong. Loosen up along the way instead of holding out too long.',
-            steady: 'Your lower body keeps an even rhythm. Regular walking protects that balance.',
-            quiet: 'Your lower body may feel heavy at times. Warm foot soaks or slow walks suit you.'
+          "body": {
+            "bright": "Leave a comfortable space for a meal in your day. Eat at a pace that works for you and notice your daily rhythm.",
+            "steady": "Leave a comfortable space for a meal in your day. Eat at a pace that works for you and notice your daily rhythm.",
+            "quiet": "Leave a comfortable space for a meal in your day. Eat at a pace that works for you and notice your daily rhythm."
+          },
+          "check": {
+            "bright": "Does being busy keep pushing meals aside?",
+            "steady": "Does being busy keep pushing meals aside?",
+            "quiet": "Does being busy keep pushing meals aside?"
           }
         }
       },
-      vedicKind: {moon: 'Your mind, by Moon sign', lagna: 'Your body\'s grain, by Lagna', sixth: 'How you recover, by the 6th house'},
-      sign: {
-        Aries: 'Aries',
-        Taurus: 'Taurus',
-        Gemini: 'Gemini',
-        Cancer: 'Cancer',
-        Leo: 'Leo',
-        Virgo: 'Virgo',
-        Libra: 'Libra',
-        Scorpio: 'Scorpio',
-        Sagittarius: 'Sagittarius',
-        Capricorn: 'Capricorn',
-        Aquarius: 'Aquarius',
-        Pisces: 'Pisces'
+      "vedicKind": {
+        "moon": "Your mind, by Moon sign",
+        "lagna": "Your body's grain, by Lagna",
+        "sixth": "How you recover, by the 6th house"
       },
-      graha: {Sun: 'Sun', Moon: 'Moon', Mars: 'Mars', Mercury: 'Mercury', Jupiter: 'Jupiter', Venus: 'Venus', Saturn: 'Saturn'},
-      moon: {
-        Aries: 'Your feelings catch fire fast and cool fast. Expressing them right away and letting go eases your mind.',
-        Taurus: 'You are happiest when your heart feels settled. Familiar places and good food are a big comfort.',
-        Gemini: 'You work through feelings by talking. One good chat is your shortcut to clarity.',
-        Cancer: 'Your feelings run deep and you care a lot. A safe space of your own is where your heart recovers.',
-        Leo: 'Recognition lights you up. A habit of praising yourself protects your self-esteem.',
-        Virgo: 'When anxious, you organise and analyse. Tell yourself it\'s fine not to be perfect.',
-        Libra: 'Harmony puts you at ease. Practise saying things gently rather than avoiding conflict.',
-        Scorpio: 'You hold feelings deeply and rarely show them. Opening up to someone you trust lightens you.',
-        Sagittarius: 'Freedom and meaning bring you alive. Travel or learning something new lifts your mood.',
-        Capricorn: 'You put responsibility before feelings. After you achieve something, give yourself permission to rest.',
-        Aquarius: 'You watch your feelings from a step away. You need both time alone and like-minded friends.',
-        Pisces: 'You are deeply empathetic and imaginative. Channels like music or drawing help your feelings flow.'
+      "sign": {
+        "Aries": "Aries",
+        "Taurus": "Taurus",
+        "Gemini": "Gemini",
+        "Cancer": "Cancer",
+        "Leo": "Leo",
+        "Virgo": "Virgo",
+        "Libra": "Libra",
+        "Scorpio": "Scorpio",
+        "Sagittarius": "Sagittarius",
+        "Capricorn": "Capricorn",
+        "Aquarius": "Aquarius",
+        "Pisces": "Pisces"
       },
-      lagna: {
-        Aries: {region: 'Head · face', body: 'Your energy tends to rush to your head. When you heat up, pause and cool down for a moment.'},
-        Taurus: {region: 'Neck · throat', body: 'Fatigue gathers in your neck and shoulders. Eating slowly and keeping your neck warm suit you.'},
-        Gemini: {region: 'Shoulders · arms · breath', body: 'When busy, your breathing gets shallow. Rest your hands and leave gaps for deep breaths.'},
-        Cancer: {region: 'Chest · stomach', body: 'Feelings ride on your digestion. Eating in a calm setting helps your body.'},
-        Leo: {region: 'Heart · back', body: 'Running on passion can stiffen your back. Chest-opening stretches and good sleep help.'},
-        Virgo: {region: 'Gut · digestion', body: 'Worry shows up in your digestion first. Regular meals and light walks suit you.'},
-        Libra: {region: 'Lower back · kidneys', body: 'When balance tips, your lower back feels it first. After long sitting, straighten up and drink water often.'},
-        Scorpio: {region: 'Pelvis · lower belly', body: 'You tend to store tension in your lower belly. Release it with warm baths and deep breathing.'},
-        Sagittarius: {region: 'Hips · thighs', body: 'Your body needs movement to lift your mood. Walks or hikes that use big muscles suit you.'},
-        Capricorn: {region: 'Knees · skeleton', body: 'You endure well, so be kind to your joints. Steady stretching suits you better than intense workouts.'},
-        Aquarius: {region: 'Calves · ankles · circulation', body: 'Long standing or sitting makes your legs heavy. Get up often to wake your circulation.'},
-        Pisces: {region: 'Feet · sleep', body: 'Your body is sensitive to mood and fatigue. Enough sleep and warm feet protect your rhythm.'}
+      "graha": {
+        "Sun": "Sun",
+        "Moon": "Moon",
+        "Mars": "Mars",
+        "Mercury": "Mercury",
+        "Jupiter": "Jupiter",
+        "Venus": "Venus",
+        "Saturn": "Saturn"
       },
-      sixth: {
-        Sun: 'You recover with sunlight and a regular routine. Morning walks in the sun suit you.',
-        Moon: 'Your body recovers when your heart is at ease. Rest with familiar people and places is your best recovery.',
-        Mars: 'You recover by moving. After a good sweat, make time to cool down too.',
-        Mercury: 'You recover by clearing your head. Journalling, tidying or light puzzles help you reset.',
-        Jupiter: '\'Just enough\' is your recovery key. Easing off overeating and overwork little by little lightens you.',
-        Venus: 'You recover through pleasure and beauty. Favourite music, scents or a delicious meal give you strength.',
-        Saturn: 'You recover slowly and steadily. Sleeping and waking at the same times suits you best.'
+      "moon": {
+        "Aries": "Your feelings catch fire fast and cool fast. Expressing them right away and letting go eases your mind.",
+        "Taurus": "You are happiest when your heart feels settled. Familiar places and good food are a big comfort.",
+        "Gemini": "You work through feelings by talking. One good chat is your shortcut to clarity.",
+        "Cancer": "Your feelings run deep and you care a lot. A safe space of your own is where your heart recovers.",
+        "Leo": "Recognition lights you up. A habit of praising yourself protects your self-esteem.",
+        "Virgo": "When anxious, you organise and analyse. Tell yourself it's fine not to be perfect.",
+        "Libra": "Harmony puts you at ease. Practise saying things gently rather than avoiding conflict.",
+        "Scorpio": "You hold feelings deeply and rarely show them. Opening up to someone you trust lightens you.",
+        "Sagittarius": "Freedom and meaning bring you alive. Travel or learning something new lifts your mood.",
+        "Capricorn": "You put responsibility before feelings. After you achieve something, give yourself permission to rest.",
+        "Aquarius": "You watch your feelings from a step away. You need both time alone and like-minded friends.",
+        "Pisces": "You are deeply empathetic and imaginative. Channels like music or drawing help your feelings flow."
+      },
+      "lagna": {
+        "Aries": {
+          "region": "Room to rest",
+          "body": "Leave a short break between tasks today. Afterwards, choose just one thing to return to.",
+          "check": "Do you start the next task before pausing?"
+        },
+        "Taurus": {
+          "region": "Time for a meal",
+          "body": "Leave a comfortable space for a meal in your day. Eat at a pace that works for you and notice your daily rhythm.",
+          "check": "Does being busy keep pushing meals aside?"
+        },
+        "Gemini": {
+          "region": "Less input",
+          "body": "Turn off notifications briefly and look away from the task. Leave new thoughts in a note to revisit later.",
+          "check": "Are you still checking a screen during breaks?"
+        },
+        "Cancer": {
+          "region": "Your own space",
+          "body": "Put notifications aside and choose a comfortable place to pause. Let someone close know if you need time alone.",
+          "check": "Have you had any quiet time away from other people’s pace?"
+        },
+        "Leo": {
+          "region": "Comfortable movement",
+          "body": "Choose gentle movement or a short walk that suits how you feel. Stop or ease off if it feels uncomfortable.",
+          "check": "Have you stayed in the same position for a long time?"
+        },
+        "Virgo": {
+          "region": "A small start",
+          "body": "Write down the smallest next step. Separate what needs doing today from what can wait.",
+          "check": "Are you waiting for a perfect plan before starting?"
+        },
+        "Libra": {
+          "region": "Manageable commitments",
+          "body": "Separate the promises you can keep from those you need to adjust. “That is enough for today” is an option.",
+          "check": "Are you accepting plans when you would rather rest?"
+        },
+        "Scorpio": {
+          "region": "Emotional breathing room",
+          "body": "Before an important reply, note how you feel and what you need. It is fine to ask for time to think.",
+          "check": "Are you rushing to reply based on this moment’s mood?"
+        },
+        "Sagittarius": {
+          "region": "Comfortable movement",
+          "body": "Choose gentle movement or a short walk that suits how you feel. Stop or ease off if it feels uncomfortable.",
+          "check": "Have you stayed in the same position for a long time?"
+        },
+        "Capricorn": {
+          "region": "Room to rest",
+          "body": "Leave a short break between tasks today. Afterwards, choose just one thing to return to.",
+          "check": "Do you start the next task before pausing?"
+        },
+        "Aquarius": {
+          "region": "Your own space",
+          "body": "Put notifications aside and choose a comfortable place to pause. Let someone close know if you need time alone.",
+          "check": "Have you had any quiet time away from other people’s pace?"
+        },
+        "Pisces": {
+          "region": "Winding down",
+          "body": "Choose a point to finish your tasks before bed. Note tomorrow’s tasks and return to a comfortable evening routine.",
+          "check": "Have you left time to close the day?"
+        }
+      },
+      "sixth": {
+        "Sun": "Leave a short break between tasks today. Afterwards, choose just one thing to return to.",
+        "Moon": "Choose a point to finish your tasks before bed. Note tomorrow’s tasks and return to a comfortable evening routine.",
+        "Mars": "Choose gentle movement or a short walk that suits how you feel. Stop or ease off if it feels uncomfortable.",
+        "Mercury": "Turn off notifications briefly and look away from the task. Leave new thoughts in a note to revisit later.",
+        "Jupiter": "Write down the smallest next step. Separate what needs doing today from what can wait.",
+        "Venus": "Put notifications aside and choose a comfortable place to pause. Let someone close know if you need time alone.",
+        "Saturn": "Separate the promises you can keep from those you need to adjust. “That is enough for today” is an option."
+      },
+      "sixthCheck": {
+        "Sun": "Do you start the next task before pausing?",
+        "Moon": "Have you left time to close the day?",
+        "Mars": "Have you stayed in the same position for a long time?",
+        "Mercury": "Are you still checking a screen during breaks?",
+        "Jupiter": "Are you waiting for a perfect plan before starting?",
+        "Venus": "Have you had any quiet time away from other people’s pace?",
+        "Saturn": "Are you accepting plans when you would rather rest?"
       }
     },
     yeoni: {
@@ -1124,27 +1630,27 @@
       D: 'わたしの四柱推命を心から体まで広げてみました'
     },
     axes: {
-      selfDrive: {name: '主体性', short: '主体', god: '比劫', question: 'わたしは何を望んでいる？', thought: '自分で決めたい', meme: '自分流でいく',
+      selfDrive: {name: '主体性', short: '主体', god: '比劫', question: 'わたしは何を望んでいる？', thought: '自分で決めたい', meme: "自分のペースは譲れない",
         keywords: ['独立', '自己主導', '競争', '自分のやり方', '境界'],
         strong: ['自分のやり方で決めたいタイプです', '過度に管理されると窮屈に感じます', '競争の場面でかえって力が湧くことがあります'],
         over: ['頑固になりやすいです', '競争が過熱しやすいです', '自分の取り分に敏感になりがちです', '人や資源が分散しやすいです'],
         mind: '自分で方向を決め、', pull: '自分で方向を決めようとする力が強いです。'},
-      expression: {name: '表現と刺激', short: '表現', god: '食傷', question: '何かおもしろいことはない？', thought: 'おもしろいことないかな？', meme: 'とりあえずやろ！',
+      expression: {name: '表現と刺激', short: '表現', god: '食傷', question: '何かおもしろいことはない？', thought: 'おもしろいことないかな？', meme: "アイデアまたカゴ入り",
         keywords: ['表現', '言葉', '創作', 'コンテンツ', '新しい刺激'],
         strong: ['話す・表現する・つくるときに力が湧きます', '新しい経験や刺激にすばやく反応します'],
         over: ['注意があちこちに散りやすいです', '飽きが早く来ることがあります', 'ルーティンを窮屈に感じがちです', '目先の楽しさを優先しやすいです'],
         mind: '楽しさと表現から力を得て、', pull: '新しい刺激と表現でエンジンがかかります。'},
-      reality: {name: '現実と結果', short: '現実', god: '財星', question: 'で、結局何が残るの？', thought: 'これ、お金になる？', meme: '何が残る？',
+      reality: {name: '現実と結果', short: '現実', god: '財星', question: 'で、結局何が残るの？', thought: 'これ、お金になる？', meme: "コスパのアンテナ作動中",
         keywords: ['成果', '効率', '管理', '結果', '目標'],
         strong: ['理論より現実的な結果を大切にします', '時間やお金をかけたとき、実際に何が得られるかを確かめようとします'],
         over: ['お金・成果・効率そのものがプレッシャーになることがあります', '結果が見えないと疲れやすいです'],
         mind: '考え方は現実的で、', pull: '頭は早く現実的な結果を確かめたがります。'},
-      structure: {name: '責任と基準', short: '責任', god: '官星', question: 'ちゃんとできている？', thought: 'ちゃんとやらなきゃ', meme: '筋は通さなきゃ',
+      structure: {name: '責任と基準', short: '責任', god: '官星', question: 'ちゃんとできている？', thought: 'ちゃんとやらなきゃ', meme: "予定表には本気です",
         keywords: ['責任', 'ルール', '評価', '基準', '達成'],
         strong: ['役割と責任を大切にします', '社会的な基準ややるべきことを意識しやすいです'],
         over: ['自分を厳しく検閲しすぎることがあります', '責任をひとりで抱えこみやすいです', '評価へのプレッシャーを強く感じがちです'],
         mind: '基準を立てて守りながら、', pull: 'きちんとやり遂げるという基準がまず働きます。'},
-      reflection: {name: '思考と吸収', short: '思考', god: '印星', question: '何か見落としていない？', thought: '何か見落としてないかな？', meme: 'ちょっと考える',
+      reflection: {name: '思考と吸収', short: '思考', god: '印星', question: '何か見落としていない？', thought: '何か見落としてないかな？', meme: "思考のタブ、開きすぎ",
         keywords: ['学び', '情報', '直感', '検証', '意味'],
         strong: ['考えて理解してから動けるタイプです', 'ひとつの出来事にも意味を探そうとします'],
         over: ['心配が長引くことがあります', '分析しすぎることがあります', '同じ考えをくり返しやすいです', '行動が遅れがちです'],
@@ -1276,206 +1782,488 @@
       },
       frame: {fire: '世界を挑戦と可能性の舞台として見るタイプです。', earth: '世界を一歩ずつ積み上げる現実として見るタイプです。', air: '世界をつながりとアイデアのネットワークとして見るタイプです。', water: '世界を感情と関係の流れとして見るタイプです。'}
     },
+    recovery: {
+      "title": "四柱推命から振り返る生活リズム",
+      "basis": "解釈の根拠",
+      "check": "自分への問い",
+      "action": "今日の小さな実践",
+      "strong": "割合が大きい五行",
+      "low": "割合が小さい五行",
+      "even": "均等に表れた五行",
+      "intro": "五行の割合は健康の点数ではありません。強い要素はよく使う傾向、控えめな要素は振り返るテーマとして読みます。強みも使いすぎると日常のバランスを崩すことがあります。",
+      "chakraSource": "チャクラの大きさと明るさは四柱推命の十神・五行を象徴的に表したものです。ヴェーダ占星術の惑星計算や体の状態を示す数値ではありません。",
+      "vedicSource": "ヴェーダ占星術の上昇点から一星座を一ハウスとして数え、第6ハウスと支配星を求めます。伝統的なテーマを生活の振り返りに使う例であり、体の状態を予測しません。",
+      "hdSource": "定義されたセンターと開いたセンターは、ヒューマンデザインにおける傾向です。臓器や身体能力の評価ではありません。経験に合う部分を参考にしてください。",
+      "relation": "決める前に自分のペースを伝えてみましょう。「少し考えてから返事をしたい」と、必要な時間や距離を言葉にできます。",
+      "chapters": [
+        {
+          "id": "thinking",
+          "title": "考え方と傾向",
+          "hint": "思考の特徴と五行のバランス"
+        },
+        {
+          "id": "relationships",
+          "title": "決め方と人間関係",
+          "hint": "自分に合う決断の速さと距離感"
+        },
+        {
+          "id": "recovery",
+          "title": "体と休息のリズム",
+          "hint": "伝統的な象徴を日常の問いと行動へ"
+        }
+      ],
+      "shareQuestion": "あなたの頭の中は、どの考えでいっぱい？",
+      "saved": "画像を保存しました。",
+      "cancelled": "共有をキャンセルしました。",
+      "shared": "共有しました。",
+      "failed": "共有を完了できませんでした。画像の保存かリンクのコピーをお試しください。",
+      "routines": [
+        {
+          "title": "休む余白",
+          "check": "休まずに次の仕事へ進んでいませんか？",
+          "action": "予定と予定の間に短い休憩を入れてみましょう。その後に取り組むことを一つ選びます。"
+        },
+        {
+          "title": "心地よい動き",
+          "check": "長い間同じ姿勢で過ごしていませんか？",
+          "action": "体調に合う軽い動きや短い散歩を選びましょう。不快に感じたら止めるか、無理のない範囲にします。"
+        },
+        {
+          "title": "小さな一歩",
+          "check": "完璧な計画を待って始められずにいませんか？",
+          "action": "最初の小さな一歩を書き出しましょう。今日することと明日でもよいことを分けます。"
+        },
+        {
+          "title": "食事の時間",
+          "check": "忙しさで食事を後回しにしていませんか？",
+          "action": "落ち着いて食べる時間を予定に残しましょう。自分に合う速さで食べながら一日のリズムを振り返ります。"
+        },
+        {
+          "title": "自分の場所",
+          "check": "人に合わせて一人で休む時間が減っていませんか？",
+          "action": "通知から少し離れ、心地よい場所を選びましょう。一人になりたい時間を身近な人に伝えても大丈夫です。"
+        },
+        {
+          "title": "約束の境界",
+          "check": "休みたいのに約束を引き受けていませんか？",
+          "action": "守れる約束と調整したい約束を分けましょう。「今日はここまで」と伝える選択もあります。"
+        },
+        {
+          "title": "情報から離れる",
+          "check": "休憩中も画面を確認し続けていませんか？",
+          "action": "通知を少し止め、作業から目を離しましょう。浮かぶ考えはメモに残し、後で見直します。"
+        },
+        {
+          "title": "気持ちの余白",
+          "check": "今の気分だけで返事を急いでいませんか？",
+          "action": "大切な返事の前に、気持ちと必要なことを一行ずつ書きましょう。考える時間を頼んでも大丈夫です。"
+        },
+        {
+          "title": "一日の締めくくり",
+          "check": "一日を終える時間を残していますか？",
+          "action": "寝る前に作業を終える時刻を決めましょう。明日の予定をメモし、落ち着く習慣で一日を締めくくります。"
+        }
+      ]
+    },
     mb: {
-      ui: {
-        mind: '精神',
-        body: '身体',
-        organ: '象徴のつながり',
-        region: '象徴部位',
-        lord: '支配星',
-        lead: 'センターとチャクラごとに、心の質と体のリズムをあわせて読み解きます。',
-        vedicMind: '心',
-        vedicBody: '体',
-        note: '心と体の文章は、伝統的な体系の象徴を生活のリズムに置き換えたものです。医学的な判断ではありませんので、体の不調が続いたり、気持ちが長く沈んだりするときは、医師や専門家に相談してください。'
+      "ui": {
+        "mind": "精神",
+        "body": "今日の小さな実践",
+        "organ": "解釈の根拠",
+        "region": "解釈の根拠",
+        "lord": "支配星",
+        "lead": "定義されたセンターと開いたセンターは、ヒューマンデザインにおける傾向です。臓器や身体能力の評価ではありません。経験に合う部分を参考にしてください。",
+        "vedicMind": "心",
+        "vedicBody": "体",
+        "note": "心と体の文章は、伝統的な体系の象徴を生活のリズムに置き換えたものです。医学的な判断ではありませんので、体の不調が続いたり、気持ちが長く沈んだりするときは、医師や専門家に相談してください。",
+        "check": "自分への問い"
       },
-      center: {
-        HEAD: {
-          organ: '松果体',
-          mind: {defined: '自分で問いを生み出し続けます。ひらめきが内側から湧くタイプなので、ひとりで考える時間が燃料になります。', open: '他人の問いや悩みを自分のことのように抱えがちです。「これは本当に自分の問い？」とふるいにかけると、頭が軽くなります。'},
-          body: {defined: '考えごとが夜まで続きやすいです。寝る前にメモで頭の中を空にする習慣がよく合います。', open: '情報が多い日は、頭から先に疲れます。画面を消して目を休める短いすき間が、リズムを取り戻してくれます。'}
+      "center": {
+        "HEAD": {
+          "organ": "一日の締めくくり",
+          "mind": {
+            "defined": "自分で問いを生み出し続けます。ひらめきが内側から湧くタイプなので、ひとりで考える時間が燃料になります。",
+            "open": "他人の問いや悩みを自分のことのように抱えがちです。「これは本当に自分の問い？」とふるいにかけると、頭が軽くなります。"
+          },
+          "body": {
+            "defined": "寝る前に作業を終える時刻を決めましょう。明日の予定をメモし、落ち着く習慣で一日を締めくくります。",
+            "open": "通知を少し止め、作業から目を離しましょう。浮かぶ考えはメモに残し、後で見直します。"
+          },
+          "check": {
+            "defined": "一日を終える時間を残していますか？",
+            "open": "休憩中も画面を確認し続けていませんか？"
+          }
         },
-        AJNA: {
-          organ: '下垂体',
-          mind: {defined: '考え方が一定で、確信があります。一度まとめた視点を長く大切にします。', open: 'いろいろな視点を柔軟に行き来します。確信を急がないほうが、かえって判断が広がります。'},
-          body: {defined: '悩みを抱え込むと、目や肩がこわばりやすいです。考えが堂々巡りするときは、体を動かして流れを変えてみてください。', open: '頭を使う時間と休む時間の境目があいまいになりがちです。勉強や仕事の時間を決めておくと、頭が疲れにくくなります。'}
+        "AJNA": {
+          "organ": "小さな一歩",
+          "mind": {
+            "defined": "考え方が一定で、確信があります。一度まとめた視点を長く大切にします。",
+            "open": "いろいろな視点を柔軟に行き来します。確信を急がないほうが、かえって判断が広がります。"
+          },
+          "body": {
+            "defined": "最初の小さな一歩を書き出しましょう。今日することと明日でもよいことを分けます。",
+            "open": "通知を少し止め、作業から目を離しましょう。浮かぶ考えはメモに残し、後で見直します。"
+          },
+          "check": {
+            "defined": "完璧な計画を待って始められずにいませんか？",
+            "open": "休憩中も画面を確認し続けていませんか？"
+          }
         },
-        THROAT: {
-          organ: '甲状腺 · 副甲状腺',
-          mind: {defined: '言葉や行動で表に出す道が開いています。表現するときに考えが整理されるタイプです。', open: '場の雰囲気によって口数が増えたり減ったりします。本当に必要なときだけ話しても、十分に伝わります。'},
-          body: {defined: 'たくさん話した日は、喉と肩が先にサインを出します。温かい水と首のストレッチがよく合います。', open: '注目を集めようと頑張ると、エネルギーがすぐに漏れていきます。話す前にひと呼吸おくことが喉をいたわります。'}
+        "THROAT": {
+          "organ": "休む余白",
+          "mind": {
+            "defined": "言葉や行動で表に出す道が開いています。表現するときに考えが整理されるタイプです。",
+            "open": "場の雰囲気によって口数が増えたり減ったりします。本当に必要なときだけ話しても、十分に伝わります。"
+          },
+          "body": {
+            "defined": "予定と予定の間に短い休憩を入れてみましょう。その後に取り組むことを一つ選びます。",
+            "open": "守れる約束と調整したい約束を分けましょう。「今日はここまで」と伝える選択もあります。"
+          },
+          "check": {
+            "defined": "休まずに次の仕事へ進んでいませんか？",
+            "open": "休みたいのに約束を引き受けていませんか？"
+          }
         },
-        G: {
-          organ: '肝臓 · 血液',
-          mind: {defined: '自分らしさと方向感覚が安定しています。環境が変わっても、アイデンティティは大きく揺らぎません。', open: '一緒にいる人や場所によって自分が変わります。良い場所を選ぶ感覚が、そのまま方向になります。'},
-          body: {defined: '方向を見失ったと感じると、体も沈みがちです。歩くように前へ進む動きがリズムを生かします。', open: '空間の雰囲気をまず体で感じ取ります。居心地が悪いときは、場所を変えるだけで調子が変わります。'}
+        "G": {
+          "organ": "心地よい動き",
+          "mind": {
+            "defined": "自分らしさと方向感覚が安定しています。環境が変わっても、アイデンティティは大きく揺らぎません。",
+            "open": "一緒にいる人や場所によって自分が変わります。良い場所を選ぶ感覚が、そのまま方向になります。"
+          },
+          "body": {
+            "defined": "体調に合う軽い動きや短い散歩を選びましょう。不快に感じたら止めるか、無理のない範囲にします。",
+            "open": "通知から少し離れ、心地よい場所を選びましょう。一人になりたい時間を身近な人に伝えても大丈夫です。"
+          },
+          "check": {
+            "defined": "長い間同じ姿勢で過ごしていませんか？",
+            "open": "人に合わせて一人で休む時間が減っていませんか？"
+          }
         },
-        HEART: {
-          organ: '心臓 · 胃 · 胆のう · 胸腺',
-          mind: {defined: '約束と意志の力がぶれません。自分で決めた目標を守り抜く力があります。', open: '自分の価値を証明したくなりがちです。「もう十分」という感覚が心を楽にしてくれます。'},
-          body: {defined: '意志で押し切ったあとは、しっかりした休息が必要です。働いた分だけ休むリズムが合います。', open: '無理な約束は、胸や胃の緊張につながりやすいです。守れる分だけ約束することが体を守ります。'}
+        "HEART": {
+          "organ": "休む余白",
+          "mind": {
+            "defined": "約束と意志の力がぶれません。自分で決めた目標を守り抜く力があります。",
+            "open": "自分の価値を証明したくなりがちです。「もう十分」という感覚が心を楽にしてくれます。"
+          },
+          "body": {
+            "defined": "予定と予定の間に短い休憩を入れてみましょう。その後に取り組むことを一つ選びます。",
+            "open": "守れる約束と調整したい約束を分けましょう。「今日はここまで」と伝える選択もあります。"
+          },
+          "check": {
+            "defined": "休まずに次の仕事へ進んでいませんか？",
+            "open": "休みたいのに約束を引き受けていませんか？"
+          }
         },
-        SOLAR_PLEXUS: {
-          organ: '腎臓 · 膵臓 · 神経系',
-          mind: {defined: '感情が波のように上がり下がりします。一瞬の気分より、数日の流れを見て決めるとはっきりします。', open: '周りの感情をスポンジのように吸収します。「この気持ちは誰のもの？」と見分けると、心が軽くなります。'},
-          body: {defined: '感情の波が体のリズムにも乗ります。気分が高いときは無理をせず、低いときはひと休みしましょう。', open: '対立のある場では、体が先に緊張します。ひとりの時間に呼吸を整えて、感情を払い落としてみてください。'}
+        "SOLAR_PLEXUS": {
+          "organ": "気持ちの余白",
+          "mind": {
+            "defined": "感情が波のように上がり下がりします。一瞬の気分より、数日の流れを見て決めるとはっきりします。",
+            "open": "周りの感情をスポンジのように吸収します。「この気持ちは誰のもの？」と見分けると、心が軽くなります。"
+          },
+          "body": {
+            "defined": "大切な返事の前に、気持ちと必要なことを一行ずつ書きましょう。考える時間を頼んでも大丈夫です。",
+            "open": "通知から少し離れ、心地よい場所を選びましょう。一人になりたい時間を身近な人に伝えても大丈夫です。"
+          },
+          "check": {
+            "defined": "今の気分だけで返事を急いでいませんか？",
+            "open": "人に合わせて一人で休む時間が減っていませんか？"
+          }
         },
-        SACRAL: {
-          organ: '生殖器',
-          mind: {defined: '好きなことに反応する力が大きく、長続きします。「やりたい」という体の答えが良い羅針盤です。', open: '他人のエネルギーに合わせて、長く働きすぎがちです。どこで十分かを知る感覚が大切です。'},
-          body: {defined: '一日のエネルギーを使い切ると、眠りが深くなります。体をしっかり使う日課が合います。', open: '疲れ切る前に横になる習慣がリズムを守ります。他の人のペースに合わせて、最後まで粘らなくても大丈夫です。'}
+        "SACRAL": {
+          "organ": "心地よい動き",
+          "mind": {
+            "defined": "好きなことに反応する力が大きく、長続きします。「やりたい」という体の答えが良い羅針盤です。",
+            "open": "他人のエネルギーに合わせて、長く働きすぎがちです。どこで十分かを知る感覚が大切です。"
+          },
+          "body": {
+            "defined": "体調に合う軽い動きや短い散歩を選びましょう。不快に感じたら止めるか、無理のない範囲にします。",
+            "open": "予定と予定の間に短い休憩を入れてみましょう。その後に取り組むことを一つ選びます。"
+          },
+          "check": {
+            "defined": "長い間同じ姿勢で過ごしていませんか？",
+            "open": "休まずに次の仕事へ進んでいませんか？"
+          }
         },
-        SPLEEN: {
-          organ: 'リンパ · 脾臓 · 免疫系',
-          mind: {defined: 'その瞬間の直感がはっきりしています。「今じゃない」という小さなサインをよく聞き取ります。', open: '慣れた人や習慣に頼りたくなることがあります。手放すべきものに気づくことが、成長の鍵です。'},
-          body: {defined: '体の小さなサインに早く気づくタイプです。そのサインを見過ごさないだけで、調子を保てます。', open: '環境が変わると、体が敏感に反応します。睡眠と食事の時間を一定にすると、体が安定します。'}
+        "SPLEEN": {
+          "organ": "自分の場所",
+          "mind": {
+            "defined": "その瞬間の直感がはっきりしています。「今じゃない」という小さなサインをよく聞き取ります。",
+            "open": "慣れた人や習慣に頼りたくなることがあります。手放すべきものに気づくことが、成長の鍵です。"
+          },
+          "body": {
+            "defined": "通知から少し離れ、心地よい場所を選びましょう。一人になりたい時間を身近な人に伝えても大丈夫です。",
+            "open": "寝る前に作業を終える時刻を決めましょう。明日の予定をメモし、落ち着く習慣で一日を締めくくります。"
+          },
+          "check": {
+            "defined": "人に合わせて一人で休む時間が減っていませんか？",
+            "open": "一日を終える時間を残していますか？"
+          }
         },
-        ROOT: {
-          organ: '副腎',
-          mind: {defined: 'プレッシャーを一定のペースでこなします。締め切りがあっても、ペースを崩しにくいタイプです。', open: '急かされるプレッシャーを強く感じます。「急ぎの用は本当に急ぎ？」と問う習慣が心を守ります。'},
-          body: {defined: '緊張したあとは、しっかりほぐす時間が必要です。足の裏を地面につけて、ゆっくり歩くのがおすすめです。', open: 'プレッシャーがたまると、体が焦りやすくなります。やることを小さく分けて、ひとつずつ片づけてみてください。'}
+        "ROOT": {
+          "organ": "休む余白",
+          "mind": {
+            "defined": "プレッシャーを一定のペースでこなします。締め切りがあっても、ペースを崩しにくいタイプです。",
+            "open": "急かされるプレッシャーを強く感じます。「急ぎの用は本当に急ぎ？」と問う習慣が心を守ります。"
+          },
+          "body": {
+            "defined": "予定と予定の間に短い休憩を入れてみましょう。その後に取り組むことを一つ選びます。",
+            "open": "最初の小さな一歩を書き出しましょう。今日することと明日でもよいことを分けます。"
+          },
+          "check": {
+            "defined": "休まずに次の仕事へ進んでいませんか？",
+            "open": "完璧な計画を待って始められずにいませんか？"
+          }
         }
       },
-      chakra: {
-        crown: {
-          region: '頭頂',
-          mind: {
-            bright: '意味や全体像を求める心が強いです。なぜやるのかがはっきりすると、力が湧きます。',
-            steady: '現実と意味のバランスがとれています。ときどき全体像を思い浮かべると、方向がはっきりします。',
-            quiet: '目の前のことに集中するタイプです。一日に一度「なぜ」と問う時間が、心を広げてくれます。'
+      "chakra": {
+        "crown": {
+          "region": "意味 · 方向 · 超越",
+          "mind": {
+            "bright": "意味や全体像を求める心が強いです。なぜやるのかがはっきりすると、力が湧きます。",
+            "steady": "現実と意味のバランスがとれています。ときどき全体像を思い浮かべると、方向がはっきりします。",
+            "quiet": "目の前のことに集中するタイプです。一日に一度「なぜ」と問う時間が、心を広げてくれます。"
           },
-          body: {
-            bright: '考えが上のほうに偏りがちです。散歩のように体を地に着ける活動で、バランスをとりましょう。',
-            steady: '頭と体のリズムがほどよくそろっています。一定の睡眠時間がこのバランスを守ります。',
-            quiet: '体を使う感覚は良いのですが、休みが短くなりがちです。静かに目を閉じる5分が、頭をすっきりさせます。'
+          "body": {
+            "bright": "寝る前に作業を終える時刻を決めましょう。明日の予定をメモし、落ち着く習慣で一日を締めくくります。",
+            "steady": "寝る前に作業を終える時刻を決めましょう。明日の予定をメモし、落ち着く習慣で一日を締めくくります。",
+            "quiet": "寝る前に作業を終える時刻を決めましょう。明日の予定をメモし、落ち着く習慣で一日を締めくくります。"
+          },
+          "check": {
+            "bright": "一日を終える時間を残していますか？",
+            "steady": "一日を終える時間を残していますか？",
+            "quiet": "一日を終える時間を残していますか？"
           }
         },
-        thirdEye: {
-          region: '額 · 眉間 · 目',
-          mind: {
-            bright: '観察力と想像力に優れています。人が見逃すパターンに先に気づきます。',
-            steady: '直感と事実をあわせて確かめます。浮かんだ考えを書きとめておくと、洞察が積み重なります。',
-            quiet: '目の前の事実を信じるタイプです。ときどき想像の余地を残すと、新しい道が見えてきます。'
+        "thirdEye": {
+          "region": "洞察 · 想像 · 観察",
+          "mind": {
+            "bright": "観察力と想像力に優れています。人が見逃すパターンに先に気づきます。",
+            "steady": "直感と事実をあわせて確かめます。浮かんだ考えを書きとめておくと、洞察が積み重なります。",
+            "quiet": "目の前の事実を信じるタイプです。ときどき想像の余地を残すと、新しい道が見えてきます。"
           },
-          body: {
-            bright: '目と額に緊張が集まりやすいです。遠くを眺めて、目を休ませてあげてください。',
-            steady: '見ることと休むことのバランスは良好です。画面を見る合間に、こまめに目を閉じてください。',
-            quiet: '考えるより先に体が動きます。寝る前に照明を落とすと、休息が深まります。'
+          "body": {
+            "bright": "通知を少し止め、作業から目を離しましょう。浮かぶ考えはメモに残し、後で見直します。",
+            "steady": "通知を少し止め、作業から目を離しましょう。浮かぶ考えはメモに残し、後で見直します。",
+            "quiet": "通知を少し止め、作業から目を離しましょう。浮かぶ考えはメモに残し、後で見直します。"
+          },
+          "check": {
+            "bright": "休憩中も画面を確認し続けていませんか？",
+            "steady": "休憩中も画面を確認し続けていませんか？",
+            "quiet": "休憩中も画面を確認し続けていませんか？"
           }
         },
-        throat: {
-          region: '喉 · あご · 肩',
-          mind: {
-            bright: '言葉や文章で考えを解きほぐす力が大きいです。表現するほど心が整理されます。',
-            steady: '必要なことは言い、控えるべきことは控えます。率直さと思いやりのバランスが良好です。',
-            quiet: '気持ちを言葉にするまで時間がかかります。まずは短いメモで表現してみてください。'
+        "throat": {
+          "region": "表現 · 伝達",
+          "mind": {
+            "bright": "言葉や文章で考えを解きほぐす力が大きいです。表現するほど心が整理されます。",
+            "steady": "必要なことは言い、控えるべきことは控えます。率直さと思いやりのバランスが良好です。",
+            "quiet": "気持ちを言葉にするまで時間がかかります。まずは短いメモで表現してみてください。"
           },
-          body: {
-            bright: '喉やあごに力が入りやすいです。たくさん話した日は、温かいお茶で喉を休ませてあげてください。',
-            steady: '首と肩のリズムがそろっています。姿勢をこまめに変えるだけで十分です。',
-            quiet: '言いたいことを飲み込むと、あごや肩がこわばりやすいです。鼻歌や音読もおすすめです。'
+          "body": {
+            "bright": "守れる約束と調整したい約束を分けましょう。「今日はここまで」と伝える選択もあります。",
+            "steady": "守れる約束と調整したい約束を分けましょう。「今日はここまで」と伝える選択もあります。",
+            "quiet": "守れる約束と調整したい約束を分けましょう。「今日はここまで」と伝える選択もあります。"
+          },
+          "check": {
+            "bright": "休みたいのに約束を引き受けていませんか？",
+            "steady": "休みたいのに約束を引き受けていませんか？",
+            "quiet": "休みたいのに約束を引き受けていませんか？"
           }
         },
-        heart: {
-          region: '胸 · 肺 · 腕',
-          mind: {
-            bright: '人とつながると、エネルギーが満ちてきます。やさしさがいちばんの武器です。',
-            steady: '与える心と受け取る心がほどよく行き来します。関係の温度を合わせるのが上手です。',
-            quiet: 'なかなか心を開かないタイプです。信頼できる一人に、まず気持ちを打ち明けてみてください。'
+        "heart": {
+          "region": "つながり · 関係 · 愛着",
+          "mind": {
+            "bright": "人とつながると、エネルギーが満ちてきます。やさしさがいちばんの武器です。",
+            "steady": "与える心と受け取る心がほどよく行き来します。関係の温度を合わせるのが上手です。",
+            "quiet": "なかなか心を開かないタイプです。信頼できる一人に、まず気持ちを打ち明けてみてください。"
           },
-          body: {
-            bright: '人の世話をするうちに、自分の呼吸が浅くなりがちです。胸を開いて深く呼吸する時間をとりましょう。',
-            steady: '呼吸と心の拍子がよく合っています。軽い有酸素運動がこのリズムを守ります。',
-            quiet: '緊張すると肩が丸まり、呼吸が浅くなります。腕を大きく広げるストレッチがよく合います。'
+          "body": {
+            "bright": "大切な返事の前に、気持ちと必要なことを一行ずつ書きましょう。考える時間を頼んでも大丈夫です。",
+            "steady": "大切な返事の前に、気持ちと必要なことを一行ずつ書きましょう。考える時間を頼んでも大丈夫です。",
+            "quiet": "大切な返事の前に、気持ちと必要なことを一行ずつ書きましょう。考える時間を頼んでも大丈夫です。"
+          },
+          "check": {
+            "bright": "今の気分だけで返事を急いでいませんか？",
+            "steady": "今の気分だけで返事を急いでいませんか？",
+            "quiet": "今の気分だけで返事を急いでいませんか？"
           }
         },
-        solarPlexus: {
-          region: 'みぞおち · 胃腸',
-          mind: {bright: '自分で押し進める意志が強いです。目標ができると火がつきます。', steady: '意志とゆとりがほどよく混ざっています。やるときと休むときの区別が上手です。', quiet: '他人が決めたペースについていきがちです。小さなことでも、自分で決めてみてください。'},
-          body: {
-            bright: '緊張がまずお腹とみぞおちに来ます。食事を急がない習慣が体を楽にします。',
-            steady: '消化のリズムが比較的そろっています。規則正しい食事の時間がこのリズムを守ります。',
-            quiet: '元気が出ない日は、お腹を温かくしておくとよいです。朝に体を温める小さなルーティンを作ってみてください。'
+        "solarPlexus": {
+          "region": "意志 · 自己推進 · 感情",
+          "mind": {
+            "bright": "自分で押し進める意志が強いです。目標ができると火がつきます。",
+            "steady": "意志とゆとりがほどよく混ざっています。やるときと休むときの区別が上手です。",
+            "quiet": "他人が決めたペースについていきがちです。小さなことでも、自分で決めてみてください。"
+          },
+          "body": {
+            "bright": "予定と予定の間に短い休憩を入れてみましょう。その後に取り組むことを一つ選びます。",
+            "steady": "予定と予定の間に短い休憩を入れてみましょう。その後に取り組むことを一つ選びます。",
+            "quiet": "予定と予定の間に短い休憩を入れてみましょう。その後に取り組むことを一つ選びます。"
+          },
+          "check": {
+            "bright": "休まずに次の仕事へ進んでいませんか？",
+            "steady": "休まずに次の仕事へ進んでいませんか？",
+            "quiet": "休まずに次の仕事へ進んでいませんか？"
           }
         },
-        sacral: {
-          region: '下腹部 · 骨盤',
-          mind: {
-            bright: '楽しさと創作意欲が豊かです。好きなことをしていると、アイデアが湧いてきます。',
-            steady: '楽しさと責任をほどよく行き来します。趣味がひとつあると、暮らしの潤滑油になります。',
-            quiet: 'やるべきこと中心に暮らしがちです。理由なく楽しいことを予定に入れてみてください。'
+        "sacral": {
+          "region": "欲求 · 楽しさ · 創造",
+          "mind": {
+            "bright": "楽しさと創作意欲が豊かです。好きなことをしていると、アイデアが湧いてきます。",
+            "steady": "楽しさと責任をほどよく行き来します。趣味がひとつあると、暮らしの潤滑油になります。",
+            "quiet": "やるべきこと中心に暮らしがちです。理由なく楽しいことを予定に入れてみてください。"
           },
-          body: {
-            bright: '気分のいいことに体をたくさん使うタイプです。楽しんだあと、しっかり休むまでがリズムです。',
-            steady: '骨盤と腰のリズムがそろっています。長く座っていたら、骨盤を回してほぐしてください。',
-            quiet: '長く座っていると、下腹部や腰が重くなりがちです。ダンスや軽い散歩で流れを目覚めさせましょう。'
+          "body": {
+            "bright": "体調に合う軽い動きや短い散歩を選びましょう。不快に感じたら止めるか、無理のない範囲にします。",
+            "steady": "体調に合う軽い動きや短い散歩を選びましょう。不快に感じたら止めるか、無理のない範囲にします。",
+            "quiet": "体調に合う軽い動きや短い散歩を選びましょう。不快に感じたら止めるか、無理のない範囲にします。"
+          },
+          "check": {
+            "bright": "長い間同じ姿勢で過ごしていませんか？",
+            "steady": "長い間同じ姿勢で過ごしていませんか？",
+            "quiet": "長い間同じ姿勢で過ごしていませんか？"
           }
         },
-        root: {
-          region: '尾骨 · 脚 · 足',
-          mind: {
-            bright: '現実感覚と安定を求める気持ちが強いです。土台がしっかりしていると、心が落ち着きます。',
-            steady: '安定と変化をほどよく受け入れます。基本のルーティンがあると、新しい挑戦も楽になります。',
-            quiet: '足が地に着いていないように浮つきがちです。決まったルーティンがひとつあると、心の錨になります。'
+        "root": {
+          "region": "安定 · 基盤 · 現実感覚",
+          "mind": {
+            "bright": "現実感覚と安定を求める気持ちが強いです。土台がしっかりしていると、心が落ち着きます。",
+            "steady": "安定と変化をほどよく受け入れます。基本のルーティンがあると、新しい挑戦も楽になります。",
+            "quiet": "足が地に着いていないように浮つきがちです。決まったルーティンがひとつあると、心の錨になります。"
           },
-          body: {
-            bright: '脚と腰の力が強いほうです。長く踏ん張るより、途中でこまめにほぐしてください。',
-            steady: '下半身のリズムがそろっています。続けて歩くことが、このバランスを守ります。',
-            quiet: '下半身が重く感じることがあります。温かい足湯や、ゆっくり歩くことがよく合います。'
+          "body": {
+            "bright": "落ち着いて食べる時間を予定に残しましょう。自分に合う速さで食べながら一日のリズムを振り返ります。",
+            "steady": "落ち着いて食べる時間を予定に残しましょう。自分に合う速さで食べながら一日のリズムを振り返ります。",
+            "quiet": "落ち着いて食べる時間を予定に残しましょう。自分に合う速さで食べながら一日のリズムを振り返ります。"
+          },
+          "check": {
+            "bright": "忙しさで食事を後回しにしていませんか？",
+            "steady": "忙しさで食事を後回しにしていませんか？",
+            "quiet": "忙しさで食事を後回しにしていませんか？"
           }
         }
       },
-      vedicKind: {moon: '月星座で見る心', lagna: 'ラグナで見る体の質', sixth: '第6ハウスで見る回復のしかた'},
-      sign: {
-        Aries: '牡羊座',
-        Taurus: '牡牛座',
-        Gemini: '双子座',
-        Cancer: '蟹座',
-        Leo: '獅子座',
-        Virgo: '乙女座',
-        Libra: '天秤座',
-        Scorpio: '蠍座',
-        Sagittarius: '射手座',
-        Capricorn: '山羊座',
-        Aquarius: '水瓶座',
-        Pisces: '魚座'
+      "vedicKind": {
+        "moon": "月星座で見る心",
+        "lagna": "ラグナで見る体の質",
+        "sixth": "第6ハウスで見る回復のしかた"
       },
-      graha: {Sun: '太陽', Moon: '月', Mars: '火星', Mercury: '水星', Jupiter: '木星', Venus: '金星', Saturn: '土星'},
-      moon: {
-        Aries: '感情がすぐに燃え上がり、すぐに冷めます。その場で表現して吐き出すことが、心を楽にします。',
-        Taurus: '心が落ち着いているときがいちばん幸せです。慣れた空間とおいしい食べ物が大きな慰めになります。',
-        Gemini: '感情を言葉や会話でほどきます。一度のおしゃべりが、心の整理への近道です。',
-        Cancer: '感情が深く、人を世話する心が大きいです。安心できる自分の空間があると、心が回復します。',
-        Leo: '認められると、心がぱっと明るくなります。自分をほめる習慣が自己肯定感を守ります。',
-        Virgo: '不安になると、整理し分析します。完璧でなくても大丈夫だと、自分に言ってあげてください。',
-        Libra: '調和のとれた関係の中で心が落ち着きます。対立を避けるより、やわらかく伝える練習がおすすめです。',
-        Scorpio: '感情を深く抱え、なかなか表に出しません。信頼できる人に打ち明けると、心が軽くなります。',
-        Sagittarius: '自由と意味を求めるとき、心が生き生きします。旅や新しい学びが気分を変えてくれます。',
-        Capricorn: '感情より責任を先に考えます。何かをやり遂げたら、休んでいいと自分に許してあげてください。',
-        Aquarius: '感情を一歩引いて眺めます。ひとりの時間と気の合う友人、どちらも必要です。',
-        Pisces: '共感力が高く、想像力が豊かです。音楽や絵のように、感情を流せる通り道があるとよいです。'
+      "sign": {
+        "Aries": "牡羊座",
+        "Taurus": "牡牛座",
+        "Gemini": "双子座",
+        "Cancer": "蟹座",
+        "Leo": "獅子座",
+        "Virgo": "乙女座",
+        "Libra": "天秤座",
+        "Scorpio": "蠍座",
+        "Sagittarius": "射手座",
+        "Capricorn": "山羊座",
+        "Aquarius": "水瓶座",
+        "Pisces": "魚座"
       },
-      lagna: {
-        Aries: {region: '頭 · 顔', body: 'エネルギーが頭のほうに集まりやすいです。熱くなったら少し立ち止まって、クールダウンする時間をとりましょう。'},
-        Taurus: {region: '首 · 喉', body: '首と肩に疲れがたまりやすいです。ゆっくり食べて、首を温かくしておくのが合います。'},
-        Gemini: {region: '肩 · 腕 · 呼吸', body: '忙しいと呼吸が浅くなりがちです。手を休めて、深く息をするすき間をつくってください。'},
-        Cancer: {region: '胸 · 胃', body: '感情が胃腸のリズムに表れやすいです。落ち着いた雰囲気で食事をすることが体を助けます。'},
-        Leo: {region: '心臓 · 背中', body: '情熱的に走るうちに、背中がこわばりがちです。胸を開くストレッチと十分な睡眠がおすすめです。'},
-        Virgo: {region: '腸 · 消化', body: '心配ごとが、まず消化のリズムに表れます。規則正しい食事と軽い散歩がよく合います。'},
-        Libra: {region: '腰 · 腎臓', body: 'バランスが崩れると、まず腰が重くなります。長く座ったら腰を伸ばして、水をこまめに飲みましょう。'},
-        Scorpio: {region: '骨盤 · 下腹部', body: '緊張を下腹部にためこみがちです。温かいお風呂と深い呼吸でほぐしてください。'},
-        Sagittarius: {region: 'お尻 · 太もも', body: '体を動かすと気分が晴れるタイプです。ウォーキングやハイキングのように、大きな筋肉を使う活動がおすすめです。'},
-        Capricorn: {region: '膝 · 骨格', body: '踏ん張る力が強いぶん、関節をいたわってください。無理な運動より、続けられるストレッチが合います。'},
-        Aquarius: {region: 'ふくらはぎ · 足首 · 循環', body: '長く立ったり座ったりすると、脚が重くなります。こまめに立ち上がって、巡りを目覚めさせてください。'},
-        Pisces: {region: '足 · 睡眠', body: '体が雰囲気や疲れに敏感です。十分な睡眠と、足を温かく保つ習慣がリズムを守ります。'}
+      "graha": {
+        "Sun": "太陽",
+        "Moon": "月",
+        "Mars": "火星",
+        "Mercury": "水星",
+        "Jupiter": "木星",
+        "Venus": "金星",
+        "Saturn": "土星"
       },
-      sixth: {
-        Sun: '日差しと規則正しい日課で回復します。朝日を浴びながら歩く時間がよく合います。',
-        Moon: '心が楽になってこそ、体も回復します。慣れた人や場所で休む時間が、いちばんの回復です。',
-        Mars: '体を動かして回復するタイプです。汗をかいたあとは、しっかりクールダウンする時間もとりましょう。',
-        Mercury: '頭を空にすると回復します。日記・片づけ・軽いパズルのように、考えを整える活動がおすすめです。',
-        Jupiter: '「ほどほど」が回復の鍵です。食べすぎや働きすぎを少しずつ減らすと、体が軽くなります。',
-        Venus: '楽しさと美しさで回復します。好きな音楽・香り・おいしい一食が大きな力になります。',
-        Saturn: 'ゆっくり、着実に回復するタイプです。同じ時間に寝て起きるルーティンがいちばん合います。'
+      "moon": {
+        "Aries": "感情がすぐに燃え上がり、すぐに冷めます。その場で表現して吐き出すことが、心を楽にします。",
+        "Taurus": "心が落ち着いているときがいちばん幸せです。慣れた空間とおいしい食べ物が大きな慰めになります。",
+        "Gemini": "感情を言葉や会話でほどきます。一度のおしゃべりが、心の整理への近道です。",
+        "Cancer": "感情が深く、人を世話する心が大きいです。安心できる自分の空間があると、心が回復します。",
+        "Leo": "認められると、心がぱっと明るくなります。自分をほめる習慣が自己肯定感を守ります。",
+        "Virgo": "不安になると、整理し分析します。完璧でなくても大丈夫だと、自分に言ってあげてください。",
+        "Libra": "調和のとれた関係の中で心が落ち着きます。対立を避けるより、やわらかく伝える練習がおすすめです。",
+        "Scorpio": "感情を深く抱え、なかなか表に出しません。信頼できる人に打ち明けると、心が軽くなります。",
+        "Sagittarius": "自由と意味を求めるとき、心が生き生きします。旅や新しい学びが気分を変えてくれます。",
+        "Capricorn": "感情より責任を先に考えます。何かをやり遂げたら、休んでいいと自分に許してあげてください。",
+        "Aquarius": "感情を一歩引いて眺めます。ひとりの時間と気の合う友人、どちらも必要です。",
+        "Pisces": "共感力が高く、想像力が豊かです。音楽や絵のように、感情を流せる通り道があるとよいです。"
+      },
+      "lagna": {
+        "Aries": {
+          "region": "休む余白",
+          "body": "予定と予定の間に短い休憩を入れてみましょう。その後に取り組むことを一つ選びます。",
+          "check": "休まずに次の仕事へ進んでいませんか？"
+        },
+        "Taurus": {
+          "region": "食事の時間",
+          "body": "落ち着いて食べる時間を予定に残しましょう。自分に合う速さで食べながら一日のリズムを振り返ります。",
+          "check": "忙しさで食事を後回しにしていませんか？"
+        },
+        "Gemini": {
+          "region": "情報から離れる",
+          "body": "通知を少し止め、作業から目を離しましょう。浮かぶ考えはメモに残し、後で見直します。",
+          "check": "休憩中も画面を確認し続けていませんか？"
+        },
+        "Cancer": {
+          "region": "自分の場所",
+          "body": "通知から少し離れ、心地よい場所を選びましょう。一人になりたい時間を身近な人に伝えても大丈夫です。",
+          "check": "人に合わせて一人で休む時間が減っていませんか？"
+        },
+        "Leo": {
+          "region": "心地よい動き",
+          "body": "体調に合う軽い動きや短い散歩を選びましょう。不快に感じたら止めるか、無理のない範囲にします。",
+          "check": "長い間同じ姿勢で過ごしていませんか？"
+        },
+        "Virgo": {
+          "region": "小さな一歩",
+          "body": "最初の小さな一歩を書き出しましょう。今日することと明日でもよいことを分けます。",
+          "check": "完璧な計画を待って始められずにいませんか？"
+        },
+        "Libra": {
+          "region": "約束の境界",
+          "body": "守れる約束と調整したい約束を分けましょう。「今日はここまで」と伝える選択もあります。",
+          "check": "休みたいのに約束を引き受けていませんか？"
+        },
+        "Scorpio": {
+          "region": "気持ちの余白",
+          "body": "大切な返事の前に、気持ちと必要なことを一行ずつ書きましょう。考える時間を頼んでも大丈夫です。",
+          "check": "今の気分だけで返事を急いでいませんか？"
+        },
+        "Sagittarius": {
+          "region": "心地よい動き",
+          "body": "体調に合う軽い動きや短い散歩を選びましょう。不快に感じたら止めるか、無理のない範囲にします。",
+          "check": "長い間同じ姿勢で過ごしていませんか？"
+        },
+        "Capricorn": {
+          "region": "休む余白",
+          "body": "予定と予定の間に短い休憩を入れてみましょう。その後に取り組むことを一つ選びます。",
+          "check": "休まずに次の仕事へ進んでいませんか？"
+        },
+        "Aquarius": {
+          "region": "自分の場所",
+          "body": "通知から少し離れ、心地よい場所を選びましょう。一人になりたい時間を身近な人に伝えても大丈夫です。",
+          "check": "人に合わせて一人で休む時間が減っていませんか？"
+        },
+        "Pisces": {
+          "region": "一日の締めくくり",
+          "body": "寝る前に作業を終える時刻を決めましょう。明日の予定をメモし、落ち着く習慣で一日を締めくくります。",
+          "check": "一日を終える時間を残していますか？"
+        }
+      },
+      "sixth": {
+        "Sun": "予定と予定の間に短い休憩を入れてみましょう。その後に取り組むことを一つ選びます。",
+        "Moon": "寝る前に作業を終える時刻を決めましょう。明日の予定をメモし、落ち着く習慣で一日を締めくくります。",
+        "Mars": "体調に合う軽い動きや短い散歩を選びましょう。不快に感じたら止めるか、無理のない範囲にします。",
+        "Mercury": "通知を少し止め、作業から目を離しましょう。浮かぶ考えはメモに残し、後で見直します。",
+        "Jupiter": "最初の小さな一歩を書き出しましょう。今日することと明日でもよいことを分けます。",
+        "Venus": "通知から少し離れ、心地よい場所を選びましょう。一人になりたい時間を身近な人に伝えても大丈夫です。",
+        "Saturn": "守れる約束と調整したい約束を分けましょう。「今日はここまで」と伝える選択もあります。"
+      },
+      "sixthCheck": {
+        "Sun": "休まずに次の仕事へ進んでいませんか？",
+        "Moon": "一日を終える時間を残していますか？",
+        "Mars": "長い間同じ姿勢で過ごしていませんか？",
+        "Mercury": "休憩中も画面を確認し続けていませんか？",
+        "Jupiter": "完璧な計画を待って始められずにいませんか？",
+        "Venus": "人に合わせて一人で休む時間が減っていませんか？",
+        "Saturn": "休みたいのに約束を引き受けていませんか？"
       }
     },
     yeoni: {
@@ -1611,27 +2399,27 @@
       D: '把我的八字从精神到身体展开来看'
     },
     axes: {
-      selfDrive: {name: '主体性', short: '主体', god: '比劫', question: '我想要什么？', thought: '我想自己决定', meme: '按我的来',
+      selfDrive: {name: '主体性', short: '主体', god: '比劫', question: '我想要什么？', thought: '我想自己决定', meme: "我的节奏我做主",
         keywords: ['独立', '自主', '竞争', '自己的方式', '边界'],
         strong: ['想按自己的方式做决定', '被过度控制时会觉得憋闷', '在竞争中反而可能更有干劲'],
         over: ['容易变得固执', '竞争容易过热', '对自己的份额会比较敏感', '人和资源容易分散'],
         mind: '自己定方向，', pull: '想自己决定方向的力量很强。'},
-      expression: {name: '表达与刺激', short: '表达', god: '食伤', question: '有没有好玩的？', thought: '有没有好玩的？', meme: '先试试再说！',
+      expression: {name: '表达与刺激', short: '表达', god: '食伤', question: '有没有好玩的？', thought: '有没有好玩的？', meme: "灵感又加入购物车",
         keywords: ['表达', '说话', '创作', '内容', '新刺激'],
         strong: ['说话、表达、创造时最有能量', '对新的体验和刺激反应很快'],
         over: ['注意力容易分散', '容易很快感到厌倦', '容易觉得日常规律很憋闷', '容易优先选择眼前的乐趣'],
         mind: '从乐趣与表达中获得力量，', pull: '新的刺激和表达会让你动起来。'},
-      reality: {name: '现实与结果', short: '现实', god: '财星', question: '所以这到底能留下什么？', thought: '这能赚钱吗？', meme: '能剩下啥？',
+      reality: {name: '现实与结果', short: '现实', god: '财星', question: '所以这到底能留下什么？', thought: '这能赚钱吗？', meme: "性价比雷达已开启",
         keywords: ['成果', '效率', '管理', '结果', '目标'],
         strong: ['比起理论更看重现实的结果', '投入时间和金钱时，会确认实际能得到什么'],
         over: ['金钱、成果和效率本身可能变成压力', '看不到结果时容易疲惫'],
         mind: '想法务实，', pull: '脑子想尽快确认现实的结果。'},
-      structure: {name: '责任与标准', short: '责任', god: '官星', question: '我这样做对吗？', thought: '得好好做才行', meme: '规矩得守',
+      structure: {name: '责任与标准', short: '责任', god: '官星', question: '我这样做对吗？', thought: '得好好做才行', meme: "对计划表很认真",
         keywords: ['责任', '规则', '评价', '标准', '成就'],
         strong: ['重视角色与责任', '容易意识到社会标准和该做的事'],
         over: ['可能对自己审视过严', '容易独自扛下责任', '可能强烈感受到被评价的压力'],
         mind: '立标准、守标准，', pull: '“要做好”的标准会最先启动。'},
-      reflection: {name: '思考与吸收', short: '思考', god: '印星', question: '我是不是漏掉了什么？', thought: '我是不是漏了什么？', meme: '让我想想',
+      reflection: {name: '思考与吸收', short: '思考', god: '印星', question: '我是不是漏掉了什么？', thought: '我是不是漏了什么？', meme: "脑内标签页开太多",
         keywords: ['学习', '信息', '直觉', '验证', '意义'],
         strong: ['要先想清楚、理解了才能行动', '即使是一件小事也想找出意义'],
         over: ['担心可能持续很久', '分析可能过度', '容易反复想同一件事', '行动可能被推迟'],
@@ -1763,154 +2551,488 @@
       },
       frame: {fire: '倾向把世界看成挑战与可能性的舞台。', earth: '倾向把世界看成一步步积累的现实。', air: '倾向把世界看成连接与想法的网络。', water: '倾向把世界看成情感与关系的流动。'}
     },
+    recovery: {
+      "title": "从八字回看生活节奏",
+      "basis": "解读依据",
+      "check": "问问自己",
+      "action": "今天试试看",
+      "strong": "占比较大的五行",
+      "low": "占比较小的五行",
+      "even": "分布均衡的五行",
+      "intro": "五行比例不是健康分数。较强的元素代表常用的方式，较弱的元素可作为回看的主题。优势使用过度，也可能让日常习惯失去平衡。",
+      "chakraSource": "脉轮的大小和亮度，是八字十神与五行的象征性呈现，不是吠陀占星的行星计算，也不代表身体状态。",
+      "vedicSource": "以吠陀占星的上升星座为起点，一个星座计作一宫，推得第六宫及其守护星。下方将传统主题转化为生活提问，并不预测身体状况。",
+      "hdSource": "有定义与开放中心是人类图中的模式，不用于评估器官或体能。请只参考符合自身经验的部分。",
+      "relation": "做决定前，先说明自己的节奏。可以说“我想考虑一下再回答”，把需要的时间与空间表达清楚。",
+      "chapters": [
+        {
+          "id": "thinking",
+          "title": "想法与倾向",
+          "hint": "思考习惯与五行平衡"
+        },
+        {
+          "id": "relationships",
+          "title": "决定与关系",
+          "hint": "适合自己的决定速度与人际边界"
+        },
+        {
+          "id": "recovery",
+          "title": "身体与休息节奏",
+          "hint": "从传统象征到生活提问与小行动"
+        }
+      ],
+      "shareQuestion": "你的脑袋里，哪种想法最占地方？",
+      "saved": "图片已保存。",
+      "cancelled": "已取消分享。",
+      "shared": "已分享。",
+      "failed": "分享未完成，请尝试保存图片或复制链接。",
+      "routines": [
+        {
+          "title": "休息的空档",
+          "check": "还没停下来，就接着做下一件事了吗？",
+          "action": "今天在任务之间留一点休息时间。休息后，只选一件想继续做的事。"
+        },
+        {
+          "title": "舒服地活动",
+          "check": "是不是很久没有换姿势了？",
+          "action": "选择适合当下状态的轻松活动或短距离散步。不舒服时就停下来，或减小强度。"
+        },
+        {
+          "title": "小小的开始",
+          "check": "是不是等计划完美了才肯开始？",
+          "action": "写下最小的下一步。把今天要做的事和可以明天做的事分开。"
+        },
+        {
+          "title": "吃饭的余裕",
+          "check": "忙起来就总把吃饭往后推吗？",
+          "action": "在今天的安排里留出安心吃饭的时间。按适合自己的速度进食，回看一天的节奏。"
+        },
+        {
+          "title": "自己的空间",
+          "check": "跟着别人的节奏走，忘了独处吗？",
+          "action": "暂时放下通知，找个舒服的地方停一停。也可以告诉亲近的人，你需要一点独处时间。"
+        },
+        {
+          "title": "承诺的边界",
+          "check": "想休息，却还是答应了邀约吗？",
+          "action": "分清能履行和需要调整的约定。“今天先到这里”也是一种选择。"
+        },
+        {
+          "title": "暂时放下信息",
+          "check": "休息时还一直看屏幕吗？",
+          "action": "暂时关闭通知，把视线从任务上移开。新想法写在备忘录里，之后再看。"
+        },
+        {
+          "title": "情绪的余地",
+          "check": "是不是只凭此刻的心情急着回复？",
+          "action": "重要回复之前，各写一句自己的感受和需要。需要思考时间时，可以先说出来。"
+        },
+        {
+          "title": "收好这一天",
+          "check": "有没有为一天的结束留点时间？",
+          "action": "睡前给手头的事定个收尾时间。记下明天的事，用熟悉而舒服的日常习惯结束今天。"
+        }
+      ]
+    },
     mb: {
-      ui: {
-        mind: '精神',
-        body: '身体',
-        organ: '象征关联',
-        region: '象征部位',
-        lord: '主宰星',
-        lead: '每个中心和脉轮，都会同时解读你内心的纹理与身体的节奏。',
-        vedicMind: '心',
-        vedicBody: '身',
-        note: '这里的精神与身体描述，是把传统体系中的象征转化为生活节奏的说法，并非医学判断。如果身体不舒服，或心情长期低落，请咨询医生或专业人士。'
+      "ui": {
+        "mind": "精神",
+        "body": "今天试试看",
+        "organ": "解读依据",
+        "region": "解读依据",
+        "lord": "主宰星",
+        "lead": "有定义与开放中心是人类图中的模式，不用于评估器官或体能。请只参考符合自身经验的部分。",
+        "vedicMind": "心",
+        "vedicBody": "身",
+        "note": "这里的精神与身体描述，是把传统体系中的象征转化为生活节奏的说法，并非医学判断。如果身体不舒服，或心情长期低落，请咨询医生或专业人士。",
+        "check": "问问自己"
       },
-      center: {
-        HEAD: {
-          organ: '松果体',
-          mind: {defined: '你会持续不断地向自己提出问题。灵感常从内在涌现，独处思考的时间就是你的燃料。', open: '你容易把别人的问题和烦恼当成自己的。问问自己“这真的是我的问题吗？”，头脑会轻松许多。'},
-          body: {defined: '思绪容易延续到深夜。睡前用笔记把脑袋清空的习惯很适合你。', open: '信息量大的日子，头脑会最先疲惫。关掉屏幕、让眼睛休息片刻，能帮你找回节奏。'}
+      "center": {
+        "HEAD": {
+          "organ": "收好这一天",
+          "mind": {
+            "defined": "你会持续不断地向自己提出问题。灵感常从内在涌现，独处思考的时间就是你的燃料。",
+            "open": "你容易把别人的问题和烦恼当成自己的。问问自己“这真的是我的问题吗？”，头脑会轻松许多。"
+          },
+          "body": {
+            "defined": "睡前给手头的事定个收尾时间。记下明天的事，用熟悉而舒服的日常习惯结束今天。",
+            "open": "暂时关闭通知，把视线从任务上移开。新想法写在备忘录里，之后再看。"
+          },
+          "check": {
+            "defined": "有没有为一天的结束留点时间？",
+            "open": "休息时还一直看屏幕吗？"
+          }
         },
-        AJNA: {
-          organ: '脑垂体',
-          mind: {defined: '你的思考方式稳定而笃定。一旦整理好观点，就会长久坚持。', open: '你能在多种观点之间灵活切换。不急着下定论时，判断反而更开阔。'},
-          body: {defined: '抓着烦恼不放时，眼睛和肩膀容易僵硬。思绪打转时，动一动身体来转换状态吧。', open: '用脑和休息的界线容易变模糊。固定好学习或工作的时间，头脑就不那么累。'}
+        "AJNA": {
+          "organ": "小小的开始",
+          "mind": {
+            "defined": "你的思考方式稳定而笃定。一旦整理好观点，就会长久坚持。",
+            "open": "你能在多种观点之间灵活切换。不急着下定论时，判断反而更开阔。"
+          },
+          "body": {
+            "defined": "写下最小的下一步。把今天要做的事和可以明天做的事分开。",
+            "open": "暂时关闭通知，把视线从任务上移开。新想法写在备忘录里，之后再看。"
+          },
+          "check": {
+            "defined": "是不是等计划完美了才肯开始？",
+            "open": "休息时还一直看屏幕吗？"
+          }
         },
-        THROAT: {
-          organ: '甲状腺 · 甲状旁腺',
-          mind: {defined: '你用言语和行动表达自己的通道是畅通的。表达的时候，思路往往随之清晰。', open: '你说话的多少会随气氛而变。只在真正需要时开口，也足以传达心意。'},
-          body: {defined: '说话多的日子，喉咙和肩膀会最先发出信号。温水和颈部伸展很适合你。', open: '努力想引人注目时，能量会流失得很快。开口前先停一拍、吸口气，能好好爱护喉咙。'}
+        "THROAT": {
+          "organ": "休息的空档",
+          "mind": {
+            "defined": "你用言语和行动表达自己的通道是畅通的。表达的时候，思路往往随之清晰。",
+            "open": "你说话的多少会随气氛而变。只在真正需要时开口，也足以传达心意。"
+          },
+          "body": {
+            "defined": "今天在任务之间留一点休息时间。休息后，只选一件想继续做的事。",
+            "open": "分清能履行和需要调整的约定。“今天先到这里”也是一种选择。"
+          },
+          "check": {
+            "defined": "还没停下来，就接着做下一件事了吗？",
+            "open": "想休息，却还是答应了邀约吗？"
+          }
         },
-        G: {
-          organ: '肝脏 · 血液',
-          mind: {defined: '你的自我认同和方向感很稳定。即使环境改变，身份感也不会大幅动摇。', open: '你会随着身边的人和所处的地方而改变。挑选好地方的直觉，就是你的方向。'},
-          body: {defined: '一旦觉得迷失方向，身体也会跟着无精打采。散步这类向前迈进的动作能唤回节奏。', open: '你会先用身体感受空间的氛围。待着不舒服时，光是换个位置，状态就会不同。'}
+        "G": {
+          "organ": "舒服地活动",
+          "mind": {
+            "defined": "你的自我认同和方向感很稳定。即使环境改变，身份感也不会大幅动摇。",
+            "open": "你会随着身边的人和所处的地方而改变。挑选好地方的直觉，就是你的方向。"
+          },
+          "body": {
+            "defined": "选择适合当下状态的轻松活动或短距离散步。不舒服时就停下来，或减小强度。",
+            "open": "暂时放下通知，找个舒服的地方停一停。也可以告诉亲近的人，你需要一点独处时间。"
+          },
+          "check": {
+            "defined": "是不是很久没有换姿势了？",
+            "open": "跟着别人的节奏走，忘了独处吗？"
+          }
         },
-        HEART: {
-          organ: '心脏 · 胃 · 胆囊 · 胸腺',
-          mind: {defined: '你守约稳定、意志坚定。你有能力守住自己定下的目标。', open: '你容易想要证明自己的价值。感受到“我已经足够好”，心会安定下来。'},
-          body: {defined: '靠意志硬撑之后，需要好好休息。工作多少就休息多少的节奏很适合你。', open: '勉强的承诺容易变成胸口和胃部的紧绷。只承诺能做到的部分，就是在照顾身体。'}
+        "HEART": {
+          "organ": "休息的空档",
+          "mind": {
+            "defined": "你守约稳定、意志坚定。你有能力守住自己定下的目标。",
+            "open": "你容易想要证明自己的价值。感受到“我已经足够好”，心会安定下来。"
+          },
+          "body": {
+            "defined": "今天在任务之间留一点休息时间。休息后，只选一件想继续做的事。",
+            "open": "分清能履行和需要调整的约定。“今天先到这里”也是一种选择。"
+          },
+          "check": {
+            "defined": "还没停下来，就接着做下一件事了吗？",
+            "open": "想休息，却还是答应了邀约吗？"
+          }
         },
-        SOLAR_PLEXUS: {
-          organ: '肾脏 · 胰腺 · 神经系统',
-          mind: {defined: '你的情绪像波浪一样起伏。与其看一时的心情，不如观察几天的变化再做决定，会更清晰。', open: '你会像海绵一样吸收周围的情绪。分辨“这份情绪是谁的”，心就会轻松许多。'},
-          body: {defined: '情绪的波浪也会带动身体的节奏。情绪高涨时别勉强自己，低落时就放慢脚步歇一歇。', open: '在有冲突的场合，身体会先紧绷起来。独处时调整呼吸，把情绪抖落吧。'}
+        "SOLAR_PLEXUS": {
+          "organ": "情绪的余地",
+          "mind": {
+            "defined": "你的情绪像波浪一样起伏。与其看一时的心情，不如观察几天的变化再做决定，会更清晰。",
+            "open": "你会像海绵一样吸收周围的情绪。分辨“这份情绪是谁的”，心就会轻松许多。"
+          },
+          "body": {
+            "defined": "重要回复之前，各写一句自己的感受和需要。需要思考时间时，可以先说出来。",
+            "open": "暂时放下通知，找个舒服的地方停一停。也可以告诉亲近的人，你需要一点独处时间。"
+          },
+          "check": {
+            "defined": "是不是只凭此刻的心情急着回复？",
+            "open": "跟着别人的节奏走，忘了独处吗？"
+          }
         },
-        SACRAL: {
-          organ: '生殖器官',
-          mind: {defined: '你对喜欢的事反应强烈而持久。身体给出的“我想做”就是很好的指南针。', open: '你容易配合别人的能量而工作得更久。知道什么时候已经足够，这种感觉很重要。'},
-          body: {defined: '把一天的能量用完再入睡，你会睡得很沉。充分活动身体的日程很适合你。', open: '在累垮之前先躺下的习惯，能守住你的节奏。不必跟着别人的速度硬撑到最后。'}
+        "SACRAL": {
+          "organ": "舒服地活动",
+          "mind": {
+            "defined": "你对喜欢的事反应强烈而持久。身体给出的“我想做”就是很好的指南针。",
+            "open": "你容易配合别人的能量而工作得更久。知道什么时候已经足够，这种感觉很重要。"
+          },
+          "body": {
+            "defined": "选择适合当下状态的轻松活动或短距离散步。不舒服时就停下来，或减小强度。",
+            "open": "今天在任务之间留一点休息时间。休息后，只选一件想继续做的事。"
+          },
+          "check": {
+            "defined": "是不是很久没有换姿势了？",
+            "open": "还没停下来，就接着做下一件事了吗？"
+          }
         },
-        SPLEEN: {
-          organ: '淋巴 · 脾脏 · 免疫系统',
-          mind: {defined: '你当下的直觉很清晰。能听见“现在还不是时候”这样的小信号。', open: '有时你会想依赖熟悉的人和习惯。察觉该放下什么，是成长的关键。'},
-          body: {defined: '你很快就能察觉身体的小信号。只要不忽略这些信号，就能维持好状态。', open: '环境一变，身体就会敏感地反应。把睡觉和吃饭的时间固定下来，身体会更踏实。'}
+        "SPLEEN": {
+          "organ": "自己的空间",
+          "mind": {
+            "defined": "你当下的直觉很清晰。能听见“现在还不是时候”这样的小信号。",
+            "open": "有时你会想依赖熟悉的人和习惯。察觉该放下什么，是成长的关键。"
+          },
+          "body": {
+            "defined": "暂时放下通知，找个舒服的地方停一停。也可以告诉亲近的人，你需要一点独处时间。",
+            "open": "睡前给手头的事定个收尾时间。记下明天的事，用熟悉而舒服的日常习惯结束今天。"
+          },
+          "check": {
+            "defined": "跟着别人的节奏走，忘了独处吗？",
+            "open": "有没有为一天的结束留点时间？"
+          }
         },
-        ROOT: {
-          organ: '肾上腺',
-          mind: {defined: '你能以稳定的节奏应对压力。即使有截止日期，也很少乱了步调。', open: '你会强烈感受到催促的压力。问问自己“这件急事真的那么急吗？”，能守护内心的平静。'},
-          body: {defined: '紧张过后，需要真正放松的时间。脚踏实地、慢慢走路对你很好。', open: '压力累积时，身体容易变得焦躁。把要做的事拆小，一次完成一件吧。'}
+        "ROOT": {
+          "organ": "休息的空档",
+          "mind": {
+            "defined": "你能以稳定的节奏应对压力。即使有截止日期，也很少乱了步调。",
+            "open": "你会强烈感受到催促的压力。问问自己“这件急事真的那么急吗？”，能守护内心的平静。"
+          },
+          "body": {
+            "defined": "今天在任务之间留一点休息时间。休息后，只选一件想继续做的事。",
+            "open": "写下最小的下一步。把今天要做的事和可以明天做的事分开。"
+          },
+          "check": {
+            "defined": "还没停下来，就接着做下一件事了吗？",
+            "open": "是不是等计划完美了才肯开始？"
+          }
         }
       },
-      chakra: {
-        crown: {
-          region: '头顶',
-          mind: {bright: '你渴望寻找意义和大局。清楚为什么而做时，就会充满力量。', steady: '你在现实与意义之间保持着平衡。偶尔想想大局，方向会更清晰。', quiet: '你习惯专注于眼前的事。每天问一次“为什么”，能让心更开阔。'},
-          body: {bright: '思绪容易往上集中。散步这类让身体贴近大地的活动，能帮你找回平衡。', steady: '头脑与身体的节奏比较协调。固定的睡眠时间能守住这份平衡。', quiet: '你善于运用身体，但休息容易太短。安静闭眼五分钟，头脑会更清爽。'}
+      "chakra": {
+        "crown": {
+          "region": "意义 · 方向 · 超越",
+          "mind": {
+            "bright": "你渴望寻找意义和大局。清楚为什么而做时，就会充满力量。",
+            "steady": "你在现实与意义之间保持着平衡。偶尔想想大局，方向会更清晰。",
+            "quiet": "你习惯专注于眼前的事。每天问一次“为什么”，能让心更开阔。"
+          },
+          "body": {
+            "bright": "睡前给手头的事定个收尾时间。记下明天的事，用熟悉而舒服的日常习惯结束今天。",
+            "steady": "睡前给手头的事定个收尾时间。记下明天的事，用熟悉而舒服的日常习惯结束今天。",
+            "quiet": "睡前给手头的事定个收尾时间。记下明天的事，用熟悉而舒服的日常习惯结束今天。"
+          },
+          "check": {
+            "bright": "有没有为一天的结束留点时间？",
+            "steady": "有没有为一天的结束留点时间？",
+            "quiet": "有没有为一天的结束留点时间？"
+          }
         },
-        thirdEye: {
-          region: '额头 · 眉心 · 眼睛',
-          mind: {bright: '你的观察力和想象力都很出色。能比别人先察觉到被忽略的规律。', steady: '你会把直觉和事实一起核对。把浮现的想法记下来，洞察会慢慢累积。', quiet: '你倾向于相信眼前的事实。偶尔给想象留点空间，会看见新的路。'},
-          body: {bright: '紧张容易聚集在眼睛和额头。望向远方，让眼睛休息一下吧。', steady: '看与休息之间的平衡还不错。看屏幕的空档，记得常闭闭眼。', quiet: '你往往身体比思考先行动。睡前调暗灯光，休息会更深沉。'}
+        "thirdEye": {
+          "region": "洞察 · 想象 · 观察",
+          "mind": {
+            "bright": "你的观察力和想象力都很出色。能比别人先察觉到被忽略的规律。",
+            "steady": "你会把直觉和事实一起核对。把浮现的想法记下来，洞察会慢慢累积。",
+            "quiet": "你倾向于相信眼前的事实。偶尔给想象留点空间，会看见新的路。"
+          },
+          "body": {
+            "bright": "暂时关闭通知，把视线从任务上移开。新想法写在备忘录里，之后再看。",
+            "steady": "暂时关闭通知，把视线从任务上移开。新想法写在备忘录里，之后再看。",
+            "quiet": "暂时关闭通知，把视线从任务上移开。新想法写在备忘录里，之后再看。"
+          },
+          "check": {
+            "bright": "休息时还一直看屏幕吗？",
+            "steady": "休息时还一直看屏幕吗？",
+            "quiet": "休息时还一直看屏幕吗？"
+          }
         },
-        throat: {
-          region: '喉咙 · 下巴 · 肩膀',
-          mind: {bright: '你很擅长用言语和文字梳理思绪。越表达，心就越清晰。', steady: '该说的会说，该省的就省。坦率与体贴之间平衡得很好。', quiet: '把心事说出口需要一些时间。不妨先用简短的笔记表达。'},
-          body: {bright: '喉咙和下巴容易用力。话说多了的日子，喝杯热茶让喉咙休息一下吧。', steady: '颈部和肩膀的节奏比较协调。经常变换姿势就足够了。', quiet: '把想说的话咽下去，下巴和肩膀容易僵硬。哼歌或朗读也很不错。'}
+        "throat": {
+          "region": "表达 · 传达",
+          "mind": {
+            "bright": "你很擅长用言语和文字梳理思绪。越表达，心就越清晰。",
+            "steady": "该说的会说，该省的就省。坦率与体贴之间平衡得很好。",
+            "quiet": "把心事说出口需要一些时间。不妨先用简短的笔记表达。"
+          },
+          "body": {
+            "bright": "分清能履行和需要调整的约定。“今天先到这里”也是一种选择。",
+            "steady": "分清能履行和需要调整的约定。“今天先到这里”也是一种选择。",
+            "quiet": "分清能履行和需要调整的约定。“今天先到这里”也是一种选择。"
+          },
+          "check": {
+            "bright": "想休息，却还是答应了邀约吗？",
+            "steady": "想休息，却还是答应了邀约吗？",
+            "quiet": "想休息，却还是答应了邀约吗？"
+          }
         },
-        heart: {
-          region: '胸口 · 肺 · 手臂',
-          mind: {bright: '和人建立连结时，你会充满能量。温柔就是你最大的武器。', steady: '付出与接受在你身上均衡流动。你很懂得拿捏关系的温度。', quiet: '你不太轻易敞开心扉。试着先和一个信任的人分享心事吧。'},
-          body: {bright: '照顾别人时，自己的呼吸容易变短。花点时间挺起胸膛、深呼吸吧。', steady: '你的呼吸与心的节拍很合拍。轻度有氧运动能守住这个节奏。', quiet: '一紧张，肩膀就会内扣、呼吸变浅。大幅张开双臂的伸展很适合你。'}
+        "heart": {
+          "region": "连接 · 关系 · 依恋",
+          "mind": {
+            "bright": "和人建立连结时，你会充满能量。温柔就是你最大的武器。",
+            "steady": "付出与接受在你身上均衡流动。你很懂得拿捏关系的温度。",
+            "quiet": "你不太轻易敞开心扉。试着先和一个信任的人分享心事吧。"
+          },
+          "body": {
+            "bright": "重要回复之前，各写一句自己的感受和需要。需要思考时间时，可以先说出来。",
+            "steady": "重要回复之前，各写一句自己的感受和需要。需要思考时间时，可以先说出来。",
+            "quiet": "重要回复之前，各写一句自己的感受和需要。需要思考时间时，可以先说出来。"
+          },
+          "check": {
+            "bright": "是不是只凭此刻的心情急着回复？",
+            "steady": "是不是只凭此刻的心情急着回复？",
+            "quiet": "是不是只凭此刻的心情急着回复？"
+          }
         },
-        solarPlexus: {
-          region: '心窝 · 肠胃',
-          mind: {bright: '你自我推动的意志很强。一有目标就会燃起斗志。', steady: '你的意志与从容调和得恰到好处。很清楚何时该做、何时该休息。', quiet: '你容易跟着别人定的节奏走。哪怕是小事，也试着自己做决定吧。'},
-          body: {bright: '紧张会最先落在腹部和心窝。吃饭不着急的习惯，能让身体更舒服。', steady: '你的消化节奏相对平稳。规律的用餐时间能守住这个节奏。', quiet: '精力低落时，让腹部保持温暖会很好。试着在早上建立一个暖身的小习惯吧。'}
+        "solarPlexus": {
+          "region": "意志 · 自我推动 · 情绪",
+          "mind": {
+            "bright": "你自我推动的意志很强。一有目标就会燃起斗志。",
+            "steady": "你的意志与从容调和得恰到好处。很清楚何时该做、何时该休息。",
+            "quiet": "你容易跟着别人定的节奏走。哪怕是小事，也试着自己做决定吧。"
+          },
+          "body": {
+            "bright": "今天在任务之间留一点休息时间。休息后，只选一件想继续做的事。",
+            "steady": "今天在任务之间留一点休息时间。休息后，只选一件想继续做的事。",
+            "quiet": "今天在任务之间留一点休息时间。休息后，只选一件想继续做的事。"
+          },
+          "check": {
+            "bright": "还没停下来，就接着做下一件事了吗？",
+            "steady": "还没停下来，就接着做下一件事了吗？",
+            "quiet": "还没停下来，就接着做下一件事了吗？"
+          }
         },
-        sacral: {
-          region: '小腹 · 骨盆',
-          mind: {bright: '你充满乐趣和创作欲。做喜欢的事时，灵感会源源不断。', steady: '你能在乐趣和责任之间自如切换。一个爱好就是生活的润滑剂。', quiet: '你容易只围着该做的事过日子。试着把没来由就开心的事排进日程吧。'},
-          body: {bright: '你会为开心的事投入很多体力。尽兴之后好好休息，也是节奏的一部分。', steady: '骨盆和腰部的节奏比较协调。久坐之后，转动骨盆放松一下吧。', quiet: '久坐容易让小腹和腰部感到沉重。用跳舞或轻松散步唤醒身体的流动吧。'}
+        "sacral": {
+          "region": "欲望 · 快乐 · 创造",
+          "mind": {
+            "bright": "你充满乐趣和创作欲。做喜欢的事时，灵感会源源不断。",
+            "steady": "你能在乐趣和责任之间自如切换。一个爱好就是生活的润滑剂。",
+            "quiet": "你容易只围着该做的事过日子。试着把没来由就开心的事排进日程吧。"
+          },
+          "body": {
+            "bright": "选择适合当下状态的轻松活动或短距离散步。不舒服时就停下来，或减小强度。",
+            "steady": "选择适合当下状态的轻松活动或短距离散步。不舒服时就停下来，或减小强度。",
+            "quiet": "选择适合当下状态的轻松活动或短距离散步。不舒服时就停下来，或减小强度。"
+          },
+          "check": {
+            "bright": "是不是很久没有换姿势了？",
+            "steady": "是不是很久没有换姿势了？",
+            "quiet": "是不是很久没有换姿势了？"
+          }
         },
-        root: {
-          region: '尾骨 · 腿 · 脚',
-          mind: {bright: '你的现实感和对稳定的需求都很强。根基稳固时，心才会踏实。', steady: '你能平和地接受稳定与变化。有了基本的日常习惯，新的挑战也会更轻松。', quiet: '你容易像脚没踩稳地面那样心浮气躁。一个固定的日常习惯，能成为内心的锚。'},
-          body: {bright: '你的腿和腰部比较有力。与其硬撑太久，不如中途时常放松一下。', steady: '下半身的节奏比较协调。坚持散步能守住这份平衡。', quiet: '有时会觉得下半身沉重。温暖的足浴或慢慢散步很适合你。'}
+        "root": {
+          "region": "稳定 · 根基 · 现实感",
+          "mind": {
+            "bright": "你的现实感和对稳定的需求都很强。根基稳固时，心才会踏实。",
+            "steady": "你能平和地接受稳定与变化。有了基本的日常习惯，新的挑战也会更轻松。",
+            "quiet": "你容易像脚没踩稳地面那样心浮气躁。一个固定的日常习惯，能成为内心的锚。"
+          },
+          "body": {
+            "bright": "在今天的安排里留出安心吃饭的时间。按适合自己的速度进食，回看一天的节奏。",
+            "steady": "在今天的安排里留出安心吃饭的时间。按适合自己的速度进食，回看一天的节奏。",
+            "quiet": "在今天的安排里留出安心吃饭的时间。按适合自己的速度进食，回看一天的节奏。"
+          },
+          "check": {
+            "bright": "忙起来就总把吃饭往后推吗？",
+            "steady": "忙起来就总把吃饭往后推吗？",
+            "quiet": "忙起来就总把吃饭往后推吗？"
+          }
         }
       },
-      vedicKind: {moon: '从月亮星座看内心', lagna: '从上升点（拉格纳）看身体特质', sixth: '从第六宫看你的恢复方式'},
-      sign: {
-        Aries: '白羊座',
-        Taurus: '金牛座',
-        Gemini: '双子座',
-        Cancer: '巨蟹座',
-        Leo: '狮子座',
-        Virgo: '处女座',
-        Libra: '天秤座',
-        Scorpio: '天蝎座',
-        Sagittarius: '射手座',
-        Capricorn: '摩羯座',
-        Aquarius: '水瓶座',
-        Pisces: '双鱼座'
+      "vedicKind": {
+        "moon": "从月亮星座看内心",
+        "lagna": "从上升点（拉格纳）看身体特质",
+        "sixth": "从第六宫看你的恢复方式"
       },
-      graha: {Sun: '太阳', Moon: '月亮', Mars: '火星', Mercury: '水星', Jupiter: '木星', Venus: '金星', Saturn: '土星'},
-      moon: {
-        Aries: '情绪来得快、去得也快。当下表达出来、宣泄掉，心里会轻松许多。',
-        Taurus: '内心安稳时你最幸福。熟悉的空间和美味的食物，是很大的慰藉。',
-        Gemini: '你用言语和交谈来化解情绪。好好聊一次天，就是整理心情的捷径。',
-        Cancer: '你情感深厚，很有照顾人的心。拥有一个安全的个人空间，心就能恢复。',
-        Leo: '被认可时，你的心会亮起来。养成夸奖自己的习惯，能守护自尊心。',
-        Virgo: '不安时你会整理和分析。请告诉自己：不完美也没关系。',
-        Libra: '在和谐的关系中你最自在。与其回避冲突，不如练习温和地表达。',
-        Scorpio: '你把情绪藏得很深，不轻易表露。向信任的人倾诉时，心会变轻。',
-        Sagittarius: '追寻自由与意义时，你的心会活过来。旅行或学习新事物能转换心情。',
-        Capricorn: '你会把责任放在情绪之前。完成一件事之后，请允许自己休息。',
-        Aquarius: '你会退后一步看待自己的情绪。独处的时间和志趣相投的朋友，你都需要。',
-        Pisces: '你共情力强、想象力丰富。有音乐或绘画这样让情绪流动的出口会很好。'
+      "sign": {
+        "Aries": "白羊座",
+        "Taurus": "金牛座",
+        "Gemini": "双子座",
+        "Cancer": "巨蟹座",
+        "Leo": "狮子座",
+        "Virgo": "处女座",
+        "Libra": "天秤座",
+        "Scorpio": "天蝎座",
+        "Sagittarius": "射手座",
+        "Capricorn": "摩羯座",
+        "Aquarius": "水瓶座",
+        "Pisces": "双鱼座"
       },
-      lagna: {
-        Aries: {region: '头部 · 脸部', body: '能量容易往头部集中。热血上头时，先停一停，给自己降温的时间。'},
-        Taurus: {region: '颈部 · 喉咙', body: '疲劳容易累积在颈部和肩膀。慢慢吃饭、给颈部保暖很适合你。'},
-        Gemini: {region: '肩膀 · 手臂 · 呼吸', body: '一忙起来，呼吸就容易变浅。让双手歇一歇，留出深呼吸的空档吧。'},
-        Cancer: {region: '胸口 · 胃', body: '情绪容易反映在肠胃的节奏上。在放松的氛围中用餐，对身体有帮助。'},
-        Leo: {region: '心脏 · 背部', body: '热情奔跑时，背部容易变得僵硬。扩胸伸展和充足的睡眠对你很好。'},
-        Virgo: {region: '肠道 · 消化', body: '担忧会最先体现在消化节奏上。规律饮食和轻松散步很适合你。'},
-        Libra: {region: '腰部 · 肾脏', body: '一旦失去平衡，腰部会最先感到沉重。久坐后伸展腰背，并经常喝水吧。'},
-        Scorpio: {region: '骨盆 · 小腹', body: '你容易把紧张积压在小腹。用热水泡澡和深呼吸来放松吧。'},
-        Sagittarius: {region: '臀部 · 大腿', body: '你的身体需要活动才能舒畅心情。散步或徒步这类运用大肌群的活动很适合你。'},
-        Capricorn: {region: '膝盖 · 骨骼', body: '你耐力强，也请多爱护关节。比起高强度运动，持续的伸展更适合你。'},
-        Aquarius: {region: '小腿 · 脚踝 · 循环', body: '久站或久坐会让双腿变沉。常起身走动，唤醒身体的循环吧。'},
-        Pisces: {region: '双脚 · 睡眠', body: '你的身体对氛围和疲劳很敏感。充足的睡眠和让双脚保暖的习惯，能守住节奏。'}
+      "graha": {
+        "Sun": "太阳",
+        "Moon": "月亮",
+        "Mars": "火星",
+        "Mercury": "水星",
+        "Jupiter": "木星",
+        "Venus": "金星",
+        "Saturn": "土星"
       },
-      sixth: {
-        Sun: '你靠阳光和规律的作息来恢复。迎着晨光散步的时间很适合你。',
-        Moon: '心里舒坦了，身体才会恢复。在熟悉的人和地方休息，就是最好的恢复。',
-        Mars: '你是靠活动身体来恢复的类型。出汗之后，也要留出充分的降温时间。',
-        Mercury: '放空大脑时你就能恢复。写日记、整理东西、玩轻松的拼图这类梳理思绪的活动很不错。',
-        Jupiter: '“适度”是恢复的关键。一点点减少过量饮食和过度劳累，身体会变轻盈。',
-        Venus: '你通过快乐与美来恢复。喜欢的音乐、香气和一顿美味的饭，都能给你很大的力量。',
-        Saturn: '你是慢慢地、稳定地恢复的类型。每天在同一时间睡觉和起床的作息最适合你。'
+      "moon": {
+        "Aries": "情绪来得快、去得也快。当下表达出来、宣泄掉，心里会轻松许多。",
+        "Taurus": "内心安稳时你最幸福。熟悉的空间和美味的食物，是很大的慰藉。",
+        "Gemini": "你用言语和交谈来化解情绪。好好聊一次天，就是整理心情的捷径。",
+        "Cancer": "你情感深厚，很有照顾人的心。拥有一个安全的个人空间，心就能恢复。",
+        "Leo": "被认可时，你的心会亮起来。养成夸奖自己的习惯，能守护自尊心。",
+        "Virgo": "不安时你会整理和分析。请告诉自己：不完美也没关系。",
+        "Libra": "在和谐的关系中你最自在。与其回避冲突，不如练习温和地表达。",
+        "Scorpio": "你把情绪藏得很深，不轻易表露。向信任的人倾诉时，心会变轻。",
+        "Sagittarius": "追寻自由与意义时，你的心会活过来。旅行或学习新事物能转换心情。",
+        "Capricorn": "你会把责任放在情绪之前。完成一件事之后，请允许自己休息。",
+        "Aquarius": "你会退后一步看待自己的情绪。独处的时间和志趣相投的朋友，你都需要。",
+        "Pisces": "你共情力强、想象力丰富。有音乐或绘画这样让情绪流动的出口会很好。"
+      },
+      "lagna": {
+        "Aries": {
+          "region": "休息的空档",
+          "body": "今天在任务之间留一点休息时间。休息后，只选一件想继续做的事。",
+          "check": "还没停下来，就接着做下一件事了吗？"
+        },
+        "Taurus": {
+          "region": "吃饭的余裕",
+          "body": "在今天的安排里留出安心吃饭的时间。按适合自己的速度进食，回看一天的节奏。",
+          "check": "忙起来就总把吃饭往后推吗？"
+        },
+        "Gemini": {
+          "region": "暂时放下信息",
+          "body": "暂时关闭通知，把视线从任务上移开。新想法写在备忘录里，之后再看。",
+          "check": "休息时还一直看屏幕吗？"
+        },
+        "Cancer": {
+          "region": "自己的空间",
+          "body": "暂时放下通知，找个舒服的地方停一停。也可以告诉亲近的人，你需要一点独处时间。",
+          "check": "跟着别人的节奏走，忘了独处吗？"
+        },
+        "Leo": {
+          "region": "舒服地活动",
+          "body": "选择适合当下状态的轻松活动或短距离散步。不舒服时就停下来，或减小强度。",
+          "check": "是不是很久没有换姿势了？"
+        },
+        "Virgo": {
+          "region": "小小的开始",
+          "body": "写下最小的下一步。把今天要做的事和可以明天做的事分开。",
+          "check": "是不是等计划完美了才肯开始？"
+        },
+        "Libra": {
+          "region": "承诺的边界",
+          "body": "分清能履行和需要调整的约定。“今天先到这里”也是一种选择。",
+          "check": "想休息，却还是答应了邀约吗？"
+        },
+        "Scorpio": {
+          "region": "情绪的余地",
+          "body": "重要回复之前，各写一句自己的感受和需要。需要思考时间时，可以先说出来。",
+          "check": "是不是只凭此刻的心情急着回复？"
+        },
+        "Sagittarius": {
+          "region": "舒服地活动",
+          "body": "选择适合当下状态的轻松活动或短距离散步。不舒服时就停下来，或减小强度。",
+          "check": "是不是很久没有换姿势了？"
+        },
+        "Capricorn": {
+          "region": "休息的空档",
+          "body": "今天在任务之间留一点休息时间。休息后，只选一件想继续做的事。",
+          "check": "还没停下来，就接着做下一件事了吗？"
+        },
+        "Aquarius": {
+          "region": "自己的空间",
+          "body": "暂时放下通知，找个舒服的地方停一停。也可以告诉亲近的人，你需要一点独处时间。",
+          "check": "跟着别人的节奏走，忘了独处吗？"
+        },
+        "Pisces": {
+          "region": "收好这一天",
+          "body": "睡前给手头的事定个收尾时间。记下明天的事，用熟悉而舒服的日常习惯结束今天。",
+          "check": "有没有为一天的结束留点时间？"
+        }
+      },
+      "sixth": {
+        "Sun": "今天在任务之间留一点休息时间。休息后，只选一件想继续做的事。",
+        "Moon": "睡前给手头的事定个收尾时间。记下明天的事，用熟悉而舒服的日常习惯结束今天。",
+        "Mars": "选择适合当下状态的轻松活动或短距离散步。不舒服时就停下来，或减小强度。",
+        "Mercury": "暂时关闭通知，把视线从任务上移开。新想法写在备忘录里，之后再看。",
+        "Jupiter": "写下最小的下一步。把今天要做的事和可以明天做的事分开。",
+        "Venus": "暂时放下通知，找个舒服的地方停一停。也可以告诉亲近的人，你需要一点独处时间。",
+        "Saturn": "分清能履行和需要调整的约定。“今天先到这里”也是一种选择。"
+      },
+      "sixthCheck": {
+        "Sun": "还没停下来，就接着做下一件事了吗？",
+        "Moon": "有没有为一天的结束留点时间？",
+        "Mars": "是不是很久没有换姿势了？",
+        "Mercury": "休息时还一直看屏幕吗？",
+        "Jupiter": "是不是等计划完美了才肯开始？",
+        "Venus": "跟着别人的节奏走，忘了独处吗？",
+        "Saturn": "想休息，却还是答应了邀约吗？"
       }
     },
     yeoni: {
@@ -2046,27 +3168,27 @@
       D: '把我的八字從精神到身體展開來看'
     },
     axes: {
-      selfDrive: {name: '主體性', short: '主體', god: '比劫', question: '我想要什麼？', thought: '我想自己決定', meme: '照我的來',
+      selfDrive: {name: '主體性', short: '主體', god: '比劫', question: '我想要什麼？', thought: '我想自己決定', meme: "我的節奏我作主",
         keywords: ['獨立', '自主', '競爭', '自己的方式', '界線'],
         strong: ['想按自己的方式做決定', '被過度控制時會覺得憋悶', '在競爭中反而可能更有幹勁'],
         over: ['容易變得固執', '競爭容易過熱', '對自己的份額會比較敏感', '人和資源容易分散'],
         mind: '自己定方向，', pull: '想自己決定方向的力量很強。'},
-      expression: {name: '表達與刺激', short: '表達', god: '食傷', question: '有沒有好玩的？', thought: '有沒有好玩的？', meme: '先試試再說！',
+      expression: {name: '表達與刺激', short: '表達', god: '食傷', question: '有沒有好玩的？', thought: '有沒有好玩的？', meme: "靈感又加入購物車",
         keywords: ['表達', '說話', '創作', '內容', '新刺激'],
         strong: ['說話、表達、創造時最有能量', '對新的體驗和刺激反應很快'],
         over: ['注意力容易分散', '容易很快感到厭倦', '容易覺得日常規律很憋悶', '容易優先選擇眼前的樂趣'],
         mind: '從樂趣與表達中獲得力量，', pull: '新的刺激和表達會讓你動起來。'},
-      reality: {name: '現實與結果', short: '現實', god: '財星', question: '所以這到底能留下什麼？', thought: '這能賺錢嗎？', meme: '能剩下啥？',
+      reality: {name: '現實與結果', short: '現實', god: '財星', question: '所以這到底能留下什麼？', thought: '這能賺錢嗎？', meme: "CP值雷達已開啟",
         keywords: ['成果', '效率', '管理', '結果', '目標'],
         strong: ['比起理論更看重現實的結果', '投入時間和金錢時，會確認實際能得到什麼'],
         over: ['金錢、成果和效率本身可能變成壓力', '看不到結果時容易疲憊'],
         mind: '想法務實，', pull: '腦子想盡快確認現實的結果。'},
-      structure: {name: '責任與標準', short: '責任', god: '官星', question: '我這樣做對嗎？', thought: '得好好做才行', meme: '規矩得守',
+      structure: {name: '責任與標準', short: '責任', god: '官星', question: '我這樣做對嗎？', thought: '得好好做才行', meme: "對計畫表很認真",
         keywords: ['責任', '規則', '評價', '標準', '成就'],
         strong: ['重視角色與責任', '容易意識到社會標準和該做的事'],
         over: ['可能對自己審視過嚴', '容易獨自扛下責任', '可能強烈感受到被評價的壓力'],
         mind: '立標準、守標準，', pull: '「要做好」的標準會最先啟動。'},
-      reflection: {name: '思考與吸收', short: '思考', god: '印星', question: '我是不是漏掉了什麼？', thought: '我是不是漏了什麼？', meme: '讓我想想',
+      reflection: {name: '思考與吸收', short: '思考', god: '印星', question: '我是不是漏掉了什麼？', thought: '我是不是漏了什麼？', meme: "腦內分頁開太多",
         keywords: ['學習', '資訊', '直覺', '驗證', '意義'],
         strong: ['要先想清楚、理解了才能行動', '即使是一件小事也想找出意義'],
         over: ['擔心可能持續很久', '分析可能過度', '容易反覆想同一件事', '行動可能被推遲'],
@@ -2198,154 +3320,488 @@
       },
       frame: {fire: '傾向把世界看成挑戰與可能性的舞台。', earth: '傾向把世界看成一步步累積的現實。', air: '傾向把世界看成連結與想法的網絡。', water: '傾向把世界看成情感與關係的流動。'}
     },
+    recovery: {
+      "title": "從八字回看生活節奏",
+      "basis": "解讀依據",
+      "check": "問問自己",
+      "action": "今天試試看",
+      "strong": "占比較大的五行",
+      "low": "占比較小的五行",
+      "even": "分布均衡的五行",
+      "intro": "五行比例不是健康分數。較強的元素代表常用的方式，較弱的元素可作為回看的主題。優勢使用過度，也可能讓日常習慣失去平衡。",
+      "chakraSource": "脈輪的大小和亮度，是八字十神與五行的象徵性呈現，不是吠陀占星的行星計算，也不代表身體狀態。",
+      "vedicSource": "以吠陀占星的上升星座為起點，一個星座計作一宮，推得第六宮及其守護星。下方將傳統主題轉化為生活提問，並不預測身體狀況。",
+      "hdSource": "有定義與開放中心是人類圖中的模式，不用來評估器官或體能。請只參考符合自身經驗的部分。",
+      "relation": "做決定前，先說明自己的節奏。可以說「我想考慮一下再回答」，把需要的時間與空間表達清楚。",
+      "chapters": [
+        {
+          "id": "thinking",
+          "title": "想法與傾向",
+          "hint": "思考習慣與五行平衡"
+        },
+        {
+          "id": "relationships",
+          "title": "決定與關係",
+          "hint": "適合自己的決定速度與人際界線"
+        },
+        {
+          "id": "recovery",
+          "title": "身體與休息節奏",
+          "hint": "從傳統象徵到生活提問與小行動"
+        }
+      ],
+      "shareQuestion": "你的腦袋裡，哪種想法最占空間？",
+      "saved": "圖片已儲存。",
+      "cancelled": "已取消分享。",
+      "shared": "已分享。",
+      "failed": "分享未完成，請嘗試儲存圖片或複製連結。",
+      "routines": [
+        {
+          "title": "休息的空檔",
+          "check": "還沒停下來，就接著做下一件事了嗎？",
+          "action": "今天在任務之間留一點休息時間。休息後，只選一件想繼續做的事。"
+        },
+        {
+          "title": "舒服地活動",
+          "check": "是不是很久沒有換姿勢了？",
+          "action": "選擇適合當下狀態的輕鬆活動或短距離散步。不舒服時就停下來，或減小強度。"
+        },
+        {
+          "title": "小小的開始",
+          "check": "是不是等計畫完美了才肯開始？",
+          "action": "寫下最小的下一步。把今天要做的事和可以明天做的事分開。"
+        },
+        {
+          "title": "吃飯的餘裕",
+          "check": "忙起來就總把吃飯往後推嗎？",
+          "action": "在今天的安排裡留出安心吃飯的時間。按適合自己的速度進食，回看一天的節奏。"
+        },
+        {
+          "title": "自己的空間",
+          "check": "跟著別人的節奏走，忘了獨處嗎？",
+          "action": "暫時放下通知，找個舒服的地方停一停。也可以告訴親近的人，你需要一點獨處時間。"
+        },
+        {
+          "title": "承諾的界線",
+          "check": "想休息，卻還是答應了邀約嗎？",
+          "action": "分清能履行和需要調整的約定。「今天先到這裡」也是一種選擇。"
+        },
+        {
+          "title": "暫時放下資訊",
+          "check": "休息時還一直看螢幕嗎？",
+          "action": "暫時關閉通知，把視線從任務上移開。新想法寫在備忘錄裡，之後再看。"
+        },
+        {
+          "title": "情緒的餘地",
+          "check": "是不是只憑此刻的心情急著回覆？",
+          "action": "重要回覆之前，各寫一句自己的感受和需要。需要思考時間時，可以先說出來。"
+        },
+        {
+          "title": "收好這一天",
+          "check": "有沒有為一天的結束留點時間？",
+          "action": "睡前給手頭的事定個收尾時間。記下明天的事，用熟悉而舒服的日常習慣結束今天。"
+        }
+      ]
+    },
     mb: {
-      ui: {
-        mind: '精神',
-        body: '身體',
-        organ: '象徵連結',
-        region: '象徵部位',
-        lord: '守護星',
-        lead: '每個中心和脈輪，都會同時解讀你內心的質地與身體的節奏。',
-        vedicMind: '心',
-        vedicBody: '身',
-        note: '這裡的精神與身體描述，是把傳統體系的象徵轉換成生活節奏的說法，並非醫學判斷。如果身體不舒服，或心情長時間低落，請諮詢醫師或專業人士。'
+      "ui": {
+        "mind": "精神",
+        "body": "今天試試看",
+        "organ": "解讀依據",
+        "region": "解讀依據",
+        "lord": "守護星",
+        "lead": "有定義與開放中心是人類圖中的模式，不用來評估器官或體能。請只參考符合自身經驗的部分。",
+        "vedicMind": "心",
+        "vedicBody": "身",
+        "note": "這裡的精神與身體描述，是把傳統體系的象徵轉換成生活節奏的說法，並非醫學判斷。如果身體不舒服，或心情長時間低落，請諮詢醫師或專業人士。",
+        "check": "問問自己"
       },
-      center: {
-        HEAD: {
-          organ: '松果體',
-          mind: {defined: '你會不斷向自己提出問題。靈感常從內在湧現，獨處思考的時間就是你的燃料。', open: '你很容易把別人的問題和煩惱當成自己的。問問自己「這真的是我的問題嗎？」，腦袋會輕鬆許多。'},
-          body: {defined: '思緒容易一路延續到深夜。睡前用筆記把腦袋清空的習慣很適合你。', open: '資訊量大的日子，腦袋會最先疲累。關掉螢幕、讓眼睛休息一下，能幫你找回節奏。'}
+      "center": {
+        "HEAD": {
+          "organ": "收好這一天",
+          "mind": {
+            "defined": "你會不斷向自己提出問題。靈感常從內在湧現，獨處思考的時間就是你的燃料。",
+            "open": "你很容易把別人的問題和煩惱當成自己的。問問自己「這真的是我的問題嗎？」，腦袋會輕鬆許多。"
+          },
+          "body": {
+            "defined": "睡前給手頭的事定個收尾時間。記下明天的事，用熟悉而舒服的日常習慣結束今天。",
+            "open": "暫時關閉通知，把視線從任務上移開。新想法寫在備忘錄裡，之後再看。"
+          },
+          "check": {
+            "defined": "有沒有為一天的結束留點時間？",
+            "open": "休息時還一直看螢幕嗎？"
+          }
         },
-        AJNA: {
-          organ: '腦下垂體',
-          mind: {defined: '你的思考方式穩定又篤定。一旦整理好觀點，就會長久堅持。', open: '你能在多種觀點之間靈活切換。不急著下定論時，判斷反而更開闊。'},
-          body: {defined: '抓著煩惱不放時，眼睛和肩膀容易僵硬。思緒打轉時，動一動身體來轉換狀態吧。', open: '動腦和休息的界線容易變模糊。固定好讀書或工作的時間，腦袋就沒那麼累。'}
+        "AJNA": {
+          "organ": "小小的開始",
+          "mind": {
+            "defined": "你的思考方式穩定又篤定。一旦整理好觀點，就會長久堅持。",
+            "open": "你能在多種觀點之間靈活切換。不急著下定論時，判斷反而更開闊。"
+          },
+          "body": {
+            "defined": "寫下最小的下一步。把今天要做的事和可以明天做的事分開。",
+            "open": "暫時關閉通知，把視線從任務上移開。新想法寫在備忘錄裡，之後再看。"
+          },
+          "check": {
+            "defined": "是不是等計畫完美了才肯開始？",
+            "open": "休息時還一直看螢幕嗎？"
+          }
         },
-        THROAT: {
-          organ: '甲狀腺 · 副甲狀腺',
-          mind: {defined: '你用言語和行動表達自己的管道是暢通的。表達的時候，思緒往往跟著變清楚。', open: '你話多話少會隨氣氛改變。只在真正需要時開口，也足以傳達心意。'},
-          body: {defined: '說了很多話的日子，喉嚨和肩膀會最先發出訊號。溫開水和頸部伸展很適合你。', open: '努力想吸引目光時，能量會流失得很快。開口前先停一拍、吸口氣，能好好愛護喉嚨。'}
+        "THROAT": {
+          "organ": "休息的空檔",
+          "mind": {
+            "defined": "你用言語和行動表達自己的管道是暢通的。表達的時候，思緒往往跟著變清楚。",
+            "open": "你話多話少會隨氣氛改變。只在真正需要時開口，也足以傳達心意。"
+          },
+          "body": {
+            "defined": "今天在任務之間留一點休息時間。休息後，只選一件想繼續做的事。",
+            "open": "分清能履行和需要調整的約定。「今天先到這裡」也是一種選擇。"
+          },
+          "check": {
+            "defined": "還沒停下來，就接著做下一件事了嗎？",
+            "open": "想休息，卻還是答應了邀約嗎？"
+          }
         },
-        G: {
-          organ: '肝臟 · 血液',
-          mind: {defined: '你的自我認同和方向感很穩定。就算環境改變，身分認同也不太會動搖。', open: '你會隨著身邊的人和所處的地方而改變。挑選好地方的直覺，就是你的方向。'},
-          body: {defined: '一旦覺得迷失方向，身體也會跟著沒精神。散步這類向前邁進的動作能喚回節奏。', open: '你會先用身體感受空間的氛圍。待著不舒服時，光是換個位置，狀態就會不一樣。'}
+        "G": {
+          "organ": "舒服地活動",
+          "mind": {
+            "defined": "你的自我認同和方向感很穩定。就算環境改變，身分認同也不太會動搖。",
+            "open": "你會隨著身邊的人和所處的地方而改變。挑選好地方的直覺，就是你的方向。"
+          },
+          "body": {
+            "defined": "選擇適合當下狀態的輕鬆活動或短距離散步。不舒服時就停下來，或減小強度。",
+            "open": "暫時放下通知，找個舒服的地方停一停。也可以告訴親近的人，你需要一點獨處時間。"
+          },
+          "check": {
+            "defined": "是不是很久沒有換姿勢了？",
+            "open": "跟著別人的節奏走，忘了獨處嗎？"
+          }
         },
-        HEART: {
-          organ: '心臟 · 胃 · 膽囊 · 胸腺',
-          mind: {defined: '你守約穩定、意志堅定。你有能力守住自己訂下的目標。', open: '你容易想證明自己的價值。感受到「我已經夠好了」，心就會安定下來。'},
-          body: {defined: '靠意志硬撐之後，需要好好休息。工作多少就休息多少的節奏很適合你。', open: '勉強的承諾容易變成胸口和胃部的緊繃。只承諾做得到的部分，就是在照顧身體。'}
+        "HEART": {
+          "organ": "休息的空檔",
+          "mind": {
+            "defined": "你守約穩定、意志堅定。你有能力守住自己訂下的目標。",
+            "open": "你容易想證明自己的價值。感受到「我已經夠好了」，心就會安定下來。"
+          },
+          "body": {
+            "defined": "今天在任務之間留一點休息時間。休息後，只選一件想繼續做的事。",
+            "open": "分清能履行和需要調整的約定。「今天先到這裡」也是一種選擇。"
+          },
+          "check": {
+            "defined": "還沒停下來，就接著做下一件事了嗎？",
+            "open": "想休息，卻還是答應了邀約嗎？"
+          }
         },
-        SOLAR_PLEXUS: {
-          organ: '腎臟 · 胰臟 · 神經系統',
-          mind: {defined: '你的情緒像海浪一樣起伏。與其看一時的心情，不如觀察幾天的變化再做決定，會更清楚。', open: '你會像海綿一樣吸收周圍的情緒。分辨「這份情緒是誰的」，心就會輕鬆許多。'},
-          body: {defined: '情緒的浪潮也會帶動身體的節奏。心情高昂時別勉強自己，低落時就放慢腳步歇一歇。', open: '在有衝突的場合，身體會先緊繃起來。獨處時調整呼吸，把情緒抖落吧。'}
+        "SOLAR_PLEXUS": {
+          "organ": "情緒的餘地",
+          "mind": {
+            "defined": "你的情緒像海浪一樣起伏。與其看一時的心情，不如觀察幾天的變化再做決定，會更清楚。",
+            "open": "你會像海綿一樣吸收周圍的情緒。分辨「這份情緒是誰的」，心就會輕鬆許多。"
+          },
+          "body": {
+            "defined": "重要回覆之前，各寫一句自己的感受和需要。需要思考時間時，可以先說出來。",
+            "open": "暫時放下通知，找個舒服的地方停一停。也可以告訴親近的人，你需要一點獨處時間。"
+          },
+          "check": {
+            "defined": "是不是只憑此刻的心情急著回覆？",
+            "open": "跟著別人的節奏走，忘了獨處嗎？"
+          }
         },
-        SACRAL: {
-          organ: '生殖器官',
-          mind: {defined: '你對喜歡的事反應強烈又持久。身體給出的「我想做」就是很好的指南針。', open: '你容易配合別人的能量而工作得更久。知道什麼時候已經足夠，這種感覺很重要。'},
-          body: {defined: '把一天的能量用完再睡，你會睡得很沉。充分活動身體的日常很適合你。', open: '在累壞之前先躺下的習慣，能守住你的節奏。不必跟著別人的速度硬撐到最後。'}
+        "SACRAL": {
+          "organ": "舒服地活動",
+          "mind": {
+            "defined": "你對喜歡的事反應強烈又持久。身體給出的「我想做」就是很好的指南針。",
+            "open": "你容易配合別人的能量而工作得更久。知道什麼時候已經足夠，這種感覺很重要。"
+          },
+          "body": {
+            "defined": "選擇適合當下狀態的輕鬆活動或短距離散步。不舒服時就停下來，或減小強度。",
+            "open": "今天在任務之間留一點休息時間。休息後，只選一件想繼續做的事。"
+          },
+          "check": {
+            "defined": "是不是很久沒有換姿勢了？",
+            "open": "還沒停下來，就接著做下一件事了嗎？"
+          }
         },
-        SPLEEN: {
-          organ: '淋巴 · 脾臟 · 免疫系統',
-          mind: {defined: '你當下的直覺很清晰。能聽見「現在還不是時候」這樣的小訊號。', open: '有時你會想依賴熟悉的人和習慣。察覺該放下什麼，是成長的關鍵。'},
-          body: {defined: '你很快就能察覺身體的小訊號。只要不忽略這些訊號，就能維持好狀態。', open: '環境一變，身體就會敏感地反應。把睡覺和吃飯的時間固定下來，身體會更踏實。'}
+        "SPLEEN": {
+          "organ": "自己的空間",
+          "mind": {
+            "defined": "你當下的直覺很清晰。能聽見「現在還不是時候」這樣的小訊號。",
+            "open": "有時你會想依賴熟悉的人和習慣。察覺該放下什麼，是成長的關鍵。"
+          },
+          "body": {
+            "defined": "暫時放下通知，找個舒服的地方停一停。也可以告訴親近的人，你需要一點獨處時間。",
+            "open": "睡前給手頭的事定個收尾時間。記下明天的事，用熟悉而舒服的日常習慣結束今天。"
+          },
+          "check": {
+            "defined": "跟著別人的節奏走，忘了獨處嗎？",
+            "open": "有沒有為一天的結束留點時間？"
+          }
         },
-        ROOT: {
-          organ: '腎上腺',
-          mind: {defined: '你能用穩定的步調面對壓力。就算有截止期限，也很少亂了腳步。', open: '你會強烈感受到被催促的壓力。問問自己「這件急事真的那麼急嗎？」，能守護內心的平靜。'},
-          body: {defined: '緊張過後，需要真正放鬆的時間。雙腳踏穩地面、慢慢走路對你很好。', open: '壓力累積時，身體容易變得焦躁。把要做的事拆小，一次完成一件吧。'}
+        "ROOT": {
+          "organ": "休息的空檔",
+          "mind": {
+            "defined": "你能用穩定的步調面對壓力。就算有截止期限，也很少亂了腳步。",
+            "open": "你會強烈感受到被催促的壓力。問問自己「這件急事真的那麼急嗎？」，能守護內心的平靜。"
+          },
+          "body": {
+            "defined": "今天在任務之間留一點休息時間。休息後，只選一件想繼續做的事。",
+            "open": "寫下最小的下一步。把今天要做的事和可以明天做的事分開。"
+          },
+          "check": {
+            "defined": "還沒停下來，就接著做下一件事了嗎？",
+            "open": "是不是等計畫完美了才肯開始？"
+          }
         }
       },
-      chakra: {
-        crown: {
-          region: '頭頂',
-          mind: {bright: '你很渴望找到意義和整體方向。清楚為什麼而做時，就會充滿力量。', steady: '你在現實與意義之間保持著平衡。偶爾想想大方向，目標會更清楚。', quiet: '你習慣專注在眼前的事。每天問一次「為什麼」，能讓心更開闊。'},
-          body: {bright: '思緒容易往上集中。散步這類讓身體貼近地面的活動，能幫你找回平衡。', steady: '腦袋與身體的節奏還算協調。固定的睡眠時間能守住這份平衡。', quiet: '你很會運用身體，但休息常常太短。安靜閉眼五分鐘，腦袋會更清爽。'}
+      "chakra": {
+        "crown": {
+          "region": "意義 · 方向 · 超越",
+          "mind": {
+            "bright": "你很渴望找到意義和整體方向。清楚為什麼而做時，就會充滿力量。",
+            "steady": "你在現實與意義之間保持著平衡。偶爾想想大方向，目標會更清楚。",
+            "quiet": "你習慣專注在眼前的事。每天問一次「為什麼」，能讓心更開闊。"
+          },
+          "body": {
+            "bright": "睡前給手頭的事定個收尾時間。記下明天的事，用熟悉而舒服的日常習慣結束今天。",
+            "steady": "睡前給手頭的事定個收尾時間。記下明天的事，用熟悉而舒服的日常習慣結束今天。",
+            "quiet": "睡前給手頭的事定個收尾時間。記下明天的事，用熟悉而舒服的日常習慣結束今天。"
+          },
+          "check": {
+            "bright": "有沒有為一天的結束留點時間？",
+            "steady": "有沒有為一天的結束留點時間？",
+            "quiet": "有沒有為一天的結束留點時間？"
+          }
         },
-        thirdEye: {
-          region: '額頭 · 眉心 · 眼睛',
-          mind: {bright: '你的觀察力和想像力都很出色。能比別人先發現被忽略的規律。', steady: '你會把直覺和事實一起核對。把浮現的想法記下來，洞察會慢慢累積。', quiet: '你傾向相信眼前的事實。偶爾給想像留點空間，會看見新的路。'},
-          body: {bright: '緊張容易聚集在眼睛和額頭。望向遠方，讓眼睛休息一下吧。', steady: '看與休息之間的平衡還不錯。看螢幕的空檔，記得常閉閉眼。', quiet: '你常常身體比思考先行動。睡前把燈光調暗，休息會更深沉。'}
+        "thirdEye": {
+          "region": "洞察 · 想像 · 觀察",
+          "mind": {
+            "bright": "你的觀察力和想像力都很出色。能比別人先發現被忽略的規律。",
+            "steady": "你會把直覺和事實一起核對。把浮現的想法記下來，洞察會慢慢累積。",
+            "quiet": "你傾向相信眼前的事實。偶爾給想像留點空間，會看見新的路。"
+          },
+          "body": {
+            "bright": "暫時關閉通知，把視線從任務上移開。新想法寫在備忘錄裡，之後再看。",
+            "steady": "暫時關閉通知，把視線從任務上移開。新想法寫在備忘錄裡，之後再看。",
+            "quiet": "暫時關閉通知，把視線從任務上移開。新想法寫在備忘錄裡，之後再看。"
+          },
+          "check": {
+            "bright": "休息時還一直看螢幕嗎？",
+            "steady": "休息時還一直看螢幕嗎？",
+            "quiet": "休息時還一直看螢幕嗎？"
+          }
         },
-        throat: {
-          region: '喉嚨 · 下巴 · 肩膀',
-          mind: {bright: '你很擅長用言語和文字梳理思緒。越表達，心就越清楚。', steady: '該說的會說，該省的就省。坦率與體貼之間拿捏得很好。', quiet: '把心事說出口需要一點時間。不妨先用簡短的筆記表達。'},
-          body: {bright: '喉嚨和下巴容易用力。話說多了的日子，喝杯熱茶讓喉嚨休息一下吧。', steady: '頸部和肩膀的節奏還算協調。常常變換姿勢就夠了。', quiet: '把想說的話吞回去，下巴和肩膀容易僵硬。哼歌或朗讀也很不錯。'}
+        "throat": {
+          "region": "表達 · 傳達",
+          "mind": {
+            "bright": "你很擅長用言語和文字梳理思緒。越表達，心就越清楚。",
+            "steady": "該說的會說，該省的就省。坦率與體貼之間拿捏得很好。",
+            "quiet": "把心事說出口需要一點時間。不妨先用簡短的筆記表達。"
+          },
+          "body": {
+            "bright": "分清能履行和需要調整的約定。「今天先到這裡」也是一種選擇。",
+            "steady": "分清能履行和需要調整的約定。「今天先到這裡」也是一種選擇。",
+            "quiet": "分清能履行和需要調整的約定。「今天先到這裡」也是一種選擇。"
+          },
+          "check": {
+            "bright": "想休息，卻還是答應了邀約嗎？",
+            "steady": "想休息，卻還是答應了邀約嗎？",
+            "quiet": "想休息，卻還是答應了邀約嗎？"
+          }
         },
-        heart: {
-          region: '胸口 · 肺 · 手臂',
-          mind: {bright: '和人產生連結時，你會充滿能量。溫柔就是你最大的武器。', steady: '付出與接受在你身上平均流動。你很懂得拿捏關係的溫度。', quiet: '你不太輕易敞開心房。試著先和一個信任的人分享心事吧。'},
-          body: {bright: '照顧別人時，自己的呼吸容易變短。花點時間挺起胸膛、深呼吸吧。', steady: '你的呼吸與心的節拍很合拍。輕度有氧運動能守住這個節奏。', quiet: '一緊張，肩膀就會內縮、呼吸變淺。大幅張開雙臂的伸展很適合你。'}
+        "heart": {
+          "region": "連結 · 關係 · 依戀",
+          "mind": {
+            "bright": "和人產生連結時，你會充滿能量。溫柔就是你最大的武器。",
+            "steady": "付出與接受在你身上平均流動。你很懂得拿捏關係的溫度。",
+            "quiet": "你不太輕易敞開心房。試著先和一個信任的人分享心事吧。"
+          },
+          "body": {
+            "bright": "重要回覆之前，各寫一句自己的感受和需要。需要思考時間時，可以先說出來。",
+            "steady": "重要回覆之前，各寫一句自己的感受和需要。需要思考時間時，可以先說出來。",
+            "quiet": "重要回覆之前，各寫一句自己的感受和需要。需要思考時間時，可以先說出來。"
+          },
+          "check": {
+            "bright": "是不是只憑此刻的心情急著回覆？",
+            "steady": "是不是只憑此刻的心情急著回覆？",
+            "quiet": "是不是只憑此刻的心情急著回覆？"
+          }
         },
-        solarPlexus: {
-          region: '心窩 · 腸胃',
-          mind: {bright: '你自我推動的意志很強。一有目標就會燃起鬥志。', steady: '你的意志與從容調和得剛剛好。很清楚何時該做、何時該休息。', quiet: '你容易跟著別人訂的步調走。就算是小事，也試著自己做決定吧。'},
-          body: {bright: '緊張會最先落在肚子和心窩。吃飯不急的習慣，能讓身體更舒服。', steady: '你的消化節奏相對平穩。規律的用餐時間能守住這個節奏。', quiet: '沒什麼元氣時，讓肚子保持溫暖會很好。試著在早上建立一個暖身的小習慣吧。'}
+        "solarPlexus": {
+          "region": "意志 · 自我推動 · 情緒",
+          "mind": {
+            "bright": "你自我推動的意志很強。一有目標就會燃起鬥志。",
+            "steady": "你的意志與從容調和得剛剛好。很清楚何時該做、何時該休息。",
+            "quiet": "你容易跟著別人訂的步調走。就算是小事，也試著自己做決定吧。"
+          },
+          "body": {
+            "bright": "今天在任務之間留一點休息時間。休息後，只選一件想繼續做的事。",
+            "steady": "今天在任務之間留一點休息時間。休息後，只選一件想繼續做的事。",
+            "quiet": "今天在任務之間留一點休息時間。休息後，只選一件想繼續做的事。"
+          },
+          "check": {
+            "bright": "還沒停下來，就接著做下一件事了嗎？",
+            "steady": "還沒停下來，就接著做下一件事了嗎？",
+            "quiet": "還沒停下來，就接著做下一件事了嗎？"
+          }
         },
-        sacral: {
-          region: '下腹 · 骨盆',
-          mind: {bright: '你充滿玩心和創作欲。做喜歡的事時，靈感會源源不絕。', steady: '你能在樂趣和責任之間自在切換。一個興趣就是生活的潤滑劑。', quiet: '你容易只繞著該做的事過日子。試著把沒來由就開心的事排進行程吧。'},
-          body: {bright: '你會為開心的事投入很多體力。盡興之後好好休息，也是節奏的一部分。', steady: '骨盆和腰部的節奏還算協調。久坐之後，轉動骨盆放鬆一下吧。', quiet: '久坐容易讓下腹和腰部感到沉重。用跳舞或輕鬆散步喚醒身體的流動吧。'}
+        "sacral": {
+          "region": "慾望 · 快樂 · 創造",
+          "mind": {
+            "bright": "你充滿玩心和創作欲。做喜歡的事時，靈感會源源不絕。",
+            "steady": "你能在樂趣和責任之間自在切換。一個興趣就是生活的潤滑劑。",
+            "quiet": "你容易只繞著該做的事過日子。試著把沒來由就開心的事排進行程吧。"
+          },
+          "body": {
+            "bright": "選擇適合當下狀態的輕鬆活動或短距離散步。不舒服時就停下來，或減小強度。",
+            "steady": "選擇適合當下狀態的輕鬆活動或短距離散步。不舒服時就停下來，或減小強度。",
+            "quiet": "選擇適合當下狀態的輕鬆活動或短距離散步。不舒服時就停下來，或減小強度。"
+          },
+          "check": {
+            "bright": "是不是很久沒有換姿勢了？",
+            "steady": "是不是很久沒有換姿勢了？",
+            "quiet": "是不是很久沒有換姿勢了？"
+          }
         },
-        root: {
-          region: '尾椎 · 腿 · 腳',
-          mind: {bright: '你的現實感和對穩定的需求都很強。根基穩固時，心才會踏實。', steady: '你能平和地接受穩定與變化。有了基本的日常習慣，新的挑戰也會更輕鬆。', quiet: '你容易像腳沒踩穩地面一樣心浮氣躁。一個固定的日常習慣，能成為內心的錨。'},
-          body: {bright: '你的腿和腰部比較有力。與其硬撐太久，不如中途常常放鬆一下。', steady: '下半身的節奏還算協調。持續散步能守住這份平衡。', quiet: '有時會覺得下半身沉重。溫暖的泡腳或慢慢散步很適合你。'}
+        "root": {
+          "region": "穩定 · 根基 · 現實感",
+          "mind": {
+            "bright": "你的現實感和對穩定的需求都很強。根基穩固時，心才會踏實。",
+            "steady": "你能平和地接受穩定與變化。有了基本的日常習慣，新的挑戰也會更輕鬆。",
+            "quiet": "你容易像腳沒踩穩地面一樣心浮氣躁。一個固定的日常習慣，能成為內心的錨。"
+          },
+          "body": {
+            "bright": "在今天的安排裡留出安心吃飯的時間。按適合自己的速度進食，回看一天的節奏。",
+            "steady": "在今天的安排裡留出安心吃飯的時間。按適合自己的速度進食，回看一天的節奏。",
+            "quiet": "在今天的安排裡留出安心吃飯的時間。按適合自己的速度進食，回看一天的節奏。"
+          },
+          "check": {
+            "bright": "忙起來就總把吃飯往後推嗎？",
+            "steady": "忙起來就總把吃飯往後推嗎？",
+            "quiet": "忙起來就總把吃飯往後推嗎？"
+          }
         }
       },
-      vedicKind: {moon: '從月亮星座看內心', lagna: '從上升點（拉格納）看身體特質', sixth: '從第六宮看你的恢復方式'},
-      sign: {
-        Aries: '牡羊座',
-        Taurus: '金牛座',
-        Gemini: '雙子座',
-        Cancer: '巨蟹座',
-        Leo: '獅子座',
-        Virgo: '處女座',
-        Libra: '天秤座',
-        Scorpio: '天蠍座',
-        Sagittarius: '射手座',
-        Capricorn: '摩羯座',
-        Aquarius: '水瓶座',
-        Pisces: '雙魚座'
+      "vedicKind": {
+        "moon": "從月亮星座看內心",
+        "lagna": "從上升點（拉格納）看身體特質",
+        "sixth": "從第六宮看你的恢復方式"
       },
-      graha: {Sun: '太陽', Moon: '月亮', Mars: '火星', Mercury: '水星', Jupiter: '木星', Venus: '金星', Saturn: '土星'},
-      moon: {
-        Aries: '情緒來得快、去得也快。當下表達出來、宣洩掉，心裡會輕鬆許多。',
-        Taurus: '內心安穩時你最幸福。熟悉的空間和好吃的食物，是很大的慰藉。',
-        Gemini: '你用言語和聊天來化解情緒。好好聊一次天，就是整理心情的捷徑。',
-        Cancer: '你情感深厚，很有照顧人的心。擁有一個安全的個人空間，心就能恢復。',
-        Leo: '被肯定時，你的心會亮起來。養成稱讚自己的習慣，能守護自信心。',
-        Virgo: '不安時你會整理和分析。請告訴自己：不完美也沒關係。',
-        Libra: '在和諧的關係中你最自在。與其逃避衝突，不如練習溫和地表達。',
-        Scorpio: '你把情緒藏得很深，不輕易表露。向信任的人傾訴時，心會變輕。',
-        Sagittarius: '追尋自由與意義時，你的心會活過來。旅行或學習新事物能轉換心情。',
-        Capricorn: '你會把責任放在情緒前面。完成一件事之後，請允許自己休息。',
-        Aquarius: '你會退後一步看待自己的情緒。獨處的時間和志同道合的朋友，你都需要。',
-        Pisces: '你同理心強、想像力豐富。有音樂或畫畫這樣讓情緒流動的出口會很好。'
+      "sign": {
+        "Aries": "牡羊座",
+        "Taurus": "金牛座",
+        "Gemini": "雙子座",
+        "Cancer": "巨蟹座",
+        "Leo": "獅子座",
+        "Virgo": "處女座",
+        "Libra": "天秤座",
+        "Scorpio": "天蠍座",
+        "Sagittarius": "射手座",
+        "Capricorn": "摩羯座",
+        "Aquarius": "水瓶座",
+        "Pisces": "雙魚座"
       },
-      lagna: {
-        Aries: {region: '頭部 · 臉部', body: '能量容易往頭部集中。一激動起來時，先停一停，給自己降溫的時間。'},
-        Taurus: {region: '頸部 · 喉嚨', body: '疲勞容易累積在頸部和肩膀。慢慢吃飯、讓脖子保暖很適合你。'},
-        Gemini: {region: '肩膀 · 手臂 · 呼吸', body: '一忙起來，呼吸就容易變淺。讓雙手歇一歇，留出深呼吸的空檔吧。'},
-        Cancer: {region: '胸口 · 胃', body: '情緒容易反映在腸胃的節奏上。在放鬆的氣氛中用餐，對身體有幫助。'},
-        Leo: {region: '心臟 · 背部', body: '熱情衝刺時，背部容易變得僵硬。擴胸伸展和充足的睡眠對你很好。'},
-        Virgo: {region: '腸道 · 消化', body: '擔憂會最先表現在消化節奏上。規律飲食和輕鬆散步很適合你。'},
-        Libra: {region: '腰部 · 腎臟', body: '一旦失去平衡，腰部會最先感到沉重。久坐後伸展腰背，並常常喝水吧。'},
-        Scorpio: {region: '骨盆 · 下腹', body: '你容易把緊張積壓在下腹。用熱水泡澡和深呼吸來放鬆吧。'},
-        Sagittarius: {region: '臀部 · 大腿', body: '你的身體需要活動才能讓心情舒暢。散步或健行這類運用大肌群的活動很適合你。'},
-        Capricorn: {region: '膝蓋 · 骨骼', body: '你耐力強，也請多愛護關節。比起高強度運動，持續伸展更適合你。'},
-        Aquarius: {region: '小腿 · 腳踝 · 循環', body: '久站或久坐會讓雙腿變沉。常起身走動，喚醒身體的循環吧。'},
-        Pisces: {region: '雙腳 · 睡眠', body: '你的身體對氣氛和疲勞很敏感。充足的睡眠和讓雙腳保暖的習慣，能守住節奏。'}
+      "graha": {
+        "Sun": "太陽",
+        "Moon": "月亮",
+        "Mars": "火星",
+        "Mercury": "水星",
+        "Jupiter": "木星",
+        "Venus": "金星",
+        "Saturn": "土星"
       },
-      sixth: {
-        Sun: '你靠陽光和規律的作息來恢復。迎著晨光散步的時間很適合你。',
-        Moon: '心裡舒坦了，身體才會恢復。在熟悉的人和地方休息，就是最好的恢復。',
-        Mars: '你是靠活動身體來恢復的類型。流汗之後，也要留出充分的降溫時間。',
-        Mercury: '放空腦袋時你就能恢復。寫日記、整理東西、玩輕鬆的拼圖這類梳理思緒的活動很不錯。',
-        Jupiter: '「適度」是恢復的關鍵。一點一點減少吃太多和過度勞累，身體會變輕盈。',
-        Venus: '你透過快樂與美來恢復。喜歡的音樂、香氣和一頓好吃的飯，都能給你很大的力量。',
-        Saturn: '你是慢慢地、穩定地恢復的類型。每天在同一時間睡覺和起床的作息最適合你。'
+      "moon": {
+        "Aries": "情緒來得快、去得也快。當下表達出來、宣洩掉，心裡會輕鬆許多。",
+        "Taurus": "內心安穩時你最幸福。熟悉的空間和好吃的食物，是很大的慰藉。",
+        "Gemini": "你用言語和聊天來化解情緒。好好聊一次天，就是整理心情的捷徑。",
+        "Cancer": "你情感深厚，很有照顧人的心。擁有一個安全的個人空間，心就能恢復。",
+        "Leo": "被肯定時，你的心會亮起來。養成稱讚自己的習慣，能守護自信心。",
+        "Virgo": "不安時你會整理和分析。請告訴自己：不完美也沒關係。",
+        "Libra": "在和諧的關係中你最自在。與其逃避衝突，不如練習溫和地表達。",
+        "Scorpio": "你把情緒藏得很深，不輕易表露。向信任的人傾訴時，心會變輕。",
+        "Sagittarius": "追尋自由與意義時，你的心會活過來。旅行或學習新事物能轉換心情。",
+        "Capricorn": "你會把責任放在情緒前面。完成一件事之後，請允許自己休息。",
+        "Aquarius": "你會退後一步看待自己的情緒。獨處的時間和志同道合的朋友，你都需要。",
+        "Pisces": "你同理心強、想像力豐富。有音樂或畫畫這樣讓情緒流動的出口會很好。"
+      },
+      "lagna": {
+        "Aries": {
+          "region": "休息的空檔",
+          "body": "今天在任務之間留一點休息時間。休息後，只選一件想繼續做的事。",
+          "check": "還沒停下來，就接著做下一件事了嗎？"
+        },
+        "Taurus": {
+          "region": "吃飯的餘裕",
+          "body": "在今天的安排裡留出安心吃飯的時間。按適合自己的速度進食，回看一天的節奏。",
+          "check": "忙起來就總把吃飯往後推嗎？"
+        },
+        "Gemini": {
+          "region": "暫時放下資訊",
+          "body": "暫時關閉通知，把視線從任務上移開。新想法寫在備忘錄裡，之後再看。",
+          "check": "休息時還一直看螢幕嗎？"
+        },
+        "Cancer": {
+          "region": "自己的空間",
+          "body": "暫時放下通知，找個舒服的地方停一停。也可以告訴親近的人，你需要一點獨處時間。",
+          "check": "跟著別人的節奏走，忘了獨處嗎？"
+        },
+        "Leo": {
+          "region": "舒服地活動",
+          "body": "選擇適合當下狀態的輕鬆活動或短距離散步。不舒服時就停下來，或減小強度。",
+          "check": "是不是很久沒有換姿勢了？"
+        },
+        "Virgo": {
+          "region": "小小的開始",
+          "body": "寫下最小的下一步。把今天要做的事和可以明天做的事分開。",
+          "check": "是不是等計畫完美了才肯開始？"
+        },
+        "Libra": {
+          "region": "承諾的界線",
+          "body": "分清能履行和需要調整的約定。「今天先到這裡」也是一種選擇。",
+          "check": "想休息，卻還是答應了邀約嗎？"
+        },
+        "Scorpio": {
+          "region": "情緒的餘地",
+          "body": "重要回覆之前，各寫一句自己的感受和需要。需要思考時間時，可以先說出來。",
+          "check": "是不是只憑此刻的心情急著回覆？"
+        },
+        "Sagittarius": {
+          "region": "舒服地活動",
+          "body": "選擇適合當下狀態的輕鬆活動或短距離散步。不舒服時就停下來，或減小強度。",
+          "check": "是不是很久沒有換姿勢了？"
+        },
+        "Capricorn": {
+          "region": "休息的空檔",
+          "body": "今天在任務之間留一點休息時間。休息後，只選一件想繼續做的事。",
+          "check": "還沒停下來，就接著做下一件事了嗎？"
+        },
+        "Aquarius": {
+          "region": "自己的空間",
+          "body": "暫時放下通知，找個舒服的地方停一停。也可以告訴親近的人，你需要一點獨處時間。",
+          "check": "跟著別人的節奏走，忘了獨處嗎？"
+        },
+        "Pisces": {
+          "region": "收好這一天",
+          "body": "睡前給手頭的事定個收尾時間。記下明天的事，用熟悉而舒服的日常習慣結束今天。",
+          "check": "有沒有為一天的結束留點時間？"
+        }
+      },
+      "sixth": {
+        "Sun": "今天在任務之間留一點休息時間。休息後，只選一件想繼續做的事。",
+        "Moon": "睡前給手頭的事定個收尾時間。記下明天的事，用熟悉而舒服的日常習慣結束今天。",
+        "Mars": "選擇適合當下狀態的輕鬆活動或短距離散步。不舒服時就停下來，或減小強度。",
+        "Mercury": "暫時關閉通知，把視線從任務上移開。新想法寫在備忘錄裡，之後再看。",
+        "Jupiter": "寫下最小的下一步。把今天要做的事和可以明天做的事分開。",
+        "Venus": "暫時放下通知，找個舒服的地方停一停。也可以告訴親近的人，你需要一點獨處時間。",
+        "Saturn": "分清能履行和需要調整的約定。「今天先到這裡」也是一種選擇。"
+      },
+      "sixthCheck": {
+        "Sun": "還沒停下來，就接著做下一件事了嗎？",
+        "Moon": "有沒有為一天的結束留點時間？",
+        "Mars": "是不是很久沒有換姿勢了？",
+        "Mercury": "休息時還一直看螢幕嗎？",
+        "Jupiter": "是不是等計畫完美了才肯開始？",
+        "Venus": "跟著別人的節奏走，忘了獨處嗎？",
+        "Saturn": "想休息，卻還是答應了邀約嗎？"
       }
     },
     yeoni: {
@@ -2420,6 +3876,94 @@
     return String(tpl).replace(/\{(\w+)\}/g, function (m, k) { return vars && vars[k] != null ? String(vars[k]) : m; });
   }
 
+  var CHART_COPY = {
+  "ko": {
+    "hd": "나의 활동·회복 회로",
+    "legend": "채운 센터는 정의, 빈 센터는 미정의예요. 진한 선은 완성 채널, 점선은 한쪽 게이트만 활성인 연결이에요. 숫자는 게이트 번호이며 건강 점수가 아니에요.",
+    "channels": "완성된 채널",
+    "gates": "활성 게이트",
+    "none": "표시할 완성 채널이 없어요.",
+    "check": "요즘 남의 속도까지 내 속도처럼 따라가고 있나요?",
+    "action": "오늘의 충전 모드: 약속 하나를 잡기 전에 잠깐 멈추고, 실제로 쓸 수 있는 시간과 쉬는 시간을 함께 적어 보세요.",
+    "vedic": "라그나에서 펼친 12하우스",
+    "vedicNote": "홀사인 방식의 안내도예요. 계산된 라그나와 6하우스를 강조하며, 모든 행성 위치를 그린 전체 출생 차트는 아니에요.",
+    "house": "하우스",
+    "lagna": "라그나 · 출발점",
+    "sixth": "6하우스 · 일상 관리",
+    "ruler": "주인 행성",
+    "vedicCheck": "일정은 풀충전인데 쉬는 시간은 절전 모드인가요?",
+    "vedicAction": "이번 주 반복되는 일 하나와 쉬는 시간 하나를 나란히 적어 보세요. 버티는 양보다 회복할 틈을 먼저 확인해요."
+  },
+  "en": {
+    "hd": "Your activity & recovery circuit",
+    "legend": "Filled centers are defined; empty centers are not defined. Solid lines show complete channels; dashed lines show a single active gate. Numbers identify gates, not health scores.",
+    "channels": "Complete channels",
+    "gates": "Active gates",
+    "none": "No complete channels to display.",
+    "check": "Have you been treating someone else’s pace as your own?",
+    "action": "Recharge mode: before accepting one more plan, pause and write down both the time you can offer and the rest you need.",
+    "vedic": "12 houses from your ascendant",
+    "vedicNote": "A whole-sign guide highlighting the calculated ascendant and sixth house, not a full birth chart showing every planet.",
+    "house": "House",
+    "lagna": "Ascendant · starting point",
+    "sixth": "Sixth house · daily upkeep",
+    "ruler": "Ruling planet",
+    "vedicCheck": "Is your schedule fully charged while your downtime runs on low battery?",
+    "vedicAction": "Write down one recurring task and one rest period this week. Look for room to recover before adding more."
+  },
+  "ja": {
+    "hd": "活動と休息の回路",
+    "legend": "色付きは定義、白抜きは未定義のセンターです。実線は完成チャネル、破線は片方のゲートだけが活性化した接続。数字はゲート番号で、健康点数ではありません。",
+    "channels": "完成チャネル",
+    "gates": "活性ゲート",
+    "none": "表示する完成チャネルはありません。",
+    "check": "誰かのペースを自分のペースだと思っていませんか？",
+    "action": "今日の充電モード：予定を増やす前に、使える時間と休む時間を一緒に書いてみましょう。",
+    "vedic": "ラグナから読む12ハウス",
+    "vedicNote": "計算されたラグナと第6ハウスを強調したホールサイン方式の案内図です。全惑星の位置を示す出生図ではありません。",
+    "house": "ハウス",
+    "lagna": "ラグナ・出発点",
+    "sixth": "第6ハウス・日々の管理",
+    "ruler": "支配星",
+    "vedicCheck": "予定はフル充電、休息は省電力モードになっていませんか？",
+    "vedicAction": "今週の繰り返す用事と休む時間を一つずつ書き、回復する余白を見つけてみましょう。"
+  },
+  "zh-CN": {
+    "hd": "你的活动与休息回路",
+    "legend": "填色为已定义中心，空心为未定义中心。实线表示完整通道，虚线表示仅单侧闸门激活。数字是闸门编号，不是健康分数。",
+    "channels": "完整通道",
+    "gates": "激活闸门",
+    "none": "没有可显示的完整通道。",
+    "check": "最近是否把别人的节奏当成了自己的节奏？",
+    "action": "今日充电模式：答应新安排前，先写下可投入的时间和需要休息的时间。",
+    "vedic": "从上升星座展开的12宫",
+    "vedicNote": "这是整宫制示意图，强调已计算的上升星座与第六宫，并非标出全部行星位置的完整出生图。",
+    "house": "宫",
+    "lagna": "上升星座 · 起点",
+    "sixth": "第六宫 · 日常管理",
+    "ruler": "守护星",
+    "vedicCheck": "日程满电，休息却在省电模式吗？",
+    "vedicAction": "写下本周一件重复的事务和一段休息时间，先找出恢复的空间。"
+  },
+  "zh-TW": {
+    "hd": "你的活動與休息迴路",
+    "legend": "填色為已定義中心，空心為未定義中心。實線表示完整通道，虛線表示僅單側閘門啟動。數字是閘門編號，不是健康分數。",
+    "channels": "完整通道",
+    "gates": "啟動閘門",
+    "none": "沒有可顯示的完整通道。",
+    "check": "最近是否把別人的節奏當成了自己的節奏？",
+    "action": "今日充電模式：答應新安排前，先寫下可投入的時間和需要休息的時間。",
+    "vedic": "從上升星座展開的12宮",
+    "vedicNote": "這是整宮制示意圖，強調已計算的上升星座與第六宮，並非標出全部行星位置的完整出生圖。",
+    "house": "宮",
+    "lagna": "上升星座 · 起點",
+    "sixth": "第六宮 · 日常管理",
+    "ruler": "守護星",
+    "vedicCheck": "日程滿電，休息卻在省電模式嗎？",
+    "vedicAction": "寫下本週一件重複的事務和一段休息時間，先找出恢復的空間。"
+  }
+};
+
   function hdCopy() {
     if (root.DestinyAnatomyHdCopy) return root.DestinyAnatomyHdCopy;
     if (typeof require === 'function') { try { return require('./hd-copy.generated.js'); } catch (e) { /* 셸에선 전역만 쓴다 */ } }
@@ -2462,10 +4006,12 @@
         authorityHow: C.authorityHow[hd.authority] || '',
         definitionName: HD.definition[hd.definition] ? pickLocale(HD.definition[hd.definition], hdL) : '',
         profile: hd.profile,
+        gates: hd.gates.slice(),
+        channels: (HD.geometry ? HD.geometry.channels : []).filter(function (c) { return hd.channels.indexOf(c.channelId) >= 0; }).map(function (c) { return {id: c.channelId, label: pickLocale(HD.center[c.centerA].name, hdL) + " ↔ " + pickLocale(HD.center[c.centerB].name, hdL)}; }),
         centers: model.humanDesign.definedCenters.concat(model.humanDesign.undefinedCenters).map(function (id) {
           var c = HD.center[id], def = hd.definedCenters.indexOf(id) >= 0, mb = C.mb.center[id], st = def ? 'defined' : 'open';
           return {id: id, defined: def, name: c ? pickLocale(c.name, hdL) : id, role: c ? pickLocale(c.role, hdL) : '',
-            organ: mb ? mb.organ : '', mind: mb ? mb.mind[st] : '', body: mb ? mb.body[st] : ''};
+            organ: mb ? mb.organ : '', mind: mb ? mb.mind[st] : '', body: mb ? mb.body[st] : '', check: mb ? mb.check[st] : ''};
         })
       };
     }
@@ -2491,10 +4037,10 @@
           {kind: 'moon', group: 'mind', title: MB.vedicKind.moon + ' · ' + MB.sign[vedic.moonSign], body: MB.moon[vedic.moonSign]});
       }
       if (vedic.lagna && MB.lagna[vedic.lagna]) {
-        vedicText.push({kind: 'lagna', group: 'body', title: MB.vedicKind.lagna + ' · ' + MB.sign[vedic.lagna], region: MB.lagna[vedic.lagna].region, body: MB.lagna[vedic.lagna].body});
+        vedicText.push({kind: 'lagna', group: 'body', title: MB.vedicKind.lagna + ' · ' + MB.sign[vedic.lagna], region: MB.lagna[vedic.lagna].region, body: MB.lagna[vedic.lagna].body, check: MB.lagna[vedic.lagna].check});
       }
       if (vedic.sixthLord && MB.sixth[vedic.sixthLord]) {
-        vedicText.push({kind: 'sixth', group: 'body', title: MB.vedicKind.sixth + ' · ' + MB.graha[vedic.sixthLord], body: MB.sixth[vedic.sixthLord]});
+        vedicText.push({kind: 'sixth', group: 'body', title: MB.vedicKind.sixth + ' · ' + MB.sign[vedic.sixthSign] + ' · ' + MB.graha[vedic.sixthLord], body: MB.sixth[vedic.sixthLord], check: MB.sixthCheck[vedic.sixthLord]});
       }
       vedicText = vedicText.filter(function (x) { return x.body; });
     }
@@ -2503,7 +4049,7 @@
     var mindTail = hd && hd.available && C.mindDecide[hd.authority] ? C.mindDecide[hd.authority] : C.mindAct[second || top];
     var sep = L === 'en' ? ' ' : (L === 'ko' ? ' ' : '');
     var mindLine = mindHead + sep + mindTail;
-    if (L === 'en') mindLine = 'Someone who is ' + mindHead.charAt(0).toLowerCase() + mindHead.slice(1) + ' ' + mindTail;
+    if (L === 'en') mindLine = 'Someone who ' + mindHead.charAt(0).toLowerCase() + mindHead.slice(1) + ' ' + mindTail;
 
     // 지금 대운이 켠 회로 — 타고난 생각 위에 "요즘 머릿속" 문장을 겹친다. 대운이 없으면(시간 미상·첫 대운 전) 만들지 않는다.
     var luck = model.luck;
@@ -2602,6 +4148,17 @@
       ask: Y.ask.base
     };
 
+    // Selection is a traditional reflection theme, never a physical assessment.
+    var routineByElement = {wood: 2, fire: 0, earth: 3, metal: 5, water: 8};
+    var evenElements = (el.ratios[hiEl] || 0) - (el.ratios[loEl] || 0) < 10;
+    var habitRows = (evenElements ? [hiEl] : [hiEl, loEl]).map(function (e, i) {
+      var r = C.recovery.routines[routineByElement[e]];
+      return {id: e, title: r.title,
+        basis: (evenElements ? C.recovery.even : (i === 0 ? C.recovery.strong : C.recovery.low)) + ' · ' +
+          (evenElements ? elementsText.items.map(function (x) { return x.name + ' ' + Math.round(x.ratio) + '%'; }).join(' · ')
+            : C.elements[e].name + ' ' + Math.round(el.ratios[e]) + '% · ' + C.elements[e].words),
+        check: r.check, action: r.action};
+    });
     model.locale = L;
     model.text = {
       ui: C.ui,
@@ -2622,12 +4179,16 @@
       chakra: model.chakra.items.map(function (c) {
         var mb = C.mb.chakra[c.id];
         return {id: c.id, name: C.chakra[c.id].name, theme: C.chakra[c.id].theme, emphasis: c.emphasis, level: c.level, levelLabel: C.ui.chakraLevel[c.level],
-          region: mb.region, mind: mb.mind[c.level], body: mb.body[c.level]};
+          region: mb.region, mind: mb.mind[c.level], body: mb.body[c.level], check: mb.check[c.level]};
       }),
       hd: hdText,
       luck: luckText,
       vedic: vedicText,
       mbUi: C.mb.ui,
+      recovery: C.recovery,
+      charts: CHART_COPY[L] || CHART_COPY.en,
+      vedicChart: vedic && vedic.available && vedic.lagna ? {lagna: MB.sign[vedic.lagna], sixth: MB.sign[vedic.sixthSign], ruler: MB.graha[vedic.sixthLord], houses: root.DestinyAnatomyEngine._canon.SIGNS.map(function (_, i, signs) { return {house: i + 1, sign: MB.sign[signs[(signs.indexOf(vedic.lagna) + i) % 12]]}; })} : null,
+      habits: habitRows,
       insights: insights,
       mindLine: mindLine,
       summary: summaryRows,
