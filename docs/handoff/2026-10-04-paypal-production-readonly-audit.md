@@ -2,6 +2,7 @@
 status: done
 date: 2026-10-04
 updated: 2026-10-06
+next: 필요한 경우 사용자가 범위를 정한 PayPal 운영 읽기 전용 재점검 수행
 ---
 
 # PayPal 운영 읽기 전용 점검
