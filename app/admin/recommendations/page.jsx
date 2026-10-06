@@ -2,7 +2,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { adminFetch } from '../_lib/admin-api';
 import { adminButton, ADMIN_INPUT } from '../_components/ui';
-import RecommendationBrowse, { ProductCard, RecommendationResult } from '@/app/components/recommendations/RecommendationSurface';
+import RecommendationBrowse from '@/app/components/recommendations/RecommendationBrowse';
+import { ProductCard, RecommendationResult } from '@/app/components/recommendations/RecommendationSurface';
 import { recommendationCopy } from '@/js/recommendations-copy.mjs';
 import { CATEGORIES, PRODUCT_KINDS, INTERESTS, SERVICE_MAP, PARTNER_ACCOUNT, DEFAULT_SETTINGS } from '@/js/recommendations-core.mjs';
 import styles from './page.module.css';
