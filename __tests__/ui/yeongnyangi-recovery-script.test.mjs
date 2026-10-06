@@ -12,7 +12,7 @@ const id='a'.repeat(64),baseArgs=['--db','code_destiny','--request',id];
 const seed=()=>({
  row:{_id:id,userId:'owner',productId:'saju_tuna',paymentId:'paid',state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',attempts:3,
   updatedAt:new Date('2026-10-04T00:00:00Z'),chapters:[{blocks:[{id:'s',title:'title',paragraphs:['preserved content '.repeat(15)]}]}],
-  chapterAttempts:{0:1,1:2},snapshot:{manifest:[{id:'one',minimumChars:120,sections:[{id:'s'}]},{id:'two',minimumChars:120}],
+  chapterAttempts:{0:1,1:3},snapshot:{manifest:[{id:'one',minimumChars:120,sections:[{id:'s'}]},{id:'two',minimumChars:120}],
    natalInput:{personA:{}},analysis:{contexts:{saju:{facts:[]}}}},recoveryAudit:[]},
  payment:{_id:'paid',userId:'owner',status:'paid',paymentAmount:10000,metadata:{consumedBy:id}},updates:[],files:[],race:false,
 });
@@ -57,11 +57,22 @@ test('one authorization preserves content, snapshot and payment; repeating it ca
 });
 test('payment revocation, missing source input and concurrent claim stop recovery without generation',async()=>{
  for(const change of [
-  f=>{f.payment.status='refunded';},f=>{delete f.row.snapshot.natalInput;},f=>{f.row.leaseUntil=new Date(Date.now()+60000);}
+  f=>{f.payment.status='refunded';},f=>{f.row.generationCheckpoint={deliveryRefund:{status:'pending'}};},
+  f=>{delete f.row.snapshot.natalInput;},f=>{f.row.leaseUntil=new Date(Date.now()+60000);}
  ]){
   const f=seed();change(f);const dry=await run(f);const result=await run(f,approved(dry.output.planSha));
   assert.equal(result.exitCode,1);assert.equal(f.updates.length,0);assert.equal(f.files.length,0);
  }
  const f=seed(),dry=await run(f);f.race=true;
  const result=await run(f,approved(dry.output.planSha));assert.equal(result.exitCode,1);assert.equal(f.row.state,'FORTUNE_FAILED');
+});
+
+test('operator plan includes spent system grants and permits only the eighth call, never a ninth',async()=>{
+ const f=seed();f.row.chapterAttempts[1]=7;f.row.systemRecoveryGrants={1:2};f.row.manualRecoveryGrants={1:2};
+ const dry=await run(f);assert.equal(dry.output.manualGrant,3);assert.equal(dry.output.automaticCallsUpperBound,1);
+ const execute=await run(f,approved(dry.output.planSha));assert.equal(execute.exitCode,0);
+ assert.equal(f.row.chapterAttempts[1],7);assert.equal(f.row.manualRecoveryGrants[1],3);
+ f.row.chapterAttempts[1]=8;
+ const spent=await run(f);assert.ok(spent.output.blockers.includes('RECOVERY_BUDGET_REVIEW_REQUIRED'));
+ const blocked=await run(f,approved(spent.output.planSha));assert.equal(blocked.exitCode,1);assert.equal(f.updates.length,1);
 });

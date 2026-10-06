@@ -1,4 +1,6 @@
 import {CHAPTER_DELIVERY_VERSION,CHAPTER_LEASE_MS,chapterDeliveryFailure,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
+import {AUTOMATIC_CHAPTER_ATTEMPTS,MANUAL_CHAPTER_RECOVERY_LIMIT,SYSTEM_CHAPTER_RETRY_GRANT} from './chapter-retry-policy.js';
+export {AUTOMATIC_CHAPTER_ATTEMPTS,MANUAL_CHAPTER_RECOVERY_LIMIT,SYSTEM_CHAPTER_RETRY_GRANT};
 import { storedChapterDraft } from './stored-chapter.js';
 import { deliveryRefundPending, terminalRestoreFilter } from './terminal-refund-policy.js';
 import { mongoose, mongoTransactionOptions, withMongoRetry } from '../lib/db.js';
@@ -11,11 +13,8 @@ import { CHAT_FEATURE_KEY, chatCardClaim, chatPaymentRequestId } from './access-
 export { YeongnyangiRequest };
 
 const paidStatuses = ['paid','success','fulfilled'];
-// One first call and one immediate retry. Versioned requests may receive one
-// scheduled repair and two explicit recovery calls; legacy grants stay inert.
-export const AUTOMATIC_CHAPTER_ATTEMPTS = 2;
-export const MANUAL_CHAPTER_RECOVERY_LIMIT = 2;
-export const SYSTEM_CHAPTER_RETRY_GRANT = 1;
+// Three initial attempts, two scheduled repairs and three explicit recoveries.
+// Legacy grants stay inert until an operator reviews the original paid request.
 export const USER_HOLD_RETRY_LIMIT = 1;
 export const USER_HOLD_RETRY_GRANT = 1;
 export const FIX_RESUME_GRANT = 0;
@@ -91,7 +90,7 @@ export function userCanRetry(row = {}) {
   if(['COMPLETED','REFUNDED'].includes(row.state)||!hasRequestAccess(row))return false;
   if(row.errorCode!=='AUTOMATIC_RECOVERY_STOPPED')return userCanRetryHold(row);
   const ordinal=savedChapters(row);
-  return grantCount(row.manualRecoveryGrants,ordinal)<MANUAL_CHAPTER_RECOVERY_LIMIT||!grantCount(row.systemRecoveryGrants,ordinal)||
+  return grantCount(row.manualRecoveryGrants,ordinal)<MANUAL_CHAPTER_RECOVERY_LIMIT||grantCount(row.systemRecoveryGrants,ordinal)<SYSTEM_CHAPTER_RETRY_GRANT||
     holdRetryLeft(row,ordinal);
 }
 const olderEpoch=()=>({$or:[{hold:{$exists:false}},{'hold.epoch':{$lt:GENERATION_FIX_EPOCH}}]});
@@ -762,16 +761,16 @@ export async function resumeRequest(env,userId,requestId) {
   return latest;
 }
 
-// A spent stopped chapter gets the one server retry; after that the order is held
+// A spent stopped chapter gets the remaining server retries; after that the order is held
 // (never dropped): saved chapters stay readable and operators are alerted.
 async function escalateStoppedChapter(env,userId,requestId,row,source,reason) {
   const ordinal=row.chapters.length,now=new Date();
   const system=grantCount(row.systemRecoveryGrants,ordinal);
   const filter={_id:requestId,userId:ownerId(userId),errorCode:'AUTOMATIC_RECOVERY_STOPPED',chapters:{$size:ordinal},
     $and:[pinGrant('manualRecoveryGrants',ordinal,grantCount(row.manualRecoveryGrants,ordinal)),pinGrant('systemRecoveryGrants',ordinal,system)]};
-  if(hasChapterDeliveryContract(row)&&!system && SYSTEM_CHAPTER_RETRY_GRANT>0){
+  if(hasChapterDeliveryContract(row)&&system<SYSTEM_CHAPTER_RETRY_GRANT){
     const retried=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate(filter,{$set:{state:'PAID',errorCode:'',nextAttemptAt:null,queuedUntil:null},
-      $inc:{[`systemRecoveryGrants.${ordinal}`]:SYSTEM_CHAPTER_RETRY_GRANT},$push:{recoveryAudit:{kind:'system_retry',source,chapter:ordinal,at:now}}},{new:true}).lean());
+      $inc:{[`systemRecoveryGrants.${ordinal}`]:SYSTEM_CHAPTER_RETRY_GRANT-system},$push:{recoveryAudit:{kind:'system_retry',source,chapter:ordinal,at:now}}},{new:true}).lean());
     return retried || readRequest(env,userId,requestId);
   }
   const held=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate(filter,{$set:{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',

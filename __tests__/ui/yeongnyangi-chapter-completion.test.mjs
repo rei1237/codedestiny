@@ -92,7 +92,7 @@ test('three major-luck inputs keep the purchased topic chapters and pass only su
 });
 
 test('recovery plan preserves legacy delivered content and fails closed on payment, missing input or changed chapters',()=>{
- const body=complete(),row={_id:'order',userId:'owner',state:'FORTUNE_FAILED',productId:'saju_tuna',chapters:[body],chapterAttempts:{0:1,1:2},
+ const body=complete(),row={_id:'order',userId:'owner',state:'FORTUNE_FAILED',productId:'saju_tuna',chapters:[body],chapterAttempts:{0:1,1:3},
   snapshot:{natalInput:{personA:{}},analysis:{contexts:{saju:context}},manifest:[input.chapter,{...input.chapter,id:'missing'}]}};
  const payment={userId:'owner',status:'paid',metadata:{consumedBy:'order'}};
  const before=JSON.stringify(row);

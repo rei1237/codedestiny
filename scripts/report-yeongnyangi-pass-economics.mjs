@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { GEMINI_INPUT_TOKEN_HARD_LIMIT } from '../lib/gemini-input-token-limit.mjs';
+import { AUTOMATIC_CHAPTER_ATTEMPTS, SYSTEM_CHAPTER_RETRY_GRANT, MANUAL_CHAPTER_RECOVERY_LIMIT } from '../worker/yeongnyangi/chapter-retry-policy.js';
 
 // Offline planning only: provider caps are deliberately more conservative than
 // average use. Nothing here enables sales or supplies reviewed cost evidence.
@@ -26,7 +27,7 @@ const assumptions = { ...defaults, ...args };
 if (!Object.hasOwn(args, 'fixed-monthly-krw')) assumptions['fixed-monthly-krw'] = assumptions['fixed-monthly-usd'] * assumptions['krw-per-usd'];
 if (!(assumptions['monthly-paid-packs'] > 0) || !(assumptions['krw-per-usd'] > 0) || assumptions['pg-rate'] >= 1 || assumptions['vat-rate'] >= 1 || assumptions['target-operating-margin'] >= 1) throw new Error('Invalid financial assumptions');
 const tariff = JSON.parse(read('config/llm-tariffs-20260921.json'))['gemini/gemini-2.5-flash'];
-const attempts = sourceNumber('worker/yeongnyangi/repository.js', /AUTOMATIC_CHAPTER_ATTEMPTS\s*=\s*(\d+)/);
+const attempts = AUTOMATIC_CHAPTER_ATTEMPTS + SYSTEM_CHAPTER_RETRY_GRANT + MANUAL_CHAPTER_RECOVERY_LIMIT;
 const analysisOutput = sourceNumber('worker/yeongnyangi/providers/code-destiny.ts', /temperature:0,maxOutputTokens:(\d+)/);
 const maximumQuestions = sourceNumber('worker/yeongnyangi/fortune/consultation.ts', /units\.length\s*>\s*(\d+)/);
 const built = await build({ stdin: { contents: `
@@ -72,14 +73,14 @@ const products = runtime.products.map(product => {
   const variantsFor = concise => originals.map(({kind,topic,original}) => {
     const manifest = concise ? runtime.conciseReadingManifest(original) : original;
     // All eight questions are assigned to the first chapter by consultation.ts.
-    // Allow two full analysis calls as well, even when the successful checkpoint
+    // Include the full recovery ceiling for analysis as well, even when a checkpoint
     // normally reduces that to one. A cached/reused response receives no discount.
     const outputs = manifest.map((chapter, index) => chapterOutput(chapter, index === 0 ? maximumQuestions : 0));
     const oneAttemptCost = outputs.reduce((sum, output) => sum + callCost(output), 0) + callCost(analysisOutput);
     const llmCost = attempts * oneAttemptCost;
     // Design comparison only: one retry for the whole generated book, while
-    // conservatively retaining two analysis calls. The runtime still uses two
-    // attempts per chapter; this field never changes that recovery contract.
+    // conservatively retaining the full analysis budget. This comparison never
+    // changes the runtime's shared chapter recovery ceiling.
     const singleBookRetryCost = outputs.reduce((sum,output)=>sum+callCost(output),0) + Math.max(...outputs.map(callCost)) + attempts*callCost(analysisOutput);
     return { kind, topic, chapters: manifest.length, maximumGenerationCalls: attempts * (manifest.length + 1), maximumOutputTokens: Math.max(...outputs), llmCost, oneAttemptCost, singleBookRetryCost };
   });
@@ -122,7 +123,7 @@ const fishCosts = ['mackerel','salmon','flounder','tuna'].map(fishId=>{
   const group=products.filter(product=>product.fishId===fishId);
   return {fishId,facePriceKRW:group[0].priceKRW,eligibleProducts:group.map(product=>product.id),
     evaluatedManifestVariants:group.reduce((sum,product)=>sum+product.evaluatedManifestVariants,0),
-    twoAttemptsPerChapterKRW:Math.max(...group.map(product=>product.totalCapScenarioKRW)),
+    fullRecoveryPerChapterKRW:Math.max(...group.map(product=>product.totalCapScenarioKRW)),
     firstAttemptSuccessKRW:Math.max(...group.map(product=>product.firstAttemptSuccessCapScenarioKRW)),
     hypotheticalOneBookRetryKRW:Math.max(...group.map(product=>product.hypotheticalSingleBookRetryCapScenarioKRW))};
 });
@@ -130,20 +131,20 @@ const fishPackCandidates = [['mackerel',19900,25],['salmon',11900,5],['flounder'
   const costs=fishCosts.find(cost=>cost.fishId===fishId);
   const netRevenue=priceKRW/(1+assumptions['vat-rate'])-priceKRW*assumptions['pg-rate'];
   const fixedAllocation=fixedMonthly/assumptions['monthly-paid-packs'];
-  const regimes=Object.fromEntries(['twoAttemptsPerChapterKRW','firstAttemptSuccessKRW','hypotheticalOneBookRetryKRW'].map(key=>{
+  const regimes=Object.fromEntries(['fullRecoveryPerChapterKRW','firstAttemptSuccessKRW','hypotheticalOneBookRetryKRW'].map(key=>{
     const contribution=netRevenue-consultations*costs[key];
     const profit=contribution-fixedAllocation;
     return [key,{consultationCostKRW:costs[key],contributionBeforeFixedKRW:round(contribution),allocatedMonthlyFixedPerPackKRW:round(fixedAllocation),
       operatingProfitPerPackWithoutSignupKRW:round(profit),grossSalesOperatingMarginWithoutSignup:profit/priceKRW,targetMetWithoutSignup:profit/priceKRW>=assumptions['target-operating-margin']}];
   }));
   return {fishId,priceKRW,consultations,discountToDirect:1-priceKRW/(consultations*costs.facePriceKRW),regimes,
-    thirtyPercentMarginPossibleBelowDirectPriceEvenAtInfiniteVolume:costs.twoAttemptsPerChapterKRW<costs.facePriceKRW*(1/(1+assumptions['vat-rate'])-assumptions['pg-rate']-assumptions['target-operating-margin'])};
+    thirtyPercentMarginPossibleBelowDirectPriceEvenAtInfiniteVolume:costs.fullRecoveryPerChapterKRW<costs.facePriceKRW*(1/(1+assumptions['vat-rate'])-assumptions['pg-rate']-assumptions['target-operating-margin'])};
 });
 const mixes = [{name:'approximately_equal',counts:{mackerel:13,salmon:13,flounder:12,tuna:12}},
   {name:'mackerel_heavy',counts:{mackerel:35,salmon:5,flounder:5,tuna:5}},
   {name:'all_mackerel',counts:{mackerel:50,salmon:0,flounder:0,tuna:0}}].map(mix=>{
   const sales=fishPackCandidates.reduce((sum,pack)=>sum+mix.counts[pack.fishId]*pack.priceKRW,0);
-  const contribution=fishPackCandidates.reduce((sum,pack)=>sum+mix.counts[pack.fishId]*(pack.priceKRW/(1+assumptions['vat-rate'])-pack.priceKRW*assumptions['pg-rate']-pack.consultations*fishCosts.find(cost=>cost.fishId===pack.fishId).twoAttemptsPerChapterKRW),0);
+  const contribution=fishPackCandidates.reduce((sum,pack)=>sum+mix.counts[pack.fishId]*(pack.priceKRW/(1+assumptions['vat-rate'])-pack.priceKRW*assumptions['pg-rate']-pack.consultations*fishCosts.find(cost=>cost.fishId===pack.fishId).fullRecoveryPerChapterKRW),0);
   return {...mix,totalPacks:50,grossSalesKRW:sales,scenarios:[0,50,100,300].map(signupRedemptions=>{
     const profit=contribution-fixedMonthly-signupRedemptions*entryCost;
     return {signupRedemptions,signupAcquisitionCostKRW:round(signupRedemptions*entryCost),operatingProfitScenarioKRW:round(profit),grossSalesOperatingMargin:profit/sales};

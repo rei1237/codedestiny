@@ -9,14 +9,15 @@ const report = (...args) => JSON.parse(execFileSync(process.execPath, ['scripts/
 
 test('dedicated-pack scenarios include the reported server bill and each redeemed signup benefit',()=>{
  const result=report();
+ assert.equal(result.runtimeBounds.attemptsPerChapter,8);
  assert.equal(result.assumptions['fixed-monthly-usd'],70);
  assert.equal(result.assumptions['fixed-monthly-krw'],98000);
  assert.equal(result.assumptions['target-operating-margin'],.3);
  const proposal=result.dedicatedPackEvaluation;
  assert.equal(proposal.mode,'proposal_not_runtime');
  const pack=proposal.packs.find(pack=>pack.priceKRW===5000&&pack.consultations===7);
- assert.equal(pack.contributionBeforeFixedKRW,326.05);
- assert.equal(pack.breakEvenMonthlyPacksWithoutSignup,301);
+ assert.equal(pack.contributionBeforeFixedKRW,-10682.22);
+ assert.equal(pack.breakEvenMonthlyPacksWithoutSignup,null);
  const hundred=pack.monthlyScenarios.find(row=>row.monthlyPaidPacks===100&&row.signupRedemptions===0);
  assert.ok(hundred.operatingProfitScenarioKRW<0);
  assert.ok(hundred.maximumConsultationCostForTargetMarginKRW<result.signup.acquisitionCostCapScenarioKRW);
@@ -33,13 +34,13 @@ test('monthly fifty-pack review exposes mackerel margin limits independently of 
  assert.equal(review.packs.length,4);
  for(const pack of review.packs){
   assert.ok(pack.discountToDirect>=.2-1e-9);
-  assert.equal(pack.regimes.twoAttemptsPerChapterKRW.allocatedMonthlyFixedPerPackKRW,1960);
-  assert.equal(pack.regimes.twoAttemptsPerChapterKRW.targetMetWithoutSignup,pack.fishId!=='mackerel');
+  assert.equal(pack.regimes.fullRecoveryPerChapterKRW.allocatedMonthlyFixedPerPackKRW,1960);
+  assert.equal(pack.regimes.fullRecoveryPerChapterKRW.targetMetWithoutSignup,false);
  }
  const mackerel=review.packs.find(pack=>pack.fishId==='mackerel');
- // 2026-10-05: at 3,000 the mackerel direct price leaves room for a 30% margin (at 1,000 it did not).
- assert.equal(mackerel.thirtyPercentMarginPossibleBelowDirectPriceEvenAtInfiniteVolume,true);
- assert.ok(review.costs.every(row=>row.firstAttemptSuccessKRW<row.hypotheticalOneBookRetryKRW&&row.hypotheticalOneBookRetryKRW<row.twoAttemptsPerChapterKRW));
+ // The eight-call stress ceiling is not measured cost or a sales-policy change.
+ assert.equal(mackerel.thirtyPercentMarginPossibleBelowDirectPriceEvenAtInfiniteVolume,false);
+ assert.ok(review.costs.every(row=>row.firstAttemptSuccessKRW<row.hypotheticalOneBookRetryKRW&&row.hypotheticalOneBookRetryKRW<row.fullRecoveryPerChapterKRW));
  const allMackerel=review.monthlyFiftyPackMixes.find(mix=>mix.name==='all_mackerel');
  assert.ok(allMackerel.scenarios.find(row=>row.signupRedemptions===100).operatingProfitScenarioKRW<0);
  const introductory=result.dedicatedPackEvaluation.packs.find(pack=>pack.priceKRW===5000&&pack.consultations===7);
@@ -56,7 +57,7 @@ test('stress assumptions increase explicit costs without relabeling the result a
  assert.ok(base.fishPackEvaluation.costs.every(cost=>cost.evaluatedManifestVariants>300));
  for(const original of base.fishPackEvaluation.costs){
   const stressed=stress.fishPackEvaluation.costs.find(cost=>cost.fishId===original.fishId);
-  assert.ok(stressed.twoAttemptsPerChapterKRW>original.twoAttemptsPerChapterKRW);
+  assert.ok(stressed.fullRecoveryPerChapterKRW>original.fullRecoveryPerChapterKRW);
  }
  const allMackerel=stress.fishPackEvaluation.monthlyFiftyPackMixes.find(mix=>mix.name==='all_mackerel');
  assert.ok(allMackerel.scenarios[0].operatingProfitScenarioKRW<0);
