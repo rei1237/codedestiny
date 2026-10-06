@@ -117,7 +117,7 @@ DB에는 상품/설정/일별 집계/수동 공식 리포트 전용 컬렉션만
 - 규칙·보안·다국어·연결 계약: node --test __tests__/ui/recommendations.test.mjs
 - 실제 Worker 핸들러의 DB mock: npm run test:jest -- --runInBand __tests__/worker/recommendations.test.js
 - 저장소 검증: npm run check:fast -- --plan 및 npm run check:fast
-- 정적 미러: npm run sync:public 및 npm run verify:public-mirror-fresh
+- 정적 미러: npm run sync:public 및 npm run verify:public-mirror-fresh (커밋 후 생성기 재실행 일치 확인)
 - 브라우저는 npm run dev의 외부 통신 차단 mock 서버와 가짜 관리자 토큰만 사용한다. 운영 자격증명은 사용하지 않는다.
 - 화면 자료는 coupang-preview/에 보관한다. 실제 상품이 아닌 구성 검수용임을 화면에 표시한다.
 - 실결제·실 LLM·운영 DB·쿠팡 실제 클릭·실기기 앱 전환·수익 귀속은 이 검증에 포함하지 않는다.
@@ -128,7 +128,7 @@ DB에는 상품/설정/일별 집계/수동 공식 리포트 전용 컬렉션만
 - 브라우저: 초안 저장/카드 미리보기/필터, 공개 OFF의 카탈로그 요청 0건, 구매 링크 0개. 360·390·430·1280px 가로 넘침 0, 런타임 오류 0.
 - 시각 검수: 제목 줄바꿈과 긴 요소 캡처를 보완한 뒤 독립 검수 통과. 실제 상품 이미지를 사용한 검수는 아님.
 - 디자인 detector: 차단 결함 0, 글자 크기 단계 advisory 2개. 기존 서비스 토큰과 읽기 쉬운 고지 크기를 사용했다.
-- 타입 검사: tsc --noEmit 통과(최종 실행 결과는 전달 기록 참고).
+- 타입 검사: 최종 tsc --noEmit 통과. 추천 UI 범위 ESLint 통과.
 - check:fast -- --plan은 완료. check:fast는 critical로 자동 승격되어 88개 전체 paid-gate-suite를 실행했고, 장시간 전체 Jest 단계에서 완료되지 않아 중단했다. 전체 게이트 통과로 기록하지 않는다.
 - 결제·차감·복구·로그인 로직은 diff 범위 밖이다. 모의 브라우저에서 실 결제 복귀 전체 E2E를 실행한 것은 아니다. 실제 기기/쿠팡 앱 설치 유무/수익 귀속은 후속 검증 대상이다.
 
