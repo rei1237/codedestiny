@@ -287,28 +287,53 @@
     var toggle = t.hd ? '<div class="da-toggle" role="group" aria-label="' + esc(ui.bodyTitle) + '">' + ['hd', 'chakra', 'both'].map(function (v) {
       return '<button type="button" class="da-toggle__btn" data-da-act="view" data-da-view="' + v + '" aria-pressed="' + (view === v ? 'true' : 'false') + '">' + esc(ui.toggle[v]) + '</button>';
     }).join('') + '</div>' : '';
+    var mbUi = t.mbUi;
     var list = '';
     if (t.hd && view !== 'chakra') {
       list += '<ul class="da-centers">' + t.hd.centers.map(function (c) {
         return '<li class="da-centers__item' + (c.defined ? ' is-defined' : '') + '"><span class="da-centers__name">' + esc(c.name) + '</span>' +
           '<span class="da-centers__state">' + esc(c.defined ? ui.centerDefined : ui.centerOpen) + '</span>' +
-          (c.role ? '<span class="da-centers__role">' + esc(c.role) + '</span>' : '') + '</li>';
+          (c.role ? '<span class="da-centers__role">' + esc(c.role) + '</span>' : '') +
+          mindBody(mbUi, c.mind, c.body, mbUi.organ, c.organ) + '</li>';
       }).join('') + '</ul>';
     }
     if (view !== 'hd') {
       list += '<ul class="da-chakras">' + t.chakra.map(function (c) {
         return '<li class="da-chakras__item da-ck-' + esc(c.level) + '"><span class="da-centers__name">' + esc(c.name) + '</span>' +
-          '<span class="da-centers__state">' + esc(c.levelLabel) + '</span><span class="da-centers__role">' + esc(c.theme) + '</span></li>';
+          '<span class="da-centers__state">' + esc(c.levelLabel) + '</span><span class="da-centers__role">' + esc(c.theme) + '</span>' +
+          mindBody(mbUi, c.mind, c.body, mbUi.region, c.region) + '</li>';
       }).join('') + '</ul><p class="da-note">' + esc(ui.chakraNote) + '</p>';
     }
     return '<section class="da-sec da-body" data-da-sec="body" aria-labelledby="daBodyTitle"><h4 class="da-h" id="daBodyTitle">' + esc(ui.bodyTitle) + '</h4>' +
-      toggle + '<div class="da-body__grid">' + bodySvg(t, view) + '<div class="da-body__list">' + list + '</div></div></section>';
+      '<p class="da-note da-mb-lead">' + esc(mbUi.lead) + '</p>' +
+      toggle + '<div class="da-body__grid">' + bodySvg(t, view) + '<div class="da-body__list">' + list + '</div></div>' +
+      '<p class="da-note da-mb-note" role="note">' + esc(mbUi.note) + '</p></section>';
+  }
+
+  /* 정신·신체 두 줄 + 상징 연결(기관·부위). 값이 빈 줄은 그리지 않는다. */
+  function mindBody(mbUi, mind, body, tagLabel, tag) {
+    var rows = (mind ? '<div class="da-mb__row da-mb--mind"><dt>' + esc(mbUi.mind) + '</dt><dd>' + esc(mind) + '</dd></div>' : '') +
+      (body ? '<div class="da-mb__row da-mb--body"><dt>' + esc(mbUi.body) + '</dt><dd>' + esc(body) + '</dd></div>' : '');
+    return (rows ? '<dl class="da-mb">' + rows + '</dl>' : '') +
+      (tag ? '<p class="da-mb__tag"><span>' + esc(tagLabel) + '</span> ' + esc(tag) + '</p>' : '');
   }
 
   function vedicHtml(t) {
     if (!t.vedic.length) return '';
+    var mbUi = t.mbUi;
+    var group = function (g, label) {
+      var rows = t.vedic.filter(function (v) { return (v.group || 'mind') === g; });
+      if (!rows.length) return '';
+      return '<div class="da-vgroup da-mb--' + g + '"><p class="da-vgroup__h">' + esc(label) + '</p>' + rows.map(function (v) {
+        return '<div class="da-vrow"><p class="da-sub">' + esc(v.title) + '</p>' +
+          (v.region ? '<p class="da-mb__tag"><span>' + esc(mbUi.region) + '</span> ' + esc(v.region) + '</p>' : '') +
+          '<p class="da-p">' + esc(v.body) + '</p></div>';
+      }).join('') + '</div>';
+    };
+    var hasBody = t.vedic.some(function (v) { return v.group === 'body'; });
     return '<section class="da-sec" data-da-sec="vedic" aria-labelledby="daVedicTitle"><h4 class="da-h" id="daVedicTitle">' + esc(t.ui.vedicTitle) + '</h4>' +
-      t.vedic.map(function (v) { return '<p class="da-sub">' + esc(v.title) + '</p><p class="da-p">' + esc(v.body) + '</p>'; }).join('') + '</section>';
+      group('mind', mbUi.vedicMind) + group('body', mbUi.vedicBody) +
+      (hasBody ? '<p class="da-note da-mb-note" role="note">' + esc(mbUi.note) + '</p>' : '') + '</section>';
   }
 
   function insightsHtml(t) {

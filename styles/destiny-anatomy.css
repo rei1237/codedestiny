@@ -431,3 +431,93 @@
   #destinyAnatomyCard *, #destinyAnatomyCard *::before, #destinyAnatomyCard *::after { animation: none !important; transition: none !important; }
   .da-body-wrap .da-sec { opacity: 1; transform: none; }
 }
+
+/* ── 정신·신체 결(10-06) — HD 센터·차크라·베다를 마음 줄·몸 줄로 나눠 읽는다. 상징·생활 습관 언어만(의료 판단 아님). ── */
+.da-mb { display: grid; grid-template-columns: auto 1fr; gap: 6px var(--cd-sp-sm); margin: 8px 0 0; }
+.da-mb__row { display: contents; }
+.da-mb dt { align-self: start; margin-top: 2px; padding: 1px 10px; border-radius: var(--cd-r-pill); font-size: .74rem; font-weight: 800; line-height: 1.6; white-space: nowrap; color: var(--da-ink); }
+.da-mb dd { margin: 0; line-height: 1.7; color: var(--da-ink); }
+.da-mb--mind dt, .da-mb--mind .da-vgroup__h { background: color-mix(in srgb, var(--da-accent) 13%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--da-accent) 38%, transparent); }
+.da-mb--body dt, .da-mb--body .da-vgroup__h { background: color-mix(in srgb, var(--cd-node-forest) 16%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cd-node-forest) 45%, transparent); }
+.da-mb__tag { margin: 6px 0 0; font-size: .82rem; line-height: 1.55; color: var(--da-muted); }
+.da-mb__tag span { font-weight: 800; color: var(--da-accent); }
+.da-mb-lead { margin: calc(var(--cd-sp-xs) * -1) 0 var(--cd-sp-md); }
+.da-mb-note { margin: var(--cd-sp-md) 0 0; padding: var(--cd-sp-sm) var(--cd-sp-md); border-radius: var(--cd-r-md); background: var(--da-surface); border: 1px dashed var(--da-line); font-size: .84rem; }
+#destinyAnatomyCard .da-body-wrap :is(.da-centers, .da-chakras) { gap: 0; font-size: .94rem; border-top: 1px solid var(--da-line); }
+#destinyAnatomyCard .da-body-wrap :is(.da-centers__item, .da-chakras__item) { padding: var(--cd-sp-sm) 0 var(--cd-sp-md); }
+.da-vgroup { margin: var(--cd-sp-md) 0 0; }
+.da-vgroup__h { display: inline-block; margin: 0 0 var(--cd-sp-xs); padding: 2px 12px; border-radius: var(--cd-r-pill); font-size: .8rem; font-weight: 800; letter-spacing: .04em; color: var(--da-ink); }
+.da-vgroup + .da-vgroup { margin-top: calc(var(--cd-sp-lg) * 1.2); padding-top: var(--cd-sp-sm); border-top: 1px solid var(--da-line); }
+.da-vrow { padding: var(--cd-sp-sm) 0; border-bottom: 1px solid var(--da-line); }
+.da-vrow .da-sub { margin: 0 0 4px; }
+.da-vrow .da-mb__tag { margin: 0 0 4px; }
+.da-vrow .da-p { margin: 0; }
+/* 넓은 화면: 긴 설명을 읽는 동안 몸 그림이 옆에 머문다. */
+@media (min-width: 481px) { #destinyAnatomyCard .da-body__svg { position: sticky; top: var(--cd-sp-md); } }
+
+/* ── 꽃돼지 밝은 톤(10-06) — 연이(기본) 테마에서는 크림·장밋빛 꽃 카드. 네오 테마는 위의 달빛 밤 창을 그대로 쓴다.
+ * :where() 접두사는 명시도 0 — 같은 명시도의 기존 규칙을 순서로만 이긴다. 표지·종이 --da-* 를 한 세트로 바꾼다(반쪽 오버라이드 금지). */
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard {
+  --da-bg: color-mix(in srgb, var(--cd-gold-soft) 35%, var(--cd-bg));
+  --da-bg-deep: color-mix(in srgb, var(--cd-accent-soft) 38%, var(--cd-bg));
+  --da-bg-lift: var(--cd-surface);
+  --da-ink: var(--cd-text);
+  --da-muted: var(--cd-text-muted);
+  --da-accent: var(--cd-accent);
+  --da-gold: color-mix(in srgb, var(--cd-accent) 72%, var(--cd-text));
+  --da-line: var(--cd-border);
+  --da-soft: color-mix(in srgb, var(--cd-accent-soft) 45%, transparent);
+  --da-surface: var(--cd-surface-2);
+  --da-glow: color-mix(in srgb, var(--cd-accent-soft) 70%, transparent);
+  --da-art: color-mix(in srgb, var(--cd-accent) 70%, var(--cd-gold));
+  background:
+    radial-gradient(130px 90px at 92% 0, color-mix(in srgb, var(--cd-gold) 55%, transparent), transparent 100%),
+    radial-gradient(420px 240px at 100% 0, color-mix(in srgb, var(--cd-accent-soft) 42%, transparent), transparent 70%),
+    radial-gradient(90% 50% at 0% 100%, color-mix(in srgb, var(--cd-accent-soft) 48%, transparent), transparent 70%),
+    linear-gradient(170deg, var(--da-bg) 0%, var(--da-bg-deep) 100%);
+  border-color: var(--da-line);
+  box-shadow: var(--cd-shadow);
+}
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-body-wrap {
+  --da-bg: color-mix(in srgb, var(--cd-gold-soft) 25%, var(--cd-bg));
+  --da-bg-deep: color-mix(in srgb, var(--cd-accent-soft) 30%, var(--cd-bg));
+  --da-bg-lift: var(--cd-surface);
+  --da-ink: var(--cd-text);
+  --da-muted: var(--cd-text-muted);
+  --da-accent: var(--cd-accent);
+  --da-gold: color-mix(in srgb, var(--cd-accent) 72%, var(--cd-text));
+  --da-line: var(--cd-border);
+  --da-soft: color-mix(in srgb, var(--cd-accent-soft) 40%, transparent);
+  --da-surface: color-mix(in srgb, var(--cd-accent-soft) 14%, transparent);
+  --da-glow: color-mix(in srgb, var(--cd-accent-soft) 60%, transparent);
+  --da-art: color-mix(in srgb, var(--cd-accent) 70%, var(--cd-gold));
+  --da-tone: var(--da-gold);
+  background:
+    radial-gradient(260px 140px at 100% 0, color-mix(in srgb, var(--cd-accent-soft) 32%, transparent), transparent 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--cd-gold-soft) 80%, transparent), transparent 140px),
+    var(--da-bg);
+  box-shadow: 0 1px 0 var(--cd-surface) inset, 0 18px 40px -24px color-mix(in srgb, var(--cd-accent) 40%, transparent), 0 0 0 1px var(--da-line);
+}
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-btn--primary,
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-body-wrap .da-btn--primary {
+  background: var(--cd-cta); color: var(--cd-cta-text); border-color: color-mix(in srgb, var(--cd-gold) 60%, transparent); box-shadow: 0 6px 18px -8px var(--da-glow);
+}
+/* 뇌 칸: 보석색 대신 파스텔 사탕색 — 진한 자두색 글자 대비 4.5:1 이상(밝기 고정). */
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-meme__fill { fill: color-mix(in srgb, var(--da-ax) 34%, var(--cd-bg)); }
+@supports (color: oklch(from red l c h)) {
+  :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-meme__fill { fill: oklch(from var(--da-ax) .89 calc(c * .6) h); }
+  :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-meme__fill.da-ax-reality,
+  :where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-ax-reality .da-meme__fill { fill: oklch(from var(--da-ax) .9 calc(c * .7) calc(h - 10)); }
+}
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-meme__brain { fill: var(--cd-surface); }
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-sheen-a { stop-color: var(--cd-surface); stop-opacity: .55; }
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard :is(.da-meme__line, .da-meme__pct) { text-shadow: 0 1px 0 var(--cd-surface); }
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-meme__cheek { fill: color-mix(in srgb, var(--cd-accent-soft) 85%, var(--da-bg-lift)); }
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-meme__art.da-meme__violin { fill: color-mix(in srgb, var(--cd-accent-soft) 60%, transparent); }
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard :is(.da-meme__petal, .da-crest__petal) { fill: var(--cd-accent-soft); }
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard :is(.da-meme__bloom, .da-crest__bloom) { fill: var(--cd-gold); }
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard :is(.da-meme__moon, .da-crest__moon) { fill: color-mix(in srgb, var(--cd-gold) 72%, var(--cd-text)); }
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard :is(.da-meme__star, .da-crest__star) { fill: color-mix(in srgb, var(--cd-gold) 66%, var(--cd-text)); }
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-mindline { background: linear-gradient(135deg, var(--da-bg-lift), color-mix(in srgb, var(--cd-accent-soft) 30%, var(--da-bg))); }
+/* 고른 대운은 장밋빛 — 밝은 카드에 차가운 민트 패널이 섞이지 않게. */
+:where(html:not(.neo-mode):not([data-cd-theme="neo"]) body:not(.neo-mode)) #destinyAnatomyCard .da-tone-steady { --da-tone: var(--cd-accent); }

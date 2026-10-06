@@ -35,6 +35,8 @@
   var SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
   var SIGNS_KO = ['양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리', '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'];
   var SIGN_ELEMENT = ['fire', 'earth', 'air', 'water'];
+  // 별자리 주인 행성. 정본: worker/lib/vedic-derived-calculations.js SIGN_LORDS(테스트가 일치를 단언한다).
+  var SIGN_LORDS = ['Mars', 'Venus', 'Mercury', 'Moon', 'Sun', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Saturn', 'Jupiter'];
   var NAKSHATRA_LORD = {
     'Ashwini':'Ketu', 'Bharani':'Venus', 'Krittika':'Sun', 'Rohini':'Moon', 'Mrigashira':'Mars', 'Ardra':'Rahu', 'Punarvasu':'Jupiter',
     'Pushya':'Saturn', 'Ashlesha':'Mercury', 'Magha':'Ketu', 'Purva Phalguni':'Venus', 'Uttara Phalguni':'Sun', 'Hasta':'Moon',
@@ -299,6 +301,8 @@
       available: true,
       lagna: lagna >= 0 ? SIGNS[lagna] : '',
       moonSign: moon >= 0 ? SIGNS[moon] : '',
+      // 6하우스 = 라그나에서 여섯째 별자리(전체 별자리 하우스, worker/lib/vedic-ai-chart.js 와 같은 방식). 출생시간이 없으면 비운다.
+      sixthLord: lagna >= 0 ? SIGN_LORDS[(lagna + 5) % 12] : '',
       nakshatra: nak,
       traits: traits
     };
@@ -546,7 +550,7 @@
     percents: percents,
     fingerprint: fingerprint,
     buildDestinyAnatomy: buildDestinyAnatomy,
-    _canon: {SIGNS: SIGNS, SIGNS_KO: SIGNS_KO, NAKSHATRA_LORD: NAKSHATRA_LORD}
+    _canon: {SIGNS: SIGNS, SIGNS_KO: SIGNS_KO, SIGN_LORDS: SIGN_LORDS, NAKSHATRA_LORD: NAKSHATRA_LORD}
   };
   root.DestinyAnatomyEngine = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

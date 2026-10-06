@@ -44,7 +44,7 @@
       toggle: {hd: '휴먼 디자인', chakra: '차크라', both: '함께 보기'},
       chakraNote: '차크라는 휴먼 디자인 센터와 다른 체계예요. 건강 상태가 아니라 상징적인 주제로만 읽어요.',
       chakraLevel: {bright: '밝게', steady: '고르게', quiet: '조용히'},
-      vedicTitle: '베다로 본 감정의 결',
+      vedicTitle: '베다로 본 마음과 몸',
       crossTitle: '서로 다른 운명 체계가 동시에 말하는 당신',
       badge: {saju: '사주', hd: '휴먼 디자인', fusion: '융합'},
       insightTitle: {thinking: '생각의 기본 방식', decision: '결정 방식', people: '사람 · 일 · 돈을 대하는 방식'},
@@ -56,7 +56,7 @@
       ctaTitle: '이 구조, 더 깊이 보고 싶다면',
       nyangLabel: '연이의 한마디', nyangSign: '— 연이', brand: '꿀꿀 운세 · 연이',
       reportLabel: 'FREE REPORT', tocTitle: '이 리포트에 담긴 것',
-      toc: {summary: '한눈에 요약', circuit: '사고회로', engines: '다섯 사고 엔진', elements: '에너지의 재료', decision: '결정 방식', body: '에너지 바디', vedic: '베다 감정 결', fusion: '교차 해석', ask: 'AI와 이어서 상담'},
+      toc: {summary: '한눈에 요약', circuit: '사고회로', engines: '다섯 사고 엔진', elements: '에너지의 재료', decision: '결정 방식', body: '에너지 바디', vedic: '베다 마음·몸', fusion: '교차 해석', ask: 'AI와 이어서 상담'},
       askTitle: '나는 어떤 사람이야? — AI와 이어서 상담하기',
       askLead: '이 리포트의 계산값만 담은 질문을 만들어 두었어요. 원하는 AI에 붙여넣으면 같은 대화에서 궁금한 점을 이어서 물어볼 수 있어요.',
       askCopy: '질문 복사하기',
@@ -244,6 +244,208 @@
       },
       frame: {fire: '세상을 도전과 가능성의 무대로 보는 편이에요.', earth: '세상을 차근차근 쌓아 가는 현실로 보는 편이에요.', air: '세상을 연결과 아이디어의 네트워크로 보는 편이에요.', water: '세상을 감정과 관계의 흐름으로 보는 편이에요.'}
     },
+    mb: {
+      ui: {
+        mind: '정신',
+        body: '신체',
+        organ: '상징 연결',
+        region: '상징 부위',
+        lord: '주인 별',
+        lead: '센터와 차크라마다 마음의 결과 몸의 리듬을 함께 읽어요.',
+        vedicMind: '마음',
+        vedicBody: '몸',
+        note: '정신·신체 문장은 전통 체계의 상징을 생활 리듬으로 옮긴 거예요. 의학적 판단이 아니니, 몸이 불편하거나 마음이 오래 무거우면 의사나 전문가와 상담하세요.'
+      },
+      center: {
+        HEAD: {
+          organ: '송과선',
+          mind: {defined: '스스로 질문을 꾸준히 만들어 내요. 영감이 안에서 솟는 편이라 혼자 생각하는 시간이 연료가 돼요.', open: '남의 질문과 고민을 내 것처럼 품기 쉬워요. ‘이게 정말 내 질문일까?’ 하고 걸러 보면 머리가 가벼워져요.'},
+          body: {defined: '생각이 밤까지 이어지기 쉬워요. 잠들기 전 메모로 머릿속을 비우는 습관이 잘 맞아요.', open: '정보가 많은 날엔 머리가 먼저 피곤해져요. 화면을 끄고 눈을 쉬는 짧은 틈이 리듬을 되찾아 줘요.'}
+        },
+        AJNA: {
+          organ: '뇌하수체',
+          mind: {defined: '생각하는 방식이 일정하고 확신이 있어요. 한 번 정리한 관점을 오래 지켜요.', open: '여러 관점을 유연하게 오가요. 확신을 서두르지 않을 때 오히려 판단이 넓어져요.'},
+          body: {defined: '고민을 붙잡고 있으면 눈과 어깨가 굳기 쉬워요. 생각이 맴돌 땐 몸을 움직여 흐름을 바꿔 보세요.', open: '머리를 쓸 때와 쉴 때의 경계가 흐려지기 쉬워요. 공부·일 시간을 정해 두면 머리가 덜 지쳐요.'}
+        },
+        THROAT: {
+          organ: '갑상선 · 부갑상선',
+          mind: {defined: '말과 행동으로 드러내는 길이 열려 있어요. 표현할 때 생각이 정리되는 편이에요.', open: '분위기에 따라 말이 많아지거나 줄어들어요. 꼭 필요할 때만 꺼내도 충분히 전해져요.'},
+          body: {defined: '말을 많이 한 날엔 목과 어깨가 먼저 신호를 보내요. 따뜻한 물과 목 스트레칭이 잘 맞아요.', open: '주목받으려 애쓰면 에너지가 빨리 새요. 말하기 전 한 박자 쉬는 호흡이 목을 아껴 줘요.'}
+        },
+        G: {
+          organ: '간 · 혈액',
+          mind: {defined: '나다움과 방향 감각이 안정적이에요. 환경이 바뀌어도 정체성이 크게 흔들리지 않아요.', open: '함께하는 사람과 장소에 따라 내가 달라져요. 좋은 장소를 고르는 감각이 곧 방향이 돼요.'},
+          body: {defined: '방향을 잃었다고 느끼면 몸도 처져요. 걷기처럼 앞으로 나아가는 움직임이 리듬을 살려요.', open: '공간의 분위기를 몸으로 먼저 느껴요. 머무는 곳이 불편하면 자리를 바꾸는 것만으로 컨디션이 달라져요.'}
+        },
+        HEART: {
+          organ: '심장 · 위 · 담낭 · 흉선',
+          mind: {defined: '약속과 의지력이 꾸준해요. 스스로 정한 목표를 지켜 내는 힘이 있어요.', open: '내 가치를 증명하고 싶어지기 쉬워요. 이미 충분하다는 감각이 마음을 편하게 해요.'},
+          body: {defined: '의지로 밀어붙인 뒤엔 확실한 휴식이 필요해요. 일한 만큼 쉬는 리듬이 잘 맞아요.', open: '무리한 약속은 가슴과 위의 긴장으로 이어지기 쉬워요. 지킬 수 있는 만큼만 약속하는 게 몸을 지켜요.'}
+        },
+        SOLAR_PLEXUS: {
+          organ: '신장 · 췌장 · 신경계',
+          mind: {defined: '감정이 파도처럼 오르내려요. 한순간의 기분보다 며칠의 흐름을 보고 정할 때 선명해져요.', open: '주변 감정을 스펀지처럼 흡수해요. ‘이 기분이 누구 것인지’ 구분하면 마음이 가벼워져요.'},
+          body: {defined: '감정의 파도가 몸의 리듬에도 실려요. 기분이 높을 땐 무리하지 말고, 낮을 땐 쉬어 가세요.', open: '갈등이 있는 자리에선 몸이 먼저 긴장해요. 혼자 있는 시간에 숨을 고르며 감정을 털어 내 보세요.'}
+        },
+        SACRAL: {
+          organ: '생식 기관',
+          mind: {defined: '좋아하는 일에 반응하는 힘이 크고 꾸준해요. ‘하고 싶다’는 몸의 대답이 좋은 나침반이에요.', open: '남의 에너지에 맞춰 더 오래 일하기 쉬워요. 언제 충분한지 아는 감각이 중요해요.'},
+          body: {defined: '하루 에너지를 다 쓰고 잘 때 잠이 깊어요. 몸을 충분히 쓰는 일과가 잘 맞아요.', open: '지치기 전에 눕는 습관이 리듬을 지켜요. 다른 사람의 속도에 맞춰 끝까지 버티지 않아도 돼요.'}
+        },
+        SPLEEN: {
+          organ: '림프 · 비장 · 면역계',
+          mind: {defined: '순간의 직감이 또렷해요. ‘지금은 아니야’라는 작은 신호를 잘 들어요.', open: '익숙한 사람과 습관에 기대고 싶어질 때가 있어요. 놓아야 할 것을 알아차리는 게 성장의 열쇠예요.'},
+          body: {defined: '몸의 작은 신호를 빨리 알아채는 편이에요. 그 신호를 넘기지 않는 것만으로 컨디션을 지켜요.', open: '환경이 바뀌면 몸이 민감하게 반응해요. 잠과 식사 시간을 일정하게 두면 몸이 든든해져요.'}
+        },
+        ROOT: {
+          organ: '부신',
+          mind: {defined: '압박을 일정한 속도로 다뤄요. 마감이 있어도 페이스를 잃지 않는 편이에요.', open: '서두르라는 압박을 크게 느껴요. ‘급한 일이 정말 급한가?’를 묻는 습관이 마음을 지켜요.'},
+          body: {defined: '긴장한 뒤엔 확실히 풀어 주는 시간이 필요해요. 발바닥을 땅에 대고 천천히 걷는 게 좋아요.', open: '압박이 쌓이면 몸이 쉽게 조급해져요. 할 일을 작게 나눠 한 번에 하나씩 끝내 보세요.'}
+        }
+      },
+      chakra: {
+        crown: {
+          region: '정수리',
+          mind: {
+            bright: '의미와 큰 그림을 찾는 마음이 강해요. 왜 하는지가 분명할 때 힘이 나요.',
+            steady: '현실과 의미 사이 균형이 잡혀 있어요. 가끔 큰 그림을 떠올리면 방향이 선명해져요.',
+            quiet: '지금 눈앞의 일에 집중하는 편이에요. 하루 한 번 ‘왜’를 묻는 시간이 마음을 넓혀 줘요.'
+          },
+          body: {
+            bright: '생각이 위로 몰리기 쉬워요. 산책처럼 몸을 땅에 붙이는 활동으로 균형을 잡아요.',
+            steady: '머리와 몸의 리듬이 고르게 맞는 편이에요. 일정한 잠 시간이 이 균형을 지켜 줘요.',
+            quiet: '몸을 쓰는 감각은 좋지만 쉼이 짧아지기 쉬워요. 조용히 눈을 감는 5분이 머리를 맑게 해요.'
+          }
+        },
+        thirdEye: {
+          region: '이마 · 미간 · 눈',
+          mind: {
+            bright: '관찰력과 상상력이 뛰어나요. 남들이 못 본 패턴을 먼저 알아채요.',
+            steady: '직관과 사실을 함께 확인해요. 떠오른 생각을 적어 두면 통찰이 쌓여요.',
+            quiet: '눈앞의 사실을 믿는 편이에요. 가끔 상상의 여지를 두면 새로운 길이 보여요.'
+          },
+          body: {
+            bright: '눈과 이마에 긴장이 몰리기 쉬워요. 먼 곳을 바라보며 눈을 쉬게 해 주세요.',
+            steady: '보는 일과 쉬는 일의 균형이 괜찮아요. 화면을 보는 틈틈이 눈을 감아 주세요.',
+            quiet: '생각보다 몸이 먼저 움직여요. 잠들기 전 조명을 낮추면 쉼이 깊어져요.'
+          }
+        },
+        throat: {
+          region: '목 · 턱 · 어깨',
+          mind: {
+            bright: '말과 글로 생각을 풀어내는 힘이 커요. 표현할수록 마음이 정리돼요.',
+            steady: '필요한 말은 하고 아낄 말은 아껴요. 솔직함과 배려 사이 균형이 좋아요.',
+            quiet: '마음을 말로 꺼내기까지 시간이 걸려요. 짧은 메모로 먼저 표현해 보세요.'
+          },
+          body: {
+            bright: '목과 턱에 힘이 들어가기 쉬워요. 말을 많이 한 날엔 따뜻한 차로 목을 쉬게 해 주세요.',
+            steady: '목과 어깨의 리듬이 고른 편이에요. 자세를 자주 바꾸는 것만으로 충분해요.',
+            quiet: '하고 싶은 말을 삼키면 턱과 어깨가 굳기 쉬워요. 흥얼거리거나 소리 내 읽는 것도 좋아요.'
+          }
+        },
+        heart: {
+          region: '가슴 · 폐 · 팔',
+          mind: {
+            bright: '사람과 연결될 때 에너지가 차올라요. 다정함이 가장 큰 무기예요.',
+            steady: '주는 마음과 받는 마음이 고르게 오가요. 관계의 온도를 잘 맞춰요.',
+            quiet: '마음을 쉽게 열지 않는 편이에요. 믿는 한 사람에게 먼저 마음을 나눠 보세요.'
+          },
+          body: {
+            bright: '남을 챙기다 내 숨이 짧아지기 쉬워요. 가슴을 펴고 깊게 숨 쉬는 시간을 가져요.',
+            steady: '호흡과 마음의 박자가 잘 맞는 편이에요. 가벼운 유산소 운동이 이 리듬을 지켜요.',
+            quiet: '긴장하면 어깨가 말리고 숨이 얕아져요. 팔을 크게 벌리는 스트레칭이 잘 맞아요.'
+          }
+        },
+        solarPlexus: {
+          region: '명치 · 위장',
+          mind: {bright: '스스로 밀고 나가는 의지가 강해요. 목표가 생기면 불이 붙어요.', steady: '의지와 여유가 고르게 섞여 있어요. 할 때와 쉴 때를 잘 구분해요.', quiet: '남이 정한 속도를 따라가기 쉬워요. 작은 일이라도 스스로 정해 보세요.'},
+          body: {
+            bright: '긴장이 배와 명치로 먼저 와요. 식사를 서두르지 않는 습관이 몸을 편하게 해요.',
+            steady: '소화 리듬이 비교적 고른 편이에요. 규칙적인 식사 시간이 이 리듬을 지켜요.',
+            quiet: '기운이 낮을 땐 배를 따뜻하게 두면 좋아요. 아침에 몸을 데우는 작은 루틴을 만들어 보세요.'
+          }
+        },
+        sacral: {
+          region: '아랫배 · 골반',
+          mind: {
+            bright: '즐거움과 창작 욕구가 풍부해요. 좋아하는 걸 할 때 아이디어가 솟아요.',
+            steady: '즐거움과 책임을 적당히 오가요. 취미 하나가 삶의 윤활유가 돼요.',
+            quiet: '해야 할 일 위주로 살기 쉬워요. 이유 없이 즐거운 일을 일정에 넣어 보세요.'
+          },
+          body: {
+            bright: '기분 좋은 일에 몸을 많이 쓰는 편이에요. 즐긴 뒤 충분히 쉬는 것까지가 리듬이에요.',
+            steady: '골반과 허리의 리듬이 고른 편이에요. 오래 앉아 있었다면 골반을 돌려 풀어 주세요.',
+            quiet: '오래 앉아 있으면 아랫배와 허리가 무거워지기 쉬워요. 춤이나 가벼운 걷기로 흐름을 깨워요.'
+          }
+        },
+        root: {
+          region: '꼬리뼈 · 다리 · 발',
+          mind: {
+            bright: '현실 감각과 안정 욕구가 강해요. 기반이 탄탄할 때 마음이 놓여요.',
+            steady: '안정과 변화를 고르게 받아들여요. 기본 루틴이 있으면 새 도전도 편해요.',
+            quiet: '발이 땅에 덜 닿은 듯 들뜨기 쉬워요. 고정 루틴 하나가 마음의 닻이 돼요.'
+          },
+          body: {
+            bright: '다리와 허리에 힘이 좋은 편이에요. 너무 오래 버티기보다 중간중간 풀어 주세요.',
+            steady: '하체 리듬이 고른 편이에요. 꾸준한 걷기가 이 균형을 지켜요.',
+            quiet: '하체가 무겁게 느껴질 때가 있어요. 따뜻한 족욕이나 천천히 걷기가 잘 맞아요.'
+          }
+        }
+      },
+      vedicKind: {moon: '달 별자리로 본 마음', lagna: '라그나로 본 몸의 결', sixth: '6하우스로 본 회복 방식'},
+      sign: {
+        Aries: '양자리',
+        Taurus: '황소자리',
+        Gemini: '쌍둥이자리',
+        Cancer: '게자리',
+        Leo: '사자자리',
+        Virgo: '처녀자리',
+        Libra: '천칭자리',
+        Scorpio: '전갈자리',
+        Sagittarius: '사수자리',
+        Capricorn: '염소자리',
+        Aquarius: '물병자리',
+        Pisces: '물고기자리'
+      },
+      graha: {Sun: '태양', Moon: '달', Mars: '화성', Mercury: '수성', Jupiter: '목성', Venus: '금성', Saturn: '토성'},
+      moon: {
+        Aries: '감정이 빠르게 불붙고 빠르게 식어요. 바로 표현하고 털어 내는 게 마음을 편하게 해요.',
+        Taurus: '마음이 안정될 때 가장 행복해요. 익숙한 공간과 맛있는 음식이 큰 위로가 돼요.',
+        Gemini: '감정을 말과 대화로 풀어요. 수다 한 번이 마음 정리의 지름길이에요.',
+        Cancer: '감정이 깊고 보살피는 마음이 커요. 안전한 내 공간이 있을 때 마음이 회복돼요.',
+        Leo: '인정받을 때 마음이 환해져요. 스스로를 칭찬하는 습관이 자존감을 지켜요.',
+        Virgo: '마음이 불안하면 정리하고 분석해요. 완벽하지 않아도 괜찮다는 말을 스스로에게 들려주세요.',
+        Libra: '조화로운 관계에서 마음이 편해요. 갈등을 피하기보다 부드럽게 말하는 연습이 좋아요.',
+        Scorpio: '감정을 깊이 품고 쉽게 드러내지 않아요. 믿는 사람에게 털어놓을 때 마음이 가벼워져요.',
+        Sagittarius: '자유와 의미를 찾을 때 마음이 살아나요. 여행이나 새로운 배움이 기분을 바꿔 줘요.',
+        Capricorn: '감정보다 책임을 먼저 챙겨요. 무언가를 해낸 뒤엔 쉬어도 된다고 스스로 허락해 주세요.',
+        Aquarius: '감정을 한 발 떨어져서 바라봐요. 혼자만의 시간과 마음 맞는 친구가 둘 다 필요해요.',
+        Pisces: '공감력이 크고 상상이 풍부해요. 음악이나 그림처럼 감정을 흘려보낼 통로가 있으면 좋아요.'
+      },
+      lagna: {
+        Aries: {region: '머리 · 얼굴', body: '에너지가 머리 쪽으로 몰리기 쉬워요. 열이 오를 땐 잠깐 멈추고 식히는 시간을 가져요.'},
+        Taurus: {region: '목 · 목구멍', body: '목과 어깨에 피로가 쌓이기 쉬워요. 천천히 먹고 목을 따뜻하게 두는 게 잘 맞아요.'},
+        Gemini: {region: '어깨 · 팔 · 호흡', body: '바쁘면 호흡이 얕아지기 쉬워요. 손을 쉬게 하고 깊게 숨 쉬는 틈을 두세요.'},
+        Cancer: {region: '가슴 · 위', body: '감정이 위장 리듬에 실리기 쉬워요. 편안한 분위기에서 식사하는 게 몸을 도와요.'},
+        Leo: {region: '심장 · 등', body: '열정적으로 달리다 등이 뻣뻣해지기 쉬워요. 가슴을 펴는 스트레칭과 충분한 잠이 좋아요.'},
+        Virgo: {region: '장 · 소화', body: '걱정이 소화 리듬에 먼저 나타나요. 규칙적인 식사와 가벼운 산책이 잘 맞아요.'},
+        Libra: {region: '허리 · 신장', body: '균형이 깨지면 허리가 먼저 무거워져요. 오래 앉았다면 허리를 펴고 물을 자주 마셔요.'},
+        Scorpio: {region: '골반 · 아랫배', body: '긴장을 아랫배에 담아 두기 쉬워요. 따뜻한 목욕과 깊은 호흡으로 풀어 주세요.'},
+        Sagittarius: {region: '엉덩이 · 허벅지', body: '움직여야 기분이 풀리는 몸이에요. 걷기나 하이킹처럼 큰 근육을 쓰는 활동이 좋아요.'},
+        Capricorn: {region: '무릎 · 뼈대', body: '버티는 힘이 강한 만큼 관절을 아껴 주세요. 무리한 운동보다 꾸준한 스트레칭이 맞아요.'},
+        Aquarius: {region: '종아리 · 발목 · 순환', body: '오래 서 있거나 앉아 있으면 다리가 무거워져요. 자주 일어나 순환을 깨워 주세요.'},
+        Pisces: {region: '발 · 잠', body: '몸이 분위기와 피로에 민감해요. 충분한 잠과 발을 따뜻하게 두는 습관이 리듬을 지켜요.'}
+      },
+      sixth: {
+        Sun: '햇볕과 규칙적인 일과로 회복해요. 아침 햇살을 받으며 걷는 시간이 잘 맞아요.',
+        Moon: '마음이 편해야 몸도 회복돼요. 익숙한 사람·공간에서 쉬는 시간이 가장 큰 회복이에요.',
+        Mars: '몸을 움직여서 회복하는 타입이에요. 땀 흘린 뒤엔 충분히 식히는 시간도 챙겨요.',
+        Mercury: '머리를 비울 때 회복돼요. 일기·정리·가벼운 퍼즐처럼 생각을 정돈하는 활동이 좋아요.',
+        Jupiter: '‘적당히’가 회복의 열쇠예요. 과식과 과로를 조금씩 덜어 내면 몸이 가벼워져요.',
+        Venus: '즐거움과 아름다움으로 회복해요. 좋아하는 음악·향·맛있는 한 끼가 큰 힘이 돼요.',
+        Saturn: '천천히, 꾸준히 회복하는 타입이에요. 같은 시간에 자고 일어나는 루틴이 가장 잘 맞아요.'
+      }
+    },
     nyang: {
       selfDrive: '당신 머릿속에는 운전대가 하나 있네요. 가끔은 조수석에 앉아 풍경을 보셔도 길은 사라지지 않아요.',
       expression: '당신을 움직이는 연료는 재미예요. 지루한 일은 작게 나눠 놀이처럼 시작해 보세요.',
@@ -297,7 +499,7 @@
       toggle: {hd: 'Human Design', chakra: 'Chakra', both: 'Both'},
       chakraNote: 'Chakras are a different system from Human Design centers. They are read only as symbolic themes, not as a health state.',
       chakraLevel: {bright: 'Bright', steady: 'Steady', quiet: 'Quiet'},
-      vedicTitle: 'Your emotional grain, through Vedic astrology',
+      vedicTitle: 'Your mind and body, through Vedic astrology',
       crossTitle: 'What different destiny systems say about you at once',
       badge: {saju: 'Saju', hd: 'Human Design', fusion: 'Fusion'},
       insightTitle: {thinking: 'How you think by default', decision: 'How you decide', people: 'How you handle people, work and money'},
@@ -309,7 +511,7 @@
       ctaTitle: 'Want to go deeper into this structure?',
       nyangLabel: 'A note from Yeoni', nyangSign: '— Yeoni', brand: 'Ggulggul Fortune · Yeoni',
       reportLabel: 'FREE REPORT', tocTitle: 'In this report',
-      toc: {summary: 'At a glance', circuit: 'Thought circuit', engines: 'Five engines', elements: 'Energy materials', decision: 'How you decide', body: 'Energy body', vedic: 'Vedic emotions', fusion: 'Cross reading', ask: 'Continue with an AI'},
+      toc: {summary: 'At a glance', circuit: 'Thought circuit', engines: 'Five engines', elements: 'Energy materials', decision: 'How you decide', body: 'Energy body', vedic: 'Vedic mind & body', fusion: 'Cross reading', ask: 'Continue with an AI'},
       askTitle: 'Who am I? — continue with an AI',
       askLead: 'We prepared a question that holds only the values calculated in this report. Paste it into the AI you like, then keep asking in the same chat.',
       askCopy: 'Copy the question',
@@ -497,6 +699,266 @@
       },
       frame: {fire: 'You tend to see the world as a stage of challenge and possibility.', earth: 'You tend to see the world as a reality built step by step.', air: 'You tend to see the world as a network of connections and ideas.', water: 'You tend to see the world as a flow of feelings and relationships.'}
     },
+    mb: {
+      ui: {
+        mind: 'Mind',
+        body: 'Body',
+        organ: 'Traditional link',
+        region: 'Body area',
+        lord: 'Ruling planet',
+        lead: 'Each center and chakra is read twice: the grain of your mind and the rhythm of your body.',
+        vedicMind: 'Mind',
+        vedicBody: 'Body',
+        note: 'These mind and body lines translate the symbols of traditional systems into everyday rhythms. They are not medical advice — if your body feels unwell or your mood stays heavy for a long time, please talk to a doctor or a qualified professional.'
+      },
+      center: {
+        HEAD: {
+          organ: 'Pineal gland',
+          mind: {
+            defined: 'You keep generating your own questions. Inspiration rises from within, so time alone with your thoughts is your fuel.',
+            open: 'You easily carry other people\'s questions as if they were yours. Asking \'Is this really my question?\' lightens your head.'
+          },
+          body: {
+            defined: 'Thoughts tend to run late into the night. Emptying your head onto a note before bed suits you well.',
+            open: 'On information-heavy days your head tires first. Short breaks with the screen off and your eyes resting bring your rhythm back.'
+          }
+        },
+        AJNA: {
+          organ: 'Pituitary gland',
+          mind: {
+            defined: 'Your way of thinking is consistent and sure. Once you settle on a view, you hold it for a long time.',
+            open: 'You move flexibly between perspectives. Your judgement grows wider when you don\'t rush to certainty.'
+          },
+          body: {
+            defined: 'Holding on to a worry can stiffen your eyes and shoulders. When thoughts circle, move your body to shift the flow.',
+            open: 'The line between thinking time and rest time blurs easily. Setting fixed hours for study or work keeps your head fresher.'
+          }
+        },
+        THROAT: {
+          organ: 'Thyroid · parathyroid',
+          mind: {
+            defined: 'Your path to expressing through words and action is open. Speaking is how your thoughts get organised.',
+            open: 'You talk more or less depending on the room. Speaking only when it truly matters is enough to be heard.'
+          },
+          body: {
+            defined: 'After a talkative day, your throat and shoulders signal first. Warm water and neck stretches suit you.',
+            open: 'Straining for attention drains your energy fast. A breath\'s pause before you speak spares your throat.'
+          }
+        },
+        G: {
+          organ: 'Liver · blood',
+          mind: {
+            defined: 'Your sense of self and direction is steady. Even when your surroundings change, your identity holds.',
+            open: 'Who you are shifts with the people and places around you. Your knack for choosing good places becomes your direction.'
+          },
+          body: {
+            defined: 'When you feel directionless, your body slumps too. Forward motion like walking revives your rhythm.',
+            open: 'You feel the mood of a space in your body first. If a place feels off, simply moving can change how you feel.'
+          }
+        },
+        HEART: {
+          organ: 'Heart · stomach · gallbladder · thymus',
+          mind: {
+            defined: 'Your promises and willpower are consistent. You have the strength to keep goals you set for yourself.',
+            open: 'You may feel the urge to prove your worth. Sensing that you are already enough puts your heart at ease.'
+          },
+          body: {
+            defined: 'After pushing on willpower, you need real rest. A rhythm of resting as much as you work suits you.',
+            open: 'Overpromising tends to show up as tension in your chest and stomach. Promising only what you can keep protects your body.'
+          }
+        },
+        SOLAR_PLEXUS: {
+          organ: 'Kidneys · pancreas · nervous system',
+          mind: {
+            defined: 'Your emotions rise and fall like waves. Decisions get clearer when you watch the flow over days, not a single mood.',
+            open: 'You soak up the feelings around you like a sponge. Sorting out \'whose feeling is this?\' lightens your heart.'
+          },
+          body: {
+            defined: 'Your emotional waves ride on your body\'s rhythm too. Don\'t overdo it on highs, and slow down on lows.',
+            open: 'In tense rooms your body tightens first. Use time alone to steady your breath and shake the feelings off.'
+          }
+        },
+        SACRAL: {
+          organ: 'Reproductive organs',
+          mind: {
+            defined: 'Your response to what you love is strong and lasting. Your body\'s \'yes, I want this\' is a good compass.',
+            open: 'You may work longer to match other people\'s energy. Knowing when you have had enough matters.'
+          },
+          body: {
+            defined: 'You sleep deeply when you have used up the day\'s energy. Days that use your body fully suit you.',
+            open: 'Lying down before you are exhausted protects your rhythm. You don\'t need to hold out at someone else\'s pace.'
+          }
+        },
+        SPLEEN: {
+          organ: 'Lymph · spleen · immune system',
+          mind: {
+            defined: 'Your in-the-moment instinct is clear. You hear the small signal that says \'not now\'.',
+            open: 'Sometimes you want to lean on familiar people and habits. Noticing what to let go of is your key to growth.'
+          },
+          body: {
+            defined: 'You notice your body\'s small signals quickly. Simply not ignoring them keeps you in good shape.',
+            open: 'Your body reacts sensitively when your surroundings change. Regular sleep and meal times make you feel sturdier.'
+          }
+        },
+        ROOT: {
+          organ: 'Adrenal glands',
+          mind: {
+            defined: 'You handle pressure at a steady pace. Even with deadlines, you rarely lose your stride.',
+            open: 'You feel the push to hurry strongly. Asking \'Is this urgent thing really urgent?\' protects your peace.'
+          },
+          body: {
+            defined: 'After tension, you need time to truly unwind. Walking slowly with your feet on the ground helps.',
+            open: 'When pressure piles up, your body gets restless. Break tasks into small pieces and finish one at a time.'
+          }
+        }
+      },
+      chakra: {
+        crown: {
+          region: 'Crown of the head',
+          mind: {
+            bright: 'You strongly seek meaning and the big picture. You find strength when the \'why\' is clear.',
+            steady: 'You balance reality and meaning well. Recalling the big picture now and then sharpens your direction.',
+            quiet: 'You focus on what is right in front of you. Asking \'why\' once a day widens your mind.'
+          },
+          body: {
+            bright: 'Your energy tends to gather upward. Grounding activities like walks restore balance.',
+            steady: 'Your head and body keep a fairly even rhythm. A regular bedtime protects that balance.',
+            quiet: 'You use your body well but your rests run short. Five quiet minutes with eyes closed clears your head.'
+          }
+        },
+        thirdEye: {
+          region: 'Forehead · brow · eyes',
+          mind: {
+            bright: 'Your observation and imagination are sharp. You spot patterns others miss.',
+            steady: 'You check intuition against facts. Writing down what comes to you builds insight.',
+            quiet: 'You trust the facts in front of you. Leaving a little room for imagination reveals new paths.'
+          },
+          body: {
+            bright: 'Tension gathers easily around your eyes and forehead. Rest them by gazing into the distance.',
+            steady: 'Your balance of looking and resting is fine. Close your eyes now and then between screens.',
+            quiet: 'Your body moves before your thoughts. Dimming the lights before bed deepens your rest.'
+          }
+        },
+        throat: {
+          region: 'Throat · jaw · shoulders',
+          mind: {
+            bright: 'You are strong at untangling thoughts in speech and writing. The more you express, the clearer you feel.',
+            steady: 'You say what\'s needed and hold back what isn\'t. Your balance of honesty and care is good.',
+            quiet: 'It takes time to put your feelings into words. Try a short note first.'
+          },
+          body: {
+            bright: 'Your throat and jaw tense up easily. After a talkative day, rest your throat with a warm tea.',
+            steady: 'Your neck and shoulders keep an even rhythm. Changing posture often is enough.',
+            quiet: 'Swallowing what you want to say can stiffen your jaw and shoulders. Humming or reading aloud helps.'
+          }
+        },
+        heart: {
+          region: 'Chest · lungs · arms',
+          mind: {
+            bright: 'Connecting with people fills you with energy. Warmth is your greatest strength.',
+            steady: 'Giving and receiving flow evenly. You read the temperature of a relationship well.',
+            quiet: 'You don\'t open up easily. Try sharing your heart first with one person you trust.'
+          },
+          body: {
+            bright: 'Caring for others can leave you short of breath. Take time to open your chest and breathe deeply.',
+            steady: 'Your breath and heart keep good time together. Light cardio protects this rhythm.',
+            quiet: 'Under tension your shoulders curl and your breath gets shallow. Wide arm-opening stretches suit you.'
+          }
+        },
+        solarPlexus: {
+          region: 'Upper belly · digestion',
+          mind: {
+            bright: 'Your drive to push forward on your own is strong. A goal lights you up.',
+            steady: 'Your will and ease are well mixed. You know when to act and when to rest.',
+            quiet: 'You tend to follow a pace others set. Try deciding small things for yourself.'
+          },
+          body: {
+            bright: 'Tension lands in your belly first. Not rushing your meals keeps your body comfortable.',
+            steady: 'Your digestion keeps a fairly even rhythm. Regular mealtimes protect it.',
+            quiet: 'On low-energy days, keep your belly warm. Build a small morning routine that warms you up.'
+          }
+        },
+        sacral: {
+          region: 'Lower belly · pelvis',
+          mind: {
+            bright: 'You are rich in joy and the urge to create. Ideas flow when you do what you love.',
+            steady: 'You move comfortably between fun and duty. One hobby keeps life running smoothly.',
+            quiet: 'You tend to live by your to-do list. Put something fun for no reason into your schedule.'
+          },
+          body: {
+            bright: 'You put a lot of body into things that feel good. Resting well afterwards is part of the rhythm.',
+            steady: 'Your pelvis and lower back keep an even rhythm. After long sitting, loosen up with hip circles.',
+            quiet: 'Long sitting can make your lower belly and back feel heavy. Wake the flow with dancing or a light walk.'
+          }
+        },
+        root: {
+          region: 'Tailbone · legs · feet',
+          mind: {
+            bright: 'Your sense of reality and need for stability are strong. A solid base puts your mind at ease.',
+            steady: 'You take stability and change in stride. A basic routine makes new challenges easier.',
+            quiet: 'You can feel a little ungrounded. One fixed routine becomes an anchor for your mind.'
+          },
+          body: {
+            bright: 'Your legs and lower back are strong. Loosen up along the way instead of holding out too long.',
+            steady: 'Your lower body keeps an even rhythm. Regular walking protects that balance.',
+            quiet: 'Your lower body may feel heavy at times. Warm foot soaks or slow walks suit you.'
+          }
+        }
+      },
+      vedicKind: {moon: 'Your mind, by Moon sign', lagna: 'Your body\'s grain, by Lagna', sixth: 'How you recover, by the 6th house'},
+      sign: {
+        Aries: 'Aries',
+        Taurus: 'Taurus',
+        Gemini: 'Gemini',
+        Cancer: 'Cancer',
+        Leo: 'Leo',
+        Virgo: 'Virgo',
+        Libra: 'Libra',
+        Scorpio: 'Scorpio',
+        Sagittarius: 'Sagittarius',
+        Capricorn: 'Capricorn',
+        Aquarius: 'Aquarius',
+        Pisces: 'Pisces'
+      },
+      graha: {Sun: 'Sun', Moon: 'Moon', Mars: 'Mars', Mercury: 'Mercury', Jupiter: 'Jupiter', Venus: 'Venus', Saturn: 'Saturn'},
+      moon: {
+        Aries: 'Your feelings catch fire fast and cool fast. Expressing them right away and letting go eases your mind.',
+        Taurus: 'You are happiest when your heart feels settled. Familiar places and good food are a big comfort.',
+        Gemini: 'You work through feelings by talking. One good chat is your shortcut to clarity.',
+        Cancer: 'Your feelings run deep and you care a lot. A safe space of your own is where your heart recovers.',
+        Leo: 'Recognition lights you up. A habit of praising yourself protects your self-esteem.',
+        Virgo: 'When anxious, you organise and analyse. Tell yourself it\'s fine not to be perfect.',
+        Libra: 'Harmony puts you at ease. Practise saying things gently rather than avoiding conflict.',
+        Scorpio: 'You hold feelings deeply and rarely show them. Opening up to someone you trust lightens you.',
+        Sagittarius: 'Freedom and meaning bring you alive. Travel or learning something new lifts your mood.',
+        Capricorn: 'You put responsibility before feelings. After you achieve something, give yourself permission to rest.',
+        Aquarius: 'You watch your feelings from a step away. You need both time alone and like-minded friends.',
+        Pisces: 'You are deeply empathetic and imaginative. Channels like music or drawing help your feelings flow.'
+      },
+      lagna: {
+        Aries: {region: 'Head · face', body: 'Your energy tends to rush to your head. When you heat up, pause and cool down for a moment.'},
+        Taurus: {region: 'Neck · throat', body: 'Fatigue gathers in your neck and shoulders. Eating slowly and keeping your neck warm suit you.'},
+        Gemini: {region: 'Shoulders · arms · breath', body: 'When busy, your breathing gets shallow. Rest your hands and leave gaps for deep breaths.'},
+        Cancer: {region: 'Chest · stomach', body: 'Feelings ride on your digestion. Eating in a calm setting helps your body.'},
+        Leo: {region: 'Heart · back', body: 'Running on passion can stiffen your back. Chest-opening stretches and good sleep help.'},
+        Virgo: {region: 'Gut · digestion', body: 'Worry shows up in your digestion first. Regular meals and light walks suit you.'},
+        Libra: {region: 'Lower back · kidneys', body: 'When balance tips, your lower back feels it first. After long sitting, straighten up and drink water often.'},
+        Scorpio: {region: 'Pelvis · lower belly', body: 'You tend to store tension in your lower belly. Release it with warm baths and deep breathing.'},
+        Sagittarius: {region: 'Hips · thighs', body: 'Your body needs movement to lift your mood. Walks or hikes that use big muscles suit you.'},
+        Capricorn: {region: 'Knees · skeleton', body: 'You endure well, so be kind to your joints. Steady stretching suits you better than intense workouts.'},
+        Aquarius: {region: 'Calves · ankles · circulation', body: 'Long standing or sitting makes your legs heavy. Get up often to wake your circulation.'},
+        Pisces: {region: 'Feet · sleep', body: 'Your body is sensitive to mood and fatigue. Enough sleep and warm feet protect your rhythm.'}
+      },
+      sixth: {
+        Sun: 'You recover with sunlight and a regular routine. Morning walks in the sun suit you.',
+        Moon: 'Your body recovers when your heart is at ease. Rest with familiar people and places is your best recovery.',
+        Mars: 'You recover by moving. After a good sweat, make time to cool down too.',
+        Mercury: 'You recover by clearing your head. Journalling, tidying or light puzzles help you reset.',
+        Jupiter: '\'Just enough\' is your recovery key. Easing off overeating and overwork little by little lightens you.',
+        Venus: 'You recover through pleasure and beauty. Favourite music, scents or a delicious meal give you strength.',
+        Saturn: 'You recover slowly and steadily. Sleeping and waking at the same times suits you best.'
+      }
+    },
     nyang: {
       selfDrive: 'There is a steering wheel in your mind. Now and then, take the passenger seat and enjoy the view — the road will still be there.',
       expression: 'Joy is what moves you. Cut a dull task into small pieces and begin it like play.',
@@ -550,7 +1012,7 @@
       toggle: {hd: 'ヒューマンデザイン', chakra: 'チャクラ', both: '一緒に見る'},
       chakraNote: 'チャクラはヒューマンデザインのセンターとは別の体系です。健康状態ではなく、象徴的なテーマとしてのみ読みます。',
       chakraLevel: {bright: '明るく', steady: '安定して', quiet: '静かに'},
-      vedicTitle: 'インド占星術で見る感情の質',
+      vedicTitle: 'ヴェーダで見る心と体',
       crossTitle: '異なる運命体系が同時に語るあなた',
       badge: {saju: '四柱推命', hd: 'ヒューマンデザイン', fusion: '融合'},
       insightTitle: {thinking: '考え方の基本', decision: '決め方', people: '人・仕事・お金との向き合い方'},
@@ -562,7 +1024,7 @@
       ctaTitle: 'この構造をもっと深く知りたいなら',
       nyangLabel: 'ヨニのひとこと', nyangSign: '— ヨニ', brand: 'Ggulggul Fortune · ヨニ',
       reportLabel: 'FREE REPORT', tocTitle: 'このレポートの内容',
-      toc: {summary: '要約', circuit: '思考回路', engines: '5つの思考エンジン', elements: 'エネルギーの素材', decision: '決め方', body: 'エネルギーボディ', vedic: 'ヴェーダの感情', fusion: 'クロス解釈', ask: 'AIで相談を続ける'},
+      toc: {summary: '要約', circuit: '思考回路', engines: '5つの思考エンジン', elements: 'エネルギーの素材', decision: '決め方', body: 'エネルギーボディ', vedic: 'ヴェーダ 心・体', fusion: 'クロス解釈', ask: 'AIで相談を続ける'},
       askTitle: 'わたしはどんな人？ — AIで相談を続ける',
       askLead: 'このレポートの計算値だけを入れた質問を用意しました。お好きなAIに貼り付ければ、同じ会話で続けて質問できます。',
       askCopy: '質問をコピー',
@@ -750,6 +1212,208 @@
       },
       frame: {fire: '世界を挑戦と可能性の舞台として見るタイプです。', earth: '世界を一歩ずつ積み上げる現実として見るタイプです。', air: '世界をつながりとアイデアのネットワークとして見るタイプです。', water: '世界を感情と関係の流れとして見るタイプです。'}
     },
+    mb: {
+      ui: {
+        mind: '精神',
+        body: '身体',
+        organ: '象徴のつながり',
+        region: '象徴部位',
+        lord: '支配星',
+        lead: 'センターとチャクラごとに、心の質と体のリズムをあわせて読み解きます。',
+        vedicMind: '心',
+        vedicBody: '体',
+        note: '心と体の文章は、伝統的な体系の象徴を生活のリズムに置き換えたものです。医学的な判断ではありませんので、体の不調が続いたり、気持ちが長く沈んだりするときは、医師や専門家に相談してください。'
+      },
+      center: {
+        HEAD: {
+          organ: '松果体',
+          mind: {defined: '自分で問いを生み出し続けます。ひらめきが内側から湧くタイプなので、ひとりで考える時間が燃料になります。', open: '他人の問いや悩みを自分のことのように抱えがちです。「これは本当に自分の問い？」とふるいにかけると、頭が軽くなります。'},
+          body: {defined: '考えごとが夜まで続きやすいです。寝る前にメモで頭の中を空にする習慣がよく合います。', open: '情報が多い日は、頭から先に疲れます。画面を消して目を休める短いすき間が、リズムを取り戻してくれます。'}
+        },
+        AJNA: {
+          organ: '下垂体',
+          mind: {defined: '考え方が一定で、確信があります。一度まとめた視点を長く大切にします。', open: 'いろいろな視点を柔軟に行き来します。確信を急がないほうが、かえって判断が広がります。'},
+          body: {defined: '悩みを抱え込むと、目や肩がこわばりやすいです。考えが堂々巡りするときは、体を動かして流れを変えてみてください。', open: '頭を使う時間と休む時間の境目があいまいになりがちです。勉強や仕事の時間を決めておくと、頭が疲れにくくなります。'}
+        },
+        THROAT: {
+          organ: '甲状腺 · 副甲状腺',
+          mind: {defined: '言葉や行動で表に出す道が開いています。表現するときに考えが整理されるタイプです。', open: '場の雰囲気によって口数が増えたり減ったりします。本当に必要なときだけ話しても、十分に伝わります。'},
+          body: {defined: 'たくさん話した日は、喉と肩が先にサインを出します。温かい水と首のストレッチがよく合います。', open: '注目を集めようと頑張ると、エネルギーがすぐに漏れていきます。話す前にひと呼吸おくことが喉をいたわります。'}
+        },
+        G: {
+          organ: '肝臓 · 血液',
+          mind: {defined: '自分らしさと方向感覚が安定しています。環境が変わっても、アイデンティティは大きく揺らぎません。', open: '一緒にいる人や場所によって自分が変わります。良い場所を選ぶ感覚が、そのまま方向になります。'},
+          body: {defined: '方向を見失ったと感じると、体も沈みがちです。歩くように前へ進む動きがリズムを生かします。', open: '空間の雰囲気をまず体で感じ取ります。居心地が悪いときは、場所を変えるだけで調子が変わります。'}
+        },
+        HEART: {
+          organ: '心臓 · 胃 · 胆のう · 胸腺',
+          mind: {defined: '約束と意志の力がぶれません。自分で決めた目標を守り抜く力があります。', open: '自分の価値を証明したくなりがちです。「もう十分」という感覚が心を楽にしてくれます。'},
+          body: {defined: '意志で押し切ったあとは、しっかりした休息が必要です。働いた分だけ休むリズムが合います。', open: '無理な約束は、胸や胃の緊張につながりやすいです。守れる分だけ約束することが体を守ります。'}
+        },
+        SOLAR_PLEXUS: {
+          organ: '腎臓 · 膵臓 · 神経系',
+          mind: {defined: '感情が波のように上がり下がりします。一瞬の気分より、数日の流れを見て決めるとはっきりします。', open: '周りの感情をスポンジのように吸収します。「この気持ちは誰のもの？」と見分けると、心が軽くなります。'},
+          body: {defined: '感情の波が体のリズムにも乗ります。気分が高いときは無理をせず、低いときはひと休みしましょう。', open: '対立のある場では、体が先に緊張します。ひとりの時間に呼吸を整えて、感情を払い落としてみてください。'}
+        },
+        SACRAL: {
+          organ: '生殖器',
+          mind: {defined: '好きなことに反応する力が大きく、長続きします。「やりたい」という体の答えが良い羅針盤です。', open: '他人のエネルギーに合わせて、長く働きすぎがちです。どこで十分かを知る感覚が大切です。'},
+          body: {defined: '一日のエネルギーを使い切ると、眠りが深くなります。体をしっかり使う日課が合います。', open: '疲れ切る前に横になる習慣がリズムを守ります。他の人のペースに合わせて、最後まで粘らなくても大丈夫です。'}
+        },
+        SPLEEN: {
+          organ: 'リンパ · 脾臓 · 免疫系',
+          mind: {defined: 'その瞬間の直感がはっきりしています。「今じゃない」という小さなサインをよく聞き取ります。', open: '慣れた人や習慣に頼りたくなることがあります。手放すべきものに気づくことが、成長の鍵です。'},
+          body: {defined: '体の小さなサインに早く気づくタイプです。そのサインを見過ごさないだけで、調子を保てます。', open: '環境が変わると、体が敏感に反応します。睡眠と食事の時間を一定にすると、体が安定します。'}
+        },
+        ROOT: {
+          organ: '副腎',
+          mind: {defined: 'プレッシャーを一定のペースでこなします。締め切りがあっても、ペースを崩しにくいタイプです。', open: '急かされるプレッシャーを強く感じます。「急ぎの用は本当に急ぎ？」と問う習慣が心を守ります。'},
+          body: {defined: '緊張したあとは、しっかりほぐす時間が必要です。足の裏を地面につけて、ゆっくり歩くのがおすすめです。', open: 'プレッシャーがたまると、体が焦りやすくなります。やることを小さく分けて、ひとつずつ片づけてみてください。'}
+        }
+      },
+      chakra: {
+        crown: {
+          region: '頭頂',
+          mind: {
+            bright: '意味や全体像を求める心が強いです。なぜやるのかがはっきりすると、力が湧きます。',
+            steady: '現実と意味のバランスがとれています。ときどき全体像を思い浮かべると、方向がはっきりします。',
+            quiet: '目の前のことに集中するタイプです。一日に一度「なぜ」と問う時間が、心を広げてくれます。'
+          },
+          body: {
+            bright: '考えが上のほうに偏りがちです。散歩のように体を地に着ける活動で、バランスをとりましょう。',
+            steady: '頭と体のリズムがほどよくそろっています。一定の睡眠時間がこのバランスを守ります。',
+            quiet: '体を使う感覚は良いのですが、休みが短くなりがちです。静かに目を閉じる5分が、頭をすっきりさせます。'
+          }
+        },
+        thirdEye: {
+          region: '額 · 眉間 · 目',
+          mind: {
+            bright: '観察力と想像力に優れています。人が見逃すパターンに先に気づきます。',
+            steady: '直感と事実をあわせて確かめます。浮かんだ考えを書きとめておくと、洞察が積み重なります。',
+            quiet: '目の前の事実を信じるタイプです。ときどき想像の余地を残すと、新しい道が見えてきます。'
+          },
+          body: {
+            bright: '目と額に緊張が集まりやすいです。遠くを眺めて、目を休ませてあげてください。',
+            steady: '見ることと休むことのバランスは良好です。画面を見る合間に、こまめに目を閉じてください。',
+            quiet: '考えるより先に体が動きます。寝る前に照明を落とすと、休息が深まります。'
+          }
+        },
+        throat: {
+          region: '喉 · あご · 肩',
+          mind: {
+            bright: '言葉や文章で考えを解きほぐす力が大きいです。表現するほど心が整理されます。',
+            steady: '必要なことは言い、控えるべきことは控えます。率直さと思いやりのバランスが良好です。',
+            quiet: '気持ちを言葉にするまで時間がかかります。まずは短いメモで表現してみてください。'
+          },
+          body: {
+            bright: '喉やあごに力が入りやすいです。たくさん話した日は、温かいお茶で喉を休ませてあげてください。',
+            steady: '首と肩のリズムがそろっています。姿勢をこまめに変えるだけで十分です。',
+            quiet: '言いたいことを飲み込むと、あごや肩がこわばりやすいです。鼻歌や音読もおすすめです。'
+          }
+        },
+        heart: {
+          region: '胸 · 肺 · 腕',
+          mind: {
+            bright: '人とつながると、エネルギーが満ちてきます。やさしさがいちばんの武器です。',
+            steady: '与える心と受け取る心がほどよく行き来します。関係の温度を合わせるのが上手です。',
+            quiet: 'なかなか心を開かないタイプです。信頼できる一人に、まず気持ちを打ち明けてみてください。'
+          },
+          body: {
+            bright: '人の世話をするうちに、自分の呼吸が浅くなりがちです。胸を開いて深く呼吸する時間をとりましょう。',
+            steady: '呼吸と心の拍子がよく合っています。軽い有酸素運動がこのリズムを守ります。',
+            quiet: '緊張すると肩が丸まり、呼吸が浅くなります。腕を大きく広げるストレッチがよく合います。'
+          }
+        },
+        solarPlexus: {
+          region: 'みぞおち · 胃腸',
+          mind: {bright: '自分で押し進める意志が強いです。目標ができると火がつきます。', steady: '意志とゆとりがほどよく混ざっています。やるときと休むときの区別が上手です。', quiet: '他人が決めたペースについていきがちです。小さなことでも、自分で決めてみてください。'},
+          body: {
+            bright: '緊張がまずお腹とみぞおちに来ます。食事を急がない習慣が体を楽にします。',
+            steady: '消化のリズムが比較的そろっています。規則正しい食事の時間がこのリズムを守ります。',
+            quiet: '元気が出ない日は、お腹を温かくしておくとよいです。朝に体を温める小さなルーティンを作ってみてください。'
+          }
+        },
+        sacral: {
+          region: '下腹部 · 骨盤',
+          mind: {
+            bright: '楽しさと創作意欲が豊かです。好きなことをしていると、アイデアが湧いてきます。',
+            steady: '楽しさと責任をほどよく行き来します。趣味がひとつあると、暮らしの潤滑油になります。',
+            quiet: 'やるべきこと中心に暮らしがちです。理由なく楽しいことを予定に入れてみてください。'
+          },
+          body: {
+            bright: '気分のいいことに体をたくさん使うタイプです。楽しんだあと、しっかり休むまでがリズムです。',
+            steady: '骨盤と腰のリズムがそろっています。長く座っていたら、骨盤を回してほぐしてください。',
+            quiet: '長く座っていると、下腹部や腰が重くなりがちです。ダンスや軽い散歩で流れを目覚めさせましょう。'
+          }
+        },
+        root: {
+          region: '尾骨 · 脚 · 足',
+          mind: {
+            bright: '現実感覚と安定を求める気持ちが強いです。土台がしっかりしていると、心が落ち着きます。',
+            steady: '安定と変化をほどよく受け入れます。基本のルーティンがあると、新しい挑戦も楽になります。',
+            quiet: '足が地に着いていないように浮つきがちです。決まったルーティンがひとつあると、心の錨になります。'
+          },
+          body: {
+            bright: '脚と腰の力が強いほうです。長く踏ん張るより、途中でこまめにほぐしてください。',
+            steady: '下半身のリズムがそろっています。続けて歩くことが、このバランスを守ります。',
+            quiet: '下半身が重く感じることがあります。温かい足湯や、ゆっくり歩くことがよく合います。'
+          }
+        }
+      },
+      vedicKind: {moon: '月星座で見る心', lagna: 'ラグナで見る体の質', sixth: '第6ハウスで見る回復のしかた'},
+      sign: {
+        Aries: '牡羊座',
+        Taurus: '牡牛座',
+        Gemini: '双子座',
+        Cancer: '蟹座',
+        Leo: '獅子座',
+        Virgo: '乙女座',
+        Libra: '天秤座',
+        Scorpio: '蠍座',
+        Sagittarius: '射手座',
+        Capricorn: '山羊座',
+        Aquarius: '水瓶座',
+        Pisces: '魚座'
+      },
+      graha: {Sun: '太陽', Moon: '月', Mars: '火星', Mercury: '水星', Jupiter: '木星', Venus: '金星', Saturn: '土星'},
+      moon: {
+        Aries: '感情がすぐに燃え上がり、すぐに冷めます。その場で表現して吐き出すことが、心を楽にします。',
+        Taurus: '心が落ち着いているときがいちばん幸せです。慣れた空間とおいしい食べ物が大きな慰めになります。',
+        Gemini: '感情を言葉や会話でほどきます。一度のおしゃべりが、心の整理への近道です。',
+        Cancer: '感情が深く、人を世話する心が大きいです。安心できる自分の空間があると、心が回復します。',
+        Leo: '認められると、心がぱっと明るくなります。自分をほめる習慣が自己肯定感を守ります。',
+        Virgo: '不安になると、整理し分析します。完璧でなくても大丈夫だと、自分に言ってあげてください。',
+        Libra: '調和のとれた関係の中で心が落ち着きます。対立を避けるより、やわらかく伝える練習がおすすめです。',
+        Scorpio: '感情を深く抱え、なかなか表に出しません。信頼できる人に打ち明けると、心が軽くなります。',
+        Sagittarius: '自由と意味を求めるとき、心が生き生きします。旅や新しい学びが気分を変えてくれます。',
+        Capricorn: '感情より責任を先に考えます。何かをやり遂げたら、休んでいいと自分に許してあげてください。',
+        Aquarius: '感情を一歩引いて眺めます。ひとりの時間と気の合う友人、どちらも必要です。',
+        Pisces: '共感力が高く、想像力が豊かです。音楽や絵のように、感情を流せる通り道があるとよいです。'
+      },
+      lagna: {
+        Aries: {region: '頭 · 顔', body: 'エネルギーが頭のほうに集まりやすいです。熱くなったら少し立ち止まって、クールダウンする時間をとりましょう。'},
+        Taurus: {region: '首 · 喉', body: '首と肩に疲れがたまりやすいです。ゆっくり食べて、首を温かくしておくのが合います。'},
+        Gemini: {region: '肩 · 腕 · 呼吸', body: '忙しいと呼吸が浅くなりがちです。手を休めて、深く息をするすき間をつくってください。'},
+        Cancer: {region: '胸 · 胃', body: '感情が胃腸のリズムに表れやすいです。落ち着いた雰囲気で食事をすることが体を助けます。'},
+        Leo: {region: '心臓 · 背中', body: '情熱的に走るうちに、背中がこわばりがちです。胸を開くストレッチと十分な睡眠がおすすめです。'},
+        Virgo: {region: '腸 · 消化', body: '心配ごとが、まず消化のリズムに表れます。規則正しい食事と軽い散歩がよく合います。'},
+        Libra: {region: '腰 · 腎臓', body: 'バランスが崩れると、まず腰が重くなります。長く座ったら腰を伸ばして、水をこまめに飲みましょう。'},
+        Scorpio: {region: '骨盤 · 下腹部', body: '緊張を下腹部にためこみがちです。温かいお風呂と深い呼吸でほぐしてください。'},
+        Sagittarius: {region: 'お尻 · 太もも', body: '体を動かすと気分が晴れるタイプです。ウォーキングやハイキングのように、大きな筋肉を使う活動がおすすめです。'},
+        Capricorn: {region: '膝 · 骨格', body: '踏ん張る力が強いぶん、関節をいたわってください。無理な運動より、続けられるストレッチが合います。'},
+        Aquarius: {region: 'ふくらはぎ · 足首 · 循環', body: '長く立ったり座ったりすると、脚が重くなります。こまめに立ち上がって、巡りを目覚めさせてください。'},
+        Pisces: {region: '足 · 睡眠', body: '体が雰囲気や疲れに敏感です。十分な睡眠と、足を温かく保つ習慣がリズムを守ります。'}
+      },
+      sixth: {
+        Sun: '日差しと規則正しい日課で回復します。朝日を浴びながら歩く時間がよく合います。',
+        Moon: '心が楽になってこそ、体も回復します。慣れた人や場所で休む時間が、いちばんの回復です。',
+        Mars: '体を動かして回復するタイプです。汗をかいたあとは、しっかりクールダウンする時間もとりましょう。',
+        Mercury: '頭を空にすると回復します。日記・片づけ・軽いパズルのように、考えを整える活動がおすすめです。',
+        Jupiter: '「ほどほど」が回復の鍵です。食べすぎや働きすぎを少しずつ減らすと、体が軽くなります。',
+        Venus: '楽しさと美しさで回復します。好きな音楽・香り・おいしい一食が大きな力になります。',
+        Saturn: 'ゆっくり、着実に回復するタイプです。同じ時間に寝て起きるルーティンがいちばん合います。'
+      }
+    },
     nyang: {
       selfDrive: 'あなたの頭の中にはハンドルがひとつあります。ときには助手席で景色を眺めても、道は消えませんよ。',
       expression: 'あなたを動かす燃料は楽しさです。退屈な作業は小さく分けて、遊びのように始めてみてください。',
@@ -803,7 +1467,7 @@
       toggle: {hd: '人类图', chakra: '脉轮', both: '一起看'},
       chakraNote: '脉轮与人类图的能量中心是不同的体系。这里不谈健康状态，只作为象征性主题来解读。',
       chakraLevel: {bright: '明亮', steady: '平稳', quiet: '安静'},
-      vedicTitle: '从吠陀占星看情绪的纹理',
+      vedicTitle: '从吠陀占星看你的身与心',
       crossTitle: '不同命运体系同时说出的你',
       badge: {saju: '八字', hd: '人类图', fusion: '融合'},
       insightTitle: {thinking: '思考的基本方式', decision: '做决定的方式', people: '对待人、工作与金钱的方式'},
@@ -815,7 +1479,7 @@
       ctaTitle: '想更深入了解这个结构？',
       nyangLabel: 'Yeoni 的一句话', nyangSign: '— Yeoni', brand: 'Ggulggul Fortune · Yeoni',
       reportLabel: 'FREE REPORT', tocTitle: '本报告内容',
-      toc: {summary: '一眼总结', circuit: '思考回路', engines: '五个思考引擎', elements: '能量的材料', decision: '决定方式', body: '能量身体', vedic: '吠陀情绪层', fusion: '交叉解读', ask: '用 AI 继续咨询'},
+      toc: {summary: '一眼总结', circuit: '思考回路', engines: '五个思考引擎', elements: '能量的材料', decision: '决定方式', body: '能量身体', vedic: '吠陀 心·身', fusion: '交叉解读', ask: '用 AI 继续咨询'},
       askTitle: '我是怎样的人？— 用 AI 继续咨询',
       askLead: '我们准备好了只包含本报告计算值的问题。粘贴到你喜欢的 AI，就能在同一对话里继续提问。',
       askCopy: '复制问题',
@@ -1003,6 +1667,156 @@
       },
       frame: {fire: '倾向把世界看成挑战与可能性的舞台。', earth: '倾向把世界看成一步步积累的现实。', air: '倾向把世界看成连接与想法的网络。', water: '倾向把世界看成情感与关系的流动。'}
     },
+    mb: {
+      ui: {
+        mind: '精神',
+        body: '身体',
+        organ: '象征关联',
+        region: '象征部位',
+        lord: '主宰星',
+        lead: '每个中心和脉轮，都会同时解读你内心的纹理与身体的节奏。',
+        vedicMind: '心',
+        vedicBody: '身',
+        note: '这里的精神与身体描述，是把传统体系中的象征转化为生活节奏的说法，并非医学判断。如果身体不舒服，或心情长期低落，请咨询医生或专业人士。'
+      },
+      center: {
+        HEAD: {
+          organ: '松果体',
+          mind: {defined: '你会持续不断地向自己提出问题。灵感常从内在涌现，独处思考的时间就是你的燃料。', open: '你容易把别人的问题和烦恼当成自己的。问问自己“这真的是我的问题吗？”，头脑会轻松许多。'},
+          body: {defined: '思绪容易延续到深夜。睡前用笔记把脑袋清空的习惯很适合你。', open: '信息量大的日子，头脑会最先疲惫。关掉屏幕、让眼睛休息片刻，能帮你找回节奏。'}
+        },
+        AJNA: {
+          organ: '脑垂体',
+          mind: {defined: '你的思考方式稳定而笃定。一旦整理好观点，就会长久坚持。', open: '你能在多种观点之间灵活切换。不急着下定论时，判断反而更开阔。'},
+          body: {defined: '抓着烦恼不放时，眼睛和肩膀容易僵硬。思绪打转时，动一动身体来转换状态吧。', open: '用脑和休息的界线容易变模糊。固定好学习或工作的时间，头脑就不那么累。'}
+        },
+        THROAT: {
+          organ: '甲状腺 · 甲状旁腺',
+          mind: {defined: '你用言语和行动表达自己的通道是畅通的。表达的时候，思路往往随之清晰。', open: '你说话的多少会随气氛而变。只在真正需要时开口，也足以传达心意。'},
+          body: {defined: '说话多的日子，喉咙和肩膀会最先发出信号。温水和颈部伸展很适合你。', open: '努力想引人注目时，能量会流失得很快。开口前先停一拍、吸口气，能好好爱护喉咙。'}
+        },
+        G: {
+          organ: '肝脏 · 血液',
+          mind: {defined: '你的自我认同和方向感很稳定。即使环境改变，身份感也不会大幅动摇。', open: '你会随着身边的人和所处的地方而改变。挑选好地方的直觉，就是你的方向。'},
+          body: {defined: '一旦觉得迷失方向，身体也会跟着无精打采。散步这类向前迈进的动作能唤回节奏。', open: '你会先用身体感受空间的氛围。待着不舒服时，光是换个位置，状态就会不同。'}
+        },
+        HEART: {
+          organ: '心脏 · 胃 · 胆囊 · 胸腺',
+          mind: {defined: '你守约稳定、意志坚定。你有能力守住自己定下的目标。', open: '你容易想要证明自己的价值。感受到“我已经足够好”，心会安定下来。'},
+          body: {defined: '靠意志硬撑之后，需要好好休息。工作多少就休息多少的节奏很适合你。', open: '勉强的承诺容易变成胸口和胃部的紧绷。只承诺能做到的部分，就是在照顾身体。'}
+        },
+        SOLAR_PLEXUS: {
+          organ: '肾脏 · 胰腺 · 神经系统',
+          mind: {defined: '你的情绪像波浪一样起伏。与其看一时的心情，不如观察几天的变化再做决定，会更清晰。', open: '你会像海绵一样吸收周围的情绪。分辨“这份情绪是谁的”，心就会轻松许多。'},
+          body: {defined: '情绪的波浪也会带动身体的节奏。情绪高涨时别勉强自己，低落时就放慢脚步歇一歇。', open: '在有冲突的场合，身体会先紧绷起来。独处时调整呼吸，把情绪抖落吧。'}
+        },
+        SACRAL: {
+          organ: '生殖器官',
+          mind: {defined: '你对喜欢的事反应强烈而持久。身体给出的“我想做”就是很好的指南针。', open: '你容易配合别人的能量而工作得更久。知道什么时候已经足够，这种感觉很重要。'},
+          body: {defined: '把一天的能量用完再入睡，你会睡得很沉。充分活动身体的日程很适合你。', open: '在累垮之前先躺下的习惯，能守住你的节奏。不必跟着别人的速度硬撑到最后。'}
+        },
+        SPLEEN: {
+          organ: '淋巴 · 脾脏 · 免疫系统',
+          mind: {defined: '你当下的直觉很清晰。能听见“现在还不是时候”这样的小信号。', open: '有时你会想依赖熟悉的人和习惯。察觉该放下什么，是成长的关键。'},
+          body: {defined: '你很快就能察觉身体的小信号。只要不忽略这些信号，就能维持好状态。', open: '环境一变，身体就会敏感地反应。把睡觉和吃饭的时间固定下来，身体会更踏实。'}
+        },
+        ROOT: {
+          organ: '肾上腺',
+          mind: {defined: '你能以稳定的节奏应对压力。即使有截止日期，也很少乱了步调。', open: '你会强烈感受到催促的压力。问问自己“这件急事真的那么急吗？”，能守护内心的平静。'},
+          body: {defined: '紧张过后，需要真正放松的时间。脚踏实地、慢慢走路对你很好。', open: '压力累积时，身体容易变得焦躁。把要做的事拆小，一次完成一件吧。'}
+        }
+      },
+      chakra: {
+        crown: {
+          region: '头顶',
+          mind: {bright: '你渴望寻找意义和大局。清楚为什么而做时，就会充满力量。', steady: '你在现实与意义之间保持着平衡。偶尔想想大局，方向会更清晰。', quiet: '你习惯专注于眼前的事。每天问一次“为什么”，能让心更开阔。'},
+          body: {bright: '思绪容易往上集中。散步这类让身体贴近大地的活动，能帮你找回平衡。', steady: '头脑与身体的节奏比较协调。固定的睡眠时间能守住这份平衡。', quiet: '你善于运用身体，但休息容易太短。安静闭眼五分钟，头脑会更清爽。'}
+        },
+        thirdEye: {
+          region: '额头 · 眉心 · 眼睛',
+          mind: {bright: '你的观察力和想象力都很出色。能比别人先察觉到被忽略的规律。', steady: '你会把直觉和事实一起核对。把浮现的想法记下来，洞察会慢慢累积。', quiet: '你倾向于相信眼前的事实。偶尔给想象留点空间，会看见新的路。'},
+          body: {bright: '紧张容易聚集在眼睛和额头。望向远方，让眼睛休息一下吧。', steady: '看与休息之间的平衡还不错。看屏幕的空档，记得常闭闭眼。', quiet: '你往往身体比思考先行动。睡前调暗灯光，休息会更深沉。'}
+        },
+        throat: {
+          region: '喉咙 · 下巴 · 肩膀',
+          mind: {bright: '你很擅长用言语和文字梳理思绪。越表达，心就越清晰。', steady: '该说的会说，该省的就省。坦率与体贴之间平衡得很好。', quiet: '把心事说出口需要一些时间。不妨先用简短的笔记表达。'},
+          body: {bright: '喉咙和下巴容易用力。话说多了的日子，喝杯热茶让喉咙休息一下吧。', steady: '颈部和肩膀的节奏比较协调。经常变换姿势就足够了。', quiet: '把想说的话咽下去，下巴和肩膀容易僵硬。哼歌或朗读也很不错。'}
+        },
+        heart: {
+          region: '胸口 · 肺 · 手臂',
+          mind: {bright: '和人建立连结时，你会充满能量。温柔就是你最大的武器。', steady: '付出与接受在你身上均衡流动。你很懂得拿捏关系的温度。', quiet: '你不太轻易敞开心扉。试着先和一个信任的人分享心事吧。'},
+          body: {bright: '照顾别人时，自己的呼吸容易变短。花点时间挺起胸膛、深呼吸吧。', steady: '你的呼吸与心的节拍很合拍。轻度有氧运动能守住这个节奏。', quiet: '一紧张，肩膀就会内扣、呼吸变浅。大幅张开双臂的伸展很适合你。'}
+        },
+        solarPlexus: {
+          region: '心窝 · 肠胃',
+          mind: {bright: '你自我推动的意志很强。一有目标就会燃起斗志。', steady: '你的意志与从容调和得恰到好处。很清楚何时该做、何时该休息。', quiet: '你容易跟着别人定的节奏走。哪怕是小事，也试着自己做决定吧。'},
+          body: {bright: '紧张会最先落在腹部和心窝。吃饭不着急的习惯，能让身体更舒服。', steady: '你的消化节奏相对平稳。规律的用餐时间能守住这个节奏。', quiet: '精力低落时，让腹部保持温暖会很好。试着在早上建立一个暖身的小习惯吧。'}
+        },
+        sacral: {
+          region: '小腹 · 骨盆',
+          mind: {bright: '你充满乐趣和创作欲。做喜欢的事时，灵感会源源不断。', steady: '你能在乐趣和责任之间自如切换。一个爱好就是生活的润滑剂。', quiet: '你容易只围着该做的事过日子。试着把没来由就开心的事排进日程吧。'},
+          body: {bright: '你会为开心的事投入很多体力。尽兴之后好好休息，也是节奏的一部分。', steady: '骨盆和腰部的节奏比较协调。久坐之后，转动骨盆放松一下吧。', quiet: '久坐容易让小腹和腰部感到沉重。用跳舞或轻松散步唤醒身体的流动吧。'}
+        },
+        root: {
+          region: '尾骨 · 腿 · 脚',
+          mind: {bright: '你的现实感和对稳定的需求都很强。根基稳固时，心才会踏实。', steady: '你能平和地接受稳定与变化。有了基本的日常习惯，新的挑战也会更轻松。', quiet: '你容易像脚没踩稳地面那样心浮气躁。一个固定的日常习惯，能成为内心的锚。'},
+          body: {bright: '你的腿和腰部比较有力。与其硬撑太久，不如中途时常放松一下。', steady: '下半身的节奏比较协调。坚持散步能守住这份平衡。', quiet: '有时会觉得下半身沉重。温暖的足浴或慢慢散步很适合你。'}
+        }
+      },
+      vedicKind: {moon: '从月亮星座看内心', lagna: '从上升点（拉格纳）看身体特质', sixth: '从第六宫看你的恢复方式'},
+      sign: {
+        Aries: '白羊座',
+        Taurus: '金牛座',
+        Gemini: '双子座',
+        Cancer: '巨蟹座',
+        Leo: '狮子座',
+        Virgo: '处女座',
+        Libra: '天秤座',
+        Scorpio: '天蝎座',
+        Sagittarius: '射手座',
+        Capricorn: '摩羯座',
+        Aquarius: '水瓶座',
+        Pisces: '双鱼座'
+      },
+      graha: {Sun: '太阳', Moon: '月亮', Mars: '火星', Mercury: '水星', Jupiter: '木星', Venus: '金星', Saturn: '土星'},
+      moon: {
+        Aries: '情绪来得快、去得也快。当下表达出来、宣泄掉，心里会轻松许多。',
+        Taurus: '内心安稳时你最幸福。熟悉的空间和美味的食物，是很大的慰藉。',
+        Gemini: '你用言语和交谈来化解情绪。好好聊一次天，就是整理心情的捷径。',
+        Cancer: '你情感深厚，很有照顾人的心。拥有一个安全的个人空间，心就能恢复。',
+        Leo: '被认可时，你的心会亮起来。养成夸奖自己的习惯，能守护自尊心。',
+        Virgo: '不安时你会整理和分析。请告诉自己：不完美也没关系。',
+        Libra: '在和谐的关系中你最自在。与其回避冲突，不如练习温和地表达。',
+        Scorpio: '你把情绪藏得很深，不轻易表露。向信任的人倾诉时，心会变轻。',
+        Sagittarius: '追寻自由与意义时，你的心会活过来。旅行或学习新事物能转换心情。',
+        Capricorn: '你会把责任放在情绪之前。完成一件事之后，请允许自己休息。',
+        Aquarius: '你会退后一步看待自己的情绪。独处的时间和志趣相投的朋友，你都需要。',
+        Pisces: '你共情力强、想象力丰富。有音乐或绘画这样让情绪流动的出口会很好。'
+      },
+      lagna: {
+        Aries: {region: '头部 · 脸部', body: '能量容易往头部集中。热血上头时，先停一停，给自己降温的时间。'},
+        Taurus: {region: '颈部 · 喉咙', body: '疲劳容易累积在颈部和肩膀。慢慢吃饭、给颈部保暖很适合你。'},
+        Gemini: {region: '肩膀 · 手臂 · 呼吸', body: '一忙起来，呼吸就容易变浅。让双手歇一歇，留出深呼吸的空档吧。'},
+        Cancer: {region: '胸口 · 胃', body: '情绪容易反映在肠胃的节奏上。在放松的氛围中用餐，对身体有帮助。'},
+        Leo: {region: '心脏 · 背部', body: '热情奔跑时，背部容易变得僵硬。扩胸伸展和充足的睡眠对你很好。'},
+        Virgo: {region: '肠道 · 消化', body: '担忧会最先体现在消化节奏上。规律饮食和轻松散步很适合你。'},
+        Libra: {region: '腰部 · 肾脏', body: '一旦失去平衡，腰部会最先感到沉重。久坐后伸展腰背，并经常喝水吧。'},
+        Scorpio: {region: '骨盆 · 小腹', body: '你容易把紧张积压在小腹。用热水泡澡和深呼吸来放松吧。'},
+        Sagittarius: {region: '臀部 · 大腿', body: '你的身体需要活动才能舒畅心情。散步或徒步这类运用大肌群的活动很适合你。'},
+        Capricorn: {region: '膝盖 · 骨骼', body: '你耐力强，也请多爱护关节。比起高强度运动，持续的伸展更适合你。'},
+        Aquarius: {region: '小腿 · 脚踝 · 循环', body: '久站或久坐会让双腿变沉。常起身走动，唤醒身体的循环吧。'},
+        Pisces: {region: '双脚 · 睡眠', body: '你的身体对氛围和疲劳很敏感。充足的睡眠和让双脚保暖的习惯，能守住节奏。'}
+      },
+      sixth: {
+        Sun: '你靠阳光和规律的作息来恢复。迎着晨光散步的时间很适合你。',
+        Moon: '心里舒坦了，身体才会恢复。在熟悉的人和地方休息，就是最好的恢复。',
+        Mars: '你是靠活动身体来恢复的类型。出汗之后，也要留出充分的降温时间。',
+        Mercury: '放空大脑时你就能恢复。写日记、整理东西、玩轻松的拼图这类梳理思绪的活动很不错。',
+        Jupiter: '“适度”是恢复的关键。一点点减少过量饮食和过度劳累，身体会变轻盈。',
+        Venus: '你通过快乐与美来恢复。喜欢的音乐、香气和一顿美味的饭，都能给你很大的力量。',
+        Saturn: '你是慢慢地、稳定地恢复的类型。每天在同一时间睡觉和起床的作息最适合你。'
+      }
+    },
     nyang: {
       selfDrive: '您的脑海里有一个方向盘。偶尔坐到副驾驶看看风景，路也不会消失。',
       expression: '推动您的燃料是乐趣。把无聊的事切成小块，像游戏一样开始吧。',
@@ -1056,7 +1870,7 @@
       toggle: {hd: '人類圖', chakra: '脈輪', both: '一起看'},
       chakraNote: '脈輪與人類圖的能量中心是不同的體系。這裡不談健康狀態，只作為象徵性主題來解讀。',
       chakraLevel: {bright: '明亮', steady: '平穩', quiet: '安靜'},
-      vedicTitle: '從吠陀占星看情緒的紋理',
+      vedicTitle: '從吠陀占星看你的身與心',
       crossTitle: '不同命運體系同時說出的你',
       badge: {saju: '八字', hd: '人類圖', fusion: '融合'},
       insightTitle: {thinking: '思考的基本方式', decision: '做決定的方式', people: '對待人、工作與金錢的方式'},
@@ -1068,7 +1882,7 @@
       ctaTitle: '想更深入了解這個結構？',
       nyangLabel: 'Yeoni 的一句話', nyangSign: '— Yeoni', brand: 'Ggulggul Fortune · Yeoni',
       reportLabel: 'FREE REPORT', tocTitle: '本報告內容',
-      toc: {summary: '一眼總結', circuit: '思考迴路', engines: '五個思考引擎', elements: '能量的材料', decision: '決定方式', body: '能量身體', vedic: '吠陀情緒層', fusion: '交叉解讀', ask: '用 AI 繼續諮詢'},
+      toc: {summary: '一眼總結', circuit: '思考迴路', engines: '五個思考引擎', elements: '能量的材料', decision: '決定方式', body: '能量身體', vedic: '吠陀 心·身', fusion: '交叉解讀', ask: '用 AI 繼續諮詢'},
       askTitle: '我是怎樣的人？— 用 AI 繼續諮詢',
       askLead: '我們準備好了只包含本報告計算值的問題。貼到你喜歡的 AI，就能在同一對話裡繼續提問。',
       askCopy: '複製問題',
@@ -1256,6 +2070,156 @@
       },
       frame: {fire: '傾向把世界看成挑戰與可能性的舞台。', earth: '傾向把世界看成一步步累積的現實。', air: '傾向把世界看成連結與想法的網絡。', water: '傾向把世界看成情感與關係的流動。'}
     },
+    mb: {
+      ui: {
+        mind: '精神',
+        body: '身體',
+        organ: '象徵連結',
+        region: '象徵部位',
+        lord: '守護星',
+        lead: '每個中心和脈輪，都會同時解讀你內心的質地與身體的節奏。',
+        vedicMind: '心',
+        vedicBody: '身',
+        note: '這裡的精神與身體描述，是把傳統體系的象徵轉換成生活節奏的說法，並非醫學判斷。如果身體不舒服，或心情長時間低落，請諮詢醫師或專業人士。'
+      },
+      center: {
+        HEAD: {
+          organ: '松果體',
+          mind: {defined: '你會不斷向自己提出問題。靈感常從內在湧現，獨處思考的時間就是你的燃料。', open: '你很容易把別人的問題和煩惱當成自己的。問問自己「這真的是我的問題嗎？」，腦袋會輕鬆許多。'},
+          body: {defined: '思緒容易一路延續到深夜。睡前用筆記把腦袋清空的習慣很適合你。', open: '資訊量大的日子，腦袋會最先疲累。關掉螢幕、讓眼睛休息一下，能幫你找回節奏。'}
+        },
+        AJNA: {
+          organ: '腦下垂體',
+          mind: {defined: '你的思考方式穩定又篤定。一旦整理好觀點，就會長久堅持。', open: '你能在多種觀點之間靈活切換。不急著下定論時，判斷反而更開闊。'},
+          body: {defined: '抓著煩惱不放時，眼睛和肩膀容易僵硬。思緒打轉時，動一動身體來轉換狀態吧。', open: '動腦和休息的界線容易變模糊。固定好讀書或工作的時間，腦袋就沒那麼累。'}
+        },
+        THROAT: {
+          organ: '甲狀腺 · 副甲狀腺',
+          mind: {defined: '你用言語和行動表達自己的管道是暢通的。表達的時候，思緒往往跟著變清楚。', open: '你話多話少會隨氣氛改變。只在真正需要時開口，也足以傳達心意。'},
+          body: {defined: '說了很多話的日子，喉嚨和肩膀會最先發出訊號。溫開水和頸部伸展很適合你。', open: '努力想吸引目光時，能量會流失得很快。開口前先停一拍、吸口氣，能好好愛護喉嚨。'}
+        },
+        G: {
+          organ: '肝臟 · 血液',
+          mind: {defined: '你的自我認同和方向感很穩定。就算環境改變，身分認同也不太會動搖。', open: '你會隨著身邊的人和所處的地方而改變。挑選好地方的直覺，就是你的方向。'},
+          body: {defined: '一旦覺得迷失方向，身體也會跟著沒精神。散步這類向前邁進的動作能喚回節奏。', open: '你會先用身體感受空間的氛圍。待著不舒服時，光是換個位置，狀態就會不一樣。'}
+        },
+        HEART: {
+          organ: '心臟 · 胃 · 膽囊 · 胸腺',
+          mind: {defined: '你守約穩定、意志堅定。你有能力守住自己訂下的目標。', open: '你容易想證明自己的價值。感受到「我已經夠好了」，心就會安定下來。'},
+          body: {defined: '靠意志硬撐之後，需要好好休息。工作多少就休息多少的節奏很適合你。', open: '勉強的承諾容易變成胸口和胃部的緊繃。只承諾做得到的部分，就是在照顧身體。'}
+        },
+        SOLAR_PLEXUS: {
+          organ: '腎臟 · 胰臟 · 神經系統',
+          mind: {defined: '你的情緒像海浪一樣起伏。與其看一時的心情，不如觀察幾天的變化再做決定，會更清楚。', open: '你會像海綿一樣吸收周圍的情緒。分辨「這份情緒是誰的」，心就會輕鬆許多。'},
+          body: {defined: '情緒的浪潮也會帶動身體的節奏。心情高昂時別勉強自己，低落時就放慢腳步歇一歇。', open: '在有衝突的場合，身體會先緊繃起來。獨處時調整呼吸，把情緒抖落吧。'}
+        },
+        SACRAL: {
+          organ: '生殖器官',
+          mind: {defined: '你對喜歡的事反應強烈又持久。身體給出的「我想做」就是很好的指南針。', open: '你容易配合別人的能量而工作得更久。知道什麼時候已經足夠，這種感覺很重要。'},
+          body: {defined: '把一天的能量用完再睡，你會睡得很沉。充分活動身體的日常很適合你。', open: '在累壞之前先躺下的習慣，能守住你的節奏。不必跟著別人的速度硬撐到最後。'}
+        },
+        SPLEEN: {
+          organ: '淋巴 · 脾臟 · 免疫系統',
+          mind: {defined: '你當下的直覺很清晰。能聽見「現在還不是時候」這樣的小訊號。', open: '有時你會想依賴熟悉的人和習慣。察覺該放下什麼，是成長的關鍵。'},
+          body: {defined: '你很快就能察覺身體的小訊號。只要不忽略這些訊號，就能維持好狀態。', open: '環境一變，身體就會敏感地反應。把睡覺和吃飯的時間固定下來，身體會更踏實。'}
+        },
+        ROOT: {
+          organ: '腎上腺',
+          mind: {defined: '你能用穩定的步調面對壓力。就算有截止期限，也很少亂了腳步。', open: '你會強烈感受到被催促的壓力。問問自己「這件急事真的那麼急嗎？」，能守護內心的平靜。'},
+          body: {defined: '緊張過後，需要真正放鬆的時間。雙腳踏穩地面、慢慢走路對你很好。', open: '壓力累積時，身體容易變得焦躁。把要做的事拆小，一次完成一件吧。'}
+        }
+      },
+      chakra: {
+        crown: {
+          region: '頭頂',
+          mind: {bright: '你很渴望找到意義和整體方向。清楚為什麼而做時，就會充滿力量。', steady: '你在現實與意義之間保持著平衡。偶爾想想大方向，目標會更清楚。', quiet: '你習慣專注在眼前的事。每天問一次「為什麼」，能讓心更開闊。'},
+          body: {bright: '思緒容易往上集中。散步這類讓身體貼近地面的活動，能幫你找回平衡。', steady: '腦袋與身體的節奏還算協調。固定的睡眠時間能守住這份平衡。', quiet: '你很會運用身體，但休息常常太短。安靜閉眼五分鐘，腦袋會更清爽。'}
+        },
+        thirdEye: {
+          region: '額頭 · 眉心 · 眼睛',
+          mind: {bright: '你的觀察力和想像力都很出色。能比別人先發現被忽略的規律。', steady: '你會把直覺和事實一起核對。把浮現的想法記下來，洞察會慢慢累積。', quiet: '你傾向相信眼前的事實。偶爾給想像留點空間，會看見新的路。'},
+          body: {bright: '緊張容易聚集在眼睛和額頭。望向遠方，讓眼睛休息一下吧。', steady: '看與休息之間的平衡還不錯。看螢幕的空檔，記得常閉閉眼。', quiet: '你常常身體比思考先行動。睡前把燈光調暗，休息會更深沉。'}
+        },
+        throat: {
+          region: '喉嚨 · 下巴 · 肩膀',
+          mind: {bright: '你很擅長用言語和文字梳理思緒。越表達，心就越清楚。', steady: '該說的會說，該省的就省。坦率與體貼之間拿捏得很好。', quiet: '把心事說出口需要一點時間。不妨先用簡短的筆記表達。'},
+          body: {bright: '喉嚨和下巴容易用力。話說多了的日子，喝杯熱茶讓喉嚨休息一下吧。', steady: '頸部和肩膀的節奏還算協調。常常變換姿勢就夠了。', quiet: '把想說的話吞回去，下巴和肩膀容易僵硬。哼歌或朗讀也很不錯。'}
+        },
+        heart: {
+          region: '胸口 · 肺 · 手臂',
+          mind: {bright: '和人產生連結時，你會充滿能量。溫柔就是你最大的武器。', steady: '付出與接受在你身上平均流動。你很懂得拿捏關係的溫度。', quiet: '你不太輕易敞開心房。試著先和一個信任的人分享心事吧。'},
+          body: {bright: '照顧別人時，自己的呼吸容易變短。花點時間挺起胸膛、深呼吸吧。', steady: '你的呼吸與心的節拍很合拍。輕度有氧運動能守住這個節奏。', quiet: '一緊張，肩膀就會內縮、呼吸變淺。大幅張開雙臂的伸展很適合你。'}
+        },
+        solarPlexus: {
+          region: '心窩 · 腸胃',
+          mind: {bright: '你自我推動的意志很強。一有目標就會燃起鬥志。', steady: '你的意志與從容調和得剛剛好。很清楚何時該做、何時該休息。', quiet: '你容易跟著別人訂的步調走。就算是小事，也試著自己做決定吧。'},
+          body: {bright: '緊張會最先落在肚子和心窩。吃飯不急的習慣，能讓身體更舒服。', steady: '你的消化節奏相對平穩。規律的用餐時間能守住這個節奏。', quiet: '沒什麼元氣時，讓肚子保持溫暖會很好。試著在早上建立一個暖身的小習慣吧。'}
+        },
+        sacral: {
+          region: '下腹 · 骨盆',
+          mind: {bright: '你充滿玩心和創作欲。做喜歡的事時，靈感會源源不絕。', steady: '你能在樂趣和責任之間自在切換。一個興趣就是生活的潤滑劑。', quiet: '你容易只繞著該做的事過日子。試著把沒來由就開心的事排進行程吧。'},
+          body: {bright: '你會為開心的事投入很多體力。盡興之後好好休息，也是節奏的一部分。', steady: '骨盆和腰部的節奏還算協調。久坐之後，轉動骨盆放鬆一下吧。', quiet: '久坐容易讓下腹和腰部感到沉重。用跳舞或輕鬆散步喚醒身體的流動吧。'}
+        },
+        root: {
+          region: '尾椎 · 腿 · 腳',
+          mind: {bright: '你的現實感和對穩定的需求都很強。根基穩固時，心才會踏實。', steady: '你能平和地接受穩定與變化。有了基本的日常習慣，新的挑戰也會更輕鬆。', quiet: '你容易像腳沒踩穩地面一樣心浮氣躁。一個固定的日常習慣，能成為內心的錨。'},
+          body: {bright: '你的腿和腰部比較有力。與其硬撐太久，不如中途常常放鬆一下。', steady: '下半身的節奏還算協調。持續散步能守住這份平衡。', quiet: '有時會覺得下半身沉重。溫暖的泡腳或慢慢散步很適合你。'}
+        }
+      },
+      vedicKind: {moon: '從月亮星座看內心', lagna: '從上升點（拉格納）看身體特質', sixth: '從第六宮看你的恢復方式'},
+      sign: {
+        Aries: '牡羊座',
+        Taurus: '金牛座',
+        Gemini: '雙子座',
+        Cancer: '巨蟹座',
+        Leo: '獅子座',
+        Virgo: '處女座',
+        Libra: '天秤座',
+        Scorpio: '天蠍座',
+        Sagittarius: '射手座',
+        Capricorn: '摩羯座',
+        Aquarius: '水瓶座',
+        Pisces: '雙魚座'
+      },
+      graha: {Sun: '太陽', Moon: '月亮', Mars: '火星', Mercury: '水星', Jupiter: '木星', Venus: '金星', Saturn: '土星'},
+      moon: {
+        Aries: '情緒來得快、去得也快。當下表達出來、宣洩掉，心裡會輕鬆許多。',
+        Taurus: '內心安穩時你最幸福。熟悉的空間和好吃的食物，是很大的慰藉。',
+        Gemini: '你用言語和聊天來化解情緒。好好聊一次天，就是整理心情的捷徑。',
+        Cancer: '你情感深厚，很有照顧人的心。擁有一個安全的個人空間，心就能恢復。',
+        Leo: '被肯定時，你的心會亮起來。養成稱讚自己的習慣，能守護自信心。',
+        Virgo: '不安時你會整理和分析。請告訴自己：不完美也沒關係。',
+        Libra: '在和諧的關係中你最自在。與其逃避衝突，不如練習溫和地表達。',
+        Scorpio: '你把情緒藏得很深，不輕易表露。向信任的人傾訴時，心會變輕。',
+        Sagittarius: '追尋自由與意義時，你的心會活過來。旅行或學習新事物能轉換心情。',
+        Capricorn: '你會把責任放在情緒前面。完成一件事之後，請允許自己休息。',
+        Aquarius: '你會退後一步看待自己的情緒。獨處的時間和志同道合的朋友，你都需要。',
+        Pisces: '你同理心強、想像力豐富。有音樂或畫畫這樣讓情緒流動的出口會很好。'
+      },
+      lagna: {
+        Aries: {region: '頭部 · 臉部', body: '能量容易往頭部集中。一激動起來時，先停一停，給自己降溫的時間。'},
+        Taurus: {region: '頸部 · 喉嚨', body: '疲勞容易累積在頸部和肩膀。慢慢吃飯、讓脖子保暖很適合你。'},
+        Gemini: {region: '肩膀 · 手臂 · 呼吸', body: '一忙起來，呼吸就容易變淺。讓雙手歇一歇，留出深呼吸的空檔吧。'},
+        Cancer: {region: '胸口 · 胃', body: '情緒容易反映在腸胃的節奏上。在放鬆的氣氛中用餐，對身體有幫助。'},
+        Leo: {region: '心臟 · 背部', body: '熱情衝刺時，背部容易變得僵硬。擴胸伸展和充足的睡眠對你很好。'},
+        Virgo: {region: '腸道 · 消化', body: '擔憂會最先表現在消化節奏上。規律飲食和輕鬆散步很適合你。'},
+        Libra: {region: '腰部 · 腎臟', body: '一旦失去平衡，腰部會最先感到沉重。久坐後伸展腰背，並常常喝水吧。'},
+        Scorpio: {region: '骨盆 · 下腹', body: '你容易把緊張積壓在下腹。用熱水泡澡和深呼吸來放鬆吧。'},
+        Sagittarius: {region: '臀部 · 大腿', body: '你的身體需要活動才能讓心情舒暢。散步或健行這類運用大肌群的活動很適合你。'},
+        Capricorn: {region: '膝蓋 · 骨骼', body: '你耐力強，也請多愛護關節。比起高強度運動，持續伸展更適合你。'},
+        Aquarius: {region: '小腿 · 腳踝 · 循環', body: '久站或久坐會讓雙腿變沉。常起身走動，喚醒身體的循環吧。'},
+        Pisces: {region: '雙腳 · 睡眠', body: '你的身體對氣氛和疲勞很敏感。充足的睡眠和讓雙腳保暖的習慣，能守住節奏。'}
+      },
+      sixth: {
+        Sun: '你靠陽光和規律的作息來恢復。迎著晨光散步的時間很適合你。',
+        Moon: '心裡舒坦了，身體才會恢復。在熟悉的人和地方休息，就是最好的恢復。',
+        Mars: '你是靠活動身體來恢復的類型。流汗之後，也要留出充分的降溫時間。',
+        Mercury: '放空腦袋時你就能恢復。寫日記、整理東西、玩輕鬆的拼圖這類梳理思緒的活動很不錯。',
+        Jupiter: '「適度」是恢復的關鍵。一點一點減少吃太多和過度勞累，身體會變輕盈。',
+        Venus: '你透過快樂與美來恢復。喜歡的音樂、香氣和一頓好吃的飯，都能給你很大的力量。',
+        Saturn: '你是慢慢地、穩定地恢復的類型。每天在同一時間睡覺和起床的作息最適合你。'
+      }
+    },
     nyang: {
       selfDrive: '您的腦海裡有一個方向盤。偶爾坐到副駕駛看看風景，路也不會消失。',
       expression: '推動您的燃料是樂趣。把無聊的事切成小塊，像遊戲一樣開始吧。',
@@ -1339,8 +2303,9 @@
         definitionName: HD.definition[hd.definition] ? pickLocale(HD.definition[hd.definition], hdL) : '',
         profile: hd.profile,
         centers: model.humanDesign.definedCenters.concat(model.humanDesign.undefinedCenters).map(function (id) {
-          var c = HD.center[id];
-          return {id: id, defined: hd.definedCenters.indexOf(id) >= 0, name: c ? pickLocale(c.name, hdL) : id, role: c ? pickLocale(c.role, hdL) : ''};
+          var c = HD.center[id], def = hd.definedCenters.indexOf(id) >= 0, mb = C.mb.center[id], st = def ? 'defined' : 'open';
+          return {id: id, defined: def, name: c ? pickLocale(c.name, hdL) : id, role: c ? pickLocale(c.role, hdL) : '',
+            organ: mb ? mb.organ : '', mind: mb ? mb.mind[st] : '', body: mb ? mb.body[st] : ''};
         })
       };
     }
@@ -1354,9 +2319,25 @@
     });
 
     var vedic = model.vedic;
-    var vedicText = vedic && vedic.available ? vedic.traits.map(function (tr) {
-      return {kind: tr.kind, title: C.vedic.kind[tr.kind], body: C.vedic[tr.kind][tr.key] || ''};
-    }).filter(function (x) { return x.body; }) : [];
+    var vedicText = [];
+    if (vedic && vedic.available) {
+      // 마음(group mind): 감정·달 별자리·본능·프레임 / 몸(group body): 라그나 부위·6하우스 회복. 읽은 값이 있는 행만 만든다.
+      var MB = C.mb;
+      vedicText = vedic.traits.map(function (tr) {
+        return {kind: tr.kind, group: 'mind', title: C.vedic.kind[tr.kind], body: C.vedic[tr.kind][tr.key] || ''};
+      });
+      if (vedic.moonSign && MB.moon[vedic.moonSign]) {
+        vedicText.splice(vedicText[0] && vedicText[0].kind === 'emotion' ? 1 : 0, 0,
+          {kind: 'moon', group: 'mind', title: MB.vedicKind.moon + ' · ' + MB.sign[vedic.moonSign], body: MB.moon[vedic.moonSign]});
+      }
+      if (vedic.lagna && MB.lagna[vedic.lagna]) {
+        vedicText.push({kind: 'lagna', group: 'body', title: MB.vedicKind.lagna + ' · ' + MB.sign[vedic.lagna], region: MB.lagna[vedic.lagna].region, body: MB.lagna[vedic.lagna].body});
+      }
+      if (vedic.sixthLord && MB.sixth[vedic.sixthLord]) {
+        vedicText.push({kind: 'sixth', group: 'body', title: MB.vedicKind.sixth + ' · ' + MB.graha[vedic.sixthLord], body: MB.sixth[vedic.sixthLord]});
+      }
+      vedicText = vedicText.filter(function (x) { return x.body; });
+    }
 
     var mindHead = A[top].mind;
     var mindTail = hd && hd.available && C.mindDecide[hd.authority] ? C.mindDecide[hd.authority] : C.mindAct[second || top];
@@ -1454,11 +2435,14 @@
       }),
       elements: elementsText,
       chakra: model.chakra.items.map(function (c) {
-        return {id: c.id, name: C.chakra[c.id].name, theme: C.chakra[c.id].theme, emphasis: c.emphasis, level: c.level, levelLabel: C.ui.chakraLevel[c.level]};
+        var mb = C.mb.chakra[c.id];
+        return {id: c.id, name: C.chakra[c.id].name, theme: C.chakra[c.id].theme, emphasis: c.emphasis, level: c.level, levelLabel: C.ui.chakraLevel[c.level],
+          region: mb.region, mind: mb.mind[c.level], body: mb.body[c.level]};
       }),
       hd: hdText,
       luck: luckText,
       vedic: vedicText,
+      mbUi: C.mb.ui,
       insights: insights,
       mindLine: mindLine,
       summary: summaryRows,

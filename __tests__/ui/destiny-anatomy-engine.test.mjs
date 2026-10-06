@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { calcPower } from '../../worker/yeongnyangi/fortune/saju-runtime.mjs';
-import { SIGNS, SIGNS_KO, NAKSHATRAS } from '../../worker/lib/vedic-derived-calculations.js';
+import { SIGNS, SIGNS_KO, SIGN_LORDS, NAKSHATRAS } from '../../worker/lib/vedic-derived-calculations.js';
 
 // 운명 구조도 엔진은 셸 정본 테이블(GAN·JI·CD_JANGGAN·getTenGod)을 읽기만 한다 — 같은 조각을 vm 에 올려 실행한다.
 const engineSrc = readFileSync('js/saju-engine.js', 'utf8');
@@ -46,6 +46,7 @@ const basis = (lagna, moon, nak) => ({ok: true, groups: [{key: 'core', title: '�
 test('베다 역매핑 표와 지장간 가중은 워커·셸 정본과 같다', () => {
   assert.deepEqual(plain(E._canon.SIGNS), SIGNS);
   assert.deepEqual(plain(E._canon.SIGNS_KO), SIGNS_KO);
+  assert.deepEqual(plain(E._canon.SIGN_LORDS), SIGN_LORDS);
   assert.deepEqual(plain(E._canon.NAKSHATRA_LORD), Object.fromEntries(NAKSHATRAS));
   assert.deepEqual(plain(T.LAYER_WEIGHT), {여기: 0.35, 중기: 0.65, 정기: 1.2});
   // basis 표시 문자열의 라벨·형식이 바뀌면 역매핑이 조용히 비므로 계약을 고정한다.
@@ -144,10 +145,11 @@ test('placeholder 금지: 알 수 없는 HD 타입·권위나 빈 베다는 avai
 
 test('베다 있음: 라그나·달·나크샤트라를 정본 이름으로 읽고 성향 키를 만든다', () => {
   const v = plain(E.adaptVedicBasis(basis('사자자리 (Leo)', '게자리', 'Pushya · 2파다')));
-  assert.deepEqual(v, {available: true, lagna: 'Leo', moonSign: 'Cancer', nakshatra: 'Pushya',
+  assert.deepEqual(v, {available: true, lagna: 'Leo', moonSign: 'Cancer', sixthLord: 'Saturn', nakshatra: 'Pushya',
     traits: [{kind: 'emotion', key: 'water'}, {kind: 'instinct', key: 'Saturn'}, {kind: 'frame', key: 'fire'}]});
   const noLagna = plain(E.adaptVedicBasis(basis('출생시간 미상으로 확정하지 않음', '양자리', 'Ashwini')));
   assert.equal(noLagna.lagna, '');
+  assert.equal(noLagna.sixthLord, '');
   assert.equal(noLagna.traits.some((t) => t.kind === 'frame'), false);
   const m = build(STRONG.reflection, {}, {vedicBasis: basis('사자자리 (Leo)', '게자리', 'Pushya · 2파다')});
   assert.equal(m.fusion.mindPattern.emotion, 'water');

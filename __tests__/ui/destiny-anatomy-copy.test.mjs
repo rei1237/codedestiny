@@ -47,6 +47,9 @@ const FORBIDDEN = [
   'diagnos', 'disorder', 'therapy', 'treatment', 'cure', 'guarantee', 'destined to', 'you will definitely',
   '診断', '障害', '治療', '疾患', '必ず', '間違いなく',
   '诊断', '障碍', '治疗', '疾病', '一定会', '必定', '診斷', '障礙', '治療',
+  // 정신·신체 결(10-06): 건강 리포트 회귀 가드(scripts/verify-health-report-regression.mjs)의 의료 표현 + 발병·완치 단정.
+  '약물', '간수치', 'AST/ALT', '병이 생', '발병', '완치', 'medication', 'prescri', 'you will get sick',
+  '発病', '完治', '薬を飲', '发病', '治愈', '药物', '發病', '治癒', '藥物',
 ];
 
 function strings(node, path = '', out = []) {
@@ -128,6 +131,26 @@ test('compose: HD·베다가 없으면 그 층의 문장을 만들지 않는다(
   assert.equal(withHd.text.hd.centers.length, 9);
   assert.deepEqual(withHd.text.summary.map((r) => r.id), ['thinking', 'decision', 'energy', 'emotion', 'work', 'money', 'relationship']);
   assert.ok(withHd.text.insights.some((i) => i.badge === 'fusion'));
+});
+
+test('compose: HD 센터 9·차크라 7·베다는 정신·신체 결을 갖고, 라그나가 없으면 몸 쪽 베다 행을 만들지 않는다', () => {
+  for (const L of ['ko', 'en', 'ja', 'zh-CN', 'zh-TW']) {
+    const m = build(FIXTURES.reality, L, {}, {hdChart: HD, vedicBasis: VEDIC});
+    for (const c of m.text.hd.centers) for (const k of ['organ', 'mind', 'body']) assert.ok(c[k] && c[k].trim(), `${L} center ${c.id}.${k}`);
+    const g = m.text.hd.centers.find((c) => c.id === 'G'), head = m.text.hd.centers.find((c) => c.id === 'HEAD');
+    assert.equal(g.mind, CP.COPY[L].mb.center.G.mind.defined);
+    assert.equal(head.body, CP.COPY[L].mb.center.HEAD.body.open);
+    assert.equal(m.text.chakra.length, 7);
+    for (const c of m.text.chakra) for (const k of ['region', 'mind', 'body']) assert.ok(c[k] && c[k].trim(), `${L} chakra ${c.id}.${k}`);
+    const kinds = m.text.vedic.map((r) => r.kind);
+    for (const k of ['moon', 'lagna', 'sixth']) assert.ok(kinds.includes(k), `${L} vedic ${k}`);
+    assert.ok(m.text.vedic.every((r) => r.group === 'mind' || r.group === 'body'));
+    assert.equal(m.text.vedic.find((r) => r.kind === 'sixth').group, 'body');
+  }
+  const noLagna = {ok: true, groups: [{key: 'core', title: '', items: [{label: '달의 라시', value: '게자리'}, {label: '나크샤트라', value: 'Pushya · 2파다'}]}]};
+  const n = build(FIXTURES.reality, 'ko', {}, {hdChart: HD, vedicBasis: noLagna});
+  assert.ok(n.text.vedic.some((r) => r.kind === 'moon'));
+  assert.ok(!n.text.vedic.some((r) => r.kind === 'lagna' || r.kind === 'sixth'));
 });
 
 test('compose: 신약 재성 1위는 strained 톤 문장을 붙이고 단정 조합 문구를 그대로 두지 않는다', () => {
