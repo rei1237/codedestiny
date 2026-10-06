@@ -184,7 +184,7 @@ export function buildThreadsPostChain(env, now = Date.now(), copy = null) {
       copy?.intro || `${card.headline}. ${card.body}`,
       ...(zodiacLines.length ? ["", ...zodiacLines] : []),
       "",
-      "일간별로 이어서 답니다. 더 자세한 내용은 프로필 링크에서 확인해 주세요.",
+      "일간별로 이어서 답니다. 서비스 바로가기는 프로필 링크에서 확인해 주세요.",
     ].join("\n"),
   );
 

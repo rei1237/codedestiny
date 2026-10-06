@@ -46,6 +46,7 @@ const entry = [
   `export * as ziwei from ${abs("worker/lib/threads-daily-providers/ziwei.js")};`,
   `export * as vedic from ${abs("worker/lib/threads-daily-providers/vedic.js")};`,
   `export * as numerology from ${abs("worker/lib/threads-daily-providers/numerology.js")};`,
+  `export * as brandPromo from ${abs("worker/lib/threads-daily-providers/brand-promo.js")};`,
   `export { calculateUniversalNumbers } from ${abs("lib/numerology/personal-day.mjs")};`,
   `export { computeTodaySky } from ${abs("worker/lib/today-sky.js")};`,
   `export { getDailyChainThreadsSkipReason, getThreadsSkipReason } from ${abs("worker/lib/sns-daily-post-task.js")};`,
@@ -86,7 +87,7 @@ try {
 } finally {
   fs.rmSync(bundleFile, { force: true });
 }
-const { jobs, shared, zodiac, karma, saju, ziwei, vedic, numerology, calculateUniversalNumbers, computeTodaySky, getDailyChainThreadsSkipReason, threadsTextWeight, getThreadsPromoMedia, THREADS_PROMO_ASSETS, PALACE_FACET } = m;
+const { jobs, shared, zodiac, karma, saju, ziwei, vedic, numerology, brandPromo, calculateUniversalNumbers, computeTodaySky, getDailyChainThreadsSkipReason, threadsTextWeight, getThreadsPromoMedia, THREADS_PROMO_ASSETS, PALACE_FACET } = m;
 
 const runJobs=(env,options={})=>jobs.runThreadsDailyJobs(env,{readRecent:async()=>[],...options});
 let passed = 0;
@@ -117,6 +118,7 @@ function jsonResponse(body, status = 200) {
 /** Threads Graph 스텁 — 컨테이너 생성 → 상태 FINISHED → 발행. 발행된 텍스트를 모은다. */
 function threadsFetch({ fail = false } = {}) {
   const posted = [];
+  const created = [];
   let seq = 0;
   const impl = async (url, init = {}) => {
     const href = String(url);
@@ -128,13 +130,15 @@ function threadsFetch({ fail = false } = {}) {
     }
     if (href.includes("me/threads")) {
       const body = String(init.body || "");
-      const text = new URLSearchParams(body).get("text") ?? (() => { try { return JSON.parse(body).text; } catch { return ""; } })();
+      const params = new URLSearchParams(body);
+      created.push(params);
+      const text = params.get("text") ?? (() => { try { return JSON.parse(body).text; } catch { return ""; } })();
       posted.push(text);
       return jsonResponse({ id: `container-${posted.length}` });
     }
     return jsonResponse({ error: { message: `unexpected ${href}` } }, 404);
   };
-  return { impl, posted };
+  return { impl, posted, created };
 }
 
 /** runChannel 스텁 — 같은 의미론(성공은 already_posted, 실패+ids 0 은 재선점)을 메모리로. */
@@ -202,6 +206,17 @@ await check("기본 시각 띠별 08:30·사주 12:00·카르마 20:30(꺼진 Jo
   const all = jobs.THREADS_DAILY_JOBS.map((job) => ({ type: job.type, ...jobs.resolveJobSchedule({}, job) }));
   assert.deepEqual(jobs.findCrowdedJobs(all), [], "전부 켜도 2시간 간격이 지켜져야 한다");
   assert.equal(jobs.kstMinuteOfDay(Date.UTC(2026, 8, 16, 15, 5)), 5); // 00:05 KST
+});
+await check("매주 수요일 정오의 홍보 순환은 네오부터 다섯 서비스를 순서대로 선택", async () => {
+  const expected = ["neo", "ggulggul", "tea-house", "yeongnyangi", "master-love-codex"];
+  const dates = [[2026, 10, 7], [2026, 10, 14], [2026, 10, 21], [2026, 10, 28], [2026, 11, 4]];
+  dates.forEach(([year, month, day], index) => {
+    const dateKey = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    assert.equal(brandPromo.getWeeklyThreadsBrandPromo(dateKey)?.type, expected[index]);
+  });
+  assert.equal(brandPromo.getWeeklyThreadsBrandPromo("2026-10-08"), null, "목요일에는 홍보를 예약하지 않는다");
+  assert.equal(brandPromo.getWeeklyThreadsBrandPromo("2026-10-05"), null, "기존 편집 예약일은 홍보 순환에 포함하지 않는다");
+  assert.equal(brandPromo.getWeeklyThreadsBrandPromo("bad-date"), null);
 });
 
 console.log("▶ ② 스위치·비용 0 경로");
@@ -278,6 +293,34 @@ await check("띠별은 원글 + 2띠씩 6개 답글, 세 분야를 하나의 잠
   }
   assert.ok(fetch.posted.every((text) => !text.includes("http")));
   assert.equal(result.jobs.zodiac.ref.posts, 7);
+});
+await check("주간 서비스 홍보는 정오 사주 잠금을 유지하고 링크 없이 맞는 이미지와 고정 문안을 발행", async () => {
+  const promoDates = [[2026, 10, 7], [2026, 10, 14], [2026, 10, 21], [2026, 10, 28], [2026, 11, 4]];
+  for (const [year, month, day] of promoDates) {
+    const dateKey = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const promo = brandPromo.getWeeklyThreadsBrandPromo(dateKey);
+    const { options, fetch, lock } = harness();
+    let modelCalls = 0;
+    const result = await runJobs(BASE_ENV, {
+      ...options,
+      now: kst(year, month, day, 12, 0),
+      generateImpl: async () => { modelCalls += 1; return { ok: false, error: "unexpected_model_call" }; },
+    });
+    assert.equal(result.jobs.saju.ok, true, `${dateKey} ${promo.type}`);
+    assert.equal(result.jobs.saju.ref.type, promo.type);
+    assert.equal(result.jobs.saju.ref.contentType, "service_promotion");
+    assert.equal(result.jobs.saju.ref.destinationUrl.startsWith(`https://code-destiny.com${promo.path}`), true);
+    assert.deepEqual(lock.calls.map((call) => call.keyHash), [`${dateKey}:threads:saju`]);
+    assert.equal(modelCalls, 0, `${promo.type} promotion must not call a paid model`);
+    assert.equal(fetch.posted.length, 1);
+    assert.ok(!/https?:\/\/|www\./i.test(fetch.posted[0]));
+    assert.ok(fetch.posted[0].includes("서비스 바로가기는 프로필 링크에서 확인해 주세요."));
+    assert.ok(threadsTextWeight(fetch.posted[0]) <= 480);
+    assert.equal(fetch.created[0].get("media_type"), "IMAGE");
+    const media = getThreadsPromoMedia(promo.type, "https://code-destiny.com/");
+    assert.equal(fetch.created[0].get("image_url"), media.imageUrl);
+    assert.equal(fetch.created[0].get("alt_text"), media.altText);
+  }
 });
 
 console.log("▶ ④ 격리");
@@ -419,11 +462,11 @@ await check("366일 × 6유형 × (결정론/최대 길이 모델 문안), 띠�
         worst = Math.max(worst, weight);
         assert.ok(weight <= shared.POST_TEXT_LIMIT, `${type} ${i} weight ${weight}`);
         assert.ok(!/https?:\/\//i.test([text, ...replies].join("\n")), `${type} ${i} 본문에 직접 링크가 있다`);
-        assert.ok(text.includes("프로필 링크에서 확인해 주세요."), `${type} ${i} 프로필 안내가 없다`);
+        assert.ok(text.includes("서비스 바로가기는 프로필 링크에서 확인해 주세요."), `${type} ${i} 프로필 안내가 없다`);
         if (type === "zodiac" || type === "karma") {
           assert.ok(text.endsWith("#꿀꿀운세"));
         } else {
-          assert.ok(text.endsWith(`더 자세한 내용은 프로필 링크에서 확인해 주세요.\n\n#${type === "saju" ? "꿀꿀운세" : provider.HASHTAG}`), `${type} ${i} 꼬리가 잘렸다`);
+          assert.ok(text.endsWith(`서비스 바로가기는 프로필 링크에서 확인해 주세요.\n\n#${type === "saju" ? "꿀꿀운세" : provider.HASHTAG}`), `${type} ${i} 꼬리가 잘렸다`);
           assert.ok(text.includes(provider.CTA));
         }
         assert.ok(text.includes(facts.dateLabel), `${type} date missing`);
@@ -455,7 +498,8 @@ await check("Threads 홍보 이미지 유형별 매핑과 공개 정적 자산",
     assert.ok(fs.existsSync(path.join(ROOT, "public", asset.path.slice(1))), `${type} image asset missing: ${asset.path}`);
   }
   const neo = getThreadsPromoMedia("neo", "https://code-destiny.com/");
-  assert.match(neo.imageUrl, /neo-lion-strategy-v1\.png$/);
+  assert.match(neo.imageUrl, /neo-human-strategy-briefing-v1\.png$/);
+  assert.equal(fs.existsSync(path.join(ROOT, "public/assets/threads/neo-lion-strategy-v1.png")), false, "잘못된 사자 네오 이미지가 남아 있다");
 });
 
 console.log("▶ ⑦ 모델 필드 검증");

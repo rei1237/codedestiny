@@ -13,6 +13,7 @@ import { threadsTextWeight } from "../threads.js";
 // API 상한(500)보다 낮게 — threads-daily-content.js 의 CHAIN_TEXT_LIMIT 과 같은 여유.
 export const POST_TEXT_LIMIT = 480;
 export const PROMPT_VERSION = "editorial-20261004-v3";
+export const THREADS_PROFILE_LINK_CTA = "서비스 바로가기는 프로필 링크에서 확인해 주세요.";
 /** 반말 슬롯(띠별·사주·카르마)의 범위 고지. 날짜만 계산한 글이라는 사실은 말투가 바뀌어도 남긴다. */
 export const SCOPE_LINE = "재미로 보는 날짜 운세 · 개인 예측 아님";
 
@@ -267,7 +268,7 @@ export function mergeCopy(generated, rules, fallback) {
  * 🔴 CTA·링크도 본문보다 먼저 예산을 잡는다 — 길이가 넘쳐도 유입 경로는 잘리지 않는다.
  */
 export function renderPost({ head, extra = "", cta, hashtag }, limit = POST_TEXT_LIMIT) {
-  const tail = `\n\n${cta}\n더 자세한 내용은 프로필 링크에서 확인해 주세요.\n\n#${hashtag}`;
+  const tail = `\n\n${cta}\n${THREADS_PROFILE_LINK_CTA}\n\n#${hashtag}`;
   const budget = limit - threadsTextWeight(tail);
   // extra(한 줄 팁)는 통째로 들어갈 때만 붙인다 — 문장 중간에서 "…" 로 끊긴 팁보다 없는 편이 낫다.
   const lines = String(head).split("\n");

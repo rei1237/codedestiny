@@ -432,7 +432,7 @@ function jsonResponse(body, status = 200) {
 
   assert.ok(chain[0].includes("2026-01-02"), "루트 글에 주입한 날짜가 없다 — 시각 인자가 무시된다(⑩)");
   assert.ok(chain[0].includes("(금)"), "루트 글에 요일이 없다(⑩)");
-  assert.ok(chain[0].includes("프로필 링크에서 확인해 주세요."), "루트 글에 프로필 링크 안내가 없다(⑩)");
+  assert.ok(chain[0].includes("서비스 바로가기는 프로필 링크에서 확인해 주세요."), "루트 글에 프로필 링크 바로가기 안내가 없다(⑩)");
   assert.ok(!/https?:\/\//i.test(chain.join("\n")), "자동 게시 체인에 직접 링크가 남았다(⑩)");
   // 🔴 AI 서문이 card.body 를 대체해도 오늘의 기둥(천간·지지)은 루트에 남아야 한다.
   assert.ok(
