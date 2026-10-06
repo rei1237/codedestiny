@@ -18,7 +18,7 @@ public class LockScreenNotificationTest {
         ctx=InstrumentationRegistry.getInstrumentation().getTargetContext();
         prefs=ctx.getSharedPreferences(CodeDestinyLockScreenPlugin.PREFS,0);
         state=prefs.getString("state_json", "");content=prefs.getString(LockScreenNotify.SNAPSHOT, "");enabled=prefs.getBoolean("enabled",false);
-        if(Build.VERSION.SDK_INT>=33) InstrumentationRegistry.getInstrumentation().getUiAutomation().grantRuntimePermission(ctx.getPackageName(),"android.permission.POST_NOTIFICATIONS");
+        if(Build.VERSION.SDK_INT>=33 && !"true".equals(InstrumentationRegistry.getArguments().getString("permissionDenied"))) InstrumentationRegistry.getInstrumentation().getUiAutomation().grantRuntimePermission(ctx.getPackageName(),"android.permission.POST_NOTIFICATIONS");
         prefs.edit().putBoolean("enabled",true).putString("state_json","{\"prefs\":{\"enabled\":true,\"locale\":\"ko\",\"quietEnabled\":false,\"pigPoseKey\":\"yeoni\"}}")
             .putString(LockScreenNotify.SNAPSHOT,"{\"locale\":\"ko\",\"quote\":{\"title\":\"명언\",\"text\":\"테스트 명언\"},\"daily\":{\"title\":\"일일 운세\",\"text\":\"PRIVATE_TEST_SENTINEL\"},\"affirmation\":{\"title\":\"긍정 확언\",\"text\":\"테스트 확언\"},\"privateSummary\":\"잠금 해제 후 확인\"}").commit();
     }
@@ -38,6 +38,24 @@ public class LockScreenNotificationTest {
     @Test public void allContentOff()throws Exception{option("quoteEnabled",false);option("dailyEnabled",false);option("affirmationEnabled",false);assertFalse(LockScreenNotify.postContent(ctx,4800,true));}
     @Test public void dailyIsRedacted()throws Exception{option("quoteEnabled",false);option("affirmationEnabled",false);assertTrue(LockScreenNotify.postContent(ctx,4800,true));assertEquals("잠금 해제 후 확인",posted().extras.getString(Notification.EXTRA_TEXT));assertEquals("잠금 해제 후 확인",posted().publicVersion.extras.getString(Notification.EXTRA_TEXT));}
     @Test public void oldLocaleCannotPost()throws Exception{JSONObject root=new JSONObject(prefs.getString("state_json",""));root.getJSONObject("prefs").put("locale","ja");prefs.edit().putString("state_json",root.toString()).commit();assertFalse(LockScreenNotify.postContent(ctx,4800,true));}
+    @Test public void deniedPermissionPreventsPost()throws Exception{
+        // Revocation kills the target process on Android 16. Revoke from adb BEFORE
+        // starting this opt-in test so the runner can actually assert the denied state.
+        org.junit.Assume.assumeTrue(Build.VERSION.SDK_INT>=33 && "true".equals(InstrumentationRegistry.getArguments().getString("permissionDenied")));
+        assertFalse(LockScreenNotify.allowed(ctx));assertFalse(LockScreenNotify.postContent(ctx,4800,true));
+    }
+    @Test public void scheduledReminderHonorsQuietWindow()throws Exception{
+        java.util.Calendar now=java.util.Calendar.getInstance();int minute=now.get(java.util.Calendar.HOUR_OF_DAY)*60+now.get(java.util.Calendar.MINUTE);
+        JSONObject root=new JSONObject(prefs.getString("state_json",""));JSONObject p=root.getJSONObject("prefs");
+        p.put("quietEnabled",true).put("quietStart",String.format(java.util.Locale.ROOT,"%02d:%02d",minute/60,minute%60));
+        int end=(minute+2)%1440;p.put("quietEnd",String.format(java.util.Locale.ROOT,"%02d:%02d",end/60,end%60));
+        prefs.edit().putString("state_json",root.toString()).commit();assertFalse(LockScreenNotify.postContent(ctx,2000,false));
+    }
+    @Test public void sameReminderIsNotPostedTwice(){
+        String old=prefs.getString("posted_2000",null);prefs.edit().remove("posted_2000").commit();
+        try{assertTrue(LockScreenNotify.postContent(ctx,2000,false));assertFalse(LockScreenNotify.postContent(ctx,2000,false));}
+        finally{if(old==null)prefs.edit().remove("posted_2000").commit();else prefs.edit().putString("posted_2000",old).commit();}
+    }
     // Opt-in fixture for emulator screenshots; never bundled into release or called by app users.
     @Test public void captureEvidence()throws Exception{
         org.junit.Assume.assumeTrue("true".equals(InstrumentationRegistry.getArguments().getString("keepEvidence")));

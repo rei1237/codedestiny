@@ -1014,7 +1014,10 @@
       if (!document.body) return;
       var offline = window.navigator && window.navigator.onLine === false;
       var existing = document.getElementById("cdAppOfflineNotice");
-      if (!offline) {
+      // This local reader owns unavailable daily results and keeps public cards readable.
+      // The fixed shell banner otherwise covers its flower/source footer on small screens.
+      var localReader = /^\/lock-screen-fortune(?:\/index\.html)?\/?$/.test(window.location.pathname);
+      if (!offline || localReader) {
         if (existing) existing.remove();
         return;
       }
