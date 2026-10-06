@@ -181,8 +181,6 @@ const coreRoutes = [
   // 브랜드 별칭("꿀꿀 운세") 의 대표 URL 은 /ggulggul/ 다. 이 페이지는 그 관계를
   // 설명하는 보조 안내라 대표보다 우선순위를 낮춰 브랜드 쿼리에서 자기잠식하지 않게 한다.
   { path: "/kkul-kkul-unse", changefreq: "weekly", priority: 0.85 },
-  // 영냥이 대표("사주 보는 고양이"·"영냥이" 브랜드 검색). 2026-10-02 서버 본문(YeongnyangiGuide)을 싣고 색인으로 전환했다.
-  { path: "/yeongnyangi", changefreq: "weekly", priority: 0.9 },
   // 천원사주 허브. 무료 키워드는 /saju/ 등 무료 랜딩의 몫이고, 이 페이지는 1,000원 재미 사주 콘텐츠와 영냥이 고등어 상담 안내를 맡는다.
   { path: "/yeongnyangi/1000-won-fortune", changefreq: "weekly", priority: 0.8 },
   { path: "/human-design/guide", changefreq: "monthly", priority: 0.7 },
@@ -343,6 +341,11 @@ const i18nRouteGroups = [
     paths: { ko: "/ggulggul", ja: "/ja", zh: "/zh", "zh-TW": "/zh-tw", en: "/en" },
     changefreq: "daily",
     priority: 1.0,
+  },
+  {
+    paths: { ko: "/yeongnyangi", ja: "/ja/yeongnyangi", zh: "/zh/yeongnyangi", "zh-TW": "/zh-tw/yeongnyangi", en: "/en/yeongnyangi" },
+    changefreq: "weekly",
+    priority: 0.9,
   },
   {
     paths: { ko: "/ziwei", ja: "/ja/ziwei", zh: "/zh/ziwei", "zh-TW": "/zh-tw/ziwei", en: "/en/ziwei" },

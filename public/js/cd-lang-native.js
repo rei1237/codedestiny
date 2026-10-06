@@ -202,6 +202,12 @@
       if (active) btn.setAttribute('aria-current', 'true');
       else btn.removeAttribute('aria-current');
     });
+    var yeongnyangiPaths = { ko: '/yeongnyangi/', en: '/en/yeongnyangi/', ja: '/ja/yeongnyangi/', 'zh-CN': '/zh/yeongnyangi/', 'zh-TW': '/zh-tw/yeongnyangi/' };
+    Array.prototype.forEach.call(document.querySelectorAll('[data-cd-localized-route="yeongnyangi"]'), function (link) {
+      var href = yeongnyangiPaths[lang] || '/yeongnyangi/';
+      if (!yeongnyangiPaths[lang] && lang !== 'ko') href += '?lang=' + encodeURIComponent(lang);
+      link.setAttribute('href', href);
+    });
   }
 
   function installNativeLanguageUiGuards() {
@@ -224,6 +230,18 @@
     var trigger = document.getElementById('langTrigger');
     if (wrap) wrap.classList.remove('open');
     if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  }
+
+  function getLocalizedHomeHref(lang) {
+    try {
+      var pathname = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
+      if (['/', '/index.html', '/ggulggul', '/en', '/ja', '/zh', '/zh-tw'].indexOf(pathname.toLowerCase()) === -1) return '';
+      var paths = { ko: '/ggulggul/', en: '/en/', ja: '/ja/', 'zh-CN': '/zh/', 'zh-TW': '/zh-tw/' };
+      var url = new URL(window.location.href);
+      url.pathname = paths[lang] || '/ggulggul/';
+      url.searchParams.set('lang', lang);
+      return url.pathname + url.search + url.hash;
+    } catch (_) { return ''; }
   }
 
   function shouldSkipGoogleTranslate() {
@@ -546,6 +564,11 @@
     markSavedLangAck(lang);
     syncLanguageUiSoon(lang);
     closeLanguageMenu();
+    var localizedHomeHref = getLocalizedHomeHref(lang);
+    if (localizedHomeHref) {
+      window.location.assign(localizedHomeHref);
+      return;
+    }
     applyNativeTranslations(lang).finally(function () {
       syncLanguageUiSoon(lang);
       applying = false;
