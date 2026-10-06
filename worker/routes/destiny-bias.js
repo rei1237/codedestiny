@@ -124,6 +124,10 @@ async function handleDeleteCard(path, request, env) {
 
 /* ---------------- 최애운명(K-POP 케미) 공유 스냅샷 — 게스트 허용 ---------------- */
 
+function buildShareOgUrl(request, shareId) {
+  return buildDestinyBiasOgImageUrl({ shareId, origin: new URL(request.url).origin });
+}
+
 async function handleGetShare(shareId, request, env) {
   if (!isValidDestinyBiasShareId(shareId)) return notFound();
   await connectDb(env);

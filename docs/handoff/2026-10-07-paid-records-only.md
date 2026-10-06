@@ -89,3 +89,5 @@ D:\Development\code-destiny\.codex-worktrees\paid-records-only-20261007-024230�
 - 최초 전달 SHA 9258ec4487c430fe3590f2e85fce2f7876b3d930 이후 문서 status 허용값을 active로 바로잡음(29c627e3972034d4e534a32584ffbf9e1187ffeb). verify:handoff-contract 162개 통과.
 - verify:sitemap-drift에서 원장 서명 불일치 발견. sitemap:generate로 /saju/destiny-bias/와 /fortune-tea-house/ 2개 signature만 갱신. URL, lastmod, 실제 콘텐츠 및 정책은 변경 없음.
 - 공유 main 원본 HEAD, 83개 작업 파일 SHA256, 9개 스테이징 raw 항목이 모두 전달 전과 일치함을 확인. 사용자가 요청한 원격 main 반영은 완료했고, 로컬 공유 main의 전진은 다른 세션 작업 정리 후 별도 수행해야 한다.
+- 최초 코드 CI 37509478259: typecheck/lint, Pages/Worker build, Jest 346 suites / 5177 tests 통과. Static guards는 사이트맵 원장, Critical checks는 기존 공개 공유 조회의 buildShareOgUrl 선언 누락으로 실패.
+- 기존 공개 링크 읽기 계약을 유지하도록 원래 buildShareOgUrl 함수를 복구. 무료 신규 저장 차단은 유지. 기존 공개 공유 조회 mock 회귀 테스트 추가 후 4개 통과, verify:worker-no-undef 586개 파일 통과.
