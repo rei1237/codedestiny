@@ -15,7 +15,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distArgIndex = process.argv.indexOf("--dist");
@@ -244,6 +244,11 @@ const IMAGE_QUALITY_DEFAULT = 82;
 const IMAGE_QUALITY_CRISP = 90;
 const CRISP_PATTERNS = ["sprite", "photoroom", "mascot", "pig", "tarot", "tea-cups", "ten-gods"];
 const RESIZABLE_EXTENSIONS = new Set([".webp", ".png", ".jpg", ".jpeg"]);
+export function mobileImageCacheKey(input, filename, versions) {
+  const ext = path.extname(filename).toLowerCase();
+  const quality = CRISP_PATTERNS.some(p => path.basename(filename).toLowerCase().includes(p)) ? IMAGE_QUALITY_CRISP : IMAGE_QUALITY_DEFAULT;
+  return createHash("sha256").update(input).update(JSON.stringify({schema:1,ext,quality,width:IMAGE_MAX_WIDTH,sharp:versions.sharp,vips:versions.vips})).digest("hex");
+}
 
 /**
  * 바이트가 같은 이미지 사본 중 참조 0건인 것 제거.
@@ -285,6 +290,8 @@ export async function shrinkOversizedImages(dist = DIST) {
   // verify-app-no-portone.mjs 가 이 모듈에서 색인 함수만 가져다 쓴다 —
   // 그 경로까지 네이티브 모듈(sharp)을 물리지 않도록 여기서만 불러온다.
   const { default: sharp } = await import("sharp");
+  const cacheDir = path.join(ROOT, "build-cache", "mobile-images-v1");
+  await fs.mkdir(cacheDir, { recursive: true });
   const images = await walk(dist, (file) => RESIZABLE_EXTENSIONS.has(path.extname(file).toLowerCase()));
   let rewritten = 0;
   let skipped = 0;
@@ -301,7 +308,10 @@ export async function shrinkOversizedImages(dist = DIST) {
     const base = path.basename(image).toLowerCase();
     const quality = CRISP_PATTERNS.some((p) => base.includes(p)) ? IMAGE_QUALITY_CRISP : IMAGE_QUALITY_DEFAULT;
     let output;
+    const cachedFile = path.join(cacheDir, mobileImageCacheKey(input, image, sharp.versions));
+    try { output = await fs.readFile(cachedFile); } catch { /* Cache misses follow the same encoder. */ }
     try {
+     if (!output) {
       // 버퍼로 넘긴다 — 경로를 주면 sharp 가 핸들을 쥔 채라 같은 파일 쓰기가 윈도우에서 막힌다.
       const source = sharp(input);
       const meta = await source.metadata();
@@ -313,6 +323,10 @@ export async function shrinkOversizedImages(dist = DIST) {
       if (ext === ".png") output = await sized.png({ compressionLevel: 9 }).toBuffer();
       else if (ext === ".webp") output = await sized.webp({ quality, effort: 6, smartSubsample: true }).toBuffer();
       else output = await sized.jpeg({ quality }).toBuffer();
+      const temporary = cachedFile + "." + randomUUID() + ".tmp";
+      await fs.writeFile(temporary, output.length < before ? output : input);
+      try { await fs.rename(temporary, cachedFile); } catch { await fs.rm(temporary, { force: true }); }
+     }
     } catch {
       skipped += 1;
       continue;
