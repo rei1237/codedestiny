@@ -40,10 +40,10 @@ const questionTypeOf=(spread:Pick<Spread,'topic'>)=>meaningTypes[spread.topic]||
 const label=(value:unknown,max:number)=>typeof value==='string'?value.replace(/\s+/g,' ').trim().slice(0,max):'';
 
 /** Validates the order-form spread, tier cap and optional inputs. Unknown fields are dropped, never stored. */
-export function tarotSpreadOrder(body:any,fishId:string){
+export function tarotSpreadOrder(body:any,fishId:string,questionScopeValidated=false){
  const spread=getYeongnyangiSpread(body?.tarotSpreadId);
  if(!spread)throw new FortuneError('INVALID_TAROT_SPREAD');
- if(!tierAllowsSpread(fishId,spread))throw new FortuneError('SPREAD_TIER_UNAVAILABLE');
+ if(!questionScopeValidated&&!tierAllowsSpread(fishId,spread))throw new FortuneError('SPREAD_TIER_UNAVAILABLE');
  const raw=body?.tarotInputs&&typeof body.tarotInputs==='object'?body.tarotInputs:{};
  const inputs:TarotSpreadInputs={};
  const a=label(raw.options?.a,40),b=label(raw.options?.b,40);

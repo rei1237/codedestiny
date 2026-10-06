@@ -23,12 +23,12 @@ const {build,transform}=await import('esbuild');
 const {default:ts}=await import('typescript');
 const fs=await import('node:fs');
 const {createRequire}=await import('node:module');
-const bundle=await build({stdin:{contents:"export {readingCharts} from './worker/yeongnyangi/fortune/reading-presentation'; export {buildSummaryReport,publicShareReport,publicReportDraft} from './app/yeongnyangi/_lib/summary-report';",resolveDir:process.cwd(),loader:'ts'},bundle:true,write:false,platform:'node',format:'cjs'});
+const bundle=await build({stdin:{contents:"export {conversationView} from './worker/yeongnyangi/fortune/ask/conversation'; export {readingCharts} from './worker/yeongnyangi/fortune/reading-presentation'; export {buildSummaryReport,publicShareReport,publicReportDraft} from './app/yeongnyangi/_lib/summary-report';",resolveDir:process.cwd(),loader:'ts'},bundle:true,write:false,platform:'node',format:'cjs'});
 const cjs={exports:{}};new Function('require','module','exports',bundle.outputFiles[0].text)(createRequire(import.meta.url),cjs,cjs.exports);
 const source=ts.createSourceFile('service.ts',fs.readFileSync('worker/yeongnyangi/service.ts','utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);
 const presentation=source.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='presentFortune').getText(source).replace('export function','function');
 const {code}=await transform(presentation,{loader:'ts'});
-const present=new Function('correctedFortune','deliveryRefundPending','readingCharts','readingLocale','snapshotAnalysis','hasRequestAccess','userCanRetry','holdAutoResumes','QUESTION_SKY_TWO_STAGE_VERSION',code+';return presentFortune;')(correctedFortune,deliveryRefundPending,cjs.exports.readingCharts,v=>v||'ko',s=>s.analysis,r=>Boolean(r.paymentId),()=>false,()=>false,'two-stage');
+const present=new Function('conversationView','correctedFortune','deliveryRefundPending','readingCharts','readingLocale','snapshotAnalysis','hasRequestAccess','userCanRetry','holdAutoResumes','QUESTION_SKY_TWO_STAGE_VERSION',code+';return presentFortune;')(cjs.exports.conversationView,correctedFortune,deliveryRefundPending,cjs.exports.readingCharts,v=>v||'ko',s=>s.analysis,r=>Boolean(r.paymentId),()=>false,()=>false,'two-stage');
 test('chart, paid body, summary and public share use one corrected reading without regeneration',()=>{
  const context=hour=>({domain:'saju',engineVersion:'saju-natal-v2',facts:[{id:'saju.pillars',label:'pillars',value:{year:'丁卯',month:'癸丑',day:'辛酉',hour}}],limitations:[]});
  const row={...structuredClone(original),paymentId:'paid',productId:'saju_tuna',snapshot:{analysis:{contexts:{saju:context('戊子')},asOf:'2026-09-26'},product:{domain:'saju',systems:['saju']},manifest:[{id:'chapter-a',title:'기질',sources:['saju.pillars']}]}};

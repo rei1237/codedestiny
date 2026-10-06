@@ -338,3 +338,63 @@ test('new v7 purchases leave a paid v6 result and its original price untouched',
  assert.equal(presentFortune(legacy).manifest[0].version,'destiny-book-v6');
  assert.equal(globalThis.__kindTest.calls,0);
 });
+
+
+test('new question contracts preserve prices, scope, original purchase and punctuation-independent intent',async()=>{
+ const base={version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'현재 상황',options:'선택지',period:'현재와 다음 대운',constraints:'없음',confirmed:true};
+ for(const [fish,limit,price,decision,question] of [
+  ['mackerel',0,3000,base,'거절할 때 어떻게 말할까? 같은 고민의 설명이에요.'],
+  ['salmon',1,9000,{...base,category:'job_change',period:'2026년'},'이직을 준비해도 될까?'],
+  ['flounder',2,15000,{...base,category:'compatibility',target:'pair',relationshipType:'romantic_adults'},'두 사람의 생활 방식과 돈 관리에서 무엇을 조율할까?'],
+  ['tuna',4,30000,{...base,category:'timing',horizon:'transition'},'현재와 다음 대운의 일 방향은 어떻게 달라질까?'],
+ ]){
+  const row=await prepareFortune(env,'new-question-'+fish,{...body,productId:'saju_'+fish,questionDecision:decision,question,...(fish==='flounder'?{partnerProfileId:'partner'}:{})});
+  assert.deepEqual(row.snapshot.questionContract,{version:base.version,followups:limit});
+  assert.equal(row.amountKRW,price);assert.equal(row.snapshot.manifest.length,1);
+  assert.equal(row.snapshot.analysis.consultation.questions.length,1);
+  const facts=selectChapterFacts(row.snapshot.analysis.contexts.saju,row.snapshot.manifest[0]);
+  if(fish==='flounder')assert.ok(facts.some(f=>f.label==='compatibility'));
+  if(fish==='tuna')assert.ok(facts.some(f=>f.label==='questionTiming'));
+  assert.equal(presentFortune(row).conversation.limit,limit);
+  const retry=await prepareFortune(env,'new-question-'+fish,{...body,productId:'saju_'+fish,questionDecision:decision,question,...(fish==='flounder'?{partnerProfileId:'partner'}:{})});
+  assert.equal(retry._id,row._id);
+ }
+ const legacy=await prepareFortune(env,'legacy-question',{...body,consultationKind:'personal'});
+ assert.equal(legacy.snapshot.questionContract,undefined);
+});
+
+
+test('new question generation keeps expert evidence through the actual provider projection in all natal systems',async()=>{
+ const decision={version:'question-consultation-20261007',category:'money',target:'self',horizon:'current',situation:'지출을 정리하려 해요',options:'예산 정리',period:'2026년',constraints:'없음',confirmed:true};
+ for(const domain of ['saju','ziwei','vedic','astrology','sukuyo']){
+  const row=await prepareFortune(env,'expert-'+domain,{...body,productId:domain+'_salmon',questionDecision:decision,question:'재물 관리에서 무엇을 준비할까?'});
+  const input={chapter:row.snapshot.manifest[0],analysis:row.snapshot.analysis,previous:[],locale:'ko'};
+  const withoutQuestion={...input,analysis:{...input.analysis,consultation:{...input.analysis.consultation,questions:[]}}};
+  const fixture=await new loaded.exports.MockChapterProvider().generateChapter(withoutQuestion);
+  fixture.questionAnswers=[{questionId:'Q1',answer:'지출의 우선순위를 정해 보세요.',reason:'제공된 계산 근거를 실제 생활 조건과 비교합니다.',timing:'출생 근거만으로 특정 날짜를 확정하지 않습니다.',action:'이번 주 지출 항목을 정리해 보세요.'}];
+  let captured;
+  await new loaded.exports.StructuredChapterProvider({generate:async req=>{captured=req;return {result:fixture,provider:'mock',model:'isolated'};}}).generateChapter(input);
+  const labels=captured.calculatedData.facts.map(f=>f.label);
+  for(const label of {saju:['usefulGod','jong','yearlyLuck'],ziwei:['palaces','sanFangSiZheng','businessBasis'],vedic:['planets','vimshottariDasha','yogas'],astrology:['aspects','houseRulers'],sukuyo:['personA']}[domain])assert.ok(labels.includes(label),domain+': '+label);
+  assert.match(JSON.parse(captured.domainRules).depth,/가장 깊은 분석/);
+  assert.equal(JSON.parse(captured.domainRules).paidScope,undefined);
+ }
+});
+
+test('new question retries read the immutable intent before profile changes and provider readiness',async()=>{
+ const input={...body,question:'일상의 부탁을 어떻게 거절할까?',consultationAttemptId:'12345678-1234-4234-8234-123456789abc',questionDecision:{version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'업무 부탁',options:'',period:'',constraints:'',confirmed:true}};
+ const first=await prepareFortune(env,'stable-question',input);
+ globalThis.__kindTest.profileOverride=()=>{throw Error('must not recalculate');};
+ try{assert.equal((await prepareFortune({},'stable-question',input))._id,first._id);}finally{delete globalThis.__kindTest.profileOverride;}
+});
+
+
+test('ziwei and vedic transitions use native current and next periods before purchase',async()=>{
+ for(const domain of ['ziwei','vedic']){
+  const questionDecision={version:'question-consultation-20261007',category:'timing',target:'self',horizon:'transition',situation:'일의 방향을 준비하려 해요',options:'',period:'현재와 다음 시기',constraints:'',confirmed:true};
+  const row=await prepareFortune(env,'native-transition-'+domain,{...body,productId:domain+'_tuna',questionDecision,question:'현재와 다음 시기에 무엇을 준비할까?'});
+  const evidence=selectChapterFacts(row.snapshot.analysis.contexts[domain],row.snapshot.manifest[0]).find(f=>f.label==='questionTiming');
+  assert.ok(evidence);assert.equal(evidence.value.periods.length,2);
+  assert.match(evidence.value.rule,domain==='ziwei'?/대한/:/마하다샤/);
+ }
+});

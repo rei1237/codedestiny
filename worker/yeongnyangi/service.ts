@@ -1,4 +1,7 @@
+import {questionEvidence} from './fortune/ask/question-evidence';
+import {conversationView} from './fortune/ask/conversation';
 import {questionSkyCalculationInput} from './fortune/question-sky-locale-input';
+import {QUESTION_POLICY_VERSION,FOLLOWUP_LIMITS,questionDecision,questionTopic,assertQuestionOrder,questionManifest,type QuestionFish} from './fortune/ask/question-policy';
 import {COUNSEL_VERSION,counselManifest} from './fortune/counsel-purpose';
 import {withSajuCycleEvidence} from './fortune/saju/cycle-evidence';
 import {nativeContactBoundary} from './fortune/symbolic-locale';
@@ -100,30 +103,37 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   // Symbolic modes validate native headings against stable section and evidence IDs.
   const attempt=consultationAttempt(body);
   const product=persona?getChatProduct(body.domain):getProduct(body.productId);
+  const decision=body.questionDecision!==undefined&&!persona&&!body.mode?questionDecision(body.questionDecision):undefined;
+  if(decision){
+    if(locale!=='ko')throw new FortuneError('READING_LOCALE_UNAVAILABLE');
+    assertQuestionOrder(product,decision,body.question||'');
+    body={...body,consultationKind:product.domain==='tarot'?'spread':decision.target==='pair'?'compatibility':'ask',topicId:questionTopic(decision.category)};
+  }
   if(Object.hasOwn(skyModes,body.mode))return prepareQuestionSky(env,userId,body);
   if(body.mode && body.mode!==SPIRIT_MODE)throw new FortuneError('INVALID_READING_MODE');
   const spiritInput=body.mode===SPIRIT_MODE?validateSpiritInput(body):undefined;
   if(spiritInput&&locale!=='ko'&&nativeContactBoundary(`${body.question} ${spiritInput.situation}`))spiritInput.boundary=true;
   if(spiritInput){product.manifestVersion=READING_VERSION;product.chapterCount=readingChapterCount(product.domain,product.fishId,READING_VERSION);}
-  const kind=resolveConsultationKind(product,body.consultationKind);
+  const originalKind=resolveConsultationKind(product,body.consultationKind);
+  const kind=decision&&originalKind?{...originalKind,question:true}:originalKind;
   // A chat tarot always uses a v2 question spread; any other kind would leave the chat on an older tarot contract.
   if(persona&&product.domain==='tarot'&&!(chatTarotKinds as readonly string[]).includes(kind?.id||''))throw new FortuneError('INVALID_CONSULTATION_KIND');
   const relationship=isRelationshipReading(product.domain,kind?.id)&&product.readingKind==='single';
   const tarotSpec=product.domain==='tarot'&&product.readingKind==='single'?tarotConsultation(kind?.id):undefined;
   const tarotV2=Boolean(tarotSpec);
   // Korean question-first tarot: a catalog spread, a committed deck and a real pick before payment.
-  const tarotOrder=!persona&&product.domain==='tarot'&&product.readingKind==='single'&&kind?.id===TAROT_SPREAD_KIND?tarotSpreadOrder(body,product.fishId):undefined;
+  const tarotOrder=!persona&&product.domain==='tarot'&&product.readingKind==='single'&&kind?.id===TAROT_SPREAD_KIND?tarotSpreadOrder(body,product.fishId,Boolean(decision)):undefined;
   const tarotV3=Boolean(tarotOrder);
   const tarotQuestion=tarotV2||tarotV3;
   if(kind?.koOnly&&locale!=='ko')throw new FortuneError('READING_LOCALE_UNAVAILABLE');
   const relationshipQuestionId=validateRelationshipQuestion(body.relationshipQuestionId);
   const participants=product.domain==='tarot'&&(relationship||tarotV2&&body.participants)?relationshipAliases(body.participants):undefined;
   // Fail-closed: false unless READING_V7_ENABLED, a single-system v6 tier product and a v7 consultation kind.
-  const v7=!tarotQuestion&&v7Applies(product,kind);
+  const v7=!decision&&!tarotQuestion&&v7Applies(product,kind);
   // 존댓말 is an order-form choice for Yeongnyangi's Korean readings. Chat personas and spirit readings keep their own
   // voice; anything else is 반말. Only 'honorific' enters the identity, so existing orders keep their fingerprints.
   const voiceStyle=!persona&&!body.mode&&locale==='ko'&&body.voiceStyle==='honorific'?'honorific' as const:undefined;
-  const askEvidenceEnabled=Boolean(kind?.question&&!spiritInput&&!relationship&&!tarotQuestion);
+  const askEvidenceEnabled=Boolean(kind?.question&&!spiritInput&&!relationship&&!tarotQuestion&&!decision);
   // Only tiers that keep 종격 evidence ask; an answer sent anywhere else is dropped, not stored.
   const jongAnswer=jongCheckApplies(product)&&!spiritInput?parseJongAnswer(body.jongCheck):undefined;
   if(kind){
@@ -134,9 +144,15 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   }
   // New relationship intents survive profile edits and midnight. Read before
   // provider readiness, chart calculation or drawing; uncertain reads stop here.
+  let questionIntentId:string|undefined;
+  if(decision&&!relationship&&!tarotQuestion&&attempt.consultationAttemptId){
+    questionIntentId=await digest({userId,version:QUESTION_POLICY_VERSION,...attempt,decision,locale,productId:product.id,profileId:body.profileId,question:body.question,birthDetails:body.birthDetails,timeUnknown:body.timeUnknown,...(voiceStyle?{voiceStyle}:{})});
+    await connectDb(env);
+    try{return await readRequest(env,userId,questionIntentId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
+  }
   let relationshipId:string|undefined;
   if(relationship&&attempt.consultationAttemptId){
-    relationshipId=await digest({userId,version:RELATIONSHIP_VERSION,...attempt,productId:product.id,kind:kind?.id,profileId:body.profileId,partnerProfileId:body.partnerProfileId,question:body.question,relationshipQuestionId,participants,birthDetails:body.birthDetails,timeUnknown:body.timeUnknown,partnerTimeUnknown:body.partnerTimeUnknown});
+    relationshipId=await digest({userId,version:RELATIONSHIP_VERSION,...attempt,...(decision?{questionDecision:decision}:{}),productId:product.id,kind:kind?.id,profileId:body.profileId,partnerProfileId:body.partnerProfileId,question:body.question,relationshipQuestionId,participants,birthDetails:body.birthDetails,timeUnknown:body.timeUnknown,partnerTimeUnknown:body.partnerTimeUnknown});
     await connectDb(env);
     try{return await readRequest(env,userId,relationshipId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
@@ -147,7 +163,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     try{return await readRequest(env,userId,tarotIntentId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
   if(tarotV3&&attempt.consultationAttemptId){
-    tarotIntentId=await digest({userId,version:TAROT_SPREAD_VERSION,...attempt,locale,productId:product.id,kind:kind!.id,question:body.question,spreadId:tarotOrder!.spread.id,spreadVersion:tarotOrder!.spread.version,inputs:tarotOrder!.inputs,...(voiceStyle?{voiceStyle}:{})});
+    tarotIntentId=await digest({userId,version:TAROT_SPREAD_VERSION,...attempt,...(decision?{questionDecision:decision}:{}),locale,productId:product.id,kind:kind!.id,question:body.question,spreadId:tarotOrder!.spread.id,spreadVersion:tarotOrder!.spread.version,inputs:tarotOrder!.inputs,...(voiceStyle?{voiceStyle}:{})});
     await connectDb(env);
     try{return await readRequest(env,userId,tarotIntentId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
@@ -170,14 +186,14 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     question:body.question,topicId:body.topicId,readingMode:partner||participants?'compatibility':'personal',consultationKind:kind?.id,participants};
   const normalized=Object.fromEntries(product.systems.map(id=>[id,domains[id].validateInput(raw)]));
   for(const input of Object.values(normalized)) {
-    for(const person of [input.personA,input.personB])if(person && ['flounder','tuna'].includes(product.fishId) &&
+    for(const person of [input.personA,input.personB])if(!decision&&person && ['flounder','tuna'].includes(product.fishId) &&
       (!person.birthTime || !person.birthPlace || !person.gender)) throw new FortuneError('PREMIUM_BIRTH_REQUIRED');
   }
   const now=new Date();
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
-  const fingerprint=await digest({...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput?{counselVersion:COUNSEL_VERSION}:{}),...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{}),...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(tarotV3?{tarotSpread:{id:tarotOrder!.spread.id,version:tarotOrder!.spread.version},tarotInputs:tarotOrder!.inputs}:{})});
-  const id=tarotIntentId||relationshipId||await digest({userId,fingerprint,...attempt,...(relationship?{relationshipVersion:RELATIONSHIP_VERSION}:{}),...(tarotV2?{tarotConsultationVersion:TAROT_CONSULTATION_VERSION}:{}),...(tarotV3?{tarotConsultationVersion:TAROT_SPREAD_VERSION}:{})});
+  const fingerprint=await digest({...(decision?{questionDecision:decision}:{}),...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput?{counselVersion:COUNSEL_VERSION}:{}),...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{}),...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(tarotV3?{tarotSpread:{id:tarotOrder!.spread.id,version:tarotOrder!.spread.version},tarotInputs:tarotOrder!.inputs}:{})});
+  const id=questionIntentId||tarotIntentId||relationshipId||await digest({userId,fingerprint,...attempt,...(relationship?{relationshipVersion:RELATIONSHIP_VERSION}:{}),...(tarotV2?{tarotConsultationVersion:TAROT_CONSULTATION_VERSION}:{}),...(tarotV3?{tarotConsultationVersion:TAROT_SPREAD_VERSION}:{})});
   if(askEvidenceEnabled||relationship||tarotQuestion) {
     // A retry reads the immutable purchase intent before any calculation or card draw.
     // Storage uncertainty is not permission to recalculate an existing purchase.
@@ -203,6 +219,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     contexts[system]=extendRelationshipContext(contexts[system]!,other,date);
   }
   if(!spiritInput&&preventionEligible(product.fishId)&&contexts.saju)contexts.saju=withPreventionTiming(contexts.saju);
+  if(decision)contexts[product.domain]=questionEvidence(contexts[product.domain]!,decision,body.question,date);
   if(persona&&tarotV2)contexts.tarot=withChatTarotVoice(contexts.tarot!);
   const analysis={...analyze(contexts),question:normalized[product.domain].question,topicId:normalized[product.domain].topicId,readingMode:raw.readingMode,asOf:date};
   let manifest=readingManifest(product,analysis.topicId,raw.readingMode,spiritInput?READING_VERSION:product.manifestVersion);
@@ -227,17 +244,27 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     product.manifestVersion=READING_V7_VERSION;
     product.chapterCount=manifest.length;
   }
-  if(!spiritInput&&preventionEligible(product.fishId)){
+  if(!decision&&!spiritInput&&preventionEligible(product.fishId)){
     if(v7Timing)analysis.contexts[product.domain]=withV7Timing(contexts[product.domain]!,v7Timing);
     manifest=withPreventionReading(manifest,analysis,product.fishId);product.chapterCount=manifest.length;
   }
+  if(decision){
+    manifest=questionManifest(product.domain,product.fishId as QuestionFish,decision,tarotOrder?.spread);
+    product.manifestVersion=READING_V6_VERSION;product.chapterCount=manifest.length;
+  }
   analysis.consultation=createConsultation(body.question || '',analysis.topicId || 'general',clock,manifest,kind?.id==='ask');
+  if(decision){
+    analysis.consultation.questionDecision=decision;
+    analysis.consultation.period=createConsultation(body.question+' '+decision.period,analysis.topicId||'general',clock,manifest,true).period;
+    // Clarifications and closely related sentences belong to one intent, not one paid unit per punctuation.
+    analysis.consultation.questions=[{id:'Q1',text:body.question,chapterId:manifest[0].id}];
+  }
   if(!spiritInput)analysis.consultation.counselVersion=COUNSEL_VERSION;
   if(relationship||participants||kind?.partner&&relationshipQuestionId)analysis.consultation.relationship={version:RELATIONSHIP_VERSION,questionId:relationshipQuestionId,participants:participants||(partner?{self:String(profile.name||'나').slice(0,40),partner:String(partner.name||'상대').slice(0,40)}:undefined)};
   if(tarotV2)analysis.consultation.tarotConsultation={version:TAROT_CONSULTATION_VERSION,kind:kind!.id};
   if(tarotV3)analysis.consultation.tarotConsultation={version:TAROT_SPREAD_VERSION,kind:kind!.id,spreadId:tarotOrder!.spread.id};
   if(kind){analysis.consultation.consultationKind=kind.id;analysis.consultation.kindVersion=1;analysis.consultation.kindLabel=tarotV3?tarotOrder!.spread.title:kind.label;if(!kind.question)analysis.consultation.period={kind:'default',label:kind.professional?(product.domain==='saju'?'계산된 과거·현재·미래 대운의 흐름':'저장된 계산 기준의 현재 시기와 다음 전환'):'출생 성향과 선택한 상담의 조건'};}
-  if((!kind||kind.question)&&!relationship&&!tarotQuestion){
+  if(!decision&&(!kind||kind.question)&&!relationship&&!tarotQuestion){
   // Questions are answered before the fixed outline, without reducing paid depth.
   manifest[0].focus='사용자가 입력한 모든 질문에 먼저 직접 답하고 선택 주제와 연결해 해석한다. 질문이 없으면 선택 주제의 핵심 흐름부터 설명한다.';
   manifest[0].excludes=[];
@@ -270,7 +297,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,...(persona?{persona}:{}),
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{deliveryContract:CHAPTER_DELIVERY_VERSION,...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...(decision?{questionContract:{version:QUESTION_POLICY_VERSION,followups:FOLLOWUP_LIMITS[product.fishId as QuestionFish]}}:{}),deliveryContract:CHAPTER_DELIVERY_VERSION,...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
 }
 
 /** The buyer's pick over the committed deck. A repeat call returns the stored draw unchanged (refresh, retry, return). */
@@ -467,5 +494,5 @@ export function presentFortune(row: any) {
     chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({title,summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots}:any)=>({...((title)?{title}:{}),summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots,sources:[]})) : row.chapters.map(({internalBasis:_serverOnly,...chapter}:any)=>chapter),
     ...(row.snapshot.tarotSpread?{tarotSpread:publicTarotSpread(row.snapshot)}:{}),
     followup:row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION?{status:row.generationCheckpoint?.followup?.status || (awaitingFollowup?'available':'unavailable'),used:Boolean(row.generationCheckpoint?.followup?.used),suggestions:row.generationCheckpoint?.followup?.suggestions || row.chapters?.[0]?.followUpSuggestions || []}:undefined,
-    recovery,errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
+    conversation:conversationView(row),recovery,errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
 }

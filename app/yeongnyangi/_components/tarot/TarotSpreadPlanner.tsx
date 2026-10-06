@@ -49,18 +49,19 @@ export function restoreTarotPlan(value:unknown):TarotPlan{
  return {presetId,spreadId,manual:raw.manual===true&&Boolean(spreadId),options:{a:text(options.a),b:text(options.b)},period,relationStatus};
 }
 
-export default function TarotSpreadPlanner({locale='ko',question,onQuestion,plan,onPlan,tier,onTier,disabled,notice}:{locale?:ReadingLocale;question:string;onQuestion:(value:string)=>void;plan:TarotPlan;onPlan:(plan:TarotPlan)=>void;tier:string;onTier:(fishId:string,cards:number)=>void;disabled?:boolean;notice?:string}){
+export default function TarotSpreadPlanner({locale='ko',question,onQuestion,plan,onPlan,tier,onTier,disabled,notice,purposeMode=false}:{locale?:ReadingLocale;question:string;onQuestion:(value:string)=>void;plan:TarotPlan;onPlan:(plan:TarotPlan)=>void;tier:string;onTier:(fishId:string,cards:number)=>void;disabled?:boolean;notice?:string;purposeMode?:boolean}){
+ const scopeTier=purposeMode?'tuna':tier;
  const copy=tarotSpreadCopyFor(locale),planCopy=tarotPlanCopy(locale),presets=planCopy.presets;
- const rec=useMemo(()=>tarotRecommendation(plan,question,tier,locale),[plan,question,tier,locale]);
- const spread=localizedTarotSpread(plannedSpread(plan,question,tier,locale),locale);
+ const rec=useMemo(()=>tarotRecommendation(plan,question,scopeTier,locale),[plan,question,scopeTier,locale]);
+ const spread=localizedTarotSpread(plannedSpread(plan,question,scopeTier,locale),locale);
  const askedPeriod=useMemo(()=>Boolean(localizedTarotQuestionFeatures(question,locale).period),[question,locale]);
  const choose=(next:Spread)=>{
   onPlan({...plan,spreadId:next.id,manual:true});
-  if(!tierAllowsSpread(tier,next)&&next.minTier)onTier(next.minTier,next.cardCount);
+  if(!tierAllowsSpread(scopeTier,next)&&next.minTier)onTier(next.minTier,next.cardCount);
  };
  const spreadButton=(source:Spread,tag?:string)=>{const item=localizedTarotSpread(source,locale);return <button type="button" key={item.id} className={styles.choice} aria-pressed={spread.id===item.id} disabled={disabled} onClick={()=>choose(item)}>
   {tag&&<i>{tag}</i>}<strong>{item.title}</strong><span>{item.summary}</span>
-  <small>{copy.cards(item.cardCount)}{!tierAllowsSpread(tier,item)&&item.minTier?` · ${copy.tierNeeded(fishName(item.minTier,locale))}`:''}</small>
+  <small>{copy.cards(item.cardCount)}{!tierAllowsSpread(scopeTier,item)&&item.minTier?` · ${copy.tierNeeded(fishName(item.minTier,locale))}`:''}</small>
  </button>;};
  const suggested=rec?[rec.primary,...rec.alternatives].map(id=>getYeongnyangiSpread(id)).filter((item):item is Spread=>Boolean(item)):[];
  return <section className={styles.planner} aria-labelledby="tarot-question-heading" lang={locale}>

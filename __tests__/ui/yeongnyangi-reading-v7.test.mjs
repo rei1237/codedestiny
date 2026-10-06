@@ -167,6 +167,6 @@ test('tier price tables count the chapters the consultation buttons promise',()=
    assert.ok(counts.includes(m.consultationManifest(p,k).length),`${p.id}:${k.id}`);
  }
  assert.ok(m.consultationChapterCounts(productFor('saju','tuna')).includes(manifest('saju','tuna','personal').length));
- for(const file of ['app/yeongnyangi/1000-won-fortune/page.tsx','app/yeongnyangi/_components/YeongnyangiGuide.tsx'])
+ for(const file of ['app/yeongnyangi/1000-won-fortune/page.tsx'])
   assert.match(readFileSync(file,'utf8'),/const chapterRange=\(items:Product\[\]\)=>\{const counts=items\.flatMap\(consultationChapterCounts\);/,file);
 });

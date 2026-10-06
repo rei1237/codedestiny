@@ -303,7 +303,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
                       <h3>{copy.cardTitle}</h3>
                       <p className="service-hook">{copy.hook}</p>
                       <p className="service-description">{copy.description}</p>
-                      <small className="service-price">{offers[item.id][0].price.toLocaleString('ko-KR')}원부터<br/>{offers[item.id][0].fishName} · {offers[item.id][0].chapters.length}개 챕터</small>
+                      <small className="service-price">{offers[item.id][0].price.toLocaleString('ko-KR')}원부터<br/>질문의 주제에 맞는 상담 안내</small>
                       <span>
                         보러가기 <ArrowRight size={14} />
                       </span>

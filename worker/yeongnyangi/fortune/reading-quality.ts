@@ -100,7 +100,7 @@ function blockShapeIssue(body:ChapterBody,chapter:ChapterSpec,v5:boolean):string
 // Words reserved for premium tiers (tuna·assorted·omakase). The flounder prevention chapter may name 용신.
 // Shared by validateReadingQuality and the lenient delivery path, which drops the sentence instead.
 export function hasOutOfTierTerm(text:string,chapter:ChapterSpec,locale='ko'):boolean{
- if(!isStructuredReading(chapter.version)||['tuna','assorted','omakase'].includes(chapter.tier||''))return false;
+ if(chapter.questionPolicy||!isStructuredReading(chapter.version)||['tuna','assorted','omakase'].includes(chapter.tier||''))return false;
  const scoped=allowsPreventionBalance(chapter)?text.replace(/용신|用神|\byongshin\b/gi,''):text;
  return /(?:용신|희신|대운|마하다샤|안타르다샤)/.test(scoped)||
   (locale!=='ko'&&/\b(?:yongshin|heeshin|daewoon|mahadasha|antardasha)\b|用神|喜神|大運|マハーダシャー|アンタルダシャー/i.test(scoped));
@@ -136,10 +136,15 @@ export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,prev
  const content=[body.title,...(body.blocks||[]).map(b=>b.title),...passages,body.summary,body.persona,...body.highlights,
   ...(body.questionAnswers || []).flatMap(a=>[a.answer,a.reason,a.timing,a.action])].join('\n');
  if(hasPrevention(chapter)&&hasUnsupportedPreventionClaim(content))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
- if(hasUnsupportedLocalizedClaim(content,readingLocale(locale)))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
- if(/(?:외도|바람기|바람끼).{0,12}\d+\s*%|(?:반드시|무조건|100%).{0,15}(?:재회|결혼|성공)|(?:암|질병|장기 이상)을?\s*(?:진단|확정)|(?:오행|명식).{0,20}(?:치료할 수|치료됩니다)|(?:(?:질병|질환)(?:이|가|에)?\s*(?:생깁니다|생긴다|생길 것입니다|생길 겁니다|발생합니다|있습니다)|병에\s*걸(?:립니다|린다|릴 것입니다|릴 겁니다|리게 됩니다)|발병(?:합니다|한다|할 것입니다|할 겁니다))(?![가-힣])/.test(content))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
+ validateReadingClaims(content,locale);
  if(hasOutOfTierTerm(content,chapter,locale))throw new FortuneError('TIER_SCOPE_VIOLATION');
  const chapterCount=bodyCharacterCount(body),floor=chapterFloor(chapter);
  if(!lengthRepair&&chapterCount<floor)throw new FortuneError('CHAPTER_TOO_SHORT',400,`chapter:${chapterCount}/${floor}`);
  if(!v5&&(requiredSectionIds?body.blocks?.length!==requiredSectionIds.length||requiredSectionIds.some((id,i)=>body.blocks?.[i]?.id!==id):chapter.requiredSections?.some(title=>!body.blocks!.some(b=>b.title===title))))throw new FortuneError('CHAPTER_DEPTH_INCOMPLETE');
+}
+
+/** Shared factual-claim guard for basic chapters and stored-evidence followups. */
+export function validateReadingClaims(content:string,locale?:string){
+ if(hasUnsupportedLocalizedClaim(content,readingLocale(locale)))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
+ if(/(?:외도|바람기|바람끼).{0,12}\d+\s*%|(?:반드시|무조건|100%).{0,15}(?:재회|결혼|성공)|(?:암|질병|장기 이상)을?\s*(?:진단|확정)|(?:오행|명식).{0,20}(?:치료할 수|치료됩니다)|(?:(?:질병|질환)(?:이|가|에)?\s*(?:생깁니다|생긴다|생길 것입니다|생길 겁니다|발생합니다|있습니다)|병에\s*걸(?:립니다|린다|릴 것입니다|릴 겁니다|리게 됩니다)|발병(?:합니다|한다|할 것입니다|할 겁니다))(?![가-힣])/.test(content))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
 }

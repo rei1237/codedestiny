@@ -1,4 +1,5 @@
 import { calculateScreenSaju } from './runtime';
+import {sajuCompatibilityEvidence} from './compatibility-evidence';
 import { buildElementProfile, buildMovementSignals, buildRomanceTiming, buildSajuHealthBasis, buildTenGodProfile } from '../../../lib/saju-derived-signals.js';
 import { context, domain } from "../shared/domain";
 export const saju = domain(
@@ -37,12 +38,13 @@ strength/usefulGod는 휴리스틱이므로 조후·월령·통근 근거와 대
       "saju",
       {
         ...(partnerFacts?{
-          partnerChart:Object.fromEntries(Object.entries(partnerFacts).filter(([key])=>['pillars','dayMaster','fiveElements','tenGods','tenGodsByPillar','natalInteractions','seasonalBalance'].includes(key))),
+          compatibility:sajuCompatibilityEvidence(r,partnerFacts),
+          partnerChart:Object.fromEntries(Object.entries(partnerFacts).filter(([key])=>['pillars','dayMaster','fiveElements','tenGods','tenGodsByPillar','natalInteractions','seasonalBalance','usefulGod','jong','strengthHeuristic'].includes(key))),
           relationshipComparison:{
             selfDayMaster:r.dayMaster,partnerDayMaster:partnerFacts.dayMaster,
             selfElements:r.fiveElements,partnerElements:partnerFacts.fiveElements,
             selfTenGods:r.tenGods,partnerTenGods:partnerFacts.tenGods,
-            limitation:'두 명식의 기질·오행·십성 비교입니다. 명식 간 합충 점수나 실제 관계의 성공 확률을 계산한 값이 아닙니다.',
+            limitation:'기질·오행·십성 비교이며, 명식 사이의 합충은 compatibility에 별도로 계산됩니다. 실제 관계의 성공 확률은 아닙니다.',
           },
         }:{}),
         pillars: {

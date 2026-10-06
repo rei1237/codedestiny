@@ -10,6 +10,7 @@ import {resultStateCopy,deliveryRefundCopy} from '../_lib/result-state-copy';
 import {readingLanguageNames} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {formatAskRange} from '@/worker/yeongnyangi/fortune/ask/period';
 import ReadingBook from './ReadingBook';
+import QuestionConversation from './QuestionConversation';
 import ReadingIdentity from './ReadingIdentity';
 import SpiritResult from './SpiritResult';
 import ReviewRewardBanner from '@/app/components/ReviewRewardBanner';
@@ -212,6 +213,7 @@ export default function Result(){
    </div>
    {supportLink}
    {!unpaid&&<ReadingBook row={row}/>}
+   {row.conversation&&<QuestionConversation row={row} onRow={setRow}/>}
    {row.state==='COMPLETED'&&<SummaryReportView row={row}/>}
    {row.state==='COMPLETED'&&<>{shouldInvitePaidReview(row)&&<ReviewRewardBanner afterResult brand="yeongnyangi" locale={row.locale||'ko'}/>}<ResultBridge row={row} locale={row.locale}/><ResultSharing key={row.id} row={row}/><RecommendationResult service={row.product.id} locale={row.locale} brand="yeongnyangi"/><OrderReference id={row.id} locale={row.locale}/>{row.consultation&&<details className={styles.questionContext}><summary>{consultationLabel}</summary>{row.consultation.question&&<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>}{row.consultation.relationship?.participants&&<p>{row.consultation.relationship.participants.self} · {row.consultation.relationship.participants.partner}</p>}{row.consultation.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone||'Asia/Seoul'}</p>}{row.consultation.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}</details>}</>}
    {row.paid&&row.state!=='REFUNDED'&&<><ReadingIdentity product={row.product} locale={row.locale}/><FishReceipt product={row.product} locale={row.locale}/></>}

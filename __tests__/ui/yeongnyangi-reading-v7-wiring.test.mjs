@@ -126,7 +126,7 @@ test('only a newly prepared concise manifest selects reduced budgets and the foc
  }
 });
 
-test('new readings distinguish four reasoning depths without adding tokens or changing owned facts',async()=>{
+test('all fish use the same basic quality without changing legacy tokens or owned facts',async()=>{
  const approaches=new Set();
  for(const tier of ['mackerel','salmon','flounder','tuna']){
   const old=tier==='mackerel'?m.consultationManifest(productOf('saju',tier),undefined)[1]:resolved[tier][1];
@@ -144,7 +144,7 @@ test('new readings distinguish four reasoning depths without adding tokens or ch
   assert.deepEqual(chapter.factIds,old.factIds);
   assert.deepEqual(request.outputSchema.properties.blocks.items.properties.id.enum,old.sections.map(s=>s.id));
  }
- assert.equal(approaches.size,4);
+ assert.equal(approaches.size,1);
 });
 
 

@@ -4,6 +4,7 @@ import { topicLabel } from './topics';
 import { ASK_PERIOD_RESOLVER, resolveAskPeriods, type AskPeriodRange } from './ask/period';
 
 export interface Consultation {
+  questionDecision?: import('./ask/question-policy').QuestionDecision;
   counselVersion?: string;
   tarotConsultation?: {version:string;kind:string;spreadId?:string};
   relationship?: {version:string;questionId?:string;participants?:{self:string;partner:string}};

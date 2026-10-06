@@ -14,6 +14,13 @@ import { hasRequestAccess } from '../yeongnyangi/access-methods.js';
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
 
 const messages={
+  QUESTION_EVIDENCE_UNAVAILABLE:'핵심 질문에 필요한 시기 근거를 확인할 수 없어요. 출생정보 또는 지원 범위를 확인해 주세요. 결제는 진행되지 않았어요.',
+  QUESTION_SCOPE_REQUIRED:'질문의 대상·주제·기간과 필요한 상황을 확인해 주세요.',
+  QUESTION_SCOPE_UNSUPPORTED:'이 체계에서 제공할 수 없는 범위예요. 먼저 다룰 질문이나 계산 체계를 선택해 주세요.',
+  QUESTION_PRODUCT_MISMATCH:'질문 범위와 선택한 상담이 달라요. 안내된 상담과 가격을 확인해 주세요.',
+  QUESTION_CONVERSATION_CLOSED:'상담이 마무리됐어요. 기존 답변은 계속 다시 볼 수 있어요.',
+  QUESTION_FOLLOWUP_BUSY:'같은 상담의 질문을 처리하고 있어요. 잠시 뒤 이 화면에서 확인해 주세요.',
+  QUESTION_FOLLOWUP_SUPPORT:'자동 재시도 범위를 넘어 확인이 필요해요. 추가 질문은 차감되지 않았어요. 지원 문의로 알려 주세요.',
   INVALID_TAROT_SPREAD:'카드 배열을 다시 골라 주세요.',
   SPREAD_TIER_UNAVAILABLE:'고른 배열은 이 등급에서 볼 수 없어요. 배열이나 등급을 다시 골라 주세요.',
   INVALID_TAROT_PICKS:'배열에 필요한 장수만큼 서로 다른 카드를 골라 주세요.',
@@ -161,7 +168,7 @@ export async function handleYeongnyangiRoutes(request, env) {
       return json({ok:true,nextCursor:rows.length>30?`${new Date(last.createdAt).toISOString()}_${last._id}`:null,
         fortunes:page.map(row=>({id:row._id,locale:row.snapshot?.locale || 'ko',product:row.snapshot?.product || null,state:row.state,paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),completedChapters:row.completedChapters,totalChapters:row.snapshot?.manifest?.length,recovering:libraryRecovering(row),canRetry:userCanRetry(row),createdAt:row.createdAt,consultationKind:row.snapshot?.analysis?.consultation?.consultationKind,kindLabel:row.snapshot?.analysis?.consultation?.kindLabel,participants:row.snapshot?.analysis?.consultation?.relationship?.participants}))},{headers:{'Cache-Control':'private, no-store','Server-Timing':`auth;dur=${authMs.toFixed(1)}, db;dur=${dbMs.toFixed(1)}, query;dur=${(performance.now()-queryStart).toFixed(1)}`}});
     }
-    const match=path.match(/^requests\/([a-f0-9]{64})(?:\/(activate|generate|follow-up|correction|tarot-draw))?$/);
+    const match=path.match(/^requests\/([a-f0-9]{64})(?:\/(activate|generate|follow-up|conversation|correction|tarot-draw))?$/);
     if(!match) return notFound();
     const [,id,action]=match;
     if(action==='correction' && (method==='GET'||method==='POST')) {
@@ -178,6 +185,12 @@ export async function handleYeongnyangiRoutes(request, env) {
     if(action==='generate' && method==='POST') {
       const row=await retryFortune(env,auth.userId,id);
       return json({ok:true,fortune:presentFortune(row)},{status:row.state==='COMPLETED'?200:202});
+    }
+    if(action==='conversation' && method==='POST') {
+      const body=await readJson(request);
+      if(!body||typeof body!=='object'||Array.isArray(body))throw createHttpError(400,'질문 내용을 확인해 주세요.',{code:'FOLLOWUP_INPUT_INVALID'});
+      const {questionConversation}=await import('../yeongnyangi/question-followup.ts');
+      return json({ok:true,fortune:presentFortune(await questionConversation(env,auth.userId,id,body))},{headers:{'Cache-Control':'private, no-store'}});
     }
     if(action==='follow-up' && method==='POST') {
       const body=await readJson(request);

@@ -21,7 +21,7 @@ function cleanEvidence(value:unknown,premium:boolean):unknown {
  return Object.fromEntries(Object.entries(value).filter(([key])=>! /prompt|summaryForPrompt/i.test(key) && (premium||! /useful|unfavorable|yongshin|heeShin|jong|majorLuck|dasha|divisional|yogas|fourTransformations|sanFangSiZheng/i.test(key))).map(([key,v])=>[key,cleanEvidence(v,premium)]));
 }
 function selectedFacts(context:DomainContext,chapter:ChapterSpec) {
- const premium=['tuna','assorted','omakase'].includes(chapter.tier||'');
+ const premium=Boolean(chapter.questionPolicy)||['tuna','assorted','omakase'].includes(chapter.tier||'');
  const selectors=chapter.factSelectors?.[context.domain]||[];
  const allowed=new Map<string,{whole:boolean;paths:string[];palaces:string[]}>();
  for(const selector of selectors){const match=selector.match(/^([^.[\]]+)(?:\[([^\]]+)\]|\.(.+))?$/);if(!match)continue;const [,label,names,path]=match;const entry=allowed.get(label)||{whole:false,paths:[],palaces:[]};if(names)entry.palaces.push(...names.split(','));else if(path)entry.paths.push(path);else entry.whole=true;allowed.set(label,entry);}
@@ -39,13 +39,13 @@ function selectedFacts(context:DomainContext,chapter:ChapterSpec) {
    const asOf=context.calculatedAt.slice(0,10);
    value={...data,periods:data.periods.filter(p=>typeof p.startDate==='string'&&p.startDate>asOf).slice(0,2)};
   }
-  if(f.label==='majorLuck'&&context.domain==='saju'&&value&&typeof value==='object'){
+  if(!chapter.questionPolicy&&f.label==='majorLuck'&&context.domain==='saju'&&value&&typeof value==='object'){
    const data=value as {currentCycle?:{index:number};cycles?:{index:number}[];direction?:string};
    const next=chapter.key==='next'||chapter.version===READING_V6_VERSION&&chapter.key==='preparation';
    const compare=chapter.version===READING_V6_VERSION&&['alternatives','limits'].includes(chapter.key||'');
    value=chapter.counsel?.cycleIndexes?{direction:data.direction,cycles:data.cycles?.filter(c=>chapter.counsel!.cycleIndexes!.includes(c.index))}:next||compare?{direction:data.direction,...(compare?{currentCycle:data.currentCycle}:{}),cycles:data.currentCycle?data.cycles?.filter(c=>c.index>data.currentCycle!.index).slice(0,1):[],limitation:data.currentCycle?undefined:'현재 주기를 확인할 수 없어 다음 전환을 특정하지 않는다.'}:{direction:data.direction,currentCycle:data.currentCycle};
   }
-  if(f.label==='yearlyLuck'&&context.domain==='saju'&&Array.isArray(value))value=value.slice(0,1);
+  if(!chapter.questionPolicy&&f.label==='yearlyLuck'&&context.domain==='saju'&&Array.isArray(value))value=value.slice(0,1);
   if(f.label==='shinsal')value={signals:relationshipSignals(value),limitation:'매력·교류의 단서이며 실제 외도 여부나 확률이 아니다. 자료 없음은 낮은 위험을 뜻하지 않는다.'};
   if(f.label==='palaces'&&Array.isArray(value))value={palaces:value,distinctPlacements:ziweiTraitEvidence(value,context.facts.find(x=>x.label==='bodyPalace')?.value),rule:'명궁·신궁 역할이 같아도 동일 궁·별 배치는 독립 증거로 중복 계산하지 않는다.'};
   value=cleanEvidence(value,premium);
