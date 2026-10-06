@@ -181,6 +181,9 @@ ENABLE_FORTUNE_CHAT_CONSULTATIONS = "true"
 # 서명 없이 클라이언트 본문을 받는 공개 쓰기 경로라, 소비자(정적 셸 공유 버튼)가 붙기 전까지
 # 켜지 않는다. 켜는 시점은 js/share-bridge.mjs 배선 커밋이다.
 ENABLE_RESULT_SHARE = "false"
+# 무료 운명 구조도(정적 셸) 문장 다듬기 LLM 스위치 — POST /api/destiny-anatomy/narrate. 꺼져 있으면 서버가
+# 한도·LLM 에 닿지 않고 결정론 문장을 유지하라고 답한다. 실호출 검증은 별도 1회 승인 때만 켠다.
+ENABLE_DESTINY_ANATOMY_REAL_LLM = "false"
 ENABLE_GUARDIAN_FORTUNE_REAL_LLM = "true"
 ALLOW_REAL_GUARDIAN_FORTUNE_LLM = "true"
 GUARDIAN_FORTUNE_LLM_PROVIDER = "mock"

@@ -505,6 +505,21 @@
     ]
   },
   {
+    "file": "worker/routes/destiny-anatomy.js",
+    "matches": [
+      {
+        "line": 12,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/structured-consultation.js"
+      },
+      {
+        "line": 188,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      }
+    ]
+  },
+  {
     "file": "worker/routes/destiny-compass-ai.js",
     "matches": [
       {
@@ -728,12 +743,12 @@
     "file": "worker/routes/neo-operation-room.js",
     "matches": [
       {
-        "line": 21,
+        "line": 22,
         "kind": "import-or-injected-call",
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 1026,
+        "line": 1027,
         "kind": "call",
         "symbol": "callGeminiText"
       }

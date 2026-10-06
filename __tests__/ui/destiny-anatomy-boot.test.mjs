@@ -151,3 +151,25 @@ test('공유 카드: 원국 글자·대운 간지·연도를 싣지 않는다', 
   }
   assert.equal(S.content(null), null);
 });
+
+test('문장 다듬기: 원문 키로 묶고, 형식이 맞는 LLM 응답만 문장 자리에 넣는다', () => {
+  const {ctx} = setup();
+  const m = model(ctx, 'ko', {hdChart: HD});
+  const nb = B.narrateBase(m);
+  assert.equal(nb.base.mindLine, m.text.mindLine);
+  assert.equal(nb.base.insights.length, m.text.insights.length);
+  assert.ok(nb.names.length <= 5 && nb.names.includes(m.text.engines[0].name));
+  assert.ok(!/\d{4}|乙|庚/.test(JSON.stringify(nb)), '출생·원국 글자를 보내지 않는다');
+  const n = nb.base.insights.length;
+  for (const bad of [null, {ok: false, source: 'deterministic'}, {ok: true, source: 'llm', mindLine: '', insights: Array(n).fill('a')},
+    {ok: true, source: 'llm', mindLine: 'a', insights: Array(n + 1).fill('a')}, {ok: true, source: 'llm', mindLine: 'a', insights: Array(n).fill(1)}]) {
+    assert.equal(B.acceptNarration(bad, n), null);
+  }
+  const hit = B.acceptNarration({ok: true, source: 'llm', mindLine: '다듬은 한 줄이에요.', insights: Array(n).fill('다듬은 문장이에요.')}, n);
+  const titles = m.text.insights.map((i) => i.title);
+  B.mergeNarration(m, hit);
+  assert.equal(m.text.mindLine, '다듬은 한 줄이에요.');
+  assert.equal(m.share.headline, '다듬은 한 줄이에요.');
+  assert.deepEqual(m.text.insights.map((i) => i.title), titles);
+  assert.ok(m.text.insights.every((i) => i.body === '다듬은 문장이에요.'));
+});

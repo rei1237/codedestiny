@@ -15,6 +15,9 @@
   var VARIANTS = ['A', 'B', 'C', 'D'];
   var VARIANT_KEY = 'cd_da_hero_v1';
   var FETCH_TIMEOUT_MS = 15000;
+  // 서버 narrate 예산(24초)보다 길게 — 서버가 결정론으로 답할 시간을 준다.
+  var NARRATE_TIMEOUT_MS = 32000;
+  var NARRATE_URL = '/api/destiny-anatomy/narrate';
   var FALLBACK_UI = {
     ko: {error: '운명 구조도를 불러오지 못했어요', retry: '다시 불러오기'},
     en: {error: 'We could not load your Destiny Anatomy', retry: 'Try again'}
@@ -52,7 +55,34 @@
     return {key: [date, time, timezone, place ? lat.toFixed(4) + ',' + lon.toFixed(4) : '', gender].join('|'), hd: hd, vedic: vedic};
   }
 
-  var api = {isEnabled: isEnabled, PRODUCTION_ENABLED: PRODUCTION_ENABLED, pickVariant: pickVariant, birthRequest: birthRequest};
+  /* 문장 다듬기(LLM) — 열린 뒤에만, 서버 플래그가 켜진 스테이징에서만 실제로 바뀐다. 결정론 문장이 정본이고
+     어떤 실패(플래그 꺼짐·한도·충실도·시간 초과)도 조용히 결정론을 유지한다. 키는 로케일+원문이라 대운이 늦게 와도 문장이 같으면 다시 부르지 않는다. */
+  function narrateBase(m) {
+    var t = m && m.text;
+    if (!t || !t.mindLine) return null;
+    var names = (t.engines || []).slice(0, 3).map(function (e) { return e.name; });
+    if (t.hd && t.hd.typeName) names.push(t.hd.typeName);
+    if (t.hd && t.hd.authorityName) names.push(t.hd.authorityName);
+    var base = {mindLine: t.mindLine, insights: (t.insights || []).slice(0, 3).map(function (i) { return {title: i.title, body: i.body}; })};
+    return {key: m.locale + '|' + base.mindLine + '|' + base.insights.map(function (i) { return i.body; }).join('|'), base: base, names: names.filter(Boolean).slice(0, 5)};
+  }
+  function acceptNarration(res, count) {
+    var ok = res && res.ok === true && res.source === 'llm' && typeof res.mindLine === 'string' && res.mindLine &&
+      Array.isArray(res.insights) && res.insights.length === count &&
+      res.insights.every(function (x) { return typeof x === 'string' && x; });
+    return ok ? {mindLine: res.mindLine, insights: res.insights.slice()} : null;
+  }
+  function mergeNarration(m, hit) {
+    m.text.mindLine = hit.mindLine;
+    if (m.fusion) m.fusion.summary = hit.mindLine;
+    if (m.share) m.share.headline = hit.mindLine;
+    (m.text.insights || []).forEach(function (ins, i) { if (hit.insights[i]) ins.body = hit.insights[i]; });
+    m.narrated = true;
+    return m;
+  }
+
+  var api = {isEnabled: isEnabled, PRODUCTION_ENABLED: PRODUCTION_ENABLED, pickVariant: pickVariant, birthRequest: birthRequest,
+    narrateBase: narrateBase, acceptNarration: acceptNarration, mergeNarration: mergeNarration};
   root.DestinyAnatomyBoot = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 
@@ -65,6 +95,7 @@
   var gen = 0;
   var layers = {status: 'idle', hd: null, vedic: null, key: ''};
   var layerCache = {};
+  var narrations = {};
   var lit = {};
   var fired = {};
   var observer = null;
@@ -153,7 +184,9 @@
       var next = build();
       if (!next) { card.hidden = true; return; }
       model = next;
+      applyNarration();
       paint();
+      narrate();
     } catch (e) {
       if (root.console && root.console.warn) root.console.warn('[destiny-anatomy] render failed', e);
       showError();
@@ -201,11 +234,34 @@
         return r.json();
       });
   }
-  function withTimeout(fn) {
+  function withTimeout(fn, ms) {
     var ctl = typeof root.AbortController === 'function' ? new root.AbortController() : null;
-    var timer = root.setTimeout(function () { if (ctl) ctl.abort(); }, FETCH_TIMEOUT_MS);
+    var timer = root.setTimeout(function () { if (ctl) ctl.abort(); }, ms || FETCH_TIMEOUT_MS);
     return fn(ctl ? ctl.signal : undefined).then(function (v) { root.clearTimeout(timer); return v; }, function (e) { root.clearTimeout(timer); throw e; });
   }
+  function applyNarration() {
+    var nb = narrateBase(model);
+    if (!nb) return;
+    model.narrationKey = nb.key;
+    var hit = narrations[nb.key];
+    if (hit && typeof hit === 'object') mergeNarration(model, hit);
+  }
+  function narrate() {
+    if (!state.open || !model || model.narrated || typeof root.fetch !== 'function') return;
+    var nb = narrateBase(model);
+    if (!nb || narrations[nb.key]) return;
+    narrations[nb.key] = 'pending';
+    var my = gen;
+    var body = {fingerprint: model.fingerprint, locale: model.locale, axes: (model.saju && model.saju.ranked || []).slice(0, 3), names: nb.names, base: nb.base};
+    try {
+      withTimeout(function (signal) { return postJson(NARRATE_URL, body, signal); }, NARRATE_TIMEOUT_MS).then(function (res) {
+        var hit = acceptNarration(res, nb.base.insights.length);
+        narrations[nb.key] = hit || 'none';
+        if (hit && my === gen && model && model.narrationKey === nb.key) refresh();
+      }, function () { narrations[nb.key] = 'none'; });
+    } catch (e) { narrations[nb.key] = 'none'; }
+  }
+
   function loadLayers() {
     if (!model || model.timeUnknown || layers.status === 'loading' || layers.status === 'ready') return;
     var signedIn = false;
@@ -346,6 +402,7 @@
         cdTrack('destiny_anatomy_open', {});
         paint();
         loadLayers();
+        narrate();
         var body = doc.getElementById('daBody');
         if (body && body.focus) { body.setAttribute('tabindex', '-1'); body.focus({preventScroll: true}); }
       } else if (act === 'thoughts') {

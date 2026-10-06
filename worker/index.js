@@ -511,6 +511,7 @@ const handleZiweiDaehanRoutes = createLazyRouteHandler("./routes/ziwei-daehan.js
 const handleZiweiIslandRoutes = createLazyRouteHandler("./routes/ziwei-island.js", () => import("./routes/ziwei-island.js"), "handleZiweiIslandRoutes", "api/ziwei-island");
 // 운명의 지도 — 무인증·무DB AI 문장화(규칙 산출 데이터 문장화만, 실패 시 클라 템플릿 폴백)
 const handleDestinyCompassRoutes = createLazyRouteHandler("./routes/destiny-compass.js", () => import("./routes/destiny-compass.js"), "handleDestinyCompassRoutes", "api/destiny-compass");
+const handleDestinyAnatomyRoutes = createLazyRouteHandler("./routes/destiny-anatomy.js", () => import("./routes/destiny-anatomy.js"), "handleDestinyAnatomyRoutes", "api/destiny-anatomy");
 // 운명의 지도 심층 리포트(₩10,000) — 회당 결제 9섹션 LLM 상담. 두 웨이브 동기 생성(waitUntil 금지)
 const handleDestinyCompassAiRoutes = createLazyRouteHandler("./routes/destiny-compass-ai.js", () => import("./routes/destiny-compass-ai.js"), "handleDestinyCompassAiRoutes", "api/destiny-compass-ai");
 // AI 반려동물 사주 — 무인증·무DB 결정론 계산(프로필→오행 청사진)
@@ -1640,6 +1641,11 @@ const app = {
 
       if (url.pathname === "/api/destiny-compass" || url.pathname.startsWith("/api/destiny-compass/")) {
         return withCorsHeaders(request, env, await handleDestinyCompassRoutes(request, env));
+      }
+
+      // 무료 운명 구조도 문장 다듬기 — ENABLE_DESTINY_ANATOMY_REAL_LLM(스테이징 전용)이 꺼져 있으면 결정론 응답만 낸다.
+      if (url.pathname === "/api/destiny-anatomy" || url.pathname.startsWith("/api/destiny-anatomy/")) {
+        return withCorsHeaders(request, env, await handleDestinyAnatomyRoutes(request, env));
       }
 
       if (url.pathname === "/api/ziwei" || url.pathname.startsWith("/api/ziwei/")) {

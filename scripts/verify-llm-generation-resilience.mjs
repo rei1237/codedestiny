@@ -893,7 +893,7 @@ function llmCallOptionLiterals(source) {
 const LLM_CALL_FILES = [
   "worker/lib/relationship-report-delivery.js",
   "worker/routes/admin.js", "worker/routes/animal-totem.js", "worker/routes/astrology-ai.js",
-  "worker/lib/celestial-report-delivery.js", "worker/routes/destiny-compass-ai.js", "worker/routes/destiny-compass.js",
+  "worker/lib/celestial-report-delivery.js", "worker/routes/destiny-compass-ai.js", "worker/routes/destiny-compass.js", "worker/routes/destiny-anatomy.js",
   "worker/routes/dream.js", "worker/routes/fortune-tea-house.js", "worker/routes/fortune.js",
   "worker/routes/karma-destiny-ai.js", "worker/routes/life-book-ai.js", "worker/routes/love-secret-ai.js",
   "worker/routes/master-love-codex.js", "worker/routes/nakshatra-ai.js", "worker/lib/naming-report-delivery.js", "worker/lib/naming-report-delivery-v2.js",
@@ -986,7 +986,7 @@ for (const anchor of ["chapter.minChars", "LLM_OUTPUT_INCOMPLETE", "LLM_DNA_INCO
 const EXPECTED_LLM_CALL_SITES = {
   "worker/lib/relationship-report-delivery.js": 1,
   "worker/routes/admin.js": 1, "worker/routes/animal-totem.js": 1, "worker/routes/astrology-ai.js": 4,
-  "worker/lib/celestial-report-delivery.js": 1, "worker/routes/destiny-compass-ai.js": 1, "worker/routes/destiny-compass.js": 1,
+  "worker/lib/celestial-report-delivery.js": 1, "worker/routes/destiny-compass-ai.js": 1, "worker/routes/destiny-compass.js": 1, "worker/routes/destiny-anatomy.js": 1,
   // fortune.js 3건: 사주 그룹 생성(웨이브1·2가 같은 호출부를 공유) + 형제 4종 공용 풀 생성 + 그 이어쓰기 repair.
   // 사주의 전용 이어쓰기 repair 호출은 그룹 재생성으로 대체되며 사라졌다(4 → 3).
   "worker/routes/dream.js": 0, "worker/routes/fortune-tea-house.js": 2, "worker/routes/fortune.js": 3,
