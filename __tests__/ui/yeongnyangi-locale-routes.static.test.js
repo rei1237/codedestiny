@@ -50,3 +50,12 @@ test("Ggulggul home styles trust links and routes translated Yeongnyangi", () =>
     assert.ok(languageRuntime.includes(`${locale}: '${route}'`) || languageRuntime.includes(`'${locale}': '${route}'`), `${locale} runtime mapping missing`);
   }
 });
+
+test("localized static home pages link directly to their Yeongnyangi locale route", () => {
+  const sync = read("scripts/sync-legacy-static-to-public.mjs");
+  assert.match(sync, /localizedYeongnyangiPath/);
+  for (const [locale, path] of [["en", "/en/yeongnyangi/"], ["ja", "/ja/yeongnyangi/"], ["zh", "/zh/yeongnyangi/"], ["zh-tw", "/zh-tw/yeongnyangi/"]]) {
+    const shell = read(`public/${locale}/index.html`);
+    assert.ok(shell.includes(`href="${path}" data-cd-localized-route="yeongnyangi"`), `${locale} shell is missing its localized inbound link`);
+  }
+});

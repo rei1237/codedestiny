@@ -664,6 +664,11 @@ function applyLocaleSeoMeta(indexHtml, localePath) {
   const seo = LOCALE_SHELL_SEO[localePath];
   if (!seo) return indexHtml;
   indexHtml = localizeHubLinks(indexHtml, localePath.slice(1));
+  const localizedYeongnyangiPath = `${localePath}/yeongnyangi/`;
+  indexHtml = indexHtml.replace(
+    /(<a\b(?=[^>]*\bdata-cd-localized-route=["']yeongnyangi["'])[^>]*\bhref=["'])[^"']*(["'])/gi,
+    `$1${localizedYeongnyangiPath}$2`,
+  );
   const dictionary = JSON.parse(stripLeadingBom(readFileSync(resolve(publicDir, "i18n", seo.dictionaryFile))).toString("utf8"));
   const profileHeading = dictionary.home?.svcFinder?.profileHeading;
   if (profileHeading) indexHtml = indexHtml.replace(/content:\s*"마이 데스티니"/g, `content:${JSON.stringify(profileHeading)}`);
