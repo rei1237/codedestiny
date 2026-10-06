@@ -4,6 +4,12 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class LockScreenPolicyTest {
+    @Test public void publicContentChangesAtKstMidnight() {
+        assertEquals(2, LockScreenPolicy.contentIndex(53999999L, 3, 5));
+        assertEquals(0, LockScreenPolicy.contentIndex(54000000L, 3, 5));
+        assertEquals(2, LockScreenPolicy.contentIndex(54000000L, 3, 7));
+        assertEquals(-1, LockScreenPolicy.contentIndex(54000000L, 0, 7));
+    }
     @Test public void quietHoursCrossMidnightAndExcludeEnd() {
         assertTrue(LockScreenPolicy.isQuiet(23 * 60, 22 * 60, 7 * 60));
         assertTrue(LockScreenPolicy.isQuiet(6 * 60, 22 * 60, 7 * 60));

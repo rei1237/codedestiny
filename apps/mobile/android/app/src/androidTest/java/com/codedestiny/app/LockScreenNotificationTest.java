@@ -27,6 +27,14 @@ public class LockScreenNotificationTest {
     void option(String key,boolean value)throws Exception{JSONObject root=new JSONObject(prefs.getString("state_json",""));root.getJSONObject("prefs").put(key,value);prefs.edit().putString("state_json",root.toString()).commit();}
     @Test public void safePrivateNotification(){assertTrue(LockScreenNotify.postContent(ctx,4800,true));Notification n=posted();assertEquals(Notification.VISIBILITY_PRIVATE,n.visibility);assertNotNull(n.publicVersion);assertNotNull(n.contentIntent);assertNull(n.fullScreenIntent);assertEquals("테스트 명언",n.publicVersion.extras.getString(Notification.EXTRA_TEXT));}
     @Test public void masterOff(){prefs.edit().putBoolean("enabled",false).commit();assertFalse(LockScreenNotify.postContent(ctx,4800,true));}
+    @Test public void publicPoolRefreshesWithoutWebView()throws Exception{
+        JSONObject snap=new JSONObject(prefs.getString(LockScreenNotify.SNAPSHOT,""));
+        snap.put("publicPools",new JSONObject("{\"quote\":[\"공개 문구 A\",\"공개 문구 B\"]}"));
+        prefs.edit().putString(LockScreenNotify.SNAPSHOT,snap.toString()).commit();
+        assertTrue(LockScreenNotify.postContent(ctx,4800,true));
+        String expected=LockScreenPolicy.contentIndex(System.currentTimeMillis(),2,5)==0?"공개 문구 A":"공개 문구 B";
+        assertEquals(expected,posted().extras.getString(Notification.EXTRA_TEXT));
+    }
     @Test public void allContentOff()throws Exception{option("quoteEnabled",false);option("dailyEnabled",false);option("affirmationEnabled",false);assertFalse(LockScreenNotify.postContent(ctx,4800,true));}
     @Test public void dailyIsRedacted()throws Exception{option("quoteEnabled",false);option("affirmationEnabled",false);assertTrue(LockScreenNotify.postContent(ctx,4800,true));assertEquals("잠금 해제 후 확인",posted().extras.getString(Notification.EXTRA_TEXT));assertEquals("잠금 해제 후 확인",posted().publicVersion.extras.getString(Notification.EXTRA_TEXT));}
     @Test public void oldLocaleCannotPost()throws Exception{JSONObject root=new JSONObject(prefs.getString("state_json",""));root.getJSONObject("prefs").put("locale","ja");prefs.edit().putString("state_json",root.toString()).commit();assertFalse(LockScreenNotify.postContent(ctx,4800,true));}
