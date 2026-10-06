@@ -85,6 +85,30 @@ test('화면: 닫힘엔 히어로·뇌 지도만, 열면 §31 순서로 그리�
   assert.equal(el.querySelector('[data-cd-cross-sell],[data-cd-funnel-section]'), null);
 });
 
+test('오행·십성 그림: 상생 오각형 메달 5·호 5·별 5, 십성 축 메달 5, 비율은 계산값 그대로·0% 는 빈 메달', () => {
+  const {ctx, doc} = setup();
+  const R = ctx.DestinyAnatomyRender;
+  const el = doc.createElement('div');
+  const m = model(ctx, 'ko');
+  m.text.elements.items.find((x) => x.id === 'water').ratio = 0;
+  R.render(el, m, {open: true, layer: 'login'});
+  const pent = el.querySelector('[data-da-sec="elements"] .da-pent__svg');
+  assert.deepEqual([...pent.querySelectorAll('[data-da-el-node]')].map((n) => n.getAttribute('data-da-el-node')), ['fire', 'earth', 'metal', 'water', 'wood']);
+  assert.equal(pent.querySelectorAll('.da-pent__flow').length, 5);
+  assert.equal(pent.querySelectorAll('.da-pent__check').length, 5);
+  for (const x of m.text.elements.items) assert.ok(pent.getAttribute('aria-label').includes(`${x.name} ${Math.round(x.ratio)}%`), x.id);
+  assert.ok(pent.querySelector('[data-da-el-node="water"]').classList.contains('is-missing'));
+  assert.ok(pent.querySelector(`[data-da-el-node="${m.elementLayer.dominant}"]`).classList.contains('is-dominant'));
+  assert.equal(pent.querySelectorAll('.is-dominant').length, 1);
+  assert.equal(el.querySelectorAll('.da-el .da-el__gl').length, 5);
+  const engines = [...el.querySelectorAll('.da-engine')];
+  assert.equal(engines.length, 5);
+  for (const e of engines) {
+    assert.ok(e.classList.contains(`da-ax-${e.getAttribute('data-da-engine')}`));
+    assert.ok(e.querySelector('summary .da-medal g').children.length > 1);
+  }
+});
+
 test('화면: HD 가 없으면 안내만 두고, 한 섹션이 깨져도 그 자리만 다시 불러오기로 바뀐다', () => {
   const {ctx, doc} = setup();
   const R = ctx.DestinyAnatomyRender;

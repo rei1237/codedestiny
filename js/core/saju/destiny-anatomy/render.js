@@ -190,13 +190,94 @@
       '</section>';
   }
 
+  // 오행 글리프·십성 엠블럼 — 손으로 그린 인라인 path(중심 0,0, 글리프 ±12·엠블럼 ±10). 색은 CSS 토큰(--da-elc·--da-ax)이 정한다.
+  var ELEMENT_GLYPH = {
+    wood: '<path class="da-gl__s" d="M0 11V0"/><path class="da-gl__f" d="M0 4C-1 -2 -6 -5 -11 -3C-9 3 -4 5 0 4Z"/><path class="da-gl__f" d="M0 0C0 -6 5 -10 11 -9C10 -3 6 0 0 0Z"/><path class="da-gl__v" d="M-9 -2C-6 -1 -3 1 -1 3M9 -7C6 -5 3 -3 1 -1"/>',
+    fire: '<path class="da-gl__f" d="M0 -11C1 -6 7 -3 7 3A7 7 0 0 1 -7 3C-7 -1 -5 -3 -3 -6C-3 -3 -2 -2 -1 -1C0 -4 -1 -8 0 -11Z"/><path class="da-gl__l" d="M0 9A3.2 3.2 0 0 1 -3.2 5.8C-3.2 3.5 -1 2 0 0C1 2 3.2 3.5 3.2 5.8A3.2 3.2 0 0 1 0 9Z"/>',
+    earth: '<path class="da-gl__l" d="M-3 9L4 -7L11 9Z"/><path class="da-gl__f" d="M-11 9L-3 -4L5 9Z"/><path class="da-gl__v" d="M-5.4 0L-3 -4L-0.6 0"/><path class="da-gl__s" d="M-11 9.5H11"/>',
+    metal: '<path class="da-gl__f" d="M-10 -3L-5 -9H5L10 -3L0 10Z"/><path class="da-gl__v" d="M-10 -3H10M-5 -9L-2 -3L0 10M5 -9L2 -3L0 10"/>',
+    water: '<path class="da-gl__f" d="M0 -11C4 -5 8 -1 8 3.5A8 8 0 0 1 -8 3.5C-8 -1 -4 -5 0 -11Z"/><path class="da-gl__v" d="M-4.5 3.5A4.5 4.5 0 0 0 -1 8"/>'
+  };
+  var AXIS_EMBLEM = {
+    // 비겁: 나침반 — 내 방향
+    selfDrive: '<circle class="da-em__o" r="9"/><path class="da-em__t" d="M0 -9V-6.6M9 0H6.6M0 9V6.6M-9 0H-6.6"/><path class="da-em__f" d="M0 -6L2.6 0H-2.6Z"/><path class="da-em__g" d="M0 6L2.6 0H-2.6Z"/><circle class="da-em__p" r="1.3"/>',
+    // 식상: 반짝이는 말풍선 — 표현
+    expression: '<path class="da-em__f" d="M-9 -5.5A3.5 3.5 0 0 1 -5.5 -9H5.5A3.5 3.5 0 0 1 9 -5.5V1.5A3.5 3.5 0 0 1 5.5 5H-1L-6 9V5H-5.5A3.5 3.5 0 0 1 -9 1.5Z"/><path class="da-em__p" d="M0 -6.5L1.1 -3.1L4.5 -2L1.1 -0.9L0 2.5L-1.1 -0.9L-4.5 -2L-1.1 -3.1Z"/>',
+    // 재성: 엽전 두 닢 — 현실의 결과
+    reality: '<circle class="da-em__go" cx="3.6" cy="-3.6" r="5.4"/><circle class="da-em__f" cx="-2" cy="2" r="7.4"/><rect class="da-em__p" x="-4.7" y="-0.7" width="5.4" height="5.4" rx=".6"/>',
+    // 관성: 방패와 기둥 — 규칙과 책임
+    structure: '<path class="da-em__f" d="M0 -10L8 -7V0C8 5 4.5 8.5 0 10C-4.5 8.5 -8 5 -8 0V-7Z"/><path class="da-em__v da-em__v--bold" d="M-4 0.2L-1 3.4L4.4 -3"/>',
+    // 인성: 펼친 책과 초승달 — 배움과 사색
+    reflection: '<path class="da-em__g" d="M-1 -11A4 4 0 1 0 3 -5A3.2 3.2 0 1 1 -1 -11Z"/><g transform="translate(0 1.5)"><path class="da-em__f" d="M0 -1C-3 -3.5 -7 -3.5 -10 -2V8C-7 6.8 -3 6.8 0 9C3 6.8 7 6.8 10 8V-2C7 -3.5 3 -3.5 0 -1Z"/><path class="da-em__v" d="M0 -1V8.5"/></g>'
+  };
+  var SPARK = 'M0 -5L1.2 -1.2L5 0L1.2 1.2L0 5L-1.2 1.2L-5 0L-1.2 -1.2Z';
+
+  function medalSvg(axis) {
+    return '<svg class="da-medal" viewBox="-20 -20 40 40" width="40" height="40" aria-hidden="true" focusable="false">' +
+      '<circle class="da-medal__rim" r="19"/><circle class="da-medal__ring" r="17.2"/><circle class="da-medal__face" r="15.6"/>' +
+      '<g transform="scale(.92)">' + (AXIS_EMBLEM[axis] || '') + '</g></svg>';
+  }
+
+  // 상생 순서(화→토→금→수→목)로 화를 꼭대기에 두고 시계방향 배치. 바깥 호 = 상생, 안쪽 별 = 상극.
+  var PENT_ORDER = ['fire', 'earth', 'metal', 'water', 'wood'];
+  var PENT_LABEL = {fire: 'top', earth: 'right', metal: 'bottom', water: 'bottom', wood: 'left'};
+  function pentagonSvg(el, ui, dominant) {
+    var CX = 160, CY = 146, R = 80, TAU = Math.PI * 2;
+    var f = function (n) { return Math.round(n * 10) / 10; };
+    var by = {};
+    el.items.forEach(function (x) { by[x.id] = x; });
+    var max = Math.max.apply(null, el.items.map(function (x) { return x.ratio || 0; })) || 1;
+    var nodes = PENT_ORDER.map(function (id, i) {
+      var a = -Math.PI / 2 + TAU / 5 * i, x = by[id] || {name: id, ratio: 0}, pct = Math.round(x.ratio || 0);
+      return {id: id, a: a, x: CX + R * Math.cos(a), y: CY + R * Math.sin(a), r: pct === 0 ? 15 : 15 + 15 * (x.ratio || 0) / max, pct: pct, name: x.name, dom: pct > 0 && dominant === id};
+    });
+    var flows = nodes.map(function (n, i) {
+      var m = nodes[(i + 1) % 5], a1 = n.a + (n.r + 6) / R, a2 = n.a + TAU / 5 - (m.r + 9) / R;
+      return '<path class="da-pent__flow" marker-end="url(#da-pent-arrow)" d="M' + f(CX + R * Math.cos(a1)) + ' ' + f(CY + R * Math.sin(a1)) +
+        'A' + R + ' ' + R + ' 0 0 1 ' + f(CX + R * Math.cos(a2)) + ' ' + f(CY + R * Math.sin(a2)) + '"/>';
+    }).join('');
+    var checks = nodes.map(function (n, i) {
+      var m = nodes[(i + 2) % 5], dx = m.x - n.x, dy = m.y - n.y, d = Math.sqrt(dx * dx + dy * dy);
+      return '<path class="da-pent__check" d="M' + f(n.x + dx / d * (n.r + 5)) + ' ' + f(n.y + dy / d * (n.r + 5)) + 'L' + f(m.x - dx / d * (m.r + 5)) + ' ' + f(m.y - dy / d * (m.r + 5)) + '"/>';
+    }).join('');
+    var defs = '<defs><marker id="da-pent-arrow" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="da-pent__arrow" d="M0 .8L7 4L0 7.2L1.8 4Z"/></marker>' +
+      PENT_ORDER.map(function (id) {
+        return '<radialGradient id="da-elg-' + id + '" class="da-elc da-elc-' + id + '" cx=".36" cy=".3" r=".78"><stop offset="0" class="da-elg__a"/><stop offset="1" class="da-elg__b"/></radialGradient>';
+      }).join('') + '</defs>';
+    var medals = nodes.map(function (n) {
+      var pos = PENT_LABEL[n.id], lx = n.x, ly, anchor = 'middle', lbl, gap = n.dom ? 6 : 0;
+      var nm = '<tspan class="da-pent__nm">' + esc(n.name) + '</tspan>', pc = '<tspan class="da-pent__pc">' + n.pct + '%</tspan>';
+      if (pos === 'top') { ly = n.y - n.r - 9 - gap; lbl = nm + ' ' + pc; }
+      else if (pos === 'bottom') { ly = n.y + n.r + 18 + gap; lbl = nm + ' ' + pc; }
+      else {
+        anchor = pos === 'right' ? 'start' : 'end';
+        lx = n.x + (pos === 'right' ? 1 : -1) * (n.r + 9 + gap);
+        ly = n.y - 3;
+        lbl = nm + '<tspan class="da-pent__pc" x="' + f(lx) + '" dy="15">' + n.pct + '%</tspan>';
+      }
+      return '<g class="da-pent__node da-elc da-elc-' + n.id + (n.dom ? ' is-dominant' : '') + (n.pct === 0 ? ' is-missing' : '') + '" data-da-el-node="' + n.id + '">' +
+        '<g transform="translate(' + f(n.x) + ' ' + f(n.y) + ')">' +
+        (n.dom ? '<circle class="da-pent__halo" r="' + f(n.r + 6.5) + '"/>' : '') +
+        '<circle class="da-pent__rim" r="' + f(n.r + 2.5) + '"/>' +
+        '<circle class="da-pent__face" r="' + f(n.r) + '" fill="url(#da-elg-' + n.id + ')"/>' +
+        '<g class="da-pent__glyph" transform="scale(' + Math.round(n.r / 18 * 100) / 100 + ')">' + ELEMENT_GLYPH[n.id] + '</g>' +
+        (n.dom ? '<path class="da-pent__spark" transform="translate(' + f(-Math.cos(n.a) * (n.r + 17)) + ' ' + f(-Math.sin(n.a) * (n.r + 17)) + ') scale(1.6)" d="' + SPARK + '"/>' : '') +
+        '</g><text class="da-pent__lbl" x="' + f(lx) + '" y="' + f(ly) + '" text-anchor="' + anchor + '">' + lbl + '</text></g>';
+    }).join('');
+    var label = nodes.map(function (n) { return n.name + ' ' + n.pct + '%'; }).join(', ');
+    return '<div class="da-pent"><svg class="da-pent__svg" viewBox="0 0 320 268" role="img" aria-label="' + esc(label) + '" focusable="false">' + defs +
+      '<g class="da-pent__core" transform="translate(' + CX + ' ' + CY + ')"><circle r="13"/><path d="' + SPARK + '" transform="scale(1.3)"/></g>' +
+      checks + flows + medals + '</svg>' +
+      '<p class="da-pent__key"><span class="da-pent__key-flow">' + esc(ui.elementsFlow) + '</span><span class="da-pent__key-check">' + esc(ui.elementsCheck) + '</span></p></div>';
+  }
+
   function enginesHtml(model, t) {
     var ui = t.ui;
     var rows = t.engines.map(function (e) {
       var src = e.source.map(function (g) { return godName(g, model.locale); }).filter(Boolean).join(' · ');
       var list = function (arr) { return '<ul class="da-bullets">' + arr.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'; };
-      return '<details class="da-engine da-lv-' + esc(e.level) + '" data-da-engine="' + esc(e.axis) + '">' +
-        '<summary class="da-engine__head"><span class="da-engine__name">' + esc(e.name) + '<small>' + esc(e.god) + '</small>' + luckChip(ui, e.luck) + '</span>' +
+      return '<details class="da-engine da-ax-' + esc(e.axis) + ' da-lv-' + esc(e.level) + '" data-da-engine="' + esc(e.axis) + '">' +
+        '<summary class="da-engine__head"><span class="da-engine__medal">' + medalSvg(e.axis) + '</span><span class="da-engine__name"><span class="da-engine__title">' + esc(e.name) + '</span><span class="da-engine__tags"><small>' + esc(e.god) + '</small>' + luckChip(ui, e.luck) + '</span></span>' +
         '<span class="da-engine__level">' + esc(e.levelLabel) + '</span>' +
         '<span class="da-meter" aria-hidden="true"><span class="da-meter__fill" style="width:' + Math.max(4, Math.min(100, e.score)) + '%"></span></span></summary>' +
         '<div class="da-engine__body">' +
@@ -215,12 +296,12 @@
     var max = Math.max.apply(null, el.items.map(function (x) { return x.ratio || 0; })) || 1;
     var bars = el.items.map(function (x) {
       var pct = Math.round(x.ratio || 0);
-      return '<li class="da-el' + (x.id === model.elementLayer.dominant ? ' is-dominant' : '') + (pct === 0 ? ' is-missing' : '') + '">' +
-        '<span class="da-el__name">' + esc(x.name) + '</span><span class="da-meter"><span class="da-meter__fill" style="width:' + Math.round((x.ratio || 0) / max * 100) + '%"></span></span>' +
+      return '<li class="da-el da-elc da-elc-' + esc(x.id) + (x.id === model.elementLayer.dominant ? ' is-dominant' : '') + (pct === 0 ? ' is-missing' : '') + '">' +
+        '<span class="da-el__name"><svg class="da-el__gl" viewBox="-12 -12 24 24" width="18" height="18" aria-hidden="true" focusable="false">' + (ELEMENT_GLYPH[x.id] || '') + '</svg>' + esc(x.name) + '</span><span class="da-meter"><span class="da-meter__fill" style="width:' + Math.round((x.ratio || 0) / max * 100) + '%"></span></span>' +
         '<span class="da-el__pct">' + pct + '%</span><span class="da-el__words">' + esc(x.words) + '</span></li>';
     }).join('');
     return '<section class="da-sec" data-da-sec="elements" aria-labelledby="daElementsTitle"><h4 class="da-h" id="daElementsTitle">' + esc(ui.elementsTitle) + '</h4>' +
-      '<p class="da-note">' + esc(ui.elementsSub) + '</p><ul class="da-els">' + bars + '</ul>' +
+      '<p class="da-note">' + esc(ui.elementsSub) + '</p>' + pentagonSvg(el, ui, model.elementLayer.dominant) + '<ul class="da-els">' + bars + '</ul>' +
       (el.dominant ? '<p class="da-p">' + esc(el.dominant) + '</p>' : '') +
       el.missing.map(function (m) { return '<p class="da-p da-p--quiet">' + esc(m) + '</p>'; }).join('') + '</section>';
   }
