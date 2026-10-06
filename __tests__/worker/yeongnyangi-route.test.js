@@ -1,5 +1,6 @@
 import {jest} from '@jest/globals';
 import {createHttpError,json} from '../../worker/lib/http.js';
+import sift from 'sift';
 
 const userId='507f1f77bcf86cd799439011', id='a'.repeat(64);
 const auth=jest.fn(),security=jest.fn(),prepare=jest.fn(),jongCheck=jest.fn(),activate=jest.fn(),generate=jest.fn(),read=jest.fn(),draw=jest.fn();
@@ -121,7 +122,7 @@ test('list uses owner filter, bounded projection and stable pagination',async()=
 test('list hides abandoned unpaid consultations after the pending window without deleting them',async()=>{
   const before=Date.now();expect((await handleYeongnyangiRoutes(request('requests'),env)).status).toBe(200);
   expect(find).toHaveBeenCalledTimes(1);const [hidden]=find.mock.calls[0][0].$nor;
-  expect(hidden).toEqual({state:'CREATED',paymentId:null,passEvidenceId:null,accessMethod:null,createdAt:{$lt:expect.any(Date)}});
+  expect(hidden).toEqual({state:'CREATED',paymentId:null,passEvidenceId:null,moonstoneLedgerId:null,packEntitlementId:null,accessMethod:null,createdAt:{$lt:expect.any(Date)}});
   const cutoff=hidden.createdAt.$lt.getTime();expect(cutoff).toBeGreaterThanOrEqual(before-30*60*1000);expect(cutoff).toBeLessThanOrEqual(Date.now()-30*60*1000);
   expect(paymentFind).toHaveBeenCalledWith(expect.objectContaining({userId,requestId:expect.any(RegExp),'metadata.consumedBy':{$in:[null,'']}}));
 });
@@ -206,6 +207,39 @@ test('library exposes only saved purchase locale, with Korean fallback for old b
  expect(body.fortunes.map(row=>row.locale)).toEqual(['en','ja','ko']);
  expect(select.mock.calls[0][0].split(' ')).toContain('snapshot.locale');
  expect(body.fortunes.every(row=>!row.snapshot&&!row.chapters)).toBe(true);
+});
+
+test('one legacy request missing its snapshot preserves every other saved record',async()=>{
+ lean.mockResolvedValue([{_id:id,state:'COMPLETED',paymentId:'saved-payment',createdAt:'2020-01-01'},
+  {_id:'b'.repeat(64),state:'COMPLETED',snapshot:{locale:'ja',product:{id:'retired-product',name:'과거 상품'}},createdAt:'2020-01-01'}]);
+ const response=await handleYeongnyangiRoutes(request('requests'),env);
+ expect(response.status).toBe(200);const body=await response.json();
+ expect(body.fortunes).toHaveLength(2);expect(body.fortunes[0]).toMatchObject({id,product:null,paid:true});
+ expect(body.fortunes[1].product).toEqual({id:'retired-product',name:'과거 상품'});
+ expect(prepare).not.toHaveBeenCalled();expect(activate).not.toHaveBeenCalled();expect(generate).not.toHaveBeenCalled();
+});
+
+test('old moonstone evidence is projected as paid and excluded from unpaid hiding',async()=>{
+ lean.mockResolvedValue([{_id:id,state:'CREATED',moonstoneLedgerId:'saved-ledger',snapshot:{product:{id:'old-product'}},createdAt:'2020-01-01'}]);
+ const body=await(await handleYeongnyangiRoutes(request('requests'),env)).json();
+ expect(body.fortunes[0].paid).toBe(true);
+ expect(select.mock.calls[0][0].split(' ')).toContain('moonstoneLedgerId');
+ expect(find.mock.calls[0][0].$nor[0]).toMatchObject({moonstoneLedgerId:null,packEntitlementId:null});
+});
+
+test('historical tiers, states and languages page without duplicates or foreign/chat records',async()=>{
+ const productIds=['saju','ziwei','sukuyo','vedic','astrology','tarot'].flatMap(domain=>['mackerel','salmon','flounder','tuna'].map(tier=>`${domain}_${tier}`)).concat(['fusion_saju_ziwei','fusion_sukuyo_vedic','fusion_astrology_tarot','fusion_all','retired-product']);
+ const states=['COMPLETED','GENERATING','FORTUNE_FAILED','REFUNDED','CREATED'];
+ const stamp=new Date('2020-01-01T00:00:00Z');
+ const saved=productIds.flatMap((productId,index)=>states.map((state,n)=>({_id:(index*5+n).toString(16).padStart(64,'0'),userId,createdAt:stamp,state,accessMethod:'FAMILY',snapshot:{locale:index%2?'ja':'en',product:{id:productId,name:'원본 상품'},manifest:[{id:'saved'}]},completedChapters:1})));
+ const fixtures=saved.concat([{...saved[0],_id:'f'.repeat(64),userId:'foreign'},{...saved[0],_id:'e'.repeat(64),persona:'yeoni',featureKey:'fortune-chat-consultation'}]);
+ lean.mockImplementation(async()=>fixtures.filter(sift(find.mock.calls.at(-1)[0])).sort((a,b)=>b._id.localeCompare(a._id)).slice(0,31));
+ let cursor=null;const seen=[];
+ do{const response=await handleYeongnyangiRoutes(request('requests'+(cursor?'?cursor='+encodeURIComponent(cursor):'')),env);expect(response.status).toBe(200);const body=await response.json();seen.push(...body.fortunes);cursor=body.nextCursor;}while(cursor);
+ expect(seen).toHaveLength(saved.length);expect(new Set(seen.map(row=>row.id)).size).toBe(saved.length);
+ expect(new Set(seen.map(row=>row.product.id))).toEqual(new Set(productIds));
+ expect(seen.every(row=>row.paid)).toBe(true);
+ expect(prepare).not.toHaveBeenCalled();expect(activate).not.toHaveBeenCalled();expect(generate).not.toHaveBeenCalled();
 });
 
 test('library shows a stopped or held paid reading as recovering with its saved count',async()=>{

@@ -12,7 +12,7 @@ export type PublicTarotSpread={id:string;version:number;title:string;purpose:str
  positions:{id:string;label:string;question:string;drawOrder:number;readOrder:number}[];
  layout:{kind:string;slots:TarotSpreadSlot[]};links:{ids:string[];relation:string;note:string}[];source?:string;deckSize:number;
  symmetry?:{a:string[];b:string[]};drawn:boolean;drawMethod?:'manual'|'auto';picks?:number[];inputs?:{period?:'week'|'month';options?:{a:string;b:string}}};
-export type FortuneSummary=Pick<FortuneRecord,'id'|'product'|'state'|'paid'|'createdAt'|'locale'> & {completedChapters:number;totalChapters?:number;recovering?:boolean;canRetry?:boolean;consultationKind?:string;kindLabel?:string;participants?:{self:string;partner:string}};
+export type FortuneSummary=Pick<FortuneRecord,'id'|'state'|'paid'|'createdAt'|'locale'> & {product:Product|null;completedChapters:number;totalChapters?:number;recovering?:boolean;canRetry?:boolean;consultationKind?:string;kindLabel?:string;participants?:{self:string;partner:string}};
 export type FortunePage={fortunes:FortuneSummary[];nextCursor:string|null};
 export class FortuneApiError extends Error {
  constructor(public code:string,message:string,public status:number,public retryable=false,public retryAfterSeconds=0){super(message);}

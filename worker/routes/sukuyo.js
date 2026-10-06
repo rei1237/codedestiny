@@ -1353,7 +1353,7 @@ async function writeSukuyoPastLifeArchive(env, userId, signature, result, access
         featureKey: SUKYO_PAST_LIFE_FEATURE_KEY,
         timeoutAt: now,
         nextRetryAt: now,
-        retentionUntil: new Date(now.getTime() + (365 * 86400000)),
+        retentionUntil: null,
       },
       $set: {
         reportType: SUKYO_PAST_LIFE_REPORT_TYPE,

@@ -857,7 +857,7 @@ async function writeArchivedReport(env, userId, reportSignature, payload, access
       maxRetries: 1,
       retryCount: 0,
       idempotencyKey: executionKey,
-      retentionUntil: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 180),
+      retentionUntil: null,
     },
   };
 

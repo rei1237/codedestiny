@@ -74,6 +74,15 @@ beforeEach(()=>{
 afterEach(()=>{for(const value of collections.values()){expect(value.insertOne).not.toHaveBeenCalled();expect(value.updateOne).not.toHaveBeenCalled();}});
 const request = (path='',method='GET')=>new Request(`https://test.invalid/api/records${path}`,{method});
 const seed = (id, day, extra={})=>({_id:new mongoose.Types.ObjectId(id.padStart(24,'0')),id:`record-${id}`,userId:owner,createdAt:new Date(`2026-10-${day}T01:00:00Z`),status:'completed',topic:'비식별 질문',...extra});
+
+test('Ggulggul archive excludes ordinary Yeongnyangi even when storage is shared',async()=>{
+ stores.yeongnyangi_requests=[seed('1','01',{_id:'a'.repeat(64),state:'COMPLETED',snapshot:{product:{id:'saju_mackerel'}}}),
+  seed('2','02',{_id:'b'.repeat(64),state:'COMPLETED',featureKey:'fortune-chat-consultation',persona:'yeoni'})];
+ const body=await(await route(request(),{})).json();
+ expect(body.items.map(item=>item.id)).toEqual(['b'.repeat(64)]);
+ expect(body.items[0].source).toBe('chat-consultation');
+ expect((await route(request('/detail?source=chat-consultation&id='+ 'a'.repeat(64)),{})).status).toBe(404);
+});
 test('Neo source selection pages only owned Neo records and isolates its cursor', async()=>{
   stores.neoOperationRoomConsultations=[seed('1','01'),seed('2','02'),seed('3','03',{userId:foreign})];
   const first=await (await route(request('?source=neo&limit=1'),{})).json();

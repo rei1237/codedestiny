@@ -807,7 +807,12 @@ serviceExecutionTransactionSchema.index({ userId: 1, executionKey: 1 }, { unique
 serviceExecutionTransactionSchema.index({ status: 1, timeoutAt: 1, nextRetryAt: 1 });
 serviceExecutionTransactionSchema.index({ paymentId: 1, serviceId: 1, jobId: 1 });
 serviceExecutionTransactionSchema.index({ refundIdempotencyKey: 1 });
-serviceExecutionTransactionSchema.index({ retentionUntil: 1 }, { expireAfterSeconds: 0 });
+// Only unpaid checkout intents expire. Purchased readings stay in their service archive.
+// Existing broad TTL indexes must be replaced explicitly; schema changes cannot remove them.
+serviceExecutionTransactionSchema.index({ retentionUntil: 1 }, {
+  name: "unpaid_intent_retention_v1", expireAfterSeconds: 0,
+  partialFilterExpression: { status: "awaiting_payment" },
+});
 
 const paidExecutionRecordSchema = new mongoose.Schema({
   executionId: { type: String, required: true, trim: true, maxlength: 160, unique: true, index: true },
