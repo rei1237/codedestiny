@@ -72,6 +72,7 @@ function setLocaleCookie(localeCode: LocaleCode) {
   const oneYear = 60 * 60 * 24 * 365;
   document.cookie = `cd_locale=${encodeURIComponent(localeCode)}; Max-Age=${oneYear}; Path=/; SameSite=Lax`;
   document.cookie = `cd_locale_ack=1; Max-Age=${oneYear}; Path=/; SameSite=Lax`;
+  document.cookie = `cd_locale_explicit=1; Max-Age=${oneYear}; Path=/; SameSite=Lax`;
 }
 
 function normalizeStoredLocale(value: string | null | undefined): LocaleCode {

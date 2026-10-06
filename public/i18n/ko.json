@@ -1654,6 +1654,38 @@
       "arrival": "달빛을 따라, 당신의 질문이 닿는 곳으로",
       "recordsTitle": "한국의 정치적 전환, 그 전에 남긴 사주 기록",
       "recordsNote": "윤석열·이재명에 대해 미리 공개한 해석과 2025년의 실제 사건을 비교해 보세요. 날짜와 원문을 통해 직접 판단할 수 있어요. 과거 사례가 미래의 적중을 보장하지는 않습니다."
+    },
+    "overseasCopy": {
+      "pressTitle": "언론에 소개된 꿀꿀 운세",
+      "pressSummary": "스타트업데일리가 꿀꿀 운세와 영냥이를 소개했습니다. 고민에서 출발하는 상담 방식과 두 캐릭터의 이야기를 기사에서 만나보세요.",
+      "newWindow": "(새 창)",
+      "monthly": "일간별 월간 운세",
+      "daily": "날짜별 띠 운세",
+      "portalTitle": "사주보는 고양이 영냥이",
+      "portalDesc": "연이의 정원 너머에서, 같은 운명 지도를 다른 말투로 읽어 주는 달빛 점술방",
+      "singlePay": "단건 결제(카드·카카오페이 등)",
+      "reviewTitle": "후기는 나중에 남겨도 괜찮아요",
+      "reviewDesc": "이용한 상담과 리포트의 경험을 들려주세요.",
+      "reviewReward": "공개 승인 후 월정석 지급",
+      "reviewDetail": "꿀꿀운세에서 사용할 수 있어요. 상품별 1회 지급됩니다.",
+      "reviewAction": "후기 남기기",
+      "passStandard": "꽃돼지 스탠다드",
+      "passPremium": "꽃돼지 프리미엄",
+      "passVvip": "꽃돼지 VVIP",
+      "passPerLimit": "건당 {amount}원 이하",
+      "passTotal": "누적 {amount}원까지",
+      "passNoLimit": "유료 리딩 건당 한도 없음",
+      "krwAmount": "{amount}원",
+      "recordsTitle": "2024년에 남긴 대통령 예측, 성지순례로 돌아온 독자들",
+      "recordsLead": "2025년 탄핵 가능성을 짚은 글과 대통령 가능 시기를 해석한 기록. 당시의 문장, 이후 사건, 독자 반응을 직접 확인해 보세요.",
+      "reactionsTitle": "성지순례로 돌아온 독자들의 말",
+      "reactionsNote": "네이버 블로그의 공개 반응입니다. 상담 구매 후기가 아니며, 선고 전 반응도 포함합니다. 닉네임은 일부 가렸습니다.",
+      "reactionsMore": "공개 반응 더 읽기",
+      "commentOriginal": "댓글 원문 확인하기",
+      "fine": "과거 분석 사례와 이용자 개인의 경험입니다. 특정 사건의 예측이나 같은 결과를 보장하지 않습니다.",
+      "emailTitle": "영냥이 상담을 읽고 보내주신 편지",
+      "emailSource": "영냥이 참치 사주 분석 이용자 · 이메일 후기",
+      "emailMore": "이메일 후기 전체 읽기"
     }
   },
   "footer": {
@@ -1760,7 +1792,7 @@
       "close": "닫고 결제 상태 확인",
       "wait": "PayPal에서 결제를 승인한 뒤 이 화면에서 결제 상태를 확인합니다.",
       "internationalLabel": "PayPal · 해외 결제 (USD)",
-      "internationalGuide": "해외 결제는 PayPal을 선택해 주세요. 승인 전에 USD 금액을 확인할 수 있어요. 다른 수단은 한국 결제 환경에 따라 이용이 제한될 수 있어요."
+      "internationalGuide": "해외 접속에서는 PayPal로 단건 상담과 이용권을 구매할 수 있어요. 승인 전에 USD 금액을 확인해 주세요. 보유 이용권·월정석은 기존 조건대로 사용할 수 있어요."
     },
     "loader": {
       "eyebrow": "달빛 결제 확인",

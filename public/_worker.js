@@ -22,6 +22,66 @@ const DEFAULT_API_WORKER_ORIGIN = "https://code-destiny-web.bulegyung.workers.de
 // 그 상태로 켜면 검증되지 않은 URL 이 색인 요청만 나가게 된다.
 const DYNAMIC_FEED_PATHS = new Set(["/rss.xml", "/insights/rss.xml"]);
 
+// @routes-include: /*
+// HTML deep links also need IP-country context. Asset directories bypass this Worker.
+const COUNTRY_LANGUAGE_GROUPS = {
+  ko: "KR", ja: "JP", "zh-CN": "CN", "zh-TW": "TW HK MO", vi: "VN",
+  hi: "IN", ms: "MY BN", de: "DE AT LI CH", nl: "NL BE SR",
+  fr: "FR MC LU SN CI BF ML NE TG BJ GN CD CG GA CM TD CF DJ MG KM SC RE GP MQ GF PF NC",
+  es: "ES MX AR BO CL CO CR CU DO EC GT HN NI PA PE PR PY SV UY VE GQ",
+};
+const VISITOR_LANGUAGES = new Set(["en", ...Object.keys(COUNTRY_LANGUAGE_GROUPS)]);
+const LANGUAGE_PATHS = { ko: "", en: "en", ja: "ja", "zh-CN": "zh", "zh-TW": "zh-tw" };
+// Only routes with published translations. Tests verify every destination against
+// the sitemap so a locale prefix cannot create a silent 404.
+const LOCALIZED_ENTRY_TOPICS = new Set(["astrology", "compatibility", "fortune", "insights", "saju", "sukuyo", "tarot", "today", "vedic", "yeongnyangi", "ziwei", "privacy-policy", "terms-of-service", "refund-policy"]);
+const CORE_LANGUAGE_ENTRY_TOPICS = new Set(["about", "contact", "faq", "disclaimer", "destiny-compass", "fortune-tea-house", "psychotest", "sukuyo-compatibility-ai"]);
+
+function visitorLanguage(value) {
+  const parts = String(value || "").trim().toLowerCase().replace(/_/g, "-").split("-");
+  if (parts[0] === "zh") return parts.some(part => ["hant", "tw", "hk", "mo"].includes(part)) ? "zh-TW" : "zh-CN";
+  return VISITOR_LANGUAGES.has(parts[0]) ? parts[0] : "";
+}
+
+function visitorCookie(request, name) {
+  const value = String(request.headers.get("Cookie") || "").split(";").map(part => part.trim())
+    .find(part => part.startsWith(`${name}=`));
+  try { return value ? decodeURIComponent(value.slice(name.length + 1)) : ""; } catch { return ""; }
+}
+
+function visitorLocaleContext(request, url) {
+  if (!["GET", "HEAD"].includes(request.method) || /^\/(?:api|app)(?:\/|$)/.test(url.pathname)) return null;
+  if (/\.[a-z0-9]+$/i.test(url.pathname) && !/\.html$/i.test(url.pathname)) return null;
+  // Keep canonical URLs and their hreflang alternatives independently crawlable.
+  if (/bot|crawler|spider|slurp|facebookexternalhit|kakaotalk-scrap/i.test(request.headers.get("User-Agent") || "")) return null;
+  if (!request.headers.get("Accept")?.includes("text/html") && request.headers.get("Sec-Fetch-Dest") !== "document") return null;
+  const country = String(request.cf?.country || "").toUpperCase();
+  const countryLocale = Object.entries(COUNTRY_LANGUAGE_GROUPS).find(([, countries]) => countries.split(" ").includes(country))?.[0] || "en";
+  const queryLocale = visitorLanguage(url.searchParams.get("lang"));
+  const pathLocale = visitorLanguage(url.pathname.split("/")[1]);
+  const explicitLocale = visitorCookie(request, "cd_locale_explicit") === "1" ? visitorLanguage(visitorCookie(request, "cd_locale")) : "";
+  return { countryLocale, country: /^[A-Z]{2}$/.test(country) ? country : "XX", locale: queryLocale || pathLocale || explicitLocale || countryLocale };
+}
+
+function visitorLocaleHeaders(headers, context) {
+  if (!context) return headers;
+  headers.append("Set-Cookie", `cd_geo_locale=${encodeURIComponent(context.countryLocale)}; Path=/; SameSite=Lax; Secure`);
+  headers.append("Set-Cookie", `cd_geo_country=${context.country}; Path=/; SameSite=Lax; Secure`);
+  headers.set("Cache-Control", "private, no-store");
+  return headers;
+}
+
+function localizedEntryPath(pathname, locale) {
+  const path = pathname.replace(/\/+$/, "") || "/";
+  const prefix = LANGUAGE_PATHS[locale];
+  if (!prefix) return null;
+  if (["/ggulggul", "/static"].includes(path)) return `/${prefix}/`;
+  const topic = ({ "/privacy": "privacy-policy", "/terms": "terms-of-service", "/refund": "refund-policy", "/saju/compatibility": "saju-compatibility", "/sukuyo/compatibility": "sukuyo-compatibility" })[path] || path.slice(1);
+  if (LOCALIZED_ENTRY_TOPICS.has(topic) || ["saju-compatibility", "sukuyo-compatibility"].includes(topic)
+      || (locale !== "zh-TW" && CORE_LANGUAGE_ENTRY_TOPICS.has(topic))) return `/${prefix}/${topic}/`;
+  return null;
+}
+
 // 🔴 /fortune/** 레거시 리다이렉트가 _redirects 가 아니라 여기 있는 이유.
 //
 // Cloudflare Pages 는 `public/_redirects` 의 **첫 102개 규칙만** 적용하고 나머지는 에러도
@@ -253,6 +313,19 @@ async function proxyApiRequest(request, env, pathOverride) {
   }
 
   const incomingUrl = new URL(request.url);
+  const country = String(request.cf?.country || "").toUpperCase();
+  const paymentRegion = { country: country || null, paypalOnly: Boolean(country) && country !== "KR" };
+  // Enforce at the visitor-facing edge too: cross-zone subrequests can lose geo
+  // metadata. Confirmation/webhooks remain available when a traveller changes IP.
+  if (paymentRegion.paypalOnly && request.method === "POST"
+      && /^\/api\/(?:payments\/(?:orders|prepare|subscription\/prepare|service-packs\/prepare)|billing\/checkout)\/?$/.test(incomingUrl.pathname)) {
+    let body;
+    try { body = await request.clone().json(); } catch { body = null; }
+    if (String(body?.paymentMethod || body?.payMethod || "card_general").trim().toLowerCase() !== "paypal") {
+      return new Response(JSON.stringify({ ok: false, code: "PAYPAL_REQUIRED_FOR_REGION", message: "Please use PayPal for payments from outside Korea." }),
+        { status: 403, headers: { "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
+    }
+  }
   const targetUrl = new URL(origin);
   targetUrl.pathname = pathOverride || incomingUrl.pathname;
   targetUrl.search = incomingUrl.search;
@@ -271,6 +344,13 @@ async function proxyApiRequest(request, env, pathOverride) {
   const response = await fetch(targetUrl.toString(), init);
   const headers = new Headers(response.headers);
   headers.set("X-Code-Destiny-Api-Origin", origin);
+  if (incomingUrl.pathname === "/api/payments/config" && response.ok) {
+    const config = await response.json();
+    headers.set("Cache-Control", "private, no-store");
+    headers.delete("Content-Length");
+    headers.delete("ETag");
+    return new Response(JSON.stringify({ ...config, paymentRegion }), { status: response.status, headers });
+  }
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -519,6 +599,7 @@ async function serveGuardianShareCard(request, env, ctx, url, shareId) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    const visitorLocale = visitorLocaleContext(request, url);
     // Resolve the home before serving HTML: waiting for React's useEffect
     // briefly paints the introductory page before the actual main screen.
     if (url.pathname === "/" || url.pathname === "/index.html") {
@@ -528,15 +609,22 @@ export default {
       url.pathname = !hasLegacyInput && url.searchParams.get("question")
         ? "/yeongnyangi/"
         : "/ggulggul/";
+      const localizedHome = visitorLocale && localizedEntryPath(url.pathname, visitorLocale.locale);
+      if (localizedHome) url.pathname = localizedHome;
       // Keep the query verbatim. Browsers inherit the original fragment when
       // Location has none, preserving existing service/result deep links.
       // 301, not 302: /ggulggul/ is the one canonical ggulggul URL (2026-10-02), so search
       // engines must consolidate "/" into it instead of keeping "/" indexed with this content.
       // no-store keeps browsers from pinning the permanent redirect if the home ever changes.
       return new Response(null, {
-        status: 301,
-        headers: { Location: url.toString(), "Cache-Control": "no-store" },
+        status: visitorLocale ? 302 : 301,
+        headers: visitorLocaleHeaders(new Headers({ Location: url.toString(), "Cache-Control": "no-store" }), visitorLocale),
       });
+    }
+    const localizedEntry = visitorLocale && localizedEntryPath(url.pathname, visitorLocale.locale);
+    if (localizedEntry) {
+      url.pathname = localizedEntry;
+      return new Response(null, { status: 302, headers: visitorLocaleHeaders(new Headers({ Location: url.toString() }), visitorLocale) });
     }
     if (url.pathname === "/api" || url.pathname.startsWith("/api/")) {
       const apiResponse = await proxyApiRequest(request, env);
@@ -595,6 +683,10 @@ export default {
         return Response.redirect(target.toString(), 301);
       }
     }
-    return hardenResponse(request.url, assetResponse);
+    const response = hardenResponse(request.url, assetResponse);
+    if (visitorLocale && response.ok && /^text\/html\b/i.test(response.headers.get("Content-Type") || "")) {
+      visitorLocaleHeaders(response.headers, visitorLocale);
+    }
+    return response;
   },
 };

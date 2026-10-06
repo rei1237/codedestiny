@@ -6,6 +6,8 @@ import { createPassOrder, resolvePassPlan } from '../../worker/payments/passes.j
 import { makeFakePaymentDb } from '../fixtures/fake-payment-db.mjs';
 import { getPortOnePublicConfig } from '../../worker/lib/portone.js';
 import { CURRENT_PASS_POLICY_VERSION } from '../../lib/payment/pass-policy.js';
+import { assertRegionalPaymentMethod, paymentRegion } from '../../worker/payments/region-policy.js';
+import { __paymentsContextTestUtils } from '../../worker/payments/index.js';
 
 const env = { PAYPAL_ENABLED: '1', PORTONE_PAYPAL_CHANNEL_KEY: 'paypal-test', PORTONE_CHANNEL_KEY: 'domestic-test',
   PORTONE_STORE_ID: 'store-test', PORTONE_API_SECRET: 'secret-test', PORTONE_WEBHOOK_SECRET: 'webhook-test' };
@@ -14,6 +16,22 @@ const fx = async () => ({ ok: true, json: async () => ({ base: 'KRW', quote: 'US
 const product = { productId: 'test', featureKey: 'test', billingType: 'per-use', priceKRW: 9900, priceCoins: 99 };
 const uid = '507f1f77bcf86cd799439011';
 const quote = { currency: 'USD', totalAmount: 733, priceKRW: 9900, rate: 0.00074, rateDate: '2026-10-02', quotedAt: new Date(now).toISOString(), source: 'Frankfurter/ECB' };
+
+test('region policy uses trusted IP metadata and guards both one-time and pass order entry points', async () => {
+  const request = new Request('https://example.test/api/payments/prepare', { headers: { 'CF-IPCountry': 'KR' } });
+  Object.defineProperty(request, 'cf', { value: { country: 'JP' } });
+  expect(paymentRegion(request)).toEqual({ country: 'JP', paypalOnly: true });
+  expect(() => assertRegionalPaymentMethod(request, 'paypal')).not.toThrow();
+  for (const method of ['card_general','kakaopay','trans','gift_culture']) expect(() => assertRegionalPaymentMethod(request, method)).toThrow();
+  const { ROUTES } = __paymentsContextTestUtils;
+  const noDb = () => { throw Error('No DB operation is allowed'); };
+  const args = { request, env, ctx: {}, userId: uid, withDb: noDb };
+  const { listProducts } = await import('../../worker/payments/catalog.js');
+  const listed = listProducts().find(item => item.priceKRW > 0);
+  await expect(ROUTES['POST /orders'].handle({ ...args, body: { productId: listed.productId, paymentMethod: 'card_general' } })).rejects.toMatchObject({ code: 'PAYPAL_REQUIRED_FOR_REGION' });
+  const passBody = { tier: 'standard', durationMonths: 1, paymentMethod: 'card_general', passPolicyVersion: CURRENT_PASS_POLICY_VERSION };
+  await expect(ROUTES['POST /subscription/prepare'].handle({ ...args, body: passBody })).rejects.toMatchObject({ code: 'PAYPAL_REQUIRED_FOR_REGION' });
+});
 
 test('USD cents are rounded server-side; domestic methods never request FX', async () => {
   expect(await preparePaypalCharge(env, 'paypal', 9900, { fetchImpl: fx, now })).toEqual(quote);

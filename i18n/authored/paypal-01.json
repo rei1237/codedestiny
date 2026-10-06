@@ -1,0 +1,58 @@
+{
+  "payment.paypal.usdHint": {
+    "ko": "해외 결제 · 결제 전 USD 금액 확인",
+    "en": "International payment · Review USD total before paying",
+    "ja": "海外決済 · お支払い前にUSD金額を確認",
+    "zh-CN": "海外支付 · 付款前确认美元金额",
+    "zh-TW": "海外付款 · 付款前確認美元金額",
+    "vi": "Thanh toán quốc tế · Kiểm tra số tiền USD trước khi trả",
+    "hi": "अंतरराष्ट्रीय भुगतान · भुगतान से पहले USD राशि देखें",
+    "es": "Pago internacional · Revisa el total en USD antes de pagar",
+    "fr": "Paiement international · Vérifiez le total en USD avant de payer",
+    "de": "Internationale Zahlung · USD-Betrag vor der Zahlung prüfen",
+    "nl": "Internationale betaling · Controleer het USD-bedrag vooraf",
+    "ms": "Bayaran antarabangsa · Semak jumlah USD sebelum membayar"
+  },
+  "payment.paypal.rateNotice": {
+    "ko": "기존 원화 가격을 환산한 결제 금액입니다. 환율 기준일: {date} (ECB).",
+    "en": "Converted from the existing KRW price. Exchange rate date: {date} (ECB).",
+    "ja": "既存のKRW価格を換算した決済額です。為替レート基準日: {date} (ECB)。",
+    "zh-CN": "按现有韩元价格换算。汇率日期：{date} (ECB)。",
+    "zh-TW": "按現有韓元價格換算。匯率日期：{date} (ECB)。",
+    "vi": "Quy đổi từ giá KRW hiện tại. Ngày tỷ giá: {date} (ECB).",
+    "hi": "मौजूदा KRW कीमत से परिवर्तित। विनिमय दर की तारीख: {date} (ECB)।",
+    "es": "Convertido del precio actual en KRW. Fecha del tipo de cambio: {date} (ECB).",
+    "fr": "Conversion du prix actuel en KRW. Date du taux de change : {date} (ECB).",
+    "de": "Umgerechnet vom bestehenden KRW-Preis. Wechselkursdatum: {date} (ECB).",
+    "nl": "Omgerekend van de bestaande KRW-prijs. Wisselkoersdatum: {date} (ECB).",
+    "ms": "Ditukar daripada harga KRW sedia ada. Tarikh kadar tukaran: {date} (ECB)."
+  },
+  "payment.paypal.close": {
+    "ko": "닫고 결제 상태 확인",
+    "en": "Close and check payment status",
+    "ja": "閉じて決済状況を確認",
+    "zh-CN": "关闭并查看支付状态",
+    "zh-TW": "關閉並查看付款狀態",
+    "vi": "Đóng và kiểm tra trạng thái",
+    "hi": "बंद करें और भुगतान की स्थिति देखें",
+    "es": "Cerrar y comprobar el pago",
+    "fr": "Fermer et vérifier le paiement",
+    "de": "Schließen und Zahlungsstatus prüfen",
+    "nl": "Sluiten en betaalstatus bekijken",
+    "ms": "Tutup dan semak status bayaran"
+  },
+  "payment.paypal.wait": {
+    "ko": "PayPal에서 결제를 승인한 뒤 이 화면에서 결제 상태를 확인합니다.",
+    "en": "Approve the payment in PayPal, then check its status here.",
+    "ja": "PayPalで支払いを承認した後、この画面で決済状況を確認します。",
+    "zh-CN": "在PayPal中批准付款后，在此查看支付状态。",
+    "zh-TW": "在PayPal中核准付款後，在此查看付款狀態。",
+    "vi": "Xác nhận thanh toán trong PayPal, sau đó kiểm tra trạng thái tại đây.",
+    "hi": "PayPal में भुगतान स्वीकार करें, फिर यहाँ उसकी स्थिति देखें।",
+    "es": "Autoriza el pago en PayPal y consulta su estado aquí.",
+    "fr": "Autorisez le paiement dans PayPal, puis consultez son état ici.",
+    "de": "Bestätigen Sie die Zahlung bei PayPal und prüfen Sie hier ihren Status.",
+    "nl": "Keur de betaling goed in PayPal en bekijk hier de status.",
+    "ms": "Luluskan bayaran dalam PayPal, kemudian semak statusnya di sini."
+  }
+}

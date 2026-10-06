@@ -11,7 +11,7 @@
     "homeGuide": {
       "kicker": "FORTUNE GUIDE",
       "title": "四柱八字·塔羅·運勢的解讀方法",
-      "lead": "Code Destiny提供四柱八字、紫微斗數、宿曜、西洋占星、吠陀占星與塔羅的繁體中文入口。想了解長期的性格與選擇模式，可以從出生資訊對應的命盤開始；想梳理某個具體問題，可以選擇塔羅。八字需要出生資料，塔羅從問題與牌面出發，兩者不能套用同一解釋。每個介紹頁說明本體系的閱讀方法，並連結相應工具。妍伊、Neo與Yeongnyangi提供同一平台內不同風格的諮詢體驗。公開功能和可選付費諮詢的範圍，以對應服務頁說明為準。",
+      "lead": "Code Destiny 是一個韓語占卜平台，只需生日與出生時間，即可在一處查看四柱八字、塔羅、紫微斗數、西洋與吠陀占星、宿曜及合盤。為了讓初次接觸的人也能理清脈絡，我們簡要整理了每種占卜看什麼、怎麼讀。所有解讀都是幫助自我省察、整理當下選擇的參考資料，而非斷定未來的預言。",
       "sajuTitle": "四柱八字·萬年曆",
       "sajuBody": "以出生的年、月、日、時立四柱，解讀天干地支中五行的平衡、十神與大運的流向。既看與生俱來的氣質，也看當前時期的節奏。",
       "tarotTitle": "塔羅解讀",
@@ -1807,6 +1807,38 @@
       "arrival": "循著月光，走近你心中的問題",
       "recordsTitle": "韓國政局轉折前公開的命理紀錄",
       "recordsNote": "對照尹錫悅、李在明的早期公開解讀與2025年的實際事件。請查看日期與韓文原文，自行判斷。過往案例不保證未來預測準確。"
+    },
+    "overseasCopy": {
+      "pressTitle": "媒體中的Ggulggul",
+      "pressSummary": "Startup Daily介紹了Ggulggul與靈喵，以及從使用者煩惱出發的解讀方式。原文為韓文。",
+      "newWindow": "（新分頁）",
+      "monthly": "按日干查看月運",
+      "daily": "按日期查看生肖運勢",
+      "portalTitle": "靈喵的四柱八字解讀",
+      "portalDesc": "走過妍伊的花園，在月光占卜室裡，讓靈喵以自己的語氣解讀同一張命盤。",
+      "singlePay": "單次購買（海外使用PayPal）",
+      "reviewTitle": "您可以稍後再寫評價",
+      "reviewDesc": "與我們分享您的諮詢或報告體驗。",
+      "reviewReward": "公開審核通過後發放月光石",
+      "reviewDetail": "可在Ggulggul使用，每個商品限發放一次。",
+      "reviewAction": "寫評價",
+      "passStandard": "妍伊 Standard",
+      "passPremium": "妍伊 Premium",
+      "passVvip": "妍伊 VVIP",
+      "passPerLimit": "每次解讀上限{amount}韓元",
+      "passTotal": "總額度：{amount}韓元",
+      "passNoLimit": "付費解讀無單次價格上限",
+      "krwAmount": "{amount}韓元",
+      "recordsTitle": "過往政治人物解讀與讀者回饋",
+      "recordsLead": "可查看韓文原文、後續事件和讀者回饋。過往解讀並不證明預測準確率。",
+      "reactionsTitle": "重訪原文的讀者留言",
+      "reactionsNote": "以下為Naver部落格的公開留言，保留韓文原文，並非購買評價，也包含裁決前的留言。暱稱已部分隱藏。",
+      "reactionsMore": "更多留言（韓文）",
+      "commentOriginal": "查看留言原文（韓文）",
+      "fine": "以上為過往解讀和個人經歷，不保證預測特定事件或獲得相同結果。",
+      "emailTitle": "讀完靈喵解讀後的來信",
+      "emailSource": "靈喵鮪魚四柱解讀使用者 · 韓文郵件原文",
+      "emailMore": "閱讀完整郵件（韓文）"
     }
   },
   "terms": {
@@ -2119,7 +2151,7 @@
       "close": "關閉並查看付款狀態",
       "wait": "在PayPal中核准付款後，在此查看付款狀態。",
       "internationalLabel": "PayPal · 國際付款（USD）",
-      "internationalGuide": "在韓國以外付款？請選擇PayPal，授權前可確認美元總額。其他方式可能需要韓國當地付款資料。"
+      "internationalGuide": "韓國境外僅支援透過PayPal購買單次解讀或使用券。授權前請確認美元總額。已持有的使用券與月光石仍可依原有條件使用。"
     },
     "loader": {
       "eyebrow": "月光付款確認",

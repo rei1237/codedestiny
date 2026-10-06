@@ -190,6 +190,20 @@ for (const match of shell.matchAll(MARKUP)) {
   const [, key, markupText] = match;
   const markupAmounts = amountsIn(markupText);
   if (!markupAmounts) continue;
+  // Registry-derived values follow cd-lang-native's data-cd-vars contract.
+  const varsMatch = match[0].match(/data-cd-vars=(['"])(.*?)\1/);
+  if (varsMatch) {
+    const vars = JSON.parse(varsMatch[2].replaceAll('&quot;', '"').replaceAll('&#39;', "'"));
+    for (const locale of locales) {
+      const source = textOf(locale, key);
+      const rendered = typeof source === 'string' ? source.replace(/\{(\w+)\}/g, (token, name) => String(vars[name] ?? token)) : '';
+      if (/\{\w+\}/.test(rendered) || sig(amountsIn(rendered) || []) !== sig(markupAmounts)) {
+        failures.push(`${key}: ${locale} interpolated price differs from registry markup: ${rendered}`);
+      }
+    }
+    comparedWithShell += 1;
+    continue;
+  }
   const perLocale = byKey.get(key);
   if (!perLocale) {
     failures.push(

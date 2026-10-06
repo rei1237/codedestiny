@@ -37,7 +37,7 @@ test('PayPal guidance preserves all methods and the fail-closed unavailable stat
   globalThis.cdTranslate=window.cdTranslate;
   const html=checkout.buildDirectPayMethodStepHtml({});
   assert.match(html,/PayPal · International \(USD\)/);
-  assert.match(html,/review the USD total/);
+  assert.match(html,/review the USD total/i);
   const methods=[...html.matchAll(/data-pay-method="([^"]+)"/g)].map(m=>m[1]);
   assert.deepEqual(methods,checkout.DIRECT_PAY_METHOD_ORDER);
   assert.match(html,/data-pay-method="PAYPAL" aria-disabled="true"/);

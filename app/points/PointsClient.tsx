@@ -4607,7 +4607,7 @@ export default function PointsPage() {
             */}
             <div className="mt-4">
               <p className="text-[12px] font-black text-slate-200">{passPayMethods.prompt}</p>
-              <p className="mt-2 text-sm leading-relaxed text-slate-200">{checkoutEntry.text("payment.paypal.internationalGuide", "해외 결제는 PayPal을 선택해 주세요. 승인 전에 USD 금액을 확인할 수 있어요. 다른 수단은 한국 결제 환경에 따라 이용이 제한될 수 있어요.")}</p>
+              <p className="mt-2 text-sm leading-relaxed text-slate-200">{checkoutEntry.text("payment.paypal.internationalGuide", "해외 접속에서는 PayPal로 단건 상담과 이용권을 구매할 수 있어요. 승인 전에 USD 금액을 확인해 주세요. 보유 이용권·월정석은 기존 조건대로 사용할 수 있어요.")}</p>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 {passPayMethods.tiles.map((method) => (
                   <button

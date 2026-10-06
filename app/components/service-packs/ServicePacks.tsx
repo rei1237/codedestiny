@@ -107,6 +107,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
   void checkOrder(orderId);
  },[ownerId,checkOrder,copy]);
  const buy=async(payMethod:PackPayMethod)=>{
+  if(!checkoutEntry.isDirectPayMethodEnabled(payMethod))return;
   if(!ownerId){loginForCurrentPage();return;}if(lock.current||!consent)return;
   const plan=catalog.plans.find(item=>item.planId===selected);if(!plan)return;
   lock.current=true;setBusy(true);setMessage(copy.confirm);
@@ -296,7 +297,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
      <p className="text-[12px] font-black text-slate-200">{copy.payPrompt}</p>
      <div className="mt-2 grid grid-cols-2 gap-2">
       {PACK_PAY_METHODS.map(method=>{
-       const card=method==='CARD',open=card||checkoutEntry.isDirectPayMethodEnabled(method);
+       const card=method==='CARD',open=checkoutEntry.isDirectPayMethodEnabled(method);
        return <button key={method} type="button" data-pack-pay-method={method.toLowerCase()} disabled={busy||!consent||!open||isMobileAppRuntime()} onClick={()=>void buy(method)} className="flex min-h-[76px] flex-col items-start justify-center gap-1 rounded-[14px] border border-amber-200/45 bg-amber-200/12 px-3.5 py-3 text-left text-amber-50 transition hover:bg-amber-200/20 disabled:cursor-not-allowed disabled:opacity-50">
         <span aria-hidden="true" className="text-lg leading-none">{card?'💳':checkoutEntry.directPayMethodMeta(method)?.glyph}</span>
         <span className="text-[13px] font-black leading-snug">{card?copy.cardPay:checkoutEntry.directPayMethodLabel(method)}</span>

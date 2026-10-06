@@ -66,9 +66,9 @@ vars.pass = `<section class="cdh-pass" aria-labelledby="cdhPassTitle" data-desig
   <ul class="cdh-pass__tiers" role="list">${Object.values(CURRENT_PASS_PLANS).map(plan => `
     <li class="cdh-pass__tier${plan.tier === 'family' ? ' cdh-pass__tier--family' : ''}"><a class="cdh-pass__tier-link" href="/points/?source=flower-membership&amp;plan=${plan.tier}">
       ${plan.tier === 'family' ? '<span class="cdh-pass__badge" data-cd-trans="home.gardenCopy.passBadge">영냥이까지</span>' : ''}<span class="cdh-pass__tier-name">${plan.name}</span>
-      <strong class="cdh-pass__tier-price">${won(plan.wonPrice)} <small data-cd-trans="home.gardenCopy.passPer">/ 30일</small></strong>
-      <span class="cdh-pass__tier-line">${plan.tier === 'family' ? '유료 리딩 건당 한도 없음' : `건당 ${won(plan.maxCoveredCoin * 100)} 이하`}</span>
-      <span class="cdh-pass__tier-line">누적 ${won(plan.monthlyLimitCoin * 100)}까지</span>
+      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"${Number(plan.wonPrice).toLocaleString('en-US')}"}'>${won(plan.wonPrice)}</span> <small data-cd-trans="home.gardenCopy.passPer">/ 30일</small></strong>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.${plan.tier === 'family' ? 'passNoLimit' : 'passPerLimit'}" data-cd-vars='{"amount":"${Number(plan.maxCoveredCoin * 100).toLocaleString('en-US')}"}'>${plan.tier === 'family' ? '유료 리딩 건당 한도 없음' : `건당 ${won(plan.maxCoveredCoin * 100)} 이하`}</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"${Number(plan.monthlyLimitCoin * 100).toLocaleString('en-US')}"}'>누적 ${won(plan.monthlyLimitCoin * 100)}까지</span>
       <span class="cdh-pass__tier-line">${plan.profileLimit === 0 ? '프로필 무제한' : `프로필 최대 ${plan.profileLimit}개`}</span>
     </a></li>`).join('')}
   </ul>
@@ -90,9 +90,20 @@ const { lead: leadReviews } = splitReviews(3);
 vars.customerReviews = leadReviews.length ? `<p class="cdh-kakao-lead" data-cd-trans="home.funnelCopy.reviewsLead">네오가 1:1로 상담할 때 받은 실제 카카오톡 후기예요. 고객이 쓴 문장 그대로 옮겼고, 생략한 곳은 …로 표시했어요.</p><ul class="cdh-kakao">${leadReviews.map(reviewCard).join('')}</ul><p class="cdh-kakao-fine" data-cd-trans="home.funnelCopy.reviewsFine">개인 경험에 따른 후기이며 결과를 보장하지 않습니다. 사주 풀이는 참고용 정보입니다.</p>` : '';
 vars.expertiseFacts = EXPERTISE_FACTS.map(fact => `<li data-cd-trans="home.funnelCopy.expertise.${fact.key}">${escapeHtml(fact.ko)}</li>`).join('');
 const template = readFileSync('templates/home-funnel.html', 'utf8');
-const homeHtml = template.replace(/\{\{(\w+)\}\}/g, (_token, key) => {
+let homeHtml = template.replace(/\{\{(\w+)\}\}/g, (_token, key) => {
   if (!(key in vars)) throw new Error(`Unknown home funnel template token: ${key}`);
   return vars[key];
+});
+
+// Mark authored text-only home labels; preserve nested markup and original quotations.
+const overseasLabels = JSON.parse(readFileSync('i18n/authored/homeOverseas-01.json', 'utf8'));
+const labelKeys = new Map(Object.entries(overseasLabels).filter(([, value]) => !value.ko.includes('{')).map(([key, value]) => [value.ko, key]));
+homeHtml = homeHtml.replace(/(<[a-z][^>]*>)([^<>]+)(<\/[a-z][a-z0-9]*>)/g, (whole, open, text, close) => {
+  if (/^\d[\d,]*원$/.test(text) && !open.includes('data-cd-trans=')) {
+    return open.slice(0, -1) + ' data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars=\"' + JSON.stringify({amount:text.slice(0,-1)}).replaceAll('\"', '&quot;') + '\">' + text + close;
+  }
+  const key = labelKeys.get(text);
+  return !key || open.includes('data-cd-trans=') ? whole : open.slice(0, -1) + ' data-cd-trans="' + key + '">' + text + close;
 });
 
 // Remove each source node before inserting the assembled home. Reverse offsets keep ranges stable.

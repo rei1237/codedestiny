@@ -1807,6 +1807,38 @@
       "arrival": "Een rustig moment voor jouw vraag",
       "recordsTitle": "Saju-duidingen van vóór Korea’s politieke omslag",
       "recordsNote": "Vergelijk eerdere duidingen over Yoon Suk Yeol en Lee Jae-myung met de gebeurtenissen van 2025. Bekijk zelf de datums en Koreaanse bronteksten. Voorbeelden uit het verleden garanderen geen toekomstige voorspellingen."
+    },
+    "overseasCopy": {
+      "pressTitle": "Ggulggul in the news",
+      "pressSummary": "Startup Daily introduces Ggulggul and Yeongnyangi, our question-first readings and their two guides. The original article is in Korean.",
+      "newWindow": "(new tab)",
+      "monthly": "Monthly readings by Day Master",
+      "daily": "Daily readings by zodiac animal",
+      "portalTitle": "Yeongnyangi, your Saju cat",
+      "portalDesc": "Beyond Yeoni’s garden, explore the same birth chart with a different voice in Yeongnyangi’s moonlit reading room.",
+      "singlePay": "single purchases (PayPal for overseas visits)",
+      "reviewTitle": "You can leave a review later",
+      "reviewDesc": "Tell us about your consultation or report.",
+      "reviewReward": "Moonstones after publication approval",
+      "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
+      "reviewAction": "Write a review",
+      "passStandard": "Yeoni Standard",
+      "passPremium": "Yeoni Premium",
+      "passVvip": "Yeoni VVIP",
+      "passPerLimit": "Up to KRW {amount} per reading",
+      "passTotal": "Total allowance: KRW {amount}",
+      "passNoLimit": "No per-reading price limit",
+      "krwAmount": "KRW {amount}",
+      "recordsTitle": "Past political readings and returning readers",
+      "recordsLead": "Read the original Korean posts, later events and reader reactions. These past interpretations do not establish predictive accuracy.",
+      "reactionsTitle": "Readers returning to the original posts",
+      "reactionsNote": "Public Naver Blog comments, shown in their original Korean. These are not purchase reviews and include comments made before the ruling. Names are partially masked.",
+      "reactionsMore": "More comments (Korean)",
+      "commentOriginal": "Read original comment (Korean)",
+      "fine": "These are past readings and individual experiences. They do not guarantee predictions or similar outcomes.",
+      "emailTitle": "A reader’s letter after a Yeongnyangi reading",
+      "emailSource": "Yeongnyangi Tuna Saju reader · original Korean email",
+      "emailMore": "Read the full email (Korean)"
     }
   },
   "terms": {
@@ -2119,7 +2151,7 @@
       "close": "Sluiten en betaalstatus bekijken",
       "wait": "Keur de betaling goed in PayPal en bekijk hier de status.",
       "internationalLabel": "PayPal · Internationaal betalen (USD)",
-      "internationalGuide": "Betaal je van buiten Korea? Kies PayPal en controleer het totaal in USD voordat je bevestigt. Andere methoden kunnen Koreaanse betaalgegevens vereisen."
+      "internationalGuide": "Buiten Korea koop je losse duidingen en passen met PayPal. Controleer het totaal in USD voordat je bevestigt. Je bestaande passen en Maanstenen blijven onder de huidige voorwaarden bruikbaar."
     },
     "loader": {
       "eyebrow": "Moonlight-betalingscontrole",

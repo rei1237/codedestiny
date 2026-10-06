@@ -851,10 +851,19 @@
   /** 표의 정적 정책과 런타임 신호를 곱한 최종 판정. 표를 읽는 모든 곳이 이걸 거친다. */
   function directPayMethodOpen(id, entry) {
     if (!entry || entry.enabled !== true) return false;
+    if (id !== "PAYPAL" && paypalOnlyRegion()) return false;
     var map = methodAvailabilityMap();
     if (id === "PAYPAL") return !!(map && map[id] === true) && !shouldUseAppStoreEntry();
     if (!map) return true;
     return map[id] !== false;
+  }
+
+  function paypalOnlyRegion() {
+    var win = runtimeWindow();
+    if (!win || shouldUseAppStoreEntry()) return false;
+    if (win.__cdPaymentRegion && typeof win.__cdPaymentRegion.paypalOnly === "boolean") return win.__cdPaymentRegion.paypalOnly;
+    var match = String(win.document && win.document.cookie || "").match(/(?:^|;\s*)cd_geo_country=([^;]+)/);
+    return !!(match && match[1] !== "KR");
   }
 
   /**
@@ -871,13 +880,20 @@
     if (!win) return [];
     var source = config && typeof config === "object" ? config : null;
     if (!source) return [];
+    if (source.paymentRegion && source.paymentRegion.country && typeof source.paymentRegion.paypalOnly === "boolean") win.__cdPaymentRegion = source.paymentRegion;
     var map = methodAvailabilityMap() || {};
     var closed = [];
     for (var i = 0; i < DIRECT_PAY_METHOD_ORDER.length; i += 1) {
       var id = DIRECT_PAY_METHOD_ORDER[i];
       var entry = DIRECT_PAY_METHODS[id];
-      // 공용 이니시스 채널을 쓰는 수단은 판정 대상이 아니다 — 여기서 CARD 를 건드리면 결제가 통째로 죽는다.
-      if (!entry || !entry.channelKeyName) continue;
+      // 해외에서는 공용 카드 채널도 닫고, 국내에서는 기존 채널 설정을 따른다.
+      if (!entry) continue;
+      if (paypalOnlyRegion() && id !== "PAYPAL") {
+        map[id] = false;
+        closed.push(id);
+        continue;
+      }
+      if (!entry.channelKeyName) { delete map[id]; continue; }
       // 서버가 말하지 않은 필드는 건드리지 않는다(구 워커 응답과의 호환).
       if (!(entry.channelKeyName in source)) continue;
       var available = !!text(source[entry.channelKeyName]);
@@ -886,6 +902,14 @@
       if (was && !available) closed.push(id);
     }
     win[METHOD_AVAILABILITY_KEY] = map;
+    if (paypalOnlyRegion() && win.document) {
+      Array.prototype.forEach.call(win.document.querySelectorAll('[data-pay-method]'), function (tile) {
+        if (tile.getAttribute('data-pay-method') === 'PAYPAL') return;
+        tile.classList.add('is-disabled');
+        tile.setAttribute('aria-disabled', 'true');
+        if (tile.tagName === 'BUTTON') tile.disabled = true;
+      });
+    }
     // PayPal starts closed until the server explicitly publishes its live configuration.
     if (map.PAYPAL === true && win.document) {
       var paypalTiles = win.document.querySelectorAll('[data-pay-method="PAYPAL"].is-disabled');
@@ -1190,7 +1214,7 @@
       + '<p class="cd-direct-payment-method-prompt" id="cdDirectPaymentMethodPrompt">'
       + escape(checkoutText("payment.directModal.method.prompt", "어떤 방법으로 결제할까요?")) + "</p>"
       + '<p class="cd-direct-payment-method-prompt">'
-      + escape(checkoutText("payment.paypal.internationalGuide", "해외 결제는 PayPal을 선택해 주세요. 승인 전에 USD 금액을 확인할 수 있어요. 다른 수단은 한국 결제 환경에 따라 이용이 제한될 수 있어요.")) + "</p>"
+      + escape(checkoutText("payment.paypal.internationalGuide", "해외 접속에서는 PayPal로 단건 상담과 이용권을 구매할 수 있어요. 승인 전에 USD 금액을 확인해 주세요. 보유 이용권·월정석은 기존 조건대로 사용할 수 있어요.")) + "</p>"
       + '<div class="cd-direct-payment-method-grid" role="group" aria-labelledby="cdDirectPaymentMethodPrompt">'
       + cards + "</div>"
     );

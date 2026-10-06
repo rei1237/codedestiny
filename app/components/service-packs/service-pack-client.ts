@@ -95,6 +95,7 @@ export const PACK_PAY_METHODS:readonly PackPayMethod[]=['CARD','KAKAOPAY','PAYPA
 /** 저장된 수단이 지금 꺼져 있으면(전용 채널키 없음 등) 카드로 이어간다. 확정 시 서버가 PG 결과로 수단을 바로잡는다. */
 export const packPayMethod=(value:unknown):PackPayMethod=>value==='PAYPAL'?'PAYPAL':value==='KAKAOPAY'&&checkoutEntry.isDirectPayMethodEnabled('KAKAOPAY')?'KAKAOPAY':'CARD';
 function packPayFields(method:PackPayMethod):{orderMethod:string;payFields?:{payMethod:string;channelKeyName:string}}{
+ if(!checkoutEntry.isDirectPayMethodEnabled(method))throw new ServicePackError('PAY_METHOD_UNAVAILABLE');
  if(method==='CARD')return {orderMethod:'card_general'};
  if(!checkoutEntry.setSelectedDirectPayMethod(method))throw new ServicePackError('PAY_METHOD_UNAVAILABLE');
  try{

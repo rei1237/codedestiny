@@ -253,7 +253,7 @@ export async function repairUnmarkedKoreanText(locale: RuntimeLocale): Promise<n
   return pending.length;
 }
 
-/** 쿼리 → 경로 → localStorage → 쿠키 순으로 현재 로케일을 정한다. */
+/** URL → 직접 선택 → IP 국가 → 이전 자동 설정 순으로 현재 로케일을 정한다. */
 export function detectLocale(): RuntimeLocale {
   if (typeof window === "undefined") return "ko";
   // The static language selector already owns the current page selection.
@@ -274,6 +274,14 @@ export function detectLocale(): RuntimeLocale {
       const fromPath = normalizeLocale(segment);
       if (fromPath !== "ko") return fromPath;
     }
+  } catch {}
+  try {
+    const cookies = String(document.cookie || "").split(";").map(part => part.trim());
+    let storedExplicit = false;
+    try { storedExplicit = window.localStorage.getItem("cd_lang_explicit") === "1"; } catch {}
+    const explicit = cookies.includes("cd_locale_explicit=1") || storedExplicit;
+    const geo = cookies.find(part => part.startsWith("cd_geo_locale="));
+    if (!explicit && geo) return normalizeLocale(decodeURIComponent(geo.slice("cd_geo_locale=".length)));
   } catch {}
   try {
     const stored = window.localStorage.getItem("cd_lang");

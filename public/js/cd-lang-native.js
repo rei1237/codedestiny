@@ -143,6 +143,9 @@
     if (urlLang) return urlLang;
     var pathLang = getPathPrefixLang();
     if (pathLang) return pathLang;
+    var geoLang = readCookie('cd_geo_locale');
+    var explicitLang = readStoredValue('cd_lang_explicit') === '1' || readCookie('cd_locale_explicit') === '1';
+    if (geoLang && !explicitLang) return normalizeLang(geoLang);
     if (hasSavedLangAck()) {
       var stored = readStoredValue('cd_lang');
       if (stored) return normalizeLang(stored);
@@ -554,6 +557,7 @@
   }
 
   function nativeChangeLanguage(langCode, btn) {
+    writeCookie('cd_locale_explicit', '1', 315360000);
     var lang = normalizeLang(langCode || (btn && btn.getAttribute && btn.getAttribute('data-lang')));
     if (applying) return;
     applying = true;
@@ -602,9 +606,7 @@
     if (getUrlLang()) {
       setSavedLang(lang);
       markSavedLangAck(lang);
-    } else if (lang !== 'ko' && hasSavedLangAck()) {
-      setSavedLang(lang);
-      markSavedLangAck(lang);
+      writeCookie('cd_locale_explicit', '1', 315360000);
     }
     syncLanguageUiSoon(lang);
     applyNativeTranslations(lang).finally(function () {

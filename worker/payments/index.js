@@ -37,6 +37,7 @@ import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js"
 import { Payment, User } from "../lib/models.js";
 import { prepareResumeContext, readOrderResumeContext } from "./resume-context.js";
 import { preparePaypalCharge, paypalChargeForOrder } from './paypal.js';
+import { assertRegionalPaymentMethod, paymentRegion } from './region-policy.js';
 import { fetchPortOnePayment, getPortOnePublicConfig, resolveChargeAmountKRW } from "../lib/portone.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
@@ -531,6 +532,7 @@ function presentMembershipPass(entitlement, coverage = {}) {
 
 async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
   const { plan, paymentMethod, chargeKRW } = resolvePassRequest(env, body);
+  assertRegionalPaymentMethod(request, paymentMethod);
   const paypalCharge = await preparePaypalCharge(env, paymentMethod, chargeKRW);
   const purchaseType = body.purchaseType ?? "SELF";
   if (!["SELF", "GIFT"].includes(purchaseType)) throw paymentError("INVALID_REQUEST", "구매 방식이 올바르지 않습니다.");
@@ -1078,7 +1080,7 @@ const ROUTES = {
    */
   "GET /config": {
     auth: "none",
-    async handle({ env }) {
+    async handle({ env, request }) {
       const config = getPortOnePublicConfig(env);
       if (!config.configured) {
         return json({
@@ -1114,7 +1116,8 @@ const ROUTES = {
         currency: config.currency,
         payMethod: config.payMethod,
         noticeUrl: config.noticeUrl,
-      });
+        paymentRegion: paymentRegion(request),
+      }, { headers: { "Cache-Control": "private, no-store" } });
     },
   },
 
@@ -1148,12 +1151,13 @@ const ROUTES = {
 
   "POST /orders": {
     auth: "required",
-    async handle({ env, ctx, userId, body, withDb }) {
+    async handle({ request, env, ctx, userId, body, withDb }) {
       const product = withChargeAmount(env, resolveProduct({
         productId: body.productId, featureKey: body.featureKey, reason: body.reason,
       }));
       ctx.productId = product.productId;
       const paymentMethod = String(body.paymentMethod || "card_general");
+      assertRegionalPaymentMethod(request, paymentMethod);
       const paypalCharge = await preparePaypalCharge(env, paymentMethod, product.priceKRW);
       const order = await withDb(env, ctx, (db) => createOrder(db, {
         env,
@@ -1224,6 +1228,7 @@ const ROUTES = {
       if (!idempotencyKey) idempotencyKey = `legacy-${crypto.randomUUID()}`;
       // 해외 발급 카드 결제창 노출 판정(I/O 없음). 결제수단은 클라이언트 신고값이라 판정은 "보내도 되는 상한"일 뿐이다.
       const paymentMethod = String(body.paymentMethod || body.payMethod || "card_general");
+      assertRegionalPaymentMethod(request, paymentMethod);
       let moonstoneDiscount=null;
       try { moonstoneDiscount=quoteYeongnyangiMoonstoneDiscount(product.featureKey,body.moonstoneQuantity ?? 0); }
       catch { throw paymentError('INVALID_REQUEST','사용할 월정석 수량을 확인해 주세요. 단건 결제 잔액은 1,000원 이상이어야 해요.'); }
@@ -1302,7 +1307,7 @@ const ROUTES = {
       const idempotent = Date.now() - new Date(order.createdAt || 0).getTime() > 10_000;
       const customer = await buildLegacyPrepareCustomer(env, user, userId);
       const legacyOrder = toLegacyPrepareOrder(order, {
-        config: getPortOnePublicConfig(env),
+        config: { ...getPortOnePublicConfig(env), paymentRegion: paymentRegion(request) },
         customer,
         pricing: listedProduct.pricing || { ...listedProduct },
         body,

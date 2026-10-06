@@ -37,6 +37,27 @@ test('invalid USD quote is rejected before rendering buttons', async () => {
   expect(window.PortOne.loadPaymentUI).not.toHaveBeenCalled();
 });
 
+test('overseas IP enables only PayPal regardless of Korean UI; domestic users retain existing methods', () => {
+  document.cookie = 'cd_geo_country=JP; path=/';
+  window.cdGetCurrentLanguage = () => 'ko';
+  expect(entry.isDirectPayMethodEnabled('CARD')).toBe(false);
+  entry.setDirectPayMethodAvailability({ paypalChannelKey: 'test-channel', kakaopayChannelKey: 'test-kakao', paymentRegion: { country: 'JP', paypalOnly: true } });
+  for (const id of entry.DIRECT_PAY_METHOD_ORDER) expect(entry.isDirectPayMethodEnabled(id)).toBe(id === 'PAYPAL');
+  expect(entry.setSelectedDirectPayMethod('CARD')).toBe('');
+  expect(entry.setSelectedDirectPayMethod('PAYPAL')).toBe('PAYPAL');
+  entry.setDirectPayMethodAvailability({ paypalChannelKey: 'test-channel', kakaopayChannelKey: 'test-kakao', paymentRegion: { country: 'KR', paypalOnly: false } });
+  expect(entry.isDirectPayMethodEnabled('CARD')).toBe(true);
+});
+
+test('regional config closes already rendered domestic buttons and clears an earlier selection', () => {
+  entry.setSelectedDirectPayMethod('CARD');
+  document.body.innerHTML = '<button data-pay-method="CARD">Card</button><button data-pay-method="PAYPAL" class="is-disabled">PayPal</button>';
+  entry.setDirectPayMethodAvailability({ paypalChannelKey: 'test-channel', paymentRegion: { country: 'CN', paypalOnly: true } });
+  expect(document.querySelector('[data-pay-method="CARD"]').disabled).toBe(true);
+  expect(document.querySelector('[data-pay-method="PAYPAL"]').getAttribute('aria-disabled')).toBeNull();
+  expect(entry.peekSelectedDirectPayMethod()).toBe('');
+});
+
 test('PayPal resources are permitted by both shipping CSP files without widening default access', () => {
   const fs = require('node:fs'), path = require('node:path');
   for (const file of ['_headers', 'public/_headers']) {

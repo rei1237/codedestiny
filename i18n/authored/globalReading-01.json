@@ -70,18 +70,18 @@
     "ms": "PayPal · Bayaran antarabangsa (USD)"
   },
   "payment.paypal.internationalGuide": {
-    "ko": "해외 결제는 PayPal을 선택해 주세요. 승인 전에 USD 금액을 확인할 수 있어요. 다른 수단은 한국 결제 환경에 따라 이용이 제한될 수 있어요.",
-    "en": "Paying from outside Korea? Choose PayPal and review the USD total before approving. Other methods may require Korean payment details.",
-    "ja": "韓国外からのお支払いはPayPalをご利用ください。承認前に米ドルの合計額を確認できます。他の方法は韓国の決済情報が必要な場合があります。",
-    "zh-CN": "在韩国以外付款？请选择PayPal，授权前可确认美元总额。其他方式可能需要韩国本地支付信息。",
-    "zh-TW": "在韓國以外付款？請選擇PayPal，授權前可確認美元總額。其他方式可能需要韓國當地付款資料。",
-    "vi": "Thanh toán ngoài Hàn Quốc? Chọn PayPal và kiểm tra tổng tiền USD trước khi xác nhận. Các phương thức khác có thể yêu cầu thông tin thanh toán tại Hàn Quốc.",
-    "hi": "कोरिया के बाहर से भुगतान कर रहे हैं? PayPal चुनें और स्वीकृति से पहले USD में कुल राशि देखें। अन्य तरीकों के लिए कोरियाई भुगतान विवरण आवश्यक हो सकते हैं।",
-    "es": "¿Pagas desde fuera de Corea? Elige PayPal y revisa el total en USD antes de autorizar. Otros métodos pueden requerir datos de pago coreanos.",
-    "fr": "Vous payez hors de Corée ? Choisissez PayPal et vérifiez le total en USD avant de valider. Les autres moyens peuvent nécessiter des coordonnées de paiement coréennes.",
-    "de": "Zahlst du außerhalb Koreas? Wähle PayPal und prüfe den Gesamtbetrag in USD vor der Freigabe. Andere Methoden können koreanische Zahlungsdaten erfordern.",
-    "nl": "Betaal je van buiten Korea? Kies PayPal en controleer het totaal in USD voordat je bevestigt. Andere methoden kunnen Koreaanse betaalgegevens vereisen.",
-    "ms": "Membayar dari luar Korea? Pilih PayPal dan semak jumlah USD sebelum meluluskan. Kaedah lain mungkin memerlukan butiran pembayaran Korea."
+    "ko": "해외 접속에서는 PayPal로 단건 상담과 이용권을 구매할 수 있어요. 승인 전에 USD 금액을 확인해 주세요. 보유 이용권·월정석은 기존 조건대로 사용할 수 있어요.",
+    "en": "Outside Korea, use PayPal to buy individual readings or passes. Review the USD total before approving. Existing passes and Moonstones remain usable under their current conditions.",
+    "ja": "韓国外からはPayPalで都度鑑定や利用券を購入できます。承認前に米ドルの総額をご確認ください。お持ちの利用券・月光石は従来の条件で使えます。",
+    "zh-CN": "韩国境外仅支持通过PayPal购买单次解读或使用券。授权前请确认美元总额。已持有的使用券和月光石仍可按原有条件使用。",
+    "zh-TW": "韓國境外僅支援透過PayPal購買單次解讀或使用券。授權前請確認美元總額。已持有的使用券與月光石仍可依原有條件使用。",
+    "vi": "Ngoài Hàn Quốc, hãy dùng PayPal để mua lượt luận giải hoặc gói sử dụng. Kiểm tra tổng tiền USD trước khi xác nhận. Gói và Đá Ánh Trăng đã có vẫn dùng theo điều kiện hiện tại.",
+    "hi": "कोरिया के बाहर व्यक्तिगत परामर्श या पास खरीदने के लिए PayPal का उपयोग करें। स्वीकृति से पहले USD में कुल राशि जाँचें। मौजूदा पास और मूनस्टोन अपनी वर्तमान शर्तों के अनुसार इस्तेमाल कर सकते हैं।",
+    "es": "Fuera de Corea, usa PayPal para comprar lecturas individuales o pases. Revisa el total en USD antes de autorizar. Los pases y Piedras Lunares que ya tienes mantienen sus condiciones de uso.",
+    "fr": "Hors de Corée, utilisez PayPal pour acheter une lecture ou un pass. Vérifiez le total en USD avant de valider. Vos pass et Pierres de Lune restent utilisables selon leurs conditions actuelles.",
+    "de": "Außerhalb Koreas kannst du einzelne Deutungen und Pässe mit PayPal kaufen. Prüfe den USD-Gesamtbetrag vor der Freigabe. Vorhandene Pässe und Mondsteine gelten weiter zu ihren bisherigen Bedingungen.",
+    "nl": "Buiten Korea koop je losse duidingen en passen met PayPal. Controleer het totaal in USD voordat je bevestigt. Je bestaande passen en Maanstenen blijven onder de huidige voorwaarden bruikbaar.",
+    "ms": "Di luar Korea, gunakan PayPal untuk membeli bacaan atau pas. Semak jumlah USD sebelum meluluskan. Pas dan Batu Bulan sedia ada masih boleh digunakan mengikut syarat semasa."
   },
   "home.globalReading.recordsTitle": {
     "ko": "한국의 정치적 전환, 그 전에 남긴 사주 기록",

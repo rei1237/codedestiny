@@ -11,7 +11,7 @@
     "homeGuide": {
       "kicker": "FORTUNE GUIDE",
       "title": "How to Read Saju, Tarot & Fortune",
-      "lead": "Code Destiny brings Korean Saju (Four Pillars, also called BaZi), tarot, Zi Wei Dou Shu, Sukuyo, Western astrology and Vedic astrology together. Start with a birth chart when you want to understand recurring patterns, or choose tarot for a specific question. Saju uses birth details; tarot begins with your question and cards. Each guide explains its own method and links to the corresponding tool. Yeoni, Neo and Yeongnyangi offer different reading experiences within the same platform. Public guidance and optional paid consultations are described separately on each service page.",
+      "lead": "Code Destiny is a Korean fortune platform where you can explore Saju (Four Pillars), tarot, Zi Wei Dou Shu, Western and Vedic astrology, Sukuyo, and compatibility in one place — all from your birth date and time. We summarize what each reading looks at and how to read it, so even newcomers can follow along. Every interpretation is offered as a reference for self-reflection and calmer choices, never as a fixed prophecy.",
       "sajuTitle": "Saju & Manseryeok",
       "sajuBody": "We build four pillars from the year, month, day, and hour of birth, then read the balance of the five elements, the ten gods, and the flow of major luck within the heavenly stems and earthly branches — looking at both your innate temperament and the rhythm of the current period.",
       "tarotTitle": "Tarot Reading",
@@ -1807,6 +1807,38 @@
       "arrival": "A quiet moment for the question that matters to you",
       "recordsTitle": "Before Korea’s political turning point: dated Saju readings",
       "recordsNote": "Compare earlier published readings about Yoon Suk Yeol and Lee Jae-myung with the events of 2025. Review the dates and original Korean posts for yourself. Past examples do not guarantee future predictions."
+    },
+    "overseasCopy": {
+      "pressTitle": "Ggulggul in the news",
+      "pressSummary": "Startup Daily introduces Ggulggul and Yeongnyangi, our question-first readings and their two guides. The original article is in Korean.",
+      "newWindow": "(new tab)",
+      "monthly": "Monthly readings by Day Master",
+      "daily": "Daily readings by zodiac animal",
+      "portalTitle": "Yeongnyangi, your Saju cat",
+      "portalDesc": "Beyond Yeoni’s garden, explore the same birth chart with a different voice in Yeongnyangi’s moonlit reading room.",
+      "singlePay": "single purchases (PayPal for overseas visits)",
+      "reviewTitle": "You can leave a review later",
+      "reviewDesc": "Tell us about your consultation or report.",
+      "reviewReward": "Moonstones after publication approval",
+      "reviewDetail": "Use them in Ggulggul. Awarded once per product.",
+      "reviewAction": "Write a review",
+      "passStandard": "Yeoni Standard",
+      "passPremium": "Yeoni Premium",
+      "passVvip": "Yeoni VVIP",
+      "passPerLimit": "Up to KRW {amount} per reading",
+      "passTotal": "Total allowance: KRW {amount}",
+      "passNoLimit": "No per-reading price limit",
+      "krwAmount": "KRW {amount}",
+      "recordsTitle": "Past political readings and returning readers",
+      "recordsLead": "Read the original Korean posts, later events and reader reactions. These past interpretations do not establish predictive accuracy.",
+      "reactionsTitle": "Readers returning to the original posts",
+      "reactionsNote": "Public Naver Blog comments, shown in their original Korean. These are not purchase reviews and include comments made before the ruling. Names are partially masked.",
+      "reactionsMore": "More comments (Korean)",
+      "commentOriginal": "Read original comment (Korean)",
+      "fine": "These are past readings and individual experiences. They do not guarantee predictions or similar outcomes.",
+      "emailTitle": "A reader’s letter after a Yeongnyangi reading",
+      "emailSource": "Yeongnyangi Tuna Saju reader · original Korean email",
+      "emailMore": "Read the full email (Korean)"
     }
   },
   "terms": {
@@ -2119,7 +2151,7 @@
       "close": "Close and check payment status",
       "wait": "Approve the payment in PayPal, then check its status here.",
       "internationalLabel": "PayPal · International (USD)",
-      "internationalGuide": "Paying from outside Korea? Choose PayPal and review the USD total before approving. Other methods may require Korean payment details."
+      "internationalGuide": "Outside Korea, use PayPal to buy individual readings or passes. Review the USD total before approving. Existing passes and Moonstones remain usable under their current conditions."
     },
     "loader": {
       "eyebrow": "Moonlight payment check",

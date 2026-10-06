@@ -17,7 +17,7 @@ async function scenario(name,options={},run){
  return test(name,async()=>{
  const storage=new Map(),calls=[],sdk=[],redirects=[];let current=true,paid=Boolean(options.paid),prepareAttempts=0;
  globalThis.sessionStorage={getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)};
- globalThis.window={location:{assign:url=>redirects.push(url)},...(options.kakaoClosed?{__cdDirectPayMethodAvailability:{KAKAOPAY:false}}:{})};
+ globalThis.window={location:{assign:url=>redirects.push(url)},...(options.overseas?{__cdPaymentRegion:{country:'JP',paypalOnly:true},__cdDirectPayMethodAvailability:{PAYPAL:true}}:{}),...(options.kakaoClosed?{__cdDirectPayMethodAvailability:{KAKAOPAY:false}}:{})};
  const purchaseType=options.gift?'GIFT':'SELF';
  const pending={planId:catalog.planId,idempotencyKey:'original-key',orderId:'original-order',purchaseType,...(options.method?{payMethod:options.method}:{}),packSnapshot:snapshot,...(options.gift?{gift:{senderName:'보낸이',recipientName:'받는이',giftMessage:'선물'}}:{})};
  if(options.corruptKey)pending.idempotencyKey='damaged-key';
@@ -35,7 +35,7 @@ async function scenario(name,options={},run){
   }
   if(path.endsWith('/catalog'))return reply({ok:true,plans:options.planRemoved?[]:[{...catalog,...(options.catalogDrift?{totalUses:8}:{})}],giftEnabled:!options.giftDisabled});
   if(path.endsWith('/prepare')){
-   prepareAttempts++;assert.equal(body.idempotencyKey,options.corruptKey?'damaged-key':'original-key');assert.equal(body.expectedOrderId,options.newPurchase?undefined:'original-order');assert.equal(body.paymentMethod,options.method==='KAKAOPAY'&&!options.kakaoClosed?'kakaopay':'card_general');assert.equal(body.refundConsent,true);assert.equal(body.purchaseType,purchaseType);assert.equal(body.planId,catalog.planId);
+   prepareAttempts++;assert.equal(body.idempotencyKey,options.corruptKey?'damaged-key':'original-key');assert.equal(body.expectedOrderId,options.newPurchase?undefined:'original-order');assert.equal(body.paymentMethod,options.method==='PAYPAL'?'paypal':options.method==='KAKAOPAY'&&!options.kakaoClosed?'kakaopay':'card_general');assert.equal(body.refundConsent,true);assert.equal(body.purchaseType,purchaseType);assert.equal(body.planId,catalog.planId);
    assert.deepEqual(Object.keys(body).sort(),['planId','idempotencyKey','paymentMethod','refundConsent','purchaseType',...(options.gift?['gift']:[]),...(options.newPurchase?[]:['expectedOrderId'])].sort());
    if(options.corruptKey)return reply({ok:false,code:'ORDER_NOT_CONFIRMABLE'},409);
    if(options.prepareLoss&&prepareAttempts===1)throw new TypeError('mock prepare response lost');
@@ -100,3 +100,7 @@ await test('cancel stops the pending timers',async()=>{const r=await recheck(99,
 await test('purchase path skips the duplicate immediate confirm',async()=>{const r=await recheck(1,{immediate:false});assert.equal(await r.result,true);assert.equal(r.confirms(),1);});
 // 만료 토큰 401은 바로 로그인으로 보내지 않고 authFetch의 refresh 회복을 거친다.
 await test('pack requests opt into the authFetch 401 refresh',async()=>{let options;globalThis.__packFetch=async(path,init,opts)=>{options=opts;return new Response(JSON.stringify({ok:true,plans:[catalog],giftEnabled:false}),{status:200,headers:{'Content-Type':'application/json'}});};await api.readPackCatalog();assert.equal(options?.retryOn401,true);});
+
+await scenario('overseas new pack rejects cards before creating an order',{overseas:true,newPurchase:true},async({calls,sdk})=>{await assert.rejects(api.preparePackPurchase(catalog.planId,'original-key',true),e=>e.code==='PAY_METHOD_UNAVAILABLE');assert.equal(calls.length,0);assert.equal(sdk.length,0);});
+await scenario('overseas pack can be purchased with PayPal',{overseas:true,newPurchase:true,method:'PAYPAL'},async({calls,sdk})=>{await api.preparePackPurchase(catalog.planId,'original-key',true,'SELF',undefined,undefined,'PAYPAL');assert.equal(calls[0].body.paymentMethod,'paypal');assert.equal(sdk.length,0);});
+await scenario('overseas already paid domestic pack can still be recovered',{overseas:true,paid:true},async({resume,calls,sdk})=>{assert.equal(await resume(),true);assert.equal(calls.length,1);assert.equal(sdk.length,0);});

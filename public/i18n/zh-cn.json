@@ -11,7 +11,7 @@
     "homeGuide": {
       "kicker": "FORTUNE GUIDE",
       "title": "四柱八字·塔罗·运势的解读方法",
-      "lead": "Code Destiny提供四柱八字、紫微斗数、宿曜、西洋占星、吠陀占星与塔罗的简体中文入口。想了解长期的性格与选择模式，可以从出生信息对应的命盘开始；想梳理某个具体问题，可以选择塔罗。八字需要出生资料，塔罗从问题与牌面出发，两者不能套用同一解释。每个介绍页说明本体系的阅读方法，并连接相应工具。妍伊、Neo与Yeongnyangi提供同一平台内不同风格的咨询体验。公开功能和可选付费咨询的范围，以对应服务页说明为准。",
+      "lead": "Code Destiny 是一个韩语占卜平台，只需生日与出生时间，即可在一处查看四柱八字、塔罗、紫微斗数、西洋与吠陀占星、宿曜及合盘。为了让初次接触的人也能理清脉络，我们简要整理了每种占卜看什么、怎么读。所有解读都是帮助自我省察、整理当下选择的参考资料，而非断定未来的预言。",
       "sajuTitle": "四柱八字·万年历",
       "sajuBody": "以出生的年、月、日、时立四柱，解读天干地支中五行的平衡、十神与大运的流向。既看与生俱来的气质，也看当前时期的节奏。",
       "tarotTitle": "塔罗解读",
@@ -1807,6 +1807,38 @@
       "arrival": "循着月光，走近你心中的问题",
       "recordsTitle": "韩国政局转折前公开的命理记录",
       "recordsNote": "对照尹锡悦、李在明的早期公开解读与2025年的实际事件。请查看日期和韩文原文，自行判断。过往案例不保证未来预测准确。"
+    },
+    "overseasCopy": {
+      "pressTitle": "媒体中的Ggulggul",
+      "pressSummary": "Startup Daily介绍了Ggulggul与灵喵，以及从用户烦恼出发的解读方式。原文为韩文。",
+      "newWindow": "（新标签页）",
+      "monthly": "按日干查看月运",
+      "daily": "按日期查看生肖运势",
+      "portalTitle": "灵喵的四柱八字解读",
+      "portalDesc": "走过妍伊的花园，在月光占卜室里，让灵喵以自己的语气解读同一张命盘。",
+      "singlePay": "单次购买（海外使用PayPal）",
+      "reviewTitle": "您可以稍后再写评价",
+      "reviewDesc": "与我们分享您的咨询或报告体验。",
+      "reviewReward": "公开审核通过后发放月光石",
+      "reviewDetail": "可在Ggulggul使用，每个商品限发放一次。",
+      "reviewAction": "写评价",
+      "passStandard": "妍伊 Standard",
+      "passPremium": "妍伊 Premium",
+      "passVvip": "妍伊 VVIP",
+      "passPerLimit": "每次解读上限{amount}韩元",
+      "passTotal": "总额度：{amount}韩元",
+      "passNoLimit": "付费解读无单次价格上限",
+      "krwAmount": "{amount}韩元",
+      "recordsTitle": "过往政治人物解读与读者反馈",
+      "recordsLead": "可查看韩文原文、后续事件和读者反馈。过往解读并不证明预测准确率。",
+      "reactionsTitle": "重访原文的读者留言",
+      "reactionsNote": "以下为Naver博客的公开留言，保留韩文原文，并非购买评价，也包含裁决前的留言。昵称已部分隐藏。",
+      "reactionsMore": "更多留言（韩文）",
+      "commentOriginal": "查看留言原文（韩文）",
+      "fine": "以上为过往解读和个人经历，不保证预测特定事件或获得相同结果。",
+      "emailTitle": "读完灵喵解读后的来信",
+      "emailSource": "灵喵金枪鱼四柱解读用户 · 韩文邮件原文",
+      "emailMore": "阅读完整邮件（韩文）"
     }
   },
   "terms": {
@@ -2119,7 +2151,7 @@
       "close": "关闭并查看支付状态",
       "wait": "在PayPal中批准付款后，在此查看支付状态。",
       "internationalLabel": "PayPal · 国际支付（USD）",
-      "internationalGuide": "在韩国以外付款？请选择PayPal，授权前可确认美元总额。其他方式可能需要韩国本地支付信息。"
+      "internationalGuide": "韩国境外仅支持通过PayPal购买单次解读或使用券。授权前请确认美元总额。已持有的使用券和月光石仍可按原有条件使用。"
     },
     "loader": {
       "eyebrow": "月光支付确认",
