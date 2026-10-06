@@ -99,11 +99,11 @@ let homeHtml = template.replace(/\{\{(\w+)\}\}/g, (_token, key) => {
 const overseasLabels = JSON.parse(readFileSync('i18n/authored/homeOverseas-01.json', 'utf8'));
 const labelKeys = new Map(Object.entries(overseasLabels).filter(([, value]) => !value.ko.includes('{')).map(([key, value]) => [value.ko, key]));
 homeHtml = homeHtml.replace(/(<[a-z][^>]*>)([^<>]+)(<\/[a-z][a-z0-9]*>)/g, (whole, open, text, close) => {
-  if (/^\d[\d,]*원$/.test(text) && !open.includes('data-cd-trans=')) {
+  if (/^\d[\d,]*원$/.test(text) && !/\sdata-cd-trans(?=[\s=>])/.test(open)) {
     return open.slice(0, -1) + ' data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars=\"' + JSON.stringify({amount:text.slice(0,-1)}).replaceAll('\"', '&quot;') + '\">' + text + close;
   }
   const key = labelKeys.get(text);
-  return !key || open.includes('data-cd-trans=') ? whole : open.slice(0, -1) + ' data-cd-trans="' + key + '">' + text + close;
+  return !key || /\sdata-cd-trans(?=[\s=>])/.test(open) ? whole : open.slice(0, -1) + ' data-cd-trans="' + key + '">' + text + close;
 });
 
 // Remove each source node before inserting the assembled home. Reverse offsets keep ranges stable.

@@ -23,3 +23,22 @@ test('SEO shells interpolate registry prices and attribute variables before Java
   }
  }finally{rmSync(dir,{recursive:true,force:true});}
 });
+
+test('all four published shells prerender without duplicate markers or unresolved registry prices',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'cd-locale-full-'));
+ try{
+  mkdirSync(join(dir,'public/i18n'),{recursive:true});
+  for(const [route,file] of [['en','en'],['ja','ja'],['zh','zh-cn'],['zh-tw','zh-tw']]){
+   mkdirSync(join(dir,'dist',route),{recursive:true});
+   writeFileSync(join(dir,'public/i18n',file+'.json'),readFileSync('public/i18n/'+file+'.json'));
+   writeFileSync(join(dir,'dist',route,'index.html'),readFileSync('public/'+route+'/index.html'));
+  }
+  execFileSync(process.execPath,[resolve('scripts/prerender-locale-shell-translations.mjs')],{cwd:dir,stdio:'pipe'});
+  for(const route of ['en','ja','zh','zh-tw']){
+   const html=readFileSync(join(dir,'dist',route,'index.html'),'utf8');
+   const prices=[...html.matchAll(/data-cd-trans="home\.overseasCopy\.(?:krwAmount|passPerLimit|passTotal)"[^>]*>([^<]+)</g)].map(match=>match[1]);
+   assert.ok(prices.length>=15,route);
+   for(const price of prices)assert.doesNotMatch(price,/\{amount\}|원/,route+': '+price);
+  }
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
