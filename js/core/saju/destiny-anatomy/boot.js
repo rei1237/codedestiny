@@ -1,7 +1,7 @@
 /* 운명 구조도(DESTINY ANATOMY) 부트 — 무료 사주 결과 안의 섹션을 켜고 잇는다.
  *
  * 🔴 플래그(DESTINY_ANATOMY_ENABLED)는 이 파일이 정본이다. 꺼진 호스트에서는 엔진·문구·화면·CSS 를 내려받지 않는다.
- *    운영 활성화는 별도 1회 승인 + PRODUCTION_ENABLED 상수 커밋으로만 한다.
+ *    2026-10-07 요청: 사주 명식 아래 진입 카드 노출. 운영 배포는 별도 승인 경계를 유지한다.
  * 🔴 사주를 다시 계산하지 않고, 출생정보를 다시 묻지 않는다. 셸 calculate() 가 끝나며 쏘는 cd:saju-summary-ready 를 받아
  *    셸 전역을 읽기만 한다. HD·베다는 로그인 사용자만 기존 API 를 재사용하고, 사용자가 "자세히 보기"를 연 뒤에만 부른다.
  * 🔴 어떤 실패도 사주 결과·결제·저장으로 번지지 않는다 — 이 카드 안에서 "다시 불러오기"로만 바뀐다.
@@ -9,7 +9,7 @@
 (function (root) {
   'use strict';
 
-  var PRODUCTION_ENABLED = false;
+  var PRODUCTION_ENABLED = true;
   // pages.dev·workers.dev 는 운영 프로젝트 별칭일 수 있어 넣지 않는다.
   var STAGING_HOSTS = /^(localhost|127\.0\.0\.1|\[::1\]|staging\.code-destiny\.com)$/i;
   var VARIANTS = ['A', 'B', 'C', 'D'];
@@ -162,6 +162,7 @@
 
   function paint() {
     var focus = doc.activeElement;
+    var focusEntry = focus && card.contains(focus) && focus.hasAttribute('data-da-trigger');
     var focusView = focus && card.contains(focus) ? focus.getAttribute("data-da-view") : null;
     var openEngines = [];
     var prev = card.querySelectorAll('details[data-da-engine][open]');
@@ -173,6 +174,7 @@
       if (d) d.open = true;
     });
     if (focusView) { var focusButton = card.querySelector('[data-da-view="' + focusView + '"]'); if (focusButton) focusButton.focus({preventScroll: true}); }
+    if (focusEntry) { var entry = card.querySelector('[data-da-trigger]'); if (entry) entry.focus({preventScroll: true}); }
     observeSections();
     fitMeme();
   }
@@ -483,14 +485,9 @@
         if (!model) { start(); return; }
         if (layers.status === 'failed') { layers.status = 'idle'; loadLayers(); return; }
         refresh();
-      } else if (act === 'explore') {
-        state.open = true;
-        cdTrack('destiny_anatomy_open', {});
-        paint();
-        loadLayers();
-        narrate();
-        var body = doc.getElementById('daBody');
-        if (body && body.focus) { body.setAttribute('tabindex', '-1'); body.focus({preventScroll: true}); }
+      } else if (act === 'collapse') {
+        var report = card.querySelector('[data-da-report]');
+        if (report) { report.open = false; state.open = false; report.querySelector('summary').focus(); }
       } else if (act === 'thoughts') {
         state.thoughtsOpen = !state.thoughtsOpen;
         paint();
@@ -522,6 +519,12 @@
   var chapterOpen = {};
   function onToggle(ev) {
     var d = ev.target;
+    if (d && d.matches && d.matches('details[data-da-report]')) {
+      if (d.open === state.open) return;
+      state.open = d.open;
+      if (state.open) { cdTrack('destiny_anatomy_open', {}); loadLayers(); narrate(); fitMeme(); }
+      return;
+    }
     if (d && d.matches && d.matches('details[data-da-chapter]')) {
       var id = d.getAttribute('data-da-chapter');
       if (d.open && !chapterOpen[id]) cdTrack('destiny_anatomy_chapter_open', {chapter: id});
