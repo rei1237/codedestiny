@@ -58,6 +58,7 @@ const MUSIC_COPY = {
     purchaseFailed: "결제를 완료하지 못했습니다.",
     priceChanged: "가격이 변경되었습니다. 새로고침 후 다시 시도해 주세요.",
     miniOpen: "지금 재생 중인 곡으로 이동",
+    viewCover: (title: string) => `${title} 앨범 커버 크게 보기`,
   },
   en: {
     brand: "CODE DESTINY",
@@ -109,6 +110,7 @@ const MUSIC_COPY = {
     purchaseFailed: "Payment was not completed.",
     priceChanged: "The price has changed. Please refresh and try again.",
     miniOpen: "Go to the current track",
+    viewCover: (title: string) => `View ${title} album cover larger`,
   },
   ja: {
     brand: "CODE DESTINY",
@@ -160,6 +162,7 @@ const MUSIC_COPY = {
     purchaseFailed: "決済が完了しませんでした。",
     priceChanged: "価格が変更されました。更新後にもう一度お試しください。",
     miniOpen: "再生中の曲へ移動",
+    viewCover: (title: string) => `${title}のアルバムカバーを拡大して表示`,
   },
   "zh-CN": {
     brand: "CODE DESTINY",
@@ -211,6 +214,7 @@ const MUSIC_COPY = {
     purchaseFailed: "支付未完成。",
     priceChanged: "价格已变更。请刷新后重试。",
     miniOpen: "前往当前曲目",
+    viewCover: (title: string) => `放大查看${title}专辑封面`,
   },
   "zh-TW": {
     brand: "CODE DESTINY",
@@ -262,6 +266,7 @@ const MUSIC_COPY = {
     purchaseFailed: "付款未完成。",
     priceChanged: "價格已變更。請重新整理後再試一次。",
     miniOpen: "前往目前曲目",
+    viewCover: (title: string) => `放大查看${title}專輯封面`,
   },
 };
 

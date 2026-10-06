@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, memo, useEffect, useState } from "react";
+import { forwardRef, memo, useEffect, useRef, useState } from "react";
 import type { Track } from "../_data/musicManifest";
 import type { MusicPlayerStatus, RepeatMode } from "../_hooks/useMusicPlayer";
 import type { MusicCopy } from "../_lib/musicCopy";
@@ -56,7 +56,7 @@ export type NowPlayingProps = {
 };
 
 // 커버 슬롯은 항상 같은 크기(CLS 0). 리사이즈 URL 실패 → 원본 → 글리프 순으로 물러난다.
-function Cover({ coverUrl, title }: { coverUrl: string; title: string }) {
+function Cover({ coverUrl, onOpen, openLabel }: { coverUrl: string; onOpen: () => void; openLabel: string }) {
   const [stage, setStage] = useState<0 | 1 | 2>(0);
   useEffect(() => { setStage(0); }, [coverUrl]);
 
@@ -65,21 +65,25 @@ function Cover({ coverUrl, title }: { coverUrl: string; title: string }) {
     return <span className={styles.cover} data-empty="true" aria-hidden="true">🌙</span>;
   }
   return (
-    <img
-      className={styles.cover}
-      src={src}
-      alt={title}
-      width={96}
-      height={96}
-      decoding="async"
-      fetchPriority="high"
-      onError={() => setStage((current) => (current === 0 ? 1 : 2))}
-    />
+    <button type="button" className={styles.coverButton} onClick={onOpen} aria-label={openLabel} aria-haspopup="dialog">
+      <img
+        className={styles.cover}
+        src={src}
+        alt=""
+        width={144}
+        height={144}
+        decoding="async"
+        fetchPriority="high"
+        onError={() => setStage((current) => (current === 0 ? 1 : 2))}
+      />
+    </button>
   );
 }
 
 export const NowPlaying = memo(forwardRef<HTMLElement, NowPlayingProps>(function NowPlaying(props, ref) {
   const { copy, track } = props;
+  const coverDialogRef = useRef<HTMLDialogElement>(null);
+  const [fullCoverStage, setFullCoverStage] = useState<0 | 1>(0);
   const isLockedPreview = Boolean(track) && !props.hasFullAccess && track?.accessTier === "locked_preview";
   const statusLabel = props.status === "loading"
     ? copy.statusLoading
@@ -92,7 +96,14 @@ export const NowPlaying = memo(forwardRef<HTMLElement, NowPlayingProps>(function
   return (
     <section ref={ref} className={styles.now} aria-label={copy.playerAria}>
       <div className={styles.nowTop}>
-        <Cover coverUrl={props.coverUrl} title={track?.title || ""} />
+        <Cover
+          coverUrl={props.coverUrl}
+          openLabel={copy.viewCover(track?.title || "")}
+          onOpen={() => {
+            setFullCoverStage(0);
+            coverDialogRef.current?.showModal();
+          }}
+        />
         <div className={styles.nowMeta}>
           <p className={styles.nowTitle}>{track?.title || "—"}</p>
           <p className={styles.nowArtist}>{track?.artistName || ""}</p>
@@ -102,6 +113,24 @@ export const NowPlaying = memo(forwardRef<HTMLElement, NowPlayingProps>(function
           </p>
         </div>
       </div>
+
+      {track && props.coverUrl ? (
+        <dialog ref={coverDialogRef} className={styles.coverDialog} aria-labelledby="music-cover-title">
+          <div className={styles.coverDialogHead}>
+            <p id="music-cover-title" className={styles.coverDialogTitle}>{track.title}</p>
+            <button type="button" className={styles.coverDialogClose} onClick={() => coverDialogRef.current?.close()}>
+              {copy.close}
+            </button>
+          </div>
+          <img
+            className={styles.coverLarge}
+            src={fullCoverStage === 0 ? buildCoverSrc(props.coverUrl, 720) : props.coverUrl}
+            alt={`${track.title} — ${track.artistName}`}
+            decoding="async"
+            onError={() => setFullCoverStage(1)}
+          />
+        </dialog>
+      ) : null}
 
       <div className={styles.transport}>
         <button type="button" className={styles.iconBtn} onClick={props.onPrevious} aria-label={copy.previousTrack} disabled={!track}>

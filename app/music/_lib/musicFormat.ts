@@ -73,14 +73,14 @@ export function resolveCoverUrl(track: Track | null) {
   return track.coverUrl;
 }
 
-// 커버는 96px 박스에 들어가므로 원본(183KB) 대신 Cloudflare Image Resizing 으로 줄인다.
+// 썸네일은 원본 대신 Cloudflare Image Resizing 으로 줄이고, 확대 보기만 별도 폭을 요청한다.
 // 2026-09-16 HEAD 실측: music.code-destiny.com 원본 183,562B → width=192 변환 10,314B(jpeg), cf-resized ok.
 // 실패하면 <img onError> 로 원본 URL 로 되돌린다.
 export const COVER_RENDER_WIDTH = 192;
 
-export function buildCoverSrc(coverUrl: string) {
+export function buildCoverSrc(coverUrl: string, width = COVER_RENDER_WIDTH) {
   if (!coverUrl) return "";
-  return buildResizedAssetUrl(coverUrl, { width: COVER_RENDER_WIDTH });
+  return buildResizedAssetUrl(coverUrl, { width });
 }
 
 export type ArtistFilterKey = "all" | ArtistKey;
