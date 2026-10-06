@@ -10,7 +10,7 @@ import {yeongnyangiOgImage} from '@/app/yeongnyangi/_lib/share-image';
 
 const SEO_COPY={
  ja:{title:'四柱推命を見る猫・ヨンニャンイ | 運勢相談',description:'四柱推命・紫微斗数・宿曜・ヴェーダ占星術・西洋占星術・タロットから一つを選び、今の悩みを章立てで読み解きます。',keywords:['四柱推命','運勢相談','タロット','紫微斗数']},
- zh:{title:'看四柱的猫咪英囊 | 运势咨询',description:'从四柱、紫微斗数、宿曜、吠陀占星、西方占星与塔罗中选择一种体系，分章节梳理你当下的烦恼。',keywords:['四柱','运势咨询','塔罗','紫微斗数']},
+ zh:{title:'看四柱的猫咪英囊 | 运势咨询',description:'从四柱、紫微斗数、宿曜、吠陀占星、西方占星与塔罗中选择一种体系，分章节梳理你当下的烦恼，并给出清晰的分析与切实可行的建议。',keywords:['四柱','运势咨询','塔罗','紫微斗数']},
  'zh-TW':{title:'看四柱的貓咪英囊 | 運勢諮詢',description:'從四柱、紫微斗數、宿曜、吠陀占星、西方占星與塔羅中，選擇適合的解讀方式，分章整理你當下的煩惱，並提供清晰的分析與實際可行的建議。',keywords:['四柱','運勢諮詢','塔羅','紫微斗數']},
  en:{title:'Yeongnyangi, the Fortune-Telling Cat | Fortune Readings',description:'Choose Saju, Zi Wei Dou Shu, Sukuyo, Vedic or Western astrology, or tarot. Yeongnyangi reads your current concern in clear, focused chapters.',keywords:['Saju','fortune reading','tarot','Zi Wei Dou Shu']},
 } as const;
