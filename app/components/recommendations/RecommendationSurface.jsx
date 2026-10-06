@@ -44,19 +44,20 @@ function useCatalogue(context, previewProducts) {
   const [state, setState] = useState({ enabled: false, products: [] });
   const query = recommendationQuery(context);
   useEffect(() => {
-    if (previewProducts) { setState({ enabled: true, products: previewProducts }); return; }
+    if (previewProducts) return;
     if (!RECOMMENDATIONS_RELEASED) return;
     const controller = new AbortController();
     const load = () => {
       void fetch(getApiBaseUrl() + '/api/recommendations?' + query, { credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store', signal: controller.signal })
-        .then(r => r.ok ? r.json() : null).then(data => setState(data?.enabled && Array.isArray(data.products) ? data : { enabled: false, products: [] })).catch(() => setState({ enabled: false, products: [] }));
+        .then(r => r.ok ? r.json() : null).then(data => { if (!controller.signal.aborted) setState({ ...(data?.enabled && Array.isArray(data.products) ? data : { enabled: false, products: [] }), query }); }).catch(() => { if (!controller.signal.aborted) setState({ enabled: false, products: [], query }); });
     };
     load();
     // Dedicated ad settings refresh only; never calls billing, auth or generation.
     const timer = setInterval(load, 60000);
     return () => { controller.abort(); clearInterval(timer); };
   }, [query, previewProducts]);
-  return state;
+  // A new species/group/filter must never display the previous response while loading.
+  return previewProducts ? { enabled: true, products: previewProducts } : state.query === query ? state : { enabled: false, products: [] };
 }
 export function RecommendationResult({ service, species = '', groupId = '', locale = '', brand = 'yeoni', completed = true, previewProducts = null }) {
   const c = useCopy(locale);
