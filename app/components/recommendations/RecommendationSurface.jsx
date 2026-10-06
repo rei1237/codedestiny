@@ -6,6 +6,9 @@ import { recommendationCopy } from '@/js/recommendations-copy.mjs';
 import { observeRecommendation, trackRecommendation, rememberRecommendationContext, recommendationQuery } from '@/js/recommendations-browser.mjs';
 import { detectLocale, normalizeLocale } from '@/lib/i18n/dictionary';
 import { getApiBaseUrl } from '@/app/_lib/api-config';
+import { BookOpen, ArrowUpRight, ShoppingBag } from 'lucide-react';
+import { affiliateBrand, affiliateBrowsePath, affiliateCopy, affiliatePresentation } from '@/js/affiliate-presentation.mjs';
+import './affiliate-tokens.css';
 import styles from './recommendations.module.css';
 
 export function useCopy(locale) {
@@ -18,23 +21,27 @@ export function useCopy(locale) {
     window.addEventListener('storage', update);
     return () => { observer.disconnect(); window.removeEventListener('storage', update); };
   }, [locale]);
-  return { ...recommendationCopy(lang), locale: lang };
+  return { ...recommendationCopy(lang), ...affiliateCopy(lang), locale: lang };
 }
 export function ProductCard({ product, copy, preview = false, onClick = () => {}, onExclude = null }) {
   const [failed, setFailed] = useState(false);
-  const actionable = !preview && validateAffiliateUrl(product.affiliateUrl);
-  return <article className={styles.product}>
+  const provider = affiliatePresentation(product.providerId);
+  const merchant = provider.label || copy[provider.labelKey];
+  const actionable = !preview && !provider.previewOnly && validateAffiliateUrl(product.affiliateUrl);
+  const PlaceholderIcon = product.category === 'books' ? BookOpen : ShoppingBag;
+  return <article className={styles.product} data-affiliate-provider={product.providerId || 'coupang'}>
     <div className={styles.image}>{validImageUrl(product.imageUrl) && !failed
       ? <img src={product.imageUrl} alt={product.title} width="320" height="240" loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)}/>
-      : <span>{copy.image}</span>}</div>
+      : <span className={styles.placeholder}><PlaceholderIcon size={40} strokeWidth={1} aria-hidden="true"/><span>{preview ? copy.previewImage || copy.image : copy.image}</span></span>}</div>
     <div className={styles.productText}>
-      <span className={styles.label}>{preview ? copy.preview : copy.ad}</span>
+      <span className={styles.label}>{merchant || 'Coupang'} · {copy.ad}</span>
       <h3>{product.title}</h3>
       {product.genericCollection && <p>{copy.generic}</p>}
       {product.attributes?.length > 0 && <ul>{product.attributes.map(a => <li key={a}>{a}</li>)}</ul>}
       <p>{product.reason}</p>
-      <p className={styles.price}>{product.price == null ? copy.price : <>{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(product.price)} <small>{product.priceVerifiedAt && new Date(product.priceVerifiedAt).toLocaleString()}</small></>}</p>
-      {actionable ? <a className={styles.button} href={product.affiliateUrl} target="_blank" rel="sponsored noopener" referrerPolicy="no-referrer" onClick={onClick}>{product.linkType === 'search' ? copy.search : copy.view}</a> : <button className={styles.button} disabled>{preview ? copy.preview : copy.price}</button>}
+      <p className={styles.price}>{product.price == null ? (provider.previewOnly ? copy.pendingLink : copy.price) : <>{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(product.price)} <small>{product.priceVerifiedAt && new Date(product.priceVerifiedAt).toLocaleString()}</small></>}</p>
+      {actionable ? <a className={styles.button} href={product.affiliateUrl} target="_blank" rel="sponsored noopener" referrerPolicy="no-referrer" onClick={onClick}>{product.linkType === 'search' ? copy.search : copy.view}<ArrowUpRight size={16} aria-hidden="true"/></a> : <button className={styles.button} disabled>{copy.pendingLink || copy.preview}</button>}
+      <small className={styles.merchantTerms}>{copy.partnerTerms}</small>
       {onExclude && <button className={styles.exclude} onClick={onExclude}>{copy.exclude}</button>}
     </div>
   </article>;
@@ -78,11 +85,12 @@ export function RecommendationResult({ service, species = '', groupId = '', loca
   }, [shown]);
   useEffect(() => shown && !preview ? observeRecommendation(host.current, () => trackRecommendation('impression', context, 'result', '', getApiBaseUrl())) : undefined, [shown, service, preview]);
   if (!shown) return null;
-  const title = c.locale === 'ko' ? brand === 'yeongnyangi' ? '영냥이가 고른 오늘의 취향' : brand === 'yeoni' ? '연이의 작은 추천 서가' : c.title : c.title;
-  return <section ref={host} className={styles.surface} data-brand={brand} aria-label={c.title} data-recommendation-block>
-    {top && createPortal(<p className={styles.disclosure}>{c.disclosure}</p>, top)}
-    <h2>{title}</h2><p className={styles.disclosure}>{c.ad} · {c.disclosure}</p>
+  const uiBrand = affiliateBrand(brand);
+  const title = uiBrand === 'ggulggul' ? c.yeoniTitle : c.locale === 'ko' ? '영냥이가 고른 오늘의 취향' : c.title;
+  return <section ref={host} className={styles.surface} data-brand={brand} data-affiliate-brand={uiBrand} data-yn-night aria-label={title} data-recommendation-block>
+    {top && createPortal(<p className={styles.disclosure} data-affiliate-brand={uiBrand} data-yn-night>{preview ? c.genericDisclosure : c.disclosure}</p>, top)}
+    <h2>{title}</h2><p className={styles.disclosure}>{preview ? c.genericDisclosure : c.disclosure}</p>
     <div className={styles.products}>{data.products.slice(0, 3).map(p => <ProductCard key={p.id} product={p} copy={c} preview={preview} onClick={() => { if (!preview) trackRecommendation('click', context, 'result', p.id, getApiBaseUrl()); }}/>)}</div>
-    <div className={styles.actions}>{!preview && <a href="/recommendations/" onClick={() => { rememberRecommendationContext(context); trackRecommendation('more', context, 'result', '', getApiBaseUrl()); }}>{c.more}</a>}<button onClick={() => { setDismissed(true); if (!preview) trackRecommendation('dismiss', context, 'result', '', getApiBaseUrl()); }}>{c.dismiss}</button></div>
+    <div className={styles.actions}>{!preview && <a href={affiliateBrowsePath(brand)} onClick={() => { rememberRecommendationContext(context); trackRecommendation('more', context, 'result', '', getApiBaseUrl()); }}>{c.more}</a>}<button onClick={() => { setDismissed(true); if (!preview) trackRecommendation('dismiss', context, 'result', '', getApiBaseUrl()); }}>{c.dismiss}</button></div>
   </section>;
 }

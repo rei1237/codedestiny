@@ -4,15 +4,16 @@ import { adminFetch } from '../_lib/admin-api';
 import { adminButton, ADMIN_INPUT } from '../_components/ui';
 import RecommendationBrowse from '@/app/components/recommendations/RecommendationBrowse';
 import { ProductCard, RecommendationResult } from '@/app/components/recommendations/RecommendationSurface';
+import { affiliateCopy } from '@/js/affiliate-presentation.mjs';
 import { recommendationCopy } from '@/js/recommendations-copy.mjs';
 import { CATEGORIES, PRODUCT_KINDS, INTERESTS, SERVICE_MAP, PARTNER_ACCOUNT, DEFAULT_SETTINGS } from '@/js/recommendations-core.mjs';
 import styles from './page.module.css';
 
 const empty = () => ({ id: '', category: 'books', title: '', reason: '', serviceTags: [], topicTags: [], interests: [], species: [], groupId: '', affiliateUrl: '', linkSource: 'portal', linkType: 'product', imageUrl: '', imageSource: '', evidence: '', attributes: [], stock: 'unknown', price: null, priceVerifiedAt: null, featured: false, order: 100 });
 const samples = [
-  { id: 'preview-book', category: 'books', title: '도서·기록 상품 자리', reason: '책의 주제와 독자 수준을 확인한 뒤 선택 기준을 작성하는 자리예요.', attributes: ['구성 확인용 예시'], price: null, affiliateUrl: '', imageUrl: '' },
-  { id: 'preview-daily', category: 'daily-life', title: '일상 생활용품 자리', reason: '직접 선택한 생활 관심사와 실제 용도를 연결하는 자리예요.', attributes: ['구매할 수 없는 미리보기'], price: null, affiliateUrl: '', imageUrl: '' },
-  { id: 'preview-pet', category: 'pets', title: '반려생활 상품 자리', reason: '종과 사용 대상을 확인한 상품만 소개하는 자리예요.', attributes: ['실제 판매 상품 아님'], price: null, affiliateUrl: '', imageUrl: '' },
+  { id: 'preview-book', category: 'books', interests: ['reading','journaling','planning'], title: '도서·기록 상품 자리', reason: '책의 주제와 독자 수준을 확인한 뒤 선택 기준을 작성하는 자리예요.', attributes: ['구성 확인용 예시'], price: null, affiliateUrl: '', imageUrl: '' },
+  { id: 'preview-daily', category: 'daily-life', interests: ['hydration','rest','meal-prep'], title: '일상 생활용품 자리', reason: '직접 선택한 생활 관심사와 실제 용도를 연결하는 자리예요.', attributes: ['구매할 수 없는 미리보기'], price: null, affiliateUrl: '', imageUrl: '' },
+  { id: 'preview-pet', category: 'pets', interests: ['play','grooming'], species: ['cat','dog'], title: '반려생활 상품 자리', reason: '종과 사용 대상을 확인한 상품만 소개하는 자리예요.', attributes: ['실제 판매 상품 아님'], price: null, affiliateUrl: '', imageUrl: '' },
 ];
 const localDateTime = value => { if (!value) return ''; const d = new Date(value); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16); };
 const split = s => s.split(',').map(x => x.trim()).filter(Boolean);
@@ -22,11 +23,14 @@ export default function RecommendationsAdmin() {
   const [draft, setDraft] = useState(empty), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false), [preview, setPreview] = useState(null), [showDemo, setShowDemo] = useState(false);
   const [metrics, setMetrics] = useState(null), [checks, setChecks] = useState({ account: false, facts: false, image: false, allowedCategory: false });
+  const [previewBrand, setPreviewBrand] = useState('yeongnyangi');
+  const [previewPartner, setPreviewPartner] = useState('coupang');
+  const demoProducts = samples.map((p, i) => ({ ...p, providerId: previewPartner === 'mixed' ? i === 0 ? 'book-partner-preview' : i === 1 ? 'lifestyle-partner-preview' : 'coupang' : 'coupang' }));
   const [metricService, setMetricService] = useState('');
   const [selection, setSelection] = useState({ service: 'legacy-saju', species: '', groupId: '', interests: [] });
   const [selectionProducts, setSelectionProducts] = useState(null);
   const [report, setReport] = useState({ from: '', to: '', clicks: '', orders: '', cancellations: '', commissionKRW: '', evidence: '' });
-  const copy = recommendationCopy('ko');
+  const copy = { ...recommendationCopy('ko'), ...affiliateCopy('ko') };
   const load = useCallback(async () => {
     try {
       const [data, stats] = await Promise.all([adminFetch('/api/admin/recommendations/'), adminFetch('/api/admin/recommendations/metrics')]);
@@ -53,7 +57,7 @@ export default function RecommendationsAdmin() {
     <p>계정 ID는 제휴 링크가 아닙니다. 공식 발급 링크와 상품 자료를 검수한 뒤 별도 공개 절차를 진행합니다.</p>
     <p role="alert">{error}</p><p role="status">{notice}</p>
     <div className={styles.toolbar}><button className={adminButton()} onClick={() => void load()} disabled={busy}>다시 불러오기</button><button className={adminButton()} onClick={() => setShowDemo(!showDemo)}>구성 미리보기 {showDemo ? '닫기' : '열기'}</button></div>
-    {showDemo && <><RecommendationBrowse previewProducts={samples} locale="ko"/><section><h2>결과 화면 배치 미리보기</h2><p>실제 상담 원문을 넣지 않는 검수용 결과 영역입니다.</p><button disabled className={adminButton()}>저장·공유 영역</button><RecommendationResult service="legacy-saju" previewProducts={samples} locale="ko"/></section></>}
+    {showDemo && <><div className={styles.form} data-affiliate-preview-controls><label>미리보기 브랜드<select className={ADMIN_INPUT} value={previewBrand} onChange={e => setPreviewBrand(e.target.value)}><option value="yeongnyangi">영냥이 · 달빛 취향</option><option value="ggulggul">꿀꿀 운세 · 연이의 추천 서가</option></select></label><label>미리보기 제휴 구성<select className={ADMIN_INPUT} value={previewPartner} onChange={e => setPreviewPartner(e.target.value)}><option value="coupang">쿠팡 파트너스</option><option value="mixed">여러 제휴사 · 준비용 예시</option></select></label></div><p>다른 제휴사 카드는 화면 구성 예시입니다. 계약·공식 링크·고지 검수가 끝나기 전에는 등록·외부 이동을 제공하지 않습니다.</p><RecommendationBrowse previewProducts={demoProducts} locale="ko" brand={previewBrand}/><section><h2>결과 화면 배치 미리보기</h2><p>실제 상담 원문을 넣지 않는 검수용 결과 영역입니다.</p><button disabled className={adminButton()}>저장·공유 영역</button><RecommendationResult service="legacy-saju" previewProducts={demoProducts} locale="ko" brand={previewBrand === 'ggulggul' ? 'yeoni' : previewBrand}/></section></>}
     <section className={styles.section}><h2>공개 상태</h2>
       <p>운영 상품 {products.filter(p => p.status === 'active').length}건 검수 · 초안 {products.filter(p => p.status === 'draft').length}건 · 공개 0건</p>
       <div className={styles.checks}><label><input type="checkbox" checked={settings.approved} onChange={e => setSettings(s => ({ ...s, approved: e.target.checked }))}/>계정 승인 확인 기록</label><label><input type="checkbox" checked={settings.mediaRegistered} onChange={e => setSettings(s => ({ ...s, mediaRegistered: e.target.checked }))}/>활동 매체 등록 확인 기록</label></div>
