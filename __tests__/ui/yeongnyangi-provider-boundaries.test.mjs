@@ -3,10 +3,22 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 const compiled=await build({stdin:{contents:"export {CodeDestinyProvider,chapterOutputTokenBudget,CHAPTER_THINKING_BUDGET} from './worker/yeongnyangi/providers/code-destiny'; export {tokensRequiredForChars} from './worker/lib/llm-budget.js'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationManifest,consultationKinds,consultationDomain,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {v7OutputTokens} from './worker/yeongnyangi/fortune/reading-v7-prompt'; export {conciseReadingManifest,conciseOutputTokens,CONCISE_READING_VERSION} from './worker/yeongnyangi/fortune/concise-reading'; export {setResponse,getOptions,getPrompt} from 'mock-gemini.js';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false,
- plugins:[{name:'mock-provider-transport',setup(b){b.onResolve({filter:/gemini\.js$/},()=>({path:'gemini',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'let response,options,payload; export function setResponse(value){response=value;} export function getOptions(){return options;} export function getPrompt(){return payload;} export async function callGeminiText(env,prompt,opts){options=opts;payload=prompt;return response;}'}));}}]});
+ plugins:[{name:'mock-provider-transport',setup(b){b.onResolve({filter:/llm-cache-store\.js$/},()=>({path:"cache",namespace:"cache-fixture"}));b.onLoad({filter:/.*/,namespace:"cache-fixture"},()=>({contents:"export const createLlmCacheStore=()=>({get:async()=>null,set:async()=>{}});"}));b.onResolve({filter:/gemini\.js$/},()=>({path:'gemini',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'let response,options,payload; export function setResponse(value){response=value;} export function getOptions(){return options;} export function getPrompt(){return payload;} export async function callGeminiText(env,prompt,opts){options=opts;payload=prompt;return response;}'}));}}]});
 const {CodeDestinyProvider,chapterOutputTokenBudget,CHAPTER_THINKING_BUDGET,tokensRequiredForChars,products,consultationManifest,consultationKinds,consultationDomain,supportsKind,v7OutputTokens,conciseReadingManifest,conciseOutputTokens,CONCISE_READING_VERSION,setResponse,getOptions,getPrompt}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const provider=new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-used',LLM_DRY_RUN:'false'});
 const request={system:'fixture',domainRules:'fixture',userQuestion:'fixture',calculatedData:{},outputSchema:{},sectionTitles:[]};
+
+test('paid chapter and analysis use separate owner-scoped caches and honor rejected-output bypass',async()=>{
+ setResponse({ok:true,text:'{}',provider:'gemini'});
+ const scoped=new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-used'},{requestId:'purchase',sectionGroup:'1'},{owner:'owner',skipRead:true});
+ await scoped.generate(request);
+ const chapter=getOptions().cache;
+ assert.equal(chapter.skipRead,true);assert.equal(chapter.deterministic,true);
+ assert.deepEqual(JSON.parse(chapter.keyExtra),['yeongnyangi-response-v1','owner','purchase','1']);
+ await scoped.analyzeQuestion('classify','data');
+ assert.notEqual(getOptions().cache.keyExtra,chapter.keyExtra);
+ await provider.generate(request);assert.equal(getOptions().cache,undefined);
+});
 
 test('declared output allowance is honored without shrinking large answers or losing old caller headroom',async()=>{
  setResponse({ok:true,text:'{}',provider:'gemini'});

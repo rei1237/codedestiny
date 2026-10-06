@@ -5,6 +5,7 @@ import { FortuneError, type FortuneLLMRequest, type LLMProvider } from '../fortu
 import { messages } from '../fortune/shared/prompt';
 import { getEnv } from '../../lib/env.js';
 import { CHAPTER_TIMEOUT_MS } from '../chapter-delivery-contract.js';
+import { chapterResponseCache } from './response-cache';
 
 // Gemini's responseSchema uses the OpenAPI subset, not JSON Schema.
 function providerSchema(value: any): any {
@@ -31,13 +32,15 @@ export function chapterOutputTokenBudget(requested?: number, version?: string): 
 
 export class CodeDestinyProvider implements LLMProvider {
   receipt?: {provider:string;model:string;finishReason:string;inputTokens:number|null;outputTokens:number|null;estimated:boolean|null;thinkingTokens:number|null;durationMs:number;maxOutputTokens:number;status:number|null};
-  constructor(private env: Record<string, unknown>, private logContext: Record<string, unknown> = {}) {}
+  constructor(private env: Record<string, unknown>, private logContext: Record<string, unknown> = {},
+    private cacheContext: {owner?:string;skipRead?:boolean}={}) {}
   async analyzeQuestion(system: string, data: string): Promise<string> {
     if(getEnv(this.env,'LLM_DRY_RUN')==='true'||!getEnv(this.env,'GEMINIF_API_KEY'))throw new FortuneError('LLM_NOT_CONFIGURED',503);
     const response=await callGeminiText(this.env,data,{
       systemPrompt:system,temperature:0,maxOutputTokens:1024,thinkingBudget:0,timeoutMs:15000,
       maxProviderAttempts:1,fallbackToWorkersAI:false,responseMimeType:'application/json',taskType:'yeongnyangi-ask-analysis',
       logContext:{...this.logContext,sectionGroup:'question-analysis'},
+      cache:chapterResponseCache(this.env,this.cacheContext.owner,this.logContext.requestId,'question-analysis',this.cacheContext.skipRead),
     });
     if(!response.ok||response.isMock||!response.text||response.truncated||/^(MAX_TOKENS|LENGTH)$/.test(response.finishReason||''))throw new FortuneError('ASK_ANALYSIS_FAILED',502);
     return response.text;
@@ -69,6 +72,7 @@ export class CodeDestinyProvider implements LLMProvider {
       maxProviderAttempts:1,
       systemPrompt:request.system,responseMimeType:'application/json',responseSchema:providerSchema(request.outputSchema),fallbackToWorkersAI:false,
       taskType:'yeongnyangi-chapter',
+      cache:chapterResponseCache(this.env,this.cacheContext.owner,this.logContext.requestId,String(this.logContext.sectionGroup),this.cacheContext.skipRead),
       logContext:this.logContext,
     });
     this.receipt={provider:response.provider || 'gemini',model:response.model || 'gemini-2.5-flash',

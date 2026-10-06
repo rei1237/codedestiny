@@ -578,7 +578,9 @@ async function completeStoredRequest(env, userId, requestId, total, token = '') 
 export async function saveChapterDraft(env,userId,requestId,token,ordinal,draft) {
   const field=`generationCheckpoint.chapterDrafts.${ordinal}`;
   const filter={_id:requestId,userId:ownerId(userId),state:'GENERATING',leaseToken:token};
-  await withMongoRetry(env,()=>YeongnyangiRequest.updateOne(filter,{$set:{[field]:draft}}),{retries:0});
+  // Repeating this lease-scoped $set is idempotent, even if its acknowledgement
+  // was lost. Retry transient storage errors without another provider call.
+  await withMongoRetry(env,()=>YeongnyangiRequest.updateOne(filter,{$set:{[field]:draft}}));
   const stored=await readRequest(env,userId,requestId);
   if(JSON.stringify(stored.generationCheckpoint?.chapterDrafts?.[ordinal])!==JSON.stringify(draft))throw failure(503,'RESULT_STORAGE_UNAVAILABLE');
 }

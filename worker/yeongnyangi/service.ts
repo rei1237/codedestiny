@@ -360,7 +360,10 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
       if(storedOnly||!providerReady(env))throw new FortuneError('LLM_NOT_CONFIGURED',503);
       sharedProvider=new CodeDestinyProvider(env,{serviceId:row.featureKey,requestId,
         access:row.accessMethod || (row.paymentId?'DIRECT_KRW':''),sectionGroup:String(ordinal+1),
-        attempt:Number(row.chapterAttempts?.[ordinal] || 1),generationSource:source});
+        attempt:Number(row.chapterAttempts?.[ordinal] || 1),generationSource:source},
+        // Storage retries can reuse the response; other retries bypass any
+        // rejected cached output, including failures with legacy quality codes.
+        {owner:String(row.userId),skipRead:Number(row.chapterAttempts?.[ordinal] || 1)>1 && row.lastFailure?.stage!=='storage'});
       let ask: {analysis:AskAnalysis;evidence:EvidencePacket}|undefined;
       if(row.generationCheckpoint?.version==='ask-generation-v1') {
         const consultation=row.snapshot.analysis.consultation;
