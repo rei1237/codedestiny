@@ -77,7 +77,7 @@ test('legacy moonstone purchase restores the original amount after current prici
 
 test.each(['claim','reconcile'])('refund reservation wins over a stale %s CAS',kind=>withFixture(async(f,repo)=>{
  const first=await repo.claimChapter({},USER,ID);await repo.finishChapter({},USER,ID,first.token,0,{summary:'saved'},2);
- if(kind==='reconcile')f.row.chapterAttempts[1]=2;
+ if(kind==='reconcile')f.row.chapterAttempts[1]=3;
  const write=f.db.findOneAndUpdate;let entered,resume,pausedOnce=false;
  const ready=new Promise(resolve=>{entered=resolve}),paused=new Promise(resolve=>{resume=resolve});
  f.db.findOneAndUpdate=async(Model,filter,update,...rest)=>{
