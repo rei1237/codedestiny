@@ -124,3 +124,11 @@ test('static and React language detection honor country over old automatic Korea
     dom.window.close();
   }
 });
+
+test('missing static locale editions fall back to an existing English page', async () => {
+  for (const country of ['TW','HK','MO','FR','DE','VN']) {
+    const response = await edge().fetch(visit('/contact/',country),asset);
+    assert.equal(response.status,302);
+    assert.equal(response.headers.get('Location'),'https://code-destiny.test/en/contact/');
+  }
+});

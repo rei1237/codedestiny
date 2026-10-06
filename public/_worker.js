@@ -74,6 +74,9 @@ function visitorLocaleHeaders(headers, context) {
 function localizedEntryPath(pathname, locale) {
   const path = pathname.replace(/\/+$/, "") || "/";
   const prefix = LANGUAGE_PATHS[locale];
+  // These static information pages have en/ja/zh editions only. Do not send a
+  // visitor to Korean or invent a missing locale URL when an edition is absent.
+  if (locale !== "ko" && (!prefix || locale === "zh-TW") && CORE_LANGUAGE_ENTRY_TOPICS.has(path.slice(1))) return `/en/${path.slice(1)}/`;
   if (!prefix) return null;
   if (["/ggulggul", "/static"].includes(path)) return `/${prefix}/`;
   const topic = ({ "/privacy": "privacy-policy", "/terms": "terms-of-service", "/refund": "refund-policy", "/saju/compatibility": "saju-compatibility", "/sukuyo/compatibility": "sukuyo-compatibility" })[path] || path.slice(1);
