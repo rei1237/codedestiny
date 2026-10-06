@@ -43,9 +43,12 @@ test('PayPal resources are permitted by both shipping CSP files without widening
     const policies = fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8').split('\n').filter((line) => line.includes('Content-Security-Policy:'));
     expect(policies).toHaveLength(2);
     for (const policy of policies) {
+      // Pages CSP lines must fit its 2,000-character per-line limit.
+      expect(policy.length).toBeLessThanOrEqual(2000);
       const directives = policy.slice(policy.indexOf(':') + 1).trim().split(';').map((rule) => rule.trim().split(/\s+/));
       for (const name of ['script-src', 'script-src-elem', 'connect-src', 'frame-src', 'style-src', 'style-src-elem']) {
-        expect(directives.find((rule) => rule[0] === name)).toEqual(expect.arrayContaining(['https://*.paypal.com', 'https://*.paypalobjects.com']));
+        const fallback = name === 'script-src-elem' ? 'script-src' : name === 'style-src-elem' ? 'style-src' : name;
+        expect(directives.find((rule) => rule[0] === name) || directives.find((rule) => rule[0] === fallback)).toEqual(expect.arrayContaining(['https://*.paypal.com', 'https://*.paypalobjects.com']));
       }
       expect(directives.find((rule) => rule[0] === 'default-src')).toEqual(['default-src', "'self'"]);
       expect(directives.find((rule) => rule[0] === 'object-src')).toEqual(['object-src', "'none'"]);
