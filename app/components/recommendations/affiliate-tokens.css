@@ -1,0 +1,22 @@
+/* Yeongnyangi night tokens are the source; Yeoni values mirror theme-tokens.css
+   explicitly so a saved Neo theme cannot turn the Ggulggul surface into another brand. */
+@import '../../yeongnyangi/night-tokens.css';
+[data-affiliate-brand] {
+  --rec-bg: var(--yn-deep);
+  --rec-surface: var(--yn-night);
+  --rec-raised: var(--yn-surface);
+  --rec-ink: var(--yn-ivory);
+  --rec-muted: var(--yn-muted);
+  --rec-accent: var(--yn-gold);
+  --rec-line: var(--yn-line);
+}
+[data-affiliate-brand="ggulggul"] {
+  --rec-bg: #fffaf7;
+  --rec-surface: #fff3f8;
+  --rec-raised: #fff8dc;
+  --rec-ink: #3c1830;
+  --rec-muted: #70445c;
+  --rec-accent: #b31955;
+  --rec-line: #b58398;
+  color-scheme: light;
+}
