@@ -29,6 +29,7 @@ import { assertWorkerBaseIsFresh } from "./lib/worker-deploy-base-guard.mjs";
 import { assertProductionDeployIsCi } from "./lib/production-deploy-guard.mjs";
 import { assertWorkerBindingBudget } from "./lib/worker-binding-budget.mjs";
 import { cloudflareTransport } from "./lib/cloudflare-transport.mjs";
+import { awaitPagesPreviewReady } from "./lib/pages-preview-readiness.mjs";
 
 const root = process.cwd();
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -1123,6 +1124,7 @@ async function promote(value, state, yes) {
 // 이어지는 deploy:production 이 무조건 거부된다.
 async function previewAndSmoke() {
   const preview = await previewStage();
+  await awaitPagesPreviewReady(preview.state.preview.pages.url, preview.state.git.commit);
   // workers.dev preview aliases do not carry the Pages custom-domain routing
   // used by /api. Validate preview rendering here; production smoke below
   // remains the authoritative API health and guest-boundary check.
