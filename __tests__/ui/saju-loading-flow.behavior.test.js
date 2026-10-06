@@ -62,3 +62,26 @@ test('jong confirmation stays interactive until selection and abort removes it',
   const cancelled=h.ctx.showJongVerificationModal({name:'종격',isJong:true},{},run);
   run.abort();await cancelled;assert.equal(h.w.document.querySelector('[role="dialog"]'),null);h.close();
 });
+test('completion cross-fades without blocking input and finally preserves the transition',async()=>{
+  const h=setup();
+  h.ctx._sajuSetCalculationLoading(true,'calculating');
+  h.ctx._sajuSetCalculationLoading(false,'completed');
+  h.ctx._sajuSetCalculationLoading(false,'idle');
+  assert.equal(h.overlay.getAttribute('aria-hidden'),'true');
+  assert.equal(h.overlay.classList.contains('saju-calc-loading-overlay--leaving'),true);
+  await new Promise(resolve=>setTimeout(resolve,500));
+  assert.equal(h.overlay.classList.contains('saju-calc-loading-overlay--visible'),false);
+  assert.equal(h.w.document.getElementById('resultPage').classList.contains('saju-result--arriving'),false);h.close();
+});
+test('new calculation cancels the old visual cleanup timer',async()=>{
+  const h=setup();h.ctx._sajuSetCalculationLoading(true,'calculating');h.ctx._sajuSetCalculationLoading(false,'completed');
+  h.ctx._sajuSetCalculationLoading(true,'calculating');
+  await new Promise(resolve=>setTimeout(resolve,500));
+  assert.equal(h.overlay.classList.contains('saju-calc-loading-overlay--visible'),true);
+  h.ctx._sajuSetCalculationLoading(false,'idle');h.close();
+});
+test('reduced motion reveals the chart immediately',()=>{
+  const h=setup();h.w.matchMedia=()=>({matches:true});
+  h.ctx._sajuSetCalculationLoading(true,'calculating');h.ctx._sajuSetCalculationLoading(false,'completed');
+  assert.equal(h.overlay.classList.contains('saju-calc-loading-overlay--visible'),false);assert.equal(h.overlay._sajuExitTimer,null);h.close();
+});

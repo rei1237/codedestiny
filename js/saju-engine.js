@@ -5090,10 +5090,29 @@ var sajuCalculationRun = null;
 function _sajuSetCalculationLoading(visible, state) {
   var overlay = document.getElementById('sajuCalcLoadingOverlay');
   if (!overlay) return;
+  var resultPage = document.getElementById('resultPage');
+  // finally must not interrupt an already-started visual handoff.
+  if (!visible && state === 'idle' && overlay._sajuExitTimer) return;
+  clearTimeout(overlay._sajuExitTimer);
+  overlay._sajuExitTimer = null;
+  overlay.classList.remove('saju-calc-loading-overlay--leaving');
+  if (resultPage) resultPage.classList.remove('saju-result--arriving');
   if (visible && overlay.parentElement !== document.body) document.body.appendChild(overlay);
-  overlay.classList.toggle('saju-calc-loading-overlay--visible', visible);
   overlay.setAttribute('aria-hidden', visible ? 'false' : 'true');
   overlay.dataset.state = state;
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!visible && state === 'completed' && !reduceMotion && overlay.classList.contains('saju-calc-loading-overlay--visible')) {
+    // Result is ready underneath. Release input immediately; only pixels fade.
+    overlay.classList.add('saju-calc-loading-overlay--leaving');
+    if (resultPage) resultPage.classList.add('saju-result--arriving');
+    overlay._sajuExitTimer = setTimeout(function() {
+      overlay.classList.remove('saju-calc-loading-overlay--visible', 'saju-calc-loading-overlay--leaving');
+      if (resultPage) resultPage.classList.remove('saju-result--arriving');
+      overlay._sajuExitTimer = null;
+    }, 460);
+    return;
+  }
+  overlay.classList.toggle('saju-calc-loading-overlay--visible', visible);
 }
 function _sajuWaitForPaint() {
   return new Promise(function(resolve) {
@@ -5119,17 +5138,17 @@ function _sajuCalculationWait(task, run, timeoutMs) {
     var timer = timeoutMs === 0 ? null : setTimeout(function() {
       finish(new Error('처리 시간이 길어지고 있어요. 입력은 그대로 두고 다시 시도해 주세요.'));
     }, timeoutMs || 15000);
-    function cancel() { var error = new Error('Calculation cancelled'); error.name = 'AbortError'; finish(error); }
+    function abortCalculationWait() { var error = new Error('Calculation cancelled'); error.name = 'AbortError'; finish(error); }
     function finish(error, value) {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      if (run) run.signal.removeEventListener('abort', cancel);
+      if (run) run.signal.removeEventListener('abort', abortCalculationWait);
       if (error) reject(error); else resolve(value);
     }
     if (run) {
-      run.signal.addEventListener('abort', cancel, { once: true });
-      if (run.signal.aborted) cancel();
+      run.signal.addEventListener('abort', abortCalculationWait, { once: true });
+      if (run.signal.aborted) abortCalculationWait();
     }
     Promise.resolve(task).then(function(value) { finish(null, value); }, function(error) { finish(error); });
   });
@@ -5146,12 +5165,21 @@ async function startSajuCalculationFlow() {
   window._gender = selectedGender;
   var run = new AbortController();
   sajuCalculationRun = run;
-  function cancelRun() { run.abort(); }
-  window.addEventListener('pagehide', cancelRun, { once: true });
+  function abortCalculationRun() { run.abort(); }
+  window.addEventListener('pagehide', abortCalculationRun, { once: true });
   try {
     _sajuSetCalculationLoading(false, 'checking');
     setSajuFormStatus('입력 정보를 확인하고 있어요.', 'info');
     if (!await _sajuCalculationWait(ensureSajuResultSession(run), run)) return;
+    try {
+      if (location && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+        console.debug('[saju] submit input', {
+          name: String((document.getElementById('nameInput') || {}).value || '').trim(),
+          birthDate: bd,
+          gender: selectedGender
+        });
+      }
+    } catch (_) {}
     if (!await _sajuCalculationWait(checkFortunePointEligibility(), run)) return;
     if (typeof window.cdTrack === 'function') window.cdTrack('free_saju_started', { signed_in: true });
     _sajuSetCalculationLoading(true, 'calculating');
@@ -5172,7 +5200,7 @@ async function startSajuCalculationFlow() {
       setSajuFormStatus('사주 분석을 완료하지 못했어요. 입력은 그대로 두고 잠시 후 다시 시도해 주세요.', 'error', 'birthDate');
     }
   } finally {
-    window.removeEventListener('pagehide', cancelRun);
+    window.removeEventListener('pagehide', abortCalculationRun);
     if (sajuCalculationRun === run) {
       _sajuSetCalculationLoading(false, 'idle');
       sajuCalculationRun = null;
@@ -5736,18 +5764,12 @@ async function calculate(run){
       resultPageEl.style.visibility = 'visible';
       resultPageEl.setAttribute('aria-busy', 'false');
     }
-    requestAnimationFrame(function () {
-      setTimeout(function () {
-        /* 결과 영역을 화면에 보여준다. window.scrollTo(0)은 맨 위만 보여서
-           페이지가 길 경우 결과 영역이 보이지 않을 수 있다. */
-        if (resultPageEl && typeof resultPageEl.scrollIntoView === 'function') {
-          try { resultPageEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-          catch (e) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        } else {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      }, 50);
-    });
+    // Align the ready chart while the loader still covers it, then cross-fade.
+    // Never wait for an animation frame to make the result reachable.
+    if (resultPageEl && typeof resultPageEl.scrollIntoView === 'function') {
+      try { resultPageEl.scrollIntoView({ behavior: 'instant', block: 'start' }); }
+      catch (e) { window.scrollTo(0, 0); }
+    }
     // 🔴 종합 풀이(section_summary)는 5,000원 유료다. 미해금이면 본문을 아예 만들지 않는다 —
     // 예전에는 결제 여부와 무관하게 #summaryArea 를 채우고 CSS blur 만 씌워서, 개발자도구로
     // 클래스 하나만 지우면 A4 20페이지 분량이 그대로 보였다. 해금 시 재렌더는 index.html 의
