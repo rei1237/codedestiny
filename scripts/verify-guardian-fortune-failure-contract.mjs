@@ -186,7 +186,7 @@ async function run(store, overrides = {}) {
   check("성공: dailyFreeUsed=1", response.usage?.dailyFreeUsed === 1, JSON.stringify(response.usage));
   check(
     "성공: dailyFreeRemaining 이 정책 상수-1",
-    response.usage?.dailyFreeRemaining === Math.max(0, Math.max(0, GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT - 1)),
+    response.usage?.dailyFreeRemaining === Math.max(0, GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT - 1),
     JSON.stringify(response.usage),
   );
   // seed 의 freeLimit 은 3 이다(기존 회원 문서에 $setOnInsert 로 박제된 값). 정책 상수로 clamp 돼

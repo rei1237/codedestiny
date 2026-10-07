@@ -58,7 +58,7 @@ describe("Guardian Fortune mock generate controller", () => {
     const generator = jest.fn(async () => ({ result, usedFallback: false }));
     const response = await runWithAiLocale(locale, () => generateGuardianFortuneRequest({
       resolvePaidAccess: async () => ({ ok: true }),
-input, userId: "locale-fixture", requestId: `locale-${locale}`, dateKey: "2026-08-02",
+      input, userId: "locale-fixture", requestId: `locale-${locale}`, dateKey: "2026-08-02",
       store: createMemoryGuardianFortuneStore(), now: NOW, contextBuilder, generator,
     }));
     expect(response.ok).toBe(true);
@@ -89,7 +89,7 @@ input: { ...input, category },
     const mockGenerator = jest.fn(async () => ({ result, usedFallback: false }));
     const response = await generateGuardianFortuneRequest({
       resolvePaidAccess: async () => ({ ok: true }),
-input,
+      input,
       userId: "user-generate-free",
       requestId: "generate-guest-1",
       dateKey: "2026-08-02",
@@ -107,7 +107,7 @@ input,
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
       resolvePaidAccess: async () => ({ ok: true }),
-input,
+      input,
       userId: "user-context-0001",
       requestId: "generate-context-1",
       dateKey: "2026-08-02",
@@ -126,7 +126,7 @@ input,
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
       resolvePaidAccess: async () => ({ ok: true }),
-input,
+      input,
       userId: "user-chat-cancelled-01",
       requestId: "guardian-chat-cancelled",
       dateKey: "2026-08-02",
@@ -144,7 +144,7 @@ input,
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
       resolvePaidAccess: async () => ({ ok: true }),
-input,
+      input,
       userId: "user-chat-undelivered-01",
       requestId: "guardian-chat-undelivered",
       dateKey: "2026-08-02",
@@ -162,7 +162,7 @@ input,
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
       resolvePaidAccess: async () => ({ ok: true }),
-input,
+      input,
       userId: "user-mock-fail-01",
       requestId: "generate-mock-fail-1",
       dateKey: "2026-08-02",
@@ -179,7 +179,7 @@ input,
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
       resolvePaidAccess: async () => ({ ok: true }),
-input,
+      input,
       userId: "user-visible-fallback",
       requestId: "generate-visible-fallback-1",
       dateKey: "2026-08-02",
@@ -197,7 +197,7 @@ input,
       daily: { "user-generate:2026-08-02": { userId: "user-generate", dateKey: "2026-08-02", freeLimit: 1, freeUsed: 1, reserved: 0 } },
     });
     const response = await generateGuardianFortuneRequest({
-input,
+      input,
       userId: "user-generate",
       requestId: "generate-paid-1",
       dateKey: "2026-08-02",
@@ -217,7 +217,7 @@ input,
   it("does not issue share draft tokens for new unpaid or paid generations", async () => {
     const shareEnv = { ENABLE_GUARDIAN_FORTUNE_SHARE: "true", GUARDIAN_FORTUNE_SHARE_SECRET: "test-share-secret" };
     const free = await generateGuardianFortuneRequest({
-input,
+      input,
       userId: "user-share-free",
       resolvePaidAccess: async () => ({ ok: false }),
       requestId: "generate-share-free-1",
@@ -232,7 +232,7 @@ input,
     expect(free.shareDraftToken).toBeUndefined();
 
     const paid = await generateGuardianFortuneRequest({
-input,
+      input,
       userId: "user-share-paid",
       requestId: "generate-share-paid-1",
       dateKey: "2026-08-02",
@@ -256,7 +256,7 @@ input,
     const contextBuilder = jest.fn(successfulContextBuilder);
     const mockGenerator = jest.fn(async () => ({ result, usedFallback: false }));
     const response = await generateGuardianFortuneRequest({
-input,
+      input,
       userId: "user-blocked",
       requestId: "generate-blocked-1",
       dateKey: "2026-08-02",
@@ -286,7 +286,7 @@ input,
     };
     const response = await generateGuardianFortuneRequest({
       resolvePaidAccess: async () => ({ ok: true }),
-input,
+      input,
       guestIdHash: "guest-db-down",
       requestId: "generate-db-down-1",
       dateKey: "2026-08-02",
@@ -313,7 +313,7 @@ input,
     store.reserveGuest = async () => { throw new TypeError("reserveGuest is broken"); };
     await expect(generateGuardianFortuneRequest({
       resolvePaidAccess: async () => ({ ok: true }),
-input,
+      input,
       guestIdHash: "guest-real-bug",
       requestId: "generate-real-bug-1",
       dateKey: "2026-08-02",

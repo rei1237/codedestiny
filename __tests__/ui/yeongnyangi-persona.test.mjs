@@ -190,3 +190,13 @@ test('new chat questions persist the tier contract and separate personas on one 
  assert.equal(a.snapshot.manifest.length,1);assert.equal(a.snapshot.manifest[0].questionPolicy,questionDecision.version);
  assert.equal((await m.prepareFortune(env,'tier-owner',body,{persona:'yeoni'}))._id,a._id);
 });
+
+test('all four chat tiers persist their question scope and followup allowance',async()=>{
+ const cases=[['mackerel',{},'부탁을 어떻게 거절할까?',0],['salmon',{category:'career',options:'준비 목표',constraints:'없음',period:'2026년'},'어떤 직업을 준비할까?',1],['flounder',{category:'compatibility',target:'pair',relationshipType:'other'},'두 사람의 차이를 어떻게 조율할까?',2],['tuna',{category:'timing',horizon:'transition',period:'2026년부터 다음 대운'},'다음 대운을 어떻게 준비할까?',4]];
+ for(const [fishId,patch,question,followups] of cases){
+  const body={domain:'saju',fishId,profileId:'self',...(fishId==='flounder'?{partnerProfileId:'partner'}:{}),timezone:'Asia/Seoul',question,questionDecision:{...questionDecision,...patch},consultationAttemptId:crypto.randomUUID()};
+  const row=await m.prepareFortune(env,'four-tier-owner',body,{persona:'neo'});
+  assert.equal(row.featureKey,'fortune-chat-question-'+fishId);assert.equal(row.snapshot.questionContract.followups,followups);
+  assert.equal(row.snapshot.manifest.length,1);assert.equal(row.snapshot.manifest[0].tier,fishId);
+ }
+});

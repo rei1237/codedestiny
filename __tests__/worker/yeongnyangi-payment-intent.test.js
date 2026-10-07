@@ -122,6 +122,7 @@ describe('fortune-chat consultation card prepare (fc-)',()=>{
   const {db,input,fortune}=chatSetup({featureKey});
   const tier={...input,product:{...chat,featureKey,productId:featureKey}};
   await expect(createPayableOrder(db,{...tier,requestId:'not-fc'})).rejects.toMatchObject({code:'INVALID_REQUEST'});
+  await expect(createPayableOrder(db,{...tier,product:{...tier.product,priceKRW:1}})).rejects.toMatchObject({code:'INVALID_REQUEST'});
   await expect(createPayableOrder(db,{...tier,product:{...tier.product,featureKey:'fortune-chat-consultation'}})).rejects.toMatchObject({code:'INVALID_REQUEST'});
   expect(db.rows).toHaveLength(0);
   expect(await createPayableOrder(db,tier)).toMatchObject({featureKey,requestId:'fc-'+id,status:'pending'});
