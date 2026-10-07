@@ -208,3 +208,9 @@ W 영냥이 요청은 accessMethod/state별 `unknown/CREATED 33`, `unknown/REFUN
 - 후기: 기존 검사는 작성/로그인 복귀/상태/1회 제출/중복 차단/키보드 초점/구매 내역 CTA를 통과한 뒤 홈에서 timeout이었다. 홈 안내가 `#cdhMore`의 접힌 details 안에 있는 현재 구조를 검사에서 누락했다. 제품을 바꾸지 않고 검사가 실제 summary 클릭을 수행하도록 수정하고 Node 네트워크 guard를 추가했다. `REVIEW_UI_BASE_URL=http://127.0.0.1:14128 node scripts/verify-review-anytime-ui.mjs` 재실행은 **320/390/1280px, 작성·로그인 복귀·상태·1회 제출·오류/재시도·키보드 초점·내역/홈 CTA·neo 테마 전부 PASS**였다.
 
 운영 원장의 잠정 수치 확보, GA4 제외 설정, 실제 공유 UI mock은 진전했지만 **동의·테스트 제외가 정제된 동일 KST 기간의 고객 순차 전환율**은 아직 확보하지 못했다. S05/S06 발화 연결과 React analytics 캐시 버전 정리는 별도 구현 대상으로 명확히 남긴다.
+
+### 전달 검사 판정과 범위 밖 결함
+
+후속 변경 커밋 `4846fbe3af83e5d7cd4884101137f90f88dbefd7`를 main에 push했다. [CI 37627851007](https://github.com/rei1237/codedestiny/actions/runs/37627851007)은 타입·lint·Pages/Worker 빌드에 성공했으나 **Static guards / CI required는 실패**했다. `scripts/verify-saju-result-login.mjs:68`에서 mock 로그인 복귀 후 `#resultPage`가 60초 안에 보이지 않았다. 단독 로컬 `node scripts/verify-saju-result-login.mjs`도 360px는 통과한 후 390px에서 같은 timeout으로 exit 1이었다. 일시적 실패로 덮거나 무조건 CI를 재실행하지 않았다. 변경 파일 3개는 기준선 문서·실행 명세·후기 검사뿐이며 이 사주 로그인 검사와 제품 런타임은 base 대비 변경하지 않았다. 범위 밖 로그인/결과 화면 결함으로 남긴다.
+
+`npm run check:fast -- --plan`은 검사 스크립트를 미분류 source로 보아 critical로 승격했다. 실제 `npm run check:fast`는 문서 신선도 통과 뒤 전체 결제 게이트 88개 중 첫 전체 테스트에서 장시간 머물렀다. 로컬 전체 preflight 폐기 지침에 따라 이번 검사 프로세스 트리만 중단했다(exit 1); **전체 check:fast 통과가 아니다**. 관련 후기·공유 브라우저 mock 통과는 위 기록 그대로다. 이후 이 판정을 추가한 문서 전용 커밋의 CI가 통과하더라도, 최초 코드 변경 SHA의 전체 정적 검사 실패가 해결됐다는 뜻이 아니다.
