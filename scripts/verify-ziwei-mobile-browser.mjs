@@ -66,6 +66,23 @@ try {
     assert.deepEqual(result.clipped, [], JSON.stringify(result));
     await chart.screenshot({ path: path.join(output, `chart-${width}.png`) });
   }
+  // Presentation stress fixture: long names, two principal stars, no principal star and four transformations.
+  await page.setViewportSize({ width: 320, height: 900 });
+  const stress = await chart.evaluate(el => {
+    const cells = [...el.querySelectorAll('.zw-cell')];
+    const saved = cells.slice(0, 3).map(c => c.innerHTML);
+    cells[0].querySelector('.zw-palace-name').textContent = '인간관계와 협력';
+    const star = cells[0].querySelector('.zw-star-main');
+    if (star) { star.textContent = '천기 · 화록'; const second = star.cloneNode(true); second.textContent = '태음 · 화권'; star.after(second); }
+    cells[1].querySelectorAll('.zw-star-main').forEach(s => s.remove());
+    cells[2].querySelector('.zw-palace-name').textContent = '자녀와 후배';
+    const thirdStar = cells[2].querySelector('.zw-star-main');
+    if (thirdStar) thirdStar.textContent = '록 · 권 · 과 · 기';
+    const result = { overflow: el.scrollWidth > el.clientWidth + 1, clipped: cells.filter(c => c.scrollWidth > c.clientWidth + 1 || c.scrollHeight > c.clientHeight + 1).length };
+    cells.slice(0, 3).forEach((c, i) => { c.innerHTML = saved[i]; });
+    return result;
+  });
+  assert.deepEqual(stress, { overflow: false, clipped: 0 });
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await chart.locator('.zw-cell-meng').getAttribute('aria-pressed'), 'true');
   await chart.locator('.fr-map-toggle').click();
