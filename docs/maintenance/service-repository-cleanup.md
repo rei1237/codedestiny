@@ -1,6 +1,6 @@
 # 서비스·저장소 정리 기록
 
-status: in_progress
+status: done
 updated: 2026-10-07
 
 ## 처리 결과
@@ -78,4 +78,12 @@ Search Console에서 `https://code-destiny.com/sitemap-index.xml`의 기존 제�
 
 ## 전달 기록
 
-검증 및 main 통합 진행 중.
+코드 정리와 main 전달 완료. 운영 승격·사이트맵 제출은 별도 단계로 남는다.
+
+- 구현 커밋: 69827f8dc46ef5e2bf545f94b9025257cbf58a19, main push 완료.
+- 해당 SHA의 GitHub Build Pages and Worker, Critical checks, Typecheck and lint, Paid Flow Gates, AI Locale Gate, Secret Scan 통과.
+- Static guards에서 병합된 기존 reading-depth 생성물의 지장간 표 미등록을 발견했다. 정본 import로 생성되는 필수 번들을 main-first로 등록해 값·순서를 계속 검사하도록 했다. 검사를 제외하지 않았다. 로컬 29건 및 음성 self-test 포함 30건, 216키 잔차 0 통과. 수정본 최종 CI 결과는 output/service-repository-cleanup/ci-final.json에 보존한다.
+- 로컬 check:fast 전체 실행은 실패 이력이 있다. Jest 346 suites / 5,192 tests 통과, 개별 paid 가드 87개 통과. Node 검사에서 다국어 푸터 누락을 수정했고 sitemap 검사 중 소스 재생성 영향도 재검증했다. 통합 후 해당 17 tests 전부 통과. 린트·타입·미러 신선도·모바일 nonintrusive·hero contrast 통과. check:fast 전체 재실행 성공으로 바꿔 적지 않는다.
+- main의 기존 AI Locale Gate 실패는 이미 존재하는 question-followup의 호출 1곳이 목록에서 빠진 문제였다. 실제 소스를 확인해 생성 목록만 갱신했고 mock locale 계약 통과. 결제·LLM 실행 계약은 수정하지 않았다.
+- 시각 검수는 캡처 범위 반응형 4/4, 테마 4/4. 대비 표본 통과. 접근성 전체 인증·키보드/스크린리더·실측 성능 점수는 미검증으로 남긴다.
+- 최종 캡처·변경 전후 목록·정리 manifest·실행 로그는 main의 output/service-repository-cleanup/에 보존한다. 중간 실행 스크립트와 작업용 체크아웃은 전달 후 제거한다.
