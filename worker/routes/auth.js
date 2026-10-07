@@ -914,6 +914,7 @@ function logAuthDiagnostic(request, env, routePath, provider, marker, error) {
     requestHost: getRequestHost(request),
     errorName: String(error?.name || "Error"),
     errorMessage: String(error?.message || "unknown_error").slice(0, 300),
+    ...(error?.oauthProviderFailure ? { oauthProviderFailure: error.oauthProviderFailure } : {}),
     stackSnippet: getStackSnippet(error),
     env: getAuthEnvPresence(env),
   };
@@ -1287,17 +1288,15 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:5
 border-radius:999px;background:#b31955;color:#fffaf7;font-size:15px;font-weight:800;text-decoration:none;
 box-shadow:0 12px 24px rgba(179,25,85,.18)}
 </style></head><body><div class="wrap">
-<h1>로그인이 완료되었습니다</h1>
+<h1>앱으로 돌아갑니다</h1>
 <p>앱으로 자동 전환됩니다.<br>화면이 바뀌지 않으면 아래 버튼을 눌러 주세요.</p>
 <a class="btn" id="back" href="#">앱으로 돌아가기</a>
 </div><script>
 (function(){
   var intentUrl=${escapeForScript(intentUrl)};
-  var schemeUrl=${escapeForScript(appRedirectTarget)};
   var btn=document.getElementById('back');
   if(btn)btn.setAttribute('href',intentUrl);
   try{location.replace(intentUrl);}catch(e){}
-  setTimeout(function(){try{location.replace(schemeUrl);}catch(e){}},700);
 }());
 </script></body></html>`;
 
@@ -1733,7 +1732,15 @@ async function exchangeCodeForAccessToken(provider, code, request, env, stateTok
 
   const data = await response.json().catch(() => null);
   if (!response.ok || !data?.access_token) {
-    throw new Error(`${provider}_token_exchange_failed`);
+    const error = new Error(`${provider}_token_exchange_failed`);
+    // Only standard error identifiers and HTTP status may reach diagnostics.
+    // Provider descriptions, codes, tokens and request bodies can contain credentials.
+    const knownErrors = ["invalid_client", "invalid_grant", "invalid_request", "unauthorized_client", "unsupported_grant_type", "invalid_scope", "access_denied", "temporarily_unavailable", "server_error"];
+    error.oauthProviderFailure = {
+      status: response.status,
+      code: knownErrors.includes(data?.error) ? data.error : "unclassified",
+    };
+    throw error;
   }
 
   return String(data.access_token);

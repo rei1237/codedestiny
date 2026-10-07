@@ -410,6 +410,7 @@
     if (/guardian/i.test(code)) return "법정대리인 동의가 필요해요. 웹에서 이어서 진행해 주세요.";
     if (/database|temporarily unavailable|timeout/i.test(code)) return "서버가 잠시 불안정해요. 잠시 후 다시 시도해 주세요.";
     if (/duplicate|already/i.test(code)) return "이미 처리된 로그인이에요. 다시 시도해 주세요.";
+    if (code === "google_token_exchange_failed") return "Google 로그인 연결을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.";
     return "로그인에 실패했습니다: " + code.slice(0, 80);
   }
 
