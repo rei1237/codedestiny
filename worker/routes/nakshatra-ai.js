@@ -1,3 +1,4 @@
+import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 // 나크샤트라 결정판 통합 상담 — 결제·생성 라우트 (두 전통 교차 해석, 9개 장)
 //
 //   POST /api/nakshatra-ai/ensure-access : 이용권 선검사 → 커버 시 accessToken, 미커버 시 402(결제창)
@@ -703,7 +704,7 @@ async function generateSectionOnce(env, section, prompt, cacheConfig) {
   const base = { id: section.id, deck: section.deck, title: section.title, keyInsight: "", vedicEvidence: "", sukuyoEvidence: "", body: "", chars: 0, ok: false };
   try {
     const ai = await callGeminiText(env, prompt, { maxOutputTokens: 10000, temperature: 0.65, thinkingBudget: 0,
-      responseMimeType: "application/json", timeoutMs: clampSyncLlmTimeoutMs(SECTION_TIMEOUT_MS), fallbackToWorkersAI: false,
+      responseMimeType: "application/json", responseSchema: jsonSchemaFromExample({ title: "", keyInsight: "", vedicEvidence: "", sukuyoEvidence: "", body: "" }), timeoutMs: clampSyncLlmTimeoutMs(SECTION_TIMEOUT_MS), fallbackToWorkersAI: false,
       ...(cacheConfig ? { cache: cacheConfig } : {}) });
     const isMock = (/mock/i.test(ai?.provider || "") || /mock/i.test(ai?.model || "") || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
     if (!ai?.ok || isMock || ai.truncated || /^(MAX_TOKENS|length)$/i.test(ai.finishReason || "")) return base;

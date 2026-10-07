@@ -4,7 +4,7 @@ import { requestBody, samplePairs, llmResponse } from '../fixtures/saju-compat-l
 import { hasRepeatedReportPassage } from '../../worker/lib/paid-report-quality.js';
 import {
   assembleSajuCompatSnapshot, buildSajuCompatPart, completeSajuCompatPart, groupFields, mergeSajuCompatShaped,
-  measureSajuCompatPart, normalizeSajuCompatInput, sajuCompatSeenKeys, sajuCompatTasks, shapeSajuCompatGroup,
+  measureSajuCompatPart, normalizeSajuCompatInput, sajuCompatSeenKeys, sajuCompatTasks, shapeSajuCompatGroup, sajuCompatResponseSchema,
 } from '../../worker/lib/saju-compat-schema.js';
 
 // 서버가 받는 요청(엔진 facts)과 LLM 응답을 정제하는 계약. 실제 LLM 은 부르지 않는다.
@@ -13,6 +13,41 @@ const clone = (value) => JSON.parse(JSON.stringify(value));
 const fieldOf = (error) => error?.payload?.field;
 const invalid = (field) => (error) => error.status === 422 && error.payload.code === 'SAJU_COMPAT_INPUT_INVALID' && (!field || fieldOf(error) === field);
 const sample = () => requestBody(...samplePairs(11, 1)[0], 'love');
+
+test('provider schema keeps past-life story, prescription and questions beside cross readings', () => {
+  const input = normalizeSajuCompatInput(sample());
+  for (const task of sajuCompatTasks(input)) {
+    const schema = sajuCompatResponseSchema(task.id, input);
+    for (const spec of groupFields(task.id, input).required) {
+      let node = schema;
+      for (const key of spec.path.split('.')) {
+        assert.ok(node.required.includes(key));
+        node = node.properties[key];
+      }
+      assert.equal(node.type, spec.kind === 'list' ? 'ARRAY' : 'STRING');
+    }
+  }
+  const past = sajuCompatResponseSchema('pastLife', input).properties.pastLife;
+  assert.deepEqual(Object.keys(past.properties.crossReadings.properties), ['selfToPartner', 'partnerToSelf']);
+  assert.ok(past.required.includes('story'));
+});
+
+test('misnested past-life prose is moved without changing text, types, or canonical values', () => {
+  const input = normalizeSajuCompatInput(sample());
+  const valid = llmResponse('pastLife', input);
+  const drift = clone(valid);
+  for (const key of ['story', 'prescription', 'questions']) {
+    drift.pastLife.crossReadings[key] = drift.pastLife[key];
+    delete drift.pastLife[key];
+  }
+  const before = clone(drift);
+  assert.deepEqual(shapeSajuCompatGroup('pastLife', drift, input), shapeSajuCompatGroup('pastLife', valid, input));
+  assert.deepEqual(drift, before);
+  drift.pastLife.story = '';
+  drift.pastLife.crossReadings.prescription = { text: valid.pastLife.prescription };
+  drift.pastLife.crossReadings.questions = valid.pastLife.questions.join(' ');
+  assert.deepEqual(shapeSajuCompatGroup('pastLife', drift, input).missing, ['pastLife.story', 'pastLife.prescription', 'pastLife.questions']);
+});
 const loveWithReasons = () => {
   for (const [a, b] of samplePairs(5, 200)) {
     const body = requestBody(a, b, 'love');

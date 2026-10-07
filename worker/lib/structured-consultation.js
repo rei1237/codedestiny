@@ -102,7 +102,7 @@ export async function callGeminiJsonWithRetry(env, buildPrompt, opts = {}) {
     // Keep original bytes for persistence and let route-specific checks judge content.
     if (ai.truncated && responseMimeType) {
       const recovered = salvageTruncatedJsonObject(ai.text);
-      if (recovered) return { ...ai, rawText: ai.text, text: JSON.stringify(recovered), truncated: false };
+      if (recovered) return { ...ai, rawText: ai.rawText || ai.text, text: JSON.stringify(recovered), truncated: false };
     }
     if (String(ai.text || '').trim()) return ai;
 

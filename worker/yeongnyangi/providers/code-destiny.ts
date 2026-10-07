@@ -1,3 +1,4 @@
+import { jsonSchemaFromExample } from "../../lib/json-text-repair.js";
 import {CONCISE_READING_VERSION,CONCISE_MIN_OUTPUT_TOKENS} from '../fortune/concise-reading';
 import { callGeminiText } from '../../lib/gemini.js';
 import { tokensRequiredForChars } from '../../lib/llm-budget.js';
@@ -39,6 +40,7 @@ export class CodeDestinyProvider implements LLMProvider {
     const response=await callGeminiText(this.env,data,{
       systemPrompt:system,temperature:0,maxOutputTokens:1024,thinkingBudget:0,timeoutMs:15000,
       maxProviderAttempts:1,fallbackToWorkersAI:false,responseMimeType:'application/json',taskType:'yeongnyangi-ask-analysis',
+      responseSchema:jsonSchemaFromExample({questions:[{questionId:'',category:'',needsTiming:false}]}),
       logContext:{...this.logContext,sectionGroup:'question-analysis'},
       cache:chapterResponseCache(this.env,this.cacheContext.owner,this.logContext.requestId,'question-analysis',this.cacheContext.skipRead),
     });

@@ -1,3 +1,4 @@
+import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { trimPaidReportText } from "../lib/paid-report-length.js";
 // 음력 월·일은 화면 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
 // UTC/JD로 정규화한 뒤 공통 Swiss 항성 달 황경에서 직접 계산한다.
@@ -1483,6 +1484,7 @@ async function generateSectionGroup(env, input, calculation, group, systemPrompt
       baseTokens: SUKUYO_SECTION_BASE_TOKENS,
       capTokens: SUKUYO_SECTION_CAP_TOKENS,
       responseMimeType: "application/json",
+      responseSchema: jsonSchemaFromExample(Object.fromEntries(group.keys.map(key => [key, { body: "" }]))),
       timeoutMs: SUKUYO_SECTION_TIMEOUT_MS,
       // 🔴 유료 라우트에서 폴백을 켰으면 fallbackMinChars 는 필수다(관례: 최소 분량 × 0.4).
       // 없으면 Workers AI 폴백이 8% 분량을 정상 결제로 통과시킨다.
@@ -1530,6 +1532,7 @@ async function generateSummary(env, input, calculation, systemPrompt) {
       baseTokens: 4000,
       capTokens: 5200,
       responseMimeType: "application/json",
+      responseSchema: jsonSchemaFromExample({ headline: "", insight: "", scoreNotes: Object.fromEntries(SUKUYO_AXIS_SPECS.map(spec => [spec.key, ""])) }),
       timeoutMs: SUKUYO_SECTION_TIMEOUT_MS,
       fallbackMinChars: 400,
       cache: sukuyoSectionCache(env, "summary"),

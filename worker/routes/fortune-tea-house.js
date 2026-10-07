@@ -1,4 +1,5 @@
 import { canonicalTeaSaju } from "../lib/tea-saju-facts.js";
+import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { buildFortuneTeaSajuSnapshot, buildFortuneTeaSajuSnapshotFromParts, buildSajuResultSection } from "../../lib/fortune-tea-house/saju-result-adapter.mjs";
 import { teaCombinationEvidence } from "../../lib/fortune-tea-house/tarot-contract.mjs";
 import { prepareTeaDraw, confirmTeaDraw, readTeaDraw } from "../lib/tea-tarot-draw.js";
@@ -3765,6 +3766,29 @@ function applyFortuneTeaGroupScope(prompt, group) {
 }
 
 /** 담당 밖 필드는 병합 전에 버린다 — 프롬프트가 새어 다른 그룹의 글을 덮어쓰지 못하게 한다. */
+export function fortuneTeaGroupResponseSchema(group) {
+  // Narrative fields only. Calculated facts and card identities remain server-owned.
+  const example = {
+    sessionTitle: '', questionSummary: '',
+    saju: { title: '', summary: '', oneLineAdvice: '', deepSections: [{ id: '', title: '', tone: '', body: '' }] },
+    tarot: { reading: '' },
+    tarotCardReadings: [{ positionId: '', coreMeaning: '', currentSituation: '', questionLink: '', advice: '', caution: '' }],
+    cardInteractions: [{ pair: '', insight: '' }], heartScent: { name: '', category: '', reason: '' },
+    sukuyoCompatibility: { title: '', summary: '', strengths: [''], cautions: [''], adviceKeywords: [''] },
+    emotionAnalysis: [{ label: '', value: 0, description: '', tone: '' }],
+    yeoniReading: { intro: '', main: '', advice: '', caution: '' },
+    synthesis: { title: '', summary: '', sajuTarotBridge: '' },
+    choiceSimulation: [{ id: '', title: '', subtitle: '', result: '', caution: '' }],
+    actionPrescription: '', luckyKeywords: [''], closingLine: '',
+  };
+  const selected = {};
+  for (const path of group.paths || group.fields) {
+    const value = teaField(example, path);
+    if (value !== undefined) teaSet(selected, path, value);
+  }
+  return jsonSchemaFromExample(selected);
+}
+
 function pickFortuneTeaGroupFields(parsed, group) {
   if (!parsed || typeof parsed !== "object") return null;
   if (group.paths) return pickTeaCheckpointFields(parsed, group);
@@ -4131,6 +4155,7 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
       taskType: "fortune",
       temperature: attempt > 0 ? 0.54 : 0.62,
       maxOutputTokens: FORTUNE_TEA_GROUP_MAX_OUTPUT_TOKENS,
+      responseSchema: fortuneTeaGroupResponseSchema(group),
       timeoutMs: clampSyncLlmTimeoutMs(timeoutMs),
       responseMimeType: "application/json",
       // 그룹 최소 분량 × 0.4. 통짜 시절의 600 은 그룹 단위에서 아무것도 막지 못한다.
@@ -5241,6 +5266,7 @@ async function generateHoneyLetter(resultDoc, env) {
         maxOutputTokens: 2200,
         timeoutMs: 22000,
         responseMimeType: "application/json",
+        responseSchema: jsonSchemaFromExample({ title: '', body: '' }),
       });
       if (!ai.ok) throw new Error(ai.message || ai.error || "gemini_failed");
       const letter = {

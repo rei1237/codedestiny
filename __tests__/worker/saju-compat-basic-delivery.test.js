@@ -3,17 +3,21 @@ import { jest } from '@jest/globals';
 import { requestBody, samplePairs, llmResponse } from '../fixtures/saju-compat-llm-fixture.mjs';
 
 // 선결제 사주 궁합 LLM 라우트(paid-narrative 엔진) — 실제 LLM·DB·결제는 쓰지 않는다.
-let route, normalize, docs, provider, revoked, userId, fault, lost, external, mode, accessCalls, plan;
+let route, normalize, recovery, docs, provider, revoked, userId, fault, lost, external, mode, accessCalls, plan;
 const owner = '64b7f2a1c3d4e5f601234567';
 const clone = (value) => structuredClone(value);
 const get = (doc, key) => key.split('.').reduce((value, part) => value?.[part], doc);
 function matches(doc, filter) {
   return Object.entries(filter).every(([key, value]) => {
     if (key === '$or') return value.some((item) => matches(doc, item));
+    if (key === '$and') return value.every((item) => matches(doc, item));
     const actual = get(doc, key);
     if (value && typeof value === 'object' && !(value instanceof Date)) {
       if ('$exists' in value) return Boolean(actual !== undefined) === value.$exists;
       if ('$in' in value) return value.$in.includes(actual);
+      if ('$ne' in value) return JSON.stringify(actual) !== JSON.stringify(value.$ne);
+      if ('$gte' in value) return actual instanceof Date ? actual >= new Date(value.$gte) : actual >= value.$gte;
+      if ('$lte' in value) return actual != null && new Date(actual) <= new Date(value.$lte);
       if ('$gt' in value) return new Date(actual) > new Date(value.$gt);
     }
     return value === null ? actual == null : JSON.stringify(actual) === JSON.stringify(value);
@@ -29,7 +33,7 @@ function patch(doc, fields) {
   }
 }
 // select 투영까지 흉내 낸다 — 라우트가 요청하지 않은 필드는 응답 근처에도 오지 않아야 한다.
-const pick = (doc, fields) => { const out = {}; for (const key of Object.keys(fields)) { const value = get(doc, key); if (value !== undefined) patch(out, { [key]: value }); } return out; };
+const pick = (doc, fields) => { const out = {}; for (const key of typeof fields === 'string' ? ['_id', ...fields.split(/\s+/)] : Object.keys(fields)) { const value = get(doc, key); if (value !== undefined) patch(out, { [key]: value }); } return out; };
 function query(value) {
   let fields = null;
   let max = Infinity;
@@ -74,6 +78,7 @@ beforeAll(async () => {
   jest.unstable_mockModule('../../worker/lib/gemini.js', () => ({ callGeminiText: (...args) => provider(...args) }));
   ({ handleSajuCompatBasicRoutes: route } = await import('../../worker/routes/saju-compat-basic.js'));
   ({ normalizeSajuCompatInput: normalize } = await import('../../worker/lib/saju-compat-schema.js'));
+  ({ runPaidNarrativeRecovery: recovery } = await import('../../worker/lib/paid-narrative-recovery-task.js'));
 });
 
 const PAIR = samplePairs(31, 1)[0];
@@ -100,13 +105,106 @@ beforeEach(() => {
   provider = jest.fn(async (_env, prompt, options) => {
     expect(options.timeoutMs).toBeLessThanOrEqual(85000);
     expect(options.fallbackToWorkersAI).toBe(false);
-    expect(options).toMatchObject({ locale: 'ko', responseMimeType: 'application/json', thinkingBudget: 0 });
+    expect(options).toMatchObject({ locale: 'ko', responseMimeType: 'application/json', responseSchema: { type: 'OBJECT' }, thinkingBudget: 0 });
     const group = groupOf(prompt);
     return plan[group] ? plan[group](prompt) : reply(group);
   });
   external = jest.spyOn(globalThis, 'fetch').mockImplementation(() => { throw Error('external network'); });
 });
 afterEach(() => { expect(external).not.toHaveBeenCalled(); external.mockRestore(); });
+
+function misplacedPastLife() {
+  const raw = llmResponse('pastLife', input());
+  for (const key of ['story', 'prescription', 'questions']) {
+    raw.pastLife.crossReadings[key] = raw.pastLife[key];
+    delete raw.pastLife[key];
+  }
+  return raw;
+}
+
+async function legacyThreeOfFour() {
+  await start(); await resume(); await resume();
+  const state = docs[0].metadata.paidNarrative;
+  state.attempts.pastLife = 2;
+  state.rawResponses = { pastLife: JSON.stringify(misplacedPastLife()) };
+  docs[0].timeoutAt = new Date();
+  docs[0].metadata.paidNarrativeRecovery = { reviewRequired: true, code: 'DELIVERY_REVIEW_REQUIRED' };
+  provider.mockClear();
+  return clone(state);
+}
+
+test('misnested final group completes on its first attempt without regenerating earlier parts', async () => {
+  plan.pastLife = () => ({ ok: true, provider: 'gemini', text: JSON.stringify(misplacedPastLife()) });
+  const response = await drive();
+  expect(response.status).toBe(200);
+  expect((await response.json()).meta.missing).toEqual([]);
+  expect(provider).toHaveBeenCalledTimes(4);
+});
+
+test('exhausted saved 3/4 response recovers locally and preserves previous parts and attempts', async () => {
+  const before = await legacyThreeOfFour();
+  expect((await resume()).status).toBe(200);
+  const state = docs[0].metadata.paidNarrative;
+  expect(state.attempts).toEqual(before.attempts);
+  for (const [id, part] of Object.entries(before.parts)) expect(state.parts[id]).toBe(part);
+  expect(state.rawResponses).toEqual(before.rawResponses);
+  expect(docs[0].metadata.result.meta.missing).toEqual([]);
+  expect(provider).not.toHaveBeenCalled();
+});
+
+test('cron locally repairs a compatibility review once without spending another attempt', async () => {
+  const before = await legacyThreeOfFour();
+  const writes = jest.spyOn(model, 'findOneAndUpdate');
+  try {
+    expect((await recovery({})).outcomes[0].outcome).toBe('completed');
+    // Every durable progress checkpoint is still saved-only, even if the process
+    // stops before the final completion write or the cron's next marker update.
+    const checkpoints = writes.mock.calls.filter(([, update]) => update.$set?.status !== 'success').map(([, update]) => update.$set?.metadata).filter(Boolean);
+    expect(checkpoints.length).toBeGreaterThan(0);
+    for (const metadata of checkpoints) expect(metadata.paidNarrativeRecovery).toMatchObject({ reviewRequired: true, code: 'DELIVERY_REVIEW_REQUIRED' });
+    expect(docs[0].metadata.paidNarrativeRecovery).toBeNull();
+  } finally { writes.mockRestore(); }
+  expect(docs[0].metadata.paidNarrative.attempts).toEqual(before.attempts);
+  expect(provider).not.toHaveBeenCalled();
+});
+
+test('invalid saved content remains in review without repeated cron scans or generation', async () => {
+  await legacyThreeOfFour();
+  const state = docs[0].metadata.paidNarrative;
+  state.rawResponses.pastLife = JSON.stringify({ pastLife: { crossReadings: { story: { text: 'invalid' } } } });
+  // Even another unattempted group cannot cause a provider call in the review repair.
+  delete state.parts.practice;
+  state.attempts.practice = 0;
+  const before = clone(state);
+  expect((await recovery({})).outcomes[0].outcome).toBe('review_required');
+  expect(docs[0].metadata.paidNarrative).toEqual(before);
+  expect((await recovery({})).scanned).toBe(0);
+  expect(provider).not.toHaveBeenCalled();
+});
+
+test('storage failure during saved-only recovery retains review and never enables generation', async () => {
+  const before = await legacyThreeOfFour();
+  fault = { kind: 'throw', metadata: true };
+  expect((await recovery({})).outcomes[0].outcome).toBe('RESULT_STORAGE_UNAVAILABLE');
+  expect(docs[0].metadata.paidNarrativeRecovery).toMatchObject({ reviewRequired: true, code: 'DELIVERY_REVIEW_REQUIRED', lastError: 'RESULT_STORAGE_UNAVAILABLE' });
+  docs[0].timeoutAt = new Date();
+  docs[0].metadata.paidNarrativeRecovery.nextAttemptAt = new Date();
+  expect((await recovery({})).outcomes[0].outcome).toBe('completed');
+  expect(docs[0].metadata.paidNarrative.attempts).toEqual(before.attempts);
+  expect(provider).not.toHaveBeenCalled();
+});
+
+test('saved repair still rejects revoked purchases and active leases', async () => {
+  await legacyThreeOfFour();
+  docs[0].lock = { token: 'other', until: new Date(Date.now() + 60000) };
+  expect((await recovery({})).scanned).toBe(0);
+  docs[0].lock = { token: '', until: null };
+  revoked = true;
+  expect((await recovery({})).outcomes[0].outcome).toBe('PAYMENT_REVOKED');
+  expect((await recovery({})).scanned).toBe(0);
+  expect(docs[0].premiumStatus).toBe('generating');
+  expect(provider).not.toHaveBeenCalled();
+});
 
 test.each(['pass', 'monthly', 'single'])('%s 결제 확인 뒤 네 그룹을 한 번씩 만들어 완료·저장하고 재열람은 LLM 을 부르지 않는다', async (pay) => {
   mode = pay;

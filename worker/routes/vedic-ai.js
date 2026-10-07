@@ -1,3 +1,4 @@
+import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { trimPaidReportSections } from "../lib/paid-report-length.js";
@@ -992,6 +993,16 @@ function buildSectionEvidenceLines(chart) {
   ];
 }
 
+function buildGroupOutputExample(group) {
+  return {
+    ...(group.includeScores ? { scores: { dharma: 0, artha: 0, kama: 0, moksha: 0, overall: 0 } } : {}),
+    sections: {
+      ...Object.fromEntries((group.sectionKeys || []).map(key => [key, { title: REQUIRED_SECTION_LABELS[key], body: "제공된 계산값만 바탕으로 해석합니다." }])),
+      ...(group.includeReasoning ? buildReasoningSectionSchema() : {}),
+    },
+  };
+}
+
 function buildGroupPrompt(input, chart, group, repairLines = []) {
   const canonicalFacts = buildCanonicalFactsLine(chart);
   const sectionKeys = group.sectionKeys || [];
@@ -999,13 +1010,6 @@ function buildGroupPrompt(input, chart, group, repairLines = []) {
     .filter((key) => !sectionKeys.includes(key))
     .map((key) => `"${REQUIRED_SECTION_LABELS[key]}"`)
     .join(", ");
-  const schemaSections = {
-    ...Object.fromEntries(sectionKeys.map((key) => [key, {
-      title: REQUIRED_SECTION_LABELS[key],
-      body: "제공된 계산값만 바탕으로 해석합니다.",
-    }])),
-    ...(group.includeReasoning ? buildReasoningSectionSchema() : {}),
-  };
   return [
     "아래 VedicChartResult JSON과 사용자 질문을 바탕으로 조티시 상담문 중 **지정된 부분만** 쓰세요.",
     "이 글은 다른 부분과 합쳐져 하나의 상담문이 됩니다. 인사말·전체 요약·맺음말을 새로 쓰지 마세요.",
@@ -1039,13 +1043,7 @@ function buildGroupPrompt(input, chart, group, repairLines = []) {
     JSON.stringify(Object.fromEntries(sectionKeys.map((key) => [key, REQUIRED_SECTION_LABELS[key]]))),
     "",
     "반환 JSON 형식 (아래 키만 내고, 다른 키는 넣지 마세요):",
-    JSON.stringify({
-      // scores 는 첫 그룹만 낸다. 나머지 그룹이 함께 내면 병합에서 어느 쪽을 쓸지 임의로 정하게 된다.
-      ...(group.includeScores ? { scores: { dharma: 0, artha: 0, kama: 0, moksha: 0, overall: 0 } } : {}),
-      // 근거를 먼저 밝히는 다섯 흐름. 품질 검증(READING_SECTION_KEYS)에는 넣지 않는다 —
-      // 빠지면 화면에서 생략될 뿐, 결제까지 끝난 상담 전체를 실패로 만들지 않기 위해서다.
-      sections: schemaSections,
-    }),
+    JSON.stringify(buildGroupOutputExample(group)),
     "",
     "계산된 VedicChartResult 데이터:",
     JSON.stringify(compactChartForPrompt(chart)),
@@ -1399,6 +1397,7 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
       baseTokens: groupBaseTokens,
       capTokens: Math.round(groupBaseTokens * 1.3),
       responseMimeType: "application/json",
+      responseSchema: jsonSchemaFromExample(buildGroupOutputExample(group)),
       timeoutMs: vedicTimeoutMs,
       fallbackToWorkersAI: false,
       // 그룹 단위 문턱 — 전체 목표가 아니라 이 그룹 목표의 40%.

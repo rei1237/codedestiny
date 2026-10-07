@@ -1,3 +1,4 @@
+import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 // 운명 구조도 — 결정론 문장 다듬기 라우트(무료·선택 보강). 정적 셸의 엔진·문구가 이미 완성한 문장을
 // 고쳐 쓰기만 한다. 점수·회로·HD 타입·권위는 클라이언트가 결정론 값으로 그대로 그린다.
 // 🔴 기본 꺼짐: ENABLE_DESTINY_ANATOMY_REAL_LLM 이 "true" 일 때만 LLM 을 부른다. 스테이징 [vars] 에만
@@ -188,6 +189,7 @@ async function handleNarrate(request, env) {
       ai = await callGeminiJsonWithRetry(env, buildNarrativePrompt(n, attempt), {
         systemPrompt,
         taskType: "general",
+        responseSchema: jsonSchemaFromExample({ mindLine: "", insights: [""] }),
         temperature: 0.5,
         timeoutMs: Math.min(DESTINY_ANATOMY_NARRATION_POLICY.providerChainTimeoutMs, remainingMs),
         attempts: 1,

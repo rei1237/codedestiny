@@ -23,8 +23,18 @@ export function buildRecoverableNarrativeFilter(now) {
     featureKey: { $in: [...PAID_NARRATIVE_SERVER_RESUME_FEATURE_KEYS] },
     reportType: { $in: [...PAID_NARRATIVE_SERVER_RESUME_REPORT_TYPES] },
     'metadata.paidNarrative': { $exists: true }, 'metadata.paidNarrative.exhaustionClaimed': { $ne: true },
-    'metadata.paidNarrativeRecovery.reviewRequired': { $ne: true },
     $and: [
+      { $or: [
+        { 'metadata.paidNarrativeRecovery.reviewRequired': { $ne: true } },
+        // One local-only repair of the observed compatibility JSON nesting defect.
+        // Refunded/other review reasons stay excluded; no attempt budget is reset.
+        { featureKey: 'compat-saju-compatibility', reportType: 'sajuCompatBasic',
+          'metadata.paidNarrativeRecovery.code': 'DELIVERY_REVIEW_REQUIRED',
+          'metadata.paidNarrativeRecovery.savedResponseRepairVersion': { $ne: 1 },
+          'metadata.paidNarrative.attempts.pastLife': { $gte: 2 },
+          'metadata.paidNarrative.parts.pastLife': { $exists: false },
+          'metadata.paidNarrative.rawResponses.pastLife': { $exists: true } },
+      ] },
       { $or: [{ 'lock.until': null }, { 'lock.until': { $lte: at } }] },
       { $or: [{ 'metadata.paidNarrativeRecovery.nextAttemptAt': null }, { 'metadata.paidNarrativeRecovery.nextAttemptAt': { $lte: at } }] },
     ],
@@ -48,9 +58,10 @@ async function recoverOne(env, doc, now, deadline) {
     return 'unmapped';
   }
   let saved = Object.keys(doc.metadata?.paidNarrative?.parts || {}).length, progressed = false;
+  const savedOnly = doc.metadata?.paidNarrativeRecovery?.reviewRequired === true;
   try {
     while (Date.now() + WAVE_BUDGET_MS <= deadline) {
-      const response = await resumePaidNarrativeOnServer(env, doc, adapter);
+      const response = await resumePaidNarrativeOnServer(env, doc, { ...adapter, savedOnly });
       const result = await response.json().catch(() => ({}));
       if (response.status === 200) return 'completed';
       if (response.status >= 500 || response.status === 429) {
@@ -64,8 +75,8 @@ async function recoverOne(env, doc, now, deadline) {
         return code;
       }
       if (result.busy) return 'busy';
-      if (result.reviewRequired) {
-        await mark(env, doc, { reviewRequired: true, code: 'DELIVERY_REVIEW_REQUIRED' });
+      if (result.reviewRequired || savedOnly) {
+        await mark(env, doc, { reviewRequired: true, code: 'DELIVERY_REVIEW_REQUIRED', ...(savedOnly ? { savedResponseRepairVersion: 1 } : {}) });
         return 'review_required';
       }
       // A wave without a new part stops here; its attempts are already spent and
@@ -78,7 +89,9 @@ async function recoverOne(env, doc, now, deadline) {
   } catch (error) {
     const code = String(error?.code || 'RECOVERY_PENDING').slice(0, 120);
     const errors = (progressed ? 0 : Number(doc.metadata?.paidNarrativeRecovery?.errors) || 0) + 1;
-    await mark(env, doc, { errors: Math.min(errors, MAX_ERRORS), code, nextAttemptAt: new Date(now + Math.min(MAX_BACKOFF_MS, BACKOFF_MS * 2 ** Math.min(errors, MAX_ERRORS))) });
+    await mark(env, doc, { errors: Math.min(errors, MAX_ERRORS), code,
+      ...(savedOnly ? { reviewRequired: true, code: 'DELIVERY_REVIEW_REQUIRED', lastError: code } : {}),
+      nextAttemptAt: new Date(now + Math.min(MAX_BACKOFF_MS, BACKOFF_MS * 2 ** Math.min(errors, MAX_ERRORS))) });
     return code;
   }
 }

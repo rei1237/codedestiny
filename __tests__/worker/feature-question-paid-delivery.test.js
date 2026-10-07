@@ -84,6 +84,13 @@ test('missing paragraph punctuation is corrected and persisted without regenerat
  expect((await resume()).status).toBe(200);
  expect(provider).toHaveBeenCalledTimes(10);expect(refund).not.toHaveBeenCalled();
 });
+
+test('structured claims retain both numeric and textual calculation evidence', async()=>{
+ await start();
+ const schema = provider.mock.calls[0][2].responseSchema;
+ expect(schema.properties.claims.items.properties.value).toEqual({anyOf:[{type:'STRING'},{type:'NUMBER'}]});
+ expect(schema.properties.evidenceHash.type).toBe('STRING');
+});
 test.each(['Astrology','Vedic','Ziwei','Sukuyo'].flatMap(kind=>['pass','monthly','single'].map(mode=>[kind,mode])))('%s %s confirms ten parts and reopens without another generation',async(type,access)=>{
  kind=type;mode=access;expect((await start()).status).toBe(202);const full=await finish();expect(full.status).toBe(200);expect(await full.json()).toMatchObject({saved:true,status:'completed'});expect(provider).toHaveBeenCalledTimes(10);expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(10);expect(refund).not.toHaveBeenCalled();
  const sent=await consume.mock.calls[0][0].json();expect(sent).toMatchObject({requireExistingPaidAccess:true,requestId:'original-paid-request'});
