@@ -275,8 +275,9 @@ export default function CheckoutClient() {
         requestId,
         cost: pricing.cost,
         amountKRW: pricing.amountKRW,
-        paymentMode,
-        allowedPaymentModes: pricing.monthlyExcluded ? ["pass", "direct"] : ["pass", "direct", "monthly"],
+        // The shared direct-payment dialog records refund consent and chooses the PG method.
+        paymentMode: paymentMode==='DIRECT_KRW'?undefined:paymentMode,
+        allowedPaymentModes: paymentMode==='DIRECT_KRW'&&!isSoulCatMode ? ["direct"] : pricing.monthlyExcluded ? ["pass", "direct"] : ["pass", "direct", "monthly"],
         membershipCreditCost: pricing.membershipCreditCost,
         moonstoneQuantity,
         passStorePlan: "family",

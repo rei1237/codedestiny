@@ -121,3 +121,9 @@ test("🔴 결제 이탈 링크: CD 내부 모드는 결제 성공 뒤 주소를
   assert.match(source, /<a href=\{chooseHref\}/, "생선 다시 고르기 링크가 chooseHref 를 쓰지 않는다.");
   assert.ok(!/<a href=\{params\.returnTo\}/.test(source), "이탈 링크가 params.returnTo 를 직접 쓴다.");
 });
+
+test('single purchases retain shared refund consent before PG selection',()=>{
+const source=readSource();
+assert.match(source, /paymentMode: paymentMode==='DIRECT_KRW'\?undefined:paymentMode/);
+assert.match(source, /allowedPaymentModes: paymentMode==='DIRECT_KRW'&&!isSoulCatMode \? \["direct"\]/);
+});
