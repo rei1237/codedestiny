@@ -38,6 +38,11 @@ function closeModal(e){
 }
 
 function resetApp(){
+  if (typeof sajuCalculationRun !== 'undefined' && sajuCalculationRun) {
+    sajuCalculationRun.abort();
+    sajuCalculationRun = null;
+    _sajuSetCalculationLoading(false, 'idle');
+  }
   try {
     if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false);
     if (typeof window.__cdCloseLoginRequiredModal === 'function') window.__cdCloseLoginRequiredModal();

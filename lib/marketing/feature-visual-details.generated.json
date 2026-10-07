@@ -419,14 +419,17 @@
     },
     {
       "slug": "tarot",
-      "title": "타로",
+      "title": "타로 리딩",
       "href": "/index.html?action=openTarotModal",
       "featureKey": "tarot",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/tarot-960.webp",
       "aliases": [
-        "openTarotModal",
+        "cdHomeTarotEntry",
         "tarot",
+        "/?action=cdHomeTarotEntry",
+        "/?action=cdHomeTarotEntry/",
+        "openTarotModal",
         "/index.html?action=openTarotModal",
         "/index.html?action=openTarotModal/"
       ],
@@ -443,7 +446,11 @@
       "accessType": "free",
       "image": "/feature-details/assets/ziwei-960.webp",
       "aliases": [
+        "cdHomeZiweiEntry",
         "ziwei",
+        "/?action=cdHomeZiweiEntry",
+        "/?action=cdHomeZiweiEntry/",
+        "openZiweiModal",
         "/ziwei/chart/",
         "/ziwei/chart"
       ],
@@ -455,15 +462,17 @@
     {
       "slug": "sukuyo",
       "title": "숙요점",
-      "href": "/index.html?action=openSukuyoModal",
+      "href": "/?action=cdHomeSukuyoEntry",
       "featureKey": "compat-sukuyo-compatibility",
       "accessType": "unknown",
       "image": "/feature-details/assets/sukuyo-960.webp",
       "aliases": [
-        "openSukuyoModal",
+        "cdHomeSukuyoEntry",
         "sukuyo",
-        "/index.html?action=openSukuyoModal",
-        "/index.html?action=openSukuyoModal/"
+        "/?action=cdHomeSukuyoEntry",
+        "/?action=cdHomeSukuyoEntry/",
+        "openSukuyoModal",
+        "/index.html?action=openSukuyoModal"
       ],
       "category": "사주·심층 상담",
       "description": "이 사람과는 어떤 거리의 인연인가요?",
@@ -478,7 +487,11 @@
       "accessType": "free",
       "image": "/feature-details/assets/vedic-960.webp",
       "aliases": [
+        "cdHomeVedicEntry",
         "vedic",
+        "/?action=cdHomeVedicEntry",
+        "/?action=cdHomeVedicEntry/",
+        "navigateToVedic",
         "/index.html?action=navigateToVedic",
         "/index.html?action=navigateToVedic/"
       ],
@@ -495,8 +508,11 @@
       "accessType": "free",
       "image": "/feature-details/assets/astrology-960.webp",
       "aliases": [
-        "openAstroModal",
+        "cdHomeAstroEntry",
         "astrology",
+        "/?action=cdHomeAstroEntry",
+        "/?action=cdHomeAstroEntry/",
+        "openAstroModal",
         "/index.html?action=openAstroModal",
         "/index.html?action=openAstroModal/"
       ],
@@ -3539,15 +3555,18 @@
     },
     "tarot": {
       "slug": "tarot",
-      "title": "타로",
+      "title": "타로 리딩",
       "href": "/index.html?action=openTarotModal",
       "featureKey": "tarot",
       "featureKeyTo": "",
-      "accessType": "unknown",
+      "accessType": "free",
       "image": "/feature-details/assets/tarot-960.webp",
       "aliases": [
-        "openTarotModal",
+        "cdHomeTarotEntry",
         "tarot",
+        "/?action=cdHomeTarotEntry",
+        "/?action=cdHomeTarotEntry/",
+        "openTarotModal",
         "/index.html?action=openTarotModal",
         "/index.html?action=openTarotModal/"
       ],
@@ -3603,7 +3622,11 @@
       "accessType": "free",
       "image": "/feature-details/assets/ziwei-960.webp",
       "aliases": [
+        "cdHomeZiweiEntry",
         "ziwei",
+        "/?action=cdHomeZiweiEntry",
+        "/?action=cdHomeZiweiEntry/",
+        "openZiweiModal",
         "/ziwei/chart/",
         "/ziwei/chart"
       ],
@@ -3652,16 +3675,18 @@
     "sukuyo": {
       "slug": "sukuyo",
       "title": "숙요점",
-      "href": "/index.html?action=openSukuyoModal",
+      "href": "/?action=cdHomeSukuyoEntry",
       "featureKey": "compat-sukuyo-compatibility",
       "featureKeyTo": "",
       "accessType": "unknown",
       "image": "/feature-details/assets/sukuyo-960.webp",
       "aliases": [
-        "openSukuyoModal",
+        "cdHomeSukuyoEntry",
         "sukuyo",
-        "/index.html?action=openSukuyoModal",
-        "/index.html?action=openSukuyoModal/"
+        "/?action=cdHomeSukuyoEntry",
+        "/?action=cdHomeSukuyoEntry/",
+        "openSukuyoModal",
+        "/index.html?action=openSukuyoModal"
       ],
       "category": "사주·심층 상담",
       "headline": "두 사람 사이에는 어떤 달의 거리가 있을까요?",
@@ -3753,7 +3778,11 @@
       "accessType": "free",
       "image": "/feature-details/assets/vedic-960.webp",
       "aliases": [
+        "cdHomeVedicEntry",
         "vedic",
+        "/?action=cdHomeVedicEntry",
+        "/?action=cdHomeVedicEntry/",
+        "navigateToVedic",
         "/index.html?action=navigateToVedic",
         "/index.html?action=navigateToVedic/"
       ],
@@ -3808,8 +3837,11 @@
       "accessType": "free",
       "image": "/feature-details/assets/astrology-960.webp",
       "aliases": [
-        "openAstroModal",
+        "cdHomeAstroEntry",
         "astrology",
+        "/?action=cdHomeAstroEntry",
+        "/?action=cdHomeAstroEntry/",
+        "openAstroModal",
         "/index.html?action=openAstroModal",
         "/index.html?action=openAstroModal/"
       ],

@@ -5215,11 +5215,13 @@ setTimeout(function(){
 function runDeferredSajuTasks(taskList) {
   if (!Array.isArray(taskList) || !taskList.length) return;
   var idx = 0;
+  var chart = typeof G_PILLARS !== 'undefined' ? G_PILLARS : null;
 
   function scheduleNext() {
     if (idx >= taskList.length) return;
     var task = taskList[idx++];
     setTimeout(function() {
+      if (chart && (G_PILLARS !== chart || document.getElementById('resultPage').style.display === 'none')) return;
       try { task(); } catch (e) { console.error('[saju] deferred task error', e); }
       if (typeof window.requestAnimationFrame === 'function') {
         window.requestAnimationFrame(scheduleNext);
@@ -5279,6 +5281,7 @@ function invokeOptionalGlobalRendererWithRetry(fnName, args, options) {
   var retryDelay = Number.isFinite(delayMs) && delayMs > 0 ? delayMs : 180;
   var retryLimit = Number.isFinite(maxAttempts) && maxAttempts > 0 ? maxAttempts : 24;
   var timerKey = name + '::' + targetId;
+  var chart = typeof G_PILLARS !== 'undefined' ? G_PILLARS : null;
 
   if (invokeOptionalGlobalRenderer(name, args) && (!targetId || hasOptionalRendererTargetContent(targetId))) {
     if (__optionalRendererRetryTimers[timerKey]) {
@@ -5292,6 +5295,10 @@ function invokeOptionalGlobalRendererWithRetry(fnName, args, options) {
 
   var attempts = 0;
   var retry = function() {
+    if (chart && (G_PILLARS !== chart || document.getElementById('resultPage').style.display === 'none')) {
+      delete __optionalRendererRetryTimers[timerKey];
+      return;
+    }
     attempts += 1;
 
     if (targetId && hasOptionalRendererTargetContent(targetId)) {
@@ -10177,8 +10184,9 @@ function renderIlju(p){
   if (animalLabelEl) animalLabelEl.innerText = animal[1] + ' 상징';
 
   var summaryLines = data ? iljuBullets(data.summary, 3) : ['일주는 나의 본질을 보여주는 핵심 축입니다.', '일간과 일지의 조합으로 성향이 형성됩니다.', '요약/상세/조언 순서로 읽어보세요.'];
-  var detailSource = data ? ((data.personality || '') + ' ' + (data.professional || '') + ' ' + (data.relationship || '')) : '상세 분석 데이터가 업데이트되는 중입니다.';
-  var detailLines = iljuBullets(detailSource, 4);
+  // Preserve each topic in the fallback too: concatenating and taking four
+  // sentences discarded work and relationship paragraphs behind personality.
+  var detailLines = data ? [data.personality, data.professional, data.relationship].filter(Boolean).map(iljuSanitizeText) : ['상세 분석 데이터를 준비하고 있어요.'];
   var adviceLines = data ? iljuBullets(data.advice, 3) : ['하루 루틴을 짧게 기록하며 감정과 판단 흐름을 점검해 보세요.', '강점은 더 선명하게, 취약점은 부드럽게 보완하는 천기가 좋습니다.'];
 
   iljuSetList('iljuSummaryList', summaryLines, '핵심 요약 데이터가 준비 중입니다.');
@@ -27059,6 +27067,17 @@ function renderSummary(p,johu,natal){
     }
     return common+action;
   }
+  function summaryPersonalDepth(key){
+    var source=window.SajuReadingDepth;
+    if(!source)return '';
+    var facts={p:p,power:pw,johu:johu,jong:jg,unknown:!!window.__cdSajuTimeUnknown};
+    var sections=[];
+    if(key==='wollyeong'){var month=source.monthReading(p.d.g,p.m.j);if(month)sections=month.sections;}
+    else if(key==='chongpyeong')sections=source.contextualReading(facts).filter(function(s){return s.key==='gyeok'||s.key==='unknown';});
+    else if(key==='johu')sections=source.contextualReading(facts).filter(function(s){return s.key==='climate';});
+    else if(key==='eokbu')sections=source.contextualReading(facts).filter(function(s){return s.key==='capacity'||s.key==='structure';});
+    return sections.map(function(s){return depthParagraph(s.title,s.text);}).join('');
+  }
   function box(key,title,body,accent,bg){
     var bc=accent||'#bba371';
     var id='sbx'+(++_bxCtr);
@@ -27069,7 +27088,7 @@ function renderSummary(p,johu,natal){
       '<button class="saju-summary-toggle" type="button" data-bxid="'+id+'" aria-controls="'+id+'" aria-expanded="true" onclick="sbxToggle(this.dataset.bxid,this)">'+
       '접기 ▲</button>'+
       '</div>'+
-      '<div id="'+id+'" class="prem-text saju-summary-chapter__body">'+body+summaryDepth(key)+'</div></article>';
+      '<div id="'+id+'" class="prem-text saju-summary-chapter__body">'+body+summaryDepth(key)+summaryPersonalDepth(key)+'</div></article>';
   }
   function subHead(txt,c){return '<b class="saju-summary-subhead" style="--saju-subhead-color:'+(c||'var(--cd-accent,#b31955)')+'">'+txt+'</b>';}
   function li(items){return '<ul class="saju-summary-list">'+items.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ul>';}
@@ -30139,6 +30158,7 @@ function buildDaewunReadingGuide(age, gan, zhi, ev) {
   var cycle=(window.G_DAEWUN||[]).find(function(row){return Number(row.age)===Number(age)&&row.g===gan&&row.j===zhi;});
   return api.cycleMarkup({age:age,startYear:cycle&&cycle.startYear||Number(BIRTH_YEAR)+Number(age)-1,day:p.d.g,month:p.m.j,
     dominant:G_NATAL&&G_NATAL.dominant,power:G_POWER,jong:G_JONG,climate:G_JOHU&&G_JOHU.type,
+    depth:window.SajuReadingDepth&&window.SajuReadingDepth.buildDepthFacts({p:p,power:G_POWER,johu:G_JOHU,jong:G_JONG,unknown:!!window.__cdSajuTimeUnknown}),
     stem:{char:gan,element:GAN[gan].e,god:getTenGod(p.d.g,gan),roots:knownKeys.flatMap(function(key){return (CD_JANGGAN[p[key].j]||[]).filter(function(hidden){return GAN[hidden].e===GAN[gan].e;}).map(function(hidden){return {position:labels[key],branch:p[key].j,hiddenStem:hidden};});}),balance:getQuantumElType(GAN[gan].e,p,G_JONG,G_POWER,G_JOHU)},
     branch:{char:zhi,element:JI[zhi].e,god:getTenGod(p.d.g,zhi),hiddenStems:(CD_JANGGAN[zhi]||[]).map(function(hidden,index){return {stem:hidden,god:getTenGod(p.d.g,hidden),layer:index===(CD_JANGGAN[zhi]||[]).length-1?'정기':index===0?'여기':'중기'};}),balance:getQuantumElType(JI[zhi].e,p,G_JONG,G_POWER,G_JOHU)},
     godCounts:counts,relations:relations,unknown:!!window.__cdSajuTimeUnknown,

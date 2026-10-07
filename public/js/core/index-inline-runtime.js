@@ -2255,7 +2255,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-3118fd1f806a',
+    '/js/saju-engine.js?v=build-1cda94ed77ec',
       '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
@@ -2263,7 +2263,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/saju/basicFortunePresentation.js?v=build-0717901ec907',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
     '/js/core/saju/reportDashboard.js?v=build-7a37dcf9058e',
-    '/js/saju-engine-continuation.js?v=build-8d68ebe282a3',
+    '/js/saju-engine-continuation.js?v=build-b10118108171',
     '/js/entertain-engine.js?v=build-c3b89a46c12c',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
     '/js/core/saju/dopamineResult.js?v=build-c2d0a3979a9a'
@@ -2289,7 +2289,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-9a55ded42d09')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-46f5f9da0923')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -3288,6 +3288,11 @@ var __cdRouteActionAllowList = {
   // 모바일 하단 네비 탭이 React 페이지에서 셸로 넘어올 때 쓰는 액션
   cdSajuTabEntry: true,
   cdOneStepFreeSajuEntry: true,
+  cdHomeZiweiEntry: true,
+  cdHomeSukuyoEntry: true,
+  cdHomeVedicEntry: true,
+  cdHomeAstroEntry: true,
+  cdHomeTarotEntry: true,
   cdOpenAllFortunes: true,
   // 마이 탭 — 프로필 카드 관리는 셸의 하단 시트가 정본이라 React 에서 여기로 넘어온다.
   dpOpenList: true,
@@ -8378,7 +8383,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-3118fd1f806a',
+      '/js/saju-engine.js?v=build-1cda94ed77ec',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a581a74ee045'
   ];

@@ -295,7 +295,10 @@ for (const { role, sectionId, label } of PLACEMENTS) {
     const collection = role === "quick" ? item.quickCollection : null;
     const expectedHref = role === "quick" && item.quickHref ? item.quickHref : collection ? `#${collection}` : item.href;
     if (role === "quick" && item.quickHref && !/^\/[a-z0-9/-]+\/$/.test(item.quickHref)) {
-      fail(`${label} 카드 "${id}": quickHref 는 쿼리 없는 실제 허브 경로여야 한다`);
+      const entryAction = new URL(item.quickHref, "https://code-destiny.com").searchParams.get("action");
+      if (!item.quickHref.startsWith("/?action=") || !entryAction || entryAction !== item.action || entryAction !== attrOf(head, "data-action")) {
+        fail(`${label} 카드 "${id}": 직행 링크와 레지스트리·화면 action 이 일치해야 한다`);
+      }
     }
     if (collection && (!/^[A-Za-z][A-Za-z0-9]*$/.test(collection) || !shell.includes(`id="${collection}"`) || attrOf(head, "data-cd-open-collection") !== collection || attrOf(head, "data-action"))) {
       fail(`${label} 카드 "${id}": 컬렉션 대상·열기 속성이 없거나 개별 카드 뽑기 동작이 섞였다`);
