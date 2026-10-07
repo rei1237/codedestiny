@@ -91,3 +91,12 @@ node node_modules/jest/bin/jest.js --runInBand __tests__/worker/saju-consultatio
 ```
 
 위 검사는 모두 로컬/mock이며 CI 및 운영 설정 검증을 대신하지 않는다. `check:fast -- --plan`은 위험 변경의 전체 CI 승격을 확인하는 용도이며 로컬 전체 preflight 반복을 뜻하지 않는다.
+
+## 전달 현황 — 2026-10-08 00:16 KST
+
+- 앞선 이용권 오류 수정 `5b1a4bffe909b630cf2efef7b7703be4211bcf47`은 원격 main에 전달됐다. 이후 전문가 상담 확대·신년운세 개선·타로 오탐 수정은 로컬 main 병합 `6dd2947d0b0229ed5726173f52638ecdb4f9fbd6`에 보존돼 있다.
+- 집중 Jest 9 suites / 206 tests 통과, Node 행동 검사 84 tests 통과. 위 네 가지 정책/흐름/미선언 식별자 검증 통과. `check:fast -- --plan`은 critical CI 승격 확인만 했으며 로컬 전체 게이트 통과로 보고하지 않는다.
+- 외부 API를 차단한 개발 프리뷰에서 Chromium 390px/1440px 질문 답변 렌더링 확인. 가로 overflow 없음. 사용자 첨부 Naver 인앱 브라우저 실기기 및 실제 생성 결과는 미검증이다.
+- GitHub가 2026-10-07 15:13:13Z, 15:13:45Z, 15:15:03Z의 `git push origin main`을 각각 `Internal Server Error`로 거절했다. 마지막 request ID: `D340:2FBA98:65E4F:9CBF1:6AC661F3`. GitHub API도 병합 SHA를 아직 찾지 못했다(422). 따라서 최신 변경의 main CI는 미실행이다. GitHub 상태 페이지가 정상이어도 이 저장소의 실제 거절 결과를 우선한다.
+- 다음 동작은 현재 main/원격 main 비교 → 안전한 fetch/통합 → push 재시도 → 해당 SHA의 CI required 확인이다. 실패를 우회하려고 강제 push하거나 CI를 끄지 않는다. 원격 복구 후 이 현황을 갱신한다.
+- 운영 승격·설정 변경·실 LLM·결제·운영 DB 변경은 하지 않았다. 기존 브랜치를 배포 완료로 간주하지 않는다.
