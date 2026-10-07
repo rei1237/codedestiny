@@ -780,7 +780,7 @@ function sanitizeExpertEvidence(value, depth = 0) {
     .map(([key, item]) => [key, sanitizeExpertEvidence(item, depth + 1)]));
 }
 function expertPromptPrefix(context, stage, prior) {
-  const common = `전문 분석 계약 ${FUSION_EXPERT_VERSION}. 출력 언어: ${context.locale || "ko"}. 근거 → 독립 결론 → 강점과 주의점 → 행동 조언 순으로 충분히 쓴다. 같은 문장으로 분량을 채우지 않는다.`;
+  const common = `전문 분석 계약 ${FUSION_EXPERT_VERSION}. 출력 언어: ${context.locale || "ko"}. 근거 → 독립 결론 → 강점과 주의점 → 행동 조언 순으로 충분히 쓴다. 같은 문장으로 분량을 채우지 않는다. 공감은 질문에 드러난 구체적 선택과 망설임을 짚는 데서 시작한다. 감정이 명시되지 않았으면 가능성으로만 표현하고, 과거 상처나 상대방의 속마음을 지어내지 않는다. 강점이 어떤 조건에서 부담으로 바뀌는지 생활 장면 하나로 설명하고, 그 부담을 줄일 작은 행동과 확인 기준을 연결한다. 짧은 문단 사이에 빈 줄을 두고, 다른 챕터의 위로나 조언을 반복하지 않는다. 이 편집 지침은 목표 분량 안에서 적용하며 추가 분량이나 거부 조건이 아니다.`;
   if (Number(stage) !== 2) return common;
   const projected = projectFusionFortuneContextForPrompt(context);
   delete projected.integratedInsight;
@@ -813,6 +813,8 @@ function buildExpertGroupPrompt(context, group, prior, extraInstruction, schemaI
   }
   const own = group.stage === 1 ? Object.fromEntries(group.systems.map((key) => [key, safeContext.systems[key]])) : null;
   const userPrompt = [prefix, `이 요청의 범위: ${group.id === "action" ? "실제 시기 계산과 독립 결론에 근거한 준비·선택·행동 계획. 계산에 없는 월별 사건이나 점수를 만들지 않는다." : group.focus}`,
+    group.keys.includes("openingMessage") ? "openingMessage는 사용자가 결정하려는 일과 중요하게 여기는 기준을 짧게 짚고, 이번 해석이 살필 질문으로 이어간다. 누구에게나 붙일 수 있는 위로나 결론 예고로 시작하지 않는다. 질문이 없으면 선택한 주제만 사용한다." : "",
+    group.keys.includes("closingMessage") ? "closingMessage는 종합에서 도출한 선택 기준 하나를 되짚고 사용자가 자기 속도로 실행할 여지를 남긴다. 새 예언·사건·근거를 추가하지 않고, 요약과 행동 목록을 다시 나열하지 않는다. 감정을 대신 확정하거나 성공을 약속하지 않는다." : "",
     group.stage === 1 ? `독립 전문가: ${group.systems.join(", ")}. 다른 체계의 결론을 추측하지 않는다. signals에는 동일 질문에 대한 영역별 결론과 실제 존재하는 근거 경로를 기록한다.\n${JSON.stringify({ systems: own, topic: safeContext.topic, questionFocus: safeContext.questionFocus })}` : "최종 종합과 행동은 제공된 crossCheck와 독립 결론을 근거로 작성한다.",
     group.systems.includes("tarot") ? "여섯 카드의 카드명·정역방향·포지션을 모두 인용한다. 카드 이름 자체는 서버의 표기를 유지한다." : "",
     group.systems.includes("saju") ? "격국·용신·대운·세운의 제공 근거를 설명한다. 사주 엔진은 실제 경력 10년차 명리학자 설계·자문이라는 신뢰 요소를 존중한다. 추가 계산이 별도 전문가 검수를 받았다고 표현하지 않는다." : "",
