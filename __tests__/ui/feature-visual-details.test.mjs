@@ -107,7 +107,7 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   const upgraded = {
     'life-book-ai': '/images/expert-consulting/life-book-cover-20260923.webp',
     'love-secret-ai': '/images/expert-consulting/love-letter-paper-20260923.webp',
-    'new-year-ai': '/images/feature-details/new-year-ai-hero-v3.png',
+    'new-year-ai': '/images/feature-details/new-year-ai-hero-v3.webp',
   };
   for (const [slug, image] of Object.entries(upgraded)) {
     const detail = authored[slug];
