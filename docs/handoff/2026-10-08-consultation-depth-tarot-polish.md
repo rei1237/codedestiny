@@ -1,20 +1,20 @@
 ---
-status: active
+status: done
 updated: 2026-10-08
-next: 최신 main 통합 후 push한 정확한 SHA의 CI 확인 및 자기 워크트리 정리
+next: 없음 — 구현 통합 및 main CI 통과 확인 완료
 ---
 
 # 상담 분량·추가 질문·타로 화면 개선
 
 ## 현재 상태와 전달 경계
-- 구현 및 로컬 검증 완료. 2026-10-08 보류 해제를 전달받아 main 52514f67c6d1327493e0dba57da9d79f8c4ac66a를 충돌 없이 통합했다. main push 및 CI 확인 진행 중.
-- 작업 디렉터리: D:\Development\code-destiny\.codex-worktrees\tarot-recommendation-20261008-040954
+- 구현 및 로컬 검증 완료. 보류 해제 후 main에 구현이 통합됐고, 후속 린트 수정 f4a234a7ffe033db7e0bd586e2883d6a6c5c2d22 및 사이트맵 원장 동기화 21c1a3ee87d4adef730a338f9aedf9cb58a55463까지 통합했다. main의 budgetModule 테스트 변수명을 보존했다.
+- 최종 작업 디렉터리: D:\Development\code-destiny (사용한 안전 워크트리는 종료 시 정리)
 - 브랜치: wt/tarot-recommendation-20261008-040954 (동시 작업 예외로 만든 안전 워크트리; PR 없음)
 - 마지막 구현 커밋: 42728698f1d4531f47a84e0fe52eb4e33fc899dd
 - 카드 디자인 커밋: 02d9130f5becedf9d186b3c18d1ab41aa3f8821d
 - 베이스: 6fbc2050948d68f6b683e557970bace8c0f905b4
 - 외부 보류: 사용자 승인 전달 메시지에서 ‘진단 및 CTR 개선’ 세션이 운영 배포/성능 비교 동안 main merge/push를 중지하도록 요청했다. 고정 후보는 f610e521f85377b0dfd1dc6bea7812fdd17070af. 후속 전달에서 보류가 해제됐다. 이는 운영 배포·실결제·유료 LLM 승인이 아니다. 이 전달은 다른 채팅에 회신할 권한을 주지 않았다.
-- 다른 세션의 main 미커밋 변경은 건드리지 않았다. 이 워크트리는 미통합 커밋 보존을 위해 남겨 둔다.
+- 다른 세션의 main 미커밋 변경은 보존했다. 구현은 main에 통합됐으며 이 완료 기록 push 후 자기 정션·워크트리·머지된 브랜치를 정리한다.
 
 ## 구현
 - 질문의 주제·기간·등급에 맞는 타로 배열과 예시 질문. 재물 연어/광어 7장, 참치 10장; 일반 연어 이상 추천 최소 6장. 직접 선택과 기존 최대 카드 수·가격 계약은 유지.
@@ -28,6 +28,9 @@ next: 최신 main 통합 후 push한 정확한 SHA의 CI 확인 및 자기 워�
 - 카드 선택 그리드의 행 축소를 막고 모든 카드를 2:3으로 표시. 모바일 최소 카드 너비 64px.
 
 ## 검증 결과
+- main 21c1a3ee87d4adef730a338f9aedf9cb58a55463 CI required 성공: https://github.com/rei1237/codedestiny/actions/runs/37686168077 (원장 동기화 변경의 선택 실행: 타입·린트/Static guards 통과, 빌드/Critical checks는 이전 f4a에서 통과).
+- main f4a234a7f CI: 타입·린트/빌드/Critical checks 통과. Static guards는 사이트맵 원장 드리프트로 실패; 21c1a3ee8에서 원장 동기화 후 npm run verify:sitemap-drift 통과(955 URL).
+- 구현 커밋의 Paid Flow Gates: https://github.com/rei1237/codedestiny/actions/runs/37684557505 성공.
 - node scripts/run-mock-tests.mjs node: 최종 3011/3011 통과 (새 뒷면 캐시 해시 테스트 갱신 포함).
 - node scripts/run-mock-tests.mjs jest --runInBand --silent: 354 suites, 5374/5374 통과.
 - npx tsc --noEmit: 통과. 변경 UI/라이브러리 파일 scoped ESLint 통과. git diff --check 통과.
@@ -37,10 +40,10 @@ next: 최신 main 통합 후 push한 정확한 SHA의 CI 확인 및 자기 워�
 - 실제 유료 상담 LLM·실결제·운영 DB·운영 배포는 수행하지 않았다. 내장 이미지 생성은 요청한 디자인 제작에 사용했다. 실제 생성 본문의 목표 분량·문장 품질은 미검증.
 - 화면 증거: C:/Users/user/.codex/visualizations/2026/10/07/01a117c3-f477-7641-98a4-87db7c4ab071/consultation-review (pick/recommendation/conversation/balance 각 4개 너비 PNG).
 
-## 재개
-이 디렉터리에서 git status와 git log를 확인한다. main 보류는 해제됐다. 그 뒤 최신 main 변경과 겹치는 파일을 확인하고 기존 변경을 보존하며 이 브랜치를 main에 통합한다. 사용자 규칙대로 PR 없이 main push 후 정확한 SHA의 CI 결과를 확인한다. 운영 배포는 별도 승인 없이 하지 않는다. 성공 후 이 문서를 status: done으로 닫고 자기 node_modules 정션만 해제한 뒤 자기 워크트리/머지된 wt 브랜치를 배수한다.
+## 완료
+추가 구현 작업 없음. 이 세션에서는 운영 배포를 실행하지 않았다. 실제 유료 생성 본문의 품질 검수는 별도 승인된 실호출이 있을 때만 수행한다.
 
-재검증 명령:
+검증 재현 명령:
 - node scripts/run-mock-tests.mjs node
 - node scripts/run-mock-tests.mjs jest --runInBand --silent
 - node scripts/verify-yeongnyangi-tarot-assets.mjs
