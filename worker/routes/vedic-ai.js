@@ -16,7 +16,8 @@ import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
@@ -651,20 +652,11 @@ async function resolveBillingEvidence({ env, userId, body, idempotencyKey, prici
     MonthlyCreditLedger.findOne({ userId: userObjectId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: metadataIds }, { $or: markers }] }).lean(),
   ]);
   if (blocked.some(Boolean)) return null;
+  if (await hasConsumedPassFeature({ _id: userObjectId }, FEATURE_KEY, idempotencyKey)) {
+    return { accessType: "pass", source: "pass-receipt", prepaid: true, evidenceType: "pass" };
+  }
   const user = await withMongoRetry(env, () => loadBillingUser(userObjectId));
   if (clean(user?.role).toLowerCase() === "admin") return { accessType: "paid", source: "admin", prepaid: false };
-  if (likelyAccessType === "pass") {
-    const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
-    if (featureAccess.allowed) {
-      return {
-        accessType: featureAccess.accessType || "pass",
-        paymentId: ids[0] || "",
-        source: "pass-entitlement",
-        prepaid: false,
-        evidenceType: "pass",
-      };
-    }
-  }
 
   const direct = await withMongoRetry(env, () => findDirectPayment(userObjectId, ids, idempotencyKey));
   if (direct) {
@@ -690,6 +682,13 @@ async function resolveBillingEvidence({ env, userId, body, idempotencyKey, prici
   const monthly = await withMongoRetry(env, () => findMonthlyEvidence(env, userObjectId, ids, idempotencyKey, pricing));
   if (monthly) return monthly;
 
+  // Access tokens and a resumed session need no client-supplied pass label.
+  // Confirm current entitlement on the server after looking for this request's paid evidence.
+  const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
+  if (featureAccess.allowed) return {
+    accessType: normalizeConsultAccessType(featureAccess.accessType), paymentId: "",
+    source: "pass-entitlement", prepaid: false, evidenceType: "pass",
+  };
   return null;
 }
 
@@ -1342,6 +1341,21 @@ async function handleEnsureAccess(request, env) {
   return paymentRequired(requestId);
 }
 
+async function applyUsageOnce({ userId, sessionId, accessType, pricing }) {
+  const existing = await VedicAiConsultation.findOne({ id: sessionId, userId }).select("usageAppliedAt idempotencyKey").lean();
+  if (existing?.usageAppliedAt) return true;
+  if (!existing?.idempotencyKey) throw resultStorageUnavailable(sessionId);
+  if (normalizeConsultAccessType(accessType) === "pass") {
+    const user = await User.findById(userId).select("profileSubscription recentConsumeRequestIds").lean();
+    const consumed = await consumePassForFeature({ user: user || {}, entitlement: resolveCanonicalEntitlement(user || {}),
+      userId, featureKey: FEATURE_KEY, requestId: existing.idempotencyKey, coinCost: pricing.coinPrice });
+    if (!consumed.covered) throw Object.assign(new Error("이용권 사용 한도를 확인해 주세요."),
+      { code: passDenialCode(consumed.reason) || "PAYMENT_REQUIRED" });
+  }
+  await VedicAiConsultation.updateOne({ id: sessionId, userId, usageAppliedAt: null }, { $set: { usageAppliedAt: new Date() } });
+  return true;
+}
+
 async function resolveStartAccess({ env, auth, body, normalized, idempotencyKey, pricing }) {
   const token = clean(body.accessToken);
   if (token) {
@@ -1633,6 +1647,7 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
     }
     const fresh = await resolveStartAccess({ env, auth, body, normalized, idempotencyKey, pricing });
     if (!fresh) return paymentVerifyFailed();
+    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: fresh.accessType, pricing });
     doc = await saveVedicDelivery(locked, { status: "completed", generationLease: "", usageAppliedAt: doc.usageAppliedAt || now }, sessionId);
     if (fresh.source === "direct-payment" && fresh.paymentDocId) {
       await Payment.updateOne({ _id: new mongoose.Types.ObjectId(fresh.paymentDocId), userId: objectId(auth.userId), featureKey: FEATURE_KEY, status: { $in: ["paid", "success", "fulfilled"] } }, { $set: { status: "fulfilled", sessionId, orderState: "UNLOCKED" } }).catch(error => logVedicAi("Usage bookkeeping failed", { code: error?.code }, "warn"));
