@@ -13,7 +13,8 @@ import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
@@ -597,7 +598,7 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
   }
 
   const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
-  if (featureAccess.allowed) return { ok: true, accessType: featureAccess.accessType || "pass", accessSource: "license_pass", paymentId: "", featureKey };
+  if (featureAccess.allowed) return { ok: true, accessType: normalizeConsultAccessType(featureAccess.accessType), accessSource: "license_pass", paymentId: "", featureKey };
 
   // 인증 단계에서 이미 읽은 User 문서를 재사용한다(없으면 내부에서 종전대로 조회).
   const decision = await canAccessPaidFeature(auth.userId, featureKey, { env: pricing.env, reason: orderName, userDoc: auth.authUserDoc });
@@ -1820,8 +1821,18 @@ async function restoreBillingGateAccessOnFailure({ userId, access, reason = MESS
 }
 
 async function applyUsageOnce({ request, env, auth, userId, sessionId, access, idempotencyKey, pricing, orderName = ORDER_NAME }) {
-  const existing = await LifeBookAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt llmMeta.pricingSnapshot").lean();
+  const existing = await LifeBookAiConsultation.findOne({ id: sessionId, userId: clean(userId) }).select("usageAppliedAt llmMeta.pricingSnapshot").lean();
+  if (!existing || !idempotencyKey) throw resultStorageUnavailable(sessionId);
   if (existing?.usageAppliedAt) return true;
+
+  if (normalizeConsultAccessType(access.accessType) === "pass") {
+    const user = await User.findById(userId).select("profileSubscription recentConsumeRequestIds").lean();
+    const consumed = await consumePassForFeature({ user: user || {}, entitlement: resolveCanonicalEntitlement(user || {}),
+      userId, featureKey: billingFeatureKeyOf(access), requestId: idempotencyKey, coinCost: pricing.coinPrice });
+    if (!consumed.covered) throw Object.assign(new Error("이용권 사용 한도를 확인해 주세요."), {
+      code: passDenialCode(consumed.reason) || "PAYMENT_REQUIRED",
+    });
+  }
 
   if (access.accessSource === "billing_gate_deferred") {
     await finalizeDeferredBillingUsage({ request, env, auth, access, idempotencyKey, sessionId, orderName });
@@ -1846,7 +1857,7 @@ async function applyUsageOnce({ request, env, auth, userId, sessionId, access, i
   }
 
   await LifeBookAiConsultation.updateOne(
-    { id: sessionId, usageAppliedAt: null },
+    { id: sessionId, userId: clean(userId), usageAppliedAt: null },
     { $set: { usageAppliedAt: new Date() } },
   );
   return true;
