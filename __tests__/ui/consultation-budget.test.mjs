@@ -6,7 +6,7 @@ import {createRequire} from 'node:module';
 import {getYeongnyangiSpread} from '../../lib/tarot/yeongnyangi-spread-catalog.mjs';
 const require=createRequire(import.meta.url),Module=require('node:module');
 const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/consultation-budget';export * from './worker/yeongnyangi/fortune/ask/question-policy';export {v6ReadingPolicies} from './worker/yeongnyangi/fortune/reading-policy';export {products} from './worker/yeongnyangi/payments/catalog';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
-const loaded=new Module('budget.cjs');loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,'budget.cjs');const m=loaded.exports;
+const budgetModule=new Module('budget.cjs');budgetModule.paths=Module._nodeModulePaths(process.cwd());budgetModule._compile(built.outputFiles[0].text,'budget.cjs');const m=budgetModule.exports;
 const decision={version:m.QUESTION_POLICY_VERSION,category:'money',target:'self',horizon:'current',period:'내년',situation:'수입을 늘리고 싶어요',options:'현재 일을 발전시키기',constraints:'시간',confirmed:true};
 
 test('initial plus all followups exactly equals historical tier targets',()=>{
