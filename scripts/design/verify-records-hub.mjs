@@ -120,7 +120,7 @@ async function bounds(page,width) {
 try {
   for(const width of detailOnly||stateOnly?[]:[360,390,430,1280].filter(width=>!process.env.RECORDS_TEST_WIDTH||width===Number(process.env.RECORDS_TEST_WIDTH))) {
     const state=await contextFor(width);const {page,context}=state;
-    await page.goto(origin+'/consultations/',{waitUntil:'domcontentloaded'});await page.getByRole('heading',{name:'지금, 어떤 답이 필요한가요?'}).waitFor();
+    await page.goto(origin+'/consultations/',{waitUntil:'domcontentloaded'});await page.getByRole('heading',{name:'지금, 어떤 이야기를 풀어볼까요?'}).waitFor();
     for(const source of RECORD_SERVICES.filter(row=>row.featured))assert.equal(await page.locator(`main a[href="${source.href}"]`).count(),1);
     assert.ok((await page.locator('main').innerText()).indexOf('연이의 운명 찻집')<(await page.locator('main').innerText()).indexOf('캐릭터와 대화하기'));
     await page.locator('nav.cd-mnav a[data-nav-key="consult"][aria-current="page"]').waitFor();
