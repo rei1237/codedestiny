@@ -60,6 +60,12 @@ vars.pass = `<section class="cdh-pass cdh-pass--simple" aria-labelledby="cdhPass
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.simple.passLink">이용권 알아보기</a>
 </section>`;
 vars.representativePrice = Number(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW).toLocaleString('ko-KR') + '원';
+for (const fish of ['mackerel', 'salmon', 'flounder', 'tuna']) {
+  const featureKey = `yeongnyangi-saju-${fish}`;
+  const price = FEATURE_KEY_PRICE_TABLE[featureKey]?.amountKRW;
+  if (!Number.isSafeInteger(price) || price <= 0) throw new Error(`Missing Yeongnyangi home price: ${featureKey}`);
+  vars[`yeongnyangi${fish[0].toUpperCase()}${fish.slice(1)}Price`] = price.toLocaleString('ko-KR');
+}
 // 신뢰 블록 제목·고지·CTA 는 12개 로케일 사전에 "3,000원" 을 문구로 굽는다(2026-10-05 고등어 정식가). 가격이 바뀌면 문구가 거짓이 되므로 빌드를 멈춘다.
 if (Number(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW) !== 3000) throw new Error('home funnel trust offer copy says 3,000원: update offerTitle/offerNote/offerCta before changing the mackerel price');;
 // 홈 두 상담 카드(#fortuneGatewayEntry)의 '이후 1회 3,000원'은 사전 문구다 — 가격이 바뀌면 문구부터 고친다.

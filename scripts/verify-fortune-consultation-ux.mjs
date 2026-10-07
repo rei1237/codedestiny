@@ -109,6 +109,11 @@ try {
       });
       assert.ok(art.height<=art.frameHeight+1,'The entry artwork fits its frame');
       if(mode==='pig')assert.ok(Math.abs(art.height-art.frameHeight)<1,'Yeoni artwork fills the frame');
+      if(mode==='neo') {
+        const neoArt=page.locator('#sajuConsultationEntry .consultation-entry__art--neo');
+        await neoArt.evaluate(image=>image.decode());
+        assert.match(await neoArt.getAttribute('src'),/\/images\/home\/illustrated\/neo-human-480\.webp$/,'Neo entry uses the dedicated strategist illustration');
+      }
 
     }
     await page.evaluate(()=>document.querySelector('#sajuReadingHeader [data-saju-mode="pig"]').click());
