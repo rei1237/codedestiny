@@ -1,3 +1,4 @@
+import { CHAT_QUESTION_FISH, chatQuestionFeatureKey } from '../../lib/fortune/chat-products.js';
 import { calculateMembershipCreditCost, normalizePaidFeaturePricingShape } from "./billing-policy.js";
 import { isMusicTrackFeatureKey } from "../../lib/music-access-policy.js";
 
@@ -210,7 +211,13 @@ const YEONGNYANGI_RAW_PRICE_ENTRIES = Object.freeze(Object.fromEntries([
 ]));
 export const YEONGNYANGI_PAID_FEATURE_KEYS = Object.freeze(Object.keys(YEONGNYANGI_RAW_PRICE_ENTRIES));
 
+const CHAT_QUESTION_PRICES = Object.fromEntries(CHAT_QUESTION_FISH.map(fish => {
+  const [name, amountKRW] = YEONGNYANGI_FISH[fish];
+  // Same tier prices; retain fortune-chat PASS/MONTHLY policy rather than copying Yeongnyangi rights.
+  return [chatQuestionFeatureKey(fish), {cost:amountKRW/100, amountKRW, reason:'연이·네오 질문 상담 · '+name}];
+}));
 const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
+  ...CHAT_QUESTION_PRICES,
   "vedic-ai-consultation": { cost: 300, amountKRW: 30000, reason: "베다점 전문가 상담" },
   "physiognomy-compatibility": { cost: 30, reason: "관상 궁합 분석" },
   "physiognomy-pastlife-compatibility": { cost: 30, reason: "전생 관상 궁합 분석" },
@@ -595,6 +602,7 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "life-fortune-ai-consultation",
   "karma-destiny-ai-consultation",
   "fortune-chat-consultation",
+  ...CHAT_QUESTION_FISH.map(chatQuestionFeatureKey),
   "fusion-fortune-consultation",
   "ziwei-ai-consultation",
   "ziwei-island-palace-consult",

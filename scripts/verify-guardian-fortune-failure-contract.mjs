@@ -69,6 +69,13 @@ function deliverableResult() {
 /** 스토어 호출 횟수를 세는 얇은 프록시. 어떤 메서드가 몇 번 불렸는지로 왕복 수를 검증한다. */
 function countingStore(seed = {}) {
   const inner = createMemoryGuardianFortuneStore(seed);
+  // These delivery regressions model an already admitted pre-retirement reservation.
+  // New eligibility is covered independently by guardian-fortune-usage.test.js.
+  inner.reserveDaily = async (userId, dateKey, now) => {
+    const doc=await inner.ensureDaily(userId,dateKey,now);
+    if(doc.freeUsed+doc.reserved>=1)return null;
+    doc.reserved+=1;doc.reservationUpdatedAt=now;return {...doc};
+  };
   const calls = {};
   const wrapped = { calls, state: inner.state, kind: "counting" };
   for (const key of Object.keys(inner)) {
@@ -179,7 +186,7 @@ async function run(store, overrides = {}) {
   check("성공: dailyFreeUsed=1", response.usage?.dailyFreeUsed === 1, JSON.stringify(response.usage));
   check(
     "성공: dailyFreeRemaining 이 정책 상수-1",
-    response.usage?.dailyFreeRemaining === Math.max(0, GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT - 1),
+    response.usage?.dailyFreeRemaining === Math.max(0, Math.max(0, GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT - 1)),
     JSON.stringify(response.usage),
   );
   // seed 의 freeLimit 은 3 이다(기존 회원 문서에 $setOnInsert 로 박제된 값). 정책 상수로 clamp 돼

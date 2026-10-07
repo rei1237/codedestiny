@@ -7,15 +7,12 @@ import {
   GuardianFortuneGuestUsage,
 } from "./models.js";
 
-// 🔴 무료 상담 정책 (2026-08-17 변경): **로그인해야 무료 1회**.
-// 예전에는 비로그인 1회 + 계정 하루 3회였다. 무료만으로 궁금증이 해소돼 유료 상담으로
-// 넘어갈 이유가 남지 않았다. 이제 비로그인은 0회(로그인 유도)이고 계정은 총 1회다.
-// 🔴 계정 문서에 freeLimit 이 $setOnInsert 로 박제돼 있어서(아래 :497) 상수만 낮추면
-//    기존 회원은 계속 3회를 받는다. 그래서 아래 판정들은 박제값이 아니라 이 상수를
-//    상한으로 쓴다 — 정책을 낮추면 기존 계정도 함께 내려온다.
+// 신규 무료 상담은 종료됐다. 저장된 freeLimit도 현재 상수로 제한한다.
+// 종료 전 예약의 완료·해제와 사용 증빙은 그대로 보존한다.
 export const GUARDIAN_FORTUNE_GUEST_LIMIT = 0;
-export const GUARDIAN_FORTUNE_DAILY_LIMIT = 1;
-export const GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT = 1;
+export const GUARDIAN_FORTUNE_DAILY_LIMIT = 0;
+// 2026-10-07: no new free consultations. Historical request evidence remains readable.
+export const GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT = 0;
 export const GUARDIAN_FORTUNE_DEFAULT_TIMEZONE = "Asia/Seoul";
 export const GUARDIAN_FORTUNE_GUEST_COOKIE = "guardian_fortune_guest_id";
 export const GUARDIAN_FORTUNE_RESERVATION_TTL_MS = 10 * 60 * 1000;
@@ -156,14 +153,8 @@ export function maskGuardianFortuneUsageIdentity({ userId, guestIdHash } = {}) {
   };
 }
 
-function usageMessage({ isLoggedIn, guestUsed, dailyRemaining }) {
-  if (!isLoggedIn) {
-    return guestUsed > 0
-      ? "첫 무료 상담을 이미 사용했어요. 로그인하면 3번까지 연이와 네오에게 물어볼 수 있어요."
-      : "첫 1회는 로그인 없이 무료로 볼 수 있어요.";
-  }
-  if (dailyRemaining > 0) return `남은 무료 상담 ${dailyRemaining}회`;
-  return "무료 상담을 모두 사용했어요. 지금부터는 1회 5,000원으로 이어서 물어볼 수 있어요.";
+function usageMessage({ isLoggedIn }) {
+  return isLoggedIn ? "상담 범위와 가격을 확인한 뒤 결제 수단을 선택해 주세요." : "질문을 적고 로그인하면 상담 범위를 확인할 수 있어요.";
 }
 
 export function buildGuardianFortuneDisabledUsageStatus({ isLoggedIn = false } = {}) {
@@ -267,7 +258,7 @@ export function createMemoryGuardianFortuneStore(seed = {}) {
     const userId = normalizeUserId(entry?.userId);
     if (!userId) return;
     const previous = accountSeed.get(userId) || { ...entry, userId, freeUsed: 0, reserved: 0 };
-    previous.freeUsed = Math.min(GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT, clampNonNegative(previous.freeUsed) + clampNonNegative(entry?.freeUsed));
+    previous.freeUsed = clampNonNegative(previous.freeUsed) + clampNonNegative(entry?.freeUsed);
     previous.reserved = clampNonNegative(previous.reserved) + clampNonNegative(entry?.reserved);
     accountSeed.set(userId, previous);
   });
@@ -407,7 +398,7 @@ export async function mergeGuardianFortuneAnonymousUsage({ userId, guestIdHash, 
         { upsert: true, new: true, session },
       ).lean();
       if (!existing) {
-        const nextUsed = Math.min(GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT, clampNonNegative(account?.freeUsed) + guestUsed);
+        const nextUsed = clampNonNegative(account?.freeUsed) + guestUsed;
         await GuardianFortuneAccountUsage.updateOne({ userId: accountId }, { $set: { freeUsed: nextUsed, updatedAt: now } }, { session });
         await GuardianFortuneAnonymousMerge.create([{ userId: accountId, guestIdHash: normalizedGuestHash, mergedGuestUsed: guestUsed }], { session });
         merged = true; freeUsed = nextUsed;
@@ -742,7 +733,7 @@ export function buildGuardianFortuneLimitCta(errorCode, isLoggedIn) {
   return {
     label: "이어서 상담하기",
     featureKey: GUARDIAN_FORTUNE_PAID_FEATURE_KEY,
-    reason: "무료 상담을 모두 사용했어요. 1회 5,000원으로 이어서 물어볼 수 있어요.",
+    reason: "상담 범위와 가격을 확인한 뒤 결제 수단을 선택해 주세요.",
   };
 }
 

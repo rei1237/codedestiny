@@ -57,7 +57,8 @@ describe("Guardian Fortune mock generate controller", () => {
     const contextBuilder = jest.fn(successfulContextBuilder);
     const generator = jest.fn(async () => ({ result, usedFallback: false }));
     const response = await runWithAiLocale(locale, () => generateGuardianFortuneRequest({
-      input, userId: "locale-fixture", requestId: `locale-${locale}`, dateKey: "2026-08-02",
+      resolvePaidAccess: async () => ({ ok: true }),
+input, userId: "locale-fixture", requestId: `locale-${locale}`, dateKey: "2026-08-02",
       store: createMemoryGuardianFortuneStore(), now: NOW, contextBuilder, generator,
     }));
     expect(response.ok).toBe(true);
@@ -68,7 +69,8 @@ describe("Guardian Fortune mock generate controller", () => {
     const store = createMemoryGuardianFortuneStore();
     const contextBuilder = jest.fn(successfulContextBuilder);
     const response = await generateGuardianFortuneRequest({
-      input: { ...input, category },
+      resolvePaidAccess: async () => ({ ok: true }),
+input: { ...input, category },
       guestIdHash: "guest-invalid-category",
       requestId: `invalid-category-${String(category)}`,
       dateKey: "2026-08-02",
@@ -82,11 +84,12 @@ describe("Guardian Fortune mock generate controller", () => {
     expect(store.state.guests.get("guest-invalid-category")).toBeUndefined();
   });
 
-  it("generates for a logged-in user and commits the single free use", async () => {
+  it("generates for a logged-in user with verified payment", async () => {
     const store = createMemoryGuardianFortuneStore();
     const mockGenerator = jest.fn(async () => ({ result, usedFallback: false }));
     const response = await generateGuardianFortuneRequest({
-      input,
+      resolvePaidAccess: async () => ({ ok: true }),
+input,
       userId: "user-generate-free",
       requestId: "generate-guest-1",
       dateKey: "2026-08-02",
@@ -95,7 +98,7 @@ describe("Guardian Fortune mock generate controller", () => {
       contextBuilder: successfulContextBuilder,
       mockGenerator,
     });
-    expect(response).toMatchObject({ ok: true, generationSource: "daily_free", result });
+    expect(response).toMatchObject({ ok: true, generationSource: "paid", result });
     expect(response.usage.dailyFreeRemaining).toBe(0);
     expect(mockGenerator).toHaveBeenCalledTimes(1);
   });
@@ -103,7 +106,8 @@ describe("Guardian Fortune mock generate controller", () => {
   it("does not consume quota when context building fails", async () => {
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
-      input,
+      resolvePaidAccess: async () => ({ ok: true }),
+input,
       userId: "user-context-0001",
       requestId: "generate-context-1",
       dateKey: "2026-08-02",
@@ -121,7 +125,8 @@ describe("Guardian Fortune mock generate controller", () => {
     controller.abort();
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
-      input,
+      resolvePaidAccess: async () => ({ ok: true }),
+input,
       userId: "user-chat-cancelled-01",
       requestId: "guardian-chat-cancelled",
       dateKey: "2026-08-02",
@@ -138,7 +143,8 @@ describe("Guardian Fortune mock generate controller", () => {
   it("does not consume a use when the chat result cannot be delivered to its stream", async () => {
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
-      input,
+      resolvePaidAccess: async () => ({ ok: true }),
+input,
       userId: "user-chat-undelivered-01",
       requestId: "guardian-chat-undelivered",
       dateKey: "2026-08-02",
@@ -155,7 +161,8 @@ describe("Guardian Fortune mock generate controller", () => {
   it("does not consume quota when mock generation returns a fallback", async () => {
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
-      input,
+      resolvePaidAccess: async () => ({ ok: true }),
+input,
       userId: "user-mock-fail-01",
       requestId: "generate-mock-fail-1",
       dateKey: "2026-08-02",
@@ -171,7 +178,8 @@ describe("Guardian Fortune mock generate controller", () => {
   it("commits usage when a validated fallback is actually delivered", async () => {
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
-      input,
+      resolvePaidAccess: async () => ({ ok: true }),
+input,
       userId: "user-visible-fallback",
       requestId: "generate-visible-fallback-1",
       dateKey: "2026-08-02",
@@ -180,7 +188,7 @@ describe("Guardian Fortune mock generate controller", () => {
       contextBuilder: successfulContextBuilder,
       mockGenerator: async () => ({ result, usedFallback: true, deliverable: true, errorCode: "PROVIDER_TIMEOUT" }),
     });
-    expect(response).toMatchObject({ ok: true, generationSource: "daily_free", result });
+    expect(response).toMatchObject({ ok: true, generationSource: "paid", result });
     expect(response.usage.dailyFreeRemaining).toBe(0);
   });
 
@@ -189,7 +197,7 @@ describe("Guardian Fortune mock generate controller", () => {
       daily: { "user-generate:2026-08-02": { userId: "user-generate", dateKey: "2026-08-02", freeLimit: 1, freeUsed: 1, reserved: 0 } },
     });
     const response = await generateGuardianFortuneRequest({
-      input,
+input,
       userId: "user-generate",
       requestId: "generate-paid-1",
       dateKey: "2026-08-02",
@@ -206,11 +214,12 @@ describe("Guardian Fortune mock generate controller", () => {
 
   // 🔴 공유 스냅샷은 무료 결과 전용이다. 결제분에도 초안 토큰이 나가면 유료 본문이 공개 URL 로
   // 굳어 버린다 — 클라이언트 분기로는 못 막는다(토큰만 있으면 POST /guardian/share 가 통과).
-  it("issues a share draft token for free results but never for a paid generation", async () => {
+  it("does not issue share draft tokens for new unpaid or paid generations", async () => {
     const shareEnv = { ENABLE_GUARDIAN_FORTUNE_SHARE: "true", GUARDIAN_FORTUNE_SHARE_SECRET: "test-share-secret" };
     const free = await generateGuardianFortuneRequest({
-      input,
+input,
       userId: "user-share-free",
+      resolvePaidAccess: async () => ({ ok: false }),
       requestId: "generate-share-free-1",
       dateKey: "2026-08-02",
       store: createMemoryGuardianFortuneStore(),
@@ -219,11 +228,11 @@ describe("Guardian Fortune mock generate controller", () => {
       mockGenerator: async () => ({ result, usedFallback: false }),
       contextOptions: { env: shareEnv },
     });
-    expect(free).toMatchObject({ ok: true, generationSource: "daily_free" });
-    expect(typeof free.shareDraftToken).toBe("string");
+    expect(free).toMatchObject({ ok: false, status:402 });
+    expect(free.shareDraftToken).toBeUndefined();
 
     const paid = await generateGuardianFortuneRequest({
-      input,
+input,
       userId: "user-share-paid",
       requestId: "generate-share-paid-1",
       dateKey: "2026-08-02",
@@ -247,7 +256,7 @@ describe("Guardian Fortune mock generate controller", () => {
     const contextBuilder = jest.fn(successfulContextBuilder);
     const mockGenerator = jest.fn(async () => ({ result, usedFallback: false }));
     const response = await generateGuardianFortuneRequest({
-      input,
+input,
       userId: "user-blocked",
       requestId: "generate-blocked-1",
       dateKey: "2026-08-02",
@@ -276,7 +285,8 @@ describe("Guardian Fortune mock generate controller", () => {
       throw error;
     };
     const response = await generateGuardianFortuneRequest({
-      input,
+      resolvePaidAccess: async () => ({ ok: true }),
+input,
       guestIdHash: "guest-db-down",
       requestId: "generate-db-down-1",
       dateKey: "2026-08-02",
@@ -302,7 +312,8 @@ describe("Guardian Fortune mock generate controller", () => {
     const store = createMemoryGuardianFortuneStore();
     store.reserveGuest = async () => { throw new TypeError("reserveGuest is broken"); };
     await expect(generateGuardianFortuneRequest({
-      input,
+      resolvePaidAccess: async () => ({ ok: true }),
+input,
       guestIdHash: "guest-real-bug",
       requestId: "generate-real-bug-1",
       dateKey: "2026-08-02",

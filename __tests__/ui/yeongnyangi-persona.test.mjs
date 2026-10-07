@@ -15,7 +15,7 @@ const replacements={
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
   'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
 };
-const bundle=await build({stdin:{contents:"export {prepareFortune} from './worker/yeongnyangi/service'; export {products,getChatProduct,resolveStoredProduct,getProduct,chatTarotKinds} from './worker/yeongnyangi/payments/catalog'; export {tarotConsultations} from './worker/yeongnyangi/fortune/tarot/consultation-contract'; export {TAROT_KINDS} from './app/fortune-chat/consultation-world'; export {StructuredChapterProvider,personaPrompt} from './worker/yeongnyangi/providers/chapter'; export {persona as yeongnyangiPersona, honorificPersona as yeongnyangiHonorific} from './worker/yeongnyangi/prompts/persona/yeongnyangi'; export {persona as yeoniPersona} from './worker/yeongnyangi/prompts/persona/yeoni'; export {persona as neoPersona} from './worker/yeongnyangi/prompts/persona/neo';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
+const bundle=await build({stdin:{contents:"export {prepareFortune} from './worker/yeongnyangi/service'; export {products,getChatProduct,resolveStoredProduct,getProduct,chatTarotKinds,chatQuestionProducts} from './worker/yeongnyangi/payments/catalog'; export {tarotConsultations} from './worker/yeongnyangi/fortune/tarot/consultation-contract'; export {TAROT_KINDS} from './app/fortune-chat/consultation-world'; export {StructuredChapterProvider,personaPrompt} from './worker/yeongnyangi/providers/chapter'; export {persona as yeongnyangiPersona, honorificPersona as yeongnyangiHonorific} from './worker/yeongnyangi/prompts/persona/yeongnyangi'; export {persona as yeoniPersona} from './worker/yeongnyangi/prompts/persona/yeoni'; export {persona as neoPersona} from './worker/yeongnyangi/prompts/persona/neo';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('persona-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const m=loaded.exports;
 const env={GEMINIF_API_KEY:'mock-never-sent',LLM_DRY_RUN:'false'};
@@ -168,4 +168,25 @@ test('voiceStyle: only a Korean Yeongnyangi honorific order changes the identity
  const {system:a,...restA}=plain,{system:b,...restB}=polite;
  assert.deepEqual(restB,restA);
  assert.equal(b.replace(m.yeongnyangiHonorific,'<persona>'),a.replace(m.yeongnyangiPersona,'<persona>'));
+});
+
+const questionDecision={version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'업무 부탁을 자주 받아요',options:'',period:'',constraints:'',confirmed:true};
+test('chat question catalog prices, support limits and stored identities share the server registry',()=>{
+ const prices={mackerel:3000,salmon:9000,flounder:15000,tuna:30000};
+ const catalog=m.chatQuestionProducts();assert.equal(catalog.length,21);
+ for(const product of catalog){assert.equal(product.priceKRW,prices[product.fishId]);assert.equal(product.cdFeatureKey,'fortune-chat-question-'+product.fishId);assert.deepEqual(m.resolveStoredProduct(product.id),product);}
+ for(const domain of ['tarot','astrology','sukuyo'])assert.ok(!catalog.some(p=>p.domain===domain&&p.fishId==='tuna'));
+});
+test('missing or forged fish and unsupported long-term requests stop before calculation or storage',async()=>{
+ const before=globalThis.__personaTest.rows.size;
+ for(const fishId of [undefined,null,'','assorted','invalid'])await assert.rejects(m.prepareFortune(env,'tier-owner',{domain:'saju',fishId,questionDecision,question:'부탁을 어떻게 거절할까?'},{persona:'yeoni'}),e=>e.code==='QUESTION_PRODUCT_MISMATCH');
+ for(const domain of ['tarot','astrology','sukuyo'])await assert.rejects(m.prepareFortune(env,'tier-owner',{domain,fishId:'tuna',questionDecision:{...questionDecision,horizon:'transition',period:'2027년'},question:'다음 시기 준비'},{persona:'neo'}),e=>e.code==='QUESTION_SCOPE_UNSUPPORTED');
+ assert.equal(globalThis.__personaTest.rows.size,before);
+});
+test('new chat questions persist the tier contract and separate personas on one attempt',async()=>{
+ const body={domain:'saju',fishId:'mackerel',profileId:'self',timezone:'Asia/Seoul',question:'부탁을 어떻게 거절할까?',questionDecision,consultationAttemptId:'11111111-1111-4111-8111-111111111111'};
+ const a=await m.prepareFortune(env,'tier-owner',body,{persona:'yeoni'}),b=await m.prepareFortune(env,'tier-owner',body,{persona:'neo'});
+ assert.notEqual(a._id,b._id);assert.equal(a.featureKey,'fortune-chat-question-mackerel');assert.equal(a.snapshot.questionContract.followups,0);
+ assert.equal(a.snapshot.manifest.length,1);assert.equal(a.snapshot.manifest[0].questionPolicy,questionDecision.version);
+ assert.equal((await m.prepareFortune(env,'tier-owner',body,{persona:'yeoni'}))._id,a._id);
 });

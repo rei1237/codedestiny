@@ -1,3 +1,4 @@
+import { isChatFeatureKey } from '../../lib/fortune/chat-products.js';
 /**
  * 단계 ② 주문 생성 · ⑤ 주문 확정. **이 시스템의 모든 CAS 조건이 여기에만 있다.**
  *
@@ -111,7 +112,7 @@ export async function createOrder(db, {
     fortunePaymentGeneration=Number(fortune.paymentGeneration || 0);
     idempotencyKey=generationKey(requestId,fortunePaymentGeneration);
   }
-  if (product.featureKey === 'fortune-chat-consultation' && String(requestId || '').startsWith('fc-')) {
+  if (isChatFeatureKey(product.featureKey) && (product.featureKey !== 'fortune-chat-consultation' || String(requestId || '').startsWith('fc-'))) {
     const {assertChatPaymentIntent}=await import('../yeongnyangi/payment-intent.js');
     await assertChatPaymentIntent(db,{userId,requestId,product});
   }

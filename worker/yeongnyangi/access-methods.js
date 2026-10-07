@@ -7,7 +7,7 @@ export const hasRequestAccess = row => Boolean(row?.paymentId || NON_CASH_ACCESS
 
 // Fortune-chat (Yeoni/Neo) consultations are paid per use under the existing fortune-chat key. Their checkout,
 // coin, moonlight-stone and pass records carry `fc-<request id>`, never the Yeongnyangi `yn-` prefix.
-export const CHAT_FEATURE_KEY = 'fortune-chat-consultation';
+export { CHAT_FEATURE_KEY, CHAT_FEATURE_KEYS, isChatFeatureKey } from '../../lib/fortune/chat-products.js';
 export const chatPaymentRequestId = id => `fc-${id}`;
 // `paymentClaimOrderId` holders on a fortune-chat consultation. Card prepare and a pass activation take the field by
 // compare-and-set before anything can be charged, so a card window and a pass spend never both start. One card claim

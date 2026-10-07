@@ -3,6 +3,7 @@ import {createHttpError} from '../../worker/lib/http.js';
 
 const userId='507f1f77bcf86cd799439011', id='b'.repeat(64);
 const auth=jest.fn(),security=jest.fn(),prepare=jest.fn(),activate=jest.fn(),retry=jest.fn(),read=jest.fn(),resume=jest.fn(),usage=jest.fn();
+const draw=jest.fn(),conversation=jest.fn();
 const find=jest.fn(),lean=jest.fn();
 const query={select:()=>query,sort:()=>query,limit:()=>query,lean};
 jest.unstable_mockModule('../../worker/lib/auth.js',()=>({requireUserFromRequest:auth,getOptionalUserFromRequest:jest.fn()}));
@@ -14,9 +15,13 @@ jest.unstable_mockModule('../../worker/lib/guardian-fortune-usage.js',()=>({buil
   hashGuardianFortuneGuestId:jest.fn(),mergeGuardianFortuneAnonymousUsage:jest.fn(),GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT:1,GUARDIAN_FORTUNE_PAID_FEATURE_KEY:"fortune-chat-consultation"}));
 jest.unstable_mockModule('../../worker/yeongnyangi/delivery.js',()=>({readAndContinueFortune:resume}));
 jest.unstable_mockModule('../../worker/yeongnyangi/retry.js',()=>({retryFortune:retry}));
-jest.unstable_mockModule('../../worker/yeongnyangi/per-use-access.js',()=>({CHAT_ACCESS_CHOICES:['free_trial','pass','checkout']}));
+jest.unstable_mockModule('../../worker/yeongnyangi/per-use-access.js',()=>({CHAT_ACCESS_CHOICES:['pass','checkout']}));
 jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({readRequest:read,ownerId:value=>value,YeongnyangiRequest:{find}}));
-jest.unstable_mockModule('../../worker/yeongnyangi/service.ts',()=>({prepareFortune:prepare,activateFortune:activate,presentFortune:row=>({id:row._id,state:row.state})}));
+jest.unstable_mockModule('../../worker/yeongnyangi/service.ts',()=>({prepareFortune:prepare,activateFortune:activate,drawTarotSpread:draw,presentFortune:row=>({id:row._id,state:row.state})}));
+jest.unstable_mockModule('../../worker/yeongnyangi/payments/catalog.ts',()=>({chatQuestionProducts:()=>[]}));
+jest.unstable_mockModule('../../worker/yeongnyangi/question-followup.ts',()=>({questionConversation:conversation}));
+jest.unstable_mockModule('../../worker/yeongnyangi/fortune/ask/question-policy.ts',()=>({QUESTION_POLICY_VERSION:'question-consultation-20261007',FOLLOWUP_LIMITS:{},questionScopes:{}}));
+const decision={version:'question-consultation-20261007'};
 let handleFortuneChatRoutes;
 beforeAll(async()=>{({handleFortuneChatRoutes}=await import('../../worker/routes/fortune-chat.js'));});
 
@@ -27,7 +32,7 @@ const request=(path,method='GET',body)=>new Request('https://code-destiny.com/ap
 });
 beforeEach(()=>{
   jest.clearAllMocks();auth.mockResolvedValue({userId});security.mockResolvedValue({ok:true});
-  for(const fn of [prepare,activate,retry,read,resume])fn.mockResolvedValue(chatRow);
+  for(const fn of [prepare,activate,retry,read,resume,draw,conversation])fn.mockResolvedValue(chatRow);
   usage.mockResolvedValue({dailyFreeRemaining:1});find.mockReturnValue(query);lean.mockResolvedValue([]);
 });
 
@@ -40,14 +45,14 @@ test('flag off still reads and continues a consultation already started',async()
   expect(response.status).toBe(200);expect(resume).toHaveBeenCalledWith({},userId,id);
   expect((await handleFortuneChatRoutes(request(`/${id}/generate`,'POST',{}),{})).status).toBe(202);
 });
-test('create passes the persona as a server option and reports the free use for unpaid rows',async()=>{
-  const response=await handleFortuneChatRoutes(request('','POST',{persona:'neo',question:'이직해도 될까요?'}),on);
+test('create passes the persona as a server option and reports no new free use for unpaid rows',async()=>{
+  const response=await handleFortuneChatRoutes(request('','POST',{persona:'neo',question:'이직해도 될까요?',fishId:'salmon',questionDecision:decision}),on);
   expect(response.status).toBe(201);
   expect(prepare).toHaveBeenCalledWith(on,userId,expect.objectContaining({question:'이직해도 될까요?'}),{persona:'neo'});
-  expect((await response.json()).consultation).toMatchObject({paidFeatureKey:'fortune-chat-consultation',paymentRequestId:`fc-${id}`,freeTrialAvailable:true});
+  expect((await response.json()).consultation).toMatchObject({paidFeatureKey:'fortune-chat-consultation',paymentRequestId:`fc-${id}`,freeTrialAvailable:false});
   expect((await handleFortuneChatRoutes(request('','POST',{persona:'yeongnyangi'}),on)).status).toBe(400);
 });
-test.each([['pass','pass'],['free_trial','free_trial'],['checkout','checkout'],['family',''],[undefined,'']])('activate forwards access %p as %p',async(access,expected)=>{
+test.each([['pass','pass'],['free_trial',''],['checkout','checkout'],['family',''],[undefined,'']])('activate forwards access %p as %p',async(access,expected)=>{
   await handleFortuneChatRoutes(request(`/${id}/activate`,'POST',{access}),on);
   expect(activate).toHaveBeenCalledWith(on,userId,id,{access:expected});
 });
@@ -69,7 +74,7 @@ test('history is per persona and limited to fortune-chat consultations',async()=
   const listed=await handleFortuneChatRoutes(request('?persona=neo'),on);
   expect(listed.status).toBe(200);expect(await listed.json()).toMatchObject({enabled:true,consultations:[]});
   expect(await (await handleFortuneChatRoutes(request('?persona=yeoni'),{})).json()).toMatchObject({enabled:false});
-  expect(find).toHaveBeenCalledWith({userId,persona:'neo',featureKey:'fortune-chat-consultation'});
+  expect(find).toHaveBeenCalledWith({userId,persona:'neo',featureKey:{$in:expect.arrayContaining(['fortune-chat-consultation','fortune-chat-question-tuna'])}});
 });
 test('guests read only the flag: status needs no login and touches no consultation',async()=>{
   auth.mockRejectedValue(createHttpError(401,'AUTH_REQUIRED',{code:'AUTH_REQUIRED'}));
@@ -79,4 +84,20 @@ test('guests read only the flag: status needs no login and touches no consultati
   expect((await handleFortuneChatRoutes(request('/status','POST',{}),on)).status).toBe(404);
   expect(auth).not.toHaveBeenCalled();expect(find).not.toHaveBeenCalled();expect(prepare).not.toHaveBeenCalled();
   expect((await handleFortuneChatRoutes(request('?persona=yeoni'),on)).status).toBe(401);
+});
+
+test('new requests require current scope before preparing any consultation',async()=>{
+ for(const questionDecision of [undefined,{version:'old'}]){
+  const response=await handleFortuneChatRoutes(request('','POST',{persona:'yeoni',fishId:'salmon',questionDecision}),on);
+  expect(response.status).toBe(400);expect((await response.json()).code).toBe('QUESTION_SCOPE_REQUIRED');
+ }
+ expect(prepare).not.toHaveBeenCalled();
+});
+test.each(['draw','conversation'])('question action %s verifies chat identity before execution',async action=>{
+ read.mockResolvedValue({...chatRow,featureKey:'fortune-chat-question-salmon'});
+ expect((await handleFortuneChatRoutes(request('/'+id+'/'+action,'POST',{}),on)).status).toBe(200);
+ const operation=action==='draw'?draw:conversation;expect(operation).toHaveBeenCalledWith(on,userId,id,{});
+ operation.mockClear();read.mockResolvedValue({...chatRow,featureKey:'yeongnyangi-saju-salmon'});
+ expect((await handleFortuneChatRoutes(request('/'+id+'/'+action,'POST',{}),on)).status).toBe(404);
+ expect(operation).not.toHaveBeenCalled();
 });

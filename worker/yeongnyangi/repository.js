@@ -9,7 +9,7 @@ import { createHttpError } from '../lib/http.js';
 
 import { YeongnyangiRequest } from '../lib/yeongnyangi-models.js';
 import { scopeConnection } from '../lib/db-scope-connection.js';
-import { CHAT_FEATURE_KEY, chatCardClaim, chatPaymentRequestId } from './access-methods.js';
+import { CHAT_FEATURE_KEY, CHAT_FEATURE_KEYS, isChatFeatureKey, chatCardClaim, chatPaymentRequestId } from './access-methods.js';
 export { YeongnyangiRequest };
 
 const paidStatuses = ['paid','success','fulfilled'];
@@ -271,7 +271,7 @@ function assertCurrentPrice(current, expectedCharge, options) {
   return currentAmountKRW;
 }
 
-const unattachedChat=(requestId,userId)=>({_id:requestId,userId:ownerId(userId),featureKey:CHAT_FEATURE_KEY,paymentId:null,
+const unattachedChat=(requestId,userId)=>({_id:requestId,userId:ownerId(userId),featureKey:{$in:CHAT_FEATURE_KEYS},paymentId:null,
   $or:[{accessMethod:null},{accessMethod:{$exists:false}}]});
 
 // Fortune-chat consultations never take a Yeongnyangi payment, moonlight-stone or Family path: only the
@@ -349,7 +349,7 @@ export async function attachPayment(env, userId, requestId, expectedCharge, opti
   if(hasRequestAccess(current))return current;
   // No funding path may run before the buyer's cards are committed: Family/월정석 would otherwise consume first.
   if(current.state==='AWAITING_DRAW')throw failure(409,'TAROT_DRAW_REQUIRED');
-  if(current.featureKey===CHAT_FEATURE_KEY)return attachChatAccess(env,userId,requestId,current,expectedCharge,options);
+  if(isChatFeatureKey(current.featureKey))return attachChatAccess(env,userId,requestId,current,expectedCharge,options);
   try{return await attachDirectPayment(env,userId,requestId,expectedCharge);}
   catch(error){if(error?.code!=='PAYMENT_REQUIRED'&&error?.payload?.code!=='PAYMENT_REQUIRED')throw error;}
   const currentAmountKRW=assertCurrentPrice(current,expectedCharge,options);
