@@ -1,216 +1,88 @@
 #!/usr/bin/env node
+// Only explicitly reviewed, unchanged, untracked temporary files may be removed.
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 
-import fs from "node:fs";
-import path from "node:path";
+const PROTECTED = /^(?:\.git|\.env[^/]*|\.wrangler|\.cloudflare|\.deploy-state|\.claude|\.codex[^/]*|\.delivery-worktrees|\.worktrees|\.integration|node_modules|backups|calibration|key|app|apps|public|worker|config|i18n|marketing|store-assets|artifacts)(?:\/|$)/i;
+const SECRET = /(?:^|\/)(?:[^/]*\.(?:pem|key|p12|jks|keystore)|\.env[^/]*|[^/]*(?:credential|secret)[^/]*)$/i;
+const FINAL = /(?:^|\/)(?:[^/]*(?:final|delivery|receipt|handoff|preserved|backup|signature|release|verification|state)[^/]*)/i;
+const CACHE = /^(?:\.next|\.cache|build-cache|coverage|playwright-report|test-results|tmp|\.tmp)\//;
+const TEMP = /(?:\.log|\.err|\.tsbuildinfo|\.tmp)$/i;
+const hash = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+const gitFiles = root => execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 }).split('\0').filter(Boolean);
 
-const rootDir = process.cwd();
-const reportsDir = path.join(rootDir, "reports");
-const applyMode = process.argv.slice(2).includes("--apply");
-
-const DELETE_DIRS = [
-  ".next",
-  "out",
-  "dist",
-  "build",
-  "coverage",
-  "playwright-report",
-  "test-results",
-  ".wrangler",
-  ".cloudflare",
-];
-
-const PROTECTED_EXACT = new Set([
-  "index.html",
-  "package.json",
-  "package-lock.json",
-  "wrangler.toml",
-  "wrangler.assets.toml",
-  "worker/wrangler.toml",
-  "next.config.mjs",
-  "middleware.js",
-]);
-
-const PROTECTED_PREFIXES = [
-  "public/",
-  "app/",
-  "worker/",
-  "utils/astrology/",
-  "fortune/",
-];
-
-const LOG_FILE_REGEX = [
-  /^npm-debug\.log/i,
-  /^yarn-debug\.log/i,
-  /^yarn-error\.log/i,
-  /^pnpm-debug\.log/i,
-  /\.log$/i,
-];
-
-function toPosix(filePath) {
-  return filePath.split(path.sep).join("/");
-}
-
-function ensureReportsDir() {
-  fs.mkdirSync(reportsDir, { recursive: true });
-}
-
-function isProtected(relPath) {
-  if (PROTECTED_EXACT.has(relPath)) return true;
-  for (const prefix of PROTECTED_PREFIXES) {
-    if (relPath === prefix.slice(0, -1) || relPath.startsWith(prefix)) return true;
+export function checkedPath(root, relative) {
+  if (typeof relative !== 'string' || !relative || relative.includes('\\') || relative.includes(':') || relative.includes('\0') || path.isAbsolute(relative)) throw new Error('Invalid relative path');
+  const parts = relative.split('/');
+  if (parts.some(p => !p || p === '.' || p === '..')) throw new Error('Path traversal rejected');
+  if (PROTECTED.test(relative) || SECRET.test(relative) || FINAL.test(relative)) throw new Error('Protected path: ' + relative);
+  const base = fs.realpathSync(root);
+  let current = base;
+  for (const part of parts) {
+    current = path.join(current, part);
+    if (fs.lstatSync(current).isSymbolicLink()) throw new Error('Symlink/junction rejected: ' + relative);
+    const resolved = fs.realpathSync(current);
+    if (!resolved.startsWith(base + path.sep)) throw new Error('Outside workspace: ' + relative);
   }
-  return false;
+  if (!fs.lstatSync(current).isFile()) throw new Error('Only individual files are supported');
+  if (!CACHE.test(relative) && !TEMP.test(relative) && !/(?:^|\/)(?:\.DS_Store|Thumbs\.db)$/.test(relative)) throw new Error('Not a reproducible temporary file: ' + relative);
+  return current;
 }
 
-function isLogFile(baseName) {
-  return LOG_FILE_REGEX.some((re) => re.test(baseName));
-}
-
-function collectWalkFiles(baseDir) {
-  const out = [];
-  const stack = [baseDir];
-
-  while (stack.length) {
-    const current = stack.pop();
-    const entries = fs.readdirSync(current, { withFileTypes: true });
-
-    for (const entry of entries) {
-      const abs = path.join(current, entry.name);
-      const rel = toPosix(path.relative(baseDir, abs));
-
-      if (entry.isDirectory()) {
-        if (entry.name === ".git" || entry.name === "node_modules") continue;
-        stack.push(abs);
-        continue;
-      }
-
-      if (entry.isFile()) out.push(rel);
-    }
-  }
-
-  return out;
-}
-
-function collectCandidates() {
-  const planned = [];
-  const skippedProtected = [];
-
-  for (const relDir of DELETE_DIRS) {
-    const absDir = path.join(rootDir, relDir);
-    if (!fs.existsSync(absDir)) continue;
-    if (isProtected(relDir)) {
-      skippedProtected.push({ path: relDir, reason: "protected-path" });
-      continue;
-    }
-    planned.push({ path: relDir, type: "directory", reason: "build-or-cache-directory" });
-  }
-
-  const allFiles = collectWalkFiles(rootDir);
-  for (const rel of allFiles) {
-    const base = path.basename(rel);
-    const normalized = toPosix(rel);
-
-    let reason = null;
-
-    if (/^_tmp_/i.test(base) || normalized.includes("/_tmp_")) {
-      reason = "temporary-artifact";
-    } else if (/^\._/.test(base) || base === ".DS_Store" || base === "Thumbs.db") {
-      reason = "os-artifact";
-    } else if (base === "tsconfig.tsbuildinfo" || base.endsWith(".tsbuildinfo")) {
-      reason = "typescript-buildinfo";
-    } else if (isLogFile(base)) {
-      reason = "log-file";
-    }
-
-    if (!reason) continue;
-
-    if (isProtected(normalized)) {
-      skippedProtected.push({ path: normalized, reason: "protected-path" });
-      continue;
-    }
-
-    planned.push({ path: normalized, type: "file", reason });
-  }
-
-  const dedup = new Map();
-  for (const item of planned) {
-    if (!dedup.has(item.path)) dedup.set(item.path, item);
-  }
-
-  return {
-    candidates: [...dedup.values()].sort((a, b) => a.path.localeCompare(b.path)),
-    skippedProtected: skippedProtected.sort((a, b) => a.path.localeCompare(b.path)),
-  };
-}
-
-function writeJsonReport(fileName, payload) {
-  const reportPath = path.join(reportsDir, fileName);
-  fs.writeFileSync(reportPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
-  console.log(`[safe-clean-repo] wrote ${toPosix(path.relative(rootDir, reportPath))}`);
-}
-
-function applyCleanup(candidates) {
-  const deleted = [];
-  const failed = [];
-
-  for (const item of candidates) {
-    const abs = path.join(rootDir, item.path);
+export function createPlan(root, selected) {
+  root = fs.realpathSync(root);
+  const tracked = new Set(gitFiles(root));
+  const files = selected ?? fs.readdirSync(root).filter(name => TEMP.test(name) && !fs.lstatSync(path.join(root, name)).isSymbolicLink());
+  const candidates = [], skipped = [];
+  for (const relative of [...new Set(files)].sort()) {
     try {
-      if (!fs.existsSync(abs)) continue;
-      fs.rmSync(abs, { recursive: true, force: true });
-      deleted.push(item);
-    } catch (error) {
-      failed.push({ ...item, error: String(error && error.message ? error.message : error) });
-    }
+      if (tracked.has(relative)) throw new Error('Tracked file requires a separate reviewed code change');
+      const absolute = checkedPath(root, relative), stat = fs.statSync(absolute);
+      candidates.push({ path: relative, bytes: stat.size, mtimeMs: stat.mtimeMs, sha256: hash(absolute), reason: 'reproducible temporary file; review ownership before apply' });
+    } catch (error) { skipped.push({ path: relative, reason: error.message }); }
   }
+  return { version: 1, root, candidates, skipped };
+}
 
-  return { deleted, failed };
+export function applyPlan(root, plan) {
+  root = fs.realpathSync(root);
+  if (plan.version !== 1 || plan.root !== root || !Array.isArray(plan.candidates)) throw new Error('Plan does not belong to this workspace');
+  const tracked = new Set(gitFiles(root));
+  const seen = new Set();
+  const validate = item => {
+    if (!item || seen.has(item.path)) throw new Error('Invalid or duplicate candidate');
+    if (tracked.has(item.path)) throw new Error('File is now tracked: ' + item.path);
+    const absolute = checkedPath(root, item.path), stat = fs.statSync(absolute);
+    if (stat.size !== item.bytes || stat.mtimeMs !== item.mtimeMs || hash(absolute) !== item.sha256) throw new Error('File changed after review: ' + item.path);
+    return absolute;
+  };
+  // Preflight every item before the first unlink. No recursive delete or force.
+  for (const item of plan.candidates) { validate(item); seen.add(item.path); }
+  seen.clear();
+  const deleted = [];
+  for (const item of plan.candidates) {
+    fs.unlinkSync(validate(item));
+    seen.add(item.path);
+    deleted.push(item.path);
+  }
+  return { deleted, bytes: plan.candidates.reduce((sum, item) => sum + item.bytes, 0) };
 }
 
 function main() {
-  ensureReportsDir();
-
-  const { candidates, skippedProtected } = collectCandidates();
-
-  const plan = {
-    generatedAt: new Date().toISOString(),
-    mode: applyMode ? "apply" : "dry-run",
-    candidateCount: candidates.length,
-    skippedProtectedCount: skippedProtected.length,
-    candidates,
-    skippedProtected,
-    notes: [
-      "This cleaner only targets cache/build/temp artifacts.",
-      "Protected files and directories are never removed.",
-    ],
-  };
-
-  writeJsonReport("cleanup-plan.json", plan);
-
-  if (!applyMode) {
-    console.log(`[safe-clean-repo] dry-run complete. candidates=${candidates.length}`);
-    return;
+  const args = process.argv.slice(2);
+  const value = flag => { const i = args.indexOf(flag); return i < 0 ? undefined : args[i + 1]; };
+  if (args.includes('--apply')) {
+    const file = value('--manifest');
+    if (!file) throw new Error('--apply requires --manifest <reviewed-plan.json>');
+    console.log(JSON.stringify(applyPlan(process.cwd(), JSON.parse(fs.readFileSync(file, 'utf8'))), null, 2));
+  } else {
+    const selected = value('--select');
+    console.log(JSON.stringify(createPlan(process.cwd(), selected ? JSON.parse(fs.readFileSync(selected, 'utf8')) : undefined), null, 2));
   }
-
-  const { deleted, failed } = applyCleanup(candidates);
-  const applied = {
-    generatedAt: new Date().toISOString(),
-    mode: "apply",
-    attemptedCount: candidates.length,
-    deletedCount: deleted.length,
-    failedCount: failed.length,
-    deleted,
-    failed,
-  };
-
-  writeJsonReport("cleanup-applied.json", applied);
-
-  if (failed.length > 0) {
-    console.error(`[safe-clean-repo] apply finished with failures. failed=${failed.length}`);
-    process.exit(1);
-  }
-
-  console.log(`[safe-clean-repo] apply complete. deleted=${deleted.length}`);
 }
-
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  try { main(); } catch (error) { console.error('[safe-clean-repo] ' + error.message); process.exitCode = 1; }
+}
