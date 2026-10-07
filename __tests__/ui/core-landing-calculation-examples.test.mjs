@@ -76,6 +76,23 @@ test('명반 FAQ 는 화면과 JSON-LD 를 한 배열에서 만들고, 본문 �
   assert.match(chartPage,/<div className="min-h-\[100dvh\]">\s*<ZiweiChartClientLoader \/>/);
 });
 
+test('공통 SEO 랜딩은 네오 토큰으로 배경·본문·초점·CTA 대비를 함께 전환한다',()=>{
+  const template=readFileSync('app/components/SeoLandingTemplate.jsx','utf8');
+  for(const token of ['--cd-bg','--cd-text','--cd-text-muted','--cd-accent','--cd-border','--cd-focus-ring','--cd-cta-primary-bg','--cd-cta-primary-ink']) {
+    assert.match(template,new RegExp(`var\\(${token.replace(/[-]/g,'\\-')}\\)`),token);
+  }
+  assert.doesNotMatch(template,/bg-\[#faf7f2\]|text-\[#292431\]|text-\[#51475c\]|text-\[#62556c\]/);
+});
+
+test('공통 운세 히어로는 한 CTA만 남기고 테마별 고대비 토큰을 사용한다',()=>{
+  const hero=readFileSync('app/components/FortuneLandingHero.tsx','utf8');
+  const css=readFileSync('app/components/fortune-landing.module.css','utf8');
+  assert.doesNotMatch(hero,/ArrowDown|styles\.(?:note|more|points)|points:/);
+  assert.match(css,/\.start \{[^}]*var\(--cd-cta-primary-bg\)[^}]*var\(--cd-cta-primary-ink\)/s);
+  assert.match(css,/\.start:focus-visible \{[^}]*var\(--cd-focus-ring\)/s);
+  assert.match(css,/min-height: 52px/);
+});
+
 async function chartFacts(domain,birthTime=SEO_EXAMPLE_BIRTH.birthTime){
   const input=domains[domain].validateInput({personA:{...SEO_EXAMPLE_BIRTH,birthTime},question:'차트 예시'});
   const context=domains[domain].buildContext(await domains[domain].calculate(input,{asOf:'2026-09-15T00:00:00Z'}));

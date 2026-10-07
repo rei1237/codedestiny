@@ -598,7 +598,9 @@
       "unlock5000": "Débloquez 5 000 KRW",
       "sajuGuardianPricePrice5000": "Déverrouillage permanent 5 000 KRW",
       "price5000Price3000": "Une fois 3 000 KRW",
-      "price10000Price5000": "Une fois 5 000 KRW"
+      "price10000Price5000": "Une fois 5 000 KRW",
+      "unlock1000": "Débloquez 1 000 KRW",
+      "price1000": "Une fois 1 000 KRW"
     },
     "destinyFlowerStudio": {
       "closeAria": "Fermer l'Atelier de la Fleur du Destin",
@@ -1342,7 +1344,9 @@
         "w30000": "₩30,000",
         "w50000": "₩50,000",
         "w20000": "₩20,000",
-        "from3000": "From ₩3,000"
+        "from3000": "From ₩3,000",
+        "w1000": "₩1,000",
+        "from9000": "From ₩9,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1853,6 +1857,49 @@
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
       "neoMore": "More consultation reviews"
+    },
+    "simple": {
+      "lead": "Partagez votre question. Découvrez le contenu et le prix avant de commencer.",
+      "start": "Poser ma question",
+      "free": "Lire la lecture gratuite du jour",
+      "startLabel": "Autres façons de commencer",
+      "love": "Amour et relations",
+      "work": "Travail et argent",
+      "self": "Mieux me comprendre",
+      "future": "Les prochaines étapes",
+      "title": "Une lecture qui part de votre question",
+      "brand": "Retrouvez Yeongnyangi, Yeoni et Neo dans Ggulggul Fortune. Explorez votre question avec Yeongnyangi, ou visitez le salon de thé de Yeoni et la salle de stratégie de Neo.",
+      "stepQuestion": "Partagez votre question",
+      "stepPrice": "Vérifiez le contenu et le prix",
+      "stepResult": "Lisez la réponse, ses fondements et les prochaines actions",
+      "example": "Lire un exemple avant de payer",
+      "explore": "Explorer toutes les lectures et consultations",
+      "exploreNote": "Saju, tarot, consultations avec personnages, rapports et récits",
+      "passTitle": "Pour les visites régulières, découvrez les passes",
+      "passNote": "Vérifiez les services inclus et la durée avant de choisir.",
+      "passLink": "Voir les passes",
+      "passHistory": "Les passes déjà achetés conservent leurs conditions initiales."
+    },
+    "yeongnyangiEntry": {
+      "badge": "Consultation question avec Yeongnyangi",
+      "headingLead": "De votre question au mouvement qui la traverse",
+      "headingName": "Yeongnyangi, la chatte qui lit le Saju",
+      "subtitle": "Une consultation au clair de lune pour explorer une préoccupation avec la méthode qui vous convient",
+      "storyFirst": "Yeongnyangi répond à votre question à partir des calculs de Saju, Ziwei Doushu, Sukuyo, astrologie védique et astrologie occidentale.",
+      "storySecond": "Elle présente dans un langage clair les schémas récurrents, votre dynamique actuelle et une prochaine action à essayer aujourd'hui.",
+      "fishAria": "Niveaux de poisson et prix des consultations Yeongnyangi",
+      "highlight": "Au lieu d'une réponse vague, recevez les repères et l'interprétation adaptés à votre question. Choisissez la méthode et le périmètre avant de commencer.",
+      "quote": "« Commence par ce que tu veux le plus comprendre. Nous suivrons ce mouvement ensemble. »",
+      "quoteAttribution": "— Yeongnyangi",
+      "start": "Commencer une consultation question",
+      "free": "Voir d'abord une lecture gratuite",
+      "tagline": "Une consultation pour votre question ouverte avec un poisson"
+    },
+    "reading": {
+      "famousNote": "Le Saju des personnalités à partir de sources publiques",
+      "insightsNote": "Des lectures utiles sur le Saju, le tarot et les thèmes astraux",
+      "heading": "Des lectures pour éclairer votre journée",
+      "open": "Lire les articles"
     }
   },
   "terms": {

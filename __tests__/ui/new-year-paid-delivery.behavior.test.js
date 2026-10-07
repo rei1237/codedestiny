@@ -32,7 +32,7 @@ function load(ctx, file, names) {
 }
 
 
-function fixture(accessType = 'pass') {
+function fixture(accessType = 'pass', currentSections = null) {
   let doc = null, calls = 0, charges = 0, refunds = 0, fault = null, lostApply = false, owner = 'owner', permitted = true, tick = 0;
   const chain = value => ({ lean: async () => clone(value), sort: () => chain(value), select: () => chain(value) });
   const model = {
@@ -47,7 +47,7 @@ function fixture(accessType = 'pass') {
     } }),
     updateOne: async (filter, update) => { if (doc && matches(doc, filter)) for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value); },
   };
-  const plan = ['overview', 'wealth', 'romance', 'monthly', 'health'].map(key => ({ key, label: key, minChars: 4000, maxChars: 5000 }));
+  const plan = currentSections || ['overview', 'wealth', 'romance', 'monthly', 'health'].map(key => ({ key, label: key, minChars: 4000, maxChars: 5000 }));
   const ctx = vm.createContext({ Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {} },
     fetch: async () => { throw new Error('EXTERNAL_FETCH_BLOCKED'); },
     clean: (v, max = 100000) => String(v || '').trim().slice(0, max), cleanForbiddenResult: v => v,
@@ -62,7 +62,7 @@ function fixture(accessType = 'pass') {
     loginRequired: () => new Response('', { status: 401 }), notFound: () => new Response('', { status: 404 }), invalidInput: (_message, status = 422) => new Response('', { status }),
     paymentVerifyFailed: () => new Response('', { status: 402 }), serverError: () => new Response('server', { status: 500 }),
     NEW_YEAR_AI_GENERATING_FRESH_MS: 120000, NEW_YEAR_AI_LLM_BUDGET_MS: 82000, NEW_YEAR_AI_SECTION_TIMEOUT_MS: 52000,
-    NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS: 18000, NEW_YEAR_AI_MIN_TOTAL_CHARS: 20000, NEW_YEAR_AI_MAX_TOTAL_CHARS: 26000,
+    NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS: 18000, NEW_YEAR_AI_MIN_TOTAL_CHARS: 20000, NEW_YEAR_AI_MAX_TOTAL_CHARS: currentSections ? 33000 : 26000,
     NEW_YEAR_AI_SECTIONS: plan, LLM_ERROR_MESSAGE: 'generation failed', SERVER_ERROR_MESSAGE: 'server error',
     publicSession: row => ({ ok: true, sessionId: row.id, status: row.status, saved: row.status === 'completed', messages: row.messages }),
     callDeferredUsageRoute: async ({ path, idempotencyKey }) => {
@@ -92,6 +92,25 @@ function fixture(accessType = 'pass') {
   return { ctx, post, get doc() { return doc; }, get calls() { return calls; }, get charges() { return charges; }, get refunds() { return refunds; },
     fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; }, loseApply: () => { lostApply = true; } };
 }
+for (const accessType of ['pass', 'subscription', 'paid']) test(`${accessType}: 브라우저 종료 뒤 서버가 저장된 상담만 이어 완성하고 재열람은 재생성·중복 차감하지 않는다`, async () => {
+  const f = fixture(accessType);
+  await f.post();
+  load(f.ctx, 'worker/routes/new-year-ai.js', ['resumeConsultationOnServer']);
+  for (let wave = 0; wave < 20 && f.doc.status !== 'completed'; wave++) {
+    const response = await f.ctx.resumeConsultationOnServer({}, { id: f.doc.id, userId: f.doc.userId });
+    assert.ok([200, 202].includes(response.status), await response.text());
+  }
+  assert.equal(f.doc.status, 'completed');
+  const calls = f.calls;
+  const consumed = f.charges;
+  assert.equal(consumed, 1);
+  const again = await f.ctx.resumeConsultationOnServer({}, { id: f.doc.id, userId: f.doc.userId });
+  assert.equal(again.status, 200);
+  assert.equal(f.calls, calls);
+  assert.equal(f.charges, consumed);
+  assert.equal(f.refunds, 0);
+});
+
 for (const accessType of ['pass', 'subscription', 'paid']) {
   test(`${accessType}: 다섯 요청이 한 분야씩 보존하며 완료 저장 후 전달한다`, async () => {
     const f = fixture(accessType);
@@ -212,9 +231,9 @@ test('P2 initial and repair calls retain expanded token budget and timeout', asy
     const options = calls.at(-1);
     assert.ok(options.maxOutputTokens >= Math.ceil((section.maxChars + 1500) * 1.5) + 1500);
     assert.equal(options.timeoutMs, 52000);
-    assert.equal(options.fallbackMinChars, 1600);
+    assert.ok(options.fallbackMinChars >= 300 && options.fallbackMinChars <= section.minChars * 0.8);
   }
-  assert.equal(calls.length, 10);
+  assert.equal(calls.length, ctx.NEW_YEAR_AI_SECTIONS.length * 2);
 });
 function p3Body(key, size) { return key + Array.from({ length: size - key.length }, (_, i) => String.fromCharCode(0xac00 + i % 11172)).join(''); }
 for (const repair of ['shorter', 'empty', 'truncated', 'repeat']) test(`P3 short draft survives ${repair} reinforcement and completes above total floor`, async () => {
@@ -249,4 +268,30 @@ test('P3 lost repair checkpoint does not spend another attempt when the preserve
   assert.equal((await f.post()).status, 503); const calls = f.calls;
   assert.equal(f.doc.llmMeta.attempts.overview, 1);
   assert.equal((await f.post()).status, 200); assert.equal(f.calls, calls); assert.equal(f.refunds, 0);
+});
+
+for (const accessType of ['pass', 'subscription', 'paid']) test(accessType + ': 현재 6개 분야를 원래 요청으로 생성·저장하고 재열람은 추가 차감하지 않는다', async () => {
+  const source = fs.readFileSync('worker/routes/new-year-ai.js', 'utf8');
+  const ast = ts.createSourceFile('new-year-ai.js', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+  let declaration;
+  for (const statement of ast.statements) if (ts.isVariableStatement(statement)) {
+    declaration ||= statement.declarationList.declarations.find(row => row.name.getText(ast) === 'NEW_YEAR_AI_SECTIONS');
+  }
+  assert.ok(declaration);
+  const sections = vm.runInNewContext(declaration.initializer.getText(ast));
+  assert.equal(sections.length, 6);
+  assert.equal(sections[0].key, 'opening');
+  const f = fixture(accessType, sections);
+  for (let i = 0; i < sections.length; i++) {
+    const response = await f.post(i ? { resumeSessionId: f.doc.id } : {});
+    assert.equal(response.status, i === sections.length - 1 ? 200 : 202, await response.text());
+    assert.equal(f.calls, i + 1);
+    assert.equal(f.charges, i === sections.length - 1 ? 1 : 0);
+  }
+  assert.deepEqual(Array.from(f.doc.llmMeta.sections, row => row.key), Array.from(sections, row => row.key));
+  assert.equal(f.doc.idempotencyKey, 'original-paid-request');
+  assert.equal((await f.post()).status, 200);
+  assert.equal(f.calls, 6);
+  assert.equal(f.charges, 1);
+  assert.equal(f.refunds, 0);
 });

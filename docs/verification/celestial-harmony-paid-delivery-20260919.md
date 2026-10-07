@@ -69,7 +69,7 @@
 - 정적 결제창 `celestial-harmony.html:1017-1018` — `FEATURE_KEY`, `COIN_COST=100`
 - `app/_lib/serviceSections.js:46` — "10,000원"
 - `docs/payments/payment-inventory.md:124`, `payment-p0-inventory.md:16` — 10000
-- `docs/refactor/payment-quality-2026-09-14.md:105`, `MOBILE_FEATURE_REGISTRY.md:65`, `PRICING_AUDIT.md:111` — 10,000원
+- `docs/refactor/payment-quality-2026-09-14.md:105`, `docs/design/mobile-feature-registry.md:65`, `PRICING_AUDIT.md:111` — 10,000원
 
 전부 일치. 원화가를 따로 적는 행과 표기 방식만 다르다.
 

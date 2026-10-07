@@ -2,6 +2,8 @@ import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
+import {readFileSync} from 'node:fs';
+const backManifest=JSON.parse(readFileSync(new URL('../../public/assets/yeongnyangi/tarot/v1/manifest.json',import.meta.url),'utf8')).back;
 const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {validateReadingQuality,bodyCharacterCount} from './worker/yeongnyangi/fortune/reading-quality'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {analyze} from './worker/yeongnyangi/fortune/analysis'; export {TAROT_CARDS} from './lib/tarot/tarot-cards.mjs'; export {getTarotCardImageUrl} from './src/features/fortune-tea-house/lib/tarotCardImageMap'; export {readingCharts} from './worker/yeongnyangi/fortune/reading-presentation';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,format:'esm',platform:'node',write:false});
 const m=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 const legacyProducts=m.products.map(p=>({...p,manifestVersion:m.READING_V5_VERSION,chapterCount:m.readingChapterCount(p.domain,p.fishId,m.READING_V5_VERSION)}));
@@ -104,6 +106,6 @@ test('legacy engine IDs and unknown saved cards keep their position, name and di
  assert.equal(result[0].reversed,true);
  assert.equal(result[1].label,'둘째 자리');
  assert.equal(result[1].items[0].value,'확인 중인 카드');
- assert.equal(result[1].image,'/assets/yeongnyangi/tarot/v1/back-600.webp');
+ assert.equal(result[1].image,backManifest.files.std+'?v='+backManifest.contentHash.slice(0,12));
  assert.equal(JSON.stringify(cards),snapshot);
 });

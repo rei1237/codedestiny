@@ -597,7 +597,7 @@ export default function AppVersionGuard() {
     : "";
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[2147483647] px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:px-4 sm:pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
+    <div role="status" className="relative px-3 pt-4 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] sm:px-4">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 rounded-xl border border-amber-300/45 bg-amber-50 px-4 py-3 text-amber-950 shadow-[0_10px_30px_rgba(0,0,0,0.15)] sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold">{copy.updateTitle}</p>
@@ -608,7 +608,7 @@ export default function AppVersionGuard() {
         <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
-            className="rounded-md border border-amber-900/15 bg-white px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-100"
+            className="min-h-11 rounded-md border border-amber-900/15 bg-white px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-100"
             onClick={() => {
               try {
                 window.sessionStorage.setItem(DEFER_GUARD_KEY, pendingUpdate.version);
@@ -622,7 +622,7 @@ export default function AppVersionGuard() {
           </button>
           <button
             type="button"
-            className="rounded-md bg-amber-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-800"
+            className="min-h-11 rounded-md bg-amber-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-800"
             onClick={() => {
               void applyUpdate(pendingUpdate.version);
             }}

@@ -1,4 +1,5 @@
 import {everydayConcerns} from './question-concerns';
+import {QUESTION_POLICY_VERSION,questionCandidate,recommendQuestion,type QuestionDecision} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import {getProduct} from '@/worker/yeongnyangi/payments/catalog';
 import {consultationKinds, consultationManifest, supportsKind} from '@/worker/yeongnyangi/fortune/consultation-kinds';
 import type {TopicId} from '@/worker/yeongnyangi/fortune/topics';
@@ -25,7 +26,7 @@ export function filterConcerns(search:string,group='전체'){
  const query=search.trim().normalize('NFKC').toLocaleLowerCase('ko-KR');
  return concernGuides.filter(q=>(group==='전체'||(legacyGroups[q.id]||q.group)===group)&&`${q.question} ${q.group} ${legacyGroups[q.id]||''}`.normalize('NFKC').toLocaleLowerCase('ko-KR').includes(query));
 }
-export const anythingConsultationHref='/yeongnyangi/fortune/?product=saju_mackerel&consultationKind=ask';
+export const anythingConsultationHref='/yeongnyangi/fortune/';
 // Same editorial question, but the follow-up stays within the source system.
 export const contextualQuestionGuides:QuestionGuide[]=[
  {...guide('money'),id:'money-ziwei',productId:'ziwei_mackerel',kind:'money'},
@@ -39,7 +40,14 @@ export function questionOffer(q:QuestionGuide){
  if(!kind||!supportsKind(product,kind))throw new Error(`Unsupported question product: ${q.id}`);
  return {product,kind,chapters:consultationManifest(product,kind,q.topic)};
 }
-export function questionCheckoutHref(q:QuestionGuide){return '/yeongnyangi/fortune/?'+new URLSearchParams({product:q.productId,consultationKind:q.kind,topic:q.topic,questionId:q.id});}
+export function questionScopeEntry(q:QuestionGuide){
+ const domain=getProduct(q.productId).domain;
+ const category:QuestionDecision['category']=q.kind==='compatibility'?'compatibility':questionCandidate(q.question)||(q.topic==='work'?'career':q.topic==='money'?'money':q.topic==='love'?'love':q.topic==='relationship'?'family':q.topic==='luck'?'timing':'self');
+ const decision:QuestionDecision={version:QUESTION_POLICY_VERSION,category,target:category==='compatibility'?'pair':'self',horizon:'current',situation:'',options:'',period:'',constraints:'',confirmed:false};
+ const plan=recommendQuestion(domain,decision,q.question);
+ return {domain,decision,plan,product:getProduct(domain+'_'+plan.fish)};
+}
+export function questionCheckoutHref(q:QuestionGuide){return '/yeongnyangi/fortune/?'+new URLSearchParams({flow:'question',domain:questionScopeEntry(q).domain,questionId:q.id});}
 export function questionGuideHref(id:string){return '/?'+new URLSearchParams({question:id})+'#questions';}
 // Only explicit context is mapped; unrelated features retain a free exploration path.
 export const freeQuestionMap:Record<string,string>={saju:'money',basic:'money',ziwei:'money-ziwei',sukuyo:'distance',tarot:'choice',astrology:'career-astrology',vedic:'career-vedic',psych:'choice'};

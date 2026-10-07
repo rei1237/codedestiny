@@ -1,6 +1,6 @@
 import { CHAT_QUESTION_FISH, chatQuestionFeatureKey } from '../../../lib/fortune/chat-products.js';
 import { getBillingFeaturePricing } from '../../lib/billing-feature-registry.js';
-import {READING_V5_VERSION,READING_V6_VERSION,readingChapterCount} from '../fortune/reading-policy';
+import {FUSION_READING_VERSION,READING_V6_VERSION,readingChapterCount} from '../fortune/reading-policy';
 import {DomainId,FishId,PackageId,FortuneError} from '../fortune/shared/contracts';
 import {CHAT_FEATURE_KEY} from '../access-methods.js';
 export const MANIFEST_VERSION=READING_V6_VERSION;
@@ -11,7 +11,7 @@ export const packages={
 export const systemNames:Record<DomainId,string>={saju:'사주',ziwei:'자미두수',sukuyo:'숙요',vedic:'베다점',astrology:'서양 점성술',tarot:'타로'};
 export interface Product {id:string;domain:DomainId;fishId:PackageId;packageId:PackageId;fishName:string;priceKRW:number;currency:'KRW';image:string;reactionAsset:string;resultType:string;enabled:boolean;cdFeatureKey:string;readingKind:'single'|'pair'|'all';systems:DomainId[];manifestVersion:string;chapterCount:number;name:string;}
 function priceFor(id:string):number { const resolved=getBillingFeaturePricing({featureKey:'yeongnyangi-'+id.replace(/_/g,'-')}); if(!resolved.ok || !resolved.pricing || !(resolved.pricing.amountKRW>0)) throw new FortuneError('PRODUCT_PRICE_UNAVAILABLE',503); return resolved.pricing.amountKRW; }
-function product(id:string,systems:DomainId[],fishId:PackageId):Product{return {id,domain:systems[0],fishId,packageId:fishId,fishName:packages[fishId].name,priceKRW:priceFor(id),currency:'KRW',image:`/assets/yeongnyangi/fish/${fishId}.webp`,reactionAsset:`/assets/yeongnyangi/fish/reaction-${fishId}.webp`,resultType:'consultation-v3',enabled:true,cdFeatureKey:`yeongnyangi-${id.replace(/_/g,'-')}`,readingKind:systems.length===1?'single':systems.length===2?'pair':'all',systems,manifestVersion:systems.length===1?MANIFEST_VERSION:READING_V5_VERSION,chapterCount:readingChapterCount(systems[0],fishId,systems.length===1?MANIFEST_VERSION:READING_V5_VERSION),name:systems.map(d=>systemNames[d]).join(' + ')};}
+function product(id:string,systems:DomainId[],fishId:PackageId):Product{return {id,domain:systems[0],fishId,packageId:fishId,fishName:packages[fishId].name,priceKRW:priceFor(id),currency:'KRW',image:`/assets/yeongnyangi/fish/${fishId}.webp`,reactionAsset:`/assets/yeongnyangi/fish/reaction-${fishId}.webp`,resultType:'consultation-v3',enabled:true,cdFeatureKey:`yeongnyangi-${id.replace(/_/g,'-')}`,readingKind:systems.length===1?'single':systems.length===2?'pair':'all',systems,manifestVersion:systems.length===1?MANIFEST_VERSION:FUSION_READING_VERSION,chapterCount:readingChapterCount(systems[0],fishId,systems.length===1?MANIFEST_VERSION:FUSION_READING_VERSION),name:systems.map(d=>systemNames[d]).join(' + ')};}
 export const products:Product[]=(Object.keys(systemNames) as DomainId[]).flatMap(d=>(['mackerel','salmon','flounder','tuna'] as FishId[]).map(f=>product(`${d}_${f}`,[d],f))).concat([
  product('fusion_saju_ziwei',['saju','ziwei'],'assorted'),product('fusion_sukuyo_vedic',['sukuyo','vedic'],'assorted'),product('fusion_astrology_tarot',['astrology','tarot'],'assorted'),product('fusion_all',['saju','ziwei','sukuyo','vedic','astrology','tarot'],'omakase'),
 ]);

@@ -61,7 +61,7 @@ export function FusionResultDock({ toc, generating, exporting, hasVerdict }: {
         type="button"
         aria-expanded={open}
         onClick={() => { setOpen(true); sheetRef.current?.showModal(); }}
-        className="min-h-10 shrink-0 rounded-xl border border-[rgba(232,213,163,0.42)] bg-[rgba(232,213,163,0.12)] px-3.5 text-[0.84rem] font-bold text-[var(--fx-gold)] transition-colors active:bg-[rgba(232,213,163,0.2)] motion-reduce:transition-none"
+        className="min-h-11 shrink-0 rounded-xl border border-[rgba(232,213,163,0.42)] bg-[rgba(232,213,163,0.12)] px-3.5 text-[0.84rem] font-bold text-[var(--fx-gold)] transition-colors active:bg-[rgba(232,213,163,0.2)] motion-reduce:transition-none"
       >{copy.openTocButton}</button>
     </div>
 

@@ -11,6 +11,15 @@ const args = new Set(process.argv.slice(2));
 const duplicatesOnly = args.has("--duplicates");
 
 const EXCLUDED_DIRS = new Set([
+  ".codex-worktrees",
+  ".delivery-worktrees",
+  ".worktrees",
+  ".claude",
+  ".cleanup",
+  "output",
+  "backups",
+  "calibration",
+  "key",
   ".git",
   "node_modules",
   ".next",
@@ -111,7 +120,7 @@ function listFiles(baseDir) {
         continue;
       }
 
-      if (entry.isFile()) {
+      if (entry.isFile() && !/^\.env(?:\.|$)|\.(?:pem|key|p12|jks|keystore)$/i.test(entry.name)) {
         out.push(rel);
       }
     }
@@ -122,7 +131,7 @@ function listFiles(baseDir) {
 
 function isTextFile(relPath) {
   const base = path.basename(relPath).toLowerCase();
-  if (base === ".env" || base.endsWith(".env")) return true;
+  if (base === ".env" || base.startsWith(".env.") || base.endsWith(".env")) return false;
   const ext = path.extname(relPath).toLowerCase();
   return TEXT_EXTENSIONS.has(ext);
 }
@@ -198,6 +207,7 @@ function extractSpecifiers(content) {
     /require\s*\(\s*["'`]([^"'`]+)["'`]\s*\)/g,
     /fetch\s*\(\s*["'`]([^"'`]+)["'`]/g,
     /new\s+Worker\s*\(\s*["'`]([^"'`]+)["'`]/g,
+    /(?:__loadScriptOnce|loadScriptOnce|loadScript|loadStylesheet)\s*\(\s*["'`]([^"'`]+)["'`]/g,
     /(?:href|src|action)\s*=\s*["']([^"']+)["']/g,
     /url\(\s*["']?([^"')]+)["']?\s*\)/g,
     /(?:location\.assign|location\.replace|window\.open)\s*\(\s*["'`]([^"'`]+)["'`]/g,

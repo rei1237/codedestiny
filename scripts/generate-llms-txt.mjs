@@ -86,7 +86,7 @@ lines.push(`- 꿀꿀운세 연이·네오 공식 입구: ${siteBaseUrl}/ggulggul
 lines.push(`- 꿀꿀운세 영냥이 공식 입구: ${siteBaseUrl}/yeongnyangi/`);
 lines.push(`- 다른 이름: ${aliasLine}`);
 lines.push(`- 운영자: 박병하(네오). 공개 분석 활동: https://blog.naver.com/neosaju · 소개: ${siteBaseUrl}/about/#author`);
-lines.push(`- 공식 서비스 블로그: https://blog.naver.com/goodbyejieun`);
+lines.push(`- 공식 서비스 블로그: https://blog.naver.com/neosaju`);
 lines.push(`- 캐릭터 브랜드: ${SEO_BRAND_ENTITY.characterBrand}`);
 lines.push(`- 언어: 한국어(기본), 일본어 \`/ja/\`, 중국어 간체 \`/zh/\`, 중국어 번체 \`/zh-tw/\`, 영어 \`/en/\``);
 lines.push("");

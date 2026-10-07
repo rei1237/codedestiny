@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
 const require=createRequire(import.meta.url),Module=require('node:module');
 const compiled=await build({stdin:{contents:"export * from './lib/fortune/question-journey';export {default as QuestionJourney} from './app/components/QuestionJourney';",resolveDir:process.cwd(),loader:'tsx'},jsx:'automatic',bundle:true,platform:'node',format:'cjs',write:false,external:['react','react-dom'],plugins:[{name:'ui-mocks',setup(b){b.onLoad({filter:/\.css$/},()=>({contents:'export default new Proxy({},{get:(_,k)=>k})',loader:'js'}));b.onLoad({filter:/lib[\\/]analytics\.ts$/},()=>({contents:'export const trackEvent=(...args)=>globalThis.__events.push(args)',loader:'js'}));}}]});
@@ -13,9 +14,24 @@ test('102 unique concerns keep legacy identifiers, valid catalog contracts and s
  // 2026-10-02 질문 우선: 대표 질문 8개는 꿀꿀 홈 질문 타일과 같은 카테고리·순서다.
  assert.deepEqual(m.questionGuides.map(q=>q.group),['사랑','재회','결혼','돈','일','미래','나 자신','인간관계']);assert.equal(m.concernGroups.length,10);
  for(const id of ['mind','reconnect','partner','money','career','ahead','choice','distance','money-ziwei','career-astrology','career-vedic'])assert.ok(m.getQuestionGuide(id));
- for(const q of m.concernGuides){assert.ok(m.questionOffer(q).chapters.length);assert.equal(m.getQuestionGuide(q.id),q);const params=new URL(m.questionCheckoutHref(q),'https://example.test').searchParams;assert.equal(params.get('questionId'),q.id);assert.equal(params.get('product'),q.productId);}
+ for(const q of m.concernGuides){assert.ok(m.questionOffer(q).chapters.length);assert.equal(m.getQuestionGuide(q.id),q);const params=new URL(m.questionCheckoutHref(q),'https://example.test').searchParams;assert.equal(params.get('questionId'),q.id);assert.equal(params.get('flow'),'question');assert.equal(params.get('domain'),m.questionOffer(q).product.domain);assert.equal(params.has('consultationKind'),false);}
  assert.equal(m.filterConcerns('').length,102);assert.equal(m.filterConcerns('없는검색어xyz').length,0);assert.ok(m.filterConcerns('이직').length>0);assert.equal(m.concernGroups.reduce((n,g)=>n+m.filterConcerns('',g).length,0),102);
  for(const q of m.concernGuides.slice(m.questionGuides.length))assert.equal(m.questionOffer(q).kind.question,true);
+});
+test('question entry quotes the scope price and leaves confirmation to the user',()=>{
+ for(const [id,fish,price] of [['mind','mackerel',3000],['career','salmon',9000],['money','salmon',9000],['distance','flounder',15000]]){
+  const entry=m.questionScopeEntry(m.getQuestionGuide(id));
+  assert.equal(entry.product.fishId,fish);assert.equal(entry.product.priceKRW,price);
+  assert.equal(entry.decision.confirmed,false);assert.ok(entry.plan.missing.length>0);
+ }
+ assert.equal(m.anythingConsultationHref,'/yeongnyangi/fortune/');
+});
+
+test('home question links quote the same recommended product as the question entry',()=>{
+ const html=readFileSync('index.html','utf8');
+ const links=[...html.matchAll(/<a\b[^>]*href="\/yeongnyangi\/\?question=([^"&#]+)[^"]*"[^>]*data-cd-price-key="([^"]+)"[^>]*>/g)];
+ assert.ok(links.length>0);
+ for(const [,id,key] of links)assert.equal(key,m.questionScopeEntry(m.getQuestionGuide(id)).product.cdFeatureKey,id);
 });
 test('search, empty state, categories, pagination and selected consultation work without logging search text',async()=>{
  const dom=new JSDOM('<div id="root"></div>',{url:'https://example.test/yeongnyangi/'});

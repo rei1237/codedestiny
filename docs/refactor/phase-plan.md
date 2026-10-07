@@ -82,7 +82,7 @@ aggregate 의 `needs`)으로 옮겼고 `guards-shadow.yml` 은 삭제했다. `SH
 
 승격과 함께 닫은 사각지대: `guards` lane 은 `shouldRunStaticGuards` 로 평문 문서 전용 push 에서
 skip 되는데, 41개 중 2개가 **루트 계약 문서**를 읽는다(`verify:payment-policy-md` →
-`PAYMENT_POLICY.md`, `verify:mobile-entry-actions` → `MOBILE_FEATURE_REGISTRY.md`). shadow 는 매
+`PAYMENT_POLICY.md`, `verify:mobile-entry-actions` → `docs/design/mobile-feature-registry.md`). shadow 는 매
 push 돌았으므로 그냥 옮기면 가격 정본만 고친 push 에서 조용히 꺼진다. 루트 `.md` 를 평문 문서
 분류에서 뺐다(`scripts/resolve-ci-tier.mjs`, 자기검사 3케이스 추가).
 

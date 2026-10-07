@@ -1,8 +1,7 @@
 import { connectDb, withMongoRetry } from './db.js';
 import { FusionFortuneConsultation, Payment } from './models.js';
 import { fusionGroupsForStage } from './fusion-fortune-prompt.js';
-import { FUSION_GROUP_MAX_ATTEMPTS } from './fusion-fortune-consultation.js';
-import { hasFusionStageOneResult, isFusionFortuneApiEnabled, FUSION_GENERATION_DEADLINE_MS, FUSION_FORTUNE_PAID_FEATURE_KEY, validateFusionFortuneGroup, fusionValidationOptions } from './fusion-fortune.js';
+import { hasFusionStageOneResult, isFusionFortuneApiEnabled, FUSION_GENERATION_DEADLINE_MS, FUSION_FORTUNE_PAID_FEATURE_KEY, validateFusionFortuneGroup, fusionValidationOptions, fusionGroupAttemptLimit } from './fusion-fortune.js';
 import { readOrderResumeContext, RESUME_APPROVED_TTL_MS } from '../payments/resume-context.js';
 import { runFusionFortuneDeliveryStage } from '../routes/fusion-fortune.js';
 
@@ -72,7 +71,11 @@ export async function runFusionFortuneRecovery(env, options = {}) {
   const bootstrapped = await bootstrapApprovedFusionOrders(env, now, deadline, runStage);
   const candidates = await withMongoRetry(env, () => FusionFortuneConsultation.find(buildAbandonedFusionFilter(now)).sort({ updatedAt: 1 }).limit(MAX_PER_TICK).lean());
   const outcomes = [];
-  for (const candidate of candidates) {
+  // Continue saved progress within this tick, rotating between owners. Otherwise
+  // every two chapters would wait another ten minutes after the browser closes.
+  const queue = candidates.map(candidate => ({ candidate, waves: 0 }));
+  for (let index = 0; index < queue.length; index++) {
+    const { candidate, waves } = queue[index];
     if (Date.now() + FUSION_GENERATION_DEADLINE_MS > deadline) break;
     const requestId = String(candidate.idempotencyKey || ''), userId = String(candidate.userId || '');
     if (!requestId || !userId || !candidate.generationSnapshot?.input) continue;
@@ -80,7 +83,7 @@ export async function runFusionFortuneRecovery(env, options = {}) {
     const options = { ...fusionValidationOptions(candidate.generationSnapshot.context, candidate.generationSnapshot.input), ignoreLength: true };
     const groups = fusionGroupsForStage(stage).filter(group => !validateFusionFortuneGroup(candidate.result, group, options).ok);
     // Provider reservations belong to the saved purchase and include browser attempts.
-    if (groups.length && groups.every(group => Number(candidate.generationSnapshot.attempts?.[group.id] || 0) >= FUSION_GROUP_MAX_ATTEMPTS)) {
+    if (groups.length && groups.every(group => Number(candidate.generationSnapshot.attempts?.[group.id] || 0) >= fusionGroupAttemptLimit(candidate.generationSnapshot))) {
       await withMongoRetry(env, () => FusionFortuneConsultation.updateOne({ userId, idempotencyKey: requestId, ...buildAbandonedFusionFilter(now) },
         { $set: { 'generationSnapshot.recovery.reviewRequired': true } }), { retries: 0 });
       outcomes.push({ requestId, outcome: 'budget_exhausted', stage });
@@ -91,6 +94,12 @@ export async function runFusionFortuneRecovery(env, options = {}) {
         userId, requestId, body: candidate.generationSnapshot.input, stage, prior: candidate, requireExisting: true,
       });
       outcomes.push({ requestId, stage, outcome: result.ok ? result.stageStatus : result.reason || result.error, completed: result.stageStatus === 'completed' });
+      if (result.ok && result.stageStatus === 'partial' && result.automaticRetryAllowed !== false && waves < 5
+        && Date.now() + FUSION_GENERATION_DEADLINE_MS <= deadline) {
+        const saved = await withMongoRetry(env, () => FusionFortuneConsultation.findOne({ userId, idempotencyKey: requestId }).lean());
+        const progress = value => JSON.stringify([value?.status, value?.nextStage, value?.generationSnapshot?.attempts, value?.result]);
+        if (saved && saved.status !== 'completed' && progress(saved) !== progress(candidate)) queue.push({ candidate: saved, waves: waves + 1 });
+      }
     } catch (error) {
       outcomes.push({ requestId, stage, outcome: error?.code || 'recovery_failed' });
     }

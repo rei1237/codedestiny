@@ -5,6 +5,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {build} from 'esbuild';
 import {chromium,webkit,devices} from '@playwright/test';
 import {resolveProduct} from '../../worker/payments/catalog.js';
+import {listServicePackPlans} from '../../worker/payments/service-pack-policy.js';
 import {legacyMoonstoneEnvelope} from '../../worker/payments/compat.js';
 import {listReviewProductSummaries} from '../../worker/lib/review-product-catalog.js';
 import {REVIEW_REWARD_AMOUNT} from '../../worker/lib/review-reward.js';
@@ -80,6 +81,7 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
    items:listReviewProductSummaries().map(product=>({...product,total:0,average:0}))});
   if(!state.auth&&path!=='/api/yeongnyangi/products')return send({ok:false,code:'UNAUTHORIZED',message:'QA 세션 만료'},401);
   if(path==='/api/payments/config')return send(config);
+  if(path==='/api/payments/service-packs/catalog'&&request.method()==='GET')return send({ok:true,plans:listServicePackPlans(),giftEnabled:false});
   if(path==='/api/me/payment-phone')return send({ok:true,hasPhone:true,phoneNumber:user.phoneNumber,phoneConsent:true});
   if(path==='/api/geocode')return send({lat:35.1796,lng:129.0756,name:'대한민국 부산',timezone:'Asia/Seoul',fallback:false});
   if(path==='/api/profile')return send({ok:true,profiles:state.profiles,currentId:state.profiles[0]?.profileId});
@@ -322,7 +324,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
     // WebKit reports these checkout-page reads as access-control errors when the PG return navigation cancels them.
     // AppVersionGuard's cache-busted /version.json read is cancelled the same way and already falls back in its catch.
     const path=message.match(/^\/(?:127\.0\.0\.1|localhost):\d+(\/api\/[^ ]+|\/version\.json(?=\?t=\d+ ))(?:\?t=\d+)? due to access control checks\.$/)?.[1];
-    const navigationReads=new Set(['/api/auth/me','/api/me/access-state','/api/profile','/api/billing/balance','/api/payments/service-packs/quote','/version.json']);
+    const navigationReads=new Set(['/api/auth/me','/api/me/access-state','/api/profile','/api/billing/balance','/api/payments/service-packs/quote','/api/payments/service-packs/catalog','/version.json']);
     return !path||!navigationReads.has(path);
    });
    assert.deepEqual(pageErrors,[],'Browser page errors');

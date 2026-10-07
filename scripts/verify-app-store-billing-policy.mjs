@@ -73,7 +73,7 @@ for (const featureKey of ["tarot-love-relationship", "vedic-ai-consultation", "f
 }
 
 console.log("\n[2] 영구 해금(UNLOCK)은 기록되는가");
-for (const featureKey of ["section_daewun", "flower-fc"]) {
+for (const featureKey of ["section_daewun", "saju-guardian-unlock"]) {
   const product = resolveProductForFeature(featureKey);
   const update = product ? buildEntitlementUpdate({ product }) : null;
   check(
@@ -111,6 +111,7 @@ for (const featureKey of ["tarot-love-relationship", "vedic-ai-consultation"]) {
 console.log("\n[5] 등록되지 않은 가격대는 fail-closed인가");
 check("999코인(미등록 가격대) → 티어 해석 거부", resolveAppContentTier(999) === null);
 check("0코인 → 티어 해석 거부", resolveAppContentTier(0) === null);
+check("인하된 꽃 상품은 검증된 천원 SKU 등록 전 결제를 닫음", resolveProductForFeature("flower-fc") === null);
 
 console.log("\n[6] RTDN 환불 알림이 해석되는가");
 function extractVoided(decoded) {

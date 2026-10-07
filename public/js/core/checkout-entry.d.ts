@@ -297,6 +297,7 @@ declare const checkoutEntry: {
    * 표시 우선순위일 뿐 접근 권한 판정이 아니다(이용권 판정은 카드 클릭 시 서버가 한다).
    */
   resolveCheckoutRecommendation(input: {
+    amountKRW?: number;
     allowPass?: boolean;
     allowDirect?: boolean;
     allowMonthly?: boolean;

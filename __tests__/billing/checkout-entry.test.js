@@ -568,3 +568,13 @@ describe("이니시스 bypass — 서버 판정이 열린 주문에만", () => {
     expect(checkoutEntry.portoneBypass(OPEN).inicis_v2.P_RESERVED).not.toContain("mutated=1");
   });
 });
+
+describe('simple low-price purchase recommendation',()=>{
+ it('puts the 1,000 KRW single purchase first while retaining other methods',()=>{
+  const v=checkoutEntry.resolveCheckoutRecommendation({amountKRW:1000,allowPass:true,allowMonthly:true,monthlyBalanceFresh:true,monthlyBalance:999,requiredMonthlyCredits:10});
+  expect(v.recommended).toBe('direct');expect(v.order).toEqual(['direct','monthly','pass']);
+ });
+ it('keeps the existing recommendation for other prices',()=>{
+  expect(checkoutEntry.resolveCheckoutRecommendation({amountKRW:3000,hasActivePassTier:false}).recommended).toBe('pass');
+ });
+});

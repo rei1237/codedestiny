@@ -3,7 +3,7 @@ import { withReadingSections } from './reading-sections';
 import type { Product } from '../payments/catalog';
 import type { ChapterSpec, Theme } from './book-contracts';
 import type { DomainId } from './shared/contracts';
-import { policyForReading, READING_V5_VERSION, READING_V6_VERSION, readingChapterCount } from './reading-policy';
+import { policyForReading, FUSION_READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, readingChapterCount } from './reading-policy';
 import { topicCatalog, topicLabel, type TopicId } from './topics';
 
 type Row = { key: string; title: string; theme: Theme; systems: DomainId[]; part: string };
@@ -49,6 +49,20 @@ const groups:Record<DomainId,Record<string,string[]>>={
  tarot:{base:['spreadId','cards'],question:['reading'],flow:['reading'],choice:['reading'],desire:['reading'],alternatives:['reading'],conflict:['reading'],observation:['reading']},
 };
 const aliases:Record<string,string>={inner:'self',intimacy:'love',longterm:'love',pace:'distance',environment:'career',spending:'money',expansion:'money',burden:'recovery',defense:'conflict',hesitation:'desire',revision:'observation'};
+function compactFusionRows(p:Product):Row[]{
+ const expert:Record<DomainId,string>={saju:'useful:사주 · 오행·십성과 균형의 조건',ziwei:'transform:자미두수 · 궁의 연결과 사화',vedic:'division:베다점 · 행성·요가와 보조 차트',sukuyo:'relations:숙요점 · 기질과 관계의 거리',astrology:'tension:서양점성술 · 핵심 각과 반복 패턴',tarot:'question:타로 · 질문의 감정과 선택지'};
+ const foundation:Record<DomainId,string>={saju:'current:사주 · 현재 대운과 타고난 기질',ziwei:'current:자미두수 · 명궁과 현재 대한',vedic:'current:베다점 · 라그나와 현재 다샤',sukuyo:'self:숙요점 · 본명숙의 강점과 부담',astrology:'self:서양점성술 · 태양·달·상승점',tarot:'flow:타로 · 카드가 이어지는 이야기'};
+ const independent=p.systems.flatMap(d=>[
+  ...(p.readingKind==='pair'?parse(foundation[d],[d],'체계별 독립 해석'):[]),
+  ...parse(expert[d],[d],'체계별 독립 해석'),
+ ]);
+ if(p.readingKind==='pair')return [...independent,...parse('love:관계의 공통점과 차이|career:역량이 살아나는 조건|money:돈과 자원에 대한 선택|compare:신호가 다를 때의 판단 기준|action:우선 행동과 다시 살펴볼 신호',p.systems,'근거를 비교한 선택')];
+ return [...independent,
+  ...parse('love:관계의 공통점과 차이',['saju','ziwei','sukuyo'],'주제별 근거 비교'),
+  ...parse('career:역량과 일하는 환경|money:돈과 자원을 관리하는 선택',['saju','ziwei','vedic','astrology'],'주제별 근거 비교'),
+  ...parse('current:현재 시기와 변화의 조건',['saju','ziwei','vedic'],'시기와 종합 판단'),
+  ...parse('compare:공통점·차이와 판단을 바꿀 조건|action:우선 행동과 실천 계획',p.systems,'시기와 종합 판단')];
+}
 // extraLabels: cross-system daily facts stored in the first system context (daily-cross.ts). Never majorLuck.
 export function questionFactSelectors(systems:DomainId[],question:string,topicId:string,extraLabels:string[]=[]) {
  const text=`${topicId} ${question}`;
@@ -63,7 +77,7 @@ export function readingManifest(p:Product,topicId='general',readingMode='persona
  if(p.readingKind==='single'){
  const name=p.domain==='sukuyo'&&readingMode!=='personal'?'sukuyo_pair':p.domain;
  rows=[...parse(outlines[name],p.systems).slice(0,(version===p.manifestVersion?p.chapterCount:readingChapterCount(p.domain,p.fishId,version))-1),...parse('action:지금의 선택과 실행 계획',p.systems)];
- }else rows=p.readingKind==='pair'?parse(pairs[p.domain],p.systems,'서로 다른 관점으로 읽는 나'):combinedRows();
+ }else rows=version===FUSION_READING_VERSION?compactFusionRows(p):p.readingKind==='pair'?parse(pairs[p.domain],p.systems,'서로 다른 관점으로 읽는 나'):combinedRows();
  const label=topicLabel(topicId);
  if(label&&p.readingKind==='single'){
   // Topic steering: keep the same rows and count, move the topic chapters right after `self`, and mark them in the title.
@@ -83,6 +97,6 @@ export function readingManifest(p:Product,topicId='general',readingMode='persona
  excludes:rows.filter(x=>x.key!==r.key).map(x=>x.title),factSelectors,
  minimumChars:Math.ceil(policy.minimum*weights[i]/sum),targetChars:[Math.ceil(policy.target[0]*weights[i]/sum),Math.ceil(policy.target[1]*weights[i]/sum)],requiredSections:[...policy.depth],outputTokens:policy.outputTokens,
  periodScope:r.theme==='timing'?'제공된 날짜와 기간만 인용한다. 현재·다음은 저장된 계산 시점을 기준으로 구분한다.':'출생 성향 또는 질문 당시의 상징이다. 계산하지 않은 미래 시기를 만들지 않는다.'};
- return version===READING_V5_VERSION?withReadingSections(chapter):chapter;
+ return version===READING_V5_VERSION || version===FUSION_READING_VERSION?withReadingSections(chapter):chapter;
  });
 }

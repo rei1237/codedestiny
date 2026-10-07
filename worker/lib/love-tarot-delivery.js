@@ -1,4 +1,4 @@
-import { parseNarrativeResponse } from './paid-narrative-candidate.js';
+import { parseNarrativeResponse, NARRATIVE_RESPONSE_SCHEMA } from './paid-narrative-candidate.js';
 import { buildLoveReadingPrompt } from '../../lib/tarot/love-reading-llm.mjs';
 import { buildLoveConsultingHighlights } from '../../lib/tarot/love-reading-normalizer.mjs';
 import { buildOutputLanguageDirective } from '../../lib/i18n/ai-locale.js';
@@ -53,7 +53,7 @@ export function loveTarotNarrativeAdapter(env) {
   return { featureKey: 'tarot-love-relationship', reportType: 'loveTarot', render,
     produce: async (task, state) => {
       const ai = await callGeminiText(env, `${state.prompt}\n[이번 부분 ${task.id}] ${task.prompt}\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}만 출력한다. 제목·기호·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자. 같은 문장을 반복하지 않는다.`, {
-        timeoutMs: 45000, maxOutputTokens: 9500, thinkingBudget: 0, temperature: 0.55, responseMimeType: 'application/json', fallbackToWorkersAI: false,
+        timeoutMs: 45000, maxOutputTokens: 9500, thinkingBudget: 0, temperature: 0.55, responseMimeType: 'application/json', responseSchema: NARRATIVE_RESPONSE_SCHEMA, fallbackToWorkersAI: false,
       });
       if (!ai?.ok || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
       const value = parseNarrativeResponse(ai.text, state.evidenceHash);

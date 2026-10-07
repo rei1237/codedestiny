@@ -1,3 +1,4 @@
+import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { salvageTruncatedJsonObject } from "../../lib/llm-text.js";
 import { HttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, cookieValue } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
@@ -64,7 +65,7 @@ export function yogaNarrativeAdapter(env){
         "JSON만 출력하세요. 신화적 상징과 실제 신체 지시를 구분하고 원래 컨디션에 없는 진단을 만들지 마세요.",
       ].join("\n\n");
       const ai=await callGeminiText(env,prompt,{model:clean(env.YOGA_GURU_GEMINI_MODEL),temperature:0.6,maxOutputTokens:8192,thinkingBudget:0,
-        timeoutMs:Math.min(45000,Math.max(15000,Number(env.YOGA_GURU_PROVIDER_TIMEOUT_MS)||45000)),fallbackToWorkersAI:false,responseMimeType:"application/json"});
+        timeoutMs:Math.min(45000,Math.max(15000,Number(env.YOGA_GURU_PROVIDER_TIMEOUT_MS)||45000)),fallbackToWorkersAI:false,responseMimeType:"application/json",responseSchema:jsonSchemaFromExample({course_metadata:{title:"",deity_theme:"",focus_area:"",chakra_focus:"",duration_min:0,intensity:""},sequence:[{step_number:0,type:"",duration_seconds:0,sanskrit_name:"",english_name:"",breathing_guide:"",benefits_physical:"",benefits_spiritual:"",caution:"",visual_cue_ui:"",instructions:[""]}],closing_mantra:""})});
       if(!ai?.ok||ai.isMock||/mock/i.test(`${ai.provider||""} ${ai.model||""}`))return null;
       const course=parseJsonCandidate(ai.text);if(!validCourse(course,state.input.duration))return null;
       return {evidenceHash:state.evidenceHash,body:JSON.stringify(course)};

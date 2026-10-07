@@ -11,7 +11,8 @@ export function createLlmCacheStore(env) {
       try {
         await connectDb(env);
         const doc = await LlmResponseCache.findOne({ cacheKey }).lean();
-        if (!doc || !doc.text) return null;
+        // Mongo TTL cleanup is asynchronous; expired entries are cache misses immediately.
+        if (!doc || !doc.text || !(new Date(doc.expiresAt).getTime() > Date.now())) return null;
         return {
           text: doc.text,
           provider: doc.provider || "gemini",

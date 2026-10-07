@@ -1,3 +1,4 @@
+import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 // 나크샤트라 결정판 통합 상담 — 결제·생성 라우트 (두 전통 교차 해석, 9개 장)
 //
 //   POST /api/nakshatra-ai/ensure-access : 이용권 선검사 → 커버 시 accessToken, 미커버 시 402(결제창)
@@ -36,6 +37,8 @@ import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/re
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
+import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
+import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -455,6 +458,9 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     MonthlyCreditLedger.findOne({ userId: auth.userId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: metadataIds }, { $or: markers }] }).lean(),
   ]);
   if (blocked.some(Boolean)) return { ok: false, reason: "PAYMENT_REQUIRED" };
+  if (await hasConsumedPassFeature({ _id: auth.userId }, FEATURE_KEY, idempotencyKey)) {
+    return { ok: true, accessType: "pass", paymentId: "", source: "pass-receipt" };
+  }
   const paidPayment = await withMongoRetry(env, () => hasPaidPayment(auth, ctx.paymentId, idempotencyKey));
   if (paidPayment) {
     return {
@@ -502,8 +508,16 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
 }
 
 async function applyUsageOnce({ userId, sessionId, accessType, pricing, source }) {
-  const existing = await NakshatraAiConsultation.findOne({ id: sessionId, userId }).select("usageAppliedAt").lean();
+  const existing = await NakshatraAiConsultation.findOne({ id: sessionId, userId }).select("usageAppliedAt idempotencyKey").lean();
   if (existing?.usageAppliedAt) return true;
+  if (!existing?.idempotencyKey) throw resultStorageUnavailable(sessionId);
+  if (accessType === "pass") {
+    const user = await User.findById(userId).select("profileSubscription recentConsumeRequestIds").lean();
+    const consumed = await consumePassForFeature({ user: user || {}, entitlement: resolveCanonicalEntitlement(user || {}),
+      userId, featureKey: FEATURE_KEY, requestId: existing.idempotencyKey, coinCost: pricing.coinPrice });
+    if (!consumed.covered) throw Object.assign(new Error("이용권 사용 한도를 확인해 주세요."),
+      { code: passDenialCode(consumed.reason) || "PAYMENT_REQUIRED" });
+  }
   if (source !== "billing-gate" && accessType === "subscription") {
     const error = new Error("A Payment Service access grant is required for monthly usage.");
     error.code = "PAYMENT_ACCESS_GRANT_REQUIRED";
@@ -690,7 +704,7 @@ async function generateSectionOnce(env, section, prompt, cacheConfig) {
   const base = { id: section.id, deck: section.deck, title: section.title, keyInsight: "", vedicEvidence: "", sukuyoEvidence: "", body: "", chars: 0, ok: false };
   try {
     const ai = await callGeminiText(env, prompt, { maxOutputTokens: 10000, temperature: 0.65, thinkingBudget: 0,
-      responseMimeType: "application/json", timeoutMs: clampSyncLlmTimeoutMs(SECTION_TIMEOUT_MS), fallbackToWorkersAI: false,
+      responseMimeType: "application/json", responseSchema: jsonSchemaFromExample({ title: "", keyInsight: "", vedicEvidence: "", sukuyoEvidence: "", body: "" }), timeoutMs: clampSyncLlmTimeoutMs(SECTION_TIMEOUT_MS), fallbackToWorkersAI: false,
       ...(cacheConfig ? { cache: cacheConfig } : {}) });
     const isMock = (/mock/i.test(ai?.provider || "") || /mock/i.test(ai?.model || "") || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
     if (!ai?.ok || isMock || ai.truncated || /^(MAX_TOKENS|length)$/i.test(ai.finishReason || "")) return base;

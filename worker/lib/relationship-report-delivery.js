@@ -1,5 +1,6 @@
 import { PAID_LLM_PARTS_PER_REQUEST } from "./sync-llm-timeout.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
+import { jsonSchemaFromExample } from "./json-text-repair.js";
 import { runWithAiLocale } from "./ai-locale-context.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage, paidReportBody } from "./paid-report-quality.js";
 import { dedupeCodexBody } from "./master-love-codex-quality.js";
@@ -82,6 +83,9 @@ export async function generateRelationshipWave(env, meta, checkpoint) {
     try {
       response = await runWithAiLocale(meta.locale || "ko", () => callGeminiJsonWithRetry(env, requestPrompt, {
         temperature: 0.72, baseTokens: 9500, capTokens: 9500, attempts: 1,
+        responseSchema: jsonSchemaFromExample(frame
+          ? { evidenceHash: '', character: { title: '', caption: '' }, summary: '', finalMessage: '' }
+          : { evidenceHash: '', body: '' }),
         timeoutMs: 45000, taskType: "fortune", fallbackToWorkersAI: false,
       }));
     } catch { return; }

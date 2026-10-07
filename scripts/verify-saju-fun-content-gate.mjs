@@ -118,7 +118,7 @@ for (const rel of MIRRORS) {
     `${rel}: _pvwIsOpenRptToggle 헬퍼가 없다 (펼쳐진 카드 재클릭이 팝업을 다시 연다)`,
   );
   ok(
-    html.includes('if(!tile||_isPreviewCtaBypass(tile)||_pvwIsOpenRptToggle(tile))return;'),
+    html.includes('if(!tile||_isPreviewCtaBypass(tile)||_pvwIsOpenRptToggle(tile)||_isDirectConsultationEntry(tile))return;'),
     `${rel}: 캡처 프리뷰 인터셉터가 펼쳐진 카드를 통과시키지 않는다`,
   );
   ok(

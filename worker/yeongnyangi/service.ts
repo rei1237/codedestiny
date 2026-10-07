@@ -1,7 +1,8 @@
 import {questionEvidence} from './fortune/ask/question-evidence';
 import {conversationView} from './fortune/ask/conversation';
 import {questionSkyCalculationInput} from './fortune/question-sky-locale-input';
-import {QUESTION_POLICY_VERSION,FOLLOWUP_LIMITS,questionDecision,questionTopic,assertQuestionOrder,questionManifest,type QuestionFish} from './fortune/ask/question-policy';
+import {consultationBudget,fusionConsultationManifest,allocateConsultationBudget} from './fortune/consultation-budget';
+import {QUESTION_POLICY_VERSION,questionDecision,questionTopic,assertQuestionOrder,questionManifest,type QuestionFish} from './fortune/ask/question-policy';
 import {COUNSEL_VERSION,counselManifest} from './fortune/counsel-purpose';
 import {withSajuCycleEvidence} from './fortune/saju/cycle-evidence';
 import {nativeContactBoundary} from './fortune/symbolic-locale';
@@ -23,7 +24,7 @@ import {withChatTarotVoice} from './fortune/tarot/consultation-evidence';
 import {TAROT_SPREAD_VERSION,TAROT_SPREAD_KIND,TAROT_DECK_VERSION,tarotSpreadOrder,commitTarotDeck,tarotPicks,tarotSpreadContext,spreadSnapshot,publicTarotSpread} from './fortune/tarot/spread-v3';
 import {context as domainContext} from './fortune/shared/domain';
 import {readingCharts} from './fortune/reading-presentation';
-import { READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, READING_V7_VERSION, QUESTION_SKY_TWO_STAGE_VERSION, readingChapterCount } from './fortune/reading-policy';
+import { FUSION_READING_VERSION, READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, READING_V7_VERSION, QUESTION_SKY_TWO_STAGE_VERSION, readingChapterCount } from './fortune/reading-policy';
 import { v7Applies, type ChapterSpecV7 } from './fortune/reading-v7';
 import { resolveV7Ledger } from './fortune/reading-v7-ledger';
 import { buildV7TimingMatrix, v7TimingSummaries, withV7Timing } from './fortune/reading-v7-timing';
@@ -194,7 +195,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const now=new Date();
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
-  const fingerprint=await digest({...(decision?{questionDecision:decision}:{}),...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput?{counselVersion:COUNSEL_VERSION}:{}),...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{}),...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(tarotV3?{tarotSpread:{id:tarotOrder!.spread.id,version:tarotOrder!.spread.version},tarotInputs:tarotOrder!.inputs}:{})});
+  const fingerprint=await digest({...(decision?{questionDecision:decision}:{}),...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput?{counselVersion:COUNSEL_VERSION}:{}),...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:[READING_V6_VERSION,FUSION_READING_VERSION].includes(product.manifestVersion)?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{}),...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(tarotV3?{tarotSpread:{id:tarotOrder!.spread.id,version:tarotOrder!.spread.version},tarotInputs:tarotOrder!.inputs}:{})});
   const id=questionIntentId||tarotIntentId||relationshipId||await digest({userId,fingerprint,...attempt,...(relationship?{relationshipVersion:RELATIONSHIP_VERSION}:{}),...(tarotV2?{tarotConsultationVersion:TAROT_CONSULTATION_VERSION}:{}),...(tarotV3?{tarotConsultationVersion:TAROT_SPREAD_VERSION}:{})});
   if(askEvidenceEnabled||relationship||tarotQuestion) {
     // A retry reads the immutable purchase intent before any calculation or card draw.
@@ -246,12 +247,15 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     product.manifestVersion=READING_V7_VERSION;
     product.chapterCount=manifest.length;
   }
+  if(locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single'){manifest=fusionConsultationManifest(product,analysis.topicId);product.chapterCount=manifest.length;product.manifestVersion=READING_V5_VERSION;}
   if(!decision&&!spiritInput&&preventionEligible(product.fishId)){
     if(v7Timing)analysis.contexts[product.domain]=withV7Timing(contexts[product.domain]!,v7Timing);
     manifest=withPreventionReading(manifest,analysis,product.fishId);product.chapterCount=manifest.length;
   }
+
+  if(locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single')manifest=allocateConsultationBudget(manifest,product.fishId);
   if(decision){
-    manifest=questionManifest(product.domain,product.fishId as QuestionFish,decision,tarotOrder?.spread);
+    manifest=questionManifest(product.domain,product.fishId as QuestionFish,decision,tarotOrder?.spread,body.question||'',!persona&&!body.mode);
     product.manifestVersion=READING_V6_VERSION;product.chapterCount=manifest.length;
   }
   analysis.consultation=createConsultation(body.question || '',analysis.topicId || 'general',clock,manifest,kind?.id==='ask');
@@ -299,7 +303,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,...(persona?{persona}:{}),
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...(decision?{questionContract:{version:QUESTION_POLICY_VERSION,followups:FOLLOWUP_LIMITS[product.fishId as QuestionFish]}}:{}),deliveryContract:CHAPTER_DELIVERY_VERSION,...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...((decision||locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single')?{questionContract:{version:QUESTION_POLICY_VERSION,followups:consultationBudget(product.fishId).followups,...(!persona&&!body.mode?{readingBudget:consultationBudget(product.fishId)}:{})}}:{}),deliveryContract:CHAPTER_DELIVERY_VERSION,...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
 }
 
 /** The buyer's pick over the committed deck. A repeat call returns the stored draw unchanged (refresh, retry, return). */

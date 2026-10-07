@@ -126,8 +126,8 @@ export default function DashaMapClient() {
   const copy = useNakshatraCopy();
   const product = {
     featureKey: "nakshatra-dasha-map",
-    coinPrice: 50,
-    amountKRW: 5000,
+    coinPrice: 10,
+    amountKRW: 1000,
     reason: copy.dashaReason,
     endpoint: "/api/nakshatra-premium/dasha-map",
   } as const;

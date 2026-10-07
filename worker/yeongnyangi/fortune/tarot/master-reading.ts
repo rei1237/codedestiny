@@ -87,11 +87,12 @@ export function validateTarotChapter(body:ChapterBody,context:DomainContext,loca
  const positions=v2?new Map((v2.cards as {positionLabel:string;name:string}[]).map(card=>[card.positionLabel,card.name] as [string,string])):new Map<string,string>();
  for(const card of TAROT_CARDS){
   const escaped=card.nameKo.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  const mention=new RegExp(`${escaped}\\s*(?:카드|정방향|역방향)`,'u').exec(content);
+  // 카드 이름 안의 접미어를 다른 카드로 오인하지 않는다(여황제 → 황제).
+  const mention=new RegExp(`(?<![\\p{L}\\p{N}])${escaped}\\s*(?:카드|정방향|역방향)`,'u').exec(content);
   if(!mention)continue;
   const expected=allowed.get(card.nameKo);
   if(!expected)throw new FortuneError('TAROT_UNDRAWN_CARD');
-  const direction=new RegExp(`${escaped}\\s*(?:카드)?\\s*(정방향|역방향)`,'u').exec(content)?.[1];
+  const direction=new RegExp(`(?<![\\p{L}\\p{N}])${escaped}\\s*(?:카드)?\\s*(정방향|역방향)`,'u').exec(content)?.[1];
   if(direction&&direction!==expected)throw new FortuneError('TAROT_ORIENTATION_MISMATCH');
   if(v2){
    const named=[...positions.keys()].flatMap(label=>{

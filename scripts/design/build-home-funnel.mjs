@@ -1,8 +1,8 @@
 import { renderPressCoverageHtml } from "../../lib/seo/press-coverage.mjs";
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parse } from 'parse5';
-import { FEATURE_KEY_PRICE_TABLE } from '../../worker/lib/paid-feature-registry.js';
 import { CURRENT_PASS_PLANS } from '../../lib/payment/pass-policy.js';
+import { FEATURE_KEY_PRICE_TABLE } from '../../worker/lib/paid-feature-registry.js';
 import { splitReviews, postedMonth } from '../../lib/brand/customer-reviews.mjs';
 import { EXPERTISE_FACTS } from '../../lib/brand/expertise-facts.mjs';
 import { renderTrustStoriesHtml } from '../../lib/brand/trust-stories.mjs';
@@ -49,18 +49,21 @@ const nodes = {
 };
 
 const vars = Object.fromEntries(Object.entries(nodes).map(([key, node]) => [key, htmlOf(node, key)]));
+vars.pickReason = htmlOf(byId('cdPickReason'), 'consultation recommendation');
+vars.signature = vars.signature.replace(vars.pickReason, '').replace(/^[ \t]+$/gm, '');
 vars.pressCoverage = renderPressCoverageHtml();
 vars.trustStories = renderTrustStoriesHtml();
 vars.neoIntroduction = renderNeoHomeIntroduction();
 vars.reviewKrwPerStone = KRW_PER_COIN / MEMBERSHIP_CREDIT_PER_COIN;
+
 const won = value => Number(value).toLocaleString('ko-KR') + '원';
 vars.pass = `<section class="cdh-pass" aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
   <div class="cdh-pass__intro">
     <img class="cdh-pass__mascot" src="/images/home/yeoni-pass-mascot-240.webp" srcset="/images/home/yeoni-pass-mascot-240.webp 240w, /images/home/yeoni-pass-mascot-480.webp 480w" sizes="(max-width: 640px) 104px, 168px" alt="이용권 카드를 들고 웃는 꽃돼지 연이" data-cd-trans-attr="alt:home.gardenCopy.passMascotAlt" width="240" height="240" loading="lazy" decoding="async">
     <div class="cdh-pass__copy">
       <span class="cdh-pass__eyebrow" data-cd-trans="home.gardenCopy.passEyebrow">자동갱신 없는 30일 이용권</span>
-      <h2 class="cdh-pass__title" id="cdhPassTitle" data-cd-trans="home.gardenCopy.passTitle">자주 보신다면, 30일 이용권</h2>
-      <p class="cdh-pass__desc" data-cd-trans="home.gardenCopy.passDesc">상담 가격만큼 한도에서 차감돼요. 30일이 지나면 자동으로 끝나요.</p>
+      <h2 class="cdh-pass__title" id="cdhPassTitle" data-cd-trans="home.gardenCopy.passTitle">연이가 알려드리는 30일 이용권</h2>
+      <p class="cdh-pass__desc" data-cd-trans="home.gardenCopy.passDesc">가끔은 단건 결제로, 자주 본다면 이용권으로 이용해요. 사용할 수 있는 상담과 30일 이용 한도를 확인해 주세요.</p>
     </div>
   </div>
   <ul class="cdh-pass__tiers" role="list">${Object.values(CURRENT_PASS_PLANS).map(plan => `
@@ -73,9 +76,15 @@ vars.pass = `<section class="cdh-pass" aria-labelledby="cdhPassTitle" data-desig
     </a></li>`).join('')}
   </ul>
   <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">Standard·Premium·VVIP는 꽃돼지 운세에, Family는 꽃돼지와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.</p>
-  <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">이용권 4종 확인하기</a>
+  <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">나에게 맞는 이용권 확인하기</a>
 </section>`;
 vars.representativePrice = Number(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW).toLocaleString('ko-KR') + '원';
+for (const fish of ['mackerel', 'salmon', 'flounder', 'tuna']) {
+  const featureKey = `yeongnyangi-saju-${fish}`;
+  const price = FEATURE_KEY_PRICE_TABLE[featureKey]?.amountKRW;
+  if (!Number.isSafeInteger(price) || price <= 0) throw new Error(`Missing Yeongnyangi home price: ${featureKey}`);
+  vars[`yeongnyangi${fish[0].toUpperCase()}${fish.slice(1)}Price`] = price.toLocaleString('ko-KR');
+}
 // 신뢰 블록 제목·고지·CTA 는 12개 로케일 사전에 "3,000원" 을 문구로 굽는다(2026-10-05 고등어 정식가). 가격이 바뀌면 문구가 거짓이 되므로 빌드를 멈춘다.
 if (Number(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW) !== 3000) throw new Error('home funnel trust offer copy says 3,000원: update offerTitle/offerNote/offerCta before changing the mackerel price');;
 // 홈 두 상담 카드(#fortuneGatewayEntry)의 '이후 1회 3,000원'은 사전 문구다 — 가격이 바뀌면 문구부터 고친다.

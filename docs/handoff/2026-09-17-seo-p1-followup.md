@@ -13,7 +13,7 @@ next: "완료(P1~P9, 579e154dd..bc1cbac49). P10 은 competitiveness-roadmap-2026
 
 ## 지금 상태
 
-- `873bdf254` (main) — `SEO-AUDIT.md`, `SEO-LOCALE-AUDIT.md` 커밋 완료.
+- `873bdf254` (main) — `docs/seo/audit-20260917.md`, `docs/seo/locale-audit-20260917.md` 커밋 완료.
 - P0 스팟체크 결과 canonical/hreflang/useT 오용 등 **실제 버그는 하나도 못 찾음**
   → 코드 수정 없음. 두 문서가 정본, 여기서 과정 반복 안 함.
 
@@ -105,8 +105,8 @@ next: "완료(P1~P9, 579e154dd..bc1cbac49). P10 은 competitiveness-roadmap-2026
 
 ## 정본 예시
 
-- `SEO-AUDIT.md` — 인프라·canonical/hreflang 실측 전체.
-- `SEO-LOCALE-AUDIT.md` — 로케일 격차·`useT`/`useTPick` grep 결과 전체.
+- `docs/seo/audit-20260917.md` — 인프라·canonical/hreflang 실측 전체.
+- `docs/seo/locale-audit-20260917.md` — 로케일 격차·`useT`/`useTPick` grep 결과 전체.
 - `lib/generate-page-metadata.ts:88` — `HreflangPathMap`에 `zh-TW` 누락 시 위험 경고 주석.
 - `app/components/PublicFeatureIntroduction.jsx` — FAQ는 `copy.faqs`(토픽별 2개) +
   `ui.question/answer`(공용 1개)를 합쳐 `<section className={styles.faq}>` 안에서

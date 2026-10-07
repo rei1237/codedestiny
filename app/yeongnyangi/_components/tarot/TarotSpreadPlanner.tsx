@@ -1,6 +1,6 @@
 'use client';
 import {useMemo} from 'react';
-import {tarotQuestionPresets} from '@/lib/tarot/yeongnyangi-spread-recommend.mjs';
+import {tarotQuestionPresets,relevantTarotQuestions} from '@/lib/tarot/yeongnyangi-spread-recommend.mjs';
 import {yeongnyangiSpreads,getYeongnyangiSpread,tierAllowsSpread} from '@/lib/tarot/yeongnyangi-spread-catalog.mjs';
 import {tarotRelationStatuses,tarotPeriods,type TarotSpreadInputs} from '@/worker/yeongnyangi/fortune/tarot/spread-v3';
 import {products} from '@/worker/yeongnyangi/payments/catalog';
@@ -50,26 +50,27 @@ export function restoreTarotPlan(value:unknown):TarotPlan{
 }
 
 export default function TarotSpreadPlanner({locale='ko',question,onQuestion,plan,onPlan,tier,onTier,disabled,notice,purposeMode=false}:{locale?:ReadingLocale;question:string;onQuestion:(value:string)=>void;plan:TarotPlan;onPlan:(plan:TarotPlan)=>void;tier:string;onTier:(fishId:string,cards:number)=>void;disabled?:boolean;notice?:string;purposeMode?:boolean}){
- const scopeTier=purposeMode?'tuna':tier;
+ const scopeTier=tier;
  const copy=tarotSpreadCopyFor(locale),planCopy=tarotPlanCopy(locale),presets=planCopy.presets;
  const rec=useMemo(()=>tarotRecommendation(plan,question,scopeTier,locale),[plan,question,scopeTier,locale]);
  const spread=localizedTarotSpread(plannedSpread(plan,question,scopeTier,locale),locale);
  const askedPeriod=useMemo(()=>Boolean(localizedTarotQuestionFeatures(question,locale).period),[question,locale]);
  const choose=(next:Spread)=>{
   onPlan({...plan,spreadId:next.id,manual:true});
-  if(!tierAllowsSpread(scopeTier,next)&&next.minTier)onTier(next.minTier,next.cardCount);
+  if(!purposeMode&&!tierAllowsSpread(scopeTier,next)&&next.minTier)onTier(next.minTier,next.cardCount);
  };
  const spreadButton=(source:Spread,tag?:string)=>{const item=localizedTarotSpread(source,locale);return <button type="button" key={item.id} className={styles.choice} aria-pressed={spread.id===item.id} disabled={disabled} onClick={()=>choose(item)}>
   {tag&&<i>{tag}</i>}<strong>{item.title}</strong><span>{item.summary}</span>
   <small>{copy.cards(item.cardCount)}{!tierAllowsSpread(scopeTier,item)&&item.minTier?` · ${copy.tierNeeded(fishName(item.minTier,locale))}`:''}</small>
  </button>;};
+ const visiblePresets=relevantTarotQuestions(question,presets,locale);
  const suggested=rec?[rec.primary,...rec.alternatives].map(id=>getYeongnyangiSpread(id)).filter((item):item is Spread=>Boolean(item)):[];
  return <section className={styles.planner} aria-labelledby="tarot-question-heading" lang={locale}>
   <div>
    <h2 id="tarot-question-heading">{copy.questionHeading}</h2>
    <p>{copy.questionIntro}</p>
   </div>
-  <div className={styles.chips} role="group" aria-label={copy.presetsLabel}>{presets.map(preset=><button type="button" key={preset.id} aria-pressed={plan.presetId===preset.id} disabled={disabled} onClick={()=>{onQuestion(preset.question);onPlan({...plan,presetId:preset.id,spreadId:'',manual:false});}}>{preset.question}</button>)}</div>
+  <div className={styles.chips} role="group" aria-label={copy.presetsLabel}>{visiblePresets.map(preset=><button type="button" key={preset.id} aria-pressed={plan.presetId===preset.id} disabled={disabled} onClick={()=>{onQuestion(preset.question);onPlan({...plan,presetId:tarotQuestionPresets.some(p=>p.id===preset.id)?preset.id:'',spreadId:'',manual:false});}}>{preset.question}</button>)}</div>
   <label htmlFor="consultation-question">{copy.questionLabel}
    <textarea id="consultation-question" rows={3} maxLength={1000} value={question} disabled={disabled} placeholder={copy.questionPlaceholder}
     onChange={event=>{const value=event.target.value;onQuestion(value);const preset=presets.find(p=>p.id===plan.presetId);if(preset&&preset.question!==value)onPlan({...plan,presetId:''});}}/>

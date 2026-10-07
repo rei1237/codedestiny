@@ -45,9 +45,7 @@ const CATEGORY_SECTIONS: Array<{ title: string; body: string }> = [
 ];
 
 function buildSuccessText(monthlyFlow: ReturnType<typeof buildMonthlyFlow>): string {
-  // NewYearAiClient의 splitAssistantSections는 빈 줄(\n{2,})로만 섹션을 나누고, 같은 청크 안의
-  // 첫 줄을 제목으로 인식한다 — 제목과 본문 사이에 빈 줄을 넣으면 둘이 분리되어 "새해 상담 편지 N"
-  // 식 제목 없는 조각으로 쪼개진다. 섹션 사이에만 빈 줄을 두고, 제목-본문은 단일 개행으로 묶는다.
+  // 개발 화면 전용 예시. 제목과 본문 사이의 빈 줄도 실제 응답처럼 확인한다.
   // 헤딩 포맷(월 · 간지 · 키워드)은 MonthlyLetterAccordion의 분류 정규식과 실제 프롬프트 지침에 맞춘 것.
   const DOMAIN_ADVICE: Record<string, string> = {
     overall: "전반적인 흐름을 먼저 챙기며 무게중심을 잡으세요",
@@ -65,8 +63,9 @@ function buildSuccessText(monthlyFlow: ReturnType<typeof buildMonthlyFlow>): str
   // 월별 흐름과는 별개로 실제 프롬프트가 요구하는 6개 카테고리 소제목을 재현한다.
   const categoryParagraphs = CATEGORY_SECTIONS.map((section) => `**${section.title}**\n${section.body}`);
   // 나만의 질문 우선 노출 카드를 프리뷰에서도 확인할 수 있도록 답변 섹션을 맨 앞에 둔다.
-  const questionAnswerParagraph = "**질문에 대한 답변**\n지금 이직을 서두를 필요는 없습니다. 세운이 원국의 관 자리와 합을 이루는 시기까지는 지금 자리에서 신뢰를 쌓아 두는 편이 유리하고, 실제로 움직일 좋은 창은 하반기에 열립니다. 제안이 먼저 오는 흐름이니 조급하게 이력서를 넣기보다 지금의 성과를 눈에 띄게 정리해 두세요.";
-  return [questionAnswerParagraph, ...monthlyParagraphs, ...categoryParagraphs].join("\n\n");
+  const questionAnswerParagraph = "**질문에 대한 답변**\n\n지금은 제안받은 업무의 역할과 지원 조건을 확인한 뒤 이직을 결정하는 편이 좋겠습니다. 올해 책임이 커지는 흐름을 새 기회로 살리려면, 이름이 좋은 자리보다 실제로 역량을 발휘할 수 있는 자리를 비교해 보세요.\n\n지금 직장에서 바꿀 수 있는 조건과 새 직장에서 기대하는 조건을 각각 적어 보면 선택의 기준이 더 분명해집니다.";
+  const natureParagraph = "**타고난 성향과 지금의 마음**\n\n맡은 일을 끝까지 책임지려는 태도는 신뢰를 쌓는 강점이지만, 역할의 경계가 흐려지면 혼자 부담을 떠안을 수 있습니다. 최근 일이 버겁게 느껴졌다면 의지가 부족해서라고 몰아가기보다, 감당할 몫을 다시 나누어 보는 시간이 필요할 수 있어요.";
+  return [questionAnswerParagraph, natureParagraph, ...monthlyParagraphs, ...categoryParagraphs].join("\n\n");
 }
 
 export function buildNewYearPreviewPayload(state: DevPreviewState) {

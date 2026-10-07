@@ -381,7 +381,7 @@ CSS 주석 2건(`fusion-fortune.module.css:802`, `codex.module.css:470`).
 - `__tests__/worker/*` — `payments.prepare-idempotency`, `payments-v2.subscription`, `paid-feature-registry.integrity` 등이 금액 리터럴로 단언
 - `scripts/verify-*.mjs` — `verify-payment-policy-md`, `verify-billing-pass-policy`, `verify-portone-single-payment-regression` 등이 금액 문자열을 검사
 - `scripts/create-play-console-products.mjs:48,83` — Play 상품 생성 스크립트에 `"AI 상담 39,000원"`, `₩3,900`
-- 루트/`docs/` 마크다운 — `PAYMENT_POLICY.md`, `MOBILE_FEATURE_REGISTRY.md`(20건+), `CLAUDE.md:124,125,144`, `docs/payment-policy-*.md`, `docs/play-console-submission-values.md`
+- 루트/`docs/` 마크다운 — `PAYMENT_POLICY.md`, `docs/design/mobile-feature-registry.md`(20건+), `CLAUDE.md:124,125,144`, `docs/payment-policy-*.md`, `docs/play-console-submission-values.md`
 
 > **가격 변경 시 P3도 실질 작업이다** — 테스트·verify 스크립트가 금액을 단언하고 있어, 티어를 바꾸면 이들이 먼저 빨갛게 된다.
 

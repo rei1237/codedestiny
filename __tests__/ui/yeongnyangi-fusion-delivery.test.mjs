@@ -42,6 +42,11 @@ for(const productId of ids)test(`${productId}: engine -> snapshot -> every promp
  for(const system of product.systems){const c=snapshot.analysis.contexts[system];assert.equal(c.domain,system);assert.ok(c.engineVersion);assert.ok(c.facts.length);assert.ok(c.facts.every(f=>f.id.startsWith(system+'.')));}
  assert.equal(snapshot.manifest.length,productId==='fusion_all'?29:19);
  assert.equal(snapshot.manifest.at(-1).key,'prevention');
+ assert.equal(product.manifestVersion,'destiny-book-v5');
+ assert.equal(snapshot.questionContract.followups,productId==='fusion_all'?7:5);
+ assert.ok(snapshot.questionContract.readingBudget.initial[0]>40000);
+ assert.ok(snapshot.manifest.every(chapter=>chapter.systems.length>0));
+ assert.ok(snapshot.manifest.every(chapter=>chapter.sections.some(section=>section.id==='evidence')));
  assert.deepEqual(snapshot.manifest.at(-1).systems,product.systems);
  const seen=[],outputs=[];
  globalThis.__fusionGenerate=async request=>{

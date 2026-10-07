@@ -1,4 +1,5 @@
 import { parseNarrativeResponse } from './paid-narrative-candidate.js';
+import { jsonSchemaFromExample } from './json-text-repair.js';
 import { createHash } from 'node:crypto';
 import { ServiceExecutionTransaction } from './models.js';
 import { connectDb } from './db.js';
@@ -9,6 +10,9 @@ import { normalizeNarrativeEndings } from './narrative-format.js';
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from './paid-report-quality.js';
 
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+const questionResponseSchema = jsonSchemaFromExample({ evidenceHash: '', claims: [{ factId: '', value: '' }], body: '' });
+// Calculated facts include numeric values; preserve their type for exact citation checks.
+questionResponseSchema.properties.claims.items.properties.value = { anyOf: [{ type: 'STRING' }, { type: 'NUMBER' }] };
 const HEADINGS = ['질문의 핵심과 한 줄 답변', '타고난 기질과 반복되는 선택', '현재 흐름을 보여 주는 근거', '강점과 활용할 자원', '관계에서 드러나는 패턴', '일과 재물에서 확인할 조건', '주의할 약점과 반대 가능성', '가까운 변화와 시기 해석의 한계', '현실적인 행동 계획', '종합 판단과 마지막 메시지'];
 
 export function questionFacts(value, path = 'chart', rows = []) {
@@ -79,6 +83,7 @@ export function featureQuestionNarrativeAdapter(env, featureKey) {
       const ai = await callGeminiText(env, `${state.prompt}\n\n[고정 계산 근거]\n${JSON.stringify(state.facts)}\n[이번 부분: ${task.id}] ${task.prompt || task.title}\nJSON {"evidenceHash":"${state.evidenceHash}","claims":[{"factId":"fact-1","value":"해당 근거의 원래 값"}],"body":"상담 본문"}만 출력하세요. claims에는 실제 사용하는 계산 근거를 하나 이상 정확하게 복사합니다. 본문은 공백 제외 최소 ${task.minChars}자, 목표 2800~3200자입니다. 이 부분에 해당하는 근거와 구체적 생활 사례·반대 조건·행동을 각각 다른 문단으로 쓰고 마지막 문장을 완결합니다. 다른 부분은 쓰지 않습니다.`, {
         systemPrompt: state.systemPrompt, timeoutMs: 45000, maxOutputTokens: 9500,
         thinkingBudget: 0, responseMimeType: 'application/json', fallbackToWorkersAI: false,
+        responseSchema: questionResponseSchema,
       });
       if (!ai?.ok || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
       const parsed = parseNarrativeResponse(ai.text, state.evidenceHash);

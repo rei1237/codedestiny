@@ -1876,12 +1876,12 @@ function __cdEnsureSukuyoAIConsultationReady() {
 }
 
 var __cdLazyActionLoaders = {
-  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-09eb3486c209'); },
+  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-5311846b921c'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-6d2c2ef4778c'); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-355af2ec3036'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=h7c6f7751f293'); },
-  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-5ef2aa106d97').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-ceb2b1b1a0eb'); }); },
+  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-eb1f71fffc5c').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-ceb2b1b1a0eb'); }); },
   openRuneOracle: function() { window.location.assign('/oracle/rune/'); return Promise.resolve(true); },
   openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b7d07cb6850b').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-81c843ae9e30'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
@@ -2255,16 +2255,16 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-3118fd1f806a',
+    '/js/saju-engine.js?v=build-b9cad44444ab',
       '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a581a74ee045',
     '/js/core/saju/basicFortunePresentation.js?v=build-0717901ec907',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
-    '/js/core/saju/reportDashboard.js?v=build-7a37dcf9058e',
-    '/js/saju-engine-continuation.js?v=build-8d68ebe282a3',
-    '/js/entertain-engine.js?v=build-c3b89a46c12c',
+    '/js/core/saju/reportDashboard.js?v=build-d962fee599da',
+    '/js/saju-engine-continuation.js?v=build-b10118108171',
+    '/js/entertain-engine.js?v=build-f5e79aa14176',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
     '/js/core/saju/dopamineResult.js?v=build-c2d0a3979a9a'
   ];
@@ -2289,7 +2289,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-9a55ded42d09')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-aa2dee9ca2be')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -3288,6 +3288,11 @@ var __cdRouteActionAllowList = {
   // 모바일 하단 네비 탭이 React 페이지에서 셸로 넘어올 때 쓰는 액션
   cdSajuTabEntry: true,
   cdOneStepFreeSajuEntry: true,
+  cdHomeZiweiEntry: true,
+  cdHomeSukuyoEntry: true,
+  cdHomeVedicEntry: true,
+  cdHomeAstroEntry: true,
+  cdHomeTarotEntry: true,
   cdOpenAllFortunes: true,
   // 마이 탭 — 프로필 카드 관리는 셸의 하단 시트가 정본이라 React 에서 여기로 넘어온다.
   dpOpenList: true,
@@ -5820,13 +5825,8 @@ var _DF_ATELIER_LOCK_KEY = 'flower-fc';
  * 있으면 타일을 정본으로 쓰고, 없으면(홈이 아닌 화면에서 스튜디오를 연 경우) 해금 키만 본다.
  */
 function _dfIsFlowerAtelierUnlocked() {
-  var tile = document.querySelector('[data-tile-lock-key="' + _DF_ATELIER_LOCK_KEY + '"]');
-  if (tile) {
-    var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
-    if (!(lockCost > 0)) return true;
-    if (tile.classList && tile.classList.contains('tarot-tile--tileUnlocked')) return true;
-  }
-  return _dfIsLockKeyUnlocked(_DF_ATELIER_LOCK_KEY);
+  // 2026-10-08: all flower sources are free; server authentication and calculation remain.
+  return true;
 }
 
 function _dfIsSourcePaidUnlocked(source) {
@@ -7573,31 +7573,8 @@ function _dfIsSourceUnlocked(source) {
 }
 
 function _dfRequirePaidSourceUnlock(source) {
-  var normalized = _dfNormalizeSource(source);
-  var lockTile = _dfResolveLockTileBySource(normalized);
-  if (!lockTile) return true;
-
-  var lockKey = lockTile.getAttribute('data-tile-lock-key') || '';
-  var lockCost = Number(lockTile.getAttribute('data-tile-lock-cost') || 0);
-  if (!lockKey || lockCost <= 0) return true;
-  if (_dfIsLockKeyUnlocked(lockKey)) return true;
-  if (lockTile.classList && lockTile.classList.contains('tarot-tile--tileUnlocked')) return true;
-
-  if (!lockTile.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function') {
-    try {
-      if (window._cdOpenTilePreview(lockTile)) return false;
-    } catch (_) {}
-  }
-
-  if (!__cdHasAuthToken()) {
-    if (window.confirm(_indexRuntimeText("indexRuntime.confirm.003"))) {
-      window.location.href = '/login?next=%2F';
-    }
-    return false;
-  }
-
-  window.alert('운명의 꽃 아틀리에는 해금 후 이용할 수 있습니다.');
-  return false;
+  // 2026-10-08: all flower sources are free; server authentication and calculation remain.
+  return true;
 }
 
 /**
@@ -8378,7 +8355,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-3118fd1f806a',
+      '/js/saju-engine.js?v=build-b9cad44444ab',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a581a74ee045'
   ];

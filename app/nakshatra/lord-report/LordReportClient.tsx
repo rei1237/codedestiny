@@ -28,8 +28,8 @@ export default function LordReportClient() {
   const copy = useNakshatraCopy();
   const product = {
     featureKey: "nakshatra-lord-report",
-    coinPrice: 50,
-    amountKRW: 5000,
+    coinPrice: 10,
+    amountKRW: 1000,
     reason: copy.lordReason,
     endpoint: "/api/nakshatra-premium/lord-report",
   } as const;

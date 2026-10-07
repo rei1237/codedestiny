@@ -5,6 +5,22 @@
  * Everything else is served from Cloudflare Pages' own assets (dist/).
  */
 
+// Retired presentation pages: exact paths only; paid/result routes are never matched.
+const CONSOLIDATED_PAGE_REDIRECTS = {
+  "/premium": "/consultations/",
+  "/premium-reports": "/consultations/",
+  "/premium/saju-lifebook": "/life-book-ai/",
+  "/premium/saju-love-bible": "/love-secret-ai/",
+  "/saju/lifebook": "/life-book-ai/",
+  "/saju/love-bible": "/love-secret-ai/",
+  "/pdf/life-book": "/life-book-ai/",
+  "/landing": "/ggulggul/",
+  "/fortune-planner": "/diary/",
+  "/luck-sync-diary": "/diary/",
+  "/face-reading": "/physiognomy/",
+  "/sukyo": "/sukuyo/"
+};
+
 const DEFAULT_API_WORKER_ORIGIN = "https://code-destiny-web.bulegyung.workers.dev";
 // 🔴 `/sitemap.xml` 을 이 집합에 다시 넣지 말 것.
 //
@@ -602,6 +618,12 @@ async function serveGuardianShareCard(request, env, ctx, url, shareId) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    const consolidatedPath = url.pathname.replace(/\/$/, '');
+    const consolidatedTarget = Object.hasOwn(CONSOLIDATED_PAGE_REDIRECTS, consolidatedPath) ? CONSOLIDATED_PAGE_REDIRECTS[consolidatedPath] : null;
+    if (consolidatedTarget) {
+      url.pathname = consolidatedTarget;
+      return new Response(null, { status: 301, headers: { Location: url.toString(), 'Cache-Control': 'no-store' } });
+    }
     const visitorLocale = visitorLocaleContext(request, url);
     // Resolve the home before serving HTML: waiting for React's useEffect
     // briefly paints the introductory page before the actual main screen.

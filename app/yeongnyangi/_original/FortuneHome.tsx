@@ -251,6 +251,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
 
         <main>
           <NightHero/>
+          <QuestionJourney source="home"/>
           <section className="fortune-relationship-entry" aria-labelledby="relationship-entry-title">
             <div className="fortune-relationship-entry__content"><h2 id="relationship-entry-title">{relationshipCopy.intro}</h2><p>{relationshipCopy.description}</p><a href="/yeongnyangi/fortune/?flow=relationship">{relationshipCopy.entry}<ArrowRight size={18} aria-hidden="true"/></a></div>
             <Image className="fortune-relationship-entry__art" src="/assets/yeongnyangi/reading-art/insight.webp" width={720} height={480} sizes="(max-width: 759px) 160px, 420px" alt="수정구 앞에서 두 사람의 이야기를 기다리는 영냥이" loading="lazy"/>
@@ -268,7 +269,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
           </nav>
 
           <div className="main-content">
-            <QuestionJourney source="home"/>
+
 
             <section
               className="readings-section"
@@ -276,7 +277,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
               aria-labelledby="readings-title"
             >
               <div className="section-heading">
-                <h2 id="readings-title">운세 골라보기</h2>
+                <h2 id="readings-title">상담에 사용할 체계 알아보기</h2>
                 <span className="section-aside">여섯 가지 운명의 언어</span>
               </div>
               <div className="service-grid" ref={catalogueRef}>

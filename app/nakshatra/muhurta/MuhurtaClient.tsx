@@ -21,8 +21,8 @@ import type { NakshatraBirthInput } from "../nakshatra-birth";
 import { useNakshatraCopy, type MuhurtaPurposeKey } from "../_lib/copy";
 
 const FEATURE_KEY = "nakshatra-muhurta";
-const COIN_PRICE = 30;
-const AMOUNT_KRW = 3000;
+const COIN_PRICE = 10;
+const AMOUNT_KRW = 1000;
 const ENDPOINT = "/api/nakshatra-premium/muhurta";
 
 const PURPOSE_KEYS: MuhurtaPurposeKey[] = ["marriage", "business", "contract", "moving", "newStart", "healing"];

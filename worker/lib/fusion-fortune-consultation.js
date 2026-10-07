@@ -11,7 +11,7 @@
 
 import { resultStorageUnavailable } from "./result-storage.js";
 import { FusionFortuneConsultation } from "./models.js";
-import { countFusionFortuneVisibleText, FUSION_GROUP_MAX_ATTEMPTS } from "./fusion-fortune.js";
+import { countFusionFortuneVisibleText, FUSION_GROUP_MAX_ATTEMPTS, fusionGroupAttemptLimit } from "./fusion-fortune.js";
 
 // mongoose Mixed 필드는 상한이 없어 16MB 문서 한계까지 들어간다. 인생의 책이 본문에
 // 200,000자 상한을 둔 것과 같은 이유로, 비정상적으로 커진 결과는 저장하지 않는다.
@@ -178,18 +178,35 @@ export async function reserveFusionGroupAttempt({ userId, requestId, groupId, le
   const field = `generationSnapshot.attempts.${groupId}`;
   const repairField = `generationSnapshot.lengthRepairs.${groupId}`;
   try {
+    const current = await FusionFortuneConsultation.findOne({ userId: owner, idempotencyKey: key }).lean();
+    const limit = fusionGroupAttemptLimit(current?.generationSnapshot);
     const reserved = await FusionFortuneConsultation.findOneAndUpdate({ userId: owner, idempotencyKey: key, status: { $ne: "completed" }, ...fusionLeaseFilter(lease),
       ...(lengthRepair ? { [repairField]: { $ne: true } } : {}),
-      "generationSnapshot.context": { $exists: true }, $or: [{ [field]: { $exists: false } }, { [field]: { $lt: FUSION_GROUP_MAX_ATTEMPTS } }] },
+      "generationSnapshot.context": { $exists: true }, $or: [{ [field]: { $exists: false } }, { [field]: { $lt: limit } }] },
       { $inc: { [field]: 1 }, ...(lengthRepair ? { $set: { [repairField]: true } } : {}) }, { new: true }).lean();
     const attempt = Number(reserved?.generationSnapshot?.attempts?.[groupId]);
-    if (!attempt || attempt > FUSION_GROUP_MAX_ATTEMPTS) throw resultStorageUnavailable(key);
+    if (!attempt || attempt > limit) throw resultStorageUnavailable(key);
     const confirmed = await FusionFortuneConsultation.findOne({ userId: owner, idempotencyKey: key }).lean();
     const confirmedAttempt = Number(confirmed?.generationSnapshot?.attempts?.[groupId]);
     if (lengthRepair && confirmed?.generationSnapshot?.lengthRepairs?.[groupId] !== true) throw resultStorageUnavailable(key);
     if (!Number.isFinite(confirmedAttempt) || confirmedAttempt < attempt) throw resultStorageUnavailable(key);
     return attempt;
   } catch { throw resultStorageUnavailable(key); }
+}
+
+/** One explicit recovery allowance for the existing purchase; never reset spent attempts. */
+export async function requestFusionRecovery({ userId, requestId, lease }) {
+  if (!lease?.token) throw resultStorageUnavailable(requestId);
+  const saved = await FusionFortuneConsultation.findOneAndUpdate({
+    userId: text(userId, 120), idempotencyKey: text(requestId, 180),
+    status: { $ne: "completed" }, ...fusionLeaseFilter(lease),
+    "generationSnapshot.context": { $exists: true },
+  }, { $set: {
+    "generationSnapshot.recovery.manualGranted": true,
+    "generationSnapshot.recovery.reviewRequired": false,
+  } }, { new: true }).lean();
+  if (!saved?.generationSnapshot?.recovery?.manualGranted) throw resultStorageUnavailable(requestId);
+  return saved.generationSnapshot;
 }
 
 /** 단건 조회 — 본인 결과만. 없으면 null. */

@@ -51,6 +51,7 @@ try{
     page.on('dialog',dialog=>dialog.dismiss());
     page.on('pageerror',error=>{if(!/^(?:Error:\s*)?google_translate_script_failed$/.test(error.message))errors.push(error.message);});
     await page.goto(origin,{waitUntil:'domcontentloaded'});
+    await page.waitForFunction(()=>typeof window.cdOneStepFreeSajuEntry==='function');
     // 무료 사주 카드(퀵 서비스)는 연이의 정원 안이다 — 사용자처럼 정원을 먼저 연다.
     if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
     await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"]').click();
@@ -76,7 +77,8 @@ try{
     await page.locator('#dwDetail .saju-cycle-guide').waitFor({state:'visible'});
     const guide=page.locator('#dwDetail .saju-cycle-guide');
     const content=await (await page.waitForFunction(()=>{const el=document.querySelector('.saju-cycle-guide');return !!el&&window.__cdVerifyInView(el)&&el.innerText.length>500&&el.innerText;})).jsonValue();
-    assert.equal(await guide.locator('dt').count(),9);
+    assert.equal(await guide.locator('dt').count(),12);
+    assert.match(content,/시작할 조건과 신중히 할 선택/);
     assert.equal(await page.locator('#yearList .year-row').count(),10);
     assert.match(content,/이번 지지에서 제공된 장간은/);
     assert.match(content,/통근/);
@@ -139,7 +141,7 @@ try{
     assert.match(unknown.quantum,/대운의 정확한 시작 시점과 현재 구간은 확정하지 않습니다/);
     assert.deepEqual(errors,[],'no unexpected runtime exceptions');
     assert.deepEqual(paidRequests,[],'no paid generation or payment request was triggered');
-    results.push({width,chapters:9,annualRows:10,prices,relationCounts:quantum.calls,overflow,unknownHourRows:unknown.rows.length,unexpectedErrors:errors,paidRequests,blockedExternalOrigins:[...new Set(externalRequests)]});
+    results.push({width,chapters:12,annualRows:10,prices,relationCounts:quantum.calls,overflow,unknownHourRows:unknown.rows.length,unexpectedErrors:errors,paidRequests,blockedExternalOrigins:[...new Set(externalRequests)]});
     await context.close();
   }
   await writeFile(resolve(directory,'metrics.json'),JSON.stringify({evidence:'local browser; actual calculation; mock access; physicalDevice:false',results},null,2));

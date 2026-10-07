@@ -265,7 +265,7 @@ const { FEATURE_KEY_PRICE_TABLE } = await import("../worker/lib/paid-feature-reg
 // Yeongnyangi has its own product selector and checkout, not the legacy tile popup.
 // Verify that actual presentation against the same server prices instead of introducing
 // a second marketing copy tree (and a generic pass-based popup) for these one-time products.
-const {products:catProducts}=loadTsModule('worker/yeongnyangi/payments/catalog.ts');
+const {products:catProducts,chatQuestionProducts}=loadTsModule('worker/yeongnyangi/payments/catalog.ts');
 const {depthDescriptions}=loadTsModule('worker/yeongnyangi/fortune/reading-policy.ts');
 const catSelector=readFileSync(resolve(ROOT,'app/yeongnyangi/_components/Consultation.tsx'),'utf8');
 const catCheckout=readFileSync(resolve(ROOT,'app/checkout/CheckoutClient.tsx'),'utf8');
@@ -281,6 +281,21 @@ for(const product of catProducts){
   if(!product.name || !product.fishName || !depthDescriptions[product.fishId] || !product.systems.length ||
     !Number.isInteger(product.chapterCount) || product.chapterCount<1 || product.priceKRW!==price){
     fail(`${product.cdFeatureKey}: 전용 상품 안내의 이름·분석 깊이·챕터 수·가격을 확인하세요.`);
+  }else dedicatedCopy.set(product.cdFeatureKey,product);
+}
+// Question consultations publish their scope and price through a dedicated catalog API.
+// Check that existing contract too; these SKUs do not use the legacy tile popup.
+const {questionScopes,FOLLOWUP_LIMITS}=loadTsModule('worker/yeongnyangi/fortune/ask/question-policy.ts');
+const chatCatalogRoute=readFileSync(resolve(ROOT,'worker/routes/fortune-chat-consultations.js'),'utf8');
+for(const expected of ['chatQuestionProducts().map','scope:questionScopes[product.fishId]','followups:FOLLOWUP_LIMITS[product.fishId]']) {
+  if(!chatCatalogRoute.includes(expected))fail(`연이·네오 질문 상품 안내 연결 누락: ${expected}`);
+}
+for(const product of chatQuestionProducts()){
+  const price=FEATURE_KEY_PRICE_TABLE[product.cdFeatureKey]?.amountKRW;
+  const followups=FOLLOWUP_LIMITS[product.fishId];
+  if(!product.name || !product.fishName || !questionScopes[product.fishId] || !product.systems.length ||
+    !Number.isInteger(followups) || followups<0 || product.priceKRW!==price){
+    fail(`${product.cdFeatureKey}: 전용 질문 상품 안내의 이름·상담 범위·추가 질문·가격을 확인하세요.`);
   }else dedicatedCopy.set(product.cdFeatureKey,product);
 }
 const highPrice = Object.entries(FEATURE_KEY_PRICE_TABLE)

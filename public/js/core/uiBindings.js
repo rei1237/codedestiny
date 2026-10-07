@@ -61,7 +61,7 @@ const __lazyActionLoaders = {
   openPastLifeFaceApp: () => __loadScriptOnce('AnalysisEngine.js?v=h96b7981840e2').then(() => __loadScriptOnce('PastLifeFaceUI.js?v=h18a3c245e2db')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js?v=h7c6f7751f293'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-09eb3486c209'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-5311846b921c'),
   openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-6d2c2ef4778c'),
   openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-355af2ec3036'),
   openAnimalTotemModal: () =>
@@ -113,7 +113,7 @@ const __lazyActionLoaders = {
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-9a55ded42d09')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-aa2dee9ca2be')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-0717901ec907'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))

@@ -6,6 +6,31 @@ const PRIORITY = {
   psychology: ["tarot"], work: ["saju", "ziwei"],
 };
 
+// Use the same calculated references in the provider schema and local validation.
+// Offering paths explicitly avoids spending a paid response on a path spelling error.
+export function fusionEvidenceReferences(system, data) {
+  if (system === "tarot") return (data?.cards || []).flatMap((card, index) =>
+    ["name", "orientation", "positionKey", "meaningSummary"].filter(key => card?.[key])
+      .map(key => `tarot.cards.${index}.${key}`));
+  return Object.entries(data?.expertEvidence || {})
+    .filter(([key, value]) => !/birthDate|birthTime|latitude|longitude|timezone|solarDate|raw|nickname|concern|requestId|payment/i.test(key)
+      && value !== undefined && value !== null && value !== "" && (!Array.isArray(value) || value.length))
+    .map(([key]) => `${system}.expertEvidence.${key}`);
+}
+
+export function normalizeFusionSignals(section, system, context) {
+  if (!section || !Array.isArray(section.signals)) return section;
+  const signals = section.signals.map(signal => ({
+    ...signal,
+    domain: String(signal?.domain || "").trim().toLowerCase(),
+    stance: String(signal?.stance || "").trim().toLowerCase(),
+    period: String(signal?.period || "").trim().toLowerCase(),
+    evidenceKeys: Array.isArray(signal?.evidenceKeys) ? signal.evidenceKeys.map(key =>
+      String(key).trim().replace(/^\$?\.?systems\./, "").replace(/\[(\d+)\]/g, ".$1")) : [],
+  })).filter(signal => validFusionSignals({ signals: [signal] }, system, context)).slice(0, 8);
+  return { ...section, signals };
+}
+
 export function validFusionSignals(section, system, context) {
   const signals = section?.signals;
   if (!Array.isArray(signals) || !signals.length || signals.length > 8) return false;
@@ -85,7 +110,7 @@ export function fusionExpertEvidenceReady(system, data) {
   }
 }
 
-// Editorial character budgets, not confidence scores. Korean remains 30k–60k.
+// Locale scaling for editorial character budgets, never a confidence score.
 export function fusionLocaleLengthScale(locale = "ko") {
   const language = String(locale).toLowerCase().split("-")[0];
   return ({ ko: 1, ja: 1, zh: 0.7, en: 1.3, vi: 1.2, hi: 1.2, es: 1.3, fr: 1.4, de: 1.4, nl: 1.3, ms: 1.2 })[language] || 1;

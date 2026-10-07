@@ -146,8 +146,8 @@ describe("catalog: 가격 정본과 어긋나지 않는다", () => {
   test("해금 상품은 productId 로도 featureKey 로도 같은 답이 나온다", () => {
     const byId = resolveProduct({ productId: "unlock.olympus_fc" });
     const byKey = resolveProduct({ featureKey: "olympus-fc" });
-    expect(byId.priceCoins).toBe(50);
-    expect(byId.priceKRW).toBe(5000); // KRW_PER_COIN = 100
+    expect(byId.priceCoins).toBe(10);
+    expect(byId.priceKRW).toBe(1000); // KRW_PER_COIN = 100
     expect(byKey.productId).toBe(byId.productId);
     expect(byKey.priceKRW).toBe(byId.priceKRW);
   });

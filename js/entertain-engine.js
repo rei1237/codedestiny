@@ -2742,8 +2742,8 @@
   }
 
   var TETOGEN_DEEP_REPORT_FEATURE_KEY = 'tetogen_deep_report';
-  var TETOGEN_DEEP_REPORT_COST = 50;
-  var TETOGEN_DEEP_REPORT_KRW = 5000;
+  var TETOGEN_DEEP_REPORT_COST = 10;
+  var TETOGEN_DEEP_REPORT_KRW = 1000;
 
   function isTetogenDeepReportUnlocked() {
     try {

@@ -72,7 +72,7 @@ export const SEO_LINK_GROUPS = [
       { href: "/fortune/weekly/", text: "이번 주 별자리·띠 운세" },
       { href: "/fortune/monthly/", text: "이번 달 별자리·띠 운세" },
       { href: "/compatibility/", text: "사주 궁합 분석하기" },
-      { href: "/premium/", text: "프리미엄 운세 리포트" },
+      { href: "/consultations/", text: "프리미엄 운세 리포트" },
       { href: "/saju/basic/", text: "사주 만세력 기본 해석" },
       { href: "/ziwei/chart/", text: "자미두수 12궁 명반" },
       { href: "/astrology/cosmic/", text: "점성술 코즈믹 차트" },

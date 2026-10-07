@@ -127,7 +127,7 @@ test("가격만으로도 찾을 수 있다", async () => {
 
 // 회귀 배경: service-registry.js에 3,000원대 항목이 하나도 없어 "3천원대" 칩이 항상 0건이었다
 // (2026-08-21 실측). 실제 3,000원 서비스 8개를 등록하며 이 케이스를 추가한다.
-test("3천원대 가격만으로도 찾을 수 있다", async () => {
+test("가격 인하된 정적 상품과 3천원대 상담을 구분해 찾을 수 있다", async () => {
   const { doc } = await boot();
   const panel = doc.getElementById("fortuneGatewayRecs");
 
@@ -135,7 +135,13 @@ test("3천원대 가격만으로도 찾을 수 있다", async () => {
 
   const hits = names(panel);
   assert.ok(hits.length > 0, "3천원대만 골랐을 때 결과가 없다");
-  assert.ok(hits.includes("이집트 신탁"), `3천원대 결과에 이집트 신탁이 없다: ${hits.join(", ")}`);
+  assert.ok(hits.includes("재회운 타로"), `3천원대 결과에 재회운 타로가 없다: ${hits.join(", ")}`);
+  assert.ok(!hits.includes("이집트 신탁"), "1,000원 이집트 신탁이 이전 가격대에 남아 있다");
+  doc.querySelector('#fortuneGatewayDiscover [data-price="mid"]').click();
+  doc.querySelector('#fortuneGatewayDiscover [data-price="low"]').click();
+  const lowHits = names(panel);
+  assert.ok(lowHits.includes("이집트 신탁"), "1,000원 가격대에 이집트 신탁이 없다");
+  assert.ok(!lowHits.includes("재회운 타로"), "3,000원 상담이 1,000원 가격대에 섞였다");
 });
 
 test("방식은 이름 정규식이 아니라 선언된 값으로 판정한다", async () => {
@@ -197,9 +203,11 @@ test("범위 가격 항목은 걸치는 가격대 칩에 모두 나온다", asyn
     return hit;
   };
 
-  // 새 가격의 범위 상품도 시작가와 상한 가격대에 모두 나타난다.
-  assert.ok(inChip("mid", "스톤헨지 룬"), "3,000원~5,000원 항목이 3천원대에서 빠졌다");
-  assert.ok(inChip("high", "스톤헨지 룬"), "3,000원~5,000원 항목이 5천원대에서 빠졌다");
+  // 룬은 1,000원 단일가가 됐으므로 예전 범위 가격대에 남지 않는다.
+  assert.ok(inChip("low", "스톤헨지 룬"));
+  assert.ok(!inChip("mid", "스톤헨지 룬"));
+  assert.ok(!inChip("high", "스톤헨지 룬"));
+  // 여전히 범위 가격인 상품은 시작가와 상한 가격대에 모두 나타난다.
   assert.ok(inChip("premium", "마스터 인연의 서"), "10,000원~30,000원 항목이 1만원대에서 빠졌다");
   assert.ok(inChip("vvip", "마스터 인연의 서"), "10,000원~30,000원 항목이 프리미엄에서 빠졌다");
   assert.ok(!inChip("mid", "마스터 인연의 서"), "범위 밖의 3천원대에 섞였다");

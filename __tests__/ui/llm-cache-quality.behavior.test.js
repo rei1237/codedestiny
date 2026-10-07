@@ -63,3 +63,18 @@ test("even a long truncated response is never cached", async () => {
     store: { get: async () => null, set: async () => { assert.fail("truncated result cached"); } },
   });
 });
+
+for (const cached of [{text:'{"body":"unfinished"',provider:'gemini'}, {text:'{"body":"mock"}',provider:'staging-mock',isMock:true}]) {
+  test(`invalid structured or mock cache is bypassed: ${cached.provider}`, async () => {
+    let calls=0,saved;
+    const complete={text:'{"body":"A complete response."}',provider:'gemini'};
+    const result=await withLLMCache({prompt:'structured',responseMimeType:'application/json'},async()=>{calls++;return complete;},{deterministic:true,store:{get:async()=>cached,set:async(_,value)=>{saved=value;}}});
+    assert.equal(calls,1);assert.equal(result,complete);assert.equal(saved,complete);
+  });
+}
+
+test('a malformed new JSON response is delivered to local repair without poisoning the retry cache',async()=>{
+  const malformed={text:'{"body":"unfinished"',provider:'gemini'};
+  const result=await withLLMCache({prompt:'repairable',responseMimeType:'application/json'},async()=>malformed,{deterministic:true,store:{get:async()=>null,set:async()=>assert.fail('invalid JSON was cached')}});
+  assert.equal(result,malformed);
+});

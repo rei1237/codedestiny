@@ -1,3 +1,5 @@
+import {neoRefinementHistory,neoRefinementAllowance} from '../lib/neo-refinement-contract.js';
+import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { handleNeoStrategyBooks } from "./neo-strategy-books.js";
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -1034,6 +1036,7 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlin
         // 않다 — 긴 한국어 본문에서 문자열 안 raw 개행이 섞여 오므로 파서가 복구까지 한다
         // (neo-operation-room-prompt.js 의 extractJsonObject).
         responseMimeType: "application/json",
+        responseSchema: jsonSchemaFromExample(section.schema),
         // Workers AI 폴백이 이 챕터 최소 분량의 40% 미만이면 실패로 돌린다.
         // 아래 40자 게이트는 목적이 다르다 — 전 provider 대상 "렌더 가능한 응답" 하한.
         fallbackMinChars: Math.round((section.minChars || 500) * 0.4),
@@ -1357,6 +1360,8 @@ function publicSession(doc) {
     realityCheck: raw?.realityCheck || null,
     refinedOrder: raw?.refinementStatus === "generating" ? null : raw?.refinedOrder || null,
     pendingRefinedOrder: raw?.refinementStatus === "generating" && Object.keys(raw?.llmMeta?.refinement?.sections || {}).length ? mergeNeoRefinedSections(Object.values(raw.llmMeta.refinement.sections), raw) : null,
+    refinementAllowance: neoRefinementAllowance(raw),
+    refinementHistory: neoRefinementHistory(raw),
     refinementProgress: Object.keys(raw?.llmMeta?.refinement?.sections || {}),
     refinementStatus: clean(raw?.refinementStatus),
     generationError: raw?.generationError || null,
@@ -1813,6 +1818,10 @@ async function handleRefine(request, env) {
   const normalized = normalizeRealityCheckInput(body);
   if (!normalized.ok) return invalidInput(normalized.message);
   if (existing.refinedOrder && existing.refinementStatus !== "generating" && existing.realityCheck?.answerHash === normalized.realityCheck.answerHash) return json(publicSession(existing));
+  const repeated=neoRefinementHistory(existing).some(entry=>entry.realityCheck?.answerHash===normalized.realityCheck.answerHash);
+  if(repeated)return json(publicSession(existing));
+  if(neoRefinementAllowance(existing).remaining===0)return json({ok:false,reason:'REFINEMENT_LIMIT_REACHED',message:'현실 점검 질문 2회를 모두 마쳤어요. 저장된 상담은 계속 읽을 수 있어요.'},{status:409});
+  if(existing.refinementStatus==='generating'&&existing.llmMeta?.refinement?.answerHash!==normalized.realityCheck.answerHash)return json({ok:false,reason:'REFINEMENT_IN_PROGRESS',message:'진행 중인 현실 점검을 먼저 마쳐 주세요.'},{status:409});
   const resumeBody = existing.llmMeta?.resumeBody || { idempotencyKey: existing.idempotencyKey, paymentId: existing.paymentId };
   const access = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized: { inputHash: existing.inputHash }, pricing: getPricing(), idempotencyKey: existing.idempotencyKey });
   if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
@@ -1826,6 +1835,9 @@ async function handleRefine(request, env) {
   if (!doc) return pendingNeoRefinement(existing);
   const filter = { id: sessionId, userId: auth.userId, status: "completed", "llmMeta.refineLockToken": lockToken };
   try {
+    if(neoRefinementHistory(doc).some(entry=>entry.realityCheck?.answerHash===normalized.realityCheck.answerHash))return json(publicSession(doc));
+    if(neoRefinementAllowance(doc).remaining===0)return json({ok:false,reason:'REFINEMENT_LIMIT_REACHED'},{status:409});
+    if(doc.refinementStatus==='generating'&&doc.llmMeta.refinement?.answerHash!==normalized.realityCheck.answerHash)return json({ok:false,reason:'REFINEMENT_IN_PROGRESS'},{status:409});
     const previous = doc.llmMeta.refinement;
     const state = previous?.answerHash === normalized.realityCheck.answerHash ? previous : { answerHash: normalized.realityCheck.answerHash, realityCheck: normalized.realityCheck, sections: {}, attempts: {} };
     const accepted = (section, current) => neoRefinedSectionReady(section, current.sections[section.id], doc,
@@ -1842,7 +1854,7 @@ async function handleRefine(request, env) {
       });
       doc = await saveNeoDelivery(filter, { refinementStatus: "generating", refinementError: null, llmMeta: { ...doc.llmMeta, refinement: { ...state, attempts } } }, sessionId);
       const context = { selectedMethod: doc.selectedMethod, topic: doc.topic, intensity: doc.intensity, question: doc.question, methodSummary: doc.methodSummary,
-        initialBriefing: doc.initialBriefing, realityCheck: state.realityCheck, previousAdviceLog: buildPreviousAdviceLog(doc.initialBriefing) };
+        initialBriefing: doc.initialBriefing, realityCheck: state.realityCheck, previousAdviceLog: buildPreviousAdviceLog(doc.initialBriefing), previousRefinements: neoRefinementHistory(doc) };
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(selected.map(async section => {
         const prompt = buildNeoRefinedSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`] ? "\n[분량 보강] 기존 계산 근거를 유지하고 새로운 장면과 행동 조언을 더해 완결된 JSON으로 다시 작성한다. 반복으로 채우지 않는다." : "") + `\n[완료 기준] 제목·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 현실 점검 답변과 계산값에 근거하고 앞 영역을 반복하지 않는다.`;
@@ -1869,9 +1881,9 @@ async function handleRefine(request, env) {
     if (!freshAccess.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
     const now = new Date();
     doc = await saveNeoDelivery(filter, { refinedOrder, realityCheck: doc.llmMeta.refinement.realityCheck, refinementStatus: "completed", refinementError: null,
-      versionHistory: [...(doc.versionHistory || []), { version: 2, documentType: "refined_order", operationTitle: refinedOrder.operationTitle, realityCheck: doc.llmMeta.refinement.realityCheck, createdAt: now.toISOString() }],
+      versionHistory: [...(doc.versionHistory || []), { version: neoRefinementHistory(doc).length+2, documentType: "refined_order", operationTitle: refinedOrder.operationTitle, realityCheck: doc.llmMeta.refinement.realityCheck, createdAt: now.toISOString() }],
       messages: [...(doc.messages || []), { role: "user", content: JSON.stringify(doc.llmMeta.refinement.realityCheck), createdAt: now }, { role: "assistant", content: JSON.stringify(refinedOrder), createdAt: now }],
-      llmMeta: { ...doc.llmMeta, refinedAt: now.toISOString(), refineLockToken: "", refineLockedAt: null } }, sessionId);
+      llmMeta: { ...doc.llmMeta, refinementHistory: [...neoRefinementHistory(doc),{order:refinedOrder,realityCheck:doc.llmMeta.refinement.realityCheck,createdAt:now.toISOString()}], refinedAt: now.toISOString(), refineLockToken: "", refineLockedAt: null } }, sessionId);
     return json(publicSession(doc));
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") throw error;

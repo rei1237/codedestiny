@@ -72,7 +72,13 @@
 
   function ensureMainUiVisible() {
     var main = document.querySelector('main');
-    if (main) {
+    // The legacy shell's main is the input/home, not the active result.
+    // Late boot tasks and unrelated resource errors must not undo calculate's
+    // intentional handoff (including its hidden first render frame).
+    var result = document.getElementById('resultPage');
+    var sajuOwnsSurface = main && main.id === 'inputPage' && result
+      && result.style.display !== 'none' && result.style.display !== '';
+    if (main && !sajuOwnsSurface) {
       main.style.display = '';
       main.style.visibility = 'visible';
       main.style.opacity = '1';

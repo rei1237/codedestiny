@@ -1,10 +1,11 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
-let utils, provider, fetchBlock;
+let utils, provider, fetchBlock, overviewIndex;
 beforeAll(async () => {
   const gemini = await import('../../worker/lib/gemini.js');
   jest.unstable_mockModule('../../worker/lib/gemini.js', () => ({ ...gemini, callGeminiText: (...args) => provider(...args) }));
   ({ __newYearAiTestUtils: utils } = await import('../../worker/routes/new-year-ai.js'));
+  overviewIndex = utils.NEW_YEAR_AI_SECTIONS.findIndex(section => section.key === 'overview');
 });
 beforeEach(() => { provider = jest.fn(); fetchBlock = jest.spyOn(globalThis, 'fetch').mockImplementation(() => { throw Error('External fetch blocked'); }); });
 afterEach(() => { expect(fetchBlock).not.toHaveBeenCalled(); fetchBlock.mockRestore(); });
@@ -15,7 +16,8 @@ function text(key, size, basis = false) {
   return head + key + body.slice(0, size / 2) + '\n\n' + key + body.slice(size / 2);
 }
 function fixture(short = 100) {
-  const savedSections = utils.NEW_YEAR_AI_SECTIONS.map((section, i) => ({ key: section.key, section, ok: true, text: text(section.key, i ? 5000 : short, !i) }));
+  const savedSections = utils.NEW_YEAR_AI_SECTIONS.map(section => ({ key: section.key, section, ok: true,
+    text: text(section.key, section.key === 'overview' ? short : Math.min(5000, section.maxChars), section.key === 'overview') }));
   const attempts = { overview: 1 };
   const options = { savedSections, attempts, deadlineAt: Date.now() + 80000,
     onReserve: async (key, repair) => { attempts[key] = (attempts[key] || 0) + 1; if (repair) attempts[`${key}:lengthRepair`] = 1; }, onCheckpoint: jest.fn() };
@@ -31,20 +33,20 @@ for (const kind of ['missing_basis', 'truncated', 'empty', 'mock', 'repeated']) 
   if (kind === 'repeated') body += '\n\n' + f.savedSections[1].text;
   provider.mockResolvedValue({ ok: true, text: body, provider: kind === 'mock' ? 'mock' : 'gemini', truncated: kind === 'truncated' });
   const result = await utils.generateConsultationText({}, input, facts, f.options);
-  expect(result.complete).toBe(true); expect(result.savedSections[0].text).toBe(f.savedSections[0].text);
+  expect(result.complete).toBe(true); expect(result.savedSections[overviewIndex].text).toBe(f.savedSections[overviewIndex].text);
   expect(provider).not.toHaveBeenCalled(); expect(f.options.attempts.overview).toBe(1);
 });
 it('real provider path preserves a first draft below the legacy 300-character floor', async () => {
-  const f = fixture(); f.savedSections[0] = { ...f.savedSections[0], text: '', ok: false }; f.options.attempts.overview = 0;
+  const f = fixture(); f.savedSections[overviewIndex] = { ...f.savedSections[overviewIndex], text: '', ok: false }; f.options.attempts.overview = 0;
   provider.mockResolvedValue({ ok: true, text: text('overview', 100, true), provider: 'gemini' });
   const first = await utils.generateConsultationText({}, input, facts, f.options);
-  expect(first.complete).toBe(true);expect(first.savedSections[0].text).not.toBe('');expect(first.savedSections[0].text.length).toBeLessThan(300);
+  expect(first.complete).toBe(true);expect(first.savedSections[overviewIndex].text).not.toBe('');expect(first.savedSections[overviewIndex].text.length).toBeLessThan(300);
   const second = await utils.generateConsultationText({}, input, facts, { ...f.options, savedSections: first.savedSections });
   expect(second.complete).toBe(true);expect(provider).toHaveBeenCalledTimes(1);
 });
 it('a shorter repair can restore missing required evidence', async () => {
-  const f = fixture(1000); f.savedSections[0].text = f.savedSections[0].text.replace('병오', '');
+  const f = fixture(1000); f.savedSections[overviewIndex].text = f.savedSections[overviewIndex].text.replace('병오', '');
   provider.mockResolvedValue({ ok: true, text: text('overview', 100, true), provider: 'gemini' });
   const result = await utils.generateConsultationText({}, input, facts, f.options);
-  expect(result.savedSections[0].text).toContain('병오'); expect(result.quality.issues).toEqual([]);
+  expect(result.savedSections[overviewIndex].text).toContain('병오'); expect(result.quality.issues).toEqual([]);
 });

@@ -12,6 +12,14 @@
 //   - **분량 미달 재요청은 `.mjs` 가 소유**한다. 그건 전송이 아니라 내용 판정이라 중첩이 아니다.
 
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
+import { jsonSchemaFromExample } from "./json-text-repair.js";
+
+const oracleResponseSchema = jsonSchemaFromExample({
+  coreQuestion: '', bigPicture: '',
+  positionReadings: [{ positionOrder: 1, headline: '', reading: '', positionAdvice: '' }],
+  cardSynergies: [{ pairLabel: '', insight: '' }], timeline: { now: '', near: '', turning: '' },
+  tension: '', categoryFocus: '', caution: '', actions: [''], closingLine: '',
+});
 
 // 이 라우트는 Gemini 가 죽어도 결과를 내야 하므로 폴백을 켠다. 대신 폴백 응답이 너무 짧으면
 // 거절해야 한다 — 안 그러면 8% 분량이 정상 결제 결과로 나간다(gemini.js 의 rejectShortFallback).
@@ -39,6 +47,7 @@ export function createOracleConsultationLlm(env, context = {}) {
       baseTokens: Number(maxOutputTokens) || 10000,
       capTokens: Number(maxOutputTokens) || 10000,
       responseMimeType: "application/json",
+      responseSchema: oracleResponseSchema,
       systemPrompt,
       locale: context.locale || "ko",
       timeoutMs: Number(timeoutMs) || undefined,

@@ -1,3 +1,4 @@
+import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { trimPaidReportSections } from "../lib/paid-report-length.js";
@@ -1528,13 +1529,9 @@ function buildSectionGroupPrompt(input, chart, group) {
 
 // meta 는 본문보다 훨씬 짧고, 대부분의 값은 enforceZiweiChartFacts 가 계산 확정값으로 덮어쓴다.
 // 모델에게는 description/theme/scores 같은 판단 몫만 맡기면 되므로 별도의 가벼운 호출로 분리했다.
-function buildMetaPrompt(input, chart) {
+function buildMetaOutputExample(input = {}) {
   const birth = input.birthInfo || {};
-  return [
-    ...buildConsultationHeaderLines(input, chart),
-    "",
-    "반드시 아래 JSON 구조만 반환해 주세요. JSON 앞뒤에 설명, 마크다운 코드블록, 인사말을 붙이지 마세요.",
-    JSON.stringify({
+  return {
       meta: {
         name: birth.name || "이름 미입력",
         gender: birth.gender || "미입력",
@@ -1568,7 +1565,15 @@ function buildMetaPrompt(input, chart) {
         },
       },
       sections: {},
-    }),
+    };
+}
+
+function buildMetaPrompt(input, chart) {
+  return [
+    ...buildConsultationHeaderLines(input, chart),
+    "",
+    "반드시 아래 JSON 구조만 반환해 주세요. JSON 앞뒤에 설명, 마크다운 코드블록, 인사말을 붙이지 마세요.",
+    JSON.stringify(buildMetaOutputExample(input)),
     "",
     "- mingong.description 은 명궁 주성과 강약을 근거로 한 2~3문장 요약입니다.",
     "- dayun.theme 는 현재 대운의 성격을 한 줄로 규정합니다.",
@@ -1657,6 +1662,7 @@ async function generateConsultationText(env, prompt, options = {}) {
         baseTokens: baseMaxOutputTokens,
         capTokens: Math.round(baseMaxOutputTokens * 1.3),
         responseMimeType: options.responseMimeType,
+        responseSchema: options.responseSchema,
         // 폴백 허용(폴백 JSON 은 structured-consultation 이 정화). 너무 짧으면 실패로 돌린다.
         // 관례는 그 호출의 최소 분량 × 0.4 — 그룹 호출은 그룹 목표 기준으로 넘겨받는다.
         fallbackMinChars: Number(options.fallbackMinChars) || 2000,
@@ -1842,6 +1848,7 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
         ...(repairing ? [`직전 본문은 공백 제외 ${countPaidReportBodyChars(ziweiSectionBody(groups[group.id]))}자입니다. 같은 문장 반복 없이 계산 근거와 행동 조언을 보강해 완결된 JSON으로 다시 작성하세요.`] : []),
       ].join("\n"), {
         systemPrompt: await resolveSystemPrompt(env), taskType: "fortune", responseMimeType: "application/json",
+        responseSchema: jsonSchemaFromExample({ sections: buildSectionSchemaFor(group.sections) }),
         temperature: config.temperature ?? 0.72, attempts: 1, timeoutMs: 45000,
         baseTokens: Math.max(SECTION_GROUP_TARGET_TOKENS, Math.floor(Number(config.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS) / SECTION_GROUP_SPECS.length)),
         capTokens: SECTION_GROUP_TARGET_TOKENS, fallbackToWorkersAI: false,
@@ -1887,7 +1894,7 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
     const generated = await callGeminiJsonWithRetry(env, buildMetaPrompt(input, chart), {
       systemPrompt: await resolveSystemPrompt(env), attempts: 1, timeoutMs: 45000,
       baseTokens: 2600, capTokens: 2600, fallbackToWorkersAI: false,
-      responseMimeType: "application/json", logContext: { ...logContext, sectionGroup: "meta" },
+      responseMimeType: "application/json", responseSchema: jsonSchemaFromExample({ meta: buildMetaOutputExample(input).meta }), logContext: { ...logContext, sectionGroup: "meta" },
     }).catch(() => null); // Optional meta failure keeps the saved body deliverable.
     if (generated?.ok) meta = parseMetaFromText(generated.text) || meta;
     await checkpoint({ groups, attempts, meta, rawResponses });
@@ -1937,6 +1944,7 @@ async function generateInitialConsultation(env, { input, chart, logContext = {},
       temperature: modelConfig.temperature,
       responseMimeType: "application/json",
       attempts,
+      responseSchema: jsonSchemaFromExample({ sections: buildSectionSchemaFor(group.sections) }),
       timeoutMs,
       fallbackMinChars: groupMinChars,
       renderableMinChars: groupMinChars,
@@ -1956,6 +1964,7 @@ async function generateInitialConsultation(env, { input, chart, logContext = {},
       timeoutMs: SECTION_GROUP_TIMEOUT_MS,
       fallbackMinChars: 200,
       renderableMinChars: 120,
+      responseSchema: jsonSchemaFromExample({ meta: buildMetaOutputExample(input).meta }),
       cacheKeyExtra: "meta",
       logContext: { ...logContext, sectionGroup: "meta" },
     }),

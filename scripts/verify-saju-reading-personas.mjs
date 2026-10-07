@@ -9,6 +9,7 @@ if(!/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(base))throw new Error('Use th
 // 저장소 밖에 쓴다: 저장소 안 쓰기는 Next dev 재컴파일(HMR)을 일으켜 측정을 흔든다.
 const out=resolve(process.env.SAJU_READING_SHOTS||resolve(tmpdir(),'code-destiny-saju-reading-shots'));mkdirSync(out,{recursive:true});
 const baseline=process.argv.includes('--baseline');
+const entryOnly=process.argv.includes('--entry-only');
 const browser=await chromium.launch({headless:true});
 const results=[];
 try {
@@ -28,11 +29,20 @@ try {
     await page.waitForFunction(baseline=>document.querySelector('.cd-soulcat-entry')&&(baseline||window.SajuReadingPresentation),baseline);
     // 부팅 게이트가 걷히는 중에는 스크롤바가 빠져 body 폭이 달라지므로 끝난 뒤에 잰다.
     await page.waitForFunction(()=>{const c=document.documentElement.classList;return !c.contains('cd-boot-gate')&&!c.contains('cd-boot-gate-out');});
-    await page.evaluate(()=>{document.getElementById('cdhMore').open=true;document.querySelector('.cd-soulcat-entry').scrollIntoView({behavior:'instant'});});
+    await page.evaluate(()=>{const entry=document.querySelector('.cd-soulcat-entry');if(entry.closest('#cdhMore'))throw new Error('Yeongnyangi entry is incorrectly folded');entry.scrollIntoView({behavior:'instant'});});
     await page.waitForFunction(()=>{const i=document.querySelector('.cd-soulcat-entry img');return i.complete&&i.naturalWidth>0;});
     await page.locator('.cd-soulcat-entry').screenshot({path:resolve(out,`cat-${width}.png`)});
     const catHeight=await page.locator('.cd-soulcat-entry').evaluate(el=>el.getBoundingClientRect().height);
     if(!baseline&&width===360)assert.ok(catHeight<=480,`Mobile entry height ${catHeight}`);
+    if(entryOnly){
+      const entryState=await page.evaluate(()=>{const entry=document.querySelector('.cd-soulcat-entry');const buttons=[...entry.querySelectorAll('.cd-soulcat-entry__cta')].map(button=>{const rect=button.getBoundingClientRect();return {width:rect.width,height:rect.height,text:button.innerText.trim()};});return {count:document.querySelectorAll('.cd-soulcat-entry').length,overflow:document.documentElement.scrollWidth>innerWidth+2,buttons};});
+      assert.equal(entryState.count,1,'Yeongnyangi entry is unique');
+      assert.equal(entryState.overflow,false,'Yeongnyangi entry has no horizontal overflow');
+      assert.equal(entryState.buttons.length,2,'Yeongnyangi entry keeps two actions');
+      for(const button of entryState.buttons){assert.ok(button.height>=44,`CTA touch target ${button.height}px`);assert.ok(button.text,`CTA text is visible at ${width}px`);}
+      assert.deepEqual(errors,[],'No entry rendering exceptions');
+      results.push({width,catHeight,entryState});await context.close();continue;
+    }
     await page.evaluate(()=>document.querySelector('[aria-label="사주 분석 시작하기"]').click());
     await page.waitForFunction(()=>typeof window.calculate==='function');
     await page.locator('#nameInput').fill('테스트');await page.locator('#birthDate').fill('19910220');

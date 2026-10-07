@@ -73,9 +73,10 @@
 .pick header { display: grid; gap: 6px; }
 .pick header h2 { margin: 0; }
 .progress { color: var(--yn-gold); font-weight: 700; font-variant-numeric: tabular-nums; }
-.deck { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 8px; max-height: min(60vh, 560px); overflow-y: auto; padding: 12px; border: 1px solid var(--yn-line); border-radius: var(--yn-radius); background: var(--yn-deep); overscroll-behavior: contain; }
-.pick .deck button { position: relative; min-width: 44px; min-height: 66px; padding: 0; border: 1px solid var(--yn-line); border-radius: 6px; background: var(--yn-night); cursor: pointer; overflow: hidden; }
-.pick .deck button img { display: block; width: 100%; height: auto; }
+.deck { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); grid-auto-rows: max-content; align-content: start; gap: 12px 10px; max-height: min(60vh, 560px); overflow-y: auto; padding: 20px 12px; border: 1px solid var(--yn-line); border-radius: var(--yn-radius); background: var(--yn-deep); overscroll-behavior: contain; }
+.pick .deck button { position: relative; display: block; width: 100%; aspect-ratio: 2 / 3; height: auto; min-width: 44px; min-height: 0; align-self: start; padding: 0; border: 1px solid var(--yn-line); border-radius: 6px; background: var(--yn-night); cursor: pointer; overflow: hidden; }
+.pick .deck button picture { display: block; width: 100%; height: 100%; }
+.pick .deck button img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .pick .deck button[aria-pressed="true"] { border-color: var(--yn-gold); transform: translateY(-4px); }
 .pick .deck button[aria-pressed="true"] span { position: absolute; inset: auto 0 0; padding: 2px 0; background: var(--yn-gold); color: var(--yn-deep); font-size: .8rem; font-weight: 700; }
 .pick .deck button:disabled:not([aria-pressed="true"]) { opacity: .55; cursor: default; }
@@ -83,6 +84,23 @@
 .pick .actions button, .pick .actions a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--yn-line); border-radius: 12px; background: var(--yn-night); color: var(--yn-ivory); font: inherit; text-decoration: none; cursor: pointer; }
 .pick .actions .primary { border-color: var(--yn-gold); background: var(--yn-gold); color: var(--yn-deep); font-weight: 700; }
 .pick .actions button:disabled { opacity: .55; cursor: default; }
+.ritualHeader { text-align: center; padding: 20px 8px 8px; }
+.ritualHeader h2 { font-family: var(--font-serif); color: var(--yn-gold); font-size: clamp(1.5rem, 4vw, 2rem); }
+.ritualHeader p { margin: 4px 0; line-height: 1.75; }
+.ritualGuide { display: flex; align-items: center; justify-content: center; gap: 16px; color: var(--yn-ivory); }
+.ritualGuide img { flex: 0 0 56px; border-radius: 50%; }
+.ritualGuide p { max-width: 32em; line-height: 1.75; }
+.readingTable { padding: 12px; border-block: 1px solid var(--yn-line); }
+.readingTable .map { border: 0; padding-block: 24px; background: transparent; }
+.shuffleBar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.shuffleBar p { flex: 1 1 200px; margin: 0; color: var(--yn-muted); line-height: 1.7; }
+.pick .shuffleBar button { min-height: 44px; padding: 10px 22px; background: var(--yn-night); color: var(--yn-gold); border: 1px solid var(--yn-gold); border-radius: 8px; font: inherit; cursor: pointer; }
+.pick .shuffleBar button:disabled { opacity: .55; cursor: default; }
+.pick .shuffleBar button:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 3px; }
+.deck[data-shuffling] button { animation: shuffleCards .9s ease-in-out; }
+.deck[data-shuffling] button:nth-child(even) { animation-direction: reverse; }
+@keyframes shuffleCards { 0%,100% { transform: translateX(0) rotate(0); } 35% { transform: translateX(8px) rotate(6deg); } 70% { transform: translateX(-8px) rotate(-6deg); } }
+@media (prefers-reduced-motion: reduce) { .deck[data-shuffling] button { animation: none; } }
 /* Reveal: heading and the next-card button sit on the map's centre line. */
 .reveal header { justify-items: center; text-align: center; }
 .reveal .actions { justify-content: center; }

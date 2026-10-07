@@ -8,7 +8,7 @@
  * 그대로 승계한다: 6필드 1차 해석 → 비일반 키면 채택 → 아니면 13후보를 featureKey 로 재해석.
  * 후보 목록·일반키 판정을 바꾸면 구 라우트와 다른 가격이 나온다 — 목록은 테스트가 고정한다.
  */
-import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
+import { getBillingFeaturePricing, assertFeatureEnabled } from "../lib/billing-feature-registry.js";
 import { paymentError } from "./errors.js";
 
 const GENERIC_FEATURE_KEYS = new Set(["", "coin-gate-per-use", "paid-service", "paid_service", "default", "service"]);
@@ -80,6 +80,8 @@ export function resolveLegacyProduct(body = {}) {
     });
   }
   const pricing = result.pricing;
+  const enabled = assertFeatureEnabled(pricing);
+  if (!enabled.ok) throw paymentError(enabled.code, enabled.message);
   const priceCoins = Math.max(0, Math.floor(Number(pricing.cost || pricing.coinPrice || 0)));
   const priceKRW = Math.max(0, Math.floor(Number(pricing.amountKRW ?? pricing.cashPrice ?? priceCoins * 100)));
   const monthlyCost = Math.max(0, Math.floor(Number(pricing.membershipCreditCost ?? priceCoins)));

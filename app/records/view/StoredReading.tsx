@@ -14,7 +14,6 @@ import type { NeoResultSession } from '@/src/features/neo-war-room/NeoOperationR
 import type { ChatConsultation } from '@/app/fortune-chat/consultation-api';
 import type { LoadingLocale } from '@/constants/loadingMessages';
 import type { Result as FusionResult } from '@/app/fusion-fortune/fusion-thread';
-import fusionStyles from '@/app/fusion-fortune/fusion-fortune.module.css';
 import BiasDestinyMainCard from '@/app/saju/destiny-bias/components/BiasDestinyMainCard';
 import BiasDestinyFiveSections from '@/app/saju/destiny-bias/components/BiasDestinyFiveSections';
 import BiasDestinyElementChart from '@/app/saju/destiny-bias/components/BiasDestinyElementChart';
@@ -25,7 +24,7 @@ import biasStyles from '@/app/saju/destiny-bias/destiny-bias.module.css';
 const AiConsultDecks = dynamic(() => import('@/app/nakshatra/ai/AiConsultDecks'));
 const CodexReader = dynamic(() => import('@/src/features/master-love-codex/components/CodexReader'));
 const SavedNeoDocuments = dynamic(() => import('@/src/features/neo-war-room/NeoOperationRoomResultPage').then(module => module.SavedNeoDocuments));
-const FusionResultThread = dynamic(() => import('@/app/fusion-fortune/FusionResultThread').then(module => module.FusionResultThread));
+const SavedFusionReading = dynamic(() => import('@/app/fusion-fortune/SavedFusionReading').then(module => module.SavedFusionReading));
 const ConsultationResult = dynamic(() => import('@/app/fortune-chat/ConsultationResult'));
 const ChemiCoreCard = dynamic(() => import('@/app/saju/destiny-bias/components/chemi/ChemiCoreCard'));
 const ChemiSections = dynamic(() => import('@/app/saju/destiny-bias/components/chemi/ChemiSections'));
@@ -55,7 +54,7 @@ export default function StoredReading({ source, serviceId, value, status }: { so
   }
   if (source === 'destiny-bias') return <IncompleteBiasReading row={row} notice={c.formatUnavailable} noBody={c.noBody} />;
   if (source === 'chat-consultation' && Array.isArray(row.chapters) && Array.isArray(row.manifest)) return <div data-saved-consultation className={`${chatTheme.room} ${row.persona === 'neo' ? consultationTheme.starlight : ''}`} style={{height:'auto',display:'block',overflow:'visible',padding:20,borderRadius:20}}><ConsultationResult row={row as ChatConsultation} readOnly onNew={() => window.location.assign('/fortune-chat/')} /></div>;
-  if (source === 'fusion' && object(row.result).sajuSection) return <><div className={`${fusionStyles.page} rounded-[var(--cd-r-card)] p-3`}><ol className="space-y-5"><FusionResultThread result={row.result as FusionResult} openSection="" onToggleSection={() => {}} exporting readOnly /></ol></div><SavedChapters showEmpty={false} value={Object.fromEntries(Object.entries(row).filter(([key]) => key !== 'result'))} /></>;
+  if (source === 'fusion' && Object.keys(object(row.result)).some(key => key.endsWith('Section'))) return <SavedFusionReading result={row.result as FusionResult} />;
   if (source === 'neo' && row.initialBriefing) return <div className={styles.night}><SavedNeoDocuments session={row as NeoResultSession} locale={locale as LoadingLocale} /><SavedChapters showEmpty={false} value={Object.fromEntries(Object.entries(row).filter(([key]) => !['initialBriefing','refinedOrder','question','selectedMethod','topic','compatSummary'].includes(key)))} /></div>;
   if (source === 'codex' && Array.isArray(row.chapters)) return <><div className={styles.codex}><CodexReader chapters={row.chapters as CodexChapter[]} loveDna={row.loveDna as CodexLoveDna || null} name="" birthLine="" totalCharCount={Number(row.totalCharCount) || 0} sessionId={String(row.id || '')} mode={row.mode === 'compat' ? 'compat' : 'solo'} completed={row.status === 'completed'} /></div><SavedChapters showEmpty={false} value={Object.fromEntries(Object.entries(row).filter(([key]) => !['chapters','loveDna'].includes(key)))} /></>;
   if (source === 'nakshatra' && row.decks) return <><AiConsultDecks decks={row.decks as Decks} natal={row.natal as NatalIdentity || null} question={typeof row.question === 'string' ? row.question : undefined} /><SavedChapters showEmpty={false} value={Object.fromEntries(Object.entries(row).filter(([key]) => !['decks','natal','question'].includes(key)))} /></>;

@@ -285,6 +285,7 @@ async function generateSection(env, context, spec, attemptState) {
     // Continue the report in its saved language even if the UI changed between waves.
     locale,
     systemPrompt: built.systemPrompt,
+    responseSchema: built.responseSchema,
     baseTokens: Math.max(HD_REPORT_SECTION_MAX_OUTPUT_TOKENS, tokensRequiredForChars(built.targetMaxChars || spec.maxChars)),
     capTokens: Math.max(HD_REPORT_SECTION_MAX_OUTPUT_TOKENS, tokensRequiredForChars(built.targetMaxChars || spec.maxChars)),
     temperature: 0.8,

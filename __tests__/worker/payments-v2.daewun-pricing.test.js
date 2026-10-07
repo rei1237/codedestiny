@@ -26,7 +26,7 @@ test("대운 신규 해금은 5,000원·월정석 500이며 앱도 같은 가격
   expect(getBillingFeaturePricing({ featureKey: PRODUCT.featureKey }).pricing).toMatchObject({ amountKRW: 5000, cost: 50 });
   expect(resolveAppContentTier(PRODUCT.priceCoins)).toMatchObject({ productId: "cd_content_tier_02", amountKRW: PRODUCT.priceKRW });
   expect(resolveProduct({ featureKey: "section_summary" }).priceKRW).toBe(3000);
-  expect(resolveProduct({ featureKey: "rpt_quantumCard" }).priceKRW).toBe(5000);
+  expect(resolveProduct({ featureKey: "rpt_quantumCard" }).priceKRW).toBe(1000);
 });
 
 test.each([

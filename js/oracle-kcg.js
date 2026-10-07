@@ -823,7 +823,7 @@ function closeKemetModal() {
 }
 
 function consumeKemetPerUseCoin(question) {
-  var COST = 30;
+  var COST = 10;
   var REASON = getKemetOracleCopy().readingReason;
   var qStr = String(question || '').trim();
 

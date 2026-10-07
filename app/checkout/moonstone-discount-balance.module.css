@@ -1,0 +1,6 @@
+.balance { padding: 16px; margin: 12px 0; border: 1px solid var(--yn-line); border-radius: 12px; background: var(--yn-surface); }
+.balance p { margin: 0 0 12px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
+.balance button { min-height: 44px; padding: 10px 14px; margin: 4px 8px 4px 0; border: 1px solid var(--yn-line); border-radius: 8px; background: var(--yn-night); color: var(--yn-ivory); font: inherit; font-size: 14px; cursor: pointer; }
+.balance button:last-child { color: var(--yn-gold); border-color: var(--yn-gold); }
+.balance button:disabled { opacity: .55; cursor: default; }
+.balance button:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 3px; }

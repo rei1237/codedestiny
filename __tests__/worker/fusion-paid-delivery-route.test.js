@@ -190,10 +190,10 @@ for(const kind of ['pass','monthly','single'])describe(kind,()=>{
  it('server recovery honors nextStage=1 even when an incomplete expert checkpoint already has six bodies',async()=>{
   generator=async()=>({result:sections,deliverable:false,qualityTier:'partial'});await route(request(),ENV);
   docs[0].updatedAt=new Date(Date.now()-600000);
-  const stages=[];generator=async({stage})=>{stages.push(stage);return {result:sections,deliverable:true,qualityTier:'partial'}};
+  const stages=[];generator=async({stage})=>{stages.push(stage);return {result:sections,deliverable:true,qualityTier:stage===1?'partial':'full'}};
   const {runFusionFortuneRecovery}=await import('../../worker/lib/fusion-fortune-recovery-task.js');
   await runFusionFortuneRecovery(ENV);
-  expect(stages).toEqual([1]);expect(docs[0].status).toBe('partial');expect(docs[0].nextStage).toBe(2);
+  expect(stages).toEqual([1,2]);expect(docs[0].status).toBe('completed');
  });
  for(const scenario of ['revoked','live-lease','budget'])it(`server recovery respects ${scenario} before provider calls`,async()=>{
   generator=async()=>({result:sections,deliverable:true,qualityTier:'partial'});
@@ -253,6 +253,28 @@ it('recovers encrypted PG approval before the first generation request, with no 
  expect(paymentChecks.map(proof=>proof.requestId)).toEqual([requestId,requestId]);
 });
 
+
+it('server recovery continues durable chapter waves in the same tick without a fresh debit',async()=>{
+ generator=async()=>({result:{sajuSection:sections.sajuSection},deliverable:false,automaticRetryAllowed:true,qualityTier:'partial'});
+ await route(request(),ENV);docs[0].updatedAt=new Date(Date.now()-600000);
+ const stages=[];
+ generator=async({stage,onAttempt})=>{
+  stages.push(stage);await onAttempt(stage===1?'ziwei':'integration');
+  return {result:stage===1?sections:{...sections,title:'continued without another tick'},deliverable:true,qualityTier:stage===1?'partial':'full'};
+ };
+ const {runFusionFortuneRecovery}=await import('../../worker/lib/fusion-fortune-recovery-task.js');
+ await runFusionFortuneRecovery(ENV);
+ expect(stages).toEqual([1,2]);expect(docs[0].status).toBe('completed');
+ expect(paymentChecks.slice(1).every(proof=>proof.requireExisting===true)).toBe(true);
+});
+
+it.each(['unchanged','retry-disallowed'])('server recovery stops a %s partial wave',async scenario=>{
+ generator=async()=>({result:sections,deliverable:false,qualityTier:'partial'});
+ await route(request(),ENV);docs[0].updatedAt=new Date(Date.now()-600000);
+ const runStage=jest.fn(async()=>({ok:true,stageStatus:'partial',automaticRetryAllowed:scenario!=='retry-disallowed'}));
+ const {runFusionFortuneRecovery}=await import('../../worker/lib/fusion-fortune-recovery-task.js');
+ await runFusionFortuneRecovery(ENV,{runStage});expect(runStage).toHaveBeenCalledTimes(1);
+});
 
 it.each(["short-total", "complete-checkpoint"])("recovery handles exhausted %s without an extra provider reservation", async kind => {
  const fusion=await import('../../worker/lib/fusion-fortune.js');

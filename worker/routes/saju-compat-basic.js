@@ -17,7 +17,7 @@ import {
   SAJU_COMPAT_FEATURE_KEY, SAJU_COMPAT_REPORT_TYPE, SAJU_COMPAT_SHORTFALL_RATIO,
   assembleSajuCompatSnapshot, buildSajuCompatPart, completeSajuCompatPart, groupTargetChars, measureSajuCompatPart,
   mergeSajuCompatShaped, normalizeSajuCompatInput, parseSajuCompatResponse, sajuCompatSeenKeys, sajuCompatShapedChars,
-  sajuCompatTasks, shapeSajuCompatGroup,
+  sajuCompatTasks, shapeSajuCompatGroup, sajuCompatResponseSchema,
 } from "../lib/saju-compat-schema.js";
 import { buildSajuCompatPrompt, buildSajuCompatSystemPrompt } from "../lib/saju-compat-prompts.js";
 
@@ -40,6 +40,7 @@ async function generateGroup(env, group, input, seen, promptOptions) {
     timeoutMs: PROVIDER_TIMEOUT_MS,
     fallbackToWorkersAI: false,
     responseMimeType: "application/json",
+    responseSchema: sajuCompatResponseSchema(group, input),
   });
   if (!providerIsLive(ai)) return null;
   const parsed = parseSajuCompatResponse(ai.text, salvageTruncatedJsonObject);
@@ -53,6 +54,20 @@ export function sajuCompatNarrativeAdapter(env) {
     reportType: SAJU_COMPAT_REPORT_TYPE,
     completeBody: completeSajuCompatPart,
     measureBody: measureSajuCompatPart,
+    // Exhausted legacy attempts can contain all the prose at the wrong JSON path.
+    // Revalidate the saved response locally, under the engine's owner/lease checks.
+    recoverSavedPart: (task, state) => {
+      if (task.id !== "pastLife" || Number(state.attempts?.[task.id]) < 2) return null;
+      const parsed = parseSajuCompatResponse(state.rawResponses?.[task.id], salvageTruncatedJsonObject);
+      if (!parsed) return null;
+      const seen = sajuCompatSeenKeys(state.parts);
+      let shaped = shapeSajuCompatGroup(task.id, parsed, state.input, new Set(seen));
+      const stash = state.lenient?.[task.id];
+      if (stash) shaped = mergeSajuCompatShaped(task.id, state.input, shaped, stash, new Set(seen));
+      // Local recovery only completes fully restored content, never waives holes.
+      if (shaped.missing.length) return null;
+      return acceptable(state, task.id, shaped, stash?.model || "", state.attempts[task.id])?.body || null;
+    },
     // 한 요청에 한 그룹. 1차 시도에서 필수 항목이 비었거나 분량이 목표의 60% 미만이면 부분 결과를 state.lenient 에
     // 맡겨 두고 null 을 돌려 한 번 보강한다. 2차(마지막) 시도는 1차 결과와 합쳐, 한도 안의 결손이면 분량과
     // 무관하게 받아들인다(분량 미달만으로 결과를 거부하지 않는다).

@@ -98,3 +98,17 @@ test('stored persona and grounded recognition reach followups without changing t
   if(common)assert.equal(rules,common);else common=rules;
  }
 });
+
+for(const limit of [5,7])test('fusion '+limit+' followups use all saved chapter evidence and the stored total budget',async()=>{
+ const t=globalThis.__conversationTest;
+ t.row.snapshot.questionContract={...t.row.snapshot.questionContract,followups:limit,readingBudget:{followup:[2400,3000]}};
+ t.row.snapshot.manifest.push({...t.row.snapshot.manifest[0],factSelectors:{saju:['tenGodsByPillar']}});
+ t.row.snapshot.analysis.contexts.saju.facts.push({id:'saju.tenGodsByPillar',label:'tenGodsByPillar',value:{month:'정관'}});
+ for(let i=0;i<limit;i++)await questionConversation({},user,id,{...body,id:crypto.randomUUID(),question:'실행 계획의 '+(i+1)+'번째 조건을 구체적으로 설명해 주세요.'});
+ assert.deepEqual(t.sent.input.answerTargetChars,[2400,3000]);
+ assert.ok(t.sent.input.evidence.some(f=>f.id==='saju.tenGodsByPillar'));
+ assert.equal(t.row.generationCheckpoint.conversation.used,limit);
+ assert.equal(t.sent.options.maxProviderAttempts,1);
+ await assert.rejects(questionConversation({},user,id,{...body,id:crypto.randomUUID()}));
+ assert.equal(t.calls,limit);
+});

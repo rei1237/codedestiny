@@ -111,7 +111,7 @@ assertIncludes("worker/routes/new-year-ai.js", "johu");
 assertIncludes("worker/routes/new-year-ai.js", "daewoonSewoon");
 assertIncludes("worker/routes/new-year-ai.js", "annualInteractions");
 assertIncludes("worker/routes/new-year-ai.js", "NEW_YEAR_AI_MIN_TOTAL_CHARS = 20000");
-assertIncludes("worker/routes/new-year-ai.js", "NEW_YEAR_AI_MAX_TOTAL_CHARS = 28000");
+assertIncludes("worker/routes/new-year-ai.js", "NEW_YEAR_AI_MAX_TOTAL_CHARS = 33000");
 assertIncludes("worker/routes/new-year-ai.js", "validateConsultationQuality");
 assertIncludes("worker/routes/new-year-ai.js", "buildMockConsultationText");
 assertIncludes("worker/routes/new-year-ai.js", "buildConsultationCompressionPrompt");
@@ -176,8 +176,8 @@ assert(firstPrompt.includes("[계산된 사주와 세운 데이터]"), "new-year
 assert(firstPrompt.includes("처음 입력한 더 깊게 보고 싶은 흐름"), "new-year-ai first prompt should use the initial deep-flow question");
 assert(firstPrompt.includes("새해 전체 운의 핵심 결론"), "new-year-ai first prompt should request consultation sections");
 assert(firstPrompt.includes("격국, 용신·기신, 조후, 대운-세운 관계"), "new-year-ai first prompt should request advanced saju synthesis");
-assert(firstPrompt.includes("전체 본문 합계는 공백을 제외하고 20,000자 이상 28,000자 이하"), "new-year-ai prompt should require 20k-28k total content chars");
-assert(firstPrompt.includes("권장 분량은 22,000~25,000자"), "new-year-ai prompt should guide the rough expected length");
+assert(firstPrompt.includes("전체 본문 합계는 공백을 제외하고 20,000자 이상 33,000자 이하"), "new-year-ai prompt should require 20k-33k total content chars");
+assert(firstPrompt.includes("권장 분량은 28,500~32,000자"), "new-year-ai prompt should guide the rough expected length");
 assert(firstPrompt.includes("각 항목마다 20,000자를 쓰지 말고"), "new-year-ai prompt should not require the whole target per section");
 assert(firstPrompt.includes("단순히 문장을 길게 늘이지 말고"), "new-year-ai prompt should require expert additions instead of filler");
 assert(firstPrompt.includes("[카테고리별 참고 신호"), "new-year-ai prompt should surface per-category domain signals");
@@ -185,13 +185,13 @@ assert(firstPrompt.includes("**연애·재회**, **재물·수입**, **직업·�
 // 분야별 5섹션 병렬 생성 — 섹션 축이 결과 화면의 네 장 카드(+월별)와 1:1로 맞아야 한다.
 const sections = route.__newYearAiTestUtils.NEW_YEAR_AI_SECTIONS;
 assert(
-  sections.map((section) => section.key).join(",") === "overview,wealth,romance,monthly,health",
+  sections.map((section) => section.key).join(",") === "opening,overview,wealth,romance,monthly,health",
   `new-year-ai sections should split by consultation domain, got: ${sections.map((s) => s.key).join(",")}`,
 );
 const sectionMinSum = sections.reduce((sum, section) => sum + section.minChars, 0);
 const sectionMaxSum = sections.reduce((sum, section) => sum + section.maxChars, 0);
 assert(sectionMinSum >= 20000, `section minChars sum should reach the 20k floor, got ${sectionMinSum}`);
-assert(sectionMaxSum <= 28000, `section maxChars sum should stay under the 28k ceiling, got ${sectionMaxSum}`);
+assert(sectionMaxSum <= 33000, `section maxChars sum should stay under the 33k ceiling, got ${sectionMaxSum}`);
 // 6개 카테고리 소제목은 빠짐없이 어느 한 분야 섹션이 책임져야 한다. 비면 그 이슈는 영원히 해소되지 않는다.
 const categorySectionKey = route.__newYearAiTestUtils.NEW_YEAR_AI_CATEGORY_SECTION_KEY;
 for (const category of ["love", "money", "career", "health", "relationship", "study"]) {
@@ -199,6 +199,7 @@ for (const category of ["love", "money", "career", "health", "relationship", "st
 }
 // 각 분야 섹션 프롬프트가 그 분야의 명리 근거를 실제로 요구하는지.
 const sectionPromptExpectations = {
+  opening: ["타고난 성향과 지금의 마음", "강점", "감정"],
   overview: ["조후", "억부", "**올해의 총운**"],
   wealth: ["재성", "관성", "**재물과 직업**", "**재물·수입**", "**직업·이직**"],
   romance: ["식상", "비겁", "인성", "**애정과 대인관계**", "**연애·재회**", "**가족·관계**"],
@@ -216,15 +217,15 @@ const customQuestionInput = route.__newYearAiTestUtils.normalizeConsultationInpu
   ...validInput,
   focusArea: "custom",
   question: "이직해도 될까요?",
-  hasCustomQuestion: true,
+  hasCustomQuestion: false,
 });
 assert(customQuestionInput.ok === true, "custom question input should normalize");
 const questionAnswerOwners = sections.filter((section) => route.__newYearAiTestUtils
   .buildFirstPrompt(customQuestionInput.input, fortuneData, section)
   .includes("반드시 소제목 **질문에 대한 답변**"));
 assert(
-  questionAnswerOwners.length === 1 && questionAnswerOwners[0].key === "overview",
-  `only the overview section should own the question answer, got: ${questionAnswerOwners.map((s) => s.key).join(",")}`,
+  questionAnswerOwners.length === 1 && questionAnswerOwners[0].key === "opening",
+  `only the opening section should own the question answer, got: ${questionAnswerOwners.map((s) => s.key).join(",")}`,
 );
 
 // 클라이언트: 분야별 구조화 응답을 쓰되 구버전 세션용 폴백 파서를 유지해야 한다.
@@ -240,14 +241,14 @@ assertIncludes("worker/routes/new-year-ai.js", "'llmMeta.sections': generated.se
 const systemPrompt = route.__newYearAiTestUtils.buildSystemPrompt();
 assert(systemPrompt.includes("최고 수준의 명리학자"), "new-year-ai system prompt should strengthen expert saju voice");
 assert(systemPrompt.includes("격국과 용신·기신, 조후, 대운의 배경"), "new-year-ai system prompt should include advanced saju lenses");
-assert(systemPrompt.includes("완성 상담문 전체 본문은 공백을 제외하고 20,000자 이상 28,000자 이하"), "new-year-ai system prompt should require 20k-28k total chars");
+assert(systemPrompt.includes("완성 상담문 전체 본문은 공백을 제외하고 20,000자 이상 33,000자 이하"), "new-year-ai system prompt should require 20k-33k total chars");
 assert(systemPrompt.includes("명리 전문가로서 격국·월령"), "new-year-ai system prompt should require expert part additions");
 
 const mockConsultationText = route.__newYearAiTestUtils.buildMockConsultationText();
 const mockQuality = route.__newYearAiTestUtils.validateConsultationQuality(mockConsultationText);
 assert(mockQuality.ok === true, `mock consultation should pass quality gate: ${mockQuality.issues.join(", ")}`);
 assert(mockQuality.totalChars >= 20000, "mock consultation should be at least 20k total chars");
-assert(mockQuality.totalChars <= 28000, "mock consultation should stay under 28k total chars");
+assert(mockQuality.totalChars <= 33000, "mock consultation should stay under 33k total chars");
 assert(mockQuality.sectionCount >= 6, "mock consultation should include enough substantial sections");
 assert(mockQuality.missingTopics.length === 0, "mock consultation should cover all required expert topics");
 

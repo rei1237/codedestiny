@@ -168,7 +168,7 @@ check("병합 가시 텍스트 ≤ 상한", visible <= FUSION_FORTUNE_LENGTH.tot
   check("렌더러: 총평은 있을 때만", /result\.closingMessage\s*&&\s*<ThreadRow/.test(renderer));
 
   const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
-  check("클라이언트: stage 를 보낸다", /\{\s*\.\.\.requestBody,\s*requestId,\s*stage\s*\}/.test(client));
+  check("클라이언트: stage 를 보낸다", /JSON\.stringify\(\{\s*\.\.\.requestBody,\s*requestId,\s*stage\s*[,}]/.test(client));
   check("클라이언트: partial 을 받으면 이어간다", /payload\.status\s*===\s*"partial"/.test(client));
   check("클라이언트: 2단계 실패는 이어서 생성 카드", /stageTwoFailed/.test(client) && /continueGenerationButton/.test(client));
   check("클라이언트: 복구 결과 partial/completed와 폐기된 응답 구분", /Promise<false \| "partial" \| "completed" \| "stale">/.test(client));

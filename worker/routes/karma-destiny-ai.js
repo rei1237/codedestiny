@@ -8,7 +8,8 @@ import { KarmaDestinyAiConsultation, PaidExecutionRecord, Payment, PointHistory,
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { deliverExpertFollowUp, recoverSavedExpertFollowUps, expertFollowUpNarrativeAdapter } from '../lib/expert-follow-up-delivery.js';
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
@@ -913,7 +914,7 @@ async function resolveServerAccess({ env, auth, user, pricing, idempotencyKey, i
 
   const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
   if (featureAccess.allowed) {
-    return { ok: true, accessType: featureAccess.accessType || "pass", paymentId: "", usageAlreadyApplied: false };
+    return { ok: true, accessType: normalizeConsultAccessType(featureAccess.accessType), paymentId: "", usageAlreadyApplied: false };
   }
 
   return { ok: false, reason: "PAYMENT_REQUIRED" };
@@ -2265,8 +2266,16 @@ function buildSummaryCards(integratedResult = {}) {
 }
 
 async function applyUsageOnce({ userId, sessionId, accessType, pricing }) {
-  const existing = await KarmaDestinyAiConsultation.findOne({ id: sessionId, userId: clean(userId) }).select("usageAppliedAt").lean();
+  const existing = await KarmaDestinyAiConsultation.findOne({ id: sessionId, userId: clean(userId) }).select("usageAppliedAt idempotencyKey").lean();
   if (existing?.usageAppliedAt) return true;
+  if (!existing?.idempotencyKey) throw Object.assign(new Error("상담 저장을 확인 중입니다."), { code: "RESULT_STORAGE_UNAVAILABLE" });
+  if (normalizeConsultAccessType(accessType) === "pass") {
+    const user = await User.findById(userId).select("profileSubscription recentConsumeRequestIds").lean();
+    const consumed = await consumePassForFeature({ user: user || {}, entitlement: resolveCanonicalEntitlement(user || {}),
+      userId, featureKey: FEATURE_KEY, requestId: existing.idempotencyKey, coinCost: pricing.coinPrice });
+    if (!consumed.covered) throw Object.assign(new Error("이용권 사용 한도를 확인해 주세요."),
+      { code: passDenialCode(consumed.reason) || "PAYMENT_REQUIRED" });
+  }
 
   await KarmaDestinyAiConsultation.updateOne(
     { id: sessionId, userId: clean(userId), usageAppliedAt: null },

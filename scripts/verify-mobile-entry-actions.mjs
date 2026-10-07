@@ -4,7 +4,7 @@ import path from "node:path";
 import { isBuildArtifactDir } from "./lib/source-scan-ignore.mjs";
 
 const root = process.cwd();
-const registryPath = path.join(root, "MOBILE_FEATURE_REGISTRY.md");
+const registryPath = path.join(root, "docs/design/mobile-feature-registry.md");
 const registryText = readRequired(registryPath);
 
 const sourceFiles = [

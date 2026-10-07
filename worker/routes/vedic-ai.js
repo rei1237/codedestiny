@@ -1,3 +1,4 @@
+import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { trimPaidReportSections } from "../lib/paid-report-length.js";
@@ -16,7 +17,8 @@ import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
@@ -651,20 +653,11 @@ async function resolveBillingEvidence({ env, userId, body, idempotencyKey, prici
     MonthlyCreditLedger.findOne({ userId: userObjectId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: metadataIds }, { $or: markers }] }).lean(),
   ]);
   if (blocked.some(Boolean)) return null;
+  if (await hasConsumedPassFeature({ _id: userObjectId }, FEATURE_KEY, idempotencyKey)) {
+    return { accessType: "pass", source: "pass-receipt", prepaid: true, evidenceType: "pass" };
+  }
   const user = await withMongoRetry(env, () => loadBillingUser(userObjectId));
   if (clean(user?.role).toLowerCase() === "admin") return { accessType: "paid", source: "admin", prepaid: false };
-  if (likelyAccessType === "pass") {
-    const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
-    if (featureAccess.allowed) {
-      return {
-        accessType: featureAccess.accessType || "pass",
-        paymentId: ids[0] || "",
-        source: "pass-entitlement",
-        prepaid: false,
-        evidenceType: "pass",
-      };
-    }
-  }
 
   const direct = await withMongoRetry(env, () => findDirectPayment(userObjectId, ids, idempotencyKey));
   if (direct) {
@@ -690,6 +683,13 @@ async function resolveBillingEvidence({ env, userId, body, idempotencyKey, prici
   const monthly = await withMongoRetry(env, () => findMonthlyEvidence(env, userObjectId, ids, idempotencyKey, pricing));
   if (monthly) return monthly;
 
+  // Access tokens and a resumed session need no client-supplied pass label.
+  // Confirm current entitlement on the server after looking for this request's paid evidence.
+  const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
+  if (featureAccess.allowed) return {
+    accessType: normalizeConsultAccessType(featureAccess.accessType), paymentId: "",
+    source: "pass-entitlement", prepaid: false, evidenceType: "pass",
+  };
   return null;
 }
 
@@ -993,6 +993,16 @@ function buildSectionEvidenceLines(chart) {
   ];
 }
 
+function buildGroupOutputExample(group) {
+  return {
+    ...(group.includeScores ? { scores: { dharma: 0, artha: 0, kama: 0, moksha: 0, overall: 0 } } : {}),
+    sections: {
+      ...Object.fromEntries((group.sectionKeys || []).map(key => [key, { title: REQUIRED_SECTION_LABELS[key], body: "제공된 계산값만 바탕으로 해석합니다." }])),
+      ...(group.includeReasoning ? buildReasoningSectionSchema() : {}),
+    },
+  };
+}
+
 function buildGroupPrompt(input, chart, group, repairLines = []) {
   const canonicalFacts = buildCanonicalFactsLine(chart);
   const sectionKeys = group.sectionKeys || [];
@@ -1000,13 +1010,6 @@ function buildGroupPrompt(input, chart, group, repairLines = []) {
     .filter((key) => !sectionKeys.includes(key))
     .map((key) => `"${REQUIRED_SECTION_LABELS[key]}"`)
     .join(", ");
-  const schemaSections = {
-    ...Object.fromEntries(sectionKeys.map((key) => [key, {
-      title: REQUIRED_SECTION_LABELS[key],
-      body: "제공된 계산값만 바탕으로 해석합니다.",
-    }])),
-    ...(group.includeReasoning ? buildReasoningSectionSchema() : {}),
-  };
   return [
     "아래 VedicChartResult JSON과 사용자 질문을 바탕으로 조티시 상담문 중 **지정된 부분만** 쓰세요.",
     "이 글은 다른 부분과 합쳐져 하나의 상담문이 됩니다. 인사말·전체 요약·맺음말을 새로 쓰지 마세요.",
@@ -1040,13 +1043,7 @@ function buildGroupPrompt(input, chart, group, repairLines = []) {
     JSON.stringify(Object.fromEntries(sectionKeys.map((key) => [key, REQUIRED_SECTION_LABELS[key]]))),
     "",
     "반환 JSON 형식 (아래 키만 내고, 다른 키는 넣지 마세요):",
-    JSON.stringify({
-      // scores 는 첫 그룹만 낸다. 나머지 그룹이 함께 내면 병합에서 어느 쪽을 쓸지 임의로 정하게 된다.
-      ...(group.includeScores ? { scores: { dharma: 0, artha: 0, kama: 0, moksha: 0, overall: 0 } } : {}),
-      // 근거를 먼저 밝히는 다섯 흐름. 품질 검증(READING_SECTION_KEYS)에는 넣지 않는다 —
-      // 빠지면 화면에서 생략될 뿐, 결제까지 끝난 상담 전체를 실패로 만들지 않기 위해서다.
-      sections: schemaSections,
-    }),
+    JSON.stringify(buildGroupOutputExample(group)),
     "",
     "계산된 VedicChartResult 데이터:",
     JSON.stringify(compactChartForPrompt(chart)),
@@ -1342,6 +1339,21 @@ async function handleEnsureAccess(request, env) {
   return paymentRequired(requestId);
 }
 
+async function applyUsageOnce({ userId, sessionId, accessType, pricing }) {
+  const existing = await VedicAiConsultation.findOne({ id: sessionId, userId }).select("usageAppliedAt idempotencyKey").lean();
+  if (existing?.usageAppliedAt) return true;
+  if (!existing?.idempotencyKey) throw resultStorageUnavailable(sessionId);
+  if (normalizeConsultAccessType(accessType) === "pass") {
+    const user = await User.findById(userId).select("profileSubscription recentConsumeRequestIds").lean();
+    const consumed = await consumePassForFeature({ user: user || {}, entitlement: resolveCanonicalEntitlement(user || {}),
+      userId, featureKey: FEATURE_KEY, requestId: existing.idempotencyKey, coinCost: pricing.coinPrice });
+    if (!consumed.covered) throw Object.assign(new Error("이용권 사용 한도를 확인해 주세요."),
+      { code: passDenialCode(consumed.reason) || "PAYMENT_REQUIRED" });
+  }
+  await VedicAiConsultation.updateOne({ id: sessionId, userId, usageAppliedAt: null }, { $set: { usageAppliedAt: new Date() } });
+  return true;
+}
+
 async function resolveStartAccess({ env, auth, body, normalized, idempotencyKey, pricing }) {
   const token = clean(body.accessToken);
   if (token) {
@@ -1385,6 +1397,7 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
       baseTokens: groupBaseTokens,
       capTokens: Math.round(groupBaseTokens * 1.3),
       responseMimeType: "application/json",
+      responseSchema: jsonSchemaFromExample(buildGroupOutputExample(group)),
       timeoutMs: vedicTimeoutMs,
       fallbackToWorkersAI: false,
       // 그룹 단위 문턱 — 전체 목표가 아니라 이 그룹 목표의 40%.
@@ -1633,6 +1646,7 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
     }
     const fresh = await resolveStartAccess({ env, auth, body, normalized, idempotencyKey, pricing });
     if (!fresh) return paymentVerifyFailed();
+    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: fresh.accessType, pricing });
     doc = await saveVedicDelivery(locked, { status: "completed", generationLease: "", usageAppliedAt: doc.usageAppliedAt || now }, sessionId);
     if (fresh.source === "direct-payment" && fresh.paymentDocId) {
       await Payment.updateOne({ _id: new mongoose.Types.ObjectId(fresh.paymentDocId), userId: objectId(auth.userId), featureKey: FEATURE_KEY, status: { $in: ["paid", "success", "fulfilled"] } }, { $set: { status: "fulfilled", sessionId, orderState: "UNLOCKED" } }).catch(error => logVedicAi("Usage bookkeeping failed", { code: error?.code }, "warn"));

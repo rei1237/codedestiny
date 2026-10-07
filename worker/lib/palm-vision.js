@@ -16,6 +16,7 @@ import { normalizeNarrativeBody } from "./paid-narrative-candidate.js";
 //    fallbackMinChars 를 준다.
 
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
+import { jsonSchemaFromExample } from "./json-text-repair.js";
 import { callGeminiText } from "./gemini.js";
 import { tokensRequiredForChars } from "./llm-budget.js";
 
@@ -146,6 +147,11 @@ export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손�
     ]
   }
 }`;
+
+// The literal output example above is code-owned, never customer or model text.
+export const PALM_VISION_RESPONSE_SCHEMA = jsonSchemaFromExample(JSON.parse(
+  PALM_VISION_SYSTEM_PROMPT.slice(PALM_VISION_SYSTEM_PROMPT.indexOf('{'), PALM_VISION_SYSTEM_PROMPT.lastIndexOf('}') + 1),
+));
 
 function buildVisionUserPrompt(declaredSide, analysisPurpose) {
   const purposeText = PURPOSE_KO[analysisPurpose] || PURPOSE_KO.general;
@@ -502,6 +508,7 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
     taskType: "fortune",
     timeoutMs: VISION_TIMEOUT_MS,
     geminiParts: parts,
+    responseSchema: PALM_VISION_RESPONSE_SCHEMA,
     // 🔴 폴백 경로는 이미지를 버린다 — 켜면 사진 없이 판독을 지어낸다. 파일 상단 주석 참고.
     fallbackToWorkersAI: false,
     logContext: { ...logContext, serviceId: "palm-reading", stage: `vision:${declaredSide}` },

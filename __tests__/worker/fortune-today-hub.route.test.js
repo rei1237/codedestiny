@@ -213,3 +213,33 @@ describe("today-hub 라우트", () => {
     expect(res.status).toBe(404);
   });
 });
+
+
+describe('tomorrow adapter', () => {
+  test('tomorrow has a separate public date/cache and date-based calculation', async () => {
+    const { hubDay } = await import('../../lib/fortune/hub-period.mjs');
+    const expected = hubDay('tomorrow');
+    const res = await call('?period=tomorrow&detail=1');
+    const next = await res.json();
+    const current = await (await call('?period=today&detail=1')).json();
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Cache-Control')).toContain('public');
+    expect(next.date).toBe([expected.year,String(expected.month).padStart(2,'0'),String(expected.day).padStart(2,'0')].join('-'));
+    expect(next.date).not.toBe(current.date);
+    expect(next.systems.saju.anchor).not.toBe(current.systems.saju.anchor);
+    expect(next.systems.saju.anchor).toContain('내일');
+    expect(next.systems.saju.score).toBeNull();
+  });
+  test('tomorrow guest numerology remains private and respects the selected day', async () => {
+    const res = await call('?period=tomorrow&birth=1990-12-25&only=number&detail=1');
+    expect(res.headers.get('Cache-Control')).toContain('private');
+    const next = await res.json();
+    const current = await (await call('?birth=1990-12-25&only=number&detail=1')).json();
+    expect(Object.keys(next.systems)).toEqual(['number']);
+    expect(next.date).not.toBe(current.date);
+    expect(next.systems.number.sections).not.toEqual(current.systems.number.sections);
+  });
+  test('unsupported periods are rejected', async () => {
+    expect((await call('?period=monthly')).status).toBe(400);
+  });
+});

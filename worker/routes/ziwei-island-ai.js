@@ -1,4 +1,5 @@
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
+import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 // 운명의 섬 12궁 심층 유료 상담(가격은 레지스트리 ziwei-island-palace-consult) — 독립 신규 상품.
 // 결제/게이트/환불 배선은 검증된 worker/routes/ziwei-ai.js에서 "상수만 바꿔" 그대로 복제했다.
 // (기존 ziwei-ai 상품/라우트는 무수정 — 회귀 0). 상담 내용만 궁별 프롬프트(palace-prompts)로 대체.
@@ -266,7 +267,7 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
     return { ok: true, accessType: "paid", paymentId: clean(paidPayment.merchantUid || paidPayment.impUid || paymentId, 160) };
   }
   const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
-  if (featureAccess.allowed) return { ok: true, accessType: featureAccess.accessType || "pass", paymentId: "" };
+  if (featureAccess.allowed) return { ok: true, accessType: normalizeConsultAccessType(featureAccess.accessType), paymentId: "" };
   if (hasMonthlyCredit(user, pricing.membershipCreditCost)) return { ok: true, accessType: "subscription", paymentId: "" };
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
@@ -279,7 +280,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
   if (/usage[-_]pass/.test(signal)) return null;
   if (signal.includes("pass") || signal.includes("membership_pass")) {
     const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
-    if (featureAccess.allowed) return { ok: true, accessType: featureAccess.accessType || "pass", paymentId: tokens[0] || "", prepaid: true, evidenceType: "pass" };
+    if (featureAccess.allowed) return { ok: true, accessType: normalizeConsultAccessType(featureAccess.accessType), paymentId: tokens[0] || "", prepaid: true, evidenceType: "pass" };
   }
   const paymentClauses = billingTokenClauses(tokens);
   if (paymentClauses.length) {
@@ -573,6 +574,7 @@ async function generatePalaceText(env, prompt, options = {}) {
     systemPrompt: buildSystemPrompt({ detailed: true }), taskType: "fortune", temperature: 0.72, timeoutMs, cache, attempts: 1, fallbackToWorkersAI: false,
     logContext: { sectionGroup: options.partId },
     baseTokens, capTokens: Math.round(baseTokens * 1.3), responseMimeType: "application/json", fallbackMinChars: 600,
+    responseSchema: jsonSchemaFromExample({ body: '', evidence: { palace: '', mainStars: [''], daeun: '' } }),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);

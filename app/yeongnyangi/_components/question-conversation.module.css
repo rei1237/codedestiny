@@ -1,0 +1,27 @@
+.conversation { margin-block: 32px; padding: clamp(16px, 4vw, 36px); background: var(--yn-night); border: 1px solid var(--yn-line); border-radius: var(--yn-radius); color: var(--yn-ivory); }
+.heading { display: flex; align-items: center; gap: 18px; padding-bottom: 24px; border-bottom: 1px solid var(--yn-line); }
+.heading img, .speaker img { flex-shrink: 0; border-radius: 50%; }
+.heading h2 { margin: 0 0 8px; color: var(--yn-gold); font-family: var(--font-serif); font-size: clamp(1.3rem, 3vw, 1.7rem); }
+.heading p { margin: 0; color: var(--yn-muted); line-height: 1.7; }
+.exchange { padding-block: 28px; border-bottom: 1px solid var(--yn-line); }
+.question { margin: 0 0 24px auto; max-width: 58ch; padding: 16px 20px; background: var(--yn-raised); border-radius: 16px 16px 4px 16px; }
+.question span { color: var(--yn-muted); font-size: .85rem; }
+.question h3 { margin: 8px 0 0; font-size: 1rem; line-height: 1.75; font-weight: 600; }
+.answer { max-width: var(--yn-reading-width, 68ch); margin-inline: auto; }
+.speaker { display: flex; align-items: center; gap: 12px; color: var(--yn-gold); }
+.answer p { margin: 20px 0; white-space: pre-wrap; line-height: 1.95; }
+.conversation p, .conversation h3 { word-break: keep-all; overflow-wrap: anywhere; }
+.composer { display: grid; gap: 16px; margin-top: 28px; }
+.composer label { display: grid; gap: 12px; font-weight: 600; }
+.composer textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 120px; padding: 16px; background: var(--yn-deep); color: var(--yn-ivory); border: 1px solid var(--yn-line); border-radius: 12px; font: inherit; font-size: 16px; line-height: 1.7; }
+.composer textarea::placeholder { color: var(--yn-muted); }
+.composer p, .support { color: var(--yn-muted); font-size: .9rem; line-height: 1.75; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.conversation .actions button { min-height: 48px; padding: 12px 20px; border: 1px solid var(--yn-gold); border-radius: 10px; background: var(--yn-gold); color: var(--yn-deep); font: inherit; font-weight: 600; cursor: pointer; }
+.conversation .actions .secondary { background: transparent; color: var(--yn-ivory); border-color: var(--yn-line); }
+.actions button:disabled { opacity: .6; cursor: default; }
+.conversation button:focus-visible, .composer textarea:focus-visible, .conversation a:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 3px; }
+.conversation a { color: var(--yn-gold); text-underline-offset: .2em; }
+.waiting { padding: 16px; background: var(--yn-surface); border-radius: 12px; color: var(--yn-gold); }
+.support { margin-top: 24px; }
+@media (max-width: 430px) { .heading { gap: 12px; align-items: flex-start; } .heading img { width: 56px; height: 56px; } .actions button { flex: 1 1 auto; } }

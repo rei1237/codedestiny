@@ -36,3 +36,17 @@
 .discount legend{font-weight:750;padding:0 8px 0 0}.discount label{display:block;margin:12px 0 8px}
 .discount input{width:100%;box-sizing:border-box;min-height:44px;padding:10px 12px;border:1px solid var(--yn-line);border-radius:12px;background:var(--yn-raised);color:var(--yn-ivory);font:inherit;font-size:16px}
 .discount input:focus-visible{outline:3px solid var(--yn-gold);outline-offset:3px}.discount p{font-size:14px;line-height:1.7;color:var(--yn-muted)}.discount strong{color:var(--yn-gold)}
+
+.simpleCheckout{display:block;max-width:620px;margin-top:28px}
+.purchaseChoices{padding:0;margin:24px 0;border:0;display:grid;gap:12px}
+.purchaseChoices legend{font-weight:750;margin-bottom:12px}
+.purchaseChoices label{display:flex;align-items:flex-start;gap:12px;padding:18px;border:1px solid var(--yn-line);border-radius:14px;cursor:pointer}
+.purchaseChoices label:has(input:checked){border-color:var(--yn-gold);background:var(--yn-raised)}
+.purchaseChoices input{margin:4px 0 0;accent-color:var(--yn-gold);width:18px;height:18px;flex-shrink:0}
+.purchaseChoices label>span{display:grid;gap:6px;min-width:0}.purchaseChoices small{line-height:1.6;color:var(--yn-muted)}
+.benefits{border-top:1px solid var(--yn-line);margin-top:24px;padding-top:12px}
+.benefits summary{padding:12px 0;cursor:pointer;font-weight:700;min-height:44px}
+.benefits>p{font-size:14px;color:var(--yn-muted);line-height:1.7}
+.benefits>button{width:100%;min-height:48px;margin:8px 0;padding:12px;border:1px solid var(--yn-line);border-radius:12px;background:var(--yn-raised);color:var(--yn-ivory);font:inherit;cursor:pointer}
+.benefits button:disabled{opacity:.5;cursor:wait}
+.page :is(summary,input,button):focus-visible{outline:3px solid var(--yn-gold);outline-offset:3px}

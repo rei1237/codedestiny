@@ -1,3 +1,4 @@
+import { jsonSchemaFromExample } from "./json-text-repair.js";
 // 휴먼 디자인 프리미엄 리포트 — ko/en 프롬프트 조립.
 //
 // 🔴 이 모듈은 LLM 을 부르지 않는다. 문자열만 만든다(human-design-ai-prompt.js 와 같은 계약).
@@ -206,7 +207,7 @@ export function buildHumanDesignReportSectionPrompt(input) {
 
   tail.push("");
   tail.push(ko ? "출력 형식 — 코드펜스·설명문 없이 JSON 만:" : "Output format — JSON only, no code fence, no prose:");
-  tail.push(JSON.stringify({
+  const outputExample = {
     key: spec.key,
     title,
     body: ko ? "<이 장의 본문>" : "<chapter body>",
@@ -215,7 +216,8 @@ export function buildHumanDesignReportSectionPrompt(input) {
       : [],
     keyPoints: [ko ? "<핵심 한 줄>" : "<one key point>"],
     evidence: ["center:THROAT", "gate:34", "channel:20-34"],
-  }, null, 2));
+  };
+  tail.push(JSON.stringify(outputExample, null, 2));
   tail.push(ko
     ? "evidence 에는 위 확정값에 실제로 있는 id 만 적습니다."
     : "evidence must contain only ids that actually appear in the fixed values above.");
@@ -225,6 +227,7 @@ export function buildHumanDesignReportSectionPrompt(input) {
     systemPrompt: SYSTEM_PROMPT[locale] || SYSTEM_PROMPT.en,
     targetMinChars,
     targetMaxChars,
+    responseSchema: jsonSchemaFromExample({ ...outputExample, subsections: [{ id: '', title: '', body: '' }] }),
   };
 }
 

@@ -4,7 +4,7 @@ import { paidExecutionDocumentId } from './executions.js';
 import { toObjectId } from './db.js';
 import { normalizePurchasePaymentMethod } from '../lib/entitlement-policy.js';
 import { paymentError } from './errors.js';
-import { servicePackCoverage, servicePackFeatures } from './service-pack-policy.js';
+import { servicePackCoverage, servicePackFeatures, isRetiredServicePack } from './service-pack-policy.js';
 import { YeongnyangiRequest } from '../lib/yeongnyangi-models.js';
 import { reserveFortuneFunding, completeFortuneFunding } from '../yeongnyangi/payment-funding.js';
 import { terminalRestoreFilter } from '../yeongnyangi/terminal-refund-policy.js';
@@ -243,7 +243,14 @@ export async function createServicePackOrder(db,input) {
     throw paymentError('ORDER_NOT_CONFIRMABLE','저장된 구매 요청과 원주문이 일치하지 않습니다. 결제 상태를 다시 확인해 주세요.');
   const {purchaseTypeOf}=await import('./gifts.js');
   const purchaseType=purchaseTypeOf(input.purchaseType);
-  const order=await createOrder(db,{...input,purchaseType,idempotencyKey:'service-pack:'+key,requestId:'service-pack:'+key});
+  // A retired offer can only replay its existing order. Never upsert a replacement:
+  // a cached client or a new idempotency key must not reopen a retired sale.
+  const retired=isRetiredServicePack(input.product.productId);
+  const order=retired
+    ?await db.findOne(Payment,{userId:toObjectId(input.userId),idempotencyKey:'service-pack:'+key,paymentType:input.paymentType||'digital_content'})
+    :await createOrder(db,{...input,purchaseType,idempotencyKey:'service-pack:'+key,requestId:'service-pack:'+key});
+  if(!order)throw paymentError('PRODUCT_SALE_ENDED','이 이용권은 신규 판매가 종료되었어요. 현재 판매 중인 5회 이용권을 확인해 주세요.',
+    {shopPath:'/points?context=yeongnyangi'});
   if(order.productId!==input.product.productId||order.pricingSnapshot?.fulfillmentType!=='service_pack'
     ||JSON.stringify(order.pricingSnapshot.packSnapshot)!==JSON.stringify(input.product.packSnapshot)
     ||(order.purchaseType||'SELF')!==purchaseType

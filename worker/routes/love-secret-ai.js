@@ -11,7 +11,8 @@ import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { deliverExpertFollowUp, recoverSavedExpertFollowUps, expertFollowUpNarrativeAdapter } from '../lib/expert-follow-up-delivery.js';
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
@@ -27,6 +28,7 @@ import {
   buildFollowUpConsultationPrompt,
   buildLoveSecretGroundingTerms,
   buildLoveSecretGroupPrompt,
+  buildLoveSecretGroupResponseSchema,
   buildLoveSecretGroupSystemPrompt,
   countLoveSecretConsultationBodyChars,
   mapLoveSecretIssuesToGroups,
@@ -446,7 +448,7 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
 
   const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
   if (featureAccess.allowed) {
-    return { ok: true, accessType: featureAccess.accessType || "pass", paymentId: "" };
+    return { ok: true, accessType: normalizeConsultAccessType(featureAccess.accessType), paymentId: "" };
   }
 
   return { ok: false, reason: "PAYMENT_REQUIRED" };
@@ -784,6 +786,7 @@ async function generateLoveSecretGroup(env, {
     });
     const call = callGeminiJsonWithRetry(env, prompt, {
       systemPrompt: buildLoveSecretGroupSystemPrompt(systemPromptBase, group),
+      responseSchema: buildLoveSecretGroupResponseSchema(group),
       temperature: 0.72,
       // 내부 잘림 재시도는 데드라인을 모른 채 벽시계를 2배로 만든다 — 수리는 wave 2가 예산을 알고 한다.
       attempts: 1,
@@ -1004,11 +1007,20 @@ async function generateFollowUp(env, consultation, message) {
   };
 }
 
-async function applyUsageOnce({ sessionId }) {
-  const existing = await LoveSecretAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
+async function applyUsageOnce({ userId, sessionId }) {
+  const existing = await LoveSecretAiConsultation.findOne({ id: sessionId, userId: clean(userId) }).select("usageAppliedAt accessType idempotencyKey").lean();
+  if (!existing?.idempotencyKey) throw resultStorageUnavailable(sessionId);
   if (existing?.usageAppliedAt) return true;
+  if (normalizeConsultAccessType(existing?.accessType) === "pass") {
+    const user = await User.findById(userId).select("profileSubscription recentConsumeRequestIds").lean();
+    const consumed = await consumePassForFeature({ user: user || {}, entitlement: resolveCanonicalEntitlement(user || {}),
+      userId, featureKey: FEATURE_KEY, requestId: existing?.idempotencyKey, coinCost: getPricing().coinPrice });
+    if (!consumed.covered) throw Object.assign(new Error("이용권 사용 한도를 확인해 주세요."), {
+      code: passDenialCode(consumed.reason) || "PAYMENT_REQUIRED",
+    });
+  }
   await LoveSecretAiConsultation.updateOne(
-    { id: sessionId, usageAppliedAt: null },
+    { id: sessionId, userId: clean(userId), usageAppliedAt: null },
     { $set: { usageAppliedAt: new Date() } },
   );
   return true;
@@ -1412,6 +1424,7 @@ async function saveLoveSecretCheckpoint(userId, id, delivery) {
 
 async function confirmLoveSecretDelivery(userId, pending) {
   try {
+    await applyUsageOnce({ userId, sessionId: pending.id });
     const saved = await LoveSecretAiConsultation.findOneAndUpdate(
       { id: pending.id, userId: clean(userId), status: "delivery_pending", "llmMeta.delivery.lease": pending.llmMeta?.delivery?.lease },
       { $set: { status: "completed" } }, { new: true },
@@ -1420,7 +1433,6 @@ async function confirmLoveSecretDelivery(userId, pending) {
     const confirmed = await LoveSecretAiConsultation.findOne({ id: pending.id, userId: clean(userId) }).lean();
     const contents = doc => JSON.stringify((doc?.messages || []).map(message => [message.role, message.content]));
     if (confirmed?.status !== "completed" || contents(confirmed) !== contents(pending)) throw resultStorageUnavailable(pending.id);
-    await applyUsageOnce({ sessionId: pending.id }).catch(error => console.warn("[love-secret-ai] usage marker delayed", clean(error?.message)));
     return confirmed;
   } catch { throw resultStorageUnavailable(pending.id); }
 }

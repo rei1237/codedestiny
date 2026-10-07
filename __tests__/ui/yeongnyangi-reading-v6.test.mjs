@@ -103,11 +103,12 @@ test('the mackerel closing action chapter is the longest, and every floor sits w
  }
  assert.ok(books.length>=singles.length+2);
 });
-test('fusion retains v5 counts and quotas; explicit legacy versions cannot inherit current single counts',()=>{
+test('fusion version preserves legacy purchase counts and new chapters have compact roles',()=>{
  for(const p of m.products.filter(p=>p.readingKind!=='single')){
-  assert.equal(p.manifestVersion,m.READING_V5_VERSION);
-  assert.equal(m.readingManifest(p).length,p.fishId==='assorted'?18:28);
-  assert.equal(m.policyForReading(p.fishId,p.manifestVersion).minimum,p.fishId==='assorted'?48000:80000);
+  assert.equal(p.manifestVersion,'fusion-book-v1');
+  assert.equal(m.readingManifest(p).length,p.fishId==='assorted'?9:12);
+  assert.equal(m.readingManifest(p,'general','personal',m.READING_V5_VERSION).length,p.fishId==='assorted'?18:28);
+  assert.equal(m.policyForReading(p.fishId,m.READING_V5_VERSION).minimum,p.fishId==='assorted'?48000:80000);
  }
  for(const p of singles)for(const version of [m.READING_VERSION,m.READING_V5_VERSION]){
   const rows=m.readingManifest(p,'general','personal',version);

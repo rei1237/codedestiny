@@ -1,4 +1,5 @@
 import NeoWarRoomAssetImage from "@/src/features/neo-war-room/components/NeoWarRoomAssetImage";
+import { notFound } from "next/navigation";
 import {
   getNeoWarRoomBackgroundAsset,
   getNeoWarRoomSpriteAsset,
@@ -17,6 +18,7 @@ export const metadata = {
 };
 
 export default function NeoWarRoomAssetDemoPage() {
+  if (process.env.NODE_ENV === "production") notFound();
   const desktopBackground = getNeoWarRoomBackgroundAsset("desktop");
   const mobileBackground = getNeoWarRoomBackgroundAsset("mobile");
   const expressionFrames = [

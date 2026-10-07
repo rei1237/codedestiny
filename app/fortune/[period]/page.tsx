@@ -245,6 +245,15 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
             </nav>
           )}
 
+          {period === "tomorrow" && <section aria-labelledby="tomorrow-systems" className={tomorrowStyles.guide}>
+            <h2 id="tomorrow-systems">{copy.systemsHeading}</h2>
+            <p>{copy.systemsLead}</p>
+            <ol>{copy.systems.map(system => <li key={system.key}>
+              <h3>{system.title}</h3><p>{system.body}</p>
+              <Link href={'/today/?period=tomorrow&tab=' + system.key} className="inline-flex min-h-12 items-center font-bold underline underline-offset-4">{system.title.split(' · ')[1]} {copy.openSystem}</Link>
+            </li>)}</ol>
+          </section>}
+
           <section aria-labelledby="facts-heading" className={`mt-8 p-5 ${CARD}`}>
             <h2 id="facts-heading" className={`break-keep text-sm font-extrabold ${ACCENT}`}>
               {label}의 기준 값

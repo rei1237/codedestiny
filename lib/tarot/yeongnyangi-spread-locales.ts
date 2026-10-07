@@ -36,6 +36,8 @@ const makeTable=(keys:string[],rows:Record<Native,string>)=>Object.fromEntries(O
  return [locale,Object.fromEntries(keys.map((key,i)=>[key,values[i]]))];
 })) as Record<Native,Record<string,string>>;
 const titleTable=makeTable(titleIds,titles),positionTable=makeTable(positionIds,positions);
+const moneyTitles:Record<Native,[string,string]>={en:['Money flow and preparation','Money opportunities and choices'],ja:['お金の流れと準備','お金の機会と選択'],'zh-CN':['财务走向与准备','财务机会与选择'],'zh-TW':['財務走向與準備','財務機會與選擇'],vi:['Dòng tiền và sự chuẩn bị','Cơ hội tài chính và lựa chọn'],hi:['धन का प्रवाह और तैयारी','वित्तीय अवसर और विकल्प'],es:['Flujo del dinero y preparación','Oportunidades y decisiones financieras'],fr:['Flux financier et préparation','Occasions et choix financiers'],de:['Geldfluss und Vorbereitung','Finanzielle Chancen und Entscheidungen'],nl:['Geldstromen en voorbereiding','Financiële kansen en keuzes'],ms:['Aliran wang dan persediaan','Peluang kewangan dan pilihan']};
+for(const locale of Object.keys(moneyTitles) as Native[]){titleTable[locale].yn_money_flow_seven=moneyTitles[locale][0];titleTable[locale].yn_money_map_ten=moneyTitles[locale][1];}
 export const tarotSpreadTitle=(id:string,original:string,locale:ReadingLocale)=>locale==='ko'?original:titleTable[locale][id]||original;
 export const tarotSpreadPosition=(id:string,original:string,locale:ReadingLocale)=>locale==='ko'?original:positionTable[locale][id]||original;
 const storedLabels=new Map<string,string>(yeongnyangiSpreads.flatMap(spread=>spread.positions.map(position=>[position.label,position.id] as const)));

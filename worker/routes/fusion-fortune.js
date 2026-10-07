@@ -28,6 +28,7 @@ import {
   releaseFusionDeliveryLease,
   fusionConsultationPublicStatus,
   getLatestPendingFusionConsultation,
+  requestFusionRecovery,
 } from "../lib/fusion-fortune-consultation.js";
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
@@ -188,6 +189,7 @@ export async function runFusionFortuneDeliveryStage(env, { userId, requestId, bo
     priorResult: prior?.result || null, priorGenerationSource: prior?.generationSource || "", priorSnapshot: prior?.generationSnapshot || null,
     onSnapshot: snapshot => withMongoRetry(env, () => saveFusionGenerationSnapshot({ ...snapshot, userId }), { retries: 0 }),
     onReserved: () => withMongoRetry(env, () => claimFusionDeliveryLease({ userId, requestId }), { retries: 0 }),
+    onRecoveryRequested: body?.resumeGeneration === true ? lease => requestFusionRecovery({ userId, requestId, lease }) : undefined,
     onReleased: lease => withMongoRetry(env, () => releaseFusionDeliveryLease({ userId, requestId, lease }), { retries: 0 }),
     onAttempt: (groupId, lease, attemptOptions) => withMongoRetry(env, () => reserveFusionGroupAttempt({ userId, requestId, groupId, lease, ...attemptOptions }), { retries: 0 }),
     onCheckpoint: delivery => withMongoRetry(env, () => persistFusionDelivery({ userId, input: prior?.generationSnapshot?.input || body, delivery }), { retries: 0 }),
@@ -368,6 +370,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         priorSnapshot: priorConsultation?.generationSnapshot || null,
         onSnapshot: snapshot => saveFusionGenerationSnapshot({ ...snapshot, userId: String(auth.userId) }),
         onReserved: () => claimFusionDeliveryLease({ userId: String(auth.userId), requestId: streamRequestId }),
+        onRecoveryRequested: body?.resumeGeneration === true ? lease => requestFusionRecovery({ userId: String(auth.userId), requestId: streamRequestId, lease }) : undefined,
         onReleased: lease => releaseFusionDeliveryLease({ userId: String(auth.userId), requestId: streamRequestId, lease }),
         onAttempt: (groupId, lease, attemptOptions) => reserveFusionGroupAttempt({ userId: String(auth.userId), requestId: streamRequestId, groupId, lease, ...attemptOptions }),
         onStage: (stage) => writeFusionFortuneSse(writer, "stage", stage),
@@ -416,6 +419,8 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         consultationId,
         qualityTier: result.qualityTier || undefined,
         qualityNotice: result.qualityNotice || undefined,
+        automaticRetryAllowed: result.automaticRetryAllowed,
+        pendingGroups: result.pendingGroups,
       });
     } catch (error) {
       await writeFusionFortuneSse(writer, "error", {

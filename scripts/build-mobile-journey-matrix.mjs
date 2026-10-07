@@ -7,7 +7,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const output = path.join(root, "reports", "MOBILE_JOURNEY_MATRIX.md");
 
 const serviceSections = read("app/_lib/serviceSections.js");
-const registry = read("MOBILE_FEATURE_REGISTRY.md");
+const registry = read("docs/design/mobile-feature-registry.md");
 
 const routes = [...new Set([...serviceSections.matchAll(/href:\s*"([^"#?]+)(?:[?#][^"]*)?"/g)]
   .map((match) => match[1].replace(/\/+$/, "") || "/")

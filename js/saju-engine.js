@@ -5215,11 +5215,13 @@ setTimeout(function(){
 function runDeferredSajuTasks(taskList) {
   if (!Array.isArray(taskList) || !taskList.length) return;
   var idx = 0;
+  var chart = typeof G_PILLARS !== 'undefined' ? G_PILLARS : null;
 
   function scheduleNext() {
     if (idx >= taskList.length) return;
     var task = taskList[idx++];
     setTimeout(function() {
+      if (chart && (G_PILLARS !== chart || document.getElementById('resultPage').style.display === 'none')) return;
       try { task(); } catch (e) { console.error('[saju] deferred task error', e); }
       if (typeof window.requestAnimationFrame === 'function') {
         window.requestAnimationFrame(scheduleNext);
@@ -5279,6 +5281,7 @@ function invokeOptionalGlobalRendererWithRetry(fnName, args, options) {
   var retryDelay = Number.isFinite(delayMs) && delayMs > 0 ? delayMs : 180;
   var retryLimit = Number.isFinite(maxAttempts) && maxAttempts > 0 ? maxAttempts : 24;
   var timerKey = name + '::' + targetId;
+  var chart = typeof G_PILLARS !== 'undefined' ? G_PILLARS : null;
 
   if (invokeOptionalGlobalRenderer(name, args) && (!targetId || hasOptionalRendererTargetContent(targetId))) {
     if (__optionalRendererRetryTimers[timerKey]) {
@@ -5292,6 +5295,10 @@ function invokeOptionalGlobalRendererWithRetry(fnName, args, options) {
 
   var attempts = 0;
   var retry = function() {
+    if (chart && (G_PILLARS !== chart || document.getElementById('resultPage').style.display === 'none')) {
+      delete __optionalRendererRetryTimers[timerKey];
+      return;
+    }
     attempts += 1;
 
     if (targetId && hasOptionalRendererTargetContent(targetId)) {
@@ -8080,7 +8087,7 @@ function _buildSajuQuestionPromptHtml() {
     + '<details class="saju-consultation-disclosure" data-saju-ai-disclosure><summary><span>나의 사주 상담</span><span data-saju-ai-disclosure-label>열기</span><span class="saju-consultation-disclosure__close">접기</span></summary><div class="saju-consultation-disclosure__body">'
     + '<section id="sajuConsultationEntry" class="consultation-entry" aria-label="명식이 답하는 사주 AI 상담">'
     + '<picture class="consultation-entry__visual" data-saju-ai-mode-content="pig"><source media="(max-width: 759px)" srcset="/images/consultation/saju-yeoni-entry-v2-640.webp"><img class="consultation-entry__art" src="/images/consultation/saju-yeoni-entry-v2-1280.webp" srcset="/images/consultation/saju-yeoni-entry-v2-640.webp 640w, /images/consultation/saju-yeoni-entry-v2-1280.webp 1280w" sizes="(min-width: 760px) min(100vw, 1280px), 100vw" width="1280" height="853" loading="lazy" decoding="async" alt="달빛 서재에서 여덟 글자의 명식 두루마리를 읽는 꽃돼지 연이"></picture>'
-    + '<div class="consultation-entry__visual consultation-entry__visual--neo" data-saju-ai-mode-content="neo"><img class="consultation-entry__art consultation-entry__art--neo" src="/images/fortune-chat/persona/neo-world-greet.webp" width="368" height="368" loading="lazy" decoding="async" alt="선택의 기준을 함께 정리하는 가디언 네오"></div>'
+    + '<div class="consultation-entry__visual consultation-entry__visual--neo" data-saju-ai-mode-content="neo"><img class="consultation-entry__art consultation-entry__art--neo" src="/images/home/illustrated/neo-human-480.webp" srcset="/images/home/illustrated/neo-human-240.webp 240w, /images/home/illustrated/neo-human-480.webp 480w" sizes="(max-width: 679px) 72vw, min(34vw, 480px)" width="480" height="720" loading="lazy" decoding="async" alt="명식 전략을 정리하는 네오"></div>'
     + '<div class="consultation-entry__copy"><div class="consultation-mode" role="group" aria-label="상담 읽기 화자"><button type="button" data-saju-ai-mode-button data-saju-mode="pig" aria-pressed="false">연이</button><button type="button" data-saju-ai-mode-button data-saju-mode="neo" aria-pressed="false">네오</button></div><p class="consultation-mode__status" data-saju-ai-mode-status aria-live="polite"></p>'
     + '<div data-saju-ai-mode-content="pig"><h3>여덟 글자에서,<br>마음의 결을 찾다</h3><p class="consultation-entry__lead">' + (dayStem ? '내 명식의 중심, 일간 ' + dayStem + '. ' : '') + '질문에 담긴 마음을 살핀 뒤, 계산된 명식의 흐름과 부담 없는 한 가지 실천으로 이어갑니다.</p><ul class="consultation-entry__features"><li>마음의 흐름을 따라 읽는 12개 챕터</li><li>연이의 편지 · 작은 실천 한 가지</li></ul></div>'
     + '<div data-saju-ai-mode-content="neo"><h3>판세를 먼저 보고,<br>근거를 확인하다</h3><p class="consultation-entry__lead">' + (dayStem ? '판단의 기준 일간 ' + dayStem + '. ' : '') + '결론을 먼저 잡고 명식 근거, 주의점, 다음 확인 순서로 빠르게 훑습니다.</p><ul class="consultation-entry__features"><li>결론부터 훑는 동일한 12개 챕터</li><li>판단 기록 · 근거 · 주의 · 다음 확인</li></ul></div>'
@@ -10177,8 +10184,9 @@ function renderIlju(p){
   if (animalLabelEl) animalLabelEl.innerText = animal[1] + ' 상징';
 
   var summaryLines = data ? iljuBullets(data.summary, 3) : ['일주는 나의 본질을 보여주는 핵심 축입니다.', '일간과 일지의 조합으로 성향이 형성됩니다.', '요약/상세/조언 순서로 읽어보세요.'];
-  var detailSource = data ? ((data.personality || '') + ' ' + (data.professional || '') + ' ' + (data.relationship || '')) : '상세 분석 데이터가 업데이트되는 중입니다.';
-  var detailLines = iljuBullets(detailSource, 4);
+  // Preserve each topic in the fallback too: concatenating and taking four
+  // sentences discarded work and relationship paragraphs behind personality.
+  var detailLines = data ? [data.personality, data.professional, data.relationship].filter(Boolean).map(iljuSanitizeText) : ['상세 분석 데이터를 준비하고 있어요.'];
   var adviceLines = data ? iljuBullets(data.advice, 3) : ['하루 루틴을 짧게 기록하며 감정과 판단 흐름을 점검해 보세요.', '강점은 더 선명하게, 취약점은 부드럽게 보완하는 천기가 좋습니다.'];
 
   iljuSetList('iljuSummaryList', summaryLines, '핵심 요약 데이터가 준비 중입니다.');
@@ -25028,13 +25036,13 @@ function renderZiwei(p, natal, targetId) {
           +'<p style="font-size:0.8rem;color:#c4b5fd;line-height:1.65;margin:0 0 12px;">유년 '+zwFlowEsc(flowGanji || String(flowYear))+'의 사화와 12궁 흐름을 월별로 펼친 운세입니다.</p>'
           +monthlySummaryHtml
           +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin-bottom:14px;">'+monthlyFlowHtml+'</div>'
-          +'<div class="cd-section-gate zw-basic-paid-gate" id="ziweiDecadeLuckGate" data-cd-marker="ziwei-basic-paid-gate-v20260617-daehan" data-unlock-key="ziwei_decade_luck" data-locked-title="' + _sajuEngineText("se_21090_attr_title") + '" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 5,000원 결제가 필요합니다." style="border-radius:12px;margin-top:14px;">'
+          +'<div class="cd-section-gate zw-basic-paid-gate" id="ziweiDecadeLuckGate" data-cd-marker="ziwei-basic-paid-gate-v20260617-daehan" data-unlock-key="ziwei_decade_luck" data-locked-title="' + _sajuEngineText("se_21090_attr_title") + '" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 1,000원 결제가 필요합니다." style="border-radius:12px;margin-top:14px;">'
             +'<div class="cd-section-gate__overlay">'
               +'<div class="cd-section-gate__icon">🔐</div>'
               +'<p class="cd-section-gate__title">자미두수 10년운 — 프리미엄 콘텐츠</p>'
               +'<p class="cd-section-gate__desc">대한(大限)을 기준으로 앞으로의 10년을 연도별로 풀어드립니다.</p>'
-              +'<span class="cd-section-gate__badge">5,000원으로 영구 해금</span>'
-              +'<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="ziwei_decade_luck" data-content-key="ziwei.decadeLuck" data-service-key="ziwei" data-unlock-cost="50">5,000원으로 10년운 열기</button>'
+              +'<span class="cd-section-gate__badge">1,000원으로 영구 해금</span>'
+              +'<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="ziwei_decade_luck" data-content-key="ziwei.decadeLuck" data-service-key="ziwei" data-unlock-cost="10">1,000원으로 10년운 열기</button>'
               +'<div data-zw-paid-gate-message style="min-height:14px;color:#a78bfa;font-size:0.68rem;font-weight:900;"></div>'
             +'</div>'
             +'<div class="cd-section-gate__body">'
@@ -25475,7 +25483,7 @@ function renderZiwei(p, natal, targetId) {
             +'</details>';
         }
         function zwDahanPremiumShellHtml(bodyHtml) {
-          return zwBasicPaidGateHtml('ziwei_decade_luck', 50, '대한(大限) 인생 타임라인', '현재 대한과 다음 대한, 전체 12단계 흐름을 엽니다.', bodyHtml, '#a78bfa', 'ziwei.decadeLuck')
+          return zwBasicPaidGateHtml('ziwei_decade_luck', 10, '대한(大限) 인생 타임라인', '현재 대한과 다음 대한, 전체 12단계 흐름을 엽니다.', bodyHtml, '#a78bfa', 'ziwei.decadeLuck')
             .replace('data-cd-marker="ziwei-basic-paid-gate-v20260615"', 'data-cd-marker="ziwei-basic-paid-gate-v20260615" data-zw-daehan-gate="ziwei-daehan-common-paid-gate-v20260629"');
         }
         var sec_dahan = '<div data-cd-marker="'+ZW_DAHAN_TIMELINE_MARKER+'" style="background:rgba(15,15,30,0.8);padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(139,92,246,0.25);">'
@@ -25996,11 +26004,11 @@ function renderZiwei(p, natal, targetId) {
         +'</section>'
         +'<section data-cd-marker="ziwei-extension-stack-v20260615-step2" style="margin-bottom:20px;opacity:0.96;">'
           +'<div style="margin:4px 0 9px;padding:10px 12px;border:1px solid rgba(196,181,253,0.2);border-radius:10px;background:rgba(30,27,75,0.18);color:#ddd6fe;font-size:0.77rem;line-height:1.6;"><b style="color:#f5d0fe;">더 깊이 볼 때</b><br>무료 기본 3장을 먼저 읽고, 필요한 심화 장만 원화 기준으로 여는 구조입니다. 이미 유료인 대한 흐름은 기존 결제 흐름을 유지합니다.</div>'
-          +zwReadingPanel('부부궁 심화 상담', '유료 관계 · 5,000원', zwBasicPaidGateHtml('ziwei_love_deep', 50, '부부궁 심화 상담', '반복 패턴·공식화 시기·관계 조언을 엽니다.', sec_love_deep_reading, '#f9a8d4', 'ziwei.loveDeep'), false, '#f9a8d4', '관계 그림, 반복 패턴, 공식화 시기를 상담형으로 봅니다.')
-          +zwReadingPanel('12궁 정밀 해설', '유료 궁위 · 5,000원', zwBasicPaidGateHtml('ziwei_twelve_palaces', 50, '12궁 정밀 해설', '명궁부터 복덕궁까지 세부 근거를 엽니다.', sec2, '#6ee7b7', 'ziwei.twelvePalaces'), false, '#6ee7b7', '세부 궁위를 모두 펼쳐 기본 결론의 근거를 확인합니다.')
+          +zwReadingPanel('부부궁 심화 상담', '유료 관계 · 1,000원', zwBasicPaidGateHtml('ziwei_love_deep', 10, '부부궁 심화 상담', '반복 패턴·공식화 시기·관계 조언을 엽니다.', sec_love_deep_reading, '#f9a8d4', 'ziwei.loveDeep'), false, '#f9a8d4', '관계 그림, 반복 패턴, 공식화 시기를 상담형으로 봅니다.')
+          +zwReadingPanel('12궁 정밀 해설', '유료 궁위 · 1,000원', zwBasicPaidGateHtml('ziwei_twelve_palaces', 10, '12궁 정밀 해설', '명궁부터 복덕궁까지 세부 근거를 엽니다.', sec2, '#6ee7b7', 'ziwei.twelvePalaces'), false, '#6ee7b7', '세부 궁위를 모두 펼쳐 기본 결론의 근거를 확인합니다.')
           +zwReadingPanel('대한·변곡점 요약', '흐름 장', sec_dahan + sec_pivot, false, '#a78bfa', '시기별 변화와 전환점을 참고용으로 봅니다.')
-          +zwReadingPanel('상징 보조층', '유료 상징 · 5,000원', zwBasicPaidGateHtml('ziwei_symbolic_layer', 50, '상징 보조층', '명궁·신궁·사화의 상징 인장을 엽니다.', sec_olympus_ziwei, '#c084fc', 'ziwei.symbolicLayer'), false, '#c084fc', '정통 명반 해석 뒤에 덧붙이는 선택형 상징 해설입니다.')
-          +zwReadingPanel('생애 총론과 연간 흐름', '보조 흐름 · 5,000원', zwBasicPaidGateHtml('ziwei_life_yearly_flow', 50, '생애 총론과 연간 흐름', '장기 성향과 연간 흐름을 함께 엽니다.', buildZwGrandLifeDeepHtml(pd) + sec_grand + sec_ziwei_flow + buildZwYearlyFlowDeepHtml(pd), '#c084fc', 'ziwei.lifeYearlyFlow'), false, '#c084fc', '장기 성향과 연간 흐름을 기존 방식으로 확인합니다.')
+          +zwReadingPanel('상징 보조층', '유료 상징 · 1,000원', zwBasicPaidGateHtml('ziwei_symbolic_layer', 10, '상징 보조층', '명궁·신궁·사화의 상징 인장을 엽니다.', sec_olympus_ziwei, '#c084fc', 'ziwei.symbolicLayer'), false, '#c084fc', '정통 명반 해석 뒤에 덧붙이는 선택형 상징 해설입니다.')
+          +zwReadingPanel('생애 총론과 연간 흐름', '보조 흐름 · 1,000원', zwBasicPaidGateHtml('ziwei_life_yearly_flow', 10, '생애 총론과 연간 흐름', '장기 성향과 연간 흐름을 함께 엽니다.', buildZwGrandLifeDeepHtml(pd) + sec_grand + sec_ziwei_flow + buildZwYearlyFlowDeepHtml(pd), '#c084fc', 'ziwei.lifeYearlyFlow'), false, '#c084fc', '장기 성향과 연간 흐름을 기존 방식으로 확인합니다.')
         +'</section>';
 
         var contentHtml = '';
@@ -27059,6 +27067,17 @@ function renderSummary(p,johu,natal){
     }
     return common+action;
   }
+  function summaryPersonalDepth(key){
+    var source=window.SajuReadingDepth;
+    if(!source)return '';
+    var facts={p:p,power:pw,johu:johu,jong:jg,unknown:!!window.__cdSajuTimeUnknown};
+    var sections=[];
+    if(key==='wollyeong'){var month=source.monthReading(p.d.g,p.m.j);if(month)sections=month.sections;}
+    else if(key==='chongpyeong')sections=source.contextualReading(facts).filter(function(s){return s.key==='gyeok'||s.key==='unknown';});
+    else if(key==='johu')sections=source.contextualReading(facts).filter(function(s){return s.key==='climate';});
+    else if(key==='eokbu')sections=source.contextualReading(facts).filter(function(s){return s.key==='capacity'||s.key==='structure';});
+    return sections.map(function(s){return depthParagraph(s.title,s.text);}).join('');
+  }
   function box(key,title,body,accent,bg){
     var bc=accent||'#bba371';
     var id='sbx'+(++_bxCtr);
@@ -27069,7 +27088,7 @@ function renderSummary(p,johu,natal){
       '<button class="saju-summary-toggle" type="button" data-bxid="'+id+'" aria-controls="'+id+'" aria-expanded="true" onclick="sbxToggle(this.dataset.bxid,this)">'+
       '접기 ▲</button>'+
       '</div>'+
-      '<div id="'+id+'" class="prem-text saju-summary-chapter__body">'+body+summaryDepth(key)+'</div></article>';
+      '<div id="'+id+'" class="prem-text saju-summary-chapter__body">'+body+summaryDepth(key)+summaryPersonalDepth(key)+'</div></article>';
   }
   function subHead(txt,c){return '<b class="saju-summary-subhead" style="--saju-subhead-color:'+(c||'var(--cd-accent,#b31955)')+'">'+txt+'</b>';}
   function li(items){return '<ul class="saju-summary-list">'+items.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ul>';}
@@ -30139,6 +30158,7 @@ function buildDaewunReadingGuide(age, gan, zhi, ev) {
   var cycle=(window.G_DAEWUN||[]).find(function(row){return Number(row.age)===Number(age)&&row.g===gan&&row.j===zhi;});
   return api.cycleMarkup({age:age,startYear:cycle&&cycle.startYear||Number(BIRTH_YEAR)+Number(age)-1,day:p.d.g,month:p.m.j,
     dominant:G_NATAL&&G_NATAL.dominant,power:G_POWER,jong:G_JONG,climate:G_JOHU&&G_JOHU.type,
+    depth:window.SajuReadingDepth&&window.SajuReadingDepth.buildDepthFacts({p:p,power:G_POWER,johu:G_JOHU,jong:G_JONG,unknown:!!window.__cdSajuTimeUnknown}),
     stem:{char:gan,element:GAN[gan].e,god:getTenGod(p.d.g,gan),roots:knownKeys.flatMap(function(key){return (CD_JANGGAN[p[key].j]||[]).filter(function(hidden){return GAN[hidden].e===GAN[gan].e;}).map(function(hidden){return {position:labels[key],branch:p[key].j,hiddenStem:hidden};});}),balance:getQuantumElType(GAN[gan].e,p,G_JONG,G_POWER,G_JOHU)},
     branch:{char:zhi,element:JI[zhi].e,god:getTenGod(p.d.g,zhi),hiddenStems:(CD_JANGGAN[zhi]||[]).map(function(hidden,index){return {stem:hidden,god:getTenGod(p.d.g,hidden),layer:index===(CD_JANGGAN[zhi]||[]).length-1?'정기':index===0?'여기':'중기'};}),balance:getQuantumElType(JI[zhi].e,p,G_JONG,G_POWER,G_JOHU)},
     godCounts:counts,relations:relations,unknown:!!window.__cdSajuTimeUnknown,
@@ -33683,10 +33703,10 @@ function showQuantumResult() {
       + '<p>기본 차트에서 한 걸음 더 들어가, 일과 역할, 재능과 끌림, 관계의 문, 과제와 변화를 상담실의 언어로 천천히 펼칩니다. 별의 배치를 따로 나열하지 않고, 서로 이어지는 삶의 장면으로 읽습니다.</p>'
       + '</div>'
       + '<div class="astro-stellar-archive__grid">'
-      + _astroCounselPaidGate('astro_stellar_career_room', 30, '일과 역할 심화 리딩', 'MC·10하우스 룰러·6하우스·ASC 룰러·목성으로 사회적 이름, 일의 리듬, 수익화 방향을 함께 엽니다.', careerBody)
-      + _astroCounselPaidGate('astro_stellar_talent_room', 30, '재능과 끌림 심화 리딩', '금성·화성·목성으로 좋아하는 것, 움직이게 하는 것, 사람에게 닿는 매력을 잇습니다.', talentBody)
-      + _astroCounselPaidGate('astro_stellar_relationship_room', 30, '관계의 문 심화 리딩', '금성·화성·7하우스로 마음이 열리는 조건, 끌림의 속도, 오래 머무는 관계의 약속을 봅니다.', relationshipBody)
-      + _astroCounselPaidGate('astro_stellar_growth_room', 30, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 반복되는 과제, 깊은 전환, 현실로 돌아오는 회복 의식을 읽습니다.', growthBody)
+      + _astroCounselPaidGate('astro_stellar_career_room', 10, '일과 역할 심화 리딩', 'MC·10하우스 룰러·6하우스·ASC 룰러·목성으로 사회적 이름, 일의 리듬, 수익화 방향을 함께 엽니다.', careerBody)
+      + _astroCounselPaidGate('astro_stellar_talent_room', 10, '재능과 끌림 심화 리딩', '금성·화성·목성으로 좋아하는 것, 움직이게 하는 것, 사람에게 닿는 매력을 잇습니다.', talentBody)
+      + _astroCounselPaidGate('astro_stellar_relationship_room', 10, '관계의 문 심화 리딩', '금성·화성·7하우스로 마음이 열리는 조건, 끌림의 속도, 오래 머무는 관계의 약속을 봅니다.', relationshipBody)
+      + _astroCounselPaidGate('astro_stellar_growth_room', 10, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 반복되는 과제, 깊은 전환, 현실로 돌아오는 회복 의식을 읽습니다.', growthBody)
       + '</div>'
       + '</section>';
   }
@@ -34020,10 +34040,10 @@ function showQuantumResult() {
       + '</section>'
       + (window.AstroNatalReading ? window.AstroNatalReading.render(freeModel) + window.AstroNatalReading.renderChart(freeModel) : '')
       + '<section class="as-reading" data-astro-server-detail></section>'
-      + _astroCounselSection('일과 역할: MC·10하우스 룰러·6하우스·ASC 룰러·목성', _astroCounselPaidGate('astro_career_talent_deep', 30, '커리어·재능 정밀 분석', 'MC·10하우스·6하우스·목성으로 일의 무대와 수익화 재능을 엽니다.', careerHtml), '처리할 업무 하나를 “성과물”, “반복 루틴”, “사람에게 보이는 가치” 세 칸으로 나누어 정리해보세요.', 'astro-counsel-career')
-      + _astroCounselSection('재능과 끌림: 금성·화성·목성', _astroCounselPaidGate('astro_talent_attraction_deep', 30, '재능과 끌림 심화 분석', '금성·화성·목성으로 매력, 추진력, 확장 가능한 재능을 봅니다.', talentHtml), '좋아하는 일, 바로 움직이고 싶은 일, 커질 수 있는 일을 각각 하나씩 적고 겹치는 지점을 찾아보세요.', 'astro-counsel-talents')
-      + _astroCounselSection('관계의 문: 금성·화성·7하우스', _astroCounselPaidGate('astro_relationship_deep', 30, '관계·끌림 심화 분석', '금성·화성·7하우스로 반복되는 관계 패턴과 끌림의 문을 엽니다.', relationshipHtml), '관계에서 반복되는 끌림과 거리감을 금성, 화성, 7하우스 세 문장으로 나누어 보세요.', 'astro-counsel-relationship')
-      + _astroCounselSection('과제와 변화: 토성·명왕성·해왕성', _astroCounselPaidGate('astro_growth_shadow_deep', 30, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 오래 반복되는 과제와 회복 방향을 봅니다.', growthHtml), '반복해서 미뤄온 문제 하나를 고르고, 해결보다 먼저 15분 동안 관찰해보세요.', 'astro-counsel-growth')
+      + _astroCounselSection('일과 역할: MC·10하우스 룰러·6하우스·ASC 룰러·목성', _astroCounselPaidGate('astro_career_talent_deep', 10, '커리어·재능 정밀 분석', 'MC·10하우스·6하우스·목성으로 일의 무대와 수익화 재능을 엽니다.', careerHtml), '처리할 업무 하나를 “성과물”, “반복 루틴”, “사람에게 보이는 가치” 세 칸으로 나누어 정리해보세요.', 'astro-counsel-career')
+      + _astroCounselSection('재능과 끌림: 금성·화성·목성', _astroCounselPaidGate('astro_talent_attraction_deep', 10, '재능과 끌림 심화 분석', '금성·화성·목성으로 매력, 추진력, 확장 가능한 재능을 봅니다.', talentHtml), '좋아하는 일, 바로 움직이고 싶은 일, 커질 수 있는 일을 각각 하나씩 적고 겹치는 지점을 찾아보세요.', 'astro-counsel-talents')
+      + _astroCounselSection('관계의 문: 금성·화성·7하우스', _astroCounselPaidGate('astro_relationship_deep', 10, '관계·끌림 심화 분석', '금성·화성·7하우스로 반복되는 관계 패턴과 끌림의 문을 엽니다.', relationshipHtml), '관계에서 반복되는 끌림과 거리감을 금성, 화성, 7하우스 세 문장으로 나누어 보세요.', 'astro-counsel-relationship')
+      + _astroCounselSection('과제와 변화: 토성·명왕성·해왕성', _astroCounselPaidGate('astro_growth_shadow_deep', 10, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 오래 반복되는 과제와 회복 방향을 봅니다.', growthHtml), '반복해서 미뤄온 문제 하나를 고르고, 해결보다 먼저 15분 동안 관찰해보세요.', 'astro-counsel-growth')
       + '</div>';
     if (window.AstroBasicDeep) window.AstroBasicDeep.mount(area, pack.birth);
     _astroCounselBindPaidGateObserver(area);

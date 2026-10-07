@@ -237,11 +237,11 @@ async function runShortGeneration(shape) {
 
 const { generated, stageEvents } = await runShortGeneration(baseShape);
 
-check("모든 전문가가 검증 미달이면 완성본으로 표시하지 않는다", generated.deliverable === false && Boolean(generated.result),
+check("필수 구조를 갖춘 분량 미달 결과는 품질 고지와 함께 배달한다", generated.deliverable === true && generated.qualityTier === "degraded" && Boolean(generated.result) && Boolean(generated.qualityNotice),
   `deliverable=${generated.deliverable}`);
 check("검증 미달을 컨텍스트 폴백으로 채우지 않는다", generated.generationSource !== "context_fallback",
   `generationSource=${generated.generationSource}`);
-check("미완료 사유가 호출자에게 전달된다", generated.deliverable === false && (generated.qualityIssues || []).length > 0,
+check("품질 사유를 전달하고 의미 없는 자동 재생성을 멈춘다", generated.automaticRetryAllowed === false && (generated.qualityIssues || []).length > 0,
   `tier=${generated.qualityTier} issues=${(generated.qualityIssues || []).join(",")}`);
 
 // ── 진행 이벤트: 총량을 넘는 카운터가 없어야 한다("6 / 4" 재발 방지) ──
@@ -283,8 +283,8 @@ for (const axes of SHAPES) {
 
   // (2) 생성기 전 경로 — 네 묶음이 전부 미달이어도 이 조합에서 0이 나오면 안 된다.
   const { generated: shapeGenerated } = await runShortGeneration(shape);
-  check(`[${shape.label}] 검증 미달 결과는 완성본으로 배달하지 않는다`,
-    shapeGenerated.deliverable === false && Boolean(shapeGenerated.result),
+  check(`[${shape.label}] 필수 구조를 갖춘 결과는 품질 고지와 함께 배달한다`,
+    shapeGenerated.deliverable === true && shapeGenerated.qualityTier === "degraded" && Boolean(shapeGenerated.qualityNotice),
     `deliverable=${shapeGenerated.deliverable} issues=${(shapeGenerated.qualityIssues || []).join(",")}`);
 
   // (3) 반대 방향 — 진짜 과장은 여전히 잡힌다. 미상인 축에 대해서만 성립하는 검사다.

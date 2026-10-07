@@ -6,11 +6,12 @@ import { categoryToSlug, famousSajuCategories, publishedCelebritySajuSeeds } fro
 import { getCelebrityEditorial } from "../../../lib/famous-saju/celebrity-editorial";
 import EditorNote from "../../components/EditorNote";
 import { getEditorNote } from "../../_content/editor-notes";
+import { INSIGHT_DISCOVERY_COPY } from "../discovery-copy.mjs";
 
 const INSIGHTS_FAMOUS_SAJU_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    metadataTitle: "유명인 사주 분석 | 운세 인사이트 허브",
-    metadataDescription: "공개 생년월일과 Code Destiny 명식 기준을 바탕으로 유명인의 일간, 오행, 삼주 흐름을 이야기형 사주 인사이트로 정리한 아카이브입니다.",
+    metadataTitle: INSIGHT_DISCOVERY_COPY.ko.famousTitle,
+    metadataDescription: INSIGHT_DISCOVERY_COPY.ko.famousDescription,
     keywords: ["유명인 사주", "연예인 사주", "이순신 사주", "아이유 사주", "BTS RM 사주", "운세 인사이트"],
     hubLink: "운세 인사이트 허브",
     kicker: "Famous Saju Insights",
@@ -216,7 +217,7 @@ export default function FamousSajuInsightIndexPage() {
   return (
     <main className="min-h-screen bg-[#090b18] text-slate-100" data-famous-saju-list>
       <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
-        <div className="grid max-w-4xl items-center gap-6 rounded-[28px] border border-rose-200/20 bg-gradient-to-br from-rose-300/10 via-violet-300/5 to-amber-200/10 p-6 shadow-2xl shadow-black/20 sm:p-8 md:grid-cols-[minmax(0,1fr)_160px]">
+        <div className="grid max-w-4xl items-center gap-6 rounded-[28px] border border-rose-200/20 bg-gradient-to-br from-rose-300/10 via-violet-300/5 to-amber-200/10 p-6 shadow-2xl shadow-black/20 sm:p-8 md:grid-cols-[minmax(0,1fr)_280px]">
           <div>
             <Link href="/insights" className="text-sm font-semibold text-amber-100/80 hover:text-amber-50">
               {famousSajuInsightCopy.hubLink}
@@ -232,17 +233,28 @@ export default function FamousSajuInsightIndexPage() {
               인물은 시주를 비운 삼주 기준으로 계산하며, 그 사실을 상세 페이지에 함께 적습니다.
             </p>
           </div>
-          <div className="mx-auto hidden rounded-full border border-rose-100/20 bg-rose-50/10 p-3 md:block">
+          <div className="w-full overflow-hidden rounded-xl border border-rose-100/20">
             <Image
-              src="/icons/app-logo-512.webp"
-              alt="연꽃을 쓴 Code Destiny 꽃돼지"
-              width={136}
-              height={136}
+              src="/images/feature-details/famous-saju-hero-v2.webp"
+              alt=""
+              width={1200}
+              height={675}
+              sizes="(min-width:768px) 280px, 100vw"
+              className="aspect-video w-full object-cover"
               priority
             />
           </div>
         </div>
 
+        <section className="mt-8 max-w-3xl space-y-3" aria-labelledby="famous-reading-next">
+          <h2 id="famous-reading-next" className="text-xl font-semibold text-white">{INSIGHT_DISCOVERY_COPY.ko.nextTitle}</h2>
+          <p className="text-base leading-8 text-slate-300">{INSIGHT_DISCOVERY_COPY.ko.nextLead}</p>
+          <nav className="flex flex-wrap gap-4" aria-label={INSIGHT_DISCOVERY_COPY.ko.nextTitle}>
+            <Link className="inline-flex min-h-11 items-center text-amber-100 underline" href="/saju/">{INSIGHT_DISCOVERY_COPY.ko.saju}</Link>
+            <Link className="inline-flex min-h-11 items-center text-amber-100 underline" href="/today/">{INSIGHT_DISCOVERY_COPY.ko.today}</Link>
+            <Link className="inline-flex min-h-11 items-center text-amber-100 underline" href="/insights/">{INSIGHT_DISCOVERY_COPY.ko.insights}</Link>
+          </nav>
+        </section>
         <section className="mt-10 max-w-3xl space-y-5 text-base leading-8 text-slate-300">
           <h2 className="text-xl font-semibold text-white">이 아카이브를 만드는 기준</h2>
           <p>

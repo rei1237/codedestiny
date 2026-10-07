@@ -9,8 +9,8 @@ export default function FeatureIntroductions() {
     <div className="featureCatalogShell">
       <a href="/" className="featureCatalogHome">홈으로</a>
       <header className="featureCatalogHeader">
-        <h1>내 고민에 맞는 이야기</h1>
-        <p>결과에서 확인할 내용과 필요한 준비를 먼저 살펴보고, 지금의 고민에 맞는 기능을 골라 보세요.</p>
+        <h1>지금의 고민에서 시작해요</h1>
+        <p>마음에 닿는 서비스를 골라 바로 시작하세요. 준비할 정보와 결과 예시는 이용 방법에서 살펴볼 수 있어요.</p>
       </header>
       <FeatureIntroductionCatalog items={items} />
     </div>

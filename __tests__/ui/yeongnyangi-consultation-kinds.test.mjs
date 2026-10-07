@@ -349,8 +349,8 @@ test('new question contracts preserve prices, scope, original purchase and punct
   ['tuna',4,30000,{...base,category:'timing',horizon:'transition'},'현재와 다음 대운의 일 방향은 어떻게 달라질까?'],
  ]){
   const row=await prepareFortune(env,'new-question-'+fish,{...body,productId:'saju_'+fish,questionDecision:decision,question,...(fish==='flounder'?{partnerProfileId:'partner'}:{})});
-  assert.deepEqual(row.snapshot.questionContract,{version:base.version,followups:limit});
-  assert.equal(row.amountKRW,price);assert.equal(row.snapshot.manifest.length,1);
+  assert.equal(row.snapshot.questionContract.version,base.version);assert.equal(row.snapshot.questionContract.followups,limit);assert.equal(row.snapshot.questionContract.readingBudget.followups,limit);
+  assert.equal(row.amountKRW,price);assert.ok(row.snapshot.manifest.length>=6);assert.ok(row.snapshot.manifest.every(ch=>ch.sections.some(section=>section.id==='evidence')));
   assert.equal(row.snapshot.analysis.consultation.questions.length,1);
   const facts=selectChapterFacts(row.snapshot.analysis.contexts.saju,row.snapshot.manifest[0]);
   if(fish==='flounder')assert.ok(facts.some(f=>f.label==='compatibility'));
@@ -378,6 +378,8 @@ test('new question generation keeps expert evidence through the actual provider 
   for(const label of {saju:['usefulGod','jong','yearlyLuck'],ziwei:['palaces','sanFangSiZheng','businessBasis'],vedic:['planets','vimshottariDasha','yogas'],astrology:['aspects','houseRulers'],sukuyo:['personA']}[domain])assert.ok(labels.includes(label),domain+': '+label);
   assert.match(JSON.parse(captured.domainRules).depth,/가장 깊은 분석/);
   assert.equal(JSON.parse(captured.domainRules).paidScope,undefined);
+  const previous=[];
+  for(const chapter of row.snapshot.manifest){const chapterInput={chapter,analysis:row.snapshot.analysis,previous,locale:'ko'};const result=await new loaded.exports.MockChapterProvider().generateChapter(chapterInput);loaded.exports.validateChapter(result,chapterInput);previous.push(result);}
  }
 });
 

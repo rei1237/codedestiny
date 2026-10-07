@@ -7,7 +7,7 @@ const vm = require("node:vm");
 const root = path.resolve(__dirname, "../..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("홈은 크롤 가능한 허브와 기존 사주 직행 액션을 함께 제공한다", () => {
+test("홈은 자바스크립트 준비 전에도 사주 직행 액션으로 연결된다", () => {
   const home = read("index.html");
   const registry = read("js/core/service-registry.js");
   const appHome = read("app/app/AppHomeClient.tsx");
@@ -15,7 +15,7 @@ test("홈은 크롤 가능한 허브와 기존 사주 직행 액션을 함께 �
   const famousSaju = read("app/insights/famous-saju/[slug]/page.tsx");
   const profile = read("js/destiny-profile.js");
 
-  assert.match(home, /href="\/saju\/" data-action="cdOneStepFreeSajuEntry" data-cd-service-id="saju"/);
+  assert.match(home, /href="\/\?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry" data-cd-service-id="saju"/);
   assert.match(registry, /id: "saju"[\s\S]*?href: "\/?\?action=cdOneStepFreeSajuEntry"[\s\S]*?action: "cdOneStepFreeSajuEntry"/);
   assert.match(appHome, /href="\/?\?action=cdOneStepFreeSajuEntry"/);
   assert.match(homeSections, /"\/saju\/basic": "\/?\?action=cdOneStepFreeSajuEntry"/);
@@ -32,12 +32,13 @@ test("사주 직행 액션은 저장 프로필·입력폼 순서와 중복 실�
 
   const calls = [];
   const context = {
-    window: {},
+    window: { addEventListener() {} },
     _dpResolveCurrentProfileForSaju: () => context.cached,
     _dpHasValidProfileDate: (year, month, day) => [year, month, day].every(Boolean),
     readFormData: () => context.formProfile,
     _injectAndRun: (value, type) => calls.push({ value, type }),
-    document: {},
+    document: { addEventListener() {} },
+    _toast() {},
   };
   vm.runInNewContext(profile.slice(start, end), context);
 

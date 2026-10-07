@@ -112,6 +112,8 @@ export type NeoResultSession = {
   question?: string;
   initialBriefing?: NeoBriefing | null;
   refinedOrder?: NeoRefinedOrder | null;
+  refinementAllowance?: {limit:number;used:number;remaining:number};
+  refinementHistory?: Array<{order:NeoRefinedOrder;realityCheck?:{freeform?:string};createdAt?:string}>;
   pendingRefinedOrder?: NeoRefinedOrder | null;
   refinementStatus?: string;
   refinementProgress?: string[];
@@ -517,6 +519,7 @@ export default function NeoOperationRoomResultPage() {
   async function handleRefine() {
     const isCurrent = captureOwner();
     if (!session?.sessionId) return;
+    if(session.refinementAllowance?.remaining===0){setRefineError("현실 점검 질문 2회를 모두 마쳤어요. 저장된 답변을 확인해 주세요.");return;}
     if (!selectedChecks.length && freeform.trim().length < 4) {
       setRefineError(resultCopy.refineMissingAnswerError);
       return;
@@ -820,7 +823,7 @@ export default function NeoOperationRoomResultPage() {
                 locale={dialogueLocale}
               />
             ) : null}
-            {!isGenerating && showRealityForm && briefing ? (
+            {!isGenerating && showRealityForm && session.refinementAllowance?.remaining!==0 && briefing ? (
               <RealityCheckForm
                 selectedChecks={selectedChecks}
                 setSelectedChecks={setSelectedChecks}
@@ -867,7 +870,9 @@ export default function NeoOperationRoomResultPage() {
             </section>
             {neoLetterText && <NeoSincereLetter letter={neoLetterText} locale={dialogueLocale} />}
             {!isLocalPreview && !isGenerating && !isFailed && <SavedRecordLink source="neo" id={session.id || session.sessionId || ''} />}
-            <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => { if (!isGenerating) setShowRealityForm(true); }} hasRefined={Boolean(refined)} locale={dialogueLocale} />
+            {session.refinementAllowance&&<p>현실 점검 질문 {session.refinementAllowance.remaining} / {session.refinementAllowance.limit}회 남음</p>}
+            {session.refinementHistory?.slice(0,session.refinementStatus==='generating'?undefined:-1).map((entry,index)=><details key={index}><summary>이전 현실 점검 {index+1} · {entry.realityCheck?.freeform}</summary><RefinedOrderDocument refined={entry.order} badgeIndex={0} viewAll={true} onViewAllChange={()=>{}} expandForExport={false} locale={dialogueLocale}/></details>)}
+            <CtaDeck remaining={session.refinementAllowance?.remaining} attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => { if (!isGenerating) setShowRealityForm(true); }} hasRefined={Boolean(refined)} locale={dialogueLocale} />
             {!isGenerating && !isFailed && !isLocalPreview && <RecommendationResult service="neo-operation-room-consultation" brand="neo" locale={dialogueLocale}/>}
             {!isGenerating && !isFailed ? (
               <ConsultationShare key={`${session.id || session.sessionId}-${Boolean(session.refinedOrder)}`} brand="neo" choices={neoShareChoices(session)} />
@@ -1480,12 +1485,12 @@ function NeoBluntCallout({ text, locale }: { text: string; locale: LoadingLocale
   );
 }
 
-function CtaDeck({ attemptId, hasRefined, onOpenReality, locale }: { attemptId: string; hasRefined: boolean; onOpenReality: () => void; locale: LoadingLocale }) {
+function CtaDeck({ attemptId, hasRefined, onOpenReality, locale, remaining }: { remaining?:number; attemptId: string; hasRefined: boolean; onOpenReality: () => void; locale: LoadingLocale }) {
   const resultCopy = getNeoResultCopy(locale);
   const formCopy = getNeoFormCopy(locale);
   return (
     <nav className={styles.ctaDeck} aria-label={resultCopy.ctaDeckAria}>
-      <button type="button" onClick={onOpenReality}>{hasRefined ? resultCopy.realityFormTitle : formCopy["realityPanel.submitIdle"]}</button>
+      <button type="button" disabled={remaining===0} onClick={onOpenReality}>{remaining===0?"현실 점검 완료":hasRefined ? resultCopy.realityFormTitle : formCopy["realityPanel.submitIdle"]}</button>
       <Link href="/neo-operation-room" prefetch={false}>{resultCopy.retryLink}</Link>
       <Link href="/fortune-tea-house">{resultCopy.ctaTeaHouse}</Link>
       {attemptId ? <Link href={`/neo-operation-room/result?attemptId=${encodeURIComponent(attemptId)}`}>{resultCopy.ctaReopen}</Link> : null}
@@ -1502,6 +1507,7 @@ export function SavedNeoDocuments({ session, locale }: { session: NeoResultSessi
     <ResultSummaryCover session={session} methodName={methodLabel(session.selectedMethod || session.initialBriefing?.selectedMethod, locale)} badgeIndex={0} locale={locale} />
     {session.initialBriefing?.operationTitle && <h2 className="text-xl font-semibold text-[var(--nr-text)]">{session.initialBriefing.operationTitle}</h2>}
     {session.initialBriefing && <InitialBriefingDocument briefing={session.initialBriefing} compat={compat} evidenceFallbackLabel="" hasRefined badgeIndex={0} onOpenReality={() => {}} viewAll={viewAll} onViewAllChange={setViewAll} expandForExport={false} locale={locale} />}
+    {session.refinementHistory?.slice(0,-1).map((entry,index)=><details key={index}><summary>이전 현실 점검 {index+1} · {entry.realityCheck?.freeform}</summary><RefinedOrderDocument refined={entry.order} badgeIndex={0} viewAll={viewAll} onViewAllChange={setViewAll} expandForExport={false} locale={locale}/></details>)}
     {session.refinedOrder?.operationTitle && <h2 className="text-xl font-semibold text-[var(--nr-text)]">{session.refinedOrder.operationTitle}</h2>}
     {session.refinedOrder && <RefinedOrderDocument refined={session.refinedOrder} badgeIndex={0} viewAll={viewAll} onViewAllChange={setViewAll} expandForExport={false} locale={locale} />}
   </div></div>;

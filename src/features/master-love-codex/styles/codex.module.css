@@ -852,3 +852,5 @@
   min-height: 44px;
 }
 
+
+.hanbiGuide{display:flex;align-items:center;justify-content:center;gap:24px;text-align:left;margin:20px auto;max-width:520px}.hanbiGuide img{width:160px;height:auto;flex-shrink:0}.hanbiGuide p{font-size:14px;line-height:1.8;margin:8px 0;color:var(--codex-ink-text)}.hanbiGuide p:first-child{font-weight:700}@media(max-width:480px){.hanbiGuide{gap:12px}.hanbiGuide img{width:112px}}

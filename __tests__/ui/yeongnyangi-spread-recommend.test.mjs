@@ -3,6 +3,28 @@ import test from 'node:test';
 import {recommendTarotSpread,questionFeatures,tarotQuestionPresets} from '../../lib/tarot/yeongnyangi-spread-recommend.mjs';
 import {getYeongnyangiSpread,tierAllowsSpread} from '../../lib/tarot/yeongnyangi-spread-catalog.mjs';
 
+test('money keywords and a yearly question get a financial spread within the selected tier',()=>{
+ for(const word of ['재물운','금전운','재정','수입','수익','자산','매출']){
+  const rec=recommendTarotSpread({question:`내년 내 ${word}은 어떨까?`,tier:'salmon'});
+  assert.equal(rec.primary,'yn_money_flow_seven');
+  assert.equal(getYeongnyangiSpread(rec.bestInTier).cardCount,7);
+  assert.ok(tierAllowsSpread('salmon',getYeongnyangiSpread(rec.bestInTier)));
+  assert.ok(!rec.alternatives.some(id=>getYeongnyangiSpread(id).cardCount<6));
+ }
+ assert.equal(questionFeatures({question:'내년 재물운'}).period,'year');
+ assert.equal(recommendTarotSpread({question:'재물운',tier:'tuna'}).primary,'yn_money_map_ten');
+ assert.equal(recommendTarotSpread({question:'재물운',tier:'mackerel'}).primary,'yn_money_pattern_five');
+});
+
+test('question edits override stale presets; paid recommendations never fall back to one or three cards',()=>{
+ assert.equal(recommendTarotSpread({question:'내년 재물운',presetId:'contact_first',tier:'salmon'}).primary,'yn_money_flow_seven');
+ for(const tier of ['salmon','flounder','tuna'])for(const question of ['요즘 마음이 복잡해','내가 먼저 연락해도 될까?','번아웃으로 지쳤어요','새 인연을 만나고 싶어요']){
+  const rec=recommendTarotSpread({question,tier});
+  assert.ok(getYeongnyangiSpread(rec.bestInTier).cardCount>=6,`${tier}/${question}`);
+ }
+ assert.notEqual(recommendTarotSpread({question:'다음 주 조심할 일',tier:'salmon'}).primary,'yn_month_compass_six');
+});
+
 test('waiting for their contact and deciding to contact first get different spreads',()=>{
  const wait=recommendTarotSpread({question:'그 사람이 먼저 연락할까?'});
  const act=recommendTarotSpread({question:'내가 먼저 연락해도 될까?'});
@@ -63,3 +85,5 @@ test('an unclassified question falls back to the three-card knot',()=>{
  assert.equal(r.primary,'yn_knot_three');
  assert.equal(recommendTarotSpread({}).primary,'yn_knot_three');
 });
+
+test('money example questions stay on the entered subject',async()=>{const {relevantTarotQuestions}=await import('../../lib/tarot/yeongnyangi-spread-recommend.mjs');const rows=relevantTarotQuestions('내년 재물운');assert.equal(rows.length,3);assert.ok(rows.every(row=>/수입|재물/.test(row.question)));assert.ok(rows.every(row=>!/연애|연락|헤어/.test(row.question)));});

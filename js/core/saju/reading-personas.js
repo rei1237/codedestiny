@@ -217,6 +217,11 @@
     add('관계에서 반복하기 쉬운 모습','관계의 일상에서는 '+input.branch.god+'의 주제가 강조됩니다. '+b.relation+(input.stem.god!==input.branch.god?' 밖으로 드러내는 '+input.stem.god+'의 태도에서는 '+a.relation:'')+'\n\n갈등이 생겼다면 성격의 결함으로 단정하기보다 기대한 역할과 실제로 감당할 역할이 어긋났는지 살펴보세요. 상대의 마음이나 관계의 결말을 정해 놓기보다 실제 대화와 행동을 함께 확인해 보세요.');
     add(neo?'실행할 순서를 정리하세요':'이 계절을 내 것으로 만드는 작은 실천','먼저, '+a.action+' 이어서, '+(a===b?'같은 역할이 반복될 때 소모되는 시간과 비용을 점검해 보세요.':b.action)+' 마지막으로, 한 달 뒤 실제로 달라진 점과 소모된 자원을 돌아보세요.\n\n도움이 된 선택은 유지하고, 부담이 커진 선택은 범위와 속도를 줄여 다시 확인하세요. 이는 10년 안의 특정 해를 예언하는 구분이 아니라, 지금 시작할 수 있는 실행 순서입니다.');
     add('대운과 세운, 다음 시기를 함께 읽기','대운은 약 10년의 큰 배경이고 세운은 그 안에서 해마다 달라지는 흐름입니다. 아래 연도별 해설에서는 세운의 간지가 원국과 맺는 관계뿐 아니라, 이 대운의 주제를 이어 가는지 다른 요구를 더하는지도 함께 살펴보세요. 대운과 세운을 각각 좋고 나쁜 점수로 더해 사건을 정하지는 않습니다.\n\n'+(input.next?'다음 '+input.next.g+input.next.j+' 대운은 표의 '+input.next.age+'세부터 이어집니다. 앞선 시기에 만든 일과 관계도 이어지므로 한 해를 경계로 삶이 모두 바뀐다고 보지는 않습니다.':'현재 표의 마지막 구간으로, 이후 시기를 이 자료만으로 확정하지 않습니다.')+' 표시 연도는 대운표의 나이 기준을 옮긴 범위이며 정확한 교운 날짜를 뜻하지 않습니다.');
+    if(root.SajuReadingDepth) {
+      var seasonal=input.depth&&input.depth.month;
+      if(seasonal) section.splice(1,0,{title:seasonal.title+'에서 맞는 대운',text:seasonal.sections[0].text+' '+seasonal.sections[1].text});
+      root.SajuReadingDepth.cycleActions(input).forEach(function(row){add(row.title,row.text);});
+    }
     return {title:input.stem.char+input.branch.char+' 대운 · '+input.startYear+'–'+end+'년',intro:(neo?'이번 대운의 핵심은 ':'이번 열 해에는 ')+a.name+(a===b?'':', 그리고 '+b.name)+(neo?'입니다. 근거를 확인하고 감당할 수 있는 행동부터 정하세요.':'의 주제를 함께 살펴볼게요. 익숙한 강점과 새롭게 필요한 태도를 구분해 보세요.'),sections:section,warning:input.unknown?'출생시간 미상: 시주를 제외한 자리만 관계 설명에 표시했습니다. 정오를 대입한 원국의 비율·강약과 대운 시작 시기는 참고용이며 확정할 수 없습니다.':'해석은 현재 명식의 상징적 흐름을 설명하며 실제 사건·수익·관계의 결말을 보장하지 않습니다.'};
   }
   function cycleMarkup(input, selected) {
@@ -229,7 +234,9 @@
     var p=root.G_PILLARS, ten={};
     [p.y.g,p.y.j,p.m.g,p.m.j,p.d.j,p.h.g,p.h.j].forEach(function(ch){var g=root.getTenGod(p.d.g,ch);if(g&&g!=='?')ten[g]=(ten[g]||0)+1;});
     var birth=root.G_KASI_CONTEXT||{};
-    return {name:root.USER_NAME,p:p,natal:root.G_NATAL,ten:ten,johu:root.G_JOHU,power:root.G_POWER,jong:root.G_JONG,unknown:birth.unknownHour===true||birth.timeDefault===true||root.__cdSajuTimeUnknown===true,flow:flow};
+    var facts={name:root.USER_NAME,p:p,natal:root.G_NATAL,ten:ten,johu:root.G_JOHU,power:root.G_POWER,jong:root.G_JONG,unknown:birth.unknownHour===true||birth.timeDefault===true||root.__cdSajuTimeUnknown===true,flow:flow};
+    if(root.SajuReadingDepth) facts.depth=root.SajuReadingDepth.buildDepthFacts(facts);
+    return facts;
   }
   function markup(reading, model, heading) {
     var c=langCopy(locale());
@@ -239,7 +246,14 @@
     var r=model.letter,c=langCopy(locale());
     return '<article class="saju-reading saju-letter" data-reading-mode="'+model.mode+'"><p class="saju-letter__greeting">'+esc(r.greeting)+'</p><div class="saju-letter__prose">'+r.paragraphs.map(function(text){return '<p>'+esc(text)+'</p>';}).join('')+'</div><p class="saju-letter__signature">'+esc(r.signature)+'</p><details class="saju-reading__evidence"><summary>'+esc(c.basis)+'</summary><p>'+esc(r.evidence)+'</p></details>'+(model.unknown?'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p>':'')+'</article>';
   }
-  function write(id, html) { var el=document.getElementById(id);if(el)el.innerHTML=html; }
+  function write(id, html) {
+    var el=document.getElementById(id);if(!el)return;
+    // Late locale/profile refreshes often produce the very same reading. Keep
+    // its DOM so an open details element and the reader's scroll anchor survive.
+    if(el._sajuReadingHtml===html&&el._sajuReadingChart===root.G_PILLARS&&el._sajuReadingNode===el.firstChild)return;
+    el.innerHTML=html;
+    el._sajuReadingHtml=html;el._sajuReadingChart=root.G_PILLARS;el._sajuReadingNode=el.firstChild;
+  }
   function ensureHeader() {
     var result=document.getElementById('resultPage');if(!result)return;
     if(!document.getElementById('sajuReadingHeader')) {var header=document.createElement('section');header.id='sajuReadingHeader';header.className='saju-reading-header';result.prepend(header);}
@@ -269,6 +283,10 @@
       if(host&&!document.getElementById('sajuIljuRich')){var box0=document.createElement('section');box0.id='sajuIljuRich';host.appendChild(box0);}
       var iljuRich=rich?rich.ilju(facts,model.mode):'';
       write('sajuIljuRich',iljuRich);
+      // The detailed reader owns all eight topics. Keep the original fallback
+      // available when the bundle is absent, without displaying duplicate excerpts.
+      var hasDepth=!!(iljuRich&&root.SajuReadingDepth&&locale()==='ko');
+      if(hasDepth){var reading=root.SajuReadingDepth.dayReading(state.p.d.g+state.p.d.j);if(reading)write('iljuSummaryList','<li>'+esc(reading.summary)+'</li>');}
       // 풍부한 판은 renderIlju 가 채운 ILJU_DB 목록(요약·상세·조언)을 그대로 두고 그 아래에 원국 표·연이의 한마디를 덧붙인다.
       // 비한국어는 ILJU_DB 목록이 한국어라 풍부한 판이어도 이 세 목록은 짧은 블록으로 덮는다.
       if(!iljuRich||locale()!=='ko'){

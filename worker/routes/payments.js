@@ -28,7 +28,7 @@ import { getEnv } from "../lib/env.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
-import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
+import { getBillingFeaturePricing, assertFeatureEnabled } from "../lib/billing-feature-registry.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, normalizeKrwAmount } from "../lib/billing-policy.js";
 import { deductLotsFIFO, ensureLotsForBalance, resolveNextExpiry } from "../lib/monthly-credit-lots.js";
 import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS, resolveMonthlySpendQuota } from "../lib/profile-limits.js";
@@ -1907,6 +1907,8 @@ async function handleSinglePaymentStart(request, env, auth) {
   if (!resolved.ok) {
     return json({ message: resolved.message, code: resolved.code || "PRICE_NOT_FOUND" }, { status: resolved.status || 400 });
   }
+  const enabled = assertFeatureEnabled(resolved);
+  if (!enabled.ok) return json({ message: enabled.message, code: enabled.code }, { status: 409 });
 
   const clientCoinPrice = body?.coinPrice === undefined || body?.coinPrice === null ? undefined : Number(body.coinPrice);
   if (clientCoinPrice !== undefined && clientCoinPrice !== resolved.coinPrice) {

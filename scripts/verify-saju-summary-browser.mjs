@@ -99,6 +99,7 @@ try {
   page.on('pageerror', error => { browserErrors.push({ case: activeCase, error: error.message }); console.log('PAGE ERROR:', error.message); });
   page.on('console', message => { if (message.type() === 'error' && /Summary|renderSummary/.test(message.text())) console.log(message.text()); });
   await page.goto(origin, {waitUntil:'domcontentloaded'});
+  await page.waitForFunction(() => typeof window.cdOneStepFreeSajuEntry === 'function');
   // 무료 사주 카드(퀵 서비스)는 연이의 정원 안이다 — 사용자처럼 정원을 먼저 연다.
   if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
   await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"]').click();
@@ -145,7 +146,12 @@ try {
     window.__cdActiveBirthProfile = { profileId: 'profile-summary-race', birth: {year: 1990, month: 5, day: 15, hour: 12, minute: 0} };
     window.unlockedFeatureMap.section_summary = true;
   });
-  await page.locator('#summaryGate button[data-unlock-key]').click();
+  // A restored entitlement may open the report before a redundant button tap.
+  // Emit the same notification as access restoration, then require a readable report.
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('cd:unlocks-changed',{detail:{source:'mock-restored-entitlement'}})));
+  if (!await page.locator('#summaryArea .saju-summary-report').count()) {
+    await page.locator('#summaryGate button[data-unlock-key]').click();
+  }
   }
   await page.locator('#summaryArea .saju-summary-report').waitFor({state:'visible'});
   await page.evaluate((alreadyUnlocked) => {
@@ -261,7 +267,8 @@ try {
   await page.locator('#dwGrid .dw-item').nth(1).click();
   await page.waitForFunction(() => Number(document.querySelector('.saju-cycle-guide')?.dataset.cycleAge) === Number(window.G_DAEWUN[1].age));
   assert.notEqual(await page.locator('.saju-cycle-guide').innerText(), firstCycle, 'another cycle has its own consultation');
-  assert.equal(await page.locator('.saju-cycle-guide dt').count(), 9);
+  assert.equal(await page.locator('.saju-cycle-guide dt').count(), 12);
+  assert.match(await page.locator('.saju-cycle-guide').innerText(), /시작할 조건과 신중히 할 선택/);
   assert.match(await page.locator('.saju-cycle-guide').innerText(), /일간.*월지/);
   for (const width of [360,390,430,1280]) {
     await page.setViewportSize({width,height:900});

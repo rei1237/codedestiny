@@ -1,0 +1,58 @@
+{
+  "home.reading.famousNote": {
+    "ko": "공개 자료로 읽는 인물별 사주 이야기",
+    "en": "Public figures' Saju stories based on public sources",
+    "ja": "公開資料から読む人物ごとの四柱推命",
+    "zh-CN": "根据公开资料解读名人八字",
+    "zh-TW": "根據公開資料解讀名人八字",
+    "vi": "Câu chuyện Saju của người nổi tiếng từ nguồn công khai",
+    "hi": "सार्वजनिक स्रोतों पर आधारित प्रसिद्ध व्यक्तियों की साजू कहानियाँ",
+    "es": "Historias de Saju de figuras públicas con fuentes públicas",
+    "fr": "Le Saju des personnalités à partir de sources publiques",
+    "de": "Saju-Geschichten bekannter Personen aus öffentlichen Quellen",
+    "nl": "Saju-verhalen van bekende personen op basis van openbare bronnen",
+    "ms": "Kisah Saju tokoh terkenal berdasarkan sumber awam"
+  },
+  "home.reading.insightsNote": {
+    "ko": "사주·타로·명반을 이해하는 유익한 읽을거리",
+    "en": "Helpful reading on Saju, tarot and birth charts",
+    "ja": "四柱推命・タロット・命盤を理解する読み物",
+    "zh-CN": "帮助理解八字、塔罗与命盘的文章",
+    "zh-TW": "幫助理解八字、塔羅與命盤的文章",
+    "vi": "Bài đọc hữu ích về Saju, tarot và lá số",
+    "hi": "साजू, टैरो और जन्म कुंडली समझने के लिए उपयोगी लेख",
+    "es": "Lecturas útiles sobre Saju, tarot y cartas natales",
+    "fr": "Des lectures utiles sur le Saju, le tarot et les thèmes astraux",
+    "de": "Hilfreiche Texte über Saju, Tarot und Geburtshoroskope",
+    "nl": "Nuttige artikelen over Saju, tarot en geboortehoroscopen",
+    "ms": "Bacaan berguna tentang Saju, tarot dan carta kelahiran"
+  },
+  "home.reading.heading": {
+    "ko": "꿀같이 유익한 운세 이야기",
+    "en": "Insightful stories for your day",
+    "ja": "毎日に役立つ運勢の読み物",
+    "zh-CN": "为日常带来启发的运势故事",
+    "zh-TW": "為日常帶來啟發的運勢故事",
+    "vi": "Câu chuyện vận mệnh hữu ích mỗi ngày",
+    "hi": "हर दिन के लिए उपयोगी भाग्य की कहानियाँ",
+    "es": "Historias que inspiran tu día",
+    "fr": "Des lectures pour éclairer votre journée",
+    "de": "Inspirierende Geschichten für deinen Tag",
+    "nl": "Inspirerende verhalen voor je dag",
+    "ms": "Kisah bermakna untuk hari anda"
+  },
+  "home.reading.open": {
+    "ko": "이야기 읽기",
+    "en": "Read the stories",
+    "ja": "記事を読む",
+    "zh-CN": "阅读文章",
+    "zh-TW": "閱讀文章",
+    "vi": "Đọc bài viết",
+    "hi": "लेख पढ़ें",
+    "es": "Leer historias",
+    "fr": "Lire les articles",
+    "de": "Geschichten lesen",
+    "nl": "Lees de verhalen",
+    "ms": "Baca kisah"
+  }
+}

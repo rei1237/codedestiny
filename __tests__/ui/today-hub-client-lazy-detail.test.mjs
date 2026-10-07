@@ -15,7 +15,7 @@ function sliceBetween(text, start, end) {
 test("/today hub uses summary-first loading and lazy detail fetches", () => {
   const summaryBlock = sliceBetween(source, "const summaryQuery = useMemo", "const [detailState");
 
-  assert.match(source, /const summaryQuery = useMemo\(\(\) => \{\s+const params = new URLSearchParams\(\{ locale \}\);/);
+  assert.match(source, /const summaryQuery = useMemo\(\(\) => \{\s+const params = new URLSearchParams\(\{ locale, period: period === "tomorrow" \? "tomorrow" : "today" \}\);/);
   assert.doesNotMatch(summaryBlock, /detail/);
   assert.match(source, /fetch\(getApiUrl\(`\/api\/fortune\/today-hub\?\$\{summaryQuery\}`\)/);
   assert.match(source, /params\.set\("detail", "1"\);/);

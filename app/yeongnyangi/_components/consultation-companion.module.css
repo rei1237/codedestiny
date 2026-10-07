@@ -1,0 +1,3 @@
+.companion{display:flex;align-items:center;gap:16px;margin:20px 0;color:var(--yn-ivory)}
+.companion img{width:80px;height:80px;object-fit:contain;flex-shrink:0}
+.companion strong{font-size:15px}.companion p{margin:5px 0 0;font-size:14px;line-height:1.7;color:var(--yn-muted);word-break:keep-all}

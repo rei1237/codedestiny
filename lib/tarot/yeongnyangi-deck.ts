@@ -16,5 +16,8 @@ export function yeongnyangiCardMetadata(cardCode: string | undefined) {
 }
 
 export function yeongnyangiCardArt(cardCode: string | undefined, locale = 'ko', imageFailed = false) {
-  return resolveTarotDeckCard({ brand: 'yeongnyangi', cardCode, locale, imageFailed });
+  const art=resolveTarotDeckCard({ brand: 'yeongnyangi', cardCode, locale, imageFailed });
+  if(!art.fallback)return art;
+  const revision=manifest.back.contentHash.slice(0,12);
+  return {...art,src:art.src+'?v='+revision,avifSrc:art.avifSrc?art.avifSrc+'?v='+revision:null};
 }

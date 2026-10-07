@@ -14,7 +14,7 @@ const RESULT = "app/fusion-fortune/FusionResultThread.tsx";
 test("fusion fortune renders the premium flow and optimized hero asset", () => {
   const client = read(CLIENT);
   assert.match(client, /여섯 체계 교차 판정/);
-  assert.match(client, /여섯 체계 · 30,000자 이상/);
+  assert.match(client, /여섯 체계의 독립 해석/);
   assert.match(client, /fusion-guardian-celestial-hero\.webp/);
   assert.match(client, /priority/);
   assert.ok(fs.existsSync(path.join(root, "public/images/fusion-fortune/fusion-guardian-celestial-hero.webp")));
@@ -111,13 +111,16 @@ test("fusion fortune consumes server-sent completion stages", () => {
   // 접히는 섹션은 결과 본문이 소유한다.
   assert.match(read(RESULT), /aria-expanded/);
   assert.match(client, /useAiProfileSeed/);
-  // 진행 중인 체계는 끝난 체계와 눈으로 구분돼야 한다(대화 말풍선의 data-state).
-  assert.match(client, /dataState=\{state\}/);
+  // 융합 장면은 실제 이벤트와 저장 본문을 받으며, 미완성/완성 상태를 구분한다.
+  const convergence = read("app/fusion-fortune/FusionConvergence.tsx");
+  assert.match(client, /<FusionConvergence stageStates=\{stageStates\} result=\{result\}/);
+  assert.match(convergence, /data-state=\{item.state\}/);
   assert.match(thread, /data-state=\{dataState\}/);
   // 4그룹 병렬 생성이 실제 진행률로 보여야 한다 — 여섯 체계 계산 뒤 이 단계가 가장 길다.
   assert.match(client, /streamPayload\.stage === "compose"/);
   assert.match(client, /composeProgress/);
-  assert.match(client, /composeProgress\.completed \/ Math\.max\(1, composeProgress\.total\)/);
+  assert.match(convergence, /composeProgress\.completed.*composeProgress\.total/);
+  assert.doesNotMatch(convergence, /setInterval|setTimeout/);
 });
 
 test("the generating view and the result live in one conversation thread", () => {
@@ -128,8 +131,8 @@ test("the generating view and the result live in one conversation thread", () =>
   // ko 로케일 항목으로 남아 있고, JSX 는 그 항목을 가리키는 copy.threadAriaLabel 을 쓴다.
   assert.match(client, /aria-label=\{copy\.threadAriaLabel\}/);
   assert.match(client, /threadAriaLabel: "초융합 상담 대화"/);
-  // 아직 끝나지 않은 체계에 말풍선을 미리 만들지 않는다(없는 내용을 자리로 약속하지 않기).
-  assert.match(client, /if \(state === "pending"\) return null;/);
+  // 진행 상태를 보여도 본문은 실제로 도착한 체계만 렌더한다.
+  assert.match(read(RESULT), /SECTION_KEYS\.filter\(\(key\) => result\[key\]\?\.content\)/);
   // 실패는 폼이 아니라 대화 안에 남고, 결제 증빙이 있으면 그 자리에서 재시도한다.
   assert.match(client, /추가 결제 없이 다시 시도하기/);
 });
@@ -154,13 +157,13 @@ test("fusion visualization is inline SVG so the PDF capture keeps it", () => {
   assert.match(resultThread, /<FusionVisualization data=/);
 });
 
-test("fusion hero states the raised length contract", () => {
+test("fusion hero describes chapter roles without a hard length promise", () => {
   const client = read(CLIENT);
   const prompt = read("worker/lib/fusion-fortune-prompt.js");
   // 50,000원 상품의 분량 계약이 화면 문구와 서버 계약에서 어긋나면 안 된다.
-  assert.match(client, /30,000자 이상/);
-  assert.doesNotMatch(client, /20,000자 이상|10,000~15,000자/);
-  assert.match(prompt, /total: Object\.freeze\(\{ min: 30000/);
+  assert.match(client, /여섯 체계의 독립 해석/);
+  assert.doesNotMatch(client, /30,000자 이상|20,000자 이상|10,000~15,000자/);
+  assert.match(prompt, /FUSION_EXPERT_CHAPTER_CHARS/);
 });
 
 test("fusion fortune production switches enable the approved live flow and keep mock off", () => {

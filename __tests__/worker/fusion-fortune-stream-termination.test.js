@@ -43,6 +43,7 @@ beforeAll(async () => {
       getOptionalUserFromRequest: async () => ({ userId: "user-1" }),
     })),
     jest.unstable_mockModule("../../worker/lib/fusion-fortune-consultation.js", () => ({
+      requestFusionRecovery: async () => null,
       claimFusionDeliveryLease: async () => ({ token: "lease" }),
       releaseFusionDeliveryLease: async () => {},
       fusionConsultationPublicStatus: consultation => ["generating", "delivery_pending"].includes(consultation.status) ? "partial" : consultation.status || "completed",

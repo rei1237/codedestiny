@@ -18,6 +18,14 @@ export const SERVICE_PACK_PLANS = Object.freeze(Object.fromEntries([
 ]))));
 const FISH = Object.freeze(['mackerel','salmon','flounder','tuna']);
 
+// Historical definitions remain readable for fulfillment, gifts and order recovery.
+// Only five-use packs are offered for new purchases.
+export const SERVICE_PACK_SALE_IDS = Object.freeze(Object.keys(SERVICE_PACK_PLANS)
+  .filter(id => SERVICE_PACK_PLANS[id].totalUses === 5));
+export function isRetiredServicePack(planId) {
+  return Boolean(SERVICE_PACK_PLANS[planId]) && !SERVICE_PACK_SALE_IDS.includes(planId);
+}
+
 export function servicePackFeatures(fishId) {
   if(!FISH.includes(fishId))return [];
   return YEONGNYANGI_PAID_FEATURE_KEYS.filter(key=>key.endsWith('-'+fishId));
@@ -60,7 +68,7 @@ export function servicePackCoverage(right,featureKey,amountKRW,now=new Date()) {
 }
 
 export function listServicePackPlans() {
-  return Object.keys(SERVICE_PACK_PLANS).map(id=>({...resolveServicePackProduct(id).packSnapshot,autoRenew:false}));
+  return SERVICE_PACK_SALE_IDS.map(id=>({...resolveServicePackProduct(id).packSnapshot,autoRenew:false}));
 }
 export function isServicePackOrder(order) {
   return order?.pricingSnapshot?.fulfillmentType==='service_pack';

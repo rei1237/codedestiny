@@ -2,7 +2,7 @@
 //
 //   POST /api/nakshatra/resolve  : 생년월일(+시각·출생지) → 동양/인도/통합 3-뷰
 //   GET  /api/nakshatra/today    : 오늘의 달(달의 나크샤트라 + 대응 숙요) + (선택)개인 격각·타라발라
-//   POST /api/nakshatra/compat   : 동서 통합 궁합(유료·회당결제 ₩10,000)
+//   POST /api/nakshatra/compat   : 동서 통합 궁합(유료·회당결제 ₩1,000)
 //
 // 위 두 무료 라우트는 결제 게이팅·인증이 없다. compat 만 인증 + 결제 증빙 확인을 거친다.
 // 순수 조립 로직은 worker/lib/nakshatra-codex.js(WASM 비의존)에 있고, 이 파일은
@@ -19,7 +19,7 @@ import { verifyPerUsePayment, logPerUsePaymentProof } from "../lib/nakshatra-pai
 
 // 레지스트리(worker/lib/paid-feature-registry.js) 등록값과 일치해야 한다.
 const COMPAT_FEATURE_KEY = "nakshatra-compat";
-const COMPAT_COIN_PRICE = 50;
+const COMPAT_COIN_PRICE = 10;
 
 // ── I/O 배선 ─────────────────────────────────────────────────────────────────
 

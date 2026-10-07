@@ -1,16 +1,5 @@
-/**
- * @jest-environment node
- *
- * 운명의 꽃 매칭 라우트의 게이트 계약.
- *
- * 2026-08-24 이전에는 매칭 엔진이 브라우저에 통째로 실려 있어서, 결제는 서버에서 차감되는데
- * 결과는 브라우저가 만들었다 — 콘솔에서 `matchDestinyFlower(payload)` 한 줄이면 1만원짜리
- * 결과가 공짜로 나왔다. 엔진을 워커로 옮기고 이 라우트를 유일한 입구로 뒀으므로, 여기서
- * `flower-fc` 해금 확인이 빠지면 우회가 그대로 돌아온다.
- *
- * 🔴 게이트를 mock 으로 건너뛰지 말 것 — 건너뛰는 순간 이 테스트는 아무것도 지키지 않는다.
- *    여기서 mock 하는 것은 DB 어댑터뿐이고, 판정 코드는 실제 라우트가 돌린다.
- */
+/** @jest-environment node */
+// Authentication and server computation remain; no purchase is required from 2026-10-08.
 import { jest } from "@jest/globals";
 
 const USER_ID = "507f1f77bcf86cd799439011";
@@ -75,23 +64,15 @@ function post(body, path = "/api/destiny-flower/match") {
   });
 }
 
-test("해금 키가 실제로 flower-fc 다", () => {
-  expect(FLOWER_UNLOCK_FEATURE_KEY).toBe("flower-fc");
+test("미해금 로그인 사용자도 네 체계를 무료로 받는다", async()=>{
+ const res=await handleDestinyFlowerRoutes(post({profile:PROFILE}),{});
+ expect(res.status).toBe(200);const data=await res.json();expect(data.ok).toBe(true);
+ expect(Object.keys(data.sources).sort()).toEqual(['astrology','jamidusu','saju','sukuyo']);
+ expect(data.sources.saju?.flower?.name).toBeTruthy();
 });
 
-test("해금이 없으면 402 를 내고 꽃을 한 송이도 주지 않는다", async () => {
-  unlockedFeatures = ["olympus-fc", "saju-guardian"];
-  const res = await handleDestinyFlowerRoutes(post({ profile: PROFILE }), {});
-  expect(res.status).toBe(402);
-  const data = await res.json();
-  expect(data.ok).toBe(false);
-  expect(data.code).toBe("PAYMENT_REQUIRED");
-  expect(data.featureKey).toBe("flower-fc");
-  // 🔴 402 응답에 매칭 결과가 새어 나가면 게이트가 무의미하다.
-  // (featureKey 는 "flower-fc" 라 문자열 "flower" 를 정당하게 담는다 — 보는 것은 결과의 모양이다.)
-  expect(data.sources).toBeUndefined();
-  expect(data.theme).toBeUndefined();
-  expect(JSON.stringify(data)).not.toMatch(/"flower"\s*:|scientific_name|symbolism|primary_color/);
+test("과거 구매 키는 기록 호환을 위해 유지한다", () => {
+  expect(FLOWER_UNLOCK_FEATURE_KEY).toBe("flower-fc");
 });
 
 test("로그인하지 않으면 401 이고 DB 조회까지 가지 않는다", async () => {

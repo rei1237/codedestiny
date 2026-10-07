@@ -47,7 +47,7 @@ export const SOCIAL_PROFILES = [
   { key: "youtube", url: "https://www.youtube.com/@CodeDestiny_Official" },
   { key: "threads", url: "https://www.threads.com/@codedestiny_official" },
   { key: "instagram", url: "https://www.instagram.com/codedestiny_official/" },
-  { key: "naverBlog", url: "https://blog.naver.com/goodbyejieun" },
+  { key: "naverBlog", url: "https://blog.naver.com/neosaju" },
   { key: "x", url: "https://x.com/sajuseongj97497" },
 ] as const;
 
@@ -333,17 +333,6 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     changeFrequency: "weekly",
     priority: 0.9,
     structuredData: ["WebPage", "BreadcrumbList", "FAQPage"],
-  },
-  premiumReports: {
-    path: "/premium-reports",
-    title: siteSeoText("siteSeo.019"),
-    description:
-      "Code Destiny의 프리미엄 운세 리포트는 검증된 입력값을 바탕으로 사주, 연애, 신년 흐름을 문서형으로 정리합니다.",
-    h1: "프리미엄 운세 리포트 안내",
-    keywords: ["프리미엄 운세", "사주 PDF", "연애 리포트", "신년 운세"],
-    changeFrequency: "weekly",
-    priority: 0.86,
-    structuredData: ["WebPage", "BreadcrumbList"],
   },
   loveReportPdf: {
     path: "/pdf/love-report",

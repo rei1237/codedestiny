@@ -1,5 +1,11 @@
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from './paid-report-quality.js';
+import { repairStructuredJsonText } from './json-text-repair.js';
+
+export const NARRATIVE_RESPONSE_SCHEMA = Object.freeze({
+  type: 'OBJECT', required: ['evidenceHash', 'body'],
+  properties: { evidenceHash: { type: 'STRING' }, body: { type: 'STRING' } },
+});
 
 // Keep provider prose, removing exact duplicate paragraphs and an unfinished tail.
 // JSON products retain their adapter's validation; never treat JSON syntax as prose.
@@ -34,6 +40,10 @@ export function narrativeRepairTask(task, draft) {
 // Restore JSON framing and citation metadata locally, without inventing prose.
 // An explicit foreign hash is never reassigned to the current purchase.
 export function parseNarrativeResponse(raw, evidenceHash) {
+  raw = repairStructuredJsonText(raw, {
+    ...NARRATIVE_RESPONSE_SCHEMA,
+    properties: { ...NARRATIVE_RESPONSE_SCHEMA.properties, claims: { type: 'ARRAY' } },
+  });
   let value;
   try { value = JSON.parse(raw); } catch { value = salvageTruncatedJsonObject(raw); }
   if (!value || typeof value.body !== 'string' || (value.evidenceHash && value.evidenceHash !== evidenceHash)) return null;

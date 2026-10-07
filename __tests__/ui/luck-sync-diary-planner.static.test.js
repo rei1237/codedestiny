@@ -10,8 +10,8 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 test("fortune planner entry cuts over to the /diary app", () => {
   const html = read("index.html");
   const runtime = read("js/core/index-inline-runtime.js");
-  const plannerRoute = read("app/fortune-planner/page.tsx");
-  const legacyRoute = read("app/luck-sync-diary/page.tsx");
+  const plannerRoute = read("public/_worker.js");
+  const legacyRoute = plannerRoute;
   const dashboard = read("js/core/saju/reportDashboard.js");
 
   // 2026-09-07 컷오버(PR-J): 진입점이 셸 모달에서 /diary 앱으로 넘어갔다. 지킬 것이 뒤집힌다 —
@@ -26,8 +26,8 @@ test("fortune planner entry cuts over to the /diary app", () => {
   assert.match(plannerFn[0], /location\.assign\('\/diary\/'\)/);
   assert.doesNotMatch(plannerFn[0], /LuckSyncDiary|luck-sync-diary\.js/);
   assert.match(runtime, /window\.openLuckSyncDiary = window\.openFortunePlanner/);
-  assert.match(plannerRoute, /redirect\("\/diary\/"\)/);
-  assert.match(legacyRoute, /redirect\("\/diary\/"\)/);
+  assert.match(plannerRoute, /"\/fortune-planner": "\/diary\/"/);
+  assert.match(legacyRoute, /"\/luck-sync-diary": "\/diary\/"/);
   assert.doesNotMatch(runtime, /location\.assign\('\/fortune-planner'\)/);
   assert.doesNotMatch(runtime, /mountFortunePlannerHomeCard/);
   assert.doesNotMatch(runtime, /cdFortunePlannerCard/);
@@ -49,11 +49,12 @@ test("fortune planner entry cuts over to the /diary app", () => {
   // .cd-home-secondary-panel 접기/펼치기 CSS 는 이 개편에서 함께 지워졌다 — 접이식 보조
   // 패널이라는 개념 자체가 없어졌다(실측: index.html 에 두 선택자 모두 0개). 지킬 것은
   // 여전히 "다이어리 진입이 살아 있고, 오늘의 운세 다음 순서를 지키는 것"이다.
-  // 2026-10-01(ggulggul-home-essentials): 고민 선택은 접기 밖 필수 섹션이 됐고, 다이어리는
-  // 단일 접기 "연이의 정원"(#cdhGardenBody) 안 부가 탐색으로 옮겼다 — 진입점 자체는 그대로다.
+  // 2026-10-07: 첫 화면의 고민 진입은 짧은 주제 링크로 통합한다. 상세 고민·다이어리는
+  // 전체 탐색(#cdhGardenBody)에 보존하며 기존 직접 진입은 유지한다.
   assert.match(html, /<section class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"/);
   assert.ok(html.indexOf('id="cdhDiarySlot"') < html.indexOf('id="cdDiaryPlannerEntry"'));
-  assert.ok(html.indexOf('id="cdhConcern"') < html.indexOf('id="cdhGardenBody"'));
+  assert.ok(html.indexOf('class="cdh-topics"') < html.indexOf('id="cdhGardenBody"'));
+  assert.ok(html.indexOf('id="cdhConcern"') > html.indexOf('id="cdhGardenBody"'));
   assert.ok(html.indexOf('id="cdhGardenBody"') < html.indexOf('id="cdDiaryPlannerEntry"'));
   assert.doesNotMatch(html, /id="cdHomeSecondaryPanel"/);
   assert.doesNotMatch(html, /\.cd-home-secondary-panel\{/);
@@ -102,7 +103,7 @@ test("relationship temptation card embeds the self-gated target report", () => {
 
   assert.match(dashboard, /label:'그 사람의 바람끼는\?'/);
   assert.doesNotMatch(dashboard, /action:'openRelationshipBoundaryTestRoute'/);
-  assert.match(dashboard, /target:'relationshipBoundaryTestEntry', coinCost:50, selfGated:true/);
+  assert.match(dashboard, /target:'relationshipBoundaryTestEntry', coinCost:10, selfGated:true/);
   assert.match(dashboard, /src="\/relationship-boundary-test\/inline\/"/);
   assert.match(dashboard, /window\.openRelationshipBoundaryTestRoute = function\(\)/);
   assert.doesNotMatch(dashboard, /target:'relationshipTemptationCard'.*?label:'사주로 보는/);
