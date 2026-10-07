@@ -11616,7 +11616,18 @@
   window.cdHomeSukuyoEntry=function(){window.cdHomeFortuneEntry('sukuyo');};
   window.cdHomeVedicEntry=function(){window.cdHomeFortuneEntry('vedic');};
   window.cdHomeAstroEntry=function(){window.cdHomeFortuneEntry('astro');};
-  window.cdHomeTarotEntry=function(){window.cdHomeFortuneEntry('tarot');};
+  // The home shortcut is the service library. Drawing starts only after choosing a service.
+  window.cdHomeTarotEntry=function(){
+    _dpHomeIntent('');
+    var collection=document.getElementById('tarotCollection');
+    if(!collection){window.location.href='/?action=cdHomeTarotEntry';return;}
+    var fullscreen=window.cdMobileCollectionFullscreen;
+    if(fullscreen){fullscreen.open('tarotCollection');if(fullscreen.isOpen())return;}
+    if(typeof window.__cdOpenGarden==='function')window.__cdOpenGarden();
+    var toggle=collection.querySelector('[data-action="toggleCollection"]');
+    if(toggle&&collection.getAttribute('data-collection-open')!=='true')toggle.click();
+    window.requestAnimationFrame(function(){collection.scrollIntoView({block:'start'});});
+  };
   document.addEventListener('destinyProfileChanged',_dpResumeHomeEntry);
   window.addEventListener('cd:destiny-profile-server-ready',_dpResumeHomeEntry);
   window.addEventListener('cd:saju-summary-ready',function(){_dpHomeIntent('');});
