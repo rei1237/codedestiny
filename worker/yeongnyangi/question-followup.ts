@@ -4,7 +4,7 @@ import {deliveryRefundPending} from './terminal-refund-policy.js';
 import {connectDb,withMongoRetry} from '../lib/db.js';
 import {YeongnyangiRequest,ownerId,readRequest} from './repository.js';
 import {hasRequestAccess} from './access-methods.js';
-import {FortuneError} from './fortune/shared/contracts';
+import {FortuneError, type Evidence} from './fortune/shared/contracts';
 import {QUESTION_POLICY_VERSION} from './fortune/ask/question-policy';
 import {selectChapterFacts} from './fortune/chapter-facts';
 import {explanationFacts} from './fortune/shared/privacy';
@@ -37,7 +37,7 @@ export async function questionConversation(env:any,userId:string,id:string,body:
  if(next===current)return row;
  const snapshot=row.snapshot;
  const facts=Object.values(snapshot.analysis.contexts).flatMap((ctx:any)=>selectChapterFacts(ctx,snapshot.manifest[0],snapshot.analysis.topicId));
- const {contract:recognitionContract,delivery:recognitionDelivery,...recognition}=buildRecognition(explanationFacts(facts),Object.keys(snapshot.analysis.contexts),'followup');
+ const {contract:recognitionContract,delivery:recognitionDelivery,...recognition}=buildRecognition(explanationFacts(facts) as Evidence[],Object.keys(snapshot.analysis.contexts),'followup');
  const input=JSON.stringify({question,contract:snapshot.analysis.consultation,
    recognition,
    originalAnswers:row.chapters,history:next.exchanges,evidence:explanationFacts(facts)});
