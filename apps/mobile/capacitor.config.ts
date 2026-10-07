@@ -10,7 +10,7 @@ type ServerConfig = NonNullable<CapacitorConfig["server"]> & { html5mode?: boole
 
 const config: CapacitorConfig = {
   appId: process.env.CODE_DESTINY_ANDROID_PACKAGE_ID || "com.codedestiny.app",
-  appName: process.env.CODE_DESTINY_ANDROID_APP_NAME || "영냥이 · CODE DESTINY",
+  appName: process.env.CODE_DESTINY_ANDROID_APP_NAME || "꿀꿀 운세",
   webDir: "../../dist",
   server: {
     androidScheme: "https",
