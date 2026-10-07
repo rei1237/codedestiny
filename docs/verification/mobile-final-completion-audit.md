@@ -5,11 +5,11 @@
 |---|---|---|
 | 모바일 첫 화면에서 핵심 CTA 즉시 인지 | compact hero, primary CTA, quick start, bottom nav marker | 완료 |
 | 홈 길이와 초기 피로도 축소 | mobile-only compact 구조, category tabs, collapsed all-features/pass/footer | 완료 |
-| 모든 기능 카테고리 빠른 탐색 | `MOBILE_FEATURE_REGISTRY.md`, `npm run verify:mobile-feature-coverage` | 완료 |
+| 모든 기능 카테고리 빠른 탐색 | `docs/design/mobile-feature-registry.md`, `npm run verify:mobile-feature-coverage` | 완료 |
 | 카드 짧고 명확화 | `MobileFeatureCard`, `MobileCompactCard`, `MobileFeatureBottomSheet`, `npm run verify:mobile-runtime-readiness` | 완료 |
 | 모든 카드 모바일 touch 진입 | registry route/action 검증, CDP mobile smoke touch 검증 | 완료 |
 | 내부 기능 누락 방지 | 107개 required feature row와 source evidence 검증 | 완료 |
-| 기능 상세 모바일 요약 우선 | `MOBILE_FEATURE_DETAIL_TEMPLATE_REPORT.md` | 완료 |
+| 기능 상세 모바일 요약 우선 | `docs/design/mobile-feature-detail-contract.md` | 완료 |
 | 결과 화면 요약 우선/상세 접기 원칙 | 상세 템플릿 및 static/React 감사 기록 | 완료 |
 | 결제/잠금/이용권 UI 모바일 sheet 우선 | `cd-mobile-payment-lock-ux-v20260701`, `openGoldenGrainCharge` wiring | 완료 |
 | 이미지/BGM/스프라이트 체감 성능 | lazy image/audio/sprite 원칙 및 runtime readiness 검증 | 완료 |
@@ -17,7 +17,7 @@
 | PC 감성 유지/모바일 별도 구조 | 모바일 breakpoint 전용 shell marker와 public mirror sync 검증 | 완료 |
 
 ## 2. 기능 인벤토리
-- 보고서: `MOBILE_FEATURE_REGISTRY.md`
+- 보고서: `docs/design/mobile-feature-registry.md`
 - 검증 명령: `npm run verify:mobile-feature-coverage`
 - 검증 결과: required feature 107/107, source entry evidence, mobile markers 통과.
 - 추가 정밀화: category/hub 행, privacy modal, payment confirmation, animal/hormone/result action entry를 registry에 포함했다.

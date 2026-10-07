@@ -78,7 +78,7 @@ export function explainTier(files) {
 //
 // 🔴 루트 `.md` 는 평문으로 세지 않는다(2026-09-13). shadow 41개를 guards lane 으로 승격하면서
 //    전수 확인한 것: `verify:payment-policy-md` 는 `PAYMENT_POLICY.md`(상담 가격 정본)를,
-//    `verify:mobile-entry-actions` 는 `MOBILE_FEATURE_REGISTRY.md` 를 실제로 읽는다. 승격 전에는
+//    `verify:mobile-entry-actions` 는 `docs/design/mobile-feature-registry.md` 를 실제로 읽는다. 승격 전에는
 //    두 가드가 guards-shadow.yml 에서 매 push 돌아 이 lane 이 skip 돼도 신호가 남았지만, 승격
 //    후에는 guards lane 이 유일한 배선이다 — 루트 `.md` 를 평문으로 두면 가격 정본만 고친 push
 //    에서 가격 정합 검사가 조용히 꺼진다.
@@ -90,7 +90,7 @@ export function explainTier(files) {
 export function shouldRunStaticGuards(files) {
   const list = (files || []).map((file) => String(file || "").replace(/\\/g, "/")).filter(Boolean);
   if (!list.length) return true;
-  return list.some((file) => !/^docs\/(?!context\/|handoff\/|dev\/).+$/i.test(file));
+  return list.some((file) => /^docs\/(?:design\/mobile-feature-(?:registry|detail-contract)|verification\/mobile-final-completion-audit)\.md$/.test(file) || !/^docs\/(?!context\/|handoff\/|dev\/).+$/i.test(file));
 }
 
 // Markdown-only PR은 코드 타입체크·lint가 결과를 바꾸지 않는다. 계약 문서는 정적 가드,
@@ -176,9 +176,9 @@ function selfTest() {
     throw new Error("plain and contract documentation guard routing drifted");
   }
   // 루트 계약 문서는 정적 가드가 읽는다(PAYMENT_POLICY.md → verify:payment-policy-md,
-  // MOBILE_FEATURE_REGISTRY.md → verify:mobile-entry-actions). 이 셋이 false 로 돌아가면
+  // docs/design/mobile-feature-registry.md → verify:mobile-entry-actions). 이 셋이 false 로 돌아가면
   // 그 가드들의 유일한 배선이 꺼진 채로 초록이 된다.
-  if (!shouldRunStaticGuards(["PAYMENT_POLICY.md"]) || !shouldRunStaticGuards(["MOBILE_FEATURE_REGISTRY.md"]) || !shouldRunStaticGuards(["README.md"])) {
+  if (!shouldRunStaticGuards(["PAYMENT_POLICY.md"]) || !shouldRunStaticGuards(["docs/design/mobile-feature-registry.md"]) || !shouldRunStaticGuards(["README.md"])) {
     throw new Error("root contract documentation must keep the static guards lane awake");
   }
   console.log(`[resolve-ci-tier] self-test passed (${cases.length} cases)`);

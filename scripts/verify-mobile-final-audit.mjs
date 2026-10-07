@@ -4,9 +4,9 @@ import path from "node:path";
 const root = process.cwd();
 
 const reportFiles = [
-  "MOBILE_FEATURE_REGISTRY.md",
-  "MOBILE_FEATURE_DETAIL_TEMPLATE_REPORT.md",
-  "MOBILE_FINAL_COMPLETION_AUDIT.md",
+  "docs/design/mobile-feature-registry.md",
+  "docs/design/mobile-feature-detail-contract.md",
+  "docs/verification/mobile-final-completion-audit.md",
 ];
 
 const npmScripts = [
@@ -92,7 +92,7 @@ for (const file of shellFiles) {
   }
 }
 
-const finalAudit = read("MOBILE_FINAL_COMPLETION_AUDIT.md");
+const finalAudit = read("docs/verification/mobile-final-completion-audit.md");
 for (const text of finalAuditRequiredText) {
   if (!finalAudit.includes(text)) failures.push(`missing final audit text: ${text}`);
 }
@@ -106,7 +106,7 @@ if (uniqueCacheKeys.size !== 1 || cacheKeys.some(([, key]) => !key)) {
   failures.push(`static shell cache keys are not aligned: ${JSON.stringify(cacheKeys)}`);
 }
 
-const registryRows = read("MOBILE_FEATURE_REGISTRY.md").split(/\r?\n/).filter((line) => line.startsWith("|") && !line.includes("---") && !line.includes("기능명 |"));
+const registryRows = read("docs/design/mobile-feature-registry.md").split(/\r?\n/).filter((line) => line.startsWith("|") && !line.includes("---") && !line.includes("기능명 |"));
 // 임계는 "대량 삭제 감지"용 하한이지 기능 개수의 정본이 아니다. 2026-08-23 de1195b70 이
 // 운명의 꽃 카드 4장을 아틀리에 1장으로 합치면서 행이 107 → 104 로 줄었는데 이 숫자를 같이
 // 내리지 않아, 그 뒤로 이 가드가 계속 빨간불이었다(미배선이라 CI 가 못 잡았다).
@@ -114,8 +114,8 @@ const registryRows = read("MOBILE_FEATURE_REGISTRY.md").split(/\r?\n/).filter((l
 if (registryRows.length < 104) failures.push(`registry rows below required count: ${registryRows.length}`);
 
 const mojibakeHits = scanCoreMojibake([
-  "MOBILE_FINAL_COMPLETION_AUDIT.md",
-  "MOBILE_FEATURE_REGISTRY.md",
+  "docs/verification/mobile-final-completion-audit.md",
+  "docs/design/mobile-feature-registry.md",
   "scripts/verify-mobile-final-audit.mjs",
 ]);
 if (mojibakeHits.length) failures.push(`core mojibake patterns found: ${mojibakeHits.join(", ")}`);
