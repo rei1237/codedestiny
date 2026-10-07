@@ -1,6 +1,6 @@
 # 영냥이 상품·구매 흐름과 홈 상담 안내
 
-status: in-progress
+status: blocked-on-concurrent-home-integration
 
 ## 승인된 정책
 
@@ -62,15 +62,22 @@ status: in-progress
 - 꽃돼지 연이가 설명하는 30일 이용권 배너와 4종 카드 구성을 `01f3392fe` 이전 형태로 복원했다. 제목·설명·버튼 문구만 쉽게 다듬고 가격·한도는 CURRENT_PASS_PLANS에서 읽는다. 텍스트 카드 전용 CSS는 제거했다.
 - 영냥이 구매 화면의 단건/5회권, 10·20회권 신규 판매 종료, 기존 구매 권리 보존은 유지한다. 추가 결제/인증/API/DB 변경은 없다.
 - 360·390·430·1280px 로컬 mock 렌더에서 진입점과 이용권 카드의 가로 잘림 없음 및 연이 이미지 로드를 확인했다. 화면은 동일 증거 폴더의 restored-entry-*.png, restored-pass-*.png에 저장했다.
-- verify:home-service-registry, verify:i18n-price-drift, verify:payment-freeze 통과. check:fast 계획·실행 중.
+- verify:home-service-registry, verify:i18n-price-drift, verify:payment-freeze, verify:sitemap-drift 통과. 키보드 Tab으로 자미두수와 다음 이용권 카드 이동도 확인했다.
+- 복원 후 check:fast 계획·실행: paid gates 86/88 통과, Jest 354 suites / 5,372 tests 통과, Node 3,003개 중 3,002개 통과. 두 실패는 이전 CTA 문구와 접힘 내부 진입 배치를 기대한 검사였으며 각각 갱신 후 verify:billing-pass-policy 및 home-direct-feature-links 재실행 통과했다. 전체 게이트를 재실행했다고 주장하지 않는다.
 
-## 전달 상태
+## 전달 상태 — 복원 변경의 main 병합 대기
 
 - main에 구현·회귀 수정·공통 정책 문서를 모두 push했다. 코드 최종 변경은 `dc7d98dec3cbc67efb53ae97420b31f51a6f14cc`, 정책 문서 포함 main은 `6fbc2050948d68f6b683e557970bace8c0f905b4`다.
-- 코드 CI: https://github.com/rei1237/codedestiny/actions/runs/37666978999 — build/fast 성공, static guards의 브라우저 설치 진행 중.
-- 정책 CI: https://github.com/rei1237/codedestiny/actions/runs/37668026153 — static guards의 브라우저 설치 진행 중.
+- 코드 CI: https://github.com/rei1237/codedestiny/actions/runs/37666978999 — build/fast 성공, static guards의 브라우저 설치가 30분 제한으로 cancelled.
+- 정책 CI: https://github.com/rei1237/codedestiny/actions/runs/37668026153 — sitemap 원장 불일치로 실패. 복원 커밋에서 원장을 재생성했고 로컬 drift 검사가 통과했다.
 - 환불 동의·카탈로그 mock 수정 후 Browser Shadow: https://github.com/rei1237/codedestiny/actions/runs/37666484086 — 브라우저 설치 진행 중. 외부 설치가 끝나기 전 검사 통과로 취급하지 않는다.
 - 실결제·유료 LLM·운영 DB 쓰기·운영 승격은 실행하지 않았다.
+- 최신 복원 코드/검사 커밋은 `13b3595fb8b050df9e0f6b8d2b304001b836f3e9`, 작업 브랜치는 `wt/simple-packs-20261008-013846`다. 이 복원 변경은 아직 main에 병합하지 않았다.
+- main에서 다른 채팅 “영냥이 진입 화면 교체”(01a1179c-f3b8-7420-a811-186a002ba942)가 같은 홈 템플릿·생성 스크립트·CSS·index.html·public 미러·사전을 수정 중이다. 그 미커밋 변경은 수정·정리·커밋하지 않았다.
+- 다른 채팅에 복원 범위를 전달할 권한을 사용자에게 요청했으며 아직 답변이 없다. 도구의 명시적 메시지 승인 규칙 때문에 임의로 보내지 않았다. main 병합을 강행하거나 미커밋 변경을 덮어쓰지 않는다.
+- 다음 행동: 사용자 허락이 오면 위 채팅에 복원 커밋과 보존할 두 영역을 알린다. 해당 홈 변경이 커밋된 뒤 최신 main을 이 작업에 병합하고, 두 UI를 보존해 생성물·사이트맵을 재생성한다. 대상 검사 후 main 병합·push·해당 SHA의 CI를 확인한다. 완료 후 문서를 done으로 닫고 자기 워크트리를 배수한다.
+- 로컬 mock 서버와 임시 브라우저 탭은 종료했다. 미병합 커밋 보존을 위해 작업 디렉터리를 아직 제거하지 않았다.
+- 복원 후 `npm run lint`, `npm run verify:public-mirror-fresh`도 통과했다. 공개 미러는 생성기를 다시 실행해도 변하지 않는다.
 
 ## 진행
 
