@@ -18,6 +18,7 @@
 // 배포 게이트(광고 불가·색인 가능 라우트 최소 1800자)를 지탱하는 것은 children 으로 들어오는
 // 서버 렌더 해설(TodaySystemPrimer + TodayReadingGuide)이다 — 아래 카드는 한 글자도 안 센다.
 
+import { tomorrowCopy } from "@/lib/fortune/tomorrow-copy";
 import {FreeQuestionNext} from "@/app/components/QuestionJourney";
 import Link from "next/link";
 import Image from "next/image";
@@ -851,6 +852,7 @@ function CardPanel({
   locale,
   detailState,
   onDetailsOpen,
+  tomorrow = false,
 }: {
   card: SystemCard | null | undefined;
   tabLabel: string;
@@ -858,6 +860,7 @@ function CardPanel({
   locale: LoadingLocale;
   detailState: DetailLoadState;
   onDetailsOpen?: (system: TodaySystem) => void;
+  tomorrow?: boolean;
 }) {
   if (!card) {
     return (
@@ -880,7 +883,7 @@ function CardPanel({
           </span>
         </div>
         <h2 className={locale === "ko" ? styles.resultTitle : "mt-3 break-keep text-lg font-black leading-8 text-white sm:text-xl"}>{card.headline}</h2>
-        {locale === "ko" && <p className="mt-4 text-sm leading-7 text-rose-200">{SYSTEM_ART[card.system].invitation}</p>}
+        {locale === "ko" && <p className="mt-4 text-sm leading-7 text-rose-200">{tomorrow ? SYSTEM_ART[card.system].invitation.replaceAll("오늘", "내일") : SYSTEM_ART[card.system].invitation}</p>}
         <p className="mt-2 max-w-[64ch] break-keep text-sm leading-7 text-slate-200">{card.body}</p>
         {card.detail && <p className="mt-3 break-keep text-xs leading-6 text-slate-400">{card.detail}</p>}
         {card.highlights.length > 0 && (
@@ -925,8 +928,21 @@ function CardPanel({
 }
 
 export default function TodayHubClient({ children, dailyTarotCards, weeklyContent }: { children?: ReactNode; dailyTarotCards?: DailyTarotCard[]; weeklyContent?: ReactNode }) {
-  const [period, setPeriod] = useState<"today" | "weekly">("today");
-  const { copy, locale } = useTodayHubCopy();
+  const [period, setPeriod] = useState<"today" | "tomorrow" | "weekly">("today");
+  const { copy: baseCopy, locale } = useTodayHubCopy();
+  const copy = useMemo(() => {
+    if (locale !== "ko" || period !== "tomorrow") return baseCopy;
+    return {
+      ...baseCopy,
+      noVerdictLabel: tomorrowCopy.tomorrowFlow,
+      failedMessage: tomorrowCopy.tomorrowError,
+      shareSheetTitle: tomorrowCopy.tomorrowShare,
+      shareSheetText: tomorrowCopy.tomorrowShareText,
+      profileNudgeSuffix: tomorrowCopy.tomorrowProfile,
+      tabBlurb: Object.fromEntries(Object.entries(baseCopy.tabBlurb)
+        .map(([key, value]) => [key, value.replaceAll("오늘", "내일")])) as Record<TodaySystem, string>,
+    };
+  }, [baseCopy, locale, period]);
   const { seed, seedVersion } = useAiProfileSeed();
   // 마운트 후에만 계산한다(정적 빌드에 날짜가 굳는 것을 막고, 자정을 넘겨도 새로고침이면 갱신된다).
   const [now, setNow] = useState<Date | null>(null);
@@ -940,13 +956,15 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
   const [reloadToken, setReloadToken] = useState(0);
   // ?tab=saju|sukuyo|vedic|number — Threads 유형별 글이 해당 탭으로 바로 데려온다. 정적 셸이라 마운트 후에 읽는다.
   useEffect(() => {
-    const requested = new URLSearchParams(window.location.search).get("tab");
+    const query = new URLSearchParams(window.location.search);
+    const requested = query.get("tab");
+    if (query.get("period") === "tomorrow") setPeriod("tomorrow");
     const match = TAB_KEYS.find((tab) => tab.key === requested);
     if (match) setActive(match.key);
   }, []);
 
   const summaryQuery = useMemo(() => {
-    const params = new URLSearchParams({ locale });
+    const params = new URLSearchParams({ locale, period: period === "tomorrow" ? "tomorrow" : "today" });
     if (seed?.birthDate) {
       params.set("birth", seed.birthDate);
       if (seed.birthTime && !seed.birthTimeUnknown) params.set("time", seed.birthTime);
@@ -954,7 +972,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
       params.set("gender", seed.gender === "male" ? "male" : "female");
     }
     return params.toString();
-  }, [locale, seed?.birthDate, seed?.birthTime, seed?.birthTimeUnknown, seed?.calendarType, seed?.gender]);
+  }, [locale, period, seed?.birthDate, seed?.birthTime, seed?.birthTimeUnknown, seed?.calendarType, seed?.gender]);
 
   const [detailState, setDetailState] = useState<Partial<Record<TodaySystem, DetailLoadState>>>({});
   const requestSeq = useRef(0);
@@ -968,13 +986,14 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
   }, []);
 
   useEffect(() => {
-    if (!now) return undefined;
+    if (!now || period === "weekly") return undefined;
     const seq = ++requestSeq.current;
     const controller = new AbortController();
     setFailed(false);
     setData(null);
     setDetailState({});
     setGuestCard(null);
+    setGuestState("idle");
     Object.values(detailControllers.current).forEach((item) => item?.abort());
     detailControllers.current = {};
     fetch(getApiUrl(`/api/fortune/today-hub?${summaryQuery}`), {
@@ -996,14 +1015,18 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
         setFailed(true);
       });
     return () => {
+      requestSeq.current++;
       controller.abort();
+      Object.values(detailControllers.current).forEach((item) => item?.abort());
+      detailControllers.current = {};
     };
     // seedVersion 은 프로필 카드가 뒤늦게 도착했을 때(로그인 사용자의 서버 동기화) 다시 계산하려고 둔다.
-  }, [locale, now, summaryQuery, seedVersion, reloadToken]);
+  }, [locale, now, period, summaryQuery, seedVersion, reloadToken]);
 
   // 프로필 카드가 없는 방문자의 수비학 입력. only=number 라 다른 점술은 이 입력으로 개인화되지 않고,
   // 서버는 생년이 실린 요청을 공개 캐시에 올리지 않는다. 입력값은 이 화면 상태에만 두고 저장하지 않는다.
-  const guestCopy = NUMBER_GUEST_COPY[locale] || NUMBER_GUEST_COPY_EN;
+  const guestBaseCopy = NUMBER_GUEST_COPY[locale] || NUMBER_GUEST_COPY_EN;
+  const guestCopy = locale === "ko" && period === "tomorrow" ? { ...guestBaseCopy, lead: tomorrowCopy.guestLead } : guestBaseCopy;
   const [guestBirth, setGuestBirth] = useState("");
   const [guestCard, setGuestCard] = useState<SystemCard | null>(null);
   const [guestState, setGuestState] = useState<"idle" | "busy" | "failed">("idle");
@@ -1011,29 +1034,32 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
     event.preventDefault();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(guestBirth) || guestState === "busy") return;
     setGuestState("busy");
-    const params = new URLSearchParams({ detail: "1", locale, birth: guestBirth, only: "number" });
+    const seq = requestSeq.current;
+    const params = new URLSearchParams({ detail: "1", locale, birth: guestBirth, only: "number", period: period === "tomorrow" ? "tomorrow" : "today" });
     fetch(getApiUrl(`/api/fortune/today-hub?${params.toString()}`), { credentials: "omit", headers: { "x-code-destiny-locale": locale } })
       .then((res) => {
         if (!res.ok) throw new Error(`http_${res.status}`);
         return res.json();
       })
       .then((payload: HubResponse) => {
+        if (seq !== requestSeq.current) return;
         const card = payload?.ok ? payload.systems.number : null;
         if (!card) throw new Error("no_card");
         setGuestCard(card);
         setGuestState("idle");
       })
-      .catch(() => setGuestState("failed"));
-  }, [guestBirth, guestState, locale]);
+      .catch(() => { if (seq === requestSeq.current) setGuestState("failed"); });
+  }, [guestBirth, guestState, locale, period]);
 
   const loadDetails = useCallback((system: TodaySystem) => {
     const card = data?.systems[system];
+    if (Object.values(detailControllers.current).some(Boolean)) return;
     if (!card || card.sections?.length || detailState[system] === "loading" || detailState[system] === "loaded") return;
     const seq = requestSeq.current;
     detailControllers.current[system]?.abort();
     const controller = new AbortController();
     detailControllers.current[system] = controller;
-    setDetailState((current) => ({ ...current, [system]: "loading" }));
+    setDetailState(Object.fromEntries(TAB_KEYS.map((tab) => [tab.key, "loading"])));
 
     const params = new URLSearchParams(summaryQuery);
     params.set("detail", "1");
@@ -1052,11 +1078,11 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
         const detailedCard = payload.systems[system];
         if (!detailedCard?.sections?.length) throw new Error("no_sections");
         setData((current) => mergeHubDetail(current, payload));
-        setDetailState((current) => ({ ...current, [system]: "loaded" }));
+        setDetailState(Object.fromEntries(TAB_KEYS.map((tab) => [tab.key, payload.systems[tab.key]?.sections?.length ? "loaded" : "failed"])));
       })
       .catch((error) => {
         if (error?.name === "AbortError" || seq !== requestSeq.current) return;
-        setDetailState((current) => ({ ...current, [system]: "failed" }));
+        setDetailState(Object.fromEntries(TAB_KEYS.map((tab) => [tab.key, "failed"])));
       })
       .finally(() => {
         if (detailControllers.current[system] === controller) delete detailControllers.current[system];
@@ -1123,23 +1149,23 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
         <div className="flex items-center justify-between gap-3">
           <TopNav copy={copy} />
           <p className="break-keep text-right text-xs font-bold leading-5 text-amber-300 sm:text-sm">
-            {now ? formatKstDate(now) : " "}
+            {now ? formatKstDate(new Date(now.getTime() + (period === "tomorrow" ? 86400000 : 0))) : " "}
           </p>
         </div>
 
         <header className={locale === "ko" ? styles.hero : "mt-8 text-center sm:mt-12"}>
           {locale === "ko" && <Image src="/images/fortune-chat/persona/yeoni-greet.webp" alt="반갑게 인사하는 꽃돼지 연이" width={88} height={124} className="mx-auto object-contain" priority />}
-          <h1 className={locale === "ko" ? styles.title : "mt-5 text-3xl font-black tracking-tight text-white drop-shadow-md sm:text-5xl"}>{locale === "ko" ? period === "weekly" ? "연이와 한 주를 펼쳐요" : "연이와 오늘을 펼쳐요" : copy.heroTitle}</h1>
+          <h1 className={locale === "ko" ? styles.title : "mt-5 text-3xl font-black tracking-tight text-white drop-shadow-md sm:text-5xl"}>{locale === "ko" ? tomorrowCopy.title[period] : copy.heroTitle}</h1>
           <p className="mx-auto mt-4 max-w-2xl break-keep text-sm leading-7 text-slate-300 sm:text-base sm:leading-8">
-            {locale === "ko" ? "어서 와요, 꽃돼지 연이예요. 따뜻한 차 한 잔 곁에 두고 오늘과 이번 주의 흐름을 함께 살펴볼까요? 마음에 남는 조언 하나만 가볍게 챙겨가요." : copy.heroLead}
+            {locale === "ko" ? tomorrowCopy.lead : copy.heroLead}
           </p>
           {locale === "ko" && period === "today" && dailyTarotCards && <a href="#daily-tarot" className="mt-5 inline-flex min-h-12 items-center rounded-full bg-rose-200 px-6 py-3 font-bold text-rose-950 hover:bg-rose-100">오늘의 세 장 펼치기</a>}
         </header>
 
-        {locale === "ko" && weeklyContent && <div className="mt-7 grid grid-cols-2 gap-3" aria-label="운세 기간 선택">
-          {([['today', '오늘 운세'], ['weekly', '이번 주 운세']] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={period === value} onClick={() => setPeriod(value)} className={`min-h-12 rounded-full border px-4 py-3 font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-200 ${period === value ? 'border-rose-200 bg-rose-200 text-rose-950' : 'border-rose-200/40 text-rose-100 hover:bg-rose-200/10'}`}>{label}</button>)}
+        {locale === "ko" && weeklyContent && <div className="mt-7 grid grid-cols-3 gap-2" aria-label={tomorrowCopy.periodLabel}>
+          {([['today', tomorrowCopy.today], ['tomorrow', tomorrowCopy.tomorrow], ['weekly', tomorrowCopy.weekly]] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={period === value} onClick={() => setPeriod(value)} className={`min-h-12 rounded-full border px-2 py-3 text-sm font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-200 ${period === value ? 'border-rose-200 bg-rose-200 text-rose-950' : 'border-rose-200/40 text-rose-100 hover:bg-rose-200/10'}`}>{label}</button>)}
         </div>}
-        {locale === "ko" && <div hidden={period !== "weekly"}>{weeklyContent}</div>}
+        {locale === "ko" && period === "weekly" && weeklyContent}
         <div hidden={locale === "ko" && period === "weekly"}>
         {/* 탭 */}
         <div role="tablist" aria-label={copy.tabsAriaLabel} className={locale === "ko" ? styles.tabs : "mt-8 grid grid-cols-2 gap-2 rounded-2xl sm:grid-cols-4 border border-white/10 bg-white/[0.04] p-1.5"}>
@@ -1226,6 +1252,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
             </div>
           ) : data ? (
             <CardPanel
+              tomorrow={period === "tomorrow"}
               card={panelCard}
               tabLabel={activeTab.label}
               copy={copy}
@@ -1262,8 +1289,14 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
           </button>
         </div>
 
-        {locale === "ko" && dailyTarotCards && <DailyTarot cards={dailyTarotCards}/>}
+        {locale === "ko" && period === "today" && dailyTarotCards && <DailyTarot cards={dailyTarotCards}/>}
         </div>
+        {locale === "ko" && period === "tomorrow" && <section className="mt-8 text-rose-50" aria-labelledby="tomorrow-preparation">
+          <h2 id="tomorrow-preparation" className="text-xl font-bold">{tomorrowCopy.preparationTitle}</h2>
+          <p className="mt-3 leading-8">{tomorrowCopy.preparation[active]}</p>
+          <p className="mt-3 text-sm leading-7 text-rose-200">{tomorrowCopy.preparationNote}</p>
+          <Link href="/fortune/tomorrow/" className="mt-4 inline-flex min-h-12 items-center font-bold text-rose-100 underline underline-offset-4">{tomorrowCopy.zodiacLink}</Link>
+        </section>}
         {children}
 
         <h2 className="mt-16 break-keep text-lg font-extrabold text-white">{copy.deeperHeading}</h2>
