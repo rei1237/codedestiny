@@ -736,7 +736,7 @@
     var glyphHtml = option === "monthly" ? buildMoonstoneIconHtml() : escape(spec.glyph);
     var rewardHtml = spec.rewardHtml
       ? '<span class="cd-direct-payment-reward" data-monthly-reward-info><span class="cd-direct-payment-reward__mark" aria-hidden="true">'
-        + '<img class="cd-direct-payment-reward__mascot" src="/assets/mascot/yeoni-moonstone-reward-v1.png" alt="" aria-hidden="true" loading="lazy">' + "</span>" + spec.rewardHtml + "</span>"
+        + '<img class="cd-direct-payment-reward__mascot" src="/assets/mascot/yeoni-moonstone-reward-v1-320.webp" alt="" aria-hidden="true" loading="lazy">' + "</span>" + spec.rewardHtml + "</span>"
       : "";
     return (
       '<button type="button" class="cd-direct-payment-option' + (spec.extraClass || "") + variantClass

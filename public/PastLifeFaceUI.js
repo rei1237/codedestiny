@@ -77,35 +77,35 @@
       orientation: 'portrait'
     },
     pastlife: {
-      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-pastlife.jpg',
+      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-pastlife.webp',
       alt: '붉은 실로 이어진 두 개의 문과 초승달이 전생의 문턱을 상징하는 장면',
       width: 1280,
       height: 720,
       orientation: 'landscape'
     },
     adjust: {
-      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-adjust.jpg',
+      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-adjust.webp',
       alt: '깊은 골짜기 위에서 두 갈래의 빛나는 길이 갈라지는 선택의 장면',
       width: 1280,
       height: 720,
       orientation: 'landscape'
     },
     emotion: {
-      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-emotion.jpg',
+      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-emotion.webp',
       alt: '달빛 아래 서로 다른 색의 파도가 맞닿는 감정의 장면',
       width: 1280,
       height: 720,
       orientation: 'landscape'
     },
     longterm: {
-      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-longterm.jpg',
+      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-longterm.webp',
       alt: '나침반과 펼쳐진 기록이 오래 남은 약속을 비추는 장면',
       width: 1280,
       height: 720,
       orientation: 'landscape'
     },
     core: {
-      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-core.jpg',
+      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-core.webp',
       alt: '별빛과 산맥 사이 두 개의 궤적이 하나의 흐름으로 이어지는 장면',
       width: 1280,
       height: 720,

@@ -673,7 +673,7 @@ function setupLazySectionHydration() {
 function setupFeatureCodeSplit() {
   const loaders = {
     physiognomy: () => __loadScriptOnce('AnalysisEngine.js?v=h96b7981840e2').then(() => __loadScriptOnce('PhysiognomyUI.js?v=hc500a55c5938')),
-    pastLifeFace: () => __loadScriptOnce('AnalysisEngine.js?v=h96b7981840e2').then(() => __loadScriptOnce('PastLifeFaceUI.js?v=hf6bf26211a46')),
+    pastLifeFace: () => __loadScriptOnce('AnalysisEngine.js?v=h96b7981840e2').then(() => __loadScriptOnce('PastLifeFaceUI.js?v=h18a3c245e2db')),
     mbti: () => __loadScriptOnce('js/astral-soul.js'),
     hwatu: () => __loadScriptOnce('HwatuFortune.js?v=h7c6f7751f293')
   };
