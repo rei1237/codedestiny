@@ -1,10 +1,13 @@
+import '../../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
 const source=readFileSync(new URL('../../js/core/analytics.js',import.meta.url),'utf8');
-function boot(url='https://code-destiny.com/points/?token=private'){
+function boot(url='https://code-destiny.com/points/?token=private',{consent='',stored={}}={}){
   const dom=new JSDOM('<!doctype html><html><head></head><body></body></html>',{url,runScripts:'outside-only'});
+  if(consent)dom.window.document.cookie=`cd_cookie_consent=${consent}; path=/`;
+  for(const [key,value] of Object.entries(stored))dom.window.localStorage.setItem(key,value);
   dom.window.eval(source);return dom;
 }
 test('server approval is purchase; pending grant is not fulfillment; replay does not duplicate',()=>{
@@ -132,4 +135,91 @@ test('server attribution accepts public campaign metadata and discards unknown f
  const clean=normalize({consent:true,version:'growth-20260929-v1',campaignId:'threads_queue_t02_v1',device:'mobile',question:'private',userId:'private'});
  assert.deepEqual(Object.keys(clean).sort(),['campaignId','consent','device','version']);
  assert.equal(JSON.stringify(clean).includes('private'),false);
+});
+
+test('purchase replay across documents persists only with analytics consent',()=>{
+ const payload={payment:{merchantUid:'mock-order',paymentAmount:1000,status:'paid',featureKey:'yeongnyangi-saju-mackerel'}};
+ for(const consent of ['accepted','essential','']){
+  const first=boot(undefined,{consent}),w=first.window;
+  w.cdTrackConfirmedPurchase(payload);w.cdTrackConfirmedPurchase(payload);
+  assert.equal(w.dataLayer.filter(row=>row[1]==='purchase').length,1);
+  const stored=Object.fromEntries(Object.keys(w.localStorage).map(key=>[key,w.localStorage.getItem(key)]));
+  assert.equal(Boolean(stored['cd:purchase:mock-order']),consent==='accepted');
+  first.window.close();
+  const second=boot(undefined,{consent,stored});
+  second.window.cdTrackConfirmedPurchase(payload);
+  assert.equal(second.window.dataLayer.filter(row=>row[1]==='purchase').length,consent==='accepted'?0:1);
+  second.window.close();
+ }
+});
+
+test('pass or moonstone access without a positive server payment is not a new purchase',()=>{
+ const dom=boot(),w=dom.window;
+ for(const payload of [{passApplied:true},{paymentMode:'coin',accessGrant:{featureKey:'saju-deep'}},
+  {payment:{merchantUid:'mock-zero',paymentAmount:0,status:'paid'}}]){
+  assert.equal(w.cdTrackConfirmedPurchase(payload),false);
+ }
+ assert.equal(w.dataLayer.filter(row=>row[1]==='purchase').length,0);
+ dom.window.close();
+});
+
+test('insight attribution uses public campaign codes, expires, and clears on consent withdrawal',async()=>{
+ const {insightPath}=await import('../../lib/insight-card.mjs');
+ for(const brand of ['yeongnyangi','tea']){
+  const id='ic_'+'a'.repeat(40),campaign=brand==='yeongnyangi'?'insight_yeongnyangi':'insight_ggulggul';
+  const dom=boot('https://code-destiny.com'+insightPath(id,brand,'copy'),{consent:'accepted'}),w=dom.window;
+  w.cdTrack('insight_share_receive',{service:brand==='yeongnyangi'?'yeongnyangi':'ggulggul'});
+  w.history.replaceState({},'','/yeongnyangi/fortune/');
+  w.cdTrackConfirmedPurchase({payment:{merchantUid:'mock-insight',paymentAmount:1000,status:'paid'}});
+  assert.equal(w.dataLayer.find(row=>row[1]==='purchase')[2].share_campaign,campaign);
+  assert.equal(JSON.stringify(w.dataLayer).includes(id),false);
+  w.sessionStorage.setItem('cd:insight:campaign',JSON.stringify({value:campaign,until:Date.now()-1}));
+  w.cdTrack('view_item',{item_id:'yeongnyangi-saju-mackerel'});
+  assert.equal(w.dataLayer.at(-1)[2].share_campaign,undefined);
+  w.sessionStorage.setItem('cd:insight:campaign',JSON.stringify({value:campaign,until:Date.now()+10000}));
+  w.document.cookie='cd_cookie_consent=essential; path=/';
+  w.cdTrack('view_item',{item_id:'yeongnyangi-saju-mackerel'});
+  assert.equal(w.dataLayer.at(-1)[2].share_campaign,undefined);
+  assert.equal(w.sessionStorage.getItem('cd:insight:campaign'),null);
+  dom.window.close();
+ }
+});
+
+test('without consent insight attribution is URL-local and never follows internal navigation',()=>{
+ const dom=boot('https://code-destiny.com/share/?utm_medium=share&utm_campaign=insight_yeongnyangi'),w=dom.window;
+ w.cdTrack('insight_share_receive',{service:'yeongnyangi'});
+ assert.equal(w.dataLayer.at(-1)[2].share_campaign,'insight_yeongnyangi');
+ assert.equal(w.sessionStorage.getItem('cd:insight:campaign'),null);
+ w.history.replaceState({},'','/yeongnyangi/fortune/');
+ w.cdTrack('view_item',{item_id:'yeongnyangi-saju-mackerel'});
+ assert.equal(w.dataLayer.at(-1)[2].share_campaign,undefined);
+ dom.window.close();
+});
+
+// S00 characterization: these URLs keep UTM in page_location, but the generic
+// receiver currently handles only public_share/ref. S06 must update this test
+// together with its agreed receipt contract; absence is a recorded gap, not a goal.
+test('S00 observes current receipt coverage of real paid, daily and insight share links',async()=>{
+ const {build}=await import('esbuild');
+ const {insightPath}=await import('../../lib/insight-card.mjs');
+ const bundle=await build({entryPoints:['app/yeongnyangi/_lib/result-share.ts'],bundle:true,write:false,platform:'browser',format:'iife',globalName:'resultShare'});
+ const builder=boot();builder.window.eval(bundle.outputFiles[0].text);
+ const urls=[
+  [builder.window.resultShare.resultShareUrl({product:{id:'saju_mackerel'}},'image'),'yeongnyangi_result'],
+  [builder.window.resultShare.resultShareUrl(undefined,'copy'),'yeongnyangi_daily'],
+  ['https://code-destiny.com'+insightPath('ic_'+'b'.repeat(40),'yeongnyangi','native'),'insight_yeongnyangi'],
+ ];
+ builder.window.close();
+ for(const [url,campaign] of urls){
+  const dom=boot(url),w=dom.window;
+  assert.equal(new URL(w.dataLayer.find(row=>row[0]==='config')[2].page_location).searchParams.get('utm_campaign'),campaign);
+  assert.equal(w.dataLayer.filter(row=>row[1]==='share_receive').length,0);
+  // InsightCardClient emits its own receipt only after loading a valid card.
+  assert.equal(w.dataLayer.filter(row=>row[1]==='insight_share_receive').length,0);
+  dom.window.close();
+ }
+ const publicLink=boot('https://code-destiny.com/features/saju/?utm_medium=share&utm_campaign=public_share&utm_source=copy');
+ publicLink.window.eval(source);
+ assert.equal(publicLink.window.dataLayer.filter(row=>row[1]==='share_receive').length,1);
+ publicLink.window.close();
 });
