@@ -45,7 +45,11 @@ function fixture(accessType = 'pass') {
     LOVE_SECRET_AI_GENERATING_FRESH_MS: 120000, LOVE_SECRET_AI_LLM_DEADLINE_MS: 86000, LLM_ERROR_MESSAGE: 'mock generation failed',
     publicSession: row => ({ ok: true, sessionId: row.id, status: row.status, saved: row.status === 'completed', messages: row.messages }),
     restoreBillingGateAccessOnFailure: async () => { refunds++; return { restored: true }; },
-    applyUsageOnce: async () => { usage++; assert.equal(doc.status, 'completed'); },
+    applyUsageOnce: async () => {
+      assert.equal(doc.status, 'delivery_pending');
+      if (fault === 'usage') { fault = null; throw new Error('USAGE_UNAVAILABLE'); }
+      if (!doc.usageAppliedAt) { usage++; doc.usageAppliedAt = new Date().toISOString(); }
+    },
     LoveSecretAiConsultation: {
       findOne: filter => chain(doc && matches(doc, filter) ? doc : null),
       create: async seed => { if (doc) throw Object.assign(new Error('duplicate'), { code: 11000 }); doc = { ...clone(seed), updatedAt: new Date().toISOString() }; return clone(doc); },
@@ -78,7 +82,7 @@ function fixture(accessType = 'pass') {
 }
 
 for (const accessType of ['pass', 'subscription', 'paid']) {
-  test(`${accessType}: 여섯 묶음 저장·같은 요청 재개·완료 뒤 사용 기록`, async () => {
+  test(`${accessType}: 여섯 묶음 저장·같은 요청 재개·사용 확정 뒤 완료`, async () => {
     const f = fixture(accessType);
     for (let index = 0; index < 6; index++) {
       const response = await f.post(index ? { resumeSessionId: f.doc.id } : {});
@@ -95,10 +99,18 @@ for (const accessType of ['pass', 'subscription', 'paid']) {
     const failed = await f.post();
     assert.equal(failed.status, 503);
     assert.equal((await failed.json()).reason, 'RESULT_STORAGE_UNAVAILABLE');
-    assert.equal(f.doc.status, 'delivery_pending'); assert.equal(f.refunds, 0); assert.equal(f.usage, 0);
-    assert.equal((await f.post()).status, 200); assert.equal(f.calls, 6);
+    assert.equal(f.doc.status, 'delivery_pending'); assert.equal(f.refunds, 0); assert.equal(f.usage, 1);
+    assert.equal((await f.post()).status, 200); assert.equal(f.calls, 6); assert.equal(f.usage, 1);
   });
 }
+test('이용 확정 실패는 완료로 표시하지 않고 저장한 여섯 묶음으로 다시 시도한다', async () => {
+  const f = fixture();
+  for (let index = 0; index < 5; index++) await f.post();
+  f.fault('usage');
+  assert.equal((await f.post()).status, 503);
+  assert.equal(f.doc.status, 'delivery_pending'); assert.equal(f.usage, 0); assert.equal(f.calls, 6);
+  assert.equal((await f.post()).status, 200); assert.equal(f.usage, 1); assert.equal(f.calls, 6);
+});
 test('체크포인트 저장 실패는 LLM 호출 전에 중단하며 환불로 흐르지 않는다', async () => {
   const f = fixture(); f.fault('checkpoint');
   assert.equal((await f.post()).status, 503); assert.equal(f.calls, 0); assert.equal(f.refunds, 0);

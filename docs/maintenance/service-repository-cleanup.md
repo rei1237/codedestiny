@@ -79,4 +79,3 @@ Search Console에서 `https://code-destiny.com/sitemap-index.xml`의 기존 제�
 ## 전달 기록
 
 검증 및 main 통합 진행 중.
-

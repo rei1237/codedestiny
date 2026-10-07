@@ -17,7 +17,8 @@ import { NewYearAiConsultation, PaidExecutionRecord, Payment, PointHistory, User
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
@@ -1133,13 +1134,6 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
 
   if (/usage[-_]pass/.test(signal)) return null;
 
-  if (signal.includes("pass")) {
-    const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
-    if (featureAccess.allowed) {
-      return { ok: true, accessType: featureAccess.accessType || "pass", paymentId: tokens[0] || "", prepaid: true };
-    }
-  }
-
   const pointClauses = pointHistoryTokenClauses(tokens);
   if (pointClauses.length) {
     const pointHistory = await PointHistory.findOne({
@@ -1290,7 +1284,7 @@ async function resolveServerAccess({ env, auth, user, pricing, idempotencyKey = 
 
   const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
   if (featureAccess.allowed) {
-    return { ok: true, accessType: featureAccess.accessType || "pass", paymentId: "", usageAlreadyApplied: false };
+    return { ok: true, accessType: normalizeConsultAccessType(featureAccess.accessType), paymentId: "", usageAlreadyApplied: false };
   }
 
   return { ok: false, reason: "PAYMENT_REQUIRED" };
@@ -2051,11 +2045,21 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
 }
 
 async function applyUsageOnce({ userId, sessionId, accessType }) {
-  const existing = await NewYearAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
+  const existing = await NewYearAiConsultation.findOne({ id: sessionId, userId: clean(userId) }).select("usageAppliedAt idempotencyKey").lean();
+  if (!existing?.idempotencyKey) throw resultStorageUnavailable(sessionId);
   if (existing?.usageAppliedAt) return true;
 
+  if (normalizeConsultAccessType(accessType) === "pass") {
+    const user = await User.findById(userId).select("profileSubscription recentConsumeRequestIds").lean();
+    const consumed = await consumePassForFeature({ user: user || {}, entitlement: resolveCanonicalEntitlement(user || {}),
+      userId, featureKey: FEATURE_KEY, requestId: existing?.idempotencyKey, coinCost: getPricing().coinPrice });
+    if (!consumed.covered) throw Object.assign(new Error("이용권 사용 한도를 확인해 주세요."), {
+      code: passDenialCode(consumed.reason) || "PAYMENT_REQUIRED",
+    });
+  }
+
   await NewYearAiConsultation.updateOne(
-    { id: sessionId, usageAppliedAt: null },
+    { id: sessionId, userId: clean(userId), usageAppliedAt: null },
     { $set: { usageAppliedAt: new Date() } },
   );
   return true;

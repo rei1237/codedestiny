@@ -503,6 +503,16 @@
     var neo = mode === 'neo', k = neo ? 1 : 0, dg = p.d.g, dj = p.d.j, dayName = L.GAN[dg].n || dg, twelve = L.cdTwelveStage || function () { return ''; };
     var god = function (c) { var g = L.getTenGod(dg, c); return g && g !== '?' ? g : ''; };
     var html = '';
+    var depth = root.SajuReadingDepth;
+    if (depth) {
+      var day = depth.dayReading(dg + dj), month = depth.monthReading(dg, p.m && p.m.j);
+      if (day) {
+        html += section(day.title + ' · 나를 읽는 여덟 가지 관점', para(day.summary), 'saju-rich__lead saju-rich__wide');
+        html += day.sections.map(function (s) { return section(s.title, para(s.text)); }).join('');
+      }
+      if (month) html += '<section id="sajuMonthReading" class="saju-rich__wide"><h3>' + esc(month.title) + '</h3>' + para(month.basis) + month.sections.map(function (s) { return section(s.title, para(s.text)); }).join('') + '</section>';
+      html += '<section id="sajuContextReading" class="saju-rich__wide"><h3>당신의 명식에서는 이렇게 달라져요</h3>' + depth.contextualReading(facts).map(function (s) { return section(s.title, para(s.text)); }).join('') + '</section>';
+    }
     var rows = (L.CD_PALACE || [{key:'y', label:'년주'}, {key:'m', label:'월주'}, {key:'d', label:'일주'}, {key:'h', label:'시주'}]).map(function (pal) {
       var col = p[pal.key] || {}, span = pal.palace ? pal.palace + ' · ' + pal.span : '';
       if (pal.key === 'h' && facts.unknown) return [pal.label + ' (미상)', '미상', '미상', '미상', '미상', span];
@@ -512,7 +522,7 @@
     html += section(neo ? '네오의 진단' : '연이가 펼쳐 본 네 기둥', hero(dg + dj, [dayName + ' 일간', spouseGod ? '일지 ' + spouseGod : '', spouseStage ? '12운성 ' + spouseStage : ''], true) + para(neo ?
       dayName + '(' + dg + ') 일간, 일지 ' + dj + '(' + (spouseGod || '—') + ' · ' + (spouseStage || '—') + '). 아래 표가 계산 근거입니다.' :
       '당신의 중심은 ' + dayName + '(' + dg + ') 일간이고, 바로 아래 일지 ' + dj + '에는 ' + (spouseGod || '—') + jo(spouseGod || '—', '이', '가') + ' ' + (spouseStage || '—') + '의 자리로 앉아 있어요. 네 기둥을 한눈에 펼쳐 보면 이렇게 읽혀요.') +
-      table('원국 네 기둥', ['기둥', '천간 · 십성', '지지 · 십성', '지장간', '12운성', '궁위'], rows) +
+      more('계산 근거 펼치기 · 네 기둥과 지장간', table('원국 네 기둥', ['기둥', '천간 · 십성', '지지 · 십성', '지장간', '12운성', '궁위'], rows)) +
       '<p class="saju-rich__note">' + esc(neo ? '12운성은 일간 기준, 음간은 역행(음생양사) 정본을 따릅니다. 궁위 나이는 전통적인 근묘화실 구분입니다.' : '12운성은 일간을 기준으로 지지마다 기운이 어느 단계인지 본 것이고, 음간은 거꾸로 도는 음생양사 정본을 따라요. 궁위의 나이는 전통적인 근묘화실 구분이에요.') + '</p>', 'saju-rich__lead saju-rich__wide');
     html += section('일간 ' + dayName + '의 물상', para(neo ? dayName + ' 일간: ' + (STEM_NOTE[dg] || '') + '입니다. 일간은 원국의 기준점이며, 나머지 일곱 글자는 모두 이 글자와의 관계로 읽습니다.' : '일간 ' + dayName + jo(dayName, '은', '는') + ' ' + (STEM_NOTE[dg] || '') + '이에요. 사주의 모든 글자는 이 일간과의 관계로 읽기 때문에, 일간의 결을 아는 것이 해석의 첫걸음이에요.'));
     html += section(neo ? '일지 · 배우자궁' : '일지 배우자궁에 앉은 기운', para(spouseFam ? SPOUSE[spouseFam][k] : '') +
@@ -580,6 +590,12 @@
         var db = (neo && L.NEO_GAEUN_DB && L.NEO_GAEUN_DB[gd.e]) ? L.NEO_GAEUN_DB : L.GAEUN_DB;
         var g = (db[gd.e] || db.earth || {})[good ? 'good' : 'bad'] || {};
         body += '<ul class="saju-tiles">' + GAEUN_LABEL.filter(function (x) { return g[x[0]]; }).map(function (x) { return '<li><b>' + esc(x[1]) + '</b><span>' + esc(g[x[0]]) + '</span></li>'; }).join('') + '</ul>';
+      }
+      if(root.SajuReadingDepth){
+        var depth=root.SajuReadingDepth;
+        var balanceFor=function(el){var role=roleOf(facts,el);return /용신|희신/.test(role)?'good':/기신|구신/.test(role)?'bad':'neutral';};
+        var action=depth.cycleActions({stem:{char:r.g,god:sg,balance:balanceFor(gd.e)},branch:{char:r.j,god:bg,balance:balanceFor(jd.e)},power:facts.power,jong:facts.jong,month:p.m.j,depth:facts.depth||depth.buildDepthFacts(facts)});
+        if(action.length) body+=section(year?'올해 해볼 작은 실천':'지금 대운에서 먼저 해볼 일',para(action[0].text.replace(/대운/g,year?'세운':'대운')));
       }
       // 대운·세운이 같은 톤이면 같은 문단이 두 번 나오므로 처음 한 번만 붙인다.
       var tone = at >= 3 ? 'open' : at === 2 ? 'even' : 'care';

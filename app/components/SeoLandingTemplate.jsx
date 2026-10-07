@@ -14,6 +14,7 @@ import {
 } from "../../lib/structured-data";
 import { getSeoRouteProfile, getTopicClusterLinks } from "../../lib/seo/entity-registry.mjs";
 import SeoLandingBirthForm from "./SeoLandingBirthForm";
+import FortuneLandingHero, { hasFortuneLanding } from "./FortuneLandingHero";
 import { SEO_SERVICE_SCOPES } from "../../lib/seo-service-scope";
 import { SEO_READING_EXAMPLES } from "../../lib/seo-reading-examples";
 
@@ -170,6 +171,8 @@ function SectionHead({ id, title, label }) {
 }
 
 export default function SeoLandingTemplate({ page, hero = null }) {
+  const fortuneLanding = hasFortuneLanding(page.path);
+  const landingHero = hero || (fortuneLanding ? <FortuneLandingHero path={page.path} /> : null);
   const intent = getIntentCopy(page?.path);
   const copy = page?.templateCopy || SEO_LANDING_TEMPLATE_COPY.ko;
   const faqs = mergeFaqs(page?.faqs);
@@ -246,7 +249,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
           ))}
         </nav>
 
-        {hero || <header className="mt-[clamp(2.5rem,6vw,4rem)] border-b border-[rgba(232,213,163,0.18)] pb-[clamp(2.5rem,6vw,4rem)]">
+        {landingHero || <header className="mt-[clamp(2.5rem,6vw,4rem)] border-b border-[rgba(232,213,163,0.18)] pb-[clamp(2.5rem,6vw,4rem)]">
           <p className="flex items-center gap-2.5 text-[0.85rem] font-semibold text-[#6f3fa6]">
             <MoonMark />
             <span className="font-[family-name:var(--font-serif)] tracking-[0.02em]">Code Destiny</span>
