@@ -540,7 +540,7 @@
       var detailPanel = reading.querySelector('#zwDetailPanel');
       reading.insertBefore(ziweiEnergy(pd, idx, detailPanel.__zwVisualMetrics && detailPanel.__zwVisualMetrics.radar), detailPanel);
       if (typeof window._zwDrawTriad === 'function') window._zwDrawTriad(idx);
-      if (!initialSelection) reading.querySelector('.fr-energy').scrollIntoView({block:'start',behavior:'instant'});
+      if (!initialSelection && !window.matchMedia('(max-width: 600px)').matches) reading.querySelector('.fr-energy').scrollIntoView({block:'start',behavior:'instant'});
     }
     cells.forEach(function (cell) {
       cell.removeAttribute('onclick');
@@ -605,12 +605,11 @@
     var chart = dashboard.querySelector('.zw-grid-wrap');
     var chartSection = node('section', 'fr-chart-section'); chartSection.id = 'fr-ziwei-chart';
     chartSection.appendChild(heading(t('allPalaces')));
-    // 좁은 화면에서 4×4 격자는 글자가 짓눌려 읽히지 않으므로 세로 목록이 기본이다. 이 버튼이 진짜 명반으로 되돌린다.
-    // 스타일(.fr-map-toggle, .fr-ziwei-map)은 basic-fortune-library.css 에 이미 있다 — 여기서는 스위치만 만든다.
-    // 버튼은 .zw-grid-wrap 바깥에 둔다. 지도 모드에서 그 래퍼가 가로 스크롤러가 되므로 안에 넣으면 버튼이 밀려나간다.
-    var mapToggle = node('button', 'fr-map-toggle', t('mapToggle'));
+    // 모바일 기본은 화면 폭에 맞춘 12궁 지도. 전체 별 목록은 목록 보기와 기존 궁 상세에서 읽는다.
+    chart.classList.add('fr-ziwei-map');
+    var mapToggle = node('button', 'fr-map-toggle', t('mapToggleOff'));
     mapToggle.type = 'button';
-    mapToggle.setAttribute('aria-pressed', 'false');
+    mapToggle.setAttribute('aria-pressed', 'true');
     if (!chart.id) chart.id = 'fr-ziwei-map-wrap';
     mapToggle.setAttribute('aria-controls', chart.id);
     mapToggle.addEventListener('click', function () {
@@ -620,7 +619,14 @@
       // 격자로 돌아오면 셀 중심 좌표가 바뀐다. 상세 뷰의 삼방사정 선은 엔진이 다시 그려야 맞는다.
       if (on && typeof window._zwDrawTriad === 'function') requestAnimationFrame(function () { window._zwDrawTriad(); });
     });
+    var chartGuide = node('details', 'fr-chart-guide');
+    chartGuide.appendChild(node('summary', '', t('startHere')));
+    chartGuide.appendChild(node('p', '', '명궁에서 나의 성향을 읽고, 궁금한 생활 영역의 궁을 선택해 보세요. 마지막으로 대한 흐름에서 나이 구간별 관심 영역을 살펴보세요.'));
+    chartGuide.appendChild(node('p', '', '주성은 궁의 중심 성향을 읽는 별이고, 사화는 별의 작용을 살피는 네 가지 변화 표시입니다. 별의 밝기는 성공 점수가 아닙니다. 차성은 주성이 없는 궁을 읽을 때 맞은편 궁에서 참고하는 별입니다.'));
+    chartSection.appendChild(chartGuide);
     chartSection.appendChild(mapToggle);
+    var mobileNote = chart.querySelector('.zw-chart-mobile-note');
+    if (mobileNote) mobileNote.textContent = t('selectPalace');
     chartSection.appendChild(chart);
     dashboard.prepend(chartSection);
     chartSection.after(reading);
@@ -672,11 +678,36 @@
       foldIfContent(flow, t('fullReading'), [full]);
       area.appendChild(flow);
     }
+    // Explain existing paid chapters after the basic reading; never clone an unlock button or change its gate.
+    var nextReading = node('aside', 'fr-reading-next');
+    nextReading.appendChild(node('h3', '', '내 명반을 더 깊이 읽고 싶다면'));
+    nextReading.appendChild(node('p', '', '여기까지는 나의 기본 성향과 생활 속 활용법입니다. 궁끼리의 연결이나 시기별 흐름이 궁금하다면, 아래 상세 해석에서 이어 읽을 수 있어요.'));
+    var nextActions = node('div', 'fr-reading-next-actions');
+    [['zwBasicPaidGate_ziwei_twelve_palaces', '12궁 상세 안내'], ['ziweiDecadeLuckGate', '대한 10년운 상세 안내']].forEach(function(item) {
+      var gate = area.querySelector('#' + item[0]);
+      if (!gate) return;
+      var link = node('a', 'fr-reading-next-link', item[1]); link.href = '#' + item[0];
+      link.addEventListener('click', function(event) {
+        event.preventDefault();
+        for (var parent = gate.parentElement; parent && parent !== area; parent = parent.parentElement) {
+          if (parent.tagName === 'DETAILS') parent.open = true;
+        }
+        gate.scrollIntoView({ block: 'start', behavior: 'instant' });
+        var control = gate.querySelector('button');
+        if (control) control.focus({ preventScroll: true });
+      });
+      nextActions.appendChild(link);
+    });
+    if (nextActions.children.length) {
+      nextReading.appendChild(nextActions);
+      nextReading.appendChild(node('p', 'fr-caption', '이용권·월정석·단건 결제의 적용 여부와 금액은 각 상세 안내에서 확인해 주세요.'));
+      reading.appendChild(nextReading);
+    }
     if (consult) area.appendChild(consult);
     area.appendChild(ziweiArticleLibrary(area));
     // The atlas is the sole decorative artwork on this surface. Keep text/captions.
     // The consultation entry scene is product imagery, not decoration — it must stay visible.
-    area.querySelectorAll('img').forEach(function (img) { if (!img.closest('.fc-entry__scene')) img.hidden = true; });
+    area.querySelectorAll('img').forEach(function (img) { if (!img.closest('.fc-entry__scene,.zwla-illustration')) img.hidden = true; });
     cells.forEach(function (cell) {
       cell.setAttribute('aria-label', cell.querySelector('.zw-palace-name').textContent + ' · ' + cell.querySelector('.zw-branch-name').textContent);
     });
@@ -848,7 +879,7 @@
       // ?v= 를 빌려 써서 CSS 만 고친 커밋이 URL 을 못 돌렸다(실측: 44eac0f68 은 기존 방문자에게 도달하지
       // 못했다). 리터럴로 박아 두면 sync:public 이 CSS 자신의 내용 해시로 다시 쓴다 — 손으로 찍지 말 것.
       // 이 파일은 그래서 sync-legacy-static-to-public.mjs 의 MODULE_IMPORT_CACHE_KEY_FILES 에 등록돼 있다.
-      link.href = '/styles/basic-fortune-library.css?v=build-ed20718c5172'; document.head.appendChild(link);
+      link.href = '/styles/basic-fortune-library.css?v=build-a0f3ad0d5814'; document.head.appendChild(link);
     }
     // 점성술 "나의 이야기" 층(#asStory). 위 시트 뒤에 붙여 같은 특정성에서 이긴다. ?v= 는 위와 같은 규칙.
     if (!document.getElementById('astroReadingStyle')) {

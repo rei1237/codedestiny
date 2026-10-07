@@ -518,9 +518,9 @@ export function palaceForceSentence(score: number): string {
 }
 
 export function palaceGapLabel(gap: number): string {
-  if (gap <= 12) return "작아 균형이 좋습니다";
-  if (gap <= 26) return "중간이라 한쪽을 받쳐 줄 필요가 있습니다";
-  return "커서 약한 쪽을 먼저 돌보는 것이 우선입니다";
+  if (gap <= 12) return "작아 비교적 균형 있게 읽힙니다";
+  if (gap <= 26) return "어느 정도 있어 덜 드러나는 쪽을 함께 살펴볼 필요가 있습니다";
+  return "커서 덜 드러나는 쪽을 생활 습관으로 보완하는 것이 도움이 됩니다";
 }
 
 export function pickKeywords(palace: ZiweiPalace): string[] {
@@ -588,11 +588,11 @@ function buildPalaceSpecialAdvice(palace: ZiweiPalace, score: number): { reality
     };
   }
 
-  const direction = score >= 70 ? "지금은 이 장점을 적극적으로 넓힐 때" : score <= 45 ? "지금은 속도를 늦추고 기초를 다시 정비할 때" : "지금은 균형을 맞추며 성과를 키울 때";
+  const direction = score >= 70 ? "이 장점을 꾸준히 활용하는 방향" : score <= 45 ? "속도보다 기초와 회복을 먼저 살피는 방향" : "여러 역할의 균형을 맞추는 방향";
   return {
     reality: `${coreStars}의 결은 ${palaceFocusPhrase(palace.id)} 영역에서 현실의 반응으로 나타납니다.`,
     caution: "좋은 흐름도 관리가 느슨해지면 쉽게 흔들릴 수 있으니 리듬을 유지하는 것이 중요합니다.",
-    action: `${direction}입니다. 작은 루틴을 먼저 고정한 뒤 큰 선택을 진행하면 안정감이 올라갑니다.`,
+    action: `이 배치를 생활에 활용하려면 ${direction}을 참고해 보세요. 작은 루틴을 먼저 정한 뒤 큰 선택을 검토하면 판단 기준을 세우는 데 도움이 됩니다.`,
   };
 }
 
@@ -1031,7 +1031,7 @@ export function buildPalaceLinks(rows: ZiweiPalaceCounselingItem[], titles: stri
       return {
         ...pair,
         state,
-        summary: `${pair.lens}입니다. 지금은 ${state} 흐름이고, 두 궁의 힘 차이는 ${palaceGapLabel(gap)}. 차이가 클수록 약한 쪽을 생활 습관으로 받쳐 줄 필요가 있습니다.`,
+        summary: `${pair.lens}입니다. 타고난 배치에서는 ${state} 흐름으로 읽히며, 두 궁의 힘 차이가 ${palaceGapLabel(gap)}. 한쪽에 힘을 쏟을 때 다른 영역의 일정과 필요도 함께 점검해 보세요.`,
       };
     })
     .filter(Boolean) as ZiweiPalaceLinkInsight[];

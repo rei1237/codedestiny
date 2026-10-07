@@ -998,7 +998,7 @@ export default function AdvancedZiweiSectionV2({
           <div className={styles.deepBody}>
             {chart.warnings.length ? <div className={styles.error}>{chart.warnings.map((warning,index) => <p key={index}>{warning.message}</p>)}</div> : null}
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_1.1fr]">
-          <section id="ziwei-result-chart" className="scroll-mt-[calc(4.5rem+env(safe-area-inset-top))]">
+          <section id="ziwei-result-chart" className={`${styles.mobileChart} scroll-mt-[calc(4.5rem+env(safe-area-inset-top))]`}>
           <StagePanel className="p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -1014,7 +1014,7 @@ export default function AdvancedZiweiSectionV2({
                 주성 2줄 궁(염정◎/천상◎ · 자미◎/천부◎)의 둘째 줄을 13.8px 잘라낸다(같은 날 실측:
                 clientHeight 71 vs scrollHeight 77). 행 정의는 공용 ZiweiPalaceGrid 에 있고 검사 4가 잠근다. */}
             <ZiweiPalaceGrid
-              className="relative mx-auto mt-5 w-full max-w-[38rem] gap-1.5 sm:aspect-square"
+              className={`${styles.palaceGrid} relative mx-auto mt-5 w-full max-w-[38rem] gap-1.5 sm:aspect-square`}
               cells={chart.palaces}
               branchOf={(palace) => palace.earthlyBranch}
               renderCell={(palace, area) => {
@@ -1042,7 +1042,7 @@ export default function AdvancedZiweiSectionV2({
                     style={area}
                     aria-pressed={active}
                     aria-label={`${palace.name} ${palace.earthlyBranch}`}
-                    className={`group flex min-h-0 flex-col gap-0.5 overflow-hidden rounded-xl border p-2 text-left transition duration-200 ${roleClass}`}
+                    className={`${styles.palaceCell} group flex min-h-0 flex-col gap-0.5 overflow-hidden rounded-xl border p-2 text-left transition duration-200 ${roleClass}`}
                   >
                     <div className="flex items-baseline justify-between gap-1">
                       <span className="text-[13px] font-black leading-tight text-white">{palace.name}</span>

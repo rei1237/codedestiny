@@ -2,7 +2,7 @@ import type { AnimalId } from "@/app/saju/animal-destiny/lib/types";
 
 /**
  * chart.mingGong(app/_lib/ziwei-engine.ts) 은 항상 ZHI_LIST 12지지 중 하나다.
- * 기존 사주 12종 캐릭터(animalTwelveData.ts)를 재사용하며 신규 동물 자산은 만들지 않는다.
+ * 기존 사주 12종 캐릭터 판정(animalTwelveData.ts)을 재사용한다. 자미두수 전용 일러스트는 표시 동물에 맞춘다.
  * 오(午)→달빛 고양이, 술(戌)→새싹 사슴은 로스터 안에 자연스러운 동물 대응이 없어 배정한
  * 약한 연결이므로 콘텐츠(ziweiAnimalContent.ts) 작성 시 이 두 쌍에 더 공을 들인다.
  */
@@ -44,3 +44,10 @@ export function getAnimalIdByMingGong(mingGong: string): AnimalId {
   }
   return animalId;
 }
+
+/** Asset identity follows the displayed animal, not the legacy AnimalId spelling. */
+export const ZIWEI_ANIMAL_ART: Record<AnimalId, string> = {
+  cheetah: 'deer', monkey: 'cat', 'black-panther': 'fox', koala: 'dog',
+  tiger: 'lion', raccoon: 'owl', rhino: 'rabbit', elephant: 'butterfly',
+  sheep: 'hamster', pegasus: 'black-cat', wolf: 'chick', fawn: 'sheep',
+};

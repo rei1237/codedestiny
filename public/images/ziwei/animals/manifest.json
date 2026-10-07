@@ -1,0 +1,217 @@
+{
+  "created": "2026-10-07",
+  "generator": "built-in image_gen",
+  "styleReference": "owl",
+  "prompt": "Original premium naturalist storybook illustration for a Korean celestial astrology service. Use the supplied owl ONLY as art-style reference, not as the subject. Depict ONE SUBJECT: SUBJECT. Match refined hand-painted gouache and fine ink, restrained antique gold details, believable graceful animal anatomy, warmly expressive, midnight navy background #09131e with sparse tiny golden stars and a very subtle celestial arc. Square composition, single animal fills about 70% of the frame, full body entirely inside margins, detailed but legible at 320px, softly moonlit, luxurious and thoughtful, not childish. No text, letters, numbers, borders, cards, logo, UI, humans, accessories or extra animals. Do not include any owl or feathers unless the specified subject is a bird.",
+  "format": "webp",
+  "quality": 82,
+  "assets": [
+    {
+      "slug": "owl",
+      "file": "ziwei-owl-v1.webp",
+      "subject": "wise ivory and brown owl",
+      "width": 640,
+      "height": 640,
+      "bytes": 45370,
+      "source": "exec-e66c86c2-36b8-44de-86e7-0d4229cb0e3a.png"
+    },
+    {
+      "slug": "dragon",
+      "file": "ziwei-dragon-v1.webp",
+      "subject": "a graceful East Asian celestial dragon with a long coiling serpentine body, four legs, whiskers and antlers, ivory and muted gold scales",
+      "width": 640,
+      "height": 640,
+      "bytes": 64056,
+      "source": "exec-65e71047-4b37-4071-81ad-d418b5bb18fc.png"
+    },
+    {
+      "slug": "monkey",
+      "file": "ziwei-monkey-v1.webp",
+      "subject": "a thoughtful small golden-brown macaque monkey, seated, full body, delicate hands visible",
+      "width": 640,
+      "height": 640,
+      "bytes": 51928,
+      "source": "exec-06b8f414-1ab2-4139-805f-0ee5f89e4445.png"
+    },
+    {
+      "slug": "dog",
+      "file": "ziwei-dog-v1.webp",
+      "subject": "a gentle cream-colored puppy, full body sitting, soft floppy ears and calm expressive eyes",
+      "width": 640,
+      "height": 640,
+      "bytes": 42838,
+      "source": "exec-95db9043-20cc-49e2-80de-9d3e27a18500.png"
+    },
+    {
+      "slug": "eagle",
+      "file": "ziwei-eagle-v1.webp",
+      "subject": "a majestic golden eagle, full body standing, folded wings, dark brown feathers and golden neck",
+      "width": 640,
+      "height": 640,
+      "bytes": 45152,
+      "source": "exec-13097c8a-71c7-4878-9952-d3beec979b13.png"
+    },
+    {
+      "slug": "bear",
+      "file": "ziwei-bear-v1.webp",
+      "subject": "a calm strong brown bear, full body sitting, warm brown fur and gentle expression",
+      "width": 640,
+      "height": 640,
+      "bytes": 56324,
+      "source": "exec-744400ec-1ba3-46d1-8f53-dc900f64b645.png"
+    },
+    {
+      "slug": "boar",
+      "file": "ziwei-boar-v1.webp",
+      "subject": "a sturdy wild boar, full body three-quarter view, coarse brown fur and small ivory tusks",
+      "width": 640,
+      "height": 640,
+      "bytes": 53324,
+      "source": "exec-c7338533-a03a-4fde-828a-759761a20af6.png"
+    },
+    {
+      "slug": "elephant",
+      "file": "ziwei-elephant-v1.webp",
+      "subject": "a dignified Asian elephant, full body three-quarter view, visible curved trunk and four legs",
+      "width": 640,
+      "height": 640,
+      "bytes": 52572,
+      "source": "exec-2de03573-b286-4b27-b344-60f10326e19c.png"
+    },
+    {
+      "slug": "bull",
+      "file": "ziwei-bull-v1.webp",
+      "subject": "a steady powerful bull, full body standing, warm tawny coat and curved horns, calm eyes",
+      "width": 640,
+      "height": 640,
+      "bytes": 50192,
+      "source": "exec-3ee10f18-1672-4bc4-beba-839bc1d3f861.png"
+    },
+    {
+      "slug": "peacock",
+      "file": "ziwei-peacock-v1.webp",
+      "subject": "a graceful peacock with an elegant blue neck and a partially fanned green and antique gold tail",
+      "width": 640,
+      "height": 640,
+      "bytes": 69342,
+      "source": "exec-46526fa5-397b-426b-9866-4befa4211194.png"
+    },
+    {
+      "slug": "tiger",
+      "file": "ziwei-tiger-v1.webp",
+      "subject": "a majestic tiger, full body seated, beautiful orange fur with dark stripes, composed expression",
+      "width": 640,
+      "height": 640,
+      "bytes": 57372,
+      "source": "exec-36629455-6542-4f3a-95a8-50e5ff0112d7.png"
+    },
+    {
+      "slug": "fox",
+      "file": "ziwei-fox-v1.webp",
+      "subject": "an alert red fox, full body seated, luxuriant orange fur, white chest and a beautiful long bushy tail",
+      "width": 640,
+      "height": 640,
+      "bytes": 50698,
+      "source": "exec-aac76eb6-93cd-4bc7-adbc-a3b1c49d8caa.png"
+    },
+    {
+      "slug": "crocodile",
+      "file": "ziwei-crocodile-v1.webp",
+      "subject": "a calm crocodile, full body with long tail visible, olive green scales, closed mouth, three-quarter view",
+      "width": 640,
+      "height": 640,
+      "bytes": 56332,
+      "source": "exec-3755818a-fa20-4a0f-9123-fcc6759d7c4d.png"
+    },
+    {
+      "slug": "cat",
+      "file": "ziwei-cat-v1.webp",
+      "subject": "a serene silver-white cat, full body seated, moonlit pale fur, long tail, no clothing or hat",
+      "width": 640,
+      "height": 640,
+      "bytes": 48690,
+      "source": "exec-4c5d0c16-e240-44eb-927b-a5aa32dc4006.png"
+    },
+    {
+      "slug": "horse",
+      "file": "ziwei-horse-v1.webp",
+      "subject": "an elegant ivory horse, full body standing, flowing mane and graceful stance",
+      "width": 640,
+      "height": 640,
+      "bytes": 44966,
+      "source": "exec-15ddb698-902a-4ff4-be08-43b380193b4c.png"
+    },
+    {
+      "slug": "deer",
+      "file": "ziwei-deer-v1.webp",
+      "subject": "a delicate young spotted deer, full body standing, small budding antlers, soft brown fur",
+      "width": 640,
+      "height": 640,
+      "bytes": 40084,
+      "source": "exec-1a08f9b9-a7dc-484a-aae5-11e7e7384524.png"
+    },
+    {
+      "slug": "hamster",
+      "file": "ziwei-hamster-v1.webp",
+      "subject": "a tiny golden hamster, full body seated, round cheeks and delicate paws",
+      "width": 640,
+      "height": 640,
+      "bytes": 45280,
+      "source": "exec-42e29054-a798-43da-bb51-e3f1ce986d46.png"
+    },
+    {
+      "slug": "lion",
+      "file": "ziwei-lion-v1.webp",
+      "subject": "a majestic male lion, full body seated with a warm golden mane, gentle confident eyes",
+      "width": 640,
+      "height": 640,
+      "bytes": 55784,
+      "source": "exec-01cd7cc1-d0ea-4532-9056-e7126dfc85a1.png"
+    },
+    {
+      "slug": "black-cat",
+      "file": "ziwei-black-cat-v1.webp",
+      "subject": "a mysterious black cat, full body seated, silky charcoal fur with subtle moonlit highlights, bright gold eyes, no hat or clothing",
+      "width": 640,
+      "height": 640,
+      "bytes": 39954,
+      "source": "exec-8ca57ba8-3ec0-4830-b3a6-bb57b4a5bde7.png"
+    },
+    {
+      "slug": "rabbit",
+      "file": "ziwei-rabbit-v1.webp",
+      "subject": "a gentle ivory rabbit, full body seated, long ears, fine soft fur",
+      "width": 640,
+      "height": 640,
+      "bytes": 41298,
+      "source": "exec-d6cefb5f-23fa-4a67-beb7-6202da04c037.png"
+    },
+    {
+      "slug": "chick",
+      "file": "ziwei-chick-v1.webp",
+      "subject": "a small newly hatched golden-yellow chick, full body standing, downy feathers and tiny orange feet",
+      "width": 640,
+      "height": 640,
+      "bytes": 39826,
+      "source": "exec-e4212021-c5bf-49cc-a541-a4982d83dd00.png"
+    },
+    {
+      "slug": "butterfly",
+      "file": "ziwei-butterfly-v1.webp",
+      "subject": "one exquisite butterfly seen with wings spread symmetrically, powder blue, ivory and antique gold wing markings",
+      "width": 640,
+      "height": 640,
+      "bytes": 60848,
+      "source": "exec-8c92799c-c85a-4e04-8055-af9c73574bf7.png"
+    },
+    {
+      "slug": "sheep",
+      "file": "ziwei-sheep-v1.webp",
+      "subject": "a gentle white sheep, full body standing, soft curly fleece and calm expression",
+      "width": 640,
+      "height": 640,
+      "bytes": 45270,
+      "source": "exec-95af37e7-a58c-47c9-82b9-d7fb801ae65c.png"
+    }
+  ]
+}

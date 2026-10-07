@@ -128,38 +128,24 @@
 .fr-overlay .fr-map-toggle { display: none; }
 .fr-overlay :is(.zw-cell-aura,.zw-palace-starlane) { display: none !important; }
 .fr-overlay .modal-result-actions { max-width: var(--cd-w-prose, 760px); margin: 24px auto !important; padding: 0 20px 24px !important; }
-/* 명반 모바일 레이아웃. 선택자는 반드시 #ziweiModalOverlay 로 시작해야 한다 — 이 파일 아래쪽의
-   `#ziweiModalOverlay .zw-grid-wrap …` 데스크톱 규칙이 ID 를 쥐고 있어서, `.fr-overlay …` 로 쓰면
-   !important 를 걸어도 특이도에서 진다(그래서 이 블록은 오랫동안 죽은 CSS 였다).
-   기본은 읽기 쉬운 세로 목록이고, .fr-ziwei-map 이 붙으면 진짜 4×4 격자 + 가로 스크롤이다. */
+/* 모바일은 전체 명반이 기본이며 목록은 같은 정보의 보조 보기다. */
+.fr-chart-guide { margin: 12px 0; color: var(--fr-muted); }
+.fr-chart-guide summary { min-height: 44px; padding: 10px 0; cursor: pointer; color: var(--fr-accent); }
+.fr-chart-guide p { font-size: 16px; line-height: 1.75; margin: 8px 0 16px; }
 @media (max-width: 600px) {
-  .fr-overlay .fr-map-toggle { display: block; background: #24384b; color: #edf1f5; padding: 10px 18px; min-height: 44px; font-size: 15px; border: 1px solid #8d9cac; border-radius: 8px; margin: 12px; cursor: pointer; }
-  .fr-overlay .fr-map-toggle[aria-pressed=true] { background: #dfc78d; color: #17212b; }
-  #ziweiModalOverlay .zw-grid-wrap:not(.fr-ziwei-map) .zw-grid { display: flex !important; flex-direction: column; gap: 0 !important; height: auto !important; padding: 12px !important; }
-  /* 아래 30px 은 장식 여백이 아니다. 엔진이 지지(.zw-branch-name)와 대한(.zw-dahan)을 셀 하단에
-     position:absolute 로 못박아 두는데(bottom:5px), 세로 목록은 height:auto 라 별 목록이 그 자리까지
-     흘러 내려와 글자가 겹친다(실측). 이 띠가 두 라벨의 자리를 비워 둔다. */
-  #ziweiModalOverlay .zw-grid-wrap:not(.fr-ziwei-map) .zw-cell { width: 100% !important; min-width: 0 !important; min-height: 84px !important; height: auto !important; padding: 16px 16px 30px !important; border: 0 !important; border-bottom: 1px solid #3a4859 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; }
-  #ziweiModalOverlay .zw-grid-wrap:not(.fr-ziwei-map) .zw-palace-name { position: static !important; font-size: 17px !important; margin-bottom: 12px !important; }
-  #ziweiModalOverlay .zw-grid-wrap:not(.fr-ziwei-map) :is(.zw-star-main,.zw-star-aux,.zw-star-bad,.zw-empty) { font-size: 14px !important; line-height: 1.8 !important; writing-mode: horizontal-tb !important; }
-  /* .zw-stars-wrap 은 건드리지 않는다. 별 밀도는 간소/상세 칩(.zw-dashboard[data-zw-view] 규칙)이
-     정하고, 이 버튼은 배치만 정한다. 둘이 같은 속성을 다투면 어느 쪽도 예측할 수 없게 된다. */
-  #ziweiModalOverlay .zw-grid-wrap:not(.fr-ziwei-map) .zw-center-panel { order: -2; grid-area: auto !important; min-height: 0 !important; margin: 0 0 4px !important; }
-  /* 목록은 명궁부터 시작한다. 4×4 격자는 지지 위치가 자리를 정하므로 DOM 순서가 부부궁부터인데,
-     그대로 세로로 펴면 정작 기준이 되는 명궁이 목록 한가운데 묻힌다(실측). 엔진이 이미 붙여 둔
-     .zw-cell-meng 을 그대로 쓴다 — 마크업은 건드리지 않는다. */
+  .fr-overlay .fr-map-toggle { display: inline-flex; align-items:center; justify-content:center; background: var(--fr-surface); color: var(--fr-accent); padding: 11px 20px; min-height: 46px; font-size: 14px; font-weight:600; border: 1px solid var(--fr-accent); border-radius: 8px; margin: 12px 0; cursor: pointer; box-shadow:0 5px 14px rgba(0,0,0,.16); }
+  .fr-overlay .fr-map-toggle:focus-visible { outline: 2px solid var(--fr-accent); outline-offset: 3px; }
+  #ziweiModalOverlay .zw-grid-wrap:not(.fr-ziwei-map) .zw-grid { display: flex !important; flex-direction: column; gap: 0 !important; height: auto !important; padding: 8px !important; }
+  #ziweiModalOverlay .zw-grid-wrap:not(.fr-ziwei-map) .zw-cell { width: 100% !important; min-height: 84px !important; height: auto !important; padding: 16px 16px 36px !important; border: 0 !important; border-bottom: 1px solid #3a4859 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; }
+  #ziweiModalOverlay .zw-grid-wrap:not(.fr-ziwei-map) .zw-palace-name { font-size: 17px !important; margin-bottom: 12px !important; }
+  #ziweiModalOverlay .zw-grid-wrap:not(.fr-ziwei-map) :is(.zw-star-main,.zw-star-aux,.zw-star-bad,.zw-empty) { font-size: 14px !important; line-height: 1.8 !important; }
+  #ziweiModalOverlay .zw-grid-wrap:not(.fr-ziwei-map) .zw-center-panel { order: -2; grid-area: auto !important; min-height: 0 !important; margin-bottom: 4px !important; }
   #ziweiModalOverlay .zw-grid-wrap:not(.fr-ziwei-map) .zw-cell-meng { order: -1; }
   #ziweiModalOverlay .zw-grid-wrap:not(.fr-ziwei-map) .zw-triad-overlay { display: none; }
-  #ziweiModalOverlay .zw-grid-wrap.fr-ziwei-map { overflow-x: auto !important; overflow-y: hidden !important; -webkit-overflow-scrolling: touch; }
-  /* 가로로 밀어도 간소/상세 칩은 왼쪽에 붙어 있어야 한다. 아니면 명반을 보는 동안 컨트롤이 화면 밖으로 나간다. */
-  #ziweiModalOverlay .zw-grid-wrap.fr-ziwei-map .zw-view-toggle { position: sticky; left: 0; }
-  #ziweiModalOverlay .zw-grid-wrap.fr-ziwei-map .zw-grid { min-width: 600px !important; }
-  /* max-width 를 반드시 덮어써야 한다. 엔진은 이 안내를 `calc(100vw - 42px)`(saju-engine.js 의 모바일
-     블록)로 재는데, 그건 스크롤러가 화면 폭을 거의 다 쓰던 원래 레이아웃 기준이다. 리포트 안에서는
-     좌우 여백만큼 스크롤러가 더 좁아서, 뷰포트 기준 폭이 스크롤러를 넘어 마지막 글자가 잘렸다(실측).
-     100% 는 뷰포트가 아니라 스크롤러를 기준으로 재므로 안에서 줄바꿈된다. padding 은 건드리지 않는다 —
-     엔진의 알약 모양 배경이 그 padding 으로 글자를 감싸고 있다. */
-  #ziweiModalOverlay .zw-grid-wrap.fr-ziwei-map .zw-chart-mobile-note { display: block; max-width: 100%; margin: 0 auto 8px; font-size: 13px; color: #c3ccd6; }
+  #ziweiModalOverlay .zw-grid-wrap.fr-ziwei-map .zw-view-toggle { display: none; }
+  #ziweiModalOverlay .zw-grid-wrap.fr-ziwei-map .zw-stars-wrap { display: none !important; }
+  #ziweiModalOverlay .zw-grid-wrap.fr-ziwei-map .fr-chart-stars { display: flex !important; }
+  #ziweiModalOverlay .zw-grid-wrap.fr-ziwei-map .zw-chart-mobile-note { display: block; max-width: 100%; margin: 0 0 10px; padding: 6px; font-size: 13px; white-space: normal; color: #c3ccd6; }
 }
 @media (min-width: 768px) {
   .fr-overlay :is(.sy-container,#ziweiModalSection.fr-report) { padding: 36px 36px 64px !important; }
@@ -459,14 +445,18 @@ body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
   #ziweiModalOverlay .fr-chart-section .fr-heading { font-size:17px; margin-bottom:8px; }
   #ziweiModalOverlay .zw-grid-wrap { padding:4px !important; }
   #ziweiModalOverlay .zw-grid-wrap .zw-grid { grid-template-rows:repeat(4,minmax(94px,auto)) !important; gap:3px !important; }
-  #ziweiModalOverlay .zw-grid-wrap .zw-cell { min-height:94px !important; padding:6px 3px 18px !important; }
-  #ziweiModalOverlay .zw-grid-wrap .zw-palace-name { font-size:12px !important; margin-bottom:5px !important; }
-  #ziweiModalOverlay .zw-grid-wrap :is(.zw-star-main,.zw-star-aux,.zw-star-bad,.zw-empty) { font-size:10px !important; }
+  #ziweiModalOverlay .zw-grid-wrap .zw-cell { min-height:94px !important; padding:8px 3px 34px !important; }
+  #ziweiModalOverlay .zw-grid-wrap .zw-palace-name { font-size:12px !important; margin-bottom:5px !important; padding:0 !important; }
+  #ziweiModalOverlay .zw-grid-wrap :is(.zw-star-main,.zw-star-aux,.zw-star-bad,.zw-empty) { font-size:12px !important; }
   #ziweiModalOverlay .zw-center-panel { padding:7px !important; }
-  #ziweiModalOverlay .zw-center-chip { font-size:10px !important; padding:2px 4px !important; }
-  #ziweiModalOverlay .zw-center-desc { font-size:10px !important; }
+  #ziweiModalOverlay .zw-center-chip { font-size:12px !important; padding:2px 4px !important; }
+  #ziweiModalOverlay .zw-center-desc, #ziweiModalOverlay .zw-center-desc > span { font-size:12px !important; line-height:1.5 !important; }
+  #ziweiModalOverlay .zw-dahan { font-size:12px !important; right:3px !important; bottom:3px !important; }
+  #ziweiModalOverlay .zw-branch-name { position:static !important; margin-top:4px; font-size:12px !important; }
+  #ziweiModalOverlay .zw-center-seal { display:none; }
   #ziweiModalOverlay .fr-palace-choices { grid-template-columns:repeat(4,minmax(0,1fr)); }
-  #ziweiModalOverlay .fr-palace-choice { font-size:12px; }
+  #ziweiModalOverlay .fr-palace-choice { font-size:12px; min-height:44px; border:1px solid var(--fr-rule); background:var(--fr-surface); color:var(--fr-ink); border-radius:6px; }
+  #ziweiModalOverlay .fr-palace-choice[aria-pressed=true] { background:var(--fr-accent); color:var(--fr-bg); border-color:var(--fr-accent); }
   #ziweiModalOverlay .fr-energy { padding:18px 14px; }
   #ziweiModalOverlay .fr-energy h3 { font-size:22px; }
   #ziweiModalOverlay .fr-life-timeline { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -714,3 +704,31 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
   #ziweiModalOverlay #ziweiModalSection .zw-view-toggle-label { font-size:12px; }
   #ziweiModalOverlay #ziweiModalSection .zw-view-chip { min-height:44px; font-size:13px; }
 }
+
+/* Reading continuation uses the original gates and their original action handlers. */
+#ziweiModalOverlay .fr-reading-next { margin:28px 0; padding:24px 0; border-block:1px solid var(--fr-rule); }
+#ziweiModalOverlay .fr-reading-next h3 { margin:0 0 12px; color:var(--fr-accent); font-size:22px; line-height:1.5; }
+#ziweiModalOverlay .fr-reading-next p { margin:0 0 16px; font-size:16px; line-height:1.75; color:var(--fr-ink); }
+#ziweiModalOverlay .fr-reading-next .fr-caption { margin:16px 0 0; font-size:14px; color:var(--fr-muted); }
+#ziweiModalOverlay .fr-reading-next-actions { display:flex; flex-wrap:wrap; gap:10px; }
+#ziweiModalOverlay .fr-reading-next-link { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:12px 18px; border:1px solid var(--fr-accent); border-radius:8px; color:var(--fr-accent); text-decoration:none; font-weight:600; font-size:14px; }
+#ziweiModalOverlay .fr-reading-next-link:first-child { background:var(--fr-accent); color:var(--fr-bg); }
+#ziweiModalOverlay .fr-reading-next-link:focus-visible { outline:2px solid var(--fr-accent); outline-offset:3px; }
+@media (max-width:600px) {
+  #ziweiModalOverlay .fr-disclosure-body { padding:16px 8px; }
+  #ziweiModalOverlay #zwLifeAnimalPanel { padding:20px 12px; border-radius:12px; }
+  #ziweiModalOverlay #zwLifeAnimalPanel .zw-dp-title { font-size:20px; line-height:1.5; }
+  #ziweiModalOverlay #zwLifeAnimalPanel .zwla-hero-title { margin-top:20px; }
+  #ziweiModalOverlay #zwLifeAnimalPanel .zwla-hero-name { font-size:28px; line-height:1.5; letter-spacing:-.02em; }
+  #ziweiModalOverlay #zwLifeAnimalPanel .zwla-hero-summary { margin-block:18px; }
+  #ziweiModalOverlay #zwLifeAnimalPanel .zwla-note { padding:14px 0; border-inline:0; }
+  #ziweiModalOverlay #zwLifeAnimalPanel :is(.zwla-fold-summary,.zwla-codex-summary) { display:flex; align-items:center; justify-content:space-between; min-height:48px; padding:10px 14px; border:1px solid var(--fr-rule); border-radius:8px; background:var(--fr-bg); font-size:14px; cursor:pointer; }
+  #ziweiModalOverlay #zwLifeAnimalPanel :is(.zwla-fold-summary,.zwla-codex-summary)::after { content:'+'; color:var(--fr-accent); font-size:20px; }
+  #ziweiModalOverlay #zwLifeAnimalPanel details[open] > :is(.zwla-fold-summary,.zwla-codex-summary)::after { content:'−'; }
+  #ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-card { padding:16px 0; border:0; border-top:1px solid var(--fr-rule); }
+  #ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-card.is-selected { border:1px solid var(--fr-accent); padding:16px 12px; border-radius:8px; }
+}
+
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-hero-image { display:block; width:100%; max-width:440px; height:auto; aspect-ratio:1; object-fit:contain; margin:20px auto; border-radius:10px; }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-image { display:block; width:64px; height:64px; flex:0 0 64px; object-fit:contain; border-radius:6px; }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-card-summary { gap:12px; }

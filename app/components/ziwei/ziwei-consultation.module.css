@@ -100,3 +100,31 @@
 .error{border:1px solid #c88e8e;color:#ffd6cf;padding:16px;margin:16px 0;border-radius:6px;line-height:1.8}
 @media(min-width:768px){.hero{padding:56px 40px 36px}.foundation,.questions,.today{margin:48px 40px}.foundationGrid{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:40px}.topbar{padding:0 180px 0 150px}.topbar ul{gap:24px}.topicOptions{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){.surface *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* The compact chart keeps the shared branch geometry and content-sized rows. */
+@media (max-width: 600px) {
+  .mobileChart > div { padding: 12px 8px; }
+  .mobileChart > div > div:first-child { flex-wrap: wrap; gap: 4px; }
+  .palaceGrid { gap: 3px; }
+  .palaceCell { padding: 8px 3px; min-height: 92px; border-radius: 5px; overflow: visible; }
+  .palaceCell > div:first-child { flex-wrap: wrap; row-gap: 2px; }
+  .palaceCell span { overflow-wrap: anywhere; }
+  .palaceGrid > div { padding: 8px 4px; border-radius: 6px; }
+}
+
+@media (max-width:600px) {
+  .surface .actions :is(a,button) { border-radius:8px; padding:12px 20px; min-height:48px; border-color:var(--zw-gold); color:var(--zw-gold); background:var(--zw-surface); box-shadow:0 5px 16px #0003; }
+  .surface .actions .primary { color:var(--zw-bg); background:var(--zw-gold); }
+  .surface .actions :is(a,button):active { box-shadow:none; }
+  .animalSurface .hero { padding:32px 20px; background:radial-gradient(ellipse at top right,#d6bb8014,transparent 65%); }
+  .animalSurface .hero h2 { font-size:2.4rem; letter-spacing:-.025em; }
+  .animalSurface .selectedQuestion { margin-top:12px; font-size:1.125rem; }
+  .animalSurface .keywords { gap:8px; }
+  .animalSurface .keywords li { padding:6px 10px; border:1px solid var(--zw-rule); border-radius:5px; background:var(--zw-surface); }
+  .animalSurface .foundation { margin:28px 20px; }
+  .animalSurface .foundationSection { padding:24px 0; }
+  .animalSurface .foundationSectionLead { margin-top:10px; }
+}
+
+.animalPortrait { display:block; width:min(100%,400px); height:auto; aspect-ratio:1; object-fit:contain; border-radius:12px; margin:0 0 24px; }
+@media (min-width:768px) { .animalSurface .heroContent { max-width:none; } .animalPortrait { float:right; width:38%; margin:0 0 24px 32px; } .animalSurface .hero:after { content:''; display:block; clear:both; } }
