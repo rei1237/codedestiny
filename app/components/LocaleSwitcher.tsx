@@ -120,6 +120,7 @@ export function LocaleSwitcher({preservePath=false,locale}:{preservePath?:boolea
 
   const [savedLocale, setSavedLocale] = React.useState<LocaleItem>(LOCALE_SWITCHER_LABELS[0]);
   const [open, setOpen] = React.useState(false);
+  const [menuLeft, setMenuLeft] = React.useState(0);
   const [appLocale, setAppLocale] = React.useState<LocaleCode | undefined>();
 
   React.useEffect(() => {
@@ -154,8 +155,12 @@ export function LocaleSwitcher({preservePath=false,locale}:{preservePath?:boolea
   const menuStyle: React.CSSProperties = {
     position: "absolute",
     top: "calc(100% + 8px)",
-    right: 0,
-    minWidth: "220px",
+    left: menuLeft,
+    width: "220px",
+    maxWidth: "calc(100vw - 16px)",
+    maxHeight: "min(70vh, 420px)",
+    overflowY: "auto",
+    boxSizing: "border-box",
     background: "rgba(2, 6, 23, 0.92)",
     border: "1px solid rgba(148, 163, 184, 0.22)",
     borderRadius: "14px",
@@ -171,7 +176,13 @@ export function LocaleSwitcher({preservePath=false,locale}:{preservePath?:boolea
         aria-label={copy.changeLanguage}
         aria-haspopup="menu"
         aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
+        onClick={(event) => {
+          const anchor = event.currentTarget.getBoundingClientRect();
+          const width = Math.min(220, window.innerWidth - 16);
+          const left = Math.max(8, Math.min(anchor.right - width, window.innerWidth - width - 8));
+          setMenuLeft(left - anchor.left);
+          setOpen((v) => !v);
+        }}
         style={buttonStyle}
       >
         <span aria-hidden="true">🌙</span>
