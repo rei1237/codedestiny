@@ -24,7 +24,7 @@ assert.doesNotMatch(quickSection, /data-cd-open-collection/, 'home tiles open th
 assert.deepEqual([...quickSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map(m => m[1]), ['saju', 'ziwei', 'sukuyo', 'vedic', 'astrology', 'tarot']);
 const template = read('templates/home-funnel.html');
 assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhServices"'), 'methods precede search');
-assert.ok(template.indexOf('id="cdhQuickSlot"') > template.indexOf('id="cdhMore"'), 'method exploration follows the primary question entry');
+assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhMore"'), 'restored fortune entries remain visible outside optional exploration');
 
 assert.equal([...quickSection.matchAll(/href="\/\?action=([^"]+)" data-action="\1"/g)].length, 6, 'early clicks retain the selected action before JavaScript is ready');
 
