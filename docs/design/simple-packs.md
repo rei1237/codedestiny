@@ -1,6 +1,6 @@
 # 영냥이 상품·구매 흐름과 홈 상담 안내
 
-status: blocked-on-concurrent-home-integration
+status: done
 
 ## 승인된 정책
 
@@ -87,4 +87,18 @@ status: blocked-on-concurrent-home-integration
 - [x] 재미있는 사주 가격·꽃 무료화·신규 청구 차단 소스 반영
 - [x] 꽃·서한비 이미지 최적화 및 실제 소비 경로 반영
 - [x] 최신 변경 mock 회귀·화면 검토·변경 기반 검사 확정
-- [ ] 검증한 변경 커밋·main CI·작업 정리
+- [x] 검증한 변경 커밋·main CI·작업 정리
+
+## 2026-10-08 동시 홈 변경 통합
+
+- 사용자 승인으로 `영냥이 진입 화면 교체` 채팅에 협의 메시지를 전달했다. 해당 작업의 `5ab5023ec` 및 재배치된 `21b010b9e`, 원격 SEO `0e9512384`를 모두 보존했다.
+- 최종 코드 `c4e0f5deee1c92587c259128c10b7e7f8679c1a7`을 main에 fast-forward하고 push했다. 사주 등 6개 진입점은 히어로 아래 접힘 밖, 영냥이 배너는 한 곳, 연이 이미지와 CURRENT_PASS_PLANS 기반 4종 이용권 카드를 유지한다.
+- CSS 충돌에서는 폐기한 단순 소개/단순 이용권 스타일을 되살리지 않았다. 다국어 사전의 양쪽 키를 3-way로 보존하고, 재배치 병합에서 생긴 동일 키 중복을 정규화했다. 사이트맵·정적 미러를 재생성했다.
+- 모바일 이용권 기간과 한도 문구의 음절 단위 줄바꿈을 `white-space: nowrap`, `word-break: keep-all`로 바로잡았다. 결제·인증·API·DB 구현을 추가 변경하지 않았다.
+- 로컬 mock 360/390/430/1280px에서 진입점·배너·4종 이용권 표시, 가로 넘침 없음, 연이 이미지, CTA 최소 44px, 스크롤 후 CTA 상하단 hit-test, 이용권 Tab 이동을 확인했다. visual review는 수정 후 ship. 캡처와 metrics.json: `C:/Users/user/.codex/visualizations/2026/10/07/01a117c4-238f-7853-b997-ca09d496d923/simple-packs-integrated/`.
+- 통합 후 home-direct-feature-links/yeongnyangi-assets 4개, verify:billing-pass-policy, verify:home-service-registry, verify:payment-freeze, verify:i18n-price-drift, verify:sitemap-drift, build-home-funnel --check, 커밋 후 verify:public-mirror-fresh 통과.
+- check:fast --base=main 계획을 확인하고 실행했으나 동시 홈 커밋 수신 시 결제 스위트 진행 중 중단했다. 전체 로컬 통과로 취급하지 않는다. 최종 공식 검증은 main CI https://github.com/rei1237/codedestiny/actions/runs/37674563995 에서 확인한다.
+- Impeccable detect 실행 완료. 기존 화면의 타입/색/장식 advisory는 이번 통합 범위 밖이며 전역 디자인 문서를 변경하지 않았다.
+- 실결제·유료 LLM·운영 DB·운영 승격 및 스테이징 수동 확인은 실행하지 않았다.
+- 첫 통합 CI는 타입/lint·빌드·Critical checks 및 별도 Paid Flow Gates가 성공했고, 정적 Node 검사 3,006개 중 접근성 문구 사전 일치 1개만 실패했다. 영냥이 생선 목록 aria-label을 기존 번역 정본과 맞춘 dc5bc6de9793f5892a787dd9fba4d3a79e6be6f7을 main에 push했다. 해당 shell-dictionary-parity 4개 재실행 통과. 최신 CI: https://github.com/rei1237/codedestiny/actions/runs/37675542018 .
+- 최종 코드 dc5bc6de9793f5892a787dd9fba4d3a79e6be6f7의 CI required 성공 확인: 타입/lint·Pages/Worker 빌드·Static guards 성공, 이번 문구 수정에서 Critical checks는 정상 skip. 원래 통합 코드의 Critical checks와 Paid Flow Gates 성공도 별도 확인했다. 문서는 done으로 닫고 main에서 유지하며 작업 워크트리/브랜치는 배수한다.
