@@ -126,7 +126,7 @@
     "ms": "30-day pass, no auto-renewal"
   },
   "home.gardenCopy.passTitle": {
-    "ko": "자주 보신다면, 30일 이용권",
+    "ko": "연이가 알려드리는 30일 이용권",
     "en": "Reading often? Try a 30-day pass",
     "ja": "よく占うなら、30日利用券",
     "zh-CN": "经常看运势的话，就选30天使用券",
@@ -140,7 +140,7 @@
     "ms": "Reading often? Try a 30-day pass"
   },
   "home.gardenCopy.passDesc": {
-    "ko": "상담 가격만큼 한도에서 차감돼요. 30일이 지나면 자동으로 끝나요.",
+    "ko": "가끔은 단건 결제로, 자주 본다면 이용권으로 이용해요. 사용할 수 있는 상담과 30일 이용 한도를 확인해 주세요.",
     "en": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
     "ja": "鑑定の価格分だけ上限から差し引かれます。30日が過ぎると自動で終了します。",
     "zh-CN": "每次咨询按价格从额度中扣除。30天后自动结束。",
@@ -196,7 +196,7 @@
     "ms": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase."
   },
   "home.gardenCopy.passCta": {
-    "ko": "이용권 4종 확인하기",
+    "ko": "나에게 맞는 이용권 확인하기",
     "en": "See all 4 passes",
     "ja": "利用券4種を見る",
     "zh-CN": "查看4种使用券",

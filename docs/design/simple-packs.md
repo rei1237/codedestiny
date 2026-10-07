@@ -56,6 +56,22 @@ status: in-progress
 - 첫 push `3bd2d5a44`의 Paid Flow Gates·Gift transaction integrity·AI Locale은 통과했다. Browser Shadow가 단건 직행 경로의 환불 동의 누락을 발견해 `DIRECT_KRW` 직행을 되돌리고 기존 공통 동의창에 단건만 노출하도록 수정했다. 동의값을 임의로 넣지 않으며 checkout 회귀 8개·auth recovery 검사를 통과했다. 수정 커밋의 브라우저 CI를 다시 확인한다. 카탈로그 GET은 mock에 서버의 판매 가능 목록을 연결했다.
 - 첫 전체 CI의 build/critical/fast는 통과했고, 홈 레지스트리 가드가 LOVE CODE의 탐색·질문 카드에 남은 5,000원 표기 두 곳을 발견했다. 현재 1,000원으로 맞추고 `verify:home-service-registry`(57개 상품/37개 질문 가격)·셸 사전 검사 4개·payment-freeze 검사를 통과했다.
 
+## 사용자 수정 지시 반영 — 기존 홈 UI 복원
+
+- 사주·자미두수·숙요점·베다점·점성술 진입점을 접힌 영역 밖, 기존 히어로 바로 아래로 복원했다. 기존 이미지·버튼·이벤트 연결을 그대로 사용한다.
+- 꽃돼지 연이가 설명하는 30일 이용권 배너와 4종 카드 구성을 `01f3392fe` 이전 형태로 복원했다. 제목·설명·버튼 문구만 쉽게 다듬고 가격·한도는 CURRENT_PASS_PLANS에서 읽는다. 텍스트 카드 전용 CSS는 제거했다.
+- 영냥이 구매 화면의 단건/5회권, 10·20회권 신규 판매 종료, 기존 구매 권리 보존은 유지한다. 추가 결제/인증/API/DB 변경은 없다.
+- 360·390·430·1280px 로컬 mock 렌더에서 진입점과 이용권 카드의 가로 잘림 없음 및 연이 이미지 로드를 확인했다. 화면은 동일 증거 폴더의 restored-entry-*.png, restored-pass-*.png에 저장했다.
+- verify:home-service-registry, verify:i18n-price-drift, verify:payment-freeze 통과. check:fast 계획·실행 중.
+
+## 전달 상태
+
+- main에 구현·회귀 수정·공통 정책 문서를 모두 push했다. 코드 최종 변경은 `dc7d98dec3cbc67efb53ae97420b31f51a6f14cc`, 정책 문서 포함 main은 `6fbc2050948d68f6b683e557970bace8c0f905b4`다.
+- 코드 CI: https://github.com/rei1237/codedestiny/actions/runs/37666978999 — build/fast 성공, static guards의 브라우저 설치 진행 중.
+- 정책 CI: https://github.com/rei1237/codedestiny/actions/runs/37668026153 — static guards의 브라우저 설치 진행 중.
+- 환불 동의·카탈로그 mock 수정 후 Browser Shadow: https://github.com/rei1237/codedestiny/actions/runs/37666484086 — 브라우저 설치 진행 중. 외부 설치가 끝나기 전 검사 통과로 취급하지 않는다.
+- 실결제·유료 LLM·운영 DB 쓰기·운영 승격은 실행하지 않았다.
+
 ## 진행
 
 - [x] 승인 범위·현재 코드·동시 작업 확인
