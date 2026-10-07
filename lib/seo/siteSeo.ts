@@ -47,7 +47,7 @@ export const SOCIAL_PROFILES = [
   { key: "youtube", url: "https://www.youtube.com/@CodeDestiny_Official" },
   { key: "threads", url: "https://www.threads.com/@codedestiny_official" },
   { key: "instagram", url: "https://www.instagram.com/codedestiny_official/" },
-  { key: "naverBlog", url: "https://blog.naver.com/goodbyejieun" },
+  { key: "naverBlog", url: "https://blog.naver.com/neosaju" },
   { key: "x", url: "https://x.com/sajuseongj97497" },
 ] as const;
 

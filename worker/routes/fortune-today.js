@@ -43,7 +43,8 @@ import { buildTodayNumberDetail, buildTodayNumberPublic } from "../lib/today-num
 import { getNakshatraAttributes } from "../../constants/nakshatra-attributes.js";
 import { CROSSWALK_OFFSET } from "../../constants/nakshatra-crosswalk.js";
 
-const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+import { hubDay, labelHubPeriod } from "../../lib/fortune/hub-period.mjs";
+
 
 // 공개 모드(생년 없음) 응답의 엣지 캐시 수명. 아래 Cache-Control: public, max-age=1800 과 같은 값이라
 // 클라이언트가 보던 신선도 계약은 그대로다. 이 라우트는 DB 를 안 쓰지만 스위스 천문 서브리퀘스트와
@@ -125,10 +126,6 @@ const TARA_SCORE = {
   Sadhaka: 82, Vadha: 22, Mitra: 80, "Ati-Mitra": 88,
 };
 
-function kstParts(now) {
-  const kst = new Date(now.getTime() + KST_OFFSET_MS);
-  return { year: kst.getUTCFullYear(), month: kst.getUTCMonth() + 1, day: kst.getUTCDate() };
-}
 
 function dateKey({ year, month, day }) {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -392,15 +389,12 @@ async function resolveTodaySky(env, today, natalIndex, requestUrl) {
 
 // 세 체계가 모두 실패하면 null 을 돌려준다(호출부가 503 으로 바꾼다).
 // 🔴 실패를 payload 로 돌려주면 안 된다 — 공개 모드는 이 반환값을 30분 캐시하므로 실패가 굳는다.
-async function buildTodayHubPayload(request, env, input, wantDetail, onlyNumber = false) {
+async function buildTodayHubPayload(request, env, input, wantDetail, onlyNumber = false, today = hubDay()) {
   if (onlyNumber) {
-    const today = kstParts(new Date());
     const number = buildNumber(input, today, wantDetail);
     if (!number) return null;
     return localizeTodayPayload({ ok: true, date: dateKey(today), personalized: true, systems: { number } }, requestLocale(request));
   }
-
-  const today = kstParts(new Date());
   const { saju, sukuyo, vedic, number } = await buildTodayFortunes(env, input, today, { requestUrl: request.url, wantDetail });
 
   // 수비학은 계산이 실패할 일이 거의 없어 "모두 실패" 판정에 넣지 않는다 — 넣으면 Swiss·사주가 다 죽어도
@@ -475,13 +469,17 @@ async function handleTodayHub(request, env) {
     }, { status: 400 });
   }
   const wantDetail = clean(url.searchParams.get("detail")) === "1";
+  const period = url.searchParams.get("period") || "today";
+  if (!["today", "tomorrow"].includes(period)) return json({ ok: false, code: "INVALID_PERIOD" }, { status: 400 });
+  const targetDay = hubDay(period);
+  const label = payload => labelHubPeriod(payload, period, requestLocale(request));
 
   // 🔴 생년이 쿼리에 실린 개인화 응답은 공유 캐시에 **절대** 올리지 않는다. 올리는 순간 다음 방문자가
   //    남의 사주를 받는다. 캐시 분기는 input 이 없을 때 하나뿐이며 verify:public-api-edge-cache 가
   //    이 조건을 단언한다.
   if (input) {
     const onlyNumber = clean(url.searchParams.get("only")) === "number";
-    const payload = await buildTodayHubPayload(request, env, input, wantDetail, onlyNumber);
+    const payload = label(await buildTodayHubPayload(request, env, input, wantDetail, onlyNumber, targetDay));
     if (!payload) return todayHubUnavailable(request);
     return json(payload, { headers: { "Cache-Control": "private, max-age=1800" } });
   }
@@ -492,15 +490,15 @@ async function handleTodayHub(request, env) {
   try {
     const locale = requestLocale(request);
     const { value, stale } = await readCmsThroughCache({
-      key: `today-hub:v1:${locale}:${dateKey(kstParts(new Date()))}:${wantDetail ? "detail" : "summary"}`,
+      key: `today-hub:v1:${locale}:${period}:${dateKey(targetDay)}:${wantDetail ? "detail" : "summary"}`,
       ttlSeconds: PUBLIC_HUB_CACHE_TTL_SECONDS,
       staleTtlSeconds: PUBLIC_HUB_STALE_TTL_SECONDS,
       load: async () => {
         loaded = true;
-        const payload = await buildTodayHubPayload(request, env, null, wantDetail);
+        const payload = await buildTodayHubPayload(request, env, null, wantDetail, false, targetDay);
         // throw 해야 캐시에 안 들어간다. 직전에 성공한 값이 있으면 아래 stale 로 살아난다.
         if (!payload) throw new Error("TODAY_HUB_UNAVAILABLE");
-        return payload;
+        return label(payload);
       },
     });
     return json(value, {

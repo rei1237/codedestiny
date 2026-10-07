@@ -3,55 +3,55 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/about/": {
-      "signature": "2fc32502335a0370",
+      "signature": "393a772cc15c304c",
       "lastmod": "2026-10-07"
     },
     "/advertising-policy/": {
-      "signature": "4a37b6f728931d9c",
+      "signature": "5c647070c35481b9",
       "lastmod": "2026-10-07"
     },
     "/animal/mbti/": {
-      "signature": "7526f21d80dd3168",
+      "signature": "c63c97dc1dc2f6d1",
       "lastmod": "2026-10-07"
     },
     "/astrology/": {
-      "signature": "001262b8596e0183",
+      "signature": "574efefb78411385",
       "lastmod": "2026-10-07"
     },
     "/astrology/cosmic/": {
-      "signature": "f4a86dc45e2da715",
+      "signature": "e8b5a22b82951e8b",
       "lastmod": "2026-10-07"
     },
     "/astrology/guide/": {
-      "signature": "ef5bd87ed45d8e4d",
+      "signature": "e6cfea56a7d0003f",
       "lastmod": "2026-10-07"
     },
     "/calendar/guide/": {
-      "signature": "225510a00f19162d",
+      "signature": "6a9f3911a4fbb48e",
       "lastmod": "2026-10-07"
     },
     "/compare/fortune-apps/": {
-      "signature": "6b4ef6525d458b21",
+      "signature": "d6f71403b77b7754",
       "lastmod": "2026-10-07"
     },
     "/compare/saju-vs-ziwei/": {
-      "signature": "10c59fe7cd61aa4a",
+      "signature": "3bb304573837586c",
       "lastmod": "2026-10-07"
     },
     "/compare/sukuyo-vs-vedic/": {
-      "signature": "97bceeb6c27e1ec2",
+      "signature": "377c5582edb8a20d",
       "lastmod": "2026-10-07"
     },
     "/compatibility/": {
-      "signature": "9455fffec02de921",
+      "signature": "b2721cec831c0604",
       "lastmod": "2026-10-07"
     },
     "/contact/": {
-      "signature": "fc10548030b61fa0",
+      "signature": "45645a0a8e5076a5",
       "lastmod": "2026-10-07"
     },
     "/destiny-compass/": {
-      "signature": "ff40aa9cce8f2437",
+      "signature": "3726d1b0805e66cd",
       "lastmod": "2026-10-07"
     },
     "/destiny-poker": {
@@ -59,539 +59,539 @@
       "lastmod": "2026-10-05"
     },
     "/disclaimer/": {
-      "signature": "747769b353db1327",
+      "signature": "fcdc9991b931678c",
       "lastmod": "2026-10-07"
     },
     "/dream/": {
-      "signature": "33d8f0fb429e5a7a",
+      "signature": "1100b14d3d374f01",
       "lastmod": "2026-10-07"
     },
     "/dream/psycho/": {
-      "signature": "56e9c9a6a69e8c44",
+      "signature": "0186a26522160a3d",
       "lastmod": "2026-10-07"
     },
     "/dream/tarot/": {
-      "signature": "a25b6358443e12ff",
+      "signature": "5ac26f8ec47e00c2",
       "lastmod": "2026-10-07"
     },
     "/editorial-policy/": {
-      "signature": "8224c3d322e93017",
+      "signature": "f8e8ae581bdf192a",
       "lastmod": "2026-10-07"
     },
     "/en/": {
-      "signature": "2b6acce9591b5cba",
+      "signature": "6e53c80fc6c908f1",
       "lastmod": "2026-10-07"
     },
     "/en/about/": {
-      "signature": "e96e53a28f84c4c2",
+      "signature": "b1a5a8b1f00142f3",
       "lastmod": "2026-10-07"
     },
     "/en/astrology/": {
-      "signature": "110671366e2877d1",
+      "signature": "074710f5fb31d909",
       "lastmod": "2026-10-07"
     },
     "/en/compatibility/": {
-      "signature": "ed29b318ff4ba963",
+      "signature": "73f52d1702dda0a0",
       "lastmod": "2026-10-07"
     },
     "/en/contact/": {
-      "signature": "1933b694ccd08266",
+      "signature": "471a5b4d526b7485",
       "lastmod": "2026-10-07"
     },
     "/en/destiny-compass/": {
-      "signature": "8411f0108d0ee94e",
+      "signature": "14579fe21cdd8f15",
       "lastmod": "2026-10-07"
     },
     "/en/disclaimer/": {
-      "signature": "bebf87e723fcf76c",
+      "signature": "c748a56c2e73c850",
       "lastmod": "2026-10-07"
     },
     "/en/faq/": {
-      "signature": "b760f8356fb70e38",
+      "signature": "c0dfe7bea5e4a6de",
       "lastmod": "2026-10-07"
     },
     "/en/fortune-tea-house/": {
-      "signature": "4041656e6fee34c4",
+      "signature": "61541b19f81c43d1",
       "lastmod": "2026-10-07"
     },
     "/en/fortune/": {
-      "signature": "6fdde9602aa5e616",
+      "signature": "da7fa1400773ed5f",
       "lastmod": "2026-10-07"
     },
     "/en/fortune/monthly/": {
-      "signature": "61d672b69e484d86",
+      "signature": "08723f20546632ea",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/monthly/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/": {
-      "signature": "61d672b69e484d86",
+      "signature": "08723f20546632ea",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/today/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/": {
-      "signature": "61d672b69e484d86",
+      "signature": "08723f20546632ea",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/tomorrow/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/": {
-      "signature": "61d672b69e484d86",
-      "lastmod": "2026-10-07"
+      "signature": "08723f20546632ea",
+      "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/fortune/weekly/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/en/insights/": {
-      "signature": "f129d23be0613d2d",
+      "signature": "65d1d929ef38cd0b",
       "lastmod": "2026-10-07"
     },
     "/en/insights/sukuyo-basics-en/": {
-      "signature": "f6b000eb4253162b",
+      "signature": "0d4b4539c8b29a6d",
       "lastmod": "2026-10-07"
     },
     "/en/insights/ziwei-basics-en/": {
-      "signature": "f6b000eb4253162b",
+      "signature": "0d4b4539c8b29a6d",
       "lastmod": "2026-10-07"
     },
     "/en/privacy-policy/": {
-      "signature": "6a8767cb70d69ac7",
+      "signature": "21e63d7318ea2425",
       "lastmod": "2026-10-07"
     },
     "/en/psychotest/": {
-      "signature": "7a0370de9e94993a",
+      "signature": "afaff6a7a582992c",
       "lastmod": "2026-10-07"
     },
     "/en/refund-policy/": {
-      "signature": "7c8a9d0ebb449b95",
+      "signature": "da9eaf4be9776bc7",
       "lastmod": "2026-10-07"
     },
     "/en/saju-compatibility/": {
-      "signature": "30dab93b930520be",
+      "signature": "697a514e0301664f",
       "lastmod": "2026-10-07"
     },
     "/en/saju/": {
-      "signature": "12540b13756cde96",
+      "signature": "a1efbb3e7aaa3cea",
       "lastmod": "2026-10-07"
     },
     "/en/sukuyo-compatibility-ai/": {
-      "signature": "c51e395267d01c1c",
+      "signature": "1be8df0bfaf3c74d",
       "lastmod": "2026-10-07"
     },
     "/en/sukuyo-compatibility/": {
-      "signature": "2d44414f5e23e0b0",
+      "signature": "c66fa002c180af02",
       "lastmod": "2026-10-07"
     },
     "/en/sukuyo/": {
-      "signature": "e3f658fda9a98cb5",
+      "signature": "5c9990543adcdc14",
       "lastmod": "2026-10-07"
     },
     "/en/tarot/": {
-      "signature": "91bca7d6a3655259",
+      "signature": "179eaa4dd5e272ef",
       "lastmod": "2026-10-07"
     },
     "/en/terms-of-service/": {
-      "signature": "167500b870d08473",
+      "signature": "1c386a2c05058ea5",
       "lastmod": "2026-10-07"
     },
     "/en/today/": {
-      "signature": "847914682dc2c180",
+      "signature": "96e5f27cdc8bd810",
       "lastmod": "2026-10-07"
     },
     "/en/vedic/": {
-      "signature": "811c54fef804ddd0",
+      "signature": "5afff679f17463a1",
       "lastmod": "2026-10-07"
     },
     "/en/yeongnyangi/": {
-      "signature": "2b0df59a5f394f56",
+      "signature": "8dc33fa69ed6835a",
       "lastmod": "2026-10-07"
     },
     "/en/ziwei/": {
-      "signature": "9eb2e06fede28292",
+      "signature": "f878baf33172230b",
       "lastmod": "2026-10-07"
     },
     "/faq/": {
-      "signature": "841abb81f1765bd8",
+      "signature": "2a379a5415403a00",
       "lastmod": "2026-10-07"
     },
     "/fortune-tea-house/": {
-      "signature": "1ffc25bd5bd0676e",
+      "signature": "2899b6d3f39071d8",
       "lastmod": "2026-10-07"
     },
     "/fortune/": {
@@ -599,999 +599,999 @@
       "lastmod": "2026-10-05"
     },
     "/fortune/monthly/": {
-      "signature": "7fcb58391e8e23f3",
+      "signature": "a60fad559c76939b",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/aquarius/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/aries/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/cancer/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/capricorn/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/dog/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/dragon/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/gemini/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/goat/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/horse/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/leo/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/libra/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/monkey/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/ox/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/pig/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/pisces/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/rabbit/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/rat/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/rooster/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/sagittarius/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/scorpio/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/snake/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/taurus/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/tiger/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/monthly/virgo/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/prompt-hub/": {
-      "signature": "3f1e93164d2d43b7",
+      "signature": "9a7eefefe9a76d19",
       "lastmod": "2026-10-07"
     },
     "/fortune/today/": {
-      "signature": "7fcb58391e8e23f3",
+      "signature": "a60fad559c76939b",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/aquarius/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/aries/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/cancer/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/capricorn/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/dog/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/dragon/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/gemini/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/goat/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/horse/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/leo/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/libra/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/monkey/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/ox/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/pig/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/pisces/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/rabbit/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/rat/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/rooster/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/sagittarius/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/scorpio/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/snake/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/taurus/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/tiger/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/today/virgo/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/": {
-      "signature": "7fcb58391e8e23f3",
+      "signature": "a60fad559c76939b",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/aquarius/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/aries/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/cancer/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/capricorn/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/dog/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/dragon/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/gemini/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/goat/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/horse/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/leo/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/libra/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/monkey/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/ox/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/pig/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/pisces/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/rabbit/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/rat/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/rooster/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/sagittarius/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/scorpio/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/snake/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/taurus/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/tiger/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/tomorrow/virgo/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/": {
-      "signature": "7fcb58391e8e23f3",
-      "lastmod": "2026-10-07"
+      "signature": "a60fad559c76939b",
+      "lastmod": "2026-10-08"
     },
     "/fortune/weekly/aquarius/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/aries/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/cancer/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/capricorn/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/dog/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/dragon/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/gemini/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/goat/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/horse/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/leo/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/libra/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/monkey/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/ox/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/pig/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/pisces/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/rabbit/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/rat/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/rooster/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/sagittarius/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/scorpio/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/snake/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/taurus/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/tiger/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/fortune/weekly/virgo/": {
-      "signature": "d3678233821ff199",
+      "signature": "8c49453a9d1fff9e",
       "lastmod": "2026-10-08"
     },
     "/ggulggul/": {
-      "signature": "f0158e84b3b773cb",
+      "signature": "7c0d769829a63dcd",
       "lastmod": "2026-10-07"
     },
     "/guides/": {
-      "signature": "378c842c74f3f414",
+      "signature": "9712785225a48889",
       "lastmod": "2026-10-07"
     },
     "/guides/complete-guide-to-saju/": {
-      "signature": "7b9ffaaa640646a3",
+      "signature": "8b54b4ea0779a911",
       "lastmod": "2026-10-07"
     },
     "/health-report/guide/": {
-      "signature": "91340792cafa2d95",
+      "signature": "7f343ee3842a0832",
       "lastmod": "2026-10-07"
     },
     "/human-design/guide/": {
-      "signature": "90b8f7e696c9c958",
+      "signature": "7fcd5ef0fced22ff",
       "lastmod": "2026-10-07"
     },
     "/insights/": {
-      "signature": "49db42195d10041f",
+      "signature": "03013c988a32da4e",
       "lastmod": "2026-10-07"
     },
     "/insights/astrology/": {
-      "signature": "6080e1ef86529fca",
+      "signature": "e1cf136c2eac2c44",
       "lastmod": "2026-10-07"
     },
     "/insights/compatibility/": {
-      "signature": "cc68a6b6b8149aee",
+      "signature": "99771ef799952322",
       "lastmod": "2026-10-07"
     },
     "/insights/dream/": {
-      "signature": "8fc6d6a25bc07533",
+      "signature": "788de966f10d0c0f",
       "lastmod": "2026-10-07"
     },
     "/insights/famous-saju/": {
-      "signature": "007827a73977b09e",
+      "signature": "f15bcac004c96277",
       "lastmod": "2026-10-07"
     },
     "/insights/fusion/": {
-      "signature": "f199563d4f95a946",
+      "signature": "88ad8fda0e0b20e0",
       "lastmod": "2026-10-07"
     },
     "/insights/saju/": {
-      "signature": "38f997d5d140a468",
+      "signature": "bc1f1bad925906bd",
       "lastmod": "2026-10-07"
     },
     "/insights/sukuyo-basics/": {
-      "signature": "7328f528364dcf4f",
+      "signature": "965109bb0b56bc8a",
       "lastmod": "2026-10-07"
     },
     "/insights/sukuyo/": {
-      "signature": "c624dd1122edb1ea",
+      "signature": "610803458607de63",
       "lastmod": "2026-10-07"
     },
     "/insights/tarot/": {
-      "signature": "c58e96ac186a7d37",
+      "signature": "8b1a97308daa4ae0",
       "lastmod": "2026-10-07"
     },
     "/insights/vedic/": {
-      "signature": "92eab597fb10f94e",
+      "signature": "4ab538583090bfad",
       "lastmod": "2026-10-07"
     },
     "/insights/ziwei-basics/": {
-      "signature": "14d163d6cb09bc86",
+      "signature": "45697e0072999b65",
       "lastmod": "2026-10-07"
     },
     "/insights/ziwei/": {
-      "signature": "4a2c847d60421a2b",
+      "signature": "bcdedfca2906ad96",
       "lastmod": "2026-10-07"
     },
     "/ja/": {
-      "signature": "2b6acce9591b5cba",
+      "signature": "6e53c80fc6c908f1",
       "lastmod": "2026-10-07"
     },
     "/ja/about/": {
-      "signature": "e96e53a28f84c4c2",
+      "signature": "b1a5a8b1f00142f3",
       "lastmod": "2026-10-07"
     },
     "/ja/astrology/": {
-      "signature": "110671366e2877d1",
+      "signature": "074710f5fb31d909",
       "lastmod": "2026-10-07"
     },
     "/ja/compatibility/": {
-      "signature": "ed29b318ff4ba963",
+      "signature": "73f52d1702dda0a0",
       "lastmod": "2026-10-07"
     },
     "/ja/contact/": {
-      "signature": "1933b694ccd08266",
+      "signature": "471a5b4d526b7485",
       "lastmod": "2026-10-07"
     },
     "/ja/destiny-compass/": {
-      "signature": "8411f0108d0ee94e",
+      "signature": "14579fe21cdd8f15",
       "lastmod": "2026-10-07"
     },
     "/ja/disclaimer/": {
-      "signature": "bebf87e723fcf76c",
+      "signature": "c748a56c2e73c850",
       "lastmod": "2026-10-07"
     },
     "/ja/faq/": {
-      "signature": "b760f8356fb70e38",
+      "signature": "c0dfe7bea5e4a6de",
       "lastmod": "2026-10-07"
     },
     "/ja/fortune-tea-house/": {
-      "signature": "4041656e6fee34c4",
+      "signature": "61541b19f81c43d1",
       "lastmod": "2026-10-07"
     },
     "/ja/fortune/": {
-      "signature": "6fdde9602aa5e616",
+      "signature": "da7fa1400773ed5f",
       "lastmod": "2026-10-07"
     },
     "/ja/fortune/monthly/": {
-      "signature": "61d672b69e484d86",
+      "signature": "08723f20546632ea",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/monthly/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/": {
-      "signature": "61d672b69e484d86",
+      "signature": "08723f20546632ea",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/today/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/": {
-      "signature": "61d672b69e484d86",
+      "signature": "08723f20546632ea",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/tomorrow/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/": {
-      "signature": "61d672b69e484d86",
-      "lastmod": "2026-10-07"
+      "signature": "08723f20546632ea",
+      "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/fortune/weekly/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/ja/insights/": {
-      "signature": "f129d23be0613d2d",
+      "signature": "65d1d929ef38cd0b",
       "lastmod": "2026-10-07"
     },
     "/ja/insights/sukuyo-basics-jp/": {
-      "signature": "f6b000eb4253162b",
+      "signature": "0d4b4539c8b29a6d",
       "lastmod": "2026-10-07"
     },
     "/ja/insights/ziwei-basics-jp/": {
-      "signature": "f6b000eb4253162b",
+      "signature": "0d4b4539c8b29a6d",
       "lastmod": "2026-10-07"
     },
     "/ja/privacy-policy/": {
-      "signature": "6a8767cb70d69ac7",
+      "signature": "21e63d7318ea2425",
       "lastmod": "2026-10-07"
     },
     "/ja/psychotest/": {
-      "signature": "7a0370de9e94993a",
+      "signature": "afaff6a7a582992c",
       "lastmod": "2026-10-07"
     },
     "/ja/refund-policy/": {
-      "signature": "7c8a9d0ebb449b95",
+      "signature": "da9eaf4be9776bc7",
       "lastmod": "2026-10-07"
     },
     "/ja/saju-compatibility/": {
-      "signature": "30dab93b930520be",
+      "signature": "697a514e0301664f",
       "lastmod": "2026-10-07"
     },
     "/ja/saju/": {
-      "signature": "12540b13756cde96",
+      "signature": "a1efbb3e7aaa3cea",
       "lastmod": "2026-10-07"
     },
     "/ja/sukuyo-compatibility-ai/": {
-      "signature": "c51e395267d01c1c",
+      "signature": "1be8df0bfaf3c74d",
       "lastmod": "2026-10-07"
     },
     "/ja/sukuyo-compatibility/": {
-      "signature": "2d44414f5e23e0b0",
+      "signature": "c66fa002c180af02",
       "lastmod": "2026-10-07"
     },
     "/ja/sukuyo/": {
-      "signature": "e3f658fda9a98cb5",
+      "signature": "5c9990543adcdc14",
       "lastmod": "2026-10-07"
     },
     "/ja/tarot/": {
-      "signature": "91bca7d6a3655259",
+      "signature": "179eaa4dd5e272ef",
       "lastmod": "2026-10-07"
     },
     "/ja/terms-of-service/": {
-      "signature": "167500b870d08473",
+      "signature": "1c386a2c05058ea5",
       "lastmod": "2026-10-07"
     },
     "/ja/today/": {
-      "signature": "847914682dc2c180",
+      "signature": "96e5f27cdc8bd810",
       "lastmod": "2026-10-07"
     },
     "/ja/tokushoho/": {
-      "signature": "12eb7e74395e8427",
+      "signature": "68561b04e2e410f8",
       "lastmod": "2026-10-07"
     },
     "/ja/vedic/": {
-      "signature": "811c54fef804ddd0",
+      "signature": "5afff679f17463a1",
       "lastmod": "2026-10-07"
     },
     "/ja/yeongnyangi/": {
-      "signature": "2b0df59a5f394f56",
+      "signature": "8dc33fa69ed6835a",
       "lastmod": "2026-10-07"
     },
     "/ja/ziwei/": {
-      "signature": "9eb2e06fede28292",
+      "signature": "f878baf33172230b",
       "lastmod": "2026-10-07"
     },
     "/karma-destiny-ai/": {
-      "signature": "23b08d67756b59d6",
+      "signature": "177f3bd74341d531",
       "lastmod": "2026-10-07"
     },
     "/kkul-kkul-unse/": {
-      "signature": "2438680c5084aaba",
+      "signature": "5e47bfef2e3740cb",
       "lastmod": "2026-10-07"
     },
     "/life-book-ai/": {
@@ -1599,147 +1599,147 @@
       "lastmod": "2026-10-07"
     },
     "/love-secret-ai/": {
-      "signature": "8484bcd72125315a",
+      "signature": "e6c2a7aa0295eb89",
       "lastmod": "2026-10-07"
     },
     "/love/": {
-      "signature": "5db6fc48d6c557d2",
+      "signature": "7f48b5b6bb74e723",
       "lastmod": "2026-10-07"
     },
     "/manse/": {
-      "signature": "bb9cd9a592f7d173",
+      "signature": "27a9b3d23ecb7bc3",
       "lastmod": "2026-10-07"
     },
     "/master-love-codex/": {
-      "signature": "602ad71ca642ba2d",
+      "signature": "5fba90c10e872abe",
       "lastmod": "2026-10-07"
     },
     "/mayan-calendar/guide/": {
-      "signature": "1dc71d5307d71f23",
+      "signature": "93c44ce804397bbb",
       "lastmod": "2026-10-07"
     },
     "/methodology/": {
-      "signature": "295ae11c0d52991a",
+      "signature": "c2317ec7e9e9bc94",
       "lastmod": "2026-10-07"
     },
     "/music/guide/": {
-      "signature": "f2ea5c873910b3d2",
+      "signature": "32111121271c67b7",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/": {
-      "signature": "db4e9027bf491810",
+      "signature": "350d0b8aa64f480a",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/0/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/1/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/10/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/11/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/12/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/13/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/14/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/15/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/16/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/17/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/18/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/19/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/2/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/20/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/21/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/22/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/23/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/24/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/25/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/26/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/3/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/4/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/5/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/6/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/7/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/8/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/nakshatra/codex/9/": {
-      "signature": "4e7cef56dba55e9d",
+      "signature": "483e1d150c5c2519",
       "lastmod": "2026-10-07"
     },
     "/naming-ai/": {
-      "signature": "77f598f727c4f735",
+      "signature": "9635232e51268ada",
       "lastmod": "2026-10-07"
     },
     "/neo-operation-room/": {
@@ -1747,39 +1747,39 @@
       "lastmod": "2026-10-07"
     },
     "/new-year-ai-consultation/": {
-      "signature": "5411b6e036d897b3",
+      "signature": "ed6c3e396ac19e7b",
       "lastmod": "2026-10-07"
     },
     "/oracle/hwatu-life/": {
-      "signature": "592453ef95d486cb",
+      "signature": "4f9153ec4f024c96",
       "lastmod": "2026-10-07"
     },
     "/oracle/ifa/": {
-      "signature": "dc318a86f18b1574",
+      "signature": "816b39863228639b",
       "lastmod": "2026-10-07"
     },
     "/oracle/rune/": {
-      "signature": "6a8988e14c375e7e",
+      "signature": "07611eb58a0cf20e",
       "lastmod": "2026-10-07"
     },
     "/oracle/sukuyo/": {
-      "signature": "350e741039b7edf0",
+      "signature": "48e6f394a325c625",
       "lastmod": "2026-10-07"
     },
     "/physiognomy/": {
-      "signature": "65fb44180233354a",
+      "signature": "e7971d45b92f0c97",
       "lastmod": "2026-10-07"
     },
     "/privacy/": {
-      "signature": "d022bda462785040",
+      "signature": "4ac74d5c39295505",
       "lastmod": "2026-10-07"
     },
     "/psychotest/": {
-      "signature": "2edb7ef316940e67",
+      "signature": "9cf3e9b96019e996",
       "lastmod": "2026-10-07"
     },
     "/refund-policy/": {
-      "signature": "37c518db541e96bc",
+      "signature": "5c22baf6aa5d1baf",
       "lastmod": "2026-10-07"
     },
     "/saju-fpti/": {
@@ -1791,7 +1791,7 @@
       "lastmod": "2026-10-07"
     },
     "/saju/": {
-      "signature": "aff68fe53b486521",
+      "signature": "90b6591f91176324",
       "lastmod": "2026-10-07"
     },
     "/saju/animal-destiny/": {
@@ -1799,19 +1799,19 @@
       "lastmod": "2026-10-07"
     },
     "/saju/basic/": {
-      "signature": "a125070348b2699f",
+      "signature": "b19fae58707330e3",
       "lastmod": "2026-10-07"
     },
     "/saju/compatibility/": {
-      "signature": "252ffe4f8975a31b",
+      "signature": "7be2f9730bec7129",
       "lastmod": "2026-10-07"
     },
     "/saju/destiny-anatomy/": {
-      "signature": "29e66e4fa6686f41",
+      "signature": "e35d45036f290581",
       "lastmod": "2026-10-07"
     },
     "/saju/destiny-bias/": {
-      "signature": "9e89513d57748be7",
+      "signature": "5b7a6b8bf0b2d631",
       "lastmod": "2026-10-07"
     },
     "/saju/destiny-meeting-place/": {
@@ -1819,11 +1819,11 @@
       "lastmod": "2026-10-07"
     },
     "/saju/five-elements/": {
-      "signature": "bf38e6bf8c8efb30",
+      "signature": "ad83dd583bfef012",
       "lastmod": "2026-10-07"
     },
     "/saju/guide/": {
-      "signature": "bc06aadb160cb075",
+      "signature": "a57a46e14a6fb3ad",
       "lastmod": "2026-10-07"
     },
     "/saju/love-simulation/": {
@@ -1831,347 +1831,347 @@
       "lastmod": "2026-10-07"
     },
     "/saju/monthly/2026-09/": {
-      "signature": "fc01d525b6e6a871",
+      "signature": "54734668c5615183",
       "lastmod": "2026-10-07"
     },
     "/saju/monthly/2026-09/byeong-hwa/": {
-      "signature": "6df3a50daf821ffb",
+      "signature": "a913097484858a5d",
       "lastmod": "2026-10-07"
     },
     "/saju/monthly/2026-09/eul-mok/": {
-      "signature": "6df3a50daf821ffb",
+      "signature": "a913097484858a5d",
       "lastmod": "2026-10-07"
     },
     "/saju/monthly/2026-09/gap-mok/": {
-      "signature": "6df3a50daf821ffb",
+      "signature": "a913097484858a5d",
       "lastmod": "2026-10-07"
     },
     "/saju/monthly/2026-09/gi-to/": {
-      "signature": "6df3a50daf821ffb",
+      "signature": "a913097484858a5d",
       "lastmod": "2026-10-07"
     },
     "/saju/monthly/2026-09/gye-su/": {
-      "signature": "6df3a50daf821ffb",
+      "signature": "a913097484858a5d",
       "lastmod": "2026-10-07"
     },
     "/saju/monthly/2026-09/gyeong-geum/": {
-      "signature": "6df3a50daf821ffb",
+      "signature": "a913097484858a5d",
       "lastmod": "2026-10-07"
     },
     "/saju/monthly/2026-09/im-su/": {
-      "signature": "6df3a50daf821ffb",
+      "signature": "a913097484858a5d",
       "lastmod": "2026-10-07"
     },
     "/saju/monthly/2026-09/jeong-hwa/": {
-      "signature": "6df3a50daf821ffb",
+      "signature": "a913097484858a5d",
       "lastmod": "2026-10-07"
     },
     "/saju/monthly/2026-09/mu-to/": {
-      "signature": "6df3a50daf821ffb",
+      "signature": "a913097484858a5d",
       "lastmod": "2026-10-07"
     },
     "/saju/monthly/2026-09/sin-geum/": {
-      "signature": "6df3a50daf821ffb",
+      "signature": "a913097484858a5d",
       "lastmod": "2026-10-07"
     },
     "/saju/sibyl/": {
-      "signature": "7db1cdd49b11d257",
+      "signature": "000dc7aaf5f93894",
       "lastmod": "2026-10-07"
     },
     "/saju/ten-gods/": {
-      "signature": "9b17a246b7007ad5",
+      "signature": "7eb7b63d35e934fa",
       "lastmod": "2026-10-07"
     },
     "/stories/": {
-      "signature": "4d073a5c106b543e",
+      "signature": "1853764cf4d01579",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-01/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-01a/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-02/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-03/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-04/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-05/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-06/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-06a/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-07/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-08/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-09/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-10/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-11/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-12/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-12a/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-13/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-14/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-14a/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-15/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-16/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-17/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-18/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-19/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-20/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-21/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-21a/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-22/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-23/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-24/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-25/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-26/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-27/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-27a/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-27b/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-28/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-28a/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-28b/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-28c/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-28d/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-29/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-30/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-31/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-32/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-32a/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-33/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-34/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-35/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-36/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-36a/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-37/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-38/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-38a/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-39/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-40/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-41/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-41a/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-42/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-42a/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-43/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-44/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-45/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-46/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-47/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-48/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-49/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-50/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-51/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-52/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/ep-53/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/stories/prologue/": {
-      "signature": "31c14503e6057279",
+      "signature": "6bba514937618a10",
       "lastmod": "2026-10-07"
     },
     "/sukuyo-compatibility-ai/": {
-      "signature": "f5d64d02c595172f",
+      "signature": "45b0b4b3374f0508",
       "lastmod": "2026-10-07"
     },
     "/sukuyo/": {
-      "signature": "0e54dd8d48f07c5d",
+      "signature": "d6f2fb384aa2d5e7",
       "lastmod": "2026-10-07"
     },
     "/sukuyo/calendar/": {
@@ -2179,35 +2179,35 @@
       "lastmod": "2026-09-13"
     },
     "/sukuyo/compatibility/": {
-      "signature": "6702f752544cae7e",
+      "signature": "c47a6cf02574285d",
       "lastmod": "2026-10-07"
     },
     "/sukuyo/guide/": {
-      "signature": "3ee98ca2e95a3302",
+      "signature": "fa2e7675b403a0bd",
       "lastmod": "2026-10-07"
     },
     "/tarot/": {
-      "signature": "c3af93aa01468594",
+      "signature": "b00b689fcbc42c37",
       "lastmod": "2026-10-07"
     },
     "/tarot/guide/": {
-      "signature": "9ff28e629bd181a3",
+      "signature": "9ed7da727305c36b",
       "lastmod": "2026-10-07"
     },
     "/tarot/healing/": {
-      "signature": "3b051f3e7b897475",
+      "signature": "14c56c1fc656639c",
       "lastmod": "2026-10-07"
     },
     "/tarot/love/": {
-      "signature": "ad227ac087b9bcde",
+      "signature": "8e5acad796d2c9ac",
       "lastmod": "2026-10-07"
     },
     "/tarot/mindscan/": {
-      "signature": "bd7cb5ce85e16cff",
+      "signature": "fd32112cbaa83fd0",
       "lastmod": "2026-10-07"
     },
     "/tarot/mingri/": {
-      "signature": "093857e2d72918c1",
+      "signature": "906c41a7d70fbb0a",
       "lastmod": "2026-10-07"
     },
     "/tarot/numerology/": {
@@ -2219,7 +2219,7 @@
       "lastmod": "2026-10-07"
     },
     "/tarot/reunion/": {
-      "signature": "353e3ff7445ebba5",
+      "signature": "06f551a648f6a63c",
       "lastmod": "2026-10-07"
     },
     "/tarot/self-esteem/": {
@@ -2227,35 +2227,35 @@
       "lastmod": "2026-09-03"
     },
     "/tarot/year/": {
-      "signature": "990b5b7054d988e0",
+      "signature": "165910d7ba3c1aaa",
       "lastmod": "2026-10-07"
     },
     "/terms/": {
-      "signature": "150bff0a3f364006",
+      "signature": "e4ee9956d0807855",
       "lastmod": "2026-10-07"
     },
     "/today/": {
-      "signature": "39ff89078ba38094",
+      "signature": "38aeb1218aacb0e7",
       "lastmod": "2026-10-08"
     },
     "/vedic-ai/": {
-      "signature": "e1418976a87e44a2",
+      "signature": "7f31d3331f7368de",
       "lastmod": "2026-10-07"
     },
     "/vedic/": {
-      "signature": "53a415a4f1bbafcf",
+      "signature": "33e38d0c5dbe0741",
       "lastmod": "2026-10-07"
     },
     "/vedic/guide/": {
-      "signature": "81de79700b3a3c6a",
+      "signature": "6cdf4cd8acb04abe",
       "lastmod": "2026-10-07"
     },
     "/vedic/jyotish/": {
-      "signature": "a14dddb8675fbc45",
+      "signature": "54922ce45353c7b3",
       "lastmod": "2026-10-07"
     },
     "/world/": {
-      "signature": "c4b1ca314145217f",
+      "signature": "0d1aa300aa9688f3",
       "lastmod": "2026-10-07"
     },
     "/yeon-star-hug/": {
@@ -2263,1015 +2263,1015 @@
       "lastmod": "2026-10-06"
     },
     "/yeongnyangi/": {
-      "signature": "4d389eaa74a1b202",
+      "signature": "83cfd006df56f8e8",
       "lastmod": "2026-10-07"
     },
     "/yeongnyangi/1000-won-fortune/": {
-      "signature": "fbf5cbc50717c4fe",
+      "signature": "3ee9af1c53d438fb",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/": {
-      "signature": "2b6acce9591b5cba",
+      "signature": "6e53c80fc6c908f1",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/astrology/": {
-      "signature": "110671366e2877d1",
+      "signature": "074710f5fb31d909",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/compatibility/": {
-      "signature": "ed29b318ff4ba963",
+      "signature": "73f52d1702dda0a0",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/fortune/": {
-      "signature": "6fdde9602aa5e616",
+      "signature": "da7fa1400773ed5f",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/fortune/monthly/": {
-      "signature": "61d672b69e484d86",
+      "signature": "08723f20546632ea",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/monthly/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/": {
-      "signature": "61d672b69e484d86",
+      "signature": "08723f20546632ea",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/today/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/": {
-      "signature": "61d672b69e484d86",
+      "signature": "08723f20546632ea",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/tomorrow/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/": {
-      "signature": "61d672b69e484d86",
-      "lastmod": "2026-10-07"
+      "signature": "08723f20546632ea",
+      "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/fortune/weekly/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh-tw/insights/": {
-      "signature": "f129d23be0613d2d",
+      "signature": "65d1d929ef38cd0b",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/insights/sukuyo-basics-tw/": {
-      "signature": "f6b000eb4253162b",
+      "signature": "0d4b4539c8b29a6d",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/insights/ziwei-basics-tw/": {
-      "signature": "f6b000eb4253162b",
+      "signature": "0d4b4539c8b29a6d",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/privacy-policy/": {
-      "signature": "6a8767cb70d69ac7",
+      "signature": "21e63d7318ea2425",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/refund-policy/": {
-      "signature": "7c8a9d0ebb449b95",
+      "signature": "da9eaf4be9776bc7",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/saju-compatibility/": {
-      "signature": "30dab93b930520be",
+      "signature": "697a514e0301664f",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/saju/": {
-      "signature": "12540b13756cde96",
+      "signature": "a1efbb3e7aaa3cea",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/sukuyo-compatibility/": {
-      "signature": "2d44414f5e23e0b0",
+      "signature": "c66fa002c180af02",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/sukuyo/": {
-      "signature": "e3f658fda9a98cb5",
+      "signature": "5c9990543adcdc14",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/tarot/": {
-      "signature": "91bca7d6a3655259",
+      "signature": "179eaa4dd5e272ef",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/terms-of-service/": {
-      "signature": "167500b870d08473",
+      "signature": "1c386a2c05058ea5",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/today/": {
-      "signature": "847914682dc2c180",
+      "signature": "96e5f27cdc8bd810",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/vedic/": {
-      "signature": "811c54fef804ddd0",
+      "signature": "5afff679f17463a1",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/yeongnyangi/": {
-      "signature": "2b0df59a5f394f56",
+      "signature": "8dc33fa69ed6835a",
       "lastmod": "2026-10-07"
     },
     "/zh-tw/ziwei/": {
-      "signature": "9eb2e06fede28292",
+      "signature": "f878baf33172230b",
       "lastmod": "2026-10-07"
     },
     "/zh/": {
-      "signature": "2b6acce9591b5cba",
+      "signature": "6e53c80fc6c908f1",
       "lastmod": "2026-10-07"
     },
     "/zh/about/": {
-      "signature": "e96e53a28f84c4c2",
+      "signature": "b1a5a8b1f00142f3",
       "lastmod": "2026-10-07"
     },
     "/zh/astrology/": {
-      "signature": "110671366e2877d1",
+      "signature": "074710f5fb31d909",
       "lastmod": "2026-10-07"
     },
     "/zh/compatibility/": {
-      "signature": "ed29b318ff4ba963",
+      "signature": "73f52d1702dda0a0",
       "lastmod": "2026-10-07"
     },
     "/zh/contact/": {
-      "signature": "1933b694ccd08266",
+      "signature": "471a5b4d526b7485",
       "lastmod": "2026-10-07"
     },
     "/zh/destiny-compass/": {
-      "signature": "8411f0108d0ee94e",
+      "signature": "14579fe21cdd8f15",
       "lastmod": "2026-10-07"
     },
     "/zh/disclaimer/": {
-      "signature": "bebf87e723fcf76c",
+      "signature": "c748a56c2e73c850",
       "lastmod": "2026-10-07"
     },
     "/zh/faq/": {
-      "signature": "b760f8356fb70e38",
+      "signature": "c0dfe7bea5e4a6de",
       "lastmod": "2026-10-07"
     },
     "/zh/fortune-tea-house/": {
-      "signature": "4041656e6fee34c4",
+      "signature": "61541b19f81c43d1",
       "lastmod": "2026-10-07"
     },
     "/zh/fortune/": {
-      "signature": "6fdde9602aa5e616",
+      "signature": "da7fa1400773ed5f",
       "lastmod": "2026-10-07"
     },
     "/zh/fortune/monthly/": {
-      "signature": "61d672b69e484d86",
+      "signature": "08723f20546632ea",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/monthly/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/": {
-      "signature": "61d672b69e484d86",
+      "signature": "08723f20546632ea",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/today/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/": {
-      "signature": "61d672b69e484d86",
+      "signature": "08723f20546632ea",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/tomorrow/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/": {
-      "signature": "61d672b69e484d86",
-      "lastmod": "2026-10-07"
+      "signature": "08723f20546632ea",
+      "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/aquarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/aries/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/cancer/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/capricorn/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/dog/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/dragon/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/gemini/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/goat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/horse/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/leo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/libra/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/monkey/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/ox/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/pig/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/pisces/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/rabbit/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/rat/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/rooster/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/sagittarius/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/scorpio/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/snake/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/taurus/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/tiger/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/fortune/weekly/virgo/": {
-      "signature": "cb175c943089b05e",
+      "signature": "962c4f0f393c9cda",
       "lastmod": "2026-10-08"
     },
     "/zh/insights/": {
-      "signature": "f129d23be0613d2d",
+      "signature": "65d1d929ef38cd0b",
       "lastmod": "2026-10-07"
     },
     "/zh/insights/sukuyo-basics-zh/": {
-      "signature": "f6b000eb4253162b",
+      "signature": "0d4b4539c8b29a6d",
       "lastmod": "2026-10-07"
     },
     "/zh/insights/ziwei-basics-zh/": {
-      "signature": "f6b000eb4253162b",
+      "signature": "0d4b4539c8b29a6d",
       "lastmod": "2026-10-07"
     },
     "/zh/privacy-policy/": {
-      "signature": "6a8767cb70d69ac7",
+      "signature": "21e63d7318ea2425",
       "lastmod": "2026-10-07"
     },
     "/zh/psychotest/": {
-      "signature": "7a0370de9e94993a",
+      "signature": "afaff6a7a582992c",
       "lastmod": "2026-10-07"
     },
     "/zh/refund-policy/": {
-      "signature": "7c8a9d0ebb449b95",
+      "signature": "da9eaf4be9776bc7",
       "lastmod": "2026-10-07"
     },
     "/zh/saju-compatibility/": {
-      "signature": "30dab93b930520be",
+      "signature": "697a514e0301664f",
       "lastmod": "2026-10-07"
     },
     "/zh/saju/": {
-      "signature": "12540b13756cde96",
+      "signature": "a1efbb3e7aaa3cea",
       "lastmod": "2026-10-07"
     },
     "/zh/sukuyo-compatibility-ai/": {
-      "signature": "c51e395267d01c1c",
+      "signature": "1be8df0bfaf3c74d",
       "lastmod": "2026-10-07"
     },
     "/zh/sukuyo-compatibility/": {
-      "signature": "2d44414f5e23e0b0",
+      "signature": "c66fa002c180af02",
       "lastmod": "2026-10-07"
     },
     "/zh/sukuyo/": {
-      "signature": "e3f658fda9a98cb5",
+      "signature": "5c9990543adcdc14",
       "lastmod": "2026-10-07"
     },
     "/zh/tarot/": {
-      "signature": "91bca7d6a3655259",
+      "signature": "179eaa4dd5e272ef",
       "lastmod": "2026-10-07"
     },
     "/zh/terms-of-service/": {
-      "signature": "167500b870d08473",
+      "signature": "1c386a2c05058ea5",
       "lastmod": "2026-10-07"
     },
     "/zh/today/": {
-      "signature": "847914682dc2c180",
+      "signature": "96e5f27cdc8bd810",
       "lastmod": "2026-10-07"
     },
     "/zh/vedic/": {
-      "signature": "811c54fef804ddd0",
+      "signature": "5afff679f17463a1",
       "lastmod": "2026-10-07"
     },
     "/zh/yeongnyangi/": {
-      "signature": "2b0df59a5f394f56",
+      "signature": "8dc33fa69ed6835a",
       "lastmod": "2026-10-07"
     },
     "/zh/ziwei/": {
-      "signature": "9eb2e06fede28292",
+      "signature": "f878baf33172230b",
       "lastmod": "2026-10-07"
     },
     "/ziwei-ai/": {
-      "signature": "1f1452ace73e0910",
+      "signature": "9af49d45c26581a7",
       "lastmod": "2026-10-07"
     },
     "/ziwei/": {
-      "signature": "0be2f343c942e226",
+      "signature": "004f7f6fa8d4a4e4",
       "lastmod": "2026-10-07"
     },
     "/ziwei/animal-destiny/": {
-      "signature": "f58f88c2f4de0beb",
+      "signature": "372718fa29d90a9e",
       "lastmod": "2026-10-07"
     },
     "/ziwei/chart/": {
-      "signature": "f94b383b5e9bcd6f",
+      "signature": "c38db997716dda01",
       "lastmod": "2026-10-07"
     },
     "/ziwei/guide/": {
-      "signature": "9ea276bd648ea9fe",
+      "signature": "c17c87c30998d59a",
       "lastmod": "2026-10-07"
     }
   }
