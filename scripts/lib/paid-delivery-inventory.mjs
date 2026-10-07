@@ -13,7 +13,7 @@ import { PAID_NARRATIVE_SERVER_RESUME_FEATURE_KEYS } from '../../worker/lib/paid
 
 export const LLM_DELIVERY_KINDS=Object.freeze(['paid-narrative','chapter-checkpoint','section-checkpoint','route-delivery']);
 export const LLM_DELIVERY_ADAPTERS=Object.freeze([
-  [/^yeongnyangi-/, 'worker/yeongnyangi/service.ts','worker/yeongnyangi/recovery.js','chapter-checkpoint'],
+  [/^(?:yeongnyangi-|fortune-chat-question-(?:mackerel|salmon|flounder|tuna)$)/, 'worker/yeongnyangi/service.ts','worker/yeongnyangi/recovery.js','chapter-checkpoint'],
   [/^(ziwei_ai_prompt_generator|astrology_ai_prompt_generator|vedic_ai_prompt_generator|sukuyo_ai_prompt_generator)$/, 'worker/lib/feature-question-delivery.js',null,'paid-narrative'],
   // handleSajuAIPrompt: PaidExecutionRecord section checkpoints; only the client resumes via resumeJobId.
   [/^saju_ai_question_prompt$/, 'worker/routes/fortune.js',null,'section-checkpoint'],

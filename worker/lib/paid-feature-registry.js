@@ -217,7 +217,6 @@ const CHAT_QUESTION_PRICES = Object.fromEntries(CHAT_QUESTION_FISH.map(fish => {
   return [chatQuestionFeatureKey(fish), {cost:amountKRW/100, amountKRW, reason:'연이·네오 질문 상담 · '+name}];
 }));
 const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
-  ...CHAT_QUESTION_PRICES,
   "vedic-ai-consultation": { cost: 300, amountKRW: 30000, reason: "베다점 전문가 상담" },
   "physiognomy-compatibility": { cost: 30, reason: "관상 궁합 분석" },
   "physiognomy-pastlife-compatibility": { cost: 30, reason: "전생 관상 궁합 분석" },
@@ -353,6 +352,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   // 연이 운명 상담 — 무료 횟수(비회원 1회 + 계정 3회)를 모두 쓴 뒤부터 회당 결제.
   // 전용 "대화권" 재화를 폐지하고 표준 회당 결제로 옮긴 자리다(2026-08-07).
   "fortune-chat-consultation": { cost: 30, amountKRW: 3000, reason: "연이 운명 상담 1회" },
+  ...CHAT_QUESTION_PRICES,
   // 초융합 운세 — 여섯 체계를 한 번에 엮는 2만자 이상 리딩. 500코인이라 건당 상한
   // (PASS_LIMITS: standard 50 · premium 100 · vvip 200)을 넘어 **family 등급만** 커버한다.
   // family 는 건당 상한이 없고 월 누적 한도(MONTHLY_PASS_LIMITS.family = 5,000코인 = 500,000원)

@@ -8,6 +8,7 @@
 // (worker(.js) ↔ Next(.ts) 빌드 결합을 만들지 않기 위해서 — /api/billing/features와 같은 방식).
 
 import { YEONGNYANGI_PAID_FEATURE_KEYS, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { CHAT_FEATURE_KEYS } from '../../lib/fortune/chat-products.js';
 
 // featureKeys는 normalizePaidFeatureKey를 통과한 정본 키만 적는다.
 // 별칭(gotoZiweiPremium 등)은 조회 시점에 정규화되므로 여기 나열하지 않는다.
@@ -374,7 +375,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
     summary: "연이와 나누는 실시간 대화형 운세 상담",
     href: "/fortune-chat",
     featureKeys: Object.freeze([
-      "fortune-chat-consultation",
+      ...CHAT_FEATURE_KEYS,
     ]),
   },
   {
