@@ -1879,6 +1879,21 @@
       "passNote": "Comprueba la cobertura y la validez antes de elegir.",
       "passLink": "Ver pases",
       "passHistory": "Los pases comprados conservan sus condiciones originales."
+    },
+    "yeongnyangiEntry": {
+      "badge": "Consulta de preguntas con Yeongnyangi",
+      "headingLead": "De tu pregunta al patrón que hay detrás",
+      "headingName": "Yeongnyangi, la gata que lee Saju",
+      "subtitle": "Una consulta a la luz de la luna para explorar una inquietud con el sistema que mejor encaja contigo",
+      "storyFirst": "Yeongnyangi responde a tu pregunta a partir de los cálculos de Saju, Ziwei Doushu, Sukuyo, astrología védica y astrología occidental.",
+      "storySecond": "Ordena en un lenguaje cercano los patrones que se repiten, tu momento actual y un siguiente paso que puedes probar hoy.",
+      "fishAria": "Niveles de pescado y precios de las consultas de Yeongnyangi",
+      "highlight": "En lugar de una respuesta vaga, recibe la base y la interpretación que encajan con tu pregunta. Elige el sistema y el alcance antes de empezar.",
+      "quote": "“Empieza por una cosa que quieras saber ahora. Seguiremos ese hilo juntos.”",
+      "quoteAttribution": "— Yeongnyangi",
+      "start": "Empezar una consulta de preguntas",
+      "free": "Ver primero una lectura gratuita",
+      "tagline": "Una consulta para tu pregunta que se abre con un pez"
     }
   },
   "terms": {

@@ -5,21 +5,11 @@
 .cdh-topics a{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:60px;padding:12px 16px;color:var(--cdh-ink);font-size:15px;font-weight:600;text-decoration:none}
 .cdh-topics a:hover{background:var(--cdh-surface)}
 .cdh-topics svg{width:18px;height:18px;flex:none}
-.cdh-reading-intro{display:grid;grid-template-columns:160px minmax(0,1fr);gap:28px;align-items:center;padding:20px 0}
-#cdHomeFunnel .cdh-reading-intro__art img{display:block;width:100%;height:auto}
-#cdHomeFunnel .cdh-reading-intro h2{font-size:24px;line-height:1.5;color:var(--cdh-ink)}
-#cdHomeFunnel .cdh-reading-intro p{max-width:58ch;margin:12px 0;color:var(--cdh-muted);font-size:15px;line-height:1.8;word-break:keep-all}
-.cdh-reading-steps{display:grid;gap:8px;margin:20px 0;padding-left:22px;color:var(--cdh-ink);font-size:15px;line-height:1.6}
-.cdh-reading-steps li::marker{color:var(--cdh-accent);font-weight:700}
-.cdh-reading-example{display:inline-flex;align-items:center;min-height:44px;color:var(--cdh-accent);text-underline-offset:4px}
-.cdh--concern-first :is(.cdh-start-links,.cdh-topics,.cdh-reading-intro) a:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:4px}
+.cdh--concern-first :is(.cdh-start-links,.cdh-topics) a:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:4px}
 @media(max-width:640px){
  #cdHomeFunnel.cdh--concern-first .cdh-primary{padding:12px 32px 12px 16px;font-size:14px}
  .cdh-topics{grid-template-columns:repeat(2,minmax(0,1fr));margin:16px 16px 0}
  .cdh-topics a{min-height:52px;padding:12px 8px;font-size:14px}
- .cdh-reading-intro{grid-template-columns:72px minmax(0,1fr);gap:16px;align-items:start;padding:12px 0}
- #cdHomeFunnel .cdh-reading-intro h2{font-size:20px}
- #cdHomeFunnel .cdh-reading-intro p,.cdh-reading-steps{font-size:14px}
  .cdh-start-links{gap:0 12px}
  .cdh-start-links a{font-size:13px}
 }
