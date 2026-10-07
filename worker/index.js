@@ -1090,6 +1090,11 @@ const app = {
     try {
       const url = new URL(request.url);
 
+      if (url.pathname.startsWith('/api/toss/')) {
+        const {handleTossRoutes} = await import('./toss/routes.js');
+        return handleTossRoutes(request, env);
+      }
+
       if (request.method === "OPTIONS") {
         return new Response(null, {
           status: 204,
