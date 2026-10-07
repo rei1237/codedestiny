@@ -100,3 +100,9 @@ node node_modules/jest/bin/jest.js --runInBand __tests__/worker/saju-consultatio
 - GitHub가 2026-10-07 15:13:13Z, 15:13:45Z, 15:15:03Z의 `git push origin main`을 각각 `Internal Server Error`로 거절했다. 마지막 request ID: `D340:2FBA98:65E4F:9CBF1:6AC661F3`. GitHub API도 병합 SHA를 아직 찾지 못했다(422). 따라서 최신 변경의 main CI는 미실행이다. GitHub 상태 페이지가 정상이어도 이 저장소의 실제 거절 결과를 우선한다.
 - 다음 동작은 현재 main/원격 main 비교 → 안전한 fetch/통합 → push 재시도 → 해당 SHA의 CI required 확인이다. 실패를 우회하려고 강제 push하거나 CI를 끄지 않는다. 원격 복구 후 이 현황을 갱신한다.
 - 운영 승격·설정 변경·실 LLM·결제·운영 DB 변경은 하지 않았다. 기존 브랜치를 배포 완료로 간주하지 않는다.
+
+## 전달 현황 갱신 — 2026-10-08 00:27 KST
+
+- GitHub push 장애는 후속 재시도에서 해소됐다. `46343c7b48e6172fd0ffb4d6e408fb3399fda0b4`가 원격 main에 전달됐고 타입/린트 및 [결제 전용 CI](https://github.com/rei1237/codedestiny/actions/runs/37642534644)가 통과했다.
+- [전체 CI](https://github.com/rei1237/codedestiny/actions/runs/37642534623)의 정적 검사는 기존 신년운세 5분야 고정 테스트 한 건이 실패했다. 요청된 6분야 구성을 확인하고 주의사항 해석은 기존 overview에서 계속 검증하도록 해당 테스트를 수정했다. 최신 main CI 결과는 재개 시 정확한 SHA로 확인한다. 위의 push 장애 내용은 과거 기록이며 현재 장애로 간주하지 않는다.
+- 이후 main에는 별도 세션의 초융합 수정 `876df3da04fb71f795647c116ad08290cec4ef76`도 포함됐다. 운영 승격은 이 변경을 포함한 전체 대상 SHA의 검증과 별도 승인이 필요하다.
