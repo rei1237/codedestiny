@@ -18,6 +18,8 @@ import {
   User,
 } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
+import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
+import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -586,6 +588,9 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     MonthlyCreditLedger.findOne({ userId: auth.userId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: metadataIds }, { $or: markers }] }).lean(),
   ]);
   if (blocked.some(Boolean)) return { ok: false, reason: "PAYMENT_REQUIRED" };
+  if (await hasConsumedPassFeature({ _id: auth.userId }, FEATURE_KEY, idempotencyKey)) {
+    return { ok: true, accessType: "pass", paymentId: "", source: "pass-receipt" };
+  }
   const paidPayment = await withMongoRetry(env, () => hasPaidPayment(auth, ctx.paymentId, idempotencyKey));
   if (paidPayment) {
     return {
@@ -634,7 +639,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   const user = auth.authUserDoc || await withMongoRetry(env, () => loadUser(auth.userId));
   if (!user) return { ok: false, reason: "LOGIN_REQUIRED" };
   if (clean(user.role).toLowerCase() === "admin") return { ok: true, accessType: "admin", paymentId: "", source: "server" };
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: user });
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: user, requestId: idempotencyKey });
   if (decision.allowed) {
     const accessType = mapAccessType(decision, user);
     if (accessType === "subscription" && !hasMonthlyCreditBalance(user, pricing.membershipCreditCost)) return { ok: false, reason: "PAYMENT_REQUIRED" };
@@ -1433,8 +1438,16 @@ async function generateConsultation(env, prompt, options = {}) {
 }
 
 async function applyUsageOnce({ userId, sessionId, accessType, pricing, source }) {
-  const existing = await AstrologyAiConsultation.findOne({ id: sessionId, userId }).select("usageAppliedAt").lean();
+  const existing = await AstrologyAiConsultation.findOne({ id: sessionId, userId }).select("usageAppliedAt idempotencyKey").lean();
   if (existing?.usageAppliedAt) return true;
+  if (!existing?.idempotencyKey) throw resultStorageUnavailable(sessionId);
+  if (accessType === "pass") {
+    const user = await User.findById(userId).select("profileSubscription recentConsumeRequestIds").lean();
+    const consumed = await consumePassForFeature({ user: user || {}, entitlement: resolveCanonicalEntitlement(user || {}),
+      userId, featureKey: FEATURE_KEY, requestId: existing.idempotencyKey, coinCost: pricing.coinPrice });
+    if (!consumed.covered) throw Object.assign(new Error("이용권 사용 한도를 확인해 주세요."),
+      { code: passDenialCode(consumed.reason) || "PAYMENT_REQUIRED" });
+  }
   if (source !== "billing-gate" && accessType === "subscription") {
     const error = new Error("A Payment Service access grant is required for monthly usage.");
     error.code = "PAYMENT_ACCESS_GRANT_REQUIRED";

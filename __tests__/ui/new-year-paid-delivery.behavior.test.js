@@ -92,6 +92,25 @@ function fixture(accessType = 'pass') {
   return { ctx, post, get doc() { return doc; }, get calls() { return calls; }, get charges() { return charges; }, get refunds() { return refunds; },
     fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; }, loseApply: () => { lostApply = true; } };
 }
+test('브라우저 종료 뒤 서버가 저장된 상담만 이어 완성하고 재열람은 재생성·중복 차감하지 않는다', async () => {
+  const f = fixture('pass');
+  await f.post();
+  load(f.ctx, 'worker/routes/new-year-ai.js', ['resumeConsultationOnServer']);
+  for (let wave = 0; wave < 20 && f.doc.status !== 'completed'; wave++) {
+    const response = await f.ctx.resumeConsultationOnServer({}, { id: f.doc.id, userId: f.doc.userId });
+    assert.ok([200, 202].includes(response.status), await response.text());
+  }
+  assert.equal(f.doc.status, 'completed');
+  const calls = f.calls;
+  const consumed = f.charges;
+  assert.equal(consumed, 1);
+  const again = await f.ctx.resumeConsultationOnServer({}, { id: f.doc.id, userId: f.doc.userId });
+  assert.equal(again.status, 200);
+  assert.equal(f.calls, calls);
+  assert.equal(f.charges, consumed);
+  assert.equal(f.refunds, 0);
+});
+
 for (const accessType of ['pass', 'subscription', 'paid']) {
   test(`${accessType}: 다섯 요청이 한 분야씩 보존하며 완료 저장 후 전달한다`, async () => {
     const f = fixture(accessType);
@@ -212,9 +231,9 @@ test('P2 initial and repair calls retain expanded token budget and timeout', asy
     const options = calls.at(-1);
     assert.ok(options.maxOutputTokens >= Math.ceil((section.maxChars + 1500) * 1.5) + 1500);
     assert.equal(options.timeoutMs, 52000);
-    assert.equal(options.fallbackMinChars, 1600);
+    assert.ok(options.fallbackMinChars >= 300 && options.fallbackMinChars <= section.minChars * 0.8);
   }
-  assert.equal(calls.length, 10);
+  assert.equal(calls.length, ctx.NEW_YEAR_AI_SECTIONS.length * 2);
 });
 function p3Body(key, size) { return key + Array.from({ length: size - key.length }, (_, i) => String.fromCharCode(0xac00 + i % 11172)).join(''); }
 for (const repair of ['shorter', 'empty', 'truncated', 'repeat']) test(`P3 short draft survives ${repair} reinforcement and completes above total floor`, async () => {

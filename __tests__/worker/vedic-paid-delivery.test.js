@@ -49,6 +49,9 @@ function prose(seed, length) {
   return value;
 }
 beforeAll(async () => {
+  const pass = await import("../../worker/lib/pass-consumption.js");
+  jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ ...pass,
+    consumePassForFeature: async () => ({ covered: true }), hasConsumedPassFeature: async () => false }));
   const db = await import("../../worker/lib/db.js");
   const auth = await import("../../worker/lib/auth.js");
   const models = await import("../../worker/lib/models.js");
@@ -87,6 +90,12 @@ afterEach(() => { expect(fetchBlock).not.toHaveBeenCalled(); fetchBlock.mockRest
 async function start(extra = {}) {
   return route(new Request("https://mock.test/api/vedic-ai/start", { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": "original-paid-request" }, body: JSON.stringify({ ...body, ...extra }) }), {});
 }
+it("accepts a server-confirmed pass without a client pass label", async () => {
+  const response = await start({ accessType: undefined });
+  expect(response.status).toBe(202);
+  expect(docs[0].accessType).toBe("pass");
+  expect(provider).toHaveBeenCalledTimes(1);
+});
 for (const paid of ["pass", "monthly", "paid"]) it(`${paid}: completes five waves without regenerating a stored group`, async () => {
   mode = paid; let response, partial;
   for (let i = 0; i < 4; i++) { response = await start(partial ? { resumeSessionId: partial.sessionId } : {}); expect(response.status).toBe(202); partial = await response.json(); expect(partial.consultation.completedGroups).toHaveLength(i + 1); }

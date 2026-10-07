@@ -5,6 +5,7 @@ import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {RUNTIME_LOCALES} from '../../lib/i18n/locale-normalize.js';
+import {TAROT_CARDS} from '../../lib/tarot/tarot-cards.mjs';
 import {tarotEvalCases,deckFor,scoreReading} from '../fixtures/yeongnyangi-tarot-eval/cases.mjs';
 const require=createRequire(import.meta.url),Module=require('node:module');
 globalThis.__spreadTest={rows:new Map()};
@@ -31,6 +32,17 @@ const env={GEMINIF_API_KEY:'mock-never-sent',LLM_DRY_RUN:'false'};
 let attempt=0;
 const attemptId=()=>`00000000-0000-4000-8000-${String(++attempt).padStart(12,'0')}`;
 const order=(extra={})=>({productId:'tarot_mackerel',profileId:'self',timezone:'Asia/Seoul',consultationKind:'spread',tarotSpreadId:'yn_contact_first',question:'내가 먼저 연락해도 될까?',consultationAttemptId:attemptId(),...extra});
+
+test('every saved card name is accepted without matching a different card suffix',()=>{
+ for(const card of TAROT_CARDS){
+  const context={facts:[{id:'tarot.cards',label:'cards',value:[{cardId:card.code,orientation:'upright'}]}]};
+  const body=summary=>({title:'',summary,persona:'',analysis:[],highlights:[],topics:[]});
+  assert.doesNotThrow(()=>validateTarotChapter(body(`${card.nameKo} 카드 정방향`),context),card.code);
+  assert.throws(()=>validateTarotChapter(body(`${card.nameKo} 역방향`),context),e=>e.code==='TAROT_ORIENTATION_MISMATCH');
+  const other=TAROT_CARDS.find(row=>row.code!==card.code);
+  assert.throws(()=>validateTarotChapter(body(`${other.nameKo} 카드`),context),e=>e.code==='TAROT_UNDRAWN_CARD');
+ }
+});
 
 test('all reading languages preserve the committed draw and language across saved rereads',async()=>{
  for(const locale of RUNTIME_LOCALES){

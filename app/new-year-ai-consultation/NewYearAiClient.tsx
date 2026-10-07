@@ -15,7 +15,7 @@ import {
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { authFetch } from "@/app/_lib/auth-client";
-import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
+import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
@@ -301,7 +301,7 @@ const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합
 const PAYMENT_REQUIRED_MESSAGE = "신년운세 전문가 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
 const PAYMENT_CANCELLED_MESSAGE = "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.";
-const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
+const SERVER_ERROR_MESSAGE = "상담을 준비하다 연결이 중단됐어요. 같은 상담에서 다시 시도해 주세요. 저장된 내용과 이용 내역을 먼저 확인합니다.";
 const LLM_ERROR_MESSAGE = "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 같은 요청 권한으로 다시 이어집니다.";
 const REQUIRED_INPUT_MESSAGE = "신년운세 상담에 필요한 정보가 부족해요. 생년월일, 성별, 달력 기준을 다시 확인해 주세요.";
 const TARGET_YEAR_REQUIRED_MESSAGE = "상담할 연도를 선택해 주세요.";
@@ -368,7 +368,7 @@ function createIdempotencyKey() {
 
 function isGenuineCustomQuestion(question: string) {
   const trimmed = question.trim();
-  return trimmed.length > 0 && !FOCUS_AREA_OPTIONS.some((option) => option.prompt === trimmed);
+  return trimmed.length >= 2;
 }
 
 function buildConsultationPayload(form: ConsultationForm) {
@@ -467,6 +467,9 @@ function splitAssistantSections(content: string) {
     normalized = extractReadableTextFromJsonLike(normalized);
     if (!normalized) return [];
   }
+  // Models may separate a Markdown heading and its first paragraph with a blank line.
+  // Keep that heading attached so the question answer is not treated as an unnamed paragraph.
+  normalized = normalized.replace(/(^|\n{2,})(\*\*[^*\n]{2,70}\*\*|#{1,3}[^\n]+)\n{2,}(?=\S)/g, "$1$2\n");
   const chunks = normalized.split(/\n{2,}/).map((chunk) => chunk.trim()).filter(Boolean);
   return chunks.map((chunk, index) => {
     const lines = chunk.split("\n").map((line) => line.trim()).filter(Boolean);
@@ -491,6 +494,7 @@ const CATEGORY_TITLE_PREFIXES = ["연애·재회", "재물·수입", "직업·�
 // NEW_YEAR_AI_SECTIONS)와 같아야 한다 — 구조화 응답이 오면 이 키로 곧장 매칭한다.
 // marker는 구버전 세션(llmMeta.sections 없음)에서 조립본을 다시 가를 때 쓰는 굵은 소제목이다.
 const DOMAIN_CARDS: Array<{ key: string; label: string; marker: string; glyph: string; hint: string }> = [
+  { key: "opening", label: "타고난 성향과 지금의 마음", marker: "타고난 성향과 지금의 마음", glyph: "命", hint: "나의 강점과 반복되는 부담, 고민을 이해하는 단서" },
   { key: "overview", label: "올해의 총운", marker: "올해의 총운", glyph: "運", hint: "세운이 일간에 만드는 조후와 억부의 변화" },
   { key: "wealth", label: "재물과 직업", marker: "재물과 직업", glyph: "財", hint: "재성·관성의 동태와 움직일 시기" },
   { key: "romance", label: "애정과 대인관계", marker: "애정과 대인관계", glyph: "緣", hint: "귀인과 인연, 조심해야 할 관계" },
@@ -555,11 +559,18 @@ function classifySections(sections: ParsedSection[]) {
   const monthLetters = new Map<number, MonthLetter>();
   const restSections: ParsedSection[] = [];
   let questionAnswer: ParsedSection | null = null;
+  let collectingQuestion = false;
   for (const section of sections) {
     if (!questionAnswer && section.title.includes(QUESTION_ANSWER_TITLE)) {
-      questionAnswer = section;
+      questionAnswer = { ...section };
+      collectingQuestion = true;
       continue;
     }
+    if (collectingQuestion && questionAnswer && /^새해 상담 편지 \d+$/.test(section.title)) {
+      questionAnswer.body += `\n\n${section.body}`;
+      continue;
+    }
+    collectingQuestion = false;
     const monthMatch = section.title.match(MONTH_LETTER_HEADING_RE);
     const month = monthMatch ? Number(monthMatch[1]) : NaN;
     if (monthMatch && month >= 1 && month <= 12 && !monthLetters.has(month)) {
@@ -581,7 +592,11 @@ function buildDomainBodies(
 ) {
   const bodies = new Map<string, string>();
   for (const card of DOMAIN_CARDS) {
-    const fromServer = serverSections.find((section) => section.key === card.key)?.text || "";
+    const rawServer = serverSections.find((section) => section.key === card.key)?.text || "";
+    const fromServer = card.key === "opening" && rawServer.includes(QUESTION_ANSWER_TITLE)
+      ? classifySections(splitAssistantSections(rawServer)).restSections
+        .map(section => /^새해 상담 편지 \d+$/.test(section.title) ? section.body : `**${section.title}**\n${section.body}`).join("\n\n")
+      : rawServer;
     if (fromServer) {
       bodies.set(card.key, stripLeadingMarker(fromServer, card.marker));
       continue;
@@ -1641,7 +1656,7 @@ export default function NewYearAiConsultationPage() {
     setAccessType(result.accessType || "");
     setMessages(Array.isArray(result.messages) ? result.messages : []);
     setServerSections(Array.isArray(result.sections) ? result.sections : []);
-    setReadingProgress(result.status && result.status !== "completed" ? Math.round(100 * (result.progress?.completed || 0) / (result.progress?.total || 5)) : 100);
+    setReadingProgress(result.status && result.status !== "completed" ? Math.round(100 * (result.progress?.completed || 0) / (result.progress?.total || 6)) : 100);
     setSajuProfile(result.sajuProfile || null);
     setMonthlyFlow(Array.isArray(result.monthlyFlow) ? result.monthlyFlow : []);
     setTargetYearInfo(result.targetYear || null);
@@ -1692,7 +1707,7 @@ export default function NewYearAiConsultationPage() {
         applyResult(result); pendingGenerationRef.current = null; return true;
       }
       applyResult(result);
-      setNotice(`저장된 분야 ${result.progress?.completed || 0}/${result.progress?.total || 5} · 이어서 준비하고 있습니다.`);
+      setNotice(`저장된 분야 ${result.progress?.completed || 0}/${result.progress?.total || 6} · 이어서 준비하고 있습니다.`);
     }
     setStatus("ready");
     return false;
@@ -1881,6 +1896,7 @@ export default function NewYearAiConsultationPage() {
       requestId: idempotencyKey,
     };
     let paymentAttempted = false;
+    let accessConfirmed = false;
     setError("");
     setNotice("");
     setStatus("preparing");
@@ -1895,8 +1911,17 @@ export default function NewYearAiConsultationPage() {
     void primePaymentEligibility(buildBillingGateInput({}, idempotencyKey));
 
     try {
-      const { payload: access } = await postJson<EnsureAccessResult>("/api/new-year-ai/ensure-access", payload, idempotencyKey);
+      const checked = await runAccessCheckWithTransientRetry(async () => {
+        try {
+          const { response, payload: data } = await postJson<EnsureAccessResult>("/api/new-year-ai/ensure-access", payload, idempotencyKey);
+          return { response, data };
+        } catch {
+          return { status: 503, data: { ok: false as const, reason: "NETWORK_ERROR", retryable: true } };
+        }
+      });
+      const access = checked.data as EnsureAccessResult;
       if (access.ok) {
+        accessConfirmed = true;
         completePaidFeatureGateCheck({
           featureKey: FEATURE_KEY,
           requestId: idempotencyKey,
@@ -1932,6 +1957,7 @@ export default function NewYearAiConsultationPage() {
           throw new Error(PAYMENT_VERIFY_FAILED_MESSAGE);
         }
         if (!isCurrent()) return;
+        accessConfirmed = true;
         await startConsultation(payload, idempotencyKey, { billingGate: gate.data as Record<string, unknown> });
         return;
       }
@@ -1956,7 +1982,7 @@ export default function NewYearAiConsultationPage() {
       failPaidFeatureGateCheck({
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
-        title: "이용권 확인 실패",
+        title: accessConfirmed ? "상담 생성이 잠시 중단됐어요" : "이용권 확인을 다시 시도해 주세요",
         reason: "신년운세 전문가 상담",
         paymentMode: "MEMBERSHIP_PASS",
         message,
@@ -2216,7 +2242,7 @@ export default function NewYearAiConsultationPage() {
           <div className="nyai-question-card">
             <div className="nyai-question-head">
               <strong>이 질문에 최우선으로 답해드립니다</strong>
-              <span>구체적으로 적을수록 더 정확한 답변을 받을 수 있어요</span>
+              <span>현재 상황과 고민 중인 선택을 적어 주세요. 답과 그 이유를 먼저 설명해 드려요.</span>
             </div>
             <label className="nyai-topic">
               명리학자에게 맡길 질문
