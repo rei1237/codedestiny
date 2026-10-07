@@ -19,10 +19,10 @@ const server = createServer(async (req, res) => {
 await new Promise(r => server.listen(0, '127.0.0.1', r));
 const origin = `http://127.0.0.1:${server.address().port}`;
 try {
-  for (const [name, engine, width] of [['chromium', chromium, 1280], ['chromium', chromium, 390], ... (process.argv.includes('--chromium') ? [] : [['webkit', webkit, 390]])]) {
+  for (const [name, engine, width] of [...(process.argv.includes('--webkit') ? [] : [['chromium', chromium, 1280], ['chromium', chromium, 390]]), ... (process.argv.includes('--chromium') ? [] : [['webkit', webkit, 390]])]) {
     const browser = await engine.launch();
     try {
-      const context = await browser.newContext({ viewport: { width, height: 900 } });
+      const context = await browser.newContext({ viewport: { width, height: 900 }, isMobile:width<768, hasTouch:width<768, reducedMotion:'reduce' });
       await context.route('**/*', async route => {
         const url = new URL(route.request().url());
         if (url.pathname.startsWith('/api/')) {
@@ -33,36 +33,43 @@ try {
       });
       await context.addInitScript(() => {
         sessionStorage.setItem('privacyAgreed', 'true');
-        window.__stabilityTrace = [];
-        const descriptor = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'display');
-        if (descriptor?.set) Object.defineProperty(CSSStyleDeclaration.prototype, 'display', { ...descriptor, set(value) {
-          for (const id of ['resultPage', 'inputPage']) if (document.getElementById(id)?.style === this) window.__stabilityTrace.push({ id, value, stack: new Error().stack });
-          descriptor.set.call(this, value);
-        } });
+
       });
       const page = await context.newPage();
       page.on('dialog', d => d.dismiss());
       page.on('pageerror', e => console.log('pageerror', e.message));
       await page.goto(origin, { waitUntil: 'domcontentloaded' });
+      await page.waitForFunction(() => typeof window.cdOneStepFreeSajuEntry === 'function');
       if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
       await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"]').click();
       await page.locator('#birthDate').fill('19900515');
       await page.locator('#nameInput').fill('안정성검증');
-      await page.evaluate(() => {
-        for (const id of ['resultPage', 'inputPage']) {
-          const style = document.getElementById(id)?.style;
-          if (style) Object.defineProperty(style, 'display', { configurable: true, get() { return this.getPropertyValue('display'); }, set(value) { window.__stabilityTrace.push({ id, value, stack: new Error().stack }); this.setProperty('display', value); } });
-        }
-      });
       await page.locator('#run-btn').click();
       await page.waitForFunction(() => window.G_PILLARS && document.getElementById('resultPage')?.style.visibility === 'visible', null, { timeout: 60000 });
+      await page.waitForFunction(() => !window.sajuCalculationRun && document.getElementById('sajuCalcLoadingOverlay')?.getAttribute('aria-hidden') === 'true');
+      assert.ok(await page.locator('#sajuMonthReading').count(),'month reading rendered');
+      assert.ok(await page.locator('#sajuContextReading').count(),'personal evidence rendered');
+      assert.ok((await page.locator('#sajuIljuRich').textContent()).includes('돈을 다루는 습관'));
+      const beforeModal = await page.evaluate(() => {
+        const detail = document.querySelector('#sajuIljuRich details');
+        if (detail) detail.open = true;
+        document.getElementById('sajuMonthReading').scrollIntoView({block:'start',behavior:'instant'});
+        return { scroll: scrollY, birth: document.getElementById('birthDate').value };
+      });
+      await page.evaluate(() => showTsDetail('비견'));
+      await page.locator('#tsModal').waitFor({state:'visible'});
+      await page.evaluate(() => closeModal());
+      await page.evaluate(() => SajuReadingPresentation.render('ilju'));
+      await page.evaluate(() => new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+      assert.deepEqual(await page.evaluate(() => ({ scroll:scrollY, birth:document.getElementById('birthDate').value })),beforeModal,'detail modal preserves input and result scroll');
+      assert.equal(await page.locator('#sajuIljuRich details').first().evaluate(el=>el.open),true,'detail stays expanded');
       await page.evaluate(() => {
         window.dispatchEvent(new ErrorEvent('error', { message: 'mock optional renderer error' }));
         window.dispatchEvent(new Event('pageshow'));
         document.dispatchEvent(new Event('visibilitychange'));
       });
       await page.waitForTimeout(600);
-      const state = await page.evaluate(() => ({ result: getComputedStyle(document.getElementById('resultPage')).display, input: getComputedStyle(document.getElementById('inputPage')).display, inputStyle: document.getElementById('inputPage').getAttribute('style'), resultStyle: document.getElementById('resultPage').getAttribute('style'), trace: window.__stabilityTrace, url: location.href }));
+      const state = await page.evaluate(() => ({ result: getComputedStyle(document.getElementById('resultPage')).display, input: getComputedStyle(document.getElementById('inputPage')).display, url: location.href }));
       console.log(JSON.stringify({ name, width, ...state }));
       assert.notEqual(state.result, 'none');
       assert.equal(state.input, 'none');

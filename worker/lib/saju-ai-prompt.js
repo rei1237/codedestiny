@@ -3,6 +3,7 @@ import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js"
 import { PAID_REPORT_MIN_BODY_CHARS } from "./paid-report-quality.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "./analysis-basis-contract.js";
 import { buildEvidenceRuleLines } from "./fortune-reasoning-contract.js";
+import { promptDepthLines } from '../../lib/saju/reading-depth.mjs';
 import {
   SAJU_PROMPT_TEMPLATES,
   getSajuPromptTemplate,
@@ -22,7 +23,7 @@ const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(SAJU_AI_PROMPT_FEATURE_KEY)].cost;
-export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v16-conditional-basis";
+export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v17-seasonal-depth";
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 
 // ── 상담문을 나눠 쓰는 단위 ────────────────────────────────────────────────
@@ -604,6 +605,12 @@ function readPillar(source, fallbackGanji = "") {
   };
 }
 
+function isSajuHourUnknown(result) {
+  const birth = (result?.analysisProfile || result?.profile)?.birth || {};
+  return result?.calculationMeta?.timeUnknown === true || result?.snapshot?.calculationMeta?.timeUnknown === true
+    || birth.timeUnknown === true || birth.unknownHour === true || birth.birthTimeUnknown === true;
+}
+
 function normalizeSajuPillarRows(sajuResult) {
   const result = sajuResult && typeof sajuResult === "object" ? sajuResult : {};
   const p = result.pillars && typeof result.pillars === "object" ? result.pillars : {};
@@ -616,7 +623,7 @@ function normalizeSajuPillarRows(sajuResult) {
     { position: "month", ...readPillar(p.m || p.month, bazi.monthPillar || engineBazi.monthPillar || `${bazi.monthGan || ""}${bazi.monthZhi || ""}`) },
     { position: "day", ...readPillar(p.d || p.day, bazi.dayPillar || engineBazi.dayPillar || `${bazi.dayGan || ""}${bazi.dayZhi || ""}`) },
     { position: "hour", ...readPillar(p.h || p.hour, bazi.hourPillar || engineBazi.hourPillar || `${bazi.timeGan || ""}${bazi.timeZhi || ""}`) },
-  ].filter((row) => row.stem || row.branch);
+  ].filter((row) => (row.stem || row.branch) && !(row.position === "hour" && isSajuHourUnknown(result)));
 }
 
 function normalizeLuckScope(scope, fallback) {
@@ -2175,6 +2182,10 @@ export function buildSajuAIPromptWithDomain({
       : null;
   const normalizedProfile = normalizeBirthInfo(profileOverride || analysisProfile || sajuResult.profile, sajuResult.snapshot);
   const pillars = normalizePillars(sajuResult.pillars);
+  if (isSajuHourUnknown(sajuResult)) {
+    pillars.hourPillar = "미상";
+    normalizedProfile.birthTime = "미상";
+  }
   const weights = normalizeElementWeights(sajuResult, sajuResult.snapshot);
   const johu = sajuResult.johu && typeof sajuResult.johu === "object" ? sajuResult.johu : {};
   const power = sajuResult.power && typeof sajuResult.power === "object" ? sajuResult.power : {};
@@ -2244,6 +2255,8 @@ export function buildSajuAIPromptWithDomain({
   const engineContextLines = buildSajuEngineContextLines(engineContext);
   const advancedFactorLines = buildSajuAdvancedFactorLines(advancedFactors, questionType);
   const bindingLines = buildSajuPromptBindingLines({ pillars, weights, johu, power, jong, engineContext, gyeokguk: advancedFactors?.gyeokguk });
+  bindingLines.push(...promptDepthLines(factSnapshot.dayMaster.stem, factSnapshot.pillars.month?.branch));
+  if (isSajuHourUnknown(sajuResult)) bindingLines.push("출생시간 미상: 시주는 투간·통근·격국 근거에서 제외했다. 제공된 강약·조후와 대운 시작 시기는 정오 대입의 참고값일 수 있으므로 시간에 의존하는 판단을 확정하지 않는다.");
   const analysisAngles = uniqueStringArray((template.analysisAngles || []).concat(
     SAJU_AI_PROMPT_MASTERY_ANGLES,
     buildSajuAnalysisAngles(questionType, normalizedQuestion),
