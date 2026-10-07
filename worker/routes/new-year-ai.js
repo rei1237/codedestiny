@@ -51,12 +51,12 @@ const FEATURE_KEY = "new-year-ai-consultation";
 const ACCESS_TOKEN_TYPE = "new-year-ai-access";
 const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "신년운세 전문가 상담";
-const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
+const SERVER_ERROR_MESSAGE = "상담을 준비하다 연결이 중단됐어요. 같은 상담에서 다시 시도해 주세요. 저장된 내용과 이용 내역을 먼저 확인합니다.";
 const LLM_ERROR_MESSAGE = "전문가 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
 const NEW_YEAR_AI_MIN_TOTAL_CHARS = 20000;
-const NEW_YEAR_AI_MAX_TOTAL_CHARS = 28000;
+const NEW_YEAR_AI_MAX_TOTAL_CHARS = 33000;
 // 총 10,000~20,000자(한국어 1자≈1~1.5토큰)를 한 번의 동기 호출로 뽑으면
 // gemini-2.5-flash(~200tok/s) 기준 75~112s가 필요한데, Cloudflare 엣지는 100s에 요청을 끊는다.
 // 그 조합에서 라우트는 실패 판정을 내리기도 전에 잘려 generation_failed 기록도, 이용권 복원도
@@ -72,6 +72,16 @@ const NEW_YEAR_AI_MAX_TOTAL_CHARS = 28000;
 // 없는 구버전 세션을 클라이언트가 다시 분야별로 가를 때 이 마커가 유일한 앵커가 된다.
 // categories는 validateFortuneDataConsistency의 6개 카테고리 소제목 중 이 섹션이 책임지는 것들이다.
 const NEW_YEAR_AI_SECTIONS = Object.freeze([
+  {
+    key: "opening",
+    label: "질문과 타고난 성향",
+    heading: "타고난 성향과 지금의 마음",
+    categories: [],
+    minChars: 2800,
+    targetMinChars: 3500,
+    maxChars: 4500,
+    covered: "올해 세운 상세, 재물·직업 상세, 애정·대인관계 상세, 1~12월 월별 흐름, 건강과 개운법",
+  },
   {
     key: "overview",
     label: "올해의 총운",
@@ -123,7 +133,7 @@ const NEW_YEAR_AI_SECTIONS = Object.freeze([
     covered: "총론과 명식 근거, 재물·직업 상세, 애정·대인관계 상세, 1~12월 월별 흐름",
   },
 ]);
-// 섹션 min 합 20,000자 / max 합 27,500자. 제목·공백은 본문 분량에서 제외한다.
+// 6섹션 목표 합 28,500~32,000자. 전체 수용 하한은 유지해 분량 때문에 정상 결과를 버리지 않는다.
 // 정상 경로에서 MIN_TOTAL_CHARS·MAX_TOTAL_CHARS 어느 쪽도 걸리지 않아 압축 패스가 불필요하다.
 // 상한 5,500자 + 공통 완충 1,500자 = 10,500토큰에 추가 여유 1,500토큰을 둔다.
 //
@@ -132,7 +142,7 @@ const NEW_YEAR_AI_SECTIONS = Object.freeze([
 //    의 실패 기록), 3,000~5,000자는 astrology(4,600)·sukuyo(6,000)·love-secret(6,500)이 이미 쓰고 있는
 //    검증된 구간이다. 한 요청은 한 분야만 생성하며 52초 호출 한도와 토큰 여유를 함께 유지한다.
 const NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS = 12000;
-// 섹션 1개의 LLM 대기 상한. 4개가 동시에 도니 이 값이 곧 1웨이브의 벽시계 상한이다.
+// 섹션 1개의 LLM 대기 상한. 한 요청에서 한 섹션씩 생성하고 저장한다.
 const NEW_YEAR_AI_SECTION_TIMEOUT_MS = 52000;
 // 요청 시작 시점 기준 LLM 총 예산. 남는 18초는 인증·결제·DB 기록·응답 직렬화 몫이다(엣지 100s).
 const NEW_YEAR_AI_LLM_BUDGET_MS = 82000;
@@ -140,7 +150,7 @@ const NEW_YEAR_AI_LLM_BUDGET_MS = 82000;
 const NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS = 18000;
 // 섹션 응답이 이 길이 미만이면 실패로 본다(전체 기준 minLength 1000은 섹션 단위에 맞지 않는다).
 const NEW_YEAR_AI_SECTION_MIN_LENGTH = 300;
-// 4섹션 중 이 개수 이상 살아 있으면 degraded로 전달·과금한다. 그 미만이면 실패로 돌려
+// 구 조립 경로에서 이 개수 이상 살아 있으면 degraded로 전달한다. 그 미만이면 실패로 돌려
 // 기존 503 + 이용권/결제 복원 경로를 그대로 탄다(결제 후 무결과도, 반쪽에 과금도 막는 절충).
 const NEW_YEAR_AI_MIN_USABLE_SECTIONS = 2;
 // generating 문서를 "아직 진행 중"으로 인정할 창.
@@ -1335,7 +1345,7 @@ function buildSystemPrompt(section = null) {
     "10. 답변 마지막에는 추가 질문을 유도하지 말고, 새해를 여는 한 줄 조언으로 마무리합니다.",
     "11. PDF, 챕터, progress, job이라는 단어를 쓰지 않습니다.",
     "12. 계산 항목을 나열하는 대신, 왜 그런 흐름이 드러나는지 명식의 근거와 생활 선택을 한 문맥으로 이어 말합니다.",
-    "13. 완성 상담문 전체 본문은 공백을 제외하고 20,000자 이상 28,000자 이하로 씁니다. 권장 분량은 22,000~25,000자이며, 항목마다 20,000자를 쓰라는 뜻이 아닙니다.",
+    "13. 완성 상담문 전체 본문은 공백을 제외하고 20,000자 이상 33,000자 이하로 씁니다. 권장 분량은 28,500~32,000자이며, 항목마다 20,000자를 쓰라는 뜻이 아닙니다.",
     "14. 분량이 부족할 때는 같은 말을 늘리지 말고, 명리 전문가로서 격국·월령, 용신·기신, 조후, 대운·세운, 천간·지지 합충, 월운, 현실 처방 파트를 새로 보강합니다.",
     "15. 문단 사이는 빈 줄로 구분하고, 핵심 문구는 **굵게** 표시합니다. 필요할 때만 '-' 목록을 쓰고, 그 외 마크다운(제목 #, 코드블록, 표)은 쓰지 않습니다.",
     ...(section ? [
@@ -1393,7 +1403,7 @@ function buildDomainSignalLines(fortuneData = {}) {
 // 항목 문구는 기존과 한 글자도 다르지 않다 — verify-new-year-ai-flow가 이 문장들을 단언한다.
 function buildConsultationOutline(input) {
   return [
-    ...(input.hasCustomQuestion ? [{
+    ...(clean(input.question).length >= 2 ? [{
       no: 0,
       line: "0. 다른 무엇보다 먼저, 소제목 **질문에 대한 답변**을 굵게 쓰고 사용자가 직접 남긴 질문에 직접적이고 구체적으로 답합니다. 이 답변을 마친 뒤에 아래 1번부터 이어갑니다.",
     }] : []),
@@ -1414,8 +1424,13 @@ function buildConsultationOutline(input) {
 // 월별(monthly)은 기존 7번 항목을 그대로 재사용한다 — 그 문장의 `**{월}월 · {간지} · {키워드}**`
 // 형식은 클라이언트 MONTH_LETTER_HEADING_RE가 파싱하는 계약이라 바꾸면 월별 편지가 통째로 사라진다.
 const NEW_YEAR_AI_SECTION_OUTLINES = Object.freeze({
+  opening: [
+    "1. 질문의 핵심 결론을 먼저 쓴 뒤, 소제목 **타고난 성향과 지금의 마음** 아래에 일간·월령·오행 분포와 실제 계산 근거로 타고난 기질을 설명합니다. 강점과 그 강점이 과해질 때의 부담을 함께 짚고, 관계·일·선택 습관의 구체적인 생활 장면으로 풉니다. 입력으로 확인되지 않은 과거 사건은 사실처럼 만들지 않습니다.",
+    "2. 사용자가 질문에 적은 힘든 상황과 감정을 구체적으로 받아 줍니다. 말하지 않은 고통이나 상처를 단정하지 말고, 확인된 부담이 없다면 성향상 어려움을 느낄 수 있는 상황을 조건부로 설명합니다. 공감은 결론을 흐리는 위로나 같은 말의 반복으로 대신하지 않습니다.",
+    "3. 질문에 대한 판단의 이유를 명식의 근거와 쉬운 뜻으로 연결하고, 유리한 점·부담·판단이 달라지는 조건을 구분합니다. 결과를 보장하지 말고 지금 확인할 사실과 바로 할 행동을 제시합니다.",
+  ],
   overview: [
-    "1. 타고난 성향 총론을 가장 먼저 씁니다. 일간·월령·격국·오행 분포를 근거로 이 사람이 타고난 기질과 성향이 어떤지 전반적으로 짚어, 상담자가 '나를 정확히 봤다'고 느끼도록 신뢰를 먼저 세웁니다.",
+    "1. 앞부분에서 설명한 타고난 성향을 반복하지 말고, 그 기질이 올해의 상황과 만나는 지점부터 설명합니다. 질문에 대한 결론을 올해의 기회·부담·선택 기준으로 구체화합니다.",
     "2. 올해 세운의 천간과 지지가 일간(日主)과 원국 전체에 어떤 변화를 만드는지, 조후(온도·습도)와 억부(일간의 강약)를 중심으로 짚습니다. 세운 천간이 일간을 돕는지 누르는지, 세운 지지가 월령의 계절 기운을 어느 쪽으로 기울이는지를 명시하고, 그 결과 올해 이 사람의 기운이 작년보다 강해지는지 약해지는지 결론을 냅니다.",
     "3. 원국의 격국, 용신·기신, 조후가 올해 어떤 방식으로 쓰이는지 쉽게 풀어냅니다.",
     "4. 대운의 배경 위에 세운이 어떤 사건성과 선택 압력을 일으키는지 짚습니다. 이때 세운 간지와, 세운이 원국의 어느 기둥과 합·충하는지를 본문에 직접 인용해 근거로 삼습니다.",
@@ -1453,14 +1468,16 @@ function buildSectionOutlineLines(input, section, prevention = false) {
     prevention && section.key === 'health' && index === 0
       ? '1. 오행과 조후의 치우침은 생활 리듬과 무리하는 습관을 돌아보는 전통적 해석으로만 사용합니다. 관찰 가능한 피로·휴식·일정의 조건과 예방 행동을 설명하며 특정 장기·질환·호르몬의 상태를 명식으로 판단하지 않습니다.'
       : line);
-  // 사용자가 직접 남긴 질문은 총운 섹션이 맨 앞에서 책임진다(조립 순서상 상담문 첫머리).
-  const questionLine = input.hasCustomQuestion && section.key === "overview"
+  // 기존 요청 해시는 보존하되, 질문의 존재는 클라이언트 표시값이 아닌 본문으로 판단한다.
+  const questionLine = clean(input.question).length >= 2 && section.key === "opening"
     ? ["0. 다른 무엇보다 먼저, 소제목 **질문에 대한 답변**을 굵게 쓰고 사용자가 직접 남긴 질문에 직접적이고 구체적으로 답합니다. 이 답변을 마친 뒤에 아래 1번부터 이어갑니다."]
     : [];
-  const headingLine = section.heading
+  const headingLine = section.key === "opening" && questionLine.length
+    ? [`질문에 대한 답변을 마친 뒤 소제목 **${section.heading}**을(를) 쓰고 아래 항목을 이어갑니다.`]
+    : section.heading
     ? [`이 부분의 본문은 반드시 소제목 **${section.heading}**을(를) 굵게 쓴 줄로 시작하고, 그 아래에 아래 항목들을 이어서 씁니다.`]
     : [];
-  return [...headingLine, ...questionLine, ...lines];
+  return [...questionLine, ...headingLine, ...lines];
 }
 
 // 섹션 모드에서 전체 분량 지시(10,000~20,000자)를 대신하는 줄들.
@@ -1498,14 +1515,15 @@ function buildFirstPrompt(input, fortuneData, section = null) {
     "",
     // "질문에 대한 답변" 소제목은 총운 섹션 하나만 쓴다. 섹션 전부에 이 지시가 들어가면
     // 조립본에 같은 소제목이 다섯 번 반복되고, 분야 카드마다 같은 답이 머리에 붙는다.
-    ...(input.hasCustomQuestion && (!section || section.key === "overview") ? [
+    ...(clean(input.question).length >= 2 && (!section || section.key === "opening") ? [
       "[사용자가 직접 남긴 질문 — 최우선으로 답할 것]",
       `"${input.question}"`,
       "이 질문은 사용자가 가장 궁금해하는 개인화된 질문입니다. 아래 답변 맨 앞에 반드시 소제목 **질문에 대한 답변**을 굵게 쓰고, 그 아래에 이 질문에 대한 직접적이고 구체적인 결론을 먼저 씁니다. 범용적인 총론과 겹치지 않게, 이 질문의 단어와 맥락에 특화된 근거와 조언을 담으세요.",
+      "첫 2~3문장에서 질문에 답하세요. 선택 질문이면 권하는 방향과 조건, 시기 질문이면 계산된 기간 안의 구체적인 시기와 이유, 관계 질문이면 확인 가능한 흐름과 대화 방법을 제시합니다. 계산이나 입력만으로 판단할 수 없는 부분은 무엇이 부족한지 분명히 밝히고, 그래도 지금 할 수 있는 행동을 답합니다.",
       "",
     ] : []),
     // 다른 분야 섹션에는 질문을 맥락으로만 준다 — 답변 소제목은 만들지 않는다.
-    ...(input.hasCustomQuestion && section && section.key !== "overview" ? [
+    ...(clean(input.question).length >= 2 && section && section.key !== "opening" ? [
       "[사용자가 직접 남긴 질문 — 맥락 참고용]",
       `"${input.question}"`,
       "이 질문에 대한 직접적인 답변 소제목은 다른 부분에서 이미 씁니다. 여기서는 **질문에 대한 답변** 소제목을 만들지 말고, 이 부분이 맡은 분야가 그 질문과 맞닿는 지점만 자연스럽게 반영하세요.",
@@ -1537,8 +1555,8 @@ function buildFirstPrompt(input, fortuneData, section = null) {
     ] : []),
     "",
     ...(section ? buildSectionLengthLines(section) : [
-      "완성 상담문 전체 본문 합계는 공백을 제외하고 20,000자 이상 28,000자 이하로 맞추세요.",
-      "권장 분량은 22,000~25,000자이며, 더 중요한 기준은 분량보다 상담 품질과 명리 근거의 밀도입니다.",
+      "완성 상담문 전체 본문 합계는 공백을 제외하고 20,000자 이상 33,000자 이하로 맞추세요.",
+      "권장 분량은 28,500~32,000자이며, 더 중요한 기준은 분량보다 상담 품질과 명리 근거의 밀도입니다.",
       "각 항목마다 20,000자를 쓰지 말고, 전체 상담문이 충분히 깊고 완성된 분량이 되도록 균형 있게 확장하세요.",
       "분량이 부족하면 단순히 문장을 길게 늘이지 말고, 명리 전문가로서 격국과 월령, 용신·기신, 조후, 대운과 세운, 천간·지지 합충, 월운, 현실 처방을 새 파트로 보강하세요.",
     ]),
@@ -1691,7 +1709,7 @@ function buildSectionPrompt(input, fortuneData, section, repairLines = [], previ
 // MISSING_CATEGORIES는 여기 없다 — 카테고리마다 책임 섹션이 달라 아래 표로 낱개 분배한다.
 const NEW_YEAR_AI_ISSUE_SECTION_KEY = Object.freeze({
   PREVENTION_SECTION_MISSING: 'overview',
-  QUESTION_ANSWER_SECTION_MISSING: "overview",
+  QUESTION_ANSWER_SECTION_MISSING: "opening",
   ANNUAL_PILLAR_UNSTATED: "overview",
   SEWOON_INTERACTION_UNSTATED: "overview",
   MISSING_MONTHS: "monthly",
@@ -2366,7 +2384,10 @@ async function generateNewYearWave(env, input, fortuneData, options) {
         input, fortuneData, section: candidate.section, allowShortDraft: true,
         timeoutMs: Math.min(NEW_YEAR_AI_SECTION_TIMEOUT_MS, remaining),
         cache: null, logContext: options.logContext,
-        repairLines: candidate.text ? [...buildSectionRepairLines(candidate.section, targets.get(candidate.key) || [], fortuneData), '제목·목차·마크다운 기호·공백을 제외한 본문을 5,000~5,500자로 보강하고 같은 문장이나 문단을 반복하지 마세요.'] : ['제목·목차·기호·공백을 제외한 본문을 5,000~5,500자로 작성하세요.'],
+        repairLines: [
+          ...(candidate.text ? buildSectionRepairLines(candidate.section, targets.get(candidate.key) || [], fortuneData) : []),
+          `제목·목차·기호·공백을 제외한 본문을 ${candidate.section.targetMinChars || candidate.section.minChars}~${candidate.section.maxChars}자로 작성하고 같은 문장이나 문단을 반복하지 마세요.`,
+        ],
         previousText: candidate.text,
       });
       if (valid(generated)) {
@@ -2485,7 +2506,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   try {
     const attempts = { ...(claimed.llmMeta?.attempts || {}) };
     const generated = await generateConsultationText(env, normalized.input, fortuneData, {
-      hasCustomQuestion: normalized.input.hasCustomQuestion, deadlineAt: startedAt + NEW_YEAR_AI_LLM_BUDGET_MS,
+      hasCustomQuestion: clean(normalized.input.question).length >= 2, deadlineAt: startedAt + NEW_YEAR_AI_LLM_BUDGET_MS,
       savedSections: claimed.llmMeta?.savedSections || [], attempts,
       onReserve: async (key, lengthRepair) => {
         if (lengthRepair) attempts[`${key}:lengthRepair`] = 1;
@@ -2650,7 +2671,7 @@ export const __newYearAiTestUtils = {
   buildMockConsultationText,
   buildBasicSajuProfile,
   publicSession,
-  // 분야별 5섹션 병렬 생성의 조립·라우팅 로직 — LLM 없이 검증할 수 있게 노출한다.
+  // 분야별 6섹션 생성의 조립·라우팅 로직 — LLM 없이 검증할 수 있게 노출한다.
   NEW_YEAR_AI_SECTIONS,
   NEW_YEAR_AI_CATEGORY_SECTION_KEY,
   assembleConsultationSections,
