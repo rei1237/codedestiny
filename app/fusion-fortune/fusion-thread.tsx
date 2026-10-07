@@ -218,7 +218,7 @@ export function ThreadBubble({ systemKey, tone = "plain", deferRender = false, e
   return (
     <div
       style={tintVars(systemKey)}
-      className={`relative min-w-0 overflow-hidden rounded-xl border px-4 py-5 sm:px-6 sm:py-6 ${
+      className={`${styles.readingPanel} relative min-w-0 overflow-hidden border px-4 py-5 sm:px-6 sm:py-6 ${
         tone === "gold"
           ? "border-[var(--fx-line-strong)] bg-[var(--fx-surface)]"
           : "border-white/[0.09] bg-white/[0.035]"
@@ -232,7 +232,7 @@ export function ThreadBubble({ systemKey, tone = "plain", deferRender = false, e
 /** 화자 이름표. 대화의 "누가 말하는가"를 한 줄로 못 박는다. `meta` 는 글자 수·읽는 시간 같은 부속 정보다. */
 export function ThreadSpeaker({ label, note, meta }: { label: string; note?: ReactNode; meta?: ReactNode }) {
   return (
-    <p className="m-0 mb-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-display text-[0.82rem] tracking-wide text-[color:var(--tint-label)]">
+    <p className="m-0 mb-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-sans text-[0.82rem] tracking-wide text-[color:var(--tint-label)]">
       {label}
       {note}
       {meta && <span className="font-sans text-[0.72rem] tracking-normal text-[var(--fx-ink-4)] tabular-nums before:mr-2 before:text-[var(--fx-line-strong)] before:content-['·']">{meta}</span>}

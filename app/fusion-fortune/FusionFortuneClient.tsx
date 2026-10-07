@@ -27,12 +27,9 @@ import { FUSION_ORB_BY_KEY, FUSION_ORBS, type FusionSystemKey } from "./fusionOr
 import { FusionRecentList, type FusionRecentItem } from "./FusionRecentList";
 import { FusionResultRail } from "./FusionResultRail";
 import { FusionResultThread } from "./FusionResultThread";
+import { FusionConvergence } from "./FusionConvergence";
 import SavedRecordLink from "@/components/fortune/SavedRecordLink";
 import {
-  ThreadBubble,
-  ThreadRow,
-  ThreadSpeaker,
-  TypingDots,
   buildFusionStages,
   initialStageStates,
   type FusionStageKey,
@@ -3028,6 +3025,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         </div>
       </header>
 
+      {!exporting && (loading || stageTwoFailed) && <FusionConvergence stageStates={stageStates} result={result} loading={loading} composeProgress={composeProgress} />}
+
       {result && stageTwoFailed && !loading && <div role="status" className={styles.recoveryNotice}>
         <p>{copy.stageTwoFailedMessage}</p>
         <button type="button" onClick={() => void continueGeneration()}>{copy.continueGenerationButton}</button>
@@ -3038,38 +3037,6 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_224px] lg:gap-7 lg:pr-9">
       <ol className="relative m-0 grid list-none gap-5 px-3 py-7 max-[430px]:px-2 sm:px-9 sm:py-9">
         {/* 대화의 척추. 좌표 = 목록 좌우 여백(12/36px) + 아바타 반지름(14/18px). */}
-
-        {/* 생성 중에는 끝난 체계와 지금 쓰는 체계만 말한다. 아직 없는 내용을 자리로 약속하지 않는다. */}
-        {loading && (!result || result.expertMeta?.complete === false) && fusionStages.map((stage, index) => {
-          const state = stageStates[stage.key];
-          if (state === "pending") return null;
-          const systemKey = stage.key === "fusion" ? "fusion" : stage.key as FusionSystemKey;
-          return <ThreadRow key={stage.key} systemKey={systemKey} index={index} dataState={state}>
-            <ThreadBubble systemKey={systemKey}>
-              <ThreadSpeaker
-                label={stage.key === "fusion" ? copy.speakerFusionLabel : stage.label}
-                note={state === "completed"
-                  ? <span className="rounded-full bg-[var(--tint-veil)] px-2.5 py-0.5 text-[0.7rem] text-white/80">{copy.speakerCompletedBadge}</span>
-                  : <span className="inline-flex items-center gap-2 rounded-full bg-[var(--tint-veil)] px-2.5 py-0.5 text-[0.7rem] text-white/80"><TypingDots />{copy.speakerWritingBadge}</span>}
-              />
-              <p className={`m-0 max-w-[72ch] ${styles.reading} text-[var(--fx-ink-2)]`}>{state === "completed" ? stage.done : stage.message}</p>
-              {stage.key === "fusion" && composeProgress && <div className="mt-4 rounded-xl border border-white/[0.08] bg-black/25 px-4 py-3.5">
-                <p className="m-0 text-[0.85rem] text-[var(--fx-ink-3)]">
-                  <strong className="font-display text-[var(--fx-gold)]">{composeProgress.completed} / {composeProgress.total}</strong>
-                  {composeProgress.phase === "repair" ? copy.composeRepairSuffix : copy.composeDoneSuffix}{composeProgress.label ? ` · ${composeProgress.label}` : ""}
-                </p>
-                <span aria-hidden className="mt-2.5 block h-1.5 overflow-hidden rounded-full bg-white/[0.09]">
-                  <em className="block h-full origin-left rounded-full bg-[linear-gradient(90deg,var(--fx-violet),var(--fx-gold-2))] transition-transform duration-700 ease-out motion-reduce:transition-none" style={{ transform: `scaleX(${Math.min(1, composeProgress.completed / Math.max(1, composeProgress.total))})` }} />
-                </span>
-                <small className="mt-2.5 block text-[0.78rem] leading-relaxed text-[var(--fx-ink-4)]">
-                  {composeProgress.phase === "repair"
-                    ? copy.composeRepairNote
-                    : copy.composeNormalNote}
-                </small>
-              </div>}
-            </ThreadBubble>
-          </ThreadRow>;
-        })}
 
         {/* 🔴 진행 카운터(composeProgress) 안에 있던 안내다. 거기 두면 첫 진행 이벤트가 오기
             전에 멈춘 경우 — 정확히 사용자가 겪는 상황 — 화면에 한 글자도 안 뜬다. */}

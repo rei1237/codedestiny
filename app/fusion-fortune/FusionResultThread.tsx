@@ -11,6 +11,7 @@
 
 import { ExpertEvidence, useFusionExpertCopy } from "./ExpertEvidence";
 import { FusionVisualization } from "./FusionVisualization";
+import { FusionChapterArt } from "./FusionChapterArt";
 import {
   SECTION_KEYS,
   SECTION_SYSTEM_KEYS,
@@ -41,6 +42,8 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
   // 캡처 중에는 "무엇을 펼쳐 뒀는지"와 무관하게 전부 보여야 한다 — 접힌 섹션은
   // display:none 이 아니라 아예 렌더되지 않으므로 캡처에서 통째로 빠진다.
   const isOpen = (key: string, fallbackOpen = false) => exporting || openSection === key || (!openSection && fallbackOpen);
+  // Empty means the initial, first-chapter-open view. An explicit close must not return to that view.
+  const toggleVisibleSection = (key: string, expanded: boolean) => onToggleSection(expanded ? "collapsed" : key);
 
   return <>
     {result.openingMessage && <ThreadRow systemKey="fusion" index={0} exporting={exporting} pdfSection tocKey="opening">
@@ -74,21 +77,22 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
       const [keySentence, ...restPoints] = result[key].keyPoints || [];
       return <ThreadRow key={key} systemKey={systemKey} index={index + 3} exporting={exporting} pdfSection tocKey={key}>
         <ThreadBubble systemKey={systemKey} deferRender exporting={exporting}>
+          {!exporting && <FusionChapterArt systemKey={systemKey} />}
           <ThreadSpeaker label={systemKey === "fusion" ? expertCopy.narrator : copy.systemLabels[systemKey]} meta={sectionMeta(countSectionChars(result[key]))} />
           <h3 className="m-0">
             {readOnly ? <span className={`${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)]`}>{result[key].title}</span> : <button
               type="button"
               aria-expanded={expanded}
               aria-controls={`fusion-section-${key}`}
-              onClick={() => onToggleSection(key)}
+              onClick={() => toggleVisibleSection(key, expanded)}
               className={`flex min-h-11 w-full flex-col items-start justify-center gap-1.5 text-left sm:flex-row sm:items-center sm:justify-between sm:gap-3 ${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)] transition-colors hover:text-[color:var(--tint-label)] motion-reduce:transition-none`}
             >
               <span className="min-w-0">{result[key].title}</span>
               <b className="shrink-0 rounded-full border border-white/[0.16] px-3 py-1 text-[0.74rem] font-normal text-white/75">{expanded ? copy.collapseButton : copy.viewEvidenceButton}</b>
             </button>}
           </h3>
-          {keySentence && <p className="m-0 mt-3.5 grid max-w-[72ch] grid-cols-1 gap-2 rounded-xl bg-black/25 px-4 py-3.5 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-baseline sm:gap-3.5">
-            <span className="text-[0.7rem] uppercase tracking-[0.2em] text-[color:var(--tint-label)]">{copy.keySentenceLabel}</span>
+          {keySentence && <p className={styles.chapterKeyPoint}>
+            <span>{copy.keySentenceLabel}</span>
             <q className={`[quotes:none] ${styles.readingTitle} text-[1.05rem] leading-[1.8] text-[var(--fx-ink-1)] [text-wrap:pretty]`}>{keySentence}</q>
           </p>}
           {expanded && <div id={`fusion-section-${key}`} className="mt-3 border-t border-white/[0.07] pt-4">
@@ -113,7 +117,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
               type="button"
               aria-expanded={expanded}
               aria-controls="fusion-section-timing"
-              onClick={() => onToggleSection("timing")}
+              onClick={() => toggleVisibleSection("timing", expanded)}
               className={`flex min-h-11 w-full flex-col items-start justify-center gap-1.5 text-left sm:flex-row sm:items-center sm:justify-between sm:gap-3 ${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)] transition-colors hover:text-[color:var(--tint-label)] motion-reduce:transition-none`}
             >
               <span className="min-w-0">{result.timingAndAction.title}</span>
@@ -203,6 +207,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
 
     {result.closingMessage && <ThreadRow systemKey="fusion" index={12} exporting={exporting} pdfSection tocKey="closing">
       <ThreadBubble systemKey="fusion" exporting={exporting}>
+        {!exporting && <FusionChapterArt systemKey="fusion" closing />}
         <ThreadSpeaker label={expertCopy.narrator} />
         <p id="fusion-closing-message" className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.closingMessage}</p>
       </ThreadBubble>
