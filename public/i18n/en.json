@@ -1894,6 +1894,12 @@
       "start": "Start a question reading",
       "free": "Read a free fortune first",
       "tagline": "A question reading opened with one fish"
+    },
+    "reading": {
+      "famousNote": "Public figures' Saju stories based on public sources",
+      "insightsNote": "Helpful reading on Saju, tarot and birth charts",
+      "heading": "Insightful stories for your day",
+      "open": "Read the stories"
     }
   },
   "terms": {

@@ -1894,6 +1894,12 @@
       "start": "Vraagconsult starten",
       "free": "Eerst een gratis duiding bekijken",
       "tagline": "Een vraagconsult voor jou, geopend met één vis"
+    },
+    "reading": {
+      "famousNote": "Saju-verhalen van bekende personen op basis van openbare bronnen",
+      "insightsNote": "Nuttige artikelen over Saju, tarot en geboortehoroscopen",
+      "heading": "Inspirerende verhalen voor je dag",
+      "open": "Lees de verhalen"
     }
   },
   "terms": {

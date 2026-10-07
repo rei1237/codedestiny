@@ -1894,6 +1894,12 @@
       "start": "Bat dau tu van cau hoi",
       "free": "Xem van may mien phi truoc",
       "tagline": "Tu van cho cau hoi cua ban, mo ra bang mot chu ca"
+    },
+    "reading": {
+      "famousNote": "Câu chuyện Saju của người nổi tiếng từ nguồn công khai",
+      "insightsNote": "Bài đọc hữu ích về Saju, tarot và lá số",
+      "heading": "Câu chuyện vận mệnh hữu ích mỗi ngày",
+      "open": "Đọc bài viết"
     }
   },
   "terms": {

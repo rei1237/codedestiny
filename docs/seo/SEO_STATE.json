@@ -2112,6 +2112,36 @@
       },
       "productionPerformance": null,
       "postChangeCtr": null
+    },
+    "celebrityDiscovery": {
+      "observedAt": "2026-10-08",
+      "reportUpdatedAt": "2026-10-06",
+      "period": "최근 30일 PC+Mobile",
+      "source": "Naver Search Advisor authenticated UI / 검색 웹문서 TOP30 / 27위",
+      "rawUrl": "https://code-destiny.com/insights/famous-saju/iu/?v=086b7d63fd62",
+      "canonicalUrl": "https://code-destiny.com/insights/famous-saju/iu/",
+      "clicks": 38,
+      "impressions": 1844,
+      "displayedCtrPercent": 2.1,
+      "scope": "아이유 상세 한 URL; 유명인 전체 합계 아님",
+      "otherArticleMetrics": null,
+      "reviewedArticles": 12,
+      "changes": [
+        "홈 접기 밖 이미지 읽을거리 진입",
+        "검수 원고12건 SSR 링크",
+        "인사이트·유명인 허브 브랜드 메타",
+        "유명인 허브에서 사주·오늘내일·인사이트 연결"
+      ],
+      "visual": {
+        "widths": [
+          390,
+          960
+        ],
+        "horizontalOverflowPx": 0,
+        "homeCtaHeightPx": 44,
+        "homeCtaContrast": 5.74,
+        "imagesLoaded": true
+      }
     }
   }
 }

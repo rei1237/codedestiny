@@ -1894,6 +1894,12 @@
       "start": "Empezar una consulta de preguntas",
       "free": "Ver primero una lectura gratuita",
       "tagline": "Una consulta para tu pregunta que se abre con un pez"
+    },
+    "reading": {
+      "famousNote": "Historias de Saju de figuras públicas con fuentes públicas",
+      "insightsNote": "Lecturas útiles sobre Saju, tarot y cartas natales",
+      "heading": "Historias que inspiran tu día",
+      "open": "Leer historias"
     }
   },
   "terms": {

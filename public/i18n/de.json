@@ -1894,6 +1894,12 @@
       "start": "Frageberatung starten",
       "free": "Zuerst eine kostenlose Deutung ansehen",
       "tagline": "Deine Frageberatung, eröffnet mit einem Fisch"
+    },
+    "reading": {
+      "famousNote": "Saju-Geschichten bekannter Personen aus öffentlichen Quellen",
+      "insightsNote": "Hilfreiche Texte über Saju, Tarot und Geburtshoroskope",
+      "heading": "Inspirierende Geschichten für deinen Tag",
+      "open": "Geschichten lesen"
     }
   },
   "terms": {

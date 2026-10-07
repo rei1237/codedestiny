@@ -1894,6 +1894,12 @@
       "start": "Commencer une consultation question",
       "free": "Voir d'abord une lecture gratuite",
       "tagline": "Une consultation pour votre question ouverte avec un poisson"
+    },
+    "reading": {
+      "famousNote": "Le Saju des personnalités à partir de sources publiques",
+      "insightsNote": "Des lectures utiles sur le Saju, le tarot et les thèmes astraux",
+      "heading": "Des lectures pour éclairer votre journée",
+      "open": "Lire les articles"
     }
   },
   "terms": {

@@ -1894,6 +1894,12 @@
       "start": "Mulakan konsultasi soalan",
       "free": "Lihat ramalan percuma dahulu",
       "tagline": "Konsultasi soalan anda yang dibuka dengan seekor ikan"
+    },
+    "reading": {
+      "famousNote": "Kisah Saju tokoh terkenal berdasarkan sumber awam",
+      "insightsNote": "Bacaan berguna tentang Saju, tarot dan carta kelahiran",
+      "heading": "Kisah bermakna untuk hari anda",
+      "open": "Baca kisah"
     }
   },
   "terms": {
