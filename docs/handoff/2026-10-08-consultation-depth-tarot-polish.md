@@ -1,19 +1,19 @@
 ---
-status: blocked
+status: active
 updated: 2026-10-08
-next: 진단 및 CTR 개선 세션의 main 보류 해제를 확인한 뒤 기존 미커밋 작업을 보존하며 main 통합·push·정확한 SHA CI 확인
+next: 최신 main 통합 후 push한 정확한 SHA의 CI 확인 및 자기 워크트리 정리
 ---
 
 # 상담 분량·추가 질문·타로 화면 개선
 
 ## 현재 상태와 전달 경계
-- 구현 및 로컬 검증 완료. main merge/push 및 CI는 아직 하지 않았다.
+- 구현 및 로컬 검증 완료. 2026-10-08 보류 해제를 전달받아 main 52514f67c6d1327493e0dba57da9d79f8c4ac66a를 충돌 없이 통합했다. main push 및 CI 확인 진행 중.
 - 작업 디렉터리: D:\Development\code-destiny\.codex-worktrees\tarot-recommendation-20261008-040954
 - 브랜치: wt/tarot-recommendation-20261008-040954 (동시 작업 예외로 만든 안전 워크트리; PR 없음)
 - 마지막 구현 커밋: 42728698f1d4531f47a84e0fe52eb4e33fc899dd
 - 카드 디자인 커밋: 02d9130f5becedf9d186b3c18d1ab41aa3f8821d
 - 베이스: 6fbc2050948d68f6b683e557970bace8c0f905b4
-- 외부 보류: 사용자 승인 전달 메시지에서 ‘진단 및 CTR 개선’ 세션이 운영 배포/성능 비교 동안 main merge/push를 중지하도록 요청했다. 고정 후보는 f610e521f85377b0dfd1dc6bea7812fdd17070af. 해제 통지를 받기 전에는 main을 갱신하지 않는다. 이 전달은 다른 채팅에 회신할 권한을 주지 않았다.
+- 외부 보류: 사용자 승인 전달 메시지에서 ‘진단 및 CTR 개선’ 세션이 운영 배포/성능 비교 동안 main merge/push를 중지하도록 요청했다. 고정 후보는 f610e521f85377b0dfd1dc6bea7812fdd17070af. 후속 전달에서 보류가 해제됐다. 이는 운영 배포·실결제·유료 LLM 승인이 아니다. 이 전달은 다른 채팅에 회신할 권한을 주지 않았다.
 - 다른 세션의 main 미커밋 변경은 건드리지 않았다. 이 워크트리는 미통합 커밋 보존을 위해 남겨 둔다.
 
 ## 구현
@@ -38,7 +38,7 @@ next: 진단 및 CTR 개선 세션의 main 보류 해제를 확인한 뒤 기존
 - 화면 증거: C:/Users/user/.codex/visualizations/2026/10/07/01a117c3-f477-7641-98a4-87db7c4ab071/consultation-review (pick/recommendation/conversation/balance 각 4개 너비 PNG).
 
 ## 재개
-이 디렉터리에서 git status와 git log를 확인한다. main 보류 해제 확인이 첫 단계다. 그 뒤 최신 main 변경과 겹치는 파일을 확인하고 기존 변경을 보존하며 이 브랜치를 main에 통합한다. 사용자 규칙대로 PR 없이 main push 후 정확한 SHA의 CI 결과를 확인한다. 운영 배포는 별도 승인 없이 하지 않는다. 성공 후 이 문서를 status: done으로 닫고 자기 node_modules 정션만 해제한 뒤 자기 워크트리/머지된 wt 브랜치를 배수한다.
+이 디렉터리에서 git status와 git log를 확인한다. main 보류는 해제됐다. 그 뒤 최신 main 변경과 겹치는 파일을 확인하고 기존 변경을 보존하며 이 브랜치를 main에 통합한다. 사용자 규칙대로 PR 없이 main push 후 정확한 SHA의 CI 결과를 확인한다. 운영 배포는 별도 승인 없이 하지 않는다. 성공 후 이 문서를 status: done으로 닫고 자기 node_modules 정션만 해제한 뒤 자기 워크트리/머지된 wt 브랜치를 배수한다.
 
 재검증 명령:
 - node scripts/run-mock-tests.mjs node
