@@ -1,3 +1,4 @@
+import {questionConversation} from '../yeongnyangi/question-followup.ts';
 import {TossError,requireTossOrigin,verifiedUserKey,analyticsEvent} from './policy.js';
 import {callbackAuthorized,identityId,hash} from './crypto.js';
 import {createTossSession,requireTossSession,invalidateIdentity,disconnectIdentity} from './session.js';
@@ -9,6 +10,7 @@ import {purchaseStore,recordTossRefund} from './purchases.js';
 import {ProfileCard} from '../lib/models.js';
 import {incrementRateLimit} from '../lib/rate-limit.js';
 import {getProduct} from '../yeongnyangi/payments/catalog.ts';
+import {questionDecision,questionTopic,assertQuestionOrder} from '../yeongnyangi/fortune/ask/question-policy.ts';
 import {prepareFortune,presentFortune} from '../yeongnyangi/service.ts';
 import {readRequest,resumeRequest} from '../yeongnyangi/repository.js';
 import {enqueueConsultation} from '../yeongnyangi/queue.js';
@@ -61,12 +63,22 @@ export async function handleTossRoutes(request,env) {
       const input=await bodyOf(request),product=approvedProduct(input.sku);
       const {validatePreparation}=await import('./preparation.js');
       const form=validatePreparation(input);
-      // Input-specific immutable profile: retries cannot overwrite another saved target.
-      const profileId=`toss-${await hash(JSON.stringify(form.birth))}`;
-      await ProfileCard.updateOne({userId:auth.ownerId,profileId},{$setOnInsert:{userId:auth.ownerId,profileId,
-        name:'풀이 대상',gender:form.birth.gender,birth:form.birth.date,location:form.birth.location}},{upsert:true});
+      const decision=questionDecision(input.questionDecision);
+      assertQuestionOrder(getProduct(product.productId),decision,form.question);
+      if(decision.target==='pair'&&!form.partnerBirth)throw new TossError('PARTNER_REQUIRED');
+      if(decision.target!=='pair'&&form.partnerBirth)throw new TossError('PARTNER_NOT_SUPPORTED');
+      // Immutable targets, separate roles even when two people share birth details.
+      async function saveTarget(birth,role) {
+        const profileId=`toss-${role}-${await hash(JSON.stringify(birth))}`;
+        await ProfileCard.updateOne({userId:auth.ownerId,profileId},{$setOnInsert:{userId:auth.ownerId,profileId,
+          name:role==='partner'?'상대방':'풀이 대상',gender:birth.gender,birth:birth.date,location:birth.location}},{upsert:true});
+        return profileId;
+      }
+      const profileId=await saveTarget(form.birth,'self');
+      const partnerProfileId=form.partnerBirth?await saveTarget(form.partnerBirth,'partner'):undefined;
       const row=await prepareFortune(env,auth.userId,{productId:product.productId,profileId,question:form.question,
-        consultationKind:'ask',topicId:form.topicId,timeUnknown:form.birth.date.timeUnknown,
+        questionDecision:decision,consultationKind:decision.target==='pair'?'compatibility':'ask',topicId:questionTopic(decision.category),
+        timeUnknown:form.birth.date.timeUnknown,...(partnerProfileId?{partnerProfileId,partnerTimeUnknown:form.partnerBirth.date.timeUnknown}:{}),
         consultationAttemptId:form.attemptId,locale:'ko',timezone:'Asia/Seoul',voiceStyle:'honorific'});
       return reply({id:String(row._id),productId:row.productId,amountKRW:row.amountKRW,
         manifest:row.snapshot.manifest.map(({id,title,ordinal})=>({id,title,ordinal}))});
@@ -88,7 +100,7 @@ export async function handleTossRoutes(request,env) {
           totalSections:result?.snapshot.manifest.length||null};
       }))});
     }
-    const resultMatch=path.match(/^\/results\/([a-f0-9]{64})(\/resume)?$/);
+    const resultMatch=path.match(/^\/results\/([a-f0-9]{64})(\/(?:resume|conversation))?$/);
     if(resultMatch&&request.method===(resultMatch[2]?'POST':'GET')) {
       const purchase=await TossPurchase.findOne({identityId:auth._id,requestId:resultMatch[1],environment:auth.environment}).lean();
       if(!purchase)throw new TossError('RESULT_NOT_FOUND',404);
@@ -96,6 +108,10 @@ export async function handleTossRoutes(request,env) {
       if(order.sku!==purchase.sku||order.orderId!==purchase._id)throw new TossError('ORDER_MISMATCH',403);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
       if(!['PURCHASED','PAYMENT_COMPLETED'].includes(order.status))throw new TossError('ORDER_NOT_PAID',409);
+      if(resultMatch[2]==='/conversation'){
+        await limit(env,auth._id,'followup',4);
+        return reply(presentFortune(await questionConversation(env,auth.userId,resultMatch[1],await bodyOf(request))));
+      }
       const row=resultMatch[2]?await resumeRequest(env,auth.userId,resultMatch[1]):await readRequest(env,auth.userId,resultMatch[1]);
       if(resultMatch[2])await enqueueConsultation(env,row);
       return reply(presentFortune(row));
@@ -110,6 +126,8 @@ export async function handleTossRoutes(request,env) {
     throw new TossError('NOT_FOUND',404);
   } catch(error) {
     const known=error instanceof TossError;
+    const inputErrors=['QUESTION_SCOPE_REQUIRED','QUESTION_SCOPE_UNSUPPORTED','QUESTION_PRODUCT_MISMATCH','PARTNER_REQUIRED','PARTNER_NOT_SUPPORTED','BIRTH_TIME_REQUIRED','PROFILE_REQUIRED','INVALID_BIRTH','QUESTION_FOLLOWUP_BUSY','QUESTION_FOLLOWUP_SUPPORT','FOLLOWUP_NOT_AVAILABLE','FOLLOWUP_INPUT_INVALID','QUESTION_CONVERSATION_CLOSED'];
+    if(inputErrors.includes(error?.code))return reply({error:error.code,errorId:crypto.randomUUID()},400);
     // Engine messages are not echoed; request IDs are random and contain no personal data.
     return reply({error:known?error.code:'REQUEST_FAILED',errorId:crypto.randomUUID()},known?error.status:503);
   }

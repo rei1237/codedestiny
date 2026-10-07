@@ -1,14 +1,15 @@
+import {questionScopes} from '../../../worker/yeongnyangi/fortune/ask/question-policy';
 export const readings=[
-  {id:'saju_mackerel',name:'고등어 상담',tag:'한 가지 고민부터',description:'지금 마음에 걸리는 한 가지 질문을 사주의 기본 흐름과 함께 살펴봐요.',sections:5},
-  {id:'saju_salmon',name:'연어 상담',tag:'선택의 조건 살펴보기',description:'내 성향과 반복되는 선택을 짚고, 질문에 영향을 주는 흐름을 함께 살펴봐요.',sections:8},
-  {id:'saju_flounder',name:'광어 상담',tag:'시기와 변화까지',description:'출생 시각과 지역을 바탕으로 변화의 흐름과 판단할 때 확인할 조건을 살펴봐요.',sections:11},
-  {id:'saju_tuna',name:'참치 상담',tag:'여러 관점에서 정리하기',description:'강점과 부담, 시기별 변화와 실천할 일을 여러 항목으로 나누어 정리해요.',sections:15},
+  {id:'saju_mackerel',name:'고등어 상담',tag:'한 가지 고민부터',description:questionScopes.mackerel},
+  {id:'saju_salmon',name:'연어 상담',tag:'선택의 조건 살펴보기',description:questionScopes.salmon},
+  {id:'saju_flounder',name:'광어 상담',tag:'두 사람의 관계 살펴보기',description:questionScopes.flounder},
+  {id:'saju_tuna',name:'참치 상담',tag:'장기 흐름과 전환 준비',description:questionScopes.tuna},
 ];
 export const questions=[
-  {title:'지금 이직해도 괜찮을까',topic:'career',hint:'일하는 방식과 변화의 흐름'},
+  {title:'지금 이직해도 괜찮을까',topic:'job_change',hint:'일하는 방식과 변화의 흐름'},
   {title:'내 일과 돈의 흐름은 어떨까',topic:'money',hint:'재능, 자원과 선택의 기준'},
   {title:'나는 어떤 관계에서 편안할까',topic:'love',hint:'나의 관계 패턴과 소통 방식'},
-  {title:'요즘 내 마음은 왜 이럴까',topic:'general',hint:'현재의 흐름과 작은 실천'},
+  {title:'요즘 내 마음은 왜 이럴까',topic:'self',hint:'현재의 흐름과 작은 실천'},
 ];
 export const cities=[
   {label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'},
@@ -20,6 +21,12 @@ export const cities=[
   {label:'제주',lat:33.4996,lng:126.5312,tz:'Asia/Seoul'},
 ];
 export const errors:Record<string,string>={
+  QUESTION_FOLLOWUP_BUSY:'이전 질문의 답변을 저장하고 있어요. 잠시 후 같은 요청으로 확인해 주세요.',
+  QUESTION_FOLLOWUP_SUPPORT:'같은 질문의 자동 재시도 한도에 도달했어요. 기존 결과는 그대로 보관되며 고객지원에서 확인할 수 있어요.',
+  QUESTION_CONVERSATION_CLOSED:'이 상담의 후속 질문을 모두 이용했어요. 저장된 결과는 계속 읽을 수 있어요.',
+  QUESTION_SCOPE_REQUIRED:'질문의 주제와 상황, 필요한 기간과 조건을 확인해 주세요.',
+  QUESTION_PRODUCT_MISMATCH:'질문에 해당하는 상담 범위와 선택한 상품이 달라요. 상담을 다시 확인해 주세요.',
+  PARTNER_REQUIRED:'두 사람의 관계 상담에는 상대방의 출생정보가 필요해요.',
   TOSS_APP_REQUIRED:'토스 앱에서 열어 주세요. 브라우저에서는 화면과 결과 예시를 살펴볼 수 있어요.',
   TOSS_RELEASE_PENDING:'서비스 등록을 확인하고 있어요. 지금은 구매할 수 없어요.',
   LOGIN_REQUIRED:'기록과 구매를 확인하려면 토스 로그인이 필요해요.',SESSION_EXPIRED:'로그인 시간이 만료되었어요. 다시 로그인해 주세요.',

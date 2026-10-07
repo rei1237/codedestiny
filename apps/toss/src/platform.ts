@@ -1,3 +1,4 @@
+import {SERVICE_AVAILABLE} from './release';
 import {Environment,IAP,TossAuth,Storage,Share} from '@apps-in-toss/web-framework';
 export const APP_NAME='ai-saju-studio';
 const API='https://code-destiny.com/api/toss';
@@ -5,9 +6,10 @@ let token:string|null=null;
 export function isToss(){try{return ['toss','sandbox'].includes(Environment.environment);}catch{return false;}}
 export class ApiError extends Error {constructor(public code:string,public errorId='',public status=0){super(code);}}
 export async function api<T>(path:string,body?:unknown):Promise<T>{
+  if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   const response=await fetch(API+path,{method:body===undefined?'GET':'POST',credentials:'omit',
     headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(token?{Authorization:`Bearer ${token}`}:{})},
-    ...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(20000)});
+    ...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(path.endsWith('/conversation')?75000:20000)});
   const data=await response.json();
   if(!response.ok){if(response.status===401)await clearSession();throw new ApiError(data.error,data.errorId,response.status);}
   return data;
@@ -20,6 +22,7 @@ export async function restoreSession(){
 }
 export async function login(){
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
+  if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   const code=await TossAuth.login();
   const session=await api<{token:string}>('/login',code);
   token=session.token;await Storage.setItem('toss-session',token);
@@ -29,7 +32,7 @@ export async function logout(){try{await api('/logout',{});}finally{await clearS
 export type CatalogProduct={id:string;name:string;sku:string;approvedPriceKRW:number;chapters:number;available:boolean};
 export type SaleProduct=CatalogProduct&{displayAmount:string};
 export async function saleProducts():Promise<SaleProduct[]>{
-  if(!isToss())return [];
+  if(!SERVICE_AVAILABLE||!isToss())return [];
   const [catalog,items]=await Promise.all([api<{products:CatalogProduct[]}>('/catalog'),IAP.getProductItemList()]);
   return catalog.products.flatMap(p=>{
     const item=items?.products.find(i=>i.sku===p.sku&&i.type==='CONSUMABLE');
@@ -66,4 +69,4 @@ export async function shareService(){
   await Share.sendMessage({message:`영냥이와 내 고민의 흐름을 살펴보세요. ${link}`});
   // Resolution means the SDK call returned, not proof that a recipient received a share.
 }
-export function event(name:string,fields:Record<string,unknown>={}){void api('/events',{event:name,fields}).catch(()=>{});}
+export function event(name:string,fields:Record<string,unknown>={}){if(!SERVICE_AVAILABLE||!isToss())return;void api('/events',{event:name,fields}).catch(()=>{});}

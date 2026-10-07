@@ -15,3 +15,9 @@ test('reject incomplete location, invalid clock, unsupported calendar and oversi
 test('retain lunar leap selection for the existing engine rather than recalculating here',()=>{
   const input=form();input.birth.date.calType='lunar_leap';assert.equal(validatePreparation(input).birth.date.calType,'lunar_leap');
 });
+
+test('pair targets keep separate explicit inputs and reject malformed partner birth',()=>{
+ const input=form();input.partnerBirth=structuredClone(input.birth);input.partnerBirth.date.year=1992;
+ const result=validatePreparation(input);assert.equal(result.birth.date.year,1990);assert.equal(result.partnerBirth.date.year,1992);
+ input.partnerBirth.location.tz='Guess/City';assert.throws(()=>validatePreparation(input));
+});
