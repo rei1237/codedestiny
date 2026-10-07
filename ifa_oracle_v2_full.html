@@ -203,7 +203,7 @@ html,body{margin:0;padding:0;background:#040200;color:var(--text);font-family:Ge
     <div class="divider" aria-hidden="true"><span class="line"></span><span class="gem">◈</span><span class="line"></span></div>
 
     <section class="action">
-      <button id="castBtn" class="btn-cast" type="button">운명 확인하기 (3,000원) • Consult the Oracle</button>
+      <button id="castBtn" class="btn-cast" type="button">운명 확인하기 (1,000원) • Consult the Oracle</button>
       <div id="miniBtns" class="mini">
         <button id="saveBtn" type="button">결과 저장</button>
         <button id="resetBtn" type="button">새 점괘</button>
@@ -280,7 +280,7 @@ let audioCtx=null;
 let ambienceTimer=null;
 let typingRunId=0;
 let lastOracleText="";
-const IFA_COIN_COST=30;
+const IFA_COIN_COST=10;
 
 function el(id){return document.getElementById(id);} 
 
@@ -624,7 +624,7 @@ function resetAll(){
   typingRunId++;
   lastOracleText="";
   setPhase("질문을 품고, 오리샤의 바람을 들으세요");
-  el("castBtn").textContent="운명 확인하기 (3,000원) • Consult the Oracle";
+  el("castBtn").textContent="운명 확인하기 (1,000원) • Consult the Oracle";
   el("castBtn").disabled=false;
   el("reveal").style.display="none";
   el("oracleBox").style.display="none";

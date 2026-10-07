@@ -267,7 +267,7 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
     return { ok: true, accessType: "paid", paymentId: clean(paidPayment.merchantUid || paidPayment.impUid || paymentId, 160) };
   }
   const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
-  if (featureAccess.allowed) return { ok: true, accessType: featureAccess.accessType || "pass", paymentId: "" };
+  if (featureAccess.allowed) return { ok: true, accessType: normalizeConsultAccessType(featureAccess.accessType), paymentId: "" };
   if (hasMonthlyCredit(user, pricing.membershipCreditCost)) return { ok: true, accessType: "subscription", paymentId: "" };
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
@@ -280,7 +280,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
   if (/usage[-_]pass/.test(signal)) return null;
   if (signal.includes("pass") || signal.includes("membership_pass")) {
     const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
-    if (featureAccess.allowed) return { ok: true, accessType: featureAccess.accessType || "pass", paymentId: tokens[0] || "", prepaid: true, evidenceType: "pass" };
+    if (featureAccess.allowed) return { ok: true, accessType: normalizeConsultAccessType(featureAccess.accessType), paymentId: tokens[0] || "", prepaid: true, evidenceType: "pass" };
   }
   const paymentClauses = billingTokenClauses(tokens);
   if (paymentClauses.length) {

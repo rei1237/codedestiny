@@ -14,7 +14,7 @@ const RESULT = "app/fusion-fortune/FusionResultThread.tsx";
 test("fusion fortune renders the premium flow and optimized hero asset", () => {
   const client = read(CLIENT);
   assert.match(client, /여섯 체계 교차 판정/);
-  assert.match(client, /여섯 체계 · 30,000자 이상/);
+  assert.match(client, /여섯 체계의 독립 해석/);
   assert.match(client, /fusion-guardian-celestial-hero\.webp/);
   assert.match(client, /priority/);
   assert.ok(fs.existsSync(path.join(root, "public/images/fusion-fortune/fusion-guardian-celestial-hero.webp")));
@@ -154,13 +154,13 @@ test("fusion visualization is inline SVG so the PDF capture keeps it", () => {
   assert.match(resultThread, /<FusionVisualization data=/);
 });
 
-test("fusion hero states the raised length contract", () => {
+test("fusion hero describes chapter roles without a hard length promise", () => {
   const client = read(CLIENT);
   const prompt = read("worker/lib/fusion-fortune-prompt.js");
   // 50,000원 상품의 분량 계약이 화면 문구와 서버 계약에서 어긋나면 안 된다.
-  assert.match(client, /30,000자 이상/);
-  assert.doesNotMatch(client, /20,000자 이상|10,000~15,000자/);
-  assert.match(prompt, /total: Object\.freeze\(\{ min: 30000/);
+  assert.match(client, /여섯 체계의 독립 해석/);
+  assert.doesNotMatch(client, /30,000자 이상|20,000자 이상|10,000~15,000자/);
+  assert.match(prompt, /FUSION_EXPERT_CHAPTER_CHARS/);
 });
 
 test("fusion fortune production switches enable the approved live flow and keep mock off", () => {

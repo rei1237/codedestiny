@@ -37,7 +37,7 @@ test('all four published shells prerender without duplicate markers or unresolve
   for(const route of ['en','ja','zh','zh-tw']){
    const html=readFileSync(join(dir,'dist',route,'index.html'),'utf8');
    const prices=[...html.matchAll(/data-cd-trans="home\.overseasCopy\.(?:krwAmount|passPerLimit|passTotal)"[^>]*>([^<]+)</g)].map(match=>match[1]);
-   assert.ok(prices.length>=15,route);
+   assert.ok(prices.length>=4,route+': consultation prices remain localized after the home pass comparison is removed');
    for(const price of prices)assert.doesNotMatch(price,/\{amount\}|원/,route+': '+price);
   }
  }finally{rmSync(dir,{recursive:true,force:true});}

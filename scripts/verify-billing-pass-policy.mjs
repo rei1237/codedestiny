@@ -881,7 +881,8 @@ assertContains(indexSource, "월정석 사용이 완료되었습니다.", "month
 assertContains(indexSource, "월정석 이벤트 재화로 열람되었습니다.", "monthly event currency access success copy");
 assertContains(indexSource, "월정석은 이벤트성 선불 재화입니다.", "monthly event currency disclaimer copy");
 assertContains(indexSource, "FAMILY 이용권이 적용되었습니다.", "static family license pass success copy");
-assertContains(indexSource, "이용권 4종 확인하기", "static current pass offer links to the four-tier shop");
+assertContains(indexSource, 'href="/points/?source=flower-membership"', "the concise home pass offer links to the shop");
+assertContains(indexSource, "이용권 알아보기", "home pass CTA invites optional plan comparison");
 assertContains(indexSource, "기존에 구매한 이용권은 구매 당시 조건을 유지합니다", "static offer preserves historical pass rights");
 assertNotContains(indexSource, "forceDeduct: false", "static membership pass probe no longer sends the deprecated coin flag");
 assertNotContains(indexSource, "forceDeduct: true", "static paid flows never enable the deprecated coin flag");

@@ -22,7 +22,8 @@ function assertAllSchemaInformation(source, encoded) {
   } else {
     const descriptor = String(source ?? '');
     assert.equal(encoded.type, descriptor.startsWith('number') ? 'NUMBER' : 'STRING');
-    assert.equal(encoded.description || '', descriptor === 'string' ? '' : descriptor);
+    if (!encoded.enum) assert.equal(encoded.description || '', descriptor === 'string' ? '' : descriptor);
+    else assert.ok(encoded.enum.length, 'evidence/domain enum is transmitted once through the structured schema');
   }
 }
 

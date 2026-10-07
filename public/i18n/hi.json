@@ -598,7 +598,8 @@
       "unlock5000": "KRW 5,000 अनलॉक करें",
       "sajuGuardianPricePrice5000": "स्थायी अनलॉक KRW 5,000",
       "price5000Price3000": "एक बार KRW 3,000",
-      "price10000Price5000": "एक बार KRW 5,000"
+      "price10000Price5000": "एक बार KRW 5,000",
+      "unlock1000": "KRW 1,000 अनलॉक करें"
     },
     "destinyFlowerStudio": {
       "closeAria": "डेस्टिनी फ्लावर अटेलियर बंद करें",
@@ -1853,6 +1854,28 @@
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
       "neoMore": "More consultation reviews"
+    },
+    "simple": {
+      "lead": "अपनी चिंता बताएं। शुरू करने से पहले विषय और कीमत जानें।",
+      "start": "अपनी चिंता पर परामर्श लें",
+      "free": "आज का निःशुल्क फल पढ़ें",
+      "startLabel": "शुरू करने के अन्य तरीके",
+      "love": "प्रेम और रिश्ते",
+      "work": "काम और धन",
+      "self": "खुद को समझना",
+      "future": "आगे की दिशा",
+      "title": "आपके सवाल से शुरू होने वाला परामर्श",
+      "brand": "Ggulggul Fortune में Yeongnyangi, Yeoni और Neo से मिलें। Yeongnyangi से अपनी बात करें, या Yeoni के चायघर और Neo के रणनीति कक्ष को देखें।",
+      "stepQuestion": "अपनी चिंता बताएं",
+      "stepPrice": "विषय और कीमत देखें",
+      "stepResult": "जवाब, आधार और अगले कदम पढ़ें",
+      "example": "भुगतान से पहले उदाहरण पढ़ें",
+      "explore": "सभी फल और परामर्श देखें",
+      "exploreNote": "साजू, टैरो, पात्र परामर्श, रिपोर्ट और कहानियां",
+      "passTitle": "नियमित उपयोग के लिए पास देखें",
+      "passNote": "चुनने से पहले लागू सेवाएं और अवधि देखें।",
+      "passLink": "पास देखें",
+      "passHistory": "पहले खरीदे गए पास पर खरीद के समय की शर्तें लागू रहेंगी।"
     }
   },
   "terms": {

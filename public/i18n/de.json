@@ -598,7 +598,8 @@
       "unlock5000": "Schalte 5.000 KRW frei",
       "sajuGuardianPricePrice5000": "Dauerhafte Freischaltung: 5.000 KRW",
       "price5000Price3000": "Einmalig 3.000 KRW",
-      "price10000Price5000": "Einmalig 5.000 KRW"
+      "price10000Price5000": "Einmalig 5.000 KRW",
+      "unlock1000": "Schalte 1.000 KRW frei"
     },
     "destinyFlowerStudio": {
       "closeAria": "Atelier der Schicksalsblume schließen",
@@ -1853,6 +1854,28 @@
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
       "neoMore": "More consultation reviews"
+    },
+    "simple": {
+      "lead": "Erzähle, was dich beschäftigt. Sieh dir zuerst Inhalt und Preis an.",
+      "start": "Meine Frage stellen",
+      "free": "Kostenlose Tagesdeutung lesen",
+      "startLabel": "Weitere Einstiege",
+      "love": "Liebe und Beziehungen",
+      "work": "Arbeit und Geld",
+      "self": "Mich selbst verstehen",
+      "future": "Der Blick nach vorn",
+      "title": "Eine Deutung, die mit deiner Frage beginnt",
+      "brand": "Lerne Yeongnyangi, Yeoni und Neo bei Ggulggul Fortune kennen. Besprich deine Frage mit Yeongnyangi oder besuche Yeonis Teehaus und Neos Strategieraum.",
+      "stepQuestion": "Erzähle, was dich beschäftigt",
+      "stepPrice": "Inhalt und Preis prüfen",
+      "stepResult": "Antwort, Gründe und nächste Schritte lesen",
+      "example": "Beispiel vor dem Kauf lesen",
+      "explore": "Alle Deutungen und Beratungen ansehen",
+      "exploreNote": "Saju, Tarot, Charakterberatung, Berichte und Geschichten",
+      "passTitle": "Für regelmäßige Besuche: Pässe ansehen",
+      "passNote": "Prüfe vor der Auswahl Geltungsbereich und Laufzeit.",
+      "passLink": "Pässe ansehen",
+      "passHistory": "Bereits gekaufte Pässe behalten ihre ursprünglichen Bedingungen."
     }
   },
   "terms": {

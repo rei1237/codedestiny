@@ -18,6 +18,8 @@
 .testimonial {margin:32px 0;padding-block:4px 24px;border-bottom:1px solid var(--yn-line)}
 .testimonial summary {cursor:pointer;min-height:44px;align-content:center;color:var(--yn-gold);font-weight:700}
 .originalReview {white-space:pre-line}
+.legacyReport{margin:28px 0;border-block:1px solid var(--yn-line);padding:8px 0}
+.legacyReport>summary{min-height:48px;padding:12px 0;color:var(--yn-gold);font-weight:700;cursor:pointer}
 .guide .note {font-size:14px;color:var(--yn-muted)}
 .offer {margin:24px 0;padding:20px;background:var(--yn-surface);border-radius:var(--yn-radius)}
 .offer strong {font-size:24px;color:var(--yn-gold);font-variant-numeric:tabular-nums}

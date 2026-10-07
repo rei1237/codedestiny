@@ -49,11 +49,12 @@ test("fortune planner entry cuts over to the /diary app", () => {
   // .cd-home-secondary-panel 접기/펼치기 CSS 는 이 개편에서 함께 지워졌다 — 접이식 보조
   // 패널이라는 개념 자체가 없어졌다(실측: index.html 에 두 선택자 모두 0개). 지킬 것은
   // 여전히 "다이어리 진입이 살아 있고, 오늘의 운세 다음 순서를 지키는 것"이다.
-  // 2026-10-01(ggulggul-home-essentials): 고민 선택은 접기 밖 필수 섹션이 됐고, 다이어리는
-  // 단일 접기 "연이의 정원"(#cdhGardenBody) 안 부가 탐색으로 옮겼다 — 진입점 자체는 그대로다.
+  // 2026-10-07: 첫 화면의 고민 진입은 짧은 주제 링크로 통합한다. 상세 고민·다이어리는
+  // 전체 탐색(#cdhGardenBody)에 보존하며 기존 직접 진입은 유지한다.
   assert.match(html, /<section class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"/);
   assert.ok(html.indexOf('id="cdhDiarySlot"') < html.indexOf('id="cdDiaryPlannerEntry"'));
-  assert.ok(html.indexOf('id="cdhConcern"') < html.indexOf('id="cdhGardenBody"'));
+  assert.ok(html.indexOf('class="cdh-topics"') < html.indexOf('id="cdhGardenBody"'));
+  assert.ok(html.indexOf('id="cdhConcern"') > html.indexOf('id="cdhGardenBody"'));
   assert.ok(html.indexOf('id="cdhGardenBody"') < html.indexOf('id="cdDiaryPlannerEntry"'));
   assert.doesNotMatch(html, /id="cdHomeSecondaryPanel"/);
   assert.doesNotMatch(html, /\.cd-home-secondary-panel\{/);

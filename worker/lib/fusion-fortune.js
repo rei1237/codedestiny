@@ -1,4 +1,4 @@
-import { fusionLocaleLengthScale, fusionExpertEvidenceReady, FUSION_EXPERT_VERSION, validFusionSignals, buildFusionEvidenceCrossCheck, fusionInputIdentity, fusionCheckpointMatches } from "./fusion-expert-contract.js";
+import { fusionLocaleLengthScale, fusionExpertEvidenceReady, FUSION_EXPERT_VERSION, validFusionSignals, normalizeFusionSignals, buildFusionEvidenceCrossCheck, fusionInputIdentity, fusionCheckpointMatches } from "./fusion-expert-contract.js";
 import { tokensRequiredForChars } from "./llm-budget.js";
 import { FusionFortuneGenerationAttempt } from "./models.js";
 import { countPaidReportBodyChars, PAID_REPORT_MIN_BODY_CHARS } from "./paid-report-quality.js";
@@ -11,6 +11,7 @@ import {
   FUSION_SECTION_GROUP_SPECS,
   fusionGroupsForStage,
   fusionGroupCeilingChars,
+  fusionExpertGroupCeilingChars,
 } from "./fusion-fortune-prompt.js";
 import {
   FUSION_VISUAL_SYSTEMS,
@@ -645,7 +646,7 @@ function attachQuestionFocusedFusionReading(result, context = {}) {
 
 // ── 4그룹 병렬 생성 ───────────────────────────────────────────────────
 // 그룹 하나의 LLM 대기 상한. 네 그룹이 병렬이라 1차 벽시계는 가장 느린 그룹 기준이다.
-const FUSION_GROUP_TIMEOUT_MS = 45000;
+const FUSION_GROUP_TIMEOUT_MS = 60000;
 // 🔴 1회로 고정한다(과거 2). callGeminiJsonWithRetry 내부 재시도는 FUSION_GENERATION_DEADLINE_MS
 //    예산을 전혀 보지 않고 timeoutMs 를 그대로 또 쓴다 — attempts:2 면 그룹 하나가 최악
 //    timeoutMs×2(≈110초)를 예산 확인 없이 써서, 데드라인 안쪽으로 맞춘 클램프(runGroup 의
@@ -655,6 +656,9 @@ const FUSION_GROUP_TIMEOUT_MS = 45000;
 //    미달·실패 그룹의 재시도는 아래 retryTargets(보완 물결)가 대신한다 — 그쪽은 매 호출 전
 //    remainingMs()로 남은 예산을 실제로 확인하므로 데드라인을 존중한다.
 export const FUSION_GROUP_MAX_ATTEMPTS = 2;
+export function fusionGroupAttemptLimit(snapshot) {
+  return FUSION_GROUP_MAX_ATTEMPTS + (snapshot?.recovery?.manualGranted === true ? 2 : 0);
+}
 const FUSION_GROUP_ATTEMPTS = 1;
 // 목표의 이 비율에 못 미친 그룹은 다시 부른다. 낮게 잡으면 65%짜리 그룹이 통과해 합계가 무너진다.
 const FUSION_GROUP_RETRY_RATIO = 0.8;
@@ -674,8 +678,8 @@ export const FUSION_RESERVATION_FRESHNESS_MS = FUSION_GENERATION_DEADLINE_MS + 6
  * 그룹 목표 상한 + JSON 완충을 공통 토큰 환산식으로 확보한다.
  * 단일 호출 시절의 운영 노브 FUSION_FORTUNE_MAX_OUTPUT_TOKENS 는 이제 **그룹당** 상한으로 읽는다.
  */
-export function fusionGroupTokens(group, env = {}) {
-  const required = tokensRequiredForChars(fusionGroupCeilingChars(group));
+export function fusionGroupTokens(group, env = {}, context = {}) {
+  const required = tokensRequiredForChars(context.version === FUSION_EXPERT_VERSION ? fusionExpertGroupCeilingChars(group, context.locale) : fusionGroupCeilingChars(group));
   const override = Number(env.FUSION_FORTUNE_MAX_OUTPUT_TOKENS);
   if (Number.isFinite(override) && override > 0) return Math.max(required, Math.min(16384, Math.round(override)));
   return required;
@@ -1045,16 +1049,18 @@ export async function generateFusionFortuneWithRealLLM({
       && (context.version !== FUSION_EXPERT_VERSION || group.stage !== 1 || group.systems.every(system => validFusionSignals(saved[`${system}Section`], system, context)))
 ;
   };
-  // Paid routes always supply checkpoints. One unfinished group per request;
+  // Paid routes always supply checkpoints. At most two unfinished groups per request;
   // previously verified groups travel in prior and never purchase another call.
+  const attemptLimit = fusionGroupAttemptLimit(priorSnapshot);
   const waveGroups = typeof onCheckpoint === 'function' ? groups.filter(group => !savedReady(group))
-    .filter(group => Number(attemptCounts[group.id] || 0) < FUSION_GROUP_MAX_ATTEMPTS).slice(0, 1) : groups;
+    .filter(group => Number(attemptCounts[group.id] || 0) < attemptLimit)
+    .sort((a, b) => Number(attemptCounts[a.id] || 0) - Number(attemptCounts[b.id] || 0)).slice(0, 2) : groups;
   let checkpointQueue = Promise.resolve();
   const checkpoint = async (group, value) => {
     Object.assign(merged, value);
     if (typeof onCheckpoint === "function") {
       const snapshot = { ...prior, ...merged };
-      checkpointQueue = checkpointQueue.catch(() => {}).then(() => onCheckpoint(snapshot));
+      checkpointQueue = checkpointQueue.then(() => onCheckpoint(snapshot));
       await checkpointQueue;
     }
     if (group.stage === 1) await emitFusionFortuneStage(onStage, group.id, { phase: "analysis" });
@@ -1087,7 +1093,7 @@ export async function generateFusionFortuneWithRealLLM({
     // responseSchema below already carries every key, descriptor and array minimum.
     // Keep the display prompt intact; send each schema only once to the provider.
     const groupPrompt = buildFusionSectionGroupPrompt({ context, group, priorSections: prior, extraInstruction, schemaInPrompt: false });
-    if (Number(attemptCounts[group.id] || 0) >= FUSION_GROUP_MAX_ATTEMPTS) return { ok: savedValid, group, value: savedValid ? saved : undefined, issue: "budget_exhausted" };
+    if (Number(attemptCounts[group.id] || 0) >= attemptLimit) return { ok: savedValid, group, value: savedValid ? saved : undefined, issue: "budget_exhausted" };
     const lengthRepair = savedValid && !lengthRepairs[group.id] && (!validateFusionFortuneGroup(saved, group, { ...validationOptions, ignoreLength: false }).ok || countFusionGroupChars(saved, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO);
     const reservedAttempt = typeof onAttempt === "function" ? await onAttempt(group.id, { lengthRepair }) : null;
     attemptCounts[group.id] = reservedAttempt || Number(attemptCounts[group.id] || 0) + 1;
@@ -1103,7 +1109,7 @@ export async function generateFusionFortuneWithRealLLM({
         //    해제할 때는 위 schemaInPrompt도 true로 되돌려 출력 계약을 유지한다.
         responseSchema: groupPrompt.geminiSchema,
         attempts,
-        maxOutputTokens: fusionGroupTokens(group, env),
+        maxOutputTokens: fusionGroupTokens(group, env, context),
         temperature: 0.62,
         timeoutMs: clampedTimeoutMs,
         model,
@@ -1122,13 +1128,17 @@ export async function generateFusionFortuneWithRealLLM({
       response = { ok: false, error: text(error?.code, 80) || "provider_exception" };
     }
     if (!response?.ok) return { ok: false, group, issue: text(response?.error, 80) || "provider_failed" };
-    if (response.truncated === true) return { ok: false, group, issue: "output_truncated" };
     const parsed = parseFusionFortuneLLMResponse(response.text);
     if (!parsed.ok) return { ok: false, group, issue: "parse_failed" };
     // 🔴 검증·분량 계수보다 **먼저** 공백 런을 접는다. 안 접으면 공백만 9만 자인 본문이 그룹
     //    검증을 통과해 총 분량 상한을 넘기고, 유료 사용자에게 품질 저하 고지가 나간다(8차 실측).
     const rawPicked = pickKeys(parsed.value, group.keys);
     const picked = normalizeFusionProseWhitespace(rawPicked);
+    if (context.version === FUSION_EXPERT_VERSION && group.stage === 1) {
+      for (const system of group.systems) {
+        picked[`${system}Section`] = normalizeFusionSignals(picked[`${system}Section`], system, context);
+      }
+    }
     const collapsedChars = JSON.stringify(rawPicked).length - JSON.stringify(picked).length;
     if (collapsedChars >= FUSION_WHITESPACE_COLLAPSE_LOG_CHARS) {
       console.warn("[fusion-fortune-whitespace-collapsed]", { requestId: text(requestId, 120), stage: stageNumber, sectionGroup: group.id, collapsedChars });
@@ -1190,7 +1200,7 @@ export async function generateFusionFortuneWithRealLLM({
     const duplicatedGroups = groups.filter((group) => !failedGroups.includes(group) && !shortGroups.includes(group) && countFusionGroupDuplicates(duplicates, group) >= FUSION_GROUP_DUPLICATE_LIMIT);
     const evidenceTokens = new Map(groups.map((group) => [group.id, collectFusionEvidenceTokens(context, group)]));
     const thinGroups = groups.filter((group) => !failedGroups.includes(group) && !shortGroups.includes(group) && !duplicatedGroups.includes(group) && isFusionGroupEvidenceThin(pickKeys(merged, group.keys), group, evidenceTokens.get(group.id)));
-    const retryTargets = [...failedGroups, ...shortGroups, ...duplicatedGroups, ...thinGroups].filter(group => Number(attemptCounts[group.id] || 0) < FUSION_GROUP_MAX_ATTEMPTS);
+    const retryTargets = [...failedGroups, ...shortGroups, ...duplicatedGroups, ...thinGroups].filter(group => Number(attemptCounts[group.id] || 0) < attemptLimit);
     // 연결이 끊긴 뒤에 보완 호출을 또 태우지 않는다. 1차 호출은 provider 안에서 이미 진행 중이라
     // 여기서 못 끊지만, **두 번째 물결**은 막을 수 있다(비용의 절반이 여기다).
     if (typeof onCheckpoint !== 'function' && retryTargets.length && !abortSignal?.aborted && remainingMs() > FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
@@ -1241,13 +1251,15 @@ export async function generateFusionFortuneWithRealLLM({
   const missing = groups.filter((group) => !validateFusionFortuneGroup(composed, group, validationOptions).ok
     || (context.version === FUSION_EXPERT_VERSION && group.stage === 1 && !group.systems.every((system) => validFusionSignals(composed[`${system}Section`], system, context))));
   if (missing.length) {
-    return { result: composed, deliverable: false, generationSource: "gemini_partial", providerCalls, qualityIssues: ["groups_incomplete"], stage: stageNumber };
+    return { result: composed, deliverable: false, generationSource: "gemini_partial", providerCalls,
+      automaticRetryAllowed: missing.some(group => Number(attemptCounts[group.id] || 0) < attemptLimit),
+      pendingGroups: missing.map(group => group.id), qualityIssues: ["groups_incomplete"], stage: stageNumber };
   }
   if (context.version === FUSION_EXPERT_VERSION) composed.evidenceCrossCheck = buildFusionEvidenceCrossCheck(composed, context);
   if (stageNumber === 1) return { result: composed, deliverable: true, generationSource: "gemini", providerCalls, qualityTier: "partial", stage: 1 };
   composed.visualization = normalizeFusionVisualization(composed.visualization, context, { now });
   const decision = resolveFusionFortuneDelivery(composed, validationOptions);
-  return { result: decision.value || composed, deliverable: decision.deliverable && decision.tier === "full", generationSource: "gemini", providerCalls, qualityTier: decision.tier, qualityIssues: [...(decision.issues || []), ...(collectFusionCrossSectionDuplicates(composed).length ? ["cross_section_duplicate"] : [])], stage: 2 };
+  return { result: decision.value || composed, deliverable: decision.deliverable, automaticRetryAllowed: false, generationSource: "gemini", providerCalls, qualityTier: decision.tier, qualityNotice: decision.qualityNotice, qualityIssues: [...(decision.issues || []), ...(collectFusionCrossSectionDuplicates(composed).length ? ["cross_section_duplicate"] : [])], stage: 2 };
 
 }
 
@@ -1359,7 +1371,7 @@ export async function buildFusionFortuneStatus({ userId = "", enabled = true } =
  * STAGE_ONE_MISSING(409, retryable) 로 돌려보내 클라이언트가 1단계부터 다시 잇게 한다.
  * 결제 증빙은 두 단계 모두 같은 requestId 로 조회만 한다(재과금·쓰기 없음).
  */
-export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, resolvePaidAccess, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {}, onStage, abortSignal, onDelivery, onCheckpoint, stage = 1, priorResult = null, priorGenerationSource = "", priorSnapshot = null, onSnapshot, onAttempt, onReserved, onReleased } = {}) {
+export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, resolvePaidAccess, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {}, onStage, abortSignal, onDelivery, onCheckpoint, stage = 1, priorResult = null, priorGenerationSource = "", priorSnapshot = null, onSnapshot, onAttempt, onReserved, onReleased, onRecoveryRequested } = {}) {
   if (!text(userId)) return { ok: false, status: 401, error: FUSION_FORTUNE_ERROR_CODES.AUTH_REQUIRED, message: "로그인이 필요합니다." };
   const stageNumber = Number(stage) || 1;
   if (stageNumber !== 1 && stageNumber !== 2) return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: "입력 정보를 확인해 주세요." };
@@ -1411,6 +1423,9 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
   try {
     throwIfFusionFortuneAborted(abortSignal);
     if (typeof onReserved === "function") deliveryLease = await onReserved();
+    if (typeof onRecoveryRequested === "function" && priorSnapshot?.context) {
+      priorSnapshot = await onRecoveryRequested(deliveryLease) || priorSnapshot;
+    }
     const calculationDate = priorSnapshot?.calculatedAt ? new Date(priorSnapshot.calculatedAt) : priorResult?.expertMeta?.calculatedAt ? new Date(priorResult.expertMeta.calculatedAt) : now;
     const contextResult = priorSnapshot?.context ? { ok: true, context: priorSnapshot.context } : await contextBuilder(normalized, { now: calculationDate, env, onStage, ...(normalized.contextVersion === 2 ? { tarotSeed: `${userId}:${safeId}` } : {}) });
     if (!contextResult?.ok) throw Object.assign(new Error("context"), { code: FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED });
@@ -1436,7 +1451,9 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     if (generated?.deliverable === false && result) {
       if (typeof onDelivery === "function") await onDelivery({ requestId: safeId, lease: deliveryLease, result, generationSource: generated?.generationSource || "gemini_partial", qualityTier: "partial", stage: stageNumber, status: "partial", nextStage: stageNumber });
       await store.release(reservation, now).catch(() => {});
-      return { ok: true, status: 202, requestId: safeId, stage: stageNumber, nextStage: stageNumber, stageStatus: "partial", result, retryable: true, qualityTier: "partial", generationSource: generated?.generationSource || "gemini_partial" };
+      return { ok: true, status: 202, requestId: safeId, stage: stageNumber, nextStage: stageNumber, stageStatus: "partial", result, retryable: true,
+        automaticRetryAllowed: generated.automaticRetryAllowed !== false, pendingGroups: generated.pendingGroups,
+        qualityTier: "partial", generationSource: generated?.generationSource || "gemini_partial" };
     }
     if (generated?.deliverable === false || !result) throw Object.assign(new Error("generation"), { code: FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED, issues: generated?.qualityIssues });
     // 생성기가 이미 등급을 냈으면 그 판정을 쓴다 — 같은 결과를 두 번 재는 것은 비용일 뿐이고,

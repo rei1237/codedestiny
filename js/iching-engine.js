@@ -297,7 +297,7 @@
   var _pressInterval = null;
   var _heatPct = 0;
   var _PRESS_DURATION = 2200; // ms
-  var _TC_COIN_COST = 30;
+  var _TC_COIN_COST = 10;
   var _TC_FEATURE_KEY = 'openJuyukModal';
   var TC_TEXT_TRANSLATIONS = {
     ko: {

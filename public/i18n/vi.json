@@ -598,7 +598,8 @@
       "unlock5000": "Mở khóa 5.000 KRW",
       "sajuGuardianPricePrice5000": "Mở khóa vĩnh viễn 5.000 KRW",
       "price5000Price3000": "Một lần 3.000 KRW",
-      "price10000Price5000": "Một lần 5.000 KRW"
+      "price10000Price5000": "Một lần 5.000 KRW",
+      "unlock1000": "Mở khóa 1.000 KRW"
     },
     "destinyFlowerStudio": {
       "closeAria": "Đóng Xưởng Hoa Định Mệnh",
@@ -1853,6 +1854,28 @@
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
       "neoMore": "More consultation reviews"
+    },
+    "simple": {
+      "lead": "Chia sẻ băn khoăn để xem nội dung và giá trước khi bắt đầu.",
+      "start": "Tư vấn điều tôi băn khoăn",
+      "free": "Xem vận trình miễn phí hôm nay",
+      "startLabel": "Cách bắt đầu khác",
+      "love": "Tình yêu và quan hệ",
+      "work": "Công việc và tiền bạc",
+      "self": "Hiểu bản thân",
+      "future": "Hướng đi sắp tới",
+      "title": "Bắt đầu tư vấn từ câu hỏi của bạn",
+      "brand": "Gặp Yeongnyangi, Yeoni và Neo tại Ggulggul Fortune. Khám phá câu hỏi với Yeongnyangi, hoặc ghé quán trà Yeoni và phòng chiến lược Neo.",
+      "stepQuestion": "Chia sẻ băn khoăn hiện tại",
+      "stepPrice": "Xem nội dung và giá",
+      "stepResult": "Đọc giải đáp, cơ sở và bước tiếp theo",
+      "example": "Đọc ví dụ trước khi thanh toán",
+      "explore": "Khám phá tất cả vận trình và tư vấn",
+      "exploreNote": "Saju, tarot, tư vấn nhân vật, báo cáo và câu chuyện",
+      "passTitle": "Thường xuyên sử dụng? Xem gói lượt",
+      "passNote": "Kiểm tra phạm vi và thời hạn trước khi chọn.",
+      "passLink": "Xem gói lượt",
+      "passHistory": "Gói đã mua vẫn giữ điều kiện tại thời điểm mua."
     }
   },
   "terms": {

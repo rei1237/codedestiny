@@ -122,18 +122,21 @@ test('all supported output languages keep the prevention contract and stable sec
    assert.ok(request.outputSchema.properties.blocks.items.properties.id.enum.includes('action'));
  }
 });
-test('new year keeps five generation units and explicitly includes mixed months and annual prevention',()=>{
+test('new year adds a question opening and keeps annual prevention in the overview',()=>{
  const u=m.__newYearAiTestUtils;
  const input={birthInfo:{birthDate:'1990-03-21',birthTime:'14:30',gender:'female',calendarType:'solar'},targetYear:2027,focusArea:'overall'};
  const data=u.calculateNewYearFortuneData(input);
  assert.equal(data.prevention.version,m.PREVENTION_VERSION);
  assert.ok(data.prevention.candidates.filter(c=>c.period.kind!=='natal').every(c=>c.period.year===2027));
  assert.equal(data.monthlyFlow.length,12);
- assert.equal(u.NEW_YEAR_AI_SECTIONS.length,5);
+ assert.equal(u.NEW_YEAR_AI_SECTIONS.length,6);
+ assert.equal(u.NEW_YEAR_AI_SECTIONS[0].key,'opening');
+ const overview=u.NEW_YEAR_AI_SECTIONS.find(section=>section.key==='overview');
+ assert.ok(overview);
  assert.equal(m.preventionTiming({branchClashes:[{}],branchCombinations:[{}]},true),'기회와 주의');
  assert.equal(m.preventionTiming({branchCombinations:[{}]},false,true),'주의');
  assert.equal(m.preventionTiming({branchCombinations:[{}]}),'정비');
- assert.match(u.buildFirstPrompt(input,data,u.NEW_YEAR_AI_SECTIONS[0]),/\*\*올해 주의할 흐름과 나를 지키는 선택\*\*/);
+ assert.match(u.buildFirstPrompt(input,data,overview),/\*\*올해 주의할 흐름과 나를 지키는 선택\*\*/);
  const missing=u.validateConsultationQuality('검증용 총운입니다.',{fortuneData:data});
  assert.ok(missing.issues.includes('PREVENTION_SECTION_MISSING'));
  assert.equal(u.mapIssuesToSections({issues:['PREVENTION_SECTION_MISSING']},[]).has('overview'),true);

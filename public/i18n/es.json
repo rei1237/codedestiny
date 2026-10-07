@@ -598,7 +598,8 @@
       "unlock5000": "Desbloquear KRW 5,000",
       "sajuGuardianPricePrice5000": "Desbloqueo permanente KRW 5 000",
       "price5000Price3000": "Una vez 3,000 KRW",
-      "price10000Price5000": "Una vez 5.000 KRW"
+      "price10000Price5000": "Una vez 5.000 KRW",
+      "unlock1000": "Desbloquear KRW 1,000"
     },
     "destinyFlowerStudio": {
       "closeAria": "Cerrar Atelier de la Flor del Destino",
@@ -1853,6 +1854,28 @@
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
       "neoMore": "More consultation reviews"
+    },
+    "simple": {
+      "lead": "Cuéntanos qué te preocupa. Consulta el contenido y el precio antes de empezar.",
+      "start": "Consultar mi inquietud",
+      "free": "Ver la lectura gratuita de hoy",
+      "startLabel": "Otras formas de empezar",
+      "love": "Amor y relaciones",
+      "work": "Trabajo y dinero",
+      "self": "Conocerme mejor",
+      "future": "Mirar al futuro",
+      "title": "Una lectura que empieza con tu pregunta",
+      "brand": "Conoce a Yeongnyangi, Yeoni y Neo en Ggulggul Fortune. Explora tu pregunta con Yeongnyangi o visita la Casa de Té de Yeoni y la Sala de Estrategia de Neo.",
+      "stepQuestion": "Cuéntanos qué te preocupa",
+      "stepPrice": "Revisa el contenido y el precio",
+      "stepResult": "Lee la respuesta, sus razones y los siguientes pasos",
+      "example": "Leer un ejemplo antes de pagar",
+      "explore": "Explorar todas las lecturas y consultas",
+      "exploreNote": "Saju, tarot, consultas con personajes, informes e historias",
+      "passTitle": "Si consultas a menudo, descubre los pases",
+      "passNote": "Comprueba la cobertura y la validez antes de elegir.",
+      "passLink": "Ver pases",
+      "passHistory": "Los pases comprados conservan sus condiciones originales."
     }
   },
   "terms": {

@@ -132,6 +132,17 @@ export const APP_PAID_LOW_PRICE_FEATURE_KEYS = Object.freeze([
   "rpt_villainCard",
   "rpt_secretHouseEntryCard",
   "fun.quantumLotto.ritualReport",
+  // 2026-10-07 정적 저가 상품 인하. 무료로 바뀌지 않으며, 검증된 1,000원 SKU 등록 전에는 결제를 닫는다.
+  "openJuyukModal", "turtleIChing", "openKemetModal", "egyptOracle",
+  "stonehengeRunes", "stonehenge-runes-single", "stonehenge-runes-triad",
+  "stonehenge-runes-deep", "stonehenge-runes-yearly", "royal-tea-oracle", "ifa-oracle",
+  "vedic_basic_reading", "ziwei-island-deep-report", "astro_basic_deep_pack",
+  "animal-destiny-unlock", "tetogen_deep_report",
+  "astro_career_talent_deep", "astro_talent_attraction_deep", "astro_relationship_deep", "astro_growth_shadow_deep",
+  "astro_stellar_career_room", "astro_stellar_talent_room", "astro_stellar_relationship_room", "astro_stellar_growth_room",
+  "ziwei_decade_luck", "ziwei_love_deep", "ziwei_twelve_palaces", "ziwei_symbolic_layer", "ziwei_life_yearly_flow",
+  "rpt_healthReportCard", "rpt_quantumCard", "flower-fc", "olympus-fc",
+  "nakshatra-lord-report", "nakshatra-dasha-map", "nakshatra-muhurta", "nakshatra-compat",
 ]);
 
 export function isAppFreeFeature(featureKey, coinPrice) {

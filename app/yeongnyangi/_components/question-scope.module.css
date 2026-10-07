@@ -1,0 +1,21 @@
+.scope{max-width:760px;margin-inline:auto;color:var(--yn-ivory)}
+.scope h1{word-break:keep-all;text-wrap:balance}
+.back{display:inline-flex;align-items:center;min-height:44px;margin-bottom:16px;color:var(--yn-muted);font-size:14px;text-underline-offset:4px}
+.fields{display:grid;gap:20px;min-width:0;margin:0;padding:24px 0 8px;border:0}
+.fields legend{padding:0;font-size:20px;font-weight:700}
+.fields textarea,.optionFields select{width:100%;min-width:0}
+.fields>button{justify-self:start;min-height:44px;padding:8px 12px;border:1px solid var(--yn-line);border-radius:8px;background:var(--yn-surface);color:var(--yn-gold);font:inherit;text-align:left;cursor:pointer}
+.options{border-block:1px solid var(--yn-line);padding-block:8px}
+.options summary,.terms summary{min-height:44px;padding-block:12px;cursor:pointer;color:var(--yn-gold)}
+.options summary span{display:block;margin-top:6px;color:var(--yn-muted);font-size:14px;font-weight:400}
+.optionFields{display:grid;gap:20px;padding:12px 0 20px}
+.recommendation{margin-top:8px;padding:28px;border:1px solid var(--yn-line);border-radius:var(--yn-radius);background:var(--yn-surface)}
+.recommendation h2{margin:0;font-size:24px;line-height:1.5}
+.recommendation p{line-height:1.8}
+.recommendation .price{margin-block:20px;font-size:30px;font-weight:700;color:var(--yn-gold);font-variant-numeric:tabular-nums}
+.price span{display:block;font-size:14px;font-weight:400;color:var(--yn-muted)}
+.recommendation .note{font-size:14px;color:var(--yn-muted)}
+.terms{border-top:1px solid var(--yn-line);margin-top:20px;font-size:14px}
+.scope > .legacy{display:block;margin-top:24px;min-height:44px;border:0;padding:12px 0;background:none;color:var(--yn-muted);font:inherit;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.scope :is(a,button,summary,select,textarea,input):focus-visible{outline:3px solid var(--yn-gold);outline-offset:4px}
+@media(max-width:480px){.recommendation{padding:20px}.recommendation h2{font-size:21px}.fields{gap:16px}}

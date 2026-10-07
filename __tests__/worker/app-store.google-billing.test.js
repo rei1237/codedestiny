@@ -25,6 +25,7 @@
 // 정적 import를 쓰면 이 파일이 ESM으로 파싱되어 jest 전역이 사라진다.
 // 이 레포의 워커 테스트 관례(CJS 파일 + jest.unstable_mockModule + 동적 import)를 따른다.
 const { createHash, generateKeyPairSync } = require("node:crypto");
+const { STATIC_READING_PRICE_KEYS } = require("../fixtures/static-reading-price-keys.cjs");
 
 const USER_ID = "64b000000000000000000001";
 
@@ -669,10 +670,10 @@ describe("intent — 결제 의도 기록", () => {
   });
 
   // 2026-10-05 천원 사주 콘텐츠(10코인)는 무료 구간 가격이지만 앱에서도 돈을 받는다. ₩1,000 SKU 가 없어 닫힌다.
-  const FUN_1000_KEYS = ["rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_energyCoordCard", "rpt_villainCard", "rpt_secretHouseEntryCard", "fun.quantumLotto.ritualReport"];
+  const FUN_1000_KEYS = [...STATIC_READING_PRICE_KEYS,"rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_energyCoordCard", "rpt_villainCard", "rpt_secretHouseEntryCard", "fun.quantumLotto.ritualReport"];
   test.each(FUN_1000_KEYS)("천원 사주 콘텐츠 %s 는 앱 무료 통과 없이 SKU 미검증으로 닫힌다", async (featureKey) => {
-    expect([...appPricing.APP_PAID_LOW_PRICE_FEATURE_KEYS]).toEqual(FUN_1000_KEYS);
-    expect(registry.FEATURE_KEY_PRICE_TABLE[featureKey]).toMatchObject({ cost: 10, amountKRW: 1000 });
+    expect([...appPricing.APP_PAID_LOW_PRICE_FEATURE_KEYS].sort()).toEqual([...FUN_1000_KEYS].sort());
+    expect(registry.FEATURE_KEY_PRICE_TABLE[featureKey] || registry.UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey]).toMatchObject({ cost: 10, amountKRW: 1000 });
     for (const path of ["/free-grant", "/google/intent"]) {
       const { status, payload } = await callRoute(postJson(path, { featureKey, requestId: "fun-" + "b".repeat(32) }));
       expect(status).toBe(503);

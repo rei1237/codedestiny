@@ -99,7 +99,7 @@ var SAJU_ANIMAL_TEST_FEATURE = {
   requiresProfile: false,
   cta: _reportDashboardText("rd.cta.001"),
   lockKey: 'animal-destiny-unlock',
-  coinCost: 50,
+  coinCost: 10,
   thumb: '동물점테스트.webp',
   action: 'openAnimalDestinyRoute',
   target: 'animalDestinyEntryCard'
@@ -152,8 +152,8 @@ var LOVE_CODE_FEATURE = {
 
 var REPORT_CARDS = [
   { id:'meryok',     label:_reportDashboardText("rd.label.001"),      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:_reportDashboardText("rd.cta.004"), thumb:'meryok-new.webp', accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:10  },
-  { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:_reportDashboardText("rd.label.002"),        desc:'합화 우선 분석으로 나만의 천기 지도가 열립니다.',      note:'한 번 해금하면 합화·용신 보정·천기 전략 리포트 전체가 계속 머뭅니다.', cta:_reportDashboardText("rd.cta.005"),          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:50, badge:'5,000원 · 영구 해금'  },
-  { id:'sajuhealth', thumb:'명리 헬스 리포트.webp', label:_reportDashboardText("rd.label.003"),      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:_reportDashboardText("rd.cta.006"),      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:50  },
+  { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:_reportDashboardText("rd.label.002"),        desc:'합화 우선 분석으로 나만의 천기 지도가 열립니다.',      note:'한 번 해금하면 합화·용신 보정·천기 전략 리포트 전체가 계속 머뭅니다.', cta:_reportDashboardText("rd.cta.005"),          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:10, badge:'1,000원 · 영구 해금'  },
+  { id:'sajuhealth', thumb:'명리 헬스 리포트.webp', label:_reportDashboardText("rd.label.003"),      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:_reportDashboardText("rd.cta.006"),      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:10  },
   { id:'sajuprompt', thumb:'사주 프롬프트.webp', label:_reportDashboardText("rd.label.004"),      desc:'물상·아바타·이상형 얼굴 등 무료 AI 이미지 프롬프트를 받아보세요.', note:'내 사주의 분위기를 다양한 컨셉의 이미지 프롬프트로 바로 가져갈 수 있습니다.', cta:_reportDashboardText("rd.cta.007"),    accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard',       coinCost:0 },
   { id:'sajurpg',    thumb:'RPG 인생 스킬트리.webp', label:_reportDashboardText("rd.label.005"),        desc:'운명 RPG 스타일로 내 능력치 레벨을 확인합니다.',         note:'내 강점 스탯과 취약 스탯을 RPG처럼 시각화해 성장 루트를 제시합니다.', cta:_reportDashboardText("rd.cta.008"),        accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard',      coinCost:10  },
   { id:'tbal',       thumb:'극T테스트.webp', label:_reportDashboardText("rd.label.006"),            desc:'The Frozen Logic, 내 논리 온도를 분석합니다.',          note:'감정보다 이성이 먼저 반응하는 순간, 당신의 판단 패턴을 콕 집어드립니다.', cta:_reportDashboardText("rd.cta.009"),      accent:'#67e8f9', glow:'rgba(103,232,249,.55)', target:'tTestCard',          coinCost:0   },

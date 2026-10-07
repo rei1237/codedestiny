@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
-let docs, fault, lostConfirmation, prepare, reserve, claim, release, save;
+let docs, fault, lostConfirmation, prepare, reserve, claim, release, save, recover;
 const originalFetch = globalThis.fetch;
 const uid='64b7f2a1c3d4e5f601234567';
 const clone = value => value == null ? value : structuredClone(value);
@@ -48,7 +48,7 @@ beforeAll(async()=>{
  globalThis.fetch = () => { throw new Error('External fetch forbidden in delivery mocks'); };
  const models=await import('../../worker/lib/models.js');
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,FusionFortuneConsultation:model}));
- const mod=await import('../../worker/lib/fusion-fortune-consultation.js');prepare=mod.saveFusionGenerationSnapshot;reserve=mod.reserveFusionGroupAttempt;claim=mod.claimFusionDeliveryLease;release=mod.releaseFusionDeliveryLease;save=mod.saveFusionFortuneConsultation;
+ const mod=await import('../../worker/lib/fusion-fortune-consultation.js');prepare=mod.saveFusionGenerationSnapshot;reserve=mod.reserveFusionGroupAttempt;claim=mod.claimFusionDeliveryLease;release=mod.releaseFusionDeliveryLease;save=mod.saveFusionFortuneConsultation;recover=mod.requestFusionRecovery;
 });
 afterAll(() => { globalThis.fetch = originalFetch; });
 beforeEach(()=>{docs=[];fault=null;lostConfirmation=false});
@@ -88,4 +88,21 @@ it('reserves length repair atomically and keeps it after lost confirmation', asy
  await expect(reserve(args)).rejects.toMatchObject({code:'RESULT_STORAGE_UNAVAILABLE'});
  expect(docs[0].generationSnapshot.attempts.saju).toBe(1);
  expect(await reserve({...args,lengthRepair:false})).toBe(2);
+});
+
+it('manual recovery adds one bounded allowance without resetting spent calls or crossing owners', async () => {
+ await snapshot();
+ const args={userId:uid,requestId:'original-request'};
+ const lease=await claim(args);
+ expect(await reserve({...args,lease,groupId:'saju'})).toBe(1);
+ expect(await reserve({...args,lease,groupId:'saju'})).toBe(2);
+ await expect(reserve({...args,lease,groupId:'saju'})).rejects.toMatchObject({code:'RESULT_STORAGE_UNAVAILABLE'});
+ await expect(recover({...args,userId:'other',lease})).rejects.toMatchObject({code:'RESULT_STORAGE_UNAVAILABLE'});
+ await recover({...args,lease});
+ expect(await reserve({...args,lease,groupId:'saju'})).toBe(3);
+ await recover({...args,lease});
+ expect(await reserve({...args,lease,groupId:'saju'})).toBe(4);
+ await recover({...args,lease});
+ await expect(reserve({...args,lease,groupId:'saju'})).rejects.toMatchObject({code:'RESULT_STORAGE_UNAVAILABLE'});
+ expect(docs[0].generationSnapshot.attempts.saju).toBe(4);
 });
