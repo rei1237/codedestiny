@@ -69,7 +69,7 @@ test('the provider sends the chapter-v7 prompt and budget while v6 chapters are 
  const fixture=await new m.MockChapterProvider().generateChapter(requestFor(chapter));
  let request;
  await new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:fixture,provider:'mock',model:'test'};}}).generateChapter(requestFor(chapter));
- assert.equal(request.promptVersion,'chapter-v7');
+ assert.equal(request.promptVersion,'chapter-v7-grounded-recognition-20261007');
  const rules=JSON.parse(request.domainRules);
  assert.equal(rules.conciseReading,undefined,'Stored pre-concise chapters keep their existing writing contract');
  assert.deepEqual(rules.factOwnership.owns,chapter.owns);
@@ -90,7 +90,7 @@ test('the provider sends the chapter-v7 prompt and budget while v6 chapters are 
  const v6Fixture=await new m.MockChapterProvider().generateChapter(requestFor(v6));
  let v6Request;
  await new m.StructuredChapterProvider({generate:async r=>{v6Request=r;return {result:v6Fixture,provider:'mock',model:'test'};}}).generateChapter(requestFor(v6));
- assert.equal(v6Request.promptVersion,'chapter-v6');
+ assert.equal(v6Request.promptVersion,'chapter-v6-grounded-recognition-20261007');
  assert.equal(JSON.parse(v6Request.domainRules).factOwnership,undefined);
 });
 

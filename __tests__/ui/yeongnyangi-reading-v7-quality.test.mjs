@@ -199,7 +199,7 @@ test('all 28 v7 chapters retain valid drafts with repeated sentences but reject 
    prompt=request;return {result:JSON.stringify(draft),provider:'mock',model:'28-chapter-fixture'};
   }});
   const validated=m.validateChapter(await provider.generateChapter(input),input);
-  assert.equal(prompt.promptVersion,'chapter-v7');
+  assert.equal(prompt.promptVersion,'chapter-v7-grounded-recognition-20261007');
   assert.deepEqual(prompt.outputSchema.properties.blocks.items.properties.id.enum,chapter.sections.map(s=>s.id));
   if(previous.length)assert.ok(JSON.parse(prompt.domainRules).previousHighlights.length,'each next chapter receives stored conclusions');
   assert.ok(count(prose(validated),repeated)<=1);

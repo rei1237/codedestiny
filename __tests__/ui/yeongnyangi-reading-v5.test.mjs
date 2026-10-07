@@ -55,13 +55,13 @@ test('v4 manifests keep old quotas and provider schema on resume',async()=>{
  const fixture=await new m.MockChapterProvider().generateChapter(previousInput);
  let request;
  await new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:fixture,provider:'mock',model:'test'};}}).generateChapter(previousInput);
- assert.equal(request.promptVersion,'chapter-v4');assert.equal(request.outputSchema.properties.blocks.items.properties.id,undefined);
+ assert.equal(request.promptVersion,'chapter-v4-grounded-recognition-20261007');assert.equal(request.outputSchema.properties.blocks.items.properties.id,undefined);
  assert.doesNotThrow(()=>m.validateChapter(fixture,previousInput));
 });
 test('new provider schema requires section identity, sources and sufficient output budget',async()=>{
  let request;
  await new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:good,provider:'mock',model:'test'};}}).generateChapter(input);
- assert.equal(request.promptVersion,'chapter-v5');assert.ok(request.outputSchema.properties.blocks.items.required.includes('sources'));
+ assert.equal(request.promptVersion,'chapter-v5-grounded-recognition-20261007');assert.ok(request.outputSchema.properties.blocks.items.required.includes('sources'));
  assert.ok(request.maxOutputTokens>=chapter.outputTokens);
  let calls=0;
  await assert.rejects(new m.StructuredChapterProvider({generate:async()=>{calls++;}}).generateChapter({...input,chapter:{...chapter,targetChars:[20000,30000]}}),{code:'CHAPTER_OUTPUT_BUDGET_EXCEEDED'});
