@@ -1,3 +1,4 @@
+import './lib/mock-network-guard.cjs';
 import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -91,6 +92,9 @@ try {
   for (const width of [320, 390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(base + "/ggulggul/");
+    // The current home keeps reviews inside the optional atelier section.
+    // Follow the visible user action instead of asserting hidden content is visible.
+    await page.locator("#cdhMore > summary").click();
     await page.locator("#cdReviewInvite .cd-review-invite__action").waitFor();
     assert.equal(await page.locator("#cdReviewInvite .cd-review-invite__action").getAttribute("href"), "/reviews/?write=1");
     if (width <= 540) assert((await page.locator("#cdReviewInvite .cd-review-invite__image").boundingBox()).width <= 80, "home mascot overlaps mobile copy");
