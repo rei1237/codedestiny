@@ -233,8 +233,8 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 .cdh-pass__badge{position:absolute;top:-10px;right:12px;padding:3px 9px;border-radius:999px;background:var(--cdh-accent);color:#fff;font-size:.68rem;font-weight:800}
 .cdh-pass__tier-name{color:var(--cdh-accent);font-size:.84rem;font-weight:800;word-break:keep-all}
 .cdh-pass__tier-price{margin:2px 0 6px;color:var(--cdh-ink);font-size:clamp(1.15rem,2vw,1.4rem);font-weight:850;letter-spacing:-.02em}
-.cdh-pass__tier-price small{color:var(--cdh-muted);font-size:.72rem;font-weight:700}
-.cdh-pass__tier-line{color:var(--cdh-muted);font-size:.8rem;line-height:1.5}
+.cdh-pass__tier-price small{color:var(--cdh-muted);font-size:.72rem;font-weight:700;white-space:nowrap}
+.cdh-pass__tier-line{color:var(--cdh-muted);font-size:.8rem;line-height:1.5;word-break:keep-all}
 .cdh-pass__note{margin:0;color:var(--cdh-muted);font-size:.76rem;line-height:1.6}
 .cdh-pass__btn{position:relative;padding-inline-end:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-height:var(--cd-btn-h);border-radius:var(--cd-r-control);background:var(--cd-cta-primary-bg);color:var(--cd-cta-primary-ink)!important;font-weight:800;text-decoration:none}
 :is(html,body).neo-mode .cdh-pass__mascot{background:#2a2242}
