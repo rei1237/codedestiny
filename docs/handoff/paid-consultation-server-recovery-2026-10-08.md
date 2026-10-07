@@ -106,3 +106,9 @@ node node_modules/jest/bin/jest.js --runInBand __tests__/worker/saju-consultatio
 - GitHub push 장애는 후속 재시도에서 해소됐다. `46343c7b48e6172fd0ffb4d6e408fb3399fda0b4`가 원격 main에 전달됐고 타입/린트 및 [결제 전용 CI](https://github.com/rei1237/codedestiny/actions/runs/37642534644)가 통과했다.
 - [전체 CI](https://github.com/rei1237/codedestiny/actions/runs/37642534623)의 정적 검사는 기존 신년운세 5분야 고정 테스트 한 건이 실패했다. 요청된 6분야 구성을 확인하고 주의사항 해석은 기존 overview에서 계속 검증하도록 해당 테스트를 수정했다. 최신 main CI 결과는 재개 시 정확한 SHA로 확인한다. 위의 push 장애 내용은 과거 기록이며 현재 장애로 간주하지 않는다.
 - 이후 main에는 별도 세션의 초융합 수정 `876df3da04fb71f795647c116ad08290cec4ef76`도 포함됐다. 운영 승격은 이 변경을 포함한 전체 대상 SHA의 검증과 별도 승인이 필요하다.
+
+## 최종 코드 검증 기록 — 2026-10-08 00:38 KST
+
+- `6263c402c6fd22466a9b2a000d0fabd27e70bc72`의 [CI](https://github.com/rei1237/codedestiny/actions/runs/37644085874)에서 타입/린트, Pages·Worker 빌드, 전체 Critical checks가 통과했다. 정적 UI 테스트 2,984건도 전부 통과했다.
+- 같은 CI의 유일한 남은 실패는 사이트맵 원장의 소스 fingerprint 불일치였다. 정본 `sitemap:generate`로 갱신하고 무관한 일일 날짜 변경은 제외했다. URL/라우팅/가격 변경은 없다. 이 생성 원장 수정 뒤 최신 SHA의 `CI required`가 통과해야 전달 완료다.
+- 임시 워크트리는 각 수정의 main 통합 후 정리했다. 운영 적용과 서버 실측 진단은 여전히 별도 단계다.
