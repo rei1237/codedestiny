@@ -2,6 +2,7 @@
 status: done
 followup_status: server_readonly_audit_pending
 updated: 2026-10-08
+next: 최신 main CI를 확인하고 운영 버전·cron·오류 로그를 읽기 전용으로 대조한다.
 ---
 
 # 유료 상담 서버 설정·복구 점검 인수인계
@@ -92,23 +93,9 @@ node node_modules/jest/bin/jest.js --runInBand __tests__/worker/saju-consultatio
 
 위 검사는 모두 로컬/mock이며 CI 및 운영 설정 검증을 대신하지 않는다. `check:fast -- --plan`은 위험 변경의 전체 CI 승격을 확인하는 용도이며 로컬 전체 preflight 반복을 뜻하지 않는다.
 
-## 전달 현황 — 2026-10-08 00:16 KST
+## 전달·검증 현황
 
-- 앞선 이용권 오류 수정 `5b1a4bffe909b630cf2efef7b7703be4211bcf47`은 원격 main에 전달됐다. 이후 전문가 상담 확대·신년운세 개선·타로 오탐 수정은 로컬 main 병합 `6dd2947d0b0229ed5726173f52638ecdb4f9fbd6`에 보존돼 있다.
-- 집중 Jest 9 suites / 206 tests 통과, Node 행동 검사 84 tests 통과. 위 네 가지 정책/흐름/미선언 식별자 검증 통과. `check:fast -- --plan`은 critical CI 승격 확인만 했으며 로컬 전체 게이트 통과로 보고하지 않는다.
-- 외부 API를 차단한 개발 프리뷰에서 Chromium 390px/1440px 질문 답변 렌더링 확인. 가로 overflow 없음. 사용자 첨부 Naver 인앱 브라우저 실기기 및 실제 생성 결과는 미검증이다.
-- GitHub가 2026-10-07 15:13:13Z, 15:13:45Z, 15:15:03Z의 `git push origin main`을 각각 `Internal Server Error`로 거절했다. 마지막 request ID: `D340:2FBA98:65E4F:9CBF1:6AC661F3`. GitHub API도 병합 SHA를 아직 찾지 못했다(422). 따라서 최신 변경의 main CI는 미실행이다. GitHub 상태 페이지가 정상이어도 이 저장소의 실제 거절 결과를 우선한다.
-- 다음 동작은 현재 main/원격 main 비교 → 안전한 fetch/통합 → push 재시도 → 해당 SHA의 CI required 확인이다. 실패를 우회하려고 강제 push하거나 CI를 끄지 않는다. 원격 복구 후 이 현황을 갱신한다.
-- 운영 승격·설정 변경·실 LLM·결제·운영 DB 변경은 하지 않았다. 기존 브랜치를 배포 완료로 간주하지 않는다.
-
-## 전달 현황 갱신 — 2026-10-08 00:27 KST
-
-- GitHub push 장애는 후속 재시도에서 해소됐다. `46343c7b48e6172fd0ffb4d6e408fb3399fda0b4`가 원격 main에 전달됐고 타입/린트 및 [결제 전용 CI](https://github.com/rei1237/codedestiny/actions/runs/37642534644)가 통과했다.
-- [전체 CI](https://github.com/rei1237/codedestiny/actions/runs/37642534623)의 정적 검사는 기존 신년운세 5분야 고정 테스트 한 건이 실패했다. 요청된 6분야 구성을 확인하고 주의사항 해석은 기존 overview에서 계속 검증하도록 해당 테스트를 수정했다. 최신 main CI 결과는 재개 시 정확한 SHA로 확인한다. 위의 push 장애 내용은 과거 기록이며 현재 장애로 간주하지 않는다.
-- 이후 main에는 별도 세션의 초융합 수정 `876df3da04fb71f795647c116ad08290cec4ef76`도 포함됐다. 운영 승격은 이 변경을 포함한 전체 대상 SHA의 검증과 별도 승인이 필요하다.
-
-## 최종 코드 검증 기록 — 2026-10-08 00:38 KST
-
-- `6263c402c6fd22466a9b2a000d0fabd27e70bc72`의 [CI](https://github.com/rei1237/codedestiny/actions/runs/37644085874)에서 타입/린트, Pages·Worker 빌드, 전체 Critical checks가 통과했다. 정적 UI 테스트 2,984건도 전부 통과했다.
-- 같은 CI의 유일한 남은 실패는 사이트맵 원장의 소스 fingerprint 불일치였다. 정본 `sitemap:generate`로 갱신하고 무관한 일일 날짜 변경은 제외했다. URL/라우팅/가격 변경은 없다. 이 생성 원장 수정 뒤 최신 SHA의 `CI required`가 통과해야 전달 완료다.
-- 임시 워크트리는 각 수정의 main 통합 후 정리했다. 운영 적용과 서버 실측 진단은 여전히 별도 단계다.
+- 원본 이용권 수정 `5b1a4bffe909b630cf2efef7b7703be4211bcf47`, 상담 확대·신년운세·타로 수정 병합 `6dd2947d0b0229ed5726173f52638ecdb4f9fbd6`, 구성 테스트 `6263c402c6fd22466a9b2a000d0fabd27e70bc72`, 사이트맵 원장 `3197e4c4b66e0e1fd5e338c3118e14ecfe2bf580` 모두 원격 main에 전달됐다. 과거 GitHub push 오류는 해소됐다.
+- 로컬 집중 검증 206 Jest + 84 Node + 9 주의사항 테스트 통과. 정책/상담 흐름/worker 미선언 식별자/사이트맵 검증 통과. mock 브라우저 390px/1440px에서 질문 답변 렌더와 가로 overflow 없음 확인. Naver 실기기·실 LLM·운영 DB 검증은 하지 않았다.
+- [6263c402 CI](https://github.com/rei1237/codedestiny/actions/runs/37644085874): 타입/린트·Pages/Worker 빌드·Critical checks·정적 UI 2,984건 통과. 이후 발견된 생성 원장 불일치는 정본 생성기로 수정했고, [3197e4c4 CI](https://github.com/rei1237/codedestiny/actions/runs/37645629776)에서 사이트맵을 포함한 후속 가드를 통과했다. 이 실행은 이 문서의 next 메타데이터 누락에서 중단되어 해당 필드를 보완했다. 최종 CI required는 보완된 최신 SHA에서 확인한다.
+- main에는 다른 세션의 초융합·진입 화면 개선도 포함돼 있다. 운영 승격은 전체 대상 SHA의 검증과 별도 승인이 필요하다. 임시 워크트리는 main 통합 후 정리한다.
