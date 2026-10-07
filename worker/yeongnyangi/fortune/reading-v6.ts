@@ -104,6 +104,11 @@ const outlines:Record<DomainId,Outline>={
  revision|선택을 수정해야 할 조건|cards,reading`),
 };
 const base:Record<DomainId,string[]>={saju:['pillars','dayMaster'],ziwei:['lifePalace','bodyPalace'],sukuyo:['personA'],vedic:['lagna','moon'],astrology:['ascendant','planets.Sun','planets.Moon'],tarot:['spreadId','cards']};
+/** Reuse the original domain's foundational evidence in new question consultations. */
+export function questionFoundationEvidence(domain:DomainId):string[]{
+ const keys=['self','balance','talent','emotion','habit','conflict','burden','recovery'];
+ return [...new Set([...base[domain],...Object.values(outlines[domain]).flat().filter(row=>keys.includes(row.key)).flatMap(row=>row.selectors)])];
+}
 const pairFacts={saju:['partnerChart','relationshipComparison'],sukuyo:['personB','relation','forwardDistance','reverseDistance','distanceLabel']};
 // A consultation lens uses the equivalent evidence in its own system, never a
 // different system or an unrelated base-only placeholder (e.g. career in Saju).

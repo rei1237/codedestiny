@@ -1,6 +1,8 @@
 "use client";
 import {getQuestionGuide,questionScopeEntry} from "@/lib/fortune/question-journey";
 import QuestionScope from './QuestionScope';
+import {PREVENTION_TITLE} from '@/worker/lib/fortune-prevention.js';
+import {consultationBudget,fusionConsultationManifest} from '@/worker/yeongnyangi/fortune/consultation-budget';
 import {QUESTION_POLICY_VERSION,questionTopics,questionDecision,questionManifest,recommendQuestion,FOLLOWUP_LIMITS,type QuestionDecision,type QuestionFish} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import RelationshipJourney from './RelationshipJourney';
 import {additionalKindDescription} from '../_lib/consultation-kind-copy';
@@ -97,7 +99,7 @@ export default function Consultation(){
  const questionActive=questionMode&&siteLocale==='ko'&&domain!=='fusion'&&Boolean(decision);
  const kind=questionActive?{...originalKind,question:true}:originalKind;
  const tarotSpec=domain==='tarot'?tarotConsultation(kind.id):undefined;
- const tarotSpread=domain==='tarot'&&kind.id===TAROT_SPREAD_KIND?plannedSpread(tarotPlan,question,questionActive?'tuna':product.fishId,siteLocale):undefined;
+ const tarotSpread=domain==='tarot'&&kind.id===TAROT_SPREAD_KIND?plannedSpread(tarotPlan,question,product.fishId,siteLocale):undefined;
  const tarotSpreadView=tarotSpread?localizedTarotSpread(tarotSpread,siteLocale):undefined;
  const relationship=isRelationshipReading(domain,kind.id);
  useEffect(()=>{
@@ -108,10 +110,12 @@ export default function Consultation(){
  const systemCopy=domain==='fusion'?null:getFortuneCopy(domain as 'saju'|'ziwei'|'sukuyo'|'vedic'|'astrology'|'tarot',kind.id);
  const spiritEntryCopy=questionSkyCopyFor(siteLocale).entry;
  const askCopy=askPhase5Copy(siteLocale).input;
- const preview=questionActive?questionManifest(product.domain,product.fishId as QuestionFish,decision!,tarotSpread):conciseReadingManifest(consultationManifest(product,kind,topicId,tarotSpread));
+ const preview=questionActive?questionManifest(product.domain,product.fishId as QuestionFish,decision!,tarotSpread,question):siteLocale==='ko'&&product.readingKind!=='single'?fusionConsultationManifest(product,topicId):conciseReadingManifest(consultationManifest(product,kind,topicId,tarotSpread));
+ const fusionPreview=siteLocale==='ko'&&product.readingKind!=='single';
+ const previewCount=preview.length+(fusionPreview?1:0);
  // New purchase previews use the same concise manifest as preparation. Saved results keep their own manifest.
  const targetRange=(item:Product)=>{
-  const rows=conciseReadingManifest(consultationManifest(item,kind,topicId,tarotSpread));
+  const rows=siteLocale==='ko'&&item.readingKind!=='single'?fusionConsultationManifest(item,topicId):conciseReadingManifest(consultationManifest(item,kind,topicId,tarotSpread));
   const target=rows.every(row=>row.targetChars?.every(n=>Number.isFinite(n)&&n>0))
    ?[0,1].map(i=>rows.reduce((sum,row)=>sum+(row.targetChars?.[i]||0),0))
    :policyForReading(item.fishId,item.manifestVersion).target;
@@ -261,12 +265,12 @@ export default function Consultation(){
   {relationship&&<div className={styles.systemDescription}><h2>{kindLabel(kind.id)}</h2><p>{relationshipAdvice[domain as DomainId]}</p>{domain==='ziwei'&&<><p>{relationshipCopy.timeHint} <a href="/yeongnyangi/fortune/?domain=tarot&consultationKind=compatibility">{localizedSystem('tarot',siteLocale)} · {relationshipCopy.entry}</a></p><p>{relationshipCopy.overseas}</p></>}</div>}
   {siteLocale!=='ko'?<div className={styles.systemDescription}><strong>{localizedSystem(domain,siteLocale)}</strong><p>{ui.method}</p></div>:domain==='fusion'?<p className={styles.systemDescription}>{fusionDescription(product)||'서로 다른 운세 체계의 공통점과 차이점을 구분해 깊이 읽어요.'}</p>:<div className={styles.systemDescription}><strong>{systemCopy?.cardTitle}</strong><p>{systemCopy?.description}</p><p>{systemCopy?.detail}</p></div>}
   {domain==='fusion'&&<p className={styles.systemDescription}>{ui.afterPayment}</p>}
-  {tarotOnly&&!tarotSpread&&<TarotConsultationGuide locale={siteLocale} kindId={kind.id} tier={product.fishId} chapterCount={preview.length}/>}
+  {tarotOnly&&!tarotSpread&&<TarotConsultationGuide locale={siteLocale} kindId={kind.id} tier={product.fishId} chapterCount={previewCount}/>}
   <div className={styles.consultationDesk}>
    <aside className={styles.consultationGuide} aria-label={ui.summary}>
     <img className={styles.guideCat} src="/assets/yeongnyangi/profiles/welcome.webp" width={168} height={171} alt="Yeongnyangi"/>
     <h2>{ui.guideTitle}</h2><p>{ui.guideIntro}</p>
-    <dl className={styles.consultationSummary}><div><dt>{ui.summary}</dt><dd>{tarotSpreadView?.title||kindLabel(kind.id)} · {tierLabel(product)}</dd></div><div><dt>{ui.profile}</dt><dd>{tarotOnly?localizedSystem('tarot',siteLocale):selectedProfile?.name||inputCopy.pickerPrompt}</dd></div><div><dt>{ui.structure}</dt><dd>{preview.length} {ui.chapters}</dd></div><div><dt>{ui.methodTitle}</dt><dd>{siteLocale==='ko'?readingFeatures[domain]:localizedSystem(domain,siteLocale)}</dd></div><div><dt>{ui.paymentTitle}</dt><dd>{ui.payment} · {price(product.priceKRW)}</dd></div></dl>
+    <dl className={styles.consultationSummary}><div><dt>{ui.summary}</dt><dd>{tarotSpreadView?.title||kindLabel(kind.id)} · {tierLabel(product)}</dd></div><div><dt>{ui.profile}</dt><dd>{tarotOnly?localizedSystem('tarot',siteLocale):selectedProfile?.name||inputCopy.pickerPrompt}</dd></div><div><dt>{ui.structure}</dt><dd>{previewCount} {ui.chapters}</dd></div><div><dt>{ui.methodTitle}</dt><dd>{siteLocale==='ko'?readingFeatures[domain]:localizedSystem(domain,siteLocale)}</dd></div><div><dt>{ui.paymentTitle}</dt><dd>{ui.payment} · {price(product.priceKRW)}</dd></div></dl>
     <p className={styles.guideNote}><Sparkles size={16} aria-hidden="true"/>{ui.about}</p>
     {siteLocale==='ko'&&hasReviews&&<details className={styles.consultationReviews}><summary>네오 1:1 상담 실제 후기 보기</summary><p>네오가 사람 1:1 상담에서 받은 후기예요. 여기서 고르는 상담은 AI가 작성해요.</p><CustomerReviews limit={2} variant="inline"/></details>}
    </aside>
@@ -297,13 +301,14 @@ export default function Consultation(){
   <p lang={siteLocale}>{ui.depthHint} {kind.question&&ui.questionHint}</p>
   {domain!=='fusion'&&<p lang={siteLocale} data-reading-depth-note>{readingDepthCopy(siteLocale).sharedTopics}</p>}
   <div className={`${styles.fishes} ${domain==='fusion'?styles.fusionChoices:''}`} role="group" aria-label={siteLocale==='ko'?'생선 상품':ui.depth}>{choices.map(item=><button key={item.id} onClick={()=>{setProductId(item.id);setTierNotice('');}} aria-pressed={productId===item.id} disabled={!!tarotSpread&&!tierAllowsSpread(item.fishId,tarotSpread)}>
-   <img src={siteLocale==='ko'?item.image:item.reactionAsset} alt="" width={240} height={108}/><strong>{tierLabel(item)}</strong><span className={styles.fishPrice}>{siteLocale==='ko'&&<LaunchPlannedPrice amount={plannedPriceFor(item.fishId,item.priceKRW)}/>}{siteLocale==='ko'&&plannedPriceFor(item.fishId,item.priceKRW)!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(item.priceKRW)}</span><span className={styles.fishScope}>{consultationManifest(item,kind,topicId).length} {ui.chapters}{productId===item.id&&<b>{ui.selected}</b>}</span>{domain!=='fusion'&&<small>{targetRange(item)} {ui.target}</small>}{tarotSpread&&!tierAllowsSpread(item.fishId,tarotSpread)&&tarotSpread.minTier&&<small>{tarotSpreadCopy.tierLocked(tarotSpread.cardCount,fishName(tarotSpread.minTier,siteLocale))}</small>}{readingTierDepth(item.fishId,siteLocale)?<small data-reading-tier-depth={item.fishId}>{readingTierDepth(item.fishId,siteLocale)}</small>:siteLocale==='ko'&&<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>}
+   <img src={siteLocale==='ko'?item.image:item.reactionAsset} alt="" width={240} height={108}/><strong>{tierLabel(item)}</strong><span className={styles.fishPrice}>{siteLocale==='ko'&&<LaunchPlannedPrice amount={plannedPriceFor(item.fishId,item.priceKRW)}/>}{siteLocale==='ko'&&plannedPriceFor(item.fishId,item.priceKRW)!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(item.priceKRW)}</span><span className={styles.fishScope}>{siteLocale==='ko'&&item.readingKind!=='single'?fusionConsultationManifest(item,topicId).length+1:consultationManifest(item,kind,topicId).length} {ui.chapters}{productId===item.id&&<b>{ui.selected}</b>}</span>{domain!=='fusion'&&<small>{targetRange(item)} {ui.target}</small>}{tarotSpread&&!tierAllowsSpread(item.fishId,tarotSpread)&&tarotSpread.minTier&&<small>{tarotSpreadCopy.tierLocked(tarotSpread.cardCount,fishName(tarotSpread.minTier,siteLocale))}</small>}{readingTierDepth(item.fishId,siteLocale)?<small data-reading-tier-depth={item.fishId}>{readingTierDepth(item.fishId,siteLocale)}</small>:siteLocale==='ko'&&<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>}
   </button>)}</div>
   </>}
-   <details className={styles.manifestPreview}><summary>{tarotSpreadView?.title||kindLabel(kind.id)} · {preview.length} {ui.chapters} · {ui.contents}</summary><ol>{preview.map((chapter,i)=>{
+   {siteLocale==='ko'&&(questionActive||product.readingKind!=='single')&&<p>기본 상담과 추가 질문 {consultationBudget(product.fishId).followups}회를 합쳐 약 {consultationBudget(product.fishId).total.map(n=>n.toLocaleString('ko-KR')).join('~')}자 목표로 구성해요. 실제 분량은 질문과 근거에 따라 달라질 수 있어요.</p>}
+   <details className={styles.manifestPreview}><summary>{questionActive?question.trim()||preview[0]?.part:tarotSpreadView?.title||kindLabel(kind.id)} · {previewCount} {ui.chapters} · {ui.contents}</summary><ol>{preview.map((chapter,i)=>{
     const head=v7PartHead(preview,i,siteLocale);
-    return <li key={chapter.id}>{head&&<b className={styles.partHeading}>{head}</b>}{v7Label(chapter.titleKey,siteLocale)||(siteLocale==='ko'?chapter.title:`${localizedKind(kind.id,siteLocale)} · ${i+1}`)}</li>;
-   })}</ol></details>
+    return <li key={chapter.id}>{head&&<b className={styles.partHeading}>{head}</b>}{v7Label(chapter.titleKey,siteLocale)||(siteLocale==='ko'?chapter.title:`${localizedKind(kind.id,siteLocale)} · ${i+1}`)}{questionActive&&chapter.sections&&<ul>{chapter.sections.map(section=><li key={section.id}>{section.title}</li>)}</ul>}</li>;
+   })}{fusionPreview&&<li>{PREVENTION_TITLE}</li>}</ol></details>
    <div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{tierLabel(product)} · {ui.payment}</span><strong><LaunchPlannedPrice className={styles.totalPlanned} amount={plannedTotal}/>{plannedTotal!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(product.priceKRW)}</strong></div>
    <p>{ui.afterPayment}</p><p>{askCopy.language}: <b lang={locale}>{readingLanguageNames[locale]}</b> · {ui.languageHint}</p><p>{ui.priceHint}</p>
    <a href={`/yeongnyangi/library/?lang=${siteLocale}`}>{ui.library}</a>

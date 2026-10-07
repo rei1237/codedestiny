@@ -80,7 +80,7 @@ test('all personas and prices receive identical grounded recognition on the real
   for(const persona of [undefined,'yeoni','neo'])for(const fish of ['mackerel','salmon','flounder','tuna']){
    let sent;
    const provider=new m.StructuredChapterProvider({generate:async request=>{sent=request;return {result:{},provider:'mock',model:'fixture'};}});
-   const chapter=m.questionManifest(domain,fish,decision)[0];
+   const chapter=m.questionManifest(domain,fish,decision,undefined,'',false)[0];
    await provider.generateChapter({persona,chapter,analysis:{contexts:{[domain]:context},question:'부탁을 거절하기 어려워요',themes:[],signals:[]},previous:[]});
    const guide=JSON.parse(sent.domainRules).recognition;
    assert.equal(guide.version,m.RECOGNITION_VERSION);

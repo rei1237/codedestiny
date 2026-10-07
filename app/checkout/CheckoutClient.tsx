@@ -47,6 +47,7 @@ import { getCheckoutCopy, resolveCheckoutPolicyHrefs } from "./checkout-copy";
 import {fortuneApi,FortuneApiError,resultPath,type FortuneRecord} from '../yeongnyangi/_lib/api';
 import { paymentAllianceCopy } from "./payment-alliance-copy";
 import styles from "./checkout.module.css";
+import MoonstoneDiscountBalance from "./MoonstoneDiscountBalance";
 
 const FEATURE_KEY_PATTERN = /^yeongnyangi-[a-z0-9-]+$/;
 const RETURN_TO_PREFIX = "/yeongnyangi/";
@@ -368,6 +369,7 @@ export default function CheckoutClient() {
                 {!pricing.monthlyExcluded&&<button type="button" disabled={!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MOONLIGHT_STONE')}>{lang==='ko'?`보유 월정석 ${pricing.membershipCreditCost.toLocaleString('ko-KR')}개 사용`:alliance.moonstones(pricing.membershipCreditCost.toLocaleString(intlLocale))}</button>}
               {!isSoulCatMode && nativePrice===null && lang==='ko' && !pricing.monthlyExcluded && pricing.monthlyCreditMultiplier===1 && <fieldset className={styles.discount} disabled={gate.phase==='paying'||gate.phase==='paid'||packBusy}>
                 <legend>월정석으로 단건 결제 할인받기</legend>
+                <MoonstoneDiscountBalance signedIn={signedIn} userId={String(auth.user?.id||'')} maxDiscountStones={Math.floor((pricing.amountKRW-1000)/(pricing.amountKRW/pricing.membershipCreditCost))} selected={selectedStones} onUse={setMoonstoneInput}/>
                 <label htmlFor="moonstone-discount">사용할 월정석 수량</label>
                 <input id="moonstone-discount" type="number" inputMode="numeric" min={0} step={1}
                   max={Math.floor((pricing.amountKRW-1000)/(pricing.amountKRW/pricing.membershipCreditCost))}

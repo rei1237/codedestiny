@@ -216,3 +216,5 @@ describe("buildNeoRefinedSectionPrompt", () => {
     expect(prompt).not.toContain("주제영역은_2차_프롬프트에_실리지_않는다");
   });
 });
+
+test('second reality check reuses saved advice and grounded timing guidance',()=>{const prompt=buildNeoRefinedSectionPrompt(NEO_REFINED_SECTIONS.find(section=>section.id==='actionAlternatives'),{selectedMethod:'saju',question:'이직 준비',initialBriefing:{},realityCheck:{freeform:'면접을 마쳤어요'},previousRefinements:[{realityCheck:{freeform:'이력서를 준비했어요'},order:{thisWeekFirstStep:'지원할 회사를 세 곳으로 좁히기'}}]});expect(prompt).toContain('지원할 회사를 세 곳으로 좁히기');expect(prompt).toContain('면접을 마쳤어요');expect(prompt).toContain('계산된 구간');});

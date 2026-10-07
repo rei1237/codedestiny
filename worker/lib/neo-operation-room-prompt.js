@@ -1,3 +1,4 @@
+import {CONSULTATION_COUNSEL_GUIDE} from '../../lib/fortune/consultation-counsel.mjs';
 import { dedupeTextList, salvageTruncatedJsonObject, trimToSentenceBoundary } from "../../lib/llm-text.js";
 import { buildBasisFactLines, collectBasisLabels } from "./analysis-basis-contract.js";
 import { scrubInternalKeyPaths } from "./llm-leak-guard.js";
@@ -740,6 +741,7 @@ function neoSectionCommonLines(section, ctx) {
     coverage,
     ...(starRule ? [starRule] : []),
     ...NEO_COMMON_RULES,
+    CONSULTATION_COUNSEL_GUIDE,
     "",
     "[선택 술수 작성 지침]",
     ...guideLines(writingGuide),
@@ -1379,6 +1381,8 @@ export function buildNeoRefinedSectionPrompt(section, ctx) {
     "[1차 작전 브리핑 요약 (고쳐 쓸 대상)]",
     ...refineDigestLines(ctx.initialBriefing),
     "",
+    "[이전 현실 점검 답변 (새 질문과 달라진 상황을 비교하되 반복하지 않는다)]",
+    ...safeArray(ctx.previousRefinements).map((entry,index)=>JSON.stringify({round:index+1,question:entry.realityCheck?.freeform,verdict:entry.order?.verdict,firstStep:entry.order?.thisWeekFirstStep,alternatives:entry.order?.actionAlternatives})),
     "[이미 제시한 조언 (반복 금지)]",
     clean(ctx.previousAdviceLog) || "(없음)",
     "이 목록에 있는 조언·행동·표현은 그대로 다시 쓰지 않는다. 주제가 겹치면 반드시 다른 각도로 새로 만든다.",

@@ -5,7 +5,7 @@ import {
 } from '../../lib/tarot/yeongnyangi-spread-catalog.mjs';
 
 test('every spread has exactly as many positions, slots and orders as cards',()=>{
- assert.equal(yeongnyangiSpreads.length,19);
+ assert.equal(yeongnyangiSpreads.length,21);
  for(const s of yeongnyangiSpreads){
   assert.deepEqual(validateSpread(s),[],s.id);
   assert.equal(s.positions.length,s.cardCount,s.id);
@@ -25,7 +25,7 @@ test('maps keep their shape on every width: orbit centred, celtic staff upright'
 test('the requested card counts are kept exactly',()=>{
  const expected={yn_one_word:1,yn_knot_three:3,yn_contact_first:5,yn_crossed_six:6,yn_reunion_seven:7,yn_new_bond_five:5,yn_deepen_seven:7,
   yn_ab_seven:7,yn_stay_leave_nine:9,yn_work_block_six:6,yn_money_pattern_five:5,yn_offer_six:6,yn_repeat_pattern_six:6,yn_recovery_four:4,
-  yn_month_compass_six:6,yn_whole_map_ten:10,trad_past_present_future:3,trad_horseshoe_seven:7,trad_celtic_cross_ten:10};
+  yn_month_compass_six:6,yn_whole_map_ten:10,trad_past_present_future:3,trad_horseshoe_seven:7,trad_celtic_cross_ten:10,yn_money_flow_seven:7,yn_money_map_ten:10};
  assert.deepEqual(Object.fromEntries(yeongnyangiSpreads.map(s=>[s.id,s.cardCount])),expected);
 });
 
