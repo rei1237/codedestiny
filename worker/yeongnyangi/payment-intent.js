@@ -94,7 +94,7 @@ export async function assertFortunePaymentIntent(db, {env, userId, requestId, pr
 export async function assertChatPaymentIntent(db,{userId,requestId,product}) {
   if(!/^fc-[a-f0-9]{64}$/.test(String(requestId || '')))throw paymentError('INVALID_REQUEST','상담 내용을 먼저 확인해 주세요.');
   const id=requestId.slice(3),owner=toObjectId(userId),key=chatCardClaim(id);
-  const chat=await db.findOneAndUpdate(YeongnyangiRequest,{_id:id,userId:owner,featureKey:product.featureKey,state:'CREATED',paymentId:null,
+  const chat=await db.findOneAndUpdate(YeongnyangiRequest,{_id:id,userId:owner,featureKey:product.featureKey,amountKRW:product.priceKRW,state:'CREATED',paymentId:null,
     $and:[
       {$or:[{accessMethod:null},{accessMethod:''},{accessMethod:{$exists:false}}]},
       {$or:[{paymentClaimOrderId:key},{paymentClaimOrderId:''},{paymentClaimOrderId:null},{paymentClaimOrderId:{$exists:false}}]},
@@ -102,7 +102,7 @@ export async function assertChatPaymentIntent(db,{userId,requestId,product}) {
   },{$set:{paymentClaimOrderId:key}},{returnDocument:'after'});
   if(!chat) {
     const current=await db.findOne(YeongnyangiRequest,{_id:id,userId:owner});
-    if(!current || current.featureKey!==product.featureKey)throw paymentError('INVALID_REQUEST','상담 주문과 상품을 확인하지 못했어요.');
+    if(!current || current.featureKey!==product.featureKey || current.amountKRW!==product.priceKRW)throw paymentError('INVALID_REQUEST','상담 주문과 상품을 확인하지 못했어요.');
     if(hasRequestAccess(current) || current.state!=='CREATED')
       throw paymentError('FORTUNE_ALREADY_PAID','이미 열린 상담이에요. 결제 없이 상담방에서 이어 주세요.',{fortuneRequestId:id});
     throw paymentError('MOONSTONE_IN_PROGRESS','선택한 이용권을 확인 중이에요. 다시 결제하지 말고 같은 상담에서 잠시 후 확인해 주세요.');

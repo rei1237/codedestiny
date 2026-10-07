@@ -746,6 +746,15 @@ test('stored-only completion keeps the existing paid proof and does not claim an
 });
 
 describe('fortune-chat per-use access',()=>{
+  test.each([['mackerel',3000],['salmon',9000],['flounder',15000],['tuna',30000]])('tier %s pins its own paid evidence and amount',async(fish,amount)=>{
+    const featureKey='fortune-chat-question-'+fish;
+    payments.push({_id:'pay-tier',requestId:'fc-id',userId:owner,featureKey,status:'paid',metadata:{}});
+    verifyPerUse.mockResolvedValue({proven:true,source:'payment',transactionId:'pay-tier'});
+    await repo.createRequest({},owner,'id',{...values,productId:'chat_saju_'+fish,featureKey,amountKRW:amount,persona:'neo'});
+    expect(await repo.attachPayment({},owner,'id',amount,{currentAmountKRW:amount,access:'checkout'})).toMatchObject({accessMethod:'PER_USE',perUseEvidenceId:'pay-tier',state:'PAID'});
+    expect(verifyPerUse).toHaveBeenCalledWith({},{userId:owner,featureKey,coinPrice:amount/100,requestId:'fc-id',requireExisting:true});
+    expect((await repo.claimChapter({},owner,'id')).token).toBeTruthy();
+  });
   const chat={...values,productId:'chat_saju',featureKey:'fortune-chat-consultation',amountKRW:3000,persona:'yeoni'};
   const chatPayment={_id:'pay-fc',requestId:'fc-id',userId:owner,featureKey:chat.featureKey,status:'paid',metadata:{}};
   const passReceipt={_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:chat.featureKey,kind:'deduct',metadata:{requestId:'fc-id',accessMethod:'FAMILY'}};
@@ -898,7 +907,7 @@ describe('fortune-chat per-use access',()=>{
     expect(accounts).toHaveLength(0);
   });
 
-  test.each(['pass','free_trial'])('an open card payment window for the consultation blocks spending by %s',async access=>{
+  test.each(['pass'])('an open card payment window for the consultation blocks spending by %s',async access=>{
     payments.push({_id:'pay-open',requestId:'fc-id',userId:owner,featureKey:chat.featureKey,paymentType:'digital_content',status:'pending',metadata:{}});
     nothingYet();
     await repo.createRequest({},owner,'id',chat);
@@ -909,7 +918,7 @@ describe('fortune-chat per-use access',()=>{
   });
 
   // Card prepare reserves the consultation before its order is written; the open-checkout read sees nothing yet.
-  test.each(['pass','free_trial'])('a card window reserved before its order is visible still blocks %s',async access=>{
+  test.each(['pass'])('a card window reserved before its order is visible still blocks %s',async access=>{
     nothingYet();
     await repo.createRequest({},owner,'id',chat);
     requests[0].paymentClaimOrderId='card:fc-id';
@@ -936,9 +945,10 @@ describe('fortune-chat per-use access',()=>{
     expect(await activate('pass')).toMatchObject({accessMethod:'PER_USE',paymentClaimOrderId:'access:pass:fc-id'});
   });
 
-  test('the free consultation is spent once per account, shared with the legacy route, and reused by its own retry',async()=>{
+  test('historical free evidence resumes only its original request',async()=>{
     nothingYet();
     await repo.createRequest({},owner,'id',chat);
+    accounts.push({userId:owner,freeLimit:1,freeUsed:1,reserved:0,trialRequestIds:['fc-id']});
     expect(await activate('free_trial')).toMatchObject({accessMethod:'ACCOUNT_FREE_TRIAL',state:'PAID'});
     expect(accounts).toHaveLength(1);
     expect(accounts[0]).toMatchObject({freeUsed:1,reserved:0,trialRequestIds:['fc-id']});
@@ -950,7 +960,7 @@ describe('fortune-chat per-use access',()=>{
     expect((await repo.claimChapter({},owner,'id')).token).toBeTruthy();
     await repo.createRequest({},owner,'id2',chat);
     const error=await activate('free_trial','id2').catch(e=>e);
-    expect(error).toMatchObject({status:402,code:'FREE_TRIAL_USED'});
+    expect(error).toMatchObject({status:402,code:'PAYMENT_REQUIRED'});
     expect(error.payload).toMatchObject({paidFeatureKey:chat.featureKey,paymentRequestId:'fc-id2'});
     expect(requests[1].accessMethod).toBeFalsy();
     expect(accounts[0]).toMatchObject({freeUsed:1,trialRequestIds:['fc-id']});
@@ -960,7 +970,7 @@ describe('fortune-chat per-use access',()=>{
     accounts.push({userId:owner,freeLimit:3,freeUsed:0,reserved:1});
     nothingYet();
     await repo.createRequest({},owner,'id',chat);
-    await expect(activate('free_trial')).rejects.toMatchObject({status:402,code:'FREE_TRIAL_USED'});
+    await expect(activate('free_trial')).rejects.toMatchObject({status:402,code:'PAYMENT_REQUIRED'});
     expect(accounts[0]).toMatchObject({freeUsed:0,reserved:1});
     expect(accounts[0].trialRequestIds).toBeUndefined();
   });
@@ -968,6 +978,7 @@ describe('fortune-chat per-use access',()=>{
   test('a free consultation that delivered nothing gives the free use back exactly once',async()=>{
     nothingYet();
     await repo.createRequest({},owner,'id',chat);
+    accounts.push({userId:owner,freeLimit:1,freeUsed:1,reserved:0,trialRequestIds:['fc-id']});
     await activate('free_trial');
     const claim=await repo.claimChapter({},owner,'id');
     await repo.failChapter({},owner,'id',claim.token,'GENERATION_REVIEW_REQUIRED',1,'quality');
@@ -977,13 +988,14 @@ describe('fortune-chat per-use access',()=>{
     expect(accounts[0].freeUsed).toBe(0);
     await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
     await repo.createRequest({},owner,'id2',chat);
-    expect((await activate('free_trial','id2')).accessMethod).toBe('ACCOUNT_FREE_TRIAL');
-    expect(accounts[0]).toMatchObject({freeUsed:1,trialRequestIds:['fc-id2']});
+    await expect(activate('free_trial','id2')).rejects.toMatchObject({status:402,code:'PAYMENT_REQUIRED'});
+    expect(accounts[0]).toMatchObject({freeUsed:0,trialRequestIds:[]});
   });
 
   test('a free consultation that delivered a chapter keeps the free use spent',async()=>{
     nothingYet();
     await repo.createRequest({},owner,'id',chat);
+    accounts.push({userId:owner,freeLimit:1,freeUsed:1,reserved:0,trialRequestIds:['fc-id']});
     await activate('free_trial');
     const first=await repo.claimChapter({},owner,'id');
     await repo.finishChapter({},owner,'id',first.token,0,{summary:'delivered'},2);

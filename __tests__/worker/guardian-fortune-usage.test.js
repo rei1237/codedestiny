@@ -52,13 +52,8 @@ describe("Guardian Fortune usage service", () => {
     expect(status).toMatchObject({ guestFreeUsed: 0, guestFreeRemaining: 0, canGenerate: false, nextAction: "login" });
   });
 
-  it("allows exactly one account reservation and never resets at KST midnight", async () => {
+  it("allows no new account reservation and never resets at KST midnight", async () => {
     const store = createMemoryGuardianFortuneStore();
-    for (let index = 0; index < 1; index += 1) {
-      const reservation = await reserveGuardianFortuneUsage({ userId: "user-1", dateKey: DATE_KEY, requestId: `daily-request-${index}`, store, now: NOW });
-      expect(reservation).toMatchObject({ ok: true, source: "daily_free" });
-      await commitGuardianFortuneUsage(reservation, { store, now: NOW });
-    }
     const blocked = await reserveGuardianFortuneUsage({ userId: "user-1", dateKey: DATE_KEY, requestId: "daily-request-2", store, now: NOW });
     expect(blocked).toMatchObject({ ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED });
 
@@ -135,7 +130,7 @@ describe("Guardian Fortune usage service", () => {
       store: dailyStore,
       now: NOW,
     })));
-    expect(dailyResults.filter((item) => item.ok)).toHaveLength(1);
+    expect(dailyResults.filter((item) => item.ok)).toHaveLength(0);
 
     // 결제 경로는 무료 자리를 잡지 않으므로 동시성 상한이 없다. 중복을 막는 것은 requestId
     // 멱등성뿐이라, 같은 requestId 를 동시에 세 번 보내도 하나만 통과해야 한다.
@@ -156,13 +151,13 @@ describe("Guardian Fortune usage service", () => {
     const reservation = await reserveGuardianFortuneUsage({ userId: "user-release", dateKey: DATE_KEY, requestId: "release-request-1", store, now: NOW });
     await releaseGuardianFortuneUsage(reservation, { store, errorCode: "TEST_FAILURE", now: NOW });
     const status = await buildGuardianFortuneUsageStatus({ userId: "user-release", dateKey: DATE_KEY, store, now: NOW });
-    expect(status).toMatchObject({ dailyFreeUsed: 0, dailyFreeRemaining: 1, canGenerate: true });
+    expect(status).toMatchObject({ dailyFreeUsed: 0, dailyFreeRemaining: 0, canGenerate: true });
     expect(store.state.daily.get("user-release")).toMatchObject({ reserved: 0, freeUsed: 0 });
   });
 
   it("blocks duplicate request IDs before a second reservation", async () => {
     const store = createMemoryGuardianFortuneStore();
-    const first = await reserveGuardianFortuneUsage({ userId: "user-idempotent", dateKey: DATE_KEY, requestId: "same-request-1", store, now: NOW });
+    const first = await reserveGuardianFortuneUsage({ userId: "user-idempotent", dateKey: DATE_KEY, requestId: "same-request-1", store, resolvePaidAccess: paidAccess, now: NOW });
     const duplicate = await reserveGuardianFortuneUsage({ userId: "user-idempotent", dateKey: DATE_KEY, requestId: "same-request-1", store, now: NOW });
     expect(first.ok).toBe(true);
     expect(duplicate).toMatchObject({ ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS, status: 409 });
@@ -176,4 +171,17 @@ describe("Guardian Fortune usage service", () => {
     expect(cta.targetPath).toBeUndefined();
     expect(cta.reason).not.toContain("대화권");
   });
+});
+
+it('pre-retirement reservations can finish or release without granting a new free consultation',async()=>{
+ for(const complete of [true,false]){
+  const userId='historical-'+complete;
+  const store=createMemoryGuardianFortuneStore({daily:{[userId]:{userId,freeLimit:1,freeUsed:0,reserved:1,reservationUpdatedAt:NOW}}});
+  const reservation={ok:true,source:'daily_free',userId,dateKey:DATE_KEY,requestId:'old-'+complete};
+  await store.beginAttempt({...reservation,status:'reserved'});
+  if(complete)expect((await commitGuardianFortuneUsage(reservation,{store,now:NOW})).ok).toBe(true);
+  else await releaseGuardianFortuneUsage(reservation,{store,now:NOW});
+  expect(store.state.daily.get(userId)).toMatchObject({freeUsed:complete?1:0,reserved:0});
+  expect(await reserveGuardianFortuneUsage({userId,dateKey:DATE_KEY,requestId:'new-'+complete,store,now:NOW})).toMatchObject({ok:false,errorCode:GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED});
+ }
 });

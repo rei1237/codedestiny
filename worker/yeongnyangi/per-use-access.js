@@ -16,7 +16,7 @@ export { PER_USE_SOURCES } from './access-methods.js';
 const paidStatuses = ['paid','success','fulfilled'];
 // What the buyer chose on the consultation screen. Only `pass` lets the server spend pass quota
 // (payment-gating: pass coverage only on an explicit pass command); `checkout` follows a payment window.
-export const CHAT_ACCESS_CHOICES = Object.freeze(['free_trial','pass','checkout']);
+export const CHAT_ACCESS_CHOICES = Object.freeze(['pass','checkout']);
 const readOptions = { retries: 1, retryOnOperationTimeout: true, retryAdmissionOnOverload: true };
 
 const failure = (status, code, payload = {}) => {
@@ -90,8 +90,8 @@ async function holdForPass(env, row, owner, rid) {
 /**
  * Proves access for a fortune-chat consultation and returns what to store on it.
  * An existing payment, coin, moonlight-stone or pass use under `fc-<id>` wins, then a free use this request
- * already spent. Otherwise only the buyer's choice spends anything: `free_trial` asks the caller to spend the
- * account's free use (`consumeTrial`), `pass` consumes pass quota once (idempotent per request id).
+ * already spent. New free access is retired; only an explicit pass choice can spend quota.
+ * Historical free evidence can still resume its original request without a new spend.
  * Outages answer 503, never 402.
  */
 export async function proveChatAccess(env, { row, userId, owner, coinPrice, choice = '' }) {
@@ -105,11 +105,7 @@ export async function proveChatAccess(env, { row, userId, owner, coinPrice, choi
       return { accessMethod: 'ACCOUNT_FREE_TRIAL', consumeTrial: false };
     }
     if (choice === 'checkout') throw failure(503, 'PAYMENT_EVIDENCE_PENDING');
-    if (choice !== 'free_trial' && choice !== 'pass') throw required();
-    if (choice === 'free_trial') {
-      await assertNoOpenCheckout(env, owner, rid, featureKey);
-      return { accessMethod: 'ACCOUNT_FREE_TRIAL', consumeTrial: true };
-    }
+    if (choice !== 'pass') throw required();
     const release = await holdForPass(env, row, owner, rid);
     // Card orders prepared before the claim existed are still read once (nothing was spent, so the claim goes back).
     await assertNoOpenCheckout(env, owner, rid, featureKey).catch(async error => { await release(); throw error; });

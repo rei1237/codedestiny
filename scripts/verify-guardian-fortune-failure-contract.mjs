@@ -69,6 +69,13 @@ function deliverableResult() {
 /** 스토어 호출 횟수를 세는 얇은 프록시. 어떤 메서드가 몇 번 불렸는지로 왕복 수를 검증한다. */
 function countingStore(seed = {}) {
   const inner = createMemoryGuardianFortuneStore(seed);
+  // These delivery regressions model an already admitted pre-retirement reservation.
+  // New eligibility is covered independently by guardian-fortune-usage.test.js.
+  inner.reserveDaily = async (userId, dateKey, now) => {
+    const doc=await inner.ensureDaily(userId,dateKey,now);
+    if(doc.freeUsed+doc.reserved>=1)return null;
+    doc.reserved+=1;doc.reservationUpdatedAt=now;return {...doc};
+  };
   const calls = {};
   const wrapped = { calls, state: inner.state, kind: "counting" };
   for (const key of Object.keys(inner)) {

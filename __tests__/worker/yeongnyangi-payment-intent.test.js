@@ -117,6 +117,17 @@ describe('fortune-chat consultation card prepare (fc-)',()=>{
   fixture.db.findOneAndUpdate=async(Model,...rest)=>{models.push(Model.modelName);return write(Model,...rest);};
   return {...fixture,models,input:{...fixture.input,product:chat,requestId:`fc-${id}`,idempotencyKey:'chat-first'}};
  };
+ test.each(['mackerel','salmon','flounder','tuna'])('tier %s requires the exact owner, feature and fc request before creating a card order',async fish=>{
+  const featureKey='fortune-chat-question-'+fish;
+  const {db,input,fortune}=chatSetup({featureKey});
+  const tier={...input,product:{...chat,featureKey,productId:featureKey}};
+  await expect(createPayableOrder(db,{...tier,requestId:'not-fc'})).rejects.toMatchObject({code:'INVALID_REQUEST'});
+  await expect(createPayableOrder(db,{...tier,product:{...tier.product,priceKRW:1}})).rejects.toMatchObject({code:'INVALID_REQUEST'});
+  await expect(createPayableOrder(db,{...tier,product:{...tier.product,featureKey:'fortune-chat-consultation'}})).rejects.toMatchObject({code:'INVALID_REQUEST'});
+  expect(db.rows).toHaveLength(0);
+  expect(await createPayableOrder(db,tier)).toMatchObject({featureKey,requestId:'fc-'+id,status:'pending'});
+  expect(fortune.paymentClaimOrderId).toBe('card:fc-'+id);
+ });
  test('an unopened consultation gets one card order and the guard reads no pass state',async()=>{
   const {db,input,models}=chatSetup();
   const order=await createPayableOrder(db,input);

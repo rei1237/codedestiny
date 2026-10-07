@@ -1,3 +1,4 @@
+import { CHAT_FEATURE_KEYS } from '../../lib/fortune/chat-products.js';
 import * as models from './models.js';
 import { mongoose } from './db.js';
 import { scopeConnection } from './db-scope-connection.js';
@@ -173,7 +174,7 @@ export async function listRecords(userId, params, readPage = async (source, quer
     pages.push(...await Promise.all(sources.slice(offset, offset + 4).map(async source => {
       try {
         const query = recordPageQuery(source, userId, cursor, search);
-        if (source.dynamic && group !== 'all') query.$and.push(group === 'chat' ? { featureKey: 'fortune-chat-consultation' } : group === 'chart' ? { _id: null } : { featureKey: { $ne: 'fortune-chat-consultation' } });
+        if (source.dynamic && group !== 'all') query.$and.push(group === 'chat' ? { featureKey: { $in: CHAT_FEATURE_KEYS } } : group === 'chart' ? { _id: null } : { featureKey: { $nin: CHAT_FEATURE_KEYS } });
         return { source, rows: await readPage(source, query, size + 1) };
       }
       catch { return { source, error: true, rows: [] }; }

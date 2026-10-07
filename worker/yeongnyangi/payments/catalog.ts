@@ -1,3 +1,4 @@
+import { CHAT_QUESTION_FISH, chatQuestionFeatureKey } from '../../../lib/fortune/chat-products.js';
 import { getBillingFeaturePricing } from '../../lib/billing-feature-registry.js';
 import {READING_V5_VERSION,READING_V6_VERSION,readingChapterCount} from '../fortune/reading-policy';
 import {DomainId,FishId,PackageId,FortuneError} from '../fortune/shared/contracts';
@@ -21,13 +22,18 @@ export {CHAT_FEATURE_KEY};
 export const chatDomains:DomainId[]=['saju','ziwei','sukuyo','vedic','astrology','tarot'];
 // Tarot chat reads a question only. Compatibility needs both names and the relationship contract, so it stays in Yeongnyangi.
 export const chatTarotKinds=['choice','love','feelings','contact','reunion','career','money','healing'] as const;
-export function getChatProduct(domain:unknown):Product{
+export function getChatProduct(domain:unknown,fish?:unknown):Product{
  if(!chatDomains.includes(domain as DomainId))throw new FortuneError('PRODUCT_NOT_FOUND',404);
- const resolved=getBillingFeaturePricing({featureKey:CHAT_FEATURE_KEY});
+ if(fish!==undefined&&(typeof fish!=='string'||!CHAT_QUESTION_FISH.includes(fish)))throw new FortuneError('PRODUCT_NOT_FOUND',404);
+ const featureKey=fish===undefined?CHAT_FEATURE_KEY:chatQuestionFeatureKey(fish);
+ const resolved=getBillingFeaturePricing({featureKey});
  if(!resolved.ok || !resolved.pricing || !(resolved.pricing.amountKRW>0)) throw new FortuneError('PRODUCT_PRICE_UNAVAILABLE',503);
- return {...getProduct(`${domain}_mackerel`),id:`chat_${domain}`,priceKRW:resolved.pricing.amountKRW,cdFeatureKey:CHAT_FEATURE_KEY,fishName:'',image:'',reactionAsset:''};
+ return {...getProduct(`${domain}_${fish||'mackerel'}`),id:fish?`chat_${domain}_${fish}`:`chat_${domain}`,priceKRW:resolved.pricing.amountKRW,cdFeatureKey:featureKey,fishName:fish?packages[fish as FishId].name:'',image:'',reactionAsset:''};
 }
 /** The current product of a stored request, either catalog. */
 export function resolveStoredProduct(id:unknown):Product{
- return typeof id==='string'&&id.startsWith('chat_')?getChatProduct(id.slice(5)):getProduct(id);
+ if(typeof id==='string'&&id.startsWith('chat_')){const [domain,fish,...extra]=id.slice(5).split('_');if(extra.length)throw new FortuneError('PRODUCT_NOT_FOUND',404);return getChatProduct(domain,fish);}
+ return getProduct(id);
 }
+
+export const chatQuestionProducts=()=>chatDomains.flatMap(domain=>CHAT_QUESTION_FISH.filter(fish=>fish!=='tuna'||['saju','ziwei','vedic'].includes(domain)).map(fish=>getChatProduct(domain,fish)));

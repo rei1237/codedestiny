@@ -99,11 +99,13 @@ function birthFromProfile(profile: any, timeUnknown: boolean, supplement: any = 
 /** `persona` is a server option of the fortune-chat route; a request body never selects it. */
 export async function prepareFortune(env: Record<string, unknown>, userId: string, body: any, {persona}:{persona?:ChatPersona}={}) {
   if(persona&&body.mode)throw new FortuneError('INVALID_READING_MODE');
+  if(persona&&body.fishId!==undefined&&body.questionDecision===undefined)throw new FortuneError('QUESTION_SCOPE_REQUIRED');
   const locale=readingLocale(body.locale);
   // Symbolic modes validate native headings against stable section and evidence IDs.
   const attempt=consultationAttempt(body);
-  const product=persona?getChatProduct(body.domain):getProduct(body.productId);
-  const decision=body.questionDecision!==undefined&&!persona&&!body.mode?questionDecision(body.questionDecision):undefined;
+  if(persona&&body.questionDecision!==undefined&&!['mackerel','salmon','flounder','tuna'].includes(body.fishId))throw new FortuneError('QUESTION_PRODUCT_MISMATCH');
+  const product=persona?getChatProduct(body.domain,body.questionDecision!==undefined?body.fishId:undefined):getProduct(body.productId);
+  const decision=body.questionDecision!==undefined&&!body.mode?questionDecision(body.questionDecision):undefined;
   if(decision){
     if(locale!=='ko')throw new FortuneError('READING_LOCALE_UNAVAILABLE');
     assertQuestionOrder(product,decision,body.question||'');
@@ -117,12 +119,12 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const originalKind=resolveConsultationKind(product,body.consultationKind);
   const kind=decision&&originalKind?{...originalKind,question:true}:originalKind;
   // A chat tarot always uses a v2 question spread; any other kind would leave the chat on an older tarot contract.
-  if(persona&&product.domain==='tarot'&&!(chatTarotKinds as readonly string[]).includes(kind?.id||''))throw new FortuneError('INVALID_CONSULTATION_KIND');
+  if(persona&&!decision&&product.domain==='tarot'&&!(chatTarotKinds as readonly string[]).includes(kind?.id||''))throw new FortuneError('INVALID_CONSULTATION_KIND');
   const relationship=isRelationshipReading(product.domain,kind?.id)&&product.readingKind==='single';
   const tarotSpec=product.domain==='tarot'&&product.readingKind==='single'?tarotConsultation(kind?.id):undefined;
   const tarotV2=Boolean(tarotSpec);
   // Korean question-first tarot: a catalog spread, a committed deck and a real pick before payment.
-  const tarotOrder=!persona&&product.domain==='tarot'&&product.readingKind==='single'&&kind?.id===TAROT_SPREAD_KIND?tarotSpreadOrder(body,product.fishId,Boolean(decision)):undefined;
+  const tarotOrder=(!persona||Boolean(decision))&&product.domain==='tarot'&&product.readingKind==='single'&&kind?.id===TAROT_SPREAD_KIND?tarotSpreadOrder(body,product.fishId,Boolean(decision)):undefined;
   const tarotV3=Boolean(tarotOrder);
   const tarotQuestion=tarotV2||tarotV3;
   if(kind?.koOnly&&locale!=='ko')throw new FortuneError('READING_LOCALE_UNAVAILABLE');
@@ -146,13 +148,13 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   // provider readiness, chart calculation or drawing; uncertain reads stop here.
   let questionIntentId:string|undefined;
   if(decision&&!relationship&&!tarotQuestion&&attempt.consultationAttemptId){
-    questionIntentId=await digest({userId,version:QUESTION_POLICY_VERSION,...attempt,decision,locale,productId:product.id,profileId:body.profileId,question:body.question,birthDetails:body.birthDetails,timeUnknown:body.timeUnknown,...(voiceStyle?{voiceStyle}:{})});
+    questionIntentId=await digest({userId,...(persona?{persona}:{}),version:QUESTION_POLICY_VERSION,...attempt,decision,locale,productId:product.id,profileId:body.profileId,question:body.question,birthDetails:body.birthDetails,timeUnknown:body.timeUnknown,...(voiceStyle?{voiceStyle}:{})});
     await connectDb(env);
     try{return await readRequest(env,userId,questionIntentId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
   let relationshipId:string|undefined;
   if(relationship&&attempt.consultationAttemptId){
-    relationshipId=await digest({userId,version:RELATIONSHIP_VERSION,...attempt,...(decision?{questionDecision:decision}:{}),productId:product.id,kind:kind?.id,profileId:body.profileId,partnerProfileId:body.partnerProfileId,question:body.question,relationshipQuestionId,participants,birthDetails:body.birthDetails,timeUnknown:body.timeUnknown,partnerTimeUnknown:body.partnerTimeUnknown});
+    relationshipId=await digest({userId,...(persona?{persona}:{}),version:RELATIONSHIP_VERSION,...attempt,...(decision?{questionDecision:decision}:{}),productId:product.id,kind:kind?.id,profileId:body.profileId,partnerProfileId:body.partnerProfileId,question:body.question,relationshipQuestionId,participants,birthDetails:body.birthDetails,timeUnknown:body.timeUnknown,partnerTimeUnknown:body.partnerTimeUnknown});
     await connectDb(env);
     try{return await readRequest(env,userId,relationshipId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
@@ -163,7 +165,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     try{return await readRequest(env,userId,tarotIntentId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
   if(tarotV3&&attempt.consultationAttemptId){
-    tarotIntentId=await digest({userId,version:TAROT_SPREAD_VERSION,...attempt,...(decision?{questionDecision:decision}:{}),locale,productId:product.id,kind:kind!.id,question:body.question,spreadId:tarotOrder!.spread.id,spreadVersion:tarotOrder!.spread.version,inputs:tarotOrder!.inputs,...(voiceStyle?{voiceStyle}:{})});
+    tarotIntentId=await digest({userId,...(persona?{persona}:{}),version:TAROT_SPREAD_VERSION,...attempt,...(decision?{questionDecision:decision}:{}),locale,productId:product.id,kind:kind!.id,question:body.question,spreadId:tarotOrder!.spread.id,spreadVersion:tarotOrder!.spread.version,inputs:tarotOrder!.inputs,...(voiceStyle?{voiceStyle}:{})});
     await connectDb(env);
     try{return await readRequest(env,userId,tarotIntentId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
