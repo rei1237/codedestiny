@@ -111,3 +111,7 @@ node node_modules/jest/bin/jest.js --runInBand __tests__/worker/saju-consultatio
 ```text
 D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-consultation-server-recovery-2026-10-08.md를 읽고, 다른 세션의 변경을 보존하면서 main에 13db6be3cce956553975fd7178521277709cdc55가 포함되는지 확인하라. 운영 버전·cron 실행·DB 시간초과·생성 오류·미완료 상담 대기를 읽기 전용으로 조사하여 원인별 설정안과 검증·롤백 계획을 제시하라. 불명확한 운세 해석 규칙은 사용자에게 물어보고 결정하라.
 ```
+
+## 추가 사용자 요청: UI/에셋과 세 결제 수단
+
+2026-10-08 후속 요청의 실행 문서는 [신년운세 UI·에셋 성능 및 유료 상담 전달 인수인계](paid-consultation-ui-delivery-handoff-2026-10-08.md)다. 신년운세 고급화/성능 기준선, 연애 비책·인생의 책·전문가 상담의 이용권·월정석·단건 결제별 생성·재개·재열람 검증 매트릭스와 다음 세션 명령을 담았다. 추가 mock 74건은 통과했으며 UI 에셋 개선 구현/운영 실측과는 구분한다.
