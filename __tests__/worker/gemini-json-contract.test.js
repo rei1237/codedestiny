@@ -38,3 +38,13 @@ test('plain-text calls retain their original output', async () => {
   provider.mockResolvedValue({ text: raw, provider: 'gemini' });
   expect((await callGeminiText({}, 'plain prose')).text).toBe(raw);
 });
+
+test('structured truncation salvage retains the original bytes from framing repair', async () => {
+  const { callGeminiJsonWithRetry } = await import('../../worker/lib/structured-consultation.js');
+  const raw = '```json\n{"body":"저장된 본문입니다."}\n```';
+  provider.mockResolvedValue({ text: raw, provider: 'gemini', truncated: true, finishReason: 'MAX_TOKENS' });
+  const response = await callGeminiJsonWithRetry({}, 'prompt', { attempts: 1, baseTokens: 100, preserveTermination: true });
+  expect(response.rawText).toBe(raw);
+  expect(JSON.parse(response.text)).toEqual({ body: '저장된 본문입니다.' });
+  expect(provider).toHaveBeenCalledTimes(1);
+});
