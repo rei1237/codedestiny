@@ -25,3 +25,21 @@ test('tarot needs no birth card; home navigation cancels an unfinished entry',()
  const h=setup();h.ctx.window.cdHomeFortuneEntry('vedic');h.ctx.window.cdHomeFortuneEntry('tarot');assert.deepEqual(h.opened,['tarot']);assert.equal(h.state.size,0);
  h.ctx.window.cdHomeFortuneEntry('astro');h.events.click({target:{closest:()=>true}});h.setProfile({birth:{year:1990,month:1,day:1}});h.events.destinyProfileChanged();assert.deepEqual(h.opened,['tarot']);
 });
+
+test('home tarot opens the mobile service library instead of the basic draw modal',()=>{
+ const h=setup(),libraries=[];
+ h.ctx.document.getElementById=()=>({});
+ h.ctx.window.cdMobileCollectionFullscreen={open:id=>libraries.push(id),isOpen:()=>true};
+ h.ctx.window.cdHomeTarotEntry();
+ assert.deepEqual(libraries,['tarotCollection']);assert.deepEqual(h.opened,[]);assert.equal(h.creates(),0);
+});
+
+test('desktop library unfolds the garden without closing an already open collection',()=>{
+ const h=setup();let open=false,toggles=0,garden=0,scroll=0;
+ const collection={getAttribute:()=>String(open),querySelector:()=>({click:()=>{toggles++;open=true;}}),scrollIntoView:()=>scroll++};
+ h.ctx.document.getElementById=()=>collection;
+ h.ctx.window.cdMobileCollectionFullscreen={open:()=>{},isOpen:()=>false};
+ h.ctx.window.__cdOpenGarden=()=>garden++;h.ctx.window.requestAnimationFrame=fn=>fn();
+ h.ctx.window.cdHomeTarotEntry();h.ctx.window.cdHomeTarotEntry();
+ assert.equal(garden,2);assert.equal(toggles,1);assert.equal(scroll,2);assert.deepEqual(h.opened,[]);
+});
