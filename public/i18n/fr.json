@@ -1879,6 +1879,27 @@
       "passNote": "Vérifiez les services inclus et la durée avant de choisir.",
       "passLink": "Voir les passes",
       "passHistory": "Les passes déjà achetés conservent leurs conditions initiales."
+    },
+    "yeongnyangiEntry": {
+      "badge": "Consultation question avec Yeongnyangi",
+      "headingLead": "De votre question au mouvement qui la traverse",
+      "headingName": "Yeongnyangi, la chatte qui lit le Saju",
+      "subtitle": "Une consultation au clair de lune pour explorer une préoccupation avec la méthode qui vous convient",
+      "storyFirst": "Yeongnyangi répond à votre question à partir des calculs de Saju, Ziwei Doushu, Sukuyo, astrologie védique et astrologie occidentale.",
+      "storySecond": "Elle présente dans un langage clair les schémas récurrents, votre dynamique actuelle et une prochaine action à essayer aujourd'hui.",
+      "fishAria": "Niveaux de poisson et prix des consultations Yeongnyangi",
+      "highlight": "Au lieu d'une réponse vague, recevez les repères et l'interprétation adaptés à votre question. Choisissez la méthode et le périmètre avant de commencer.",
+      "quote": "« Commence par ce que tu veux le plus comprendre. Nous suivrons ce mouvement ensemble. »",
+      "quoteAttribution": "— Yeongnyangi",
+      "start": "Commencer une consultation question",
+      "free": "Voir d'abord une lecture gratuite",
+      "tagline": "Une consultation pour votre question ouverte avec un poisson"
+    },
+    "reading": {
+      "famousNote": "Le Saju des personnalités à partir de sources publiques",
+      "insightsNote": "Des lectures utiles sur le Saju, le tarot et les thèmes astraux",
+      "heading": "Des lectures pour éclairer votre journée",
+      "open": "Lire les articles"
     }
   },
   "terms": {

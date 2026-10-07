@@ -1,4 +1,5 @@
 import PublicReadingGuide from "../components/PublicReadingGuide";
+import Image from "next/image";
 import InsightsCosmicRouteClient from "./InsightsCosmicRouteClient";
 import { FEATURE_GUIDES } from "./feature-guides";
 import { INSIGHT_SEED_ARTICLES } from "./seed-articles";
@@ -8,11 +9,13 @@ import { createHreflangFromRoutes } from "../../lib/seo/createHreflang";
 import { getAlternatesByRouteKey } from "../../lib/i18n/routes";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "../../lib/structured-data";
 import { publishedCelebritySajuSeeds } from "../../lib/famous-saju/celebrity-saju-service";
+import { getCelebrityEditorial } from "../../lib/famous-saju/celebrity-editorial";
+import { INSIGHT_DISCOVERY_COPY } from "./discovery-copy.mjs";
 import { getPexelsSectionImage, resolvePexelsInsightImageRequest } from "../../lib/server/pexels";
 
-const pageTitle = "운세 인사이트 허브 · 사주·타로·자미두수 | Code Destiny";
-const pageDescription =
-  "사주, 자미두수, 숙요점, 타로, 점성술, 베다점성술을 처음 접하는 사람도 흐름을 읽을 수 있도록 정리한 운세 인사이트 아카이브입니다.";
+const discoveryCopy = INSIGHT_DISCOVERY_COPY.ko;
+const pageTitle = discoveryCopy.title;
+const pageDescription = discoveryCopy.description;
 
 /**
  * 허브 검색용 축약 인덱스.
@@ -223,6 +226,19 @@ export default async function InsightsPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+      <section className="mx-auto w-full max-w-6xl px-4 pb-6 md:px-6" aria-labelledby="insight-famous-reading">
+        <div className="cd-guide-index">
+          <h2 id="insight-famous-reading" className="cd-guide-index__title">{discoveryCopy.reviewedTitle}</h2>
+          <Image src="/images/feature-details/famous-saju-hero-v2.webp" width={1200} height={675} sizes="(min-width:768px) 672px, 100vw" alt="" loading="lazy" className="mb-5 aspect-video w-full max-w-2xl rounded-xl object-cover" />
+          <p className="cd-guide-index__lede">{discoveryCopy.reviewedLead}</p>
+          <ul className="cd-guide-index__grid">
+            {publishedCelebritySajuSeeds.filter((person) => getCelebrityEditorial(person.slug)?.reviewedAt).map((person) => (
+              <li key={person.slug}><a className="cd-guide-index__link" href={`/insights/famous-saju/${person.slug}/`}>{person.nameKo} {discoveryCopy.articleSuffix}</a></li>
+            ))}
+          </ul>
+          <a className="cd-guide-index__link" href="/insights/famous-saju/">{discoveryCopy.allFamous}</a>
         </div>
       </section>
       <InsightsCosmicRouteClient

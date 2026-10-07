@@ -124,6 +124,7 @@
       <img class="cdh-persona--neo" data-character="neo" src="/images/home/illustrated/neo-character-480.webp" srcset="/images/home/illustrated/neo-character-320.webp 320w, /images/home/illustrated/neo-character-480.webp 480w, /images/home/illustrated/neo-character-800.webp 800w" sizes="(max-width: 640px) 46vw, 400px" alt="" width="1280" height="1280" decoding="async">
     </div>
   </section>
+  <div class="cdh-slot" id="cdhQuickSlot">{{quick}}</div>
   <nav class="cdh-topics" aria-label="고민으로 상담 시작하기">
     <a href="/yeongnyangi/fortune/?category=love"><span data-cd-trans="home.simple.love">연애·관계</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
     <a href="/yeongnyangi/fortune/?category=career"><span data-cd-trans="home.simple.work">일·돈</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
@@ -132,13 +133,26 @@
   </nav>
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
-    <section class="cdh-reading-intro" aria-labelledby="cdhReadingIntroTitle">
-      <div class="cdh-reading-intro__art"><img src="/assets/yeongnyangi/original/hero-480.webp" width="480" height="480" loading="lazy" decoding="async" alt=""></div>
-      <div class="cdh-reading-intro__copy"><h2 id="cdhReadingIntroTitle" data-cd-trans="home.simple.title">영냥이와 내 질문부터 풀어봐요</h2>
-        <p data-cd-trans="home.simple.brand">꿀꿀운세의 기본 상담은 영냥이예요. 따뜻한 위로가 필요하면 연이, 현실적인 정리가 필요하면 네오를 만나보세요.</p>
-        <ol class="cdh-reading-steps"><li data-cd-trans="home.simple.stepQuestion">지금의 고민을 알려주세요</li><li data-cd-trans="home.simple.stepPrice">다룰 내용과 가격을 확인해요</li><li data-cd-trans="home.simple.stepResult">답과 근거, 다음 행동을 읽어요</li></ol>
-        <a class="cdh-reading-example" href="/yeongnyangi/1000-won-fortune/#example" data-cd-trans="home.simple.example">결제 전 상담 예시 읽기</a>
+    <section class="cd-soulcat-entry" aria-labelledby="cd-soulcat-title" data-marker="cd-soulcat-home-primary-v20261008">
+      <div class="cd-soulcat-entry__copy">
+        <div class="cd-soulcat-entry__eyebrow"><p class="cd-soulcat-entry__world">CODE DESTINY · MOONLIGHT ROOM</p><p class="cd-soulcat-entry__badge"><span aria-hidden="true">🐾</span><span data-cd-trans="home.yeongnyangiEntry.badge">영냥이의 질문 상담</span></p></div>
+        <h2 id="cd-soulcat-title"><span data-cd-trans="home.yeongnyangiEntry.headingLead">질문에서 시작해, 흐름까지 읽는</span><strong data-cd-trans="home.yeongnyangiEntry.headingName">사주보는 고양이 영냥이</strong></h2>
+        <p class="cd-soulcat-entry__sub" data-cd-trans="home.yeongnyangiEntry.subtitle">한 가지 고민을 붙잡고, 내게 맞는 운세 체계로 풀어보는 달빛 상담</p>
+        <p class="cd-soulcat-entry__story"><span data-cd-trans="home.yeongnyangiEntry.storyFirst">영냥이는 사주·자미두수·숙요점·베다점·점성술의 계산을 바탕으로 지금의 질문에 답합니다.</span><br><span data-cd-trans="home.yeongnyangiEntry.storySecond">반복되는 패턴과 현재의 흐름, 오늘 해볼 다음 행동까지 일상의 언어로 차례로 정리해 드려요.</span></p>
+        <ul class="cd-soulcat-entry__fish" aria-label="영냥이 상담 생선 등급과 가격" data-cd-trans-attr="aria-label:home.yeongnyangiEntry.fishAria">
+          <li><img src="/assets/yeongnyangi/fish/mackerel.webp" width="56" height="25" alt="" decoding="async">고등어 <b data-yeongnyangi-price="mackerel" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"{{yeongnyangiMackerelPrice}}"}'>{{yeongnyangiMackerelPrice}}원</b></li>
+          <li><img src="/assets/yeongnyangi/fish/salmon.webp" width="56" height="25" alt="" decoding="async">연어 <b data-yeongnyangi-price="salmon" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"{{yeongnyangiSalmonPrice}}"}'>{{yeongnyangiSalmonPrice}}원</b></li>
+          <li><img src="/assets/yeongnyangi/fish/flounder.webp" width="56" height="25" alt="" decoding="async">광어 <b data-yeongnyangi-price="flounder" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"{{yeongnyangiFlounderPrice}}"}'>{{yeongnyangiFlounderPrice}}원</b></li>
+          <li><img src="/assets/yeongnyangi/fish/tuna.webp" width="56" height="25" alt="" decoding="async">참치 <b data-yeongnyangi-price="tuna" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"{{yeongnyangiTunaPrice}}"}'>{{yeongnyangiTunaPrice}}원</b></li>
+        </ul>
+        <div class="cd-soulcat-entry__dimension">
+          <p class="cd-soulcat-entry__notice"><span aria-hidden="true">🌙</span> <span data-cd-trans="home.yeongnyangiEntry.highlight">막연한 답 대신, 내 질문에 맞는 근거와 해석을 함께 받아보세요. 상담의 체계와 범위는 시작 전에 직접 고를 수 있어요.</span></p>
+          <blockquote class="cd-soulcat-entry__quote"><p data-cd-trans="home.yeongnyangiEntry.quote">“네가 지금 알고 싶은 한 가지부터 말해 봐. 그 흐름을 같이 짚어 볼게.”</p><footer data-cd-trans="home.yeongnyangiEntry.quoteAttribution">— 영냥이</footer></blockquote>
+        </div>
+        <div class="cd-soulcat-entry__actions"><a class="cd-soulcat-entry__cta" href="/yeongnyangi/?utm_source=code_destiny&utm_medium=referral&utm_campaign=yeongnyangi_home&utm_content=hero"><span data-cd-trans="home.yeongnyangiEntry.start">질문 상담 시작하기</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a><a class="cd-soulcat-entry__cta cd-soulcat-entry__cta--ghost" href="/yeongnyangi/room/?utm_source=code_destiny&utm_medium=referral&utm_campaign=yeongnyangi_home&utm_content=free#daily"><span aria-hidden="true">🐟</span><span data-cd-trans="home.yeongnyangiEntry.free">무료 운세 먼저 보기</span></a></div>
+        <p class="cd-soulcat-entry__price"><span aria-hidden="true">🐟</span> <span data-cd-trans="home.yeongnyangiEntry.tagline">생선 한 마리로 여는, 나의 질문 상담</span></p>
       </div>
+      <div class="cd-soulcat-entry__stage"><img class="cd-soulcat-entry__art" src="/assets/yeongnyangi/original/hero-800.webp" srcset="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(max-width:600px) 240px, 400px" width="400" height="400" loading="lazy" alt="사주보는 고양이 영냥이, 보랏빛 모자를 쓰고 턱을 괸 모습" decoding="async"></div>
     </section>
     <div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot">{{signature}}</div></div>
     <details class="cdh-specialists"><summary>체계별 전문가 상담 살펴보기</summary>    <div class="cdh-slot" id="cdhExpertsSlot">{{experts}}</div></details>
@@ -147,6 +161,27 @@
       <div><p class="cdh-flower__eyebrow">나를 알아가는 작은 즐거움 · 무료</p><h2 id="cdhFlowerTitle">당신의 흐름을 닮은 꽃 한 송이</h2><p>사주와 별자리에서 나를 닮은 꽃을 찾아보세요. 꽃말을 읽고, 오늘 나에게 건넬 작은 메시지도 골라볼 수 있어요.</p><button type="button" class="cdh-flower__cta" data-action="openDestinyFlowerStudio">나의 운명의 꽃 보기</button><span>로그인 후 무료로 이용할 수 있어요.</span></div>
     </section>
     <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
+    <section class="cdh-reading" aria-labelledby="cdhReadingTitle" data-cd-funnel-section="insight_reading">
+      <h2 id="cdhReadingTitle" data-cd-trans="home.reading.heading">꿀같이 유익한 운세 이야기</h2>
+      <div class="cdh-reading__grid">
+        <a class="cdh-reading__story" href="/insights/famous-saju/">
+          <img src="/images/feature-details/famous-saju-hero-v2.webp" width="1200" height="675" alt="" loading="lazy" decoding="async">
+          <div class="cdh-reading__copy">
+            <h3 data-cd-trans="home.homeGuide.linkFamous">유명인 사주</h3>
+            <p data-cd-trans="home.reading.famousNote">공개 자료로 읽는 인물별 사주 이야기</p>
+            <span class="cdh-reading__cta"><span data-cd-trans="home.reading.open">이야기 읽기</span><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+          </div>
+        </a>
+        <a class="cdh-reading__story" href="/insights/">
+          <img src="/images/feature-details/fusion-fortune-hero-v2.webp" width="1200" height="675" alt="" loading="lazy" decoding="async">
+          <div class="cdh-reading__copy">
+            <h3 data-cd-trans="home.homeGuide.linkInsights">운세 인사이트</h3>
+            <p data-cd-trans="home.reading.insightsNote">사주·타로·명반을 이해하는 유익한 읽을거리</p>
+            <span class="cdh-reading__cta"><span data-cd-trans="home.reading.open">이야기 읽기</span><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+          </div>
+        </a>
+      </div>
+    </section>
     <details class="cdh-more" id="cdhMore">
       <summary class="cdh-more__summary" aria-expanded="false" aria-controls="cdhGardenBody">
         <img src="/images/home/illustrated/yeoni-character-320.webp" width="52" height="52" loading="lazy" decoding="async" alt="">
@@ -164,7 +199,6 @@
       <svg class="cdh-public-bridge__arrow" aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
     </a>
   </nav>
-  <div class="cdh-slot" id="cdhQuickSlot">{{quick}}</div>
   <section class="cdh cdh-services cdh-search" id="cdhServices" aria-labelledby="cdhServicesTitle"><h2 class="cdh-sr-only" id="cdhServicesTitle" data-cd-trans="home.gardenCopy.searchTitle">어떤 운세가 궁금하세요?</h2>{{finder}}</section>
   <a class="cdh-chemi" href="/saju/destiny-bias/?from=home_top" data-cdh-chemi>
     <img class="cdh-chemi__art" src="/images/destiny-bias/home-card-640.webp" srcset="/images/destiny-bias/home-card-320.webp 320w, /images/destiny-bias/home-card-640.webp 640w" sizes="(max-width: 640px) 100vw, 640px" width="640" height="427" loading="lazy" decoding="async" alt="">

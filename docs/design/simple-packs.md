@@ -1,6 +1,6 @@
 # 영냥이 상품·구매 흐름과 홈 상담 안내
 
-status: in-progress
+status: done
 
 ## 승인된 정책
 
@@ -56,6 +56,29 @@ status: in-progress
 - 첫 push `3bd2d5a44`의 Paid Flow Gates·Gift transaction integrity·AI Locale은 통과했다. Browser Shadow가 단건 직행 경로의 환불 동의 누락을 발견해 `DIRECT_KRW` 직행을 되돌리고 기존 공통 동의창에 단건만 노출하도록 수정했다. 동의값을 임의로 넣지 않으며 checkout 회귀 8개·auth recovery 검사를 통과했다. 수정 커밋의 브라우저 CI를 다시 확인한다. 카탈로그 GET은 mock에 서버의 판매 가능 목록을 연결했다.
 - 첫 전체 CI의 build/critical/fast는 통과했고, 홈 레지스트리 가드가 LOVE CODE의 탐색·질문 카드에 남은 5,000원 표기 두 곳을 발견했다. 현재 1,000원으로 맞추고 `verify:home-service-registry`(57개 상품/37개 질문 가격)·셸 사전 검사 4개·payment-freeze 검사를 통과했다.
 
+## 사용자 수정 지시 반영 — 기존 홈 UI 복원
+
+- 사주·자미두수·숙요점·베다점·점성술 진입점을 접힌 영역 밖, 기존 히어로 바로 아래로 복원했다. 기존 이미지·버튼·이벤트 연결을 그대로 사용한다.
+- 꽃돼지 연이가 설명하는 30일 이용권 배너와 4종 카드 구성을 `01f3392fe` 이전 형태로 복원했다. 제목·설명·버튼 문구만 쉽게 다듬고 가격·한도는 CURRENT_PASS_PLANS에서 읽는다. 텍스트 카드 전용 CSS는 제거했다.
+- 영냥이 구매 화면의 단건/5회권, 10·20회권 신규 판매 종료, 기존 구매 권리 보존은 유지한다. 추가 결제/인증/API/DB 변경은 없다.
+- 360·390·430·1280px 로컬 mock 렌더에서 진입점과 이용권 카드의 가로 잘림 없음 및 연이 이미지 로드를 확인했다. 화면은 동일 증거 폴더의 restored-entry-*.png, restored-pass-*.png에 저장했다.
+- verify:home-service-registry, verify:i18n-price-drift, verify:payment-freeze, verify:sitemap-drift 통과. 키보드 Tab으로 자미두수와 다음 이용권 카드 이동도 확인했다.
+- 복원 후 check:fast 계획·실행: paid gates 86/88 통과, Jest 354 suites / 5,372 tests 통과, Node 3,003개 중 3,002개 통과. 두 실패는 이전 CTA 문구와 접힘 내부 진입 배치를 기대한 검사였으며 각각 갱신 후 verify:billing-pass-policy 및 home-direct-feature-links 재실행 통과했다. 전체 게이트를 재실행했다고 주장하지 않는다.
+
+## 전달 상태 — 복원 변경의 main 병합 대기
+
+- main에 구현·회귀 수정·공통 정책 문서를 모두 push했다. 코드 최종 변경은 `dc7d98dec3cbc67efb53ae97420b31f51a6f14cc`, 정책 문서 포함 main은 `6fbc2050948d68f6b683e557970bace8c0f905b4`다.
+- 코드 CI: https://github.com/rei1237/codedestiny/actions/runs/37666978999 — build/fast 성공, static guards의 브라우저 설치가 30분 제한으로 cancelled.
+- 정책 CI: https://github.com/rei1237/codedestiny/actions/runs/37668026153 — sitemap 원장 불일치로 실패. 복원 커밋에서 원장을 재생성했고 로컬 drift 검사가 통과했다.
+- 환불 동의·카탈로그 mock 수정 후 Browser Shadow: https://github.com/rei1237/codedestiny/actions/runs/37666484086 — 브라우저 설치 진행 중. 외부 설치가 끝나기 전 검사 통과로 취급하지 않는다.
+- 실결제·유료 LLM·운영 DB 쓰기·운영 승격은 실행하지 않았다.
+- 최신 복원 코드/검사 커밋은 `13b3595fb8b050df9e0f6b8d2b304001b836f3e9`, 작업 브랜치는 `wt/simple-packs-20261008-013846`다. 이 복원 변경은 아직 main에 병합하지 않았다.
+- main에서 다른 채팅 “영냥이 진입 화면 교체”(01a1179c-f3b8-7420-a811-186a002ba942)가 같은 홈 템플릿·생성 스크립트·CSS·index.html·public 미러·사전을 수정 중이다. 그 미커밋 변경은 수정·정리·커밋하지 않았다.
+- 다른 채팅에 복원 범위를 전달할 권한을 사용자에게 요청했으며 아직 답변이 없다. 도구의 명시적 메시지 승인 규칙 때문에 임의로 보내지 않았다. main 병합을 강행하거나 미커밋 변경을 덮어쓰지 않는다.
+- 다음 행동: 사용자 허락이 오면 위 채팅에 복원 커밋과 보존할 두 영역을 알린다. 해당 홈 변경이 커밋된 뒤 최신 main을 이 작업에 병합하고, 두 UI를 보존해 생성물·사이트맵을 재생성한다. 대상 검사 후 main 병합·push·해당 SHA의 CI를 확인한다. 완료 후 문서를 done으로 닫고 자기 워크트리를 배수한다.
+- 로컬 mock 서버와 임시 브라우저 탭은 종료했다. 미병합 커밋 보존을 위해 작업 디렉터리를 아직 제거하지 않았다.
+- 복원 후 `npm run lint`, `npm run verify:public-mirror-fresh`도 통과했다. 공개 미러는 생성기를 다시 실행해도 변하지 않는다.
+
 ## 진행
 
 - [x] 승인 범위·현재 코드·동시 작업 확인
@@ -64,4 +87,18 @@ status: in-progress
 - [x] 재미있는 사주 가격·꽃 무료화·신규 청구 차단 소스 반영
 - [x] 꽃·서한비 이미지 최적화 및 실제 소비 경로 반영
 - [x] 최신 변경 mock 회귀·화면 검토·변경 기반 검사 확정
-- [ ] 검증한 변경 커밋·main CI·작업 정리
+- [x] 검증한 변경 커밋·main CI·작업 정리
+
+## 2026-10-08 동시 홈 변경 통합
+
+- 사용자 승인으로 `영냥이 진입 화면 교체` 채팅에 협의 메시지를 전달했다. 해당 작업의 `5ab5023ec` 및 재배치된 `21b010b9e`, 원격 SEO `0e9512384`를 모두 보존했다.
+- 최종 코드 `c4e0f5deee1c92587c259128c10b7e7f8679c1a7`을 main에 fast-forward하고 push했다. 사주 등 6개 진입점은 히어로 아래 접힘 밖, 영냥이 배너는 한 곳, 연이 이미지와 CURRENT_PASS_PLANS 기반 4종 이용권 카드를 유지한다.
+- CSS 충돌에서는 폐기한 단순 소개/단순 이용권 스타일을 되살리지 않았다. 다국어 사전의 양쪽 키를 3-way로 보존하고, 재배치 병합에서 생긴 동일 키 중복을 정규화했다. 사이트맵·정적 미러를 재생성했다.
+- 모바일 이용권 기간과 한도 문구의 음절 단위 줄바꿈을 `white-space: nowrap`, `word-break: keep-all`로 바로잡았다. 결제·인증·API·DB 구현을 추가 변경하지 않았다.
+- 로컬 mock 360/390/430/1280px에서 진입점·배너·4종 이용권 표시, 가로 넘침 없음, 연이 이미지, CTA 최소 44px, 스크롤 후 CTA 상하단 hit-test, 이용권 Tab 이동을 확인했다. visual review는 수정 후 ship. 캡처와 metrics.json: `C:/Users/user/.codex/visualizations/2026/10/07/01a117c4-238f-7853-b997-ca09d496d923/simple-packs-integrated/`.
+- 통합 후 home-direct-feature-links/yeongnyangi-assets 4개, verify:billing-pass-policy, verify:home-service-registry, verify:payment-freeze, verify:i18n-price-drift, verify:sitemap-drift, build-home-funnel --check, 커밋 후 verify:public-mirror-fresh 통과.
+- check:fast --base=main 계획을 확인하고 실행했으나 동시 홈 커밋 수신 시 결제 스위트 진행 중 중단했다. 전체 로컬 통과로 취급하지 않는다. 최종 공식 검증은 main CI https://github.com/rei1237/codedestiny/actions/runs/37674563995 에서 확인한다.
+- Impeccable detect 실행 완료. 기존 화면의 타입/색/장식 advisory는 이번 통합 범위 밖이며 전역 디자인 문서를 변경하지 않았다.
+- 실결제·유료 LLM·운영 DB·운영 승격 및 스테이징 수동 확인은 실행하지 않았다.
+- 첫 통합 CI는 타입/lint·빌드·Critical checks 및 별도 Paid Flow Gates가 성공했고, 정적 Node 검사 3,006개 중 접근성 문구 사전 일치 1개만 실패했다. 영냥이 생선 목록 aria-label을 기존 번역 정본과 맞춘 dc5bc6de9793f5892a787dd9fba4d3a79e6be6f7을 main에 push했다. 해당 shell-dictionary-parity 4개 재실행 통과. 최신 CI: https://github.com/rei1237/codedestiny/actions/runs/37675542018 .
+- 최종 코드 dc5bc6de9793f5892a787dd9fba4d3a79e6be6f7의 CI required 성공 확인: 타입/lint·Pages/Worker 빌드·Static guards 성공, 이번 문구 수정에서 Critical checks는 정상 skip. 원래 통합 코드의 Critical checks와 Paid Flow Gates 성공도 별도 확인했다. 문서는 done으로 닫고 main에서 유지하며 작업 워크트리/브랜치는 배수한다.

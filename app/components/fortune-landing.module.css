@@ -3,20 +3,14 @@
 .label { margin: 0 0 18px; color: var(--cd-accent); font-size: 14px; font-weight: 650; }
 .copy h1 { margin: 0; font-family: var(--font-serif); font-size: clamp(28px, 3.6vw, 44px); line-height: 1.42; letter-spacing: -.035em; word-break: keep-all; }
 .description { margin: 20px 0; max-width: 39ch; line-height: 1.85; color: var(--cd-text-muted); word-break: keep-all; }
-.start { display: inline-flex; align-items: center; justify-content: center; gap: 20px; min-height: 52px; padding: 12px 26px; border-radius: 14px; background: var(--cd-cta); color: var(--cd-cta-text); font-weight: 700; border: 1px solid var(--cd-border); box-shadow: var(--cd-shadow); }
-.note { margin: 12px 0 4px; color: var(--cd-text-muted); font-size: 12px; line-height: 1.8; word-break: keep-all; }
-.more { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--cd-accent); font-size: 14px; text-underline-offset: 4px; }
-.more:hover { text-decoration: underline; }
-.hero a:focus-visible { outline: 2px solid var(--cd-accent); outline-offset: 4px; }
+.start { display: inline-flex; align-items: center; justify-content: center; gap: 20px; min-height: 52px; padding: 12px 26px; border-radius: 14px; background: var(--cd-cta-primary-bg); color: var(--cd-cta-primary-ink); font-weight: 700; border: 1px solid var(--cd-cta-hairline); box-shadow: var(--cd-shade-2); transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease; }
+.start:hover { background: var(--cd-cta-primary-bg-2); box-shadow: 0 0 0 1px var(--cd-cta-hairline), var(--cd-shade-3); transform: translateY(-1px); }
+.start:focus-visible { outline: 2px solid var(--cd-focus-ring); outline-offset: 4px; }
 .art { margin: 0; min-width: 0; }
 .art img { display: block; width: 100%; height: auto; aspect-ratio: 640 / 427; border-radius: 45% 45% 18px 18px; }
 .art figcaption { margin: 16px 0 0; text-align: center; color: var(--cd-text-muted); font-family: var(--font-serif); font-size: 14px; line-height: 1.8; }
-.points { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 14px; }
-.points li { display: flex; align-items: baseline; gap: 14px; font-size: 14px; line-height: 1.6; }
-.points span { color: var(--cd-accent); font-variant-numeric: tabular-nums; font-size: 12px; }
 @media (min-width: 768px) {
   .hero { grid-template-columns: 1.1fr 1fr; gap: 32px 48px; padding-top: 48px; align-items: center; }
-  .points { grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--cd-border); padding-top: 24px; }
 }
 @media (max-width: 767px) {
   .art { max-width: 430px; width: 100%; justify-self: center; }

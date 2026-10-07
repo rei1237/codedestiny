@@ -1,58 +1,91 @@
 "use client";
-import { ArrowUpRight } from 'lucide-react';
+import { Archive, ArrowLeft, ArrowUpRight, MessageCircleHeart, Moon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { RECORD_SERVICES } from '@/lib/records/service-registry';
 import { useLocale } from '@/lib/i18n/useT';
 import { recordsCopy } from '@/lib/records/copy';
 import { PriceBadge } from '@/app/components/PriceBadge';
-import RecordFrame, { recordButton } from '@/app/records/RecordFrame';
-import styles from '@/app/records/records.module.css';
+import { consultationCopy, expertCopy, hubTranslations } from './consultation-copy';
+import styles from './consultations.module.css';
 
-const hubTranslations: Record<string, Record<string, [string, string, string]>> = {
-  en: {
-    'new-year': ['Year Ahead Consultation', 'When you want to plan your choices and understand the year’s changing rhythm', 'Year overview and advice for each period'],
-    karma: ['Patterns of Destiny', 'When you want to reflect on repeated patterns and the meaning of your choices', 'Evidence-based chapters and integrated reading'],
-    'love-secret': ['Love Insights', 'When you want to understand your relationship habits and a specific concern', 'Saju-based guidance on your relationship question'],
-    'life-book': ['Book of Life', 'When you want to read your temperament and direction over a longer horizon', 'Saju-based life chapter report'],
-    tea: ['Yeoni’s Fortune Tea House', 'When you want to calmly untangle a complicated situation', 'Question-led guidance · saved cards or birth chart'],
-    neo: ['Neo’s Strategy Room', 'When you want to break a pattern and decide your next action', 'Situation briefing and practical strategy'],
-    fusion: ['Fusion Fortune', 'When you want to examine your situation through multiple traditions', 'Six separate readings and a synthesis report'],
-    codex: ['Master Book of Connections', 'When you want to understand your relationship patterns or compatibility', 'Personal or compatibility edition · chapter report'],
-  },
-  ja: {
-    tea: ['ヨニの運命の茶屋', '複雑な気持ちや状況を落ち着いて整理したいとき', '質問に沿った解釈と行動のヒント・カードや命式'],
-    neo: ['ネオの戦略室', '繰り返す問題を見直し、次の行動を決めたいとき', '状況の整理と実践的な戦略'],
-    fusion: ['超融合占い', '複数の占術で今の状況を深く見つめたいとき', '六つの体系別解釈と総合レポート'],
-    codex: ['マスター縁の書', '自分の縁のパターンや二人の関係が気になるとき', '個人版または相性版・章別レポート'],
-  },
-  'zh-CN': {
-    tea: ['延伊的命运茶屋', '心绪复杂，想平静地梳理自己的处境时', '围绕问题的解读与行动建议·命盘或卡牌'],
-    neo: ['尼奥的策略室', '想打破反复出现的问题，明确下一步行动时', '处境分析与实践策略'],
-    fusion: ['超融合运势', '想通过不同占卜体系深入了解自己的处境时', '六种体系的独立解读与综合报告'],
-    codex: ['大师姻缘之书', '想了解自己的关系模式或两人的缘分时', '个人版或合盘版·章节报告'],
-  },
-  'zh-TW': {
-    tea: ['延伊的命運茶屋', '心緒複雜，想平靜地梳理自己的處境時', '圍繞問題的解讀與行動建議·命盤或卡牌'],
-    neo: ['尼奧的策略室', '想打破反覆出現的問題，明確下一步行動時', '處境分析與實踐策略'],
-    fusion: ['超融合運勢', '想透過不同占卜體系深入了解自己的處境時', '六種體系的獨立解讀與綜合報告'],
-    codex: ['大師姻緣之書', '想了解自己的關係模式或兩人的緣分時', '個人版或合盤版·章節報告'],
-  },
+// Presentation order only. Storage adapters, hrefs and price keys stay authoritative.
+const groups = {
+  mind: ['tea', 'neo'],
+  experts: ['life-book', 'ziwei', 'astrology', 'vedic', 'sukuyo-compat'],
+  naming: ['legacy-naming'],
+  reports: ['codex', 'love-secret', 'new-year', 'karma', 'fusion'],
+} as const;
+const artwork: Record<string, string> = {
+  tea: 'fortune-tea-house', neo: 'neo-operation-room', ziwei: 'ziwei-ai',
+  astrology: 'astrology-ai', vedic: 'vedic-ai', 'sukuyo-compat': 'sukuyo-compatibility-ai',
+  'legacy-naming': 'naming-ai',
 };
+
 export default function ConsultationHub({ children }: { children?: ReactNode }) {
-  const locale = useLocale(), c = recordsCopy(locale);
-  const renderService = (service: typeof RECORD_SERVICES[number]) => {
-    const [name, description, format] = locale === 'ko' ? [service.name, service.description, service.format] : hubTranslations[locale]?.[service.id] || hubTranslations.en[service.id];
-    return <article key={service.id} className={styles.consultation} data-service={service.id}>
-      <div className={styles.consultArt}><img src={service.image} alt="" width="640" height="360" loading="lazy" /></div>
-      <div className={styles.consultCopy}><h2>{name}</h2><p className={styles.consultDescription}>{description}</p><p className={styles.consultFormat}>{format}</p>
-        <div className={styles.consultActions}><div className="space-y-1 text-sm font-semibold"><p>{c.price} {service.id === 'codex' && (locale === 'ko' ? '개인판 ' : 'Personal ')}<PriceBadge featureKey={service.featureKey} className="font-semibold text-[var(--cd-accent)]" /></p>{service.id === 'codex' && <p>{locale === 'ko' ? '궁합판 ' : 'Compatibility '}<PriceBadge featureKey="master-love-codex-compat" className="font-semibold text-[var(--cd-accent)]" /></p>}</div><a className={recordButton} href={service.href}>{c.detail}<ArrowUpRight size={16} aria-hidden /></a></div>
+  const locale = useLocale(), c = recordsCopy(locale), copy = consultationCopy(locale);
+  const renderService = (id: string, variant: 'featured' | 'expert' | 'naming' | 'report') => {
+    const service = RECORD_SERVICES.find(item => item.id === id)!;
+    const localized = expertCopy[locale]?.[id] || (locale === 'ko'
+      ? [service.name, service.description, service.format]
+      : hubTranslations[locale]?.[id] || expertCopy.en[id] || hubTranslations.en[id]);
+    const [name, description, format] = localized;
+    const image = artwork[id] ? `/feature-details/assets/${artwork[id]}-480.webp` : service.image;
+    return <article key={id} className={`${styles.card} ${styles[variant]}`} data-service={id}>
+      <div className={styles.art}>
+        <img src={image} srcSet={artwork[id] ? `${image} 480w, /feature-details/assets/${artwork[id]}-960.webp 960w` : undefined}
+          sizes={variant === 'expert' ? '(min-width: 960px) 320px, 112px' : '(min-width: 960px) 520px, 100vw'}
+          alt="" width="640" height="360" loading={id === 'tea' ? 'eager' : 'lazy'} />
+      </div>
+      <div className={styles.cardBody}>
+        <h3>{name}</h3><p className={styles.description}>{description}</p><p className={styles.format}>{format}</p>
+        <div className={styles.actions}>
+          <div className={styles.prices}>
+            <span>{c.price}</span>
+            <p>{id === 'codex' && `${copy.personal} `}<PriceBadge featureKey={service.featureKey} className={styles.price} /></p>
+            {id === 'codex' && <p>{copy.compatibility} <PriceBadge featureKey="master-love-codex-compat" className={styles.price} /></p>}
+          </div>
+          <a className={styles.button} href={service.href} aria-label={`${name} · ${id === 'legacy-naming' ? copy.namingAction : copy.action}`}>
+            {id === 'legacy-naming' ? copy.namingAction : copy.action}<ArrowUpRight size={17} aria-hidden="true" />
+          </a>
+        </div>
       </div>
     </article>;
   };
-  return <RecordFrame title={c.hubTitle} lead={c.hubLead} view="hub">
-    <div className={styles.featured}>{RECORD_SERVICES.filter(service => service.featured).map(renderService)}</div>
-    <div className={styles.secondary}>{RECORD_SERVICES.filter(service => service.hub && !service.featured).map(renderService)}</div>
-    {children}
-    <section className={styles.characters}><h2>{c.characters}</h2><p>{c.charactersLead}</p><div className={styles.characterLinks}><a className={recordButton} href="/fortune-chat/?character=yeoni"><img src="/images/fortune-tea-house/flower-pig-honey-hug.webp" alt="" width="48" height="48" loading="lazy" />{c.yeoni}<ArrowUpRight size={16} aria-hidden /></a><a className={recordButton} href="/fortune-chat/?character=neo"><img src="/neo-operation-room/lion-seal-loading.webp" alt="" width="48" height="48" loading="lazy" />{c.neo}<ArrowUpRight size={16} aria-hidden /></a></div></section>
-  </RecordFrame>;
+  return <main className={styles.page} data-consultation-hub="garden">
+    <div className={styles.frame}>
+      <nav className={styles.navigation} aria-label={copy.navigation}>
+        <a href="/ggulggul/"><ArrowLeft size={17} aria-hidden="true" />{c.home}</a>
+        <a href="/records/"><Archive size={17} aria-hidden="true" />{c.title}</a>
+      </nav>
+      <header className={styles.heading}>
+        <h1>{copy.title}</h1><p>{copy.lead}</p>
+        <Moon className={styles.moon} size={44} strokeWidth={1} aria-hidden="true" />
+      </header>
+      <nav className={styles.categories} aria-label={copy.navigation}>
+        {(['mind', 'experts', 'naming', 'reports'] as const).map(id => <a key={id} href={`#${id}`}>{copy[id]}<ArrowUpRight size={14} aria-hidden="true" /></a>)}
+      </nav>
+      <section id="mind" className={styles.section} aria-labelledby="mind-title">
+        <div className={styles.sectionHeading}><h2 id="mind-title">{copy.mindTitle}</h2></div>
+        <div className={styles.featuredGrid}>{groups.mind.map(id => renderService(id, 'featured'))}</div>
+        <div className={styles.chat}>
+          <div><MessageCircleHeart size={20} aria-hidden="true" /><span>{c.characters}</span></div>
+          <a href="/fortune-chat/?character=yeoni">{c.yeoni}<ArrowUpRight size={16} aria-hidden="true" /></a>
+          <a href="/fortune-chat/?character=neo">{c.neo}<ArrowUpRight size={16} aria-hidden="true" /></a>
+        </div>
+      </section>
+      <section id="experts" className={styles.section} aria-labelledby="experts-title">
+        <div className={styles.sectionHeading}><h2 id="experts-title">{copy.expertsTitle}</h2><p>{copy.expertsLead}</p></div>
+        <div className={styles.expertGrid}>{groups.experts.map(id => renderService(id, 'expert'))}</div>
+      </section>
+      <section id="naming" className={styles.section} aria-labelledby="naming-title">
+        <div className={styles.sectionHeading}><h2 id="naming-title">{copy.namingTitle}</h2></div>
+        {groups.naming.map(id => renderService(id, 'naming'))}
+      </section>
+      <section id="reports" className={styles.section} aria-labelledby="reports-title">
+        <div className={styles.sectionHeading}><h2 id="reports-title">{copy.reportsTitle}</h2><p>{copy.reportsLead}</p></div>
+        <div className={styles.reportGrid}>{groups.reports.map(id => renderService(id, 'report'))}</div>
+      </section>
+      {children}
+    </div>
+  </main>;
 }
