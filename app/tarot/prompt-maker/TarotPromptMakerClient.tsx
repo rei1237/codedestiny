@@ -1788,7 +1788,7 @@ function loadTarotCardPool() {
         cardNameEn: String(card?.nameEn || "Unknown Card"),
         keywords: Array.isArray(card?.keywords) ? card.keywords.map((value) => String(value)) : [],
         focus: String(card?.focus || "흐름 읽기"),
-        image: buildImageCandidates(String(card?.code || ""))[0] || "/tarot-cards/thefool.webp",
+        image: (buildImageCandidates(String(card?.code || ""))[0] || "/tarot-cards/thefool.webp").replace(/\.jpe?g$/, ".webp"),
       }))
       .filter((card) => card.cardCode)
   ));
