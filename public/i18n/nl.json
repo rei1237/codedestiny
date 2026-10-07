@@ -1879,6 +1879,12 @@
       "passNote": "Controleer het bereik en de geldigheid voordat je kiest.",
       "passLink": "Passen bekijken",
       "passHistory": "Eerder gekochte passen behouden hun oorspronkelijke voorwaarden."
+    },
+    "reading": {
+      "famousNote": "Saju-verhalen van bekende personen op basis van openbare bronnen",
+      "insightsNote": "Nuttige artikelen over Saju, tarot en geboortehoroscopen",
+      "heading": "Inspirerende verhalen voor je dag",
+      "open": "Lees de verhalen"
     }
   },
   "terms": {

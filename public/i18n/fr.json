@@ -1879,6 +1879,12 @@
       "passNote": "Vérifiez les services inclus et la durée avant de choisir.",
       "passLink": "Voir les passes",
       "passHistory": "Les passes déjà achetés conservent leurs conditions initiales."
+    },
+    "reading": {
+      "famousNote": "Le Saju des personnalités à partir de sources publiques",
+      "insightsNote": "Des lectures utiles sur le Saju, le tarot et les thèmes astraux",
+      "heading": "Des lectures pour éclairer votre journée",
+      "open": "Lire les articles"
     }
   },
   "terms": {

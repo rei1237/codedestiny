@@ -1879,6 +1879,12 @@
       "passNote": "Kiểm tra phạm vi và thời hạn trước khi chọn.",
       "passLink": "Xem gói lượt",
       "passHistory": "Gói đã mua vẫn giữ điều kiện tại thời điểm mua."
+    },
+    "reading": {
+      "famousNote": "Câu chuyện Saju của người nổi tiếng từ nguồn công khai",
+      "insightsNote": "Bài đọc hữu ích về Saju, tarot và lá số",
+      "heading": "Câu chuyện vận mệnh hữu ích mỗi ngày",
+      "open": "Đọc bài viết"
     }
   },
   "terms": {

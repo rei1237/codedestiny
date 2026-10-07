@@ -1879,6 +1879,12 @@
       "passNote": "Check each pass’s coverage and validity before choosing.",
       "passLink": "Explore passes",
       "passHistory": "Previously purchased passes retain their original terms."
+    },
+    "reading": {
+      "famousNote": "Public figures' Saju stories based on public sources",
+      "insightsNote": "Helpful reading on Saju, tarot and birth charts",
+      "heading": "Insightful stories for your day",
+      "open": "Read the stories"
     }
   },
   "terms": {

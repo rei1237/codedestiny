@@ -1879,6 +1879,12 @@
       "passNote": "选择前请确认适用范围和有效期。",
       "passLink": "了解通行证",
       "passHistory": "已购买的通行证保留购买时的条件。"
+    },
+    "reading": {
+      "famousNote": "根据公开资料解读名人八字",
+      "insightsNote": "帮助理解八字、塔罗与命盘的文章",
+      "heading": "为日常带来启发的运势故事",
+      "open": "阅读文章"
     }
   },
   "terms": {

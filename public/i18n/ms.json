@@ -1879,6 +1879,12 @@
       "passNote": "Semak skop dan tempoh sah sebelum memilih.",
       "passLink": "Lihat pas",
       "passHistory": "Pas yang telah dibeli mengekalkan syarat asalnya."
+    },
+    "reading": {
+      "famousNote": "Kisah Saju tokoh terkenal berdasarkan sumber awam",
+      "insightsNote": "Bacaan berguna tentang Saju, tarot dan carta kelahiran",
+      "heading": "Kisah bermakna untuk hari anda",
+      "open": "Baca kisah"
     }
   },
   "terms": {

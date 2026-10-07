@@ -1879,6 +1879,12 @@
       "passNote": "Prüfe vor der Auswahl Geltungsbereich und Laufzeit.",
       "passLink": "Pässe ansehen",
       "passHistory": "Bereits gekaufte Pässe behalten ihre ursprünglichen Bedingungen."
+    },
+    "reading": {
+      "famousNote": "Saju-Geschichten bekannter Personen aus öffentlichen Quellen",
+      "insightsNote": "Hilfreiche Texte über Saju, Tarot und Geburtshoroskope",
+      "heading": "Inspirierende Geschichten für deinen Tag",
+      "open": "Geschichten lesen"
     }
   },
   "terms": {
