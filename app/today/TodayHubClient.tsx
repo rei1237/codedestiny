@@ -956,9 +956,9 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
   const [reloadToken, setReloadToken] = useState(0);
   // ?tab=saju|sukuyo|vedic|number — Threads 유형별 글이 해당 탭으로 바로 데려온다. 정적 셸이라 마운트 후에 읽는다.
   useEffect(() => {
-    const query = new URLSearchParams(window.location.search);
-    const requested = query.get("tab");
-    if (query.get("period") === "tomorrow") setPeriod("tomorrow");
+    const requested = new URLSearchParams(window.location.search).get("tab");
+    const requestedPeriod = new URLSearchParams(window.location.search).get("period");
+    if (requestedPeriod === "tomorrow") setPeriod("tomorrow");
     const match = TAB_KEYS.find((tab) => tab.key === requested);
     if (match) setActive(match.key);
   }, []);
