@@ -2014,7 +2014,7 @@
     "officialBlog": "https://blog.naver.com/neosaju",
     "rank": null,
     "causalCtrConclusion": null,
-    "note": "검색광고 월간 검색량은 사이트 노출수가 아님. 순위 미측정. 10/03 시작 상세페이지 title 실험 유지; 이번 허브/콘텐츠/기능 변경은 title-only 실험으로 해석하지 않음. 운영 반영일·변경후28일은 미확인.",
+    "note": "검색광고 월간 검색량은 사이트 노출수가 아님. 순위 미측정. 10/03 시작 상세페이지 title 실험 유지. 2026-10-08 05:27:56 KST 운영 Pages/Worker SHA 확인. 콘텐츠·기능·메타·상담 UI가 함께 변경되어 title-only 효과를 판정하지 않음. 변경 후 CTR은 관찰 전.",
     "metadataChanges": [
       {
         "url": "/ggulggul/",
@@ -2078,6 +2078,20 @@
         "afterTitle": "상대 마음 타로·관계 신호 읽기 | 꿀꿀운세",
         "beforeDescription": "그 사람의 말과 행동, 왜 다를까? 보이는 신호와 내 추측을 나눠 읽고 확인할 질문을 정리하는 상대 마음 타로입니다.",
         "afterDescription": "그 사람의 말과 행동, 왜 다를까? 보이는 신호와 내 추측을 나눠 읽고 확인할 질문을 정리하는 상대 마음 타로입니다."
+      },
+      {
+        "url": "/insights/",
+        "beforeTitle": "운세 인사이트 허브 · 사주·타로·자미두수 | Code Destiny",
+        "afterTitle": "운세 인사이트, 사주·타로 해석 가이드 | 꿀꿀운세",
+        "beforeDescription": "사주, 자미두수, 숙요점, 타로, 점성술, 베다점성술을 처음 접하는 사람도 흐름을 읽을 수 있도록 정리한 운세 인사이트 아카이브입니다.",
+        "afterDescription": "사주·자미두수·숙요점·타로 해석을 꿀꿀운세 인사이트에서 차근차근 읽어보세요. 유명인 사주 사례와 계산 기준을 살펴보고 나의 운세를 이해하는 데 활용해요."
+      },
+      {
+        "url": "/insights/famous-saju/",
+        "beforeTitle": "유명인 사주 분석 | 운세 인사이트 허브",
+        "afterTitle": "유명인 사주 분석, 인물별 명식 풀이 | 꿀꿀운세",
+        "beforeDescription": "공개 생년월일과 Code Destiny 명식 기준을 바탕으로 유명인의 일간, 오행, 삼주 흐름을 이야기형 사주 인사이트로 정리한 아카이브입니다.",
+        "afterDescription": "유명인·연예인 사주를 공개 생년월일과 확인 가능한 자료로 살펴보세요. 인물별 명식과 오행의 해석을 읽고, 출생 시간에 따른 풀이의 한계도 함께 확인해요."
       }
     ],
     "validation": {
@@ -2110,7 +2124,12 @@
           "fourSystemGuide": true
         }
       },
-      "productionPerformance": null,
+      "productionPerformance": {
+        "measured": true,
+        "kind": "Lighthouse laboratory",
+        "record": "naver20261008.releaseMeasurement",
+        "overallImprovementClaim": false
+      },
       "postChangeCtr": null
     },
     "celebrityDiscovery": {
@@ -2142,6 +2161,882 @@
         "homeCtaContrast": 5.74,
         "imagesLoaded": true
       }
+    },
+    "releaseMeasurement": {
+      "dispatchCount": 1,
+      "localReleaseVerification": "release-verification-f610e521f.txt",
+      "ciResult": "success",
+      "status": "production-success",
+      "productionRunUrl": "https://github.com/rei1237/codedestiny/actions/runs/37680098001",
+      "sha": "f610e521f85377b0dfd1dc6bea7812fdd17070af",
+      "productionRunId": 37680098001,
+      "ciRunId": 37677389287,
+      "stagingWorkerSha": "f610e521f85377b0dfd1dc6bea7812fdd17070af",
+      "stagingRunId": 37677453268,
+      "dispatchedAtUtc": "2026-10-07T20:11:13Z",
+      "stagingPagesSha": "f610e521f85377b0dfd1dc6bea7812fdd17070af",
+      "stagingResult": "success",
+      "confirmedAtUtc": "2026-10-07T20:27:56.647Z",
+      "completedAtUtc": "2026-10-07T20:26:44Z",
+      "ctrAutomationId": "10-8-ctr-d-14-d-30",
+      "productionPagesSha": "f610e521f85377b0dfd1dc6bea7812fdd17070af",
+      "productionWorkerSha": "f610e521f85377b0dfd1dc6bea7812fdd17070af",
+      "ciUrl": "https://github.com/rei1237/codedestiny/actions/runs/37677389287",
+      "stagingUrl": "https://github.com/rei1237/codedestiny/actions/runs/37677453268",
+      "measurementConditions": {
+        "lighthouseVersion": "13.1.0",
+        "presets": [
+          "mobile default",
+          "official desktop"
+        ],
+        "runsPerRouteAndPreset": 3,
+        "throttlingMethod": "simulate",
+        "freshProfileEachRun": true,
+        "baselineSeries": "before-quiet",
+        "originalBaselineRetained": true,
+        "apiWarmup": 2,
+        "apiMeasuredRequestsPerEndpoint": 10,
+        "hostAndNetworkFullyControlled": false,
+        "notes": [
+          "Shared workstation and public-network/CDN variability remain. The original baseline ran beside local verification; primary comparison uses the later before-quiet series, which did not run alongside this task's large local checks. This does not establish a fully idle workstation.",
+          "Lighthouse simulated throttling is laboratory evidence, not CrUX or real-user Core Web Vitals.",
+          "Multiple UI, content, metadata and consultation changes shipped together; no attribution to title alone.",
+          "The old API ignored period=tomorrow. Tomorrow latency is a new-feature baseline, not an improvement percentage."
+        ]
+      },
+      "lighthouse": [
+        {
+          "url": "https://code-destiny.com/ggulggul/",
+          "preset": "mobile",
+          "before": {
+            "performance": {
+              "median": 32,
+              "min": 31,
+              "max": 40
+            },
+            "fcp": {
+              "median": 5295.197000000001,
+              "min": 5224.972,
+              "max": 6528.302
+            },
+            "lcp": {
+              "median": 11897.162999999997,
+              "min": 7464.7440000000015,
+              "max": 12545.026500000002
+            },
+            "tbt": {
+              "median": 1712.5000000000018,
+              "min": 726.5,
+              "max": 1760
+            },
+            "cls": {
+              "median": 0.003728924551974118,
+              "min": 0.003728924551974118,
+              "max": 0.003728924551974118
+            },
+            "speedIndex": {
+              "median": 8037.029099159052,
+              "min": 7970.488069257304,
+              "max": 8141.405438972992
+            }
+          },
+          "after": {
+            "performance": {
+              "median": 39,
+              "min": 37,
+              "max": 43
+            },
+            "fcp": {
+              "median": 6505.893599999999,
+              "min": 6331.959999999997,
+              "max": 6508.5650000000005
+            },
+            "lcp": {
+              "median": 13326.433500000008,
+              "min": 13069.231500000004,
+              "max": 13490.548100000004
+            },
+            "tbt": {
+              "median": 792.5000000000009,
+              "min": 575.5000000000018,
+              "max": 843.9999999999991
+            },
+            "cls": {
+              "median": 0.015657373690722093,
+              "min": 0.015657373690722093,
+              "max": 0.015657373690722093
+            },
+            "speedIndex": {
+              "median": 8018.786465551352,
+              "min": 7654.677891831171,
+              "max": 8410.391143416164
+            }
+          },
+          "observedBefore": {
+            "fcp": 916,
+            "lcp": 1186,
+            "speedIndex": 2538,
+            "firstPaint": 916,
+            "domContentLoaded": 2261,
+            "load": 3283,
+            "throttlingMethod": "simulate"
+          },
+          "observedAfter": {
+            "fcp": 778,
+            "lcp": 1226,
+            "speedIndex": 2144,
+            "firstPaint": 778,
+            "domContentLoaded": 2006,
+            "load": 2602,
+            "throttlingMethod": "simulate"
+          }
+        },
+        {
+          "url": "https://code-destiny.com/ggulggul/",
+          "preset": "desktop",
+          "before": {
+            "performance": {
+              "median": 59,
+              "min": 59,
+              "max": 64
+            },
+            "fcp": {
+              "median": 2530.9004999999997,
+              "min": 2484.517500000001,
+              "max": 2592.732499999999
+            },
+            "lcp": {
+              "median": 4325.039999999998,
+              "min": 4104.230000000001,
+              "max": 4568.982499999996
+            },
+            "tbt": {
+              "median": 139.87949999999773,
+              "min": 79.00000000000045,
+              "max": 150.49999999999955
+            },
+            "cls": {
+              "median": 0.005898239201953809,
+              "min": 0.005898239201953809,
+              "max": 0.007549184702054318
+            },
+            "speedIndex": {
+              "median": 2868.9188379163666,
+              "min": 2679.0103344143654,
+              "max": 2981.479853804899
+            }
+          },
+          "after": {
+            "performance": {
+              "median": 63,
+              "min": 62,
+              "max": 63
+            },
+            "fcp": {
+              "median": 2416.432749999999,
+              "min": 2404.2295,
+              "max": 2452.0602499999995
+            },
+            "lcp": {
+              "median": 4457.187999999998,
+              "min": 4388.991499999999,
+              "max": 4479.736749999996
+            },
+            "tbt": {
+              "median": 32.5,
+              "min": 31,
+              "max": 37
+            },
+            "cls": {
+              "median": 0.0005596160429393929,
+              "min": 0.0005596160429393929,
+              "max": 0.0005596160429393929
+            },
+            "speedIndex": {
+              "median": 2716.3940457357976,
+              "min": 2697.982714415245,
+              "max": 2934.867776287476
+            }
+          },
+          "observedBefore": {
+            "fcp": 1265,
+            "lcp": 1380,
+            "speedIndex": 1381,
+            "firstPaint": 1265,
+            "domContentLoaded": 1974,
+            "load": 2686,
+            "throttlingMethod": "simulate"
+          },
+          "observedAfter": {
+            "fcp": 1108,
+            "lcp": 1249,
+            "speedIndex": 1233,
+            "firstPaint": 1108,
+            "domContentLoaded": 1725,
+            "load": 2473,
+            "throttlingMethod": "simulate"
+          }
+        },
+        {
+          "url": "https://code-destiny.com/today/",
+          "preset": "mobile",
+          "before": {
+            "performance": {
+              "median": 59,
+              "min": 39,
+              "max": 63
+            },
+            "fcp": {
+              "median": 3809.458,
+              "min": 3747.2300000000005,
+              "max": 4039.281
+            },
+            "lcp": {
+              "median": 12143.752999999997,
+              "min": 11224.386000000002,
+              "max": 14130.752500000004
+            },
+            "tbt": {
+              "median": 319.5,
+              "min": 186.5,
+              "max": 1910.7450000000008
+            },
+            "cls": {
+              "median": 0.001189574733705223,
+              "min": 0.001189574733705223,
+              "max": 0.001189574733705223
+            },
+            "speedIndex": {
+              "median": 3848.4817936915774,
+              "min": 3847.7776522880977,
+              "max": 4039.281
+            }
+          },
+          "after": {
+            "performance": {
+              "median": 63,
+              "min": 63,
+              "max": 64
+            },
+            "fcp": {
+              "median": 4053.125,
+              "min": 4043.3359999999993,
+              "max": 4112.2210000000005
+            },
+            "lcp": {
+              "median": 11288.237499999996,
+              "min": 11249.586999999998,
+              "max": 11789.45525
+            },
+            "tbt": {
+              "median": 150.4999999999991,
+              "min": 139.0000000000009,
+              "max": 157.5
+            },
+            "cls": {
+              "median": 0.001189574733705223,
+              "min": 0.001189574733705223,
+              "max": 0.001189574733705223
+            },
+            "speedIndex": {
+              "median": 4053.125,
+              "min": 4043.3359999999993,
+              "max": 4137.846897377698
+            }
+          },
+          "observedBefore": {
+            "fcp": 983,
+            "lcp": 1684,
+            "speedIndex": 1115,
+            "firstPaint": 983,
+            "domContentLoaded": 1107,
+            "load": 1510,
+            "throttlingMethod": "simulate"
+          },
+          "observedAfter": {
+            "fcp": 1009,
+            "lcp": 1710,
+            "speedIndex": 1097,
+            "firstPaint": 1009,
+            "domContentLoaded": 1003,
+            "load": 1686,
+            "throttlingMethod": "simulate"
+          }
+        },
+        {
+          "url": "https://code-destiny.com/today/",
+          "preset": "desktop",
+          "before": {
+            "performance": {
+              "median": 73,
+              "min": 61,
+              "max": 83
+            },
+            "fcp": {
+              "median": 1596.9710000000005,
+              "min": 725.405,
+              "max": 1687.8919999999998
+            },
+            "lcp": {
+              "median": 3652.999499999999,
+              "min": 2254.4049999999997,
+              "max": 4326.715250000001
+            },
+            "tbt": {
+              "median": 150,
+              "min": 0,
+              "max": 244.00000000000045
+            },
+            "cls": {
+              "median": 0.0002700151361718244,
+              "min": 0.0002700151361718244,
+              "max": 0.0035196988479318375
+            },
+            "speedIndex": {
+              "median": 1612.8406732118824,
+              "min": 1555.6473452935863,
+              "max": 1707.3645299794794
+            }
+          },
+          "after": {
+            "performance": {
+              "median": 71,
+              "min": 69,
+              "max": 71
+            },
+            "fcp": {
+              "median": 1725.599,
+              "min": 1680.2404999999997,
+              "max": 1738.1375
+            },
+            "lcp": {
+              "median": 4172.643750000003,
+              "min": 3722.1044999999986,
+              "max": 4656.700250000003
+            },
+            "tbt": {
+              "median": 0,
+              "min": 0,
+              "max": 0
+            },
+            "cls": {
+              "median": 0.0002700151361718244,
+              "min": 0.0002700151361718244,
+              "max": 0.0002700151361718244
+            },
+            "speedIndex": {
+              "median": 1772.6337709112001,
+              "min": 1715.4163562219296,
+              "max": 1777.240760653332
+            }
+          },
+          "observedBefore": {
+            "fcp": 1004,
+            "lcp": 1962,
+            "speedIndex": 1050,
+            "firstPaint": 1004,
+            "domContentLoaded": 1286,
+            "load": 1488,
+            "throttlingMethod": "simulate"
+          },
+          "observedAfter": {
+            "fcp": 924,
+            "lcp": 1738,
+            "speedIndex": 965,
+            "firstPaint": 924,
+            "domContentLoaded": 914,
+            "load": 1285,
+            "throttlingMethod": "simulate"
+          }
+        },
+        {
+          "url": "https://code-destiny.com/fortune/tomorrow/",
+          "preset": "mobile",
+          "before": {
+            "performance": {
+              "median": 66,
+              "min": 59,
+              "max": 68
+            },
+            "fcp": {
+              "median": 3752.455999999999,
+              "min": 3733.5419999999995,
+              "max": 3774.426
+            },
+            "lcp": {
+              "median": 5544.3269999999975,
+              "min": 4916.917999999999,
+              "max": 5700.387999999999
+            },
+            "tbt": {
+              "median": 247.5,
+              "min": 221,
+              "max": 483.5
+            },
+            "cls": {
+              "median": 0.0001266396375013121,
+              "min": 0.0001266396375013121,
+              "max": 0.0001266396375013121
+            },
+            "speedIndex": {
+              "median": 3752.455999999999,
+              "min": 3733.5419999999995,
+              "max": 3774.426
+            }
+          },
+          "after": {
+            "performance": {
+              "median": 75,
+              "min": 67,
+              "max": 76
+            },
+            "fcp": {
+              "median": 3896.0139999999997,
+              "min": 3735.467999999999,
+              "max": 4067.704999999999
+            },
+            "lcp": {
+              "median": 4189.723000000001,
+              "min": 4015.7149999999983,
+              "max": 5566.186999999998
+            },
+            "tbt": {
+              "median": 177.5,
+              "min": 164.5,
+              "max": 195.5
+            },
+            "cls": {
+              "median": 0.0001266396375013121,
+              "min": 0.0001266396375013121,
+              "max": 0.0001266396375013121
+            },
+            "speedIndex": {
+              "median": 3896.0139999999997,
+              "min": 3735.467999999999,
+              "max": 4067.704999999999
+            }
+          },
+          "observedBefore": {
+            "fcp": 970,
+            "lcp": 970,
+            "speedIndex": 983,
+            "firstPaint": 970,
+            "domContentLoaded": 969,
+            "load": 1676,
+            "throttlingMethod": "simulate"
+          },
+          "observedAfter": {
+            "fcp": 952,
+            "lcp": 952,
+            "speedIndex": 970,
+            "firstPaint": 952,
+            "domContentLoaded": 951,
+            "load": 1824,
+            "throttlingMethod": "simulate"
+          }
+        },
+        {
+          "url": "https://code-destiny.com/fortune/tomorrow/",
+          "preset": "desktop",
+          "before": {
+            "performance": {
+              "median": 80,
+              "min": 62,
+              "max": 81
+            },
+            "fcp": {
+              "median": 1733.5210000000002,
+              "min": 1650.834,
+              "max": 1785.331
+            },
+            "lcp": {
+              "median": 2272.3450000000003,
+              "min": 2170.1144999999997,
+              "max": 2650.8165
+            },
+            "tbt": {
+              "median": 2.5,
+              "min": 0,
+              "max": 335.9999999999993
+            },
+            "cls": {
+              "median": 0.0005174597972949781,
+              "min": 0.00018001882060524993,
+              "max": 0.002212148154515199
+            },
+            "speedIndex": {
+              "median": 1785.331,
+              "min": 1733.5210000000002,
+              "max": 2056.508195568572
+            }
+          },
+          "after": {
+            "performance": {
+              "median": 82,
+              "min": 81,
+              "max": 82
+            },
+            "fcp": {
+              "median": 1728.4710000000002,
+              "min": 1672.882,
+              "max": 1736.4469999999997
+            },
+            "lcp": {
+              "median": 2101.754,
+              "min": 1992.6700000000005,
+              "max": 2173.1974999999993
+            },
+            "tbt": {
+              "median": 0,
+              "min": 0,
+              "max": 0
+            },
+            "cls": {
+              "median": 0.0006712622848023763,
+              "min": 0.0003338213081126479,
+              "max": 0.0024889280462534434
+            },
+            "speedIndex": {
+              "median": 1728.4710000000002,
+              "min": 1672.882,
+              "max": 1736.4469999999997
+            }
+          },
+          "observedBefore": {
+            "fcp": 1110,
+            "lcp": 1124,
+            "speedIndex": 1137,
+            "firstPaint": 1110,
+            "domContentLoaded": 1101,
+            "load": 2309,
+            "throttlingMethod": "simulate"
+          },
+          "observedAfter": {
+            "fcp": 953,
+            "lcp": 953,
+            "speedIndex": 967,
+            "firstPaint": 953,
+            "domContentLoaded": 928,
+            "load": 2044,
+            "throttlingMethod": "simulate"
+          }
+        }
+      ],
+      "api": {
+        "before": {
+          "base": "https://code-destiny.com",
+          "generatedAt": "2026-10-07T19:23:11.166Z",
+          "reports": [
+            {
+              "endpoint": "/api/fortune/today-hub?locale=ko&period=today",
+              "skipped": false,
+              "iterations": 10,
+              "errors": 0,
+              "statusCounts": {
+                "200": 10
+              },
+              "p50Ms": 300.33110000000033,
+              "p95Ms": 3106.2323,
+              "p99Ms": 3106.2323,
+              "minMs": 291.0727000000006,
+              "maxMs": 3106.2323,
+              "serverTimingP95Ms": null,
+              "errorReasons": []
+            },
+            {
+              "endpoint": "/api/fortune/today-hub?locale=ko&period=tomorrow",
+              "skipped": false,
+              "iterations": 10,
+              "errors": 0,
+              "statusCounts": {
+                "200": 10
+              },
+              "p50Ms": 294.70889999999963,
+              "p95Ms": 309.5615999999991,
+              "p99Ms": 309.5615999999991,
+              "minMs": 289.83230000000003,
+              "maxMs": 309.5615999999991,
+              "serverTimingP95Ms": null,
+              "errorReasons": []
+            }
+          ]
+        },
+        "after": {
+          "base": "https://code-destiny.com",
+          "generatedAt": "2026-10-07T20:28:37.783Z",
+          "reports": [
+            {
+              "endpoint": "/api/fortune/today-hub?locale=ko&period=today",
+              "skipped": false,
+              "iterations": 10,
+              "errors": 0,
+              "statusCounts": {
+                "200": 10
+              },
+              "p50Ms": 301.84770000000026,
+              "p95Ms": 965.7498000000003,
+              "p99Ms": 965.7498000000003,
+              "minMs": 279.43200000000024,
+              "maxMs": 965.7498000000003,
+              "serverTimingP95Ms": null,
+              "errorReasons": []
+            },
+            {
+              "endpoint": "/api/fortune/today-hub?locale=ko&period=tomorrow",
+              "skipped": false,
+              "iterations": 10,
+              "errors": 0,
+              "statusCounts": {
+                "200": 10
+              },
+              "p50Ms": 289.41939999999977,
+              "p95Ms": 292.02670000000035,
+              "p99Ms": 292.02670000000035,
+              "minMs": 281.21169999999984,
+              "maxMs": 292.02670000000035,
+              "serverTimingP95Ms": null,
+              "errorReasons": []
+            }
+          ]
+        },
+        "tomorrowComparisonValid": false
+      },
+      "yeti": {
+        "observedAt": "2026-10-07T20:30:02.095Z",
+        "pages": [
+          {
+            "url": "/ggulggul/",
+            "status": 200,
+            "canonical": "https://code-destiny.com/ggulggul/",
+            "robots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+            "titleLength": 22,
+            "descriptionLength": 67,
+            "initialTextLength": 33843
+          },
+          {
+            "url": "/today/",
+            "status": 200,
+            "canonical": "https://code-destiny.com/today/",
+            "robots": "index, follow",
+            "titleLength": 27,
+            "descriptionLength": 76,
+            "initialTextLength": 5105
+          },
+          {
+            "url": "/fortune/tomorrow/",
+            "status": 200,
+            "canonical": "https://code-destiny.com/fortune/tomorrow/",
+            "robots": "index, follow",
+            "titleLength": 28,
+            "descriptionLength": 96,
+            "initialTextLength": 6796
+          },
+          {
+            "url": "/insights/",
+            "status": 200,
+            "canonical": "https://code-destiny.com/insights/",
+            "robots": "index, follow",
+            "titleLength": 28,
+            "descriptionLength": 85,
+            "initialTextLength": 8863
+          },
+          {
+            "url": "/insights/famous-saju/",
+            "status": 200,
+            "canonical": "https://code-destiny.com/insights/famous-saju/",
+            "robots": "index, follow",
+            "titleLength": 27,
+            "descriptionLength": 85,
+            "initialTextLength": 7839
+          },
+          {
+            "url": "/insights/famous-saju/iu/",
+            "status": 200,
+            "canonical": "https://code-destiny.com/insights/famous-saju/iu/",
+            "robots": "index, follow",
+            "titleLength": 29,
+            "descriptionLength": 83,
+            "initialTextLength": 9802
+          }
+        ],
+        "sitemap": {
+          "status": 200,
+          "count": 454,
+          "targetCoverage": [
+            {
+              "path": "/ggulggul/",
+              "included": true
+            },
+            {
+              "path": "/today/",
+              "included": true
+            },
+            {
+              "path": "/fortune/tomorrow/",
+              "included": true
+            },
+            {
+              "path": "/insights/",
+              "included": true
+            },
+            {
+              "path": "/insights/famous-saju/",
+              "included": true
+            },
+            {
+              "path": "/insights/famous-saju/iu/",
+              "included": true
+            }
+          ]
+        },
+        "reviewedArticles": [
+          {
+            "path": "/insights/famous-saju/king-sejong/",
+            "status": 200,
+            "inSitemap": true,
+            "canonical": "https://code-destiny.com/insights/famous-saju/king-sejong/",
+            "robots": "index, follow"
+          },
+          {
+            "path": "/insights/famous-saju/yi-sun-sin/",
+            "status": 200,
+            "inSitemap": true,
+            "canonical": "https://code-destiny.com/insights/famous-saju/yi-sun-sin/",
+            "robots": "index, follow"
+          },
+          {
+            "path": "/insights/famous-saju/yu-gwan-sun/",
+            "status": 200,
+            "inSitemap": true,
+            "canonical": "https://code-destiny.com/insights/famous-saju/yu-gwan-sun/",
+            "robots": "index, follow"
+          },
+          {
+            "path": "/insights/famous-saju/an-jung-geun/",
+            "status": 200,
+            "inSitemap": true,
+            "canonical": "https://code-destiny.com/insights/famous-saju/an-jung-geun/",
+            "robots": "index, follow"
+          },
+          {
+            "path": "/insights/famous-saju/kim-gu/",
+            "status": 200,
+            "inSitemap": true,
+            "canonical": "https://code-destiny.com/insights/famous-saju/kim-gu/",
+            "robots": "index, follow"
+          },
+          {
+            "path": "/insights/famous-saju/jeong-yak-yong/",
+            "status": 200,
+            "inSitemap": true,
+            "canonical": "https://code-destiny.com/insights/famous-saju/jeong-yak-yong/",
+            "robots": "index, follow"
+          },
+          {
+            "path": "/insights/famous-saju/bts-jungkook/",
+            "status": 200,
+            "inSitemap": true,
+            "canonical": "https://code-destiny.com/insights/famous-saju/bts-jungkook/",
+            "robots": "index, follow"
+          },
+          {
+            "path": "/insights/famous-saju/iu/",
+            "status": 200,
+            "inSitemap": true,
+            "canonical": "https://code-destiny.com/insights/famous-saju/iu/",
+            "robots": "index, follow"
+          },
+          {
+            "path": "/insights/famous-saju/bong-joon-ho/",
+            "status": 200,
+            "inSitemap": true,
+            "canonical": "https://code-destiny.com/insights/famous-saju/bong-joon-ho/",
+            "robots": "index, follow"
+          },
+          {
+            "path": "/insights/famous-saju/son-heung-min/",
+            "status": 200,
+            "inSitemap": true,
+            "canonical": "https://code-destiny.com/insights/famous-saju/son-heung-min/",
+            "robots": "index, follow"
+          },
+          {
+            "path": "/insights/famous-saju/kim-yuna/",
+            "status": 200,
+            "inSitemap": true,
+            "canonical": "https://code-destiny.com/insights/famous-saju/kim-yuna/",
+            "robots": "index, follow"
+          },
+          {
+            "path": "/insights/famous-saju/han-kang/",
+            "status": 200,
+            "inSitemap": true,
+            "canonical": "https://code-destiny.com/insights/famous-saju/han-kang/",
+            "robots": "index, follow"
+          }
+        ],
+        "actualCrawlerVisitVerified": false
+      },
+      "productionVisual": {
+        "environment": "production",
+        "origin": "https://code-destiny.com",
+        "checkedAt": "2026-10-08",
+        "deploymentShaReportedByParent": "f610e521f85377b0dfd1dc6bea7812fdd17070af",
+        "sourceEdits": false,
+        "blockerCount": 0,
+        "widths": [
+          390,
+          960
+        ],
+        "actualChecks": [
+          "Today and tomorrow four tabs each rendered real summary headings without horizontal overflow at mobile width",
+          "Today day 을묘 changed to tomorrow 병진",
+          "Period and selected tab visually matched results at 390 and 960",
+          "Home cards loaded two images outside collapsed area",
+          "Home desktop two columns and mobile one column",
+          "Home mobile five nav links each 54.390625px tall",
+          "Home to insights and insights to famous hub navigation succeeded",
+          "Insights reviewed person links count 12 plus archive link",
+          "Famous hub illustration loaded and mobile bottom navigation visible"
+        ],
+        "context": "Existing production browser session automatically supplied saved profile. No login or birth input performed. Not anonymous API evidence.",
+        "limits": [
+          "No paid LLM, payment or DB-write operation",
+          "No performance score measurement by visual checker",
+          "Shared-detail race and failure request-count checks remain earlier local mock evidence"
+        ],
+        "screenshots": [
+          "production-today-390.jpg",
+          "production-today-960.jpg",
+          "production-tomorrow-390.jpg",
+          "production-tomorrow-960.jpg",
+          "production-home-reading-390.jpg",
+          "production-home-reading-960.jpg",
+          "production-insights-390.jpg",
+          "production-famous-390.jpg"
+        ],
+        "cleanup": "Agent production tab closed and viewport reset. Ready for parent Lighthouse."
+      },
+      "ctrFollowup": {
+        "automationId": "10-8-ctr-d-14-d-30",
+        "status": "ACTIVE",
+        "d14": "2026-10-22",
+        "d30": "2026-11-07",
+        "timeZone": "Asia/Seoul",
+        "checkTime": "10:40",
+        "baselineReportUpdatedAt": "2026-10-06",
+        "baselineDays": 30,
+        "postChangeCtr": null,
+        "dataLagPolicy": "Record exact observed period and report update time; retry if a full post-release 30 days is not yet available.",
+        "lowImpressionsPolicy": "Defer judgment; do not infer a title-only effect."
+      },
+      "remainingIssues": [
+        "Home mobile LCP median 11.90s -> 13.33s; desktop today LCP 3.65s -> 4.17s. Do not claim overall performance improvement.",
+        "Public-network and shared-workstation variability remain; no real-user CWV or post-change CTR measured.",
+        "The homepage still has a large legacy DOM and stylesheet/script cost."
+      ],
+      "artifactDirectory": "D:/Development/code-destiny/output/release-20261008-measurement",
+      "policies": "No payment execution, paid LLM call, production DB write, schema change or fortune-engine calculation change in this measurement work."
     }
   }
 }
