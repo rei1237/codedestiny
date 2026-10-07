@@ -157,31 +157,10 @@
     <div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot">{{signature}}</div></div>
     <details class="cdh-specialists"><summary>체계별 전문가 상담 살펴보기</summary>    <div class="cdh-slot" id="cdhExpertsSlot">{{experts}}</div></details>
     <section class="cdh-flower" aria-labelledby="cdhFlowerTitle">
-      <picture><source srcset="/images/consultation/destiny-flower-editorial-v1-480.webp 480w, /images/consultation/destiny-flower-editorial-v1-960.webp 960w" sizes="(max-width:640px) 100vw, 480px"><img src="/images/consultation/destiny-flower-editorial-v1-480.webp" alt="목련과 모란으로 그린 운명의 꽃" width="960" height="640" loading="lazy" decoding="async"></picture>
+      <picture><source srcset="/images/consultation/destiny-flower-editorial-v1-480.webp 480w, /images/consultation/destiny-flower-editorial-v1-960.webp 960w" sizes="(max-width:640px) calc(100vw - 32px), 440px"><img src="/images/consultation/destiny-flower-editorial-v1-480.webp" alt="목련과 모란으로 그린 운명의 꽃" width="960" height="640" loading="lazy" decoding="async"></picture>
       <div><p class="cdh-flower__eyebrow">나를 알아가는 작은 즐거움 · 무료</p><h2 id="cdhFlowerTitle">당신의 흐름을 닮은 꽃 한 송이</h2><p>사주와 별자리에서 나를 닮은 꽃을 찾아보세요. 꽃말을 읽고, 오늘 나에게 건넬 작은 메시지도 골라볼 수 있어요.</p><button type="button" class="cdh-flower__cta" data-action="openDestinyFlowerStudio">나의 운명의 꽃 보기</button><span>로그인 후 무료로 이용할 수 있어요.</span></div>
     </section>
     <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
-    <section class="cdh-reading" aria-labelledby="cdhReadingTitle" data-cd-funnel-section="insight_reading">
-      <h2 id="cdhReadingTitle" data-cd-trans="home.reading.heading">꿀같이 유익한 운세 이야기</h2>
-      <div class="cdh-reading__grid">
-        <a class="cdh-reading__story" href="/insights/famous-saju/">
-          <img src="/images/feature-details/famous-saju-hero-v2.webp" width="1200" height="675" alt="" loading="lazy" decoding="async">
-          <div class="cdh-reading__copy">
-            <h3 data-cd-trans="home.homeGuide.linkFamous">유명인 사주</h3>
-            <p data-cd-trans="home.reading.famousNote">공개 자료로 읽는 인물별 사주 이야기</p>
-            <span class="cdh-reading__cta"><span data-cd-trans="home.reading.open">이야기 읽기</span><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
-          </div>
-        </a>
-        <a class="cdh-reading__story" href="/insights/">
-          <img src="/images/feature-details/fusion-fortune-hero-v2.webp" width="1200" height="675" alt="" loading="lazy" decoding="async">
-          <div class="cdh-reading__copy">
-            <h3 data-cd-trans="home.homeGuide.linkInsights">운세 인사이트</h3>
-            <p data-cd-trans="home.reading.insightsNote">사주·타로·명반을 이해하는 유익한 읽을거리</p>
-            <span class="cdh-reading__cta"><span data-cd-trans="home.reading.open">이야기 읽기</span><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
-          </div>
-        </a>
-      </div>
-    </section>
     <details class="cdh-more" id="cdhMore">
       <summary class="cdh-more__summary" aria-expanded="false" aria-controls="cdhGardenBody">
         <img src="/images/home/illustrated/yeoni-character-320.webp" width="52" height="52" loading="lazy" decoding="async" alt="">
@@ -236,6 +215,27 @@
     <section class="cdh-explore" aria-labelledby="cdhExploreTitle">
       <div class="cdh-section-head"><p class="cdh-intro">MORE TO EXPLORE</p><h2 id="cdhExploreTitle" data-cd-trans="home.funnelCopy.explore">더 둘러보기</h2><p class="cdh-lead" data-cd-trans="home.funnelCopy.exploreLead">이야기와 음악으로 운명의 여운을 이어가세요.</p></div>
       <div class="cdh-explore-grid"><div id="cdhStorySlot">{{story}}</div><div id="cdhMusicSlot">{{music}}</div></div>
+    <details class="cdh-reading cdh-reading--folded" aria-labelledby="cdhReadingTitle" data-cd-funnel-section="insight_reading">
+      <summary><span id="cdhReadingTitle" data-cd-trans="home.reading.heading">꿀같이 유익한 운세 이야기</span><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="cdh-reading__grid">
+        <a class="cdh-reading__story" href="/insights/famous-saju/">
+          <img src="/images/feature-details/famous-saju-hero-v2.webp" width="1200" height="675" alt="" loading="lazy" decoding="async">
+          <div class="cdh-reading__copy">
+            <h3 data-cd-trans="home.homeGuide.linkFamous">유명인 사주</h3>
+            <p data-cd-trans="home.reading.famousNote">공개 자료로 읽는 인물별 사주 이야기</p>
+            <span class="cdh-reading__cta"><span data-cd-trans="home.reading.open">이야기 읽기</span><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+          </div>
+        </a>
+        <a class="cdh-reading__story" href="/insights/">
+          <img src="/images/feature-details/fusion-fortune-hero-v2.webp" width="1200" height="675" alt="" loading="lazy" decoding="async">
+          <div class="cdh-reading__copy">
+            <h3 data-cd-trans="home.homeGuide.linkInsights">운세 인사이트</h3>
+            <p data-cd-trans="home.reading.insightsNote">사주·타로·명반을 이해하는 유익한 읽을거리</p>
+            <span class="cdh-reading__cta"><span data-cd-trans="home.reading.open">이야기 읽기</span><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+          </div>
+        </a>
+      </div>
+    </details>
     </section>
     <section class="cdh-records" aria-labelledby="cdhRecordsTitle">
       {{pressCoverage}}
