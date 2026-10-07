@@ -23,7 +23,7 @@
 
 ## 검증
 
-- `node --test __tests__/ui/yeongnyangi-consultation-quality.test.mjs`: 5/5. 실제 4개 계산기 문맥 및 숙요·타로 fixture, 공통 provider의 여섯 체계 × 세 persona × 네 등급 프롬프트 계약, 선택 근거·부재·무관 근거 배제 검사.
+- `node --test __tests__/ui/yeongnyangi-consultation-quality.test.mjs`: 6/6. 실제 4개 계산기 문맥 및 숙요·타로 fixture, 공통 provider의 여섯 체계 × 세 persona × 네 등급 프롬프트 계약, 선택 근거·부재·무관 근거 배제 검사.
 - `node --test __tests__/ui/yeongnyangi-question-followup-storage.test.mjs`: 7/7. 저장 persona와 공감 계약 전달, 동시 요청·중복·저장 응답 유실·환불 접근·횟수 보존.
 - mock 결과는 실제 생성 문장이 충분히 공감된다는 증거가 아니다. 실 LLM 문장 검수는 미실행이며 별도 승인 대상이다.
 
@@ -36,3 +36,5 @@
 - 신강: 이미 들인 노력과 앞으로 낼 비용을 구분하고 시간·돈·역할·보상·상대 조건·중단 기준을 비교한다. 주변의 통상적 조건은 참고 기준이며 무조건 추종하거나 손실을 전혀 감수하지 말라는 지시는 하지 않는다.
 - 최초·상세·후속 답변과 세 persona에 같은 규칙을 전달한다. 실제 질문·용신·월령·통근·조후와 맞는 조언만 사용하며 성격·과거 사건을 새 사실로 만들지 않는다.
 - 행동 테스트는 강약 양쪽, 생활 이력에 따른 반전, 종격 후보/확정/기각, 누락·잘못된 값, 상대 근거, 다른 체계, 세 placement를 검사한다. 실제 LLM 문장 품질은 별도 미검증이다.
+
+검증 스냅샷 199행에서 요청 프롬프트 해시만 갱신했다. ID·준비된 분석·검증 본문·manifest의 네 열이 모두 동일함을 비교한 뒤 갱신했다. persona 검사 8개와 공감·후속 검사 13개도 mock에서 통과했다.
