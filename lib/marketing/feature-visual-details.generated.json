@@ -5661,7 +5661,7 @@
       "title": "스톤헨지 룬",
       "href": "/index.html?action=openRuneOracle",
       "featureKey": "stonehenge-runes-single",
-      "featureKeyTo": "stonehenge-runes-yearly",
+      "featureKeyTo": "",
       "accessType": "unknown",
       "image": "/feature-details/assets/stonehenge-runes-960.webp",
       "aliases": [

@@ -1,9 +1,10 @@
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { parse } from "parse5";
 import { FEATURE_KEY_PRICE_TABLE, UNLOCK_PRODUCT_BY_FEATURE_KEY, PAID_FEATURE_KEY_ALIASES } from "../worker/lib/paid-feature-registry.js";
+const pricing = key => FEATURE_KEY_PRICE_TABLE[key] || UNLOCK_PRODUCT_BY_FEATURE_KEY[key]
+  || FEATURE_KEY_PRICE_TABLE[PAID_FEATURE_KEY_ALIASES[key]] || UNLOCK_PRODUCT_BY_FEATURE_KEY[PAID_FEATURE_KEY_ALIASES[key]];
 const price = key => {
-  const row = FEATURE_KEY_PRICE_TABLE[key] || UNLOCK_PRODUCT_BY_FEATURE_KEY[key]
-    || FEATURE_KEY_PRICE_TABLE[PAID_FEATURE_KEY_ALIASES[key]] || UNLOCK_PRODUCT_BY_FEATURE_KEY[PAID_FEATURE_KEY_ALIASES[key]];
+  const row = pricing(key);
   return row ? Number(row.amountKRW ?? row.cost * 100) : null;
 };
 const won = value => value.toLocaleString("ko-KR") + "원";
@@ -27,6 +28,13 @@ function visit(node, amount = null) {
   if (attrs["data-cd-price-key"]) amount = price(attrs["data-cd-price-key"]);
   else if (attrs["data-feature-key"]) amount = price(attrs["data-feature-key"]);
   else if (attrs["data-cd-service-id"]) amount = price(featureById.get(attrs["data-cd-service-id"]));
+  const row = pricing(attrs["data-feature-key"]);
+  if (row && node.sourceCodeLocation?.attrs) {
+    for (const [name,value] of [["data-coin-cost",row.cost],["data-tile-lock-cost",row.cost],["data-price-krw",amount]]) {
+      const loc = node.sourceCodeLocation.attrs[name];
+      if (loc && Number(attrs[name]) !== Number(value)) edits.push({start:loc.startOffset,end:loc.endOffset,text:`${name}="${value}"`});
+    }
+  }
   if (amount > 0 && /tarot-tile__coin-badge|cd-sig-card__price|cd-quick-card__price|cd-concern__q-price/.test(attrs.class || "") && node.sourceCodeLocation?.startTag) {
     const loc = node.sourceCodeLocation;
     const content = html.slice(loc.startTag.endOffset, loc.endTag.startOffset);
@@ -37,7 +45,9 @@ function visit(node, amount = null) {
         const attrName = attrs["data-key"] ? "data-key" : attrs["data-cd-trans"] ? "data-cd-trans" : null;
         const key = attrs[attrName];
         if (key) {
-          const newKey = /^home\.concernPick\.price\.w\d+$/.test(key) ? key.replace(/w\d+$/, `w${amount}`) : `${key}Price${amount}`;
+          const newKey = /^home\.concernPick\.price\.(?:w|from)\d+$/.test(key)
+            ? key.replace(/\d+$/, String(amount))
+            : /^home\.tiles\.price\d+(?:Price\d+)*$/.test(key) ? `home.tiles.price${amount}` : `${key}Price${amount}`;
           const a = loc.attrs[attrName];
           edits.push({ start: a.startOffset, end: a.endOffset, text: `${attrName}="${newKey}"` });
           dictionaryCopies.push({ key, newKey, amount, fallback: next });

@@ -599,7 +599,8 @@
       "sajuGuardianPricePrice5000": "Desbloqueo permanente KRW 5 000",
       "price5000Price3000": "Una vez 3,000 KRW",
       "price10000Price5000": "Una vez 5.000 KRW",
-      "unlock1000": "Desbloquear KRW 1,000"
+      "unlock1000": "Desbloquear KRW 1,000",
+      "price1000": "Una vez KRW 1,000"
     },
     "destinyFlowerStudio": {
       "closeAria": "Cerrar Atelier de la Flor del Destino",
@@ -1343,7 +1344,9 @@
         "w30000": "₩30,000",
         "w50000": "₩50,000",
         "w20000": "₩20,000",
-        "from3000": "From ₩3,000"
+        "from3000": "From ₩3,000",
+        "w1000": "₩1,000",
+        "from9000": "From ₩9,000"
       },
       "chip": {
         "love": "Their feelings · My next love",

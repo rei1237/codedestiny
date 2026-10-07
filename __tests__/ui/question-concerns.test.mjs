@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
 const require=createRequire(import.meta.url),Module=require('node:module');
 const compiled=await build({stdin:{contents:"export * from './lib/fortune/question-journey';export {default as QuestionJourney} from './app/components/QuestionJourney';",resolveDir:process.cwd(),loader:'tsx'},jsx:'automatic',bundle:true,platform:'node',format:'cjs',write:false,external:['react','react-dom'],plugins:[{name:'ui-mocks',setup(b){b.onLoad({filter:/\.css$/},()=>({contents:'export default new Proxy({},{get:(_,k)=>k})',loader:'js'}));b.onLoad({filter:/lib[\\/]analytics\.ts$/},()=>({contents:'export const trackEvent=(...args)=>globalThis.__events.push(args)',loader:'js'}));}}]});
@@ -24,6 +25,13 @@ test('question entry quotes the scope price and leaves confirmation to the user'
   assert.equal(entry.decision.confirmed,false);assert.ok(entry.plan.missing.length>0);
  }
  assert.equal(m.anythingConsultationHref,'/yeongnyangi/fortune/');
+});
+
+test('home question links quote the same recommended product as the question entry',()=>{
+ const html=readFileSync('index.html','utf8');
+ const links=[...html.matchAll(/<a\b[^>]*href="\/yeongnyangi\/\?question=([^"&#]+)[^"]*"[^>]*data-cd-price-key="([^"]+)"[^>]*>/g)];
+ assert.ok(links.length>0);
+ for(const [,id,key] of links)assert.equal(key,m.questionScopeEntry(m.getQuestionGuide(id)).product.cdFeatureKey,id);
 });
 test('search, empty state, categories, pagination and selected consultation work without logging search text',async()=>{
  const dom=new JSDOM('<div id="root"></div>',{url:'https://example.test/yeongnyangi/'});
