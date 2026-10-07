@@ -598,7 +598,8 @@
       "unlock5000": "解锁 5,000 韩元",
       "sajuGuardianPricePrice5000": "永久解锁 5,000 韩元",
       "price5000Price3000": "一次 3,000 韩元",
-      "price10000Price5000": "一次 5,000 韩元"
+      "price10000Price5000": "一次 5,000 韩元",
+      "unlock1000": "解锁 1,000 韩元"
     },
     "destinyFlowerStudio": {
       "closeAria": "关闭命运之花工坊",
@@ -1853,6 +1854,28 @@
       "neoNote": "以下摘录来自Neo本人提供的咨询和课程，与AI咨询属于不同服务。个人经历不保证相同结果。",
       "neoAbout": "了解Neo与服务",
       "neoMore": "更多咨询评价"
+    },
+    "simple": {
+      "lead": "说说你的烦恼，先了解解读内容和价格。",
+      "start": "咨询我的烦恼",
+      "free": "查看今日免费运势",
+      "startLabel": "其他开始方式",
+      "love": "爱情与关系",
+      "work": "工作与金钱",
+      "self": "认识自己",
+      "future": "未来的走向",
+      "title": "从你的问题开始解读",
+      "brand": "在Ggulggul Fortune认识灵喵、Yeoni与Neo。与灵喵探讨问题，也可探索Yeoni茶馆和Neo策略室。",
+      "stepQuestion": "说说当下的烦恼",
+      "stepPrice": "确认内容与价格",
+      "stepResult": "阅读解答、依据与行动建议",
+      "example": "付款前阅读示例",
+      "explore": "浏览所有运势与咨询",
+      "exploreNote": "四柱、塔罗、角色咨询、报告与故事",
+      "passTitle": "经常使用？了解通行证",
+      "passNote": "选择前请确认适用范围和有效期。",
+      "passLink": "了解通行证",
+      "passHistory": "已购买的通行证保留购买时的条件。"
     }
   },
   "terms": {

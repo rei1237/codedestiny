@@ -13,9 +13,17 @@ test('102 unique concerns keep legacy identifiers, valid catalog contracts and s
  // 2026-10-02 질문 우선: 대표 질문 8개는 꿀꿀 홈 질문 타일과 같은 카테고리·순서다.
  assert.deepEqual(m.questionGuides.map(q=>q.group),['사랑','재회','결혼','돈','일','미래','나 자신','인간관계']);assert.equal(m.concernGroups.length,10);
  for(const id of ['mind','reconnect','partner','money','career','ahead','choice','distance','money-ziwei','career-astrology','career-vedic'])assert.ok(m.getQuestionGuide(id));
- for(const q of m.concernGuides){assert.ok(m.questionOffer(q).chapters.length);assert.equal(m.getQuestionGuide(q.id),q);const params=new URL(m.questionCheckoutHref(q),'https://example.test').searchParams;assert.equal(params.get('questionId'),q.id);assert.equal(params.get('product'),q.productId);}
+ for(const q of m.concernGuides){assert.ok(m.questionOffer(q).chapters.length);assert.equal(m.getQuestionGuide(q.id),q);const params=new URL(m.questionCheckoutHref(q),'https://example.test').searchParams;assert.equal(params.get('questionId'),q.id);assert.equal(params.get('flow'),'question');assert.equal(params.get('domain'),m.questionOffer(q).product.domain);assert.equal(params.has('consultationKind'),false);}
  assert.equal(m.filterConcerns('').length,102);assert.equal(m.filterConcerns('없는검색어xyz').length,0);assert.ok(m.filterConcerns('이직').length>0);assert.equal(m.concernGroups.reduce((n,g)=>n+m.filterConcerns('',g).length,0),102);
  for(const q of m.concernGuides.slice(m.questionGuides.length))assert.equal(m.questionOffer(q).kind.question,true);
+});
+test('question entry quotes the scope price and leaves confirmation to the user',()=>{
+ for(const [id,fish,price] of [['mind','mackerel',3000],['career','salmon',9000],['money','salmon',9000],['distance','flounder',15000]]){
+  const entry=m.questionScopeEntry(m.getQuestionGuide(id));
+  assert.equal(entry.product.fishId,fish);assert.equal(entry.product.priceKRW,price);
+  assert.equal(entry.decision.confirmed,false);assert.ok(entry.plan.missing.length>0);
+ }
+ assert.equal(m.anythingConsultationHref,'/yeongnyangi/fortune/');
 });
 test('search, empty state, categories, pagination and selected consultation work without logging search text',async()=>{
  const dom=new JSDOM('<div id="root"></div>',{url:'https://example.test/yeongnyangi/'});

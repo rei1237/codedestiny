@@ -598,7 +598,8 @@
       "unlock5000": "Unlock KRW 5,000",
       "sajuGuardianPricePrice5000": "Permanent unlock KRW 5,000",
       "price5000Price3000": "One time KRW 3,000",
-      "price10000Price5000": "One time KRW 5,000"
+      "price10000Price5000": "One time KRW 5,000",
+      "unlock1000": "Unlock KRW 1,000"
     },
     "destinyFlowerStudio": {
       "closeAria": "Close Destiny Flower Atelier",
@@ -1853,6 +1854,28 @@
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
       "neoMore": "More consultation reviews"
+    },
+    "simple": {
+      "lead": "Share your concern. See what your reading covers and its price before you begin.",
+      "start": "Ask about my concern",
+      "free": "Read today’s free fortune",
+      "startLabel": "Other ways to begin",
+      "love": "Love & relationships",
+      "work": "Work & money",
+      "self": "Understanding myself",
+      "future": "Looking ahead",
+      "title": "A reading that starts with your question",
+      "brand": "Meet Yeongnyangi, Yeoni and Neo within Ggulggul Fortune. Explore your question with Yeongnyangi, or visit Yeoni’s Tea House and Neo’s Strategy Room.",
+      "stepQuestion": "Tell us what’s on your mind",
+      "stepPrice": "Check the scope and price",
+      "stepResult": "Read the answer, reasoning and next steps",
+      "example": "Read a sample before paying",
+      "explore": "Explore all fortunes and readings",
+      "exploreNote": "Saju, tarot, character consultations, reports and stories",
+      "passTitle": "For regular visits, explore passes",
+      "passNote": "Check each pass’s coverage and validity before choosing.",
+      "passLink": "Explore passes",
+      "passHistory": "Previously purchased passes retain their original terms."
     }
   },
   "terms": {

@@ -598,7 +598,8 @@
       "unlock5000": "Débloquez 5 000 KRW",
       "sajuGuardianPricePrice5000": "Déverrouillage permanent 5 000 KRW",
       "price5000Price3000": "Une fois 3 000 KRW",
-      "price10000Price5000": "Une fois 5 000 KRW"
+      "price10000Price5000": "Une fois 5 000 KRW",
+      "unlock1000": "Débloquez 1 000 KRW"
     },
     "destinyFlowerStudio": {
       "closeAria": "Fermer l'Atelier de la Fleur du Destin",
@@ -1853,6 +1854,28 @@
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
       "neoMore": "More consultation reviews"
+    },
+    "simple": {
+      "lead": "Partagez votre question. Découvrez le contenu et le prix avant de commencer.",
+      "start": "Poser ma question",
+      "free": "Lire la lecture gratuite du jour",
+      "startLabel": "Autres façons de commencer",
+      "love": "Amour et relations",
+      "work": "Travail et argent",
+      "self": "Mieux me comprendre",
+      "future": "Les prochaines étapes",
+      "title": "Une lecture qui part de votre question",
+      "brand": "Retrouvez Yeongnyangi, Yeoni et Neo dans Ggulggul Fortune. Explorez votre question avec Yeongnyangi, ou visitez le salon de thé de Yeoni et la salle de stratégie de Neo.",
+      "stepQuestion": "Partagez votre question",
+      "stepPrice": "Vérifiez le contenu et le prix",
+      "stepResult": "Lisez la réponse, ses fondements et les prochaines actions",
+      "example": "Lire un exemple avant de payer",
+      "explore": "Explorer toutes les lectures et consultations",
+      "exploreNote": "Saju, tarot, consultations avec personnages, rapports et récits",
+      "passTitle": "Pour les visites régulières, découvrez les passes",
+      "passNote": "Vérifiez les services inclus et la durée avant de choisir.",
+      "passLink": "Voir les passes",
+      "passHistory": "Les passes déjà achetés conservent leurs conditions initiales."
     }
   },
   "terms": {

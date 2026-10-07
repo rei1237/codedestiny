@@ -598,7 +598,8 @@
       "unlock5000": "Buka kunci KRW 5,000",
       "sajuGuardianPricePrice5000": "Buka kunci kekal KRW 5,000",
       "price5000Price3000": "Sekali KRW 3,000",
-      "price10000Price5000": "Sekali KRW 5,000"
+      "price10000Price5000": "Sekali KRW 5,000",
+      "unlock1000": "Buka kunci KRW 1,000"
     },
     "destinyFlowerStudio": {
       "closeAria": "Tutup Atelier Bunga Takdir",
@@ -1853,6 +1854,28 @@
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
       "neoMore": "More consultation reviews"
+    },
+    "simple": {
+      "lead": "Kongsi kebimbangan anda. Lihat kandungan dan harga sebelum bermula.",
+      "start": "Tanya tentang kebimbangan saya",
+      "free": "Lihat ramalan percuma hari ini",
+      "startLabel": "Cara lain untuk bermula",
+      "love": "Cinta dan hubungan",
+      "work": "Kerja dan wang",
+      "self": "Memahami diri",
+      "future": "Melihat ke hadapan",
+      "title": "Bacaan bermula dengan soalan anda",
+      "brand": "Temui Yeongnyangi, Yeoni dan Neo dalam Ggulggul Fortune. Terokai soalan bersama Yeongnyangi, atau lawati Rumah Teh Yeoni dan Bilik Strategi Neo.",
+      "stepQuestion": "Kongsi kebimbangan anda",
+      "stepPrice": "Semak kandungan dan harga",
+      "stepResult": "Baca jawapan, asas dan langkah seterusnya",
+      "example": "Baca contoh sebelum membayar",
+      "explore": "Terokai semua ramalan dan bacaan",
+      "exploreNote": "Saju, tarot, konsultasi watak, laporan dan cerita",
+      "passTitle": "Untuk penggunaan kerap, lihat pas",
+      "passNote": "Semak skop dan tempoh sah sebelum memilih.",
+      "passLink": "Lihat pas",
+      "passHistory": "Pas yang telah dibeli mengekalkan syarat asalnya."
     }
   },
   "terms": {

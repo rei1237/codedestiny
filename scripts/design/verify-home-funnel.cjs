@@ -21,7 +21,7 @@ function contrast(foreground, background) {
   return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
 }
 
-// 필수 6섹션: 접기 밖에서 보이고, 각 진입점이 보이며 눌릴 자리를 가진다.
+// 첫 방문은 질문 상담과 무료 운세가 우선이며, 전체 카탈로그는 펼쳐서 탐색한다.
 async function assertEssentials(page, label) {
   const essentials = [
     ['search', '#cdhServices #fortuneGatewaySearch'],
@@ -66,7 +66,7 @@ async function assertEssentials(page, label) {
       await page.goto(origin + '/static/index.html', { waitUntil: 'domcontentloaded' });
       await page.locator('#cdhConcernSlot #cdConcernPick').waitFor({ state: 'attached', timeout: 10000 });
       await page.waitForTimeout(250);
-      // 필수 6섹션은 접기 밖에서 바로 보이고, 각자 쓸 수 있는 진입점이 있다(2026-10-01 홈 개편).
+      // 2026-10-07: 처음엔 고민 상담만 고르고 상세 목록은 요청할 때 연다.
       await assertEssentials(page, `${width}px first visit`);
       assert.equal(await page.locator('#fortuneGatewaySearch').getAttribute('placeholder'), '연애, 재물, 이직… 궁금한 운세를 찾아보세요', 'search placeholder');
       assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'no search results before input');
@@ -102,6 +102,7 @@ async function assertEssentials(page, label) {
       await page.waitForFunction(() => document.querySelector('#cdhMore > summary').getAttribute('aria-expanded') === 'true', null, { timeout: 1000 });
       assert.ok(await page.locator('#cdhMore .cdh-more__off').isVisible(), 'open label offers to close the garden');
       assert.equal(await page.locator('#cdhMore .cdh-more__on').isVisible(), false, 'only one garden label shows');
+      for(const selector of ['#cdQuickServices','#cdConcernPick','#cdSignatureConsult','.cdh-room-link'])assert.ok(await page.locator(selector).first().isVisible(), 'exploration restores '+selector);
       assert.ok(await page.locator('#cdhDiarySlot #cdDiaryPlannerEntry').isVisible(), 'diary restored');
       assert.ok(await page.locator('#cdhExpertsSlot #cdAiFeatures').isVisible(), 'experts restored');
       assert.equal(await page.locator('#cdHomeExpandToggle').count(), 0, 'the garden is the only home fold');

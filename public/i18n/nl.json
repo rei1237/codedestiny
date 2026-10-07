@@ -598,7 +598,8 @@
       "unlock5000": "Ontgrendel 5.000 KRW",
       "sajuGuardianPricePrice5000": "Permanente ontgrendeling KRW 5.000",
       "price5000Price3000": "Eenmalig KRW 3.000",
-      "price10000Price5000": "Eenmalig KRW 5.000"
+      "price10000Price5000": "Eenmalig KRW 5.000",
+      "unlock1000": "Ontgrendel 1.000 KRW"
     },
     "destinyFlowerStudio": {
       "closeAria": "Atelier van de Lotsbloem sluiten",
@@ -1853,6 +1854,28 @@
       "neoNote": "Excerpts from Neo’s personal consultations and classes, separate from the AI reading service. Individual experiences do not guarantee similar results.",
       "neoAbout": "About Neo and the service",
       "neoMore": "More consultation reviews"
+    },
+    "simple": {
+      "lead": "Vertel wat je bezighoudt. Bekijk vooraf de inhoud en de prijs.",
+      "start": "Mijn vraag stellen",
+      "free": "Gratis daglezing bekijken",
+      "startLabel": "Andere manieren om te beginnen",
+      "love": "Liefde en relaties",
+      "work": "Werk en geld",
+      "self": "Mezelf begrijpen",
+      "future": "Vooruitkijken",
+      "title": "Een lezing die begint bij jouw vraag",
+      "brand": "Ontmoet Yeongnyangi, Yeoni en Neo bij Ggulggul Fortune. Verken je vraag met Yeongnyangi of bezoek Yeoni’s theehuis en Neo’s strategiekamer.",
+      "stepQuestion": "Vertel wat je bezighoudt",
+      "stepPrice": "Bekijk inhoud en prijs",
+      "stepResult": "Lees het antwoord, de uitleg en de volgende stappen",
+      "example": "Lees een voorbeeld vóór betaling",
+      "explore": "Alle lezingen en consulten bekijken",
+      "exploreNote": "Saju, tarot, personageconsulten, rapporten en verhalen",
+      "passTitle": "Voor regelmatige bezoeken: bekijk passen",
+      "passNote": "Controleer het bereik en de geldigheid voordat je kiest.",
+      "passLink": "Passen bekijken",
+      "passHistory": "Eerder gekochte passen behouden hun oorspronkelijke voorwaarden."
     }
   },
   "terms": {

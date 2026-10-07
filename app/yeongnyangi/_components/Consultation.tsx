@@ -1,7 +1,7 @@
 "use client";
-import {getQuestionGuide} from "@/lib/fortune/question-journey";
+import {getQuestionGuide,questionScopeEntry} from "@/lib/fortune/question-journey";
 import QuestionScope from './QuestionScope';
-import {QUESTION_POLICY_VERSION,questionDecision,questionManifest,recommendQuestion,FOLLOWUP_LIMITS,type QuestionDecision,type QuestionFish} from '@/worker/yeongnyangi/fortune/ask/question-policy';
+import {QUESTION_POLICY_VERSION,questionTopics,questionDecision,questionManifest,recommendQuestion,FOLLOWUP_LIMITS,type QuestionDecision,type QuestionFish} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import RelationshipJourney from './RelationshipJourney';
 import {additionalKindDescription} from '../_lib/consultation-kind-copy';
 import {relationshipCopyFor} from '../_lib/relationship-locales';
@@ -162,6 +162,13 @@ export default function Consultation(){
   setKindId(requestedKind.id);
   if(requestedKind.koOnly)setLocale('ko');
   const entryQuestion=getQuestionGuide(params.get("questionId"));
+  if(params.get('flow')==='question'&&entryQuestion){
+   const entry=questionScopeEntry(entryQuestion);
+   setQuestion(entryQuestion.question);setScopeDraft(entry.decision);
+  }else if(!params.has('consultationKind')&&params.get('flow')!=='legacy'){
+   const category=questionTopics.find(t=>t.id===params.get('category'))?.id;
+   if(category)setScopeDraft({version:QUESTION_POLICY_VERSION,category,target:category==='compatibility'?'pair':'self',horizon:'current',situation:'',options:'',period:'',constraints:'',confirmed:false});
+  }
   if(entryQuestion&&entryQuestion.productId===selected.id&&entryQuestion.kind===requestedKind.id&&requestedKind.question)setQuestion(entryQuestion.question);
   if(!supportsKind(selected,requestedKind))setProductId(products.find(p=>consultationDomain(p)===nextDomain&&supportsKind(p,requestedKind))!.id);
   const requestedTopic=params.get('topic');

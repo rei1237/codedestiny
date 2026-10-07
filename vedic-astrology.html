@@ -7657,7 +7657,7 @@ function runVedicCompatResume(descriptor){
   }).then(function(ok){ return ok!==false; }).catch(function(){ return false; });
 }
 
-/* ─── 베다 기본 해석 유료 잠금 (vedic_basic_reading · 30코인 = 3,000원 · 영구 해금) ──────
+/* ─── 베다 기본 해석 유료 잠금 (vedic_basic_reading · 1,000원 · 영구 해금) ──────
    무료: 출생 차트·행성 배치표·라그나/나크샤트라/파다/현재 대운 태그·종합 탭 요약 카드.
    잠금: 종합 탭의 해석 카드 묶음, 성향·관계·재물일·다샤·에너지·심화 6탭 본문, 상세 8종.
    🔴 CSS blur 로만 가리지 않는다 — 잠긴 동안 본문 HTML 을 문서에 아예 넣지 않는다.
@@ -7667,8 +7667,8 @@ function runVedicCompatResume(descriptor){
    _cdGateBody() 를 쓸 수 없으므로 같은 계약을 페이지 안에 복제한다.
    ────────────────────────────────────────────────────────────────────────────────────── */
 var VEDIC_BASIC_FEATURE_KEY='vedic_basic_reading';
-var VEDIC_BASIC_COST=30;
-var VEDIC_BASIC_AMOUNT_KRW=3000;
+var VEDIC_BASIC_COST=10;
+var VEDIC_BASIC_AMOUNT_KRW=1000;
 var VEDIC_BASIC_RESUME_KIND='vedic-basic-reading';
 var _vedicBasicUnlocked=false;
 var _vedicBasicGateBusy=false;
@@ -7702,7 +7702,7 @@ function _vedicBasicLockCard(sectionId){
     +    '<div class="vedic-lock-title">전체 해석은 한 번만 열면 계속 볼 수 있습니다</div>'
     +    '<div class="vedic-lock-desc">성향·관계·재물·다샤·에너지·심화 6개 탭의 해석 본문과 상세 8종이 함께 열립니다. 회당 결제가 아니라 이 기능의 영구 해금입니다.</div>'
     +    '<div class="vedic-lock-free">출생 차트·행성 배치표·라그나·낙샤트라·현재 대운은 계속 무료입니다.</div>'
-    +    '<button type="button" class="btn-primary vedic-lock-cta" onclick="openVedicBasicUnlock()">🔓 전체 해석 열기 · 3,000원</button>'
+    +    '<button type="button" class="btn-primary vedic-lock-cta" onclick="openVedicBasicUnlock()">🔓 전체 해석 열기 · '+VEDIC_BASIC_AMOUNT_KRW.toLocaleString('ko-KR')+'원</button>'
     +    '<div class="vedic-lock-note">달빛 이용권을 가지고 있으면 추가 결제 없이 열립니다.</div>'
     +  '</div>'
     +'</div>';
