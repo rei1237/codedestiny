@@ -81,8 +81,8 @@ function fixture(accessType = 'pass') {
     fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; } };
 }
 
-test('브라우저 종료 뒤 서버가 저장된 상담만 이어 완성하고 재열람은 재생성·중복 차감하지 않는다', async () => {
-  const f = fixture('pass');
+for (const accessType of ['pass', 'subscription', 'paid']) test(`${accessType}: 브라우저 종료 뒤 서버가 저장된 상담만 이어 완성하고 재열람은 재생성·중복 차감하지 않는다`, async () => {
+  const f = fixture(accessType);
   await f.post();
   load(f.ctx, 'worker/routes/love-secret-ai.js', ['resumeConsultationOnServer']);
   for (let wave = 0; wave < 20 && f.doc.status !== 'completed'; wave++) {
