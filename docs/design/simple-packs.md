@@ -53,7 +53,8 @@ status: in-progress
 - 화면 증거: `C:/Users/user/.codex/visualizations/2026/10/07/01a116b6-9460-7d41-9f69-ac843acbbbcf/simple-packs/`의 `home-*`, `checkout-*`, `codex-*`, `benefits-owned-390.png`, `benefits-error-390.png`, `measurements.json`. 전체 페이지 캡처의 지연 이미지/애니메이션은 실제 스크롤 후 `home-featured-middle-1280.png`, `home-featured-lower-1280.png`로 재확인했다. 최종 화면 리뷰는 ship이다.
 - `npm run check:fast -- --plan`과 `npm run check:fast`를 실행했다. 결제 가드 88개 중 87개 및 Jest 354 suites / 5,364 tests가 통과했다. Node 2,991개 중 4개는 변경 전 이미지·배치·가격·번역 사전 기준 때문에 실패해 정본/기대값을 수정했으며 해당 4파일의 29개 검사는 재실행 통과했다.
 - 통과 검사는 재사용하고 계획의 남은 `lint`, `typecheck`, `verify:sitemap-drift`, `verify:env-parity`, `verify:phone-encryption`, `verify:signup-phone-required`, `verify:checkout-pass-card`, `verify:pass-snapshot`, `verify:staging-llm-mock`, `verify:analytics-events`, `verify:no-nested-retry`, `verify:worker-no-undef`, `verify:mongo-reset-callers`, `verify:cron-mongo-op-coverage`, `verify:admin-route-error-context`, `build:worker`, `verify:entry-encoding -- --strict-core`를 실행해 통과했다. sitemap 원장과 payment-freeze manifest를 함께 갱신했다. 전체 CI 재검증은 main push 후 확인한다.
-- 첫 push `3bd2d5a44`의 Paid Flow Gates·Gift transaction integrity·AI Locale은 통과했다. Browser Shadow가 단건 직행 경로의 환불 동의 누락을 발견해 `DIRECT_KRW` 직행을 되돌리고 기존 공통 동의창에 단건만 노출하도록 수정했다. 동의값을 임의로 넣지 않으며 checkout 회귀 8개·auth recovery 검사를 통과했다. 수정 커밋의 브라우저 CI를 다시 확인한다.
+- 첫 push `3bd2d5a44`의 Paid Flow Gates·Gift transaction integrity·AI Locale은 통과했다. Browser Shadow가 단건 직행 경로의 환불 동의 누락을 발견해 `DIRECT_KRW` 직행을 되돌리고 기존 공통 동의창에 단건만 노출하도록 수정했다. 동의값을 임의로 넣지 않으며 checkout 회귀 8개·auth recovery 검사를 통과했다. 수정 커밋의 브라우저 CI를 다시 확인한다. 카탈로그 GET은 mock에 서버의 판매 가능 목록을 연결했다.
+- 첫 전체 CI의 build/critical/fast는 통과했고, 홈 레지스트리 가드가 LOVE CODE의 탐색·질문 카드에 남은 5,000원 표기 두 곳을 발견했다. 현재 1,000원으로 맞추고 `verify:home-service-registry`(57개 상품/37개 질문 가격)·셸 사전 검사 4개·payment-freeze 검사를 통과했다.
 
 ## 진행
 
