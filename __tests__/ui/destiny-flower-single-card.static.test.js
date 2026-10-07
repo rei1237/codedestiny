@@ -33,57 +33,11 @@ function lockTileKeys() {
   return keys;
 }
 
-/** `data-tile-lock-key="flower-fc"` 를 품은 여는 태그 하나를 통째로 돌려준다. */
-function flowerTileTag() {
-  const at = shell.indexOf('data-tile-lock-key="flower-fc"');
-  assert.ok(at > 0, "셸에서 flower-fc 타일을 찾지 못했다");
-  // 배지(`tarot-tile__coin-badge`)는 여는 태그가 아니라 자식이라 타일 전체를 잘라 온다.
-  const open = shell.lastIndexOf("<button", at);
-  const close = shell.indexOf("</button>", at);
-  assert.ok(open >= 0 && close > open, "flower-fc 타일의 경계를 찾지 못했다");
-  return shell.slice(open, close + 9);
-}
-
-test("홈에 꽃 타일은 하나뿐이다", () => {
-  const flower = lockTileKeys().filter((key) => key === "flower-fc");
-  assert.equal(
-    flower.length,
-    1,
-    `flower-fc 타일이 ${flower.length}개다. 같은 상품을 여러 카드로 쪼개면 사용자에게 ` +
-      `"같은 가격표가 여러 개"로 보인다 — 카드는 하나여야 한다.`,
-  );
-});
-
-test("꽃 타일 가격이 레지스트리와 같다", () => {
-  const registry = read("worker/lib/paid-feature-registry.js");
-  // 🔴 RAW_PIG_COIN_UNLOCK_PRODUCTS 만 본다. LEGACY_UNLOCK_PRODUCTS_65DE451 은 과거 스냅샷이라
-  //    값이 달라도 정상이고, 그쪽은 별도 테스트가 고정한다.
-  const rawBlock = registry.slice(
-    registry.indexOf("RAW_PIG_COIN_UNLOCK_PRODUCTS"),
-    registry.indexOf("LEGACY_UNLOCK_PRODUCTS_65DE451"),
-  );
-  const registryCost = /"unlock\.flower_fc":\s*\{\s*featureKey:\s*"flower-fc",\s*cost:\s*(\d+)/.exec(rawBlock);
-  assert.ok(registryCost, "레지스트리에서 unlock.flower_fc 가격을 읽지 못했다");
-
-  const tile = flowerTileTag();
-  const tileCost = /data-tile-lock-cost="(\d+)"/.exec(tile);
-  assert.ok(tileCost, "셸 타일에서 data-tile-lock-cost 를 읽지 못했다");
-
-  assert.equal(
-    tileCost[1],
-    registryCost[1],
-    `셸 타일(${tileCost[1]}코인)과 워커 레지스트리(${registryCost[1]}코인)의 가격이 다르다. ` +
-      `타일 값이 결제 게이트를 여닫고 레지스트리 값이 실제 청구액이다.`,
-  );
-
-  const krw = Number(registryCost[1]) * 100;
-  const badge = /data-key="home\.tiles\.(unlock\d+)"/.exec(tile);
-  assert.ok(badge, "타일 배지의 i18n 키를 읽지 못했다");
-  assert.equal(
-    badge[1],
-    `unlock${krw}`,
-    `배지 키(${badge[1]})가 실제 가격(${krw}원)과 다르다 — 사용자에게 틀린 값이 보인다`,
-  );
+test("꽃은 하나의 무료 서비스로 소개하고 구매 타일을 남기지 않는다", () => {
+ assert.equal(lockTileKeys().filter(key=>key==='flower-fc').length,0);
+ assert.match(shell,/id="cdhFlowerTitle"/);
+ assert.match(shell,/로그인 후 무료로 이용할 수 있어요/);
+ assert.match(read('worker/lib/billing-feature-registry.js'),/FEATURE_NOW_FREE/);
 });
 
 test("랜딩은 /flower 하나이고 옛 경로는 리다이렉트다", () => {
@@ -99,7 +53,7 @@ test("랜딩은 /flower 하나이고 옛 경로는 리다이렉트다", () => {
   }
   const paidBlock = landing.slice(landing.indexOf("const PAID_SLUG_META"), landing.indexOf("\n};", landing.indexOf("const PAID_SLUG_META")));
   const flowerKeys = [...paidBlock.matchAll(/"(\/flower[^"]*)":/g)].map((m) => m[1]);
-  assert.deepEqual(flowerKeys, ["/flower"], `PAID_SLUG_META 의 꽃 경로가 하나가 아니다: ${flowerKeys.join(", ")}`);
+  assert.deepEqual(flowerKeys, [], `PAID_SLUG_META 의 꽃 경로가 하나가 아니다: ${flowerKeys.join(", ")}`);
 });
 
 test("네 체계는 해금 키 하나로 함께 열린다 (순차 잠금 없음)", () => {

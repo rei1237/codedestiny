@@ -33,6 +33,7 @@
  * MonthlyCreditLedger 하나다. 구 데이터는 그대로 보존되며 아무것도 지우지 않는다.
  */
 import { calculatePaidFeatureMembershipCreditCost, FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
+import { assertFeatureEnabled } from "../lib/billing-feature-registry.js";
 import { isMoonstoneSpendRefunded } from "../lib/moonstone-spend-proof.js";
 import { profileMutationMetadata } from "../lib/profile-mutation-context.js";
 import { MonthlyCreditLedger, User, Payment } from "../lib/models.js";
@@ -151,6 +152,8 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
   const consumeLots = deps.consumeLots || ((input) => consumeMonthlyCreditLotsWithDb(db, input));
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
+  const enabled = assertFeatureEnabled(product);
+  if (!enabled.ok) throw paymentError(enabled.code, enabled.message);
   const sourceId = String(purchaseId || "").trim();
   if (!sourceId) throw paymentError("IDEMPOTENCY_KEY_REQUIRED", "결제 요청 식별자가 필요합니다.");
   const cost = Math.max(0, Math.floor(Number(product?.monthlyCost || 0)));

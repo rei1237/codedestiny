@@ -26,6 +26,7 @@ import {
 import { usePassSaleAvailability } from "@/app/hooks/usePassSaleAvailability";
 import { PASS_MONTHLY_WON } from "@/lib/payment/pass-pricing";
 import { MoonShopMain, MoonShopSkeleton, MoonlightShopHero, ShopPigImage } from "./MoonShopFrame";
+import {readConsultationContext} from '../components/service-packs/consultation-context';
 import {ServicePackShop} from "../components/service-packs/ServicePacks";
 import {OwnedPassesSummary, type PackWalletView} from "../components/service-packs/OwnedPassesSummary";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
@@ -2663,6 +2664,9 @@ function MoonlightPaymentNotice() {
 ══════════════════════════════════════════════════════════════════ */
 
 export default function PointsPage() {
+  const [consultationQuery]=useState(()=>new URLSearchParams(typeof window==='undefined'?'':window.location.search));
+  const consultationContext=useMemo(()=>readConsultationContext(consultationQuery),[consultationQuery]);
+  const consultationShop=consultationQuery.get('context')==='yeongnyangi';
   const router = useRouter();
   const authState = useAuthStore();
   const userAccess = useUserAccess();
@@ -4676,7 +4680,8 @@ export default function PointsPage() {
 
       {/* ── 페이지 콘텐츠 ────────────────────────────────────────── */}
       <div className="relative mx-auto w-full max-w-6xl space-y-5">
-        <MoonlightShopHero />
+        {!consultationShop&&<MoonlightShopHero />}
+        <details className="moon-card rounded-[24px] p-5"><summary className="min-h-11 cursor-pointer font-bold">{lang==='ko'?'보유 혜택 확인':'Your benefits'}</summary>
         <OwnedPassesSummary
           locale={lang}
           flower={{
@@ -4721,7 +4726,9 @@ export default function PointsPage() {
           hasError={pointStateHasError}
           onRetry={retryPointState}
         />
-        <ServicePackShop locale={lang} overseasCharge={overseasCharge} onWalletChange={setOwnedPacks} />
+        </details>
+        <ServicePackShop locale={lang} overseasCharge={overseasCharge} onWalletChange={setOwnedPacks} context={consultationContext} contextual={consultationShop}/>
+        {!consultationShop&&<section aria-label={lang==='ko'?'꿀꿀운세 월간 이용권':'Ggulggul monthly passes'}><h2 className="mb-4 text-2xl font-black">{lang==='ko'?'꿀꿀운세 월간 이용권':'Ggulggul monthly passes'}</h2>
         <MoonlightShopPlans
           subscription={subscription}
           onSubscribe={openSelfPurchase}
@@ -4732,6 +4739,7 @@ export default function PointsPage() {
           copy={copy}
           formatLocale={formatLocale}
         />
+        </section>}
         <MoonlightPaymentNotice />
         <MoonlightOrderHistory
           payments={paymentHistory}

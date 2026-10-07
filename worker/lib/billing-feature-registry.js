@@ -390,6 +390,10 @@ export function getBillingFeaturePricing(input = {}) {
 }
 
 export function assertFeatureEnabled(pricing) {
+  // Preserve historical pricing for receipts; new charges are no longer offered.
+  if (normalizePaidFeatureKey(pricing?.featureKey) === "flower-fc") {
+    return { ok: false, code: "FEATURE_NOW_FREE", message: "운명의 꽃은 이제 무료로 이용할 수 있어요. 메인 화면에서 꽃을 열어 주세요." };
+  }
   if (!pricing) {
     return {
       ok: false,

@@ -294,7 +294,6 @@ const PAID_SLUG_META: Record<string, { featureKey: string }> = {
   // (20,000원 영구 해금)를 물어서, 랜딩이 실제의 1/4 가격을 광고하고 있었다.
   // `flower-studio-per-use` 는 이 4줄 말고 청구·검증하는 곳이 전혀 없다(전수 grep).
   // 가드: __tests__/ui/action-entry-dispatch.static.test.js
-  "/flower":           { featureKey: "flower-fc" },
   "/dream/psycho":     { featureKey: "dream-psycho-analysis" },
   "/tarot/love": { featureKey: "tarot-love-relationship" },
   "/tarot/reunion": { featureKey: "tarot-reunion-reading" },

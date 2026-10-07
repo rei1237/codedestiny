@@ -686,7 +686,8 @@
       && monthlyBalance >= requiredMonthlyCredits;
 
     var recommended = "";
-    if (allowPass && opts.hasActivePassTier !== true) recommended = "pass";
+    if (allowDirect && Number(opts.amountKRW) === 1000) recommended = "direct";
+    else if (allowPass && opts.hasActivePassTier !== true) recommended = "pass";
     else if (allowMonthly && monthlyCovers) recommended = "monthly";
     else if (allowDirect) recommended = "direct";
     else if (allowMonthly) recommended = "monthly";

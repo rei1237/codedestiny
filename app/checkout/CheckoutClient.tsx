@@ -22,6 +22,10 @@
  */
 
 import {ServicePackCheckout} from "@/app/components/service-packs/ServicePacks";
+import {readPackCatalog,type ServicePackPlan} from '@/app/components/service-packs/service-pack-client';
+import {consultationShopPath,readConsultationContext} from '@/app/components/service-packs/consultation-context';
+import {FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy';
+import type {FishId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
 import { isMobileAppRuntime, loadPaidServiceRuntimeGate, runPaidAccessGate } from "@/app/_lib/billing-client";
@@ -127,6 +131,8 @@ export default function CheckoutClient() {
   const auth = useAuthStore();
   const paymentLock=useRef(false),packLock=useRef(false);
   const [packBusy,setPackBusy]=useState(false);
+  const [packOffer,setPackOffer]=useState<{plan:ServicePackPlan|null;error:boolean;loading:boolean}>({plan:null,error:false,loading:true});
+  const [purchase,setPurchase]=useState<'single'|'pack'>('single');
   const [available,setAvailable]=useState(false);
   const [checked,setChecked]=useState(false);
   const [reading,setReading]=useState<FortuneRecord|null>(null);
@@ -181,6 +187,14 @@ export default function CheckoutClient() {
   }, [params.featureKey]);
 
   const selectedStones = Number(moonstoneInput);
+  useEffect(()=>{
+    let active=true;
+    readPackCatalog().then(data=>{if(active)setPackOffer({plan:data.plans.find(plan=>plan.totalUses===5&&plan.eligibleFeatureKeys.includes(params.featureKey))||null,error:false,loading:false});})
+      .catch(()=>{if(active)setPackOffer({plan:null,error:true,loading:false});});
+    return()=>{active=false;};
+  },[params.featureKey]);
+  const shopContext=readConsultationContext(new URLSearchParams({context:'yeongnyangi',featureKey:params.featureKey,requestId:params.requestId,lang}));
+  const scopeName=reading?.consultation?.questionDecision&&product&&({mackerel:'일상 질문 상담',salmon:'중요한 선택 상담',flounder:'두 사람의 관계 상담',tuna:'장기 흐름 상담'} as Record<string,string>)[product.fishId];
   const discountedAmount = pricing ? pricing.amountKRW - selectedStones * (pricing.amountKRW / pricing.membershipCreditCost) : 0;
   const validDiscount = Number.isSafeInteger(selectedStones) && selectedStones >= 0 && Number.isSafeInteger(discountedAmount) && discountedAmount >= 1000;
 
@@ -236,9 +250,9 @@ export default function CheckoutClient() {
     return ()=>{active=false;};
   },[isSoulCatMode,signedIn,params,copy]);
 
-  const startPayment = useCallback(async () => {
+  const startPayment = useCallback(async (paymentMode:'DIRECT_KRW'|'MEMBERSHIP_PASS'|'MOONLIGHT_STONE'='DIRECT_KRW') => {
     if (!pricing || !available || paymentLock.current || packLock.current) return;
-    const moonstoneQuantity=Number(moonstoneInput);
+    const moonstoneQuantity=paymentMode==='DIRECT_KRW'?Number(moonstoneInput):0;
     if (!Number.isSafeInteger(moonstoneQuantity) || moonstoneQuantity<0
       || (moonstoneQuantity>0 && (isSoulCatMode || pricing.monthlyCreditMultiplier!==1
         || pricing.amountKRW-moonstoneQuantity*(pricing.amountKRW/pricing.membershipCreditCost)<1000))) {
@@ -248,13 +262,9 @@ export default function CheckoutClient() {
     setGate({ phase: "paying" });
     try {
       if (!isSoulCatMode) {
-        // Recover a webhook-confirmed payment before offering another payment window.
-        try {
-          const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${params.requestId}/activate`,{});
-          if(fortune.paid){window.location.assign(params.returnTo);return;}
-        } catch(error) {
-          if(!(error instanceof FortuneApiError && error.status===402))throw error;
-        }
+        // Read only: activate can consume Family before a payment method is chosen.
+        const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${params.requestId}`);
+        if(fortune.paid){window.location.assign(params.returnTo);return;}
       }
       const requestId = isSoulCatMode
         ? `yn-soulcat-${params.featureKey}-${stableSlug(params.returnTo)}`
@@ -265,11 +275,12 @@ export default function CheckoutClient() {
         requestId,
         cost: pricing.cost,
         amountKRW: pricing.amountKRW,
+        paymentMode,
         allowedPaymentModes: pricing.monthlyExcluded ? ["pass", "direct"] : ["pass", "direct", "monthly"],
         membershipCreditCost: pricing.membershipCreditCost,
         moonstoneQuantity,
         passStorePlan: "family",
-        disablePassFirst: true,
+        disablePassFirst: paymentMode!=='MEMBERSHIP_PASS',
         resume: buildResume({ returnTo: params.returnTo }),
       });
       const code = String(result.error?.code || "").toUpperCase();
@@ -304,14 +315,14 @@ export default function CheckoutClient() {
       <nav className={styles.nav} aria-label={copy.navAria}>
         <a href={leaveHref} onClick={leaveToPreviousScreen}>{copy.backToRoom}</a><a href="/">CODE DESTINY</a>
       </nav>
-      <section className={styles.checkout} aria-labelledby="checkout-title">
-        <div className={styles.host}>
+      <section className={`${styles.checkout} ${!isSoulCatMode?styles.simpleCheckout:''}`} aria-labelledby="checkout-title">
+        {isSoulCatMode&&<div className={styles.host}>
           <img src="/assets/yeongnyangi/payment-alliance/yeoni-alliance-v1.webp" alt={alliance.imageAlt} width={1200} height={800} />
           <div><h2>{alliance.title}</h2><p>{alliance.story}</p></div>
-        </div>
+        </div>}
         <div className={styles.paper}>
-          <h1 id="checkout-title">{copy.title}</h1>
-          <p className={styles.intro}>{copy.intro}</p>
+          <h1 id="checkout-title">{!isSoulCatMode&&lang==='ko'?'상담 범위와 결제 확인':copy.title}</h1>
+          <p className={styles.intro}>{!isSoulCatMode&&lang==='ko'?'먼저 이번 상담 한 번으로 시작해도 좋아요.':copy.intro}</p>
           {!pricing || !product ? (
             <div className={styles.notice}>
               <h2>{copy.noticeTitle}</h2>
@@ -322,48 +333,60 @@ export default function CheckoutClient() {
             <>
               <div className={styles.product}>
                 <img src={lang==='ko'?`/assets/yeongnyangi/fish/${product.fishId}.webp`:product.reactionAsset} alt="" width={240} height={108} />
-                <div><h2>{lang==='ko'?`${product.name} · ${product.fishName}`:`${localizedSystem(product.readingKind==='single'?product.domain:'fusion',lang)} · ${localizedTier(product.fishId,lang)}`}</h2><p data-reading-tier-depth={showTierDepth?product.fishId:undefined}>{showTierDepth?readingTierDepth(product.fishId,lang):lang==='ko'?depthDescriptions[product.fishId]:consultationLocaleCopy(lang).method}</p></div>
+                <div><h2>{lang==='ko'?scopeName||`${product.name} · ${product.fishName}`:`${localizedSystem(product.readingKind==='single'?product.domain:'fusion',lang)} · ${localizedTier(product.fishId,lang)}`}</h2><p data-reading-tier-depth={showTierDepth?product.fishId:undefined}>{showTierDepth?readingTierDepth(product.fishId,lang):lang==='ko'?depthDescriptions[product.fishId]:consultationLocaleCopy(lang).method}</p></div>
               </div>
+              {!isSoulCatMode&&scopeName&&<p className={styles.depthNote}>{lang==='ko'?`${product.name} · ${FOLLOWUP_LIMITS[product.fishId as FishId]>0?`기본 상담과 추가 질문 ${FOLLOWUP_LIMITS[product.fishId as FishId]}회 포함`:'이번 질문에 대한 답과 근거, 실천할 행동을 정리해요.'}`:copy.chapters(reading?.manifest?.length??product.chapterCount)}</p>}
               {showTierDepth&&<p className={styles.depthNote} data-reading-depth-note>{readingDepthCopy(lang).sharedTopics}</p>}
-              <dl className={styles.receipt}>
+              {isSoulCatMode&&<dl className={styles.receipt}>
                 <div><dt>{copy.rowComposition}</dt><dd>{copy.chapters(reading?.manifest?.length ?? product.chapterCount)}</dd></div>
                 <div><dt>{copy.rowMethod}</dt><dd>{copy.methodDirect}</dd></div>
                 <div className={styles.total}><dt>{copy.rowAmount}</dt><dd>{nativePrice === null ? formatKrw(pricing.amountKRW) : nativePrice || 'Google Play'}</dd></div>
-                {!pricing.monthlyExcluded && <div className={styles.moonstones}><dt>{alliance.moonstoneLabel}</dt><dd>{alliance.moonstones(pricing.membershipCreditCost.toLocaleString(intlLocale))}</dd></div>}
-              </dl>
+
+              </dl>}
+              <p data-reading-output-locale={reading?.locale||lang}>{askPhase5Copy(lang).input.language}: <b lang={reading?.locale||lang}>{readingLanguageNames[reading?.locale||lang]}</b></p>
+              {!isSoulCatMode&&<fieldset className={styles.purchaseChoices} disabled={gate.phase==='paying'||gate.phase==='paid'||packBusy}>
+                <legend>{lang==='ko'?'이용 방법':'Purchase option'}</legend>
+                <label><input type="radio" name="consultation-purchase" checked={purchase==='single'} onChange={()=>setPurchase('single')}/><span><strong>{lang==='ko'?'이번 상담 1회':'This consultation'}</strong><span>{nativePrice===null?formatKrw(pricing.amountKRW):nativePrice||'Google Play'}</span></span></label>
+                {packOffer.loading?<p role="status">{lang==='ko'?'5회 이용권 확인 중':'Checking passes…'}</p>:packOffer.error?<p role="alert">{lang==='ko'?'이용권을 확인하지 못했어요. 단건 상담은 계속 이용할 수 있어요.':'Pass details are unavailable. You can continue with a single consultation.'}</p>:packOffer.plan&&shopContext&&nativePrice===null&&<label><input type="radio" name="consultation-purchase" checked={purchase==='pack'} onChange={()=>setPurchase('pack')}/><span><strong>{lang==='ko'?'같은 범위 5회 이용권':'5 consultations in the same scope'}</strong><span>{formatKrw(packOffer.plan.priceKRW)} · {packOffer.plan.validityDays}{lang==='ko'?'일':' days'}</span><small>{lang==='ko'?'같은 등급의 지원 상담에만 적용돼요.':'Only supported consultations in this tier.'}</small></span></label>}
+              </fieldset>}
+              <button type="button" onClick={() => { if(purchase==='pack'&&shopContext&&nativePrice===null)window.location.assign(consultationShopPath(shopContext));else void startPayment(); }}
+                disabled={!authSettled || !signedIn || !checked || !available || packBusy || gate.phase === "paying" || gate.phase === "paid"}
+                className={styles.pay}>
+                {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
+                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : purchase==='pack'?(lang==='ko'?'5회 이용권 구매하기':'Get 5-use pass'): copy.payAction(nativePrice === null ? formatKrw(validDiscount ? discountedAmount : pricing.amountKRW) : nativePrice || 'Google Play')}
+              </button>
+              <details className={styles.benefits}>
+                <summary>{lang==='ko'?'보유 혜택 사용':'Use existing benefits'}</summary>
+                <p>{lang==='ko'?'직접 선택한 혜택만 사용해요. 적용 가능 여부는 서버에서 확인해요.':'Benefits are used only when you select them. Eligibility is verified by the server.'}</p>
+              {!isSoulCatMode && checked && signedIn && available && <ServicePackCheckout requestId={params.requestId} featureKey={pricing.featureKey} locale={lang}
+                disabled={gate.phase === "paying" || gate.phase === "paid"}
+                onBusyChange={busy=>{packLock.current=busy;setPackBusy(busy);}}
+                onPaid={()=>{setGate({phase:"paid"});window.location.assign(params.returnTo);}} />}
+
+                <button type="button" disabled={!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MEMBERSHIP_PASS')}>{lang==='ko'?'보유 Family 적용하기':'Use existing Family pass'}</button>
+                {!pricing.monthlyExcluded&&<button type="button" disabled={!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MOONLIGHT_STONE')}>{lang==='ko'?`보유 월정석 ${pricing.membershipCreditCost.toLocaleString('ko-KR')}개 사용`:alliance.moonstones(pricing.membershipCreditCost.toLocaleString(intlLocale))}</button>}
               {!isSoulCatMode && nativePrice===null && lang==='ko' && !pricing.monthlyExcluded && pricing.monthlyCreditMultiplier===1 && <fieldset className={styles.discount} disabled={gate.phase==='paying'||gate.phase==='paid'||packBusy}>
                 <legend>월정석으로 단건 결제 할인받기</legend>
                 <label htmlFor="moonstone-discount">사용할 월정석 수량</label>
                 <input id="moonstone-discount" type="number" inputMode="numeric" min={0} step={1}
                   max={Math.floor((pricing.amountKRW-1000)/(pricing.amountKRW/pricing.membershipCreditCost))}
                   value={moonstoneInput} onChange={event=>setMoonstoneInput(event.target.value)} aria-describedby="moonstone-discount-note" />
-                <p id="moonstone-discount-note">1개당 {formatKrw(pricing.amountKRW/pricing.membershipCreditCost)} 할인돼요. 단건 결제를 선택할 때만 적용돼요. 전액 월정석 결제와 이용권은 다음 화면에서 선택할 수 있어요.</p>
+                <p id="moonstone-discount-note">1개당 {formatKrw(pricing.amountKRW/pricing.membershipCreditCost)} 할인돼요. 단건 결제를 선택할 때만 적용돼요. 전액 월정석 사용은 위 버튼에서 선택할 수 있어요.</p>
                 {validDiscount && <p aria-live="polite">선택한 월정석 {Number(moonstoneInput).toLocaleString('ko-KR')}개 · 할인 후 단건 결제 <strong>{formatKrw(pricing.amountKRW-Number(moonstoneInput)*(pricing.amountKRW/pricing.membershipCreditCost))}</strong></p>}
-                <p>단건 결제 잔액은 1,000원 이상이어야 해요. 보유량은 다음 결제창의 ‘보유 월정석 확인’에서 확인할 수 있어요.</p>
+                <p>단건 결제 잔액은 1,000원 이상이어야 해요. 선택한 수량의 사용 가능 여부는 결제 전에 확인해요.</p>
               </fieldset>}
-              <p data-reading-output-locale={reading?.locale||lang}>{askPhase5Copy(lang).input.language}: <b lang={reading?.locale||lang}>{readingLanguageNames[reading?.locale||lang]}</b></p>
-              <div className={styles.policy}>
-                <p>{copy.policyLine1}</p>
-                {!pricing.monthlyExcluded && pricing.monthlyCreditMultiplier > 1 && <p>{alliance.moonstoneValue(pricing.monthlyCreditMultiplier)}</p>}
-                <p>{copy.policyLine2}</p>
-              </div>
-              {!isSoulCatMode && checked && signedIn && available && <ServicePackCheckout requestId={params.requestId} featureKey={pricing.featureKey} locale={lang}
-                disabled={gate.phase === "paying" || gate.phase === "paid"}
-                onBusyChange={busy=>{packLock.current=busy;setPackBusy(busy);}}
-                onPaid={()=>{setGate({phase:"paid"});window.location.assign(params.returnTo);}} />}
-              <button type="button" onClick={() => { void startPayment(); }}
-                disabled={!authSettled || !signedIn || !checked || !available || packBusy || gate.phase === "paying" || gate.phase === "paid"}
-                className={styles.pay}>
-                {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
-                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : copy.payAction(nativePrice === null ? formatKrw(validDiscount ? discountedAmount : pricing.amountKRW) : nativePrice || 'Google Play')}
-              </button>
+
+              </details>
               <p className={styles.security}>{copy.methodNote}</p>
               <div aria-live="polite" className={styles.feedback}>
                 {gate.phase === "cancelled" ? <p>{copy.cancelled}</p> : null}
                 {gate.phase === "error" ? <p role="alert">{gate.message}</p> : null}
                 {gate.phase === "confirming" ? <p role="status">{gate.message}</p> : null}
               </div>
-              <a href={chooseHref} className={styles.back}>{copy.reselect}</a>
+              <a href={chooseHref} className={styles.back} onClick={()=>{
+                if(isSoulCatMode||!reading?.consultation?.questionDecision)return;
+                try{sessionStorage.setItem('yeongnyangi:consultation-login-draft',JSON.stringify({path:FISH_CHOOSER_PATH,savedAt:Date.now(),productId:reading.productId,profileId:reading.profileId,question:reading.consultation.question,questionDecision:reading.consultation.questionDecision,editScope:true,locale:reading.locale}));}catch{/* The question form remains usable without local storage. */}
+              }}>{!isSoulCatMode&&lang==='ko'?'질문 조건 수정하기':copy.reselect}</a>
               <p className={styles.security}>
                 <a href={policyHrefs.terms}>{copy.legalTerms}</a> · <a href={policyHrefs.refund}>{copy.legalRefund}</a> · <a href={policyHrefs.support}>{copy.legalSupport}</a>
               </p>

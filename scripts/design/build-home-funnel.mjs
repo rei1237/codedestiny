@@ -48,6 +48,8 @@ const nodes = {
 };
 
 const vars = Object.fromEntries(Object.entries(nodes).map(([key, node]) => [key, htmlOf(node, key)]));
+vars.pickReason = htmlOf(byId('cdPickReason'), 'consultation recommendation');
+vars.signature = vars.signature.replace(vars.pickReason, '').replace(/^[ \t]+$/gm, '');
 vars.pressCoverage = renderPressCoverageHtml();
 vars.trustStories = renderTrustStoriesHtml();
 vars.neoIntroduction = renderNeoHomeIntroduction();

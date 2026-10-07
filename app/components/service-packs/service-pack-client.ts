@@ -2,6 +2,7 @@ import {authFetch,isMobileAppRuntime} from '@/app/_lib/auth-client';
 import {getApiBaseUrl} from '@/app/_lib/api-config';
 import {requestPortOneSinglePayment,type PortOneCustomer} from '@/lib/payment/portone';
 import checkoutEntry, {type PaypalCharge} from '@/js/core/checkout-entry.js';
+import {readConsultationContext,type ConsultationContext} from './consultation-context';
 
 export const PACK_FISH_IDS=['mackerel','salmon','flounder','tuna'] as const;
 export type PackFishId=typeof PACK_FISH_IDS[number];
@@ -117,13 +118,15 @@ export async function preparePackPurchase(planId:string,idempotencyKey:string,re
  parsePackPlans({plans:[{...order.packSnapshot,autoRenew:false}]});
  return order;
 }
-export async function payPackOrder(order:PackOrder,payMethod:PackPayMethod='CARD'){
+export async function payPackOrder(order:PackOrder,payMethod:PackPayMethod='CARD',context?:ConsultationContext|null){
  if(isMobileAppRuntime())throw new ServicePackError('APP_PACK_NOT_AVAILABLE');
  const giftReturn=`/gift/complete/?orderId=${encodeURIComponent(order.merchantUid)}`;
  if(order.entitlementGranted||order.status?.toUpperCase()==='PAID'){if(order.purchaseType==='GIFT'){window.location.assign(giftReturn);return false;}return confirmPackOrder(order.merchantUid);}
  const {payFields}=packPayFields(payMethod);
+ const safeContext=context?readConsultationContext(new URLSearchParams(context)):null;
+ const returnQuery=new URLSearchParams({...safeContext,service_pack_return:'1',orderId:order.merchantUid});
  const response=await requestPortOneSinglePayment({...(payFields?{payFields}:{}),paypalCharge:order.paypalCharge,apiBase:getApiBaseUrl(),paymentId:order.merchantUid,orderName:order.productName,totalAmount:order.paymentAmount,
-  redirectPath:order.purchaseType==='GIFT'?giftReturn:`/points/?service_pack_return=1&orderId=${encodeURIComponent(order.merchantUid)}#fish-packs`,customer:order.customer,storeId:order.storeId,channelKey:order.channelKey,
+  redirectPath:order.purchaseType==='GIFT'?giftReturn:`/points/?${returnQuery}#fish-packs`,customer:order.customer,storeId:order.storeId,channelKey:order.channelKey,
   customData:{productType:'service_pack',planId:order.packSnapshot.planId}});
  if(!response.ok){
   // 채널키가 비어 창을 못 연 수단은 이 페이지에서 내린다 — 같은 주문은 카드로 이어갈 수 있다.
@@ -135,7 +138,7 @@ export async function payPackOrder(order:PackOrder,payMethod:PackPayMethod='CARD
  return confirmPackOrder(order.merchantUid);
 }
 
-export type PendingPackOrder={planId:string;idempotencyKey:string;orderId?:string;payMethod?:PackPayMethod;purchaseType?:PackPurchaseType;gift?:PackGiftDraft;packSnapshot?:PackOrder['packSnapshot']};
+export type PendingPackOrder={context?:ConsultationContext|null;planId:string;idempotencyKey:string;orderId?:string;payMethod?:PackPayMethod;purchaseType?:PackPurchaseType;gift?:PackGiftDraft;packSnapshot?:PackOrder['packSnapshot']};
 const storageKey=(userId:string)=>`cd_service_pack_pending_v1:${userId}`;
 export function readPendingPack(userId:string):PendingPackOrder|null{
  try{const value=JSON.parse(sessionStorage.getItem(storageKey(userId))||'null');return value&&text(value.planId)&&text(value.idempotencyKey)?value:null;}catch{return null;}
@@ -186,5 +189,5 @@ export async function resumePendingPackPurchase(ownerId:string,refundConsent:boo
  assertCurrent();
  if(order.merchantUid!==pending.orderId||!samePackSnapshot(order.packSnapshot,pending.packSnapshot)
   ||!['PENDING','PAID'].includes(String(order.status||'').toUpperCase()))throw new ServicePackError('ORDER_MISMATCH');
- return payPackOrder(order,payMethod);
+ return payPackOrder(order,payMethod,pending.context);
 }

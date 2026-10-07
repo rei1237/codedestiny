@@ -2252,7 +2252,7 @@
      기본 차트(자미두수·숙요점·베다점·점성술)는 무료 개방.
      운명의 꽃 아틀리에는 1회 10,000원 영구 해금. ── */
   var _DP_FEATURE_LOCKS = {
-    olympus: { key: 'olympus-fc', cost: 100, name: '올림푸스 신탁' },
+    olympus: { key: 'olympus-fc', cost: 10, name: '올림푸스 신탁' },
     flower:  { key: 'flower-fc',  cost: 100, name: '운명의 꽃 아틀리에 전체', extraUnlockKeys: ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'] }
   };
   var _DP_UNLOCK_PRODUCT_BY_FEATURE_KEY = {
@@ -12648,6 +12648,7 @@
     // 🔴 서버를 부르지 않는다. 여기서는 잔량을 아직 모르므로(마운트 후 조회) 월정석 추천은 성립하지 않고,
     // 사실상 종전과 같이 '등급 미상이면 이용권이 첫 카드'가 된다 — 무회귀다.
     var checkoutRecommendation = _dpResolveCheckoutRecommendation({
+      amountKRW: cost * 100,
       allowPass: true,
       allowDirect: true,
       allowMonthly: true,

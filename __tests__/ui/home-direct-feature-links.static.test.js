@@ -46,4 +46,4 @@ for (const entry of [
 
 console.log("[home-direct-feature-links] PASS");
 
-assert.ok(template.indexOf('id="cdhFeatured"') > template.indexOf('id="cdhMore"'), 'signature readings remain in optional exploration');
+assert.ok(template.indexOf('id="cdhFeatured"') < template.indexOf('id="cdhMore"'), 'signature readings are visible before optional exploration');

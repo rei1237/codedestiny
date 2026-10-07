@@ -60,7 +60,7 @@ test("🔴 startPayment 진입 가드가 requestId 를 다시 요구하지 않�
 test("available/checked effect: SoulCat 모드가 fortuneApi 호출보다 먼저 판정된다", async () => {
   const sliceFunction = await slicer();
   const source = readSource();
-  const body = sliceFunction(source, "  useEffect(()=>{", "available/checked effect");
+  const body = sliceFunction(source, "  useEffect(()=>{\n    if(isSoulCatMode)", "available/checked effect");
   const modeIndex = body.indexOf("isSoulCatMode");
   // fortuneApi<{...}>(...) — 제네릭 타입 인자가 이름과 여는 괄호 사이에 끼어 있어 "fortuneApi(" 는
   // 리터럴로 안 나온다. 이름만으로 첫 호출 지점을 찾는다.
@@ -76,7 +76,7 @@ test("available/checked effect: SoulCat 모드가 fortuneApi 호출보다 먼저
 test("startPayment: SoulCat 모드는 웹훅 선확인(activate)을 스킵하고 requestId 를 다르게 채번한다", async () => {
   const sliceFunction = await slicer();
   const source = readSource();
-  const body = sliceFunction(source, "  const startPayment = useCallback(async () => {", "startPayment");
+  const body = sliceFunction(source, "  const startPayment = useCallback(async (paymentMode:'DIRECT_KRW'|'MEMBERSHIP_PASS'|'MOONLIGHT_STONE'='DIRECT_KRW') => {", "startPayment");
   assert.match(
     body,
     /if\s*\(!isSoulCatMode\)\s*\{/,

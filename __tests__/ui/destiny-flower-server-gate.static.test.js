@@ -169,18 +169,8 @@ test("자미두수 차트를 서버로 실어 보낸다", () => {
   );
 });
 
-test("라우트가 해금을 확인하고 미해금에 402 를 낸다", () => {
-  const route = read(ROUTE_REL);
-  assert.ok(/"flower-fc"/.test(route), "해금 키가 라우트에 없다");
-  assert.ok(/unlockedFeatures/.test(route), "라우트가 사용자 해금 목록을 보지 않는다");
-  assert.ok(/status:\s*402/.test(route), "미해금 402 응답이 없다");
-  assert.ok(/requireAuth/.test(route), "라우트가 로그인을 요구하지 않는다");
-
-  // 🔴 로컬 스냅샷을 신뢰 근거로 받으면 그게 곧 우회다.
-  assert.ok(
-    !/body\.(unlocked|snapshot|entitlement)|body\?\.(unlocked|snapshot)/.test(route),
-    "라우트가 클라이언트가 보낸 해금 주장을 읽는다",
-  );
+test("무료 꽃은 서버 계산과 인증을 유지하고 구매 DB를 조회하지 않는다",()=>{
+ const route=stripComments(read(ROUTE_REL));assert.match(route,/requireAuth/);assert.doesNotMatch(route,/hasFlowerUnlock|status:\s*402|User\.findById/);
 });
 
 test("라우트가 워커에 배선돼 있다", () => {

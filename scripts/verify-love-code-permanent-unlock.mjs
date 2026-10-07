@@ -23,7 +23,7 @@ check("registry canonicalizes every legacy Love Code key", () => {
   const product = catalog.resolveProduct({ featureKey: "loveSimulation" });
   assert.deepEqual(
     { productId: product.productId, featureKey: product.featureKey, billingType: product.billingType, priceKRW: product.priceKRW },
-    { productId: "unlock.love-code", featureKey: "love-code", billingType: "unlock", priceKRW: 5000 },
+    { productId: "unlock.love-code", featureKey: "love-code", billingType: "unlock", priceKRW: 1000 },
   );
 });
 
@@ -62,7 +62,7 @@ check("React entry holds payment CTA until server revalidation and mobile resume
   assert.match(engine, /legacyKinds: LEGACY_LOVE_CODE_RESUME_KINDS/);
   assert.match(engine, /러브 코드 이용권을 확인하고 있어요/);
   assert.match(engine, /러브 코드 잠금 해제됨/);
-  assert.match(engine, /러브 코드 잠금 해제 \(5,000원\)/);
+  assert.match(engine, /LOVE_SIMULATION_PRICING\?\.amountKRW\.toLocaleString/);
 });
 
 for (const { name, fn } of checks) {

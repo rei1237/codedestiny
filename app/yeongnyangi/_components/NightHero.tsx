@@ -18,7 +18,7 @@ export default function NightHero(){
   <picture className={styles.room}><source media="(max-width: 699px)" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.webp"/><img src="/assets/yeongnyangi/night/consultation-room.webp" width={1440} height={960} alt="" fetchPriority="high"/></picture>
   <div className={styles.copy}>
    <h1 id="hero-title">{brandCopy('yeongnyangiHeading')}<br/><span>영냥이에게 물어봐.</span></h1>
-   <p>꿀꿀운세의 질문 상담, 영냥이. 지금의 고민을 함께 풀어봐요.</p>
+   <p>꿀꿀운세의 기본 상담, 영냥이. 궁금한 것 하나부터 물어보세요.</p>
    <div className={styles.actions}>
     <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>지금 궁금한 질문 고르기<ArrowRight size={19} aria-hidden="true"/></a>
     <a className={styles.secondary} href="#readings"><BookOpen size={18} aria-hidden="true"/>상담 종류 살펴보기</a>

@@ -247,13 +247,13 @@ describe("러브 코드 영구 해금", () => {
     priceCoins: 100,
   };
 
-  test("canonical 상품은 10,000원 영구 해금이고 레거시 키는 읽기 별칭이다", () => {
+  test("canonical 상품은 1,000원 영구 해금이고 레거시 키는 읽기 별칭이다", () => {
     const product = resolveProduct({ featureKey: "loveSimulation" });
     expect(product).toMatchObject({
       productId: LOVE_CODE_PRODUCT_ID,
       featureKey: LOVE_CODE_FEATURE_KEY,
-      priceKRW: 5000,
-      priceCoins: 50,
+      priceKRW: 1000,
+      priceCoins: 10,
       billingType: "unlock",
     });
     expect(LEGACY_LOVE_CODE_FEATURE_KEYS).toContain("openLoveSimulation");

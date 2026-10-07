@@ -1,4 +1,5 @@
 "use client";
+import ConsultationCompanion from './ConsultationCompanion';
 import {useState} from 'react';
 import {QUESTION_POLICY_VERSION,FOLLOWUP_LIMITS,questionTopics,questionCandidate,recommendQuestion,type QuestionDecision} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import {products,systemNames} from '@/worker/yeongnyangi/payments/catalog';
@@ -15,7 +16,9 @@ export default function QuestionScope({initialDomain,initialQuestion,initialDeci
  const blocked=!question.trim()||plan.missing.length>0||Boolean(plan.unsupported);
  return <section className={`${styles.consultation} ${scope.scope}`}>
   <a className={scope.back} href="/ggulggul/">꿀꿀운세 홈</a>
-  <header className={styles.consultationHeader}><div><h1>지금의 고민부터 들려주세요</h1><p>꿀꿀운세의 질문 상담, 영냥이가 함께해요. 고민을 적으면 다룰 범위와 가격을 먼저 안내해요.</p></div></header>
+  <header className={styles.consultationHeader}><div><h1>지금의 고민부터 들려주세요</h1><p>처음이라면 영냥이에게 물어보세요. 질문에 대한 답, 해석의 근거, 지금 해볼 행동을 정리해요.</p></div></header>
+  <ConsultationCompanion domain={domain}/>
+  <details className={scope.options}><summary>다른 상담 스타일로 시작하기</summary><div className={scope.optionFields}><a href="/fortune-tea-house/">연이의 운명 찻집 · 다정하게 마음 정리하기</a><a href="/neo-operation-room/">네오의 팩폭 전략실 · 직설적으로 다음 행동 찾기</a><p>상담마다 다루는 범위와 가격이 달라요. 각 상담에서 먼저 확인해 주세요.</p></div></details>
   <form className={styles.form} onSubmit={event=>{event.preventDefault();if(!blocked)onContinue(domain,question,{...decision,confirmed:true});}}>
    <fieldset className={scope.fields}><legend>어떤 고민이 있나요?</legend>
    <label>궁금한 질문<textarea rows={3} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder="지금 결정하거나 이해하고 싶은 한 가지를 적어 주세요." required/></label>

@@ -1,4 +1,5 @@
 'use client';
+import {readConsultationContext,consultationResumePath,consultationShopPath,type ConsultationContext} from './consultation-context';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -9,12 +10,10 @@ import HoneyPassArtwork from '@/components/yeon/HoneyPassArtwork';
 import {getPassTierLabel} from '@/lib/payment/pass-eligibility';
 import {isMobileAppRuntime} from '@/app/_lib/auth-client';
 import type {LoadingLocale} from '@/constants/loadingMessages';
-import {paymentAllianceCopy} from '@/app/checkout/payment-alliance-copy';
 import {getCheckoutCopy,resolveCheckoutPolicyHrefs} from '@/app/checkout/checkout-copy';
 import {localizedSystem,localizedTier} from '@/app/yeongnyangi/_lib/consultation-locale-copy';
 import {loginForCurrentPage} from '@/app/yeongnyangi/_lib/api';
 import {products} from '@/worker/yeongnyangi/payments/catalog';
-import {resolveServerFeaturePricing} from '@/lib/payment/server-feature-pricing';
 import checkoutEntry from '@/js/core/checkout-entry.js';
 import {confirmPackOrderWithRecheck,consumeServicePack,loadPackPayMethodAvailability,PACK_PAY_METHODS,payPackOrder,preparePackPurchase,quoteServicePack,readPackCatalog,readPackWallet,readPendingPack,savePendingPack,resumePendingPackPurchase,samePackSnapshot,ServicePackError,type OwnedServicePack,type PackQuote,type ServicePackPlan} from './service-pack-client';
 import {packName,packText,servicePackCopy} from './service-pack-copy';
@@ -24,14 +23,9 @@ import {usablePacks,type PackWalletView} from './OwnedPassesSummary';
 import ServicePackShowcase from './ServicePackShowcase';
 import type {PackGiftDraft,PackPayMethod,PackPurchaseType} from './service-pack-client';
 import {ShopPigImage} from '@/app/points/MoonShopFrame';
-import LaunchPlannedPrice from '@/app/components/LaunchPlannedPrice';
-import {plannedPackPriceFor} from '@/lib/brand/launch-offer';
 
 // 화면 구조·클래스는 /points 달빛 이용권 카드·결제 모달(PointsClient MoonlightShopPlans)과 맞춘다.
 // 🔴 결제 실행(buy/resume/checkOrder)은 영냥이 전용 경로 그대로다 — 꽃돼지 결제 핸들러와 합치지 않는다.
-const ALLIANCE_IMAGE='/assets/yeongnyangi/payment-alliance/yeoni-alliance-v1.webp';
-const RECOMMEND_IMAGE='/assets/yeongnyangi/service-packs/recommend-badge-v1.webp';
-const MOON_SAMPLE_FEATURE='yeongnyangi-saju-mackerel';
 const chip='rounded-full border border-[color:var(--moon-rim)] px-2.5 py-1 text-xs font-bold';
 const ghost='btn-moonlight-ghost inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50';
 
@@ -54,15 +48,16 @@ export function PackRows({packs,locale}:{packs:OwnedServicePack[];locale:Loading
 
 // 해외 원화 청구 고지는 PointsClient useOverseasCharge 가 만든 값을 받는다. 한국어 화면에서는 null 이다.
 // onWalletChange 는 이 컴포넌트가 이미 읽은 보유 목록을 상단 '내 이용권' 요약에 넘긴다(추가 요청 없음).
-export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{locale:LoadingLocale;overseasCharge?:{notice:string;approx:(krw:number)=>string}|null;onWalletChange?:(packs:PackWalletView)=>void}){
- const auth=useAuthStore(),ownerId=String(auth.user?.id||auth.user?._id||''); const copy=servicePackCopy(locale),policy=getCheckoutCopy(locale),alliance=paymentAllianceCopy(locale),links=resolveCheckoutPolicyHrefs(locale);
+export function ServicePackShop({locale,overseasCharge=null,onWalletChange,context=null,contextual=false}:{context?:ConsultationContext|null;contextual?:boolean;locale:LoadingLocale;overseasCharge?:{notice:string;approx:(krw:number)=>string}|null;onWalletChange?:(packs:PackWalletView)=>void}){
+ const auth=useAuthStore(),ownerId=String(auth.user?.id||auth.user?._id||''); const copy=servicePackCopy(locale),policy=getCheckoutCopy(locale),links=resolveCheckoutPolicyHrefs(locale);
+ const shopPath=context?consultationShopPath(context):'/points/#fish-packs';
  const [catalog,setCatalog]=useState<{plans:ServicePackPlan[];error:boolean;loading:boolean;giftEnabled:boolean}>({plans:[],error:false,loading:true,giftEnabled:false});
  const [wallet,setWallet]=useState<{ownerId:string;packs:OwnedServicePack[];nextCursor:string|null;error:boolean;loading:boolean}>({ownerId:'',packs:[],nextCursor:null,error:false,loading:true});
  const [selected,setSelected]=useState<string>(''),[consent,setConsent]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[pendingOrder,setPendingOrder]=useState('');
  const [resumeConsent,setResumeConsent]=useState(false),[,setPayMethodRevision]=useState(0);
  const [purchaseType,setPurchaseType]=useState<PackPurchaseType>('SELF'),[gift,setGift]=useState<PackGiftDraft>({senderName:'',recipientName:'',giftMessage:''});
  // 결제가 확정된 주문. 섹션 상단 완료 패널이 갱신된 보유 목록에서 남은 횟수·만료일을 찾는다.
- const [completed,setCompleted]=useState<{orderId:string;planId:string}|null>(null);
+ const [completed,setCompleted]=useState<{orderId:string;planId:string;context?:ConsultationContext|null}|null>(null);
  const lock=useRef(false),scope=useRef(ownerId),purchaseRef=useRef<HTMLHeadingElement>(null),triggerRef=useRef<HTMLElement|null>(null),catalogRef=useRef(catalog);scope.current=ownerId;catalogRef.current=catalog;
  const completedRef=useRef<HTMLDivElement>(null),ownedRef=useRef<HTMLDivElement>(null),walletCallback=useRef(onWalletChange);walletCallback.current=onWalletChange;
  // 웹훅 지급이 늦을 때의 자동 재확인(2·4·8초). 계정 전환·언마운트·새 확인이 시작되면 끊는다.
@@ -88,16 +83,16 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
    &&(list.loading||own.purchaseType!=='GIFT'||list.giftEnabled));
   if(!['PG_PAYMENT_FAILED','PG_PAYMENT_CANCELLED'].includes(error.code)&&!(error.code==='PG_PAYMENT_NOT_PAID'&&!resumable))return false;
   if(own)savePendingPack(ownerId,null);setPendingOrder('');setMessage(copy.notPaid);
-  if(new URLSearchParams(location.search).has('service_pack_return'))history.replaceState({},'',location.pathname+'#fish-packs');
+  if(new URLSearchParams(location.search).has('service_pack_return'))history.replaceState({},'',shopPath);
   return true;
- },[ownerId,copy]);
+ },[ownerId,copy,shopPath]);
  const checkOrder=useCallback(async(orderId:string)=>{
   if(!ownerId||lock.current)return;if(readPendingPack(ownerId)?.purchaseType==='GIFT'){window.location.assign(`/gift/complete/?orderId=${encodeURIComponent(orderId)}`);return;}lock.current=true;setBusy(true);setMessage(copy.confirm);
   const stored=readPendingPack(ownerId);
   recheck.current?.abort();const controller=recheck.current=new AbortController();
-  try{const granted=await confirmPackOrderWithRecheck(orderId,controller.signal);if(scope.current!==ownerId)return;if(granted){savePendingPack(ownerId,null);setPendingOrder('');setMessage('');setCompleted({orderId,planId:stored?.orderId===orderId?stored.planId:''});await refreshWallet();const query=new URLSearchParams(location.search);if(query.has('service_pack_return'))history.replaceState({},'',location.pathname+'#fish-packs');}else setMessage(copy.confirm);}
+  try{const granted=await confirmPackOrderWithRecheck(orderId,controller.signal);if(scope.current!==ownerId)return;if(granted){savePendingPack(ownerId,null);setPendingOrder('');setMessage('');setCompleted({orderId,planId:stored?.orderId===orderId?stored.planId:'',context:stored?.context?readConsultationContext(new URLSearchParams(stored.context)):context});await refreshWallet();const query=new URLSearchParams(location.search);if(query.has('service_pack_return'))history.replaceState({},'',shopPath);}else setMessage(copy.confirm);}
   catch(error){loginIfNeeded(error);if(!releaseUnpaid(orderId,error))setMessage(copy.confirm);}finally{lock.current=false;setBusy(false);}
- },[ownerId,copy,refreshWallet,releaseUnpaid]);
+ },[ownerId,copy,refreshWallet,releaseUnpaid,shopPath,context]);
  useEffect(()=>{
   if(!ownerId)return;const query=new URLSearchParams(location.search);if(query.get('service_pack_return')!=='1')return;
   const orderId=query.get('orderId')||'';if(!orderId||orderId.length>160)return;setPendingOrder(orderId);
@@ -116,14 +111,14 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
    const previous=readPendingPack(ownerId);if(previous?.orderId){setPendingOrder(previous.orderId);return;}
    if(previous&&(previous.planId!==plan.planId||(previous.purchaseType||'SELF')!==purchaseType||(purchaseType==='GIFT'&&JSON.stringify(previous.gift)!==JSON.stringify(gift))))throw new ServicePackError('PENDING_OTHER_PLAN');
    if(purchaseType==='GIFT'&&!catalog.giftEnabled)throw new ServicePackError('GIFT_NOT_AVAILABLE');
-   const pending={...(previous||{planId:plan.planId,idempotencyKey:`service-pack-${crypto.randomUUID()}`,purchaseType,...(purchaseType==='GIFT'?{gift}:{})}),payMethod};
+   const pending={context,...(previous||{planId:plan.planId,idempotencyKey:`service-pack-${crypto.randomUUID()}`,purchaseType,...(purchaseType==='GIFT'?{gift}:{})}),payMethod};
    savePendingPack(ownerId,pending);
    const order=await preparePackPurchase(plan.planId,pending.idempotencyKey,consent,purchaseType,purchaseType==='GIFT'?gift:undefined,undefined,payMethod);
    if(scope.current!==ownerId)throw new ServicePackError('AUTH_SCOPE_CHANGED');
    savePendingPack(ownerId,{...pending,orderId:order.merchantUid,packSnapshot:order.packSnapshot});setPendingOrder(order.merchantUid);
-   let granted=await payPackOrder(order,payMethod);if(scope.current!==ownerId)return;
+   let granted=await payPackOrder(order,payMethod,context);if(scope.current!==ownerId)return;
    if(!granted&&purchaseType==='SELF'){recheck.current?.abort();const controller=recheck.current=new AbortController();granted=await confirmPackOrderWithRecheck(order.merchantUid,controller.signal,{immediate:false});if(scope.current!==ownerId)return;}
-   if(granted){savePendingPack(ownerId,null);setPendingOrder('');setSelected('');setConsent(false);setMessage('');setCompleted({orderId:order.merchantUid,planId:plan.planId});await refreshWallet();}
+   if(granted){savePendingPack(ownerId,null);setPendingOrder('');setSelected('');setConsent(false);setMessage('');setCompleted({orderId:order.merchantUid,planId:plan.planId,context});await refreshWallet();}
   }catch(error){loginIfNeeded(error);if(error instanceof ServicePackError&&error.code==='PAY_METHOD_UNAVAILABLE')setPayMethodRevision(value=>value+1);setMessage(error instanceof ServicePackError&&error.code==='APP_PACK_NOT_AVAILABLE'?copy.webOnly:copy.confirm);}
   finally{lock.current=false;setBusy(false);}
  };
@@ -135,7 +130,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
   try{
    const granted=await resumePendingPackPurchase(ownerId,resumeConsent,()=>scope.current===ownerId);
    if(scope.current!==ownerId)return;
-   if(granted){savePendingPack(ownerId,null);setPendingOrder('');setMessage('');setCompleted({orderId:stored?.orderId||pendingOrder,planId:stored?.planId||''});await refreshWallet();}
+   if(granted){savePendingPack(ownerId,null);setPendingOrder('');setMessage('');setCompleted({orderId:stored?.orderId||pendingOrder,planId:stored?.planId||'',context:stored?.context?readConsultationContext(new URLSearchParams(stored.context)):context});await refreshWallet();}
   }catch(error){if(scope.current===ownerId&&!releaseUnpaid(pendingOrder,error)){loginIfNeeded(error);setMessage(error instanceof ServicePackError&&error.code==='APP_PACK_NOT_AVAILABLE'?copy.webOnly:copy.confirm);}}
   finally{lock.current=false;setBusy(false);setResumeConsent(false);}
  };
@@ -181,21 +176,17 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
    </>}
   </div>
  </>;
+ const salePlans=catalog.plans.filter(item=>item.totalUses===5&&(!contextual||Boolean(context&&item.eligibleFeatureKeys.includes(context.featureKey))));
  const shopClass=`moon-card rounded-[24px] p-5 sm:p-6 ${styles.shop}`;
- if(!catalog.loading&&!catalog.error&&!catalog.plans.length)return <div id="fish-packs"><ServicePackShowcase locale={locale}/><section className={shopClass} aria-label={copy.owned}>{footer}</section></div>;
- const pricing=resolveServerFeaturePricing({featureKey:MOON_SAMPLE_FEATURE}),divisor=pricing?.monthlyCreditMultiplier;
- const sample=products.find(item=>item.cdFeatureKey===MOON_SAMPLE_FEATURE);
- const moonExample=pricing&&sample&&pricing.membershipCreditCost>0?packText(copy.moonExample,{fish:localizedTier(sample.fishId,locale),system:localizedSystem(sample.domain,locale),price:won(pricing.amountKRW,locale),stones:pricing.membershipCreditCost.toLocaleString(locale)}):'';
+ if(!contextual&&!catalog.loading&&!catalog.error&&!catalog.plans.length)return <div id="fish-packs"><ServicePackShowcase locale={locale}/><section className={shopClass} aria-label={copy.owned}>{footer}</section></div>;
  return <section id="fish-packs" className={shopClass} aria-labelledby="fish-packs-title">
   {/* <header> 는 /points 전역 규칙(body:has(main.moon-shop) header)이 숨기므로 div 를 쓴다. */}
-  <div className="grid gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] sm:items-center">
-   <Image src={ALLIANCE_IMAGE} alt={alliance.imageAlt} width={1200} height={800} sizes="(min-width: 640px) 360px, 100vw" className="h-auto w-full rounded-[18px]"/>
-   <div className="min-w-0">
-    <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">{copy.allianceKicker}</p>
-    <h2 id="fish-packs-title" className="mt-2 text-2xl font-black text-white">{copy.title}</h2>
-    <p className="mt-2 text-sm leading-relaxed text-[color:var(--moon-mist)]">{copy.intro}</p>
-    <p className="mt-3 text-[13px] leading-relaxed text-[color:var(--moon-silver)]"><strong className="text-white">{alliance.title}</strong> · {alliance.story}</p>
-   </div>
+  <div>
+   <p className="text-xs font-bold text-[color:var(--moon-glow)]">{locale==='ko'?'영냥이 상담 이용권':copy.title}</p>
+   <h2 id="fish-packs-title" className="mt-2 text-2xl font-black text-white">{locale==='ko'?(contextual?'같은 범위 5회 이용권':'여러 번 상담하려면, 5회 이용권'):copy.title}</h2>
+   <p className="mt-2 text-sm leading-relaxed text-[color:var(--moon-mist)]">{locale==='ko'?'같은 등급의 지원 상담에 사용할 수 있어요. 사용 기간과 적용 범위를 확인해 주세요.':copy.intro}</p>
+   {context&&<Link href={consultationResumePath(context)} prefetch={false} className={ghost}>{locale==='ko'?'이번 상담으로 돌아가기':copy.goConsult}</Link>}
+   {contextual&&!context&&<p role="alert">{copy.unavailable}</p>}
   </div>
   {completed&&<div ref={completedRef} role="status" data-pack-completed className="mt-5 rounded-[22px] border border-[rgba(94,234,212,0.45)] bg-[rgba(94,234,212,0.08)] p-4 shadow-[0_0_28px_rgba(94,234,212,0.16)]">
    <div className="flex items-center gap-4">
@@ -210,35 +201,26 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
     </div>
    </div>
    <div className="mt-3 flex flex-wrap gap-2">
-    <Link href="/yeongnyangi/fortune/" prefetch={false} className="btn-moonlight inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black !text-white">{copy.goConsult}</Link>
+    <Link href={consultationResumePath(completed.context||context)} prefetch={false} className="btn-moonlight inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black !text-white">{(completed.context||context)&&locale==='ko'?'상담 이어가기':copy.goConsult}</Link>
     <button type="button" className={ghost} onClick={()=>ownedRef.current?.scrollIntoView({behavior:'smooth',block:'start'})}>{copy.viewOwned}</button>
    </div>
   </div>}
-  <section className="moon-plan-card mt-5 rounded-[22px] p-4" aria-labelledby="fish-packs-moon" data-pack-moonstone>
-   <h3 id="fish-packs-moon" className="text-base font-black text-white"><span aria-hidden="true">🌙 </span>{copy.moonTitle}</h3>
-   <ul className="mt-3 grid gap-3 text-sm leading-relaxed text-[color:var(--moon-mist)] sm:grid-cols-3">
-    <li>{copy.moonUsable}</li>
-    {divisor&&divisor>1?<li><strong className="text-white">{alliance.moonstoneValue(divisor)}</strong>{moonExample&&<span className="mt-1 block font-bold text-[color:var(--moon-gold)]">{moonExample}</span>}</li>:null}
-    <li>{policy.policyLine2}</li>
-   </ul>
-  </section>
-  {catalog.loading?<p role="status" className="mt-5 text-sm text-[color:var(--moon-mist)]">{copy.loading}</p>:catalog.error?<p role="alert" className="mt-5 text-sm text-[color:var(--moon-mist)]">{copy.unavailable} <button type="button" className={ghost} onClick={()=>void refreshCatalog()}>{copy.retry}</button></p>:[...new Set(catalog.plans.map(item=>item.fishId))].map(fishId=>{
-   const plans=catalog.plans.filter(item=>item.fishId===fishId).sort((a,b)=>a.totalUses-b.totalUses);
+  {catalog.loading?<p role="status" className="mt-5 text-sm text-[color:var(--moon-mist)]">{copy.loading}</p>:catalog.error?<p role="alert" className="mt-5 text-sm text-[color:var(--moon-mist)]">{copy.unavailable} <button type="button" className={ghost} onClick={()=>void refreshCatalog()}>{copy.retry}</button></p>:[...new Set(salePlans.map(item=>item.fishId))].map(fishId=>{
+   const plans=salePlans.filter(item=>item.fishId===fishId).sort((a,b)=>a.totalUses-b.totalUses);
    return <section key={fishId} className="mt-6" aria-labelledby={`fish-pack-${fishId}`}>
     <h3 id={`fish-pack-${fishId}`} className="mb-3 text-lg font-black text-white">{localizedTier(fishId,locale)}</h3>
-    <div className="grid gap-4">{plans.map((item,index)=>{
-     const savings=item.unitPriceKRW*item.totalUses-item.priceKRW,recommended=plans.length===3&&index===1,planned=locale==='ko'?plannedPackPriceFor(item.fishId,item.unitPriceKRW,item.priceKRW):null;
+    <div className="grid gap-4">{plans.map(item=>{
+     const savings=item.unitPriceKRW*item.totalUses-item.priceKRW;
      const owned=usable.filter(pack=>pack.planId===item.planId),ownedLeft=owned.reduce((sum,pack)=>sum+pack.remainingUses,0);
-     return <article key={item.planId} data-pack-plan={item.planId} className={`moon-plan-card rounded-[22px] p-4 ${recommended?'ring-2 ring-[color:var(--moon-glow)]':''}`}>
+     return <article key={item.planId} data-pack-plan={item.planId} className={`moon-plan-card rounded-[22px] p-4`}>
       <div className="grid gap-4 sm:grid-cols-[128px_1fr_auto] sm:items-center">
        <div className="relative h-28 w-28 sm:h-32 sm:w-32">
         <Image src={SERVICE_PACK_IMAGES[item.fishId]} alt="" width={240} height={240} sizes="(min-width: 640px) 128px, 112px" loading="lazy" className="h-full w-full object-contain"/>
-        {owned.length?<Image src={APPLIED_STAMP_IMAGES.yeongnyangi} alt="" width={120} height={120} sizes="64px" loading="lazy" data-applied-stamp className="absolute -bottom-2 -right-4 h-16 w-16 object-contain drop-shadow-[0_4px_8px_rgba(3,4,18,0.42)]"/>:recommended&&<Image src={RECOMMEND_IMAGE} alt="" width={120} height={120} sizes="64px" loading="lazy" className="absolute -bottom-2 -right-4 h-16 w-16 object-contain drop-shadow-[0_4px_8px_rgba(3,4,18,0.42)]"/>}
+        {owned.length?<Image src={APPLIED_STAMP_IMAGES.yeongnyangi} alt="" width={120} height={120} sizes="64px" loading="lazy" data-applied-stamp className="absolute -bottom-2 -right-4 h-16 w-16 object-contain drop-shadow-[0_4px_8px_rgba(3,4,18,0.42)]"/>:null}
        </div>
        <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
          <h4 className="text-lg font-black text-white">{packName(item,locale)}</h4>
-         {recommended&&<span className="rounded-full bg-[rgba(129,140,248,0.16)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-family)]">{copy.recommend}</span>}
          {owned.length>0&&<span data-pack-owned className="rounded-full bg-[rgba(94,234,212,0.14)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-teal)]">{packText(copy.ownedBadge,{remaining:ownedLeft})}</span>}
         </div>
         <p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">{packText(copy.cardSubtitle,{days:item.validityDays})}</p>
@@ -250,11 +232,10 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
         <p className="mt-2 text-xs leading-relaxed text-[color:var(--moon-mist)]">{copy.eligible}: {eligibleNames(item.eligibleFeatureKeys,locale)}</p>
        </div>
        <div className="flex flex-col gap-3 sm:min-w-[176px] sm:items-end">
-        {planned!==null&&<p className="text-sm font-bold text-[color:var(--moon-silver)]"><LaunchPlannedPrice amount={planned}/></p>}
         <p className="text-2xl font-black text-[color:var(--moon-gold)]">{won(item.priceKRW,locale)}</p>
         {overseasCharge?.approx(item.priceKRW)?<p className="text-xs font-bold text-[color:var(--moon-mist)]">{overseasCharge.approx(item.priceKRW)}</p>:null}
-        <button type="button" disabled={busy||Boolean(pendingOrder)} onClick={()=>openPurchase(item.planId,'SELF')} className="btn-moonlight inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">{copy.buyCta}</button>
-        {catalog.giftEnabled&&<>
+        <button type="button" disabled={busy||Boolean(pendingOrder)||isMobileAppRuntime()} onClick={()=>openPurchase(item.planId,'SELF')} className="btn-moonlight inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">{copy.buyCta}</button>
+        {!contextual&&catalog.giftEnabled&&<>
          <p className="mt-2 flex items-center justify-center gap-1 text-center text-[11px] font-bold text-[color:var(--moon-mist)]"><ShopPigImage className="h-4 w-4 object-contain"/>{copy.giftPromo}</p>
          <button type="button" disabled={busy||Boolean(pendingOrder)||isMobileAppRuntime()} onClick={()=>openPurchase(item.planId,'GIFT')} className="mt-1 min-h-11 w-full rounded-xl border border-current px-3 py-2 text-sm font-bold disabled:opacity-50">{copy.giftCta}</button>
         </>}
@@ -326,13 +307,13 @@ function CheckoutPassSummary({locale,flower,pack,applied}:{locale:LoadingLocale;
  return <section className={styles.passes} aria-labelledby="checkout-passes-title" data-checkout-passes>
   <h2 id="checkout-passes-title">{copy.passesTitle}</h2>
   <div className={styles.passGrid}>
-   <div className={styles.passTile} data-checkout-pass="flower" data-applied={family?'true':'false'}>
-    <div className={styles.passArt}>{owned?<><HoneyPassArtwork tier={flower.tier} className="h-14 w-14" sizes="56px"/>{family&&<Image src={APPLIED_STAMP_IMAGES.flower} alt="" width={120} height={120} sizes="36px" data-applied-stamp className={styles.passStamp}/>}</>:<HoneyPassArtwork tier="standard" className={`h-14 w-14 ${styles.passMuted}`} sizes="56px"/>}</div>
-    <div><p className={styles.passKind}>{copy.flowerPass}</p>{owned?<><strong>{getPassTierLabel(flower.tier,locale)||flower.tier}</strong>{family&&<p className={styles.passOn}>{copy.applied}</p>}<p>{family?copy.flowerFamilyApply:copy.flowerFamilyOnly}</p></>:<p>{copy.flowerNone}</p>}</div>
+   <div className={styles.passTile} data-checkout-pass="flower" data-applied="false">
+    <div className={styles.passArt}>{owned?<><HoneyPassArtwork tier={flower.tier} className="h-14 w-14" sizes="56px"/></>:<HoneyPassArtwork tier="standard" className={`h-14 w-14 ${styles.passMuted}`} sizes="56px"/>}</div>
+    <div><p className={styles.passKind}>{copy.flowerPass}</p>{owned?<><strong>{getPassTierLabel(flower.tier,locale)||flower.tier}</strong>{family&&<p className={styles.passOn}>{locale==='ko'?'사용 가능 여부 확인':copy.flowerFamilyApply}</p>}<p>{family?copy.flowerFamilyApply:copy.flowerFamilyOnly}</p></>:<p>{flower?.state==='none'&&!flower.stale?copy.flowerNone:locale==='ko'?'Family 보유 여부는 사용 시 확인해요.':'Family eligibility will be checked when selected.'}</p>}</div>
    </div>
-   <div className={styles.passTile} data-checkout-pass="yeongnyangi" data-applied={pack?'true':'false'}>
-    <div className={styles.passArt}>{pack?<><Image src={SERVICE_PACK_IMAGES[pack.fishId]} alt="" width={240} height={240} sizes="56px"/><Image src={APPLIED_STAMP_IMAGES.yeongnyangi} alt="" width={120} height={120} sizes="36px" data-applied-stamp className={styles.passStamp}/></>:<Image src={SERVICE_PACK_IMAGES.mackerel} alt="" width={240} height={240} sizes="56px" className={styles.passMuted}/>}</div>
-    <div><p className={styles.passKind}>{copy.packPass}</p>{pack?<><strong>{packName(pack,locale)}</strong><p className={styles.passOn}>{applied===null?copy.applied:packText(copy.packApplied,{remaining:applied})}</p>{applied===null&&<><p>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</p><p>{copy.packUsable}</p></>}</>:<p>{copy.packNone}</p>}</div>
+   <div className={styles.passTile} data-checkout-pass="yeongnyangi" data-applied={applied!==null?'true':'false'}>
+    <div className={styles.passArt}>{pack?<><Image src={SERVICE_PACK_IMAGES[pack.fishId]} alt="" width={240} height={240} sizes="56px"/>{applied!==null&&<Image src={APPLIED_STAMP_IMAGES.yeongnyangi} alt="" width={120} height={120} sizes="36px" data-applied-stamp className={styles.passStamp}/>}</>:<Image src={SERVICE_PACK_IMAGES.mackerel} alt="" width={240} height={240} sizes="56px" className={styles.passMuted}/>}</div>
+    <div><p className={styles.passKind}>{copy.packPass}</p>{pack?<><strong>{packName(pack,locale)}</strong><p className={styles.passOn}>{applied===null?copy.packUsable:packText(copy.packApplied,{remaining:applied})}</p>{applied===null&&<><p>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</p></>}</>:<p>{copy.packNone}</p>}</div>
    </div>
   </div>
  </section>;

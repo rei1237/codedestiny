@@ -190,7 +190,7 @@ export default function Consultation(){
     if(typeof draft.extraTime==='string')setExtraTime(draft.extraTime);
     if(typeof draft.extraPlace==='string')setExtraPlace(draft.extraPlace);
     if(draft.topicId==='general'||Object.hasOwn(topicCatalog,draft.topicId))setTopicId(draft.topicId);
-    if(draft.questionDecision?.version===QUESTION_POLICY_VERSION){try{setDecision(questionDecision(draft.questionDecision));setQuestionMode(true);}catch{/* Unknown draft contracts are ignored. */}}
+    if(draft.questionDecision?.version===QUESTION_POLICY_VERSION){try{if(draft.editScope){setScopeDraft({...questionDecision(draft.questionDecision),confirmed:false});setDecision(undefined);}else setDecision(questionDecision(draft.questionDecision));setQuestionMode(true);}catch{/* Unknown draft contracts are ignored. */}}
     if(typeof draft.question==='string')setQuestion(draft.question.slice(0,1000));
     if(draft.voiceStyle==='honorific')setVoiceStyle('honorific');
     if(draft.tarotPlan)setTarotPlan(restoreTarotPlan(draft.tarotPlan));

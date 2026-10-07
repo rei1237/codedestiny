@@ -244,18 +244,16 @@ test('ask checkpoint requires active Family evidence and an unexpired lease',asy
   await expect(repo.saveAskAnalysis({},owner,'id',token,analysis)).rejects.toThrow();
 });
 
-test('Family access consumes once, persists proof, and remains readable after pass expiry',async()=>{
+test('explicit Family proof attaches once and remains readable after pass expiry',async()=>{
   payments=[];familyUser={_id:owner,profileSubscription:{tier:'family',passTier:'family',isActive:true,expiresAt:'2026-10-23T00:00:00.000Z'}};
-  consumePass.mockImplementation(async()=>{
-    if(!evidences.length)evidences.push({_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:values.featureKey,metadata:{requestId:'id',accessMethod:'FAMILY'}});
-    return {covered:true,replayed:evidences.length>1,coverage:{cycleKey:'2026-10-23T00:00:00.000Z'}};
-  });
+  evidences.push({_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:values.featureKey,metadata:{requestId:'id',accessMethod:'FAMILY',passCycleKey:'2026-10-23T00:00:00.000Z'}});
   await repo.createRequest({},owner,'id',values);
   const [a,b]=await Promise.all([repo.attachPayment({},owner,'id',1000),repo.attachPayment({},owner,'id',1000)]);
   expect(a.accessMethod||b.accessMethod).toBe('FAMILY');
   expect(requests[0]).toMatchObject({accessMethod:'FAMILY',passCoinCost:10,passCycleKey:'2026-10-23T00:00:00.000Z',state:'PAID'});
   familyUser.profileSubscription={tier:'free',isActive:false,expiresAt:'2026-09-23T00:00:00.000Z'};
   expect((await repo.readRequest({},owner,'id')).accessMethod).toBe('FAMILY');
+  expect(consumePass).not.toHaveBeenCalled();
 });
 
 test('a tarot order awaiting its draw cannot be funded, and the draw commits once',async()=>{
@@ -1004,4 +1002,11 @@ describe('fortune-chat per-use access',()=>{
     expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
     expect(accounts[0]).toMatchObject({freeUsed:1,trialRequestIds:['fc-id']});
   });
+});
+
+test('Family ownership alone does not automatically consume a benefit',async()=>{
+  payments=[];familyUser={_id:owner,profileSubscription:{tier:'family',passTier:'family',isActive:true}};
+  await repo.createRequest({},owner,'id',values);
+  await expect(repo.attachPayment({},owner,'id',1000)).rejects.toMatchObject({status:402});
+  expect(consumePass).not.toHaveBeenCalled();expect(evidences).toHaveLength(0);
 });

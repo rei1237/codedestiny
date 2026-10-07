@@ -2262,7 +2262,7 @@ function __cdEnsureSajuCoreLoaded() {
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a581a74ee045',
     '/js/core/saju/basicFortunePresentation.js?v=build-0717901ec907',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
-    '/js/core/saju/reportDashboard.js?v=build-96ed26f444cb',
+    '/js/core/saju/reportDashboard.js?v=build-d962fee599da',
     '/js/saju-engine-continuation.js?v=build-b10118108171',
     '/js/entertain-engine.js?v=build-f5e79aa14176',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
@@ -2289,7 +2289,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-46f5f9da0923')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-aa2dee9ca2be')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -5825,13 +5825,8 @@ var _DF_ATELIER_LOCK_KEY = 'flower-fc';
  * 있으면 타일을 정본으로 쓰고, 없으면(홈이 아닌 화면에서 스튜디오를 연 경우) 해금 키만 본다.
  */
 function _dfIsFlowerAtelierUnlocked() {
-  var tile = document.querySelector('[data-tile-lock-key="' + _DF_ATELIER_LOCK_KEY + '"]');
-  if (tile) {
-    var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
-    if (!(lockCost > 0)) return true;
-    if (tile.classList && tile.classList.contains('tarot-tile--tileUnlocked')) return true;
-  }
-  return _dfIsLockKeyUnlocked(_DF_ATELIER_LOCK_KEY);
+  // 2026-10-08: all flower sources are free; server authentication and calculation remain.
+  return true;
 }
 
 function _dfIsSourcePaidUnlocked(source) {
@@ -7578,31 +7573,8 @@ function _dfIsSourceUnlocked(source) {
 }
 
 function _dfRequirePaidSourceUnlock(source) {
-  var normalized = _dfNormalizeSource(source);
-  var lockTile = _dfResolveLockTileBySource(normalized);
-  if (!lockTile) return true;
-
-  var lockKey = lockTile.getAttribute('data-tile-lock-key') || '';
-  var lockCost = Number(lockTile.getAttribute('data-tile-lock-cost') || 0);
-  if (!lockKey || lockCost <= 0) return true;
-  if (_dfIsLockKeyUnlocked(lockKey)) return true;
-  if (lockTile.classList && lockTile.classList.contains('tarot-tile--tileUnlocked')) return true;
-
-  if (!lockTile.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function') {
-    try {
-      if (window._cdOpenTilePreview(lockTile)) return false;
-    } catch (_) {}
-  }
-
-  if (!__cdHasAuthToken()) {
-    if (window.confirm(_indexRuntimeText("indexRuntime.confirm.003"))) {
-      window.location.href = '/login?next=%2F';
-    }
-    return false;
-  }
-
-  window.alert('운명의 꽃 아틀리에는 해금 후 이용할 수 있습니다.');
-  return false;
+  // 2026-10-08: all flower sources are free; server authentication and calculation remain.
+  return true;
 }
 
 /**

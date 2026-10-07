@@ -1,4 +1,5 @@
 import { isChatFeatureKey } from '../../lib/fortune/chat-products.js';
+import { assertFeatureEnabled } from '../lib/billing-feature-registry.js';
 /**
  * 단계 ② 주문 생성 · ⑤ 주문 확정. **이 시스템의 모든 CAS 조건이 여기에만 있다.**
  *
@@ -104,6 +105,8 @@ export async function createOrder(db, {
 }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
+  const enabled = assertFeatureEnabled(product);
+  if (!enabled.ok) throw paymentError(enabled.code, enabled.message);
   let fortunePaymentGeneration;
   if (product.fulfillmentType!=='service_pack' && String(product.featureKey || '').startsWith('yeongnyangi-')) {
     const {assertFortunePaymentIntent}=await import('../yeongnyangi/payment-intent.js');

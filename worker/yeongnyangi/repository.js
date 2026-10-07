@@ -382,16 +382,10 @@ export async function attachPayment(env, userId, requestId, expectedCharge, opti
   const {User,resolveCanonicalEntitlement}=await loadFamilyIdentity();
   const user=await withMongoRetry(env,()=>User.findById(ownerId(userId)).lean(),readOptions);
   const entitlement=resolveCanonicalEntitlement(user || {});
-  let consumed=null;
-  if(!evidence) {
-    if(String(entitlement?.passTier || entitlement?.tier || '').toLowerCase()!=='family')throw failure(402,'FAMILY_OR_DIRECT_PAYMENT_REQUIRED');
-    const {consumePassForFeature}=await loadFamilyLedger();
-    consumed=await consumePassForFeature({user,entitlement,userId,featureKey:current.featureKey,requestId:'yn-'+requestId,coinCost});
-    if(!consumed.covered)throw failure(402,consumed.reason==='monthly_pass_limit_exceeded'?'MONTHLY_PASS_LIMIT_EXCEEDED':'PAYMENT_REQUIRED');
-    evidence=await withMongoRetry(env,()=>findNonCashEvidence(current,userId),readOptions);
-    if(!evidence)throw failure(503,'PAYMENT_EVIDENCE_PENDING');
-  }
-  const meta=evidence.metadata || {},coverage=consumed?.coverage || {};
+  // Access recovery only attaches durable proof. A new Family use requires the
+  // explicit MEMBERSHIP_PASS selection through the shared billing gate.
+  if(!evidence)throw failure(402,'FAMILY_OR_DIRECT_PAYMENT_REQUIRED');
+  const meta=evidence.metadata || {},coverage={};
   const tier=String(meta.passTier || coverage.tier || entitlement.passTier || entitlement.tier || 'family');
   const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:ownerId(userId),paymentId:null,
     $or:[{accessMethod:null},{accessMethod:{$exists:false}}]},{$set:{accessMethod:'FAMILY',passEvidenceId:evidence._id,

@@ -464,7 +464,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-f8fd1b68e255";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-4094433f67b2";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1210,6 +1210,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const monthlyRewardHtml = `<span class="cd-direct-payment-reward__copy"><span class="cd-direct-payment-reward__eyebrow">${escapePaymentText(checkoutEntry.text("payment.directModal.monthlyReward.eyebrow", "보유 보상으로 이용"))}</span><span class="cd-direct-payment-reward__title">${escapePaymentText(checkoutEntry.text("payment.directModal.monthlyReward.title", "이용권 혜택·이벤트/마케팅·확정된 오류 제보 보상으로 받을 수 있어요."))}</span><span class="cd-direct-payment-reward__detail">${escapePaymentText(checkoutEntry.text("payment.directModal.monthlyReward.detail", "보유분으로 열면 추가 결제 없이 바로 이용할 수 있어요."))}</span></span>`;
   // 어느 카드를 추천으로 올릴지는 셸·독립 정적과 공유하는 순수 함수 하나가 정한다. 서버를 부르지 않는다.
   const checkoutRecommendation = checkoutEntry.resolveCheckoutRecommendation({
+    amountKRW: coinPrice * 100,
     allowPass: canShowPassStore,
     allowDirect: canShowDirect,
     allowMonthly: canShowMonthly,

@@ -73,6 +73,10 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
             >
               AI PREMIUM COMPATIBILITY CONSULTATION
             </p>
+            <div className={styles.hanbiGuide}>
+              <Image src="/images/consultation/seo-hanbi-tiger-v1-480.webp" alt={locale==='ko'?'책을 펼친 검은 호랑이, 서한비의 동물 모습':'Seo Hanbi in her black tiger form, holding a book'} width={240} height={258}/>
+              <div><p>{locale==='ko'?'인연의 서를 읽어주는 서한비':'Seo Hanbi, your Love Codex guide'}</p><p>{locale==='ko'?'라이트노벨 속 그녀가, 장난기 있는 호랑이의 모습으로 함께해요.':'The same character from the novel, now in her playful tiger form.'}</p></div>
+            </div>
             <h2 className={`${styles.hero} mt-6`}>Master Love Codex</h2>
             <p className={`${styles.actTitle} mt-5`}>{soloTitle}</p>
             <hr className={`${styles.rule} ${styles.ruleShort} mt-9`} />
