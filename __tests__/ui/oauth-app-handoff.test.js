@@ -25,8 +25,10 @@ test('success and failure handoffs launch once and retain a manual return link w
     const html = await response.text();
     assert.doesNotMatch(html, /로그인이 완료되었습니다/);
     const navigations = [], timers = [], attrs = {};
+    const location = { replace: value => navigations.push(value) };
+    Object.defineProperty(location, 'href', { set: value => navigations.push(value) });
     vm.runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1], {
-      location: { replace: value => navigations.push(value) },
+      location,
       document: { getElementById: () => ({ setAttribute: (key, value) => { attrs[key] = value; } }) },
       setTimeout: fn => timers.push(fn),
     });
@@ -63,8 +65,11 @@ test('Chrome can block automatic return without losing the manual intent link or
   const html = await response.text();
   const attrs = {}, timers = [];
   let launches = 0;
+  const blockedNavigation = () => { launches++; throw new Error('Navigation blocked'); };
+  const location = { replace: blockedNavigation };
+  Object.defineProperty(location, 'href', { set: blockedNavigation });
   vm.runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1], {
-    location: { replace: () => { launches++; throw new Error('Navigation blocked'); } },
+    location,
     document: { getElementById: () => ({ setAttribute: (key, value) => { attrs[key] = value; } }) },
     setTimeout: fn => timers.push(fn),
   });
