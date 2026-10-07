@@ -45,7 +45,7 @@ test('persona selector falls back to Yeongnyangi and the chat voices stay free o
  assert.match(m.yeongnyangiPersona,/결론의 방향을 바꾸지 않는다/);
  assert.match(m.yeongnyangiPersona,/확정 예언은 금지/);
  // Blunt first: each section opens on a judgment, and directness never trims the required length.
- assert.match(m.yeongnyangiPersona,/첫 문장은[^\n]*판단으로 시작한다/);
+ assert.match(m.yeongnyangiPersona,/첫 답변에서는[^\n]*구체적으로 알아주며 바로 답한다/);
  assert.match(m.yeongnyangiPersona,/직설은 분량을 줄이라는 뜻이 아니다/);
 });
 
@@ -144,7 +144,7 @@ test('the 존댓말 voice keeps every Yeongnyangi rule and changes only the regi
  const lines=[m.yeongnyangiPersona.split('\n'),honorific.split('\n')];
  assert.equal(lines[1].length,lines[0].length);
  for(const n of [0,4,7,8,9,10])assert.equal(lines[1][n],lines[0][n],`line ${n+1} is register-free`);
- for(const rule of [/결론의 방향을 바꾸지 않는다/,/확정 예언은 금지/,/첫 문장은[^\n]*판단으로 시작한다/,/직설은 분량을 줄이라는 뜻이 아니다/])assert.match(honorific,rule);
+ for(const rule of [/결론의 방향을 바꾸지 않는다/,/확정 예언은 금지/,/첫 답변에서는.*구체적으로 알아주며 바로 답한다/,/직설은 분량을 줄이라는 뜻이 아니다/])assert.match(honorific,rule);
 });
 
 test('voiceStyle: only a Korean Yeongnyangi honorific order changes the identity, snapshot and prompt',async()=>{

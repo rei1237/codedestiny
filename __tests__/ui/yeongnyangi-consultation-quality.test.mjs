@@ -85,6 +85,8 @@ test('all personas and prices receive identical grounded recognition on the real
    const guide=JSON.parse(sent.domainRules).recognition;
    assert.equal(guide.version,m.RECOGNITION_VERSION);
    assert.equal(guide.placement,'opening');
+   assert.match(sent.system,/첫 답변에서/);
+   assert.match(sent.system,/지키려는/);
    assert.match(guide.delivery,/questionAnswers.answer/);
    assert.ok(guide.lenses.length,domain);
    const allowed=new Set(sent.calculatedData.facts.map(f=>f.id));
