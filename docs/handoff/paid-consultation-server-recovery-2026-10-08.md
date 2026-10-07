@@ -58,7 +58,7 @@ Mongo 풀의 waitQueueTimeoutMS는 소켓 대기에 대한 한도다. 풀을 키
 ## 다음 세션 실행 순서
 
 1. `CLAUDE.md`를 읽고 `git status --short`, 최신 main 확인. 동시 작업이면 `scripts/create-safe-worktree.ps1` 사용. 이 문서와 관련 심볼만 읽는다.
-2. 읽기 전용으로 운영 `/api/version`, `/version.json`, 실제 Worker 버전/route/binding/cron 목록을 대조한다. 이번 조사 중 앞서 조회한 운영 SHA는 `c4465b9ec3e9f58ffc1fae07ca5ee975b4cabbb4`였지만 이후 바뀔 수 있다. 현재 SHA로 간주하지 않는다.
+2. 읽기 전용으로 운영 `/api/version`, `/version.json`, 실제 Worker 버전/route/binding/cron 목록을 대조한다. 2026-10-08 마지막 읽기 전용 조회에서 두 공개 버전 API는 `f337fe5cba14a0e67a7ceede6e6cc1c4af626595`로 일치했다. Git 조상 대조상 최초 이용권 enum/차감 수정 `5b1a4bffe909b630cf2efef7b7703be4211bcf47`은 포함되지만 전문가 상담 확대 `6f272525f`와 질문 우선·분량 확장 `dea68d562`는 포함되지 않았다. 버전 표시는 고객 성공 증거가 아니며 다음 세션에서 다시 조회한다. 이 세션은 운영 승격을 실행하지 않았다.
 3. 최근 24시간과 직전 7일의 비교 수치를 모은다: 서비스별 ensure-access/start/result 상태코드, DB_DEGRADED·admission/checkout/selection timeout, 제공사 429/5xx/timeout, 저장 실패, 생성 partial/완료 수, 복구 대상 최고 대기시간과 회차별 진행 수. 고객 주문/개인정보/원문/토큰을 로그 산출물에 넣지 않는다.
 4. 가능하면 고객 주문번호·발생 시각을 보안 관리 화면에서 확인하고, 소유자 범위의 주문 → 구매 시점 이용권 버전/잔액 → 사용 증빙 → 상담 상태/저장 파트를 연결한다. 데이터가 없으면 추측을 고객 원인으로 확정하지 않는다.
 5. Worker Cron 과거 실행, `[consultation-recovery]` outcome, CPU/wall time/예외 상태를 확인한다. HTTP `waitUntil`만으로 장문 생성 전체가 계속된다고 가정하지 않는다. `resumeConsultationOnServer`가 원본 요청과 저장 파트를 사용하고 동시 lease를 존중하는지 대조한다.
@@ -98,4 +98,16 @@ node node_modules/jest/bin/jest.js --runInBand __tests__/worker/saju-consultatio
 - 원본 이용권 수정 `5b1a4bffe909b630cf2efef7b7703be4211bcf47`, 상담 확대·신년운세·타로 수정 병합 `6dd2947d0b0229ed5726173f52638ecdb4f9fbd6`, 구성 테스트 `6263c402c6fd22466a9b2a000d0fabd27e70bc72`, 사이트맵 원장 `3197e4c4b66e0e1fd5e338c3118e14ecfe2bf580` 모두 원격 main에 전달됐다. 과거 GitHub push 오류는 해소됐다.
 - 로컬 집중 검증 206 Jest + 84 Node + 9 주의사항 테스트 통과. 정책/상담 흐름/worker 미선언 식별자/사이트맵 검증 통과. mock 브라우저 390px/1440px에서 질문 답변 렌더와 가로 overflow 없음 확인. Naver 실기기·실 LLM·운영 DB 검증은 하지 않았다.
 - [6263c402 CI](https://github.com/rei1237/codedestiny/actions/runs/37644085874): 타입/린트·Pages/Worker 빌드·Critical checks·정적 UI 2,984건 통과. 이후 발견된 생성 원장 불일치는 정본 생성기로 수정했고, [3197e4c4 CI](https://github.com/rei1237/codedestiny/actions/runs/37645629776)에서 사이트맵을 포함한 후속 가드를 통과했다. 이 실행은 이 문서의 next 메타데이터 누락에서 중단되어 해당 필드를 보완했다. 최종 CI required는 보완된 최신 SHA에서 확인한다.
+- 최신 코드 기준 `13db6be3cce956553975fd7178521277709cdc55`의 [main CI](https://github.com/rei1237/codedestiny/actions/runs/37650520852)를 확인한다. 직전 `b13097450`에서 빌드·타입/린트·Critical checks·Paid Flow Gates는 통과했으나 다른 세션의 가격 변경에 따른 3개 UI 기대값 오류로 전체 CI는 실패했다. 이 3개를 담당 세션이 `13db6be3c`에서 수정·푸시했다. 실제 홈 가격 정합성·12개 언어 가격 검사·인수인계 169개 검사는 추가로 통과했다. 중복 가격 수정은 채택하지 않고 기존 main 수정만 유지했으며 중복 워크트리는 삭제했다.
 - main에는 다른 세션의 초융합·진입 화면 개선도 포함돼 있다. 운영 승격은 전체 대상 SHA의 검증과 별도 승인이 필요하다. 임시 워크트리는 main 통합 후 정리한다.
+
+## 바로 재개할 정보
+
+- 작업 디렉터리: `D:\Development\code-destiny`
+- 문서: `D:\Development\code-destiny\docs\handoff\paid-consultation-server-recovery-2026-10-08.md`
+- 코드 확인 기준: `13db6be3cce956553975fd7178521277709cdc55` (원격 main에 푸시됨). 다음 세션은 최신 main과 이 커밋 포함 여부를 확인한다.
+- 첫 행동: 운영 버전·Worker cron·DB 및 생성 오류·미완료 상담 대기를 읽기 전용으로 대조하고 근거별 설정 변경안을 작성한다. 실 호출·운영 쓰기·승격은 별도 승인 후에만 실행한다.
+
+```text
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-consultation-server-recovery-2026-10-08.md를 읽고, 다른 세션의 변경을 보존하면서 main에 13db6be3cce956553975fd7178521277709cdc55가 포함되는지 확인하라. 운영 버전·cron 실행·DB 시간초과·생성 오류·미완료 상담 대기를 읽기 전용으로 조사하여 원인별 설정안과 검증·롤백 계획을 제시하라. 불명확한 운세 해석 규칙은 사용자에게 물어보고 결정하라.
+```
