@@ -324,8 +324,7 @@ let compareHiddenStemTable = null;
    */
   const CLASSIFIED = new Map([
     ["lib/saju/myeongri-tables.js::ZHI_HIDE_GAN", { order: "main-first" }],
-    // Browser bundle imports the canonical table through reading-depth.mjs.
-    // Keep checking every value and its order; generation is not an exemption.
+    // Browser bundle generated from the canonical import; compare every branch and its order below.
     ["js/core/saju/reading-depth.generated.js::ZHI_HIDE_GAN", { order: "main-first" }],
     ["worker/lib/saju-ai-prompt.js::HIDDEN_STEMS_BY_BRANCH", { order: "main-first" }],
     ["worker/routes/new-year-ai.js::HIDDEN_STEMS", { order: "main-first" }],
