@@ -786,9 +786,9 @@
   ],
   "back": {
     "id": "back",
-    "artId": "back-C",
-    "file": "phase1/sym/b06-back-c3-flat-sym2.png",
-    "sha256": "e580e4d8d179aeaae77b3138db5de66c0196540457692ab46283575f895c997a",
+    "artId": "back-linen-v2",
+    "file": "sources/back-linen-v2.png",
+    "sha256": "f0e589aa2b64db39a23aa571913ae6da23193c6af75b702ce366bbf31858e8a3",
     "gaze": "point-symmetric"
   },
   "frame": {
