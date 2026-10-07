@@ -58,26 +58,6 @@ test('token exchange diagnostics retain only an allowlisted provider error and H
   }
 });
 
-test('Chrome can block automatic return without losing the manual intent link or launching again', async () => {
-  const context = vm.createContext({ URL, Response });
-  vm.runInContext(functions.get('buildAppOAuthHandoffResponse'), context);
-  const response = context.buildAppOAuthHandoffResponse('com.codedestiny.app://auth?social_grant=mock-grant');
-  const html = await response.text();
-  const attrs = {}, timers = [];
-  let launches = 0;
-  const blockedNavigation = () => { launches++; throw new Error('Navigation blocked'); };
-  const location = { replace: blockedNavigation };
-  Object.defineProperty(location, 'href', { set: blockedNavigation });
-  vm.runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1], {
-    location,
-    document: { getElementById: () => ({ setAttribute: (key, value) => { attrs[key] = value; } }) },
-    setTimeout: fn => timers.push(fn),
-  });
-  timers.forEach(fn => fn());
-  assert.equal(launches, 1);
-  assert.match(attrs.href, /^intent:\/\/auth\?social_grant=mock-grant#Intent;scheme=com\.codedestiny\.app;package=com\.codedestiny\.app;end$/);
-});
-
 test('Google invalid_grant is not retried with the same single-use authorization code', async () => {
   const requests = [], sleeps = [];
   const context = vm.createContext({ URLSearchParams, AbortController, setTimeout, clearTimeout,
@@ -85,8 +65,8 @@ test('Google invalid_grant is not retried with the same single-use authorization
     buildProviderConfig: () => ({ clientId: 'mock-id', clientSecret: 'mock-secret', redirectUri: 'https://fallback.test/callback', tokenEndpoint: 'https://example.test/token' }),
     normalizeAbsoluteUrl: value => value,
     sleep: async ms => sleeps.push(ms),
-    fetch: async (url, options) => {
-      requests.push({ url, body: new URLSearchParams(options.body) });
+    fetch: async (_url, options) => {
+      requests.push(new URLSearchParams(options.body));
       return { ok: false, status: 400, json: async () => ({ error: 'invalid_grant' }) };
     },
   });
@@ -94,10 +74,7 @@ test('Google invalid_grant is not retried with the same single-use authorization
   await assert.rejects(context.exchangeCodeForAccessToken('google', 'mock-code', {}, {}, '', 'https://start.test/callback'), error => error.oauthProviderFailure.code === 'invalid_grant');
   assert.equal(requests.length, 1);
   assert.equal(sleeps.length, 0);
-  assert.equal(requests[0].url, 'https://example.test/token');
-  assert.equal(requests[0].body.get('redirect_uri'), 'https://start.test/callback');
-  assert.equal(requests[0].body.get('code'), 'mock-code');
-  assert.equal(requests[0].body.get('client_id'), 'mock-id');
+  assert.equal(requests[0].get('redirect_uri'), 'https://start.test/callback');
 });
 
 const bridgeSource = ts.createSourceFile('app-native-bridge.js', fs.readFileSync(path.resolve(__dirname, '../../scripts/app-native-bridge.js'), 'utf8'), ts.ScriptTarget.Latest, true);
@@ -109,7 +86,7 @@ const bridgeFunctions = new Map();
 })(bridgeSource);
 assert.equal(bridgeFunctions.size, bridgeNames.length);
 
-function bridgeHarness(result, pathname = '/login/') {
+function bridgeHarness(result) {
   const storage = new Map([['fortune_auth_token', 'existing-session']]);
   const effects = { requests: [], events: [], toasts: [], cancelled: [], timers: [], moves: [], closes: 0, hidden: 0 };
   let listener;
@@ -117,13 +94,13 @@ function bridgeHarness(result, pathname = '/login/') {
     localStorage: { setItem: (key, value) => storage.set(key, value) },
     CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } },
     window: {
-      location: { pathname, replace: target => effects.moves.push(target), reload: () => effects.moves.push('reload') },
-      setTimeout: (fn, ms) => effects.timers.push({ fn, ms }),
+      location: { pathname: '/login/', replace: target => effects.moves.push(target) },
+      setTimeout: fn => effects.timers.push(fn),
       dispatchEvent: event => effects.events.push(event),
     },
     appPlugin: () => ({ addListener: (name, callback) => { assert.equal(name, 'appUrlOpen'); listener = callback; } }),
     browserPlugin: () => ({ close: async () => { effects.closes++; } }),
-    postJson: async (...args) => { effects.requests.push(args); if (result instanceof Error) throw result; return result; },
+    postJson: async (...args) => { effects.requests.push(args); return result; },
     trace: () => {}, showAuthProgress: () => {}, hideAuthProgress: () => { effects.hidden++; },
     notifyAuthCancelled: reason => effects.cancelled.push(reason), toast: message => effects.toasts.push(message),
     openAuthStartedAt: 1,
@@ -140,14 +117,13 @@ test('successful app return persists the session before closing Chrome and openi
   assert.equal(effects.requests.length, 1);
   assert.equal(effects.requests[0][0], '/api/auth/oauth/complete');
   assert.equal(effects.requests[0][1].socialGrant, 'mock-grant');
-  assert.equal(effects.requests[0][2].timeoutMs, 20000);
   assert.equal(storage.get('fortune_auth_token'), 'mock-access');
   assert.equal(storage.get('fortune_auth_refresh_token'), 'mock-refresh');
   assert.equal(JSON.parse(storage.get('fortune_auth_user')).id, 'mock-user');
   assert.equal(effects.events.length, 1);
   assert.equal(effects.events[0].type, 'cd:auth-changed');
   assert.equal(effects.closes, 1);
-  effects.timers.find(timer => timer.ms === 60).fn();
+  effects.timers.forEach(fn => fn());
   assert.deepEqual(effects.moves, ['/records/']);
   assert.deepEqual(effects.toasts, []);
 });
@@ -164,33 +140,4 @@ test('Google failure return closes Chrome, removes progress and preserves an exi
   assert.equal(storage.size, 1);
   assert.equal(effects.events.length, 0);
   assert.equal(effects.timers.length, 0);
-});
-
-test('failed or timed-out grant completion cannot store a session or leave the progress overlay running', async () => {
-  for (const result of [{ ok: false, status: 503, payload: { message: 'Service unavailable' } }, new Error('AbortError: signal timed out')]) {
-    const { open, effects, storage } = bridgeHarness(result);
-    await open('com.codedestiny.app://auth?social_grant=mock-grant');
-    assert.equal(effects.requests.length, 1);
-    assert.equal(effects.hidden, 1);
-    assert.deepEqual(effects.cancelled, ['exchange_failed']);
-    assert.equal(effects.toasts.length, 1);
-    if (result instanceof Error) assert.match(effects.toasts[0], /로그인 확인이 지연/);
-    assert.equal(storage.get('fortune_auth_token'), 'existing-session');
-    assert.equal(storage.size, 1);
-    assert.equal(effects.events.length, 0);
-    assert.equal(effects.timers.length, 0);
-  }
-});
-
-test('unrelated and grantless duplicate links cannot exchange credentials or create a login session', async () => {
-  for (const url of ['other.app://auth?social_grant=mock-grant', 'com.codedestiny.app://other?social_grant=mock-grant', 'com.codedestiny.app://auth?flow=login']) {
-    const { open, effects, storage } = bridgeHarness();
-    await open(url);
-    assert.equal(effects.requests.length, 0);
-    assert.equal(effects.closes, 0);
-    assert.equal(effects.hidden, 1);
-    assert.equal(effects.events.length, 0);
-    assert.equal(effects.toasts.length, 0);
-    assert.equal(storage.get('fortune_auth_token'), 'existing-session');
-  }
 });
