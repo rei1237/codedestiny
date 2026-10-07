@@ -43,11 +43,33 @@ export const RECOGNITION_CONTRACT = [
 const present = (v:unknown):boolean => v !== null && v !== undefined && v !== '' &&
   (typeof v !== 'object' || Object.keys(v).length > 0);
 
+// Use the engine's final verdict, including user-confirmed flips. Never infer
+// strength from an element count, a score, or the partner's chart.
+function strengthAdvice(facts:readonly Evidence[]) {
+  const fact = (label:string) => facts.find(f => f.id.startsWith('saju.') && f.label === label);
+  const strength = fact('strengthHeuristic'), jong = fact('jong'), usefulGod = fact('usefulGod');
+  const record = (value:unknown):Record<string,unknown> | undefined =>
+    value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string,unknown> : undefined;
+  const power = record(strength?.value), pattern = record(jong?.value);
+  // A missing or unresolved pattern is not evidence of an ordinary chart.
+  if (!strength || !jong || !usefulGod || !present(usefulGod.value) ||
+      typeof power?.isStrong !== 'boolean' || pattern?.isJong !== false || pattern.confirmationRequired === true) return [];
+  return [{domain:'saju', id:power.isStrong ? 'strength-realistic-boundaries' : 'strength-reciprocal-help',
+    factIds:[strength.id,jong.id,usefulGod.id],
+    guidance: [
+      '이는 계산된 최종 강약에 연결한 행동 조언 후보이며 인격·과거 경험의 판정이 아니다. 종격 후보·확정 종격에는 일반 강약 조언을 적용하지 않는다. 제공된 용신·월령·통근·조후와 반대 근거를 함께 읽고 현재 질문과 관련된 조언만 기존 행동 문단에 담는다. 출생시간 미상·경계 판단의 한계를 유지하고 신강·신약만으로 성향을 확정하지 않는다.',
+      power.isStrong
+        ? '신강: 의지나 책임감만으로 더 떠맡기 전에 이미 들인 노력과 앞으로 낼 비용을 구분한다. 무엇을 지키려는 선택인지 알아준 뒤 시간·돈·역할·보상·상대의 조건·빠져나올 기준을 확인하고 실제로 남는 이득을 비교하도록 제안한다. 주변의 통상적인 조건은 비교 기준으로 사용하되 남을 무조건 따라 하거나 어떤 손해도 감수하지 말라고 지시하지 않는다. 고집·오만·착취당한 경험을 지어내지 않으며 수익을 보장하지 않는다.'
+        : '신약: 자신을 지키고 부담을 줄이려는 필요를 먼저 인정한다. 감당할 여유가 있다면 정보를 나누거나 작은 일을 함께 해결하는 등 다른 사람에게 도움이 되는 구체적인 행동을 제안한다. 그 과정에서 상호 신뢰와 도움을 주고받을 여지가 생길 수 있음을 설명한다. 이기적인 사람이라고 규정하거나 남을 도와야 운이 좋아진다고 말하지 않는다. 도움의 범위·시간·거절할 선을 함께 정하고 자기희생·금전 제공·감당 못할 부탁을 권하지 않는다.',
+    ].join(' ')}];
+}
+
 export function buildRecognition(facts:readonly Evidence[], domains:readonly string[], placement:'opening'|'detail'|'followup'='opening') {
   const lenses = [...new Set(domains)].flatMap(domain => (LENSES[domain as DomainId] || []).flatMap(lens => {
     const factIds = facts.filter(f => f.id.startsWith(domain+'.') && lens.labels.includes(f.label) && present(f.value)).map(f => f.id);
     return factIds.length ? [{domain, id:lens.id, factIds, guidance:lens.guidance}] : [];
   }));
+  if (domains.includes('saju')) lenses.push(...strengthAdvice(facts));
   return {version:RECOGNITION_VERSION, contract:RECOGNITION_CONTRACT, placement, delivery: placement === 'opening'
     ? '결과를 받는 즉시 이해받는 느낌이 들도록 첫 summary와 배정된 questionAnswers.answer에 사용자가 무엇을 지키려 하고 무엇 사이에서 어려움을 겪는지 짧고 구체적으로 짚고 직접 답한다. 사용자가 말하지 않은 감정은 가정으로 둔다. 전문용어 목록이나 먼 미래의 예측으로 시작하지 않는다. 공감만 하고 답을 미루지 않는다. 근거와 자세한 장면은 기존 evidence·example 소절에 풀어 쓰고 같은 문장을 반복하지 않는다.'
     : placement === 'followup'
