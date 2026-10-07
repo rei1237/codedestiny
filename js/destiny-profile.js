@@ -11583,9 +11583,52 @@
   var __cdDirectSajuEntryState = window.__cdDirectSajuEntryState || { inFlight: false };
   window.__cdDirectSajuEntryState = __cdDirectSajuEntryState;
 
+  // Entry intent contains only a service name, never a birth record or a free result.
+  var _dpHomeEntryKey = 'cd:home-fortune-intent:v1';
+  var _dpHomeEntryNames = {saju:'사주',ziwei:'자미두수',sukuyo:'숙요점',vedic:'베다점',astro:'점성술',tarot:'타로'};
+  function _dpHomeIntent(type) {
+    try { if(type) sessionStorage.setItem(_dpHomeEntryKey,type); else sessionStorage.removeItem(_dpHomeEntryKey); } catch (_) {}
+  }
+  function _dpResumeHomeEntry() {
+    var type='';
+    try { type=sessionStorage.getItem(_dpHomeEntryKey)||''; } catch (_) {}
+    var profile=_dpResolveCurrentProfileForSaju('');
+    if(!_dpHomeEntryNames[type] || !profile || profile.syncStatus==='pending' || !profile.birth) return;
+    _dpHomeIntent('');
+    _dpSyncProfileFormToCurrent(profile);
+    window._dpOpenFortuneType(type);
+  }
+  window.cdHomeFortuneEntry = function(type) {
+    if(!_dpHomeEntryNames[type]) return;
+    _dpHomeIntent('');
+    if(type==='tarot') { window._dpOpenFortuneType(type); return; }
+    var profile=_dpResolveCurrentProfileForSaju('');
+    if(profile && profile.syncStatus!=='pending' && profile.birth && _dpHasValidProfileDate(profile.birth.year,profile.birth.month,profile.birth.day)) {
+      _dpSyncProfileFormToCurrent(profile);
+      window._dpOpenFortuneType(type);
+      return;
+    }
+    _dpHomeIntent(type);
+    _toast(_dpHomeEntryNames[type]+'을 보려면 프로필을 먼저 설정해 주세요. 저장하면 이어서 열어드릴게요.','info');
+    if(typeof window.dpStartProfileCreate==='function') window.dpStartProfileCreate();
+  };
+  window.cdHomeZiweiEntry=function(){window.cdHomeFortuneEntry('ziwei');};
+  window.cdHomeSukuyoEntry=function(){window.cdHomeFortuneEntry('sukuyo');};
+  window.cdHomeVedicEntry=function(){window.cdHomeFortuneEntry('vedic');};
+  window.cdHomeAstroEntry=function(){window.cdHomeFortuneEntry('astro');};
+  window.cdHomeTarotEntry=function(){window.cdHomeFortuneEntry('tarot');};
+  document.addEventListener('destinyProfileChanged',_dpResumeHomeEntry);
+  window.addEventListener('cd:destiny-profile-server-ready',_dpResumeHomeEntry);
+  window.addEventListener('cd:saju-summary-ready',function(){_dpHomeIntent('');});
+  document.addEventListener('click',function(event){
+    var target=event.target && event.target.closest ? event.target : null;
+    if(target && target.closest('[data-nav-key="home"]')) _dpHomeIntent('');
+  });
+
   window.cdOneStepFreeSajuEntry = function() {
     var cached = _dpResolveCurrentProfileForSaju('');
     if (cached && cached.birth && _dpHasValidProfileDate(cached.birth.year, cached.birth.month, cached.birth.day)) {
+      _dpHomeIntent('');
       if (__cdDirectSajuEntryState.inFlight) return;
       __cdDirectSajuEntryState.inFlight = true;
       _injectAndRun(cached, 'saju');
@@ -11595,13 +11638,14 @@
     var formProfile = null;
     try { formProfile = readFormData({ allowAnonymous: true }); } catch (_) {}
     if (formProfile) {
+      _dpHomeIntent('');
       if (__cdDirectSajuEntryState.inFlight) return;
       __cdDirectSajuEntryState.inFlight = true;
       _injectAndRun(formProfile, 'saju');
       return;
     }
 
-    if (typeof window.dpStartProfileCreate === 'function') window.dpStartProfileCreate();
+    window.cdHomeFortuneEntry('saju');
   };
 
   /**

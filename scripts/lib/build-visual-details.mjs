@@ -99,7 +99,7 @@ export function buildVisualDetails(html, book) {
       slug: item.id, title: item.name, description: item.desc,
       href: item.href || `/index.html?action=${encodeURIComponent(item.action)}`,
       visualHref: item.visualHref || item.href,
-      featureKey: item.featureKey, featureKeyTo: item.featureKeyTo, action: item.action, accessType: item.price === '무료' ? 'free' : undefined,
+      featureKey: item.featureKey, featureKeyTo: item.featureKeyTo, action: item.action, aliases: item.aliases, accessType: item.price === '무료' ? 'free' : undefined,
     })),
     ...react.map(item => ({ ...item, href: item.launchRoute })),
     ...Object.entries(verified).filter(([,item]) => item.sourceAction).map(([slug,item]) => ({ slug, title:item.title, href:item.href, action:item.sourceAction })),
@@ -111,7 +111,7 @@ export function buildVisualDetails(html, book) {
     const visualRoute = cleanPath(source.visualHref || source.href);
     if (seen.has(visualRoute)) continue;
     seen.add(visualRoute);
-    const candidates = [source.featureKey, source.action, source.slug, source.href, route, `${route}/`].filter(Boolean);
+    const candidates = [source.featureKey, source.action, source.slug, source.href, route, `${route}/`, ...(source.aliases || [])].filter(Boolean);
     const match = candidates.map(key => book.items[key]).find(Boolean);
     const base = candidates.map(key => legacy[key]).find(Boolean);
     const copy = match?.copy || {};

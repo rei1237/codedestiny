@@ -12,30 +12,30 @@ const quickSection = home.match(/id="cdQuickServices"[\s\S]*?<\/section>/)?.[0] 
 assert.ok(quickSection, "홈 무료 바로 시작 섹션을 찾지 못했습니다");
 
 const expectedQuickLinks = [
-  'href="/saju/" data-action="cdOneStepFreeSajuEntry"',
-  'href="/tarot/" data-cd-open-collection="tarotCollection"',
-  'href="/ziwei/chart/" data-action="openZiweiModal"',
-  'href="/sukuyo/" data-action="openSukuyoModal"',
-  'href="/astrology/" data-action="openAstroModal"',
-  'href="/vedic/" data-action="navigateToVedic"',
+  'href="/?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry"',
+  'href="/?action=cdHomeTarotEntry" data-action="cdHomeTarotEntry"',
+  'href="/?action=cdHomeZiweiEntry" data-action="cdHomeZiweiEntry"',
+  'href="/?action=cdHomeSukuyoEntry" data-action="cdHomeSukuyoEntry"',
+  'href="/?action=cdHomeAstroEntry" data-action="cdHomeAstroEntry"',
+  'href="/?action=cdHomeVedicEntry" data-action="cdHomeVedicEntry"',
 ];
 for (const link of expectedQuickLinks) assert.ok(quickSection.includes(link), `직접 기능 링크가 없습니다: ${link}`);
-assert.doesNotMatch(quickSection, /openTarotModal/, 'home tarot opens the service library, not a card draw');
+assert.doesNotMatch(quickSection, /data-cd-open-collection/, 'home tiles open the selected fortune directly');
 assert.deepEqual([...quickSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map(m => m[1]), ['saju', 'ziwei', 'sukuyo', 'vedic', 'astrology', 'tarot']);
 const template = read('templates/home-funnel.html');
 assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhServices"'), 'methods precede search');
 assert.ok(template.indexOf('id="cdhQuickSlot"') < template.indexOf('id="cdhMore"'), 'methods are outside the fold');
 
-assert.doesNotMatch(quickSection, /href="[^"]*\?action=/, "crawler links must use real hubs while JS actions remain available");
+assert.equal([...quickSection.matchAll(/href="\/\?action=([^"]+)" data-action="\1"/g)].length, 6, 'early clicks retain the selected action before JavaScript is ready');
 
 for (const entry of [
   ['daily-fortune', '/today/', null],
   ['saju', '/?action=cdOneStepFreeSajuEntry', 'cdOneStepFreeSajuEntry'],
-  ['tarot', '/index.html?action=openTarotModal', 'openTarotModal'],
-  ['ziwei', '/ziwei/chart/', null],
-  ['sukuyo', '/index.html?action=openSukuyoModal', 'openSukuyoModal'],
-  ['vedic', '/index.html?action=navigateToVedic', null],
-  ['astrology', '/index.html?action=openAstroModal', 'openAstroModal'],
+  ['tarot', '/?action=cdHomeTarotEntry', 'cdHomeTarotEntry'],
+  ['ziwei', '/?action=cdHomeZiweiEntry', 'cdHomeZiweiEntry'],
+  ['sukuyo', '/?action=cdHomeSukuyoEntry', 'cdHomeSukuyoEntry'],
+  ['vedic', '/?action=cdHomeVedicEntry', 'cdHomeVedicEntry'],
+  ['astrology', '/?action=cdHomeAstroEntry', 'cdHomeAstroEntry'],
 ]) {
   const [id, href, action] = entry;
   const entryPattern = new RegExp(`id: "${id}"[\\s\\S]*?\\n  },`);

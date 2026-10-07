@@ -43,7 +43,8 @@
  *   badge      결과 카드 배지
  *   roles      홈 배치 역할 — 'quick' | 'recommended'
  *   quickCollection  빠른 선택에서 개별 서비스 대신 여는 기존 컬렉션 ID
- *   quickHref  빠른 선택의 JS 없는 허브 링크. action/quickCollection 동작은 유지한다.
+ *   quickHref  런타임 준비 전 클릭에도 선택한 action을 이어 주는 빠른 진입 링크.
+ *   aliases    같은 서비스의 기존 액션·경로. 소개 이미지와 상세 카탈로그 연결을 보존한다.
  */
 window.__cdServiceRegistryMeta = {
   purposes: ["love", "money", "career", "family", "life", "today", "compatibility", "self", "etc"],
@@ -341,7 +342,7 @@ window.__cdServiceRegistry = [
   /* ── 운세 체계 허브 (무료 진입) ──────────────────────────────── */
   {
     id: "saju",
-    quickHref: "/saju/",
+    quickHref: "/?action=cdOneStepFreeSajuEntry",
     name: "사주",
     question: "나는 어떤 결의 사람일까?",
     desc: "사주팔자로 보는 삶의 큰 흐름",
@@ -355,13 +356,13 @@ window.__cdServiceRegistry = [
   },
   {
     id: "tarot",
-    quickHref: "/tarot/",
+    quickHref: "/?action=cdHomeTarotEntry",
     name: "타로",
     question: "지금 내 마음은 어떤 상태일까?",
     desc: "카드가 전하는 지금의 마음과 선택",
-    href: "/index.html?action=openTarotModal",
-    action: "openTarotModal",
-    quickCollection: "tarotCollection",
+    href: "/?action=cdHomeTarotEntry",
+    action: "cdHomeTarotEntry",
+    aliases: ["openTarotModal", "/index.html?action=openTarotModal"],
     dedupeHref: "/tarot/",
     price: "무료 시작",
     purposes: ["love", "today", "self"],
@@ -371,11 +372,13 @@ window.__cdServiceRegistry = [
   },
   {
     id: "ziwei",
-    quickHref: "/ziwei/chart/",
+    quickHref: "/?action=cdHomeZiweiEntry",
     name: "자미두수",
     question: "나에게 맞는 돈 버는 방식은 뭘까?",
     desc: "별자리 궁위로 보는 재물과 직업",
-    href: "/ziwei/chart/",
+    href: "/?action=cdHomeZiweiEntry",
+    action: "cdHomeZiweiEntry",
+    aliases: ["openZiweiModal", "/ziwei/chart/"],
     price: "무료 시작",
     purposes: ["money", "career", "life"],
     methods: ["ziwei"],
@@ -384,12 +387,13 @@ window.__cdServiceRegistry = [
   },
   {
     id: "sukuyo",
-    quickHref: "/sukuyo/",
+    quickHref: "/?action=cdHomeSukuyoEntry",
     name: "숙요점",
     question: "이 사람과는 어떤 거리의 인연일까?",
     desc: "숙요로 보는 삶의 리듬",
-    href: "/index.html?action=openSukuyoModal",
-    action: "openSukuyoModal",
+    href: "/?action=cdHomeSukuyoEntry",
+    action: "cdHomeSukuyoEntry",
+    aliases: ["openSukuyoModal", "/index.html?action=openSukuyoModal"],
     visualHref: "/sukuyo/",
     price: "무료 시작",
     purposes: ["life", "self"],
@@ -399,11 +403,13 @@ window.__cdServiceRegistry = [
   },
   {
     id: "vedic",
-    quickHref: "/vedic/",
+    quickHref: "/?action=cdHomeVedicEntry",
     name: "베다점",
     question: "지금의 변화는 우연일까, 전환점일까?",
     desc: "베다 점성술로 보는 운명의 지도",
-    href: "/index.html?action=navigateToVedic",
+    href: "/?action=cdHomeVedicEntry",
+    action: "cdHomeVedicEntry",
+    aliases: ["navigateToVedic", "/index.html?action=navigateToVedic"],
     price: "무료 시작",
     purposes: ["life", "self"],
     methods: ["vedic"],
@@ -412,12 +418,13 @@ window.__cdServiceRegistry = [
   },
   {
     id: "astrology",
-    quickHref: "/astrology/",
+    quickHref: "/?action=cdHomeAstroEntry",
     name: "점성술",
     question: "나는 왜 이런 사람에게 끌릴까?",
     desc: "별자리로 보는 나와 관계의 흐름",
-    href: "/index.html?action=openAstroModal",
-    action: "openAstroModal",
+    href: "/?action=cdHomeAstroEntry",
+    action: "cdHomeAstroEntry",
+    aliases: ["openAstroModal", "/index.html?action=openAstroModal"],
     price: "무료 시작",
     purposes: ["life", "self", "career", "money"],
     methods: ["astrology"],
