@@ -138,6 +138,23 @@ it('overlapping requests acquire only one generation lease',async()=>{let releas
 
 async function refine(extra) { return route(new Request('https://mock.test/api/neo-operation-room/refine',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(extra || {sessionId:docs[0].id})}),{}); }
 async function initialComplete() { for(let i=0;i<4;i++) await start(); expect(docs[0].status).toBe('completed'); }
+it('two reality-check rounds preserve both answers and block a third without provider calls',async()=>{
+ await initialComplete();
+ const initial=structuredClone(docs[0].initialBriefing);
+ for(const freeform of ['첫 번째로 작은 행동부터 바꾸겠습니다.','실행해 보니 시간 제약이 있어 다른 방법이 궁금합니다.']){
+  await refine({sessionId:docs[0].id,freeform});
+  for(let i=0;i<4&&docs[0].refinementStatus!=='completed';i++)await refine();
+  expect(docs[0].refinementStatus).toBe('completed');
+ }
+ expect(docs[0].initialBriefing).toEqual(initial);
+ expect(docs[0].llmMeta.refinementHistory).toHaveLength(2);
+ expect(docs[0].llmMeta.refinementHistory[0].realityCheck.freeform).toContain('첫 번째');
+ const calls=provider.mock.calls.length;
+ const duplicate=await refine();expect(duplicate.status).toBe(200);
+ expect(await duplicate.json()).toMatchObject({refinementAllowance:{limit:2,used:2,remaining:0}});
+ expect((await refine({sessionId:docs[0].id,freeform:'세 번째 질문입니다.'})).status).toBe(409);
+ expect(provider).toHaveBeenCalledTimes(calls);
+});
 for (const repair of ['shorter', 'empty', 'repeated']) it(`preserves the short initial draft without ${repair} repair`, async () => {
   const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0, draft;
   provider.mockImplementation(async (...args) => {

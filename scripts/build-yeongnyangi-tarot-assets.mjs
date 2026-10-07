@@ -67,6 +67,13 @@ async function buildEntry(source, kind) {
   return entry;
 }
 
+if (process.argv.includes('--back-only')) {
+  const manifest = JSON.parse(await readFile(resolve(output, 'manifest.json'), 'utf8'));
+  manifest.back = await buildEntry(sources.back, 'back');
+  await writeFile(resolve(output, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
+  process.exit(0);
+}
+
 const cards = [];
 for (const card of sources.cards) cards.push(await buildEntry(card, 'card'));
 const back = await buildEntry(sources.back, 'back');

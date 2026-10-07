@@ -5101,38 +5101,38 @@
     },
     "integrity": {
       "back-240.webp": {
-        "sha256": "2d1872c9d9f91b48eb34df69131354a196f0d406629f041f4202165104608c81",
-        "bytes": 81606,
+        "sha256": "d360da9eb771f0e1595fefcad4a6f931ac3b17fb7a05bb7c8ffa209e154e5ccc",
+        "bytes": 129008,
         "width": 240,
         "height": 360
       },
       "back-240.avif": {
-        "sha256": "8dc5c4ec7830891146336180c176036977a724da7aad751445b10221134bca88",
-        "bytes": 101746,
+        "sha256": "7c529ecdb10bad5e9f5191b6314f7d42577be170c9de9f4dfcb9a53f1188fd3a",
+        "bytes": 155095,
         "width": 240,
         "height": 360
       },
       "back-600.webp": {
-        "sha256": "374d7c34e253e063fd970c0c39ac3f2b6c736e8f386b0675d835ae859c6d2be4",
-        "bytes": 382630,
+        "sha256": "7ea76b10cc59bf21fde4421376699815639ce7239f765faf98f34543ee39a85b",
+        "bytes": 833178,
         "width": 600,
         "height": 900
       },
       "back-600.avif": {
-        "sha256": "4a0809643e3d4b64523a5375257ac156b29bc41c132d46c538af886210a6e041",
-        "bytes": 463132,
+        "sha256": "b08153ffc2914f8963c5d396357cd1616494fa7b8d8b954e2df616d87ef4c911",
+        "bytes": 943705,
         "width": 600,
         "height": 900
       },
       "back-1200.webp": {
-        "sha256": "5c58af4bad332fec5207f0e9e7f14aaa17f19c2c8ade22ae72e25fa7680f45f9",
-        "bytes": 1211916,
+        "sha256": "a33815cb0ccc43339d6667d22a08c566eaed6dc4a03909a08a288533883ee3c4",
+        "bytes": 3018666,
         "width": 1200,
         "height": 1800
       },
       "back-1200.avif": {
-        "sha256": "aeb9a235ad98f3cbfc49b8190d39b17d3397043d56f14928898ff3964f8c668c",
-        "bytes": 1397207,
+        "sha256": "a2d1d56c83ae51c69dcc8c506371cc9cd144927299204644ce493c09baee9679",
+        "bytes": 3332495,
         "width": 1200,
         "height": 1800
       }
@@ -5141,8 +5141,8 @@
     "nameKey": "tarot.back.name",
     "gaze": "point-symmetric",
     "dominantColor": "#181828",
-    "contentHash": "e580e4d8d179aeaae77b3138db5de66c0196540457692ab46283575f895c997a",
-    "sourceContentHash": "e580e4d8d179aeaae77b3138db5de66c0196540457692ab46283575f895c997a",
+    "contentHash": "f0e589aa2b64db39a23aa571913ae6da23193c6af75b702ce366bbf31858e8a3",
+    "sourceContentHash": "f0e589aa2b64db39a23aa571913ae6da23193c6af75b702ce366bbf31858e8a3",
     "deckVersion": "v1",
     "originalSize": {
       "width": 1024,

@@ -229,7 +229,7 @@ test('question purpose allows a seven-card reunion at mackerel price and persist
  const row=await prepareFortune(env,'purpose-tarot',request);
  assert.equal(row.amountKRW,3000);assert.equal(row.snapshot.questionContract.followups,0);
  assert.equal(row.snapshot.tarotSpread.cardCount,7);
- for(const pos of row.snapshot.tarotSpread.positions)assert.ok(row.snapshot.manifest[0].sections.some(s=>s.title===pos.label));
+ for(const pos of row.snapshot.tarotSpread.positions)assert.ok(row.snapshot.manifest.flatMap(chapter=>chapter.sections).some(s=>s.title===pos.label));
  const drawn=await drawTarotSpread(env,'purpose-tarot',row._id,{auto:true});
  const saved=structuredClone(drawn.snapshot.tarotDraw);
  assert.deepEqual((await drawTarotSpread(env,'purpose-tarot',row._id,{auto:true})).snapshot.tarotDraw,saved);
