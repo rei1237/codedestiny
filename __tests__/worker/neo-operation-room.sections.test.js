@@ -41,6 +41,26 @@ describe("neo section registries", () => {
 });
 
 describe("buildNeoInitialSectionPrompt", () => {
+  test.each(["saju", "ziwei", "astrology", "vedic"])("%s의 모든 강도에서 약점 분석을 강점 전환으로 연결한다", (selectedMethod) => {
+    for (const intensity of ["soft", "standard", "roar"]) {
+      const ctx = { ...input, selectedMethod, intensity, methodSummary: { method: selectedMethod } };
+      const initial = buildNeoInitialSectionPrompt(NEO_INITIAL_SECTIONS.find((s) => s.id === "innateStrength"), ctx);
+      const refined = buildNeoRefinedSectionPrompt(NEO_REFINED_SECTIONS.find((s) => s.id === "actionAlternatives"), {
+        ...ctx, realityCheck: { freeform: "일을 벌이기보다 마감 전에 확인을 너무 오래 합니다." },
+      });
+      for (const prompt of [initial, refined]) {
+        expect(prompt).toContain("약점이 드러나기 쉬운 상황과 행동 → 같은 성향이 유리하게 쓰이는 조건 → 바꿀 행동 → 확인할 변화");
+        expect(prompt).toContain("선택한 체계의 실제 제공된 근거만 사용한다");
+        expect(prompt).toContain("환경 조정·도움 요청·중단 기준");
+        expect(prompt).not.toContain("계산 근거가 있는 판단은 전부 단정문");
+        expect(prompt).not.toContain("자기합리화 문장을 한 줄 그대로 재현");
+      }
+      expect(initial).toContain("각 weakPoints에는 약점이 드러나는 상황과 조절할 행동");
+      expect(refined).toContain("기존 약점 해석과 다르다고 답하면");
+      expect(refined).toContain("마감 전에 확인을 너무 오래 합니다");
+    }
+  });
+
   test("주제·전문가 페르소나·자미두수 별 세기 지시를 주입한다", () => {
     const section = NEO_INITIAL_SECTIONS.find((s) => s.id === "topicAreaBreakdown");
     const prompt = buildNeoInitialSectionPrompt(section, { ...input, methodSummary });
