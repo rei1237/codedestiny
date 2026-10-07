@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {build} from 'esbuild';
 const Module=createRequire(import.meta.url)('node:module');
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/prompts/domain/consultation-quality'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {domains} from './worker/yeongnyangi/fortune/index'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {readingManifestV7} from './worker/yeongnyangi/fortune/reading-v7'; export {resolveV7Ledger} from './worker/yeongnyangi/fortune/reading-v7-ledger';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/prompts/domain/consultation-quality'; export * from './worker/yeongnyangi/prompts/domain/recognition'; export {questionManifest,QUESTION_POLICY_VERSION} from './worker/yeongnyangi/fortune/ask/question-policy'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {domains} from './worker/yeongnyangi/fortune/index'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {readingManifestV7} from './worker/yeongnyangi/fortune/reading-v7'; export {resolveV7Ledger} from './worker/yeongnyangi/fortune/reading-v7-ledger';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const filename=path.resolve('consultation-quality.test.cjs'),loaded=new Module(filename);
 loaded.filename=filename;loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,filename);
 const m=loaded.exports;
@@ -59,4 +59,38 @@ test('absence, unsupported timing/divisional fields and question omission have e
  assert.match(p.domains.astrology,/미래 사건 날짜/);
  assert.match(p.question,/limited/);
  assert.match(p.question,/배정되지 않은 질문/);
+});
+
+
+test('recognition uses only selected facts; absent, unrelated and foreign evidence never activates a lens',()=>{
+ const facts=[{id:'saju.gods',label:'tenGodsByPillar',value:{month:'정관'}},{id:'saju.empty',label:'natalInteractions',value:[]},{id:'saju.missing',label:'jong',value:null},{id:'astrology.aspects',label:'aspects',value:[{type:'square'}]},{id:'saju.health',label:'healthBasis',value:{}}];
+ const before=JSON.stringify(facts),guide=m.buildRecognition(facts,['saju']);
+ assert.equal(guide.lenses.length,1);
+ assert.deepEqual(guide.lenses[0].factIds,['saju.gods']);
+ assert.equal(JSON.stringify(facts),before);
+ assert.deepEqual(m.buildRecognition([],['saju','tarot']).lenses,[]);
+ assert.deepEqual(m.buildRecognition(facts,['unsupported']).lenses,[]);
+});
+
+test('all personas and prices receive identical grounded recognition on the real provider path',async()=>{
+ const decision={version:m.QUESTION_POLICY_VERSION,category:'self',target:'self',horizon:'current',situation:'부탁을 거절하기 어려워요',options:'',period:'',constraints:'',confirmed:true};
+ const all={...contexts,sukuyo:{domain:'sukuyo',facts:[{id:'sukuyo.personA',label:'personA',value:{mansion:'角'}}],limitations:['관계 비교 자료 없음'],engineVersion:'fixture'},tarot:{domain:'tarot',facts:[{id:'tarot.cards',label:'cards',value:[{name:'Two of Swords',position:'current',isReversed:false}]}],limitations:['상징적 해석'],engineVersion:'fixture'}};
+ for(const [domain,context] of Object.entries(all)){
+  let baseline;
+  for(const persona of [undefined,'yeoni','neo'])for(const fish of ['mackerel','salmon','flounder','tuna']){
+   let sent;
+   const provider=new m.StructuredChapterProvider({generate:async request=>{sent=request;return {result:{},provider:'mock',model:'fixture'};}});
+   const chapter=m.questionManifest(domain,fish,decision)[0];
+   await provider.generateChapter({persona,chapter,analysis:{contexts:{[domain]:context},question:'부탁을 거절하기 어려워요',themes:[],signals:[]},previous:[]});
+   const guide=JSON.parse(sent.domainRules).recognition;
+   assert.equal(guide.version,m.RECOGNITION_VERSION);
+   assert.ok(guide.lenses.length,domain);
+   const allowed=new Set(sent.calculatedData.facts.map(f=>f.id));
+   assert.ok(guide.lenses.every(l=>l.factIds.every(id=>allowed.has(id))));
+   if(!baseline)baseline=guide;else assert.deepEqual(guide,baseline,domain+' '+persona+' '+fish);
+   assert.match(sent.promptVersion,/grounded-recognition/);
+   assert.equal(sent.outputSchema.properties.recognition,undefined);
+   assert.equal(chapter.outputTokens,8192,'no added call or generation budget');
+  }
+ }
 });

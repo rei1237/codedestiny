@@ -9,7 +9,7 @@ globalThis.__conversationTest={};
 const mocks={
  'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,f)=>f();`,
  'worker/yeongnyangi/repository.js':`export const ownerId=x=>x;export const readRequest=async(e,u,id)=>{const t=globalThis.__conversationTest;if(u!==t.row.userId||id!==t.row._id)throw Error('NOT_FOUND');if(t.revoked)throw Error('PAYMENT_NOT_ACTIVE');return structuredClone(t.row);};export const YeongnyangiRequest={findOneAndUpdate:(q,update)=>({lean:async()=>{const t=globalThis.__conversationTest,c=t.row.generationCheckpoint?.conversation,rev=q['generationCheckpoint.conversation.revision'];if(q.userId!==t.row.userId||q.state!==t.row.state||(typeof rev==='number'?c?.revision!==rev:c!==undefined))return null;const after=update.$set['generationCheckpoint.conversation'];if(t.failBeforeSave&&after.exchanges.length)throw Error('STORAGE_FAILED');t.row.generationCheckpoint={conversation:structuredClone(after)};if(t.failAfterSave&&after.exchanges.length)throw Error('WRITE_RESPONSE_LOST');return structuredClone(t.row);}})};`,
- 'worker/lib/gemini.js':`export const callGeminiText=async()=>{const t=globalThis.__conversationTest;t.calls++;if(t.barrier)await t.barrier;if(t.providerFailed)throw Error('PROVIDER_FAILED');return {ok:true,text:JSON.stringify(t.reply),finishReason:'STOP'};};`,
+ 'worker/lib/gemini.js':`export const callGeminiText=async(e,input,options)=>{const t=globalThis.__conversationTest;t.sent={input:JSON.parse(input),options};t.calls++;if(t.barrier)await t.barrier;if(t.providerFailed)throw Error('PROVIDER_FAILED');return {ok:true,text:JSON.stringify(t.reply),finishReason:'STOP'};};`,
 };
 const bundle=await build({stdin:{contents:"export {questionConversation} from './worker/yeongnyangi/question-followup';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'isolated-paid-boundaries',setup(b){b.onLoad({filter:/worker[\\/]/},args=>{const key=Object.keys(mocks).find(k=>args.path.replaceAll('\\','/').endsWith(k));return key?{contents:mocks[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('question-storage-test.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
@@ -75,4 +75,23 @@ test('pending refund and revocation during generation never store or consume a f
  t.row.state='REFUNDED';release();
  await assert.rejects(pending,/FOLLOWUP_NOT_AVAILABLE/);
  assert.equal(t.row.generationCheckpoint.conversation.used,0);assert.equal(t.row.generationCheckpoint.conversation.exchanges.length,0);
+});
+
+
+test('stored persona and grounded recognition reach followups without changing the quota contract',async()=>{
+ const t=globalThis.__conversationTest;let common;
+ for(const persona of [undefined,'yeoni','neo']){
+  t.row.snapshot.persona=persona;
+  t.row.snapshot.manifest[0].factSelectors.saju.push('tenGodsByPillar');
+  t.row.snapshot.analysis.contexts.saju.facts.push({id:'saju.tenGodsByPillar',label:'tenGodsByPillar',value:{month:'정관'}});
+  t.row.generationCheckpoint=undefined;
+  await questionConversation({},user,id,body);
+  assert.ok(t.sent.input.recognition.lenses.length);
+  assert.equal(t.sent.input.recognition.version,'grounded-recognition-20261007');
+  assert.ok(t.sent.options.systemPrompt.includes(persona==='yeoni'?'연이':persona==='neo'?'네오':'영냥이'));
+  if(persona)assert.ok(!t.sent.options.systemPrompt.includes('너는 영냥이'));
+  assert.equal(t.sent.options.maxProviderAttempts,1);
+  assert.equal(t.row.generationCheckpoint.conversation.used,1);
+  if(common)assert.equal(t.sent.input.recognition.contract,common);else common=t.sent.input.recognition.contract;
+ }
 });

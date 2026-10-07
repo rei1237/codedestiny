@@ -36,6 +36,7 @@ import { persona as yeoniPersona } from "../prompts/persona/yeoni";
 import { persona as neoPersona } from "../prompts/persona/neo";
 import { fortuneMaster } from "../prompts/system/fortune-master";
 import { domainRules } from "../prompts/domain/rules";
+import {buildRecognition, RECOGNITION_VERSION} from '../prompts/domain/recognition';
 import {buildConsultationQuality} from '../prompts/domain/consultation-quality';
 import { taskRules } from "../prompts/task/rules";
 import {tokensRequiredForChars} from '../../lib/llm-budget.js';
@@ -388,6 +389,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
           ...(input.chapter.counsel?.cycleIndexes?{cycleIndexes:input.chapter.counsel.cycleIndexes,cycleGuide:SAJU_CYCLE_GUIDE}:{}),
           detail:'첫 답변은 결론을 먼저 쓰고 배정된 상세 근거는 이번 장의 본문에만 풀어 쓴다. 다른 장의 내용을 반복하지 않는다.'}}:{}),
         assignedQuestions,
+        ...(!sky&&!spirit?{recognition:buildRecognition(facts.facts,Object.keys(input.analysis.contexts))}:{}),
         consultationQuality:buildConsultationQuality(Object.values(input.analysis.contexts),facts,Boolean(sky||spirit)),
         ...(askPrompt?{
           askFirstChapter:askPrompt,
@@ -467,7 +469,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
       }}},blockAnchors),
       sectionTitles: [input.chapter.title],
       outputBudgetVersion:input.chapter.outputBudgetVersion,
-      promptVersion: (v7Parts?v7Parts.promptVersion:askPrompt?'ask-chapter-v1':input.chapter.version===READING_V6_VERSION?"chapter-v6":hasReadingSections(input.chapter.version)?"chapter-v5":isStructuredReading(input.chapter.version)?PROMPT_VERSION:input.chapter.systems?"chapter-v3":"chapter-v2")+(purposeCounsel?`-${COUNSEL_VERSION}`:"")+(isConciseReading(input.chapter)?"-concise-20260930":"")+(hasPrevention(input.chapter)?`-${PREVENTION_VERSION}`:""),
+      promptVersion: (v7Parts?v7Parts.promptVersion:askPrompt?'ask-chapter-v1':input.chapter.version===READING_V6_VERSION?"chapter-v6":hasReadingSections(input.chapter.version)?"chapter-v5":isStructuredReading(input.chapter.version)?PROMPT_VERSION:input.chapter.systems?"chapter-v3":"chapter-v2")+(!sky&&!spirit?`-${RECOGNITION_VERSION}`:"")+(purposeCounsel?`-${COUNSEL_VERSION}`:"")+(isConciseReading(input.chapter)?"-concise-20260930":"")+(hasPrevention(input.chapter)?`-${PREVENTION_VERSION}`:""),
       // Books keep their purchase-time manifest; a later cap increase must still reach retries of those chapters.
       ...(spirit||sky?{maxProviderAttempts:1}:{}),
       maxOutputTokens:isConciseReading(input.chapter)||hasReadingSections(input.chapter.version)?v5Tokens:questionCount?Math.min(16384,Math.max(baseTokens || 8192,tokensRequiredForChars((input.chapter.targetChars?.[1] || 2000)+questionCount*answerChars))):baseTokens,
