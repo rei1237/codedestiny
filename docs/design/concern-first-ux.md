@@ -1,6 +1,6 @@
 # 고민에서 시작하는 상담 · 2026-10-07
 
-status: in-progress
+status: done
 
 ## 승인된 범위
 
@@ -67,7 +67,20 @@ PNG의 최종 보관 경로는 `C:/Users/user/.codex/visualizations/2026/10/07/0
 - `__tests__/ui/question-concerns.test.mjs`: 교차 화면 가격 가드를 포함한 4개 검사 통과.
 - `scripts/sync-flower-price-copy.mjs` 재실행: 두 번째 실행에서 `0 badge edits` 확인.
 
-이 보강은 가격 표시·가격 속성의 동기화이며 레이아웃을 바꾸지 않았다. 앞서 검토한 닫힌 홈·상품 안내·질문 폼의 형태는 동일해 PNG를 다시 캡처하지 않았다. 기존 PNG는 보강 뒤 펼친 목록의 최신 가격 증거로 확대 해석하지 않는다. 보강분의 CI 재푸시는 대기 중이며, main CI 전체 통과는 아직 확정하지 않는다.
+이 보강은 가격 표시·가격 속성의 동기화이며 레이아웃을 바꾸지 않았다. 앞서 검토한 닫힌 홈·상품 안내·질문 폼의 형태는 동일해 PNG를 다시 캡처하지 않았다. 기존 PNG는 보강 뒤 펼친 목록의 최신 가격 증거로 확대 해석하지 않는다.
+
+`b13097450`의 후속 CI는 이전 가격을 기대하던 검색·모바일 카드 검사 3건을 발견했다. `home-service-finder.test.js`와 `mobile-pricing-source.static.test.js`를 새 가격으로 갱신했다. 1,000원 상품과 3,000원 상담의 검색 분리, 실제 범위 가격 상품의 상·하한 검색을 유지하며 관련 34개 검사가 통과했다.
+
+최종 구현 커밋 `13db6be3cce956553975fd7178521277709cdc55`를 main에 통합·push했다. [main CI 37650520852](https://github.com/rei1237/codedestiny/actions/runs/37650520852)의 Static guards, Build Pages and Worker, Typecheck and lint, Critical checks, CI required가 모두 success다. 결제 코드가 마지막으로 바뀐 `b13097450`의 [Paid Flow Gates 37649180247](https://github.com/rei1237/codedestiny/actions/runs/37649180247)도 success이며, 이후 변경은 UI 검사 두 파일뿐이다. 운영 승격과 실제 결제 검증을 의미하지 않는다.
+
+## 후속 영냥이 기획 시안
+
+사용자가 추가 요청한 영냥이 장점·차원 입장 연출·이용권 단순화는 **기획 단계**다. 저장소의 신규 판매 정책이나 상담 진입 연출에 적용하지 않았다.
+
+- 제안: 내 질문에 맞춘 답·해석의 근거·현실에서 해볼 행동을 첫 화면에 제시한다. 기존 밤의 상담실과 영냥이 자산으로 짧은 입장 장면을 만든다.
+- 제안: 질문에 맞는 범위를 추천한 뒤 단건 결제와 같은 범위 5회 이용권 두 선택만 제시한다. 10회·20회 묶음 신규 판매 정리는 별도 정책 결정이며 기존 구매 권한은 보존한다.
+- 클릭형 시안: `C:/Users/user/.codex/visualizations/2026/10/07/01a116b6-9460-7d41-9f69-ac843acbbbcf/yeongnyangi-plan/index.html`. 기본 범위의 현재 가격 3,000원·5회 12,000원·30일을 예시로 쓴다. 실제 결제나 발급은 없다.
+- 데스크톱·390px 모바일에서 입장→질문→구매 선택과 조건 표시를 확인했다. 입장 모바일의 IAB fullPage 캡처 오류는 viewport 캡처로 교체했고, 독립 검토에서 해결 및 시안 사용 가능 판정을 받았다. 이 시안은 운영 기능 검증을 대신하지 않는다.
 
 ## 진행
 
@@ -77,7 +90,10 @@ PNG의 최종 보관 경로는 `C:/Users/user/.codex/visualizations/2026/10/07/0
 - [x] 비LLM 가격 등록소·클라이언트 가격 동기화
 - [x] 로컬 mock 화면·상호작용 확인 및 필수 PNG 8개 확보
 - [x] 독립 화면 검토의 두 수정 및 해당 화면 재검토
-- [ ] 변경 기반 검사 결과 확정
-- [ ] scoped commit, main 통합·push·CI 확인 및 작업 정리
+- [x] 변경 기반 검사 결과 확정
+- [x] scoped commit, main 통합·push·CI 확인
+- [x] 화면 증거·기획 시안을 워크트리 밖에 보관하고 임시 검토 서버·탭 종료
+
+완료 기록 커밋 전달 후 이 작업의 워크트리·정션·임시 파일만 정리한다. 다른 세션의 파일과 작업은 보존한다.
 
 운영 승격·실결제·실LLM·운영 DB 쓰기는 실행하지 않는다.
