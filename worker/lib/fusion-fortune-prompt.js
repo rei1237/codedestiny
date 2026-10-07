@@ -1,4 +1,4 @@
-import { fusionLocaleLengthScale, FUSION_EXPERT_VERSION, buildFusionEvidenceCrossCheck } from "./fusion-expert-contract.js";
+import { fusionLocaleLengthScale, FUSION_EXPERT_VERSION, buildFusionEvidenceCrossCheck, fusionEvidenceReferences } from "./fusion-expert-contract.js";
 /**
  * 초융합 운세 프롬프트.
  *
@@ -31,6 +31,19 @@ export const FUSION_FORTUNE_LENGTH = Object.freeze({
   closingMessage: 600,
   finalVerdictRationale: 1000,
 });
+
+// V2 keeps all six expert chapters and the three synthesis chapters. These are
+// writing targets, never rejection floors; existing stored reports stay intact.
+export const FUSION_EXPERT_CHAPTER_CHARS = Object.freeze({
+  openingMessage: 220, sajuSection: 2400, ziweiSection: 2200, vedicSection: 2200,
+  sukuyoSection: 1800, astrologySection: 2200, tarotSection: 2200,
+  executiveSummary: 700, integratedReading: 2000, timingAndAction: 1500,
+  finalVerdict: 1100, closingMessage: 250,
+});
+
+export function fusionExpertGroupCeilingChars(group, locale = "ko") {
+  return Math.ceil(group.keys.reduce((sum, key) => sum + (FUSION_EXPERT_CHAPTER_CHARS[key] || 100), 0) * 1.35 * fusionLocaleLengthScale(locale));
+}
 
 /**
  * 분량을 요구하는 필드의 서술자. 프롬프트 본문(사람이 읽는 스키마)과 Gemini `description`
@@ -76,7 +89,7 @@ function lengthDirective(minChars, note = "") {
   const ceiling = fusionFieldCeilingChars(minChars);
   const body = [
     `한국어 ${min}자 이상, 목표 ${target.toLocaleString("en-US")}자.`,
-    `${min}자 미만이면 이 응답은 통째로 반려되어 사용자에게 전달되지 않는다.`,
+    "분량은 편집 목표다. 근거와 조언이 완결되면 목표보다 짧아도 자연스럽게 마무리한다.",
     `${ceiling.toLocaleString("en-US")}자를 넘기면 같은 판단을 다시 푼 문단이 쌓여 밀도가 떨어진다 — 목표를 채운 뒤에는 더 늘리지 말고 ${ceiling.toLocaleString("en-US")}자 안에서 끝낸다.`,
     "요약하거나 압축하지 말고 근거 → 구체적 장면 → 적용 방법 순으로 문단을 끝까지 전개해 목표 분량을 채운다.",
     "같은 문장이나 뜻이 같은 표현을 되풀이해 분량을 채운 응답도 반려된다. 새로 댈 근거가 남지 않으면 되풀이하지 말고 그 자리에서 필드를 끝내고 JSON 을 닫는다 — 분량이 모자란 응답보다 같은 말을 이어 붙인 응답이 나쁘다.",
@@ -755,7 +768,7 @@ export async function buildAdminLabPrompt(body = {}, options = {}) {
 }
 
 
-const EXPERT_SYSTEM_PROMPT = "CODE DESTINY의 초융합 상담자다. 제공한 계산 근거만 해석하고 새로운 별·궁·격국·시기를 만들지 않는다. 독립 전문가 단계에서는 다른 체계를 참조하지 않는다. 전문 용어는 쉬운 설명을 붙인다. 타인의 마음·성공·질병·투자 결과를 단정하지 않는다. 개인정보·입력 원문을 인용하지 않는다. 별도의 분석 한계 섹션을 만들지 않는다. 지시된 JSON 스키마만 출력한다.";
+const EXPERT_SYSTEM_PROMPT = "CODE DESTINY의 초융합 상담자다. 제공한 계산 근거만 해석하고 새로운 별·궁·격국·시기를 만들지 않는다. 독립 전문가 단계에서는 다른 체계를 참조하지 않는다. 전문 용어는 바로 쉬운 뜻과 생활 장면으로 풀어 쓴다. 질문에서 확인되는 고민을 먼저 짚고, 감정을 추측해 단정하거나 상투적인 위로를 반복하지 않는다. 각 근거가 왜 그 해석으로 이어지는지, 강점과 과해졌을 때의 그림자, 판단이 달라지는 조건, 오늘 선택할 수 있는 작은 행동을 연결한다. 타인의 마음·성공·질병·투자 결과를 단정하지 않는다. 개인정보·입력 원문을 인용하지 않는다. 별도의 분석 한계 섹션을 만들지 않는다. 지시된 JSON 스키마만 출력한다.";
 function sanitizeExpertEvidence(value, depth = 0) {
   if (depth > 7) return undefined;
   if (typeof value === "string") return safeText(value, 700);
@@ -779,6 +792,14 @@ function buildExpertGroupPrompt(context, group, prior, extraInstruction, schemaI
   const safeContext = projectFusionFortuneContextForPrompt(context);
   const prefix = expertPromptPrefix(context, group.stage, prior);
   let responseSchema = structuredClone(pickSchema(group.keys));
+  for (const key of group.keys) {
+    const target = FUSION_EXPERT_CHAPTER_CHARS[key];
+    if (!target) continue;
+    const instruction = `string (한국어 약 ${target}자 목표. 근거와 질문의 답, 판단 조건과 행동을 완결한다. 분량만 맞추려 반복하거나 다른 장의 내용을 재설명하지 않는다. 짧아도 핵심이 완결되면 마무리한다.)`;
+    if (typeof responseSchema[key] === "string") responseSchema[key] = instruction;
+    else if (key === "finalVerdict") responseSchema[key].rationale = instruction;
+    else responseSchema[key].content = instruction;
+  }
   // V2 comparisons use referenced conclusions; no generated score chart.
   delete responseSchema.visualization;
   if (responseSchema.finalVerdict) responseSchema.finalVerdict.confidence = "number (0; legacy compatibility field, never a probability)";
@@ -797,5 +818,18 @@ function buildExpertGroupPrompt(context, group, prior, extraInstruction, schemaI
     group.systems.includes("saju") ? "격국·용신·대운·세운의 제공 근거를 설명한다. 사주 엔진은 실제 경력 10년차 명리학자 설계·자문이라는 신뢰 요소를 존중한다. 추가 계산이 별도 전문가 검수를 받았다고 표현하지 않는다." : "",
     schemaInPrompt ? `응답 JSON 스키마: ${JSON.stringify(responseSchema)}` : "", extraInstruction,
   ].filter(Boolean).join("\n\n");
-  return { systemPrompt: EXPERT_SYSTEM_PROMPT, userPrompt, promptPrefix: prefix, responseSchema, geminiSchema: toGeminiSchema(responseSchema) };
+  const geminiSchema = toGeminiSchema(responseSchema);
+  if (group.stage === 1) {
+    for (const system of group.systems) {
+      const signal = geminiSchema.properties[`${system}Section`].properties.signals;
+      signal.minItems = 1;
+      signal.maxItems = 8;
+      signal.items.properties.domain.enum = ["timing", "relationship", "psychology", "work"];
+      signal.items.properties.stance.enum = ["advance", "pause", "adapt"];
+      signal.items.properties.evidenceKeys.minItems = 1;
+      const references = fusionEvidenceReferences(system, safeContext.systems[system]);
+      if (references.length) signal.items.properties.evidenceKeys.items.enum = references;
+    }
+  }
+  return { systemPrompt: EXPERT_SYSTEM_PROMPT, userPrompt, promptPrefix: prefix, responseSchema, geminiSchema };
 }

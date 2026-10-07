@@ -26,7 +26,7 @@ export type FinalVerdict = {
   avoid: string[];
 };
 export type Result = Record<"sajuSection" | "ziweiSection" | "vedicSection" | "sukuyoSection" | "astrologySection" | "tarotSection" | "integratedReading", Section> & {
-  expertMeta?: { version: string; locale: string; complete: boolean; pendingStage: 1 | 2 };
+  expertMeta?: { version: string; identity?: string; locale: string; complete: boolean; pendingStage: 1 | 2 };
   tarotCards?: FusionTarotCard[];
   evidenceCrossCheck?: FusionCrossCheck;
   title: string;
@@ -177,10 +177,10 @@ export function ThreadRow({ systemKey, dimmed, index = 0, dataState, exporting =
       data-state={dataState}
       {...(pdfSection ? { "data-fusion-pdf-section": "true" } : {})}
       {...(tocKey ? { id: `fusion-toc-${tocKey}`, "data-fusion-toc": tocKey } : {})}
-      className={`grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-2.5 max-[430px]:grid-cols-[1.5rem_minmax(0,1fr)] max-[430px]:gap-x-2 sm:grid-cols-[2.25rem_minmax(0,1fr)] sm:gap-x-3.5 ${exporting ? "" : "animate-fade-in-up motion-reduce:animate-none"} ${className}`}
+      data-system={systemKey}
+      className={`grid min-w-0 items-start ${dimmed ? "opacity-70" : ""} ${exporting ? "" : "animate-fade-in-up motion-reduce:animate-none"} ${className}`}
       style={exporting ? undefined : { animationDelay: `${Math.min(index, 14) * 60}ms` }}
     >
-      <ThreadAvatar systemKey={systemKey} dimmed={dimmed} />
       {children}
     </li>
   );
@@ -218,13 +218,12 @@ export function ThreadBubble({ systemKey, tone = "plain", deferRender = false, e
   return (
     <div
       style={tintVars(systemKey)}
-      className={`relative min-w-0 overflow-hidden rounded-[1.375rem] rounded-tl-md border px-4 py-4 max-[430px]:px-3.5 max-[430px]:py-3.5 sm:px-6 sm:py-5 ${
+      className={`relative min-w-0 overflow-hidden rounded-xl border px-4 py-5 sm:px-6 sm:py-6 ${
         tone === "gold"
-          ? "border-[rgba(232,213,163,0.28)] bg-[linear-gradient(150deg,rgba(232,213,163,0.11),rgba(255,255,255,0.03))]"
+          ? "border-[var(--fx-line-strong)] bg-[var(--fx-surface)]"
           : "border-white/[0.09] bg-white/[0.035]"
       } ${deferRender && !exporting ? "[contain-intrinsic-size:420px] [content-visibility:auto]" : ""} ${className}`}
     >
-      <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--tint),transparent)] opacity-70" />
       {children}
     </div>
   );

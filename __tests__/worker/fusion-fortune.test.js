@@ -144,7 +144,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(recovered.deliverable).toBe(true); expect(providerCall).toHaveBeenCalledTimes(1);
     expect(providerCall.mock.calls[0][2].logContext.sectionGroup).toBe("saju");
   });
-  it("valid JSON with a provider token-limit stop remains pending and retries only that expert", async () => {
+  it("delivers complete valid JSON despite a provider token-limit flag without buying another response", async () => {
     const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map(name => [name, 0]));
     const { context } = await buildFusionFortuneContext(input, { adapters: fusionAdapters(calls) });
     const providerCall = jest.fn(async (_env, _prompt, options) => {
@@ -153,10 +153,10 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     });
     const env = { ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINIF_API_KEY: "mock-only" };
     const first = await generateFusionFortuneWithRealLLM({ input, context, stage: 1, env, providerCall });
-    expect(first.deliverable).toBe(false);
+    expect(first.deliverable).toBe(true);
     expect(first.result.sajuSection.content).toBeTruthy();
-    expect(first.result.vedicSection?.content || "").toBe("");
-    expect(providerCall.mock.calls.filter(([, , options]) => options.logContext.sectionGroup === "vedic")).toHaveLength(2);
+    expect(first.result.vedicSection.content).toBeTruthy();
+    expect(providerCall.mock.calls.filter(([, , options]) => options.logContext.sectionGroup === "vedic")).toHaveLength(1);
     providerCall.mockClear();
     providerCall.mockImplementation(async (_env, _prompt, options) => {
       const group = FUSION_SECTION_GROUP_SPECS.find(item => item.id === options.logContext.sectionGroup);
@@ -164,14 +164,13 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     });
     const recovered = await generateFusionFortuneWithRealLLM({ input, context, stage: 1, env, providerCall, priorResult: first.result });
     expect(recovered.deliverable).toBe(true);
-    expect(providerCall).toHaveBeenCalledTimes(1);
-    expect(providerCall.mock.calls[0][2].logContext.sectionGroup).toBe("vedic");
+    expect(providerCall).not.toHaveBeenCalled();
   });
   it("stops before the next group when checkpoint confirmation fails", async () => {
     const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map(name => [name, 0]));
     const { context } = await buildFusionFortuneContext(input, { adapters: fusionAdapters(calls) });
     const providerCall = jest.fn(async (_env, _prompt, options) => {
-      expect(options.timeoutMs).toBeLessThanOrEqual(45000);
+      expect(options.timeoutMs).toBeLessThanOrEqual(60000);
       const group = FUSION_SECTION_GROUP_SPECS.find(item => item.id === options.logContext.sectionGroup);
       return { ok: true, provider: "gemini", text: JSON.stringify(buildFusionGroupPayload(group, context.tarotSpread.cards)) };
     });
@@ -184,7 +183,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
       env: { NODE_ENV: "staging", ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINI_API_KEY: "test-only-key" },
       providerCall, onCheckpoint,
     })).rejects.toMatchObject({ code: "RESULT_STORAGE_UNAVAILABLE" });
-    expect(providerCall).toHaveBeenCalledTimes(1);
+    expect(providerCall).toHaveBeenCalledTimes(2);
     expect(onCheckpoint).toHaveBeenCalledTimes(1);
     expect(snapshots.at(-1)).toHaveProperty("sajuSection.content");
     expect(snapshots.at(-1)).not.toHaveProperty("tarotSection");
@@ -891,11 +890,11 @@ describe("fusion length drafts and bounded repairs", () => {
     const args = { input, context, env, providerCall, onAttempt, onCheckpoint: async value => { saved = structuredClone(value); } };
     let first = await generateFusionFortuneWithRealLLM(args);
     expect(first.deliverable).toBe(false);
-    expect(providerCall).toHaveBeenCalledTimes(1);
+    expect(providerCall).toHaveBeenCalledTimes(2);
     for(let request=0;request<10&&!first.deliverable;request++){
       const calls=providerCall.mock.calls.length;
       first=await generateFusionFortuneWithRealLLM({...args,priorResult:saved,priorSnapshot:snapshot});
-      expect(providerCall.mock.calls.length-calls).toBeLessThanOrEqual(1);
+      expect(providerCall.mock.calls.length-calls).toBeLessThanOrEqual(2);
     }
     expect(first.deliverable).toBe(true);
     expect(snapshot.attempts.saju).toBe(1);
@@ -909,7 +908,7 @@ describe("fusion length drafts and bounded repairs", () => {
     for(let request=0;request<10&&!second.deliverable;request++){
       const calls=providerCall.mock.calls.length;
       second=await generateFusionFortuneWithRealLLM({...args,stage:2,priorResult:saved,priorSnapshot:snapshot});
-      expect(providerCall.mock.calls.length-calls).toBeLessThanOrEqual(1);
+      expect(providerCall.mock.calls.length-calls).toBeLessThanOrEqual(2);
     }
     expect(second.deliverable).toBe(true);
     expect(countFusionFortuneVisibleText(second.result)).toBeGreaterThanOrEqual(30000);
