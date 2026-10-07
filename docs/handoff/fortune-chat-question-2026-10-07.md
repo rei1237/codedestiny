@@ -55,3 +55,12 @@ status: in_progress
 - 새 키는 fc 요청의 결제 증빙·이용권 선택·동시 결제 잠금·기록 목록을 재사용한다. 카드 주문 준비는 소유자·상품 키·저장 금액이 일치해야 한다.
 - 기존 UI·공통 컴포넌트·스타일·에셋 미커밋 작업은 원래 워크트리에 보존했다. UI 타입 검사에서 ConsultationRoom의 ChatConsultation과 FortuneRecord accessMethod 타입 불일치가 확인됐다. 해당 UI 작업은 이번 서버 커밋에 포함하지 않았다.
 - 집중 mock: 질문/persona/후속 저장 27개, 결제 의도 29개 통과. 전체 check:fast 및 CI 결과는 후속 갱신한다. 실 LLM·실결제·운영 DB·운영 승격은 실행하지 않았다.
+
+
+### 서버 단계 검증과 전달 보완
+
+- main 코드 전달: `eb9466be7382fc7148587905e5ca8a29124586d0` (원래 UI WIP 미포함). CI: https://github.com/rei1237/codedestiny/actions/runs/37628641281
+- 깨끗한 검증 워크트리에서 typecheck 및 변경 파일 lint 통과. `npm run test:node`: 2,949/2,949 통과. 질문/persona/후속 mock 27개 통과.
+- `check:fast`가 선택한 결제 가드 88개 중 87개 통과. npm test의 5개 스위트 실패는 새 키의 후기·전달 분류 누락 및 레지스트리 첫 상품 순서 변경 때문이었다. 보완 후 `npm run test:jest -- --onlyFailures` 5 suites / 63 tests 통과. 원래 check:fast의 종료 코드는 1이므로 전체 통과로 기록하지 않는다.
+- 첫 CI의 타입·lint, Critical checks, Pages·Worker 빌드는 통과. Static guards의 sitemap-drift 실패를 정본 생성기로 보완했고 `npm run verify:sitemap-drift` 955 URL 통과, XML 10개의 URL 집합 불변을 확인했다.
+- 마지막 push SHA와 최신 CI 결과는 원래 작업 위치의 `.tmp/fortune-chat-question/state.md`에 기록한다. 서버 전달 완료 후에도 이 인수인계의 전체 상태는 UI 단계가 남아 active다.
