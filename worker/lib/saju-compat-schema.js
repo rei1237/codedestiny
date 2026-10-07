@@ -344,6 +344,26 @@ export const SAJU_COMPAT_SHORTFALL_RATIO = 0.6;
 
 export const groupTargetChars = (group, input) => groupFields(group, input).required.reduce((sum, spec) => sum + spec.target * (spec.count || 1), 0);
 
+// Use the same field registry for Gemini's structural contract and local validation.
+export function sajuCompatResponseSchema(group, input) {
+  const root = { type: "OBJECT", properties: {}, required: [] };
+  for (const spec of groupFields(group, input).required) {
+    const keys = spec.path.split(".");
+    let node = root;
+    for (const key of keys.slice(0, -1)) {
+      if (!node.properties[key]) {
+        node.properties[key] = { type: "OBJECT", properties: {}, required: [] };
+        node.required.push(key);
+      }
+      node = node.properties[key];
+    }
+    const key = keys.at(-1);
+    node.properties[key] = spec.kind === "list" ? { type: "ARRAY", items: { type: "STRING" } } : { type: "STRING" };
+    node.required.push(key);
+  }
+  return root;
+}
+
 // ---------------------------------------------------------------------------------------------
 // 파싱·정제·린트 (거부 대신 결정적 교정)
 // ---------------------------------------------------------------------------------------------
@@ -467,7 +487,17 @@ export function shapeSajuCompatGroup(group, parsed, input, seen = new Set()) {
   const value = {};
   const missing = [];
   const stats = { lintDrops: 0, dedupeDrops: 0, truncated: 0 };
-  const known = isObject(parsed) ? parsed : {};
+  let known = isObject(parsed) ? parsed : {};
+  // Observed provider drift: these three siblings were nested in crossReadings.
+  // Move only absent canonical fields; keep their types and run every normal gate.
+  // Never flatten arbitrary objects or replace an explicit canonical value.
+  if (group === "pastLife" && isObject(known.pastLife?.crossReadings)) {
+    const pastLife = { ...known.pastLife };
+    for (const key of ["story", "prescription", "questions"]) {
+      if (!Object.hasOwn(pastLife, key) && Object.hasOwn(pastLife.crossReadings, key)) pastLife[key] = pastLife.crossReadings[key];
+    }
+    known = { ...known, pastLife };
+  }
   for (const path of notApplicable) setPath(value, path, null);
   for (const spec of required) {
     if (spec.kind === "list") {

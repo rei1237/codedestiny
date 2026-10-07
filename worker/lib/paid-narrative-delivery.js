@@ -80,7 +80,7 @@ function respond(doc, render, busy = false, measure) {
 
 // Uses the existing execution collection; no provider call survives beyond its own
 // bounded request, and every accepted part is confirmed before the next wave.
-export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, onExhausted, measureBody, completeBody, timeoutMs = 45000, generationOrigin = "" }) {
+export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, onExhausted, measureBody, completeBody, recoverSavedPart, savedOnly = false, timeoutMs = 45000, generationOrigin = "" }) {
   const userId = auth.userId;
   const params = new URL(request.url).searchParams;
   const resumeId = request.method === "GET" ? params.get("resultId") : body.resumeResultId;
@@ -124,13 +124,13 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     timeoutAt: new Date(Date.now() + 600000) }); };
   try {
     for (const task of state.tasks) {
-      const draft = state.drafts?.[task.id];
+      const draft = state.drafts?.[task.id] || (!state.parts[task.id] && recoverSavedPart?.(task, state));
       if (!state.parts[task.id] && draft) {
         const candidate = selectNarrativeCandidate(null, draft, { ...(completeBody && { complete: completeBody }), ...(measureBody && { measure: measureBody }) });
         if (candidate && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + candidate)) { state.parts[task.id] = candidate; await persist(); }
       }
     }
-    const missing = state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 2).slice(0, PAID_LLM_PARTS_PER_REQUEST);
+    const missing = savedOnly ? [] : state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 2).slice(0, PAID_LLM_PARTS_PER_REQUEST);
     for (const task of missing) state.attempts[task.id] = (state.attempts[task.id] || 0) + 1;
     if (missing.length) await persist();
     let queue = Promise.resolve();
@@ -181,7 +181,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     })));
     const rejected = calls.find(call => call.status === "rejected"); if (rejected) throw rejected.reason;
     if (!ready(state, measureBody)) {
-      if (limited(state) && onExhausted) {
+      if (!savedOnly && limited(state) && onExhausted) {
         // Persist a single refund claim before any external side effect. An
         // uncertain refund response is for reconciliation, never another refund.
         state = { ...state, exhaustionClaimed: true };
