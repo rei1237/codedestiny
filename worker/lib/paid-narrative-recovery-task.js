@@ -89,7 +89,9 @@ async function recoverOne(env, doc, now, deadline) {
   } catch (error) {
     const code = String(error?.code || 'RECOVERY_PENDING').slice(0, 120);
     const errors = (progressed ? 0 : Number(doc.metadata?.paidNarrativeRecovery?.errors) || 0) + 1;
-    await mark(env, doc, { errors: Math.min(errors, MAX_ERRORS), code, nextAttemptAt: new Date(now + Math.min(MAX_BACKOFF_MS, BACKOFF_MS * 2 ** Math.min(errors, MAX_ERRORS))) });
+    await mark(env, doc, { errors: Math.min(errors, MAX_ERRORS), code,
+      ...(savedOnly ? { reviewRequired: true, code: 'DELIVERY_REVIEW_REQUIRED', lastError: code } : {}),
+      nextAttemptAt: new Date(now + Math.min(MAX_BACKOFF_MS, BACKOFF_MS * 2 ** Math.min(errors, MAX_ERRORS))) });
     return code;
   }
 }

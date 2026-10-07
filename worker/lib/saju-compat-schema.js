@@ -7,6 +7,7 @@
 import { createHash } from "node:crypto";
 import { HttpError } from "./http.js";
 import { countPaidReportBodyChars, reportSentenceKey } from "./paid-report-quality.js";
+import { repairJsonFieldLocations } from "./json-text-repair.js";
 
 export const SAJU_COMPAT_FEATURE_KEY = "compat-saju-compatibility";
 export const SAJU_COMPAT_REPORT_TYPE = "sajuCompatBasic";
@@ -487,17 +488,7 @@ export function shapeSajuCompatGroup(group, parsed, input, seen = new Set()) {
   const value = {};
   const missing = [];
   const stats = { lintDrops: 0, dedupeDrops: 0, truncated: 0 };
-  let known = isObject(parsed) ? parsed : {};
-  // Observed provider drift: these three siblings were nested in crossReadings.
-  // Move only absent canonical fields; keep their types and run every normal gate.
-  // Never flatten arbitrary objects or replace an explicit canonical value.
-  if (group === "pastLife" && isObject(known.pastLife?.crossReadings)) {
-    const pastLife = { ...known.pastLife };
-    for (const key of ["story", "prescription", "questions"]) {
-      if (!Object.hasOwn(pastLife, key) && Object.hasOwn(pastLife.crossReadings, key)) pastLife[key] = pastLife.crossReadings[key];
-    }
-    known = { ...known, pastLife };
-  }
+  const known = repairJsonFieldLocations(isObject(parsed) ? parsed : {}, sajuCompatResponseSchema(group, input));
   for (const path of notApplicable) setPath(value, path, null);
   for (const spec of required) {
     if (spec.kind === "list") {

@@ -154,7 +154,16 @@ test('exhausted saved 3/4 response recovers locally and preserves previous parts
 
 test('cron locally repairs a compatibility review once without spending another attempt', async () => {
   const before = await legacyThreeOfFour();
-  expect((await recovery({})).outcomes[0].outcome).toBe('completed');
+  const writes = jest.spyOn(model, 'findOneAndUpdate');
+  try {
+    expect((await recovery({})).outcomes[0].outcome).toBe('completed');
+    // Every durable progress checkpoint is still saved-only, even if the process
+    // stops before the final completion write or the cron's next marker update.
+    const checkpoints = writes.mock.calls.filter(([, update]) => update.$set?.status !== 'success').map(([, update]) => update.$set?.metadata).filter(Boolean);
+    expect(checkpoints.length).toBeGreaterThan(0);
+    for (const metadata of checkpoints) expect(metadata.paidNarrativeRecovery).toMatchObject({ reviewRequired: true, code: 'DELIVERY_REVIEW_REQUIRED' });
+    expect(docs[0].metadata.paidNarrativeRecovery).toBeNull();
+  } finally { writes.mockRestore(); }
   expect(docs[0].metadata.paidNarrative.attempts).toEqual(before.attempts);
   expect(provider).not.toHaveBeenCalled();
 });
@@ -170,6 +179,18 @@ test('invalid saved content remains in review without repeated cron scans or gen
   expect((await recovery({})).outcomes[0].outcome).toBe('review_required');
   expect(docs[0].metadata.paidNarrative).toEqual(before);
   expect((await recovery({})).scanned).toBe(0);
+  expect(provider).not.toHaveBeenCalled();
+});
+
+test('storage failure during saved-only recovery retains review and never enables generation', async () => {
+  const before = await legacyThreeOfFour();
+  fault = { kind: 'throw', metadata: true };
+  expect((await recovery({})).outcomes[0].outcome).toBe('RESULT_STORAGE_UNAVAILABLE');
+  expect(docs[0].metadata.paidNarrativeRecovery).toMatchObject({ reviewRequired: true, code: 'DELIVERY_REVIEW_REQUIRED', lastError: 'RESULT_STORAGE_UNAVAILABLE' });
+  docs[0].timeoutAt = new Date();
+  docs[0].metadata.paidNarrativeRecovery.nextAttemptAt = new Date();
+  expect((await recovery({})).outcomes[0].outcome).toBe('completed');
+  expect(docs[0].metadata.paidNarrative.attempts).toEqual(before.attempts);
   expect(provider).not.toHaveBeenCalled();
 });
 

@@ -28,6 +28,7 @@ import {
   buildFollowUpConsultationPrompt,
   buildLoveSecretGroundingTerms,
   buildLoveSecretGroupPrompt,
+  buildLoveSecretGroupResponseSchema,
   buildLoveSecretGroupSystemPrompt,
   countLoveSecretConsultationBodyChars,
   mapLoveSecretIssuesToGroups,
@@ -785,6 +786,7 @@ async function generateLoveSecretGroup(env, {
     });
     const call = callGeminiJsonWithRetry(env, prompt, {
       systemPrompt: buildLoveSecretGroupSystemPrompt(systemPromptBase, group),
+      responseSchema: buildLoveSecretGroupResponseSchema(group),
       temperature: 0.72,
       // 내부 잘림 재시도는 데드라인을 모른 채 벽시계를 2배로 만든다 — 수리는 wave 2가 예산을 알고 한다.
       attempts: 1,

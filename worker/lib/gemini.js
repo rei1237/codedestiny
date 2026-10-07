@@ -1,4 +1,5 @@
 import { recoverClippedLlmResponse } from './llm-local-recovery.js';
+import { repairStructuredJsonText } from './json-text-repair.js';
 import {
   callLLM,
   createGeminiContextCache as createLLMContextCache,
@@ -173,6 +174,13 @@ export async function callGeminiText(env, prompt, options = {}) {
       finishReason: clean(result.finishReason, 40),
       usage: result.usage,
     };
+    if (options.responseMimeType === "application/json" || options.responseSchema) {
+      const repaired = repairStructuredJsonText(response.text, options.responseSchema);
+      if (repaired !== response.text) {
+        response.rawText = response.text;
+        response.text = repaired;
+      }
+    }
     // Chapter completion owns its output contract. Do not erase MAX_TOKENS
     // before that caller can decide whether the purchased chapter is complete.
     return options.preserveTermination === true ? response : recoverClippedLlmResponse(response);

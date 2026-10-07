@@ -8,7 +8,7 @@ import { getAmbientAiLocale, runWithAiLocale } from "./ai-locale-context.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { isPaidResultRevoked } from "./paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "./paid-report-quality.js";
-import { selectNarrativeCandidate, narrativeRepairTask, normalizeNarrativeBody } from "./paid-narrative-candidate.js";
+import { selectNarrativeCandidate, narrativeRepairTask, normalizeNarrativeBody, NARRATIVE_RESPONSE_SCHEMA } from "./paid-narrative-candidate.js";
 import { runWithPaidGenerationContext, getPaidGenerationRaw } from "./paid-generation-context.js";
 
 const hash = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -120,7 +120,9 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   if (doc.lock.token !== token) return respond(doc, render, true, measureBody);
   const filter = { userId, executionKey, status: "pending", "lock.token": token };
   let state = doc.metadata.paidNarrative;
-  const persist = async () => { doc = await save(env, filter, { metadata: { ...doc.metadata, paidNarrative: structuredClone(state), paidNarrativeAlertedAt: null, paidNarrativeRecovery: null },
+  const persist = async () => { doc = await save(env, filter, { metadata: { ...doc.metadata, paidNarrative: structuredClone(state), paidNarrativeAlertedAt: null,
+    // A crash after the checkpoint must not turn a saved-only review into a paid resume.
+    paidNarrativeRecovery: savedOnly ? { ...doc.metadata.paidNarrativeRecovery, reviewRequired: true, code: "DELIVERY_REVIEW_REQUIRED" } : null },
     timeoutAt: new Date(Date.now() + 600000) }); };
   try {
     for (const task of state.tasks) {
@@ -150,6 +152,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
         } else {
           ai = await runWithAiLocale(state.locale, () => callGeminiJsonWithRetry(env, prompt, {
             systemPrompt: state.systemPrompt, taskType: "fortune", temperature: 0.55, attempts: 1,
+            responseSchema: NARRATIVE_RESPONSE_SCHEMA,
             timeoutMs: Math.min(45000, Math.max(15000, Number(timeoutMs) || 45000)), baseTokens: 9500, capTokens: 9500, fallbackToWorkersAI: false,
           }));
           try { value = JSON.parse(ai?.text || ""); } catch { value = salvageTruncatedJsonObject(ai?.text || ""); }
@@ -194,7 +197,8 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     }
     doc = await save(env, filter, { metadata: { ...doc.metadata, result: render(state) }, premiumStatus: "generating" });
     if (await revoked(env, doc, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
-    doc = await save(env, filter, { status: "success", premiumStatus: "completed", deliveryStatus: "delivered", completedAt: new Date() });
+    doc = await save(env, filter, { status: "success", premiumStatus: "completed", deliveryStatus: "delivered", completedAt: new Date(),
+      ...(savedOnly ? { metadata: { ...doc.metadata, paidNarrativeRecovery: null } } : {}) });
     return respond(doc, render, false, measureBody);
   } finally {
     await withMongoRetry(env, () => ServiceExecutionTransaction.updateOne({ userId, executionKey, "lock.token": token }, { $set: { "lock.token": "", "lock.until": null } }), { retries: 0 }).catch(() => {});

@@ -1,3 +1,4 @@
+import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { handleNeoStrategyBooks } from "./neo-strategy-books.js";
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -1034,6 +1035,7 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlin
         // 않다 — 긴 한국어 본문에서 문자열 안 raw 개행이 섞여 오므로 파서가 복구까지 한다
         // (neo-operation-room-prompt.js 의 extractJsonObject).
         responseMimeType: "application/json",
+        responseSchema: jsonSchemaFromExample(section.schema),
         // Workers AI 폴백이 이 챕터 최소 분량의 40% 미만이면 실패로 돌린다.
         // 아래 40자 게이트는 목적이 다르다 — 전 provider 대상 "렌더 가능한 응답" 하한.
         fallbackMinChars: Math.round((section.minChars || 500) * 0.4),

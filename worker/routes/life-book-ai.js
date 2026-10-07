@@ -1,3 +1,4 @@
+import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { createHash } from "node:crypto";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
@@ -1426,6 +1427,8 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
   try {
     const ai = await callGeminiText(env, prompt, {
       systemPrompt: buildSystemPrompt(options.consultationType || "lifeBook"),
+      responseMimeType: "application/json",
+      responseSchema: jsonSchemaFromExample(buildSectionSchema(section, {}, isLifeFortuneInput(options))),
       taskType: "fortune",
       temperature: options.temperature || 0.72,
       maxOutputTokens: Math.max(section.maxOutputTokens, tokensRequiredForChars(section.targetChars)),

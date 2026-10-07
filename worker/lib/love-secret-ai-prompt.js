@@ -1,4 +1,5 @@
 import { salvageTruncatedJsonObject } from "../../lib/llm-text.js";
+import { jsonSchemaFromExample } from "./json-text-repair.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "./paid-report-quality.js";
 import { buildLoveSecretGroupFacts, compactSajuForFollowUp } from "./love-secret-ai-facts.js";
 
@@ -206,6 +207,10 @@ export const LOVE_SECRET_AI_GROUPS = Object.freeze([
 
 export function findLoveSecretGroup(key) {
   return LOVE_SECRET_AI_GROUPS.find((group) => group.key === key) || null;
+}
+
+export function buildLoveSecretGroupResponseSchema(group) {
+  return jsonSchemaFromExample(JSON.parse(groupJsonSkeleton(group)));
 }
 
 function groupJsonSkeleton(group) {

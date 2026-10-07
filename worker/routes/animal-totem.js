@@ -1,3 +1,4 @@
+import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 // 애니멀 토템 — '연이 종합 해설' 생성 라우트.
 //
 // 역할 분담이 이 라우트의 전부다:
@@ -610,7 +611,7 @@ export function animalTotemNarrativeAdapter(env) {
         systemPrompt: state.systemPrompt, taskType: "fortune", temperature: 0.72,
         timeoutMs: Math.min(45000, clampSyncLlmTimeoutMs(Number(env?.ANIMAL_TOTEM_LLM_TIMEOUT_MS) || 45000)),
         attempts: 1, baseTokens: state.input.spec.baseTokens, capTokens: Math.round(state.input.spec.baseTokens * 1.3),
-        responseMimeType: "application/json", fallbackToWorkersAI: false,
+        responseMimeType: "application/json", responseSchema: jsonSchemaFromExample({ opening: "", question_answer: "", card_bridges: [{ slot: "", line: "" }], closing: "", action_plan: [""], shadow_gift_synthesis: "" }), fallbackToWorkersAI: false,
         logContext: { requestId: state.input.requestId.slice(0, 120), featureKey: state.input.spec.featureKey },
       });
       if (!ai?.ok || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
