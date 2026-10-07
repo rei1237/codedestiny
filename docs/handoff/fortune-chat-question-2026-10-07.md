@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-10-07
+next: "기존 워크트리의 상태 메모를 확인하고 네 상품의 서버 계약·지원 제한·무료 종료를 mock으로 검증"
+---
+
 # 연이·네오 질문 상담 — 순차 구현 상태
 
 status: in_progress

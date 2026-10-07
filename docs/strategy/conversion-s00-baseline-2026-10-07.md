@@ -141,3 +141,11 @@ S06은 기존 action/receive 이벤트 이름을 우선 재사용하고 stage/ou
 - 실결제·유료 LLM·운영 DB 쓰기·운영 후기 제출·실공유·운영 승격 0회. 운영 구매율·매출 상승·수신율 개선·실기기 UI는 미검증.
 
 `status: done`은 S00 진단·이벤트 사전·관련 mock 검증 산출물의 완료다. 운영 집계 확보, 신규 계측 연결, 전체 로컬 check:fast 성공, S01~S09 구현 완료를 뜻하지 않는다.
+
+### 전달 CI 후속
+
+S00 구현 커밋 `c86fbf326`, main 전달 `eee6b5b4b07beec7a74bf283de70e68243bffdba`는 [CI 37620945333](https://github.com/rei1237/codedestiny/actions/runs/37620945333)에서 타입·lint·빌드·critical(전체 Test 포함)이 통과했다. 로컬 타로 오류는 CI에서 재현되지 않았으나 원인이 해결됐다고 단정하지 않는다.
+
+최종 CI required는 타 세션의 `docs/handoff/fortune-chat-question-2026-10-07.md`에 frontmatter가 없어 실패했다. 같은 `node scripts/verify-handoff-contract.mjs`로 재현했고, 전달을 위해 해당 문서의 본문을 그대로 보존한 채 필수 status/updated/next만 추가했다. 원 작업은 미완료이므로 status는 active를 유지하며 완료로 닫지 않는다. 이는 S00 외 제품 수정이 아니라 CI 문서 형식 보완이다. 수정 후 정확한 main SHA의 필수 CI 판정은 최종 전달 메시지에서 확인한다.
+
+후속 검증: `npm run verify:handoff-contract -- --self-test` 11건, `npm run verify:handoff-contract` 167문서, 문서 2파일 대상 `npm run check:fast -- --plan`(fast) 및 `npm run check:fast` 모두 exit 0. 이 문서 전용 검사 통과가 최초 코드 검사 전체를 재실행한 뜻은 아니다.
