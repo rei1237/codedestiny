@@ -23,6 +23,7 @@ test('planning is read-only and excludes tracked, state and final files', t => {
   const before = fs.readdirSync(root);
   const plan = createPlan(root, ['scratch.log', 'tracked.log', '.wrangler/state.log', 'output/final.log', '.env.local', 'source.js']);
   assert.deepEqual(plan.candidates.map(x => x.path), ['scratch.log']);
+  assert.equal(createPlan(root, ['TRACKED.log']).candidates.length, 0);
   assert.equal(plan.skipped.length, 5);
   assert.deepEqual(fs.readdirSync(root), before);
 });

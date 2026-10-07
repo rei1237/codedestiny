@@ -12,6 +12,7 @@ const FINAL = /(?:^|\/)(?:[^/]*(?:final|delivery|receipt|handoff|preserved|backu
 const CACHE = /^(?:\.next|\.cache|build-cache|coverage|playwright-report|test-results|tmp|\.tmp)\//;
 const TEMP = /(?:\.log|\.err|\.tsbuildinfo|\.tmp)$/i;
 const hash = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+const pathKey = file => file.toLowerCase(); // Conservative on case-sensitive hosts too.
 const gitFiles = root => execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 }).split('\0').filter(Boolean);
 
 export function checkedPath(root, relative) {
@@ -34,12 +35,12 @@ export function checkedPath(root, relative) {
 
 export function createPlan(root, selected) {
   root = fs.realpathSync(root);
-  const tracked = new Set(gitFiles(root));
+  const tracked = new Set(gitFiles(root).map(pathKey));
   const files = selected ?? fs.readdirSync(root).filter(name => TEMP.test(name) && !fs.lstatSync(path.join(root, name)).isSymbolicLink());
   const candidates = [], skipped = [];
   for (const relative of [...new Set(files)].sort()) {
     try {
-      if (tracked.has(relative)) throw new Error('Tracked file requires a separate reviewed code change');
+      if (tracked.has(pathKey(relative))) throw new Error('Tracked file requires a separate reviewed code change');
       const absolute = checkedPath(root, relative), stat = fs.statSync(absolute);
       candidates.push({ path: relative, bytes: stat.size, mtimeMs: stat.mtimeMs, sha256: hash(absolute), reason: 'reproducible temporary file; review ownership before apply' });
     } catch (error) { skipped.push({ path: relative, reason: error.message }); }
@@ -50,22 +51,22 @@ export function createPlan(root, selected) {
 export function applyPlan(root, plan) {
   root = fs.realpathSync(root);
   if (plan.version !== 1 || plan.root !== root || !Array.isArray(plan.candidates)) throw new Error('Plan does not belong to this workspace');
-  const tracked = new Set(gitFiles(root));
+  const tracked = new Set(gitFiles(root).map(pathKey));
   const seen = new Set();
   const validate = item => {
-    if (!item || seen.has(item.path)) throw new Error('Invalid or duplicate candidate');
-    if (tracked.has(item.path)) throw new Error('File is now tracked: ' + item.path);
+    if (!item || typeof item.path !== 'string' || seen.has(pathKey(item.path))) throw new Error('Invalid or duplicate candidate');
+    if (tracked.has(pathKey(item.path))) throw new Error('File is now tracked: ' + item.path);
     const absolute = checkedPath(root, item.path), stat = fs.statSync(absolute);
     if (stat.size !== item.bytes || stat.mtimeMs !== item.mtimeMs || hash(absolute) !== item.sha256) throw new Error('File changed after review: ' + item.path);
     return absolute;
   };
   // Preflight every item before the first unlink. No recursive delete or force.
-  for (const item of plan.candidates) { validate(item); seen.add(item.path); }
+  for (const item of plan.candidates) { validate(item); seen.add(pathKey(item.path)); }
   seen.clear();
   const deleted = [];
   for (const item of plan.candidates) {
     fs.unlinkSync(validate(item));
-    seen.add(item.path);
+    seen.add(pathKey(item.path));
     deleted.push(item.path);
   }
   return { deleted, bytes: plan.candidates.reduce((sum, item) => sum + item.bytes, 0) };
