@@ -599,7 +599,8 @@
       "sajuGuardianPricePrice5000": "Buka kunci kekal KRW 5,000",
       "price5000Price3000": "Sekali KRW 3,000",
       "price10000Price5000": "Sekali KRW 5,000",
-      "unlock1000": "Buka kunci KRW 1,000"
+      "unlock1000": "Buka kunci KRW 1,000",
+      "price1000": "Sekali KRW 1,000"
     },
     "destinyFlowerStudio": {
       "closeAria": "Tutup Atelier Bunga Takdir",
@@ -1343,7 +1344,9 @@
         "w30000": "₩30,000",
         "w50000": "₩50,000",
         "w20000": "₩20,000",
-        "from3000": "From ₩3,000"
+        "from3000": "From ₩3,000",
+        "w1000": "₩1,000",
+        "from9000": "From ₩9,000"
       },
       "chip": {
         "love": "Their feelings · My next love",

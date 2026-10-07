@@ -599,7 +599,8 @@
       "sajuGuardianPricePrice5000": "स्थायी अनलॉक KRW 5,000",
       "price5000Price3000": "एक बार KRW 3,000",
       "price10000Price5000": "एक बार KRW 5,000",
-      "unlock1000": "KRW 1,000 अनलॉक करें"
+      "unlock1000": "KRW 1,000 अनलॉक करें",
+      "price1000": "एक बार KRW 1,000"
     },
     "destinyFlowerStudio": {
       "closeAria": "डेस्टिनी फ्लावर अटेलियर बंद करें",
@@ -1343,7 +1344,9 @@
         "w30000": "₩30,000",
         "w50000": "₩50,000",
         "w20000": "₩20,000",
-        "from3000": "From ₩3,000"
+        "from3000": "From ₩3,000",
+        "w1000": "₩1,000",
+        "from9000": "From ₩9,000"
       },
       "chip": {
         "love": "Their feelings · My next love",

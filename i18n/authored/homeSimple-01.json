@@ -292,5 +292,47 @@
     "de": "Bereits gekaufte Pässe behalten ihre ursprünglichen Bedingungen.",
     "nl": "Eerder gekochte passen behouden hun oorspronkelijke voorwaarden.",
     "ms": "Pas yang telah dibeli mengekalkan syarat asalnya."
+  },
+  "home.tiles.price1000": {
+    "ko": "1회 1,000원",
+    "en": "One time KRW 1,000",
+    "ja": "1回 1,000ウォン",
+    "zh-CN": "一次 1,000 韩元",
+    "zh-TW": "一次 1,000 韓元",
+    "vi": "Một lần 1.000 KRW",
+    "hi": "एक बार KRW 1,000",
+    "es": "Una vez KRW 1,000",
+    "fr": "Une fois 1 000 KRW",
+    "de": "Einmalig 1.000 KRW",
+    "nl": "Eenmalig KRW 1.000",
+    "ms": "Sekali KRW 1,000"
+  },
+  "home.concernPick.price.w1000": {
+    "ko": "1,000원",
+    "en": "₩1,000",
+    "ja": "1,000ウォン",
+    "zh-CN": "1,000韩元",
+    "zh-TW": "1,000韓元",
+    "vi": "₩1,000",
+    "hi": "₩1,000",
+    "es": "₩1,000",
+    "fr": "₩1,000",
+    "de": "₩1,000",
+    "nl": "₩1,000",
+    "ms": "₩1,000"
+  },
+  "home.concernPick.price.from9000": {
+    "ko": "9,000원부터",
+    "en": "From ₩9,000",
+    "ja": "9,000ウォン〜",
+    "zh-CN": "9,000韩元起",
+    "zh-TW": "9,000韓元起",
+    "vi": "From ₩9,000",
+    "hi": "From ₩9,000",
+    "es": "From ₩9,000",
+    "fr": "From ₩9,000",
+    "de": "From ₩9,000",
+    "nl": "From ₩9,000",
+    "ms": "From ₩9,000"
   }
 }
