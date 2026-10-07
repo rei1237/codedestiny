@@ -15,10 +15,10 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: "https",
     cleartext: false,
-    // 영냥이에서 시작하고 기존 꿀꿀 운세는 서비스 내 탐색으로 이어간다.
+    // 꿀꿀 운세에서 시작하고 영냥이는 서비스 내 탐색으로 이어간다.
     // Capacitor는 이 값을 server.appStartPath 에서만 읽는다(android 블록이 아니라).
     // 확장자까지 적는다 — 아래 html5mode 를 껐으므로 폴백에 기대지 않는다.
-    appStartPath: "/yeongnyangi/index.html",
+    appStartPath: "/ggulggul/index.html",
 
     // html5mode 를 끈다.
     //

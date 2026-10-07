@@ -994,7 +994,7 @@
 
   function isRootScreen() {
     var path = String(window.location.pathname || "/").replace(/\/index\.html$/, "").replace(/\/+$/, "");
-    return path === "" || path === "/" || path === "/yeongnyangi";
+    return path === "" || path === "/" || path === "/ggulggul";
   }
 
   function showExitHint() {
@@ -1111,7 +1111,7 @@
         return;
       }
       if (!isRootScreen()) {
-        window.location.assign("/yeongnyangi/index.html");
+        window.location.assign("/ggulggul/index.html");
         return;
       }
       var now = Date.now();
