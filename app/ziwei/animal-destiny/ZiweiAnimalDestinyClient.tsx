@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../../../styles/fonts-serif.css";
 import styles from "../../components/ziwei/ziwei-consultation.module.css";
@@ -15,7 +16,7 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getZiweiAnimalCopy, type ZiweiAnimalCopy } from "./_lib/ziwei-animal-copy";
-import { getAnimalIdByMingGong, ANIMAL_EMOJI } from "./_lib/ziweiAnimalMapping";
+import { getAnimalIdByMingGong, ZIWEI_ANIMAL_ART } from "./_lib/ziweiAnimalMapping";
 import { buildZiweiAnimalContent } from "./_lib/ziweiAnimalContent";
 import { ANIMAL_DESTINY_DATA } from "@/components/fortune/animal-twelve/animalTwelveData";
 import type { AnimalId } from "@/app/saju/animal-destiny/lib/types";
@@ -174,7 +175,7 @@ export default function ZiweiAnimalDestinyClient() {
   }
 
   return (
-    <section className={`${styles.surface} font-body relative min-h-[100dvh] overflow-hidden px-4 py-6 sm:px-6 lg:px-8`}>
+    <section className={`${styles.surface} ${styles.animalSurface} font-body relative min-h-[100dvh] overflow-hidden px-4 py-6 sm:px-6 lg:px-8`}>
       <div className="relative mx-auto flex min-h-[100dvh] max-w-3xl items-center py-[calc(1rem+env(safe-area-inset-top))]">
         <div className="relative z-10 w-full rounded-xl border border-[var(--zw-rule)] bg-[var(--zw-surface)] p-5 sm:p-7 lg:p-8">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--zw-gold)]">{copy.heroEyebrow}</p>
@@ -320,7 +321,7 @@ function ZiweiAnimalResultView({
 }) {
   const { chart, animalId } = result;
   const data = ANIMAL_DESTINY_DATA[animalId];
-  const emoji = ANIMAL_EMOJI[animalId];
+  const animalArt = `/images/ziwei/animals/ziwei-${ZIWEI_ANIMAL_ART[animalId]}-v1.webp`;
   const content = useMemo(() => buildZiweiAnimalContent(animalId), [animalId]);
 
   const evidenceLines = useMemo(() => {
@@ -330,13 +331,14 @@ function ZiweiAnimalResultView({
   }, [chart]);
 
   return (
-    <section className={`${styles.surface} font-body relative min-h-[100dvh] overflow-hidden`}>
+    <section className={`${styles.surface} ${styles.animalSurface} font-body relative min-h-[100dvh] overflow-hidden`}>
       <div className={styles.content}>
         <section className={styles.hero}>
           <div className={styles.heroContent}>
+            <Image src={animalArt} alt={`${data.animalName} 일러스트`} width={640} height={640} className={styles.animalPortrait} sizes="(max-width: 600px) 100vw, 400px" />
             <p className={styles.profile}>{copy.resultEyebrow}</p>
             <h2>
-              {emoji} {data.animalName}
+              {data.animalName}
             </h2>
             <p className={styles.selectedQuestion}>{data.title}</p>
             <p className={styles.lead}>{data.subtitleLine}</p>

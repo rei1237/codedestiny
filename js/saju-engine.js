@@ -19547,6 +19547,17 @@ function renderZiwei(p, natal, targetId) {
   color: #94a3b8;
   font-size: 0.72rem;
 }
+@media (min-width: 601px) and (max-width: 768px) {
+  .zwp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    gap: 6px;
+  }
+  .zwp-cell,
+  .zwp-core {
+    grid-area: auto !important;
+  }
+}
 @media (max-width: 768px) {
   .zwp-wrap {
     border-radius: 16px;
@@ -19557,15 +19568,6 @@ function renderZiwei(p, natal, targetId) {
     margin-bottom: 8px;
     font-size: 0.74rem;
     padding: 9px 10px;
-  }
-  .zwp-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: none;
-    gap: 6px;
-  }
-  .zwp-cell,
-  .zwp-core {
-    grid-area: auto !important;
   }
   .zwp-cell {
     padding: 7px;
@@ -19899,6 +19901,31 @@ function renderZiwei(p, natal, targetId) {
     }
   }
 
+
+.zwp-inline-detail { display: none; }
+@media (max-width: 600px) {
+  #ziweiModalOverlay .zwp-wrap { padding: 12px 0; background: #101923; border: 0; box-shadow: none; border-radius: 8px; }
+  #ziweiModalOverlay .zwp-starfield { display: none; }
+  #ziweiModalOverlay .zwp-cta { margin: 0 8px 12px; padding: 0; border: 0; background: none; font-size: 14px; line-height: 1.6; color: #bdc6cf; }
+  #ziweiModalOverlay .zwp-grid { gap: 0; grid-template-columns: repeat(4,minmax(0,1fr)); grid-template-rows: repeat(4,minmax(96px,auto)); border: 1px solid #6c5e42; border-radius: 8px; overflow: hidden; }
+  #ziweiModalOverlay .zwp-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 96px; padding: 10px 3px; border: 1px solid #394351; border-radius: 0; background: #17212e; box-shadow: none; backdrop-filter: none; animation: none; transform: none; text-align: center; }
+  #ziweiModalOverlay .zwp-cell.zwp-active { background: #2c2b27; border-color: #e0c58c; box-shadow: inset 0 0 0 1px #e0c58c; }
+  #ziweiModalOverlay .zwp-cell::after { display: none; }
+  #ziweiModalOverlay .zwp-cell:focus-visible { outline: 2px solid #e0c58c; outline-offset: -3px; }
+  #ziweiModalOverlay .zwp-kor { order: 3; color: #bdc6cf; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+  #ziweiModalOverlay .zwp-star { order: 2; color: #f4efdf; font-size: 12px; line-height: 1.5; white-space: normal; overflow: visible; margin: 0; }
+  #ziweiModalOverlay .zwp-type { order: 1; color: #e0c58c; font-size: 12px; line-height: 1.5; padding: 0; margin: 0; background: none; border: 0; }
+  #ziweiModalOverlay .zwp-core { grid-area: 2 / 2 / 4 / 4; min-width: 0; padding: 14px 8px; gap: 10px; border-radius: 0; border: 1px solid #6c5e42; background: linear-gradient(rgba(11,18,27,.78),rgba(11,18,27,.92)),url('/images/ziwei/celestial-atlas.webp') center/cover; box-shadow: none; }
+  #ziweiModalOverlay .zwp-core-title { font-size: 18px; line-height: 1.5; letter-spacing: 0; color: #e0c58c; text-shadow: none; overflow-wrap: anywhere; }
+  #ziweiModalOverlay .zwp-core-slogan { font-size: 12px; line-height: 1.65; color: #f4efdf; }
+  #ziweiModalOverlay :is(.zwp-core-symbol,.zwp-core-hash) { display: none; }
+  #ziweiModalOverlay .zwp-inline-detail { display: block; margin-top: 20px; padding: 0 12px; color: #f4efdf; }
+  #ziweiModalOverlay .zwp-inline-detail h3 { margin: 0 0 16px; font-size: 20px; line-height: 1.5; color: #e0c58c; }
+  #ziweiModalOverlay .zwp-inline-body { font-size: 16px; line-height: 1.8; overflow-wrap: anywhere; }
+  #ziweiModalOverlay .zwp-inline-body p { margin: 0 0 18px; }
+  #ziweiModalOverlay .zwp-inline-body .zwp-swipe-hint { display: none; }
+  #ziweiModalOverlay .zwp-inline-body .zwp-modal-tag { font-size: 13px; }
+}
   </style>
 
   <div class="zw-dashboard" data-zw-view="simple">
@@ -20012,9 +20039,9 @@ function renderZiwei(p, natal, targetId) {
 
   var ZW_PORTFOLIO_STAR_PROFILE = {
     '자미': { type: '권위형', persona: '자미 지도자', keywords: ['통솔력', '중심축', '명예'], evidence: '자미성은 제왕성을 상징하여 조직의 중심을 세우고 방향을 결정하려는 리더 본능을 강화합니다.' },
-    '염정': { type: '권력형', persona: '염정-권력자', keywords: ['권모술수', '장악력', '정치감각'], evidence: '염정성은 통제력과 이해관계 조율 능력을 키워 권력축을 운용하는 성향을 분명하게 만듭니다.' },
+    '염정': { type: '권력형', persona: '염정-권력자', keywords: ['관계조율', '추진력', '상황판단'], evidence: '염정성은 통제력과 이해관계 조율 능력을 키워 권력축을 운용하는 성향을 분명하게 만듭니다.' },
     '천기': { type: '관찰자', persona: '천기-관찰자', keywords: ['전략', '분석', '기획력'], evidence: '천기성은 정보 처리와 시나리오 설계에 강해 먼저 관찰하고 계산한 뒤 움직이는 패턴을 만듭니다.' },
-    '태음': { type: '관찰자', persona: '태음-관찰자', keywords: ['내면통찰', '정밀감수성', '은밀한축재'], evidence: '태음성은 미세한 흐름을 포착하는 감수성이 강해 정교한 관찰과 축적형 판단을 유도합니다.' },
+    '태음': { type: '관찰자', persona: '태음-관찰자', keywords: ['내면통찰', '세심한감수성', '차분한축적'], evidence: '태음성은 미세한 흐름을 포착하는 감수성이 강해 정교한 관찰과 축적형 판단을 유도합니다.' },
     '태양': { type: '발산형', persona: '태양-선도자', keywords: ['표현력', '명성', '외연확장'], evidence: '태양성은 공적 무대에서 존재감과 발산 에너지를 키워 대외 영향력을 빠르게 증폭합니다.' },
     '무곡': { type: '실행형', persona: '무곡-집행자', keywords: ['결단', '현실감', '자본통제'], evidence: '무곡성은 재무·실행 축을 단단히 세워 목표를 숫자와 성과로 증명하려는 힘을 강화합니다.' },
     '천부': { type: '수호형', persona: '천부-수호자', keywords: ['안정', '자산보존', '신뢰'], evidence: '천부성은 위험을 낮추고 기반을 넓히는 보수적 확장 전략에 강점을 보입니다.' },
@@ -20028,7 +20055,7 @@ function renderZiwei(p, natal, targetId) {
   var ZW_PORTFOLIO_MAIN_TITLE = {
     '자미': { title: _sajuEngineText("se_15958_prop_title"), slogan: '권위를 품고 판을 설계하는 중심 태양', symbol: '☀' },
     '염정': { title: _sajuEngineText("se_15959_prop_title"), slogan: '관계와 권력을 읽고 주도권을 쥐는 전략가', symbol: '✦' },
-    '천기': { title: _sajuEngineText("se_15960_prop_title"), slogan: '먼저 읽고 나중에 움직여 승률을 높이는 설계형', symbol: '✧' },
+    '천기': { title: _sajuEngineText("se_15960_prop_title"), slogan: '차분히 관찰하고 여러 가능성을 살피는 설계형', symbol: '✧' },
     '태음': { title: _sajuEngineText("se_15961_prop_title"), slogan: '조용히 읽고 깊게 축적하는 달빛 기획자', symbol: '☾' },
     '태양': { title: _sajuEngineText("se_15962_prop_title"), slogan: '무대를 밝히며 주변을 끌어당기는 확장형', symbol: '✺' },
     '무곡': { title: _sajuEngineText("se_15963_prop_title"), slogan: '판단을 실행으로 전환하는 결과 중심형', symbol: '✹' }
@@ -20076,7 +20103,7 @@ function renderZiwei(p, natal, targetId) {
       keywords: ['존귀', '위엄', '중심성', '리더십', '품격'],
       emoji: '🐉',
       summary: '스스로 중심을 잡고 사람과 상황을 이끄는 왕의 별입니다.',
-      assetPath: null,
+      assetPath: '/images/ziwei/animals/ziwei-dragon-v1.webp',
       silhouetteKey: 'dragon'
     },
     '天機': {
@@ -20087,7 +20114,7 @@ function renderZiwei(p, natal, targetId) {
       keywords: ['지혜', '계산', '전략', '변화', '기민함'],
       emoji: '🐒',
       summary: '빠른 판단력과 지적인 순발력으로 상황을 읽는 책사의 별입니다.',
-      assetPath: null,
+      assetPath: '/images/ziwei/animals/ziwei-monkey-v1.webp',
       silhouetteKey: 'monkey'
     },
     '太陽': {
@@ -20098,7 +20125,7 @@ function renderZiwei(p, natal, targetId) {
       keywords: ['고귀', '박애', '명예', '개방성', '활동성'],
       emoji: '🦅',
       summary: '높은 곳에서 넓게 바라보고 타인을 비추는 태양의 별입니다.',
-      assetPath: null,
+      assetPath: '/images/ziwei/animals/ziwei-eagle-v1.webp',
       silhouetteKey: 'eagle'
     },
     '武曲': {
@@ -20109,7 +20136,7 @@ function renderZiwei(p, natal, targetId) {
       keywords: ['재물', '실행력', '근성', '승부', '현실감각'],
       emoji: '🐗',
       summary: '목표를 향해 돌파하고 결과를 만들어내는 성취의 별입니다.',
-      assetPath: null,
+      assetPath: '/images/ziwei/animals/ziwei-boar-v1.webp',
       silhouetteKey: 'boar'
     },
     '天同': {
@@ -20120,7 +20147,7 @@ function renderZiwei(p, natal, targetId) {
       keywords: ['안락', '친화력', '순수함', '정서', '휴식'],
       emoji: '🐶',
       summary: '편안함과 따뜻한 정서로 사람을 끌어당기는 다정한 별입니다.',
-      assetPath: null,
+      assetPath: '/images/ziwei/animals/ziwei-dog-v1.webp',
       silhouetteKey: 'dog'
     },
     '廉貞': {
@@ -20131,7 +20158,7 @@ function renderZiwei(p, natal, targetId) {
       keywords: ['권위', '욕망', '통제', '규율', '강한 자존심'],
       emoji: '🐻',
       summary: '강한 내면의 욕망과 자기 통제력을 함께 가진 야성의 별입니다.',
-      assetPath: null,
+      assetPath: '/images/ziwei/animals/ziwei-bear-v1.webp',
       silhouetteKey: 'bear'
     },
     '天府': {
@@ -20142,7 +20169,7 @@ function renderZiwei(p, natal, targetId) {
       keywords: ['안정', '축적', '관리', '보호', '포용력'],
       emoji: '🐘',
       summary: '자원을 모으고 사람을 품으며 질서를 세우는 관리자의 별입니다.',
-      assetPath: null,
+      assetPath: '/images/ziwei/animals/ziwei-elephant-v1.webp',
       silhouetteKey: 'elephant'
     },
     '太陰': {
@@ -20153,7 +20180,7 @@ function renderZiwei(p, natal, targetId) {
       keywords: ['감성', '부유', '섬세함', '미감', '내면세계'],
       emoji: '🦚',
       summary: '섬세한 감성과 아름다움, 내면의 풍요를 상징하는 달의 별입니다.',
-      assetPath: null,
+      assetPath: '/images/ziwei/animals/ziwei-peacock-v1.webp',
       silhouetteKey: 'peacock'
     },
     '貪狼': {
@@ -20164,7 +20191,7 @@ function renderZiwei(p, natal, targetId) {
       keywords: ['도화', '매력', '욕망', '사교성', '재치'],
       emoji: '🦊',
       summary: '매력과 수완으로 기회를 만들고 사람을 끌어당기는 별입니다.',
-      assetPath: null,
+      assetPath: '/images/ziwei/animals/ziwei-fox-v1.webp',
       silhouetteKey: 'fox'
     },
     '巨門': {
@@ -20175,7 +20202,7 @@ function renderZiwei(p, natal, targetId) {
       keywords: ['말', '분석', '시비', '의심', '통찰'],
       emoji: '🦉',
       summary: '어둠 속의 진실을 파고들고 말과 논리로 길을 여는 별입니다.',
-      assetPath: null,
+      assetPath: '/images/ziwei/animals/ziwei-owl-v1.webp',
       silhouetteKey: 'owl'
     },
     '天相': {
@@ -20186,7 +20213,7 @@ function renderZiwei(p, natal, targetId) {
       keywords: ['보좌', '균형', '품위', '협력', '책임감'],
       emoji: '🐎',
       summary: '사람과 조직을 연결하고 안정적으로 보좌하는 균형의 별입니다.',
-      assetPath: null,
+      assetPath: '/images/ziwei/animals/ziwei-horse-v1.webp',
       silhouetteKey: 'horse'
     },
     '天梁': {
@@ -20197,7 +20224,7 @@ function renderZiwei(p, natal, targetId) {
       keywords: ['음덕', '고결', '보호', '원칙', '어른스러움'],
       emoji: '🐂',
       summary: '원칙과 보호 본능으로 사람을 지키는 노련한 어른의 별입니다.',
-      assetPath: null,
+      assetPath: '/images/ziwei/animals/ziwei-bull-v1.webp',
       silhouetteKey: 'ox'
     },
     '七殺': {
@@ -20208,7 +20235,7 @@ function renderZiwei(p, natal, targetId) {
       keywords: ['도전', '결단', '전투력', '독립성', '개척'],
       emoji: '🐯',
       summary: '두려움 없이 판을 바꾸고 새로운 길을 여는 개척자의 별입니다.',
-      assetPath: null,
+      assetPath: '/images/ziwei/animals/ziwei-tiger-v1.webp',
       silhouetteKey: 'tiger'
     },
     '破軍': {
@@ -20219,7 +20246,7 @@ function renderZiwei(p, natal, targetId) {
       keywords: ['파괴', '혁신', '변동', '반전', '재탄생'],
       emoji: '🐊',
       summary: '낡은 구조를 깨고 완전히 새로운 흐름을 만드는 변혁의 별입니다.',
-      assetPath: null,
+      assetPath: '/images/ziwei/animals/ziwei-crocodile-v1.webp',
       silhouetteKey: 'crocodile'
     }
   };
@@ -20486,7 +20513,8 @@ function renderZiwei(p, natal, targetId) {
         return ''
           + '<details class="zwla-codex-card' + (selected ? ' is-selected' : '') + '">'
           + '<summary class="zwla-codex-card-summary">'
-          + '<span>' + item.emoji + ' ' + _zwPortfolioEscapeHtml(item.animal) + ' · ' + _zwPortfolioEscapeHtml(item.koreanName) + '</span>'
+          + '<img class="zwla-illustration zwla-codex-image" src="' + item.assetPath + '" alt="' + _zwPortfolioEscapeHtml(item.animal + ' 일러스트') + '" width="640" height="640" loading="lazy" decoding="async">'
+          + '<span>' + _zwPortfolioEscapeHtml(item.animal) + ' · ' + _zwPortfolioEscapeHtml(item.koreanName) + '</span>'
           + '<span class="zwla-codex-card-archetype">' + _zwPortfolioEscapeHtml(item.archetype) + '</span>'
           + '</summary>'
           + '<div class="zwla-codex-card-body">'
@@ -20654,11 +20682,12 @@ function renderZiwei(p, natal, targetId) {
     return ''
       + '<div class="zw-detail-panel" id="zwLifeAnimalPanel">'
       + '  <div class="zw-dp-header">'
-      + '    <div class="zw-dp-title">' + primary.emoji + ' 내 영혼을 상징하는 자미두수 동물</div>'
+      + '    <div class="zw-dp-title">' + '내 영혼을 상징하는 자미두수 동물</div>'
       + '    <div class="zw-dp-subtitle">명궁 주성으로 보는 나의 상징 동물 · 14주성 동물 프로필</div>'
       + '  </div>'
       + '  <div class="zwla-hero">'
-      + '    <div class="zwla-hero-title">' + primary.emoji + ' 나의 명궁 동물</div>'
+      + '    <img class="zwla-illustration zwla-hero-image" src="' + primary.assetPath + '" alt="' + _zwPortfolioEscapeHtml(primary.koreanName + '의 상징 동물, ' + primary.animal + ' 일러스트') + '" width="640" height="640" loading="lazy" decoding="async">'
+      + '    <div class="zwla-hero-title">' + '나의 명궁 동물</div>'
       + '    <div class="zwla-hero-name">' + _zwPortfolioEscapeHtml(primary.animal) + ' · ' + _zwPortfolioEscapeHtml(primary.koreanName) + '</div>'
       + '    <div class="zwla-hero-archetype">' + _zwPortfolioEscapeHtml(primary.archetype) + ' / ' + _zwPortfolioEscapeHtml((primary.keywords || []).slice(0, 5).join(' · ')) + '</div>'
       + '    <div class="zwla-hero-summary">당신의 명궁 동물은 ' + primary.emoji + ' ' + _zwPortfolioEscapeHtml(primary.animal) + '입니다. ' + _zwPortfolioEscapeHtml(primary.summary) + '</div>'
@@ -21603,13 +21632,13 @@ function renderZiwei(p, natal, targetId) {
     var auxText = row.auxStars.length ? row.auxStars.join(' · ') : '보조성 없음';
     var badText = row.badStars.length ? row.badStars.join(' · ') : '흉성 영향 낮음';
     var keyTags = row.profile.keywords && row.profile.keywords.length ? row.profile.keywords : ['기질 파악', '패턴 분석'];
-    var whyType = '주성 <span class="zwp-glow">' + _zwPortfolioEscapeHtml(mainText) + '</span> 조합은 <span class="zwp-glow">' + _zwPortfolioEscapeHtml(row.profile.type) + '</span> 성향을 강화합니다.';
+    var whyType = '이 궁에서 참고하는 별 <span class="zwp-glow">' + _zwPortfolioEscapeHtml(mainText) + '</span> 조합은 <span class="zwp-glow">' + _zwPortfolioEscapeHtml(row.profile.type) + '</span> 성향으로 읽을 수 있습니다.';
     var evidence = _zwPortfolioEscapeHtml(row.profile.evidence || '해당 성계는 실전에서 판단-행동 간격을 좁히는 방향으로 작동합니다.');
     var relation = '이 궁은 전체 대표 타이틀 <span class="zwp-glow">' + _zwPortfolioEscapeHtml(summary.title) + '</span>과 연결되어, 현재 명반의 중심 테마를 구체 행동으로 변환하는 역할을 맡습니다.';
     var growthAction = {
       '권위형': ['중요 의사결정의 기준 3가지를 문장화하세요.', '팀 내 역할과 책임의 경계를 먼저 정의하세요.'],
       '권력형': ['협업 상대의 이해관계를 표로 정리해 충돌을 줄이세요.', '핵심 제안은 수치 근거 1개를 붙여 전달하세요.'],
-      '관찰자': ['결정 전 24시간 관찰 규칙으로 성급한 판단을 줄이세요.', '핵심 가설을 1문장으로 축약해 실행팀과 공유하세요.'],
+      '관찰자': ['중요한 선택은 확인할 사실과 결정할 기한을 함께 적어 보세요.', '생각을 한 문장으로 정리하고 작은 행동 하나로 확인해 보세요.'],
       '발산형': ['발표/브랜딩 채널을 1개 고정해 영향력을 축적하세요.', '주 1회 공개 기록으로 신뢰 자산을 쌓으세요.'],
       '실행형': ['우선순위 3개만 남기고 나머지는 보류 처리하세요.', '성과 지표를 주간 단위로 체크해 재투입 여부를 결정하세요.'],
       '수호형': ['리스크 목록과 대응 플랜을 미리 준비해 변동성을 낮추세요.', '핵심 자산은 보수적 분산으로 안정성을 확보하세요.'],
@@ -21620,6 +21649,9 @@ function renderZiwei(p, natal, targetId) {
       '보호형': ['장기 과제는 월 단위 리밸런싱으로 유지하세요.', '멘토링/후배 육성에 시간을 배정해 영향력을 확장하세요.']
     };
     var actions = growthAction[row.profile.type] || ['오늘 실행할 작은 행동 1개를 정하고 기록하세요.', '일주일 뒤 결과를 점검해 다음 행동으로 연결하세요.'];
+    var caution = row.badStars.length
+      ? '긴장되는 배치를 좋지 않은 결과로 단정할 필요는 없습니다. 부담이 커지는 상황에서 잠시 멈추고 일정과 관계의 경계를 점검해 보세요.'
+      : '익숙한 강점도 지나치게 쓰면 부담이 될 수 있습니다. 같은 방식을 반복하기보다 상대의 속도와 자신의 여유를 함께 살펴보세요.';
     var actionHtml = '<ul class="zwp-modal-list"><li>' + _zwPortfolioEscapeHtml(actions[0]) + '</li><li>' + _zwPortfolioEscapeHtml(actions[1]) + '</li></ul>';
 
     return ''
@@ -21629,7 +21661,8 @@ function renderZiwei(p, natal, targetId) {
       + '<p>' + evidence + '</p>'
       + '<p><b>성계 근거:</b> 주성 ' + _zwPortfolioEscapeHtml(mainText) + ' / 보조성 ' + _zwPortfolioEscapeHtml(auxText) + ' / 경계성 ' + _zwPortfolioEscapeHtml(badText) + '</p>'
       + '<p>' + relation + '</p>'
-      + '<p><b>실전 실행 가이드</b></p>'
+      + '<p><b>주의해서 살필 점</b><br>' + caution + '</p>'
+      + '<p><b>생활에서 활용하기</b></p>'
       + actionHtml
       + '<div class="zwp-swipe-hint">아래로 스와이프하거나 ✶ 버튼으로 닫을 수 있습니다.</div>';
   }
@@ -21836,6 +21869,20 @@ function renderZiwei(p, natal, targetId) {
       if (!store || !store.rows || !store.rows.length) return;
       var row = store.rows.find(function(it){ return it.idx === idx; }) || store.rows[0];
 
+      // 작은 화면에서는 지도 바로 아래에서 읽는다. 기존 판정/해설 빌더를 그대로 사용한다.
+      if (window.matchMedia('(max-width: 600px)').matches) {
+        var detail = mount.querySelector('.zwp-inline-detail');
+        if (!detail) return;
+        detail.querySelector('h3').textContent = row.palaceDisplay + ' · ' + row.profile.persona.replace(/-/g, ' · ');
+        detail.querySelector('.zwp-inline-body').innerHTML = _zwPortfolioBuildModalHtml(row, store.summary);
+        mount.querySelectorAll('.zwp-cell').forEach(function(cell) {
+          var selected = cell.classList.contains('zwp-cell-' + idx);
+          cell.classList.toggle('zwp-active', selected);
+          cell.setAttribute('aria-pressed', String(selected));
+        });
+        return;
+      }
+
       // body에 텔레포트된 오버레이를 먼저 찾고, 없으면 mount 내부에서 찾아 이동
       var overlay = document.querySelector('.zwp-modal-overlay[data-zwp-id="' + targetId + '"]');
       if (!overlay) {
@@ -21951,7 +21998,7 @@ function renderZiwei(p, natal, targetId) {
       var cellsHtml = rows.map(function(row, orderIdx){
         var mainLabel = row.mainStars.length ? row.mainStars.slice(0, 2).join(' · ') : '공궁';
         return ''
-          + '<button type="button" class="zwp-cell zwp-cell-' + row.idx + '" style="animation-delay:' + (orderIdx * 0.04).toFixed(2) + 's" onclick="window._openZwPortfolioModal(\'' + targetId + '\', ' + row.idx + ')">'
+          + '<button type="button" class="zwp-cell zwp-cell-' + row.idx + '" aria-pressed="false" aria-controls="' + targetId + '-detail" style="animation-delay:' + (orderIdx * 0.04).toFixed(2) + 's" onclick="window._openZwPortfolioModal(\'' + targetId + '\', ' + row.idx + ')">'
           + '  <div class="zwp-kor">[' + _zwPortfolioEscapeHtml(row.palaceDisplay) + ']</div>'
           + '  <div class="zwp-star">' + _zwPortfolioEscapeHtml(mainLabel) + '</div>'
           + '  <span class="zwp-type">' + _zwPortfolioEscapeHtml(row.profile.type) + '</span>'
@@ -21961,7 +22008,7 @@ function renderZiwei(p, natal, targetId) {
       mount.innerHTML = ''
         + '<section class="zwp-wrap" aria-label="' + _sajuEngineText("se_18255_attr_aria_label") + '">'
         + '  <div class="zwp-starfield">' + starfieldHtml + '</div>'
-        + '  <div class="zwp-cta"><b>클릭 가이드</b> · 각 카드를 눌러 궁별 성향, 근거, 실행 전략을 확인하세요. 모바일에서는 상단 시트로 바로 열립니다.</div>'
+        + '  <div class="zwp-cta">궁을 선택해 별의 배치와 생활 속 성향을 읽어보세요.</div>'
         + '  <div class="zwp-grid">'
         +       cellsHtml
         + '    <div class="zwp-core">'
@@ -21972,6 +22019,7 @@ function renderZiwei(p, natal, targetId) {
         + '      <div class="zwp-core-slogan">핵심 키워드 · ' + _zwPortfolioEscapeHtml((summary.keywords || []).slice(0, 3).join(' · ') || '균형 · 실행 · 확장') + '</div>'
         + '    </div>'
         + '  </div>'
+        + '  <section class="zwp-inline-detail" id="' + targetId + '-detail" aria-live="polite" aria-atomic="true"><h3></h3><div class="zwp-inline-body"></div></section>'
         + '  <div class="zwp-modal-overlay" aria-hidden="true">'
         + '    <div class="zwp-modal" role="dialog" aria-modal="true" aria-label="' + _sajuEngineText("se_18269_attr_aria_label") + '" onclick="event.stopPropagation()">'
         + '      <div class="zwp-modal-head">'
@@ -21983,6 +22031,13 @@ function renderZiwei(p, natal, targetId) {
         + '  </div>'
         + '</section>';
 
+      if (window.matchMedia('(max-width: 600px)').matches) {
+        var first = rows.find(function(row) { return row.palace === '명궁'; }) || rows.find(function(row) { return row.palaceDisplay === ZW_PORTFOLIO_PALACE_ALIAS['명궁']; }) || rows[0];
+        if (first) window._openZwPortfolioModal(targetId, first.idx);
+      }
+      // 다시 열 때 이전에 body로 옮긴 이 지도의 오버레이만 정리한다.
+      var previousOverlay = document.querySelector('.zwp-modal-overlay[data-zwp-id="' + targetId + '"]');
+      if (previousOverlay) previousOverlay.remove();
       // 오버레이를 body로 이동 후 이벤트 바인딩 (position:fixed 포함 블록 이슈 해소)
       var overlay = mount.querySelector('.zwp-modal-overlay');
       if (overlay) {

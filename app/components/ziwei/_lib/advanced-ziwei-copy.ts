@@ -493,7 +493,7 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     gridSectionTitle: "궁위 배치",
     selectedPalaceLabelPrefix: "선택한 궁: ",
     centerPanelSubtitle: "자미 성도 명반",
-    centerPanelDesc: "별빛이 강한 궁일수록 명반에서 선명하게 작동하는 운명의 축입니다.",
+    centerPanelDesc: "궁을 선택하면 아래에서 별의 배치와 생활 속 의미를 읽을 수 있어요. 별의 밝기는 성향이 드러나는 방식을 살피는 참고이며, 성공이나 실패를 뜻하지 않습니다.",
 
     rereadButtonLabel: "현재 궁 다시 읽기",
     palaceReadingSuffixLabel: "성요 판독",

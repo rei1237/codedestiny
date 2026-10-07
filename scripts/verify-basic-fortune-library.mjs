@@ -221,7 +221,10 @@ try {
         assert.equal(await mapToggle.count(), 1, '명반 보기 전환 버튼이 없다');
         assert.ok(await mapToggle.evaluate(el => el.getBoundingClientRect().height >= 44), '명반 전환 버튼 터치 타깃이 44px 미만');
         const gridDisplay = () => page.locator('#fr-ziwei-chart .zw-grid').evaluate(el => getComputedStyle(el).display);
-        assert.equal(await gridDisplay(), 'flex', '390px 기본값이 세로 목록이 아니다(죽은 CSS 회귀)');
+        assert.equal(await gridDisplay(), 'grid', '390px 기본값이 전체 명반이 아니다');
+        assert.equal(await mapToggle.getAttribute('aria-pressed'), 'true');
+        await mapToggle.click();
+        assert.equal(await gridDisplay(), 'flex', '목록 보기로 전환되지 않는다');
         // 엔진은 지지(.zw-branch-name)·대한(.zw-dahan)을 셀 하단에 position:absolute 로 못박는다.
         // 세로 목록은 height:auto 라서 하단 여백을 비워 두지 않으면 별 이름 행이 그 위로 흘러 내려와 글자가 겹친다
         // (실측으로 확인된 결함). 클래스 존재 검사로는 절대 안 잡히므로 실제 좌표로 잰다.
@@ -261,9 +264,8 @@ try {
           scrollable: el.scrollWidth > el.clientWidth,
         }));
         assert.equal(mapMode.display, 'grid', '지도 모드인데 4×4 격자가 아니다');
-        assert.ok(mapMode.gridWidth >= 600, `지도 모드 격자 폭이 ${Math.round(mapMode.gridWidth)}px 뿐이다`);
-        assert.equal(mapMode.overflowX, 'auto', '지도 모드에 가로 스크롤러가 없다(overflow:visible 회귀)');
-        assert.ok(mapMode.scrollable, '지도 모드인데 가로 스크롤이 생기지 않았다');
+        assert.ok(mapMode.gridWidth <= 390, '모바일 명반이 화면보다 넓다');
+        assert.equal(mapMode.scrollable, false, '모바일 명반에 가로 스크롤이 생겼다');
         // 엔진은 이 안내를 calc(100vw - 42px) 로 재는데 리포트 안 스크롤러는 그보다 좁다.
         // 덮어쓰지 않으면 마지막 글자가 스크롤러 경계에서 잘린다(실측).
         const noteFit = await page.locator('#fr-ziwei-chart .zw-grid-wrap').evaluate(el => {
