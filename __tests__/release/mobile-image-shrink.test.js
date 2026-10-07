@@ -114,3 +114,43 @@ test("main() 이 두 단계를 실제로 부른다", () => {
   assert.match(source, /await removeRedundantImageCopies\(referenced\)/, "중복 제거가 main() 에 배선돼 있어야 한다");
   assert.match(source, /await shrinkOversizedImages\(\)/, "이미지 축소가 main() 에 배선돼 있어야 한다");
 });
+
+test("AVIF도 앱 크기에 맞추되 파일 형식과 경로를 유지한다", async () => {
+  const { shrinkOversizedImages } = await loadScript();
+  const dist = await makeDist();
+  const file = path.join(dist, "card-1200.avif");
+  const input = await sharp(await noiseWebp(1200, 1500, 41)).avif({ quality: 90 }).toBuffer();
+  await fsp.writeFile(file, input);
+  await shrinkOversizedImages(dist);
+  const output = await fsp.readFile(file);
+  const meta = await sharp(output).metadata();
+  assert.equal(meta.format, "heif");
+  assert.equal(meta.width, 1080);
+  assert.equal(meta.height, 1350);
+  assert.ok(output.length < input.length);
+  assert.deepEqual(await fsp.readdir(dist), ["card-1200.avif"]);
+  await fsp.rm(dist, { recursive: true, force: true });
+});
+
+test("PNG 팔레트 압축은 투명 배경과 화면 크기를 보존한다", async () => {
+  const { shrinkOversizedImages } = await loadScript();
+  const dist = await makeDist();
+  const file = path.join(dist, "character.png");
+  const rgba = Buffer.alloc(128 * 128 * 4);
+  for (let y = 32; y < 96; y++) for (let x = 32; x < 96; x++) {
+    const i = (y * 128 + x) * 4;
+    rgba[i] = 200; rgba[i + 1] = 100; rgba[i + 2] = 50; rgba[i + 3] = 255;
+  }
+  await fsp.writeFile(file, await sharp(rgba, { raw: { width: 128, height: 128, channels: 4 } }).png({ compressionLevel: 0 }).toBuffer());
+  await shrinkOversizedImages(dist);
+  const output = await fsp.readFile(file);
+  const meta = await sharp(output).metadata();
+  const pixels = await sharp(output).ensureAlpha().raw().toBuffer();
+  assert.equal(meta.format, "png");
+  assert.equal(meta.width, 128);
+  assert.equal(meta.height, 128);
+  assert.equal(meta.hasAlpha, true);
+  assert.equal(pixels[3], 0);
+  assert.equal(pixels[(64 * 128 + 64) * 4 + 3], 255);
+  await fsp.rm(dist, { recursive: true, force: true });
+});

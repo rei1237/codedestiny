@@ -240,14 +240,19 @@ async function removeDeadPngOriginals(referenced) {
 // 선명해야 하는 자산(스프라이트 시트·컷아웃·타로 카드)의 분류는 scripts/optimize-images.mjs
 // 의 HERO_PATTERNS 와 같은 정책이다 — 그 모듈은 import 하면 run()이 돌아 여기에 다시 적는다.
 const IMAGE_MAX_WIDTH = 1080;
-const IMAGE_QUALITY_DEFAULT = 82;
-const IMAGE_QUALITY_CRISP = 90;
+const IMAGE_QUALITY_DEFAULT = 76;
+const IMAGE_QUALITY_CRISP = 86;
+const IMAGE_QUALITY_AVIF = 50;
+const PNG_PALETTE_QUALITY = 90;
 const CRISP_PATTERNS = ["sprite", "photoroom", "mascot", "pig", "tarot", "tea-cups", "ten-gods"];
 const RESIZABLE_EXTENSIONS = new Set([".webp", ".png", ".jpg", ".jpeg"]);
+// AVIF variants were copied at source quality and bypassed the mobile budget.
+// Keep every URL/format, including responsive alternatives; only encode the app copy.
+const OPTIMIZABLE_EXTENSIONS = new Set([...RESIZABLE_EXTENSIONS, ".avif"]);
 export function mobileImageCacheKey(input, filename, versions) {
   const ext = path.extname(filename).toLowerCase();
   const quality = CRISP_PATTERNS.some(p => path.basename(filename).toLowerCase().includes(p)) ? IMAGE_QUALITY_CRISP : IMAGE_QUALITY_DEFAULT;
-  return createHash("sha256").update(input).update(JSON.stringify({schema:1,ext,quality,width:IMAGE_MAX_WIDTH,sharp:versions.sharp,vips:versions.vips})).digest("hex");
+  return createHash("sha256").update(input).update(JSON.stringify({schema:2,ext,quality,avif:IMAGE_QUALITY_AVIF,pngPalette:PNG_PALETTE_QUALITY,width:IMAGE_MAX_WIDTH,sharp:versions.sharp,vips:versions.vips})).digest("hex");
 }
 
 /**
@@ -290,9 +295,9 @@ export async function shrinkOversizedImages(dist = DIST) {
   // verify-app-no-portone.mjs 가 이 모듈에서 색인 함수만 가져다 쓴다 —
   // 그 경로까지 네이티브 모듈(sharp)을 물리지 않도록 여기서만 불러온다.
   const { default: sharp } = await import("sharp");
-  const cacheDir = path.join(ROOT, "build-cache", "mobile-images-v1");
+  const cacheDir = path.join(ROOT, "build-cache", "mobile-images-v2");
   await fs.mkdir(cacheDir, { recursive: true });
-  const images = await walk(dist, (file) => RESIZABLE_EXTENSIONS.has(path.extname(file).toLowerCase()));
+  const images = await walk(dist, (file) => OPTIMIZABLE_EXTENSIONS.has(path.extname(file).toLowerCase()));
   let rewritten = 0;
   let skipped = 0;
   let freed = 0;
@@ -320,7 +325,8 @@ export async function shrinkOversizedImages(dist = DIST) {
         continue;
       }
       const sized = meta.width > IMAGE_MAX_WIDTH ? source.resize({ width: IMAGE_MAX_WIDTH }) : source;
-      if (ext === ".png") output = await sized.png({ compressionLevel: 9 }).toBuffer();
+      if (ext === ".png") output = await sized.png({ compressionLevel: 9, palette: true, quality: PNG_PALETTE_QUALITY, effort: 8 }).toBuffer();
+      else if (ext === ".avif") output = await sized.avif({ quality: IMAGE_QUALITY_AVIF, effort: 5 }).toBuffer();
       else if (ext === ".webp") output = await sized.webp({ quality, effort: 6, smartSubsample: true }).toBuffer();
       else output = await sized.jpeg({ quality }).toBuffer();
       const temporary = cachedFile + "." + randomUUID() + ".tmp";
