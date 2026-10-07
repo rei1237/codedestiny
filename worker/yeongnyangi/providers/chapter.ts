@@ -389,7 +389,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
           ...(input.chapter.counsel?.cycleIndexes?{cycleIndexes:input.chapter.counsel.cycleIndexes,cycleGuide:SAJU_CYCLE_GUIDE}:{}),
           detail:'첫 답변은 결론을 먼저 쓰고 배정된 상세 근거는 이번 장의 본문에만 풀어 쓴다. 다른 장의 내용을 반복하지 않는다.'}}:{}),
         assignedQuestions,
-        ...(!sky&&!spirit?{recognition:buildRecognition(facts.facts,Object.keys(input.analysis.contexts))}:{}),
+        ...(!sky&&!spirit?{recognition:buildRecognition(facts.facts,Object.keys(input.analysis.contexts),input.chapter.ordinal===0?'opening':'detail')}:{}),
         consultationQuality:buildConsultationQuality(Object.values(input.analysis.contexts),facts,Boolean(sky||spirit)),
         ...(askPrompt?{
           askFirstChapter:askPrompt,

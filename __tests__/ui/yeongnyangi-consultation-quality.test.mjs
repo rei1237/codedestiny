@@ -84,6 +84,8 @@ test('all personas and prices receive identical grounded recognition on the real
    await provider.generateChapter({persona,chapter,analysis:{contexts:{[domain]:context},question:'부탁을 거절하기 어려워요',themes:[],signals:[]},previous:[]});
    const guide=JSON.parse(sent.domainRules).recognition;
    assert.equal(guide.version,m.RECOGNITION_VERSION);
+   assert.equal(guide.placement,'opening');
+   assert.match(guide.delivery,/questionAnswers.answer/);
    assert.ok(guide.lenses.length,domain);
    const allowed=new Set(sent.calculatedData.facts.map(f=>f.id));
    assert.ok(guide.lenses.every(l=>l.factIds.every(id=>allowed.has(id))));

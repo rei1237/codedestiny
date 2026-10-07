@@ -43,10 +43,14 @@ export const RECOGNITION_CONTRACT = [
 const present = (v:unknown):boolean => v !== null && v !== undefined && v !== '' &&
   (typeof v !== 'object' || Object.keys(v).length > 0);
 
-export function buildRecognition(facts:readonly Evidence[], domains:readonly string[]) {
+export function buildRecognition(facts:readonly Evidence[], domains:readonly string[], placement:'opening'|'detail'|'followup'='opening') {
   const lenses = [...new Set(domains)].flatMap(domain => (LENSES[domain as DomainId] || []).flatMap(lens => {
     const factIds = facts.filter(f => f.id.startsWith(domain+'.') && lens.labels.includes(f.label) && present(f.value)).map(f => f.id);
     return factIds.length ? [{domain, id:lens.id, factIds, guidance:lens.guidance}] : [];
   }));
-  return {version:RECOGNITION_VERSION, contract:RECOGNITION_CONTRACT, lenses};
+  return {version:RECOGNITION_VERSION, contract:RECOGNITION_CONTRACT, placement, delivery: placement === 'opening'
+    ? '결과를 받는 즉시 이해받는 느낌이 들도록 첫 summary와 배정된 questionAnswers.answer에 사용자가 무엇을 지키려 하고 무엇 사이에서 어려움을 겪는지 짧고 구체적으로 짚고 직접 답한다. 사용자가 말하지 않은 감정은 가정으로 둔다. 전문용어 목록이나 먼 미래의 예측으로 시작하지 않는다. 공감만 하고 답을 미루지 않는다. 근거와 자세한 장면은 기존 evidence·example 소절에 풀어 쓰고 같은 문장을 반복하지 않는다.'
+    : placement === 'followup'
+      ? '새 질문에서 드러난 부담·노력에 맞춰 한 문장으로 받아주고 바로 답한다. 최초 답변의 공감 문장을 반복하지 않는다. clarification·correction·support에서는 필요한 확인과 해결을 우선한다.'
+      : '새 인사나 전체 성향 소개를 반복하지 않고 이 장의 주제에서만 공감 장면을 연결한다. 앞 장에서 다룬 부담·예시를 재사용하지 않는다.', lenses};
 }

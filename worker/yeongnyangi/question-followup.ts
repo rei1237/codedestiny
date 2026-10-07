@@ -37,15 +37,16 @@ export async function questionConversation(env:any,userId:string,id:string,body:
  if(next===current)return row;
  const snapshot=row.snapshot;
  const facts=Object.values(snapshot.analysis.contexts).flatMap((ctx:any)=>selectChapterFacts(ctx,snapshot.manifest[0],snapshot.analysis.topicId));
-  const input=JSON.stringify({question,contract:snapshot.analysis.consultation,
-   recognition:buildRecognition(explanationFacts(facts),Object.keys(snapshot.analysis.contexts)),
+ const {contract:recognitionContract,delivery:recognitionDelivery,...recognition}=buildRecognition(explanationFacts(facts),Object.keys(snapshot.analysis.contexts),'followup');
+ const input=JSON.stringify({question,contract:snapshot.analysis.consultation,
+   recognition,
    originalAnswers:row.chapters,history:next.exchanges,evidence:explanationFacts(facts)});
  // Do not silently discard evidence or start unbounded context calls. Support keeps the original result.
  if(input.length>120000)throw new FortuneError('QUESTION_FOLLOWUP_SUPPORT',409);
  row=await saveConversation(env,userId,id,current,next);
  try{
   const response=await callGeminiText(env,input,{
-   systemPrompt:personaPrompt(snapshot.persona,snapshot.voiceStyle)+"\n"+SYSTEM,temperature:0.3,maxOutputTokens:4096,thinkingBudget:0,timeoutMs:60000,maxProviderAttempts:1,
+   systemPrompt:personaPrompt(snapshot.persona,snapshot.voiceStyle)+"\n"+SYSTEM+"\n"+recognitionContract+"\n"+recognitionDelivery,temperature:0.3,maxOutputTokens:4096,thinkingBudget:0,timeoutMs:60000,maxProviderAttempts:1,
    fallbackToWorkersAI:false,responseMimeType:'application/json',taskType:'yeongnyangi-followup',
    logContext:{requestId:id,sectionGroup:'followup',attempt:next.pending!.attempts},
   });

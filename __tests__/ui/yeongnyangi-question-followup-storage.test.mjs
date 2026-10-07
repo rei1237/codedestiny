@@ -92,6 +92,9 @@ test('stored persona and grounded recognition reach followups without changing t
   if(persona)assert.ok(!t.sent.options.systemPrompt.includes('너는 영냥이'));
   assert.equal(t.sent.options.maxProviderAttempts,1);
   assert.equal(t.row.generationCheckpoint.conversation.used,1);
-  if(common)assert.equal(t.sent.input.recognition.contract,common);else common=t.sent.input.recognition.contract;
+  assert.equal(t.sent.input.recognition.placement,'followup');
+  assert.ok(t.sent.options.systemPrompt.includes('계산 사실 → 쉬운 의미'));
+  const rules=t.sent.options.systemPrompt.split('계산 사실 → 쉬운 의미')[1];
+  if(common)assert.equal(rules,common);else common=rules;
  }
 });

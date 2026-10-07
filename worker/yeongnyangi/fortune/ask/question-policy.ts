@@ -104,7 +104,7 @@ export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDec
   tarot:['spreadId','cards','reading','tarotConsultation'],
  };
  const sections=[
-  {id:'meaning',title:'질문에 대한 답',role:'interpretation' as const,instruction:'질문에 먼저 직접 답하고 관련 성향 또는 상황 패턴·강점·주의 조건을 설명한다.'},
+  {id:'meaning',title:'질문에 대한 답',role:'interpretation' as const,instruction:'첫 문단에서 질문에 드러난 고민과 지키려는 가치·들 수 있는 노력을 구체적으로 짚으며 직접 답한다. 공감만 하고 답을 미루지 않는다. 관련 성향 또는 상황 패턴·강점·주의 조건을 근거와 연결한다.'},
   {id:'evidence',title:'그렇게 읽는 이유',role:'interpretation' as const,instruction:'실제 계산 근거와 쉬운 뜻을 연결한다. 상충 신호와 기간의 한계를 구분한다.'},
   {id:'example-1',title:'생활 속에서 살펴보기',role:'example' as const,instruction:'질문과 실제 근거에 맞춰 알아주었으면 하는 노력·엇갈린 기대·버거울 수 있는 장면 하나를 짚는다. 계산 근거의 쉬운 뜻과 그때의 부담, 선택 가능한 행동을 연결한다. 입력으로 확인된 사실과 조건부 가상 장면을 구분하며 겪지 않은 고통을 단정하지 않는다.'},
   {id:'action',title:'선택과 다음 행동',role:'action' as const,instruction:'선택의 이점·부담·판단이 바뀌는 조건과 먼저 할 행동을 설명한다.'},
