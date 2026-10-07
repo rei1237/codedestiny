@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { usePathname } from "next/navigation";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
@@ -104,9 +104,7 @@ const SLUG_CFG: Record<string, SlugCfg> = {
   "/tarot/love":        { icon:"💕", badge:"LOVE TAROT",     tag:"6카드 연애 관계 스프레드",  particles:["💕","🌹","✦","💌","🌸"] },
   "/saju/basic":        { icon:"🌸", badge:"SAJU",           tag:"사주팔자 만세력 기본 해석",  particles:["🌸","☯","✦","⭐","🌟"] },
   "/saju/sibyl":        { icon:"⚡", badge:"SIBYL SYSTEM",   tag:"사주 기반 진로 적성 × 운명 위험 계수", particles:["⚡","☯","📊","⭐","🌟"] },
-  "/saju/lifebook":     { icon:"📜", badge:"LIFE BOOK",     tag:"프리미엄 사주 심층 분석 리포트",  particles:["📜","✦","☯","⭐","💫"] },
   "/saju/love-secret":  { icon:"💕", badge:"LOVE SECRET",   tag:"사주 기반 연애 전략 · 이상형 분석", particles:["💕","🌹","☯","✦","🌸"] },
-  "/saju/love-bible":   { icon:"💕", badge:"LOVE SECRET",   tag:"사주 기반 연애 전략 · 이상형 분석", particles:["💕","🌹","☯","✦","🌸"] },
   "/saju/love-simulation": { icon:"💕", badge:"LOVE CODE",  tag:"사주 연애 시뮬레이션",            particles:["💕","🎲","☯","🌸","✦"] },
   "/ziwei/chart":       { icon:"☸",  badge:"ZIWEI",          tag:"12궁·사화·대한 심화 상담", particles:["☸","✦","⭐","🌙","🌟"] },
   "/astrology/cosmic":  { icon:"🌌", badge:"COSMIC CHART",   tag:"태양·달·상승궁 분석",       particles:["🌌","⭐","✦","🌙","🌟"] },

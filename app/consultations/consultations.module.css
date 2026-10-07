@@ -1,0 +1,8 @@
+.guide { margin-block: var(--cd-space-8, 32px); padding-block: var(--cd-space-6, 24px); border-block: 1px solid var(--cd-border); color: var(--cd-text); }
+.guide h2 { font-family: var(--font-serif); font-size: 1.5rem; line-height: 1.4; margin-bottom: 1rem; }
+.guide p { max-width: 65ch; line-height: 1.8; margin-block: 1rem; }
+.guide details { border-top: 1px solid var(--cd-border); }
+.guide summary { cursor: pointer; min-height: 48px; padding-block: 14px; font-weight: 600; }
+.guide a { display: inline-block; text-decoration: underline; text-underline-offset: 4px; padding-block: 10px; }
+.guide nav { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.guide :is(a, summary):focus-visible { outline: 2px solid var(--cd-accent); outline-offset: 4px; }

@@ -1,5 +1,6 @@
 "use client";
 import { ArrowUpRight } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { RECORD_SERVICES } from '@/lib/records/service-registry';
 import { useLocale } from '@/lib/i18n/useT';
 import { recordsCopy } from '@/lib/records/copy';
@@ -37,7 +38,7 @@ const hubTranslations: Record<string, Record<string, [string, string, string]>> 
     codex: ['大師姻緣之書', '想了解自己的關係模式或兩人的緣分時', '個人版或合盤版·章節報告'],
   },
 };
-export default function ConsultationHub() {
+export default function ConsultationHub({ children }: { children?: ReactNode }) {
   const locale = useLocale(), c = recordsCopy(locale);
   const renderService = (service: typeof RECORD_SERVICES[number]) => {
     const [name, description, format] = locale === 'ko' ? [service.name, service.description, service.format] : hubTranslations[locale]?.[service.id] || hubTranslations.en[service.id];
@@ -51,6 +52,7 @@ export default function ConsultationHub() {
   return <RecordFrame title={c.hubTitle} lead={c.hubLead} view="hub">
     <div className={styles.featured}>{RECORD_SERVICES.filter(service => service.featured).map(renderService)}</div>
     <div className={styles.secondary}>{RECORD_SERVICES.filter(service => service.hub && !service.featured).map(renderService)}</div>
+    {children}
     <section className={styles.characters}><h2>{c.characters}</h2><p>{c.charactersLead}</p><div className={styles.characterLinks}><a className={recordButton} href="/fortune-chat/?character=yeoni"><img src="/images/fortune-tea-house/flower-pig-honey-hug.webp" alt="" width="48" height="48" loading="lazy" />{c.yeoni}<ArrowUpRight size={16} aria-hidden /></a><a className={recordButton} href="/fortune-chat/?character=neo"><img src="/neo-operation-room/lion-seal-loading.webp" alt="" width="48" height="48" loading="lazy" />{c.neo}<ArrowUpRight size={16} aria-hidden /></a></div></section>
   </RecordFrame>;
 }
