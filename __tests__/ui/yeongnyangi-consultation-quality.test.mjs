@@ -98,3 +98,33 @@ test('all personas and prices receive identical grounded recognition on the real
   }
  }
 });
+
+
+test('strength advice follows only final own-chart strength with ordinary-pattern and useful-god evidence',()=>{
+ const make=(power,jong={isJong:false})=>[
+  {id:'saju.strengthHeuristic',label:'strengthHeuristic',value:power},
+  {id:'saju.jong',label:'jong',value:jong},
+  {id:'saju.usefulGod',label:'usefulGod',value:['wood']},
+ ];
+ const advice=(facts,domains=['saju'],placement='opening')=>m.buildRecognition(facts,domains,placement).lenses.filter(l=>l.id.startsWith('strength-'));
+ for(const placement of ['opening','detail','followup']){
+  for(const isStrong of [false,true]){
+   const facts=make({isStrong,calculatedIsStrong:!isStrong,flippedByUser:true,score:isStrong?2:99});
+   const before=JSON.stringify(facts),[result]=advice(facts,['saju'],placement);
+   assert.equal(result.id,isStrong?'strength-realistic-boundaries':'strength-reciprocal-help');
+   assert.deepEqual(result.factIds,facts.map(f=>f.id));
+   assert.equal(JSON.stringify(facts),before);
+   assert.match(result.guidance,isStrong?/통상적인 조건.*무조건 따라/:/도움의 범위·시간·거절할 선/);
+  }
+ }
+ for(const pattern of [{isJong:true,confirmationRequired:true},{isJong:true,confirmedByUser:true},{isJong:false,confirmationRequired:true},{},null])
+  assert.deepEqual(advice(make({isStrong:false},pattern)),[]);
+ assert.equal(advice(make({isStrong:false},{isJong:false,rejectedByUser:true,confirmationRequired:false}))[0].id,'strength-reciprocal-help');
+ for(const value of [null,{},false,{isStrong:'false'},{score:10},{isStrong:0}]) assert.deepEqual(advice(make(value)),[]);
+ const complete=make({isStrong:false});
+ for(let i=0;i<complete.length;i++) assert.deepEqual(advice(complete.filter((_,n)=>n!==i)),[]);
+ assert.deepEqual(advice([...complete.slice(0,2),{...complete[2],value:[]}]),[]);
+ assert.deepEqual(advice([{id:'saju.partnerChart',label:'partnerChart',value:{strengthHeuristic:{isStrong:false},jong:{isJong:false},usefulGod:['wood']}}]),[]);
+ assert.deepEqual(advice(complete.map(f=>({...f,id:f.id.replace('saju.','vedic.')}))),[]);
+ assert.deepEqual(advice(complete,['tarot']),[]);
+});
