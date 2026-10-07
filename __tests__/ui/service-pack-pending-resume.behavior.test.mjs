@@ -37,6 +37,7 @@ async function scenario(name,options={},run){
   if(path.endsWith('/prepare')){
    prepareAttempts++;assert.equal(body.idempotencyKey,options.corruptKey?'damaged-key':'original-key');assert.equal(body.expectedOrderId,options.newPurchase?undefined:'original-order');assert.equal(body.paymentMethod,options.method==='PAYPAL'?'paypal':options.method==='KAKAOPAY'&&!options.kakaoClosed?'kakaopay':'card_general');assert.equal(body.refundConsent,true);assert.equal(body.purchaseType,purchaseType);assert.equal(body.planId,catalog.planId);
    assert.deepEqual(Object.keys(body).sort(),['planId','idempotencyKey','paymentMethod','refundConsent','purchaseType',...(options.gift?['gift']:[]),...(options.newPurchase?[]:['expectedOrderId'])].sort());
+   if(options.retiredRejected)return reply({ok:false,code:'PRODUCT_SALE_ENDED'},409);
    if(options.corruptKey)return reply({ok:false,code:'ORDER_NOT_CONFIRMABLE'},409);
    if(options.prepareLoss&&prepareAttempts===1)throw new TypeError('mock prepare response lost');
    if(options.paidDuringPrepare)paid=true;
@@ -63,7 +64,6 @@ for(const [name,options,code]of [
  ['unknown response',{confirmLoss:true},'REQUEST_UNCERTAIN'],
  ['confirmed cancelled',{confirmError:'PG_PAYMENT_CANCELLED'},'PG_PAYMENT_CANCELLED'],
  ['confirmed failed',{confirmError:'PG_PAYMENT_FAILED'},'PG_PAYMENT_FAILED'],
- ['plan removed',{planRemoved:true},'PENDING_ORDER_UNAVAILABLE'],
  ['catalog snapshot changed',{catalogDrift:true},'PENDING_ORDER_UNAVAILABLE'],
  ['response snapshot changed',{returnedDrift:true},'ORDER_MISMATCH'],
  ['fresh consent absent',{consent:false},'PENDING_ORDER_UNAVAILABLE'],
@@ -104,3 +104,6 @@ await test('pack requests opt into the authFetch 401 refresh',async()=>{let opti
 await scenario('overseas new pack rejects cards before creating an order',{overseas:true,newPurchase:true},async({calls,sdk})=>{await assert.rejects(api.preparePackPurchase(catalog.planId,'original-key',true),e=>e.code==='PAY_METHOD_UNAVAILABLE');assert.equal(calls.length,0);assert.equal(sdk.length,0);});
 await scenario('overseas pack can be purchased with PayPal',{overseas:true,newPurchase:true,method:'PAYPAL'},async({calls,sdk})=>{await api.preparePackPurchase(catalog.planId,'original-key',true,'SELF',undefined,undefined,'PAYPAL');assert.equal(calls[0].body.paymentMethod,'paypal');assert.equal(sdk.length,0);});
 await scenario('overseas already paid domestic pack can still be recovered',{overseas:true,paid:true},async({resume,calls,sdk})=>{assert.equal(await resume(),true);assert.equal(calls.length,1);assert.equal(sdk.length,0);});
+
+for(const gift of [false,true])await scenario('retired catalog keeps original order '+(gift?'GIFT':'SELF'),{gift,planRemoved:true},async({resume,sdk})=>{assert.equal(await resume(),!gift);assert.equal(sdk.length,1);assert.equal(sdk[0].paymentId,'original-order');});
+await scenario('retired server rejection never opens payment',{planRemoved:true,retiredRejected:true},async({resume,sdk})=>{await assert.rejects(resume(),e=>e.code==='PRODUCT_SALE_ENDED');assert.equal(sdk.length,0);});

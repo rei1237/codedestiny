@@ -40,6 +40,7 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
   PAYPAL_ORDER_CONFLICT: { status: 409 },
   PAYPAL_REQUIRED_FOR_REGION: { status: 403 },
   PASS_SALE_ENDED: { status: 409 },
+  PRODUCT_SALE_ENDED: { status: 409 },
   PASS_SALE_NOT_READY: { status: 409 },
   PASS_POLICY_CONFLICT: { status: 409 },
   FORTUNE_ALREADY_PAID: { status: 409 },

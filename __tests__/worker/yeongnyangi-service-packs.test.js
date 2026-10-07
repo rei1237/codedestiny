@@ -40,7 +40,8 @@ test('production catalog exposes approved offers and refuses unknown sales befor
  expect(()=>resolveServicePackProduct(PLAN)).toThrow();
  const routes=createServicePackRoutes({prepareOrder:()=>{throw Error('must not reach purchase')}});
  const catalog=await (await routes['GET /service-packs/catalog'].handle()).json();
- expect(catalog).toMatchObject({ok:true,giftEnabled:false});expect(catalog.plans).toHaveLength(12);
+ expect(catalog).toMatchObject({ok:true,giftEnabled:false});expect(catalog.plans).toHaveLength(4);
+ expect(catalog.plans.every(plan=>plan.totalUses===5)).toBe(true);
  await expect(routes['POST /service-packs/prepare'].handle({body:{planId:PLAN,idempotencyKey:'x'}})).rejects.toMatchObject({code:'PRODUCT_NOT_FOUND'});
 });
 test('same-fish entitlement has exactly six server-registry systems and immutable price/count',()=>{

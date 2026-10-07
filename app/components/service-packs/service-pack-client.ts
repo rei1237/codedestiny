@@ -177,7 +177,9 @@ export async function resumePendingPackPurchase(ownerId:string,refundConsent:boo
  const catalog=await readPackCatalog();
  assertCurrent();
  const plan=catalog.plans.find(item=>item.planId===pending.planId);
- if(!plan||!samePackSnapshot(plan,pending.packSnapshot)||(pending.purchaseType==='GIFT'&&!catalog.giftEnabled))
+ // A missing sale listing is not a revoked order. The server validates the
+ // original owner, idempotency key, order ID and snapshot before any PG resume.
+ if((plan&&!samePackSnapshot(plan,pending.packSnapshot))||(pending.purchaseType==='GIFT'&&!catalog.giftEnabled))
   throw new ServicePackError('PENDING_ORDER_UNAVAILABLE');
  const payMethod=packPayMethod(pending.payMethod);
  const order=await preparePackPurchase(pending.planId,pending.idempotencyKey,true,pending.purchaseType,pending.gift,pending.orderId,payMethod);

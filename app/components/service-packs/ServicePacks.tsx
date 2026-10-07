@@ -84,7 +84,8 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
  const releaseUnpaid=useCallback((orderId:string,error:unknown)=>{
   if(!(error instanceof ServicePackError)||scope.current!==ownerId)return false;
   const stored=readPendingPack(ownerId),own=stored?.orderId===orderId?stored:null,list=catalogRef.current;
-  const resumable=Boolean(own?.packSnapshot&&(list.loading||(own.purchaseType!=='GIFT'||list.giftEnabled)&&list.plans.some(item=>samePackSnapshot(item,own.packSnapshot))));
+  const resumable=Boolean(own?.packSnapshot&&samePackSnapshot(own.packSnapshot,own.packSnapshot)
+   &&(list.loading||own.purchaseType!=='GIFT'||list.giftEnabled));
   if(!['PG_PAYMENT_FAILED','PG_PAYMENT_CANCELLED'].includes(error.code)&&!(error.code==='PG_PAYMENT_NOT_PAID'&&!resumable))return false;
   if(own)savePendingPack(ownerId,null);setPendingOrder('');setMessage(copy.notPaid);
   if(new URLSearchParams(location.search).has('service_pack_return'))history.replaceState({},'',location.pathname+'#fish-packs');
@@ -141,7 +142,8 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
  const pending=ownerId&&pendingOrder?readPendingPack(ownerId):null;
  const resumePlan=pending?.orderId===pendingOrder&&pending.packSnapshot
   &&(pending.purchaseType!=='GIFT'||catalog.giftEnabled)
-  ?catalog.plans.find(item=>samePackSnapshot(item,pending.packSnapshot)):undefined;
+  &&samePackSnapshot(pending.packSnapshot,pending.packSnapshot)
+  ?{...pending.packSnapshot,autoRenew:false as const}:undefined;
  const currentWallet=wallet.ownerId===ownerId?wallet:null,plan=catalog.plans.find(item=>item.planId===selected);
  // 결제 진행 중에는 모달을 유지하고, 결제가 끝나지 않은 주문이 남으면 닫아 아래 재확인·이어가기로 넘긴다(기존 패널과 같은 조건).
  const modalOpen=Boolean(plan&&(busy||!pendingOrder));
