@@ -10,8 +10,8 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 test("fortune planner entry cuts over to the /diary app", () => {
   const html = read("index.html");
   const runtime = read("js/core/index-inline-runtime.js");
-  const plannerRoute = read("app/fortune-planner/page.tsx");
-  const legacyRoute = read("app/luck-sync-diary/page.tsx");
+  const plannerRoute = read("public/_worker.js");
+  const legacyRoute = plannerRoute;
   const dashboard = read("js/core/saju/reportDashboard.js");
 
   // 2026-09-07 컷오버(PR-J): 진입점이 셸 모달에서 /diary 앱으로 넘어갔다. 지킬 것이 뒤집힌다 —
@@ -26,8 +26,8 @@ test("fortune planner entry cuts over to the /diary app", () => {
   assert.match(plannerFn[0], /location\.assign\('\/diary\/'\)/);
   assert.doesNotMatch(plannerFn[0], /LuckSyncDiary|luck-sync-diary\.js/);
   assert.match(runtime, /window\.openLuckSyncDiary = window\.openFortunePlanner/);
-  assert.match(plannerRoute, /redirect\("\/diary\/"\)/);
-  assert.match(legacyRoute, /redirect\("\/diary\/"\)/);
+  assert.match(plannerRoute, /"\/fortune-planner": "\/diary\/"/);
+  assert.match(legacyRoute, /"\/luck-sync-diary": "\/diary\/"/);
   assert.doesNotMatch(runtime, /location\.assign\('\/fortune-planner'\)/);
   assert.doesNotMatch(runtime, /mountFortunePlannerHomeCard/);
   assert.doesNotMatch(runtime, /cdFortunePlannerCard/);

@@ -81,6 +81,25 @@ function fixture(accessType = 'pass') {
     fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; } };
 }
 
+test('브라우저 종료 뒤 서버가 저장된 상담만 이어 완성하고 재열람은 재생성·중복 차감하지 않는다', async () => {
+  const f = fixture('pass');
+  await f.post();
+  load(f.ctx, 'worker/routes/love-secret-ai.js', ['resumeConsultationOnServer']);
+  for (let wave = 0; wave < 20 && f.doc.status !== 'completed'; wave++) {
+    const response = await f.ctx.resumeConsultationOnServer({}, { id: f.doc.id, userId: f.doc.userId });
+    assert.ok([200, 202].includes(response.status), await response.text());
+  }
+  assert.equal(f.doc.status, 'completed');
+  const calls = f.calls;
+  const consumed = f.usage;
+  assert.equal(consumed, 1);
+  const again = await f.ctx.resumeConsultationOnServer({}, { id: f.doc.id, userId: f.doc.userId });
+  assert.equal(again.status, 200);
+  assert.equal(f.calls, calls);
+  assert.equal(f.usage, consumed);
+  assert.equal(f.refunds, 0);
+});
+
 for (const accessType of ['pass', 'subscription', 'paid']) {
   test(`${accessType}: 여섯 묶음 저장·같은 요청 재개·사용 확정 뒤 완료`, async () => {
     const f = fixture(accessType);

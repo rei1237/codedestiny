@@ -3,9 +3,9 @@ import fs from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 import mongoose from "mongoose";
-import { NewYearAiConsultation, LoveSecretAiConsultation, LifeBookAiConsultation } from "../../worker/lib/models.js";
+import { NewYearAiConsultation, LoveSecretAiConsultation, LifeBookAiConsultation, KarmaDestinyAiConsultation, ZiweiAiConsultation } from "../../worker/lib/models.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../../worker/lib/entitlement-policy.js";
-import { consumePassForFeature, passDenialCode } from "../../worker/lib/pass-consumption.js";
+import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "../../worker/lib/pass-consumption.js";
 import { getBillingFeaturePricing } from "../../worker/lib/billing-feature-registry.js";
 import { makeFakePaymentDb, matches } from "../fixtures/fake-payment-db.mjs";
 
@@ -25,7 +25,7 @@ function load(route, name, context) {
   vm.runInContext(fn.getText(ast), context);
   return context[name];
 }
-function fixture(route, featureKey, version = "flower-20260930", spent = 0) {
+function fixture(route, featureKey, version = "flower-20260930", spent = 0, withResolve = true) {
   const db = makeFakePaymentDb();
   const at = new Date(Date.now() + 86400000);
   const user = { _id: USER, profileSubscription: { tier: "family", passTier: "family", passPolicyVersion: version,
@@ -44,10 +44,13 @@ function fixture(route, featureKey, version = "flower-20260930", spent = 0) {
     resolveBillingGateAccess: async () => null, canAccessPaidFeature: async () => ({ allowed: false }),
     User: { findById: () => chain(db.rows[0]) },
     NewYearAiConsultation: { ...model, findOne: () => chain(null) }, LoveSecretAiConsultation: model, LifeBookAiConsultation: model,
+    AstrologyAiConsultation: model, NakshatraAiConsultation: model, VedicAiConsultation: model, KarmaDestinyAiConsultation: model,
+    resultStorageUnavailable: () => Object.assign(new Error("storage unavailable"), { code: "RESULT_STORAGE_UNAVAILABLE" }),
     consumePassForFeature: input => consumePassForFeature({ ...input, db }),
+    hasConsumedPassFeature: (owner, key, requestId) => hasConsumedPassFeature(owner, key, requestId, db),
   });
   return { db, user, context, pricing, saved, model, cost,
-    resolve: load(route, "resolveServerAccess", context),
+    resolve: withResolve ? load(route, "resolveServerAccess", context) : null,
     apply: load(route, "applyUsageOnce", context),
   };
 }
@@ -93,6 +96,46 @@ const evidenceHelpers = {
   "love-secret-ai": ["collectBillingEvidenceIds", "buildPaidExecutionEvidenceQuery", "buildPointHistoryEvidenceQuery", "buildPaymentEvidenceQuery", "mapBillingEvidenceAccessType", "resolveBillingUsageEvidence"],
   "life-book-ai": ["objectValue", "billingGateSource", "collectBillingObjects", "billingFeatureMatches", "addEvidenceId", "collectBillingEvidenceIds", "collectBillingContractValues", "billingContractMatches", "objectIdLike", "pointHistoryEvidenceClauses", "paymentEvidenceClauses", "billingContractEvidenceClauses", "mapBillingGateAccessType", "resolveBillingGateAccess"],
 };
+
+test.each([
+  ["karma-destiny-ai", "karma-destiny-ai-consultation", "KarmaDestinyAiConsultation", KarmaDestinyAiConsultation],
+  ["ziwei-island-ai", "ziwei-island-palace-consult", "ZiweiAiConsultation", ZiweiAiConsultation],
+])("%s Family 판정이 실제 저장 스키마와 호환된다", async (route, featureKey, modelName, Model) => {
+  const f = fixture(route, featureKey, "flower-20260930", 0, false);
+  Object.assign(f.context, { [modelName]: { findOne: () => chain(null) },
+    findBillingGateEvidence: async () => null });
+  const access = await load(route, "resolveServerAccess", f.context)({
+    env: {}, auth: { userId: USER }, user: f.user, pricing: f.pricing,
+    idempotencyKey: f.saved.idempotencyKey, inputHash: "input",
+  });
+  expect(access.accessType).toBe("pass");
+  expect(new Model({ accessType: access.accessType }).validateSync(["accessType"])).toBeUndefined();
+});
+
+describe.each([
+  ["astrology-ai", "astrology-ai-consultation"], ["nakshatra-ai", "nakshatra-ai-consultation"],
+  ["vedic-ai", "vedic-ai-consultation"], ["karma-destiny-ai", "karma-destiny-ai-consultation"],
+])("%s 전문가 상담 이용권 차감", (route, featureKey) => {
+  test.each([["flower-20260930", 3500], ["flower-cost-20260921", 5000], ["legacy", 5000]])(
+    "%s 한도 마지막 사용 및 저장 응답 유실 후 같은 요청 재시도", async (version, budget) => {
+      const f = fixture(route, featureKey, version, 0, false);
+      f.db.rows[0].profileSubscription.monthlySpendCoin = budget - f.cost;
+      const input = { userId: USER, sessionId: f.saved.id, accessType: "pass", pricing: f.pricing };
+      await f.apply(input);
+      expect(f.db.rows[0].profileSubscription.monthlySpendCoin).toBe(budget);
+      f.saved.usageAppliedAt = null;
+      await f.apply(input);
+      expect(f.db.rows[0].profileSubscription.monthlySpendCoin).toBe(budget);
+      expect(await f.context.hasConsumedPassFeature({ _id: USER }, featureKey, f.saved.idempotencyKey)).toBe(true);
+      expect(await f.context.hasConsumedPassFeature({ _id: USER }, featureKey, "other-request")).toBe(false);
+    });
+  test("한도 부족은 완료 처리하지 않는다", async () => {
+    const f = fixture(route, featureKey, "flower-20260930", 3500, false);
+    await expect(f.apply({ userId: USER, sessionId: f.saved.id, accessType: "pass", pricing: f.pricing }))
+      .rejects.toMatchObject({ code: "MONTHLY_PASS_LIMIT_EXCEEDED" });
+    expect(f.saved.usageAppliedAt).toBeNull();
+  });
+});
 test.each(services)("%s / %s: 소진 뒤 실제 서버 증빙 조회로 같은 상담만 복구한다", async (route, featureKey) => {
   const f = fixture(route, featureKey);
   f.db.rows[0].profileSubscription.monthlySpendCoin = 3500 - f.cost;

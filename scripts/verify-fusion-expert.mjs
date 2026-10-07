@@ -9,7 +9,7 @@ import { buildAstrologyAdapter } from "../worker/lib/guardian-fortune/adapters/a
 import { buildVedicAdapter } from "../worker/lib/guardian-fortune/adapters/vedic.js";
 import { buildSukuyoAdapter } from "../worker/lib/guardian-fortune/adapters/sukuyo.js";
 import { buildSukuyoFromMoonLongitude } from "../worker/lib/sukuyo-astronomy.js";
-import { FUSION_EXPERT_VERSION, FUSION_SYSTEM_KEYS, validFusionSignals, buildFusionEvidenceCrossCheck } from "../worker/lib/fusion-expert-contract.js";
+import { FUSION_EXPERT_VERSION, FUSION_SYSTEM_KEYS, validFusionSignals, normalizeFusionSignals, buildFusionEvidenceCrossCheck } from "../worker/lib/fusion-expert-contract.js";
 import { buildFusionFortuneContext, generateFusionFortuneWithRealLLM, generateFusionFortuneWithMockLLM, generateFusionFortuneRequest, createMemoryFusionFortuneStore } from "../worker/lib/fusion-fortune.js";
 import { FUSION_SECTION_GROUP_SPECS, buildFusionSectionGroupPrompt, buildFusionSectionPromptPrefix } from "../worker/lib/fusion-fortune-prompt.js";
 import { normalizeFusionVisualization } from "../worker/lib/fusion-fortune-visual.js";
@@ -68,6 +68,9 @@ const built = await buildFusionFortuneContext(input, { adapters, now, tarotSeed:
 assert.equal(built.ok, true);
 const context = built.context;
 assert.equal(context.version, FUSION_EXPERT_VERSION);
+const normalizedSignal = normalizeFusionSignals({ signals: [{ domain: ' WORK ', period: 'current', stance: ' ADAPT ', summary: '조건을 확인하며 조정', evidenceKeys: ['$.systems.saju.expertEvidence.gyeokguk'] }] }, 'saju', context);
+assert.equal(validFusionSignals(normalizedSignal, 'saju', context), true);
+assert.equal(normalizeFusionSignals({ signals: [{ ...normalizedSignal.signals[0], evidenceKeys: ['vedic.expertEvidence.dasha'] }] }, 'saju', context).signals.length, 0, 'foreign-system evidence must never be repaired into a claim');
 for (const group of FUSION_SECTION_GROUP_SPECS.filter((group) => group.stage === 1)) {
   const prompt = buildFusionSectionGroupPrompt({ context, group });
   assert.ok(prompt.userPrompt.startsWith(buildFusionSectionPromptPrefix({ context, stage: 1 })));
@@ -97,12 +100,33 @@ const provider = (fail) => async (_env, _prompt, options) => {
   if (group.id === fail) return { ok: false, error: "fixture_failure" };
   return { ok: true, text: JSON.stringify(Object.fromEntries(group.keys.map((key) => [key, full[key]]))) };
 };
-const failed = await generateFusionFortuneWithRealLLM({ context, input, env, now, providerCall: provider("vedic"), onCheckpoint: async (value) => { checkpoint = value; } });
+// Incident shape: five exhausted experts, one paid chapter already safely stored.
+const exhausted = Object.fromEntries(FUSION_SYSTEM_KEYS.map(key => [key, key === 'astrology' ? 1 : 2]));
+let incidentPrior = Object.fromEntries(['title','openingMessage','astrologySection'].map(key => [key, full[key]]));
+const preservedAstrology = JSON.stringify(incidentPrior.astrologySection);
+const stopped = await generateFusionFortuneWithRealLLM({ context, input, env, now, priorResult: incidentPrior, priorSnapshot: { attempts: exhausted }, providerCall: async () => { throw new Error('spent budget must not call provider'); }, onCheckpoint: async () => {} });
+assert.equal(stopped.automaticRetryAllowed, false);
+assert.equal(stopped.pendingGroups.length, 5);
+calls.length = 0;
+let recoveredIncident;
+for (let wave = 0; wave < 3; wave++) recoveredIncident = await generateFusionFortuneWithRealLLM({ context, input, env, now, priorResult: incidentPrior, priorSnapshot: { attempts: exhausted, recovery: { manualGranted: true } }, providerCall: provider(), onAttempt: async id => ++exhausted[id], onCheckpoint: async value => { incidentPrior = value; } });
+assert.equal(recoveredIncident.deliverable, true);
+assert.equal(calls.length, 5);
+assert.ok(!calls.includes('astrology'));
+assert.equal(JSON.stringify(incidentPrior.astrologySection), preservedAstrology);
+calls.length = 0;
+const attempts = {};
+let failed;
+for (let wave = 0; wave < 4; wave++) {
+  failed = await generateFusionFortuneWithRealLLM({ context, input, env, now, priorResult: checkpoint, priorSnapshot: { attempts },
+    providerCall: provider("vedic"), onAttempt: async id => (attempts[id] = (attempts[id] || 0) + 1),
+    onCheckpoint: async (value) => { checkpoint = value; } });
+}
 assert.equal(failed.deliverable, false);
 assert.ok(checkpoint.sajuSection);
 assert.equal(checkpoint.vedicSection, undefined);
 calls.length = 0;
-const retried = await generateFusionFortuneWithRealLLM({ context, input, env, now, priorResult: checkpoint, providerCall: provider(null) });
+const retried = await generateFusionFortuneWithRealLLM({ context, input, env, now, priorResult: checkpoint, providerCall: provider(null), onCheckpoint: async value => { checkpoint = value; } });
 assert.equal(retried.deliverable, true);
 assert.ok(calls.length > 0 && calls.every((key) => key === "vedic"), "retry only the missing expert");
 calls.length = 0;

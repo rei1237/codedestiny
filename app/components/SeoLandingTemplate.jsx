@@ -59,7 +59,7 @@ const DEFAULT_RELATED_LABELS = {
   "/vedic": "베다 점성술",
   "/dream": "무료 꿈해몽",
   "/fusion-fortune": "초융합 운세 — 여섯 체계 통합 해석",
-  "/premium-reports": "프리미엄 운세 리포트",
+  "/consultations": "프리미엄 운세 리포트",
   "/guides": "운세 인사이트 가이드",
   "/insights": "운세 인사이트 아카이브",
 };

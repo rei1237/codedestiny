@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 type CatalogItem = {
   slug: string;
   title: string;
+  href: string;
   description?: string;
   category?: string;
   image?: string;
@@ -55,18 +56,19 @@ export default function FeatureIntroductionCatalog({ items }: { items: CatalogIt
         >{value}</button>)}
       </div>
     </div>
-    <p className="featureCatalogCount" role="status">{filtered.length}개 소개</p>
+    <p className="featureCatalogCount" role="status">{filtered.length}개 서비스</p>
     {filtered.length ? <ul className="featureCatalogList">
       {filtered.map(item => <li key={item.slug}>
-        <a href={`/features/${item.slug}/`}>
+        <a href={item.href} aria-label={`${item.title} 시작하기`}>
           <div className="featureCatalogCopy">
             <span>{item.category || "기능 소개"}</span>
             <h2>{item.title}</h2>
             {item.description ? <p>{item.description}</p> : null}
-            <strong>내용과 이용 방법 보기</strong>
+            <strong>시작하기</strong>
           </div>
           {item.image ? <img src={item.catalogImage || item.cardImage || item.image} width="320" height="180" alt="" loading="lazy" decoding="async" /> : null}
         </a>
+        <a className="featureCatalogDetails" href={`/features/${item.slug}/`} aria-label={`${item.title} 제공 내용과 이용 방법`}>제공 내용과 이용 방법</a>
       </li>)}
     </ul> : <div className="featureCatalogEmpty">
       <h2>찾는 소개가 없어요.</h2>

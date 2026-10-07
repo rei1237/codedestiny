@@ -4,11 +4,13 @@ export const READING_VERSION = 'destiny-book-v4';
 export const READING_V5_VERSION = 'destiny-book-v5';
 export const READING_V6_VERSION = 'destiny-book-v6';
 export const READING_V7_VERSION = 'destiny-book-v7';
+// New multi-system purchases use fewer distinct chapters; stored manifests remain immutable.
+export const FUSION_READING_VERSION = 'fusion-book-v1';
 // A paid question-sky consultation is intentionally split into a concise first
 // answer and one buyer-triggered deepening response. It has its own immutable
 // snapshot version; legacy sky books keep their original manifests.
 export const QUESTION_SKY_TWO_STAGE_VERSION = 'question-sky-flounder-3';
-export const hasReadingSections = (version?: string) => version === READING_V5_VERSION || version === READING_V6_VERSION || version === READING_V7_VERSION || version === QUESTION_SKY_TWO_STAGE_VERSION;
+export const hasReadingSections = (version?: string) => version === READING_V5_VERSION || version === READING_V6_VERSION || version === READING_V7_VERSION || version === FUSION_READING_VERSION || version === QUESTION_SKY_TWO_STAGE_VERSION;
 export const isStructuredReading = (version?: string) => version === READING_VERSION || hasReadingSections(version);
 export const PROMPT_VERSION = 'chapter-v4';
 export const readingPolicies = {
@@ -28,6 +30,7 @@ export const depthDescriptions: Record<PackageId, string> = {
   omakase: '여섯 체계로 읽는 분야별 심층 상담과 실행 계획',
 };
 export function readingChapterCount(domain: DomainId, tier: PackageId, version = READING_V5_VERSION): number {
+  if (version === FUSION_READING_VERSION && ['assorted','omakase'].includes(tier)) return tier === 'assorted' ? 9 : 12;
   if (version === READING_V6_VERSION) return {mackerel:5,salmon:8,flounder:11,tuna:15,assorted:18,omakase:28}[tier];
   if (domain === 'saju' && tier === 'mackerel') return 5;
   if (tier === 'assorted') return 18;
@@ -53,4 +56,5 @@ export const v6ReadingPolicies = {
 // v7 quotas are per chapter; a book's length is the manifest sum, so tier policies do not apply.
 export const v7ChapterPolicy = { minimum: 1400, target: [1800, 2200] } as const;
 export const policyForReading = (tier: PackageId, version?: string) =>
+  version === FUSION_READING_VERSION && ['assorted','omakase'].includes(tier) ? { ...readingPolicies[tier], minimum:tier==='assorted'?10800:15600, target:tier==='assorted'?[15300,19800] as const:[21600,27600] as const } :
   version === READING_V6_VERSION ? v6ReadingPolicies[tier] : version === READING_V5_VERSION ? v5ReadingPolicies[tier] : readingPolicies[tier];
