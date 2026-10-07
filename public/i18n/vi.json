@@ -1879,6 +1879,21 @@
       "passNote": "Kiểm tra phạm vi và thời hạn trước khi chọn.",
       "passLink": "Xem gói lượt",
       "passHistory": "Gói đã mua vẫn giữ điều kiện tại thời điểm mua."
+    },
+    "yeongnyangiEntry": {
+      "badge": "Tu van cau hoi cung Yeongnyangi",
+      "headingLead": "Bat dau tu cau hoi, doc den ca dong chay ben trong",
+      "headingName": "Yeongnyangi, chu meo doc Saju",
+      "subtitle": "Mot buoi tu van duoi anh trang, cung mot noi ban khoan va he thong phu hop voi ban",
+      "storyFirst": "Yeongnyangi tra loi cau hoi hien tai dua tren cac phep tinh Saju, Ziwei Doushu, Sukuyo, chiem tinh Vedic va chiem tinh phuong Tay.",
+      "storySecond": "No se sap xep tung buoc bang ngon ngu gan gui: khuon mau lap lai, dong chay hien tai va hanh dong tiep theo ban co the thu hom nay.",
+      "fishAria": "Hang ca va gia tu van Yeongnyangi",
+      "highlight": "Thay vi mot cau tra loi chung chung, hay nhan ca can cu va dien giai phu hop voi cau hoi cua ban. Ban co the chon he thong va pham vi truoc khi bat dau.",
+      "quote": "“Hay bat dau voi mot dieu ban muon biet nhat luc nay. Chung ta cung lan theo dong chay do.”",
+      "quoteAttribution": "— Yeongnyangi",
+      "start": "Bat dau tu van cau hoi",
+      "free": "Xem van may mien phi truoc",
+      "tagline": "Tu van cho cau hoi cua ban, mo ra bang mot chu ca"
     }
   },
   "terms": {
