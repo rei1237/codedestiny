@@ -39,7 +39,7 @@ const SUKUYO_STATIC_PRODUCTS = [
 export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
   sameSurface(
     "love-code",
-    "unlock",
+    "per_use",
     "app/saju/love-simulation/_components/LoveSimulationEngine.tsx",
     "runPaidAccessGate({",
     "startSimulationScene(",
@@ -405,9 +405,9 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
   ),
   sameSurface(
     "fun.quantumLotto.ritualReport",
-    "unlock",
+    "per_use",
     "js/saju-engine-tarot-sukuyo-quantum.js",
-    "data-tile-lock-key=\"'+LOTTO_RITUAL_FEATURE_KEY+'\"",
+    "data-feature-key=\"'+LOTTO_RITUAL_FEATURE_KEY+'\" data-coin-cost=\"10\"",
     "function buildLottoRitualReport(state)",
   ),
 ]);

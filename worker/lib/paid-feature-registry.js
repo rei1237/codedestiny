@@ -8,6 +8,10 @@ export const LOVE_CODE_FEATURE_KEY = "love-code";
 export const LOVE_CODE_PRODUCT_ID = "unlock.love-code";
 export const LEGACY_LOVE_CODE_FEATURE_KEYS = Object.freeze(["loveSimulation", "openLoveSimulation"]);
 
+export function isLegacyLoveCodeUnlockAlias(featureKey) {
+  return LEGACY_LOVE_CODE_FEATURE_KEYS.includes(String(featureKey || "").trim());
+}
+
 function normalizeRegistryPricingEntry(entry = {}, fallbackAccessModel = "per_use") {
   const normalized = normalizePaidFeaturePricingShape(entry);
   const { forceDeduct: _legacyForceDeduct, ...policy } = normalized;

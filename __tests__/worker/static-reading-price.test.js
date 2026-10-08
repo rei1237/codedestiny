@@ -8,7 +8,13 @@ import priceKeys from '../fixtures/static-reading-price-keys.cjs';
 const {STATIC_READING_PRICE_KEYS: staticKeys} = priceKeys;
 test.each(staticKeys)('%s uses its approved price and cannot become free in the app',featureKey=>{
  const product=resolveProduct({featureKey});
- const amount = featureKey === "nakshatra-compat" ? 20000 : 1000;
+ const amount = ({
+  "nakshatra-compat": 20000,
+  "animal-destiny-unlock": 5000,
+  "rpt_quantumCard": 10000,
+  "rpt_energyCoordCard": 5000,
+  "nakshatra-muhurta": 5000,
+ })[featureKey] || 1000;
  expect(product).toMatchObject({priceKRW:amount,priceCoins:amount/100,monthlyCost:amount/10});
  expect(getBillingFeaturePricing({featureKey}).pricing).toMatchObject({amountKRW:amount,cost:amount/100});
  expect(isAppFreeFeature(featureKey,product.priceCoins)).toBe(false);

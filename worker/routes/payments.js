@@ -34,7 +34,7 @@ import { deductLotsFIFO, ensureLotsForBalance, resolveNextExpiry } from "../lib/
 import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS, resolveMonthlySpendQuota } from "../lib/profile-limits.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
-import { isPerUsePaidFeatureKey, isUnlockPaidFeatureKey } from "../lib/paid-feature-registry.js";
+import { isLegacyLoveCodeUnlockAlias, isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "../lib/paid-feature-registry.js";
 import { PASS_MONTHLY_WON } from "../../lib/payment/pass-pricing.js";
 import {
   formatPermanentUnlockGrant,
@@ -3236,10 +3236,10 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
   // 그대로 해금 상태로 쓰고, 그러면 결제창 없이 already_unlocked 로 통과한다.
   // 회당 결제는 1회 소비로 끝난 거래라 애초에 '보유한 해금'이 아니다.
   const unlockedFeatures = (Array.isArray(safeUser.unlockedFeatures) ? safeUser.unlockedFeatures : [])
-    .filter((key) => !isPerUsePaidFeatureKey(key));
+    .filter((key) => isLegacyLoveCodeUnlockAlias(key) || !isPerUsePaidFeatureKey(key));
   const unlockMap = Object.create(null);
   for (let i = 0; i < unlockedFeatures.length; i += 1) {
-    const key = String(unlockedFeatures[i] || "").trim();
+    const key = normalizePaidFeatureKey(unlockedFeatures[i]) || String(unlockedFeatures[i] || "").trim();
     if (key) unlockMap[key] = true;
   }
 

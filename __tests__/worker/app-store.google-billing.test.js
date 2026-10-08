@@ -678,11 +678,12 @@ describe("intent — 결제 의도 기록", () => {
       "animal-destiny-unlock": { cost: 50, amountKRW: 5000 },
       "rpt_quantumCard": { cost: 100, amountKRW: 10000 },
       "rpt_energyCoordCard": { cost: 50, amountKRW: 5000 },
+      "nakshatra-muhurta": { cost: 50, amountKRW: 5000 },
     }[featureKey] || { cost: 10, amountKRW: 1000 };
     expect(registry.FEATURE_KEY_PRICE_TABLE[featureKey] || registry.UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey]).toMatchObject(expected);
     for (const path of ["/free-grant", "/google/intent"]) {
       const { status, payload } = await callRoute(postJson(path, { featureKey, requestId: "fun-" + "b".repeat(32) }));
-      if (["nakshatra-compat", "animal-destiny-unlock", "rpt_quantumCard", "rpt_energyCoordCard"].includes(featureKey)) {
+      if (["nakshatra-compat", "animal-destiny-unlock", "rpt_quantumCard", "rpt_energyCoordCard", "nakshatra-muhurta"].includes(featureKey)) {
         expect(status).toBe(path === "/free-grant" ? 400 : 200);
         if (path === "/free-grant") expect(payload.code).toBe("APP_STORE_PRODUCT_NOT_FREE");
         else {
@@ -691,6 +692,7 @@ describe("intent — 결제 의도 기록", () => {
             "animal-destiny-unlock": { productId: "cd_content_tier_02", amountKRW: 5000 },
             "rpt_energyCoordCard": { productId: "cd_content_tier_02", amountKRW: 5000 },
             "rpt_quantumCard": { productId: "cd_content_tier_06", amountKRW: 10000 },
+            "nakshatra-muhurta": { productId: "cd_content_tier_02", amountKRW: 5000 },
           }[featureKey];
           expect(payload.data.product).toMatchObject(expectedProduct);
         }
