@@ -6,7 +6,7 @@ status: in-progress
 
 - 작업 디렉터리: `D:\Development\code-destiny\.codex-worktrees\toss-miniapp-20261007-223959`
 - 브랜치: `wt/toss-miniapp-20261007-223959`. 동시 작업 중인 루트 main 변경은 건드리지 않았다.
-- 기준 통합: origin/main `a789d250b`를 반영한 merge `694465e7a155daf590bf69441f12993ff07d3f00` 이후 구현. 최신 기능 커밋 `22abf6e146d9f0d64cee2f7a9462d9ae59e176fa`.
+- 기준 통합: origin/main `a789d250b`를 반영한 merge `694465e7a155daf590bf69441f12993ff07d3f00` 이후 구현. 최신 기능 커밋 `23befce87`.
 - **원격 전달/업로드 없음.** main 푸시가 자동 승인 검토에서 거절됨: 전체 기능 완료 전의 부분 구현이며 SERVICE_AVAILABLE=false, 승인 SKU 없음. 재시도/다른 경로 우회하지 않았다. 이 제한은 로컬 구현을 중단할 사유로 사용하지 않는다.
 - 콘솔의 기존 업로드본 `20261008-3`과 아래 로컬 신규 번들은 다르다. 기존 업로드본을 최신 전체 이식본이라고 안내하면 안 된다.
 
@@ -22,7 +22,7 @@ status: in-progress
 | e558e795c | 카드 미리보기·File.saveBase64, 선택 요약 Share.createLink/sendMessage | 모의/API 계약 검사만, 실기기 저장·전송 미검증 |
 | 852b25f83 | 보관함 50건 커서 페이지, 읽기 실패와 미연결 구매 분리 | 대량 실 DB/인덱스 실측 미실행 |
 | 22abf6e14 | 기존 10분 cron에서 최대 10건 토스 주문 확인, 서버 확인 환불만 반영 | 실 mTLS/운영 데이터 미검증, 비활성 계정은 원격 조회 제외 |
-| 현재 워크트리 | 타로 라이브러리 12개 계약, IAP 권한·`PaidExecutionRecord` claim/complete·재열람·환불 어댑터 | 승인 SKU·화면·생성기·실기기·업로드 미구현 |
+| 23befce87 | 타로 라이브러리 12개 계약, IAP 권한·`PaidExecutionRecord` claim/complete·재열람·환불 어댑터 | 승인 SKU·화면·생성기·실기기·업로드 미구현 |
 
 ### 현재 검증 증거
 
