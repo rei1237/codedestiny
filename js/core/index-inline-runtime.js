@@ -5993,7 +5993,19 @@ function _dfSetActiveSource(source) {
 
 function _dfIsSourceLinked(source) {
   var normalized = _dfNormalizeSource(source);
-  return !!(_dfStudioState.linkedSources && _dfStudioState.linkedSources[normalized]);
+  if (_dfStudioState.linkedSources && _dfStudioState.linkedSources[normalized]) return true;
+
+  // 프로필에 이미 계산 가능한 도메인 값이 있으면 별도 "연동하기" 동작을 요구하지 않는다.
+  // 특히 점성술은 현재 프로필의 생년월일로 라이브 차트를 복원할 수 있는데도,
+  // linkedSources 플래그만 보던 탓에 카드가 영구적으로 "판정 대기"에 남을 수 있었다.
+  try {
+    var payload = _dfGetProfilePayload({ sourceHint: normalized });
+    var ready = _dfHasReadySourceData(normalized, payload);
+    if (ready && _dfStudioState.linkedSources) _dfStudioState.linkedSources[normalized] = true;
+    return ready;
+  } catch (error) {
+    return false;
+  }
 }
 
 function _dfCanResolveSourceSelection(source, forceRefresh) {
@@ -6829,7 +6841,7 @@ function _dfReloadSourceData(source, options) {
   // 꽃 아트(window.CDFlowerArt)만 브라우저에 올린다. 매칭 엔진은 워커에 있다.
   if (!window.CDFlowerArt) {
     loader = loader.then(function() {
-      return import('/js/core/bootstrapDestinyFlower.js?v=build-c5c79b62133e').then(function(mod) {
+      return import('/js/core/bootstrapDestinyFlower.js?v=build-d20780a7ec36').then(function(mod) {
         if (mod && typeof mod.bootstrapDestinyFlower === 'function') {
           mod.bootstrapDestinyFlower(window);
         }

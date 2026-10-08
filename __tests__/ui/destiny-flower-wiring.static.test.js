@@ -73,6 +73,19 @@ test("사주 준비 판정이 스냅샷 생산자와 같은 키를 읽는다", (
   );
 });
 
+test("프로필에 점성술 신호가 있으면 별도 연동 클릭 없이 소스를 준비한다", () => {
+  const at = runtime.indexOf("function _dfIsSourceLinked");
+  assert.ok(at > 0, `${RUNTIME_REL}: _dfIsSourceLinked 를 찾지 못했다`);
+  const body = runtime.slice(at, runtime.indexOf("\n}\n", at));
+  assert.match(body, /_dfGetProfilePayload\(\{ sourceHint: normalized \}\)/);
+  assert.match(body, /_dfHasReadySourceData\(normalized, payload\)/);
+  assert.match(
+    runtime,
+    /function _dfCanResolveSourceSelection\(source, forceRefresh\)[\s\S]{0,260}_dfIsSourceLinked\(normalized\)/,
+    "준비된 프로필 도메인을 링크 버튼 상태에 반영하지 않는다",
+  );
+});
+
 test("자미두수 규칙의 별 이름이 실제 별 이름 표기와 같다", () => {
   const at = engine.indexOf("JAMIDUSU_STAR_RULES");
   assert.ok(at > 0, `${ENGINE_REL}: JAMIDUSU_STAR_RULES 를 찾지 못했다`);

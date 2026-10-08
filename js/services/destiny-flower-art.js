@@ -572,6 +572,10 @@ function particles(kind, tone, pale, random) {
 /* ── 소스별 배경 장식 ────────────────────────────────────────────────────── */
 
 function sourceScenery(source, pale, deep, random) {
+  const moon = '<circle cx="266" cy="42" r="18" fill="' + rgba(pale, 0.44) + '"/>'
+    + '<circle cx="274" cy="37" r="16" fill="' + rgba(deep, 0.94) + '"/>';
+  const branch = '<path d="M18 218Q78 188 126 210T226 202T318 214" fill="none" stroke="' + rgba(pale, 0.18) + '" stroke-width="1.4" stroke-linecap="round"/>'
+    + '<path d="M76 198q-12-16-28-17M232 204q14-17 30-18" fill="none" stroke="' + rgba(pale, 0.16) + '" stroke-width="1.1" stroke-linecap="round"/>';
   if (source === 'astrology') {
     let stars = '';
     for (let i = 0; i < 5; i += 1) {
@@ -579,11 +583,11 @@ function sourceScenery(source, pale, deep, random) {
       const y = n2(18 + random() * 60);
       stars += '<circle cx="' + x + '" cy="' + y + '" r="' + n2(1 + random() * 1.6) + '" fill="' + pale + '" opacity="0.7"/>';
     }
-    return '<circle cx="160" cy="120" r="104" fill="none" stroke="' + rgba(pale, 0.18) + '" stroke-width="1.2"/>'
+    return moon + '<circle cx="160" cy="120" r="104" fill="none" stroke="' + rgba(pale, 0.18) + '" stroke-width="1.2"/>'
       + '<circle cx="160" cy="120" r="82" fill="none" stroke="' + rgba(pale, 0.12) + '" stroke-width="1"/>' + stars;
   }
   if (source === 'jamidusu') {
-    return '<circle cx="160" cy="124" r="98" fill="none" stroke="' + rgba(pale, 0.16) + '" stroke-width="1.4" stroke-dasharray="5 9"/>'
+    return moon + '<circle cx="160" cy="124" r="98" fill="none" stroke="' + rgba(pale, 0.16) + '" stroke-width="1.4" stroke-dasharray="5 9"/>'
       + '<path d="M40 40L64 26L90 40L118 24L146 40" fill="none" stroke="' + rgba(pale, 0.28) + '" stroke-width="1.4" stroke-linecap="round"/>'
       + '<path d="M176 34L204 20L232 34L258 22L284 34" fill="none" stroke="' + rgba(pale, 0.22) + '" stroke-width="1.4" stroke-linecap="round"/>';
   }
@@ -592,7 +596,7 @@ function sourceScenery(source, pale, deep, random) {
       + '<circle cx="263" cy="47" r="24" fill="' + rgba(deep, 0.92) + '"/>'
       + '<circle cx="160" cy="126" r="106" fill="none" stroke="' + rgba(pale, 0.14) + '" stroke-width="1.2"/>';
   }
-  return '<path d="M0 214Q80 198,160 210T320 202V240H0Z" fill="' + rgba(deep, 0.3) + '"/>';
+  return moon + branch + '<path d="M0 214Q80 198,160 210T320 202V240H0Z" fill="' + rgba(deep, 0.3) + '"/>';
 }
 
 /* ── 조립 ────────────────────────────────────────────────────────────────── */
