@@ -48,8 +48,8 @@ export default function YeongnyangiGuide(){
    <h2 id="yn-example-title">상담 예시 한 단락</h2>
    <p className={styles.note}>아래는 가상 입력으로 만든 편집 예시예요. 실제 고객 데이터나 AI가 생성한 상담 원문이 아니에요.</p>
    <blockquote className={styles.sample}>
-    <p>질문 · 선택할 때마다 오래 망설여요. 어떻게 결정하는 연습을 하면 좋을까요?</p>
-    <p>영냥이 · 세부적인 차이를 살피는 태도는 네 장점이야. 다만 모든 불확실성이 사라질 때까지 기다리지는 말자. 되돌릴 수 있는 작은 선택부터 기한을 정해 두면, 결정하는 감각이 조금씩 몸에 붙을 거야.</p>
+    <p>질문 · 헤어진 뒤 연락이 없어요. 제가 먼저 연락해도 될까요?</p>
+    <p>영냥이 · 연락하고 싶은 마음과 다시 거절당할까 두려운 마음이 함께 들 수 있어. 가령 명식에서 관계를 오래 붙드는 성향이 읽힌다면, 이번 연락으로 무엇을 확인하고 싶은지 먼저 적어보자. 상대가 거리를 요청했다면 그 뜻을 존중하고, 그렇지 않다면 답을 재촉하지 않는 짧은 안부부터 생각해볼 수 있어. 재회를 약속하는 해석은 아니야.</p>
    </blockquote>
    <p><a href="/yeongnyangi/1000-won-fortune/#example">상담 예시와 체계별 목차 자세히 보기</a></p>
    <SampleExposure targetId="yn-example" itemId={single('saju','mackerel').cdFeatureKey}/>

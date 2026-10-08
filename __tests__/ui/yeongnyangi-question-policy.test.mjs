@@ -76,3 +76,37 @@ test('followup answers require explanation and action and reject guaranteed clai
  assert.match(p.validateFollowup(valid,new Set(valid.sources)).text,/한 문장씩/);
  for(const patch of [{reason:''},{action:''},{text:'무조건 재회 성공합니다.'}])assert.throws(()=>p.validateFollowup({...valid,...patch},new Set(valid.sources)));
 });
+
+test('every system explains its own foundation and routes question chapters by intent',()=>{
+ const titles={saju:/사주.*오행/,ziwei:/자미두수.*명궁/,sukuyo:/본명숙/,vedic:/베다.*라그나/,astrology:/출생 차트/,tarot:/카드.*마음/};
+ for(const [domain,title] of Object.entries(titles))for(const category of ['reunion','job_change','money','compatibility']){
+  const fish=category==='compatibility'?'flounder':category==='reunion'?'mackerel':'salmon';
+  const decision=d({category,target:category==='compatibility'?'pair':'self'});
+  const rows=p.questionManifest(domain,fish,decision,undefined,'내 상황에 맞는 선택은?');
+  assert.match(rows[0].title,title);assert.equal(rows[0].theme,'self');
+  assert.equal(rows[3].theme,{reunion:'love',job_change:'career',money:'wealth',compatibility:'relations'}[category]);
+  assert.equal(rows.at(-1).theme,'action');assert.equal(rows[3].part,'내 상황에 맞는 선택은?');
+  assert.match(rows[3].focus,/질문 원문.*상황.*기간.*선택지.*제약/);
+  assert.ok(rows.every(row=>row.factSelectors[domain].length));
+  assert.equal(new Set(rows.map(row=>row.title)).size,rows.length);
+ }
+ const saju=p.questionManifest('saju','mackerel',d())[0];
+ assert.match(saju.sections.find(s=>s.id==='nature').instruction,/일간.*오행.*십성/);
+ const legacy=p.questionManifest('saju','mackerel',d(),undefined,'',false);
+ assert.equal(legacy.length,1);assert.equal(legacy[0].title,'이 질문을 함께 살펴보기');
+});
+
+test('all included followups remain available until every saved answer is used',()=>{
+ for(const limit of [1,2,4,5,7]){
+  let c;
+  for(let i=0;i<limit;i++){
+   const reserved=p.reserveConversation(c,limit,'q'+i,'질문 '+i,0,'token'+i);
+   assert.equal(reserved.used,i);assert.equal(reserved.closed,false);
+   c=p.finishConversation(reserved,'token'+i,{kind:'answer',text:'실제 근거와 행동',sources:['saju.pillars']},limit);
+   assert.equal(c.used,i+1);assert.equal(c.closed,i+1===limit);
+   assert.equal(c.exchanges.length,i+1);
+   assert.equal(p.reserveConversation(c,limit,'q'+i,'질문 '+i,0,'replay'),c);
+  }
+  assert.throws(()=>p.reserveConversation(c,limit,'extra','한도 밖의 질문',0,'extra'),/QUESTION_CONVERSATION_CLOSED/);
+ }
+});

@@ -129,8 +129,8 @@ export default function Page(){
    <h2 id="example-title">내 질문에는 어떤 답이 올까요?</h2>
    <p>가상 입력으로 만든 짧은 편집 예시예요. 실제 고객 데이터나 AI가 생성한 상담 원문이 아니며, 전체 {mackerels[0].chapterCount}개 챕터 중 답변의 형태를 보여드려요.</p>
    <dl className={styles.sampleReading}>
-    <dt>질문 예시</dt><dd>선택할 때마다 오래 망설여요. 어떻게 결정하는 연습을 하면 좋을까요?</dd>
-    <dt>답변 예시</dt><dd>세부적인 차이를 살피는 태도를 장점으로 쓰되, 모든 불확실성이 사라질 때까지 기다리지는 않는 연습을 해보세요. 되돌릴 수 있는 작은 선택부터 기한을 정하면 도움이 될 수 있어요.</dd>
+    <dt>질문 예시</dt><dd>헤어진 뒤 연락이 없어요. 제가 먼저 연락해도 될까요?</dd>
+    <dt>답변 예시</dt><dd>연락하고 싶은 마음과 다시 거절당할까 두려운 마음이 함께 들 수 있어. 가령 명식에서 관계를 오래 붙드는 성향이 읽힌다면, 이번 연락으로 무엇을 확인하고 싶은지 먼저 적어보자. 상대가 거리를 요청했다면 그 뜻을 존중하고, 그렇지 않다면 답을 재촉하지 않는 짧은 안부부터 생각해볼 수 있어. 재회를 약속하는 해석은 아니야.</dd>
     <dt>계산 근거와 해석의 한계</dt><dd>{SEO_READING_EXAMPLES['/saju'].fact} {SEO_READING_EXAMPLES['/saju'].interpretation}</dd>
     <dt>오늘 해볼 행동</dt><dd>{SEO_READING_EXAMPLES['/saju'].action} 확인할 항목 하나와 결정할 기한을 정해 보세요.</dd>
    </dl>

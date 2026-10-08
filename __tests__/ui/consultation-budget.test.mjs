@@ -21,7 +21,7 @@ test('every system restores empathy and patterns before question-specific chapte
  for(const domain of ['saju','ziwei','sukuyo','vedic','astrology','tarot'])for(const tier of ['mackerel','salmon','flounder','tuna']){
   const spread=domain==='tarot'?getYeongnyangiSpread('yn_money_flow_seven'):undefined;
   const rows=m.questionManifest(domain,tier,decision,spread,'내년 내 재물운은 어떨까?');
-  assert.match(rows[0].title,domain==='tarot'?/현재|태도/:/타고난 성향/);
+  assert.match(rows[0].title,domain==='tarot'?/카드.*마음/:/바탕/);
   assert.match(rows[1].title,/강점/);assert.match(rows[2].title,/반복/);
   assert.ok(rows.some(row=>row.title.includes('내년 내 재물운')));
   assert.equal(new Set(rows.map(row=>row.id)).size,rows.length);

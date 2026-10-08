@@ -45,7 +45,7 @@
 .purchaseChoices input{margin:4px 0 0;accent-color:var(--yn-gold);width:18px;height:18px;flex-shrink:0}
 .purchaseChoices label>span{display:grid;gap:6px;min-width:0}.purchaseChoices small{line-height:1.6;color:var(--yn-muted)}
 .benefits{border-top:1px solid var(--yn-line);margin-top:24px;padding-top:12px}
-.benefits summary{padding:12px 0;cursor:pointer;font-weight:700;min-height:44px}
+.benefits h2{margin:8px 0;font-size:1.1rem;font-weight:700;line-height:1.5}
 .benefits>p{font-size:14px;color:var(--yn-muted);line-height:1.7}
 .benefits>button{width:100%;min-height:48px;margin:8px 0;padding:12px;border:1px solid var(--yn-line);border-radius:12px;background:var(--yn-raised);color:var(--yn-ivory);font:inherit;cursor:pointer}
 .benefits button:disabled{opacity:.5;cursor:wait}

@@ -698,3 +698,33 @@ describe("revokePassGrantForOrder — users 조회는 profileSubscription 프로
     expect(db.calls).toHaveLength(1);
   });
 });
+
+describe('영냥이 Family 이용권 상담 회귀',()=>{
+ const products=listProducts().filter(p=>p.featureKey?.startsWith('yeongnyangi-')&&p.familyPassOnly&&p.priceCoins>0);
+ test('영냥이 등록 상품은 Family의 기존 한도로 적용되고 다른 일반 등급은 제외한다',()=>{
+  expect(products.length).toBeGreaterThan(20);
+  for(const product of products){
+   expect(evaluatePassCoverage({user:{profileSubscription:activePass('family')},entitlement:activePass('family'),coinCost:product.priceCoins}).covered).toBe(true);
+   expect(product.familyPassOnly).toBe(true);
+  }
+ });
+ test('명시적 Family 선택은 같은 상담에서 한 번 차감하고 재시도는 재사용한다',async()=>{
+  const product=products.find(p=>p.featureKey==='yeongnyangi-saju-mackerel');
+  const db=makeFakePaymentDb(),pass=activePass('family');pass.premiumUseCycleKey=pass.expiresAt.toISOString();
+  const user=seedUser(db,pass);
+  db.rows.push({_id:'a'.repeat(64),userId:USER,featureKey:product.featureKey,amountKRW:product.priceKRW,state:'CREATED',accessMethod:null,paymentClaimOrderId:'',chapters:[]});
+  const body={featureKey:product.featureKey,requestId:'yn-'+ 'a'.repeat(64),paymentMode:'MEMBERSHIP_PASS'};
+  const first=await postPassCheck(db,body),replay=await postPassCheck(db,body);
+  expect(first.response.status).toBe(200);expect(first.payload.data.consume.accessMethod).toBe('FAMILY');
+  expect(replay.response.status).toBe(200);expect(replay.payload.data.consume.idempotent).toBe(true);
+  expect(user.profileSubscription.monthlySpendCoin).toBe(product.priceCoins);
+ });
+ test.each(['expired','exhausted'])('Family %s는 새 상담에 적용하지 않고 PG로 자동 청구하지 않는다',async reason=>{
+  const product=products.find(p=>p.featureKey==='yeongnyangi-saju-mackerel');
+  const db=makeFakePaymentDb(),pass=activePass('family',reason==='expired'?{expiresAt:new Date(0)}:{});
+  pass.premiumUseCycleKey=pass.expiresAt.toISOString();pass.monthlySpendCoin=reason==='exhausted'?MONTHLY_PASS_LIMITS.family:0;
+  const user=seedUser(db,pass),spent=pass.monthlySpendCoin;
+  const result=await postPassCheck(db,{featureKey:product.featureKey,requestId:'yn-'+ 'b'.repeat(64),paymentMode:'MEMBERSHIP_PASS'});
+  expect(result.response.status).toBe(402);expect(user.profileSubscription.monthlySpendCoin).toBe(spent);
+ });
+});

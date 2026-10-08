@@ -1,0 +1,20 @@
+.loading{display:grid;justify-items:center;gap:20px;margin:28px 0;color:var(--yn-ivory);text-align:center}
+.scene{position:relative;isolation:isolate;width:min(100%,520px);aspect-ratio:3/2;overflow:hidden;border-radius:20px;background:var(--yn-surface)}
+.scene img{display:block;width:100%;height:100%;object-fit:contain}
+.magic{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;color:var(--yn-gold);overflow:hidden}
+.orbit,.rays,.spark{transform-box:fill-box;transform-origin:center;animation:illuminate 7s ease-in-out infinite}
+.orbit{fill:none;stroke:currentColor;stroke-width:1.5;stroke-dasharray:5 9}
+.rays{fill:none;stroke:currentColor;stroke-width:2;animation-delay:-2s}
+.spark{fill:currentColor;animation-delay:-4s}
+.aura{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 65%,rgba(246,207,130,.28),transparent 58%);animation:inspiration 7s ease-in-out infinite;pointer-events:none}
+.copy{max-width:42ch}.copy p{margin:0 0 8px;line-height:1.7;word-break:keep-all}
+.title{font-size:clamp(18px,4.5vw,23px);font-weight:700}.detail{color:var(--yn-muted);font-size:14px;font-variant-numeric:tabular-nums}
+.pause{min-height:44px;padding:8px 14px;border:1px solid var(--yn-line);border-radius:10px;color:var(--yn-ivory);background:var(--yn-raised);font:inherit;font-size:14px;cursor:pointer}
+.pause:hover{border-color:var(--yn-gold)}.pause:focus-visible{outline:3px solid var(--yn-gold);outline-offset:3px}
+.paused :is(.aura,.orbit,.rays,.spark){animation-play-state:paused}
+.compact{grid-template-columns:144px minmax(0,1fr);justify-items:start;text-align:left;align-items:center;gap:16px}
+.compact .scene{border-radius:12px}.compact .title{font-size:17px}
+@keyframes illuminate{0%,100%{opacity:.12;transform:scale(.94)}45%{opacity:.65}62%{opacity:.85;transform:scale(1.04)}80%{opacity:.2;transform:scale(1.08)}}
+@keyframes inspiration{0%,100%{opacity:.15}50%{opacity:.45}65%{opacity:.85}85%{opacity:.1}}
+@media(max-width:430px){.compact{grid-template-columns:96px minmax(0,1fr);gap:12px}.loading{margin:20px 0}}
+@media(prefers-reduced-motion:reduce){.loading :is(.aura,.orbit,.rays,.spark){animation:none;opacity:.25}.pause{display:none}}
