@@ -1,5 +1,6 @@
 "use client";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
+import { chapterAdviceTopics } from "@/js/recommendations-context.mjs";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 import Link from "next/link";
@@ -1972,7 +1973,7 @@ function LifeBookResultContent() {
           />
         )}
 
-        {result?.status === "completed" && <RecommendationResult service="life-book-ai"/>}
+        {result?.status === "completed" && <RecommendationResult service="life-book-ai" practiceTags={chapterAdviceTopics(report.chapters)}/>}
         <ResultActionDock
           pdfLoading={pdfLoading}
           onDownloadPdf={() => void handlePdfDownload()}

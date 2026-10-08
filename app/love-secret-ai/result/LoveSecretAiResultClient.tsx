@@ -1,5 +1,6 @@
 "use client";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
+import { adviceTopics } from "@/js/recommendations-context.mjs";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -1113,7 +1114,7 @@ export default function LoveSecretAiResultClient() {
             expandForExport={exporting}
           />
         )}
-        {isShareReady && <RecommendationResult service="love-secret-ai"/>}
+        {isShareReady && <RecommendationResult service="love-secret-ai" practiceTags={adviceTopics([...(consultation?.reading?.actionSecrets || []).slice(0,8).map(item => parseActionSecret(item).action), ...(consultation?.reading?.sevenDayGuide || []).slice(0,7)])}/>}
       </section>
     </main>
   );

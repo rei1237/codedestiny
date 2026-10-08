@@ -1,4 +1,5 @@
 "use client";
+import { chapterAdviceTopics } from '@/js/recommendations-context.mjs';
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import {shouldInvitePaidReview} from '@/js/review-reward-copy.mjs';
@@ -161,7 +162,7 @@ export default function ConsultationResult({ row, onNew, readOnly = false }: { r
           </div>
         </section>
       )}
-      {row.state === "COMPLETED" && !readOnly && <RecommendationResult service="fortune-chat" brand={row.persona}/>}
+      {row.state === "COMPLETED" && !readOnly && <RecommendationResult service="fortune-chat" brand={row.persona} practiceTags={chapterAdviceTopics(row.chapters)}/>}
     </div>
   );
 }

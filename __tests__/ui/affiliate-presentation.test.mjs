@@ -12,7 +12,8 @@ test('brand navigation preserves the two independent worlds without private inpu
 test('new or unknown merchants cannot borrow Coupang outbound permissions', () => {
   for (const value of ['book-partner-preview','lifestyle-partner-preview','unknown','__proto__','constructor','https://evil.example']) assert.equal(affiliatePresentation(value).previewOnly, true);
   assert.equal(affiliatePresentation().label, 'Coupang');
-  assert.equal(RECOMMENDATIONS_RELEASED, false);
+  assert.equal(affiliatePresentation('aliexpress').label, 'AliExpress');
+  assert.equal(RECOMMENDATIONS_RELEASED, true);
 });
 test('brand, merchant and disclosure copy is complete for all existing locales', () => {
   const keys = Object.keys(affiliateCopy('ko'));

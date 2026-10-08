@@ -2259,7 +2259,7 @@ function __cdEnsureSajuCoreLoaded() {
       '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a581a74ee045',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-c8efae64440e',
     '/js/core/saju/basicFortunePresentation.js?v=build-0717901ec907',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
     '/js/core/saju/reportDashboard.js?v=build-d962fee599da',
@@ -8373,7 +8373,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
       '/js/saju-engine.js?v=build-b9cad44444ab',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a581a74ee045'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-c8efae64440e'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일

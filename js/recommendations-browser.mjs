@@ -45,7 +45,9 @@ export function recommendationReturnPath(fallback = '/ggulggul/') {
   } catch { return fallback; }
 }
 export function recommendationQuery(context) {
-  const c = normalizeContext(context), q = new URLSearchParams({ service: c.service });
+  const c = normalizeContext(context), q = new URLSearchParams({ service: c.service, source: c.source, currency: c.currency });
+  c.practiceTags.forEach(x => q.append('topic', x));
+  for (const k of ['color','motif']) if(c[k]) q.set(k,c[k]);
   for (const k of ['category', 'species', 'maxPrice']) if (c[k]) q.set(k, String(c[k]));
   if (c.groupId) q.set('group', c.groupId);
   c.interests.forEach(x => q.append('interest', x));

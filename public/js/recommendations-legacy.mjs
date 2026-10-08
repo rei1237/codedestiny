@@ -1,4 +1,7 @@
+export { adviceTopics } from './recommendations-context.mjs';
 import { RECOMMENDATIONS_RELEASED, normalizeContext, validateAffiliateUrl, validImageUrl, serviceRule, INTERESTS } from './recommendations-core.mjs';
+import { affiliateCopy } from './affiliate-presentation.mjs';
+import { bookPerspectiveLabel } from './recommendations-context.mjs';
 const mounted = new WeakMap();
 export async function mountRecommendation(host, input, anchor = null) {
   if (!RECOMMENDATIONS_RELEASED || !host?.isConnected) return;
@@ -24,7 +27,9 @@ export async function mountRecommendation(host, input, anchor = null) {
       const choose = serviceRule(context.service)?.explicitInterest || (context.service.startsWith('pet-') && !context.species);
       if (!data.products?.length && !choose) { section.remove(); top.remove(); return; }
       cleanupObserver(); section.replaceChildren();
-      node('h2', copy.title, section); node('p', copy.ad + ' · ' + copy.disclosure, section);
+      const disclosure = data.products.some(p => p.providerId === 'aliexpress') ? affiliateCopy(copy.locale).genericDisclosure + (data.products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + copy.disclosure : '') : copy.disclosure;
+      top.textContent = disclosure;
+      node('h2', copy.title, section); node('p', copy.ad + ' · ' + disclosure, section);
       if (choose) {
         const label = node('label', context.service.startsWith('pet-') ? copy.species : copy.purpose, section);
         const select = node('select', '', label);
@@ -36,13 +41,16 @@ export async function mountRecommendation(host, input, anchor = null) {
       }
       const grid = node('div', '', section); grid.className = 'cd-recommendations-products';
       data.products.slice(0, 3).forEach(p => {
+        const merchantCopy = value => p.providerId === 'aliexpress' ? value.replace(/쿠팡|Coupang|coupang/g, 'AliExpress') : value;
         const article = node('article', '', grid);
         if (validImageUrl(p.imageUrl)) { const image = node('img', '', article); image.referrerPolicy = 'no-referrer'; image.loading = 'lazy'; image.alt = p.title; image.src = p.imageUrl; image.width = 240; image.height = 180; image.onerror = () => { image.remove(); node('p', copy.image, article); }; }
         node('h3', p.title, article); node('p', p.reason, article);
+        if (p.book?.author) node('p', [p.book.author, p.book.publisher, p.book.edition, p.book.language, p.book.format].filter(Boolean).join(' · '), article);
+        if (p.book?.perspective) node('p', bookPerspectiveLabel(p.book.perspective, copy.locale), article);
         (p.attributes || []).forEach(a => node('p', a, article));
-        node('p', p.price == null ? copy.price : new Intl.NumberFormat(undefined, { style: 'currency', currency: 'KRW' }).format(p.price) + ' · ' + new Date(p.priceVerifiedAt).toLocaleString(), article);
-        if (validateAffiliateUrl(p.affiliateUrl)) {
-          const link = node('a', p.linkType === 'search' ? copy.search : copy.view, article);
+        node('p', p.price == null ? merchantCopy(copy.price) : new Intl.NumberFormat(undefined, { style: 'currency', currency: p.currency || 'KRW' }).format(p.price) + ' · ' + new Date(p.priceVerifiedAt).toLocaleString(), article);
+        if (validateAffiliateUrl(p.affiliateUrl, p.providerId)) {
+          const link = node('a', p.linkType === 'search' ? copy.search : merchantCopy(copy.view), article);
           link.href = p.affiliateUrl; link.target = '_blank'; link.rel = 'sponsored noopener'; link.referrerPolicy = 'no-referrer';
           link.addEventListener('click', () => track('click', p.id));
         }

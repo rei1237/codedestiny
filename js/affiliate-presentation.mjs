@@ -11,6 +11,7 @@ export function affiliateBrowsePath(brand) {
 }
 export const AFFILIATE_PRESENTATIONS = Object.freeze({
   coupang: { label: 'Coupang', previewOnly: false },
+  aliexpress: { label: 'AliExpress', previewOnly: false },
   'book-partner-preview': { labelKey: 'bookPartner', previewOnly: true },
   'lifestyle-partner-preview': { labelKey: 'lifePartner', previewOnly: true },
 });

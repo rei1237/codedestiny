@@ -1,16 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { cleanProduct, reviewProduct, selectProducts, validateAffiliateUrl, normalizeContext, cleanEvent, isEnabled, DEFAULT_SETTINGS, RECOMMENDATIONS_RELEASED, currentPrice, serviceRule } from '../../js/recommendations-core.mjs';
+import { cleanProduct, reviewProduct, selectProducts as select, validateAffiliateUrl, normalizeContext, cleanEvent, isEnabled, DEFAULT_SETTINGS, RECOMMENDATIONS_RELEASED, currentPrice, serviceRule } from '../../js/recommendations-core.mjs';
 import { recommendationCopy, RECOMMENDATION_COPY_LOCALES } from '../../js/recommendations-copy.mjs';
 const NOW = Date.parse('2026-10-07T00:00:00Z');
 const checks = { account: true, facts: true, image: true, allowedCategory: true };
 // Synthetic in-memory validator fixture. Never fetched or included in the operational catalogue.
-const draft = overrides => cleanProduct({ id: 'fixture-book', category: 'books', kind: 'book', title: '검증 전용 fixture', reason: '기록 용도 테스트', interests: ['journaling'], topicTags: ['saju'], affiliateUrl: 'https://link.coupang.com/a/FixtureOnly?original=kept', imageUrl: '/images/fixture.png', imageSource: 'unit-test-only', evidence: 'unit-test-only', ...overrides });
+const draft = overrides => cleanProduct({ id: 'fixture-book', category: 'books', kind: 'book', title: '검증 전용 fixture', reason: '기록 용도 테스트', interests: ['journaling'], topicTags: ['saju'], practiceTags:['journaling'], topicReasons:{journaling:'검증용 기록 실천'}, book:{author:'fixture',publisher:'fixture',edition:'fixture',language:'ko',format:'paper',editionEvidence:'fixture',contentsEvidence:'fixture',audience:'fixture',perspective:'practical'}, affiliateUrl: 'https://link.coupang.com/a/FixtureOnly?original=kept', imageUrl: '/images/fixture.png', imageSource: 'unit-test-only', evidence: 'unit-test-only', ...overrides });
+const selectProducts = (p, c = {}, now) => select(p, {practiceTags:['journaling'], ...c}, now);
 const active = overrides => reviewProduct(draft(overrides), checks, NOW);
-test('approval-pending build is closed even with toggled database settings', () => {
-  assert.equal(RECOMMENDATIONS_RELEASED, false);
-  assert.equal(isEnabled({ enabled: true, approved: true, mediaRegistered: true }, 'legacy-saju'), false);
+test('release still respects global and service controls', () => {
+  assert.equal(RECOMMENDATIONS_RELEASED, true);
+  assert.equal(isEnabled({ enabled: true, approved: true, mediaRegistered: true }, 'legacy-saju'), true);
   assert.equal(isEnabled(DEFAULT_SETTINGS, 'legacy-saju', true), false);
   assert.equal(isEnabled({ enabled: true, approved: true, mediaRegistered: true, disabledServices: ['legacy-saju'] }, 'legacy-saju', true), false);
 });
@@ -45,9 +46,9 @@ test('albums require the exact selected group; general supplies remain identifie
   assert.throws(() => reviewProduct(draft({ category: 'fandom', kind: 'album' }), checks, NOW));
 });
 test('different fortune systems do not silently become interchangeable books', () => {
-  const ziwei = active({ id: 'ziwei-book', topicTags: ['ziwei'] });
-  const vedic = active({ id: 'vedic-book', topicTags: ['vedic'] });
-  assert.deepEqual(selectProducts([ziwei,vedic], { service: 'ziwei-ai-consultation' }, NOW).map(p=>p.id), ['ziwei-book']);
+  const ziwei = active({ id: 'ziwei-book', topicTags: ['ziwei'], practiceTags:['ziwei-study'], topicReasons:{'ziwei-study':'fixture'} });
+  const vedic = active({ id: 'vedic-book', topicTags: ['vedic'], practiceTags:['vedic-study'], topicReasons:{'vedic-study':'fixture'} });
+  assert.deepEqual(selectProducts([ziwei,vedic], { service: 'ziwei-ai-consultation', practiceTags:['ziwei-study'] }, NOW).map(p=>p.id), ['ziwei-book']);
   assert.deepEqual(selectProducts([ziwei,vedic], { service: 'unknown-service' }, NOW), []);
 });
 test('health only follows explicit everyday purpose, not arbitrary health/result data', () => {

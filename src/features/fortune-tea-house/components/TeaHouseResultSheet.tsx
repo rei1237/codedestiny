@@ -1,5 +1,6 @@
 "use client";
 import { getFortuneTeaHouseConsultFeatureKey } from "../data/consultPricing";
+import { teaAdviceTopics } from '@/js/recommendations-context.mjs';
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import TeaResultCompanion from "./TeaResultCompanion";
 
@@ -1073,7 +1074,7 @@ export default function TeaHouseResultSheet({
             </TeaHouseButton>
           )}
         </div>
-        <RecommendationResult service={getFortuneTeaHouseConsultFeatureKey(consultationMode, result.tarotSpread)} brand="yeoni"/>
+        <RecommendationResult service={getFortuneTeaHouseConsultFeatureKey(consultationMode, result.tarotSpread)} brand="yeoni" practiceTags={teaAdviceTopics(result)}/>
         {saveStatus ? <strong className={styles.honeyLetterStatus} aria-live="polite">{saveStatus}</strong> : null}
       </article>
     </section>

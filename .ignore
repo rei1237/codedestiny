@@ -199,8 +199,10 @@
 /public/js/psycho-dream-analyzer-freuds-study.js
 /public/js/pwa-install-prompt.js
 /public/js/recommendations-browser.mjs
+/public/js/recommendations-context.mjs
 /public/js/recommendations-copy.mjs
 /public/js/recommendations-core.mjs
+/public/js/recommendations-editorial.mjs
 /public/js/recommendations-legacy.mjs
 /public/js/review-reward-copy.mjs
 /public/js/review-reward-invite.mjs
