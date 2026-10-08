@@ -2,6 +2,24 @@
 
 status: in-progress
 
+## 최신 상태 — 2026-10-08 번들 20261008-3 및 등록 이미지 갱신
+
+사용자 요청: 현재 업로드본 최신화, 앱 로고 교체, 고급스러운 실제 화면 기반 미리보기 제작·등록. 사업자 검토 대기는 유지하며 공개 출시·재검토 제출은 하지 않았다.
+
+- 원격 fetch 결과 main `39d1f46b3c59c446acc0f6d132ef0185dda67096`. 작업본 `fec16ec4a4a231ec4c8d47c0cf36bcf57ccb460f`가 이를 포함함을 merge-base --is-ancestor로 확인. 토스 코드는 main에 아직 미전달.
+- `npm test --prefix apps/toss`: mock 32/32 통과. `npm run build --prefix apps/toss`: tsc/Vite/ait 통과. 큰 JS 청크 경고 유지.
+- 실제 업로드·임시저장 후 콘솔 모달 확인: 버전 `20261008-3`, deploymentId `01a11aae-3e2c-78aa-9ce6-e190aa05fa97`. 번들 525591 bytes, SHA256 `C287992C372E43B61534493868CEBD48B51A274167E5ADAEB686CADBC0C5BA2C`.
+- 테스트 링크 `intoss-private://ai-saju-studio?_deploymentId=01a11aae-3e2c-78aa-9ce6-e190aa05fa97&host=appsInTossHost`. 테스트 푸시 발송 없음. 실기기 기능 검증 없음.
+- 로고: 원본 영냥이 기반의 기존 600×600 불투명 정사각 PNG를 라이트·다크 모두 교체 업로드. 라이트 URL `https://static.toss.im/appsintoss/21957/live-managed-v1-9263ff09-4247-42c7-981e-61659a7838dd.png`, 다크 URL `https://static.toss.im/appsintoss/21957/live-managed-v1-2b4de315-6772-464a-917c-42a0a8b6fe34.png`.
+- `docs/toss/assets/20261008-3/`: 세로 636×1048 세 장, 가로 1504×741 한 장의 편집 가능한 SVG+PNG 조판. 실제 기존 앱 캡처 원본을 삽입, 생성 UI 아님. 사주 질문 선택·상담 범위·결과 구성 예시만 소개하고 출시 준비 중 고지를 유지.
+- 독립 visual_checker가 4장 글자·잘림·고지 검수. 02 긴 부제만 짧게 수정. 로고와 세로 세 장은 콘솔 임시저장 후 reload로 URL·원본 크기 영속 저장 확인. 가로는 함께 선택했으나 콘솔에 남지 않아 **등록 완료로 간주하지 않음**; 로컬 대체안으로 보관.
+- 세로 등록 URL 순서: `live-managed-v1-a79b5dea-cf0e-4fa0-b560-fcfecb6ee989.png`, `live-managed-v1-975a6435-007b-4a6d-8acb-e23c11fd91d4.png`, `live-managed-v1-af7506ca-5fa6-4beb-b20a-4685cae524e0.png` (위와 같은 CDN/workspace 경로).
+- 앱 정보는 기존 반려사유 표시 유지, 검토 요청 버튼 비활성. 법적 확인 체크·재검토 제출·공개 출시 없음. 사업자 서류 검토와 앱/번들 검토는 다른 단계.
+- **즉시 출시 준비 완료 아님:** SERVICE_AVAILABLE=false, 승인 SKU 빈 배열, 서버 release gate 유지. 전체 CODE DESTINY 기능 미포함. 단순 최신 소스 통합은 전체 기능 이식이 아니다. 기존 feature-matrix의 첫 제출 제외 방침은 사용자의 전체 기능 요청보다 우선하지 않는다. 로그인·IAP·생성·보관 연동, 나머지 기능 이식, 약관·mTLS·실기기 검증이 남음.
+- 운영 웹·결제 정책·인증/API/DB 로직은 이번 작업에서 변경하지 않았다. 자산 변경만 로컬 검증·커밋하며, 미완성 서버 코드 전체를 main에 함께 전달하지 않는다.
+
+다음: 사업자 심사 결과 확인 후 로그인·IAP 설정을 연결하고 전체 기능별 출시 충족표를 갱신. 모든 기능 이식 및 구매→결과→기록 검증 완료 후 실제 화면으로 등록 이미지를 다시 확정하고 앱 통합 검토 제출.
+
 ## 최신 요청 완료 — 카테고리 최적화·테스트 업로드 20261008-2
 
 사용자가 운영 승격은 필요 없다고 명시하고 앱인토스 카테고리 최적화와 업로드를 요청했다. 이번에는 운영 배포를 실행하지 않았다. 이 절이 이전의 운영 승격 선행/업로드 보류 지시보다 우선한다.

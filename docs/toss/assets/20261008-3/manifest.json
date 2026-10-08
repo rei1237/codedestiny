@@ -1,0 +1,36 @@
+{
+  "purpose": "콘솔 등록용 편집 가능한 조판; 실제 캡처 원본 포함",
+  "serviceAvailable": false,
+  "sourceCaptures": "../20261008-1",
+  "productCapture": "하단 미완성 구매 영역은 프레임 밖. 실제 화면 내용을 수정하지 않음.",
+  "files": [
+    {
+      "file": "01-question-636x1048.png",
+      "width": 636,
+      "height": 1048,
+      "bytes": 139722,
+      "sha256": "56a0c82c1489dd5788d074f14bd9a146bd7a33bc2ea9689d7fabf34bd54619bc"
+    },
+    {
+      "file": "02-scope-636x1048.png",
+      "width": 636,
+      "height": 1048,
+      "bytes": 134859,
+      "sha256": "1686bdcc4c7a422e4a9eaffbaaa8736e1aa19ae490bbd281a57d9a53d0eb5ff2"
+    },
+    {
+      "file": "03-example-636x1048.png",
+      "width": 636,
+      "height": 1048,
+      "bytes": 118409,
+      "sha256": "76c920559f0b6276ca0299b3ef2793167e6e5e253b2d0ed6c52472148f7ad85f"
+    },
+    {
+      "file": "04-introduction-1504x741.png",
+      "width": 1504,
+      "height": 741,
+      "bytes": 301381,
+      "sha256": "1f1d4f9f5c1dbe4bb362b36b729d226d8475c1c4419c949dac6fbc33eb3ff0ad"
+    }
+  ]
+}
