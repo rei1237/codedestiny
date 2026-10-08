@@ -747,6 +747,27 @@ html { margin-top: 0px !important; }
     max(10px, env(safe-area-inset-bottom, 0px))
     max(10px, env(safe-area-inset-left, 0px)); background: radial-gradient(circle at 14% 18%, rgba(244, 114, 182, 0.4), transparent 42%), radial-gradient(circle at 84% 10%, rgba(56, 189, 248, 0.34), transparent 40%), radial-gradient(circle at 52% 94%, rgba(255, 198, 112, 0.22), transparent 42%), rgba(241, 248, 255, 0.66); backdrop-filter: blur(9px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; scrollbar-gutter: stable both-edges; min-height: 100svh; opacity: 0; transition: opacity 0.24s; animation: 12s ease-in-out 0s infinite normal none running dfStudioAuroraShift; }
 .df-studio-overlay.is-show { opacity: 1; }
+/* 운명의 꽃 critical inline fallback: 초기 페인트도 기존 다크 럭셔리 톤을 유지한다. */
+#destinyFlowerStudioOverlay { background: linear-gradient(165deg, #070611 0%, #0d0a1a 44%, #151027 76%, #090813 100%) !important; color: #f8eddb; }
+#destinyFlowerStudioOverlay .df-studio-sheet { border-color: rgba(201, 164, 106, 0.34) !important; background: linear-gradient(160deg, rgba(22, 17, 38, 0.98), rgba(9, 8, 19, 0.99)) !important; }
+#destinyFlowerStudioOverlay .df-studio-title, #destinyFlowerStudioOverlay .df-studio-hero h2, #destinyFlowerStudioOverlay #dfStudioTitle { color: #f8eddb !important; -webkit-text-fill-color: #f8eddb; }
+#destinyFlowerStudioOverlay .df-studio-source-desc, #destinyFlowerStudioOverlay .df-studio-narrative { color: rgba(239, 226, 215, 0.82) !important; }
+#destinyFlowerStudioOverlay .df-studio-main { border-color: rgba(201, 164, 106, 0.28) !important; background: linear-gradient(145deg, rgba(29, 21, 47, 0.98), rgba(12, 9, 23, 0.98)) !important; }
+#destinyFlowerStudioOverlay .df-studio-visual, #destinyFlowerStudioOverlay .df-panel, #destinyFlowerStudioOverlay .df-flower-letter { border-color: rgba(201, 164, 106, 0.24) !important; background: linear-gradient(145deg, rgba(35, 26, 54, 0.94), rgba(14, 11, 27, 0.98)) !important; color: rgba(239, 226, 215, 0.84) !important; }
+#destinyFlowerStudioOverlay .df-panel h4, #destinyFlowerStudioOverlay .df-studio-insight h3, #destinyFlowerStudioOverlay #dfStudioName { color: #f8eddb !important; }
+#destinyFlowerStudioOverlay .df-studio-main::before { display: none !important; }
+#destinyFlowerStudioOverlay .df-studio-aura { background: radial-gradient(circle at 22% 50%, rgba(201, 164, 106, 0.16), transparent 58%), radial-gradient(circle at 74% 34%, rgba(91, 72, 132, 0.2), transparent 60%) !important; }
+#destinyFlowerStudioOverlay .df-studio-visual::after { background: radial-gradient(circle, rgba(201, 164, 106, 0.22), transparent 68%) !important; }
+#destinyFlowerStudioOverlay { scrollbar-gutter: auto; }
+html:has(#destinyFlowerStudioOverlay.is-show) { scrollbar-gutter: auto !important; }
+#destinyFlowerStudioOverlay { left: 0; right: auto; width: 100vw; box-sizing: border-box; }
+#destinyFlowerStudioOverlay.df-studio-overlay.is-show { left: 0 !important; right: auto !important; width: 100vw !important; min-width: 100vw !important; max-width: none !important; }
+#destinyFlowerStudioOverlay .df-studio-latin { color: rgba(232, 213, 163, 0.78) !important; }
+#destinyFlowerStudioOverlay .df-studio-daymaster { color: rgba(246, 235, 218, 0.9) !important; border-color: rgba(201, 164, 106, 0.4); background: rgba(201, 164, 106, 0.12); }
+#destinyFlowerStudioOverlay .df-studio-symbolism { color: rgba(239, 226, 215, 0.84) !important; }
+#destinyFlowerStudioOverlay .df-studio-keywords { color: rgba(196, 181, 253, 0.72) !important; }
+#destinyFlowerStudioOverlay .df-studio-aura { background: radial-gradient(circle at 22% 50%, rgba(201, 164, 106, 0.16), transparent 58%), radial-gradient(circle at 74% 34%, rgba(91, 72, 132, 0.2), transparent 60%) !important; }
+#destinyFlowerStudioOverlay .df-studio-visual::after { background: radial-gradient(circle, rgba(201, 164, 106, 0.22), transparent 68%) !important; }
 .df-panel:has(#dfStudioGuidance), .df-studio-panels > .df-panel:nth-child(3) { display: none; }
 .privacy-content-note { font-size: 0.85rem; color: rgb(136, 136, 136); margin-top: 16px; }
 @media (pointer: coarse) {
