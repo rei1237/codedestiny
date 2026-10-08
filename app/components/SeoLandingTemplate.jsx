@@ -1,3 +1,5 @@
+import { getFortuneLanding } from "../../lib/fortune-landings.mjs";
+import landingStyles from "./fortune-landing.module.css";
 import PublicRecordLink from './PublicRecordLink';
 import { getIntentCopy } from '../../lib/seo/intent-copy.mjs';
 import {FreeQuestionNext} from "./QuestionJourney";
@@ -172,6 +174,8 @@ function SectionHead({ id, title, label }) {
 
 export default function SeoLandingTemplate({ page, hero = null }) {
   const fortuneLanding = hasFortuneLanding(page.path);
+  const EditorialSection = fortuneLanding ? "details" : "section";
+  const ReadingGuide = fortuneLanding ? "details" : "div";
   const landingHero = hero || (fortuneLanding ? <FortuneLandingHero path={page.path} /> : null);
   const intent = getIntentCopy(page?.path);
   const copy = page?.templateCopy || SEO_LANDING_TEMPLATE_COPY.ko;
@@ -203,7 +207,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
   const breadcrumb = [
     { name: copy.breadcrumbHome, path: "/" },
     { name: copy.breadcrumbServices, path: "/guides" },
-    { name: page.breadcrumbLabel || page.h1, path: page.path },
+    { name: page.breadcrumbLabel || (fortuneLanding ? getFortuneLanding(page.path).name : page.h1), path: page.path },
   ];
   /* 본문을 고친 날(page.dateModified, 선택 필드)은 화면의 검수 노트와 WebPage JSON-LD 에 같은 값으로
      싣는다. 넘기지 않은 랜딩의 출력은 그대로다. */
@@ -226,7 +230,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
   const faqJsonLd = buildFaqPageJsonLd(faqs);
 
   return (
-    <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[var(--cd-bg)] px-4 pb-16 pt-6 text-[var(--cd-text)] md:px-6 md:pb-24 md:pt-10">
+    <main data-fortune-landing={fortuneLanding ? "editorial" : undefined} className={`${fortuneLanding ? landingStyles.page : ""} relative isolate min-h-[100dvh] overflow-hidden bg-[var(--cd-bg)] px-4 pb-16 pt-6 text-[var(--cd-text)] md:px-6 md:pb-24 md:pt-10`}>
       <div className="mx-auto w-full max-w-5xl">
         <nav
           aria-label="Breadcrumb"
@@ -308,6 +312,8 @@ export default function SeoLandingTemplate({ page, hero = null }) {
           )}
         </header>}
 
+        <ReadingGuide id={fortuneLanding ? "landing-guide" : undefined} className={fortuneLanding ? landingStyles.guide : undefined}>
+        {fortuneLanding && <summary>이용 방법과 제공 범위<span aria-hidden="true">+</span></summary>}
         {hero && <section aria-labelledby="sajuIntroduction" className="mt-10 max-w-[68ch]">
           <h2 id="sajuIntroduction" className="font-[family-name:var(--font-serif)] text-2xl font-bold">사주, 나를 이해하는 여덟 글자</h2>
           <p className="mt-4 break-keep text-[0.98rem] leading-[1.9] text-[var(--cd-text-muted)]">{page.intro || page.description}</p>
@@ -357,12 +363,12 @@ export default function SeoLandingTemplate({ page, hero = null }) {
         </div>
 
         {sections.map((section, sectionIndex) => (
-          <section
+          <EditorialSection
             key={section.heading}
             aria-labelledby={`seoLandingSection${sectionIndex}`}
-            className="mt-[clamp(3rem,7vw,5rem)]"
+            className={fortuneLanding ? landingStyles.chapter : "mt-[clamp(3rem,7vw,5rem)]"}
           >
-            <SectionHead id={`seoLandingSection${sectionIndex}`} title={section.heading} label={section.label} />
+            {fortuneLanding ? <summary><h2 id={`seoLandingSection${sectionIndex}`}>{section.heading}</h2><span aria-hidden="true">+</span></summary> : <SectionHead id={`seoLandingSection${sectionIndex}`} title={section.heading} label={section.label} />}
             {(Array.isArray(section.paragraphs) ? section.paragraphs : []).map((paragraph) => (
               <p
                 key={paragraph}
@@ -371,7 +377,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
                 {paragraph}
               </p>
             ))}
-          </section>
+          </EditorialSection>
         ))}
 
         {linkGroups.map((group, groupIndex) => (
@@ -453,7 +459,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
         <ContentIntegrityNote tone="light" contentPath={page?.path || ""} dateModified={dateModified} />
 
         {["/saju","/sukuyo","/ziwei","/astrology","/vedic","/tarot"].includes(page.path) && <FreeQuestionNext category={({"/saju":"saju","/sukuyo":"sukuyo","/ziwei":"ziwei","/astrology":"astrology","/vedic":"vedic","/tarot":"tarot"})[page.path] || "general"} source="seo_guide"/>}
-        {fortuneLanding && <FortuneLandingDirectory path={page.path} />}
+
         <section aria-labelledby="seoLandingRelated" className="mt-[clamp(3.5rem,8vw,5.5rem)]">
           <SectionHead id="seoLandingRelated" title={copy.relatedFeatures} label={copy.relatedFlow} />
           {topicProfile?.topicSummary ? (
@@ -504,6 +510,8 @@ export default function SeoLandingTemplate({ page, hero = null }) {
             ))}
           </div>
         </section>
+        </ReadingGuide>
+        {fortuneLanding && <FortuneLandingDirectory path={page.path} />}
       </div>
 
       <DeferredShareWidget
