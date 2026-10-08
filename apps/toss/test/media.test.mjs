@@ -32,3 +32,12 @@ test('share points at the public miniapp feature and never puts a summary in its
 test('preview build cannot publish a misleading operational link',async()=>{
  const {api,calls}=await adapter({live:false});await assert.rejects(api.shareBiasSummary('요약'),/TOSS_RELEASE_PENDING/);assert.deepEqual(calls,[]);
 });
+test('tarot save and share keep private result identifiers out of native paths',async()=>{
+ const {api,calls}=await adapter();await api.saveTarotResultCardPng('data:image/png;base64,aGVsbG8=');
+ assert.deepEqual(calls[0],['save',{data:'aGVsbG8=',fileName:'code-destiny-tarot-card.png',mimeType:'image/png'}]);
+ await api.shareTarotResultSummary('타로 리딩','카드가 비춘 흐름');
+ assert.deepEqual(calls[1],['link',{path:'intoss://ai-saju-studio/tarot-library?source=share'}]);
+ assert.ok(calls[2][1].message.includes('카드가 비춘 흐름'));
+ assert.ok(!calls[1][1].path.includes('orderId'));
+ assert.ok(!calls[1][1].path.includes('resultId'));
+});

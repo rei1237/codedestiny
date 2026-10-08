@@ -1,9 +1,10 @@
-import {useMemo,useState} from 'react';
+import {useEffect,useMemo,useState} from 'react';
 import {Button,TextArea} from '@toss/tds-mobile';
 import {TOSS_TAROT_LIBRARY_FLOWS} from '../../../lib/tarot/toss-library-flows.mjs';
 import {TAROT_CARDS} from '../../../lib/tarot/tarot-cards.mjs';
 import {completeSelfEsteemReadingPayload} from '../../../lib/tarot/self-esteem-local-reading.mjs';
 import {api,purchaseTarotLibrary,type TarotLibraryProduct} from './platform';
+import TarotResultActions from './TarotResultActions';
 
 type Flow={id:string;name:string;access:'iap'|'free-local';featureKeys:string[];cardCount:number;positions:[string,string][];resultKind:string;inputLabel:string;inputHint:string};
 type Card={code:string;nameKo:string;nameEn:string;keywords?:string[]};
@@ -41,29 +42,62 @@ function localResult(flow:Flow,question:string,picks:number[]):LocalResult{
         :'카드가 가리킨 조건을 메모하고, 이번 주 안에 확인할 수 있는 행동 하나로 바꿔 보세요. 불확실한 마음을 줄이는 데 도움이 됩니다.'};
 }
 
-function Result({result,onRestart}:{result:LocalResult;onRestart:()=>void}){
+const resultPresentation=(result:LocalResult)=>{
   const yearly=result.flowId==='tarot-year-fortune';
   const content=result.presentation||{opening:result.opening||'',summary:result.summary||'',sections:[],actions:result.advice?[result.advice]:[]};
+  const labels:Record<string,{eyebrow:string;cards:string;sections:string}>= {
+    celestial:{eyebrow:'열한 행성이 비춘 내면의 합주',cards:'행성의 자리마다 열린 카드',sections:'열한 행성이 건넨 조율의 말'},
+    crystal:{eyebrow:'원석과 다섯 장이 그린 마음의 결',cards:'원석이 비춘 다섯 장',sections:'원석 소울 리딩'},
+    career:{eyebrow:'현재 자리에서 다음 선택까지',cards:'이직의 갈림길을 읽는 카드',sections:'현실적인 이직 전략'},
+    relationship:{eyebrow:'두 사람 사이의 속도와 거리',cards:'관계의 온도를 읽는 카드',sections:'관계의 다음 장면'},
+    mindscan:{eyebrow:'말과 행동 사이의 빈칸',cards:'엇갈림을 읽는 카드',sections:'대화 전에 확인할 신호'},
+    numerology:{eyebrow:'숫자의 리듬과 카드의 조언',cards:'반복되는 선택을 읽는 카드',sections:'숫자와 카드가 만난 자리'},
+    oracle:{eyebrow:'질문에서 행동까지, 일곱 장의 답',cards:'질문을 따라 펼친 카드',sections:'오라클의 답장'},
+    reunion:{eyebrow:'관계의 거리와 다시 닿을 신호',cards:'관계 회복을 비추는 카드',sections:'다시 닿기 전에 볼 것'},
+    year:{eyebrow:'올해의 핵심과 열두 달의 흐름',cards:'월마다 펼친 카드',sections:'월별 흐름'},
+    healing:{eyebrow:'지친 마음을 돌보는 네 장의 순서',cards:'회복을 비추는 카드',sections:'오늘의 회복 단서'},
+    'self-esteem':{eyebrow:'내 기준을 다시 세우는 다섯 장',cards:'나를 지키는 카드',sections:'다시 세울 기준'},
+    single:{eyebrow:'오늘의 선택을 비추는 한 장',cards:'오늘 펼친 카드',sections:'오늘의 메시지'},
+  };
+  const labelsForResult=labels[result.renderer||result.flowId.replace('tarot-','')]||{eyebrow:'카드가 비춘 지금의 흐름',cards:'내가 고른 카드',sections:'카드가 비춘 조건'};
+  return {yearly,content,labels:labelsForResult};
+};
+
+function Result({result,onRestart}:{result:LocalResult;onRestart:()=>void}){
+  const {yearly,content,labels}=resultPresentation(result);
   return <section className={'tarot-result tarot-result--'+result.flowId}>
-    <h1>{result.title}</h1><p className="intro">{content.opening}</p>
+    <p className="tarot-result-eyebrow">{labels.eyebrow}</p><h1>{result.title}</h1><p className="intro">{content.opening}</p>
     <section className="paper tarot-summary"><h2>이번 리딩의 흐름</h2><p>{content.summary}</p></section>
     {yearly&&<p className="muted">월별 카드를 눌러 각 시기의 흐름을 차례로 읽어 보세요.</p>}
+    <h2 className="tarot-result-heading">{labels.cards}</h2>
     <div className={yearly?'tarot-result-cards tarot-result-cards--year':'tarot-result-cards'}>
       {result.cards.map((card,index)=><article className="tarot-result-card" key={card.position}>
         <small>{yearly?`${index+1}월 · `:''}{card.positionLabel}</small><h2>{cardName(card)}</h2>
         <p>{(card.keywords||[]).slice(0,3).join(' · ')||'카드가 비춘 현재의 조건'}</p>
       </article>)}
     </div>
-    {content.sections.length>0&&<section className="tarot-service-sections"><h2>{result.renderer==='celestial'?'열한 행성이 비춘 자리':result.renderer==='crystal'?'원석이 비춘 다섯 장의 결':result.renderer==='oracle'?'카드별 오라클 메시지':yearly?'월별 흐름':'카드가 비춘 조건'}</h2>{content.sections.map((section,index)=><article className="paper" key={`${index}-${section.title}`}><h3>{section.title}</h3><p>{section.body}</p></article>)}</section>}
+    {content.sections.length>0&&<section className="tarot-service-sections"><h2>{labels.sections}</h2>{content.sections.map((section,index)=><article className="paper" key={`${index}-${section.title}`}><h3>{section.title}</h3><p>{section.body}</p></article>)}</section>}
     {content.actions.length>0&&<section className="paper"><h2>{result.flowId==='tarot-self-esteem'?'오늘 다시 세울 기준':'현실에서 참고할 행동'}</h2><ol>{content.actions.filter(Boolean).slice(0,4).map(action=><li key={action}>{action}</li>)}</ol></section>}
+    <TarotResultActions title={result.title} summary={content.summary}/>
     <Button variant="weak" display="block" onClick={onRestart}>다른 질문으로 다시 보기</Button>
   </section>;
 }
 
-export default function TarotLibrary({products,loggedIn,onLogin,onError,onBack}:{products:TarotLibraryProduct[];loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;onBack:()=>void}){
-  const [flowId,setFlowId]=useState(''),[question,setQuestion]=useState(''),[birthDate,setBirthDate]=useState(''),[gem,setGem]=useState('amethyst'),[drawStarted,setDrawStarted]=useState(false),[picks,setPicks]=useState<number[]>([]),[paidReady,setPaidReady]=useState(false),[buying,setBuying]=useState(false),[result,setResult]=useState<LocalResult|null>(null),[retryOrderId,setRetryOrderId]=useState('');
+export default function TarotLibrary({products,loggedIn,onLogin,onError,onBack,initialOrderId='',onRereadClosed}:{products:TarotLibraryProduct[];loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;onBack:()=>void;initialOrderId?:string;onRereadClosed?:()=>void}){
+  const [flowId,setFlowId]=useState(''),[question,setQuestion]=useState(''),[birthDate,setBirthDate]=useState(''),[gem,setGem]=useState('amethyst'),[drawStarted,setDrawStarted]=useState(false),[picks,setPicks]=useState<number[]>([]),[paidReady,setPaidReady]=useState(false),[buying,setBuying]=useState(false),[result,setResult]=useState<LocalResult|null>(null),[retryOrderId,setRetryOrderId]=useState(''),[restoring,setRestoring]=useState(false);
   const flow=useMemo(()=>flows.find(item=>item.id===flowId)||null,[flowId]);
-  const reset=()=>{setFlowId('');setQuestion('');setBirthDate('');setGem('amethyst');setDrawStarted(false);setPicks([]);setPaidReady(false);setResult(null);setRetryOrderId('');};
+  const reset=()=>{setFlowId('');setQuestion('');setBirthDate('');setGem('amethyst');setDrawStarted(false);setPicks([]);setPaidReady(false);setResult(null);setRetryOrderId('');onRereadClosed?.();};
+  useEffect(()=>{
+    if(!initialOrderId||!loggedIn)return;
+    let active=true;setRestoring(true);
+    void api<{result:LocalResult|null}>(`/tarot-library/results/${initialOrderId}`).then(stored=>{
+      if(!active)return;
+      if(!stored.result)throw new Error('TAROT_LIBRARY_RESULT_NOT_READY');
+      setFlowId(stored.result.flowId);setResult(stored.result);
+    }).catch(onError).finally(()=>{if(active)setRestoring(false);});
+    return()=>{active=false;};
+  },[initialOrderId,loggedIn]);
+  if(restoring)return <section className="tarot-library"><p role="status">저장된 타로 리딩을 다시 열고 있어요.</p></section>;
   if(result)return <Result result={result} onRestart={reset}/>;
   if(retryOrderId)return <section className="tarot-library"><h1>{flow?.name||'타로 리딩'}</h1><p className="notice">결과를 저장하지 못했어요. 추가 결제 없이 같은 주문으로 다시 생성할 수 있어요.</p><Button display="block" loading={buying} onClick={()=>{setBuying(true);void api<{result:LocalResult|null;canRetryNow:boolean}>(`/tarot-library/results/${retryOrderId}`,{}).then(stored=>{if(stored.result)setResult(stored.result);else if(!stored.canRetryNow)onError(new Error('TAROT_LIBRARY_GENERATING'));}).catch(onError).finally(()=>setBuying(false));}}>추가 결제 없이 다시 생성</Button><Button variant="weak" display="block" onClick={reset}>리딩 목록</Button></section>;
   if(!flow)return <section className="tarot-library"><h1>타로 리딩</h1><p className="intro">마음에 걸리는 질문을 고르고, 카드가 비추는 흐름과 현실적인 다음 행동을 살펴보세요.</p><div className="tarot-library-list">
