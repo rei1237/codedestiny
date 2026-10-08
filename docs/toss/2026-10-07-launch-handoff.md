@@ -2,6 +2,39 @@
 
 status: in-progress
 
+## 최신 실행 상태 — 2026-10-08 테스트 번들 업로드 완료
+
+이 절이 아래 과거 기록보다 우선한다. 이번 요청의 운영 확인 → 최신 main 통합 → 재빌드·테스트 업로드는 완료했다. 전체 출시 작업은 미완료이므로 worktree와 in-progress 상태를 유지한다.
+
+- 추가 사용자 요청에 따라 콘솔 표시명을 `코드데스티니` / `Code Destiny`, 부제를 `내 고민에서 시작하는 사주 이야기`로 변경하고 임시저장 성공 확인. 상세 설명·출시 노트·메모는 영냥이 사주 상담 안내/결과 예시와 현재 화면 테스트 단계에 맞춰 수정했다. 미래 보장이나 미제공 기능 이용 가능 주장 없음.
+- 카테고리 `생활 > 소셜 > 소셜`을 `생활 > 콘텐츠 > 운세`로 변경. 사주사진 키워드를 제거하고 코드데스티니·영냥이·운세를 추가해 임시저장 완료. 기존 AI·사주·내사주·AI사주·인공지능·사주팔자 키워드는 유지.
+- 변경 불가 appName `ai-saju-studio`, 고객지원 연락처, 연령, 정책과 번들은 유지. 아이콘/썸네일 반려 보완과 등록 이미지 제작은 남아 있다. 검토 요청 및 법적 확인 체크박스는 실행하지 않았다.
+- 서비스 정보 증거: `C:\Users\user\.codex\visualizations\2026\10\08\01a11a57-4881-7701-aa24-5a9327667d52\toss-codedestiny-metadata.jpg`.
+- 운영 실행 `37739647381`: completed/success, headSha `00ff9724c916de061f2e2ceac747d6f0eaeafb34`. 실제 `https://code-destiny.com/version.json` 및 `/api/version` 모두 같은 SHA와 production을 반환했다. 추가 운영 dispatch 없음.
+- origin/main을 fetch한 결과 최신 SHA는 위 `00ff9724…`. clean 상태에서 충돌 없이 통합한 커밋은 `0ca433d50fdfd348d8bbbbe58ed5e31ffd636ced`. 새 브랜치/PR 없음.
+- `apps/toss`에서 `npm run build` 성공(tsc, Vite, ait). 500 kB 초과 청크 경고는 남음. `npm test` 32 passed / 0 failed(mock).
+- 업로드 파일: `apps/toss/ai-saju-studio.ait`, 525595 bytes, SHA256 `BC9EC2CD672137FF3DA0978A3C44EB921E96842DCE32262EDA948B26C923EE8F`.
+- **콘솔 업로드 및 임시저장 성공을 실제 화면으로 확인.** workspace 21957 / ai-saju-studio 수정 화면에서 파일 업로드 후 사용 권한 없음, 토스앱 테스트 활성화, “임시저장 했어요.” 확인.
+- 테스트 버전 `20261008-1`, deploymentId `01a11a59-2b8a-77b0-b1b3-c492905b843b`. 로컬 빌드 ID뿐 아니라 콘솔 테스트 모달에서 같은 ID를 확인했다.
+- 테스트 링크: `intoss-private://ai-saju-studio?_deploymentId=01a11a59-2b8a-77b0-b1b3-c492905b843b&host=appsInTossHost`.
+- QR 증거: `C:\Users\user\.codex\visualizations\2026\10\08\01a11a57-4881-7701-aa24-5a9327667d52\toss-upload-20261008-1.jpg`. 콘솔 테스트 모달을 열어 두었다. 푸시는 보내지 않음.
+- SERVICE_AVAILABLE=false, 승인 SKU 빈 배열, 서버 TOSS_RELEASE_READY fail-closed 유지. 결제/인증/API/DB 구현 및 정책 수정 없음. 실기기·실결제·LLM·검수 제출·출시는 미실행.
+- `npm run check:fast -- --base=30f3eab563da9239d2823eedef8283ab7ce43545 --plan`은 통합된 정적 셸 8개를 fast로 분류. 같은 base의 실행은 paid-gate-suite 81 통과 / 7 실패로 종료했으며 후속 검사는 미실행.
+- 실패: npm test(Jest 임시 경로 EPERM), verify:deploy-base-guard(임시 Git config 쓰기 거부), verify:llm-generation-resilience·verify:analysis-basis-contract(로컬 통신 EACCES), verify:ai-consultation-flows(하위 Jest EPERM), verify:payment-choice-parity 및 self-test(독립 페이지 캐시 핀 build-4094433f67b2 / 기대 build-9c92542eb04f, 예 yoga-guru.html). Windows 줄바꿈 또는 기존 결함 귀책은 미확정. suite의 “이 변경이 깨뜨렸다” 출력은 base 비교 없이 나온 문구이므로 회귀 실측으로 해석하지 않는다.
+- 안전 전달 예외: 기존 토스 서버 구현은 출시 전 공백이 남고 전체 게이트가 실패했으므로 main 병합/push/신규 main CI는 보류. 통합 커밋과 이번 기록은 해당 worktree에 보존한다. 이미 운영 중인 main SHA의 CI 성공과 이번 작업본의 검증을 혼동하지 않는다.
+
+다음: QR로 실기기 화면 확인 → 실패 검사 원인 분리 및 토스 출시 전 구현 공백 해결 → 사업자·약관·IAP·mTLS 준비 → main 전달/CI → 검수. 동일 번들은 재업로드하지 않아도 된다.
+
+재개 기준 커밋: `0ca433d50fdfd348d8bbbbe58ed5e31ffd636ced` (이번 기록 커밋의 부모). 실제 최신 기록 커밋은 `git log -1 --format=%H -- docs/toss/2026-10-07-launch-handoff.md`로 확인한다.
+
+```powershell
+Set-Location 'D:\Development\code-destiny\.codex-worktrees\toss-miniapp-20261007-223959'
+Get-Content 'D:\Development\code-destiny\.codex-worktrees\toss-miniapp-20261007-223959\docs\toss\2026-10-07-launch-handoff.md'
+git -c core.fsmonitor=false status --short
+git log -1 --format=%H
+# 다음: 테스트 버전 20261008-1 실기기 확인 및 실패 검사 원인 분리. 재업로드/재배포하지 않는다.
+```
+
 ## 최신 실행 상태 — 2026-10-08 운영 승격 요청
 
 이 절이 아래 과거 조사 기록보다 우선한다. 사용자 최신 지시는 웹 수정 완료 → 운영 승격 → 앱인토스 작업 순서다.
