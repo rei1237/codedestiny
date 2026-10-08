@@ -10,6 +10,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { PUBLIC_RECORD_PATH } from "@/lib/seo/public-record-copy.mjs";
+import landingStyles from "./fortune-landing.module.css";
 import styles from "./LegalUi.module.css";
 import { useLocale } from "@/lib/i18n/useT";
 
@@ -105,6 +108,8 @@ const DISCLAIMER_COPY = {
 export default function DisclaimerBanner({ dismissible = true, className = "" }) {
   const [visible, setVisible] = useState(false);
   const locale = useLocale();
+  const pathname = usePathname();
+  const isFortuneLanding = ["/saju", "/ziwei", "/ziwei/chart", "/astrology", "/vedic", "/sukuyo", "/tarot"].includes((pathname || "").replace(/\/$/, ""));
   const copy = DISCLAIMER_COPY[locale] || DISCLAIMER_COPY.ko;
 
   useEffect(() => {
@@ -126,6 +131,11 @@ export default function DisclaimerBanner({ dismissible = true, className = "" })
     try { localStorage.setItem(STORAGE_KEY, String(Date.now())); } catch {}
     setVisible(false);
   }
+
+  if (isFortuneLanding && locale === "ko") return <aside className={landingStyles.founderNote} aria-label="서비스를 만든 사람">
+    <p>대통령의 2025년 운세 흐름을 짚은<br /><strong>명리학자 박병하(네오)가 만든 서비스</strong></p>
+    <a href={PUBLIC_RECORD_PATH}>공개 원문과 실제 사건 비교하기 →</a>
+  </aside>;
 
   if (!visible) return null;
 

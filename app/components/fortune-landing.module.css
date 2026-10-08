@@ -79,3 +79,10 @@
 .guide > summary:focus-visible { outline: 2px solid var(--cd-focus-ring); outline-offset: 4px; }
 .guide[open] { padding-bottom: 32px; }
 .guide[open] > summary span { transform: rotate(45deg); }
+
+.moonArt { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; margin-bottom: 24px; }
+.founderNote { background: var(--cd-bg); color: var(--cd-text); padding: 36px 24px; text-align: center; border-top: 1px solid var(--cd-border); }
+.founderNote p { margin: 0; font-family: var(--font-serif); font-size: 17px; line-height: 1.9; word-break: keep-all; }
+.founderNote strong { font-weight: 600; }
+.founderNote a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 12px; color: var(--cd-text-muted); font-size: 13px; text-decoration: underline; text-underline-offset: 4px; }
+.founderNote a:focus-visible { outline: 2px solid var(--cd-focus-ring); outline-offset: 4px; }

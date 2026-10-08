@@ -27,6 +27,8 @@ export default function FortuneLandingHero({ path }: { path: string }) {
     </header>
     <section id="landing-preview" className={styles.preview} aria-labelledby="landing-preview-title">
       <div className={styles.previewHeading}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className={styles.moonArt} src="/images/consultation/moonlit-reflection-v1-640.webp" srcSet="/images/consultation/moonlit-reflection-v1-640.webp 640w, /images/consultation/moonlit-reflection-v1-1280.webp 1280w" sizes="(min-width: 768px) 440px, 100vw" width={1536} height={1024} alt="달빛이 비치는 산수와 매화의 예화" loading="lazy" decoding="async" />
         <h2 id="landing-preview-title">{story.question}</h2>
         <p>이곳에서 나를 만나는 방법</p>
       </div>
