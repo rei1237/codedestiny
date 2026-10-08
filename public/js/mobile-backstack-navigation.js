@@ -418,6 +418,17 @@
 
   function handleMainBack() {
     var t = now();
+    try {
+      if (window.__cdSignupBenefitExit && window.__cdSignupBenefitExit.open(function () {
+        state.firstMainBackAt = 0;
+        var handled = attemptAppExit();
+        if (!handled) rearmGuardState();
+      }, rearmGuardState)) {
+        state.firstMainBackAt = 0;
+        return;
+      }
+    } catch (_) {}
+
     if (t - state.firstMainBackAt <= MAIN_DOUBLE_BACK_MS) {
       state.firstMainBackAt = 0;
       var handled = attemptAppExit();

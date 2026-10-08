@@ -1115,6 +1115,15 @@
         window.location.assign("/ggulggul/index.html");
         return;
       }
+      try {
+        if (window.__cdSignupBenefitExit && window.__cdSignupBenefitExit.open(function () {
+          exitArmedAt = 0;
+          if (app.exitApp) app.exitApp();
+        })) {
+          exitArmedAt = 0;
+          return;
+        }
+      } catch (e) { /* 기존 2회 종료 흐름으로 안전 강등 */ }
       var now = Date.now();
       if (now - exitArmedAt < 2000) {
         if (app.exitApp) app.exitApp();
