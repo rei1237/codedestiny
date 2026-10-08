@@ -6,6 +6,8 @@ status: in-progress
 
 이번 재개에서는 테스트 버전 `20261008-1`의 콘솔 QR·링크 상태를 다시 확인하고, 로컬에서 실패 검사의 원인을 분리했으며, 검수 반려 사유에 맞춘 Toss 등록 자산을 별도 폴더에 준비했다.
 
+- 사용자 판단에 따라 등록 자산 업로드는 보류한다. 운명의 꽃 UI 톤 개선이 먼저 반영되어야 하며, 그 이후 최신 테스트 번들·실기기 화면 기준으로 등록 이미지를 다시 확인한 뒤 업로드한다.
+
 - 콘솔 workspace `21957` / appName `ai-saju-studio`의 테스트 모달이 정상 표시됐다. deploymentId `01a11a59-2b8a-77b0-b1b3-c492905b843b`, 테스트 링크 `intoss-private://ai-saju-studio?_deploymentId=01a11a59-2b8a-77b0-b1b3-c492905b843b&host=appsInTossHost`가 일치한다. 사용자 실측으로 QR 스캔 후 토스앱 진입 성공을 확인했다. **앱이 열렸다는 진입 증거이며 홈·상담·예시 각 화면의 세부 상호작용까지 확인한 것은 아니다.** 테스트 푸시는 보내지 않았다.
 - 등록 요구사항을 콘솔에서 실측했다: 다크모드 앱 로고 `600×600px`, 세로 스크린샷 `636×1048px` 최소 3장, 가로 스크린샷 `1504×741px` 최소 1장.
 - 등록 자산은 [`docs/toss/assets/20261008-1/`](assets/20261008-1/)에 준비했다. `ai-saju-studio-icon-600.png`는 영냥이 원본 기반의 불투명 남색 배경 정사각 아이콘이며, `01` 홈·`02` 고등어 상담·`03` 개인정보 없는 결과 예시 세로 캡처와 `04` 홈 가로 캡처가 있다. 크기·바이트·SHA256은 `manifest.json`에 기록했다.
@@ -14,7 +16,7 @@ status: in-progress
 - 실패 원인 분리 재현: `verify:deploy-base-guard`는 Windows 임시 디렉터리 Git config `Permission denied`; `verify:llm-generation-resilience`·`verify:analysis-basis-contract`는 Swiss ephemeris 파일의 `127.0.0.1` 통신 `EACCES` 및 `cdn.jsdelivr.net` DNS `ENOTFOUND` 후 숙요 계산 실패; `verify:payment-choice-parity`와 `--self-test`는 독립 정적 페이지의 기존 캐시 핀 `build-4094433f67b2`가 현재 기대 `build-9c92542eb04f`와 불일치; `npm test`와 `verify:ai-consultation-flows`의 마지막 Jest 단계는 Temp `realpath` `EPERM`이다. 모두 이번 Toss 자산 변경이 깨뜨렸다는 회귀 증거는 아니다.
 - 앱인토스 등록 이미지·아이콘은 아직 콘솔에 업로드하지 않았다. 사업자·약관·IAP·mTLS·검수 제출·출시는 계속 미완료이며, main merge/push도 하지 않았다.
 
-다음: 별도 승인 범위에서 등록 자산의 콘솔 업로드 여부를 결정한다. 추가 실기기 화면 상호작용을 확인할 경우 홈·상담 선택·결과 예시를 각각 기록한다. 실기기에서 깨짐이 확인되면 자산이 아니라 앱 코드/콘솔 표시 문제를 분리해 조사한다.
+다음: 운명의 꽃 UI 톤 개선 반영을 기다린다. 반영 후 최신 테스트 번들을 재빌드하고, 실기기 진입·홈·상담 선택·결과 예시를 다시 확인한 뒤 등록 이미지를 재캡처한다. 그 다음 별도 승인 범위에서 등록 자산의 콘솔 업로드 여부를 결정한다. 실기기에서 깨짐이 확인되면 자산이 아니라 앱 코드/콘솔 표시 문제를 분리해 조사한다.
 
 ## 최신 실행 상태 — 2026-10-08 테스트 번들 업로드 완료
 
