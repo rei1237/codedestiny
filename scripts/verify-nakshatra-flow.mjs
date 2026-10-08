@@ -236,7 +236,7 @@ section("나디 정통 배정(9/9/9 지그재그)");
 // 10) 정밀 아쉬타쿠타 — 동일인(자기자신) 기준값
 section("정밀 아쉬타쿠타(8쿠타 36점)");
 {
-  // 동일 나크샤트라+라시(자기 자신): Nadi0·Gana6·Yoni4·Bhakoot7·Tara0(같은수→count1) → 총 25
+  // 동일 나크샤트라+라시(자기 자신): Nadi0·Gana6·Yoni4·Bhakoot7·Tara3(Saravali count1) → 총 28
   const self = computeAshtakuta({ nakIndex: 13, rashiIndex: 6 }, { nakIndex: 13, rashiIndex: 6 });
   const byKey = Object.fromEntries(self.items.map((it) => [it.key, it.score]));
   ok(self.items.length === 8, "8쿠타 항목");
@@ -244,15 +244,15 @@ section("정밀 아쉬타쿠타(8쿠타 36점)");
   ok(byKey.gana === 6, "동일 가나 → 6");
   ok(byKey.yoni === 4, "동일 요니 → 4");
   ok(byKey.bhakoot === 7, "동일 라시 → Bhakoot 7(도샤 아님)");
-  ok(byKey.tara === 0, "동일 나크샤트라 → Tara 0(잔마·비길)");
-  ok(self.total === 25, `동일인 총점 25 (실제 ${self.total})`);
-  ok(self.max === 36 && self.pct === Math.round(25 / 36 * 100), "총점/퍼센트 정합");
+  ok(byKey.tara === 3, "동일 나크샤트라 → Tara 3(Saravali 잔마)");
+  ok(self.total === 28, `동일인 총점 28 (실제 ${self.total})`);
+  ok(self.max === 36 && self.pct === Math.round(28 / 36 * 100), "총점/퍼센트 정합");
   // Bhakoot 도샤: 라시 6-8(shashtashtak) → 0
   const bh = computeAshtakuta({ nakIndex: 0, rashiIndex: 0 }, { nakIndex: 5, rashiIndex: 5 });
   ok(bh.items.find((i) => i.key === "bhakoot").score === 0, "라시 1↔6(6-8축 아님)…실제 diff 검증");
   // ashtakutaFromMoon: 황경→라시 도출
   const fromMoon = ashtakutaFromMoon({ nakIndexA: 13, moonLonA: 181.42, nakIndexB: 13, moonLonB: 181.42 });
-  ok(fromMoon && fromMoon.total === 25, "ashtakutaFromMoon 동일 황경 → 25");
+  ok(fromMoon && fromMoon.total === 28, "ashtakutaFromMoon 동일 황경 → 28");
 }
 
 // 11) 동서 통합 궁합 조립
@@ -267,7 +267,7 @@ section("동서 통합 궁합 조립");
   ok(compat.personA && compat.personB, "두 사람 요약 존재");
   ok(compat.india && compat.india.items.length === 8 && compat.india.max === 36, "인도 아쉬타쿠타 포함");
   ok(compat.dongyang && compat.dongyang.relationType, "동양 숙요 격각 포함");
-  ok(compat.unified && typeof compat.unified.blendedPct === "number" && compat.unified.convergence && compat.unified.divergence, "통합 총평(수렴/발산) 존재");
+  ok(compat.unified && compat.unified.blendedPct === undefined && compat.unified.convergence && compat.unified.divergence, "통합 총평(수렴/발산) 존재");
   ok(compat.personA.nakIndex === 13 && compat.personA.sukuyoIndex === 2, "A: Chitra(13)/저(2)");
 }
 
@@ -300,4 +300,5 @@ section("전문가톤 3관점 심화(숙요/베다 전문가 + 융합 해설)");
 }
 
 console.log(`\n${failures === 0 ? "✅ 모든 검증 통과" : `❌ ${failures}건 실패`}`);
+if (failures === 0) await import("./verify-nakshatra-renewal.mjs");
 process.exit(failures === 0 ? 0 : 1);

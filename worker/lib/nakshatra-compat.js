@@ -25,37 +25,21 @@ function personSummary(moonLon, sukuyo) {
     sukuyoIndex: sukuyo ? sukuyo.index : null,
     sukuyoKo: sukuyo ? sukuyo.nameKo : null,
     sukuyoHan: sukuyo ? sukuyo.nameHan : null,
-    expectedNakshatraKo: cross ? cross.nakshatraKo : null,
+    expectedNakshatraKo: !sukuyo?.calculationBasis && cross ? cross.nakshatraKo : null,
+    japaneseLunar: sukuyo?.lunar || null, sukuyoMethod: sukuyo?.calculationBasis || "legacy",
+    siderealMoonLongitude: moonLon, ayanamsa: "Lahiri",
   };
 }
 
-// 인도(0–36→0–100)와 동양(chemistry/stability 0–99)을 blend해 통합 총평 생성.
+// 두 체계를 구분해 읽고, 점수의 평균은 만들지 않는다.
 function buildUnifiedVerdict(ashtakuta, sukuyoCompat) {
-  const indiaPct = ashtakuta ? ashtakuta.pct : 0;
-  const eastChem = sukuyoCompat ? Number(sukuyoCompat.chemistryScore) || 0 : 0;
-  const eastStab = sukuyoCompat ? Number(sukuyoCompat.stabilityScore) || 0 : 0;
-  const eastPct = Math.round((eastChem + eastStab) / 2);
-  const blended = Math.round((indiaPct + eastPct) / 2);
-  const gap = Math.abs(indiaPct - eastPct);
-
-  let convergence;
-  if (indiaPct >= 60 && eastPct >= 60) {
-    convergence = "인도 아쉬타쿠타와 동양 숙요 격각이 둘 다 높게 맞물립니다 — 서로 다른 두 전통이 같은 결론(안정적 결합)을 가리키니, 신뢰해도 좋은 조합이에요.";
-  } else if (indiaPct < 50 && eastPct < 50) {
-    convergence = "두 전통 모두 신중한 신호를 냅니다 — 감정보다 규칙·합의로 관계를 설계할 때 오래갑니다.";
-  } else {
-    convergence = "두 전통이 공통으로 짚는 강점을 축으로 삼으세요 — 한쪽이 낮아도 다른 쪽이 받쳐 주는 보완 구조입니다.";
-  }
-
-  let divergence;
-  if (gap >= 25) {
-    divergence = `인도 관점(${indiaPct}점)과 동양 관점(${eastPct}점)의 간극이 큽니다 — 체질·궁합의 구조(인도)와 관계의 거리·역할(동양) 중 어디서 어긋나는지 항목을 나눠 보면, 그 지점이 이 관계의 과제이자 성장점입니다.`;
-  } else {
-    divergence = "두 관점의 편차가 크지 않아, 한 축이 흔들려도 다른 축이 균형을 잡아 줍니다. 큰 위기보다 사소한 리듬 차이를 관리하는 게 핵심이에요.";
-  }
-
-  const verdict = blended >= 70 ? "매우 잘 맞는 인연" : blended >= 55 ? "잘 맞는 인연" : blended >= 45 ? "노력으로 깊어지는 인연" : "신중히 가꿔야 할 인연";
-  return { blendedPct: blended, indiaPct, eastPct, verdict, convergence, divergence };
+  const strengths = ashtakuta?.items.filter(item => item.score / item.max >= .75).map(item=>item.label) || [];
+  const discussion = ashtakuta?.items.filter(item => item.score / item.max < .5).map(item=>item.label) || [];
+  return { verdict: '두 사람의 관계를 읽는 두 시선',
+    convergence: strengths.length ? '베다 항목 중 ' + strengths.join(' · ') + '에서 공통 리듬을 살펴볼 수 있습니다. 실제로 편안했던 장면을 서로 이야기해 보세요.' : '두 사람의 차이를 점수 하나로 결론내리지 않고, 항목별로 살펴봅니다.',
+    divergence: '일본 숙요의 ' + (sukuyoCompat?.relationType || '') + ' 관계는 서로의 역할을, 베다의 8항목은 기질과 생활 리듬을 읽습니다. 서로 다른 척도이므로 평균하지 않습니다.',
+    discussion: discussion.length ? discussion : ['연락과 혼자 쉬는 시간', '돈과 생활 역할', '갈등 뒤 대화를 다시 시작하는 방법'],
+  };
 }
 
 /**
@@ -77,8 +61,16 @@ export function assembleNakshatraCompat(a, b) {
     : null;
 
   const unified = buildUnifiedVerdict(ashtakuta, sukuyoCompat);
+  const forwardDistance = sukuyoCompat ? ((b.sukuyo.index - a.sukuyo.index) % 27 + 27) % 27 : null;
+  const shortestDistance = Math.min(forwardDistance, 27 - forwardDistance);
+  // Japanese relation wheel: 栄親 short distances 1/8/10, 友衰 2/7/11,
+  // 安壊 3/6/12, 危成 4/5/13. 命 and 業胎 have no distance tier.
+  const distanceLabel = shortestDistance === 0 ? '동숙' : shortestDistance === 9 ? '특수관계'
+    : shortestDistance <= 4 ? '근거리' : shortestDistance <= 8 ? '중거리' : '원거리';
 
   return {
+    calculationVersion: 'nakshatra-compat-v2',
+    uncertainty: [a.uncertainty, b.uncertainty].filter(Boolean),
     personA: personSummary(a.moonLon, a.sukuyo),
     personB: personSummary(b.moonLon, b.sukuyo),
     india: ashtakuta, // { total, max:36, pct, verdict, items[8], doshas[] }
@@ -86,7 +78,8 @@ export function assembleNakshatraCompat(a, b) {
       ? {
           relationType: sukuyoCompat.relationType,
           relationTypeHan: sukuyoCompat.relationTypeHan,
-          distanceLabel: sukuyoCompat.distanceLabel,
+          distanceLabel, forwardDistance, reverseDistance: (27 - forwardDistance) % 27,
+          method: "jp-sanku-v1", source: "https://yakumoin.net/about/aisyou",
           chemistryScore: sukuyoCompat.chemistryScore,
           stabilityScore: sukuyoCompat.stabilityScore,
           conflictScore: sukuyoCompat.conflictScore,

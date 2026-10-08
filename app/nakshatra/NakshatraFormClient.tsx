@@ -123,8 +123,9 @@ export default function NakshatraFormClient() {
       return;
     }
 
-    const hh = timeUnknown ? 12 : Number(hour || 12);
-    const mm = timeUnknown ? 0 : Number(minute || 0);
+    const effectiveTimeUnknown = timeUnknown || hour.trim() === "";
+    const hh = effectiveTimeUnknown ? 12 : Number(hour);
+    const mm = effectiveTimeUnknown ? 0 : Number(minute || 0);
     const body = {
       year: y,
       month: m,
@@ -132,9 +133,9 @@ export default function NakshatraFormClient() {
       hour: hh,
       minute: mm,
       timezone: ianaOffsetHours(y, m, d, hh, mm, timezone, 9),
-      lat: Number(latitude) || 37.5665,
-      lon: Number(longitude) || 126.978,
-      timeUnknown,
+      lat: Number.isFinite(Number(latitude)) ? Number(latitude) : 37.5665,
+      lon: Number.isFinite(Number(longitude)) ? Number(longitude) : 126.978,
+      timeUnknown: effectiveTimeUnknown,
     };
 
     setLoading(true);

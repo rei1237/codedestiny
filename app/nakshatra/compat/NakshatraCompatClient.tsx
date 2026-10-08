@@ -1,5 +1,7 @@
 "use client";
+import { NAKSHATRA_COMPAT_PRICING } from "../_lib/pricing";
 
+import { authFetch } from "@/app/_lib/auth-client";
 import { useEffect, useRef, useState } from "react";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "../../hooks/usePaidResume";
@@ -19,43 +21,49 @@ const CITY: { key: CompatCityKey; lat: number; lon: number }[] = [
 
 interface P { name: string; year: string; month: string; day: string; hour: string; minute: string; timeUnknown: boolean; gender: "" | "male" | "female"; cityIndex: number; latitude?: number; longitude?: number; timezone?: number }
 const emptyP = (): P => ({ name: "", year: "", month: "", day: "", hour: "", minute: "", timeUnknown: false, gender: "", cityIndex: 0 });
-const valid = (p: P) => Number(p.year) > 0 && Number(p.month) >= 1 && Number(p.month) <= 12 && Number(p.day) >= 1 && Number(p.day) <= 31;
+const valid = (p: P) => {
+  const year = Number(p.year), month = Number(p.month), day = Number(p.day);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return Number.isInteger(year) && year >= 1900 && year <= 2100 && date.getUTCFullYear() === year
+    && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+    && (p.timeUnknown || (p.hour !== '' && Number(p.hour) >= 0 && Number(p.hour) <= 23 && Number(p.minute || 0) >= 0 && Number(p.minute || 0) <= 59));
+};
 function payload(p: P) {
   const c = CITY[p.cityIndex] || CITY[0];
-  return { year: +p.year, month: +p.month, day: +p.day, hour: p.timeUnknown ? 12 : +(p.hour || 12), minute: p.timeUnknown ? 0 : +(p.minute || 0), timezone: p.timezone ?? 9, lat: p.latitude ?? c.lat, lon: p.longitude ?? c.lon, timeUnknown: p.timeUnknown, gender: p.gender || undefined };
+  return { year: +p.year, month: +p.month, day: +p.day, hour: p.timeUnknown ? 12 : +(p.hour === "" ? 12 : p.hour), minute: p.timeUnknown ? 0 : +(p.minute || 0), timezone: p.timezone ?? 9, lat: p.latitude ?? c.lat, lon: p.longitude ?? c.lon, timeUnknown: p.timeUnknown, gender: p.gender || undefined };
 }
 const enc = (p: P) => { try { return btoa(encodeURIComponent(JSON.stringify(p))); } catch { return ""; } };
 const dec = (s: string): P | null => { try { return JSON.parse(decodeURIComponent(atob(s))); } catch { return null; } };
 
-const IN = "w-full rounded-lg border border-white/15 bg-white/[0.04] px-3 py-2.5 text-slate-100 placeholder:text-slate-500 outline-none focus:border-amber-200/60";
+const IN = "w-full rounded-lg border border-white/15 bg-white/[0.04] px-3 py-2.5 text-slate-100 placeholder:text-slate-400 outline-none focus:border-amber-200/60";
 function Person({ v, set, locked, title, copy }: { v: P; set: (p: P) => void; locked?: boolean; title: string; copy: ReturnType<typeof useNakshatraCopy> }) {
   const u = (patch: Partial<P>) => set({ ...v, ...patch });
   const dg = (x: string, n: number) => x.replace(/\D/g, "").slice(0, n);
   return (
     <fieldset disabled={locked} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 disabled:opacity-70">
       <legend className="px-2 text-sm font-bold text-slate-100">{title}{locked && <span className="ml-2 text-xs font-normal text-amber-100/80">{copy.compatInviteLockedSuffix}</span>}</legend>
-      <input className={`${IN} mb-3`} value={v.name} onChange={(e) => u({ name: e.target.value.slice(0, 20) })} placeholder={copy.compatNamePlaceholder} />
+      <label className="block text-xs leading-7 text-slate-300">{copy.compatNamePlaceholder}<input className={`${IN} mb-3`} value={v.name} onChange={(e) => u({ name: e.target.value.slice(0, 20) })} aria-label={copy.compatNamePlaceholder} placeholder={copy.compatNamePlaceholder} /></label>
       <div className="mb-3 grid grid-cols-3 gap-2">
-        <input className={IN} inputMode="numeric" value={v.year} onChange={(e) => u({ year: dg(e.target.value, 4) })} placeholder={copy.compatYearPlaceholder} />
-        <input className={IN} inputMode="numeric" value={v.month} onChange={(e) => u({ month: dg(e.target.value, 2) })} placeholder={copy.compatMonthPlaceholder} />
-        <input className={IN} inputMode="numeric" value={v.day} onChange={(e) => u({ day: dg(e.target.value, 2) })} placeholder={copy.compatDayPlaceholder} />
+        <label className="block text-xs leading-7 text-slate-300">{copy.compatYearPlaceholder}<input className={IN} inputMode="numeric" value={v.year} onChange={(e) => u({ year: dg(e.target.value, 4) })} aria-label={copy.compatYearPlaceholder} placeholder={copy.compatYearPlaceholder} /></label>
+        <label className="block text-xs leading-7 text-slate-300">{copy.compatMonthPlaceholder}<input className={IN} inputMode="numeric" value={v.month} onChange={(e) => u({ month: dg(e.target.value, 2) })} aria-label={copy.compatMonthPlaceholder} placeholder={copy.compatMonthPlaceholder} /></label>
+        <label className="block text-xs leading-7 text-slate-300">{copy.compatDayPlaceholder}<input className={IN} inputMode="numeric" value={v.day} onChange={(e) => u({ day: dg(e.target.value, 2) })} aria-label={copy.compatDayPlaceholder} placeholder={copy.compatDayPlaceholder} /></label>
       </div>
       <div className="mb-2 grid grid-cols-2 gap-2">
-        <input className={IN} inputMode="numeric" disabled={v.timeUnknown} value={v.hour} onChange={(e) => u({ hour: dg(e.target.value, 2) })} placeholder={copy.compatHourPlaceholder} />
-        <input className={IN} inputMode="numeric" disabled={v.timeUnknown} value={v.minute} onChange={(e) => u({ minute: dg(e.target.value, 2) })} placeholder={copy.compatMinutePlaceholder} />
+        <label className="block text-xs leading-7 text-slate-300">{copy.compatHourPlaceholder}<input className={IN} inputMode="numeric" disabled={v.timeUnknown} value={v.hour} onChange={(e) => u({ hour: dg(e.target.value, 2) })} aria-label={copy.compatHourPlaceholder} placeholder={copy.compatHourPlaceholder} /></label>
+        <label className="block text-xs leading-7 text-slate-300">{copy.compatMinutePlaceholder}<input className={IN} inputMode="numeric" disabled={v.timeUnknown} value={v.minute} onChange={(e) => u({ minute: dg(e.target.value, 2) })} aria-label={copy.compatMinutePlaceholder} placeholder={copy.compatMinutePlaceholder} /></label>
       </div>
       <label className="mb-3 flex cursor-pointer items-center gap-2 text-sm text-slate-200">
         <input type="checkbox" className="h-4 w-4 accent-amber-300" checked={v.timeUnknown} onChange={(e) => u({ timeUnknown: e.target.checked })} /> {copy.compatTimeUnknownLabel}
       </label>
       <div className="grid grid-cols-2 gap-2">
-        <select className={IN} value={v.gender} onChange={(e) => u({ gender: e.target.value as P["gender"] })}>
+        <label className="block text-xs leading-7 text-slate-300">성별<select aria-label="성별" className={IN} value={v.gender} onChange={(e) => u({ gender: e.target.value as P["gender"] })}>
           <option value="" className="bg-slate-900">{copy.compatGenderUnsetOption}</option>
           <option value="male" className="bg-slate-900">{copy.compatMaleOption}</option>
           <option value="female" className="bg-slate-900">{copy.compatFemaleOption}</option>
-        </select>
-        <select className={IN} value={v.cityIndex} onChange={(e) => u({ cityIndex: +e.target.value })}>
+        </select></label>
+        <label className="block text-xs leading-7 text-slate-300">출생 도시<select aria-label="출생 도시" className={IN} value={v.cityIndex} onChange={(e) => u({ cityIndex: +e.target.value })}>
           {CITY.map((c, i) => <option key={c.key} value={i} className="bg-slate-900">{copy.compatCityLabel[c.key]}</option>)}
-        </select>
+        </select></label>
       </div>
     </fieldset>
   );
@@ -75,6 +83,18 @@ export default function NakshatraCompatClient() {
   const paidRef = useRef<{ a: unknown; b: unknown; requestId: string } | null>(null);
   const busyRef = useRef(false);
   const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('resultId');
+    if (!id) return;
+    let active = true;
+    setLoading(true);
+    authFetch('/api/nakshatra/compat?resultId=' + encodeURIComponent(id)).then(async response => {
+      const data = await response.json();
+      if (!response.ok || !data.personA) throw new Error(data.message || '저장한 궁합을 불러오지 못했어요. 로그인 계정과 결과 주소를 확인해 주세요.');
+      if (active) setResult(data);
+    }).catch(error => { if (active) setError(error.message); }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -134,7 +154,7 @@ export default function NakshatraCompatClient() {
     // 결제에 쓴 requestId 를 그대로 들고 간다 — 서버가 이 값으로 차감·결제 기록을 되찾는다.
     const requestId = `${FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const gate = await ensurePaidAccess({
-      featureKey: FEATURE_KEY, cost: 10, amountKRW: 1000, reason: copy.compatReason, requestId,
+      featureKey: FEATURE_KEY, cost: NAKSHATRA_COMPAT_PRICING.cost, amountKRW: NAKSHATRA_COMPAT_PRICING.amountKRW, reason: copy.compatReason, requestId,
       resume: buildResume({ a: packPaidResumeArg(payload(a)), b: packPaidResumeArg(payload(b)), requestId }),
     });
     if (!gate || !gate.ok) { setError((gate && gate.message) || copy.compatGateFailedError); return; }
@@ -150,7 +170,9 @@ export default function NakshatraCompatClient() {
     setError(null);
     try {
       const { data, status, transient } = await postPaidBody("/api/nakshatra/compat", paid as Record<string, unknown>);
-      if (data && data.ok) { setResult(data as unknown as CompatResult); setCanRetry(false); return true; }
+      if (status === 200 && data && data.ok && data.personA && data.india) { setResult(data as unknown as CompatResult); setCanRetry(false);
+        if (typeof data.resultId === 'string') window.history.replaceState(null, '', '?resultId=' + encodeURIComponent(data.resultId)); return true; }
+      if (status === 202) { setError('궁합 결과를 저장하고 있어요. 잠시 후 다시 받기를 눌러 주세요. 추가 결제는 하지 않습니다.'); setCanRetry(true); return false; }
       if (status === 401) { setError(copy.loginRequiredMessage); setCanRetry(true); return false; }
       if (transient) {
         setError(copy.connectionUnstableRetryMessage);
@@ -173,7 +195,7 @@ export default function NakshatraCompatClient() {
     } catch { /* ignore */ }
   }
 
-  if (result) return <CompatResultView result={result} onReset={() => setResult(null)} />;
+  if (result) return <CompatResultView result={result} onReset={() => { setResult(null); setCanRetry(false); paidRef.current = null; window.history.replaceState(null, "", window.location.pathname); }} />;
 
   return (
     <div className="mx-auto w-full max-w-2xl">

@@ -1,3 +1,4 @@
+import { buildNakshatraBirthEvidence, validNakshatraBirth } from '../lib/nakshatra-birth-evidence.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 // 나크샤트라 결정판 통합 상담 — 결제·생성 라우트 (두 전통 교차 해석, 9개 장)
 //
@@ -124,7 +125,7 @@ function readIdempotencyKey(request, body = {}) {
 // ── 입력 정규화 — 나크샤트라는 수치 생년월일(+출생지) + 선택 질문 ────────────────────────
 function normalizeBirthInput(source = {}) {
   const src = asObject(source.birthInput || source.birthInfo || source.birth || source);
-  const timeUnknown = Boolean(src.timeUnknown === true || src.timeUnknown === "true" || src.birthTimeUnknown === true);
+  const timeUnknown = Boolean(src.hour == null || src.hour === "" || src.timeUnknown === true || src.timeUnknown === "true" || src.birthTimeUnknown === true);
   const gender = clean(src.gender).toLowerCase();
   return {
     year: Math.trunc(Number(src.year)),
@@ -140,16 +141,7 @@ function normalizeBirthInput(source = {}) {
   };
 }
 
-function isValidBirthInput(b) {
-  return (
-    Number.isInteger(b.year) && b.year >= 1900 && b.year <= 2100 &&
-    Number.isInteger(b.month) && b.month >= 1 && b.month <= 12 &&
-    Number.isInteger(b.day) && b.day >= 1 && b.day <= 31 &&
-    Number.isFinite(b.hour) && b.hour >= 0 && b.hour <= 23 &&
-    Number.isFinite(b.minute) && b.minute >= 0 && b.minute <= 59 &&
-    Number.isFinite(b.timezone) && Number.isFinite(b.lat) && Number.isFinite(b.lon)
-  );
-}
+function isValidBirthInput(b) { return validNakshatraBirth(b); }
 
 function normalizeInput(body = {}) {
   const birthInfo = normalizeBirthInput(body);
@@ -681,7 +673,8 @@ async function computeNatalFacts(env, normalized, request) {
   }
   const lunar = lunarFromInput(input);
   const birthUtc = birthUtcFromInput(input);
-  const codex = assembleNatalCodex({ moonLon, birthUtc, lunar, timeUnknown: input.timeUnknown, now: new Date() });
+  const codex = assembleNatalCodex({ moonLon, birthUtc, lunar, timeUnknown: input.timeUnknown, now: new Date(),
+    ...await buildNakshatraBirthEvidence(env, input, swiss, request.url) });
   const { summaryText, evidenceTokens } = buildFactContext(codex, normalized.input.question);
   const identity = {
     sukuyoKo: clean(codex?.dongyang?.nameKo),

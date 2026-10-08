@@ -563,11 +563,12 @@ console.log("\n[10] 회당결제 서버 검증 — 결제 증빙을 DB 로 확�
   const premium = stripComments(readFileSync(path.join(repoRoot, "worker/routes/nakshatra-premium.js"), "utf8"));
   const compat = stripComments(readFileSync(path.join(repoRoot, "worker/routes/nakshatra.js"), "utf8"));
   check("택일·VVIP 라우트가 결제 증빙을 확인한다", /observePerUsePayment\(env, auth, "muhurta"/.test(premium) && /observePerUsePayment\(env, auth, "vvip-codex"/.test(premium));
-  check("compat 라우트가 결제 증빙을 확인한다", /verifyPerUsePayment\(env, \{/.test(compat) && /COMPAT_FEATURE_KEY/.test(compat));
+  const compatDelivery = stripComments(readFileSync(path.join(repoRoot, "worker/lib/nakshatra-compat-delivery.js"), "utf8"));
+  check("compat 라우트가 결제 증빙 전달기를 사용한다", /deliverNakshatraCompat/.test(compat) && /verifyPerUsePayment/.test(compatDelivery) && /requireExisting: true/.test(compatDelivery));
   check("회당결제 상품 코인가가 레지스트리와 일치(이용권 커버 판정 근거)",
     /featureKey: "nakshatra-muhurta", coinPrice: 10/.test(premium)
     && /featureKey: "nakshatra-vvip-codex", coinPrice: 300/.test(premium)
-    && /COMPAT_COIN_PRICE = 10/.test(compat));
+    && /FEATURE_KEY_PRICE_TABLE\[FEATURE\]\.cost/.test(compatDelivery));
 
   // 1단계는 관측 전용 — 차단 스위치가 꺼져 있어야 한다. 2단계에서 true 로 바꾸면서 이 단언도 뒤집는다.
   check("🔴 1단계: 차단 스위치가 꺼져 있다(PER_USE_ENFORCE = false)", /PER_USE_ENFORCE = false/.test(premium));
@@ -576,7 +577,7 @@ console.log("\n[10] 회당결제 서버 검증 — 결제 증빙을 DB 로 확�
   // 🔴 증빙 확인이 예외를 던져도 결제한 사용자의 본문을 막으면 안 된다 —
   //    관측 단계에서 500 을 새로 만드는 것은 고치려던 문제보다 나쁘다.
   check("증빙 확인이 터져도 본문을 막지 않는다(택일·VVIP)", /VERIFY_THREW/.test(premium));
-  check("증빙 확인이 터져도 본문을 막지 않는다(compat)", /VERIFY_THREW/.test(compat));
+  check("compat 증빙 불명은 503, 증빙 없음은 402로 닫는다", /503 : 402/.test(compatDelivery));
 
   for (const [relative, marker] of [
     ["app/nakshatra/muhurta/MuhurtaClient.tsx", "purpose, startDate, requestId"],
@@ -636,7 +637,7 @@ console.log("\n[11] 일시 503 내성 — 블립에 결제·생성이 죽지 않
   for (const [relative, label] of [
     ["app/nakshatra/muhurta/MuhurtaClient.tsx", "택일(5,000원)"],
     ["app/nakshatra/vvip/VvipClient.tsx", "VVIP(30,000원)"],
-    ["app/nakshatra/compat/NakshatraCompatClient.tsx", "궁합(10,000원)"],
+    ["app/nakshatra/compat/NakshatraCompatClient.tsx", "궁합(20,000원)"],
   ]) {
     const src = stripComments(readFileSync(path.join(repoRoot, relative), "utf8"));
     check(`${label}: 결제 뒤 본문 요청이 일시 장애를 자동 재시도한다`, /postPaidBody\(/.test(src));

@@ -265,7 +265,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "compat-saju-compatibility": { cost: 50, reason: "사주 궁합 분석" },
   "compat-sukuyo-compatibility": { cost: 30, reason: "숙요점 궁합 분석" },
   "vedic-compatibility-per-use": { cost: 30, reason: "베다점 궁합 분석" },
-  "nakshatra-compat": { cost: 10, amountKRW: 1000, reason: "나크샤트라 동서 통합 궁합" },
+  "nakshatra-compat": { cost: 200, amountKRW: 20000, reason: "나크샤트라 동서 통합 궁합" },
   "nakshatra-ai-consultation": { cost: 300, amountKRW: 30000, reason: "나크샤트라 결정판 전문가 심화 상담" },
   "nakshatra-muhurta": { cost: 10, amountKRW: 1000, reason: "나크샤트라 택일(무후르타)" },
   "nakshatra-vvip-codex": { cost: 300, amountKRW: 30000, reason: "나크샤트라 결정판 VVIP 통합서" },

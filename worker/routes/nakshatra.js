@@ -1,8 +1,9 @@
+import { buildNakshatraBirthEvidence, validNakshatraBirth } from '../lib/nakshatra-birth-evidence.js';
 // 나크샤트라 결정판 — 무인증 무료 계산 라우트 (I/O 배선)
 //
 //   POST /api/nakshatra/resolve  : 생년월일(+시각·출생지) → 동양/인도/통합 3-뷰
 //   GET  /api/nakshatra/today    : 오늘의 달(달의 나크샤트라 + 대응 숙요) + (선택)개인 격각·타라발라
-//   POST /api/nakshatra/compat   : 동서 통합 궁합(유료·회당결제 ₩1,000)
+//   POST /api/nakshatra/compat   : 동서 통합 궁합(유료·회당결제 가격 등록소 기준)
 //
 // 위 두 무료 라우트는 결제 게이팅·인증이 없다. compat 만 인증 + 결제 증빙 확인을 거친다.
 // 순수 조립 로직은 worker/lib/nakshatra-codex.js(WASM 비의존)에 있고, 이 파일은
@@ -14,18 +15,17 @@ import { requireAuth } from "../lib/auth.js";
 import { getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
 import { assembleNatalCodex, assembleTodayMoon } from "../lib/nakshatra-codex.js";
 import { assembleNakshatraCompat } from "../lib/nakshatra-compat.js";
-import { buildSukuyoFromMoonLongitude } from "../lib/sukuyo-astronomy.js";
-import { verifyPerUsePayment, logPerUsePaymentProof } from "../lib/nakshatra-paid-access.js";
+import { deliverNakshatraCompat } from "../lib/nakshatra-compat-delivery.js";
 
 // 레지스트리(worker/lib/paid-feature-registry.js) 등록값과 일치해야 한다.
-const COMPAT_FEATURE_KEY = "nakshatra-compat";
-const COMPAT_COIN_PRICE = 10;
+
+
 
 // ── I/O 배선 ─────────────────────────────────────────────────────────────────
 
 function normalizeBirthBody(body) {
   const src = body && typeof body === "object" ? body : {};
-  const timeUnknown = Boolean(src.timeUnknown === true || src.timeUnknown === "true");
+  const timeUnknown = Boolean(src.hour == null || src.hour === "" || src.timeUnknown === true || src.timeUnknown === "true");
   return {
     year: Number(src.year),
     month: Number(src.month),
@@ -40,17 +40,13 @@ function normalizeBirthBody(body) {
   };
 }
 
-// 한 사람의 달 시데리얼 황경 + 숙요 객체를 구한다(Swiss 공통 황경 좌표).
+// 한 사람의 Swiss 항성 달 좌표와 별도 일본 구력 본명숙을 구한다.
 async function resolvePersonMoonAndSukuyo(env, input, requestUrl) {
   const swiss = await getSwissVedicPlanets(env, input, { requestUrl });
   const moonLon = Number(swiss?.planets?.Moon);
   if (!Number.isFinite(moonLon)) return null;
-  const lunar = lunarFromInput(input);
-  const sukuyo = buildSukuyoFromMoonLongitude(moonLon, {
-    lunarMonth: lunar.month, lunarDay: lunar.day, isLeapMonth: lunar.isLeap,
-    source: "swiss-ephemeris-lahiri",
-  });
-  return { moonLon, sukuyo, gender: input.gender };
+  const evidence = await buildNakshatraBirthEvidence(env, input, swiss, requestUrl);
+  return { moonLon, sukuyo: evidence.japaneseSukuyo, gender: input.gender, uncertainty: evidence.uncertainty };
 }
 
 // 동서 통합 궁합(유료 nakshatra-compat) — 프론트 useCoinGate 결제 후 호출. requireAuth로 보호.
@@ -73,14 +69,7 @@ async function resolveCompat(env, body, options) {
 }
 
 function isValidBirth(input) {
-  return (
-    // 🔴 한국 음양력 코어의 지원 범위(1900~2100)다. 밖이면 음력을 못 만들므로 여기서 400 으로 끊는다.
-    Number.isFinite(input.year) && input.year >= 1900 && input.year <= 2100 &&
-    Number.isFinite(input.month) &&
-    Number.isFinite(input.day) &&
-    input.month >= 1 && input.month <= 12 &&
-    input.day >= 1 && input.day <= 31
-  );
+  return validNakshatraBirth(input);
 }
 
 function birthUtcFromInput(input) {
@@ -111,7 +100,8 @@ async function resolveNatal(env, body, options) {
   }
   const lunar = lunarFromInput(input);
   const birthUtc = birthUtcFromInput(input);
-  const codex = assembleNatalCodex({ moonLon, birthUtc, lunar, timeUnknown: input.timeUnknown, now: new Date() });
+  const codex = assembleNatalCodex({ moonLon, birthUtc, lunar, timeUnknown: input.timeUnknown, now: new Date(),
+    ...await buildNakshatraBirthEvidence(env, input, swiss, options?.requestUrl) });
   return json({
     ok: true,
     input: {
@@ -163,25 +153,13 @@ export async function handleNakshatraRoutes(request, env) {
       return await resolveTodayMoon(env, url.searchParams, { requestUrl: request.url });
     }
     if (path === "/api/nakshatra/compat") {
-      if (request.method !== "POST") return methodNotAllowed();
-      // 유료(nakshatra-compat) — 결제창은 프론트 useCoinGate(pass-first)가 처리하고,
-      // 서버는 그 결제가 실제로 일어났는지만 DB 기록으로 확인한다.
-      // 🔴 1단계는 관측 전용이다 — 로그만 남기고 막지 않는다(차단은 실로그 확인 후 2단계에서).
+      if (request.method !== 'POST' && request.method !== 'GET') return methodNotAllowed();
       const auth = await requireAuth(request, env);
-      const body = await readJson(request);
-      // 🔴 증빙 확인이 터져도 결제한 사용자의 본문을 막지 않는다(관측 단계에서 500 을 새로 만들지 않는다).
-      try {
-        logPerUsePaymentProof(COMPAT_FEATURE_KEY, await verifyPerUsePayment(env, {
-          userId: auth?.userId,
-          featureKey: COMPAT_FEATURE_KEY,
-          coinPrice: COMPAT_COIN_PRICE,
-          requestId: body?.requestId || body?.idempotencyKey || "",
-        }));
-      } catch (error) {
-        logPerUsePaymentProof(COMPAT_FEATURE_KEY, { proven: null, source: "", reason: "VERIFY_THREW" });
-        console.error("[nakshatra-paid-access] verify failed", String(error?.message || error).slice(0, 200));
-      }
-      return await resolveCompat(env, body, { requestUrl: request.url });
+      const body = request.method === 'GET' ? { resumeResultId: new URL(request.url).searchParams.get('resultId') } : await readJson(request);
+      if (request.method === 'GET' && !body.resumeResultId) return json({ ok:false, code:'RESULT_ID_REQUIRED' }, { status:400 });
+      if (!body.resumeResultId && (!isValidBirth(normalizeBirthBody(body.a)) || !isValidBirth(normalizeBirthBody(body.b))))
+        return json({ ok: false, code: 'INVALID_INPUT', message: '두 사람의 날짜와 출생 정보를 확인해 주세요.' }, { status: 400 });
+      return await deliverNakshatraCompat(env, auth, body, () => resolveCompat(env, body, { requestUrl: request.url }));
     }
     return notFound(); // /api/nakshatra/* 하위 미해당 경로.
   } catch (error) {
