@@ -25,7 +25,7 @@ export const APP_PASS_DURATION_DAYS = 30;
 
 // 이 코인가 이하 콘텐츠는 앱에서 무료로 통과시킨다.
 // 현재 해당하는 것은 음악 트랙 다운로드 하나뿐이다(10코인/₩1,000, lib/music-access-policy.js).
-// 2026-10-05 천원 사주 콘텐츠 6종도 10코인이지만 APP_PAID_LOW_PRICE_FEATURE_KEYS 로 무료 통과에서 뺀다.
+// 2026-10-09 천원 사주 콘텐츠 5종과 앱 무료 구간에 가까운 저가 콘텐츠는 APP_PAID_LOW_PRICE_FEATURE_KEYS 로 무료 통과에서 뺀다.
 // ₩1,000 은 Play KRW 최저 판매가 근처라 SKU 를 만들지 않고 앱에서는 무료로 둔다.
 // (웹 ₩300 → ₩1,000 인상 전에도 3코인이라 앱 무료였다. 이 값을 5로 되돌리면 앱에서 음악 구매가
 //  Play 티어 미등록 503 으로 하드블록된다 — 되돌리지 말 것.)
@@ -122,7 +122,7 @@ export function isAppFreeCoinPrice(value) {
   return coinPrice > 0 && coinPrice <= APP_FREE_MAX_COIN_PRICE;
 }
 
-// 2026-10-05 천원 사주 콘텐츠(웹 1,000원·10코인)는 가격이 무료 구간에 들지만 앱에서도 돈을 받는다
+// 2026-10-09 천원 사주 콘텐츠(웹 1,000원·10코인)는 앱에서도 유료지만 미등록 SKU는 실패 폐쇄한다
 // (사용자 확정 "앱에서도 천원이더라도 돈은 받도록"). ₩1,000 Play SKU 가 없으므로 등록 전까지
 // 앱 결제는 APP_SKU_NOT_VERIFIED 로 실패 폐쇄된다. 영냥이(yeongnyangi-*)도 무료 통과하지 않는다.
 export const APP_PAID_LOW_PRICE_FEATURE_KEYS = Object.freeze([

@@ -14,7 +14,7 @@ const check = (name, fn) => checks.push({ name, fn });
 const registry = await load("worker/lib/paid-feature-registry.js");
 const catalog = await load("worker/payments/catalog.js");
 
-check("registry canonicalizes every legacy Love Code key", () => {
+check("registry canonicalizes legacy Love Code keys and prices each use", () => {
   assert.equal(registry.LOVE_CODE_FEATURE_KEY, "love-code");
   assert.equal(registry.LOVE_CODE_PRODUCT_ID, "unlock.love-code");
   for (const legacyKey of registry.LEGACY_LOVE_CODE_FEATURE_KEYS) {
@@ -23,7 +23,7 @@ check("registry canonicalizes every legacy Love Code key", () => {
   const product = catalog.resolveProduct({ featureKey: "loveSimulation" });
   assert.deepEqual(
     { productId: product.productId, featureKey: product.featureKey, billingType: product.billingType, priceKRW: product.priceKRW },
-    { productId: "unlock.love-code", featureKey: "love-code", billingType: "unlock", priceKRW: 1000 },
+    { productId: "unlock.love-code", featureKey: "love-code", billingType: "per_use", priceKRW: 5000 },
   );
 });
 
