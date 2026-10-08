@@ -100,6 +100,7 @@ function validateBeat(beat, context, bgKeys, trackKeys, sfxKeys) {
   if (beat.fx && !EFFECTS.has(beat.fx)) throw new Error(`${context}: 효과 '${beat.fx}'이 허용 목록에 없습니다.`);
   if (beat.sfx !== undefined && (typeof beat.sfx !== "string" || !sfxKeys.has(beat.sfx))) throw new Error(`${context}: 효과음 '${beat.sfx}'이 SFX 맵에 없습니다.`);
   // form·tone 은 오타가 나도 플레이어가 조용히 무시한다 — 화면은 멀쩡하고 연출만 사라진다.
+  if (beat.neoForm !== undefined && !["lion", "human"].includes(beat.neoForm)) throw new Error(`${context}: invalid Neo form ${beat.neoForm}`);
   if (beat.form && !BEAT_FORMS.has(beat.form)) throw new Error(`${context}: 모습 '${beat.form}'이 허용 목록(${[...BEAT_FORMS].join(", ")})에 없습니다.`);
   if (beat.tone && !BEAT_TONES.has(beat.tone)) throw new Error(`${context}: 톤 '${beat.tone}'이 허용 목록(${[...BEAT_TONES].join(", ")})에 없습니다.`);
   if (beat.c?.who && !CAST_IDS.has(beat.c.who)) throw new Error(`${context}: 중앙 캐릭터 '${beat.c.who}'가 알 수 없는 캐스트입니다.`);
@@ -275,10 +276,10 @@ export function writeNovelRuntime(runtime = buildNovelPayload()) {
 
 // 플레이어의 연이 모습 표(FORM_MARKS)는 (화 색인, 컷 색인)이라 화를 다시 쓰면 손으로 맞추기 어렵다.
 // 정본의 form 마커에서 그 한 줄만 다시 쓴다. verify-novel-runtime 이 같은 표를 다시 대조한다.
-export function formMarks(runtime) {
+export function formMarks(runtime, field = "form") {
   const marks = [];
   runtime.episodes.forEach((episode, ep) => episode.beats.forEach((beat, bi) => {
-    if (beat.form) marks.push({ ep, bi, form: beat.form });
+    if (beat[field]) marks.push({ ep, bi, form: beat[field] });
   }));
   return marks;
 }
@@ -287,7 +288,9 @@ function syncShellFormMarks(runtime) {
   const shell = readFileSync(LEGACY_SHELL_PATH, "utf8");
   const pattern = /var FORM_MARKS=\[[^\]]*\];/;
   if (!pattern.test(shell)) throw new Error("플레이어 셸에서 'var FORM_MARKS=[...];' 한 줄을 찾지 못했습니다.");
-  const next = shell.replace(pattern, `var FORM_MARKS=${JSON.stringify(formMarks(runtime))};`);
+  const neoPattern = /var NEO_FORM_MARKS=\[[^\]]*\];/;
+  if (!neoPattern.test(shell)) throw new Error("Neo form registry missing");
+  const next = shell.replace(pattern, `var FORM_MARKS=${JSON.stringify(formMarks(runtime))};`).replace(neoPattern, `var NEO_FORM_MARKS=${JSON.stringify(formMarks(runtime, "neoForm"))};`);
   if (next !== shell) writeFileSync(LEGACY_SHELL_PATH, next);
 }
 

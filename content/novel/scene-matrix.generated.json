@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "sourceHash": "46c9cd86ab1ac97d2482693e8c4af40052df61b0aebb1da8a2732a1597f1e00c",
+  "sourceHash": "037ce211c83944303753f6cb5567079b173f8974204c4279584a30e9e19f62a4",
   "note": "정본 비트에서 생성한 연출 검수 매트릭스입니다. 목적과 갈등은 각 화 제목/사건 신호를 보존하며, 장면·감정 호흡·접근성 큐를 한 곳에서 검수합니다.",
   "episodes": [
     {
@@ -7157,11 +7157,11 @@
       "id": "ep-27",
       "title": "갓 구운 아침",
       "purpose": "갓 구운 아침",
-      "conflictBeatId": "ep-27:18",
+      "conflictBeatId": "ep-27:neo-return-6",
       "emotionPath": [
         {
           "phase": "진입",
-          "beatId": "ep-27:1",
+          "beatId": "ep-27:neo-return-1",
           "pacing": "normal"
         },
         {
@@ -7176,6 +7176,26 @@
         }
       ],
       "visualCues": [
+        {
+          "beatId": "ep-27:neo-return-1",
+          "background": "river",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "river 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-27:neo-return-7",
+          "background": "river",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "reveal",
+          "camera": "drift",
+          "accessibility": "river 배경에서 진행되는 서술"
+        },
         {
           "beatId": "ep-27:1",
           "background": "jae",
