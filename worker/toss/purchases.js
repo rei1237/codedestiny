@@ -2,6 +2,7 @@ import {TossIdentity,TossPurchase} from './models.js';
 import {YeongnyangiRequest} from '../lib/yeongnyangi-models.js';
 import {tossTransaction} from './session.js';
 import {TossError} from './policy.js';
+import {requestMatchesService} from './services.js';
 
 export const purchaseStore={transaction:task=>tossTransaction(session=>task({
   async assertIdentity(auth) {
@@ -25,7 +26,7 @@ export async function findTossPurchaseEvidence(row,ownerId,session,commitMarker)
   const query=commitMarker?TossPurchase.findOneAndUpdate(filter,{$set:{commitMarker}},{new:true,session}):TossPurchase.findOne(filter);
   if(session)query.session(session);
   const purchase=await query.lean();
-  if(!purchase)return null;
+  if(!purchase||!requestMatchesService(row,purchase))return null;
   const identityQuery=commitMarker?TossIdentity.findOneAndUpdate({_id:purchase.identityId,active:true},
     {$set:{updatedAt:new Date()}},{new:true,session}):TossIdentity.findOne({_id:purchase.identityId,active:true});
   if(session)identityQuery.session(session);

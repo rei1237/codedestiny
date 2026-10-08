@@ -62,3 +62,15 @@ test('completed paid right cannot be moved to a new purchase input',async()=>{
   await grantVerifiedOrder(args);
   await assert.rejects(grantVerifiedOrder({...args,requestId:'replacement'}),/ALREADY_ASSIGNED/);
 });
+
+test('chat order cannot fund the other persona even with identical product and owner',async()=>{
+ const f=fixture();
+ const chat={...product,serviceId:'yeoni',productId:'chat_saju_mackerel'};
+ Object.assign(f.get().requests.original,{productId:chat.productId,persona:'neo',snapshot:{persona:'neo'},featureKey:'fortune-chat-question-mackerel'});
+ await assert.rejects(grantVerifiedOrder({store:f.store,auth,order,product:chat,requestId:'original',enqueue:async()=>assert.fail()}),/REQUEST_NOT_FOUND/);
+ assert.equal(Object.keys(f.get().purchases).length,0);
+ Object.assign(f.get().requests.original,{persona:'yeoni',snapshot:{persona:'yeoni'}});
+ await grantVerifiedOrder({store:f.store,auth,order,product:chat,requestId:'original',enqueue:async()=>{}});
+ assert.equal(f.get().purchases[order.orderId].serviceId,'yeoni');
+ await assert.rejects(grantVerifiedOrder({store:f.store,auth,order,product:{...chat,serviceId:'neo'},requestId:'original',enqueue:async()=>assert.fail()}),/ORDER_PRODUCT_MISMATCH/);
+});

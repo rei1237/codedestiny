@@ -9,7 +9,8 @@ import {grantVerifiedOrder} from './grant.js';
 import {purchaseStore,recordTossRefund} from './purchases.js';
 import {ProfileCard} from '../lib/models.js';
 import {incrementRateLimit} from '../lib/rate-limit.js';
-import {getProduct} from '../yeongnyangi/payments/catalog.ts';
+import {resolveStoredProduct} from '../yeongnyangi/payments/catalog.ts';
+import {consultationService,consultationSelection,requestMatchesService} from './services.js';
 import {questionDecision,questionTopic,assertQuestionOrder} from '../yeongnyangi/fortune/ask/question-policy.ts';
 import {prepareFortune,presentFortune,drawTarotSpread} from '../yeongnyangi/service.ts';
 import {publicTarotSpread} from '../yeongnyangi/fortune/tarot/spread-v3.ts';
@@ -44,8 +45,8 @@ export async function handleTossRoutes(request,env) {
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{...headers,
       'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type'}});
     if(path==='/catalog'&&request.method==='GET')return reply({products:APPROVED_TOSS_PRODUCTS.map(item=>{
-      const product=getProduct(item.productId);
-      return {id:product.id,name:`${product.name} ${product.fishName} 상담`,sku:item.sku,approvedPriceKRW:item.approvedPriceKRW,
+      const approved=approvedProduct(item.sku),product=resolveStoredProduct(approved.productId),service=consultationService(approved);
+      return {id:consultationSelection(approved),productId:product.id,serviceId:service.id,name:`${service.name} ${product.name} ${product.fishName} 상담`,sku:item.sku,approvedPriceKRW:item.approvedPriceKRW,
         chapters:product.chapterCount,available:item.approved&&product.priceKRW===item.approvedPriceKRW};
     })});
     // Explicit release gate: unavailable credentials, agreements or product approvals cannot become live sales.
@@ -68,10 +69,11 @@ export async function handleTossRoutes(request,env) {
       await limit(env,auth._id,'prepare',6);
       const input=await bodyOf(request),product=approvedProduct(input.sku);
       const {validatePreparation}=await import('./preparation.js');
-      const tarot=getProduct(product.productId).domain==='tarot';
+      const canonical=resolveStoredProduct(product.productId),service=consultationService(product);
+      const tarot=canonical.domain==='tarot';
       const form=validatePreparation(input,{birthRequired:!tarot});
       const decision=questionDecision(input.questionDecision);
-      assertQuestionOrder(getProduct(product.productId),decision,form.question);
+      assertQuestionOrder(canonical,decision,form.question);
       if(!tarot&&decision.target==='pair'&&!form.partnerBirth)throw new TossError('PARTNER_REQUIRED');
       if(decision.target!=='pair'&&form.partnerBirth)throw new TossError('PARTNER_NOT_SUPPORTED');
       // Immutable targets, separate roles even when two people share birth details.
@@ -84,9 +86,10 @@ export async function handleTossRoutes(request,env) {
       const profileId=tarot?'tarot-question':await saveTarget(form.birth,'self');
       const partnerProfileId=form.partnerBirth?await saveTarget(form.partnerBirth,'partner'):undefined;
       const row=await prepareFortune(env,auth.userId,{productId:product.productId,profileId,question:form.question,
+        ...(service.persona?{domain:canonical.domain,fishId:canonical.fishId}:{}),
         questionDecision:decision,consultationKind:decision.target==='pair'?'compatibility':'ask',topicId:questionTopic(decision.category),
         ...(tarot?{tarotSpreadId:input.tarotSpreadId,tarotInputs:input.tarotInputs}:{timeUnknown:form.birth.date.timeUnknown}),...(partnerProfileId?{partnerProfileId,partnerTimeUnknown:form.partnerBirth.date.timeUnknown}:{}),
-        consultationAttemptId:form.attemptId,locale:'ko',timezone:'Asia/Seoul',voiceStyle:'honorific'});
+        consultationAttemptId:form.attemptId,locale:'ko',timezone:'Asia/Seoul',voiceStyle:'honorific'}, {persona:service.persona});
       return reply({id:String(row._id),productId:row.productId,amountKRW:row.amountKRW,state:row.state,tarotSpread:publicTarotSpread(row.snapshot),
         manifest:row.snapshot.manifest.map(({id,title,ordinal})=>({id,title,ordinal}))});
     }
@@ -95,7 +98,7 @@ export async function handleTossRoutes(request,env) {
       await limit(env,auth._id,'tarot-draw',6);
       const input=await bodyOf(request),product=approvedProduct(input.sku);
       const row=await readRequest(env,auth.userId,drawMatch[1]);
-      if(row.productId!==product.productId||getProduct(product.productId).domain!=='tarot')throw new TossError('REQUEST_NOT_FOUND',404);
+      if(!requestMatchesService(row,product)||resolveStoredProduct(product.productId).domain!=='tarot')throw new TossError('REQUEST_NOT_FOUND',404);
       const drawn=await drawTarotSpread(env,auth.userId,drawMatch[1],{method:input.method,picks:input.picks});
       return reply({id:String(drawn._id),state:drawn.state,tarotSpread:publicTarotSpread(drawn.snapshot)});
     }
@@ -111,7 +114,7 @@ export async function handleTossRoutes(request,env) {
       const rows=await TossPurchase.find({identityId:auth._id,environment:auth.environment}).sort({grantedAt:-1}).limit(100).lean();
       return reply({purchases:await Promise.all(rows.map(async row=>{
         const result=row.requestId?await readRequest(env,auth.userId,row.requestId).catch(()=>null):null;
-        return {orderId:row._id,sku:row.sku,productId:row.productId,requestId:row.requestId,status:row.status,
+        return {orderId:row._id,sku:row.sku,productId:row.productId,serviceId:row.serviceId||'yeongnyangi',selectionId:consultationSelection(row),requestId:row.requestId,status:row.status,
           createdAt:row.grantedAt,state:result?.state||'UNASSIGNED',completedSections:result?.chapters.length||0,
           totalSections:result?.snapshot.manifest.length||null};
       }))});
@@ -120,17 +123,19 @@ export async function handleTossRoutes(request,env) {
     if(resultMatch&&request.method===(resultMatch[2]?'POST':'GET')) {
       const purchase=await TossPurchase.findOne({identityId:auth._id,requestId:resultMatch[1],environment:auth.environment}).lean();
       if(!purchase)throw new TossError('RESULT_NOT_FOUND',404);
+      const owned=await readRequest(env,auth.userId,resultMatch[1]);
+      if(!requestMatchesService(owned,purchase))throw new TossError('RESULT_NOT_FOUND',404);
       const order=await lookupOrder(env,auth.userKey,purchase._id);
       if(order.sku!==purchase.sku||order.orderId!==purchase._id)throw new TossError('ORDER_MISMATCH',403);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
       if(!['PURCHASED','PAYMENT_COMPLETED'].includes(order.status))throw new TossError('ORDER_NOT_PAID',409);
       if(resultMatch[2]==='/conversation'){
         await limit(env,auth._id,'followup',4);
-        return reply(presentFortune(await questionConversation(env,auth.userId,resultMatch[1],await bodyOf(request))));
+        return reply({...presentFortune(await questionConversation(env,auth.userId,resultMatch[1],await bodyOf(request))),serviceId:consultationService(purchase).id});
       }
       const row=resultMatch[2]?await resumeRequest(env,auth.userId,resultMatch[1]):await readRequest(env,auth.userId,resultMatch[1]);
       if(resultMatch[2])await enqueueConsultation(env,row);
-      return reply(presentFortune(row));
+      return reply({...presentFortune(row),serviceId:consultationService(purchase).id});
     }
     if(path==='/events'&&request.method==='POST') {
       const input=await bodyOf(request);

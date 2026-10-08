@@ -9,8 +9,8 @@ const calls={profiles:[],prepared:[],followups:0};
 const auth={_id:'identity',ownerId:'owner',userId:'owner',userKey:'123',environment:'SANDBOX'};
 const mocks={
  auth:async()=>auth,profile:async(...args)=>calls.profiles.push(args),
- product:sku=>({productId:sku,sku,approvedPriceKRW:1,approved:true}),
- prepare:async(_env,user,body)=>{calls.prepared.push({user,body});return {_id:'a'.repeat(64),productId:body.productId,amountKRW:1,snapshot:{manifest:[{id:'part',title:'answer',ordinal:0}]}};},
+ product:sku=>({productId:sku.includes(':')?sku.split(':')[1]:sku,serviceId:sku.includes(':')?sku.split(':')[0]:'yeongnyangi',sku,approvedPriceKRW:1,approved:true}),
+ prepare:async(_env,user,body,options)=>{calls.prepared.push({user,body,options});return {_id:'a'.repeat(64),productId:body.productId,amountKRW:1,snapshot:{manifest:[{id:'part',title:'answer',ordinal:0}]}};},
  purchase:()=>({lean:async()=>null}),followup:async()=>{calls.followups++;return {};}
 };
 globalThis.__tossRouteMocks=mocks;
@@ -80,4 +80,16 @@ test('draw route checks authenticated ownership and matching approved product be
  const route='/prepared/'+'a'.repeat(64)+'/draw';
  assert.equal((await request({sku:'saju_mackerel',method:'manual',picks:[1,5,9]},route)).status,404);assert.equal(draws,0);
  assert.equal((await request({sku:'tarot_mackerel',method:'manual',picks:[1,5,9]},route)).status,200);assert.equal(draws,1);
+});
+
+
+test('chat preparation derives persona and domain from server catalog, ignoring forged input',async()=>{
+ for(const service of ['yeoni','neo']){
+  const r=await request({...input(),sku:service+':chat_saju_mackerel',persona:'attacker',domain:'tarot',fishId:'tuna'});
+  assert.equal(r.status,200);
+  assert.deepEqual(calls.prepared[0].options,{persona:service});
+  assert.equal(calls.prepared[0].body.domain,'saju');
+  assert.equal(calls.prepared[0].body.fishId,'mackerel');
+  assert.equal(calls.prepared[0].body.productId,'chat_saju_mackerel');
+ }
 });

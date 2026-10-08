@@ -7,7 +7,20 @@ const depths=[
   {fish:'tuna',name:'참치 상담',tag:'장기 흐름과 전환 준비',description:questionScopes.tuna},
 ] as const;
 // Current question policy offers long-period transitions only for these three systems.
-export const readings=birthSystems.flatMap(system=>depths.filter(depth=>depth.fish!=='tuna'||['saju','ziwei','vedic'].includes(system.id)).map(depth=>({...depth,id:`${system.id}_${depth.fish}`,domain:system.id,systemName:system.name,name:`${system.name} ${depth.name}`})));
+const systemReadings=birthSystems.flatMap(system=>depths.filter(depth=>depth.fish!=='tuna'||['saju','ziwei','vedic'].includes(system.id)).map(depth=>({...depth,id:`${system.id}_${depth.fish}`,domain:system.id,systemName:system.name,name:`${system.name} ${depth.name}`})));
+export const consultationServices=[
+ {id:'yeongnyangi',name:'영냥이',description:'계산 근거와 질문을 차근차근 살펴보는 상담'},
+ {id:'yeoni',name:'연이 · 꽃빛 상담실',description:'마음과 관계를 다정한 편지처럼 풀어보는 상담'},
+ {id:'neo',name:'네오 · 별빛 전략실',description:'고민의 판세를 읽고 현실적인 행동을 정리하는 상담'},
+] as const;
+export const readings=consultationServices.flatMap(service=>systemReadings.map(reading=>({
+ ...reading,serviceId:service.id,serviceName:service.name,
+ productId:service.id==='yeongnyangi'?reading.id:'chat_'+reading.id,
+ id:service.id==='yeongnyangi'?reading.id:service.id+':chat_'+reading.id,
+})));
+export function selectionFor(serviceId:string,domain:string,fish:string){
+ return readings.find(item=>item.serviceId===serviceId&&item.domain===domain&&item.fish===fish)?.id;
+}
 export const questions=[
   {title:'지금 이직해도 괜찮을까',topic:'job_change',hint:'일하는 방식과 변화의 흐름'},
   {title:'내 일과 돈의 흐름은 어떨까',topic:'money',hint:'재능, 자원과 선택의 기준'},

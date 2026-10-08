@@ -26,6 +26,38 @@ for(const [id,name,entry] of [['flower','운명의 꽃','app/flower/page.tsx'],[
  if(!ids.has(id))ids.set(id,{id,name,evidence:[{source:entry,entry:'/'+id+'/'}],toss:{screen:id==='yeongnyangi'?'saju-preview-only':'not-ported',login:'not-verified',iapSku:null,result:'not-verified',library:'not-verified',device:'not-tested'}});
 }
 const rows=[...ids.values()].sort((a,b)=>a.id.localeCompare(b.id));
-const report={sourceCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),scope:'Discovery inventory, not a count of implemented or unique services. Aliases and nested collections require manual reconciliation.',sourceCounts:{home:context.window.__cdServiceRegistry.length,react:react.length,visual:Object.keys(visual).length},entries:rows};
+const aliases={
+ 'destiny-flower':'flower','astrology-flower':'flower','ziwei-flower':'flower','sukuyo-flower':'flower',
+ sukyo:'sukuyo','stonehenge-rune':'stonehenge-runes','love-simulation':'love-code',
+ 'daily-fortune':'today-hub','saju-lifebook':'life-book-ai',
+};
+const aliasEvidence={
+ flower:['app/flower/destiny/page.tsx','app/flower/astrology/page.tsx','app/flower/jamidusu/page.tsx','app/flower/sukuyo/page.tsx'],
+ sukuyo:['js/core/service-registry.js','app/_lib/serviceFeatureRegistry.ts'],
+ 'stonehenge-runes':['js/core/index-inline-runtime.js:openRuneOracle'],
+ 'love-code':['js/core/index-inline-runtime.js:openLoveSimulation'],
+ 'today-hub':['js/core/service-registry.js'],
+ 'life-book-ai':['js/core/service-registry.js','app/_lib/serviceFeatureRegistry.ts'],
+};
+const groups=new Map();
+for(const row of rows){
+ const canonicalId=aliases[row.id]||row.id;
+ if(!groups.has(canonicalId))groups.set(canonicalId,{id:canonicalId,discoveryIds:[],evidence:[],aliasEvidence:aliasEvidence[canonicalId]||[],
+  status:'requires-full-flow-port-and-verification',tossRoute:null,sku:null,inputContract:null,resultRenderer:null,storageContract:null});
+ const group=groups.get(canonicalId);group.discoveryIds.push(row.id);group.evidence.push(...row.evidence);
+}
+for(const [id,entry,api] of [['pet-saju','pet-saju.html','/api/pet-saju/blueprint'],['ziwei-island','destiny-island.html','/api/ziwei-island/blueprint']]){
+ if(!fs.readFileSync(path.join(root,'index.html'),'utf8').includes('/'+entry))throw new Error('Missing active entry: '+entry);
+ if(!fs.readFileSync(path.join(root,entry),'utf8').includes(api))throw new Error('Missing calculation API: '+api);
+ groups.set(id,{id,discoveryIds:[],evidence:[{source:'index.html',entry:'/'+entry,api}],status:'not-ported',tossRoute:null,sku:null,inputContract:null,resultRenderer:null,storageContract:null});
+}
+const localEvidence={
+ flower:{tossRoute:'/flower',status:'local-partial',inputContract:'worker/toss/flower.js',resultRenderer:'apps/toss/src/FlowerReading.tsx',storageContract:'not-stored-by-current-policy'},
+ 'bias-destiny':{tossRoute:'/bias',status:'local-partial',inputContract:'lib/idol-chemi/index.js',resultRenderer:'apps/toss/src/BiasReading.tsx',storageContract:'photocard-save-share-not-ported'},
+ yeongnyangi:{tossRoute:'/catalog',status:'local-partial',inputContract:'worker/toss/routes.js',resultRenderer:'apps/toss/src/App.tsx',storageContract:'owned-TossPurchase-to-YeongnyangiRequest'},
+ 'fortune-chat':{tossRoute:'/catalog',status:'local-partial',inputContract:'worker/toss/services.js',resultRenderer:'apps/toss/src/App.tsx',storageContract:'persona-bound-TossPurchase-to-YeongnyangiRequest'},
+};
+for(const [id,fields] of Object.entries(localEvidence))if(groups.has(id))Object.assign(groups.get(id),fields);
+const report={sourceCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),scope:'Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.',sourceCounts:{home:context.window.__cdServiceRegistry.length,react:react.length,visual:Object.keys(visual).length},entries:rows,canonicalCandidates:[...groups.values()].sort((a,b)=>a.id.localeCompare(b.id))};
 fs.writeFileSync(path.join(root,'docs/toss/full-service-inventory.json'),JSON.stringify(report,null,2)+'\n');
-console.log(JSON.stringify({sourceCounts:report.sourceCounts,discoveryIds:rows.length,readyForLaunch:0}));
+console.log(JSON.stringify({sourceCounts:report.sourceCounts,discoveryIds:rows.length,canonicalCandidates:groups.size,readyForLaunch:0}));
