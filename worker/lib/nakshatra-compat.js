@@ -1,13 +1,13 @@
 // 나크샤트라 결정판 — 동서 통합 궁합 조립 (순수·WASM 비의존)
 //
 // 두 사람의 [달 시데리얼 황경 + 숙요 객체]를 받아
-//  - 인도: 정밀 아쉬타쿠타 36점(nakshatra-ashtakuta.js)
+//  - 인도: 정밀 아쉬타쿠타 36점(nakshatra-ashtakuta-v2.js)
 //  - 동양: 숙요 격각 궁합(buildSukuyoAiCompatibility)
 //  - 통합: 크로스워크 + 수렴/발산 총평
 // 을 한 객체로 조립한다. Swiss·음력 I/O는 라우트가 담당하고 여기선 순수 계산만.
 
 import { nakshatraInfo } from "./vedic-derived-calculations.js";
-import { ashtakutaFromMoon } from "./nakshatra-ashtakuta.js";
+import { ashtakutaFromMoon } from "./nakshatra-ashtakuta-v2.js";
 import { buildSukuyoAiCompatibility } from "./sukuyo-ai-calculation.js";
 import { getNakshatraAttributes } from "../../constants/nakshatra-attributes.js";
 import { crosswalkFromSukuyo } from "../../constants/nakshatra-crosswalk.js";

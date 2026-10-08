@@ -11,7 +11,7 @@ const mock = {
   'nakshatra-paid-access.js': 'export async function verifyPerUsePayment(env,args){globalThis.__nakshatraTest.checks++; if(args.coinPrice!==200 || !args.requireExisting) throw Error("price/proof contract"); return {proven:globalThis.__nakshatraTest.proven};}',
   'swiss-ephemeris.js': 'export async function getSwissVedicPlanets(env,input){return {planets:{Moon:globalThis.__nakshatraTest.moons[input.hour===0?0:1]}};}',
 };
-const names = ['nakshatra-japanese-calendar','nakshatra-ashtakuta','nakshatra-codex','nakshatra-compat','nakshatra-birth-evidence','nakshatra-compat-delivery','sukuyo-relation-core','vedic-derived-calculations'];
+const names = ['nakshatra-japanese-calendar','nakshatra-ashtakuta-v2','nakshatra-codex','nakshatra-compat','nakshatra-birth-evidence','nakshatra-compat-delivery','sukuyo-relation-core','vedic-derived-calculations'];
 const bundle=await build({stdin:{contents:names.map(x=>'export * from "./worker/lib/'+x+'.js";').join('\n'),resolveDir:process.cwd()},bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'offline-only',setup(b){b.onLoad({filter:/[\\/](db|models|paid-result-revocation|nakshatra-paid-access|swiss-ephemeris)\.js$/},args=>({contents:mock[args.path.split(/[\\/]/).at(-1)],loader:'js'}));}}]});
 const mod={exports:{}};new Function('module','exports','require',bundle.outputFiles[0].text)(mod,mod.exports,require);const m=mod.exports;
 for(const [date,month,day,leap,han] of [

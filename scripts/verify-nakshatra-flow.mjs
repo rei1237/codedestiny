@@ -23,7 +23,7 @@ const entry = [
   `export { NAKSHATRA_ATTRIBUTES, getNakshatraAttributes } from ${JSON.stringify(path.join(repoRoot, "constants/nakshatra-attributes.js"))};`,
   `export { NAKSHATRA_CROSSWALK, CROSSWALK_ANCHORS, CROSSWALK_OFFSET, crosswalkFromSukuyo, crosswalkFromNakshatra } from ${JSON.stringify(path.join(repoRoot, "constants/nakshatra-crosswalk.js"))};`,
   `export { FUSION_ENTRIES, getFusionBySukuyo, getFusionByNakshatra } from ${JSON.stringify(path.join(repoRoot, "constants/nakshatra-fusion.js"))};`,
-  `export { computeAshtakuta, ashtakutaFromMoon } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-ashtakuta.js"))};`,
+  `export { computeAshtakuta, ashtakutaFromMoon } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-ashtakuta-v2.js"))};`,
   `export { assembleNakshatraCompat } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-compat.js"))};`,
   `export { getSukuyoByIndex } from ${JSON.stringify(path.join(repoRoot, "worker/lib/sukuyo-premium.js"))};`,
 ].join("\n");

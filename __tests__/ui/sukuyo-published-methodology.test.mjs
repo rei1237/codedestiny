@@ -41,16 +41,15 @@ test('숙요 연애·결혼 글은 빈도와 장기 안정성을 관찰값처럼
   assert.match(marriage,/결혼 기간, 이혼 위험, 갈등 빈도, 회복 속도 같은 장기 안정성 지표를 계산하지 않는다/);
   assert.match(love,/실제 대화·동의·행동 기록/);
 });
-test('나크샤트라 랜딩은 역사적 대응과 서비스 계산 정렬을 구분한다',()=>{
+test('나크샤트라만 일본 구력과 베다 좌표를 분리하고 기존 정렬 자료는 보존한다',()=>{
   const landing=readFileSync('lib/seo-landing-pages.js','utf8').split('  nakshatra: page({')[1].split('  vedic: page({')[0];
   const component=readFileSync('app/nakshatra/NakshatraLanding.jsx','utf8');
-  const angle=NAKSHATRA_CROSSWALK.find((entry)=>entry.sukuyoHan==='角');
-  assert.equal(angle?.nakshatraEn,'Uttara Phalguni');
-  assert.match(landing,/역사적 동일성 표가 아니라 현재 서비스 계산 결과를 비교하는 정렬표/);
-  assert.match(landing,/고정 오프셋/);
-  assert.doesNotMatch(landing,/각\(角\)=치트라|양쪽이 같은 여분을 덜어냈기에/);
-  assert.match(component,/NAKSHATRA_CROSSWALK\.map/);
-  assert.doesNotMatch(component,/const HANGUL|const NAKSHATRA\s*=/);
+  assert.equal(NAKSHATRA_CROSSWALK.find(entry=>entry.sukuyoHan==='角')?.nakshatraEn,'Uttara Phalguni');
+  for(const text of [landing,component]) {
+    assert.match(text,/일본 시간/); assert.match(text,/윤달/); assert.match(text,/Lahiri/);
+    assert.doesNotMatch(text,/NAKSHATRA_CROSSWALK\.map|고정 오프셋/);
+  }
+  assert.match(landing,/정오를 확정 출생시각으로 해석하지/);
 });
 test('나크샤트라 설명 글은 공개 출처와 시간 미상 한계를 함께 제시한다',()=>{
   const text=body('nakshatra-what-is');

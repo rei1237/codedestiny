@@ -75,7 +75,12 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
       }
       if (detail) {
         slug = detail.slug;
-        expected = detail.cardImage || detail.image;
+        expected = detail.slug === 'nakshatra' ? '/images/nakshatra/moonlight-library-480.webp' : detail.cardImage || detail.image;
+        if (detail.slug === 'nakshatra') {
+          const img = wrapper.querySelector('img');
+          assert.match(img?.getAttribute('srcset') || '', /1672w/);
+          assert.ok(img?.getAttribute('sizes'));
+        }
       }
     }
     if (!expected) continue;

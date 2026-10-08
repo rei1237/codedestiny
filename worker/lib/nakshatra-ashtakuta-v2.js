@@ -1,19 +1,5 @@
-// 나크샤트라 결정판 — 정밀 아쉬타쿠타(8쿠타 36점) 궁합 엔진
-//
-// vedic-astrology.html의 calcCompatibility는 여러 단순화가 있어(달 라시가 아닌 나크샤트라
-// 인덱스로 Vashya/Bhakoot 근사, Nadi 단순 3-순환, Tara 길흉 반전) 정확도가 떨어진다.
-// 이 모듈은 **달의 시데리얼 황경 → 정확한 라시(rashi)** 를 근거로 정통 규칙으로 재구성한다.
-//
-// 개선점(정통 대비):
-//  - Varna(1): 달 라시의 4계층(물=Brahmin / 불=Kshatriya / 흙=Vaishya / 바람=Shudra) 기반.
-//  - Vashya(2): 라시 5군(Chatushpada/Manava/Jalachara/Vanachara/Keeta) + 통제표.
-//  - Tara(3): 상호 나크샤트라 count → 9구간. 길(2·4·6·8·9)만 가점(HTML은 길흉 반전이었음).
-//  - Yoni(4): 14요니, 동일=4 / 천적쌍=0 / 그 외=2.
-//  - Graha Maitri(5): 달 **라시 지배성** 자연 우정(나크샤트라 지배성 아님).
-//  - Gana(6): Deva/Manushya/Rakshasa 정통 표(성별 옵션).
-//  - Bhakoot(7): **정확한 라시 diff** — 2·12 / 5·9 / 6·8 도샤만 0.
-//  - Nadi(8): 정통 지그재그(constants) — 동일 나디=0(도샤).
-
+import { YONI_ORDER, YONI_POINTS, VASHYA_ORDER, VASHYA_POINTS, GANA_ORDER, GANA_POINTS } from '../../constants/nakshatra-koota-tables.js';
+// Source-versioned traditional scoring; not a prediction of relationship success.
 import { getNakshatraAttributes } from "../../constants/nakshatra-attributes.js";
 
 const SIGNS_EN = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
@@ -37,12 +23,6 @@ const PLANET_FRIENDS = {
   Venus: { friend: ["Mercury", "Saturn"], enemy: ["Sun", "Moon"] },
   Saturn: { friend: ["Mercury", "Venus"], enemy: ["Sun", "Moon", "Mars"] },
 };
-
-// 요니 천적쌍(상호 = 0점).
-const YONI_ENEMY_PAIRS = [
-  ["Cow", "Tiger"], ["Elephant", "Lion"], ["Horse", "Buffalo"], ["Dog", "Deer"],
-  ["Cat", "Rat"], ["Serpent", "Mongoose"], ["Monkey", "Goat"],
-];
 
 function rashiFromLongitude(siderealLon) {
   const lon = ((Number(siderealLon) % 360) + 360) % 360;
@@ -69,23 +49,23 @@ function kutaVarna(rashiA, rashiB) {
   return { score, max: 1, va, vb };
 }
 
-function kutaVashya(rashiA, rashiB) {
-  const ga = RASHI_VASHYA[rashiA];
-  const gb = RASHI_VASHYA[rashiB];
-  let score;
-  if (rashiA === rashiB || ga === gb) score = 2;
-  else if ((ga === "Chatushpada" && gb === "Jalachara") || (ga === "Jalachara" && gb === "Chatushpada")) score = 1;
-  else if (ga === "Vanachara" || gb === "Vanachara" || ga === "Keeta" || gb === "Keeta") score = 0;
-  else score = 1;
-  return { score, max: 2, ga, gb };
+function vashyaGroup(rashi, longitude) {
+  const degree = ((longitude % 30) + 30) % 30;
+  if (rashi === 8) return degree < 15 ? 'Manava' : 'Chatushpada';
+  if (rashi === 9) return degree < 15 ? 'Chatushpada' : 'Jalachara';
+  return RASHI_VASHYA[rashi];
+}
+function kutaVashya(rashiA, rashiB, moonLonA = rashiA * 30, moonLonB = rashiB * 30) {
+  const ga = vashyaGroup(rashiA, moonLonA), gb = vashyaGroup(rashiB, moonLonB);
+  return { score: VASHYA_POINTS[VASHYA_ORDER.indexOf(gb)][VASHYA_ORDER.indexOf(ga)], max: 2, ga, gb };
 }
 
-// 나크샤트라 count(1..27) → 타라(1..9). 길: 2,4,6,8,9 / 흉: 1,3,5,7.
+// 나크샤트라 count(1..27) → 타라(1..9). Saravali Dina: 3,5,7만 무점수; 잔마(1) 포함 나머지는 방향별 1.5점.
 function taraOf(fromIdx, toIdx) {
   const count = ((toIdx - fromIdx + 27) % 27) + 1;
   return ((count - 1) % 9) + 1;
 }
-const AUSPICIOUS_TARA = new Set([2, 4, 6, 8, 9]);
+const AUSPICIOUS_TARA = new Set([1, 2, 4, 6, 8, 9]);
 
 function kutaTara(nakA, nakB) {
   const tAB = taraOf(nakA, nakB);
@@ -97,11 +77,8 @@ function kutaTara(nakA, nakB) {
 }
 
 function kutaYoni(yoniA, yoniB) {
-  let score;
-  if (yoniA === yoniB) score = 4;
-  else if (YONI_ENEMY_PAIRS.some((p) => (p[0] === yoniA && p[1] === yoniB) || (p[1] === yoniA && p[0] === yoniB))) score = 0;
-  else score = 2;
-  return { score, max: 4, yoniA, yoniB };
+  const a = YONI_ORDER.indexOf(yoniA), b = YONI_ORDER.indexOf(yoniB);
+  return { score: a < 0 || b < 0 ? null : YONI_POINTS[b][a], max: 4, yoniA, yoniB };
 }
 
 function kutaGrahaMaitri(rashiA, rashiB) {
@@ -111,19 +88,14 @@ function kutaGrahaMaitri(rashiA, rashiB) {
   const r2 = planetRelation(lb, la);
   const table = {
     "friend-friend": 5, "friend-neutral": 4, "neutral-friend": 4, "neutral-neutral": 3,
-    "friend-enemy": 1, "enemy-friend": 1, "neutral-enemy": 0.5, "enemy-neutral": 0.5, "enemy-enemy": 0,
+    "friend-enemy": 2, "enemy-friend": 2, "neutral-enemy": 1, "enemy-neutral": 1, "enemy-enemy": 0,
   };
   const score = table[`${r1}-${r2}`] ?? 3;
   return { score, max: 5, la, lb, r1, r2 };
 }
 
-function kutaGana(ganaA, ganaB, genderA, genderB) {
-  if (ganaA === ganaB) return { score: 6, max: 6, ganaA, ganaB };
-  const set = new Set([ganaA, ganaB]);
-  if (set.has("Deva") && set.has("Manushya")) return { score: 5, max: 6, ganaA, ganaB };
-  if (set.has("Deva") && set.has("Rakshasa")) return { score: 1, max: 6, ganaA, ganaB };
-  // Manushya ↔ Rakshasa: 신랑이 Rakshasa면 0, 신부가 Rakshasa면 다소 완화(정통) — 성별 없으면 0.
-  return { score: 0, max: 6, ganaA, ganaB };
+function kutaGana(ganaA, ganaB) {
+  return { score: GANA_POINTS[GANA_ORDER.indexOf(ganaB)][GANA_ORDER.indexOf(ganaA)], max: 6, ganaA, ganaB };
 }
 
 function kutaBhakoot(rashiA, rashiB) {
@@ -152,7 +124,7 @@ export function computeAshtakuta(a, b) {
   const rB = b.rashiIndex;
 
   const varna = kutaVarna(rA, rB);
-  const vashya = kutaVashya(rA, rB);
+  const vashya = kutaVashya(rA, rB, a.moonLon, b.moonLon);
   const tara = kutaTara(a.nakIndex, b.nakIndex);
   const yoni = kutaYoni(attrA.yoni, attrB.yoni);
   const grahaMaitri = kutaGrahaMaitri(rA, rB);
@@ -163,12 +135,12 @@ export function computeAshtakuta(a, b) {
   const items = [
     { key: "varna", label: "바르나 (가치·역할)", ...varna, note: `${VARNA_KO[varna.va]} ↔ ${VARNA_KO[varna.vb]}` },
     { key: "vashya", label: "바샤 (끌림·주도)", ...vashya, note: `${vashya.ga} ↔ ${vashya.gb}` },
-    { key: "tara", label: "타라 (건강·운의 흐름)", ...tara, note: `상호 타라 ${tara.tAB}·${tara.tBA}` },
+    { key: "tara", label: "타라 (관계의 리듬)", ...tara, note: `상호 타라 ${tara.tAB}·${tara.tBA}` },
     { key: "yoni", label: "요니 (본능·친밀)", ...yoni, note: `${yoni.yoniA} ↔ ${yoni.yoniB}` },
     { key: "grahaMaitri", label: "그라하 마이트리 (정신·가치관)", ...grahaMaitri, note: `${grahaMaitri.la} ↔ ${grahaMaitri.lb} (${grahaMaitri.r1}/${grahaMaitri.r2})` },
     { key: "gana", label: "가나 (기질)", ...gana, note: `${attrA.ganaKo} ↔ ${attrB.ganaKo}` },
     { key: "bhakoot", label: "바쿠트 (번영·가정)", ...bhakoot, note: bhakoot.dosha ? "바쿠트 도샤" : `${bhakoot.c1}·${bhakoot.c2}` },
-    { key: "nadi", label: "나디 (체질·자녀운)", ...nadi, note: nadi.dosha ? "나디 도샤(동일 나디)" : `${attrA.nadiKo} ↔ ${attrB.nadiKo}` },
+    { key: "nadi", label: "나디 (전통적 기질 분류)", ...nadi, note: nadi.dosha ? "나디 도샤(동일 나디)" : `${attrA.nadiKo} ↔ ${attrB.nadiKo}` },
   ];
 
   const total = items.reduce((s, it) => s + it.score, 0);
@@ -178,7 +150,7 @@ export function computeAshtakuta(a, b) {
 
   const doshas = [];
   if (bhakoot.dosha) doshas.push("바쿠트 도샤(번영·가정 운영 주의)");
-  if (nadi.dosha) doshas.push("나디 도샤(체질·건강·자녀운 주의)");
+  if (nadi.dosha) doshas.push("같은 나디 분류 — 건강·임신 가능성의 판단이 아닙니다");
   if (gana.score === 0) doshas.push("가나 부조화(기질 충돌 주의)");
 
   return { total: totalRounded, max: 36, pct, verdict, items, doshas };
@@ -188,13 +160,23 @@ export function computeAshtakuta(a, b) {
 export function ashtakutaFromMoon({ nakIndexA, moonLonA, genderA, nakIndexB, moonLonB, genderB }) {
   const rashiIndexA = rashiFromLongitude(moonLonA);
   const rashiIndexB = rashiFromLongitude(moonLonB);
-  return computeAshtakuta(
-    { nakIndex: nakIndexA, rashiIndex: rashiIndexA, gender: genderA },
-    { nakIndex: nakIndexB, rashiIndex: rashiIndexB, gender: genderB },
-  );
+  const a = { nakIndex: nakIndexA, rashiIndex: rashiIndexA, moonLon: moonLonA, gender: genderA };
+  const b = { nakIndex: nakIndexB, rashiIndex: rashiIndexB, moonLon: moonLonB, gender: genderB };
+  const directed = genderA === 'male' && genderB === 'female' || genderA === 'female' && genderB === 'male';
+  const forward = computeAshtakuta(directed && genderA === 'female' ? b : a, directed && genderA === 'female' ? a : b);
+  if (!forward) return null;
+  const reverse = directed ? forward : computeAshtakuta(b, a);
+  const totals = [forward.total, reverse.total].sort((x,y) => x-y);
+  return { ...forward, totalRange: totals,
+    items: forward.items.map((item,i) => ({ ...item, scoreRange: [item.score, reverse.items[i].score].sort((x,y)=>x-y) })),
+    method: 'ashtakuta-maitreya-tables-v2',
+    orientation: directed ? '전통 신랑·신부 방향 기준' : '전통 성별 역할을 지정하지 않아 두 방향의 범위를 병기합니다.',
+    source: 'https://saravali.github.io/astrology/koota_yoni.html',
+    verdict: '전통 규칙의 항목별 비교입니다. 점수는 관계 성공 확률이 아닙니다.' };
+
 }
 
 export const __ashtakutaTestUtils = {
-  rashiFromLongitude, taraOf, kutaTara, kutaBhakoot, kutaNadi, kutaGana, kutaYoni,
-  SIGNS_EN, SIGNS_KO, RASHI_LORD,
+  rashiFromLongitude, taraOf, kutaTara, kutaBhakoot, kutaNadi, kutaGana, kutaYoni, kutaGrahaMaitri,
+  SIGNS_EN, SIGNS_KO, RASHI_LORD, vashyaGroup, kutaVashya,
 };

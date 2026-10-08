@@ -146,24 +146,10 @@ test('베다·점성술 랜딩과 가이드의 차트 예시는 베다·점성�
   for(const [from,to] of [['astrology','sukuyo'],['vedic','dream']]) assert.match(landing(from,to),/dateModified: "\d{4}-\d{2}-\d{2}"/,from);
 });
 
-test('나크샤트라 랜딩의 체계 비교·계산 예시는 베다 엔진과 서비스 정렬표에 묶인다',async()=>{
-  const moon=(await chartFacts('vedic'))('moon');
-  const earlier=(await chartFacts('vedic','12:30'))('moon');
-  const aligned=NAKSHATRA_CROSSWALK.find(item=>item.nakshatraIdx===25);
-  const earlierAligned=NAKSHATRA_CROSSWALK.find(item=>item.nakshatraIdx===24);
-  assert.equal(CROSSWALK_OFFSET,11);
-  assert.deepEqual([Math.floor(moon.longitude/(40/3)),aligned.sukuyoIdx,aligned.sukuyoKo,aligned.sukuyoHan],[25,14,'루','婁']);
-  assert.deepEqual([NAKSHATRA_ATTRIBUTES[25].lord,NAKSHATRA_ATTRIBUTES[25].gana],['Saturn','Manushya']);
-  assert.ok(getFusionBySukuyo(14).fusionTitle.startsWith('연결을 깊이 안정시키는 손 — '));
-  assert.deepEqual([earlier.nakshatra,earlierAligned.sukuyoKo,earlierAligned.sukuyoHan],['Purva Bhadrapada','규','奎']);
-  // 역사 대응(오프셋 13)에서 각수는 치트라(13), 서비스 정렬(오프셋 11)에서는 우타라 팔구니(11)라 두 칸 차이다.
-  assert.deepEqual([NAKSHATRA_CROSSWALK[0].sukuyoKo,NAKSHATRA_CROSSWALK[0].nakshatraIdx,NAKSHATRA_ATTRIBUTES[13].nameEn],['각',11,'Chitra']);
+test('나크샤트라 랜딩은 두 계산 기준과 시간 미상 한계를 공개한다',()=>{
   const text=landing('nakshatra','vedic');
-  assert.match(text,/dateModified: "\d{4}-\d{2}-\d{2}"/);
-  assert.match(text,/실제 고객 사례가 아니라/);
-  for(const value of ['334.35도','우타라 바드라파다(333.33~346.67도)','약 1.02도','마누샤(인간)','루수(婁)','연결을 깊이 안정시키는 손','푸르바 바드라파다와 규수(奎)','낮 12시 30분','11을 더해 27로 나눈 나머지','치트라와 짝짓는 방식과는 두 칸 차이']) assert.ok(text.includes(value),value);
+  assert.match(text,/일본 구력/); assert.match(text,/Swiss Ephemeris/); assert.match(text,/시간 의존 해석을 제한/);
+  assert.doesNotMatch(text,/같은 달 좌표|11을 더해 27/);
   const renderer=readFileSync('app/nakshatra/NakshatraLanding.jsx','utf8');
-  assert.match(renderer,/sections\.map\(/);
-  assert.match(renderer,/\.\.\.\(dateModified \? \{ dateModified \} : \{\}\)/);
-  assert.match(renderer,/<ContentIntegrityNote[^>]*dateModified=\{dateModified\}/);
+  assert.match(renderer,/id="method"/); assert.match(renderer,/yakumoin.net/); assert.match(renderer,/nao.ac.jp/);
 });

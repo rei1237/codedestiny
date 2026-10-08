@@ -20,7 +20,7 @@ status: in-progress
 - 숙요 이름과 나크샤트라를 고정 오프셋으로 일치시키거나, 불일치를 경계일이라고 해석하지 않는다.
 - 차크라는 전통 상징을 사용한 자기 돌봄 안내. 출생 차트로 건강 점수·질병·임신·수명 판단 금지.
 - 출생시간 미상: `worker/lib/nakshatra-birth-evidence.js`는 출생지 정오를 베다 참고값으로 사용하고 당일 00:00/23:59 달 위치로 가능한 나크샤트라 구간을 제공한다. 파다·상승궁·하우스·D9·정밀 다샤는 제외한다. 일본 숙요는 입력 생일을 JST 날짜로 읽는 규약이며 임의의 출생시각을 사실처럼 표시하지 않는다.
-- 아쉬타쿠타: `worker/lib/nakshatra-ashtakuta.js`의 `ashtakuta-maitreya-tables-v2`는 Saravali 계열 표를 명시한 방법이다. Tara는 Janma(1)를 포함하고 3·5·7만 무점수로 처리하며, Graha Maitri는 친구/적 2점, 중립/적 1점을 사용한다. 다른 유파와 동일하다고 주장하지 않는다. [Dina](https://saravali.github.io/astrology/koota_dina.html), [Graha](https://saravali.github.io/astrology/koota_graha.html), [Rasi](https://saravali.github.io/astrology/koota_rasi.html), [Nadi](https://saravali.github.io/astrology/koota_nadi.html), [기존 Yoni 표](https://saravali.github.io/astrology/koota_yoni.html)를 근거로 읽는다.
+- 아쉬타쿠타: `worker/lib/nakshatra-ashtakuta-v2.js`의 `ashtakuta-maitreya-tables-v2`는 Saravali 계열 표를 명시한 방법이다. Tara는 Janma(1)를 포함하고 3·5·7만 무점수로 처리하며, Graha Maitri는 친구/적 2점, 중립/적 1점을 사용한다. 다른 유파와 동일하다고 주장하지 않는다. [Dina](https://saravali.github.io/astrology/koota_dina.html), [Graha](https://saravali.github.io/astrology/koota_graha.html), [Rasi](https://saravali.github.io/astrology/koota_rasi.html), [Nadi](https://saravali.github.io/astrology/koota_nadi.html), [기존 Yoni 표](https://saravali.github.io/astrology/koota_yoni.html)를 근거로 읽는다.
 - 일본 관계: `worker/lib/nakshatra-compat.js`의 `jp-sanku-v1`은 방향별 역할과 거리 구분을 유지한다. 영친(栄親)은 최단거리 1=근거리, 8=중거리, 10=원거리이며 [八雲院 관계 설명](https://yakumoin.net/about/aisyou)을 따른다.
 - 위 규약과 고정 fixture 검증은 모든 날짜의 천문 정확성·역사 역법 재현·해석의 예측력을 증명하지 않는다. 점수는 관계나 건강의 미래를 보장하지 않는다.
 
@@ -99,7 +99,7 @@ status: in-progress
 - 마지막 결과 화면 수정 후 `compat-result-360.png`·`compat-result-1440.png`를 재촬영했다. `metrics-fixes.json` 두 항목 모두 overflow 0, errors 0이다. 이 후속 확인을 나머지 모든 화면의 재검사로 확대 해석하지 않는다.
 - 독립 generic reviewer의 `ship` 판정은 네 수정점(궁합 입력 label 상시 표시, placeholder 밝기, 빈 결과 문단 제거, eyebrow/제목 글리프 제거) 해소에만 한정된다. 전체 기능·계산·운영 전달 승인 판정이 아니다.
 - mechanical detector를 한 번 실행한 결과는 `[]`였다. 이는 도구가 포착한 패턴 결과이며 완전한 접근성·디자인 검증을 뜻하지 않는다.
-- ESLint: errors 0, `@next/next/no-img-element` warnings 3. 해당 이미지는 명시적 `srcSet`/`sizes`를 사용한다. TypeScript 검사는 마지막 소규모 수정 전에 통과했으며, 그 이후 재통과를 이 문서에서 주장하지 않는다.
+- ESLint: errors 0, `@next/next/no-img-element` warnings 3. 해당 이미지는 명시적 `srcSet`/`sizes`를 사용한다. 최종 `npm run typecheck`도 통과했다.
 - `npm run check:fast`는 문서 갱신 시점에 진행 중이다. commit·main 통합·push·GitHub CI 완료 여부는 아직 확정하지 않는다.
 - 실결제·과금 LLM·운영 DB·배포는 실행하지 않았다. 고정 fixture와 mock 통과는 실제 결제·실제 LLM 문장 품질·전 기간 천문 정확성의 증거가 아니다.
 
@@ -107,3 +107,7 @@ status: in-progress
 - 격리 기준: origin/main 269a27b9ebf5889d3436fb88970a97fac6e03630.
 - 원래 main의 index.html/js/app.js 및 미러 변경은 타 세션 소유이며 보존한다.
 - 검증 결과와 전달 SHA는 완료 시 갱신한다.
+
+- 새 아쉬타쿠타는 나크샤트라 전용 v2 모듈로 분리했다. 기존 공유 모듈은 기준 커밋과 동일하며, 영냥이 계산·신원 불변성 검사 1개가 통과했다.
+- 공개 설명·이미지·사이트맵 회귀 33개, 결제 가격/Google SKU 110개, 전용 계산/복구 fixture 검사 통과. 원본 사이트맵 생성기로 계산 의존성의 서명을 갱신했다.
+- 보존용 화면 증거: C:/Users/user/.codex/visualizations/2026/10/08/01a11c07-d171-7891-b95c-4b4e36a4acb3/nakshatra-review/.
