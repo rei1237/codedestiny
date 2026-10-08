@@ -2,6 +2,26 @@
 
 status: in-progress
 
+## 최신 실행 상태 — 2026-10-08 운영 승격 요청
+
+이 절이 아래 과거 조사 기록보다 우선한다. 사용자 최신 지시는 웹 수정 완료 → 운영 승격 → 앱인토스 작업 순서다.
+
+- main: `00ff9724c916de061f2e2ceac747d6f0eaeafb34`. 타로 라이브러리 진입 복구 `e8050a4691724f92cd9174423bf28b6f38ca8db1` 및 모듈 참조 해시 동기화 포함. 추적 파일 미커밋 변경 없음. 다른 세션의 미추적 파일은 보존했다.
+- 공식 main CI 통과: https://github.com/rei1237/codedestiny/actions/runs/37738210923 . Paid Flow Gates 통과: https://github.com/rei1237/codedestiny/actions/runs/37738210998 . 이전 e805 CI 실패는 정적 셸 8개의 app.js 캐시 주소 불일치였으며 00ff에서 해결.
+- 운영 승격 1회 dispatch 성공: https://github.com/rei1237/codedestiny/actions/runs/37739647381 . **완료 확인 전이다.** 저장소 전달 규칙에 따라 실행을 폴링하지 않았다. 승격 전 Pages/Worker는 모두 `931cb0a7bd180ab8a6c5627deeb4c2878b02b8bc`였다. 재개할 때 이 실행의 완료 및 운영 SHA를 먼저 확인하고, 실패하면 재승격을 임의 반복하지 않는다.
+- 타로 홈 버튼은 기본 뽑기 대신 기존 라이브러리를 연다. 390/1280px 실제 브라우저에서 11개 링크+명리학 타로 버튼 총 12종 접근, 연애 상세/기본 타로 닫기 및 홈 복귀 확인. 모바일 초기 6개 DOM은 가상화이며 끝까지 스크롤하면 나머지도 보인다. 결제·LLM 호출 없이 검증.
+- targeted 타로 테스트 6개, sitemap 955 URL 드리프트 검사, public-mirror-fresh 통과. 로컬 check:fast --committed-head는 npm test 실패 후 추가 광범위 검사를 중단했으므로 전체 로컬 통과로 기록하지 않는다. 공식 CI는 별도로 통과했다.
+- Toss 작업본 HEAD(문서 갱신 전): `f33f0f5014f0bb22440a0c6f6dee7b1b731f1b6b`. e805까지 통합되어 있고 00ff는 아직 미통합. SDK 3.7.0 / TDS 2.5.1 / React 18.3.1 / Vite 8.3.3 / TypeScript 5.9.3.
+- 마지막 로컬 번들: `apps/toss/ai-saju-studio.ait`, 525595 bytes, SHA256 `9DBD7098003F550757B1A57C385E66A032CEA7D7C36C062933E4D03B63EE34CE`, build deploymentId `01a11895-eb8c-71d1-9b2d-a0e12579912a`. 이 ID는 로컬 빌드이며 콘솔 업로드 증거가 아니다. 업로드 도구가 중단되어 실제 업로드 성공 여부 미확인. 다시 업로드하기 전에 콘솔 상태부터 확인한다.
+- 화면 테스트 번들: SERVICE_AVAILABLE=false, 서버 TOSS_RELEASE_READY 기본 false, 승인 SKU 목록 비어 있음. 로그인·구매·상담 생성 이용 가능 앱으로 제출하지 않는다. apps/toss 테스트 32개, 기존 질문정책 8개, repository 96개(mock, 9/15 복구 포함) 통과. 실제 Toss/기기/결제/mTLS 미검증.
+- 질문 범위는 worker/yeongnyangi/fortune/ask/question-policy.ts 정본을 재사용한다. 고등어 개인 질문, 연어 선택, 광어 두 사람, 참치 장기 흐름이며 아래의 5/8/11/15 고정 항목 안내는 현재 질문형 상품에 적용하지 않는다. 상담 이어묻기와 질문 결정·상대 출생정보 소유권을 추가 검증했다.
+- SDK 3.1.1 이상 Origin: `https://ai-saju-studio.apps.tossmini.com`, `https://ai-saju-studio.private-apps.tossmini.com`. 아래 과거 web/private-web Origin은 사용하지 않는다.
+- 콘솔 workspace 21957 / appName ai-saju-studio / 기존 앱 ai 사주 물상. 로그인 재확인했으나 사업자등록증 업로드 화면이 남아 토스 로그인·IAP 설정 접근 미완료. 앱 정보 아이콘 반려, SKU/약관/mTLS/정산 미완료. 신규 법적 동의나 사업자 정보를 추정 입력하지 않는다.
+- 남은 개발: 탈퇴·연결 해제 데이터 삭제/법정 보존, 환불 동기화, 출생·결과 암호화/실제 처리 지역, 개인정보·LLM 약관, 전환 dedupe/콘솔 매핑, 원본 결과 렌더러, 등록 이미지/아이콘 및 실기기. 완전 출시·검수 제출·승인·출시 모두 미완료.
+
+다음 행동: 운영 승격 완료를 먼저 확인 → main 00ff를 이 worktree에 통합 → 토스 번들 재빌드 → 콘솔 업로드 상태 확인 및 테스트용 업로드 → 외부 사업자 게이트와 남은 구현 해결 후에만 통합 검수. 현재 완료된 웹 작업 때문에 미완료 토스 worktree를 삭제하지 않는다.
+
+
 ## 최신 사용자 지시 — 2026-10-08 재개
 
 사용자가 최신 운영 소스 기준 구현·업로드 재개를 요청했다. 먼저 홈의 운명의 꽃 스타일, 읽을거리 접힘 배치, 명상 컬렉션의 잘못된 타로 기록 링크 제거를 main에 반영했다. 최종 UI 커밋은 `846d7eb9be4f0f4b7a78e56480a18456395f86fa`이며 CI 확인 후 승인된 운영 배포를 진행한다. 콘솔 재로그인은 확인했다. 사업자 증빙 서류 업로드가 남아 로그인/IAP 설정은 아직 열리지 않는다.
