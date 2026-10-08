@@ -1,6 +1,6 @@
 # 나크샤트라 달빛 서고
 
-status: in-progress
+status: implementation-complete
 
 ## 승인된 계약
 - 무료 주제별 요약 + 기존 개인 유료 심화 유지. 궁합 단건 20,000원, 선구매 불필요. 기존 이용권·월정석 정책 유지.
@@ -100,7 +100,7 @@ status: in-progress
 - 독립 generic reviewer의 `ship` 판정은 네 수정점(궁합 입력 label 상시 표시, placeholder 밝기, 빈 결과 문단 제거, eyebrow/제목 글리프 제거) 해소에만 한정된다. 전체 기능·계산·운영 전달 승인 판정이 아니다.
 - mechanical detector를 한 번 실행한 결과는 `[]`였다. 이는 도구가 포착한 패턴 결과이며 완전한 접근성·디자인 검증을 뜻하지 않는다.
 - ESLint: errors 0, `@next/next/no-img-element` warnings 3. 해당 이미지는 명시적 `srcSet`/`sizes`를 사용한다. 최종 `npm run typecheck`도 통과했다.
-- `npm run check:fast`는 문서 갱신 시점에 진행 중이다. commit·main 통합·push·GitHub CI 완료 여부는 아직 확정하지 않는다.
+- `check:fast -- --plan`과 `check:fast` 실행: paid gate 88개 중 87개(전체 `npm test` 포함) 통과. 단건 결제 정적 검사의 LF/CRLF 차이를 수정한 뒤 해당 검사 재통과. 중복 실행을 피하고 계획의 남은 lint·사이트맵·Worker 빌드·가드 검사를 이어서 실행해 모두 통과했다. main CI 전달 확인은 최종 보고에 남긴다.
 - 실결제·과금 LLM·운영 DB·배포는 실행하지 않았다. 고정 fixture와 mock 통과는 실제 결제·실제 LLM 문장 품질·전 기간 천문 정확성의 증거가 아니다.
 
 ## 작업 상태
@@ -111,3 +111,5 @@ status: in-progress
 - 새 아쉬타쿠타는 나크샤트라 전용 v2 모듈로 분리했다. 기존 공유 모듈은 기준 커밋과 동일하며, 영냥이 계산·신원 불변성 검사 1개가 통과했다.
 - 공개 설명·이미지·사이트맵 회귀 33개, 결제 가격/Google SKU 110개, 전용 계산/복구 fixture 검사 통과. 원본 사이트맵 생성기로 계산 의존성의 서명을 갱신했다.
 - 보존용 화면 증거: C:/Users/user/.codex/visualizations/2026/10/08/01a11c07-d171-7891-b95c-4b4e36a4acb3/nakshatra-review/.
+
+- 홈 카드 추가 실측: 360/1440px, DPR 2. 각각 960/1672px 파일을 선택하며 남청색 표면, 문구 잘림 없음, 페이지 가로 넘침 없음. 카드 내부 장식은 overflow:hidden으로 잘리는 기존 동작이며 scrollWidth와 clientWidth가 같다는 뜻은 아니다. `metrics-home.json`과 두 `home-card-*.png`에 보존했다.
