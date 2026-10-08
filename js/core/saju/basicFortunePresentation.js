@@ -675,8 +675,37 @@
       preview.appendChild(node('p', 'fr-caption', '연도별 기회와 주의점, 시기별 행동 해석은 아래 리포트의 「대한 10년운」에서 이어집니다. 잠긴 항목은 기존 이용권·결제 안내를 확인한 뒤 열 수 있습니다.'));
       var continueLink = node('a', 'fr-flow-link', '대한 10년운 상세 안내'); continueLink.href = '#ziweiDecadeLuckGate'; preview.appendChild(continueLink);
       flow.appendChild(preview);
-      foldIfContent(flow, t('fullReading'), [full]);
       area.appendChild(flow);
+      var reportSection = node('section', 'fr-ziwei-report-section');
+      reportSection.id = 'fr-ziwei-report';
+      reportSection.appendChild(heading('전체 해석과 참고 기록'));
+      reportSection.appendChild(node('p', 'fr-caption', '기본 해석은 순서대로 읽고, 더 궁금한 주제는 각 장을 펼쳐 확인해 보세요.'));
+      reportSection.appendChild(full);
+      area.appendChild(reportSection);
+      var compatEntry = node('a', 'fr-compat-entry');
+      compatEntry.href = '#zwCompatibility';
+      compatEntry.innerHTML = '<img src="/images/ziwei/compatibility-atlas-v1.webp" width="960" height="640" loading="lazy" decoding="async" alt="금빛 실로 이어진 두 사람의 자미두수 명반"><span><strong>두 사람의 자미두수 궁합</strong><span>서로의 성향부터 사랑, 생활, 일의 호흡까지. 두 명반을 하나의 관계 리포트로 읽어보세요.</span><b>상대 정보 입력하기</b></span>';
+      compatEntry.addEventListener('click', function(event) {
+        event.preventDefault();
+        var form = area.querySelector('#zwCompatibility');
+        if (!form && typeof window._openZwComprehensiveReport === 'function') {
+          window._openZwComprehensiveReport();
+          form = area.querySelector('#zwCompatibility');
+        }
+        if (!form) return;
+        for (var parent = form.parentElement; parent && parent !== area; parent = parent.parentElement) {
+          if (parent.tagName === 'DETAILS') parent.open = true;
+        }
+        form.scrollIntoView({ block: 'start', behavior: 'instant' });
+        var input = form.querySelector('input');
+        if (input) input.focus({ preventScroll: true });
+      });
+      reportSection.before(compatEntry);
+      [['fr-ziwei-report', '전체 해석'], ['zwCompatibility', '궁합']].forEach(function(item) {
+        var link = node('a', '', item[1]); link.href = '#' + item[0];
+        if (item[0] === 'zwCompatibility') link.addEventListener('click', function(event) { event.preventDefault(); compatEntry.click(); });
+        nav.appendChild(link);
+      });
     }
     // Explain existing paid chapters after the basic reading; never clone an unlock button or change its gate.
     var nextReading = node('aside', 'fr-reading-next');
@@ -707,7 +736,7 @@
     area.appendChild(ziweiArticleLibrary(area));
     // The atlas is the sole decorative artwork on this surface. Keep text/captions.
     // The consultation entry scene is product imagery, not decoration — it must stay visible.
-    area.querySelectorAll('img').forEach(function (img) { if (!img.closest('.fc-entry__scene,.zwla-illustration')) img.hidden = true; });
+    area.querySelectorAll('img').forEach(function (img) { if (!img.closest('.fc-entry__scene,.zwla-illustration,.fr-compat-entry')) img.hidden = true; });
     cells.forEach(function (cell) {
       cell.setAttribute('aria-label', cell.querySelector('.zw-palace-name').textContent + ' · ' + cell.querySelector('.zw-branch-name').textContent);
     });
@@ -734,11 +763,12 @@
         var top = nav.getBoundingClientRect().bottom, bottom = window.innerHeight;
         var current = null, seen = 0, nearest = null, nearestGap = Infinity;
         spy.forEach(function (item) {
+          item.section = document.getElementById(item.link.getAttribute('href').slice(1)) || item.section;
           var rect = item.section.getBoundingClientRect();
           // 화면에 가장 많이 걸쳐 있는 구간이 지금 읽는 구간이다. 구간 사이 여백에 기준선이 걸려도
           // 위아래 중 실제로 보이는 쪽이 뽑히므로, 이미 지나간 구간을 가리키는 일이 없다.
           var overlap = Math.min(rect.bottom, bottom) - Math.max(rect.top, top);
-          if (overlap > seen) { seen = overlap; current = item; }
+          if (overlap > seen || (overlap > 0 && overlap === seen && current && current.section.contains(item.section))) { seen = overlap; current = item; }
           var gap = rect.top > top ? rect.top - top : top - rect.bottom;
           if (gap < nearestGap) { nearestGap = gap; nearest = item; }
         });
@@ -879,7 +909,7 @@
       // ?v= 를 빌려 써서 CSS 만 고친 커밋이 URL 을 못 돌렸다(실측: 44eac0f68 은 기존 방문자에게 도달하지
       // 못했다). 리터럴로 박아 두면 sync:public 이 CSS 자신의 내용 해시로 다시 쓴다 — 손으로 찍지 말 것.
       // 이 파일은 그래서 sync-legacy-static-to-public.mjs 의 MODULE_IMPORT_CACHE_KEY_FILES 에 등록돼 있다.
-      link.href = '/styles/basic-fortune-library.css?v=build-a0f3ad0d5814'; document.head.appendChild(link);
+      link.href = '/styles/basic-fortune-library.css?v=build-3a38d6ec3ccd'; document.head.appendChild(link);
     }
     // 점성술 "나의 이야기" 층(#asStory). 위 시트 뒤에 붙여 같은 특정성에서 이긴다. ?v= 는 위와 같은 규칙.
     if (!document.getElementById('astroReadingStyle')) {

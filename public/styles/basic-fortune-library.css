@@ -291,7 +291,7 @@ body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #ziweiModalOverlay .fr-facts > div { display:block; }
 #ziweiModalOverlay .fr-facts :is(dt,dd) { font-size:14px; margin:0; }
 #ziweiModalOverlay .fr-facts p { display:none; }
-#ziweiModalOverlay .fr-ziwei-nav { display:flex; flex-wrap:wrap; gap:4px 24px; padding:12px 0; margin-bottom:20px; border-bottom:1px solid var(--fr-rule); }
+#ziweiModalOverlay .fr-ziwei-nav { display:flex; flex-wrap:wrap; gap:4px 16px; padding:12px 0; margin-bottom:20px; border-bottom:1px solid var(--fr-rule); }
 /* 명궁 주성의 '핵심 힘' 한 구절. 히어로 배경은 우측이 그림이라 알약마다 바탕을 깔아야 대비가 보장된다
    — 색은 :250 히어로 그라디언트가 이미 쓰는 잉크 그대로다. */
 #ziweiModalOverlay .fr-hero-keywords { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 0; padding:0; list-style:none; }
@@ -440,7 +440,7 @@ body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
   #ziweiModalOverlay .fr-ziwei-nav { gap:0 14px; margin-bottom:12px; padding:0; }
   #ziweiModalOverlay .fr-ziwei-nav a { font-size:12px; }
   #ziweiModalOverlay .fr-ziwei-nav a:nth-child(3) { max-width:88px; line-height:1.4; }
-  #ziweiModalOverlay .fr-ziwei-nav { flex-wrap:nowrap; justify-content:space-between; gap:8px; }
+  #ziweiModalOverlay .fr-ziwei-nav { flex-wrap:wrap; justify-content:flex-start; gap:0 16px; }
   #ziweiModalOverlay .fr-chart-stars { font-size:12px; }
   #ziweiModalOverlay .fr-chart-section .fr-heading { font-size:17px; margin-bottom:8px; }
   #ziweiModalOverlay .zw-grid-wrap { padding:4px !important; }
@@ -732,3 +732,97 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #ziweiModalOverlay #zwLifeAnimalPanel .zwla-hero-image { display:block; width:100%; max-width:440px; height:auto; aspect-ratio:1; object-fit:contain; margin:20px auto; border-radius:10px; }
 #ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-image { display:block; width:64px; height:64px; flex:0 0 64px; object-fit:contain; border-radius:6px; }
 #ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-card-summary { gap:12px; }
+/* Basic Ziwei long-form reading: the atlas palette also owns reports and unlock surfaces. */
+#ziweiModalOverlay :is(.fr-ziwei-report-section,.fr-compat-entry,#zwCompatibility,.fr-compat-chapter) { scroll-margin-top:120px; }
+#ziweiModalOverlay .fr-ziwei-report-section { margin-block:36px; }
+#ziweiModalOverlay #zwComprehensiveReport { margin-top:20px; padding:0; border:0; border-radius:0; background:none; backdrop-filter:none; -webkit-backdrop-filter:none; overflow:visible; }
+#ziweiModalOverlay #zwComprehensiveReport::before,
+#ziweiModalOverlay #zwComprehensiveReport::after { display:none; }
+#ziweiModalOverlay .fr-basic-report { color:var(--fr-ink); font-family:var(--font-body); font-size:16px; line-height:1.75; }
+/* Legacy authored chapters carry inline colors. Normalize only their reading surface;
+   retain layout, gate state, event attributes, charts and all calculated text. */
+#ziweiModalOverlay .fr-basic-report :is(div,section,details,summary,aside) { background:transparent !important; border-color:var(--fr-rule) !important; box-shadow:none !important; backdrop-filter:none; -webkit-backdrop-filter:none; }
+#ziweiModalOverlay .fr-basic-report :is(div,p,li,span,small,label,td,th) { color:var(--fr-ink) !important; font-size:16px !important; line-height:1.75 !important; }
+#ziweiModalOverlay .fr-basic-report :is(h2,h3,h4,b,strong) { color:var(--fr-accent) !important; }
+#ziweiModalOverlay .fr-basic-report :is(h2,h3) { font-family:var(--font-serif); line-height:1.5; }
+#ziweiModalOverlay .fr-basic-report h2 { font-size:var(--cd-t-section,24px) !important; }
+#ziweiModalOverlay .fr-basic-report h3 { font-size:20px !important; }
+#ziweiModalOverlay .fr-basic-report :is(.zw-cosmic-stars,.zw-pastlife-nebula,.zw-pastlife-sparkles,.zw-chronos-map) { display:none; }
+#ziweiModalOverlay .fr-report-header { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-block:20px; border-block:1px solid var(--fr-rule); margin-bottom:20px; }
+#ziweiModalOverlay .fr-report-header h2 { margin:0; }
+#ziweiModalOverlay .fr-report-header .zw-report-close-btn { flex-shrink:0; min-height:44px; padding:10px 16px; border:1px solid var(--fr-rule); border-radius:var(--cd-r-control,12px); color:var(--fr-ink); background:var(--fr-surface); box-shadow:none; }
+#ziweiModalOverlay .fr-report-panel { margin:16px 0; border:1px solid var(--fr-rule); border-radius:var(--cd-r-control,12px); overflow:hidden; }
+#ziweiModalOverlay .fr-report-panel::after { display:none; }
+#ziweiModalOverlay .fr-report-panel:hover { transform:none; }
+#ziweiModalOverlay .fr-report-panel > summary { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:20px; list-style:none; cursor:pointer; }
+#ziweiModalOverlay .fr-report-panel > summary::-webkit-details-marker { display:none; }
+#ziweiModalOverlay .fr-report-panel[open] > summary { border-bottom:1px solid var(--fr-rule); }
+#ziweiModalOverlay .fr-report-panel-heading { display:grid; gap:6px; min-width:0; }
+#ziweiModalOverlay .fr-report-panel-heading > strong { font-size:20px; font-family:var(--font-serif); }
+#ziweiModalOverlay .fr-basic-report :is(.fr-report-panel-meta,.fr-report-panel-preview,[data-zw-panel-state],.fr-report-note) { color:var(--fr-muted) !important; font-size:14px !important; }
+#ziweiModalOverlay [data-zw-panel-state] { flex-shrink:0; }
+#ziweiModalOverlay .fr-report-panel-body { padding:20px; }
+#ziweiModalOverlay .fr-report-reference { margin:16px 0; border-block:1px solid var(--fr-rule); padding:0; }
+#ziweiModalOverlay .fr-report-reference > summary { padding:16px 0; cursor:pointer; color:var(--fr-accent); font-weight:600; }
+#ziweiModalOverlay .fr-report-reference p { max-width:72ch; }
+#ziweiModalOverlay #zwComprehensiveReport .cd-section-gate { border:1px solid var(--fr-rule); border-radius:var(--cd-r-control,12px); }
+#ziweiModalOverlay #zwComprehensiveReport .cd-section-gate:not(.cd-section-gate--unlocked) { min-height:0 !important; max-height:none !important; }
+#ziweiModalOverlay #zwComprehensiveReport .cd-section-gate:not(.cd-section-gate--unlocked) > .cd-section-gate__overlay { position:relative; inset:auto; padding:24px 20px !important; gap:12px !important; background:var(--fr-surface) !important; backdrop-filter:none; -webkit-backdrop-filter:none; }
+#ziweiModalOverlay #zwComprehensiveReport .cd-section-gate:not(.cd-section-gate--unlocked) > .cd-section-gate__body { max-height:0 !important; overflow:hidden; }
+#ziweiModalOverlay #zwComprehensiveReport .cd-section-gate__icon { display:none; }
+#ziweiModalOverlay #zwComprehensiveReport .cd-section-gate__desc { display:block; max-width:52ch !important; overflow:visible; -webkit-line-clamp:unset !important; }
+#ziweiModalOverlay #zwComprehensiveReport .cd-section-gate__btn,
+#ziweiModalOverlay .fr-compat-form .zw-cosmic-btn { min-height:48px !important; padding:12px 20px !important; border:1px solid var(--fr-accent); border-radius:var(--cd-r-control,12px); background:var(--fr-accent); color:var(--fr-bg); font:600 16px/1.5 var(--font-body) !important; box-shadow:none; cursor:pointer; }
+#ziweiModalOverlay #zwComprehensiveReport .cd-section-gate__badge { padding:0; border:0; }
+#ziweiModalOverlay .fr-compat-entry { display:grid; grid-template-columns:minmax(0,280px) minmax(0,1fr); align-items:center; gap:28px; margin:36px 0; padding:0 24px 0 0; overflow:hidden; border:1px solid var(--fr-rule); border-radius:var(--cd-r-card,20px); color:var(--fr-ink); background:var(--fr-surface); text-decoration:none; }
+#ziweiModalOverlay .fr-compat-entry img { display:block; width:100%; height:auto; aspect-ratio:3/2; object-fit:cover; }
+#ziweiModalOverlay .fr-compat-entry > span { display:grid; gap:12px; padding-block:20px; }
+#ziweiModalOverlay .fr-compat-entry strong { font:600 24px/1.5 var(--font-serif); color:var(--fr-accent); }
+#ziweiModalOverlay .fr-compat-entry b { display:block; text-decoration:underline; text-underline-offset:5px; color:var(--fr-accent); }
+#ziweiModalOverlay .fr-compat-entry:hover { border-color:var(--fr-accent); }
+#ziweiModalOverlay .fr-compat-form { padding:24px 0; margin-block:32px; border-block:1px solid var(--fr-rule); border-radius:0; }
+#ziweiModalOverlay .fr-compat-form .zw-cosmic-heading { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; }
+#ziweiModalOverlay .fr-compat-form h2 { margin:0 0 12px; }
+#ziweiModalOverlay .fr-compat-form .zw-cosmic-chip { background:var(--fr-surface); border:1px solid var(--fr-rule); color:var(--fr-accent); }
+#ziweiModalOverlay .fr-compat-form .zw-cosmic-input-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-block:24px; }
+#ziweiModalOverlay .fr-compat-form .zw-cosmic-field { display:grid; gap:8px; min-width:0; }
+#ziweiModalOverlay .fr-compat-form .zw-cosmic-control { box-sizing:border-box; width:100%; max-width:100%; min-width:0; min-height:48px; padding:10px 12px; border:1px solid var(--fr-rule); border-radius:var(--cd-r-control,12px); color:var(--fr-ink); background:var(--fr-surface); font:inherit; color-scheme:dark; }
+#ziweiModalOverlay .fr-compat-form .zw-cosmic-control option { background:var(--fr-surface); color:var(--fr-ink); }
+#ziweiModalOverlay .fr-compat-form .zw-cosmic-btn { grid-column:1/-1; }
+#ziweiModalOverlay .fr-compat-form .zw-cosmic-btn:disabled { opacity:.6; cursor:wait; }
+#ziweiModalOverlay .fr-compat-output { margin-top:24px; }
+#ziweiModalOverlay .fr-compat-report { max-width:800px; margin:0 auto; }
+#ziweiModalOverlay .fr-compat-report-header { padding:28px 0 20px; border-top:1px solid var(--fr-rule); }
+#ziweiModalOverlay .fr-compat-contents { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 24px; border-block:1px solid var(--fr-rule); padding-block:12px; }
+#ziweiModalOverlay .fr-compat-contents a { display:flex; align-items:center; min-height:44px; color:var(--fr-accent); text-decoration:underline; text-underline-offset:4px; font-size:15px; }
+#ziweiModalOverlay .fr-compat-chapter { padding-block:32px; border-bottom:1px solid var(--fr-rule); }
+#ziweiModalOverlay .fr-compat-chapter h3 { margin:0 0 20px; }
+#ziweiModalOverlay .fr-compat-chapter h4 { font-size:18px; margin:24px 0 12px; }
+#ziweiModalOverlay .fr-compat-chapter p { margin:12px 0; max-width:72ch; }
+#ziweiModalOverlay .fr-compat-overview { display:flex; flex-wrap:wrap; gap:20px 32px; margin:24px 0; padding-block:20px; border-block:1px solid var(--fr-rule); }
+#ziweiModalOverlay .fr-compat-overview dt { color:var(--fr-muted); font-size:14px; }
+#ziweiModalOverlay .fr-compat-overview dd { margin:4px 0 0; font-size:18px; color:var(--fr-accent); }
+#ziweiModalOverlay .fr-compat-table-wrap table { width:100%; border-collapse:collapse; table-layout:fixed; }
+#ziweiModalOverlay .fr-compat-table-wrap :is(th,td) { padding:12px 8px; text-align:left; vertical-align:top; border-bottom:1px solid var(--fr-rule); overflow-wrap:anywhere; }
+#ziweiModalOverlay .fr-compat-table-wrap small { display:block; color:var(--fr-muted) !important; font-size:13px !important; font-weight:400; }
+#ziweiModalOverlay .fr-compat-table-wrap caption { text-align:left; padding:12px 0; color:var(--fr-accent); }
+#ziweiModalOverlay .fr-compat-topic + .fr-compat-topic { margin-top:28px; padding-top:8px; border-top:1px solid var(--fr-rule); }
+#ziweiModalOverlay .fr-compat-practice { padding-left:24px; }
+#ziweiModalOverlay .fr-compat-practice li { padding:8px 0; }
+#ziweiModalOverlay .fr-compat-symbolic :is(.zw-pastlife-layout,.zw-pastlife-main) { display:block; padding:0; }
+#ziweiModalOverlay .fr-compat-symbolic :is(.zw-hourglass-wrap,.zw-palace-pillars,.zw-karmic-seals) { display:none; }
+#ziweiModalOverlay .fr-compat-symbolic :is(.zw-pastlife-archive,.zw-chronos-scroll) { padding:12px 0; border:0; }
+@media(max-width:600px) {
+  #ziweiModalOverlay .fr-report-header { align-items:flex-start; }
+  #ziweiModalOverlay .fr-report-panel > summary { padding:16px 12px; gap:12px; }
+  #ziweiModalOverlay .fr-report-panel-body { padding:16px 8px; }
+  #ziweiModalOverlay .fr-compat-entry { grid-template-columns:1fr; gap:0; padding:0; }
+  #ziweiModalOverlay .fr-compat-entry > span { padding:20px; }
+  #ziweiModalOverlay .fr-compat-entry img { aspect-ratio:2/1; }
+  #ziweiModalOverlay .fr-compat-entry strong { font-size:22px; }
+  #ziweiModalOverlay .fr-compat-form .zw-cosmic-input-grid,
+  #ziweiModalOverlay .fr-compat-contents { grid-template-columns:1fr; }
+  #ziweiModalOverlay .fr-basic-report .zw-report-col { min-width:0; }
+  #ziweiModalOverlay .fr-compat-table-wrap :is(th,td) { padding:10px 4px; font-size:14px !important; }
+  #ziweiModalOverlay .fr-compat-chapter { padding-block:24px; }
+}

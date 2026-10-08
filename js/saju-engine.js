@@ -23202,49 +23202,94 @@ function renderZiwei(p, natal, targetId) {
       var conflictScenario = weakestCategory.key + ' 점수(' + weakestCategory.val + '점)가 가장 낮아 이 축에서 갈등 체감이 커질 수 있습니다. '
         + '특히 ' + weakestCategory.key + ' 관련 이슈가 발생하면 작은 의견 차이도 누적되기 쉬우므로, 기준(우선순위·시간·표현 방식)을 먼저 합의하는 것이 안전합니다.';
 
-      outEl.innerHTML = '<div class="zw-compat-result-shell">'
-        + '<div style="position:absolute;left:-20px;top:-28px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(251,113,133,0.18),rgba(251,113,133,0));pointer-events:none;"></div>'
-        + '<div style="position:absolute;right:-40px;bottom:-55px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(217,70,239,0.14),rgba(217,70,239,0));pointer-events:none;"></div>'
-        + '<div class="zw-compat-result-inner">'
-        + '<div class="zw-compat-result-head card-content">'
-        + '<div class="zw-compat-headline section-title">🌟 '+userLabel+' x '+partnerLabel+' 궁합 레포트: "'+relationAlias+'"</div>'
-        + '<div class="zw-compat-subline">종합 점수 <b class="compatibility-score">'+overallScore+'점</b> · 장점 시너지 반영</div>'
-        + '<div class="zw-compat-meta">궁합 합산 근거: 오행/성정 '+layer1Bonus+' + 궁위 매칭 '+layer2Bonus+' + 사화 완충 '+layer3Bonus+' + 대운 동기화 '+layer4Bonus+'</div>'
-        + '<div class="zw-compat-meta">상대 보정 시간: '+z2(correctedHour)+':'+z2(correctedMinute)+' · 도시: '+cityLabel+'</div>'
-        + '</div>'
-        + '<div class="zw-compat-core-grid">'
-        + '<div class="zw-compat-core-panel">'
-        + '<div class="zw-compat-core-title palace-title">핵심 시너지</div>'
-        + '<div class="zw-compat-core-text">'
-        + '<b>성격 시너지:</b> '+layer1Text+'<br>'
-        + '<b>운명적 매칭:</b> '+layer2Text+'<br>'
-        + '<b>행운의 전이:</b> 상대와 함께할 때 '+bestCategory.key+' 축이 가장 강하게 활성화됩니다.'
-        + '</div>'
-        + '</div>'
-        + '<div class="zw-compat-core-panel">'
-        + '<div class="zw-compat-core-title palace-title">갈등 예방 & 조율</div>'
-        + '<div class="zw-compat-core-text">'
-        + '<b>주의 신호:</b> '+warningSignal+'<br>'
-        + '<b>단점 기반 트리거:</b> '+conflictTrigger+'<br>'
-        + '<b>조율법 1:</b> '+patch1+'<br>'
-        + '<b>조율법 2:</b> '+patch2+'<br>'
-        + '<b>취약 구간 시나리오:</b> '+conflictScenario
-        + (layer3Text ? ('<br><b>사화 시너지 부스터:</b> '+layer3Text) : '')
-        + '</div>'
-        + '</div>'
-        + '</div>'
-        + '<details class="zw-compat-ref-details">'
-        + '<summary class="zw-compat-ref-summary"><span class="zw-compat-ref-title">점수별 해석 펼치기</span><span class="zw-compat-ref-indicator">열기/닫기</span></summary>'
-        + '<div class="zw-compat-ref-content">'+guideHtml+'</div>'
-        + '</details>'
-        + '<details class="zw-compat-ref-details">'
-        + '<summary class="zw-compat-ref-summary"><span class="zw-compat-ref-title">전생 인연 리포트 펼치기</span><span class="zw-compat-ref-indicator">열기/닫기</span></summary>'
-        + '<div class="zw-compat-ref-content" style="padding:8px 0 0 0;">'
-        + pastLifeHtml
-        + '</div>'
-        + '</details>'
-        + '</div>'
-        + '</div>';
+      // Static report: consume the existing chart snapshots and scores; no new request or calculation.
+      var starReading = {
+        '자미': '관계의 중심을 잡고 책임을 맡으려는 성향입니다. 중요한 결정을 혼자 떠안기보다 상대의 결정권도 분명히 남겨두면 신뢰로 이어집니다.',
+        '천기': '가능성을 비교하고 대화로 방향을 찾는 성향입니다. 생각이 자주 바뀌는 때에는 결론보다 검토 중인 이유를 먼저 나누는 편이 좋습니다.',
+        '태양': '관심과 애정을 행동으로 드러내려는 성향입니다. 돕는 방식이 상대가 원하는 도움과 같은지 확인하면 과한 책임감을 줄일 수 있습니다.',
+        '무곡': '실행과 약속의 이행을 중요하게 보는 성향입니다. 실질적인 배려에 감정을 설명하는 한마디를 더하면 차갑다는 오해를 줄일 수 있습니다.',
+        '천동': '편안한 분위기와 정서적 안정을 소중히 여기는 성향입니다. 평화를 위해 불편함을 미루기보다 작은 요구부터 말하는 연습이 도움이 됩니다.',
+        '염정': '관계의 기준과 감정의 진정성을 세밀하게 살피는 성향입니다. 확인하고 싶은 마음을 평가나 시험 대신 구체적인 질문으로 전해보세요.',
+        '천부': '익숙한 생활과 자원을 안정적으로 지키려는 성향입니다. 변화가 필요한 순간에는 지켜야 할 것과 바꿔도 되는 것을 함께 구분해보세요.',
+        '태음': '미묘한 감정과 일상의 배려를 깊이 받아들이는 성향입니다. 상대가 마음을 알아주기를 기다리기보다 원하는 표현을 짧게 알려주면 좋습니다.',
+        '탐랑': '새로운 경험과 교류에서 활력을 얻는 성향입니다. 각자의 자유와 함께 보내는 시간의 기준을 정하면 호기심이 관계의 즐거움이 됩니다.',
+        '거문': '말의 의미와 문제의 원인을 깊이 따져보는 성향입니다. 분석에 앞서 상대의 감정을 확인하면 설명이 논쟁으로 번지는 일을 줄일 수 있습니다.',
+        '천상': '균형과 공정한 역할 분담을 중요하게 보는 성향입니다. 모두를 만족시키려 하기보다 자신의 한계와 요청도 대화에 포함해보세요.',
+        '천량': '돌보고 보호하며 원칙을 지키려는 성향입니다. 조언하기 전에 상대가 공감과 해결책 중 무엇을 원하는지 묻는 것이 도움이 됩니다.',
+        '칠살': '어려운 상황에서 빠르게 결단하고 독립적으로 움직이려는 성향입니다. 속도를 낼수록 함께 결정할 범위를 먼저 정하면 협력이 쉬워집니다.',
+        '파군': '익숙한 방식을 바꾸고 새로운 선택을 시도하려는 성향입니다. 변화의 이유와 감당할 범위를 공유하면 상대도 준비할 시간을 가질 수 있습니다.'
+      };
+      var paragraph = function(text) { return '<p>'+safeText(text)+'</p>'; };
+      var chapter = function(id, title, body) {
+        return '<section class="fr-compat-chapter" id="zwCompatChapter-'+id+'"><h3>'+safeText(title)+'</h3>'+body+'</section>';
+      };
+      var palaceLine = function(label, key, meaning) {
+        var format = function(p) { return starsTxt(p.main, '주성 없음') + (p.borrowedCount ? ' (차성 포함)' : ''); };
+        return '<tr><th scope="row">'+safeText(label)+'<small>'+safeText(meaning)+'</small></th><td>'+safeText(format(mePal[key]))+'</td><td>'+safeText(format(youPal[key]))+'</td></tr>';
+      };
+      var coreReading = function(label, p) {
+        var text = p.main.map(function(star) { return starReading[star] ? star+' — '+starReading[star] : ''; }).filter(Boolean);
+        return '<h4>'+safeText(label)+'</h4>'+paragraph(text.join(' ') || '이 궁에는 직접 읽을 주성이 없습니다. 맞은편 궁과 보조성을 함께 살피며, 주성이 없다는 이유만으로 성향이나 관계를 약하다고 판단하지 않습니다.')
+          +(p.borrowedCount ? paragraph('차성이 포함되어 있습니다. 차성은 맞은편 궁에서 참고하는 주성으로, 이 궁에 직접 자리한 별과 구분해서 읽습니다.') : '');
+      };
+      var category = function(key, body, action, evidence) {
+        var row = catRows.find(function(c) { return c.key === key; });
+        return '<section class="fr-compat-topic"><h4>'+safeText(key)+' <span>'+row.val+'점</span></h4>'
+          +'<p class="fr-report-note">해석 근거 · '+safeText(evidence)+'</p>'+paragraph(body)
+          +'<p><strong>함께 해볼 일</strong> '+safeText(action)+'</p></section>';
+      };
+      var chapters = [
+        ['summary', '관계의 큰 흐름'], ['basis', '두 명반의 성향과 근거'],
+        ['relationship', '사랑·생활·친구로서의 호흡'], ['work', '일과 협력의 방식'],
+        ['repair', '갈등을 줄이는 대화'], ['timing', '시기의 흐름을 읽는 기준'],
+        ['practice', '두 사람의 실천 계획'], ['reference', '참고 기록과 상징 이야기']
+      ];
+      var contents = '<nav class="fr-compat-contents" aria-label="궁합 리포트 목차">'+chapters.map(function(item, i) {
+        return '<a href="#zwCompatChapter-'+item[0]+'">'+(i+1)+'. '+item[1]+'</a>';
+      }).join('')+'</nav>';
+      var overview = paragraph('두 사람은 '+bestCategory.key+'에서 상대적으로 호흡을 맞추기 쉽고, '+weakestCategory.key+'에서는 기대와 역할을 더 세밀하게 나눠볼 필요가 있는 조합입니다. 가장 낮은 항목도 관계의 실패를 뜻하지 않습니다. 서로의 실제 경험과 맞는 부분부터 대화의 출발점으로 삼아보세요.')
+        +'<dl class="fr-compat-overview"><div><dt>함께 살릴 강점</dt><dd>'+safeText(bestCategory.key)+'</dd></div><div><dt>먼저 조율할 주제</dt><dd>'+safeText(weakestCategory.key)+'</dd></div><div><dt>종합 참고 지수</dt><dd>'+overallScore+' / 100</dd></div></dl>'
+        +paragraph('이 지수는 별의 공통성, 보조성, 주의 요소와 내부 보정 규칙을 요약한 참고값입니다. 성공 확률이나 상대의 마음을 측정한 결과가 아니며, 한 점의 차이보다 근거와 조언을 함께 읽는 것이 중요합니다.');
+      var basis = paragraph('명궁은 기본 성향, 부부궁은 친밀한 관계에서 기대하는 방식, 복덕궁은 마음이 쉬는 방식을 살펴보는 자리입니다. 같은 별이 있어도 행동이 같다는 뜻은 아니며, 다른 별의 조합 역시 서로 보완할 여지가 있습니다.')
+        +'<div class="fr-compat-table-wrap"><table><caption>주요 궁의 주성 비교</caption><thead><tr><th scope="col">살펴볼 영역</th><th scope="col">'+userLabel+'</th><th scope="col">'+partnerLabel+'</th></tr></thead><tbody>'
+        +palaceLine('명궁','meng','기본 성향')+palaceLine('부부궁','spouse','관계의 기대')+palaceLine('복덕궁','bok','정서와 휴식')+palaceLine('전택궁','home','생활 기반')+palaceLine('관록궁','job','일하는 방식')+palaceLine('재백궁','wealth','자원 관리')+'</tbody></table></div>'
+        +coreReading('나의 명궁에서 읽는 성향', mePal.meng)+coreReading('상대의 명궁에서 읽는 성향', youPal.meng)
+        +paragraph('관계의 기대를 읽는 부부궁 주성은 나 '+starsTxt(mePal.spouse.main, '주성 없음')+', 상대 '+starsTxt(youPal.spouse.main, '주성 없음')+'입니다. 기대하는 배려와 실제 표현 방식이 일치하는지는 대화로 확인해보세요.');
+      var relationships = category('연애 궁합', loveDesc, '연락 횟수를 바로 정하기보다, 답이 늦을 때 각자가 어떻게 느끼는지 먼저 나눠보세요. 그 뒤 바쁜 날의 짧은 알림과 다시 연락할 시간을 합의해보세요.', '부부궁 50% · 명궁 30% · 복덕궁 20%')
+        +category('결혼 궁합', marriageDesc, '집안일·공동 지출·혼자 쉬는 시간을 각각 적고, 부담이 한쪽으로 쏠리는 항목 하나를 조정해보세요. 생활의 합은 애정의 크기와 별개로 연습할 수 있습니다.', '부부궁 45% · 전택궁 35% · 복덕궁 20%')
+        +category('친구 궁합', friendDesc, '자주 만나기와 편안하게 만나기 중 각자가 중요하게 여기는 것을 확인해보세요. 조언이 필요한 날인지, 들어주기만 바라는 날인지 묻는 것도 좋습니다.', '명궁 50% · 복덕궁 50%');
+      var work = category('직장 궁합', workDesc, '일을 시작하기 전에 결정 담당자, 완료 기준, 중간 확인 시점을 정해보세요. 방식이 다를 때는 누가 옳은지보다 어디에서 인계할지에 초점을 맞춰보세요.', '관록궁 55% · 명궁 45%')
+        +category('사업 궁합', '재백궁의 자원 관리, 관록궁의 실행 방식, 전택궁의 기반을 함께 살폈습니다. 재백궁 주성은 나 '+coreTxt(mePal.wealth)+', 상대 '+coreTxt(youPal.wealth)+'이며, 공통 주성은 '+starsTxt(bizSharedWealth)+'입니다. 별의 유사성은 재무 능력이나 수익을 보장하지 않습니다. 서로 다른 기준을 문서로 맞춰가는 과정이 중요합니다.', '지출 승인 범위, 정산 주기, 역할 변경 절차를 시작 전에 기록해보세요. 궁합 점수로 투자나 계약의 안전성을 판단하지 마세요.', '재백궁 45% · 관록궁 35% · 전택궁 20%');
+      var repair = paragraph(conflictTrigger)+paragraph('현재 비교에서 '+weakestCategory.key+'가 상대적으로 낮게 나타났습니다. 이 영역에서 실제 불편이 있었는지 먼저 확인하고, 경험과 맞지 않는 설명은 억지로 적용하지 않아도 됩니다.')
+        +'<h4>대화를 다시 시작하는 방법</h4>'+paragraph(patch1)+paragraph(patch2)
+        +paragraph(myHwagi.length ? '나의 생년 사화 중 화기는 '+myHwagi.join(' · ')+'에서 확인됩니다. 화기는 집착이나 마찰을 점검하는 단서이며 상대가 이를 해결해준다는 보장은 아닙니다. 불편을 알아차렸을 때 기대·요청·경계를 직접 말하는 것이 중요합니다.' : '확인된 생년 사화 자료에서 나의 화기 주성을 특정하지 못했습니다. 이것만으로 갈등이 없거나 관계가 안전하다고 판단하지 않습니다.');
+      var timing = paragraph('대한은 각자의 명반에서 약 10년 단위로 관심 영역을 읽는 틀입니다. 이 계산의 중첩값은 두 사람의 나이 구간을 비교하며, 출생연도가 다르면 같은 나이라도 같은 달력 연도가 아닙니다. 따라서 만남·결혼의 특정 연도를 예측하는 자료로 사용하지 않습니다.')
+        +paragraph(periodOverlap.length ? '나이 구간의 비교 예: '+periodOverlap[0].st+'~'+periodOverlap[0].ed+'세에서 나의 '+periodOverlap[0].meP+'와 상대의 '+periodOverlap[0].youP+'가 겹칩니다. 각자가 그 나이에 중요하게 여길 생활 주제를 비교하는 참고 항목입니다.' : '주요 궁의 나이 구간에서 직접 겹치는 항목을 찾지 못했습니다. 서로의 시기가 맞지 않는다는 결론으로 확대하지 않습니다.')
+        +paragraph('가까운 시기의 선택은 현재 일정과 현실 조건을 함께 살펴보세요. 이 리포트에는 두 사람의 특정 연도별 세운을 교차 검증한 결과가 포함되어 있지 않습니다.');
+      var practice = '<ol class="fr-compat-practice"><li><strong>오늘 · 기대 하나씩 나누기</strong><p>관계에서 지키고 싶은 것과 바꾸고 싶은 것을 하나씩 적어보세요. 상대의 답을 바로 평가하지 않고, 이해한 내용을 되짚어주세요.</p></li><li><strong>이번 주 · 작은 약속 시험하기</strong><p>'+safeText(patch1)+'</p></li><li><strong>다음 대화 · 실제 변화 확인하기</strong><p>약속을 지키기 쉬웠는지, 부담은 없었는지 함께 확인하세요. 잘 맞지 않으면 더 작은 단위로 바꿔보세요.</p></li></ol>'
+        +paragraph('두 명반의 차이는 누가 더 좋은 사람인지를 가르는 기준이 아닙니다. 서로를 바꾸려 하기보다 이해할 수 있는 언어와 지킬 수 있는 약속을 찾는 데 이 리포트를 활용해보세요.');
+      var reference = '<details class="fr-report-reference"><summary>점수 구성과 입력 기준</summary>'
+        +paragraph('분야별 원점수: 연애 '+loveScore+', 결혼 '+marriageScore+', 친구 '+friendScore+', 직장 '+workScore+', 사업 '+businessScore+'. 종합값은 이 순서로 30%·25%·14%·18%·13%를 반영하고 내부 보정값을 더한 뒤 범위를 제한합니다. 표시되는 분야별 지수에도 종합값과의 차이를 맞추는 보정이 들어갑니다.')
+        +paragraph('보정 항목: 주성 성향 '+layer1Bonus+', 관계 기대와 성향 비교 '+layer2Bonus+', 사화 관련 보정 '+layer3Bonus+', 나이 구간 중첩 '+layer4Bonus+'. 이 수치는 서비스 내부 규칙이며 전통 자미두수의 공인된 관계 점수가 아닙니다.')
+        +paragraph('상대 출생지: '+cityLabel+' · 입력 시각 '+bTime+' · 보정 시각 '+z2(correctedHour)+':'+z2(correctedMinute)+'. '+correctionMsg)
+        +paragraph('정확한 출생 시각에 따라 명궁과 별 배치가 달라질 수 있습니다. 정오 12:00이 기본 입력값으로 남아 있다면 실제 시각인지 확인해 주세요. 상대 성별 입력만으로 상대의 대한 방향까지 검증한 결과로 보지는 않습니다.')+'</details>'
+        +'<details class="fr-report-reference fr-compat-symbolic"><summary>상징으로 읽는 인연 이야기</summary>'+paragraph('아래는 별의 상징을 바탕으로 구성한 창작 이야기입니다. 실제 전생·장소·관계의 사실을 확인한 기록이 아니며, 인연 점수도 증거가 아닙니다. 앞의 명반 근거와 구분해 가볍게 읽어보세요.')+pastLifeHtml+'</details>';
+      outEl.innerHTML = '<article class="fr-compat-report"><header class="fr-compat-report-header"><h2>'+userLabel+'과 '+partnerLabel+'의 자미두수 궁합</h2>'
+        +paragraph('두 명반의 근거를 따라 읽는 관계 종합 리포트')+'</header>'+contents
+        +chapter('summary', '1. 관계의 큰 흐름', overview)+chapter('basis', '2. 두 명반의 성향과 근거', basis)
+        +chapter('relationship', '3. 사랑·생활·친구로서의 호흡', relationships)+chapter('work', '4. 일과 협력의 방식', work)
+        +chapter('repair', '5. 갈등을 줄이는 대화', repair)+chapter('timing', '6. 시기의 흐름을 읽는 기준', timing)
+        +chapter('practice', '7. 두 사람의 실천 계획', practice)+chapter('reference', '8. 참고 기록과 상징 이야기', reference)+'</article>';
+      outEl.querySelectorAll('.fr-compat-contents a').forEach(function(link) {
+        link.addEventListener('click', function(event) {
+          var target = outEl.querySelector(link.getAttribute('href'));
+          if (!target) return;
+          event.preventDefault();
+          target.setAttribute('tabindex', '-1');
+          target.scrollIntoView({ block: 'start', behavior: 'instant' });
+          target.focus({ preventScroll: true });
+        });
+      });
 
       try {
         var zwLlm = document.createElement('div');
@@ -24571,15 +24616,12 @@ function renderZiwei(p, natal, targetId) {
           });
         }
 
-        var sec_compat = '<div class="zw-cosmic-card zw-compat-card report-card report-section love-card compatibility-card star-effect">'
-          +'<div class="zw-cosmic-stars"></div>'
-          +'<div style="position:absolute;inset:-42% auto auto -10%;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(196,181,253,0.15),rgba(196,181,253,0));pointer-events:none;"></div>'
-          +'<div style="position:absolute;inset:auto -16% -52% auto;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(192,132,252,0.12),rgba(192,132,252,0));pointer-events:none;"></div>'
+        var sec_compat = '<div id="zwCompatibility" class="zw-compat-card fr-compat-form">'
           +'<div class="zw-cosmic-heading">'
-            +'<h2 class="section-title love-title" style="font-size:1.13rem;margin:0;font-weight:900;letter-spacing:0.01em;">🧿 자미두수 궁합</h2>'
+            +'<h2>자미두수 궁합 리포트</h2>'
             +'<span class="zw-cosmic-chip">' + (ZW_COMPAT_COST * 100).toLocaleString('ko-KR') + '원</span>'
           +'</div>'
-          +'<div class="card-content love-text" style="position:relative;z-index:1;background:rgba(35,24,56,0.46);border:1px solid rgba(216,180,254,0.24);border-radius:10px;padding:11px 12px;margin-bottom:10px;">'
+          +'<div class="fr-compat-form-body">'
             +'<div style="margin-bottom:8px;">상대의 태어난 순간을 넣으면 두 명반을 나란히 놓고 읽습니다. 기본 명반 해석과는 별도로 계산되며, <b>궁합 보기</b>를 누른 뒤 ' + (ZW_COMPAT_COST * 100).toLocaleString('ko-KR') + '원 결제 안내가 나옵니다.</div>'
             +'<div class="zw-cosmic-input-grid">'
               +'<label class="zw-cosmic-field"><span>상대 생년월일</span><input id="zwCompatBirthDate" type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-cd-birthdate-digits class="zw-cosmic-control"></label>'
@@ -24588,11 +24630,11 @@ function renderZiwei(p, natal, targetId) {
               +'<label class="zw-cosmic-field"><span>상대 태어난 도시</span><select id="zwCompatBirthCity" class="zw-cosmic-control">'+compatCityOptions+'</select></label>'
               +'<button type="button" onclick="window._runZwCompatibility()" class="zw-cosmic-btn">궁합 보기</button>'
             +'</div>'
-            +'<div id="zwCompatTimeCorrectionInfo" style="margin-top:8px;color:#ddd6fe;font-size:0.82rem;line-height:1.6;background:rgba(30,20,50,0.48);border:1px solid rgba(196,181,253,0.24);border-radius:8px;padding:8px 10px;">도시 선택 시 진태양시 보정(경도·DST)을 자동 반영합니다.</div>'
+            +'<div id="zwCompatTimeCorrectionInfo" class="fr-report-note">도시 선택 시 진태양시 보정(경도·DST)을 자동 반영합니다.</div>'
           +'</div>'
-          +'<div id="zwCompatResult" class="love-text" style="position:relative;z-index:1;background:rgba(20,14,36,0.55);border:1px dashed rgba(196,181,253,0.35);border-radius:10px;padding:11px 12px;color:#ddd6fe;font-size:0.86rem;line-height:1.7;">'
+          +'<div id="zwCompatResult" class="fr-compat-output" aria-live="polite">'
             +'아직 상대 정보가 입력되지 않았습니다. 입력 후 <b>궁합 보기</b> 버튼을 눌러 주세요.<br>'
-            +'<span style="color:#a5b4fc;">카테고리: 연애 · 결혼 · 친구 · 직장 · 사업 관계 확장</span>'
+            +'<span>카테고리: 연애 · 결혼 · 친구 · 직장 · 사업 관계 확장</span>'
           +'</div>'
         +'</div>';
 
@@ -25042,7 +25084,7 @@ function renderZiwei(p, natal, targetId) {
           +'<p style="font-size:0.8rem;color:#c4b5fd;line-height:1.65;margin:0 0 12px;">유년 '+zwFlowEsc(flowGanji || String(flowYear))+'의 사화와 12궁 흐름을 월별로 펼친 운세입니다.</p>'
           +monthlySummaryHtml
           +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin-bottom:14px;">'+monthlyFlowHtml+'</div>'
-          +'<div class="cd-section-gate zw-basic-paid-gate" id="ziweiDecadeLuckGate" data-cd-marker="ziwei-basic-paid-gate-v20260617-daehan" data-unlock-key="ziwei_decade_luck" data-locked-title="' + _sajuEngineText("se_21090_attr_title") + '" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 1,000원 결제가 필요합니다." style="border-radius:12px;margin-top:14px;">'
+          +'<div class="cd-section-gate zw-basic-paid-gate fr-report-gate" id="ziweiDecadeLuckGate" data-cd-marker="ziwei-basic-paid-gate-v20260617-daehan" data-unlock-key="ziwei_decade_luck" data-locked-title="' + _sajuEngineText("se_21090_attr_title") + '" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 1,000원 결제가 필요합니다." style="border-radius:12px;margin-top:14px;">'
             +'<div class="cd-section-gate__overlay">'
               +'<div class="cd-section-gate__icon">🔐</div>'
               +'<p class="cd-section-gate__title">자미두수 10년운 — 프리미엄 콘텐츠</p>'
@@ -25889,23 +25931,12 @@ function renderZiwei(p, natal, targetId) {
         var sec4 = '';
 
         function zwReadingPanel(title, eyebrow, bodyHtml, open, accent, preview) {
-          var color = accent || '#c4b5fd';
-          var previewHtml = preview
-            ? '<div style="color:#cbd5e1;font-size:0.76rem;line-height:1.55;margin-top:4px;">'+zwFlowEsc(preview)+'</div>'
-            : '';
-          return '<details '+(open ? 'open ' : '')+'class="zw-reading-panel" style="background:rgba(15,23,42,0.54);border:1px solid '+color+'55;border-radius:12px;margin-bottom:10px;overflow:hidden;box-shadow:0 12px 26px rgba(0,0,0,0.18);">'
-            +'<summary style="list-style:none;cursor:pointer;padding:13px 14px;background:linear-gradient(135deg,rgba(15,23,42,0.82),rgba(30,27,75,0.54));">'
-              +'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">'
-                +'<div style="min-width:0;">'
-                  +'<div style="color:'+color+';font-size:0.72rem;font-weight:900;letter-spacing:0.02em;">'+zwFlowEsc(eyebrow)+'</div>'
-                  +'<div style="color:#f8fafc;font-size:0.98rem;font-weight:900;line-height:1.45;margin-top:2px;">'+zwFlowEsc(title)+'</div>'
-                  +previewHtml
-                +'</div>'
-                +'<span data-zw-panel-state style="display:inline-flex;align-items:center;border:1px solid '+color+'66;background:'+color+'18;color:'+color+';border-radius:999px;padding:5px 9px;font-size:0.72rem;font-weight:900;white-space:nowrap;">'+(open ? '접기' : '펼치기')+'</span>'
-              +'</div>'
-            +'</summary>'
-            +'<div style="padding:12px 12px 2px;">'+bodyHtml+'</div>'
-          +'</details>';
+          return '<details '+(open ? 'open ' : '')+'class="zw-reading-panel fr-report-panel">'
+            +'<summary><span class="fr-report-panel-heading"><strong>'+zwFlowEsc(title)+'</strong>'
+            +'<span class="fr-report-panel-meta">'+zwFlowEsc(eyebrow)+'</span>'
+            +(preview ? '<span class="fr-report-panel-preview">'+zwFlowEsc(preview)+'</span>' : '')
+            +'</span><span data-zw-panel-state>'+(open ? '접기' : '펼치기')+'</span></summary>'
+            +'<div class="fr-report-panel-body">'+bodyHtml+'</div></details>';
         }
 
         function zwBasicPaidFeatureUnlocked(featureKey) {
@@ -26009,7 +26040,7 @@ function renderZiwei(p, natal, targetId) {
           +sec_compat
         +'</section>'
         +'<section data-cd-marker="ziwei-extension-stack-v20260615-step2" style="margin-bottom:20px;opacity:0.96;">'
-          +'<div style="margin:4px 0 9px;padding:10px 12px;border:1px solid rgba(196,181,253,0.2);border-radius:10px;background:rgba(30,27,75,0.18);color:#ddd6fe;font-size:0.77rem;line-height:1.6;"><b style="color:#f5d0fe;">더 깊이 볼 때</b><br>무료 기본 3장을 먼저 읽고, 필요한 심화 장만 원화 기준으로 여는 구조입니다. 이미 유료인 대한 흐름은 기존 결제 흐름을 유지합니다.</div>'
+          +'<div style="margin:4px 0 9px;padding:10px 12px;border:1px solid rgba(196,181,253,0.2);border-radius:10px;background:rgba(30,27,75,0.18);color:#ddd6fe;font-size:0.77rem;line-height:1.6;"><b style="color:#f5d0fe;">더 깊이 볼 때</b><br>기본 해석 3장을 읽은 뒤, 더 궁금한 주제를 선택해 보세요. 이용권·월정석·단건 결제의 적용 여부와 금액은 각 장의 안내에서 확인할 수 있어요.</div>'
           +zwReadingPanel('부부궁 심화 상담', '유료 관계 · 1,000원', zwBasicPaidGateHtml('ziwei_love_deep', 10, '부부궁 심화 상담', '반복 패턴·공식화 시기·관계 조언을 엽니다.', sec_love_deep_reading, '#f9a8d4', 'ziwei.loveDeep'), false, '#f9a8d4', '관계 그림, 반복 패턴, 공식화 시기를 상담형으로 봅니다.')
           +zwReadingPanel('12궁 정밀 해설', '유료 궁위 · 1,000원', zwBasicPaidGateHtml('ziwei_twelve_palaces', 10, '12궁 정밀 해설', '명궁부터 복덕궁까지 세부 근거를 엽니다.', sec2, '#6ee7b7', 'ziwei.twelvePalaces'), false, '#6ee7b7', '세부 궁위를 모두 펼쳐 기본 결론의 근거를 확인합니다.')
           +zwReadingPanel('대한·변곡점 요약', '흐름 장', sec_dahan + sec_pivot, false, '#a78bfa', '시기별 변화와 전환점을 참고용으로 봅니다.')
@@ -26038,14 +26069,14 @@ function renderZiwei(p, natal, targetId) {
             + sec3
             + '</div>';
         } else {
-          contentHtml = '<div style="font-family:\'Suit\',sans-serif; background:#121212; color:#E2E8F0; padding:20px; border-radius:12px; width:100%; box-sizing:border-box;">'
-            + '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:2px solid #8B5CF6;padding-bottom:15px;margin-bottom:20px;">'
-            + '<h1 style="margin:0;color:#C084FC;font-size:1.5rem;">자미두수 기본 명반 리포트</h1>'
+          contentHtml = '<article class="fr-basic-report">'
+            + '<header class="fr-report-header">'
+            + '<h2>자미두수 기본 명반 리포트</h2>'
             + (showClose ? '<button type="button" class="zw-report-close-btn" onclick="window._closeZwComprehensiveReport()">리포트 닫기 ✕</button>' : '')
-            + '</div>'
-            + ziweiPrecisionNotice
+            + '</header>'
+            + '<details class="fr-report-reference"><summary>출생 정보와 해석 기준</summary>' + ziweiPrecisionNotice + '</details>'
             + sec_ziwei_overview + ziweiReadingStack
-            + '</div>';
+            + '</article>';
         }
 
         var radarBaseLabels = {psy:['잠재력','리더십','회복탄력성','창의성','스트레스'],rel:['인복','결속력','이성매력','관계확장','마찰도'],fin:['수익창출','자산보존','직업안정','돌파력','파재손실'],time:['활동력','적응력','명예운','변화지수','돌발변수'],well:['컨디션','멘탈케어','회복력','행복지수','긴장도']};
