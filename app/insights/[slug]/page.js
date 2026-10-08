@@ -1,3 +1,5 @@
+import { RecommendationResult } from '@/app/components/recommendations/RecommendationResult';
+import { editorialTopics } from '@/js/recommendations-editorial.mjs';
 import { publicRecordCopy, PUBLIC_RECORD_PATH } from '../../../lib/seo/public-record-copy.mjs';
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -313,6 +315,7 @@ export default async function InsightArticlePage({ params }) {
           </nav>
         ) : null}
 
+        <RecommendationResult service="recommendations" source="article" brand="ggulggul" practiceTags={editorialTopics(slug)}/>
         <ContentIntegrityNote
           contentPath={`/insights/${slug}`}
           contentSource={article.contentSource}

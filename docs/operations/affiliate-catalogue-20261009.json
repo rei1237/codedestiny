@@ -1,0 +1,110 @@
+{
+  "status": "reviewed-links-not-registered",
+  "reviewDate": "2026-10-09",
+  "aliexpress": {
+    "trackingId": "NEO2277",
+    "enabled": false,
+    "officialLinksPending": true
+  },
+  "books": [
+    {
+      "id": "atomic-habits-ko",
+      "title": "아주 작은 습관의 힘 (50만 부 기념 스페셜 에디션)",
+      "url": "https://link.coupang.com/re/AFFSDP?lptag=AF7837486&pageKey=9488999850&itemId=28259376032&traceid=V0-101-8b5bbf5e02c76dda",
+      "author": "제임스 클리어 / 이한이 옮김",
+      "publisher": "비즈니스북스",
+      "edition": "50만 부 기념 스페셜 에디션",
+      "isbn": "9791162540640",
+      "perspective": "practical",
+      "source": "https://www.yes24.com/product/goods/69655504",
+      "contents": "작은 행동을 시작하기 쉽게 만드는 환경과 반복 습관을 다룬다.",
+      "audience": "작은 실천을 꾸준히 이어가고 싶은 독자",
+      "tags": {
+        "habit-building": "작은 행동을 꾸준히 반복하라는 조언에 맞춰, 시작하기 쉬운 환경과 습관을 만드는 방법을 살펴볼 수 있어요."
+      }
+    },
+    {
+      "id": "mindfulness-poems-ko",
+      "title": "마음챙김의 시",
+      "url": "https://link.coupang.com/re/AFFSDP?lptag=AF7837486&pageKey=2122569341&itemId=3601969503&traceid=V0-101-e30928d795f88d0f",
+      "author": "류시화 엮음",
+      "publisher": "수오서재",
+      "edition": "2020년 9월 17일 발행",
+      "isbn": "9791190382267",
+      "perspective": "poetry",
+      "source": "https://www.yes24.com/product/goods/92462696",
+      "contents": "내려놓음, 현재의 순간, 삶의 속도를 돌아보는 시를 엮은 시집. 명상 실습 교재는 아니다.",
+      "audience": "시를 천천히 읽으며 자신의 일상을 돌아보고 싶은 독자",
+      "tags": {
+        "letting-go": "지난 일에서 한 걸음 물러나라는 조언과 함께, 내려놓음을 다루는 시를 천천히 읽고 자신의 생각을 적어볼 수 있어요.",
+        "mindfulness": "현재의 순간을 살피라는 조언에 맞춰, 일상의 감각을 새롭게 바라보는 시를 한 편씩 읽어보세요.",
+        "rest": "일상의 속도를 늦추라는 조언과 함께, 잠시 멈춰 짧은 시를 읽는 시간을 가져볼 수 있어요."
+      }
+    },
+    {
+      "id": "saying-no-ko",
+      "title": "거절 잘 하는 법",
+      "url": "https://link.coupang.com/re/AFFSDP?lptag=AF7837486&pageKey=1766979093&itemId=3008780280&traceid=V0-101-ff3e9329b75dbd2f",
+      "author": "이하늘",
+      "publisher": "카시오페아",
+      "edition": "ISBN 9791188674299 종이책",
+      "isbn": "9791188674299",
+      "perspective": "practical",
+      "source": "https://www.yes24.com/product/goods/64611915",
+      "contents": "자신의 감정과 요청을 구분하고 거절 기준과 표현을 연습하는 관계 실용서.",
+      "audience": "부탁에 응하기 전에 자신의 기준을 확인하고 싶은 독자",
+      "tags": {
+        "boundaries": "자신의 기준을 지키라는 조언에 맞춰, 부탁을 받았을 때 자신의 의사를 분명하게 표현하는 방법을 살펴볼 수 있어요.",
+        "relationship-patterns": "반복해서 원치 않는 부탁을 수락하는 선택을 돌아볼 때, 나만의 거절 기준을 정하는 부분을 참고할 수 있어요."
+      }
+    },
+    {
+      "id": "psychology-money-2026-ko",
+      "title": "돈의 심리학 (50만 부 기념 뉴 에디션)",
+      "url": "https://link.coupang.com/re/AFFSDP?lptag=AF7837486&pageKey=9291662112&itemId=27518928715&traceid=V0-101-f040eb3cf8dd1472",
+      "author": "모건 하우절 / 이지연 옮김",
+      "publisher": "인플루엔셜",
+      "edition": "2026년 1월 14일 · 50만 부 기념 뉴 에디션",
+      "isbn": "9791168343443",
+      "perspective": "practical",
+      "source": "https://www.yes24.com/Product/Goods/172574653",
+      "contents": "소비 욕망과 저축, 돈을 대하는 태도를 다룬다. 예산표 작성 교재나 수익 보장 자료가 아니다.",
+      "audience": "소비와 저축의 기준을 돌아보고 싶은 독자",
+      "tags": {
+        "budgeting": "지출을 점검하라는 조언과 연결해, 소비 욕망과 저축을 다루는 장을 읽으며 돈을 쓰는 기준을 돌아볼 수 있어요. 가계부 작성법 자체를 설명하는 책은 아니에요."
+      }
+    },
+    {
+      "id": "karma-counselling-ko",
+      "title": "카르마 상담소",
+      "url": "https://link.coupang.com/a/hGJHZ3BLRk",
+      "author": "이충현",
+      "publisher": "담앤북스",
+      "edition": "2023년 11월 22일 발행",
+      "isbn": "9791162014110",
+      "perspective": "buddhist-philosophy",
+      "source": "https://bookshop.yes24.com/goods/detail/123816746",
+      "contents": "불교의 업과 의지, 인과를 설명하고 상담 사례를 담은 책. 저자의 종교철학적 관점으로 구분하며 치료 효능을 추천 근거로 사용하지 않는다.",
+      "audience": "불교의 업 사상과 선택의 의미를 명시적으로 탐구하고 싶은 독자",
+      "tags": {
+        "karma-philosophy": "불교의 업과 선택에 관심을 두고 읽을 때, 의지와 인과를 다루는 저자의 철학적 관점을 살펴볼 수 있어요. 현재의 어려움이 전생 때문이라는 판단 근거로 사용하지 않아요."
+      }
+    },
+    {
+      "id": "mans-search-meaning-ko",
+      "title": "빅터 프랭클의 죽음의 수용소에서 (20주년 기념보급판)",
+      "url": "https://link.coupang.com/a/hGKapkCGgS",
+      "author": "빅터 프랭클 / 이시형 옮김",
+      "publisher": "청아출판사",
+      "edition": "한국어판 발매 20주년 기념보급판",
+      "isbn": "9788936812621",
+      "perspective": "essay",
+      "source": "https://www.yes24.com/product/goods/170736476",
+      "contents": "강제 수용소의 체험과 삶의 의미, 선택의 태도를 다룬 자전적 에세이. 치료 효과를 추천 근거로 사용하지 않는다.",
+      "audience": "삶의 가치와 방향을 성찰하고 싶은 독자",
+      "tags": {
+        "meaning-purpose": "삶에서 소중한 가치와 방향을 돌아보라는 조언에 맞춰, 어려운 상황에서도 의미를 찾는 선택과 태도를 읽어볼 수 있어요."
+      }
+    }
+  ]
+}

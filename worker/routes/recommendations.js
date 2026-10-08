@@ -2,7 +2,7 @@ import { json, getRoutePath, notFound, methodNotAllowed } from '../lib/http.js';
 import { incrementRateLimit } from '../lib/rate-limit.js';
 import { connectDb, withMongoRetry } from '../lib/db.js';
 import { RecommendationProduct, RecommendationSetting, RecommendationMetric } from '../lib/recommendation-models.js';
-import { RECOMMENDATIONS_RELEASED, DEFAULT_SETTINGS, normalizeContext, selectProducts, isEnabled, cleanEvent } from '../../js/recommendations-core.mjs';
+import { RECOMMENDATIONS_RELEASED, DEFAULT_SETTINGS, normalizeContext, selectProducts, isEnabled, providerEnabled, cleanEvent } from '../../js/recommendations-core.mjs';
 
 export async function readCatalogue(env) {
   await connectDb(env);
@@ -34,16 +34,16 @@ export async function handleRecommendationRoutes(request, env) {
       if (limit.count > 600) return new Response(null, { status: 429 });
       const { settings, products } = await readCatalogue(env);
       if (!isEnabled(settings, event.service)) return new Response(null, { status: 204 });
-      if (event.productId !== 'block' && !products.some(p => p.id === event.productId && p.status === 'active')) return new Response(null, { status: 400 });
+      if (event.productId !== 'block' && !products.some(p => p.id === event.productId && p.status === 'active' && providerEnabled(settings, p.providerId))) return new Response(null, { status: 400 });
       const day = new Date().toISOString().slice(0, 10);
       const id = [day, event.service, event.placement, event.productId, event.event].join('|');
       await withMongoRetry(env, () => RecommendationMetric.updateOne({ _id: id }, { $setOnInsert: { day, ...event }, $inc: { count: 1 } }, { upsert: true }));
       return new Response(null, { status: 204 });
     }
     const q = new URL(request.url).searchParams;
-    const input = normalizeContext({ service: q.get('service'), category: q.get('category'), interests: q.getAll('interest'), species: q.get('species'), groupId: q.get('group'), maxPrice: q.get('maxPrice'), exclude: q.getAll('exclude') });
+    const input = normalizeContext({ service: q.get('service'), category: q.get('category'), interests: q.getAll('interest'), practiceTags: q.getAll('topic'), source: q.get('source'), currency: q.get('currency'), color: q.get('color'), motif: q.get('motif'), species: q.get('species'), groupId: q.get('group'), maxPrice: q.get('maxPrice'), exclude: q.getAll('exclude') });
     const { settings, products } = await readCatalogue(env);
     if (!isEnabled(settings, input.service)) return disabled();
-    return json({ enabled: true, products: selectProducts(products, input).slice(0, 60) }, { headers: { 'Cache-Control': 'no-store' } });
+    return json({ enabled: true, products: selectProducts(products.filter(p => providerEnabled(settings, p.providerId)), input).slice(0, 60) }, { headers: { 'Cache-Control': 'no-store' } });
   } catch { return disabled(); } // Failure never enters fortune/payment recovery or logs request data.
 }

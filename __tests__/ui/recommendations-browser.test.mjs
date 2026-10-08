@@ -15,7 +15,7 @@ test('only existing affirmative cookie consent permits analytics', t => {
 });
 test('query projection drops counselling, identity and report data', () => {
   const query = recommendationQuery({service:'legacy-saju',interests:['journaling'],reportId:'private-report',question:'secret',name:'private-name',url:'https://evil.invalid'});
-  assert.equal(query,'service=legacy-saju&interest=journaling');
+  assert.equal(query,'service=legacy-saju&source=result&currency=KRW&interest=journaling');
 });
 test('return state is same-origin, short-lived and never accepted as external navigation', t => {
   let saved;

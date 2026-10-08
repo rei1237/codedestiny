@@ -1,5 +1,6 @@
 "use client";
 
+import { neoAdviceTopics } from '@/js/recommendations-context.mjs';
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import Image from "next/image";
 import Link from "next/link";
@@ -873,7 +874,7 @@ export default function NeoOperationRoomResultPage() {
             {session.refinementAllowance&&<p>현실 점검 질문 {session.refinementAllowance.remaining} / {session.refinementAllowance.limit}회 남음</p>}
             {session.refinementHistory?.slice(0,session.refinementStatus==='generating'?undefined:-1).map((entry,index)=><details key={index}><summary>이전 현실 점검 {index+1} · {entry.realityCheck?.freeform}</summary><RefinedOrderDocument refined={entry.order} badgeIndex={0} viewAll={true} onViewAllChange={()=>{}} expandForExport={false} locale={dialogueLocale}/></details>)}
             <CtaDeck remaining={session.refinementAllowance?.remaining} attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => { if (!isGenerating) setShowRealityForm(true); }} hasRefined={Boolean(refined)} locale={dialogueLocale} />
-            {!isGenerating && !isFailed && !isLocalPreview && <RecommendationResult service="neo-operation-room-consultation" brand="neo" locale={dialogueLocale}/>}
+            {!isGenerating && !isFailed && !isLocalPreview && <RecommendationResult service="neo-operation-room-consultation" brand="neo" locale={dialogueLocale} practiceTags={neoAdviceTopics(briefing, refined)}/>}
             {!isGenerating && !isFailed ? (
               <ConsultationShare key={`${session.id || session.sessionId}-${Boolean(session.refinedOrder)}`} brand="neo" choices={neoShareChoices(session)} />
             ) : null}
