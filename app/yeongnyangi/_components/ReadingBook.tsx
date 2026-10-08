@@ -65,7 +65,7 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
     {firstAnswer.review&&<div className={styles.answerReview}><dt>{answerCopy.review}</dt><dd>{firstAnswer.review}</dd></div>}
    </dl>:first.advice&&<div className={styles.focusAction}><h3>{copy.next}</h3><p>{first.advice}</p></div>}
   </section>}
-  <aside className={styles.navigation}><details open={open} onToggle={e=>setOpen(e.currentTarget.open)}><summary>{ask?answerCopy.answer:`${copy.contents} · ${Math.max(1,row.manifest.findIndex(c=>`chapter-${c.id}`===current)+1)} / ${row.manifest.length}`}</summary>
+  <aside className={styles.navigation}><details open={open} onToggle={e=>setOpen(e.currentTarget.open)}><summary>{ask?answerCopy.answer:!row.chapters.length?copy.contents:`${copy.contents} · ${Math.max(1,row.manifest.findIndex(c=>`chapter-${c.id}`===current)+1)} / ${row.manifest.length}`}</summary>
    <nav aria-label={copy.contents}>{row.manifest.map((chapter,i)=>{
     const head=v7PartHead(row.manifest,i,row.locale);
      return <Fragment key={chapter.id}>{head&&<b className={styles.partHeading}>{head}</b>}<a href={available.has(chapter.id)?`#chapter-${chapter.id}`:'#reading-progress'} aria-current={current===`chapter-${chapter.id}`?'location':undefined}>{ask?'':`${i+1}. `}{title(i)}<span className={styles.chapterStatus}>{available.has(chapter.id)?journey.saved:recovery?journey.recovery:journey.preparing}</span></a></Fragment>;

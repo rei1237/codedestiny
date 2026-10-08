@@ -346,27 +346,16 @@ export default function CheckoutClient() {
 
               </dl>}
               <p data-reading-output-locale={reading?.locale||lang}>{askPhase5Copy(lang).input.language}: <b lang={reading?.locale||lang}>{readingLanguageNames[reading?.locale||lang]}</b></p>
-              {!isSoulCatMode&&<fieldset className={styles.purchaseChoices} disabled={gate.phase==='paying'||gate.phase==='paid'||packBusy}>
-                <legend>{lang==='ko'?'이용 방법':'Purchase option'}</legend>
-                <label><input type="radio" name="consultation-purchase" checked={purchase==='single'} onChange={()=>setPurchase('single')}/><span><strong>{lang==='ko'?'이번 상담 1회':'This consultation'}</strong><span>{nativePrice===null?formatKrw(pricing.amountKRW):nativePrice||'Google Play'}</span></span></label>
-                {packOffer.loading?<p role="status">{lang==='ko'?'5회 이용권 확인 중':'Checking passes…'}</p>:packOffer.error?<p role="alert">{lang==='ko'?'이용권을 확인하지 못했어요. 단건 상담은 계속 이용할 수 있어요.':'Pass details are unavailable. You can continue with a single consultation.'}</p>:packOffer.plan&&shopContext&&nativePrice===null&&<label><input type="radio" name="consultation-purchase" checked={purchase==='pack'} onChange={()=>setPurchase('pack')}/><span><strong>{lang==='ko'?'같은 범위 5회 이용권':'5 consultations in the same scope'}</strong><span>{formatKrw(packOffer.plan.priceKRW)} · {packOffer.plan.validityDays}{lang==='ko'?'일':' days'}</span><small>{lang==='ko'?'같은 등급의 지원 상담에만 적용돼요.':'Only supported consultations in this tier.'}</small></span></label>}
-              </fieldset>}
-              <button type="button" onClick={() => { if(purchase==='pack'&&shopContext&&nativePrice===null)window.location.assign(consultationShopPath(shopContext));else void startPayment(); }}
-                disabled={!authSettled || !signedIn || !checked || !available || packBusy || gate.phase === "paying" || gate.phase === "paid"}
-                className={styles.pay}>
-                {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
-                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : purchase==='pack'?(lang==='ko'?'5회 이용권 구매하기':'Get 5-use pass'): copy.payAction(nativePrice === null ? formatKrw(validDiscount ? discountedAmount : pricing.amountKRW) : nativePrice || 'Google Play')}
-              </button>
-              <details className={styles.benefits}>
-                <summary>{lang==='ko'?'보유 혜택 사용':'Use existing benefits'}</summary>
+              <section className={styles.benefits} aria-labelledby="owned-benefits-title">
+                <h2 id="owned-benefits-title">{lang==='ko'?'보유 이용권 · 월정석으로 상담하기':'Use existing benefits'}</h2>
                 <p>{lang==='ko'?'직접 선택한 혜택만 사용해요. 적용 가능 여부는 서버에서 확인해요.':'Benefits are used only when you select them. Eligibility is verified by the server.'}</p>
               {!isSoulCatMode && checked && signedIn && available && <ServicePackCheckout requestId={params.requestId} featureKey={pricing.featureKey} locale={lang}
                 disabled={gate.phase === "paying" || gate.phase === "paid"}
                 onBusyChange={busy=>{packLock.current=busy;setPackBusy(busy);}}
                 onPaid={()=>{setGate({phase:"paid"});window.location.assign(params.returnTo);}} />}
 
-                <button type="button" disabled={!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MEMBERSHIP_PASS')}>{lang==='ko'?'보유 Family 적용하기':'Use existing Family pass'}</button>
-                {!pricing.monthlyExcluded&&<button type="button" disabled={!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MOONLIGHT_STONE')}>{lang==='ko'?`보유 월정석 ${pricing.membershipCreditCost.toLocaleString('ko-KR')}개 사용`:alliance.moonstones(pricing.membershipCreditCost.toLocaleString(intlLocale))}</button>}
+                <button type="button" disabled={!authSettled||!signedIn||!checked||!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MEMBERSHIP_PASS')}>{lang==='ko'?'보유 Family 적용하기':'Use existing Family pass'}</button>
+                {!pricing.monthlyExcluded&&<button type="button" disabled={!authSettled||!signedIn||!checked||!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MOONLIGHT_STONE')}>{lang==='ko'?`보유 월정석 ${pricing.membershipCreditCost.toLocaleString('ko-KR')}개 사용`:alliance.moonstones(pricing.membershipCreditCost.toLocaleString(intlLocale))}</button>}
               {!isSoulCatMode && nativePrice===null && lang==='ko' && !pricing.monthlyExcluded && pricing.monthlyCreditMultiplier===1 && <fieldset className={styles.discount} disabled={gate.phase==='paying'||gate.phase==='paid'||packBusy}>
                 <legend>월정석으로 단건 결제 할인받기</legend>
                 <MoonstoneDiscountBalance signedIn={signedIn} userId={String(auth.user?.id||'')} maxDiscountStones={Math.floor((pricing.amountKRW-1000)/(pricing.amountKRW/pricing.membershipCreditCost))} selected={selectedStones} onUse={setMoonstoneInput}/>
@@ -379,7 +368,19 @@ export default function CheckoutClient() {
                 <p>단건 결제 잔액은 1,000원 이상이어야 해요. 선택한 수량의 사용 가능 여부는 결제 전에 확인해요.</p>
               </fieldset>}
 
-              </details>
+              </section>
+              {!isSoulCatMode&&<fieldset className={styles.purchaseChoices} disabled={gate.phase==='paying'||gate.phase==='paid'||packBusy}>
+                <legend>{lang==='ko'?'이용 방법':'Purchase option'}</legend>
+                <label><input type="radio" name="consultation-purchase" checked={purchase==='single'} onChange={()=>setPurchase('single')}/><span><strong>{lang==='ko'?'이번 상담 1회':'This consultation'}</strong><span>{nativePrice===null?formatKrw(pricing.amountKRW):nativePrice||'Google Play'}</span></span></label>
+                {packOffer.loading?<p role="status">{lang==='ko'?'5회 이용권 확인 중':'Checking passes…'}</p>:packOffer.error?<p role="alert">{lang==='ko'?'이용권을 확인하지 못했어요. 단건 상담은 계속 이용할 수 있어요.':'Pass details are unavailable. You can continue with a single consultation.'}</p>:packOffer.plan&&shopContext&&nativePrice===null&&<label><input type="radio" name="consultation-purchase" checked={purchase==='pack'} onChange={()=>setPurchase('pack')}/><span><strong>{lang==='ko'?'같은 범위 5회 이용권':'5 consultations in the same scope'}</strong><span>{formatKrw(packOffer.plan.priceKRW)} · {packOffer.plan.validityDays}{lang==='ko'?'일':' days'}</span><small>{lang==='ko'?'같은 등급의 지원 상담에만 적용돼요.':'Only supported consultations in this tier.'}</small></span></label>}
+              </fieldset>}
+              <button type="button" onClick={() => { if(purchase==='pack'&&shopContext&&nativePrice===null)window.location.assign(consultationShopPath(shopContext));else void startPayment(); }}
+                disabled={!authSettled || !signedIn || !checked || !available || packBusy || gate.phase === "paying" || gate.phase === "paid"}
+                className={styles.pay}>
+                {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
+                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : purchase==='pack'?(lang==='ko'?'5회 이용권 구매하기':'Get 5-use pass'): copy.payAction(nativePrice === null ? formatKrw(validDiscount ? discountedAmount : pricing.amountKRW) : nativePrice || 'Google Play')}
+              </button>
+
               <p className={styles.security}>{copy.methodNote}</p>
               <div aria-live="polite" className={styles.feedback}>
                 {gate.phase === "cancelled" ? <p>{copy.cancelled}</p> : null}
