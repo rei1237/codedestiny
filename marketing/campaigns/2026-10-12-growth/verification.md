@@ -1,0 +1,26 @@
+# 제작·검증 기록
+
+status: delivering
+
+## 2026-10-09 확인
+
+- 달력 2026-10-12~11-08, 28일. 블로그 20행, Shorts 20행, TikTok 20행(같은 영상 각각 업로드), X 8행. Threads 28행은 기존 Worker 참조이며 추가 발행 예약이 아니다.
+- 첫 주 블로그 B01~B05 본문 문자 수(소제목 포함, 링크·편집 메모 제외): 1010 / 1015 / 1077 / 1064 / 1068.
+- T01~T07 본문 문자 수: 117 / 104 / 100 / 97 / 105 / 103 / 105. 원문 200자 이내.
+- 대본 V01~V05: 한국어 3개, 영어 1개, 일본어 1개. 녹음·영상·모바일 렌더링 미제작 및 미검증. 30초는 편집 목표다.
+- 공개 GET `/saju/`, `/tarot/`, `/ziwei/`, `/today/`, `/ggulggul/`, `/en/`, `/ja/`: 모두 HTTP 200. 실제 기능 완료·결제·언어 전구간 검증을 의미하지 않는다.
+- `npm run verify:threads-daily-jobs`: 38개 통과. 366일 × 6유형 길이·기본 시간·중복 방지·모델 실패 대체·금지 표현 등 mock 검사. 실 LLM·게시 0회.
+- `node node_modules/eslint/bin/eslint.js --quiet worker/lib/threads-daily-providers/karma.js`: exit 0.
+- `npm run check:fast -- --plan`: critical 승격(새 CSV 미분류, Worker 문안 변경). `npm run check:fast`는 doc-freshness 통과 뒤 paid-gate-suite 첫 `npm test` 실패를 출력했다. 전체 광범위 검사는 중단했으며 완료/통과로 기록하지 않는다. 실패 원인은 미확정이다. 최종 공식 판정은 정확한 전달 SHA의 GitHub CI로 확인한다.
+- 최초 새 문장의 '없으니까'를 기존 존댓말 검사에서 거부. 본인 코드 변경을 되돌린 뒤 '없어'로 간결하게 재작성하여 관련 검사 통과. 검사 규칙은 바꾸지 않았다.
+- Threads 실제 최근 게시 이력: 웹 접근 실패, 브라우저 도구 시간 초과로 미확인. 로컬 split 모드·기본 시각 확인만 완료. 운영 환경 override와 문안 운영 반영은 확인하지 않았다.
+
+## 등록한 알림
+
+- `code-destiny`: Code Destiny 매일 업로드 준비, ACTIVE, 매일 09:00 KST.
+- `code-destiny-2`: Code Destiny 일요일 마케팅 결산, ACTIVE, 일요일 20:00 KST.
+- 둘 다 현재 채팅 `01a11ce0-c5e2-7660-a4dd-487948352280` 연결 확인. 기존 SEO 자동화 유지. 알림 등록은 실제 첫 실행·통지 수신 증거가 아니다.
+
+## 유지한 영역
+
+결제·가격·이용권·월정석·단건 결제, 인증, API 응답, DB 스키마, 발행 시간, 잠금·중복 방지·재시도, 기존 SEO 자동화. 광고 구매·유료 생성·실 LLM·실결제·운영 DB 쓰기·운영 배포 없음. 실제 SNS 게시 없음.
