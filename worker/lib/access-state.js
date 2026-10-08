@@ -3,7 +3,7 @@ import {
   getUnlockedContentSnapshot,
   isProfileScopedContentUnlockFeatureKey,
 } from "./content-unlocks.js";
-import { isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { isLegacyLoveCodeUnlockAlias, isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, LOVE_CODE_FEATURE_KEY, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { KRW_PER_COIN, resolvePassPolicy, normalizePassTier, resolveMonthlyPassLimitCoin } from "./profile-limits.js";
 import {
   ACCESS_STATE_STALE_TTL_MS,
@@ -185,8 +185,8 @@ export function buildAccessState({
         // 결제창 없이 already_unlocked 로 통과시킨다. 아래 본 경로(accountFeatureIds)는 이미
         // 걸러 내는데 이 폴백만 빠져 있었다. contentState.featureKeys 는 getUnlockedContentSnapshot
         // 이 이미 걸러서 준다.
-        ...(Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : []).filter((key) => !isPerUsePaidFeatureKey(key)),
-        ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []).filter((key) => !isPerUsePaidFeatureKey(key)),
+        ...(Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : []).filter((key) => isLegacyLoveCodeUnlockAlias(key) || !isPerUsePaidFeatureKey(key)),
+        ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []).filter((key) => isLegacyLoveCodeUnlockAlias(key) || !isPerUsePaidFeatureKey(key)),
         ...(Array.isArray(contentState?.featureKeys) ? contentState.featureKeys : []),
       ]
       : resolvedUnlockedFeatureIds,
@@ -198,7 +198,7 @@ export function buildAccessState({
   ]);
   const ownedProductIds = normalizeStringArray([
     // 같은 이유로 회당 결제 키는 '보유 상품'이 아니다 — 그 결제는 1회 소비로 끝난 거래다.
-    ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []).filter((key) => !isPerUsePaidFeatureKey(key)),
+    ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []).filter((key) => isLegacyLoveCodeUnlockAlias(key) || !isPerUsePaidFeatureKey(key)),
     ...(Array.isArray(contentState?.featureKeys) ? contentState.featureKeys : []),
   ].map((key) => normalizePaidFeatureKey(key) || key));
   const profileEntitlements = contentState?.entitlementsByProfile && typeof contentState.entitlementsByProfile === "object"
@@ -382,10 +382,16 @@ export async function resolveCompleteAccessState({
 } = {}) {
   const normalizedUserId = normalizeUserId(userId);
   const currentProfileId = normalizeProfileId(profileId || user?.destinyProfilesCurrentId);
-  const accountFeatureIds = normalizeUnlockFeatureArray([
+  const rawAccountFeatureKeys = [
     ...(Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : []),
     ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []),
-  ]).filter((key) => isUnlockPaidFeatureKey(key) && !isProfileScopedContentUnlockFeatureKey(key));
+  ];
+  const hasLegacyLoveCodeUnlock = rawAccountFeatureKeys.some(isLegacyLoveCodeUnlockAlias);
+  const accountFeatureIds = normalizeUnlockFeatureArray(rawAccountFeatureKeys)
+    .filter((key) => isUnlockPaidFeatureKey(key) && !isProfileScopedContentUnlockFeatureKey(key));
+  if (hasLegacyLoveCodeUnlock && !accountFeatureIds.includes(LOVE_CODE_FEATURE_KEY)) {
+    accountFeatureIds.push(LOVE_CODE_FEATURE_KEY);
+  }
 
   const contentSnapshot = await getUnlockedContentSnapshot({
     userId: normalizedUserId,

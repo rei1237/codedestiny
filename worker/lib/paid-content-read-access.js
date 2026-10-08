@@ -11,8 +11,10 @@ import {
 // billing의 계정 해금 읽기 계약. 스냅샷이 없는 상세 조회는 두 레거시 필드를 모두 읽는다.
 export async function hasUserScopedPermanentUnlock(env, { userId, featureKey, unlockedFeatures = null }) {
   const key = normalizePaidFeatureKey(featureKey);
-  if (!userId || !key || !isUnlockPaidFeatureKey(key) || isProfileScopedContentUnlockFeatureKey(key)) return false;
+  const legacyLoveCodeLookup = key === LOVE_CODE_FEATURE_KEY;
+  if (!userId || !key || (!isUnlockPaidFeatureKey(key) && !legacyLoveCodeLookup) || isProfileScopedContentUnlockFeatureKey(key)) return false;
   if (Array.isArray(unlockedFeatures)) {
+    if (legacyLoveCodeLookup) return unlockedFeatures.some((entry) => LEGACY_LOVE_CODE_FEATURE_KEYS.includes(String(entry || "").trim()));
     return unlockedFeatures.some((entry) => normalizePaidFeatureKey(entry) === key);
   }
   await connectDb(env);
