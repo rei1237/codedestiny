@@ -6283,11 +6283,17 @@ function lottoEnsureCanvasLib(){
 }
 
 window.openLottoRitualReport=function(){
-  var unlocked=typeof window.isTileKeyUnlocked==='function'&&window.isTileKeyUnlocked(LOTTO_RITUAL_FEATURE_KEY);
-  if(!unlocked){
-    var btn=document.querySelector('[data-action="openLottoRitualReport"][data-tile-lock-key="'+LOTTO_RITUAL_FEATURE_KEY+'"]');
+  var perUseAuthorized=false;
+  try{
+    var paidUseKey='cd_pa_openLottoRitualReport';
+    perUseAuthorized=sessionStorage.getItem(paidUseKey)==='1';
+    if(perUseAuthorized)sessionStorage.removeItem(paidUseKey);
+  }catch(_e){}
+  var legacyUnlocked=typeof window.isTileKeyUnlocked==='function'&&window.isTileKeyUnlocked(LOTTO_RITUAL_FEATURE_KEY);
+  if(!perUseAuthorized&&!legacyUnlocked){
+    var btn=document.querySelector('[data-action="openLottoRitualReport"][data-feature-key="'+LOTTO_RITUAL_FEATURE_KEY+'"]');
     if(btn&&document.activeElement!==btn){btn.click();return;}
-    alert('달빛 럭키 리추얼 리포트는 잠금 해제 후 열람할 수 있습니다.');
+    alert('달빛 럭키 리추얼 리포트는 1회 1,000원으로 이용할 수 있습니다.');
     return;
   }
   var state=window.__cdLottoRitualState||{};
@@ -6569,9 +6575,9 @@ function renderLottoNumbers(natal, bazi){
           '<span>더 좋은 번호가 아닌 더 깊은 리포트입니다</span>'+
           '<strong>달빛 럭키 리추얼 리포트</strong>'+
           '<p>번호별 상징 해석과 이번 주 금전 루틴을 확인해보세요.</p>'+
-          '<button type="button" class="lc-ritual-cta-btn" data-action="openLottoRitualReport" data-tile-lock-key="'+LOTTO_RITUAL_FEATURE_KEY+'" data-tile-lock-cost="10">'+
+          '<button type="button" class="lc-ritual-cta-btn" data-action="openLottoRitualReport" data-feature-key="'+LOTTO_RITUAL_FEATURE_KEY+'" data-coin-cost="10">'+
             '<span class="tarot-tile__title">달빛 럭키 리추얼 리포트</span>'+
-            '<small>1,000원으로 달빛 럭키 리추얼 열기</small>'+
+            '<small>회당 1,000원으로 리포트 열기</small>'+
           '</button>'+
           '<em>구매 즉시 열람되는 디지털 콘텐츠이며, 복권 결과를 예측하거나 보장하지 않습니다.</em>'+
         '</div>'+

@@ -669,17 +669,31 @@ describe("intent — 결제 의도 기록", () => {
     expect(mockPaymentCreate).not.toHaveBeenCalled();
   });
 
-  // 2026-10-05 천원 사주 콘텐츠(10코인)는 무료 구간 가격이지만 앱에서도 돈을 받는다. ₩1,000 SKU 가 없어 닫힌다.
-  const FUN_1000_KEYS = [...STATIC_READING_PRICE_KEYS,"rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_energyCoordCard", "rpt_villainCard", "rpt_secretHouseEntryCard", "fun.quantumLotto.ritualReport"];
-  test.each(FUN_1000_KEYS)("유료 콘텐츠 %s 는 앱 무료 통과 없이 등록된 가격 티어를 사용한다", async (featureKey) => {
-    expect([...appPricing.APP_PAID_LOW_PRICE_FEATURE_KEYS].sort()).toEqual([...FUN_1000_KEYS].sort());
-    expect(registry.FEATURE_KEY_PRICE_TABLE[featureKey] || registry.UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey]).toMatchObject(featureKey === "nakshatra-compat" ? { cost: 200, amountKRW: 20000 } : { cost: 10, amountKRW: 1000 });
+  // 2026-10-09 앱에서 무료 구간으로 우회되면 안 되는 저가 사주 콘텐츠와 미검증 SKU는 닫힌다.
+  const APP_UNVERIFIED_KEYS = [...STATIC_READING_PRICE_KEYS,"rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_energyCoordCard", "rpt_villainCard", "rpt_secretHouseEntryCard", "fun.quantumLotto.ritualReport"];
+  test.each(APP_UNVERIFIED_KEYS)("유료 콘텐츠 %s 는 앱 무료 통과 없이 등록된 가격 티어를 사용한다", async (featureKey) => {
+    expect([...appPricing.APP_PAID_LOW_PRICE_FEATURE_KEYS].sort()).toEqual([...APP_UNVERIFIED_KEYS].sort());
+    const expected = {
+      "nakshatra-compat": { cost: 200, amountKRW: 20000 },
+      "animal-destiny-unlock": { cost: 50, amountKRW: 5000 },
+      "rpt_quantumCard": { cost: 100, amountKRW: 10000 },
+      "rpt_energyCoordCard": { cost: 50, amountKRW: 5000 },
+    }[featureKey] || { cost: 10, amountKRW: 1000 };
+    expect(registry.FEATURE_KEY_PRICE_TABLE[featureKey] || registry.UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey]).toMatchObject(expected);
     for (const path of ["/free-grant", "/google/intent"]) {
       const { status, payload } = await callRoute(postJson(path, { featureKey, requestId: "fun-" + "b".repeat(32) }));
-      if (featureKey === "nakshatra-compat") {
+      if (["nakshatra-compat", "animal-destiny-unlock", "rpt_quantumCard", "rpt_energyCoordCard"].includes(featureKey)) {
         expect(status).toBe(path === "/free-grant" ? 400 : 200);
         if (path === "/free-grant") expect(payload.code).toBe("APP_STORE_PRODUCT_NOT_FREE");
-        else expect(payload.data.product).toMatchObject({ productId: "cd_content_tier_09", amountKRW: 20000 });
+        else {
+          const expectedProduct = {
+            "nakshatra-compat": { productId: "cd_content_tier_09", amountKRW: 20000 },
+            "animal-destiny-unlock": { productId: "cd_content_tier_02", amountKRW: 5000 },
+            "rpt_energyCoordCard": { productId: "cd_content_tier_02", amountKRW: 5000 },
+            "rpt_quantumCard": { productId: "cd_content_tier_06", amountKRW: 10000 },
+          }[featureKey];
+          expect(payload.data.product).toMatchObject(expectedProduct);
+        }
       } else { expect(status).toBe(503); expect(payload.code).toBe("APP_SKU_NOT_VERIFIED"); }
     }
     expect(mockPaymentCreate).not.toHaveBeenCalled();

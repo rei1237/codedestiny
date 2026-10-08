@@ -1,6 +1,6 @@
 # 나크샤트라 달빛 서고
 
-status: implementation-complete
+status: done
 
 ## 승인된 계약
 - 무료 주제별 요약 + 기존 개인 유료 심화 유지. 궁합 단건 20,000원, 선구매 불필요. 기존 이용권·월정석 정책 유지.
@@ -106,10 +106,110 @@ status: implementation-complete
 ## 작업 상태
 - 격리 기준: origin/main 269a27b9ebf5889d3436fb88970a97fac6e03630.
 - 원래 main의 index.html/js/app.js 및 미러 변경은 타 세션 소유이며 보존한다.
-- 검증 결과와 전달 SHA는 완료 시 갱신한다.
+- 구현 전달: main f578d51834e170cd7caff935306405a9cafca681, GitHub CI required success.
 
 - 새 아쉬타쿠타는 나크샤트라 전용 v2 모듈로 분리했다. 기존 공유 모듈은 기준 커밋과 동일하며, 영냥이 계산·신원 불변성 검사 1개가 통과했다.
 - 공개 설명·이미지·사이트맵 회귀 33개, 결제 가격/Google SKU 110개, 전용 계산/복구 fixture 검사 통과. 원본 사이트맵 생성기로 계산 의존성의 서명을 갱신했다.
 - 보존용 화면 증거: C:/Users/user/.codex/visualizations/2026/10/08/01a11c07-d171-7891-b95c-4b4e36a4acb3/nakshatra-review/.
 
 - 홈 카드 추가 실측: 360/1440px, DPR 2. 각각 960/1672px 파일을 선택하며 남청색 표면, 문구 잘림 없음, 페이지 가로 넘침 없음. 카드 내부 장식은 overflow:hidden으로 잘리는 기존 동작이며 scrollWidth와 clientWidth가 같다는 뜻은 아니다. `metrics-home.json`과 두 `home-card-*.png`에 보존했다.
+
+- main 740a11726의 CI에서 타입/lint·Pages/Worker 빌드·critical 검사는 통과했으나, 홈 궁합 가격 세 곳의 구가격 표시가 정적 가드에서 검출됐다. 기존 `sync-flower-price-copy.mjs`로 해당 가격을 정본에서 생성하고 다른 상품 변경은 제외했다. `verify:home-service-registry` 및 나크샤트라 가격 139개 단언, 생성물 관련 테스트 20개가 통과했다. 후속 main CI 37813760229가 success로 완료됐다.
+- 홈 카드 360/1440px의 독립 시각 재검토는 두 캡처 범위에서 ship 판정을 받았다. 뒤이어 오래된 21편 안내를 제거하고 재촬영해 페이지 넘침과 텍스트 잘림이 없음을 확인했다.
+
+## 변경 파일
+
+원격 기준 e02024ef4 대비 이 작업의 변경 파일입니다. 정적 미러·다국어 사전·사이트맵은 기존 생성기로 동기화했습니다.
+
+- `__tests__/ui/core-landing-calculation-examples.test.mjs`
+- `__tests__/ui/feature-visual-details.test.mjs`
+- `__tests__/ui/sukuyo-published-methodology.test.mjs`
+- `__tests__/worker/app-store.google-billing.test.js`
+- `__tests__/worker/static-reading-price.test.js`
+- `app/nakshatra/NakshatraFormClient.tsx`
+- `app/nakshatra/NakshatraLanding.jsx`
+- `app/nakshatra/_components/LifeReading.tsx`
+- `app/nakshatra/_lib/copy.ts`
+- `app/nakshatra/_lib/pricing.ts`
+- `app/nakshatra/_premium/premium.module.css`
+- `app/nakshatra/ai/NakshatraAiClient.tsx`
+- `app/nakshatra/compat/CompatResultView.tsx`
+- `app/nakshatra/compat/NakshatraCompatClient.tsx`
+- `app/nakshatra/compat/page.tsx`
+- `app/nakshatra/library.module.css`
+- `app/nakshatra/nakshatra.module.css`
+- `app/nakshatra/result/NakshatraResultClient.tsx`
+- `config/sitemap-lastmod.json`
+- `constants/nakshatra-koota-tables.js`
+- `docs/design/nakshatra-renewal.md`
+- `i18n/authored/shell-01.json`
+- `index.html`
+- `js/core/service-registry.js`
+- `lib/marketing/feature-marketing-copy.generated.json`
+- `lib/seo-landing-pages.js`
+- `public/en/index.html`
+- `public/feature-details/assets/nakshatra-320.webp`
+- `public/feature-details/assets/nakshatra-480.webp`
+- `public/feature-details/assets/nakshatra-960.webp`
+- `public/feature-details/assets/nakshatra-og.webp`
+- `public/ggulggul/index.html`
+- `public/i18n/de.json`
+- `public/i18n/en.json`
+- `public/i18n/es.json`
+- `public/i18n/fr.json`
+- `public/i18n/hi.json`
+- `public/i18n/ja.json`
+- `public/i18n/ko.json`
+- `public/i18n/ms.json`
+- `public/i18n/nl.json`
+- `public/i18n/vi.json`
+- `public/i18n/zh-cn.json`
+- `public/i18n/zh-tw.json`
+- `public/images/nakshatra/moonlight-library-1672.webp`
+- `public/images/nakshatra/moonlight-library-1672.webp.json`
+- `public/images/nakshatra/moonlight-library-480.webp`
+- `public/images/nakshatra/moonlight-library-480.webp.json`
+- `public/images/nakshatra/moonlight-library-960.webp`
+- `public/images/nakshatra/moonlight-library-960.webp.json`
+- `public/index.html`
+- `public/ja/index.html`
+- `public/js/core/service-registry.js`
+- `public/sitemap-en.xml`
+- `public/sitemap-ja.xml`
+- `public/sitemap-ko.xml`
+- `public/sitemap-zh-tw.xml`
+- `public/sitemap-zh.xml`
+- `public/sitemap.xml`
+- `public/static/index.html`
+- `public/zh-tw/index.html`
+- `public/zh/index.html`
+- `scripts/verify-nakshatra-flow.mjs`
+- `scripts/verify-nakshatra-premium.mjs`
+- `scripts/verify-nakshatra-price-copy.mjs`
+- `scripts/verify-nakshatra-renewal.mjs`
+- `sitemap-en.xml`
+- `sitemap-ja.xml`
+- `sitemap-ko.xml`
+- `sitemap-zh-tw.xml`
+- `sitemap-zh.xml`
+- `sitemap.xml`
+- `worker/lib/nakshatra-ai-prompt.js`
+- `worker/lib/nakshatra-ashtakuta-v2.js`
+- `worker/lib/nakshatra-birth-evidence.js`
+- `worker/lib/nakshatra-codex.js`
+- `worker/lib/nakshatra-compat-delivery.js`
+- `worker/lib/nakshatra-compat.js`
+- `worker/lib/nakshatra-japanese-calendar.js`
+- `worker/lib/nakshatra-life-reading.js`
+- `worker/lib/paid-feature-registry.js`
+- `worker/lib/record-library.js`
+- `worker/routes/nakshatra-ai.js`
+- `worker/routes/nakshatra.js`
+
+## 전달 완료
+
+- 코드 및 가격/문구 수정 main SHA: `f578d51834e170cd7caff935306405a9cafca681`.
+- [최종 구현 CI 37813760229](https://github.com/rei1237/codedestiny/actions/runs/37813760229): Risk tier, Typecheck and lint, Build Pages and Worker, Static guards, CI required 모두 success. 프런트 후속 수정의 critical lane은 정책대로 skipped.
+- 최초 구현 SHA `740a11726196fee0e094b32e3bf0efa61809d02a`의 Critical checks는 success였으며 전체 mock 테스트가 통과했다. 그 실행의 홈 표시 가격 가드 실패는 위 후속 커밋에서 정본 동기화로 해결했다.
+- 기존 main의 미커밋 홈 변경과 미추적 파일은 보존했으며 이 작업 커밋에 포함하지 않았다.
+- 실결제·유료 상담 LLM·운영 DB 쓰기·운영 승격은 실행하지 않았다.

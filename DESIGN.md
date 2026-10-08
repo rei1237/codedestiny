@@ -345,3 +345,13 @@ App Router 에는 표면 계열이 셋 있고, 서로 대체재가 아니다. �
 **새 화면은 축1 위에 짓는다** — 색은 `--cd-*` 토큰으로 받고, `dark:` 유틸리티나 `prefers-color-scheme` 을 새로 들이지 않는다. 축2~4 는 현황 기록이지 따라야 할 본보기가 아니다.
 
 **축 밖의 독립 팔레트 — 영냥이 (2026-10-01 추가).** `app/yeongnyangi/` 와 `/checkout` 은 위 4축 어디와도 연동되지 않는 밤 팔레트 `--yn-*`(`app/yeongnyangi/night-tokens.css`, `.ynOriginal`·`[data-yn-night]` 스코프, `color-scheme: dark`, 스위치 없음)를 쓴다. 영냥이 화면은 축1 이 아니라 이 토큰 위에 짓는다 — 지도는 `docs/context/design-canon.md` §4.
+
+### 영냥이 대화형 상담 준비 (2026-10-09)
+
+`app/yeongnyangi/_components/IntakeChat.tsx`와 `intake-chat.module.css`는 영냥이의 독립 밤 팔레트 `--yn-*`를 그대로 사용하는 메신저형 상담 준비 화면이다. 상담가의 질문은 어두운 표면, 사용자가 확정한 답변은 금빛 말풍선으로 구분한다. 기존 `public/assets/yeongnyangi/profiles/welcome.webp`를 작은 상담가 이미지로 재사용하며 새 이미지는 만들지 않는다.
+
+폭은 최대 760px이고, 헤더·스크롤 대화 내역·하단 답장 영역으로 나눈다. 600px 이하에서는 외곽 좌우 테두리와 반경을 없앤다. 대화 내역과 답장 영역의 스크롤을 분리하고 `visualViewport` 높이에 맞춰 화면을 조절한다. 전송·선택 버튼은 최소 44px, 입력 글자는 16px, 키보드 포커스는 금빛 윤곽선으로 표시한다. 기존 전역 요소 스타일이 침범하지 않도록 구성 요소 규칙은 `.chat` 아래에 한정한다.
+
+한 번에 필요한 질문 하나를 제시하며 이전 답변의 ‘수정’과 ‘최근 대화’ 이동을 제공한다. Enter는 줄바꿈, Ctrl/⌘+Enter는 전송이고 한글 조합 중 전송하지 않는다. 범위·가격과 추가 질문 횟수는 기존 정책·상품 데이터에서 표시한다. 프로필·타로 준비와 최종 확인은 기존 상담 계약을 재사용한다.
+
+검증 근거와 화면별 판단은 `.impeccable/surfaces/yeongnyangi-intake-chat.md`에 둔다. 실제 모바일 키보드·결제·LLM·운영 DB 검증으로 확대 해석하지 않는다.

@@ -2,7 +2,7 @@ import { CHAT_QUESTION_FISH, chatQuestionFeatureKey } from '../../lib/fortune/ch
 import { calculateMembershipCreditCost, normalizePaidFeaturePricingShape } from "./billing-policy.js";
 import { isMusicTrackFeatureKey } from "../../lib/music-access-policy.js";
 
-// 러브 코드는 재실행마다 소비하는 리포트가 아니라 계정 단위 영구 해금 상품이다.
+// 러브 코드는 새 이용마다 결제한다. 과거 계정 해금은 저장된 기존 권한으로 계속 읽는다.
 // 과거 결제/셸 키는 읽기 호환용 별칭으로만 유지한다.
 export const LOVE_CODE_FEATURE_KEY = "love-code";
 export const LOVE_CODE_PRODUCT_ID = "unlock.love-code";
@@ -135,7 +135,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
 
 export const COIN_GATE_PER_USE_REASON_COSTS = Object.freeze({
   "애니멀 토템 리딩": 30,
-  "십이운성 동물점 해금": 10,
+  "십이운성 동물점 해금": 50,
   "사주 가디언 소환진 해금": 50,
   "사주 인생의 책 PDF 생성": 300,
   "인생의 책 생성 (12챕터)": 300,
@@ -284,7 +284,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   openJuyukModal: { cost: 10, reason: "주역 거북점 리딩" },
   openKemetModal: { cost: 10, reason: "이집트 신탁 리딩" },
   openGeomancyOracle: { cost: 30, reason: "지오맨시 오라클 리딩" },
-  [LOVE_CODE_FEATURE_KEY]: { cost: 10, amountKRW: 1000, reason: "러브 코드" },
+  [LOVE_CODE_FEATURE_KEY]: { cost: 50, amountKRW: 5000, reason: "러브 코드 1회 이용" },
   turtleIChing: { cost: 10, reason: "주역 거북점 리딩" },
   egyptOracle: { cost: 10, reason: "이집트 신탁 리딩" },
   "egyptian_oracle_ai_prompt": { cost: 30, reason: "이집트 신탁 AI 질문 프롬프트 생성" },
@@ -297,9 +297,9 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "stonehenge-runes-ai-prompt": { cost: 30, reason: "스톤헨지 룬 AI 질문문 생성" },
   "animal-totem-basic": { cost: 30, reason: "애니멀 토템 리딩" },
   "animal-totem-deep": { cost: 30, reason: "애니멀 토템 심화 리딩" },
-  "animal-destiny-unlock": { cost: 10, reason: "십이운성 동물점 해금" },
+  "animal-destiny-unlock": { cost: 50, amountKRW: 5000, reason: "십이운성 동물점 해금" },
   "saju-guardian-unlock": { cost: 50, reason: "사주 가디언 소환진 해금" },
-  destiny_meeting_place: { cost: 10, reason: "사주로 보는 인연의 장소 1회 분석" },
+  destiny_meeting_place: { cost: 50, amountKRW: 5000, reason: "사주로 보는 인연의 장소 1회 분석" },
   premiumTarot: { cost: 50, reason: "프리미엄 타로 리딩" },
   // 손금은 Gemini Vision 판독(손당 1회) + 심층 해석까지 한 번에 제공하는 단일 상품이다.
   // 구 palm-reading-ai-consult(별도 5,000원)는 기본 분석에 통합돼 더 이상 호출되지 않지만,
@@ -334,9 +334,10 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "astro_yearly_transit": { cost: 30, reason: "점성술 앞으로 12개월 흐름" },
   "new-year-ai-consultation": { cost: 300, amountKRW: 30000, reason: "신년운세 전문가 상담" },
   "love-secret-ai-consultation": { cost: 300, amountKRW: 30000, reason: "연애 비책 전문가 상담" },
+  "love-code": { cost: 50, amountKRW: 5000, accessModel: "per_use", reason: "러브 코드 1회 이용" },
   // 대상자 1인의 관계 경계 성향을 매 회차 분석하는 상담이다. 영구 해금으로 등록하면
   // 다른 출생 정보까지 재열람되는 정책 오류가 생기므로 회당 결제 목록에만 둔다.
-  "relationship-boundary-test": { cost: 10, amountKRW: 1000, reason: "그 사람의 바람끼 테스트" },
+  "relationship-boundary-test": { cost: 50, amountKRW: 5000, reason: "그 사람의 바람끼 테스트 1회" },
   // 마스터 인연의 서 (MASTER_LOVE_CODEX) — 사주×자미두수 융합 20챕터 5만자 전자책. 연애 비책과 달리
   // 사주 단독이 아니라 명식+명반을 함께 근거로 삼는다. 개인/궁합 두 SKU 로 나뉘며 궁합은 상대 명식·명반까지
   // 4개 차트를 프롬프트에 담아 입력 비용이 대략 2배다.
@@ -372,16 +373,16 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "premium-naming-prompt": { cost: 300, amountKRW: 30000, reason: "사주 맞춤 작명 프롬프트 생성" },
   "premium-sukuyo-compat-extra": { cost: 30, reason: "숙요점 정밀 궁합 확장 분석" },
   "profile-card-manage": { cost: 50, reason: "프로필 카드 추가/수정/삭제" },
-  // 2026-10-05 천원 사주 콘텐츠: 결정론(LLM 없음) 재미 리포트 6종은 1,000원이다. "천원 운세" 이름의 근거이므로
+  // 2026-10-09 천원 사주 콘텐츠: 결정론(LLM 없음) 재미 리포트 5종은 1,000원이다. "천원 운세" 이름의 근거이므로
   // 가격을 바꾸면 app/yeongnyangi/1000-won-fortune/ 빌드 가드가 멈춘다. 앱(Google Play)은 ₩1,000 SKU 가 없어 실패 폐쇄.
   rpt_specialCharmCard: { cost: 10, amountKRW: 1000, reason: "나의 매력 클래스 영구 해금" },
-  rpt_quantumCard: { cost: 10, reason: "퀀텀 명리 엔진 영구 해금" },
+  rpt_quantumCard: { cost: 100, amountKRW: 10000, reason: "퀀텀 명리 엔진 영구 해금" },
   rpt_healthReportCard: { cost: 10, reason: "명리 헬스 리포트 영구 해금" },
   rpt_skillTreeCard: { cost: 10, amountKRW: 1000, reason: "인생 스킬 트리 영구 해금" },
-  rpt_energyCoordCard: { cost: 10, amountKRW: 1000, reason: "사주로 보는 여행지 영구 해금" },
+  rpt_energyCoordCard: { cost: 50, amountKRW: 5000, reason: "사주로 보는 여행지 영구 해금" },
   rpt_villainCard: { cost: 10, amountKRW: 1000, reason: "빌런 블랙리스트 영구 해금" },
   rpt_secretHouseEntryCard: { cost: 10, amountKRW: 1000, reason: "시크릿 하우스 영구 해금" },
-  "fun.quantumLotto.ritualReport": { cost: 10, amountKRW: 1000, reason: "달빛 럭키 리추얼 리포트" },
+  "fun.quantumLotto.ritualReport": { cost: 10, amountKRW: 1000, accessModel: "per_use", reason: "달빛 럭키 리추얼 리포트 1회" },
   ...YEONGNYANGI_RAW_PRICE_ENTRIES,
 });
 
@@ -451,17 +452,18 @@ export function getPaidFeaturePaymentPolicy(featureKey) {
 const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   [LOVE_CODE_PRODUCT_ID]: {
     featureKey: LOVE_CODE_FEATURE_KEY,
-    cost: 10,
-    amountKRW: 1000,
-    reason: "러브 코드",
+    cost: 50,
+    amountKRW: 5000,
+    accessModel: "per_use",
+    reason: "러브 코드 1회 이용",
   },
   "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, amountKRW: 5000, reason: "Section daewun unlock" },
-  "unlock.section_summary": { featureKey: "section_summary", cost: 30, reason: "Section summary unlock" },
+  "unlock.section_summary": { featureKey: "section_summary", cost: 50, amountKRW: 5000, reason: "Section summary unlock" },
   "unlock.section_compat": { featureKey: "section_compat", cost: 30, reason: "Section compat unlock" },
   "unlock.flower_fc": { featureKey: "flower-fc", cost: 10, reason: "Destiny flower atelier full unlock" },
   "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 10, reason: "Olympus profile unlock" },
   "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 30, reason: "RPG character unlock" },
-  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 30, reason: "Travel destiny unlock" },
+  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 50, amountKRW: 5000, reason: "Travel destiny unlock" },
   "unlock.health_report": { featureKey: "healthReport", cost: 30, reason: "Health report unlock" },
   // Legacy compatibility only. The standalone Fortune Planner never reads or charges this entry.
   "unlock.saju_diary": { featureKey: "sajuDiary", cost: 100, reason: "Saju diary unlock" },
@@ -494,12 +496,12 @@ export const PIG_COIN_UNLOCK_PRODUCTS = normalizeRegistryPricingTable(RAW_PIG_CO
 //  · 2026-09-30 대운 신규 해금 3,000원 → 5,000원. 기존 구매권은 유지하고 월정석·이용권 소비는 정가 환산을 따른다.
 const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
   "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, amountKRW: 5000, reason: "Section daewun unlock" },
-  "unlock.section_summary": { featureKey: "section_summary", cost: 30, reason: "Section summary unlock" },
+  "unlock.section_summary": { featureKey: "section_summary", cost: 50, amountKRW: 5000, reason: "Section summary unlock" },
   "unlock.section_compat": { featureKey: "section_compat", cost: 30, reason: "Section compat unlock" },
   "unlock.flower_fc": { featureKey: "flower-fc", cost: 10, reason: "Destiny flower atelier full unlock" },
   "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 10, reason: "Olympus profile unlock" },
   "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 30, reason: "RPG character unlock" },
-  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 30, reason: "Travel destiny unlock" },
+  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 50, amountKRW: 5000, reason: "Travel destiny unlock" },
   "unlock.health_report": { featureKey: "healthReport", cost: 30, reason: "Health report unlock" },
   "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 30, reason: "Secret house episodes unlock" },
   "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock" },
@@ -508,7 +510,7 @@ const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
 export const UNLOCK_PRODUCT_BY_FEATURE_KEY = Object.freeze(
   Object.values(PIG_COIN_UNLOCK_PRODUCTS).reduce((acc, spec) => {
     const key = String(spec?.featureKey || "").trim();
-    if (key && !acc[key]) acc[key] = spec;
+    if (key && spec?.accessModel === "unlock" && !acc[key]) acc[key] = spec;
     return acc;
   }, Object.create(null)),
 );
@@ -590,6 +592,9 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "animal-totem-basic",
   "animal-totem-deep",
   "destiny_meeting_place",
+  "love-code",
+  "relationship-boundary-test",
+  "fun.quantumLotto.ritualReport",
   "premiumTarot",
   "palm-reading-general",
   "palm-reading-ai-consult",
@@ -637,7 +642,6 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "section_compat",
   "animal-destiny-unlock",
   "saju-guardian-unlock",
-  LOVE_CODE_FEATURE_KEY,
   "nakshatra-lord-report",
   "nakshatra-dasha-map",
   "ziwei-island-deep-report",
@@ -659,7 +663,6 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "astro_stellar_growth_room",
   // 앞으로 12개월 흐름 — 출생 차트와 실제 천체력으로 결정론 산출(LLM 미사용). 롤링 12개월을 계정에 영구 해금(A유형).
   "astro_yearly_transit",
-  "fun.quantumLotto.ritualReport",
   "sukyo_yearly_fortune_unlock",
   "sukuyo-relationship-encyclopedia",
   "sukuyo-nature-deep-dive",
