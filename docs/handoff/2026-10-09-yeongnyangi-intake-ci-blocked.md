@@ -1,12 +1,27 @@
 ---
-status: blocked
+status: done
 date: 2026-10-09
 updated: 2026-10-09
-next: 가격 작업의 수정 SHA에서 worker 5개 suite와 intake browser를 재검증하고 실제 핵심 검사를 실행한 main CI를 확인한다.
-last_verified_sha: 7f48507964e2e297b33694dff43276589d9a8b50
+next: 전달 검증 완료. 공유 main의 다른 세션 변경이 정리된 뒤 git pull --ff-only로 최신 원격 main을 반영한다.
+last_verified_sha: 66de5ab1016e3db633346d58a4425a4f68b54328
 ---
 
 # 영냥이 대화형 입력 — 구현 전달, 공유 main CI 차단
+
+## 2026-10-09 최종 재검증 — 전달 완료
+- 사용자 지정 시작 전달 SHA: `98e8db5141a7fe5104f0f4c7323598afc70bca8c`. 동시 변경을 보존하는 격리 워크트리에서 검증했다. 이 절이 아래 과거 차단/재개 절보다 우선한다.
+- 원격 main `bf7e5a938b7f7d03a7cf0f04bc403612046cf769`에서는 기존 결제 6건과 추가 무후르타 가격 2건이 실패했다. 실제 핵심 검사를 실행한 [CI 37824686293](https://github.com/rei1237/codedestiny/actions/runs/37824686293)도 6 suites / 8 tests 실패 및 sitemap 원장 드리프트로 실패했다.
+- 검증 중 전달된 가격 회귀 수정 SHA `c6a8ec26f0b81dbec4e0228f017c163b73a5dfd6`에서 `npm run test:jest -- --runInBand --silent`에 아래 6개 worker 파일을 지정해 **6 suites / 155 tests PASS**를 확인했다. 기존 실패 6건과 추가 실패 2건이 모두 해결됐으며 과거 러브 코드 영구 해금 보존 assertion도 변경 없이 통과했다.
+  - relationship-boundary-test.route.test.js, payments-v2.daewun-pricing.test.js, payments-v2.entitlements.test.js, paid-non-llm-delivery.test.js, static-reading-price.test.js, app-store.google-billing.test.js.
+- `npm run verify:home-service-registry`: **PASS**. [CI 37823842908](https://github.com/rei1237/codedestiny/actions/runs/37823842908)의 love-simulation / nakshatra-muhurta 가격 표기 및 animal-destiny 가격 불일치 **3건 해결**. 레지스트리 57개·질문 카드 37곳·패널 8개 대조 통과.
+- `node --test __tests__/ui/yeongnyangi-intake-chat.test.mjs __tests__/ui/yeongnyangi-question-policy.test.mjs`: **14/14 PASS**.
+- `node scripts/qa/verify-yeongnyangi-intake.mjs`: **PASS**. mock 요청 5개·브라우저 오류 0개·390px scrollWidth=390. 프로필 저장 오류/재시도, 로그인 복귀, 궁합·진로·장기·타로, 누락 입력 복원 통과. 실제 LLM·결제·DB 검증은 아니다.
+- 남은 sitemap 차단은 기존 생성기 `npm run sitemap:generate`로 `config/sitemap-lastmod.json` 서명 78개만 갱신했다. URL·lastmod·정책은 변경하지 않았다. `npm run verify:sitemap-drift`: **PASS**, 955 URLs. 전달 커밋 `66de5ab1016e3db633346d58a4425a4f68b54328`을 원격 main에 push했다. 이 SHA는 결제 수정 뒤 문서와 sitemap 원장만 추가됐으며 상담/결제 소스는 c6a8ec26f와 같다.
+- `gh workflow run pr-ci.yml --ref main -f full_ci=true`로 실행한 [main CI 37827273374](https://github.com/rei1237/codedestiny/actions/runs/37827273374)는 `66de5ab1016e3db633346d58a4425a4f68b54328`에서 **최종 success**. Critical checks, Static guards, Build Pages and Worker, Typecheck and lint, CI required가 모두 실제 실행 후 success다. 핵심 검사 skip 성공으로 대체하지 않았다.
+- 문서 변경은 `npm run check:fast -- --plan`, `npm run check:fast`, `npm run verify:handoff-contract`, `git diff --check`로 검증했다. 이후 원격 main의 `b4b1a4b1b7586b67c0fab4a7de2b58fd96d74d64`는 다른 작업의 문서-only 변경이며 상담/결제 소스는 검증 SHA와 같다.
+- 최초 sandbox의 Jest 임시 경로 EPERM 및 Playwright 경로 제한은 승인된 로컬 mock 실행으로 해소했다. 검증 중 공유 main의 `git pull --ff-only`는 다른 세션 HTML 변경과 겹쳐 안전하게 중단됐으며 해당 변경과 index는 보존했다. 원격 main push는 격리 워크트리에서 수행했다.
+- 이번 직접 수정은 sitemap 생성 원장과 이 문서다. 결제 정책·인증·API·DB·상담 UI 코드는 수정하지 않았다. 다른 채팅 메시지, 실제 과금, 운영 DB 쓰기, 스테이징 검증, 운영 승격은 실행하지 않았다.
+- 재개/확인 지시: `D:/Development/code-destiny`에서 `D:/Development/code-destiny/docs/handoff/2026-10-09-yeongnyangi-intake-ci-blocked.md`를 읽고, 마지막 코드 전달·검증 SHA `66de5ab1016e3db633346d58a4425a4f68b54328`와 CI 성공 근거를 확인한다. 다음 행동은 다른 세션의 main 변경이 정리된 후 `git pull --ff-only`이며, 가격/상담 UI 재구현이나 운영 승격은 필요하지 않다.
 
 ## 2026-10-09 재검증 — 차단 유지
 - 사용자 지정 마지막 전달 SHA는 `516219bfb4fb93d430363e94f5e6306471cb1f2b`. 이후 원격 main `7f48507964e2e297b33694dff43276589d9a8b50`을 별도 워크트리에서 고정 검증했다. 공유 main의 다른 세션 미커밋 변경은 보존했다.
