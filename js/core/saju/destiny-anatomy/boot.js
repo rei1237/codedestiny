@@ -394,7 +394,7 @@
     if (method === 'copy') { copyLink(); return; }
     var SC = root.DestinyAnatomyShareCard;
     if (SC && typeof SC.share === 'function') {
-      Promise.resolve(SC.share(model, {mode: method, url: shareUrl(), lang: model.locale})).then(function (result) {
+      Promise.resolve(SC.share(model, {mode: method, url: shareUrl(), lang: model.locale, format: state.shareFormat || 'feed'})).then(function (result) {
         var status = result && result.status;
         if (status === 'shared' || status === 'saved') {
           cdTrack('destiny_anatomy_share_success', {method: status === 'saved' ? 'save' : method});
@@ -481,7 +481,15 @@
     if (!btn || !card.contains(btn)) return;
     var act = btn.getAttribute('data-da-act');
     try {
-      if (act === 'retry') {
+      if (act === 'format') {
+        state.shareFormat = btn.getAttribute('data-da-format') === 'story' ? 'story' : 'feed';
+        card.querySelectorAll('[data-da-format]').forEach(function(b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-da-format') === state.shareFormat)); });
+      } else if (act === 'body-detail') {
+        ev.preventDefault();
+        var detailTarget = btn.getAttribute('data-da-target');
+        var detail = doc.getElementById('da-detail-' + detailTarget);
+        if (detail && card.contains(detail)) { detail.open = true; detail.querySelector('summary').focus(); scrollToId(detail.id); }
+      } else if (act === 'retry') {
         if (!model) { start(); return; }
         if (layers.status === 'failed') { layers.status = 'idle'; loadLayers(); return; }
         refresh();

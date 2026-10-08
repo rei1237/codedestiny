@@ -49,6 +49,7 @@ function mapEntries(source, pickFields, label) {
 
 export async function renderHdCopy() {
   const m = await loadCopy();
+  const guide = await build({ entryPoints: [path.join(root, 'app/human-design/_copy/living-guide.ts')], bundle: true, write: false, format: 'iife', globalName: 'DestinyAnatomyLivingGuide', platform: 'browser', target: 'es2018', alias: {'@': root}, minify: true, logLevel: 'silent' });
   const data = {
     type: mapEntries(m.TYPE_COPY, (v, l) => ({ name: bilingual(v.name, `${l}.name`), summary: bilingual(v.summary, `${l}.summary`) }), "TYPE_COPY"),
     authority: mapEntries(m.AUTHORITY_COPY, (v, l) => ({ name: bilingual(v.name, `${l}.name`), summary: bilingual(v.summary, `${l}.summary`) }), "AUTHORITY_COPY"),
@@ -62,6 +63,8 @@ export async function renderHdCopy() {
     " * 정본: app/human-design/_copy/index.ts · lib/human-design/display-names.js (verify:destiny-anatomy 가 신선도를 검사한다). */",
     "(function (root) {",
     "  'use strict';",
+    guide.outputFiles[0].text,
+    "  root.DestinyAnatomyLivingGuide = DestinyAnatomyLivingGuide;",
     `  var HD_COPY = ${JSON.stringify(data, null, 2).replace(/\n/g, "\n  ")};`,
     `  HD_COPY.geometry = ${JSON.stringify(geometry)};`,
     "  root.DestinyAnatomyHdCopy = HD_COPY;",

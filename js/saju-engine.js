@@ -5090,6 +5090,12 @@ var sajuCalculationRun = null;
 function _sajuSetCalculationLoading(visible, state) {
   var overlay = document.getElementById('sajuCalcLoadingOverlay');
   if (!overlay) return;
+  var flower = overlay.querySelector('.saju-calc-loading-overlay__flower');
+  if (flower && !flower._sajuFallbackBound) {
+    flower._sajuFallbackBound = true;
+    flower.addEventListener('error', function() { flower.style.display = 'none'; });
+    if (flower.complete && !flower.naturalWidth) flower.style.display = 'none';
+  }
   var resultPage = document.getElementById('resultPage');
   // finally must not interrupt an already-started visual handoff.
   if (!visible && state === 'idle' && overlay._sajuExitTimer) return;

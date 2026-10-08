@@ -3,6 +3,11 @@
  * 탭 영역 44px 이상, 360px 폭 우선, prefers-reduced-motion 이면 움직이지 않는다. */
 /* 달빛 예화 밤 창(10-06): 연이·네오 어느 테마에서도 같은 밤하늘 카드 — 테마 분기 없는 :root 지도 토큰(--cd-map-*·--cd-node-*)을 섞는다.
  * 표면·글자·강조를 한 세트로 바꾼다(반쪽 오버라이드 금지). 금빛 선 = 예화 라인아트, 보석빛 칸 = 샤갈 스테인드글라스. */
+.da-actions [aria-pressed="true"] { background: var(--da-accent); color: var(--da-bg); }
+.da-body__hit { fill: transparent; pointer-events: all; }
+.da-body a:focus-visible { outline: 3px solid var(--da-accent); outline-offset: 3px; }
+.da-body a:hover .da-hdg__center { stroke-width: 4px; }
+.da-body details[id] { scroll-margin-top: 100px; }
 #destinyAnatomyCard {
   --da-bg: color-mix(in srgb, var(--cd-map-ink) 62%, var(--cd-cta-primary-bg-2));
   --da-bg-deep: color-mix(in srgb, var(--cd-map-ink) 28%, var(--cd-cta-primary-bg-2));
@@ -398,7 +403,7 @@
 @media (min-width: 560px) { .da-share .da-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .da-share__status { min-height: 0; margin: 0; }
 .da-share__status:not(:empty) { margin-top: var(--cd-sp-xs); }
-@media (max-width: 480px) { #destinyAnatomyCard .da-body__grid { grid-template-columns: 1fr; } #destinyAnatomyCard .da-body__svg { max-width: 180px; margin: 0 auto; } }
+@media (max-width: 480px) { #destinyAnatomyCard .da-body__grid { grid-template-columns: 1fr; } #destinyAnatomyCard .da-body__svg { max-width: 200px; margin: 0 auto; } }
 .da-ask__ais .da-btn { width: 100%; justify-content: center; }
 .da-ask__status { min-height: 0; margin: 0; }
 .da-ask__status:not(:empty) { margin-top: var(--cd-sp-xs); }
@@ -420,7 +425,7 @@
 
 @media (max-width: 380px) {
   .da-body__grid { grid-template-columns: 1fr; }
-  .da-body__svg { max-width: 160px; margin: 0 auto; }
+  .da-body__svg { max-width: 200px; margin: 0 auto; }
   .da-btn { padding: 0 var(--cd-sp-md); }
 }
 @media (min-width: 720px) {
@@ -675,3 +680,6 @@
   #destinyAnatomyCard .da-chart-links { grid-template-columns: 1fr; gap: 0; }
   #destinyAnatomyCard .da-chart-link + .da-chart-link { border-block-start: 0; }
 }
+
+#destinyAnatomyCard .da-hdg__gate { pointer-events: none; }
+#destinyAnatomyCard .da-habit .da-mb__row:last-child dd { font-weight: 700; color: var(--da-ink); }

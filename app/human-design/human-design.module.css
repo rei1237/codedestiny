@@ -12,6 +12,29 @@
  *    선언하며 App Router 레이아웃이 그 파일을 임포트하므로 이 라우트에서도 살아 있다.
  */
 
+.manual {
+  max-width: var(--cd-w-prose);
+  margin: 2rem auto 3rem;
+  padding: clamp(24px, 5vw, 48px);
+  background: var(--hd-panel-raised);
+  color: var(--hd-ink);
+  border: 1px solid var(--hd-border);
+  border-radius: var(--cd-r-section);
+}
+.manualTitle { margin: .6rem 0 1rem; font: 700 clamp(27px, 5vw, 44px)/1.35 var(--font-display); text-wrap: balance; word-break: keep-all; }
+.manualMeta { color: var(--hd-accent); font-weight: 700; }
+.manualDecision { margin-top: 1.4rem; font-size: 1.2rem; line-height: 1.6; word-break: keep-all; }
+.manualFormats, .manualActions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.manualFormats button, .manualActions button { min-height: 44px; padding: 10px 18px; border: 1px solid var(--hd-border-strong); border-radius: var(--cd-r-control); background: var(--hd-panel); color: var(--hd-accent); cursor: pointer; font: inherit; font-weight: 600; }
+.manualFormats button[aria-pressed="true"], .manualActions button:first-child { background: var(--hd-accent); color: var(--hd-panel); }
+.manualFormats button:hover, .manualActions button:hover { box-shadow: 0 4px 12px color-mix(in srgb, var(--hd-accent) 16%, transparent); }
+.manualActions button:disabled { opacity: .6; cursor: wait; }
+.manual button:focus-visible { outline: 3px solid var(--hd-accent); outline-offset: 3px; }
+.guideText { margin: 1.4rem 0; max-width: 65ch; line-height: 1.85; word-break: keep-all; overflow-wrap: anywhere; }
+.guideText > div { margin-top: 1.2rem; }
+.guideText dt, .guideText h3 { color: var(--hd-accent); font-size: 1rem; font-weight: 700; }
+.guideText dd { margin: .4rem 0 0; }
+.guideNote { font-size: .86rem; color: var(--hd-ink-dim); line-height: 1.65; margin-top: 1rem; }
 .shell {
   --hd-bg: #fbfaf8;
   --hd-bg-glow: #fff1f5;
@@ -596,7 +619,7 @@ label.label {
 
 .chartRailRow {
   width: 100%;
-  min-height: 42px;
+  min-height: 44px;
   display: grid;
   grid-template-columns: 1.25rem minmax(2.8rem, auto);
   grid-template-areas:
@@ -655,7 +678,7 @@ label.label {
   }
 
   .chartRailRow {
-    min-height: 40px;
+    min-height: 44px;
     grid-template-columns: 1.25rem minmax(0, 1fr);
     grid-template-areas: "glyph cell";
     padding-inline: 0.25rem;
@@ -676,7 +699,7 @@ label.label {
 }
 
 .jumpChip {
-  min-height: 36px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   padding: 0 0.75rem;

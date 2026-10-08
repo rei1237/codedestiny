@@ -182,9 +182,10 @@ test('compose: 미저작 로케일은 영어로, 별칭은 정본 로케일로 �
 test('생활 점검: 실제 오행 비율과 베다 6하우스를 밝히고 건강 상태를 판정하지 않는다',()=>{
   for(const L of ['ko','en','ja','zh-CN','zh-TW']){
     const m=build(FIXTURES.reality,L,{}, {hdChart:HD,vedicBasis:VEDIC});
-    assert.ok(m.text.habits.length>=1 && m.text.habits.length<=2);
+    assert.equal(m.text.habits.length,5);
+    assert.equal(new Set(m.text.habits.map(h=>h.action)).size,5);
     for(const h of m.text.habits){
-      assert.ok(h.basis.includes(Math.round(m.elementLayer.ratios[h.id])+'%'));
+      assert.ok(h.basis.includes(Math.round(m.elementLayer.ratios[({sleep:'water',tension:'metal',meals:'earth',movement:'wood',rest:'fire'})[h.id]])+'%'));
       assert.ok(h.check.length>8 && h.action.length>20);
     }
     const sixth=m.text.vedic.find(v=>v.kind==='sixth');
@@ -217,4 +218,28 @@ test('상세 차트는 정본 연결과 계산된 라그나를 사용하고 누�
   assert.equal(geometry.centers.length, 9);
   assert.equal(geometry.channels.length, 36);
   assert.equal(geometry.gates.length, 64);
+});
+
+
+test('공감 문구는 상태별로 달라지고 같은 명식에는 같은 결과를 제공한다',()=>{
+  const seen = new Set();
+  for (const fixture of Object.values(FIXTURES)) {
+    const a=build(fixture,'ko'), b=build(fixture,'ko');
+    assert.deepEqual(a.text.meme,b.text.meme);
+    assert.equal(a.text.meme.cells.reduce((sum,c)=>sum+c.pct,0),100);
+    seen.add(a.text.meme.legend.map(c=>c.line).join('|'));
+    assert.ok(a.text.engines.every(e=>e.meme && e.explanation));
+  }
+  assert.ok(seen.size>4);
+});
+test('회복 설명은 조후와 강약의 기존 근거를 쓰고 시간 미상에서는 제거한다',()=>{
+  const a=build(FIXTURES.reality,'ko',{johu:{type:'cold'}});
+  const b=build(FIXTURES.reality,'ko',{johu:{type:'hot'}});
+  assert.notEqual(a.text.habits[0].basis,b.text.habits[0].basis);
+  assert.deepEqual(a.fiveElements,b.fiveElements);
+  assert.deepEqual(a.saju.brain,b.saju.brain);
+  const unknown=build(FIXTURES.reality,'ko',{timeUnknown:true,johu:{type:'hot'}});
+  assert.equal(unknown.rhythmBasis.johu,null);
+  assert.equal(unknown.rhythmBasis.strength,null);
+  assert.ok(unknown.text.habits.every(h=>!h.basis.includes('조후')));
 });
