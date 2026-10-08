@@ -1,6 +1,19 @@
 # 제휴 문맥 추천 작업 상태
 status: blocked-external
 
+## 2026-10-09 알리 홍보 재개 — 아래 과거 차단 기록보다 우선
+- 사용자 요청: 상품을 추리고 추천 문구를 정리해 알리 홍보와 제휴 수익화가 가능하도록 준비.
+- 사용자 확인: 쿠팡 code-destiny.com 매체 등록 완료. 쿠팡 최종 승인 여부는 별도 미확인.
+- 사용자 제공 알리 링크 36개. NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록을 사용자가 모두 확인했다. 계정 승인 상태 화면은 직접 확인하지 못했다.
+- 6개 선별: 태슬 책갈피, 고양이 저금통, 초록 도넛 팔찌, 초록 클로버 귀걸이, 금색 고양이 장식, 초록 비즈 팔찌. DIY 재료, 라이선스 미확인 아이돌 굿즈, 호환 옵션 미확인 폰 케이스와 중복 상품은 보류.
+- 등록 자료: docs/operations/affiliate-aliexpress-20261009.json. 복사 가능한 검수용 홍보 원고: docs/operations/affiliate-aliexpress-20261009-copy.txt. 제휴 고지 포함, 검증하지 않은 가격·쿠폰·보석 진위·효능 표현 제외, 이미지 미사용.
+- 6개 URL 형식·중복·기존 cleanProduct/reviewErrors 계약 통과. 미검수 초안이 공개 추천에 나오지 않음을 확인. npm run check:fast 통과.
+- 기존 WT를 최신 main c6a8ec26f0b81dbec4e0228f017c163b73a5dfd6으로 fast-forward. 다른 세션이 가격·구매권 관련 수정을 반영했고 verify-home-service-registry 통과. 이 세션에서 결제 코드를 수정하지 않았다.
+- 운영 관리자 직접 확인: 구버전으로 판매처 선택 없음, 기존 쿠팡 초안 9건·검수0·공개0·OFF. 알리 자료는 운영에 잘못된 쿠팡 상품으로 저장하지 않았다.
+- 책갈피 링크를 브라우저에서 열었으나 ko.aliexpress.com/item/1005010413993477.html 접근이 site-safety 정책으로 차단됨. 다른 경로로 우회하지 않음. 판매 상세·옵션 독립 검증 미완료.
+- 신규 CI: https://github.com/rei1237/codedestiny/actions/runs/37826467042 (c6a8ec26f, 확인 당시 진행 중). 문서 CI 성공만으로 동작 검증 성공을 간주하지 않는다.
+- 남은 순서: 실제 동작 CI 성공 확인 → 상품 상세 및 판매 옵션 확인 → 공식 신규 코드 배포 → 알리 구조화 등록·검수·설정 → live 추천 확인. 이 재개에서는 운영 DB·공개 설정·배포를 변경하지 않았다. 링크 귀속/매체 확인을 다시 요청할 필요는 없다.
+
 - 요청: 운세 글/개인 결과/탐색 관심사 기반 도서 중심 추천, 쿠팡 AF7837486 및 알리 공식 링크, 관리자 실등록, 화면 검증, 공식 CI/운영 반영.
 - 시작 main: 740a11726196fee0e094b32e3bf0efa61809d02a. 운영 Pages: e02024ef42854fa7b35f7c972f26928e136d78bc (2026-10-09 직접 GET).
 - 작업 경로: D:\Development\code-destiny\.codex-worktrees\affiliate-context-20261009-015938
