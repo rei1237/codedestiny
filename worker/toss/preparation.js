@@ -1,9 +1,9 @@
 import {TossError} from './policy.js';
-export function validatePreparation(input) {
+export function validatePreparation(input,{birthRequired=true}={}) {
   if(!input||!/^\w{8}-\w{4}-4\w{3}-[89ab]\w{3}-\w{12}$/i.test(input.attemptId||''))throw new TossError('ATTEMPT_INVALID');
   const question=typeof input.question==='string'?input.question.trim():'';
   if(question.length<5||question.length>600)throw new TossError('QUESTION_INVALID');
-  return {question,attemptId:input.attemptId,birth:validateBirth(input.birth),...(input.partnerBirth?{partnerBirth:validateBirth(input.partnerBirth)}:{})};
+  return {question,attemptId:input.attemptId,...(birthRequired?{birth:validateBirth(input.birth),...(input.partnerBirth?{partnerBirth:validateBirth(input.partnerBirth)}:{})}:{})};
 }
 export function validateBirth(b) {
   const d=b?.date,l=b?.location;

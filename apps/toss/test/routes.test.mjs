@@ -15,7 +15,7 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
- 'worker/toss/session.js':"export const requireTossSession=globalThis.__tossRouteMocks.auth;export const createTossSession=()=>{};export const invalidateIdentity=()=>{};export const disconnectIdentity=()=>{};",
+ 'worker/toss/session.js':"import {TossError} from './policy.js';export const requireTossSession=async()=>{if(globalThis.__tossRouteMocks.denyAuth)throw new TossError('LOGIN_REQUIRED',401);return globalThis.__tossRouteMocks.auth();};export const createTossSession=()=>{};export const invalidateIdentity=()=>{};export const disconnectIdentity=()=>{};",
  'worker/toss/catalog.js':"export const APPROVED_TOSS_PRODUCTS=[];export const approvedProduct=globalThis.__tossRouteMocks.product;",
  'worker/toss/models.js':"export const TossPurchase={findOne:globalThis.__tossRouteMocks.purchase};export const TossSession={};",
  'worker/toss/partner.js':"export const lookupOrder=()=>{throw new Error('unexpected partner call')};",
@@ -23,9 +23,11 @@ const stubMap={
  'worker/toss/purchases.js':"export const purchaseStore={};export const recordTossRefund=()=>{};",
  'worker/lib/models.js':"export const ProfileCard={updateOne:globalThis.__tossRouteMocks.profile};",
  'worker/lib/rate-limit.js':"export const incrementRateLimit=async()=>({count:1});",
- 'worker/yeongnyangi/service.ts':"export const prepareFortune=globalThis.__tossRouteMocks.prepare;export const presentFortune=x=>x;",
- 'worker/yeongnyangi/repository.js':"export const readRequest=()=>{};export const resumeRequest=()=>{};",
+ 'worker/yeongnyangi/service.ts':"export const prepareFortune=globalThis.__tossRouteMocks.prepare;export const presentFortune=x=>x;export const drawTarotSpread=(...args)=>globalThis.__tossRouteMocks.draw(...args);",
+ 'worker/yeongnyangi/repository.js':"export const readRequest=(...args)=>globalThis.__tossRouteMocks.read(...args);export const resumeRequest=()=>{};",
  'worker/yeongnyangi/queue.js':"export const enqueueConsultation=()=>{};",
+ 'worker/yeongnyangi/fortune/index.ts':"export const domains={};",
+ 'worker/toss/flower.js':"export const matchTossFlowers=async()=>{globalThis.__tossRouteMocks.flowerCalls++;return {sources:{},stored:false};};",
  'worker/yeongnyangi/question-followup.ts':"export const questionConversation=globalThis.__tossRouteMocks.followup;"
 };
 const root=path.resolve(import.meta.dirname,'../../..');
@@ -56,3 +58,26 @@ test('pair scope requires a second explicit target, preserves unknown time and n
  const body=calls.prepared[0].body;assert.equal(body.consultationKind,'compatibility');assert.notEqual(body.profileId,body.partnerProfileId);assert.equal(body.partnerTimeUnknown,true);assert.equal(calls.profiles.length,2);
 });
 test('followup without an owned purchase never reaches a generation call',async()=>{const r=await request({id:crypto.randomUUID(),question:'내 질문'},'/results/'+'a'.repeat(64)+'/conversation');assert.equal(r.status,404);assert.equal(calls.followups,0);});
+test('flower requires verified Toss session before calculation and never writes profiles',async()=>{
+ mocks.flowerCalls=0;mocks.denyAuth=true;
+ try{const denied=await request({birth,userId:'attacker'},'/flower/match');assert.equal(denied.status,401);assert.equal(mocks.flowerCalls,0);}finally{mocks.denyAuth=false;}
+ const allowed=await request({birth,userId:'attacker'},'/flower/match');assert.equal(allowed.status,200);assert.equal(mocks.flowerCalls,1);assert.equal(calls.profiles.length,0);
+});
+test('birth-based consultation systems preserve product and authenticated owner across preparation',async()=>{
+ for(const domain of ['saju','astrology','ziwei','vedic','sukuyo']){
+  const r=await request({...input(),sku:domain+'_mackerel',birth:{...birth,date:{...birth.date,timeUnknown:false,hour:14,minute:30}}});
+  assert.equal(r.status,200,domain);assert.equal(calls.prepared[0].body.productId,domain+'_mackerel');assert.equal(calls.prepared[0].user,'owner');
+ }
+});
+test('tarot preparation drops supplied birth data and does not create a profile',async()=>{
+ const r=await request({...input(),sku:'tarot_mackerel',birth:undefined,tarotSpreadId:'test-spread',tarotInputs:{period:'week'}});
+ assert.equal(r.status,200);assert.equal(calls.profiles.length,0);
+ assert.equal(calls.prepared[0].body.profileId,'tarot-question');assert.equal(calls.prepared[0].body.tarotSpreadId,'test-spread');assert.equal(calls.prepared[0].body.timeUnknown,undefined);
+});
+test('draw route checks authenticated ownership and matching approved product before drawing',async()=>{
+ let draws=0;mocks.read=async(_env,user,id)=>{assert.equal(user,'owner');assert.equal(id,'a'.repeat(64));return {productId:'tarot_mackerel'};};
+ mocks.draw=async(_env,user,id,body)=>{assert.equal(user,'owner');assert.deepEqual(body,{method:'manual',picks:[1,5,9]});draws++;return {_id:id,state:'CREATED',snapshot:{}};};
+ const route='/prepared/'+'a'.repeat(64)+'/draw';
+ assert.equal((await request({sku:'saju_mackerel',method:'manual',picks:[1,5,9]},route)).status,404);assert.equal(draws,0);
+ assert.equal((await request({sku:'tarot_mackerel',method:'manual',picks:[1,5,9]},route)).status,200);assert.equal(draws,1);
+});

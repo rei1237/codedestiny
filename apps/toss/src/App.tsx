@@ -1,32 +1,42 @@
-import BiasReading from './BiasReading';
+import TarotDraw,{type TarotSpreadView} from './TarotDraw';
+import {yeongnyangiSpreads as canonicalTarotSpreads} from '../../../lib/tarot/yeongnyangi-spread-catalog.mjs';
 import {Followup,type Conversation} from './Followup';
 import {SERVICE_AVAILABLE} from './release';
 import {BirthFields,emptyBirth,birthPayload} from './BirthFields';
 import {QUESTION_POLICY_VERSION,questionTopics,recommendQuestion,type QuestionDecision} from '../../../worker/yeongnyangi/fortune/ask/question-policy';
-import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {lazy,Suspense,useEffect,useRef,useState,type FormEvent} from 'react';
 import {Button,TextField,TextArea} from '@toss/tds-mobile';
 import {SafeArea,Screen,graniteEvent} from '@apps-in-toss/web-framework';
 import {api,ApiError,isToss,login,logout,restoreSession,saleProducts,purchase,restorePurchases,clearSession,event,type SaleProduct} from './platform';
-import {errors,questions,readings} from './content';
+import {errors,questions,readings,birthSystems} from './content';
 
-type Page='bias'|'home'|'catalog'|'product'|'birth'|'login'|'purchase'|'result'|'library'|'recovery'|'settings'|'terms'|'support'|'withdraw'|'example';
+const BiasReading=lazy(()=>import('./BiasReading'));
+const FlowerReading=lazy(()=>import('./FlowerReading'));
+const yeongnyangiSpreads=canonicalTarotSpreads as {id:string;title:string;summary:string;cardCount:number;requiredInputs:string[];topic:string}[];
+
+type Page='draw'|'flower'|'bias'|'home'|'catalog'|'product'|'birth'|'login'|'purchase'|'result'|'library'|'recovery'|'settings'|'terms'|'support'|'withdraw'|'example';
 type Chapter={title:string;summary:string;analysis:string[];advice?:string;example?:string;persona?:string;blocks?:{id:string;title:string;paragraphs:string[]}[];questionAnswers?:{answer:string;basis:string;timing:string;action:string;review:string}[]};
 type Result={conversation?:Conversation;id:string;state:string;chapters:Chapter[];manifest:{id:string;title:string}[];recovery:{savedChapters:number;totalChapters:number;canRetryNow:boolean;reviewRequired:boolean};errorCode?:string};
 type Purchase={orderId:string;sku:string;productId:string;requestId:string|null;status:string;state:string;completedSections:number;totalSections:number|null;createdAt:string};
-const allowedPages=new Set<Page>(['bias','home','catalog','product','birth','login','purchase','result','library','recovery','settings','terms','support','withdraw','example']);
+const allowedPages=new Set<Page>(['draw','flower','bias','home','catalog','product','birth','login','purchase','result','library','recovery','settings','terms','support','withdraw','example']);
 function currentPage():Page {const value=location.pathname.slice(1) as Page;return allowedPages.has(value)?value:'home';}
 
 export default function App(){
   const [page,setPage]=useState<Page>(currentPage),[selected,setSelected]=useState(()=>new URLSearchParams(location.search).get('product')||readings[0].id);
+  const selectedReading=readings.find(r=>r.id===selected)||readings[0];
+  const activeDomain=selectedReading.domain;
+  const isTarot=activeDomain==='tarot';
+  const [spreadId,setSpreadId]=useState(yeongnyangiSpreads[0].id);
+  const [tarotOptions,setTarotOptions]=useState({a:'',b:'',period:'week',relationStatus:'dating'});
   const [question,setQuestion]=useState(''),[topic,setTopic]=useState<QuestionDecision['category']>('self'),[loggedIn,setLoggedIn]=useState(false);
   const [products,setProducts]=useState<SaleProduct[]>([]),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
   const [purchasing,setPurchasing]=useState(false);
   const [birth,setBirth]=useState(emptyBirth);
   const [partner,setPartner]=useState(emptyBirth);
   const [scope,setScope]=useState({situation:'',options:'',period:'',constraints:'',relationshipType:''});
-  const decision:QuestionDecision={version:QUESTION_POLICY_VERSION,category:topic,target:selected==='saju_flounder'?'pair':'self',horizon:selected==='saju_tuna'?'transition':'current',situation:scope.situation,options:scope.options,period:scope.period,constraints:scope.constraints,...(scope.relationshipType?{relationshipType:scope.relationshipType as QuestionDecision['relationshipType']}:{ }),confirmed:false};
-  const plan=recommendQuestion('saju',decision,question);
-  const [draft,setDraft]=useState<{id:string;amountKRW:number;manifest:{title:string}[]}|null>(null);
+  const decision:QuestionDecision={version:QUESTION_POLICY_VERSION,category:topic,target:selected.endsWith('_flounder')?'pair':'self',horizon:selected.endsWith('_tuna')?'transition':'current',situation:scope.situation,options:scope.options,period:scope.period,constraints:scope.constraints,...(scope.relationshipType?{relationshipType:scope.relationshipType as QuestionDecision['relationshipType']}:{ }),confirmed:false};
+  const plan=recommendQuestion(activeDomain,decision,question);
+  const [draft,setDraft]=useState<{id:string;amountKRW:number;manifest:{title:string}[];state?:string;tarotSpread?:TarotSpreadView}|null>(null);
   const [resultId,setResultId]=useState(()=>new URLSearchParams(location.search).get('id')||''),[result,setResult]=useState<Result|null>(null);
   const [libraryState,setLibraryState]=useState<'loading'|'ready'|'error'>('loading');
   const [library,setLibrary]=useState<Purchase[]>([]),[restoredOrder,setRestoredOrder]=useState<Purchase|null>(null);
@@ -79,11 +89,11 @@ export default function App(){
   function choose(id:string){setSelected(id);setDraft(null);setRestoredOrder(null);attempt.current=crypto.randomUUID();go('product',`?product=${id}`);event('product_view',{productId:id,screen:'product'});}
   async function prepare(){
     if(!sale)throw new ApiError('TOSS_RELEASE_PENDING');
-    if(plan.unsupported||plan.missing.length||selected!=='saju_'+plan.fish)throw new ApiError('QUESTION_SCOPE_REQUIRED');
-    const data=await api<{id:string;amountKRW:number;manifest:{title:string}[]}>('/prepare',{sku:sale.sku,attemptId:attempt.current,
-      question,questionDecision:{...decision,confirmed:true},birth:birthPayload(birth),...(decision.target==='pair'?{partnerBirth:birthPayload(partner)}:{})});
+    if(plan.unsupported||plan.missing.length||selected!==activeDomain+'_'+plan.fish)throw new ApiError('QUESTION_SCOPE_REQUIRED');
+    const data=await api<{id:string;amountKRW:number;manifest:{title:string}[];state?:string;tarotSpread?:TarotSpreadView}>('/prepare',{sku:sale.sku,attemptId:attempt.current,
+      question,questionDecision:{...decision,confirmed:true},...(isTarot?{tarotSpreadId:spreadId,tarotInputs:{options:{a:tarotOptions.a,b:tarotOptions.b},period:tarotOptions.period,relationStatus:tarotOptions.relationStatus}}:{birth:birthPayload(birth),...(decision.target==='pair'?{partnerBirth:birthPayload(partner)}:{})})});
     if(data.amountKRW!==sale.approvedPriceKRW)throw new ApiError('PRODUCT_PRICE_CHANGED');
-    setDraft(data);go('purchase');
+    setDraft(data);go(data.state==='AWAITING_DRAW'?'draw':'purchase');
   }
   function submitBirth(e:FormEvent){e.preventDefault();event('birth_completed',{productId:selected});
     if(!loggedIn){setReturnAfterLogin('birth');go('login');}else void run(prepare);
@@ -91,21 +101,29 @@ export default function App(){
   const heading=(eyebrow:string,title:string,description?:string)=><><p className="eyebrow">{eyebrow}</p><h1 ref={titleRef} tabIndex={-1}>{title}</h1>{description&&<p className="intro">{description}</p>}</>;
   const support=<Button size="medium" variant="weak" onClick={()=>go('support')}>고객지원</Button>;
   const example=<Button variant="weak" display="block" onClick={()=>{go('example');event('example_view',{productId:selected});}}>결과 예시 보기</Button>;
-  const items=<div className="reading-list">{readings.map((p,i)=><button className="reading" key={p.id} onClick={()=>choose(p.id)}><span className="number">0{i+1}</span><span><small>{p.tag}</small><strong>{p.name}</strong><span>{p.description}</span></span><span aria-hidden>›</span></button>)}</div>;
+  const items=<div className="reading-list">{readings.filter(p=>p.domain===activeDomain).map((p,i)=><button className="reading" key={p.id} onClick={()=>choose(p.id)}><span className="number">0{i+1}</span><span><small>{p.tag}</small><strong>{p.name}</strong><span>{p.description}</span></span><span aria-hidden>›</span></button>)}</div>;
   return <main>
     {!SERVICE_AVAILABLE?<div className="preview-note">출시 전 화면 테스트 · 로그인·구매·상담 생성은 아직 제공하지 않아요</div>:!isToss()&&<div className="preview-note">브라우저 미리보기 · 로그인과 구매는 토스 앱에서 가능해요</div>}
     {message&&<div role="alert" className="notice">{message}<Button size="small" variant="weak" onClick={()=>setMessage('')}>닫기</Button></div>}
-    {page==='bias'&&<BiasReading/>}
+    {page==='bias'&&<Suspense fallback={<p role="status">최애운명 화면을 불러오고 있어요.</p>}><BiasReading/></Suspense>}
+    {page==='flower'&&<Suspense fallback={<p role="status">운명의 꽃 화면을 불러오고 있어요.</p>}><FlowerReading loggedIn={loggedIn} onLogin={()=>requireLogin('flower')} onError={failure}/></Suspense>}
+    {page==='draw'&&(draft?.tarotSpread?<TarotDraw key={draft.id} spread={draft.tarotSpread} busy={busy} onConfirm={picks=>void run(async()=>{
+      if(!sale)throw new ApiError('TOSS_PRODUCT_NOT_APPROVED');
+      const drawn=await api<{id:string;state:string;tarotSpread:TarotSpreadView}>(`/prepared/${draft.id}/draw`,{sku:sale.sku,method:'manual',picks});
+      if(drawn.id!==draft.id||drawn.state!=='CREATED'||!drawn.tarotSpread.drawn)throw new ApiError('TAROT_DRAW_NOT_AVAILABLE');
+      setDraft({...draft,...drawn});go('purchase');
+    })}/>:<><h1>상담을 먼저 준비해 주세요</h1><Button onClick={()=>go('catalog')}>상담 선택하기</Button></>)}
     {page==='home'&&<>
       <section className="hero"><div><p className="eyebrow">영냥이 사주운세</p><h1 ref={titleRef} tabIndex={-1}>마음에 걸리는<br/>그 질문부터.</h1><p>사주보는 고양이 영냥이와<br/>내 고민의 흐름을 살펴봐요.</p></div><img src="/assets/yeongnyangi.webp" alt="별과 달이 있는 남색 모자와 망토를 입은 흰 고양이 영냥이" width="800" height="800"/></section>
       <p className="ai-note">계산된 사주를 바탕으로 AI가 해석해요. 미래를 확정하는 예언이 아닌, 선택을 돕는 참고 이야기예요.</p>
       <button className="feature-entry" onClick={()=>go('bias')}><img src="/assets/bias-stage.webp" alt=""/><span><strong>최애운명</strong><small>내 최애와 나, 어떤 케미일까요?</small></span><span aria-hidden>›</span></button>
+      <button className="feature-entry" onClick={()=>go('flower')}><span><strong>운명의 꽃</strong><small>네 가지 체계로 살펴보는 나의 꽃 이야기</small></span><span aria-hidden>›</span></button>
       <h2>지금, 어떤 마음인가요?</h2><div className="questions">{questions.map((q,i)=><button key={q.title} onClick={()=>{setQuestion(q.title);setTopic(q.topic as QuestionDecision['category']);go('catalog');}}><span className="question-mark" aria-hidden>{['↗','◈','♡','☾'][i]}</span><span><strong>{q.title}</strong><small>{q.hint}</small></span><span aria-hidden>›</span></button>)}</div>
       <div className="home-links"><Button variant="weak" onClick={()=>go('catalog')}>전체 상담</Button><Button variant="weak" onClick={()=>requireLogin('library')}>기록 보관함</Button><Button variant="weak" onClick={()=>go('settings')}>내 정보</Button></div>{example}
     </>}
-    {page==='catalog'&&<>{heading('상담 선택','어디까지 살펴볼까요?',question||'궁금한 질문에 맞는 상담을 선택해 주세요.')}{items}<p className="muted">같은 사주 계산 엔진을 사용해요. 선택한 상품의 제공 항목은 구매 전에 확인할 수 있어요.</p></>}
-    {page==='product'&&<>{heading(reading.tag,reading.name,reading.description)}<img className="portrait" src="/assets/yeongnyangi.webp" alt="영냥이"/><section className="paper"><h2>이런 이야기를 살펴봐요</h2><p>질문에 대한 핵심 답변, 사주에서 읽은 근거, 해당하는 시기의 흐름, 현실에서 확인할 일과 상세 해석을 담아요.</p><p>정확한 제공 항목은 질문과 출생정보를 확인한 뒤 결제 전에 보여드려요.</p><p>광어·참치 상담은 출생 시각과 지역이 필요해요. 시간을 모르면 고등어·연어 상담을 선택해 주세요.</p></section>{example}<section className="facts"><h2>구매 전에 확인해 주세요</h2><p>단건 구매로 상담 생성 1회 권한을 제공해요. 이미 구매한 상담의 복구에는 추가 결제가 필요하지 않아요.</p><p>결과는 서버에 저장되어 같은 토스 계정으로 다시 열 수 있어요. 생성 시간은 입력과 처리 상황에 따라 달라요.</p><p>투자 종목 추천, 수익 보장, 의료 진단이나 상대방의 속마음 확정은 제공하지 않아요.</p><p>생성이 멈추면 기록 보관함의 복구를 이용해 주세요. 제공이 어려운 경우 주문번호로 고객지원에 문의할 수 있어요.</p>{support}</section><div className="action"><strong>{sale?`${sale.displayAmount} · 단건 구매`:'상품 등록 확인 중'}</strong><Button display="block" onClick={()=>go('birth')}>질문과 출생정보 입력하기</Button></div></>}
-    {page==='birth'&&<>{heading('상담 준비','누구의 이야기를 볼까요?','토스 계정의 생일과 별개로, 풀이할 대상의 정보를 입력해 주세요. 이름은 필요하지 않아요.')}<form onSubmit={submitBirth} className="form">
+    {page==='catalog'&&<>{heading('상담 선택','어디까지 살펴볼까요?',question||'궁금한 질문에 맞는 상담을 선택해 주세요.')}<label>분석 체계<select value={activeDomain} onChange={e=>{setSelected(e.target.value+'_mackerel');setDraft(null);}}>{birthSystems.map(system=><option key={system.id} value={system.id}>{system.name}</option>)}</select></label>{items}<p className="muted">각 체계의 계산 근거로 질문을 살펴봐요. 선택한 상품의 제공 항목은 구매 전에 확인할 수 있어요.</p></>}
+    {page==='product'&&<>{heading(reading.tag,reading.name,reading.description)}<img className="portrait" src="/assets/yeongnyangi.webp" alt="영냥이"/><section className="paper"><h2>이런 이야기를 살펴봐요</h2><p>질문에 대한 핵심 답변, {reading.systemName}에서 읽은 근거, 해당하는 시기의 흐름, 현실에서 확인할 일과 상세 해석을 담아요.</p><p>{isTarot?'정확한 제공 항목은 질문과 카드 펼침을 확인한 뒤 결제 전에 보여드려요.':'정확한 제공 항목은 질문과 출생정보를 확인한 뒤 결제 전에 보여드려요.'}</p><p>{isTarot?'타로는 출생정보 없이 질문과 선택한 카드의 상징을 살펴봐요.':activeDomain==='saju'?'광어·참치 상담은 출생 시각이 필요해요. 시각을 모르면 사주 고등어·연어 상담을 선택해 주세요.':'이 체계는 정확한 출생 시각과 지역이 필요해요. 모르는 시각을 임의로 입력하지 마세요.'}</p></section>{example}<section className="facts"><h2>구매 전에 확인해 주세요</h2><p>단건 구매로 상담 생성 1회 권한을 제공해요. 이미 구매한 상담의 복구에는 추가 결제가 필요하지 않아요.</p><p>결과는 서버에 저장되어 같은 토스 계정으로 다시 열 수 있어요. 생성 시간은 입력과 처리 상황에 따라 달라요.</p><p>투자 종목 추천, 수익 보장, 의료 진단이나 상대방의 속마음 확정은 제공하지 않아요.</p><p>생성이 멈추면 기록 보관함의 복구를 이용해 주세요. 제공이 어려운 경우 주문번호로 고객지원에 문의할 수 있어요.</p>{support}</section><div className="action"><strong>{sale?`${sale.displayAmount} · 단건 구매`:'상품 등록 확인 중'}</strong><Button display="block" onClick={()=>go('birth')}>{isTarot?'질문과 카드 펼침 선택하기':'질문과 출생정보 입력하기'}</Button></div></>}
+    {page==='birth'&&<>{heading('상담 준비',isTarot?'어떤 질문으로 카드를 펼칠까요?':'누구의 이야기를 볼까요?',isTarot?'현재 상황과 궁금한 질문을 알려 주세요. 출생정보는 필요하지 않아요.':'토스 계정의 생일과 별개로, 풀이할 대상의 정보를 입력해 주세요. 이름은 필요하지 않아요.')}<form onSubmit={submitBirth} className="form">
       <TextArea variant="box" label="궁금한 질문" labelOption="sustain" value={question} onChange={e=>setQuestion(e.target.value)} required minLength={5} maxLength={600}/>
       <label>상담 주제<select value={topic} onChange={e=>setTopic(e.target.value as QuestionDecision['category'])}>{questionTopics.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
       <TextArea variant="box" label="현재 상황" labelOption="sustain" value={scope.situation} onChange={e=>setScope({...scope,situation:e.target.value})} required maxLength={600}/>
@@ -113,14 +131,19 @@ export default function App(){
       {plan.fish==='salmon'&&<><TextArea variant="box" label="선택지 또는 준비 목표" labelOption="sustain" value={scope.options} onChange={e=>setScope({...scope,options:e.target.value})} required maxLength={600}/><TextArea variant="box" label="중요한 조건과 제약 (없다면 없음)" labelOption="sustain" value={scope.constraints} onChange={e=>setScope({...scope,constraints:e.target.value})} required maxLength={600}/></>}
       {decision.target==='pair'&&<label>두 사람의 관계<select required value={scope.relationshipType} onChange={e=>setScope({...scope,relationshipType:e.target.value})}><option value="">관계 유형 선택</option><option value="romantic_adults">성인 두 사람의 연애 관계</option><option value="family">가족</option><option value="other">친구·동료 등</option></select></label>}
       <p className="muted">선택한 범위: {reading.description}</p>
-      {selected!=='saju_'+plan.fish&&<div className="notice"><p>입력한 질문은 {readings.find(r=>r.id==='saju_'+plan.fish)?.name} 범위에 해당해요. 범위와 상품을 확인해 주세요.</p><Button variant="weak" onClick={()=>{setSelected('saju_'+plan.fish);setDraft(null);}}>질문에 맞는 상담으로 변경</Button></div>}
+      {selected!==activeDomain+'_'+plan.fish&&<div className="notice"><p>입력한 질문은 {readings.find(r=>r.id===activeDomain+'_'+plan.fish)?.name} 범위에 해당해요. 범위와 상품을 확인해 주세요.</p><Button variant="weak" onClick={()=>{setSelected(activeDomain+'_'+plan.fish);setDraft(null);}}>질문에 맞는 상담으로 변경</Button></div>}
       {plan.unsupported&&<p role="alert">{plan.unsupported}</p>}
-      <BirthFields title="나의 출생정보" value={birth} onChange={setBirth}/>
-      {decision.target==='pair'&&<><p>상대방이 정보 제공에 동의했는지 확인해 주세요. 이름은 입력하지 않아요. 구매한 결과의 재열람과 복구에 필요한 정보로 보관돼요.</p><BirthFields title="상대방의 출생정보" value={partner} onChange={setPartner}/><label className="check"><input type="checkbox" required/>상대방의 출생정보 제공 동의를 확인했어요.</label></>}
-      <p className="muted">현재 입력 화면은 위 국내 도시만 지원해요. 다른 지역을 임의로 선택하지 마세요.</p>
+      {isTarot&&<><label>카드 펼침<select value={spreadId} onChange={e=>setSpreadId(e.target.value)}>{yeongnyangiSpreads.map(spread=><option key={spread.id} value={spread.id}>{spread.title} · {spread.cardCount}장</option>)}</select></label><p>{yeongnyangiSpreads.find(spread=>spread.id===spreadId)?.summary}</p>
+        {yeongnyangiSpreads.find(spread=>spread.id===spreadId)?.requiredInputs.includes('options')&&<><TextField variant="box" label="선택지 A" value={tarotOptions.a} required maxLength={40} onChange={e=>setTarotOptions({...tarotOptions,a:e.target.value})}/><TextField variant="box" label="선택지 B" value={tarotOptions.b} required maxLength={40} onChange={e=>setTarotOptions({...tarotOptions,b:e.target.value})}/></>}
+        <label>살펴볼 기간<select value={tarotOptions.period} onChange={e=>setTarotOptions({...tarotOptions,period:e.target.value})}><option value="week">앞으로 일주일</option><option value="month">앞으로 한 달</option></select></label>
+        {yeongnyangiSpreads.find(spread=>spread.id===spreadId)?.topic==='love'&&<label>현재 관계<select value={tarotOptions.relationStatus} onChange={e=>setTarotOptions({...tarotOptions,relationStatus:e.target.value})}><option value="dating">연애 중</option><option value="getting_to_know">알아가는 중</option><option value="one_sided">혼자 좋아하는 중</option><option value="separated">헤어진 뒤</option><option value="no_contact">연락이 끊긴 상태</option><option value="contact_refused">상대가 연락을 원하지 않는다고 했음</option><option value="married">함께 사는 중</option></select></label>}
+        <p>출생정보는 수집하지 않아요. 결제 전에 직접 카드를 선택하고 확정해요.</p></>}
+      {!isTarot&&<BirthFields title="나의 출생정보" value={birth} onChange={setBirth}/>}
+      {!isTarot&&decision.target==='pair'&&<><p>상대방이 정보 제공에 동의했는지 확인해 주세요. 이름은 입력하지 않아요. 구매한 결과의 재열람과 복구에 필요한 정보로 보관돼요.</p><BirthFields title="상대방의 출생정보" value={partner} onChange={setPartner}/><label className="check"><input type="checkbox" required/>상대방의 출생정보 제공 동의를 확인했어요.</label></>}
+      {!isTarot&&<p className="muted">현재 입력 화면은 위 국내 도시만 지원해요. 다른 지역을 임의로 선택하지 마세요.</p>}
       <label className="check"><input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)} required/>AI 해석 안내와 필수 개인정보 처리 안내를 확인했어요.</label><Button variant="weak" onClick={()=>go('terms')}>약관과 개인정보 안내 보기</Button>
       {plan.missing.length>0&&<ul className="muted">{plan.missing.map(text=><li key={text}>{text}</li>)}</ul>}
-      <Button type="submit" display="block" loading={busy} disabled={!agreed||plan.missing.length>0||!!plan.unsupported||selected!=='saju_'+plan.fish||(birth.unknown||decision.target==='pair'&&partner.unknown)&&['saju_flounder','saju_tuna'].includes(selected)}>{loggedIn?'제공 항목 확인하기':'토스 로그인하고 이어가기'}</Button>
+      <Button type="submit" display="block" loading={busy} disabled={!agreed||plan.missing.length>0||!!plan.unsupported||selected!==activeDomain+'_'+plan.fish||!isTarot&&(birth.unknown||decision.target==='pair'&&partner.unknown)&&(activeDomain!=='saju'||selected.endsWith('_flounder')||selected.endsWith('_tuna'))}>{loggedIn?'제공 항목 확인하기':'토스 로그인하고 이어가기'}</Button>
     </form></>}
     {page==='login'&&<>{heading('토스 로그인','상담을 안전하게 보관해요','구매와 기록을 본인 계정에 연결하기 위해 토스 로그인이 필요해요.')}<img className="portrait" src="/assets/yeongnyangi.webp" alt="영냥이"/><p>이름과 이메일은 받지 않아요. 기존 CODE DESTINY 웹 계정과 기록은 자동으로 합쳐지지 않아요.</p><Button display="block" loading={busy} onClick={()=>void run(async()=>{event('login_start');await login();setLoggedIn(true);go(returnAfterLogin);event('login_completed');})}>토스로 로그인하기</Button><Button display="block" variant="weak" onClick={()=>{event('login_cancelled');go('home');}}>지금은 둘러보기</Button></>}
     {page==='purchase'&&<>{heading('최종 확인',restoredOrder?'복구한 상담을 이어갈게요':'이 내용으로 상담할까요?')}{draft&&sale?<><section className="paper"><h2>{reading.name}</h2><ol>{draft.manifest.map((item,i)=><li key={i}>{item.title}</li>)}</ol><p>상담 생성 1회 · 결과 보관과 재열람 포함</p><strong className="price">{restoredOrder?'이미 구매한 권한 사용':sale.displayAmount}</strong></section><p>생성 중 나가도 기록 보관함에서 이어볼 수 있어요. 실제 완료된 항목을 차례로 보여드려요.</p><Button display="block" loading={busy||purchasing} disabled={purchasing} onClick={()=>void run(async()=>{

@@ -1,10 +1,13 @@
 import {questionScopes} from '../../../worker/yeongnyangi/fortune/ask/question-policy';
-export const readings=[
-  {id:'saju_mackerel',name:'고등어 상담',tag:'한 가지 고민부터',description:questionScopes.mackerel},
-  {id:'saju_salmon',name:'연어 상담',tag:'선택의 조건 살펴보기',description:questionScopes.salmon},
-  {id:'saju_flounder',name:'광어 상담',tag:'두 사람의 관계 살펴보기',description:questionScopes.flounder},
-  {id:'saju_tuna',name:'참치 상담',tag:'장기 흐름과 전환 준비',description:questionScopes.tuna},
-];
+export const birthSystems=[{id:'saju',name:'사주'},{id:'astrology',name:'서양 점성술'},{id:'ziwei',name:'자미두수'},{id:'vedic',name:'베다점'},{id:'sukuyo',name:'숙요점'},{id:'tarot',name:'타로'}] as const;
+const depths=[
+  {fish:'mackerel',name:'고등어 상담',tag:'한 가지 고민부터',description:questionScopes.mackerel},
+  {fish:'salmon',name:'연어 상담',tag:'선택의 조건 살펴보기',description:questionScopes.salmon},
+  {fish:'flounder',name:'광어 상담',tag:'두 사람의 관계 살펴보기',description:questionScopes.flounder},
+  {fish:'tuna',name:'참치 상담',tag:'장기 흐름과 전환 준비',description:questionScopes.tuna},
+] as const;
+// Current question policy offers long-period transitions only for these three systems.
+export const readings=birthSystems.flatMap(system=>depths.filter(depth=>depth.fish!=='tuna'||['saju','ziwei','vedic'].includes(system.id)).map(depth=>({...depth,id:`${system.id}_${depth.fish}`,domain:system.id,systemName:system.name,name:`${system.name} ${depth.name}`})));
 export const questions=[
   {title:'지금 이직해도 괜찮을까',topic:'job_change',hint:'일하는 방식과 변화의 흐름'},
   {title:'내 일과 돈의 흐름은 어떨까',topic:'money',hint:'재능, 자원과 선택의 기준'},
@@ -21,6 +24,9 @@ export const cities=[
   {label:'제주',lat:33.4996,lng:126.5312,tz:'Asia/Seoul'},
 ];
 export const errors:Record<string,string>={
+  INVALID_TAROT_SPREAD:'카드 펼침을 다시 선택해 주세요.',
+  INVALID_TAROT_PICKS:'필요한 수만큼 서로 다른 카드를 선택해 주세요.',
+  TAROT_DRAW_NOT_AVAILABLE:'이 상담의 카드 선택 상태를 다시 확인해 주세요. 확정한 카드는 바뀌지 않아요.',
   QUESTION_FOLLOWUP_BUSY:'이전 질문의 답변을 저장하고 있어요. 잠시 후 같은 요청으로 확인해 주세요.',
   QUESTION_FOLLOWUP_SUPPORT:'같은 질문의 자동 재시도 한도에 도달했어요. 기존 결과는 그대로 보관되며 고객지원에서 확인할 수 있어요.',
   QUESTION_CONVERSATION_CLOSED:'이 상담의 후속 질문을 모두 이용했어요. 저장된 결과는 계속 읽을 수 있어요.',

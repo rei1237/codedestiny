@@ -11,7 +11,8 @@ import {ProfileCard} from '../lib/models.js';
 import {incrementRateLimit} from '../lib/rate-limit.js';
 import {getProduct} from '../yeongnyangi/payments/catalog.ts';
 import {questionDecision,questionTopic,assertQuestionOrder} from '../yeongnyangi/fortune/ask/question-policy.ts';
-import {prepareFortune,presentFortune} from '../yeongnyangi/service.ts';
+import {prepareFortune,presentFortune,drawTarotSpread} from '../yeongnyangi/service.ts';
+import {publicTarotSpread} from '../yeongnyangi/fortune/tarot/spread-v3.ts';
 import {readRequest,resumeRequest} from '../yeongnyangi/repository.js';
 import {enqueueConsultation} from '../yeongnyangi/queue.js';
 
@@ -44,7 +45,7 @@ export async function handleTossRoutes(request,env) {
       'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type'}});
     if(path==='/catalog'&&request.method==='GET')return reply({products:APPROVED_TOSS_PRODUCTS.map(item=>{
       const product=getProduct(item.productId);
-      return {id:product.id,name:`사주 ${product.fishName} 상담`,sku:item.sku,approvedPriceKRW:item.approvedPriceKRW,
+      return {id:product.id,name:`${product.name} ${product.fishName} 상담`,sku:item.sku,approvedPriceKRW:item.approvedPriceKRW,
         chapters:product.chapterCount,available:item.approved&&product.priceKRW===item.approvedPriceKRW};
     })});
     // Explicit release gate: unavailable credentials, agreements or product approvals cannot become live sales.
@@ -58,14 +59,20 @@ export async function handleTossRoutes(request,env) {
     if(path==='/session'&&request.method==='GET')return reply({authenticated:true,environment:auth.environment});
     if(path==='/logout'&&request.method==='POST') {await TossSession.deleteOne({_id:auth.sessionId});return reply({ok:true});}
     if(path==='/unlink'&&request.method==='POST')return reply(await disconnectIdentity(env,auth));
+    if(path==='/flower/match'&&request.method==='POST') {
+      await limit(env,auth._id,'flower',6);
+      const [{matchTossFlowers},{domains}]=await Promise.all([import('./flower.js'),import('../yeongnyangi/fortune/index.ts')]);
+      return reply(await matchTossFlowers(await bodyOf(request),env,domains));
+    }
     if(path==='/prepare'&&request.method==='POST') {
       await limit(env,auth._id,'prepare',6);
       const input=await bodyOf(request),product=approvedProduct(input.sku);
       const {validatePreparation}=await import('./preparation.js');
-      const form=validatePreparation(input);
+      const tarot=getProduct(product.productId).domain==='tarot';
+      const form=validatePreparation(input,{birthRequired:!tarot});
       const decision=questionDecision(input.questionDecision);
       assertQuestionOrder(getProduct(product.productId),decision,form.question);
-      if(decision.target==='pair'&&!form.partnerBirth)throw new TossError('PARTNER_REQUIRED');
+      if(!tarot&&decision.target==='pair'&&!form.partnerBirth)throw new TossError('PARTNER_REQUIRED');
       if(decision.target!=='pair'&&form.partnerBirth)throw new TossError('PARTNER_NOT_SUPPORTED');
       // Immutable targets, separate roles even when two people share birth details.
       async function saveTarget(birth,role) {
@@ -74,14 +81,23 @@ export async function handleTossRoutes(request,env) {
           name:role==='partner'?'상대방':'풀이 대상',gender:birth.gender,birth:birth.date,location:birth.location}},{upsert:true});
         return profileId;
       }
-      const profileId=await saveTarget(form.birth,'self');
+      const profileId=tarot?'tarot-question':await saveTarget(form.birth,'self');
       const partnerProfileId=form.partnerBirth?await saveTarget(form.partnerBirth,'partner'):undefined;
       const row=await prepareFortune(env,auth.userId,{productId:product.productId,profileId,question:form.question,
         questionDecision:decision,consultationKind:decision.target==='pair'?'compatibility':'ask',topicId:questionTopic(decision.category),
-        timeUnknown:form.birth.date.timeUnknown,...(partnerProfileId?{partnerProfileId,partnerTimeUnknown:form.partnerBirth.date.timeUnknown}:{}),
+        ...(tarot?{tarotSpreadId:input.tarotSpreadId,tarotInputs:input.tarotInputs}:{timeUnknown:form.birth.date.timeUnknown}),...(partnerProfileId?{partnerProfileId,partnerTimeUnknown:form.partnerBirth.date.timeUnknown}:{}),
         consultationAttemptId:form.attemptId,locale:'ko',timezone:'Asia/Seoul',voiceStyle:'honorific'});
-      return reply({id:String(row._id),productId:row.productId,amountKRW:row.amountKRW,
+      return reply({id:String(row._id),productId:row.productId,amountKRW:row.amountKRW,state:row.state,tarotSpread:publicTarotSpread(row.snapshot),
         manifest:row.snapshot.manifest.map(({id,title,ordinal})=>({id,title,ordinal}))});
+    }
+    const drawMatch=path.match(/^\/prepared\/([a-f0-9]{64})\/draw$/);
+    if(drawMatch&&request.method==='POST') {
+      await limit(env,auth._id,'tarot-draw',6);
+      const input=await bodyOf(request),product=approvedProduct(input.sku);
+      const row=await readRequest(env,auth.userId,drawMatch[1]);
+      if(row.productId!==product.productId||getProduct(product.productId).domain!=='tarot')throw new TossError('REQUEST_NOT_FOUND',404);
+      const drawn=await drawTarotSpread(env,auth.userId,drawMatch[1],{method:input.method,picks:input.picks});
+      return reply({id:String(drawn._id),state:drawn.state,tarotSpread:publicTarotSpread(drawn.snapshot)});
     }
     if(path==='/orders/grant'&&request.method==='POST') {
       const input=await bodyOf(request),product=approvedProduct(input.sku);
