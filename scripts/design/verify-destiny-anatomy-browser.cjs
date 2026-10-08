@@ -59,6 +59,11 @@ const server=http.createServer((req,res)=>{
   await page.screenshot({path:path.join(out,'flower-'+width+'.png')});
   await page.evaluate(()=>window._sajuSetCalculationLoading(false,'idle'));
  }
+ await page.evaluate(()=>window._sajuSetCalculationLoading(true,'calculating'));
+ await page.locator('#sajuCalcLoadingOverlay img').evaluate(img=>img.dispatchEvent(new Event('error')));
+ assert.equal(await page.locator('#sajuCalcLoadingOverlay img').evaluate(img=>getComputedStyle(img).display),'none');
+ assert.ok(await page.locator('#sajuCalcLoadingOverlay p').isVisible());
+ await page.evaluate(()=>window._sajuSetCalculationLoading(false,'error'));
  await page.setViewportSize({width:390,height:844});
 
  const card=page.locator('#destinyAnatomyCard');
@@ -77,7 +82,7 @@ const server=http.createServer((req,res)=>{
  }
  await page.setViewportSize({width:390,height:900});
  await page.locator('[data-da-trigger]').focus(); await page.keyboard.press('Enter');
- assert.equal(await page.locator('[data-da-act="login"]').count(),1);
+ await page.locator('[data-da-act="login"]').waitFor({state:'attached'});
  await page.locator('[data-da-chapter="recovery"] > summary').click();
  await page.locator('[data-da-entry="chakra-root"] > summary').click();
  await page.locator('[data-da-sec="habits"]').screenshot({path:path.join(out,'habits.png')});

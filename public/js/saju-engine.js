@@ -5093,8 +5093,8 @@ function _sajuSetCalculationLoading(visible, state) {
   var flower = overlay.querySelector('.saju-calc-loading-overlay__flower');
   if (flower && !flower._sajuFallbackBound) {
     flower._sajuFallbackBound = true;
-    flower.addEventListener('error', function() { flower.hidden = true; });
-    if (flower.complete && !flower.naturalWidth) flower.hidden = true;
+    flower.addEventListener('error', function() { flower.style.display = 'none'; });
+    if (flower.complete && !flower.naturalWidth) flower.style.display = 'none';
   }
   var resultPage = document.getElementById('resultPage');
   // finally must not interrupt an already-started visual handoff.
