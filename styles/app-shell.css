@@ -184,6 +184,31 @@ html.cd-app-html body {
   -webkit-backdrop-filter: blur(18px) saturate(1.4);
 }
 
+.cd-app-shell .cd-mnav__handle {
+  color: var(--cd-app-ink-muted);
+}
+
+@media (min-width: 769px) {
+  .cd-app-shell .cd-mnav__handle {
+    border-color: var(--cd-app-line);
+    background: color-mix(in srgb, var(--cd-app-bg) 92%, transparent);
+  }
+
+  .cd-app-shell .cd-mnav__handle:hover {
+    background: color-mix(in srgb, var(--cd-app-gold) 12%, var(--cd-app-bg));
+    color: var(--cd-app-gold);
+  }
+}
+
+body.cd-mnav-collapsed .cd-app-shell .cd-mnav__handle {
+  border-color: var(--cd-app-line-strong);
+  background: var(--cd-app-bg-raised);
+}
+
+.cd-app-shell .cd-mnav__handle:focus-visible {
+  outline-color: var(--cd-app-gold);
+}
+
 .cd-app-shell .cd-mnav__link {
   color: var(--cd-app-ink-muted);
 }
