@@ -9,7 +9,7 @@ const SERVICE_SECTION_DEFINITIONS = [
       { href: "/love-secret-ai", fallbackTitle: "연애 비책 전문가 상담", fallbackDesc: "명리학 기반 1:1 연애 상담 · 30,000원" },
       { href: "/master-love-codex", fallbackTitle: "마스터 인연의 서", fallbackDesc: "사주×자미두수 융합 20장 연애 전략서 · 개인 1회 10,000원 / 상대와의 궁합 30,000원" },
       { href: "/naming-ai", fallbackTitle: "훈민정음 작명소", fallbackDesc: "사주 맞춤 프리미엄 전문가 작명 · 30,000원" },
-      { href: "/saju/love-simulation", fallbackTitle: "LOVE CODE", fallbackDesc: "사주 연애 시뮬레이션 · 잠금 해제 5,000원", isStaticCanonical: true },
+      { href: "/saju/love-simulation", fallbackTitle: "LOVE CODE", fallbackDesc: "사주 연애 시뮬레이션 · 이용할 때마다 5,000원", isStaticCanonical: true },
       { href: "/saju/destiny-bias", fallbackTitle: "최애운명", fallbackDesc: "내 최애와 나의 케미 포토카드 · 무료" },
       { href: "/saju/animal-destiny", aliases: ["/saju/animal-test"], fallbackTitle: "십이운성 동물점", fallbackDesc: "사주 속 십이운성으로 깨어나는 나만의 수호 동물 · 해금 5,000원", isStaticCanonical: true },
       { href: "/saju/destiny-meeting-place", fallbackTitle: "사주로 보는 인연의 장소", fallbackDesc: "인연 장소·도시·타이밍 독립 분석 · 1회 5,000원", isStaticCanonical: true },
