@@ -5,6 +5,7 @@ import {buildChemiReport,BIAS_MOODS,type ChemiReport} from '../../../app/saju/de
 import ChemiCoreCard from '../../../app/saju/destiny-bias/components/chemi/ChemiCoreCard';
 import {PHOTOCARD_THEMES} from '../../../app/saju/destiny-bias/components/chemi/PhotocardFace';
 import BiasReport from './BiasReport';
+import BiasExport from './BiasExport';
 
 // The web and Toss clients import the same deterministic engine and roster.
 // Birth information stays in component memory; it is never an analytics parameter.
@@ -54,6 +55,7 @@ export default function BiasReading(){
       <label>포토카드 테마<select value={theme} onChange={e=>setTheme(e.target.value)}>{PHOTOCARD_THEMES.map(value=><option key={value.key} value={value.key}>{value.label}</option>)}</select></label>
       <ChemiCoreCard report={reading} themeKey={theme}/>
       <p className="muted">카드의 점수는 기존 최애운명 계산 규칙으로 표현한 기질 지표예요. 실제 관계가 이루어질 확률이나 상대의 마음을 뜻하지 않아요.</p>
+      <BiasExport key={`${reading.serial}-${theme}`} report={reading} theme={theme}/>
       <BiasReport report={reading}/>
       {reading.copy.points.map(point=><section key={point.label}><h3>{point.label}</h3><p>{point.text}</p><p className="muted">{point.evidenceKo}</p></section>)}
       <h3>{reading.copy.scenario.label}</h3><p>{reading.copy.scenario.setting}</p><p>{reading.copy.scenario.text}</p>
