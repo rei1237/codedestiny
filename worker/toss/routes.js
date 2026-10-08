@@ -17,7 +17,7 @@ import {prepareFortune,presentFortune,drawTarotSpread} from '../yeongnyangi/serv
 import {publicTarotSpread} from '../yeongnyangi/fortune/tarot/spread-v3.ts';
 import {readRequest,resumeRequest} from '../yeongnyangi/repository.js';
 import {enqueueConsultation} from '../yeongnyangi/queue.js';
-import {grantTarotLibraryOrder,tarotLibraryFlow,tarotLibraryProduct,tarotLibraryResult} from './tarot-library.js';
+import {deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryFlow,tarotLibraryProduct,tarotLibraryResult} from './tarot-library.js';
 
 async function bodyOf(request) {
   if(!request.headers.get('Content-Type')?.startsWith('application/json'))throw new TossError('JSON_REQUIRED',415);
@@ -120,7 +120,9 @@ export async function handleTossRoutes(request,env) {
       const input=await bodyOf(request),product=tarotLibraryProduct(APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS.find(item=>item.sku===input.sku));
       const order=await lookupOrder(env,auth.userKey,input.orderId);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
-      return reply(await grantTarotLibraryOrder({store:purchaseStore,auth,order,product}));
+      const receipt=await grantTarotLibraryOrder({store:purchaseStore,auth,order,product,input:input.input});
+      const delivery=await deliverTarotLibraryOrder({store:purchaseStore,auth,orderId:order.orderId,flowId:product.flow.id});
+      return reply({...receipt,delivery});
     }
     if(path==='/library'&&request.method==='GET') {
       const rows=await TossPurchase.find(libraryFilter(auth,url.searchParams.get('cursor'))).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();

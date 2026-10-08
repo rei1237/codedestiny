@@ -8,19 +8,20 @@ import {QUESTION_POLICY_VERSION,questionTopics,recommendQuestion,type QuestionDe
 import {lazy,Suspense,useEffect,useRef,useState,type FormEvent} from 'react';
 import {Button,TextField,TextArea} from '@toss/tds-mobile';
 import {SafeArea,Screen,graniteEvent} from '@apps-in-toss/web-framework';
-import {api,ApiError,isToss,login,logout,restoreSession,saleProducts,purchase,restorePurchases,clearSession,event,type SaleProduct} from './platform';
+import {api,ApiError,isToss,login,logout,restoreSession,saleProducts,tarotLibraryProducts,purchase,restorePurchases,clearSession,event,type SaleProduct,type TarotLibraryProduct} from './platform';
 import {errors,questions,readings,birthSystems,consultationServices,selectionFor} from './content';
 
 const ResultEvidence=lazy(()=>import('./ResultEvidence'));
 const BiasReading=lazy(()=>import('./BiasReading'));
 const FlowerReading=lazy(()=>import('./FlowerReading'));
+const TarotLibrary=lazy(()=>import('./TarotLibrary'));
 const yeongnyangiSpreads=canonicalTarotSpreads as {id:string;title:string;summary:string;cardCount:number;requiredInputs:string[];topic:string}[];
 
-type Page='draw'|'flower'|'bias'|'home'|'catalog'|'product'|'birth'|'login'|'purchase'|'result'|'library'|'recovery'|'settings'|'terms'|'support'|'withdraw'|'example';
+type Page='draw'|'flower'|'bias'|'tarot-library'|'home'|'catalog'|'product'|'birth'|'login'|'purchase'|'result'|'library'|'recovery'|'settings'|'terms'|'support'|'withdraw'|'example';
 type Chapter={title:string;summary:string;analysis:string[];advice?:string;example?:string;persona?:string;blocks?:{id:string;title:string;paragraphs:string[]}[];questionAnswers?:{answer:string;reason?:string;basis?:string;timing:string;action:string;review:string}[]};
 type Result={charts?:ReadingChart[];serviceId?:string;conversation?:Conversation;id:string;state:string;chapters:Chapter[];manifest:{id:string;title:string}[];recovery:{savedChapters:number;totalChapters:number;canRetryNow:boolean;reviewRequired:boolean};errorCode?:string};
 type Purchase={serviceId:string;selectionId:string;orderId:string;sku:string;productId:string;requestId:string|null;status:string;state:string;completedSections:number;totalSections:number|null;createdAt:string};
-const allowedPages=new Set<Page>(['draw','flower','bias','home','catalog','product','birth','login','purchase','result','library','recovery','settings','terms','support','withdraw','example']);
+const allowedPages=new Set<Page>(['draw','flower','bias','tarot-library','home','catalog','product','birth','login','purchase','result','library','recovery','settings','terms','support','withdraw','example']);
 function currentPage():Page {const value=location.pathname.slice(1) as Page;return allowedPages.has(value)?value:'home';}
 
 export default function App(){
@@ -32,7 +33,7 @@ export default function App(){
   const [spreadId,setSpreadId]=useState(yeongnyangiSpreads[0].id);
   const [tarotOptions,setTarotOptions]=useState({a:'',b:'',period:'week',relationStatus:'dating'});
   const [question,setQuestion]=useState(''),[topic,setTopic]=useState<QuestionDecision['category']>('self'),[loggedIn,setLoggedIn]=useState(false);
-  const [products,setProducts]=useState<SaleProduct[]>([]),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
+  const [products,setProducts]=useState<SaleProduct[]>([]),[tarotProducts,setTarotProducts]=useState<TarotLibraryProduct[]>([]),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
   const [purchasing,setPurchasing]=useState(false);
   const [birth,setBirth]=useState(emptyBirth);
   const [partner,setPartner]=useState(emptyBirth);
@@ -67,6 +68,7 @@ export default function App(){
       offHome=graniteEvent.addEventListener('homeEvent',{onEvent:()=>go('home')});
       SERVICE_AVAILABLE&&void restoreSession().then(setLoggedIn).catch(failure);
       void saleProducts().then(setProducts).catch(failure);
+      void tarotLibraryProducts().then(setTarotProducts).catch(failure);
     }
     event('home_view',{screen:'home'});
     return()=>{window.removeEventListener('popstate',pop);offBack();offHome();offArea();cleanPurchase.current?.();};
@@ -112,6 +114,7 @@ export default function App(){
     {message&&<div role="alert" className="notice">{message}<Button size="small" variant="weak" onClick={()=>setMessage('')}>닫기</Button></div>}
     {page==='bias'&&<Suspense fallback={<p role="status">최애운명 화면을 불러오고 있어요.</p>}><BiasReading/></Suspense>}
     {page==='flower'&&<Suspense fallback={<p role="status">운명의 꽃 화면을 불러오고 있어요.</p>}><FlowerReading loggedIn={loggedIn} onLogin={()=>requireLogin('flower')} onError={failure}/></Suspense>}
+    {page==='tarot-library'&&<Suspense fallback={<p role="status">타로 리딩을 준비하고 있어요.</p>}><TarotLibrary products={tarotProducts} loggedIn={loggedIn} onLogin={()=>requireLogin('tarot-library')} onError={failure} onBack={()=>go('home')}/></Suspense>}
     {page==='draw'&&(draft?.tarotSpread?<TarotDraw key={draft.id} spread={draft.tarotSpread} busy={busy} onConfirm={picks=>void run(async()=>{
       if(!sale)throw new ApiError('TOSS_PRODUCT_NOT_APPROVED');
       const drawn=await api<{id:string;state:string;tarotSpread:TarotSpreadView}>(`/prepared/${draft.id}/draw`,{sku:sale.sku,method:'manual',picks});
@@ -123,6 +126,7 @@ export default function App(){
       <p className="ai-note">계산된 사주를 바탕으로 AI가 해석해요. 미래를 확정하는 예언이 아닌, 선택을 돕는 참고 이야기예요.</p>
       <button className="feature-entry" onClick={()=>go('bias')}><img src="/assets/bias-stage.webp" alt=""/><span><strong>최애운명</strong><small>내 최애와 나, 어떤 케미일까요?</small></span><span aria-hidden>›</span></button>
       <button className="feature-entry" onClick={()=>go('flower')}><span><strong>운명의 꽃</strong><small>네 가지 체계로 살펴보는 나의 꽃 이야기</small></span><span aria-hidden>›</span></button>
+      <button className="feature-entry" onClick={()=>go('tarot-library')}><span><strong>타로 리딩</strong><small>질문을 고르고 직접 카드를 펼쳐 보세요</small></span><span aria-hidden>›</span></button>
       <h2>지금, 어떤 마음인가요?</h2><div className="questions">{questions.map((q,i)=><button key={q.title} onClick={()=>{setQuestion(q.title);setTopic(q.topic as QuestionDecision['category']);go('catalog');}}><span className="question-mark" aria-hidden>{['↗','◈','♡','☾'][i]}</span><span><strong>{q.title}</strong><small>{q.hint}</small></span><span aria-hidden>›</span></button>)}</div>
       <div className="home-links"><Button variant="weak" onClick={()=>go('catalog')}>전체 상담</Button><Button variant="weak" onClick={()=>requireLogin('library')}>기록 보관함</Button><Button variant="weak" onClick={()=>go('settings')}>내 정보</Button></div>{example}
     </>}

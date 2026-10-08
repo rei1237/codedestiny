@@ -837,6 +837,7 @@ const paidExecutionRecordSchema = new mongoose.Schema({
   consumedAt: { type: Date, default: null },
   completedAt: { type: Date, default: null },
   resultId: { type: String, default: "", trim: true, maxlength: 160 },
+  input: { type: mongoose.Schema.Types.Mixed, default: null },
   result: { type: mongoose.Schema.Types.Mixed, default: null },
   error: { type: mongoose.Schema.Types.Mixed, default: null },
   idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },

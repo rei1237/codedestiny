@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {TOSS_TAROT_LIBRARY_FLOWS,claimTarotLibraryDelivery,completeTarotLibraryDelivery,grantTarotLibraryOrder,tarotLibraryProduct,tarotLibraryResult} from '../../../worker/toss/tarot-library.js';
+import {TOSS_TAROT_LIBRARY_FLOWS,buildTarotLibraryBaseline,claimTarotLibraryDelivery,completeTarotLibraryDelivery,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryProduct,tarotLibraryResult} from '../../../worker/toss/tarot-library.js';
 
 const order={orderId:'01900000-1111-7111-8111-000000000042',sku:'approved-tarot-library',status:'PAYMENT_COMPLETED'};
 const auth={_id:'toss-identity',ownerId:'internal-owner',revision:0,environment:'SANDBOX'};
@@ -53,4 +53,16 @@ test('server delivery claims once, completes once, and replays the stored result
  assert.equal(completed.state,'completed');
  assert.equal(completed.result.title,'저장된 마인드스캔');
  assert.equal((await claimTarotLibraryDelivery({store:f.store,auth,orderId:order.orderId,flowId:product.flow.id})).state,'completed');
+});
+test('a Toss tarot delivery stores only validated server-built card data',async()=>{
+ const f=fixture(),product=tarotLibraryProduct(rawProduct);
+ const input={question:'상대의 말과 행동이 달라 보여요.',cards:[
+  ['M00','words'],['M01','actions'],['M02','gap'],['M03','boundary'],['M04','next'],
+ ].map(([cardId,position],index)=>({cardId,position,orientation:index===1?'reversed':'upright'}))};
+ await grantTarotLibraryOrder({store:f.store,auth,order,product,input});
+ const completed=await deliverTarotLibraryOrder({store:f.store,auth,orderId:order.orderId,flowId:product.flow.id});
+ assert.equal(completed.state,'completed');assert.equal(completed.result.flowId,'tarot-mindscan');
+ assert.equal(completed.result.cards.length,5);assert.equal(completed.result.cards[1].orientation,'reversed');
+ assert.equal(typeof completed.result.opening,'string');assert.equal(typeof completed.result.advice,'string');
+ assert.equal(buildTarotLibraryBaseline(product.flow.id,input).cards[0].nameKr.length>0,true);
 });

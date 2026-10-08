@@ -1,30 +1,11 @@
 import {checkOrder,TossError} from './policy.js';
+import {TOSS_TAROT_LIBRARY_FLOWS,tossTarotLibraryFlow} from '../../lib/tarot/toss-library-flows.mjs';
+import {getTarotCardByAnyId} from '../../lib/tarot/tarot-cards.mjs';
 
-const paid=(id,name,featureKeys,resultAdapter)=>Object.freeze({id,name,access:'iap',featureKeys:Object.freeze(featureKeys),resultAdapter});
-const free=(id,name,resultAdapter)=>Object.freeze({id,name,access:'free-local',featureKeys:Object.freeze([]),resultAdapter});
-
-// This is an ownership and persistence contract, not a price registry. Toss SKU
-// approval stays in catalog.js; a web price must never become an app price here.
-export const TOSS_TAROT_LIBRARY_FLOWS=Object.freeze([
-  free('tarot','타로 리딩','tarot-reading'),
-  paid('tarot-celestial-harmony','천체의 선율',['tarot-celestial-harmony'],'celestial-harmony'),
-  paid('tarot-crystal-soul','원석 소울 타로',['tarot-crystal-soul-reading'],'crystal-soul'),
-  free('tarot-healing','회복 타로','tarot-healing'),
-  paid('tarot-ijik','이직 운명의 카드',['tarot-ijik'],'ijik'),
-  paid('tarot-love-relationship','우리는 무슨 사이?',['tarot-love-relationship'],'love-tarot'),
-  paid('tarot-mindscan','말과 행동 사이 타로',['tarot-mindscan'],'mindscan'),
-  paid('tarot-numerology','수비학 타로',['tarot-numerology-reading'],'numerology-tarot'),
-  paid('tarot-prompt-maker','타로 오라클 상담',['tarot-prompt-maker','tarot-prompt-maker-standard','tarot-prompt-maker-deep','tarot-prompt-maker-master'],'oracle-consultation'),
-  paid('tarot-reunion','재회운 타로',['tarot-reunion-reading'],'reunion-tarot'),
-  free('tarot-self-esteem','자기 기준 회복 타로','self-esteem-local'),
-  paid('tarot-year-fortune','십이지신 천운 타로',['tarot-year-fortune'],'year-tarot'),
-]);
-
-const byId=new Map(TOSS_TAROT_LIBRARY_FLOWS.map(flow=>[flow.id,flow]));
-const byFeatureKey=new Map(TOSS_TAROT_LIBRARY_FLOWS.flatMap(flow=>flow.featureKeys.map(featureKey=>[featureKey,flow])));
+export {TOSS_TAROT_LIBRARY_FLOWS};
 
 export function tarotLibraryFlow(id){
-  const flow=byId.get(id);
+  const flow=tossTarotLibraryFlow(id);
   if(!flow)throw new TossError('TAROT_LIBRARY_FLOW_INVALID');
   return flow;
 }
@@ -42,6 +23,39 @@ export function tarotLibraryProduct(product){
 export const tarotLibraryRequestId=orderId=>`toss-tarot:${orderId}`;
 export const tarotLibraryExecutionId=orderId=>`toss-tarot-execution:${orderId}`;
 export const tarotLibraryResultId=orderId=>`toss-tarot-result:${orderId}`;
+
+function text(value){return typeof value==='string'?value.trim():'';}
+function tarotInput(flow,input){
+  if(!input||typeof input!=='object'||Array.isArray(input))throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
+  const question=text(input.question);
+  if(question.length<2||question.length>600)throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
+  const cards=Array.isArray(input.cards)?input.cards:[];
+  if(cards.length!==flow.cardCount||new Set(cards.map(card=>text(card?.cardId))).size!==cards.length)throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
+  const normalized=cards.map((card,index)=>{
+    const source=getTarotCardByAnyId(text(card?.cardId));
+    if(!source||!['upright','reversed'].includes(card?.orientation)||text(card?.position)!==flow.positions[index][0])throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
+    return {cardId:source.code,orientation:card.orientation,position:flow.positions[index][0]};
+  });
+  return {question,cards:normalized};
+}
+
+export function tarotLibraryInput(flowId,input){return tarotInput(tarotLibraryFlow(flowId),input);}
+
+// This deterministic baseline is intentionally card/position only. Paid flows
+// replace it with their own server generator before release; it is never a fake
+// LLM answer or a client-supplied result.
+export function buildTarotLibraryBaseline(flowId,input){
+  const flow=tarotLibraryFlow(flowId),safe=tarotInput(flow,input);
+  const cards=safe.cards.map((item,index)=>{
+    const card=getTarotCardByAnyId(item.cardId),[position,positionLabel]=flow.positions[index];
+    return {cardId:card.code,nameKr:card.nameKo,nameEn:card.nameEn,orientation:item.orientation,position,positionLabel,keywords:card.keywords.slice(0,3)};
+  });
+  const first=cards[0],last=cards[cards.length-1];
+  return {version:'toss-tarot-baseline-v1',flowId:flow.id,title:flow.name,question:safe.question,cards,
+    opening:`선택한 ${cards.length}장의 카드가 ${flow.name}의 질문을 차분히 비추고 있어요.`,
+    summary:`${first.nameKr}${first.orientation==='reversed'?' 역방향':''} 카드부터 ${last.nameKr}${last.orientation==='reversed'?' 역방향':''} 카드까지, 질문의 조건을 한 번에 단정하지 않고 순서대로 살펴봅니다.`,
+    advice:'카드가 비춘 조건을 메모하고, 이번 주 안에 확인할 수 있는 행동 하나로 바꿔 보세요.'};
+}
 
 function assertExistingPurchase(purchase,auth,product,orderId){
   if(!purchase||purchase.identityId!==auth._id||purchase.environment!==auth.environment||purchase.sku!==product.sku
@@ -67,8 +81,9 @@ function assertExistingExecution(execution,auth,product,orderId){
  * atomically before the SDK grant is acknowledged. Delivery workers later claim the
  * same execution; neither the callback nor a library reread invokes an LLM.
  */
-export async function grantTarotLibraryOrder({store,auth,order,product}){
+export async function grantTarotLibraryOrder({store,auth,order,product,input}){
   checkOrder(order,{orderId:order.orderId,sku:product.sku});
+  const prepared=input===undefined?null:tarotInput(product.flow,input);
   const receipt=await store.transaction(async tx=>{
     await tx.assertIdentity(auth);
     let purchase=await tx.purchase(order.orderId);
@@ -86,13 +101,23 @@ export async function grantTarotLibraryOrder({store,auth,order,product}){
       execution={executionId:tarotLibraryExecutionId(order.orderId),requestId:tarotLibraryRequestId(order.orderId),
         userId:String(auth.ownerId),featureId:product.featureKey,profileId:`toss:${auth._id}`,accessMode:'per_use',accessMethod:'single',
         amountKRW:product.approvedPriceKRW,paymentId:order.orderId,orderId:order.orderId,status:'paid_pending_generation',
-        resultId:tarotLibraryResultId(order.orderId),result:null,error:null,idempotencyKey:order.orderId};
+        resultId:tarotLibraryResultId(order.orderId),result:null,error:null,input:prepared,idempotencyKey:order.orderId};
       await tx.insertExecution(execution);
     }
     return {orderId:order.orderId,requestId:execution.requestId,resultId:execution.resultId,entitlement:'granted',durable:true,
       flowId:product.flow.id,state:execution.status};
   });
   return receipt;
+}
+
+export async function deliverTarotLibraryOrder({store,auth,orderId,flowId,generate=buildTarotLibraryBaseline}){
+  const claimed=await claimTarotLibraryDelivery({store,auth,orderId,flowId});
+  if(claimed.state==='completed')return tarotLibraryResult(claimed.execution,tarotLibraryFlow(flowId));
+  if(claimed.state!=='claimed')return {state:'generating',result:null,canRetryNow:false};
+  const input=claimed.execution?.input;
+  if(!input)throw new TossError('TAROT_LIBRARY_INPUT_MISSING',409);
+  const result=await generate(flowId,input);
+  return completeTarotLibraryDelivery({store,auth,orderId,flowId,result});
 }
 
 // Delivery callers are server-only. The public route can read a stored result but

@@ -39,6 +39,12 @@ export async function saleProducts():Promise<SaleProduct[]>{
     return item&&p.available?[{...p,displayAmount:item.displayAmount}]:[];
   });
 }
+export type TarotLibraryProduct={id:string;name:string;sku:string;featureKey:string;approvedPriceKRW:number;displayAmount:string};
+export async function tarotLibraryProducts():Promise<TarotLibraryProduct[]>{
+  if(!SERVICE_AVAILABLE||!isToss())return [];
+  const [catalog,items]=await Promise.all([api<{flows:Omit<TarotLibraryProduct,'displayAmount'>[]}>('/tarot-library/catalog'),IAP.getProductItemList()]);
+  return catalog.flows.flatMap(flow=>{const item=items?.products.find(entry=>entry.sku===flow.sku&&entry.type==='CONSUMABLE');return item?[{...flow,displayAmount:item.displayAmount}]:[];});
+}
 type Receipt={orderId:string;requestId:string|null;entitlement:string;durable:boolean};
 const validReceipt=(r:Receipt,id:string)=>r.orderId===id&&r.entitlement==='granted'&&r.durable===true;
 export function purchase(product:SaleProduct,requestId:string,onDone:()=>void,onError:(error:unknown)=>void){
@@ -48,6 +54,15 @@ export function purchase(product:SaleProduct,requestId:string,onDone:()=>void,on
     try{const receipt=await api<Receipt>('/orders/grant',{sku:product.sku,orderId,requestId});return validReceipt(receipt,orderId);}
     catch(error){onError(error);return false;}
   }},onEvent:()=>{clean();onDone();},onError:error=>{clean();onError(error);}});
+  return ()=>clean();
+}
+export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,onDone:(orderId:string)=>void,onError:(error:unknown)=>void){
+  if(!IAP.createOneTimePurchaseOrder.isSupported())throw new ApiError('IAP_NOT_SUPPORTED');
+  let clean:()=>void=()=>{},grantedOrder='';
+  clean=IAP.createOneTimePurchaseOrder({options:{sku:product.sku,processProductGrant:async({orderId})=>{
+    try{grantedOrder=orderId;const receipt=await api<Receipt>('/tarot-library/orders/grant',{sku:product.sku,orderId,input});return validReceipt(receipt,orderId);}
+    catch(error){onError(error);return false;}
+  }},onEvent:()=>{clean();onDone(grantedOrder);},onError:error=>{clean();onError(error);}});
   return ()=>clean();
 }
 export async function restorePurchases(){
