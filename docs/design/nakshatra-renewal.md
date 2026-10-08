@@ -113,3 +113,6 @@ status: implementation-complete
 - 보존용 화면 증거: C:/Users/user/.codex/visualizations/2026/10/08/01a11c07-d171-7891-b95c-4b4e36a4acb3/nakshatra-review/.
 
 - 홈 카드 추가 실측: 360/1440px, DPR 2. 각각 960/1672px 파일을 선택하며 남청색 표면, 문구 잘림 없음, 페이지 가로 넘침 없음. 카드 내부 장식은 overflow:hidden으로 잘리는 기존 동작이며 scrollWidth와 clientWidth가 같다는 뜻은 아니다. `metrics-home.json`과 두 `home-card-*.png`에 보존했다.
+
+- main 740a11726의 CI에서 타입/lint·Pages/Worker 빌드·critical 검사는 통과했으나, 홈 궁합 가격 세 곳의 구가격 표시가 정적 가드에서 검출됐다. 기존 `sync-flower-price-copy.mjs`로 해당 가격을 정본에서 생성하고 다른 상품 변경은 제외했다. `verify:home-service-registry` 및 나크샤트라 가격 139개 단언, 생성물 관련 테스트 20개가 통과했다. 후속 main CI를 확인한다.
+- 홈 카드 360/1440px의 독립 시각 재검토는 두 캡처 범위에서 ship 판정을 받았다. 뒤이어 오래된 21편 안내를 제거하고 재촬영해 페이지 넘침과 텍스트 잘림이 없음을 확인했다.

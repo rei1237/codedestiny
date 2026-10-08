@@ -164,7 +164,7 @@ window.__cdServiceRegistry = [
     desc: "인도 아쉬타쿠타 36점과 동양 숙요를 겹쳐 보는 궁합",
     href: "/nakshatra/compat/",
     featureKey: "nakshatra-compat",
-    price: "1,000원",
+    price: "20,000원",
     purposes: ["love", "compatibility"],
     methods: ["vedic", "sukuyo"],
     keys: "나크샤트라 궁합 아쉬타쿠타 36점 숙요 격각 통합",
