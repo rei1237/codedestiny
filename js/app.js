@@ -31,7 +31,7 @@ function ensureDestinyFlowerBootstrapped() {
     return Promise.resolve();
   }
   if (!__destinyFlowerBootPromise) {
-    __destinyFlowerBootPromise = import('./core/bootstrapDestinyFlower.js?v=build-c5c79b62133e')
+    __destinyFlowerBootPromise = import('./core/bootstrapDestinyFlower.js?v=build-d20780a7ec36')
       .then(function (mod) {
         if (!mod || typeof mod.bootstrapDestinyFlower !== 'function') return;
         mod.bootstrapDestinyFlower(window);

@@ -1775,16 +1775,48 @@ button, .tog-btn, .btn-main, .btn-sub, .dw-item, .feature-card, .fortune-tab, .m
 .df-quad-line { color: rgba(239, 226, 215, 0.74); }
 
 /* 운명의 꽃 홈 critical fallback: deferred cosmic CSS가 오기 전에도 밝은 파스텔이 노출되지 않게 한다. */
-#destinyFlowerStudioOverlay { background: linear-gradient(165deg, #070611 0%, #0d0a1a 44%, #151027 76%, #090813 100%) !important; color: #f8eddb; }
-#destinyFlowerStudioOverlay .df-studio-sheet { border-color: rgba(201, 164, 106, 0.34) !important; background: linear-gradient(160deg, rgba(22, 17, 38, 0.98), rgba(9, 8, 19, 0.99)) !important; box-shadow: 0 28px 64px rgba(0, 0, 0, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.06); }
-#destinyFlowerStudioOverlay .df-studio-title, #destinyFlowerStudioOverlay .df-studio-hero h2, #destinyFlowerStudioOverlay #dfStudioTitle { color: #f8eddb !important; -webkit-text-fill-color: #f8eddb; }
-#destinyFlowerStudioOverlay .df-studio-source-desc, #destinyFlowerStudioOverlay .df-studio-narrative { color: rgba(239, 226, 215, 0.82) !important; }
-#destinyFlowerStudioOverlay .df-studio-source-tabs .df-source-tab { border-color: rgba(201, 164, 106, 0.3) !important; background: linear-gradient(145deg, rgba(42, 30, 58, 0.94), rgba(16, 12, 29, 0.98)) !important; color: rgba(246, 235, 218, 0.9) !important; }
-#destinyFlowerStudioOverlay .df-studio-main { border-color: rgba(201, 164, 106, 0.28) !important; background: linear-gradient(145deg, rgba(29, 21, 47, 0.98), rgba(12, 9, 23, 0.98)) !important; }
-#destinyFlowerStudioOverlay .df-studio-visual, #destinyFlowerStudioOverlay .df-panel, #destinyFlowerStudioOverlay .df-flower-letter { border-color: rgba(201, 164, 106, 0.24) !important; background: linear-gradient(145deg, rgba(35, 26, 54, 0.94), rgba(14, 11, 27, 0.98)) !important; color: rgba(239, 226, 215, 0.84) !important; }
-#destinyFlowerStudioOverlay .df-panel h4, #destinyFlowerStudioOverlay .df-studio-insight h3, #destinyFlowerStudioOverlay #dfStudioName { color: #f8eddb !important; }
-#destinyFlowerStudioOverlay .df-panel p, #destinyFlowerStudioOverlay .df-panel-list li, #destinyFlowerStudioOverlay .df-flower-letter p { color: rgba(239, 226, 215, 0.8) !important; }
-#destinyFlowerStudioOverlay .df-studio-btn--primary, #destinyFlowerStudioOverlay .df-studio-link-btn.df-bloom-btn { background: linear-gradient(145deg, rgba(201, 164, 106, 0.28), rgba(169, 123, 62, 0.18)) !important; border-color: var(--cd-yehwa-line-2) !important; color: #fdf6f0 !important; }
+#destinyFlowerStudioOverlay {
+  background: linear-gradient(165deg, #070611 0%, #0d0a1a 44%, #151027 76%, #090813 100%) !important;
+  color: #f8eddb;
+}
+#destinyFlowerStudioOverlay .df-studio-sheet {
+  border-color: rgba(201, 164, 106, 0.34) !important;
+  background: linear-gradient(160deg, rgba(22, 17, 38, 0.98), rgba(9, 8, 19, 0.99)) !important;
+  box-shadow: 0 28px 64px rgba(0, 0, 0, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+#destinyFlowerStudioOverlay .df-studio-title,
+#destinyFlowerStudioOverlay .df-studio-hero h2,
+#destinyFlowerStudioOverlay #dfStudioTitle { color: #f8eddb !important; -webkit-text-fill-color: #f8eddb; }
+#destinyFlowerStudioOverlay .df-studio-source-desc,
+#destinyFlowerStudioOverlay .df-studio-narrative { color: rgba(239, 226, 215, 0.82) !important; }
+#destinyFlowerStudioOverlay .df-studio-source-tabs .df-source-tab {
+  border-color: rgba(201, 164, 106, 0.3) !important;
+  background: linear-gradient(145deg, rgba(42, 30, 58, 0.94), rgba(16, 12, 29, 0.98)) !important;
+  color: rgba(246, 235, 218, 0.9) !important;
+}
+#destinyFlowerStudioOverlay .df-studio-main {
+  border-color: rgba(201, 164, 106, 0.28) !important;
+  background: linear-gradient(145deg, rgba(29, 21, 47, 0.98), rgba(12, 9, 23, 0.98)) !important;
+}
+#destinyFlowerStudioOverlay .df-studio-visual,
+#destinyFlowerStudioOverlay .df-panel,
+#destinyFlowerStudioOverlay .df-flower-letter {
+  border-color: rgba(201, 164, 106, 0.24) !important;
+  background: linear-gradient(145deg, rgba(35, 26, 54, 0.94), rgba(14, 11, 27, 0.98)) !important;
+  color: rgba(239, 226, 215, 0.84) !important;
+}
+#destinyFlowerStudioOverlay .df-panel h4,
+#destinyFlowerStudioOverlay .df-studio-insight h3,
+#destinyFlowerStudioOverlay #dfStudioName { color: #f8eddb !important; }
+#destinyFlowerStudioOverlay .df-panel p,
+#destinyFlowerStudioOverlay .df-panel-list li,
+#destinyFlowerStudioOverlay .df-flower-letter p { color: rgba(239, 226, 215, 0.8) !important; }
+#destinyFlowerStudioOverlay .df-studio-btn--primary,
+#destinyFlowerStudioOverlay .df-studio-link-btn.df-bloom-btn {
+  background: linear-gradient(145deg, rgba(201, 164, 106, 0.28), rgba(169, 123, 62, 0.18)) !important;
+  border-color: var(--cd-yehwa-line-2) !important;
+  color: #fdf6f0 !important;
+}
 #destinyFlowerStudioOverlay .df-studio-main::before { display: none !important; }
 #destinyFlowerStudioOverlay .df-studio-aura { background: radial-gradient(circle at 22% 50%, rgba(201, 164, 106, 0.16), transparent 58%), radial-gradient(circle at 74% 34%, rgba(91, 72, 132, 0.2), transparent 60%) !important; }
 #destinyFlowerStudioOverlay .df-studio-visual::after { background: radial-gradient(circle, rgba(201, 164, 106, 0.22), transparent 68%) !important; }

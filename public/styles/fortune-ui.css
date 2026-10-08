@@ -17389,17 +17389,51 @@ body.neo-mode .cd-compat-archive .compat-check-detail {
 :is(.btn-main,.btn-sub,.modal-nav-home,.modal-nav-close):focus-visible {outline:2px solid var(--cd-focus-ring);outline-offset:3px}
 
 /* 운명의 꽃 기본 팔레트: 지연 로드 장식보다 먼저 적용되는 다크 럭셔리 기준값. */
-#destinyFlowerStudioOverlay { background: linear-gradient(165deg, #070611 0%, #0d0a1a 44%, #151027 76%, #090813 100%); color: #f8eddb; }
-#destinyFlowerStudioOverlay .df-studio-sheet { border-color: rgba(201, 164, 106, 0.34); background: linear-gradient(160deg, rgba(22, 17, 38, 0.98), rgba(9, 8, 19, 0.99)); box-shadow: 0 28px 64px rgba(0, 0, 0, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.06); }
-#destinyFlowerStudioOverlay .df-studio-title, #destinyFlowerStudioOverlay .df-studio-hero h2, #destinyFlowerStudioOverlay #dfStudioTitle { color: #f8eddb; }
-#destinyFlowerStudioOverlay .df-studio-source-desc, #destinyFlowerStudioOverlay .df-studio-narrative { color: rgba(239, 226, 215, 0.82); }
-#destinyFlowerStudioOverlay .df-studio-source-tabs .df-source-tab { border-color: rgba(201, 164, 106, 0.3); background: linear-gradient(145deg, rgba(42, 30, 58, 0.94), rgba(16, 12, 29, 0.98)); color: rgba(246, 235, 218, 0.9); }
-#destinyFlowerStudioOverlay .df-studio-main { border-color: rgba(201, 164, 106, 0.28); background: linear-gradient(145deg, rgba(29, 21, 47, 0.98), rgba(12, 9, 23, 0.98)); }
-#destinyFlowerStudioOverlay .df-studio-visual, #destinyFlowerStudioOverlay .df-panel, #destinyFlowerStudioOverlay .df-flower-letter { border-color: rgba(201, 164, 106, 0.24); background: linear-gradient(145deg, rgba(35, 26, 54, 0.94), rgba(14, 11, 27, 0.98)); color: rgba(239, 226, 215, 0.84); }
-#destinyFlowerStudioOverlay .df-panel h4, #destinyFlowerStudioOverlay .df-studio-insight h3, #destinyFlowerStudioOverlay #dfStudioName { color: #f8eddb; }
-#destinyFlowerStudioOverlay .df-panel p, #destinyFlowerStudioOverlay .df-panel-list li, #destinyFlowerStudioOverlay .df-flower-letter p { color: rgba(239, 226, 215, 0.8); }
-#destinyFlowerStudioOverlay .df-studio-btn--primary, #destinyFlowerStudioOverlay .df-studio-link-btn.df-bloom-btn { background: linear-gradient(145deg, rgba(201, 164, 106, 0.28), rgba(169, 123, 62, 0.18)); border-color: var(--cd-yehwa-line-2); color: #fdf6f0; }
-#destinyFlowerStudioOverlay .df-studio-main::before { display: none; }
+#destinyFlowerStudioOverlay {
+  background: linear-gradient(165deg, #070611 0%, #0d0a1a 44%, #151027 76%, #090813 100%);
+  color: #f8eddb;
+}
+#destinyFlowerStudioOverlay .df-studio-sheet {
+  border-color: rgba(201, 164, 106, 0.34);
+  background: linear-gradient(160deg, rgba(22, 17, 38, 0.98), rgba(9, 8, 19, 0.99));
+  box-shadow: 0 28px 64px rgba(0, 0, 0, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+#destinyFlowerStudioOverlay .df-studio-title,
+#destinyFlowerStudioOverlay .df-studio-hero h2,
+#destinyFlowerStudioOverlay #dfStudioTitle { color: #f8eddb; }
+#destinyFlowerStudioOverlay .df-studio-source-desc,
+#destinyFlowerStudioOverlay .df-studio-narrative { color: rgba(239, 226, 215, 0.82); }
+#destinyFlowerStudioOverlay .df-studio-source-tabs .df-source-tab {
+  border-color: rgba(201, 164, 106, 0.3);
+  background: linear-gradient(145deg, rgba(42, 30, 58, 0.94), rgba(16, 12, 29, 0.98));
+  color: rgba(246, 235, 218, 0.9);
+}
+#destinyFlowerStudioOverlay .df-studio-main {
+  border-color: rgba(201, 164, 106, 0.28);
+  background: linear-gradient(145deg, rgba(29, 21, 47, 0.98), rgba(12, 9, 23, 0.98));
+}
+#destinyFlowerStudioOverlay .df-studio-visual,
+#destinyFlowerStudioOverlay .df-panel,
+#destinyFlowerStudioOverlay .df-flower-letter {
+  border-color: rgba(201, 164, 106, 0.24);
+  background: linear-gradient(145deg, rgba(35, 26, 54, 0.94), rgba(14, 11, 27, 0.98));
+  color: rgba(239, 226, 215, 0.84);
+}
+#destinyFlowerStudioOverlay .df-panel h4,
+#destinyFlowerStudioOverlay .df-studio-insight h3,
+#destinyFlowerStudioOverlay #dfStudioName { color: #f8eddb; }
+#destinyFlowerStudioOverlay .df-panel p,
+#destinyFlowerStudioOverlay .df-panel-list li,
+#destinyFlowerStudioOverlay .df-flower-letter p { color: rgba(239, 226, 215, 0.8); }
+#destinyFlowerStudioOverlay .df-studio-btn--primary,
+#destinyFlowerStudioOverlay .df-studio-link-btn.df-bloom-btn {
+  background: linear-gradient(145deg, rgba(201, 164, 106, 0.28), rgba(169, 123, 62, 0.18));
+  border-color: var(--cd-yehwa-line-2);
+  color: #fdf6f0;
+}
+#destinyFlowerStudioOverlay .df-studio-main::before {
+  display: none;
+}
 #destinyFlowerStudioOverlay .df-studio-aura { background: radial-gradient(circle at 22% 50%, rgba(201, 164, 106, 0.16), transparent 58%), radial-gradient(circle at 74% 34%, rgba(91, 72, 132, 0.2), transparent 60%); }
 #destinyFlowerStudioOverlay .df-studio-visual::after { background: radial-gradient(circle, rgba(201, 164, 106, 0.22), transparent 68%); }
 #destinyFlowerStudioOverlay { scrollbar-gutter: auto; }
