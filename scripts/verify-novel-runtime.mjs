@@ -154,7 +154,7 @@ for (const [index, source] of inlineScripts.entries()) {
 }
 
 // 정본(content/novel/episodes.source.json)의 총 비트 수. 비트를 더하거나 빼는 개편마다 같은 커밋에서 갱신한다.
-const EXPECTED_BEAT_COUNT = 7674;
+const EXPECTED_BEAT_COUNT = 7693;
 const runtime = buildNovelPayload();
 const mobileAssets = JSON.parse(readFileSync(resolve(ROOT, "content/novel/mobile-assets.json"), "utf8"));
 const mobileSpriteMap = JSON.parse(html.match(/var MOBILE_SPRITES=(\{[^\n]+\});/)?.[1] || "{}");
@@ -227,6 +227,16 @@ manifest.episodes.forEach((meta, index) => {
    기다릴 수 없다. 그 표가 정본과 어긋나면 "쭉 읽으면 사람, 목차로 들어가면 꽃돼지"가 되므로,
    정본 비트를 전수 스캔해 다시 만든 목록과 완전 일치를 요구한다(파싱 실패도 실패). */
 const canonicalFormMarks = [];
+const neoMarks = runtime.episodes.flatMap((episode, ep) => episode.beats.flatMap((beat, bi) => beat.neoForm ? [{ ep, bi, form: beat.neoForm }] : []));
+const neoSource = html.match(/var NEO_FORM_MARKS=(\[[^\]]*\]);/);
+if (!neoSource || JSON.stringify(JSON.parse(neoSource[1])) !== JSON.stringify(neoMarks)) fail("Neo appearance registry is not synchronized");
+if (neoMarks.length !== 1 || runtime.episodes[neoMarks[0].ep].id !== "ep-27" || neoMarks[0].form !== "human") fail("Neo must return after Yeoni in EP.27 and remain human");
+const neoAssets = JSON.parse(readFileSync(resolve(ROOT, "public/images/novel/neo-lion/assets.json"), "utf8"));
+if (neoAssets.frames.length !== 8) fail("Neo needs eight expression frames");
+for (const asset of neoAssets.frames) {
+  const path = resolve(ROOT, "public/images/novel/neo-lion", asset.expression + ".webp");
+  if (!existsSync(path) || statSync(path).size !== asset.bytes || asset.bytes > 80_000 || asset.width * asset.height > 240_000) fail(`Neo mobile frame budget or file drift: ${asset.expression}`);
+}
 runtime.episodes.forEach((episode, episodeIndex) => {
   episode.beats.forEach((beat, beatIndex) => {
     if (beat.form) canonicalFormMarks.push(`${episodeIndex}:${beatIndex}:${beat.form}`);

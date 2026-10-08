@@ -655,7 +655,7 @@ async function verifyMobileAssetsAndCache() {
   try {
     const win = dom.window;
     await waitFor(() => win.__NOVEL_READY, "mobile assets manifest");
-    assert.match(win.spriteFor("neo", "neutral", "pig").url, /\/mobile\/neo-/);
+    assert.equal(win.spriteFor("neo", "neutral", "pig").url, "/images/novel/neo-lion/neutral.webp");
     assert.match(win.spriteFor("yeon", "base", "pig").url, /\/mobile\/yeon-/);
     assert.equal(win.spriteFor("tiger", "angry", "pig").url, "/images/novel/hanbi/angry.webp");
     assert.equal(win.bgUrl("rainStop"), "/images/novel/mobile/rainStop.webp");
@@ -667,6 +667,47 @@ async function verifyMobileAssetsAndCache() {
     assert.deepEqual(errors, []);
   } finally { dom.window.close(); }
 }
+async function verifyNeoReturnAndCover() {
+  const { dom, errors } = createPlayerDom({ mobile: true });
+  const win = dom.window;
+  try {
+    await waitFor(() => win.__NOVEL_READY, "novel manifest");
+    win.document.getElementById("enterBtn").click();
+    await waitFor(() => win.document.querySelector("#menu button"), "cover controls");
+    assert.deepEqual(Array.from(win.document.querySelectorAll("#serviceMenu a"), a => a.getAttribute("href")), ["/fortune-tea-house", "/master-love-codex", "/neo-operation-room"]);
+    assert.equal(win.document.getElementById("mainPig"), null, "extra character shortcut returned");
+    const ep = win.EPISODES.findIndex(e => e.id === "ep-27");
+    await win.ensureEpisodeLoaded(ep);
+    const beats = win.EPISODES[ep].beats;
+    const mark = beats.findIndex(b => b.neoForm === "human");
+    assert.ok(mark > 0, "Neo needs a staged return event");
+    await win.selectNovelScene(ep, mark - 1);
+    await waitFor(() => win.S.screen === "player", "chapter picker opened player");
+    assert.equal(win.S.neoForm, "lion");
+    await win.hydrateTo(ep, mark);
+    assert.equal(win.S.neoForm, "human");
+    assert.ok(win.document.querySelector('[data-who="neo"].neoh'), "return event did not replace the lion portrait");
+    for (const expr of [undefined, "neutral", "soft", "sad", "talk", "serious", "hsmile"]) {
+      const sp = win.spriteFor("neo", expr, "human", "human");
+      assert.equal(sp.cls, "neoh", `human Neo reverted on ${expr}`);
+      assert.match(sp.url, /neo-transparent-s4-f0[1-8]\.webp$/);
+    }
+    const savedBeat = beats.findIndex(b => b.id === "ep-27:37");
+    const save = { episodeId: "ep-27", beatId: "ep-27:37", ep, bi: 36, rev: win.EPISODES[ep].rev || 1, bookmarkVersion: 2 };
+    assert.equal(win.resolveSavedBeat(ep, save), savedBeat, "inserted event shifted a stable bookmark");
+    for (const id of ["ep-28", "ep-41", "ep-42", "ep-48", "ep-52"]) {
+      await win.hydrateTo(win.EPISODES.findIndex(e => e.id === id), 0);
+      assert.equal(win.S.neoForm, "human", `direct chapter entry reverted Neo in ${id}`);
+    }
+    await win.hydrateTo(ep, mark - 1);
+    assert.equal(win.S.neoForm, "lion", "rewind did not restore the lion");
+    assert.match(win.spriteFor("neo", "neutral", "human", win.S.neoForm).url, /neo-lion\/neutral\.webp$/);
+    win.S.bi = mark;win.runBeat();
+    assert.equal(win.S.neoForm, "human", "sequential playback did not apply the marker");
+    assert.deepEqual(errors, []);
+  } finally { dom.window.close(); }
+}
+await verifyNeoReturnAndCover();
 await verifyMobileAssetsAndCache();
 await verifyExpandedBookmarks();
 await verifySilentTrack();
