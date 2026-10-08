@@ -22,6 +22,7 @@ export const TossPurchase = model('TossPurchase', {
   approvedPriceKRW: {type:Number,required:true}, priceEvidence: {type:String,required:true},
   status: {type:String,enum:['PAYMENT_COMPLETED','PURCHASED','REFUNDED'],required:true},
   requestId: {type:String,default:null}, verifiedAt: {type:Date,required:true}, grantedAt: Date,
+  reconcileAfter: Date, reconcileState: {type:String,enum:['checking','verified','retry','inactive']},
   commitMarker: String, environment: {type:String,enum:['DEFAULT','SANDBOX'],required:true},
 }, {collection:'toss_purchases'});
 // Each consultation is locked to at most one order using its existing unique request _id.
