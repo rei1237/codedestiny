@@ -267,7 +267,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "vedic-compatibility-per-use": { cost: 30, reason: "베다점 궁합 분석" },
   "nakshatra-compat": { cost: 200, amountKRW: 20000, reason: "나크샤트라 동서 통합 궁합" },
   "nakshatra-ai-consultation": { cost: 300, amountKRW: 30000, reason: "나크샤트라 결정판 전문가 심화 상담" },
-  "nakshatra-muhurta": { cost: 10, amountKRW: 1000, reason: "나크샤트라 택일(무후르타)" },
+  "nakshatra-muhurta": { cost: 50, amountKRW: 5000, reason: "나크샤트라 택일(무후르타)" },
   "nakshatra-vvip-codex": { cost: 300, amountKRW: 30000, reason: "나크샤트라 결정판 VVIP 통합서" },
   // 🔴 2026-09 무료화로 **판매 중단**. 키와 가격은 과거 주문·환불·리뷰 자격 조회가 참조하므로
   //    그대로 남긴다(같은 계약의 선례: palm-reading-ai-consult). 새 결제는 아래 리포트 키가 받는다.
