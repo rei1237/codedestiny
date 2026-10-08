@@ -275,14 +275,18 @@ test('공유 실행: 취소는 저장하지 않고, 파일 공유 미지원·오
   await assert.rejects(()=>S.share(m,{mode:'save'})); assert.equal(downloads,2);
 });
 
-test('첫 화면은 짧은 생각 이름과 범례만 읽고 전문 해설은 챕터에 둔다', () => {
+test('첫 화면은 영역 크기에 맞는 공감 문구와 범례를 읽고 전문 해설은 챕터에 둔다', () => {
   const {ctx, doc} = setup('');
   const el = doc.createElement('div');
   const m = luckModel(ctx, 'ko', 72);
   ctx.DestinyAnatomyRender.render(el, m, {});
   assert.ok(el.querySelector('[data-da-luck]').closest('[data-da-chapter="thinking"]'));
   assert.equal(el.querySelector('.da-stk,.da-meme__pat,.da-meme__sheen'), null);
-  assert.ok([...el.querySelectorAll('.da-meme__line')].every(n => n.textContent.length <= 3));
+  for (const cell of el.querySelectorAll('.da-meme__cell')) {
+    const row=m.text.meme.cells.find(c=>c.axis===cell.dataset.daAxis);
+    assert.equal(cell.querySelector('.da-meme__line').textContent, row.tier==='full'?row.line:row.label);
+  }
+  assert.equal(el.querySelectorAll('[data-da-format]').length,2);
   assert.equal(el.querySelectorAll('.da-meme__rowline:not(.da-sr)').length, 5);
   assert.match(el.querySelector('.da-illustration').getAttribute('src'), /\.webp$/);
 });

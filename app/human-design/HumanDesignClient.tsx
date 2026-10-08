@@ -32,6 +32,8 @@ import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { postPaidBody } from "@/app/nakshatra/nakshatra-fetch";
 import { CENTER_GATES } from "@/lib/human-design/centers";
 
+import LivingGuide, { GuideParagraphs } from "./_components/LivingGuide";
+import { buildGuide } from "./_copy/living-guide";
 import BodyGraph from "./_components/BodyGraph";
 import DetailSheet from "./_components/DetailSheet";
 import PipelineScene from "./_components/PipelineScene";
@@ -124,6 +126,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
   const [chart, setChart] = useState<HdChart | null>(null);
   const [pipeline, setPipeline] = useState<HdPipelineStage[]>([]);
   const [reused, setReused] = useState(false);
+  const guide = useMemo(() => chart ? buildGuide(chart, locale) : null, [chart, locale]);
   const [selection, setSelection] = useState<HdSelection>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
 
@@ -421,6 +424,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
           <>
             {reused && <p className={styles.reused}>{pick(UI_TEXT.reusedNotice, locale)}</p>}
 
+            <LivingGuide chart={chart} locale={locale} />
             <div className={styles.result}>
               <div className={styles.chartBoard}>
                 {/* 참조 차트의 좌측 속성 패널. 결과값과 입력값만 재배치하며 계산 계약은 건드리지 않는다. */}
@@ -521,6 +525,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
               <h2 className={styles.blockHeading}>{pick(UI_TEXT.sectionType, locale)}</h2>
               <p className={styles.blockLead}>{pick(typeCopy?.name, locale)}</p>
               <p className={styles.blockBody}>{pick(typeCopy?.summary, locale)}</p>
+              {guide && <GuideParagraphs section={guide.type} ui={guide.ui} />}
               <dl className={styles.pairs}>
                 <div>
                   <dt>{pick(UI_TEXT.signature, locale)}</dt>
@@ -531,6 +536,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
                   <dd>{pick(NOT_SELF_COPY[chart.notSelfTheme as keyof typeof NOT_SELF_COPY], locale)}</dd>
                 </div>
               </dl>
+              {guide && <p className={styles.blockBody}>{guide.themeQuestion}</p>}
             </section>
 
             {/* ③ 전략 */}
@@ -539,7 +545,8 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
               <p className={styles.blockLead}>
                 {pick(STRATEGY_COPY[chart.strategy as keyof typeof STRATEGY_COPY], locale)}
               </p>
-              <p className={styles.blockBody}>{pick(typeCopy?.summary, locale)}</p>
+              <p className={styles.blockBody}>{guide?.type.example}</p>
+              {guide && <p className={styles.blockBody}>{guide.type.caution}</p>}
             </section>
 
             {/* ④ 내적 권위 */}
@@ -547,6 +554,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
               <h2 className={styles.blockHeading}>{pick(UI_TEXT.sectionAuthority, locale)}</h2>
               <p className={styles.blockLead}>{pick(authorityCopy?.name, locale)}</p>
               <p className={styles.blockBody}>{pick(authorityCopy?.summary, locale)}</p>
+              {guide && <GuideParagraphs section={guide.authority} ui={guide.ui} />}
             </section>
 
             {/* ⑤ 프로파일 */}
@@ -556,6 +564,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
               <p className={styles.blockBody}>
                 {pick(UI_TEXT.profileLines, locale)} — {chart.profileLines.personality} / {chart.profileLines.design}
               </p>
+              {guide && <div className={styles.guideText}><h3>{guide.ui.profile}</h3>{guide.profileText.map(line => <p key={line}>{line}</p>)}<p>{guide.profileBridge}</p><p>{guide.profileQuestion}</p><h3>{guide.definition}</h3><p>{guide.definitionText}</p></div>}
               <dl className={styles.pairs}>
                 <div>
                   <dt>{pick(UI_TEXT.incarnationCross, locale)}</dt>
@@ -585,7 +594,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
                         {pick(CENTER_COPY[row.center as keyof typeof CENTER_COPY]?.name, locale)}
                       </span>
                       <span className={styles.rowState}>
-                        {row.defined ? pick(UI_TEXT.defined, locale) : pick(UI_TEXT.undefined, locale)}
+                        {guide?.centers.find(c => c.id === row.center)?.label || (row.defined ? pick(UI_TEXT.defined, locale) : pick(UI_TEXT.undefined, locale))}
                       </span>
                       <span className={styles.rowCount}>{row.active}/{row.total}</span>
                     </button>

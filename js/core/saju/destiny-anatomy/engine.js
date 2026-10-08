@@ -495,6 +495,7 @@
       version: VERSION,
       fingerprint: fingerprint(snap, hd, vedic),
       timeUnknown: snap.timeUnknown,
+      rhythmBasis: {johu: !snap.timeUnknown && snap.johu ? snap.johu.type : null, strength: !snap.timeUnknown && snap.power ? (snap.power.isStrong ? 'strong' : 'weak') : null},
       strength: snap.power ? (snap.power.isStrong ? 'strong' : 'weak') : null,
       jong: !!(snap.jong && snap.jong.isJong),
       saju: {

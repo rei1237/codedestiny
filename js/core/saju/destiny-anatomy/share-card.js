@@ -163,9 +163,9 @@
     var pct = c.pct + '%';
     var fam = p.font, wt = 600;
     var fit = null;
-    [36, 32, 28, 24].some(function (size) {
+    [36, 32, 28, 24, 20, 18].some(function (size) {
       setFont(ctx, wt, size, fam);
-      var lines = wrap(ctx, c.label, Wc - 18, 2, true);
+      var lines = ctx.measureText(c.label).width <= Wc - 14 ? [c.label] : null;
       if (!lines) return false;
       var pctSize = Math.round(size * .9);
       var hgt = lines.length * size * 1.2 + pctSize * 1.3;
@@ -192,10 +192,10 @@
       ctx.fillStyle = p.line;
       fit.lines.forEach(function (l) { ctx.fillText(l, cx, y); y += fit.size * 1.2; });
       pctLine(fit.pctSize, y + fit.pctSize * .15);
-    } else if (Wc >= 64 && Hc >= 44) {
-      var s = Wc >= 120 && Hc >= 64 ? 38 : 28;
+    } else if (Wc >= 24 && Hc >= 24) {
+      var s = Math.min(Hc * .5, Wc * .45, 28);
       setFont(ctx, 800, s, ctx.__font);
-      if (ctx.measureText(pct).width > Wc - 16) s = 24;
+      while (s > 10 && ctx.measureText(pct).width > Wc - 8) { s--; setFont(ctx,800,s,ctx.__font); }
       pctLine(s, Y + Hc / 2 + s * .36);
     }
     ctx.restore();
@@ -345,11 +345,38 @@
     return top + h;
   }
 
+  function drawFeed(canvas, c, p) {
+    canvas.width = W; canvas.height = 1350;
+    var ctx = canvas.getContext('2d'); ctx.__font = p.font;
+    ctx.fillStyle = p.bg; ctx.fillRect(0, 0, W, 1350);
+    ctx.strokeStyle = p.art; ctx.lineWidth = 2;
+    roundRect(ctx, 36, 36, W - 72, 1278, 40); ctx.stroke();
+    text(ctx, c.brand, PAD, 108, 28, p.gold, 700);
+    setFont(ctx, 700, 54, p.serif);
+    var y = 185;
+    wrap(ctx, c.combo || c.title, W - PAD * 2, 2).forEach(function(line) {text(ctx,line,PAD,y,54,p.ink,700,'left',p.serif);y+=66;});
+    if (c.meme && typeof root.Path2D === 'function') {
+      var vb = String(c.meme.viewBox).split(' ').map(Number), scale = 420 / vb[3];
+      drawBrain(ctx,p,c.meme,(W-vb[2]*scale)/2,y,scale); y+=440;
+    }
+    var rows = c.meme ? c.meme.legend.slice(0,3) : [];
+    rows.forEach(function(row) {
+      text(ctx,row.name+' · '+row.pct+'%',PAD,y+28,27,p.gold,700);
+      setFont(ctx,600,34,p.font);
+      wrap(ctx,'“'+row.line+'”',W-PAD*2,2).forEach(function(line) {text(ctx,line,PAD,y+76,34,p.ink,600);y+=42;});
+      y+=58;
+    });
+    setFont(ctx,600,30,p.font);
+    wrap(ctx,c.question,W-PAD*2,2).forEach(function(line,i) {text(ctx,line,W/2,1154+i*40,30,p.ink,600,'center');});
+    text(ctx,c.footer,W/2,1260,27,p.muted,500,'center');
+    return true;
+  }
   function draw(canvas, model, opts) {
     var c = content(model);
     if (!c) return false;
     opts = opts || {};
     var p = opts.palette || palette(opts.scope);
+    if (opts.format === 'feed') return drawFeed(canvas, c, p);
     canvas.width = W;
     canvas.height = H;
     var ctx = canvas.getContext('2d');
@@ -487,10 +514,10 @@
     var name = 'destiny-anatomy.png';
     return Promise.all([fonts, loadMark(scope)]).then(function (r) {
       var pal = palette(scope);
-      if (!draw(canvas, model, {palette: pal, mark: r[1]})) throw new Error('no content');
+      if (!draw(canvas, model, {palette: pal, mark: r[1], format: opts.format})) throw new Error('no content');
       return toBlob(canvas).then(null, function () {
         // 메달 그림이 캔버스를 오염시켰으면 메달 없이 다시 그린다.
-        draw(canvas, model, {palette: pal, mark: null});
+        draw(canvas, model, {palette: pal, mark: null, format: opts.format});
         return toBlob(canvas);
       });
     }).then(function (blob) {

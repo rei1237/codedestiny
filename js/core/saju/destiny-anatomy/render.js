@@ -47,7 +47,7 @@
       '<h3 class="da-title" id="daReportTitle">' + esc(ui.title) + '</h3>' +
       '<p class="da-hero__q">' + esc(t.comboTitle) + '</p>' +
       '<p class="da-hero__intro">' + esc(t.mindLine) + '</p>' +
-      '<button type="button" class="da-btn da-btn--ghost" data-da-act="share">' + esc(ui.shareAction) + '</button>' +
+      '' +
       '</header>';
   }
 
@@ -81,7 +81,7 @@
       cells += '<div class="da-meme__cell da-ax-' + esc(c.axis) + ' is-' + esc(c.tier) + (c.luck ? ' is-luck da-tone-' + esc(c.luck) : '') +
         '" data-da-axis="' + esc(c.axis) + '" data-da-tier="' + esc(c.tier) + '" style="left:' + pc(c.x + g, vb[2]) + ';top:' + pc(c.y + g, vb[3]) +
         ';width:' + pc(c.w - MEME_GAP, vb[2]) + ';height:' + pc(c.h - MEME_GAP, vb[3]) + '">' +
-        '<span class="da-meme__line">' + esc(c.label) + '</span><b class="da-meme__pct">' + c.pct + '%</b></div>';
+        '<span class="da-meme__line">' + esc(c.tier === 'full' ? c.line : c.label) + '</span><b class="da-meme__pct">' + c.pct + '%</b></div>';
     });
     Object.keys(MEME_PATTERNS).forEach(function (k) { pats += MEME_PATTERNS[k]; });
     pats += '<linearGradient id="daGlass" x1="0" y1="0" x2="1" y2="1"><stop class="da-sheen-a" offset="0"/><stop class="da-sheen-b" offset=".55"/></linearGradient>';
@@ -255,7 +255,7 @@
         '<summary class="da-engine__head"><span class="da-engine__medal">' + medalSvg(e.axis) + '</span><span class="da-engine__name"><span class="da-engine__title">' + esc(e.name) + '</span><span class="da-engine__tags"><small>' + esc(e.god) + '</small>' + luckChip(ui, e.luck) + '</span></span>' +
         '<span class="da-engine__level">' + esc(e.levelLabel) + '</span>' +
         '<span class="da-meter" aria-hidden="true"><span class="da-meter__fill" style="width:' + Math.max(4, Math.min(100, e.score)) + '%"></span></span></summary>' +
-        '<div class="da-engine__body">' +
+        '<div class="da-engine__body"><p class="da-combo">' + esc(e.meme) + '</p>' +
         '<p class="da-q"><span>' + esc(ui.question) + '</span> “' + esc(e.question) + '”</p>' +
         '<p class="da-tags">' + e.keywords.map(function (k) { return '<span class="da-tag">' + esc(k) + '</span>'; }).join('') + '</p>' +
         '<p class="da-sub">' + esc(ui.whenStrong) + '</p>' + list(e.strong) +
@@ -295,7 +295,8 @@
     var head = '<section class="da-sec da-decision" data-da-sec="decision" aria-labelledby="daDecisionTitle">' +
       '<p class="da-bridge">' + esc(ui.hdBridge) + '</p><h4 class="da-h" id="daDecisionTitle">' + esc(ui.energyTitle) + '</h4>';
     if (!hd) return head + layerNotice(t, state.layer) + '</section>';
-    return head +
+    var guide = hd.guide;
+    return head + (guide ? '<p class="da-combo">' + esc(guide.nickname) + '</p><p class="da-p">' + esc(guide.type.example) + '</p><p class="da-p">' + esc(guide.decision) + '</p>' : '') +
       '<div class="da-hd-type"><p class="da-combo">' + esc(hd.typeName) + '</p><p class="da-p">' + esc(hd.typeSummary) + '</p>' +
       '<dl class="da-facts">' +
       (hd.strategy ? '<div><dt>' + esc(ui.strategy) + '</dt><dd>' + esc(hd.strategy) + '</dd></div>' : '') +
@@ -303,7 +304,7 @@
       (hd.definitionName ? '<div><dt>' + esc(ui.definition) + '</dt><dd>' + esc(hd.definitionName) + '</dd></div>' : '') +
       '</dl></div>' +
       '<div class="da-core"><p class="da-sub">' + esc(ui.decisionTitle) + '</p><p class="da-combo">' + esc(hd.authorityName) + '</p>' +
-      '<p class="da-p">' + esc(hd.authoritySummary) + '</p>' + (hd.authorityHow ? '<p class="da-p">' + esc(hd.authorityHow) + '</p>' : '') + '</div>' +
+      '<p class="da-p">' + esc(hd.authoritySummary) + '</p>' + (hd.authorityHow ? '<p class="da-p">' + esc(hd.authorityHow) + '</p>' : '') + (guide ? '<p class="da-p">' + esc(guide.authority.action) + '</p><p class="da-sub">' + esc(guide.ui.profile) + '</p>' + guide.profileText.map(function(line) {return '<p class="da-p">' + esc(line) + '</p>';}).join('') + '<p class="da-p">' + esc(guide.profileBridge) + '</p><p class="da-p">' + esc(guide.profileQuestion) + '</p><p class="da-note">' + esc(guide.definitionText) + '</p>' : '') + '</div>' +
       '</section>';
   }
 
@@ -319,12 +320,12 @@
     }).join('');
     var centers = geo.centers.map(function (c) {
       var defined = h.centers.some(function (x) { return x.id === c.center && x.defined; });
-      return '<polygon class="da-hdg__center' + (defined ? ' is-defined' : '') + '" points="' + c.polygon + '"/>';
+      return '<a href="#da-detail-hd-' + esc(c.center) + '" data-da-act="body-detail" data-da-target="hd-' + esc(c.center) + '" aria-label="' + esc(h.centers.filter(function(x){return x.id === c.center;})[0].name) + '"><polygon class="da-hdg__center' + (defined ? ' is-defined' : '') + '" points="' + c.polygon + '"/></a>';
     }).join('');
     var gates = geo.gates.filter(function (g) { return active.indexOf(g.gate) >= 0; }).map(function (g) {
       return '<g class="da-hdg__gate"><circle cx="' + g.x + '" cy="' + g.y + '" r="14"/><text x="' + g.x + '" y="' + (g.y + 5) + '">' + g.gate + '</text></g>';
     }).join('');
-    return '<figure class="da-hdg"><figcaption class="da-sub">' + esc(t.charts.hd) + '</figcaption><svg viewBox="0 0 540 1000" aria-hidden="true" focusable="false">' + lines + centers + gates + '</svg><p class="da-note">' + esc(t.charts.legend) + '</p></figure>';
+    return '<figure class="da-hdg"><figcaption class="da-sub">' + esc(t.charts.hd) + '</figcaption><svg viewBox="0 0 540 1000" role="group" aria-label="' + esc(t.charts.hd) + '">' + lines + centers + gates + '</svg><p class="da-note">' + esc(t.charts.legend) + '</p></figure>';
   }
 
   function hdConnections(t) {
@@ -348,10 +349,10 @@
     var chakra = showChakra ? t.chakra.map(function (c) {
       var y = CHAKRA_Y[c.id];
       var r = 7 + c.emphasis * 0.09;
-      return '<g class="da-chakra da-ck-' + esc(c.level) + '"><circle class="da-chakra__halo" cx="100" cy="' + y + '" r="' + (r + 7).toFixed(1) + '"/>' +
-        '<circle class="da-chakra__dot" cx="100" cy="' + y + '" r="' + r.toFixed(1) + '"/></g>';
+      return '<a href="#da-detail-chakra-' + esc(c.id) + '" data-da-act="body-detail" data-da-target="chakra-' + esc(c.id) + '" aria-label="' + esc(c.name) + '"><g class="da-chakra da-ck-' + esc(c.level) + '"><circle class="da-chakra__halo" cx="100" cy="' + y + '" r="' + (r + 7).toFixed(1) + '"/>' +
+        '<circle class="da-chakra__dot" cx="100" cy="' + y + '" r="' + r.toFixed(1) + '"/></g><circle class="da-body__hit" cx="100" cy="' + y + '" r="22"/></a>';
     }).join('') : '';
-    return '<svg class="da-body__svg" viewBox="0 0 200 400" role="img" aria-hidden="true">' +
+    return '<svg class="da-body__svg" viewBox="0 0 200 400" role="group" aria-label="' + esc(t.ui.bodyTitle) + '">' +
       '<path class="da-body__shape" d="M100 4C120 4 132 20 132 42C132 62 122 78 112 84L112 94C134 98 158 108 164 130L176 214C178 226 166 230 162 218L150 150L148 228C148 252 144 270 140 286L136 390C136 398 116 398 116 390L106 300L94 300L84 390C84 398 64 398 64 390L60 286C56 270 52 252 52 228L50 150L38 218C34 230 22 226 24 214L36 130C42 108 66 98 88 94L88 84C78 78 68 62 68 42C68 20 80 4 100 4Z"/>' +
       '<line class="da-body__spine" x1="100" y1="18" x2="100" y2="310"/>' + chakra + '</svg>';
   }
@@ -366,15 +367,16 @@
     var list = '<p class="da-note">' + esc(view === 'hd' ? t.recovery.hdSource : t.recovery.chakraSource) + '</p>';
     if (t.hd && view !== 'chakra') {
       list += '<ul class="da-centers">' + t.hd.centers.map(function (c) {
-        return '<li><details data-mobile-detail-keep-open data-da-entry="hd-' + esc(c.id) + '" class="da-centers__item' + (c.defined ? ' is-defined' : '') + '"><summary><span class="da-centers__name">' + esc(c.name) + '</span>' +
+        return '<li><details data-mobile-detail-keep-open id="da-detail-hd-' + esc(c.id) + '" data-da-entry="hd-' + esc(c.id) + '" class="da-centers__item' + (c.defined ? ' is-defined' : '') + '"><summary><span class="da-centers__name">' + esc(c.name) + '</span>' +
           '<span class="da-centers__state">' + esc(c.defined ? ui.centerDefined : ui.centerOpen) + '</span></summary>' +
+          (c.guide ? '<p class="da-combo">' + esc(c.guide.meme) + '</p><p class="da-p">' + esc(c.guide.label + ' · ' + c.guide.summary) + '</p><p class="da-p">' + esc(c.guide.action) + '</p><p class="da-note">' + esc(c.guide.question) + '</p>' : '') +
           (c.role ? '<span class="da-centers__role">' + esc(c.role) + '</span>' : '') +
           mindBody(mbUi, c.mind, c.body, mbUi.organ, c.role, c.check) + '</details></li>';
       }).join('') + '</ul>' + hdConnections(t);
     }
     if (view !== 'hd') {
       list += '<ul class="da-chakras">' + t.chakra.map(function (c) {
-        return '<li><details data-mobile-detail-keep-open data-da-entry="chakra-' + esc(c.id) + '" class="da-chakras__item da-ck-' + esc(c.level) + '"><summary><span class="da-centers__name">' + esc(c.name) + '</span>' +
+        return '<li><details data-mobile-detail-keep-open id="da-detail-chakra-' + esc(c.id) + '" data-da-entry="chakra-' + esc(c.id) + '" class="da-chakras__item da-ck-' + esc(c.level) + '"><summary><span class="da-centers__name">' + esc(c.name) + '</span>' +
           '<span class="da-centers__state">' + esc(c.levelLabel) + '</span></summary><span class="da-centers__role">' + esc(c.theme) + '</span>' +
           mindBody(mbUi, c.mind, c.body, mbUi.region, c.theme, c.check) + '</details></li>';
       }).join('') + '</ul><p class="da-note">' + esc(ui.chakraNote) + '</p>';
@@ -481,7 +483,7 @@
     var ui = t.ui;
     return '<section class="da-sec da-share" data-da-sec="share" aria-labelledby="daShareTitle"><h4 class="da-h" id="daShareTitle">' + esc(ui.shareTitle) + '</h4>' +
       '<p class="da-p">' + esc(t.recovery.shareQuestion) + '</p>' +
-      '<p class="da-note">' + esc(ui.shareSub) + '</p><div class="da-actions">' +
+      '<p class="da-note">' + esc(ui.shareSub) + '</p><div class="da-actions" role="group" aria-label="' + esc(ui.saveAction) + '">' + ['feed','story'].map(function(f) { return '<button type="button" class="da-btn da-btn--ghost" data-da-act="format" data-da-format="' + f + '" aria-pressed="' + ((state.shareFormat || 'feed') === f) + '">' + esc(t.shareFormats[f]) + (f === 'feed' ? ' 4:5' : ' 9:16') + '</button>'; }).join('') + '</div><div class="da-actions">' +
       '<button type="button" class="da-btn da-btn--primary" data-da-act="share">' + esc(ui.shareAction) + '</button>' +
       '<button type="button" class="da-btn da-btn--ghost" data-da-act="save">' + esc(ui.saveAction) + '</button>' +
       '<button type="button" class="da-btn da-btn--ghost" data-da-act="copy">' + esc(ui.copyAction) + '</button></div>' +
@@ -513,7 +515,7 @@
     return '<section class="da-sec" data-da-sec="habits" aria-labelledby="daHabitsTitle"><h4 class="da-h" id="daHabitsTitle">' + esc(h.title) + '</h4>' +
       '<p class="da-note">' + esc(h.intro) + '</p>' + t.habits.map(function (r) {
         return '<article class="da-habit"><h5 class="da-sub">' + esc(r.title) + '</h5><dl class="da-mb">' +
-          [[h.basis, r.basis], [h.check, r.check], [h.action, r.action]].map(function (row) {
+          [[h.basis, r.basis], [h.pattern, r.pattern], [h.check, r.check], [h.action, r.action]].map(function (row) {
             return '<div class="da-mb__row"><dt>' + esc(row[0]) + '</dt><dd>' + esc(row[1]) + '</dd></div>';
           }).join('') + '</dl></article>';
       }).join('') + '</section>';
