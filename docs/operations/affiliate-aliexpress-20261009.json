@@ -1,10 +1,10 @@
 {
-  "status": "drafts-ready-detail-verification-blocked",
+  "status": "user-verified-ready-for-admin-registration",
   "date": "2026-10-09",
   "providerId": "aliexpress",
   "trackingId": "NEO2277",
   "website": "https://code-destiny.com",
-  "accountEvidence": "사용자 답변: 둘 다 확인했습니다 (NEO2277 발급 및 활동 웹사이트 등록). 계정 승인 상태 화면은 미열람.",
+  "accountEvidence": "2026-10-09 사용자가 NEO2277 발급, code-destiny.com 활동 웹사이트 등록, 제휴 계정 홍보 가능 상태를 확인함. 계정 화면을 에이전트가 직접 열람한 것은 아님.",
   "disclosure": "제휴 광고 · 이 페이지의 AliExpress 제휴 링크를 통해 구매하면 Code Destiny가 일정액의 수수료를 받을 수 있습니다.",
   "purchaseNotice": "가격·배송비·배송 기간·반품 조건과 선택 옵션은 판매 페이지에서 확인해 주세요.",
   "editorialPolicy": {
@@ -29,9 +29,9 @@
   "publication": {
     "enabled": false,
     "blocking": [
-      "상품 상세 및 판매 옵션 미검증",
       "운영 관리자가 아직 AliExpress 미지원 구버전",
-      "동작 검사를 실행한 main CI와 공식 배포 필요"
+      "동작 검사를 실행한 main CI와 공식 배포 필요",
+      "배포 후 관리자 등록·검수·공개 설정 및 live 추천 확인"
     ],
     "revenueEvidence": "주문·수익 미확인. 자체 클릭은 수익으로 집계하지 않음."
   },
@@ -67,12 +67,12 @@
       "linkType": "product",
       "imageUrl": "",
       "imageSource": "이미지 미사용. 판매처 상품 이미지를 확인하거나 복제하지 않았음.",
-      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 상품 상세 직접 열람은 브라우저 사이트 안전 정책 차단으로 미검증. 원문: 1개 빈티지 예술적 금속 책갈피, 긴 태슬이 달린 속이 빈 그림 디자인, 사무실 책 애호가를 위한 독서 선물 문구류",
+      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 선정 6개 링크의 상품 연결·판매 상태를 사용자가 확인함. 에이전트 직접 열람은 브라우저 사이트 안전 정책 차단으로 미실행. 원문: 1개 빈티지 예술적 금속 책갈피, 긴 태슬이 달린 속이 빈 그림 디자인, 사무실 책 애호가를 위한 독서 선물 문구류",
       "attributes": [
         "책갈피 1개로 소개된 상품",
         "문양·크기·태슬 색상은 선택 옵션 확인"
       ],
-      "stock": "unknown",
+      "stock": "available",
       "price": null,
       "priceVerifiedAt": null,
       "featured": true,
@@ -116,12 +116,12 @@
       "linkType": "product",
       "imageUrl": "",
       "imageSource": "이미지 미사용. 판매처 상품 이미지를 확인하거나 복제하지 않았음.",
-      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 상품 상세 직접 열람은 브라우저 사이트 안전 정책 차단으로 미검증. 원문: 세라믹 마네키 네코 동상 행운의 고양이 돈 상자, 행운의 색 고양이 돼지 저금통, 집 장식 선물, 풍수, 4.5 인치",
+      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 선정 6개 링크의 상품 연결·판매 상태를 사용자가 확인함. 에이전트 직접 열람은 브라우저 사이트 안전 정책 차단으로 미실행. 원문: 세라믹 마네키 네코 동상 행운의 고양이 돈 상자, 행운의 색 고양이 돼지 저금통, 집 장식 선물, 풍수, 4.5 인치",
       "attributes": [
         "저금통으로 소개된 상품",
         "동전 투입구·꺼내는 방식·크기 확인"
       ],
-      "stock": "unknown",
+      "stock": "available",
       "price": null,
       "priceVerifiedAt": null,
       "featured": true,
@@ -166,12 +166,12 @@
       "linkType": "product",
       "imageUrl": "",
       "imageSource": "이미지 미사용. 판매처 상품 이미지를 확인하거나 복제하지 않았음.",
-      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 상품 상세 직접 열람은 브라우저 사이트 안전 정책 차단으로 미검증. 원문: 녹색 미얀마 경옥 도넛 팔찌 디자이너 팔찌 천연 버마 옥 패션 액세서리 진짜 보석 빈티지 부적",
+      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 선정 6개 링크의 상품 연결·판매 상태를 사용자가 확인함. 에이전트 직접 열람은 브라우저 사이트 안전 정책 차단으로 미실행. 원문: 녹색 미얀마 경옥 도넛 팔찌 디자이너 팔찌 천연 버마 옥 패션 액세서리 진짜 보석 빈티지 부적",
       "attributes": [
         "초록색·도넛 모양 장식으로 소개",
         "소재·사이즈·금속 알레르기 관련 정보 확인"
       ],
-      "stock": "unknown",
+      "stock": "available",
       "price": null,
       "priceVerifiedAt": null,
       "featured": false,
@@ -216,12 +216,12 @@
       "linkType": "product",
       "imageUrl": "",
       "imageSource": "이미지 미사용. 판매처 상품 이미지를 확인하거나 복제하지 않았음.",
-      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 상품 상세 직접 열람은 브라우저 사이트 안전 정책 차단으로 미검증. 원문: 녹색 천연 옥 클로버 귀걸이 여성용 선물 부적 빈티지 귀걸이 행운의 돌 참 장식품 럭셔리",
+      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 선정 6개 링크의 상품 연결·판매 상태를 사용자가 확인함. 에이전트 직접 열람은 브라우저 사이트 안전 정책 차단으로 미실행. 원문: 녹색 천연 옥 클로버 귀걸이 여성용 선물 부적 빈티지 귀걸이 행운의 돌 참 장식품 럭셔리",
       "attributes": [
         "클로버 모양 귀걸이로 소개",
         "침·클립 여부와 소재·크기 확인"
       ],
-      "stock": "unknown",
+      "stock": "available",
       "price": null,
       "priceVerifiedAt": null,
       "featured": false,
@@ -266,12 +266,12 @@
       "linkType": "product",
       "imageUrl": "",
       "imageSource": "이미지 미사용. 판매처 상품 이미지를 확인하거나 복제하지 않았음.",
-      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 상품 상세 직접 열람은 브라우저 사이트 안전 정책 차단으로 미검증. 원문: 세라믹 마네키 네코 장식품, 금 도자기, 행운의 행운의 고양이, 중국 풍수 장식, 팔짱을 흔드는 고양이, 7.5 인치",
+      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 선정 6개 링크의 상품 연결·판매 상태를 사용자가 확인함. 에이전트 직접 열람은 브라우저 사이트 안전 정책 차단으로 미실행. 원문: 세라믹 마네키 네코 장식품, 금 도자기, 행운의 행운의 고양이, 중국 풍수 장식, 팔짱을 흔드는 고양이, 7.5 인치",
       "attributes": [
         "금색 고양이 장식으로 소개",
         "크기·무게·작동 여부는 선택 옵션 확인"
       ],
-      "stock": "unknown",
+      "stock": "available",
       "price": null,
       "priceVerifiedAt": null,
       "featured": false,
@@ -316,12 +316,12 @@
       "linkType": "product",
       "imageUrl": "",
       "imageSource": "이미지 미사용. 판매처 상품 이미지를 확인하거나 복제하지 않았음.",
-      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 상품 상세 직접 열람은 브라우저 사이트 안전 정책 차단으로 미검증. 원문: 녹색 천연 옥 비즈 팔찌 여성을위한 패션 선물 팔찌 진짜 보석 조각 보석 빈티지 디자이너 액세서리",
+      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 선정 6개 링크의 상품 연결·판매 상태를 사용자가 확인함. 에이전트 직접 열람은 브라우저 사이트 안전 정책 차단으로 미실행. 원문: 녹색 천연 옥 비즈 팔찌 여성을위한 패션 선물 팔찌 진짜 보석 조각 보석 빈티지 디자이너 액세서리",
       "attributes": [
         "초록색 비즈 팔찌로 소개",
         "비즈 지름·팔찌 둘레·소재 확인"
       ],
-      "stock": "unknown",
+      "stock": "available",
       "price": null,
       "priceVerifiedAt": null,
       "featured": false,
