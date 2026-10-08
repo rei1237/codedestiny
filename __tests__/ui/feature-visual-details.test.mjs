@@ -123,9 +123,9 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   }
 
   const signatureSources = Object.fromEntries([...fragment.querySelectorAll('[data-cd-service-id]')].map(card => [card.getAttribute('data-cd-service-id'), card.querySelector('img')?.getAttribute('src') || '']));
-  assert.equal(signatureSources['master-love-codex'], '/images/consultation/seo-hanbi-tiger-v1-480.webp');
-  assert.equal(signatureSources['fortune-tea-house'], '/images/fortune-tea-house/renewal/yeoni-tea-welcome.webp');
-  assert.equal(signatureSources['neo-operation-room'], '/images/home/illustrated/neo-human-240.webp');
+  assert.equal(signatureSources['master-love-codex'], '/images/feature-details/master-love-codex-hero-v2.webp');
+  assert.equal(signatureSources['fortune-tea-house'], '/images/feature-details/fortune-tea-house-hero-v2.webp');
+  assert.equal(signatureSources['neo-operation-room'], '/images/feature-details/neo-operation-room-hero-v1.webp');
   for (const id of ['master-love-codex', 'fortune-tea-house', 'neo-operation-room']) {
     assert.ok(fs.existsSync(`public${signatureSources[id]}`), `${id}: referenced character artwork is missing`);
   }
