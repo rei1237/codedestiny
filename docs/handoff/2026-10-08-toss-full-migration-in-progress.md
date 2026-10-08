@@ -4,7 +4,7 @@ status: in-progress
 
 - 작업 디렉터리: `D:\Development\code-destiny\.codex-worktrees\toss-miniapp-20261007-223959`
 - 브랜치: `wt/toss-miniapp-20261007-223959`, PR 없음. 루트 main은 다른 세션이 사용하므로 수정 금지.
-- 마지막 기능 커밋: `046aa5b6c` (`feat(toss): restore and share tarot readings`).
+- 마지막 기능 커밋: `a9fdcc6f8` (`feat(toss): restore and share tarot readings`).
 - 원격 push/운영 배포/토스 신규 업로드/검수 제출: **이번 실행에서는 없음**.
 - 자동 승인 검토가 `git push origin HEAD:main`을 거절했다. 사유: 사용자 계획의 전체 이식 완료보다 이른 부분 구현 푸시이며 판매 비활성·승인 SKU 없음. 다른 경로로 우회하지 않았다. 코드 이식은 외부 사업자 심사와 독립적으로 계속할 수 있다.
 - 전체 이전 미완료. 새 로컬 기능을 기존 콘솔 업로드에 들어 있다고 설명하지 않는다.
