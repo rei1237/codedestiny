@@ -1,6 +1,7 @@
 import {checkOrder,TossError} from './policy.js';
 import {TOSS_TAROT_LIBRARY_FLOWS,tossTarotLibraryFlow} from '../../lib/tarot/toss-library-flows.mjs';
 import {getTarotCardByAnyId} from '../../lib/tarot/tarot-cards.mjs';
+import {generateTarotLibraryResult} from './tarot-library-generator.js';
 
 export {TOSS_TAROT_LIBRARY_FLOWS};
 
@@ -36,7 +37,11 @@ function tarotInput(flow,input){
     if(!source||!['upright','reversed'].includes(card?.orientation)||text(card?.position)!==flow.positions[index][0])throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
     return {cardId:source.code,orientation:card.orientation,position:flow.positions[index][0]};
   });
-  return {question,cards:normalized};
+  const birthDate=text(input.birthDate);
+  if(flow.id==='tarot-numerology'&&!/^\d{4}-\d{2}-\d{2}$/.test(birthDate))throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
+  const gem=text(input.gem);
+  if(flow.id==='tarot-crystal-soul'&&gem&&!/^[a-z-]{3,40}$/.test(gem))throw new TossError('TAROT_LIBRARY_INPUT_INVALID');
+  return {question,cards:normalized,...(birthDate?{birthDate}:{}),...(gem?{gem}:{})};
 }
 
 export function tarotLibraryInput(flowId,input){return tarotInput(tarotLibraryFlow(flowId),input);}
@@ -110,14 +115,18 @@ export async function grantTarotLibraryOrder({store,auth,order,product,input}){
   return receipt;
 }
 
-export async function deliverTarotLibraryOrder({store,auth,orderId,flowId,generate=buildTarotLibraryBaseline}){
+export async function deliverTarotLibraryOrder({store,auth,orderId,flowId,env={},generate=(id,input)=>generateTarotLibraryResult(id,input,{env})}){
   const claimed=await claimTarotLibraryDelivery({store,auth,orderId,flowId});
   if(claimed.state==='completed')return tarotLibraryResult(claimed.execution,tarotLibraryFlow(flowId));
   if(claimed.state!=='claimed')return {state:'generating',result:null,canRetryNow:false};
   const input=claimed.execution?.input;
   if(!input)throw new TossError('TAROT_LIBRARY_INPUT_MISSING',409);
-  const result=await generate(flowId,input);
-  return completeTarotLibraryDelivery({store,auth,orderId,flowId,result});
+  try{
+    const result=await generate(flowId,input);
+    return completeTarotLibraryDelivery({store,auth,orderId,flowId,result});
+  }catch(error){
+    return failTarotLibraryDelivery({store,auth,orderId,flowId,error});
+  }
 }
 
 // Delivery callers are server-only. The public route can read a stored result but
@@ -148,6 +157,21 @@ export async function completeTarotLibraryDelivery({store,auth,orderId,flowId,re
     const completed=await tx.completeExecution(orderId,result);
     if(!completed)throw new TossError('DELIVERY_NOT_CLAIMED',409);
     return tarotLibraryResult(completed,flow);
+  });
+}
+
+export async function failTarotLibraryDelivery({store,auth,orderId,flowId,error}){
+  const flow=tarotLibraryFlow(flowId);
+  return store.transaction(async tx=>{
+    await tx.assertIdentity(auth);
+    const purchase=await tx.purchase(orderId),execution=await tx.execution(orderId);
+    assertExistingPurchase(purchase,auth,{...purchase,flow},orderId);
+    assertExistingExecution(execution,auth,{...purchase,flow},orderId);
+    if(purchase.tarotFlowId!==flow.id)throw new TossError('RESULT_NOT_FOUND',404);
+    if(execution.status==='completed')return tarotLibraryResult(execution,flow);
+    const failed=await tx.failExecution(orderId,{code:text(error?.code)||'TAROT_LIBRARY_GENERATION_FAILED'});
+    if(!failed)throw new TossError('DELIVERY_NOT_CLAIMED',409);
+    return tarotLibraryResult(failed,flow);
   });
 }
 

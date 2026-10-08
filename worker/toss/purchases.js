@@ -25,6 +25,8 @@ export const purchaseStore={transaction:task=>tossTransaction(session=>task({
     {$set:{status:'generating',error:null}},{new:true,session}).lean(),
   completeExecution:(orderId,result)=>PaidExecutionRecord.findOneAndUpdate({orderId,status:'generating'},
     {$set:{status:'completed',result,consumedAt:new Date(),completedAt:new Date(),error:null}},{new:true,session}).lean(),
+  failExecution:(orderId,error)=>PaidExecutionRecord.findOneAndUpdate({orderId,status:'generating'},
+    {$set:{status:'generation_failed',error}},{new:true,session}).lean(),
 }))};
 
 export async function findTossPurchaseEvidence(row,ownerId,session,commitMarker) {

@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {TOSS_TAROT_LIBRARY_FLOWS,buildTarotLibraryBaseline,claimTarotLibraryDelivery,completeTarotLibraryDelivery,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryProduct,tarotLibraryResult} from '../../../worker/toss/tarot-library.js';
+import {generateTarotLibraryResult} from '../../../worker/toss/tarot-library-generator.js';
 
 const order={orderId:'01900000-1111-7111-8111-000000000042',sku:'approved-tarot-library',status:'PAYMENT_COMPLETED'};
 const auth={_id:'toss-identity',ownerId:'internal-owner',revision:0,environment:'SANDBOX'};
@@ -14,6 +15,7 @@ function fixture(){
     insertExecution:async row=>{assert.equal(draft.executions[row.orderId],undefined);draft.executions[row.orderId]=row;},
     claimExecution:async id=>{const row=draft.executions[id];if(!row||!['paid_pending_generation','generation_failed'].includes(row.status))return null;return draft.executions[id]={...row,status:'generating',error:null};},
     completeExecution:async(id,result)=>{const row=draft.executions[id];if(!row||row.status!=='generating')return null;return draft.executions[id]={...row,status:'completed',result,consumedAt:new Date(),completedAt:new Date(),error:null};},
+    failExecution:async(id,error)=>{const row=draft.executions[id];if(!row||row.status!=='generating')return null;return draft.executions[id]={...row,status:'generation_failed',error};},
   };const value=await task(tx);data=draft;return value;});serial=run.catch(()=>{});return run;}}};
 }
 
@@ -65,4 +67,27 @@ test('a Toss tarot delivery stores only validated server-built card data',async(
  assert.equal(completed.result.cards.length,5);assert.equal(completed.result.cards[1].orientation,'reversed');
  assert.equal(typeof completed.result.opening,'string');assert.equal(typeof completed.result.advice,'string');
  assert.equal(buildTarotLibraryBaseline(product.flow.id,input).cards[0].nameKr.length>0,true);
+});
+
+test('each paid flow uses its service generator and keeps a service-specific presentation',async()=>{
+  const oracleGenerator=async input=>({ok:true,consultation:{coreQuestion:'질문의 핵심',closingLine:'마무리 조언',actions:['오늘의 행동'],positionReadings:input.cards.map(card=>({headline:card.positionLabel,reading:'카드가 비춘 조건을 차분히 살핍니다.'}))}});
+  for(const flow of TOSS_TAROT_LIBRARY_FLOWS.filter(item=>item.access==='iap')){
+    const input={question:'지금 관계와 선택의 기준이 궁금해요.',cards:[]};
+    input.cards=flow.positions.map(([position],index)=>({cardId:`M${String(index).padStart(2,'0')}`,position,orientation:index%2?'reversed':'upright'}));
+    if(flow.id==='tarot-numerology')input.birthDate='1994-04-18';
+    if(flow.id==='tarot-crystal-soul')input.gem='amethyst';
+    const result=await generateTarotLibraryResult(flow.id,input,{oracleGenerator});
+    assert.equal(result.flowId,flow.id);assert.equal(result.renderer,flow.resultKind==='career'?'career':flow.resultKind);
+    assert.equal(result.cards.length,flow.cardCount);assert.equal(typeof result.presentation.opening,'string');
+  }
+});
+
+test('a failed generator returns the existing order to an explicit retry state',async()=>{
+  const f=fixture(),product=tarotLibraryProduct(rawProduct);
+  const input={question:'상대의 말과 행동이 달라 보여요.',cards:[['M00','words'],['M01','actions'],['M02','gap'],['M03','boundary'],['M04','next']].map(([cardId,position])=>({cardId,position,orientation:'upright'}))};
+  await grantTarotLibraryOrder({store:f.store,auth,order,product,input});
+  const failed=await deliverTarotLibraryOrder({store:f.store,auth,orderId:order.orderId,flowId:product.flow.id,generate:async()=>{throw Object.assign(Error('mock failure'),{code:'MOCK_FAILURE'});}});
+  assert.equal(failed.state,'generation_failed');assert.equal(failed.canRetryNow,true);assert.equal(f.get().executions[order.orderId].error.code,'MOCK_FAILURE');
+  const completed=await deliverTarotLibraryOrder({store:f.store,auth,orderId:order.orderId,flowId:product.flow.id,generate:async()=>({title:'재시도 결과'})});
+  assert.equal(completed.state,'completed');assert.equal(completed.result.title,'재시도 결과');
 });

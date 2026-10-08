@@ -8,7 +8,8 @@ import {api,purchaseTarotLibrary,type TarotLibraryProduct} from './platform';
 type Flow={id:string;name:string;access:'iap'|'free-local';featureKeys:string[];cardCount:number;positions:[string,string][];resultKind:string;inputLabel:string;inputHint:string};
 type Card={code:string;nameKo:string;nameEn:string;keywords?:string[]};
 type DrawnCard=Card&{orientation:'upright'|'reversed';position:string;positionLabel:string};
-type LocalResult={flowId:string;title:string;question:string;cards:DrawnCard[];opening:string;summary:string;advice:string};
+type ReadingSection={title:string;body:string};
+type LocalResult={flowId:string;title:string;question:string;cards:DrawnCard[];opening?:string;summary?:string;advice?:string;renderer?:string;presentation?:{opening:string;summary:string;sections:ReadingSection[];actions:string[]}};
 
 const flows=TOSS_TAROT_LIBRARY_FLOWS as Flow[];
 const deck=TAROT_CARDS as Card[];
@@ -42,9 +43,10 @@ function localResult(flow:Flow,question:string,picks:number[]):LocalResult{
 
 function Result({result,onRestart}:{result:LocalResult;onRestart:()=>void}){
   const yearly=result.flowId==='tarot-year-fortune';
+  const content=result.presentation||{opening:result.opening||'',summary:result.summary||'',sections:[],actions:result.advice?[result.advice]:[]};
   return <section className={'tarot-result tarot-result--'+result.flowId}>
-    <h1>{result.title}</h1><p className="intro">{result.opening}</p>
-    <section className="paper tarot-summary"><h2>이번 리딩의 흐름</h2><p>{result.summary}</p></section>
+    <h1>{result.title}</h1><p className="intro">{content.opening}</p>
+    <section className="paper tarot-summary"><h2>이번 리딩의 흐름</h2><p>{content.summary}</p></section>
     {yearly&&<p className="muted">월별 카드를 눌러 각 시기의 흐름을 차례로 읽어 보세요.</p>}
     <div className={yearly?'tarot-result-cards tarot-result-cards--year':'tarot-result-cards'}>
       {result.cards.map((card,index)=><article className="tarot-result-card" key={card.position}>
@@ -52,25 +54,27 @@ function Result({result,onRestart}:{result:LocalResult;onRestart:()=>void}){
         <p>{(card.keywords||[]).slice(0,3).join(' · ')||'카드가 비춘 현재의 조건'}</p>
       </article>)}
     </div>
-    <section className="paper"><h2>{result.flowId==='tarot-self-esteem'?'오늘 다시 세울 기준':'현실에서 참고할 행동'}</h2><p>{result.advice}</p></section>
+    {content.sections.length>0&&<section className="tarot-service-sections"><h2>{result.renderer==='celestial'?'열한 행성이 비춘 자리':result.renderer==='crystal'?'원석이 비춘 다섯 장의 결':result.renderer==='oracle'?'카드별 오라클 메시지':yearly?'월별 흐름':'카드가 비춘 조건'}</h2>{content.sections.map((section,index)=><article className="paper" key={`${index}-${section.title}`}><h3>{section.title}</h3><p>{section.body}</p></article>)}</section>}
+    {content.actions.length>0&&<section className="paper"><h2>{result.flowId==='tarot-self-esteem'?'오늘 다시 세울 기준':'현실에서 참고할 행동'}</h2><ol>{content.actions.filter(Boolean).slice(0,4).map(action=><li key={action}>{action}</li>)}</ol></section>}
     <Button variant="weak" display="block" onClick={onRestart}>다른 질문으로 다시 보기</Button>
   </section>;
 }
 
 export default function TarotLibrary({products,loggedIn,onLogin,onError,onBack}:{products:TarotLibraryProduct[];loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;onBack:()=>void}){
-  const [flowId,setFlowId]=useState(''),[question,setQuestion]=useState(''),[drawStarted,setDrawStarted]=useState(false),[picks,setPicks]=useState<number[]>([]),[paidReady,setPaidReady]=useState(false),[buying,setBuying]=useState(false),[result,setResult]=useState<LocalResult|null>(null);
+  const [flowId,setFlowId]=useState(''),[question,setQuestion]=useState(''),[birthDate,setBirthDate]=useState(''),[gem,setGem]=useState('amethyst'),[drawStarted,setDrawStarted]=useState(false),[picks,setPicks]=useState<number[]>([]),[paidReady,setPaidReady]=useState(false),[buying,setBuying]=useState(false),[result,setResult]=useState<LocalResult|null>(null),[retryOrderId,setRetryOrderId]=useState('');
   const flow=useMemo(()=>flows.find(item=>item.id===flowId)||null,[flowId]);
-  const reset=()=>{setFlowId('');setQuestion('');setDrawStarted(false);setPicks([]);setPaidReady(false);setResult(null);};
+  const reset=()=>{setFlowId('');setQuestion('');setBirthDate('');setGem('amethyst');setDrawStarted(false);setPicks([]);setPaidReady(false);setResult(null);setRetryOrderId('');};
   if(result)return <Result result={result} onRestart={reset}/>;
+  if(retryOrderId)return <section className="tarot-library"><h1>{flow?.name||'타로 리딩'}</h1><p className="notice">결과를 저장하지 못했어요. 추가 결제 없이 같은 주문으로 다시 생성할 수 있어요.</p><Button display="block" loading={buying} onClick={()=>{setBuying(true);void api<{result:LocalResult|null;canRetryNow:boolean}>(`/tarot-library/results/${retryOrderId}`,{}).then(stored=>{if(stored.result)setResult(stored.result);else if(!stored.canRetryNow)onError(new Error('TAROT_LIBRARY_GENERATING'));}).catch(onError).finally(()=>setBuying(false));}}>추가 결제 없이 다시 생성</Button><Button variant="weak" display="block" onClick={reset}>리딩 목록</Button></section>;
   if(!flow)return <section className="tarot-library"><h1>타로 리딩</h1><p className="intro">마음에 걸리는 질문을 고르고, 카드가 비추는 흐름과 현실적인 다음 행동을 살펴보세요.</p><div className="tarot-library-list">
     {flows.map(item=><button className="tarot-library-item" key={item.id} onClick={()=>{setFlowId(item.id);setQuestion('');setDrawStarted(false);setPicks([]);setPaidReady(false);}}><span><strong>{item.name}</strong><small>{item.cardCount}장 펼침 · {isFree(item)?'무료 로컬 리딩':'단건 리딩'}</small></span><span aria-hidden>›</span></button>)}
   </div><Button variant="weak" display="block" onClick={onBack}>홈으로 돌아가기</Button></section>;
   if(paidReady){
     const product=products.find(item=>item.id===flow.id);
-    const input={question,cards:picks.map((slot,index)=>({cardId:deck[slot].code,orientation:orientation(slot),position:flow.positions[index][0]}))};
-    return <section className="tarot-library"><h1>{flow.name}</h1><p className="intro">선택한 {flow.cardCount}장의 카드와 질문을 안전하게 확인했어요.</p><section className="paper"><h2>단건 리딩 준비 완료</h2><p>카드와 질문은 주문 소유권에 묶여 서버의 저장형 생성기로 전달됩니다. 결과는 같은 토스 계정에서 다시 열 수 있어요.</p></section>{!product?<p className="notice">이 리딩의 승인된 토스 상품을 확인하고 있어요. 현재는 결제를 시작하지 않아요.</p>:!loggedIn?<Button display="block" onClick={onLogin}>토스 로그인하고 이어가기</Button>:<Button display="block" loading={buying} disabled={buying} onClick={()=>{setBuying(true);try{purchaseTarotLibrary(product,input,async orderId=>{try{const stored=await api<{result:LocalResult}>(`/tarot-library/results/${orderId}`);setResult(stored.result);}catch(error){onError(error);}finally{setBuying(false);}},error=>{setBuying(false);onError(error);});}catch(error){setBuying(false);onError(error);}}}>{product.displayAmount} 단건 리딩 시작</Button>}<Button variant="weak" display="block" onClick={()=>setFlowId('')}>다른 리딩 살펴보기</Button></section>;
+    const input={question,cards:picks.map((slot,index)=>({cardId:deck[slot].code,orientation:orientation(slot),position:flow.positions[index][0]})),...(flow.id==='tarot-numerology'?{birthDate}:{}),...(flow.id==='tarot-crystal-soul'?{gem}:{})};
+    return <section className="tarot-library"><h1>{flow.name}</h1><p className="intro">선택한 {flow.cardCount}장의 카드와 질문을 안전하게 확인했어요.</p><section className="paper"><h2>단건 리딩 준비 완료</h2><p>카드와 질문은 주문 소유권에 묶여 서버의 저장형 생성기로 전달됩니다. 결과는 같은 토스 계정에서 다시 열 수 있어요.</p></section>{!product?<p className="notice">이 리딩의 승인된 토스 상품을 확인하고 있어요. 현재는 결제를 시작하지 않아요.</p>:!loggedIn?<Button display="block" onClick={onLogin}>토스 로그인하고 이어가기</Button>:<Button display="block" loading={buying} disabled={buying} onClick={()=>{setBuying(true);try{purchaseTarotLibrary(product,input,async orderId=>{try{const stored=await api<{result:LocalResult|null;canRetryNow:boolean}>(`/tarot-library/results/${orderId}`);if(stored.result)setResult(stored.result);else if(stored.canRetryNow)setRetryOrderId(orderId);else onError(new Error('TAROT_LIBRARY_GENERATING'));}catch(error){onError(error);}finally{setBuying(false);}},error=>{setBuying(false);onError(error);});}catch(error){setBuying(false);onError(error);}}}>{product.displayAmount} 단건 리딩 시작</Button>}<Button variant="weak" display="block" onClick={reset}>다른 리딩 살펴보기</Button></section>;
   }
-  if(!drawStarted)return <section className="tarot-library"><h1>{flow.name}</h1><p className="intro">{flow.inputHint||'질문을 적고 카드를 직접 펼쳐 보세요. 출생정보는 필요하지 않아요.'}</p><TextArea variant="box" label={flow.inputLabel} labelOption="sustain" value={question} onChange={event=>setQuestion(event.target.value)} maxLength={600}/><Button display="block" disabled={question.trim().length<2} onClick={()=>setDrawStarted(true)}>카드 펼치기</Button><Button variant="weak" display="block" onClick={()=>setFlowId('')}>리딩 목록</Button></section>;
+  if(!drawStarted)return <section className="tarot-library"><h1>{flow.name}</h1><p className="intro">{flow.inputHint||'질문을 적고 카드를 직접 펼쳐 보세요. 출생정보는 필요하지 않아요.'}</p><TextArea variant="box" label={flow.inputLabel} labelOption="sustain" value={question} onChange={event=>setQuestion(event.target.value)} maxLength={600}/>{flow.id==='tarot-numerology'&&<label className="tarot-input-label">생년월일<input type="date" value={birthDate} onChange={event=>setBirthDate(event.target.value)} required/></label>}{flow.id==='tarot-crystal-soul'&&<label className="tarot-input-label">오늘 가장 끌리는 원석<select value={gem} onChange={event=>setGem(event.target.value)}><option value="amethyst">자수정</option><option value="rose-quartz">로즈쿼츠</option><option value="citrine">시트린</option></select></label>}<Button display="block" disabled={question.trim().length<2||(flow.id==='tarot-numerology'&&!birthDate)} onClick={()=>setDrawStarted(true)}>카드 펼치기</Button><Button variant="weak" display="block" onClick={reset}>리딩 목록</Button></section>;
   return <section className="tarot-library"><h1>{flow.name}</h1><p className="intro">카드를 순서대로 열어 보세요.</p><TarotDeck flow={flow} picks={picks} onChange={setPicks} onComplete={()=>isFree(flow)?setResult(localResult(flow,question,picks)):setPaidReady(true)}/></section>;
 }
 

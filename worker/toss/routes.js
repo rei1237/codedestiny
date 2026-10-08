@@ -121,7 +121,7 @@ export async function handleTossRoutes(request,env) {
       const order=await lookupOrder(env,auth.userKey,input.orderId);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
       const receipt=await grantTarotLibraryOrder({store:purchaseStore,auth,order,product,input:input.input});
-      const delivery=await deliverTarotLibraryOrder({store:purchaseStore,auth,orderId:order.orderId,flowId:product.flow.id});
+      const delivery=await deliverTarotLibraryOrder({store:purchaseStore,auth,orderId:order.orderId,flowId:product.flow.id,env});
       return reply({...receipt,delivery});
     }
     if(path==='/library'&&request.method==='GET') {
@@ -129,6 +129,14 @@ export async function handleTossRoutes(request,env) {
       return reply(await libraryPage(rows,id=>readRequest(env,auth.userId,id),row=>PaidExecutionRecord.findOne({orderId:row._id,userId:String(auth.ownerId)}).lean()));
     }
     const tarotResultMatch=path.match(/^\/tarot-library\/results\/([a-f0-9-]{36})$/);
+    if(tarotResultMatch&&request.method==='POST') {
+      const orderId=tarotResultMatch[1],purchase=await TossPurchase.findOne({_id:orderId,identityId:auth._id,environment:auth.environment,tarotFlowId:{$type:'string',$ne:''}}).lean();
+      if(!purchase)throw new TossError('RESULT_NOT_FOUND',404);
+      const order=await lookupOrder(env,auth.userKey,orderId);
+      if(order.sku!==purchase.sku||order.orderId!==orderId)throw new TossError('ORDER_MISMATCH',403);
+      if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
+      return reply(await deliverTarotLibraryOrder({store:purchaseStore,auth,orderId,flowId:purchase.tarotFlowId,env}));
+    }
     if(tarotResultMatch&&request.method==='GET') {
       const orderId=tarotResultMatch[1],purchase=await TossPurchase.findOne({_id:orderId,identityId:auth._id,environment:auth.environment,tarotFlowId:{$type:'string',$ne:''}}).lean();
       if(!purchase)throw new TossError('RESULT_NOT_FOUND',404);
