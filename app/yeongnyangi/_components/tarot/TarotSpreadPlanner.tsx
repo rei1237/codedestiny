@@ -49,7 +49,7 @@ export function restoreTarotPlan(value:unknown):TarotPlan{
  return {presetId,spreadId,manual:raw.manual===true&&Boolean(spreadId),options:{a:text(options.a),b:text(options.b)},period,relationStatus};
 }
 
-export default function TarotSpreadPlanner({locale='ko',question,onQuestion,plan,onPlan,tier,onTier,disabled,notice,purposeMode=false}:{locale?:ReadingLocale;question:string;onQuestion:(value:string)=>void;plan:TarotPlan;onPlan:(plan:TarotPlan)=>void;tier:string;onTier:(fishId:string,cards:number)=>void;disabled?:boolean;notice?:string;purposeMode?:boolean}){
+export default function TarotSpreadPlanner({locale='ko',question,onQuestion,plan,onPlan,tier,onTier,disabled,notice,purposeMode=false,conversational=false,panel}:{locale?:ReadingLocale;question:string;onQuestion:(value:string)=>void;plan:TarotPlan;onPlan:(plan:TarotPlan)=>void;tier:string;onTier:(fishId:string,cards:number)=>void;disabled?:boolean;notice?:string;purposeMode?:boolean;conversational?:boolean;panel?:'spread'|'options'|'period'|'relationStatus'}){
  const scopeTier=tier;
  const copy=tarotSpreadCopyFor(locale),planCopy=tarotPlanCopy(locale),presets=planCopy.presets;
  const rec=useMemo(()=>tarotRecommendation(plan,question,scopeTier,locale),[plan,question,scopeTier,locale]);
@@ -65,8 +65,8 @@ export default function TarotSpreadPlanner({locale='ko',question,onQuestion,plan
  </button>;};
  const visiblePresets=relevantTarotQuestions(question,presets,locale);
  const suggested=rec?[rec.primary,...rec.alternatives].map(id=>getYeongnyangiSpread(id)).filter((item):item is Spread=>Boolean(item)):[];
- return <section className={styles.planner} aria-labelledby="tarot-question-heading" lang={locale}>
-  <div>
+ return <section className={styles.planner} aria-label={conversational?copy.recommendHeading:undefined} aria-labelledby={conversational?undefined:"tarot-question-heading"} lang={locale}>
+  {!conversational&&<><div>
    <h2 id="tarot-question-heading">{copy.questionHeading}</h2>
    <p>{copy.questionIntro}</p>
   </div>
@@ -75,9 +75,9 @@ export default function TarotSpreadPlanner({locale='ko',question,onQuestion,plan
    <textarea id="consultation-question" rows={3} maxLength={1000} value={question} disabled={disabled} placeholder={copy.questionPlaceholder}
     onChange={event=>{const value=event.target.value;onQuestion(value);const preset=presets.find(p=>p.id===plan.presetId);if(preset&&preset.question!==value)onPlan({...plan,presetId:''});}}/>
   </label>
-  <p className={styles.hint}>{copy.questionPrivacy}</p>
+  <p className={styles.hint}>{copy.questionPrivacy}</p></>}
 
-  <div>
+  {(!panel||panel==='spread')&&<><div>
    <h3>{copy.recommendHeading}</h3>
    {rec?<div className={styles.reason}><img src="/assets/yeongnyangi/profiles/welcome.webp" width={56} height={56} alt=""/><p>{locale==='ko'?rec.reason:localizedTarotSpread(getYeongnyangiSpread(rec.primary)!,locale).summary}{rec.tierNote?` ${locale==='ko'?rec.tierNote:copy.tierLocked(getYeongnyangiSpread(rec.primary)!.cardCount,fishName(getYeongnyangiSpread(rec.primary)!.minTier!,locale))}`:''}</p></div>:<p className={styles.hint}>{copy.recommendEmpty}</p>}
   </div>
@@ -89,27 +89,27 @@ export default function TarotSpreadPlanner({locale='ko',question,onQuestion,plan
    <h4>{copy.groupTraditional}</h4>
    <div className={styles.choices}>{yeongnyangiSpreads.filter(item=>item.source.kind==='traditional').map(item=>spreadButton(item))}</div>
   </details>
-  {notice&&<p className={styles.notice} role="status">{notice}</p>}
+  {notice&&<p className={styles.notice} role="status">{notice}</p>}</> }
 
-  {(needs(spread,'options')||needs(spread,'period')&&!askedPeriod||needs(spread,'relationStatus'))&&<fieldset className={styles.planner} disabled={disabled}>
+  {panel!=='spread'&&(needs(spread,'options')||needs(spread,'period')&&!askedPeriod||needs(spread,'relationStatus'))&&<fieldset className={styles.planner} disabled={disabled}>
    <legend><h3>{copy.inputsHeading}</h3></legend>
    <p className={styles.hint}>{copy.inputsOptional}</p>
-   {needs(spread,'options')&&<div className={styles.pair}>
+   {(!panel||panel==='options')&&needs(spread,'options')&&<div className={styles.pair}>
     <label>{copy.optionA}<input type="text" maxLength={40} value={plan.options.a} placeholder={copy.optionPlaceholderA} onChange={e=>onPlan({...plan,options:{...plan.options,a:e.target.value}})}/></label>
     <label>{copy.optionB}<input type="text" maxLength={40} value={plan.options.b} placeholder={copy.optionPlaceholderB} onChange={e=>onPlan({...plan,options:{...plan.options,b:e.target.value}})}/></label>
    </div>}
-   {needs(spread,'period')&&!askedPeriod&&<div><p>{copy.periodLabel}</p><div className={styles.chips} role="group" aria-label={copy.periodLabel}>{(Object.keys(tarotPeriods) as (keyof typeof tarotPeriods)[]).map(id=><button type="button" key={id} aria-pressed={plan.period===id} onClick={()=>onPlan({...plan,period:plan.period===id?'':id})}>{planCopy.periods[id]}</button>)}</div></div>}
-   {needs(spread,'relationStatus')&&<div><p>{copy.relationLabel}</p><div className={styles.chips} role="group" aria-label={copy.relationLabel}>
+   {(!panel||panel==='period')&&needs(spread,'period')&&!askedPeriod&&<div><p>{copy.periodLabel}</p><div className={styles.chips} role="group" aria-label={copy.periodLabel}>{(Object.keys(tarotPeriods) as (keyof typeof tarotPeriods)[]).map(id=><button type="button" key={id} aria-pressed={plan.period===id} onClick={()=>onPlan({...plan,period:plan.period===id?'':id})}>{planCopy.periods[id]}</button>)}</div></div>}
+   {(!panel||panel==='relationStatus')&&needs(spread,'relationStatus')&&<div><p>{copy.relationLabel}</p><div className={styles.chips} role="group" aria-label={copy.relationLabel}>
     <button type="button" aria-pressed={!plan.relationStatus} onClick={()=>onPlan({...plan,relationStatus:''})}>{copy.relationNone}</button>
     {(Object.keys(tarotRelationStatuses) as (keyof typeof tarotRelationStatuses)[]).map(id=><button type="button" key={id} aria-pressed={plan.relationStatus===id} onClick={()=>onPlan({...plan,relationStatus:id})}>{planCopy.relations[id]}</button>)}
    </div></div>}
   </fieldset>}
 
-  <div>
+  {(!panel||panel==='spread')&&<div>
    <h3>{copy.previewHeading}</h3>
    <p><strong>{spread.title}</strong> · {copy.cards(spread.cardCount)}</p>
    <p>{spread.summary}</p>
    <TarotSpreadLayout spread={spread} locale={locale}/>
-  </div>
+  </div>}
  </section>;
 }

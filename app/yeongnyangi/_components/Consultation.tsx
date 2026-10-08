@@ -1,6 +1,7 @@
 "use client";
 import {getQuestionGuide,questionScopeEntry} from "@/lib/fortune/question-journey";
-import QuestionScope from './QuestionScope';
+import IntakeChat,{type PreparationStep} from './IntakeChat';
+import {emptyIntakeDecision,type IntakeValue} from '../_lib/intake-chat';
 import {PREVENTION_TITLE} from '@/worker/lib/fortune-prevention.js';
 import {consultationBudget,fusionConsultationManifest} from '@/worker/yeongnyangi/fortune/consultation-budget';
 import {QUESTION_POLICY_VERSION,questionTopics,questionDecision,questionManifest,recommendQuestion,FOLLOWUP_LIMITS,type QuestionDecision,type QuestionFish} from '@/worker/yeongnyangi/fortune/ask/question-policy';
@@ -17,6 +18,7 @@ import {readingFeatures} from './ReadingIdentity';
 import CurrentLocationButton,{type CurrentLocation} from '@/app/components/CurrentLocationButton';
 import {readingLocationCopy} from '../_lib/current-location-copy';
 import {useEffect,useRef,useState} from 'react';
+import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import {authFetch} from '@/app/_lib/auth-client';
 import {ArrowRight,Moon,Sparkles} from 'lucide-react';
 import {products,systemNames,type Product} from '@/worker/yeongnyangi/payments/catalog';
@@ -48,9 +50,10 @@ import {jongCheckCopy} from '../_lib/jong-check-copy';
 import {jongCheckApplies} from '@/worker/yeongnyangi/fortune/saju/jong-check-policy';
 import type {JongCheck,JongReply} from '@/worker/yeongnyangi/fortune/saju/jong-check';
 import {tarotConsultation} from '@/worker/yeongnyangi/fortune/tarot/consultation-contract';
-import {TAROT_SPREAD_KIND} from '@/worker/yeongnyangi/fortune/tarot/spread-v3';
+import {tarotPeriods,tarotRelationStatuses,TAROT_SPREAD_KIND} from '@/worker/yeongnyangi/fortune/tarot/spread-v3';
 import {tierAllowsSpread} from '@/lib/tarot/yeongnyangi-spread-catalog.mjs';
 import TarotSpreadPlanner,{emptyTarotPlan,plannedSpread,plannedInputs,restoreTarotPlan,fishName,type TarotPlan} from './tarot/TarotSpreadPlanner';
+import {localizedTarotQuestionFeatures} from '../_lib/tarot-plan-locales';
 import {tarotSpreadCopyFor} from '../_lib/tarot-spread-locales';
 import {localizedTarotSpread} from '../_lib/tarot-spread-catalog-locales';
 const loginDraftKey='yeongnyangi:consultation-login-draft';
@@ -69,6 +72,7 @@ export default function Consultation(){
  const [kindId,setKindId]=useState('personal');
  const [questionMode,setQuestionMode]=useState(true),[decision,setDecision]=useState<QuestionDecision|undefined>();
  const [scopeDraft,setScopeDraft]=useState<QuestionDecision|undefined>();
+ const [chatStep,setChatStep]=useState('question');
  const [domain,setDomain]=useState('saju'),[productId,setProductId]=useState('saju_mackerel');
  const [available,setAvailable]=useState<Product[]>([]),[catalogError,setCatalogError]=useState('');
  const profileState=useProfiles(),{profiles,profileId,guest}=profileState;
@@ -179,7 +183,7 @@ export default function Consultation(){
   if(requestedTopic && Object.hasOwn(topicCatalog,requestedTopic))setTopicId(requestedTopic);
   try{
    const draft=JSON.parse(sessionStorage.getItem(loginDraftKey)||'null');
-   if(draft&&draft.path===window.location.pathname+window.location.search&&Date.now()-draft.savedAt<3600000){
+   if(draft&&draft.path===window.location.pathname+window.location.search&&(!draft.accountId||draft.accountId===readDestinyProfileAccountId())&&Date.now()-draft.savedAt<3600000){
     const savedProduct=products.find(p=>p.id===draft.productId);
     const savedDomain=savedProduct?consultationDomain(savedProduct):nextDomain;
     const savedKind=consultationKinds[savedDomain].find(k=>k.id===draft.consultationKind)||consultationKinds[savedDomain][0];
@@ -195,6 +199,8 @@ export default function Consultation(){
     if(typeof draft.extraPlace==='string')setExtraPlace(draft.extraPlace);
     if(draft.topicId==='general'||Object.hasOwn(topicCatalog,draft.topicId))setTopicId(draft.topicId);
     if(draft.questionDecision?.version===QUESTION_POLICY_VERSION){try{if(draft.editScope){setScopeDraft({...questionDecision(draft.questionDecision),confirmed:false});setDecision(undefined);}else setDecision(questionDecision(draft.questionDecision));setQuestionMode(true);}catch{/* Unknown draft contracts are ignored. */}}
+    if(typeof draft.chatStep==='string')setChatStep(draft.chatStep);
+    if(draft.editScope&&Object.hasOwn(systemNames,draft.intakeDomain))setDomain(draft.intakeDomain);
     if(typeof draft.question==='string')setQuestion(draft.question.slice(0,1000));
     if(draft.voiceStyle==='honorific')setVoiceStyle('honorific');
     if(draft.tarotPlan)setTarotPlan(restoreTarotPlan(draft.tarotPlan));
@@ -215,10 +221,14 @@ export default function Consultation(){
  },[profileId,profiles,profileState.loading,profileState.select]);
  useEffect(()=>{
   if(!ready||(!relationshipStage&&!relationship))return;
-  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,relationshipStage,relationshipQuestionId,participants,voiceStyle,consultationAttemptId:consultationAttemptId.current,savedAt:Date.now()}));}catch{/* Optional draft; paid snapshots remain on the server. */}
+  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({accountId:readDestinyProfileAccountId(),path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,relationshipStage,relationshipQuestionId,participants,voiceStyle,consultationAttemptId:consultationAttemptId.current,savedAt:Date.now()}));}catch{/* Optional draft; paid snapshots remain on the server. */}
  },[ready,relationship,relationshipStage,relationshipQuestionId,participants,voiceStyle,locale,productId,kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown]);
+ useEffect(()=>{
+  if(!ready||!questionMode||siteLocale!=='ko'||domain==='fusion')return;
+  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({accountId:readDestinyProfileAccountId(),path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,voiceStyle,tarotPlan,participants,questionDecision:decision||scopeDraft,editScope:!decision,intakeDomain:domain,chatStep,consultationAttemptId:consultationAttemptId.current,savedAt:Date.now()}));}catch{/* Optional draft: unavailable storage does not prevent preparation. */}
+ },[ready,questionMode,siteLocale,domain,locale,productId,kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,voiceStyle,tarotPlan,participants,decision,scopeDraft,chatStep]);
  function loginWithDraft(){
-  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,relationshipStage,relationshipQuestionId,participants,voiceStyle,tarotPlan,...(questionActive?{questionDecision:decision}:{}),consultationAttemptId:consultationAttemptId.current,savedAt:Date.now()}));}catch{/* Optional pre-login draft only; paid input is stored on the server. */}
+  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({accountId:readDestinyProfileAccountId(),path:window.location.pathname+window.location.search,locale,productId,consultationKind:kind.id,profileId,topicId,question,partnerId,extraTime,extraPlace,timeUnknown,relationshipStage,relationshipQuestionId,participants,voiceStyle,tarotPlan,...(questionMode?{questionDecision:decision||scopeDraft,editScope:!decision,intakeDomain:domain,chatStep}:{}),consultationAttemptId:consultationAttemptId.current,savedAt:Date.now()}));}catch{/* Optional pre-login draft only; paid input is stored on the server. */}
   loginForCurrentPage();
  }
  async function prepare(){
@@ -249,7 +259,52 @@ export default function Consultation(){
  function chooseDomain(next:string){const first=defaultKind(next);setKindId(first.id);setTopicId('general');setQuestion('');setDomain(next);setProductId(products.find(p=>next==='fusion'?p.readingKind!=='single':p.domain===next&&p.readingKind==='single')!.id);setPartnerId('');setError('');}
  function chooseKind(id:string){const next=consultationKinds[domain].find(k=>k.id===id)!;setKindId(id);if(next.koOnly)setLocale('ko');setPartnerId('');setError('');if(!supportsKind(product,next))setProductId(products.find(p=>consultationDomain(p)===domain&&supportsKind(p,next))!.id);}
  function chooseRelationshipEngine(next:DomainId){const tarotKind=relationshipQuestionId==='contact'?'contact':relationshipQuestionId==='reunion'?'reunion':['feelings','flirting'].includes(relationshipQuestionId)?'feelings':'compatibility';setDomain(next);setKindId(next==='tarot'?tarotKind:'compatibility');setProductId(next+'_mackerel');setTopicId('relationship');setRelationshipStage('consultation');setError('');}
- if(ready&&questionMode&&siteLocale==='ko'&&domain!=='fusion'&&!decision)return <QuestionScope initialDomain={domain as DomainId} initialQuestion={question} initialDecision={scopeDraft} onLegacy={()=>setQuestionMode(false)} onContinue={(next,q,d)=>{setDomain(next);setQuestion(q);setDecision(d);setProductId(next+'_'+recommendQuestion(next,d).fish);setKindId(next==='tarot'?TAROT_SPREAD_KIND:d.target==='pair'?'compatibility':'ask');setTopicId(d.category);setRelationshipStage('');consultationAttemptId.current='';}}/>;
+
+ if(ready&&questionMode&&siteLocale==='ko'&&domain!=='fusion'){
+  const intake:IntakeValue={domain:domain as DomainId,question,decision:decision||scopeDraft||emptyIntakeDecision()};
+  const prep:PreparationStep[]=[];
+  if(!tarotOnly){
+   prep.push({id:'profile',pending:profileState.loading,prompt:voiceStyle==='honorific'?'누구의 흐름을 살펴볼까요? 저장된 프로필을 확인해 주세요.':'누구의 흐름을 살펴볼까? 저장된 프로필이 있으면 다시 적지 않아도 돼.',answer:selectedProfile?.name||'프로필 확인',valid:!guest&&!profileState.loading&&Boolean(selectedProfile),content:<ProfilePicker state={profileState} locale={siteLocale} conversational voice={voiceStyle} onLogin={loginWithDraft}/>});
+   if(selectedProfile?.birth?.timeUnknown)prep.push({id:'birth-time',prompt:voiceStyle==='honorific'?'태어난 시간을 보충해 주실 수 있나요?':'태어난 시간을 보충해 줄 수 있어?',answer:timeUnknown?'시간 미상':extraTime||'시간 미상',valid:!needsTime||Boolean(extraTime&&!timeUnknown),content:<div className={styles.form}><label>{inputCopy.timeSupplement}<input type="time" value={extraTime} disabled={timeUnknown} onChange={e=>setExtraTime(e.target.value)}/></label><label><input type="checkbox" checked={timeUnknown} onChange={e=>setTimeUnknown(e.target.checked)}/>{inputCopy.timeUnknown}</label><p>{needsTime?inputCopy.timeRequired:inputCopy.supplementSaved}</p></div>});
+   if(selectedProfile&&!selectedProfile.location?.label)prep.push({id:'birth-place',prompt:voiceStyle==='honorific'?'지역을 확인해 주실래요?':'지역도 확인해 줄래?',answer:extraPlace||'지역 보충 없이 진행',valid:!needsPlace||Boolean(extraPlace.trim()||currentLocation),content:<div className={styles.form}><CurrentLocationButton key={profileId} locale={siteLocale} translation={readingLocationCopy(siteLocale)} disabled={busy} onLocation={value=>{setCurrentLocation(value);setExtraPlace(value.name);}}/><label>{inputCopy.placeSupplement}<input maxLength={120} value={extraPlace} onChange={e=>{setExtraPlace(e.target.value);setCurrentLocation(null);}} placeholder={inputCopy.placePlaceholder}/></label><p>{needsPlace?inputCopy.placeRequired:inputCopy.supplementSaved}</p></div>});
+   if(kind.partner)prep.push({id:'partner',prompt:voiceStyle==='honorific'?'함께 비교할 상대의 프로필도 골라주세요.':'함께 비교할 상대의 프로필도 골라줘.',answer:partnerProfile?.name||'',valid:Boolean(partnerId)&&!missing.includes(inputCopy.partnerDetails),content:<div className={styles.form}><label>{inputCopy.partner}<select value={partnerId} onChange={e=>setPartnerId(e.target.value)}><option value="">{inputCopy.partnerSelect}</option>{profiles.filter(p=>profileKey(p)!==profileId).map(p=><option key={profileKey(p)} value={profileKey(p)}>{p.name}</option>)}</select></label>{missing.includes(inputCopy.partnerDetails)&&<p role="alert">{inputCopy.partnerDetails}</p>}</div>});
+   if(jongPending||jongCheck)prep.push({id:'past-years',pending:jongPending,prompt:voiceStyle==='honorific'?'지난 시기의 경험도 확인해 볼게요.':'지난 시기의 경험도 확인해 볼게.',answer:'지난 시기 경험 확인',valid:!jongPending&&(!jongCheck||Boolean(jongReply.best&&jongReply.worst)),content:<>{jongPending&&<p role="status">{jongCopy.checking}</p>}    {jongCheck&&<section className={styles.jongCheck} aria-label={jongCopy.heading} lang={siteLocale}><h2>{jongCopy.heading}</h2><p>{jongCheck.kind==='strength'?jongCopy.strengthIntro:jongCopy.intro}</p>
+    {(['best','worst'] as const).map(side=><fieldset key={side} disabled={busy}><legend>{jongCopy[side]}</legend><p className={styles.jongYears}>{jongCheck[side].map((y,i)=><span key={y.year}>{i>0&&' · '}<span className={styles.jongYear}>{jongCopy.year(y.year,y.ganji)}</span></span>)}</p>
+     <div className={styles.jongReplies}>{(['yes','no','unsure'] as const).map(reply=><label key={reply}><input type="radio" name={`jong-${side}`} value={reply} checked={jongReply[side]===reply} onChange={()=>setJongReply(prev=>({...prev,[side]:reply}))}/>{jongCopy[reply]}</label>)}</div>
+    </fieldset>)}
+    </section>}</>});
+  }
+  else {
+   prep.push({id:'tarot',prompt:voiceStyle==='honorific'?'질문에 맞는 카드 배치를 확인해 볼까요?':'질문에 맞는 카드 배치를 함께 골라볼까?',answer:tarotSpreadView?.title||'타로 준비',valid:Boolean(tarotSpread&&tierAllowsSpread(product.fishId,tarotSpread)),content:<><TarotSpreadPlanner conversational panel="spread" locale={siteLocale} question={question} onQuestion={value=>{setQuestion(value);setDecision(undefined);setChatStep('question');}} plan={tarotPlan} onPlan={plan=>{setTarotPlan(plan);setTierNotice('');}} tier={product.fishId} purposeMode={questionActive} disabled={busy} notice={tierNotice}
+    onTier={(fishId,cards)=>{const next=choices.find(item=>item.fishId===fishId);if(next){setProductId(next.id);setTierNotice(tarotSpreadCopy.tierRaised(fishName(fishId,siteLocale),cards));}}}/></>});
+   for(const input of (tarotSpread?.requiredInputs||[])){
+    if(!['options','period','relationStatus'].includes(input))continue;
+    const panel=input as 'options'|'period'|'relationStatus';
+    if(panel==='period'&&(intake.decision.period.trim()||localizedTarotQuestionFeatures(question,siteLocale).period))continue;
+    const labels={options:'비교할 두 가지 선택지',period:'살펴볼 기간',relationStatus:'두 사람의 현재 관계'};
+    prep.push({id:'tarot-'+panel,prompt:labels[panel]+'도 알려주세요. 아직 정하지 않았다면 그대로 넘어가도 괜찮아요.',answer:panel==='options'?[tarotPlan.options.a,tarotPlan.options.b].filter(Boolean).join(' / '):panel==='period'?(tarotPlan.period?tarotPeriods[tarotPlan.period]:''):(tarotPlan.relationStatus?tarotRelationStatuses[tarotPlan.relationStatus]:''),valid:true,content:<TarotSpreadPlanner conversational panel={panel} locale={siteLocale} question={question} onQuestion={setQuestion} plan={tarotPlan} onPlan={setTarotPlan} tier={product.fishId} purposeMode disabled={busy} onTier={()=>{}}/>});
+   }
+   if(relationship)prep.push({id:'participants',prompt:voiceStyle==='honorific'?'두 사람을 어떻게 불러드릴까요?':'두 사람을 어떻게 부르면 될까?',answer:participants.self+' · '+participants.partner,valid:Boolean(participants.self.trim()&&participants.partner.trim()),content:<div className={styles.form}><label>{relationshipCopy.self}<input maxLength={40} value={participants.self} onChange={e=>setParticipants({...participants,self:e.target.value})}/></label><label>{relationshipCopy.partner}<input maxLength={40} value={participants.partner} onChange={e=>setParticipants({...participants,partner:e.target.value})}/></label><p>{relationshipCopy.symbolism}</p></div>});
+  }
+  prep.push({id:'language',prompt:voiceStyle==='honorific'?'결과를 어떤 언어로 읽으시겠어요?':'결과는 어떤 언어로 읽고 싶어?',answer:readingLanguageNames[locale],valid:true,content:<ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/>});
+  return <IntakeChat value={intake} confirmed={Boolean(decision)} step={chatStep} onStep={step=>{setChatStep(step);if(step!=='review')consultationAttemptId.current='';}} voice={voiceStyle} onVoice={setVoiceStyle} busy={busy}
+   onChange={next=>{setDomain(next.domain);setQuestion(next.question);setScopeDraft({...next.decision,confirmed:false});setDecision(undefined);setError('');}}
+   onEdit={()=>{setScopeDraft(intake.decision);setDecision(undefined);consultationAttemptId.current='';setError('');}}
+   onConfirm={()=>{const d={...intake.decision,confirmed:true};setDecision(d);setScopeDraft(d);setProductId(intake.domain+'_'+recommendQuestion(intake.domain,d,question).fish);setKindId(intake.domain==='tarot'?TAROT_SPREAD_KIND:d.target==='pair'?'compatibility':'ask');setTopicId(d.category);setRelationshipStage('');consultationAttemptId.current='';}}
+   onLegacy={()=>setQuestionMode(false)} preparation={prep.map(item=>({...item,pending:item.pending||Boolean(restoredDraft.current)}))}
+   review={<><h2>상담 내용 확인</h2><p>{question}</p><p>{systemNames[intake.domain]} · {tarotOnly?tarotSpreadView?.title:selectedProfile?.name}{partnerProfile?' · '+partnerProfile.name:''}</p><p>기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[product.fishId as QuestionFish]}회</p><div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{tierLabel(product)} · {ui.payment}</span><strong><LaunchPlannedPrice className={styles.totalPlanned} amount={plannedTotal}/>{plannedTotal!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(product.priceKRW)}</strong></div>
+   <p>{ui.afterPayment}</p><p>{askCopy.language}: <b lang={locale}>{readingLanguageNames[locale]}</b> · {ui.languageHint}</p><p>{ui.priceHint}</p>
+   <a href={`/yeongnyangi/library/?lang=${siteLocale}`}>{ui.library}</a>
+   <p>{ui.about} {ui.limits}</p>
+   {missing.length>0&&<ul className={styles.inputHints}>{missing.map(message=><li key={message}>{message}</li>)}</ul>}
+   <button className={styles.checkoutButton} disabled={busy||(!guest&&(!ready||missing.length>0||!available.some(p=>p.id===productId)))} onClick={()=>void prepare()}>{busy?inputCopy.busy:guest?inputCopy.loginContinue:inputCopy.checkout}<ArrowRight size={18} aria-hidden="true"/></button>
+   {!ready&&<p role="status">{inputCopy.catalogLoading}</p>}
+   {catalogError&&<p role="alert">{siteLocale==='ko'?catalogError:inputCopy.unavailable}</p>}
+   {ready&&!catalogError&&!available.some(p=>p.id===productId)&&<p>{inputCopy.unavailable}</p>}
+   {error&&<p role="alert">{error}</p>}
+   </div></>}/>;
+ }
+
  if(relationshipStage&&relationshipStage!=='consultation')return <RelationshipJourney locale={siteLocale} stage={relationshipStage} setStage={setRelationshipStage} questionId={relationshipQuestionId} onQuestion={(id,text)=>{setRelationshipQuestionId(id);setQuestion(text);}} participants={participants} onParticipants={setParticipants} profileState={profileState} partnerId={partnerId} onPartner={setPartnerId} onEngine={chooseRelationshipEngine}/>;
  return <section className={`${styles.consultation} ${styles.consultationRoom}`}>
   {relationshipStage&&<button onClick={()=>setRelationshipStage('question')}>{relationshipCopy.change}</button>}
