@@ -18,7 +18,7 @@ const ALLOWED = {
   'app/components/TrustStories.tsx': { count: 4, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'lib/brand/trust-stories.mjs': { count: 26, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'app/insights/[slug]/page.js': { count: 1, reason: '공개 기록 페이지에만 가시 FAQ와 일치하는 schema 적용' },
-  'lib/seo/public-record-copy.mjs': { count: 15, reason: '2026-10-05 사용자 승인: 공개 분석 3건의 시점·방식·원문 보존 한계를 함께 명시' },
+  'lib/seo/public-record-copy.mjs': { count: 16, reason: '2026-10-05 공개 분석 3건과 한계 명시; 2026-10-09 사용자 요청: 같은 원문 비교로 연결하는 랜딩 제작자 소개 1건 추가' },
   'app/insights/public-record-article.js': { count: 3, reason: '2026-10-05 승인한 원문 3건의 날짜·사건·일치 한계 비교 문서' },
   'templates/home-funnel.html': { count: 1, reason: '2026-10-06 사용자 요청: 중복 정치 사례 소개 제거, 상단 공개 기록 페이지 경로만 유지' },
   'i18n/authored/globalReading-01.json': { count: 2, reason: '2026-10-05 해외 현지화 요청: 기존 공개 기록 소개 번역, 미래 적중 보장 제외' },
