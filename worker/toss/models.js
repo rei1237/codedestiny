@@ -9,6 +9,7 @@ export const TossIdentity = model('TossIdentity', {
   encryptedKey: {type:mongoose.Schema.Types.Mixed,required:true},
   active: {type:Boolean,default:true}, revision: {type:Number,default:0},
   disconnectedAt: Date, unlinkPending: {type:Boolean,default:false},
+  unlinkAttempts: {type:Number,default:0}, unlinkNextAttemptAt: Date, unlinkLeaseUntil: Date,
 }, {collection:'toss_identities'});
 export const TossSession = model('TossSession', {
   _id: String, identityId: {type:String,required:true}, revision: {type:Number,required:true},

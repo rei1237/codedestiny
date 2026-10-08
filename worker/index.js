@@ -1963,6 +1963,10 @@ const app = {
     const cron = String(event?.cron || "").trim();
 
     if (cron === PAYMENT_RECONCILE_CRON) {
+      const { runTossUnlinkRecovery } = await import('./toss/unlink-recovery.js');
+      ctx.waitUntil(runTossUnlinkRecovery(env).catch(() => {
+        console.error('[toss-unlink-recovery] task failed');
+      }));
       const { runPaymentReconcileTask } = await import("./lib/payment-reconcile-task.js");
       ctx.waitUntil(runPaymentReconcileTask(env).catch((error) => {
         console.error("[payment-reconcile] task failed:", error?.message || error);

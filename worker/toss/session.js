@@ -16,6 +16,8 @@ export async function createTossSession(env, input) {
   const token=sessionToken(), tokenHash=await hash(token), expiresAt=new Date(Date.now()+60*60*1000);
   await connectDb(env);
   await tossTransaction(async session=>{
+    const existing=await TossIdentity.findById(id).session(session).lean();
+    if(existing?.unlinkPending)throw new TossError('TOSS_UNLINK_PENDING',409);
     const identity=await TossIdentity.findOneAndUpdate({_id:id},{$set:{encryptedKey,active:true},
       $setOnInsert:{ownerId:new mongoose.Types.ObjectId(),revision:0}},{upsert:true,new:true,session}).lean();
     // A concurrent unlink writes the same identity and invalidates every earlier session.
@@ -34,17 +36,18 @@ export async function requireTossSession(request,env) {
   return {...identity,userId:String(identity.ownerId),sessionId:session._id,environment:session.environment,
     userKey:await unseal(env,identity.encryptedKey,identity._id)};
 }
-export async function invalidateIdentity(env,id) {
+export async function invalidateIdentity(env,id,{queueUnlink=false}={}) {
   await connectDb(env);
   await tossTransaction(async session=>{
     await TossIdentity.updateOne({_id:id,active:true},{$set:{active:false,disconnectedAt:new Date()},$inc:{revision:1}},{session});
+    await TossIdentity.updateOne({_id:id},{$set:{unlinkPending:queueUnlink,unlinkAttempts:queueUnlink?1:0,
+      unlinkNextAttemptAt:queueUnlink?new Date(Date.now()+600000):null,unlinkLeaseUntil:null}},{session});
     await TossSession.deleteMany({identityId:id},{session});
   });
 }
 export async function disconnectIdentity(env,auth) {
   // Local access is revoked immediately; own unlink never depends on a callback.
-  await invalidateIdentity(env,auth._id);
-  await TossIdentity.updateOne({_id:auth._id},{$set:{unlinkPending:true}});
+  await invalidateIdentity(env,auth._id,{queueUnlink:true});
   try {
     await unlinkIdentity(env,auth.userKey);
     await TossIdentity.updateOne({_id:auth._id},{$set:{unlinkPending:false}});

@@ -37,6 +37,7 @@ export const cities=[
   {label:'제주',lat:33.4996,lng:126.5312,tz:'Asia/Seoul'},
 ];
 export const errors:Record<string,string>={
+  TOSS_UNLINK_PENDING:'이전 연결 해제를 마무리하고 있어요. 잠시 후 다시 로그인해 주세요. 계속되면 고객지원으로 문의해 주세요.',
   INVALID_TAROT_SPREAD:'카드 펼침을 다시 선택해 주세요.',
   INVALID_TAROT_PICKS:'필요한 수만큼 서로 다른 카드를 선택해 주세요.',
   TAROT_DRAW_NOT_AVAILABLE:'이 상담의 카드 선택 상태를 다시 확인해 주세요. 확정한 카드는 바뀌지 않아요.',
