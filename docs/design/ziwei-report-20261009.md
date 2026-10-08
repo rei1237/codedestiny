@@ -1,6 +1,6 @@
 # 기본 자미두수 리포트와 궁합
 
-status: in-progress
+status: done
 
 ## 요청과 범위
 
@@ -31,6 +31,10 @@ status: in-progress
 - impeccable detector: 종료 0. 기존 점성술 구분선 1건과 기존/일부 새 글자 크기 advisory. 자미두수의 기존 읽기 크기를 유지한다.
 - 본문 생성 중 과금 LLM, 실결제, 운영 DB, 운영 승격은 실행하지 않았다.
 
-## 남은 전달
+## 전달 기록
 
-변경 기반 검사, scoped commit, main 반영·push, 해당 SHA의 CI 확인, 자기 워크트리 정리.
+- 구현 커밋: `edb8a7995`. 최신 main 통합 후 `a555cbf17feb69335dffa2a648b4a8216d1d6c3d`를 원격 main에 일반 push했다.
+- 공식 CI: https://github.com/rei1237/codedestiny/actions/runs/37840451388 (최종 결과는 작업 완료 보고에서 확인).
+- `check:fast` 최초 시도는 Windows 샌드박스 Temp realpath EPERM으로 실패. 정상 권한의 mock 검사로 재실행했다.
+- 로컬 main fast-forward는 다른 세션의 index/runtime/sitemap 미커밋 변경과 겹쳐 Git이 중단했다. 해당 작업은 보존했고 원격 전달은 격리된 워크트리에서 수행했다.
+- 스테이징 상태 조회나 운영 승격을 수행하지 않았다.

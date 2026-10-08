@@ -8,18 +8,13 @@ import { chromium } from 'playwright';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const output = path.resolve(process.env.ZIWEI_SCREENSHOT_DIR || path.join(root, '.impeccable/ziwei-report-after'));
 await fs.mkdir(output, { recursive: true });
-const art = JSON.parse(await fs.readFile(path.join(root, 'public/images/ziwei/animals/manifest.json'), 'utf8'));
-assert.equal(art.assets.length, 23);
-for (const asset of art.assets) {
-  const bytes = await fs.readFile(path.join(root, 'public/images/ziwei/animals', asset.file));
-  assert.equal(bytes.subarray(8, 12).toString(), 'WEBP');
-  assert.ok(bytes.length < 100000, asset.file + ' exceeds mobile budget');
-}
+const art = await fs.readFile(path.join(root, 'public/images/ziwei/compatibility-atlas-v1.webp'));
+assert.equal(art.subarray(8, 12).toString(), 'WEBP');
+assert.ok(art.length < 200000, 'Compatibility entry image exceeds mobile budget');
 
 const browser = await chromium.launch();
 const profile = { id: 'mock-ziwei-reader', name: '서연', gender: 'F', birth: { year: 1990, month: 10, day: 14, hour: 14, minute: 30, calType: 'solar' }, location: { lat: 37.5665, lng: 126.978, tzOffset: 9, name: '서울' } };
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.woff2': 'font/woff2' };
-const metrics = [];
 try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
   await context.route('**/*', async route => {
