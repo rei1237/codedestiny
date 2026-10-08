@@ -27,3 +27,11 @@ test('wrong persona evidence is hidden; refunded purchases stay refunded despite
  const refund=await libraryPage([{...row(1),status:'REFUNDED'}],async()=>saved);
  assert.equal(refund.purchases[0].state,'REFUNDED');
 });
+test('tarot library purchase reads its paid execution and never reopens it as an unassigned consultation',async()=>{
+ const tarot={...row(2),productId:'tarot-library:tarot-mindscan',tarotFlowId:'tarot-mindscan',featureKey:'tarot-mindscan',requestId:'toss-tarot:01900000-1111-7111-8111-000000000002'};
+ const page=await libraryPage([tarot],async()=>assert.fail('tarot library must not read a Yeongnyangi request'),async item=>({requestId:item.requestId,status:'completed'}));
+ assert.equal(page.purchases[0].serviceId,'tarot-library');
+ assert.equal(page.purchases[0].selectionId,'tarot-mindscan');
+ assert.equal(page.purchases[0].state,'completed');
+ assert.equal(page.purchases[0].completedSections,1);
+});

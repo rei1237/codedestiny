@@ -16,12 +16,12 @@ const mocks={
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
  'worker/toss/session.js':"import {TossError} from './policy.js';export const requireTossSession=async()=>{if(globalThis.__tossRouteMocks.denyAuth)throw new TossError('LOGIN_REQUIRED',401);return globalThis.__tossRouteMocks.auth();};export const createTossSession=()=>{};export const invalidateIdentity=()=>{};export const disconnectIdentity=()=>{};",
- 'worker/toss/catalog.js':"export const APPROVED_TOSS_PRODUCTS=[];export const approvedProduct=globalThis.__tossRouteMocks.product;",
+ 'worker/toss/catalog.js':"export const APPROVED_TOSS_PRODUCTS=[];export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS=[];export const approvedProduct=globalThis.__tossRouteMocks.product;",
  'worker/toss/models.js':"export const TossPurchase={findOne:globalThis.__tossRouteMocks.purchase};export const TossSession={};",
  'worker/toss/partner.js':"export const lookupOrder=()=>{throw new Error('unexpected partner call')};",
  'worker/toss/grant.js':"export const grantVerifiedOrder=()=>{};",
  'worker/toss/purchases.js':"export const purchaseStore={};export const recordTossRefund=()=>{};",
- 'worker/lib/models.js':"export const ProfileCard={updateOne:globalThis.__tossRouteMocks.profile};",
+ 'worker/lib/models.js':"export const ProfileCard={updateOne:globalThis.__tossRouteMocks.profile};export const PaidExecutionRecord={findOne:()=>({lean:async()=>null})};",
  'worker/lib/rate-limit.js':"export const incrementRateLimit=async()=>({count:1});",
  'worker/yeongnyangi/service.ts':"export const prepareFortune=globalThis.__tossRouteMocks.prepare;export const presentFortune=x=>x;export const drawTarotSpread=(...args)=>globalThis.__tossRouteMocks.draw(...args);",
  'worker/yeongnyangi/repository.js':"export const readRequest=(...args)=>globalThis.__tossRouteMocks.read(...args);export const resumeRequest=()=>{};",

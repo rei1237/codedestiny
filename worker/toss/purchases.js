@@ -1,5 +1,6 @@
 import {TossIdentity,TossPurchase} from './models.js';
 import {YeongnyangiRequest} from '../lib/yeongnyangi-models.js';
+import {PaidExecutionRecord} from '../lib/models.js';
 import {tossTransaction} from './session.js';
 import {TossError} from './policy.js';
 import {requestMatchesService} from './services.js';
@@ -18,6 +19,12 @@ export const purchaseStore={transaction:task=>tossTransaction(session=>task({
     if(result.modifiedCount!==1)throw new TossError('REQUEST_ALREADY_FUNDED',409);
   },
   assignPurchase:(orderId,requestId)=>TossPurchase.updateOne({_id:orderId,requestId:null},{$set:{requestId}},{session}),
+  execution:orderId=>PaidExecutionRecord.findOne({orderId}).session(session).lean(),
+  insertExecution:execution=>PaidExecutionRecord.create([execution],{session}),
+  claimExecution:orderId=>PaidExecutionRecord.findOneAndUpdate({orderId,status:{$in:['paid_pending_generation','generation_failed']}},
+    {$set:{status:'generating',error:null}},{new:true,session}).lean(),
+  completeExecution:(orderId,result)=>PaidExecutionRecord.findOneAndUpdate({orderId,status:'generating'},
+    {$set:{status:'completed',result,consumedAt:new Date(),completedAt:new Date(),error:null}},{new:true,session}).lean(),
 }))};
 
 export async function findTossPurchaseEvidence(row,ownerId,session,commitMarker) {
@@ -36,7 +43,9 @@ export async function recordTossRefund(auth,order) {
   await tossTransaction(async session=>{
     const purchase=await TossPurchase.findOneAndUpdate({_id:order.orderId,identityId:auth._id,sku:order.sku},
       {$set:{status:'REFUNDED',verifiedAt:new Date()}},{new:true,session}).lean();
-    if(purchase?.requestId)await YeongnyangiRequest.updateOne({_id:purchase.requestId,userId:auth.ownerId,accessMethod:'TOSS_IAP'},
+    if(purchase?.tarotFlowId)await PaidExecutionRecord.updateOne({orderId:order.orderId,userId:String(auth.ownerId)},
+      {$set:{status:'refunded'}},{session});
+    else if(purchase?.requestId)await YeongnyangiRequest.updateOne({_id:purchase.requestId,userId:auth.ownerId,accessMethod:'TOSS_IAP'},
       {$set:{state:'REFUNDED',errorCode:'PAYMENT_NOT_ACTIVE',leaseToken:'',leaseUntil:null}},{session});
   });
 }

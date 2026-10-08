@@ -18,6 +18,7 @@ export const TossSession = model('TossSession', {
 export const TossPurchase = model('TossPurchase', {
   _id: String, identityId: {type:String,required:true}, ownerId: {type:mongoose.Schema.Types.ObjectId,required:true},
   sku: {type:String,required:true}, productId: {type:String,required:true},
+  tarotFlowId: {type:String,default:''}, featureKey: {type:String,default:''}, executionId: {type:String,default:''},
   serviceId: {type:String,enum:['yeongnyangi','yeoni','neo'],default:'yeongnyangi'},
   approvedPriceKRW: {type:Number,required:true}, priceEvidence: {type:String,required:true},
   status: {type:String,enum:['PAYMENT_COMPLETED','PURCHASED','REFUNDED'],required:true},
