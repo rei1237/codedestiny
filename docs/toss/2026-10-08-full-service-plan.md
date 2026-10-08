@@ -6,7 +6,7 @@ status: in-progress
 
 - 작업 디렉터리: `D:\Development\code-destiny\.codex-worktrees\toss-miniapp-20261007-223959`
 - 브랜치: `wt/toss-miniapp-20261007-223959`. 동시 작업 중인 루트 main 변경은 건드리지 않았다.
-- 기준 통합: origin/main `a789d250b`를 반영한 merge `694465e7a155daf590bf69441f12993ff07d3f00` 이후 구현. 최신 기능 커밋 `852b25f8354f9c6faef9327ca35ab51536fe3e7f`.
+- 기준 통합: origin/main `a789d250b`를 반영한 merge `694465e7a155daf590bf69441f12993ff07d3f00` 이후 구현. 최신 기능 커밋 `22abf6e146d9f0d64cee2f7a9462d9ae59e176fa`.
 - **원격 전달/업로드 없음.** main 푸시가 자동 승인 검토에서 거절됨: 전체 기능 완료 전의 부분 구현이며 SERVICE_AVAILABLE=false, 승인 SKU 없음. 재시도/다른 경로 우회하지 않았다. 이 제한은 로컬 구현을 중단할 사유로 사용하지 않는다.
 - 콘솔의 기존 업로드본 `20261008-3`과 아래 로컬 신규 번들은 다르다. 기존 업로드본을 최신 전체 이식본이라고 안내하면 안 된다.
 
@@ -21,10 +21,12 @@ status: in-progress
 | 1bf629ea3 | 기존 buildChemiReport·포토카드 재사용, 5테마·팬덤·오행·상세 풀이 | 웹 최근 기록/사진 꾸미기 등 동등성 추가 필요 |
 | e558e795c | 카드 미리보기·File.saveBase64, 선택 요약 Share.createLink/sendMessage | 모의/API 계약 검사만, 실기기 저장·전송 미검증 |
 | 852b25f83 | 보관함 50건 커서 페이지, 읽기 실패와 미연결 구매 분리 | 대량 실 DB/인덱스 실측 미실행 |
+| 22abf6e14 | 기존 10분 cron에서 최대 10건 토스 주문 확인, 서버 확인 환불만 반영 | 실 mTLS/운영 데이터 미검증, 비활성 계정은 원격 조회 제외 |
 
 ### 현재 검증 증거
 
 - `npm test --prefix apps/toss`: **66/66 통과, 실패/건너뜀 0**. 외부 네트워크 차단, 천문 데이터는 loopback 로컬 파일 서버만 사용. 샌드박스에서 loopback EACCES가 난 실행과 정상 권한 실행을 구분한다.
+- 이후 추가한 `node --test apps/toss/test/order-reconciliation.test.mjs`: **4/4 통과**. REFUNDED 일치 조건, 통신/미확정/불일치 시 권한 유지, 최대 10건, 거래 반영 실패 재시도 검증. 새 전체 70개 합산 실행은 아직 하지 않았다. 마지막 cron coverage/worker-no-undef/mongo query shapes 및 worker dry-run 통과. dry-run 로그 파일 EPERM 경고는 남음.
 - `npm run typecheck --prefix apps/toss`: 통과. `npm run build --prefix apps/toss`: 통과. 빌드에는 큰 초기 chunk와 공유 Next 컴포넌트의 use-client directive 경고가 남아 있다.
 - 로컬 신규 AIT: `apps/toss/ai-saju-studio.ait`, deploymentId `01a11b57-35bc-7f8e-a12b-e24caf4ead41`, **1,348,706 bytes**, SHA256 `fc48c066043d348544bb3738545c5d2f700bbff7bb2cd102975f345a79316ac5`. **업로드하지 않음.**
 - 전체 공통 검사: 앞선 `check:fast`에서 npm test 통과(392.2초), Paid Flow Gates 88/88 통과, lint 통과 후 sitemap drift 실패. 원장 생성 후 해당 drift 검사 통과. check:fast 전체 및 GitHub CI 통과로 보고하지 않는다.
@@ -36,7 +38,7 @@ status: in-progress
 
 1. 아래 타로 라이브러리 12개 독립 흐름부터 현재 판매/기록 계약을 확정하고 어댑터로 연결. 기존 3개 registry에 누락된 healing/self-esteem을 추가해 현재 canonical 후보는 **87개**. 87은 검증 완료 기능 수가 아니다.
 2. 기본 운세 독립 화면·종합/모둠 상품·찻집/전략실 고유 흐름·기타 기능·서재를 계속 이식. 기존 웹 전체를 iframe/외부 링크로 대체하지 않음.
-3. 개인정보 삭제/해제 콜백 후 처리, 민감 거래 메타데이터 보호, 환불 주기 동기화, 전체 제공 권리 매핑, 9/15 재개 E2E 추가. 현재 공통 모의 검사만으로 이 항목 완료 주장 금지.
+3. 개인정보 삭제/해제 콜백 후 처리, 민감 거래 메타데이터 보호, 환불 동기화의 운영·비활성 계정 정책 검증, 전체 제공 권리 매핑, 9/15 재개 E2E 추가. 현재 공통 모의 검사만으로 이 항목 완료 주장 금지.
 4. 176개 가격 키/70개 상담 조합의 가격 검토 자료는 `price-review.json`. 실제 SKU 승인/가격 확정/30개 한도 해결 전 판매 준비 완료 아님.
 5. 전체 구현 후 원격 전달 허용 상태 확인 → main CI → mTLS/약관/상품/사업자 상태 → 실기기 → 실제 화면 소개 이미지 → 업로드·검수·승인·출시를 각각 확인.
 
