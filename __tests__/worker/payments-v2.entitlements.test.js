@@ -239,47 +239,22 @@ describe("계정 해금 목록", () => {
   });
 });
 
-describe("러브 코드 영구 해금", () => {
-  const LOVE_CODE_PRODUCT = {
-    productId: LOVE_CODE_PRODUCT_ID,
-    featureKey: LOVE_CODE_FEATURE_KEY,
-    priceKRW: 10000,
-    priceCoins: 100,
-  };
-
-  test("canonical 상품은 1,000원 영구 해금이고 레거시 키는 읽기 별칭이다", () => {
+describe("러브 코드 회당 결제와 과거 해금 호환", () => {
+  test("canonical 상품은 회당 5,000원이고 레거시 키는 읽기 별칭이다", () => {
     const product = resolveProduct({ featureKey: "loveSimulation" });
     expect(product).toMatchObject({
       productId: LOVE_CODE_PRODUCT_ID,
       featureKey: LOVE_CODE_FEATURE_KEY,
-      priceKRW: 1000,
-      priceCoins: 10,
-      billingType: "unlock",
+      priceKRW: 5000,
+      priceCoins: 50,
+      billingType: "per_use",
     });
     expect(LEGACY_LOVE_CODE_FEATURE_KEYS).toContain("openLoveSimulation");
     expect(normalizePaidFeatureKey("loveSimulation")).toBe(LOVE_CODE_FEATURE_KEY);
     expect(normalizePaidFeatureKey("openLoveSimulation")).toBe(LOVE_CODE_FEATURE_KEY);
   });
 
-  test.each([CONTENT_ENTITLEMENT_SOURCES.PAYMENT, CONTENT_ENTITLEMENT_SOURCES.PASS, CONTENT_ENTITLEMENT_SOURCES.MONTHLY])(
-    "%s 최초 접근은 영구 entitlement 하나를 남긴다",
-    async (source) => {
-      const db = makeFakePaymentDb();
-      const first = await grantEntitlement(db, { userId: USER, product: LOVE_CODE_PRODUCT, orderId: `love-${source}`, source });
-      const replay = await grantEntitlement(db, { userId: USER, product: LOVE_CODE_PRODUCT, orderId: `love-${source}`, source });
-      expect(first.alreadyOwned).toBe(false);
-      expect(replay.alreadyOwned).toBe(true);
-      expect(db.rows).toHaveLength(1);
-      expect(db.rows[0]).toMatchObject({
-        featureKey: LOVE_CODE_FEATURE_KEY,
-        grantType: "permanent_unlock",
-        expiresAt: null,
-        amountKRW: 10000,
-      });
-    },
-  );
-
-  test("이용권 0회·월정석 만료와 무관하게 canonical entitlement가 접근 상태에 남는다", () => {
+  test("과거 영구 해금은 이용권·월정석 만료와 무관하게 계속 접근 상태에 남는다", () => {
     const state = buildAccessState({
       userId: USER,
       user: {

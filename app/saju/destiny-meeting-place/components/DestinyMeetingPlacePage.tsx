@@ -21,7 +21,7 @@ import { useDestinyMeetingPlaceCopy } from "../_lib/copy";
 
 const FEATURE_KEY = "destiny_meeting_place";
 // 가격은 서버 가격표에서 읽는다(하드코딩하면 인상·인하 때 결제창과 청구액이 조용히 갈라진다).
-// 정본: worker/lib/paid-feature-registry.js → destiny_meeting_place = 100코인 / 10,000원
+// 정본: worker/lib/paid-feature-registry.js → destiny_meeting_place = 50코인 / 5,000원
 const FEATURE_PRICING = resolveServerFeaturePricing({ featureKey: FEATURE_KEY });
 const FEATURE_COST = FEATURE_PRICING?.cost ?? 0;
 const FEATURE_AMOUNT_KRW = FEATURE_PRICING?.amountKRW ?? 0;

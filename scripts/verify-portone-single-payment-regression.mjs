@@ -1266,7 +1266,7 @@ async function runServerTests() {
     contentId: "section_summary",
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: 30,
+    coinPrice: 50,
   }), ENV, AUTH);
   let result = await jsonResponse(response);
   assert.equal(result.status, 200, "already unlocked start should succeed");
@@ -1280,13 +1280,13 @@ async function runServerTests() {
     contentId: "section_summary",
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: 30,
+    coinPrice: 50,
     amount: 1,
   }), ENV, AUTH);
   result = await jsonResponse(response);
   assert.equal(result.status, 201, "single start should create order");
-  assert.equal(result.payload.order.totalAmount, 3000, "30 coins should become 3000 KRW");
-  assert.equal(state.createdPayments[0].paymentAmount, 3000, "server amount should ignore client amount");
+  assert.equal(result.payload.order.totalAmount, 5000, "50 coins should become 5000 KRW");
+  assert.equal(state.createdPayments[0].paymentAmount, 5000, "server amount should ignore client amount");
   assert.equal(JSON.stringify(result.payload).includes(ENV.PORTONE_API_SECRET), false, "client response should not include API secret");
   assert.equal(JSON.stringify(result.payload).includes(ENV.INIsignkey), false, "client response should not include Inicis signkey");
 
@@ -1299,7 +1299,7 @@ async function runServerTests() {
     contentId: "section_summary",
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: 30,
+    coinPrice: 50,
     idempotencyKey: "single-race-key",
   };
 
@@ -1322,7 +1322,7 @@ async function runServerTests() {
   //    돌려주면 사용자가 존재하지 않는 주문으로 PG 창을 연다.
   resetState();
   const winnerOrder = {
-    ...makePayment({ paymentAmount: 3000, expectedChargedPoints: 30, coinPrice: 30, pricingSnapshot: { profileId: "profile-a", selectedProfileId: "profile-a", serviceId: "code-destiny", contentId: "section_summary", contentType: "saju", amountKRW: 3000 } }),
+    ...makePayment({ paymentAmount: 5000, expectedChargedPoints: 50, coinPrice: 50, pricingSnapshot: { profileId: "profile-a", selectedProfileId: "profile-a", serviceId: "code-destiny", contentId: "section_summary", contentType: "saju", amountKRW: 5000 } }),
     _id: "pay_created_winner",
     merchantUid: "cd-single-winner-1710000000000-abcd1234",
     idempotencyKey: "single-race-key",

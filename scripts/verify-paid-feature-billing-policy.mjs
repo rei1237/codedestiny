@@ -100,6 +100,9 @@ for (const featureKey of [
   "compat-ziwei-compatibility",
   "compat-saju-compatibility",
   "compat-sukuyo-compatibility",
+  "love-code",
+  "relationship-boundary-test",
+  "fun.quantumLotto.ritualReport",
   "sukuyo-symbolic-comparison",
   "vedic-compatibility-per-use",
   "physiognomy-compatibility",
@@ -129,13 +132,31 @@ for (const featureKey of [
   "flower-fc",
   "olympus-fc",
   "animal-destiny-unlock",
+  "rpt_quantumCard",
+  "rpt_energyCoordCard",
   "rpt_specialCharmCard",
-  "fun.quantumLotto.ritualReport",
   "sukuyo-relationship-encyclopedia",
   "premium-fpti-report",
 ]) {
   assert.equal(getPaidFeatureBillingType(featureKey), PAID_FEATURE_BILLING_TYPES.UNLOCK, `${featureKey} must be an unlock feature`);
   assert.equal(isUnlockPaidFeatureKey(featureKey), true, `${featureKey} must persist unlock entitlement`);
+}
+
+for (const [featureKey, expected] of Object.entries({
+  section_summary: { cost: 50, amountKRW: 5000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
+  "relationship-boundary-test": { cost: 50, amountKRW: 5000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
+  rpt_quantumCard: { cost: 100, amountKRW: 10000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
+  rpt_energyCoordCard: { cost: 50, amountKRW: 5000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
+  "fun.quantumLotto.ritualReport": { cost: 10, amountKRW: 1000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
+  destiny_meeting_place: { cost: 50, amountKRW: 5000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
+  "animal-destiny-unlock": { cost: 50, amountKRW: 5000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
+  "love-code": { cost: 50, amountKRW: 5000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
+})) {
+  assert.deepEqual(
+    { cost: (FEATURE_KEY_PRICE_TABLE[featureKey] || UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey])?.cost, amountKRW: (FEATURE_KEY_PRICE_TABLE[featureKey] || UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey])?.amountKRW, billingType: getPaidFeatureBillingType(featureKey) },
+    expected,
+    `${featureKey} must match its confirmed price and billing type`,
+  );
 }
 
 // 타로 오라클 상담(구 "타로 프롬프트 라이브러리"): 1회 ₩10,000 영구 해금 → 회당 ₩5,000으로 다시 전환.

@@ -23,15 +23,16 @@ beforeAll(async () => {
  *    안 쓰는 가격표만 남아 있었다. 과거 결제 조회용 PERSISTENT_UNLOCK_KEY_SET(fortune.js)
  *    키는 human-design-chart 선례대로 남긴다.
  *  · 2026-09-30 대운 신규 해금 3,000원 → 5,000원. 과거 구매권·구매금액은 유지한다.
+ *  · 2026-10-09 종합 사주 풀이·사주 여행지 영구 해금 가격을 각각 5,000원으로 조정.
  */
 const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
   "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, amountKRW: 5000, reason: "Section daewun unlock", forceDeduct: true },
-  "unlock.section_summary": { featureKey: "section_summary", cost: 30, reason: "Section summary unlock", forceDeduct: true },
+  "unlock.section_summary": { featureKey: "section_summary", cost: 50, amountKRW: 5000, reason: "Section summary unlock", forceDeduct: true },
   "unlock.section_compat": { featureKey: "section_compat", cost: 30, reason: "Section compat unlock", forceDeduct: true },
   "unlock.flower_fc": { featureKey: "flower-fc", cost: 10, reason: "Destiny flower atelier full unlock", forceDeduct: true },
   "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 10, reason: "Olympus profile unlock", forceDeduct: true },
   "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 30, reason: "RPG character unlock", forceDeduct: true },
-  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 30, reason: "Travel destiny unlock", forceDeduct: true },
+  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 50, amountKRW: 5000, reason: "Travel destiny unlock", forceDeduct: true },
   "unlock.health_report": { featureKey: "healthReport", cost: 30, reason: "Health report unlock", forceDeduct: true },
   "unlock.saju_diary": { featureKey: "sajuDiary", cost: 100, reason: "Saju diary unlock", forceDeduct: true },
   "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 30, reason: "Secret house episodes unlock", forceDeduct: true },
