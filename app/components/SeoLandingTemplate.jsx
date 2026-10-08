@@ -14,7 +14,7 @@ import {
 } from "../../lib/structured-data";
 import { getSeoRouteProfile, getTopicClusterLinks } from "../../lib/seo/entity-registry.mjs";
 import SeoLandingBirthForm from "./SeoLandingBirthForm";
-import FortuneLandingHero, { hasFortuneLanding } from "./FortuneLandingHero";
+import FortuneLandingHero, { hasFortuneLanding, FortuneLandingDirectory } from "./FortuneLandingHero";
 import { SEO_SERVICE_SCOPES } from "../../lib/seo-service-scope";
 import { SEO_READING_EXAMPLES } from "../../lib/seo-reading-examples";
 
@@ -453,6 +453,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
         <ContentIntegrityNote tone="light" contentPath={page?.path || ""} dateModified={dateModified} />
 
         {["/saju","/sukuyo","/ziwei","/astrology","/vedic","/tarot"].includes(page.path) && <FreeQuestionNext category={({"/saju":"saju","/sukuyo":"sukuyo","/ziwei":"ziwei","/astrology":"astrology","/vedic":"vedic","/tarot":"tarot"})[page.path] || "general"} source="seo_guide"/>}
+        {fortuneLanding && <FortuneLandingDirectory path={page.path} />}
         <section aria-labelledby="seoLandingRelated" className="mt-[clamp(3.5rem,8vw,5.5rem)]">
           <SectionHead id="seoLandingRelated" title={copy.relatedFeatures} label={copy.relatedFlow} />
           {topicProfile?.topicSummary ? (
