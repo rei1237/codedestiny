@@ -1,9 +1,26 @@
 ---
 status: blocked
 date: 2026-10-09
+last_verified_sha: 7f48507964e2e297b33694dff43276589d9a8b50
 ---
 
 # 영냥이 대화형 입력 — 구현 전달, 공유 main CI 차단
+
+## 2026-10-09 재검증 — 차단 유지
+- 사용자 지정 마지막 전달 SHA는 `516219bfb4fb93d430363e94f5e6306471cb1f2b`. 이후 원격 main `7f48507964e2e297b33694dff43276589d9a8b50`을 별도 워크트리에서 고정 검증했다. 공유 main의 다른 세션 미커밋 변경은 보존했다.
+- `e49855d93`은 정적 테스트 3개의 과거 가격 기대값만 정본에 맞췄다. 해당 3파일과 intake-chat의 `node --test`는 **25/25 통과**했다.
+- `node scripts/qa/verify-yeongnyangi-intake.mjs`: **PASS**, mock 요청 5개, 브라우저 오류 0개, 390px에서 가로 넘침 없음. 프로필 저장 오류/재시도, 로그인 복귀, 타로/궁합/진로/장기, 누락 입력 복원 통과. 실제 LLM·결제·DB 검증은 아니다.
+- `npm run test:jest -- --runInBand --silent`에 아래 5개 worker 파일을 지정: **5 suites 실패, 6 tests 실패, 81 tests 통과**.
+  - `relationship-boundary-test.route.test.js`: 1,000원 기대 / 정본 응답 5,000원.
+  - `payments-v2.daewun-pricing.test.js`: section_summary 3,000원 기대 / 5,000원.
+  - `payments-v2.entitlements.test.js`: 과거 러브 코드 영구 해금의 `unlockMap[LOVE_CODE_FEATURE_KEY]`가 true 대신 undefined. 기존 결과 접근 보존 문제이므로 기대값만 바꾸면 안 된다.
+  - `paid-non-llm-delivery.test.js`: fixture의 unlock / 현재 per_use 불일치.
+  - `static-reading-price.test.js`: animal-destiny-unlock 1,000원 기대 / 5,000원, rpt_quantumCard 1,000원 기대 / 10,000원.
+- 실제 핵심 검사를 실행한 [CI 37821500883](https://github.com/rei1237/codedestiny/actions/runs/37821500883)은 `e5972a981532b63ac4b296a2146fffcf07e140af`에서 실패. Critical checks의 5 suites / 6 tests 실패가 로컬에서 그대로 재현됐다.
+- 최신 [CI 37823085397](https://github.com/rei1237/codedestiny/actions/runs/37823085397)은 `7f48507964e2e297b33694dff43276589d9a8b50`에서 success이나 문서 변경으로 Static guards / Critical checks / Build를 **skipped**했다. 회귀 해결 증거로 인정하지 않는다.
+- 초기 sandbox의 Jest 임시 경로 EPERM 및 Playwright 브라우저 경로 제한은 승인된 로컬 재실행으로 해소했다. 검사 실패와 환경 실패를 구분했다.
+- 이번 수정은 이 인수인계 문서뿐이다. 가격·결제·인증·API·DB 로직을 수정하지 않았고 다른 채팅에 메시지를 보내지 않았다. 운영/스테이징 검증·승격도 실행하지 않았다.
+- **다음 행동:** 가격 작업에서 위 5개 worker suite, 특히 과거 러브 코드 접근 보존을 수정한 SHA가 전달되면 해당 suite와 intake browser를 재검증하고, 핵심 검사가 실제 실행된 main CI required 성공을 확인한 뒤 status: done으로 닫는다. 이 문서의 과거 재개 절보다 본 절이 우선한다.
 
 ## 구현과 전달
 - 사용자 승인: 한국어 질문형 상담을 고민부터 결제 직전까지 메신저로 연결. 기존 규칙 사용, 추가 AI 호출 없음.
