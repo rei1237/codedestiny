@@ -1,6 +1,8 @@
 ---
 status: blocked
 date: 2026-10-09
+updated: 2026-10-09
+next: 가격 작업의 수정 SHA에서 worker 5개 suite와 intake browser를 재검증하고 실제 핵심 검사를 실행한 main CI를 확인한다.
 last_verified_sha: 7f48507964e2e297b33694dff43276589d9a8b50
 ---
 
