@@ -1,3 +1,4 @@
+import BiasReading from './BiasReading';
 import {Followup,type Conversation} from './Followup';
 import {SERVICE_AVAILABLE} from './release';
 import {BirthFields,emptyBirth,birthPayload} from './BirthFields';
@@ -8,11 +9,11 @@ import {SafeArea,Screen,graniteEvent} from '@apps-in-toss/web-framework';
 import {api,ApiError,isToss,login,logout,restoreSession,saleProducts,purchase,restorePurchases,clearSession,event,type SaleProduct} from './platform';
 import {errors,questions,readings} from './content';
 
-type Page='home'|'catalog'|'product'|'birth'|'login'|'purchase'|'result'|'library'|'recovery'|'settings'|'terms'|'support'|'withdraw'|'example';
+type Page='bias'|'home'|'catalog'|'product'|'birth'|'login'|'purchase'|'result'|'library'|'recovery'|'settings'|'terms'|'support'|'withdraw'|'example';
 type Chapter={title:string;summary:string;analysis:string[];advice?:string;example?:string;persona?:string;blocks?:{id:string;title:string;paragraphs:string[]}[];questionAnswers?:{answer:string;basis:string;timing:string;action:string;review:string}[]};
 type Result={conversation?:Conversation;id:string;state:string;chapters:Chapter[];manifest:{id:string;title:string}[];recovery:{savedChapters:number;totalChapters:number;canRetryNow:boolean;reviewRequired:boolean};errorCode?:string};
 type Purchase={orderId:string;sku:string;productId:string;requestId:string|null;status:string;state:string;completedSections:number;totalSections:number|null;createdAt:string};
-const allowedPages=new Set<Page>(['home','catalog','product','birth','login','purchase','result','library','recovery','settings','terms','support','withdraw','example']);
+const allowedPages=new Set<Page>(['bias','home','catalog','product','birth','login','purchase','result','library','recovery','settings','terms','support','withdraw','example']);
 function currentPage():Page {const value=location.pathname.slice(1) as Page;return allowedPages.has(value)?value:'home';}
 
 export default function App(){
@@ -94,9 +95,11 @@ export default function App(){
   return <main>
     {!SERVICE_AVAILABLE?<div className="preview-note">출시 전 화면 테스트 · 로그인·구매·상담 생성은 아직 제공하지 않아요</div>:!isToss()&&<div className="preview-note">브라우저 미리보기 · 로그인과 구매는 토스 앱에서 가능해요</div>}
     {message&&<div role="alert" className="notice">{message}<Button size="small" variant="weak" onClick={()=>setMessage('')}>닫기</Button></div>}
+    {page==='bias'&&<BiasReading/>}
     {page==='home'&&<>
       <section className="hero"><div><p className="eyebrow">영냥이 사주운세</p><h1 ref={titleRef} tabIndex={-1}>마음에 걸리는<br/>그 질문부터.</h1><p>사주보는 고양이 영냥이와<br/>내 고민의 흐름을 살펴봐요.</p></div><img src="/assets/yeongnyangi.webp" alt="별과 달이 있는 남색 모자와 망토를 입은 흰 고양이 영냥이" width="800" height="800"/></section>
       <p className="ai-note">계산된 사주를 바탕으로 AI가 해석해요. 미래를 확정하는 예언이 아닌, 선택을 돕는 참고 이야기예요.</p>
+      <button className="feature-entry" onClick={()=>go('bias')}><img src="/assets/bias-stage.webp" alt=""/><span><strong>최애운명</strong><small>내 최애와 나, 어떤 케미일까요?</small></span><span aria-hidden>›</span></button>
       <h2>지금, 어떤 마음인가요?</h2><div className="questions">{questions.map((q,i)=><button key={q.title} onClick={()=>{setQuestion(q.title);setTopic(q.topic as QuestionDecision['category']);go('catalog');}}><span className="question-mark" aria-hidden>{['↗','◈','♡','☾'][i]}</span><span><strong>{q.title}</strong><small>{q.hint}</small></span><span aria-hidden>›</span></button>)}</div>
       <div className="home-links"><Button variant="weak" onClick={()=>go('catalog')}>전체 상담</Button><Button variant="weak" onClick={()=>requireLogin('library')}>기록 보관함</Button><Button variant="weak" onClick={()=>go('settings')}>내 정보</Button></div>{example}
     </>}
