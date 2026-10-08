@@ -1,5 +1,14 @@
 {
-  "status": "reviewed-links-not-registered",
+  "status": "nine-production-drafts-saved-public-off",
+  "productionRegistration": {
+    "date": "2026-10-09",
+    "books": 8,
+    "supplements": 1,
+    "reviewed": 0,
+    "published": 0,
+    "verification": "운영 관리자 다시 불러오기로 초안 9건과 모든 ID 재확인",
+    "pending": "CI 및 새 코드 배포 후 구조화 도서 정보·실천 태그 입력, 검수와 공개 게이트 확인"
+  },
   "reviewDate": "2026-10-09",
   "aliexpress": {
     "trackingId": "NEO2277",
@@ -9,6 +18,7 @@
   "books": [
     {
       "id": "atomic-habits-ko",
+      "attributes": ["판매자 구성: 쁘띠수첩+책갈피 포함"],
       "title": "아주 작은 습관의 힘 (50만 부 기념 스페셜 에디션)",
       "url": "https://link.coupang.com/re/AFFSDP?lptag=AF7837486&pageKey=9488999850&itemId=28259376032&traceid=V0-101-8b5bbf5e02c76dda",
       "author": "제임스 클리어 / 이한이 옮김",
@@ -21,7 +31,9 @@
       "audience": "작은 실천을 꾸준히 이어가고 싶은 독자",
       "tags": {
         "habit-building": "작은 행동을 꾸준히 반복하라는 조언에 맞춰, 시작하기 쉬운 환경과 습관을 만드는 방법을 살펴볼 수 있어요."
-      }
+      },
+      "language": "한국어",
+      "format": "종이책"
     },
     {
       "id": "mindfulness-poems-ko",
@@ -39,7 +51,9 @@
         "letting-go": "지난 일에서 한 걸음 물러나라는 조언과 함께, 내려놓음을 다루는 시를 천천히 읽고 자신의 생각을 적어볼 수 있어요.",
         "mindfulness": "현재의 순간을 살피라는 조언에 맞춰, 일상의 감각을 새롭게 바라보는 시를 한 편씩 읽어보세요.",
         "rest": "일상의 속도를 늦추라는 조언과 함께, 잠시 멈춰 짧은 시를 읽는 시간을 가져볼 수 있어요."
-      }
+      },
+      "language": "한국어",
+      "format": "종이책"
     },
     {
       "id": "saying-no-ko",
@@ -56,7 +70,9 @@
       "tags": {
         "boundaries": "자신의 기준을 지키라는 조언에 맞춰, 부탁을 받았을 때 자신의 의사를 분명하게 표현하는 방법을 살펴볼 수 있어요.",
         "relationship-patterns": "반복해서 원치 않는 부탁을 수락하는 선택을 돌아볼 때, 나만의 거절 기준을 정하는 부분을 참고할 수 있어요."
-      }
+      },
+      "language": "한국어",
+      "format": "종이책"
     },
     {
       "id": "psychology-money-2026-ko",
@@ -72,7 +88,9 @@
       "audience": "소비와 저축의 기준을 돌아보고 싶은 독자",
       "tags": {
         "budgeting": "지출을 점검하라는 조언과 연결해, 소비 욕망과 저축을 다루는 장을 읽으며 돈을 쓰는 기준을 돌아볼 수 있어요. 가계부 작성법 자체를 설명하는 책은 아니에요."
-      }
+      },
+      "language": "한국어",
+      "format": "종이책"
     },
     {
       "id": "karma-counselling-ko",
@@ -88,7 +106,9 @@
       "audience": "불교의 업 사상과 선택의 의미를 명시적으로 탐구하고 싶은 독자",
       "tags": {
         "karma-philosophy": "불교의 업과 선택에 관심을 두고 읽을 때, 의지와 인과를 다루는 저자의 철학적 관점을 살펴볼 수 있어요. 현재의 어려움이 전생 때문이라는 판단 근거로 사용하지 않아요."
-      }
+      },
+      "language": "한국어",
+      "format": "종이책"
     },
     {
       "id": "mans-search-meaning-ko",
@@ -104,6 +124,63 @@
       "audience": "삶의 가치와 방향을 성찰하고 싶은 독자",
       "tags": {
         "meaning-purpose": "삶에서 소중한 가치와 방향을 돌아보라는 조언에 맞춰, 어려운 상황에서도 의미를 찾는 선택과 태도를 읽어볼 수 있어요."
+      },
+      "language": "한국어",
+      "format": "종이책"
+    },
+    {
+      "id": "live-as-me-ko",
+      "title": "나는 나로 살기로 했다 (영미권 출간기념 특별판)",
+      "url": "https://link.coupang.com/a/hGKUZ48e2C",
+      "author": "김수현 글그림",
+      "publisher": "클레이하우스",
+      "edition": "개정증보판 / 2022년 2월 4일",
+      "isbn": "9791197377150",
+      "perspective": "essay",
+      "source": "https://www.yes24.com/product/goods/106540460",
+      "contents": "자신의 삶을 존중하고, 타인의 평가와 비교에서 거리를 두며 자신을 이해하는 에세이.",
+      "audience": "비교와 자책을 줄이고 자신의 삶을 존중하고 싶은 독자",
+      "tags": {
+        "self-compassion": "다른 사람과의 비교와 자책을 줄이라는 조언에 맞춰, 자신의 삶을 존중하는 태도를 일상의 사례로 돌아볼 수 있어요.",
+        "acceptance": "자신을 있는 그대로 받아들이라는 조언과 함께, 완벽함을 기준으로 삼기보다 자신의 삶을 존중하는 관점을 살펴볼 수 있어요."
+      },
+      "language": "한국어",
+      "format": "종이책"
+    },
+    {
+      "id": "deep-work-ko",
+      "title": "딥 워크",
+      "url": "https://link.coupang.com/a/hGK1DNrCeq",
+      "author": "칼 뉴포트 / 김태훈 옮김",
+      "publisher": "민음사",
+      "edition": "2017년 4월 1일 종이책",
+      "isbn": "9788937434082",
+      "perspective": "practical",
+      "source": "https://www.yes24.com/product/goods/38286918",
+      "contents": "집중할 시간을 확보하고 산만함과 피상적인 작업을 줄이는 구체적인 업무 습관을 다룬다.",
+      "audience": "공부나 업무의 방해 요소를 줄이고 집중 시간을 확보하고 싶은 독자",
+      "tags": {
+        "focus": "집중 시간을 정하고 방해 요소를 줄이라는 조언에 맞춰, 몰입할 환경과 일정 관리 방법을 구체적으로 살펴볼 수 있어요."
+      },
+      "language": "한국어",
+      "format": "종이책"
+    }
+  ],
+  "supplements": [
+    {
+      "id": "reflection-notebook-pair",
+      "category": "books",
+      "kind": "journal",
+      "title": "모닝글로리 3500 비움 연습장 좌철, 랜덤발송, 2개",
+      "url": "https://link.coupang.com/a/hGLolsZCwu",
+      "source": "https://www.coupang.com/vp/products/7578855357?itemId=20397108448",
+      "attributes": [
+        "2개 구성",
+        "표지 랜덤발송 · 행운색 매칭 대상 아님"
+      ],
+      "tags": {
+        "journaling": "조언에서 권한 기록과 회고를 이어가고 싶다면, 하루의 생각이나 작은 실천을 짧게 적는 용도로 활용할 수 있어요. 이미 쓰는 노트가 있다면 새로 살 필요는 없어요.",
+        "self-reflection": "자신의 선택과 반응을 돌아보라는 조언에 맞춰, 오늘의 선택과 다음에 바꿔볼 행동을 적는 공간으로 활용할 수 있어요."
       }
     }
   ]
