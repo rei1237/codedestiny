@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "ee92e5a927a90b17deb8159a0e398f7806ab6598",
+  "sourceCommit": "852b25f8354f9c6faef9327ca35ab51536fe3e7f",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 57,
@@ -2767,9 +2767,9 @@
       "status": "local-partial",
       "tossRoute": "/bias",
       "sku": null,
-      "inputContract": "lib/idol-chemi/index.js",
-      "resultRenderer": "apps/toss/src/BiasReading.tsx",
-      "storageContract": "photocard-save-share-not-ported"
+      "inputContract": "app/saju/destiny-bias/engine/chemiReportBridge.ts",
+      "resultRenderer": "apps/toss/src/BiasReading.tsx + BiasReport.tsx",
+      "storageContract": "native-card-save-summary-share-mocked; device-and-web-history-parity-pending"
     },
     {
       "id": "cosmic-soul-meditation",
@@ -4690,6 +4690,23 @@
       "storageContract": null
     },
     {
+      "id": "tarot-healing",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "source": "index.html:tarotCollection",
+          "entry": "/tarot/healing/",
+          "implementation": "app/tarot/healing/TarotHealingRouteClient.tsx"
+        }
+      ],
+      "status": "not-ported",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
       "id": "tarot-ijik",
       "discoveryIds": [
         "tarot-ijik"
@@ -4869,6 +4886,23 @@
       ],
       "aliasEvidence": [],
       "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "tarot-self-esteem",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "source": "index.html:tarotCollection",
+          "entry": "/tarot/self-esteem/",
+          "implementation": "js/tarot-self-esteem-experience.js"
+        }
+      ],
+      "status": "not-ported",
       "tossRoute": null,
       "sku": null,
       "inputContract": null,

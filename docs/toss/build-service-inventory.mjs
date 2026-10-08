@@ -53,10 +53,18 @@ for(const [id,entry,api] of [['pet-saju','pet-saju.html','/api/pet-saju/blueprin
 }
 const localEvidence={
  flower:{tossRoute:'/flower',status:'local-partial',inputContract:'worker/toss/flower.js',resultRenderer:'apps/toss/src/FlowerReading.tsx',storageContract:'not-stored-by-current-policy'},
- 'bias-destiny':{tossRoute:'/bias',status:'local-partial',inputContract:'lib/idol-chemi/index.js',resultRenderer:'apps/toss/src/BiasReading.tsx',storageContract:'photocard-save-share-not-ported'},
+ 'bias-destiny':{tossRoute:'/bias',status:'local-partial',inputContract:'app/saju/destiny-bias/engine/chemiReportBridge.ts',resultRenderer:'apps/toss/src/BiasReading.tsx + BiasReport.tsx',storageContract:'native-card-save-summary-share-mocked; device-and-web-history-parity-pending'},
  yeongnyangi:{tossRoute:'/catalog',status:'local-partial',inputContract:'worker/toss/routes.js',resultRenderer:'apps/toss/src/App.tsx',storageContract:'owned-TossPurchase-to-YeongnyangiRequest'},
  'fortune-chat':{tossRoute:'/catalog',status:'local-partial',inputContract:'worker/toss/services.js',resultRenderer:'apps/toss/src/App.tsx',storageContract:'persona-bound-TossPurchase-to-YeongnyangiRequest'},
 };
+// These active library links are absent from all three feature registries.
+for(const [id,entry,source] of [
+ ['tarot-healing','/tarot/healing/','app/tarot/healing/TarotHealingRouteClient.tsx'],
+ ['tarot-self-esteem','/tarot/self-esteem/','js/tarot-self-esteem-experience.js'],
+]){
+ if(!fs.readFileSync(path.join(root,'index.html'),'utf8').includes(`href="${entry}"`))throw new Error('Missing tarot entry: '+entry);
+ groups.set(id,{id,discoveryIds:[],evidence:[{source:'index.html:tarotCollection',entry,implementation:source}],status:'not-ported',tossRoute:null,sku:null,inputContract:null,resultRenderer:null,storageContract:null});
+}
 for(const [id,fields] of Object.entries(localEvidence))if(groups.has(id))Object.assign(groups.get(id),fields);
 const report={sourceCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),scope:'Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.',sourceCounts:{home:context.window.__cdServiceRegistry.length,react:react.length,visual:Object.keys(visual).length},entries:rows,canonicalCandidates:[...groups.values()].sort((a,b)=>a.id.localeCompare(b.id))};
 fs.writeFileSync(path.join(root,'docs/toss/full-service-inventory.json'),JSON.stringify(report,null,2)+'\n');
