@@ -95,7 +95,8 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   };
   for (const [slug, image] of Object.entries(restored)) {
     assert.equal(authored[slug].image, image);
-    assert.match(authored[slug].catalogImage, new RegExp(`${slug}-hero-v2\\.webp$`));
+    const heroVersion = ['fortune-tea-house', 'master-love-codex'].includes(slug) ? 'v3' : 'v2';
+    assert.match(authored[slug].catalogImage, new RegExp(`${slug}-hero-${heroVersion}\\.webp$`));
     assert.equal(generated.items[slug].catalogImage, `/feature-details/assets/${slug}-catalog-320.webp`);
     assert.ok(fs.existsSync(`public${generated.items[slug].catalogImage}`));
   }
@@ -123,12 +124,14 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   }
 
   const signatureSources = Object.fromEntries([...fragment.querySelectorAll('[data-cd-service-id]')].map(card => [card.getAttribute('data-cd-service-id'), card.querySelector('img')?.getAttribute('src') || '']));
-  assert.equal(signatureSources['master-love-codex'], '/images/feature-details/master-love-codex-hero-v2.webp');
-  assert.equal(signatureSources['fortune-tea-house'], '/images/feature-details/fortune-tea-house-hero-v2.webp');
+  assert.equal(signatureSources['master-love-codex'], '/images/feature-details/master-love-codex-hero-v3.webp');
+  assert.equal(signatureSources['fortune-tea-house'], '/images/feature-details/fortune-tea-house-hero-v3.webp');
   assert.equal(signatureSources['neo-operation-room'], '/images/feature-details/neo-operation-room-hero-v1.webp');
   for (const id of ['master-love-codex', 'fortune-tea-house', 'neo-operation-room']) {
     assert.ok(fs.existsSync(`public${signatureSources[id]}`), `${id}: referenced character artwork is missing`);
   }
+  const masterAssets = fs.readFileSync('src/features/master-love-codex/data/assets.ts', 'utf8');
+  assert.match(masterAssets, /humanHero:\s*rootAsset\("images\/feature-details\/master-love-codex-hero-v3\.webp"\)/);
   assert.match(fragment.querySelector('.moon-story-entry__poster img')?.getAttribute('src') || '', /CodeDestinyNovel\/%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EB%85%B8%EB%B2%A8\.webp$/);
   assert.match(fragment.querySelector('.moon-music-entry__cover-stack img')?.getAttribute('src') || '', /CodeDestinyNovel\/%EC%9D%8C%EC%95%85%20%ED%94%8C%EB%A0%88%EC%9D%B4%EC%96%B4\.webp$/);
 });

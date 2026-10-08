@@ -29,7 +29,7 @@ export const masterLoveCodexAssets = {
   /** 메인 화면 대표 카드 · 랜딩 히어로 (1536×1024, 3:2) */
   cover: rootAsset("마스터 운명 연애 비책.webp"),
   /** 라이트노벨의 서한비와 같은 인간형 안내 이미지 — 동물형 표현은 은유로만 남긴다. */
-  humanHero: rootAsset("images/feature-details/master-love-codex-hero-v2.webp"),
+  humanHero: rootAsset("images/feature-details/master-love-codex-hero-v3.webp"),
   backgrounds: {
     library: novelBackground("신비의 도서관.webp"),
     libraryDeep: novelBackground("신비의 도서관2.webp"),

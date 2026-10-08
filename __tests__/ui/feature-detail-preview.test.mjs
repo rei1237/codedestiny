@@ -25,6 +25,27 @@ function installFetch() {
   });
 }
 
+test('starts stylesheet loading while the catalog request is still in flight', async () => {
+  const { dom, overlay } = installDom();
+  let resolveCatalog;
+  globalThis.fetch = url => {
+    if (String(url).endsWith('catalog.json')) {
+      return new Promise(resolve => { resolveCatalog = resolve; });
+    }
+    return Promise.resolve({ ok: true, json: async () => detail });
+  };
+  const { mountFeatureDetailPreview } = await import('../../js/feature-detail-preview.mjs?parallel-critical-path');
+  const mounting = mountFeatureDetailPreview(overlay, ['tea']);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.ok(document.getElementById('featureVisualDetailStyles'), 'CSS begins before catalog resolution');
+  resolveCatalog({ ok: true, json: async () => [{ slug: 'tea', aliases: ['tea'] }] });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  document.getElementById('featureVisualDetailStyles').dispatchEvent(new Event('load'));
+  await mounting;
+  assert.equal(overlay.classList.contains('pvw-visual'), true);
+  dom.window.close();
+});
+
 test('static preview waits for CSS before replacing the existing detail sections', async () => {
   const { dom, overlay } = installDom();
   installFetch();

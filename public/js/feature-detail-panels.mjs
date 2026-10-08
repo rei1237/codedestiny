@@ -78,3 +78,9 @@ export async function loadFeatureDetail(keys, fetcher = fetch) {
   }).catch(error => { pending.delete(entry.slug); throw error; }));
   return pending.get(entry.slug);
 }
+
+// 상세 시트를 여는 순간에 catalog → detail 요청을 새로 시작하면 첫 화면이 한 번 더 비어 보인다.
+// 호출부는 사용자의 pointerdown/focus에서만 이 함수를 써서, 목록을 훑는 동안 모든 상품을 받지 않는다.
+export function preloadFeatureDetail(keys) {
+  return loadFeatureDetail(keys).catch(() => null);
+}

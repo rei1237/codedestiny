@@ -1,4 +1,4 @@
-import { loadFeatureDetail, renderFeatureDetailPanels } from './feature-detail-panels.mjs';
+import { loadFeatureDetail, preloadFeatureDetail, renderFeatureDetailPanels } from './feature-detail-panels.mjs';
 import { shareIntroductionFromButton } from './feature-introduction-share.mjs';
 const revisions = new WeakMap();
 const actionCleanups = new WeakMap();
@@ -26,6 +26,14 @@ function ensureFeatureDetailStyles() {
   return stylePromise;
 }
 
+// 첫 상세 진입의 CSS와 JSON은 서로 의존하지 않는다. 미리 시작해 두면 클릭 뒤 첫 화면은
+// catalog → detail → stylesheet의 세 번 직렬 왕복이 아니라 가장 느린 한 요청만 기다린다.
+export function preloadFeatureDetailPreview(keys) {
+  return Promise.all([ensureFeatureDetailStyles(), preloadFeatureDetail(keys)])
+    .then(([, detail]) => detail)
+    .catch(() => null);
+}
+
 export async function mountFeatureDetailPreview(overlay, keys, inlineDetail) {
   actionCleanups.get(overlay)?.();
   legacyCleanups.get(overlay)?.();
@@ -46,7 +54,8 @@ export async function mountFeatureDetailPreview(overlay, keys, inlineDetail) {
   host.textContent = '상품 이야기를 펼치고 있어요.';
   title.after(host);
   try {
-    const detail = inlineDetail || await loadFeatureDetail(keys);
+    const detailRequest = inlineDetail ? Promise.resolve(inlineDetail) : loadFeatureDetail(keys);
+    const [detail] = await Promise.all([detailRequest, ensureFeatureDetailStyles()]);
     if (revisions.get(overlay) !== revision || !overlay.classList.contains('pvw-open')) return;
     if (!detail) {
       // Non-product result tools keep their existing introduction; they are not
@@ -56,8 +65,6 @@ export async function mountFeatureDetailPreview(overlay, keys, inlineDetail) {
       host.remove();
       return;
     }
-    await ensureFeatureDetailStyles();
-    if (revisions.get(overlay) !== revision || !overlay.classList.contains('pvw-open')) return;
     host.innerHTML = renderFeatureDetailPanels(detail, { conversionPrompt: true });
     host.removeAttribute('aria-busy');
     const source = overlay.querySelector('#tilePvwCtaBtn');

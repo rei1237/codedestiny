@@ -74,7 +74,7 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
               AI PREMIUM COMPATIBILITY CONSULTATION
             </p>
             <div className={styles.hanbiGuide}>
-              <Image src={masterLoveCodexAssets.humanHero} alt={locale === 'ko' ? '달빛 아래 인연의 지도를 펼쳐 보는 서한비' : 'Seo Hanbi from the light novel, unfolding a map of love'} width={1200} height={630} />
+              <Image src={masterLoveCodexAssets.humanHero} alt={locale === 'ko' ? '달빛 아래 인연의 지도를 펼쳐 보는 서한비' : 'Seo Hanbi from the light novel, unfolding a map of love'} width={1200} height={675} unoptimized priority />
               <div><p>{locale === 'ko' ? '인연의 서를 읽어주는 서한비' : 'Seo Hanbi, your Love Codex guide'}</p><p>{locale === 'ko' ? '라이트노벨 속 그녀와 같은 모습으로, 당신의 인연 지도를 함께 펼쳐봐요.' : 'The same Seo Hanbi from the light novel helps you unfold your map of love.'}</p></div>
             </div>
             <h2 className={`${styles.hero} mt-6`}>Master Love Codex</h2>

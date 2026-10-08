@@ -20,6 +20,14 @@ test('the shell loads yehwa-motifs.css before the hero renders', () => {
   assert.ok(link < hero, 'yehwa-motifs.css must be linked before the hero markup');
 });
 
+test('representative consultation artwork remains legible on mobile', () => {
+  const css = read('styles/concern-first-home.css');
+  const mobile = css.slice(css.indexOf('@media(max-width:640px)'));
+  assert.match(mobile, /\.cd-sig-card__media\{[^}]*aspect-ratio:16\/9/);
+  assert.match(mobile, /\.cd-sig-card__img\{[^}]*width:100%[^}]*height:100%[^}]*object-fit:cover/);
+  assert.doesNotMatch(mobile, /\.cd-sig-card__img\{[^}]*height:80px/);
+});
+
 test('section dividers sit between the home sections', () => {
   const html = read('index.html');
   const count = (html.match(/<div class="cd-yehwa-divider" aria-hidden="true"><\/div>/g) || []).length;

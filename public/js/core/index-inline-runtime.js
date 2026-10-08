@@ -6855,11 +6855,10 @@ function _dfReloadSourceData(source, options) {
 
   if (normalized === 'astrology' && typeof __cdEnsureSwissEphLoaded === 'function') {
     loader = loader.then(function() {
-      __cdEnsureSwissEphLoaded().catch(function(err) {
+      return __cdEnsureSwissEphLoaded().catch(function(err) {
         console.warn('[DestinyFlower] SwissEph 로드 실패:', err);
         return false;
       });
-      return true;
     });
   }
 
@@ -7824,6 +7823,11 @@ function setDestinyFlowerSourceTab(source, gatePassed) {
     if (studioSelection) {
       _dfMarkSourceCompleted(normalized, { silent: true });
       _dfSetStudioStatus(_dfGetSajuVerdict(studioSelection) + ' 기준으로 탭과 프롬프트를 갱신했습니다.');
+    } else {
+      var profile = _dfGetProfilePayload({ skipLiveBridge: true });
+      if (_dfHasBirthInfo(profile)) {
+        void _dfFetchSourceOnDemand(normalized, { force: true, userInitiated: true });
+      }
     }
   } else {
     var card = document.querySelector('.feature-card.feature-card--destiny-flower');

@@ -15,7 +15,16 @@
 }
 
 .cdh-specialists{border-top:1px solid var(--cdh-line);padding:8px 0}.cdh-specialists>summary{padding:18px 0;min-height:48px;font-weight:700;cursor:pointer}.cdh-specialists>summary:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px}
-#cdHomeFunnel .cd-sig__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;transform:none;width:auto}#cdHomeFunnel .cd-sig__viewport{overflow:visible}#cdHomeFunnel .cd-sig-card{min-width:0;width:auto}#cdHomeFunnel .cd-sig__controls{display:none}@media(max-width:640px){#cdHomeFunnel .cd-sig__grid{grid-template-columns:minmax(0,1fr)}#cdHomeFunnel .cd-sig-card{display:grid;grid-template-columns:80px minmax(0,1fr);align-items:start;padding:14px;gap:12px}#cdHomeFunnel .cd-sig-card__media{align-self:start;aspect-ratio:1;border-radius:12px;overflow:hidden}#cdHomeFunnel .cd-sig-card__img{height:80px;object-fit:contain}#cdHomeFunnel .cd-sig-card__body{padding:0;min-width:0}#cdHomeFunnel .cd-sig-card__q{font-size:15px}#cdHomeFunnel .cd-sig-card__desc{font-size:13px}}
+#cdHomeFunnel .cd-sig__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;transform:none;width:auto}#cdHomeFunnel .cd-sig__viewport{overflow:visible}#cdHomeFunnel .cd-sig-card{min-width:0;width:auto}#cdHomeFunnel .cd-sig__controls{display:none}
+@media(max-width:640px){
+  #cdHomeFunnel .cd-sig__grid{grid-template-columns:minmax(0,1fr)}
+  #cdHomeFunnel .cd-sig-card{display:flex;flex-direction:column;padding:0;gap:0}
+  #cdHomeFunnel .cd-sig-card__media{align-self:stretch;width:100%;aspect-ratio:16/9;border-radius:0;overflow:hidden}
+  #cdHomeFunnel .cd-sig-card__img{width:100%;height:100%;object-fit:cover}
+  #cdHomeFunnel .cd-sig-card__body{padding:16px;min-width:0}
+  #cdHomeFunnel .cd-sig-card__q{font-size:15px}
+  #cdHomeFunnel .cd-sig-card__desc{font-size:13px}
+}
 
 /* Moonlit botanical entry; shared tokens follow both character themes. */
 .cdh .cdh-flower {

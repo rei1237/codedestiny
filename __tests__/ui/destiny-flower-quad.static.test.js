@@ -76,6 +76,24 @@ test("카드를 누르면 그 체계로 상세가 바뀐다(액션 배선)", () 
   }
 });
 
+test("점성술 탭은 천문 데이터를 기다린 뒤 사용자 선택으로 바로 연동한다", () => {
+  const reloadAt = runtimeCode.indexOf("function _dfReloadSourceData");
+  const reloadBody = runtimeCode.slice(reloadAt, runtimeCode.indexOf("\nfunction ", reloadAt + 10));
+  assert.match(
+    reloadBody,
+    /return __cdEnsureSwissEphLoaded\(\)\.catch\(/,
+    "점성술 계산은 SwissEph 준비 Promise를 기다려야 한다",
+  );
+
+  const tabAt = runtimeCode.indexOf("function setDestinyFlowerSourceTab");
+  const tabBody = runtimeCode.slice(tabAt, runtimeCode.indexOf("\nfunction ", tabAt + 10));
+  assert.match(
+    tabBody,
+    /_dfFetchSourceOnDemand\(normalized,\s*\{\s*force:\s*true,\s*userInitiated:\s*true\s*\}\)/,
+    "생년월일이 있는 사용자가 점성술 탭을 누르면 연동을 바로 시작해야 한다",
+  );
+});
+
 test("렌더러가 소스 갱신 경로에 배선돼 있다", () => {
   assert.ok(
     /function _dfRenderQuadCards\(/.test(runtimeCode),
