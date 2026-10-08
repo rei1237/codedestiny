@@ -2,6 +2,20 @@
 
 status: in-progress
 
+## 최신 재개 상태 — 2026-10-08 실기기 대기·등록 자산 준비
+
+이번 재개에서는 테스트 버전 `20261008-1`의 콘솔 QR·링크 상태를 다시 확인하고, 로컬에서 실패 검사의 원인을 분리했으며, 검수 반려 사유에 맞춘 Toss 등록 자산을 별도 폴더에 준비했다.
+
+- 콘솔 workspace `21957` / appName `ai-saju-studio`의 테스트 모달이 정상 표시됐다. deploymentId `01a11a59-2b8a-77b0-b1b3-c492905b843b`, 테스트 링크 `intoss-private://ai-saju-studio?_deploymentId=01a11a59-2b8a-77b0-b1b3-c492905b843b&host=appsInTossHost`가 일치한다. QR 스캔과 토스앱 화면은 이 컴퓨터에서 대신 증명할 수 없어 **실기기 미확인**으로 남긴다. 테스트 푸시는 보내지 않았다.
+- 등록 요구사항을 콘솔에서 실측했다: 다크모드 앱 로고 `600×600px`, 세로 스크린샷 `636×1048px` 최소 3장, 가로 스크린샷 `1504×741px` 최소 1장.
+- 등록 자산은 [`docs/toss/assets/20261008-1/`](assets/20261008-1/)에 준비했다. `ai-saju-studio-icon-600.png`는 영냥이 원본 기반의 불투명 남색 배경 정사각 아이콘이며, `01` 홈·`02` 고등어 상담·`03` 개인정보 없는 결과 예시 세로 캡처와 `04` 홈 가로 캡처가 있다. 크기·바이트·SHA256은 `manifest.json`에 기록했다.
+- 캡처는 `apps/toss` 로컬 CSR 미리보기에서 생성했고 `SERVICE_AVAILABLE=false`를 유지했다. 일반 브라우저에서는 Toss native bridge가 없어 `SafeAreaInsets` 콘솔 오류가 반복되지만 화면 캡처는 생성됐다. 이 오류는 실기기 결과나 운영 장애로 해석하지 않는다.
+- `npm --prefix apps/toss test`: **32 passed / 0 failed**. `npm --prefix apps/toss run build`: **통과**, 로컬 build deploymentId `01a11a6a-6cbd-7cff-a823-332034589f02`; 테스트 콘솔에 업로드하거나 기존 테스트 버전을 교체하지 않았다.
+- 실패 원인 분리 재현: `verify:deploy-base-guard`는 Windows 임시 디렉터리 Git config `Permission denied`; `verify:llm-generation-resilience`·`verify:analysis-basis-contract`는 Swiss ephemeris 파일의 `127.0.0.1` 통신 `EACCES` 및 `cdn.jsdelivr.net` DNS `ENOTFOUND` 후 숙요 계산 실패; `verify:payment-choice-parity`와 `--self-test`는 독립 정적 페이지의 기존 캐시 핀 `build-4094433f67b2`가 현재 기대 `build-9c92542eb04f`와 불일치; `npm test`와 `verify:ai-consultation-flows`의 마지막 Jest 단계는 Temp `realpath` `EPERM`이다. 모두 이번 Toss 자산 변경이 깨뜨렸다는 회귀 증거는 아니다.
+- 앱인토스 등록 이미지·아이콘은 아직 콘솔에 업로드하지 않았다. 사업자·약관·IAP·mTLS·검수 제출·출시는 계속 미완료이며, main merge/push도 하지 않았다.
+
+다음: 사용자가 토스앱으로 QR을 스캔해 실제 홈·상담 예시 화면을 확인하고 결과를 전달한다. 그 확인 후 별도 승인 범위에서 등록 자산 업로드 여부를 결정한다. 실기기에서 깨짐이 확인되면 자산이 아니라 앱 코드/콘솔 표시 문제를 분리해 조사한다.
+
 ## 최신 실행 상태 — 2026-10-08 테스트 번들 업로드 완료
 
 이 절이 아래 과거 기록보다 우선한다. 이번 요청의 운영 확인 → 최신 main 통합 → 재빌드·테스트 업로드는 완료했다. 전체 출시 작업은 미완료이므로 worktree와 in-progress 상태를 유지한다.
