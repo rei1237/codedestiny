@@ -2301,7 +2301,7 @@ export default function NeoOperationRoomPage() {
       {!showOperationMap && !displayBriefing && !displayRefinedOrder && <section className={styles.consultationValue} aria-label={welcome.results}>
         <div className={styles.consultationValueIntro}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/neo-operation-room/strategy-explain-v1.webp" alt="" width={1200} height={800} loading="lazy" />
+          <img src="/images/feature-details/neo-operation-room-hero-v1.webp" alt="" width={1680} height={945} loading="lazy" />
           <div><h2>{welcome.results}</h2><p>{welcome.lead}</p><Link href="/neo-operation-room/strategy-books/">{bookCopy.title} →</Link><p className={styles.strategyBookHint}>{bookCopy.rule}</p></div>
         </div>
         <ExpertValueCards theme="neo" points={welcome.points} />
