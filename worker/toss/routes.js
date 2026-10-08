@@ -11,6 +11,7 @@ import {ProfileCard} from '../lib/models.js';
 import {incrementRateLimit} from '../lib/rate-limit.js';
 import {resolveStoredProduct} from '../yeongnyangi/payments/catalog.ts';
 import {consultationService,consultationSelection,requestMatchesService} from './services.js';
+import {LIBRARY_PAGE_SIZE,libraryFilter,libraryPage} from './library.js';
 import {questionDecision,questionTopic,assertQuestionOrder} from '../yeongnyangi/fortune/ask/question-policy.ts';
 import {prepareFortune,presentFortune,drawTarotSpread} from '../yeongnyangi/service.ts';
 import {publicTarotSpread} from '../yeongnyangi/fortune/tarot/spread-v3.ts';
@@ -111,13 +112,8 @@ export async function handleTossRoutes(request,env) {
         enqueue:async id=>enqueueConsultation(env,await readRequest(env,auth.userId,id))}));
     }
     if(path==='/library'&&request.method==='GET') {
-      const rows=await TossPurchase.find({identityId:auth._id,environment:auth.environment}).sort({grantedAt:-1}).limit(100).lean();
-      return reply({purchases:await Promise.all(rows.map(async row=>{
-        const result=row.requestId?await readRequest(env,auth.userId,row.requestId).catch(()=>null):null;
-        return {orderId:row._id,sku:row.sku,productId:row.productId,serviceId:row.serviceId||'yeongnyangi',selectionId:consultationSelection(row),requestId:row.requestId,status:row.status,
-          createdAt:row.grantedAt,state:result?.state||'UNASSIGNED',completedSections:result?.chapters.length||0,
-          totalSections:result?.snapshot.manifest.length||null};
-      }))});
+      const rows=await TossPurchase.find(libraryFilter(auth,url.searchParams.get('cursor'))).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
+      return reply(await libraryPage(rows,id=>readRequest(env,auth.userId,id)));
     }
     const resultMatch=path.match(/^\/results\/([a-f0-9]{64})(\/(?:resume|conversation))?$/);
     if(resultMatch&&request.method===(resultMatch[2]?'POST':'GET')) {
