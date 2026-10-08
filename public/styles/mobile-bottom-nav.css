@@ -29,8 +29,8 @@
  */
 :root {
   /* 렌더된 바의 **바깥 높이**다 — 토큰이 아니라 실측값이다.
-     모바일(기본): 상단 패딩 6 + 링크 50 + 하단 여유 12 = 68
-     (2026-09-03 실측 360x800·412x823/DPR 1.75 68.1px — 접기 손잡이 줄을 걷어낸 2026-10-02 에 이 값으로 돌아왔다).
+     모바일(기본): 상단 패딩 6 + 손잡이 줄 16 + 링크 50 + 하단 여유 12 = 84
+     접힌 상태에는 44px 손잡이만 남아 다시 펼칠 수 있다.
      데스크탑(아래 769px 블록)은 바닥에서 띄운 도크라 따로 준다.
      🔴 예전 값 56px 는 바 자신의 패딩 14px 를 빼먹은 값이라, --cd-mnav-offset 을 쓰는
      14곳(app-shell·destiny-compass·island-consult·prompt-hub·destiny-bias·
@@ -38,7 +38,8 @@
      .cd-mnav 의 패딩이나 .cd-mnav__link 의 높이를 바꾸면 여기도 다시 재서 고친다.
      🔴 기본값은 반드시 **큰 쪽(모바일)** 이어야 한다 — __tests__/ui/mobile-bottom-nav-geometry
      .static.test.js 가 이 :root 블록 하나만 읽어 부품 합과 대조하기 때문이다. */
-  --cd-mnav-bar-h: 68px;
+  --cd-mnav-bar-h: 84px;
+  --cd-mnav-handle-h: 44px;
   --cd-mnav-offset: calc(var(--cd-mnav-bar-h) + env(safe-area-inset-bottom, 0px));
 }
 
@@ -123,6 +124,55 @@ body.cd-mnav-mounted .cd-feature-nav {
   line-height: 24px;
 }
 
+/* 접기 손잡이는 모바일에서는 바 안쪽의 짧은 조작 줄로 둔다. 현재 네비의
+   미드나잇/연이 표면은 유지하고, 손잡이는 접힌 상태에서만 작은 판으로 보인다. */
+.cd-mnav__handle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 16px;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(222, 215, 245, 0.88);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cd-mnav__handle::before {
+  content: "";
+  width: 28px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.cd-mnav__handle:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}
+
+.cd-mnav__chevron {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
 .cd-mnav__label {
   display: block;
   max-width: 100%;
@@ -168,6 +218,47 @@ body.cd-mnav-mounted {
   padding-bottom: calc(var(--cd-mnav-bar-h) + 12px + env(safe-area-inset-bottom, 0px));
 }
 
+/* 접힌 뒤에도 44px 손잡이는 남긴다. transform 으로 바 전체를 밀어내면
+   모바일에서 되돌아올 조작점까지 사라지므로, 목록만 감추고 레이아웃 높이를 줄인다. */
+body.cd-mnav-mounted.cd-mnav-collapsed {
+  --cd-mnav-offset: calc(var(--cd-mnav-handle-h) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--cd-mnav-handle-h) + 8px + env(safe-area-inset-bottom, 0px));
+}
+
+body.cd-mnav-mounted.cd-mnav-collapsed .cd-mnav {
+  padding-top: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: none;
+  border-top: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  pointer-events: none;
+}
+
+body.cd-mnav-collapsed .cd-mnav__list {
+  display: none;
+}
+
+body.cd-mnav-collapsed .cd-mnav__handle {
+  position: relative;
+  top: auto;
+  left: auto;
+  width: 88px;
+  height: var(--cd-mnav-handle-h);
+  margin: 0 auto;
+  border: 1px solid rgba(196, 181, 253, 0.22);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(24, 20, 52, 0.96), rgba(13, 10, 30, 0.98));
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.34);
+  pointer-events: auto;
+}
+
+body.cd-mnav-collapsed .cd-mnav__chevron {
+  top: 20px;
+  transform: rotate(-135deg);
+}
+
 /*
  * 연이 표면을 직접 칠하는 화면의 탭바 — 현재는 /fortune/{period} 계열 둘뿐이다
  * (app/fortune/[period]/page.tsx · app/fortune/[period]/[sign]/SignFortuneView.tsx).
@@ -205,6 +296,17 @@ body:has(main.cd-yeoni-surface) .cd-mnav__link:focus-visible {
   outline-color: #b31955;
 }
 
+body:has(main.cd-yeoni-surface).cd-mnav-collapsed .cd-mnav__handle {
+  border-color: rgba(244, 190, 209, 0.42);
+  background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 245, 230, 0.96));
+  color: #7a3457;
+  box-shadow: 0 -6px 18px rgba(179, 25, 85, 0.18);
+}
+
+body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
+  outline-color: #b31955;
+}
+
 /* 연이 다크(딥 플럼) — DESIGN.md "연이 Dark" 팔레트. 표면·텍스트·강조를 한 세트로 바꾼다. */
 @media (prefers-color-scheme: dark) {
   body:has(main.cd-yeoni-surface) .cd-mnav {
@@ -228,6 +330,13 @@ body:has(main.cd-yeoni-surface) .cd-mnav__link:focus-visible {
 
   body:has(main.cd-yeoni-surface) .cd-mnav__link:focus-visible {
     outline-color: #f4bed1;
+  }
+
+  body:has(main.cd-yeoni-surface).cd-mnav-collapsed .cd-mnav__handle {
+    border-color: rgba(244, 190, 209, 0.38);
+    background: linear-gradient(180deg, #3a0e28, #2c0a20);
+    color: rgba(255, 214, 232, 0.86);
+    box-shadow: 0 -6px 18px rgba(174, 45, 104, 0.34);
   }
 }
 
@@ -257,6 +366,45 @@ body:has(main.cd-yeoni-surface) .cd-mnav__link:focus-visible {
     pointer-events: none;
   }
 
+  .cd-mnav__handle {
+    position: absolute;
+    pointer-events: auto;
+    left: 50%;
+    top: calc(-1 * var(--cd-mnav-handle-h));
+    width: 72px;
+    height: var(--cd-mnav-handle-h);
+    margin: 0 0 0 -36px;
+    border: 1px solid rgba(196, 181, 253, 0.22);
+    border-bottom: 0;
+    border-radius: 10px 10px 0 0;
+    background: linear-gradient(180deg, rgba(24, 20, 52, 0.96), rgba(18, 14, 40, 0.98));
+    color: rgba(222, 215, 245, 0.88);
+  }
+
+  .cd-mnav__handle::before {
+    width: 24px;
+  }
+
+  .cd-mnav__chevron {
+    top: 9px;
+  }
+
+  .cd-mnav__handle:hover {
+    background: linear-gradient(180deg, rgba(34, 28, 68, 0.98), rgba(24, 20, 52, 0.98));
+    color: #f7f3ff;
+  }
+
+  body.cd-mnav-collapsed .cd-mnav__handle {
+    width: 72px;
+    border-bottom: 0;
+    border-radius: 10px 10px 0 0;
+    box-shadow: none;
+  }
+
+  body.cd-mnav-collapsed .cd-mnav__chevron {
+    top: 9px;
+  }
+
   .cd-mnav__list {
     position: relative;
     pointer-events: auto;
@@ -280,17 +428,49 @@ body:has(main.cd-yeoni-surface) .cd-mnav__link:focus-visible {
     box-shadow: 0 18px 44px -18px rgba(122, 52, 87, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
 
+  body:has(main.cd-yeoni-surface) .cd-mnav__handle {
+    border-color: rgba(244, 190, 209, 0.42);
+    background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 245, 230, 0.96));
+    color: #7a3457;
+  }
+
+  body:has(main.cd-yeoni-surface) .cd-mnav__handle:hover {
+    background: linear-gradient(180deg, #fffdf7, rgba(255, 248, 236, 0.98));
+    color: #7a1038;
+  }
+
+  body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
+    outline-color: #b31955;
+  }
+
   @media (prefers-color-scheme: dark) {
     body:has(main.cd-yeoni-surface) .cd-mnav__list {
       border-color: rgba(244, 190, 209, 0.38);
       background: linear-gradient(180deg, #3a0e28, #2c0a20);
       box-shadow: 0 18px 44px -18px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 214, 232, 0.12);
     }
+
+    body:has(main.cd-yeoni-surface) .cd-mnav__handle {
+      border-color: rgba(244, 190, 209, 0.38);
+      background: linear-gradient(180deg, #3a0e28, #2c0a20);
+      color: rgba(255, 214, 232, 0.86);
+    }
+
+    body:has(main.cd-yeoni-surface) .cd-mnav__handle:hover {
+      background: linear-gradient(180deg, #47122f, #3a0e28);
+      color: #fff1f7;
+    }
+
+    body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
+      outline-color: #f4bed1;
+    }
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cd-mnav,
+  .cd-mnav__handle,
+  .cd-mnav__chevron,
   .cd-mnav__link {
     transition: none;
   }

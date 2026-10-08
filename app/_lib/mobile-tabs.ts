@@ -51,6 +51,15 @@ export const ACCOUNT_SHEET_ACTION = "cdOpenAccount";
 /** 새로고침·뒤로가기에서 활성 탭을 유지하기 위한 sessionStorage 키. */
 export const MOBILE_TAB_STATE_KEY = "cd.mobileTab.v1";
 
+/** 하단 네비 접힘 상태를 React 네비와 정적 셸이 함께 기억하는 localStorage 키. */
+export const MNAV_COLLAPSED_KEY = "cd.mnavCollapsed.v1";
+
+/** 접기 손잡이의 aria-label 사전 키. 정적 셸의 토글과 같은 문구를 쓴다. */
+export const MNAV_TOGGLE_TRANS_KEY = "shell.cdMobileBottomNav.k13uxius.ariaLabel";
+
+/** 토글 키가 사전에 없거나 한국어 화면일 때 쓰는 기본 문구. */
+export const MNAV_TOGGLE_LABEL_KO = "하단 메뉴 접기/펼치기";
+
 export const MOBILE_TABS: readonly MobileTab[] = [
   { key: "home", label: "홈", href: "/", ariaLabel: "홈", glyph: "⌂", transKey: "home.nav.home", ariaTransKey: "home.nav.home" },
   {
@@ -160,6 +169,24 @@ export function writeStoredTabKey(key: MobileTabKey): void {
     window.sessionStorage.setItem(MOBILE_TAB_STATE_KEY, key);
   } catch {
     /* 사파리 프라이빗 모드 등 storage 차단 환경 — 활성 표시만 포기하고 진행 */
+  }
+}
+
+export function readMnavCollapsed(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(MNAV_COLLAPSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function writeMnavCollapsed(collapsed: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(MNAV_COLLAPSED_KEY, collapsed ? "1" : "0");
+  } catch {
+    /* 저장소가 차단된 환경에서는 현재 화면의 상태만 유지한다. */
   }
 }
 

@@ -64,3 +64,16 @@ test("셸 탭바 도색은 정원 블록 한 곳에만 있다", () => {
   }
   assert.deepEqual(offenders, [], "정원 블록 밖에 탭바 도색 규칙이 있다 — cd-mnav-garden-v20261002 로 옮긴다");
 });
+
+test("하단 네비 접기 손잡이가 정적 셸과 App Router 양쪽에 연결된다", () => {
+  const html = read("index.html");
+  const react = read("app/components/MobileBottomNav.tsx");
+  const css = read("styles/mobile-bottom-nav.css");
+  assert.match(html, /id="cdMobileBottomNavToggle"/);
+  assert.match(html, /cd-mnav-collapse-v20261008/);
+  assert.match(html, /cd\.mnavCollapsed\.v1/);
+  assert.match(react, /className="cd-mnav__handle"/);
+  assert.match(react, /writeMnavCollapsed/);
+  assert.match(css, /body\.cd-mnav-collapsed \.cd-mnav__list/);
+  assert.match(css, /body\.cd-mnav-collapsed \.cd-mnav__handle/);
+});

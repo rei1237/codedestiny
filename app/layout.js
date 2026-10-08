@@ -269,6 +269,13 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={notoSansKRVariable}>
+        {/* 저장된 접힘 상태를 첫 페인트 전에 반영해 하단 네비가 한 프레임 펼쳐졌다가
+            접히는 깜빡임을 막는다. 키와 값은 정적 셸의 토글과 공유한다. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{if(localStorage.getItem('cd.mnavCollapsed.v1')==='1'){document.body.classList.add('cd-mnav-collapsed');}}catch(e){}",
+          }}
+        />
         <PaymentProcessingProvider>
           <UnlockProvider>
             {/* 🔴 여기에 <Suspense> 를 두지 않는다. 프리렌더에서 멈추지 않아도 React 는 12.8KB 를 넘는
