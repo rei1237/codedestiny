@@ -375,9 +375,195 @@ textarea.cd-adm-input {
   outline-offset: -4px;
 }
 
+/* ── 별빛 운영본부 화면 부품(app/admin/_hq) ─────────────────────────────── */
+.cd-hq-num { font-variant-numeric: tabular-nums; }
+
+/* 상단 히어로 — 배경 그림은 이 띠 안에만 둔다. 그림이 없거나 늦어도 그라디언트로 글자 대비를 지킨다. */
+.cd-hq-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--cd-adm-line);
+  border-radius: var(--cd-adm-radius-lg);
+  background:
+    radial-gradient(120% 140% at 85% 0%, rgba(154, 123, 239, 0.22), transparent 55%),
+    radial-gradient(80% 120% at 0% 100%, rgba(199, 165, 106, 0.12), transparent 60%),
+    var(--cd-adm-surface);
+}
+
+.cd-hq-hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 70% 30%;
+  opacity: 0.55;
+}
+
+/* 그림 위 글자 대비 — 왼쪽(글자 쪽)을 바탕색으로 덮는다. */
+.cd-hq-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(11, 16, 32, 0.94) 0%, rgba(11, 16, 32, 0.78) 48%, rgba(11, 16, 32, 0.25) 100%);
+}
+
+@media (max-width: 639px) {
+  .cd-hq-hero::after { background: linear-gradient(180deg, rgba(11, 16, 32, 0.72), rgba(11, 16, 32, 0.95) 60%); }
+}
+
+/* 상태 배지 — 색·아이콘·글자를 항상 함께 쓴다. 글자색은 모두 어두운 바탕 대비 5.7 이상인 상태 토큰. */
+.cd-hq-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 22px;
+  padding: 1px 8px;
+  border: 1px solid var(--cd-adm-line-strong);
+  border-radius: 999px;
+  color: var(--cd-adm-ink-quiet);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.cd-hq-badge[data-tone="ok"] { color: var(--cd-adm-ok); border-color: rgba(119, 205, 176, 0.45); background: rgba(119, 205, 176, 0.08); }
+.cd-hq-badge[data-tone="warn"] { color: var(--cd-adm-warn-ink); border-color: rgba(232, 184, 109, 0.45); background: rgba(232, 184, 109, 0.08); }
+.cd-hq-badge[data-tone="err"] { color: var(--cd-adm-err); border-color: rgba(229, 132, 142, 0.5); background: rgba(229, 132, 142, 0.08); }
+.cd-hq-badge[data-tone="info"],
+.cd-hq-badge[data-tone="accent"] { color: var(--cd-adm-accent-ink); border-color: rgba(154, 123, 239, 0.5); background: var(--cd-adm-accent-chip); }
+
+.cd-hq-tone-ok { color: var(--cd-adm-ok); }
+.cd-hq-tone-warn { color: var(--cd-adm-warn-ink); }
+.cd-hq-tone-err { color: var(--cd-adm-err); }
+.cd-hq-tone-info,
+.cd-hq-tone-accent { color: var(--cd-adm-accent-ink); }
+.cd-hq-tone-muted { color: var(--cd-adm-ink-quiet); }
+
+.cd-hq-quiet { color: var(--cd-adm-ink-quiet); }
+.cd-hq-panel2 { background: var(--cd-adm-panel-2); }
+.cd-hq-line { border-color: var(--cd-adm-line); }
+
+/* XP 바 — 금빛은 여기(장식)에만. 진행률 수치는 옆에 글자로 따로 쓴다. */
+.cd-hq-xpbar {
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(183, 190, 210, 0.14);
+}
+
+.cd-hq-xpbar__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--cd-adm-accent), var(--cd-adm-gold));
+  transition: width 600ms ease;
+}
+
+/* 로딩 자리 — 글자가 들어갈 높이를 미리 잡아 화면이 튀지 않게 한다. */
+.cd-hq-skeleton {
+  border-radius: var(--cd-adm-radius);
+  background: linear-gradient(90deg, rgba(183, 190, 210, 0.08), rgba(183, 190, 210, 0.16), rgba(183, 190, 210, 0.08));
+  background-size: 200% 100%;
+  animation: cd-hq-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes cd-hq-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+/* 탭·세그먼트 — 터치 대상 44px. */
+.cd-hq-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--cd-adm-ink-quiet);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cd-hq-tab[aria-selected="true"] {
+  border-bottom-color: var(--cd-adm-gold);
+  color: var(--cd-adm-ink);
+  font-weight: 600;
+}
+
+.cd-hq-tab:focus-visible,
+.cd-hq-focus:focus-visible {
+  outline: 2px solid var(--cd-adm-accent);
+  outline-offset: 2px;
+}
+
+/* 드로어 — 모바일은 전체 폭, 데스크톱은 오른쪽 480px. */
+.cd-hq-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(5, 8, 18, 0.7);
+}
+
+.cd-hq-drawer {
+  position: fixed;
+  inset: 0 0 0 auto;
+  z-index: 61;
+  display: flex;
+  width: min(520px, 100vw);
+  flex-direction: column;
+  border-left: 1px solid var(--cd-adm-line);
+  background: var(--cd-adm-surface);
+  box-shadow: -24px 0 48px rgba(0, 0, 0, 0.35);
+}
+
+/* 차트 */
+.cd-hq-chart-grid { stroke: rgba(183, 190, 210, 0.14); }
+.cd-hq-chart-axis { fill: var(--cd-adm-ink-quiet); font-size: 11px; }
+.cd-hq-chart-line { stroke: var(--cd-adm-accent); }
+.cd-hq-chart-area { fill: rgba(154, 123, 239, 0.14); }
+.cd-hq-chart-bar { fill: rgba(154, 123, 239, 0.55); }
+.cd-hq-chart-bar--neg { fill: rgba(229, 132, 142, 0.65); }
+.cd-hq-chart-point { fill: var(--cd-adm-bg); stroke: var(--cd-adm-accent); }
+
+/* 퀘스트 행·카드 */
+.cd-hq-row {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--cd-adm-line);
+  border-radius: var(--cd-adm-radius);
+  background: var(--cd-adm-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.cd-hq-row:hover { border-color: var(--cd-adm-line-strong); background: var(--cd-adm-panel-2); }
+.cd-hq-row:focus-visible { outline: 2px solid var(--cd-adm-accent); outline-offset: 2px; }
+
+/* 하단 탭바 높이는 셸(AdminShell)이 이미 비워 둔다 — 여기서는 본문 여백만. */
+.cd-hq-page { padding-bottom: 32px; }
+
 @media (prefers-reduced-motion: reduce) {
   .cd-adm-btn,
-  .cd-adm-nav-item {
+  .cd-adm-nav-item,
+  .cd-hq-row,
+  .cd-hq-xpbar__fill {
     transition: none;
   }
+
+  .cd-hq-skeleton { animation: none; }
 }

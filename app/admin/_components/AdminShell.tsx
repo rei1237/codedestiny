@@ -133,7 +133,7 @@ function NavLink({ item, active, collapsed }: { item: AdminNavItem; active: bool
 }
 
 function ShellFrame({ pathname, children }: { pathname: string; children: React.ReactNode }) {
-  const { mode } = useAdminUiMode();
+  const { mode, localClassic, serverDisabled, setLocalClassic } = useAdminUiMode();
   const hq = mode === "hq";
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -253,6 +253,12 @@ function ShellFrame({ pathname, children }: { pathname: string; children: React.
           <div className="hidden lg:block">{renderList(railCollapsed)}</div>
 
           <div className="border-t border-[var(--cd-adm-line)] p-3">
+            {/* 이 브라우저만 예전 화면으로 돌린 경우의 복귀 버튼 — 관리 허브가 숨겨져 있어 여기 둔다. */}
+            {localClassic && !serverDisabled ? (
+              <button type="button" onClick={() => setLocalClassic(false)} className="cd-adm-nav-item cd-adm-nav-item--quiet mb-1 w-full">
+                운영본부 화면으로 돌아가기
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={logout}

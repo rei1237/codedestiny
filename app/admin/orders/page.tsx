@@ -6,6 +6,8 @@ import GiftOrders from "./GiftOrders";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { adminFetch, describeAdminError } from "../_lib/admin-api";
 import { ADMIN_INPUT, ADMIN_TOOLBAR, adminButton } from "../_components/ui";
+import { useAdminUiMode } from "../_hq/ui-mode";
+import { OrderFactBadges, OrderFactDetail, OrderQueuePanel, useOrderFacts } from "./HqOrderFacts";
 
 type AdminOrder = {
   id: string;
@@ -129,6 +131,11 @@ export default function AdminOrdersPage() {
   const [reconciling, setReconciling] = useState(false);
   const [reconcileResult, setReconcileResult] = useState("");
 
+  // 별빛 금고 확장(읽기 전용) — 롤백(classic) 모드에서는 예전 화면 그대로.
+  const hq = useAdminUiMode().mode === "hq";
+  const listIds = useMemo(() => [...(list?.items?.map((item) => item.id) || []), ...(selectedId ? [selectedId] : [])], [list, selectedId]);
+  const facts = useOrderFacts(listIds, hq);
+
   const loadList = useCallback(async () => {
     setListLoading(true);
     setListError("");
@@ -248,6 +255,8 @@ export default function AdminOrdersPage() {
             {reconcileResult && <p className="mt-2 text-[11px] font-semibold text-slate-400">{reconcileResult}</p>}
           </div>
 
+          {hq ? <OrderQueuePanel onOpen={(orderId) => void loadDetail(orderId)} selectedId={selectedId} /> : null}
+
           <div className="space-y-2 border-b border-slate-800 p-4">
             <input className={inputClass} placeholder="주문번호 / 결제ID / 기능키" value={query}
               onChange={(e) => { setPage(1); setQuery(e.target.value); }} />
@@ -295,6 +304,7 @@ export default function AdminOrdersPage() {
                     <p className="mt-1 truncate text-[11px] text-slate-400">{item.featureKey || item.productId || item.paymentType}</p>
                     <p className="mt-0.5 truncate text-[11px] text-slate-500">{item.merchantUid}</p>
                     <p className="mt-0.5 text-[11px] text-slate-500">{formatDate(item.createdAt)}</p>
+                    {hq ? <OrderFactBadges fact={facts[item.id]} /> : null}
                   </button>
                 </li>
               ))}
@@ -350,6 +360,8 @@ export default function AdminOrdersPage() {
                   ) : null}
                 </div>
               </div>
+
+              {hq ? <OrderFactDetail fact={facts[order.id]} /> : null}
 
               <div className="grid gap-4 lg:grid-cols-2">
                 <div className="rounded-xl border border-slate-800 bg-[#13131f] p-4">
