@@ -163,12 +163,23 @@
       var key = 'cd:growth:campaign';
       if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem(key); return null; }
       var allowed = /^(threads_[0-9]{8}_(saju|ziwei|vedic|numerology)|threads_queue_t[0-9]{2}_v1)$/;
+      // growth-20261012-v2: 4주 캠페인(블로그·YouTube·TikTok·X). 원고 ID(B01_ko)는 공개 코드라 함께 둔다.
+      var allowedV2 = /^growth_20261012_(naver_blog|youtube|tiktok|x)$/;
+      var contentV2 = /^(W[0-9]{2}-)?[A-Z][A-Z0-9-]{1,10}_(ko|en|ja)$/;
       var query = new URLSearchParams(global.location.search);
       var campaign = query.get('utm_source') === 'threads' && /^(social|organic_social)$/.test(query.get('utm_medium') || '') ? query.get('utm_campaign') : '';
+      var campaignV2 = query.get('utm_campaign') === 'growth_20261012' && query.get('utm_medium') === 'social' ? 'growth_20261012_' + (query.get('utm_source') || '') : '';
       if (allowed.test(campaign || '')) global.sessionStorage.setItem(key, JSON.stringify({campaignId:campaign,until:Date.now()+1800000}));
+      else if (allowedV2.test(campaignV2)) {
+        var content = query.get('utm_content') || '';
+        global.sessionStorage.setItem(key, JSON.stringify({campaignId:campaignV2,content:contentV2.test(content) ? content : '',until:Date.now()+1800000}));
+      }
       var saved = JSON.parse(global.sessionStorage.getItem(key) || 'null');
-      if (!saved || saved.until <= Date.now() || !allowed.test(saved.campaignId)) { global.sessionStorage.removeItem(key); return null; }
-      return {campaignId:saved.campaignId,consent:true,version:'growth-20260929-v1',device:global.innerWidth < 768 ? 'mobile' : 'desktop'};
+      var v2 = saved && allowedV2.test(saved.campaignId);
+      if (!saved || saved.until <= Date.now() || !(v2 || allowed.test(saved.campaignId))) { global.sessionStorage.removeItem(key); return null; }
+      var device = global.innerWidth < 768 ? 'mobile' : 'desktop';
+      if (v2) return contentV2.test(saved.content || '') ? {campaignId:saved.campaignId,consent:true,version:'growth-20261012-v2',device:device,content:saved.content} : {campaignId:saved.campaignId,consent:true,version:'growth-20261012-v2',device:device};
+      return {campaignId:saved.campaignId,consent:true,version:'growth-20260929-v1',device:device};
     } catch (_) { return null; }
   }
   global.cdReadGrowthAttribution = growthAttribution;

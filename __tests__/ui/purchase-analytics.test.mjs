@@ -137,6 +137,19 @@ test('server attribution accepts public campaign metadata and discards unknown f
  assert.equal(JSON.stringify(clean).includes('private'),false);
 });
 
+test('growth-20261012-v2 attribution keeps only the public campaign source and content code',async()=>{
+ const dom=boot('https://code-destiny.com/tarot/?utm_source=tiktok&utm_medium=social&utm_campaign=growth_20261012&utm_content=V01_ko&question=private'),w=dom.window;
+ w.document.cookie='cd_cookie_consent=accepted; path=/';
+ assert.deepEqual({...w.cdReadGrowthAttribution(),device:undefined},{campaignId:'growth_20261012_tiktok',consent:true,version:'growth-20261012-v2',device:undefined,content:'V01_ko'});
+ w.history.replaceState({},'', '/?utm_source=instagram&utm_medium=social&utm_campaign=growth_20261012');
+ assert.equal(w.cdReadGrowthAttribution().campaignId,'growth_20261012_tiktok');
+ dom.window.close();
+ const {normalizeGrowthAttribution:normalize}=await import('../../lib/marketing/growth-attribution.mjs');
+ assert.equal(normalize({consent:true,version:'growth-20261012-v2',campaignId:'growth_20261012_instagram'}),undefined);
+ assert.equal(normalize({consent:true,version:'growth-20260929-v1',campaignId:'growth_20261012_x'}),undefined);
+ assert.deepEqual(normalize({consent:true,version:'growth-20261012-v2',campaignId:'growth_20261012_x',content:'private note',device:'mobile'}),{campaignId:'growth_20261012_x',version:'growth-20261012-v2',consent:true,device:'mobile'});
+});
+
 test('purchase replay across documents persists only with analytics consent',()=>{
  const payload={payment:{merchantUid:'mock-order',paymentAmount:1000,status:'paid',featureKey:'yeongnyangi-saju-mackerel'}};
  for(const consent of ['accepted','essential','']){

@@ -11,7 +11,7 @@
 
 declare global {
   interface Window {
-    cdReadGrowthAttribution?: () => {campaignId:string;consent:true;version:string;device:string}|null;
+    cdReadGrowthAttribution?: () => {campaignId:string;consent:true;version:string;device:string;content?:string}|null;
     cdAnalyticsReady?: () => void;
     cdTrack?: (eventName: string, params?: Record<string, unknown>) => void;
     cdTrackConfirmedPurchase?: (payload: unknown) => boolean;
