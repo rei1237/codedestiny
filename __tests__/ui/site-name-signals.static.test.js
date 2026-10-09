@@ -49,11 +49,15 @@ const BRAND = readBrandName();
  *    로컬에서 이 테스트가 빨간불이면 낡은 산출물 탓으로 넘기지 말고 소스를 고친 뒤 다시 빌드한다.
  */
 const SHELL_ROOTS = [root, path.join(root, "public")];
+const ARCHIVE_DIRS = new Set(["build-cache", "output"]);
 
 function walkHtml(dir, out, depth = 0) {
   if (depth > 4 || !fs.existsSync(dir)) return out;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.name === "node_modules" || entry.name === ".git" || entry.name === ".next") continue;
+    // gitignore된 보관 스냅샷·워크트리(.claude/worktrees, .delivery-worktrees 등)는
+    // 현재 소스의 빌드가 아니다. dist/·out/ 은 현재 소스의 빌드라 계속 훑는다.
+    if (dir === root && (entry.name.startsWith(".") || ARCHIVE_DIRS.has(entry.name))) continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walkHtml(full, out, depth + 1);
     else if (entry.isFile() && entry.name.endsWith(".html")) out.push(full);

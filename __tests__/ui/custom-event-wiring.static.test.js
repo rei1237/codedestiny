@@ -28,6 +28,8 @@ const root = path.resolve(__dirname, "../..");
 const SKIP_DIRS = new Set([
   "node_modules", ".git", ".next", ".wrangler", "dist", "out", "coverage",
   "public", "__tests__", "docs", "android", ".claude",
+  // gitignore된 로컬 보관본·워크트리. 다른 시점의 소스 사본이라 리스너만 남은 옛 파일이 섞인다.
+  "build-cache", "output", ".codex-worktrees",
 ]);
 const SOURCE_EXT = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs"]);
 
