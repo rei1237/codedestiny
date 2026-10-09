@@ -67,9 +67,11 @@ function stableRowHash(row) {
 }
 
 export function buildPlan() {
-  const csvText = readFileSync(resolve(ROOT, CAMPAIGN_DIR, "calendar.csv"), "utf8");
-  const week01 = readFileSync(resolve(ROOT, CAMPAIGN_DIR, "week01.md"), "utf8");
-  const readme = readFileSync(resolve(ROOT, CAMPAIGN_DIR, "README.md"), "utf8");
+  // 줄끝은 LF 로 맞춘다 — .csv 는 eol 규칙이 없어 Windows 체크아웃(CRLF)과 CI(LF)의 sha256 이 달라진다.
+  const readSource = (name) => readFileSync(resolve(ROOT, CAMPAIGN_DIR, name), "utf8").replace(/\r\n/g, "\n");
+  const csvText = readSource("calendar.csv");
+  const week01 = readSource("week01.md");
+  const readme = readSource("README.md");
   const headings = scriptHeadings(week01);
 
   const csvRows = parseCsv(csvText)

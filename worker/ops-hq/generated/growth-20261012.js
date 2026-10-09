@@ -11,7 +11,7 @@ const plan = {
   "sources": [
     {
       "file": "marketing/campaigns/2026-10-12-growth/calendar.csv",
-      "sha256": "02759c20b4fcf87acf6a5d7eb6c222f5abfb09f6d407d5d8f412c098fe0a8b3f"
+      "sha256": "dd4e4fe51dd750d09a2702936e978d5caaffeb0b56fcabce631b9f81aaabaabb"
     },
     {
       "file": "marketing/campaigns/2026-10-12-growth/week01.md",
@@ -1575,7 +1575,7 @@ const plan = {
       "rowHash": "bbad754cbab20e10ef20b201"
     }
   ],
-  "planVersion": "0ad4cb0a81ffc047"
+  "planVersion": "f9b18e860160da2b"
 };
 
 export default Object.freeze(plan);
