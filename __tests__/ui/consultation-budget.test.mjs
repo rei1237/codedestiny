@@ -115,3 +115,20 @@ test('legacy fusion and question manifests keep their chapter count and budget',
   assert.ok(rows.length&&rows.every(row=>!row.consultationLayout&&!row.layoutRole&&row.minimumChars===0),tier);
  }
 });
+
+test('D9 screens show the initial reading as A4 pages: low end floored, high end ceiled at 1,800 chars a page',async()=>{
+ const {readFileSync}=await import('node:fs');
+ assert.equal(m.A4_CHARS_PER_PAGE,1800);
+ assert.equal(m.A4_PAGE_NOTE,'A4 1장은 약 1,800자 기준');
+ const pages={mackerel:[5,6],salmon:[12,16],flounder:[17,22],tuna:[28,36],assorted:[32,42],omakase:[42,54]};
+ for(const [tier,range] of Object.entries(pages)){
+  assert.deepEqual(m.a4Pages(m.consultationBudget(tier).initial),range,tier);
+  assert.equal(m.a4Label(m.consultationBudget(tier).initial),`A4 약 ${range[0]}~${range[1]}장`,tier);
+ }
+ assert.equal(m.a4Label([1800,1800]),'A4 약 1장');
+ assert.deepEqual(m.a4Pages([500,900]),[1,1]);
+ for(const file of ['app/yeongnyangi/1000-won-fortune/page.tsx','app/yeongnyangi/_components/Consultation.tsx','app/yeongnyangi/_lib/consultation-locale-copy.ts']){
+  const source=readFileSync(file,'utf8');
+  assert.doesNotMatch(source,/\}자 (이상|목표)|자 목표 · 본문/,file);
+ }
+});

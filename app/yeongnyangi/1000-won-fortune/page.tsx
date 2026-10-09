@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import {products,systemNames,packages,type Product} from '@/worker/yeongnyangi/payments/catalog';
 import {policyForReading,depthDescriptions} from '@/worker/yeongnyangi/fortune/reading-policy';
 import {readingManifest} from '@/worker/yeongnyangi/fortune/reading-manifest';
+import {consultationBudget,a4Label,A4_PAGE_NOTE} from '@/worker/yeongnyangi/fortune/consultation-budget';
 import {consultationChapterCounts} from '@/worker/yeongnyangi/fortune/consultation-kinds';
 import {topicCatalog} from '@/worker/yeongnyangi/fortune/topics';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
@@ -143,7 +144,7 @@ export default function Page(){
   <section aria-labelledby="what">
    <h2 id="what">천원사주·천원운세와 영냥이 상담</h2>
    <p>천원 운세, 천원운세, 1000원 운세로 찾는 상품은 위의 재미 사주 콘텐츠 다섯 가지예요. 2026년 10월 5일부터 영냥이 상담은 고등어 {PRICE}부터 시작하며, Family 이용권 한도 또는 단건 결제로 한 번의 상담 결과를 받아요. 자동 결제는 아니에요.</p>
-   <p>고등어 상담은 사주가 {mackerels[0].chapterCount}개, 다른 체계가 {chapterRange(mackerels.slice(1))} 챕터로 구성돼요. 상담 전체 분량 기준은 {mackerelPolicy.minimum.toLocaleString('ko-KR')}자 이상이고, 챕터마다 {mackerelPolicy.depth.join(' → ')} 순서로 내용을 담아요. 짧은 운세 문장 한 줄이 아니라, 왜 그렇게 읽었는지와 오늘 해볼 수 있는 첫 행동까지 함께 받는 구성이에요.</p>
+   <p>고등어 상담은 사주가 {mackerels[0].chapterCount}개, 다른 체계가 {chapterRange(mackerels.slice(1))} 챕터로 구성돼요. 상담 전체 분량은 {a4Label(consultationBudget('mackerel').initial)}({A4_PAGE_NOTE})이고, 챕터마다 {mackerelPolicy.depth.join(' → ')} 순서로 내용을 담아요. 짧은 운세 문장 한 줄이 아니라, 왜 그렇게 읽었는지와 오늘 해볼 수 있는 첫 행동까지 함께 받는 구성이에요.</p>
    <p>운세마다 해석·궁합 등 제공하는 상담 종류를 먼저 골라요. 무엇이든 물어보기에서는 {TOPICS} 등의 주제를 고르고 궁금한 질문을 1,000자까지 남겨요. 타로는 카드에 물어볼 질문을 따로 적어요.</p>
   </section>
 
@@ -195,10 +196,10 @@ export default function Page(){
    <p>고등어가 부담 없이 시작하는 {PRICE} 상담이라면, 연어부터는 같은 체계를 더 많은 챕터와 분량으로 깊게 읽어요. 타로를 제외한 광어와 참치 상담은 출생시간, 출생지역, 성별이 모두 있어야 해요. 가격은 여섯 체계가 같아요.</p>
    <div className={styles.tableWrap}><table>
     <caption>영냥이 생선별 상담 가격과 구성</caption>
-    <thead><tr><th scope="col">생선</th><th scope="col">가격</th><th scope="col">챕터</th><th scope="col">분량 기준</th><th scope="col">상담 깊이</th></tr></thead>
+    <thead><tr><th scope="col">생선</th><th scope="col">가격</th><th scope="col">챕터</th><th scope="col">분량 <small>({A4_PAGE_NOTE})</small></th><th scope="col">상담 깊이</th></tr></thead>
     <tbody>
-     {TIERS.map(tier=>{const items=DOMAINS.map(domain=>single(domain,tier));const prices=[...new Set(items.map(p=>p.priceKRW))];if(prices.length!==1)throw new Error(`영냥이 ${tier} 가격이 체계마다 다르다: ${prices.join(',')}`);return <tr key={tier}><th scope="row">{packages[tier].name}</th><td>{won(prices[0])}</td><td>{chapterRange(items)}</td><td>{policyForReading(tier,items[0].manifestVersion).minimum.toLocaleString('ko-KR')}자 이상</td><td>{depthDescriptions[tier]}</td></tr>;})}
-     {(['assorted','omakase'] as const).map(fish=>{const items=fusions.filter(p=>p.fishId===fish);if(new Set(items.map(p=>p.priceKRW)).size!==1)throw new Error(`영냥이 ${fish} 가격이 상품마다 다르다`);return <tr key={fish}><th scope="row">{packages[fish].name}</th><td>{won(items[0].priceKRW)}</td><td>{chapterRange(items)}</td><td>{policyForReading(fish,items[0].manifestVersion).minimum.toLocaleString('ko-KR')}자 이상</td><td>{depthDescriptions[fish]} ({items.map(p=>p.name).join(' / ')})</td></tr>;})}
+     {TIERS.map(tier=>{const items=DOMAINS.map(domain=>single(domain,tier));const prices=[...new Set(items.map(p=>p.priceKRW))];if(prices.length!==1)throw new Error(`영냥이 ${tier} 가격이 체계마다 다르다: ${prices.join(',')}`);return <tr key={tier}><th scope="row">{packages[tier].name}</th><td>{won(prices[0])}</td><td>{chapterRange(items)}</td><td>{a4Label(consultationBudget(tier).initial)}</td><td>{depthDescriptions[tier]}</td></tr>;})}
+     {(['assorted','omakase'] as const).map(fish=>{const items=fusions.filter(p=>p.fishId===fish);if(new Set(items.map(p=>p.priceKRW)).size!==1)throw new Error(`영냥이 ${fish} 가격이 상품마다 다르다`);return <tr key={fish}><th scope="row">{packages[fish].name}</th><td>{won(items[0].priceKRW)}</td><td>{chapterRange(items)}</td><td>{a4Label(consultationBudget(fish).initial)}</td><td>{depthDescriptions[fish]} ({items.map(p=>p.name).join(' / ')})</td></tr>;})}
     </tbody>
    </table></div>
   </section>

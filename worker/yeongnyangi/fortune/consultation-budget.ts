@@ -16,6 +16,11 @@ export const CONSULTATION_CHAPTER_TARGETS:Record<PackageId,readonly [number,numb
 export const CONSULTATION_FOLLOWUP_TARGETS={single:[2000,2600],fusion:[2400,3000]} as const;
 /** A delivered chapter shorter than this gets one length repair; delivery itself only stops at half of it (D8). */
 export const LAYOUT_MINIMUM_RATIO=.55;
+/** D9: screens show length as A4 pages (10pt body, default margins). Contracts and checks keep counting chars. */
+export const A4_CHARS_PER_PAGE=1800;
+export const A4_PAGE_NOTE='A4 1장은 약 1,800자 기준';
+export const a4Pages=([low,high]:readonly [number,number]):[number,number]=>[Math.max(1,Math.floor(low/A4_CHARS_PER_PAGE)),Math.max(1,Math.ceil(high/A4_CHARS_PER_PAGE))];
+export const a4Label=(chars:readonly [number,number])=>{const [low,high]=a4Pages(chars);return low===high?`A4 약 ${low}장`:`A4 약 ${low}~${high}장`;};
 
 /** initial = chapters × per-chapter target; every followup answer has its own fixed target. */
 export function consultationBudget(tier:PackageId){
