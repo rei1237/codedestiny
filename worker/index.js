@@ -1985,6 +1985,13 @@ const app = {
       ctx.waitUntil(runThreadsDailyJobs(env).catch((error) => {
         console.error("[threads-daily-jobs] task failed:", error?.message || error);
       }));
+      // 별빛 운영본부 집계(퀘스트·운영 XP·매출 사실). 결제·발행과 무관한 ops_* 만 쓰고 Threads 는 읽기만 한다.
+      // 모듈 로드 실패·동기 throw 까지 한 promise 안에 두어 이 tick 의 다른 태스크로 번지지 않게 격리한다.
+      ctx.waitUntil(import("./ops-hq/sync.js")
+        .then(({ runOpsHqSync }) => runOpsHqSync(env))
+        .catch((error) => {
+          console.error("[ops-hq] sync failed:", error?.message || error);
+        }));
       // 🔴 마스터 인연의 서의 **버려진 세션 백스톱**. 20장 생성은 브라우저가 5~8왕복으로 미는데,
       // 결제 직후 PG 리다이렉트로 돌아온 탭이 잠들거나 닫히면 세션이 미완인 채 굳는다 — 돈은
       // 이미 나갔다. 결과 화면이 이어쓰기 주체가 된 뒤에도 "아무도 안 보는 세션"은 남으므로

@@ -4996,6 +4996,13 @@ export async function handleAdminRoutes(request, env) {
       return await handleAdminOrderRoutes(path.slice("/orders".length) || "/", request, env, adminContext);
     }
 
+    // 별빛 운영본부(퀘스트·운영 XP·매출 사실). 결제 경로와 분리된 ops_* 컬렉션만 쓴다.
+    if (path === "/hq" || path.startsWith("/hq/")) {
+      const adminContext = await authorizeAdminRequest(request, env);
+      const { handleAdminHqRoutes } = await import("./admin-hq.js");
+      return await handleAdminHqRoutes(path.slice("/hq".length) || "/", request, env, adminContext);
+    }
+
     // 마케팅 월정석 지급은 관리자 인증을 거친 별도 네임스페이스에서만 허용한다.
     if (path === "/monthly-credits/grant") {
       const adminContext = await authorizeAdminRequest(request, env);
