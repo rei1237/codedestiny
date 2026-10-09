@@ -6,7 +6,7 @@ import {QUESTION_POLICY_VERSION,questionDecision,questionTopic,assertQuestionOrd
 import {COUNSEL_VERSION,counselManifest} from './fortune/counsel-purpose';
 import {withSajuCycleEvidence} from './fortune/saju/cycle-evidence';
 import {nativeContactBoundary} from './fortune/symbolic-locale';
-import {CHAPTER_DELIVERY_VERSION,chapterQualityFailure,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
+import {CHAPTER_DELIVERY_VERSION,CHAPTER_TIMEOUT_POLICY,chapterQualityFailure,chapterTimeoutMs,deliveredCharacterCount,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
 import {deliveryRefundPending} from './terminal-refund-policy.js';
 import { correctedFortune } from "./reading-correction.js";
 import { storedChapterDraft, canResumeStoredChapter } from './stored-chapter.js';
@@ -310,7 +310,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,...(persona?{persona}:{}),
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...((decision||locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single')?{questionContract:{version:QUESTION_POLICY_VERSION,followups:consultationBudget(product.fishId).followups,...(!persona&&!body.mode?{readingBudget:consultationBudget(product.fishId)}:{})}}:{}),deliveryContract:CHAPTER_DELIVERY_VERSION,...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...((decision||locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single')?{questionContract:{version:QUESTION_POLICY_VERSION,followups:consultationBudget(product.fishId).followups,...(!persona&&!body.mode?{readingBudget:consultationBudget(product.fishId)}:{})}}:{}),deliveryContract:CHAPTER_DELIVERY_VERSION,chapterTimeoutPolicy:CHAPTER_TIMEOUT_POLICY,...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
 }
 
 /** The buyer's pick over the committed deck. A repeat call returns the stored draw unchanged (refresh, retry, return). */
@@ -371,7 +371,7 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   product.name=skyModes[input.mode];product.image=SKY_IMAGE;
   // New purchases use the registry flounder contract; old snapshots are never rewritten.
   return createRequest(env,userId,id,{profileId:'question-sky',productId:product.id,featureKey:product.cdFeatureKey,amountKRW:product.priceKRW,fingerprint,
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{deliveryContract:CHAPTER_DELIVERY_VERSION,...(locale!=='ko'?{locale}:{}),product,analysis,manifest,input,questionSkyStage:{version:QUESTION_SKY_TWO_STAGE_VERSION,firstChars:manifest[0].targetChars?.[0],followupChars:manifest[1].targetChars?.[0]},questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{deliveryContract:CHAPTER_DELIVERY_VERSION,chapterTimeoutPolicy:CHAPTER_TIMEOUT_POLICY,...(locale!=='ko'?{locale}:{}),product,analysis,manifest,input,questionSkyStage:{version:QUESTION_SKY_TWO_STAGE_VERSION,firstChars:manifest[0].targetChars?.[0],followupChars:manifest[1].targetChars?.[0]},questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
 }
 
 export async function submitQuestionSkyFollowup(env:Record<string,unknown>,userId:string,requestId:string,question:unknown){
@@ -411,7 +411,8 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
         attempt:Number(row.chapterAttempts?.[ordinal] || 1),generationSource:source},
         // Storage retries can reuse the response; other retries bypass any
         // rejected cached output, including failures with legacy quality codes.
-        {owner:String(row.userId),skipRead:Number(row.chapterAttempts?.[ordinal] || 1)>1 && row.lastFailure?.stage!=='storage'});
+        {owner:String(row.userId),skipRead:Number(row.chapterAttempts?.[ordinal] || 1)>1 && row.lastFailure?.stage!=='storage'},
+        chapterTimeoutMs(row));
       let ask: {analysis:AskAnalysis;evidence:EvidencePacket}|undefined;
       if(row.generationCheckpoint?.version==='ask-generation-v1') {
         const consultation=row.snapshot.analysis.consultation;
@@ -449,12 +450,34 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
       const input={deliveryContract:CHAPTER_DELIVERY_VERSION,locale:readingLocale(row.snapshot.locale),outputContext:row.snapshot.outputContext,chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion,persona:row.snapshot.persona,voiceStyle:row.snapshot.voiceStyle};
       if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
       const provider=new StructuredChapterProvider(sharedProvider);
-      const generated=await provider.generateChapter(input);
-      stage='quality';
-      result=deliverChapter(generated,input);
       const natalFacts=input.analysis.contexts?.saju?.facts.find(f=>f.label==='pillars')?.value;
-      // chapter.ts corrects the reader's pillars first; a claim left here keeps a quality code so the one repair can name it.
-      if(natalFacts)try{assertSajuPillarClaims(result,natalFacts);}catch{throw new FortuneError('SAJU_PILLAR_CONTRADICTION');}
+      // A length-only shortfall that passed every other check. The repair after it, or the last attempt,
+      // delivers the longest such draft instead of holding the paid order for length (D8, principle 17).
+      const kept=row.generationCheckpoint?.shortDrafts?.[ordinal];
+      let generated:unknown,short:any;
+      try {
+        generated=await provider.generateChapter(input);
+        stage='quality';
+        try { result=deliverChapter(generated,input); }
+        catch(error:any) { if(!error?.shortCandidate)throw error; short=error.shortCandidate; }
+        // chapter.ts corrects the reader's pillars first; a claim left here keeps a quality code so the one repair can name it.
+        if(natalFacts)try{assertSajuPillarClaims(result||short,natalFacts);}catch{throw new FortuneError('SAJU_PILLAR_CONTRADICTION');}
+      } catch(error) {
+        if(!kept?.body)throw error;
+        result=undefined;short=undefined;
+      }
+      if(!result){
+        const best=short&&(!kept?.body||deliveredCharacterCount(short)>deliveredCharacterCount(kept.body))?{raw:generated,body:short}:kept;
+        if(!kept?.body&&Number(row.chapterAttempts?.[ordinal] || 1)<allowedChapterAttempts(row,ordinal)){
+          stage='storage';
+          await saveChapterDraft(env,userId,requestId,token,ordinal,{raw:generated,body:short,receipt:sharedProvider.receipt},'shortDrafts');
+          stage='quality';
+          throw new FortuneError('CHAPTER_TOO_SHORT');
+        }
+        generated=best.raw;result={...best.body,shortDelivery:true};
+        console.info('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,code:'CHAPTER_SHORT_DELIVERED',
+          chars:deliveredCharacterCount(result),target:input.chapter.minimumChars,kept:best===kept}));
+      }
       stage='storage';
       await saveChapterDraft(env,userId,requestId,token,ordinal,{raw:generated,body:result,receipt:sharedProvider.receipt});
     }
@@ -508,7 +531,7 @@ export function presentFortune(row: any) {
     ...(correctionApplied?{correction:{reason:row.correction.reason,appliedAt:row.correction.appliedAt}}:{}),
     paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest.map(({counsel:_counsel,...chapter}:any)=>chapter),
     consultation:(row.snapshot.analysis.consultation?Object.fromEntries(Object.entries(row.snapshot.analysis.consultation).filter(([key])=>key!=='counselVersion')):undefined) || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
-    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({title,summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots}:any)=>({...((title)?{title}:{}),summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots,sources:[]})) : row.chapters.map(({internalBasis:_serverOnly,...chapter}:any)=>chapter),
+    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({title,summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots}:any)=>({...((title)?{title}:{}),summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots,sources:[]})) : row.chapters.map(({internalBasis:_serverOnly,shortDelivery:_operatorOnly,...chapter}:any)=>chapter),
     ...(row.snapshot.tarotSpread?{tarotSpread:publicTarotSpread(row.snapshot)}:{}),
     followup:row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION?{status:row.generationCheckpoint?.followup?.status || (awaitingFollowup?'available':'unavailable'),used:Boolean(row.generationCheckpoint?.followup?.used),suggestions:row.generationCheckpoint?.followup?.suggestions || row.chapters?.[0]?.followUpSuggestions || []}:undefined,
     conversation:conversationView(row),recovery,errorCode,createdAt:row.createdAt,completedAt:row.completedAt};

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 import path from 'node:path';
-import {CHAPTER_DELIVERY_VERSION as version,CHAPTER_TIMEOUT_MS,CHAPTER_LEASE_MS,chapterDeliveryFailure,chapterDeliveryFloor,deliveredCharacterCount} from '../../worker/yeongnyangi/chapter-delivery-contract.js';
+import {CHAPTER_DELIVERY_VERSION as version,CHAPTER_TIMEOUT_MS,CHAPTER_LEASE_MS,CHAPTER_TIMEOUT_POLICY,chapterTimeoutMs,chapterLeaseMs,chapterDeliveryFailure,chapterDeliveryFloor,deliveredCharacterCount} from '../../worker/yeongnyangi/chapter-delivery-contract.js';
 import {chapterRecoveryPlan} from '../../worker/yeongnyangi/recovery-plan.js';
 const Module=createRequire(import.meta.url)('node:module');
 const bundle=await build({stdin:{contents:`export {StructuredChapterProvider,validateChapter,repeatedSummary} from './worker/yeongnyangi/providers/chapter'; export {deliverChapter} from './worker/yeongnyangi/providers/delivery'; export {mockReadingV5} from './__tests__/fixtures/yeongnyangi-chapter'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationDomain,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
@@ -170,4 +170,42 @@ test('a summary restating an earlier chapter is caught, replaced by the chapter\
  assert.doesNotMatch(lifted.summary,/^하지만/);
  assert.ok(lifted.blocks.flatMap(b=>b.paragraphs).some(p=>p===`하지만 ${lifted.summary}`||p.startsWith(`하지만 ${lifted.summary}`)),'the connective is the only edit');
  assert.throws(()=>m.deliverChapter(raw,{...input,previous:[...previous,...paragraphs.map(summary=>({summary,example:'',topics:[]}))]}),{code:'CHAPTER_SUMMARY_REPEATED'});
+});
+
+test('D8: tier timeouts and leases follow the delivery table only for orders carrying the timeout policy',()=>{
+ const table={mackerel:120000,salmon:150000,flounder:180000,tuna:240000,assorted:240000,omakase:240000};
+ for(const [fishId,ms] of Object.entries(table)){
+  const order={snapshot:{chapterTimeoutPolicy:CHAPTER_TIMEOUT_POLICY,product:{fishId}}};
+  assert.equal(chapterTimeoutMs(order),ms,fishId);assert.equal(chapterLeaseMs(order),ms+90000,fishId);
+ }
+ // Orders paid before the policy, and rows without a snapshot, keep 240s / 330s.
+ for(const order of [{snapshot:{product:{fishId:'mackerel'}}},{snapshot:{chapterTimeoutPolicy:'other',product:{fishId:'salmon'}}},{},undefined]){
+  assert.equal(chapterTimeoutMs(order),240000);assert.equal(chapterLeaseMs(order),330000);
+ }
+ // recovery.js budgets with CHAPTER_LEASE_MS, which must cover the largest tier lease.
+ assert.equal(CHAPTER_LEASE_MS,Math.max(...Object.values(table))+90000);
+});
+
+test('D8: a length-only shortfall carries its edited draft; the server flag lifts only the length floor and the model cannot set it',()=>{
+ const sized=ratio=>{const body=complete(),per=Math.ceil(input.chapter.minimumChars*ratio/body.blocks.length);
+  return {...body,example:'',advice:'',blocks:body.blocks.map((b,i)=>({...b,paragraphs:[`${i}`.padEnd(per,'흐')]}))};};
+ const short=sized(.3);let error;
+ try{m.deliverChapter(short,input);}catch(e){error=e;}
+ assert.equal(error?.code,'CHAPTER_TOO_SHORT');
+ const candidate=error.shortCandidate;
+ assert.equal(candidate.complete,true);assert.equal(candidate.deliveryVersion,version);assert.equal(candidate.shortDelivery,undefined);
+ assert.ok(deliveredCharacterCount(candidate)<chapterDeliveryFloor(input.chapter));
+ assert.equal(chapterDeliveryFailure({...candidate,shortDelivery:true},input.chapter),'');
+ // The flag keeps the empty-response, section and continuation guards.
+ assert.equal(chapterDeliveryFailure({...candidate,shortDelivery:true,blocks:candidate.blocks.map(b=>({...b,paragraphs:['짧다']}))},input.chapter),'CHAPTER_TOO_SHORT');
+ assert.equal(chapterDeliveryFailure({...candidate,shortDelivery:true,blocks:candidate.blocks.slice(1)},input.chapter),'INVALID_CHAPTER_BLOCKS');
+ assert.equal(chapterDeliveryFailure({...candidate,shortDelivery:true,persona:'이하 생략'},input.chapter),'CHAPTER_INCOMPLETE');
+ // A cut-off or malformed short reply carries no draft to keep.
+ for(const value of [{...short,blocks:short.blocks.slice(1)},{...short,persona:'이하 생략'}]){
+  let e;try{m.deliverChapter(value,input);}catch(caught){e=caught;}
+  assert.ok(e&&!e.shortCandidate);
+ }
+ // A model-supplied flag neither delivers a short reply nor survives on a full one.
+ assert.equal((()=>{try{m.deliverChapter({...short,shortDelivery:true},input);}catch(e){return e.shortCandidate?.shortDelivery;}})(),undefined);
+ assert.equal(m.deliverChapter({...complete(),shortDelivery:true},input).shortDelivery,undefined);
 });

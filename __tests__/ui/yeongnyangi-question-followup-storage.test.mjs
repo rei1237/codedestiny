@@ -117,3 +117,12 @@ for(const limit of [5,7])test('fusion '+limit+' followups use all saved chapter 
  await assert.rejects(questionConversation({},user,id,{...body,id:crypto.randomUUID()}));
  assert.equal(t.calls,limit);
 });
+
+test('D8: single-system follow-ups keep the 60-second timeout; assorted and omakase follow-ups get 90 seconds',async()=>{
+ const t=globalThis.__conversationTest;
+ for(const [fishId,ms] of [[undefined,60000],['mackerel',60000],['tuna',60000],['assorted',90000],['omakase',90000]]){
+  t.row.snapshot.product={...t.row.snapshot.product,fishId};t.row.generationCheckpoint=undefined;
+  await questionConversation({},user,id,{...body,id:crypto.randomUUID()});
+  assert.equal(t.sent.options.timeoutMs,ms,String(fishId));
+ }
+});
