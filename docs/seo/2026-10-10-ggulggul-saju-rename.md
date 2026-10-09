@@ -68,9 +68,9 @@ next: 운영 배포 D+7(2026-10-17)·D+14(2026-10-24)에 아래 관찰표를 채
 |---|---|
 | 코드 수정 | 완료 — 커밋은 아래 배포 기록 참고 |
 | 스테이징 검증 | 통과 (`d9769658c`) |
-| 운영 배포 | **미실행** — 운영 승격 대기 |
-| IndexNow 제출(Bing·Naver 등) | 운영 승격 워크플로가 sitemap 차이만 1회 제출 |
-| GSC·네이버 재수집 요청 | **미실행** — 이 세션에서 접근할 수 없다. 아래 수동 작업 참고 |
+| 운영 배포 | 완료 — `76aab4afd`, 2026-10-10 03:34 KST |
+| IndexNow 제출(Bing·Naver 등) | 완료 — 816건, 200 OK |
+| GSC·네이버 재수집 요청 | 운영자가 직접 진행 — 아래 수동 작업 참고 |
 | 검색 결과 반영 | **미확인** — 재수집 요청과 반영은 별개이며, 반영 시점은 검색엔진이 정한다 |
 
 ## 운영자 수동 작업
@@ -131,4 +131,10 @@ next: 운영 배포 D+7(2026-10-17)·D+14(2026-10-24)에 아래 관찰표를 채
   - `/records/`·`/yeongnyangi/library/` 200 → `/kkul-kkul-unse/` FAQ 문장 유지.
   - OG `code-destiny-og-vvip.png?v=aa88d371b4` → `200 image/png`.
   - 390px 모바일(`/ggulggul/`·`/kkul-kkul-unse/`·`/records/`): 가로 넘침·이름 잘림 없음.
-- 운영 승격: **미실행** — 세션의 자동 권한 검사가 `gh workflow run … -f mode=production` 실행을 막았다. 운영자가 직접 1회 실행해야 한다.
+- 첫 운영 승격 run 37965086825 실패 — Worker 텍스트 바인딩 128/128(다른 세션이 GA4 시크릿 2개 추가). 운영은 `c3089fbc6` 그대로였다.
+- 사용자 승인으로 런타임 참조가 없는 운영 Worker 시크릿 20개 삭제(`GEMINIF_API_KEY0~8`, `PREMIUM_GEMINI_API_KEY1~8`, `POINT_CHARGE_PACKAGES`, `PSYCHO_ANALYSIS_GEMINI_MODEL`, `YOUTUBE_API_KEY`). 원격 시크릿 71→51. 동기화 목록 정리 커밋 `76aab4afd`.
+- `76aab4afd` 스테이징 재검증 통과(run 37970370060, Pages·Worker 동일 SHA, probe all ok). 이 SHA에는 다른 세션의 운명의 꽃 커밋도 포함된다.
+- 운영 승격 완료 — `76aab4afda3fe222722a687c5c0e9eefe5ca162b`, 2026-10-09T18:34:44Z(KST 10-10 03:34), run 37972298348 성공.
+  - `/version.json`·`/api/version` 모두 `76aab4afd`. main CI(PR CI·Secret Scan 등) 전부 성공.
+  - probe 기본·`?cdcb=1` 모두 "all name signals ok", `/` → `/ggulggul/` 301. sitemap lastmod 2026-10-10.
+  - IndexNow: sitemap 955 URL 중 변경 816건 제출, batch 200 OK.

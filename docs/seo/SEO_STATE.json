@@ -3075,8 +3075,8 @@
       "2026-10-24"
     ],
     "stagingVerifiedSha": "d9769658cee0f15747791e41e86ad352fda3e7d5",
-    "productionReleasedSha": null,
-    "productionReleasedAt": null,
+    "productionReleasedSha": "76aab4afda3fe222722a687c5c0e9eefe5ca162b",
+    "productionReleasedAt": "2026-10-09T18:34:44Z",
     "searchConsoleManualSteps": "미실행 — 문서의 운영자 수동 작업 참고"
   }
 }

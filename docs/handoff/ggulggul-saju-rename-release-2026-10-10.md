@@ -1,8 +1,10 @@
 ---
-status: active
+status: done
 updated: 2026-10-10
-next: 운영 승격 1회(사용자 직접 실행 또는 권한 허용) → 운영 검증(6~7단계) → 배포 기록(productionReleasedSha·At)·status done
+next: 없음 — 운영 반영 `76aab4afd` 완료. 관찰(D+7·D+14)은 docs/seo/2026-10-10-ggulggul-saju-rename.md를 따른다.
 ---
+
+> 2026-10-10 완료: 바인딩 128/128 차단은 미사용 운영 시크릿 20개 삭제(사용자 승인)로 해소. 운영 run 37972298348 성공, Pages·Worker `76aab4afd`, probe 통과, IndexNow 816건.
 
 > 2026-10-10 진행: 1~5단계 완료. `d9769658c` push, 스테이징 검증 통과(결과는 개명 문서 "배포 기록").
 > 6단계 운영 승격은 Claude Code 자동 권한 검사가 `gh workflow run … -f mode=production`을 거부해 실행하지 않았다.
