@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import PublicRecordLink from '@/app/components/PublicRecordLink';
 import {products,systemNames,packages,type Product} from '@/worker/yeongnyangi/payments/catalog';
 import {questionScopes,FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy';
@@ -27,6 +28,22 @@ export const YEONGNYANGI_FAQS=[
 export default function YeongnyangiGuide(){
  return <article className={styles.guide} aria-labelledby="yn-guide-title">
   <section>
+   <figure className={styles.introPanel}>
+    <Image
+     className={styles.introImage}
+     src="/assets/yeongnyangi/detail/01-consultation-intro.webp"
+     width={1080}
+     height={1440}
+     sizes="(max-width: 540px) 100vw, 540px"
+     loading="lazy"
+     alt="달빛이 드는 남색 서재에서 영냥이가 질문을 적은 상담 노트 곁에 앉아 있어."
+    />
+    <figcaption className={styles.introTranscript}>
+     <p>영냥이 상담 · 지금 무엇이 궁금해?</p>
+     <p>어떤 운세를 볼지보다, 지금의 질문이 먼저야.</p>
+     <p>노트에 적힌 질문: 계속할까, 바꿔볼까?</p>
+    </figcaption>
+   </figure>
    <p className={styles.kicker}>사주 보는 고양이 · 영냥이 안내</p>
    <h2 id="yn-guide-title">사주 보는 고양이 영냥이는 이런 곳이에요</h2>
    <p>영냥이는 꿀꿀 사주가 운영하는 달빛 점술방의 고양이예요. 생선 한 마리 값으로 {SYSTEMS} 가운데 한 체계를 골라, 지금 마음에 걸린 한 가지 고민을 천천히 읽어 줘요. 각 체계의 계산 엔진이 먼저 명식과 차트를 만들고, 그 계산을 근거로 AI가 영냥이의 말투로 해설을 써요.</p>
