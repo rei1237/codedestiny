@@ -687,6 +687,106 @@ export const UNLOCK_PAID_FEATURE_KEYS = Object.freeze(
   ])).sort(),
 );
 
+/* 🔴 영구 해금 키의 신원 단위. **모든 영구 해금 키는 둘 중 정확히 한 곳에 있어야 한다**
+   (assertUnlockScopeClassification · scripts/verify-unlock-scope-classification.mjs 가 막는다).
+   - 출생 기반: "계정 + 생년월일(birthKey) + 콘텐츠" 단위. 저장된 ProfileCard 의 출생 정보로만 열린다.
+     같은 계정·같은 출생 정보 프로필끼리 공유하고, 출생 정보를 고치면 다시 잠긴다(worker/lib/birth-key.js).
+   - 계정 기반: 출생 정보와 무관한 상품(음원·도감·캐릭터·일기 등). 종전대로 계정 전체에 열린다.
+   새 영구 해금 키를 추가할 때 어느 쪽인지 정하지 않으면 검증이 실패한다(fail-closed). */
+const BIRTH_SCOPED_UNLOCK_FEATURE_KEY_LIST = Object.freeze([
+  "section_summary",
+  "section_daewun",
+  "section_compat",
+  "rpt_specialCharmCard",
+  "rpt_quantumCard",
+  "rpt_healthReportCard",
+  "rpt_skillTreeCard",
+  "rpt_energyCoordCard",
+  "rpt_villainCard",
+  "rpt_secretHouseEntryCard",
+  "ziwei_decade_luck",
+  "ziwei_love_deep",
+  "ziwei_twelve_palaces",
+  "ziwei_symbolic_layer",
+  "ziwei_life_yearly_flow",
+  "ziwei-island-deep-report",
+  "sukyo_yearly_fortune_unlock",
+  "sukuyo-relationship-encyclopedia",
+  "sukuyo-nature-deep-dive",
+  "sukuyo-extreme-t-relationship",
+  "nakshatra-lord-report",
+  "nakshatra-dasha-map",
+  "vedic_basic_reading",
+  "astro_career_talent_deep",
+  "astro_talent_attraction_deep",
+  "astro_relationship_deep",
+  "astro_growth_shadow_deep",
+  "astro_basic_deep_pack",
+  "astro_stellar_career_room",
+  "astro_stellar_talent_room",
+  "astro_stellar_relationship_room",
+  "astro_stellar_growth_room",
+  "astro_yearly_transit",
+  "animal-destiny-unlock",
+  "saju-guardian-unlock",
+  "premium-sibyl-dominator",
+  "premium-fpti-report",
+  "travelDestiny",
+  "healthReport",
+]);
+
+const ACCOUNT_SCOPED_UNLOCK_FEATURE_KEY_LIST = Object.freeze([
+  "flower-fc",
+  "olympus-fc",
+  "rpgCharacter",
+  "sajuDiary",
+  "secretHouseEpisodes",
+  "premiumDivinationPack",
+  "tetogen_deep_report",
+]);
+
+export const BIRTH_SCOPED_UNLOCK_FEATURE_KEYS = Object.freeze([...BIRTH_SCOPED_UNLOCK_FEATURE_KEY_LIST].sort());
+export const ACCOUNT_SCOPED_UNLOCK_FEATURE_KEYS = Object.freeze([...ACCOUNT_SCOPED_UNLOCK_FEATURE_KEY_LIST].sort());
+const BIRTH_SCOPED_UNLOCK_FEATURE_KEY_SET = new Set(BIRTH_SCOPED_UNLOCK_FEATURE_KEYS);
+const ACCOUNT_SCOPED_UNLOCK_FEATURE_KEY_SET = new Set(ACCOUNT_SCOPED_UNLOCK_FEATURE_KEYS);
+
+/** featureKey(별칭 포함)가 출생 정보 단위 영구 해금인가. 연도 접미사(sukyo_yearly_fortune_unlock:2027)도 본다. */
+export function isBirthScopedUnlockFeatureKey(featureKey) {
+  const raw = String(featureKey || "").trim();
+  if (!raw) return false;
+  const base = raw.includes(":") ? raw.slice(0, raw.indexOf(":")) : raw;
+  const key = normalizePaidFeatureKey(base) || base;
+  return BIRTH_SCOPED_UNLOCK_FEATURE_KEY_SET.has(key);
+}
+
+/** 계정 배열(unlockedFeatures/paidFeatures)에서 출생 기반 키를 뺀다 — 그 배열은 프로필을 모른다. */
+export function withoutBirthScopedUnlockKeys(keys = []) {
+  return (Array.isArray(keys) ? keys : []).filter((key) => !isBirthScopedUnlockFeatureKey(key));
+}
+
+/** 분류 누락·중복을 찾는다. 문제 목록을 돌려주며, 비어 있으면 통과다. */
+export function findUnlockScopeClassificationProblems(unlockKeys = UNLOCK_PAID_FEATURE_KEYS) {
+  const problems = [];
+  for (const key of unlockKeys) {
+    if (isMusicTrackFeatureKey(key)) continue; // 음원은 계정 기반(출생 정보와 무관)
+    const birth = BIRTH_SCOPED_UNLOCK_FEATURE_KEY_SET.has(key);
+    const account = ACCOUNT_SCOPED_UNLOCK_FEATURE_KEY_SET.has(key);
+    if (birth && account) problems.push(`${key}: classified as both birth and account scoped`);
+    if (!birth && !account) problems.push(`${key}: unlock key has no birth/account scope classification`);
+  }
+  const unlockSet = new Set(unlockKeys);
+  for (const key of [...BIRTH_SCOPED_UNLOCK_FEATURE_KEYS, ...ACCOUNT_SCOPED_UNLOCK_FEATURE_KEYS]) {
+    if (!unlockSet.has(key)) problems.push(`${key}: classified but not an unlock paid feature key`);
+  }
+  return problems;
+}
+
+export function assertUnlockScopeClassification() {
+  const problems = findUnlockScopeClassificationProblems();
+  if (problems.length) throw new Error(`Unlock scope classification drift:\n${problems.join("\n")}`);
+  return true;
+}
+
 const PER_USE_PAID_FEATURE_KEY_SET = new Set(PER_USE_PAID_FEATURE_KEYS);
 const PDF_PAID_FEATURE_KEY_SET = new Set(PDF_PAID_FEATURE_KEYS);
 const UNLOCK_PAID_FEATURE_KEY_SET = new Set(UNLOCK_PAID_FEATURE_KEYS);
