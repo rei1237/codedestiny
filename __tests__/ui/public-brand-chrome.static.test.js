@@ -14,7 +14,7 @@ test("공개 페이지 공통 헤더와 푸터가 꽃돼지 브랜드를 공유�
     assert.match(source, /\/icons\/moonlight-garden-v1-512\.webp/);
     assert.match(source, /CODE DESTINY/);
   }
-  assert.match(header, /꿀꿀 운세/);
+  assert.match(header, /꿀꿀 사주/);
   assert.match(footer, /오늘의 마음이 조금 가벼워지는 곳/);
 });
 

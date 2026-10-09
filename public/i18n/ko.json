@@ -3,7 +3,7 @@
     "homeGuide": {
       "kicker": "FORTUNE GUIDE",
       "title": "무료 사주 풀이부터 자미두수·숙요점·베다점까지, 이렇게 읽습니다",
-      "lead": "꿀꿀 운세는 꽃돼지 연이와 네오가 안내하는 Code Destiny(코드 데스티니)의 한국어 운세 서비스입니다. 생년월일과 태어난 시간을 넣으면 무료 사주 풀이부터 만세력, 타로, 자미두수, 서양 점성술과 베다점, 숙요점, 궁합까지 여러 운세를 한 번에 살펴볼 수 있습니다. 같은 Code Destiny 안에서 영냥이는 달빛 점술방 컨셉으로, 지금 마음에 걸린 질문을 조금 더 편하게 꺼내는 상담 공간입니다. 두 입구는 분위기가 다르지만 프로필과 보관함, 결제 복귀 흐름을 함께 쓰는 하나의 서비스입니다. 모든 해석은 미래를 단정하는 예언이 아니라, 오늘의 선택을 정돈하고 자신을 차분히 돌아보게 돕는 참고 자료입니다.",
+      "lead": "꿀꿀 사주는 꽃돼지 연이와 네오가 안내하는 Code Destiny(코드 데스티니)의 한국어 운세 서비스입니다. 생년월일과 태어난 시간을 넣으면 무료 사주 풀이부터 만세력, 타로, 자미두수, 서양 점성술과 베다점, 숙요점, 궁합까지 여러 운세를 한 번에 살펴볼 수 있습니다. 같은 Code Destiny 안에서 영냥이는 달빛 점술방 컨셉으로, 지금 마음에 걸린 질문을 조금 더 편하게 꺼내는 상담 공간입니다. 두 입구는 분위기가 다르지만 프로필과 보관함, 결제 복귀 흐름을 함께 쓰는 하나의 서비스입니다. 모든 해석은 미래를 단정하는 예언이 아니라, 오늘의 선택을 정돈하고 자신을 차분히 돌아보게 돕는 참고 자료입니다.",
       "sajuTitle": "사주팔자·만세력",
       "sajuBody": "태어난 연·월·일·시를 네 기둥으로 세우고, 천간과 지지에 담긴 오행의 균형과 십성, 대운의 흐름을 읽습니다. 이 네 기둥을 절기 기준으로 뽑아 주는 계산표가 만세력입니다. 무료 사주 풀이로 타고난 기질과 지금 지나는 시기의 리듬을 확인한 뒤, 재물운·연애운·직업운처럼 지금 걸리는 주제를 따로 짚어 볼 수 있습니다.",
       "tarotTitle": "타로 리딩",
@@ -53,7 +53,7 @@
       "ziwei": "자미두수",
       "vedic": "베다점",
       "astrology": "점성술",
-      "brandAlias": "꿀꿀 운세",
+      "brandAlias": "꿀꿀 사주",
       "mainAria": "메인 서비스 바로가기",
       "astrologyHub": "점성술",
       "astrologyHubAria": "점성술 허브",
@@ -1433,7 +1433,7 @@
       "consultNavAria": "추천 상담 살펴보기"
     },
     "searchEntry": {
-      "title": "꿀꿀 운세",
+      "title": "꿀꿀 사주",
       "fusion": "오늘의 나를 읽는 시간",
       "intro": "오늘의 마음에, 다정한 방향 하나",
       "lead": "오늘의 운세와 타로 세 장, 연이와 무료로 시작해요.",
@@ -1523,7 +1523,7 @@
       "libraryNote": "기록은 로그인한 계정에 보관돼요.",
       "searchTitle": "어떤 운세가 궁금하세요?",
       "searchHint": "운세 이름, 고민, 예전 서비스 이름으로 찾아보세요.",
-      "heroTitle": "꿀꿀운세에서",
+      "heroTitle": "꿀꿀 사주에서",
       "heroTitleEm": "차근차근 풀어봐요",
       "heroLead": "코드데스티니 · 꽃돼지 연이의 운세 정원",
       "heroPrimary": "운세 골라보기",
@@ -1546,7 +1546,7 @@
       "allBrowse": "카테고리로 둘러보기",
       "allEmpty": "찾는 운세가 없어요",
       "allEmptyHint": "다른 말로 찾거나 조건을 풀어 보세요.",
-      "neoHeroTitle": "꿀꿀운세에서",
+      "neoHeroTitle": "꿀꿀 사주에서",
       "neoHeroNext": "다음 수를 찾아봐요",
       "neoHeroLead": "코드데스티니 · 네오의 별빛 전략실",
       "quickTitle": "어떤 운세를 볼까요?",
@@ -1560,7 +1560,7 @@
       "chemiTitle": "내 최애랑 나, 무슨 케미일까?",
       "chemiNote": "생일만 넣으면 포토카드로 나와요",
       "chemiCta": "내 최애와 케미 보기",
-      "brandOtherEntry": "꿀꿀운세 영냥이 사주·타로 →",
+      "brandOtherEntry": "꿀꿀 사주 영냥이 사주·타로 →",
       "publicRecordsTitle": "10년 경력 명리학자 박병하(네오)의 공개 분석 기록",
       "publicRecordsLink": "날짜·원문·일치 범위 확인하기"
     },
@@ -1660,8 +1660,8 @@
       "recordsNote": "윤석열·이재명에 대해 미리 공개한 해석과 2025년의 실제 사건을 비교해 보세요. 날짜와 원문을 통해 직접 판단할 수 있어요. 과거 사례가 미래의 적중을 보장하지는 않습니다."
     },
     "overseasCopy": {
-      "pressTitle": "언론에 소개된 꿀꿀 운세",
-      "pressSummary": "스타트업데일리가 꿀꿀 운세와 영냥이를 소개했습니다. 고민에서 출발하는 상담 방식과 두 캐릭터의 이야기를 기사에서 만나보세요.",
+      "pressTitle": "언론에 소개된 꿀꿀 사주",
+      "pressSummary": "스타트업데일리가 꿀꿀 사주(당시 꿀꿀 운세)와 영냥이를 소개했습니다. 고민에서 출발하는 상담 방식과 두 캐릭터의 이야기를 기사에서 만나보세요.",
       "newWindow": "(새 창)",
       "monthly": "일간별 월간 운세",
       "daily": "날짜별 띠 운세",
@@ -1671,7 +1671,7 @@
       "reviewTitle": "후기는 나중에 남겨도 괜찮아요",
       "reviewDesc": "이용한 상담과 리포트의 경험을 들려주세요.",
       "reviewReward": "공개 승인 후 월정석 지급",
-      "reviewDetail": "꿀꿀운세에서 사용할 수 있어요. 상품별 1회 지급됩니다.",
+      "reviewDetail": "꿀꿀 사주에서 사용할 수 있어요. 상품별 1회 지급됩니다.",
       "reviewAction": "후기 남기기",
       "passStandard": "꽃돼지 스탠다드",
       "passPremium": "꽃돼지 프리미엄",
@@ -1715,7 +1715,7 @@
       "self": "나 자신",
       "future": "앞으로의 흐름",
       "title": "영냥이와 내 질문부터 풀어봐요",
-      "brand": "꿀꿀운세의 기본 상담은 영냥이예요. 따뜻한 위로가 필요하면 연이, 현실적인 정리가 필요하면 네오를 만나보세요.",
+      "brand": "꿀꿀 사주의 기본 상담은 영냥이예요. 따뜻한 위로가 필요하면 연이, 현실적인 정리가 필요하면 네오를 만나보세요.",
       "stepQuestion": "지금의 고민을 알려주세요",
       "stepPrice": "다룰 내용과 가격을 확인해요",
       "stepResult": "답과 근거, 다음 행동을 읽어요",
@@ -2182,7 +2182,7 @@
     "passCheckingNote": "달빛 이용권과 회원 등급을 안전하게 맞추는 중입니다."
   },
   "seo": {
-    "rssTitle": "Code Destiny & 꿀꿀 운세 RSS",
+    "rssTitle": "Code Destiny & 꿀꿀 사주 RSS",
     "keywords": "사주, 무료사주, 만세력, 타로, 오늘의운세, 궁합, 신년운세, 토정비결, 관상, 재물운, 재회운, MBTI궁합, 꿈해몽, 숙요점, 숙요도, 宿曜道, 거북점, 귀복, 주역점, 이집트신탁, 케멧오라클, 자미두수, 紫微斗數, Saju, Tarot, Horoscope, Zodiac, Astrology, Fortune Telling, Daily Horoscope, Compatibility, Free Tarot Reading, I Ching, Sukuyo, Turtle Shell Divination, Kemet Oracle, Ziwei Doushu, 八字, 算命, 星座, 免费算命, 塔罗牌, 龟卜, 宿曜占, 紫微斗数, 運勢, 占い, 相性, 四柱推命, タロット, 亀卜占い, 宿曜占星術, 紫微斗数占い, horóscopo, tarot gratis, astrología, compatibilidad, horoscope gratuit, tarot gratuit, astrologie, compatibilité, राशिफल, टैरो, ज्योतिष, कुंडली, भविष्यफल, 꿀꿀 운세, 꿀꿀 만세력, Code Destiny | 꿀꿀 운세, Code Destiny | 꿀꿀 만세력, Kkul-Kkul fortune, Kkul-Kkul manse, free fortune telling, daily horoscope"
   },
   "result": {
@@ -3953,7 +3953,7 @@
     "sq_9794_attr_aria_label": "숙요 인연 레이더 차트"
   },
   "shell": {
-    "CODEDESTINY": "꿀꿀 운세 | 연이·네오 사주·타로 상담",
+    "CODEDESTINY": "꿀꿀 사주 — 사주·궁합·타로",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "동의하기",
@@ -6037,7 +6037,7 @@
             "2": "뭐 좋아해",
             "3": "음식"
           },
-          "answer": "당연히 꿀이죠! 🍯 진짜 꿀에 막 빠져 있어요. 꿀 케이크, 꿀 라떼, 꿀 떡볶이... 뭐든 꿀 들어가면 최고예요. 꿀꿀 그래서 제 이름도 꿀꿀 운세예요~"
+          "answer": "당연히 꿀이죠! 🍯 진짜 꿀에 막 빠져 있어요. 꿀 케이크, 꿀 라떼, 꿀 떡볶이... 뭐든 꿀 들어가면 최고예요. 꿀꿀 그래서 제 이름도 꿀꿀 사주예요~"
         },
         "3": {
           "keywords": {
@@ -8915,7 +8915,7 @@
       "title": "연이의 운명 찻집",
       "library": "내 상담함",
       "account": "계정",
-      "back": "꿀꿀운세로",
+      "back": "꿀꿀 사주로",
       "heading": "달빛이 머무는 밤,\n당신을 위한 한 잔",
       "lead": "꽃돼지의 인사로 시작해, 연이와 마주 앉는 이야기.",
       "intro": "사주로 삶의 흐름을, 타로로 지금의 선택을, 숙요점으로 관계의 거리감을 살펴봐요.",

@@ -1,6 +1,6 @@
 {
   "home.overseasCopy.pressTitle": {
-    "ko": "언론에 소개된 꿀꿀 운세",
+    "ko": "언론에 소개된 꿀꿀 사주",
     "en": "Ggulggul in the news",
     "ja": "メディアで紹介されたGgulggul",
     "zh-CN": "媒体中的Ggulggul",
@@ -14,7 +14,7 @@
     "ms": "Ggulggul in the news"
   },
   "home.overseasCopy.pressSummary": {
-    "ko": "스타트업데일리가 꿀꿀 운세와 영냥이를 소개했습니다. 고민에서 출발하는 상담 방식과 두 캐릭터의 이야기를 기사에서 만나보세요.",
+    "ko": "스타트업데일리가 꿀꿀 사주(당시 꿀꿀 운세)와 영냥이를 소개했습니다. 고민에서 출발하는 상담 방식과 두 캐릭터의 이야기를 기사에서 만나보세요.",
     "en": "Startup Daily introduces Ggulggul and Yeongnyangi, our question-first readings and their two guides. The original article is in Korean.",
     "ja": "Startup DailyがGgulggulとヨンニャンイを紹介しました。悩みから始まる鑑定と、二人の案内役の物語をご覧ください。記事原文は韓国語です。",
     "zh-CN": "Startup Daily介绍了Ggulggul与灵喵，以及从用户烦恼出发的解读方式。原文为韩文。",
@@ -154,7 +154,7 @@
     "ms": "Moonstones after publication approval"
   },
   "home.overseasCopy.reviewDetail": {
-    "ko": "꿀꿀운세에서 사용할 수 있어요. 상품별 1회 지급됩니다.",
+    "ko": "꿀꿀 사주에서 사용할 수 있어요. 상품별 1회 지급됩니다.",
     "en": "Use them in Ggulggul. Awarded once per product.",
     "ja": "Ggulggulで利用できます。付与は商品ごとに1回です。",
     "zh-CN": "可在Ggulggul使用，每个商品限发放一次。",

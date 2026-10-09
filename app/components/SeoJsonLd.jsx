@@ -1,4 +1,4 @@
-// 🔴 Organization(회사) 이름이다. 브랜드(WebSite)는 "꿀꿀 운세" 로 따로 있다.
+// 🔴 Organization(회사) 이름이다. 브랜드(WebSite)는 "꿀꿀 사주" 로 따로 있다.
 //    lib/seo/siteSeo.ts 의 organization.name 과 같아야 한다.
 const BRAND_NAME = "CODE DESTINY";
 const BRAND_URL = "https://code-destiny.com";
@@ -26,7 +26,7 @@ function buildOrganization() {
     "@type": "Organization",
     "@id": `${BRAND_URL}/#organization`,
     name: BRAND_NAME,
-    alternateName: ["CODE DESTINY", "CodeDestiny", "코드데스티니", "코드 데스티니", "꿀꿀운세", "꿀꿀만세력", "꽃돼지 운세"],
+    alternateName: ["CODE DESTINY", "CodeDestiny", "코드데스티니", "코드 데스티니", "꿀꿀 사주", "꿀꿀사주", "꿀꿀운세", "꿀꿀만세력", "꽃돼지 운세"],
     url: BRAND_URL,
     logo: {
       "@type": "ImageObject",

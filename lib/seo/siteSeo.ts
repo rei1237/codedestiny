@@ -22,7 +22,7 @@ const SITE_SEO_TEXT_TRANSLATIONS = {
     "siteSeo.021": "연애 리포트 PDF 안내 | 관계 흐름 심층 분석",
     "siteSeo.023": "운세 인사이트 가이드 | 사주·타로·궁합·점성술",
     "siteSeo.024": "운세 인사이트 아카이브 | 사주·타로·자미두수 가이드",
-    "siteSeo.025": "연이와 네오 — 꿀꿀 운세 캐릭터·세계관 소개",
+    "siteSeo.025": "연이와 네오 — 꿀꿀 사주 캐릭터·세계관 소개",
     "siteSeo.026": "2026년 9월 일간별 운세 | 정유월 사주 흐름",
     "siteSeo.027": "최근 30일 띠별 날짜 운세",
   },
@@ -63,11 +63,11 @@ export const siteSeo = {
    * 사이트 이름을 채택하므로, 갈린 동안에는 어느 이름도 잡히지 않았다 — "꿀꿀 운세"로 검색해도
    * 이 사이트가 나오지 않던 상태의 원인이다. 가드: `__tests__/ui/site-name-signals.static.test.js`
    */
-  siteName: "꿀꿀운세",
+  siteName: "꿀꿀 사주",
   /**
    * `WebSite` 엔티티의 이름 = 서비스 브랜드.
    *
-   * 회사 이름과 다르다(운영자 확인, 2026-08-16): 브랜드는 **꿀꿀 운세**, 회사는 **CODE DESTINY**.
+   * 회사 이름과 다르다(운영자 확인, 2026-08-16): 브랜드는 **꿀꿀 사주**(2026-10-10 꿀꿀 운세에서 개명), 회사는 **CODE DESTINY**.
    * schema.org 에서 WebSite 와 Organization 은 서로 다른 엔티티이므로 이름이 갈리는 것이 정상이고,
    * 오히려 둘을 같은 이름으로 두면 브랜드와 발행처가 한 덩어리로 읽힌다.
    *
@@ -78,19 +78,19 @@ export const siteSeo = {
    * 갈리면 Google 이 한 엔티티에 두 이름을 보게 된다.
    * `__tests__/ui/locale-footer.static.test.js` 가 그 일치를 강제한다.
    */
-  brandName: "꿀꿀운세",
-  alternateName: ["꿀꿀 운세", "Ggulggul Fortune", "CODE DESTINY", "CodeDestiny", "코드데스티니", "코드 데스티니"],
+  brandName: "꿀꿀 사주",
+  alternateName: ["꿀꿀사주", "꿀꿀 운세", "꿀꿀운세", "Ggulggul Fortune", "CODE DESTINY", "CodeDestiny", "코드데스티니", "코드 데스티니"],
   siteUrl: "https://code-destiny.com",
   defaultLocale: "ko",
   supportedLocales: ["ko"],
-  defaultTitle: "꿀꿀운세 코드데스티니 | 사주·타로·영냥이 상담",
+  defaultTitle: "꿀꿀 사주 — 사주·궁합·타로",
   titleTemplate: "%s",
   defaultDescription:
-    "꿀꿀 운세는 꽃돼지 연이·네오와 영냥이가 함께하는 사주·타로·운세 상담 서비스입니다. 나의 기질과 관계, 일과 돈의 흐름을 살펴보세요.",
+    "꿀꿀 사주에서 사주풀이와 궁합, 타로, 자미두수, 숙요점을 만나보세요. 고양이 영냥이와 꽃돼지 연이가 내 성향과 지금의 고민을 살펴보는 길을 안내합니다.",
   defaultOgImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=42dedf5c85",
   twitterCard: "summary_large_image",
   organization: {
-    // 회사 이름(운영자 확인, 2026-08-16). 브랜드(brandName = 꿀꿀 운세)와 의도적으로 다르다.
+    // 회사 이름(운영자 확인, 2026-08-16). 브랜드(brandName = 꿀꿀 사주)와 의도적으로 다르다.
     name: "CODE DESTINY",
     legalName: "코드 데스티니",
     url: "https://code-destiny.com",
@@ -360,9 +360,9 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/world",
     title: siteSeoText("siteSeo.025"),
     description:
-      "꿀꿀 운세의 상담자 연이와 네오는 누구인지, 사주의 강·인성의 도서관 같은 장소가 어디서 왔는지 한자리에 모아 소개합니다.",
+      "꿀꿀 사주의 상담자 연이와 네오는 누구인지, 사주의 강·인성의 도서관 같은 장소가 어디서 왔는지 한자리에 모아 소개합니다.",
     h1: "캐릭터와 세계관",
-    keywords: ["연이", "네오", "꿀꿀 운세 캐릭터", "사주의 강", "운명 세계관"],
+    keywords: ["연이", "네오", "꿀꿀 사주 캐릭터", "사주의 강", "운명 세계관"],
     changeFrequency: "monthly",
     priority: 0.7,
     structuredData: ["WebPage", "BreadcrumbList"],

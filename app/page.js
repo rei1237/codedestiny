@@ -10,8 +10,8 @@ import { SEO_SERVICE_SCOPES } from "../lib/seo-service-scope";
 import styles from "./home-guide.module.css";
 
 const sourcePage = publicSeoPages.home;
-const HOME_TITLE = `${siteSeo.brandName} | 무료 사주·타로·오늘의 운세`;
-const HOME_DESCRIPTION = "꿀꿀 운세에서 오늘의 무료 운세와 사주·만세력, 타로 기본 풀이를 살펴보세요. 무료 이용 범위와 천원 사주·영냥이 상담을 비교하고 내 질문에 맞는 서비스를 고르세요.";
+const HOME_TITLE = `${siteSeo.brandName} — 사주·궁합·타로`;
+const HOME_DESCRIPTION = "꿀꿀 사주에서 사주풀이와 궁합, 타로, 자미두수, 숙요점을 만나보세요. 고양이 영냥이와 꽃돼지 연이가 내 성향과 지금의 고민을 살펴보는 길을 안내합니다.";
 const HOME_SEO = {
   title: HOME_TITLE,
   description: HOME_DESCRIPTION,
@@ -33,7 +33,7 @@ export const metadata = {
   metadataBase: new URL("https://code-destiny.com"),
   title: { absolute: HOME_SEO.title },
   description: HOME_SEO.description,
-  keywords: [siteSeo.brandName, "꿀꿀 운세", "무료 사주", "무료 타로", "연애운", "재물운", "영냥이", ...page.keywords],
+  keywords: [siteSeo.brandName, "꿀꿀사주", "무료 사주", "무료 타로", "연애운", "재물운", "영냥이", ...page.keywords],
   alternates: {
     canonical: HOME_SEO.url,
     languages: {
@@ -103,8 +103,8 @@ export default function HomePage() {
   return <>
     <LegacyHomeEntry defaultTarget="/ggulggul/" />
     <LocalizedServiceSummary><section className={styles.guide} aria-labelledby="homeGuideTitle">
-      <h1 id="homeGuideTitle">꿀꿀 운세, 나의 질문에서 시작하는 운세 상담</h1>
-      <p>꿀꿀 운세는 꽃돼지 연이·네오와 영냥이를 함께 만나는 Code Destiny의 운세 상담 공간입니다. 무료 타로와 사주 기질 확인으로 가볍게 시작하고, 관계·일·돈·올해의 선택처럼 지금의 질문에 맞는 상담을 이어서 고를 수 있어요.</p>
+      <h1 id="homeGuideTitle">꿀꿀 사주, 나의 질문에서 시작하는 운세 상담</h1>
+      <p>꿀꿀 사주는 꽃돼지 연이·네오와 영냥이를 함께 만나는 Code Destiny의 운세 상담 공간입니다. 무료 타로와 사주 기질 확인으로 가볍게 시작하고, 관계·일·돈·올해의 선택처럼 지금의 질문에 맞는 상담을 이어서 고를 수 있어요.</p>
       <nav className={styles.paths} aria-label="대표 입구와 상담 안내">
         {/* /ggulggul/ is a static HTML shell without a Next RSC payload. */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
@@ -133,7 +133,7 @@ export default function HomePage() {
         <p>무료 운세에서는 공개된 기본 풀이와 계산 결과를 살펴볼 수 있어요. 영냥이 상담은 관계·일·돈처럼 직접 남긴 질문을 계산 결과나 카드 상징과 연결해 읽는 별도 유료 서비스입니다. 기본 결과만 확인하려면 무료 도구를, 나의 상황을 덧붙여 질문하고 싶다면 상담 예시를 먼저 읽어보세요.</p>
         <p><Link href="/yeongnyangi/1000-won-fortune/">천원 운세·천원사주 가격과 상담 예시 비교하기</Link>에서 체계별 입력 정보와 상품 구성을 확인할 수 있어요. 두 사람의 숙요 궁합처럼 별도 유료인 기능은 각 서비스의 이용 안내를 확인해 주세요.</p>
       </section>
-      <p>영냥이는 지금 마음에 걸리는 질문 하나를 달빛 점술방에서 편하게 꺼내는 별도 상담 세계입니다. 꿀꿀 운세와 영냥이는 서로 다른 입구를 유지하되, 구매한 결과와 보관함은 기존 계정과 결제 복구 흐름을 그대로 사용합니다.</p>
+      <p>영냥이는 지금 마음에 걸리는 질문 하나를 달빛 점술방에서 편하게 꺼내는 별도 상담 세계입니다. 꿀꿀 사주와 영냥이는 서로 다른 입구를 유지하되, 구매한 결과와 보관함은 기존 계정과 결제 복구 흐름을 그대로 사용합니다.</p>
       <p>유료 상담은 선택한 상품의 가격과 이용권 적용 여부를 결제 화면에서 확인해 주세요. 결과는 보관함에서 다시 볼 수 있고, 미완성 상담은 같은 주문의 저장된 내용부터 이어받아요. 결과가 열리지 않는다면 다시 결제하기 전에 보관함과 <Link href="/contact/#payment-help">결제·결과 문의</Link>를 확인해 주세요.</p>
       <p>운세는 정해진 미래나 상대의 마음을 보장하지 않아요. 계산 기준과 해석의 한계를 함께 읽고, 관계·직업·돈에 관한 선택은 실제 상황과 함께 판단해 주세요.</p>
       <details className={styles.directory}>
