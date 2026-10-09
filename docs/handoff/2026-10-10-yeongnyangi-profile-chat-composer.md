@@ -1,12 +1,26 @@
 ---
-status: active
+status: done
 updated: 2026-10-10
-next: 1단계(선행 조건 확인)부터. plan 모드로 설계 확정 → 구현 → QA·캡처 → 문서
+next: 없음 — 완료·main push. 실기기(iOS·Android) 소프트 키보드 확인만 남음
 ---
 
 # 영냥이 상담 준비 — 프로필 입력을 메신저 하단 입력창으로 통일 (2026-10-10)
 
 2026-10-10 세션에서 질문 단계(question·situation·options·constraints·period)의 답장 영역을 메신저형으로 바꿨다. 같은 대화의 **프로필 만들기 단계**는 아직 예전 폼 모양이다. 이 작업은 그 단계를 같은 입력창으로 맞추는 일이다.
+
+## 결과 (2026-10-10 완료)
+
+- 커밋
+  - 선행 조건(답장 입력창 메신저형 개편 + 이 문서) — `785be60b3`
+  - 구현(ChatInputBar·포털 슬롯·칩·QA) — `0d4812425`
+  - 문서(DESIGN.md·.impeccable·이 문서) — 이 커밋
+- 설계: IntakeChat이 답장 영역에 슬롯을 두고 `IntakeComposerContext{slot,follow,claim}`로 내려 준다. `ProfileChatFields`는 모든 필드 UI를 슬롯에 포털로 그리되 현재 필드만 보이고(나머지는 `hidden`), 입력은 `form` 속성으로 원래 `<form>`의 FormData에 들어간다. `save()`·지오코딩·`profileId`·401 처리는 바꾸지 않았다. 대화형이 아닌 폼 경로도 그대로다.
+- 캡처 중 발견해 같이 고친 것: `yeongnyangi.module.css`의 `.page input:not([type="checkbox"])`(0,2,1)가 입력 바 안 `<input>`에 테두리·배경·굵은 글씨를, `.page button:…:hover`(0,5,1)가 원형 전송 버튼에 보라 배경을 그렸다. `intake-chat.module.css`에서 선택자 우선순위를 올려 막았다.
+- 검증: `verify-yeongnyangi-intake.mjs` 전체 PASS(전송 버튼 1개, 데스크톱 이름 칸 포커스, Enter 이동, 맨 아래 스크롤, 저장 오류 후 값 유지·재시도 같은 `profileId`·payload). `node --test __tests__/ui/yeongnyangi-intake-chat.test.mjs` 4/4, `eslint --quiet app/yeongnyangi/_components/` 0, `tsc --noEmit` 0(루트 `output/` 제외). 1000×760·390×844(터치 에뮬레이션, 자동 포커스 생략 확인)·390×520 캡처에서 전송 버튼 44×48이 화면 안, 390px 가로 넘침 없음. 기존 폼 경로는 `/yeongnyangi/room/` 출석 운세의 저장·실패·재시도를 스크래치 검사로 확인.
+- 남은 것·범위 밖
+  - 실기기 소프트 키보드(포털 입력 포커스 유지, Enter 이동/완료)는 미검증.
+  - `scripts/verify-yeongnyangi-profiles-ui.mjs`는 `/fortune/`이 질문형 IntakeChat으로 바뀌기 전 스크립트라 이 작업 전부터 깨져 있다(뷰포트 반복·기존 폼 저장 블록). 저장 오류 문구도 지금은 "프로필을 저장하지 못했어요…"다.
+  - check:fast의 `npm test` 3건(브랜드 og:site_name·application-name, cd:* 이벤트 리스너)은 루트의 gitignore된 `output/android-20261007`·`build-cache/records-*` 폴더를 스캔해서 나는 실패다. 코드와 무관하다.
 
 ## 사용자 결정 (재확인하지 말 것)
 
