@@ -1,7 +1,7 @@
 import { MonthlyCreditLedger } from "./models.js";
 import { findMoonstoneSpendEvidence, moonstoneSpendRefundFilter, isMoonstoneSpendRefunded } from "./moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "./monthly-credit-store.js";
-import { PROFILE_CARD_DELETE_COST_MONTHLY_STONES } from "./profile-card-mutation-policy.js";
+import { PROFILE_CARD_ACCEPTED_MONTHLY_STONE_COSTS, PROFILE_CARD_DELETE_COST_MONTHLY_STONES } from "./profile-card-mutation-policy.js";
 
 import { profileMutationAction } from "./profile-mutation-context.js";
 
@@ -11,7 +11,8 @@ export async function findProfileMoonstoneEvidence({ userId, action, profileId, 
   });
   if (!proof) return null;
   const row = await MonthlyCreditLedger.findOne({ _id: proof.ledgerId, userId, ...moonstoneSpendRefundFilter() }).lean();
-  if (!row || row.sourceId !== requestId || row.profileId !== profileId || row.amount !== PROFILE_CARD_DELETE_COST_MONTHLY_STONES) return null;
+  // 정확한 가격만 인정한다: 현행가(100) 또는 2026-10-10 인하 전 차감분(500). 그 밖의 금액은 증빙이 아니다.
+  if (!row || row.sourceId !== requestId || row.profileId !== profileId || !PROFILE_CARD_ACCEPTED_MONTHLY_STONE_COSTS.includes(row.amount)) return null;
   const storedAction = profileMutationAction(row.metadata?.profileAction);
   if (storedAction ? storedAction !== action : !row.sourceId.startsWith(`profile-card:${action}:${profileId}:`)) return null;
   return { ...row, moonstoneLedger: true, metadata: { ...row.metadata, accessType: "membership_credit", membershipCreditCost: row.amount, profileId, profileAction: action } };

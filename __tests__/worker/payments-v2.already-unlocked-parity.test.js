@@ -201,6 +201,6 @@ test('profile moonstone adapter retains operation metadata and replays without d
  expect((await send()).status).toBe(200);expect((await send()).status).toBe(200);
  const spends=db.rows.filter(r=>r.type==='MONTHLY_CREDIT_SPEND');expect(spends).toHaveLength(1);
  expect(spends[0].metadata).toMatchObject({profileAction:'delete',profileId:'yn_test',requestId});
- expect(spends[0].amount).toBe(500);expect(user.profileSubscription.membershipCreditBalance).toBe(99500);
+ expect(spends[0].amount).toBe(100);expect(user.profileSubscription.membershipCreditBalance).toBe(99900);
  expect((await send('profile_card_update')).status).toBe(409);
 });

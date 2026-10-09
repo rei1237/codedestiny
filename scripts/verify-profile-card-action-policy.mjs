@@ -103,7 +103,7 @@ const cases = [
     ],
   },
   {
-    name: "profile update uses the same Family bypass and 5,000 won payment policy",
+    name: "profile update uses the same Family bypass and 1,000 won payment policy",
     includes: [
       ["policy", "UPDATE: \"update\""],
       ["policy", "PROFILE_CARD_UPDATE_PAYMENT_REQUIRED"],
@@ -180,7 +180,8 @@ const cases = [
       ["destinyProfile", "삭제창은 로컬 카드만으로 먼저 열어 체감 지연을 없앤다."],
       ["destinyProfile", "_dpRunProfileDeleteGate(profile, profileId, requestId)"],
       ["destinyProfile", "var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family'"],
-      ["destinyProfile", "프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다."],
+      ["destinyProfile", "'프로필 수정·삭제에는 ' + PROFILE_CARD_MANAGE_PRICE_LABEL + ' 단건 결제 또는 월정석 사용이 필요합니다.'"],
+      ["destinyProfile", "var PROFILE_CARD_MANAGE_COST = 10;"],
     ],
     excludes: [
       ["destinyProfile", "_dpVerifyLoginSession(true).then(function(ok) {\n      if (!ok) throw new Error('AUTH_REQUIRED');\n      _dpSetPaymentPending(false);\n      return _dpRunProfileDeleteGate"],
@@ -258,9 +259,12 @@ const cases = [
     ],
   },
   {
-    name: "membership benefit cost is fixed at 50 and requires atomic Payment Service evidence",
+    name: "membership benefit cost is fixed at 10 coins (100 moonstones) and requires atomic Payment Service evidence",
     includes: [
+      ["policy", "PROFILE_CARD_DELETE_COST_COINS = 10;"],
+      ["policy", "PROFILE_CARD_DELETE_COST_KRW = 1000;"],
       ["policy", "PROFILE_CARD_DELETE_COST_MONTHLY_STONES = PROFILE_CARD_DELETE_COST_COINS * 10"],
+      ["policy", "LEGACY_PROFILE_CARD_COSTS = Object.freeze({ coins: 50, krw: 5000, monthlyStones: 500 })"],
       ["profileRoute", "PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
       ["profileRoute", "evidencePaymentMethodMatches"],
       ["profileRoute", "profileCardActionPaymentRequiredResponse"],

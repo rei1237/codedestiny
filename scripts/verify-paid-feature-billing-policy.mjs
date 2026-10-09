@@ -47,7 +47,7 @@ const expectedCosts = {
   "sukuyo-relationship-encyclopedia": 30,
   "physiognomy-compatibility": 30,
   "physiognomy-pastlife-compatibility": 30,
-  "profile-card-manage": 50,
+  "profile-card-manage": 10,
   // 작명(훈민정음 작명소) — 300코인 = 30,000원. 워커 라우트(worker/routes/naming-prompt.js)와
   // 프론트(app/naming-ai/NamingAiClient.tsx)가 이 값을 상수로 들고 있어 정본과 어긋나면
   // verifyPaymentShape 의 금액 대조가 400 으로 결제를 되돌린다.

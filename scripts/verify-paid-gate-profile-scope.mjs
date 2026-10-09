@@ -220,8 +220,8 @@ async function runTarget(dir) {
     await window._cdOpenPaidServiceGate({
       title: "프로필 카드 삭제",
       featureKey: "profile-card-manage",
-      coinPrice: 50,
-      amountKrw: 5000,
+      coinPrice: 10,
+      amountKrw: 1000,
       requestId: "profile-delete:verify",
       profileId: "dp_1",
       selectedProfileId: "dp_1",

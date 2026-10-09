@@ -143,6 +143,9 @@ export const APP_PAID_LOW_PRICE_FEATURE_KEYS = Object.freeze([
   "ziwei_decade_luck", "ziwei_love_deep", "ziwei_twelve_palaces", "ziwei_symbolic_layer", "ziwei_life_yearly_flow",
   "rpt_healthReportCard", "rpt_quantumCard", "flower-fc", "olympus-fc",
   "nakshatra-lord-report", "nakshatra-dasha-map", "nakshatra-muhurta", "nakshatra-compat",
+  // 2026-10-10 프로필 카드 추가/수정/삭제 5,000원 → 1,000원(10코인). 무료 구간으로 떨어져도 앱에서 무료로
+  // 열면 유료 조작이 공짜가 된다. ₩1,000 SKU 등록 전까지 앱 결제는 APP_SKU_NOT_VERIFIED 로 닫는다.
+  "profile-card-manage",
 ]);
 
 export function isAppFreeFeature(featureKey, coinPrice) {

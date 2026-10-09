@@ -699,7 +699,7 @@ describe("intent — 결제 의도 기록", () => {
   });
 
   // 2026-10-09 앱에서 무료 구간으로 우회되면 안 되는 저가 사주 콘텐츠와 미검증 SKU는 닫힌다.
-  const APP_UNVERIFIED_KEYS = [...STATIC_READING_PRICE_KEYS,"rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_energyCoordCard", "rpt_villainCard", "rpt_secretHouseEntryCard", "fun.quantumLotto.ritualReport"];
+  const APP_UNVERIFIED_KEYS = [...STATIC_READING_PRICE_KEYS,"rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_energyCoordCard", "rpt_villainCard", "rpt_secretHouseEntryCard", "fun.quantumLotto.ritualReport", "profile-card-manage"];
   test.each(APP_UNVERIFIED_KEYS)("유료 콘텐츠 %s 는 앱 무료 통과 없이 등록된 가격 티어를 사용한다", async (featureKey) => {
     expect([...appPricing.APP_PAID_LOW_PRICE_FEATURE_KEYS].sort()).toEqual([...APP_UNVERIFIED_KEYS].sort());
     const expected = {

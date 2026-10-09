@@ -69,7 +69,7 @@
 - B. 회당 결제: 매번 새로 생성/분석되는 상담. 예: AI 상담, 타로 premium, 궁합 AI
 - C. 무료: registry에 등록되지 않은 기본 기능
 - 십이지신 천운 타로(`tarot-year-fortune`): 신규 단건 결제 기준 100 내부 단위 / 10,000원. 완료된 연간 결과는 `PaidExecutionRecord`에 저장되어 같은 연도 재조회가 가능하며, 기존 구매 기록은 변경하지 않는다.
-- D. 프로필 카드 추가/수정/삭제: 이용권 결제 불가. React와 정적 화면 모두 브라우저 Payment Service를 통해 `DIRECT_KRW` 또는 `MOONLIGHT_STONE` 명령을 먼저 완료하고, 프로필 route는 해당 결제 증거만 소비한다. family 무료는 결제가 아니라 정책 layer 0원 처리
+- D. 프로필 카드 추가/수정/삭제: 건당 1,000원 또는 월정석 100(코인 10), 첫 카드 무료. 2026-10-10 인하: 5,000원(코인 50 · 월정석 500) → 1,000원(코인 10 · 월정석 100). 해금이 출생정보(birth) 단위로 묶여 프로필을 수정·재생성해도 기존 구매를 우회할 수 없게 되었기 때문이다. 이용권 결제 불가. React와 정적 화면 모두 브라우저 Payment Service를 통해 `DIRECT_KRW` 또는 `MOONLIGHT_STONE` 명령을 먼저 완료하고, 프로필 route는 해당 결제 증거만 소비한다. family 무료는 결제가 아니라 정책 layer 0원 처리
 - E. 음악 다운로드: 재생은 무료, 다운로드는 구매 UX gate
 
 정본은 `docs/payment-policy-content-access.md`와 `worker/lib/paid-feature-registry.js`다.

@@ -472,13 +472,13 @@ for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PA
 }
 
 // ── pass 제외: 프로필 카드 추가/삭제 (D유형) ────────────────────────────────
-// 정책: 건당 5,000원 단건결제 또는 월정석 500으로만 결제 가능하며, 이용권으로는 어떤 등급도 결제 불가.
+// 정책: 건당 1,000원 단건결제 또는 월정석 100으로만 결제 가능하며(2026-10-10 5,000원에서 인하), 이용권으로는 어떤 등급도 결제 불가.
 // (family 무료는 '이용권으로 결제'가 아니라 '가격이 0원'인 정책 바이패스이며 worker/routes/profile.js가
 //  판정한다 — coin-gate 이용권 경로와 무관하다.) docs/payment-policy-content-access.md D유형 참고.
 for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PASS_TIERS.FAMILY]) {
   const profileCardDecision = __billingTestUtils.buildPassPaymentDecision(
     activePass(tier),
-    { featureKey: "profile-card-manage", coinPrice: 50, cost: 50, membershipCreditCost: 500 },
+    { featureKey: "profile-card-manage", coinPrice: 10, cost: 10, membershipCreditCost: 100 },
     { tier, passTier: tier, expiresAt: futureDate(), isActive: true, membershipCreditBalance: 500 },
   );
   assert.equal(
