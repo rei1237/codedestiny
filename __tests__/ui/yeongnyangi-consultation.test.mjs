@@ -7,7 +7,7 @@ import path from 'node:path';
 const require=createRequire(import.meta.url), Module=require('node:module');
 const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/consultation'; export {questionFactSelectors,readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {buildAskFirstChapterPrompt} from './worker/yeongnyangi/fortune/ask/prompt'; export {products} from './worker/yeongnyangi/payments/catalog'; export * from './worker/yeongnyangi/fortune/ask/period';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const loaded=new Module(path.resolve('consultation-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,loaded.id);
-const {resolveAskPeriods,formatAskRange,applyAskPeriodChip,resolveQuestionYears,consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,assertProfessionalProse,redactInternalEvidence,tarotPositionNames,correctPersonaAddress,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
+const {resolveAskPeriods,formatAskRange,applyAskPeriodChip,resolveQuestionYears,consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,validateMonthPillars,assertProfessionalProse,redactInternalEvidence,tarotPositionNames,correctPersonaAddress,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
 const clock=consultationClock('Asia/Seoul',new Date('2026-09-21T23:00:00Z'));
 const manifest=readingManifest(products.find(p=>p.id==='saju_mackerel'));
 const make=(q='',topic='general',ask=false)=>createConsultation(q,topic,clock,manifest,ask);
@@ -266,6 +266,29 @@ test('week, month and year words become absolute Monday-to-Sunday, calendar-mont
  assert.deepEqual(at('그냥 고민','2026-10-02'),[]);
  assert.equal(formatAskRange({scale:'week',start:'2026-12-28',end:'2027-01-03'}),'2026.12.28(월)~2027.1.3(일)');
  assert.equal(formatAskRange({scale:'year',start:'2027-01-01',end:'2027-12-31'}),'2027.1.1~12.31');
+});
+test('halves and quarters become calendar ranges, so a question period is not widened to whole years',()=>{
+ const at=(q,asOf)=>resolveAskPeriods(q,asOf,resolveQuestionYears).map(r=>[r.scale,r.start,r.end]);
+ assert.deepEqual(at('2026년 4분기부터 2027년 상반기','2026-10-09'),[['month','2026-10-01','2026-12-31'],['month','2027-01-01','2027-06-30']]);
+ assert.deepEqual(at('내년 상반기에 이직','2026-10-09'),[['month','2027-01-01','2027-06-30']]);
+ assert.deepEqual(at('올해 하반기','2026-10-09'),[['month','2026-07-01','2026-12-31']]);
+ // Without a year: the next time it comes, counting the current one.
+ assert.deepEqual(at('상반기 계획','2026-10-09'),[['month','2027-01-01','2027-06-30']]);
+ assert.deepEqual(at('4분기 매출','2026-10-09'),[['month','2026-10-01','2026-12-31']]);
+ const period=createConsultation('내년 상반기에 이직할까? 2026년 4분기부터 2027년 상반기','job_change',consultationClock('Asia/Seoul',new Date('2026-10-09T03:00:00Z')),manifest,true).period;
+ assert.deepEqual([period.start,period.end],['2026-10-01','2027-06-30']);
+});
+test('a month named with a 간지 must be the monthlyLuck row whose 절입 falls in that civil month',()=>{
+ const rows=[['2026',11,'己亥'],['2026',12,'庚子'],['2027',1,'辛丑']].map(([y,mo,pillar])=>({start:{year:Number(y),month:mo,day:7},pillar}));
+ const facts=[{id:'saju.monthlyLuck',label:'monthlyLuck',value:rows}];
+ assert.doesNotThrow(()=>validateMonthPillars(['2026년 12월 庚子월에는 정리하고, 2027년 1월 辛丑(신축)월에 움직여요.','2026년 11월 기해월은 준비 기간이에요.'],facts));
+ // 庚子 begins at 2026-12 대설; calling it January 2027 is the Y1 error. 2027-02 is not in the rows at all.
+ for(const text of ['2027년 1월 庚子월은 기회예요.','2027년에는 2월 壬寅월이 좋아요.','2026년 11월 경자월'])
+  assert.throws(()=>validateMonthPillars([text],facts),{code:'CHAPTER_MONTH_PILLAR_MISMATCH'},text);
+ // No year in the paragraph, or no 간지월: nothing to check. A question product without month rows rejects the claim.
+ assert.doesNotThrow(()=>validateMonthPillars(['3월 壬寅월에는 쉬어요.','2027년 3월에는 쉬어요.'],facts));
+ assert.doesNotThrow(()=>validateMonthPillars(['2027년 3월 壬寅월'],[]));
+ assert.throws(()=>validateMonthPillars(['2027년 3월 壬寅월'],[],true),{code:'CHAPTER_MONTH_PILLAR_MISMATCH'});
 });
 test('the consultation stores the resolved union, fixed by the user timezone date',()=>{
  const seoul=make('이번 주와 다음 달에 이직 준비는?','general',true).period;

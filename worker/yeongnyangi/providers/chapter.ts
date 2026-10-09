@@ -262,6 +262,7 @@ const REPAIR_INSTRUCTIONS:Record<string,string>={
   V7_ANCHOR_REPEAT:'기준점(일간·일주·신강·신약·오행·명궁·신궁·라그나·나크샤트라·상승점·태양·본명숙·스프레드)은 그 기준점을 소유한 장에서만 설명한다. 이 장에서는 이번 해석을 잇는 한 문장으로만 가리키고 뜻이나 성향을 다시 풀지 않는다.',
   V7_SCENE_REUSE:'usedScenes와 usedActions에 있는 소재·행동은 고르지 않는다. 장면과 제안은 이 장의 주제 안에서 새로 만들고 topics의 scene:·action: 태그도 앞 장에서 쓰지 않은 소재로 바꾼다.',
   SAJU_PILLAR_CONTRADICTION:'년주·월주·일주·시주의 간지, 일간, 신강·신약은 CALCULATED_DATA의 pillars·dayMaster·strengthHeuristic 값만 쓴다. pillars.hour가 null이면 시주 간지를 말하지 않는다.',
+  CHAPTER_MONTH_PILLAR_MISMATCH:'‘N년 M월’과 함께 쓰는 월의 간지는 CALCULATED_DATA의 monthlyLuck에서 그 양력 달에 절입이 시작되는 행의 pillar만 쓴다. 절기 월은 양력 달 초(4~8일 무렵)에 바뀌므로 앞 달에 시작한 간지를 다음 달 이름으로 부르지 않는다. monthlyLuck에 없는 달은 간지를 붙이지 않고 계산 근거가 없다고 쓴다.',
   V7_RESTATED_SENTENCE:'앞 장의 문장을 단어만 바꾸어 다시 쓰지 않는다. previousHighlights의 결론을 되풀이하지 말고 이 장이 소유한 근거에서 나오는 새 판단으로 문장을 쓴다.',
 };
 // Spirit and question-sky chapters are checked against their own vocabulary (spirit.ts, question-sky-reading.ts).

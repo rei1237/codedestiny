@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {build} from 'esbuild';
 const Module=createRequire(import.meta.url)('node:module');
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/prompts/domain/consultation-quality'; export * from './worker/yeongnyangi/prompts/domain/reader-counsel'; export * from './worker/yeongnyangi/prompts/domain/recognition'; export {questionManifest,QUESTION_POLICY_VERSION} from './worker/yeongnyangi/fortune/ask/question-policy'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {domains} from './worker/yeongnyangi/fortune/index'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {readingManifestV7} from './worker/yeongnyangi/fortune/reading-v7'; export {resolveV7Ledger} from './worker/yeongnyangi/fortune/reading-v7-ledger';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/prompts/domain/consultation-quality'; export * from './worker/yeongnyangi/prompts/domain/reader-counsel'; export * from './worker/yeongnyangi/prompts/domain/recognition'; export {questionManifest,QUESTION_POLICY_VERSION} from './worker/yeongnyangi/fortune/ask/question-policy'; export {questionPeriodTiming} from './worker/yeongnyangi/fortune/ask/question-evidence'; export {consultationPeriod,consultationClock} from './worker/yeongnyangi/fortune/consultation'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {domains} from './worker/yeongnyangi/fortune/index'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {readingManifestV7} from './worker/yeongnyangi/fortune/reading-v7'; export {resolveV7Ledger} from './worker/yeongnyangi/fortune/reading-v7-ledger';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const filename=path.resolve('consultation-quality.test.cjs'),loaded=new Module(filename);
 loaded.filename=filename;loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,filename);
 const m=loaded.exports;
@@ -164,24 +164,43 @@ test('strength advice follows only final own-chart strength with ordinary-patter
  assert.deepEqual(advice(complete,['tarot']),[]);
 });
 
-test('ziwei question chapters carry recalculated annual sihua, never the natal copy, in yearly facts',async()=>{
+test('ziwei question chapters carry recalculated annual sihua for every asked year, never the natal copy',async()=>{
  const decision={version:m.QUESTION_POLICY_VERSION,category:'job_change',target:'self',horizon:'current',situation:'이직 고민',options:'남기 / 옮기기',period:'2026년 4분기부터 2027년 상반기',constraints:'',confirmed:true};
- const natal=contexts.ziwei.facts.find(f=>f.label==='yearlyLuck').value;
- assert.equal(natal.year,2026);
  const before=JSON.stringify(contexts.ziwei);
+ const period=m.consultationPeriod('이직할까? '+decision.period,m.consultationClock('Asia/Seoul',new Date('2026-09-29T03:00:00Z')),true);
+ const ziwei=await m.questionPeriodTiming(contexts.ziwei,decision,period,'2026-09-29',async()=>assert.fail('ziwei needs no recalculation'));
+ assert.deepEqual(ziwei.facts.find(f=>f.label==='yearlyTimeline').value.map(r=>r.year),[2026,2027],'only the asked years');
  const rows=m.questionManifest('ziwei','salmon',decision,undefined,'이직할까?');
- const chapters=rows.filter(c=>c.factSelectors?.ziwei?.includes('yearlyLuck'));
+ const chapters=rows.filter(c=>c.factSelectors?.ziwei?.includes('yearlyTimeline'));
  assert.ok(chapters.length);
  for(const chapter of chapters){
   let sent;
   const provider=new m.StructuredChapterProvider({generate:async request=>{sent=request;return {result:{},provider:'mock',model:'fixture'};}});
-  await provider.generateChapter({chapter,analysis:{contexts:{ziwei:contexts.ziwei},question:'이직할까?',themes:[],signals:[]},previous:[]});
-  const yearly=sent.calculatedData.facts.find(f=>f.label==='yearlyLuck').value;
-  assert.equal(yearly.transformations,undefined,'natal palace transformations must not ride on yearly luck');
-  assert.equal(yearly.annualStem,'병');
-  // 丙年 유년사화: 천동 록 · 천기 권 · 문창 과 · 염정 기
-  assert.deepEqual(yearly.annualTransformations.map(t=>t.transformation+':'+t.star),['화록:천동','화권:천기','화과:문창','화기:염정']);
-  assert.ok(yearly.annualTransformations.every(t=>t.palaceName.endsWith('궁')));
+  await provider.generateChapter({chapter,analysis:{contexts:{ziwei},question:'이직할까?',themes:[],signals:[]},previous:[]});
+  const [y2026,y2027]=sent.calculatedData.facts.find(f=>f.label==='yearlyTimeline').value;
+  assert.ok([y2026,y2027].every(y=>y.transformations===undefined),'natal palace transformations must not ride on yearly luck');
+  // 丙年 유년사화: 천동 록 · 천기 권 · 문창 과 · 염정 기 / 丁年: 태음 록 · 천동 권 · 천기 과 · 거문 기
+  assert.equal(y2026.annualStem,'병');
+  assert.deepEqual(y2026.annualTransformations.map(t=>t.transformation+':'+t.star),['화록:천동','화권:천기','화과:문창','화기:염정']);
+  assert.equal(y2027.annualStem,'정');
+  assert.deepEqual(y2027.annualTransformations.map(t=>t.transformation+':'+t.star),['화록:태음','화권:천동','화과:천기','화기:거문']);
+  assert.ok([y2026,y2027].flatMap(y=>y.annualTransformations).every(t=>t.palaceName.endsWith('궁')));
  }
  assert.equal(JSON.stringify(contexts.ziwei),before,'stored context stays untouched');
+});
+
+test('saju question month rows run to the end of the asked period from the same engine',async()=>{
+ const decision={version:m.QUESTION_POLICY_VERSION,category:'job_change',target:'self',horizon:'current',situation:'이직 고민',options:'남기 / 옮기기',period:'2026년 4분기부터 2027년 상반기',constraints:'',confirmed:true};
+ const period=m.consultationPeriod('내년 상반기에 이직할까? '+decision.period,m.consultationClock('Asia/Seoul',new Date('2026-09-29T03:00:00Z')),true);
+ assert.deepEqual([period.start,period.end],['2026-10-01','2027-06-30']);
+ const engine=m.domains.saju,input=engine.validateInput({personA:birth,readingMode:'personal'}),years=[];
+ const saju=await m.questionPeriodTiming(contexts.saju,decision,period,'2026-09-29',async year=>{years.push(year);
+  return (await engine.calculate(input,{asOf:`${year}-07-01`})).facts.find(f=>f.label==='monthlyLuck').value;});
+ assert.deepEqual(years,[2027]);
+ const months=saju.facts.find(f=>f.label==='monthlyLuck').value.map(r=>`${r.start.year}-${r.start.month} ${r.pillar}`);
+ // 절입 월: 2026-12 대설 庚子 → 2027-01 소한 辛丑 … 2027-06 망종 丙午. The 2027-07 소서 row is past the period end.
+ assert.deepEqual(months.slice(-7),['2026-12 庚子','2027-1 辛丑','2027-2 壬寅','2027-3 癸卯','2027-4 甲辰','2027-5 乙巳','2027-6 丙午']);
+ assert.equal(contexts.saju.facts.find(f=>f.label==='monthlyLuck').value.at(-1).start.year,2026,'stored context stays untouched');
+ // A transition question reads 대운 only; nothing is recalculated.
+ assert.equal(await m.questionPeriodTiming(contexts.saju,{...decision,horizon:'transition'},period,'2026-09-29',async()=>assert.fail()),contexts.saju);
 });

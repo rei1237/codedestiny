@@ -1,4 +1,4 @@
-import {questionEvidence} from './fortune/ask/question-evidence';
+import {questionEvidence,questionPeriodTiming} from './fortune/ask/question-evidence';
 import {conversationView} from './fortune/ask/conversation';
 import {questionSkyCalculationInput} from './fortune/question-sky-locale-input';
 import {consultationBudget,fusionConsultationManifest,allocateConsultationBudget} from './fortune/consultation-budget';
@@ -50,7 +50,7 @@ import { calculateAskTarot } from './fortune/ask/tarot';
 import { analyzeAsk, parseAskAnalysis, escapeAskData } from './fortune/ask/analysis';
 import type { AskAnalysis } from './fortune/ask/analysis';
 import type { EvidencePacket } from './fortune/ask/contracts';
-import { consultationClock, createConsultation } from './fortune/consultation';
+import { consultationClock, consultationPeriod, createConsultation } from './fortune/consultation';
 import { calculateScreenSaju } from './fortune/saju/runtime';
 import { parseJongAnswer } from './fortune/saju/jong-check';
 import { jongCheckApplies } from './fortune/saju/jong-check-policy';
@@ -224,6 +224,12 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   }
   if(!spiritInput&&preventionEligible(product.fishId)&&contexts.saju)contexts.saju=withPreventionTiming(contexts.saju);
   if(decision)contexts[product.domain]=questionEvidence(contexts[product.domain]!,decision,body.question,date);
+  const questionPeriod=decision?consultationPeriod(body.question+' '+decision.period,clock,true):undefined;
+  if(decision){
+    const input=normalized[product.domain];
+    contexts[product.domain]=await questionPeriodTiming(contexts[product.domain]!,decision,questionPeriod,date,async year=>
+      (await domains[product.domain].calculate({...input,personB:undefined,readingMode:'personal'},{runtimeEnv:env,asOf:`${year}-07-01`})).facts.find(f=>f.label==='monthlyLuck')?.value);
+  }
   if(persona&&tarotV2)contexts.tarot=withChatTarotVoice(contexts.tarot!);
   const analysis={...analyze(contexts),question:normalized[product.domain].question,topicId:normalized[product.domain].topicId,readingMode:raw.readingMode,asOf:date};
   let manifest=readingManifest(product,analysis.topicId,raw.readingMode,spiritInput?READING_VERSION:product.manifestVersion);
@@ -262,7 +268,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   analysis.consultation=createConsultation(body.question || '',analysis.topicId || 'general',clock,manifest,kind?.id==='ask');
   if(decision){
     analysis.consultation.questionDecision=decision;
-    analysis.consultation.period=createConsultation(body.question+' '+decision.period,analysis.topicId||'general',clock,manifest,true).period;
+    analysis.consultation.period=questionPeriod!;
     // Clarifications and closely related sentences belong to one intent, not one paid unit per punctuation.
     analysis.consultation.questions=[{id:'Q1',text:body.question,chapterId:manifest[0].id}];
   }

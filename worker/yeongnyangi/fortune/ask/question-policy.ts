@@ -101,7 +101,7 @@ export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDec
  if(!expanded)return legacyQuestionManifest(domain,fish,d,spread);
  const selectors:Record<DomainId,string[]>={
   saju:['pillars','dayMaster','fiveElements','tenGodsByPillar','seasonalBalance','natalInteractions','strengthHeuristic','usefulGod','jong',...(d.target==='pair'?['partnerChart','relationshipComparison','compatibility']:[]),...(d.horizon==='transition'?['questionTiming','advancedFactors']:['yearlyLuck','monthlyLuck'])],
-  ziwei:['lifePalace','bodyPalace','palaces','fourTransformations','sanFangSiZheng','businessBasis','healthBasis',...(d.target==='pair'?['relationshipBasis','relationshipComparison','relationshipTiming','partnerChart']:[]),...(d.horizon==='transition'?['questionTiming']:['yearlyLuck'])],
+  ziwei:['lifePalace','bodyPalace','palaces','fourTransformations','sanFangSiZheng','businessBasis','healthBasis',...(d.target==='pair'?['relationshipBasis','relationshipComparison','relationshipTiming','partnerChart']:[]),...(d.horizon==='transition'?['questionTiming']:['yearlyTimeline'])],
   vedic:['lagna','moon','moonNakshatra','planets','houses','grahas','bhavas','yogas',...(d.horizon==='transition'?['questionTiming']:['vimshottariDasha']),...(d.target==='pair'?['relationshipBasis','relationshipComparison','relationshipTiming','partnerChart','ashtakuta']:[])],
   astrology:['planets','ascendant','houseCusps','houseRulers','aspects','chartSect',...(d.target==='pair'?['relationshipBasis','relationshipComparison','partnerChart','synastry']:[])],
   sukuyo:['personA','personB','relation','forwardDistance','reverseDistance','distanceLabel'],

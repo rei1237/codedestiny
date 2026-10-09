@@ -119,6 +119,13 @@ export function createConsultation(question: string, topicId: string, clock: Ret
   // answer slots, it never asks another model to rewrite the user's intent.
   const units = question.trim().split(/\n+|(?<=[?？])\s*/u).map(s => s.trim()).filter(Boolean);
   const questions = units.length > 8 ? [...units.slice(0, 7), units.slice(7).join('\n')] : units;
+  return { version: 1, topicId, topicLabel: topicLabel(topicId) || '전체 흐름', question,
+    questions: questions.map((text, i) => ({ id: `q${i + 1}`, text, chapterId: manifest[0].id })), ...clock,
+    period: consultationPeriod(question, clock, askPeriods) };
+}
+
+/** The consulted period alone; question products resolve it before calculation so timing facts can reach its end. */
+export function consultationPeriod(question: string, clock: ReturnType<typeof consultationClock>, askPeriods = false): Consultation['period'] {
   const requested = question.match(/(?:20\d{2}\s*년(?:\s*\d{1,2}\s*(?:월\s*)?(?:[~～–-]\s*\d{1,2}\s*)?월(?:\s*\d{1,2}\s*일)?)?|\d{1,2}\s*(?:월\s*)?[~～–-]\s*\d{1,2}\s*월|\d{1,2}\s*월(?:\s*\d{1,2}\s*일)?|(?:앞으로|향후)\s*\d+(?:\s*[~～–-]\s*\d+)?\s*(?:개월|달|년|주)|재작년|내후년|작년|지난\s*해|올해|금년|내년|명년|이번\s*달|다음\s*달|이번\s*주|다음\s*주|차주|상반기|하반기|봄|여름|가을|겨울)/gu);
   const requestedLabels: string[] = requested ? [...requested] : [];
   // A named year becomes an explicit calendar range, so '올해' can never drift to another year downstream.
@@ -133,13 +140,11 @@ export function createConsultation(question: string, topicId: string, clock: Ret
   end.setUTCMonth(end.getUTCMonth()+3);
   const last=new Date(Date.UTC(end.getUTCFullYear(),end.getUTCMonth()+1,0)).getUTCDate();
   end.setUTCDate(Math.min(day,last));
-  return { version: 1, topicId, topicLabel: topicLabel(topicId) || '전체 흐름', question,
-    questions: questions.map((text, i) => ({ id: `q${i + 1}`, text, chapterId: manifest[0].id })), ...clock,
-    period: requestedLabels.length || years.length || span ? { kind: 'requested', label: [...new Set([...requestedLabels, ...years.map(y => y.label)
+  return requestedLabels.length || years.length || span ? { kind: 'requested', label: [...new Set([...requestedLabels, ...years.map(y => y.label)
       .filter(label => !requestedLabels.some(r => r.replace(/\s+/g, ' ').includes(label)))])].join(' · '),
       ...(years.length ? { start: `${years[0].year}-01-01`, end: `${years[years.length - 1].year}-12-31`, years } : {}),
       ...(span || {}), ...resolver }
-      : { kind: 'default', label: `${clock.asOf}부터 3개월의 흐름과 실천·점검`, start: clock.asOf, end: end.toISOString().slice(0, 10), ...resolver } };
+      : { kind: 'default', label: `${clock.asOf}부터 3개월의 흐름과 실천·점검`, start: clock.asOf, end: end.toISOString().slice(0, 10), ...resolver };
 }
 
 export function validateConsultationAnswers(body: ChapterBody, chapter: ChapterSpec, consultation?: Consultation) {
@@ -298,4 +303,26 @@ export function validatePreciseTiming(body: ChapterBody, consultation: Consultat
   const dates=(value:string)=>[...value.matchAll(/(20\d{2})(?:년\s*|-|\/)(\d{1,2})(?:월\s*|-|\/)(\d{1,2})일?/g)].map(m=>`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`);
   const allowed=new Set(dates(JSON.stringify(evidence)+' '+JSON.stringify(consultation)));
   if(dates(text).some(date=>!allowed.has(date)))throw new FortuneError('UNSUPPORTED_PRECISE_TIMING');
+  validateMonthPillars(text.split('\n'),evidence,Boolean(consultation.questionDecision));
+}
+
+const STEM_KO='갑을병정무기경신임계',STEM_HJ='甲乙丙丁戊己庚辛壬癸',BRANCH_KO='자축인묘진사오미신유술해',BRANCH_HJ='子丑寅卯辰巳午未申酉戌亥';
+const MONTH_PILLAR=new RegExp(`(\\d{1,2})\\s*월[^\\n\\d]{0,8}?([${STEM_HJ}][${BRANCH_HJ}]|[${STEM_KO}][${BRANCH_KO}])(?:\\s*\\([^)\\n]{1,8}\\))?\\s*월`,'gu');
+const hanjaPillar=(p:string)=>STEM_KO.includes(p[0])?STEM_HJ[STEM_KO.indexOf(p[0])]+BRANCH_HJ[BRANCH_KO.indexOf(p[1])]:p;
+/**
+ * 'N년 M월 + 간지월' must be the monthlyLuck row whose 절입 falls in that civil month. A month absent from the rows is
+ * unsupported. The year is the nearest 'N년' before the month in the same paragraph; a month without one is skipped.
+ */
+export function validateMonthPillars(paragraphs: string[], evidence: unknown, required = false) {
+  const rows=(Array.isArray(evidence)?evidence:[]).filter((f:any)=>f?.label==='monthlyLuck'&&Array.isArray(f.value)).flatMap((f:any)=>f.value);
+  if(!rows.length&&!required)return;
+  for(const paragraph of paragraphs){
+    const years=[...paragraph.matchAll(/(20\d{2})\s*년/g)];
+    for(const m of paragraph.matchAll(MONTH_PILLAR)){
+      const year=years.filter(y=>y.index!<=m.index!).at(-1)?.[1];
+      if(!year)continue;
+      const row=rows.find((r:any)=>r?.start?.year===Number(year)&&r?.start?.month===Number(m[1]));
+      if(!row||row.pillar!==hanjaPillar(m[2]))throw new FortuneError('CHAPTER_MONTH_PILLAR_MISMATCH');
+    }
+  }
 }
