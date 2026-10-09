@@ -33,6 +33,9 @@ function errorText(copy: NakshatraCopy) {
   } as const;
 }
 
+// 출생 기반 해금(userId + 생년월일)은 저장된 프로필이 있어야 판정·계산된다.
+const PROFILE_REQUIRED_MESSAGE = "프로필을 저장한 뒤 구매해 주세요.";
+
 function toText(value: unknown): string {
   return value == null ? "" : String(value).trim();
 }
@@ -75,6 +78,8 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
   // 원장을 먼저 읽어 첫 페인트에서 잠금 화면이 번쩍이지 않게 한다(IslandConsultClient 선례).
   const [ledgerUnlocked, setLedgerUnlocked] = useState(false);
   const { birth, natal } = profilePicker;
+  // 🔴 서버는 이 저장 프로필의 출생 정보로만 해금을 판정하고 본문을 계산한다(본문 생년월일은 무시).
+  const profileId = profilePicker.selectedProfileId || "";
   const [report, setReport] = useState<T | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -108,15 +113,16 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
   const confirmedLocked = unlockStatus === "ready" && !isUnlocked;
 
   const fetchingRef = useRef(false);
-  const load = useCallback(async (restoredBirth: NakshatraBirthInput | null = birth) => {
+  const load = useCallback(async (restoredBirth: NakshatraBirthInput | null = birth, restoredProfileId: string = profileId) => {
     if (!restoredBirth || fetchingRef.current) return false;
+    if (!restoredProfileId) { setError(PROFILE_REQUIRED_MESSAGE); return false; }
     fetchingRef.current = true;
     setLoading(true);
     setError("");
     try {
       // 🔴 일시적 503(Mongo 블립·세션 리프레시 지연)은 공용 판정·백오프로 자동 재시도한다.
       //    이 완충이 없으면 블립 한 번에 "연결이 불안정해요"로 굳어 사용자가 수동 재시도해야 했다.
-      const { data, status, transient } = await postPaidBody(product.endpoint, restoredBirth as unknown as Record<string, unknown>);
+      const { data, status, transient } = await postPaidBody(product.endpoint, { ...(restoredBirth as unknown as Record<string, unknown>), profileId: restoredProfileId });
       if (data.ok && data.report) {
         setReport(data.report as T);
         fetchedRef.current = true;
@@ -142,7 +148,7 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
       fetchingRef.current = false;
       setLoading(false);
     }
-  }, [birth, product.endpoint, product.featureKey, ERROR_TEXT]);
+  }, [birth, profileId, product.endpoint, product.featureKey, ERROR_TEXT]);
 
   // 해금 + 생년 정보가 갖춰지면 한 번만 자동으로 본문을 채운다.
   useEffect(() => {
@@ -155,19 +161,21 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
   // 낙관적 해금만으로 resume 완료를 반환하지 않으며 구매 게이트를 다시 타지 않는다.
   const buildResume = usePaidResume(product.featureKey, async (args) => {
     const restored = unpackPaidResumeArg<NakshatraBirthInput>(args.birth) || birth;
+    const restoredProfileId = String(args.profileId || "") || profileId;
     if (!restored) return false;
     markOptimisticallyUnlocked(product.featureKey);
     setLedgerUnlocked(true);
     fetchedRef.current = false;
     void refetchUnlocks({ force: true });
-    return load(restored);
+    return load(restored, restoredProfileId);
   });
 
   const unlock = useCallback(async () => {
     if (isPaying || loading) return;
     setError("");
+    if (!profileId) { setError(PROFILE_REQUIRED_MESSAGE); return; }
     const result = await ensurePaidAccess({
-      resume: buildResume({ birth: packPaidResumeArg(birth) }),
+      resume: buildResume({ birth: packPaidResumeArg(birth), profileId }),
       featureKey: product.featureKey,
       coinPrice: product.coinPrice,
       cost: product.coinPrice,
@@ -186,7 +194,7 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
     fetchedRef.current = false;
     await load();
     void refetchUnlocks({ force: true });
-  }, [buildResume, ensurePaidAccess, isPaying, load, loading, markOptimisticallyUnlocked, product, refetchUnlocks, ERROR_TEXT]);
+  }, [buildResume, ensurePaidAccess, isPaying, load, loading, markOptimisticallyUnlocked, product, profileId, refetchUnlocks, ERROR_TEXT]);
 
   const reload = useCallback(async () => {
     fetchedRef.current = false;

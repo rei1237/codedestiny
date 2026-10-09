@@ -2645,6 +2645,10 @@
     "overseas": {
       "approx": "ca. {amount}",
       "chargedInKrw": "De betaling wordt geautoriseerd in Koreaanse won (KRW). Betalen met buiten Korea uitgegeven kaarten wordt voorbereid en is nog niet gegarandeerd. Uw kaartuitgever hanteert zijn eigen wisselkoers."
+    },
+    "birthScope": {
+      "separatePurchaseRequired": "Voor deze geboortedatum is een aparte aankoop nodig",
+      "saveProfileFirst": "Sla het profiel op voordat je koopt"
     }
   },
   "auth": {

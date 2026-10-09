@@ -2645,6 +2645,10 @@
     "overseas": {
       "approx": "env. {amount}",
       "chargedInKrw": "Le paiement est autorisé en wons coréens (KRW). Le paiement par carte émise hors de Corée est en cours de préparation et pas encore garanti. Votre émetteur de carte applique son propre taux de change."
+    },
+    "birthScope": {
+      "separatePurchaseRequired": "Cette date de naissance nécessite un achat séparé",
+      "saveProfileFirst": "Veuillez enregistrer le profil avant l'achat"
     }
   },
   "auth": {

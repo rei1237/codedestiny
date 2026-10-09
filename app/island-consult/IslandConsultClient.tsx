@@ -48,6 +48,8 @@ const REPORT_REASON = "운명의 섬 12궁 심층 리포트";
 const REPORT_COIN_PRICE = lookupServerCoinPrice(REPORT_FEATURE_KEY)!;
 const REPORT_AMOUNT_KRW = REPORT_COIN_PRICE * 100;
 const REPORT_ENDPOINT = "/api/ziwei-island-report";
+// 출생 기반 해금(userId + 생년월일)은 저장된 프로필이 있어야 판정·계산된다.
+const REPORT_PROFILE_REQUIRED = "프로필을 저장한 뒤 구매해 주세요.";
 
 type ReportSection = { key: string; title: string; body: string };
 type ReportPalace = { title: string; focus: string; tier: number; tierLabel: string; sections: ReportSection[] };
@@ -456,6 +458,8 @@ export default function IslandConsultClient() {
   const seedAppliedRef = useRef(false);
 
   const { seed: profileSeed, seedVersion } = useAiProfileSeed();
+  // 🔴 심층 리포트는 이 저장 프로필의 출생 정보로만 해금 판정·계산된다(폼의 생년월일은 서버가 쓰지 않는다).
+  const reportProfileId = profileSeed?.profileId || "";
 
   // ── 심층 리포트 상태 ──
   const { ensurePaidAccess, isPaying } = useCoinGate();
@@ -535,10 +539,12 @@ export default function IslandConsultClient() {
   // 해금된 사용자의 리포트 본문을 가져온다. 미해금이면 서버가 402를 주므로 잠금 상태를 그대로 둔다.
   async function loadReport() {
     if (reportLoading) return;
+    if (!reportProfileId) { setReportError(REPORT_PROFILE_REQUIRED); return; }
     setReportLoading(true);
     setReportError("");
     try {
-      const { status, data } = await postJson<{ ok?: boolean; report?: IslandReport; reason?: string }>(REPORT_ENDPOINT, {
+      const { status, data } = await postJson<{ ok?: boolean; report?: IslandReport; reason?: string; requiresProfile?: boolean; message?: string }>(REPORT_ENDPOINT, {
+        profileId: reportProfileId,
         birthDate: form.birthDate,
         birthTime: form.birthTimeUnknown ? "" : form.birthTime,
         birthTimeUnknown: form.birthTimeUnknown,
@@ -549,6 +555,7 @@ export default function IslandConsultClient() {
       if (data.ok && data.report) { setReport(data.report); reportFetchedRef.current = true; return; }
       if (status === 402 || data.reason === "PAYMENT_REQUIRED") return;           // 잠금 유지
       if (status === 401 || data.reason === "LOGIN_REQUIRED") { setReportError(ERROR_TEXT.LOGIN_REQUIRED); return; }
+      if (data.requiresProfile) { setReportError(String(data.message || "") || REPORT_PROFILE_REQUIRED); return; }
       if (status === 503 || data.reason === "DB_DEGRADED") { setReportError("연결이 잠시 불안정해요. 잠시 후 다시 시도해 주세요."); return; }
       setReportError("리포트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
     } catch {
@@ -602,6 +609,7 @@ export default function IslandConsultClient() {
   async function unlockReport() {
     if (isPaying || reportLoading) return;
     setReportError("");
+    if (!reportProfileId) { setReportError(REPORT_PROFILE_REQUIRED); return; }
     const r = await ensurePaidAccess({
       resume: buildReportResume({
         birthDate: form.birthDate,

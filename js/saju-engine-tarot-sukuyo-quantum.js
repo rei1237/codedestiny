@@ -8396,11 +8396,51 @@ function syFeatureListHasKey(list, featureKey) {
   return false;
 }
 
+/* 출생 기반 해금 키(숙요 인연 도감·본성 심화·극T 관계 회로 등 — js/core/birth-scope-unlocks.js)는
+   "계정 + 지금 보는 저장 카드의 출생 정보" 단위다. 계정 단위 저장소(fortune_auth_user.unlockMap ·
+   sy_paid_* localStorage · 전역 unlockedFeatureMap 직접 조회)에 읽고 쓰지 않고, 판정은 카드 범위를 아는
+   셸 isTileKeyUnlocked 에 맡긴다. 결제 직후 렌더용 표식은 메모리에만, 그 카드(출생 정보) 토큰과 함께 둔다. */
+function syIsBirthScopedSukuyoKey(featureKey) {
+  try {
+    var root = typeof window !== 'undefined' ? window : {};
+    return typeof root.cdIsBirthScopedUnlockKey === 'function' && root.cdIsBirthScopedUnlockKey(featureKey) === true;
+  } catch (_) {}
+  return false;
+}
+
+function syBirthScopeToken() {
+  var root = typeof window !== 'undefined' ? window : {};
+  var profileId = '';
+  try {
+    profileId = typeof root.cdBirthScopeCurrentProfileId === 'function' ? String(root.cdBirthScopeCurrentProfileId() || '').trim() : '';
+  } catch (_) {}
+  if (!profileId) return '';
+  var signature = '';
+  try {
+    if (typeof root.cdProfileBirthSignature === 'function') {
+      signature = String(root.cdProfileBirthSignature(root.__cdActiveBirthProfile || root.__cdCurrentDestinyProfile) || '');
+    }
+  } catch (_) {}
+  return profileId + '#' + signature;
+}
+
 function syIsPaidSukuyoFeatureUnlocked(featureKey) {
   var key = String(featureKey || '').trim();
   var root = typeof window !== 'undefined' ? window : {};
   var hasAuthToken = false;
   if (!key) return false;
+  if (syIsBirthScopedSukuyoKey(key)) {
+    var scopeToken = syBirthScopeToken();
+    if (!scopeToken) return false;
+    try {
+      var sessionMarks = root.__sySukuyoBirthScopedUnlocks;
+      if (sessionMarks && sessionMarks[key] === scopeToken) return true;
+    } catch (_) {}
+    try {
+      return typeof root.isTileKeyUnlocked === 'function' && root.isTileKeyUnlocked(key) === true;
+    } catch (_) {}
+    return false;
+  }
   // 인연 레이더·전생 인연 리딩(통합 리포트)은 회당 결제라 이 영구 해금 경로를 타지 않는다.
   // 서버 아카이브 조회로만 재열람을 판정하므로 여기에 되살리지 말 것.
   if (key === SY_PAID_FEATURES.relationshipEncyclopedia.key && root._sySukuyoEncyclopediaUnlocked === true) return true;
@@ -8432,6 +8472,18 @@ function syMarkPaidSukuyoFeatureUnlocked(featureKey) {
   var key = String(featureKey || '').trim();
   var root = typeof window !== 'undefined' ? window : {};
   if (!key) return;
+  if (syIsBirthScopedSukuyoKey(key)) {
+    // 영구 기록은 서버(해금 원장)와 셸 access-store 가 그 카드 범위로 갖는다. 여기서는 이 세션·이 카드 표식만.
+    var markToken = syBirthScopeToken();
+    if (!markToken) return;
+    try {
+      if (!root.__sySukuyoBirthScopedUnlocks || typeof root.__sySukuyoBirthScopedUnlocks !== 'object') {
+        root.__sySukuyoBirthScopedUnlocks = Object.create(null);
+      }
+      root.__sySukuyoBirthScopedUnlocks[key] = markToken;
+    } catch (_) {}
+    return;
+  }
   try {
     if (!root.unlockedFeatureMap) root.unlockedFeatureMap = Object.create(null);
     root.unlockedFeatureMap[key] = true;

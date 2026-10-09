@@ -419,6 +419,10 @@ export default function FptiExperience() {
   const [linkedProfileName, setLinkedProfileName] = useState("");
   const [autoRunning, setAutoRunning] = useState(false);
   const autoSignatureRef = useRef("");
+  // 🔴 심층 리포트는 "계정 + 생년월일" 단위 해금이다. 결과가 저장 프로필의 출생 정보로 계산됐을 때만
+  // 그 profileId 로 조회·구매한다(직접 입력한 생년월일은 프로필을 저장해야 살 수 있다).
+  const [linkedProfile, setLinkedProfile] = useState<{ profileId: string; signature: string } | null>(null);
+  const [resultSignature, setResultSignature] = useState("");
   const copy = getFptiExperienceCopy(locale);
 
   const loadingStep = useMemo(() => copy.loadingSteps[stepIndex] || copy.loadingSteps[0], [copy, stepIndex]);
@@ -451,6 +455,8 @@ export default function FptiExperience() {
     if (!hasFptiProfileInput(currentProfile)) return null;
     const profileForm = toFormInput(currentProfile);
     if (!profileForm) return null;
+    const linkedId = String(currentProfile.profileId || currentProfile.id || "").trim();
+    setLinkedProfile(linkedId ? { profileId: linkedId, signature: buildAutoSignature(profileForm) } : null);
 
     setForm((prev) => ({
       ...prev,
@@ -469,6 +475,8 @@ export default function FptiExperience() {
     if (!currentProfile) return eventProfile ? syncFormFromCurrentProfile(eventProfile) : null;
     const profileForm = toFormInput(currentProfile);
     if (!profileForm) return null;
+    const linkedId = String(currentProfile.profileId || currentProfile.id || "").trim();
+    setLinkedProfile(linkedId ? { profileId: linkedId, signature: buildAutoSignature(profileForm) } : null);
 
     const fallbackName = profileForm.name || copy.profileUser;
     setForm((prev) => ({
@@ -548,6 +556,7 @@ export default function FptiExperience() {
         sleep(trigger === "auto" ? 1300 : trigger === "profile" ? 700 : 2200),
       ]);
       setResult(analysis);
+      setResultSignature(buildAutoSignature(analysisInput));
       setPhase("result");
       autoSignatureRef.current = buildAutoSignature(analysisInput);
       if (typeof window !== "undefined") {
@@ -713,7 +722,11 @@ export default function FptiExperience() {
 
         {phase === "result" && result && (
           <section id="fpti-result">
-            <FptiResultCard result={result} buildResumeDescriptor={buildDeepReportResumeDescriptor} />
+            <FptiResultCard
+              result={result}
+              savedProfileId={linkedProfile && linkedProfile.signature === resultSignature ? linkedProfile.profileId : ""}
+              buildResumeDescriptor={buildDeepReportResumeDescriptor}
+            />
           </section>
         )}
 

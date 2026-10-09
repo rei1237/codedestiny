@@ -2645,6 +2645,10 @@
     "overseas": {
       "approx": "約 {amount}",
       "chargedInKrw": "付款以韓元（KRW）授權。海外發行信用卡付款功能正在準備中，暫不保證可用。匯率由發卡機構決定。"
+    },
+    "birthScope": {
+      "separatePurchaseRequired": "此出生日期需要另外購買",
+      "saveProfileFirst": "請先儲存個人檔案後再購買"
     }
   },
   "auth": {

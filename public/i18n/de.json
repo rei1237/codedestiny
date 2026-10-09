@@ -2645,6 +2645,10 @@
     "overseas": {
       "approx": "ca. {amount}",
       "chargedInKrw": "Die Zahlung wird in koreanischen Won (KRW) autorisiert. Die Zahlung mit außerhalb Koreas ausgestellten Karten wird vorbereitet und ist noch nicht garantiert. Ihr Kartenherausgeber wendet seinen eigenen Wechselkurs an."
+    },
+    "birthScope": {
+      "separatePurchaseRequired": "Für dieses Geburtsdatum ist ein separater Kauf erforderlich",
+      "saveProfileFirst": "Bitte speichere das Profil vor dem Kauf"
     }
   },
   "auth": {

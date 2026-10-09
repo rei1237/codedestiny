@@ -2645,6 +2645,10 @@
     "overseas": {
       "approx": "約 {amount} 相当",
       "chargedInKrw": "決済は韓国ウォン（KRW）で承認されます。海外発行カードでのお支払いは現在準備中で、ご利用いただけない場合があります。為替換算はカード会社のレートで行われます。"
+    },
+    "birthScope": {
+      "separatePurchaseRequired": "この生年月日は別途購入が必要です",
+      "saveProfileFirst": "プロフィールを保存してから購入してください"
     }
   },
   "auth": {

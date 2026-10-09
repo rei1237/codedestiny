@@ -38,10 +38,8 @@ const KNOWN_ORPHANS = new Set([
   // AdvancedZiweiSectionV2.tsx 하나만 듣는다. 프로필 갱신 알림은 실제로는
   // 이름 없는 'destinyProfileChanged' 로 나가서 이 리스너에 도달하지 않는다.
   "cd:destiny-profile-updated",
-  // js/core/access-store.js 가 듣지만 프로덕션에서 쏘는 곳이 없다.
-  // 🔴 지우기 전에 __tests__/ui/access-store.static.test.js 를 먼저 재조준할 것 —
-  //    그 스위트가 __testListeners 로 이 핸들러를 직접 구동한다.
-  "cd:profile-changed",
+  // cd:profile-changed 는 2026-10-10 부터 js/destiny-profile.js 가 저장 카드의 출생 정보 수정 때
+  // (birthChanged:true) 쏜다 — access-store.js 의 force 재조회와 index.html 셸이 듣는다.
 ]);
 
 function collectSourceFiles(dir, out) {

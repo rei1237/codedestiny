@@ -6,8 +6,9 @@ const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "../..");
 const storeSource = fs.readFileSync(path.join(root, "js/core/access-store.js"), "utf8");
+const birthScopeSource = fs.readFileSync(path.join(root, "js/core/birth-scope-unlocks.js"), "utf8");
 
-function loadStore(fetchImpl, { setTimeoutImpl = () => 1, authUser = null, BroadcastChannelImpl, storageMap } = {}) {
+function loadStore(fetchImpl, { setTimeoutImpl = () => 1, authUser = null, BroadcastChannelImpl, storageMap, birthScope = false } = {}) {
   const listeners = new Map();
   const storage = storageMap || new Map();
   const sandbox = {
@@ -48,6 +49,8 @@ function loadStore(fetchImpl, { setTimeoutImpl = () => 1, authUser = null, Broad
   if (BroadcastChannelImpl) sandbox.BroadcastChannel = BroadcastChannelImpl;
   sandbox.globalThis = sandbox;
   sandbox.window = sandbox;
+  // birthScope:true 면 index.html 처럼 출생 기반 키 사본 모듈을 먼저 싣는다.
+  if (birthScope) vm.runInNewContext(birthScopeSource, sandbox, { filename: "birth-scope-unlocks.js" });
   vm.runInNewContext(storeSource, sandbox, { filename: "access-store.js" });
   sandbox.CodeDestinyAccessStore.__testListeners = listeners;
   return sandbox.CodeDestinyAccessStore;
@@ -634,4 +637,65 @@ test("global tile-lock and Adsense consumers never trigger unlock network reads"
   assert.doesNotMatch(adsense, /ensureLoaded\(/);
   assert.match(adsense, /accessStore\.getSnapshot/);
   assert.match(adsense, /accessStore\?\.subscribe/);
+});
+
+// ── 출생 기반 해금(2026-10-10): 계정 + 저장 카드의 출생 정보 단위 ─────────────────────────────
+
+test("출생 기반: 정책 도입 전 캐시의 출생 키는 복원하지 않고 계정 키는 남긴다", async () => {
+  const sharedStorage = new Map();
+  const noFetch = async () => ({ ok: false, status: 503, json: async () => ({ ok: false }) });
+  const first = loadStore(noFetch, { storageMap: sharedStorage, authUser: { id: "user-1" }, birthScope: true });
+  first.applyAccessStateSnapshot({
+    userId: "user-1",
+    profileId: "profile-1",
+    unlockedFeatureIds: ["section_summary", "love-code"],
+    completeness: "full",
+    authority: "server",
+  }, { userId: "user-1", profileId: "profile-1" });
+  const cacheKey = Array.from(sharedStorage.keys()).find((key) => key.includes("cd_access_store_v4::user-1::profile-1"));
+  const cached = JSON.parse(sharedStorage.get(cacheKey));
+  assert.equal(cached.birthScopePolicy, 1);
+  delete cached.birthScopePolicy;
+  sharedStorage.set(cacheKey, JSON.stringify(cached));
+
+  const second = loadStore(noFetch, { storageMap: sharedStorage, authUser: { id: "user-1" }, birthScope: true });
+  await second.ensureLoaded({ userId: "user-1", profileId: "profile-1", authenticated: true });
+  assert.equal(second.isUnlocked("section_summary"), false, "옛 캐시의 출생 키(계정 전체 해금이 섞임)로 열면 안 됩니다");
+  assert.equal(second.isUnlocked("love-code"), true, "계정 단위 키는 그대로 복원돼야 합니다");
+});
+
+test("출생 기반: 저장 카드의 출생 정보 수정(birthChanged)은 출생 키를 비우고 force 로 다시 묻는다", async () => {
+  const urls = [];
+  const store = loadStore(async (url) => {
+    urls.push(String(url));
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        data: { userId: "user-1", currentProfileId: "profile-1", unlockedFeatureIds: [], completeness: "full", authority: "server" },
+      }),
+    };
+  }, { authUser: { id: "user-1" }, birthScope: true });
+  store.applyAccessStateSnapshot({
+    userId: "user-1",
+    profileId: "profile-1",
+    unlockedFeatureIds: ["section_summary"],
+    completeness: "full",
+    authority: "server",
+  }, { userId: "user-1", profileId: "profile-1" });
+  assert.equal(store.isUnlocked("section_summary"), true);
+
+  store.__testListeners.get("cd:profile-changed")({
+    detail: {
+      profileId: "profile-1",
+      profile: { id: "profile-1", gender: "F", birth: { year: 1991, month: 3, day: 4, hour: 5, minute: 6, calType: "solar" } },
+      birthChanged: true,
+      source: "profile-birth-edit",
+    },
+  });
+  assert.equal(store.isUnlocked("section_summary"), false, "이전 출생 정보로 산 해금은 즉시 잠겨야 합니다");
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(urls.length, 1, "새 출생 정보의 해금을 서버에 한 번 다시 물어야 합니다");
+  assert.match(urls[0], /profileId=profile-1/);
 });

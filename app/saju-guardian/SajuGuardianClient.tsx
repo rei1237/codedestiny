@@ -142,6 +142,7 @@ const SAJU_GUARDIAN_ACCESS_CHECKING_MESSAGE = "빠르게 잠금 해제 권한을
 type SajuGuardianTx = (value: string) => string;
 
 const SAJU_GUARDIAN_TEXT_KEYS_COPY = [
+  "프로필을 저장한 뒤 구매해 주세요.",
   "사주 가디언 소환진 해금 확인",
   "사주 가디언 소환진 해금 재확인",
   "해금 확인",
@@ -401,6 +402,7 @@ const SAJU_GUARDIAN_TEXT_COPY: Partial<Record<LoadingLocale, Record<string, stri
     "태어난 시간 (선택)": "Birth Time (Optional)",
     "시간을 모르면 건너뛰세요": "Skip if you do not know the time",
     "프로필 카드에서 불러오기": "Load from profile card",
+    "프로필을 저장한 뒤 구매해 주세요.": "Please save a profile before purchasing.",
     "프로필 카드에서 출생 정보 불러오기": "Load birth info from profile card",
     "프로필 카드의 출생 정보를 불러왔어요.": "Birth info loaded from your profile card.",
     "프로필 카드에 저장된 출생 정보가 없어요.": "No birth info saved on your profile card.",
@@ -1408,6 +1410,7 @@ function ResultCard({
   birthMonth,
   birthDay,
   birthHour,
+  profileId,
 }: {
   data: ApiResult;
   onReset: () => void;
@@ -1416,6 +1419,7 @@ function ResultCard({
   birthMonth: string;
   birthDay: string;
   birthHour: string;
+  profileId?: string;
 }) {
   const [activePanel, setActivePanel] = useState("seal");
   const [promptCopied, setPromptCopied] = useState(false);
@@ -1469,6 +1473,11 @@ function ResultCard({
   const hasBirthTime = result.hasBirthTime === true;
 
   const handleGenerateGuardianImage = async () => {
+    // 이미지 해금은 저장된 프로필의 생년월일 단위 — 서버는 profileId 의 저장된 출생 정보로만 생성한다.
+    if (!profileId) {
+      showToast(tx("프로필을 저장한 뒤 구매해 주세요."), "error");
+      return;
+    }
     setGuardianImage({ status: "loading" });
     try {
       const response = await fetch("/api/guardian/generate-image", {
@@ -1476,6 +1485,7 @@ function ResultCard({
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
+          profileId,
           sajuData: {
             year: Number(birthYear) || 0,
             month: Number(birthMonth) || 0,
@@ -1493,7 +1503,8 @@ function ResultCard({
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload?.ok || !payload?.imageBase64) {
         setGuardianImage({ status: "error" });
-        showToast(tx("수호신 이미지를 생성하지 못했어요. 잠시 후 다시 시도해 주세요."), "error");
+        const accessMessage = [400, 402, 403].includes(response.status) && typeof payload?.message === "string" ? payload.message : "";
+        showToast(accessMessage || tx("수호신 이미지를 생성하지 못했어요. 잠시 후 다시 시도해 주세요."), "error");
         return;
       }
       setGuardianImage({ status: "ready", base64: payload.imageBase64 });
@@ -2231,6 +2242,7 @@ export default function SajuGuardianPage() {
         birthMonth={birthMonth}
         birthDay={birthDay}
         birthHour={birthHour}
+        profileId={profileSeed?.profileId}
       />
     );
   }

@@ -27,6 +27,7 @@ const vm = require("node:vm");
 const root = path.resolve(__dirname, "../..");
 const shellSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const storeSource = fs.readFileSync(path.join(root, "js/core/access-store.js"), "utf8");
+const birthScopeSource = fs.readFileSync(path.join(root, "js/core/birth-scope-unlocks.js"), "utf8");
 
 const PROFILE_STORAGE_KEY = "cd_tile_locks_user-1_profile-1";
 const ACCOUNT_STORAGE_KEY = "cd_tile_locks_user-1";
@@ -76,6 +77,10 @@ function grabObjectVar(name) {
 }
 
 const SHELL_FUNCTIONS = [
+  "function _cdIsBirthScopedTileKey(rawKey) {",
+  "function _cdStripBirthScopedTileKeys(mapObj) {",
+  "function _cdBirthScopeCurrentProfileId() {",
+  "function _cdEnsureBirthUnlockScope() {",
   "function resolveTileLockAliasKeys(rawKey) {",
   "function markUnlockKey(unlockMap, rawKey) {",
   "function isSajuAccessFeatureKey(rawKey) {",
@@ -96,6 +101,10 @@ const SHELL_FUNCTIONS = [
 // "access store 가 단일 소스로 동작하는가" 이므로 원장이 답을 덮어쓰면 측정이 흐려진다.
 const SHELL_HARNESS = `
   var unlockedFeatureMap = Object.create(null);
+  var _cdBirthUnlockScopeProfileId = '';
+  ${grabObjectVar("_CD_BIRTH_SCOPED_TILE_ALIAS_KEYS")}
+  // 출생 기반 해금의 카드 범위. '' 는 저장 안 된 출생 정보(직접 입력)를 보고 있는 상태다.
+  function _cdResolveCurrentProfileIdForAccess() { return window.__testBirthScopeProfileId; }
   ${grabObjectVar("TILE_LOCK_ALIAS_MAP")}
   ${grabObjectVar("SAJU_ACCESS_CONTENT_KEY_BY_FEATURE_KEY")}
   function hasAuthToken() { return true; }
@@ -121,7 +130,7 @@ const SHELL_HARNESS = `
   };
 `;
 
-function boot() {
+function boot(options = {}) {
   const storage = new Map();
   const listeners = new Map();
   const sandbox = {
@@ -165,6 +174,9 @@ function boot() {
   };
   sandbox.globalThis = sandbox;
   sandbox.window = sandbox;
+  sandbox.__testBirthScopeProfileId = options.birthScopeProfileId === undefined ? "profile-1" : options.birthScopeProfileId;
+  // 기본은 사본 모듈 없이(출생 기반 판정 off) 낙관 해금 계약만 본다. birthScope:true 면 index.html 처럼 먼저 싣는다.
+  if (options.birthScope === true) vm.runInNewContext(birthScopeSource, sandbox, { filename: "birth-scope-unlocks.js" });
   vm.runInNewContext(storeSource, sandbox, { filename: "access-store.js" });
   vm.runInNewContext(SHELL_HARNESS, sandbox, { filename: "index.html:shell-slice" });
 
@@ -276,4 +288,36 @@ test("새로고침(loadTileLocks)이 라이브와 같은 상태를 본다", () =
   shell.loadTileLocks();
 
   assert.equal(shell.isTileKeyUnlocked("section_summary"), live, "라이브와 새로고침이 어긋나면 사용자가 버그로 인식합니다");
+});
+
+// ── 출생 기반 해금(2026-10-10): 계정 + 저장 카드의 출생 정보 단위 ─────────────────────────────
+// section_summary 같은 출생 기반 키는 계정 단위 durable 저장소(cd_tile_locks_*)에 읽고 쓰지 않는다.
+// 다른 카드에서 산 해금이 새로 입력한 생년월일에 열리던 누수의 본체다.
+
+test("출생 기반: 실제 결제 해금도 durable 저장소에 쓰지 않는다(그 카드 범위에서만 열린다)", () => {
+  const { shell, store, storage } = boot({ birthScope: true });
+
+  store.markOptimisticallyUnlocked("section_summary", "profile-1", { source: "PaymentSuccessEvent" });
+  shell.saveTileLocks();
+
+  assert.equal(shell.isTileKeyUnlocked("section_summary"), true, "산 카드에서는 열려야 합니다");
+  assert.deepEqual(storedKeys(storage, PROFILE_STORAGE_KEY), []);
+  assert.deepEqual(storedKeys(storage, ACCOUNT_STORAGE_KEY), []);
+});
+
+test("출생 기반: 예전에 계정 저장소에 굳은 출생 키로는 열리지 않는다", () => {
+  const { shell, storage } = boot({ birthScope: true });
+  storage.set(ACCOUNT_STORAGE_KEY, JSON.stringify({ section_summary: true, "love-code": true }));
+
+  shell.loadTileLocks();
+
+  assert.equal(shell.isTileKeyUnlocked("section_summary"), false, "계정 저장소의 출생 키가 다른 생년월일을 열면 안 됩니다");
+});
+
+test("출생 기반: 저장 안 된 출생 정보(직접 입력)를 보고 있으면 store 가 알아도 잠근다", () => {
+  const { shell, store } = boot({ birthScope: true, birthScopeProfileId: "" });
+
+  store.markOptimisticallyUnlocked("section_summary", "profile-1", { source: "PaymentSuccessEvent" });
+
+  assert.equal(shell.isTileKeyUnlocked("section_summary"), false);
 });

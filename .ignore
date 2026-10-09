@@ -124,6 +124,7 @@
 /public/js/core/astro/transits.js
 /public/js/core/auth-hint.d.ts
 /public/js/core/auth-hint.js
+/public/js/core/birth-scope-unlocks.js
 /public/js/core/bootstrapDestinyFlower.js
 /public/js/core/celestial-paid-reader.js
 /public/js/core/checkout-entry.d.ts

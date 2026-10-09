@@ -2146,6 +2146,10 @@
     "overseas": {
       "approx": "약 {amount} 상당",
       "chargedInKrw": "결제는 원화(KRW)로 승인됩니다. 해외 발급 카드 결제는 준비 중이며 아직 이용이 보장되지 않습니다. 환전은 카드사 환율로 이루어집니다."
+    },
+    "birthScope": {
+      "separatePurchaseRequired": "이 생년월일은 별도 구매가 필요합니다",
+      "saveProfileFirst": "프로필을 저장한 뒤 구매해 주세요"
     }
   },
   "auth": {

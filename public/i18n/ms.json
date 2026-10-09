@@ -2645,6 +2645,10 @@
     "overseas": {
       "approx": "kira-kira {amount}",
       "chargedInKrw": "Pembayaran dibenarkan dalam Won Korea (KRW). Pembayaran dengan kad yang dikeluarkan di luar Korea sedang disediakan dan belum dijamin. Pengeluar kad anda menggunakan kadar pertukaran sendiri."
+    },
+    "birthScope": {
+      "separatePurchaseRequired": "Tarikh lahir ini memerlukan pembelian berasingan",
+      "saveProfileFirst": "Sila simpan profil sebelum membuat pembelian"
     }
   },
   "auth": {

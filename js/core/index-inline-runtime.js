@@ -1551,9 +1551,30 @@ function __cdMapHasTileLockUnlocked(mapObj, lockKey) {
   return false;
 }
 
+/* 출생 기반 해금 키(js/core/birth-scope-unlocks.js 사본 · 'health-report' 는 셸 별칭)는 계정 단위
+   localStorage(cd_tile_locks_v2::*)에 읽고 쓰지 않는다. 판정은 지금 보는 저장 카드 범위를 아는
+   셸 window.isTileKeyUnlocked 에만 맡긴다(없으면 잠금). */
+function __cdIsBirthScopedTileLockKey(lockKey) {
+  var key = String(lockKey || '').trim();
+  if (!key) return false;
+  if (key === 'health-report') return true;
+  try {
+    return typeof window.cdIsBirthScopedUnlockKey === 'function' && window.cdIsBirthScopedUnlockKey(key) === true;
+  } catch (_) {}
+  return false;
+}
+
+function __cdIsBirthScopedTileLockUnlocked(lockKey) {
+  try {
+    if (typeof window.isTileKeyUnlocked === 'function') return window.isTileKeyUnlocked(lockKey) === true;
+  } catch (_) {}
+  return false;
+}
+
 function __cdIsTileLockUnlocked(actionEl, lockKey) {
   if (!lockKey) return false;
   if (!__cdHasAuthToken()) return false;
+  if (__cdIsBirthScopedTileLockKey(lockKey)) return __cdIsBirthScopedTileLockUnlocked(lockKey);
   if (actionEl && actionEl.classList && actionEl.classList.contains('tarot-tile--tileUnlocked')) return true;
   if (!__cdTileLockServerSyncDone && !__cdTileLockServerSyncInFlight) {
     __cdSyncTileLocksFromServer();
@@ -1653,6 +1674,7 @@ function __cdReadTileLockMapForSync() {
         if (scopedMap && typeof scopedMap === 'object') {
           var scopedKeys = Object.keys(scopedMap);
           for (var i = 0; i < scopedKeys.length; i += 1) {
+            if (__cdIsBirthScopedTileLockKey(scopedKeys[i])) continue;
             if (scopedMap[scopedKeys[i]] === true) merged[scopedKeys[i]] = true;
           }
         }
@@ -1668,7 +1690,9 @@ function __cdReadTileLockMapForSync() {
   var keys = Object.keys(merged);
   for (var k = 0; k < keys.length; k += 1) {
     var aliases = __cdResolveTileLockAliasKeys(keys[k]);
-    for (var a = 0; a < aliases.length; a += 1) normalized[aliases[a]] = true;
+    for (var a = 0; a < aliases.length; a += 1) {
+      if (!__cdIsBirthScopedTileLockKey(aliases[a])) normalized[aliases[a]] = true;
+    }
   }
   return normalized;
 }
@@ -1739,6 +1763,7 @@ function __cdWriteTileLockMapForSync(mapObj) {
   if (mapObj && typeof mapObj === 'object') {
     var keys = Object.keys(mapObj);
     for (var i = 0; i < keys.length; i += 1) {
+      if (__cdIsBirthScopedTileLockKey(keys[i])) continue;
       if (mapObj[keys[i]] === true) safe[keys[i]] = true;
     }
   }
@@ -1777,8 +1802,11 @@ function __cdMergeServerUnlockKeys(unlockKeys) {
   for (var i = 0; i < unlockKeys.length; i += 1) {
     var raw = String(unlockKeys[i] || '').trim();
     if (!raw) continue;
+    // 출생 기반 키는 셸(index.html mergeAccessStoreUnlocksIntoLegacyMap)이 profileId 일치일 때만 합친다.
+    if (__cdIsBirthScopedTileLockKey(raw)) continue;
     var aliases = __cdResolveTileLockAliasKeys(raw);
     for (var a = 0; a < aliases.length; a += 1) {
+      if (__cdIsBirthScopedTileLockKey(aliases[a])) continue;
       if (localMap[aliases[a]] !== true) {
         localMap[aliases[a]] = true;
         changed = true;
@@ -2255,11 +2283,11 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-d18903945e49',
+    '/js/saju-engine.js?v=build-d4cf99d47672',
       '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-498c32abafd6',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-0814fdbc5cfe',
     '/js/core/saju/basicFortunePresentation.js?v=build-eb8d27ea0abf',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
     '/js/core/saju/reportDashboard.js?v=build-926a44c5f6a1',
@@ -2289,7 +2317,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-5a3b2b6e4fbd')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-741475a2988e')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -7696,6 +7724,7 @@ function _dfResolveLockTileBySource() {
 
 function _dfIsLockKeyUnlocked(lockKey) {
   if (!lockKey) return false;
+  if (__cdIsBirthScopedTileLockKey(lockKey)) return __cdIsBirthScopedTileLockUnlocked(lockKey);
   try {
     if (window.unlockedFeatureMap && typeof window.unlockedFeatureMap === 'object') {
       return __cdMapHasTileLockUnlocked(window.unlockedFeatureMap, lockKey);
@@ -8517,9 +8546,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-d18903945e49',
+      '/js/saju-engine.js?v=build-d4cf99d47672',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-498c32abafd6'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-0814fdbc5cfe'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일

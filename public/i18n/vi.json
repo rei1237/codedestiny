@@ -2645,6 +2645,10 @@
     "overseas": {
       "approx": "khoảng {amount}",
       "chargedInKrw": "Thanh toán được ủy quyền bằng Won Hàn Quốc (KRW). Thanh toán bằng thẻ phát hành ngoài Hàn Quốc đang được chuẩn bị và chưa được đảm bảo. Đơn vị phát hành thẻ của bạn áp dụng tỷ giá riêng."
+    },
+    "birthScope": {
+      "separatePurchaseRequired": "Ngày sinh này cần được mua riêng",
+      "saveProfileFirst": "Vui lòng lưu hồ sơ trước khi mua"
     }
   },
   "auth": {

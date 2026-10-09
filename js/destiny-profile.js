@@ -2300,6 +2300,18 @@
     return Object.keys(map);
   }
 
+  /* 출생 기반 해금 키(js/core/birth-scope-unlocks.js)는 계정 단위 cd_tile_locks 에 읽고 쓰지 않는다.
+     사본 모듈이 없는 페이지에서는 판정 함수가 없어 아무 키도 거르지 않는다(이 파일의 잠금 키는 계정 단위다). */
+  function _dpIsBirthScopedUnlockKey(lockKey) {
+    var key = String(lockKey || '').trim();
+    if (!key) return false;
+    if (key === 'health-report') return true;
+    try {
+      return typeof window.cdIsBirthScopedUnlockKey === 'function' && window.cdIsBirthScopedUnlockKey(key) === true;
+    } catch (_) {}
+    return false;
+  }
+
   function _dpReadTileLockMap() {
     if (!_dpHasAuthToken()) return Object.create(null);
 
@@ -2316,6 +2328,7 @@
             hasScopedData = true;
             var scopedKeys = Object.keys(scopedParsed);
             for (var si = 0; si < scopedKeys.length; si += 1) {
+              if (_dpIsBirthScopedUnlockKey(scopedKeys[si])) continue;
               if (scopedParsed[scopedKeys[si]] === true) merged[scopedKeys[si]] = true;
             }
           }
@@ -2334,6 +2347,7 @@
           if (legacyParsed && typeof legacyParsed === 'object') {
             var legacyKeys = Object.keys(legacyParsed);
             for (var li = 0; li < legacyKeys.length; li += 1) {
+              if (_dpIsBirthScopedUnlockKey(legacyKeys[li])) continue;
               if (legacyParsed[legacyKeys[li]] === true) merged[legacyKeys[li]] = true;
             }
           }
@@ -2355,6 +2369,7 @@
     if (map && typeof map === 'object') {
       var keys = Object.keys(map);
       for (var i = 0; i < keys.length; i += 1) {
+        if (_dpIsBirthScopedUnlockKey(keys[i])) continue;
         if (map[keys[i]] === true) safe[keys[i]] = true;
       }
     }
@@ -7209,6 +7224,24 @@
      3. CustomEvent 브로드캐스트
         → 사주 엔진, 자미두수, 숙요점 자동 연동
   ────────────────────────────────────────── */
+  /* 출생 정보 서명(서버 normalizeProfileBirth 와 같은 필드). 사본 모듈이 없으면 "" — 그때는 수정 신호를 보내지 않는다. */
+  function _dpBirthScopeSignature(profile) {
+    try {
+      return typeof window.cdProfileBirthSignature === 'function' ? String(window.cdProfileBirthSignature(profile) || '') : '';
+    } catch (_) {}
+    return '';
+  }
+
+  /* 저장된 카드의 출생 정보가 바뀌었다: 출생 기반 해금은 새 출생 정보로 다시 받아야 한다.
+     js/core/access-store.js(force 재조회)와 index.html 셸(해금 상태·latch·그린 본문 비우기)이 듣는다. */
+  function _dpBroadcastBirthEdited(profileId, profile) {
+    try {
+      window.dispatchEvent(new CustomEvent('cd:profile-changed', {
+        detail: { profileId: String(profileId || ''), profile: profile || null, birthChanged: true, source: 'profile-birth-edit' }
+      }));
+    } catch (_) {}
+  }
+
   function broadcastProfileChange(profile) {
     try {
       document.dispatchEvent(new CustomEvent('destinyProfileChanged', {
@@ -10105,6 +10138,7 @@
       return;
     }
     var mutationAction = isUpdate ? 'update' : 'create';
+    var previousBirthSignature = isUpdate ? _dpBirthScopeSignature(currentProfile) : '';
     var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family';
     /* 과부하 금지 — 두 값은 의미가 다르다. 하나로 합치면 한도 가드가 수정까지 삼킨다(#248 회귀). */
     var updateRequiresPayment = isUpdate && !isFamilyPlan;
@@ -10285,6 +10319,13 @@
       _dpScrollProfileIntoViewMobile();
       broadcastProfileChange(curr || created || null);
       _dpUpdateSaveBtn();
+      if (isUpdate) {
+        var savedBirthProfile = _dpFindProfileById(DPStorage.list(), createProfileId) || created || curr || null;
+        var savedBirthSignature = _dpBirthScopeSignature(savedBirthProfile);
+        if (previousBirthSignature && savedBirthSignature && savedBirthSignature !== previousBirthSignature) {
+          _dpBroadcastBirthEdited(createProfileId, savedBirthProfile);
+        }
+      }
 
       // 서버 재조회는 백그라운드로 수행해 최종 정합성만 보정한다.
       _dpLoadFromServer(function(loaded) {

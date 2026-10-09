@@ -43,7 +43,8 @@ test('unlocked restored result hydrates without the transient calculation argume
   const context = vm.createContext({document, window:restored, console, renderSummary,
     SECTION_GATE_KEYS:[{gateId:'summaryGate',unlockKey:'section_summary'}],
     isSajuSectionUnlockedForRender:()=>true,sajuAccessUnlockState:'ready',
-    applySectionGateOverlayState:()=>{},applyDynamicPaidContentGates:()=>{}});
+    applySectionGateOverlayState:()=>{},applyDynamicPaidContentGates:()=>{},
+    _cdApplyBirthScopeGateNote:()=>{},_cdSectionRenderLatchKey:(key)=>String(key||'')+'|'});
   context.summaryArgs = summaryArgs;
   vm.runInContext(source.slice(start,end) + "\napplySectionGates({type:'cd:saju-summary-ready',detail:summaryArgs});",context);
   assert.ok(document.querySelector('.saju-summary-report'), 'unlocked restored result must not stay empty');
@@ -68,7 +69,8 @@ test('delivered summary body is never re-locked mid-view', () => {
   const context = vm.createContext({document, window:{addEventListener(){}}, console, renderSummary,
     SECTION_GATE_KEYS:[{gateId:'summaryGate',unlockKey:'section_summary'}],
     isSajuSectionUnlockedForRender:()=>unlocked,sajuAccessUnlockState:'ready',
-    applySectionGateOverlayState:()=>{},applyDynamicPaidContentGates:()=>{}});
+    applySectionGateOverlayState:()=>{},applyDynamicPaidContentGates:()=>{},
+    _cdApplyBirthScopeGateNote:()=>{},_cdSectionRenderLatchKey:(key)=>String(key||'')+'|'});
   context.summaryArgs = summaryArgs;
   vm.runInContext(source.slice(start,end) + "\napplySectionGates({type:'cd:saju-summary-ready',detail:summaryArgs});",context);
   const gate = document.getElementById('summaryGate');
@@ -94,7 +96,8 @@ test('empty gate body never latches the payment overlay away', () => {
   const context = vm.createContext({document, window:{addEventListener(){}}, console, renderSummary,
     SECTION_GATE_KEYS:[{gateId:'ziweiDecadeLuckGate',unlockKey:'ziwei_decade_luck'}],
     isSajuSectionUnlockedForRender:()=>unlocked,sajuAccessUnlockState:'ready',
-    applySectionGateOverlayState:()=>{},applyDynamicPaidContentGates:()=>{}});
+    applySectionGateOverlayState:()=>{},applyDynamicPaidContentGates:()=>{},
+    _cdApplyBirthScopeGateNote:()=>{},_cdSectionRenderLatchKey:(key)=>String(key||'')+'|'});
   vm.runInContext(source.slice(start,end) + "\napplySectionGates({type:'cd:unlocks-changed'});", context);
   unlocked = false;
   vm.runInContext("applySectionGates({type:'cd:unlocks-changed'});", context);

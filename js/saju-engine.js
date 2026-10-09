@@ -6441,6 +6441,24 @@ function _cdAIPromptGate(input) {
   } catch (_gateProfileError) {
     gateProfileId = String(opts.profileId || opts.selectedProfileId || '').trim();
   }
+  /* 출생 기반 키는 지금 보는 저장 카드로만 결제한다 — 리졸버의 "다른 저장 카드" 폴백을 쓰지 않는다. */
+  var gateBirthScoped = false;
+  try { gateBirthScoped = typeof window.cdIsBirthScopedUnlockKey === 'function' && window.cdIsBirthScopedUnlockKey(featureKey); } catch (_gateScopeError) {}
+  if (gateBirthScoped) {
+    var strictGateProfileId = '';
+    try { strictGateProfileId = typeof window.cdBirthScopeCurrentProfileId === 'function' ? String(window.cdBirthScopeCurrentProfileId() || '').trim() : ''; } catch (_strictPidError) {}
+    if (!strictGateProfileId) {
+      var saveFirstMessage = '프로필을 저장한 뒤 구매해 주세요';
+      try {
+        if (typeof window.cdTranslate === 'function') {
+          var translatedSaveFirst = window.cdTranslate('payment.birthScope.saveProfileFirst', {}, saveFirstMessage);
+          if (translatedSaveFirst && translatedSaveFirst !== 'payment.birthScope.saveProfileFirst') saveFirstMessage = String(translatedSaveFirst);
+        }
+      } catch (_saveFirstI18nError) {}
+      return Promise.resolve(normalize({ ok: false, status: 400, payload: { code: 'MISSING_PROFILE_ID', requiresProfile: true, message: saveFirstMessage } }));
+    }
+    gateProfileId = strictGateProfileId;
+  }
   if (typeof window._cdOpenPaidServiceGate === 'function') {
     return Promise.resolve(window._cdOpenPaidServiceGate({
       title: reason,
@@ -26785,6 +26803,17 @@ function _buildMonthCommandFromEngine(p, natal, pw) {
 function _cdSajuGateUnlocked(featureKey){
   var key=String(featureKey||'').trim();
   if(!key)return false;
+  /* 출생 기반 해금(section_summary·section_daewun 등)은 지금 보는 저장 카드의 출생 정보 단위다.
+     직접 입력(저장 카드와 출생 정보가 다름)이면 다른 카드에서 산 해금으로 열지 않는다.
+     계정 단위 unlockedFeatureMap 직접 조회도 하지 않는다 — 셸 isTileKeyUnlocked 가 카드 범위를 판정한다. */
+  var birthScoped=false;
+  try{ birthScoped=(typeof window.cdIsBirthScopedUnlockKey==='function'&&window.cdIsBirthScopedUnlockKey(key))||key==='health-report'; }catch(_){}
+  if(birthScoped){
+    var scopePid='';
+    try{ scopePid=typeof window.cdBirthScopeCurrentProfileId==='function'?String(window.cdBirthScopeCurrentProfileId()||'').trim():''; }catch(_){}
+    if(!scopePid)return false;
+    try{ return typeof window.isTileKeyUnlocked==='function'&&window.isTileKeyUnlocked(key)===true; }catch(_){ return false; }
+  }
   try{ if(typeof window.isTileKeyUnlocked==='function'&&window.isTileKeyUnlocked(key))return true; }catch(_){}
   try{ if(window.unlockedFeatureMap&&window.unlockedFeatureMap[key]===true)return true; }catch(_){}
   return false;

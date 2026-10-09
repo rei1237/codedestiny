@@ -24,6 +24,11 @@ import { useFptiSharedCopy } from "./_lib/copy";
 type Props = {
   result: FptiAnalysisResult;
   /**
+   * 이 결과를 계산한 저장 프로필 id. 직접 입력(저장 안 된) 생년월일이면 "" — 해금 조회·구매 모두
+   * "계정 + 생년월일" 단위라 저장 프로필 없이는 잠금이고 살 수도 없다.
+   */
+  savedProfileId?: string;
+  /**
    * 결제 후 자동 재개 서술자 생성기. 🔴 부모(FptiExperience)가 만든다 — 복귀한 문서에서는
    * 이 카드가 마운트되지 않아 여기에 핸들러를 등록하면 재개가 영영 안 걸린다.
    */
@@ -301,7 +306,13 @@ function mapServerDeepReport(result: FptiAnalysisResult, serverRaw: unknown): Fp
   };
 }
 
-async function fetchServerDeepReport(result: FptiAnalysisResult, signature: string): Promise<FptiDeepReport | null> {
+async function fetchServerDeepReport(
+  result: FptiAnalysisResult,
+  signature: string,
+  savedProfileId: string,
+): Promise<FptiDeepReport | null> {
+  // 저장 프로필이 없으면 서버도 잠금으로 답한다 — 부를 이유가 없다.
+  if (!savedProfileId) return null;
   try {
     const response = await authFetch("/api/fpti/deep-report", {
       method: "POST",
@@ -310,8 +321,8 @@ async function fetchServerDeepReport(result: FptiAnalysisResult, signature: stri
         reportSignature: signature,
         reportId: signature,
         sessionId: signature,
-        profileId: signature,
-        selectedProfileId: signature,
+        profileId: savedProfileId,
+        selectedProfileId: savedProfileId,
         result,
       }),
       cache: "no-store",
@@ -536,7 +547,7 @@ function createInitialDeepReport(result: FptiAnalysisResult): FptiDeepReport {
   }
 }
 
-export default function FptiResultCard({ result, buildResumeDescriptor }: Props) {
+export default function FptiResultCard({ result, savedProfileId = "", buildResumeDescriptor }: Props) {
   const copy = useFptiSharedCopy();
   const codeParts = (result?.code || "").split("").filter(Boolean);
   const [deepLoading, setDeepLoading] = useState(false);
@@ -572,26 +583,24 @@ export default function FptiResultCard({ result, buildResumeDescriptor }: Props)
   useEffect(() => {
     let cancelled = false;
     const scope = readAuthScope();
-    const stored = safeReadStored(scope, signature);
-    const storedUnlocked = Boolean(stored?.report && stored.access?.isUnlocked);
-    setAccessChecking(!storedUnlocked);
-    if (stored?.report && stored.access?.isUnlocked) {
-      setAccessState(stored.access);
-      setDeepReport(normalizeDeepReport(stored.report, true));
-    } else {
-      setAccessState({ isUnlocked: false });
-      setDeepReport(normalizeDeepReport(createInitialDeepReport(result), false));
-    }
+    // 🔴 브라우저 저장본은 해금 근거가 아니다 — 서버가 이 저장 프로필(생년월일)에 대해 답한 것만 믿는다.
+    // 저장본은 해금 수단·거래 id 같은 표시용 메타데이터로만 쓴다.
+    const stored = savedProfileId ? safeReadStored(scope, signature) : null;
+    setAccessChecking(Boolean(savedProfileId));
+    setAccessState({ isUnlocked: false });
+    setDeepReport(normalizeDeepReport(createInitialDeepReport(result), false));
+    if (!savedProfileId) return () => { cancelled = true; };
 
     const syncFromDb = async () => {
       try {
+        // 접근 스냅샷은 셸의 현재 프로필 기준이다 — 결과가 그 저장 프로필로 계산됐을 때만 근거가 된다.
         const dbUnlocked = fptiSnapshotUnlocked;
         // FPTI 프리미엄은 생년월일 시그니처 스코프 잠금이라 계정 전역 unlockMap엔 잡히지 않는다.
         // 서버 심층 리포트 조회가 성공하면(이미 해금 상태) 그 자체가 이 시그니처 보유 증거이므로,
         // 계정 전역 미보유여도 시그니처 스코프 해금을 복원한다(크로스 디바이스·캐시 삭제 대비).
         let unlockedReport: FptiDeepReport | null = null;
         try {
-          unlockedReport = await fetchServerDeepReport(result, signature);
+          unlockedReport = await fetchServerDeepReport(result, signature, savedProfileId);
         } catch {
           unlockedReport = null;
         }
@@ -632,11 +641,15 @@ export default function FptiResultCard({ result, buildResumeDescriptor }: Props)
     return () => {
       cancelled = true;
     };
-  }, [copy.deepNoticeAlreadyUnlocked, fptiSnapshotUnlocked, result, signature]);
+  }, [copy.deepNoticeAlreadyUnlocked, fptiSnapshotUnlocked, result, savedProfileId, signature]);
 
   const handleUnlockDeepReport = async () => {
     if (deepLoading || accessChecking || unlockingRef.current) return;
     if (accessState.isUnlocked) return;
+    if (!savedProfileId) {
+      setDeepError(copy.errorProfileRequired);
+      return;
+    }
 
     unlockingRef.current = true;
     setDeepError("");
@@ -652,9 +665,9 @@ export default function FptiResultCard({ result, buildResumeDescriptor }: Props)
         requestId: requestIdStable,
         reportId: signature,
         sessionId: signature,
-        // 생년월일 파생 시그니처를 프로필 스코프 키로 넘겨 결제분을 영구 해금으로 저장한다.
-        profileId: signature,
-        selectedProfileId: signature,
+        // 🔴 해금은 "계정 + 생년월일" 단위 — 서버가 이 저장 프로필의 출생 정보로 birthKey 를 만든다.
+        profileId: savedProfileId,
+        selectedProfileId: savedProfileId,
         // 모바일 PortOne 은 상위 프레임을 리다이렉트해 이 await 가 문서와 함께 죽는다.
         // 복귀 문서가 결과 화면을 스스로 다시 열도록 재개 서술자를 함께 싣는다.
         resume: buildResumeDescriptor(),
@@ -684,7 +697,7 @@ export default function FptiResultCard({ result, buildResumeDescriptor }: Props)
         unlockedAt: String(consume?.createdAt || new Date().toISOString()),
       };
 
-      const unlockedReport = await fetchServerDeepReport(result, signature)
+      const unlockedReport = await fetchServerDeepReport(result, signature, savedProfileId)
         || resolveUnlockReport(result);
 
       setAccessState(nextAccess);

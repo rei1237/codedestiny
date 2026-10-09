@@ -113,6 +113,7 @@
       requestId: requestId,
       idempotencyKey: requestId,
       profileId: opts.profileId || opts.selectedProfileId,
+      partnerProfileId: opts.partnerProfileId,
       reportId: opts.reportId,
       sessionId: opts.sessionId || opts.reportSessionId,
     };
@@ -124,6 +125,16 @@
       var free = await postJson(APP_STORE_BASE + "/free-grant", intentBody);
       if (!free.ok) throw failure("APP_STORE_FREE_GRANT_FAILED", String((free.payload && free.payload.message) || "콘텐츠를 열지 못했습니다."));
       return free.payload;
+    }
+    // 같은 계정·같은 출생 정보로 이미 산 콘텐츠 — 결제창 없이 서버 해금 상태만 다시 읽는다.
+    if (intent.ok && intent.payload && intent.payload.alreadyUnlocked === true) {
+      try {
+        var ownedCache = window.CodeDestinyUserAccessCache;
+        if (ownedCache && typeof ownedCache.refreshUserAccessAfterPayment === "function") {
+          Promise.resolve(ownedCache.refreshUserAccessAfterPayment()).catch(function () {});
+        }
+      } catch (e) { /* noop */ }
+      return intent.payload;
     }
     if (!intent.ok || !intent.payload || !intent.payload.data || !intent.payload.data.product) {
       throw failure("APP_STORE_PRODUCT_UNAVAILABLE", String((intent.payload && intent.payload.message) || "앱 결제 상품을 불러오지 못했습니다."));
