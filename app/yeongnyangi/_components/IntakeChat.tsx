@@ -1,17 +1,23 @@
 'use client';
-import {useEffect,useLayoutEffect,useRef,useState,type ReactNode} from 'react';
+import {useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {ArrowLeft,ArrowUp,ChevronDown} from 'lucide-react';
 import {questionCandidate,questionTopics,recommendQuestion,FOLLOWUP_LIMITS,type QuestionDecision} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import {products,systemNames} from '@/worker/yeongnyangi/payments/catalog';
 import {intakeSteps,intakeAnswer,intakeStepValid,intakePrompts,intakeCursor,type IntakeValue,type IntakeStep} from '../_lib/intake-chat';
 import type {VoiceStyle} from '../_lib/voice-style-copy';
 import styles from './intake-chat.module.css';
+import ChatInputBar,{IntakeComposerContext} from './ChatInputBar';
 
 export type PreparationStep={id:string;prompt:string;answer:string;content:ReactNode;valid:boolean;pending?:boolean};
 type Props={value:IntakeValue;onChange:(next:IntakeValue)=>void;confirmed:boolean;onConfirm:()=>void;onEdit:()=>void;step:string;onStep:(step:string)=>void;voice:VoiceStyle;onVoice:(voice:VoiceStyle)=>void;onLegacy:()=>void;preparation:PreparationStep[];review:ReactNode;busy:boolean};
 export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,step,onStep,voice,onVoice,onLegacy,preparation,review,busy}:Props){
  const root=useRef<HTMLElement>(null),scroll=useRef<HTMLDivElement>(null),follow=useRef(true),composer=useRef<HTMLDivElement>(null),field=useRef<HTMLTextAreaElement>(null),focusNext=useRef(false);
  const [touch,setTouch]=useState(false),[atBottom,setAtBottom]=useState(true),[typing,setTyping]=useState(false);
+ const [slot,setSlot]=useState<HTMLDivElement|null>(null),[claims,setClaims]=useState(0);
+ // 대화 안의 단계(프로필 만들기)가 하단 슬롯을 차지하면 기본 전송 버튼을 숨겨 전송 버튼을 하나만 둔다.
+ const toBottom=useCallback(()=>{follow.current=true;setAtBottom(true);requestAnimationFrame(()=>scroll.current?.scrollTo({top:scroll.current.scrollHeight,behavior:'instant'}));},[]);
+ const claim=useCallback((on:boolean)=>setClaims(n=>n+(on?1:-1)),[]);
+ const composerContext=useMemo(()=>({slot,follow:toBottom,claim}),[slot,toBottom,claim]);
  const scopeSteps=intakeSteps(value);
  const {steps,index}=intakeCursor(value,confirmed,step,preparation),active=steps[index];
  const shown=useRef(index);
@@ -58,7 +64,7 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
   return()=>{viewport?.removeEventListener('resize',resize);window.removeEventListener('resize',resize);};
  },[]);
  const choices=(items:{value:string;label:string}[],selected:string,select:(value:string)=>void)=><div className={styles.choices}>{items.map(item=><button type="button" key={item.value} aria-pressed={selected===item.value} onClick={()=>select(item.value)}>{item.label}</button>)}</div>;
- return <section ref={root} className={styles.chat} aria-label="영냥이와 상담 준비">
+ return <IntakeComposerContext.Provider value={composerContext}><section ref={root} className={styles.chat} aria-label="영냥이와 상담 준비">
   <header className={styles.header}>
    {index>0?<button type="button" aria-label="이전 답변으로 돌아가기" disabled={busy} onClick={()=>edit(steps[index-1])}><ArrowLeft size={20}/></button>:<a href="/yeongnyangi/" aria-label="영냥이 홈으로"><ArrowLeft size={20}/></a>}
    <img src="/assets/yeongnyangi/profiles/welcome.webp" alt="" width={44} height={44}/>
@@ -81,6 +87,7 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
   {!atBottom&&<button className={styles.latest} type="button" onClick={()=>{follow.current=true;setAtBottom(true);scroll.current?.scrollTo({top:scroll.current.scrollHeight,behavior:'instant'});}}><ChevronDown size={16}/>최근 대화</button>}
   </div>
   {active!=='review'&&<div className={styles.composer}>
+   <div ref={setSlot}/>
    {scopeStep==='category'&&<>{questionCandidate(value.question)&&<p className={styles.help}>질문을 보면 ‘{questionTopics.find(t=>t.id===questionCandidate(value.question))?.label}’ 주제가 가까워 보여요. 직접 골라 주세요.</p>}{choices(questionTopics.map(t=>({value:t.id,label:t.label})),value.decision.category,category=>update({category:category as QuestionDecision['category'],...(category==='compatibility'?{target:'pair'}:{})}))}</>}
    {scopeStep==='target'&&choices([{value:'self',label:'내 생각·행동·선택'},{value:'pair',label:'두 사람의 궁합·관계 구조'}],value.decision.target,target=>update({target:target as QuestionDecision['target']}))}
    {scopeStep==='horizon'&&choices([{value:'current',label:'지금의 고민과 선택'},{value:'transition',label:'현재와 다음 장기 시기'}],value.decision.horizon,horizon=>update({horizon:horizon as QuestionDecision['horizon']}))}
@@ -92,13 +99,10 @@ export default function IntakeChat({value,onChange,confirmed,onConfirm,onEdit,st
    {scopeStep==='period'&&!['salmon','tuna'].includes(plan.fish)&&<div className={styles.chips}><button type="button" onClick={()=>{update({period:''});next();}}>기간은 정하지 않을게</button></div>}
    {textStep?<>
     {text.length>=max*.8&&<span className={styles.count} data-near={text.length>=max*.95||undefined}>{text.length.toLocaleString('ko-KR')}/{max.toLocaleString('ko-KR')}</span>}
-    <div className={styles.inputBar}>
-     <label className={styles.inputLabel}><span className={styles.srOnly}>{activePrompt}</span><textarea ref={field} rows={1} maxLength={max} value={text} onChange={e=>setText(e.target.value)} placeholder="영냥이에게 답장하기…" aria-describedby="intake-send-hint" onKeyDown={e=>{if(e.key!=='Enter'||e.nativeEvent.isComposing||e.keyCode===229)return;if(!(e.ctrlKey||e.metaKey)&&(e.shiftKey||touch))return;e.preventDefault();if(valid&&!busy)next();}}/></label>
-     <button className={styles.sendIcon} type="button" aria-label="답장 보내기" disabled={!valid||busy} onPointerDown={e=>e.preventDefault()} onClick={next}><span><ArrowUp size={18} strokeWidth={2.5}/></span></button>
-    </div>
+    <ChatInputBar label={activePrompt} sendLabel="답장 보내기" disabled={!valid||busy} onSend={next}><textarea ref={field} rows={1} maxLength={max} value={text} onChange={e=>setText(e.target.value)} placeholder="영냥이에게 답장하기…" aria-describedby="intake-send-hint" onKeyDown={e=>{if(e.key!=='Enter'||e.nativeEvent.isComposing||e.keyCode===229)return;if(!(e.ctrlKey||e.metaKey)&&(e.shiftKey||touch))return;e.preventDefault();if(valid&&!busy)next();}}/></ChatInputBar>
     <span id="intake-send-hint" className={styles.srOnly}>{touch?'보내기 버튼으로 답장을 보내요.':'Enter로 보내고 Shift+Enter로 줄을 바꿔요.'}</span>
-   </>:<button className={styles.send} type="button" disabled={!valid||busy} onClick={next}>{active==='scope'?'범위·가격 확인하고 계속하기':'선택 확인하고 계속하기'}<ArrowUp size={18}/></button>}
+   </>:claims>0?null:<button className={styles.send} type="button" disabled={!valid||busy} onClick={next}>{active==='scope'?'범위·가격 확인하고 계속하기':'선택 확인하고 계속하기'}<ArrowUp size={18}/></button>}
    {index===0&&<button type="button" className={styles.legacy} onClick={onLegacy}>질문 없이 전체 성향 리포트 고르기</button>}
   </div>}
- </section>;
+ </section></IntakeComposerContext.Provider>;
 }

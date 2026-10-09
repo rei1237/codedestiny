@@ -51,9 +51,24 @@
 .chat .inputBar { display: flex; align-items: flex-end; gap: 4px; padding: 1px 2px 1px 18px; border: 1px solid var(--yn-line); border-radius: 24px; background: var(--yn-surface); transition: border-color 120ms, box-shadow 120ms; }
 .chat .inputBar:focus-within { border-color: var(--yn-gold); box-shadow: 0 0 0 1px var(--yn-gold); }
 .chat .inputLabel { display: block; flex: 1; min-width: 0; margin: 0; }
-.chat .inputLabel textarea { display: block; width: 100%; height: 44px; min-height: 44px; max-height: 144px; resize: none; overflow-y: auto; padding: 9px 0; border: 0; background: none; color: var(--yn-ivory); font: inherit; caret-color: var(--yn-gold); scrollbar-width: thin; }
+.chat .inputLabel textarea { display: block; width: 100%; height: 44px; min-height: 44px; max-height: 144px; resize: none; overflow-y: auto; padding: 9px 0; border: 0; background: none; color: var(--yn-ivory); font: inherit; font-weight: 400; caret-color: var(--yn-gold); scrollbar-width: thin; }
 .chat .inputLabel textarea:focus-visible { outline: none; }
 .chat .inputLabel textarea::placeholder { color: var(--yn-muted); opacity: 1; }
+/* .page input:not([type="checkbox"]) (0,2,1) 보다 높여 입력 바 안의 테두리·여백을 없앤다. */
+.chat .inputLabel input:not([type=checkbox]) { display: block; width: 100%; height: 44px; min-height: 44px; margin: 0; padding: 9px 0; border: 0; border-radius: 0; background: none; color: var(--yn-ivory); font: inherit; font-weight: 400; caret-color: var(--yn-gold); color-scheme: dark; }
+.chat .inputLabel input:focus-visible { outline: none; }
+.chat .inputLabel input::placeholder { color: var(--yn-muted); opacity: 1; }
+.chat .inputLabel input:disabled { opacity: .5; }
+.chat .chips button[aria-pressed=true] { border-color: var(--yn-gold); color: var(--yn-gold); background: var(--yn-raised); }
+.chat .fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.chat .chipSend { display: flex; justify-content: flex-end; }
+.chat .error { margin: 0 4px 8px; color: #ffe5e0; font-size: 14px; }
+.chat .profileChat { margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--yn-line); }
+.chat .profileChat > .cat { margin-bottom: 4px; }
+.chat .help p { margin: 4px 0; max-width: none; }
+.chat .locate > div { margin: 0; }
+.chat .locate button { min-height: 44px; margin: 0 8px 0 0; padding: 0 16px; border: 1px solid var(--yn-line); border-radius: 999px; background: var(--yn-surface); color: var(--yn-ivory); font-size: 14px; font-weight: 400; text-decoration: none; }
+.chat .locate button:hover, .chat .locate button:not([aria-pressed]):not(.retryButton):hover:not(:disabled) { background: var(--yn-raised); border-color: var(--yn-gold); text-decoration: none; transform: none; }
 .chat .help { display: block; color: var(--yn-muted); font-size: 12px; margin: 8px 0; }
 .chat .count { display: block; text-align: right; margin: 0 12px 4px; color: var(--yn-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .chat .count[data-near] { color: var(--yn-gold); }
@@ -61,6 +76,8 @@
 .chat .sendIcon:disabled { opacity: 1; }
 .chat .sendIcon:focus-visible { outline-offset: -2px; border-radius: 50%; }
 .chat .sendIcon span { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--yn-gold); color: var(--yn-deep); transition: background-color 120ms, color 120ms; }
+/* .page button 호버(보라 배경·들림)를 같은 선택자 구조로 덮는다. */
+.chat button.sendIcon:not([aria-pressed]):not(.retryButton):hover:not(:disabled) { background: none; border-color: transparent; transform: none; }
 .chat .sendIcon:hover:not(:disabled) span { background: var(--yn-ivory); }
 .chat .sendIcon:disabled span { background: var(--yn-raised); color: var(--yn-muted); }
 .chat .send { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; border: 0; border-radius: 24px; background: var(--yn-gold); color: var(--yn-deep); padding: 10px 16px; font-weight: 700 !important; }
