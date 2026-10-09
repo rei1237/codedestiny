@@ -352,6 +352,11 @@ textarea.cd-adm-input {
   background: rgba(9, 13, 26, 0.97);
 }
 
+/* 이 규칙이 Tailwind lg:hidden 보다 뒤에 와서 display:grid 가 이긴다 — 데스크톱에서는 여기서 직접 숨긴다. */
+@media (min-width: 1024px) {
+  .cd-adm-tabbar { display: none; }
+}
+
 .cd-adm-tab {
   display: flex;
   min-height: 56px;
@@ -479,6 +484,8 @@ textarea.cd-adm-input {
 
 /* 탭·세그먼트 — 터치 대상 44px. */
 .cd-hq-tab {
+  /* 좁은 화면에서 탭이 줄어들어 글자끼리 붙지 않게 — 넘치면 탭 줄이 가로로 스크롤된다. */
+  flex: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -538,24 +545,26 @@ textarea.cd-adm-input {
 
 /* 퀘스트 행·카드 */
 .cd-hq-row {
-  display: block;
   width: 100%;
   min-height: 44px;
   border: 1px solid var(--cd-adm-line);
   border-radius: var(--cd-adm-radius);
   background: var(--cd-adm-surface);
   color: inherit;
-  font: inherit;
   text-align: left;
   cursor: pointer;
   transition: border-color 140ms ease, background-color 140ms ease;
 }
+/* 배치·글꼴 기본값은 명시도 0 — 이 파일이 Tailwind 뒤에 실리므로 그냥 두면 flex·text-[12px] 유틸리티를 덮어쓴다. */
+:where(.cd-hq-row) { display: block; font: inherit; }
 
 .cd-hq-row:hover { border-color: var(--cd-adm-line-strong); background: var(--cd-adm-panel-2); }
 .cd-hq-row:focus-visible { outline: 2px solid var(--cd-adm-accent); outline-offset: 2px; }
 
 /* 하단 탭바 높이는 셸(AdminShell)이 이미 비워 둔다 — 여기서는 본문 여백만. */
 .cd-hq-page { padding-bottom: 32px; }
+/* 그리드 칸은 기본 min-width:auto 라 긴 줄이 칸을 화면 밖으로 밀어낸다(390px 에서 416px) — 칸이 줄어들게 한다. */
+.cd-hq-page .grid > * { min-width: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   .cd-adm-btn,

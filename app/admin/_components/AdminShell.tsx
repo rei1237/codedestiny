@@ -132,6 +132,9 @@ function NavLink({ item, active, collapsed }: { item: AdminNavItem; active: bool
   );
 }
 
+// 운영본부 신규 화면만 셸이 여백을 준다. 기존 관리 화면은 각자 여백·전폭 레이아웃을 가지므로 건드리지 않는다.
+const HQ_PADDED_ROUTES = new Set(["/admin", "/admin/quests", "/admin/growth", "/admin/connections", "/admin/manage", "/admin/hq-demo"]);
+
 function ShellFrame({ pathname, children }: { pathname: string; children: React.ReactNode }) {
   const { mode, localClassic, serverDisabled, setLocalClassic } = useAdminUiMode();
   const hq = mode === "hq";
@@ -232,7 +235,14 @@ function ShellFrame({ pathname, children }: { pathname: string; children: React.
           <div className="hidden items-center gap-2.5 border-b border-[var(--cd-adm-line)] px-4 py-3 lg:flex">
             <span className="cd-adm-brand-disc" aria-hidden="true" />
             {railCollapsed ? null : (
-              <span className="cd-adm-brand min-w-0 flex-1 truncate">{hq ? "CODE DESTINY · 별빛 운영본부" : "Code Destiny 관리자"}</span>
+              hq ? (
+                <span className="min-w-0 flex-1">
+                  <span className="cd-adm-brand block truncate">CODE DESTINY</span>
+                  <span className="cd-adm-nav-game block truncate">별빛 운영본부</span>
+                </span>
+              ) : (
+                <span className="cd-adm-brand min-w-0 flex-1 truncate">Code Destiny 관리자</span>
+              )
             )}
             {hq ? (
               <button
@@ -271,7 +281,7 @@ function ShellFrame({ pathname, children }: { pathname: string; children: React.
           </div>
         </nav>
 
-        <div className={`min-w-0${hq ? " pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0" : ""}`}>{children}</div>
+        <div className={`min-w-0${HQ_PADDED_ROUTES.has(pathname) ? " px-4 pt-4 lg:px-6 lg:pt-6" : ""}${hq ? " pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0" : ""}`}>{children}</div>
       </div>
 
       {hq ? (

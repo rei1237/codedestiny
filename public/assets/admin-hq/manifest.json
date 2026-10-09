@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "created": "2026-10-09",
+  "generator": "gpt-image-2 (Codex CLI image_gen, quality high)",
+  "characterRules": {
+    "yeongnyangi": "Original round fluffy white face, purple eyes, compact body, celestial navy hat/cloak and gold ornaments",
+    "yeoni": "Canonical lotus ornament, purple scarf, round pink snout and brown eyes; big head, small hooves, compact body",
+    "neo": "Canonical human strategist: silver hair, pale blue eyes, navy-silver uniform, translucent silver cape, black gloves. The lion appears only as a small heraldic crest motif."
+  },
+  "prompts": {
+    "guild-observatory-bg": {
+      "prompt": "Wide panoramic fantasy game background: a celestial guild observatory operations hall at night. Deep navy midnight palette (#0B1020, #141B2F), brushed antique gold accents (#C7A56A) on brass astrolabes, armillary spheres and arched window frames, soft amethyst glow (#9A7BEF) along constellation lines drawn across a domed star map ceiling, a long wooden desk with scrolls, ledgers and small glowing crystal tablets. Painterly premium anime game illustration, calm and low contrast. The LEFT half must stay dark and quiet (mostly night sky and soft shadow) so white UI text can be overlaid there; place the main visual interest (astrolabe and window) in the center-right. Important content should stay inside the central horizontal band (the top and bottom quarters will be cropped). No characters, no people, no animals, no text, no letters, no logos, no UI elements.",
+      "size": "1536x1024",
+      "references": []
+    },
+    "yeongnyangi-guide": {
+      "prompt": "Draw the EXACT same character as the attached reference image: Yeongnyangi, a round fluffy pure-white chibi cat with a fluffy face, large purple-and-gold eyes, pink ears and paw pads, a navy celestial wizard hat with a gold crescent moon and star and a gold tassel, a navy cloak with gold trim and purple lining, and a purple orb on a dark collar. Keep the same proportions, compact body and the same soft anime illustration style and linework. New pose: standing on two legs as a friendly guide, smiling warmly with a confident look, one paw raised and pointing upward, the other paw holding a small rolled star-map scroll with a faint gold glow. Full body, centered, generous margin around the character. Transparent background. No text, no letters, no name tag, no shadow box.",
+      "size": "1024x1024",
+      "references": [
+        "public/assets/yeongnyangi/original/hero-800.webp"
+      ]
+    },
+    "yeongnyangi-celebrate": {
+      "prompt": "Draw the EXACT same character as the attached reference image: Yeongnyangi, a round fluffy pure-white chibi cat with large purple-and-gold eyes, pink ears and paw pads, a navy celestial wizard hat with a gold crescent moon and star and a gold tassel, a navy cloak with gold trim and purple lining, and a purple orb on a dark collar. Keep the same proportions, compact body and the same soft anime illustration style and linework. New pose: celebrating a level-up, hopping joyfully with both front paws raised high, eyes closed in a happy smile, cloak fluttering, a few small gold stars and amethyst sparkles around (not covering the face). Full body, centered, generous margin. Transparent background. No text, no letters, no name tag, no numbers.",
+      "size": "1024x1024",
+      "references": [
+        "public/assets/yeongnyangi/original/hero-800.webp"
+      ]
+    },
+    "yeongnyangi-focus": {
+      "prompt": "Draw the EXACT same character as the attached reference image: Yeongnyangi, a round fluffy pure-white chibi cat with large purple-and-gold eyes, pink ears and paw pads, a navy celestial wizard hat with a gold crescent moon and star and a gold tassel, a navy cloak with gold trim and purple lining, and a purple orb on a dark collar. Keep the same proportions, compact body and the same soft anime illustration style and linework. New pose: sitting and concentrating, eyes narrowed with a determined focused expression, studying a small floating glowing checklist parchment with three check boxes (no readable writing) while holding a tiny gold quill. Full body, centered, generous margin. Transparent background. No text, no letters, no name tag.",
+      "size": "1024x1024",
+      "references": [
+        "public/assets/yeongnyangi/original/hero-800.webp"
+      ]
+    },
+    "yeoni-library": {
+      "prompt": "Draw the EXACT same character as the attached reference image: Yeoni, a cute pink piglet with a big round head, a large pink lotus flower ornament on the head, a round pink snout, big brown sparkling eyes, rosy cheeks, small brown hooves and a compact body, in the same soft watercolor illustration style with fine gold outlines. Add a soft purple scarf around the neck. New scene: Yeoni as the keeper of a cozy archive, standing beside a small neat stack of old books with gold-trimmed covers, holding an open ledger book with both hooves and smiling gently; a couple of loose lotus petals float nearby. Full body, centered, generous margin. Transparent background (no cushion, no moon, no background scenery). No text, no letters, no readable writing.",
+      "size": "1024x1024",
+      "references": [
+        "public/assets/mascot/yeoni-reading-guide-v1.png"
+      ]
+    },
+    "neo-guardian": {
+      "prompt": "Draw the EXACT same person as the attached reference image: Neo, a young man with tousled silver-white hair, calm pale blue eyes, a navy and silver high-collared strategist uniform with gold star ornaments and fine gold chains, a translucent silver cape with gold constellation embroidery, and black gloves. Keep his face, hairstyle, outfit design and the same refined anime illustration style. New pose: the guardian of a night operations room, standing upright in a calm three-quarter view, one gloved hand raised toward a small floating translucent amethyst holographic status panel with simple abstract bars and dots (no readable text), the other hand resting at his side. A small gold heraldic lion crest is pinned on the cape clasp as an emblem only. Knee-up framing, centered with margin. Transparent background. No text, no letters, no animals other than the small lion crest emblem.",
+      "size": "1024x1536",
+      "references": [
+        "public/neo-operation-room/briefing/neo-explain-v1.webp"
+      ]
+    },
+    "rank-emblems": {
+      "prompt": "A sprite sheet of SIX fantasy game rank emblems arranged in an exact 3 columns x 2 rows grid, each emblem centered in its own equal cell with clear empty space between cells, all in one consistent premium style: polished metal badges with fine engraving on a celestial theme, palette of antique gold (#C7A56A), amethyst (#9A7BEF), deep navy enamel (#141B2F) and silver. Increasing grandeur from first to last. Row 1, left to right: (1) a small simple round bronze badge with a single five-point star; (2) a silver shield badge with a crossed quill and a crescent moon; (3) a gold eight-point compass star badge with a small constellation. Row 2, left to right: (4) a gold and amethyst badge with interlocking astrolabe rings; (5) an ornate gold heraldic crest with a stylized lion head and a crown of small stars; (6) a radiant legendary crest with gold wings, a large amethyst gem and many stars. Front view, flat centered composition, transparent background. No text, no letters, no numbers, no ribbons with writing.",
+      "size": "1536x1024",
+      "references": []
+    }
+  },
+  "items": [
+    {
+      "file": "/assets/admin-hq/yeongnyangi-guide-avatar.webp",
+      "width": 176,
+      "height": 176,
+      "alpha": true,
+      "bytes": 10908,
+      "sha256": "07f39131df01535dd71ed94c1cb1691eaa56cfa876b78ada32790b0d2ae56d6e",
+      "screen": "관리자 홈 영냥이 제안(KeeperLine 44px)·오늘 퀘스트 빈 상태(80px)",
+      "source": "assets/admin-hq/originals/yeongnyangi-guide.png",
+      "alt": "안내하는 영냥이"
+    },
+    {
+      "file": "/assets/admin-hq/yeongnyangi-celebrate.webp",
+      "width": 623,
+      "height": 640,
+      "alpha": true,
+      "bytes": 73738,
+      "sha256": "cad37f19ff285933b25c5fc7e93b2d2f802a69323372708fb5030ed5f72cce54",
+      "screen": "레벨업 연출(LevelUpBurst, 높이 96px)",
+      "source": "assets/admin-hq/originals/yeongnyangi-celebrate.png",
+      "alt": "기뻐하는 영냥이"
+    },
+    {
+      "file": "/assets/admin-hq/yeongnyangi-celebrate-avatar.webp",
+      "width": 176,
+      "height": 176,
+      "alpha": true,
+      "bytes": 9856,
+      "sha256": "de7f24bc2e7526e86780eb749767a26a95f868a6dfee711fe93d57e066565fc3",
+      "screen": "데모 빈 상태(80px)",
+      "source": "assets/admin-hq/originals/yeongnyangi-celebrate.png",
+      "alt": "기뻐하는 영냥이"
+    },
+    {
+      "file": "/assets/admin-hq/yeongnyangi-focus-avatar.webp",
+      "width": 176,
+      "height": 176,
+      "alpha": true,
+      "bytes": 10246,
+      "sha256": "dc09e2883e4e05511db24d61d7e537669ea1334d4a7afde9ffdd7d02ebf1ff90",
+      "screen": "성과 화면 XP 기록 빈 상태(80px)",
+      "source": "assets/admin-hq/originals/yeongnyangi-focus.png",
+      "alt": "집중하는 영냥이"
+    },
+    {
+      "file": "/assets/admin-hq/yeoni-library-avatar.webp",
+      "width": 176,
+      "height": 176,
+      "alpha": true,
+      "bytes": 10556,
+      "sha256": "ba397a33372b82df60685c4cd7350c49fc650fb84116cdaed2858fdbebc99c87",
+      "screen": "퀘스트 화면 빈 상태(80px)",
+      "source": "assets/admin-hq/originals/yeoni-library.png",
+      "alt": "서재의 연이"
+    },
+    {
+      "file": "/assets/admin-hq/neo-guardian-avatar.webp",
+      "width": 176,
+      "height": 176,
+      "alpha": true,
+      "bytes": 12760,
+      "sha256": "859b67a6b71a4312dd903a25a149dc41eeeedf3fd0dd3db42dae640516935f05",
+      "screen": "연결 상태·성과 트래픽 안내(KeeperLine 44px)",
+      "source": "assets/admin-hq/originals/neo-guardian.png",
+      "alt": "관제실의 네오"
+    },
+    {
+      "file": "/assets/admin-hq/guild-observatory-bg.webp",
+      "width": 1920,
+      "height": 640,
+      "alpha": false,
+      "bytes": 127530,
+      "sha256": "de5e51dccb2e592efdf9ce7cda25561b6805c7ded384dbd1cd192b87f0d17590",
+      "screen": "관리자 홈 상단 히어로 배경(장식, object-position 70% 30%, 모바일은 세로 그라디언트로 덮음)",
+      "source": "assets/admin-hq/originals/guild-observatory-bg.png",
+      "alt": ""
+    },
+    {
+      "file": "/assets/admin-hq/rank-emblem-lv1.webp",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 19076,
+      "sha256": "ae4e3ba1225be616a09efe6a939006a25c5cb5527f1a48e72bed7cc8f358f89d",
+      "screen": "RankEmblem(홈 히어로 64px·성과 레벨표 56px)",
+      "source": "assets/admin-hq/originals/rank-emblems.png",
+      "alt": "별빛 견습생 문장"
+    },
+    {
+      "file": "/assets/admin-hq/rank-emblem-lv5.webp",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 14970,
+      "sha256": "e419dc04514dc71327b8e13c9b66bb79d1d0c2c684affb00b58d848925bc35ac",
+      "screen": "RankEmblem(홈 히어로 64px·성과 레벨표 56px)",
+      "source": "assets/admin-hq/originals/rank-emblems.png",
+      "alt": "운명 기록가 문장"
+    },
+    {
+      "file": "/assets/admin-hq/rank-emblem-lv10.webp",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 15668,
+      "sha256": "89a6eb5df3c40c5d1cae71b18866d1085e61c4a9f11d0b065755aa78faa9c390",
+      "screen": "RankEmblem(홈 히어로 64px·성과 레벨표 56px)",
+      "source": "assets/admin-hq/originals/rank-emblems.png",
+      "alt": "별의 안내자 문장"
+    },
+    {
+      "file": "/assets/admin-hq/rank-emblem-lv20.webp",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 17330,
+      "sha256": "be5cba24b96a6d2ef1a103cca729f3623cd5d3602ccfc4b49f1bc47c22573369",
+      "screen": "RankEmblem(홈 히어로 64px·성과 레벨표 56px)",
+      "source": "assets/admin-hq/originals/rank-emblems.png",
+      "alt": "천체 설계자 문장"
+    },
+    {
+      "file": "/assets/admin-hq/rank-emblem-lv30.webp",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 20174,
+      "sha256": "0e8a42ab16f1af9c907103a09e4c5a6a63693118170cc69b074792d29ec1ad9d",
+      "screen": "RankEmblem(홈 히어로 64px·성과 레벨표 56px)",
+      "source": "assets/admin-hq/originals/rank-emblems.png",
+      "alt": "운명 길드장 문장"
+    },
+    {
+      "file": "/assets/admin-hq/rank-emblem-lv40.webp",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 29172,
+      "sha256": "6f2bd2ef53833e61c90274cc5624660d36bd5dba15062e6721bb95ea4b271009",
+      "screen": "RankEmblem(홈 히어로 64px·성과 레벨표 56px)",
+      "source": "assets/admin-hq/originals/rank-emblems.png",
+      "alt": "운명 길드장 · 사자 문장"
+    }
+  ]
+}

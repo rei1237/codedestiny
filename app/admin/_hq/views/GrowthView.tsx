@@ -170,7 +170,7 @@ export default function GrowthView({ xp, summary, traffic, achievements, revenue
                 ))}
               </ul>
             ) : (
-              <EmptyState title={dateOnly ? "그날 쌓인 XP 기록이 없습니다" : "아직 XP 기록이 없습니다"} body="퀘스트를 증빙과 함께 완료하거나, 실결제가 제공까지 확인되면 쌓입니다." />
+              <EmptyState title={dateOnly ? "그날 쌓인 XP 기록이 없습니다" : "아직 XP 기록이 없습니다"} body="퀘스트를 증빙과 함께 완료하거나, 실결제가 제공까지 확인되면 쌓입니다." art={HQ_ART.yeongnyangiFocus} />
             )}
           </div>
         </HqPanel>

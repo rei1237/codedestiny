@@ -121,8 +121,8 @@ export function StatTile({
 }) {
   return (
     <div className="cd-hq-panel2 flex min-h-[104px] flex-col justify-between gap-2 rounded-[var(--cd-adm-radius)] p-3" title={hint}>
-      <div className="flex items-start justify-between gap-2">
-        <p className="cd-hq-quiet text-[13px] leading-snug">{label}</p>
+      <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
+        <p className="cd-hq-quiet text-[13px] leading-snug [word-break:keep-all]">{label}</p>
         {badge}
       </div>
       <p className={`cd-hq-num text-xl font-bold leading-tight ${tone ? `cd-hq-tone-${tone}` : "text-[var(--cd-adm-ink)]"}`}>{value}</p>

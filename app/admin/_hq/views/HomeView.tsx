@@ -73,7 +73,7 @@ export default function HomeView({ data, range, onRangeChange, onRefresh, refres
     <div className="cd-hq-page space-y-4">
       {/* 상단 — 레벨·진행률·오늘 XP·기간·동기화 */}
       <section className="cd-hq-hero p-4 sm:p-6" aria-labelledby="hq-hero-title">
-        {HQ_ART.background ? <HqImage art={HQ_ART.background} className="cd-hq-hero__bg" eager /> : null}
+        <HqImage art={HQ_ART.background} className="cd-hq-hero__bg" eager />
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-4">
             <RankEmblem tier={xp.rankTier} size={64} />

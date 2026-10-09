@@ -137,7 +137,7 @@ export default function AdminHqDemoPage() {
             <HqPanel title="불러오는 중" game="로딩"><LoadingBlock lines={4} label="운영본부를 여는 중" /></HqPanel>
             <HqPanel title="불러오기 실패" game="오류"><AdminErrorState view={DEMO_ERROR} onRetry={demoNotice} /></HqPanel>
             <HqPanel title="빈 상태" game="빈 하늘">
-              <EmptyState title="오늘 남은 퀘스트가 없습니다" body="이번 주 일정에서 다음 작업을 골라 보세요." art={HQ_ART.yeongnyangiCelebrate} />
+              <EmptyState title="오늘 남은 퀘스트가 없습니다" body="이번 주 일정에서 다음 작업을 골라 보세요." art={HQ_ART.yeongnyangiCelebrateAvatar} />
             </HqPanel>
             <HqPanel title="연동 필요" game="관측 대기">
               <IntegrationPending title="GA4 Data API" missing={DEMO_TRAFFIC_PENDING.traffic.missing} steps={DEMO_TRAFFIC_PENDING.setup} />
