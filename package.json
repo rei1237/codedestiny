@@ -550,6 +550,7 @@
     "tarot:assets:build": "node scripts/build-yeongnyangi-tarot-assets.mjs",
     "verify:yeongnyangi-tarot-assets": "node scripts/verify-yeongnyangi-tarot-assets.mjs --full",
     "check:fast": "node scripts/check-changed.mjs --profile=fast --skip-build",
+    "check:pre-push": "npm run verify:home-service-registry && npm run verify:public-mirror-fresh && npm run verify:sitemap-drift",
     "check:ui": "node scripts/check-changed.mjs --profile=ui --skip-build",
     "check:worker": "node scripts/check-changed.mjs --profile=worker --skip-build",
     "check:payment": "node scripts/check-changed.mjs --profile=payment --skip-build",
