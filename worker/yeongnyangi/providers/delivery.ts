@@ -91,7 +91,9 @@ function deliverChapterBody(raw:unknown,input:ChapterRequest):ChapterBody {
   // own opening sentences; a regeneration is bought only when none is new.
   const fresh=(text:string)=>Boolean(text)&&!input.previous.some(p=>repeatedSummary(text,String(p.summary||'')));
   const opening=(paragraph:string)=>paragraph.split(/(?<=[.!?。])\s+/u).slice(0,2).join(' ');
-  const summary=[edit(value.summary),actual[0],...actual.map(opening)].find(fresh);
+  // Body text lifted into the summary loses the sentence its leading connective pointed back to.
+  const standalone=(text:string)=>text.replace(/^(?:하지만|그러나|그런데|그래서|그리고|또한|게다가|반면에?|따라서|그러니까?|그럼에도)(?:,\s*|\s+)/u,'');
+  const summary=[edit(value.summary),...[actual[0],...actual.map(opening)].map(standalone)].find(fresh);
   if(!summary)throw new FortuneError('CHAPTER_SUMMARY_REPEATED');
   let body:ChapterBody=sanitizeQuestionSkyBody({summary,analysis,example:edit(value.example),advice:edit(value.advice),
     persona:edit(value.persona),highlights:list(value.highlights).map(edit).filter(Boolean),topics:list(value.topics),blocks,

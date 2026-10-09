@@ -164,5 +164,10 @@ test('a summary restating an earlier chapter is caught, replaced by the chapter\
  assert.equal(m.repeatedSummary(delivered.summary,earlier),false);
  assert.equal(chapterDeliveryFailure(delivered,input.chapter),'');
  assert.equal(raw.summary,restated,'delivery does not mutate the provider response');
+ // Y3 rerun 2026-10-10 ch10: a lifted opener began "하지만 2028년…", pointing back at a sentence the summary does not carry.
+ const joined={...raw,blocks:raw.blocks.map((b,i)=>i?b:{...b,paragraphs:b.paragraphs.map((p,j)=>j?p:`하지만 ${p}`)})};
+ const lifted=m.deliverChapter(joined,{...input,previous});
+ assert.doesNotMatch(lifted.summary,/^하지만/);
+ assert.ok(lifted.blocks.flatMap(b=>b.paragraphs).some(p=>p===`하지만 ${lifted.summary}`||p.startsWith(`하지만 ${lifted.summary}`)),'the connective is the only edit');
  assert.throws(()=>m.deliverChapter(raw,{...input,previous:[...previous,...paragraphs.map(summary=>({summary,example:'',topics:[]}))]}),{code:'CHAPTER_SUMMARY_REPEATED'});
 });
