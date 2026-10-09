@@ -1,6 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import CodexArtwork from "@/src/features/master-love-codex/components/CodexArtwork";
+import { masterLoveCodexAssets } from "@/src/features/master-love-codex/data/assets";
+import styles from "@/src/features/master-love-codex/styles/codex.module.css";
 
 const MasterLoveCodexPage = dynamic(() => import("@/src/features/master-love-codex/MasterLoveCodexPage"), {
   ssr: false,
@@ -13,16 +16,33 @@ export default function MasterLoveCodexRouteClient() {
 
 function MasterLoveCodexShell() {
   return (
-    <div className="min-h-[100svh] bg-[#f7f4ee] text-[#202b3e]">
-      <section className="mx-auto flex min-h-[60svh] max-w-3xl flex-col justify-center px-5 py-16 text-center sm:px-8">
-        <p className="text-[12px] font-black tracking-[0.34em] text-[#536078]">MASTER DESTINY</p>
-        {/* 페이지의 H1 은 page.tsx 의 ServiceIntroSection 이 소유한다. 이 로딩 셸도 h1 이면
-            서버 HTML 에 H1 이 2개 실린다 — 클래스가 그대로라 화면은 동일하다. */}
-        <h2 className="mt-3 text-3xl font-black leading-tight sm:text-5xl">마스터 인연의 서</h2>
-        <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-[#536078]">
-          사랑할 때 반복되는 마음의 지도를 펼칩니다. 이야기를 준비하고 있어요.
-        </p>
-      </section>
+    <div className={styles.root} aria-busy="true">
+      <div className={styles.loadingNav} aria-hidden="true" />
+      <div className={styles.landingHero}>
+        <div className={styles.landingHeroCopy}>
+          {/* 서버 HTML 의 H1 은 page.tsx 의 ServiceIntroSection 이 소유한다. */}
+          <h2 className={styles.landingHeroTitle}>마스터 인연의 서</h2>
+          <p className={styles.landingHeroEnglish}>MASTER LOVE CODEX</p>
+          <p className={styles.landingLead}>사주 명식과 자미두수 명반을 함께 읽어, 사랑에서 반복되는 패턴과 관계의 흐름을 20장으로 정리합니다.</p>
+          <p className={styles.landingEdition}>20장 · 5막</p>
+          <span className={`${styles.cta} ${styles.heroChoose} ${styles.loadingAction}`} aria-live="polite">리딩 준비 중</span>
+        </div>
+        <figure className={styles.landingPortrait}>
+          <CodexArtwork
+            src={masterLoveCodexAssets.humanHero}
+            alt="달빛 아래 인연의 지도를 펼쳐 보는 서한비"
+            width={1200}
+            height={675}
+            sizes="(max-width: 767px) 100vw, 600px"
+            className={styles.heroArtwork}
+            priority
+          />
+          <figcaption className={styles.landingPortraitCaption}>
+            <strong>인연의 서를 읽어주는 서한비</strong>
+            <span>달빛 아래, 당신의 인연 지도를 함께 펼쳐봐요.</span>
+          </figcaption>
+        </figure>
+      </div>
     </div>
   );
 }

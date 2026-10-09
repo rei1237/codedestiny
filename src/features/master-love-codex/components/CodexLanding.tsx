@@ -12,10 +12,10 @@
  */
 
 import type { ReactNode } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Check, ChevronLeft, Home } from "lucide-react";
+import { ArrowDownRight, Check, ChevronLeft, Home } from "lucide-react";
 import CodexShell from "./CodexShell";
+import CodexArtwork from "./CodexArtwork";
 import CodexReveal from "./CodexReveal";
 import CodexPremiumCard from "./CodexPremiumCard";
 import CodexWhyPremium from "./CodexWhyPremium";
@@ -63,73 +63,56 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
 
       {library}
 
-      {/* ── 히어로 ─────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col items-center justify-center pb-8 pt-14 text-center">
-        <div className={styles.measure}>
-          <CodexReveal>
-            <p
-              className={`${styles.numeral} text-[0.6875rem]`}
-              style={{ letterSpacing: "0.28em", color: "var(--codex-gold-dim)" }}
-            >
-              AI PREMIUM COMPATIBILITY CONSULTATION
-            </p>
-            <div className={styles.hanbiGuide}>
-              <Image src={masterLoveCodexAssets.humanHero} alt={locale === 'ko' ? '달빛 아래 인연의 지도를 펼쳐 보는 서한비' : 'Seo Hanbi from the light novel, unfolding a map of love'} width={1200} height={675} unoptimized priority />
-              <div><p>{locale === 'ko' ? '인연의 서를 읽어주는 서한비' : 'Seo Hanbi, your Love Codex guide'}</p><p>{locale === 'ko' ? '라이트노벨 속 그녀와 같은 모습으로, 당신의 인연 지도를 함께 펼쳐봐요.' : 'The same Seo Hanbi from the light novel helps you unfold your map of love.'}</p></div>
-            </div>
-            <h2 className={`${styles.hero} mt-6`}>Master Love Codex</h2>
-            <p className={`${styles.actTitle} mt-5`}>{soloTitle}</p>
-            <hr className={`${styles.rule} ${styles.ruleShort} mt-9`} />
-          </CodexReveal>
-
-          <CodexReveal index={1} className="mt-9">
-            <p className="mx-auto max-w-[40ch] text-[1.0625rem] leading-9">
-              {copy.heroDescription(chapterCount)}
-            </p>
-          </CodexReveal>
-
-          {/* 이 상담이 실제로 다루는 축 — 무엇을 사는지 목록으로 먼저 훑게 한다 */}
-          <CodexReveal index={2} className="mt-9">
-            <ul className="mx-auto grid max-w-[36ch] gap-x-6 gap-y-3 text-left sm:grid-cols-2">
-              {heroSpecs.map((spec) => (
-                <li key={spec} className="flex items-center gap-2.5">
-                  <Check className="h-4 w-4 shrink-0" style={{ color: "var(--codex-gold)" }} aria-hidden="true" />
-                  <span style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text)" }}>{spec}</span>
-                </li>
-              ))}
-            </ul>
-          </CodexReveal>
-
-          <CodexReveal index={3} className="mt-10">
-            <p className={styles.badge}>
-              PREMIUM CONSULTATION
-              <span aria-label={copy.starRatingAriaLabel} style={{ letterSpacing: "0.1em" }}>★★★★★</span>
-            </p>
-            <p className="mt-4 leading-8" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-silver)" }}>
-              AI EXPERT REPORT · {copy.expertReportSuffix(chapterCount)}
-            </p>
-          </CodexReveal>
-
-          <CodexReveal index={4} className="mt-12">
-            <Image
-              src={masterLoveCodexAssets.cover}
-              alt={copy.coverImageAlt}
-              width={768}
-              height={512}
-              unoptimized
-              priority
-              className="mx-auto w-full max-w-[520px] object-cover"
-              style={{
-                borderRadius: 2,
-                boxShadow: "0 0 40px -5px rgba(216,179,108,.35), 0 40px 90px -30px rgba(0,0,0,.9)",
-              }}
-            />
-          </CodexReveal>
+      {/* 첫 화면은 로딩 셸과 같은 구조를 쓴다. 이미지와 제목은 애니메이션 전에 보인다. */}
+      <div className={styles.landingHero}>
+        <div className={styles.landingHeroCopy}>
+          <h2 className={styles.landingHeroTitle}>{soloTitle}</h2>
+          <p className={styles.landingHeroEnglish}>MASTER LOVE CODEX</p>
+          <p className={styles.landingLead}>{copy.heroDescription(chapterCount)}</p>
+          <p className={styles.landingEdition}>{copy.chaptersActsSuffix(chapterCount)}</p>
+          <a href="#codex-reading-options" className={`${styles.cta} ${styles.heroChoose}`}>
+            {copy.chooseReadingButton}
+            <ArrowDownRight className="h-4 w-4" aria-hidden="true" />
+          </a>
         </div>
+        <figure className={styles.landingPortrait}>
+          <CodexArtwork
+            src={masterLoveCodexAssets.humanHero}
+            alt={locale === "ko" ? "달빛 아래 인연의 지도를 펼쳐 보는 서한비" : "Seo Hanbi unfolding a moonlit map of love"}
+            width={1200}
+            height={675}
+            sizes="(max-width: 767px) 100vw, 600px"
+            className={styles.heroArtwork}
+            priority
+          />
+          <figcaption className={styles.landingPortraitCaption}>
+            <strong>{locale === "ko" ? "인연의 서를 읽어주는 서한비" : "Seo Hanbi, your Love Codex guide"}</strong>
+            <span>{locale === "ko" ? "달빛 아래, 당신의 인연 지도를 함께 펼쳐봐요." : "Unfold your map of love together under the moonlight."}</span>
+          </figcaption>
+        </figure>
+      </div>
+
+      <div className={styles.landingContents}>
+        <ul className={styles.landingSpecs}>
+          {heroSpecs.map((spec) => (
+            <li key={spec}>
+              <Check className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{spec}</span>
+            </li>
+          ))}
+        </ul>
+        <CodexArtwork
+          src={masterLoveCodexAssets.cover}
+          alt={copy.coverImageAlt}
+          width={960}
+          height={540}
+          sizes="(max-width: 767px) 100vw, 500px"
+          className={styles.previewArtwork}
+        />
       </div>
 
       {/* ── 상품·가격 ──────────────────────────────────────────────────────── */}
-      <section className={styles.section} aria-label={copy.pricingSectionAriaLabel}>
+      <section id="codex-reading-options" className={`${styles.section} ${styles.landingPricing}`} aria-label={copy.pricingSectionAriaLabel}>
         <div className={styles.measure}>
           <CodexReveal>
             <p
@@ -187,6 +170,7 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
         featureKey={floatingBilling.featureKey}
         fallbackCoins={floatingBilling.cost}
         label={copy.floatingStartLabel}
+        editionLabel={copy.compatTitle}
         onClick={() => onEnter(FLOATING_MODE)}
       />
     </CodexShell>

@@ -1,5 +1,5 @@
 /**
- * 마스터 인연의 서 (MASTER_LOVE_CODEX) — R2 에셋 매니페스트.
+ * 마스터 인연의 서 (MASTER_LOVE_CODEX) — 입장 이미지와 노벨 R2 에셋 매니페스트.
  *
  * 기존 노벨 에셋을 재사용한다(신규 파일명 생성 없음 — 임의 교체 금지 규칙 준수).
  * 화자(연애 고수) 컷은 온화 4종만 쓴다. 냉소·조롱·유혹·화남·광기 컷은 이 기능의
@@ -18,18 +18,11 @@ const novelAsset = (fileName: string) =>
 
 const novelBackground = (fileName: string) => novelAsset(`background/${fileName}`);
 
-const rootAsset = (fileName: string) =>
-  getAssetUrlFromPublicPath(`/${fileName}`, {
-    baseUrl: R2_BASE,
-    fallbackPublicPath: `/${fileName}`,
-    prefix: "",
-  });
-
 export const masterLoveCodexAssets = {
-  /** 메인 화면 대표 카드 · 랜딩 히어로 (1536×1024, 3:2) */
-  cover: rootAsset("마스터 운명 연애 비책.webp"),
+  /** 입장·프롤로그에 쓰는 책 이미지. 배포되는 public 실물과 같은 출처에서 읽는다. */
+  cover: "/feature-details/assets/master-love-codex-960.webp",
   /** 라이트노벨의 서한비와 같은 인간형 안내 이미지 — 동물형 표현은 은유로만 남긴다. */
-  humanHero: rootAsset("images/feature-details/master-love-codex-hero-v3.webp"),
+  humanHero: "/images/feature-details/master-love-codex-hero-v3.webp",
   backgrounds: {
     library: novelBackground("신비의 도서관.webp"),
     libraryDeep: novelBackground("신비의 도서관2.webp"),

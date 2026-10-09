@@ -136,7 +136,9 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     assert.ok(fs.existsSync(`public${signatureSources[id]}`), `${id}: referenced character artwork is missing`);
   }
   const masterAssets = fs.readFileSync('src/features/master-love-codex/data/assets.ts', 'utf8');
-  assert.match(masterAssets, /humanHero:\s*rootAsset\("images\/feature-details\/master-love-codex-hero-v3\.webp"\)/);
+  assert.match(masterAssets, /humanHero:\s*"\/images\/feature-details\/master-love-codex-hero-v3\.webp"/);
+  assert.match(masterAssets, /cover:\s*"\/feature-details\/assets\/master-love-codex-960\.webp"/);
+  assert.ok(fs.existsSync('public/feature-details/assets/master-love-codex-960.webp'));
   assert.match(fragment.querySelector('.moon-story-entry__poster img')?.getAttribute('src') || '', /CodeDestinyNovel\/%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EB%85%B8%EB%B2%A8\.webp$/);
   assert.match(fragment.querySelector('.moon-music-entry__cover-stack img')?.getAttribute('src') || '', /CodeDestinyNovel\/%EC%9D%8C%EC%95%85%20%ED%94%8C%EB%A0%88%EC%9D%B4%EC%96%B4\.webp$/);
 });

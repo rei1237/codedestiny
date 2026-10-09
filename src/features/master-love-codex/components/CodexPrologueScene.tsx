@@ -10,6 +10,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import CodexArtwork from "./CodexArtwork";
 import CodexDialogueBox from "./CodexDialogueBox";
 import CodexReveal from "./CodexReveal";
 import { getNarratorAsset, masterLoveCodexAssets } from "../data/assets";
@@ -121,14 +122,13 @@ export default function CodexPrologueScene({ stage, onStageChange, onChoice, onC
             />
           ) : null}
           {scene.actor === "book" ? (
-            <Image
+            <CodexArtwork
               src={masterLoveCodexAssets.cover}
               alt={copy.prologueSceneAlt(scene.title)}
-              width={640}
-              height={427}
-              unoptimized
-              className="w-[min(78vw,420px)] object-cover"
-              style={{ borderRadius: 2, boxShadow: "0 0 40px -5px rgba(216,179,108,.35)" }}
+              width={960}
+              height={540}
+              sizes="(max-width: 767px) 78vw, 420px"
+              className={styles.prologueArtwork}
             />
           ) : null}
         </div>

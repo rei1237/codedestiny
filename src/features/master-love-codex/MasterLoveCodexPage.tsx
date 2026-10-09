@@ -657,6 +657,7 @@ export default function MasterLoveCodexPage() {
   const ambience = (
     <CodexAmbience
       track={phase === "generating" ? masterLoveCodexBgmTracks.scriptorium : masterLoveCodexBgmTracks.libraryGate}
+      landing={phase === "landing"}
     />
   );
 

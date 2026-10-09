@@ -50,6 +50,7 @@ export interface MasterLoveCodexCopy {
   coverImageAlt: string;
   pricingSectionAriaLabel: string;
   pricingTitle: string;
+  chooseReadingButton: string;
   pricingDescription: (chapterCount: number) => string;
   whyPremiumAriaLabel: string;
   startSectionAriaLabel: string;
@@ -299,6 +300,7 @@ const MASTER_LOVE_CODEX_COPY_EN: MasterLoveCodexCopy = {
   coverImageAlt: "A love strategy book unfolding in the Mystic Library",
   pricingSectionAriaLabel: "Consultation plans and pricing",
   pricingTitle: "How would you like it read",
+  chooseReadingButton: "Choose your reading",
   pricingDescription: (chapterCount) =>
     `Reading alone reveals your own way of loving; reading together reveals your relationship. Either way it's the same ${chapterCount}-chapter structure, and your result is kept forever — no repeat payment.`,
   whyPremiumAriaLabel: "Why a premium consultation",
@@ -529,12 +531,13 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     navAriaLabel: "화면 이동",
 
     heroDescription: (chapterCount) =>
-      `두 사람의 인연을 사주 명식과 자미두수 명반으로 나눠 세운 뒤, AI가 ${chapterCount}장에 걸쳐 종합 분석합니다.`,
+      `사주 명식과 자미두수 명반을 함께 읽어, 사랑에서 반복되는 패턴과 관계의 흐름을 ${chapterCount}장으로 정리합니다.`,
     starRatingAriaLabel: "별점 5점",
     expertReportSuffix: (chapterCount) => `전문 상담 수준의 ${chapterCount}장 리포트`,
     coverImageAlt: "신비의 도서관에서 펼쳐지는 연애 전략서",
     pricingSectionAriaLabel: "상담 상품과 가격",
     pricingTitle: "어떻게 읽어 드릴까요",
+    chooseReadingButton: "리딩 선택하기",
     pricingDescription: (chapterCount) =>
       `혼자 읽으면 당신의 연애 방식을, 둘이 읽으면 두 사람의 관계를 읽습니다. 어느 쪽이든 같은 ${chapterCount}장 구성이고, 결과는 영구 보관되어 다시 결제하지 않습니다.`,
     whyPremiumAriaLabel: "왜 프리미엄 상담인가",
@@ -765,12 +768,13 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     navAriaLabel: "画面移動",
 
     heroDescription: (chapterCount) =>
-      `二人の縁を四柱推命と紫微斗数の命盤にそれぞれ立てたうえで、AIが${chapterCount}章にわたり総合分析します。`,
+      `四柱推命と紫微斗数の命盤を重ね、恋愛で繰り返すパターンと関係の流れを${chapterCount}章にまとめます。`,
     starRatingAriaLabel: "評価5つ星",
     expertReportSuffix: (chapterCount) => `専門相談レベルの${chapterCount}章レポート`,
     coverImageAlt: "神秘の図書館で開かれる恋愛戦略書",
     pricingSectionAriaLabel: "相談プランと料金",
     pricingTitle: "どちらで読みますか",
+    chooseReadingButton: "リーディングを選ぶ",
     pricingDescription: (chapterCount) =>
       `一人で読めばあなたの恋愛スタイルを、二人で読めば二人の関係を読みます。どちらも同じ${chapterCount}章構成で、結果は永久保存され再決済は不要です。`,
     whyPremiumAriaLabel: "なぜプレミアム相談なのか",
@@ -999,12 +1003,13 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     navAriaLabel: "页面导航",
 
     heroDescription: (chapterCount) =>
-      `分别排出两人的四柱命盘与紫微斗数命盘后，由AI在${chapterCount}章中进行综合分析。`,
+      `结合四柱命盘与紫微斗数命盘，用${chapterCount}章梳理恋爱中反复出现的模式与关系走向。`,
     starRatingAriaLabel: "评分5星",
     expertReportSuffix: (chapterCount) => `专业咨询水准的${chapterCount}章报告`,
     coverImageAlt: "在神秘图书馆中展开的恋爱策略书",
     pricingSectionAriaLabel: "咨询方案与价格",
     pricingTitle: "想怎么为您解读",
+    chooseReadingButton: "选择解读方式",
     pricingDescription: (chapterCount) =>
       `独自阅读可解读您的恋爱方式，两人共读则解读两人的关系。无论哪种都是相同的${chapterCount}章结构，结果永久保存，无需再次付费。`,
     whyPremiumAriaLabel: "为什么选择高级咨询",
@@ -1233,12 +1238,13 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     navAriaLabel: "頁面導覽",
 
     heroDescription: (chapterCount) =>
-      `分別排出兩人的四柱命盤與紫微斗數命盤後，由AI在${chapterCount}章中進行綜合分析。`,
+      `結合四柱命盤與紫微斗數命盤，以${chapterCount}章梳理戀愛中反覆出現的模式與關係走向。`,
     starRatingAriaLabel: "評分5星",
     expertReportSuffix: (chapterCount) => `專業諮詢水準的${chapterCount}章報告`,
     coverImageAlt: "在神秘圖書館中展開的戀愛策略書",
     pricingSectionAriaLabel: "諮詢方案與價格",
     pricingTitle: "想怎麼為您解讀",
+    chooseReadingButton: "選擇解讀方式",
     pricingDescription: (chapterCount) =>
       `獨自閱讀可解讀您的戀愛方式，兩人共讀則解讀兩人的關係。無論哪種都是相同的${chapterCount}章結構，結果永久保存，無需再次付費。`,
     whyPremiumAriaLabel: "為什麼選擇高級諮詢",
