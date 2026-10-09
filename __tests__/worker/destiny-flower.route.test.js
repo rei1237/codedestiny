@@ -131,3 +131,18 @@ test("89종 꽃 모두 꽃말이 있고 응답 꽃에 flower_language 가 실린
   const sajuFlower = data.sources.saju.flower;
   expect(sajuFlower.flower_language).toBe(FLOWER_LANGUAGE_KO[sajuFlower.id]);
 });
+
+test("개화 서사는 점수에 든 신호의 단계만 만들고 공유 훅에 지어낸 확률이 없다", async () => {
+  const { matchDestinyFlower } = await import("../../worker/lib/destiny-flower-engine.js");
+  for (const saju of [{ dayStem: "을" }, { dayStem: "을", is_strong: false, johu_type: "hot" }, { dayStem: "경", is_strong: true }]) {
+    const result = matchDestinyFlower({ ...PROFILE, saju }, { limit: 3 });
+    const signals = result.candidates[0].matchedSignals;
+    const stages = result.bloom_story.map((s) => s.stage);
+    expect(stages[stages.length - 1]).toBe("bloom");
+    expect(stages.includes("season")).toBe(signals.includes("season"));
+    const lightSignals = ["strength_release", "strength_support", "yongshin_element", "johu_warm", "johu_cool"];
+    expect(stages.filter((s) => s === "light").length).toBe(signals.filter((s) => lightSignals.includes(s)).length);
+    expect(result.destiny_flower_language).toContain(result.flower.flower_language);
+    expect(result.share_hook.rarity_line).not.toMatch(/%/);
+  }
+});
