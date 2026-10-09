@@ -5,12 +5,44 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {build} from 'esbuild';
 const Module=createRequire(import.meta.url)('node:module');
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/prompts/domain/consultation-quality'; export * from './worker/yeongnyangi/prompts/domain/recognition'; export {questionManifest,QUESTION_POLICY_VERSION} from './worker/yeongnyangi/fortune/ask/question-policy'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {domains} from './worker/yeongnyangi/fortune/index'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {readingManifestV7} from './worker/yeongnyangi/fortune/reading-v7'; export {resolveV7Ledger} from './worker/yeongnyangi/fortune/reading-v7-ledger';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/prompts/domain/consultation-quality'; export * from './worker/yeongnyangi/prompts/domain/reader-counsel'; export * from './worker/yeongnyangi/prompts/domain/recognition'; export {questionManifest,QUESTION_POLICY_VERSION} from './worker/yeongnyangi/fortune/ask/question-policy'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {domains} from './worker/yeongnyangi/fortune/index'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {readingManifestV7} from './worker/yeongnyangi/fortune/reading-v7'; export {resolveV7Ledger} from './worker/yeongnyangi/fortune/reading-v7-ledger';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const filename=path.resolve('consultation-quality.test.cjs'),loaded=new Module(filename);
 loaded.filename=filename;loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,filename);
 const m=loaded.exports;
 const birth={birthDate:'1998-02-28',birthTime:'14:30',calendarType:'solar',gender:'female',birthPlace:{latitude:37.5665,longitude:126.978,timezone:'Asia/Seoul'}};
 const contexts={};
+test('reader evidence keeps calculation weights private without mutating saved facts or dates',()=>{
+ const weights={비견:2.35,겁재:1,식신:1,정재:0,상관:0.5};
+ const original={facts:[{id:'saju.tenGods',label:'tenGods',value:weights}],askFirstChapter:{evidence:{facts:[{id:'F001',label:'tenGods',value:weights}]}},year:2027,month:12};
+ const before=JSON.stringify(original),out=m.readerEvidence(original);
+ assert.equal(JSON.stringify(original),before);
+ const value=out.facts[0].value;
+ assert.equal(value.비견.relativePresence,'이 분포에서 가장 두드러짐');
+ assert.equal(value.겁재.relativePresence,value.식신.relativePresence);
+ assert.equal(value.정재.relativePresence,'집계되지 않음');
+ assert.match(value.비견.meaning,/자기 기준/);
+ assert.doesNotMatch(JSON.stringify(out),/2\.35|0\.5/);
+ assert.deepEqual(out.askFirstChapter.evidence.facts[0].value,value);
+ assert.equal(out.facts[0].id,'saju.tenGods');assert.equal(out.year,2027);assert.equal(out.month,12);
+ const profile={label:'tenGodProfile',value:{visibleCount:7,surface:weights,where:{비견:['년주 천간']},families:[{family:'비겁',weight:3.35,visible:3,hidden:1,state:'발달'}]}};
+ const projected=m.readerEvidence(profile);
+ assert.equal(projected.value.families[0].weight,undefined);
+ assert.equal(projected.value.families[0].state,'발달');
+ assert.deepEqual(projected.value.where,profile.value.where);
+ assert.equal(profile.value.families[0].weight,3.35);
+});
+
+test('opening is topic-specific and symbolic readings never invent birth traits',()=>{
+ const opening=m.readerCounsel(true,false),later=m.readerCounsel(false,false),symbolic=m.readerCounsel(true,true);
+ assert.match(opening.opening,/일반적인 성격 총론은 쓰지 않는다/);
+ assert.match(opening.opening,/재물은.*이직은.*연애는/);
+ assert.match(opening.counseling,/선택의 비용·현실 조건·불확실성/);
+ assert.match(opening.counseling,/조건부로 공감/);
+ assert.match(opening.counseling,/작은 행동과 선택권/);
+ assert.match(later.opening,/전체 성향 분석을 반복하지 않고/);
+ assert.match(symbolic.opening,/타고난 성격을 지어내지 않는다/);
+});
+
 for(const domain of ['saju','ziwei','vedic','astrology']){
  const engine=m.domains[domain],input=engine.validateInput({personA:birth,readingMode:'personal'});
  contexts[domain]=engine.buildContext(await engine.calculate(input,{asOf:'2026-09-29T03:00:00Z'}));
@@ -28,6 +60,9 @@ test('current supported kinds and tiers, plus v7 personal/ask, receive only thei
    await provider.generateChapter({chapter,analysis:{contexts:{[domain]:chapter.key?.startsWith('relationship-')?relationContext:context},themes:[],signals:[]},previous:[]});
    const rules=JSON.parse(sent.domainRules),guide=rules.consultationQuality;
    assert.equal(guide.version,m.CONSULTATION_QUALITY_VERSION);
+   assert.equal(rules.readerCounsel.version,m.READER_COUNSEL_VERSION);
+   assert.match(rules.readerCounsel.opening,/신청한 주제와 구체적인 질문/);
+   assert.ok(sent.promptVersion.endsWith(m.READER_COUNSEL_VERSION));
    assert.equal(guide.domain,m.CONSULTATION_QUALITY_POLICY.domains[domain]);
    assert.deepEqual(guide.availableFactIds,sent.calculatedData.facts.map(f=>f.id));
    assert.ok(guide.availableFactIds.length);

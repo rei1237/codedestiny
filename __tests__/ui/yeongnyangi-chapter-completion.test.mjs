@@ -92,6 +92,10 @@ test('all 28 catalog products share the explicit one-chapter identity and comple
   assert.ok(!sent.outputSchema.required.includes('complete'));
   assert.equal(sent.outputSchema.properties.complete,undefined,'the model writes content; the server decides completion');
   assert.equal(JSON.parse(sent.domainRules).completionContract.chapterId,chapter.id);
+  const counsel=JSON.parse(sent.domainRules).readerCounsel;
+  assert.match(counsel.numbers,/내부 점수/);
+  assert.match(counsel.counseling,/조건부로 공감/);
+  assert.match(counsel.opening,p.systems.every(domain=>domain==='tarot')?/타고난 성격을 지어내지 않는다/:/신청한 주제와 구체적인 질문/);
   seen.add(p.id);
  }
  assert.equal(seen.size,28);assert.equal(calls,28);
