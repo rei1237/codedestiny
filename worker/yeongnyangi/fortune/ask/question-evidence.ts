@@ -1,6 +1,7 @@
 import {FortuneError,type DomainContext} from '../shared/contracts';
 import type {QuestionDecision} from './question-policy';
 import {questionCycles} from '../counsel-purpose';
+import {buildSubDasha} from '../../../lib/vedic-derived-calculations.js';
 
 /** Projects already-calculated periods only. Never introduces another chart calculation or synthetic date. */
 export function questionEvidence(ctx:DomainContext,d:QuestionDecision,question:string,asOf:string):DomainContext{
@@ -22,12 +23,28 @@ export function questionEvidence(ctx:DomainContext,d:QuestionDecision,question:s
  }else if(ctx.domain==='vedic'){
   const dasha=get('vimshottariDasha');
   if(!dasha?.currentMahadasha)throw new FortuneError('QUESTION_EVIDENCE_UNAVAILABLE');
-  periods=[{currentMahadasha:dasha.currentMahadasha,currentAntardasha:dasha.currentAntardasha},
+  const remaining=remainingAntardashas(get('dasha'),dasha.currentMahadasha,asOf);
+  periods=[{currentMahadasha:dasha.currentMahadasha,currentAntardasha:dasha.currentAntardasha,...(remaining?{remainingAntardashas:remaining}:{})},
    ...(dasha.periods||[]).filter((p:any)=>p.startDate>asOf).slice(0,1)];
-  rule='베다 빈쇼타리 다샤다. 저장된 마하다샤·안타르다샤와 다음 마하다샤의 실제 기간을 사용하며 사주 대운으로 부르지 않는다.';
+  rule='베다 빈쇼타리 다샤다. 저장된 마하다샤·안타르다샤와 다음 마하다샤의 실제 기간을 사용하며 사주 대운으로 부르지 않는다. 현재 마하다샤의 안타르다샤는 remainingAntardashas의 순서와 기간만 쓴다. 그 목록의 마지막 항목만 마지막 안타르다샤라고 부르고, 목록에 없는 안타르다샤를 마지막이라고 부르지 않는다.';
  }else throw new FortuneError('QUESTION_SCOPE_UNSUPPORTED');
  if(!Array.isArray(periods)||!periods.length)throw new FortuneError('QUESTION_EVIDENCE_UNAVAILABLE');
  return {...ctx,facts:[...ctx.facts,{id:ctx.domain+'.questionTiming',label:'questionTiming',value:{periods,rule,requestedPeriod:d.period}}]};
+}
+
+/** The current mahadasha's antardashas from asOf to its end, cut from the engine's own full-precision timeline. */
+function remainingAntardashas(raw:any,current:any,asOf:string){
+ const md=(raw?.timeline||[]).find((p:any)=>p.lord===current?.lord&&p.startDate===current?.startDate);
+ if(!md?.start||!md?.end)return undefined;
+ const out:{lord:string,startDate:string,endDate:string}[]=[];
+ let cursor=Date.parse(asOf);
+ for(let i=0;i<9;i++){
+  const ad=buildSubDasha(md,new Date(cursor));
+  if(!ad)break;
+  out.push({lord:ad.lord,startDate:ad.start.slice(0,10),endDate:ad.end.slice(0,10)});
+  cursor=Date.parse(ad.end);
+ }
+ return out.length?out:undefined;
 }
 
 const startDate=(r:any)=>`${r?.start?.year}-${String(r?.start?.month).padStart(2,'0')}-${String(r?.start?.day).padStart(2,'0')}`;

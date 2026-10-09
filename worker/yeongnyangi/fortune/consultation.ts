@@ -2,6 +2,8 @@ import type { ChapterBody, ChapterSpec } from './book-contracts';
 import { FortuneError, type DomainContext } from './shared/contracts';
 import { topicLabel } from './topics';
 import { ASK_PERIOD_RESOLVER, resolveAskPeriods, type AskPeriodRange } from './ask/period';
+import { PLANET_KO } from './block-anchors';
+import { DASHA_ORDER } from '../../lib/vedic-derived-calculations.js';
 
 export interface Consultation {
   questionDecision?: import('./ask/question-policy').QuestionDecision;
@@ -304,6 +306,37 @@ export function validatePreciseTiming(body: ChapterBody, consultation: Consultat
   const allowed=new Set(dates(JSON.stringify(evidence)+' '+JSON.stringify(consultation)));
   if(dates(text).some(date=>!allowed.has(date)))throw new FortuneError('UNSUPPORTED_PRECISE_TIMING');
   validateMonthPillars(text.split('\n'),evidence,Boolean(consultation.questionDecision));
+  if(consultation.questionDecision&&natalOnlyTiming(evidence))validateUngroundedTiming(text);
+  validateDashaSequence(text,evidence);
+}
+
+// The last antardasha of a mahadasha is fixed by the cycle order: it is the lord just before the mahadasha lord.
+export function validateDashaSequence(text: string, evidence: unknown) {
+  const md=(Array.isArray(evidence)?evidence:[]).map((f:any)=>f?.label==='vimshottariDasha'?f.value?.currentMahadasha?.lord:undefined).find(Boolean);
+  const i=DASHA_ORDER.indexOf(md);
+  if(i<0)return;
+  const last=PLANET_KO[DASHA_ORDER[(i+8)%9]], lords=DASHA_ORDER.map(l=>PLANET_KO[l]).join('|');
+  for(const sentence of text.split(/\n|(?<=[.!?。])\s+/)){
+    if([...sentence.matchAll(new RegExp(`(${lords})\\s*(?:\\([^)]*\\)\\s*)?마하다샤`,'gu'))].some(m=>m[1]!==PLANET_KO[md]))continue;
+    for(const m of sentence.matchAll(new RegExp(`마지막\\s*안타르다샤(?:\\s*\\([^)]*\\))?(?:인\\s*|\\s+)(${lords})(?:\\s*-\\s*(${lords}))?(?![가-힣]*\\s*(?:이\\s*)?아니)`,'gu')))
+      if((m[2]||m[1])!==last)throw new FortuneError('CHAPTER_DASHA_SEQUENCE_MISMATCH');
+  }
+}
+
+// Facts that move with time. A question chapter holding none of them can name a period but cannot rank one.
+const TIMING_LABELS=new Set(['monthlyLuck','yearlyLuck','majorLuck','questionTiming','yearlyTimeline','minorLuck','vimshottariDasha','dasha','transits']);
+/** Astrology question chapters carry the birth chart only (no transits), so no period can be called favourable from them. */
+export function natalOnlyTiming(evidence: unknown) {
+  const facts=Array.isArray(evidence)?evidence:[];
+  return facts.length>0&&facts.every((f:any)=>String(f?.id).startsWith('astrology.')&&!TIMING_LABELS.has(f?.label));
+}
+const PERIOD_WORD=/20\d{2}\s*년|올해|금년|내년|명년|다음\s*해|[상하]반기|[1-4]\s*분기|(?<![\d.])\d{1,2}\s*월(?!\s*\d)/u;
+const TIMING_CLAIM=/(?:유리한|불리한|긍정적인|부정적인|좋은|나쁜|적절한|적합한|알맞은|길한|흉한|위험한)\s*(?:시기|때|타이밍|시점)|적기|호기|(?:시기|때|타이밍|시점)(?:가|이|는|로|라)?\s*(?:좋|유리|무르익|열리)/u;
+const TIMING_DENIAL=/(?:특정|단정|판단|예측|가늠)(?:할|하기|하지|되지)?\s*(?:수\s*)?(?:없|않|어렵)|근거가\s*없|알\s*수\s*없/u;
+/** A sentence that ranks a named period ('2027년 상반기가 유리한 시기') without denying it is unsupported here. */
+export function validateUngroundedTiming(text: string) {
+  for(const sentence of text.split(/\n|(?<=[.!?。])\s+/))
+    if(PERIOD_WORD.test(sentence)&&TIMING_CLAIM.test(sentence)&&!TIMING_DENIAL.test(sentence))throw new FortuneError('CHAPTER_UNGROUNDED_TIMING');
 }
 
 const STEM_KO='갑을병정무기경신임계',STEM_HJ='甲乙丙丁戊己庚辛壬癸',BRANCH_KO='자축인묘진사오미신유술해',BRANCH_HJ='子丑寅卯辰巳午未申酉戌亥';

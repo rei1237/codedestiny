@@ -7,7 +7,7 @@ import path from 'node:path';
 const require=createRequire(import.meta.url), Module=require('node:module');
 const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/consultation'; export {questionFactSelectors,readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {buildAskFirstChapterPrompt} from './worker/yeongnyangi/fortune/ask/prompt'; export {products} from './worker/yeongnyangi/payments/catalog'; export * from './worker/yeongnyangi/fortune/ask/period';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const loaded=new Module(path.resolve('consultation-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,loaded.id);
-const {resolveAskPeriods,formatAskRange,applyAskPeriodChip,resolveQuestionYears,consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,validateMonthPillars,assertProfessionalProse,redactInternalEvidence,tarotPositionNames,correctPersonaAddress,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
+const {resolveAskPeriods,formatAskRange,applyAskPeriodChip,resolveQuestionYears,consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,validateMonthPillars,natalOnlyTiming,assertProfessionalProse,redactInternalEvidence,tarotPositionNames,correctPersonaAddress,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
 const clock=consultationClock('Asia/Seoul',new Date('2026-09-21T23:00:00Z'));
 const manifest=readingManifest(products.find(p=>p.id==='saju_mackerel'));
 const make=(q='',topic='general',ask=false)=>createConsultation(q,topic,clock,manifest,ask);
@@ -310,4 +310,31 @@ test('a quick-select chip replaces the leading period phrase and keeps the quest
  assert.equal(applyAskPeriodChip('이번달 지출은?','다음 달'),'다음 달 지출은?');
  assert.equal(applyAskPeriodChip('다음 달에 이직할까?','이번 주'),'이번 주 다음 달에 이직할까?');
  assert.equal(applyAskPeriodChip('올해','내년'),'내년 ');
+});
+
+test('a birth-chart-only astrology question chapter cannot rank a named period, but may name it and deny it',()=>{
+ const astro=['planets','ascendant','houseCusps','houseRulers','aspects','chartSect'].map(label=>({id:'astrology.'+label,label,value:{}}));
+ const consultation={questionDecision:{category:'job_change',horizon:'current'},period:{start:'2026-10-01',end:'2027-06-30'}};
+ const body=(text,timing='')=>({summary:'',example:'',advice:'',persona:'',analysis:[],blocks:[{id:'a',title:'t',paragraphs:[text]}],questionAnswers:timing?[{answer:'',reason:'',timing,action:''}]:[]});
+ assert.equal(natalOnlyTiming(astro),true);
+ for(const extra of [{id:'astrology.transits',label:'transits',value:{}},{id:'saju.monthlyLuck',label:'monthlyLuck',value:[]}])assert.equal(natalOnlyTiming([...astro,extra]),false);
+ for(const text of ['2027년 상반기가 스타트업 이직을 고려하기에 비교적 긍정적인 시기로 보여요.','내년 상반기는 새로운 도전을 하기에 아주 유리한 시기거든.','4분기가 적기예요.','2027년 상반기가 좋은 시기이니 서둘러 결정하지 않아도 돼요.'])
+  assert.throws(()=>validatePreciseTiming(body(text),consultation,astro),{code:'CHAPTER_UNGROUNDED_TIMING'},text);
+ assert.throws(()=>validatePreciseTiming(body('본문',"2027년 상반기가 움직이기 좋은 때예요."),consultation,astro),{code:'CHAPTER_UNGROUNDED_TIMING'});
+ for(const text of ['출생 차트만으로는 2027년 상반기가 유리한 시기인지 특정할 수 없어요.','2026년 4분기에는 이력서와 포트폴리오를 정리해 보세요.','토성 11하우스는 오래 쌓은 관계가 기회가 되는 배치예요.'])
+  assert.doesNotThrow(()=>validatePreciseTiming(body(text),consultation,astro),text);
+ // With time-varying evidence, or outside a question consultation, the sentence is judged elsewhere.
+ assert.doesNotThrow(()=>validatePreciseTiming(body('내년 상반기는 아주 유리한 시기예요.'),consultation,[...astro,{id:'astrology.transits',label:'transits',value:{}}]));
+ assert.doesNotThrow(()=>validatePreciseTiming(body('내년 상반기는 아주 유리한 시기예요.'),{period:consultation.period},astro));
+});
+
+test('only the antardasha before the mahadasha lord in the cycle may be called its last antardasha',()=>{
+ const vedic=[{id:'vedic.vimshottariDasha',label:'vimshottariDasha',value:{currentMahadasha:{lord:'Moon',startDate:'2018-01-21',endDate:'2028-01-22'},currentAntardasha:{lord:'Venus',startDate:'2025-11-21',endDate:'2027-07-23'}}}];
+ const body=text=>({summary:text,example:'',advice:'',persona:'',analysis:[],blocks:[],questionAnswers:[]});
+ // Y3 sentences: a Moon mahadasha runs Moon…Venus, Sun, so Venus is the second to last.
+ for(const text of ['지금은 달 마하다샤의 마지막 안타르다샤인 금성 시기야.','지금 너는 달 대운(Mahadasha)의 마지막 안타르다샤(Antardasha)인 달-금성 시기(2025년 11월 21일~2027년 7월 23일)를 지나고 있어.'])
+  assert.throws(()=>validatePreciseTiming(body(text),{},vedic),{code:'CHAPTER_DASHA_SEQUENCE_MISMATCH'},text);
+ for(const text of ['그다음 달 마하다샤의 마지막 안타르다샤인 태양 시기가 이어져.','마지막 안타르다샤인 달-태양 시기에는 정리가 중요해.','마지막 안타르다샤는 금성이 아니라 태양이야.','화성 마하다샤의 마지막 안타르다샤인 달 시기는 아직 멀었어.'])
+  assert.doesNotThrow(()=>validatePreciseTiming(body(text),{},vedic),text);
+ assert.doesNotThrow(()=>validatePreciseTiming(body('마지막 안타르다샤인 금성 시기야.'),{},[]));
 });

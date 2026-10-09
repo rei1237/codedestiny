@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {build} from 'esbuild';
 const Module=createRequire(import.meta.url)('node:module');
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/prompts/domain/consultation-quality'; export * from './worker/yeongnyangi/prompts/domain/reader-counsel'; export * from './worker/yeongnyangi/prompts/domain/recognition'; export {questionManifest,QUESTION_POLICY_VERSION} from './worker/yeongnyangi/fortune/ask/question-policy'; export {questionPeriodTiming} from './worker/yeongnyangi/fortune/ask/question-evidence'; export {consultationPeriod,consultationClock} from './worker/yeongnyangi/fortune/consultation'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {domains} from './worker/yeongnyangi/fortune/index'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {readingManifestV7} from './worker/yeongnyangi/fortune/reading-v7'; export {resolveV7Ledger} from './worker/yeongnyangi/fortune/reading-v7-ledger';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/prompts/domain/consultation-quality'; export * from './worker/yeongnyangi/prompts/domain/reader-counsel'; export * from './worker/yeongnyangi/prompts/domain/recognition'; export {questionManifest,QUESTION_POLICY_VERSION} from './worker/yeongnyangi/fortune/ask/question-policy'; export {questionPeriodTiming,questionEvidence} from './worker/yeongnyangi/fortune/ask/question-evidence'; export {consultationPeriod,consultationClock} from './worker/yeongnyangi/fortune/consultation'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {domains} from './worker/yeongnyangi/fortune/index'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {readingManifestV7} from './worker/yeongnyangi/fortune/reading-v7'; export {resolveV7Ledger} from './worker/yeongnyangi/fortune/reading-v7-ledger';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const filename=path.resolve('consultation-quality.test.cjs'),loaded=new Module(filename);
 loaded.filename=filename;loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,filename);
 const m=loaded.exports;
@@ -203,4 +203,37 @@ test('saju question month rows run to the end of the asked period from the same 
  assert.equal(contexts.saju.facts.find(f=>f.label==='monthlyLuck').value.at(-1).start.year,2026,'stored context stays untouched');
  // A transition question reads 대운 only; nothing is recalculated.
  assert.equal(await m.questionPeriodTiming(contexts.saju,{...decision,horizon:'transition'},period,'2026-09-29',async()=>assert.fail()),contexts.saju);
+});
+
+test('vedic transition evidence lists every remaining antardasha of the current mahadasha, ending with its true last one',()=>{
+ const decision={version:m.QUESTION_POLICY_VERSION,category:'timing',target:'self',horizon:'transition',situation:'이직 고민',options:'',period:'2026년 4분기부터 2027년 상반기',constraints:'',confirmed:true};
+ const timing=ctx=>m.questionEvidence(ctx,decision,'언제 옮길까?','2026-09-29').facts.find(f=>f.label==='questionTiming').value;
+ const dasha=contexts.vedic.facts.find(f=>f.label==='vimshottariDasha').value;
+ const list=timing(contexts.vedic).periods[0].remainingAntardashas;
+ assert.deepEqual(list[0],dasha.currentAntardasha);
+ assert.equal(list.at(-1).endDate,dasha.currentMahadasha.endDate);
+ for(let i=1;i<list.length;i++)assert.equal(list[i].startDate,list[i-1].endDate);
+ assert.match(timing(contexts.vedic).rule,/목록에 없는 안타르다샤를 마지막이라고 부르지 않는다/);
+ // Y3: Moon MD whose current AD is Venus. Its last AD is Sun, not Venus. Dates are cut from the engine's full-precision MD.
+ const moon={lord:'Moon',start:'2018-01-21T05:00:00.000Z',end:'2028-01-22T05:00:00.000Z',startDate:'2018-01-21',endDate:'2028-01-22'};
+ const mars={lord:'Mars',start:moon.end,end:'2035-01-22T00:00:00.000Z',startDate:'2028-01-22',endDate:'2035-01-22'};
+ const y3={...contexts.vedic,facts:[{id:'vedic.dasha',label:'dasha',value:{timeline:[moon,mars]}},
+  {id:'vedic.vimshottariDasha',label:'vimshottariDasha',value:{currentMahadasha:{lord:'Moon',startDate:moon.startDate,endDate:moon.endDate},currentAntardasha:{lord:'Venus',startDate:'2025-11-21',endDate:'2027-07-23'},periods:[moon,mars]}}]};
+ const value=timing(y3);
+ assert.deepEqual(value.periods[0].remainingAntardashas,[{lord:'Venus',startDate:'2025-11-21',endDate:'2027-07-23'},{lord:'Sun',startDate:'2027-07-23',endDate:'2028-01-22'}]);
+ // Without the engine's precise MD the list is left out rather than rebuilt from day-truncated dates.
+ assert.equal(timing({...y3,facts:y3.facts.slice(1)}).periods[0].remainingAntardashas,undefined);
+ assert.equal(value.periods[1].lord,'Mars');
+});
+
+test('astrology question chapters are told up front that a birth chart cannot rank the asked period',async()=>{
+ const decision={version:m.QUESTION_POLICY_VERSION,category:'job_change',target:'self',horizon:'current',situation:'이직 고민',options:'남기 / 옮기기',period:'2026년 4분기부터 2027년 상반기',constraints:'',confirmed:true};
+ const sent=async(domain,chapter)=>{let request;
+  const provider=new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:{},provider:'mock',model:'fixture'};}});
+  await provider.generateChapter({chapter,analysis:{contexts:{[domain]:contexts[domain]},question:'이직할까?',themes:[],signals:[]},previous:[]});
+  return request.domainRules;};
+ for(const chapter of m.questionManifest('astrology','salmon',decision,undefined,'이직할까?'))
+  assert.match(await sent('astrology',chapter),/출생 차트만으로는 요청 기간 안의 좋은 시기를 특정할 수 없다/,chapter.id);
+ for(const chapter of m.questionManifest('saju','salmon',decision,undefined,'이직할까?'))
+  assert.doesNotMatch(await sent('saju',chapter),/timingLimit/,chapter.id);
 });
