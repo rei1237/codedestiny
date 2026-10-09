@@ -1,18 +1,22 @@
 ---
-status: todo
+status: active
+updated: 2026-10-10
+next: "본문 '순서' 1번부터: 규칙을 읽고 harness/ny_repro.mjs 로 신년운세(NY1) 결함을 오프라인 재현한다."
 created: 2026-10-10
 owner: 다음 세션
-next:
-  - "1. '지켜야 할 규칙'과 CLAUDE.md:15-19, docs/context/ai-and-db.md:116-118 을 읽는다. 하네스 위치와 실행법은 docs/handoff/2026-10-10-saju-llm-services-result-review.md '쓸 경로: 로컬 하네스'를 따른다."
-  - "2. 신년운세 결함(A절)을 오프라인으로 재현한다: harness/ny_repro.mjs (네트워크 없음, 비용 0)."
-  - "3. A절 '고칠 방향'대로 worker/routes/new-year-ai.js 를 고치고 mock 테스트 1개를 추가한다. 테스트가 수정 전 코드에서 실패하는지 확인한다. check:fast → 커밋."
-  - "4. 사용자에게 NY1 재실호출 1회 승인(호출 수·제공자·모델·예상 비용)을 받고 newyear.mjs NY1 을 1회 돌린다. A절 '합격 기준'으로 채점하고 NY1/result.md 절대 경로를 전달한다."
-  - "5. B절 순서(R9 인생의 책 → R6 자미 → R7 점성술 → R8 베다)로 서비스마다 --plan → 견적 보고 → 승인 → 1회 실행 → 채점 → 전달한다."
-  - "6. 결과는 결과 페이지에 탭으로 더하고 PDF 도 만든다(C절). 끝나면 이 문서에 결과 표와 SHA 를 적고 status: done."
-  - "7. (별건, 사용자 확인 후) D절: 영냥이 모듬·오마카세 예방 장 입력 토큰 초과를 고치고 MA·MO 를 각 1회 승인받아 돌린다."
 ---
 
 # 신년운세 전달 실패 디버깅 + 인생의 책·전문가 상담 결과 확인 — 인수인계
+
+## 순서
+
+1. '지켜야 할 규칙'과 CLAUDE.md:15-19, docs/context/ai-and-db.md:116-118 을 읽는다. 하네스 위치와 실행법은 docs/handoff/2026-10-10-saju-llm-services-result-review.md '쓸 경로: 로컬 하네스'를 따른다.
+2. 신년운세 결함(A절)을 오프라인으로 재현한다: harness/ny_repro.mjs (네트워크 없음, 비용 0).
+3. A절 '고칠 방향'대로 worker/routes/new-year-ai.js 를 고치고 mock 테스트 1개를 추가한다. 테스트가 수정 전 코드에서 실패하는지 확인한다. check:fast → 커밋.
+4. 사용자에게 NY1 재실호출 1회 승인(호출 수·제공자·모델·예상 비용)을 받고 newyear.mjs NY1 을 1회 돌린다. A절 '합격 기준'으로 채점하고 NY1/result.md 절대 경로를 전달한다.
+5. B절 순서(R9 인생의 책 → R6 자미 → R7 점성술 → R8 베다)로 서비스마다 --plan → 견적 보고 → 승인 → 1회 실행 → 채점 → 전달한다.
+6. 결과는 결과 페이지에 탭으로 더하고 PDF 도 만든다(C절). 끝나면 이 문서에 결과 표와 SHA 를 적고 status: done.
+7. (별건, 사용자 확인 후) D절: 영냥이 모듬·오마카세 예방 장 입력 토큰 초과를 고치고 MA·MO 를 각 1회 승인받아 돌린다.
 
 ## 사용자 요청 (2026-10-10, 원문)
 
