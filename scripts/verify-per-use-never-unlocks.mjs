@@ -338,7 +338,11 @@ check("해금 맵 방출구가 회당 결제 키를 실어 보내지 않는다",
   const fallbackAt = accessState.indexOf("resolvedUnlockedFeatureIds === null");
   assert.ok(fallbackAt > 0, "worker/lib/access-state.js: 무필터 폴백 지점을 찾지 못했다 — 이 가드의 선택자가 낡았다");
   const fallbackBlock = accessState.slice(fallbackAt, fallbackAt + 900);
-  const fallbackGates = fallbackBlock.split("!isPerUsePaidFeatureKey(key)").length - 1;
+  // 계정 배열 근거 헬퍼(accountArrayUnlockEvidence)를 거치면 그 헬퍼가 회당 결제 키를 거르는지도 본다.
+  const helperMatch = accessState.match(/function accountArrayUnlockEvidence\(values\) \{[\s\S]{0,400}?\n\}/);
+  const helperGates = helperMatch && helperMatch[0].includes("!isPerUsePaidFeatureKey(key)");
+  const fallbackGates = (fallbackBlock.split("!isPerUsePaidFeatureKey(key)").length - 1)
+    + (helperGates ? fallbackBlock.split("accountArrayUnlockEvidence(").length - 1 : 0);
   assert.equal(
     fallbackGates,
     2,
@@ -346,7 +350,9 @@ check("해금 맵 방출구가 회당 결제 키를 실어 보내지 않는다",
   );
   assert.match(
     accessState,
-    /const ownedProductIds = normalizeStringArray\(\[[\s\S]{0,400}?isPerUsePaidFeatureKey/,
+    helperGates
+      ? /const ownedProductIds = normalizeStringArray\(\[[\s\S]{0,400}?accountArrayUnlockEvidence\(user\?\.paidFeatures\)/
+      : /const ownedProductIds = normalizeStringArray\(\[[\s\S]{0,400}?isPerUsePaidFeatureKey/,
     "worker/lib/access-state.js: ownedProductIds 가 회당 결제 키를 '보유 상품'으로 내보낸다",
   );
   const paymentsMe = read("worker/routes/payments.js");

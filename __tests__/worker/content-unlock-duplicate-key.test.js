@@ -13,14 +13,18 @@
  */
 
 import { jest } from "@jest/globals";
+import { TEST_USER_ID, profileCardModel, testCard } from "../fixtures/profile-card-model.mjs";
+import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
 
 const findOneAndUpdate = jest.fn();
+
+const BIRTH_PROFILE_ID = toBirthEntitlementProfileId(computeBirthKey(testCard("profile-1")));
 
 let upsertContentUnlock;
 
 beforeAll(async () => {
   await jest.unstable_mockModule("../../worker/lib/models.js", () => ({
-    CONTENT_ENTITLEMENT_SCOPES: { PROFILE: "PROFILE", USER: "USER" },
+    CONTENT_ENTITLEMENT_SCOPES: { PROFILE: "PROFILE", USER: "USER", BIRTH: "BIRTH" },
     CONTENT_ENTITLEMENT_SOURCES: {
       COIN: "COIN",
       PAYMENT: "PAYMENT",
@@ -36,6 +40,7 @@ beforeAll(async () => {
       FULL_READING: "saju.fullReading",
       COMPATIBILITY: "saju.compatibility",
     },
+    ProfileCard: profileCardModel([testCard("profile-1")]),
     User: {},
   }));
   ({ upsertContentUnlock } = await import("../../worker/lib/content-unlocks.js"));
@@ -50,7 +55,7 @@ function chain(lean) {
 }
 
 const SAJU_INPUT = {
-  userId: "user-1",
+  userId: TEST_USER_ID,
   profileId: "profile-1",
   serviceKey: "saju",
   contentKey: "saju.fullReading",
@@ -107,7 +112,7 @@ test("연도별 상품은 featureKey 가 같아도 다른 연도 행을 매칭�
   findOneAndUpdate.mockReturnValueOnce(chain(async () => ({ _id: "row-2027" })));
 
   await upsertContentUnlock({
-    userId: "user-1",
+    userId: TEST_USER_ID,
     profileId: "profile-1",
     serviceKey: "sukuyo",
     contentKey: "sukyo_yearly_fortune_unlock:2027",

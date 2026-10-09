@@ -7,7 +7,19 @@ import {
   User,
 } from "./models.js";
 import { createHttpError } from "./http.js";
-import { isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import {
+  isBirthScopedUnlockFeatureKey,
+  isPerUsePaidFeatureKey,
+  isUnlockPaidFeatureKey,
+  normalizePaidFeatureKey,
+} from "./paid-feature-registry.js";
+import {
+  BIRTH_ENTITLEMENT_PROFILE_PREFIX,
+  BIRTH_ENTITLEMENT_SCOPE,
+  isBirthEntitlementProfileId,
+  toBirthEntitlementProfileId,
+} from "./birth-key.js";
+import { resolveBirthUnlockIdentity, tryResolveBirthUnlockIdentity } from "./birth-scoped-unlock-identity.js";
 
 // 계정 스코프(프로필 무관) 엔타이틀먼트의 profileId 자리표시자. 읽기 절(buildProfileScopeClause)과
 // 쓰기 경로가 같은 값을 써야 하므로 정산 코드(payments.js)에서도 이 상수를 가져다 쓴다.
@@ -91,6 +103,8 @@ function activeExpiryClause(now = new Date()) {
   };
 }
 
+// 🔴 계정 기반 키 전용이다. 출생 기반 키는 USER·"__user__"·PROFILE 행을 근거로 보지 않고
+// birthScopeClause 만 쓴다(아래 출생 기반 해금 절 참고).
 function buildProfileScopeClause(profileId) {
   return {
     $or: [
@@ -126,10 +140,103 @@ export function resolveUnlockedFeatureKeyFromContentKey(value) {
   return PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[key] || key;
 }
 
+/* 계정 배열(User.unlockedFeatures/paidFeatures)·USER 행을 근거로 쓰면 안 되는 키인가.
+   출생 기반 키는 전부 여기에 든다 — 그래서 access-state·paid-content-read-access 의 계정 경로가 자동으로 닫힌다. */
 export function isProfileScopedContentUnlockFeatureKey(value) {
   const key = cleanKey(value);
   if (!key) return false;
-  return Boolean(PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[key]);
+  return Boolean(PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[key]) || isBirthScopedUnlockFeatureKey(key);
+}
+
+// ── 출생 기반 해금(userId + birthKey + contentKey) ──
+// 행은 scope "BIRTH", profileId "birth:<birthKey>" 로 저장된다. 신원은 서버의 ProfileCard 에서만 만든다
+// (worker/lib/birth-scoped-unlock-identity.js). 합성 profileId 는 응답으로 내보내지 않는다.
+
+export function isBirthScopedContentTarget({ featureKey = "", contentKey = "" } = {}) {
+  return isBirthScopedUnlockFeatureKey(cleanKey(featureKey))
+    || isBirthScopedUnlockFeatureKey(resolveUnlockedFeatureKeyFromContentKey(contentKey));
+}
+
+function birthKeyFromEntitlementProfileId(value) {
+  const key = cleanKey(value, 100);
+  return isBirthEntitlementProfileId(key) ? key.slice(BIRTH_ENTITLEMENT_PROFILE_PREFIX.length) : "";
+}
+
+function birthScopeClause(entitlementProfileId) {
+  return { scope: BIRTH_ENTITLEMENT_SCOPE, profileId: entitlementProfileId };
+}
+
+// 조회용 신원. 못 만들면 null(= 잠금). 서버 내부 호출이 이미 합성 profileId 를 갖고 있으면 그대로 쓴다.
+async function resolveBirthReadIdentity(target, input = {}) {
+  if (input.birthIdentity?.entitlementProfileId) return input.birthIdentity;
+  const internal = birthKeyFromEntitlementProfileId(target.profileId);
+  if (internal) return { entitlementProfileId: target.profileId, birthKey: internal, profileId: "" };
+  if (!target.userId || !target.profileId) return null;
+  return tryResolveBirthUnlockIdentity({
+    userId: target.userId,
+    profileId: target.profileId,
+    partnerProfileId: input.partnerProfileId,
+    featureKey: target.featureKey,
+  }, input.findProfileCard ? { findProfileCard: input.findProfileCard } : {});
+}
+
+// 쓰기용 신원. 실패하면 던진다(MISSING_PROFILE_ID / INVALID_PROFILE).
+// birthKey 는 **서버가 계산해 저장한 스냅샷**(주문 pricingSnapshot 등)에서 온 값만 넘긴다.
+async function resolveBirthWriteIdentity({
+  userId,
+  profileId,
+  partnerProfileId = "",
+  featureKey,
+  birthKey = "",
+  partnerBirthKey = "",
+  purchaseProfileId = "",
+  purchasePartnerProfileId = "",
+  birthIdentity = null,
+  findProfileCard = null,
+}) {
+  if (birthIdentity?.entitlementProfileId) return birthIdentity;
+  const snapshotPid = toBirthEntitlementProfileId(cleanKey(birthKey, 64));
+  const internalKey = birthKeyFromEntitlementProfileId(profileId);
+  if (snapshotPid || internalKey) {
+    const key = snapshotPid ? cleanKey(birthKey, 64) : internalKey;
+    return {
+      entitlementProfileId: toBirthEntitlementProfileId(key),
+      birthKey: key,
+      partnerBirthKey: cleanKey(partnerBirthKey, 64),
+      profileId: cleanKey(purchaseProfileId || (internalKey ? "" : profileId), 80),
+      partnerProfileId: cleanKey(purchasePartnerProfileId || partnerProfileId, 80),
+    };
+  }
+  const requested = cleanKey(profileId, 100) === USER_SCOPE_PROFILE_ID ? "" : profileId;
+  return resolveBirthUnlockIdentity(
+    { userId, profileId: requested, partnerProfileId, featureKey },
+    findProfileCard ? { findProfileCard } : {},
+  );
+}
+
+// 이 행이 해금 근거가 될 수 있는가. 출생 기반 콘텐츠의 USER/PROFILE 행(전환 이전 기록)은 근거가 아니다.
+function isBirthScopeEvidence(doc) {
+  const featureKey = cleanKey(doc?.featureKey, 160) || resolveUnlockedFeatureKeyFromContentKey(doc?.contentKey || doc?.contentId);
+  if (!isBirthScopedContentTarget({ featureKey, contentKey: doc?.contentKey || doc?.contentId })) return true;
+  return doc?.scope === BIRTH_ENTITLEMENT_SCOPE;
+}
+
+function presentBirthDoc(doc, profileId = "") {
+  if (!doc) return doc;
+  return {
+    ...doc,
+    profileId: cleanKey(profileId, 100) || cleanKey(doc.purchaseProfileId, 100),
+    birthEntitlementProfileId: doc.profileId,
+  };
+}
+
+/**
+ * 라우트 리더의 단일 진입점: 이 계정이 이 프로필(=그 출생 정보)로 이 콘텐츠를 영구 해금했는가.
+ * 출생 기반 키는 BIRTH 행만, 계정 기반 키는 종전 판정(findActivePaidContentUnlock)을 쓴다.
+ */
+export async function hasPaidUnlockForProfile({ userId, profileId, partnerProfileId = "", featureKey, serviceKey = "", contentKey = "" } = {}) {
+  const doc = await findActivePaidContentUnlock({ userId, profileId, partnerProfileId, featureKey, serviceKey, contentKey });
+  return Boolean(doc);
 }
 
 function resolveContentKeyAliases(value) {
@@ -189,13 +296,21 @@ export function resolvePaidContentUnlockTarget({
     160,
   );
   const resolvedServiceKey = cleanKey(serviceKey || resolvePaidContentServiceKey(rawFeatureKey || normalizedContentKey), 80);
-  const requiresProfile = Boolean(profileContentKey);
-  const normalizedScope = cleanKey(scope, 20)
-    || (requiresProfile ? CONTENT_ENTITLEMENT_SCOPES.PROFILE : CONTENT_ENTITLEMENT_SCOPES.USER);
-  const normalizedProfileId = normalizedScope === CONTENT_ENTITLEMENT_SCOPES.USER
-    ? USER_SCOPE_PROFILE_ID
-    : cleanKey(profileId, 100);
   const normalizedFeatureKey = cleanKey(normalizePaidFeatureKey(rawFeatureKey) || rawFeatureKey || normalizedContentKey, 160);
+  // 🔴 출생 기반 키는 요청의 scope(USER 등)를 무시한다. profileId 는 실제 프로필 id 로 남기고,
+  // 신원(birthKey)은 비동기 리더/라이터가 ProfileCard 로 만든다.
+  const birthScoped = isBirthScopedContentTarget({ featureKey: normalizedFeatureKey, contentKey: normalizedContentKey });
+  const requiresProfile = birthScoped || Boolean(profileContentKey);
+  const normalizedScope = birthScoped
+    ? BIRTH_ENTITLEMENT_SCOPE
+    : cleanKey(scope, 20)
+      || (requiresProfile ? CONTENT_ENTITLEMENT_SCOPES.PROFILE : CONTENT_ENTITLEMENT_SCOPES.USER);
+  const requestedProfileId = cleanKey(profileId, 100);
+  const normalizedProfileId = birthScoped
+    ? (requestedProfileId === USER_SCOPE_PROFILE_ID ? "" : requestedProfileId)
+    : normalizedScope === CONTENT_ENTITLEMENT_SCOPES.USER
+      ? USER_SCOPE_PROFILE_ID
+      : requestedProfileId;
 
   return {
     userId: cleanKey(userId, 120),
@@ -204,6 +319,7 @@ export function resolvePaidContentUnlockTarget({
     contentKey: normalizedContentKey,
     scope: normalizedScope,
     requiresProfile,
+    birthScoped,
     featureKey: normalizedFeatureKey,
   };
 }
@@ -216,7 +332,10 @@ export function formatPermanentUnlockGrant(document = {}, fallback = {}) {
   return {
     id: cleanKey(document?._id || fallback?.id, 180),
     featureKey,
-    profileId: cleanKey(document?.profileId || fallback?.profileId, 100),
+    // 합성 신원("birth:…")은 내보내지 않는다 — 요청한 프로필(또는 구매 프로필)을 싣는다.
+    profileId: isBirthEntitlementProfileId(document?.profileId)
+      ? cleanKey(fallback?.profileId || document?.purchaseProfileId, 100)
+      : cleanKey(document?.profileId || fallback?.profileId, 100),
     scope: cleanKey(document?.scope || fallback?.scope, 20) || CONTENT_ENTITLEMENT_SCOPES.USER,
     grantType: "permanent_unlock",
     status: String(document?.status || fallback?.status || CONTENT_ENTITLEMENT_STATUSES.ACTIVE).toLowerCase(),
@@ -235,6 +354,20 @@ export async function findActivePaidContentUnlock(input = {}) {
      형제 근거인 hasUserScopedPermanentUnlock 은 이미 같은 경계를 가지고 있었고, 이쪽만 빠져 있었다.
      호출부마다 감싸지 않고 공유 리더인 여기 한 곳에서 막는다(원칙 6). */
   if (isPerUsePaidFeatureKey(target.featureKey)) return null;
+
+  if (target.birthScoped) {
+    const identity = await resolveBirthReadIdentity(target, input);
+    if (!identity) return null;
+    const doc = await ContentEntitlement.findOne({
+      userId: target.userId,
+      serviceKey: target.serviceKey,
+      ...buildContentKeyClause(target.contentKey),
+      status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+      ...birthScopeClause(identity.entitlementProfileId),
+      $and: [activeExpiryClause()],
+    }).lean();
+    return presentBirthDoc(doc, target.profileId);
+  }
 
   const profileScopeClause = target.profileId
     ? buildProfileScopeClause(target.profileId)
@@ -256,6 +389,20 @@ export async function findActivePaidContentUnlockByServiceKeys(input = {}) {
   const target = resolvePaidContentUnlockTarget({ ...input, serviceKey: serviceKeys[0] || input.serviceKey });
   if (!target.userId || !serviceKeys.length || !target.contentKey) return null;
   if (target.requiresProfile && !target.profileId) return null;
+
+  if (target.birthScoped) {
+    const identity = await resolveBirthReadIdentity(target, input);
+    if (!identity) return null;
+    const doc = await ContentEntitlement.findOne({
+      userId: target.userId,
+      serviceKey: { $in: serviceKeys },
+      ...buildContentKeyClause(target.contentKey),
+      status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+      ...birthScopeClause(identity.entitlementProfileId),
+      $and: [activeExpiryClause()],
+    }).lean();
+    return presentBirthDoc(doc, target.profileId);
+  }
 
   const profileScopeClause = target.profileId
     ? buildProfileScopeClause(target.profileId)
@@ -281,6 +428,24 @@ export async function grantPermanentUnlock(input = {}) {
   if (!target.userId || !target.serviceKey || !target.contentKey) {
     throw createHttpError(400, "Unlock target is required.", { code: "INVALID_UNLOCK_TARGET" });
   }
+  if (target.birthScoped) {
+    // 소유 확인 + 서버 출생 정보로 신원을 만든다. 실패하면 MISSING_PROFILE_ID / INVALID_PROFILE 로 던진다.
+    const identity = await resolveBirthWriteIdentity({ ...input, userId: target.userId, profileId: target.profileId, featureKey: target.featureKey });
+    return upsertContentUnlock({
+      ...input,
+      userId: target.userId,
+      profileId: identity.entitlementProfileId,
+      serviceKey: target.serviceKey,
+      contentKey: target.contentKey,
+      featureKey: target.featureKey,
+      scope: BIRTH_ENTITLEMENT_SCOPE,
+      birthIdentity: identity,
+      grantType: "permanent_unlock",
+      evidenceId: input.evidenceId || input.paymentId || input.orderId || input.passId,
+      grantedAt: input.grantedAt || input.unlockedAt,
+      expiresAt: null,
+    });
+  }
   if (target.requiresProfile && !target.profileId) {
     throw createHttpError(400, "Profile id is required for profile-scoped unlock entitlement.", { code: "MISSING_PROFILE_ID" });
   }
@@ -297,6 +462,37 @@ export async function grantPermanentUnlock(input = {}) {
     grantedAt: input.grantedAt || input.unlockedAt,
     expiresAt: null,
   });
+}
+
+/* 마이그레이션이 병합한 BIRTH 행(source BACKFILL)은 여러 구매(mergedOrderIds)를 근거로 한다.
+   환불된 주문 하나만 근거에서 빼고, 근거가 하나도 남지 않을 때만 회수한다 — 같은 출생 정보로 따로 산
+   다른 구매까지 같이 잠그지 않기 위해서다. */
+async function revokeBackfilledBirthUnlocks({ userId, paymentIds, status, now, session = null }) {
+  const base = {
+    userId,
+    scope: BIRTH_ENTITLEMENT_SCOPE,
+    source: CONTENT_ENTITLEMENT_SOURCES.BACKFILL,
+    status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+  };
+  // 이번 호출 표식 — 근거가 원래 없던 다른 행(mergedOrderIds: [])까지 잡지 않도록 방금 뺀 행으로만 좁힌다.
+  const marker = `${now.getTime()}:${paymentIds[0] || ""}:${Math.random().toString(36).slice(2, 10)}`;
+  const pull = ContentEntitlement.updateMany(
+    { ...base, mergedOrderIds: { $in: paymentIds } },
+    { $pull: { mergedOrderIds: { $in: paymentIds } }, $set: { updatedAt: now, birthBackfillRevokeMarker: marker } },
+  );
+  if (session) pull.session(session);
+  const pulled = await pull;
+  if (!Number(pulled?.matchedCount || pulled?.modifiedCount || 0)) return { modifiedCount: 0, matchedCount: 0 };
+  const revoke = ContentEntitlement.updateMany(
+    { ...base, birthBackfillRevokeMarker: marker, mergedOrderIds: { $size: 0 } },
+    { $set: { status, expiresAt: now, updatedAt: now } },
+  );
+  if (session) revoke.session(session);
+  const revoked = await revoke;
+  return {
+    modifiedCount: Number(revoked?.modifiedCount || 0),
+    matchedCount: Number(pulled?.matchedCount || 0),
+  };
 }
 
 export async function revokePaymentContentAccess({
@@ -340,12 +536,20 @@ export async function revokePaymentContentAccess({
   if (paymentIds.length) {
     clauses.push({ paymentId: { $in: paymentIds } }, { orderId: { $in: paymentIds } });
   }
-  if (target.serviceKey && contentAliases.length) {
+  // 출생 기반 키: 내용 절은 **결제 시점의 birthKey 스냅샷**이 있을 때만 건다. 프로필의 현재 출생 정보로
+  // 다시 계산하면 그 뒤에 출생 정보를 고친 경우 엉뚱한(따로 산) 출생 행을 회수한다. 없으면 주문 id 절만 쓴다.
+  const birthSnapshotPid = target.birthScoped ? toBirthEntitlementProfileId(cleanKey(pricing.birthKey, 64)) : "";
+  if (target.serviceKey && contentAliases.length && (!target.birthScoped || birthSnapshotPid)) {
     const contentClause = {
       serviceKey: target.serviceKey,
       contentKey: { $in: contentAliases },
     };
-    if (target.profileId) contentClause.profileId = target.profileId;
+    if (birthSnapshotPid) {
+      contentClause.profileId = birthSnapshotPid;
+      contentClause.scope = BIRTH_ENTITLEMENT_SCOPE;
+    } else if (target.profileId) {
+      contentClause.profileId = target.profileId;
+    }
     clauses.push(contentClause);
   }
   if (!clauses.length) return { ok: false, skipped: true, reason: "MISSING_UNLOCK_TARGET" };
@@ -354,6 +558,9 @@ export async function revokePaymentContentAccess({
     ? revokedStatus
     : CONTENT_ENTITLEMENT_STATUSES.REFUNDED;
   const now = new Date();
+  const backfillResult = paymentIds.length
+    ? await revokeBackfilledBirthUnlocks({ userId, paymentIds, status, now, session })
+    : { modifiedCount: 0, matchedCount: 0 };
   const update = ContentEntitlement.updateMany(
     {
       userId,
@@ -392,8 +599,8 @@ export async function revokePaymentContentAccess({
     userResult = await userUpdate;
   }
 
-  const entitlementModifiedCount = Number(entitlementResult?.modifiedCount || 0);
-  const entitlementMatchedCount = Number(entitlementResult?.matchedCount || entitlementResult?.n || 0);
+  const entitlementModifiedCount = Number(entitlementResult?.modifiedCount || 0) + Number(backfillResult.modifiedCount || 0);
+  const entitlementMatchedCount = Number(entitlementResult?.matchedCount || entitlementResult?.n || 0) + Number(backfillResult.matchedCount || 0);
   const userModifiedCount = Number(userResult?.modifiedCount || userResult?.nModified || 0);
   if (entitlementModifiedCount > 0 || userModifiedCount > 0) invalidateAccessReadCaches(userId);
   return {
@@ -408,7 +615,7 @@ export async function revokePaymentContentAccess({
   };
 }
 
-export async function hasUnlockedContent({ userId, profileId, serviceKey, contentKey }) {
+export async function hasUnlockedContent({ userId, profileId, partnerProfileId = "", serviceKey, contentKey }) {
   const normalized = {
     userId: cleanKey(userId, 120),
     profileId: cleanKey(profileId, 100),
@@ -416,6 +623,11 @@ export async function hasUnlockedContent({ userId, profileId, serviceKey, conten
     contentKey: cleanKey(contentKey, 160),
   };
   if (!normalized.userId || !normalized.profileId || !normalized.serviceKey || !normalized.contentKey) return false;
+
+  if (isBirthScopedContentTarget({ contentKey: normalized.contentKey })) {
+    const doc = await findActivePaidContentUnlock({ ...normalized, partnerProfileId });
+    return Boolean(doc?._id);
+  }
 
   const doc = await ContentEntitlement.findOne({
     userId: normalized.userId,
@@ -450,7 +662,39 @@ export async function upsertContentUnlock({
   grantedAt = null,
   expiresAt = null,
   session = null,
+  partnerProfileId = "",
+  birthKey = "",
+  partnerBirthKey = "",
+  purchaseProfileId = "",
+  purchasePartnerProfileId = "",
+  birthIdentity = null,
+  findProfileCard = null,
 }) {
+  // 🔴 출생 기반 키는 어떤 호출부에서 오든(USER/PROFILE 을 요구해도) BIRTH 행으로만 쓴다.
+  // 프로필이 없거나 이 계정 소유가 아니면 MISSING_PROFILE_ID / INVALID_PROFILE 로 던진다.
+  let birthFields = null;
+  if (isBirthScopedContentTarget({ featureKey, contentKey })) {
+    const identity = await resolveBirthWriteIdentity({
+      userId,
+      profileId,
+      partnerProfileId,
+      featureKey: cleanKey(featureKey, 160) || resolveUnlockedFeatureKeyFromContentKey(contentKey),
+      birthKey,
+      partnerBirthKey,
+      purchaseProfileId,
+      purchasePartnerProfileId,
+      birthIdentity,
+      findProfileCard,
+    });
+    profileId = identity.entitlementProfileId;
+    scope = BIRTH_ENTITLEMENT_SCOPE;
+    birthFields = {
+      birthKey: identity.birthKey,
+      ...(identity.partnerBirthKey ? { partnerBirthKey: identity.partnerBirthKey } : {}),
+      ...(identity.profileId ? { purchaseProfileId: identity.profileId } : {}),
+      ...(identity.partnerProfileId ? { purchasePartnerProfileId: identity.partnerProfileId } : {}),
+    };
+  }
   const normalized = {
     userId: cleanKey(userId, 120),
     profileId: cleanKey(profileId, 100),
@@ -524,6 +768,7 @@ export async function upsertContentUnlock({
         scope: normalized.scope,
         unlockedAt: effectiveUnlockedAt,
         createdAt: now,
+        ...(birthFields || {}),
       },
     },
     { upsert: true, new: true, setDefaultsOnInsert: true },
@@ -558,15 +803,22 @@ export async function getUnlockedContentKeys({ userId, profileId, serviceKey }) 
   };
   if (!normalized.userId || !normalized.profileId || !normalized.serviceKey) return [];
 
-  const docs = await ContentEntitlement.find({
+  const birthIdentity = await resolveBirthReadIdentity(
+    { userId: normalized.userId, profileId: normalized.profileId, featureKey: "" },
+  );
+  const scopeClause = buildProfileScopeClause(normalized.profileId);
+  if (birthIdentity) scopeClause.$or.push(birthScopeClause(birthIdentity.entitlementProfileId));
+
+  const docs = (await ContentEntitlement.find({
     userId: normalized.userId,
     serviceKey: normalized.serviceKey,
     status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
     $and: [
       activeExpiryClause(),
-      buildProfileScopeClause(normalized.profileId),
+      scopeClause,
     ],
-  }).select("contentKey source unlockedAt expiresAt").lean();
+  }).select("contentKey featureKey scope source grantType passId grantedAt unlockedAt expiresAt").lean())
+    .filter((doc) => isBirthScopeEvidence(doc));
 
   return docs.map((doc) => ({
     ...doc,
@@ -580,6 +832,7 @@ export async function getUnlockedContentSnapshot({
   serviceKey = "",
   serviceKeys = [],
   includeAllProfiles = false,
+  partnerProfileId = "",
 } = {}) {
   const normalizedUserId = cleanKey(userId, 120);
   if (!normalizedUserId) {
@@ -596,12 +849,28 @@ export async function getUnlockedContentSnapshot({
     ...((Array.isArray(serviceKeys) ? serviceKeys : []).map((key) => cleanKey(key, 80))),
     cleanKey(serviceKey, 80),
   ].filter(Boolean)));
+  const normalizedProfileId = cleanKey(profileId, 100);
+  // 이 프로필의 출생 신원(본인, 그리고 상대가 주어지면 궁합). 프로필이 없거나 남의 것이면 출생 기반 해금은 0건이다.
+  const birthPids = [];
+  if (normalizedProfileId) {
+    const main = await resolveBirthReadIdentity({ userId: normalizedUserId, profileId: normalizedProfileId, featureKey: "" });
+    if (main) birthPids.push(main.entitlementProfileId);
+    if (cleanKey(partnerProfileId, 100)) {
+      const compat = await resolveBirthReadIdentity(
+        { userId: normalizedUserId, profileId: normalizedProfileId, featureKey: "section_compat" },
+        { partnerProfileId },
+      );
+      if (compat) birthPids.push(compat.entitlementProfileId);
+    }
+  }
+  const accountScopeClause = buildAccountSnapshotScopeClause(profileId);
+  for (const pid of birthPids) accountScopeClause.$or.push(birthScopeClause(pid));
   const query = {
     userId: normalizedUserId,
     status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
     $and: includeAllProfiles
       ? [activeExpiryClause()]
-      : [activeExpiryClause(), buildAccountSnapshotScopeClause(profileId)],
+      : [activeExpiryClause(), accountScopeClause],
   };
   if (normalizedServiceKeys.length === 1) {
     query.serviceKey = normalizedServiceKeys[0];
@@ -609,11 +878,15 @@ export async function getUnlockedContentSnapshot({
     query.serviceKey = { $in: normalizedServiceKeys };
   }
 
-  const docs = await ContentEntitlement.find(query)
+  const birthPidSet = new Set(birthPids);
+  const docs = (await ContentEntitlement.find(query)
     // passId 는 access-state 가 해금마다 근거를 싣는 데 쓴다(Phase 4 D6, worker/lib/access-state.js).
     .select("featureKey contentKey contentId serviceKey scope profileId source grantType passId grantedAt unlockedAt expiresAt updatedAt")
-    .lean();
-  const normalizedProfileId = cleanKey(profileId, 100);
+    .lean())
+    // 출생 기반 콘텐츠는 이 프로필 출생 신원의 BIRTH 행만 남긴다. 합성 profileId 는 실제 프로필 id 로 바꿔 내보낸다.
+    .filter((doc) => isBirthScopeEvidence(doc)
+      && (doc?.scope !== BIRTH_ENTITLEMENT_SCOPE || birthPidSet.has(cleanKey(doc?.profileId, 100))))
+    .map((doc) => (doc?.scope === BIRTH_ENTITLEMENT_SCOPE ? { ...doc, profileId: normalizedProfileId } : doc));
   const applicableDocs = includeAllProfiles
     ? docs.filter((doc) => doc?.scope === CONTENT_ENTITLEMENT_SCOPES.USER
       || cleanKey(doc?.profileId, 100) === USER_SCOPE_PROFILE_ID

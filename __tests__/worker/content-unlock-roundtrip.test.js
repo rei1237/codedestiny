@@ -10,16 +10,20 @@
  */
 
 import { jest } from "@jest/globals";
+import { TEST_USER_ID, profileCardModel, testCard } from "../fixtures/profile-card-model.mjs";
+import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
 
 const findOneAndUpdate = jest.fn();
 const findOne = jest.fn();
+
+const BIRTH_PROFILE_ID = toBirthEntitlementProfileId(computeBirthKey(testCard("profile-1")));
 
 let upsertPaidContentUnlock;
 let findActivePaidContentUnlockByServiceKeys;
 
 beforeAll(async () => {
   await jest.unstable_mockModule("../../worker/lib/models.js", () => ({
-    CONTENT_ENTITLEMENT_SCOPES: { PROFILE: "PROFILE", USER: "USER" },
+    CONTENT_ENTITLEMENT_SCOPES: { PROFILE: "PROFILE", USER: "USER", BIRTH: "BIRTH" },
     CONTENT_ENTITLEMENT_SOURCES: {
       COIN: "COIN",
       PAYMENT: "PAYMENT",
@@ -35,6 +39,7 @@ beforeAll(async () => {
       FULL_READING: "saju.fullReading",
       COMPATIBILITY: "saju.compatibility",
     },
+    ProfileCard: profileCardModel([testCard("profile-1")]),
     User: {},
   }));
   ({ upsertPaidContentUnlock, findActivePaidContentUnlockByServiceKeys } = await import("../../worker/lib/content-unlocks.js"));
@@ -77,7 +82,7 @@ function capturedReadFilter() {
 
 const YEARLY_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
 const WRITE_INPUT = {
-  userId: "user-1",
+  userId: TEST_USER_ID,
   profileId: "profile-1",
   featureKey: YEARLY_PRODUCT_KEY,
   serviceKey: "sukuyo",
@@ -88,7 +93,7 @@ const WRITE_INPUT = {
 
 // worker/routes/sukuyo.js findSukuyoYearlyUnlock 이 넘기는 인자와 같은 모양이어야 한다.
 const READ_INPUT = {
-  userId: "user-1",
+  userId: TEST_USER_ID,
   profileId: "profile-1",
   featureKey: YEARLY_PRODUCT_KEY,
   serviceKeys: ["sukuyo", "ziwei", "saju"],
@@ -105,8 +110,10 @@ beforeEach(() => {
 test("결제로 남긴 1년운 해금 행을 조회 필터가 그대로 찾아낸다", async () => {
   await upsertPaidContentUnlock(WRITE_INPUT);
   const stored = capturedDocument();
-  expect(stored.scope).toBe("PROFILE");
-  expect(stored.profileId).toBe("profile-1");
+  // 출생 기반 키 — 행은 이 계정+생년월일에 걸리고, 산 프로필은 감사용으로만 남는다.
+  expect(stored.scope).toBe("BIRTH");
+  expect(stored.profileId).toBe(BIRTH_PROFILE_ID);
+  expect(stored.purchaseProfileId).toBe("profile-1");
   expect(stored.contentKey).toBe(`${YEARLY_PRODUCT_KEY}:2026`);
 
   await findActivePaidContentUnlockByServiceKeys(READ_INPUT);
@@ -115,15 +122,15 @@ test("결제로 남긴 1년운 해금 행을 조회 필터가 그대로 찾아�
   expect(filter.serviceKey.$in).toContain("sukuyo");
 });
 
-test("featureKey 를 빼면 조회가 계정 스코프로 떨어져 같은 행을 놓친다", async () => {
+test("featureKey 를 빼도 contentKey 로 출생 스코프를 정해 같은 행을 찾는다", async () => {
   await upsertPaidContentUnlock(WRITE_INPUT);
   const stored = capturedDocument();
 
   const { featureKey, ...withoutFeatureKey } = READ_INPUT;
   await findActivePaidContentUnlockByServiceKeys(withoutFeatureKey);
 
-  // 회귀 재발 시 이 단언이 먼저 깨진다 — featureKey 는 선택 인자가 아니다.
-  expect(matchesFilter(stored, capturedReadFilter())).toBe(false);
+  // 출생 기반 여부는 서버가 키에서 정한다 — 호출자가 featureKey 를 흘려도 계정 스코프로 떨어지지 않는다.
+  expect(matchesFilter(stored, capturedReadFilter())).toBe(true);
 });
 
 test("다른 연도 조회는 이미 산 연도의 행을 열어 주지 않는다", async () => {

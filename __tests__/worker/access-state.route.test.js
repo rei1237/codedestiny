@@ -122,7 +122,8 @@ test("returns the authoritative access state without calling payment providers",
     maxProfileCount: 7,
     currentProfileId: "profile-main",
     unlockedFeatureIds: ["premium-sibyl-dominator", "section_compat"],
-    ownedProductIds: ["account-purchase", "section_daewun", "section_compat"],
+    // 출생 기반 키(section_daewun)는 계정 배열(paidFeatures)이 아니라 요청 프로필의 BIRTH 스냅샷으로만 보유가 된다.
+    ownedProductIds: ["account-purchase", "section_compat"],
     lockMap: {
       "premium-sibyl-dominator": false,
       section_compat: false,

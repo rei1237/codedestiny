@@ -3,7 +3,7 @@ import {
   getUnlockedContentSnapshot,
   isProfileScopedContentUnlockFeatureKey,
 } from "./content-unlocks.js";
-import { isLegacyLoveCodeUnlockAlias, isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, LOVE_CODE_FEATURE_KEY, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { isBirthScopedUnlockFeatureKey, isLegacyLoveCodeUnlockAlias, isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, LOVE_CODE_FEATURE_KEY, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { KRW_PER_COIN, resolvePassPolicy, normalizePassTier, resolveMonthlyPassLimitCoin } from "./profile-limits.js";
 import {
   ACCESS_STATE_STALE_TTL_MS,
@@ -132,6 +132,15 @@ function buildMonthlyBalance(profileSubscription = {}, nowMs = Date.now()) {
   };
 }
 
+/* 계정 배열(User.unlockedFeatures/paidFeatures) 중 해금 근거로 내보내도 되는 키.
+   - 회당 결제 키는 해금이 아니다(1회 소비로 끝난 거래).
+   - 🔴 출생 기반 키는 계정 배열이 근거가 아니다 — 배열은 어느 생년월일로 샀는지 모른다. 그 키는
+     contentState(요청 profileId 의 BIRTH 행 스냅샷)로만 내보낸다. */
+function accountArrayUnlockEvidence(values) {
+  return (Array.isArray(values) ? values : [])
+    .filter((key) => (isLegacyLoveCodeUnlockAlias(key) || !isPerUsePaidFeatureKey(key)) && !isBirthScopedUnlockFeatureKey(key));
+}
+
 function snapshotFingerprint(values = []) {
   const text = values.map((value) => String(value || "")).sort().join("|");
   let hash = 2166136261;
@@ -185,8 +194,8 @@ export function buildAccessState({
         // 결제창 없이 already_unlocked 로 통과시킨다. 아래 본 경로(accountFeatureIds)는 이미
         // 걸러 내는데 이 폴백만 빠져 있었다. contentState.featureKeys 는 getUnlockedContentSnapshot
         // 이 이미 걸러서 준다.
-        ...(Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : []).filter((key) => isLegacyLoveCodeUnlockAlias(key) || !isPerUsePaidFeatureKey(key)),
-        ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []).filter((key) => isLegacyLoveCodeUnlockAlias(key) || !isPerUsePaidFeatureKey(key)),
+        ...accountArrayUnlockEvidence(user?.unlockedFeatures),
+        ...accountArrayUnlockEvidence(user?.paidFeatures),
         ...(Array.isArray(contentState?.featureKeys) ? contentState.featureKeys : []),
       ]
       : resolvedUnlockedFeatureIds,
@@ -198,7 +207,8 @@ export function buildAccessState({
   ]);
   const ownedProductIds = normalizeStringArray([
     // 같은 이유로 회당 결제 키는 '보유 상품'이 아니다 — 그 결제는 1회 소비로 끝난 거래다.
-    ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []).filter((key) => isLegacyLoveCodeUnlockAlias(key) || !isPerUsePaidFeatureKey(key)),
+    // 출생 기반 키도 마찬가지로 계정 배열이 아니라 요청 프로필의 BIRTH 스냅샷에서만 온다.
+    ...accountArrayUnlockEvidence(user?.paidFeatures),
     ...(Array.isArray(contentState?.featureKeys) ? contentState.featureKeys : []),
   ].map((key) => normalizePaidFeatureKey(key) || key));
   const profileEntitlements = contentState?.entitlementsByProfile && typeof contentState.entitlementsByProfile === "object"

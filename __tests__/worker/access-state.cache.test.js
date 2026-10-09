@@ -147,3 +147,24 @@ test("cache invalidation clears every profile snapshot and the legacy unlock rea
   expect(globalThis.__codeDestinyAccessUnlocksCache.entries.has(`${userId}::profile-a::saju`)).toBe(false);
   expect(globalThis.__codeDestinyAccessUnlocksCache.entries.has(`${otherUserId}::profile-a::saju`)).toBe(true);
 });
+
+test("출생 기반 키는 계정 배열로 해금되지 않고 요청 프로필의 BIRTH 스냅샷으로만 열린다", () => {
+  const state = buildAccessState({
+    userId: "507f1f77bcf86cd799439019",
+    profileId: "profile-b",
+    user: {
+      // section_daewun 은 다른 생년월일 프로필로 산 기록일 수 있다 — 계정 배열은 근거가 아니다.
+      paidFeatures: ["section_daewun", "flower-fc"],
+      unlockedFeatures: ["section_daewun"],
+      destinyProfilesCurrentId: "profile-a",
+      activeEntitlement: { isActive: false, tier: "free" },
+    },
+    contentSnapshot: { featureKeys: ["section_summary"] },
+  });
+
+  expect(state.unlockMap.section_daewun).toBeUndefined();
+  expect(state.unlockedFeatureIds).not.toContain("section_daewun");
+  expect(state.ownedProductIds).not.toContain("section_daewun");
+  expect(state.unlockMap["flower-fc"]).toBe(true);
+  expect(state.unlockMap.section_summary).toBe(true);
+});

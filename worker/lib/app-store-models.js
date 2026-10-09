@@ -20,6 +20,11 @@ const appPurchaseIntentSchema = new mongoose.Schema({
   passTier: { type: String, default: "", trim: true, maxlength: 40 },
   requestId: { type: String, default: "", trim: true, maxlength: 120 },
   profileId: { type: String, default: "", trim: true, maxlength: 120 },
+  // 출생 기반 영구 해금 키의 신원 스냅샷. 서버가 의도 시점에 이 계정의 저장 프로필에서 계산한다 —
+  // 결제 도중 프로필 생년월일을 고쳐도 지급 대상(BIRTH 행)이 움직이지 않게 한다.
+  partnerProfileId: { type: String, default: "", trim: true, maxlength: 120 },
+  birthKey: { type: String, default: "", trim: true, maxlength: 64 },
+  partnerBirthKey: { type: String, default: "", trim: true, maxlength: 64 },
   reportId: { type: String, default: "", trim: true, maxlength: 120 },
   sessionId: { type: String, default: "", trim: true, maxlength: 120 },
   // OPEN: 아직 대응되는 구매가 검증되지 않음 / SETTLED: verify 완료

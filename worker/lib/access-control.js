@@ -4,7 +4,7 @@ import {
   findActivePaidContentUnlock,
   upsertPaidContentUnlock,
 } from "./content-unlocks.js";
-import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { FEATURE_KEY_PRICE_TABLE, isBirthScopedUnlockFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { verifyPremiumAccessToken } from "./premium-access-token.js";
 import { normalizeHoneyPassEntitlement } from "./profile-limits.js";
 
@@ -26,12 +26,14 @@ function uniqueStrings(values) {
   ));
 }
 
+// 저장된 ProfileCard 의 profileId 만 돌려준다. 계정 표식("__user__")·합성 출생 id("birth:…")는
+// 프로필이 아니므로 버린다 — 출생 기반 키가 그 값으로 계정(USER) 행이나 남의 출생 행을 찾지 못하게.
 function extractPaidContentProfileId(source = {}) {
   const payment = source && typeof source.payment === "object" ? source.payment : {};
   const alt = source && typeof source._paymentContext === "object" ? source._paymentContext : {};
   const consume = source && typeof source.consume === "object" ? source.consume : {};
   const grant = source && typeof source.accessGrant === "object" ? source.accessGrant : {};
-  return String(
+  const profileId = String(
     source.profileId
       || source.selectedProfileId
       || source.currentProfileId
@@ -44,6 +46,8 @@ function extractPaidContentProfileId(source = {}) {
       || grant.profileId
       || "",
   ).trim();
+  if (profileId === "__user__" || profileId.startsWith("birth:")) return "";
+  return profileId;
 }
 
 function buildPremiumUnlockCandidateKeys({
@@ -67,6 +71,9 @@ function buildPremiumUnlockCandidateKeys({
 async function findPremiumContentEntitlement({ userId, profileId, candidateKeys = [], env = {} } = {}) {
   for (let i = 0; i < candidateKeys.length; i += 1) {
     const featureKey = candidateKeys[i];
+    // 출생 기반 키는 요청이 실은 저장 프로필(=그 출생 정보)로만 판정한다. 프로필이 없으면 계정(USER) 행으로
+    // 폴백하지 않고 잠금으로 둔다(content-unlocks 의 출생 분기도 같은 계약이지만 왕복 자체를 아낀다).
+    if (!profileId && isBirthScopedUnlockFeatureKey(featureKey)) continue;
     const unlock = await withMongoRetry(env, () => findActivePaidContentUnlock({ userId, profileId, featureKey }));
     if (unlock?._id) return { unlock, featureKey };
   }
@@ -782,6 +789,18 @@ function buildPaymentRequiredResult(reportType, requiredRules = [], requestBody 
   };
 }
 
+// 출생 기반 키를 저장 프로필 없이 물었으면 잠금 사유를 "프로필 필요"로 바꿔 알린다(상태는 402 유지 —
+// 이번 결제 증빙 경로는 여전히 열 수 있으므로 요청 자체가 잘못된 건 아니다).
+function markMissingBirthProfile(denied, { profileId = "", candidateKeys = [] } = {}) {
+  if (profileId || !candidateKeys.some((key) => isBirthScopedUnlockFeatureKey(key))) return denied;
+  return {
+    ...denied,
+    reason: "MISSING_PROFILE_ID",
+    requiresProfile: true,
+    message: "프로필을 저장한 뒤 구매해 주세요.",
+  };
+}
+
 export async function requirePremiumReportAccess(env, userId, reportType, requestBody = {}) {
   const normalizedReportType = String(reportType || "").trim();
   const isPerUsePdfReportType = normalizedReportType === "ziweiPremium";
@@ -941,8 +960,11 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     return passAccess;
   }
 
+  // 🔴 User.unlockedFeatures 는 계정 배열이라 출생 기반 키의 근거가 아니다(같은 계정의 다른 생년월일까지 열린다).
+  // 계정 기반 키만 이 배열로 판정하고, 출생 기반 키는 아래 findPremiumContentEntitlement(BIRTH 행)로만 연다.
+  const accountUnlockPolicy = unlockPolicy.filter((key) => !isBirthScopedUnlockFeatureKey(key));
   const unlockSet = new Set(uniqueStrings(user.unlockedFeatures || []));
-  const hasUnlock = unlockPolicy.some((key) => unlockSet.has(key));
+  const hasUnlock = accountUnlockPolicy.some((key) => unlockSet.has(key));
 
   // 메모리에 이미 있는 판정(hasUnlock)을 앞당겨, 그 아래 findPremiumContentEntitlement DB 조회를
   // 건너뛴다(RC-15d). requiredRules가 있으면 앞당기지 않는다 — 그 결제 바인딩은 hasUnlock 과
@@ -953,15 +975,15 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       route: requestBody?._accessRoute,
       userId,
       reportType: normalizedReportType,
-      featureKey: unlockPolicy[0] || "",
+      featureKey: accountUnlockPolicy[0] || "",
       accessSource: "unlock",
-      entitlementId: unlockPolicy[0] || "",
+      entitlementId: accountUnlockPolicy[0] || "",
     });
     const allowed = {
       ok: true,
       accessType: "unlock",
       reportType: normalizedReportType,
-      entitlementId: unlockPolicy[0] || "",
+      entitlementId: accountUnlockPolicy[0] || "",
     };
     logSajuAccessResolved(allowed);
     return allowed;
@@ -1012,7 +1034,10 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
           accessSource: "denied",
           deniedReason: "REQUIRED_PAYMENT_BINDING_NOT_MATCHED",
         });
-        const denied = buildPaymentRequiredResult(normalizedReportType, requiredRules, requestBody);
+        const denied = markMissingBirthProfile(
+          buildPaymentRequiredResult(normalizedReportType, requiredRules, requestBody),
+          { profileId, candidateKeys: entitlementCandidateKeys },
+        );
         logSajuAccessResolved(denied);
         return denied;
       }
@@ -1032,15 +1057,15 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       route: requestBody?._accessRoute,
       userId,
       reportType: normalizedReportType,
-      featureKey: unlockPolicy[0] || "",
+      featureKey: accountUnlockPolicy[0] || "",
       accessSource: "unlock",
-      entitlementId: unlockPolicy[0] || "",
+      entitlementId: accountUnlockPolicy[0] || "",
     });
     const allowed = {
       ok: true,
       accessType: "unlock",
       reportType: normalizedReportType,
-      entitlementId: unlockPolicy[0] || "",
+      entitlementId: accountUnlockPolicy[0] || "",
     };
     logSajuAccessResolved(allowed);
     return allowed;
@@ -1109,12 +1134,16 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     accessSource: "denied",
     deniedReason: "STRICT_PAYMENT_BINDING_NOT_MATCHED",
   });
-  const denied = buildPaymentRequiredResult(normalizedReportType, alternativeRules.length ? alternativeRules : unlockPolicy, requestBody);
+  const denied = markMissingBirthProfile(
+    buildPaymentRequiredResult(normalizedReportType, alternativeRules.length ? alternativeRules : unlockPolicy, requestBody),
+    { profileId, candidateKeys: entitlementCandidateKeys },
+  );
   logSajuAccessResolved(denied);
   return denied;
 }
 
 export const __accessControlTestUtils = {
+  extractPaidContentProfileId,
   buildAlternativePaymentRules,
   buildRequiredPaymentRules,
   extractPaymentLookupTokens,

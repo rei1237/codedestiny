@@ -460,6 +460,8 @@ export const CONTENT_ENTITLEMENT_SERVICE_KEYS = Object.freeze({
 export const CONTENT_ENTITLEMENT_SCOPES = Object.freeze({
   PROFILE: "PROFILE",
   USER: "USER",
+  // 출생 정보 단위 영구 해금. profileId 자리에 "birth:<sha256>" 합성값이 들어간다(worker/lib/birth-key.js).
+  BIRTH: "BIRTH",
 });
 
 export const CONTENT_ENTITLEMENT_STATUSES = Object.freeze({
@@ -501,6 +503,20 @@ const contentEntitlementSchema = new mongoose.Schema({
   unlockedAt: { type: Date, required: true, default: Date.now, index: true },
   grantedAt: { type: Date, required: true, default: Date.now },
   expiresAt: { type: Date, default: null, index: true },
+  // ── 출생 정보 단위 해금(scope BIRTH) ──
+  // birthKey: 서버가 ProfileCard 로 계산한 sha256. 궁합은 본인→상대 순서의 결합 해시다.
+  birthKey: { type: String, default: undefined, trim: true, maxlength: 64 },
+  partnerBirthKey: { type: String, default: undefined, trim: true, maxlength: 64 },
+  // 실제로 결제한 프로필(감사용). 신원에는 쓰지 않는다 — 같은 출생 정보의 다른 프로필도 열린다.
+  purchaseProfileId: { type: String, default: undefined, trim: true, maxlength: 80 },
+  purchasePartnerProfileId: { type: String, default: undefined, trim: true, maxlength: 80 },
+  // 마이그레이션 기록(scripts/migrations/20261010-birth-scope-unlocks.mjs).
+  sourceEntitlementIds: { type: [String], default: undefined },
+  mergedOrderIds: { type: [String], default: undefined },
+  birthScopeExcludedAt: { type: Date, default: undefined },
+  birthScopeExcludedReason: { type: String, default: undefined, trim: true, maxlength: 80 },
+  // 병합된 BACKFILL 행의 주문별 회수 표식(revokeBackfilledBirthUnlocks 한 호출 안에서만 의미가 있다).
+  birthBackfillRevokeMarker: { type: String, default: undefined, maxlength: 120 },
 }, { timestamps: true, collection: "content_entitlements" });
 
 contentEntitlementSchema.index(
@@ -520,6 +536,17 @@ contentEntitlementSchema.index(
     unique: true,
     name: "permanent_unlock_identity",
     partialFilterExpression: { featureKey: { $exists: true, $type: "string", $gt: "" } },
+  },
+);
+
+// 출생 정보 단위 해금의 신원. profileId("birth:<birthKey>")가 이미 같은 값을 담지만, 정책의 정본 신원을
+// 명시적으로 고정한다. autoIndex:false — 생성은 20261010-birth-scope-unlocks.mjs --create-index.
+contentEntitlementSchema.index(
+  { userId: 1, birthKey: 1, serviceKey: 1, contentKey: 1 },
+  {
+    unique: true,
+    name: "birth_unlock_identity",
+    partialFilterExpression: { scope: "BIRTH", birthKey: { $type: "string" } },
   },
 );
 
