@@ -227,6 +227,71 @@
 .emptyState { display: grid; justify-items: start; gap: 12px; padding: 28px; border: 1px solid var(--record-border); border-radius: var(--cd-r-card); background: var(--record-surface); }
 .emptyState img { width: 112px; height: 112px; object-fit: contain; border-radius: var(--cd-r-md); }
 .emptyState p { color: var(--record-secondary); }
+
+/* The archive uses the same cream-and-rose dock as the static home screen. */
+:global(body):has(.lightFrame) :global(.cd-mnav) {
+  --record-nav-bg: rgba(255, 249, 244, .96);
+  --record-nav-line: rgba(181, 54, 96, .14);
+  --record-nav-ink: #6b4d5e;
+  --record-nav-on: #b53660;
+  --record-nav-on-bg: #f8e4ea;
+  --record-nav-on-line: rgba(181, 54, 96, .24);
+  --record-nav-shadow: 0 12px 32px -14px rgba(64, 42, 56, .32);
+  color-scheme: light;
+  border-color: var(--record-nav-line);
+  background: var(--record-nav-bg);
+  box-shadow: var(--record-nav-shadow);
+}
+:global(body):has(.lightFrame) :global(.cd-mnav__link) {
+  --cd-mnav-seal-ink: color-mix(in srgb, var(--cd-yehwa-line-deep, #a97b3e) 52%, transparent);
+  color: var(--record-nav-ink);
+}
+:global(body):has(.lightFrame) :global(.cd-mnav__link[aria-current='page']),
+:global(body):has(.lightFrame) :global(.cd-mnav__link.is-active) {
+  transform: none;
+  border-color: var(--record-nav-on-line);
+  background: var(--record-nav-on-bg);
+  color: var(--record-nav-on);
+  box-shadow: none;
+}
+:global(body):has(.lightFrame) :global(.cd-mnav__handle) { color: var(--record-nav-ink); }
+:global(body):has(.lightFrame) :global(.cd-mnav__link:focus-visible),
+:global(body):has(.lightFrame) :global(.cd-mnav__handle:focus-visible) { outline-color: var(--record-nav-on); }
+:global(body.cd-mnav-collapsed):has(.lightFrame) :global(.cd-mnav__handle) {
+  border-color: var(--record-nav-on-line);
+  background: var(--record-nav-bg);
+  color: var(--record-nav-ink);
+  box-shadow: 0 -6px 18px -4px rgba(64, 42, 56, .24);
+}
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+  :global(body):has(.lightFrame) :global(.cd-mnav) {
+    left: max(8px, env(safe-area-inset-left, 0px));
+    right: max(8px, env(safe-area-inset-right, 0px));
+    bottom: max(6px, env(safe-area-inset-bottom, 0px));
+    padding: 6px;
+    border: 1px solid var(--record-nav-line);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+}
+@media (min-width: 769px) and (hover: hover), (min-width: 769px) and (pointer: fine) {
+  :global(body):has(.lightFrame) :global(.cd-mnav) {
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+  :global(body):has(.lightFrame) :global(.cd-mnav__list),
+  :global(body):has(.lightFrame) :global(.cd-mnav__handle) {
+    border-color: var(--record-nav-line);
+    background: var(--record-nav-bg);
+    color: var(--record-nav-ink);
+    box-shadow: var(--record-nav-shadow);
+  }
+  :global(body):has(.lightFrame) :global(.cd-mnav__handle:hover) {
+    background: #fffaf7;
+    color: var(--record-nav-on);
+  }
+}
 @media (max-width: 680px) {
   .lightFrame .navigation { margin-bottom: 12px; }
   .lightFrame .heading { display: block; min-height: 0; padding: 190px 20px 26px; margin-bottom: 24px; }
