@@ -148,6 +148,8 @@ const NEW_YEAR_AI_SECTION_TIMEOUT_MS = 52000;
 const NEW_YEAR_AI_LLM_BUDGET_MS = 82000;
 // 결손 섹션 재생성/압축을 시작하려면 최소 이만큼 남아 있어야 한다. 모자라면 있는 것으로 조립해 전달한다.
 const NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS = 18000;
+// 섹션당 품질 보완 시도 한도. 본문이 끝내 비면 구조 시도 1회를 더 준다(generateNewYearWave).
+const NEW_YEAR_AI_SECTION_MAX_ATTEMPTS = 2;
 // 섹션 응답이 이 길이 미만이면 실패로 본다(전체 기준 minLength 1000은 섹션 단위에 맞지 않는다).
 const NEW_YEAR_AI_SECTION_MIN_LENGTH = 300;
 // 구 조립 경로에서 이 개수 이상 살아 있으면 degraded로 전달한다. 그 미만이면 실패로 돌려
@@ -1340,7 +1342,7 @@ function buildSystemPrompt(section = null) {
     "5. 무조건 성공한다, 반드시 망한다 같은 단정적 표현을 쓰지 않습니다.",
     "6. 사용자가 당장 실천할 수 있는 조언을 구체적인 행동과 시기 감각으로 포함합니다.",
     "7. 같은 문장을 반복하지 않습니다.",
-    "8. “AI로 생성되었습니다”, “프롬프트”, “시스템” 같은 표현은 결과에 노출하지 않습니다.",
+    "8. “AI로 생성되었습니다”, “프롬프트”, “시스템” 같은 표현은 결과에 노출하지 않습니다. 생년월일·출생시간 숫자도 본문에 그대로 적지 않습니다(일간·월령·기둥 간지로 말합니다).",
     "9. 사용자가 처음 입력한 더 깊게 보고 싶은 흐름이 있으면 그 주제를 가장 깊게 다룹니다.",
     "10. 답변 마지막에는 추가 질문을 유도하지 말고, 새해를 여는 한 줄 조언으로 마무리합니다.",
     "11. PDF, 챕터, progress, job이라는 단어를 쓰지 않습니다.",
@@ -1519,7 +1521,7 @@ function buildFirstPrompt(input, fortuneData, section = null) {
       "[사용자가 직접 남긴 질문 — 최우선으로 답할 것]",
       `"${input.question}"`,
       "이 질문은 사용자가 가장 궁금해하는 개인화된 질문입니다. 아래 답변 맨 앞에 반드시 소제목 **질문에 대한 답변**을 굵게 쓰고, 그 아래에 이 질문에 대한 직접적이고 구체적인 결론을 먼저 씁니다. 범용적인 총론과 겹치지 않게, 이 질문의 단어와 맥락에 특화된 근거와 조언을 담으세요.",
-      "첫 2~3문장에서 질문에 답하세요. 선택 질문이면 권하는 방향과 조건, 시기 질문이면 계산된 기간 안의 구체적인 시기와 이유, 관계 질문이면 확인 가능한 흐름과 대화 방법을 제시합니다. 계산이나 입력만으로 판단할 수 없는 부분은 무엇이 부족한지 분명히 밝히고, 그래도 지금 할 수 있는 행동을 답합니다.",
+      "첫 2~3문장에서 질문에 답하세요. 선택 질문이면 권하는 방향과 조건, 시기 질문이면 계산된 기간 안의 구체적인 시기와 이유, 관계 질문이면 확인 가능한 흐름과 대화 방법을 제시합니다. 선택지가 둘 이상이면 하나를 먼저 권하거나 '어떤 조건이면 무엇을 먼저'처럼 순서를 정하고, '둘 다 장단점이 있다'로 끝내지 않습니다. 그 결론의 이유를 첫 두 문단 안에서 계산값(목표 연도 세운의 십성, 현재 대운, 원국의 십성 구성)으로 직접 짚습니다. 계산이나 입력만으로 판단할 수 없는 부분은 무엇이 부족한지 분명히 밝히고, 그래도 지금 할 수 있는 행동을 답합니다.",
       "",
     ] : []),
     // 다른 분야 섹션에는 질문을 맥락으로만 준다 — 답변 소제목은 만들지 않는다.
@@ -1694,14 +1696,13 @@ function describeConsistencyIssuesForRepair(issues = [], fortuneData = null) {
 function buildSectionPrompt(input, fortuneData, section, repairLines = [], previousText = "") {
   const base = buildFirstPrompt(input, fortuneData, section);
   if (!repairLines.length) return base;
+  // 첫 시도에는 직전 본문이 없다 — 빈 "다시 쓰세요" 블록을 붙이지 않는다.
   return [
     base,
     "",
     "[이번에 반드시 고칠 점]",
     ...repairLines,
-    "",
-    "[직전에 쓴 이 부분 — 살릴 내용은 유지하고 위 지적을 반영해 다시 쓰세요]",
-    previousText,
+    ...(clean(previousText) ? ["", "[직전에 쓴 이 부분 — 살릴 내용은 유지하고 위 지적을 반영해 다시 쓰세요]", previousText] : []),
   ].join("\n");
 }
 
@@ -2361,6 +2362,11 @@ async function generateNewYearWave(env, input, fortuneData, options) {
   const valid = row => row.ok && !row.truncated && !row.isMock && countPaidReportBodyChars(row.text) > 0
     && !hasRepeatedReportPassage(row.text);
   const accepted = row => valid(row);
+  // 섹션 하나 때문에 상담 전체를 버리지 않는다. 보완은 섹션당 2회까지이고, 한도를 쓴 섹션은 남은 이슈를 안고
+  // 배달한다. 끝내 본문이 없는 섹션만 다른 섹션이 정리된 뒤 구조 시도 1회를 더 받는다.
+  const used = key => Number(attempts[key] || 0);
+  const open = row => used(row.key) < NEW_YEAR_AI_SECTION_MAX_ATTEMPTS;
+  const rescuable = row => !accepted(row) && used(row.key) < NEW_YEAR_AI_SECTION_MAX_ATTEMPTS + 1;
   const assess = () => {
     const quality = validateConsultationQuality(assembleConsultationSections(results), qualityOptions);
     quality.issues = contentIssues(results);
@@ -2375,15 +2381,16 @@ async function generateNewYearWave(env, input, fortuneData, options) {
       if (repeated) targets.set(repeated.key, ['DUPLICATE_NARRATIVE']);
     }
     if (quality.issues.length && !targets.size) targets.set('overview', quality.issues);
-    quality.ok = quality.issues.length === 0 && results.every(accepted) && targets.size === 0;
+    quality.ok = results.every(accepted) && results.every(row => !targets.has(row.key) || !open(row));
     return { quality, targets };
   };
   let { quality, targets } = assess();
-  const candidate = results.find(row => !row.text) || results.find(row => targets.has(row.key));
+  const candidate = results.find(row => !row.text && open(row)) || results.find(row => targets.has(row.key) && open(row))
+    || results.find(rescuable);
+  if (!candidate && !results.every(accepted)) {
+    throw Object.assign(new Error('신년운세 해당 분야의 생성 한도 안에서 품질을 확인하지 못했습니다.'), { code: 'LLM_QUALITY_CHECK_FAILED' });
+  }
   if (candidate) {
-    if (Number(options.attempts?.[candidate.key] || 0) >= 2) {
-      throw Object.assign(new Error('신년운세 해당 분야의 생성 한도 안에서 품질을 확인하지 못했습니다.'), { code: 'LLM_QUALITY_CHECK_FAILED' });
-    }
     const remaining = Number(options.deadlineAt) - Date.now();
     if (remaining > NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS) {
       await options.onReserve(candidate.key, valid(candidate) && !mapIssuesToSections({ issues: contentIssues(results) }, results).has(candidate.key));
@@ -2397,6 +2404,9 @@ async function generateNewYearWave(env, input, fortuneData, options) {
         ],
         previousText: candidate.text,
       });
+      // 본문이 없는 섹션의 마지막 시도는 무엇이든 살린다: 새 이슈가 생겨도 채택하고, 잘린 응답은 완결 문장까지 남긴다.
+      const lastChance = !valid(candidate) && used(candidate.key) >= NEW_YEAR_AI_SECTION_MAX_ATTEMPTS;
+      if (lastChance && generated.ok && generated.truncated) Object.assign(generated, { truncated: false, text: trimToLastCompleteSentence(generated.text) });
       if (valid(generated)) {
         const index = results.indexOf(candidate);
         const before = contentIssues(results);
@@ -2405,15 +2415,15 @@ async function generateNewYearWave(env, input, fortuneData, options) {
         const next = results.map((row, i) => i === index ? trimmed : row);
         const after = contentIssues(next);
         const noNewIssues = [...contentIssues(sourceRows), ...after].every(issue => !isNewIssue(issue, before));
-        if (valid(trimmed) && noNewIssues && !hasRepeatedReportPassage(assembleConsultationSections(sourceRows))
+        if (valid(trimmed) && (lastChance || noNewIssues && !hasRepeatedReportPassage(assembleConsultationSections(sourceRows))
           && !hasRepeatedReportPassage(assembleConsultationSections(next))
-          && (!valid(candidate) || improves(after, before) || countPaidReportBodyChars(trimmed.text) > countPaidReportBodyChars(candidate.text))) Object.assign(candidate, trimmed);
+          && (!valid(candidate) || improves(after, before) || countPaidReportBodyChars(trimmed.text) > countPaidReportBodyChars(candidate.text)))) Object.assign(candidate, trimmed);
       }
       await options.onCheckpoint(results);
       ({ quality, targets } = assess());
     }
   }
-  return { complete: quality.ok, retryable: [...targets.keys()].some(key => Number(attempts[key] || 0) < 2), text: quality.text, quality, savedSections: results,
+  return { complete: quality.ok, retryable: results.some(row => targets.has(row.key) && open(row) || rescuable(row)), text: quality.text, quality, savedSections: results,
     sections: results.filter(row => row.text).map(row => ({ key: row.key, label: row.section.label, text: cleanForbiddenResult(row.text) })),
     provider: clean(results.find(row => row.provider)?.provider), model: clean(results.find(row => row.model)?.model),
   };

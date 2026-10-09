@@ -29,11 +29,32 @@ it('first section citing a few monthly pillars is adopted while the monthly sect
 });
 for (const previousCount of [9, 7]) it(`a rewrite that lowers monthly pillar citations from ${previousCount} to 2 is not adopted`, async () => {
   const saved = utils.NEW_YEAR_AI_SECTIONS.map(section => ({ key: section.key, section, ok: true,
-    text: text(section.key, Math.min(5000, section.maxChars), section.key === 'overview' ? anchors : '') }));
+    text: text(section.key, Math.min(5000, section.maxChars), section.key === 'overview' ? anchors.replace(' 12월', '') : '') }));
   const previous = text('monthly', 5000, pillars.slice(0, previousCount).join(' '));
-  saved[monthlyIndex] = { ...saved[monthlyIndex], text: previous, truncated: true };
-  provider.mockResolvedValue({ ok: true, provider: 'gemini', text: text('monthly', 5000, pillars.slice(0, 2).join(' ')) });
+  saved[monthlyIndex] = { ...saved[monthlyIndex], text: previous };
+  provider.mockResolvedValue({ ok: true, provider: 'gemini', text: text('monthly', 5000, `12월 ${pillars.slice(0, 2).join(' ')}`) });
   const result = await utils.generateConsultationText({}, input, facts, options(saved, { monthly: 1 }));
   expect(provider).toHaveBeenCalledTimes(1);
   expect(result.savedSections[monthlyIndex].text).toBe(previous);
+});
+function filled() {
+  return utils.NEW_YEAR_AI_SECTIONS.map(section => ({ key: section.key, section, ok: true,
+    text: text(section.key, Math.min(5000, section.maxChars), section.key === 'overview' ? anchors : section.key === 'monthly' ? pillars.join(' ') : '') }));
+}
+it('a section that used its attempts with an issue left is delivered instead of failing the whole consultation', async () => {
+  const saved = filled();
+  saved[monthlyIndex].text = text('monthly', 5000, pillars.slice(0, 5).join(' '));
+  const result = await utils.generateConsultationText({}, input, facts, options(saved, { monthly: 2 }));
+  expect(provider).not.toHaveBeenCalled();
+  expect(result.complete).toBe(true);
+  expect(result.quality.issues).toContain('MONTHLY_PILLAR_CITATIONS:5/12');
+});
+it('an empty section gets one rescue attempt that keeps a truncated reply up to its last full sentence', async () => {
+  const saved = filled();
+  saved[0] = { ...saved[0], text: '', ok: false };
+  provider.mockResolvedValue({ ok: true, provider: 'gemini', truncated: true, text: `${text('opening', 3000)}.\n\n끊긴 문장` });
+  const result = await utils.generateConsultationText({}, input, facts, options(saved, { opening: 2 }));
+  expect(provider).toHaveBeenCalledTimes(1);
+  expect(result.complete).toBe(true);
+  expect(result.savedSections[0].text.endsWith('.')).toBe(true);
 });
