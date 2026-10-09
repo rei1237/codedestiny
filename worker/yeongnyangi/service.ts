@@ -404,6 +404,8 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
     else {
       // A stored-only claim cannot turn into a paid provider call after a race.
       if(storedOnly||!providerReady(env))throw new FortuneError('LLM_NOT_CONFIGURED',503);
+      // Before the draw the tarot context is only {spreadId, drawPending}; a call then invents the cards.
+      if(row.snapshot?.tarotConsultation?.version===TAROT_SPREAD_VERSION&&!row.snapshot.tarotDraw)throw new FortuneError('TAROT_DRAW_REQUIRED',409);
       sharedProvider=new CodeDestinyProvider(env,{serviceId:row.featureKey,requestId,
         access:row.accessMethod || (row.paymentId?'DIRECT_KRW':''),sectionGroup:String(ordinal+1),
         attempt:Number(row.chapterAttempts?.[ordinal] || 1),generationSource:source},
