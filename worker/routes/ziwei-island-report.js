@@ -10,8 +10,8 @@ import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
-import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
-import { User } from "../lib/models.js";
+import { isTransientMongoError } from "../lib/db.js";
+import { readProfileBirthUnlock } from "../lib/paid-content-read-access.js";
 import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
 import { buildIslandBlueprint } from "../lib/island/island-blueprint.js";
 import { buildIslandDeepReport } from "../lib/island/island-report.js";
@@ -26,7 +26,10 @@ const ORDER_NAME = "운명의 섬 12궁 심층 리포트";
 
 const MESSAGES = Object.freeze({
   login: "심층 리포트를 열려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
-  paymentRequired: "심층 리포트는 1회 해금이 필요합니다. 이용권이 있으면 무료로 열립니다.",
+  paymentRequired: "이 생년월일은 별도 구매가 필요합니다. 이용권이 있으면 무료로 열립니다.",
+  missingProfile: "프로필을 저장한 뒤 구매해 주세요.",
+  invalidProfile: "저장된 내 프로필을 선택해 주세요.",
+  profileGender: "프로필에 성별(남/여)을 저장한 뒤 다시 시도해 주세요.",
   degraded: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
   failed: "심층 리포트를 만드는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
 });
@@ -40,13 +43,23 @@ function degraded() {
 }
 
 /**
- * 계정 스코프 영구 해금 여부. billing.js의 hasUserScopedPermanentUnlock과 같은 판정(User.unlockedFeatures)이며,
- * coin-gate 결제·카드 단건결제(payments.js recordUserPaidFeature) 양쪽이 모두 이 배열에 기록한다.
+ * 🔴 해금은 userId + 저장 프로필의 출생 정보(birthKey) 단위다. 명반도 그 프로필의 저장된 출생 정보로만 만든다 —
+ *    요청 본문의 생년월일로 계산하면 한 번의 구매로 아무 사람의 리포트나 열린다.
+ *    자미두수 명반 계산기가 음력을 직접 환산하므로 저장된 달력 날짜(calendarDate)를 그대로 넘긴다.
+ *    body.date(결정론 재현용 기준일)는 신원이 아니므로 요청 값을 유지한다.
  */
-async function isUnlockedForUser(env, userId) {
-  await connectDb(env);
-  const row = await withMongoRetry(env, () => User.exists({ _id: userId, unlockedFeatures: FEATURE_KEY }));
-  return Boolean(row);
+function islandInputFromProfileBirth(body, birth) {
+  const gender = birth.gender === "M" ? "male" : birth.gender === "F" ? "female" : "";
+  if (!gender) throw invalidIslandInput(MESSAGES.profileGender);
+  return {
+    date: body && typeof body === "object" ? body.date : undefined,
+    birthDate: birth.calendarDate,
+    birthTime: birth.timeKnown ? birth.time : "",
+    birthTimeUnknown: !birth.timeKnown,
+    calendarType: birth.calendarType,
+    isLeapMonth: birth.isLeapMonth === true,
+    gender,
+  };
 }
 
 function buildReportFromBirth(body) {
@@ -82,15 +95,28 @@ async function handleReport(request, env) {
   }
   if (!auth?.userId) return loginRequired();
 
-  let unlocked = false;
+  const body = await readJson(request);
+  let access;
   try {
-    unlocked = await isUnlockedForUser(env, auth.userId);
-  } catch (error) {
-    if (isTransientMongoError(error) || isAuthDbInfraError(error)) return degraded();
-    throw error;
+    access = await readProfileBirthUnlock(env, { userId: auth.userId, profileId: body?.profileId, featureKey: FEATURE_KEY });
+  } catch {
+    // 권한 조회 실패는 미구매(402)가 아니다 — 재시도 가능한 503.
+    return degraded();
+  }
+  if (!access.ok) {
+    if (access.reason === "LOGIN_REQUIRED") return loginRequired();
+    const missing = access.reason === "MISSING_PROFILE_ID";
+    return json({
+      ok: false,
+      reason: access.reason,
+      code: access.reason,
+      featureKey: FEATURE_KEY,
+      requiresProfile: true,
+      message: missing ? MESSAGES.missingProfile : MESSAGES.invalidProfile,
+    }, { status: missing ? 400 : 403 });
   }
 
-  if (!unlocked) {
+  if (!access.unlocked) {
     // 결제수단 판정(단건/월정석 동등, 이용권 선검사)은 클라이언트 공용 게이트가 서버 결정으로 수행한다.
     // 여기서 paymentMode를 지정하면 이용권 선검사를 건너뛰게 되므로 절대 넣지 않는다.
     return json({
@@ -104,8 +130,8 @@ async function handleReport(request, env) {
     }, { status: 402 });
   }
 
-  const body = await readJson(request);
-  const report = buildReportFromBirth(body);
+  if (!access.birth) throw invalidIslandInput("프로필의 출생 정보를 확인해 주세요.");
+  const report = buildReportFromBirth(islandInputFromProfileBirth(body, access.birth));
   return json({ ok: true, unlocked: true, report }, { headers: { "Cache-Control": "no-store" } });
 }
 

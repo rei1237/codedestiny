@@ -1,6 +1,8 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireUserFromRequest } from "../lib/auth.js";
-import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
+import { readProfileBirthUnlock } from "../lib/paid-content-read-access.js";
+import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
+import { buildSajuSnapshotFromBirth } from "../lib/saju-snapshot-from-birth.js";
 
 const FEATURE_KEY = "saju-guardian-unlock";
 // NVIDIA NIM Visual GenAI — flux.1-schnell. 엔드포인트에 모델이 포함되므로 body에 model을 넣지 않는다.
@@ -30,6 +32,16 @@ const ELEMENT_COLOR_EN = Object.freeze({
 const ANIMAL_EN = Object.freeze({
   쥐: "rat", 소: "ox", 호랑이: "tiger", 토끼: "rabbit", 용: "dragon", 뱀: "snake",
   말: "horse", 양: "goat", 원숭이: "monkey", 닭: "rooster", 개: "dog", 돼지: "pig",
+});
+
+// 클라이언트(app/saju-guardian)와 같은 규칙: 지배 오행·음양은 일간, 수호 동물은 일지 동물.
+const STEM_ELEMENT = Object.freeze({
+  갑: "목", 을: "목", 병: "화", 정: "화", 무: "토", 기: "토", 경: "금", 신: "금", 임: "수", 계: "수",
+});
+const YANG_STEMS = new Set(["갑", "병", "무", "경", "임"]);
+const BRANCH_ANIMAL = Object.freeze({
+  자: "쥐", 축: "소", 인: "호랑이", 묘: "토끼", 진: "용", 사: "뱀",
+  오: "말", 미: "양", 신: "원숭이", 유: "닭", 술: "개", 해: "돼지",
 });
 
 function cleanText(value) {
@@ -134,19 +146,66 @@ async function requestGuardianImage(env, sajuData) {
   }
 }
 
+/** 🔴 이미지 입력은 저장된 프로필 카드의 출생 정보로만 만든다(본문 sajuData 무시). 계산 불가면 null. */
+function buildGuardianSajuDataFromBirth(birth) {
+  if (!birth) return null;
+  const snapshot = buildSajuSnapshotFromBirth({
+    birthDate: birth.date,
+    birthTime: birth.time,
+    birthTimeUnknown: !birth.timeKnown,
+    calendarType: "solar",
+    gender: birth.gender,
+  });
+  const stem = cleanText(snapshot?.pillars?.d?.g);
+  const branch = cleanText(snapshot?.pillars?.d?.j);
+  if (!STEM_ELEMENT[stem] || !BRANCH_ANIMAL[branch]) return null;
+  return {
+    year: birth.year,
+    month: birth.month,
+    day: birth.day,
+    hour: birth.timeKnown ? birth.hour : undefined,
+    stem,
+    branch,
+    elements: STEM_ELEMENT[stem],
+    mainAnimal: BRANCH_ANIMAL[branch],
+    polarity: YANG_STEMS.has(stem) ? "양" : "음",
+  };
+}
+
 async function handleGenerateImage(request, env, auth) {
-  // 인증 단계에서 이미 읽은 User 문서를 재사용한다(없으면 내부에서 종전대로 조회).
-  const access = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, userDoc: auth.authUserDoc });
-  if (!access.allowed) {
+  const body = await readJson(request);
+  let access;
+  try {
+    access = await readProfileBirthUnlock(env, { userId: auth.userId, profileId: body?.profileId, featureKey: FEATURE_KEY });
+  } catch {
     return json({
-      ok: false,
-      reason: access.reason || "PAYMENT_REQUIRED",
-      message: "사주 가디언 소환진을 먼저 해금해 주세요.",
+      ok: false, reason: "TEMPORARY_UNAVAILABLE", retryable: true,
+      message: "구매 권한을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
+    }, { status: 503 });
+  }
+  if (!access.ok) {
+    const missing = access.reason === "MISSING_PROFILE_ID";
+    return json({
+      ok: false, reason: access.reason, code: access.reason, featureKey: FEATURE_KEY, requiresProfile: true,
+      message: missing ? "프로필을 저장한 뒤 구매해 주세요." : "저장된 내 프로필을 선택해 주세요.",
+    }, { status: missing ? 400 : 403 });
+  }
+  if (!access.unlocked) {
+    const { pricing } = getBillingFeaturePricing({ featureKey: FEATURE_KEY });
+    return json({
+      ok: false, reason: "PAYMENT_REQUIRED", featureKey: FEATURE_KEY,
+      message: "이 생년월일은 별도 구매가 필요합니다. 사주 가디언 소환진을 먼저 해금해 주세요.",
+      amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice,
     }, { status: 402 });
   }
 
-  const body = await readJson(request);
-  const sajuData = body?.sajuData && typeof body.sajuData === "object" ? body.sajuData : {};
+  const sajuData = buildGuardianSajuDataFromBirth(access.birth);
+  if (!sajuData) {
+    return json({
+      ok: false, reason: "INVALID_PROFILE_BIRTH", requiresProfile: true,
+      message: "프로필의 출생 정보를 확인해 주세요.",
+    }, { status: 400 });
+  }
 
   try {
     const result = await requestGuardianImage(env, sajuData);
@@ -167,7 +226,7 @@ export async function handleSajuGuardianImageRoutes(request, env) {
 
   try {
     if (method === "POST" && path === "/generate-image") {
-      const auth = await requireUserFromRequest(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+      const auth = await requireUserFromRequest(request, env);
       return await handleGenerateImage(request, env, auth);
     }
     if (["GET", "POST"].includes(method)) return notFound();

@@ -1101,6 +1101,21 @@ function buildLocalReport(input) {
   };
 }
 
+/* 🔴 premium-fpti-report 는 출생 기반 영구 해금 키다. 영구 해금은 저장 프로필(ProfileCard)의 생년월일로만
+   찾으므로, 출생 판정에 쓰는 profileId 는 클라이언트가 보낸 실제 저장 프로필 id 여야 한다. reportSignature 는
+   프로필 id 가 아니다(그대로 넘기면 프로필 조회가 실패해 늘 잠기거나, 남의 행을 찾을 여지가 생긴다).
+   - profileKey: 결제 증빙 바인딩 힌트(metadata.profileId = reportSignature)를 예전 그대로 유지한다.
+   - currentProfileId: 출생 판정(extractPaidContentProfileId)만 읽는다. 없으면 출생 키는 잠금이다. */
+function buildFptiAccessRequest(reportSignature, savedProfileId) {
+  const profileId = clean(savedProfileId);
+  return {
+    reportId: reportSignature,
+    sessionId: reportSignature,
+    profileKey: reportSignature,
+    ...(profileId && profileId !== reportSignature ? { currentProfileId: profileId } : {}),
+  };
+}
+
 async function handleDeepReport(request, env) {
   const auth = await requireAuth(request, env);
   const body = await readJson(request);
@@ -1110,13 +1125,12 @@ async function handleDeepReport(request, env) {
     return json({ ok: false, code: "MISSING_REPORT_SIGNATURE", message: "reportSignature가 필요합니다." }, { status: 400 });
   }
 
-  const access = await requirePremiumReportAccess(env, auth.userId, "fptiPremium", {
-    reportId: reportSignature,
-    sessionId: reportSignature,
-    // 생년월일 파생 시그니처를 프로필 스코프 키로 사용해 결제 후 영구 해금 상태를 유지한다.
-    profileId: reportSignature,
-    selectedProfileId: reportSignature,
-  });
+  const access = await requirePremiumReportAccess(
+    env,
+    auth.userId,
+    "fptiPremium",
+    buildFptiAccessRequest(reportSignature, body?.profileId || body?.selectedProfileId),
+  );
   if (!access?.ok) {
     return json(
       {
@@ -1175,13 +1189,12 @@ async function handleReadDeepReport(request, env) {
     return json({ ok: false, code: "MISSING_REPORT_SIGNATURE", message: "reportSignature가 필요합니다." }, { status: 400 });
   }
 
-  const access = await requirePremiumReportAccess(env, auth.userId, "fptiPremium", {
-    reportId: reportSignature,
-    sessionId: reportSignature,
-    // 생년월일 파생 시그니처를 프로필 스코프 키로 사용해 결제 후 영구 해금 상태를 유지한다.
-    profileId: reportSignature,
-    selectedProfileId: reportSignature,
-  });
+  const access = await requirePremiumReportAccess(
+    env,
+    auth.userId,
+    "fptiPremium",
+    buildFptiAccessRequest(reportSignature, url.searchParams.get("profileId") || url.searchParams.get("selectedProfileId")),
+  );
   if (!access?.ok) {
     return json(
       {

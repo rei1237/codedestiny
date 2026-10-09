@@ -1,6 +1,8 @@
 /** @jest-environment node */
 import { jest } from "@jest/globals";
 import { readFileSync } from "node:fs";
+import { TEST_USER_ID, OTHER_USER_ID, testCard, profileCardModel } from "../fixtures/profile-card-model.mjs";
+import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
 
 const auth = jest.fn();
 const swiss = jest.fn();
@@ -8,6 +10,11 @@ const exists = jest.fn();
 const findOne = jest.fn();
 const write = jest.fn(() => { throw new Error("Read route attempted a write"); });
 const connectDb = jest.fn();
+// 프로필 출생 정보 = 픽스처 차트의 출생(1990-10-14 14:30). 요청 본문 생년월일은 계산에 쓰이지 않는다.
+const BIRTH = { year: 1990, month: 10, day: 14, hour: 14, minute: 30 };
+const cards = [testCard("p1", BIRTH), testCard("p2", BIRTH), testCard("p3", { ...BIRTH, day: 15 }), testCard("x1", { ...BIRTH, userId: OTHER_USER_ID })];
+const initialCards = cards.map((card) => ({ ...card, birth: { ...card.birth } }));
+const profileCards = profileCardModel(cards);
 jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
   getOptionalUserFromRequest: auth, requireAuth: jest.fn(),
   isAuthDbInfraError: (error) => error?.code === "AUTH_DB_UNAVAILABLE",
@@ -16,12 +23,13 @@ jest.unstable_mockModule("../../worker/lib/db.js", () => ({
   connectDb, withMongoRetry: async (_env, callback) => callback(),
 }));
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
-  CONTENT_ENTITLEMENT_SCOPES: { PROFILE: "PROFILE", USER: "USER" },
+  CONTENT_ENTITLEMENT_SCOPES: { PROFILE: "PROFILE", USER: "USER", BIRTH: "BIRTH" },
   CONTENT_ENTITLEMENT_SOURCES: {},
   CONTENT_ENTITLEMENT_STATUSES: { ACTIVE: "ACTIVE" },
   SAJU_LOCKED_CONTENT_KEYS: { DAEUN_ANALYSIS: "saju.daeunAnalysis", FULL_READING: "saju.fullReading", COMPATIBILITY: "saju.compatibility" },
   ContentEntitlement: { findOne, findOneAndUpdate: write, create: write, updateOne: write },
   User: { exists, updateOne: write, findOneAndUpdate: write },
+  ProfileCard: { modelName: "ProfileCard", findOne: (...args) => profileCards.findOne(...args) },
 }));
 jest.unstable_mockModule("../../worker/lib/swiss-ephemeris.js", () => ({
   getSwissWesternChart: swiss, getSwissVedicPlanets: jest.fn(),
@@ -39,7 +47,8 @@ beforeAll(async () => {
 });
 const fixture = JSON.parse(readFileSync("__tests__/fixtures/astro-natal-charts.json", "utf8")).b1;
 const FEATURE_KEY = "astro_basic_deep_pack";
-const INPUT = { date: "1990-10-14", time: "14:30", timezone: "Asia/Seoul", latitude: 37.5665, longitude: 126.978, name: "테스트" };
+const INPUT = { profileId: "p1", date: "1990-10-14", time: "14:30", timezone: "Asia/Seoul", latitude: 37.5665, longitude: 126.978, name: "테스트" };
+const birthProfileId = (profileId) => toBirthEntitlementProfileId(computeBirthKey(cards.find((card) => card.profileId === profileId)));
 let grants;
 let users;
 
@@ -58,7 +67,11 @@ function matches(doc, query) {
 }
 
 function grant(overrides = {}) {
-  grants.push({ ...resolvePaidContentUnlockTarget({ userId: "buyer", featureKey: FEATURE_KEY }), status: "ACTIVE", expiresAt: null, ...overrides });
+  grants.push({
+    ...resolvePaidContentUnlockTarget({ userId: TEST_USER_ID, featureKey: FEATURE_KEY }),
+    scope: "BIRTH", profileId: birthProfileId("p1"), purchaseProfileId: "p1",
+    status: "ACTIVE", expiresAt: null, ...overrides,
+  });
 }
 
 function swissChart(chart = fixture.chart) {
@@ -84,7 +97,8 @@ async function request(body = INPUT, method = "POST") {
 beforeEach(() => {
   jest.clearAllMocks();
   grants = []; users = [];
-  auth.mockReset().mockResolvedValue({ userId: "buyer" });
+  cards.splice(0, cards.length, ...initialCards.map((card) => ({ ...card, birth: { ...card.birth } })));
+  auth.mockReset().mockResolvedValue({ userId: TEST_USER_ID });
   swiss.mockReset().mockResolvedValue(swissChart());
   connectDb.mockReset().mockResolvedValue(undefined);
   exists.mockImplementation(async (query) => users.find((user) => matches(user, query)) || null);
@@ -93,7 +107,7 @@ beforeEach(() => {
 
 test("anonymous and forged unlock hints cannot request a report or trigger calculation", async () => {
   auth.mockResolvedValue(null);
-  expect((await request({ ...INPUT, unlocked: true, userId: "buyer" })).status).toBe(401);
+  expect((await request({ ...INPUT, unlocked: true, userId: TEST_USER_ID })).status).toBe(401);
   expect(findOne).not.toHaveBeenCalled();
   expect(swiss).not.toHaveBeenCalled();
 });
@@ -107,9 +121,10 @@ test("unowned content returns existing registry pricing without a report", async
   expect(swiss).not.toHaveBeenCalled();
 });
 
-test("modern account grant delivers the same deterministic reading without consuming anything", async () => {
+test("a BIRTH grant delivers the deterministic reading of the profile's stored birth without consuming anything", async () => {
   grant();
-  const result = await request({ ...INPUT, chart: { forged: true }, profileId: "different-profile" });
+  // 본문 생년월일을 다른 사람 것으로 바꿔도 계산은 저장된 프로필 출생 정보로만 한다.
+  const result = await request({ ...INPUT, date: "2001-01-01", time: "03:00", chart: { forged: true } });
   expect(result.status).toBe(200);
   const expected = natalReading.build(fixture.chart, { name: INPUT.name, birth: fixture.birth, today: result.body.asOf, timeKnown: true });
   expect(result.body.report).toEqual(expected);
@@ -118,18 +133,45 @@ test("modern account grant delivers the same deterministic reading without consu
   expect((await request()).body).toEqual(result.body);
 });
 
-test.each(["unlockedFeatures", "paidFeatures"])("legacy %s purchase retains account-wide access", async (field) => {
-  users.push({ _id: "buyer", [field]: [FEATURE_KEY] });
+test.each(["unlockedFeatures", "paidFeatures"])("legacy %s account array is not evidence for a birth-scoped report", async (field) => {
+  users.push({ _id: TEST_USER_ID, [field]: [FEATURE_KEY] });
+  expect((await request()).status).toBe(402);
+});
+
+test("another saved profile with the same birth shares the unlock; a different birth needs its own purchase", async () => {
+  grant();
+  expect((await request({ ...INPUT, profileId: "p2" })).status).toBe(200);
+  const other = await request({ ...INPUT, profileId: "p3" });
+  expect(other.status).toBe(402);
+  expect(other.body.message).toContain("이 생년월일은 별도 구매가 필요합니다");
+});
+
+test("editing the profile birth re-locks the report and reverting re-opens it", async () => {
+  grant();
+  cards[0].birth.day = 20;
+  expect((await request()).status).toBe(402);
+  cards[0].birth.day = 14;
   expect((await request()).status).toBe(200);
 });
 
+test("missing, foreign or synthetic profile ids are rejected before any calculation", async () => {
+  grant();
+  const { profileId: _omit, ...withoutProfile } = INPUT;
+  expect((await request(withoutProfile)).body).toMatchObject({ reason: "MISSING_PROFILE_ID", requiresProfile: true });
+  expect((await request({ ...INPUT, profileId: birthProfileId("p1") })).status).toBe(400);
+  expect((await request({ ...INPUT, profileId: "x1" })).status).toBe(403);
+  expect((await request({ ...INPUT, profileId: "__user__" })).status).toBe(403);
+  expect(swiss).not.toHaveBeenCalled();
+});
+
 test.each([
-  { userId: "other" }, { status: "REFUNDED" }, { status: "CANCELLED" },
-  { expiresAt: new Date("2020-01-01") }, { scope: "PROFILE", profileId: "other-profile" },
+  { userId: OTHER_USER_ID }, { status: "REFUNDED" }, { status: "CANCELLED" },
+  { expiresAt: new Date("2020-01-01") }, { scope: "PROFILE", profileId: "p1" },
+  { scope: "USER", profileId: "__user__" }, { profileId: "birth:" + "0".repeat(64) },
   { contentKey: "astro_stellar_career_room" },
-])("an unrelated or inactive grant never opens the report: %j", async (override) => {
+])("an unrelated, legacy or inactive grant never opens the report: %j", async (override) => {
   grant(override);
-  expect((await request({ ...INPUT, userId: "other", profileId: "other-profile" })).status).toBe(402);
+  expect((await request({ ...INPUT, userId: OTHER_USER_ID })).status).toBe(402);
   expect(swiss).not.toHaveBeenCalled();
 });
 
@@ -141,8 +183,8 @@ test("revocation is checked on each read rather than cached as access", async ()
 });
 
 test("legacy purchases from another account cannot be claimed", async () => {
-  users.push({ _id: "other", paidFeatures: [FEATURE_KEY] });
-  expect((await request({ ...INPUT, userId: "other" })).status).toBe(402);
+  users.push({ _id: OTHER_USER_ID, paidFeatures: [FEATURE_KEY] });
+  expect((await request({ ...INPUT, userId: OTHER_USER_ID })).status).toBe(402);
 });
 
 test("DB and auth infrastructure failures stay retryable instead of prompting purchase", async () => {
@@ -156,9 +198,8 @@ test("DB and auth infrastructure failures stay retryable instead of prompting pu
 });
 
 test.each([
-  { date: "2025-02-30" }, { time: "25:00" }, { latitude: 100 }, { longitude: null },
-  { timezone: "not/a/timezone" }, { timeKnown: "false" }, { latitude: "37.5" },
-])("invalid birth input is rejected before calculation: %j", async (override) => {
+  { latitude: 100 }, { longitude: null }, { timezone: "not/a/timezone" }, { latitude: "37.5" },
+])("invalid birth place input is rejected before calculation: %j", async (override) => {
   grant();
   expect((await request({ ...INPUT, ...override })).status).toBe(400);
   expect(swiss).not.toHaveBeenCalled();
@@ -178,7 +219,10 @@ test("unknown birth time excludes houses and periods and carries moon sign uncer
   swiss.mockResolvedValueOnce(chart)
     .mockResolvedValueOnce({ ...chart, planets: { ...chart.planets, Moon: { longitude: 29 } } })
     .mockResolvedValueOnce({ ...chart, planets: { ...chart.planets, Moon: { longitude: 31 } } });
-  const result = await request({ ...INPUT, timeKnown: false, time: undefined });
+  // 시각 미상은 출생 신원이 다르다 — 그 출생 정보로 산 행을 둔다.
+  cards[0].birth.timeUnknown = true;
+  grants[0].profileId = birthProfileId("p1");
+  const result = await request();
   expect(result.status).toBe(200);
   expect(result.body.report.timeKnown).toBe(false);
   expect(result.body.report.angles).toBeNull();
@@ -218,6 +262,6 @@ test("the existing public chart and short summary remain available anonymously",
 });
 
 test.each(["section_summary", "life-book-ai-consultation", "unknown"])("account read helper fails closed for unsupported feature %s", async (featureKey) => {
-  expect(await hasPurchasedAccountContentAccess({}, { userId: "buyer", featureKey })).toBe(false);
+  expect(await hasPurchasedAccountContentAccess({}, { userId: TEST_USER_ID, featureKey })).toBe(false);
   expect(findOne).not.toHaveBeenCalled();
 });

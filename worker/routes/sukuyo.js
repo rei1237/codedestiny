@@ -1540,45 +1540,35 @@ function formatSukuyoBirthDate(profile) {
   return `${y}-${m}-${d}`;
 }
 
-/* 인증 조회를 이 필드까지 확장해 authUserDoc 로 받아, 아래 resolveSukuyoYearlyProfile 이
-   현재 프로필을 알기 위해 User 를 다시 읽는 왕복을 없앤다(worker/lib/auth.js resolveActiveUserAuth). */
-const SUKUYO_YEARLY_USER_PROJECTION = { destinyProfilesCurrentId: 1 };
+function sukuyoYearlyProfileError(status, reason, message) {
+  const error = new Error(message);
+  error.status = status;
+  error.code = reason;
+  error.reason = reason;
+  error.requiresProfile = true;
+  return error;
+}
 
-/* 프로필 해석을 withMongoRetry 한 번으로 끝낸다.
-   종전엔 User·ProfileCard 를 각각 감싸 왕복 2회였고, 각 왕복이 독립적으로 op-타임아웃(비재시도)
-   위험을 져 둘 중 하나만 걸려도 요청 전체가 503이 됐다.
-   게다가 요청이 profileId 를 실어 보내도(클라 정상 경로) User 를 읽고 버렸다 —
-   읽을 필요가 없을 때는 아예 읽지 않는다. 인증 단계가 붙여 준 문서(authUserDoc)도 있으면 재사용한다. */
+/* 🔴 1년운은 출생 기반 해금(userId + birthKey + contentKey)이다. 요청이 실은 **저장 프로필**만 받는다.
+   종전의 현재 프로필(destinyProfilesCurrentId) 폴백은 없앴다 — 어느 출생 정보로 판정·계산하는지가
+   요청에 드러나야 하고, 계산은 아래 ProfileCard 의 저장 출생 정보로만 한다(본문 생년월일은 받지 않는다).
+   프로필 조회는 withMongoRetry 한 번으로 끝낸다(DB 장애는 503 으로 남는다). */
 async function resolveSukuyoYearlyProfile(env, auth, profileIdRaw) {
-  const requestedProfileId = clean(profileIdRaw);
-  // authUserDoc 는 access-token 인증 경로에서만 붙는다(refresh/admin 경로엔 없음) → 없으면 아래에서 조회.
-  const authProfileId = clean(auth?.authUserDoc?.destinyProfilesCurrentId);
-
-  const resolved = await withMongoRetry(env, async () => {
-    let profileId = requestedProfileId || authProfileId;
-    if (!profileId) {
-      const user = await User.findById(auth.userId).select("destinyProfilesCurrentId").lean();
-      profileId = clean(user?.destinyProfilesCurrentId);
-    }
-    if (!profileId) return { profileId: "", profile: null };
-    const profile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
-    return { profileId, profile };
-  }, { retryAdmissionOnOverload: true });
-
-  // 404/403 은 재시도해도 결과가 바뀌지 않으므로 콜백 바깥에서 던진다(재시도 대상 제외).
-  if (!resolved.profileId) {
-    const error = new Error("숙요점 1년운을 열 프로필을 먼저 선택해 주세요.");
-    error.status = 403;
-    error.code = "PROFILE_REQUIRED";
-    throw error;
+  const profileId = clean(profileIdRaw).slice(0, 80);
+  // 합성 출생 id("birth:…")는 프로필이 아니다.
+  if (!profileId || profileId.startsWith("birth:")) {
+    throw sukuyoYearlyProfileError(400, "MISSING_PROFILE_ID", "프로필을 저장한 뒤 구매해 주세요.");
   }
-  if (!resolved.profile) {
-    const error = new Error("선택한 프로필을 찾지 못했습니다.");
-    error.status = 404;
-    error.code = "PROFILE_NOT_FOUND";
-    throw error;
+  const profile = await withMongoRetry(
+    env,
+    () => ProfileCard.findOne({ userId: auth.userId, profileId }).lean(),
+    { retryAdmissionOnOverload: true },
+  );
+  // 403 은 재시도해도 결과가 바뀌지 않으므로 콜백 바깥에서 던진다(재시도 대상 제외).
+  if (!profile) {
+    throw sukuyoYearlyProfileError(403, "INVALID_PROFILE", "선택한 프로필을 찾지 못했습니다. 저장된 프로필을 다시 선택해 주세요.");
   }
-  return resolved.profile;
+  return profile;
 }
 
 /* 1년운 3개 라우트는 requireAuth 가 아니라 resolvePaidRouteAuth 를 쓴다(다른 유료 라우트 정본과 동일).
@@ -2134,27 +2124,33 @@ async function buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear, env
 }
 
 // featureKey 는 빼지 말 것 — 없으면 resolvePaidContentUnlockTarget 이 연도 접미사 contentKey 를
-// 프로필 상품으로 못 알아보고 계정(USER) 스코프로 떨어져, 쓰기(upsertSukuyoYearlyUnlockFromEvidence)가
-// 남긴 PROFILE 스코프 행을 영영 못 찾는다(=결제해도 계속 잠김).
+// 출생 기반 상품으로 못 알아보고 계정(USER) 스코프로 떨어져, BIRTH 행을 영영 못 찾는다(=결제해도 계속 잠김).
+// 출생 기반이라 profile(이미 소유 확인된 ProfileCard)의 출생 정보(birthKey)로만 판정한다 — USER·"__user__"
+// 행은 근거가 아니다. 카드를 넘겨 리더가 같은 카드를 다시 읽지 않게 한다.
 // 이 조회는 결제 게이트보다 먼저 도는 선행 읽기라 admission 포화를 하드 503 으로 흘리면 안 된다.
-async function findSukuyoYearlyUnlock({ userId, profileId, targetYear, env = {} }) {
+async function findSukuyoYearlyUnlock({ userId, profile, targetYear, env = {} }) {
   const contentKey = sukuyoYearlyContentKey(targetYear);
+  const profileId = clean(profile?.profileId);
+  if (!userId || !profileId) return null;
   return withMongoRetry(env, () => findActivePaidContentUnlockByServiceKeys({
     userId,
     profileId,
     featureKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
     serviceKeys: [SUKYO_YEARLY_FORTUNE_SERVICE_KEY, "ziwei", "saju"],
     contentKey,
+    findProfileCard: async ({ userId: ownerId, profileId: wanted }) => (
+      String(ownerId) === String(userId) && wanted === profileId ? profile : null
+    ),
   }), { retryAdmissionOnOverload: true });
 }
 
 async function handleSukuyoYearlyFortune(request, env) {
-  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env, { userProjection: SUKUYO_YEARLY_USER_PROJECTION }));
+  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env));
   const url = new URL(request.url);
   const targetYear = normalizeSukuyoTargetYear(url.searchParams.get("year"));
   const profile = await resolveSukuyoYearlyProfile(env, auth, url.searchParams.get("profileId"));
   const fullResult = await buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear, env, requestUrl: request.url });
-  const unlock = await findSukuyoYearlyUnlock({ userId: auth.userId, profileId: profile.profileId, targetYear, env });
+  const unlock = await findSukuyoYearlyUnlock({ userId: auth.userId, profile, targetYear, env });
   const unlocked = Boolean(unlock?._id);
   return json({
     ok: true,
@@ -2172,17 +2168,19 @@ async function handleSukuyoYearlyFortune(request, env) {
       targetYear,
     },
     unlocked,
+    // 잠긴 응답은 미리보기를 주는 200 이다(클라 잠금 패널 계약). 다른 프로필로 산 같은 생년월일이면 위에서 열린다.
+    ...(unlocked ? {} : { lockedReason: "BIRTH_UNLOCK_REQUIRED", message: "이 생년월일은 별도 구매가 필요합니다." }),
     preview: unlocked ? null : buildSukuyoYearlyPreview(fullResult),
     result: unlocked ? fullResult : null,
   });
 }
 
 async function handleSukuyoYearlyUnlock(request, env) {
-  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env, { userProjection: SUKUYO_YEARLY_USER_PROJECTION }));
+  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env));
   const body = await readJson(request);
   const targetYear = normalizeSukuyoTargetYear(body?.targetYear || body?.year);
   const profile = await resolveSukuyoYearlyProfile(env, auth, body?.profileId || body?.selectedProfileId);
-  const existing = await findSukuyoYearlyUnlock({ userId: auth.userId, profileId: profile.profileId, targetYear, env });
+  const existing = await findSukuyoYearlyUnlock({ userId: auth.userId, profile, targetYear, env });
   const contentKey = sukuyoYearlyContentKey(targetYear);
   if (existing?._id) {
     return json({
@@ -2432,11 +2430,11 @@ export const __sukuyoYearlyTestUtils = {
 };
 
 async function handleSukuyoYearlyVerifyPayment(request, env) {
-  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env, { userProjection: SUKUYO_YEARLY_USER_PROJECTION }));
+  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env));
   const body = await readJson(request);
   const targetYear = normalizeSukuyoTargetYear(body?.targetYear || body?.year);
   const profile = await resolveSukuyoYearlyProfile(env, auth, body?.profileId || body?.selectedProfileId);
-  const existing = await findSukuyoYearlyUnlock({ userId: auth.userId, profileId: profile.profileId, targetYear, env });
+  const existing = await findSukuyoYearlyUnlock({ userId: auth.userId, profile, targetYear, env });
   if (existing?._id) {
     return json({
       ok: true,
@@ -2537,6 +2535,8 @@ export async function handleSukuyoRoutes(request, env = {}, ctx = null) {
         code: clean(error?.code) || "SUKUYO_REQUEST_FAILED",
         message: clean(error?.message) || "숙요점 PDF 요청을 처리하지 못했습니다.",
         missing: Array.isArray(error?.missing) ? error.missing : undefined,
+        reason: clean(error?.reason) || undefined,
+        requiresProfile: error?.requiresProfile === true ? true : undefined,
       }, { status });
     }
     // context 를 넘겨야 응답에 requestId 가, 로그에 route/requestPath 가 남는다.

@@ -55,6 +55,7 @@ import {
   FEATURE_KEY_PRICE_TABLE,
   PIG_COIN_UNLOCK_PRODUCTS,
   UNLOCK_PRODUCT_BY_FEATURE_KEY,
+  isBirthScopedUnlockFeatureKey,
   listServerPricedFeatureKeys,
   normalizePaidFeatureKey,
   resolveFeatureReasonCost,
@@ -2180,7 +2181,8 @@ function buildAIPromptVerifiedConsumePayload({ auth, featureKey, reason, request
   const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : 0;
   const monthlyCreditsRaw = Number(ctx.consume.remainingMembershipCredit ?? ctx.consume.monthlyStoneBalance ?? metadata.remainingMembershipCredit ?? metadata.monthlyStoneBalance ?? record.afterBalance ?? subscriptionUser?.profileSubscription?.membershipCreditBalance);
   const monthlyCredits = Number.isFinite(monthlyCreditsRaw) ? Math.max(0, Math.floor(monthlyCreditsRaw)) : 0;
-  const unlockedFeatures = normalizePersistentUnlockKeys(subscriptionUser?.unlockedFeatures);
+  // 계정 배열은 출생 기반 키의 근거가 아니다 — 응답에 실어 클라이언트가 잠금을 풀지 않게 거른다.
+  const unlockedFeatures = withoutBirthScopedPersistentKeys(normalizePersistentUnlockKeys(subscriptionUser?.unlockedFeatures));
 
   return {
     message: "Paid access already verified.",
@@ -2625,6 +2627,10 @@ function isRepairableConsumeArrayShapeError(error) {
   return /recentConsumeRequestIds|unlockedFeatures/i.test(message);
 }
 
+function withoutBirthScopedPersistentKeys(keys) {
+  return keys.filter((key) => !isBirthScopedUnlockFeatureKey(key));
+}
+
 async function resolvePersistedUnlockFeatures(userId, currentUnlocks, profileId = "", env = {}) {
   const scopedProfileId = sanitizeProfileBindingId(profileId);
   if (userId && scopedProfileId) {
@@ -2645,10 +2651,15 @@ async function resolvePersistedUnlockFeatures(userId, currentUnlocks, profileId 
       getUnlockedContentSnapshot({ userId, profileId: scopedProfileId }),
     ]));
     const entitlementKeys = (snapshot.featureKeys || []).filter((key) => isPersistentUnlockFeatureKey(key));
-    return normalizePersistentUnlockKeys([...scopedKeys, ...entitlementKeys]);
+    // 출생 기반 키의 차감 기록은 profileId 에 묶여 생년월일 수정 뒤에도 남는다 — BIRTH 스냅샷으로만 연다.
+    const historyKeys = withoutBirthScopedPersistentKeys(normalizePersistentUnlockKeys(scopedKeys));
+    return normalizePersistentUnlockKeys([...historyKeys, ...entitlementKeys]);
   }
 
-  const fromUser = normalizePersistentUnlockKeys(currentUnlocks);
+  /* 🔴 프로필이 없으면 출생 기반 키는 잠금이다. 아래 근거(계정 배열·계정 전체 PointHistory)는 어느
+     생년월일로 샀는지 모르므로, 계정 기반 키만 내보낸다(별칭 전개 뒤에 거른다 — 계정 키의 별칭이
+     출생 기반 키일 수 있다). 출생 기반 키는 위 profileId 분기의 BIRTH 스냅샷으로만 열린다. */
+  const fromUser = withoutBirthScopedPersistentKeys(normalizePersistentUnlockKeys(currentUnlocks));
   if (fromUser.length || !userId) return fromUser;
 
   const historyKeys = await withMongoRetry(env, () => PointHistory.distinct("featureKey", {
@@ -2656,7 +2667,7 @@ async function resolvePersistedUnlockFeatures(userId, currentUnlocks, profileId 
     kind: "deduct",
     featureKey: { $in: Array.from(PERSISTENT_UNLOCK_KEY_SET) },
   }));
-  const inferred = normalizePersistentUnlockKeys(historyKeys);
+  const inferred = withoutBirthScopedPersistentKeys(normalizePersistentUnlockKeys(historyKeys));
   if (inferred.length) {
     await User.updateOne(
       { _id: userId },
@@ -3034,7 +3045,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
         },
       }, { status: 402 });
     }
-    const unlockedFeatures = normalizePersistentUnlockKeys(subscriptionUser.unlockedFeatures);
+    const unlockedFeatures = withoutBirthScopedPersistentKeys(normalizePersistentUnlockKeys(subscriptionUser.unlockedFeatures));
     const premiumAccessToken = await createPremiumAccessToken(env, {
       userId: String(auth.userId || ""),
       reportType: reportTypeForPremiumAccess,
@@ -7069,6 +7080,7 @@ export const __fortuneAccessTestUtils = {
   buildAIPromptVerifiedConsumePayload,
   handleVedicPrashnaGenerate,
   isVedicPrashnaStaleGenerating,
+  resolvePersistedUnlockFeatures,
 };
 
 // 그룹 병렬 생성은 결제 경로 한가운데에 있어 mock 없이는 손댈 수 없다.

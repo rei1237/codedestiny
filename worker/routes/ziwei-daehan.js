@@ -2,8 +2,8 @@ import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { requireAuth } from "../lib/auth.js";
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { json, methodNotAllowed, notFound, readJson, getRoutePath } from "../lib/http.js";
-import { User } from "../lib/models.js";
-import { hasUnlockedContent } from "../lib/content-unlocks.js";
+import { findActivePaidContentUnlock } from "../lib/content-unlocks.js";
+import { readProfileBirthUnlock } from "../lib/paid-content-read-access.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 import { scopeConnection } from "../lib/db-scope-connection.js";
 
@@ -42,11 +42,11 @@ async function ensureDaehanIndexes() {
   return daehanIndexPromise;
 }
 
-async function resolveDaehanProfileId(userId, source = {}) {
-  const explicit = cleanId(source?.profileId || source?.selectedProfileId || source?.profile?.profileId || source?.profile?.id);
-  if (explicit || !userId) return explicit;
-  const user = await User.findById(userId).select("destinyProfilesCurrentId").lean();
-  return cleanId(user?.destinyProfilesCurrentId);
+// 🔴 대한 흐름은 출생 기반 해금(userId + birthKey + contentKey)이다. 요청이 실은 저장 프로필만 받는다 —
+// 현재 프로필(destinyProfilesCurrentId) 폴백은 없앴다. 합성 출생 id("birth:…")는 프로필이 아니다.
+function resolveDaehanProfileId(source = {}) {
+  const id = cleanId(source?.profileId || source?.selectedProfileId || source?.profile?.profileId || source?.profile?.id, 80);
+  return id.startsWith("birth:") ? "" : id;
 }
 
 async function getDaehanPurchase(userId, profileId) {
@@ -57,20 +57,51 @@ async function getDaehanPurchase(userId, profileId) {
   });
 }
 
-async function isDaehanPurchased(userId, profileId, env = {}) {
-  if (!userId || !profileId) return false;
-  return withMongoRetry(env, async () => {
+/* 해금 판정. { ok:false, reason } 이면 프로필 문제(MISSING_PROFILE_ID / INVALID_PROFILE)다.
+   출생 기반 근거(BIRTH 행)만 본다 — USER·"__user__" 행과 계정 배열은 근거가 아니다.
+   레거시 contentKey(ziwei.daehanTimeline)도 featureKey 를 함께 넘겨 출생 분기로만 읽는다
+   (featureKey 없이 contentKey 만 넘기면 계정 스코프 절로 떨어진다). DB 오류는 그대로 던진다(503). */
+async function readDaehanAccess(userId, profileId, env = {}) {
+  const access = await readProfileBirthUnlock(env, { userId: String(userId || ""), profileId, featureKey: DAEHAN_FEATURE_KEY });
+  if (!access.ok) return { ok: false, reason: access.reason, isPurchased: false };
+  if (access.unlocked) return { ok: true, isPurchased: true };
+  const isPurchased = await withMongoRetry(env, async () => {
     if (await getDaehanPurchase(userId, profileId)) return true;
-    for (const contentKey of [DAEHAN_CONTENT_KEY, LEGACY_DAEHAN_CONTENT_KEY]) {
-      if (await hasUnlockedContent({
-        userId: String(userId),
-        profileId: String(profileId),
-        serviceKey: DAEHAN_SERVICE_KEY,
-        contentKey,
-      })) return true;
-    }
-    return false;
+    const legacy = await findActivePaidContentUnlock({
+      userId: String(userId),
+      profileId,
+      featureKey: DAEHAN_FEATURE_KEY,
+      serviceKey: DAEHAN_SERVICE_KEY,
+      contentKey: LEGACY_DAEHAN_CONTENT_KEY,
+      findProfileCard: async ({ profileId: wanted }) => (wanted === profileId ? access.card : null),
+    });
+    return Boolean(legacy?._id);
   });
+  return { ok: true, isPurchased };
+}
+
+function daehanProfileErrorResponse(reason) {
+  if (reason === "LOGIN_REQUIRED") {
+    return json({ ok: false, success: false, error: "UNAUTHORIZED", message: "로그인이 필요합니다." }, { status: 401 });
+  }
+  if (reason === "INVALID_PROFILE") {
+    return json({
+      ok: false,
+      success: false,
+      error: "INVALID_PROFILE",
+      reason: "INVALID_PROFILE",
+      requiresProfile: true,
+      message: "선택한 프로필을 찾지 못했습니다. 저장된 프로필을 다시 선택해 주세요.",
+    }, { status: 403 });
+  }
+  return json({
+    ok: false,
+    success: false,
+    error: "MISSING_PROFILE_ID",
+    reason: "MISSING_PROFILE_ID",
+    requiresProfile: true,
+    message: "프로필을 저장한 뒤 구매해 주세요.",
+  }, { status: 400 });
 }
 
 function daehanStatusPayload({ profileId, isPurchased, data = null }) {
@@ -94,13 +125,12 @@ async function handleDaehanStatus(request, env) {
   // 인덱스 생성은 scripts/migrations/20260816-add-daehan-purchase-index.mjs 가 맡고,
   // 중복 구매를 실제로 막아야 하는 unlock(쓰기) 경로에는 호출이 그대로 남아 있다.
 
-  const profileId = await resolveDaehanProfileId(auth.userId, getRequestProfileSource(request));
-  if (!profileId) {
-    return json({ ok: false, error: "MISSING_PROFILE_ID", message: "프로필을 먼저 선택해 주세요." }, { status: 400 });
-  }
+  const profileId = resolveDaehanProfileId(getRequestProfileSource(request));
+  if (!profileId) return daehanProfileErrorResponse("MISSING_PROFILE_ID");
 
-  const isPurchased = await isDaehanPurchased(auth.userId, profileId, env);
-  return json(daehanStatusPayload({ profileId, isPurchased }));
+  const access = await readDaehanAccess(auth.userId, profileId, env);
+  if (!access.ok) return daehanProfileErrorResponse(access.reason);
+  return json(daehanStatusPayload({ profileId, isPurchased: access.isPurchased }));
 }
 
 async function handleDaehanUnlock(request, env) {
@@ -111,12 +141,12 @@ async function handleDaehanUnlock(request, env) {
   await connectDb(env);
   await ensureDaehanIndexes();
 
-  const profileId = await resolveDaehanProfileId(auth.userId, getRequestProfileSource(request, body));
-  if (!profileId) {
-    return json({ ok: false, error: "MISSING_PROFILE_ID", message: "프로필을 먼저 선택해 주세요." }, { status: 400 });
-  }
+  const profileId = resolveDaehanProfileId(getRequestProfileSource(request, body));
+  if (!profileId) return daehanProfileErrorResponse("MISSING_PROFILE_ID");
 
-  if (await isDaehanPurchased(auth.userId, profileId, env)) {
+  const access = await readDaehanAccess(auth.userId, profileId, env);
+  if (!access.ok) return daehanProfileErrorResponse(access.reason);
+  if (access.isPurchased) {
     return json({
       ...daehanStatusPayload({ profileId, isPurchased: true }),
       alreadyPurchased: true,

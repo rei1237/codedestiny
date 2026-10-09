@@ -87,7 +87,10 @@ describe("sukuyo yearly fortune", () => {
     expect(result.serviceKey).toBe("sukuyo");
     expect(result.profileId).toBe("profile-yearly-1");
     expect(result.contentKey).toBe("sukyo_yearly_fortune_unlock:2026");
-    expect(result.scope).toBe("PROFILE");
+    // 출생 기반 해금 — 행은 계정 + 생년월일(birthKey)에 걸린다. 연도 접미사 키도 같은 분류다.
+    expect(result.scope).toBe("BIRTH");
+    expect(result.birthScoped).toBe(true);
+    expect(result.requiresProfile).toBe(true);
   });
 
   test("full result includes detailed local sukuyo calculation fields", () => {

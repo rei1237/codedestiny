@@ -17,6 +17,8 @@
  */
 
 import { jest } from "@jest/globals";
+import { testCard } from "../fixtures/profile-card-model.mjs";
+import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
 
 const findOne = jest.fn();
 const findOneAndUpdate = jest.fn();
@@ -27,7 +29,7 @@ let makeFakePaymentDb;
 
 beforeAll(async () => {
   await jest.unstable_mockModule("../../worker/lib/models.js", () => ({
-    CONTENT_ENTITLEMENT_SCOPES: { PROFILE: "PROFILE", USER: "USER" },
+    CONTENT_ENTITLEMENT_SCOPES: { PROFILE: "PROFILE", USER: "USER", BIRTH: "BIRTH" },
     CONTENT_ENTITLEMENT_SOURCES: {
       COIN: "COIN",
       PAYMENT: "PAYMENT",
@@ -44,6 +46,7 @@ beforeAll(async () => {
       COMPATIBILITY: "saju.compatibility",
     },
     User: {},
+    ProfileCard: { modelName: "ProfileCard", findOne: (filter) => profileCardQuery(filter) },
     Payment: {},
     PaidExecutionRecord: {},
   }));
@@ -76,6 +79,16 @@ function matchesValue(value, condition) {
 const YEARLY_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
 const USER_ID = "507f1f77bcf86cd799439011";
 const PROFILE_ID = "profile-1";
+const CARD = testCard(PROFILE_ID, { userId: USER_ID });
+const BIRTH_PROFILE_ID = toBirthEntitlementProfileId(computeBirthKey(CARD));
+// 리더(content-unlocks.js)는 mongoose 모델로, V2 지급은 결제 db 래퍼로 같은 카드를 읽는다.
+function profileCardQuery(filter) {
+  const card = String(filter.userId) === USER_ID && filter.profileId === PROFILE_ID ? CARD : null;
+  const query = { select: () => query, lean: async () => card };
+  return query;
+}
+const makeDb = () => makeFakePaymentDb({ profileCards: [CARD] });
+
 const PRODUCT = {
   productId: YEARLY_PRODUCT_KEY,
   featureKey: YEARLY_PRODUCT_KEY,
@@ -118,7 +131,7 @@ beforeEach(() => {
 });
 
 test("🔴 V2 카드 확정이 지급한 1년운 권한을 리더가 그대로 찾아낸다", async () => {
-  const db = makeFakePaymentDb();
+  const db = makeDb();
   const granted = await grantEntitlement(db, cardConfirmGrantInput(2026));
   expect(granted.alreadyOwned).toBe(false);
 
@@ -126,15 +139,17 @@ test("🔴 V2 카드 확정이 지급한 1년운 권한을 리더가 그대로 �
   // 유도 정본을 쓰지 않고 featureKey 로 접으면 여기서 먼저 깨진다.
   expect(stored.serviceKey).toBe("sukuyo");
   expect(stored.contentKey).toBe(`${YEARLY_PRODUCT_KEY}:2026`);
-  expect(stored.scope).toBe("PROFILE");
-  expect(stored.profileId).toBe(PROFILE_ID);
+  // 출생 기반 — 행은 계정+생년월일에 걸리고 구매 프로필은 감사 필드로 남는다.
+  expect(stored.scope).toBe("BIRTH");
+  expect(stored.profileId).toBe(BIRTH_PROFILE_ID);
+  expect(stored.purchaseProfileId).toBe(PROFILE_ID);
 
   await findActivePaidContentUnlockByServiceKeys(yearlyReadInput(2026));
   expect(matchesFilter(stored, capturedReadFilter())).toBe(true);
 });
 
 test("연도가 다르면 이미 산 해의 권한이 열리지 않는다", async () => {
-  const db = makeFakePaymentDb();
+  const db = makeDb();
   await grantEntitlement(db, cardConfirmGrantInput(2026));
   const stored = db.rows[0];
 
@@ -143,7 +158,7 @@ test("연도가 다르면 이미 산 해의 권한이 열리지 않는다", asyn
 });
 
 test("한 프로필이 두 해를 따로 보유한다", async () => {
-  const db = makeFakePaymentDb();
+  const db = makeDb();
   await grantEntitlement(db, cardConfirmGrantInput(2026));
   await grantEntitlement(db, cardConfirmGrantInput(2027));
   expect(db.rows).toHaveLength(2);
@@ -158,7 +173,7 @@ test("한 프로필이 두 해를 따로 보유한다", async () => {
 test("🔴 contentKey 를 안 실어 보내면(셸이 흘리던 결함) 연도별 조회가 그 행을 못 찾는다", async () => {
   // index.html _cdBuildDirectCheckoutPayload 가 contentKey 를 화이트리스트에서 빠뜨려
   // pricingSnapshot.contentKey 가 "" 였던 상태의 재현. 회귀하면 이 단언이 사실이 된다.
-  const db = makeFakePaymentDb();
+  const db = makeDb();
   await grantEntitlement(db, { ...cardConfirmGrantInput(2026), contentKey: "" });
   const stored = db.rows[0];
   expect(stored.contentKey).toBe(YEARLY_PRODUCT_KEY);
@@ -167,9 +182,10 @@ test("🔴 contentKey 를 안 실어 보내면(셸이 흘리던 결함) 연도�
   expect(matchesFilter(stored, capturedReadFilter())).toBe(false);
 });
 
-test("🔴 옛 serviceKey(=featureKey)로 남은 행이 있으면 재지급 대신 소유로 인정한다", async () => {
-  // 과도기 가드. 이게 없으면 월정석·이용권 경로가 alreadyOwned=false 를 보고 **다시 차감**한다.
-  const db = makeFakePaymentDb();
+test("🔴 옛 PROFILE 행은 출생 기반 소유 근거가 아니다 — 마이그레이션이 옮긴 BIRTH 행만 소유로 친다", async () => {
+  // 과도기 쌍둥이 가드(serviceKey=featureKey)는 출생 기반 키에 적용되지 않는다.
+  // 기존 구매는 scripts/migrations/20261010-birth-scope-unlocks.mjs 가 BIRTH 행으로 복사한다.
+  const db = makeDb();
   db.rows.push({
     _id: "legacy-row",
     userId: USER_ID,
@@ -182,26 +198,36 @@ test("🔴 옛 serviceKey(=featureKey)로 남은 행이 있으면 재지급 대�
   });
 
   const granted = await grantEntitlement(db, cardConfirmGrantInput(2026));
-  expect(granted.alreadyOwned).toBe(true);
-  expect(granted.entitlement._id).toBe("legacy-row");
-  expect(db.rows).toHaveLength(1);
+  expect(granted.alreadyOwned).toBe(false);
+  expect(db.rows).toHaveLength(2);
+  expect(db.rows[1]).toMatchObject({ scope: "BIRTH", profileId: BIRTH_PROFILE_ID, serviceKey: "sukuyo" });
 });
 
-test("환불된 옛 행은 소유로 치지 않는다 — 다시 사면 정본 신원으로 지급된다", async () => {
-  const db = makeFakePaymentDb();
+test("마이그레이션이 만든 BIRTH 행이 있으면 재지급 대신 소유로 인정한다", async () => {
+  const db = makeDb();
   db.rows.push({
-    _id: "refunded-row",
+    _id: "backfill-row",
     userId: USER_ID,
-    profileId: PROFILE_ID,
-    serviceKey: YEARLY_PRODUCT_KEY,
+    profileId: BIRTH_PROFILE_ID,
+    serviceKey: "sukuyo",
     contentKey: `${YEARLY_PRODUCT_KEY}:2026`,
-    scope: "PROFILE",
+    scope: "BIRTH",
     featureKey: YEARLY_PRODUCT_KEY,
-    status: "REFUNDED",
+    status: "ACTIVE",
+    source: "BACKFILL",
   });
 
   const granted = await grantEntitlement(db, cardConfirmGrantInput(2026));
-  expect(granted.alreadyOwned).toBe(false);
-  expect(db.rows).toHaveLength(2);
-  expect(db.rows[1].serviceKey).toBe("sukuyo");
+  expect(granted.alreadyOwned).toBe(true);
+  expect(granted.entitlement._id).toBe("backfill-row");
+  expect(db.rows).toHaveLength(1);
+});
+
+test("저장 프로필이 아니면 지급하지 않는다", async () => {
+  const db = makeDb();
+  await expect(grantEntitlement(db, { ...cardConfirmGrantInput(2026), profileId: "someone-else" }))
+    .rejects.toMatchObject({ code: "INVALID_PROFILE" });
+  await expect(grantEntitlement(db, { ...cardConfirmGrantInput(2026), profileId: "" }))
+    .rejects.toMatchObject({ code: "MISSING_PROFILE_ID" });
+  expect(db.rows).toHaveLength(0);
 });
