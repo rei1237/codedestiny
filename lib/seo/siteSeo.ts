@@ -87,7 +87,7 @@ export const siteSeo = {
   titleTemplate: "%s",
   defaultDescription:
     "꿀꿀 사주에서 사주풀이와 궁합, 타로, 자미두수, 숙요점을 만나보세요. 고양이 영냥이와 꽃돼지 연이가 내 성향과 지금의 고민을 살펴보는 길을 안내합니다.",
-  defaultOgImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=42dedf5c85",
+  defaultOgImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=aa88d371b4",
   twitterCard: "summary_large_image",
   organization: {
     // 회사 이름(운영자 확인, 2026-08-16). 브랜드(brandName = 꿀꿀 사주)와 의도적으로 다르다.

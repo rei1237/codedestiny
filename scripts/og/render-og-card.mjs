@@ -6,7 +6,7 @@
  *
  * 2배 해상도(2400x1260)로 찍고 sharp 로 1200x630 으로 줄여 금박 각인/세필선의
  * 안티에일리어싱을 살린다. 결과물은 public/og/ 에 떨어진다.
- *   - ggulggul    : 꿀꿀 운세(꽃돼지 연이) — 꿀꿀 셸·사이트 기본 OG(한국어)
+ *   - ggulggul    : 꿀꿀 사주(꽃돼지 연이) — 꿀꿀 셸·사이트 기본 OG(한국어)
  *   - ggulggul-*  : 같은 카드의 로케일판(vvip-card.html?lang=) — /en·/ja·/zh·/zh-tw 셸 og:image·공유 imageUrl
  *   - yeongnyangi : 영냥이 — app/yeongnyangi/** 메타·카카오 공유 imageUrl
  */

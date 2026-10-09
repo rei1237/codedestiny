@@ -6,7 +6,7 @@ const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;',
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
 <rect width="1200" height="630" fill="#191423"/><path d="M64 56H1136V574H64Z" fill="none" stroke="#b2a180"/>
 <g font-family="Malgun Gothic, sans-serif" fill="#fff9ee">
-<text x="96" y="118" font-size="25" fill="#d5bc91">꿀꿀운세 · CODE DESTINY</text>
+<text x="96" y="118" font-size="25" fill="#d5bc91">꿀꿀 사주 · CODE DESTINY</text>
 <text x="96" y="196" font-size="49" font-weight="700">대통령 사주 공개 분석 기록</text>
 <text x="96" y="249" font-size="26" fill="#e8d9bd">${escape(copy.link)}</text>
 <path d="M112 338H1080" stroke="#d5bc91" stroke-width="2"/>

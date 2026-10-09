@@ -8,7 +8,7 @@ import styles from "../home-cosmic.module.css";
 import { siteSeo } from "../../lib/seo/siteSeo";
 
 const PAGE_URL = "https://code-destiny.com/kkul-kkul-unse/";
-const OG_IMAGE = "https://code-destiny.com/og/code-destiny-og-vvip.png?v=42dedf5c85";
+const OG_IMAGE = "https://code-destiny.com/og/code-destiny-og-vvip.png?v=aa88d371b4";
 
 // 브랜드의 대표 URL 은 /ggulggul/ 이고("/" 는 그리로 301) 이 페이지는 옛 이름(꿀꿀 운세)으로 찾아온
 // 사람에게 개명(2026-10-10 꿀꿀 운세 → 꿀꿀 사주)을 알리는 보조 안내다. 경로는 기존 검색·링크를 위해 유지한다.
