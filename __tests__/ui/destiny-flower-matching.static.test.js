@@ -166,3 +166,75 @@ test("같은 입력은 같은 꽃을 준다 (결정론)", async () => {
   assert.equal(once(), once(), "같은 입력이 다른 꽃을 준다 — 시드 없는 난수가 섞였다");
   assert.doesNotMatch(traitsSource, /Math\.random\(\)/, `${TRAITS_REL}: Math.random 은 결과를 새로고침마다 바꾼다`);
 });
+
+const SAJU_BASE = {
+  name: "검증",
+  birth: { year: 1990, month: 1, day: 15, hour: 3, minute: 0 },
+  saju: { dayMaster: "갑", yongshin_elements: ["Fire"] },
+  elements: { wood: 30, fire: 10, earth: 20, metal: 20, water: 20 },
+};
+const STRENGTH_JOHU_SIGNALS = ["strength_release", "strength_support", "johu_warm", "johu_cool"];
+
+test("신강·조후가 점수와 근거 목록에 함께 반영된다", async () => {
+  const engine = await loadEngine();
+  const withSaju = (extra) => ({ ...SAJU_BASE, saju: { ...SAJU_BASE.saju, ...extra } });
+
+  const tuned = engine.parseDestinyProfile(withSaju({ power_label: "신약", johu_type: "cool" }));
+  assert.equal(tuned.domains.saju.strength, "weak", "power_label 신약을 읽지 못한다");
+  assert.equal(tuned.domains.saju.johu, "cold", "johu_type cool 을 한습으로 접지 못한다");
+  // 생산자는 판정이 없을 때 is_strong 을 false 로 채운다 — 그것을 신약으로 읽으면 안 된다.
+  assert.equal(engine.parseDestinyProfile(withSaju({ is_strong: false, power_label: "" })).domains.saju.strength, "");
+
+  // 같은 꽃의 점수 차가 정확히 새 신호 수 × 8 이다(다른 가중치는 그대로).
+  const before = new Map(engine.rankFlowerCandidates(engine.parseDestinyProfile(SAJU_BASE), { limit: 20 }).map((c) => [c.flower.id, c]));
+  let boosted = 0;
+  for (const c of engine.rankFlowerCandidates(tuned, { limit: 20 })) {
+    const prev = before.get(c.flower.id);
+    if (!prev) continue;
+    const added = STRENGTH_JOHU_SIGNALS.filter((s) => c.matchedSignals.includes(s)).length;
+    assert.ok(Math.abs(c.score - prev.score - 8 * added) < 0.01, `${c.flower.id}: 점수 차가 신호 ${added}개 × 8 이 아니다`);
+    if (added) boosted += 1;
+  }
+  assert.ok(boosted > 0, "신강·조후 신호가 어떤 꽃의 점수도 바꾸지 않는다");
+
+  // 근거 문장은 실제로 점수에 든 신호만 말한다.
+  let spoken = 0;
+  for (const extra of [{ power_label: "신약", johu_type: "hot" }, { power_label: "신강", johu_type: "cold" }, {}]) {
+    const result = engine.matchDestinyFlower(withSaju(extra), { limit: 5 });
+    const signals = result.candidates[0].matchedSignals;
+    const keys = result.rationale_points.map((p) => p.key);
+    for (const key of STRENGTH_JOHU_SIGNALS) {
+      assert.equal(keys.includes(key), signals.includes(key), `${key}: 근거 목록과 점수 신호가 어긋난다(${JSON.stringify(extra)})`);
+    }
+    assert.ok(keys.length <= 4 && keys[keys.length - 1] === "verdict", "근거 목록은 4개 이하이고 '그래서 이 꽃'으로 끝난다");
+    assert.ok(result.rationale_points.every((p) => p.label && p.text && !/undefined|\{/.test(p.text)), "빈 라벨·미치환 문구가 있다");
+    spoken += keys.filter((k) => STRENGTH_JOHU_SIGNALS.includes(k)).length;
+  }
+  assert.ok(spoken > 0, "신강·조후 근거가 한 번도 문장이 되지 않았다");
+});
+
+test("자미두수는 명궁 주성으로 꽃을 고르고 강한 별은 배지로만 쓴다", async () => {
+  const engine = await loadEngine();
+  const PALACES = ["명궁", "형제궁", "부부궁", "자녀궁", "재백궁", "질액궁", "천이궁", "노복궁", "관록궁", "전택궁", "복덕궁", "부모궁"];
+  const chart = (cells) => ({
+    palacesByIndex: PALACES,
+    stars: PALACES.map((p) => ({ main: cells[p] ? [cells[p][0]] : [] })),
+    palaceStarData: PALACES.map((p) => ({ stars: cells[p] ? [{ name: cells[p][0], strength: cells[p][1] }] : [] })),
+  });
+
+  // 명궁 천기(평)보다 재백궁 자미(묘)가 더 밝다 — 예전에는 자미로 꽃을 골랐다.
+  const zw = chart({ 명궁: ["천기", "평"], 재백궁: ["자미", "묘"], 천이궁: ["태음", "왕"] });
+  const result = engine.matchJamidusuFlower({ ...SAJU_BASE, ziweiChart: zw });
+  const natal = engine.getJamidusuFlower({ mainStar: "천기", stars: ["천기"], palace: "명궁", brightness: "평" });
+  assert.deepEqual(result.ziwei.primary_stars, ["천기"], "꽃이 명궁 주성이 아닌 별에서 나왔다");
+  assert.equal(result.flower.id, natal.flower.id);
+  assert.equal(result.strong_star && result.strong_star.star, "자미", "오늘의 강한 별 보조 정보가 빠졌다");
+  assert.match(result.flower_data.day_master_badge, /자미/);
+  assert.equal(result.rationale_points[0].key, "ziwei_life_star");
+  assert.match(result.rationale_points[0].text, /명궁에 천기/);
+
+  // 명궁이 비면 대궁(천이궁) 주성을 빌린다.
+  const borrowed = engine.matchJamidusuFlower({ ...SAJU_BASE, ziweiChart: chart({ 재백궁: ["자미", "묘"], 천이궁: ["태음", "왕"] }) });
+  assert.deepEqual(borrowed.ziwei.primary_stars, ["태음"], "공궁일 때 천이궁 주성을 빌리지 않는다");
+  assert.match(borrowed.rationale_points[0].text, /천이궁/);
+});

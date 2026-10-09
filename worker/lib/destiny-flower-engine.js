@@ -241,7 +241,31 @@ const DESTINY_FLOWER_KO_TEXT = Object.freeze({
   'saju.scenarios.ren.nightIntuition.title': '임수의 야간 직감 시나리오',
   'saju.scenarios.gui.coldWetPurifying.title': '계수의 한습 정화 시나리오',
   'saju.scenarios.gui.summerEmpathy.title': '계수의 하계 감응 시나리오',
-  'saju.scenarios.gui.subtleSignal.title': '계수의 미세 감지 시나리오'
+  'saju.scenarios.gui.subtleSignal.title': '계수의 미세 감지 시나리오',
+  'saju.rationale.dayMasterSame': '{dayMasterBadge} 일간과 같은 {element} 기운을 품은 꽃이에요.',
+  'saju.rationale.strengthRelease': '사주가 신강해 차오른 기운을 밖으로 풀어 주는 {elements} 기운의 꽃에 무게를 두었어요.',
+  'saju.rationale.strengthSupport': '사주가 신약해 일간을 북돋아 주는 {elements} 기운의 꽃에 무게를 두었어요.',
+  'saju.rationale.yongshin': '이 꽃에는 사주에 필요한 용신 기운이 담겨 있어요 — {elements}.',
+  'saju.rationale.johuWarm': '사주가 차고 습한 편이라 햇볕처럼 데워 줄 따뜻한 꽃에 무게를 두었어요.',
+  'saju.rationale.johuCool': '사주가 덥고 메마른 편이라 열기를 식혀 줄 물기 많은 꽃에 무게를 두었어요.',
+  'saju.rationaleLabel.dayMaster': '일간 기질',
+  'saju.rationaleLabel.strengthRelease': '신강',
+  'saju.rationaleLabel.strengthSupport': '신약',
+  'saju.rationaleLabel.yongshin': '용신',
+  'saju.rationaleLabel.johuWarm': '조후 · 한습',
+  'saju.rationaleLabel.johuCool': '조후 · 온조',
+  'common.rationaleLabel.verdict': '그래서 이 꽃',
+  'astro.rationaleLabel.sun': '태양궁',
+  'astro.rationaleLabel.risingMoon': '상승궁 · 달궁',
+  'sukuyo.rationaleLabel.mansion': '숙 · 달 위상',
+  'ziwei.natalVerdict': '명궁 {stars}의 기질로 읽은 당신의 꽃은 {flowerName}({scientificName})입니다.',
+  'ziwei.natalScenarioTitle': '명궁 주성 개화 시나리오',
+  'ziwei.rationale.lifeStar': '명궁에 {starsJosa} 자리하고 있어요.',
+  'ziwei.rationale.borrowedStar': '명궁에 주성이 없어 마주 보는 천이궁의 {starsObject} 빌려 읽었어요.',
+  'ziwei.rationale.personality': '{star}의 "{keyword}" — {personality}의 기질이에요.',
+  'ziwei.rationale.verdict': '그래서 지금 당신에게 건네는 꽃은 {flowerName}입니다.',
+  'ziwei.rationaleLabel.lifeStar': '명궁 주성',
+  'ziwei.rationaleLabel.personality': '타고난 성격',
 });
 
 /**
@@ -848,6 +872,29 @@ export function getAstrologyFlower(chartData = {}) {
   };
 }
 
+/**
+ * 매칭을 바꾸지 않는 체계(점성술·숙요)의 근거 목록. 이미 쓰고 있는 narrative 를 문장 단위로 나눠
+ * 앞 문장들은 체계별 라벨로, 마지막 문장은 "그래서 이 꽃"으로 붙인다. 새 주장을 만들지 않는다.
+ */
+function narrativeRationalePoints(prefix, narrative, labels) {
+  const sentences = String(narrative || '')
+    .split(/(?<=[.!?。])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (!sentences.length) return [];
+  const picked = sentences.length > 4 ? [...sentences.slice(0, 3), sentences[sentences.length - 1]] : sentences;
+  return picked.map((text, i) => {
+    const isVerdict = picked.length > 1 && i === picked.length - 1;
+    return {
+      key: prefix + (isVerdict ? '_verdict' : '_' + (i + 1)),
+      label: isVerdict
+        ? destinyFlowerText('common.rationaleLabel.verdict')
+        : (labels[i] || labels[labels.length - 1] || ''),
+      text
+    };
+  });
+}
+
 export function matchAstrologyFlower(userData = {}, options = {}) {
   const profile = userData && userData.schema === 'universal-destiny-profile' ? userData : parseDestinyProfile(userData);
   const chartData = {
@@ -863,6 +910,10 @@ export function matchAstrologyFlower(userData = {}, options = {}) {
   return {
     profile,
     ...astroMatch,
+    rationale_points: narrativeRationalePoints('astro', astroMatch.narrative, [
+      destinyFlowerText('astro.rationaleLabel.sun'),
+      destinyFlowerText('astro.rationaleLabel.risingMoon')
+    ]),
     ultimate_destiny_flower: hasSajuAndAstro
       ? {
           enabled: true,
@@ -1089,6 +1140,13 @@ function parseJamidusuPrimaryStars(starData) {
   return list.length ? list.slice(0, 2) : ['자미'];
 }
 
+/** parseJamidusuPrimaryStars 와 같은 정규화. 별이 없으면 빈 배열(기본 '자미'로 채우지 않는다). */
+function parseJamidusuStarList(raw) {
+  if (!raw) return [];
+  const list = parseJamidusuPrimaryStars({ mainStar: raw });
+  return list.length === 1 && list[0] === '자미' && !String(raw).includes('자미') ? [] : list;
+}
+
 function findJamidusuRule(starName, palace = '') {
   const normalized = String(starName || '').trim().toLowerCase();
   const directRule = normalized
@@ -1305,16 +1363,19 @@ export function getJamidusuFlower(starData = {}) {
   };
 }
 
+function cleanJamidusuStarName(raw) {
+  return String(raw || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\(차성\)/g, ' ')
+    .replace(/화록|화권|화과|화기/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')[0];
+}
+
 function chooseJamidusuStrongStar(zw) {
   const scoreMap = Object.freeze({ miao: 7, wang: 6, li: 5, de: 4, ping: 3, han: 2, xian: 1 });
-  const cleanStarName = (raw) =>
-    String(raw || '')
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/\(차성\)/g, ' ')
-      .replace(/화록|화권|화과|화기/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .split(' ')[0];
+  const cleanStarName = cleanJamidusuStarName;
   const getEntryName = (entry) => cleanStarName(entry && (entry.name || entry.star || entry.starName || entry.title || entry.label));
 
   const palaces = Array.isArray(zw && zw.palacesByIndex) ? zw.palacesByIndex : [];
@@ -1358,68 +1419,147 @@ function chooseJamidusuStrongStar(zw) {
   return best.star ? { star: best.star, palace: best.palace || '', brightness: best.brightness || '' } : null;
 }
 
+/**
+ * 명궁 주성을 읽는다. 명궁이 비면(공궁) 대궁인 천이궁 주성을 빌린다 — 자미두수의 차성(借星) 관례.
+ * 밝기는 그 별의 행에서 찾고, 없으면 궁의 첫 행 밝기를 쓴다.
+ */
+function readJamidusuNatalStars(zw) {
+  const palaces = Array.isArray(zw && zw.palacesByIndex) ? zw.palacesByIndex.map((p) => String(p || '').trim()) : [];
+  const read = (palaceName) => {
+    const idx = palaces.indexOf(palaceName);
+    if (idx < 0) return null;
+    const mainRaw = (zw.stars && zw.stars[idx] && Array.isArray(zw.stars[idx].main)) ? zw.stars[idx].main : [];
+    const stars = mainRaw.map(cleanJamidusuStarName).filter(Boolean);
+    if (!stars.length) return null;
+    const rows = (zw.palaceStarData && zw.palaceStarData[idx] && Array.isArray(zw.palaceStarData[idx].stars)) ? zw.palaceStarData[idx].stars : [];
+    const own = rows.find((row) => cleanJamidusuStarName(row && (row.name || row.star)) === stars[0]) || rows[0] || null;
+    return { stars, brightness: own ? String(own.strength || own.brightness || '') : '' };
+  };
+  const ming = read('명궁');
+  if (ming) return { ...ming, borrowed: false };
+  const travel = read('천이궁');
+  return travel ? { ...travel, borrowed: true } : null;
+}
+
+/** 차트 없이 온 payload 의 궁 요약(ziwei.palaces)에서 같은 규칙으로 명궁 → 천이궁을 읽는다. */
+function readJamidusuNatalRows(rows) {
+  const list = Array.isArray(rows) ? rows : [];
+  const read = (palaceName) => {
+    const row = list.find((r) => r && String(r.palace || '').trim() === palaceName);
+    const stars = row && Array.isArray(row.stars) ? row.stars.map(cleanJamidusuStarName).filter(Boolean) : [];
+    return stars.length ? { stars, brightness: String(row.brightness || '') } : null;
+  };
+  const ming = read('명궁');
+  if (ming) return { ...ming, borrowed: false };
+  const travel = read('천이궁');
+  return travel ? { ...travel, borrowed: true } : null;
+}
+
 export function matchJamidusuFlower(userData = {}, options = {}) {
   const profile = userData && userData.schema === 'universal-destiny-profile' ? userData : parseDestinyProfile(userData);
 
-  // --- 자미두수 "오늘의 강한 별" 최신화 ---
-  // 🔴 차트는 **호출자가 넘긴다**(`userData.ziweiChart`). 2026-08-24 이전에는 이 자리에서
-  //    `window.calcZiweiPalaces` 를 직접 불렀는데, 엔진이 워커로 옮겨 오면서 그 전역이 없어
-  //    보정이 통째로 죽는다. 명궁 별만 쓰는 결과로 조용히 퇴화하므로 입력으로 바꿨다.
-  //    셸의 `_jfResolveSelection` 이 같은 `zw` 객체를 실어 보낸다.
+  // 🔴 꽃은 **명궁 주성**(타고난 성격)으로 고른다. 2026-10-10 이전에는 차트 전체에서
+  //    "오늘의 강한 별"을 뽑아 꽃을 정했는데, 그러면 근거 문장이 성향이 아니라 그날의 별을 말한다.
+  //    차트는 여전히 호출자가 넘긴다(`userData.ziweiChart`, 셸의 `_dfAttachZiweiChart`). 강한 별은
+  //    꽃을 바꾸지 않는 보조 정보·배지로만 남는다.
+  let natal = null;
+  let strongStar = null;
   try {
     const zw = userData && userData.ziweiChart && typeof userData.ziweiChart === 'object'
       ? userData.ziweiChart
       : null;
     if (zw && zw.stars && zw.palacesByIndex) {
-      const picked = chooseJamidusuStrongStar(zw);
-      let mainStar = picked && picked.star ? picked.star : '';
-      let palace = picked && picked.palace ? picked.palace : '';
-      let brightness = picked && picked.brightness ? picked.brightness : '';
-
-      if (!mainStar) {
-        const mingIdx = zw.palacesByIndex.indexOf('명궁');
-        if (mingIdx >= 0 && zw.stars && zw.stars[mingIdx]) {
-          const mainList = zw.stars[mingIdx].main || [];
-          mainStar = mainList[0] || '';
-          palace = '명궁';
-        }
-        if (mingIdx >= 0 && zw.palaceStarData && zw.palaceStarData[mingIdx] && zw.palaceStarData[mingIdx].stars && zw.palaceStarData[mingIdx].stars[0]) {
-          brightness = String(zw.palaceStarData[mingIdx].stars[0].strength || '');
-        }
-      }
-      if (profile.domains && profile.domains.ziwei) {
-        profile.domains.ziwei.main_star = mainStar;
-        profile.domains.ziwei.stars = mainStar ? [mainStar] : [];
-        profile.domains.ziwei.palace = palace || profile.domains.ziwei.palace || '명궁';
-        if (brightness) profile.domains.ziwei.brightness = brightness;
-      }
+      strongStar = chooseJamidusuStrongStar(zw);
+      natal = readJamidusuNatalStars(zw);
     }
   } catch (e) { /* 무시: 브라우저/SSR 환경 차이 등 */ }
 
+  const ziweiDomain = profile.domains.ziwei;
+  if (!natal) {
+    const sent = parseJamidusuStarList(ziweiDomain.main_star);
+    natal = sent.length
+      ? { stars: sent, brightness: ziweiDomain.brightness || '', borrowed: false }
+      : readJamidusuNatalRows(userData && userData.ziwei && userData.ziwei.palaces);
+  }
+  if (natal) {
+    ziweiDomain.main_star = natal.stars.join('·');
+    ziweiDomain.stars = natal.stars;
+    ziweiDomain.palace = '명궁';
+    if (natal.brightness) ziweiDomain.brightness = natal.brightness;
+  }
+
   const ziweiData = {
-    mainStar: profile.domains.ziwei.main_star,
-    palace: profile.domains.ziwei.palace,
-    brightness: profile.domains.ziwei.brightness,
-    stars: profile.domains.ziwei.stars
+    mainStar: ziweiDomain.main_star,
+    palace: ziweiDomain.palace,
+    brightness: ziweiDomain.brightness,
+    stars: ziweiDomain.stars
   };
 
   const jamiMatch = getJamidusuFlower(ziweiData);
+  const stars = jamiMatch.ziwei.primary_stars;
+  const starsLabel = stars.join('·');
+  const rule = findJamidusuRule(stars[0], '명궁');
+  const flowerName = jamiMatch.flower.name;
+  // 별을 하나도 못 읽어 기본 별(자미)로 떨어졌으면 "명궁에 ○○" 문장은 만들지 않는다.
+  const rationalePoints = [
+    natal ? {
+      key: 'ziwei_life_star',
+      label: destinyFlowerText('ziwei.rationaleLabel.lifeStar'),
+      text: natal.borrowed
+        ? destinyFlowerText('ziwei.rationale.borrowedStar', { starsObject: withJosa(starsLabel, '을', '를') })
+        : destinyFlowerText('ziwei.rationale.lifeStar', { starsJosa: withJosa(starsLabel, '이', '가') })
+    } : null,
+    {
+      key: 'ziwei_personality',
+      label: destinyFlowerText('ziwei.rationaleLabel.personality'),
+      text: destinyFlowerText('ziwei.rationale.personality', {
+        star: stars[0],
+        keyword: localizeJamidusuRuleField(rule, 'keyword'),
+        personality: localizeJamidusuRuleField(rule, 'personality')
+      })
+    },
+    {
+      key: 'ziwei_verdict',
+      label: destinyFlowerText('common.rationaleLabel.verdict'),
+      text: destinyFlowerText('ziwei.rationale.verdict', { flowerName })
+    }
+  ].filter(Boolean);
+  const narrative = rationalePoints.map((point) => point.text).join(' ');
+  const strongBadge = strongStar && strongStar.star
+    ? destinyFlowerText('ziwei.strongStarBadge', { stars: strongStar.star })
+    : jamiMatch.flower_data.day_master_badge;
 
   return {
     profile,
     ...jamiMatch,
+    jamidusu_verdict: destinyFlowerText('ziwei.natalVerdict', {
+      stars: starsLabel,
+      flowerName,
+      scientificName: jamiMatch.flower.scientific_name
+    }),
+    narrative,
+    rationale_points: rationalePoints,
+    strong_star: strongStar && strongStar.star
+      ? { star: strongStar.star, palace: strongStar.palace, brightness: strongStar.brightness }
+      : null,
+    flower_data: {
+      ...jamiMatch.flower_data,
+      day_master_badge: strongBadge,
+      scenario_title: destinyFlowerText('ziwei.natalScenarioTitle'),
+      scenario_reason: narrative
+    },
     hybrid_hint: {
       enabled: Boolean(profile.domains.saju && profile.domains.saju.day_master),
       description: profile.domains.saju && profile.domains.saju.day_master
         ? destinyFlowerText('ziwei.hybridHint', {
           dayMaster: profile.domains.saju.day_master,
-          stars: jamiMatch.ziwei.primary_stars.join('·')
+          stars: starsLabel
         })
         : ''
     },
     algorithm: {
-      version: '1.1.0-jamidusu-flower',
-      note: 'strong-star-palace-brightness-ziwei-flower-matcher',
+      version: '1.2.0-jamidusu-flower',
+      note: 'life-palace-main-star-ziwei-flower-matcher',
       source: options.source || 'jamidusu'
     }
   };
@@ -1870,6 +2010,9 @@ export function matchSukuyoFlower(userData = {}, options = {}) {
   return {
     profile,
     ...match,
+    rationale_points: narrativeRationalePoints('sukuyo', match.narrative, [
+      destinyFlowerText('sukuyo.rationaleLabel.mansion')
+    ]),
     algorithm: {
       version: '1.0.0-sukuyo-flower',
       note: '27숙 그룹/수호동물 + 달 위상(이클립스/풀글로우) 기반 숙요 운명꽃 매칭 엔진',
@@ -2042,6 +2185,30 @@ function resolveDayMasterContext(userData, dominantElement, yinYangBalance) {
   };
 }
 
+/**
+ * 신강·신약. 생산자(js/saju-engine.js 스냅샷)는 판정이 없으면 power_label 을 비우고
+ * is_strong 은 false 로 채운다 — 그래서 라벨을 먼저 보고, is_strong 은 true 일 때만 믿는다.
+ */
+function resolveSajuStrength(userData) {
+  const saju = userData.saju || {};
+  const analysis = userData.analysis || {};
+  const label = String(saju.power_label || analysis.power_label || '').trim();
+  if (label === '신강') return 'strong';
+  if (label === '신약') return 'weak';
+  if (saju.is_strong === true || analysis.isStrong === true) return 'strong';
+  return '';
+}
+
+/** 조후. G_JOHU.type 은 hot/warm/neutral/cool/cold — runtime _dfJohuLabel 과 같게 둘로 접는다. */
+function resolveSajuJohu(userData) {
+  const saju = userData.saju || {};
+  const analysis = userData.analysis || {};
+  const type = String(saju.johu_type || analysis.johuType || '').trim().toLowerCase();
+  if (type === 'cold' || type === 'cool') return 'cold';
+  if (type === 'hot' || type === 'warm') return 'hot';
+  return '';
+}
+
 export function parseDestinyProfile(userData = {}) {
   const birth = getBirthFromData(userData);
   const weights = readElementWeightMap(userData);
@@ -2115,6 +2282,8 @@ export function parseDestinyProfile(userData = {}) {
           (userData.saju && (userData.saju.kishin_elements || userData.saju.kishinElements)) ||
           (userData.analysis && (userData.analysis.kishin_elements || userData.analysis.kishinElements))
         ),
+        strength: resolveSajuStrength(userData),
+        johu: resolveSajuJohu(userData),
         notes: normalizeSignalList((userData.saju && userData.saju.notes) || userData.sajuNotes)
       },
       ziwei: {
@@ -3783,6 +3952,18 @@ function scoreAllElementLevels(corePercent, flowerElements) {
   return Number(score.toFixed(3));
 }
 
+const ELEMENT_GENERATES = Object.freeze({ Wood: 'Fire', Fire: 'Earth', Earth: 'Metal', Metal: 'Water', Water: 'Wood' });
+const ELEMENT_CONTROLS = Object.freeze({ Wood: 'Earth', Fire: 'Metal', Earth: 'Water', Metal: 'Wood', Water: 'Fire' });
+
+/** 신강이면 기운을 빼 주는 오행(식상·재성), 신약이면 받쳐 주는 오행(인성·비겁). */
+function sajuStrengthElements(dayMasterElement, strength) {
+  const dm = ELEMENT_LABELS[normalizeElement(dayMasterElement)];
+  if (!dm) return [];
+  if (strength === 'strong') return [ELEMENT_GENERATES[dm], ELEMENT_CONTROLS[dm]];
+  if (strength === 'weak') return [Object.keys(ELEMENT_GENERATES).find((key) => ELEMENT_GENERATES[key] === dm), dm];
+  return [];
+}
+
 function scoreFlower(profile, flower, dayMasterScenario) {
   const core = profile.core;
   const domains = profile.domains;
@@ -3820,6 +4001,19 @@ function scoreFlower(profile, flower, dayMasterScenario) {
       score -= 6;
       matchedSignals.push('kishin_penalty');
     }
+  }
+  const strengthElements = sajuStrengthElements(saju.day_master_element, saju.strength);
+  if (strengthElements.some((el) => elements.includes(el))) {
+    score += 8;
+    matchedSignals.push(saju.strength === 'strong' ? 'strength_release' : 'strength_support');
+  }
+  if (saju.johu === 'cold' && (elements.includes('Fire') || (Array.isArray(flower.seasons) && flower.seasons.includes('Summer')))) {
+    score += 8;
+    matchedSignals.push('johu_warm');
+  }
+  if (saju.johu === 'hot' && (elements.includes('Water') || (Array.isArray(flower.water_levels) && flower.water_levels.includes('high')))) {
+    score += 8;
+    matchedSignals.push('johu_cool');
   }
   if (Array.isArray(flower.seasons) && flower.seasons.includes(core.season)) {
     score += 16;
@@ -3901,6 +4095,73 @@ function scoreFlower(profile, flower, dayMasterScenario) {
   };
 }
 
+/**
+ * 점수에 실제로 더해진 사주 신호만 문장으로 만든다. 순서: 일간 기질 → 신강/신약 → 용신 → 조후.
+ * 신호가 안 든 문장을 만들면 근거가 꾸며낸 말이 되므로, scoreFlower 의 matchedSignals 를 그대로 따른다.
+ */
+function buildSajuSignalPoints(profile, flower, matchedSignals, dayMasterScenario) {
+  const signals = Array.isArray(matchedSignals) ? matchedSignals : [];
+  const saju = (profile.domains && profile.domains.saju) || {};
+  const elements = normalizeFlowerElementList(flower.elements);
+  const elementText = (list) => list
+    .filter((el, i, arr) => el && elements.includes(el) && arr.indexOf(el) === i)
+    .map((el) => {
+      const key = normalizeElement(el);
+      return destinyFlowerText('saju.elements.' + key, null, ELEMENT_KOREAN_LABELS[key]);
+    })
+    .join('·');
+  const point = (key, labelKey, text) => ({ key, label: destinyFlowerText(labelKey), text });
+  const points = [];
+
+  const dayMasterBadge = (dayMasterScenario && dayMasterScenario.dayMasterBadge) || saju.day_master || '';
+  if (signals.includes('day_master_environment_primary') || signals.includes('day_master_environment_secondary')) {
+    if (dayMasterScenario && dayMasterScenario.reason) {
+      points.push(point('day_master', 'saju.rationaleLabel.dayMaster', dayMasterScenario.reason));
+    }
+  } else if (signals.includes('day_master_element') && dayMasterBadge) {
+    points.push(point('day_master', 'saju.rationaleLabel.dayMaster', destinyFlowerText('saju.rationale.dayMasterSame', {
+      dayMasterBadge,
+      element: elementText([saju.day_master_element])
+    })));
+  }
+  if (signals.includes('strength_release') || signals.includes('strength_support')) {
+    const release = signals.includes('strength_release');
+    points.push(point(
+      release ? 'strength_release' : 'strength_support',
+      release ? 'saju.rationaleLabel.strengthRelease' : 'saju.rationaleLabel.strengthSupport',
+      destinyFlowerText(release ? 'saju.rationale.strengthRelease' : 'saju.rationale.strengthSupport', {
+        elements: elementText(sajuStrengthElements(saju.day_master_element, saju.strength))
+      })
+    ));
+  }
+  if (signals.includes('yongshin_element')) {
+    points.push(point('yongshin', 'saju.rationaleLabel.yongshin', destinyFlowerText('saju.rationale.yongshin', {
+      elements: elementText(saju.yongshin_elements || [])
+    })));
+  }
+  if (signals.includes('johu_warm')) {
+    points.push(point('johu_warm', 'saju.rationaleLabel.johuWarm', destinyFlowerText('saju.rationale.johuWarm')));
+  }
+  if (signals.includes('johu_cool')) {
+    points.push(point('johu_cool', 'saju.rationaleLabel.johuCool', destinyFlowerText('saju.rationale.johuCool')));
+  }
+  return points;
+}
+
+/** 최대 4개: 신호 문장 3개까지 + "그래서 이 꽃". */
+function buildRationalePoints(profile, flower, matchedSignals, dayMasterScenario) {
+  const points = buildSajuSignalPoints(profile, flower, matchedSignals, dayMasterScenario).slice(0, 3);
+  points.push({
+    key: 'verdict',
+    label: destinyFlowerText('common.rationaleLabel.verdict'),
+    text: destinyFlowerText('saju.rationale.verdict', {
+      flowerName: flower.name,
+      scientificName: flower.scientific_name
+    }, '그래서 지금 당신에게 건네는 꽃은 ' + flower.name + '(' + flower.scientific_name + ')입니다.')
+  });
+  return points;
+}
+
 function buildRationale(profile, flower, matchedSignals, dayMasterScenario) {
   const seasonKorean = {
     Spring: destinyFlowerText('saju.seasons.Spring', null, '봄'),
@@ -3953,6 +4214,9 @@ function buildRationale(profile, flower, matchedSignals, dayMasterScenario) {
   if (dayMasterScenario && dayMasterScenario.reason) {
     lines.push(destinyFlowerText('saju.rationale.scenario', { reason: dayMasterScenario.reason }, dayMasterScenario.reason));
   }
+  buildSajuSignalPoints(profile, flower, matchedSignals, dayMasterScenario)
+    .filter((point) => point.key !== 'day_master')
+    .forEach((point) => lines.push(point.text));
   lines.push(sajuVerdict);
   if (flower.symbolism) {
     lines.push(destinyFlowerText('saju.rationale.symbolism', { symbolism: flower.symbolism }, flower.symbolism + '을 품은 이 꽃은, 지금 당신이 지나는 시기의 결과 놀랍도록 닮아 있어요.'));
@@ -4114,6 +4378,7 @@ export function matchDestinyFlower(userData = {}, options = {}) {
     flower_data: flowerData,
     saju_verdict: sajuVerdict,
     narrative: buildRationale(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
+    rationale_points: buildRationalePoints(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
     fallback_logic: {
       used: Boolean(profile.domains && profile.domains.saju && profile.domains.saju.day_master_fallback_used),
       source: profile.domains && profile.domains.saju && profile.domains.saju.day_master_source,

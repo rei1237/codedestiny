@@ -4743,8 +4743,8 @@ function _dfGetProfilePayload(options) {
 }
 
 /**
- * 자미두수 궁별 주성과 원본 차트를 payload 에 싣는다. 서버 엔진이 이 차트로 명궁 주성과
- * "오늘의 강한 별"을 다시 본다. 통합 payload(_dfGetServerMatchPayload)가 부른다.
+ * 자미두수 궁별 주성과 원본 차트를 payload 에 싣는다. 서버 엔진은 이 차트의 명궁 주성으로 꽃을 고르고,
+ * "오늘의 강한 별"은 배지(strong_star)로만 다시 뽑는다. 통합 payload(_dfGetServerMatchPayload)가 부른다.
  */
 function _dfAttachZiweiChart(payload, birthCtx) {
   payload = payload && typeof payload === 'object' ? payload : {};
@@ -4816,8 +4816,8 @@ function _dfAttachZiweiChart(payload, birthCtx) {
             palaces: palaceRows,
             all_main_stars: allMainStars
           };
-          // 🔴 원본 차트를 그대로 실어 보낸다 — 서버 엔진이 chooseJamidusuStrongStar 로
-          //    "오늘의 강한 별"을 다시 뽑는다. 이걸 빼면 명궁 별만 쓰는 결과로 조용히 퇴화한다.
+          // 🔴 원본 차트를 그대로 실어 보낸다 — 서버 엔진이 명궁(공궁이면 천이궁) 주성을 읽고,
+          //    chooseJamidusuStrongStar 로 "오늘의 강한 별" 배지(strong_star)를 뽑는다. 이걸 빼면 둘 다 퇴화한다.
           payload.ziweiChart = zw;
         }
       } catch (eFix) {
@@ -5351,11 +5351,13 @@ function _jfApplyCardVisual(card, selection) {
   symbolismEl.textContent = matched.jamidusu_verdict || matched.narrative || '오늘의 강한 별 기반 운명꽃을 판독 중입니다.';
   keywordsEl.textContent = 'ziwei flower keywords · ' + selection.keywords.join(' • ');
   if (starBadgeEl) {
-    var starLine = Array.isArray(ziwei.primary_stars) ? ziwei.primary_stars.join('·') : '주성 미확인';
+    var starLine = (matched.strong_star && matched.strong_star.star)
+      || (Array.isArray(ziwei.primary_stars) ? ziwei.primary_stars.join('·') : '주성 미확인');
     starBadgeEl.textContent = '오늘의 강한 별 ' + starLine;
   }
-  if (brightBadgeEl) brightBadgeEl.textContent = '별 밝기 ' + (ziwei.brightness || intensity.brightness_label || '평(平)');
-  if (palaceBadgeEl) palaceBadgeEl.textContent = ziwei.palace || '미확인';
+  var strongStar = matched.strong_star || {};
+  if (brightBadgeEl) brightBadgeEl.textContent = '별 밝기 ' + (strongStar.brightness || ziwei.brightness || intensity.brightness_label || '평(平)');
+  if (palaceBadgeEl) palaceBadgeEl.textContent = strongStar.palace || ziwei.palace || '미확인';
   if (dataLineEl) {
     dataLineEl.textContent = (flowerData.focus_signal || '주성 시그널 대기') + ' · ' + (flowerData.ritual_tip || '별의 기운을 정렬 중입니다.');
   }
@@ -6282,11 +6284,13 @@ function _dfGetSajuBadges(selection) {
   if ((selection && selection.source === 'jamidusu') || matched.source === 'jamidusu') {
     var ziwei = matched.ziwei || {};
     var stars = Array.isArray(ziwei.primary_stars) ? ziwei.primary_stars.join('·') : '';
+    // 꽃은 명궁 주성(primary_stars)으로 고르지만, "오늘의 강한 별" 배지는 서버의 strong_star 다.
+    var strong = matched.strong_star || {};
     return {
       mode: 'jamidusu',
-      star: stars || '미확인',
-      brightness: ziwei.brightness || (matched.visual_intensity && matched.visual_intensity.brightness_label) || '미확인',
-      palace: ziwei.palace || '미확인'
+      star: strong.star || stars || '미확인',
+      brightness: strong.brightness || ziwei.brightness || (matched.visual_intensity && matched.visual_intensity.brightness_label) || '미확인',
+      palace: strong.palace || ziwei.palace || '미확인'
     };
   }
   if ((selection && selection.source === 'astrology') || matched.source === 'astrology') {
