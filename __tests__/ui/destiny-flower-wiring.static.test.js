@@ -164,3 +164,21 @@ test("마크업이 없는 홈 카드 CSS 를 다시 들이지 않는다", () => 
     `${CSS_REL}: 매치되는 마크업이 없는 규칙이 다시 들어왔다: ${revived.join(", ")}`,
   );
 });
+
+test("네 리졸버가 서버 매칭에 같은 통합 payload 를 보낸다", () => {
+  // 리졸버마다 sourceHint payload 를 보내면 지문이 매번 달라 캐시가 덮어써지고 점성술 꽃이 안 핀다.
+  for (const fn of ["_dfResolveSelection", "_afResolveSelection", "_jfResolveSelection", "_sfResolveSelection"]) {
+    const at = runtime.indexOf(`function ${fn}()`);
+    assert.ok(at > 0, `${RUNTIME_REL}: ${fn} 를 찾지 못했다`);
+    const body = runtime.slice(at, runtime.indexOf("\n}\n", at));
+    assert.match(body, /_dfGetServerMatchPayload\(\)/, `${fn} 가 통합 payload 를 쓰지 않는다`);
+    assert.doesNotMatch(body, /_dfRequestServerMatch\(payload/, `${fn} 가 자기 payload 로 서버에 묻는다`);
+  }
+  assert.match(runtime, /function _dfGetServerMatchPayload\(\)[\s\S]{0,600}_dfGetProfilePayload\(\{\}\)/);
+});
+
+test("점성술 브리지는 실재하는 Swiss 차트 함수를 부른다", () => {
+  assert.ok(!runtime.includes("calcAstroApiChartOrThrow"), "존재하지 않는 함수를 부르면 점성술 신호가 영영 비어 있다");
+  assert.match(runtime, /window\.calcAstroSwissChartOrThrow\(/);
+  assert.match(sajuEngine, /window\.calcAstroSwissChartOrThrow\s*=\s*calcAstroSwissChartOrThrow/);
+});

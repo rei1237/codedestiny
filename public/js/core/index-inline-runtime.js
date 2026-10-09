@@ -4320,42 +4320,48 @@ function _dfExtractAstroLiveData(birthCtx) {
 
   var chart = null;
   var localHour = Number(birthCtx.hour) + Number(birthCtx.minute) / 60;
+  var finiteOr = function(v, fallback) { return Number.isFinite(Number(v)) ? Number(v) : fallback; };
+  var lat = finiteOr(birthCtx.lat, 37.5665);
+  var lon = finiteOr(birthCtx.lon, 126.978);
+  var tz = finiteOr(birthCtx.tz, 9);
+  var houseSystem = window.ASTRO_HOUSE_SYSTEM || 'P';
 
-  if (typeof window.calcAstroApiChartOrThrow === 'function') {
+  if (typeof window.calcAstroSwissChartOrThrow === 'function') {
     try {
-      chart = window.calcAstroApiChartOrThrow(
+      chart = window.calcAstroSwissChartOrThrow(
         Number(birthCtx.year),
         Number(birthCtx.month),
         Number(birthCtx.day),
         localHour,
-        Number(birthCtx.lat),
-        Number(birthCtx.lon),
-        Number(birthCtx.tz),
-        window.ASTRO_HOUSE_SYSTEM || 'P'
+        lat,
+        lon,
+        tz,
+        houseSystem
       );
     } catch (e) {
-      // Strict SwissEph 모드 미준비 시에는 조용히 레거시 차트로 폴백 시도.
-      if (!(window.AstroEngine && typeof window.AstroEngine.calcAll === 'function')) {
-        console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e);
-      }
+      // Swiss WASM 이 아직 안 올라왔다 — 아래에서 기본 엔진으로 계산한다(js/saju-engine.js 점성술 프로필과 같은 폴백).
     }
   }
 
   if (!chart && window.AstroEngine && typeof window.AstroEngine.calcAll === 'function') {
+    var strictBefore = window.ASTRO_STRICT_PRECISION;
     try {
+      window.ASTRO_STRICT_PRECISION = false;
       chart = window.AstroEngine.calcAll(
         Number(birthCtx.year),
         Number(birthCtx.month),
         Number(birthCtx.day),
         localHour,
-        Number(birthCtx.lat),
-        Number(birthCtx.lon),
-        Number(birthCtx.tz),
-        { houseSystem: window.ASTRO_HOUSE_SYSTEM || 'P' }
+        lat,
+        lon,
+        tz,
+        { houseSystem: houseSystem }
       );
     } catch (e2) {
       console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e2);
       return null;
+    } finally {
+      window.ASTRO_STRICT_PRECISION = strictBefore;
     }
   }
 
@@ -4469,6 +4475,14 @@ function _dfEnsureSukuyoAstronomy(birthCtx, key, lunarObj) {
     cache.failed = true;
     cache.pending = false;
     console.warn('[DestinyFlower] 숙요 천문 계산 실패:', error);
+    // 서버 매칭이 이 계산을 기다리고 있다 — 숙요 없이라도 다시 그려 요청을 보낸다.
+    if (!_dfStudioState.selection && !_dfStudioState.flowerData) return;
+    try {
+      if (_dfStudioState.flowerData) _dfStudioState.flowerData.sources = {};
+      _dfRefreshStudioForSource(_dfStudioState.activeSource || 'saju', true);
+    } catch (refreshError) {
+      console.warn('[DestinyFlower] 숙요 실패 후 갱신 실패:', refreshError);
+    }
   });
 }
 
@@ -4729,6 +4743,135 @@ function _dfGetProfilePayload(options) {
 }
 
 /**
+ * 자미두수 궁별 주성과 원본 차트를 payload 에 싣는다. 서버 엔진이 이 차트로 명궁 주성과
+ * "오늘의 강한 별"을 다시 본다. 통합 payload(_dfGetServerMatchPayload)가 부른다.
+ */
+function _dfAttachZiweiChart(payload, birthCtx) {
+  payload = payload && typeof payload === 'object' ? payload : {};
+  try {
+    // 자미두수 데이터는 명궁뿐 아니라 각 궁의 주성 정보를 함께 유지한다.
+    // (엔진/렌더가 궁별 별 정보를 참조할 때 누락되지 않도록 함)
+    if (typeof window !== 'undefined' && typeof window.calcZiweiPalaces === 'function') {
+      try {
+        var zw = window.calcZiweiPalaces(
+          Number(birthCtx.year),
+          Number(birthCtx.month),
+          Number(birthCtx.day),
+          Number(birthCtx.hour),
+          Number(birthCtx.minute)
+        );
+        if (zw && zw.palacesByIndex && zw.stars) {
+          var cleanStarName = function(raw) {
+            return String(raw || '')
+              .replace(/<[^>]*>/g, ' ')
+              .replace(/\(차성\)/g, ' ')
+              .replace(/화록|화권|화과|화기/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim();
+          };
+
+          var palaceRows = [];
+          var allStarSet = {};
+          for (var pi = 0; pi < zw.palacesByIndex.length; pi++) {
+            var pName = String(zw.palacesByIndex[pi] || '').trim();
+            if (!pName) continue;
+            var rawMain = (zw.stars[pi] && Array.isArray(zw.stars[pi].main)) ? zw.stars[pi].main : [];
+            var mainStars = rawMain.map(cleanStarName).filter(Boolean);
+            for (var si = 0; si < mainStars.length; si++) {
+              allStarSet[mainStars[si]] = true;
+            }
+            var palaceBrightness = '';
+            if (zw.palaceStarData && zw.palaceStarData[pi] && zw.palaceStarData[pi].stars && zw.palaceStarData[pi].stars[0]) {
+              palaceBrightness = String(zw.palaceStarData[pi].stars[0].strength || '');
+            }
+            palaceRows.push({ palace: pName, stars: mainStars, brightness: palaceBrightness });
+          }
+
+          var mingIdx = zw.palacesByIndex.indexOf('명궁');
+          var mingStars = [];
+          var brightness = '';
+          if (mingIdx >= 0 && zw.stars[mingIdx] && zw.stars[mingIdx].main && zw.stars[mingIdx].main.length) {
+            mingStars = zw.stars[mingIdx].main.map(cleanStarName).filter(Boolean);
+          }
+          if (mingIdx >= 0 && zw.palaceStarData && zw.palaceStarData[mingIdx] && zw.palaceStarData[mingIdx].stars && zw.palaceStarData[mingIdx].stars[0]) {
+            brightness = String(zw.palaceStarData[mingIdx].stars[0].strength || '');
+          }
+          var mainStar = mingStars.join(' · ');
+          var allMainStars = Object.keys(allStarSet);
+          payload = payload && typeof payload === 'object' ? payload : {};
+          payload.ziwei = {
+            mainStar: mainStar,
+            palace: '명궁',
+            brightness: brightness,
+            stars: mingStars,
+            palaces: palaceRows,
+            allMainStars: allMainStars
+          };
+          payload.domains = payload.domains && typeof payload.domains === 'object' ? payload.domains : {};
+          payload.domains.ziwei = {
+            main_star: mainStar,
+            palace: '명궁',
+            brightness: brightness,
+            stars: mingStars,
+            palaces: palaceRows,
+            all_main_stars: allMainStars
+          };
+          // 🔴 원본 차트를 그대로 실어 보낸다 — 서버 엔진이 chooseJamidusuStrongStar 로
+          //    "오늘의 강한 별"을 다시 뽑는다. 이걸 빼면 명궁 별만 쓰는 결과로 조용히 퇴화한다.
+          payload.ziweiChart = zw;
+        }
+      } catch (eFix) {
+        // ignore
+      }
+    }
+  } catch (e) {
+    console.warn('[JamidusuFlower] 자미두수 차트 준비 실패:', e);
+  }
+  return payload;
+}
+
+/**
+ * 서버 매칭에 보내는 단 하나의 payload. 네 도메인을 전부 브리지하고 자미두수 원본 차트까지 싣는다.
+ * 🔴 예전에는 리졸버마다 sourceHint 로 자기 도메인만 브리지한 payload 를 보내서, 지문이 매번 달라
+ *    서버 캐시가 덮어써졌고 마지막 응답에는 별자리가 빠져 점성술 꽃이 피지 않았다.
+ * 같은 프로필·같은 숙요 계산 상태면 앞서 만든 payload 를 그대로 돌려준다(점성술 차트 재계산 방지).
+ */
+var _dfServerMatchPayloadMemo = { key: '', payload: null };
+
+function _dfServerMatchPayloadKey() {
+  try {
+    var mgr = window.DestinyProfileManager;
+    var profile = (mgr && mgr.storage && typeof mgr.storage.current === 'function') ? (mgr.storage.current() || {}) : {};
+    var snap = window.__destinyFlowerSajuSnapshot;
+    var sk = _dfSukuyoAstronomyCache;
+    return JSON.stringify([
+      profile.birth || (profile.identity && profile.identity.birth) || null,
+      profile.name || '',
+      profile.gender || '',
+      (snap && snap.birth) || null,
+      (snap && (snap.dayStem || (snap.saju && snap.saju.dayStem))) || '',
+      sk.key,
+      sk.value ? 'ready' : (sk.failed ? 'failed' : (sk.pending ? 'pending' : 'idle'))
+    ]);
+  } catch (e) {
+    return '';
+  }
+}
+
+function _dfGetServerMatchPayload() {
+  var key = _dfServerMatchPayloadKey();
+  if (key && _dfServerMatchPayloadMemo.key === key && _dfServerMatchPayloadMemo.payload) {
+    return _dfServerMatchPayloadMemo.payload;
+  }
+  var payload = _dfGetProfilePayload({}) || {};
+  var birthCtx = _dfResolveBirthContext(payload);
+  if (_dfHasBirthCore(birthCtx)) payload = _dfAttachZiweiChart(payload, birthCtx);
+  // 첫 계산이 숙요 천문 계산을 걸면 상태가 바뀌므로 키를 다시 읽어 담는다.
+  _dfServerMatchPayloadMemo = { key: _dfServerMatchPayloadKey(), payload: payload };
+  return payload;
+}
+
+/**
  * 서버 매칭 결과 캐시.
  *
  * 🔴 매칭은 브라우저에서 하지 않는다 (2026-08-24). 엔진이 `worker/lib/destiny-flower-engine.js`
@@ -4817,6 +4960,15 @@ function _dfRequestServerMatch(payload, onSettled) {
   return promise;
 }
 
+/**
+ * 네 리졸버가 공통으로 쓰는 서버 요청. 숙요 천문 계산(Swiss WASM)이 진행 중이면 기다린다 —
+ * 끝나면(성공·실패 모두) 스튜디오를 다시 그리며 이리로 돌아오므로 왕복이 1회로 끝난다.
+ */
+function _dfRequestUnifiedServerMatch() {
+  if (_dfSukuyoAstronomyCache.pending) return null;
+  return _dfRequestServerMatch(_dfGetServerMatchPayload(), _dfOnServerMatchSettled);
+}
+
 /** 캐시에 들어온 그 체계의 매칭 결과. 아직 안 왔으면 null. */
 function _dfGetServerMatched(source) {
   if (!_dfServerMatch.sources) return null;
@@ -4846,7 +4998,7 @@ function _dfOnServerMatchSettled(status) {
 }
 
 function _dfResolveSelection() {
-  var payload = _dfGetProfilePayload({ sourceHint: 'saju' });
+  var payload = _dfGetServerMatchPayload();
   var birthCtx = _dfResolveBirthContext(payload || {});
   var allowUserForcedFallback = !!(_dfStudioState.userRequestedLoad && _dfStudioState.userRequestedLoad.saju);
 
@@ -4873,7 +5025,7 @@ function _dfResolveSelection() {
   var matched = _dfGetServerMatched('saju');
   var theme = _dfServerMatch.theme;
   if (!matched) {
-    _dfRequestServerMatch(payload, _dfOnServerMatchSettled);
+    _dfRequestUnifiedServerMatch();
     return null;
   }
 
@@ -4918,13 +5070,16 @@ function _dfResolveSelection() {
   };
 }
 
+/** 점성술 빈 차트 재요청 가드 — 같은 지문으로는 한 번만 다시 묻는다(무한루프 방지). */
+var _dfAstroRetriedFingerprint = '';
+
 function _afResolveSelection() {
-  var payload = _dfGetProfilePayload({ sourceHint: 'astrology' });
+  var payload = _dfGetServerMatchPayload();
   if (!_dfHasReadySourceData('astrology', payload)) return null;
   // 🔴 매칭은 서버가 한다 (POST /api/destiny-flower/match). 캐시 미스면 요청만 걸고 빠진다.
   var matched = _dfGetServerMatched('astrology');
   if (!matched) {
-    _dfRequestServerMatch(payload, _dfOnServerMatchSettled);
+    _dfRequestUnifiedServerMatch();
     return null;
   }
 
@@ -4934,7 +5089,18 @@ function _afResolveSelection() {
     String(chart.moon_sign || chart.moonSign || '').trim() ||
     String(chart.rising_sign || chart.risingSign || '').trim()
   );
-  if (!hasChartSignals) return null;
+  if (!hasChartSignals) {
+    // 로컬 payload 에는 별자리가 있는데 서버 결과엔 없다 — 캐시를 비우고 그 지문으로 한 번만 다시 묻는다.
+    var staleFingerprint = _dfServerMatch.fingerprint;
+    if (staleFingerprint && _dfAstroRetriedFingerprint !== staleFingerprint) {
+      _dfAstroRetriedFingerprint = staleFingerprint;
+      _dfServerMatch.fingerprint = '';
+      _dfServerMatch.sources = null;
+      _dfServerMatch.theme = null;
+      _dfRequestUnifiedServerMatch();
+    }
+    return null;
+  }
 
   var flower = matched && matched.flower;
   if (!flower) {
@@ -5072,97 +5238,17 @@ function _afApplyCardVisual(card, selection) {
 }
 
 function _jfResolveSelection() {
-  var payload = _dfGetProfilePayload({ sourceHint: 'jamidusu' });
+  var payload = _dfGetServerMatchPayload();
   var birthCtx = _dfResolveBirthContext(payload || {});
   if (!_dfHasBirthCore(birthCtx)) return null;
 
   var matched = null;
 
-  try {
-    // 자미두수 데이터는 명궁뿐 아니라 각 궁의 주성 정보를 함께 유지한다.
-    // (엔진/렌더가 궁별 별 정보를 참조할 때 누락되지 않도록 함)
-    if (typeof window !== 'undefined' && typeof window.calcZiweiPalaces === 'function') {
-      try {
-        var zw = window.calcZiweiPalaces(
-          Number(birthCtx.year),
-          Number(birthCtx.month),
-          Number(birthCtx.day),
-          Number(birthCtx.hour),
-          Number(birthCtx.minute)
-        );
-        if (zw && zw.palacesByIndex && zw.stars) {
-          var cleanStarName = function(raw) {
-            return String(raw || '')
-              .replace(/<[^>]*>/g, ' ')
-              .replace(/\(차성\)/g, ' ')
-              .replace(/화록|화권|화과|화기/g, ' ')
-              .replace(/\s+/g, ' ')
-              .trim();
-          };
-
-          var palaceRows = [];
-          var allStarSet = {};
-          for (var pi = 0; pi < zw.palacesByIndex.length; pi++) {
-            var pName = String(zw.palacesByIndex[pi] || '').trim();
-            if (!pName) continue;
-            var rawMain = (zw.stars[pi] && Array.isArray(zw.stars[pi].main)) ? zw.stars[pi].main : [];
-            var mainStars = rawMain.map(cleanStarName).filter(Boolean);
-            for (var si = 0; si < mainStars.length; si++) {
-              allStarSet[mainStars[si]] = true;
-            }
-            var palaceBrightness = '';
-            if (zw.palaceStarData && zw.palaceStarData[pi] && zw.palaceStarData[pi].stars && zw.palaceStarData[pi].stars[0]) {
-              palaceBrightness = String(zw.palaceStarData[pi].stars[0].strength || '');
-            }
-            palaceRows.push({ palace: pName, stars: mainStars, brightness: palaceBrightness });
-          }
-
-          var mingIdx = zw.palacesByIndex.indexOf('명궁');
-          var mingStars = [];
-          var brightness = '';
-          if (mingIdx >= 0 && zw.stars[mingIdx] && zw.stars[mingIdx].main && zw.stars[mingIdx].main.length) {
-            mingStars = zw.stars[mingIdx].main.map(cleanStarName).filter(Boolean);
-          }
-          if (mingIdx >= 0 && zw.palaceStarData && zw.palaceStarData[mingIdx] && zw.palaceStarData[mingIdx].stars && zw.palaceStarData[mingIdx].stars[0]) {
-            brightness = String(zw.palaceStarData[mingIdx].stars[0].strength || '');
-          }
-          var mainStar = mingStars.join(' · ');
-          var allMainStars = Object.keys(allStarSet);
-          payload = payload && typeof payload === 'object' ? payload : {};
-          payload.ziwei = {
-            mainStar: mainStar,
-            palace: '명궁',
-            brightness: brightness,
-            stars: mingStars,
-            palaces: palaceRows,
-            allMainStars: allMainStars
-          };
-          payload.domains = payload.domains && typeof payload.domains === 'object' ? payload.domains : {};
-          payload.domains.ziwei = {
-            main_star: mainStar,
-            palace: '명궁',
-            brightness: brightness,
-            stars: mingStars,
-            palaces: palaceRows,
-            all_main_stars: allMainStars
-          };
-          // 🔴 원본 차트를 그대로 실어 보낸다 — 서버 엔진이 chooseJamidusuStrongStar 로
-          //    "오늘의 강한 별"을 다시 뽑는다. 이걸 빼면 명궁 별만 쓰는 결과로 조용히 퇴화한다.
-          payload.ziweiChart = zw;
-        }
-      } catch (eFix) {
-        // ignore
-      }
-    }
-  } catch (e) {
-    console.warn('[JamidusuFlower] 자미두수 차트 준비 실패:', e);
-  }
-
   // 🔴 매칭은 서버가 한다 (POST /api/destiny-flower/match).
   matched = _dfGetServerMatched('jamidusu');
   if (!_dfHasReadySourceData('jamidusu', payload)) return null;
   if (!matched) {
-    _dfRequestServerMatch(payload, _dfOnServerMatchSettled);
+    _dfRequestUnifiedServerMatch();
     return null;
   }
 
@@ -5308,7 +5394,7 @@ function _jfApplyCardVisual(card, selection) {
 }
 
 function _sfResolveSelection() {
-  var payload = _dfGetProfilePayload({ sourceHint: 'sukuyo' });
+  var payload = _dfGetServerMatchPayload();
   var birthCtx = _dfResolveBirthContext(payload || {});
   if (!_dfHasBirthCore(birthCtx)) return null;
 
@@ -5316,7 +5402,7 @@ function _sfResolveSelection() {
   var matched = _dfGetServerMatched('sukuyo');
   if (!_dfHasReadySourceData('sukuyo', payload)) return null;
   if (!matched) {
-    _dfRequestServerMatch(payload, _dfOnServerMatchSettled);
+    _dfRequestUnifiedServerMatch();
     return null;
   }
 
@@ -6663,6 +6749,10 @@ function _dfGetNoDomainDataMessage(source) {
   return '아직 연동된 ' + label + ' 데이터가 없어요. 아래 버튼을 누르면 지금 당신만의 운명의 꽃이 피어납니다.';
 }
 
+function _dfGetAstroCalculatingMessage() {
+  return '별자리 차트를 읽었어요. 지금 점성술 꽃을 고르는 중입니다.';
+}
+
 function _dfGetNotLinkedMessage(source) {
   var normalized = _dfNormalizeSource(source);
   var label = _dfGetSourceLabel(normalized);
@@ -6682,6 +6772,17 @@ function _dfGetDataMissingUiState(source) {
   if (!_dfHasBirthInfo(payload)) {
     return {
       message: _dfGetNoBirthMessage(normalized),
+      showLoadButton: false,
+      source: normalized
+    };
+  }
+
+  // 🔴 점성술 신호는 프로필에 저장돼 있지 않고 생년월일로 브리지해서 얻는다. skipLiveBridge payload 로
+  //    판정하면 항상 "데이터 없음"이 된다 — 브리지된 payload 에 별자리가 있으면 서버 판정을 기다리는 중이다.
+  if (normalized === 'astrology' && _dfServerMatch.status !== 'error'
+      && _dfHasReadySourceData('astrology', _dfGetServerMatchPayload())) {
+    return {
+      message: _dfGetAstroCalculatingMessage(),
       showLoadButton: false,
       source: normalized
     };
@@ -7804,6 +7905,7 @@ function _dfGetNoBirthMessage(source) {
   var normalized = _dfNormalizeSource(source);
   if (normalized === 'jamidusu') return '자미두수 꽃을 보려면 생년월일을 입력해주세요.';
   if (normalized === 'sukuyo') return '숙요점 꽃을 보려면 생년월일을 입력해주세요.';
+  if (normalized === 'astrology') return '점성술 꽃을 보려면 생년월일과 태어난 시간을 입력해주세요.';
   return '이름과 생년월일 정보를 먼저 입력하면, 나만의 운명의 꽃이 여기에서 피어납니다.';
 }
 
