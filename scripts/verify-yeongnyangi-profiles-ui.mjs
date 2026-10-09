@@ -6,6 +6,8 @@ import {chromium} from '@playwright/test';
 const origin=process.env.YN_UI_ORIGIN;
 assert.ok(origin&&/^http:\/\/127\.0\.0\.1:\d+$/.test(origin),'Set YN_UI_ORIGIN to the local mock dev server');
 const baseline=process.argv.includes('--baseline');
+// /fortune/ 은 기본이 질문형 대화(IntakeChat)다. 이 스크립트는 상품·프로필 선택 화면(flow=legacy)을 검사한다.
+const route=path=>path==='fortune'?'fortune/?flow=legacy':`${path}/`;
 const output='build-cache/yeongnyangi-profiles-ui';
 mkdirSync(output,{recursive:true});
 const profiles=[{id:'qa-one',profileId:'qa-one',name:'달빛 손님',birthDate:'1992-05-18',birth:{year:1992,month:5,day:18,timeUnknown:true},location:{label:'대한민국 부산'}},{id:'qa-two',profileId:'qa-two',name:'별빛 손님',birthDate:'1990-02-20',birth:{year:1990,month:2,day:20,timeUnknown:true},location:{label:'대한민국 서울'}}];
@@ -68,7 +70,7 @@ try{
  for(const path of ['room','fortune']){
   const page=await browser.newPage({viewport:{width:1280,height:900}});
   await fixture(page,{unlocked:true});
-  await page.goto(`${origin}/yeongnyangi/${path}/`,{waitUntil:'domcontentloaded'});
+  await page.goto(`${origin}/yeongnyangi/${route(path)}`,{waitUntil:'domcontentloaded'});
   const start=await page.evaluate(()=>performance.now());
   const picker=baseline?page.locator('select').filter({has:page.locator('option[value="qa-two"]')}).first():page.getByRole('button',{name:/별빛 손님/});
   await picker.waitFor();
@@ -83,7 +85,7 @@ try{
  if(!baseline){
   for(const viewport of [{width:360,height:800},{width:390,height:844},{width:430,height:900},{width:1440,height:1000}]){
    const page=await browser.newPage({viewport}),errors=[];page.on('pageerror',error=>errors.push(error.message));
-   await fixture(page,{delay:0,unlocked:true});await page.goto(`${origin}/yeongnyangi/fortune/`,{waitUntil:'domcontentloaded'});
+   await fixture(page,{delay:0,unlocked:true});await page.goto(`${origin}/yeongnyangi/${route('fortune')}`,{waitUntil:'domcontentloaded'});
    const selectionMs=await selectAndMeasure(page);
    for(const name of ['사주','자미두수','숙요','베다점','서양 점성술','타로','복합 운세']){
     await page.getByRole('group',{name:'운세 종류'}).getByRole('button',{name,exact:true}).click();
@@ -92,15 +94,22 @@ try{
     for(let i=0;i<4;i++){await choices.nth(i).click();assert.equal(await choices.nth(i).getAttribute('aria-pressed'),'true');}
    }
    await page.getByRole('group',{name:'운세 종류'}).getByRole('button',{name:'타로',exact:true}).click();
-   assert.equal(await page.getByRole('group',{name:'저장한 프로필'}).count(),0);
+   assert.equal(await page.getByRole('group',{name:'함께 읽을 프로필'}).count(),0);
+   // 타로는 프로필 없이 질문만 있으면 결제 확인으로 넘어간다.
+   await page.getByLabel('내 질문').fill('요즘 일이 막히는 이유가 궁금해.');
    assert.equal(await page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).isEnabled(),true);
    await page.getByRole('group',{name:'운세 종류'}).getByRole('button',{name:'숙요',exact:true}).click();
-   await page.getByLabel('궁합 상대 (선택)').selectOption('qa-one');
    await page.getByRole('button',{name:/달빛 손님.*1992/}).click();
-   assert.equal(await page.getByLabel('궁합 상대 (선택)').inputValue(),'');
    assert.equal(await page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).isDisabled(),true);
    await page.getByLabel('출생시간 보완 (선택)').fill('09:30');
    assert.equal(await page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).isEnabled(),true);
+   // 궁합 상대는 '두 사람의 궁합'에서만 고른다. 본인을 상대로 고른 채 본인 프로필이 되면 비운다.
+   await page.getByRole('group',{name:'상담 종류'}).getByRole('button',{name:/두 사람의 궁합/}).click();
+   await page.getByRole('button',{name:/별빛 손님/}).click();
+   await page.getByLabel('궁합 상대 (필수)').selectOption('qa-one');
+   await page.getByRole('button',{name:/달빛 손님.*1992/}).click();
+   assert.equal(await page.getByLabel('궁합 상대 (필수)').inputValue(),'');
+   assert.equal(await page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).isDisabled(),true);
    await page.getByRole('group',{name:'운세 종류'}).getByRole('button',{name:'사주',exact:true}).click();
    const metrics=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,targets:[...document.querySelectorAll('main button')].filter(node=>node.offsetParent!==null).map(node=>node.getBoundingClientRect().height)}));
    assert.ok(metrics.overflow<=1,`overflow at ${viewport.width}`);assert.ok(metrics.targets.every(height=>height>=44),`small target at ${viewport.width}`);assert.deepEqual(errors,[]);
@@ -111,12 +120,12 @@ try{
   }
   for(const path of ['room','fortune']){
    const page=await browser.newPage();await fixture(page,{profileDelay:3000,cached:profiles});
-   await page.goto(`${origin}/yeongnyangi/${path}/`,{waitUntil:'domcontentloaded'});await selectAndMeasure(page);
+   await page.goto(`${origin}/yeongnyangi/${route(path)}`,{waitUntil:'domcontentloaded'});await selectAndMeasure(page);
    await page.getByText('저장한 프로필부터 골라도 돼. 최신 목록을 확인하고 있어.').waitFor({state:'hidden'});
    assert.equal(await page.getByRole('button',{name:/별빛 손님/}).getAttribute('aria-pressed'),'true');await page.close();
   }
   const page=await browser.newPage();const control=await fixture(page,{delay:0,list:[],failFirstSave:true,failFirstList:true});
-  await page.goto(`${origin}/yeongnyangi/fortune/`,{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'프로필 다시 확인하기'}).click();
+  await page.goto(`${origin}/yeongnyangi/${route('fortune')}`,{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'프로필 다시 확인하기'}).click();
   await page.getByText('아직 저장한 프로필이 없어. 첫 이야기를 남겨줘.').waitFor();
   await page.getByRole('button',{name:'새 프로필 만들기'}).click();await page.getByLabel('이름',{exact:true}).fill('새로운 손님');
   await page.getByLabel('생년월일',{exact:true}).fill('1992-05-18');await page.getByLabel('출생시간을 몰라요').check();
@@ -134,15 +143,15 @@ try{
   await page.evaluate(()=>{localStorage.removeItem('fortune_auth_user');localStorage.removeItem('fortune_auth_token');window.dispatchEvent(new CustomEvent('cd:auth-changed',{detail:{kind:'logout'}}));});
   await page.getByRole('button',{name:'로그인하고 프로필 보기'}).waitFor();assert.equal(await page.getByRole('button',{name:/달빛 손님.*1992/}).count(),0);await page.close();
   for(const path of ['room','fortune']){
-   const page=await browser.newPage();await fixture(page,{delay:0,failAttendance:true,failProducts:true});await page.goto(`${origin}/yeongnyangi/${path}/`,{waitUntil:'domcontentloaded'});
+   const page=await browser.newPage();await fixture(page,{delay:0,failAttendance:true,failProducts:true});await page.goto(`${origin}/yeongnyangi/${route(path)}`,{waitUntil:'domcontentloaded'});
    await selectAndMeasure(page);await page.close();
   }
   reports.push({scenarios:'empty, retry, stable save id, cached selection, removed selection, account switch, logout, independent failures',passed:true});
   const searchPage=await browser.newPage();
   const many=[...profiles,...Array.from({length:6},(_,i)=>({...profiles[0],id:`qa-extra-${i}`,profileId:`qa-extra-${i}`,name:`추가 손님 ${i}`}))];
-  await fixture(searchPage,{delay:0,list:many});await searchPage.goto(`${origin}/yeongnyangi/fortune/`,{waitUntil:'domcontentloaded'});
+  await fixture(searchPage,{delay:0,list:many});await searchPage.goto(`${origin}/yeongnyangi/${route('fortune')}`,{waitUntil:'domcontentloaded'});
   await searchPage.getByLabel('프로필 이름 검색').fill('별빛');
-  assert.equal(await searchPage.getByRole('group',{name:'저장한 프로필'}).getByRole('button').count(),1);
+  assert.equal(await searchPage.getByRole('group',{name:'함께 읽을 프로필'}).getByRole('button').count(),1);
   await searchPage.getByRole('button',{name:/별빛 손님/}).press('Space');
   assert.equal(await searchPage.getByRole('button',{name:/별빛 손님/}).getAttribute('aria-pressed'),'true');await searchPage.close();
  }
