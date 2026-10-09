@@ -120,3 +120,14 @@ test("GET 과 다른 경로는 매칭을 돌리지 않는다", async () => {
   const wrongPath = post({ profile: PROFILE }, "/api/destiny-flower/all");
   expect((await handleDestinyFlowerRoutes(wrongPath, {})).status).toBe(404);
 });
+
+test("89종 꽃 모두 꽃말이 있고 응답 꽃에 flower_language 가 실린다", async () => {
+  const { unifiedFlowerCatalog } = await import("../../worker/lib/destiny-flower-engine.js");
+  const { FLOWER_LANGUAGE_KO } = await import("../../worker/lib/destiny-flower-traits.js");
+  const missing = unifiedFlowerCatalog.map((f) => f.id).filter((id) => !FLOWER_LANGUAGE_KO[id]);
+  expect(missing).toEqual([]);
+  const res = await handleDestinyFlowerRoutes(post({ profile: PROFILE }), {});
+  const data = await res.json();
+  const sajuFlower = data.sources.saju.flower;
+  expect(sajuFlower.flower_language).toBe(FLOWER_LANGUAGE_KO[sajuFlower.id]);
+});

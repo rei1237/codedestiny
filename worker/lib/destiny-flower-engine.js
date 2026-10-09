@@ -9,7 +9,8 @@ import {
   normalizeZodiacName,
   resolveMansionIndex,
   mansionByIndex,
-  ziweiStarElement
+  ziweiStarElement,
+  flowerLanguageKo
 } from './destiny-flower-traits.js';
 
 const ELEMENT_KEYS = ['wood', 'fire', 'earth', 'metal', 'water'];
@@ -310,6 +311,7 @@ function localizeDestinyFlowerCopy(flower) {
     ...flower,
     name: destinyFlowerText(base + '.name', null, flower.name),
     symbolism: destinyFlowerText(base + '.symbolism', null, flower.symbolism),
+    flower_language: destinyFlowerText(base + '.flowerLanguage', null, flowerLanguageKo(id) || flower.symbolism),
     title: destinyFlowerText(base + '.title', null, flower.title || flower.name),
     description: destinyFlowerText(base + '.description', null, flower.description || flower.vibe_message || flower.symbolism),
     vibe_message: destinyFlowerText(base + '.vibeMessage', null, flower.vibe_message || flower.description || flower.symbolism)
