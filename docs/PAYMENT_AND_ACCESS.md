@@ -165,7 +165,7 @@
 ## Unlock state and shop read separation
 
 - Lock UI hydration uses one complete `GET /api/me/access-state?profileId=...` snapshot after login and after an explicit profile change. React, the main static shell, and standalone static consumers read the same `CodeDestinyAccessStore` projection.
-- The complete snapshot reads the authenticated user document once and `ContentEntitlement` once. Registry-confirmed account unlock keys in legacy `User.unlockedFeatures`/`paidFeatures` remain read-compatible; hot-path `PointHistory.distinct` and Payment scans are not used. Requested `profileId` takes precedence over a previously stored profile id.
+- The complete snapshot reads the authenticated user document once and `ContentEntitlement` once. Registry-confirmed **account-scoped** unlock keys in legacy `User.unlockedFeatures`/`paidFeatures` remain read-compatible (birth-scoped keys are never read from those arrays — see "Birth-scoped permanent unlocks"); hot-path `PointHistory.distinct` and Payment scans are not used. Requested `profileId` takes precedence over a previously stored profile id.
 - `/api/access/unlocks` remains a read-only compatibility/status route. It is not the normal display hydration source and must not be called per card or per render.
 - `GET /api/access/unlocks` is read-only. Legacy `includeBackfill=1` and `backfill=1` are accepted as compatibility inputs only and must not run `PointHistory`/`Payment` scans or write `ContentEntitlement` records during a normal lookup.
 - Legacy entitlement repair must run through an explicit backfill/reconcile path, not through page-entry GET requests.
@@ -214,9 +214,19 @@
 - The response includes the active pass, canonical unexpired monthly lots/balance, current profile, `ContentEntitlement` grouped by profile, product ownership, `unlockMap`, `lockMap`, and `entitlementVersion`.
 - The static home alone requests `GET /api/me/access-state?include=guardian`. A successful optional Guardian read is returned as `freeUsage.guardian` and participates in `versions.accessStateVersion`/ETag. A Guardian-only query failure returns `freeUsage.guardian.degraded=true` without downgrading the authoritative entitlement snapshot or inventing a zero balance.
 - The access-state single-flight key is the locally JWT-verified user id plus requested profile and include set. It is installed before the authenticated user DB lookup, while every later sequential request still performs the canonical auth check. Failed promises and partial Guardian snapshots are not cached.
-- Only the current profile plus user-scoped entitlements are projected into the active `unlockMap`. Entitlements for other profiles remain in `profileEntitlements` and never unlock the current profile by accident.
+- Only the current profile plus user-scoped entitlements are projected into the active `unlockMap`. Entitlements for other profiles remain in `profileEntitlements` and never unlock the current profile by accident. For birth-scoped keys only `BIRTH` rows matching the current profile's birth count; user-scoped rows do not.
 - `CodeDestinyAccessStore` may read this Snapshot first, preserve a verified stale read during a transient failure, and apply optimistic success patches. It cannot deduct monthly credits, create orders, or grant server authority.
 - `/api/billing/coin-gate` remains an explicit server command after the user selects `이용권` or `월정석`; it is not part of snapshot hydration. Static membership commands prepare auth before sending one POST and do not replay that POST after a 401. Fresh snapshot balances are reused for display, while `fresh=1` remains limited to explicit refresh or completed payment/use reconciliation.
+
+## Birth-scoped permanent unlocks (2026-10-10)
+
+- Permanent unlocks for keys in `BIRTH_SCOPED_UNLOCK_FEATURE_KEYS` (`worker/lib/paid-feature-registry.js`) are identified by `userId + birthKey + contentKey`. `birthKey` is computed server-side from the account's saved `ProfileCard` birth (date, time, time-unknown, calendar type incl. leap month, gender) by `worker/lib/birth-key.js`; name, place, and profileId are excluded. Request-body birth data is never part of the identity.
+- Every grant path (coin-gate, pass, monthly, PortOne single payment, payments V2, Google Play intent/verify, admin/backfill) resolves the identity through `resolveBirthUnlockIdentity` before any deduction or payment window. Missing profile → `400 MISSING_PROFILE_ID`; profile not owned by the account → `403 INVALID_PROFILE`; both carry `requiresProfile:true`. `section_compat` also requires an owned `partnerProfileId`.
+- Rows are written as `scope:"BIRTH"`, `profileId:"birth:<birthKey>"` with `birthKey`/`purchaseProfileId` (and partner fields). Orders store `pricingSnapshot.birthKey` so the grant follows the birth that was priced, not a birth edited mid-checkout. The synthetic profileId is never returned to clients.
+- Readers decide per requested profileId via `hasPaidUnlockForProfile` / `findActivePaidContentUnlock`. `USER` rows, `__user__`, and `User.unlockedFeatures/paidFeatures` are not evidence for birth-scoped keys (the arrays are still written for revertability). Editing a profile's birth relocks; reverting reopens.
+- Content routes compute from the saved `ProfileCard` birth, not the request body. Saved `/records/` results stay free to reopen.
+- Clients never persist birth-scoped unlocks in localStorage and treat only the server response for the current profileId as authoritative.
+- Existing purchases are copied to BIRTH rows by `scripts/migrations/20261010-birth-scope-unlocks.mjs` (dry-run default). It must be applied to production before production promotion.
 
 ## Feature route boundary
 

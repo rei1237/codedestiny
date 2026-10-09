@@ -1,5 +1,20 @@
 # 결제 시스템 & 잠금 콘텐츠 — 상세 규칙
 
+## 2026-10-10 시행: 영구 해금은 "계정 + 생년월일" 단위
+
+이 절이 아래의 프로필·계정 단위 해금 서술보다 우선한다.
+
+- 🔴 **출생 기반 영구 해금의 신원은 `userId + birthKey + contentKey`다.** `birthKey`는 이 계정에 **저장된 프로필 카드**의 출생 정보(년·월·일·시·분·시간 모름·양력/음력/윤달·성별)의 sha256이다. 이름·출생지·profileId는 넣지 않는다. 서버만 계산한다(정본 `worker/lib/birth-key.js`, 신원 해석기 `worker/lib/birth-scoped-unlock-identity.js`). 요청 본문의 생년월일은 신원에 쓰지 않는다.
+- 대상 키는 `paid-feature-registry.js`의 `BIRTH_SCOPED_UNLOCK_FEATURE_KEYS`(사주 전체 풀이·대운·궁합, `rpt_*`, 자미두수 5종, 숙요 연운·숙요 해금, 낙샤트라 2종, 베딕 기본, 점성 해금, 운명의 섬 심층, 동물 운명, 사주 수호신, 시빌, FPTI, 여행·건강 리포트)다. 음악·테토겐·꽃/올림포스 운세 카드·RPG·사주 일기·비밀의 집·점술 팩은 `ACCOUNT_SCOPED_UNLOCK_FEATURE_KEYS`로 계정 단위를 유지한다. 둘 중 어디에도 없거나 둘 다에 있는 해금 키는 `assertUnlockScopeClassification()`이 막는다(새 해금 키를 추가하면 반드시 분류할 것). 회당 결제 키는 이 정책과 무관하다.
+- 같은 계정에서 생년월일·시각·성별이 같은 카드는 해금을 공유한다. 다른 계정은 같은 출생 정보라도 따로 산다. 카드의 생년월일을 고치면 다시 잠기고, 되돌리면 다시 열린다. 궁합은 본인 → 상대 순서의 두 birthKey 쌍이다(상대도 저장 프로필이어야 한다).
+- **구매는 이 계정 소유의 저장 프로필로만 한다.** profileId가 없으면 `400 MISSING_PROFILE_ID`, 남의 프로필·삭제된 프로필·합성 id면 `403 INVALID_PROFILE`이며 둘 다 `requiresProfile:true`를 싣는다. 이 확인은 어떤 차감·결제창보다 먼저다(웹 coin-gate, 단건 결제, V2 결제, Google Play intent 공통). 클라이언트는 직접 입력(저장하지 않은) 생년월일에서 서버를 부르지 않고 "프로필을 저장한 뒤 구매해 주세요"를 보여 준다.
+- 저장: `ContentEntitlement` 행을 `scope:"BIRTH"`, `profileId:"birth:<birthKey>"`로 쓰고 `birthKey`·`purchaseProfileId`(감사용)·궁합이면 `partnerBirthKey`·`purchasePartnerProfileId`를 남긴다. 기존 유니크 인덱스가 출생 정보 단위로 걸리고, 보조 유니크 인덱스 `{userId, birthKey, serviceKey, contentKey}`(BIRTH 한정)를 선언한다. 합성 profileId는 응답으로 내보내지 않는다.
+- 🔴 **USER 스코프 행, `__user__`, `User.unlockedFeatures/paidFeatures` 배열은 출생 기반 키의 근거가 아니다.** 배열은 되돌리기용으로 계속 쓰지만 읽지 않고, 응답에서도 뺀다.
+- 이용권: 새 birthKey면 차감하고, 같은 birthKey면 차감 없이 열린다(보유 확인이 한도 확인보다 먼저). 단건 결제 중복 판정도 `userId + birthKey + contentKey`이며, 주문 `pricingSnapshot.birthKey`로 지급해 결제 도중 생년월일을 고쳐도 지급 대상이 바뀌지 않는다.
+- 브라우저: 출생 기반 키는 localStorage(`cd_tile_locks` 등 계정 키·프로필 키 모두)에 저장하지도 읽지도 않는다. 서버가 **현재 profileId**에 대해 돌려준 응답만 해금 근거이며, 프로필 전환·생년월일 수정 때 해금 상태와 렌더 래치를 비우고 다시 조회한다. 잠금 문구는 "이 생년월일은 별도 구매가 필요합니다".
+- 저장된 결과(`/records/`) 재열람은 이 정책과 무관하게 무료다.
+- 기존 구매 이관: `scripts/migrations/20261010-birth-scope-unlocks.mjs`(기본 dry-run, `--apply`, `--create-index`). 구매 프로필의 **현재** 출생 정보로 BIRTH 행을 복사 생성하고 원본은 고치지 않는다. 구매 프로필을 알 수 없는 USER 행·삭제된 프로필·상대를 모르는 궁합 행은 `birthScopeExcludedAt`으로 표시만 한다. 🔴 운영 승격 전에 운영 DB `--apply`가 먼저다.
+
 ## 2026-10-09 가격·과금 유형 확정
 
 이 절이 아래 과거 가격 기록보다 우선한다. 신규 결제 가격은 `worker/lib/paid-feature-registry.js`가 정본이며, 기존 구매로 기록된 영구 해금 권한은 유지한다.
