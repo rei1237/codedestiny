@@ -39,7 +39,7 @@ const DEFAULT_FAQS = [
 ];
 
 const DEFAULT_RELATED_LABELS = {
-  "/": "꿀꿀 운세 홈 | Code Destiny",
+  "/": "꿀꿀 사주 홈 | Code Destiny",
   "/manse": "무료 만세력 사주 분석",
   "/saju": "무료 사주팔자 분석",
   "/saju/monthly/2026-09": "2026년 9월 일간별 운세",
@@ -82,7 +82,7 @@ const SEO_LANDING_TEMPLATE_COPY = {
       result: "제공 결과",
       disclaimer: "주의와 면책",
     },
-    breadcrumbHome: "꿀꿀 운세 홈",
+    breadcrumbHome: "꿀꿀 사주 홈",
     breadcrumbServices: "운세 서비스",
     serviceType: "운세 해석 서비스",
     defaultCta: "무료로 시작하기",

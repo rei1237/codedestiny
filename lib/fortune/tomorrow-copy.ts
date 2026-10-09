@@ -1,10 +1,10 @@
 // Keyed Korean copy for the existing Korean daily/weekly selector.
 export const tomorrowCopy = {
   periodLabel: '운세 기간 선택', today: '오늘 운세', tomorrow: '내일 운세', weekly: '이번 주',
-  title: { today: '꿀꿀운세와 오늘을 펼쳐요', tomorrow: '꿀꿀운세와 내일을 준비해요', weekly: '꿀꿀운세와 한 주를 펼쳐요' },
+  title: { today: '꿀꿀 사주와 오늘을 펼쳐요', tomorrow: '꿀꿀 사주와 내일을 준비해요', weekly: '꿀꿀 사주와 한 주를 펼쳐요' },
   lead: '꿀처럼 달콤한 위로, 일상에 꿀같이 유익한 조언. 연이와 오늘·내일의 흐름을 살피고, 마음에 남는 작은 실천 하나를 챙겨가요.',
   tomorrowFlow: '내일 하루의 흐름', tomorrowError: '내일의 운세를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
-  tomorrowShare: '꿀꿀운세 내일의 운세', tomorrowShareText: '내일을 준비하는 작은 조언을 함께 살펴봐요.',
+  tomorrowShare: '꿀꿀 사주 내일의 운세', tomorrowShareText: '내일을 준비하는 작은 조언을 함께 살펴봐요.',
   tomorrowProfile: '입니다. 프로필에 생년월일을 넣으면 내 일간·본명숙과 내일의 흐름을 함께 살펴볼 수 있어요.',
   guestLead: '생년월일을 입력하면 내일의 수비학 개인일수를 살펴볼 수 있어요.',
   preparationTitle: '내일 걱정을 작은 준비로 바꿔요',

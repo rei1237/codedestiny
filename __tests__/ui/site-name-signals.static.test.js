@@ -6,7 +6,7 @@
  *   - public/famous `og:site_name = "Code Destiny (꿀꿀 만세력)"` (구명 잔재 — 2026-09-06 홈 셸에서는 구명 표기를 뺐다)
  *   - public/fortune `og:site_name = "Code Destiny"`
  *   - app 라우트 400여 개 `og:site_name = "Code Destiny"` (siteSeo.siteName)
- *   - `WebSite` 스키마 `name = "꿀꿀 운세"` (siteSeo.brandName)
+ *   - `WebSite` 스키마 `name = "꿀꿀 사주"` (siteSeo.brandName)
  *
  * 구글은 `WebSite.name` · `og:site_name` · `application-name` · title 접미사가 **서로 일치할 때만**
  * 사이트 이름을 채택한다. 갈려 있는 동안에는 어느 이름도 잡히지 않았고, 실제로 "꿀꿀 운세"로

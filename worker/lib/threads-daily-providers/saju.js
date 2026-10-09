@@ -188,5 +188,5 @@ export function format(facts, copy, url) {
   if (facts.harmonyAnimals) lines.push(`· 손발 맞는 띠: ${facts.harmonyAnimals}`);
   if (facts.clashAnimals) lines.push(`· 부딪히기 쉬운 띠: ${facts.clashAnimals}`);
 
-  return renderPost({ head: lines.join("\n"),  cta: CTA, url, hashtag: "꿀꿀운세" });
+  return renderPost({ head: lines.join("\n"),  cta: CTA, url, hashtag: "꿀꿀사주" });
 }

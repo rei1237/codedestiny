@@ -369,7 +369,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
                 />
               </div>
               <div className="ggulggul-bridge__copy">
-                <h2 id="ggulggul-title">달빛 따라, <span>꿀꿀운세로.</span></h2>
+                <h2 id="ggulggul-title">달빛 따라, <span>꿀꿀 사주로.</span></h2>
                 <p>
                   꽃돼지 연이가 기다리는 다정한 운세 정원.<br />
                   사주·타로부터 삶의 여러 흐름까지, 천천히 둘러봐.

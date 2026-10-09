@@ -51,7 +51,7 @@ export default function QuestionJourney({source='home'}:{source?:string}){
    </div>
   </details>
   <div id="question-reading" aria-live="polite">{selected&&<QuestionOffer key={selected.id} q={selected} source={source}/>}</div>
-  <nav className={styles.explore} aria-label="다른 상담 탐색"><a href="/yeongnyangi/fortune/">내 고민 직접 적기</a><a href="/ggulggul/">꿀꿀운세 홈</a></nav>
+  <nav className={styles.explore} aria-label="다른 상담 탐색"><a href="/yeongnyangi/fortune/">내 고민 직접 적기</a><a href="/ggulggul/">꿀꿀 사주 홈</a></nav>
  </section>;
 }
 export function FreeQuestionNext({category,source}:{category:string;source:string}){

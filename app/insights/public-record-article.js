@@ -8,7 +8,7 @@ export const PUBLIC_RECORD_ARTICLE = {
   featuredImage: { url: '/og/presidential-public-records.png', alt: c.heading, width: 1200, height: 630 },
   category: '사주', author: 'Code Destiny 편집팀',
   publishedAt: '2026-10-05', updatedAt: '2026-10-05', useOriginalContent: true,
-  keywords: ['대통령 사주', '정치인 사주', '박병하', '네오', '꿀꿀운세'],
+  keywords: ['대통령 사주', '정치인 사주', '박병하', '네오', '꿀꿀 사주'],
   targetRoute: '/ggulggul/',
   faq: c.faqs,
   internalLinks: [{href:'/insights/famous-saju/',label:c.famous},{href:'/ggulggul/',label:c.home},{href:'/yeongnyangi/',label:c.cat}],

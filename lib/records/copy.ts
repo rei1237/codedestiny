@@ -1,6 +1,6 @@
 import type { RuntimeLocale } from '@/lib/i18n/dictionary';
 const ko = {
-  refund_pending: '환불 확인 중', refundLead: '전체 결과를 제공하지 못해 환불을 확인하고 있어요. 다시 결제하지 말고 결제 내역에서 처리 상태를 확인해 주세요.', title: '꿀꿀운세 보관함', lead: '이용한 유료 운세와 상담 결과를 다시 펼쳐보세요',
+  refund_pending: '환불 확인 중', refundLead: '전체 결과를 제공하지 못해 환불을 확인하고 있어요. 다시 결제하지 말고 결제 내역에서 처리 상태를 확인해 주세요.', title: '꿀꿀 사주 보관함', lead: '이용한 유료 운세와 상담 결과를 다시 펼쳐보세요',
   hubTitle: '지금, 어떤 답이 필요한가요?', hubLead: '당신의 고민에 맞는 깊이 있는 운명 상담을 골라보세요.',
   all: '전체', report: '대표·심층 상담', chat: '대화 상담', chart: '차트·해석',
   search: '기록 제목과 질문 검색', latest: '최신순', loading: '저장된 기록을 확인하고 있어요.',

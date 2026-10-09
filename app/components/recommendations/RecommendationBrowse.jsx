@@ -31,7 +31,7 @@ export default function RecommendationBrowse({ category = '', previewProducts = 
   const title = uiBrand === 'ggulggul' ? c.yeoniTitle : c.title;
   const Container = preview ? 'section' : 'main';
   return <Container className={styles.page} data-recommendation-browse data-affiliate-brand={uiBrand} data-yn-night>
-    <div className={styles.masthead}><a className={styles.back} href={returnPath}><ArrowLeft size={18} aria-hidden="true"/>{c.back}</a><a href={identity.home} className={styles.brandName}>{uiBrand === 'ggulggul' ? (c.locale === 'ko' ? '꿀꿀 운세' : 'Ggulggul') : (c.locale === 'ko' ? '영냥이' : 'Yeongnyangi')}</a></div>
+    <div className={styles.masthead}><a className={styles.back} href={returnPath}><ArrowLeft size={18} aria-hidden="true"/>{c.back}</a><a href={identity.home} className={styles.brandName}>{uiBrand === 'ggulggul' ? (c.locale === 'ko' ? '꿀꿀 사주' : 'Ggulggul') : (c.locale === 'ko' ? '영냥이' : 'Yeongnyangi')}</a></div>
     <header className={styles.header}>
       <div><h1>{title}</h1><p className={styles.lead}>{uiBrand === 'ggulggul' ? c.yeoniLead : c.ynLead}</p><p>{data.enabled ? c.partnerTerms : c.pending}</p>
       {data.enabled && <a className={styles.explore} href="#affiliate-selection">{c.selection}<ArrowDown size={18} aria-hidden="true"/></a>}</div>

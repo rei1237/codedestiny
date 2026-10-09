@@ -40,7 +40,7 @@ export default function ServiceNavigation() {
       <nav aria-label="영냥이 서비스 연결">
         {mainServiceLinks.map(link => <a key={link.label} href={link.href}>{link.label}</a>)}
         <a href={login}>Code Destiny 로그인</a>
-        <a href={ggulggul}>꿀꿀 운세 바로가기</a>
+        <a href={ggulggul}>꿀꿀 사주 바로가기</a>
       </nav>
       <nav aria-label="법적 안내">
         {legalLinks.map(link => <a key={link.label} href={link.href}>{link.label}</a>)}
@@ -54,7 +54,7 @@ export default function ServiceNavigation() {
 
     <div className="service-navigation__partner">
       <img src="/assets/yeongnyangi/original/ggulggul-fortune.webp" width="512" height="512" alt="" loading="lazy" decoding="async" />
-      <p><strong>꿀꿀 운세</strong>와 연결해 둘러볼 수 있지만, 영냥이 상담의 결제와 이용 권리는 별도 기준으로 운영해요.</p>
+      <p><strong>꿀꿀 사주</strong>와 연결해 둘러볼 수 있지만, 영냥이 상담의 결제와 이용 권리는 별도 기준으로 운영해요.</p>
     </div>
 
     <dl className="service-navigation__business" aria-label="사업자 정보">

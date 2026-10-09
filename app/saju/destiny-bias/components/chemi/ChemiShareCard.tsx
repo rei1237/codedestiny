@@ -100,7 +100,7 @@ const ChemiShareCard = forwardRef<HTMLDivElement, Props>(function ChemiShareCard
               <p className={card.oneLiner}>{view.oneLiner}</p>
             </div>
             <p className={card.foot}>
-              <span>꿀꿀 운세 · 최애운명</span>
+              <span>꿀꿀 사주 · 최애운명</span>
               <span>code-destiny.com · 오락용</span>
             </p>
           </div>

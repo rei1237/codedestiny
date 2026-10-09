@@ -1421,7 +1421,7 @@ export default function ReviewsClient() {
                 </button>
 
                 <p className="rounded-2xl bg-[#fdf1f6] px-4 py-3 text-xs font-semibold leading-6 text-[#b31955] dark:bg-[#3c1830] dark:text-[#f4bed1]">
-                  {reviewRewardLabel(rewardPolicy)} · 꿀꿀운세에서 사용할 수 있어요. 상품별 1회 지급됩니다.
+                  {reviewRewardLabel(rewardPolicy)} · 꿀꿀 사주에서 사용할 수 있어요. 상품별 1회 지급됩니다.
                 </p>
                 <p className="text-xs leading-6 text-[#8a6478] dark:text-[#c99cb2]">
                   {copy.moderationNotice}

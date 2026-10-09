@@ -221,7 +221,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "group.guides": "추천 가이드",
     },
     linkLabels: {
-      "/kkul-kkul-unse/": "꿀꿀 운세 — 코드 데스티니 브랜드 안내",
+      "/kkul-kkul-unse/": "꿀꿀 사주 브랜드 안내",
       "/saju/": "무료 사주풀이 보기",
       "/manse/": "꿀꿀 만세력 확인하기",
       "/today/": "오늘의 운세 확인하기",

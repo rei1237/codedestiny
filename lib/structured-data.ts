@@ -124,7 +124,7 @@ export function buildWebsiteJsonLd(locale?: string) {
     "@type": "WebSite",
     "@id": `${siteSeo.siteUrl}/#website`,
     url: siteSeo.siteUrl,
-    // 🔴 브랜드 이름이다(꿀꿀 운세). 회사 이름(CODE DESTINY)은 Organization 노드가 갖는다.
+    // 🔴 브랜드 이름이다(꿀꿀 사주). 회사 이름(CODE DESTINY)은 Organization 노드가 갖는다.
     // 정적 셸 index.html 의 #website 노드와 글자 단위로 같아야 한다.
     name: siteSeo.brandName,
     alternateName: siteSeo.alternateName,

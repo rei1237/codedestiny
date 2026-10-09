@@ -17,7 +17,7 @@ import {
 
 export const TYPE = "karma";
 export const PATH = "/karma-destiny-ai/";
-export const HASHTAG = "꿀꿀운세";
+export const HASHTAG = "꿀꿀사주";
 export const CTA = "내 사주에 반복되는 패턴 보기";
 export const SCOPE = "생활 패턴을 돌아보는 글 · 개인 예측 아님";
 
@@ -247,5 +247,5 @@ export function format(facts, copy, _url) {
     copy.tip,
     `🌙 ${facts.dateLabel} 연이의 마음 노트 · ${SCOPE}`,
   ];
-  return [...lines, "", THREADS_PROFILE_LINK_CTA, "#꿀꿀운세"].join("\n");
+  return [...lines, "", THREADS_PROFILE_LINK_CTA, "#꿀꿀사주"].join("\n");
 }

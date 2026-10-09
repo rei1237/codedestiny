@@ -16,7 +16,7 @@ const alliance: Record<LoadingLocale, PaymentAllianceCopy> = {
     imageAlt: "따뜻한 차를 사이에 두고 제휴를 약속하는 꽃돼지 연이와 영냥이",
     moonstoneLabel: "월정석으로 이용 시",
     moonstones: amount => "{amount} 월정석".replace('{amount}', amount),
-    moonstoneValue: divisor => "영냥이에서는 월정석 가치가 꿀꿀 운세의 1/{divisor}로 적용돼요.".replace('{divisor}', String(divisor)),
+    moonstoneValue: divisor => "영냥이에서는 월정석 가치가 꿀꿀 사주의 1/{divisor}로 적용돼요.".replace('{divisor}', String(divisor)),
   },
   "en": {
     title: "A little alliance, thanks to Yeoni",

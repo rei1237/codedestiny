@@ -285,7 +285,7 @@ await check("띠별은 원글 + 2띠씩 6개 답글, 세 분야를 하나의 잠
   assert.equal(lock.calls.length, 1);
   assert.equal(fetch.posted.length, 7);
   assert.ok(fetch.posted[0].includes("12띠 각각의 재물운·연애운·일/직장운"));
-  assert.ok(fetch.posted[0].endsWith("#꿀꿀운세"));
+  assert.ok(fetch.posted[0].endsWith("#꿀꿀사주"));
   assert.ok(fetch.posted[0].includes("입춘"));
   for (const reply of fetch.posted.slice(1)) {
     assert.equal((reply.match(/\[/g) || []).length, 2);
@@ -464,9 +464,9 @@ await check("366일 × 6유형 × (결정론/최대 길이 모델 문안), 띠�
         assert.ok(!/https?:\/\//i.test([text, ...replies].join("\n")), `${type} ${i} 본문에 직접 링크가 있다`);
         assert.ok(text.includes("서비스 바로가기는 프로필 링크에서 확인해 주세요."), `${type} ${i} 프로필 안내가 없다`);
         if (type === "zodiac" || type === "karma") {
-          assert.ok(text.endsWith("#꿀꿀운세"));
+          assert.ok(text.endsWith("#꿀꿀사주"));
         } else {
-          assert.ok(text.endsWith(`서비스 바로가기는 프로필 링크에서 확인해 주세요.\n\n#${type === "saju" ? "꿀꿀운세" : provider.HASHTAG}`), `${type} ${i} 꼬리가 잘렸다`);
+          assert.ok(text.endsWith(`서비스 바로가기는 프로필 링크에서 확인해 주세요.\n\n#${type === "saju" ? "꿀꿀사주" : provider.HASHTAG}`), `${type} ${i} 꼬리가 잘렸다`);
           assert.ok(text.includes(provider.CTA));
         }
         assert.ok(text.includes(facts.dateLabel), `${type} date missing`);

@@ -16,7 +16,7 @@ const TITLE=brandCopy('yeongnyangiTitle');
 const DESCRIPTION=brandCopy('yeongnyangiDescription');
 const URL_=`https://code-destiny.com${PATH}`;
 export const metadata:Metadata={title:{absolute:TITLE},description:DESCRIPTION,
- keywords:['사주 보는 고양이','사주보는고양이','사주보는 고양이','영냥이','꿀꿀운세','꿀꿀 운세','코드데스티니'],
+ keywords:['사주 보는 고양이','사주보는고양이','사주보는 고양이','영냥이','꿀꿀 사주','꿀꿀운세','코드데스티니'],
  alternates:{canonical:URL_,languages:createHreflangFromRoutes(getAlternatesByRouteKey('yeongnyangi'))},robots:{index:true,follow:true},
  openGraph:{type:'website',locale:'ko_KR',url:URL_,siteName:siteSeo.brandName,title:TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage]},
  twitter:{card:'summary_large_image',title:TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage.url]}};

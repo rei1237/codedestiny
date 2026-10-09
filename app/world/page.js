@@ -90,10 +90,10 @@ export default function WorldPage() {
 
       <header className="cd-main-header cd-world-hero">
         <div className="cd-world-hero-copy">
-          <p className="cd-home-kicker">꿀꿀 운세 · 이야기</p>
+          <p className="cd-home-kicker">꿀꿀 사주 · 이야기</p>
           <h1 className="cd-main-title">캐릭터와 세계관</h1>
           <p className="cd-main-intro">
-            꿀꿀 운세의 사주·타로·자미두수 화면 뒤에는 하나의 이야기가 깔려 있습니다.
+            꿀꿀 사주의 사주·타로·자미두수 화면 뒤에는 하나의 이야기가 깔려 있습니다.
             대학생 연이가 이상한 앱을 열었다가 운명 세계로 떨어지고,
             흩어진 제 사주 여덟 글자를 되찾아 가는 여정입니다.
             상담 화면의 연이와 네오, 찻집과 달빛 음악은 전부 이 세계에서 왔습니다.

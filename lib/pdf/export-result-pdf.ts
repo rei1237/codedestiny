@@ -150,7 +150,7 @@ export async function exportResultPdf(options: ExportResultPdfOptions): Promise<
     fileName,
     backgroundColor,
     cover,
-    watermarkText = "Code Destiny · 꿀꿀 운세",
+    watermarkText = "Code Destiny · 꿀꿀 사주",
     jpegQuality = 0.75,
     scale = typeof window !== "undefined" ? Math.min(1.5, window.devicePixelRatio || 1.5) : 1.5,
   } = options;

@@ -350,7 +350,7 @@ export function buildDestinyBiasOgHtml(snapshot, brandDomain = "code-destiny.com
   <div style="display:flex;position:absolute;left:80px;right:${textRight}px;top:196px;font-size:62px;line-height:1.22;color:${OG_INK};font-weight:700;">${escapeHtml(snapshot.chemiTypeNameKo)}</div>
   <div style="display:flex;position:absolute;left:80px;right:${textRight}px;top:380px;font-size:30px;line-height:1.5;color:${OG_INK_SOFT};">${escapeHtml(snapshot.oneLiner)}</div>
   ${scoreBlock}
-  <div style="display:flex;position:absolute;left:80px;bottom:52px;font-size:24px;color:${OG_INK};font-weight:700;">꿀꿀운세</div>
+  <div style="display:flex;position:absolute;left:80px;bottom:52px;font-size:24px;color:${OG_INK};font-weight:700;">꿀꿀 사주</div>
   <div style="display:flex;position:absolute;right:80px;bottom:54px;font-size:22px;color:${OG_INK_SOFT};">${escapeHtml(brandDomain)} · 오락용</div>
 </div>`;
 }
@@ -385,8 +385,8 @@ export function buildDestinyBiasSharePreviewHtml({ snapshot, previewUrl, landing
   // 스크립트 문자열 안에서 </script> 로 빠져나가지 못하게 < 를 이스케이프한다.
   const landingJs = JSON.stringify(String(landingUrl)).replace(/</g, "\\u003c");
   return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">`
-    + `<title>${escapeHtml(title)} | 꿀꿀운세</title>`
-    + `<meta property="og:type" content="website"><meta property="og:site_name" content="꿀꿀운세">`
+    + `<title>${escapeHtml(title)} | 꿀꿀 사주</title>`
+    + `<meta property="og:type" content="website"><meta property="og:site_name" content="꿀꿀 사주">`
     + `<meta property="og:url" content="${escapeHtml(previewUrl)}"><meta property="og:title" content="${escapeHtml(title)}">`
     + `<meta property="og:description" content="${escapeHtml(description)}"><meta property="og:image" content="${escapeHtml(ogImageUrl)}">`
     + `<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">`

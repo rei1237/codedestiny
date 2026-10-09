@@ -82,8 +82,8 @@ lines.push(
     "운세를 읽어 주는 한국어 웹 서비스입니다. 각 체계를 그 체계의 기준으로 해석하고, 무료 기본 결과와 선택형 유료 AI 상담의 범위는 각 안내 페이지에서 구분합니다.",
 );
 lines.push("");
-lines.push(`- 꿀꿀운세 연이·네오 공식 입구: ${siteBaseUrl}/ggulggul/`);
-lines.push(`- 꿀꿀운세 영냥이 공식 입구: ${siteBaseUrl}/yeongnyangi/`);
+lines.push(`- 꿀꿀 사주 연이·네오 공식 입구: ${siteBaseUrl}/ggulggul/`);
+lines.push(`- 꿀꿀 사주 영냥이 공식 입구: ${siteBaseUrl}/yeongnyangi/`);
 lines.push(`- 다른 이름: ${aliasLine}`);
 lines.push(`- 운영자: 박병하(네오). 공개 분석 활동: https://blog.naver.com/neosaju · 소개: ${siteBaseUrl}/about/#author`);
 lines.push(`- 공식 서비스 블로그: https://blog.naver.com/neosaju`);

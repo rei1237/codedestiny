@@ -53,7 +53,7 @@ const COPY={
     "resumeAtShop": "상점에서 기존 주문 이어가기",
     "allianceKicker": "영냥이 × 꽃돼지 제휴",
     "moonTitle": "월정석으로도 상담할 수 있어요",
-    "moonUsable": "꿀꿀 운세에서 받은 월정석을 영냥이 상담 결제에 쓸 수 있어요.",
+    "moonUsable": "꿀꿀 사주에서 받은 월정석을 영냥이 상담 결제에 쓸 수 있어요.",
     "moonExample": "예: {fish} {system} 상담 {price} = 월정석 {stones}개",
     "wonOnly": "전용 횟수권은 단건 결제로 구매해요. 해외에서는 PayPal로 USD 금액을 확인한 뒤 결제할 수 있어요. 횟수권 구매에는 월정석을 사용할 수 없어요.",
     "recommend": "영냥이 추천",

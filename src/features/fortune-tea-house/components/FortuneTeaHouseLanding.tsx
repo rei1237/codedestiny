@@ -11,7 +11,7 @@ import { getFortuneTeaHouseConsultPriceLabel } from "../data/consultPricing";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 import styles from "../styles/tea-house-home.module.css";
 const KO = {
- title:"연이의 운명 찻집",library:"내 상담함",account:"계정",back:"꿀꿀운세로",
+ title:"연이의 운명 찻집",library:"내 상담함",account:"계정",back:"꿀꿀 사주로",
  heading:"달빛이 머무는 밤,\n당신을 위한 한 잔",lead:"꽃돼지의 인사로 시작해, 연이와 마주 앉는 이야기.",
  intro:"사주로 삶의 흐름을, 타로로 지금의 선택을, 숙요점으로 관계의 거리감을 살펴봐요.",
  start:"연이의 이야기 읽기",resume:"이야기 이어 읽기",restart:"처음부터 읽기",sample:"상담 예시 보기",heroAlt:"달빛 찻집에서 차를 건네는 인간형 연이",

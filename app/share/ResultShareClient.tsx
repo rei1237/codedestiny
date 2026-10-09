@@ -96,7 +96,7 @@ export default function ResultShareClient() {
           <p className={styles.kicker}>CODE DESTINY</p>
           <h1>이 공유 결과를 찾을 수 없어요.</h1>
           <p>링크가 만료되었거나 더 이상 공개되지 않는 결과예요.</p>
-          <a className={styles.primaryButton} href="/">꿀꿀 운세 홈으로 가기</a>
+          <a className={styles.primaryButton} href="/">꿀꿀 사주 홈으로 가기</a>
         </section>
       </main>
     );

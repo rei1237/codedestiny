@@ -232,7 +232,7 @@ export default async function InsightArticlePage({ params }) {
     articleJsonLd.citation = publicRecordCopy.ko.rows.map(row => ({ '@type': 'CreativeWork', url: row.url, name: row.title, author: { '@id': 'https://code-destiny.com/#author' } }));
   }
   const breadcrumb = buildBreadcrumbJsonLd([
-    { name: "꿀꿀 운세 홈", path: "/" },
+    { name: "꿀꿀 사주 홈", path: "/" },
     { name: "운세 인사이트", path: "/insights" },
     { name: article.title, path: `/insights/${article.slug}` },
   ]);

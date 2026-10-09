@@ -59,7 +59,7 @@ export const SEO_LINK_GROUPS = [
   {
     title: siteFooterHubText("siteFooter.001"),
     links: [
-      { href: "/kkul-kkul-unse/", text: "꿀꿀 운세 — 코드 데스티니 브랜드 안내" },
+      { href: "/kkul-kkul-unse/", text: "꿀꿀 사주 브랜드 안내" },
       { href: "/saju/", text: "무료 사주풀이 보기" },
       { href: "/manse/", text: "꿀꿀 만세력 확인하기" },
       { href: "/today/", text: "오늘의 운세 확인하기" },
@@ -201,7 +201,7 @@ export default function SiteFooterHub() {
               전자상거래법상 앱 안에 접근 경로가 있어야 한다. 같이 지우지 말 것. */}
           {!IS_APP_BUILD && (
             <>
-              <p className={styles.sfhKicker}>꿀꿀 운세 길잡이</p>
+              <p className={styles.sfhKicker}>꿀꿀 사주 길잡이</p>
               <p className={styles.sfhTitle}>서비스 링크 허브</p>
               <p className={styles.sfhSubtitle}>
                 사주·타로·자미두수부터 상담과 콘텐츠 안내까지, 꽃돼지가 필요한 길을 차분히 안내합니다.

@@ -2,8 +2,8 @@
 
 > 생년월일과 태어난 시각을 입력하면 사주·자미두수·숙요점·베다 점성술·서양 점성술·타로 여섯 체계로 운세를 읽어 주는 한국어 웹 서비스입니다. 각 체계를 그 체계의 기준으로 해석하고, 무료 기본 결과와 선택형 유료 AI 상담의 범위는 각 안내 페이지에서 구분합니다.
 
-- 꿀꿀운세 연이·네오 공식 입구: https://code-destiny.com/ggulggul/
-- 꿀꿀운세 영냥이 공식 입구: https://code-destiny.com/yeongnyangi/
+- 꿀꿀 사주 연이·네오 공식 입구: https://code-destiny.com/ggulggul/
+- 꿀꿀 사주 영냥이 공식 입구: https://code-destiny.com/yeongnyangi/
 - 다른 이름: CODE DESTINY, Code Destiny, CodeDestiny, code-destiny, 코드데스티니, 코드 데스티니, CODEDESTINY, 꿀꿀사주, 꿀꿀운세, 꿀꿀 운세, 꿀꿀만세력, 꿀꿀 만세력
 - 운영자: 박병하(네오). 공개 분석 활동: https://blog.naver.com/neosaju · 소개: https://code-destiny.com/about/#author
 - 공식 서비스 블로그: https://blog.naver.com/neosaju
@@ -50,7 +50,7 @@
 
 ## 브랜드
 
-- [꿀꿀 운세 브랜드 안내](https://code-destiny.com/kkul-kkul-unse/): Code Destiny와 꿀꿀운세, 꽃돼지 캐릭터 브랜드의 관계와 제공 서비스를 안내합니다.
+- [꿀꿀 운세에서 꿀꿀 사주로 — 브랜드 안내](https://code-destiny.com/kkul-kkul-unse/): 꿀꿀 운세가 꿀꿀 사주로 이름을 바꾼 사실과 Code Destiny·꽃돼지 연이 캐릭터의 관계, 제공 서비스를 안내합니다.
 
 ## 운영자와 공개 분석 기록
 원문 분석: 박병하(네오) · 10년 경력 명리학자. 이 비교 문서의 정리: Code Destiny 편집팀.

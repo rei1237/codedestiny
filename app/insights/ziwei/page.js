@@ -9,7 +9,7 @@ const INSIGHTS_ZIWEI_PAGE_TEXT_TRANSLATIONS = {
     title: "자미두수 인사이트 허브 · 명반·12궁 해석 | Code Destiny",
     description: "자미두수, 자미두수 명반, 자미두수 12궁, 명궁·재백궁·관록궁 해석을 집중 정리한 자미두수 전용 허브입니다.",
     keywords: ["자미두수 공부", "자미두수 용어", "명궁 재백궁 관록궁", "12궁 이름"],
-    breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "자미두수 인사이트"],
+    breadcrumbs: ["꿀꿀 사주 홈", "운세 인사이트", "자미두수 인사이트"],
     archiveTitle: "자미두수 인사이트 허브",
     intro: "자미두수 명반, 12궁, 사화, 궁합 해석을 실제 명반 읽기 순서에 맞춰 제공하는 자미두수 SEO 허브입니다.",
   },
