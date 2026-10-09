@@ -1,6 +1,6 @@
 import ConsultationHub from './ConsultationHub';
 import styles from './consultations.module.css';
-export const metadata = { title: '상담 고르기 | 꿀꿀 운세', description: '고민에 맞는 운명 찻집, 팩폭 전략실, 초융합 운세와 마스터 인연의 서를 비교해 보세요.', robots: {index:false, follow:false} };
+export const metadata = { title: '상담 고르기 | 꿀꿀 사주', description: '고민에 맞는 운명 찻집, 팩폭 전략실, 초융합 운세와 마스터 인연의 서를 비교해 보세요.', robots: {index:false, follow:false} };
 export default function Page() {
   return <ConsultationHub>
     <section id="report-guide" className={styles.guide} aria-labelledby="report-guide-title">
@@ -17,8 +17,8 @@ export default function Page() {
       </details>
       <details>
         <summary>이미 받은 상담은 어디서 다시 보나요?</summary>
-        <p>저장된 유료 상담 결과는 새로 생성하지 않고 원본을 다시 열어요. 꿀꿀운세와 영냥이의 상담 기록은 각각의 보관함에서 확인할 수 있어요.</p>
-        <nav aria-label="상담 기록"><a href="/records/">꿀꿀운세 기록</a><a href="/yeongnyangi/library/">영냥이 상담 기록</a></nav>
+        <p>저장된 유료 상담 결과는 새로 생성하지 않고 원본을 다시 열어요. 꿀꿀 사주와 영냥이의 상담 기록은 각각의 보관함에서 확인할 수 있어요.</p>
+        <nav aria-label="상담 기록"><a href="/records/">꿀꿀 사주 기록</a><a href="/yeongnyangi/library/">영냥이 상담 기록</a></nav>
       </details>
       <p>결과가 보이지 않거나 입력·결제 내역 확인이 필요하다면 <a href="/contact/">고객센터</a>로 문의해 주세요. 취소·환불 조건은 <a href="/refund-policy/">환불 정책</a>에서 확인할 수 있어요.</p>
     </section>

@@ -102,10 +102,10 @@ function withNoindexFollow(metadata: ReturnType<typeof generateFamousSajuMetadat
 // 검수된 고유 원고가 있는 인물의 제목 규칙(성장 계획 §2). 1900년 이후 출생만 숙요를 세울 수 있어
 // 제목에서도 갈라 둔다 — 세우지도 않은 체계를 제목에 걸면 클릭 뒤 빈 표만 보게 된다.
 function buildEditorialSeoTitle(celebrity: { nameKo: string; birthDate: string | null; isBirthTimeKnown: boolean }) {
-  if (celebrity.isBirthTimeKnown) return `${celebrity.nameKo} 사주 풀이 — 시주까지 본 명식 | 꿀꿀 운세`;
+  if (celebrity.isBirthTimeKnown) return `${celebrity.nameKo} 사주 풀이 — 시주까지 본 명식 | 꿀꿀 사주`;
   const birthYear = Number(String(celebrity.birthDate || "").slice(0, 4));
-  if (birthYear >= 1900) return `${celebrity.nameKo} 사주·숙요 풀이 | 꿀꿀 운세`;
-  return `${celebrity.nameKo} 사주 풀이 — 일주·십성으로 본 행적 | 꿀꿀 운세`;
+  if (birthYear >= 1900) return `${celebrity.nameKo} 사주·숙요 풀이 | 꿀꿀 사주`;
+  return `${celebrity.nameKo} 사주 풀이 — 일주·십성으로 본 행적 | 꿀꿀 사주`;
 }
 
 export function generateStaticParams() {

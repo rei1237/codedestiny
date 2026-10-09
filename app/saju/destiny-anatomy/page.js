@@ -4,9 +4,9 @@ import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 export function generateMetadata() {
-  return generatePageMetadata({path: "/saju/destiny-anatomy", title: "사주 뇌구조와 운명 구조도 | 꿀꿀 운세",
+  return generatePageMetadata({path: "/saju/destiny-anatomy", title: "사주 뇌구조와 운명 구조도 | 꿀꿀 사주",
     description: "내 머릿속에는 어떤 생각이 가장 클까요? 사주 십성으로 읽는 뇌구조와 오행, 휴먼 디자인, 베다점의 차이를 알아보고 생활 리듬을 돌아보는 방법을 살펴보세요.",
-    keywords: ["사주 뇌구조", "운명 구조도", "오행", "휴먼 디자인", "베다점", "꿀꿀 운세"]});
+    keywords: ["사주 뇌구조", "운명 구조도", "오행", "휴먼 디자인", "베다점", "꿀꿀 사주"]});
 }
 
 export default function DestinyAnatomyGuide() {

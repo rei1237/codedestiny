@@ -7,10 +7,10 @@ import styles from "./library.module.css";
 export default function NakshatraLanding({ page }) {
   const data = [buildWebPageJsonLd({ title: page.title, description: page.description, path: "/nakshatra/" }),
     buildServiceJsonLd({ name: "나크샤트라 결정판", description: page.description, path: "/nakshatra/", serviceType: "운세 해석 서비스" }),
-    buildBreadcrumbJsonLd([{ name: "꿀꿀 운세", path: "/" }, { name: "나크샤트라 결정판", path: "/nakshatra/" }])];
+    buildBreadcrumbJsonLd([{ name: "꿀꿀 사주", path: "/" }, { name: "나크샤트라 결정판", path: "/nakshatra/" }])];
   return <main className={styles.page}>
     <div className={styles.wrap}>
-      <nav className={styles.nav} aria-label="나크샤트라 탐색"><Link href="/ggulggul/">꿀꿀 운세로</Link><a href="#method">두 전통을 읽는 방법</a></nav>
+      <nav className={styles.nav} aria-label="나크샤트라 탐색"><Link href="/ggulggul/">꿀꿀 사주로</Link><a href="#method">두 전통을 읽는 방법</a></nav>
       <header className={styles.hero}>
         <div>
           <h1>나크샤트라 결정판<span>두 개의 시선으로<br />깊어지는 나의 이야기</span></h1>

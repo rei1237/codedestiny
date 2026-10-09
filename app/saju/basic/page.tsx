@@ -3,7 +3,7 @@ import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
 
 const SAJU_BASIC_PAGE_TEXT_TRANSLATIONS = {
   h1: "사주 만세력 기본 해석",
-  metadataTitle: "사주 만세력 기본 해석 | 오행·십성·명식 분석",
+  metadataTitle: "무료 사주풀이 — 오행·십성 해석 | 꿀꿀 사주",
   description:
     "사주 명식의 네 기둥, 오행 균형, 십성의 의미를 초보자도 이해할 수 있도록 단계별로 설명하고 현재 선택에 참고할 해석 포인트와 주의점을 정리합니다.",
   metadataDescription:

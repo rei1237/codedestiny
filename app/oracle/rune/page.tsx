@@ -9,7 +9,7 @@ import { siteSeo } from "../../../lib/seo/siteSeo";
 import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
 
 const PAGE_PATH = "/oracle/rune/";
-const PAGE_TITLE = "무료 룬 점 보기 | 엘더 푸타르크 24룬 오라클 — 꿀꿀 운세";
+const PAGE_TITLE = "무료 룬 점 보기 | 엘더 푸타르크 24룬 오라클 | 꿀꿀 사주";
 const PAGE_DESCRIPTION =
   "고대 북유럽 엘더 푸타르크 24개 룬 문자로 오늘의 질문을 비춰보는 무료 룬 점. 스톤헨지 제단에서 룬을 뽑고 사랑·일·선택의 방향을 전문가 해석과 함께 확인하세요.";
 
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     siteName: siteSeo.brandName,
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
-    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "꿀꿀 운세 룬 오라클" }],
+    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "꿀꿀 사주 룬 오라클" }],
   },
   twitter: {
     card: siteSeo.twitterCard,
@@ -46,7 +46,7 @@ const runeFaqItems = [
   {
     question: "룬 점은 무료인가요?",
     answer:
-      "네, 꿀꿀 운세의 룬 오라클은 회원가입 없이 무료로 룬을 뽑고 기본 해석을 확인할 수 있습니다. 더 깊은 전문가 상담 해석은 유료 옵션으로 제공됩니다.",
+      "네, 꿀꿀 사주의 룬 오라클은 회원가입 없이 무료로 룬을 뽑고 기본 해석을 확인할 수 있습니다. 더 깊은 전문가 상담 해석은 유료 옵션으로 제공됩니다.",
   },
   {
     question: "질문은 어떻게 정하는 것이 좋나요?",
@@ -56,7 +56,7 @@ const runeFaqItems = [
   {
     question: "역방향(리버스) 룬도 해석하나요?",
     answer:
-      "일부 룬은 뒤집힌 방향으로 나올 때 의미가 달라집니다. 꿀꿀 운세 룬 오라클은 정방향·역방향을 함께 반영해, 같은 룬이라도 질문과 위치에 따라 결이 다른 해석을 제공합니다.",
+      "일부 룬은 뒤집힌 방향으로 나올 때 의미가 달라집니다. 꿀꿀 사주 룬 오라클은 정방향·역방향을 함께 반영해, 같은 룬이라도 질문과 위치에 따라 결이 다른 해석을 제공합니다.",
   },
   {
     question: "여러 개의 룬을 한 번에 뽑을 수도 있나요?",
@@ -99,7 +99,7 @@ export default function RunePage() {
       <section className="sr-only" aria-label="룬 오라클 안내">
         <h1>무료 룬 점 — 엘더 푸타르크 24룬 오라클</h1>
         <p>
-          룬은 고대 북유럽 사람들이 문자이자 상징으로 새겨온 기호입니다. 꿀꿀 운세의 룬 오라클은
+          룬은 고대 북유럽 사람들이 문자이자 상징으로 새겨온 기호입니다. 꿀꿀 사주의 룬 오라클은
           엘더 푸타르크 24개 룬 가운데 지금의 질문에 응답하는 룬을 뽑아, 사랑과 관계, 일과 선택,
           막힌 마음의 방향을 조용히 비춰 드립니다. 스톤헨지 제단 위에서 룬을 고르면 정방향과
           역방향의 의미를 함께 살핀 해석이 펼쳐집니다.
