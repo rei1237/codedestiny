@@ -87,7 +87,7 @@ Claude 훅은 Codex 훅이 아니다. 도구별 규칙 적용을 구분한다.
 
 스테이징은 main push마다 비동기로 배포된다. 스테이징 검증(`npm run verify:staging -- --sha=<40자리 SHA>`)은 사용자 요청, 배포 인프라 변경, 운영 릴리스 전(`npm run verify:release`), 대형 결제·로그인 변경 후, 라우팅 변경 후, 스테이징 전용 버그 조사 때만 한다. 운영 승격은 별도 1회 승인 때만 수행한다.
 
-Do not wait for or manually verify staging deployment after every push. Once CI passes, continue to the next task. Verify staging only when explicitly requested, when deployment infrastructure changed, or during a final release verification.
+Do not wait for or manually verify staging deployment after every push. Do not wait for CI either: after a push, continue to the next task and check the main CI result once, right before the next push or the final report. Never loop on `sleep` + `gh run list`. If main is already red from someone else's commit, report that commit instead of pushing on top of it. Verify staging only when explicitly requested, when deployment infrastructure changed, or during a final release verification.
 Do not poll staging URLs, deployment status, commit SHA, or freshness markers after routine pushes.
 
 ## Compact Instructions
