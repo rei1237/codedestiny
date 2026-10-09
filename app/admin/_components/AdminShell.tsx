@@ -37,6 +37,7 @@ import { normalizeAppPathname } from "@/app/app/_lib/app-route";
 import { getFlowerAdminToken, redirectToAdminLogin } from "../_lib/admin-api";
 import { AdminUiModeProvider, useAdminUiMode } from "../_hq/ui-mode";
 import { adminButton } from "./ui";
+import AdminTaskReminder from "./AdminTaskReminder";
 
 export type AdminNavGroup = "hq" | "vault" | "library" | "parlor" | "workshop" | "control";
 
@@ -281,7 +282,12 @@ function ShellFrame({ pathname, children }: { pathname: string; children: React.
           </div>
         </nav>
 
-        <div className={`min-w-0${HQ_PADDED_ROUTES.has(pathname) ? " px-4 pt-4 lg:px-6 lg:pt-6" : ""}${hq ? " pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0" : ""}`}>{children}</div>
+        <div className={`min-w-0${HQ_PADDED_ROUTES.has(pathname) ? " px-4 pt-4 lg:px-6 lg:pt-6" : ""}${hq ? " pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0" : ""}`}>
+          {hq && pathname !== "/admin/hq-demo" ? (
+            <div className={HQ_PADDED_ROUTES.has(pathname) ? "" : "px-4 pt-4 lg:px-6 lg:pt-6"}><AdminTaskReminder /></div>
+          ) : null}
+          {children}
+        </div>
       </div>
 
       {hq ? (
