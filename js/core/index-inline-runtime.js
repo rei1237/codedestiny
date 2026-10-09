@@ -7922,6 +7922,15 @@ function openDestinyFlower(forceRefreshData) {
   return selection;
 }
 
+/** 스튜디오 시트는 지연 로드(모바일 최대 45초)라, 친구 꽃 링크처럼 탭 없이 열리면 맨 글자로 보인다. 열 때 바로 붙인다. */
+function _dfEnsureStudioStyles() {
+  var link = document.querySelector('link[data-cd-noncritical-style-src^="/styles/destiny-flower-cosmic.css"]');
+  if (!link || link.media === 'all') return;
+  if (link.getAttribute('rel') !== 'stylesheet') link.setAttribute('rel', 'stylesheet');
+  if (!link.getAttribute('href')) link.setAttribute('href', link.getAttribute('data-cd-noncritical-style-src'));
+  link.media = 'all';
+}
+
 function openDestinyFlowerStudio(source, gatePassed) {
   _dfCaptureOriginalTitle();
   _dfBindTitleRestoreGuards();
@@ -7932,6 +7941,7 @@ function openDestinyFlowerStudio(source, gatePassed) {
   var _dfActiveSource = _dfSetActiveSource(requestedSource);
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   if (!overlay) return;
+  _dfEnsureStudioStyles();
   if (overlay.style.display === 'block' && overlay.classList.contains('is-show')) {
     setDestinyFlowerSourceTab(_dfActiveSource, true);
     return;
@@ -8446,9 +8456,20 @@ function _dfRenderShareCard(ctx, done) {
     if (img) img.src = _dfBuildFlowerDataUri(item.selection, item.source);
   });
   var images = Array.prototype.slice.call(card.querySelectorAll('img'));
+  var tries = 0;
+  // 꽃 스튜디오 시트(destiny-flower-cosmic.css)는 지연 로드라 첫 탭 직후엔 아직 없을 수 있다.
+  // 카드가 제 크기(540px)로 잡힌 뒤에 찍어야 맨 글자만 찍힌 카드가 나가지 않는다.
+  var capture = function() {
+    if (card.offsetWidth !== 540) {
+      if (++tries > 40) { done(null); return; }
+      setTimeout(capture, 150);
+      return;
+    }
+    window.cdRenderElementToPngBlob(card, done);
+  };
   Promise.all(images.map(function(img) {
     return img.decode ? img.decode().catch(function() {}) : Promise.resolve();
-  })).then(function() { window.cdRenderElementToPngBlob(card, done); });
+  })).then(capture);
 }
 
 /* ── 공유 시트 ── */
@@ -8531,15 +8552,33 @@ function openDestinyFlowerShareSheet() {
   layer.hidden = false;
   var first = layer.querySelector('.df-share-action');
   if (first && first.focus) first.focus();
-  _dfPrimeKakaoSdk();
-  _dfRenderShareCard(ctx, function(blob) {
+  _dfEnsureShareScript(function() {
+    if (_dfShareState !== st) return;
+    // share.js 가 실린 뒤라야 링크에 리퍼럴(ref)이 붙는다 — 문구를 다시 만든다.
+    st.ctx = _dfShareContext(ctx.selection) || ctx;
+    _dfPrimeKakaoSdk();
+    _dfRenderShareCard(st.ctx, _dfOnShareCard(st));
+  });
+}
+
+/** 카드 캡처·리퍼럴·카카오 공유가 모두 js/share.js 에 있다. 그 파일은 지연 로드라 시트가 열릴 때 싣는다. */
+function _dfEnsureShareScript(done) {
+  if (typeof window.cdRenderElementToPngBlob === 'function' || typeof window.__cdLoadScriptOnce !== 'function') {
+    done();
+    return;
+  }
+  window.__cdLoadScriptOnce('/js/share.js?v=build-40c44ab2560d').then(function() { done(); }, function() { done(); });
+}
+
+function _dfOnShareCard(st) {
+  return function(blob) {
     st.blob = blob;
     st.rendering = false;
     var waiters = st.waiters;
     st.waiters = [];
     if (_dfShareState !== st) return;
     waiters.forEach(function(run) { run(blob); });
-  });
+  };
 }
 
 function closeDestinyFlowerShareSheet() {
