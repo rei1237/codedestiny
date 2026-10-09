@@ -16,17 +16,17 @@ const replacements={
   'worker/yeongnyangi/repository.js':`const rows=()=>globalThis.__spreadTest.rows;
 export const allowedChapterAttempts=()=>3;export const holdAutoResumes=()=>false;export const userCanRetry=()=>false;export const saveChapterDraft=async()=>{};export const saveAskAnalysis=async()=>{};export const ownerId=x=>x;
 export const reserveQuestionSkyFollowup=async()=>{throw new Error('unexpected followup');};export const attachPayment=async()=>{throw new Error('unexpected payment');};
-export const claimChapter=async()=>{throw new Error('unexpected claim');};export const finishChapter=async()=>{};export const failChapter=async()=>{};
+export const claimChapter=async()=>{const c=globalThis.__spreadTest.claim;if(!c)throw new Error('unexpected claim');return c;};export const finishChapter=async()=>{};export const failChapter=async(e,u,id,t,code)=>{globalThis.__spreadTest.failed=code;};
 export const createRequest=async(e,u,id,v,o={})=>{if(!rows().has(id))rows().set(id,structuredClone({...v,_id:id,userId:u,state:o.initialState||'CREATED',chapters:[]}));return rows().get(id);};
 export const readRequest=async(e,u,id)=>{const row=rows().get(id);if(!row||row.userId!==u)throw Object.assign(new Error('not found'),{code:'FORTUNE_NOT_FOUND',status:404});return row;};
 export const commitTarotDraw=async(e,u,id,{context,draw})=>{const row=await readRequest(e,u,id);if(row.state==='AWAITING_DRAW'&&!row.snapshot.tarotDraw){row.state='CREATED';row.snapshot.analysis.contexts.tarot=context;row.snapshot.tarotDraw=draw;return row;}
  if(row.snapshot.tarotDraw)return row;throw Object.assign(new Error('TAROT_DRAW_NOT_AVAILABLE'),{code:'TAROT_DRAW_NOT_AVAILABLE',status:409});};`,
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
-  'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
+  'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){globalThis.__spreadTest.calls=(globalThis.__spreadTest.calls||0)+1;throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
 };
 const bundle=await build({stdin:{contents:"export * from './worker/yeongnyangi/service'; export {products} from './worker/yeongnyangi/payments/catalog'; export {getYeongnyangiSpread} from './lib/tarot/yeongnyangi-spread-catalog.mjs'; export {buildTarotMasterContract,validateTarotChapter} from './worker/yeongnyangi/fortune/tarot/master-reading';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('tarot-spread-v3-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
-const {prepareFortune,presentFortune,drawTarotSpread,products,buildTarotMasterContract,validateTarotChapter}=loaded.exports;
+const {prepareFortune,presentFortune,drawTarotSpread,generateNextChapter,products,buildTarotMasterContract,validateTarotChapter}=loaded.exports;
 
 const env={GEMINIF_API_KEY:'mock-never-sent',LLM_DRY_RUN:'false'};
 let attempt=0;
@@ -234,4 +234,16 @@ test('question purpose allows a seven-card reunion at mackerel price and persist
  const saved=structuredClone(drawn.snapshot.tarotDraw);
  assert.deepEqual((await drawTarotSpread(env,'purpose-tarot',row._id,{auto:true})).snapshot.tarotDraw,saved);
  assert.equal(drawn.snapshot.manifest[0].questionPolicy,'question-consultation-20261007');
+});
+test('D6: a v3 spread whose cards were never drawn fails before any provider call',async()=>{
+ const row=await prepareFortune(env,'nodraw-owner',order());
+ assert.equal(row.state,'AWAITING_DRAW');assert.equal(row.snapshot.tarotDraw,undefined);
+ globalThis.__spreadTest.calls=0;globalThis.__spreadTest.claim={row:{...row,state:'GENERATING'},token:'lease'};
+ await assert.rejects(()=>generateNextChapter(env,'nodraw-owner',row._id),e=>e.code==='TAROT_DRAW_REQUIRED');
+ assert.equal(globalThis.__spreadTest.calls,0);assert.equal(globalThis.__spreadTest.failed,'TAROT_DRAW_REQUIRED');
+ const drawn=await drawTarotSpread(env,'nodraw-owner',row._id,{picks:[70,3,41,12,0]});
+ globalThis.__spreadTest.claim={row:{...drawn,state:'GENERATING'},token:'lease'};
+ await assert.rejects(()=>generateNextChapter(env,'nodraw-owner',row._id),e=>e.code!=='TAROT_DRAW_REQUIRED');
+ assert.equal(globalThis.__spreadTest.calls,1,'a drawn spread reaches the provider');
+ globalThis.__spreadTest.claim=undefined;
 });

@@ -15,7 +15,10 @@ test('approved scope, prices and followups share one registry contract',()=>{
   const decision=d({category,target,horizon,relationshipType:'romantic_adults'}),plan=p.recommendQuestion('saju',decision);
   assert.equal(plan.fish,fish);assert.equal(p.FOLLOWUP_LIMITS[fish],limit);
   for(const product of p.products.filter(x=>x.readingKind==='single'&&x.fishId===fish))assert.equal(product.priceKRW,price);
-  assert.equal(p.questionManifest('saju',fish,decision)[0].minimumChars,0);
+  // D7/D8: new layouts repair below 55% of the chapter target; the legacy manifest keeps no minimum.
+  const row=p.questionManifest('saju',fish,decision)[0];
+  assert.equal(row.minimumChars,Math.ceil(row.targetChars[0]*.55));
+  assert.equal(p.questionManifest('saju',fish,decision,undefined,'',false)[0].minimumChars,0);
  }
 });
 test('short career questions are checked by subject and decision, not length or emotion',()=>{
@@ -108,5 +111,13 @@ test('all included followups remain available until every saved answer is used',
    assert.equal(p.reserveConversation(c,limit,'q'+i,'질문 '+i,0,'replay'),c);
   }
   assert.throws(()=>p.reserveConversation(c,limit,'extra','한도 밖의 질문',0,'extra'),/QUESTION_CONVERSATION_CLOSED/);
+ }
+});
+test('D5: a ziwei job change reads career palaces without the business basis; other questions keep it',()=>{
+ for(const expanded of [true,false]){
+  const sel=category=>p.questionManifest('ziwei','salmon',d({category}),undefined,'',expanded).flatMap(row=>row.factSelectors.ziwei||[]);
+  assert.ok(!sel('job_change').includes('businessBasis'),`expanded=${expanded}`);
+  assert.ok(sel('job_change').includes('palaces'));
+  assert.ok(sel('money').includes('businessBasis'),`expanded=${expanded}`);
  }
 });

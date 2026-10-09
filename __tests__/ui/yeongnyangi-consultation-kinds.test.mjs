@@ -383,6 +383,30 @@ test('new question generation keeps expert evidence through the actual provider 
  }
 });
 
+test('D7 mackerel question chapters get distinct tasks and scenes; layout chapters carry earlier year judgments',async()=>{
+ const base={version:'question-consultation-20261007',target:'self',horizon:'current',situation:'현재 상황',options:'선택지',period:'2027년',constraints:'없음',confirmed:true};
+ const capture=async(chapter,analysis,previous=[])=>{
+  let captured;
+  await new loaded.exports.StructuredChapterProvider({generate:async req=>{captured=req;throw new Error('captured');}}).generateChapter({chapter,analysis,previous,locale:'ko'}).catch(()=>{});
+  assert.ok(captured,chapter.id);return JSON.parse(captured.domainRules);
+ };
+ const mackerel=await prepareFortune(env,'d7-mackerel',{...body,productId:'saju_mackerel',questionDecision:{...base,category:'self'},question:'거절할 때 어떻게 말할까?'});
+ assert.equal(mackerel.snapshot.manifest.length,6);
+ const rules=[];for(const chapter of mackerel.snapshot.manifest)rules.push(await capture(chapter,mackerel.snapshot.analysis));
+ assert.equal(new Set(rules.map(r=>r.narrativeTask)).size,6);
+ assert.ok(rules.every(r=>!r.narrativeTask.startsWith('이번 장의 고유 질문')));
+ assert.equal(new Set(rules.map(r=>r.exampleScene)).size,6);assert.ok(rules.every(r=>r.exampleScene));
+ const salmon=await prepareFortune(env,'d7-salmon',{...body,productId:'saju_salmon',questionDecision:{...base,category:'money'},question:'재물 관리에서 무엇을 준비할까?'});
+ const claim='2027년에는 옮기기보다 준비를 다지는 편이 유리합니다.';
+ const previous=[{summary:'요약',example:'',topics:[],blocks:[{id:'meaning',title:'답',paragraphs:[claim+' 다른 문장입니다.',claim]}]}];
+ const later=await capture(salmon.snapshot.manifest[3],salmon.snapshot.analysis,previous);
+ assert.match(later.narrativeTask,/^이번 장의 고유 질문/);assert.equal(later.exampleScene,undefined);
+ assert.deepEqual(later.previousYearClaims.claims,[claim]);
+ // Chapters without the D7 layout marker keep their previous prompt.
+ const legacy=await capture({...salmon.snapshot.manifest[3],consultationLayout:undefined},salmon.snapshot.analysis,previous);
+ assert.equal(legacy.previousYearClaims,undefined);
+});
+
 test('new question retries read the immutable intent before profile changes and provider readiness',async()=>{
  const input={...body,question:'일상의 부탁을 어떻게 거절할까?',consultationAttemptId:'12345678-1234-4234-8234-123456789abc',questionDecision:{version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'업무 부탁',options:'',period:'',constraints:'',confirmed:true}};
  const first=await prepareFortune(env,'stable-question',input);

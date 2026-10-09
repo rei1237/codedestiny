@@ -15,7 +15,7 @@ const ko={
  guideTitle:'네 이야기에, 작은 달빛 하나.',guideIntro:'함께 살펴볼 흐름부터 골라보자.',
  summary:'선택한 상담',profile:'함께 읽을 프로필',structure:'상담 구성',methodTitle:'해석 방식',paymentTitle:'이용 방식',
  payment:"Family 이용권 · 월정석 · 단건 결제",priceHint:'가격은 대한민국 원(KRW) 기준입니다. 결제창에서 적용 수단과 총액을 확인해 주세요.',
- chapters:'개 챕터',target:'자 목표 · 본문 기준',contents:'챕터 목차',
+ chapters:'개 챕터',target:'분량 · 본문 기준',contents:'챕터 목차',
  afterPayment:'결제 후 선택한 챕터를 생성해요. 생성 시간은 분량과 대기 상태에 따라 달라져요. 저장된 내용과 진행 상황은 내 상담 기록에서 확인할 수 있어요.',
  library:'이미 구매한 상담 확인하기',start:'상담 구성과 결제 조건 확인하기',depth:'상담의 깊이를 골라줘',depthHint:'가격과 챕터 수, 본문 분량 목표를 비교해 봐.',selected:'선택됨',
  sample:'상담 예시 읽기',sampleHint:'형식을 보여주는 가상의 편집 예시이며 실제 고객 결과가 아니에요.',

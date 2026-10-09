@@ -1,4 +1,4 @@
-import {CHAPTER_DELIVERY_VERSION,CHAPTER_LEASE_MS,chapterDeliveryFailure,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
+import {CHAPTER_DELIVERY_VERSION,chapterDeliveryFailure,chapterLeaseMs,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
 import {AUTOMATIC_CHAPTER_ATTEMPTS,MANUAL_CHAPTER_RECOVERY_LIMIT,SYSTEM_CHAPTER_RETRY_GRANT} from './chapter-retry-policy.js';
 export {AUTOMATIC_CHAPTER_ATTEMPTS,MANUAL_CHAPTER_RECOVERY_LIMIT,SYSTEM_CHAPTER_RETRY_GRANT};
 import { storedChapterDraft } from './stored-chapter.js';
@@ -472,7 +472,7 @@ export async function claimChapter(env, userId, requestId, source = 'queue', opt
     $and:[{$or:[{nextAttemptAt:null},{nextAttemptAt:{$lte:now}}]},
       {$or:[{[attemptKey]:{$exists:false}},{[attemptKey]:chapterAttempts}]}],
     $or:[{leaseUntil:null},{leaseUntil:{$lte:now}}],
-  },{$set:{state:'GENERATING',leaseToken:token,leaseUntil:new Date(now.getTime()+CHAPTER_LEASE_MS),errorCode:''},
+  },{$set:{state:'GENERATING',leaseToken:token,leaseUntil:new Date(now.getTime()+chapterLeaseMs(current)),errorCode:''},
     ...(!options.storedOnly&&!storedChapterDraft(current)?{$inc:{attempts:1,[`chapterAttempts.${ordinal}`]:1}}:{}),
     $push:{recoveryAudit:{kind:'generation_claim',source:['queue','scheduled'].includes(source)?source:'queue',chapter:ordinal,at:now}}}, {new:true,...(session?{session}:{})}).lean();
   const row=await withMongoRetry(env,async()=>{
@@ -569,14 +569,15 @@ async function completeStoredRequest(env, userId, requestId, total, token = '') 
 
 // A durable local edit separates generation from result storage. Replaying the
 // same owner/lease-scoped checkpoint is idempotent and does not spend LLM budget.
-export async function saveChapterDraft(env,userId,requestId,token,ordinal,draft) {
-  const field=`generationCheckpoint.chapterDrafts.${ordinal}`;
+// shortDrafts holds a length-only shortfall kept for its repair; it is never delivered by storedChapterDraft.
+export async function saveChapterDraft(env,userId,requestId,token,ordinal,draft,slot='chapterDrafts') {
+  const field=`generationCheckpoint.${slot}.${ordinal}`;
   const filter={_id:requestId,userId:ownerId(userId),state:'GENERATING',leaseToken:token};
   // Repeating this lease-scoped $set is idempotent, even if its acknowledgement
   // was lost. Retry transient storage errors without another provider call.
   await withMongoRetry(env,()=>YeongnyangiRequest.updateOne(filter,{$set:{[field]:draft}}));
   const stored=await readRequest(env,userId,requestId);
-  if(JSON.stringify(stored.generationCheckpoint?.chapterDrafts?.[ordinal])!==JSON.stringify(draft))throw failure(503,'RESULT_STORAGE_UNAVAILABLE');
+  if(JSON.stringify(stored.generationCheckpoint?.[slot]?.[ordinal])!==JSON.stringify(draft))throw failure(503,'RESULT_STORAGE_UNAVAILABLE');
 }
 
 export async function finishChapter(env, userId, requestId, token, ordinal, body, total) {
