@@ -6985,7 +6985,7 @@ function _dfReloadSourceData(source, options) {
   // 꽃 아트(window.CDFlowerArt)만 브라우저에 올린다. 매칭 엔진은 워커에 있다.
   if (!window.CDFlowerArt) {
     loader = loader.then(function() {
-      return import('/js/core/bootstrapDestinyFlower.js?v=build-d20780a7ec36').then(function(mod) {
+      return import('/js/core/bootstrapDestinyFlower.js?v=build-c8f400f0490a').then(function(mod) {
         if (mod && typeof mod.bootstrapDestinyFlower === 'function') {
           mod.bootstrapDestinyFlower(window);
         }
