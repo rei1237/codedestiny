@@ -21,7 +21,7 @@ import {validateAskChapter} from '../fortune/ask/validate';
 import {blockAnchorNames,sanitizeBlockAnchors,withBlockAnchorsSchema} from '../fortune/block-anchors';
 import {escapeAskData, type AskAnalysis} from '../fortune/ask/analysis';
 import type {EvidencePacket} from '../fortune/ask/contracts';
-import {alignRelativeYears, assertProfessionalProse, correctPersonaAddress, correctProseMarkup, redactInternalEvidence, tarotPositionNames, validateConsultationAnswers, validatePreciseTiming, natalOnlyTiming, professionalEvidenceNames, yearGanji} from '../fortune/consultation';
+import {alignRelativeYears, assertProfessionalProse, correctDashaSequence, correctPersonaAddress, correctProseMarkup, redactInternalEvidence, tarotPositionNames, validateConsultationAnswers, validatePreciseTiming, natalOnlyTiming, professionalEvidenceNames, yearGanji} from '../fortune/consultation';
 import {
   ChapterBody,
   ChapterSpec,
@@ -94,6 +94,8 @@ export function correctChapterProse(v: ChapterBody, input: ChapterRequest): Chap
   // An internal ID in the prose is corrected before any length or language check reads it, not regenerated (principle 17).
   const markup=correctProseMarkup(v,input.locale||'ko');
   if(markup.count){v=markup.body;console.log('[yeongnyangi-markup-correction]',JSON.stringify({chapter:input.chapter.ordinal,count:markup.count}));}
+  const dasha=correctDashaSequence(v,Object.values(input.analysis.contexts).flatMap(c=>selectChapterFacts(c,input.chapter,input.analysis.topicId)));
+  if(dasha.count){v=dasha.body;console.log('[yeongnyangi-dasha-correction]',JSON.stringify({chapter:input.chapter.ordinal,count:dasha.count}));}
   const redacted=redactInternalEvidence(v,input.analysis.question,factLabels,input.locale,tarotPositionNames(input.analysis.contexts.tarot));
   if(redacted.count){v=redacted.body;console.log('[yeongnyangi-redaction]',JSON.stringify({chapter:input.chapter.ordinal,count:redacted.count}));}
   const name=input.persona?PERSONA_NAMES[input.persona]:undefined;

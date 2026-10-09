@@ -364,16 +364,57 @@ export function validateYearlyPalaces(text: string, evidence: unknown) {
 }
 
 // The last antardasha of a mahadasha is fixed by the cycle order: it is the lord just before the mahadasha lord.
-export function validateDashaSequence(text: string, evidence: unknown) {
-  const md=(Array.isArray(evidence)?evidence:[]).map((f:any)=>f?.label==='vimshottariDasha'?f.value?.currentMahadasha?.lord:undefined).find(Boolean);
+function dashaCycle(evidence: unknown) {
+  // Question chapters carry the dasha inside questionTiming periods, not as a vimshottariDasha fact.
+  const md=(Array.isArray(evidence)?evidence:[]).flatMap((f:any)=>f?.label==='vimshottariDasha'?[f.value?.currentMahadasha?.lord]
+   :f?.label==='questionTiming'&&Array.isArray(f.value?.periods)?f.value.periods.map((p:any)=>p?.currentMahadasha?.lord):[]).find(Boolean);
   const i=DASHA_ORDER.indexOf(md);
   if(i<0)return;
-  const last=PLANET_KO[DASHA_ORDER[(i+8)%9]], lords=DASHA_ORDER.map(l=>PLANET_KO[l]).join('|');
+  const lords=DASHA_ORDER.map(l=>PLANET_KO[l]).join('|');
+  return {lord:PLANET_KO[md],last:PLANET_KO[DASHA_ORDER[(i+8)%9]],beforeLast:PLANET_KO[DASHA_ORDER[(i+7)%9]],
+    otherMahadasha:new RegExp(`(${lords})\\s*(?:\\([^)]*\\)\\s*)?마하다샤`,'gu'),
+    lastClaim:new RegExp(`마지막(\\s*안타르다샤(?:\\s*\\([^)]*\\))?(?:인\\s*|\\s+))(${lords})(?:\\s*-\\s*(${lords}))?(?![가-힣]*\\s*(?:이\\s*)?아니)`,'gu')};
+}
+const namesOtherMahadasha=(sentence:string,cycle:NonNullable<ReturnType<typeof dashaCycle>>)=>[...sentence.matchAll(cycle.otherMahadasha)].some(m=>m[1]!==cycle.lord);
+
+export function validateDashaSequence(text: string, evidence: unknown) {
+  const cycle=dashaCycle(evidence);
+  if(!cycle)return;
   for(const sentence of text.split(/\n|(?<=[.!?。])\s+/)){
-    if([...sentence.matchAll(new RegExp(`(${lords})\\s*(?:\\([^)]*\\)\\s*)?마하다샤`,'gu'))].some(m=>m[1]!==PLANET_KO[md]))continue;
-    for(const m of sentence.matchAll(new RegExp(`마지막\\s*안타르다샤(?:\\s*\\([^)]*\\))?(?:인\\s*|\\s+)(${lords})(?:\\s*-\\s*(${lords}))?(?![가-힣]*\\s*(?:이\\s*)?아니)`,'gu')))
-      if((m[2]||m[1])!==last)throw new FortuneError('CHAPTER_DASHA_SEQUENCE_MISMATCH');
+    if(namesOtherMahadasha(sentence,cycle))continue;
+    for(const m of sentence.matchAll(cycle.lastClaim))
+      if((m[3]||m[2])!==cycle.last)throw new FortuneError('CHAPTER_DASHA_SEQUENCE_MISMATCH');
   }
+}
+
+// Principle 17: the antardasha just before the last one, called "the last" ('마지막 안타르다샤인 금성' in a Moon
+// mahadasha whose last is the Sun), is corrected to '마지막 바로 앞'. Any other wrong lord is left for validation.
+export function correctDashaSequence(body: ChapterBody, evidence: unknown): { body: ChapterBody; count: number } {
+  const cycle=dashaCycle(evidence);
+  if(!cycle)return { body, count: 0 };
+  let count = 0;
+  const fix = (value: unknown) => {
+    if (typeof value !== 'string' || !value.includes('마지막')) return value;
+    return value.split(/(?<=[.!?。\n])/u).map(sentence=>namesOtherMahadasha(sentence,cycle)?sentence:
+      sentence.replace(cycle.lastClaim,(whole,link,lord,pair,at)=>{
+        if(pair||lord!==cycle.beforeLast)return whole;
+        count++;
+        // '마지막 안타르다샤인 금성과 태양' names the last two together.
+        const both=new RegExp(`^\\s*(?:과|와)\\s*${cycle.last}`).test(sentence.slice(at+whole.length));
+        return `마지막 ${both?'두':'바로 앞'}${link}${lord}`;
+      })).join('');
+  };
+  const out: ChapterBody = { ...body, summary: fix(body.summary) as string, example: fix(body.example) as string,
+    advice: fix(body.advice) as string, persona: fix(body.persona) as string,
+    analysis: Array.isArray(body.analysis) ? body.analysis.map(fix) as string[] : body.analysis,
+    highlights: Array.isArray(body.highlights) ? body.highlights.map(fix) as string[] : body.highlights,
+    ...(body.title === undefined ? {} : { title: fix(body.title) as string }),
+    ...(Array.isArray(body.blocks) ? { blocks: body.blocks.map(b => !b || typeof b !== 'object' ? b : { ...b, title: fix(b.title) as string,
+      paragraphs: Array.isArray(b.paragraphs) ? b.paragraphs.map(fix) as string[] : b.paragraphs }) } : {}),
+    ...(Array.isArray(body.questionAnswers) ? { questionAnswers: body.questionAnswers.map(a => !a || typeof a !== 'object' ? a :
+      { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string, ...(typeof a.review === 'string' ? { review: fix(a.review) as string } : {}) }) } : {}),
+  };
+  return count ? { body: out, count } : { body, count: 0 };
 }
 
 // Facts that move with time. A question chapter holding none of them can name a period but cannot rank one.

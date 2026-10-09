@@ -7,7 +7,7 @@ import path from 'node:path';
 const require=createRequire(import.meta.url), Module=require('node:module');
 const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/consultation'; export {questionFactSelectors,readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {buildAskFirstChapterPrompt} from './worker/yeongnyangi/fortune/ask/prompt'; export {products} from './worker/yeongnyangi/payments/catalog'; export * from './worker/yeongnyangi/fortune/ask/period';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const loaded=new Module(path.resolve('consultation-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,loaded.id);
-const {resolveAskPeriods,formatAskRange,applyAskPeriodChip,resolveQuestionYears,consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,validateMonthPillars,natalOnlyTiming,assertProfessionalProse,redactInternalEvidence,tarotPositionNames,correctPersonaAddress,correctProseMarkup,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
+const {resolveAskPeriods,formatAskRange,applyAskPeriodChip,resolveQuestionYears,consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,validateMonthPillars,natalOnlyTiming,assertProfessionalProse,redactInternalEvidence,tarotPositionNames,correctPersonaAddress,correctDashaSequence,correctProseMarkup,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
 const clock=consultationClock('Asia/Seoul',new Date('2026-09-21T23:00:00Z'));
 const manifest=readingManifest(products.find(p=>p.id==='saju_mackerel'));
 const make=(q='',topic='general',ask=false)=>createConsultation(q,topic,clock,manifest,ask);
@@ -337,6 +337,26 @@ test('only the antardasha before the mahadasha lord in the cycle may be called i
  for(const text of ['그다음 달 마하다샤의 마지막 안타르다샤인 태양 시기가 이어져.','마지막 안타르다샤인 달-태양 시기에는 정리가 중요해.','마지막 안타르다샤는 금성이 아니라 태양이야.','화성 마하다샤의 마지막 안타르다샤인 달 시기는 아직 멀었어.'])
   assert.doesNotThrow(()=>validatePreciseTiming(body(text),{},vedic),text);
  assert.doesNotThrow(()=>validatePreciseTiming(body('마지막 안타르다샤인 금성 시기야.'),{},[]));
+ // D7 Y3 question chapters: the dasha arrives as questionTiming periods only.
+ const asked=[{id:'vedic.questionTiming',label:'questionTiming',value:{periods:[{currentMahadasha:{lord:'Moon',startDate:'2018-01-21',endDate:'2028-01-22'},currentAntardasha:{lord:'Venus',startDate:'2025-11-21',endDate:'2027-07-23'}}]}}];
+ assert.throws(()=>validatePreciseTiming(body('지금 너는 달 마하다샤(Moon Mahadasha)의 마지막 안타르다샤인 금성 안타르다샤(Venus Antardasha)를 지나고 있어.'),{},asked),{code:'CHAPTER_DASHA_SEQUENCE_MISMATCH'});
+ assert.doesNotThrow(()=>validatePreciseTiming(body('그다음 달 마하다샤의 마지막 안타르다샤인 태양 시기가 이어져.'),{},asked));
+});
+
+test('the second to last antardasha called the last is corrected to just before the last, not regenerated',()=>{
+ const asked=[{id:'vedic.questionTiming',label:'questionTiming',value:{periods:[{currentMahadasha:{lord:'Moon',startDate:'2018-01-21',endDate:'2028-01-22'},currentAntardasha:{lord:'Venus',startDate:'2025-11-21',endDate:'2027-07-23'}}]}}];
+ const body=(summary,paragraph='')=>({summary,example:'',advice:'',persona:'',analysis:[],blocks:[{title:'흐름',paragraphs:[paragraph]}],questionAnswers:[]});
+ const out=correctDashaSequence(body('지금 너는 달 마하다샤의 마지막 안타르다샤인 금성 시기야. 그다음 마지막 안타르다샤인 태양 시기가 와.','달 마하다샤(Moon Mahadasha)의 마지막 안타르다샤(Antardasha)인 금성 안타르다샤는 정리의 시간이야.'),asked);
+ assert.equal(out.count,2);
+ assert.equal(out.body.summary,'지금 너는 달 마하다샤의 마지막 바로 앞 안타르다샤인 금성 시기야. 그다음 마지막 안타르다샤인 태양 시기가 와.');
+ assert.equal(out.body.blocks[0].paragraphs[0],'달 마하다샤(Moon Mahadasha)의 마지막 바로 앞 안타르다샤(Antardasha)인 금성 안타르다샤는 정리의 시간이야.');
+ assert.doesNotThrow(()=>validatePreciseTiming(out.body,{},asked));
+ assert.equal(correctDashaSequence(body('지금은 달 마하다샤의 마지막 안타르다샤인 금성과 태양 시기야.'),asked).body.summary,'지금은 달 마하다샤의 마지막 두 안타르다샤인 금성과 태양 시기야.');
+ // Any other wrong lord, a pair, or another mahadasha's sentence is left as written for validation to judge.
+ for(const text of ['달 마하다샤의 마지막 안타르다샤인 화성 시기야.','마지막 안타르다샤인 달-금성 시기야.','금성 마하다샤의 마지막 안타르다샤인 금성 시기야.'])
+  assert.equal(correctDashaSequence(body(text),asked).count,0,text);
+ assert.throws(()=>validatePreciseTiming(body('달 마하다샤의 마지막 안타르다샤인 화성 시기야.'),{},asked),{code:'CHAPTER_DASHA_SEQUENCE_MISMATCH'});
+ assert.equal(correctDashaSequence(body('마지막 안타르다샤인 금성 시기야.'),[]).count,0);
 });
 
 test('a relative year word must agree with the year written after it',()=>{
