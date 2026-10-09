@@ -9,7 +9,8 @@ import {
   normalizeZodiacName,
   resolveMansionIndex,
   mansionByIndex,
-  ziweiStarElement
+  ziweiStarElement,
+  flowerLanguageKo
 } from './destiny-flower-traits.js';
 
 const ELEMENT_KEYS = ['wood', 'fire', 'earth', 'metal', 'water'];
@@ -266,6 +267,19 @@ const DESTINY_FLOWER_KO_TEXT = Object.freeze({
   'ziwei.rationale.verdict': '그래서 지금 당신에게 건네는 꽃은 {flowerName}입니다.',
   'ziwei.rationaleLabel.lifeStar': '명궁 주성',
   'ziwei.rationaleLabel.personality': '타고난 성격',
+  'common.bloomLabel.seed': '씨앗 · 일간',
+  'common.bloomLabel.season': '계절 · 태어난 때',
+  'common.bloomLabel.bloom': '그래서 피어난 꽃',
+  'common.bloom.verdict': '그래서 피어난 꽃 — {title}.',
+  'saju.bloom.season': '{season}에 태어난 당신처럼, 이 꽃도 {season}에 가장 환하게 피어나요.',
+  'saju.flowerLanguage.yongshin': "'{language}' — 용신 {elements} 기운을 머금은 이 꽃이 당신에게 건네는 말이에요.",
+  'saju.flowerLanguage.dayMaster': "'{language}' — {dayMasterBadge} 일간인 당신에게 이 꽃이 건네는 말이에요.",
+  'common.flowerLanguage.anchor': "'{language}' — {anchor}의 당신에게 이 꽃이 건네는 말이에요.",
+  'common.flowerLanguage.plain': "'{language}' — 지금의 당신에게 이 꽃이 건네는 말이에요.",
+  'saju.shareHook.raritySeason': '{dayMasterBadge} 일간 · {season} 태생의 사주가 {total}송이 가운데 고른 한 송이',
+  'saju.shareHook.rarityDayMaster': '{dayMasterBadge} 일간의 사주가 {total}송이 가운데 고른 한 송이',
+  'saju.shareHook.rarityPlain': '내 사주가 {total}송이 가운데 고른 한 송이',
+  'common.shareHook.rarityAnchor': '{anchorWith} 읽어 낸 단 한 송이',
 });
 
 /**
@@ -310,6 +324,7 @@ function localizeDestinyFlowerCopy(flower) {
     ...flower,
     name: destinyFlowerText(base + '.name', null, flower.name),
     symbolism: destinyFlowerText(base + '.symbolism', null, flower.symbolism),
+    flower_language: destinyFlowerText(base + '.flowerLanguage', null, flowerLanguageKo(id) || flower.symbolism),
     title: destinyFlowerText(base + '.title', null, flower.title || flower.name),
     description: destinyFlowerText(base + '.description', null, flower.description || flower.vibe_message || flower.symbolism),
     vibe_message: destinyFlowerText(base + '.vibeMessage', null, flower.vibe_message || flower.description || flower.symbolism)
@@ -907,13 +922,19 @@ export function matchAstrologyFlower(userData = {}, options = {}) {
     profile.domains.saju && profile.domains.saju.day_master && astroMatch.chart && astroMatch.chart.sun_sign
   );
 
+  const astroPoints = narrativeRationalePoints('astro', astroMatch.narrative, [
+    destinyFlowerText('astro.rationaleLabel.sun'),
+    destinyFlowerText('astro.rationaleLabel.risingMoon')
+  ]);
+  const astroAnchor = astroMatch.chart && astroMatch.chart.sun_sign
+    ? destinyFlowerText('astro.sunSignBadge', { sign: astroSignKo(astroMatch.chart.sun_sign) })
+    : '';
+
   return {
     profile,
     ...astroMatch,
-    rationale_points: narrativeRationalePoints('astro', astroMatch.narrative, [
-      destinyFlowerText('astro.rationaleLabel.sun'),
-      destinyFlowerText('astro.rationaleLabel.risingMoon')
-    ]),
+    rationale_points: astroPoints,
+    ...buildSourceViralExtras(astroMatch.flower, astroPoints, astroAnchor),
     ultimate_destiny_flower: hasSajuAndAstro
       ? {
           enabled: true,
@@ -1539,6 +1560,7 @@ export function matchJamidusuFlower(userData = {}, options = {}) {
     }),
     narrative,
     rationale_points: rationalePoints,
+    ...buildSourceViralExtras(jamiMatch.flower, rationalePoints, natal ? destinyFlowerText('ziwei.rationaleLabel.lifeStar') + ' ' + starsLabel : ''),
     strong_star: strongStar && strongStar.star
       ? { star: strongStar.star, palace: strongStar.palace, brightness: strongStar.brightness }
       : null,
@@ -2007,12 +2029,15 @@ export function matchSukuyoFlower(userData = {}, options = {}) {
   const phase = normalizeSukyoMoonPhase(options.moonPhase || sukuyo.phase || '', birth);
   const match = calculateSukyoFlower(mansionIndex, phase);
 
+  const sukuyoPoints = narrativeRationalePoints('sukuyo', match.narrative, [
+    destinyFlowerText('sukuyo.rationaleLabel.mansion')
+  ]);
+
   return {
     profile,
     ...match,
-    rationale_points: narrativeRationalePoints('sukuyo', match.narrative, [
-      destinyFlowerText('sukuyo.rationaleLabel.mansion')
-    ]),
+    rationale_points: sukuyoPoints,
+    ...buildSourceViralExtras(match.flower, sukuyoPoints, match.sukuyo && match.sukuyo.mansion_name),
     algorithm: {
       version: '1.0.0-sukuyo-flower',
       note: '27숙 그룹/수호동물 + 달 위상(이클립스/풀글로우) 기반 숙요 운명꽃 매칭 엔진',
@@ -4095,6 +4120,18 @@ function scoreFlower(profile, flower, dayMasterScenario) {
   };
 }
 
+/** 꽃이 실제로 품은 오행만 골라 '화(火)·수(水)' 처럼 잇는다. */
+function sharedElementText(flower, list) {
+  const elements = normalizeFlowerElementList(flower.elements);
+  return (Array.isArray(list) ? list : [])
+    .filter((el, i, arr) => el && elements.includes(el) && arr.indexOf(el) === i)
+    .map((el) => {
+      const key = normalizeElement(el);
+      return destinyFlowerText('saju.elements.' + key, null, ELEMENT_KOREAN_LABELS[key]);
+    })
+    .join('·');
+}
+
 /**
  * 점수에 실제로 더해진 사주 신호만 문장으로 만든다. 순서: 일간 기질 → 신강/신약 → 용신 → 조후.
  * 신호가 안 든 문장을 만들면 근거가 꾸며낸 말이 되므로, scoreFlower 의 matchedSignals 를 그대로 따른다.
@@ -4102,14 +4139,7 @@ function scoreFlower(profile, flower, dayMasterScenario) {
 function buildSajuSignalPoints(profile, flower, matchedSignals, dayMasterScenario) {
   const signals = Array.isArray(matchedSignals) ? matchedSignals : [];
   const saju = (profile.domains && profile.domains.saju) || {};
-  const elements = normalizeFlowerElementList(flower.elements);
-  const elementText = (list) => list
-    .filter((el, i, arr) => el && elements.includes(el) && arr.indexOf(el) === i)
-    .map((el) => {
-      const key = normalizeElement(el);
-      return destinyFlowerText('saju.elements.' + key, null, ELEMENT_KOREAN_LABELS[key]);
-    })
-    .join('·');
+  const elementText = (list) => sharedElementText(flower, list);
   const point = (key, labelKey, text) => ({ key, label: destinyFlowerText(labelKey), text });
   const points = [];
 
@@ -4160,6 +4190,96 @@ function buildRationalePoints(profile, flower, matchedSignals, dayMasterScenario
     }, '그래서 지금 당신에게 건네는 꽃은 ' + flower.name + '(' + flower.scientific_name + ')입니다.')
   });
   return points;
+}
+
+function sajuSeasonLabel(season) {
+  const fallback = { Spring: '봄', Summer: '여름', Autumn: '가을', Winter: '겨울' }[season];
+  return fallback ? destinyFlowerText('saju.seasons.' + season, null, fallback) : '';
+}
+
+function bloomVerdictStage(flower) {
+  return {
+    stage: 'bloom',
+    label: destinyFlowerText('common.bloomLabel.bloom'),
+    text: destinyFlowerText('common.bloom.verdict', { title: flower.title || flower.name })
+  };
+}
+
+/**
+ * 개화 서사: 씨앗(일간) → 계절 → 햇빛과 물(신강약·용신·조후) → 그래서 피어난 꽃.
+ * buildSajuSignalPoints 와 같은 matchedSignals 만 따르고, 신호가 없는 단계는 통째로 뺀다.
+ */
+function buildSajuBloomStory(profile, flower, matchedSignals, dayMasterScenario) {
+  const signals = Array.isArray(matchedSignals) ? matchedSignals : [];
+  const points = buildSajuSignalPoints(profile, flower, signals, dayMasterScenario);
+  const story = [];
+  points.filter((p) => p.key === 'day_master').forEach((p) => {
+    story.push({ stage: 'seed', label: destinyFlowerText('common.bloomLabel.seed'), text: p.text });
+  });
+  const season = signals.includes('season') ? sajuSeasonLabel(profile.core && profile.core.season) : '';
+  if (season) {
+    story.push({ stage: 'season', label: destinyFlowerText('common.bloomLabel.season'), text: destinyFlowerText('saju.bloom.season', { season }) });
+  }
+  points.filter((p) => p.key !== 'day_master').forEach((p) => {
+    story.push({ stage: 'light', label: p.label, text: p.text });
+  });
+  story.push(bloomVerdictStage(flower));
+  return story;
+}
+
+/** 나의 꽃말: 전통 꽃말에 실제로 맞은 용신(없으면 일간)을 붙인다. */
+function buildSajuFlowerLanguage(profile, flower, matchedSignals, dayMasterScenario) {
+  const language = flower.flower_language || '';
+  if (!language) return '';
+  const signals = Array.isArray(matchedSignals) ? matchedSignals : [];
+  const saju = (profile.domains && profile.domains.saju) || {};
+  const yongshin = signals.includes('yongshin_element') ? sharedElementText(flower, saju.yongshin_elements || []) : '';
+  if (yongshin) return destinyFlowerText('saju.flowerLanguage.yongshin', { language, elements: yongshin });
+  const dayMasterBadge = (dayMasterScenario && dayMasterScenario.dayMasterBadge) || saju.day_master || '';
+  if (dayMasterBadge) return destinyFlowerText('saju.flowerLanguage.dayMaster', { language, dayMasterBadge });
+  return destinyFlowerText('common.flowerLanguage.plain', { language });
+}
+
+/** 공유 훅. 희소성 문장은 지어낸 확률 없이 실제 조건(일간·태어난 계절·후보 수)만 쓴다. */
+function buildSajuShareHook(profile, flower, dayMasterScenario) {
+  const saju = (profile.domains && profile.domains.saju) || {};
+  const dayMasterBadge = (dayMasterScenario && dayMasterScenario.dayMasterBadge) || saju.day_master || '';
+  const season = sajuSeasonLabel(profile.core && profile.core.season);
+  const rarityKey = dayMasterBadge
+    ? (season ? 'saju.shareHook.raritySeason' : 'saju.shareHook.rarityDayMaster')
+    : 'saju.shareHook.rarityPlain';
+  return {
+    headline: flower.title || flower.name,
+    one_liner: flower.vibe_message || '',
+    rarity_line: destinyFlowerText(rarityKey, { dayMasterBadge, season, total: flowerCatalog.length })
+  };
+}
+
+/**
+ * 점성술·자미두수·숙요의 개화 서사·나의 꽃말·공유 훅. 이미 만든 rationale_points 를 단계로 옮길 뿐
+ * 새 주장을 만들지 않는다. anchor 는 그 체계가 꽃을 고른 기준(태양궁·명궁 주성·본명숙)이다.
+ */
+function buildSourceViralExtras(flower, rationalePoints, anchor) {
+  const reasons = (Array.isArray(rationalePoints) ? rationalePoints : [])
+    .filter((p) => !/verdict$/.test(String(p.key || '')));
+  const story = reasons.map((p, i) => ({ stage: i === 0 ? 'seed' : 'light', label: p.label, text: p.text }));
+  story.push(bloomVerdictStage(flower));
+  const language = flower.flower_language || '';
+  let destinyLanguage = '';
+  if (language) {
+    destinyLanguage = anchor
+      ? destinyFlowerText('common.flowerLanguage.anchor', { language, anchor })
+      : destinyFlowerText('common.flowerLanguage.plain', { language });
+  }
+  return {
+    bloom_story: story,
+    destiny_flower_language: destinyLanguage,
+    share_hook: {
+      headline: flower.title || flower.name,
+      one_liner: flower.vibe_message || '',
+      rarity_line: anchor ? destinyFlowerText('common.shareHook.rarityAnchor', { anchorWith: withJosa(anchor, '으로', '로') }) : ''
+    }
+  };
 }
 
 function buildRationale(profile, flower, matchedSignals, dayMasterScenario) {
@@ -4260,6 +4380,24 @@ export function findUnifiedFlowerById(flowerId) {
   const target = String(flowerId || '').trim().toLowerCase();
   if (!target) return null;
   return unifiedFlowerCatalog.find((f) => String(f.id || '').toLowerCase() === target) || null;
+}
+
+/** 친구 공유 링크용 공개 카드. 꽃 자체의 정보만 담고 받는 사람의 사주·생일은 다루지 않는다. */
+export function getPublicFlowerCard(flowerId) {
+  const found = /^[a-z0-9_]{1,40}$/.test(String(flowerId || '')) ? findUnifiedFlowerById(flowerId) : null;
+  if (!found) return null;
+  const flower = localizeDestinyFlowerCopy(found);
+  return {
+    id: flower.id,
+    name: flower.name,
+    scientific_name: flower.scientific_name || '',
+    title: flower.title || flower.name,
+    flower_language: flower.flower_language || '',
+    vibe_message: flower.vibe_message || '',
+    primary_color: flower.primary_color || '',
+    secondary_color: flower.secondary_color || '',
+    elements: normalizeFlowerElementList(flower.elements)
+  };
 }
 
 /**
@@ -4379,6 +4517,9 @@ export function matchDestinyFlower(userData = {}, options = {}) {
     saju_verdict: sajuVerdict,
     narrative: buildRationale(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
     rationale_points: buildRationalePoints(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
+    bloom_story: buildSajuBloomStory(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
+    destiny_flower_language: buildSajuFlowerLanguage(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
+    share_hook: buildSajuShareHook(profile, displayFlower, dayMasterScenario),
     fallback_logic: {
       used: Boolean(profile.domains && profile.domains.saju && profile.domains.saju.day_master_fallback_used),
       source: profile.domains && profile.domains.saju && profile.domains.saju.day_master_source,

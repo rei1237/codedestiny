@@ -29,6 +29,7 @@ export const BADGES = {
   compatibility: "궁합",
   fortune: "오늘의 운세",
   insight: "인사이트",
+  flower: "운명의 꽃",
 };
 
 export const THEMES = {

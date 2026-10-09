@@ -120,3 +120,47 @@ test("GET 과 다른 경로는 매칭을 돌리지 않는다", async () => {
   const wrongPath = post({ profile: PROFILE }, "/api/destiny-flower/all");
   expect((await handleDestinyFlowerRoutes(wrongPath, {})).status).toBe(404);
 });
+
+test("89종 꽃 모두 꽃말이 있고 응답 꽃에 flower_language 가 실린다", async () => {
+  const { unifiedFlowerCatalog } = await import("../../worker/lib/destiny-flower-engine.js");
+  const { FLOWER_LANGUAGE_KO } = await import("../../worker/lib/destiny-flower-traits.js");
+  const missing = unifiedFlowerCatalog.map((f) => f.id).filter((id) => !FLOWER_LANGUAGE_KO[id]);
+  expect(missing).toEqual([]);
+  const res = await handleDestinyFlowerRoutes(post({ profile: PROFILE }), {});
+  const data = await res.json();
+  const sajuFlower = data.sources.saju.flower;
+  expect(sajuFlower.flower_language).toBe(FLOWER_LANGUAGE_KO[sajuFlower.id]);
+});
+
+test("개화 서사는 점수에 든 신호의 단계만 만들고 공유 훅에 지어낸 확률이 없다", async () => {
+  const { matchDestinyFlower } = await import("../../worker/lib/destiny-flower-engine.js");
+  for (const saju of [{ dayStem: "을" }, { dayStem: "을", is_strong: false, johu_type: "hot" }, { dayStem: "경", is_strong: true }]) {
+    const result = matchDestinyFlower({ ...PROFILE, saju }, { limit: 3 });
+    const signals = result.candidates[0].matchedSignals;
+    const stages = result.bloom_story.map((s) => s.stage);
+    expect(stages[stages.length - 1]).toBe("bloom");
+    expect(stages.includes("season")).toBe(signals.includes("season"));
+    const lightSignals = ["strength_release", "strength_support", "yongshin_element", "johu_warm", "johu_cool"];
+    expect(stages.filter((s) => s === "light").length).toBe(signals.filter((s) => lightSignals.includes(s)).length);
+    expect(result.destiny_flower_language).toContain(result.flower.flower_language);
+    expect(result.share_hook.rarity_line).not.toMatch(/%/);
+  }
+});
+
+test("친구 꽃 공개 카드는 로그인 없이 꽃 정보만 주고 모르는 id 는 404", async () => {
+  authResult = null;
+  const get = (id) => new Request("https://code-destiny.com/api/destiny-flower/flower/" + id, { method: "GET" });
+  const res = await handleDestinyFlowerRoutes(get("magnolia"), {});
+  expect(res.status).toBe(200);
+  expect(res.headers.get("Cache-Control")).toMatch(/public/);
+  const data = await res.json();
+  expect(Object.keys(data.flower).sort()).toEqual(
+    ["elements", "flower_language", "id", "name", "primary_color", "scientific_name", "secondary_color", "title", "vibe_message"],
+  );
+  expect(data.flower.flower_language).toBeTruthy();
+  for (const bad of ["nope", "..%2Fmatch", "%E0%A4%A"]) {
+    expect((await handleDestinyFlowerRoutes(get(bad), {})).status).toBe(404);
+  }
+  const post = new Request("https://code-destiny.com/api/destiny-flower/flower/magnolia", { method: "POST" });
+  expect((await handleDestinyFlowerRoutes(post, {})).status).toBe(405);
+});
