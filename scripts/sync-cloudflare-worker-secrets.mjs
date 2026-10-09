@@ -240,14 +240,12 @@ const SECRET_KEYS = [
   "INIAPIKEY",
   "INIAPI_IV",
   "GEMINIF_API_KEY",
-  "YOUTUBE_API_KEY",
   "YOUTUBE_DATA_API_KEY",
   "GOOGLE_YOUTUBE_API_KEY",
   "PEXELS_API_KEY",
   "GEMINI_MODEL",
   "LIFEBOOK_GEMINI_MODEL",
   "LOVE_SECRET_GEMINI_MODEL",
-  "PSYCHO_ANALYSIS_GEMINI_MODEL",
   "SUKUYO_GEMINI_MODEL",
   "ASTRO_GEMINI_MODEL",
   "VEDIC_GEMINI_MODEL",
@@ -283,7 +281,6 @@ const SECRET_KEYS = [
   "ADMIN_SMTP_USER",
   "ADMIN_SMTP_PASS",
   "ADMIN_SMTP_FROM",
-  "POINT_CHARGE_PACKAGES",
   // SNS 일일 자동 발행(worker/lib/telegram.js). 목록에 없으면 --only-key 로도 밀어 넣을 수 없어
   // .env.local 에 값을 넣어 둬도 프로덕션 워커에는 영영 도달하지 않는다.
   "TELEGRAM_BOT_TOKEN",
