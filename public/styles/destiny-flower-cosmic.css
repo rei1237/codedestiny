@@ -1033,7 +1033,7 @@ html:has(#destinyFlowerStudioOverlay.is-show) { scrollbar-gutter: auto !importan
 #destinyFlowerStudioOverlay .df-studio-sheet .df-studio-chip { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; }
 #destinyFlowerStudioOverlay .df-studio-sheet .df-studio-chip .df-ico { color: var(--dfd-gold-ink); }
 #destinyFlowerStudioOverlay .df-studio-sheet .df-studio-chip--danger .df-ico { color: currentColor; }
-#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-btn--primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-btn--primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; }
 
 @media (max-width: 640px) {
   #destinyFlowerStudioOverlay .df-studio-sheet .df-studio-main { padding: 20px 16px; }
