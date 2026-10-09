@@ -5,7 +5,7 @@ import { CrmPreference, CrmRelationship } from '../lib/kakao-crm-models.js';
 import { json, readJson, getRoutePath, handleRouteError, createHttpError, notFound, methodNotAllowed } from '../lib/http.js';
 import { KAKAO_CHANNEL, CRM_CONSENT_TEXT, CRM_CONSENT_VERSION, CRM_SOURCES } from '../../lib/marketing/kakao-crm.mjs';
 
-function checkOrigin(request) {
+export function checkOrigin(request) {
   const origin = request.headers.get('Origin');
   const own = new URL(request.url).origin;
   if (!origin || ![own, 'https://code-destiny.com', 'https://staging.code-destiny.com'].includes(origin)) throw createHttpError(403, 'Invalid origin');

@@ -31,6 +31,7 @@ import {
   JWT_ISSUER,
 } from "../lib/auth.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, redirect } from "../lib/http.js";
+import { EMAIL_MARKETING_CONSENT_VERSION } from "../../lib/marketing/email-marketing.mjs";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { buildProfilePolicySnapshot } from "../lib/profile-limits.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
@@ -1029,6 +1030,14 @@ async function withOptionalAuthSideEffect(task, timeoutMs, label, fallback = nul
     console.warn(`[auth/side-effect] ${label} skipped:`, error);
     return fallback;
   }
+}
+
+// 이메일 광고 수신은 선택 동의다(정보통신망법 §50). 체크하고 현재 문구 버전으로 제출했을 때만 기록한다.
+// 미체크·구버전은 아무것도 남기지 않는다 — 기본값이 미동의다. 동의할 때만 모델 모듈을 읽는다.
+async function recordSignupMarketingConsent(env, userId, consent, source) {
+  if (consent?.granted !== true || consent?.version !== EMAIL_MARKETING_CONSENT_VERSION) return null;
+  const { recordEmailMarketingConsent } = await import("../lib/email-marketing-consent.js");
+  return recordEmailMarketingConsent(env, String(userId), { granted: true, source });
 }
 
 function toOAuthFeature(provider) {
@@ -2910,6 +2919,11 @@ async function handleRegister(request, env) {
         null,
       )
       : Promise.resolve(null),
+    withOptionalAuthSideEffect(
+      recordSignupMarketingConsent(env, user._id, body?.marketingEmailConsent, "signup_email"),
+      Math.min(timeoutMs, 2000),
+      "auth_register_marketing_consent",
+    ),
   ]);
 
   try {
@@ -5071,6 +5085,15 @@ async function handleOAuthCompleteSignup(request, env) {
       403,
       "guardian_consent_required",
       "이 계정은 이용할 수 없습니다. admin@code-destiny.com 으로 문의해 주세요.",
+    );
+  }
+
+  // 티켓 재제출로 기존 계정을 받은 경우에는 그 계정의 동의 상태를 가입 화면 체크박스로 덮지 않는다.
+  if (socialUser.created) {
+    await withOptionalAuthSideEffect(
+      recordSignupMarketingConsent(env, user._id, body?.marketingEmailConsent, "signup_social"),
+      Math.min(timeoutMs, 2000),
+      "auth_complete_signup_marketing_consent",
     );
   }
 

@@ -5029,6 +5029,12 @@ export async function handleAdminRoutes(request, env) {
       return await handleAdminKakaoCrmRoutes(path.slice("/kakao-crm".length) || "/", request, env, adminContext);
     }
 
+    if (path === "/email-marketing" || path.startsWith("/email-marketing/")) {
+      const adminContext = await authorizeAdminRequest(request, env);
+      const { handleAdminEmailMarketingRoutes } = await import("./admin-email-marketing.js");
+      return await handleAdminEmailMarketingRoutes(path.slice("/email-marketing".length) || "/", request, env, adminContext);
+    }
+
     if (path === "/sns-daily-post" || path.startsWith("/sns-daily-post/")) {
       await authorizeAdminRequest(request, env);
       const { handleAdminSnsRoutes } = await import("./admin-sns.js");

@@ -1283,6 +1283,10 @@ const app = {
         return withCorsHeaders(request, env, await handleRecommendationRoutes(request, env));
       }
 
+      if (url.pathname.startsWith("/api/email-marketing/")) {
+        const { handleEmailMarketingRoutes } = await import("./routes/email-marketing.js");
+        return withCorsHeaders(request, env, await handleEmailMarketingRoutes(request, env));
+      }
       if (url.pathname.startsWith("/api/kakao-crm/")) {
         const { handleKakaoCrmRoutes } = await import("./routes/kakao-crm.js");
         return withCorsHeaders(request, env, await handleKakaoCrmRoutes(request, env));
@@ -1991,6 +1995,13 @@ const app = {
         .then(({ runOpsHqSync }) => runOpsHqSync(env))
         .catch((error) => {
           console.error("[ops-hq] sync failed:", error?.message || error);
+        }));
+      // 광고 수신 동의자 대상 주간 광고 메일(화 10–12 KST)과 §50 고지 메일(09–20 KST). 창 밖이면 DB·네트워크 0회로
+      // 즉시 반환한다. 광고는 EmailMarketingState 'control' 문서가 켜져 있을 때만 나간다(기본 꺼짐).
+      ctx.waitUntil(import("./lib/email-marketing-task.js")
+        .then(({ runEmailMarketingTasks }) => runEmailMarketingTasks(env))
+        .catch((error) => {
+          console.error("[email-marketing] task failed:", error?.message || error);
         }));
       // 🔴 마스터 인연의 서의 **버려진 세션 백스톱**. 20장 생성은 브라우저가 5~8왕복으로 미는데,
       // 결제 직후 PG 리다이렉트로 돌아온 탭이 잠들거나 닫히면 세션이 미완인 채 굳는다 — 돈은

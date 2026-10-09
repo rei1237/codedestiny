@@ -41,7 +41,7 @@ function fromDomainOf(sender) {
  * @returns {Promise<{ok: boolean, status: number, error?: string, data?: unknown, configError?: boolean, from?: string}>}
  *   configError — 수신자가 아니라 **계정 설정**이 원인인 실패. 재시도·다음 수신자 진행이 무의미하다.
  */
-export async function sendEmail(env, { to, subject, html, from, headers }) {
+export async function sendEmail(env, { to, subject, html, text, from, headers }) {
   const apiKey = getEnv(env, "RESEND_API_KEY") || getEnv(env, "emailapi");
   if (!apiKey) {
     console.error("[EMAIL] Resend API key is missing. Set emailapi or RESEND_API_KEY.");
@@ -66,6 +66,7 @@ export async function sendEmail(env, { to, subject, html, from, headers }) {
     subject: subject,
     html: html,
   };
+  if (text) payload.text = text;
   if (headers && typeof headers === "object") {
     payload.headers = headers;
   }
