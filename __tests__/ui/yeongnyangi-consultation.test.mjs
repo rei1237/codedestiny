@@ -7,7 +7,7 @@ import path from 'node:path';
 const require=createRequire(import.meta.url), Module=require('node:module');
 const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/consultation'; export {questionFactSelectors,readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {buildAskFirstChapterPrompt} from './worker/yeongnyangi/fortune/ask/prompt'; export {products} from './worker/yeongnyangi/payments/catalog'; export * from './worker/yeongnyangi/fortune/ask/period';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const loaded=new Module(path.resolve('consultation-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,loaded.id);
-const {resolveAskPeriods,formatAskRange,applyAskPeriodChip,resolveQuestionYears,consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,validateMonthPillars,natalOnlyTiming,assertProfessionalProse,redactInternalEvidence,tarotPositionNames,correctPersonaAddress,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
+const {resolveAskPeriods,formatAskRange,applyAskPeriodChip,resolveQuestionYears,consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,validateMonthPillars,natalOnlyTiming,assertProfessionalProse,redactInternalEvidence,tarotPositionNames,correctPersonaAddress,correctProseMarkup,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
 const clock=consultationClock('Asia/Seoul',new Date('2026-09-21T23:00:00Z'));
 const manifest=readingManifest(products.find(p=>p.id==='saju_mackerel'));
 const make=(q='',topic='general',ask=false)=>createConsultation(q,topic,clock,manifest,ask);
@@ -101,7 +101,7 @@ test('actual chapter prompt passes immutable questions, period, professional ter
  await provider.generateChapter({chapter,analysis:{consultation:c,question:c.question,topicId:'love',contexts:{saju:{domain:'saju',engineVersion:'mock',calculatedAt:clock.asOf,limitations:[],facts:[{id:'saju.fiveElements',label:'fiveElements',value:{목:2}}]}},themes:[]},previous:[]});
  const rules=JSON.parse(prompt.domainRules);
  assert.deepEqual(rules.consultation,c);assert.equal(prompt.userQuestion,c.question);
- assert.match(rules.questionPriority,/비신뢰/);assert.match(rules.evidencePresentation,/내부 ID/);
+ assert.match(rules.questionPriority,/비신뢰/);assert.match(rules.evidencePresentation,/내부 ID/);assert.match(rules.evidencePresentation,/괄호에 넣지 않는다/);
  assert.equal(rules.professionalEvidenceNames.fiveElements,'오행의 분포');
  assert.ok(prompt.outputSchema.required.includes('questionAnswers'));
 });
@@ -362,4 +362,24 @@ test('a palace named with a year\'s 세운 must be that year\'s palace in the zi
   '2027년 상반기 유년은 자녀궁(동업·투자·확장)에 놓여 있어.'])
   assert.doesNotThrow(()=>validatePreciseTiming(body(text),c,ziwei),text);
  assert.doesNotThrow(()=>validatePreciseTiming(body('2027년 세운이 재백궁으로'),c,[{id:'saju.yearlyLuck',label:'yearlyLuck',value:{year:2027}}]));
+});
+test('D5: markdown residue, a doubled 미 and English (Label: value) glosses are removed from delivered prose',()=>{
+ const body={summary:'`명궁(命宮)`이 중심이에요.',analysis:['다샤* 흐름과 라그나* 기준을 함께 봐요.','*케투*는 놓아줄 것을 보여줘요.','이 흐름이 결정에 영향을 미 줄 수 있어요.','토성이 미 미치는데 서두를 필요는 없어요.','금성(Venus)이 자기 별자리에 있어요 (Dignity: domicile).'],example:'',advice:''};
+ const fixed=correctProseMarkup(body);
+ assert.equal(fixed.body.summary,'명궁(命宮)이 중심이에요.');
+ assert.deepEqual(fixed.body.analysis,['다샤 흐름과 라그나 기준을 함께 봐요.','케투는 놓아줄 것을 보여줘요.','이 흐름이 결정에 영향을 줄 수 있어요.','토성이 미치는데 서두를 필요는 없어요.','금성(Venus)이 자기 별자리에 있어요.']);
+ assert.ok(fixed.count>=6);
+ const clean={summary:'오행의 분포에서 시작해요.',analysis:['영향을 미칠 수 있어요.','2*3 같은 계산식은 그대로 둬요.'],example:'',advice:''};
+ assert.deepEqual(correctProseMarkup(clean),{body:clean,count:0});
+ assert.match(correctProseMarkup({summary:'Venus is strong (Dignity: domicile).',analysis:[],example:'',advice:''},'en').body.summary,/\(Dignity: domicile\)/);
+});
+test('D5: astrology facts reach the prompt with Korean dignity names',async()=>{
+ let prompt;
+ const provider=new StructuredChapterProvider({generate:async request=>{prompt=request;return {result:{},provider:'mock',model:'mock'};}});
+ const chapter={...manifest[0],systems:['astrology'],factSelectors:{astrology:['planets']}};
+ const c=make('올해 흐름은?','general');
+ await provider.generateChapter({chapter,analysis:{consultation:c,question:c.question,topicId:'general',contexts:{astrology:{domain:'astrology',engineVersion:'mock',calculatedAt:clock.asOf,limitations:[],facts:[{id:'astrology.planets',label:'planets',value:{Venus:{sign:1,dignity:'domicile'},Mars:{sign:3,dignity:'fall'}}}]}},themes:[]},previous:[]});
+ const sent=JSON.stringify(prompt);
+ assert.match(sent,/자기 별자리\(룰러십\)/);assert.match(sent,/추락\(폴\)/);
+ assert.doesNotMatch(sent,/"dignity\?":\?"(?:domicile|fall)/);
 });

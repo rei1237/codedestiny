@@ -268,6 +268,32 @@ export function redactInternalEvidence(body: ChapterBody, question = '', factLab
   return count ? { body: out, count } : { body, count: 0 };
 }
 
+// Principle 17: markup the reading screen does not render is corrected, not regenerated. Backticks and '*' footnote or
+// emphasis marks (no footnote ever follows) are dropped. In Korean, the stuttered '미 미치는'/'미 줄' loses the stray
+// syllable and an English '(Dignity: domicile)' label is dropped; an English gloss such as '금성(Venus)' stays.
+export function correctProseMarkup(body: ChapterBody, locale = 'ko'): { body: ChapterBody; count: number } {
+  const rules: [RegExp, string][] = [[/`+/g, ''], [/(\*{1,2})(?=[^\s*])([^*\n]*?[^\s*])\1/gu, '$2'], [/(?<=[\p{L}\p{N})\]])\*{1,2}(?=[\s.,!?)\]」』:;·]|$)/gu, ''], [/(?<=^|[\s(「『])\*{1,2}(?=[\p{L}\p{N}])/gu, ''],
+    ...(locale === 'ko' ? [[/(?<![가-힣])미\s+(?=미[치쳐칠]|줄|준|주[는고])/gu, ''], [/[ \t]*[(（]\s*[A-Za-z][A-Za-z ]*:\s*[A-Za-z][A-Za-z ,'-]*[)）]/g, '']] as [RegExp, string][] : [])];
+  let count = 0;
+  const fix = (value: unknown) => {
+    if (typeof value !== 'string' || !value) return value;
+    let next = value;
+    for (const [pattern, to] of rules) next = next.replace(pattern, (...m) => (count++, to.replace(/\$(\d)/g, (_, i) => m[+i])));
+    return next === value ? value : next.replace(/[ \t]{2,}/g, ' ').replace(/[ \t]+([.,!?。])/g, '$1').trim() || value;
+  };
+  const out: ChapterBody = { ...body, summary: fix(body.summary) as string, example: fix(body.example) as string,
+    advice: fix(body.advice) as string, persona: fix(body.persona) as string,
+    analysis: Array.isArray(body.analysis) ? body.analysis.map(fix) as string[] : body.analysis,
+    highlights: Array.isArray(body.highlights) ? body.highlights.map(fix) as string[] : body.highlights,
+    ...(body.title === undefined ? {} : { title: fix(body.title) as string }),
+    ...(Array.isArray(body.blocks) ? { blocks: body.blocks.map(b => !b || typeof b !== 'object' ? b : { ...b, title: fix(b.title) as string,
+      paragraphs: Array.isArray(b.paragraphs) ? b.paragraphs.map(fix) as string[] : b.paragraphs }) } : {}),
+    ...(Array.isArray(body.questionAnswers) ? { questionAnswers: body.questionAnswers.map(a => !a || typeof a !== 'object' ? a :
+      { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string, ...(typeof a.review === 'string' ? { review: fix(a.review) as string } : {}) }) } : {}),
+  };
+  return count ? { body: out, count } : { body, count: 0 };
+}
+
 // Principle 17: the counselor's own name used as the reader's ('연이님은', '연이님,') is corrected, not regenerated.
 // The prompt never carries the reader's name, so '<counselor>님/씨' is always a mis-address. A vocative is dropped;
 // any other use becomes '당신' with the particle refitted. Korean prose only.

@@ -110,3 +110,11 @@ test('all included followups remain available until every saved answer is used',
   assert.throws(()=>p.reserveConversation(c,limit,'extra','한도 밖의 질문',0,'extra'),/QUESTION_CONVERSATION_CLOSED/);
  }
 });
+test('D5: a ziwei job change reads career palaces without the business basis; other questions keep it',()=>{
+ for(const expanded of [true,false]){
+  const sel=category=>p.questionManifest('ziwei','salmon',d({category}),undefined,'',expanded).flatMap(row=>row.factSelectors.ziwei||[]);
+  assert.ok(!sel('job_change').includes('businessBasis'),`expanded=${expanded}`);
+  assert.ok(sel('job_change').includes('palaces'));
+  assert.ok(sel('money').includes('businessBasis'),`expanded=${expanded}`);
+ }
+});
