@@ -26,7 +26,7 @@ export function parseNameStatus(output) {
 
 export function collectChanges({ root = process.cwd(), base = "origin/main", head = "HEAD", working = true } = {}) {
   const git = (args) => {
-    const result = spawnSync("git", args, { cwd: root, encoding: "utf8", windowsHide: true });
+    const result = spawnSync("git", args, { cwd: root, encoding: "utf8", windowsHide: true, maxBuffer: 256 * 1024 * 1024 });
     if (result.status !== 0) throw new Error(`git ${args[0]} failed; full verification required`);
     return result.stdout;
   };
