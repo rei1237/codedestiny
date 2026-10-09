@@ -46,6 +46,7 @@ function main() {
     const workflow = require("js-yaml").load(readFileSync(resolve(root, ".github/workflows/pr-ci.yml"), "utf8"));
     plan = expandCiGuards(plan, workflow, scripts);
   }
+  if (changes.embeddedRepos?.length) console.log(`[check:changed] 별도 저장소라 변경에서 뺀 미추적 폴더: ${changes.embeddedRepos.join(", ")}`);
   console.log(JSON.stringify(plan, null, 2));
   if (ci) {
     // Observation only: never feeds outputs into existing job conditions.

@@ -34,6 +34,7 @@ export function collectChanges({ root = process.cwd(), base = "origin/main", hea
   let headSha = null;
   const files = new Set();
   const deletedOrRenamedFiles = new Set();
+  const embeddedRepos = [];
   const include = (output) => {
     for (const record of parseChangeRecords(output)) {
       record.files.forEach((file) => files.add(file));
@@ -51,10 +52,15 @@ export function collectChanges({ root = process.cwd(), base = "origin/main", hea
       for (const args of [["diff", "--name-status", "-z"], ["diff", "--cached", "--name-status", "-z"]]) {
         include(git(args));
       }
-      git(["ls-files", "--others", "--exclude-standard", "-z"]).split("\0").filter(Boolean).forEach((file) => files.add(file));
+      // 끝이 "/" 인 항목은 안에 .git 이 있는 별도 저장소(다른 세션이 받아 둔 스킬 등)다. 이 저장소의
+      // 커밋에 파일로 들어올 수 없으니 변경으로 세지 않는다 — 세면 미분류 경로라 매번 critical 이 된다.
+      for (const file of git(["ls-files", "--others", "--exclude-standard", "-z"]).split("\0").filter(Boolean)) {
+        if (file.endsWith("/")) embeddedRepos.push(file);
+        else files.add(file);
+      }
     } catch (error) { errors.push(error.message); }
   }
-  return { baseSha, headSha, files: [...files].sort(), deletedOrRenamedFiles: [...deletedOrRenamedFiles].sort(), hasDeletionOrRename: deletedOrRenamedFiles.size > 0, complete: errors.length === 0, errors };
+  return { baseSha, headSha, files: [...files].sort(), deletedOrRenamedFiles: [...deletedOrRenamedFiles].sort(), hasDeletionOrRename: deletedOrRenamedFiles.size > 0, embeddedRepos, complete: errors.length === 0, errors };
 }
 
 // Read the existing critical contract rather than duplicating its guard list.
