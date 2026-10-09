@@ -629,4 +629,3 @@ export function suggestWorkBundles(presented, now = new Date()) {
     return { minutes: budget, used, quests: picked, xp: picked.reduce((sum, row) => sum + (XP_RULES.task[open.find((q) => q.id === row.id)?.kind] || 0), 0) };
   });
 }
-
