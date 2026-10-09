@@ -113,6 +113,19 @@ export function repeatedPassage(a:string,b:string) {
   let shared=0;for(const part of left)if(right.has(part))shared++;
   return 2*shared/(left.size+right.size)>.68;
 }
+// Measured on the 2026-10-09/10 samples (3-gram Dice): independent chapter
+// summaries peak at 0.56 as a whole and 0.70 for one sentence; restated
+// conclusions start at 0.60 as a whole, and a copied sentence scores 0.80-1.00.
+export function repeatedSummary(a:string,b:string) {
+  const grams=(text:string)=>new Set(Array.from({length:Math.max(0,text.replace(/[^\p{L}\p{N}]/gu,'').length-2)},(_,i)=>text.replace(/[^\p{L}\p{N}]/gu,'').slice(i,i+3)));
+  const dice=(x:Set<string>,y:Set<string>)=>{let shared=0;for(const part of x)if(y.has(part))shared++;return 2*shared/(x.size+y.size||1);};
+  const left=grams(a),right=grams(b);
+  if(left.size&&left.size===right.size&&dice(left,right)===1)return true;
+  if(left.size>=35&&right.size>=35&&dice(left,right)>=.6)return true;
+  const sentences=(text:string)=>text.split(/(?<=[.!?。])\s+/u).map(grams).filter(s=>s.size>=15);
+  const theirs=sentences(b);
+  return sentences(a).some(s=>theirs.some(t=>dice(s,t)>=.8));
+}
 export function validateChapter(
   value: unknown,
   input: ChapterRequest,
@@ -190,6 +203,7 @@ export function validateChapter(
     )
   )
     throw new FortuneError("DUPLICATE_CHAPTER");
+  if(input.previous.some(p=>repeatedSummary(String(v.summary),String(p.summary||''))))throw new FortuneError('CHAPTER_SUMMARY_REPEATED');
   const nativeLocale=readingLocale(input.locale);
   const symbolic=Boolean(input.analysis.consultation?.spirit||input.analysis.consultation?.questionSky);
   if(input.analysis.consultation?.spirit){
@@ -244,7 +258,12 @@ const LENGTH_REPAIR='본문 합계는 lengthContract.minimum 이상, sectionCont
 function fixedConclusions(previous:ChapterRequest['previous']){
   const answers=previous.flatMap(p=>p.questionAnswers||[]).filter(a=>typeof a?.answer==='string'&&a.answer.trim())
     .map(a=>({questionId:a.questionId,answer:a.answer.slice(0,300)}));
-  return answers.length?{rule:'앞 장에서 이미 답한 질문의 확정 결론이다. 바꾸거나 반대 방향으로 쓰지 않는다. 이 장은 같은 결론을 다른 근거와 조건으로 보완하고, 상황에 따라 달라지는 부분은 결론을 유지한 채 조건으로만 쓴다.',answers}:undefined;
+  return answers.length?{rule:'앞 장에서 이미 답한 질문의 확정 결론이다. 바꾸거나 반대 방향으로 쓰지 않는다. 이 장은 같은 결론을 다른 근거와 조건으로 보완하고, 상황에 따라 달라지는 부분은 결론을 유지한 채 조건으로만 쓴다. summary에는 이 결론 문장을 다시 쓰지 않는다.',answers}:undefined;
+}
+/** Evidence IDs earlier chapters already explained, so a later chapter refers back in a line instead of re-explaining them. */
+function explainedEvidence(previous:ChapterRequest['previous']){
+  const ids=[...new Set(previous.flatMap(p=>Array.isArray(p.sources)?p.sources:[]))].filter(id=>typeof id==='string');
+  return ids.length?{rule:'앞 장에서 이미 풀어 쓴 근거 ID다. 이번 장에서 다시 쓸 때는 앞 장 설명을 한 줄로만 짚고, 분량은 이번 장 질문에 새로 더하는 해석에 쓴다.',ids}:undefined;
 }
 
 const REPAIR_INSTRUCTIONS:Record<string,string>={
@@ -272,6 +291,7 @@ const REPAIR_INSTRUCTIONS:Record<string,string>={
   CHAPTER_UNGROUNDED_TIMING:'이 장의 근거는 출생 차트뿐이고 트랜짓 같은 시기 계산은 없다. 연도·올해·내년·상하반기·분기·월을 유리하거나 불리한 시기, 적기라고 단정하지 않는다. questionAnswers의 timing에는 출생 차트만으로는 요청 기간 안의 좋은 시기를 특정할 수 없다는 점과, 그 기간에 스스로 확인할 기준(차트의 어떤 성향을 어떤 신호로 점검할지)만 쓴다. 본문도 같은 기준을 따른다.',
   CHAPTER_YEAR_LABEL_MISMATCH:'올해·내년·작년 같은 말 바로 뒤에 쓰는 연도 숫자는 consultation.asOf의 연도로 계산한다. asOf의 연도가 올해, 그다음 해가 내년이다. 말과 숫자가 어긋난 표현을 고치고, 어느 쪽이 맞는지 근거로 정할 수 없으면 연도 숫자만 쓴다.',
   CHAPTER_YEARLY_PALACE_MISMATCH:'‘YYYY년 세운·유년’과 함께 쓰는 궁 이름은 CALCULATED_DATA의 yearlyTimeline에서 그 연도 행의 palaceName만 쓴다. 나이로 정하는 소한 궁과 섞지 않는다. 그 연도 행이 없으면 궁 이름을 쓰지 않는다.',
+  CHAPTER_SUMMARY_REPEATED:'summary는 previousConclusions와 fixedConclusions의 문장을 다시 쓰거나 단어만 바꿔 쓰지 않는다. 이번 장의 고유 질문(chapter.focus)에 대한 답을 이번 장 본문에서 새로 나온 근거와 조건으로 한두 문장에 쓴다.',
   CHAPTER_DASHA_SEQUENCE_MISMATCH:'현재 마하다샤의 마지막 안타르다샤는 근거의 remainingAntardashas 목록의 마지막 항목뿐이다. 다른 안타르다샤(달-금성처럼 마하다샤-안타르다샤로 쓴 경우의 뒤 행성 포함)를 마지막 안타르다샤라고 부르지 않는다. 지금 안타르다샤가 마지막이 아니면 뒤에 이어지는 안타르다샤와 그 기간을 함께 쓴다.',
   CHAPTER_MONTH_PILLAR_MISMATCH:'‘N년 M월’과 함께 쓰는 월의 간지는 CALCULATED_DATA의 monthlyLuck에서 그 양력 달에 절입이 시작되는 행의 pillar만 쓴다. 절기 월은 양력 달 초(4~8일 무렵)에 바뀌므로 앞 달에 시작한 간지를 다음 달 이름으로 부르지 않는다. monthlyLuck에 없는 달은 간지를 붙이지 않고 계산 근거가 없다고 쓴다.',
   V7_RESTATED_SENTENCE:'앞 장의 문장을 단어만 바꾸어 다시 쓰지 않는다. previousHighlights의 결론을 되풀이하지 말고 이 장이 소유한 근거에서 나오는 새 판단으로 문장을 쓴다.',
@@ -450,7 +470,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
           '예상치 못한 부탁을 받고 바로 대답하지 않는 순간',
           '하루를 마치며 내일 하지 않을 일을 한 줄 적는 순간',
         ][input.chapter.ordinal]:undefined,
-        writingContract:'previousConclusions와 previousExamples는 재사용 금지 목록이다. 기존 문장을 단어만 바꾸어 쓰지 않는다. exampleScene은 가상의 예시 소재이지 실제 경험의 증거가 아니다. 질문과 맞지 않으면 다른 장면을 고른다. 실제 직업이나 동료가 있다고 단정하지 않는다. summary는 이번 장만의 결론으로 쓴다.',
+        writingContract:'previousConclusions와 previousExamples는 재사용 금지 목록이다. 기존 문장을 단어만 바꾸어 쓰지 않는다. exampleScene은 가상의 예시 소재이지 실제 경험의 증거가 아니다. 질문과 맞지 않으면 다른 장면을 고른다. 실제 직업이나 동료가 있다고 단정하지 않는다. summary는 이번 장의 고유 질문(chapter.focus)에 대한 답으로 쓰고, previousConclusions·fixedConclusions의 결론 문장을 다시 쓰지 않는다.',
         topic:input.analysis.topicId,
         periodScope:input.chapter.periodScope,
         independence:"같은 천문 관측을 공유하는 숙요·베다·점성술은 독립된 세 증거가 아니다. 타로는 질문 당시 상징이며 천문 사실의 교차검증 수에 포함하지 않는다. 근거 일치도는 적중 확률이 아니다.",
@@ -463,6 +483,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         previousConclusions: input.previous.map((p) => p.summary.slice(0, 150)),
         previousExamples: input.previous.map((p) => p.example.slice(0, 100)),
         fixedConclusions: fixedConclusions(input.previous),
+        explainedEvidence: explainedEvidence(input.previous),
         themes: isStructuredReading(input.chapter.version) ? undefined : input.analysis.themes,
         ...(sky?{professionalEvidenceNames:undefined,domain:undefined,task:undefined,paidScope:undefined,
           evidencePresentation:'구조화된 질문의 결을 쉬운 말로 설명한다. 내부 ID는 sources에만 쓴다.',

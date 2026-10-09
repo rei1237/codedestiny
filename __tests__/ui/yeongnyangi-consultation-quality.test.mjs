@@ -250,5 +250,11 @@ test('later chapters receive the question chapter answers as settled conclusions
  const rules=await sent([q1]);
  assert.deepEqual(rules.fixedConclusions.answers,[{questionId:'Q1',answer:q1.questionAnswers[0].answer}]);
  assert.match(rules.fixedConclusions.rule,/바꾸거나 반대 방향으로 쓰지 않는다/);
+ assert.match(rules.fixedConclusions.rule,/summary에는 이 결론 문장을 다시 쓰지 않는다/);
  assert.equal((await sent([{summary:'s',example:'',topics:[]}])).fixedConclusions,undefined);
+ // D4: evidence already explained is listed once so the next chapter refers back instead of re-explaining it.
+ const explained=(await sent([{...q1,sources:['saju.pillars','saju.dayMaster']},{summary:'t',example:'',topics:[],sources:['saju.pillars']}])).explainedEvidence;
+ assert.deepEqual(explained.ids,['saju.pillars','saju.dayMaster']);
+ assert.match(explained.rule,/한 줄로만 짚고/);
+ assert.equal((await sent([{summary:'s',example:'',topics:[]}])).explainedEvidence,undefined);
 });

@@ -1,6 +1,6 @@
 import type {ChapterBody} from '../fortune/book-contracts';
 import type {ChapterRequest} from './chapter';
-import {correctChapterProse,pruneV7Overlap,validateChapter} from './chapter';
+import {correctChapterProse,pruneV7Overlap,repeatedSummary,validateChapter} from './chapter';
 import {FortuneError} from '../fortune/shared/contracts';
 import {salvageTruncatedJsonObject} from '../../../lib/llm-text.js';
 import {readingLocale,validateReadingLanguage} from '../fortune/reading-locale';
@@ -87,7 +87,13 @@ function deliverChapterBody(raw:unknown,input:ChapterRequest):ChapterBody {
   // A question must still have a substantive provider-authored answer. Citation
   // completeness and the optional timing/reason subdivisions do not buy retries.
   if(expected.some(q=>!answers.some(a=>a.questionId===q.id&&a.answer.length>=20)))throw new FortuneError('QUESTION_ANSWER_INCOMPLETE');
-  let body:ChapterBody=sanitizeQuestionSkyBody({summary:edit(value.summary)||actual[0],analysis,example:edit(value.example),advice:edit(value.advice),
+  // A summary that restates an earlier chapter's is replaced by this chapter's
+  // own opening sentences; a regeneration is bought only when none is new.
+  const fresh=(text:string)=>Boolean(text)&&!input.previous.some(p=>repeatedSummary(text,String(p.summary||'')));
+  const opening=(paragraph:string)=>paragraph.split(/(?<=[.!?。])\s+/u).slice(0,2).join(' ');
+  const summary=[edit(value.summary),actual[0],...actual.map(opening)].find(fresh);
+  if(!summary)throw new FortuneError('CHAPTER_SUMMARY_REPEATED');
+  let body:ChapterBody=sanitizeQuestionSkyBody({summary,analysis,example:edit(value.example),advice:edit(value.advice),
     persona:edit(value.persona),highlights:list(value.highlights).map(edit).filter(Boolean),topics:list(value.topics),blocks,
     sources:[...new Set([...sources(value.sources),...blocks.flatMap(b=>b.sources||[])])],questionAnswers:answers,
     ...(prose(value.title)?{title:prose(value.title)}:{}),

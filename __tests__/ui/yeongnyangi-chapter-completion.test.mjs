@@ -7,7 +7,7 @@ import path from 'node:path';
 import {CHAPTER_DELIVERY_VERSION as version,CHAPTER_TIMEOUT_MS,CHAPTER_LEASE_MS,chapterDeliveryFailure,chapterDeliveryFloor,deliveredCharacterCount} from '../../worker/yeongnyangi/chapter-delivery-contract.js';
 import {chapterRecoveryPlan} from '../../worker/yeongnyangi/recovery-plan.js';
 const Module=createRequire(import.meta.url)('node:module');
-const bundle=await build({stdin:{contents:`export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {deliverChapter} from './worker/yeongnyangi/providers/delivery'; export {mockReadingV5} from './__tests__/fixtures/yeongnyangi-chapter'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationDomain,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
+const bundle=await build({stdin:{contents:`export {StructuredChapterProvider,validateChapter,repeatedSummary} from './worker/yeongnyangi/providers/chapter'; export {deliverChapter} from './worker/yeongnyangi/providers/delivery'; export {mockReadingV5} from './__tests__/fixtures/yeongnyangi-chapter'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationDomain,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const filename=path.resolve('chapter-completion.test.cjs'),loaded=new Module(filename);loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,filename);
 const m=loaded.exports,product=m.products.find(p=>p.id==='saju_tuna'),kind=m.consultationKinds.saju.find(k=>k.id==='timing');
 const manifest=m.consultationManifest(product,kind);
@@ -137,4 +137,32 @@ test('recovery plan preserves legacy delivered content and fails closed on payme
  assert.ok(chapterRecoveryPlan({...row,snapshot:{...row.snapshot,natalInput:null}},payment).blockers.includes('ORIGINAL_INPUT_MISSING'));
  assert.ok(chapterRecoveryPlan({...row,chapters:[{...body,blocks:[]}]},payment).blockers.includes('SAVED_CHAPTER_REVIEW_REQUIRED'));
  assert.equal(JSON.stringify(row),before);
+});
+
+test('a summary restating an earlier chapter is caught, replaced by the chapter\'s own opening, and regenerated only when nothing new is left',()=>{
+ // T rerun 2026-10-10 ch3/ch4: the same conclusion reworded (whole 0.70).
+ const earlier='지금 회사에 남아 사내 이동을 노리는 게 너의 핵심 가치와 현실적인 제약에 더 잘 맞아. 이직은 새로운 가능성이 있지만, 준비 과정에서 예상치 못한 복잡함에 휘말리거나 고립될 위험이 더 크다고 해.';
+ const restated='지금 회사에 남아 사내 이동을 노리는 게 너의 핵심 가치와 현실적인 제약에 더 잘 맞을 수 있어. 이직은 새로운 가능성이 있지만, 혼자 감당해야 할 부담과 고립될 위험이 더 크다고 해.';
+ // Y2 ch7/ch9: a new first sentence, the second copied (whole 0.56, sentence 0.95).
+ const y2a='너는 돈을 꼼꼼하게 계획하고 지키려는 성향이 강한 반면, 상대는 돈을 유연하게 다루고 변화에 맞춰 움직이려는 경향이 있어. 공동의 목표를 위한 자금은 공동 통장으로 투명하게 관리하되, 각자의 생활비는 자율적으로 쓰는 방식이 갈등을 줄이는 데 더 효과적일 거야.';
+ const y2b='너는 계획적이고 안정적인 재물 관리를 선호하고 파트너는 유연하게 재물을 확장하려 할 수 있어. 공동의 목표를 위한 자금은 공동 통장으로 투명하게 관리하되, 각자의 생활비는 자율적으로 쓰는 방식이 갈등을 줄이는 데 더 효과적이야.';
+ // T rerun ch1/ch5: independent chapter summaries on the same question (0.23).
+ const own='지금 회사에 남는다면 익숙한 자원을 활용하며 현실적인 선택지를 명확히 볼 수 있고, 이는 새로운 관점에서 중요한 결정을 내리려는 너의 핵심 가치에 부합할 거야.';
+ const first='지금은 새로운 관점에서 상황을 바라보며 결정에 신중을 기하고 있어. 내년 상반기 이직은 잠재력은 크지만 고립될 위험이 있고, 현재 회사에 남으면 안정적으로 스스로의 성취를 일굴 수 있을 거야.';
+ assert.equal(m.repeatedSummary(restated,earlier),true);
+ assert.equal(m.repeatedSummary(y2b,y2a),true);
+ assert.equal(m.repeatedSummary(earlier,earlier),true);
+ assert.equal(m.repeatedSummary(own,first),false);
+ assert.equal(m.repeatedSummary('짧은 요약','다른 요약'),false);
+ const raw={...complete(),summary:restated},previous=[{summary:earlier,example:'',topics:[]}];
+ assert.throws(()=>m.validateChapter(raw,{...input,previous}),{code:'CHAPTER_SUMMARY_REPEATED'});
+ assert.doesNotThrow(()=>m.validateChapter({...raw,summary:own},{...input,previous:[{summary:first,example:'',topics:[]}]}));
+ const delivered=m.deliverChapter(raw,{...input,previous});
+ const paragraphs=delivered.blocks.flatMap(b=>b.paragraphs);
+ assert.notEqual(delivered.summary,restated);
+ assert.ok(paragraphs.some(p=>p.startsWith(delivered.summary)),'the replacement is this chapter\'s own text');
+ assert.equal(m.repeatedSummary(delivered.summary,earlier),false);
+ assert.equal(chapterDeliveryFailure(delivered,input.chapter),'');
+ assert.equal(raw.summary,restated,'delivery does not mutate the provider response');
+ assert.throws(()=>m.deliverChapter(raw,{...input,previous:[...previous,...paragraphs.map(summary=>({summary,example:'',topics:[]}))]}),{code:'CHAPTER_SUMMARY_REPEATED'});
 });
