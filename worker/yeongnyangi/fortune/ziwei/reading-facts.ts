@@ -16,6 +16,7 @@
  * 🔴 readingNotes 에는 규칙 id·출처를 넣지 않는다. 추적은 traceZiweiPalaceNotes 로 같은 입력에서 다시 계산한다.
  */
 import {starStrength,isZiweiMainStar} from '../../../../lib/ziwei-star-strength.js';
+import {FOUR_TRANSFORMATIONS,TRANSFORMATION_LABELS} from '../../../lib/ziwei-ai-chart.js';
 import {ZIWEI_READING_RULES_VERSION} from './reading-rules';
 
 export const ZIWEI_PALACE_FACTS_VERSION=`ziwei-palace-facts-v1+${ZIWEI_READING_RULES_VERSION}`;
@@ -142,8 +143,36 @@ const palaceLike=(v:unknown):v is O=>!!v&&typeof v==='object'&&!Array.isArray(v)
  * 전체 명반(palaces · partnerChart.palaces)에서 같은 원본 궁을 찾아 이웃까지 본 결과로 바꾼다.
  * 원본을 못 찾은 궁 모양 객체(궁합 요약의 부부궁 별 묶음 등)는 그 객체만으로 강약을 붙인다.
  */
+const STEMS='갑을병정무기경신임계';
+/** 유년(流年) 사화: 그해 천간으로 다시 계산하고, 그 별이 앉은 원국 궁을 붙인다(궁합 relationshipTiming.annual 과 같은 계산). */
+export function ziweiAnnualTransformations(year:number,palaces:unknown){
+ const stem=STEMS[(((year-4)%10)+10)%10];
+ const table=(FOUR_TRANSFORMATIONS as Record<string,Record<string,string>>)[stem]||{};
+ const list=Array.isArray(palaces)?(palaces as O[]):[];
+ return {stem,transformations:Object.entries(table).map(([key,star])=>({transformation:(TRANSFORMATION_LABELS as Record<string,string>)[key]||key,star,palaceName:String(list.find(p=>starsOf(p).includes(star))?.name||'')}))};
+}
+// 엔진 yearlyLuck.transformations 는 그 궁에 붙은 생년사화 복사본이다(ziwei-ai-chart.js yearlyLuckFor).
+// 유년사화로 읽히지 않게 빼고, 실제 유년 천간 사화를 새 이름(annualTransformations)으로 붙인다.
+function annualYearly(entry:unknown,palaces:unknown):unknown{
+ if(Array.isArray(entry))return entry.map(x=>annualYearly(x,palaces));
+ if(!entry||typeof entry!=='object'||!Number.isInteger((entry as O).year))return entry;
+ const {transformations:_natal,...rest}=entry as O;
+ const annual=ziweiAnnualTransformations(rest.year,palaces);
+ return {...rest,annualStem:annual.stem,annualTransformations:annual.transformations};
+}
+function withAnnualTransformations(label:string,value:unknown,palaces:unknown):unknown{
+ if(label==='yearlyLuck'||label==='yearlyTimeline')return annualYearly(value,palaces);
+ if(label==='partnerChart'&&value&&typeof value==='object'){
+  const chart=value as O;
+  return {...chart,...('yearlyLuck' in chart?{yearlyLuck:annualYearly(chart.yearlyLuck,chart.palaces)}:{}),...('yearlyTimeline' in chart?{yearlyTimeline:annualYearly(chart.yearlyTimeline,chart.palaces)}:{})};
+ }
+ return value;
+}
+
 export function enrichZiweiContext<T extends {domain:string;facts:{label:string;value:unknown}[]}>(context:T):T{
  if(context?.domain!=='ziwei'||!Array.isArray(context.facts))return context;
+ const natal=context.facts.find(f=>f.label==='palaces')?.value;
+ context={...context,facts:context.facts.map(f=>({...f,value:withAnnualTransformations(f.label,f.value,natal)}))};
  const known=new Map<string,O>();
  const fact=(label:string)=>context.facts.find(f=>f.label===label)?.value;
  for(const chart of [fact('palaces'),(fact('partnerChart') as O|undefined)?.palaces]){

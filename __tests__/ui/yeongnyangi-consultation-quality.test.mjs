@@ -163,3 +163,25 @@ test('strength advice follows only final own-chart strength with ordinary-patter
  assert.deepEqual(advice(complete.map(f=>({...f,id:f.id.replace('saju.','vedic.')}))),[]);
  assert.deepEqual(advice(complete,['tarot']),[]);
 });
+
+test('ziwei question chapters carry recalculated annual sihua, never the natal copy, in yearly facts',async()=>{
+ const decision={version:m.QUESTION_POLICY_VERSION,category:'job_change',target:'self',horizon:'current',situation:'이직 고민',options:'남기 / 옮기기',period:'2026년 4분기부터 2027년 상반기',constraints:'',confirmed:true};
+ const natal=contexts.ziwei.facts.find(f=>f.label==='yearlyLuck').value;
+ assert.equal(natal.year,2026);
+ const before=JSON.stringify(contexts.ziwei);
+ const rows=m.questionManifest('ziwei','salmon',decision,undefined,'이직할까?');
+ const chapters=rows.filter(c=>c.factSelectors?.ziwei?.includes('yearlyLuck'));
+ assert.ok(chapters.length);
+ for(const chapter of chapters){
+  let sent;
+  const provider=new m.StructuredChapterProvider({generate:async request=>{sent=request;return {result:{},provider:'mock',model:'fixture'};}});
+  await provider.generateChapter({chapter,analysis:{contexts:{ziwei:contexts.ziwei},question:'이직할까?',themes:[],signals:[]},previous:[]});
+  const yearly=sent.calculatedData.facts.find(f=>f.label==='yearlyLuck').value;
+  assert.equal(yearly.transformations,undefined,'natal palace transformations must not ride on yearly luck');
+  assert.equal(yearly.annualStem,'병');
+  // 丙年 유년사화: 천동 록 · 천기 권 · 문창 과 · 염정 기
+  assert.deepEqual(yearly.annualTransformations.map(t=>t.transformation+':'+t.star),['화록:천동','화권:천기','화과:문창','화기:염정']);
+  assert.ok(yearly.annualTransformations.every(t=>t.palaceName.endsWith('궁')));
+ }
+ assert.equal(JSON.stringify(contexts.ziwei),before,'stored context stays untouched');
+});
