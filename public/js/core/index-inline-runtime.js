@@ -6526,6 +6526,7 @@ function _dfRenderQuadCards(activeSource) {
   var cards = document.querySelectorAll('.df-quad-card[data-df-quad]');
   if (!cards || !cards.length) return;
   var active = _dfNormalizeSource(activeSource || _dfStudioState.activeSource || 'saju');
+  var resolved = {};
 
   cards.forEach(function(card) {
     var source = _dfNormalizeSource(card.getAttribute('data-df-quad'));
@@ -6561,6 +6562,7 @@ function _dfRenderQuadCards(activeSource) {
     }
 
     card.classList.remove('is-pending');
+    resolved[source] = { selection: selection, image: imgEl };
     if (nameEl) nameEl.textContent = selection.flower.name || '';
     if (latinEl) latinEl.textContent = selection.flower.scientific_name || '';
     if (badgeEl) badgeEl.innerHTML = _dfBadgeMarkup(_dfBuildBadgeRows(selection), 'df-quad-badge');
@@ -6576,23 +6578,151 @@ function _dfRenderQuadCards(activeSource) {
       imgEl.alt = selection.flower.name || '';
     }
   });
+  _dfRenderStudioBouquet(resolved);
 }
+
+var _DF_BLOOM_STAGE_ICON = {
+  seed: '<path d="M8 3.2c2.5 1.9 3.6 4 3.6 5.9a3.6 3.6 0 0 1-7.2 0c0-1.9 1.1-4 3.6-5.9z"/><path d="M8 8v3.6"/>',
+  season: '<path d="M8 14V7.2"/><path d="M8 9.2C7.8 6.6 6 5 3.2 5c.1 2.7 1.9 4.2 4.8 4.2z"/><path d="M8 7.2c.2-2.4 1.9-3.9 4.6-3.9-.1 2.5-1.8 3.9-4.6 3.9z"/>',
+  light: '<path d="M8 14V9.4"/><path d="M8 9.4c-2.4-.6-3.4-2.7-3-5.6 1.2.6 2.2 1.4 3 2.5.8-1.1 1.8-1.9 3-2.5.4 2.9-.6 5-3 5.6z"/>',
+  bloom: '<circle cx="8" cy="6.2" r="1.3"/><path d="M8 4.9C6.9 2.4 9.1 2.4 8 4.9zM9.3 6.2c2.5-1.1 2.5 1.1 0 0zM8 7.5c1.1 2.5-1.1 2.5 0 0zM6.7 6.2c-2.5 1.1-2.5-1.1 0 0z"/><path d="M8 8.6V14"/>'
+};
+
+/** 개화 단계(씨앗→잎→봉오리→꽃). 구 응답의 rationale_points 는 순서와 key 로 단계를 정한다. */
+function _dfBloomStage(point, index) {
+  var stage = String((point && point.stage) || '');
+  if (_DF_BLOOM_STAGE_ICON[stage]) return stage;
+  if (/verdict$/.test(String((point && point.key) || ''))) return 'bloom';
+  return index === 0 ? 'seed' : 'light';
+}
+
+function _dfBloomNodeSvg(stage) {
+  return '<span class="df-bloom-node" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" focusable="false">'
+    + (_DF_BLOOM_STAGE_ICON[stage] || _DF_BLOOM_STAGE_ICON.light) + '</svg></span>';
+}
+
+/** bloom_story 가 없으면(구 응답) rationale_points 를 단계로 옮긴다. 글이 빈 단계는 버린다. */
+function _dfBloomSteps(selection) {
+  var matched = (selection && selection.matched) || {};
+  var hasText = function(point) { return point && String(point.text || '').trim(); };
+  var steps = _dfToArray(matched.bloom_story).filter(hasText);
+  if (!steps.length) steps = _dfToArray(matched.rationale_points).filter(hasText);
+  return steps.map(function(point, i) {
+    return { stage: _dfBloomStage(point, i), label: String(point.label || '').trim(), text: String(point.text).trim() };
+  });
+}
+
 /**
- * "왜 이 꽃일까요?" — 엔진 rationale_points(실제로 매칭된 신호만, 최대 4개)를 목록으로 보인다.
- * 근거가 없으면(구 응답·폴백 선택) 섹션을 숨겨 빈 제목만 남지 않게 한다.
+ * "왜 이 꽃일까요?" — 엔진 bloom_story(씨앗→계절→햇빛과 물→꽃, 실제로 점수에 든 신호만)를 줄기 타임라인으로.
+ * 근거 단계는 최대 4개 + 마지막 꽃. 근거가 없으면(구 응답·폴백 선택) 섹션을 숨긴다.
  */
 function _dfRenderStudioWhy(selection) {
   var wrap = document.getElementById('dfStudioWhy');
   var list = document.getElementById('dfStudioWhyList');
   if (!wrap || !list) return;
-  var points = _dfToArray(selection && selection.matched && selection.matched.rationale_points)
-    .filter(function(point) { return String(point.text || '').trim(); })
-    .slice(0, 4);
+  var steps = _dfBloomSteps(selection);
+  var reasons = steps.filter(function(step) { return step.stage !== 'bloom'; }).slice(0, 4);
+  var points = reasons.length ? reasons.concat(steps.filter(function(step) { return step.stage === 'bloom'; }).slice(-1)) : [];
   list.innerHTML = points.map(function(point) {
-    var label = String(point.label || '').trim();
-    return '<li>' + (label ? '<b>' + _dfEscapeHtml(label) + '</b> ' : '') + _dfEscapeHtml(String(point.text).trim()) + '</li>';
+    return '<li class="df-bloom-step" data-stage="' + point.stage + '">' + _dfBloomNodeSvg(point.stage) + '<span class="df-bloom-body">'
+      + (point.label ? '<b>' + _dfEscapeHtml(point.label) + '</b> ' : '') + '<span>' + _dfEscapeHtml(point.text) + '</span></span></li>';
   }).join('');
   wrap.hidden = points.length === 0;
+}
+
+var _DF_SPECIMEN_MARK_LABELS = {
+  saju: ['일간', '계절'],
+  astrology: ['별자리', '상승'],
+  jamidusu: ['주성', '밝기'],
+  sukuyo: ['본명숙', '달']
+};
+
+/** 채집 라벨: 꽃말·체계·표식·때(사주는 용신까지). 값이 없는 줄은 빼고, 다 비면 숨긴다. */
+function _dfRenderStudioSpecimen(selection, sourceLabel, badges, flowerData) {
+  var el = document.getElementById('dfStudioSpecimen');
+  if (!el) return;
+  var source = _dfNormalizeSource(selection.source || 'saju');
+  var marks = _DF_SPECIMEN_MARK_LABELS[source] || _DF_SPECIMEN_MARK_LABELS.saju;
+  var flower = selection.flower || {};
+  var language = flower.flower_language || (selection.matched && selection.matched.flower && selection.matched.flower.flower_language) || '';
+  var rows = [['꽃말', language], ['체계', sourceLabel], [marks[0], flowerData.day_master_badge], [marks[1], flowerData.season_label]];
+  if (badges && badges.mode === 'saju' && badges.yongshin && badges.yongshin !== '판정 대기') rows.push(['용신', badges.yongshin]);
+  rows = rows.filter(function(row) { return String(row[1] || '').trim(); });
+  el.innerHTML = rows.map(function(row) {
+    return '<div class="df-specimen-row"><dt>' + _dfEscapeHtml(row[0]) + '</dt><dd>' + _dfEscapeHtml(String(row[1]).trim()) + '</dd></div>';
+  }).join('');
+  el.hidden = rows.length < 2;
+}
+
+function _dfHasBatchim(word) {
+  var code = String(word || '').charCodeAt(String(word || '').length - 1) - 0xAC00;
+  return code >= 0 && code <= 11171 && code % 28 !== 0;
+}
+
+/** '사주와 점성술이' · '사주·점성술·숙요점이' · '네 갈래 점술이' */
+function _dfJoinSourceSubject(labels) {
+  if (labels.length >= 4) return '네 갈래 점술이';
+  var last = labels[labels.length - 1];
+  var head = labels.length === 2
+    ? labels[0] + (_dfHasBatchim(labels[0]) ? '과 ' : '와 ') + last
+    : labels.join('·');
+  return head + (_dfHasBatchim(last) ? '이' : '가');
+}
+
+/** 같은 꽃 > 공통 오행 > 다채로운 결 순으로, 실제로 고른 꽃만 보고 정하는 교차 해석 한 줄. */
+function _dfBouquetReading(items) {
+  var byFlower = {};
+  items.forEach(function(item) {
+    var id = String(item.selection.flower.id || item.selection.flower.name || '');
+    if (!id) return;
+    (byFlower[id] = byFlower[id] || []).push(item);
+  });
+  var same = Object.keys(byFlower).map(function(id) { return byFlower[id]; })
+    .filter(function(group) { return group.length >= 2; })
+    .sort(function(a, b) { return b.length - a.length; })[0];
+  if (same) {
+    return _dfJoinSourceSubject(same.map(function(item) { return item.label; })) + ' 같은 꽃, ' + same[0].selection.flower.name + (_dfHasBatchim(same[0].selection.flower.name) ? '을' : '를') + ' 골랐어요. 그만큼 또렷한 당신의 결이에요.';
+  }
+  var order = ['wood', 'fire', 'earth', 'metal', 'water'];
+  var best = null;
+  order.forEach(function(element) {
+    var labels = items.filter(function(item) {
+      return _dfToArray(item.selection.flower.elements).some(function(el) { return String(el || '').toLowerCase() === element; });
+    }).map(function(item) { return item.label; });
+    if (labels.length >= 2 && (!best || labels.length > best.labels.length)) best = { element: element, labels: labels };
+  });
+  if (best) return _dfJoinSourceSubject(best.labels) + ' 모두 ' + _dfElementLabelKo(best.element) + ' 기운을 가리켰어요.';
+  return '서로 다른 결의 꽃이 모여, 여러 얼굴의 당신을 한 다발에 담았어요.';
+}
+
+/** 운명 꽃다발: 4-up 카드가 판정한 꽃을 한 다발로 묶는다. 두 송이 이상일 때만 보인다. */
+function _dfRenderStudioBouquet(resolved) {
+  var wrap = document.getElementById('dfStudioBouquet');
+  if (!wrap) return;
+  var items = ['saju', 'astrology', 'jamidusu', 'sukuyo'].map(function(source) {
+    var entry = resolved && resolved[source];
+    return entry && entry.selection && entry.selection.flower
+      ? { source: source, label: _dfGetSourceLabel(source), selection: entry.selection, image: entry.image }
+      : null;
+  }).filter(Boolean);
+  if (items.length < 2) {
+    wrap.hidden = true;
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = '<h4 class="df-bouquet-title">운명 꽃다발</h4>'
+    + '<p class="df-bouquet-sub">' + items.length + '갈래 점술이 고른 꽃을 한 다발로 묶었어요.</p>'
+    + '<ul class="df-bouquet-stems">' + items.map(function(item) {
+      return '<li class="df-bouquet-stem" data-df-bouquet="' + item.source + '"><span class="df-bouquet-bloom"><img alt="" width="72" height="72" decoding="async"></span>'
+        + '<b>' + _dfEscapeHtml(item.selection.flower.name || '') + '</b><small>' + _dfEscapeHtml(item.label) + '</small></li>';
+    }).join('') + '</ul>'
+    + '<p class="df-bouquet-reading">' + _dfEscapeHtml(_dfBouquetReading(items)) + '</p>';
+  items.forEach(function(item) {
+    var img = wrap.querySelector('[data-df-bouquet="' + item.source + '"] img');
+    if (img && item.image && item.image.src) img.src = item.image.src;
+    else _dfApplyGeneratedFlowerImage(img, item.selection, item.source);
+  });
+  wrap.hidden = false;
 }
 
 function _dfRenderSajuBadges(selection) {
@@ -7626,6 +7756,7 @@ function _dfApplyStudioSelection(selection) {
   }
   if (keywordsEl) keywordsEl.textContent = sourceLabel + ' 키워드 · ' + _dfToArray(selection.keywords).join(' • ');
   _dfRenderStudioWhy(selection);
+  _dfRenderStudioSpecimen(selection, sourceLabel, badges, flowerData);
   if (narrativeEl) {
     narrativeEl.textContent = (selection.matched && selection.matched.narrative)
       || (sajuVerdict + ' ' + sourceShort + ' 균형을 기준으로 지금의 개화 포인트를 정렬했습니다.');
@@ -7646,7 +7777,10 @@ function _dfApplyStudioSelection(selection) {
   }
   if (journalEl) journalEl.textContent = extension.observationLog;
   if (recipeEl) recipeEl.textContent = extension.secretRecipe;
-  if (flowerLanguageEl) flowerLanguageEl.textContent = extension.flowerLanguage;
+  if (flowerLanguageEl) {
+    /* 엔진이 전통 꽃말에 실제로 맞은 용신·일간(또는 태양궁·명궁·본명숙)을 붙인 '나의 꽃말'. 구 응답은 체계별 문장. */
+    flowerLanguageEl.textContent = String((selection.matched && selection.matched.destiny_flower_language) || '').trim() || extension.flowerLanguage;
+  }
   if (synergyEl) synergyEl.textContent = extension.synergyPalette;
   if (gardenerWordEl) gardenerWordEl.textContent = extension.gardenerWord;
   if (primaryDot) primaryDot.style.background = selection.primary;
