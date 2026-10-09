@@ -72,8 +72,16 @@ await page.setViewportSize({width:390,height:844});
 await chat.getByRole('textbox').fill('부탁을 거절할 때 어떻게 말하면 좋을까?');
 await chat.getByRole('textbox').dispatchEvent('keydown',{key:'Enter',ctrlKey:true,isComposing:true,keyCode:229});
 assert.equal(await chat.getByRole('textbox').inputValue(),'부탁을 거절할 때 어떻게 말하면 좋을까?');
+// Messenger composer: count stays hidden until 80% of the limit; Shift+Enter breaks lines, Enter sends.
+assert.equal(await chat.getByText('/1,000').count(),0);
+await chat.getByRole('textbox').fill('가'.repeat(820));
+await chat.getByText('820/1,000',{exact:true}).waitFor();
+await chat.getByRole('textbox').fill('부탁을 거절할 때 어떻게 말하면 좋을까?');
+await chat.getByRole('textbox').press('Shift+Enter');
+assert.equal(await chat.getByRole('textbox').inputValue(),'부탁을 거절할 때 어떻게 말하면 좋을까?\n');
+await chat.getByRole('textbox').fill('부탁을 거절할 때 어떻게 말하면 좋을까?');
 
-await chat.getByRole('button',{name:'답장 보내기',exact:true}).click();
+await chat.getByRole('textbox').press('Enter');
 const next=()=>chat.getByRole('button',{name:'선택 확인하고 계속하기',exact:true}).click();
 
 await next();await next();await next();
