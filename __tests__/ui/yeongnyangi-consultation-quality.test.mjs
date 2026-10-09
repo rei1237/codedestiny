@@ -62,7 +62,7 @@ test('current supported kinds and tiers, plus v7 personal/ask, receive only thei
    assert.equal(guide.version,m.CONSULTATION_QUALITY_VERSION);
    assert.equal(rules.readerCounsel.version,m.READER_COUNSEL_VERSION);
    assert.match(rules.readerCounsel.opening,/신청한 주제와 구체적인 질문/);
-   assert.ok(sent.promptVersion.endsWith(m.READER_COUNSEL_VERSION));
+   assert.ok(sent.promptVersion.includes(m.READER_COUNSEL_VERSION));
    assert.equal(guide.domain,m.CONSULTATION_QUALITY_POLICY.domains[domain]);
    assert.deepEqual(guide.availableFactIds,sent.calculatedData.facts.map(f=>f.id));
    assert.ok(guide.availableFactIds.length);

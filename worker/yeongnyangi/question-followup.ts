@@ -1,6 +1,7 @@
 import {CONSULTATION_COUNSEL_GUIDE} from '../../lib/fortune/consultation-counsel.mjs';
 import {tokensRequiredForChars} from '../lib/llm-budget.js';
 import {buildRecognition} from './prompts/domain/recognition';
+import {readerEvidence,readerCounsel} from './prompts/domain/reader-counsel';
 import {personaPrompt} from './providers/chapter';
 import {deliveryRefundPending} from './terminal-refund-policy.js';
 import {connectDb,withMongoRetry} from '../lib/db.js';
@@ -43,16 +44,18 @@ export async function questionConversation(env:any,userId:string,id:string,body:
  const budget=contract.readingBudget?.followup;
  const budgetGuide=Array.isArray(budget)&&budget.length===2&&budget.every((n:unknown)=>Number.isSafeInteger(n)&&Number(n)>0)?budget:null;
  const {contract:recognitionContract,delivery:recognitionDelivery,...recognition}=buildRecognition(explanationFacts(facts) as Evidence[],Object.keys(snapshot.analysis.contexts),'followup');
+ const counsel=readerCounsel(false,false);
  const input=JSON.stringify({question,contract:snapshot.analysis.consultation,
+   readerCounselVersion:counsel.version,
    recognition,
    ...(budgetGuide?{answerTargetChars:budgetGuide,answerLengthGuide:'answer의 text+reason+action을 합친 목표 분량이다. 질문에 필요한 새 설명·구체적인 사례·판단 조건으로 채우고 앞선 답변을 반복하지 않는다. 확인·지원·정정 답변은 억지로 늘리지 않는다.'}:{}),
-   originalAnswers:row.chapters.map((chapter:any)=>({id:chapter.id,title:chapter.title,summary:chapter.summary,highlights:chapter.highlights})),history:next.exchanges,evidence:explanationFacts(facts)});
+   originalAnswers:row.chapters.map((chapter:any)=>({id:chapter.id,title:chapter.title,summary:chapter.summary,highlights:chapter.highlights})),history:next.exchanges,evidence:readerEvidence(explanationFacts(facts))});
  // Do not silently discard evidence or start unbounded context calls. Support keeps the original result.
  if(input.length>120000)throw new FortuneError('QUESTION_FOLLOWUP_SUPPORT',409);
  row=await saveConversation(env,userId,id,current,next);
  try{
   const response=await callGeminiText(env,input,{
-   systemPrompt:personaPrompt(snapshot.persona,snapshot.voiceStyle)+"\n"+SYSTEM+"\n"+CONSULTATION_COUNSEL_GUIDE+"\n"+recognitionContract+"\n"+recognitionDelivery,temperature:0.3,maxOutputTokens:budgetGuide?Math.max(4096,tokensRequiredForChars(budgetGuide[1])):4096,thinkingBudget:0,timeoutMs:60000,maxProviderAttempts:1,
+   systemPrompt:personaPrompt(snapshot.persona,snapshot.voiceStyle)+"\n"+SYSTEM+"\n"+CONSULTATION_COUNSEL_GUIDE+"\n"+recognitionContract+"\n"+recognitionDelivery+"\n"+[counsel.numbers,counsel.opening,counsel.counseling].join("\n"),temperature:0.3,maxOutputTokens:budgetGuide?Math.max(4096,tokensRequiredForChars(budgetGuide[1])):4096,thinkingBudget:0,timeoutMs:60000,maxProviderAttempts:1,
    fallbackToWorkersAI:false,responseMimeType:'application/json',taskType:'yeongnyangi-followup',
    logContext:{requestId:id,sectionGroup:'followup',attempt:next.pending!.attempts},
   });

@@ -84,10 +84,15 @@ test('stored persona and grounded recognition reach followups without changing t
   t.row.snapshot.persona=persona;
   t.row.snapshot.manifest[0].factSelectors.saju.push('tenGodsByPillar');
   t.row.snapshot.analysis.contexts.saju.facts.push({id:'saju.tenGodsByPillar',label:'tenGodsByPillar',value:{month:'정관'}});
+  t.row.snapshot.manifest[0].factSelectors.saju.push('tenGods');
+  t.row.snapshot.analysis.contexts.saju.facts.push({id:'saju.tenGods',label:'tenGods',value:{비견:2.35,겁재:1}});
   t.row.generationCheckpoint=undefined;
   await questionConversation({},user,id,body);
   assert.ok(t.sent.input.recognition.lenses.length);
   assert.equal(t.sent.input.recognition.version,'grounded-recognition-20261007');
+  assert.match(t.sent.options.systemPrompt,/전체 성향 분석을 반복하지 않고/);
+  assert.doesNotMatch(JSON.stringify(t.sent.input.evidence),/2\.35/);
+  assert.equal(t.row.snapshot.analysis.contexts.saju.facts.find(f=>f.label==='tenGods').value.비견,2.35);
   assert.ok(t.sent.options.systemPrompt.includes(persona==='yeoni'?'연이':persona==='neo'?'네오':'영냥이'));
   if(persona)assert.ok(!t.sent.options.systemPrompt.includes('너는 영냥이'));
   assert.equal(t.sent.options.maxProviderAttempts,1);

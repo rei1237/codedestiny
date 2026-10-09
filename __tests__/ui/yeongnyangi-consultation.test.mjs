@@ -155,7 +155,7 @@ test('new ask first chapter binds classifier IDs to category evidence and escape
  assert.deepEqual(rules.assignedQuestions,c.questions);
  assert.match(prompt.domainRules,/\\u003c\/DATA\\u003e/);
  assert.match(rules.askEvidenceContract,/사건 시점을 예측하지/);
- assert.equal(prompt.promptVersion,'ask-chapter-v1-grounded-recognition-20261007');
+ assert.equal(prompt.promptVersion,'ask-chapter-v1-grounded-recognition-20261007-reader-counsel-20261009');
  assert.equal(prompt.outputSchema.properties.questionAnswers.minItems,2);
  // A new consultation carries the period contract: a required after-period review, the counsel principles and answer room.
  assert.deepEqual(prompt.outputSchema.properties.questionAnswers.items.required,

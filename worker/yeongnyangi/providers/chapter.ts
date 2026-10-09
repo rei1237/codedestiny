@@ -480,7 +480,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
       }}},blockAnchors),
       sectionTitles: [input.chapter.title],
       outputBudgetVersion:input.chapter.outputBudgetVersion,
-      promptVersion: (v7Parts?v7Parts.promptVersion:askPrompt?'ask-chapter-v1':input.chapter.version===READING_V6_VERSION?"chapter-v6":hasReadingSections(input.chapter.version)?"chapter-v5":isStructuredReading(input.chapter.version)?PROMPT_VERSION:input.chapter.systems?"chapter-v3":"chapter-v2")+(!sky&&!spirit?`-${RECOGNITION_VERSION}`:"")+(purposeCounsel?`-${COUNSEL_VERSION}`:"")+(isConciseReading(input.chapter)?"-concise-20260930":"")+(hasPrevention(input.chapter)?`-${PREVENTION_VERSION}`:"")+`-${READER_COUNSEL_VERSION}`,
+      promptVersion: (v7Parts?v7Parts.promptVersion:askPrompt?'ask-chapter-v1':input.chapter.version===READING_V6_VERSION?"chapter-v6":hasReadingSections(input.chapter.version)?"chapter-v5":isStructuredReading(input.chapter.version)?PROMPT_VERSION:input.chapter.systems?"chapter-v3":"chapter-v2")+(!sky&&!spirit?`-${RECOGNITION_VERSION}`:"")+`-${READER_COUNSEL_VERSION}`+(purposeCounsel?`-${COUNSEL_VERSION}`:"")+(isConciseReading(input.chapter)?"-concise-20260930":"")+(hasPrevention(input.chapter)?`-${PREVENTION_VERSION}`:""),
       // Books keep their purchase-time manifest; a later cap increase must still reach retries of those chapters.
       ...(spirit||sky?{maxProviderAttempts:1}:{}),
       maxOutputTokens:isConciseReading(input.chapter)||hasReadingSections(input.chapter.version)?v5Tokens:questionCount?Math.min(16384,Math.max(baseTokens || 8192,tokensRequiredForChars((input.chapter.targetChars?.[1] || 2000)+questionCount*answerChars))):baseTokens,

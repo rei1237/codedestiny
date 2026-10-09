@@ -145,7 +145,7 @@ test('v6 provider uses section schema and adequate budget; old v4/v5 schemas rem
   const fixture=await new m.MockChapterProvider().generateChapter(requestInput);
   let request;
   await new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:fixture,provider:'mock',model:'test'};}}).generateChapter(requestInput);
-  assert.equal(request.promptVersion,version.replace('destiny-book','chapter')+'-grounded-recognition-20261007');
+  assert.equal(request.promptVersion,version.replace('destiny-book','chapter')+'-grounded-recognition-20261007-reader-counsel-20261009');
   assert.ok(request.maxOutputTokens>=c.outputTokens);
   assert.equal(Boolean(request.outputSchema.properties.blocks.items.properties.id),version!==m.READING_VERSION);
   assert.doesNotThrow(()=>m.validateChapter(fixture,requestInput));
