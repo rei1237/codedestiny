@@ -7,19 +7,18 @@ import Link from "next/link";
 import styles from "../home-cosmic.module.css";
 import { siteSeo } from "../../lib/seo/siteSeo";
 
-const PAGE_URL = "https://code-destiny.com/kkul-kkul-unse";
+const PAGE_URL = "https://code-destiny.com/kkul-kkul-unse/";
 const OG_IMAGE = "https://code-destiny.com/og/code-destiny-og-vvip.png?v=42dedf5c85";
 
-// 브랜드 별칭의 대표 URL 은 /ggulggul/ 이고("/" 는 그리로 301) 이 페이지는 그 관계를 설명하는 보조 안내다.
-// 그래서 제목도 브랜드 헤드텀 단독이 아니라 "안내" 성격의 질문형으로 둔다 —
-// 홈과 같은 쿼리를 두고 다투면 둘 다 밀린다.
+// 브랜드의 대표 URL 은 /ggulggul/ 이고("/" 는 그리로 301) 이 페이지는 옛 이름(꿀꿀 운세)으로 찾아온
+// 사람에게 개명(2026-10-10 꿀꿀 운세 → 꿀꿀 사주)을 알리는 보조 안내다. 경로는 기존 검색·링크를 위해 유지한다.
+// 제목은 브랜드 헤드텀 단독이 아니라 "안내" 성격으로 둔다 — 홈과 같은 쿼리를 두고 다투면 둘 다 밀린다.
 const SEO = {
-  title: "꿀꿀 운세는 어떤 서비스인가요 | Code Destiny 브랜드 안내",
-  description:
-    "꿀꿀운세와 꽃돼지 운세로 기억하는 Code Destiny를 소개합니다. 사주, 만세력, 자미두수, 숙요점, 베다 점성술, 타로와 AI 상담을 질문에 맞게 연결합니다.",
-  ogTitle: "꿀꿀 운세는 어떤 서비스인가요 | Code Destiny 브랜드 안내",
+  title: "꿀꿀 운세는 이제 꿀꿀 사주예요 | 브랜드 안내",
+  description: "꿀꿀 사주는 기존 꿀꿀 운세의 새 이름입니다. CODE DESTINY에서 제공하던 사주·타로·궁합과 영냥이·연이 상담을 같은 서비스에서 이용할 수 있습니다.",
+  ogTitle: "꿀꿀 운세는 이제 꿀꿀 사주예요 | 브랜드 안내",
   ogDescription:
-    "꿀꿀운세와 꽃돼지 캐릭터로 기억하는 Code Destiny의 사주·만세력·점성술·AI 상담 서비스를 소개합니다.",
+    "꿀꿀 운세가 꿀꿀 사주로 이름을 바꿨습니다. 사주·타로·궁합과 영냥이·연이 상담을 같은 주소 code-destiny.com에서 이어서 이용하세요.",
 };
 
 const BRAND_ALIAS_SENTENCE = brandCopy('aliases');
@@ -30,7 +29,7 @@ const FUSION_FORTUNE_SUMMARY =
 const SERVICES = [
   {
     href: "/manse",
-    title: "꿀꿀만세력으로 내 사주 보기",
+    title: "만세력으로 내 사주 보기",
     description: "생년월일과 출생시간을 바탕으로 오행, 십성, 대운의 흐름을 살핍니다.",
   },
   {
@@ -70,41 +69,39 @@ const SERVICES = [
   },
 ];
 
+// 앞의 네 문항이 개명 안내다. 계정·구매 내역·보관함 문장은 이번 개명이 경로·저장 키·로그인 식별자를
+// 바꾸지 않았기 때문에 쓸 수 있다 — 그 전제가 바뀌면 이 답도 함께 고친다.
 const FAQS = [
+  {
+    question: "꿀꿀 사주와 꿀꿀 운세는 같은 서비스인가요?",
+    answer:
+      "네, 같은 서비스입니다. 꿀꿀 사주는 기존 꿀꿀 운세의 새 이름입니다. 주소(code-destiny.com)와 로그인 계정은 그대로이고, 구매 내역과 저장된 결과도 이전처럼 나의 기록 보관함과 영냥이 상담 기록에서 다시 볼 수 있습니다.",
+  },
+  {
+    question: "꿀꿀만세력으로 찾던 서비스도 여기에서 이용할 수 있나요?",
+    answer:
+      "네. 꿀꿀만세력은 이 서비스가 처음 쓰던 이름이고, 꽃돼지 운세는 꽃돼지 연이 캐릭터로 기억하던 이름입니다. 생년월일과 출생시간으로 사주팔자를 확인하는 만세력은 꿀꿀 사주의 만세력 페이지에서 그대로 이용할 수 있습니다.",
+  },
+  {
+    question: "CODE DESTINY와 꿀꿀 사주는 어떤 관계인가요?",
+    answer:
+      "CODE DESTINY(코드데스티니)는 플랫폼 이름이고, 꿀꿀 사주는 그 한국어 사주·운세 상담 서비스 이름입니다. 공식 웹사이트는 code-destiny.com 하나이며, 꿀꿀 사주와 꿀꿀사주는 띄어쓰기만 다른 같은 이름입니다.",
+  },
+  {
+    question: "영냥이와 연이 상담은 어디에서 이용하나요?",
+    answer:
+      "꽃돼지 연이와 사자 네오의 상담은 꿀꿀 사주 홈(code-destiny.com/ggulggul/)에서, 사주보는 고양이 영냥이의 사주·타로 상담은 영냥이 페이지(code-destiny.com/yeongnyangi/)에서 시작합니다. 연이가 차를 내려 주며 이야기를 듣는 연이의 운명 찻집도 같은 사이트에 있습니다.",
+  },
   {
     question: brandCopy('officialSiteQuestion'),
     answer: brandCopy('officialSiteAnswer'),
   },
-  ...publicRecordCopy.ko.faqs.slice(1),
   {
-    question: "꿀꿀 운세가 무엇인가요?",
-    answer:
-      brandCopy('brandLead'),
-  },
-  {
-    question: "꿀꿀 만세력과 꿀꿀 운세의 차이는?",
-    answer:
-      "동일한 서비스입니다. 기존 명칭인 '꿀꿀 만세력'에서 '꿀꿀 운세'로 서비스명이 변경되었습니다.",
-  },
-  {
-    question: "꿀꿀 운세에서 어떤 운세를 볼 수 있나요?",
+    question: "꿀꿀 사주에서 어떤 운세를 볼 수 있나요?",
     answer:
       brandCopy('systemsScope'),
   },
-  {
-    question: "코드 데스티니와 꿀꿀 운세는 같은 곳인가요?",
-    answer:
-      "같은 곳입니다. 코드 데스티니(Code Destiny)가 플랫폼 이름이고 꿀꿀 운세는 그 한국어 서비스명입니다. 주소는 code-destiny.com 하나입니다.",
-  },
-  {
-    question: "꽃돼지 운세 또는 꿀꿀만세력으로 찾은 서비스도 같은 곳인가요?",
-    answer:
-      "네. 꽃돼지 캐릭터로 기억하는 꽃돼지 운세와 꿀꿀운세, 꿀꿀만세력은 Code Destiny 안에서 이어지는 브랜드 표현입니다. 찾는 서비스에 맞는 사주, 만세력, 자미두수, 숙요점, 베다점, 점성술 페이지로 이동해 보세요.",
-  },
-  {
-    question: "CodeDestiny와 CODE DESTINY는 어떤 관계인가요?",
-    answer: BRAND_ALIAS_SENTENCE,
-  },
+  ...publicRecordCopy.ko.faqs.slice(1),
   {
     question: "초융합 운세란 무엇인가요?",
     answer: FUSION_FORTUNE_SUMMARY,
@@ -160,6 +157,7 @@ export const metadata = {
   title: { absolute: SEO.title },
   description: SEO.description,
   keywords: [
+    "꿀꿀 사주",
     "꿀꿀운세",
     "꿀꿀 만세력",
     "꽃돼지 운세",
@@ -211,11 +209,11 @@ export default function KkulKkulUnsePage() {
       <section className={styles.heroSection} aria-labelledby="kkulKkulUnseTitle">
         <div className={styles.heroCopy}>
           <p className={styles.heroKicker}>{brandCopy('name')} / Code Destiny</p>
-          <h1 id="kkulKkulUnseTitle" className={styles.heroTitle}>{brandCopy('brandHeading')}</h1>
+          <h1 id="kkulKkulUnseTitle" className={styles.heroTitle}>꿀꿀 운세는 이제 꿀꿀 사주예요</h1>
           <p className={styles.heroLead}>
-            {brandCopy('brandLead')}
+            꿀꿀 사주는 기존 꿀꿀 운세의 새 이름입니다. CODE DESTINY에서 제공하던 사주·타로·궁합과 영냥이·연이 상담을 같은 서비스에서 이용할 수 있습니다.
           </p>
-          {/* 브랜드 앵커("꿀꿀 운세")는 대표 URL /ggulggul/ 로만 보낸다. 같은 앵커로 /manse 를 가리키면
+          {/* 브랜드 앵커("꿀꿀 사주")는 대표 URL /ggulggul/ 로만 보낸다. 같은 앵커로 /manse 를 가리키면
               브랜드 쿼리에서 만세력 페이지가 홈을 밀어내는 지금 상태가 유지된다. */}
           <div className={styles.ctaRow}>
             <Link className={`${styles.ctaButton} ${styles.ctaPrimary}`} href="/ggulggul/">
@@ -227,11 +225,11 @@ export default function KkulKkulUnsePage() {
           </div>
         </div>
 
-        <div className={styles.heroVisual} aria-label="꿀꿀 운세 주요 서비스">
+        <div className={styles.heroVisual} aria-label="꿀꿀 사주 주요 서비스">
           <div className={styles.serviceGrid}>
             {SERVICES.map((service) => (
               <Link key={service.href} href={service.href} className={styles.serviceCard}>
-                <span className={styles.serviceMeta}>꿀꿀 운세</span>
+                <span className={styles.serviceMeta}>{brandCopy('name')}</span>
                 <strong>{service.title}</strong>
                 <span>{service.description}</span>
               </Link>
@@ -245,10 +243,15 @@ export default function KkulKkulUnsePage() {
       <section className={styles.sectionBand} aria-labelledby="brandHistoryHeading">
         <div className={styles.sectionHeader}>
           <p className={styles.sectionKicker}>Brand Story</p>
-          <h2 id="brandHistoryHeading" className={styles.sectionTitle}>꿀꿀 만세력에서 꿀꿀 운세로</h2>
+          <h2 id="brandHistoryHeading" className={styles.sectionTitle}>꿀꿀 만세력에서 꿀꿀 운세, 그리고 꿀꿀 사주로</h2>
           <p className={styles.sectionLead}>
-            처음에는 사주와 만세력의 기본 흐름을 쉽게 펼치는 이름으로 시작했습니다.
-            이제는 타로, 궁합, 자미두수, 숙요점까지 이어지며 한 사람의 하루와 관계, 선택의 기운을 함께 비춥니다.
+            처음에는 사주와 만세력의 기본 흐름을 쉽게 펼치는 꿀꿀 만세력으로 시작했습니다.
+            타로, 궁합, 자미두수, 숙요점까지 넓어지면서 꿀꿀 운세라는 이름을 썼고,
+            2026년 10월부터는 사주를 중심에 둔 상담 서비스라는 뜻을 담아 꿀꿀 사주로 부릅니다.
+          </p>
+          <p className={styles.sectionLead}>
+            이름만 바뀌었고 주소와 서비스, 계정은 그대로입니다. 지금 바로{" "}
+            <Link href="/ggulggul/">꿀꿀 사주 홈</Link>에서 이어서 이용해 보세요.
           </p>
         </div>
       </section>
@@ -256,13 +259,13 @@ export default function KkulKkulUnsePage() {
       <section className={styles.sectionBand} aria-labelledby="characterBrandHeading">
         <div className={styles.sectionHeader}>
           <p className={styles.sectionKicker}>Brand Identity</p>
-          <h2 id="characterBrandHeading" className={styles.sectionTitle}>꽃돼지로 기억하는 꿀꿀 운세</h2>
+          <h2 id="characterBrandHeading" className={styles.sectionTitle}>꽃돼지 연이로 기억하는 꿀꿀 사주</h2>
           <p className={styles.sectionLead}>
-            꽃돼지 운세 사이트를 찾았다면 Code Destiny의 꿀꿀운세가 맞습니다. 꽃돼지라는 캐릭터로 기억하는 분들을 위해
+            꽃돼지 운세 사이트를 찾았다면 Code Destiny의 꿀꿀 사주가 맞습니다. 꽃돼지 연이로 기억하는 분들을 위해
             사주, 만세력, 자미두수, 숙요점, 베다 점성술, 점성술과 AI 상담을 하나의 브랜드 안에서 이어 두었습니다.
           </p>
           <p className={styles.sectionLead}>
-            꿀꿀 사주나 꿀꿀만세력으로 찾은 경우에도 질문에 맞는 해석 페이지를 선택할 수 있습니다. {BRAND_ALIAS_SENTENCE}
+            {BRAND_ALIAS_SENTENCE}
           </p>
           <p className={styles.sectionLead}>
             같은 계정 안에는 고양이 캐릭터가 상담해 주는 <Link href="/yeongnyangi/">사주보는 고양이 영냥이</Link>도 있습니다.
@@ -289,7 +292,7 @@ export default function KkulKkulUnsePage() {
       <section className={`${styles.sectionBand} ${styles.refundSection}`} aria-labelledby="faqHeading">
         <div className={styles.sectionHeader}>
           <p className={styles.sectionKicker}>FAQ</p>
-          <h2 id="faqHeading" className={styles.sectionTitle}>꿀꿀 운세 자주 묻는 질문</h2>
+          <h2 id="faqHeading" className={styles.sectionTitle}>꿀꿀 사주 자주 묻는 질문</h2>
         </div>
         <div className={styles.refundGrid}>
           {FAQS.map((item) => (
