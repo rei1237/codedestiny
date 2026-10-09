@@ -19,6 +19,9 @@ export interface ReadingSectionSpec {
 }
 export interface ChapterSpec {
   questionPolicy?: string;
+  // QUESTION_LAYOUT_VERSION / FUSION_LAYOUT_VERSION and the chapter's role in that layout (foundation, question, bonus, life, synthesis).
+  consultationLayout?: string;
+  layoutRole?: string;
   counsel?: {version:string;focus:string;cycleIndexes?:number[]};
   preventionVersion?: string;
   outputBudgetVersion?: string;

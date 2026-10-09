@@ -7,7 +7,7 @@ import {conciseReadingPrompt} from '../fortune/concise-reading-prompt';
 import {skyRules,validateSkyChapter} from '../fortune/question-sky-reading';
 import {readingLocale,readingLanguageInstruction,readingOutputContext,validateReadingLanguage,type ReadingLocale,type ReadingOutputContext} from '../fortune/reading-locale';
 import {spiritEvidence,spiritRules,validateSpiritChapter} from '../fortune/spirit';
-import {READING_V6_VERSION,READING_V7_VERSION,QUESTION_SKY_TWO_STAGE_VERSION,hasReadingSections,isStructuredReading,PROMPT_VERSION,readingPolicies} from '../fortune/reading-policy';
+import {READING_V6_VERSION,READING_V7_VERSION,QUESTION_SKY_TWO_STAGE_VERSION,QUESTION_LAYOUT_VERSION,hasReadingSections,isStructuredReading,PROMPT_VERSION,readingPolicies} from '../fortune/reading-policy';
 import {sanitizeQuestionSkyBody,validateQuestionSkyTwoStage} from '../fortune/question-sky-reading';
 import {buildV7ChapterPrompt,v7TimeTheme,type V7PromptChapter,type V7Previous} from '../fortune/reading-v7-prompt';
 import {LENGTH_FAILURES,bodyCharacterCount,normalizeSectionParagraphs,splitSectionParagraph,validateReadingQuality} from '../fortune/reading-quality';
@@ -263,6 +263,34 @@ function fixedConclusions(previous:ChapterRequest['previous']){
     .map(a=>({questionId:a.questionId,answer:a.answer.slice(0,300)}));
   return answers.length?{rule:'앞 장에서 이미 답한 질문의 확정 결론이다. 바꾸거나 반대 방향으로 쓰지 않는다. 이 장은 같은 결론을 다른 근거와 조건으로 보완하고, 상황에 따라 달라지는 부분은 결론을 유지한 채 조건으로만 쓴다. summary에는 이 결론 문장을 다시 쓰지 않는다.',answers}:undefined;
 }
+/** Year judgments earlier chapters already wrote (D7 layouts only), so a 24~36 chapter book keeps one direction per year. */
+function previousYearClaims(previous:ChapterRequest['previous']){
+  const claims:string[]=[];const perYear=new Map<string,number>();
+  for(const sentence of previous.flatMap(p=>(p.blocks||[]).flatMap(b=>(b.paragraphs||[]).flatMap(x=>String(x).split(/(?<=[.!?])\s+/))))){
+    const text=sentence.trim();const year=text.match(/20\d{2}년/)?.[0];
+    if(!year||claims.includes(text.slice(0,160))||(perYear.get(year)||0)>=2)continue;
+    perYear.set(year,(perYear.get(year)||0)+1);claims.push(text.slice(0,160));
+    if(claims.length>=8)break;
+  }
+  return claims.length?{rule:'앞 장에서 연도를 들어 내린 판단이다. 같은 해를 다시 다룰 때 판단의 방향을 바꾸지 않고, 달라지는 부분은 조건으로만 쓴다. 문장을 그대로 반복하지 않는다.',claims}:undefined;
+}
+/** Mackerel question chapters (QUESTION_LAYOUT_VERSION): one distinct task and scene per chapter, by ordinal. */
+const QUESTION_MACKEREL_TASKS=[
+  '타고난 기질과 지금 지나는 운의 흐름만 다룬다. 질문의 결론은 아직 내리지 않고, 이 사람이 고민을 대하는 방식을 한 장면으로 보여준다.',
+  '강점과 그 그림자만 다룬다. 앞 장의 기질 설명을 반복하지 않고, 강점이 질문 상황에서 도움이 되는 조건과 부담이 되는 순간을 구분한다.',
+  '질문에 대한 직접 답만 다룬다. 결론을 첫 문단에 쓰고 기본 장의 설명은 한 줄로만 참조한다.',
+  '답을 뒷받침하거나 제한하는 근거와 판단이 바뀌는 조건만 다룬다. 앞 장의 결론 문장을 다시 쓰지 않는다.',
+  '질문 기간의 기회와 주의 조건만 다룬다. 근거 없는 달이나 날짜를 만들지 않는다.',
+  '앞 장들의 결론을 바꾸지 않고 오늘 시작할 행동과 다시 점검할 신호를 순서대로 준다.',
+];
+const QUESTION_MACKEREL_SCENES=[
+  '고민이 떠올라 휴대폰 메모를 여는 순간',
+  '익숙한 방식으로 일을 처리했는데 뜻밖의 반응을 받은 순간',
+  '같은 질문을 스스로에게 다시 묻는 저녁',
+  '두 가지 판단 근거를 종이에 나란히 적어 보는 순간',
+  '반가운 제안과 걸리는 조건을 함께 받은 순간',
+  '하루를 마치며 내일 할 첫 행동을 한 줄 적는 순간',
+];
 /** Evidence IDs earlier chapters already explained, so a later chapter refers back in a line instead of re-explaining them. */
 function explainedEvidence(previous:ChapterRequest['previous']){
   const ids=[...new Set(previous.flatMap(p=>Array.isArray(p.sources)?p.sources:[]))].filter(id=>typeof id==='string');
@@ -381,6 +409,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
       return {...f,value:{...value,promptConfig:undefined,earthStorageOpenings:rows.filter(r=>input.chapter.questionPolicy||timeTheme||['cross','action'].includes(input.chapter.theme)||r.timingType==='natal').map(r=>Object.fromEntries(Object.entries(r).filter(([k])=>!['summaryForPrompt','sourceBranchKorean','triggerBranchKorean'].includes(k))))}};
     });
     const tier = input.chapter.tier || input.chapter.id.split("-")[0];
+    const questionMackerel=input.chapter.consultationLayout===QUESTION_LAYOUT_VERSION&&tier==='mackerel';
     const paidScoped=!input.chapter.questionPolicy&&isStructuredReading(input.chapter.version)&&!['tuna','assorted','omakase'].includes(tier);
     const depth = '모든 생선에서 질문과 상담 범위에 필요한 가장 깊은 분석을 제공한다. 실제 근거를 교차 검토하고 반대 신호·원인·판단이 달라지는 조건·생활 장면·선택지·우선 행동을 충분히 설명한다. 근거 수나 문단 수를 가격에 따라 제한하지 않고, 관련 없는 주제나 반복으로 분량을 늘리지 않는다.';
     const sky=input.analysis.consultation?.questionSky;
@@ -466,14 +495,14 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
           '강점이 유용해지는 조건만 다룬다. 막연한 칭찬 대신 어떤 방식으로 강점을 써볼지 보여준다. 앞선 성격 소개를 반복하지 않는다.',
           '부담의 조기 신호만 다룬다. 알아차릴 징후와 멈추는 기준에 집중한다. 다른 장의 성공 사례를 재사용하지 않는다.',
           '오늘 해볼 작은 실험만 다룬다. 앞의 해설을 재탕하지 말고 시작 행동, 실행 문장 하나, 하루 뒤 확인 질문을 준다.',
-        ][input.chapter.ordinal]:`이번 장의 고유 질문 '${input.chapter.focus||input.chapter.title}'에만 답한다.`,
+        ][input.chapter.ordinal]:questionMackerel?QUESTION_MACKEREL_TASKS[input.chapter.ordinal]:`이번 장의 고유 질문 '${input.chapter.focus||input.chapter.title}'에만 답한다.`,
         exampleScene: !isStructuredReading(input.chapter.version)&&tier==='mackerel'?[
           '대화를 시작하기 전 상대의 말투를 듣는 짧은 순간',
           '할 일 목록에서 두 항목의 순서를 고르는 순간',
           '복잡한 생각을 메모 한 장으로 정리하는 순간',
           '예상치 못한 부탁을 받고 바로 대답하지 않는 순간',
           '하루를 마치며 내일 하지 않을 일을 한 줄 적는 순간',
-        ][input.chapter.ordinal]:undefined,
+        ][input.chapter.ordinal]:questionMackerel?QUESTION_MACKEREL_SCENES[input.chapter.ordinal]:undefined,
         writingContract:'previousConclusions와 previousExamples는 재사용 금지 목록이다. 기존 문장을 단어만 바꾸어 쓰지 않는다. exampleScene은 가상의 예시 소재이지 실제 경험의 증거가 아니다. 질문과 맞지 않으면 다른 장면을 고른다. 실제 직업이나 동료가 있다고 단정하지 않는다. summary는 이번 장의 고유 질문(chapter.focus)에 대한 답으로 쓰고, previousConclusions·fixedConclusions의 결론 문장을 다시 쓰지 않는다.',
         topic:input.analysis.topicId,
         periodScope:input.chapter.periodScope,
@@ -488,6 +517,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         previousExamples: input.previous.map((p) => p.example.slice(0, 100)),
         fixedConclusions: fixedConclusions(input.previous),
         explainedEvidence: explainedEvidence(input.previous),
+        ...(input.chapter.consultationLayout?{previousYearClaims:previousYearClaims(input.previous)}:{}),
         themes: isStructuredReading(input.chapter.version) ? undefined : input.analysis.themes,
         ...(sky?{professionalEvidenceNames:undefined,domain:undefined,task:undefined,paidScope:undefined,
           evidencePresentation:'구조화된 질문의 결을 쉬운 말로 설명한다. 내부 ID는 sources에만 쓴다.',

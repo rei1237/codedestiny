@@ -15,7 +15,10 @@ test('approved scope, prices and followups share one registry contract',()=>{
   const decision=d({category,target,horizon,relationshipType:'romantic_adults'}),plan=p.recommendQuestion('saju',decision);
   assert.equal(plan.fish,fish);assert.equal(p.FOLLOWUP_LIMITS[fish],limit);
   for(const product of p.products.filter(x=>x.readingKind==='single'&&x.fishId===fish))assert.equal(product.priceKRW,price);
-  assert.equal(p.questionManifest('saju',fish,decision)[0].minimumChars,0);
+  // D7/D8: new layouts repair below 55% of the chapter target; the legacy manifest keeps no minimum.
+  const row=p.questionManifest('saju',fish,decision)[0];
+  assert.equal(row.minimumChars,Math.ceil(row.targetChars[0]*.55));
+  assert.equal(p.questionManifest('saju',fish,decision,undefined,'',false)[0].minimumChars,0);
  }
 });
 test('short career questions are checked by subject and decision, not length or emotion',()=>{

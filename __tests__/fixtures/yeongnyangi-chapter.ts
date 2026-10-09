@@ -64,7 +64,7 @@ export function mockReadingV5(input:ChapterRequest,sources:string[]):ChapterBody
   const paragraphs:string[]=[];
   let length=0;
   while(length<section.targetChars[0]){
-   const text=`${section.title}의 분량 검증용 모의 자료입니다. `+Array.from({length:15},()=>`${next()}와 ${next()}를 살펴보고 ${next()}의 조건을 기록합니다.`).join(' ');
+   const text=(paragraphs.length?'':`${section.title}의 분량 검증용 모의 자료입니다. `)+Array.from({length:15},()=>`${next()}와 ${next()}를 살펴보고 ${next()}의 조건을 기록합니다.`).join(' ');
    paragraphs.push(text);length+=Array.from(text).length;
   }
   return {id:section.id,title:section.title,paragraphs,sources};
