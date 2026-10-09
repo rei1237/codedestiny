@@ -308,6 +308,33 @@ export function validatePreciseTiming(body: ChapterBody, consultation: Consultat
   validateMonthPillars(text.split('\n'),evidence,Boolean(consultation.questionDecision));
   if(consultation.questionDecision&&natalOnlyTiming(evidence))validateUngroundedTiming(text);
   validateDashaSequence(text,evidence);
+  validateYearLabels(text,consultation.asOf);
+  validateYearlyPalaces(text,evidence);
+}
+
+/** "내년 2026년": a relative year word followed by its year must agree with the consultation date. */
+export function validateYearLabels(text: string, asOf: string) {
+  if(!/^\d{4}-/.test(asOf || ''))return;
+  const base=Number(asOf.slice(0,4));
+  for(const m of text.matchAll(new RegExp(`(?<![가-힣])(${RELATIVE_WORDS})(?:인)?\\s+(20\\d{2})\\s*년`,'gu'))){
+    const offset=relativeOffset(m[1]);
+    if(offset!==undefined&&base+offset!==Number(m[2]))throw new FortuneError('CHAPTER_YEAR_LABEL_MISMATCH');
+  }
+}
+
+const ZIWEI_PALACES='명궁|형제궁|부부궁|자녀궁|재백궁|질액궁|천이궁|노복궁|교우궁|관록궁|전택궁|복덕궁|부모궁';
+/** "2027년 세운이 재백궁으로": the palace named with a year's 세운 must be that year's palace in the ziwei yearly timeline. */
+export function validateYearlyPalaces(text: string, evidence: unknown) {
+  const rows=(Array.isArray(evidence)?evidence:[]).filter((f:any)=>String(f?.id).startsWith('ziwei.')&&(f.label==='yearlyTimeline'||f.label==='yearlyLuck'))
+    .flatMap((f:any)=>Array.isArray(f.value)?f.value:[f.value]);
+  if(!rows.length)return;
+  // Only "the year moves into / is palace X". "2027년 유년 관록궁" is the flow-year chart's own career palace, and
+  // "세운은 노복궁에 거문 화기" places a transformation, so neither names the yearly palace.
+  // A flow year has one palace, so a half of that year ("2027년 하반기에는 유년이") names the same row.
+  for(const m of text.matchAll(new RegExp(`(20\\d{2})\\s*년\\s*(?:(?:상반기|하반기|초|말)\\s*(?:에는|에|엔|의)?\\s*)?(?:의\\s*)?(?:세운|유년)(?:\\s*[(（][^)）]*[)）])?(?:\\s*궁)?\\s*(?:이|은|는|가)\\s*(${ZIWEI_PALACES})(?:\\s*[(（][^)）]*[)）])?\\s*(?:으로|로|(?:이|에\\s*해당)(?:다|야|에요|예요|입니다|하)|에\\s*(?:들어|자리|놓|머물|위치))`,'gu'))){
+    const row=rows.find((r:any)=>r?.year===Number(m[1]));
+    if(row&&row.palaceName!==(m[2]==='교우궁'?'노복궁':m[2]))throw new FortuneError('CHAPTER_YEARLY_PALACE_MISMATCH');
+  }
 }
 
 // The last antardasha of a mahadasha is fixed by the cycle order: it is the lord just before the mahadasha lord.

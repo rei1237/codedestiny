@@ -338,3 +338,28 @@ test('only the antardasha before the mahadasha lord in the cycle may be called i
   assert.doesNotThrow(()=>validatePreciseTiming(body(text),{},vedic),text);
  assert.doesNotThrow(()=>validatePreciseTiming(body('마지막 안타르다샤인 금성 시기야.'),{},[]));
 });
+
+test('a relative year word must agree with the year written after it',()=>{
+ const consultation={asOf:'2026-10-10'}, body=text=>({summary:text,example:'',advice:'',persona:'',analysis:[],blocks:[],questionAnswers:[]});
+ // Z ch5: asked in October 2026, 내년 is 2027.
+ for(const text of ['특히 내년 2026년에는 이직 준비를 시작해.','올해 2025년은 정리의 해야.','작년 2026년의 흐름'])
+  assert.throws(()=>validatePreciseTiming(body(text),consultation,[]),{code:'CHAPTER_YEAR_LABEL_MISMATCH'},text);
+ for(const text of ['내년 2027년 상반기가 핵심이야.','올해 2026년 4분기','2026년 하반기와 내년 상반기','2026년 내년 상반기까지 이어지는 흐름','내년(2027년)'])
+  assert.doesNotThrow(()=>validatePreciseTiming(body(text),consultation,[]),text);
+});
+
+test('a palace named with a year\'s 세운 must be that year\'s palace in the ziwei yearly timeline',()=>{
+ const ziwei=[{id:'ziwei.yearlyTimeline',label:'yearlyTimeline',value:[{year:2026,palaceName:'재백궁'},{year:2027,palaceName:'자녀궁'},{year:2029,palaceName:'노복궁'}]}];
+ const body=text=>({summary:text,example:'',advice:'',persona:'',analysis:[],blocks:[],questionAnswers:[]}), c={asOf:'2026-10-10'};
+ // Z ch1: 2027 is 자녀궁, not 재백궁.
+ // Z rerun ch2: the second half of 2027 is still the 2027 row (자녀궁); 전택궁 came from the age-based 소한 list.
+ for(const text of ['2027년 세운(歲運)이 재백궁으로 들어오면서, 재물과 관련된 기회가 생겨.','2026년의 유년은 관록궁이야.','2027년 세운 궁은 재백궁에 자리해.',
+  '2027년 하반기에는 유년이 전택궁에 놓이고 이곳에 천부가 있어.','2027년 상반기 유년은 재백궁(재물)에 놓여 있어.'])
+  assert.throws(()=>validatePreciseTiming(body(text),c,ziwei),{code:'CHAPTER_YEARLY_PALACE_MISMATCH'},text);
+ for(const text of ['2027년 세운이 자녀궁으로 들어와.','2026년 유년은 재백궁이야.','2029년 세운은 교우궁이야.','2027년 세운이 부부궁을 충한다.','2028년 세운이 관록궁으로',
+  // Z/Y2 sentences that are not about the yearly palace: the flow-year chart's own palaces and where a transformation lands.
+  '2027년 유년 관록궁에는 천기성과 태음성이 강하게 작용해.','2027년 세운 재백궁에 거문 화기가 들어와.','2027년 세운은 노복궁에 거문 화기가 붙어.',
+  '2027년 상반기 유년은 자녀궁(동업·투자·확장)에 놓여 있어.'])
+  assert.doesNotThrow(()=>validatePreciseTiming(body(text),c,ziwei),text);
+ assert.doesNotThrow(()=>validatePreciseTiming(body('2027년 세운이 재백궁으로'),c,[{id:'saju.yearlyLuck',label:'yearlyLuck',value:{year:2027}}]));
+});

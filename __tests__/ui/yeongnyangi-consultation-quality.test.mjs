@@ -237,3 +237,18 @@ test('astrology question chapters are told up front that a birth chart cannot ra
  for(const chapter of m.questionManifest('saju','salmon',decision,undefined,'이직할까?'))
   assert.doesNotMatch(await sent('saju',chapter),/timingLimit/,chapter.id);
 });
+
+test('later chapters receive the question chapter answers as settled conclusions',async()=>{
+ const decision={version:m.QUESTION_POLICY_VERSION,category:'job_change',target:'self',horizon:'current',situation:'이직 고민',options:'남기 / 옮기기',period:'2026년 4분기부터 2027년 상반기',constraints:'',confirmed:true};
+ const [,chapter]=m.questionManifest('saju','salmon',decision,undefined,'이직할까?');
+ const sent=async previous=>{let request;
+  const provider=new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:{},provider:'mock',model:'fixture'};}});
+  await provider.generateChapter({chapter,analysis:{contexts:{saju:contexts.saju},question:'이직할까?',themes:[],signals:[]},previous});
+  return JSON.parse(request.domainRules);};
+ // T: Q1 said the move is the better side, ch4 later said staying matters more.
+ const q1={summary:'이직 준비 쪽이 더 긍정적이야.',example:'',topics:[],questionAnswers:[{questionId:'Q1',answer:'이직 준비 쪽이 더 긍정적이야. 다만 수입 공백은 줄여야 해.',reason:'',timing:'',action:''}]};
+ const rules=await sent([q1]);
+ assert.deepEqual(rules.fixedConclusions.answers,[{questionId:'Q1',answer:q1.questionAnswers[0].answer}]);
+ assert.match(rules.fixedConclusions.rule,/바꾸거나 반대 방향으로 쓰지 않는다/);
+ assert.equal((await sent([{summary:'s',example:'',topics:[]}])).fixedConclusions,undefined);
+});

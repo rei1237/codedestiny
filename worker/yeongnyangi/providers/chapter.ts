@@ -240,6 +240,13 @@ export function validateChapter(
 // 삼방사정은 2026-10-01 부터 모든 단계에 준다(궁 사실의 facing·trines). 시기·용신 계열만 단계 용어로 남긴다.
 const TIER_SCOPED_TERMS=/용신|희신|대운|마하다샤|안타르다샤/;
 const LENGTH_REPAIR='본문 합계는 lengthContract.minimum 이상, sectionContract의 소절마다 minimumChars 이상을 새로운 해설로 채우고 targetChars를 목표로 쓴다. 500자를 넘는 소절은 문장 단위로 끊어 여러 문단으로 나눈다. 같은 문단이나 문장을 되풀이해 분량을 채우지 않는다. 되풀이한 문단은 분량에 들어가지 않는다.';
+/** Answers given in earlier chapters are settled: each chapter is a separate call, so without this a later one can reverse them. */
+function fixedConclusions(previous:ChapterRequest['previous']){
+  const answers=previous.flatMap(p=>p.questionAnswers||[]).filter(a=>typeof a?.answer==='string'&&a.answer.trim())
+    .map(a=>({questionId:a.questionId,answer:a.answer.slice(0,300)}));
+  return answers.length?{rule:'앞 장에서 이미 답한 질문의 확정 결론이다. 바꾸거나 반대 방향으로 쓰지 않는다. 이 장은 같은 결론을 다른 근거와 조건으로 보완하고, 상황에 따라 달라지는 부분은 결론을 유지한 채 조건으로만 쓴다.',answers}:undefined;
+}
+
 const REPAIR_INSTRUCTIONS:Record<string,string>={
   INVALID_CHAPTER_BLOCKS:'blocks는 sectionContract가 있으면 그 id 순서대로 소절마다 하나씩 만든다. 각 block의 title은 구매 언어로 된 비어 있지 않은 소제목, paragraphs는 비어 있지 않은 문단 배열이다. 문단은 각각 500자 이하로 쓰고 긴 소절은 문장 단위로 끊어 여러 문단으로 나눈다. 한 문장이 500자를 넘지 않게 한다. HTML 태그를 쓰지 않는다. analysis·example·advice는 blockContract를 그대로 따른다.',
   INTERNAL_EVIDENCE_EXPOSED:'summary·persona·highlights·blocks의 title과 paragraphs·questionAnswers 등 사용자에게 보이는 모든 문장에 CALCULATED_DATA의 id(체계명.항목)와 label 같은 영문 데이터 키, CALCULATED_DATA·USER_QUESTION·FortuneFact·questionAnswers·factSelectors·requiredSections·engineVersion 같은 시스템 이름을 쓰지 않는다. 내부 ID는 sources에만 넣고 본문은 professionalEvidenceNames의 명칭을 구매 언어로 풀이으로 설명한다.',
@@ -263,6 +270,8 @@ const REPAIR_INSTRUCTIONS:Record<string,string>={
   V7_SCENE_REUSE:'usedScenes와 usedActions에 있는 소재·행동은 고르지 않는다. 장면과 제안은 이 장의 주제 안에서 새로 만들고 topics의 scene:·action: 태그도 앞 장에서 쓰지 않은 소재로 바꾼다.',
   SAJU_PILLAR_CONTRADICTION:'년주·월주·일주·시주의 간지, 일간, 신강·신약은 CALCULATED_DATA의 pillars·dayMaster·strengthHeuristic 값만 쓴다. pillars.hour가 null이면 시주 간지를 말하지 않는다.',
   CHAPTER_UNGROUNDED_TIMING:'이 장의 근거는 출생 차트뿐이고 트랜짓 같은 시기 계산은 없다. 연도·올해·내년·상하반기·분기·월을 유리하거나 불리한 시기, 적기라고 단정하지 않는다. questionAnswers의 timing에는 출생 차트만으로는 요청 기간 안의 좋은 시기를 특정할 수 없다는 점과, 그 기간에 스스로 확인할 기준(차트의 어떤 성향을 어떤 신호로 점검할지)만 쓴다. 본문도 같은 기준을 따른다.',
+  CHAPTER_YEAR_LABEL_MISMATCH:'올해·내년·작년 같은 말 바로 뒤에 쓰는 연도 숫자는 consultation.asOf의 연도로 계산한다. asOf의 연도가 올해, 그다음 해가 내년이다. 말과 숫자가 어긋난 표현을 고치고, 어느 쪽이 맞는지 근거로 정할 수 없으면 연도 숫자만 쓴다.',
+  CHAPTER_YEARLY_PALACE_MISMATCH:'‘YYYY년 세운·유년’과 함께 쓰는 궁 이름은 CALCULATED_DATA의 yearlyTimeline에서 그 연도 행의 palaceName만 쓴다. 나이로 정하는 소한 궁과 섞지 않는다. 그 연도 행이 없으면 궁 이름을 쓰지 않는다.',
   CHAPTER_DASHA_SEQUENCE_MISMATCH:'현재 마하다샤의 마지막 안타르다샤는 근거의 remainingAntardashas 목록의 마지막 항목뿐이다. 다른 안타르다샤(달-금성처럼 마하다샤-안타르다샤로 쓴 경우의 뒤 행성 포함)를 마지막 안타르다샤라고 부르지 않는다. 지금 안타르다샤가 마지막이 아니면 뒤에 이어지는 안타르다샤와 그 기간을 함께 쓴다.',
   CHAPTER_MONTH_PILLAR_MISMATCH:'‘N년 M월’과 함께 쓰는 월의 간지는 CALCULATED_DATA의 monthlyLuck에서 그 양력 달에 절입이 시작되는 행의 pillar만 쓴다. 절기 월은 양력 달 초(4~8일 무렵)에 바뀌므로 앞 달에 시작한 간지를 다음 달 이름으로 부르지 않는다. monthlyLuck에 없는 달은 간지를 붙이지 않고 계산 근거가 없다고 쓴다.',
   V7_RESTATED_SENTENCE:'앞 장의 문장을 단어만 바꾸어 다시 쓰지 않는다. previousHighlights의 결론을 되풀이하지 말고 이 장이 소유한 근거에서 나오는 새 판단으로 문장을 쓴다.',
@@ -453,6 +462,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         previousTopics: input.previous.flatMap((p) => p.topics),
         previousConclusions: input.previous.map((p) => p.summary.slice(0, 150)),
         previousExamples: input.previous.map((p) => p.example.slice(0, 100)),
+        fixedConclusions: fixedConclusions(input.previous),
         themes: isStructuredReading(input.chapter.version) ? undefined : input.analysis.themes,
         ...(sky?{professionalEvidenceNames:undefined,domain:undefined,task:undefined,paidScope:undefined,
           evidencePresentation:'구조화된 질문의 결을 쉬운 말로 설명한다. 내부 ID는 sources에만 쓴다.',
