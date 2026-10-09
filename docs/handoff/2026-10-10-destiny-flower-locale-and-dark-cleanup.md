@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-10
-next: 꽃말 현지화 방식(번역 vs 각 문화권 고유 꽃말)을 사용자에게 묻고, 답에 따라 en부터 flowerLanguage 89종을 채운다
+next: 해시태그 현지화 여부를 사용자에게 묻고, en부터 그 문화권 고유 꽃말로 flowerLanguage 89종을 채운다
 ---
 
 # 운명의 꽃 — 다국어 확장 + fortune-ui.css 잔존 다크 규칙 삭제
@@ -20,7 +20,7 @@ next: 꽃말 현지화 방식(번역 vs 각 문화권 고유 꽃말)을 사용�
 
 대상 로케일 11개: en ja zh-cn zh-tw es de fr hi ms nl vi (`public/i18n/<로케일>.json`)
 
-- [ ] 꽃말 `fortune.destinyFlower.flowers.<id>.flowerLanguage` — 로케일마다 **0/89** → 89/89
+- [ ] 꽃말 `fortune.destinyFlower.flowers.<id>.flowerLanguage` — 로케일마다 **0/89** → 89/89. **사용자 결정(2026-10-10): 한국 꽃말을 번역하지 말고 각 문화권 고유 꽃말을 쓴다**(예: ja는 花言葉, en은 영미 전통 꽃말). 같은 꽃이라도 한국 꽃말과 뜻이 달라도 된다
 - [ ] 엔진 새 문구 키 **13개**(`DESTINY_FLOWER_KO_TEXT`의 `common.bloom*`·`common.flowerLanguage*`·`common.shareHook`·`saju.bloom`·`saju.flowerLanguage*`·`saju.shareHook*`) — 로케일마다 0/13 → 13/13. 키 경로는 `fortune.destinyFlower.<키>`
 - [ ] 런타임 한국어 하드코딩 — 이번 작업에서 한국어가 든 줄이 102줄 늘었고 번역 호출은 0개: 공유 시트, 스토리 카드, 친구 꽃 티저, 꽃 궁합 7유형, 채집 라벨, 개화 타임라인, 꽃다발, 공유 훅 문구. 개수는 `npm run i18n:audit`로 확정한다
 - [ ] OG 배지 `BADGES.flower = '운명의 꽃'`(`worker/lib/og-card.js`) — 한국어 전용
@@ -66,7 +66,8 @@ npm run check:fast
 
 ## 모르는 것
 
-- 꽃말을 한국 꽃말의 번역으로 할지, 각 문화권 고유 꽃말로 할지(일본 花言葉, 영미 Victorian floriography 등). 같은 꽃이라도 뜻이 다르다. **사용자에게 묻는다.** 제안: 널리 알려진 고유 꽃말이 있으면 그것을 쓰고, 없으면 번역한다.
+- 고유 꽃말이 정립되지 않은 경우의 처리. 문화권 자체(hi·ms·vi 등)나 개별 꽃에 고유 꽃말이 없을 수 있다. **지어내지 않는다.** 로케일×꽃별로 고유 꽃말이 있는 칸과 없는 칸을 먼저 조사해 표로 보고하고, 빈칸을 어떻게 채울지(한국 꽃말 번역, 인접 문화권 꽃말 등)는 사용자에게 묻는다.
+- 나의 꽃말 문구(`saju.flowerLanguage*`)는 전통 꽃말을 인용하는 템플릿이다. 로케일 꽃말이 한국 꽃말과 다르면, 인용되는 꽃말도 그 로케일 값이어야 한다. 엔진이 `flowerLanguageKo(id)`를 폴백으로 쓰는 경로(`worker/lib/destiny-flower-engine.js` `localizeDestinyFlowerCopy`)를 확인한다.
 - 해시태그 `#운명의꽃 #나의꽃은<이름>`을 로케일별로 바꿀지(예: `#DestinyFlower`). 사용자에게 묻는다.
 - OG 이미지 라우트(`/api/og`)가 로케일을 받는지 확인하지 못했다.
 
