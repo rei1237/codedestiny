@@ -26,7 +26,7 @@
 - 이용권 종류별 세부 정책: `worker/lib/profile-limits.js`의 `HONEY_PASS_POLICY`/`PASS_LIMITS`(적용 가격 범위)/`MONTHLY_PASS_LIMITS`(월 이용 한도) (⚠️ 서버 DB 정책 테이블이 아닌 **하드코딩된 JS 상수**, `worker/routes/billing.js`에도 `tier === "family"` 분기가 중복 하드코딩되어 있음 — 정책 변경 시 두 곳 모두 확인)
 - 🔴 **같은 숫자의 하드코딩 사본이 5곳 더 있다.** `worker/lib/app-store-pricing.js`(앱 SKU `coinLimit`) · `js/core/pass-verdict.js`(`PASS_LIMIT_BY_TIER`) · `index.html`(`goldenPackages[].freeLimit` + 미니 배지 `freeLimits`) · `app/points/PointsClient.tsx`(`freeUpTo`). 전수 대조 가드는 `npm run verify:pass-tier-policy` 이며, 사본에서 4등급을 다 못 뽑으면 **통과가 아니라 실패**다(fail-closed).
 - **판정 정본은 한 곳**: `worker/payments/passes.js`의 `evaluatePassCoverage`(읽기 0회). 화면용 설명은 같은 파일의 `describePassEligibility`가 그 결과를 옮겨 담을 뿐 **다시 계산하지 않는다** — 판정이 두 벌이 되면 "판정은 커버라 했는데 소비가 거부"하는 막다른 길이 생긴다. 월 한도 현황은 `worker/lib/access-state.js`의 `entitlementSnapshot.passUsage`가 추가 왕복 없이 내려준다.
-- **프로필 개수 "상한"은 하드 상한이 아님**: 등급별 개수(standard 3 / premium 7 / vvip 15)는 UI 표시·안내용 기준값일 뿐이며, 이 값을 초과해도 **건당 5,000원(또는 월정석 500) 단건 결제로 무제한 추가**할 수 있다. 자세한 규칙은 [2부. D. 프로필 카드 추가/삭제](payment-policy-content-access.md#d-프로필-카드-추가삭제) 참고
+- **프로필 개수 "상한"은 하드 상한이 아님**: 등급별 개수(standard 3 / premium 7 / vvip 15)는 UI 표시·안내용 기준값일 뿐이며, 이 값을 초과해도 **건당 1,000원(또는 월정석 100) 단건 결제로 무제한 추가**할 수 있다(2026-10-10 5,000원/월정석 500에서 인하 — 해금이 출생정보 단위라 프로필 수정으로 구매를 우회할 수 없다). 자세한 규칙은 [2부. D. 프로필 카드 추가/삭제](payment-policy-content-access.md#d-프로필-카드-추가삭제) 참고
 - **등급별 적용 가격 범위 · 월 이용 한도 · 프로필 수**(2026-08-24 개정 — 규칙은 이 둘뿐이다):
 
   | 등급 | 가격 | 적용 가격 범위 | 월 이용 한도 | 프로필 |

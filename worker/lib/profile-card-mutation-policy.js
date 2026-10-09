@@ -1,9 +1,19 @@
 import { ProfileCard, User } from "./models.js";
 import { normalizeHoneyPassEntitlement, PROFILE_LIMIT_BY_TIER } from "./profile-limits.js";
 
-export const PROFILE_CARD_DELETE_COST_COINS = 50;
-export const PROFILE_CARD_DELETE_COST_KRW = 5000;
+// 2026-10-10: 프로필 카드 추가/수정/삭제 수수료 5,000원 → 1,000원(10코인 · 월정석 100개).
+// 해금이 출생정보(birth) 단위로 묶여 프로필을 고쳐도 기존 구매를 우회할 수 없게 됐기 때문이다.
+// 상수 이름은 역사적으로 DELETE 지만 추가/수정/삭제 3동작 공통 가격이다.
+export const PROFILE_CARD_DELETE_COST_COINS = 10;
+export const PROFILE_CARD_DELETE_COST_KRW = 1000;
 export const PROFILE_CARD_DELETE_COST_MONTHLY_STONES = PROFILE_CARD_DELETE_COST_COINS * 10;
+// 인하 전 가격. 배포 전에 만들어진 대기 주문·월정석 차감 증빙이 옛 가격으로 끝까지 완료되도록
+// 증빙 대조에서만 함께 인정한다. 신규 결제 가격으로 쓰지 말 것.
+export const LEGACY_PROFILE_CARD_COSTS = Object.freeze({ coins: 50, krw: 5000, monthlyStones: 500 });
+export const PROFILE_CARD_ACCEPTED_MONTHLY_STONE_COSTS = Object.freeze([
+  PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
+  LEGACY_PROFILE_CARD_COSTS.monthlyStones,
+]);
 export const FAMILY_OR_ABOVE_FREE_PROFILE_DELETE = true;
 export const FAMILY_OR_ABOVE_CAN_ADD_PROFILE = true;
 export const FREE_INITIAL_PROFILE_CARD_COUNT = 1;

@@ -94,7 +94,7 @@
 | 최애운명 | (없음 — 전면 무료) |
 | 손금 | `palm-reading-ai-consult`(255, 레거시·호출 없음) |
 | 사주 카드 (전부 **unlock**) | `rpt_energyCoordCard`(318) · `rpt_villainCard`(319) · `rpt_secretHouseEntryCard`(320) · `fun.quantumLotto.ritualReport`(321) · `unlock.section_daewun`(327) · `unlock.section_summary`(328) · `unlock.section_compat`(329) · `unlock.travel_destiny`(334) · `unlock.health_report`(335) · `unlock.secret_house_episodes`(340) |
-| **프로필 카드 관리** | `profile-card-manage`(313) — **`passExcluded: true`**(`worker/payments/catalog.js:34`). 이용권으로 결제 불가, 단건/월정석만 |
+| **프로필 카드 관리** | `profile-card-manage`(cost 10 / KRW1000, 2026-10-10 5,000원에서 인하 — 해금이 birth 단위라 프로필 수정으로 구매 우회 불가) — **`passExcluded: true`**(`worker/payments/catalog.js:34`). 이용권으로 결제 불가, 단건/월정석만 |
 
 ### A-3. 코인 60~90 (중간 지대)
 
@@ -286,7 +286,7 @@ AI 상담의 표준 가격대. **`PREMIUM_QUOTA_MIN_COIN_COST = 300` 문턱과 �
 | `js/saju-engine-tarot-sukuyo-quantum.js` | 819-820, 905-906 | `50 / 5000` |
 | `js/saju-engine-tarot-sukuyo-quantum.js` | 7337-7344 | 숙요 유료 8종 `cost: 30/50/100/120` |
 | `js/saju-engine-tarot-sukuyo-quantum.js` | 14375-14376, 15116 | `100 / 10000`, `(cost * 100)` |
-| `js/destiny-profile.js` | 60, 2098-2099 | `PROFILE_CARD_MANAGE_COST = 50`, `100`, `200` |
+| `js/destiny-profile.js` | 60, 2098-2099 | `PROFILE_CARD_MANAGE_COST = 10`(2026-10-10 50→10), `PROFILE_CARD_MANAGE_PRICE_LABEL` |
 | `js/animal-totem-experience.js` | 616, 623, 630 | `30 / 30 / 60` |
 | `js/sibyl-system.js` | 3859 | `100` |
 | `js/entertain-engine.js` | 2745 | `TETOGEN_DEEP_REPORT_COST = 100` |
@@ -325,7 +325,7 @@ AI 상담의 표준 가격대. **`PREMIUM_QUOTA_MIN_COIN_COST = 300` 문턱과 �
 | `worker/routes/ziwei-island-report.js` | 23 → 102 | `5000` |
 | `worker/routes/sukuyo-compatibility-ai.js` | 23 → 876,894,895,1707 | `30000` |
 | `worker/routes/sukuyo.js` | 23 | `30000` |
-| `worker/routes/user.js` | 17-18 → 267, 275 | `50 / 5000` (프로필 카드) |
+| `worker/routes/user.js` | 17-18 → 267, 275 | `10 / 1000` (프로필 카드, 2026-10-10 50/5000→10/1000, 정본 `profile-card-mutation-policy.js`) |
 | `worker/routes/tarot.js` | 180, 46 | `amountCoins:100, amountKRW:10000`, `30` |
 | `worker/routes/nakshatra-premium.js` | 35, 41 | `10000 / 15000` |
 | `worker/routes/destiny-compass-ai.js` | 50 | `100` |

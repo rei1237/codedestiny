@@ -58,8 +58,10 @@
   var _dpProfiles = [];
   var _dpCurrentId = '';
   var PROFILE_CARD_MANAGE_FEATURE_KEY = 'profile-card-manage';
-  var PROFILE_CARD_MANAGE_COST = 50;
+  // 2026-10-10 5,000원 → 1,000원(10코인 · 월정석 100개). 서버 정본 worker/lib/profile-card-mutation-policy.js 와 같아야 한다.
+  var PROFILE_CARD_MANAGE_COST = 10;
   var PROFILE_CARD_MANAGE_MONTHLY_COST = PROFILE_CARD_MANAGE_COST * 10;
+  var PROFILE_CARD_MANAGE_PRICE_LABEL = (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원';
   var DP_PROFILE_DELETE_GATE_MARKER = 'profile-delete-dedicated-gate-v20260618-monthly';
   var ACTIVE_PROFILE_CACHE_KEY = 'code-destiny.activeProfileCache.v1';
   var ACTIVE_PROFILE_ID_KEY = 'code-destiny.activeProfileId';
@@ -109,9 +111,9 @@
       profileSaveCreateExtra: '프로필 카드 추가 생성',
       profileSaveFirst: '이 정보를 나의 운명 카드에 저장',
       profileEditingNotice: '✎ 선택한 카드를 수정하는 중입니다 · 새로 만들려면 [＋ 새 프로필 카드]를 눌러 주세요',
-      profileEditConfirm: '이 카드의 정보를 수정할까요?\n수정에는 5,000원 단건 결제 또는 월정석이 필요합니다.\n생년월일·시각·성별·출생지를 다시 확인해 주세요.',
+      profileEditConfirm: '이 카드의 정보를 수정할까요?\n수정에는 1,000원 단건 결제 또는 월정석이 필요합니다.\n생년월일·시각·성별·출생지를 다시 확인해 주세요.',
       profileEditConfirmFree: '이 카드의 정보를 수정할까요?\nCode Destiny Family 이용권으로 추가 결제 없이 수정합니다.\n생년월일·시각·성별·출생지를 다시 확인해 주세요.',
-      profileCreateExtraConfirm: '프로필 카드를 하나 더 만들까요?\n기본 제공 한도를 모두 사용해, 추가 생성은 5,000원 단건 결제 또는 월정석으로 진행됩니다.',
+      profileCreateExtraConfirm: '프로필 카드를 하나 더 만들까요?\n기본 제공 한도를 모두 사용해, 추가 생성은 1,000원 단건 결제 또는 월정석으로 진행됩니다.',
       profileCreateConfirm: '새 프로필 카드를 만들까요?\n생년월일·시각·성별·출생지를 다시 확인해 주세요.',
       profileEditAria: '프로필 카드 수정',
       profileDeleteAria: '프로필 카드 삭제',
@@ -152,9 +154,9 @@
       profileSaveCreateExtra: 'Add another card',
       profileSaveFirst: 'Save this as my destiny card',
       profileEditingNotice: '✎ Editing the selected card — tap [＋ New profile card] to start a fresh one instead',
-      profileEditConfirm: 'Update this card?\nUpdating requires a single 5,000 KRW payment or Moonlight Stones.\nPlease double-check the birth date, time, gender, and birthplace.',
+      profileEditConfirm: 'Update this card?\nUpdating requires a single 1,000 KRW payment or Moonlight Stones.\nPlease double-check the birth date, time, gender, and birthplace.',
       profileEditConfirmFree: 'Update this card?\nYour Code Destiny Family pass covers this at no extra charge.\nPlease double-check the birth date, time, gender, and birthplace.',
-      profileCreateExtraConfirm: 'Create one more profile card?\nYou have used every card included in your plan, so this one takes a single 5,000 KRW payment or Moonlight Stones.',
+      profileCreateExtraConfirm: 'Create one more profile card?\nYou have used every card included in your plan, so this one takes a single 1,000 KRW payment or Moonlight Stones.',
       profileCreateConfirm: 'Create a new profile card?\nPlease double-check the birth date, time, gender, and birthplace.',
       profileEditAria: 'Update this profile card',
       profileDeleteAria: 'Delete this profile card',
@@ -195,9 +197,9 @@
       profileSaveCreateExtra: 'カードを追加で作成',
       profileSaveFirst: 'この情報を運命カードに保存',
       profileEditingNotice: '✎ 選択したカードを編集中です。新しく作るには［＋ 新しいカードを作る］をタップしてください',
-      profileEditConfirm: 'このカードの情報を更新しますか？\n更新には5,000ウォンの単発決済、または月精石が必要です。\n生年月日・時刻・性別・出生地をもう一度ご確認ください。',
+      profileEditConfirm: 'このカードの情報を更新しますか？\n更新には1,000ウォンの単発決済、または月精石が必要です。\n生年月日・時刻・性別・出生地をもう一度ご確認ください。',
       profileEditConfirmFree: 'このカードの情報を更新しますか？\nCode Destiny Family 利用券により、追加決済なしで更新できます。\n生年月日・時刻・性別・出生地をもう一度ご確認ください。',
-      profileCreateExtraConfirm: 'プロフィールカードをもう一枚作成しますか？\n基本枠を使い切っているため、追加作成は5,000ウォンの単発決済または月精石で進みます。',
+      profileCreateExtraConfirm: 'プロフィールカードをもう一枚作成しますか？\n基本枠を使い切っているため、追加作成は1,000ウォンの単発決済または月精石で進みます。',
       profileCreateConfirm: '新しいプロフィールカードを作成しますか？\n生年月日・時刻・性別・出生地をもう一度ご確認ください。',
       profileEditAria: 'プロフィールカードを編集',
       profileDeleteAria: 'プロフィールカードを削除',
@@ -238,9 +240,9 @@
       profileSaveCreateExtra: '再建一张资料卡',
       profileSaveFirst: '将此信息存为我的命运卡',
       profileEditingNotice: '✎ 正在编辑所选卡片 · 若要新建，请点击［＋ 新建资料卡］',
-      profileEditConfirm: '要修改这张卡片的信息吗？\n修改需支付 5,000 韩元单次费用或使用月精石。\n请再次确认出生日期、时辰、性别与出生地。',
+      profileEditConfirm: '要修改这张卡片的信息吗？\n修改需支付 1,000 韩元单次费用或使用月精石。\n请再次确认出生日期、时辰、性别与出生地。',
       profileEditConfirmFree: '要修改这张卡片的信息吗？\nCode Destiny Family 使用券可免费修改，无需额外付款。\n请再次确认出生日期、时辰、性别与出生地。',
-      profileCreateExtraConfirm: '要再建一张个人资料卡吗？\n套餐内的名额已用完，新增将通过 5,000 韩元单次支付或月精石完成。',
+      profileCreateExtraConfirm: '要再建一张个人资料卡吗？\n套餐内的名额已用完，新增将通过 1,000 韩元单次支付或月精石完成。',
       profileCreateConfirm: '要新建一张个人资料卡吗？\n请再次确认出生日期、时辰、性别与出生地。',
       profileEditAria: '修改个人资料卡',
       profileDeleteAria: '删除个人资料卡',
@@ -281,9 +283,9 @@
       profileSaveCreateExtra: '再建一張資料卡',
       profileSaveFirst: '將此資訊存為我的命運卡',
       profileEditingNotice: '✎ 正在編輯所選卡片 · 若要新建，請點擊［＋ 新增命盤卡］',
-      profileEditConfirm: '要修改這張卡片的資訊嗎？\n修改需支付 5,000 韓元單次費用或使用月精石。\n請再次確認出生日期、時辰、性別與出生地。',
+      profileEditConfirm: '要修改這張卡片的資訊嗎？\n修改需支付 1,000 韓元單次費用或使用月精石。\n請再次確認出生日期、時辰、性別與出生地。',
       profileEditConfirmFree: '要修改這張卡片的資訊嗎？\nCode Destiny Family 使用券可免費修改，無需額外付款。\n請再次確認出生日期、時辰、性別與出生地。',
-      profileCreateExtraConfirm: '要再建一張個人資料卡嗎？\n方案內的名額已用完，新增將透過 5,000 韓元單次付款或月精石完成。',
+      profileCreateExtraConfirm: '要再建一張個人資料卡嗎？\n方案內的名額已用完，新增將透過 1,000 韓元單次付款或月精石完成。',
       profileCreateConfirm: '要新增一張個人資料卡嗎？\n請再次確認出生日期、時辰、性別與出生地。',
       profileEditAria: '修改個人資料卡',
       profileDeleteAria: '刪除個人資料卡',
@@ -6338,7 +6340,7 @@
         var rawFailData = (res && res.data && typeof res.data === 'object') ? res.data : {};
         var failData = (rawFailData.data && typeof rawFailData.data === 'object') ? rawFailData.data : rawFailData;
         var msg = rawFailData.message || failData.message || '단건 결제가 필요합니다.';
-        if (res.status === 402) msg = msg + '\n\n단건 결제 기준: 5,000원\n포트원 V2 KG이니시스 결제로 진행됩니다.';
+        if (res.status === 402) msg = msg + '\n\n단건 결제 기준: ' + (Math.max(0, Number(cost) || 0) * 100).toLocaleString('ko-KR') + '원\n포트원 V2 KG이니시스 결제로 진행됩니다.';
         if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
         else window.location.href = '/points';
         if (typeof onCancel === 'function') onCancel();
@@ -6954,9 +6956,9 @@
     }
     quotaText.hidden = false;
     if (!_dpSubIsActive) {
-      quotaText.textContent = '무료 계정 · 기본 프로필 카드 1개 사용 완료 · 추가 생성 ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원';
+      quotaText.textContent = '무료 계정 · 기본 프로필 카드 1개 사용 완료 · 추가 생성 ' + PROFILE_CARD_MANAGE_PRICE_LABEL;
     } else {
-      quotaText.textContent = '현재 ' + label + '에서는 프로필 최대 ' + limitLabel + '개 · 추가 생성 5,000원';
+      quotaText.textContent = '현재 ' + label + '에서는 프로필 최대 ' + limitLabel + '개 · 추가 생성 ' + PROFILE_CARD_MANAGE_PRICE_LABEL;
     }
   }
 
@@ -7010,10 +7012,10 @@
     btn.disabled = false;
     if (_dpProfileEditTargetId) {
       var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family';
-      setSaveButtonContent(_dpText('profileSaveEdit'), isFamilyPlan ? '무료' : '5,000원');
+      setSaveButtonContent(_dpText('profileSaveEdit'), isFamilyPlan ? '무료' : PROFILE_CARD_MANAGE_PRICE_LABEL);
       btn.title = isFamilyPlan
         ? 'Code Destiny Family 이용권으로 프로필 정보를 무료로 수정합니다.'
-        : '프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.';
+        : '프로필 수정·삭제에는 ' + PROFILE_CARD_MANAGE_PRICE_LABEL + ' 단건 결제 또는 월정석 사용이 필요합니다.';
       return;
     }
     if (!hasProfiles && canCreateWithoutPayment) {
@@ -7021,13 +7023,13 @@
     } else if (canCreateWithoutPayment) {
       setSaveButtonContent(_dpText('profileSaveCreate'), slotLabel + ' 사용 중');
     } else {
-      setSaveButtonContent(_dpText('profileSaveCreateExtra'), (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원');
+      setSaveButtonContent(_dpText('profileSaveCreateExtra'), PROFILE_CARD_MANAGE_PRICE_LABEL);
     }
     btn.style.opacity = '';
     btn.style.cursor = '';
     btn.title = canCreateWithoutPayment
       ? planLabel + ' 한도 ' + _dpFormatLimitLabel(maxProfiles) + ' 중 ' + profileCount + '개를 사용 중입니다.'
-      : '프로필 카드 추가는 서버에서 5,000원 결제를 확인한 뒤 저장됩니다.';
+      : '프로필 카드 추가는 서버에서 ' + PROFILE_CARD_MANAGE_PRICE_LABEL + ' 결제를 확인한 뒤 저장됩니다.';
   }
 
   function _resolveEventElement(target) {
@@ -7611,7 +7613,7 @@
       copy.className = 'dp-delete-gate__copy';
       copy.textContent = isFamilyPlan
         ? 'Code Destiny Family 이용권으로 프로필 카드를 결제 없이 삭제할 수 있습니다.'
-        : '프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.';
+        : '프로필 수정·삭제에는 ' + PROFILE_CARD_MANAGE_PRICE_LABEL + ' 단건 결제 또는 월정석 사용이 필요합니다.';
       var warning = document.createElement('div');
       warning.className = 'dp-delete-gate__warning';
       warning.textContent = '\uC0AD\uC81C \uD6C4\uC5D0\uB294 \uBCF5\uAD6C\uD560 \uC218 \uC5C6\uC5B4\uC694. \uC0AD\uC81C\uD560 \uD504\uB85C\uD544\uC774 \uB9DE\uB294\uC9C0 \uD655\uC778\uD574 \uC8FC\uC138\uC694.';
@@ -9885,7 +9887,7 @@
         var lockedNotice = selectionRequired
           ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">이용권 혜택이 종료되었습니다. 계속 사용할 프로필 카드 1개를 선택하면 다음 이용권 결제 전까지 해당 카드만 사용할 수 있습니다.</div>'
           : (isFreeUser
-          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.</div>'
+          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">프로필 수정·삭제에는 ' + PROFILE_CARD_MANAGE_PRICE_LABEL + ' 단건 결제 또는 월정석 사용이 필요합니다.</div>'
           : '');
 
         /* 카드를 이미 가진 사용자에게도 추가 진입점이 보여야 한다. 빈 상태 CTA는 list.length === 0 에서만
@@ -9946,7 +9948,7 @@
               + '</div>'
             + '</div>'
             + '<div class="dp-li-actions" aria-label="' + _esc(_dpText('profileCardManage')) + '">'
-              + '<button type="button" class="dp-li-edit" aria-label="' + _esc(_dpText('profileEditAria')) + '" data-profile-edit-marker="profile-list-edit-50coin-v20260802">수정 · ' + (_dpSubIsActive && _dpSubTier === 'family' ? '무료' : (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원') + '</button>'
+              + '<button type="button" class="dp-li-edit" aria-label="' + _esc(_dpText('profileEditAria')) + '" data-profile-edit-marker="profile-list-edit-50coin-v20260802">수정 · ' + (_dpSubIsActive && _dpSubTier === 'family' ? '무료' : PROFILE_CARD_MANAGE_PRICE_LABEL) + '</button>'
               + '<button type="button" class="dp-li-del" aria-label="' + _esc(_dpText('profileDeleteAria')) + '" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">\uC0AD\uC81C \u00B7 ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0/\uC6D4\uC815\uC11D</button>'
             + '</div>'
             + '</div>';

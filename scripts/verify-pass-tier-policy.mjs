@@ -185,7 +185,7 @@ for (const tier of TIERS) {
   const described = describePassEligibility({
     user: { profileSubscription: { premiumUseCycleKey: expiresAt, monthlySpendCoin: 0 } },
     entitlement: { isActive: true, passTier: "family", tier: "family", expiresAt },
-    product: { featureKey: "profile-card-manage", priceCoins: 50, priceKRW: 5000, passExcluded: true },
+    product: { featureKey: "profile-card-manage", priceCoins: 10, priceKRW: 1000, passExcluded: true },
   });
   check("이용권 제외 상품은 family 로도 미커버", described.eligible === false && described.reason === "pass_excluded", `실제=${described.reason}`);
 }

@@ -49,7 +49,7 @@ expectAbsent("profileRoute", "const createPolicy = await resolveProfileCardActio
 // A request ID selects a server ledger entry; it is never sufficient proof by itself.
 expect("profileRoute", "return findProfileMoonstoneEvidence({ userId: auth.userId, ...input })", "profile API validates scoped server evidence");
 expect("moonstoneProof", "findMoonstoneSpendEvidence", "common settled spend verification");
-expect("moonstoneProof", "row.sourceId !== requestId || row.profileId !== profileId || row.amount !== PROFILE_CARD_DELETE_COST_MONTHLY_STONES", "request identity, profile and exact price are verified");
+expect("moonstoneProof", "row.sourceId !== requestId || row.profileId !== profileId || !PROFILE_CARD_ACCEPTED_MONTHLY_STONE_COSTS.includes(row.amount)", "request identity, profile and exact (current or pre-2026-10-10 legacy) price are verified");
 expect("moonstoneProof", "storedAction !== action", "proof binds the mutation action");
 expect("moonstoneProof", "moonstoneSpendRefundFilter()", "refunded proof is excluded");
 

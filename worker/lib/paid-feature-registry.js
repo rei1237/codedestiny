@@ -376,7 +376,9 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   tetogen_deep_report: { cost: 10, reason: "테토 에겐 상세 리포트 해금" },
   "premium-naming-prompt": { cost: 300, amountKRW: 30000, reason: "사주 맞춤 작명 프롬프트 생성" },
   "premium-sukuyo-compat-extra": { cost: 30, reason: "숙요점 정밀 궁합 확장 분석" },
-  "profile-card-manage": { cost: 50, reason: "프로필 카드 추가/수정/삭제" },
+  // 2026-10-10 5,000원 → 1,000원. 정본은 profile-card-mutation-policy.js(PROFILE_CARD_DELETE_COST_*)이며 값이 같아야 한다.
+  // 무료 구간(≤10코인) 가격이지만 앱에서 무료 통과하지 않는다(app-store-pricing.js APP_PAID_LOW_PRICE_FEATURE_KEYS).
+  "profile-card-manage": { cost: 10, amountKRW: 1000, reason: "프로필 카드 추가/수정/삭제" },
   // 2026-10-09 천원 사주 콘텐츠: 결정론(LLM 없음) 재미 리포트 5종은 1,000원이다. "천원 운세" 이름의 근거이므로
   // 가격을 바꾸면 app/yeongnyangi/1000-won-fortune/ 빌드 가드가 멈춘다. 앱(Google Play)은 ₩1,000 SKU 가 없어 실패 폐쇄.
   rpt_specialCharmCard: { cost: 10, amountKRW: 1000, reason: "나의 매력 클래스 영구 해금" },

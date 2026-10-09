@@ -7,16 +7,21 @@ import {
   resolveCurrentProfileId as resolveCurrentId,
   resolveSingleProfileAccess,
 } from "../lib/profile-limits.js";
-import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
+import {
+  PROFILE_CARD_DELETE_COST_COINS,
+  PROFILE_CARD_DELETE_COST_KRW,
+  PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
+} from "../lib/profile-card-mutation-policy.js";
 
 const MAX_SYNC_PROFILES = 30;
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
 const MAX_TAMAGOTCHI_TEXT_LEN = 180;
 const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
-const PROFILE_CARD_MANAGE_COST = 50;
-const PROFILE_CARD_MANAGE_AMOUNT_KRW = 5000;
-const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = calculateMembershipCreditCost(PROFILE_CARD_MANAGE_COST);
+// 가격 정본은 profile-card-mutation-policy.js 하나다(과거 여기 별도 리터럴 50/5000 이 있었다).
+const PROFILE_CARD_MANAGE_COST = PROFILE_CARD_DELETE_COST_COINS;
+const PROFILE_CARD_MANAGE_AMOUNT_KRW = PROFILE_CARD_DELETE_COST_KRW;
+const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = PROFILE_CARD_DELETE_COST_MONTHLY_STONES;
 
 // 서버 로그용. 원문 메시지를 포함한다 — 진단에 필요하고 콘솔은 클라이언트에 안 나간다.
 function buildErrorDetails(stage, error, extras = {}) {
@@ -274,7 +279,7 @@ function profilePaymentRequiredResponse(requestId) {
   return json({
     ok: false,
     code: "PAYMENT_REQUIRED",
-    message: "프로필 카드 추가/삭제는 5,000원 또는 5,000원 결제 후 가능합니다.",
+    message: `프로필 카드 추가/삭제는 ${PROFILE_CARD_MANAGE_AMOUNT_KRW.toLocaleString("ko-KR")}원 단건 결제 또는 월정석 ${PROFILE_CARD_MANAGE_MEMBERSHIP_COST.toLocaleString("ko-KR")}개 사용 후 가능합니다.`,
     pricing: {
       featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
       reason: "프로필 카드 추가/삭제",

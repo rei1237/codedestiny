@@ -138,7 +138,7 @@ describe("이용권 선검사 게이트", () => {
   test("프로필 카드 관리(D유형)는 family 포함 전 등급에서 이용권 결제가 불가해야 한다", () => {
     for (const tier of ["standard", "premium", "vvip", "family"]) {
       const sub = activePass(tier).profileSubscription;
-      const decision = buildPassPaymentDecision({}, pricing(50, "profile-card-manage"), sub);
+      const decision = buildPassPaymentDecision({}, pricing(10, "profile-card-manage"), sub);
 
       expect(decision.canUseByPass).toBe(false);
       expect(decision.decisionReason).toBe("PASS_EXCLUDED_PAYMENT_REQUIRED");
