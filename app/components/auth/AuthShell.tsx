@@ -6,6 +6,7 @@ import MoonIcon from "@/components/ui/MoonIcon";
 import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { trackEvent } from "@/lib/analytics";
+import { EMAIL_MARKETING_CONSENT_TEXT, EMAIL_MARKETING_CONSENT_VERSION } from "@/lib/marketing/email-marketing.mjs";
 import { getApiBaseUrl } from "../../_lib/api-config";
 import {
   authFetch,
@@ -442,6 +443,8 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   // 공급자 로그인 폼이 만 14세 확인을 이미 받은 경우(카카오)에만 true — 그때는 생년을 묻지 않는다.
   const [socialAgeVerified, setSocialAgeVerified] = useState(false);
   const [birthYear, setBirthYear] = useState("");
+  // 광고성 정보 이메일 수신(선택). 정보통신망법 §50 — 기본 미체크이고, 체크하지 않아도 가입은 그대로 된다.
+  const [marketingEmail, setMarketingEmail] = useState(false);
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -590,7 +593,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
         : (pendingReferral.referralSource || undefined);
       const response = await authFetch(`${apiBase}/api/auth/register`, {
         method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...mobileAppAuthHeaders() },
-        body: JSON.stringify({ email: email.trim(), password, phoneNumber: normalizedPhone, privacyAccepted: true, termsAccepted: true, birthYear: birthYear.trim(), nextPath: nextPath(), referralCode, referralShareToken, referralSource }),
+        body: JSON.stringify({ email: email.trim(), password, phoneNumber: normalizedPhone, privacyAccepted: true, termsAccepted: true, birthYear: birthYear.trim(), nextPath: nextPath(), referralCode, referralShareToken, referralSource, marketingEmailConsent: { granted: marketingEmail, version: EMAIL_MARKETING_CONSENT_VERSION } }),
       });
       const payload = await response.json().catch(() => ({})) as { message?: string; code?: string; requestId?: string; nextPath?: string; accessToken?: string; refreshToken?: string; user?: AuthUser };
       // 🔴 5xx 를 throw 로 넘기지 않는다 — 아래 catch 의 /failed|invalid|.../ 정규식이 진단 꼬리표
@@ -621,7 +624,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     try {
       const response = await authFetch(`${apiBase}/api/auth/oauth/complete-signup`, {
         method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...mobileAppAuthHeaders() },
-        body: JSON.stringify({ socialSignupTicket: ticket, privacyAccepted: true, termsAccepted: true, birthYear: birthYear.trim(), nextPath: nextPath() }),
+        body: JSON.stringify({ socialSignupTicket: ticket, privacyAccepted: true, termsAccepted: true, birthYear: birthYear.trim(), nextPath: nextPath(), marketingEmailConsent: { granted: marketingEmail, version: EMAIL_MARKETING_CONSENT_VERSION } }),
       });
       const payload = await response.json().catch(() => ({})) as { message?: string; code?: string; requestId?: string; nextPath?: string; appRedirectUrl?: string; accessToken?: string; refreshToken?: string; user?: AuthUser };
       if (!response.ok && response.status >= 500) { setError(withServerDiagnostics(copy.unavailable, payload)); return; }
@@ -671,6 +674,9 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
               고지(privacySummary)는 그대로 화면에 남고 동의 시각·버전 기록도 서버가 그대로 남긴다
               (worker/routes/auth.js legalConsents) — 없앤 것은 클릭이지 고지도 기록도 아니다. */}
           {Boolean(ticket) && <section aria-label={copy.agreeOnSubmit} className="mt-3 space-y-1.5 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3 text-[11px] leading-5 text-[#aa9fbd]"><p className="text-[#cfc4e5]">{copy.agreeOnSubmit}</p><p className="flex flex-wrap items-center gap-x-3"><Link href="/terms" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.terms}</Link><Link href="/privacy" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.privacy}</Link></p><p>{copy.privacySummary}</p></section>}
+          {/* 광고 메일 수신은 필수 동의와 섞지 않는 별도 선택 항목이다(기본 미체크). 저장되는 문구는 버전이 붙은
+              한국어 원문(lib/marketing/email-marketing.mjs)이라 펼쳐 보기에는 언어와 무관하게 그 원문을 보인다. */}
+          {isSignup && <div className="rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3 text-xs leading-5 text-[#aa9fbd]"><label className="flex min-h-11 cursor-pointer items-start gap-2.5 text-[#cfc4e5]"><input type="checkbox" checked={marketingEmail} onChange={(event) => setMarketingEmail(event.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-[#7c5cbf]" /><span>{locale === "ko" ? "(선택) 이벤트·혜택 등 광고성 정보 이메일 수신 동의" : "(Optional) Receive promotional emails about events and offers"}</span></label><details className="mt-1"><summary className="min-h-11 cursor-pointer py-2.5 font-bold text-[#d7c1ff]">{locale === "ko" ? "내용 보기" : "Details (Korean)"}</summary><p>{EMAIL_MARKETING_CONSENT_TEXT}</p></details></div>}
           <button type="submit" disabled={busy || Boolean(socialBusy)} aria-busy={busy} className="min-h-12 w-full rounded-xl border border-[#b89ae8]/45 bg-[#7c5cbf] px-4 text-sm font-black text-white shadow-[0_10px_28px_rgba(65,42,116,.36)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#dbc9ff] disabled:opacity-55">{busy ? copy.processing : ticket ? copy.finish : isSignup ? copy.signup : copy.login}</button>
         </form>}
         {!ticket && <p className="mt-5 text-center text-sm text-[#cfc4e1]">{isSignup ? copy.hasAccount : copy.noAccount} <Link href={isSignup ? `/login?next=${encodeURIComponent(nextPath())}` : `/signup?next=${encodeURIComponent(nextPath())}`} onClick={() => { setMode(isSignup ? "login" : "signup"); setError(""); }} className="ml-1 min-h-11 font-black text-[#d7c1ff] underline underline-offset-4">{isSignup ? copy.switchToLogin : copy.switchToSignup}</Link></p>}
