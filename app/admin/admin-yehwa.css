@@ -1,5 +1,8 @@
 /*
- * 관리자 패널 전용 토큰·공용 부품 — "달빛 예화" 팔레트.
+ * 관리자 패널 전용 토큰·공용 부품 — "별빛 운영본부" 팔레트(2026-10, 변수명은 "달빛 예화" 시절 그대로).
+ * 변수명을 유지한 채 값만 바꿨으므로 기존 화면 11개가 그대로 새 팔레트를 따른다.
+ * 대비는 bg/surface/panel-2 세 바탕에서 모두 계산했다 — ink 13.3~16.7, ink-quiet 8.1~10.2,
+ * accent 4.64~5.82, line-strong 3.31~4.14(조작 경계 3:1), 흰 글자 버튼 5.0 이상.
  * /admin 이하에서만 쓴다. app/admin/layout.tsx 가 import 하므로 사용자 화면에는 실리지 않는다.
  *
  * 🔴 dark: 페어를 만들지 않는다 — 관리자 패널은 시스템 테마와 무관하게 항상 어둡다.
@@ -18,29 +21,39 @@
  */
 
 .cd-admin {
-  --cd-adm-bg: #0d0f18;
-  --cd-adm-nav: #0b0d15;
-  --cd-adm-surface: #12141f;
-  --cd-adm-field: #0b0d15;
+  --cd-adm-bg: #0b1020;
+  --cd-adm-nav: #090d1a;
+  --cd-adm-surface: #141b2f;
+  /* 한 단 더 떠 있는 면(드로어·선택된 행·타일 안쪽 칸). */
+  --cd-adm-panel-2: #1d2540;
+  --cd-adm-field: #0e1427;
 
-  --cd-adm-ink: #e2e8f0;
-  --cd-adm-ink-quiet: #94a3b8;
+  --cd-adm-ink: #f4f0e7;
+  --cd-adm-ink-quiet: #b7bed2;
 
   /* line 은 "조작 대상이 아닌" 경계(카드·표 구분선). 조작 대상(입력·보조 버튼 테두리)은
      WCAG 1.4.11 이 3:1 을 요구하므로 line-strong 을 쓴다 — 종전 slate-700 은 필드 대비 1.87 이었다. */
-  --cd-adm-line: rgba(148, 163, 184, 0.18);
-  --cd-adm-line-strong: #64748b;
+  --cd-adm-line: rgba(183, 190, 210, 0.16);
+  --cd-adm-line-strong: #6b7594;
 
-  --cd-adm-accent: #a78bfa;
-  --cd-adm-accent-ink: #ede9fe;
-  --cd-adm-accent-chip: rgba(167, 139, 250, 0.14);
+  --cd-adm-accent: #9a7bef;
+  --cd-adm-accent-ink: #ece6ff;
+  --cd-adm-accent-chip: rgba(154, 123, 239, 0.16);
+
+  /* 상태색 — 글자·아이콘으로 써도 되는 밝은 톤(어두운 바탕 대비 5.7 이상).
+     🔴 색만으로 상태를 전하지 않는다. StatusBadge 가 아이콘과 문구를 항상 함께 붙인다. */
+  --cd-adm-ok: #77cdb0;
+  --cd-adm-warn-ink: #e8b86d;
+  --cd-adm-err: #e5848e;
+  /* 금빛 — 장식·등급 문장·XP 바 전용. 본문 글자로 쓰지 않는다(아래 머리 주석의 규칙 유지). */
+  --cd-adm-gold: #c7a56a;
 
   /* 🔴 흰 글자를 얹는 톤은 hover 에서 "짙어진다". 종전처럼 밝아지면(violet-500·emerald-600·amber-600)
      대비가 4.5 아래로 떨어졌다 — 각각 4.23 / 3.77 / 3.19.
      danger 만 예외로 밝아지는데(rose-700 → rose-600, 6.29 → 4.70) 그래도 AA 를 넘고,
      "위험" 은 hover 에서 더 뜨거워지는 쪽이 읽히기 때문이다. */
-  --cd-adm-primary: #7c3aed;
-  --cd-adm-primary-hover: #6d28d9;
+  --cd-adm-primary: #6a4fd0;
+  --cd-adm-primary-hover: #5b3fc4;
   --cd-adm-success: #047857;
   --cd-adm-success-hover: #065f46;
   --cd-adm-warn: #b45309;
@@ -52,10 +65,11 @@
   --cd-adm-gift-hover: #fbbf24;
   --cd-adm-on-gift: #020617;
 
-  --cd-adm-hair: rgba(232, 213, 163, 0.28);
-  --cd-adm-hair-strong: rgba(232, 213, 163, 0.6);
+  --cd-adm-hair: rgba(199, 165, 106, 0.28);
+  --cd-adm-hair-strong: rgba(199, 165, 106, 0.62);
 
   --cd-adm-radius: 6px;
+  --cd-adm-radius-lg: 12px;
 
   background: var(--cd-adm-bg);
   color: var(--cd-adm-ink);
@@ -210,7 +224,7 @@ textarea.cd-adm-input {
   z-index: 20;
   padding: 12px 16px;
   border-bottom: 1px solid var(--cd-adm-line);
-  background: rgba(13, 15, 24, 0.94);
+  background: rgba(11, 16, 32, 0.95);
 }
 
 .cd-adm-toolbar::after {
@@ -272,17 +286,18 @@ textarea.cd-adm-input {
   border-left: 2px solid transparent;
   border-radius: var(--cd-adm-radius);
   background: none;
-  color: #cbd5e1;
+  color: #d6dbe8;
   font: inherit;
   font-size: 14px;
   text-align: left;
+  min-height: 40px;
   cursor: pointer;
   transition: background-color 140ms ease, color 140ms ease;
 }
 
 .cd-adm-nav-item:hover {
-  background: rgba(148, 163, 184, 0.1);
-  color: #f1f5f9;
+  background: rgba(183, 190, 210, 0.1);
+  color: var(--cd-adm-ink);
 }
 
 .cd-adm-nav-item[aria-current="page"] {
@@ -293,6 +308,72 @@ textarea.cd-adm-input {
 }
 
 .cd-adm-nav-item--quiet { color: var(--cd-adm-ink-quiet); }
+
+/* ── 별빛 운영본부 셸(그룹 머리말·아이콘 레일·모바일 하단 탭) ─────────────── */
+.cd-adm-nav-group {
+  margin: 0 0 4px;
+  padding: 0 10px;
+  color: var(--cd-adm-ink-quiet);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.cd-adm-nav-group-label { font-weight: 400; }
+
+/* 항목 아래 작은 게임식 이름. 실제 기능명이 항상 위 줄에 먼저 온다. */
+.cd-adm-nav-game {
+  display: block;
+  color: var(--cd-adm-ink-quiet);
+  font-size: 11.5px;
+  line-height: 1.3;
+}
+
+.cd-adm-nav-item--icon {
+  justify-content: center;
+  min-width: 40px;
+  padding: 8px;
+  border-left-width: 0;
+}
+
+.cd-adm-nav-item--icon[aria-current="page"] {
+  box-shadow: inset 0 -2px 0 var(--cd-adm-hair-strong);
+}
+
+/* 🔴 터치 대상 44px 이상. iOS 홈 인디케이터를 피하도록 safe-area 를 더한다. */
+.cd-adm-tabbar {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--cd-adm-line);
+  background: rgba(9, 13, 26, 0.97);
+}
+
+.cd-adm-tab {
+  display: flex;
+  min-height: 56px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--cd-adm-ink-quiet);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.cd-adm-tab[aria-current="page"] {
+  color: var(--cd-adm-accent-ink);
+  box-shadow: inset 0 2px 0 var(--cd-adm-gold);
+  font-weight: 600;
+}
+
+.cd-adm-tab:focus-visible {
+  outline: 2px solid var(--cd-adm-accent);
+  outline-offset: -4px;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .cd-adm-btn,
