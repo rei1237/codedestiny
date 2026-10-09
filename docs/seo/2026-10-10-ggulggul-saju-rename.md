@@ -67,8 +67,8 @@ next: 운영 배포 D+7(2026-10-17)·D+14(2026-10-24)에 아래 관찰표를 채
 | 단계 | 상태 |
 |---|---|
 | 코드 수정 | 완료 — 커밋은 아래 배포 기록 참고 |
-| 스테이징 검증 | 배포 기록 참고 |
-| 운영 배포 | 배포 기록 참고 |
+| 스테이징 검증 | 통과 (`d9769658c`) |
+| 운영 배포 | **미실행** — 운영 승격 대기 |
 | IndexNow 제출(Bing·Naver 등) | 운영 승격 워크플로가 sitemap 차이만 1회 제출 |
 | GSC·네이버 재수집 요청 | **미실행** — 이 세션에서 접근할 수 없다. 아래 수동 작업 참고 |
 | 검색 결과 반영 | **미확인** — 재수집 요청과 반영은 별개이며, 반영 시점은 검색엔진이 정한다 |
@@ -123,3 +123,12 @@ next: 운영 배포 D+7(2026-10-17)·D+14(2026-10-24)에 아래 관찰표를 채
 - 운영은 `Release Cloudflare Pages and Worker` 워크플로의 `mode: rollback`으로 되돌린다.
 
 ## 배포 기록
+
+- 2026-10-10 push: `d07f1d50d..d9769658c` (개명 커밋 7개 + 인수인계 문서). `check:pre-push` 통과. main PR CI 37960298125 성공.
+- 스테이징 검증 통과 — `d9769658cee0f15747791e41e86ad352fda3e7d5`
+  - `verify:staging`: Pages·Worker 모두 `d9769658cee0` (스테이징 배포 run 37960370353).
+  - 이름 신호 probe: 15개 경로 모두 200, og:site_name·WebSite.name "꿀꿀 사주"(`/yeongnyangi/library/`는 og:site_name 없음, 기존 상태). `/` → `/ggulggul/` 301.
+  - `/records/`·`/yeongnyangi/library/` 200 → `/kkul-kkul-unse/` FAQ 문장 유지.
+  - OG `code-destiny-og-vvip.png?v=aa88d371b4` → `200 image/png`.
+  - 390px 모바일(`/ggulggul/`·`/kkul-kkul-unse/`·`/records/`): 가로 넘침·이름 잘림 없음.
+- 운영 승격: **미실행** — 세션의 자동 권한 검사가 `gh workflow run … -f mode=production` 실행을 막았다. 운영자가 직접 1회 실행해야 한다.

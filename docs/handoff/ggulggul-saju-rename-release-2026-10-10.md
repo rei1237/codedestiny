@@ -1,8 +1,11 @@
 ---
 status: active
 updated: 2026-10-10
-next: rebase → check:pre-push → push → 스테이징 검증 → 운영 승격 1회(승인됨) → 운영 검증 → 배포 기록·최종 보고
+next: 운영 승격 1회(사용자 직접 실행 또는 권한 허용) → 운영 검증(6~7단계) → 배포 기록(productionReleasedSha·At)·status done
 ---
+
+> 2026-10-10 진행: 1~5단계 완료. `d9769658c` push, 스테이징 검증 통과(결과는 개명 문서 "배포 기록").
+> 6단계 운영 승격은 Claude Code 자동 권한 검사가 `gh workflow run … -f mode=production`을 거부해 실행하지 않았다.
 
 # 꿀꿀 사주 개명 — 배포 인수인계 (2026-10-10)
 
