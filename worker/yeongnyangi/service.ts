@@ -44,6 +44,7 @@ import { readingManifest, questionFactSelectors } from './fortune/reading-manife
 import {withPreventionReading,withPreventionTiming,preventionEligible,PREVENTION_VERSION} from './fortune/prevention';
 import { computeCrossDaily } from './fortune/daily-cross';
 import { buildEvidencePacket } from './fortune/ask/packet';
+import { requestsMonthlyEvidence } from './fortune/ask/monthly';
 import { extendAskLocalTiming } from './fortune/ask/wrappers';
 import { calculateAskTarot } from './fortune/ask/tarot';
 import { analyzeAsk, parseAskAnalysis, escapeAskData } from './fortune/ask/analysis';
@@ -420,7 +421,9 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
         // Recheck access after analysis/storage before paying for the chapter call.
         const current=await readRequest(env,userId,requestId);
         if(current.state!=='GENERATING'||current.leaseToken!==token)throw new FortuneError('GENERATION_LEASE_LOST',409);
-        if(ordinal===0) {
+        // Later chapters also need the saved monthly evidence when the question
+        // requests it. This reuses the checkpoint; it never re-runs analysis.
+        if(ordinal===0 || requestsMonthlyEvidence(consultation)) {
           const checkpoint=current.generationCheckpoint;
           if(checkpoint?.version!=='ask-generation-v1'||!checkpoint.evidence||!checkpoint.analysis)
             throw new FortuneError('INVALID_ASK_CHECKPOINT',500);

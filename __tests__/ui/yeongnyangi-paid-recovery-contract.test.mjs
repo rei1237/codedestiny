@@ -141,6 +141,21 @@ test('question-analysis checkpoints keep purchase locale through chapter retry a
  }
 });
 
+test('monthly questions reuse saved timing evidence in every chapter without additional analysis',async()=>{
+ const f=reset();
+ const evidence={locale:'ko',timing:[{id:'T001',value:{year:2027,month:1}}]};
+ f.row.generationCheckpoint={version:'ask-generation-v1',evidence};
+ f.row.snapshot.analysis.consultation={topicId:'money',questions:[{id:'q1',text:'2027년 1월부터 12월까지 월별 재물운',chapterId:'first'}]};
+ for(let i=0;i<3;i++){
+  await generateNextChapter(env,'owner',f.row._id);
+  assert.deepEqual(f.lastInput.ask.evidence,evidence);
+ }
+ assert.equal(f.analysisCalls,1);assert.equal(f.row.state,'COMPLETED');
+ const calls=f.providerCalls.length;
+ await generateNextChapter(env,'owner',f.row._id);
+ assert.equal(f.providerCalls.length,calls);
+});
+
 test('actual paid preparation stores authoritative pillars and preserves unlabeled birthplace',async()=>{
  const f=reset();f.profile={updatedAt:'2026-01-01T00:00:00Z',gender:'F',birth:{year:1988,month:1,day:7,hour:23,minute:26,calType:'solar'},location:{lat:37.5665,lng:126.978,tz:'Asia/Seoul',label:''}};
  const r=await prepareFortune(env,'owner',{profileId:'profile',productId:'saju_mackerel',question:'타고난 성향과 일의 방향을 알려주세요.'});

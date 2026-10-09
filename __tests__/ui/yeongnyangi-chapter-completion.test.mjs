@@ -27,12 +27,40 @@ test('tuna legacy scalar duplication cannot discard complete section content or 
  assert.equal(raw.example,example,'new response normalization is non-mutating');
 });
 
-test('completion rejects malformed JSON, false/missing marker, wrong identity, missing sections and short/cut content',()=>{
+test('completion rejects malformed JSON, wrong identity, missing sections and short/cut content',()=>{
  const raw=complete();
- for(const value of [JSON.stringify(raw).slice(0,-1),{...raw,complete:false},{...raw,complete:undefined},{...raw,chapterId:'other'},
+ for(const value of [JSON.stringify(raw).slice(0,-1),{...raw,chapterId:'other'},
    {...raw,blocks:raw.blocks.slice(1)},{...raw,blocks:raw.blocks.map(b=>({...b,paragraphs:['짧은 문장입니다.']}))},
    {...raw,persona:'이하 생략'}])assert.throws(()=>m.deliverChapter(value,input));
  assert.equal(m.deliverChapter(JSON.stringify(raw),input).complete,true);
+});
+
+test('server completion recovers a full legacy response without trusting its self-reported flag',()=>{
+ for(const marker of [false,undefined]){
+  const raw={...complete(),complete:marker},before=JSON.stringify(raw);
+  const delivered=m.deliverChapter(JSON.stringify(raw),input);
+  assert.equal(delivered.complete,true);assert.equal(delivered.deliveryVersion,version);
+  assert.deepEqual(delivered.blocks,raw.blocks);assert.equal(JSON.stringify(raw),before);
+  assert.equal(chapterDeliveryFailure(raw,input.chapter),'CHAPTER_INCOMPLETE','stored completion remains strict');
+  for(const broken of [{...raw,blocks:raw.blocks.slice(1)},
+   {...raw,blocks:raw.blocks.map(b=>({...b,paragraphs:['아직 작성 중입니다.']}))},
+   {...raw,persona:'다음 응답에서 계속'}, {...raw,chapterId:'different'}])assert.throws(()=>m.deliverChapter(broken,input));
+ }
+});
+
+test('every v6 money chapter of all four saju fish tiers is deliverable without a provider completion marker',()=>{
+ for(const fish of ['mackerel','salmon','flounder','tuna']){
+  const p=m.products.find(p=>p.id==='saju_'+fish),chapters=m.consultationManifest(p,m.consultationKinds.saju.find(k=>k.id==='money'));
+  const previous=[];
+  for(const chapter of chapters){
+   const request={...input,chapter:{...chapter,factSelectors:{saju:context.facts.map(f=>f.label)}},previous};
+   const raw={...m.mockReadingV5(request,context.facts.map(f=>f.id)),chapterId:chapter.id};
+   const delivered=m.deliverChapter(raw,request);
+   assert.equal(delivered.complete,true);assert.equal(chapterDeliveryFailure(delivered,chapter),'');
+   previous.push(delivered);
+  }
+  assert.equal(previous.length,chapters.length);
+ }
 });
 
 test('delivery length only catches empty or cut-off replies: 75% of the minimum is delivered, 40% is too short',()=>{
@@ -61,7 +89,8 @@ test('all 28 catalog products share the explicit one-chapter identity and comple
     .generateChapter({...input,chapter,analysis:{contexts:Object.fromEntries(p.systems.map(domain=>[domain,{...context,domain,facts:context.facts.map(f=>({...f,id:f.id.replace('saju.',domain+'.')}))}])),signals:[],themes:[]}});
   assert.deepEqual(sent.sectionTitles,[chapter.title]);
   assert.deepEqual(sent.outputSchema.properties.chapterId.enum,[chapter.id]);
-  assert.ok(sent.outputSchema.required.includes('complete'));
+  assert.ok(!sent.outputSchema.required.includes('complete'));
+  assert.equal(sent.outputSchema.properties.complete,undefined,'the model writes content; the server decides completion');
   assert.equal(JSON.parse(sent.domainRules).completionContract.chapterId,chapter.id);
   seen.add(p.id);
  }

@@ -24,11 +24,18 @@ export function deliverChapter(raw:unknown,input:ChapterRequest):ChapterBody {
   if(typeof candidate==='string')try{candidate=JSON.parse(candidate);}catch{
     if(contracted)throw new FortuneError('INVALID_CHAPTER');
   }
-  if(contracted && (!candidate || candidate.chapterId!==input.chapter.id || candidate.complete!==true))throw new FortuneError('CHAPTER_INCOMPLETE');
+  if(contracted && (!candidate || candidate.chapterId!==input.chapter.id))throw new FortuneError('CHAPTER_INCOMPLETE');
   // Gemini cannot enforce an empty-string enum. These fields are unused in
   // sectioned books; normalize the new response before duplicate/shape checks.
   if(candidate && Array.isArray(candidate.blocks) && candidate.blocks.length && hasReadingSections(input.chapter.version))
     candidate={...candidate,analysis:[],example:'',advice:''};
+  // Completion is a server decision, not the model's prediction before it writes
+  // the body. Validate every section even when a legacy response says false or
+  // omits the marker; persisted chapters still require the server-owned true.
+  if(contracted){
+    const code=chapterDeliveryFailure(candidate,input.chapter,false);
+    if(code)throw new FortuneError(code);
+  }
   const body=deliverChapterBody(candidate,input);
   if(!contracted)return body;
   const delivered={...body,chapterId:input.chapter.id,complete:true,deliveryVersion:CHAPTER_DELIVERY_VERSION};
