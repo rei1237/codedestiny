@@ -84,9 +84,9 @@ export default function RecordsClient() {
   return <RecordFrame title={c.title} lead={c.lead}>
     {auth.status === 'error' || auth.status === 'temporarilyOffline' ? <section role="alert" className="space-y-3 py-8"><h2 className="text-xl font-semibold">{c.error}</h2><p>{c.errorLead}</p><button className={recordButton} onClick={() => void refreshAuth({ silent: true }).catch(() => {})}>{c.retry}</button></section> : auth.authReady && !auth.isAuthenticated ? <section className="space-y-3 py-8"><h2 className="text-xl font-semibold">{c.loginTitle}</h2><p>{c.loginLead}</p><a className={recordButton} href="/login/?next=%2Frecords%2F">{c.login}</a></section> : <>
       <div className={styles.tools}>
-        <label className={styles.search}><Search size={20} aria-hidden /><span className="sr-only">{c.search}</span><input type="search" value={search} onChange={event => { restore.current = { y: 0, pages: 1 }; setSearch(event.target.value); }} placeholder={c.search} className="min-w-0 flex-1 bg-transparent py-3 text-base outline-none placeholder:text-[var(--cd-text-muted)]" /></label>
-        <div className={styles.filters} aria-label={c.title}>{(['all','report','chat','chart'] as const).map(value => <button key={value} type="button" className={`${recordButton} ${group === value ? 'bg-[var(--cd-accent-soft)] text-[var(--cd-text)] ring-1 ring-[var(--cd-accent)]' : ''}`} aria-pressed={group === value} onClick={() => { restore.current = { y: 0, pages: 1 }; setGroup(value); }}>{c[value]}</button>)}</div>
-        <p className="text-sm text-[var(--cd-text-muted)]">{c.latest}</p>
+        <label className={styles.search}><Search size={20} aria-hidden /><span className="sr-only">{c.search}</span><input type="search" value={search} onChange={event => { restore.current = { y: 0, pages: 1 }; setSearch(event.target.value); }} placeholder={c.search} className="min-w-0 flex-1 bg-transparent py-3 text-base outline-none" /></label>
+        <div className={styles.filters} aria-label={c.title}>{(['all','report','chat','chart'] as const).map(value => <button key={value} type="button" className={recordButton} aria-pressed={group === value} onClick={() => { restore.current = { y: 0, pages: 1 }; setGroup(value); }}>{c[value]}</button>)}</div>
+        <p className={styles.sortLabel}>{c.latest}</p>
       </div>
       {!!failures.length && <section role="status" className="mb-5 rounded-[var(--cd-r-card)] border border-[var(--cd-border)] p-4"><p className="font-semibold">{c.partialError}</p><p className="my-2 text-sm">{failures.map(item => item.name).join(' · ')}</p><button className={recordButton} onClick={() => void loadMore()} disabled={loading}>{c.retry}</button></section>}
       {error && <section role="alert" className="mb-5 space-y-3 rounded-[var(--cd-r-card)] border border-[var(--cd-border)] p-5"><h2 className="font-semibold">{c.error}</h2><p>{c.errorLead}</p><button className={recordButton} onClick={() => cursor ? void loadMore() : setRetry(old => old + 1)} disabled={loading}>{c.retry}</button></section>}
@@ -102,7 +102,7 @@ export default function RecordsClient() {
         </article>;
       })}</div>
       {loading && <div role="status" className="my-5 space-y-3"><p className="text-sm">{c.loading}</p>{!items.length && [1,2,3].map(id => <div key={id} aria-hidden className="h-36 animate-pulse rounded-[var(--cd-r-card)] bg-[var(--cd-surface)]" />)}</div>}
-      {!loading && !error && !failures.length && !items.length && <section className="space-y-3 py-9"><h2 className="text-xl font-semibold">{search || group !== 'all' ? c.emptySearch : c.empty}</h2><p className="text-[var(--cd-text-muted)]">{c.emptyLead}</p><a className={recordButton} href="/consultations/">{c.hub}</a></section>}
+      {!loading && !error && !failures.length && !items.length && <section className={styles.emptyState}><img src="/images/yeoni/garden/yeoni-garden-library-empty-v1-320.webp" width="160" height="160" alt="" /><h2 className="text-xl font-semibold">{search || group !== 'all' ? c.emptySearch : c.empty}</h2><p>{c.emptyLead}</p><a className={recordButton} href="/consultations/">{c.hub}</a></section>}
       {cursor && !loading && <button className={`${recordButton} mt-5 w-full`} onClick={() => void loadMore()}>{c.more}</button>}
     </>}
   </RecordFrame>;

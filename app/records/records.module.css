@@ -126,3 +126,118 @@
 .consultation[data-service='neo'] .consultCopy h2 { font-family: var(--font-body); font-weight: 700; letter-spacing: -.03em; }
 .consultation[data-service='codex'] { border-left: 6px double var(--cd-yehwa-line-deep); }
 .consultation[data-service='fusion'] .consultFormat { border-left: 2px solid var(--cd-accent); padding-left: 12px; }
+
+/* The 꿀꿀운세 archive follows Yeoni's moonlit garden; saved readings keep their native palette. */
+.lightFrame {
+  color-scheme: light;
+  --record-paper: #fffaf7;
+  --record-wash: #fff3f8;
+  --record-surface: rgba(255, 255, 255, .96);
+  --record-ink: #3c1830;
+  --record-secondary: #70445c;
+  --record-rose: #b31955;
+  --record-blush: #f4bed1;
+  --record-gold: #c9a46a;
+  --record-border: rgba(216, 63, 120, .16);
+  --record-focus: var(--record-rose);
+  --record-bg: var(--record-paper);
+  --record-text: var(--record-ink);
+  --record-muted: var(--record-secondary);
+  color: var(--record-ink);
+  background: linear-gradient(180deg, var(--record-paper), var(--record-wash) 48%, var(--record-paper));
+  accent-color: var(--record-rose);
+  scrollbar-color: var(--record-blush) var(--record-paper);
+}
+.lightFrame ::selection { background: var(--record-blush); color: var(--record-ink); }
+.lightFrame .navigation { margin-bottom: 18px; }
+.lightFrame .back { color: var(--record-secondary); }
+.lightFrame .back:hover { color: var(--record-rose); }
+.lightFrame .heading {
+  min-height: 290px;
+  overflow: hidden;
+  isolation: isolate;
+  align-items: center;
+  padding: 34px 40px;
+  margin-bottom: 30px;
+  border: 1px solid var(--record-border);
+  border-radius: var(--cd-r-section);
+  background: var(--record-wash);
+  box-shadow: 0 18px 42px -22px var(--record-border);
+}
+.lightFrame .heading::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--record-paper) 10%, var(--record-wash) 42%, transparent 70%);
+}
+.lightFrame .heading > div { position: relative; z-index: 2; max-width: 48%; }
+.lightFrame .heading h1 { font-size: var(--cd-t-display); font-weight: 700; line-height: 1.35; color: var(--record-ink); }
+.lightFrame .heading p { max-width: 32ch; color: var(--record-secondary); }
+.lightFrame .libraryArt {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 61%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 52% center;
+}
+.lightFrame .flower { z-index: 2; right: 18px; bottom: 10px; background: var(--record-gold); opacity: .7; }
+.lightFrame .tools { gap: 14px; margin-bottom: 20px; }
+.lightFrame .search {
+  min-height: 56px;
+  border-color: var(--record-border);
+  border-radius: var(--cd-r-pill);
+  background: var(--record-surface);
+  color: var(--record-rose);
+  box-shadow: 0 8px 20px -16px var(--record-secondary);
+}
+.lightFrame .search input { color: var(--record-ink); caret-color: var(--record-rose); }
+.lightFrame .search input::placeholder { color: var(--record-secondary); opacity: 1; }
+.lightFrame .search:focus-within { outline-color: var(--record-focus); }
+.lightFrame .button {
+  border-color: var(--record-border);
+  border-radius: var(--cd-r-pill);
+  color: var(--record-ink);
+  background: var(--record-surface);
+}
+.lightFrame .button:hover { border-color: var(--record-rose); background: var(--record-wash); }
+.lightFrame .filters button[aria-pressed='true'] { border-color: var(--record-rose); background: var(--record-rose); color: var(--record-paper); }
+.lightFrame .filters button[aria-pressed='true']:hover { background: var(--record-rose); }
+.sortLabel { font-size: .875rem; color: var(--record-muted, var(--cd-text-muted)); }
+.lightFrame .sortLabel { padding: 2px 2px 0; font-weight: 600; }
+.lightFrame .shelf { display: grid; gap: 12px; border: 0; }
+.lightFrame .record {
+  border: 1px solid var(--record-border);
+  border-radius: var(--cd-r-card);
+  background: var(--record-surface);
+  padding: 18px;
+  box-shadow: 0 12px 28px -24px var(--record-secondary);
+}
+.lightFrame .recordArt { border: 1px solid var(--record-border); background: var(--record-wash); }
+.lightFrame .recordSymbol { border-color: var(--record-gold); color: var(--record-rose); background: var(--record-wash); }
+.lightFrame .recordMeta { color: var(--record-secondary); }
+.lightFrame .recordMeta strong { color: var(--record-rose); }
+.lightFrame .record h2 { color: var(--record-ink); font-weight: 700; }
+.lightFrame .recordQuestion, .lightFrame .recordFooter time { color: var(--record-secondary); }
+.lightFrame .recordFooter .button { border-color: var(--record-rose); color: var(--record-rose); font-weight: 700; }
+.lightFrame .recordFooter .button:hover { color: var(--record-paper); background: var(--record-rose); }
+.lightFrame [role='alert'], .lightFrame [role='status'] { border-color: var(--record-border); }
+.emptyState { display: grid; justify-items: start; gap: 12px; padding: 28px; border: 1px solid var(--record-border); border-radius: var(--cd-r-card); background: var(--record-surface); }
+.emptyState img { width: 112px; height: 112px; object-fit: contain; border-radius: var(--cd-r-md); }
+.emptyState p { color: var(--record-secondary); }
+@media (max-width: 680px) {
+  .lightFrame .navigation { margin-bottom: 12px; }
+  .lightFrame .heading { display: block; min-height: 0; padding: 190px 20px 26px; margin-bottom: 24px; }
+  .lightFrame .heading::before { background: linear-gradient(180deg, transparent 2%, transparent 42%, var(--record-wash) 68%); }
+  .lightFrame .heading > div { max-width: none; }
+  .lightFrame .heading h1 { font-size: var(--cd-t-display); }
+  .lightFrame .heading p { margin-top: 8px; }
+  .lightFrame .libraryArt { inset: 0 0 auto; width: 100%; height: 210px; object-position: center 48%; }
+  .lightFrame .flower { right: 8px; bottom: 3px; width: 110px; }
+  .lightFrame .record { grid-template-columns: 64px minmax(0, 1fr); gap: 12px; padding: 14px; }
+  .lightFrame .recordArt, .lightFrame .recordSymbol { width: 64px; height: 84px; }
+  .lightFrame .recordFooter { margin-top: 10px; }
+  .lightFrame .recordFooter .button { min-height: 44px; }
+}

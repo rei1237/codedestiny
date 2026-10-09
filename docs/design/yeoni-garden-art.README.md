@@ -11,7 +11,8 @@
 ## 자산과 사용 위치
 | 자산 | 시도 | 판정 | 파생본 | 사용 위치 |
 |---|---|---|---|---|
-| hero-garden | 1 (+중지 1) | pass | `public/images/yeoni/garden/yeoni-garden-hero-v1-{480,640,960,1280}.webp` | 셸 홈 히어로 `#honeypigLogo`(모바일은 같은 그림을 16:7 로 잘라 씀) |
+| hero-garden | 1 (+중지 1) | 2026-10-09 철회 | 파생본 삭제(Git 기록에는 보존) | 현재 코드에서 참조하지 않는 그림으로 확인되어 사용자 요청에 따라 제거 |
+| library-moonlight | 1 | pass | `public/images/yeoni/garden/yeoni-library-moonlight-v1-{640,960}.webp` | `/records/` 보관함 헤더. 공식 `연이 프로필1.png`를 참조해 밝은 달빛·연꽃·기록 상자 장면으로 생성. built-in imagegen 원본 SHA-256 `3a0994e2afd8484b440bc86a893ea202160b7ea2fd2bc60b0f6ce7754203568c` |
 | library-empty | 1 | pass | `…/yeoni-garden-library-empty-v1-{320,480}.webp` | 셸 보관함 시트 `#cdLibrarySheet` |
 | state-writing | 1 | pass | 없음 | 미배선 — App Router 생성 중 화면 후보 |
 | state-ready | 1 | pass | 없음 | 미배선 — App Router 결과 준비 완료 후보 |
