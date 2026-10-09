@@ -10,12 +10,12 @@ type ServerConfig = NonNullable<CapacitorConfig["server"]> & { html5mode?: boole
 
 const config: CapacitorConfig = {
   appId: process.env.CODE_DESTINY_ANDROID_PACKAGE_ID || "com.codedestiny.app",
-  appName: process.env.CODE_DESTINY_ANDROID_APP_NAME || "꿀꿀 운세",
+  appName: process.env.CODE_DESTINY_ANDROID_APP_NAME || "꿀꿀 사주",
   webDir: "../../dist",
   server: {
     androidScheme: "https",
     cleartext: false,
-    // 꿀꿀 운세에서 시작하고 영냥이는 서비스 내 탐색으로 이어간다.
+    // 꿀꿀 사주에서 시작하고 영냥이는 서비스 내 탐색으로 이어간다.
     // Capacitor는 이 값을 server.appStartPath 에서만 읽는다(android 블록이 아니라).
     // 확장자까지 적는다 — 아래 html5mode 를 껐으므로 폴백에 기대지 않는다.
     appStartPath: "/ggulggul/index.html",
