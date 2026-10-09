@@ -2351,6 +2351,13 @@ async function generateNewYearWave(env, input, fortuneData, options) {
     .flatMap(issue => /^MISSING_(EXPERT_TOPICS|CATEGORIES|MONTHS):/.test(issue)
       ? issue.slice(issue.indexOf(":") + 1).split(/[|,]/).map(item => `${issue.split(":")[0]}:${item}`)
       : issue.startsWith("SECTION_COUNT:") ? ["SECTION_COUNT"] : [issue]);
+  // 수치가 붙은 카운터 이슈는 이름으로 묶고 수치로 비교한다. 문자열 그대로 비교하면
+  // MONTHLY_PILLAR_CITATIONS:0/12 → 3/12 같은 개선도 새 이슈가 되어 섹션이 끝내 채택되지 않는다.
+  const issueKey = issue => issue.startsWith("MONTHLY_PILLAR_CITATIONS:") ? "MONTHLY_PILLAR_CITATIONS" : issue;
+  const issueScore = issue => issueKey(issue) === issue ? 0 : Number(issue.split(":")[1].split("/")[0]) || 0;
+  const isNewIssue = (issue, before) => !before.some(prior => issueKey(prior) === issueKey(issue) && issueScore(issue) >= issueScore(prior));
+  const improves = (after, before) => after.length < before.length
+    || after.some(issue => before.some(prior => issueKey(prior) === issueKey(issue) && issueScore(issue) > issueScore(prior)));
   const valid = row => row.ok && !row.truncated && !row.isMock && countPaidReportBodyChars(row.text) > 0
     && !hasRepeatedReportPassage(row.text);
   const accepted = row => valid(row);
@@ -2397,10 +2404,10 @@ async function generateNewYearWave(env, input, fortuneData, options) {
         const trimmed = { ...generated, text: trimPaidReportText(generated.text, candidate.section.maxChars) };
         const next = results.map((row, i) => i === index ? trimmed : row);
         const after = contentIssues(next);
-        const noNewIssues = contentIssues(sourceRows).every(issue => before.includes(issue)) && after.every(issue => before.includes(issue));
+        const noNewIssues = [...contentIssues(sourceRows), ...after].every(issue => !isNewIssue(issue, before));
         if (valid(trimmed) && noNewIssues && !hasRepeatedReportPassage(assembleConsultationSections(sourceRows))
           && !hasRepeatedReportPassage(assembleConsultationSections(next))
-          && (!valid(candidate) || after.length < before.length || countPaidReportBodyChars(trimmed.text) > countPaidReportBodyChars(candidate.text))) Object.assign(candidate, trimmed);
+          && (!valid(candidate) || improves(after, before) || countPaidReportBodyChars(trimmed.text) > countPaidReportBodyChars(candidate.text))) Object.assign(candidate, trimmed);
       }
       await options.onCheckpoint(results);
       ({ quality, targets } = assess());
