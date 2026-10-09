@@ -150,3 +150,23 @@ test("4-up 그리드가 좁은 화면에서 무너지지 않는다", () => {
     "480px 이하 1열 분기가 없다",
   );
 });
+
+test("카드 한 줄은 엔진이 맞춘 첫 근거 문장을 쓰고, 없을 때만 꽃말로 물러난다", () => {
+  const at = runtimeCode.indexOf("function _dfRenderQuadCards");
+  assert.ok(at >= 0, "_dfRenderQuadCards 를 찾지 못했다");
+  const body = runtimeCode.slice(at, runtimeCode.indexOf("\nfunction ", at + 10));
+  assert.match(body, /_dfToArray\(selection\.matched && selection\.matched\.rationale_points\)\[0\]/, "카드 한 줄이 rationale_points 를 읽지 않는다");
+  assert.match(body, /lineEl\.textContent = pointText \|\| symbolism \|\|/, "근거 → 꽃말 순서의 폴백이 아니다");
+});
+
+test("상세에 '왜 이 꽃일까요?' 근거 목록이 배선돼 있다", () => {
+  assert.match(shell, /<section id="dfStudioWhy" class="df-studio-why" hidden>/, "셸에 근거 섹션이 없다(기본 hidden)");
+  assert.match(shell, /<ol id="dfStudioWhyList"/, "셸에 근거 목록이 없다");
+  const at = runtimeCode.indexOf("function _dfApplyStudioSelection");
+  const body = runtimeCode.slice(at, runtimeCode.indexOf("\nfunction ", at + 10));
+  assert.match(body, /_dfRenderStudioWhy\(selection\);/, "_dfApplyStudioSelection 이 근거 목록을 그리지 않는다");
+  const why = runtimeCode.slice(runtimeCode.indexOf("function _dfRenderStudioWhy"));
+  assert.match(why.slice(0, 900), /\.slice\(0, 4\)/, "근거는 최대 4개");
+  assert.match(why.slice(0, 900), /_dfEscapeHtml/, "근거 문장을 이스케이프하지 않는다");
+  assert.match(why.slice(0, 900), /wrap\.hidden = points\.length === 0;/, "근거가 없을 때 섹션을 숨기지 않는다");
+});

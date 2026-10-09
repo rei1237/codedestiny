@@ -6565,8 +6565,11 @@ function _dfRenderQuadCards(activeSource) {
     if (latinEl) latinEl.textContent = selection.flower.scientific_name || '';
     if (badgeEl) badgeEl.innerHTML = _dfBadgeMarkup(_dfBuildBadgeRows(selection), 'df-quad-badge');
     if (lineEl) {
+      /* 카드 한 줄은 엔진이 실제로 맞춘 첫 근거 — 없을 때만 꽃말로 물러난다. */
+      var firstPoint = _dfToArray(selection.matched && selection.matched.rationale_points)[0];
+      var pointText = String((firstPoint && firstPoint.text) || '').trim();
       var symbolism = String((selection.flower && selection.flower.symbolism) || '').trim();
-      lineEl.textContent = symbolism || _dfGetSajuVerdict(selection);
+      lineEl.textContent = pointText || symbolism || _dfGetSajuVerdict(selection);
     }
     if (imgEl) {
       _dfApplyGeneratedFlowerImage(imgEl, selection, source);
@@ -6574,6 +6577,24 @@ function _dfRenderQuadCards(activeSource) {
     }
   });
 }
+/**
+ * "왜 이 꽃일까요?" — 엔진 rationale_points(실제로 매칭된 신호만, 최대 4개)를 목록으로 보인다.
+ * 근거가 없으면(구 응답·폴백 선택) 섹션을 숨겨 빈 제목만 남지 않게 한다.
+ */
+function _dfRenderStudioWhy(selection) {
+  var wrap = document.getElementById('dfStudioWhy');
+  var list = document.getElementById('dfStudioWhyList');
+  if (!wrap || !list) return;
+  var points = _dfToArray(selection && selection.matched && selection.matched.rationale_points)
+    .filter(function(point) { return String(point.text || '').trim(); })
+    .slice(0, 4);
+  list.innerHTML = points.map(function(point) {
+    var label = String(point.label || '').trim();
+    return '<li>' + (label ? '<b>' + _dfEscapeHtml(label) + '</b> ' : '') + _dfEscapeHtml(String(point.text).trim()) + '</li>';
+  }).join('');
+  wrap.hidden = points.length === 0;
+}
+
 function _dfRenderSajuBadges(selection) {
   var wrap = document.getElementById('dfStudioSajuBadges');
   if (!wrap) return;
@@ -7604,6 +7625,7 @@ function _dfApplyStudioSelection(selection) {
     symbolismEl.textContent = sajuVerdict + ' ' + (flowerData.scenario_reason || (flower.symbolism ? ('이 꽃은 ' + flower.symbolism + '을 상징합니다.') : '이 꽃이 당신의 현재 운세 흐름과 강하게 공명합니다.'));
   }
   if (keywordsEl) keywordsEl.textContent = sourceLabel + ' 키워드 · ' + _dfToArray(selection.keywords).join(' • ');
+  _dfRenderStudioWhy(selection);
   if (narrativeEl) {
     narrativeEl.textContent = (selection.matched && selection.matched.narrative)
       || (sajuVerdict + ' ' + sourceShort + ' 균형을 기준으로 지금의 개화 포인트를 정렬했습니다.');
