@@ -4382,6 +4382,24 @@ export function findUnifiedFlowerById(flowerId) {
   return unifiedFlowerCatalog.find((f) => String(f.id || '').toLowerCase() === target) || null;
 }
 
+/** 친구 공유 링크용 공개 카드. 꽃 자체의 정보만 담고 받는 사람의 사주·생일은 다루지 않는다. */
+export function getPublicFlowerCard(flowerId) {
+  const found = /^[a-z0-9_]{1,40}$/.test(String(flowerId || '')) ? findUnifiedFlowerById(flowerId) : null;
+  if (!found) return null;
+  const flower = localizeDestinyFlowerCopy(found);
+  return {
+    id: flower.id,
+    name: flower.name,
+    scientific_name: flower.scientific_name || '',
+    title: flower.title || flower.name,
+    flower_language: flower.flower_language || '',
+    vibe_message: flower.vibe_message || '',
+    primary_color: flower.primary_color || '',
+    secondary_color: flower.secondary_color || '',
+    elements: normalizeFlowerElementList(flower.elements)
+  };
+}
+
 /**
  * 점술 지표를 "이 체계가 보는 프로필"로 옮긴다.
  * scoreFlower 는 core(오행 %·계절·환경·수분)와 domains 를 읽으므로, 각 체계의 지표를

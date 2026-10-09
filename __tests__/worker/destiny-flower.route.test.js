@@ -146,3 +146,21 @@ test("개화 서사는 점수에 든 신호의 단계만 만들고 공유 훅에
     expect(result.share_hook.rarity_line).not.toMatch(/%/);
   }
 });
+
+test("친구 꽃 공개 카드는 로그인 없이 꽃 정보만 주고 모르는 id 는 404", async () => {
+  authResult = null;
+  const get = (id) => new Request("https://code-destiny.com/api/destiny-flower/flower/" + id, { method: "GET" });
+  const res = await handleDestinyFlowerRoutes(get("magnolia"), {});
+  expect(res.status).toBe(200);
+  expect(res.headers.get("Cache-Control")).toMatch(/public/);
+  const data = await res.json();
+  expect(Object.keys(data.flower).sort()).toEqual(
+    ["elements", "flower_language", "id", "name", "primary_color", "scientific_name", "secondary_color", "title", "vibe_message"],
+  );
+  expect(data.flower.flower_language).toBeTruthy();
+  for (const bad of ["nope", "..%2Fmatch", "%E0%A4%A"]) {
+    expect((await handleDestinyFlowerRoutes(get(bad), {})).status).toBe(404);
+  }
+  const post = new Request("https://code-destiny.com/api/destiny-flower/flower/magnolia", { method: "POST" });
+  expect((await handleDestinyFlowerRoutes(post, {})).status).toBe(405);
+});
