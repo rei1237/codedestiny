@@ -7,13 +7,13 @@
 | 층 | 이름 | 실물 |
 |---|---|---|
 | 회사 | CODE DESTINY | 푸터·법적 표기에만 |
-| 브랜드(노출 1순위) | 꿀꿀 운세 — "오늘의 마음이 조금 가벼워지는 곳" | `lib/seo/siteSeo.ts:81`, `app/components/SiteFooterHub.jsx:192`. `/`(`app/page.js`)는 꽃돼지 `/ggulggul/`(정적 셸 `index.html`)로 보낸다 |
+| 브랜드(노출 1순위) | 꿀꿀 사주(2026-10-10 꿀꿀 운세에서 개명) — "오늘의 마음이 조금 가벼워지는 곳" | `lib/seo/siteSeo.ts:81`, `app/components/SiteFooterHub.jsx:192`. `/`(`app/page.js`)는 꽃돼지 `/ggulggul/`(정적 셸 `index.html`)로 보낸다 |
 | 주인공 상담가 | 영냥이 — 흰 장모 치비 마법사 고양이(남색 모자·금빛 초승달), 달빛 점술방 | `/yeongnyangi/`(`app/yeongnyangi/`). 마스터 이미지 `public/assets/yeongnyangi/original/hero-800.webp`, 묘사 정본 `docs/design/yeongnyangi-tarot/art-ledger.jsonl:1`. 캐릭터 원본은 고치지 않는다 |
 | 상담가 | 연이(꽃돼지) 🌸 | 상담실 "꽃빛 상담실"(`worker/yeongnyangi/prompts/persona/yeoni.ts:1`), 기능 "운명의 찻집"(`/fortune-tea-house`) |
 | 상담가 | 네오 🦁 | 상담실 "별빛 전략실"(`persona/neo.ts:1`, `app/fortune-chat/`), 기능 "팩폭 전략실"(`lib/consultation-sharing.ts:11`) |
 
 - 사용자: 한국어 우선(+en·ja·zh), 모바일, 위로와 방향을 함께 찾는 사람. 약속은 오락이 아니라 근거 있는 조언이다.
-- 영냥이 세계에서는 영냥이가 주인공이고 연이는 꿀꿀 운세로 잇는 보조 링크다(yeongnyangi-night 7행).
+- 영냥이 세계에서는 영냥이가 주인공이고 연이는 꿀꿀 사주로 잇는 보조 링크다(yeongnyangi-night 7행).
 - 상담실 이름과 기능 이름은 둘 다 살아 있다. 한쪽으로 바꾸지 않는다.
 - 식별 이모지는 🌸(꽃돼지)·🦁(네오) 둘뿐이다. 네오에 🌙 를 쓰지 않고 새 장식 이모지를 넣지 않는다.
 

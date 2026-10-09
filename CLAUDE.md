@@ -66,13 +66,13 @@ push를 배포 승인으로 확대 해석하지 않는다. push는 스테이징�
 - 검색·삭제: [search-discipline](docs/context/search-discipline.md)
 - 명령·예외: [reference-basics](docs/context/reference-basics.md)
 
-홈 `/` 정본은 app/page.js다(꿀꿀 운세 — 검색용 안내를 그리고 LegacyHomeEntry가 브라우저를 `/ggulggul/`로 보낸다). 꽃돼지 `/ggulggul/` 및 기존 로케일 정적 셸 정본은 index.html이며 public 미러는 sync:public으로 생성한다. 영냥이는 `/yeongnyangi/`(app/yeongnyangi/)다. Pages 준비 단계에서 `/`를 정적 셸로 덮어쓰지 않는다.
+홈 `/` 정본은 app/page.js다(꿀꿀 사주 — 검색용 안내를 그리고 LegacyHomeEntry가 브라우저를 `/ggulggul/`로 보낸다). 꽃돼지 `/ggulggul/` 및 기존 로케일 정적 셸 정본은 index.html이며 public 미러는 sync:public으로 생성한다. 영냥이는 `/yeongnyangi/`(app/yeongnyangi/)다. Pages 준비 단계에서 `/`를 정적 셸로 덮어쓰지 않는다.
 결제 진입은 로컬 스냅샷, 서버 이용권 판정은 결제창에서. 단건은 사용자의 선택 후에만.
 이용권·월정석·단건 결제 용어와 정책을 유지한다. 동결 파일 변경은 payment-freeze 절차를 따른다.
 
 ## 보관함 분리·구매 기록 보존 (2026-10-06 사용자 지정)
 
-영냥이 서비스 기록은 `/yeongnyangi/library/`, 꿀꿀운세 서비스 기록은 `/records/`에서 조회한다. 이 분리를 계속 유지한다. 공유 DB 컬렉션을 쓰더라도 연이·네오 상담실과 영냥이 상담의 소유 서비스 조건을 구분하며 다른 계정 기록을 노출하지 않는다. 진단 근거·운영 수선안은 [library-preservation](docs/context/library-preservation.md)을 따른다.
+영냥이 서비스 기록은 `/yeongnyangi/library/`, 꿀꿀 사주(구 꿀꿀운세) 서비스 기록은 `/records/`에서 조회한다. 이 분리를 계속 유지한다. 공유 DB 컬렉션을 쓰더라도 연이·네오 상담실과 영냥이 상담의 소유 서비스 조건을 구분하며 다른 계정 기록을 노출하지 않는다. 진단 근거·운영 수선안은 [library-preservation](docs/context/library-preservation.md)을 따른다.
 서비스가 유지되는 동안 구매·이용권·월정석으로 받은 기존 결과는 기간 경과, 이용권 만료, 가격·카탈로그 변경 때문에 삭제하거나 숨기지 않는다. 완료 결과 재열람은 저장된 원본을 사용하며 추가 결제·차감·LLM 생성 없이 제공한다. 정상 회원 탈퇴 및 환불에 따른 접근 회수 규칙은 유지한다. 자동 삭제 TTL은 미결제 주문 의도와 임시 공유 링크·캐시에만 적용하며 구매 결과에는 적용하지 않는다. 운영 TTL 변경·원본 복원·운영 승격은 별도 승인 후 수행한다.
 Claude 훅은 Codex 훅이 아니다. 도구별 규칙 적용을 구분한다.
 충돌은 [CONTEXT_AUDIT](docs/CONTEXT_AUDIT.md)에 기록한다. 현재 상태는 [CURRENT_DEV_BASELINE](docs/CURRENT_DEV_BASELINE.md).

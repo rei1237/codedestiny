@@ -312,7 +312,8 @@
   "improvements": [
     "최신 GSC 3개월·28일 실적, 국가·기기·색인 사유·링크 관측 갱신. 이전 관측 보존.",
     "일본 3곳·한국 2곳 후보 본문 및 제한된 연결 페이지 재검토. 점수 상향·발송 없음.",
-    "주요 랜딩 19개·사이트맵 1300개 검사 오류 0."
+    "주요 랜딩 19개·사이트맵 1300개 검사 오류 0.",
+    "2026-10-10 한국어 서비스명 꿀꿀 운세 → 꿀꿀 사주: 사이트명 신호·대표 페이지 title·/kkul-kkul-unse/ 전환 안내·OG 카드 재렌더(rename20261010)."
   ],
   "adsense": {
     "status": "needs-attention",
@@ -3038,5 +3039,44 @@
       "artifactDirectory": "D:/Development/code-destiny/output/release-20261008-measurement",
       "policies": "No payment execution, paid LLM call, production DB write, schema change or fortune-engine calculation change in this measurement work."
     }
+  },
+  "rename20261010": {
+    "date": "2026-10-10",
+    "officialName": "꿀꿀 사주",
+    "alias": "꿀꿀사주",
+    "formerNames": [
+      "꿀꿀 운세",
+      "꿀꿀운세",
+      "꿀꿀 만세력",
+      "꿀꿀만세력",
+      "꽃돼지 운세"
+    ],
+    "doc": "docs/seo/2026-10-10-ggulggul-saju-rename.md",
+    "ogImageVersion": {
+      "from": "42dedf5c85",
+      "to": "aa88d371b4"
+    },
+    "baseline": {
+      "source": "GSC 2026-06-26~09-25 (2026-09-28 관측)",
+      "clicks": 29,
+      "impressions": 357,
+      "ctr": 0.081,
+      "position": 24.4,
+      "brandQuery": {
+        "query": "꿀꿀운세",
+        "impressions": 58,
+        "clicks": 20,
+        "ctr": 0.345
+      }
+    },
+    "confounder": "2026-10-08 제목 변경이 같은 관측 기간에 겹친다",
+    "checkpoints": [
+      "2026-10-17",
+      "2026-10-24"
+    ],
+    "stagingVerifiedSha": null,
+    "productionReleasedSha": null,
+    "productionReleasedAt": null,
+    "searchConsoleManualSteps": "미실행 — 문서의 운영자 수동 작업 참고"
   }
 }
