@@ -47,7 +47,8 @@ import { listProducts, resolveProduct } from "./catalog.js";
 import { createServicePackRoutes } from "./service-pack-routes.js";
 import { verifyPgPayment } from "./pg.js";
 import { isLegacySingleOrderId } from "./order-id.js";
-import { dropEntitlementByIdentity, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
+import { dropEntitlementByIdentity, findOwnedEntitlement, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
+import { birthIdentityFromSnapshot, isBirthScopedProduct, resolvePaymentBirthIdentity } from "./birth-identity.js";
 import { settleOrphanSpends, spendMoonstone, reserveOrderMoonstones, releaseOrderMoonstones } from "./moonstone.js";
 import { quoteYeongnyangiMoonstoneDiscount } from '../lib/paid-feature-registry.js';
 import { acceptWebhook, claimReplayableEvents, describeEventFailure, markEventFailed, markEventProcessed } from "./webhook.js";
@@ -988,6 +989,9 @@ async function grantOrderEntitlement(db, order) {
       orderId: String(order.merchantUid || ""),
       paymentId: String(order.impUid || ""),
       profileId: String(snapshot.profileId || ""),
+      partnerProfileId: String(snapshot.partnerProfileId || ""),
+      // 주문 발급 때 박은 생년월일로 지급한다(결제 중 프로필 수정과 무관). 구 주문은 profileId 로 다시 푼다.
+      birthIdentity: birthIdentityFromSnapshot(snapshot, product.featureKey),
       contentKey: String(snapshot.contentKey || ""),
       scope: String(snapshot.scope || ""),
     });
@@ -1168,6 +1172,7 @@ const ROUTES = {
         paypalCharge,
         idempotencyKey: String(product.featureKey || '').startsWith('yeongnyangi-') ? body.requestId : body.idempotencyKey,
         profileId: body.profileId,
+        partnerProfileId: body.partnerProfileId,
         contentKey: body.contentKey,
         scope: body.scope,
         returnPath: body.returnPath,
@@ -1266,7 +1271,8 @@ const ROUTES = {
         const userPromise = moonstoneDiscount ? Promise.resolve(await userRead) : userRead;
         userPromise.catch(() => {}); // 미관측 거부 경고만 막는다 — 실제 처리는 아래 await 가 한다.
         const bodyProfileId = String(body.profileId || body.selectedProfileId || "");
-        const profileId = bodyProfileId || String((await userPromise)?.destinyProfilesCurrentId || "");
+        // 출생 기반 해금은 "현재 프로필" 폴백을 쓰지 않는다 — 고른 적 없는 사람의 생년월일에 결제가 붙는다.
+        const profileId = bodyProfileId || (isBirthScopedProduct(product) ? "" : String((await userPromise)?.destinyProfilesCurrentId || ""));
         /* 🔴 재사용할 수 없는 주문(결제완료·실패·만료취소·레거시 상태)이나 의도가 달라진 주문은
            409 가 아니라 **새 세대 주문**으로 답한다(orders.js createPayableOrder). 예전에는 여기서
            거절했고, 그 결과 복구가 전적으로 클라이언트의 새-키 재시도에 달려 있었다 — 그 재시도가
@@ -1281,6 +1287,7 @@ const ROUTES = {
           requestId: body.requestId,
           paidResume,
           profileId,
+          partnerProfileId: body.partnerProfileId,
           contentKey: body.contentKey,
           scope: body.scope,
           returnPath: body.returnPath,
@@ -1449,7 +1456,7 @@ const ROUTES = {
           let grantedIdentity = null;
           if (unlock) {
             const granted = await grantEntitlement(db, {
-              userId, product, orderId: requestId, profileId,
+              userId, product, orderId: requestId, profileId, partnerProfileId: body.partnerProfileId,
               contentKey: body.contentKey, scope: body.scope, source: "MONTHLY",
             });
             if (granted.alreadyOwned) {
@@ -1589,10 +1596,22 @@ const ROUTES = {
           return { coverage: consumed.coverage, entitlement, user: consumed.user || user, replayed: consumed.replayed };
         }
 
+        /* 🔴 출생 기반 해금: ① 저장된 내 프로필인지(없으면 MISSING_PROFILE_ID/INVALID_PROFILE)
+           ② **소유를 커버 판정보다 먼저** 본다 — 이미 산 생년월일은 한도를 다 썼어도 402 없이 열린다.
+           ③ 같은 requestId 재생은 이 생년월일의 행이 있을 때만 인정한다(마커만으로 다른 사람을 열지 않는다). */
+        const birthScoped = isBirthScopedProduct(product);
+        const birthIdentity = birthScoped
+          ? await resolvePaymentBirthIdentity(db, { userId, profileId, partnerProfileId: body.partnerProfileId, featureKey: product.featureKey })
+          : null;
+        const ownership = birthScoped
+          ? await findOwnedEntitlement(db, { userId, product, contentKey: body.contentKey, birthIdentity })
+          : null;
+        if (ownership?.owned) return { coverage: { ...coverage, covered: true, reason: "", coinCost: product.priceCoins }, entitlement, user, alreadyUnlocked: true };
+
         // 이미 커버한 실행은 마지막 소비로 이용권이 종료됐어도 복구한다.
         // 현재 잔여 한도는 새 실행에만 적용하고 동일 요청의 재열람에 적용하지 않는다.
         const markers = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];
-        if (marker && markers.includes(marker)) {
+        if (marker && markers.includes(marker) && !birthScoped) {
           return { coverage: { ...coverage, covered: true, reason: "", coinCost: product.priceCoins }, entitlement, user, replayed: true };
         }
         if (!coverage.covered) return { coverage, entitlement };
@@ -1606,7 +1625,7 @@ const ROUTES = {
         let grantedIdentity = null;
         if (unlock) {
           const granted = await grantEntitlement(db, {
-            userId, product, orderId: requestId, profileId,
+            userId, product, orderId: requestId, profileId, birthIdentity,
             contentKey: body.contentKey, scope: body.scope, source: "PASS",
           });
           if (granted.alreadyOwned) return { coverage, entitlement, user, alreadyUnlocked: true };
@@ -1729,11 +1748,15 @@ const ROUTES = {
       ctx.productId = product.productId;
       const purchaseId = String(body.idempotencyKey || "").trim();
       const result = await withDb(env, ctx, async (db) => {
+        // 출생 기반 해금은 차감 **전에** 신원을 확정한다 — 차감 뒤 지급이 거절되면 돈만 빠진다.
+        const birthIdentity = isBirthScopedProduct(product)
+          ? await resolvePaymentBirthIdentity(db, { userId, profileId: body.profileId, partnerProfileId: body.partnerProfileId, featureKey: product.featureKey })
+          : null;
         const spend = await spendMoonstone(db, { userId, product, purchaseId, profileId: body.profileId });
         // This family-only monthly consultation owns its request proof, not a permanent unlock.
         if (!(product.familyPassOnly && !product.monthlyExcluded)) {
           await grantEntitlement(db, {
-            userId, product, orderId: purchaseId, profileId: body.profileId,
+            userId, product, orderId: purchaseId, profileId: body.profileId, birthIdentity,
             contentKey: body.contentKey, scope: body.scope, source: "MONTHLY",
           });
           await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });

@@ -8,12 +8,18 @@ import { createOrder, createPayableOrder, markOrderPaid } from "../../worker/pay
 import { evaluatePassCoverage } from "../../worker/payments/passes.js";
 import { CURRENT_PASS_POLICY_VERSION, PREVIOUS_PASS_POLICY_VERSION, PRIOR_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION } from "../../lib/payment/pass-policy.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
+import { testCard } from "../fixtures/profile-card-model.mjs";
+import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
 
 const USER = "507f1f77bcf86cd799439011";
 const PRODUCT = resolveProduct({ featureKey: "section_daewun" });
 const OLD_PRODUCT = { ...PRODUCT, priceKRW: 3000, priceCoins: 30, monthlyCost: 300 };
 const PROFILE = "daewun-profile";
 const CONTENT = "saju.daeunAnalysis";
+// 대운은 출생 기반 해금이다 — 저장된 프로필 카드의 출생 정보가 신원이다.
+const CARDS = [testCard(PROFILE, { userId: USER }), testCard("another-profile", { userId: USER, day: 18 })];
+const birthPid = (profileId) => toBirthEntitlementProfileId(computeBirthKey(CARDS.find((card) => card.profileId === profileId)));
+const makeDb = () => makeFakePaymentDb({ profileCards: CARDS });
 
 // The new sale price must agree at every resolver; no separate web/app/moonstone price table.
 test("대운 신규 해금은 5,000원·월정석 500이며 앱도 같은 가격이다", () => {
@@ -48,7 +54,7 @@ test.each([
 });
 
 test("기존 3,000원 대운 구매권은 새 가격에도 같은 프로필에서 유지된다", async () => {
-  const db = makeFakePaymentDb();
+  const db = makeDb();
   const grantedAt = new Date("2026-09-29T00:00:00Z");
   await grantEntitlement(db, {
     userId: USER, product: OLD_PRODUCT, profileId: PROFILE, contentKey: CONTENT,
@@ -62,18 +68,18 @@ test("기존 3,000원 대운 구매권은 새 가격에도 같은 프로필에�
   expect(db.rows).toHaveLength(1);
   expect(db.rows[0]).toMatchObject({
     status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE, amountKRW: 3000, coinPrice: 30, orderId: "old-daewun-order",
-    profileId: PROFILE, contentKey: CONTENT, grantedAt,
+    profileId: birthPid(PROFILE), scope: "BIRTH", purchaseProfileId: PROFILE, contentKey: CONTENT, grantedAt,
   });
   const otherProfile = await grantEntitlement(db, {
     userId: USER, product: PRODUCT, profileId: "another-profile", contentKey: CONTENT,
     orderId: "new-profile-purchase",
   });
   expect(otherProfile.alreadyOwned).toBe(false);
-  expect(db.rows.find((row) => row.profileId === "another-profile").amountKRW).toBe(5000);
+  expect(db.rows.find((row) => row.profileId === birthPid("another-profile")).amountKRW).toBe(5000);
 });
 
 test("미결제 대운 주문은 재진입 시 새 가격으로 갱신된다", async () => {
-  const db = makeFakePaymentDb();
+  const db = makeDb();
   const input = { userId: USER, profileId: PROFILE, contentKey: CONTENT, idempotencyKey: "daewun-pending" };
   const old = await createOrder(db, { ...input, product: OLD_PRODUCT });
   const repriced = await createPayableOrder(db, { ...input, product: PRODUCT });
@@ -84,7 +90,7 @@ test("미결제 대운 주문은 재진입 시 새 가격으로 갱신된다", a
 });
 
 test("이미 결제된 대운 주문의 3,000원 구매금액은 새 주문에 덮이지 않는다", async () => {
-  const db = makeFakePaymentDb();
+  const db = makeDb();
   const input = { userId: USER, profileId: PROFILE, contentKey: CONTENT, idempotencyKey: "daewun-paid" };
   const old = await createOrder(db, { ...input, product: OLD_PRODUCT });
   await markOrderPaid(db, { orderId: old.merchantUid, order: old, pg: {

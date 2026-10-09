@@ -1329,6 +1329,18 @@ async function handleUpdateCurrent(request, auth, env) {
   });
 }
 
+/* 🔴 출생 기반 영구 해금은 프로필 카드의 생년월일로 찾는다. 카드를 고치거나 지우면 같은 profileId 라도
+   열려야 할 해금이 달라지므로, 프로필별로 저장된 접근결정·잠금상태·잔액 캐시를 이 사용자 몫만 비운다.
+   billing.js 를 import 하면 순환이 생기므로 다른 모듈처럼 globalThis 무효화 함수를 옵셔널로 부른다. */
+function invalidateBirthScopedAccessCachesForUser(userId) {
+  const uid = String(userId || "").trim();
+  if (!uid) return;
+  try { globalThis.__paidAccessDecisionCache?.invalidateForUser?.(uid); } catch {}
+  try { globalThis.__accessStateCache?.invalidateForUser?.(uid); } catch {}
+  try { globalThis.__billingBalanceCache?.invalidateForUser?.(uid); } catch {}
+  try { globalThis.__codeDestinyAccessUnlocksCache?.invalidateForUser?.(uid); } catch {}
+}
+
 async function handleUpdateProfile(request, auth, profileIdRaw, env) {
   const profileId = sanitizeProfileId(profileIdRaw);
   if (!profileId) return json({ ok: false, code: "PROFILE_ID_REQUIRED", message: "수정할 프로필 카드 ID가 필요합니다." }, { status: 400 });
@@ -1425,6 +1437,7 @@ async function handleUpdateProfile(request, auth, profileIdRaw, env) {
     });
     return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
   }
+  invalidateBirthScopedAccessCachesForUser(auth.userId);
 
   await recordProfileMutationCompleted(auth, {
     action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
@@ -1566,6 +1579,7 @@ async function handleDeleteProfile(request, auth, profileIdRaw, trace, env) {
     });
     return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
   }
+  invalidateBirthScopedAccessCachesForUser(auth.userId);
 
   await recordProfileMutationCompleted(auth, {
     action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,

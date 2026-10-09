@@ -8,6 +8,7 @@ let PaymentWebhookEvent;
 let PaymentFailureLog;
 let ContentEntitlement;
 let User;
+let ProfileCard;
 let originalFetch;
 let originals;
 
@@ -54,6 +55,7 @@ beforeAll(async () => {
   PaymentFailureLog = modelsMod.PaymentFailureLog;
   ContentEntitlement = modelsMod.ContentEntitlement;
   User = modelsMod.User;
+  ProfileCard = modelsMod.ProfileCard;
 
   originalFetch = global.fetch;
   originals = {
@@ -70,7 +72,17 @@ beforeAll(async () => {
     entitlementFindOneAndUpdate: ContentEntitlement.findOneAndUpdate,
     entitlementUpdateMany: ContentEntitlement.updateMany,
     userUpdateOne: User.updateOne,
+    profileCardFindOne: ProfileCard.findOne,
   };
+});
+
+// 출생 기반 키(section_summary 등)의 지급은 이 계정 저장 프로필의 출생 정보로 신원을 만든다.
+beforeEach(() => {
+  ProfileCard.findOne = jest.fn((filter = {}) => queryResult(filter.profileId ? {
+    profileId: filter.profileId,
+    gender: "F",
+    birth: { year: 1990, month: 5, day: 17, hour: 9, minute: 30, timeUnknown: false, calType: "solar" },
+  } : null));
 });
 
 afterEach(() => {
@@ -88,6 +100,7 @@ afterEach(() => {
   ContentEntitlement.findOneAndUpdate = originals.entitlementFindOneAndUpdate;
   ContentEntitlement.updateMany = originals.entitlementUpdateMany;
   User.updateOne = originals.userUpdateOne;
+  ProfileCard.findOne = originals.profileCardFindOne;
   jest.restoreAllMocks();
 });
 

@@ -79,18 +79,28 @@ describe("신원 키는 결정적이다", () => {
      ["sukuyo"]/["ziwei"]/["saju"] 로 필터해 영영 못 찾았다 — 결제해도 계속 잠긴 상태.
      레포에 serviceKey === featureKey 로 조회하는 리더는 하나도 없다. */
   describe("serviceKey 는 정본 유도표를 따른다", () => {
+    // 출생 기반 키는 서버가 해석한 출생 신원이 있어야 신원을 만든다(아래 별도 테스트).
+    const birthIdentity = { entitlementProfileId: `birth:${"a".repeat(64)}`, birthKey: "a".repeat(64) };
     test.each([
       ["sukyo_yearly_fortune_unlock", "sukuyo"],
       ["ziwei_decade_luck", "ziwei"],
       ["section_daewun", "saju"],
       ["premium-fpti-report", "fpti"],
     ])("%s → %s", (featureKey, expected) => {
-      expect(resolveEntitlementIdentity({ featureKey }).serviceKey).toBe(expected);
+      expect(resolveEntitlementIdentity({ featureKey, birthIdentity }).serviceKey).toBe(expected);
     });
 
     test("호출부가 serviceKey 를 명시하면 그것이 이긴다", () => {
-      const identity = resolveEntitlementIdentity({ featureKey: "sukyo_yearly_fortune_unlock", serviceKey: "custom" });
+      const identity = resolveEntitlementIdentity({ featureKey: "sukyo_yearly_fortune_unlock", serviceKey: "custom", birthIdentity });
       expect(identity.serviceKey).toBe("custom");
+    });
+
+    test("🔴 출생 기반 키는 출생 신원 없이 만들지 않고, 요청 scope·profileId 로 USER 에 내려앉지 않는다", () => {
+      let thrown = null;
+      try { resolveEntitlementIdentity({ featureKey: "section_daewun", profileId: "p1", scope: "USER" }); } catch (error) { thrown = error; }
+      expect(thrown).toMatchObject({ code: "MISSING_PROFILE_ID" });
+      expect(resolveEntitlementIdentity({ featureKey: "section_daewun", profileId: "p1", scope: "USER", birthIdentity }))
+        .toMatchObject({ scope: "BIRTH", profileId: birthIdentity.entitlementProfileId });
     });
 
     test("🔴 매핑 없는 기능은 건드리지 않는다 — paid_content 로 뭉뚱그리지 않는다", () => {

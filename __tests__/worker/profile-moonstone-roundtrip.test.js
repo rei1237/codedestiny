@@ -115,3 +115,18 @@ test('request ID alone cannot authorize an unpaid profile mutation',async()=>{
  expect((await handleProfileRoutes(req,{})).status).toBe(402);
  expect(collections.ProfileCard.rows).toHaveLength(1);expect(consumeLots).not.toHaveBeenCalled();
 });
+// 출생 기반 해금은 카드의 생년월일로 찾는다 — 카드가 바뀌거나 지워지면 프로필별 접근결정 캐시가 낡는다.
+async function withCacheSpies(run){
+ const paid={invalidateForUser:jest.fn()},state={invalidateForUser:jest.fn()};
+ const saved={paid:globalThis.__paidAccessDecisionCache,state:globalThis.__accessStateCache};
+ globalThis.__paidAccessDecisionCache=paid;globalThis.__accessStateCache=state;
+ try{await run(paid,state);}finally{globalThis.__paidAccessDecisionCache=saved.paid;globalThis.__accessStateCache=saved.state;}
+}
+test('card update invalidates the birth-scoped access caches for this user',async()=>withCacheSpies(async(paid,state)=>{
+ await pay('update');expect((await handleProfileRoutes(request('update'),{})).status).toBe(200);
+ expect(paid.invalidateForUser).toHaveBeenCalledWith(UID);expect(state.invalidateForUser).toHaveBeenCalledWith(UID);
+}));
+test('card delete invalidates the birth-scoped access caches for this user',async()=>withCacheSpies(async(paid,state)=>{
+ await pay('delete');expect((await handleProfileRoutes(request('delete'),{})).status).toBe(200);
+ expect(paid.invalidateForUser).toHaveBeenCalledWith(UID);expect(state.invalidateForUser).toHaveBeenCalledWith(UID);
+}));

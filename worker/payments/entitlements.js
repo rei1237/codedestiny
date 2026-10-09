@@ -32,6 +32,9 @@ import { USER_SCOPE_PROFILE_ID, resolvePaidContentServiceKey } from "../lib/cont
 import { paymentError } from "./errors.js";
 import { toObjectId, toUserIdString } from "./db.js";
 import { revokePurchaseEntitlement } from "./executions.js";
+import { isBirthScopedUnlockFeatureKey } from "../lib/paid-feature-registry.js";
+import { resolvePaymentBirthIdentity } from "./birth-identity.js";
+import { BIRTH_ENTITLEMENT_SCOPE } from "../lib/birth-key.js";
 
 function clean(value, max) {
   return String(value ?? "").trim().slice(0, max);
@@ -41,9 +44,27 @@ function clean(value, max) {
  * 주문 하나가 어떤 권한 신원으로 떨어지는지. **순수 함수** — 같은 주문이면 항상 같은 키가 나온다.
  * 그 결정성이 멱등성의 근거다(재생·webhook·크론이 전부 같은 문서를 가리킨다).
  */
-export function resolveEntitlementIdentity({ featureKey, profileId, serviceKey, contentKey, scope }) {
+export function resolveEntitlementIdentity({ featureKey, profileId, serviceKey, contentKey, scope, birthIdentity = null }) {
   const feature = clean(featureKey, 160);
   if (!feature) throw paymentError("INVALID_REQUEST", "featureKey 가 필요합니다.");
+
+  /* 🔴 출생 기반 키는 **계정+생년월일** 단위다. 행의 profileId 는 합성 신원("birth:<sha256>")이고
+     scope 는 BIRTH — 요청의 scope·profileId 로는 정해지지 않는다(USER 로 내려앉는 길이 없다).
+     신원 해석(ProfileCard 소유 확인)은 비동기라 호출부(grantEntitlement 등)가 끝내고 넘긴다. */
+  if (isBirthScopedUnlockFeatureKey(feature)) {
+    if (!birthIdentity?.entitlementProfileId) {
+      throw paymentError("MISSING_PROFILE_ID", "이 콘텐츠는 저장된 프로필을 선택한 뒤 구매할 수 있습니다.", { featureKey: feature });
+    }
+    return {
+      userId: "",
+      profileId: birthIdentity.entitlementProfileId,
+      serviceKey: clean(serviceKey, 80) || resolvePaidContentServiceKey(feature, feature),
+      contentKey: clean(contentKey, 120) || feature,
+      scope: BIRTH_ENTITLEMENT_SCOPE,
+      featureKey: feature,
+      birth: birthIdentity,
+    };
+  }
 
   const wantsProfile = clean(profileId, 80) && scope !== CONTENT_ENTITLEMENT_SCOPES.USER;
   const resolvedScope = wantsProfile ? CONTENT_ENTITLEMENT_SCOPES.PROFILE : CONTENT_ENTITLEMENT_SCOPES.USER;
@@ -70,23 +91,55 @@ export function resolveEntitlementIdentity({ featureKey, profileId, serviceKey, 
  *
  * @returns {{ entitlement: object, alreadyOwned: boolean }}
  */
-export async function grantEntitlement(db, {
-  userId, product, orderId, paymentId = "", profileId = "", serviceKey = "", contentKey = "", scope = "",
-  source = CONTENT_ENTITLEMENT_SOURCES.PAYMENT, now = new Date(),
-}) {
-  const uid = toUserIdString(userId);
-  if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
+/** 출생 기반이면 신원을 확정한다(넘겨받은 것 우선, 없으면 ProfileCard 로 엄격 해석). 아니면 null. */
+async function ensureBirthIdentity(db, { userId, product, profileId, partnerProfileId, birthIdentity }) {
+  if (!isBirthScopedUnlockFeatureKey(product?.featureKey)) return null;
+  if (birthIdentity?.entitlementProfileId) return birthIdentity;
+  return resolvePaymentBirthIdentity(db, { userId, profileId, partnerProfileId, featureKey: product.featureKey });
+}
 
-  const identity = resolveEntitlementIdentity({
-    featureKey: product.featureKey, profileId, serviceKey, contentKey, scope,
-  });
-  const filter = {
+function identityFilter(uid, identity) {
+  return {
     userId: uid,
     profileId: identity.profileId,
     serviceKey: identity.serviceKey,
     contentKey: identity.contentKey,
     scope: identity.scope,
   };
+}
+
+/**
+ * 쓰지 않고 소유만 본다. 이용권 검사가 **커버 판정보다 먼저** 부른다 — 이미 가진 콘텐츠는 한도를
+ * 다 썼어도 열려야 하고, 그 판정에 지급(upsert)을 쓰면 미커버 요청에 권한이 남는다.
+ */
+export async function findOwnedEntitlement(db, {
+  userId, product, profileId = "", partnerProfileId = "", serviceKey = "", contentKey = "", scope = "", birthIdentity = null,
+}) {
+  const uid = toUserIdString(userId);
+  if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
+  const birth = await ensureBirthIdentity(db, { userId, product, profileId, partnerProfileId, birthIdentity });
+  const identity = resolveEntitlementIdentity({
+    featureKey: product.featureKey, profileId, serviceKey, contentKey, scope, birthIdentity: birth,
+  });
+  const owned = await db.findOne(ContentEntitlement, {
+    ...identityFilter(uid, identity),
+    status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+  });
+  return { owned: Boolean(owned), identity, entitlement: owned || null };
+}
+
+export async function grantEntitlement(db, {
+  userId, product, orderId, paymentId = "", profileId = "", partnerProfileId = "", serviceKey = "", contentKey = "", scope = "",
+  birthIdentity = null, source = CONTENT_ENTITLEMENT_SOURCES.PAYMENT, now = new Date(),
+}) {
+  const uid = toUserIdString(userId);
+  if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
+
+  const birth = await ensureBirthIdentity(db, { userId, product, profileId, partnerProfileId, birthIdentity });
+  const identity = resolveEntitlementIdentity({
+    featureKey: product.featureKey, profileId, serviceKey, contentKey, scope, birthIdentity: birth,
+  });
+  const filter = identityFilter(uid, identity);
 
   /* 🔴 과도기 가드 (2026-08-13 도입, 백필 후 제거 예정).
      serviceKey 유도가 'featureKey 접기'에서 '정본 유도'로 바뀌기 **전에** 지급된 행은 옛
@@ -95,8 +148,9 @@ export async function grantEntitlement(db, {
      ② 있는 환경: E11000 → 아래 catch 의 재조회가 새 필터로 돌아 doc=null → 영구 잠금
      둘 다 사용자 손해다. 신원이 실제로 바뀌는 기능에 한해 옛 신원을 1회만 확인한다.
      REFUNDED 행은 소유로 치지 않는다(다시 사면 되살아나야 한다).
-     제거 조건: scripts/migrations/20260813-normalize-v2-entitlement-service-keys.mjs --check 가 0건. */
-  if (identity.serviceKey !== identity.featureKey) {
+     제거 조건: scripts/migrations/20260813-normalize-v2-entitlement-service-keys.mjs --check 가 0건.
+     BIRTH 행은 정본 유도 이후에만 생겼으므로 옛 신원 쌍둥이가 없다. */
+  if (!birth && identity.serviceKey !== identity.featureKey) {
     const legacyTwin = await db.findOne(ContentEntitlement, {
       ...filter,
       serviceKey: identity.featureKey,
@@ -125,6 +179,13 @@ export async function grantEntitlement(db, {
       expiresAt: null,
       createdAt: now,
       status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+      // 출생 기반 행의 감사 필드 — 어떤 생년월일로, 어느 저장 프로필에서 샀는가.
+      ...(birth ? {
+        birthKey: birth.birthKey,
+        ...(birth.partnerBirthKey ? { partnerBirthKey: birth.partnerBirthKey } : {}),
+        purchaseProfileId: birth.profileId,
+        ...(birth.partnerProfileId ? { purchasePartnerProfileId: birth.partnerProfileId } : {}),
+      } : {}),
     },
     $set: { updatedAt: now },
   };

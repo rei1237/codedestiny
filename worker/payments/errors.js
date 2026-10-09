@@ -35,6 +35,8 @@ import { isDbUnavailableError } from "../lib/http.js";
 export const PAYMENT_ERROR_TABLE = Object.freeze({
   // 400 — 요청 자체가 틀렸다. 재시도해도 같다.
   INVALID_REQUEST: { status: 400 },
+  // 출생 기반 영구 해금은 저장된 내 프로필로만 산다(worker/lib/birth-scoped-unlock-identity.js).
+  MISSING_PROFILE_ID: { status: 400 },
   PAYPAL_NOT_CONFIGURED: { status: 409 },
   PAYPAL_FX_UNAVAILABLE: { status: 409, retryable: true },
   PAYPAL_ORDER_CONFLICT: { status: 409 },
@@ -78,6 +80,8 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
 
   // 403 — 신원은 맞는데 이 자원에 대한 권한이 없다.
   ORDER_FORBIDDEN: { status: 403 },
+  // profileId 가 이 계정의 저장 프로필이 아니거나 생년월일이 불완전하다.
+  INVALID_PROFILE: { status: 403 },
   PASS_NOT_APPLICABLE: { status: 403 },
   // 구매 정책 거부(entitlement-policy.validatePurchasePolicy). 구체 사유는 meta.reason 에 싣는다.
   PURCHASE_POLICY_DENIED: { status: 403 },

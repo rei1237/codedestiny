@@ -17,6 +17,7 @@ import { deriveOrderId } from "../../worker/payments/orders.js";
 import { FOREIGN_CARD_POLICY_VERSION } from "../../worker/payments/foreign-card-policy.js";
 import { ORDER_POLICY_VERSIONS } from "../../worker/payments/policy-versions.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
+import { testCard } from "../fixtures/profile-card-model.mjs";
 
 const USER = "64b000000000000000000001";
 const ENV = {
@@ -74,11 +75,12 @@ test.each([
   ["section_daewun", "사주 대운 분석"],
   ["section_summary", "종합 사주 풀이"],
 ])("사주 %s 주문명은 공통 버튼 문구 대신 상품명을 사용한다", async (featureKey, expectedName) => {
-  const db = makeFakePaymentDb();
+  const db = makeFakePaymentDb({ profileCards: [testCard("p1", { userId: USER })] });
   seedUser(db);
   const { response, payload } = await postPrepare(db, {
     paymentType: "digital_content",
     featureKey,
+    profileId: "p1",
     reason: "풀이 확인하기",
     idempotencyKey: `order-name-${featureKey}`,
   });
@@ -87,6 +89,17 @@ test.each([
   expect(payload.order.orderName).toBe(expectedName);
   expect(payload.order.productName).toBe(expectedName);
   expect(new TextEncoder().encode(payload.order.orderName).length).toBeLessThanOrEqual(40);
+});
+
+test("🔴 출생 기반 상품은 profileId 없이 결제를 시작하지 않는다 — destinyProfilesCurrentId 로 대신 채우지 않는다", async () => {
+  const db = makeFakePaymentDb({ profileCards: [testCard("profile-current-1", { userId: USER })] });
+  seedUser(db);
+  const { response, payload } = await postPrepare(db, {
+    paymentType: "digital_content", featureKey: "section_daewun", idempotencyKey: "no-profile-daewun",
+  });
+  expect(response.status).toBe(400);
+  expect(JSON.stringify(payload)).toContain("MISSING_PROFILE_ID");
+  expect(db.rows.filter((row) => row.merchantUid)).toHaveLength(0);
 });
 
 test("PointsClient 형 바디(멱등키 없음): 201 + 소비 키 전부 + 클릭마다 새 주문", async () => {

@@ -63,7 +63,12 @@ const mockPaymentFindByIdAndUpdate = jest.fn(async () => ({}));
 const mockPaymentFindOneAndUpdate = jest.fn(() => ({ lean: async () => ({ _id: "pay-1" }) }));
 const mockUserFindById = jest.fn();
 const mockUserFindByIdAndUpdate = jest.fn();
+// 출생 기반 해금 신원 해석기(실물)가 읽는 저장 프로필. beforeAll 에서 fixture 로 채운다.
+let mockProfileCards = null;
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+  CONTENT_ENTITLEMENT_SOURCES: { PAYMENT: "PAYMENT" },
+  CONTENT_ENTITLEMENT_STATUSES: { ACTIVE: "ACTIVE", REFUNDED: "REFUNDED" },
+  ProfileCard: { findOne: (...args) => mockProfileCards.findOne(...args) },
   Payment: {
     findOne: mockPaymentFindOne,
     create: mockPaymentCreate,
@@ -76,6 +81,16 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
     findByIdAndUpdate: mockUserFindByIdAndUpdate,
     findOneAndUpdate: (filter, update, options) => mockUserFindByIdAndUpdate(filter._id, update, options),
   },
+}));
+
+// BIRTH 행 쓰기·회수는 content-unlocks 공용 함수가 맡는다 — 여기서는 호출 계약만 본다.
+const mockGrantPermanentUnlock = jest.fn(async () => ({}));
+const mockRevokePaymentContentAccess = jest.fn(async () => ({}));
+const mockFindActivePaidContentUnlock = jest.fn(async () => null);
+jest.unstable_mockModule("../../worker/lib/content-unlocks.js", () => ({
+  findActivePaidContentUnlock: mockFindActivePaidContentUnlock,
+  grantPermanentUnlock: mockGrantPermanentUnlock,
+  revokePaymentContentAccess: mockRevokePaymentContentAccess,
 }));
 
 const mockIntentCreate = jest.fn(async (doc) => ({ _id: "intent-1", ...doc }));
@@ -119,6 +134,7 @@ let appPricing;
 let perUse;   // { key, coin, tier } — 회당 결제 기능 (티어 SKU 등록 가격대)
 let unlock;   // { key, coin, tier } — 영구 해금 기능
 let freeKey;  // 앱 무료 통과(≤5코인) 기능
+let identityLib;
 
 // Google API fetch 목 상태 (테스트별로 조정)
 let googlePurchasePayload;
@@ -180,6 +196,13 @@ beforeAll(async () => {
   billingRegistry = await import("../../worker/lib/billing-feature-registry.js");
   appPricing = await import("../../worker/lib/app-store-pricing.js");
   appStore = await import("../../worker/routes/app-store.js");
+  identityLib = await import("../../worker/lib/birth-scoped-unlock-identity.js");
+  const fixture = await import("../fixtures/profile-card-model.mjs");
+  mockProfileCards = fixture.profileCardModel([
+    fixture.testCard("me", { userId: USER_ID }),
+    fixture.testCard("partner", { userId: USER_ID, gender: "M", year: 1988 }),
+    fixture.testCard("not-mine", { userId: fixture.OTHER_USER_ID }),
+  ]);
 
   perUse = pickFeatureKey(registry.PAID_FEATURE_BILLING_TYPES.PER_USE, { excludeTierId: "cd_content_tier_13" });
   unlock = pickFeatureKey(registry.PAID_FEATURE_BILLING_TYPES.UNLOCK);
@@ -533,6 +556,12 @@ describe("rtdn — 환불 회수", () => {
     expect(paymentUpdate.$set.status).toBe("cancelled");
     const userUpdate = mockUserFindByIdAndUpdate.mock.calls[0][1];
     expect(userUpdate.$pull.unlockedFeatures).toBe(unlock.key);
+    // 출생 기반 키는 BIRTH 행이 해금 근거다 — 계정 배열만 빼면 환불 뒤에도 열린 채로 남는다.
+    expect(mockRevokePaymentContentAccess).toHaveBeenCalledTimes(1);
+    expect(mockRevokePaymentContentAccess.mock.calls[0][0]).toMatchObject({
+      payment: expect.objectContaining({ _id: "pay-refunded" }),
+      revokedStatus: "REFUNDED",
+    });
   });
 
   test("🔴 같은 voided 알림이 재전송돼도 회수를 두 번 돌리지 않는다", async () => {
@@ -682,7 +711,8 @@ describe("intent — 결제 의도 기록", () => {
     }[featureKey] || { cost: 10, amountKRW: 1000 };
     expect(registry.FEATURE_KEY_PRICE_TABLE[featureKey] || registry.UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey]).toMatchObject(expected);
     for (const path of ["/free-grant", "/google/intent"]) {
-      const { status, payload } = await callRoute(postJson(path, { featureKey, requestId: "fun-" + "b".repeat(32) }));
+      // 출생 기반 키의 의도는 이 계정 저장 프로필이 있어야 열린다(MISSING_PROFILE_ID 가드) — 소유 프로필을 싣는다.
+      const { status, payload } = await callRoute(postJson(path, { featureKey, profileId: "me", requestId: "fun-" + "b".repeat(32) }));
       if (["nakshatra-compat", "animal-destiny-unlock", "rpt_quantumCard", "rpt_energyCoordCard", "nakshatra-muhurta"].includes(featureKey)) {
         expect(status).toBe(path === "/free-grant" ? 400 : 200);
         if (path === "/free-grant") expect(payload.code).toBe("APP_STORE_PRODUCT_NOT_FREE");
@@ -716,5 +746,132 @@ describe("intent — 결제 의도 기록", () => {
     expect(doc.productId).toBe(perUse.tier.productId);
     expect(doc.status).toBe("OPEN");
     expect(doc.expiresAt instanceof Date).toBe(true);
+  });
+});
+
+describe("출생 기반 영구 해금 — userId + birthKey + contentKey", () => {
+  function openIntent(doc) {
+    mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => doc }) });
+  }
+
+  async function identityFor(profileId, featureKey = unlock.key, partnerProfileId = "") {
+    return identityLib.resolveBirthUnlockIdentity({ userId: USER_ID, profileId, partnerProfileId, featureKey });
+  }
+
+  test("intent: profileId 가 없으면 400 MISSING_PROFILE_ID — 결제창을 열지 않는다", async () => {
+    const { status, payload } = await callRoute(postJson("/google/intent", { featureKey: unlock.key }));
+    expect(status).toBe(400);
+    expect(payload).toMatchObject({ ok: false, code: "MISSING_PROFILE_ID", requiresProfile: true });
+    expect(mockIntentCreate).not.toHaveBeenCalled();
+  });
+
+  test("intent: 남의 프로필이면 403 INVALID_PROFILE", async () => {
+    const { status, payload } = await callRoute(postJson("/google/intent", { featureKey: unlock.key, profileId: "not-mine" }));
+    expect(status).toBe(403);
+    expect(payload).toMatchObject({ code: "INVALID_PROFILE", requiresProfile: true });
+    expect(mockIntentCreate).not.toHaveBeenCalled();
+  });
+
+  test("intent: 궁합은 상대 프로필도 저장 프로필이어야 한다", async () => {
+    const { status, payload } = await callRoute(postJson("/google/intent", { featureKey: "section_compat", profileId: "me" }));
+    expect(status).toBe(400);
+    expect(payload).toMatchObject({ code: "MISSING_PROFILE_ID", requiresProfile: true });
+    expect(mockIntentCreate).not.toHaveBeenCalled();
+  });
+
+  test("intent: 서버가 계산한 birthKey 스냅샷을 의도에 남긴다", async () => {
+    const expected = await identityFor("me");
+    const { status } = await callRoute(postJson("/google/intent", { featureKey: unlock.key, profileId: "me" }));
+    expect(status).toBe(200);
+    expect(mockIntentCreate.mock.calls[0][0]).toMatchObject({ profileId: "me", birthKey: expected.birthKey });
+  });
+
+  test("intent: 같은 출생 정보로 이미 산 콘텐츠면 alreadyUnlocked — 결제창(상품)을 내주지 않는다", async () => {
+    const expected = await identityFor("me");
+    mockFindActivePaidContentUnlock.mockResolvedValueOnce({ contentKey: unlock.key });
+    const { status, payload } = await callRoute(postJson("/google/intent", { featureKey: unlock.key, profileId: "me" }));
+    expect(status).toBe(200);
+    expect(payload).toMatchObject({ ok: true, alreadyUnlocked: true, profileId: "me" });
+    expect(payload.data.product).toBeUndefined();
+    expect(mockFindActivePaidContentUnlock.mock.calls[0][0].birthIdentity).toMatchObject({ birthKey: expected.birthKey });
+    expect(mockIntentCreate).not.toHaveBeenCalled();
+  });
+
+  test("verify: 의도 스냅샷의 출생 신원으로 BIRTH 해금을 지급한다(계정 배열도 유지)", async () => {
+    const expected = await identityFor("me");
+    openIntent({ featureKey: unlock.key, productId: unlock.tier.productId, profileId: "me", birthKey: expected.birthKey });
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: unlock.key,
+      productId: unlock.tier.productId,
+      purchaseToken: "tok-birth-1",
+    }));
+    expect(status).toBe(200);
+    expect(payload.data.unlockMap[unlock.key]).toBe(true);
+    expect(mockPaymentCreate.mock.calls[0][0].pricingSnapshot).toMatchObject({ profileId: "me", birthKey: expected.birthKey });
+    expect(mockGrantPermanentUnlock).toHaveBeenCalledTimes(1);
+    expect(mockGrantPermanentUnlock.mock.calls[0][0]).toMatchObject({
+      userId: USER_ID,
+      featureKey: unlock.key,
+      source: "PAYMENT",
+      paymentId: "pay-new",
+      birthIdentity: expect.objectContaining({ birthKey: expected.birthKey, entitlementProfileId: expected.entitlementProfileId }),
+    });
+    expect(mockUserFindByIdAndUpdate.mock.calls[0][1].$addToSet.unlockedFeatures).toBe(unlock.key);
+  });
+
+  test("verify: 스냅샷 이전 레거시 의도는 기록된 profileId 를 소유 프로필로 다시 해석한다", async () => {
+    const expected = await identityFor("me");
+    openIntent({ featureKey: unlock.key, productId: unlock.tier.productId, profileId: "me" });
+    const { status } = await callRoute(postJson("/google/verify", {
+      featureKey: unlock.key,
+      productId: unlock.tier.productId,
+      purchaseToken: "tok-birth-legacy",
+    }));
+    expect(status).toBe(200);
+    expect(mockGrantPermanentUnlock.mock.calls[0][0].birthIdentity.birthKey).toBe(expected.birthKey);
+  });
+
+  test("verify: 지급할 프로필이 없으면 USER 행 없이 관리자 검토로 보류한다(결제 확정·acknowledge 는 유지)", async () => {
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: unlock.key,
+      productId: unlock.tier.productId,
+      purchaseToken: "tok-birth-hold",
+    }));
+    expect(status).toBe(200);
+    expect(mockGrantPermanentUnlock).not.toHaveBeenCalled();
+    expect(payload.data.adminReviewRequired).toBe(true);
+    expect(payload.data.unlockMap[unlock.key]).toBe(false);
+    const created = mockPaymentCreate.mock.calls[0][0];
+    expect(created.failureCode).toBe("delivery_failed_manual_review");
+    expect(created.pricingSnapshot).toMatchObject({ birthUnlockReviewRequired: true, birthUnlockHoldCode: "MISSING_PROFILE_ID" });
+    expect(created.pricingSnapshot.birthKey).toBeUndefined();
+    expect(acknowledgeCalls).toHaveLength(1);
+  });
+
+  test("verify 재전송: 저장된 결제 스냅샷으로만 다시 지급한다", async () => {
+    const expected = await identityFor("me");
+    mockPaymentFindOne.mockReturnValue({
+      lean: async () => ({
+        _id: "pay-existing",
+        userId: USER_ID,
+        featureKey: unlock.key,
+        productId: unlock.tier.productId,
+        merchantUid: "m-birth",
+        pricingSnapshot: { profileId: "me", birthKey: expected.birthKey },
+      }),
+    });
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: unlock.key,
+      productId: unlock.tier.productId,
+      purchaseToken: "tok-birth-replay",
+      profileId: "partner",
+    }));
+    expect(status).toBe(200);
+    expect(payload.data.idempotent).toBe(true);
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(mockGrantPermanentUnlock.mock.calls[0][0]).toMatchObject({
+      paymentId: "pay-existing",
+      birthIdentity: expect.objectContaining({ birthKey: expected.birthKey }),
+    });
   });
 });

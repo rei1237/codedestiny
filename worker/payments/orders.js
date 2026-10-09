@@ -36,6 +36,7 @@ import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
 import { toForeignCardSnapshot } from "./foreign-card-policy.js";
 import { ORDER_POLICY_VERSIONS, buildRefundConsentRecord } from "./policy-versions.js";
+import { birthSnapshotFields, isBirthScopedProduct, resolvePaymentBirthIdentity } from "./birth-identity.js";
 
 export const ORDER_STATUS = Object.freeze({
   PENDING: "PENDING",
@@ -102,11 +103,18 @@ export async function createOrder(db, {
   profileId = "", contentKey = "", scope = "", returnPath = "", paymentMethod = "unknown",
   requestId = "", paidResume = null, env = {}, foreignCard = null, refundConsent = false,
   purchaseType = "SELF", giftDraft = null, moonstoneDiscount = null, paypalCharge = null,
+  partnerProfileId = "", birthIdentity = null,
 }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
   const enabled = assertFeatureEnabled(product);
   if (!enabled.ok) throw paymentError(enabled.code, enabled.message);
+  /* 🔴 출생 기반 영구 해금은 **결제창을 열기 전에** 저장된 내 프로필인지 확인하고 그 생년월일을 주문에 박는다.
+     profileId 가 없거나 남의 것이면 MISSING_PROFILE_ID / INVALID_PROFILE — 돈을 받은 뒤에 거절하지 않는다. */
+  const birth = isBirthScopedProduct(product)
+    ? (birthIdentity || await resolvePaymentBirthIdentity(db, { userId, profileId, partnerProfileId, featureKey: product.featureKey }))
+    : null;
+  if (birth) { profileId = birth.profileId; scope = birth.scope; }
   let fortunePaymentGeneration;
   if (product.fulfillmentType!=='service_pack' && String(product.featureKey || '').startsWith('yeongnyangi-')) {
     const {assertFortunePaymentIntent}=await import('../yeongnyangi/payment-intent.js');
@@ -174,6 +182,7 @@ export async function createOrder(db, {
             billingType: product.billingType,
             ...(product.fulfillmentType==='service_pack'?{fulfillmentType:'service_pack',packSnapshot:product.packSnapshot}:{}),
             profileId, contentKey, scope, returnPath,
+            ...birthSnapshotFields(birth),
             createdAt: now.toISOString(),
           },
           // 해외 발급 카드 결제창 노출 판정(foreign-card-policy.js)을 주문 시점에 박는다. prepare 응답은 지금 판정과 좁혀 낸다.
@@ -385,12 +394,21 @@ export async function createPayableOrder(db, input) {
   if (!baseKey) throw paymentError("IDEMPOTENCY_KEY_REQUIRED", "결제 요청 식별자가 필요합니다.");
   const product = input.product;
   let lastOrderId = "";
+  // 신원은 세대마다 다시 풀지 않는다(ProfileCard 왕복 1회). 같은 키로 다른 생년월일을 사면 새 세대로 간다.
+  const birthIdentity = isBirthScopedProduct(product)
+    ? await resolvePaymentBirthIdentity(db, {
+      userId: input.userId, profileId: input.profileId, partnerProfileId: input.partnerProfileId, featureKey: product.featureKey,
+    })
+    : null;
+  const orderInput = birthIdentity ? { ...input, birthIdentity } : input;
 
   for (let generation = 0; generation < MAX_ORDER_GENERATIONS; generation += 1) {
-    const order = await createOrder(db, { ...input, idempotencyKey: generationKey(baseKey, generation) });
+    const order = await createOrder(db, { ...orderInput, idempotencyKey: generationKey(baseKey, generation) });
     lastOrderId = String(order.merchantUid || "");
     if (!isPayableOrder(order)) continue; // 결제완료·실패·만료취소·레거시 상태 → 재사용하지 않는다
     if (hasFeatureDrift(order, product)) continue; // 다른 기능으로의 키 재사용 → 재가격 금지, 새 주문
+    // 같은 키의 주문이 다른 생년월일(또는 구 주문이라 birthKey 없음)을 가리키면 재사용하지 않는다 — 지급이 엉뚱한 사람에게 간다.
+    if (birthIdentity && String(order?.pricingSnapshot?.birthKey || "") !== birthIdentity.birthKey) continue;
     if (!hasPriceDrift(order, product)) return order;
     // 같은 기능·미결제·옛 가격 → 충돌이 아니라 승계 대상이다(#497).
     const repriced = await repricePendingOrder(db, { orderId: lastOrderId, product });
@@ -399,7 +417,7 @@ export async function createPayableOrder(db, input) {
   }
 
   // 고정 사다리 소진 — 겹칠 수 없는 키로 새 주문을 발급한다(위 terminalGenerationKey 머리주석).
-  const fresh = await createOrder(db, { ...input, idempotencyKey: terminalGenerationKey(baseKey) });
+  const fresh = await createOrder(db, { ...orderInput, idempotencyKey: terminalGenerationKey(baseKey) });
   if (isPayableOrder(fresh) && !hasPriceDrift(fresh, product)) return fresh;
 
   throw paymentError("IDEMPOTENCY_CONFLICT", "Idempotency key conflict. Request payload does not match existing product payment preparation.", {

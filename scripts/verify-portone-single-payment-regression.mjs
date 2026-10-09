@@ -1011,7 +1011,13 @@ function resetState() {
     portonePayment: makePortOnePayment(),
   };
 
-  ProfileCard.findOne = () => query({ _id: "profile_doc_1", profileId: "profile-a" });
+  // 출생 기반 해금은 저장 프로필의 출생 정보로 신원(birthKey)을 만든다.
+  ProfileCard.findOne = () => query({
+    _id: "profile_doc_1",
+    profileId: "profile-a",
+    gender: "M",
+    birth: { year: 1990, month: 5, day: 17, hour: 9, minute: 30, timeUnknown: false, calendarType: "solar" },
+  });
   User.findById = () => query({
     _id: AUTH.userId,
     name: "Tester",

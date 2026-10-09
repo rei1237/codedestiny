@@ -34,9 +34,12 @@ import { deductLotsFIFO, ensureLotsForBalance, resolveNextExpiry } from "../lib/
 import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS, resolveMonthlySpendQuota } from "../lib/profile-limits.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
-import { isLegacyLoveCodeUnlockAlias, isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "../lib/paid-feature-registry.js";
+import { isBirthScopedUnlockFeatureKey, isLegacyLoveCodeUnlockAlias, isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "../lib/paid-feature-registry.js";
+import { isBirthUnlockIdentityError, resolveBirthUnlockIdentity } from "../lib/birth-scoped-unlock-identity.js";
+import { toBirthEntitlementProfileId } from "../lib/birth-key.js";
 import { PASS_MONTHLY_WON } from "../../lib/payment/pass-pricing.js";
 import {
+  findActivePaidContentUnlock,
   formatPermanentUnlockGrant,
   grantPermanentUnlock,
   resolvePaidContentUnlockTarget,
@@ -838,8 +841,57 @@ async function verifySinglePaymentProfileOwner(userId, profileId) {
   return null;
 }
 
-async function hasExistingSinglePaymentUnlock({ userId, profileId, featureKey, contentKey: requestedContentKey = "" }) {
+// 주문 pricingSnapshot 에 서버가 계산해 둔 출생 신원. 결제 도중 프로필 생년월일을 고쳐도 지급 대상이 움직이지 않는다.
+function birthIdentityFromSnapshot(snapshot = {}) {
+  const birthKey = String(snapshot?.birthKey || "").trim();
+  const entitlementProfileId = toBirthEntitlementProfileId(birthKey);
+  if (!entitlementProfileId) return null;
+  return {
+    entitlementProfileId,
+    birthKey,
+    partnerBirthKey: String(snapshot?.partnerBirthKey || "").trim(),
+    profileId: cleanProfileId(snapshot?.profileId || snapshot?.selectedProfileId),
+    partnerProfileId: cleanProfileId(snapshot?.partnerProfileId),
+  };
+}
+
+// 🔴 출생 기반 키의 중복 결제 판정은 userId + birthKey + contentKey 다(같은 계정의 같은 출생 정보면 이미 산 것).
+async function hasExistingBirthScopedPaymentUnlock({ userId, profileId, partnerProfileId = "", featureKey, contentKey = "", birthIdentity = null }) {
+  const serviceKey = resolveProfileUnlockServiceKey(featureKey, contentKey);
+  const entitlement = await findActivePaidContentUnlock({
+    userId: String(userId),
+    profileId,
+    partnerProfileId,
+    featureKey,
+    ...(serviceKey ? { serviceKey } : {}),
+    ...(contentKey ? { contentKey } : {}),
+    ...(birthIdentity ? { birthIdentity } : {}),
+  });
+  if (entitlement) return { source: "content_entitlement", entitlement };
+  if (!birthIdentity?.birthKey) return null;
+  const paidPayment = await Payment.findOne({
+    userId,
+    paymentType: "digital_content",
+    accessType: "single_purchase",
+    featureKey,
+    status: { $in: SINGLE_PAYMENT_UNLOCKED_STATUSES },
+    "pricingSnapshot.birthKey": birthIdentity.birthKey,
+    ...(contentKey ? {
+      $or: [
+        { "pricingSnapshot.contentKey": contentKey },
+        { "pricingSnapshot.contentId": contentKey },
+      ],
+    } : {}),
+  }).sort({ createdAt: -1 }).lean();
+  if (paidPayment) return { source: "payment", payment: paidPayment };
+  return null;
+}
+
+async function hasExistingSinglePaymentUnlock({ userId, profileId, partnerProfileId = "", featureKey, contentKey: requestedContentKey = "", birthIdentity = null }) {
   const contentKey = resolveProfileUnlockContentKey(featureKey, requestedContentKey);
+  if (isBirthScopedUnlockFeatureKey(featureKey)) {
+    return hasExistingBirthScopedPaymentUnlock({ userId, profileId, partnerProfileId, featureKey, contentKey, birthIdentity });
+  }
   const serviceKey = resolveProfileUnlockServiceKey(featureKey, contentKey);
   if (contentKey && serviceKey) {
     // 결제창 호출 전에 프로필 단위 잠금 해제 이력을 먼저 확인해 중복 결제를 차단한다.
@@ -1130,7 +1182,9 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
   // 카드가 0개인 계정의 모든 결제)가 Transaction.Paid 웹훅 정산에서 INVALID_UNLOCK_TARGET 으로
   // 죽었고, 그 catch 가 자동환불을 불러 PortOne 결제 취소 + paidFeatures 회수까지 갔다
   // — 즉 "결제 직후 서비스가 사라지는" 사고였다.
-  const requiresProfile = Boolean(resolveProfileUnlockContentKey(payment?.featureKey, payment?.pricingSnapshot?.contentKey || contentId));
+  // 출생 기반 키는 주문의 프로필(그리고 서버가 계산해 둔 birthKey 스냅샷)로 BIRTH 행을 쓴다.
+  const birthScoped = isBirthScopedUnlockFeatureKey(payment?.featureKey);
+  const requiresProfile = birthScoped || Boolean(resolveProfileUnlockContentKey(payment?.featureKey, payment?.pricingSnapshot?.contentKey || contentId));
 
   // 🔴 계정 스코프 키는 주문에 profileId 가 실려 있어도 무시하고 USER 스코프로 고정한다.
   // 정적 셸(_cdBuildDirectCheckoutPayload)이 모든 단건 결제에 현재 프로필을 자동 주입하기 때문에,
@@ -1160,6 +1214,10 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
       evidenceId: String(payment?._id || payment?.merchantUid || ""),
       coinAmount: coinPrice,
       unlockedAt: paidAt,
+      ...(birthScoped ? {
+        partnerProfileId: cleanProfileId(payment?.pricingSnapshot?.partnerProfileId),
+        ...(birthIdentityFromSnapshot(payment?.pricingSnapshot) ? { birthIdentity: birthIdentityFromSnapshot(payment?.pricingSnapshot) } : {}),
+      } : {}),
     });
     return {
       ...entitlement,
@@ -1221,7 +1279,7 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
 // 실제 접근 판정(paid-feature-access.js)은 paidFeatures/unlockedFeatures 만 읽는다.
 function isUnlockTargetIdentityError(error) {
   const code = String(error?.code || "").trim();
-  return code === "INVALID_UNLOCK_TARGET" || code === "MISSING_PROFILE_ID";
+  return code === "INVALID_UNLOCK_TARGET" || code === "MISSING_PROFILE_ID" || code === "INVALID_PROFILE";
 }
 
 
@@ -1596,8 +1654,10 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
   const existingUnlock = await hasExistingSinglePaymentUnlock({
     userId: order.userId,
     profileId: order.pricingSnapshot?.profileId,
+    partnerProfileId: order.pricingSnapshot?.partnerProfileId,
     featureKey: order.featureKey,
     contentKey: order.pricingSnapshot?.contentKey || order.pricingSnapshot?.contentId,
+    birthIdentity: birthIdentityFromSnapshot(order.pricingSnapshot),
   });
   const paidAt = toDateFromUnixSeconds(portOnePayment.paid_at);
 
@@ -1920,11 +1980,34 @@ async function handleSinglePaymentStart(request, env, auth) {
     }, { status: 400 });
   }
 
+  // 🔴 출생 기반 키는 결제창 전에 이 계정 저장 프로필의 출생 정보로 신원을 만든다(궁합은 상대 프로필도).
+  let birthIdentity = null;
+  if (isBirthScopedUnlockFeatureKey(resolved.featureKey)) {
+    try {
+      birthIdentity = await resolveBirthUnlockIdentity({
+        userId: auth.userId,
+        profileId,
+        partnerProfileId: cleanProfileId(body?.partnerProfileId),
+        featureKey: resolved.featureKey,
+      });
+    } catch (error) {
+      if (!isBirthUnlockIdentityError(error)) throw error;
+      return json({
+        message: error.message,
+        code: error.code,
+        reason: error.code === "MISSING_PROFILE_ID" ? "missing_profile_id" : "invalid_profile",
+        requiresProfile: true,
+      }, { status: error.code === "MISSING_PROFILE_ID" ? 400 : 403 });
+    }
+  }
+
   const unlockEvidence = await hasExistingSinglePaymentUnlock({
     userId: auth.userId,
     profileId,
+    partnerProfileId: birthIdentity?.partnerProfileId,
     featureKey: resolved.featureKey,
     contentKey: body?.contentKey,
+    birthIdentity,
   });
   if (unlockEvidence) {
     return json({
@@ -2038,6 +2121,11 @@ async function handleSinglePaymentStart(request, env, auth) {
       userId: String(auth.userId || ""),
       profileId,
       selectedProfileId: profileId,
+      ...(birthIdentity ? {
+        birthKey: birthIdentity.birthKey,
+        ...(birthIdentity.partnerProfileId ? { partnerProfileId: birthIdentity.partnerProfileId } : {}),
+        ...(birthIdentity.partnerBirthKey ? { partnerBirthKey: birthIdentity.partnerBirthKey } : {}),
+      } : {}),
       serviceId,
       contentId,
       contentKey,

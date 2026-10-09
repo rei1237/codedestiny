@@ -16,8 +16,25 @@ const pointHistoryFind = jest.fn();
 const paymentFind = jest.fn();
 const entitlementBulkWrite = jest.fn();
 const entitlementFind = jest.fn();
+const resolveBirthUnlockIdentity = jest.fn();
+const tryResolveBirthUnlockIdentity = jest.fn();
+const BIRTH_FEATURE_BY_CONTENT_KEY = {
+  "saju.daewunAnalysis": "section_daewun",
+  "saju.fullReading": "section_summary",
+  "saju.compatibility": "section_compat",
+};
+const BIRTH_IDENTITY = Object.freeze({
+  profileId: TEST_PROFILE_ID,
+  partnerProfileId: "",
+  birthKey: "a".repeat(64),
+  partnerBirthKey: "",
+  entitlementProfileId: `birth:${"a".repeat(64)}`,
+  scope: "BIRTH",
+  featureKey: "section_daewun",
+});
 
 let handleAccessRoutes;
+let createHttpError;
 
 beforeAll(async () => {
   await Promise.all([
@@ -55,9 +72,17 @@ beforeAll(async () => {
       findActivePaidContentUnlock,
       getUnlockedContentSnapshot,
       upsertContentUnlock,
+      isBirthScopedContentTarget: ({ featureKey = "", contentKey = "" } = {}) =>
+        Object.values(BIRTH_FEATURE_BY_CONTENT_KEY).includes(featureKey) || Boolean(BIRTH_FEATURE_BY_CONTENT_KEY[contentKey]),
+      resolveUnlockedFeatureKeyFromContentKey: (contentKey) => BIRTH_FEATURE_BY_CONTENT_KEY[contentKey] || "",
+    })),
+    jest.unstable_mockModule("../../worker/lib/birth-scoped-unlock-identity.js", () => ({
+      resolveBirthUnlockIdentity,
+      tryResolveBirthUnlockIdentity,
     })),
   ]);
   ({ handleAccessRoutes } = await import("../../worker/routes/access.js"));
+  ({ createHttpError } = await import("../../worker/lib/http.js"));
 });
 
 function request(serviceKey = "saju,ziwei") {
@@ -107,7 +132,12 @@ beforeEach(() => {
   });
   getUnlockedContentSnapshot.mockClear();
   findActivePaidContentUnlock.mockClear();
-  upsertContentUnlock.mockClear();
+  upsertContentUnlock.mockReset();
+  upsertContentUnlock.mockImplementation(async (input) => ({ _id: "ent-1", source: input.source, unlockedAt: input.unlockedAt }));
+  findActivePaidContentUnlock.mockResolvedValue(null);
+  resolveBirthUnlockIdentity.mockReset();
+  resolveBirthUnlockIdentity.mockResolvedValue(BIRTH_IDENTITY);
+  tryResolveBirthUnlockIdentity.mockReset();
   entitlementBulkWrite.mockReset();
   entitlementFind.mockReset();
   pointHistoryFind.mockReset();
@@ -224,4 +254,74 @@ test("legacy backfill query flags remain read-only during an unlock snapshot", a
   expect(pointHistoryFind).not.toHaveBeenCalled();
   expect(paymentFind).not.toHaveBeenCalled();
   expect(entitlementBulkWrite).not.toHaveBeenCalled();
+});
+
+function confirmRequest(body) {
+  return new Request("https://example.com/api/access/confirm", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+describe("POST /api/access/confirm — birth-scoped keys", () => {
+  test("admin grant of a birth-scoped key keeps the ownership check and writes with the BIRTH identity", async () => {
+    requireUserFromRequest.mockResolvedValue({ userId: TEST_USER_ID, role: "admin" });
+
+    const response = await handleAccessRoutes(confirmRequest({
+      profileId: TEST_PROFILE_ID,
+      contentKey: "saju.daewunAnalysis",
+      source: "admin",
+    }), {});
+
+    expect(response.status).toBe(200);
+    expect(profileFindOne).toHaveBeenCalledWith({ userId: TEST_USER_ID, profileId: TEST_PROFILE_ID });
+    expect(resolveBirthUnlockIdentity).toHaveBeenCalledWith(expect.objectContaining({
+      userId: TEST_USER_ID,
+      profileId: TEST_PROFILE_ID,
+      featureKey: "section_daewun",
+    }));
+    expect(findActivePaidContentUnlock).toHaveBeenCalledWith(expect.objectContaining({ birthIdentity: BIRTH_IDENTITY }));
+    expect(upsertContentUnlock).toHaveBeenCalledTimes(1);
+    expect(upsertContentUnlock).toHaveBeenCalledWith(expect.objectContaining({
+      featureKey: "section_daewun",
+      birthIdentity: BIRTH_IDENTITY,
+      source: "ADMIN",
+    }));
+  });
+
+  test("an unresolvable birth identity rejects with requiresProfile and never writes", async () => {
+    requireUserFromRequest.mockResolvedValue({ userId: TEST_USER_ID, role: "admin" });
+    resolveBirthUnlockIdentity.mockRejectedValueOnce(createHttpError(403, "Profile is not owned.", {
+      code: "INVALID_PROFILE",
+      reason: "INVALID_PROFILE",
+      requiresProfile: true,
+    }));
+
+    const response = await handleAccessRoutes(confirmRequest({
+      profileId: TEST_PROFILE_ID,
+      featureKey: "section_compat",
+      partnerProfileId: "someone-else",
+      source: "admin",
+    }), {});
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload).toMatchObject({ code: "INVALID_PROFILE", requiresProfile: true });
+    expect(resolveBirthUnlockIdentity).toHaveBeenCalledWith(expect.objectContaining({
+      featureKey: "section_compat",
+      partnerProfileId: "someone-else",
+    }));
+    expect(upsertContentUnlock).not.toHaveBeenCalled();
+  });
+
+  test("a missing profileId is rejected before any identity lookup or write", async () => {
+    requireUserFromRequest.mockResolvedValue({ userId: TEST_USER_ID, role: "admin" });
+
+    const response = await handleAccessRoutes(confirmRequest({ contentKey: "saju.daewunAnalysis", source: "admin" }), {});
+
+    expect(response.status).toBe(403);
+    expect(resolveBirthUnlockIdentity).not.toHaveBeenCalled();
+    expect(upsertContentUnlock).not.toHaveBeenCalled();
+  });
 });

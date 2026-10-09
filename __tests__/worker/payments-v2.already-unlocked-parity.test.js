@@ -14,12 +14,21 @@
 import { handlePaymentsContext } from "../../worker/payments/index.js";
 import { listProducts } from "../../worker/payments/catalog.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
+import { testCard } from "../fixtures/profile-card-model.mjs";
+import { isBirthScopedUnlockFeatureKey } from "../../worker/lib/paid-feature-registry.js";
 
 const USER = "64b000000000000000000001";
 const ENV = { JWT_ACCESS_SECRET: "test-access-secret-value-0123456789" };
 
 // 영구 해금형(per_use 가 아닌) 상품을 레지스트리에서 고른다.
 const UNLOCK_ITEM = listProducts().find((p) => p.billingType !== "per_use" && Number(p.priceCoins) > 0);
+// 출생 기반 해금은 이 계정의 저장 프로필로만 산다. p2 는 p1 과 출생 정보가 같고, p3 는 다르다.
+const CARDS = [
+  testCard("p1", { userId: USER }),
+  testCard("p2", { userId: USER }),
+  testCard("p3", { userId: USER, day: 18 }),
+];
+const makeDb = (options = {}) => makeFakePaymentDb({ ...options, profileCards: CARDS });
 
 async function tokenFor(userId) {
   const { signAuthToken } = await import("../../worker/lib/auth.js");
@@ -48,11 +57,11 @@ function seedFundedUser(db) {
   return user;
 }
 
-async function postMoonstone(db, requestId) {
+async function postMoonstone(db, requestId, profileId = "p1") {
   const request = new Request("https://code-destiny.com/api/payments/coin-gate/moonstone", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${await tokenFor(USER)}` },
-    body: JSON.stringify({ featureKey: UNLOCK_ITEM.featureKey, paymentMode: "MOONLIGHT_STONE", requestId }),
+    body: JSON.stringify({ featureKey: UNLOCK_ITEM.featureKey, paymentMode: "MOONLIGHT_STONE", requestId, ...(profileId ? { profileId } : {}) }),
   });
   const opsBefore = db.ctx.ops;
   const response = await handlePaymentsContext(request, ENV, {
@@ -85,7 +94,7 @@ function seedBrokeUser(db) {
 
 test("🔴 월정석: 첫 결제는 차감하고, 같은 콘텐츠 재열람은 다시 깎지 않는다", async () => {
   if (!UNLOCK_ITEM) return;
-  const db = makeFakePaymentDb();
+  const db = makeDb();
   const user = seedFundedUser(db);
 
   const first = await postMoonstone(db, "unlock-buy-1");
@@ -118,7 +127,7 @@ test("🔴 월정석: 첫 결제는 차감하고, 같은 콘텐츠 재열람은 
  */
 test("🔴 월정석 잔액이 부족하면 해금이 남지 않는다 — 402 를 받고 무료로 열리면 안 된다", async () => {
   if (!UNLOCK_ITEM) return;
-  const db = makeFakePaymentDb();
+  const db = makeDb();
   const user = seedBrokeUser(db);
 
   const denied = await postMoonstone(db, "broke-attempt-1");
@@ -137,9 +146,42 @@ test("🔴 월정석 잔액이 부족하면 해금이 남지 않는다 — 402 �
   expect(entitlementCount(db)).toBe(0);
 });
 
+test("🔴 월정석 출생 단위: 같은 출생의 다른 프로필은 다시 깎지 않고, 다른 출생은 새로 차감한다", async () => {
+  if (!UNLOCK_ITEM || !isBirthScopedUnlockFeatureKey(UNLOCK_ITEM.featureKey)) return;
+  const db = makeDb();
+  const user = seedFundedUser(db);
+  await postMoonstone(db, "birth-buy-1", "p1");
+  const afterFirst = Number(user.profileSubscription.membershipCreditBalance);
+
+  const sameBirth = await postMoonstone(db, "birth-same-2", "p2");
+  expect(sameBirth.payload.data.consume.alreadyUnlocked).toBe(true);
+  expect(Number(user.profileSubscription.membershipCreditBalance)).toBe(afterFirst);
+
+  const otherBirth = await postMoonstone(db, "birth-other-3", "p3");
+  expect(otherBirth.response.status).toBe(200);
+  expect(otherBirth.payload.data.consume.alreadyUnlocked).toBe(false);
+  expect(Number(user.profileSubscription.membershipCreditBalance)).toBeLessThan(afterFirst);
+  expect(ledgerCount(db)).toBe(2);
+});
+
+test("🔴 월정석 출생 단위: profileId 가 없거나 남의 프로필이면 차감 전에 거절한다", async () => {
+  if (!UNLOCK_ITEM || !isBirthScopedUnlockFeatureKey(UNLOCK_ITEM.featureKey)) return;
+  const db = makeDb();
+  const user = seedFundedUser(db);
+  const missing = await postMoonstone(db, "no-profile-1", "");
+  expect(missing.response.status).toBe(400);
+  expect(missing.payload.code).toBe("MISSING_PROFILE_ID");
+  const foreign = await postMoonstone(db, "foreign-profile-2", "someone-elses");
+  expect(foreign.response.status).toBe(403);
+  expect(foreign.payload.code).toBe("INVALID_PROFILE");
+  expect(Number(user.profileSubscription.membershipCreditBalance)).toBe(100000);
+  expect(ledgerCount(db)).toBe(0);
+  expect(entitlementCount(db)).toBe(0);
+});
+
 test("재열람 응답은 모르는 잔액을 0 으로 싣지 않는다 — 해금 증빙은 그대로 싣는다", async () => {
   if (!UNLOCK_ITEM) return;
-  const db = makeFakePaymentDb();
+  const db = makeDb();
   seedFundedUser(db);
   await postMoonstone(db, "unlock-buy-3");
   const { payload } = await postMoonstone(db, "unlock-reopen-4");
@@ -151,7 +193,7 @@ test("재열람 응답은 모르는 잔액을 0 으로 싣지 않는다 — 해�
 
 
 test('profile moonstone adapter retains operation metadata and replays without deducting twice',async()=>{
- const db=makeFakePaymentDb({uniqueKeys:[['userId','type','sourceId']]});const user=seedFundedUser(db);
+ const db=makeDb({uniqueKeys:[['userId','type','sourceId']]});const user=seedFundedUser(db);
  const requestId='profile-card:delete:yn_test:adapter';
  async function send(actionType='profile_card_delete') {
   return handlePaymentsContext(new Request('https://code-destiny.com/api/payments/coin-gate/moonstone',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${await tokenFor(USER)}`},body:JSON.stringify({featureKey:'profile-card-manage',paymentMode:'MOONLIGHT_STONE',profileId:'yn_test',requestId,actionType})}),ENV,{prefix:'/api/payments',withDb:(_e,_c,fn)=>fn(db)});

@@ -25,8 +25,10 @@ const SAJU_FEATURE_BY_CONTENT_KEY = Object.freeze({
 const successStatuses = new Set(["success", "paid", "fulfilled"]);
 const blockedStatuses = new Set(["failed", "cancelled", "refunded", "pending", "expired"]);
 
-function keyOf({ userId, profileId, serviceKey, contentKey }) {
-  return [userId, profileId, serviceKey, contentKey, "PROFILE"].join("::");
+// 🔴 사주 해금 신원은 userId + birthKey + contentKey 다(worker/lib/birth-scoped-unlock-identity.js).
+// birthKey 는 이 계정에 저장된 프로필의 출생 정보로만 만든다 — 저장되지 않은 프로필은 신원이 없다.
+function keyOf({ userId, birthKey, serviceKey, contentKey }) {
+  return [userId, birthKey, serviceKey, contentKey, "BIRTH"].join("::");
 }
 
 function createHarness() {
@@ -34,6 +36,30 @@ function createHarness() {
   const payments = [];
   const histories = [];
   const users = new Map();
+  const profiles = new Map();
+
+  function saveProfile(userId, profileId, birth = `birth-of-${profileId}`) {
+    profiles.set(`${userId}::${profileId}`, birth);
+  }
+
+  function birthKeyOf(userId, profileId) {
+    return profiles.get(`${userId}::${profileId}`) || "";
+  }
+
+  function identityOf({ userId, profileId, serviceKey = "saju", contentKey }) {
+    const birthKey = birthKeyOf(userId, profileId);
+    return birthKey ? keyOf({ userId, birthKey, serviceKey, contentKey }) : "";
+  }
+
+  function requireIdentity(input) {
+    const key = identityOf(input);
+    if (!key) {
+      const error = new Error(input.profileId ? "INVALID_PROFILE" : "MISSING_PROFILE_ID");
+      error.code = error.message;
+      throw error;
+    }
+    return key;
+  }
 
   function setUser(userId, patch) {
     users.set(userId, { id: userId, points: 0, ...users.get(userId), ...patch });
@@ -44,17 +70,20 @@ function createHarness() {
   }
 
   function hasUnlockedContent(input) {
-    const row = unlocks.get(keyOf(input));
+    const key = identityOf(input);
+    const row = key ? unlocks.get(key) : null;
     return Boolean(row && row.status === "ACTIVE" && (!row.expiresAt || row.expiresAt > new Date()));
   }
 
   function upsertContentUnlock(input) {
-    const key = keyOf(input);
+    const key = requireIdentity(input);
     const prev = unlocks.get(key);
     const row = {
       ...(prev || {}),
       ...input,
-      scope: "PROFILE",
+      birthKey: birthKeyOf(input.userId, input.profileId),
+      purchaseProfileId: prev?.purchaseProfileId || input.profileId,
+      scope: "BIRTH",
       status: "ACTIVE",
       unlockedAt: prev?.unlockedAt || input.unlockedAt || new Date(),
       expiresAt: input.expiresAt ?? null,
@@ -64,13 +93,19 @@ function createHarness() {
   }
 
   function getUnlockedContentKeys({ userId, profileId, serviceKey }) {
+    const birthKey = birthKeyOf(userId, profileId);
+    if (!birthKey) return [];
     return Array.from(unlocks.values())
-      .filter((row) => row.userId === userId && row.profileId === profileId && row.serviceKey === serviceKey && row.status === "ACTIVE")
+      .filter((row) => row.userId === userId && row.birthKey === birthKey && row.serviceKey === serviceKey && row.status === "ACTIVE")
       .map((row) => row.contentKey);
   }
 
   function purchase({ userId, profileId, contentKey, coinAmount = 50 }) {
     const target = { userId, profileId, serviceKey: "saju", contentKey };
+    // 소유 확인이 차감보다 먼저다.
+    if (!identityOf(target)) {
+      return { ok: false, code: profileId ? "INVALID_PROFILE" : "MISSING_PROFILE_ID", charged: 0, paymentWindowOpened: false };
+    }
     if (hasUnlockedContent(target)) {
       return { ok: true, alreadyUnlocked: true, charged: 0, paymentWindowOpened: false };
     }
@@ -204,7 +239,7 @@ function createHarness() {
     };
   }
 
-  return { unlocks, setUser, hasUnlockedContent, getUnlockedContentKeys, purchase, passUnlock, accessCheck, monthlyCreditConsume, monthlyUnlock, paymentConfirm, backfill, accessApiFailureState, paymentVerificationFailure, stalePaymentRequiredDecision };
+  return { unlocks, saveProfile, identityOf, setUser, hasUnlockedContent, getUnlockedContentKeys, purchase, passUnlock, accessCheck, monthlyCreditConsume, monthlyUnlock, paymentConfirm, backfill, accessApiFailureState, paymentVerificationFailure, stalePaymentRequiredDecision };
 }
 
 function createUiUnlockHoldHarness() {
@@ -324,6 +359,11 @@ function createUiUnlockHoldHarness() {
 
 const h = createHarness();
 h.setUser("u1", { points: 100 });
+for (const profileId of ["profile-a", "profile-b", "profile-c", "profile-d"]) h.saveProfile("u1", profileId);
+h.saveProfile("u-pass", "profile-pass");
+h.saveProfile("u-over", "profile-over");
+h.saveProfile("u-pay", "profile-pay");
+h.saveProfile("u-monthly", "profile-monthly");
 
 const purchase = h.purchase({ userId: "u1", profileId: "profile-a", contentKey: SAJU_KEYS.DAEUN });
 assert.equal(purchase.ok, true, "사주 대운 분석 구매 성공");
@@ -352,7 +392,7 @@ h.paymentConfirm({ userId: "u1", profileId: "profile-a", contentKey: "saju.refun
 assert.equal(h.backfill({ userId: "u1", profileId: "profile-a", contentKey: "saju.refunded" }), false, "환불 상태는 backfill 불가");
 
 h.paymentConfirm({ userId: "u1", profileId: "profile-c", contentKey: SAJU_KEYS.DAEUN, paymentId: "pay-old", status: "success" });
-h.unlocks.delete(keyOf({ userId: "u1", profileId: "profile-c", serviceKey: "saju", contentKey: SAJU_KEYS.DAEUN }));
+h.unlocks.delete(h.identityOf({ userId: "u1", profileId: "profile-c", serviceKey: "saju", contentKey: SAJU_KEYS.DAEUN }));
 assert.equal(h.backfill({ userId: "u1", profileId: "profile-c", contentKey: SAJU_KEYS.DAEUN }), true, "기존 성공 결제 기록 backfill");
 assert.equal(h.hasUnlockedContent({ userId: "u1", profileId: "profile-c", serviceKey: "saju", contentKey: SAJU_KEYS.DAEUN }), true, "backfill 후 unlocked");
 
@@ -514,6 +554,29 @@ assert.equal(
   "persistentUnlocks 의 contentKey 는 featureKey 로 번역되어 스냅샷 병합을 통과한다",
 );
 
+// --- 출생 정보 단위 해금(계정 + 생년월일) ---
+const birth = createHarness();
+birth.setUser("ub", { points: 500 });
+birth.saveProfile("ub", "me", "1990-05-17T09:30|solar|F");
+birth.saveProfile("ub", "me-twin", "1990-05-17T09:30|solar|F");
+birth.saveProfile("ub", "sister", "1992-11-03T08:00|solar|F");
+birth.saveProfile("ub-other", "me-elsewhere", "1990-05-17T09:30|solar|F");
+assert.equal(birth.purchase({ userId: "ub", profileId: "me", contentKey: SAJU_KEYS.FULL }).charged, 50, "새 출생 정보는 차감한다");
+assert.equal(birth.hasUnlockedContent({ userId: "ub", profileId: "me-twin", serviceKey: "saju", contentKey: SAJU_KEYS.FULL }), true, "같은 계정·같은 출생 정보 카드는 열린다");
+assert.equal(birth.purchase({ userId: "ub", profileId: "me-twin", contentKey: SAJU_KEYS.FULL }).charged, 0, "같은 출생 정보는 다시 차감하지 않는다");
+assert.equal(birth.hasUnlockedContent({ userId: "ub", profileId: "sister", serviceKey: "saju", contentKey: SAJU_KEYS.FULL }), false, "다른 출생 정보 프로필은 잠긴다");
+assert.equal(birth.hasUnlockedContent({ userId: "ub-other", profileId: "me-elsewhere", serviceKey: "saju", contentKey: SAJU_KEYS.FULL }), false, "다른 계정은 같은 출생 정보라도 잠긴다");
+birth.saveProfile("ub", "me", "1990-05-18T09:30|solar|F");
+assert.equal(birth.hasUnlockedContent({ userId: "ub", profileId: "me", serviceKey: "saju", contentKey: SAJU_KEYS.FULL }), false, "생년월일을 고치면 다시 잠긴다");
+birth.saveProfile("ub", "me", "1990-05-17T09:30|solar|F");
+assert.equal(birth.hasUnlockedContent({ userId: "ub", profileId: "me", serviceKey: "saju", contentKey: SAJU_KEYS.FULL }), true, "되돌리면 다시 열린다");
+const unsavedPurchase = birth.purchase({ userId: "ub", profileId: "", contentKey: SAJU_KEYS.DAEUN });
+assert.equal(unsavedPurchase.code, "MISSING_PROFILE_ID", "저장하지 않은(직접 입력) 출생 정보는 살 수 없다");
+assert.equal(unsavedPurchase.charged, 0, "프로필이 없으면 차감하지 않는다");
+const foreignPurchase = birth.purchase({ userId: "ub", profileId: "me-elsewhere", contentKey: SAJU_KEYS.DAEUN });
+assert.equal(foreignPurchase.code, "INVALID_PROFILE", "다른 계정 프로필로는 살 수 없다");
+assert.equal(foreignPurchase.charged, 0, "남의 프로필이면 차감하지 않는다");
+
 const failureUi = h.accessApiFailureState();
 assert.equal(failureUi.bodyVisible, false, "access API 실패 시 본문 비노출");
 assert.equal(failureUi.uiState, "error", "access API 실패 시 오류 상태 표시");
@@ -653,6 +716,21 @@ for (const marker of [
   "[Saju Payment Unlock Applied]",
 ]) {
   assert.ok(billingSource.includes(marker), `billing/access marker exists: ${marker}`);
+}
+for (const marker of [
+  "const birthScopedGate = persistProfileUnlockEntitlement && isBirthScopedUnlockFeatureKey(pricing?.featureKey);",
+  "COIN_GATE_BIRTH_IDENTITY_TIMEOUT",
+  "birthIdentity: birthUnlockIdentity",
+]) {
+  assert.ok(billingSource.includes(marker), `billing birth-scope marker exists: ${marker}`);
+}
+const contentUnlocksSource = fs.readFileSync(path.join(root, "worker/lib/content-unlocks.js"), "utf8");
+for (const marker of ["async function resolveBirthWriteIdentity", "birthScopeClause(identity.entitlementProfileId)", "function isBirthScopeEvidence"]) {
+  assert.ok(contentUnlocksSource.includes(marker), `content-unlocks birth-scope marker exists: ${marker}`);
+}
+const paymentsRouteSource = fs.readFileSync(path.join(root, "worker/routes/payments.js"), "utf8");
+for (const marker of ["function birthIdentityFromSnapshot", "async function hasExistingBirthScopedPaymentUnlock", '"pricingSnapshot.birthKey"']) {
+  assert.ok(paymentsRouteSource.includes(marker), `payments birth-scope marker exists: ${marker}`);
 }
 assert.ok(
   billingSource.includes(".filter((key) => !isProfileScopedUnlockKey(key))"),

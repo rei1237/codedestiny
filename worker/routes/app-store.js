@@ -1,12 +1,20 @@
 import { currentPassPlan, passPolicyVersion, isPassPolicyMix } from "../../lib/payment/pass-policy.js";
 import { connectDb, mongoose } from "../lib/db.js";
 import { getEnv } from "../lib/env.js";
-import { Payment, User } from "../lib/models.js";
+import { CONTENT_ENTITLEMENT_SOURCES, CONTENT_ENTITLEMENT_STATUSES, Payment, User } from "../lib/models.js";
 import { requireAuth } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { getPaidFeatureBillingType, isPerUsePaidFeatureKey, PAID_FEATURE_BILLING_TYPES } from "../lib/paid-feature-registry.js";
+import {
+  getPaidFeatureBillingType,
+  isBirthScopedUnlockFeatureKey,
+  isPerUsePaidFeatureKey,
+  PAID_FEATURE_BILLING_TYPES,
+} from "../lib/paid-feature-registry.js";
+import { isBirthUnlockIdentityError, resolveBirthUnlockIdentity } from "../lib/birth-scoped-unlock-identity.js";
+import { toBirthEntitlementProfileId } from "../lib/birth-key.js";
+import { findActivePaidContentUnlock, grantPermanentUnlock, revokePaymentContentAccess } from "../lib/content-unlocks.js";
 import {
   APP_PASS_DURATION_DAYS,
   findAppStoreProductById,
@@ -390,6 +398,115 @@ async function settlePurchaseIntent(env, userId, productId, tokenHash) {
   }
 }
 
+// ── 출생 기반 영구 해금(userId + birthKey + contentKey) ──
+// 대상 키는 Play 결제창을 열기 전(의도 기록)에 이 계정의 저장 프로필로 신원을 만들고, 그 스냅샷(birthKey)으로
+// BIRTH 행을 지급한다. 계정 배열(unlockedFeatures/paidFeatures)은 회수 호환을 위해 그대로 쓰지만,
+// 출생 기반 키의 해금 근거가 아니다. 신원을 못 만들면 계정 단위(USER) 행으로 대체 지급하지 않고 관리자 검토로 남긴다.
+function isBirthScopedProduct(product) {
+  return product?.kind !== "pass" && !isPerUseProduct(product) && isBirthScopedUnlockFeatureKey(product?.featureKey);
+}
+
+function cleanProfileId(value) {
+  return cleanText(value).slice(0, 80);
+}
+
+function birthIdentityErrorResponse(error) {
+  const code = cleanText(error?.code);
+  const missing = code === "MISSING_PROFILE_ID";
+  return json({
+    ok: false,
+    code,
+    reason: missing ? "missing_profile_id" : "invalid_profile",
+    requiresProfile: true,
+    message: cleanText(error?.message),
+  }, { status: missing ? 400 : 403 });
+}
+
+// 서버가 저장해 둔 스냅샷(의도 기록·결제 pricingSnapshot)의 출생 신원. 결제 도중 생년월일을 고쳐도 지급 대상이 움직이지 않는다.
+function birthIdentityFromSnapshot(snapshot = {}) {
+  const birthKey = cleanText(snapshot?.birthKey);
+  const entitlementProfileId = toBirthEntitlementProfileId(birthKey);
+  if (!entitlementProfileId) return null;
+  return {
+    entitlementProfileId,
+    birthKey,
+    partnerBirthKey: cleanText(snapshot?.partnerBirthKey),
+    profileId: cleanProfileId(snapshot?.profileId || snapshot?.selectedProfileId),
+    partnerProfileId: cleanProfileId(snapshot?.partnerProfileId),
+  };
+}
+
+function birthSnapshotFields(identity) {
+  if (!identity) return {};
+  return {
+    profileId: identity.profileId,
+    selectedProfileId: identity.profileId,
+    birthKey: identity.birthKey,
+    ...(identity.partnerProfileId ? { partnerProfileId: identity.partnerProfileId } : {}),
+    ...(identity.partnerBirthKey ? { partnerBirthKey: identity.partnerBirthKey } : {}),
+  };
+}
+
+async function findOpenBirthIntent(userId, productId, featureKey) {
+  return AppPurchaseIntent.findOne({
+    userId: new mongoose.Types.ObjectId(String(userId)),
+    productId: cleanText(productId),
+    featureKey: cleanText(featureKey),
+    status: "OPEN",
+  }).sort({ createdAt: -1 }).lean();
+}
+
+/**
+ * 새 결제의 출생 신원. 의도 스냅샷(birthKey)이 정본이다. 스냅샷 이전에 만든 레거시 의도나 의도가 없는
+ * 경우에만 기록된 profileId 를 이 계정 소유 프로필로 다시 해석한다. 못 만들면 { identity: null, error }.
+ */
+async function resolveGoogleBirthUnlock({ auth, product, body = {}, intent = null }) {
+  const matchedIntent = intent && cleanText(intent.featureKey) === product.featureKey
+    ? intent
+    : await findOpenBirthIntent(auth.userId, product.productId, product.featureKey);
+  const fromIntent = birthIdentityFromSnapshot(matchedIntent);
+  if (fromIntent) return { identity: fromIntent, error: null };
+  const profileId = cleanProfileId(matchedIntent?.profileId || body.profileId || body.selectedProfileId);
+  const partnerProfileId = cleanProfileId(matchedIntent?.partnerProfileId || body.partnerProfileId);
+  try {
+    const identity = await resolveBirthUnlockIdentity({
+      userId: auth.userId,
+      profileId,
+      partnerProfileId,
+      featureKey: product.featureKey,
+    });
+    return { identity, error: null };
+  } catch (error) {
+    if (!isBirthUnlockIdentityError(error)) throw error;
+    return { identity: null, error };
+  }
+}
+
+/** 결제 스냅샷의 신원으로 BIRTH 행을 지급한다(upsert — 같은 토큰 재검증에도 안전). */
+async function grantGoogleBirthUnlock({ payment, product, pricing, identity, holdCode = "" }) {
+  if (!identity) {
+    return {
+      granted: false,
+      adminReviewRequired: true,
+      code: cleanText(holdCode || payment?.pricingSnapshot?.birthUnlockHoldCode) || "MISSING_PROFILE_ID",
+    };
+  }
+  await grantPermanentUnlock({
+    userId: String(payment.userId),
+    profileId: identity.profileId,
+    partnerProfileId: identity.partnerProfileId,
+    featureKey: product.featureKey,
+    source: CONTENT_ENTITLEMENT_SOURCES.PAYMENT,
+    orderId: cleanText(payment.merchantUid),
+    paymentId: String(payment._id || ""),
+    evidenceId: String(payment._id || ""),
+    coinAmount: Number(pricing?.coinPrice || pricing?.cost || 0),
+    unlockedAt: payment.paidAt || payment.createdAt || new Date(),
+    birthIdentity: identity,
+  });
+  return { granted: true, adminReviewRequired: false, code: "" };
+}
+
 /**
  * 계정 대조. obfuscatedAccountId는 launchBillingFlow에서 앱이 주입한 userId 해시다.
  * 이게 없으면 남의 purchaseToken을 먼저 POST하는 쪽이 콘텐츠를 가져갈 수 있다
@@ -631,6 +748,40 @@ async function handleGoogleIntent(request, env) {
   }
 
   await connectDb(env);
+  // 🔴 출생 기반 키는 Play 결제창을 열기 전에 이 계정 저장 프로필(궁합은 상대 프로필도)로 신원을 만든다.
+  // 프로필 없이 결제가 끝나면 지급 대상이 없어 돈만 받고 해금을 못 쓰는 주문이 된다.
+  let birthIdentity = null;
+  if (isBirthScopedProduct(product)) {
+    try {
+      birthIdentity = await resolveBirthUnlockIdentity({
+        userId: auth.userId,
+        profileId: cleanProfileId(body.profileId || body.selectedProfileId),
+        partnerProfileId: cleanProfileId(body.partnerProfileId),
+        featureKey: product.featureKey,
+      });
+    } catch (error) {
+      if (!isBirthUnlockIdentityError(error)) throw error;
+      return birthIdentityErrorResponse(error);
+    }
+    // 같은 계정·같은 출생 정보로 이미 산 콘텐츠면 Play 결제창을 열지 않는다(중복 결제 방지).
+    // 응답 모양은 웹 단건 결제 준비(payments.js)의 alreadyUnlocked 응답과 같다.
+    const owned = await findActivePaidContentUnlock({
+      userId: String(auth.userId),
+      profileId: birthIdentity.profileId,
+      partnerProfileId: birthIdentity.partnerProfileId,
+      featureKey: product.featureKey,
+      birthIdentity,
+    });
+    if (owned) {
+      return json({
+        ok: true,
+        alreadyUnlocked: true,
+        profileId: birthIdentity.profileId,
+        featureKey: product.featureKey,
+        data: { alreadyUnlocked: true, featureKey: product.featureKey, unlockMap: { [product.featureKey]: true } },
+      });
+    }
+  }
   const now = Date.now();
   const intent = await AppPurchaseIntent.create({
     userId: new mongoose.Types.ObjectId(String(auth.userId)),
@@ -639,7 +790,12 @@ async function handleGoogleIntent(request, env) {
     productType: product.productType,
     passTier: cleanText(product.passTier),
     requestId: cleanText(body.requestId || body.idempotencyKey).slice(0, 120),
-    profileId: cleanText(body.profileId || body.selectedProfileId).slice(0, 120),
+    profileId: birthIdentity ? birthIdentity.profileId : cleanText(body.profileId || body.selectedProfileId).slice(0, 120),
+    ...(birthIdentity ? {
+      partnerProfileId: birthIdentity.partnerProfileId,
+      birthKey: birthIdentity.birthKey,
+      partnerBirthKey: birthIdentity.partnerBirthKey,
+    } : {}),
     reportId: cleanText(body.reportId).slice(0, 120),
     sessionId: cleanText(body.sessionId || body.reportSessionId).slice(0, 120),
     status: "OPEN",
@@ -675,7 +831,7 @@ function buildAccessGrant({ payment, pricing, requestId, body }) {
   };
 }
 
-async function persistGooglePurchase({ auth, env, pricing, product, body, googlePurchase }) {
+async function persistGooglePurchase({ auth, env, pricing, product, body, googlePurchase, intent = null }) {
   await connectDb(env);
   const userId = new mongoose.Types.ObjectId(String(auth.userId));
   const now = new Date();
@@ -697,8 +853,19 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
       throw error;
     }
     const user = await applyEntitlementUpdate({ userId, product, googlePurchase, now, passOrderId: impUid });
-    return { payment: existing, user, requestId: existing.requestId || requestId, idempotent: true };
+    // 재검증은 **이 결제에 저장된 스냅샷**으로만 다시 지급한다(지급 도중 실패한 결제의 복구). 스냅샷이 없는
+    // 결제(보류·전환 이전 기록)는 지금 프로필로 다시 계산하지 않는다 — 관리자 검토·마이그레이션 몫이다.
+    const birthUnlock = isBirthScopedProduct(product)
+      ? await grantGoogleBirthUnlock({ payment: existing, product, pricing, identity: birthIdentityFromSnapshot(existing.pricingSnapshot) })
+      : null;
+    return { payment: existing, user, requestId: existing.requestId || requestId, idempotent: true, birthUnlock };
   }
+
+  const birthResolution = isBirthScopedProduct(product)
+    ? await resolveGoogleBirthUnlock({ auth, product, body, intent })
+    : null;
+  const birthIdentity = birthResolution?.identity || null;
+  const birthHoldCode = birthResolution && !birthIdentity ? cleanText(birthResolution.error?.code) || "MISSING_PROFILE_ID" : "";
 
   const payment = await Payment.create({
     userId,
@@ -731,6 +898,8 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
       cashPrice: appAmountKRW,
       appBillingType: product.billingType || "",
       appProductKind: product.kind || "content",
+      ...birthSnapshotFields(birthIdentity),
+      ...(birthHoldCode ? { birthUnlockReviewRequired: true, birthUnlockHoldCode: birthHoldCode } : {}),
     },
     metadata: {
       provider: "GOOGLE_PLAY",
@@ -748,11 +917,21 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
       purchaseTokenHash: tokenHash,
       googlePurchase,
     },
+    // 출생 기반 키인데 지급할 프로필이 없다: Play 결제는 이미 끝났으므로 계정 단위로 대체 지급하지 않고 관리자 검토로 남긴다.
+    ...(birthHoldCode ? {
+      failureCode: "delivery_failed_manual_review",
+      failureStage: "google_birth_unlock_identity",
+      failureMessage: `Birth-scoped unlock has no owned profile (${birthHoldCode}).`,
+    } : {}),
   });
 
   const user = await applyEntitlementUpdate({ userId, product, googlePurchase, now, passOrderId: impUid });
+  const paymentDoc = payment.toObject ? payment.toObject() : payment;
+  const birthUnlock = birthResolution
+    ? await grantGoogleBirthUnlock({ payment: paymentDoc, product, pricing, identity: birthIdentity, holdCode: birthHoldCode })
+    : null;
 
-  return { payment: payment.toObject ? payment.toObject() : payment, user, requestId, idempotent: false };
+  return { payment: paymentDoc, user, requestId, idempotent: false, birthUnlock };
 }
 
 const USER_ENTITLEMENT_PROJECTION = { points: 1, unlockedFeatures: 1, profileSubscription: 1 };
@@ -899,13 +1078,19 @@ async function handleGoogleVerify(request, env) {
     body,
   });
   const unlockedFeatures = Array.isArray(persisted.user?.unlockedFeatures) ? persisted.user.unlockedFeatures : [product.featureKey];
+  // 출생 기반 키가 보류(관리자 검토)되면 결제는 확정됐지만 해금은 아직 없다 — 열린 것처럼 안내하지 않는다.
+  const birthUnlockHeld = persisted.birthUnlock?.adminReviewRequired === true;
 
   return json({
     ok: true,
-    message: "Google Play purchase verified.",
+    message: birthUnlockHeld
+      ? "결제는 정상 처리됐습니다. 해금 대상 프로필을 확인할 수 없어 담당자가 확인 후 열어 드립니다."
+      : "Google Play purchase verified.",
     data: {
       provider: "GOOGLE_PLAY",
       idempotent: persisted.idempotent,
+      ...(persisted.birthUnlock ? { birthUnlock: persisted.birthUnlock } : {}),
+      ...(birthUnlockHeld ? { adminReviewRequired: true } : {}),
       pricing,
       consume: {
         transactionId: String(persisted.payment?._id || ""),
@@ -927,7 +1112,7 @@ async function handleGoogleVerify(request, env) {
         profileSubscription: persisted.user?.profileSubscription || null,
       },
       unlockedFeatures,
-      unlockMap: { [product.featureKey]: true },
+      unlockMap: { [product.featureKey]: !birthUnlockHeld },
       payment: {
         id: String(persisted.payment?._id || ""),
         provider: "GOOGLE_PLAY",
@@ -1008,6 +1193,7 @@ async function handleGoogleRestore(request, env) {
             idempotencyKey: cleanText(nativePurchase?.orderId) || cleanText(body?.idempotencyKey),
           },
           googlePurchase,
+          intent,
         });
         const acknowledged = await acknowledgeGooglePurchase(env, {
           packageName,
@@ -1026,6 +1212,7 @@ async function handleGoogleRestore(request, env) {
           // 고아 구매는 지급 후 반드시 소비시켜야 다음 구매가 열린다(티어 SKU 공유).
           shouldConsume: shouldConsumePurchase(product),
           purchaseToken,
+          ...(persisted.birthUnlock ? { birthUnlock: persisted.birthUnlock } : {}),
         });
       } catch (error) {
         failedPurchases.push({
@@ -1186,8 +1373,14 @@ async function updateActiveGoogleEntitlement({ payment, googlePurchase, notifica
       update.$set["profileSubscription.expiresAt"] = new Date(Number(googlePurchase.expiryTimeMillis));
     }
   }
-  if (!Object.keys(update).length) return;
-  await User.findByIdAndUpdate(payment.userId, update);
+  if (Object.keys(update).length) await User.findByIdAndUpdate(payment.userId, update);
+  // 출생 기반 키는 결제에 저장된 신원 스냅샷이 있을 때만 BIRTH 행을 다시 맞춘다(없으면 계정 단위로 대체하지 않는다).
+  const birthIdentity = isBirthScopedUnlockFeatureKey(featureKey) && !isPerUsePaidFeatureKey(featureKey)
+    ? birthIdentityFromSnapshot(payment.pricingSnapshot)
+    : null;
+  if (birthIdentity) {
+    await grantGoogleBirthUnlock({ payment, product: { featureKey }, pricing: payment.pricingSnapshot, identity: birthIdentity });
+  }
 }
 
 async function revokeGoogleEntitlement({ payment, googlePurchase, notification }) {
@@ -1225,6 +1418,15 @@ async function revokeGoogleEntitlement({ payment, googlePurchase, notification }
     };
   }
   if (Object.keys(update).length) await User.findByIdAndUpdate(payment.userId, update);
+  // 출생 기반 키는 BIRTH 행이 해금 근거다 — 계정 배열만 빼면 환불 뒤에도 열린 채로 남는다.
+  // 회수 대상은 이 결제(id) 행과 결제 시점 birthKey 스냅샷의 행뿐이다(content-unlocks 공용 회수기).
+  if (featureKey && isBirthScopedUnlockFeatureKey(featureKey)) {
+    await revokePaymentContentAccess({
+      payment,
+      revokedStatus: CONTENT_ENTITLEMENT_STATUSES.REFUNDED,
+      reason: "google_play_voided",
+    });
+  }
 }
 
 async function handleGoogleRtdn(request, env) {

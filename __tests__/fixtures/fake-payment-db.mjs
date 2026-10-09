@@ -151,7 +151,9 @@ function duplicateKeyError() {
 }
 
 /**
- * @param {{ onDuplicate?: (filter: object) => boolean, uniqueKeys?: string[][] }} [options]
+ * @param {{ onDuplicate?: (filter: object) => boolean, uniqueKeys?: string[][], profileCards?: object[] }} [options]
+ *   profileCards — ProfileCard 컬렉션. 출생 기반 해금의 신원 조회(worker/payments/birth-identity.js)만 읽는다.
+ *                  rows 와 섞으면 rows[0] 단언과 다른 컬렉션 필터가 카드에 매칭된다.
  *   uniqueKeys  — unique 인덱스를 모사한다. 결제 설계가 기대는 제약을 fixture 가 갖고 있지 않으면
  *                 "중복이 막힌다"는 테스트가 아무것도 검증하지 않는다.
  *   onDuplicate — upsert 경합을 임의 시점에 재현하는 용도.
@@ -163,6 +165,8 @@ export function makeFakePaymentDb(options = {}) {
   const uniqueKeys = options.uniqueKeys || [];
   let nextId = 1;
   let transactionTail = Promise.resolve();
+  const profileCards = options.profileCards || [];
+  const isProfileCardModel = (Model) => Model?.modelName === "ProfileCard";
 
   function violatesUnique(doc) {
     return uniqueKeys.some((keys) => {
@@ -203,7 +207,12 @@ export function makeFakePaymentDb(options = {}) {
     },
     get rows() { return currentRows(); },
     ctx,
-    async findOne(_Model, filter) { ctx.ops += 1; return currentRows().find((r) => matches(r, filter)) || null; },
+    profileCards,
+    async findOne(_Model, filter) {
+      ctx.ops += 1;
+      const source = isProfileCardModel(_Model) && options.profileCards ? profileCards : currentRows();
+      return source.find((r) => matches(r, filter)) || null;
+    },
     async find(_Model, filter, options = {}) {
       ctx.ops += 1;
       let out = currentRows().filter((r) => matches(r, filter));

@@ -18,6 +18,7 @@ import { activatePassSubscription, evaluatePassCoverage, revokePassGrantForOrder
 import { getBillingFeaturePricing } from "../../worker/lib/billing-feature-registry.js";
 import { MIN_PASS_COVERABLE_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
+import { testCard } from "../fixtures/profile-card-model.mjs";
 
 const USER = "64b000000000000000000001";
 const ENV = { JWT_ACCESS_SECRET: "test-access-secret-value-0123456789" };
@@ -221,21 +222,76 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
     const unlockItem = list().find((p) => p.billingType !== "per_use" && Number(p.priceCoins) > 0
       && Number(p.priceCoins) <= PASS_LIMITS.family);
     if (!unlockItem) return;
-    const db = makeFakePaymentDb();
+    const db = makeFakePaymentDb({ profileCards: [testCard("p1", { userId: USER })] });
     const user = seedUser(db, activePass("family"));
     const first = await postPassCheck(db, {
-      featureKey: unlockItem.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: "unlock-req-1",
+      featureKey: unlockItem.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: "unlock-req-1", profileId: "p1",
     });
     expect(first.response.status).toBe(200);
     const spentOnce = Number(user.profileSubscription.monthlySpendCoin || 0);
 
     // 다른 requestId(=새 클릭)로 다시 열어도 이미 소유한 콘텐츠라 예산이 늘지 않아야 한다.
     const second = await postPassCheck(db, {
-      featureKey: unlockItem.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: "unlock-req-2",
+      featureKey: unlockItem.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: "unlock-req-2", profileId: "p1",
     });
     expect(second.response.status).toBe(200);
     expect(second.payload.data.consume.alreadyUnlocked).toBe(true);
     expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(spentOnce);
+  });
+
+  describe("🔴 출생 단위 이용권 차감", () => {
+    async function birthItem() {
+      const { listProducts: list } = await import("../../worker/payments/catalog.js");
+      const { isBirthScopedUnlockFeatureKey } = await import("../../worker/lib/paid-feature-registry.js");
+      return list().find((p) => p.billingType !== "per_use" && !p.passExcluded && !p.familyPassOnly
+        && Number(p.priceCoins) > 0 && Number(p.priceCoins) <= PASS_LIMITS.family && isBirthScopedUnlockFeatureKey(p.featureKey));
+    }
+    const CARDS = [testCard("p1", { userId: USER }), testCard("p2", { userId: USER }), testCard("p3", { userId: USER, day: 18 })];
+    const pass = (db, item, requestId, profileId) => postPassCheck(db, {
+      featureKey: item.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId, ...(profileId ? { profileId } : {}),
+    });
+
+    test("새 출생 정보는 차감하고, 같은 출생 정보의 다른 프로필은 차감하지 않는다", async () => {
+      const item = await birthItem();
+      if (!item) return;
+      const db = makeFakePaymentDb({ profileCards: CARDS });
+      const user = seedUser(db, activePass("family"));
+      expect((await pass(db, item, "b-1", "p1")).response.status).toBe(200);
+      const spentOnce = Number(user.profileSubscription.monthlySpendCoin || 0);
+      expect(spentOnce).toBeGreaterThan(0);
+
+      const same = await pass(db, item, "b-2", "p2");
+      expect(same.payload.data.consume.alreadyUnlocked).toBe(true);
+      expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(spentOnce);
+
+      const other = await pass(db, item, "b-3", "p3");
+      expect(other.response.status).toBe(200);
+      expect(other.payload.data.consume.alreadyUnlocked).toBe(false);
+      expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBeGreaterThan(spentOnce);
+    });
+
+    test("이미 산 출생 정보는 월 한도를 다 써도 402 가 아니라 그대로 열린다(소유 → 커버리지 순서)", async () => {
+      const item = await birthItem();
+      if (!item) return;
+      const db = makeFakePaymentDb({ profileCards: CARDS });
+      const user = seedUser(db, activePass("family"));
+      expect((await pass(db, item, "own-1", "p1")).response.status).toBe(200);
+      user.profileSubscription.monthlySpendCoin = 10_000_000;
+      const reopened = await pass(db, item, "own-2", "p1");
+      expect(reopened.response.status).toBe(200);
+      expect(reopened.payload.data.consume.alreadyUnlocked).toBe(true);
+    });
+
+    test("profileId 가 없거나 남의 프로필이면 차감 없이 거절한다", async () => {
+      const item = await birthItem();
+      if (!item) return;
+      const db = makeFakePaymentDb({ profileCards: CARDS });
+      const user = seedUser(db, activePass("family"));
+      expect((await pass(db, item, "x-1", "")).response.status).toBe(400);
+      expect((await pass(db, item, "x-2", "not-mine")).response.status).toBe(403);
+      expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(0);
+      expect(db.rows.filter((row) => row.grantType === "permanent_unlock")).toHaveLength(0);
+    });
   });
 
   test("🔴 미커버는 402 로 인계한다 — 막다른 길(4xx 아닌 실패·빈 화면) 금지", async () => {
