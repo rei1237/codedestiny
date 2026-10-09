@@ -98,7 +98,7 @@ async function runNotices(env, { now, deadline, sleep, fetchImpl }) {
   ];
   for (const job of jobs) {
     if (Date.now() > deadline) { summary.stopped = 'time_budget'; break; }
-    const claimed = await withMongoRetry(env, () => EmailMarketingPreference.updateOne(job.claim.filter, job.claim.update));
+    const claimed = await withMongoRetry(env, () => EmailMarketingPreference.updateOne(job.claim.filter, { ...job.claim.update }));
     if (!claimed.modifiedCount) continue;
     const user = users.get(job.id);
     if (!user || user.status === 'withdrawn' || !isUsableMarketingEmail(user.email)) { summary.skipped += 1; continue; }
@@ -106,7 +106,7 @@ async function runNotices(env, { now, deadline, sleep, fetchImpl }) {
     if (result.ok) summary[job.kind] += 1;
     else {
       summary.failed += 1;
-      if (isRetryable(result)) await withMongoRetry(env, () => EmailMarketingPreference.updateOne(job.rollback.filter, job.rollback.update));
+      if (isRetryable(result)) await withMongoRetry(env, () => EmailMarketingPreference.updateOne(job.rollback.filter, { ...job.rollback.update }));
       if (result.configError) { summary.stopped = 'config_error'; await alertConfigFailure(env, { weekKey: kstWeekKey(now), now, task: 'notice', result, fetchImpl }); break; }
       if (result.status === 429) { summary.stopped = 'rate_limited'; break; }
     }
