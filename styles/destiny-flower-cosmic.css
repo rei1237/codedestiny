@@ -803,3 +803,7 @@
 html:has(#destinyFlowerStudioOverlay.is-show) { scrollbar-gutter: auto !important; }
 #destinyFlowerStudioOverlay { left: 0; right: auto; width: 100vw; box-sizing: border-box; }
 #destinyFlowerStudioOverlay.df-studio-overlay.is-show { left: 0 !important; right: auto !important; width: 100vw !important; min-width: 100vw !important; max-width: none !important; }
+
+/* 4-up 체계 칩 아이콘(인라인 SVG) — 이모지 대신 소스 색을 눌러 쓴 선 아이콘. */
+#destinyFlowerStudioOverlay .df-quad-emoji { display: inline-flex; width: 1.05em; height: 1.05em; color: #8a6a2f; color: color-mix(in srgb, var(--dfd-tab-accent, #e8c98a) 45%, #3b2a4a); }
+#destinyFlowerStudioOverlay .df-quad-emoji svg { width: 100%; height: 100%; }

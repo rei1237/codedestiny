@@ -4070,7 +4070,7 @@ function _dfBuildFlowerSvgMarkup(source, primaryHex, secondaryHex, seed, label, 
     var localTone = (i % 2 === 0) ? primary : secondary;
     var localGlow = (i % 2 === 0) ? accent : pale;
     petals += '<ellipse cx="' + centerX + '" cy="' + centerY + '" rx="' + petalRx + '" ry="' + petalRy + '" '
-      + 'fill="url(#petalGrad' + i + ')" transform="rotate(' + angle.toFixed(2) + ' ' + centerX + ' ' + centerY + ')" />'
+      + 'fill="url(#petalGrad' + i + ')" stroke="' + deep + '" stroke-opacity="0.4" stroke-width="0.8" transform="rotate(' + angle.toFixed(2) + ' ' + centerX + ' ' + centerY + ')" />'
       + '<defs><linearGradient id="petalGrad' + i + '" x1="0" y1="0" x2="0" y2="1">'
       + '<stop offset="0%" stop-color="' + localGlow + '" stop-opacity="0.95" />'
       + '<stop offset="100%" stop-color="' + localTone + '" stop-opacity="0.86" />'
@@ -4083,14 +4083,14 @@ function _dfBuildFlowerSvgMarkup(source, primaryHex, secondaryHex, seed, label, 
       var sx = 18 + ((seed + s * 37) % 286);
       var sy = 12 + ((Math.floor(seed / (s + 3)) + s * 19) % 96);
       var sr = 1 + ((seed + s * 13) % 3);
-      extra += '<circle cx="' + sx + '" cy="' + sy + '" r="' + sr + '" fill="' + pale + '" fill-opacity="0.72" />';
+      extra += '<circle cx="' + sx + '" cy="' + sy + '" r="' + sr + '" fill="#d4af6a" fill-opacity="0.72" />';
     }
   } else if (source === 'jamidusu') {
     extra += '<circle cx="' + centerX + '" cy="' + centerY + '" r="96" fill="none" stroke="' + _dfMixHex(accent, '#ffffff', 0.35) + '" stroke-opacity="0.45" stroke-width="1.8" />';
-    extra += '<path d="M72 52 L98 34 L126 52 L160 30 L194 52 L222 34 L248 52" fill="none" stroke="' + pale + '" stroke-opacity="0.6" stroke-width="2.4" stroke-linecap="round" />';
+    extra += '<path d="M72 52 L98 34 L126 52 L160 30 L194 52 L222 34 L248 52" fill="none" stroke="#d4af6a" stroke-opacity="0.6" stroke-width="2.4" stroke-linecap="round" />';
   } else if (source === 'sukuyo') {
     extra += '<circle cx="242" cy="58" r="30" fill="' + pale + '" fill-opacity="0.56" />';
-    extra += '<circle cx="254" cy="58" r="26" fill="' + _dfMixHex(deep, '#020617', 0.7) + '" fill-opacity="0.92" />';
+    extra += '<circle cx="254" cy="58" r="26" fill="#f7f1f4" fill-opacity="0.92" />';
     extra += '<circle cx="160" cy="130" r="104" fill="none" stroke="' + _dfMixHex(secondary, '#e2e8f0', 0.4) + '" stroke-opacity="0.36" stroke-width="1.4" />';
   }
 
@@ -4101,9 +4101,9 @@ function _dfBuildFlowerSvgMarkup(source, primaryHex, secondaryHex, seed, label, 
     + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="' + safeLabel + '">'
     + '<defs>'
     + '<radialGradient id="bg" cx="50%" cy="40%" r="70%">'
-    + '<stop offset="0%" stop-color="' + _dfMixHex(primary, '#ffffff', 0.44) + '" stop-opacity="0.94" />'
-    + '<stop offset="52%" stop-color="' + _dfMixHex(secondary, '#0ea5e9', 0.36) + '" stop-opacity="0.66" />'
-    + '<stop offset="100%" stop-color="' + _dfMixHex(deep, '#020617', 0.6) + '" stop-opacity="0.84" />'
+    + '<stop offset="0%" stop-color="' + _dfMixHex(primary, '#fffaf2', 0.88) + '" />'
+    + '<stop offset="52%" stop-color="' + _dfMixHex(secondary, '#fbf6ee', 0.86) + '" />'
+    + '<stop offset="100%" stop-color="' + _dfMixHex(primary, '#f3e9f7', 0.84) + '" />'
     + '</radialGradient>'
     + '<linearGradient id="coreGrad" x1="0" y1="0" x2="1" y2="1">'
     + '<stop offset="0%" stop-color="' + _dfMixHex(primary, '#ffffff', 0.4) + '" />'
@@ -4115,7 +4115,7 @@ function _dfBuildFlowerSvgMarkup(source, primaryHex, secondaryHex, seed, label, 
     + '<circle cx="' + centerX + '" cy="' + centerY + '" r="34" fill="url(#coreGrad)" />'
     + '<circle cx="' + centerX + '" cy="' + centerY + '" r="14" fill="' + _dfMixHex(accent, '#ffffff', 0.5) + '" fill-opacity="0.9" />'
     + extra
-    + '<text x="16" y="222" fill="' + _dfMixHex(pale, '#ffffff', 0.3) + '" fill-opacity="0.82" font-size="14" font-family="Noto Sans KR, sans-serif" letter-spacing="2">' + symbol + '</text>'
+    + '<text x="16" y="222" fill="#6b5a78" fill-opacity="0.82" font-size="14" font-family="Noto Sans KR, sans-serif" letter-spacing="2">' + symbol + '</text>'
     + '</svg>';
 }
 
@@ -4137,6 +4137,16 @@ function _dfBuildFlowerDataUri(selection, sourceOverride) {
     flower.id || '', flower.particle_type || ''
   );
   return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+}
+
+/* 판정 대기 카드의 봉오리 그림. 아트 모듈이 없으면 빈 칸(기존 동작)으로 둔다. */
+function _dfBuildBudDataUri(source) {
+  if (!(window.CDFlowerArt && typeof window.CDFlowerArt.buildBudSvg === 'function')) return '';
+  try {
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(window.CDFlowerArt.buildBudSvg({ source: source, label: '' }));
+  } catch (err) {
+    return '';
+  }
 }
 
 function _dfApplyGeneratedFlowerImage(imageEl, selection, sourceOverride) {
@@ -6538,7 +6548,15 @@ function _dfRenderQuadCards(activeSource) {
       if (latinEl) latinEl.textContent = '';
       if (badgeEl) badgeEl.innerHTML = '';
       if (lineEl) lineEl.textContent = _dfGetDataMissingUiState(source).message || '';
-      if (imgEl) imgEl.removeAttribute('src');
+      if (imgEl) {
+        var budUri = _dfBuildBudDataUri(source);
+        if (budUri) {
+          imgEl.src = budUri;
+          imgEl.alt = '';
+        } else {
+          imgEl.removeAttribute('src');
+        }
+      }
       return;
     }
 
