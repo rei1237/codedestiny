@@ -1,5 +1,6 @@
 {
   "products": {
+    "fusion-fortune-consultation": "fusion-fortune",
     "yeongnyangi-saju-mackerel": "yeongnyangi-saju-mackerel",
     "yeongnyangi-saju-salmon": "yeongnyangi-saju-salmon",
     "yeongnyangi-saju-flounder": "yeongnyangi-saju-flounder",
@@ -11,6 +12,7 @@
     "love-secret-ai-consultation": "love-secret"
   },
   "introductions": {
+    "fusion-fortune": ["fusion-fortune"],
     "life-book-ai": [
       "life-book"
     ],

@@ -1,5 +1,6 @@
 const fs=require('fs');const {chromium}=require('playwright');
 const origin='http://127.0.0.1:14330';
+const requested=process.argv.find(arg=>arg.startsWith('--product='))?.slice(10);
 async function setup(browser){
  const {FEATURE_KEY_PRICE_TABLE}=await import('../worker/lib/paid-feature-registry.js');
  const pricing={data:{legacyFeatureTable:Object.entries(FEATURE_KEY_PRICE_TABLE).map(([featureKey,entry])=>({featureKey,...entry}))}};
@@ -34,8 +35,9 @@ async function capture(page,id,surface,detail,cta){
  console.log(id,surface,rows.map(r=>[r.width,r.images[0].width]));
 }
 (async()=>{const browser=await chromium.launch();try{
- for(const [slug,ids] of (process.argv.includes('--popups-only')?[]:[['life-book-ai',['life-book']],['love-secret-ai',['love-secret']],['master-love-codex',['master-love-codex','master-love-codex-compat']]])){
+ for(const [slug,ids] of (process.argv.includes('--popups-only')?[]:[['life-book-ai',['life-book']],['love-secret-ai',['love-secret']],['master-love-codex',['master-love-codex','master-love-codex-compat']],['fusion-fortune',['fusion-fortune']]])){
   for(const [index,id] of ids.entries()){
+   if(requested&&requested!==id)continue;
    const p=await setup(browser);await p.goto(origin+'/features/'+slug+'/',{timeout:120000});
    if(ids.length>1)await p.locator('.craftedEdition>summary').nth(index).click();
    const detail=p.locator('.craftedDetail').nth(index);await detail.locator('img').first().waitFor();
@@ -43,6 +45,7 @@ async function capture(page,id,surface,detail,cta){
   }
  }
  for(const [id,selector,resultPage] of [['life-fortune','[data-feature-key="life-fortune-ai-consultation"]',false],['life-book','[data-feature-key="life-book-ai-consultation"]',true],['love-secret','[data-action="goLoveSecretAi"]',true]]){
+  if(requested&&requested!==id)continue;
   if(process.argv.includes('--love-only')&&id!=='love-secret')continue;
   const p=await setup(browser);await p.goto(origin+'/ggulggul/'+(resultPage?'?action=cdOneStepFreeSajuEntry':'?lang=ko'),{timeout:120000});
   if(resultPage){await p.locator('#nameInput').fill('검수');await p.locator('#birthDate').fill('1990-01-15');await p.locator('#btnF').click();await p.locator('#run-btn').click();await p.getByRole('button',{name:'동의하고 결과 보기',exact:true}).click();}

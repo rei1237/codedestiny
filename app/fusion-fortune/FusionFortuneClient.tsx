@@ -1,6 +1,7 @@
 "use client";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { useFusionExpertCopy } from "./ExpertEvidence";
 
 import { useLocaleRequestScope, type LocaleRequestScope } from "@/app/hooks/useLocaleRequestScope";
@@ -2893,6 +2894,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       </div>
     </section>
 
+    {getCurrentLoadingLocale() === "ko" && <CraftedProductDisclosure featureKey={PAID_FEATURE_KEY} />}
     {valuePreview}
 
     <ExpertValueCards theme="fusion" points={expertCopy.valuePoints} />

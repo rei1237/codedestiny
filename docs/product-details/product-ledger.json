@@ -1023,25 +1023,68 @@
     },
     {
       "productId": "fusion-fortune-consultation",
-      "displayName": "초융합 심층 리딩",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "displayName": "초융합 운세",
+      "saleStatus": "판매 진입/가격/결과 계약 확인",
       "entry": [
         "/fusion-fortune/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 50000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "생년월일·정확한 생시·출생지·양음력",
+        "상담 주제 선택",
+        "고민·질문·성별·별칭 선택 입력"
+      ],
+      "resultRenderer": [
+        "app/fusion-fortune/FusionResultThread.tsx",
+        "app/fusion-fortune/ExpertEvidence.tsx"
+      ],
+      "actualContents": [
+        "도입",
+        "핵심 요약",
+        "사주",
+        "자미두수",
+        "베다점성술",
+        "숙요점",
+        "서양점성술",
+        "타로",
+        "종합 해석",
+        "시기와 행동",
+        "카드 여섯 자리",
+        "근거 비교",
+        "최종 판단",
+        "마지막 메시지"
+      ],
+      "conditionalItems": [
+        "본문 있는 항목만 표시; 생성 중/이전 저장본 차이",
+        "tarotCards.length===6일 때 카드 뒤집기",
+        "같은 domain/period의 비교 가능한 signals가 있을 때 근거 비교",
+        "최종 판단: finalVerdict 있고 expertMeta.complete!==false",
+        "구형 visualization은 expertMeta가 없을 때만; 새 상세에서 보장하지 않음"
+      ],
+      "separatePurchase": [
+        "영냥이 모둠/연이·네오 대화형 상담과 별도 상품"
+      ],
+      "reviewSource": [
+        "상품 구매 후기 미사용; 가상 편집 예시"
+      ],
+      "images": [
+        "기존 public/images/fusion-fortune/fusion-guardian-celestial-hero.webp",
+        "개별 편집 질문 노트/읽기 경로/타로 자리 도식"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/fusion-fortune/FusionFortuneClient.tsx",
+        "/features/fusion-fortune/"
+      ],
+      "verification": [
+        "docs/product-details/verification/fusion-fortune/render.json",
+        "docs/product-details/verification/fusion-fortune/mobile.json",
+        "docs/product-details/verification/fusion-fortune/introduction/verification.json"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "실제 LLM 결과 품질 미검증",
+        "main 미병합/운영 미배포"
       ],
       "detailAliases": [
         "fusion-fortune"
