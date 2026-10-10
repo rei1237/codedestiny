@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-10
-next: "docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1(지급 보류 오안내·웹훅 202·소급 주문)을 진행해줘"
+next: "docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2(이관 마이그레이션 staging 리허설)를 진행해줘"
 ---
 
 # 출생 기반 해금 전환 — 남은 위험·후속 과제
@@ -21,7 +21,7 @@ next: "docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1(�
 과제 하나에 세션 하나를 쓴다. 아래 문장의 과제 번호만 바꿔 붙여 넣는다.
 
 ```
-docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1 을 진행해줘
+docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2 를 진행해줘
 ```
 
 - 🔴 **운영 승격 전 필수:** P0-1, P0-2. 순서는 P0-1 코드 → main push → P0-2 staging 리허설 → P0-2 운영 → 승격이다.
@@ -34,7 +34,19 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1 을 진�
 
 ### P0. 운영 승격 전 필수
 
-**P0-1. 소급 주문 지급 보류: 결제됐는데 해금이 없고 "권한 정상 처리"로 안내** — 🔴 RED
+**P0-1. 소급 주문 지급 보류: 결제됐는데 해금이 없고 "권한 정상 처리"로 안내** — 🔴 RED — ✅ 완료 2026-10-10 (bf5cd847e, 1181044d5, 73445d45f, bf4d34198)
+- 결과:
+  - 구 웹 202 문구는 이제 "권한 정상 처리"를 말하지 않는다. 202 계약은 유지한다. 신원 오류이면 `profileSelectionRequired:true` 를 싣는다.
+  - V2 크론은 `MISSING_PROFILE_ID`·`INVALID_PROFILE` 에서 `delivery_failed_manual_review`(`failureStage:"birth_profile_required"`)를 달고 재시도 루프에서 빠진다. 확인 응답은 `GRANT_PENDING` 에 `profileSelectionRequired:true` 를 싣는다. 계획했던 별도 코드 `BIRTH_PROFILE_REQUIRED` 는 만들지 않았다. 기존 클라이언트 분기를 깨지 않기 위해서다.
+  - 프로필 선택 지급: `GET /api/payments/birth-profile-pending`, `POST /api/payments/birth-profile-pending/:id/claim`(`worker/payments/birth-profile-claim.js`). 로그인 뒤 `js/destiny-profile.js` 카드에서 저장 프로필을 고른다. 한 주문은 처음 고른 생년월일 하나로만 지급된다.
+  - 관리자: 주문 목록의 "지급 보류 · 프로필 선택 대기" 필터(`?failureCode=delivery_failed_manual_review`).
+  - 대상 주문 수: `node scripts/audit-birth-scope-pending-orders.mjs --db <이름>`(읽기 전용). 2026-10-10 기준 결과는 다음과 같다. 운영 승격 직전에 한 번 더 센다.
+    - staging: 대기 0, 위험 0
+    - 운영: 대기 0, 위험 0. 스냅샷이 없는 소급 주문 8건은 모두 이미 지급됐다.
+  - 범위 밖 발견(미착수):
+    - `js/destiny-profile.js` 결제 복귀 처리가 `GRANT_PENDING` 을 성공처럼 표시하는 구간이 있다.
+    - 구 크론(`worker/lib/payment-reconcile-task.js`)이 신원 보류 주문을 최대 10회까지 헛되이 재조회한다.
+    - V2 주문 pollUrl 은 프로필 선택 대기 주문에서도 계속 폴링할 수 있다.
 - 대상 주문: 이번 변경 전에 만들어진 출생 기반 키 주문이다. `pricingSnapshot` 에 profileId·birthKey 가 없거나 그 프로필이 삭제된 경우다. 새 주문은 시작 단계에서 막힌다(`worker/routes/payments.js:1985-2000`).
 - 웹(PortOne) 경로:
   - `upsertSinglePaymentUnlockRecord` 가 신원 오류를 던진다(`payments.js:1186-1201`).
@@ -52,7 +64,7 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1 을 진�
   3. 읽기 전용 조회로 대상 주문 수를 센다. 조건은 결제 완료 + 출생 기반 featureKey + `pricingSnapshot.birthKey` 없음이다. staging(`code_destiny_staging`)과 운영(`code_destiny`) 각각 센다.
   4. ✅ 결정됨(사용자, 2026-10-10): **환불하지 않는다.** 대신 사용자가 저장 프로필을 고르면 그 프로필 출생 정보로 BIRTH 행을 지급한다. 지급 대기 주문이 있는 계정에서는 결제 화면이나 결과 화면에 "열람할 프로필을 골라 주세요" 같은 진입점을 보여 준다. 이 진입점을 지급 경로에 연결하고, 그 결과로 `delivery_failed_manual_review` 표시를 정리한다.
   5. 관리자가 볼 수 있게 표시 기반 목록이나 알림을 하나 만든다.
-- 알려진 한계: 프로필이 살아 있는 소급 주문은 구매 시점이 아니라 **현재** 출생 정보로 지급된다. 바꿀지 사용자에게 함께 묻는다.
+- ✅ 결정됨(사용자, 2026-10-10 "현재 생년월일로 지급"): 프로필이 살아 있는 소급 주문은 구매 시점이 아니라 **현재** 출생 정보로 지급한다. 지금 동작을 유지한다.
 - 완료 기준:
   - 신원 실패 시 "권한 정상 처리" 문구가 나가지 않는다.
   - V2 에서 신원 오류 주문이 재시도 루프를 빠져나온다.
@@ -158,17 +170,17 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1 을 진�
 - `resolvePersistedUnlockFeatures`(`fortune.js:2634-2675`)는 이용권 차감 행을 영구 해금으로 바꾸고 계정 배열에도 써 넣는다.
 - 문서 `docs/context/payment-gating.md:61` 도 lotto 를 "영구 해금"으로 적고 있다. 같은 문서 `:26` 의 회당 1,000원과 모순된다.
 - ✅ 결정됨(사용자, 2026-10-10): **love-code 는 영구 해금 기능으로 한다.** lotto 는 회당 과금 그대로 둔다.
+- ✅ 결정됨(사용자, 2026-10-10 "러브코드는 계정 전체로 열면 되고"): love-code 는 **계정 기반**(`ACCOUNT_SCOPED_UNLOCK_FEATURE_KEYS`, `worker/lib/paid-feature-registry.js:740`)이다. 출생 기반이 아니다. 한 번 사면 그 계정의 모든 프로필에서 열린다.
 - 할 일:
   1. lotto 를 `PERSISTENT_UNLOCK_KEY_SET` 에서 뺀다.
   2. love-code 를 영구 해금으로 바꾼다.
      - 레지스트리 `:341` 에서 `accessModel:"per_use"` 를 빼고 회당 목록(`:601`)에서도 뺀다. 가격 5,000원(50코인)은 그대로다.
-     - 분류 검사(`assertUnlockScopeClassification`)가 출생 기반·계정 기반 중 하나를 강제한다. love-code 결과가 저장 프로필 생년월일로 계산되면 출생 기반(`BIRTH_SCOPED_UNLOCK_FEATURE_KEYS`)으로 넣는다. 정책상 사람 단위 과금이 기본이다. 입력이 생년월일과 무관하면 계정 기반으로 넣는다. 어느 쪽으로 넣었는지 커밋 메시지에 근거를 남긴다.
-     - 출생 기반이면 결제 진입점에 profileId 를 보내고, 클라이언트 미러(`verify:birth-scope-client-mirror`)도 맞춘다.
+     - 분류 검사(`assertUnlockScopeClassification`)가 출생 기반·계정 기반 중 하나를 강제한다. love-code 는 **계정 기반** 목록(`ACCOUNT_SCOPED_UNLOCK_FEATURE_KEY_LIST`)에 넣는다(사용자 결정). 커밋 메시지에 그 근거를 남긴다. 출생 기반 목록·클라이언트 미러에는 넣지 않는다.
      - 클라이언트에서 회당 결제로 처리하던 love-code 관문을 영구 해금 관문으로 바꾼다. 위치는 `git grep -n "love-code" -- js index.html app` 으로 찾는다.
   3. `docs/context/payment-gating.md:29`(회당 5,000원 → 영구 해금), `:61`(lotto 제거)를 고친다.
   4. `scripts/verify-per-use-never-unlocks.mjs` 에 "이 목록과 per_use 목록이 겹치지 않는다" 검사를 추가한다.
 - 완료 기준:
-  - love-code 를 한 번 사면 다시 들어가도 열린다(출생 기반이면 다른 생년월일 프로필에서는 잠긴다).
+  - love-code 를 한 번 사면 다시 들어가도 열린다. 같은 계정의 다른 프로필에서도 열린다.
   - lotto 는 이용권으로 써도 영구 해금되지 않는다.
 - 검증: `npm run verify:per-use-never-unlocks`, `npm run verify:love-code-permanent-unlock`, `npm run verify:payment-policy-md`, `npm run verify:paid-feature-billing-policy`
 
@@ -223,14 +235,21 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1 을 진�
 ## 사용자 결정 (2026-10-10)
 
 - P0-1: 프로필 정보 없이 결제된 예전 주문은 환불하지 않는다. 프로필을 고르게 한 뒤 지급한다.
+- P0-1: 프로필이 살아 있는 소급 주문은 현재 생년월일로 지급한다.
+- 출생 기반 범위:
+  - 사주 화면의 종합 사주 풀이와 대운은 프로필 생년월일로 구분해야 한다(출생 기반 필수).
+  - 재밌는 사주 콘텐츠는 가능하면 출생 기반으로 두되 필수는 아니다.
+  - love-code 같은 기능은 출생 기반에서 뺀다.
+  - 사용자 원문: "사주 화면의 종합 사주 풀이, 대운정도만 프로필 생년월일로 구분되어도 괜찮긴해 재밌는 사주 콘텐츠는 안해줘도 괜찮고 가능하면 해줘 러브 코드 이런거 빼고"
+  - 출생 기반 키 목록을 줄일지는 이 결정만으로 정하지 않는다. 지금 목록을 유지하고, 줄이려면 따로 과제를 만든다.
 - P2-3: 출생지를 입력하지 않은 경우 서울로 계산한다.
-- P2-4: love-code 는 영구 해금 기능으로 한다.
+- P2-4: love-code 는 영구 해금 기능으로 하고, 계정 전체로 연다(계정 기반, 출생 기반 아님).
 - P3-1: Play 에서도 ₩1,000 가격을 허용한다.
 - P3-5: 사주 화면 궁합은 이미 있다. 새로 만들지 않고 `section_compat` 키를 은퇴시킨다.
 
 ## 모르는 것 — 추측하지 말고 사용자에게 묻는다
 
-- P0-1: 프로필이 살아 있는 소급 주문을 구매 시점이 아니라 현재 출생 정보로 지급하는 지금 동작을 그대로 둘지.
+- 지금은 없다.
 
 ## 공통 검증
 
