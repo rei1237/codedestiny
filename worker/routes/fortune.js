@@ -219,14 +219,24 @@ const SAJU_AI_RESULT_FORBIDDEN_PATTERNS = [
 ];
 // Conditional traditional readings are allowed; these outcome rules reject guarantees, not a ten-god mention.
 // Keep outcome matches inside one sentence so a later action or chapter cannot turn a sound reading into a rejection.
+// B4 2026-10-11: element rules read one sentence, in either order, and include pay and promotion;
+// a word ending in an element syllable ("변화 기운") and "장기 계획" are not element or organ claims.
+const SAJU_AI_ELEMENT = String.raw`(?<![가-힣])(?:[목화토금수]\s*(?:\([木火土金水]\)\s*)?(?:오행|기운)|[목화토금수]\s*\([木火土金水]\)|[木火土金水]\s*(?:오행|기운))`;
+const SAJU_AI_ELEMENT_STATE = String.raw`(?:없\S*|부재|부족|약하\S*|약해\S*|강하\S*|강해\S*|과도\S*|과다|드러나\s*있지\s*않\S*)`;
+const SAJU_AI_SENTENCE = String.raw`[^\n.!?]`;
+const SAJU_AI_ELEMENT_MONEY = String.raw`(?:충동|규율|통제(?:력)?|재물\s*관리|재정|투자\s*성향|소유욕|사업\s*적합|수익|수입|소득|연봉|급여|승진)`;
+const SAJU_AI_ELEMENT_ORGAN = String.raw`(?:폐|대장|피부|뼈|관절|심장|소장|혈액\s*순환|신장|방광|생식기|호흡기|소화기|질환|장기(?!\s*(?:적|계획|전략|목표|투자|관점|프로젝트))|기능(?:이|의)?\s*(?:약|저하)|취약)`;
+const sajuAIElementCausality = (outcome) => new RegExp(
+  `${SAJU_AI_ELEMENT}${SAJU_AI_SENTENCE}{0,160}${SAJU_AI_ELEMENT_STATE}${SAJU_AI_SENTENCE}{0,200}${outcome}`
+  + `|${outcome}${SAJU_AI_SENTENCE}{0,160}${SAJU_AI_ELEMENT}${SAJU_AI_SENTENCE}{0,40}${SAJU_AI_ELEMENT_STATE}`, "u");
 const SAJU_AI_RESULT_UNSUPPORTED_PATTERNS = Object.freeze([
   Object.freeze({
     key: "element-causality",
-    pattern: /(?:화|목|수|금|토)(?:\([^)]*\))?\s*(?:오행|기운).{0,200}(?:없\w*|부재|부족|약하\w*|강하\w*|과도\w*|드러나\s*있지\s*않\w*).{0,320}(?:충동|규율|통제(?:력)?|재물\s*관리|투자\s*성향|소유욕|사업\s*적합|수익\s*창출)/s,
+    pattern: sajuAIElementCausality(SAJU_AI_ELEMENT_MONEY),
   }),
   Object.freeze({
     key: "element-health-causality",
-    pattern: /(?:화|목|수|금|토)(?:\([^)]*\))?\s*(?:오행|기운).{0,200}(?:없\w*|부재|부족|약하\w*|강하\w*|과도\w*|드러나\s*있지\s*않\w*).{0,320}(?:폐|대장|피부|뼈|관절|심장|소장|혈액\s*순환|신장|방광|생식기|질환|장기|기능(?:이|의)?\s*(?:약|저하)|취약)/s,
+    pattern: sajuAIElementCausality(SAJU_AI_ELEMENT_ORGAN),
   }),
   Object.freeze({
     key: "specific-financial-product",
