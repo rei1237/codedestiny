@@ -642,7 +642,7 @@ function summarizeSaju(chart) {
     method: "saju",
     summary: "사주 엔진이 산출한 사주팔자, 일간, 오행 분포, 십성 분포, 용신, 합충, 대운과 세운 흐름을 근거로 삼는다.",
     evidenceSummary: [
-      `연월일시 기둥: ${[chart.yearPillar, chart.monthPillar, chart.dayPillar, chart.hourPillar].filter(Boolean).join(" / ")}`,
+      chart.dayPillar ? `일주: ${chart.dayPillar}` : "",
       chart.dayMaster ? `일간: ${chart.dayMaster}` : "",
       chart.strength ? `신강약 판단: ${chart.strength}` : "",
       currentCycle?.pillar ? `현재 대운: ${currentCycle.pillar} (${currentCycle.startAge}-${currentCycle.endAge}세, ${majorLuck.direction || ""})`.trim() : "",

@@ -1275,8 +1275,8 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
 }
 
 // 지급 대상을 식별하지 못한 실패(프로필 결손 등)와 인프라 실패(Mongo 저장 실패)를 가른다.
-// 전자는 돈을 돌려줄 사유가 아니다 — 이 시점에 recordUserPaidFeature 가 이미 권한을 줬고
-// 실제 접근 판정(paid-feature-access.js)은 paidFeatures/unlockedFeatures 만 읽는다.
+// 전자는 환불하지 않는다(2026-10-10 사용자 결정). 출생 기반 키는 계정 배열이 근거가 아니라 아직 열리지
+// 않는다 — 사용자가 프로필을 골라야 지급된다(worker/payments/birth-profile-claim.js).
 function isUnlockTargetIdentityError(error) {
   const code = String(error?.code || "").trim();
   return code === "INVALID_UNLOCK_TARGET" || code === "MISSING_PROFILE_ID" || code === "INVALID_PROFILE";
@@ -1343,19 +1343,19 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
         lastErrorAt: new Date(),
       },
     }).catch(() => {});
-    return { refunded: false, deferred: true, payment };
+    return { refunded: false, deferred: true, profileSelectionRequired: forceDefer, payment };
   };
   // 해금 기록 실패 응답. 식별 실패는 환불하지 않으므로 프론트가 "환불됐다"고 오안내하지 않도록
-  // 코드·문구·상태를 분리한다. 2xx 로 내려 웹훅을 processed 로 확정한다 — profileId 결손은
-  // 재시도해도 그대로라 재조정 크론이 같은 실패를 무한히 되풀이할 이유가 없다.
+  // 코드·문구·상태를 분리한다. 202 는 웹훅 processed 가 아니다(isSuccessfulWebhookResponse) — 구 웹훅은 V2 로
+  // 라우팅돼 실제 재시도는 구 재조정 크론(maxAttempts)뿐이고, 식별 실패는 프로필 선택 지급으로 푼다.
   const buildUnlockFailureResponse = (refund, fallbackPayment) => {
     if (refund.deferred) {
       return json({
         ok: false,
         code: "UNLOCK_RECORD_DEFERRED_ADMIN_REVIEW",
-        message: "결제와 이용 권한은 정상 처리됐습니다. 해금 기록만 담당자가 확인 중이며 환불은 진행되지 않았습니다.",
+        message: refund.profileSelectionRequired ? "결제는 확인됐고 열람할 프로필 확인이 필요합니다. 환불은 진행되지 않았습니다." : "결제는 확인됐습니다. 열람 권한 기록을 담당자가 확인 중이며 환불은 진행되지 않았습니다.",
         refundStatus: "not_refunded",
-        adminReviewRequired: true,
+        adminReviewRequired: true, profileSelectionRequired: Boolean(refund.profileSelectionRequired),
         payment: formatPaymentResponse(refund.payment || fallbackPayment),
       }, { status: 202 });
     }

@@ -215,3 +215,22 @@ test("paid draft extraction relaxes only length and retains structure, DNA and e
   expect(() => assertCodexChapterQuality({ ...parsed, actions: [] }, chapter, [], null, { allowShort: true })).toThrow("LLM_OUTPUT_INCOMPLETE");
   expect(() => assertCodexChapterQuality(parsed, { ...chapter, jsonMode: true }, [], null, { allowShort: true })).toThrow("LLM_DNA_INCOMPLETE");
 });
+
+test("normalized chapter prose drops evidence IDs but keeps them in structured id fields", () => {
+  const contract = { records: [{ id: "self.saju.natalInteractions" }], crossChecks: [{ id: "cross.context" }] };
+  const content = utils.normalizeChapterContent({
+    body: "진유합이 있습니다(self.saju.natalInteractions). 그래서 안정감을 찾습니다.",
+    insight: "두 체계 판정은 보류입니다 [cross.context].",
+    evidence: [{ label: "원국 합충", evidenceId: "self.saju.natalInteractions", explanation: "합이 있습니다 (self.saju.natalInteractions)." }],
+    crossChecks: [{ id: "cross.context", status: "pending", explanation: "cross.context 는 판단 보류입니다." }],
+  }, "", contract);
+  expect(content.body).toBe("진유합이 있습니다. 그래서 안정감을 찾습니다.");
+  expect(content.insight).toBe("두 체계 판정은 보류입니다.");
+  expect(content.evidence[0]).toMatchObject({ evidenceId: "self.saju.natalInteractions", explanation: "합이 있습니다." });
+  expect(content.crossChecks[0]).toMatchObject({ id: "cross.context", explanation: "는 판단 보류입니다." });
+});
+
+test("shared editorial contract leaves the noon-chart limitation to time-unknown callers", () => {
+  expect(buildCodexEditorialContract({ minChars: 2600 })).not.toContain("정오");
+  expect(buildCodexEditorialContract({ minChars: 2600 }, { cross: { convergence: [] } })).not.toContain("정오");
+});

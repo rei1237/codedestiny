@@ -14,8 +14,10 @@ import {
   validateLoveSecretConsultation,
   mapLoveSecretIssuesToGroups,
   countLoveSecretConsultationBodyChars,
+  parseLoveSecretGroupResponse,
   __loveSecretAiPromptTestUtils,
 } from "../../worker/lib/love-secret-ai-prompt.js";
+import { buildLoveSecretGroupFacts } from "../../worker/lib/love-secret-ai-facts.js";
 
 const { countSectionBodyChars } = __loveSecretAiPromptTestUtils;
 
@@ -146,5 +148,33 @@ describe("countLoveSecretConsultationBodyChars", () => {
 
     const answerOnly = { pdfSections: [], sections: [], answer: "다".repeat(30) };
     expect(countLoveSecretConsultationBodyChars(answerOnly)).toBe(30);
+  });
+});
+
+describe("정밀지표 영문 키 0건", () => {
+  const METRIC_KEYS = /attraction|stability|communication|conflict|confidence/;
+  const sajuResult = {
+    myChart: { loveReference: { precisionMetrics: { attraction: 74, stability: 58, communication: 49, conflict: 31, confidence: 82 } } },
+  };
+
+  test("self·partner 팩트는 영문 키와 점수 대신 한국어 라벨과 등급을 넘긴다", () => {
+    const self = buildLoveSecretGroupFacts(sajuResult, "self");
+    const partner = buildLoveSecretGroupFacts(sajuResult, "partner");
+    const expected = { 끌림: "높음", 안정성: "보통", 소통: "낮음", "갈등 신호": "낮음", "해석 신뢰도": "높음" };
+    expect(self.정밀지표).toEqual(expected);
+    expect(partner.끌림지표).toEqual(expected);
+    expect(JSON.stringify([self, partner])).not.toMatch(METRIC_KEYS);
+  });
+
+  test("본문에 남은 '한국어(영문 키)' 꼬리는 파싱에서 지운다", () => {
+    const group = LOVE_SECRET_AI_GROUPS[0];
+    const body = "매력(attraction)은 높은 편이고 안정성(stability)도 무난합니다. 소통은 천천히 열립니다.".repeat(40);
+    const text = JSON.stringify({ sections: group.sections.map((section) => ({ title: section.title, body })) });
+    const result = parseLoveSecretGroupResponse(text, group);
+    expect(result.sections.length).toBeGreaterThan(0);
+    result.sections.forEach((section) => {
+      expect(section.body).not.toMatch(METRIC_KEYS);
+      expect(section.body).toContain("매력은 높은 편이고 안정성도 무난합니다.");
+    });
   });
 });

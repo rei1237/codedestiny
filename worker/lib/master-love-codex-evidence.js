@@ -53,14 +53,15 @@ export function buildCodexEvidence({ chapter, saju, ziweiChart, partnerSaju, par
   // A natal chart pair has no validated numerical cross-system equivalence.
   // Do not turn two independently calculated facts into a claimed agreement.
   const crossChecks = axes.length ? axes.map(axis => ({ id: `cross.${axis.sajuAxis}.${axis.ziweiAxis}`, ...axis }))
-    : [{ id: "cross.context", status: "pending", reason: "no_calculated_direction", theme: chapter.title }];
+    : [{ id: "cross.context", status: "pending", reason: "두 체계의 방향을 맞대어 계산한 판정이 없어 판단을 보류한다.", theme: chapter.title }];
   return { version: CODEX_EVIDENCE_VERSION, chapterId: chapter.id, records: unique, crossChecks };
 }
 
 export function formatCodexEvidence(contract) {
   return [
-    "[이 장의 검증 가능한 근거 — 아래 ID와 값만 인용]",
+    "[이 장의 검증 가능한 근거 — 아래 기록의 값만 근거로 쓴다]",
     JSON.stringify(contract),
+    "id는 evidence.evidenceId와 crossChecks.id 필드에만 적는다. narration·body·insight 등 독자용 문장에는 id·path·영문 키를 쓰지 말고 한국어 용어로 풀어 쓴다.",
     "evidence 각 항목에 evidenceId, subject, system(saju 또는 ziwei), period, certainty를 아래 기록과 정확히 일치시킨다. natal은 원국, 연도는 해당 세운, major-luck-cycles는 기록된 대운 기간만 뜻한다. label과 explanation은 요청된 출력 언어로 쓴다.",
     "crossChecks는 아래 각 판정을 {id,status,explanation}으로 설명한다. status를 바꾸지 않는다. pending은 판단 보류이며 일치나 불일치로 확정하지 않는다.",
     "사주와 자미두수의 근거를 각각 인용하되 provisional은 가정임을 설명한다. 한 체계의 근거가 없으면 새로 만들어 채우지 않는다.",
@@ -69,6 +70,48 @@ export function formatCodexEvidence(contract) {
     "궁합 pair 근거와 개인 self/partner 원국 근거를 구분한다. 점수는 성공 확률이나 적중률이 아니다.",
     `이 장에서 인용할 인물 범위: ${[...new Set(contract.records.map(record => record.subject))].join(", ")}. 각 인물의 근거를 최소 하나 인용하고, 범위 밖 인물의 해석을 요구하지 않는다.`,
   ].join("\n");
+}
+
+// 🔴 R4 (2026-10-10): 모델이 본문에 "(self.saju.natalInteractions)" 처럼 증거 ID 를 인용했다.
+// 지시만으로는 막지 못하므로 독자용 문장에서 계약 id 와 일반형 ID 를 결정적으로 지운다.
+const SUBJECT_LABELS = { self: "본인", partner: "상대", pair: "두 사람" };
+const PATH_LABELS = {
+  dayMaster: "일간", monthPillar: "월주", dayPillar: "일주", tenGodsByPillar: "십성 배치", pillarDetails: "지장간",
+  fiveElements: "오행 분포", elementBalance: "오행 균형", seasonalBalance: "조후", strength: "신강약",
+  natalInteractions: "원국 합충", majorLuck: "대운", yearlyLuck: "세운",
+  dayStemRelation: "일간 관계", palaceOverlay: "명반 궁 겹침", branchRelations: "지지 관계", maleficImpact: "흉성 영향",
+  sihuaExchange: "사화 교류", spouseCross: "배우자궁 교차", tenGodInteraction: "십성 상호작용",
+  yongshinSupport: "용신 보완", axisScores: "궁합 축",
+};
+
+function codexRecordLabel(record) {
+  const [head, tail] = String(record.path || "").split(".");
+  const term = head === "palaces" && tail ? tail
+    : head === "yearlyLuck" && tail ? `${tail} 세운`
+      : PATH_LABELS[head] || "계산 근거";
+  return `${SUBJECT_LABELS[record.subject] || "계산"} ${term}`;
+}
+
+const ID_MARK = "\u0000";
+const GENERIC_EVIDENCE_ID = /\b(?:self|partner|pair)\.(?:saju|ziwei)\.(?:palaces\.[가-힣]{1,4}?궁|[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)*)|\bcross\.[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)*|\bT\d{3}\b|\bF-[A-Za-z0-9]+(?:[-_.][A-Za-z0-9]+)*/g;
+const escapeRegExp = value => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Removes evidence IDs from reader-facing prose. Structured id fields are not passed here. */
+export function stripCodexEvidenceIds(text, contract = null) {
+  let output = String(text ?? "");
+  if (!output) return output;
+  const exact = [...(contract?.records || []), ...(contract?.crossChecks || [])].map(row => String(row?.id || "")).filter(Boolean)
+    .sort((a, b) => b.length - a.length);
+  if (exact.length) output = output.replace(new RegExp(exact.map(escapeRegExp).join("|"), "g"), ID_MARK);
+  output = output.replace(GENERIC_EVIDENCE_ID, ID_MARK);
+  if (!output.includes(ID_MARK)) return output;
+  const list = `${ID_MARK}(?:\\s*[,·/、;]\\s*${ID_MARK})*`;
+  return output
+    .replace(new RegExp(`[ \\t]*[(\\[（【]\\s*(?:(?:근거|evidenceId|ID|id)\\s*[:：]?\\s*)?${list}\\s*[)\\]）】]`, "g"), "")
+    .replace(new RegExp(`^[ \\t]*${list}[ \\t]*`, "gm"), "")
+    .replace(new RegExp(list, "g"), "")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/[ \t]+([.,!?])/g, "$1");
 }
 
 const SYSTEM_ALIASES = { saju: "saju", "사주": "saju", "四柱": "saju", ziwei: "ziwei", "자미두수": "ziwei", "紫微斗數": "ziwei", "紫微斗数": "ziwei" };
@@ -94,7 +137,7 @@ export function normalizeCodexEvidence(parsed, contract) {
     const record = findCodexRecord(item, contract, byId);
     if (!record || !nonEmpty(item?.explanation)) return null;
     const { evidenceId: _e, id: _i, path: _p, ...rest } = item;
-    return { ...rest, label: nonEmpty(item.label) ? item.label : record.path, evidenceId: record.id,
+    return { ...rest, label: nonEmpty(item.label) ? item.label : codexRecordLabel(record), evidenceId: record.id,
       subject: record.subject, system: record.system, period: record.period, certainty: record.certainty };
   }).filter(Boolean);
   const checks = Array.isArray(parsed.crossChecks) ? parsed.crossChecks : [];

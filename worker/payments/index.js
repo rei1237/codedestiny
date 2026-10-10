@@ -48,8 +48,15 @@ import { createServicePackRoutes } from "./service-pack-routes.js";
 import { verifyPgPayment } from "./pg.js";
 import { isLegacySingleOrderId } from "./order-id.js";
 import { dropEntitlementByIdentity, findOwnedEntitlement, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
-import { birthIdentityFromSnapshot, isBirthScopedProduct, resolvePaymentBirthIdentity } from "./birth-identity.js";
-import { settleOrphanSpends, spendMoonstone, reserveOrderMoonstones, releaseOrderMoonstones } from "./moonstone.js";
+import { birthIdentityFromSnapshot, birthSnapshotFields, isBirthScopedProduct, orderNeedsBirthProfileSelection, resolvePaymentBirthIdentity } from "./birth-identity.js";
+import {
+  claimProductFromOrder,
+  finalizeBirthProfileClaim,
+  isBirthProfilePendingOrder,
+  listBirthProfilePendingOrders,
+  presentBirthProfilePendingOrder,
+  reserveBirthProfileClaim,
+} from "./birth-profile-claim.js";import { settleOrphanSpends, spendMoonstone, reserveOrderMoonstones, releaseOrderMoonstones } from "./moonstone.js";
 import { quoteYeongnyangiMoonstoneDiscount } from '../lib/paid-feature-registry.js';
 import { acceptWebhook, claimReplayableEvents, describeEventFailure, markEventFailed, markEventProcessed } from "./webhook.js";
 import { alertPaymentAnomalies, runPaymentReconcile } from "./reconcile.js";
@@ -85,6 +92,7 @@ import {
   resolvePremiumAccessReportType,
 } from "../lib/premium-access-token.js";
 import {
+  BIRTH_PROFILE_SELECTION_MESSAGE,
   legacyBillingCheckoutEnvelope,
   legacyMoonstoneEnvelope,
   legacyOrderDetailEnvelope,
@@ -939,8 +947,9 @@ async function grantPassOrderEntitlement(db, order) {
   return true;
 }
 
-/** 지급. 실패해도 던지지 않는다 — 돈은 이미 받았고, 실패를 오류로 올리면 사용자가 다시 결제한다. */
-async function grantOrderEntitlement(db, order) {
+/** 지급. 실패해도 던지지 않는다 — 돈은 이미 받았고, 실패를 오류로 올리면 사용자가 다시 결제한다.
+ *  `rethrow` 는 크론·프로필 선택 지급 전용이다 — 원래 오류 코드(MISSING_PROFILE_ID 등)로 종결 여부를 가른다. */
+async function grantOrderEntitlement(db, order, { rethrow = false } = {}) {
   try {
     if (order.purchaseType === "GIFT") {
       const { ensureGiftForOrder } = await import("./gifts.js");
@@ -1006,8 +1015,43 @@ async function grantOrderEntitlement(db, order) {
       code: error?.code || "",
       message: error?.message || String(error),
     });
+    if (rethrow) throw error;
     return false;
   }
+}
+
+/**
+ * 프로필 선택 지급(birth-profile-claim.js). 소유·대기 확인 → 고른 프로필로 엄격 신원 → 선점 CAS → 지급 → 마무리 CAS.
+ * 지급은 출생 신원을 넘겨 주문 종류(구 단건·구글·V2)와 무관하게 같은 BIRTH 행을 쓴다. 환불하지 않는다.
+ */
+async function claimBirthProfileOrder(db, { userId, orderId, profileId, partnerProfileId = "", now = new Date() }) {
+  const order = await findOrder(db, { orderId });
+  assertOrderOwner(order, userId);
+  if (!isBirthProfilePendingOrder(order)) {
+    // 같은 생년월일로 이미 끝낸 주문의 재요청(두 번 누름)은 성공으로 돌려준다.
+    if (order.metadata?.birthProfileClaim?.grantedAt) {
+      return { orderId: String(order.merchantUid), featureKey: String(order.featureKey || ""), replayed: true };
+    }
+    throw paymentError("ORDER_NOT_CONFIRMABLE", "프로필 선택이 필요한 주문이 아닙니다.", { orderId: String(order.merchantUid || "") });
+  }
+  const product = claimProductFromOrder(order);
+  const identity = await resolvePaymentBirthIdentity(db, { userId, profileId, partnerProfileId, featureKey: product.featureKey });
+  if (!identity) throw paymentError("ORDER_NOT_CONFIRMABLE", "출생 기반 해금 주문이 아닙니다.");
+  const reserved = await reserveBirthProfileClaim(db, { order, identity, now });
+  if (!reserved) throw paymentError("ORDER_NOT_CONFIRMABLE", "이미 다른 프로필로 지급을 진행한 주문입니다.", { orderId: String(order.merchantUid) });
+  const { alreadyOwned } = await grantEntitlement(db, {
+    userId: String(order.userId),
+    product,
+    orderId: String(order.merchantUid),
+    paymentId: String(order.impUid || order.paymentId || order.merchantUid),
+    birthIdentity: identity,
+    contentKey: String(order.pricingSnapshot?.contentKey || ""),
+    now,
+  });
+  await markUserFeatureUnlocked(db, { userId: String(order.userId), featureKey: product.featureKey, now });
+  await finalizeBirthProfileClaim(db, { order, identity, snapshotFields: birthSnapshotFields(identity), now });
+  invalidateBalanceSnapshot(order.userId);
+  return { orderId: String(order.merchantUid), featureKey: String(order.featureKey || ""), alreadyOwned, replayed: false };
 }
 
 /* ── 라우트 표 ───────────────────────────────────────────────────────────
@@ -1036,6 +1080,26 @@ const ROUTES = {
         ...(cursor ? { _id: { $lt: toObjectId(cursor) } } : {}),
       }, { sort: { _id: -1 }, limit: 50 }));
       return json({ ok: true, orders: orders.map(presentOrder), nextCursor: orders.length === 50 ? String(orders.at(-1)._id) : null });
+    },
+  },
+  // 프로필 선택 지급 대기 주문(출생 기반 전환 전 주문 + 프로필 결손). 클라이언트가 부팅 때 한 번 본다.
+  "GET /birth-profile-pending": {
+    auth: "required",
+    async handle({ env, ctx, userId, withDb }) {
+      const orders = await withDb(env, ctx, db => listBirthProfilePendingOrders(db, { userId }));
+      return json({ ok: true, orders: orders.map(presentBirthProfilePendingOrder) });
+    },
+  },
+  "POST /birth-profile-pending/:id/claim": {
+    auth: "required",
+    async handle({ request, env, ctx, userId, params, body, withDb }) {
+      ctx.orderId = params.id;
+      const profileId = String(body?.profileId || "").trim().slice(0, 80);
+      const partnerProfileId = String(body?.partnerProfileId || "").trim().slice(0, 80);
+      if (!profileId) throw paymentError("MISSING_PROFILE_ID", "열람할 프로필을 골라 주세요.", { requiresProfile: true });
+      const result = await withDb(env, ctx, db => claimBirthProfileOrder(db, { userId, orderId: params.id, profileId, partnerProfileId }));
+      await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
+      return json({ ok: true, ...result, message: "선택한 프로필로 열람 권한을 적용했어요." });
     },
   },
   "GET /orders/:id/status": {
@@ -1344,13 +1408,19 @@ const ROUTES = {
       await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
       if (result.granted) return json({ ok: true, order: presentOrder(result.order), entitlementStatus: "granted" });
       // 🔴 200 이다. 카드는 승인됐고 주문도 기록됐다 — 장애가 아니라 마무리가 남은 성공이다.
+      // 소급 출생 기반 주문은 크론이 풀지 못한다 — code 는 그대로(셸·앱이 GRANT_PENDING 으로 분기) 두고
+      // profileSelectionRequired 로 프로필 선택 지급(/birth-profile-pending)을 안내한다.
+      const profileSelectionRequired = orderNeedsBirthProfileSelection(result.order);
       return json({
         ok: true,
         order: presentOrder(result.order),
         entitlementStatus: "pending",
         code: "GRANT_PENDING",
         pollUrl: `/api/payments/orders/${encodeURIComponent(params.id)}`,
-        message: "결제는 완료됐어요. 콘텐츠 준비를 마무리하는 중이니 다시 결제하지 말아 주세요.",
+        ...(profileSelectionRequired ? { profileSelectionRequired: true } : {}),
+        message: profileSelectionRequired
+          ? BIRTH_PROFILE_SELECTION_MESSAGE
+          : "결제는 완료됐어요. 콘텐츠 준비를 마무리하는 중이니 다시 결제하지 말아 주세요.",
       });
     },
   },
@@ -1383,6 +1453,7 @@ const ROUTES = {
         granted: result.granted,
         replayed: result.replayed,
         unlock: !isPerUseFeatureKey(result.order?.featureKey),
+        profileSelectionRequired: !result.granted && orderNeedsBirthProfileSelection(result.order),
       });
       // 🔴 프리미엄 리포트류는 확정 응답의 premiumAccessToken(+쿠키)이 열람 자격이다 — 구 confirm 의
       // successWithPremiumAccess 승계. 빠지면 결제는 됐는데 콘텐츠 접근이 막힌다(2026-08-12 수정).
@@ -2046,7 +2117,7 @@ export async function runPaymentsV2Reconcile(env) {
   try {
     const report = await withPaymentDb(env, ctx, async (db) => {
       const report = await runPaymentReconcile(db, {
-        grant: (order) => grantOrderEntitlement(db, order).then((granted) => {
+        grant: (order) => grantOrderEntitlement(db, order, { rethrow: true }).then((granted) => {
           if (!granted) throw paymentError("INTERNAL_ERROR", "entitlement grant failed", { orderId: String(order?.merchantUid || "") });
         }),
       });

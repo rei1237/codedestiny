@@ -2,7 +2,7 @@
 import { calculateLifeBookAiSaju } from "../../worker/lib/life-book-ai-saju.js";
 import { calculateZiweiAiChart } from "../../worker/lib/ziwei-ai-chart.js";
 import { buildMasterLoveCodexCompatibility, buildSajuLoveCompatibility } from "../../worker/lib/master-love-codex-compat.js";
-import { buildCodexEvidence, assertCodexEvidence } from "../../worker/lib/master-love-codex-evidence.js";
+import { buildCodexEvidence, assertCodexEvidence, formatCodexEvidence, stripCodexEvidenceIds } from "../../worker/lib/master-love-codex-evidence.js";
 import { MASTER_LOVE_CODEX_CHAPTERS } from "../../worker/lib/master-love-codex-prompt.mjs";
 import { MASTER_LOVE_CODEX_COMPAT_CHAPTERS } from "../../worker/lib/master-love-codex-compat-prompt.mjs";
 
@@ -119,4 +119,37 @@ test("measured gemini evidence shapes (id / path aliases, no crossChecks) normal
   expect(() => assertCodexEvidence(parsed, contract)).not.toThrow();
   expect(parsed.evidence.map(item => item.evidenceId)).toEqual(contract.records.map(record => record.id));
   expect(parsed.crossChecks).toEqual([]);
+});
+
+// 🔴 R4 (2026-10-10): 본문이 "(self.saju.natalInteractions)" 처럼 증거 ID 를 그대로 인용했다.
+test("evidence IDs stay in evidenceId/crossChecks.id only, never in reader prose", () => {
+  const chapter = MASTER_LOVE_CODEX_COMPAT_CHAPTERS[0];
+  const contract = buildCodexEvidence({ chapter, saju: selfSaju, ziweiChart: selfZiwei, partnerSaju, partnerZiweiChart, compatibility });
+  const formatted = formatCodexEvidence(contract);
+  expect(formatted).not.toContain("ID와 값만 인용");
+  expect(formatted).toMatch(/독자용 문장에는 id/);
+  const id = contract.records[0].id;
+  const ID_LIKE = /\b(?:self|partner|pair)\.(?:saju|ziwei)\.|\bcross\.[a-z]|\bT\d{3}\b|\bF-[A-Za-z0-9]/;
+  const text = `진유합이 있습니다(${id}). 끌림은 크지 않습니다 [cross.attraction.resonance, pair.ziwei.palaceOverlay]. `
+    + `부부궁(근거: self.ziwei.palaces.부부궁)에서는 표 T055 와 F-12 를 봅니다. self.ziwei.palaces.명궁에서는 차분합니다.`;
+  const stripped = stripCodexEvidenceIds(text, contract);
+  expect(stripped).not.toMatch(ID_LIKE);
+  expect(stripped).toBe("진유합이 있습니다. 끌림은 크지 않습니다. 부부궁에서는 표 와 를 봅니다. 에서는 차분합니다.");
+  expect(stripCodexEvidenceIds("자미(묘)와 2027년 세운, T-셔츠 같은 말은 그대로 둡니다.", contract))
+    .toBe("자미(묘)와 2027년 세운, T-셔츠 같은 말은 그대로 둡니다.");
+});
+
+test("missing model labels fall back to Korean terms, not English paths", () => {
+  const chapter = MASTER_LOVE_CODEX_COMPAT_CHAPTERS[0];
+  const contract = buildCodexEvidence({ chapter, saju: selfSaju, ziweiChart: selfZiwei, partnerSaju, partnerZiweiChart, compatibility });
+  const parsed = { evidence: contract.records.map(record => ({ evidenceId: record.id, explanation: "계산된 근거입니다" })) };
+  assertCodexEvidence(parsed, contract);
+  for (const item of parsed.evidence) expect(item.label).toMatch(/^(본인|상대|두 사람) [가-힣0-9 ]+$/);
+});
+
+test("cross.context pending reason is a Korean sentence, not an English code", () => {
+  const contract = buildCodexEvidence({ chapter: MASTER_LOVE_CODEX_CHAPTERS[0], saju: chart(person), ziweiChart: ziwei(person) });
+  const context = contract.crossChecks.find(record => record.id === "cross.context");
+  expect(context.reason).toMatch(/^[가-힣 ,.]+$/);
+  expect(formatCodexEvidence(contract)).not.toContain("no_calculated_direction");
 });

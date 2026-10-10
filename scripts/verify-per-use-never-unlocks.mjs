@@ -148,7 +148,7 @@ check("세 봉투 모두 unlock=true 면 해금을 선언한다 (대조군)", ()
 // "per_use 조기 반환이 grantEntitlement 호출보다 앞에 있는가"를 본다.
 check("grantOrderEntitlement 는 회당 결제에서 지급을 건너뛴다", () => {
   const source = read("worker/payments/index.js");
-  const body = sliceFunctionBody(source, "async function grantOrderEntitlement(db, order)");
+  const body = sliceFunctionBody(source, "async function grantOrderEntitlement(db, order, { rethrow = false } = {})");
   const guardAt = body.indexOf('billingType || "per_use") === "per_use"');
   const grantAt = body.indexOf("await grantEntitlement(");
   const markAt = body.indexOf("await markUserFeatureUnlocked(");

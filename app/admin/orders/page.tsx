@@ -111,6 +111,8 @@ export default function AdminOrdersPage() {
   const [debouncedEmail, setDebouncedEmail] = useState("");
   const [status, setStatus] = useState("");
   const [paymentType, setPaymentType] = useState("");
+  // 지급 보류(delivery_failed_manual_review) — 프로필 선택 대기 주문 포함. 서버가 허용값만 받는다.
+  const [heldOnly, setHeldOnly] = useState(false);
   const [page, setPage] = useState(1);
 
   const [list, setList] = useState<ListResponse | null>(null);
@@ -145,6 +147,7 @@ export default function AdminOrdersPage() {
       if (debouncedEmail.trim()) params.set("email", debouncedEmail.trim());
       if (status) params.set("status", status);
       if (paymentType) params.set("paymentType", paymentType);
+      if (heldOnly) params.set("failureCode", "delivery_failed_manual_review");
       params.set("page", String(page));
       const data = await adminFetch<ListResponse>(`/api/admin/orders?${params.toString()}`);
       setList(data);
@@ -153,7 +156,7 @@ export default function AdminOrdersPage() {
     } finally {
       setListLoading(false);
     }
-  }, [debouncedQuery, debouncedEmail, status, paymentType, page]);
+  }, [debouncedQuery, debouncedEmail, status, paymentType, heldOnly, page]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -276,6 +279,10 @@ export default function AdminOrdersPage() {
                 ))}
               </select>
             </div>
+            <button type="button" className={buttonClass(heldOnly ? "primary" : "ghost")} aria-pressed={heldOnly}
+              onClick={() => { setPage(1); setHeldOnly((v) => !v); }}>
+              지급 보류 · 프로필 선택 대기{heldOnly ? " ✓" : ""}
+            </button>
           </div>
 
           {list?.counts?.length ? (

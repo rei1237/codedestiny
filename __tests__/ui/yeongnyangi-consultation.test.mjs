@@ -359,6 +359,23 @@ test('the second to last antardasha called the last is corrected to just before 
  assert.equal(correctDashaSequence(body('마지막 안타르다샤인 금성 시기야.'),[]).count,0);
 });
 
+test('MO 7: a planet named with the saju word 대운 takes its stored dasha level; a planet at no level is the current mahadasha',()=>{
+ // MO 2026-10-10 ask ch1 carries dashaPeriods rows only: 달 마하다샤, 금성 안타르다샤, 토성·수성 프라티안타르다샤.
+ const rows=[{lord:'Moon',level:'mahadasha'},{lord:'Venus',level:'antardasha'},{lord:'Saturn',level:'pratyantar'},{lord:'Mercury',level:'pratyantar'}];
+ const facts=[{id:'vedic.dashaPeriods',label:'dashaPeriods',value:rows}];
+ const body=(summary,paragraph='')=>({summary,example:'',advice:'',persona:'',analysis:[],highlights:[summary],blocks:[{title:'흐름',paragraphs:[paragraph]}],questionAnswers:[]});
+ const out=correctDashaSequence(body('목성 대운: 지금은 토성, 수성의 영향이 와.','금성 대운이 이어지고 토성(Saturn) 대운은 짧아. 목성(Jupiter) 대운으로 읽지 마. 달 대운의 끝이야.'),facts);
+ assert.equal(out.body.highlights[0],'달 마하다샤: 지금은 토성, 수성의 영향이 와.');
+ assert.equal(out.body.blocks[0].paragraphs[0],'금성 안타르다샤가 이어지고 토성(Saturn) 프라티안타르다샤는 짧아. 달(Moon) 마하다샤로 읽지 마. 달 마하다샤의 끝이야.');
+ assert.equal(out.count,6);
+ // A saju 대운, a month word before 대운, and a chapter with no dasha facts stay as written.
+ for(const text of ['병술 대운이 와.','다음 달 대운의 흐름을 봐.','이번 달 대운 점검이야.','감수성 대운이야.'])assert.equal(correctDashaSequence(body(text),facts).count,0,text);
+ assert.equal(correctDashaSequence(body('목성 대운이야.'),[]).count,0);
+ // The stored vimshottariDasha (lords as strings) names the levels when the selected facts lack them.
+ const stored=[{id:'vedic.vimshottariDasha',label:'vimshottariDasha',value:{currentMahadasha:'Moon',currentAntardasha:'Venus',currentPratyantarDasha:'Jupiter'}}];
+ assert.equal(correctDashaSequence(body('목성 대운이야. 화성 대운은 끝났어.'),[],stored).body.summary,'목성 프라티안타르다샤야. 달 마하다샤는 끝났어.');
+});
+
 test('a relative year word must agree with the year written after it',()=>{
  const consultation={asOf:'2026-10-10'}, body=text=>({summary:text,example:'',advice:'',persona:'',analysis:[],blocks:[],questionAnswers:[]});
  // Z ch5: asked in October 2026, 내년 is 2027.
@@ -392,6 +409,18 @@ test('D5: markdown residue, a doubled 미 and English (Label: value) glosses are
  const clean={summary:'오행의 분포에서 시작해요.',analysis:['영향을 미칠 수 있어요.','2*3 같은 계산식은 그대로 둬요.'],example:'',advice:''};
  assert.deepEqual(correctProseMarkup(clean),{body:clean,count:0});
  assert.match(correctProseMarkup({summary:'Venus is strong (Dignity: domicile).',analysis:[],example:'',advice:''},'en').body.summary,/\(Dignity: domicile\)/);
+});
+test('MA/MO 6·5B: a word repeated in brackets folds, score brackets drop and English element words become Korean',()=>{
+ const body={summary:'비견(비견)의 기운이 가장 두드러지고, 겁재(겁재)와 상관 (상관)도 뒤를 이어.',analysis:['내년 세운 丁未(정미)와 戌未 형(형)이 겹쳐.','월주(월주)와 일주(일주)를 함께 봐.',
+  '강한 편(일간 강약 점수 41)이야.','사주 전체가 서늘한 편(-4점)이라 쉬어야 해.',"서늘한 기운('seasonalBalance' score -4)이 강해.",'서늘한 편이라(월령과 계절에 따른 오행의 균형 score -4), 따뜻한 기운이 필요해.',
+  '‘metal’ 오행이 강하고 water 기운은 약해.','금(metal) 기운이 단단해.'],example:'',advice:''};
+ const fixed=correctProseMarkup(body);
+ assert.equal(fixed.body.summary,'비견의 기운이 가장 두드러지고, 겁재와 상관도 뒤를 이어.');
+ assert.deepEqual(fixed.body.analysis,['내년 세운 丁未(정미)와 戌未 형이 겹쳐.','월주와 일주를 함께 봐.','강한 편이야.','사주 전체가 서늘한 편이라 쉬어야 해.','서늘한 기운이 강해.',
+  '서늘한 편이라, 따뜻한 기운이 필요해.','‘금’ 오행이 강하고 수 기운은 약해.','금 기운이 단단해.']);
+ // Different values in brackets, a word that only ends the same, scores outside brackets and IDs stay for the later guards.
+ const clean={summary:'일간 辛金(신금)과 명궁(命宮)을 봐.',analysis:['편인비견(비견)처럼 쓰지 않아.','3월(봄)에 시작해.','오전 10시(시점) 이후가 좋아.','saju.fiveElements.metal 은 그대로 둬.'],example:'',advice:''};
+ assert.deepEqual(correctProseMarkup(clean),{body:clean,count:0});
 });
 test('D5: astrology facts reach the prompt with Korean dignity names',async()=>{
  let prompt;

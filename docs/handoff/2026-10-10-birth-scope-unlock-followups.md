@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-10
-next: "docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1(지급 보류 오안내·웹훅 202·소급 주문)을 진행해줘"
+next: "docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2(이관 마이그레이션 staging 리허설)를 진행해줘"
 ---
 
 # 출생 기반 해금 전환 — 남은 위험·후속 과제
@@ -21,7 +21,7 @@ next: "docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1(�
 과제 하나에 세션 하나를 쓴다. 아래 문장의 과제 번호만 바꿔 붙여 넣는다.
 
 ```
-docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1 을 진행해줘
+docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2 를 진행해줘
 ```
 
 - 🔴 **운영 승격 전 필수:** P0-1, P0-2. 순서는 P0-1 코드 → main push → P0-2 staging 리허설 → P0-2 운영 → 승격이다.
@@ -34,7 +34,19 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1 을 진�
 
 ### P0. 운영 승격 전 필수
 
-**P0-1. 소급 주문 지급 보류: 결제됐는데 해금이 없고 "권한 정상 처리"로 안내** — 🔴 RED
+**P0-1. 소급 주문 지급 보류: 결제됐는데 해금이 없고 "권한 정상 처리"로 안내** — 🔴 RED — ✅ 완료 2026-10-10 (bf5cd847e, 1181044d5, 73445d45f, bf4d34198)
+- 결과:
+  - 구 웹 202 문구는 이제 "권한 정상 처리"를 말하지 않는다. 202 계약은 유지한다. 신원 오류이면 `profileSelectionRequired:true` 를 싣는다.
+  - V2 크론은 `MISSING_PROFILE_ID`·`INVALID_PROFILE` 에서 `delivery_failed_manual_review`(`failureStage:"birth_profile_required"`)를 달고 재시도 루프에서 빠진다. 확인 응답은 `GRANT_PENDING` 에 `profileSelectionRequired:true` 를 싣는다. 계획했던 별도 코드 `BIRTH_PROFILE_REQUIRED` 는 만들지 않았다. 기존 클라이언트 분기를 깨지 않기 위해서다.
+  - 프로필 선택 지급: `GET /api/payments/birth-profile-pending`, `POST /api/payments/birth-profile-pending/:id/claim`(`worker/payments/birth-profile-claim.js`). 로그인 뒤 `js/destiny-profile.js` 카드에서 저장 프로필을 고른다. 한 주문은 처음 고른 생년월일 하나로만 지급된다.
+  - 관리자: 주문 목록의 "지급 보류 · 프로필 선택 대기" 필터(`?failureCode=delivery_failed_manual_review`).
+  - 대상 주문 수: `node scripts/audit-birth-scope-pending-orders.mjs --db <이름>`(읽기 전용). 2026-10-10 기준 결과는 다음과 같다. 운영 승격 직전에 한 번 더 센다.
+    - staging: 대기 0, 위험 0
+    - 운영: 대기 0, 위험 0. 스냅샷이 없는 소급 주문 8건은 모두 이미 지급됐다.
+  - 범위 밖 발견(미착수):
+    - `js/destiny-profile.js` 결제 복귀 처리가 `GRANT_PENDING` 을 성공처럼 표시하는 구간이 있다.
+    - 구 크론(`worker/lib/payment-reconcile-task.js`)이 신원 보류 주문을 최대 10회까지 헛되이 재조회한다.
+    - V2 주문 pollUrl 은 프로필 선택 대기 주문에서도 계속 폴링할 수 있다.
 - 대상 주문: 이번 변경 전에 만들어진 출생 기반 키 주문이다. `pricingSnapshot` 에 profileId·birthKey 가 없거나 그 프로필이 삭제된 경우다. 새 주문은 시작 단계에서 막힌다(`worker/routes/payments.js:1985-2000`).
 - 웹(PortOne) 경로:
   - `upsertSinglePaymentUnlockRecord` 가 신원 오류를 던진다(`payments.js:1186-1201`).
@@ -50,9 +62,9 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1 을 진�
   1. 신원 실패 응답 문구를 사실대로 고친다. 예: "결제는 확인됐고 열람할 프로필 확인이 필요합니다". 202 와 processed 계약 중 하나로 정하고 주석과 맞춘다.
   2. V2 regrant 에서 신원 오류를 종결 상태로 빼서 무한 재시도를 멈춘다.
   3. 읽기 전용 조회로 대상 주문 수를 센다. 조건은 결제 완료 + 출생 기반 featureKey + `pricingSnapshot.birthKey` 없음이다. staging(`code_destiny_staging`)과 운영(`code_destiny`) 각각 센다.
-  4. 처리 방식(환불 또는 사용자가 프로필을 고른 뒤 지급)은 **사용자에게 묻는다.**
+  4. ✅ 결정됨(사용자, 2026-10-10): **환불하지 않는다.** 대신 사용자가 저장 프로필을 고르면 그 프로필 출생 정보로 BIRTH 행을 지급한다. 지급 대기 주문이 있는 계정에서는 결제 화면이나 결과 화면에 "열람할 프로필을 골라 주세요" 같은 진입점을 보여 준다. 이 진입점을 지급 경로에 연결하고, 그 결과로 `delivery_failed_manual_review` 표시를 정리한다.
   5. 관리자가 볼 수 있게 표시 기반 목록이나 알림을 하나 만든다.
-- 알려진 한계: 프로필이 살아 있는 소급 주문은 구매 시점이 아니라 **현재** 출생 정보로 지급된다. 바꿀지 사용자에게 함께 묻는다.
+- ✅ 결정됨(사용자, 2026-10-10 "현재 생년월일로 지급"): 프로필이 살아 있는 소급 주문은 구매 시점이 아니라 **현재** 출생 정보로 지급한다. 지금 동작을 유지한다.
 - 완료 기준:
   - 신원 실패 시 "권한 정상 처리" 문구가 나가지 않는다.
   - V2 에서 신원 오류 주문이 재시도 루프를 빠져나온다.
@@ -150,19 +162,27 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1 을 진�
 - `worker/routes/astro-basic-deep.js:53-60` 과 `worker/routes/nakshatra-premium.js:83-112,234-236` 이 해당한다. 같은 생년월일로 시간대를 바꾸면 사실상 다른 차트를 받는다.
 - ProfileCard 에는 `location {label,tz,lng,lat}` 가 있다(`worker/lib/models.js:261-266,289`). 하지만 `readProfileBirthUnlock` 는 이 값을 select 하지 않는다(`paid-content-read-access.js:100`).
 - 할 일: `location` 을 select 해서 넘기고, 본문의 장소 값은 무시한다.
-- 주의: 스키마 기본값(서울) 때문에 미입력과 서울을 구분할 수 없다. 처리 방식은 사용자에게 묻는다.
+- ✅ 결정됨(사용자, 2026-10-10): 출생지를 입력하지 않은 프로필은 **서울로 계산한다.** 스키마 기본값(`tz:"Asia/Seoul"`, `lat:37.5`, `lng:127.0`)을 그대로 쓰고, 미입력을 따로 구분하지 않는다.
 - 완료 기준: 본문 tz·lat·lng 를 바꿔도 결과가 같은 테스트가 `nakshatra-premium-birth-unlock.test.js` 와 `astro-basic-deep.test.js` 에 각 1건씩 있다.
 
-**P2-4. 회당 과금 키가 영구 해금 목록에 남음** — 🟡 YELLOW, 규모 S
-- `worker/routes/fortune.js:2538` `fun.quantumLotto.ritualReport` 와 `:2527` `love-code` 가 `PERSISTENT_UNLOCK_KEY_SET` 에 들어 있다. 그런데 레지스트리에서는 두 키 모두 `per_use` 다(`worker/lib/paid-feature-registry.js:391,341`).
+**P2-4. 영구 해금 목록과 레지스트리 과금 방식 불일치 (lotto 제거, love-code 영구 해금 전환)** — 🔴 RED(과금 방식 변경), 규모 S–M
+- `worker/routes/fortune.js:2538` `fun.quantumLotto.ritualReport` 와 `:2527` `love-code` 가 `PERSISTENT_UNLOCK_KEY_SET` 에 들어 있다. 그런데 레지스트리에서는 두 키 모두 `per_use` 다(`worker/lib/paid-feature-registry.js:391,341`, 회당 목록 `:530` 의 `:601,603`).
 - `resolvePersistedUnlockFeatures`(`fortune.js:2634-2675`)는 이용권 차감 행을 영구 해금으로 바꾸고 계정 배열에도 써 넣는다.
 - 문서 `docs/context/payment-gating.md:61` 도 lotto 를 "영구 해금"으로 적고 있다. 같은 문서 `:26` 의 회당 1,000원과 모순된다.
+- ✅ 결정됨(사용자, 2026-10-10): **love-code 는 영구 해금 기능으로 한다.** lotto 는 회당 과금 그대로 둔다.
+- ✅ 결정됨(사용자, 2026-10-10 "러브코드는 계정 전체로 열면 되고"): love-code 는 **계정 기반**(`ACCOUNT_SCOPED_UNLOCK_FEATURE_KEYS`, `worker/lib/paid-feature-registry.js:740`)이다. 출생 기반이 아니다. 한 번 사면 그 계정의 모든 프로필에서 열린다.
 - 할 일:
-  1. lotto 를 목록에서 뺀다.
-  2. love-code 는 `:29` 기존 영구 지급을 존중하는 규칙 때문에 일부러 남겼을 수 있다. **사용자에게 묻는다.**
-  3. 문서를 고친다.
+  1. lotto 를 `PERSISTENT_UNLOCK_KEY_SET` 에서 뺀다.
+  2. love-code 를 영구 해금으로 바꾼다.
+     - 레지스트리 `:341` 에서 `accessModel:"per_use"` 를 빼고 회당 목록(`:601`)에서도 뺀다. 가격 5,000원(50코인)은 그대로다.
+     - 분류 검사(`assertUnlockScopeClassification`)가 출생 기반·계정 기반 중 하나를 강제한다. love-code 는 **계정 기반** 목록(`ACCOUNT_SCOPED_UNLOCK_FEATURE_KEY_LIST`)에 넣는다(사용자 결정). 커밋 메시지에 그 근거를 남긴다. 출생 기반 목록·클라이언트 미러에는 넣지 않는다.
+     - 클라이언트에서 회당 결제로 처리하던 love-code 관문을 영구 해금 관문으로 바꾼다. 위치는 `git grep -n "love-code" -- js index.html app` 으로 찾는다.
+  3. `docs/context/payment-gating.md:29`(회당 5,000원 → 영구 해금), `:61`(lotto 제거)를 고친다.
   4. `scripts/verify-per-use-never-unlocks.mjs` 에 "이 목록과 per_use 목록이 겹치지 않는다" 검사를 추가한다.
-- 검증: `npm run verify:per-use-never-unlocks`, `npm run verify:love-code-permanent-unlock`, `npm run verify:payment-policy-md`
+- 완료 기준:
+  - love-code 를 한 번 사면 다시 들어가도 열린다. 같은 계정의 다른 프로필에서도 열린다.
+  - lotto 는 이용권으로 써도 영구 해금되지 않는다.
+- 검증: `npm run verify:per-use-never-unlocks`, `npm run verify:love-code-permanent-unlock`, `npm run verify:payment-policy-md`, `npm run verify:paid-feature-billing-policy`
 
 ### P3. 요금·정리
 
@@ -170,7 +190,7 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1 을 진�
 - 지금은 `profile-card-manage` 가 `APP_PAID_LOW_PRICE_FEATURE_KEYS`(`worker/lib/app-store-pricing.js:128-149`)에 있다. 10코인 티어가 없어서 503 `APP_SKU_NOT_VERIFIED` 가 난다(`worker/routes/app-store.js:218-224`).
 - 이 키를 목록에서 **빼면 안 된다.** 빼면 앱에서 무료가 된다.
 - 순서. Play Console 에 상품을 먼저 만들고 그다음 코드를 고친다(`app-store-pricing.js:8-9`).
-  1. Play Console 에 `cd_content_tier_15` 를 ₩1,000 으로 만든다. ID 01–14 는 사용 중이거나 재사용 금지다. ID 는 추정이므로 사용자에게 확인한다.
+  1. ✅ 결정됨(사용자, 2026-10-10): **Play 에서도 ₩1,000 가격을 허용한다.** Play Console 에 `cd_content_tier_15` 를 ₩1,000 으로 만든다. ID 01–14 는 사용 중이거나 재사용 금지라 다음 번호를 쓴다. 상품 생성은 사용자가 Play Console 에서 직접 한다. 끝났다는 확인을 받은 뒤 2단계로 넘어간다.
   2. `CONTENT_TIER_TABLE`(`app-store-pricing.js:41-58`)에 `{productId:"cd_content_tier_15", amountKRW:1000, webAmountKRW:1000, coinPrices:[10]}` 을 추가한다.
   3. `scripts/create-play-console-products.mjs:39-52` 와 `docs/play-console-submission-values.md:62-67` 에도 추가한다.
   4. `__tests__/worker/app-store.google-billing.test.js:702-729` 의 기대값을 바꾼다.
@@ -196,11 +216,15 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1 을 진�
 - 해당 줄은 `js/destiny-profile.js:9984-9985` 다. 읽는 코드가 없어 이름만 바꾸면 된다.
 - 고친 뒤 `npm run sync:public` 과 `verify-payment-choice-parity` 로 `destiny-profile.js?v=` pin 을 다시 맞춘다. 수동 pin 파일 약 25개를 함께 커밋한다.
 
-**P3-5. 궁합(`section_compat`) 구매 UI 없음** — 사용자 결정 필요
-- 서버는 지원한다(`worker/lib/birth-key.js:79`). 하지만 `data-partner-profile-id` 를 넣는 화면이 없다. 지금 화면의 궁합 카드는 다른 키(`compat-saju-compatibility`, 회당 과금)를 쓴다(`js/saju-engine.js:28576-28620`).
-- 선택지:
-  - (a) 저장 프로필 선택 UI, 결제 페이로드(`index.html:23160,23694,28050`), 본문 라우트를 만든다. 규모 M.
-  - (b) 레지스트리와 인벤토리에서 이 키를 정식으로 은퇴시킨다. 규모 S.
+**P3-5. 쓰이지 않는 궁합 영구 해금 키(`section_compat`) 은퇴** — 🟢 GREEN, 규모 S
+- 사주 화면의 궁합 기능은 이미 있다. 그 기능은 `compat-saju-compatibility` 키(회당 50코인, 레지스트리 `:269`, 회당 목록 `:569`)를 쓰고, 상대 생년월일을 직접 입력받는다(`js/saju-engine.js:28576-28620`). **이번 과제는 이 기능을 건드리지 않는다.**
+- `section_compat` 은 그와 별개로 레지스트리에만 남은 영구 해금 키다(`paid-feature-registry.js:468,506,648,701`). 이 키로 구매하는 화면이 없다.
+- ✅ 결정됨(사용자 답변 2026-10-10 "이미 사주 화면에 궁합 기능은 존재한다"): 새 궁합 기능은 만들지 않는다. `section_compat` 을 정식으로 은퇴시킨다.
+- 할 일:
+  1. 레지스트리·분류 목록·별칭 표(`worker/routes/access.js:41`, `worker/routes/billing.js:112`, `worker/lib/content-unlocks.js:31,860`), `worker/lib/review-product-catalog.js:39`, `worker/routes/fortune.js:2520`, `worker/lib/birth-scoped-unlock-identity.js:25`에서 `section_compat` 을 뺀다. 이미 구매한 행이 있으면 읽기는 남긴다. `git grep -n section_compat` 으로 전수 확인한다.
+  2. 클라이언트의 `partnerProfileId` 전달 분기(`index.html:30847-30862`)와 `computeCompatBirthKey`(`worker/lib/birth-key.js:79`)는 다른 사용처가 없으면 함께 지운다.
+  3. 인벤토리 문서(`docs/payments/payment-inventory.md:106`)와 `docs/context/payment-gating.md:9` 의 궁합 문장을 고친다.
+- 완료 기준: `git grep -n section_compat` 결과가 이관 기록과 은퇴 주석뿐이고 `npm run check:fast` 가 통과한다.
 
 ## 과제가 아닌 것 (의도된 동작)
 
@@ -208,13 +232,24 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-1 을 진�
 - 옛 JS 캐시로 5,000원을 보내면 400 `CLIENT_AMOUNT_MISMATCH` 와 "새로고침 후 다시 시도" 문구가 나온다. 새로고침하면 해결된다.
 - 브라우저 캐시 누수는 점검 결과 남은 곳이 없다. 다만 다른 기기에서 생년월일을 고친 뒤 72시간 안에는 이 기기의 옛 지급 기록이 브라우저 관문을 열 수 있다. P2-1 을 끝내면 함께 사라진다.
 
+## 사용자 결정 (2026-10-10)
+
+- P0-1: 프로필 정보 없이 결제된 예전 주문은 환불하지 않는다. 프로필을 고르게 한 뒤 지급한다.
+- P0-1: 프로필이 살아 있는 소급 주문은 현재 생년월일로 지급한다.
+- 출생 기반 범위:
+  - 사주 화면의 종합 사주 풀이와 대운은 프로필 생년월일로 구분해야 한다(출생 기반 필수).
+  - 재밌는 사주 콘텐츠는 가능하면 출생 기반으로 두되 필수는 아니다.
+  - love-code 같은 기능은 출생 기반에서 뺀다.
+  - 사용자 원문: "사주 화면의 종합 사주 풀이, 대운정도만 프로필 생년월일로 구분되어도 괜찮긴해 재밌는 사주 콘텐츠는 안해줘도 괜찮고 가능하면 해줘 러브 코드 이런거 빼고"
+  - 출생 기반 키 목록을 줄일지는 이 결정만으로 정하지 않는다. 지금 목록을 유지하고, 줄이려면 따로 과제를 만든다.
+- P2-3: 출생지를 입력하지 않은 경우 서울로 계산한다.
+- P2-4: love-code 는 영구 해금 기능으로 하고, 계정 전체로 연다(계정 기반, 출생 기반 아님).
+- P3-1: Play 에서도 ₩1,000 가격을 허용한다.
+- P3-5: 사주 화면 궁합은 이미 있다. 새로 만들지 않고 `section_compat` 키를 은퇴시킨다.
+
 ## 모르는 것 — 추측하지 말고 사용자에게 묻는다
 
-- P0-1: 소급 주문을 환불할지, 프로필을 고르게 한 뒤 지급할지.
-- P2-3: 출생지 미입력(서울 기본값)을 어떻게 처리할지.
-- P2-4: love-code 를 영구 해금 목록에 남길지.
-- P3-1: Play 에서 ₩1,000 가격을 허용하는지, 상품 ID 를 무엇으로 할지.
-- P3-5: 궁합 기능을 만들지, 은퇴시킬지.
+- 지금은 없다.
 
 ## 공통 검증
 
