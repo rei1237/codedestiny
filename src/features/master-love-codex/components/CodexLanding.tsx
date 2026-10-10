@@ -12,6 +12,7 @@
  */
 
 import type { ReactNode } from "react";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import Link from "next/link";
 import { ArrowDownRight, Check, ChevronLeft, Home } from "lucide-react";
 import CodexShell from "./CodexShell";
@@ -135,6 +136,18 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
               <CodexPremiumCard mode="solo" onSelect={onEnter} />
             </CodexReveal>
           </div>
+          {locale === "ko" && <div className="mt-10 space-y-8">
+            <section aria-label="개인판 상세 안내">
+              <h3 className={styles.chapterTitle}>나를 읽는 개인판</h3>
+              <CraftedProductDisclosure featureKey="master-love-codex" />
+              <a className={styles.detailReturn} href="#codex-plan-solo">개인판 가격과 상담 시작 확인하기</a>
+            </section>
+            <section aria-label="궁합판 상세 안내">
+              <h3 className={styles.chapterTitle}>두 사람을 읽는 궁합판</h3>
+              <CraftedProductDisclosure featureKey="master-love-codex-compat" />
+              <a className={styles.detailReturn} href="#codex-plan-compat">궁합판 가격과 상담 시작 확인하기</a>
+            </section>
+          </div>}
         </div>
       </section>
 

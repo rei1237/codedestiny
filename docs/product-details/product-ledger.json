@@ -1634,25 +1634,77 @@
     },
     {
       "productId": "master-love-codex",
-      "displayName": "마스터 인연의 서",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "displayName": "마스터 인연의 서 · 개인",
+      "saleStatus": "현재 두 상품 카드 및 각 PriceBadge/시작 버튼 확인",
       "entry": [
         "/master-love-codex/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 10000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
+      "inputRequirements": [
+        "본인 출생 정보",
+        "생년월일·성별·달력 기준·시간 또는 시간 모름"
+      ],
+      "resultRenderer": [
+        "src/features/master-love-codex/components/CodexReader.tsx"
+      ],
+      "actualContents": [
+        "제1장 · 운명의 문 — 당신이라는 사람",
+        "제2장 · 타고난 연애 기질 — 일간과 십성이 말하는 것",
+        "제3장 · 부부궁이 말하는 배우자상",
+        "제4장 · 끌림의 원리 — 오행과 조후",
+        "제5장 · 애착과 표현 방식",
+        "제6장 · 마음의 방어기제",
+        "제7장 · 인연이 열리는 자리 — 천이궁의 지도",
+        "제8장 · 썸에서 연애로 넘어가는 조건",
+        "제9장 · 고백과 타이밍",
+        "제10장 · 관계의 온도 곡선",
+        "제11장 · 갈등의 뿌리 — 형충파해가 건드리는 자리",
+        "제12장 · 화해와 회복의 언어",
+        "제13장 · 질투·집착·거리두기",
+        "제14장 · 친밀감과 두 사람의 리듬",
+        "제15장 · 이별의 패턴과 재회의 문",
+        "제16장 · 결혼운과 장기 동행",
+        "제17장 · 사주 × 자미두수 교차검증",
+        "제18장 · 연애 DNA 프로필",
+        "제19장 · 앞으로 3년, 인연의 흐름",
+        "제20장 · 연애 고수의 마지막 편지"
+      ],
+      "conditionalItems": [
+        "DNA는 결과가 있을 때 표시",
+        "전체 장이 준비되고 completed일 때 PDF 저장",
+        "완성된 장부터 표시"
+      ],
+      "separatePurchase": [
+        "master-love-codex-compat"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/master-love-codex/01-return-to-me.webp",
+        "/feature-details/crafted/master-love-codex/02-familiar-distance.webp",
+        "/feature-details/crafted/master-love-codex/03-two-lenses.webp",
+        "/feature-details/crafted/master-love-codex/04-opening-chapters.webp",
+        "/feature-details/crafted/master-love-codex/05-opening-door.webp",
+        "/feature-details/crafted/master-love-codex/06-repair-chapters.webp",
+        "/feature-details/crafted/master-love-codex/07-future-chapters.webp",
+        "/feature-details/crafted/master-love-codex/08-one-sentence.webp",
+        "/feature-details/crafted/master-love-codex/09-reading-profile.webp",
+        "/feature-details/crafted/master-love-codex/10-own-pace.webp"
+      ],
+      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "appliedAt": [
+        "src/features/master-love-codex/components/CodexLanding.tsx"
+      ],
+      "verification": [
+        "docs/product-details/codex-contract-snapshot.json",
+        "docs/product-details/verification/master-love-codex/render.json",
+        "docs/product-details/verification/master-love-codex/mobile.json",
+        "docs/product-details/verification/master-love-codex/review.json"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "실제 LLM 결과 문장·PDF 출력은 미실행",
+        "main 전달 및 CI",
+        "기존 /features/master-love-codex 일반 소개는 별도 확인 필요"
       ],
       "detailAliases": [
         "master-love-codex"
@@ -1660,25 +1712,77 @@
     },
     {
       "productId": "master-love-codex-compat",
-      "displayName": "마스터 인연의 서",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "displayName": "마스터 인연의 서 · 궁합",
+      "saleStatus": "현재 두 상품 카드 및 각 PriceBadge/시작 버튼 확인",
       "entry": [
         "/master-love-codex/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
+      "inputRequirements": [
+        "본인과 상대 출생 정보",
+        "생년월일·성별·달력 기준·시간 또는 시간 모름"
+      ],
+      "resultRenderer": [
+        "src/features/master-love-codex/components/CodexReader.tsx"
+      ],
+      "actualContents": [
+        "제1장 · 마주 선 두 사람 — 첫인상의 궁합",
+        "제2장 · 당신이라는 사람 — 관계 속의 나",
+        "제3장 · 상대라는 사람 — 그 사람의 결",
+        "제4장 · 무엇이 서로를 끌었나",
+        "제5장 · 일간의 관계 — 두 기둥이 만나는 방식",
+        "제6장 · 십성 상호작용 — 서로가 맡는 역할",
+        "제7장 · 서로를 채우는 자리 — 용신과 보완",
+        "제8장 · 지지의 합충형파해 — 리듬이 부딪치는 지점",
+        "제9장 · 두 명반의 상호 배치",
+        "제10장 · 부처궁 교차 비교 — 서로가 그리는 배우자상",
+        "제11장 · 살성이 앉는 자리 — 어디서 서로를 긁는가",
+        "제12장 · 사화의 교환 — 어디서 서로를 키우는가",
+        "제13장 · 관계의 온도 곡선 — 두 사람의 시간축",
+        "제14장 · 갈등의 뿌리 — 같은 다툼이 반복되는 이유",
+        "제15장 · 상대에게 닿는 말 — 화해의 언어",
+        "제16장 · 지속 가능성과 결혼운",
+        "제17장 · 사주와 자미두수 — 합치점과 차이점",
+        "제18장 · 관계 DNA 프로필",
+        "제19장 · 앞으로 3년의 관계 흐름",
+        "제20장 · 두 사람에게 보내는 마지막 편지"
+      ],
+      "conditionalItems": [
+        "DNA는 결과가 있을 때 표시",
+        "전체 장이 준비되고 completed일 때 PDF 저장",
+        "완성된 장부터 표시"
+      ],
+      "separatePurchase": [
+        "master-love-codex"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/master-love-codex-compat/01-two-speeds.webp",
+        "/feature-details/crafted/master-love-codex-compat/02-different-meaning.webp",
+        "/feature-details/crafted/master-love-codex-compat/03-four-charts.webp",
+        "/feature-details/crafted/master-love-codex-compat/04-meet.webp",
+        "/feature-details/crafted/master-love-codex-compat/05-complement.webp",
+        "/feature-details/crafted/master-love-codex-compat/06-reconcile.webp",
+        "/feature-details/crafted/master-love-codex-compat/07-together.webp",
+        "/feature-details/crafted/master-love-codex-compat/08-agreement.webp",
+        "/feature-details/crafted/master-love-codex-compat/09-relationship-profile.webp",
+        "/feature-details/crafted/master-love-codex-compat/10-shared-page.webp"
+      ],
+      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "appliedAt": [
+        "src/features/master-love-codex/components/CodexLanding.tsx"
+      ],
+      "verification": [
+        "docs/product-details/codex-contract-snapshot.json",
+        "docs/product-details/verification/master-love-codex-compat/render.json",
+        "docs/product-details/verification/master-love-codex-compat/mobile.json",
+        "docs/product-details/verification/master-love-codex-compat/review.json"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "실제 LLM 결과 문장·PDF 출력은 미실행",
+        "main 전달 및 CI",
+        "기존 /features/master-love-codex 일반 소개는 별도 확인 필요"
       ],
       "detailAliases": [
         "master-love-codex"

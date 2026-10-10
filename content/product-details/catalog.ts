@@ -6,4 +6,6 @@ export const craftedProductIds:Partial<Record<string,string>>={
  'yeongnyangi-saju-tuna':'yeongnyangi-saju-tuna',
  'life-book-ai-consultation':'life-book',
  'life-fortune-ai-consultation':'life-fortune',
+ 'master-love-codex':'master-love-codex',
+ 'master-love-codex-compat':'master-love-codex-compat',
 };

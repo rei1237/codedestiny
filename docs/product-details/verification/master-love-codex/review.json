@@ -1,0 +1,14 @@
+{
+  "disposition": "ship",
+  "scope": "Independent visual inspection of 10 source panels, actual 360px panels, CTA and notices at 360/390/430; mock only",
+  "fixes": [
+    "chapter flow layout varied",
+    "10 DNA indicators separated",
+    "foreign compatibility floating CTA hidden",
+    "individual offer return link"
+  ],
+  "limits": [
+    "No real LLM, payment, or PDF export",
+    "Existing pricing card typography not changed"
+  ]
+}
