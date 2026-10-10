@@ -39,3 +39,14 @@ it("cuts at the last complete sentence and closes an open bold span", () => {
   expect((clipped.match(/\*\*/g) || []).length % 2).toBe(0);
   expect(clipped).not.toMatch(/3\.$/);
 });
+
+it("never ends on a list number such as \"3.\" (R8 2026-10-11)", () => {
+  const item = n => `${n}. **기록하는 연습**: 진행했던 프로젝트와 해결했던 문제를 구체적인 데이터와 함께 정리하는 습관을 들이면 좋습니다.`;
+  for (const sep of [" ", "\n"]) {
+    const text = "몇 가지 추천 행동을 제안합니다." + sep + [1, 2, 3, 4].map(item).join(sep);
+    const limit = countPaidReportBodyChars(text.slice(0, text.indexOf("3.") + 2)) + 1;
+    const clipped = trimPaidReportText(text, limit);
+    expect(clipped).not.toMatch(/\d\.\**$/u);
+    expect(clipped).toMatch(/좋습니다\.$/u);
+  }
+});

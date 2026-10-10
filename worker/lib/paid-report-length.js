@@ -33,6 +33,9 @@ function lastSentenceBoundary(chars, limit) {
       continue;
     }
     if (!SENTENCE_END.test(chars[i])) continue;
+    // A list number ("3. ") opens an item; cutting after it ended R8's action plan on "3.".
+    const from = Math.max(lineStart, i - 4);
+    if (chars[i] === "." && (from === lineStart ? /(?:^|\s)\d{1,3}$/u : /\s\d{1,3}$/u).test(chars.slice(from, i).join(""))) continue;
     let end = i + 1;
     while (end < chars.length && SENTENCE_CLOSER.test(chars[end])) end++;
     // "3.5" is not a sentence end: the terminator must be followed by whitespace or the text end.
