@@ -6,6 +6,7 @@
  * 순수 함수만 검증하므로 모킹이 필요 없다.
  */
 import { __lifeBookAiTestUtils } from "../../worker/routes/life-book-ai.js";
+import { calculateLifeBookAiSaju } from "../../worker/lib/life-book-ai-saju.js";
 
 const {
   buildSectionPlan,
@@ -15,6 +16,8 @@ const {
   mapIssuesToSections,
   reportTotalContentChars,
   getLifeBookReportQualityIssues,
+  scrubBirthValues,
+  scrubSectionBody,
 } = __lifeBookAiTestUtils;
 
 const birthInfo = {
@@ -232,4 +235,50 @@ test('short life-book candidates retain structure, evidence and repetition check
 test('every forbidden term is cleaned, not only the first, and 시스템 keeps the sentence intact', () => {
   const cleaned = __lifeBookAiTestUtils.cleanForbiddenResult('새로운 시스템을 구축합니다. 다시 시스템을 다듬고 AI 이야기는 빼며 AI 도 뺍니다.');
   expect(cleaned).toBe('새로운 기반을 구축합니다. 다시 기반을 다듬고  이야기는 빼며  도 뺍니다.');
+});
+
+// 🔴 R9 (2026-10-10): 본문이 생년월일을 되짚었다. 프롬프트에 원값이 세 경로로 들어갔다.
+// 원값을 아예 보내지 않고, 그래도 나오면 결정적으로 지운다.
+describe("출생값 0건", () => {
+  const birthTokens = (birth) => {
+    const [y, m, d] = birth.birthDate.split("-");
+    const [hh, mm] = birth.birthTime.split(":");
+    return [birth.birthDate, `${y}.${m}.${d}`, `${y}/${m}/${d}`, `${y}년 ${Number(m)}월 ${Number(d)}일`, `${y}년 ${m}월 ${d}일`,
+      `${Number(m)}월 ${Number(d)}일`, `${y}년생`, birth.birthTime, `${hh}시 ${mm}분`, `${Number(hh)}시 ${Number(mm)}분`];
+  };
+
+  test.each([["lifeFortune", lifeFortuneInput], ["lifeBook", lifeBookInput]])("%s: 15개 섹션 프롬프트 모두 출생값·이름이 없다", (_type, input) => {
+    const saju = calculateLifeBookAiSaju(input.birthInfo);
+    for (const section of buildSectionPlan(input)) {
+      const prompt = buildSectionPrompt(input, pickSajuSlice(saju, section.evidenceRefs), section, "");
+      const hits = birthTokens(input.birthInfo).filter((token) => prompt.includes(token));
+      expect({ section: section.id, hits }).toEqual({ section: section.id, hits: [] });
+      expect(prompt).not.toContain(input.birthInfo.name);
+      expect(prompt).toContain("성별");
+      expect(prompt).toContain("출생시각: 입력됨");
+    }
+  });
+
+  test("calculationMeta 는 시각 미상 여부만 남긴다", () => {
+    const saju = calculateLifeBookAiSaju({ ...birthInfo, birthTime: "", birthTimeUnknown: true });
+    const slice = pickSajuSlice(saju, ["calculationMeta.timeUnknown"]);
+    expect(slice.calculationMeta).toEqual({ timeUnknown: true });
+  });
+
+  test("본문에 나온 출생값은 결정적으로 지운다", () => {
+    const text = `당신이 태어난 ${"1990년 5월 15일"}은 봄입니다. ${"1990-05-15"} ${"1990.05.15"} 기록, ${"5월 15일생"}, ${"1990년생"}인 당신은 오전 ${"8시 30분"}에, 즉 ${"08:30"} 에 태어났습니다.`;
+    const scrubbed = scrubBirthValues(text, birthInfo);
+    expect(birthTokens(birthInfo).filter((token) => scrubbed.includes(token))).toEqual([]);
+    expect(scrubbed).toContain("당신이 태어난 그날은 봄입니다.");
+    expect(scrubBirthValues("2026년 5월 15일과 1990년대, 8시 30분 사이 무관한 숫자", { ...birthInfo, birthDate: "1991-06-16", birthTime: "09:10" }))
+      .toBe("2026년 5월 15일과 1990년대, 8시 30분 사이 무관한 숫자");
+  });
+
+  test("섹션 본문 전 필드를 지우고, 프레임은 profileSummary 를 받지 않는다", () => {
+    const plan = buildSectionPlan(lifeBookInput);
+    const frame = plan.find((section) => section.kind === "frame");
+    const body = scrubSectionBody({ title: "1990년 5월 15일의 책", coreSummary: { oneLine: "08:30 의 사람" }, advice: ["1990-05-15 를 기억"] }, birthInfo);
+    expect(JSON.stringify(body)).not.toMatch(/1990|08:30/);
+    expect(buildSectionPrompt(lifeBookInput, {}, frame, "")).not.toContain("profileSummary");
+  });
 });
