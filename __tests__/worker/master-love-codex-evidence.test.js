@@ -153,3 +153,26 @@ test("cross.context pending reason is a Korean sentence, not an English code", (
   expect(context.reason).toMatch(/^[가-힣 ,.]+$/);
   expect(formatCodexEvidence(contract)).not.toContain("no_calculated_direction");
 });
+
+// R4 (2026-10-09): "금이 목를 누른다" went into the prompt, and chapter 6 reversed who controls whom.
+test.each([
+  ["辛", "乙", "상극 — 본인의 금이 상대의 목을 누른다"],
+  ["乙", "辛", "상극 — 상대의 금이 본인의 목을 누른다"],
+  ["甲", "丙", "상생 — 본인의 목이 상대의 화를 살린다"],
+  ["丙", "甲", "상생 — 상대의 목이 본인의 화를 살린다"],
+  ["戊", "庚", "상생 — 본인의 토가 상대의 금을 살린다"],
+])("day stem relation %s→%s names the direction by person with correct particles", (self, partner, label) => {
+  const base = chart(person);
+  const relation = buildSajuLoveCompatibility({ selfSaju: { ...base, dayMaster: self }, partnerSaju: { ...base, dayMaster: partner } }).dayStemRelation;
+  expect(relation.relationLabel).toBe(label);
+});
+
+// R3/R4: 생년사화(transformations)와 자화(selfTransformations), 천간/지지 십성을 한 이름으로 섞어 썼다.
+test("evidence block explains the record keys that separate birth-year vs self transformations and stem vs branch ten gods", () => {
+  const contract = buildCodexEvidence({ chapter: MASTER_LOVE_CODEX_CHAPTERS[0], saju: chart(person), ziweiChart: ziwei(person) });
+  const formatted = formatCodexEvidence(contract);
+  expect(formatted).toMatch(/transformations는 생년사화/);
+  expect(formatted).toMatch(/selfTransformations는 .*자화/);
+  expect(formatted).toMatch(/stemTenGod는 천간 십성/);
+  expect(formatted).toMatch(/branchTenGods.*지지/);
+});
