@@ -14,7 +14,8 @@
     "love-secret-ai-consultation": "love-secret",
     "fortune-tea-house-saju-consultation": "tea-saju",
     "fortune-tea-house-saju-compatibility-consultation": "tea-saju-compat",
-    "fortune-tea-house-sukuyo-compatibility-consultation": "tea-sukuyo"
+    "fortune-tea-house-sukuyo-compatibility-consultation": "tea-sukuyo",
+    "neo-operation-room-consultation": "neo-operation-room"
   },
   "introductions": {
     "fusion-fortune": [
@@ -36,6 +37,9 @@
       "tea-sukuyo",
       "tea-tarot-three",
       "tea-tarot-five"
+    ],
+    "neo-operation-room": [
+      "neo-operation-room"
     ]
   }
 }

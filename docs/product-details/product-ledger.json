@@ -800,7 +800,7 @@
     {
       "productId": "fortune-chat-question-flounder",
       "displayName": "연이·네오 질문 상담 · 광어",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "현재 신규판매 비활성",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 15000,
@@ -813,16 +813,20 @@
       "images": [],
       "status": "조사",
       "appliedAt": [],
-      "verification": [],
+      "verification": [
+        "docs/product-details/fortune-chat-public-status.json",
+        "docs/product-details/fortune-chat-public-catalog.json"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "공개 status와catalog GET enabled=false (확인시각 evidence참조)",
+        "기존저장상담읽기는별도"
       ],
       "detailAliases": []
     },
     {
       "productId": "fortune-chat-question-mackerel",
       "displayName": "연이·네오 질문 상담 · 고등어",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "현재 신규판매 비활성",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
@@ -835,16 +839,20 @@
       "images": [],
       "status": "조사",
       "appliedAt": [],
-      "verification": [],
+      "verification": [
+        "docs/product-details/fortune-chat-public-status.json",
+        "docs/product-details/fortune-chat-public-catalog.json"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "공개 status와catalog GET enabled=false (확인시각 evidence참조)",
+        "기존저장상담읽기는별도"
       ],
       "detailAliases": []
     },
     {
       "productId": "fortune-chat-question-salmon",
       "displayName": "연이·네오 질문 상담 · 연어",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "현재 신규판매 비활성",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 9000,
@@ -857,16 +865,20 @@
       "images": [],
       "status": "조사",
       "appliedAt": [],
-      "verification": [],
+      "verification": [
+        "docs/product-details/fortune-chat-public-status.json",
+        "docs/product-details/fortune-chat-public-catalog.json"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "공개 status와catalog GET enabled=false (확인시각 evidence참조)",
+        "기존저장상담읽기는별도"
       ],
       "detailAliases": []
     },
     {
       "productId": "fortune-chat-question-tuna",
       "displayName": "연이·네오 질문 상담 · 참치",
-      "saleStatus": "판매 진입 확인 필요",
+      "saleStatus": "현재 신규판매 비활성",
       "entry": [],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
@@ -879,9 +891,13 @@
       "images": [],
       "status": "조사",
       "appliedAt": [],
-      "verification": [],
+      "verification": [
+        "docs/product-details/fortune-chat-public-status.json",
+        "docs/product-details/fortune-chat-public-catalog.json"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "공개 status와catalog GET enabled=false (확인시각 evidence참조)",
+        "기존저장상담읽기는별도"
       ],
       "detailAliases": []
     },
@@ -1444,24 +1460,72 @@
     {
       "productId": "neo-operation-room-consultation",
       "displayName": "네오의 팩폭 작전실",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현재진입·가격정본 확인",
       "entry": [
-        "/neo-operation-room/"
+        "/neo-operation-room/",
+        "/features/neo-operation-room/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 20000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "질문·주제·4체계중1개·팩폭강도",
+        "생년월일·성별·출생시간또는미상",
+        "베다·서양점성술 시간대",
+        "연애재회주제: 선택상대정보"
+      ],
+      "resultRenderer": [
+        "src/features/neo-war-room/NeoOperationRoomPage.tsx",
+        "src/features/neo-war-room/NeoOperationRoomResultPage.tsx",
+        "src/features/neo-war-room/data/method-registry.ts",
+        "src/features/neo-war-room/data/input-flow.ts",
+        "worker/lib/neo-operation-room-compat.js",
+        "worker/lib/neo-refinement-contract.js",
+        "worker/routes/neo-operation-room.js"
+      ],
+      "actualContents": [
+        "전선진단",
+        "긴급작전",
+        "네오판단",
+        "타고난성향",
+        "주제분석",
+        "시기전략",
+        "어긋난자리와근거",
+        "금지7일작전",
+        "현실점검",
+        "휘장과마무리",
+        "수정명령서:재판단·판정근거·행동대안·도움역할·30일전략·마무리"
+      ],
+      "conditionalItems": [
+        "각챕터는내용존재시에만",
+        "관계궁합:연애재회+상대조건,4체계현재지원",
+        "궁교차등체계별근거차이",
+        "현실점검은남은횟수조건"
+      ],
+      "separatePurchase": [
+        "다른체계새상담권한확인",
+        "PDF·편지·전략서별도해금조건"
+      ],
+      "reviewSource": [
+        "고객후기없음; 명시된편집예시와방법론"
+      ],
+      "images": [
+        "public/neo-operation-room/briefing/neo-explain-v1.webp",
+        "public/neo-operation-room/strategy-room-v1.webp"
+      ],
+      "status": "완료",
+      "appliedAt": [
+        "기존상담가치영역",
+        "공용소개"
+      ],
+      "verification": [
+        "docs/product-details/verification/neo-operation-room/render.json",
+        "docs/product-details/verification/neo-operation-room/mobile.json",
+        "docs/product-details/verification/neo-operation-room/introduction/verification.json",
+        "docs/product-details/verification/neo-operation-room/review.json"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "로컬제작·적용·검수완료,main전달미완료",
+        "실제LLM/실결제미검증"
       ],
       "detailAliases": [
         "neo-operation-room"
