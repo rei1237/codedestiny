@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-11
-next: "docs/handoff/2026-10-11-paid-archive-followups.md 를 읽고 P0-1 을 진행해줘"
+next: "docs/handoff/2026-10-11-paid-archive-followups.md 를 읽고 P0-2 를 진행해줘"
 ---
 
 # 유료 결과 보관함 저장·이용권 증빙 — 남은 문제와 후속 과제
@@ -58,13 +58,17 @@ docs/handoff/2026-10-11-paid-archive-followups.md 를 읽고 P0-1 을 진행해�
 
 ### P0. 결제 정합성
 
-**P0-1. 숙요 기본·정밀 궁합의 고정 requestId — 두 번째 상대가 첫 결제의 멱등 재생으로 처리될 위험** — 🔴 RED
+**P0-1. 숙요 기본·정밀 궁합의 고정 requestId — 두 번째 상대가 첫 결제의 멱등 재생으로 처리될 위험** — 🔴 RED ✅ 완료 2026-10-11 (5aa147705)
 - 현상: 숙요 회당 궁합(`compat-sukuyo-compatibility`, `premium-sukuyo-compat-extra`)은 게이트 requestId 를 `sukuyo-paid:<featureKey>|<profileId>` 로 카드에 고정한다. 같은 카드로 다른 상대를 보면 서버가 첫 결제를 다시 쓰는 것으로 볼 수 있다. 그러면 두 번째 결제가 일어나지 않는다. 보관함 기록은 상대 시그니처로 나뉘지만, 결제 증빙은 첫 결제 하나를 같이 쓴다.
 - 근거: `js/saju-engine-tarot-sukuyo-quantum.js` 의 `syOpenPaidSukuyoFeature`(`requestId: 'sukuyo-paid:' + inFlightKey`).
 - 할 일:
   - 실제 동작을 먼저 확인한다. 게이트·`verifyPerUsePayment` 의 멱등 키 처리를 따라가 두 번째 결제가 차감되는지 테스트로 재현한다.
   - 재현되면 점성술·자미두수처럼 결제마다 새 requestId 를 만든다. 복귀 서술자에도 싣고, `sukuyo-archive.js` 는 그 requestId 로 증빙을 찾게 바꾼다.
 - 범위: `js/saju-engine-tarot-sukuyo-quantum.js`(`syOpenPaidSukuyoFeature`, 궁합 복귀 처리), `worker/routes/sukuyo-archive.js`.
+- 결과(5aa147705):
+  - 재현: 이중 결제가 아니라 반대였다. 월정석은 `spendMoonstone` purchaseId 유니크로 `replayed:true`, 이용권은 (featureKey, requestId) 소비 마커로 멱등이라 두 번째 상대가 **차감 없이** 열렸다. 보관함도 고정값 증빙 하나로 상대 N명을 저장했다. 단건 KRW 는 게이트 진입 스코프가 주문 키에 붙어 영향 없었다.
+  - 수정: 궁합 2종만 결제마다 `sukuyo-paid:<fk>|<profileId>|<꼬리>`. 복귀 서술자 args 에 requestId·profileId. 서버는 이 기능·이 카드 접두사일 때만 받아(아니면 400) 그 값으로 증빙을 찾고 결제 1건 = 기록 1건. requestId 가 없으면(배포 전 JS·결제) 예전 고정값으로 찾는다.
+  - 남은 것: 수동 E2E(P1-6) 미실시. 캐시된 예전 JS 는 고정값을 계속 써 배포 전과 같다(P2-2). 다른 숙요 회당 기능(전생·월운 등)이 같은 고정값을 쓰는지는 이번 범위 밖이라 보지 않았다.
 
 **P0-2. 같은 경합을 가진 다른 `requireExisting` 소비자** — 🟠
 - 이용권 즉시 사용 뒤 서버가 `requireExisting:true` 로 증빙을 찾는 경로는 모두 같은 403 경합을 가진다. 이번에는 보관함 저장 두 라우트만 고쳤다.
