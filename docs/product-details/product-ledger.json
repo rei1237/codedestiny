@@ -6029,102 +6029,131 @@
     {
       "productId": "yeongnyangi-sukuyo-flounder",
       "displayName": "영냥이 숙요 광어",
-      "saleStatus": "공개GET 현재 enabled=true/available=true; 진입과 결과 계약 확인",
+      "saleStatus": "공개catalog enabled/available 및지원진입 확인",
       "entry": [
         "/yeongnyangi/readings/sukuyo/",
-        "/yeongnyangi/fortune/?domain=sukuyo",
-        "/yeongnyangi/fortune/?flow=legacy&domain=sukuyo&fish=flounder"
+        "/yeongnyangi/fortune/?domain=sukuyo"
       ],
       "priceSource": "worker/yeongnyangi/payments/catalog.ts → worker/lib/billing-feature-registry.js",
       "priceSnapshotKRW": 15000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "천문식27숙: 생년월일·출생시간·지역·시간대",
+        "개인 기본은 본인 정보, 두 사람 비교는 각각의 정보"
+      ],
       "resultRenderer": [
         "app/yeongnyangi/_components/Result.tsx",
         "app/yeongnyangi/_components/ReadingBook.tsx"
       ],
-      "actualContents": [
-        {
-          "id": "personal",
-          "partner": false,
-          "chapters": [
-            "본명숙이 말하는 나",
-            "편안하게 끌리는 인연(안)",
-            "깨지며 배우는 인연(괴)",
-            "서로를 키우는 인연(영)",
-            "가족 같은 인연(친)",
-            "일에서 만나는 인연(성위)",
-            "친구와 멀어지는 인연(우쇠)",
-            "운명처럼 얽히는 인연(명·업·태)"
-          ]
-        },
-        {
-          "id": "compatibility",
-          "partner": true,
-          "chapters": [
-            "두 사람의 기질과 관계의 바탕",
-            "관계 유형과 서로 다른 역할",
-            "끌림과 기대의 차이",
-            "서로에게 편안한 표현",
-            "가까워지는 속도와 거리",
-            "갈등이 시작되는 반응",
-            "일상과 책임의 조율",
-            "돈과 자원을 대하는 차이",
-            "경계와 신뢰의 조건",
-            "어긋난 뒤 회복의 선택",
-            "두 사람의 궁합 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "relationship",
-          "partner": true,
-          "chapters": [
-            "우리 관계의 거리와 역할",
-            "다가가는 속도의 차이",
-            "기대와 표현의 조율",
-            "갈등의 반복 원인",
-            "편안한 대화의 조건",
-            "각자의 경계 지키기",
-            "어긋난 뒤의 회복",
-            "함께할 때의 강점",
-            "부담을 나누는 방법",
-            "관계를 이어가는 두 선택",
-            "관계 유지 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "ask",
-          "partner": false,
-          "chapters": [
-            "본명숙이 말하는 나",
-            "편안하게 끌리는 인연(안)",
-            "깨지며 배우는 인연(괴)",
-            "서로를 키우는 인연(영)",
-            "가족 같은 인연(친)",
-            "일에서 만나는 인연(성위)",
-            "친구와 멀어지는 인연(우쇠)",
-            "운명처럼 얽히는 인연(명·업·태)"
-          ]
-        }
-      ],
+      "actualContents": {
+        "question": [
+          "내 본명숙의 바탕 · 마음과 관계의 리듬",
+          "나의 강점과 부담이 되는 순간",
+          "두 사람의 궁합 · 두 사람이 잘 맞는 점과 조율할 차이",
+          "두 사람의 궁합 · 판단의 근거와 달라지는 조건",
+          "현재 · 기회와 주의 조건",
+          "두 사람의 궁합 · 두 사람의 구조",
+          "두 사람의 궁합 · 끌림과 충돌",
+          "두 사람의 궁합 · 역할과 책임의 분담",
+          "두 사람의 궁합 · 관계가 흔들리는 시기",
+          "두 사람의 궁합 · 회복의 조건",
+          "질문 밖에서 보이는 흐름 · 재물",
+          "질문 밖에서 보이는 흐름 · 일과 적성",
+          "질문 밖에서 보이는 흐름 · 건강 리듬과 회복",
+          "질문 밖에서 보이는 흐름 · 올해의 흐름",
+          "두 사람의 궁합 · 종합 해석과 실행 계획"
+        ],
+        "legacy": [
+          {
+            "id": "personal",
+            "partner": false,
+            "chapters": [
+              "본명숙이 말하는 나",
+              "편안하게 끌리는 인연(안)",
+              "깨지며 배우는 인연(괴)",
+              "서로를 키우는 인연(영)",
+              "가족 같은 인연(친)",
+              "일에서 만나는 인연(성위)",
+              "친구와 멀어지는 인연(우쇠)",
+              "운명처럼 얽히는 인연(명·업·태)"
+            ]
+          },
+          {
+            "id": "compatibility",
+            "partner": true,
+            "chapters": [
+              "두 사람의 기질과 관계의 바탕",
+              "관계 유형과 서로 다른 역할",
+              "끌림과 기대의 차이",
+              "서로에게 편안한 표현",
+              "가까워지는 속도와 거리",
+              "갈등이 시작되는 반응",
+              "일상과 책임의 조율",
+              "돈과 자원을 대하는 차이",
+              "경계와 신뢰의 조건",
+              "어긋난 뒤 회복의 선택",
+              "두 사람의 궁합 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "relationship",
+            "partner": true,
+            "chapters": [
+              "우리 관계의 거리와 역할",
+              "다가가는 속도의 차이",
+              "기대와 표현의 조율",
+              "갈등의 반복 원인",
+              "편안한 대화의 조건",
+              "각자의 경계 지키기",
+              "어긋난 뒤의 회복",
+              "함께할 때의 강점",
+              "부담을 나누는 방법",
+              "관계를 이어가는 두 선택",
+              "관계 유지 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "ask",
+            "partner": false,
+            "chapters": [
+              "본명숙이 말하는 나",
+              "편안하게 끌리는 인연(안)",
+              "깨지며 배우는 인연(괴)",
+              "서로를 키우는 인연(영)",
+              "가족 같은 인연(친)",
+              "일에서 만나는 인연(성위)",
+              "친구와 멀어지는 인연(우쇠)",
+              "운명처럼 얽히는 인연(명·업·태)"
+            ]
+          }
+        ]
+      },
       "conditionalItems": [
-        "질문 상담과 전체 성향 리포트의 manifest가 다름",
-        "차트·요약·행동·추가 질문은 저장된 결과 및 선택한 계약에 따라 표시",
-        "참치 장기 질문은 사주·자미두수·베다만 지원"
+        "관계 이름은 좋고 나쁜 사람의 등급이 아님",
+        "타로·베다·서양 점성술과 체계 혼용 없음"
       ],
-      "separatePurchase": [],
+      "separatePurchase": [
+        "개인 기본과 두 사람 구성은 선택별 별도 목차"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
+      "images": [
+        "/feature-details/crafted/yeongnyangi-sukuyo-flounder/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "content/product-details/catalog.json",
+        "app/yeongnyangi/_components/ProductGuide.tsx",
+        "app/yeongnyangi/_components/IntakeChat.tsx"
+      ],
       "verification": [
-        "docs/product-details/yeongnyangi-contract-snapshot.json"
+        "독립원본18장/실제27패널·18CTA고지·6원고 SHIP",
+        "4폭 load/bounds/fallback PASS"
       ],
       "unconfirmed": [
-        "개별 상품 원고·이미지·모바일 적용 미완료",
-        "각 체계별 입력 조건의 개별 대조 미완료"
+        "main 전달·CI 및운영노출미확인;실LLM·결제미실행"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-sukuyo-mackerel",
@@ -6347,114 +6376,126 @@
     {
       "productId": "yeongnyangi-sukuyo-tuna",
       "displayName": "영냥이 숙요 참치",
-      "saleStatus": "공개GET 현재 enabled=true/available=true; 진입과 결과 계약 확인",
+      "saleStatus": "공개catalog enabled/available 및지원진입 확인",
       "entry": [
-        "/yeongnyangi/readings/sukuyo/",
-        "/yeongnyangi/fortune/?domain=sukuyo",
-        "/yeongnyangi/fortune/?flow=legacy&domain=sukuyo&fish=tuna"
+        "/yeongnyangi/readings/sukuyo/"
       ],
       "priceSource": "worker/yeongnyangi/payments/catalog.ts → worker/lib/billing-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "천문식27숙: 생년월일·출생시간·지역·시간대",
+        "개인 기본은 본인 정보, 두 사람 비교는 각각의 정보"
+      ],
       "resultRenderer": [
         "app/yeongnyangi/_components/Result.tsx",
         "app/yeongnyangi/_components/ReadingBook.tsx"
       ],
-      "actualContents": [
-        {
-          "id": "personal",
-          "partner": false,
-          "chapters": [
-            "본명숙이 말하는 나",
-            "편안하게 끌리는 인연(안)",
-            "깨지며 배우는 인연(괴)",
-            "서로를 키우는 인연(영)",
-            "가족 같은 인연(친)",
-            "함께 이루는 인연(성)",
-            "긴장을 주는 인연(위)",
-            "편한 친구(우)",
-            "기운을 빼는 인연(쇠)",
-            "운명처럼 얽히는 인연(명·업·태)"
-          ]
-        },
-        {
-          "id": "compatibility",
-          "partner": true,
-          "chapters": [
-            "두 사람의 기질과 관계의 바탕",
-            "관계 유형과 서로 다른 역할",
-            "끌림과 기대의 차이",
-            "서로에게 편안한 표현",
-            "가까워지는 속도와 거리",
-            "갈등이 시작되는 반응",
-            "일상과 책임의 조율",
-            "돈과 자원을 대하는 차이",
-            "경계와 신뢰의 조건",
-            "어긋난 뒤 회복의 선택",
-            "각자가 느끼는 부담의 차이",
-            "양보와 자기 보호의 선택",
-            "오래 함께하기 위한 합의",
-            "관계를 다시 점검할 신호",
-            "두 사람의 궁합 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "relationship",
-          "partner": true,
-          "chapters": [
-            "우리 관계의 거리와 역할",
-            "다가가는 속도의 차이",
-            "기대와 표현의 조율",
-            "갈등의 반복 원인",
-            "편안한 대화의 조건",
-            "각자의 경계 지키기",
-            "어긋난 뒤의 회복",
-            "함께할 때의 강점",
-            "부담을 나누는 방법",
-            "관계를 이어가는 두 선택",
-            "양방향 역할의 비대칭",
-            "신뢰를 회복할 조건",
-            "오래 유지할 합의",
-            "합의를 다시 살필 신호",
-            "관계 유지 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "ask",
-          "partner": false,
-          "chapters": [
-            "본명숙이 말하는 나",
-            "편안하게 끌리는 인연(안)",
-            "깨지며 배우는 인연(괴)",
-            "서로를 키우는 인연(영)",
-            "가족 같은 인연(친)",
-            "함께 이루는 인연(성)",
-            "긴장을 주는 인연(위)",
-            "편한 친구(우)",
-            "기운을 빼는 인연(쇠)",
-            "운명처럼 얽히는 인연(명·업·태)"
-          ]
-        }
-      ],
+      "actualContents": {
+        "question": [],
+        "legacy": [
+          {
+            "id": "personal",
+            "partner": false,
+            "chapters": [
+              "본명숙이 말하는 나",
+              "편안하게 끌리는 인연(안)",
+              "깨지며 배우는 인연(괴)",
+              "서로를 키우는 인연(영)",
+              "가족 같은 인연(친)",
+              "함께 이루는 인연(성)",
+              "긴장을 주는 인연(위)",
+              "편한 친구(우)",
+              "기운을 빼는 인연(쇠)",
+              "운명처럼 얽히는 인연(명·업·태)"
+            ]
+          },
+          {
+            "id": "compatibility",
+            "partner": true,
+            "chapters": [
+              "두 사람의 기질과 관계의 바탕",
+              "관계 유형과 서로 다른 역할",
+              "끌림과 기대의 차이",
+              "서로에게 편안한 표현",
+              "가까워지는 속도와 거리",
+              "갈등이 시작되는 반응",
+              "일상과 책임의 조율",
+              "돈과 자원을 대하는 차이",
+              "경계와 신뢰의 조건",
+              "어긋난 뒤 회복의 선택",
+              "각자가 느끼는 부담의 차이",
+              "양보와 자기 보호의 선택",
+              "오래 함께하기 위한 합의",
+              "관계를 다시 점검할 신호",
+              "두 사람의 궁합 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "relationship",
+            "partner": true,
+            "chapters": [
+              "우리 관계의 거리와 역할",
+              "다가가는 속도의 차이",
+              "기대와 표현의 조율",
+              "갈등의 반복 원인",
+              "편안한 대화의 조건",
+              "각자의 경계 지키기",
+              "어긋난 뒤의 회복",
+              "함께할 때의 강점",
+              "부담을 나누는 방법",
+              "관계를 이어가는 두 선택",
+              "양방향 역할의 비대칭",
+              "신뢰를 회복할 조건",
+              "오래 유지할 합의",
+              "합의를 다시 살필 신호",
+              "관계 유지 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "ask",
+            "partner": false,
+            "chapters": [
+              "본명숙이 말하는 나",
+              "편안하게 끌리는 인연(안)",
+              "깨지며 배우는 인연(괴)",
+              "서로를 키우는 인연(영)",
+              "가족 같은 인연(친)",
+              "함께 이루는 인연(성)",
+              "긴장을 주는 인연(위)",
+              "편한 친구(우)",
+              "기운을 빼는 인연(쇠)",
+              "운명처럼 얽히는 인연(명·업·태)"
+            ]
+          }
+        ]
+      },
       "conditionalItems": [
-        "질문 상담과 전체 성향 리포트의 manifest가 다름",
-        "차트·요약·행동·추가 질문은 저장된 결과 및 선택한 계약에 따라 표시",
-        "참치 장기 질문은 사주·자미두수·베다만 지원"
+        "관계 이름은 좋고 나쁜 사람의 등급이 아님",
+        "타로·베다·서양 점성술과 체계 혼용 없음",
+        "현재 장기 시기 질문 추천 미지원"
       ],
-      "separatePurchase": [],
+      "separatePurchase": [
+        "개인 기본과 두 사람 구성은 선택별 별도 목차"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
+      "images": [
+        "/feature-details/crafted/yeongnyangi-sukuyo-tuna/manifest.json"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "content/product-details/catalog.json",
+        "app/yeongnyangi/_components/ProductGuide.tsx"
+      ],
       "verification": [
-        "docs/product-details/yeongnyangi-contract-snapshot.json"
+        "독립원본18장/실제27패널·18CTA고지·6원고 SHIP",
+        "4폭 load/bounds/fallback PASS"
       ],
       "unconfirmed": [
-        "개별 상품 원고·이미지·모바일 적용 미완료",
-        "각 체계별 입력 조건의 개별 대조 미완료"
+        "main 전달·CI 및운영노출미확인;실LLM·결제미실행"
       ],
       "detailAliases": [],
-      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json"
+      "publicAvailabilityEvidence": "docs/product-details/yeongnyangi-public-catalog.json",
+      "deliveryStage": "worktree에서 적용·로컬 검수 완료; main 전달·CI 대기"
     },
     {
       "productId": "yeongnyangi-tarot-flounder",
