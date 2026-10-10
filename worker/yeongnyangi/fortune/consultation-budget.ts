@@ -16,6 +16,9 @@ export const CONSULTATION_CHAPTER_TARGETS:Record<PackageId,readonly [number,numb
 export const CONSULTATION_FOLLOWUP_TARGETS={single:[2000,2600],fusion:[2400,3000]} as const;
 /** A delivered chapter shorter than this gets one length repair; delivery itself only stops at half of it (D8). */
 export const LAYOUT_MINIMUM_RATIO=.55;
+/** 11: fusion chapters (MA·MO) ask for ~80% of their target low, so the one length repair (reading-quality chapterFloor, 70%)
+ * starts where a chapter is really short. The delivery floor stays half of minimumChars (chapter-delivery-contract.js). */
+export const FUSION_LAYOUT_MINIMUM_RATIO=.8;
 /** D9: screens show length as A4 pages (10pt body, default margins). Contracts and checks keep counting chars. */
 export const A4_CHARS_PER_PAGE=1800;
 export const A4_PAGE_NOTE='A4 1장은 약 1,800자 기준';
@@ -44,7 +47,7 @@ export function layoutTargets(weights:number[],tier:PackageId):[number,number][]
  const sum=weights.reduce((a,b)=>a+b,0);
  return weights.map(w=>per.map((chars,i)=>(i?Math.floor:Math.ceil)(chars*w*weights.length/sum)) as [number,number]);
 }
-export const layoutMinimum=(target:readonly [number,number])=>Math.ceil(target[0]*LAYOUT_MINIMUM_RATIO);
+export const layoutMinimum=(target:readonly [number,number],ratio=LAYOUT_MINIMUM_RATIO)=>Math.ceil(target[0]*ratio);
 
 /** New purchases: per-system foundation and expert chapters, the question outline, cross-system life chapters and synthesis. */
 export function fusionConsultationManifest(product:Product,topic='general'):ChapterSpec[]{
@@ -59,7 +62,7 @@ export function allocateConsultationBudget(rows:ChapterSpec[],tier:PackageId):Ch
   const ordered=[...rows.filter(row=>row.layoutRole!=='synthesis'),...synthesis].map((row,ordinal)=>({...row,ordinal,
    consultationLayout:FUSION_LAYOUT_VERSION,layoutRole:row.layoutRole||(row.key==='prevention'?'life':'question')}));
   const targets=layoutTargets(ordered.map(row=>ROLE_WEIGHTS[row.layoutRole]||1),tier);
-  return ordered.map((row,i)=>scaled(row,targets[i],layoutMinimum(targets[i])));
+  return ordered.map((row,i)=>scaled(row,targets[i],layoutMinimum(targets[i],FUSION_LAYOUT_MINIMUM_RATIO)));
  }
  const budget=legacyConsultationBudget(tier);
  const sums=[0,1].map(i=>rows.reduce((sum,row)=>sum+row.targetChars![i],0));

@@ -31,6 +31,9 @@ const bundle=await build({stdin:{contents:[
   "export {analyzeAsk} from './worker/yeongnyangi/fortune/ask/analysis';",
   "export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter';",
   "export {fitChapterFacts,estimateRequestTokens,CHAPTER_INPUT_TOKEN_TARGET} from './worker/yeongnyangi/providers/input-budget';",
+  "export {readerEvidence} from './worker/yeongnyangi/prompts/domain/reader-counsel';",
+  "export {ASK_PERIOD_GUIDE} from './worker/yeongnyangi/fortune/ask/prompt';",
+  "export {preventionFacts} from './worker/yeongnyangi/fortune/prevention';",
  ].join('\n'),resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},
  plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const p=args.path.replaceAll('\\','/');const key=Object.keys(replacements).find(k=>p.endsWith(k)||p.endsWith(k+'.ts')||p.endsWith(k.replace(/\.js$/,'.ts')));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('fusion-quality-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
@@ -41,11 +44,11 @@ const prepare=async(productId,kind='personal')=>{globalThis.__invariance.rows=ne
  return m.prepareFortune(env,'owner',{productId,profileId:'self',timezone:'Asia/Seoul',consultationKind:kind,...(kind==='ask'?{question:QUESTION}:{})});};
 const fact=(facts,label)=>facts.find(f=>f.label===label)?.value;
 const byKey=(manifest,key)=>manifest.find(c=>c.key===key);
-async function captureRequest(row,chapter,withAsk){
+async function captureRequest(row,chapter,withAsk,previous=[]){
  let sent;
  const ask=withAsk?{analysis:await m.analyzeAsk(row.snapshot.analysis.consultation,async()=>{throw new Error('offline');}),evidence:row.generationCheckpoint.evidence}:undefined;
  await new m.StructuredChapterProvider({generate:async request=>{sent=request;throw new Error('captured');}})
-  .generateChapter({deliveryContract:'chapter-delivery-v1',locale:'ko',chapter,analysis:row.snapshot.analysis,previous:[],ask}).catch(error=>{if(error.message!=='captured')throw error;});
+  .generateChapter({deliveryContract:'chapter-delivery-v1',locale:'ko',chapter,analysis:row.snapshot.analysis,previous,ask}).catch(error=>{if(error.message!=='captured')throw error;});
  return sent;
 }
 
@@ -222,4 +225,82 @@ test('14A bodyPalace is added only to self and wealth chapters',async()=>{
  assert.ok(names(byKey(manifest,'life-money')).includes('질액궁'),'wealth keeps 신궁');
  assert.ok(!names(byKey(manifest,'life-love')).includes('질액궁'),'love does not');
  assert.ok(!names(byKey(manifest,'life-people')).includes('질액궁'),'relations does not');
+});
+
+// Stage C: prompt contracts. Their effect on prose needs a live re-run; these pin what the request carries.
+const rulesOf=async(row,chapter,withAsk,previous)=>JSON.parse((await captureRequest(row,chapter,withAsk,previous)).domainRules);
+test('C4 timeContract names the period each fusion chapter reads',async()=>{
+ const row=await prepare('fusion_all','ask'),manifest=row.snapshot.manifest,{period,asOf}=row.snapshot.analysis.consultation;
+ const year=Number(asOf.slice(0,4));
+ const timing=(await rulesOf(row,byKey(manifest,'timing'))).timeContract;
+ assert.ok(timing.includes(period.start)&&timing.includes(period.end),'question chapter: the requested period');
+ const life=(await rulesOf(row,byKey(manifest,'life-year'))).timeContract;
+ assert.match(life,new RegExp(`이 장은 기준 연도 ${year}년`));assert.ok(!life.includes(period.start));
+ assert.match((await rulesOf(row,byKey(manifest,'life-next-year'))).timeContract,new RegExp(`다음 해\\(${year+1}년\\)`));
+ assert.match((await rulesOf(row,byKey(manifest,'life-decade'))).timeContract,/이 장은 현재 대운과 다음 대운/);
+ assert.match((await rulesOf(row,manifest.find(c=>c.layoutRole==='foundation'&&c.ordinal>0))).timeContract,/이 장은 출생 구조/);
+});
+test('C5A readerEvidence turns 조후·강약 scores into words, in chapter facts and the ask packet alike',()=>{
+ const season={score:-4,type:'cool',advice:'a',badgeCls:'jb-cool',badgeTxt:'b',improve:'i',season:'겨울',fc:0,wc:2,wdc:1,mc:2,moistType:'wet',moistAdvice:'m',moistCnt:4,dryCnt:1};
+ const strength={isStrong:true,score:41,yongshin:['fire'],dayEl:'metal'};
+ const out=m.readerEvidence({facts:[{id:'saju.seasonalBalance',label:'seasonalBalance',value:season},{id:'saju.strengthHeuristic',label:'strengthHeuristic',value:strength}],
+  askFirstChapter:{evidence:{facts:[{id:'F1',label:'seasonalBalance',value:season},{id:'F2',label:'strengthHeuristic',value:{...strength,isStrong:false,score:27}}]}}});
+ const [s,p]=out.facts.map(f=>f.value),[as,ap]=out.askFirstChapter.evidence.facts.map(f=>f.value);
+ for(const v of [s,p,as,ap])assert.ok(!Object.values(v).some(x=>typeof x==='number'),JSON.stringify(v));
+ assert.equal(s.temperature,'서늘한 편');assert.equal(s.humidity,'습한 편');assert.equal(s.season,'겨울');assert.equal(s.type,undefined);
+ assert.equal(p.strengthLevel,'신강이 뚜렷함');assert.equal(ap.strengthLevel,'신약 쪽이지만 경계에 가까움');
+ assert.deepEqual(as,s);
+});
+test('C8 the fusion ask opening carries one evidence slot per system',async()=>{
+ for(const productId of ['fusion_saju_ziwei','fusion_all']){
+  const row=await prepare(productId,'ask'),chapter=row.snapshot.manifest[0];
+  const request=await captureRequest(row,chapter,true),ids=request.calculatedData.facts.map(f=>f.id);
+  const {systemSlots}=JSON.parse(request.domainRules);
+  assert.deepEqual(systemSlots.slots.map(s=>s.system),chapter.systems,productId);
+  for(const slot of systemSlots.slots){
+   assert.ok(slot.name&&slot.sources.length&&slot.sources.every(id=>id.startsWith(slot.system+'.')&&ids.includes(id)),JSON.stringify(slot));
+  }
+  assert.match(systemSlots.rule,/evidence/);
+ }
+});
+test('C9 ASK_PERIOD_GUIDE keeps tarot positions out of the requested period',()=>{
+ assert.match(m.ASK_PERIOD_GUIDE,/타로 position을 시기로 옮기지 않는다/);
+});
+test('C10 saju prevention candidates are pre-ranked, and conditions·signals must name the 충·파 anchor',async()=>{
+ const tension=(kind,label)=>({kind,label});
+ const cand=(key,period,tensions)=>({key,system:'saju',period,anchors:tensions?{tensions,support:[]}:{visibleTenGods:[]},opportunity:'o',burden:'b',observe:'s',action:'a',limitation:'l'});
+ const value={system:'saju',anchors:[],saju:{candidates:[
+  cand('interaction-tension',{kind:'year',year:2027},[tension('branchHarms','자미해')]),
+  cand('interaction-tension',{kind:'natal'},[tension('branchClashes','자오충')]),
+  cand('resource-balance',{kind:'natal'}),
+  cand('interaction-tension',{kind:'year',year:2028},[tension('branchBreaks','미술파'),tension('branchClashes','인신충')]),
+ ]}};
+ const chapter={key:'prevention',preventionVersion:'prevention-20260930-v1'};
+ const [packet]=m.preventionFacts({domain:'saju',facts:[{id:'saju.preventionEvidence',label:'preventionEvidence',value}]},chapter);
+ const sent=packet.value.saju.candidates;
+ assert.deepEqual(sent.map(c=>c.period.year??c.period.kind),[2027,'natal','natal',2028],'list order stays the stored order');
+ const ranked=[...sent].sort((a,b)=>a.rank-b.rank);
+ assert.deepEqual(ranked.map(c=>c.rank),[1,2,3,4]);
+ assert.deepEqual(ranked.map(c=>c.period.year??c.period.kind),[2028,'natal',2027,'natal'],'충 in a year → 충 natal → 해 → no tension');
+ assert.deepEqual(ranked[0].tensionNames,['인신충','미술파']);
+ assert.equal(ranked[3].tensionNames,undefined);
+ assert.match(packet.value.saju.rankRule,/충/);
+ const row=await prepare('fusion_all');
+ const rules=await rulesOf(row,byKey(row.snapshot.manifest,'prevention'));
+ assert.match(rules.preventionAnchorContract,/conditions/);assert.match(rules.preventionAnchorContract,/signals/);
+ assert.match(rules.preventionAnchorContract,/rank/);
+});
+test('C11 fusion chapters ask for about 80% of the target low; the question layout keeps its own ratio',async()=>{
+ for(const productId of ['fusion_saju_ziwei','fusion_all']){
+  const manifest=(await prepare(productId,'ask')).snapshot.manifest;
+  for(const c of manifest)assert.equal(c.minimumChars,Math.ceil(c.targetChars[0]*.8),`${productId}/${c.key}`);
+ }
+});
+test('C14 fusion chapters carry a ledger of evidence earlier chapters already leaned on',async()=>{
+ const row=await prepare('fusion_all'),chapter=byKey(row.snapshot.manifest,'life-work');
+ const prev=sources=>({summary:'s',example:'',topics:[],sources});
+ const rules=await rulesOf(row,chapter,false,[prev(['ziwei.bodyPalace','saju.pillars']),prev(['ziwei.bodyPalace']),prev(['ziwei.bodyPalace','saju.pillars','saju.dayMaster'])]);
+ assert.deepEqual(rules.claimLedger.uses,{'ziwei.bodyPalace':3,'saju.pillars':2});
+ assert.match(rules.claimLedger.rule,/3개 장 이상/);
+ assert.equal((await rulesOf(row,chapter,false,[prev(['saju.pillars'])])).claimLedger,undefined,'one use is not a ledger entry');
 });
