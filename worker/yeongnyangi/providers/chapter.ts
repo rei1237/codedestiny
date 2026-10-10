@@ -45,6 +45,7 @@ import { taskRules } from "../prompts/task/rules";
 import {tokensRequiredForChars} from '../../lib/llm-budget.js';
 import {attachTarotSafetyNotice,buildTarotMasterContract,validateTarotChapter} from '../fortune/tarot/master-reading';
 import {correctNatalClaims} from '../fortune/saju/natal-claims';
+import {correctZiweiClaims} from '../fortune/ziwei/claims';
 import {sexagenaryYearOfDate} from '../fortune/saju/sexagenary-year';
 export interface ChapterRequest {
   deliveryContract?: string;
@@ -94,7 +95,8 @@ export function correctChapterProse(v: ChapterBody, input: ChapterRequest): Chap
   // An internal ID in the prose is corrected before any length or language check reads it, not regenerated (principle 17).
   const markup=correctProseMarkup(v,input.locale||'ko');
   if(markup.count){v=markup.body;console.log('[yeongnyangi-markup-correction]',JSON.stringify({chapter:input.chapter.ordinal,count:markup.count}));}
-  const dasha=correctDashaSequence(v,Object.values(input.analysis.contexts).flatMap(c=>selectChapterFacts(c,input.chapter,input.analysis.topicId)));
+  const selected=Object.values(input.analysis.contexts).flatMap(c=>selectChapterFacts(c,input.chapter,input.analysis.topicId));
+  const dasha=correctDashaSequence(v,selected,[...selected,...(input.analysis.contexts.vedic?.facts||[])]);
   if(dasha.count){v=dasha.body;console.log('[yeongnyangi-dasha-correction]',JSON.stringify({chapter:input.chapter.ordinal,count:dasha.count}));}
   const redacted=redactInternalEvidence(v,input.analysis.question,factLabels,input.locale,tarotPositionNames(input.analysis.contexts.tarot));
   if(redacted.count){v=redacted.body;console.log('[yeongnyangi-redaction]',JSON.stringify({chapter:input.chapter.ordinal,count:redacted.count}));}
@@ -103,9 +105,43 @@ export function correctChapterProse(v: ChapterBody, input: ChapterRequest): Chap
   if(addressed.count){v=addressed.body;console.log('[yeongnyangi-persona-address]',JSON.stringify({chapter:input.chapter.ordinal,count:addressed.count}));}
   // The reader's own pillars, day master and strength are stored facts; a contradicting claim is fixed here, not regenerated.
   const sajuFact=(label:string)=>input.analysis.contexts?.saju?.facts.find(f=>f.label===label)?.value as any;
-  const natal=correctNatalClaims(v,{pillars:sajuFact('pillars'),dayMaster:sajuFact('dayMaster'),strength:sajuFact('strengthHeuristic')},input.locale||'ko');
+  const natal=correctNatalClaims(v,{pillars:sajuFact('pillars'),dayMaster:sajuFact('dayMaster'),strength:sajuFact('strengthHeuristic'),majorLuck:sajuFact('majorLuck'),tenGodsByPillar:sajuFact('tenGodsByPillar')},input.locale||'ko');
   if(natal.replaced||natal.dropped){v=natal.body;console.log('[yeongnyangi-natal-correction]',JSON.stringify({chapter:input.chapter.ordinal,replaced:natal.replaced,dropped:natal.dropped}));}
+  // A 삼합·대궁 pair or a year's 유년사화 is fixed by the palace order and the year's stem (fortune/ziwei/claims.ts).
+  const ziwei=input.analysis.contexts?.ziwei?correctZiweiClaims(v,input.locale||'ko'):{body:v,replaced:0,dropped:0};
+  if(ziwei.replaced||ziwei.dropped){v=ziwei.body;console.log('[yeongnyangi-ziwei-correction]',JSON.stringify({chapter:input.chapter.ordinal,replaced:ziwei.replaced,dropped:ziwei.dropped}));}
   return v;
+}
+// The fallback delivers a chapter the evidence check rejected (delivery.ts). A chapter system that another block already
+// cites, or that the Korean prose names, gets its source back on the block the check reads: the evidence block, or in
+// v7 the first block naming it. A system the chapter never uses stays uncited rather than gaining a reference.
+const SYSTEM_MENTION:Record<string,RegExp>={saju:/사주|명리/u,ziwei:/자미/u,vedic:/베다\s?점|인도\s?점성|다샤/u,astrology:/서양\s?점성/u,tarot:/타로/u,sukuyo:/숙요/u};
+export function supplementSystemSources(v: ChapterBody, input: ChapterRequest): ChapterBody {
+  if(!Array.isArray(v.blocks)||!v.blocks.length||!hasReadingSections(input.chapter.version))return v;
+  const v7=input.chapter.version===READING_V7_VERSION,evidence=v.blocks.findIndex(b=>b.id==='evidence');
+  if(!v7&&evidence<0)return v;
+  const facts=Object.values(input.analysis.contexts).filter(c=>!input.chapter.systems||input.chapter.systems.includes(c.domain))
+    .flatMap(c=>selectChapterFacts(c,input.chapter,input.analysis.topicId));
+  const text=(b:{title?:string;paragraphs?:string[]})=>[b.title,...(b.paragraphs||[])].join(' ');
+  const prose=[v.summary,...(v.analysis||[]),...v.blocks.map(text),...(v.questionAnswers||[]).map(a=>a.answer)].join(' ');
+  const cited=v.blocks.flatMap(b=>b.sources||[]);
+  let blocks=v.blocks;const added:string[]=[];
+  for(const domain of new Set([...facts,...cited.map(id=>({id}))].map(f=>f.id.split('.')[0]))){
+    const own=(ids:string[]=[])=>ids.filter(id=>id.startsWith(domain+'.'));
+    if(v7?blocks.some(b=>own(b.sources).length):own(blocks[evidence].sources).length)continue;
+    let ids=v7?[]:[...new Set(own(cited))],at=evidence;
+    if(!ids.length){
+      const first=facts.find(f=>f.id.startsWith(domain+'.'));
+      if((input.locale||'ko')!=='ko'||!first||!SYSTEM_MENTION[domain]?.test(prose))continue;
+      ids=[first.id];
+      if(v7)at=Math.max(0,blocks.findIndex(b=>SYSTEM_MENTION[domain].test(text(b))));
+    }
+    blocks=blocks.map((b,i)=>i===at?{...b,sources:[...new Set([...(b.sources||[]),...ids])]}:b);
+    added.push(...ids);
+  }
+  if(!added.length)return v;
+  console.log('[yeongnyangi-source-supplement]',JSON.stringify({chapter:input.chapter.ordinal,ids:added}));
+  return {...v,blocks,sources:[...new Set([...(v.sources||[]),...added])]};
 }
 export interface FortuneChapterProvider {
   receipt?: { provider: string; model: string };

@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-10
-next: "단계 B(correctChapterProse 결정적 후처리)부터 한다: 6번 X(X) 접기와 5B 점수·영어 정리를 consultation.ts correctProseMarkup 에 넣고 yeongnyangi-consultation.test.mjs 에 재현 테스트를 먼저 쓴다."
+next: "단계 A(결정적 데이터)부터 한다: 1A luckOverlap·2A 12궁 관계표·3A tenGodsByPillar 요약을 모아 requests·prepare 해시를 한 번에 갱신한다. 단계 B 는 a208bea08 에서 끝났다."
 ---
 
 # 영냥이 퓨전(MA 모듬·MO 오마카세) 품질 결함 14건 + 토큰 여유
@@ -12,16 +12,35 @@ next: "단계 B(correctChapterProse 결정적 후처리)부터 한다: 6번 X(X)
 
 ## 지금 상태
 
-- 아직 고치지 않았다. 규칙은 [2026-10-10-new-year-and-expert-llm-debug.md](2026-10-10-new-year-and-expert-llm-debug.md) '지켜야 할 규칙'을 따른다.
+- 단계 B(6·5B·1B·2B·3B·7·8B)는 끝났다(아래 '단계 B 결과'). 단계 A·C 와 재실호출은 남았다. 규칙은 [2026-10-10-new-year-and-expert-llm-debug.md](2026-10-10-new-year-and-expert-llm-debug.md) '지켜야 할 규칙'을 따른다.
 - 🔴 **strict 검사는 배달을 막지 못한다.**
   - `worker/yeongnyangi/providers/delivery.ts:51-56` 이 validateChapter 의 오류를 받아 fallback 으로 배달한다.
   - 그래서 새 strict 검사를 더해도 효과가 없다. 효과가 있는 수정은 세 가지뿐이다: (A) 결정적 데이터, (B) `correctChapterProse`(providers/chapter.ts:92-109) 결정적 교정, (C) 프롬프트 계약.
+
+## 단계 B 결과 (a208bea08, 2026-10-10)
+
+모두 결정적 교정이고 requests 해시는 움직이지 않았다(reading-invariance 통과). 실출력 dry-run 은 `build-cache/llm-sample-review-20261009` 의 MA·MO 원문으로 했다.
+
+- 6·5B: correctProseMarkup 이 `X(X)` 를 접고, 점수가 든 괄호를 지우고, 영어 오행어를 ELEMENT_KO(block-anchors.ts)로 바꾼다.
+- 1B: 원국·현재 대운에 丑 이 없으면 戌未 형을 미술파(未戌破)로 바꾼다(saju/natal-claims.ts).
+- 3B: 기둥 이름 바로 뒤 십성을 tenGodsByPillar 계산값으로 바꾼다. 남은 한계: 바뀐 십성 뒤의 설명 문장은 옛 뜻을 그대로 말할 수 있다.
+- 7: 행성명 + 대운을 다샤 단계로 바꾼다(consultation.ts correctDashaSequence). 어느 단계에도 없는 행성은 현재 마하다샤로 바꾼다(MO "목성 대운" → "달 마하다샤").
+- 2B: 새 fortune/ziwei/claims.ts.
+  - 유년사화는 연도가 하나 명시되고 '유년' 이 있는 문장에서만 그해 천간 사화로 바꾼다.
+  - 삼합·대궁 기하는 연도와 무관하므로 연도 조건 없이 적용한다. 관계가 반대면 낱말을 바꾸고, 둘 다 아니면 문장을 지운다.
+  - 기준궁에서 빼는 것: 관계어 바로 뒤 궁(대상), 블록이 유년·대한이 들어간다고 한 궁. 그 궁은 유년 명궁이라 삼합이 유년 이름(재백·관록)으로 불린다.
+  - 결과: MA 변경 0(유년 혼합 프레임 오탐 2건을 걸렀다), MO 대궁→삼합 1건.
+  - 남은 것: 연도 없는 사화 문장(MO "염정은 화권"), '유년 사화(유년사화)' 띄어쓰기 중복.
+- 8B: strict 검증은 그대로 fail-closed 다. delivery.ts fallback 에서만 supplementSystemSources 가 sources 를 채운다.
+  - 다른 블록이 이미 인용한 체계 ID 를 evidence 블록으로 옮긴다.
+  - 그런 ID 가 없으면, 한국어 본문이 체계명을 말한 경우에만 그 체계의 첫 장 fact 를 넣는다.
+  - 쓰지 않은 체계는 비워 둔다(MO ch13 류는 그대로 남는다).
 
 ## 남은 작업
 
 경로 앞의 `fortune/`, `providers/` 는 `worker/yeongnyangi/` 아래다.
 
-**단계 B. 결정적 후처리.** requests 해시는 움직이지 않는다. 먼저 한다.
+**단계 B. 결정적 후처리.** ✅ 끝남(위 '단계 B 결과'). 아래 표는 기록용이다.
 
 | # | 결함 | 원인 위치 | 수정 |
 |---|---|---|---|

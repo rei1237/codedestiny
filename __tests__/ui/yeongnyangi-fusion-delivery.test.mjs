@@ -26,7 +26,7 @@ const replacements={
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
   'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(request){return globalThis.__fusionGenerate(request)}}`,
 };
-const bundle=await build({stdin:{contents:"export {prepareFortune,generateNextChapter,presentFortune} from './worker/yeongnyangi/service'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {products} from './worker/yeongnyangi/payments/catalog'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {topicIds} from './worker/yeongnyangi/fortune/topics'; export {readingLocale} from './worker/yeongnyangi/fortune/reading-locale'; export {analyzeAsk} from './worker/yeongnyangi/fortune/ask/analysis'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
+const bundle=await build({stdin:{contents:"export {prepareFortune,generateNextChapter,presentFortune} from './worker/yeongnyangi/service'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {products} from './worker/yeongnyangi/payments/catalog'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {topicIds} from './worker/yeongnyangi/fortune/topics'; export {readingLocale} from './worker/yeongnyangi/fortune/reading-locale'; export {analyzeAsk} from './worker/yeongnyangi/fortune/ask/analysis'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {deliverChapter} from './worker/yeongnyangi/providers/delivery';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('reading-invariance-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const m=loaded.exports;
 
@@ -89,6 +89,16 @@ for(const productId of ids)test(`${productId}: engine -> snapshot -> every promp
  assert.throws(()=>m.validateChapter(good,{...input,previous:[good]}),/DUPLICATE_CHAPTER/);
  const missing=structuredClone(good);missing.blocks.find(b=>b.id==='evidence').sources=good.sources.filter(id=>!id.startsWith(product.systems.at(-1)+'.'));
  assert.throws(()=>m.validateChapter(missing,input),/CHAPTER_EVIDENCE_INCOMPLETE/);
+ // 8B: the fallback still delivers that draft. A system another block cites, or the prose names, gets its source back
+ // on the evidence block; one the chapter never uses stays uncited.
+ const system=product.systems.at(-1),own=ids=>(ids||[]).some(id=>id.startsWith(system+'.'));
+ assert.ok(own(m.deliverChapter(missing,input).blocks.find(b=>b.id==='evidence').sources));
+ const uncited=structuredClone(missing);for(const b of uncited.blocks)b.sources=b.sources.filter(id=>!id.startsWith(system+'.'));
+ uncited.sources=uncited.sources.filter(id=>!id.startsWith(system+'.'));
+ const unused=m.deliverChapter(uncited,input);
+ assert.ok(!own(unused.sources)&&unused.blocks.every(b=>!own(b.sources)));
+ const named=structuredClone(uncited);named.blocks[0].paragraphs.push(`${{ziwei:'자미두수',vedic:'베다 점성술',tarot:'타로'}[system]}로 보면 흐름이 이어져.`);
+ assert.ok(own(m.deliverChapter(named,input).blocks.find(b=>b.id==='evidence').sources));
 });
 for(const productId of ids)test(`${productId}: ask retry keeps the original snapshot and tarot draw`,async()=>{
  globalThis.__invariance.rows=new Map();

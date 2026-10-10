@@ -25,6 +25,22 @@ const BRANCH_SEASON:Record<string,string>={寅:'봄',卯:'봄',辰:'봄',巳:'�
 const SEASON_WORD='(?<![가-힣])(?:초|늦|이른|한)?(봄|여름|가을|겨울)';
 const BORN_SEASON=new RegExp(`${SEASON_WORD}(?:철|날)?(?:\\s*에\\s*(?:태어|출생)|\\s*태생)`,'u');
 const GENERIC_BIRTH=/태어난\s*(?:사람|이들|분)|태생인\s*사람/u;
+// The engine reads a 戌未 pair as 미술파 and only 丑戌未 together as 축술미형 (worker/lib/life-book-ai-saju.js). Without 丑
+// in the chart or the current 대운, a '戌未 형' claim becomes '파' with the particle refitted. Needs 戌 in the sentence
+// so a Hangul '미술형' (art type) is never read as branches.
+// A ten god written right after a named pillar ('월지에 편인', '월주 비견') must be one the engine computed for that pillar
+// (tenGodsByPillar). A wrong one takes the next computed ten god the list has not named yet (main qi first); with none
+// left it is dropped from the list. Only the adjacent list is read, so '월지와 일지 사이에 편관' stays.
+const TEN_GODS='비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인';
+const TEN_GOD_HANJA:Record<string,string>={비견:'比肩',겁재:'劫財',식신:'食神',상관:'傷官',편재:'偏財',정재:'正財',편관:'偏官',정관:'正官',편인:'偏印',정인:'正印'};
+const TEN_GOD_ITEM=`(?:${TEN_GODS})(?:\\(\\s*(?:${TEN_GODS}|${Object.values(TEN_GOD_HANJA).join('|')})\\s*\\))?`,TEN_GOD_JOINER='\\s*(?:,|、|·|및|과|와)\\s*';
+const PILLAR_POSITION:Record<string,['year'|'month'|'day'|'hour','branch'|'pillar']>={년지:['year','branch'],연지:['year','branch'],월지:['month','branch'],일지:['day','branch'],시지:['hour','branch'],
+  년주:['year','pillar'],연주:['year','pillar'],월주:['month','pillar'],일주:['day','pillar'],시주:['hour','pillar']};
+const PILLAR_GANJI=`(?:\\s*(?:[${HANJA_STEMS}]?[${HANJA_BRANCHES}][木火土金水]?|[${KO_STEMS}]?[${KO_BRANCHES}][목화토금수]?)(?:\\s*\\([^()]{1,8}\\))?)?`;
+const PILLAR_LINK='(?:\\s*(?:속에는|속에|속의|안에|에는|에 있는|에서|에|의|:))?';
+const pillarTenGod=()=>new RegExp(`(?<![가-힣])(${Object.keys(PILLAR_POSITION).join('|')})(${PILLAR_GANJI}${PILLAR_LINK}${PILLAR_GANJI}\\s*)(${TEN_GOD_ITEM}(?:${TEN_GOD_JOINER}${TEN_GOD_ITEM})*)(?:${PARTICLE.slice(0,-1)}|([의도만에인])|(?![가-힣]))`,'gu');
+const BRANCH_PAIR='(?:戌未|未戌|술미|미술)',PUNISH_WORD='(?:형살|형|刑殺|刑)';
+const unsupportedPunishment=()=>new RegExp(`(?<![丑축])(${BRANCH_PAIR}(?:\\s*\\(${BRANCH_PAIR}\\))?\\s*)(${PUNISH_WORD})(\\s*\\((?:${BRANCH_PAIR}\\s*)?${PUNISH_WORD}\\))?(?:${PARTICLE.slice(0,-1)}|([의도만에인])|(?![가-힣]))`,'gu');
 
 const hanja=(ganji:string)=>[HANJA_STEMS[KO_STEMS.indexOf(ganji[0])]||ganji[0],...(ganji.length>1?[HANJA_BRANCHES[KO_BRANCHES.indexOf(ganji[1])]||ganji[1]]:[])].join('');
 const inScript=(truth:string,sample:string)=>/[가-힣]/u.test(sample)
@@ -40,7 +56,32 @@ const stemWithElement=(stem:string,sample:string)=>{
   return (korean?KO_STEMS[i]:stem)+(sample.length>1?(korean?KO_ELEMENTS[i]:HANJA_ELEMENTS[i]):'');
 };
 
-export interface NatalFacts {pillars?:Record<string,string|null>;dayMaster?:unknown;strength?:{isStrong?:unknown}}
+export interface NatalFacts {pillars?:Record<string,string|null>;dayMaster?:unknown;strength?:{isStrong?:unknown};
+  majorLuck?:{currentCycle?:{pillar?:unknown}|null}|null;
+  tenGodsByPillar?:Record<string,{stemTenGod?:unknown;branchTenGods?:unknown;primaryHiddenTenGod?:unknown}|null>|null}
+function computedTenGods(facts:NatalFacts,key:string,position:'branch'|'pillar'):string[]{
+  const t=facts.tenGodsByPillar?.[key];
+  if(!t)return [];
+  const branch=[t.primaryHiddenTenGod,...(Array.isArray(t.branchTenGods)?t.branchTenGods:[])];
+  return [...new Set([...(position==='pillar'?[t.stemTenGod]:[]),...branch])].filter((g):g is string=>typeof g==='string'&&g in TEN_GOD_HANJA);
+}
+function correctTenGodList(list:string,valid:string[]):{text:string;last:string}|undefined{
+  const parts=list.split(new RegExp(`(${TEN_GOD_JOINER})`,'u'));
+  const items=parts.filter((_,i)=>i%2===0).map((text,i)=>({text,word:text.match(new RegExp(`^(?:${TEN_GODS})`,'u'))![0],joiner:i?parts[i*2-1]:''}));
+  if(items.every(item=>valid.includes(item.word)))return undefined;
+  const used=new Set(items.map(item=>item.word).filter(word=>valid.includes(word)));
+  const kept=items.flatMap(item=>{
+    if(valid.includes(item.word))return [item];
+    const next=valid.find(word=>!used.has(word));
+    if(!next)return [];
+    used.add(next);
+    const text=next+item.text.slice(item.word.length).replace(/\(\s*([^()]+?)\s*\)/u,(_,inner:string)=>`(${/[가-힣]/u.test(inner)?next:TEN_GOD_HANJA[next]})`);
+    return [{...item,text,word:next}];
+  });
+  if(!kept.length)return undefined;
+  const text=kept.map((item,i)=>i?(/[과와]/u.test(item.joiner)?item.joiner.replace(/[과와]/u,refit('과',kept[i-1].word)):item.joiner)+item.text:item.text).join('');
+  return {text,last:kept.at(-1)!.word};
+}
 export function correctNatalClaims(body:ChapterBody,facts:NatalFacts,locale='ko'):{body:ChapterBody;replaced:number;dropped:number} {
   const pillars=facts.pillars;
   if(locale!=='ko'||!pillars||typeof pillars!=='object')return {body,replaced:0,dropped:0};
@@ -48,10 +89,12 @@ export function correctNatalClaims(body:ChapterBody,facts:NatalFacts,locale='ko'
   const isStrong=typeof facts.strength?.isStrong==='boolean'?facts.strength.isStrong:undefined;
   const season=typeof pillars.month==='string'?BRANCH_SEASON[pillars.month[1]]:undefined;
   const namesSeason=(text:string,name:string)=>[...text.matchAll(new RegExp(SEASON_WORD,'gu'))].some(m=>m[1]===name);
+  // A 丑 year further down the yearly list does not complete this year's 형; a sentence naming 丑 is skipped below.
+  const hasOx=[...Object.values(pillars),facts.majorLuck?.currentCycle?.pillar].some(p=>typeof p==='string'&&p[1]==='丑');
   let replaced=0,dropped=0;
   const sentence=(s:string)=>{
     let drop=false;
-    const next=s.replace(pillarClaim(),(whole,lead:string,name:string,mid:string,found:string,paren?:string,inner?:string,particle?:string)=>{
+    let next=s.replace(pillarClaim(),(whole,lead:string,name:string,mid:string,found:string,paren?:string,inner?:string,particle?:string)=>{
       const truth=pillars[PILLAR_KEY[name]];
       // null = unknown birth hour: no 시주 can be asserted. A missing value is not evidence either way.
       if(truth===null){drop=true;return whole;}
@@ -64,6 +107,17 @@ export function correctNatalClaims(body:ChapterBody,facts:NatalFacts,locale='ko'
       const fixed=stemWithElement(dayMaster,found);replaced++;return lead+fixed+refit(particle,fixed);
     })
       .replace(dayMasterBefore(),(whole,lead:string,found:string,tail:string)=>dayMaster&&hanja(found[0])!==dayMaster?(replaced++,lead+stemWithElement(dayMaster,found)+tail):whole);
+    if(!OTHER_PERSON.test(next))next=next.replace(pillarTenGod(),(whole,name:string,mid:string,list:string,particle:string|undefined,kept:string|undefined,offset:number,text:string)=>{
+      // '월지 寅과 시지 辰에 …' shares one list between two pillars; it is not this pillar's alone.
+      if(new RegExp(`(?:${Object.keys(PILLAR_POSITION).join('|')})${PILLAR_GANJI}\\s*(?:과|와|및|,|·)\\s*$`,'u').test(text.slice(0,offset)))return whole;
+      const [key,position]=PILLAR_POSITION[name],fixed=correctTenGodList(list,computedTenGods(facts,key,position));
+      if(!fixed)return whole;
+      replaced++;return name+mid+fixed.text+refit(particle,fixed.last)+(kept||'');
+    });
+    next=hasOx||!next.includes('戌')||/丑|축술미|축토/u.test(next)||OTHER_PERSON.test(next)?next:next.replace(unsupportedPunishment(),(_,lead:string,word:string,gloss?:string,particle?:string,kept?:string)=>{
+      replaced++;
+      return lead+(/[刑殺]/u.test(word)?'破':'파')+(gloss||'').replace(/형살|형/u,'파').replace(/刑殺|刑/u,'破')+refit(particle,'파')+(kept||'');
+    });
     if(!drop&&isStrong!==undefined&&!(/신강/u.test(next)&&/신약/u.test(next))&&!HEDGED.test(next)&&!OTHER_PERSON.test(next)){
       const claim=next.match(STRENGTH);
       if(claim&&(claim[1]==='강')!==isStrong)drop=true;

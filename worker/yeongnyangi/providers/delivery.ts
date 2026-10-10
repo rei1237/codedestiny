@@ -1,6 +1,6 @@
 import type {ChapterBody} from '../fortune/book-contracts';
 import type {ChapterRequest} from './chapter';
-import {correctChapterProse,pruneV7Overlap,repeatedSummary,validateChapter} from './chapter';
+import {correctChapterProse,pruneV7Overlap,repeatedSummary,supplementSystemSources,validateChapter} from './chapter';
 import {FortuneError} from '../fortune/shared/contracts';
 import {salvageTruncatedJsonObject} from '../../../lib/llm-text.js';
 import {readingLocale,validateReadingLanguage} from '../fortune/reading-locale';
@@ -106,7 +106,8 @@ function deliverChapterBody(raw:unknown,input:ChapterRequest):ChapterBody {
     ...(Array.isArray(value.followUpSuggestions)?{followUpSuggestions:list(value.followUpSuggestions)}:{}),
     ...(value.visualSlots&&typeof value.visualSlots==='object'&&!Array.isArray(value.visualSlots)?{visualSlots:value.visualSlots}:{}),
   },input.chapter);
-  body=pruneV7Overlap(correctChapterProse(body,input),input,'fallback');
+  // The evidence check this draft may have failed is bypassed here; restore only sources the chapter already uses.
+  body=supplementSystemSources(pruneV7Overlap(correctChapterProse(body,input),input,'fallback'),input);
   if(input.analysis.consultation)body=alignRelativeYears(body,input.analysis.consultation.asOf,input.locale).body;
   validateReadingLanguage(body,readingLocale(input.locale));
   return sanitizeBlockAnchors(attachTarotSafetyNotice(body,input.analysis.question,readingLocale(input.locale),input.chapter.ordinal),blockAnchorNames(input.analysis,input.chapter.systems));
