@@ -58,8 +58,8 @@ const model = {
 };
 
 function prose(seed, length) {
-  let value = `${seed} 양자리 라그나와 Ashwini의 계산 근거를 살펴봅니다. `;
-  for (let i = 0; value.replace(/\s/g, "").length < length; i++) value += `${seed}의 ${i}번째 관찰은 현재 생활에서 반복되는 선택을 돌아보고 작은 행동으로 확인하는 과정을 설명합니다. `;
+  let value = `${seed} 양자리 라그나와 Ashwini의 계산 근거를 살펴본다. `;
+  for (let i = 0; value.replace(/\s/g, "").length < length; i++) value += `${seed}의 ${i}번째 관찰은 현재 생활에서 반복되는 선택을 돌아보고 작은 행동으로 확인하는 과정을 설명한다. `;
   return value;
 }
 let definitions, refinedDefinitions;
@@ -155,7 +155,9 @@ it('two reality-check rounds preserve both answers and block a third without pro
  expect((await refine({sessionId:docs[0].id,freeform:'세 번째 질문입니다.'})).status).toBe(409);
  expect(provider).toHaveBeenCalledTimes(calls);
 });
-for (const repair of ['shorter', 'empty', 'repeated']) it(`preserves the short initial draft without ${repair} repair`, async () => {
+// 계약(ai-and-db.md:125): 짧은 초안은 기존 2회 상한 안에서 분량 보강을 딱 한 번 받고,
+// 보강이 더 나쁘면 저장된 초안을 그대로 배달한다(bbeeaf78a 의 "보강 없음"을 되돌림).
+for (const repair of ['shorter', 'empty', 'repeated']) it(`repairs the short initial draft once and keeps it after a ${repair} repair`, async () => {
   const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0, draft;
   provider.mockImplementation(async (...args) => {
     if (!args[1].includes(`제목: ${section.title}\n`)) return normal(...args);
@@ -168,19 +170,41 @@ for (const repair of ['shorter', 'empty', 'repeated']) it(`preserves the short i
   });
   await start(); expect(docs[0].llmMeta.sections[section.id]?.parsed).toEqual(draft);
   for (let i = 0; i < 7 && docs[0].status !== 'completed'; i++) await start();
-  expect(docs[0].status).toBe('completed'); expect(tries).toBe(1);
+  expect(docs[0].status).toBe('completed'); expect(tries).toBe(2);
   expect(docs[0].llmMeta.sections[section.id].parsed).toEqual(draft);
-  expect(docs[0].llmMeta.attempts[section.id]).toBe(1);
+  expect(docs[0].llmMeta.attempts[section.id]).toBe(2);
+  expect(docs[0].llmMeta.attempts[`${section.id}:lengthRepair`]).toBe(1);
 });
-it('delivers all usable short sections without further generation', async () => {
+it('gives every usable short section exactly one repair inside the two-attempt cap, then delivers', async () => {
+  // 0.45 배율이면 meta(750자)는 고정 필드만으로 이미 하한을 넘는다. 14챕터 모두 미달이 되도록 0.3 을 쓴다.
+  const prompts = [];
   provider.mockImplementation(async (_env, prompt) => {
+    prompts.push(prompt);
     const section = definitions.find(row => prompt.includes(`제목: ${row.title}\n`));
-    return { ok: true, provider: 'gemini', text: JSON.stringify(fixture({ ...section, minChars: section.minChars * 0.45 })) };
+    return { ok: true, provider: 'gemini', text: JSON.stringify(fixture({ ...section, minChars: section.minChars * 0.3 })) };
   });
-  for (let i = 0; i < 3; i++) expect((await start()).status).toBe(202);
+  for (let i = 0; i < 7; i++) expect((await start()).status).toBe(202);
   expect((await start()).status).toBe(200);
-  expect(provider).toHaveBeenCalledTimes(definitions.length);
+  expect(provider).toHaveBeenCalledTimes(definitions.length * 2);
+  expect(prompts.filter(prompt => prompt.includes('[분량 보강]'))).toHaveLength(definitions.length);
+  for (const section of definitions) expect(docs[0].llmMeta.attempts[section.id]).toBe(2);
   expect(usage).toHaveBeenCalledTimes(1); expect(refund).not.toHaveBeenCalled();
+});
+it('repairs a full-length section written in the formal register once, then keeps the banmal rewrite', async () => {
+  const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0, repairPrompt = '';
+  provider.mockImplementation(async (...args) => {
+    if (!args[1].includes(`제목: ${section.title}\n`)) return normal(...args);
+    tries++;
+    const text = JSON.stringify(fixture(section));
+    if (tries === 1) return { ok: true, provider: 'gemini', text: text.replaceAll('살펴본다.', '살펴봅니다.').replaceAll('설명한다.', '설명합니다.') };
+    repairPrompt = args[1];
+    return { ok: true, provider: 'gemini', text };
+  });
+  for (let i = 0; i < 7 && docs[0]?.status !== 'completed'; i++) await start();
+  expect(docs[0].status).toBe('completed'); expect(tries).toBe(2);
+  expect(repairPrompt).toContain('[어조 보강]');
+  expect(repairPrompt).not.toContain('[분량 보강]');
+  expect(JSON.stringify(docs[0].initialBriefing)).not.toContain('설명합니다');
 });
 for (const stage of ['reserved', 'last']) it(`initial short draft respects the ${stage} attempt`, async () => {
   const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0;
