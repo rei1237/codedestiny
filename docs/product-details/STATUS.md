@@ -118,3 +118,11 @@ status: active
 - 원본28장및두진입실제56패널·36CTA/고지·12원고뷰포트독립SHIP. 두흐름4폭bounds/load/fallback PASS. 긴원고캡처오류는실제360부분뷰포트로재확인,제품코드우회없음.
 - 기존질문/입력검사17PASS. 전체check:fast paid88/88+lint PASS,사이트맵drift중단후 sitemap생성/검사URL955 PASS. 전체PASS나SHA CI증거로표시하지않음.
 - 총유료22종+공통소개1종226패널 로컬검수완료. 전체목표미완료,main은동시작업dirty보호로미병합. 다음자미참치와베다고등어·연어.
+
+## 자미두수 참치·베다 고등어·연어
+- 참치10패널: 대한전환질문24장/기본21장 구분. 베다고등어8: 내면회복질문6/기본5. 베다연어10: 직무조건질문11/기본8. 각체계용어와시기해상도분리.
+- 원본28장·두진입56패널·36CTA/고지·12원고부분뷰포트독립SHIP. 4폭load/bounds/fallback PASS. 두베다표지줄바꿈수정완료. 테스트질문대한용어도수정.
+- 코드계약변경없고 기존질문/입력17PASS의같은정본사용. 8af19f5c6641380ae5bec1f83db5c307b24ca26f clean check:pre-push PASS(57home/publicmirror/sitemap955).
+- 공개읽기전용GET /api/yeongnyangi/products 200,28개 enabled/available=true. DB/LLM쓰기가없는handler확인후호출. 가격숫자이미지하드코딩없음.
+- 별도영냥신점(prashna)은사주광어결제키재사용하지만다른2단계상품구성임을발견해별도대장행추가. 호라리는현재무료,옛SpiritConsultation은현재진입미사용으로분리.
+- 유료기본구성25종+공통소개1종254패널 로컬검수완료. 영냥신점등남은구성과main전달미완료. 다음별도신점및베다광어·참치.

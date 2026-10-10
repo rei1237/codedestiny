@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP all panels",
+  "mobile": "Independent SHIP two entry flows, all360 panels,3width CTA/notice, middle/end transcript viewports",
+  "corrections": "Vedic cover headings shortened into two balanced lines. Ziwei test question uses 대한 rather than 사주 대운.",
+  "limits": "All APIs mocked; no payment or LLM. Original source contracts inspected; no real generated result."
+}

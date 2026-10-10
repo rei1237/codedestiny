@@ -32,7 +32,7 @@ const fish = process.argv[2] || 'mackerel', domain = process.argv[3] || 'saju', 
                 await page.getByRole('button', { name: '답장 보내기', exact: true }).click();
             }
             if (fish === 'salmon' || fish === 'tuna') {
-                await page.locator('textarea').fill(fish === 'salmon' ? '앞으로 6개월' : '현재와 다음 대운');
+                await page.locator('textarea').fill(fish === 'salmon' ? '앞으로 6개월' : domain === 'ziwei' ? '현재와 다음 대한' : domain === 'vedic' ? '현재와 다음 마하다샤' : '현재와 다음 대운');
                 await page.getByRole('button', { name: '답장 보내기', exact: true }).click();
             }
             else {
