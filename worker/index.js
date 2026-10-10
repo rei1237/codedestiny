@@ -1414,6 +1414,11 @@ const app = {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
         }
+        // 프로필 선택 지급(출생 기반 전환 전 주문의 지급 보류 해소) — worker/payments/birth-profile-claim.js
+        if (url.pathname === "/api/payments/birth-profile-pending" || url.pathname.startsWith("/api/payments/birth-profile-pending/")) {
+          const { handlePaymentsContext } = await import("./payments/index.js");
+          return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
+        }
         return withCorsHeaders(request, env, await handlePaymentRoutes(request, env, ctx));
       }
 
