@@ -1,6 +1,6 @@
 ---
 status: active
-updated: 2026-10-10
+updated: 2026-10-11
 next: "docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2(이관 마이그레이션 staging 리허설)를 진행해줘"
 ---
 
@@ -14,7 +14,8 @@ next: "docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2(�
 
 - 출생 기반 해금(`userId + birthKey + contentKey`)과 프로필 카드 1,000원 인하가 main 41be9ef2c 에 들어가 있다. staging 은 push 로 배포됐고 **운영 승격은 아직이다.**
 - 운영 DB·staging DB 모두 이관 마이그레이션을 **아직 돌리지 않았다.** 그래서 staging 의 기존 구매는 지금 잠겨 보인다.
-- 정책 정본은 `docs/context/payment-gating.md:7-16`, `docs/PAYMENT_AND_ACCESS.md` 출생 기반 절이다. 신원 해석은 `worker/lib/birth-scoped-unlock-identity.js` 에 있다.
+- 2026-10-11: 기존 해금 유지 보강(마이그레이션 조회·환불 짝짓기, 프로필 모르는 기존 해금의 프로필 선택 지급, 프로필 전환 복귀 재해금)이 들어갔다. 자세한 내용은 P0-2 의 "2026-10-11 보강" 이다.
+- 정책 정본은 `docs/context/payment-gating.md:7-19`, `docs/PAYMENT_AND_ACCESS.md` 출생 기반 절이다. 신원 해석은 `worker/lib/birth-scoped-unlock-identity.js` 에 있다.
 
 ## 다음 세션 시작 명령
 
@@ -43,6 +44,12 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2 를 진�
   - 대상 주문 수: `node scripts/audit-birth-scope-pending-orders.mjs --db <이름>`(읽기 전용). 2026-10-10 기준 결과는 다음과 같다. 운영 승격 직전에 한 번 더 센다.
     - staging: 대기 0, 위험 0
     - 운영: 대기 0, 위험 0. 스냅샷이 없는 소급 주문 8건은 모두 이미 지급됐다.
+  - 재검증 2026-10-11: 완료 기준을 코드·테스트로 대조했다. 검증 명령 세 가지가 모두 통과했다.
+    - "권한 정상 처리" 문구는 나가지 않는다.
+    - V2 regrant 는 신원 오류에서 종결한다.
+    - claim API 와 카드가 연결돼 있다.
+    - 소급 정산·재조정 사례는 `birth-scope-unlock-policy.test.js` 가 아니라 이웃 테스트 파일에 있다.
+    - 남아 있던 Google Play 보류 응답 문구("담당자가 열어 드립니다")는 웹과 같은 프로필 선택 안내로 고쳤다(b7b2ab0d6).
   - 범위 밖 발견(미착수):
     - `js/destiny-profile.js` 결제 복귀 처리가 `GRANT_PENDING` 을 성공처럼 표시하는 구간이 있다.
     - 구 크론(`worker/lib/payment-reconcile-task.js`)이 신원 보류 주문을 최대 10회까지 헛되이 재조회한다.
@@ -81,20 +88,35 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2 를 진�
   - DB 이름은 `MONGO_DB_NAME` 이 우선한다. staging 을 치려면 반드시 `MONGO_DB_NAME` 을 덮어쓴다. `MONGODB_DB_NAME` 만 바꾸면 운영을 친다.
   - `npm run migrate:birth-scope-unlocks -- --apply` 도 **실제로 적용된다**(`package.json:140`). `node` 로 직접 부른다.
   - 운영 배포 워크플로(`.github/workflows/cloudflare-pages-deploy.yml`)에는 마이그레이션 단계가 없다. 그래서 손으로 먼저 돌린다.
-- 명령. 각 단계 출력을 사용자에게 보여주고 승인받은 뒤 다음 단계로 넘어간다.
+- 2026-10-11 보강(사용자 요청 "기존에 생년월일 프로필로 해금됐다면 유지"):
+  - 1206753d6: 조회가 별칭 키(`PAID_FEATURE_KEY_ALIASES`)와 `:연도` 접미사 키를 찾는다. 코인 환불은 짝지은 차감만 뺀다(차감 표식 → 원 차감 id → requestId, 짝 없으면 최근 차감 하나). dry-run 이 `STAT pointRefundPairing`·`variantKeysSeen` 을 찍는다.
+  - 8469d790e: 구매 프로필을 모르는 기존 해금이 이제 버려지지 않는다. 대상은 USER 행, 삭제·불완전 프로필, 상대 미상 궁합, 계정 배열에만 남은 키다.
+    - `--apply` 가 이들을 `BirthScopeLegacyClaim`(`birth_scope_legacy_claims`)에 upsert 한다.
+    - P0-1 카드·API 에 `legacy-<id>` 로 함께 나온다. 고른 프로필의 생년월일 하나로 BACKFILL 행을 지급한다. 원 주문은 `mergedOrderIds` 에 남겨 환불 회수가 동작한다. 원 구매가 환불·취소됐으면 지급하지 않는다.
+    - 이미 지급된 claim 을 다른 프로필로 다시 고르면 replay 응답만 하고 다른 생년월일은 열지 않는다(P0-1 주문과 같은 동작).
+    - 계획과 다른 점: BIRTH 행 생성기를 공용 파일로 빼지 않았다. claim 은 `grantEntitlement(source:BACKFILL)` 뒤 `mergedOrderIds` 를 `$addToSet` 한다.
+  - aef4c6c9a: 프로필 P→Q→P 를 60초 안에 돌아오면 P 의 해금이 다시 그려지지 않던 문제를 고쳤다. access-store 가 `cd:unlocks-changed {source:"access-store-context"}` 를 보낸다.
+  - 정책 문서(`payment-gating.md`, `PAYMENT_AND_ACCESS.md`)에 유지 보장과 실제 브라우저 캐시 두 가지를 적었다.
+- 명령. 각 단계 출력을 사용자에게 보여주고 승인받은 뒤 다음 단계로 넘어간다. PowerShell 에서는 `$env:MONGO_DB_NAME='code_destiny_staging'` 로 먼저 지정한다. `backup-mongo.mjs` 도 `MONGO_DB_NAME` 을 먼저 따르고 연결된 db 이름을 찍는다.
   ```
-  npm run backup:mongo -- --out <레포 밖 경로>
+  MONGO_DB_NAME=code_destiny_staging node scripts/backup-mongo.mjs --out <레포 밖 경로>
   MONGO_DB_NAME=code_destiny_staging node scripts/migrations/20261010-birth-scope-unlocks.mjs
   MONGO_DB_NAME=code_destiny_staging node scripts/migrations/20261010-birth-scope-unlocks.mjs --apply
   MONGO_DB_NAME=code_destiny_staging node scripts/migrations/20261010-birth-scope-unlocks.mjs --create-index
   MONGO_DB_NAME=code_destiny_staging node scripts/migrations/20261010-birth-scope-unlocks.mjs --check
-  # 운영: MONGO_DB_NAME=code_destiny 로 같은 네 단계
+  node scripts/audit-birth-scope-pending-orders.mjs --db code_destiny_staging
+  node scripts/verify-birth-scope-migrated-user.mjs --db code_destiny_staging --sample 20
+  # 운영: code_destiny 로 같은 단계(한산한 시간 — 정규식 조회가 있다)
   # 그다음 Actions → Release Cloudflare Pages and Worker → mode: production
   ```
 - 완료 기준:
   - 두 DB 모두 `--check` 가 `RESULT OK` 다.
-  - dry-run 의 `STAT` 숫자(생성·병합·삭제 프로필·제외 USER 행·영향 사용자)를 사용자에게 보고했다.
+  - dry-run 의 `STAT` 숫자(생성·병합·삭제 프로필·제외 USER 행·영향 사용자·claim 수·환불 짝짓기)를 사용자에게 보고했다.
+  - `verify-birth-scope-migrated-user` 가 `RESULT OK`(같은 생년월일 열림·다른 생년월일 잠김)다.
   - staging 에서 기존 구매 계정 하나로 종합풀이가 열리는 것을 확인했다.
+- 범위 밖 발견(2026-10-11, 미착수):
+  - `index.html` 의 검사 없는 `markUnlockKey` 호출 두 곳(~29736, ~31633).
+  - `claimProductFromOrder` 가 연도 접미사를 떼어 상품명을 만든다. P0-1 연운 주문의 카드 문구가 연도 없이 나올 수 있다.
 
 ### P1. 결제 정확성
 
@@ -230,6 +252,7 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2 를 진�
 
 - 프로필을 지우고 같은 출생 정보로 다시 만들면 다시 열린다. 해금 단위가 출생 정보이기 때문이다.
 - 옛 JS 캐시로 5,000원을 보내면 400 `CLIENT_AMOUNT_MISMATCH` 와 "새로고침 후 다시 시도" 문구가 나온다. 새로고침하면 해결된다.
+- 이관 뒤 프로필을 모르는 기존 해금은 바로 열리지 않고 "프로필을 골라 주세요" 카드가 뜬다. 사용자 결정(2026-10-11 "프로필 선택 지급")이다.
 - 브라우저 캐시 누수는 점검 결과 남은 곳이 없다. 다만 다른 기기에서 생년월일을 고친 뒤 72시간 안에는 이 기기의 옛 지급 기록이 브라우저 관문을 열 수 있다. P2-1 을 끝내면 함께 사라진다.
 
 ## 사용자 결정 (2026-10-10)
@@ -246,6 +269,7 @@ docs/handoff/2026-10-10-birth-scope-unlock-followups.md 를 읽고 P0-2 를 진�
 - P2-4: love-code 는 영구 해금 기능으로 하고, 계정 전체로 연다(계정 기반, 출생 기반 아님).
 - P3-1: Play 에서도 ₩1,000 가격을 허용한다.
 - P3-5: 사주 화면 궁합은 이미 있다. 새로 만들지 않고 `section_compat` 키를 은퇴시킨다.
+- 2026-10-11: 기존에 해금된 것은 유지한다. 구매 프로필을 모르거나 지워진 기존 해금은 사용자가 저장 프로필을 골라 연다(환불 없음, 처음 고른 생년월일 하나). P0-2 는 staging·운영 모두 적용하고 운영 승격은 따로 한다.
 
 ## 모르는 것 — 추측하지 말고 사용자에게 묻는다
 
