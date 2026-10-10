@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-10
-next: 해시태그 현지화 여부를 사용자에게 묻고, en부터 그 문화권 고유 꽃말로 flowerLanguage 89종을 채운다
+next: 브랜치 wt/destiny-flower-locale-20261010-124051 을 main 에 합칠지 사용자 승인 대기. 아래 후속 과제는 별건
 ---
 
 # 운명의 꽃 — 다국어 확장 + fortune-ui.css 잔존 다크 규칙 삭제
@@ -13,68 +13,69 @@ next: 해시태그 현지화 여부를 사용자에게 묻고, en부터 그 문�
 
 ## 지금 상태
 
-- main `8195f15dc` push 완료 → 스테이징 자동 배포. 운영 승격 안 함(별도 승인 필요).
-- 한국어는 완료. 다른 로케일은 아래 표의 항목이 비어 있어 한국어로 폴백된다.
+- 작업은 브랜치 `wt/destiny-flower-locale-20261010-124051`(워크트리 `D:\Development\codedestiny-worktrees\destiny-flower-locale-20261010-124051`)에 커밋 5개로 있다. main 미병합·미푸시, 운영 승격 안 함.
+  - `441279dca` 꽃말 89종 × 11로케일, 서버 번역(`withDestinyFlowerLocale`), OG 배지, `i18n:check`에 서버 사전 검사 연결
+  - `16520ce76` 엔진 용어(`*_label` 형제 필드)·스튜디오 런타임 문구(`_dfUiText`) 현지화
+  - `e45134d7a` 새 키 459개(엔진 서사·자미/숙요/사주 라벨·밝기 8등급·런타임 문구) 10개 로케일 번역
+  - `ce65f3bf1` 다크 선언 삭제 + 죽은 `.df-studio-toast` 규칙 삭제
+  - `be6c18035` `lang` 요청이 번역된 꽃 이름·꽃말을 돌려주는 라우트 테스트
+- 사용자 결정: 해시태그는 로케일별 현지화 / 부정적 전통 꽃말은 현대 꽃말로 대체 / 빈칸은 현지 현대 꽃말, 없으면 한국 꽃말 번역 / 엔진 문구는 서버에서 번역.
 
-## 남은 작업
+### 꽃말 출처 분포 (89종 기준)
 
-대상 로케일 11개: en ja zh-cn zh-tw es de fr hi ms nl vi (`public/i18n/<로케일>.json`)
+| 로케일 | 전통 | 현대 | 한국 꽃말 번역 |
+|---|---|---|---|
+| en | 50 | 34 | 5 |
+| ja | 87 | 1 | 1 |
+| zh-CN | 83 | 1 | 5 |
+| zh-TW | 82 | 2 | 5 |
+| es | 59 | 22 | 8 |
+| fr | 54 | 27 | 8 |
+| de | 57 | 12 | 20 |
+| nl | 47 | 7 | 35 |
+| vi | 13 | 48 | 28 |
+| ms | 3 | 40 | 46 |
+| hi | 10 | 12 | 67 |
 
-- [ ] 꽃말 `fortune.destinyFlower.flowers.<id>.flowerLanguage` — 로케일마다 **0/89** → 89/89. **사용자 결정(2026-10-10): 한국 꽃말을 번역하지 말고 각 문화권 고유 꽃말을 쓴다**(예: ja는 花言葉, en은 영미 전통 꽃말). 같은 꽃이라도 한국 꽃말과 뜻이 달라도 된다
-- [ ] 엔진 새 문구 키 **13개**(`DESTINY_FLOWER_KO_TEXT`의 `common.bloom*`·`common.flowerLanguage*`·`common.shareHook`·`saju.bloom`·`saju.flowerLanguage*`·`saju.shareHook*`) — 로케일마다 0/13 → 13/13. 키 경로는 `fortune.destinyFlower.<키>`
-- [ ] 런타임 한국어 하드코딩 — 이번 작업에서 한국어가 든 줄이 102줄 늘었고 번역 호출은 0개: 공유 시트, 스토리 카드, 친구 꽃 티저, 꽃 궁합 7유형, 채집 라벨, 개화 타임라인, 꽃다발, 공유 훅 문구. 개수는 `npm run i18n:audit`로 확정한다
-- [ ] OG 배지 `BADGES.flower = '운명의 꽃'`(`worker/lib/og-card.js`) — 한국어 전용
-- [ ] 다크 선언 삭제(`styles/fortune-ui.css`, 줄번호는 `8195f15dc` 기준):
-  - `.df-studio-quad` 9719
-  - `.df-quad-card` 9757–9771
-  - `.df-quad-visual` 9801
-  - `.df-studio-empty` 9933–9951
-  - `.df-studio-link-btn` 9964–10001
-  - `.df-studio-toast` 10443–10448 — 이 클래스를 만드는 마크업·JS가 없어 규칙째 죽은 코드다
+hi·ms·vi는 고유 꽃말 전통이 얇아 번역 비중이 높다. zh-TW는 대만 출처가 없는 칸이 있어 zh-CN 출처를 썼다.
 
-  모두 `styles/destiny-flower-cosmic.css`의 `#destinyFlowerStudioOverlay` 라이트 규칙이 덮어쓰고 있다.
+## 완료 기준 — 충족
 
-**완료 기준**
-- `npm run i18n:check` 통과
-- `/en/`·`/ja/`에서 꽃 스튜디오·공유 시트·스토리 카드 스크린샷(360·1280)에 한국어가 없다
-- 다크 삭제 전후 스튜디오 스크린샷이 같다
+- `npm run i18n:check` 통과(서버 사전 `--check` 포함)
+- `/en/`·`/ja/` × 360·1280: 스튜디오 4개 탭·공유 시트·스토리 카드 innerText에 한글 0줄, 콘솔 에러 0
+- 다크 삭제 전후: 계산된 스타일 덤프(라이트·다크 × ko·en × 360·1280 × 프로필 유무, hover 포함)가 바이트 동일. 픽셀 스크린샷은 삭제 전끼리도 88장 중 7장이 달라(애니메이션·서브픽셀) 보조 근거로만 썼고, 전후 차이도 같은 범위였다
+- ko 엔진 출력·ko 스튜디오 문구는 변경 전과 바이트 동일
 
-## 정본 예시
+## 함정 (다음에 이 영역을 만질 때)
 
-- 런타임 번역: `js/core/index-inline-runtime.js:36` (`_indexRuntimeText` → `cdTranslate(key, {}, ko)`)
-- 엔진 번역: `worker/lib/destiny-flower-engine.js:306` (`destinyFlowerText`), 한국어 원문은 `:95`
+- 엔진의 한국어 원값 필드(`palace`, `star`, `brightness` 등)는 런타임이 비교에 쓰므로 번역하지 않는다. 비-ko 응답에는 `*_label` 형제 필드를 붙이고 화면은 라벨을 쓴다.
+- 비-ko에서 `josa()`는 조사 없이 이름만 돌려준다. `{starsJosa}`·`{starsObject}` 자리표시자는 다른 언어에서 순수 명사구다.
+- 서버 사전 `worker/lib/destiny-flower-i18n.generated.js`(약 814KB)는 `scripts/build-destiny-flower-i18n.mjs`가 만든다. 저작 파일을 고친 뒤 재생성하지 않으면 `i18n:check`가 실패한다.
+- `build-fortune-ui-critical`은 `dist/index.html`이 있어야 돌아서 이번에 실행하지 않았다. 삭제한 선언이 critical 블록에 없음을 grep으로 확인했다.
+- `sync:public`이 `UNKNOWN errno -4094`로 멈추면 `git checkout -- public/styles/static-policy.css` 후 다시 실행한다.
 
-## 함정
+## 후속 과제 (이번 범위 밖, 기존 문제)
 
-- **선언만 지운다. 규칙째 지우지 않는다.**
-  - `__tests__/ui/destiny-flower-quad.static.test.js:138`은 `.df-studio-quad { display: grid }`를 요구한다.
-  - `__tests__/ui/destiny-flower-wiring.static.test.js:149`는 살아 있는 규칙 목록을 고정한다.
-  - `.df-studio-toast`만 규칙째 지워도 된다(`:160` 죽은 규칙 목록에 추가할지 확인).
-- `fortune-ui.css`를 고치면 `node scripts/build-fortune-ui-critical.mjs`로 `index.html`의 `cd-fortune-ui-critical` 블록을 다시 생성한다(그 블록에 `.df-quad-card` 등이 들어 있다). 그다음 `npm run sync:public`.
-- 친구에게 보내는 공유 문구는 한국어 반말이다. 다른 로케일도 친구에게 말하는 캐주얼 톤으로 맞춘다. UI 문구는 해요체에 대응하는 정중체로 쓴다.
-- `sync:public`이 `UNKNOWN errno -4094`로 멈추면 다른 세션의 `check:fast`가 `public/`을 읽고 있는 것이다. `git checkout -- public/styles/static-policy.css`로 되돌리고 다시 실행한다(잘린 채로 커밋하지 말 것).
-- 꽃 디자인 규칙: [docs/context/design-canon.md](../context/design-canon.md)
+- 별자리 이름이 영어 원값으로 나온다: ko "태양궁 Cancer", ja 쿼드 카드 "太陽宮Cancer"(같은 화면 본문은 蟹座). 엔진 `day_master_badge`·런타임 `badges.sun`이 `sun_sign` 원값을 쓴다. `fortuneVar.sign`도 es·fr·de·nl·vi·ms·hi에서 영어다.
+- 자미 밝기 `불`이 `ping`으로 매핑돼 있다. `han`(閑)과 `xian`(陷)의 로마자가 둘 다 "Xian"이라 hanzi로만 구분된다.
+- 기존 ja·zh 기계번역 품질: `astro.elements`, `ziwei.rules`, 숙요 서사, zh `sukuyo.moon.new`. ja 폴백 꽃 이름이 ja.json과 다르다.
+- ko `askAi`·`close` 키 누락, en `growthCycle` 따옴표 깨짐, `fallbackNote` 불일치, `_dfUiText` 폴백이 자리표시자를 치환하지 않음.
+- OG 이미지 폰트가 hi·zh-CN 글리프를 못 그릴 수 있다(두부).
+- vi `ui.source.saju`는 "Saju", 새 문구는 "Tứ Trụ"로 섞여 있다. ms도 "Empat Tiang"/"Saju", "Istana Ming"/"Istana Kehidupan"이 섞여 있다.
+- `check:fast`의 `__tests__/release/sitemap-volatile-lastmod-kst.test.js` 실패는 base `8195f15dc`에서도 같은 날짜 의존 실패다.
 
 ## 검증
 
 ```
-node --test __tests__/ui/destiny-flower-*.static.test.js
-NODE_OPTIONS=--experimental-vm-modules npx jest __tests__/worker/destiny-flower.route.test.js
+node --test __tests__/ui/destiny-flower-*.static.test.js          # 55/55
+NODE_OPTIONS=--experimental-vm-modules npx jest __tests__/worker/destiny-flower   # 11/11
 npm run i18n:check
-npm run check:fast
+npm run verify:worker-no-undef
+npm run build:worker && npm run verify:worker-size                 # gzip 4.37 MiB / 예산 10 MiB
 ```
-
-## 모르는 것
-
-- 고유 꽃말이 정립되지 않은 경우의 처리. 문화권 자체(hi·ms·vi 등)나 개별 꽃에 고유 꽃말이 없을 수 있다. **지어내지 않는다.** 로케일×꽃별로 고유 꽃말이 있는 칸과 없는 칸을 먼저 조사해 표로 보고하고, 빈칸을 어떻게 채울지(한국 꽃말 번역, 인접 문화권 꽃말 등)는 사용자에게 묻는다.
-- 나의 꽃말 문구(`saju.flowerLanguage*`)는 전통 꽃말을 인용하는 템플릿이다. 로케일 꽃말이 한국 꽃말과 다르면, 인용되는 꽃말도 그 로케일 값이어야 한다. 엔진이 `flowerLanguageKo(id)`를 폴백으로 쓰는 경로(`worker/lib/destiny-flower-engine.js` `localizeDestinyFlowerCopy`)를 확인한다.
-- 해시태그 `#운명의꽃 #나의꽃은<이름>`을 로케일별로 바꿀지(예: `#DestinyFlower`). 사용자에게 묻는다.
-- OG 이미지 라우트(`/api/og`)가 로케일을 받는지 확인하지 못했다.
 
 ## 재개
 
 ```
-cd D:\Development\code-destiny && git pull --ff-only && git log --oneline -1   # 기준 8195f15dc 이후
+cd D:\Development\codedestiny-worktrees\destiny-flower-locale-20261010-124051 && git log --oneline -6
 ```
-
-문서: `D:\Development\code-destiny\docs\handoff\2026-10-10-destiny-flower-locale-and-dark-cleanup.md`
