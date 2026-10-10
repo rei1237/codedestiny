@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-10-10
-next: 브랜치 wt/destiny-flower-locale-20261010-124051 을 main 에 합칠지 사용자 승인 대기. 아래 후속 과제는 별건
+next: main 푸시 완료(스테이징 자동 배포). 운영 승격은 별도 승인. 아래 후속 과제는 별건
 ---
 
 # 운명의 꽃 — 다국어 확장 + fortune-ui.css 잔존 다크 규칙 삭제
@@ -13,7 +13,7 @@ next: 브랜치 wt/destiny-flower-locale-20261010-124051 을 main 에 합칠지 
 
 ## 지금 상태
 
-- 작업은 브랜치 `wt/destiny-flower-locale-20261010-124051`(워크트리 `D:\Development\codedestiny-worktrees\destiny-flower-locale-20261010-124051`)에 커밋 5개로 있다. main 미병합·미푸시, 운영 승격 안 함.
+- 작업은 브랜치 `wt/destiny-flower-locale-20261010-124051`(워크트리 `D:\Development\codedestiny-worktrees\destiny-flower-locale-20261010-124051`)에 커밋으로 있고, origin/main 을 병합해 main `751f92fba` 로 푸시했다(스테이징 자동 배포). 운영 승격 안 함.
   - `441279dca` 꽃말 89종 × 11로케일, 서버 번역(`withDestinyFlowerLocale`), OG 배지, `i18n:check`에 서버 사전 검사 연결
   - `16520ce76` 엔진 용어(`*_label` 형제 필드)·스튜디오 런타임 문구(`_dfUiText`) 현지화
   - `e45134d7a` 새 키 459개(엔진 서사·자미/숙요/사주 라벨·밝기 8등급·런타임 문구) 10개 로케일 번역
