@@ -92,3 +92,14 @@ test("추가와 삭제가 섞인 동기화도 결제 없이 반영된다", async
   expect(store.cards.map((row) => row.profileId).sort()).toEqual(["a", "x", "y"]);
   expect(deleteMany).toHaveBeenCalledWith({ userId: TEST_USER_ID, profileId: { $nin: ["a", "x", "y"] } });
 });
+
+test("보낸 카드가 동기화 상한(30)을 넘어 잘리면 목록 밖 카드를 지우지 않는다", async () => {
+  const many = Array.from({ length: 31 }, (_, i) => card(`c${i}`));
+  store.cards = many.map((row) => ({ userId: TEST_USER_ID, ...row }));
+
+  const response = await sync(many);
+
+  expect(response.status).toBe(200);
+  expect(deleteMany).not.toHaveBeenCalled();
+  expect(store.cards).toHaveLength(31);
+});
