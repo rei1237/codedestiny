@@ -406,6 +406,10 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
       if(storedOnly||!providerReady(env))throw new FortuneError('LLM_NOT_CONFIGURED',503);
       // Before the draw the tarot context is only {spreadId, drawPending}; a call then invents the cards.
       if(row.snapshot?.tarotConsultation?.version===TAROT_SPREAD_VERSION&&!row.snapshot.tarotDraw)throw new FortuneError('TAROT_DRAW_REQUIRED',409);
+      // The context itself decides: a placeholder with no cards fails whatever the snapshot markers say.
+      const tarotFacts=row.snapshot?.analysis?.contexts?.tarot?.facts;
+      if(Array.isArray(tarotFacts)&&tarotFacts.some((f:any)=>f?.label==='drawPending'&&f.value===true)&&!tarotFacts.some((f:any)=>f?.label==='cards'&&Array.isArray(f.value)&&f.value.length))
+        throw new FortuneError('TAROT_DRAW_REQUIRED',409);
       sharedProvider=new CodeDestinyProvider(env,{serviceId:row.featureKey,requestId,
         access:row.accessMethod || (row.paymentId?'DIRECT_KRW':''),sectionGroup:String(ordinal+1),
         attempt:Number(row.chapterAttempts?.[ordinal] || 1),generationSource:source},
