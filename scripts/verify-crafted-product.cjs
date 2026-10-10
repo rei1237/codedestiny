@@ -11,6 +11,8 @@ const fish = process.argv[2] || 'mackerel', domain = process.argv[3] || 'saju', 
         console.log('checking ' + flow);
         await page.goto(origin + (flow === 'legacy' ? '/yeongnyangi/readings/'+domain+'/?lang=ko' : '/yeongnyangi/fortune/?domain='+domain+'&lang=ko'), { timeout: 120000 });
         await page.evaluate(() => document.fonts.ready);
+        // RuntimeClientGuards omits this tester in production; keep its dev-only overlay out of evidence.
+        await page.addStyleTag({content:'button[aria-label="개발 결제 테스터"]{display:none!important}'});
         if (flow === 'legacy') {
             await page.getByText('질문 없이 전체 성향 리포트 고르기', { exact: true }).click();
             if (fish !== 'mackerel')
@@ -77,7 +79,7 @@ const fish = process.argv[2] || 'mackerel', domain = process.argv[3] || 'saju', 
         await detail.locator('img').first().evaluate(i => { i.loading = 'eager'; i.src = '/missing-crafted-test.webp'; });
         await page.waitForFunction(() => document.querySelector('.craftedDetailTranscript').open);
     }
-    fs.writeFileSync(out + '/mobile.json', JSON.stringify({ rows, missingImageOpensTranscript: true, mode: 'mock; no payment or LLM' }, null, 2));
+    fs.writeFileSync(out + '/mobile.json', JSON.stringify({ rows, missingImageOpensTranscript: true, mode: 'mock; no payment or LLM', captureExclusion:'Production-omitted DevPaymentTester button hidden; product UI unchanged' }, null, 2));
     if (rows.some(r => r.scrollWidth > r.width || r.images.some(i => !i.loaded || i.left < 0 || i.right > r.width)))
         throw Error('Image bounds failure');
     console.log(rows.map(r => ({ flow: r.flow, width: r.width, imageWidth: r.images[0].width })));
