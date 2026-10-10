@@ -474,6 +474,14 @@ async function verifyTarotPerUseAccess(request, env, body, spec, verifiedAuth = 
     authError = error;
   }
 
+  // A paid love or mindscan body must name the server draw its cards came from. It is checked
+  // before any entitlement or payment lookup, which can consume pass coverage, so a stale tab
+  // without drawId is refused (409, redraw) without spending anything (worker/lib/paid-tarot-draw.js).
+  if (auth?.userId && spec.drawFeatureKey) {
+    const { bindPaidTarotDraw } = await import("../lib/paid-tarot-draw.js");
+    await bindPaidTarotDraw(env, { featureKey: spec.drawFeatureKey, owner: auth.userId, body });
+  }
+
   if (auth?.userId) {
     // 관문이 아니라 지름길이다. 회당결제 키에 canAccessPaidFeature 는 원래 늘 PAYMENT_REQUIRED 를
     // 돌려주고, 실제 증빙은 아래 verifyPerUsePayment 가 본다 — 그래서 여기서 무엇이 터지든
@@ -1676,7 +1684,7 @@ async function handleLoveTarotDelivery(request, env, body) {
   const featureKey = "tarot-love-relationship";
   const spec = { featureKey, minCost: FEATURE_KEY_PRICE_TABLE[featureKey].cost, codePrefix: "LOVE_TAROT",
     reason: "우리는 무슨 사이? 타로 리딩", authMessage: "로그인 후 리딩을 확인할 수 있습니다.", retryHint: "기존 결제 요청으로 다시 시도해 주세요." };
-  const initial = request.method === "POST" && !body.resumeResultId ? await verifyTarotPerUseAccess(request, env, body, spec) : null;
+  const initial = request.method === "POST" && !body.resumeResultId ? await verifyTarotPerUseAccess(request, env, body, { ...spec, drawFeatureKey: featureKey }) : null;
   if (initial && !initial.ok) return json({ ok: false, code: initial.code, reason: initial.reason || "", message: initial.message,
     retryable: ![401, 403].includes(initial.status) }, { status: initial.status || 402 });
   const auth = initial?.auth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
@@ -1690,7 +1698,7 @@ async function handleLoveTarotDelivery(request, env, body) {
 async function handleMindscanDelivery(request, env, body) {
   const spec = { featureKey: MINDSCAN_FEATURE_KEY, minCost: MINDSCAN_MIN_COST, codePrefix: "MINDSCAN",
     reason: "마인드스캔 타로 리딩", authMessage: "로그인 후 리딩을 확인할 수 있습니다.", retryHint: "기존 결제 요청으로 다시 시도해 주세요." };
-  const initial = request.method === "POST" && !body.resumeResultId ? await verifyTarotPerUseAccess(request, env, body, spec) : null;
+  const initial = request.method === "POST" && !body.resumeResultId ? await verifyTarotPerUseAccess(request, env, body, { ...spec, drawFeatureKey: MINDSCAN_FEATURE_KEY }) : null;
   if (initial && !initial.ok) return json({ ok: false, code: initial.code, reason: initial.reason || "", message: initial.message,
     retryable: ![401, 403].includes(initial.status) }, { status: initial.status || 402 });
   const auth = initial?.auth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });

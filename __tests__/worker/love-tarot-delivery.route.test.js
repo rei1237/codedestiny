@@ -180,3 +180,16 @@ test('the delivered love reading passes the eval rubric, and the rubric sees a f
  expect(scoreReading(text,prompt,{id:'love-route'}).findings.map(f=>f.rule)).toEqual(['probability']);
  expect(provider).toHaveBeenCalledTimes(9);
 });
+// A tab opened before the server draw shipped can still post without drawId. The draw is checked before any payment
+// proof is read, so a pass is never consumed for a request that cannot run, and a redraw under the same requestId
+// completes on the payment already made.
+test.each([
+ ['no draw id',body=>{delete body.drawId;},409],
+ ['a swapped card',body=>{body.cards[0]={...body.cards[0],cardId:'M21'};},400],
+ ['a draw another account used',()=>{draws[0].owner='someone-else';},403],
+])('%s is refused before any payment proof is read',async(_name,change,status)=>{mode='single';const body=original();change(body);expect((await post(body)).status).toBe(status);expect(proofs).toHaveLength(0);});
+test('a redraw under the same request id completes on the original payment',async()=>{
+ mode='single';const stale=original();delete stale.drawId;expect((await post(stale)).status).toBe(409);
+ expect((await post(original())).status).toBe(202);expect((await finish()).status).toBe(200);
+ expect(proofs.length).toBeGreaterThan(0);expect(proofs.every(p=>p.requestId===original().requestId)).toBe(true);
+});
