@@ -176,11 +176,26 @@ async function installFixture({ lockKey = "", lockCost = 0, coinCost = 0, featur
     document.body.insertBefore(wrap, document.body.firstChild);
     window.scrollTo(0, 0);
 
-    // 해금 상태는 셸이 window 로 내보낸 실제 맵(참조 공유)을 직접 조작한다.
+    // rpt_* 잠금 키는 출생 기반이다 — 저장 카드(profileId + 출생) 없이는 결제 CTA 가 alert 로 막히고
+    // (CDP 평가가 그 대화상자에 걸려 멈춘다) legacy map 플래그도 무시된다. 저장 카드를 두고,
+    // 해금은 그 카드에 묶인 검증 grant 로 시드한다.
+    window.__cdCurrentDestinyProfile = {
+      profileId: 'rpt-preview-profile',
+      birth: { year: 1990, month: 5, day: 15, hour: 12, minute: 0 }
+    };
     try {
-      if (window.unlockedFeatureMap) {
-        if (${unlocked ? "true" : "false"}) window.unlockedFeatureMap[${JSON.stringify(lockKey)}] = true;
-        else delete window.unlockedFeatureMap[${JSON.stringify(lockKey)}];
+      if (${unlocked ? "true" : "false"}) {
+        window._cdFinalizeUnlockState(${JSON.stringify(lockKey)}, {
+          data: {
+            featureKey: ${JSON.stringify(lockKey)},
+            profileId: 'rpt-preview-profile',
+            requestId: 'rpt-preview-unlocked',
+            accessGranted: true,
+            accessGrant: { featureKey: ${JSON.stringify(lockKey)}, profileId: 'rpt-preview-profile', evidenceId: 'rpt-preview-unlocked' }
+          }
+        });
+      } else if (window.unlockedFeatureMap) {
+        delete window.unlockedFeatureMap[${JSON.stringify(lockKey)}];
       }
     } catch (_) {}
 
