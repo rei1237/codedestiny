@@ -5,6 +5,7 @@ import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJ
 import {
   normalizeHoneyPassEntitlement,
   resolveCurrentProfileId as resolveCurrentId,
+  resolveProfileLimitForClient,
   resolveSingleProfileAccess,
 } from "../lib/profile-limits.js";
 
@@ -203,7 +204,7 @@ function resolveSubscriptionPolicy(user) {
     label: entitlement.label,
     isActive: entitlement.isActive,
     freeLimit: entitlement.maxCoveredCoin,
-    profileLimit: entitlement.maxProfiles,
+    profileLimit: resolveProfileLimitForClient(), // 2026-10-11 프로필 개수 상한 없음(0 = 무제한)
     source: entitlement.source,
     startedAt: entitlement.startedAt || null,
     expiresAt: entitlement.expiresAt,

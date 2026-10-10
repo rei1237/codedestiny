@@ -66,13 +66,14 @@ import { hasUserScopedPermanentUnlock } from "../lib/paid-content-read-access.js
 import { isBirthUnlockIdentityError, resolveBirthUnlockIdentity } from "../lib/birth-scoped-unlock-identity.js";
 import {
   buildPassTerminationFields,
+  computePassExpiry,
   isPassBudgetExhausted,
   normalizePassTier,
   PASS_LIMITS,
   resolvePassPolicy,
-  HONEY_PASS_POLICY,
   resolveMonthlySpendQuota,
   resolvePremiumQuota,
+  resolveProfileLimitForClient,
 } from "../lib/profile-limits.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js";
 import {
@@ -4703,8 +4704,9 @@ function requireDevPaymentTesterAccess(env) {
 function buildDevPassPatch(tier, now) {
   const normalizedTier = normalizePassTier(tier);
   const passLimit = Number(PASS_LIMITS[normalizedTier] || 0);
-  const profileLimit = Number(HONEY_PASS_POLICY[normalizedTier]?.maxProfiles ?? 1);
-  const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const profileLimit = resolveProfileLimitForClient();
+  // 실결제와 같은 표현(기간 없음 — 한도 소진 시 종료)으로 맞춘다.
+  const expiresAt = computePassExpiry({ transition: { code: "NEW" }, paidAt: now, now });
   return {
     tier: normalizedTier,
     source: "event",
@@ -5369,7 +5371,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       freeLimit: entitlement.maxCoveredCoin,
       passLimit: entitlement.maxCoveredCoin,
       maxCoveredCoin: entitlement.maxCoveredCoin,
-      profileLimit: entitlement.maxProfiles,
+      profileLimit: resolveProfileLimitForClient(), // 2026-10-11 프로필 개수 상한 없음(0 = 무제한)
       source: entitlement.source,
       expiresAt: entitlement.expiresAt || sub?.expiresAt || null,
       monthlyStoneBalance: membershipCreditBalance,

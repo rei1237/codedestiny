@@ -269,7 +269,7 @@ function resolveAppPassPurchaseProduct(body = {}) {
     subscriptionTier: pass.passTier,
     passTier: pass.passTier,
     durationDays: APP_PASS_DURATION_DAYS,
-    // 이용권은 기간만 있고 사용 횟수 제한이 없다.
+    // durationDays 는 구 앱 카탈로그 호환 값이다. 이용권 자체에는 기간이 없다(2026-10-11) — 사용 횟수 제한도 없다.
     usageLimited: false,
     coverageCoin: isUnlimited ? null : coinLimit,
     coverageKRW: isUnlimited ? null : resolveAppPassCoverageKRW(coinLimit),
@@ -953,25 +953,24 @@ function buildEntitlementUpdate({ product, googlePurchase, now, priorSubscriptio
     },
   };
 
-  // 이용권은 30일·자동갱신 없음이라 Play `inapp`으로 판다. `subs`가 아니므로
+  // 이용권은 기간·자동갱신 없음(한도 소진 시 종료)이라 Play `inapp`으로 판다. `subs`가 아니므로
   // productType이 아니라 passTier로 판정해야 한다.
   const passTier = normalizePassTier(cleanText(product.passTier || product.subscriptionTier));
   if (product.kind === "pass" && passTier) {
     // 🔴 재실행 가드. verify 는 같은 purchaseToken 으로 여러 번 들어온다(재전송·복원). 예전에는
-    // 만료를 now+30일로 **덮어썼기** 때문에 재실행이 무해했지만, 아래에서 기간·한도를 쌓게 된
-    // 뒤로는 재실행 한 번이 30일을 공짜로 얹는다. 웹 카드 결제와 같은 필드로 막는다
+    // 만료를 now+30일로 **덮어썼기** 때문에 재실행이 무해했지만, 아래에서 한도를 쌓게 된
+    // 뒤로는 재실행 한 번이 한도 1회분을 공짜로 얹는다. 웹 카드 결제와 같은 필드로 막는다
     // (worker/payments/passes.js activatePassSubscription lastPassOrderId).
     if (passOrderId && String(priorSubscription?.lastPassOrderId || "") === String(passOrderId)) {
       return update;
     }
-    // 같은 등급을 활성 중에 다시 사면 기간이 이어붙고 한도도 함께 쌓인다 — 웹 카드 결제와
+    // 같은 등급을 활성 중에 다시 사면 한도가 쌓인다(이용권 기간은 없다, 2026-10-11) — 웹 카드 결제와
     // 정확히 같은 규칙이다(profile-limits.js computePassExpiry · buildPassCycleFields).
-    // 예전에는 만료를 now+30일로 덮어써 남은 기간이 사라졌다(2026-09-05 정정).
     if (isPassPolicyMix(priorSubscription || {}, product, now)) throw Object.assign(new Error("현재 이용권이 종료된 후 수령해 주세요."), { code: "PASS_POLICY_CONFLICT", status: 409 });
     const transition = evaluatePassTierTransition(priorSubscription, passTier, now);
     const expiresAt = googlePurchase?.expiryTimeMillis
       ? new Date(Number(googlePurchase.expiryTimeMillis))
-      : computePassExpiry({ transition, paidAt: now, now, durationDays: APP_PASS_DURATION_DAYS });
+      : computePassExpiry({ transition, paidAt: now, now });
     const cycle = buildPassCycleFields({ priorSubscription, tier: passTier, expiresAt, now, passPolicyVersion: passPolicyVersion(product) });
     update.$set = {
       "profileSubscription.tier": passTier,

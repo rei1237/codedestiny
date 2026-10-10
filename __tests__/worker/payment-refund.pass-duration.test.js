@@ -37,7 +37,7 @@ function userWithExpiry(daysFromNow) {
   return expiresAt;
 }
 
-test("🔴 V2 이용권 주문(metadata.durationMonths)도 기간을 읽어 되감는다 — UNKNOWN_DURATION 으로 빠지지 않는다", async () => {
+test("🔴 V2 이용권 주문(metadata.durationMonths)도 이용권 주문으로 읽어 회수한다 — UNKNOWN_DURATION 으로 빠지지 않는다", async () => {
   userWithExpiry(20);
   const result = await revokeMembershipPassGrant({ userId: "64b000000000000000000001", metadata: { durationMonths: 1 } });
   expect(result).toMatchObject({ reverted: true });
