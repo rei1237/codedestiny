@@ -6,9 +6,13 @@
 // worker/lib/paid-result-archive.js — 보관함 /api/records 가 metadata.archive 를 읽는다).
 //
 // 🔴 클라이언트의 결제 주장은 믿지 않는다.
-//    · 회당 결제(궁합): 결제 requestId 는 게이트(syOpenPaidSukuyoFeature)가 만드는
-//      'sukuyo-paid:<featureKey>|<profileId>' 를 서버가 직접 다시 만들어 조회한다 — 카드가 requestId 에
-//      박혀 있으므로 다른 카드의 결제로 이 카드의 결과를 저장할 수 없다.
+//    · 회당 결제(궁합): 게이트(syOpenPaidSukuyoFeature)는 결제마다 새 requestId
+//      'sukuyo-paid:<featureKey>|<profileId>|<꼬리>' 를 만들고 같은 값을 여기로 보낸다. 예전처럼 카드에
+//      고정하면 다른 상대를 볼 때 월정석 원장·이용권 마커가 첫 결제의 재생으로 처리돼 두 번째 결제가
+//      일어나지 않았다. 서버는 앞부분이 이 기능·이 카드와 같을 때만 받아 그 값으로 증빙을 찾는다 —
+//      다른 카드의 결제로 이 카드의 결과를 저장할 수 없다. 결제 1건 = 기록 1건(executionKey 에 requestId).
+//      requestId 가 없으면(배포 전 JS·배포 전 결제) 예전 고정값 'sukuyo-paid:<featureKey>|<profileId>' 를
+//      서버가 만들어 조회한다.
 //    · 출생 기반 해금(본성 심화·극T): 이 카드의 출생 정보로 산 활성 해금 행이 있어야 한다.
 // 🔴 이용권 즉시 사용: 셸 게이트는 이용권을 낙관적으로 열고 사용 기록(pass-check)을 뒤에서 보낸다.
 //    그 기록이 아직 닿지 않았거나 유실됐으면 회당 결제는 여기서 **같은 requestId 로** 이용권을 직접
@@ -117,9 +121,19 @@ export const SUKUYO_ARCHIVE_FEATURES = Object.freeze({
   }),
 });
 
-async function provePerUse(env, spec, { userId, profileId, accessMethod }) {
-  // 게이트가 결제에 쓴 바로 그 requestId — 서버가 만든다.
-  const requestId = `sukuyo-paid:${spec.featureKey}|${profileId}`;
+// 결제마다 붙는 꼬리 — 셸의 syNewSukuyoPaymentRequestId(base36 시각 + base36 난수).
+const PER_PAYMENT_TAIL_PATTERN = /^[a-z0-9]{6,40}$/;
+
+// 게이트가 결제에 쓴 requestId. 보내지 않았으면 예전 고정값, 이 기능·이 카드 것이 아니면 null.
+function resolvePerUseRequestId(spec, profileId, raw) {
+  const legacy = `sukuyo-paid:${spec.featureKey}|${profileId}`;
+  const requestId = typeof raw === "string" ? raw.trim() : "";
+  if (!requestId) return { requestId: legacy, perPayment: false };
+  const tail = requestId.startsWith(`${legacy}|`) ? requestId.slice(legacy.length + 1) : "";
+  return PER_PAYMENT_TAIL_PATTERN.test(tail) ? { requestId, perPayment: true } : null;
+}
+
+async function provePerUse(env, spec, { userId, profileId, requestId, accessMethod }) {
   const input = {
     userId,
     featureKey: spec.featureKey,
@@ -173,10 +187,12 @@ export async function handleSukuyoResultArchive(request, env, featureSlug) {
     ? (!facts.partnerMansion || !partner.y || !partner.m || !partner.d)
     : (!facts[spec.required] || !sections.length);
   if (missing) return fail(400, "RESULT_REQUIRED", "저장할 결과가 없습니다.");
+  const perUse = spec.payment === "per_use" ? resolvePerUseRequestId(spec, profileId, body.requestId) : null;
+  if (spec.payment === "per_use" && !perUse) return fail(400, "REQUEST_ID_INVALID", "결제 요청 번호가 이 카드의 결제가 아닙니다.");
 
   const accessMethod = text(body.accessMethod, 20).toLowerCase();
-  const { proof, requestId } = spec.payment === "per_use"
-    ? await provePerUse(env, spec, { userId: auth.userId, profileId, accessMethod })
+  const { proof, requestId } = perUse
+    ? await provePerUse(env, spec, { userId: auth.userId, profileId, requestId: perUse.requestId, accessMethod })
     : await proveBirthUnlock(env, spec, { userId: auth.userId, profileId });
   // 🔴 null 은 DB 장애다 — 미결제(403)로 바꾸지 않는다.
   if (proof?.proven === null) return fail(503, "PAYMENT_CHECK_UNAVAILABLE", "결제 확인이 잠시 지연되고 있습니다.");
@@ -185,10 +201,13 @@ export async function handleSukuyoResultArchive(request, env, featureSlug) {
   await connectDb(env);
   const { cardName, birthKey } = await readArchiveCard(env, auth.userId, profileId);
 
-  // 같은 카드(출생정보)·같은 입력이면 같은 기록이다 — 다시 저장하면 갱신된다.
-  const signatureInput = spec.partner
-    ? { v: SUKUYO_ARCHIVE_LOGIC_VERSION, birthKey, partner, myMansion: facts.myMansion || "" }
-    : { v: SUKUYO_ARCHIVE_LOGIC_VERSION, birthKey, ...Object.fromEntries(spec.signatureFacts.map((key) => [key, facts[key] ?? ""])) };
+  // 결제마다 requestId 가 있으면 결제 1건 = 기록 1건이다. 그 밖에는 같은 카드(출생정보)·같은 입력이면
+  // 같은 기록이다. 어느 쪽이든 다시 저장하면 갱신된다.
+  const signatureInput = perUse?.perPayment
+    ? { v: SUKUYO_ARCHIVE_LOGIC_VERSION, featureKey: spec.featureKey, requestId }
+    : spec.partner
+      ? { v: SUKUYO_ARCHIVE_LOGIC_VERSION, birthKey, partner, myMansion: facts.myMansion || "" }
+      : { v: SUKUYO_ARCHIVE_LOGIC_VERSION, birthKey, ...Object.fromEntries(spec.signatureFacts.map((key) => [key, facts[key] ?? ""])) };
   const signature = archiveSignature(signatureInput);
   const executionKey = `${featureSlug}:${auth.userId}:${profileId}:${signature}`.slice(0, 120);
   const generatedAt = new Date().toISOString();

@@ -8279,8 +8279,9 @@ var SY_PAID_FEATURES = Object.freeze({
   natureDeepDive: { key: 'sukuyo-nature-deep-dive', cost: 30, reason: '본성 심화 해석' },
   pastLifeReading: { key: 'sukuyo-past-life-reading', cost: 50, reason: '숙요 인연 레이더' },
   monthlyFortune: { key: 'sukuyo-monthly-fortune', cost: 30, reason: '월별 숙요 운세 확장' },
-  compatibility: { key: 'compat-sukuyo-compatibility', cost: 30, reason: '숙요점 궁합 분석' },
-  compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 30, reason: '숙요점 정밀 궁합 확장 분석' }
+  // perPayment: 상대가 매번 바뀌는 회당 결제 — 결제마다 새 requestId 를 쓴다(syOpenPaidSukuyoFeature).
+  compatibility: { key: 'compat-sukuyo-compatibility', cost: 30, reason: '숙요점 궁합 분석', perPayment: true },
+  compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 30, reason: '숙요점 정밀 궁합 확장 분석', perPayment: true }
 });
 
 function syResolveCurrentProfileIdForPaidGate() {
@@ -8329,6 +8330,15 @@ function syIsPaidGateGranted(result) {
 var _sySukuyoPaidGateInFlight = Object.create(null);
 var SY_SUKUYO_PAID_GATE_TTL_MS = 45000;
 
+/* 🔴 회당 결제(perPayment — 기본·정밀 궁합)는 결제마다 새 requestId 를 쓴다. 카드에 고정하면 다른 상대를
+   볼 때 월정석 원장(purchaseId)·이용권 멱등 마커가 같은 값이라 서버가 첫 결제의 재생으로 처리해 두 번째
+   결제가 일어나지 않았다. 연타는 위 인플라이트 맵(45초)이 게이트 진입 자체를 막으므로 값이 달라도 한 번만
+   열린다. 앞부분(기능|카드)은 보관함 저장 때 서버가 이 카드·이 기능의 결제인지 확인하는 데 쓴다
+   (worker/routes/sukuyo-archive.js). */
+function syNewSukuyoPaymentRequestId(inFlightKey) {
+  return 'sukuyo-paid:' + inFlightKey + '|' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+}
+
 /* resume 은 모바일 리다이렉트 복귀에서 이 기능을 **스스로 다시 열기 위한** 직렬화 가능한 서술자다
    ({kind, action, args}). 넘기지 않으면 종전과 같다 — 복귀 시 '지금 열기' 카드로 떨어진다. */
 function syOpenPaidSukuyoFeature(feature, onGranted, resume) {
@@ -8343,6 +8353,8 @@ function syOpenPaidSukuyoFeature(feature, onGranted, resume) {
   // 형제 가드들과 같은 계약 — 시간으로 자기치유한다(락이 새도 45초 뒤엔 다시 열린다).
   if (startedAt && (Date.now() - startedAt) < SY_SUKUYO_PAID_GATE_TTL_MS) return true;
   _sySukuyoPaidGateInFlight[inFlightKey] = Date.now();
+  // 출생 기반 해금은 카드당 한 번이라 고정값을 유지한다. 회당 결제만 결제마다 새 값이다.
+  var requestId = config.perPayment === true ? syNewSukuyoPaymentRequestId(inFlightKey) : 'sukuyo-paid:' + inFlightKey;
   var gateOptions = {
     title: reason,
     reason: reason,
@@ -8350,16 +8362,21 @@ function syOpenPaidSukuyoFeature(feature, onGranted, resume) {
     categoryKey: 'sukuyo',
     coinPrice: cost,
     cost: cost,
-    // 같은 기능·같은 프로필이면 같은 requestId. 연타가 commandKey 디듀프에 걸려 한 번만 결제된다.
-    requestId: 'sukuyo-paid:' + inFlightKey
+    requestId: requestId
   };
   if (profileId) {
     gateOptions.profileId = profileId;
     gateOptions.selectedProfileId = profileId;
   }
-  if (resume && typeof resume === 'object') gateOptions.resume = resume;
+  if (resume && typeof resume === 'object') {
+    // 복귀 페이지가 같은 결제 requestId·카드로 보관함에 저장하도록 서술자에 싣는다(인자는 원시값만 통과한다).
+    if (config.perPayment === true && resume.args && typeof resume.args === 'object') {
+      resume = Object.assign({}, resume, { args: Object.assign({}, resume.args, { requestId: requestId, profileId: profileId }) });
+    }
+    gateOptions.resume = resume;
+  }
   window._cdOpenPaidServiceGate(gateOptions).then(function(result) {
-    if (syIsPaidGateGranted(result)) syRememberPaidGateAccess(featureKey, profileId, result);
+    if (syIsPaidGateGranted(result)) syRememberPaidGateAccess(featureKey, profileId, result, config.perPayment === true ? requestId : '');
     if (syIsPaidGateGranted(result) && typeof onGranted === 'function') onGranted(result);
   }).catch(function(error) {
     var message = error && error.message ? String(error.message) : '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
@@ -8423,11 +8440,13 @@ function syPaidGateAccessMethod(result) {
   return '';
 }
 
-function syRememberPaidGateAccess(featureKey, profileId, result) {
+// requestId 는 회당 결제만 있다 — 그 결제로 저장한 기록 하나에만 쓰이도록 저장 때 한 번 꺼내 쓴다.
+function syRememberPaidGateAccess(featureKey, profileId, result, requestId) {
   try {
     _syPaidGateAccess[String(featureKey || '')] = {
       profileId: String(profileId || ''),
       accessMethod: syPaidGateAccessMethod(result),
+      requestId: String(requestId || ''),
       at: Date.now()
     };
   } catch (_) {}
@@ -8546,8 +8565,11 @@ function sySaveSukuyoResultArchive(featureSlug, payload, attempt) {
       var gateAccess = syRecentPaidGateAccess(SY_ARCHIVE_FEATURE_KEYS[featureSlug]);
       payload = Object.assign({}, payload, {
         profileId: (gateAccess && gateAccess.profileId) || syResolveCurrentProfileIdForPaidGate(),
-        accessMethod: (gateAccess && gateAccess.accessMethod) || ''
+        accessMethod: (gateAccess && gateAccess.accessMethod) || '',
+        requestId: (gateAccess && gateAccess.requestId) || ''
       });
+      // 결제 1건 = 기록 1건. 같은 결제(requestId·이용권 표시)로 다른 상대를 또 저장하지 않게 지운다.
+      if (gateAccess && gateAccess.requestId) delete _syPaidGateAccess[SY_ARCHIVE_FEATURE_KEYS[featureSlug]];
     }
     if (!payload.profileId) return;
     var headers = { 'Content-Type': 'application/json' };
@@ -8557,6 +8579,7 @@ function sySaveSukuyoResultArchive(featureSlug, payload, attempt) {
     } catch (_) {}
     var body = JSON.stringify({
       profileId: payload.profileId,
+      requestId: payload.requestId || undefined,
       accessMethod: payload.accessMethod || undefined,
       facts: payload.facts,
       partner: payload.partner,
@@ -17419,12 +17442,18 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   /* 🔴 여기서 화면을 이동시키지 않는다 — 표면을 여는 책임은 checkout-entry 의 runPaidResume 하나다.
      이 파일은 지연 로드라 runPaidResume 이 딥링크로 숙요 모달을 먼저 열어 이 스크립트를 불러온 뒤
      핸들러를 부른다. 여기서 또 열면 이중 이동이 되어 재개가 통째로 날아간다. */
-  function syRunCompatResume(descriptor) {
+  // 게이트가 서술자에 실어 둔 결제 requestId·카드를 되살린다 — 복귀 뒤 보관함 저장이 그 결제로 증빙을 찾는다.
+  function syResumeCompatGateAccess(featureKey, args, grant) {
+    if (args && args.requestId) syRememberPaidGateAccess(featureKey, args.profileId, grant, args.requestId);
+  }
+
+  function syRunCompatResume(descriptor, grant) {
     var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
     if (!args.y || !args.m || !args.d) return false;
     return syWaitForCompatForm(SY_COMPAT_FORM_WAIT_MS).then(function(ready) {
       // 폼이 끝내 안 뜨면 false — 호출부(destiny-profile 의 복귀 처리)가 '지금 열기' 카드를 그린다.
       if (!ready || typeof window._triggerSynergyCheckCore !== 'function') return false;
+      syResumeCompatGateAccess(SY_PAID_FEATURES.compatibility.key, args, grant);
       sySetCompatFieldValue('sy3BirthY', args.y);
       sySetCompatFieldValue('sy3BirthM', args.m);
       sySetCompatFieldValue('sy3BirthD', args.d);
@@ -17468,18 +17497,23 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     });
   }
 
-  function syRunCompatPrecisionResume(descriptor) {
+  function syRunCompatPrecisionResume(descriptor, grant) {
     var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
     if (!args.y || !args.m || !args.d) return false;
     /* 🔴 지난 렌더의 열기 코어가 남아 있으면 새 보고서를 기다리지 않고 옛 클로저를 열어 버린다 —
        보고서를 다시 그리기 '전에' 지운다. */
     try { window._syRevealCompatPrecisionCore = null; } catch (_syPrecisionResetError) {}
+    // 🔴 이 결제 requestId 는 정밀 확장의 것이다 — 기본 보고서 재현에 넘기면 기본 궁합 결제로 오인된다.
+    var baseArgs = Object.assign({}, args);
+    delete baseArgs.requestId;
+    delete baseArgs.profileId;
     return Promise.resolve(
-      syRunCompatResume({ kind: SY_COMPAT_RESUME_KIND, action: descriptor && descriptor.action, args: args })
+      syRunCompatResume({ kind: SY_COMPAT_RESUME_KIND, action: descriptor && descriptor.action, args: baseArgs })
     ).then(function(rendered) {
       if (rendered !== true) return false;
       return syWaitForCompatPrecisionCore(SY_COMPAT_FORM_WAIT_MS).then(function(ready) {
         if (!ready) return false;
+        syResumeCompatGateAccess(SY_PAID_FEATURES.compatibilityPrecision.key, args, grant);
         try { window._syRevealCompatPrecisionCore(); } catch (_syPrecisionRevealError) { return false; }
         return true;
       });

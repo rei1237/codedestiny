@@ -3,7 +3,8 @@
  *
  * POST /api/sukuyo/<compat|compat-precision|nature-deep-dive|extreme-t>/archive — 숙요 유료 결과의 보관함 저장.
  * 결과는 브라우저가 계산하므로, 서버는 "이 사용자가 이 카드로 이 기능을 실제로 결제했는가"만 확인하고 저장한다.
- * 결제 requestId 는 클라이언트가 아니라 서버가 'sukuyo-paid:<featureKey>|<profileId>' 로 만든다.
+ * 궁합은 결제마다 새 requestId 'sukuyo-paid:<featureKey>|<profileId>|<꼬리>' 를 보내고, 서버는 앞부분이
+ * 이 기능·이 카드일 때만 받는다. 보내지 않으면(배포 전 JS) 예전 고정값 'sukuyo-paid:<featureKey>|<profileId>' 를 쓴다.
  */
 
 import { jest } from "@jest/globals";
@@ -184,6 +185,44 @@ test("이용권 표시가 없는 요청은 기존 결제 증빙만 보고, 없�
 
   expect((await save(payload())).status).toBe(403);
   expect(verifyPerUsePayment).toHaveBeenCalledTimes(1);
+});
+
+const PAY_1 = `sukuyo-paid:compat-sukuyo-compatibility|${PROFILE_ID}|lx1abc2def3g`;
+const PAY_2 = `sukuyo-paid:compat-sukuyo-compatibility|${PROFILE_ID}|lx1abc9zz8yy`;
+
+test("결제마다 보낸 requestId 로 증빙을 찾고(이용권 대체 소비도 같은 값), 그 값을 기록에 남긴다", async () => {
+  verifyPerUsePayment
+    .mockResolvedValueOnce({ proven: false, reason: "NO_EXISTING_CONSUMPTION" })
+    .mockResolvedValueOnce({ proven: true, source: "pass" });
+
+  const response = await save(payload({ requestId: PAY_1, accessMethod: "pass" }));
+
+  expect(response.status).toBe(200);
+  expect(verifyPerUsePayment.mock.calls.map(([, input]) => input.requestId)).toEqual([PAY_1, PAY_1]);
+  expect(store.executions[0].idempotencyKey).toBe(PAY_1);
+});
+
+test("결제 1건 = 기록 1건 — 같은 requestId 는 상대가 달라도 갱신, 다른 결제는 새 기록이다", async () => {
+  await save(payload({ requestId: PAY_1 }));
+  await save(payload({ requestId: PAY_1, partner: { y: "1993", m: "3", d: "4", time: "12:00", cal: "solar", gender: "M" } }));
+  expect(store.executions).toHaveLength(1);
+
+  await save(payload({ requestId: PAY_2 }));
+  expect(store.executions).toHaveLength(2);
+  expect(store.executions.map((row) => row.idempotencyKey)).toEqual([PAY_1, PAY_2]);
+});
+
+test("다른 카드·다른 기능의 requestId 나 꼬리 없는 값은 결제 확인 전에 400 이다", async () => {
+  for (const requestId of [
+    "sukuyo-paid:compat-sukuyo-compatibility|card-b|lx1abc2def3g",
+    "sukuyo-paid:premium-sukuyo-compat-extra|card-a|lx1abc2def3g",
+    `sukuyo-paid:compat-sukuyo-compatibility|${PROFILE_ID}|`,
+    `sukuyo-paid:compat-sukuyo-compatibility|${PROFILE_ID}|LX1-ABC!`,
+  ]) {
+    expect((await save(payload({ requestId }))).status).toBe(400);
+  }
+  expect(verifyPerUsePayment).not.toHaveBeenCalled();
+  expect(store.executions).toHaveLength(0);
 });
 
 function birthPayload(overrides = {}) {
