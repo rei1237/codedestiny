@@ -35,9 +35,11 @@ async function seed(env, userId, body, buildBase) {
     prompt: `${buildOutputLanguageDirective(locale)}\n${buildLoveReadingPrompt(base.reading, locale, { userQuestion: body.userQuestion }).split('[리딩 작성 형식]')[0]}\n${TAROT_SHARED_RULE_BLOCK}` };
 }
 // The stored cards a part may name. Naming another card, flipping an orientation or moving a card
-// to another position title makes the answer a failed attempt within the two-attempt cap.
+// to another position title makes the answer a failed attempt within the two-attempt cap. A state
+// with no stored draw has nothing to check against; every seeded delivery holds one.
 function drawnEvidence(state) {
-  const rows = state.base.reading.positionBreakdown, name = row => getTarotCardByAnyId(row.cardId)?.nameKo || row.cardName;
+  const rows = state.base?.reading?.positionBreakdown, name = row => getTarotCardByAnyId(row.cardId)?.nameKo || row.cardName;
+  if (!rows?.length) return null;
   return { drawn: rows.map(row => ({ name: name(row), orientation: row.orientation })), positions: new Map(rows.map(row => [row.positionTitle, name(row)])) };
 }
 // Records started before the 9-part layout keep rendering from their 21 part ids.
@@ -87,7 +89,8 @@ export function loveTarotNarrativeAdapter(env) {
       else if (legacyCard && paragraphs(value.body).length < 2) value.body = normalizeNarrativeParagraphs(value.body, 2);
       const found = paragraphs(value.body).length;
       if ((count && found !== count) || (legacyCard && found < 2)) return null;
-      if (findTarotProseViolation(value.body, drawnEvidence(state))) return null;
+      const evidence = drawnEvidence(state);
+      if (evidence && findTarotProseViolation(value.body, evidence)) return null;
       return value;
     },
   };

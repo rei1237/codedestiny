@@ -35,7 +35,9 @@ async function seed(env, userId, body) {
 }
 // The stored cards a part may name. The seven derived positions reuse cards, so a card dealt both
 // ways is checked for presence only. Positions hold a main and a sub card and are not checked.
+// A state with no stored draw has nothing to check against; every seeded delivery holds one.
 function drawnEvidence(state) {
+  if (!state.sectionInputs?.length) return null;
   const seen = new Map();
   for (const section of state.sectionInputs) for (const card of [section.mainCard, section.subCard]) {
     const before = seen.get(card?.nameKo);
@@ -88,7 +90,8 @@ export function mindscanNarrativeAdapter(env) {
       else if (task.sectionIndex !== undefined && paragraphs(value.body).length < 2) value.body = normalizeNarrativeParagraphs(value.body, 2);
       const count = paragraphs(value.body).length;
       if ((task.sectionIndex !== undefined && count < 2) || (task.id === 'summary' && count !== 10)) return null;
-      if (findTarotProseViolation(value.body, drawnEvidence(state))) return null;
+      const evidence = drawnEvidence(state);
+      if (evidence && findTarotProseViolation(value.body, evidence)) return null;
       return value;
     },
   };
