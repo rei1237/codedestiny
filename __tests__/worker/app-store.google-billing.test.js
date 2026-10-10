@@ -840,6 +840,8 @@ describe("출생 기반 영구 해금 — userId + birthKey + contentKey", () =>
     expect(status).toBe(200);
     expect(mockGrantPermanentUnlock).not.toHaveBeenCalled();
     expect(payload.data.adminReviewRequired).toBe(true);
+    expect(payload.data.profileSelectionRequired).toBe(true);
+    expect(payload.message).not.toContain("담당자");
     expect(payload.data.unlockMap[unlock.key]).toBe(false);
     const created = mockPaymentCreate.mock.calls[0][0];
     expect(created.failureCode).toBe("delivery_failed_manual_review");

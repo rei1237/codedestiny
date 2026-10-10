@@ -1084,13 +1084,14 @@ async function handleGoogleVerify(request, env) {
   return json({
     ok: true,
     message: birthUnlockHeld
-      ? "결제는 정상 처리됐습니다. 해금 대상 프로필을 확인할 수 없어 담당자가 확인 후 열어 드립니다."
+      ? "결제는 확인됐고 열람할 프로필 확인이 필요합니다. 환불은 진행되지 않았습니다."
       : "Google Play purchase verified.",
     data: {
       provider: "GOOGLE_PLAY",
       idempotent: persisted.idempotent,
       ...(persisted.birthUnlock ? { birthUnlock: persisted.birthUnlock } : {}),
-      ...(birthUnlockHeld ? { adminReviewRequired: true } : {}),
+      // 보류 주문은 프로필 선택 지급 목록(birth-profile-claim.js)에 잡힌다 — 사용자가 직접 프로필을 고른다.
+      ...(birthUnlockHeld ? { adminReviewRequired: true, profileSelectionRequired: true } : {}),
       pricing,
       consume: {
         transactionId: String(persisted.payment?._id || ""),
