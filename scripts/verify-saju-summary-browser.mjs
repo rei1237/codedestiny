@@ -105,7 +105,25 @@ try {
   await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"]').click();
   await page.locator('#nameInput').fill('회귀검증');
   await page.locator('#birthDate').fill('1990-05-15');
-  if (alreadyUnlocked) await page.evaluate(() => { window.unlockedFeatureMap.section_summary = true; });
+  if (alreadyUnlocked) await page.evaluate(() => {
+    // 출생 기반 해금은 저장된 프로필(profileId)이 있어야만 열린다 — 프로필 없이 legacy map 에 쓰면 무시된다.
+    const birth = {year: 1990, month: 5, day: 15, hour: 12, minute: 0};
+    window.__cdCurrentDestinyProfile = { profileId: 'profile-summary-race', birth };
+    window.__cdActiveBirthProfile = { profileId: 'profile-summary-race', birth };
+    window._cdFinalizeUnlockState('section_summary', {
+      data: {
+        featureKey: 'section_summary',
+        profileId: 'profile-summary-race',
+        requestId: 'summary-previously-unlocked',
+        accessGranted: true,
+        accessGrant: {
+          featureKey: 'section_summary',
+          profileId: 'profile-summary-race',
+          evidenceId: 'summary-previously-unlocked'
+        }
+      }
+    });
+  });
   await page.locator('#run-btn').click();
   await page.waitForFunction(() => window.__cdLastSummaryArgs, {timeout:30000});
   if (!alreadyUnlocked) {
@@ -142,12 +160,28 @@ try {
   await page.evaluate(() => {
     // Simulate a restored profile with current engine data but no transient calculate arguments.
     delete window.__cdLastSummaryArgs;
-    window.__cdCurrentDestinyProfile = { profileId: 'profile-summary-race' };
+    // 저장 카드는 출생 정보를 가진다 — 결과 화면이 활성 프로필을 입력값으로 바꿔도 같은 출생으로 대조된다.
+    window.__cdCurrentDestinyProfile = { profileId: 'profile-summary-race', birth: {year: 1990, month: 5, day: 15, hour: 12, minute: 0} };
     window.__cdActiveBirthProfile = { profileId: 'profile-summary-race', birth: {year: 1990, month: 5, day: 15, hour: 12, minute: 0} };
-    window.unlockedFeatureMap.section_summary = true;
+    // section_summary 는 출생 기반 키다 — 프로필이 바뀌면 legacy map 플래그는 지워지므로
+    // 현재 profileId 에 묶인 검증 grant 로 복원한다(서버가 그 프로필에 대해 준 증거와 같은 경로).
+    window._cdFinalizeUnlockState('section_summary', {
+      data: {
+        featureKey: 'section_summary',
+        profileId: 'profile-summary-race',
+        requestId: 'summary-restored-entitlement',
+        accessGranted: true,
+        accessGrant: {
+          featureKey: 'section_summary',
+          profileId: 'profile-summary-race',
+          evidenceId: 'summary-restored-entitlement'
+        }
+      }
+    });
   });
   // A restored entitlement may open the report before a redundant button tap.
-  // Emit the same notification as access restoration, then require a readable report.
+  // Restored birth-scoped access arrives as a verified grant for the current profileId, not
+  // through the shared legacy map. Emit the access-restoration notification, then require a readable report.
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('cd:unlocks-changed',{detail:{source:'mock-restored-entitlement'}})));
   if (!await page.locator('#summaryArea .saju-summary-report').count()) {
     await page.locator('#summaryGate button[data-unlock-key]').click();
@@ -156,7 +190,7 @@ try {
   await page.locator('#summaryArea .saju-summary-report').waitFor({state:'visible'});
   await page.evaluate((alreadyUnlocked) => {
     if (alreadyUnlocked) return;
-    window.__cdCurrentDestinyProfile = { profileId: 'profile-summary-race' };
+    window.__cdCurrentDestinyProfile = { profileId: 'profile-summary-race', birth: {year: 1990, month: 5, day: 15, hour: 12, minute: 0} };
     try {
       window._cdFinalizeUnlockState('section_summary', {
         data: {
