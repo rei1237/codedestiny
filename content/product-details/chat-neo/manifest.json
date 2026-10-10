@@ -51,7 +51,7 @@
     },
     {
       "id": "06-continue-with-context",
-      "title": "다음 질문은, 앞의 대답에서 더 구체적으로.",
+      "title": "이어서 물을수록, 더 구체적인 질문으로.",
       "alt": "최근 일부 대화를 이어받되 추천질문 전송은 새 답변의 조건 확인이라는 안내.",
       "src": "/feature-details/crafted/chat-neo/06-continue-with-context.webp",
       "width": 1080,

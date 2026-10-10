@@ -31,12 +31,13 @@ catch {
     if (bounds.some(p => p.overflow.length))
         throw Error(JSON.stringify(bounds));
     const texts = await page.locator('.panel').allInnerTexts();
+    const titles = await page.locator('.panel').evaluateAll(ps => ps.map(p => p.querySelector('h1,h2')?.innerText.replace(/\s+/g, ' ').trim()));
     for (let i = 0; i < book.panels.length; i++) {
         const png = path.join(review, book.panels[i].id + '.png');
         await page.locator('.panel').nth(i).screenshot({ path: png });
         await sharp(png).webp({ quality: 93 }).toFile(path.join(output, book.panels[i].id + '.webp'));
     }
-    const panels = book.panels.map((p, i) => ({ id: p.id, title: p.title, alt: p.alt, src: `/feature-details/crafted/${id}/${p.id}.webp`, width: 1080, height: 1440, text: texts[i] }));
+    const panels = book.panels.map((p, i) => ({ id: p.id, title: titles[i] || p.title, alt: p.alt, src: `/feature-details/crafted/${id}/${p.id}.webp`, width: 1080, height: 1440, text: texts[i] }));
     const manifest = { id, featureKey: book.featureKey, title: book.title, notice: book.notice, panels };
     for (const dir of [source, output])
         fs.writeFileSync(path.join(dir, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');

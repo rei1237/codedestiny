@@ -6,7 +6,7 @@
   "panels": [
     {
       "id": "01-a-question-at-this-moment",
-      "title": "지금 마음에 걸린 일, 한 질문으로 놓아보세요.",
+      "title": "지금 마음에 걸린 일, 한 질문으로 적어봐요.",
       "alt": "보랏빛동양복식의공식영냥이와질문순간을읽는신점표지.",
       "src": "/feature-details/crafted/yeongnyangi-prashna/01-a-question-at-this-moment.webp",
       "width": 1080,
@@ -24,7 +24,7 @@
     },
     {
       "id": "03-the-first-answer",
-      "title": "처음에는, 답과 근거와 한 가지 행동.",
+      "title": "첫 답에는 근거와 한 가지 행동을.",
       "alt": "현재2단계계약중첫답의실제핵심답근거지금할행동세항목.",
       "src": "/feature-details/crafted/yeongnyangi-prashna/03-the-first-answer.webp",
       "width": 1080,
@@ -51,7 +51,7 @@
     },
     {
       "id": "06-read-a-symbol-keep-a-boundary",
-      "title": "흐름을 읽어도, 상대의 경계는 남아 있어요.",
+      "title": "흐름을 읽어도, 상대의 선을 지켜요.",
       "alt": "연락거부상황에서상대경계존중과사용자선택을제시하는가상예시.",
       "src": "/feature-details/crafted/yeongnyangi-prashna/06-read-a-symbol-keep-a-boundary.webp",
       "width": 1080,
@@ -60,7 +60,7 @@
     },
     {
       "id": "07-what-the-answer-cannot-know",
-      "title": "신점이라는 이름이, 모든 답을 뜻하진 않아요.",
+      "title": "신점이라는 이름이 모든 답은 아니에요.",
       "alt": "AI상징해설·위치생각관측불가·사건날짜한계·상황입력안내.",
       "src": "/feature-details/crafted/yeongnyangi-prashna/07-what-the-answer-cannot-know.webp",
       "width": 1080,

@@ -6,7 +6,7 @@
   "panels": [
     {
       "id": "01-one-small-opening",
-      "title": "움직이고 싶은데, 무엇부터 해야 할지 모르겠다면.",
+      "title": "움직이고 싶은데, 시작이 막막하다면.",
       "alt": "공식타로영냥이와막힌일상에서첫행동을찾는표지.",
       "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/01-one-small-opening.webp",
       "width": 1080,
@@ -24,7 +24,7 @@
     },
     {
       "id": "03-three-places-one-thread",
-      "title": "매듭, 자원, 다음 행동을 연결해요.",
+      "title": "매듭과 자원을 읽고, 다음 행동으로 이어가요.",
       "alt": "실제3자리명과공식카드뒷면으로배열역할을설명.",
       "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/03-three-places-one-thread.webp",
       "width": 1080,
