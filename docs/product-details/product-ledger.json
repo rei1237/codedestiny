@@ -773,25 +773,58 @@
     },
     {
       "productId": "fortune-chat-consultation",
-      "displayName": "대화형 운명 상담",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "displayName": "대화형 운명 상담 · 연이/네오",
+      "saleStatus": "기존 상담화면 판매진입 확인; 신규공통엔진 비활성 공개GET 확인",
       "entry": [
-        "/fortune-chat/"
+        "/fortune-chat/",
+        "/features/fortune-chat/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "birthDate and solar/lunar required by shared legacy form including tarot",
+        "birth time and gender optional",
+        "one category among saju/ziwei/sukuyo/vedic/astrology/tarot",
+        "question or topic"
+      ],
+      "resultRenderer": [
+        "app/fortune-chat/FortuneChatClient.tsx"
+      ],
+      "actualContents": [
+        "openingLine",
+        "innerState/coreReading/topicAdvice in expandable first bubble",
+        "cautionPattern only when present",
+        "luckyAction/evidenceLines",
+        "optional cross-sell separate from answer"
+      ],
+      "conditionalItems": [
+        "up to recent six turns sent",
+        "suggested question fills editable input; Send starts next usage/payment check",
+        "same paid feature key for both characters",
+        "no fixed book chapters or PDF promise"
+      ],
+      "separatePurchase": [
+        "네오 팩폭 작전실",
+        "초융합 심층 상담"
+      ],
+      "reviewSource": [
+        "실제고객후기없음; 편집예시명시"
+      ],
+      "images": [
+        "public/feature-details/crafted/chat-yeoni",
+        "public/feature-details/crafted/chat-neo"
+      ],
+      "status": "완료",
+      "appliedAt": [
+        "legacy FortuneChatClient character variant",
+        "fortune-chat introduction two disclosures"
+      ],
+      "verification": [
+        "4 widths no overflow; all images loaded; character switch; missing image transcript; independent original/mobile SHIP; no POST"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main merge/push/CI pending",
+        "real customer result not generated"
       ],
       "detailAliases": [
         "fortune-chat"

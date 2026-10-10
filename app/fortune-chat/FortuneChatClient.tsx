@@ -3,6 +3,7 @@
 import { readPendingTurn, readRecentTurns, recentTurnsOf, requestGuardianTurn, type RecentTurn } from "./paid-turn-recovery";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PriceBadge } from "@/app/components/PriceBadge";
@@ -751,6 +752,7 @@ export default function FortuneChatClient() {
           <strong>{CHARACTER_LABEL[item]}</strong><small>{CHARACTER_BLURB[item]}</small>
         </button>)}
       </section>
+      {getCurrentLoadingLocale() === "ko" && <CraftedProductDisclosure featureKey={PAID_FEATURE_KEY} variant={character} />}
       {messages.map((message) => <article key={message.id} className={`${styles.message} ${styles[message.speaker]} ${message.kind ? styles[message.kind] : ""}`}>
         {message.speaker === "assistant" ? <PersonaAvatar persona={character} mood={message.kind === "reading" ? "read" : "listen"} size="sm" decorative /> : null}
         <div className={styles.bubble}><p>{message.text}</p>{message.detail && <details><summary>자세히 보기</summary><p>{message.detail}</p></details>}

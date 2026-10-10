@@ -1,0 +1,36 @@
+{
+  "source": [
+    "app/fortune-chat/FortuneChatEntry.tsx",
+    "app/fortune-chat/FortuneChatClient.tsx",
+    "app/fortune-chat/paid-turn-recovery.ts",
+    "worker/lib/guardian-fortune-runtime-contract.js",
+    "worker/lib/guardian-paid-delivery.js",
+    "worker/lib/guardian-fortune-context.js"
+  ],
+  "sale": "Public status/catalog GET enabled=false; legacy client currently selected. Do not count disabled new consultation catalogue as current sales.",
+  "featureKey": "fortune-chat-consultation",
+  "variants": [
+    "yeoni",
+    "neo"
+  ],
+  "input": [
+    "birthDate and solar/lunar required by shared legacy form including tarot",
+    "birth time and gender optional",
+    "one category among saju/ziwei/sukuyo/vedic/astrology/tarot",
+    "question or topic"
+  ],
+  "contents": [
+    "openingLine",
+    "innerState/coreReading/topicAdvice in expandable first bubble",
+    "cautionPattern only when present",
+    "luckyAction/evidenceLines",
+    "optional cross-sell separate from answer"
+  ],
+  "conditions": [
+    "up to recent six turns sent",
+    "suggested question fills editable input; Send starts next usage/payment check",
+    "same paid feature key for both characters",
+    "no fixed book chapters or PDF promise"
+  ],
+  "verification": "All browser APIs mocked including bootstrap because live bootstrap can write a session; zero mock writes, no real LLM/payment"
+}

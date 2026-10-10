@@ -106,3 +106,9 @@ status: active
 - 기존node11tests/변경TSX ESLint PASS. 총유료18종+공통소개1종182패널 로컬완료. 전체목표미완료.
 - 전체check:fast:paid88/88+lint PASS후사이트맵drift에서중단. sitemap:generate와verify:sitemap-drift PASS(URL955). 다음전체gate필요.
 - fortune-chat 공개GET status/catalog enabled=false 확인. 신규21구성카탈로그는현재신규판매비활성으로분리. 현재열리는기존대화형상담을다음개별조사.
+
+## 대화형 상담 연이·네오
+- 같은1회답변SKU의두상담자 버전 각각8장 개별편집. 현재공개flag=false로기존화면활성; 신규엔진21카탈로그는비활성분리.
+- 원본16장·실제모바일/소개독립SHIP. 4폭328/358/398/540(소개360/390/430/540),상담자교체·이미지fallback·POST0. API전부mock,실bootstrap호출없음.
+- 관련기존검사31개중30PASS/1기존실패: guardian-fortune contract의isGuardianFortuneRealLlmEnabled export없음. 기준커밋fb02e47c2와테스트/해당src디렉터리diff없음. 변경TSX/catalog ESLint PASS. 결제·인증·API·DB변경없음.
+- 총유료19종+공통소개1종198패널 로컬완료. 같은상담의2persona를상품2개로세지않음. 전체목표미완료,다음영냥이자미두수3종.

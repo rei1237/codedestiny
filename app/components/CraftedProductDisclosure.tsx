@@ -1,6 +1,6 @@
 'use client';
 import {useRef,useState} from 'react';
-import {craftedProductIds} from '@/content/product-details/catalog';
+import {craftedProductIds,craftedVariantProductIds} from '@/content/product-details/catalog';
 import CraftedProductDetail from './CraftedProductDetail';
 import type {ComponentProps} from 'react';
 import styles from './crafted-product-disclosure.module.css';
@@ -23,7 +23,7 @@ function AuthoredDisclosure({id}:{id:string}){
   {detail?<CraftedProductDetail detail={detail}/>:<p role="status">{error?'상세 안내를 불러오지 못했어요. 접었다 다시 펼쳐 주세요.':'상세 안내를 준비하고 있어요.'}</p>}
  </details>;
 }
-export default function CraftedProductDisclosure({featureKey}:{featureKey:string}){
- const id=craftedProductIds[featureKey];
+export default function CraftedProductDisclosure({featureKey,variant}:{featureKey:string;variant?:string}){
+ const id=(variant&&craftedVariantProductIds[featureKey]?.[variant])||craftedProductIds[featureKey];
  return id?<AuthoredDisclosure key={id} id={id}/>:null;
 }

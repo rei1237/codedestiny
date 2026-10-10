@@ -1,0 +1,225 @@
+{
+  "id": "chat-neo",
+  "surface": "introduction",
+  "rows": [
+    {
+      "width": 360,
+      "scrollWidth": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 0,
+          "right": 360
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 0,
+          "right": 360
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 0,
+          "right": 360
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 0,
+          "right": 360
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 0,
+          "right": 360
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 0,
+          "right": 360
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 0,
+          "right": 360
+        },
+        {
+          "loaded": true,
+          "width": 360,
+          "left": 0,
+          "right": 360
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "scrollWidth": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 390,
+          "left": 0,
+          "right": 390
+        },
+        {
+          "loaded": true,
+          "width": 390,
+          "left": 0,
+          "right": 390
+        },
+        {
+          "loaded": true,
+          "width": 390,
+          "left": 0,
+          "right": 390
+        },
+        {
+          "loaded": true,
+          "width": 390,
+          "left": 0,
+          "right": 390
+        },
+        {
+          "loaded": true,
+          "width": 390,
+          "left": 0,
+          "right": 390
+        },
+        {
+          "loaded": true,
+          "width": 390,
+          "left": 0,
+          "right": 390
+        },
+        {
+          "loaded": true,
+          "width": 390,
+          "left": 0,
+          "right": 390
+        },
+        {
+          "loaded": true,
+          "width": 390,
+          "left": 0,
+          "right": 390
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "scrollWidth": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 430,
+          "left": 0,
+          "right": 430
+        },
+        {
+          "loaded": true,
+          "width": 430,
+          "left": 0,
+          "right": 430
+        },
+        {
+          "loaded": true,
+          "width": 430,
+          "left": 0,
+          "right": 430
+        },
+        {
+          "loaded": true,
+          "width": 430,
+          "left": 0,
+          "right": 430
+        },
+        {
+          "loaded": true,
+          "width": 430,
+          "left": 0,
+          "right": 430
+        },
+        {
+          "loaded": true,
+          "width": 430,
+          "left": 0,
+          "right": 430
+        },
+        {
+          "loaded": true,
+          "width": 430,
+          "left": 0,
+          "right": 430
+        },
+        {
+          "loaded": true,
+          "width": 430,
+          "left": 0,
+          "right": 430
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "scrollWidth": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        }
+      ]
+    }
+  ],
+  "missingImageOpensTranscript": true,
+  "mode": "Local mock; prices from local registry; no external traffic, payment, or LLM",
+  "entryEvidence": "Existing UI"
+}

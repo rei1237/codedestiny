@@ -15,7 +15,8 @@
     "fortune-tea-house-saju-consultation": "tea-saju",
     "fortune-tea-house-saju-compatibility-consultation": "tea-saju-compat",
     "fortune-tea-house-sukuyo-compatibility-consultation": "tea-sukuyo",
-    "neo-operation-room-consultation": "neo-operation-room"
+    "neo-operation-room-consultation": "neo-operation-room",
+    "fortune-chat-consultation": "chat-yeoni"
   },
   "introductions": {
     "fusion-fortune": [
@@ -40,6 +41,16 @@
     ],
     "neo-operation-room": [
       "neo-operation-room"
+    ],
+    "fortune-chat": [
+      "chat-yeoni",
+      "chat-neo"
     ]
+  },
+  "variants": {
+    "fortune-chat-consultation": {
+      "yeoni": "chat-yeoni",
+      "neo": "chat-neo"
+    }
   }
 }
