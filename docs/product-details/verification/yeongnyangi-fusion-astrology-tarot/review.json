@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP20 panels after orphan-line and example paragraph fixes",
+  "mobile": "Independent SHIP20 panels,12 CTA/notice,4 transcript;9 changed panels and2 transcripts rechecked",
+  "checks": "4 widths load/bounds/fallback PASS; selected product replacement PASS; POST0; renderer7 PASS",
+  "limits": "APIs mock; no paid LLM/payment; main delivery pending"
+}
