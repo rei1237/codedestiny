@@ -71,6 +71,12 @@ function adapterHook(name, data) {
   return "";
 }
 
+// 어댑터 훅은 대개 이미 끝난 문장이다("…힘이 있습니다."). 인용 조사("라는")로 잇지 않고 한 문장으로 세운다.
+function asSentence(value) {
+  const sentence = String(value || "").trim();
+  return /[.!?。]$/.test(sentence) ? sentence : `${sentence}.`;
+}
+
 export function buildIntegratedInsight({ topic, results = {}, hasConcern = false } = {}) {
   const guidance = TOPIC_GUIDANCE[topic] || TOPIC_GUIDANCE.daily;
   const priority = GUARDIAN_TOPIC_ADAPTER_PRIORITY[topic] || GUARDIAN_TOPIC_ADAPTER_PRIORITY.daily;
@@ -87,7 +93,7 @@ export function buildIntegratedInsight({ topic, results = {}, hasConcern = false
   const openingHook = primary && secondary
     ? `${primary.label}의 ${primary.role}와 ${secondary.label}의 ${secondary.role}가 함께 ${guidance.advice} 쪽을 가리킵니다. ${primary.value} ${secondary.value} 그래서 오늘은 여러 해석을 따로 떼어 보기보다, 반복되는 패턴 하나를 현실 행동으로 옮기는 편이 좋습니다.`
     : primary
-      ? `${primary.label}의 ${primary.role}에서는 ${primary.value}라는 신호가 먼저 보입니다. 한 가지 근거만으로 결론 내리기보다 오늘의 선택을 작게 확인해보세요.`
+      ? `${primary.label}의 ${primary.role}에서 먼저 보이는 신호는 이렇습니다. ${asSentence(primary.value)} 한 가지 근거만으로 결론 내리기보다 오늘의 선택을 작게 확인해보세요.`
       : "오늘의 흐름은 감정과 현실의 순서를 함께 살피는 데서 방향이 보입니다. 한 가지 신호만으로 결론 내리기보다 오늘의 선택을 작게 확인해보세요.";
   const currentTheme = tertiary
     ? `${guidance.theme} 여기에 ${tertiary.label}의 ${tertiary.role} 근거도 겹치므로, 조언은 추상적인 기분보다 오늘 실제로 바꿀 수 있는 태도에 맞춥니다.`
