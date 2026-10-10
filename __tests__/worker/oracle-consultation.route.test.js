@@ -69,3 +69,24 @@ test('unavailable payment lookup is 503 and never generates',async()=>{mode='una
 
 test.each([401,403,503])('authentication status %s prevents provider calls',async status=>{authError=Object.assign(Error('auth'),{status});expect((await start()).status).toBe(status);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);});
 test('a lower tier receipt cannot authorize fourteen cards',async()=>{mode='denied';const body={...original(),cards:Array.from({length:14},(_,i)=>({cardId:`M${String(i).padStart(2,'0')}`,orientation:'upright'}))};expect((await post(body)).status).toBe(402);expect(proofs[0].featureKey).toBe('tarot-prompt-maker-master');const {FEATURE_KEY_PRICE_TABLE}=await import('../../worker/lib/paid-feature-registry.js');expect(proofs[0].coinPrice).toBe(FEATURE_KEY_PRICE_TABLE['tarot-prompt-maker-master'].cost);expect(provider).not.toHaveBeenCalled();});
+
+// B1a/B1b: no hash to copy, a one-paragraph card is split, the closing part keeps its scope.
+test('prompts carry no evidence hash and the closing part is scoped',async()=>{
+ await start();await finish();const prompts=provider.mock.calls.map(call=>call[1]);
+ expect(prompts.some(prompt=>/[a-f0-9]{64}/.test(prompt))).toBe(false);
+ expect(prompts.find(prompt=>prompt.includes('[이번 부분 closingLine]'))).toContain('요약해 다시 쓰지 않고');
+});
+test('a one-paragraph card answer is split instead of buying it again',async()=>{
+ const base=provider.getMockImplementation();
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);if(args[1].includes('[이번 부분 card.0.0]'))value.body=value.body.replace(/\n\s*\n/g,' ');return {...ai,text:JSON.stringify(value)};});
+ await start();expect((await finish()).status).toBe(200);
+ expect(provider.mock.calls.filter(call=>call[1].includes('[이번 부분 card.0.0]'))).toHaveLength(1);
+ expect(docs[0].metadata.paidNarrative.parts['card.0.0'].split('\n\n')).toHaveLength(2);
+});
+test('a sentence repeated from an earlier part is removed instead of buying the part again',async()=>{
+ const base=provider.getMockImplementation(),lead='이 배열은 지금 선택을 서두르기보다 조건을 확인하라는 신호로 읽는 편이 안전합니다.';
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);if(/\[이번 부분 (coreQuestion|closingLine)\]/.test(args[1]))value.body=lead+'\n\n'+value.body;return {...ai,text:JSON.stringify(value)};});
+ await start();expect((await finish()).status).toBe(200);
+ expect(provider.mock.calls.filter(call=>call[1].includes('[이번 부분 closingLine]'))).toHaveLength(1);
+ expect(Object.values(docs[0].metadata.paidNarrative.parts).join('\n').split(lead)).toHaveLength(2);
+});

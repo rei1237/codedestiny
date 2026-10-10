@@ -1,10 +1,10 @@
-import { parseNarrativeResponse, NARRATIVE_RESPONSE_SCHEMA } from './paid-narrative-candidate.js';
+import { narrativePriorDigest, normalizeNarrativeBody, parseNarrativeResponse, NARRATIVE_RESPONSE_SCHEMA } from './paid-narrative-candidate.js';
 import { buildMindscanDeliveryFacts } from '../../lib/tarot/mindscan-reading.mjs';
 import { runPaidNarrativeDelivery } from './paid-narrative-delivery.js';
 import { getAmbientAiLocale } from './ai-locale-context.js';
 import { callGeminiText } from './gemini.js';
 import { normalizeNarrativeParagraphs } from './narrative-format.js';
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from './paid-report-quality.js';
+import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from './paid-report-quality.js';
 import { createHttpError } from './http.js';
 
 const paragraphs = value => String(value || '').split(/\n\s*\n/).map(text => text.trim()).filter(Boolean);
@@ -56,16 +56,18 @@ export function deliverMindscan(request, env, auth, body, verify) {
 }
 // The route and the server resume task share render and produce.
 export function mindscanNarrativeAdapter(env) {
-  return { featureKey: 'tarot-mindscan', reportType: 'mindscan', render,
+  return { featureKey: 'tarot-mindscan', reportType: 'mindscan', render, repairShortParts: true,
     produce: async (task, state) => {
-      const ai = await callGeminiText(env, `${state.prompt}\n[이번 부분 ${task.id}] ${task.prompt}\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}만 출력한다. 제목·기호·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자. 짧은 문단으로 나누고 같은 문장을 반복하지 않는다.`, {
+      const ai = await callGeminiText(env, `${state.prompt}\n[이번 부분 ${task.id}] ${task.prompt}${narrativePriorDigest(state, task)}\nJSON {"body":"본문"}만 출력한다. 제목·기호·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자. 짧은 문단으로 나누고 같은 문장을 반복하지 않는다.`, {
         timeoutMs: 45000, maxOutputTokens: 9500, thinkingBudget: 0, temperature: 0.55,
         fallbackToWorkersAI: false, responseMimeType: 'application/json', responseSchema: NARRATIVE_RESPONSE_SCHEMA,
       });
       if (!ai?.ok || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
       const value = parseNarrativeResponse(ai.text, state.evidenceHash);
-      if (!value) return null;
       if (!value || typeof value.body !== 'string' || !value.body.trim()) return null;
+      // Drop sentences already given before fixing the paragraph count, so render never shifts fields.
+      const prior = Object.entries(state.parts || {}).filter(([id]) => id !== task.id).map(([, body]) => body).join('\n');
+      value.body = dropRepeatedReportSentences(normalizeNarrativeBody(value.body), prior);
       if (!countPaidReportBodyChars(value.body) || hasRepeatedReportPassage(value.body)) return null;
       if (task.id === 'summary') value.body = normalizeNarrativeParagraphs(value.body, 10);
       else if (task.sectionIndex !== undefined && paragraphs(value.body).length < 2) value.body = normalizeNarrativeParagraphs(value.body, 2);

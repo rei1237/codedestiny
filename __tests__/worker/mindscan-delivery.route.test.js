@@ -73,3 +73,12 @@ test('unavailable payment lookup is 503 and never generates',async()=>{mode='una
 test.each([401,403,503])('authentication status %s prevents provider calls',async status=>{authError=Object.assign(Error('auth'),{status});expect((await start()).status).toBe(status);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);});
 
 test('all seven derived positions retain original cards, orientation and complete generated fields',async()=>{await start();const data=await (await finish()).json();expect(data.reading.sections).toHaveLength(7);const state=docs[0].metadata.paidNarrative;for(let i=0;i<7;i++){expect(data.reading.sections[i].orientation).toBe(state.base.sections[i].orientation);for(const key of ['cardMeaning','positionMeaning','emotionalReading','hiddenMessage','caution','advice'])expect(data.reading.sections[i][key]).toBeTruthy();}expect(data.reading.summaryCard.recommendedAction).toBeTruthy();});
+
+// B1b: a 64-char hash copy dropped a usable answer; the server now binds it.
+test('prompts carry no evidence hash and a reused card sentence is removed, not re-bought',async()=>{
+ const base=provider.getMockImplementation(),lead='상대는 지금 연락의 속도를 스스로 정하고 싶어 하는 상태로 읽힙니다.';
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);if(/\[이번 부분 section-[01]-meaning\]/.test(args[1]))value.body=lead+'\n\n'+value.body;return {...ai,text:JSON.stringify(value)};});
+ await start();expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(25);
+ expect(provider.mock.calls.some(call=>/[a-f0-9]{64}/.test(call[1]))).toBe(false);
+ expect(Object.values(docs[0].metadata.paidNarrative.parts).join('\n').split(lead)).toHaveLength(2);
+});
