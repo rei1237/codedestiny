@@ -8,4 +8,5 @@ export const craftedProductIds:Partial<Record<string,string>>={
  'life-fortune-ai-consultation':'life-fortune',
  'master-love-codex':'master-love-codex',
  'master-love-codex-compat':'master-love-codex-compat',
+ 'love-secret-ai-consultation':'love-secret',
 };

@@ -1609,24 +1609,90 @@
     {
       "productId": "love-secret-ai-consultation",
       "displayName": "연애 비책",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "현재 /love-secret-ai/ 가격 및 상담 시작 확인",
       "entry": [
         "/love-secret-ai/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
+      "inputRequirements": [
+        "관계 상태와 관심 주제",
+        "본인 출생 정보·성별·달력·시간 또는 모름",
+        "궁금한 질문",
+        "상대 정보는 선택"
+      ],
+      "resultRenderer": [
+        "app/love-secret-ai/result/LoveSecretAiResultClient.tsx",
+        "app/love-secret-ai/result/love-secret-sections.ts"
+      ],
+      "actualContents": [
+        "현재 관계의 자리와 질문의 핵심",
+        "핵심 연애운 — 명식이 사랑에서 그리는 큰 결",
+        "오행과 조후로 보는 감정의 온도",
+        "나의 명식이 사랑에서 반복하는 방식",
+        "십성으로 보는 애착과 표현 방식",
+        "연애 장점 — 상대가 먼저 알아보는 힘",
+        "연애 약점 — 반복해서 걸려 넘어지는 자리",
+        "애정 표현 스타일과 연애 심리",
+        "상대의 기운과 감정 거리감",
+        "두 사람 사이 끌림이 살아나는 조건",
+        "속궁합과 친밀감 리듬",
+        "이상형 분석 — 내 명식이 끌리는 사람",
+        "상대가 원하는 연애 스타일",
+        "갈등의 뿌리와 회복 방식",
+        "바람기와 마음이 흩어지는 조건",
+        "재회 가능성과 그 조건",
+        "피해야 할 선택과 자기 보호",
+        "연락/고백/재회/관계 진전 타이밍",
+        "올해 연애운 — 좋은 달과 조심할 달",
+        "좋은 날짜 — 계산된 일진으로 고른 날",
+        "결혼운과 인연이 굳어지는 시기",
+        "30일 관계 흐름 처방",
+        "썸에서 확신으로 가는 전략",
+        "관계 단계별 실행 비책",
+        "상대에게 다가가는 대화 문장",
+        "매력적으로 보이는 방법 — 이미지·말투·스타일",
+        "7일 실천 가이드",
+        "마지막 상담사의 한마디"
+      ],
+      "conditionalItems": [
+        "empty groups omitted",
+        "unmatched headings enter deep insight group",
+        "date card only when timing group and calendar.best exist",
+        "checklist only when practice group and actions or sevenDayGuide exist"
+      ],
+      "separatePurchase": [
+        "마스터 인연의 서 개인/궁합은 별도 상품"
+      ],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "images": [
+        "/feature-details/crafted/love-secret/01-unsent-letter.webp",
+        "/feature-details/crafted/love-secret/02-your-question.webp",
+        "/feature-details/crafted/love-secret/03-my-love-pattern.webp",
+        "/feature-details/crafted/love-secret/04-the-other-person.webp",
+        "/feature-details/crafted/love-secret/05-protect-my-heart.webp",
+        "/feature-details/crafted/love-secret/06-time-to-talk.webp",
+        "/feature-details/crafted/love-secret/07-small-actions.webp",
+        "/feature-details/crafted/love-secret/08-draft-message.webp",
+        "/feature-details/crafted/love-secret/09-use-the-report.webp",
+        "/feature-details/crafted/love-secret/10-start-with-now.webp"
+      ],
+      "status": "로컬 제작·적용·모바일 독립 검수 완료",
+      "appliedAt": [
+        "app/love-secret-ai/LoveSecretAiClient.tsx"
+      ],
+      "verification": [
+        "docs/product-details/love-secret-contract-snapshot.json",
+        "docs/product-details/verification/love-secret/render.json",
+        "docs/product-details/verification/love-secret/mobile.json",
+        "docs/product-details/verification/love-secret/transcript-viewport-3.png",
+        "docs/product-details/verification/love-secret/transcript-viewport-8.png",
+        "docs/product-details/verification/love-secret/transcript-viewport-10.png"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "실제 LLM 생성·PDF 저장 미실행",
+        "main 전달 및 CI",
+        "기존 상세 팝업/소개 페이지 연결 진행 예정"
       ],
       "detailAliases": [
         "love-secret-ai"

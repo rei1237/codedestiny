@@ -1,0 +1,17 @@
+{
+  "result": "pass",
+  "command": "npm run check:fast",
+  "exitCode": 0,
+  "paidGates": 88,
+  "jest": {
+    "suites": 373,
+    "tests": 5683
+  },
+  "scope": "Plan started on third batch; fourth batch authored during execution. Not an immutable-final-tree or GitHub CI claim.",
+  "prePush": {
+    "command": "npm run check:pre-push",
+    "exitCode": 0,
+    "commit": "0e55cecc0719c8b3cfbbb1f0c4a8e0835b0c8220"
+  },
+  "mode": "mock only; no real payment or LLM"
+}

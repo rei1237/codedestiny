@@ -38,6 +38,7 @@ import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume, type PaidResumeD
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import {
   getActivePaidAttemptSession,
@@ -2298,6 +2299,7 @@ export default function LoveSecretAiPage() {
 
       <section className={`${intro.shell} flex flex-col gap-6`}>
         <LoveSecretHero onStart={focusFirstStepField} busy={busy} />
+        {copy === LOVE_SECRET_CLIENT_COPY.ko && <CraftedProductDisclosure featureKey="love-secret-ai-consultation" />}
 
         <LoveSecretProgressRail
           mode={busy ? "generating" : "form"}
