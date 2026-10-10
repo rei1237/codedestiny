@@ -4122,186 +4122,213 @@
       ],
       "priceSource": "worker/yeongnyangi/payments/catalog.ts → worker/lib/billing-feature-registry.js",
       "priceSnapshotKRW": 15000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "질문 상담: 질문, 주제, 대상, 기간 범위, 현재 상황 및 추천 범위별 조건",
+        "생년월일과 출생 시간 및 프로필 확인; 모르는 시간은 미상으로 처리",
+        "두 사람 질문: 상대 프로필과 관계 유형; legacy 기본 성향은 한 사람"
+      ],
       "resultRenderer": [
         "app/yeongnyangi/_components/Result.tsx",
         "app/yeongnyangi/_components/ReadingBook.tsx"
       ],
-      "actualContents": [
-        {
-          "id": "personal",
-          "partner": false,
-          "chapters": [
-            "타고난 중심과 힘의 균형",
-            "타고난 연애 스타일",
-            "마음을 전하는 표현",
-            "결혼운과 배우자 자리",
-            "돈이 모이고 새는 길",
-            "일하는 방식과 사회적 자리",
-            "배움과 받쳐 주는 힘",
-            "곁의 사람들",
-            "부모와 뿌리",
-            "자녀와 인생 후반",
-            "몸의 리듬과 회복",
-            "올해와 내년",
-            "앞으로 12개월"
-          ]
-        },
-        {
-          "id": "compatibility",
-          "partner": true,
-          "chapters": [
-            "두 사람의 기질과 관계의 바탕",
-            "관계 유형과 서로 다른 역할",
-            "끌림과 기대의 차이",
-            "서로에게 편안한 표현",
-            "가까워지는 속도와 거리",
-            "갈등이 시작되는 반응",
-            "일상과 책임의 조율",
-            "돈과 자원을 대하는 차이",
-            "경계와 신뢰의 조건",
-            "어긋난 뒤 회복의 선택",
-            "궁합 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "love",
-          "partner": false,
-          "chapters": [
-            "사랑할 때 드러나는 기질",
-            "마음이 움직이는 조건",
-            "표현과 기대의 차이",
-            "끌림과 편안함의 차이",
-            "관계에서 반복되는 선택",
-            "가까워지는 속도",
-            "갈등이 시작되는 조건",
-            "관계의 경계를 지키기",
-            "신뢰를 쌓는 행동",
-            "관계의 소진과 회복",
-            "연애와 인연 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "work",
-          "partner": false,
-          "chapters": [
-            "재능과 일하는 방식",
-            "역량이 살아나는 환경",
-            "책임을 맡는 방식",
-            "협력에서 드러나는 강점",
-            "반복되는 업무 패턴",
-            "강점이 부담이 되는 조건",
-            "성장에 필요한 조건",
-            "현재 역할을 발전시키는 선택",
-            "다른 환경을 준비하는 선택",
-            "업무 소진과 회복",
-            "일과 적성 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "money",
-          "partner": false,
-          "chapters": [
-            "수입과 자원의 바탕",
-            "일과 재물의 연결",
-            "쌓고 지키는 습관",
-            "지출이 늘어나는 조건",
-            "안정을 선택할 조건",
-            "확장을 선택할 조건",
-            "협력과 자원의 책임",
-            "반복되는 금전 판단",
-            "부담을 줄이는 방법",
-            "자원 배분의 두 선택",
-            "재물 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "health",
-          "partner": false,
-          "chapters": [
-            "타고난 몸의 리듬",
-            "무리가 쌓이는 조건",
-            "계절과 환경에 따른 컨디션",
-            "회복을 돕는 생활 습관",
-            "에너지를 쓰고 채우는 방식",
-            "마음의 긴장이 몸에 남는 방식",
-            "컨디션을 흔드는 반복 습관",
-            "일의 강도와 쉼의 균형",
-            "관계와 환경이 주는 부담",
-            "컨디션이 떨어질 때의 신호",
-            "건강운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "marriage",
-          "partner": false,
-          "chapters": [
-            "배우자 자리로 보는 결혼관",
-            "끌리고 편안한 배우자상",
-            "함께 살 때의 표현과 기대",
-            "생활과 책임의 분담",
-            "결혼 생활에서 반복되는 선택",
-            "살림과 자원을 대하는 방식",
-            "갈등이 시작되는 조건",
-            "올해 결혼운의 흐름",
-            "가족과의 경계를 조율하기",
-            "신뢰를 쌓는 생활 습관",
-            "결혼운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "movement",
-          "partner": false,
-          "chapters": [
-            "타고난 이동 기질",
-            "원국의 충이 만드는 변화",
-            "해외와 먼 곳의 인연",
-            "맞는 환경과 거처",
-            "일로 생기는 이동과 변화",
-            "관계와 가족이 이동에 주는 영향",
-            "떠나고 머무르는 반복 선택",
-            "올해 이동수의 흐름",
-            "이동이 부담이 되는 조건",
-            "이동 전에 준비할 조건",
-            "이동수·해외운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "ask",
-          "partner": false,
-          "chapters": [
-            "타고난 중심과 힘의 균형",
-            "타고난 연애 스타일",
-            "마음을 전하는 표현",
-            "결혼운과 배우자 자리",
-            "돈이 모이고 새는 길",
-            "일하는 방식과 사회적 자리",
-            "배움과 받쳐 주는 힘",
-            "곁의 사람들",
-            "부모와 뿌리",
-            "자녀와 인생 후반",
-            "몸의 리듬과 회복",
-            "올해와 내년",
-            "앞으로 12개월"
-          ]
-        }
-      ],
+      "actualContents": {
+        "legacyKinds": [
+          {
+            "id": "personal",
+            "partner": false,
+            "chapters": [
+              "타고난 중심과 힘의 균형",
+              "타고난 연애 스타일",
+              "마음을 전하는 표현",
+              "결혼운과 배우자 자리",
+              "돈이 모이고 새는 길",
+              "일하는 방식과 사회적 자리",
+              "배움과 받쳐 주는 힘",
+              "곁의 사람들",
+              "부모와 뿌리",
+              "자녀와 인생 후반",
+              "몸의 리듬과 회복",
+              "올해와 내년",
+              "앞으로 12개월"
+            ]
+          },
+          {
+            "id": "compatibility",
+            "partner": true,
+            "chapters": [
+              "두 사람의 기질과 관계의 바탕",
+              "관계 유형과 서로 다른 역할",
+              "끌림과 기대의 차이",
+              "서로에게 편안한 표현",
+              "가까워지는 속도와 거리",
+              "갈등이 시작되는 반응",
+              "일상과 책임의 조율",
+              "돈과 자원을 대하는 차이",
+              "경계와 신뢰의 조건",
+              "어긋난 뒤 회복의 선택",
+              "궁합 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "love",
+            "partner": false,
+            "chapters": [
+              "사랑할 때 드러나는 기질",
+              "마음이 움직이는 조건",
+              "표현과 기대의 차이",
+              "끌림과 편안함의 차이",
+              "관계에서 반복되는 선택",
+              "가까워지는 속도",
+              "갈등이 시작되는 조건",
+              "관계의 경계를 지키기",
+              "신뢰를 쌓는 행동",
+              "관계의 소진과 회복",
+              "연애와 인연 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "work",
+            "partner": false,
+            "chapters": [
+              "재능과 일하는 방식",
+              "역량이 살아나는 환경",
+              "책임을 맡는 방식",
+              "협력에서 드러나는 강점",
+              "반복되는 업무 패턴",
+              "강점이 부담이 되는 조건",
+              "성장에 필요한 조건",
+              "현재 역할을 발전시키는 선택",
+              "다른 환경을 준비하는 선택",
+              "업무 소진과 회복",
+              "일과 적성 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "money",
+            "partner": false,
+            "chapters": [
+              "수입과 자원의 바탕",
+              "일과 재물의 연결",
+              "쌓고 지키는 습관",
+              "지출이 늘어나는 조건",
+              "안정을 선택할 조건",
+              "확장을 선택할 조건",
+              "협력과 자원의 책임",
+              "반복되는 금전 판단",
+              "부담을 줄이는 방법",
+              "자원 배분의 두 선택",
+              "재물 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "health",
+            "partner": false,
+            "chapters": [
+              "타고난 몸의 리듬",
+              "무리가 쌓이는 조건",
+              "계절과 환경에 따른 컨디션",
+              "회복을 돕는 생활 습관",
+              "에너지를 쓰고 채우는 방식",
+              "마음의 긴장이 몸에 남는 방식",
+              "컨디션을 흔드는 반복 습관",
+              "일의 강도와 쉼의 균형",
+              "관계와 환경이 주는 부담",
+              "컨디션이 떨어질 때의 신호",
+              "건강운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "marriage",
+            "partner": false,
+            "chapters": [
+              "배우자 자리로 보는 결혼관",
+              "끌리고 편안한 배우자상",
+              "함께 살 때의 표현과 기대",
+              "생활과 책임의 분담",
+              "결혼 생활에서 반복되는 선택",
+              "살림과 자원을 대하는 방식",
+              "갈등이 시작되는 조건",
+              "올해 결혼운의 흐름",
+              "가족과의 경계를 조율하기",
+              "신뢰를 쌓는 생활 습관",
+              "결혼운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "movement",
+            "partner": false,
+            "chapters": [
+              "타고난 이동 기질",
+              "원국의 충이 만드는 변화",
+              "해외와 먼 곳의 인연",
+              "맞는 환경과 거처",
+              "일로 생기는 이동과 변화",
+              "관계와 가족이 이동에 주는 영향",
+              "떠나고 머무르는 반복 선택",
+              "올해 이동수의 흐름",
+              "이동이 부담이 되는 조건",
+              "이동 전에 준비할 조건",
+              "이동수·해외운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "ask",
+            "partner": false,
+            "chapters": [
+              "타고난 중심과 힘의 균형",
+              "타고난 연애 스타일",
+              "마음을 전하는 표현",
+              "결혼운과 배우자 자리",
+              "돈이 모이고 새는 길",
+              "일하는 방식과 사회적 자리",
+              "배움과 받쳐 주는 힘",
+              "곁의 사람들",
+              "부모와 뿌리",
+              "자녀와 인생 후반",
+              "몸의 리듬과 회복",
+              "올해와 내년",
+              "앞으로 12개월"
+            ]
+          }
+        ],
+        "questionExample": "두 사람 관계 질문 15챕터"
+      },
       "conditionalItems": [
-        "질문 상담과 전체 성향 리포트의 manifest가 다름",
-        "차트·요약·행동·추가 질문은 저장된 결과 및 선택한 계약에 따라 표시",
-        "참치 장기 질문은 사주·자미두수·베다만 지원"
+        "질문 주제와 입력에 따라 장 제목·시기 근거가 달라짐",
+        "ReadingBook의 도표·질문답·타이밍은 결과에 존재할 때만 표시",
+        "legacy 상담 종류를 변경하면 별도 목차가 적용됨"
       ],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
+      "separatePurchase": [
+        "다른 생선·체계는 별도 선택. 두 사람 질문 목차와 기본 성향 목차를 합산 제공하지 않음"
+      ],
+      "reviewSource": [
+        "본 상품에 귀속할 공개 동의 후기 미사용; 제작자 방법론으로 대체"
+      ],
+      "images": [
+        "/feature-details/crafted/yeongnyangi-saju-flounder/01-bridge.webp",
+        "/feature-details/crafted/yeongnyangi-saju-flounder/02-translation.webp",
+        "/feature-details/crafted/yeongnyangi-saju-flounder/03-two-charts.webp",
+        "/feature-details/crafted/yeongnyangi-saju-flounder/04-question-foundation.webp",
+        "/feature-details/crafted/yeongnyangi-saju-flounder/05-question-relationship.webp",
+        "/feature-details/crafted/yeongnyangi-saju-flounder/06-personal-first.webp",
+        "/feature-details/crafted/yeongnyangi-saju-flounder/07-personal-next.webp",
+        "/feature-details/crafted/yeongnyangi-saju-flounder/08-dialogue-example.webp",
+        "/feature-details/crafted/yeongnyangi-saju-flounder/09-before-reading.webp",
+        "/feature-details/crafted/yeongnyangi-saju-flounder/10-closer.webp"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/yeongnyangi/_components/ProductGuide.tsx",
+        "app/yeongnyangi/_components/IntakeChat.tsx"
+      ],
       "verification": [
-        "docs/product-details/yeongnyangi-contract-snapshot.json"
+        "docs/product-details/verification/yeongnyangi-saju-flounder/render.json",
+        "docs/product-details/verification/yeongnyangi-saju-flounder/mobile.json",
+        "docs/product-details/verification/yeongnyangi-saju-flounder/review.json"
       ],
       "unconfirmed": [
-        "개별 상품 원고·이미지·모바일 적용 미완료",
-        "각 체계별 입력 조건의 개별 대조 미완료"
+        "운영 배포 및 실제 결제·LLM 결과는 검증 범위 밖",
+        "main 전달·GitHub CI 미완료"
       ],
       "detailAliases": []
     },
@@ -4316,128 +4343,153 @@
       ],
       "priceSource": "worker/yeongnyangi/payments/catalog.ts → worker/lib/billing-feature-registry.js",
       "priceSnapshotKRW": 3000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "질문 상담: 질문, 주제, 대상, 기간 범위, 현재 상황 및 추천 범위별 조건",
+        "생년월일과 출생 시간 및 프로필 확인; 모르는 시간은 미상으로 처리"
+      ],
       "resultRenderer": [
         "app/yeongnyangi/_components/Result.tsx",
         "app/yeongnyangi/_components/ReadingBook.tsx"
       ],
-      "actualContents": [
-        {
-          "id": "personal",
-          "partner": false,
-          "chapters": [
-            "일간으로 읽는 나의 기질",
-            "오행과 계절의 균형",
-            "재능과 일하는 방식",
-            "사랑과 가까운 관계",
-            "지금의 선택과 실행 계획"
-          ]
-        },
-        {
-          "id": "compatibility",
-          "partner": true,
-          "chapters": [
-            "두 사람의 기질과 관계의 바탕",
-            "관계 유형과 서로 다른 역할",
-            "끌림과 기대의 차이",
-            "서로에게 편안한 표현",
-            "궁합 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "love",
-          "partner": false,
-          "chapters": [
-            "사랑할 때 드러나는 기질",
-            "마음이 움직이는 조건",
-            "표현과 기대의 차이",
-            "끌림과 편안함의 차이",
-            "연애와 인연 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "work",
-          "partner": false,
-          "chapters": [
-            "재능과 일하는 방식",
-            "역량이 살아나는 환경",
-            "책임을 맡는 방식",
-            "협력에서 드러나는 강점",
-            "일과 적성 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "money",
-          "partner": false,
-          "chapters": [
-            "수입과 자원의 바탕",
-            "일과 재물의 연결",
-            "쌓고 지키는 습관",
-            "지출이 늘어나는 조건",
-            "재물 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "health",
-          "partner": false,
-          "chapters": [
-            "타고난 몸의 리듬",
-            "무리가 쌓이는 조건",
-            "계절과 환경에 따른 컨디션",
-            "회복을 돕는 생활 습관",
-            "건강운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "marriage",
-          "partner": false,
-          "chapters": [
-            "배우자 자리로 보는 결혼관",
-            "끌리고 편안한 배우자상",
-            "함께 살 때의 표현과 기대",
-            "생활과 책임의 분담",
-            "결혼운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "movement",
-          "partner": false,
-          "chapters": [
-            "타고난 이동 기질",
-            "원국의 충이 만드는 변화",
-            "해외와 먼 곳의 인연",
-            "맞는 환경과 거처",
-            "이동수·해외운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "ask",
-          "partner": false,
-          "chapters": [
-            "일간으로 읽는 나의 기질",
-            "오행과 계절의 균형",
-            "재능과 일하는 방식",
-            "사랑과 가까운 관계",
-            "지금의 선택과 실행 계획"
-          ]
-        }
-      ],
+      "actualContents": {
+        "legacyKinds": [
+          {
+            "id": "personal",
+            "partner": false,
+            "chapters": [
+              "일간으로 읽는 나의 기질",
+              "오행과 계절의 균형",
+              "재능과 일하는 방식",
+              "사랑과 가까운 관계",
+              "지금의 선택과 실행 계획"
+            ]
+          },
+          {
+            "id": "compatibility",
+            "partner": true,
+            "chapters": [
+              "두 사람의 기질과 관계의 바탕",
+              "관계 유형과 서로 다른 역할",
+              "끌림과 기대의 차이",
+              "서로에게 편안한 표현",
+              "궁합 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "love",
+            "partner": false,
+            "chapters": [
+              "사랑할 때 드러나는 기질",
+              "마음이 움직이는 조건",
+              "표현과 기대의 차이",
+              "끌림과 편안함의 차이",
+              "연애와 인연 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "work",
+            "partner": false,
+            "chapters": [
+              "재능과 일하는 방식",
+              "역량이 살아나는 환경",
+              "책임을 맡는 방식",
+              "협력에서 드러나는 강점",
+              "일과 적성 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "money",
+            "partner": false,
+            "chapters": [
+              "수입과 자원의 바탕",
+              "일과 재물의 연결",
+              "쌓고 지키는 습관",
+              "지출이 늘어나는 조건",
+              "재물 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "health",
+            "partner": false,
+            "chapters": [
+              "타고난 몸의 리듬",
+              "무리가 쌓이는 조건",
+              "계절과 환경에 따른 컨디션",
+              "회복을 돕는 생활 습관",
+              "건강운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "marriage",
+            "partner": false,
+            "chapters": [
+              "배우자 자리로 보는 결혼관",
+              "끌리고 편안한 배우자상",
+              "함께 살 때의 표현과 기대",
+              "생활과 책임의 분담",
+              "결혼운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "movement",
+            "partner": false,
+            "chapters": [
+              "타고난 이동 기질",
+              "원국의 충이 만드는 변화",
+              "해외와 먼 곳의 인연",
+              "맞는 환경과 거처",
+              "이동수·해외운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "ask",
+            "partner": false,
+            "chapters": [
+              "일간으로 읽는 나의 기질",
+              "오행과 계절의 균형",
+              "재능과 일하는 방식",
+              "사랑과 가까운 관계",
+              "지금의 선택과 실행 계획"
+            ]
+          }
+        ],
+        "questionExample": "자기이해 질문 6챕터"
+      },
       "conditionalItems": [
-        "질문 상담과 전체 성향 리포트의 manifest가 다름",
-        "차트·요약·행동·추가 질문은 저장된 결과 및 선택한 계약에 따라 표시",
-        "참치 장기 질문은 사주·자미두수·베다만 지원"
+        "질문 주제와 입력에 따라 장 제목·시기 근거가 달라짐",
+        "ReadingBook의 도표·질문답·타이밍은 결과에 존재할 때만 표시",
+        "legacy 상담 종류를 변경하면 별도 목차가 적용됨"
       ],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
+      "separatePurchase": [
+        "다른 생선·체계는 별도 선택. 두 사람 질문 목차와 기본 성향 목차를 합산 제공하지 않음"
+      ],
+      "reviewSource": [
+        "본 상품에 귀속할 공개 동의 후기 미사용; 제작자 방법론으로 대체"
+      ],
+      "images": [
+        "/feature-details/crafted/yeongnyangi-saju-mackerel/01-small-question.webp",
+        "/feature-details/crafted/yeongnyangi-saju-mackerel/02-moment.webp",
+        "/feature-details/crafted/yeongnyangi-saju-mackerel/03-ground.webp",
+        "/feature-details/crafted/yeongnyangi-saju-mackerel/04-question-book.webp",
+        "/feature-details/crafted/yeongnyangi-saju-mackerel/05-personal-book.webp",
+        "/feature-details/crafted/yeongnyangi-saju-mackerel/06-example.webp",
+        "/feature-details/crafted/yeongnyangi-saju-mackerel/07-boundary.webp",
+        "/feature-details/crafted/yeongnyangi-saju-mackerel/08-method.webp",
+        "/feature-details/crafted/yeongnyangi-saju-mackerel/09-return.webp"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/yeongnyangi/_components/ProductGuide.tsx",
+        "app/yeongnyangi/_components/IntakeChat.tsx"
+      ],
       "verification": [
-        "docs/product-details/yeongnyangi-contract-snapshot.json"
+        "docs/product-details/verification/yeongnyangi-saju-mackerel/render.json",
+        "docs/product-details/verification/yeongnyangi-saju-mackerel/mobile.json",
+        "docs/product-details/verification/yeongnyangi-saju-mackerel/review.json"
       ],
       "unconfirmed": [
-        "개별 상품 원고·이미지·모바일 적용 미완료",
-        "각 체계별 입력 조건의 개별 대조 미완료"
+        "운영 배포 및 실제 결제·LLM 결과는 검증 범위 밖",
+        "main 전달·GitHub CI 미완료"
       ],
       "detailAliases": []
     },
@@ -4452,155 +4504,182 @@
       ],
       "priceSource": "worker/yeongnyangi/payments/catalog.ts → worker/lib/billing-feature-registry.js",
       "priceSnapshotKRW": 9000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "질문 상담: 질문, 주제, 대상, 기간 범위, 현재 상황 및 추천 범위별 조건",
+        "생년월일과 출생 시간 및 프로필 확인; 모르는 시간은 미상으로 처리",
+        "선택지 또는 목표, 기간, 현실 제약"
+      ],
       "resultRenderer": [
         "app/yeongnyangi/_components/Result.tsx",
         "app/yeongnyangi/_components/ReadingBook.tsx"
       ],
-      "actualContents": [
-        {
-          "id": "personal",
-          "partner": false,
-          "chapters": [
-            "타고난 중심과 힘의 균형",
-            "타고난 연애 스타일",
-            "결혼운과 배우자 자리",
-            "돈이 모이고 새는 길",
-            "일하는 방식과 사회적 자리",
-            "곁의 사람들",
-            "몸의 리듬과 회복",
-            "올해와 내년"
-          ]
-        },
-        {
-          "id": "compatibility",
-          "partner": true,
-          "chapters": [
-            "두 사람의 기질과 관계의 바탕",
-            "관계 유형과 서로 다른 역할",
-            "끌림과 기대의 차이",
-            "서로에게 편안한 표현",
-            "가까워지는 속도와 거리",
-            "갈등이 시작되는 반응",
-            "일상과 책임의 조율",
-            "궁합 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "love",
-          "partner": false,
-          "chapters": [
-            "사랑할 때 드러나는 기질",
-            "마음이 움직이는 조건",
-            "표현과 기대의 차이",
-            "끌림과 편안함의 차이",
-            "관계에서 반복되는 선택",
-            "가까워지는 속도",
-            "갈등이 시작되는 조건",
-            "연애와 인연 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "work",
-          "partner": false,
-          "chapters": [
-            "재능과 일하는 방식",
-            "역량이 살아나는 환경",
-            "책임을 맡는 방식",
-            "협력에서 드러나는 강점",
-            "반복되는 업무 패턴",
-            "강점이 부담이 되는 조건",
-            "성장에 필요한 조건",
-            "일과 적성 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "money",
-          "partner": false,
-          "chapters": [
-            "수입과 자원의 바탕",
-            "일과 재물의 연결",
-            "쌓고 지키는 습관",
-            "지출이 늘어나는 조건",
-            "안정을 선택할 조건",
-            "확장을 선택할 조건",
-            "협력과 자원의 책임",
-            "재물 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "health",
-          "partner": false,
-          "chapters": [
-            "타고난 몸의 리듬",
-            "무리가 쌓이는 조건",
-            "계절과 환경에 따른 컨디션",
-            "회복을 돕는 생활 습관",
-            "에너지를 쓰고 채우는 방식",
-            "마음의 긴장이 몸에 남는 방식",
-            "컨디션을 흔드는 반복 습관",
-            "건강운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "marriage",
-          "partner": false,
-          "chapters": [
-            "배우자 자리로 보는 결혼관",
-            "끌리고 편안한 배우자상",
-            "함께 살 때의 표현과 기대",
-            "생활과 책임의 분담",
-            "결혼 생활에서 반복되는 선택",
-            "살림과 자원을 대하는 방식",
-            "갈등이 시작되는 조건",
-            "결혼운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "movement",
-          "partner": false,
-          "chapters": [
-            "타고난 이동 기질",
-            "원국의 충이 만드는 변화",
-            "해외와 먼 곳의 인연",
-            "맞는 환경과 거처",
-            "일로 생기는 이동과 변화",
-            "관계와 가족이 이동에 주는 영향",
-            "떠나고 머무르는 반복 선택",
-            "이동수·해외운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "ask",
-          "partner": false,
-          "chapters": [
-            "타고난 중심과 힘의 균형",
-            "타고난 연애 스타일",
-            "결혼운과 배우자 자리",
-            "돈이 모이고 새는 길",
-            "일하는 방식과 사회적 자리",
-            "곁의 사람들",
-            "몸의 리듬과 회복",
-            "올해와 내년"
-          ]
-        }
-      ],
+      "actualContents": {
+        "legacyKinds": [
+          {
+            "id": "personal",
+            "partner": false,
+            "chapters": [
+              "타고난 중심과 힘의 균형",
+              "타고난 연애 스타일",
+              "결혼운과 배우자 자리",
+              "돈이 모이고 새는 길",
+              "일하는 방식과 사회적 자리",
+              "곁의 사람들",
+              "몸의 리듬과 회복",
+              "올해와 내년"
+            ]
+          },
+          {
+            "id": "compatibility",
+            "partner": true,
+            "chapters": [
+              "두 사람의 기질과 관계의 바탕",
+              "관계 유형과 서로 다른 역할",
+              "끌림과 기대의 차이",
+              "서로에게 편안한 표현",
+              "가까워지는 속도와 거리",
+              "갈등이 시작되는 반응",
+              "일상과 책임의 조율",
+              "궁합 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "love",
+            "partner": false,
+            "chapters": [
+              "사랑할 때 드러나는 기질",
+              "마음이 움직이는 조건",
+              "표현과 기대의 차이",
+              "끌림과 편안함의 차이",
+              "관계에서 반복되는 선택",
+              "가까워지는 속도",
+              "갈등이 시작되는 조건",
+              "연애와 인연 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "work",
+            "partner": false,
+            "chapters": [
+              "재능과 일하는 방식",
+              "역량이 살아나는 환경",
+              "책임을 맡는 방식",
+              "협력에서 드러나는 강점",
+              "반복되는 업무 패턴",
+              "강점이 부담이 되는 조건",
+              "성장에 필요한 조건",
+              "일과 적성 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "money",
+            "partner": false,
+            "chapters": [
+              "수입과 자원의 바탕",
+              "일과 재물의 연결",
+              "쌓고 지키는 습관",
+              "지출이 늘어나는 조건",
+              "안정을 선택할 조건",
+              "확장을 선택할 조건",
+              "협력과 자원의 책임",
+              "재물 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "health",
+            "partner": false,
+            "chapters": [
+              "타고난 몸의 리듬",
+              "무리가 쌓이는 조건",
+              "계절과 환경에 따른 컨디션",
+              "회복을 돕는 생활 습관",
+              "에너지를 쓰고 채우는 방식",
+              "마음의 긴장이 몸에 남는 방식",
+              "컨디션을 흔드는 반복 습관",
+              "건강운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "marriage",
+            "partner": false,
+            "chapters": [
+              "배우자 자리로 보는 결혼관",
+              "끌리고 편안한 배우자상",
+              "함께 살 때의 표현과 기대",
+              "생활과 책임의 분담",
+              "결혼 생활에서 반복되는 선택",
+              "살림과 자원을 대하는 방식",
+              "갈등이 시작되는 조건",
+              "결혼운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "movement",
+            "partner": false,
+            "chapters": [
+              "타고난 이동 기질",
+              "원국의 충이 만드는 변화",
+              "해외와 먼 곳의 인연",
+              "맞는 환경과 거처",
+              "일로 생기는 이동과 변화",
+              "관계와 가족이 이동에 주는 영향",
+              "떠나고 머무르는 반복 선택",
+              "이동수·해외운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "ask",
+            "partner": false,
+            "chapters": [
+              "타고난 중심과 힘의 균형",
+              "타고난 연애 스타일",
+              "결혼운과 배우자 자리",
+              "돈이 모이고 새는 길",
+              "일하는 방식과 사회적 자리",
+              "곁의 사람들",
+              "몸의 리듬과 회복",
+              "올해와 내년"
+            ]
+          }
+        ],
+        "questionExample": "이직 질문 11챕터"
+      },
       "conditionalItems": [
-        "질문 상담과 전체 성향 리포트의 manifest가 다름",
-        "차트·요약·행동·추가 질문은 저장된 결과 및 선택한 계약에 따라 표시",
-        "참치 장기 질문은 사주·자미두수·베다만 지원"
+        "질문 주제와 입력에 따라 장 제목·시기 근거가 달라짐",
+        "ReadingBook의 도표·질문답·타이밍은 결과에 존재할 때만 표시",
+        "legacy 상담 종류를 변경하면 별도 목차가 적용됨"
       ],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
+      "separatePurchase": [
+        "다른 생선·체계는 별도 선택. 두 사람 질문 목차와 기본 성향 목차를 합산 제공하지 않음"
+      ],
+      "reviewSource": [
+        "본 상품에 귀속할 공개 동의 후기 미사용; 제작자 방법론으로 대체"
+      ],
+      "images": [
+        "/feature-details/crafted/yeongnyangi-saju-salmon/01-stay-or-go.webp",
+        "/feature-details/crafted/yeongnyangi-saju-salmon/02-two-paths.webp",
+        "/feature-details/crafted/yeongnyangi-saju-salmon/03-capacity.webp",
+        "/feature-details/crafted/yeongnyangi-saju-salmon/04-question-first.webp",
+        "/feature-details/crafted/yeongnyangi-saju-salmon/05-question-next.webp",
+        "/feature-details/crafted/yeongnyangi-saju-salmon/06-personal.webp",
+        "/feature-details/crafted/yeongnyangi-saju-salmon/07-example.webp",
+        "/feature-details/crafted/yeongnyangi-saju-salmon/08-preparation.webp",
+        "/feature-details/crafted/yeongnyangi-saju-salmon/09-method.webp",
+        "/feature-details/crafted/yeongnyangi-saju-salmon/10-close.webp"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/yeongnyangi/_components/ProductGuide.tsx",
+        "app/yeongnyangi/_components/IntakeChat.tsx"
+      ],
       "verification": [
-        "docs/product-details/yeongnyangi-contract-snapshot.json"
+        "docs/product-details/verification/yeongnyangi-saju-salmon/render.json",
+        "docs/product-details/verification/yeongnyangi-saju-salmon/mobile.json",
+        "docs/product-details/verification/yeongnyangi-saju-salmon/review.json"
       ],
       "unconfirmed": [
-        "개별 상품 원고·이미지·모바일 적용 미완료",
-        "각 체계별 입력 조건의 개별 대조 미완료"
+        "운영 배포 및 실제 결제·LLM 결과는 검증 범위 밖",
+        "main 전달·GitHub CI 미완료"
       ],
       "detailAliases": []
     },
