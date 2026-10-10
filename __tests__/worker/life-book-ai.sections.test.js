@@ -228,3 +228,8 @@ test('short life-book candidates retain structure, evidence and repetition check
   expect(accepts({ ...valid, evidenceRefs: ['invented.path'] })).toBe(false);
   expect(accepts({ ...valid, content: '선택의 의미를 일상에서 관찰하면서 상대의 속도를 돌아보고 작은 행동으로 확인하는 과정이 필요합니다. '.repeat(60) })).toBe(false);
 });
+
+test('every forbidden term is cleaned, not only the first, and 시스템 keeps the sentence intact', () => {
+  const cleaned = __lifeBookAiTestUtils.cleanForbiddenResult('새로운 시스템을 구축합니다. 다시 시스템을 다듬고 AI 이야기는 빼며 AI 도 뺍니다.');
+  expect(cleaned).toBe('새로운 기반을 구축합니다. 다시 기반을 다듬고  이야기는 빼며  도 뺍니다.');
+});
