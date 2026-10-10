@@ -7,7 +7,7 @@ import path from 'node:path';
 const require=createRequire(import.meta.url), Module=require('node:module');
 const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/consultation'; export {questionFactSelectors,readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {buildAskFirstChapterPrompt} from './worker/yeongnyangi/fortune/ask/prompt'; export {products} from './worker/yeongnyangi/payments/catalog'; export * from './worker/yeongnyangi/fortune/ask/period';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const loaded=new Module(path.resolve('consultation-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,loaded.id);
-const {resolveAskPeriods,formatAskRange,applyAskPeriodChip,resolveQuestionYears,consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,assertProfessionalProse,redactInternalEvidence,tarotPositionNames,correctPersonaAddress,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
+const {resolveAskPeriods,formatAskRange,applyAskPeriodChip,resolveQuestionYears,consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,validateMonthPillars,natalOnlyTiming,assertProfessionalProse,redactInternalEvidence,tarotPositionNames,correctPersonaAddress,correctDashaSequence,correctProseMarkup,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
 const clock=consultationClock('Asia/Seoul',new Date('2026-09-21T23:00:00Z'));
 const manifest=readingManifest(products.find(p=>p.id==='saju_mackerel'));
 const make=(q='',topic='general',ask=false)=>createConsultation(q,topic,clock,manifest,ask);
@@ -101,7 +101,7 @@ test('actual chapter prompt passes immutable questions, period, professional ter
  await provider.generateChapter({chapter,analysis:{consultation:c,question:c.question,topicId:'love',contexts:{saju:{domain:'saju',engineVersion:'mock',calculatedAt:clock.asOf,limitations:[],facts:[{id:'saju.fiveElements',label:'fiveElements',value:{목:2}}]}},themes:[]},previous:[]});
  const rules=JSON.parse(prompt.domainRules);
  assert.deepEqual(rules.consultation,c);assert.equal(prompt.userQuestion,c.question);
- assert.match(rules.questionPriority,/비신뢰/);assert.match(rules.evidencePresentation,/내부 ID/);
+ assert.match(rules.questionPriority,/비신뢰/);assert.match(rules.evidencePresentation,/내부 ID/);assert.match(rules.evidencePresentation,/괄호에 넣지 않는다/);
  assert.equal(rules.professionalEvidenceNames.fiveElements,'오행의 분포');
  assert.ok(prompt.outputSchema.required.includes('questionAnswers'));
 });
@@ -267,6 +267,29 @@ test('week, month and year words become absolute Monday-to-Sunday, calendar-mont
  assert.equal(formatAskRange({scale:'week',start:'2026-12-28',end:'2027-01-03'}),'2026.12.28(월)~2027.1.3(일)');
  assert.equal(formatAskRange({scale:'year',start:'2027-01-01',end:'2027-12-31'}),'2027.1.1~12.31');
 });
+test('halves and quarters become calendar ranges, so a question period is not widened to whole years',()=>{
+ const at=(q,asOf)=>resolveAskPeriods(q,asOf,resolveQuestionYears).map(r=>[r.scale,r.start,r.end]);
+ assert.deepEqual(at('2026년 4분기부터 2027년 상반기','2026-10-09'),[['month','2026-10-01','2026-12-31'],['month','2027-01-01','2027-06-30']]);
+ assert.deepEqual(at('내년 상반기에 이직','2026-10-09'),[['month','2027-01-01','2027-06-30']]);
+ assert.deepEqual(at('올해 하반기','2026-10-09'),[['month','2026-07-01','2026-12-31']]);
+ // Without a year: the next time it comes, counting the current one.
+ assert.deepEqual(at('상반기 계획','2026-10-09'),[['month','2027-01-01','2027-06-30']]);
+ assert.deepEqual(at('4분기 매출','2026-10-09'),[['month','2026-10-01','2026-12-31']]);
+ const period=createConsultation('내년 상반기에 이직할까? 2026년 4분기부터 2027년 상반기','job_change',consultationClock('Asia/Seoul',new Date('2026-10-09T03:00:00Z')),manifest,true).period;
+ assert.deepEqual([period.start,period.end],['2026-10-01','2027-06-30']);
+});
+test('a month named with a 간지 must be the monthlyLuck row whose 절입 falls in that civil month',()=>{
+ const rows=[['2026',11,'己亥'],['2026',12,'庚子'],['2027',1,'辛丑']].map(([y,mo,pillar])=>({start:{year:Number(y),month:mo,day:7},pillar}));
+ const facts=[{id:'saju.monthlyLuck',label:'monthlyLuck',value:rows}];
+ assert.doesNotThrow(()=>validateMonthPillars(['2026년 12월 庚子월에는 정리하고, 2027년 1월 辛丑(신축)월에 움직여요.','2026년 11월 기해월은 준비 기간이에요.'],facts));
+ // 庚子 begins at 2026-12 대설; calling it January 2027 is the Y1 error. 2027-02 is not in the rows at all.
+ for(const text of ['2027년 1월 庚子월은 기회예요.','2027년에는 2월 壬寅월이 좋아요.','2026년 11월 경자월'])
+  assert.throws(()=>validateMonthPillars([text],facts),{code:'CHAPTER_MONTH_PILLAR_MISMATCH'},text);
+ // No year in the paragraph, or no 간지월: nothing to check. A question product without month rows rejects the claim.
+ assert.doesNotThrow(()=>validateMonthPillars(['3월 壬寅월에는 쉬어요.','2027년 3월에는 쉬어요.'],facts));
+ assert.doesNotThrow(()=>validateMonthPillars(['2027년 3월 壬寅월'],[]));
+ assert.throws(()=>validateMonthPillars(['2027년 3월 壬寅월'],[],true),{code:'CHAPTER_MONTH_PILLAR_MISMATCH'});
+});
 test('the consultation stores the resolved union, fixed by the user timezone date',()=>{
  const seoul=make('이번 주와 다음 달에 이직 준비는?','general',true).period;
  assert.equal(seoul.resolver,'ask-period-v1');assert.equal(seoul.start,'2026-09-21');assert.equal(seoul.end,'2026-10-31');
@@ -287,4 +310,96 @@ test('a quick-select chip replaces the leading period phrase and keeps the quest
  assert.equal(applyAskPeriodChip('이번달 지출은?','다음 달'),'다음 달 지출은?');
  assert.equal(applyAskPeriodChip('다음 달에 이직할까?','이번 주'),'이번 주 다음 달에 이직할까?');
  assert.equal(applyAskPeriodChip('올해','내년'),'내년 ');
+});
+
+test('a birth-chart-only astrology question chapter cannot rank a named period, but may name it and deny it',()=>{
+ const astro=['planets','ascendant','houseCusps','houseRulers','aspects','chartSect'].map(label=>({id:'astrology.'+label,label,value:{}}));
+ const consultation={questionDecision:{category:'job_change',horizon:'current'},period:{start:'2026-10-01',end:'2027-06-30'}};
+ const body=(text,timing='')=>({summary:'',example:'',advice:'',persona:'',analysis:[],blocks:[{id:'a',title:'t',paragraphs:[text]}],questionAnswers:timing?[{answer:'',reason:'',timing,action:''}]:[]});
+ assert.equal(natalOnlyTiming(astro),true);
+ for(const extra of [{id:'astrology.transits',label:'transits',value:{}},{id:'saju.monthlyLuck',label:'monthlyLuck',value:[]}])assert.equal(natalOnlyTiming([...astro,extra]),false);
+ for(const text of ['2027년 상반기가 스타트업 이직을 고려하기에 비교적 긍정적인 시기로 보여요.','내년 상반기는 새로운 도전을 하기에 아주 유리한 시기거든.','4분기가 적기예요.','2027년 상반기가 좋은 시기이니 서둘러 결정하지 않아도 돼요.'])
+  assert.throws(()=>validatePreciseTiming(body(text),consultation,astro),{code:'CHAPTER_UNGROUNDED_TIMING'},text);
+ assert.throws(()=>validatePreciseTiming(body('본문',"2027년 상반기가 움직이기 좋은 때예요."),consultation,astro),{code:'CHAPTER_UNGROUNDED_TIMING'});
+ for(const text of ['출생 차트만으로는 2027년 상반기가 유리한 시기인지 특정할 수 없어요.','2026년 4분기에는 이력서와 포트폴리오를 정리해 보세요.','토성 11하우스는 오래 쌓은 관계가 기회가 되는 배치예요.'])
+  assert.doesNotThrow(()=>validatePreciseTiming(body(text),consultation,astro),text);
+ // With time-varying evidence, or outside a question consultation, the sentence is judged elsewhere.
+ assert.doesNotThrow(()=>validatePreciseTiming(body('내년 상반기는 아주 유리한 시기예요.'),consultation,[...astro,{id:'astrology.transits',label:'transits',value:{}}]));
+ assert.doesNotThrow(()=>validatePreciseTiming(body('내년 상반기는 아주 유리한 시기예요.'),{period:consultation.period},astro));
+});
+
+test('only the antardasha before the mahadasha lord in the cycle may be called its last antardasha',()=>{
+ const vedic=[{id:'vedic.vimshottariDasha',label:'vimshottariDasha',value:{currentMahadasha:{lord:'Moon',startDate:'2018-01-21',endDate:'2028-01-22'},currentAntardasha:{lord:'Venus',startDate:'2025-11-21',endDate:'2027-07-23'}}}];
+ const body=text=>({summary:text,example:'',advice:'',persona:'',analysis:[],blocks:[],questionAnswers:[]});
+ // Y3 sentences: a Moon mahadasha runs Moon…Venus, Sun, so Venus is the second to last.
+ for(const text of ['지금은 달 마하다샤의 마지막 안타르다샤인 금성 시기야.','지금 너는 달 대운(Mahadasha)의 마지막 안타르다샤(Antardasha)인 달-금성 시기(2025년 11월 21일~2027년 7월 23일)를 지나고 있어.'])
+  assert.throws(()=>validatePreciseTiming(body(text),{},vedic),{code:'CHAPTER_DASHA_SEQUENCE_MISMATCH'},text);
+ for(const text of ['그다음 달 마하다샤의 마지막 안타르다샤인 태양 시기가 이어져.','마지막 안타르다샤인 달-태양 시기에는 정리가 중요해.','마지막 안타르다샤는 금성이 아니라 태양이야.','화성 마하다샤의 마지막 안타르다샤인 달 시기는 아직 멀었어.'])
+  assert.doesNotThrow(()=>validatePreciseTiming(body(text),{},vedic),text);
+ assert.doesNotThrow(()=>validatePreciseTiming(body('마지막 안타르다샤인 금성 시기야.'),{},[]));
+ // D7 Y3 question chapters: the dasha arrives as questionTiming periods only.
+ const asked=[{id:'vedic.questionTiming',label:'questionTiming',value:{periods:[{currentMahadasha:{lord:'Moon',startDate:'2018-01-21',endDate:'2028-01-22'},currentAntardasha:{lord:'Venus',startDate:'2025-11-21',endDate:'2027-07-23'}}]}}];
+ assert.throws(()=>validatePreciseTiming(body('지금 너는 달 마하다샤(Moon Mahadasha)의 마지막 안타르다샤인 금성 안타르다샤(Venus Antardasha)를 지나고 있어.'),{},asked),{code:'CHAPTER_DASHA_SEQUENCE_MISMATCH'});
+ assert.doesNotThrow(()=>validatePreciseTiming(body('그다음 달 마하다샤의 마지막 안타르다샤인 태양 시기가 이어져.'),{},asked));
+});
+
+test('the second to last antardasha called the last is corrected to just before the last, not regenerated',()=>{
+ const asked=[{id:'vedic.questionTiming',label:'questionTiming',value:{periods:[{currentMahadasha:{lord:'Moon',startDate:'2018-01-21',endDate:'2028-01-22'},currentAntardasha:{lord:'Venus',startDate:'2025-11-21',endDate:'2027-07-23'}}]}}];
+ const body=(summary,paragraph='')=>({summary,example:'',advice:'',persona:'',analysis:[],blocks:[{title:'흐름',paragraphs:[paragraph]}],questionAnswers:[]});
+ const out=correctDashaSequence(body('지금 너는 달 마하다샤의 마지막 안타르다샤인 금성 시기야. 그다음 마지막 안타르다샤인 태양 시기가 와.','달 마하다샤(Moon Mahadasha)의 마지막 안타르다샤(Antardasha)인 금성 안타르다샤는 정리의 시간이야.'),asked);
+ assert.equal(out.count,2);
+ assert.equal(out.body.summary,'지금 너는 달 마하다샤의 마지막 바로 앞 안타르다샤인 금성 시기야. 그다음 마지막 안타르다샤인 태양 시기가 와.');
+ assert.equal(out.body.blocks[0].paragraphs[0],'달 마하다샤(Moon Mahadasha)의 마지막 바로 앞 안타르다샤(Antardasha)인 금성 안타르다샤는 정리의 시간이야.');
+ assert.doesNotThrow(()=>validatePreciseTiming(out.body,{},asked));
+ assert.equal(correctDashaSequence(body('지금은 달 마하다샤의 마지막 안타르다샤인 금성과 태양 시기야.'),asked).body.summary,'지금은 달 마하다샤의 마지막 두 안타르다샤인 금성과 태양 시기야.');
+ // Any other wrong lord, a pair, or another mahadasha's sentence is left as written for validation to judge.
+ for(const text of ['달 마하다샤의 마지막 안타르다샤인 화성 시기야.','마지막 안타르다샤인 달-금성 시기야.','금성 마하다샤의 마지막 안타르다샤인 금성 시기야.'])
+  assert.equal(correctDashaSequence(body(text),asked).count,0,text);
+ assert.throws(()=>validatePreciseTiming(body('달 마하다샤의 마지막 안타르다샤인 화성 시기야.'),{},asked),{code:'CHAPTER_DASHA_SEQUENCE_MISMATCH'});
+ assert.equal(correctDashaSequence(body('마지막 안타르다샤인 금성 시기야.'),[]).count,0);
+});
+
+test('a relative year word must agree with the year written after it',()=>{
+ const consultation={asOf:'2026-10-10'}, body=text=>({summary:text,example:'',advice:'',persona:'',analysis:[],blocks:[],questionAnswers:[]});
+ // Z ch5: asked in October 2026, 내년 is 2027.
+ for(const text of ['특히 내년 2026년에는 이직 준비를 시작해.','올해 2025년은 정리의 해야.','작년 2026년의 흐름'])
+  assert.throws(()=>validatePreciseTiming(body(text),consultation,[]),{code:'CHAPTER_YEAR_LABEL_MISMATCH'},text);
+ for(const text of ['내년 2027년 상반기가 핵심이야.','올해 2026년 4분기','2026년 하반기와 내년 상반기','2026년 내년 상반기까지 이어지는 흐름','내년(2027년)'])
+  assert.doesNotThrow(()=>validatePreciseTiming(body(text),consultation,[]),text);
+});
+
+test('a palace named with a year\'s 세운 must be that year\'s palace in the ziwei yearly timeline',()=>{
+ const ziwei=[{id:'ziwei.yearlyTimeline',label:'yearlyTimeline',value:[{year:2026,palaceName:'재백궁'},{year:2027,palaceName:'자녀궁'},{year:2029,palaceName:'노복궁'}]}];
+ const body=text=>({summary:text,example:'',advice:'',persona:'',analysis:[],blocks:[],questionAnswers:[]}), c={asOf:'2026-10-10'};
+ // Z ch1: 2027 is 자녀궁, not 재백궁.
+ // Z rerun ch2: the second half of 2027 is still the 2027 row (자녀궁); 전택궁 came from the age-based 소한 list.
+ for(const text of ['2027년 세운(歲運)이 재백궁으로 들어오면서, 재물과 관련된 기회가 생겨.','2026년의 유년은 관록궁이야.','2027년 세운 궁은 재백궁에 자리해.',
+  '2027년 하반기에는 유년이 전택궁에 놓이고 이곳에 천부가 있어.','2027년 상반기 유년은 재백궁(재물)에 놓여 있어.'])
+  assert.throws(()=>validatePreciseTiming(body(text),c,ziwei),{code:'CHAPTER_YEARLY_PALACE_MISMATCH'},text);
+ for(const text of ['2027년 세운이 자녀궁으로 들어와.','2026년 유년은 재백궁이야.','2029년 세운은 교우궁이야.','2027년 세운이 부부궁을 충한다.','2028년 세운이 관록궁으로',
+  // Z/Y2 sentences that are not about the yearly palace: the flow-year chart's own palaces and where a transformation lands.
+  '2027년 유년 관록궁에는 천기성과 태음성이 강하게 작용해.','2027년 세운 재백궁에 거문 화기가 들어와.','2027년 세운은 노복궁에 거문 화기가 붙어.',
+  '2027년 상반기 유년은 자녀궁(동업·투자·확장)에 놓여 있어.'])
+  assert.doesNotThrow(()=>validatePreciseTiming(body(text),c,ziwei),text);
+ assert.doesNotThrow(()=>validatePreciseTiming(body('2027년 세운이 재백궁으로'),c,[{id:'saju.yearlyLuck',label:'yearlyLuck',value:{year:2027}}]));
+});
+test('D5: markdown residue, a doubled 미 and English (Label: value) glosses are removed from delivered prose',()=>{
+ const body={summary:'`명궁(命宮)`이 중심이에요.',analysis:['다샤* 흐름과 라그나* 기준을 함께 봐요.','*케투*는 놓아줄 것을 보여줘요.','이 흐름이 결정에 영향을 미 줄 수 있어요.','토성이 미 미치는데 서두를 필요는 없어요.','금성(Venus)이 자기 별자리에 있어요 (Dignity: domicile).'],example:'',advice:''};
+ const fixed=correctProseMarkup(body);
+ assert.equal(fixed.body.summary,'명궁(命宮)이 중심이에요.');
+ assert.deepEqual(fixed.body.analysis,['다샤 흐름과 라그나 기준을 함께 봐요.','케투는 놓아줄 것을 보여줘요.','이 흐름이 결정에 영향을 줄 수 있어요.','토성이 미치는데 서두를 필요는 없어요.','금성(Venus)이 자기 별자리에 있어요.']);
+ assert.ok(fixed.count>=6);
+ const clean={summary:'오행의 분포에서 시작해요.',analysis:['영향을 미칠 수 있어요.','2*3 같은 계산식은 그대로 둬요.'],example:'',advice:''};
+ assert.deepEqual(correctProseMarkup(clean),{body:clean,count:0});
+ assert.match(correctProseMarkup({summary:'Venus is strong (Dignity: domicile).',analysis:[],example:'',advice:''},'en').body.summary,/\(Dignity: domicile\)/);
+});
+test('D5: astrology facts reach the prompt with Korean dignity names',async()=>{
+ let prompt;
+ const provider=new StructuredChapterProvider({generate:async request=>{prompt=request;return {result:{},provider:'mock',model:'mock'};}});
+ const chapter={...manifest[0],systems:['astrology'],factSelectors:{astrology:['planets']}};
+ const c=make('올해 흐름은?','general');
+ await provider.generateChapter({chapter,analysis:{consultation:c,question:c.question,topicId:'general',contexts:{astrology:{domain:'astrology',engineVersion:'mock',calculatedAt:clock.asOf,limitations:[],facts:[{id:'astrology.planets',label:'planets',value:{Venus:{sign:1,dignity:'domicile'},Mars:{sign:3,dignity:'fall'}}}]}},themes:[]},previous:[]});
+ const sent=JSON.stringify(prompt);
+ assert.match(sent,/자기 별자리\(룰러십\)/);assert.match(sent,/추락\(폴\)/);
+ assert.doesNotMatch(sent,/"dignity\?":\?"(?:domicile|fall)/);
 });

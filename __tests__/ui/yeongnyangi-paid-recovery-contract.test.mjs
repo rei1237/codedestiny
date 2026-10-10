@@ -11,18 +11,20 @@ const replacements={
   'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={findOne:()=>({lean:async()=>globalThis.__paidRecovery.profile})};`,
   'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
   'worker/yeongnyangi/repository.js':`export const commitTarotDraw=async()=>{throw new Error('unexpected tarot draw');};export const reserveQuestionSkyFollowup=async()=>{throw new Error('unexpected followup in this fixture');};export const allowedChapterAttempts=(r,n)=>3+Number(r?.manualRecoveryGrants?.[n]||0)+Number(r?.systemRecoveryGrants?.[n]||0);export const holdAutoResumes=()=>false;export const userCanRetry=r=>globalThis.__paidRecovery.canRetry??r.errorCode==='AUTOMATIC_RECOVERY_STOPPED';
-export const saveChapterDraft=async(e,u,id,token,ordinal,draft)=>{const r=globalThis.__paidRecovery.row;r.generationCheckpoint||={};r.generationCheckpoint.chapterDrafts||={};r.generationCheckpoint.chapterDrafts[ordinal]=draft;};export const saveAskAnalysis=async(e,u,id,token,analysis)=>{const f=globalThis.__paidRecovery;if(!f)throw new Error("unexpected analysis");f.row.generationCheckpoint.analysis=analysis;if(f.storageFailure)throw new Error("storage uncertain");return analysis;};export const ownerId=x=>x;export const createRequest=async(e,u,id,values)=>{const row={_id:id,userId:u,...values,state:'CREATED',chapters:[]};globalThis.__paidRecovery.prepared=structuredClone(row);return row;};export const readRequest=async()=>globalThis.__paidRecovery.row;export const attachPayment=async()=>globalThis.__paidRecovery.row;
+export const saveChapterDraft=async(e,u,id,token,ordinal,draft,slot='chapterDrafts')=>{const r=globalThis.__paidRecovery.row;r.generationCheckpoint||={};r.generationCheckpoint[slot]||={};r.generationCheckpoint[slot][ordinal]=draft;};export const saveAskAnalysis=async(e,u,id,token,analysis)=>{const f=globalThis.__paidRecovery;if(!f)throw new Error("unexpected analysis");f.row.generationCheckpoint.analysis=analysis;if(f.storageFailure)throw new Error("storage uncertain");return analysis;};export const ownerId=x=>x;export const createRequest=async(e,u,id,values)=>{const row={_id:id,userId:u,...values,state:'CREATED',chapters:[]};globalThis.__paidRecovery.prepared=structuredClone(row);return row;};export const readRequest=async()=>globalThis.__paidRecovery.row;export const attachPayment=async()=>globalThis.__paidRecovery.row;
 export const claimChapter=async(e,u,id,source)=>{const f=globalThis.__paidRecovery,r=f.row;f.claims.push({id,source,chapter:r.chapters.length});if(r.state==='COMPLETED')return {row:r,token:null};r.state='GENERATING';const n=r.chapters.length;r.chapterAttempts[n]=(r.chapterAttempts[n]||0)+1;r.leaseToken='lease-'+n;return {row:r,token:r.leaseToken};};
 export const finishChapter=async(e,u,id,token,ordinal,body,total)=>{const f=globalThis.__paidRecovery,r=f.row;f.finishes.push({id,token,ordinal});assertOrdinal(r.chapters.length,ordinal);r.chapters.push(body);r.completedChapters=r.chapters.length;r.state=r.chapters.length===total?'COMPLETED':'PAID';return r;};
 export const failChapter=async(e,u,id,token,code,attempt,stage,allowedAttempts)=>{const f=globalThis.__paidRecovery;f.failures.push({id,code,attempt,stage,allowedAttempts});f.row.state='FORTUNE_FAILED';f.row.errorCode=code;f.row.lastFailure={code,stage};};
 function assertOrdinal(actual,expected){if(actual!==expected)throw new Error('ordinal mismatch');}
 `,
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>true;`,
-  'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{constructor(env){this.env=env}async analyzeQuestion(){const f=globalThis.__paidRecovery;f.analysisCalls=(f.analysisCalls||0)+1;return JSON.stringify({questions:[{questionId:"q1",category:"career",needsTiming:false}]});}}`,
+  'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{constructor(env,log,cache,timeoutMs){this.env=env;globalThis.__paidRecovery.timeoutMs=timeoutMs}async analyzeQuestion(){const f=globalThis.__paidRecovery;f.analysisCalls=(f.analysisCalls||0)+1;return JSON.stringify({questions:[{questionId:"q1",category:"career",needsTiming:false}]});}}`,
   'worker/yeongnyangi/providers/delivery':`export {validateChapter as deliverChapter} from './chapter';`,
   'worker/yeongnyangi/providers/chapter':`
 export class StructuredChapterProvider{async generateChapter(input){const f=globalThis.__paidRecovery,n=input.previous.length;f.lastInput=input;f.providerCalls.push(n);if(f.failOnce){f.failOnce=false;throw new Error('temporary provider failure')}return {summary:'generated-'+n,analysis:'analysis',example:'example',advice:'advice',persona:'persona',highlights:[],topics:[],blocks:[],sources:[]};}}
-export const validateChapter=value=>{const f=globalThis.__paidRecovery;if(f.rejectQuality>0){f.rejectQuality--;throw new Error('invalid answer evidence');}return value;};
+export const validateChapter=value=>{const f=globalThis.__paidRecovery;if(f.rejectQuality>0){f.rejectQuality--;throw new Error('invalid answer evidence');}
+// D8: shortChars queues each reply's outcome: 0 full, -1 empty/cut-off, n a length-only shortfall of n characters.
+const n=f.shortChars?.shift();if(n===-1)throw new Error('empty reply');if(n>0)throw Object.assign(new Error('CHAPTER_TOO_SHORT'),{shortCandidate:{...value,blocks:[{id:'b',title:'t',paragraphs:['흐'.repeat(n)]}]}});return value;};
 `,
 };
 const bundle=await build({stdin:{contents:"export {generateNextChapter,presentFortune,prepareFortune} from './worker/yeongnyangi/service';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'recovery-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const normalized=args.path.replaceAll('\\','/');const key=Object.keys(replacements).find(item=>normalized.endsWith(item)||normalized.endsWith(item+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
@@ -169,4 +171,48 @@ test('actual paid preparation stores authoritative pillars and preserves unlabel
  assert.equal(busan.snapshot.natalInput.personA.birthPlace.longitude,129.0756);
  assert.notEqual(busan.fingerprint,r.fingerprint);
  assert.equal(f.providerCalls.length,0);
+});
+
+const prior=()=>[{summary:'first'},{summary:'second'}];
+const kept=f=>f.row.generationCheckpoint?.shortDrafts?.[2]?.body?.blocks?.[0]?.paragraphs[0].length;
+test('D8: a length-only shortfall twice still completes the paid order with the longer draft',async()=>{
+ const f=reset(prior());f.shortChars=[700,600];
+ await assert.rejects(generateNextChapter(env,'owner',f.row._id),e=>e.code==='CHAPTER_TOO_SHORT');
+ assert.deepEqual(f.failures,[{id:f.row._id,code:'CHAPTER_TOO_SHORT',attempt:1,stage:'quality',allowedAttempts:3}]);
+ assert.equal(kept(f),700);assert.equal(f.row.generationCheckpoint.chapterDrafts,undefined,'a short draft is not a stored chapter');
+ const done=await generateNextChapter(env,'owner',f.row._id);
+ assert.equal(f.lastInput.repair.code,'CHAPTER_TOO_SHORT');assert.equal(f.providerCalls.length,2);
+ assert.equal(done.state,'COMPLETED');
+ assert.equal(f.row.chapters[2].shortDelivery,true);assert.equal(f.row.chapters[2].blocks[0].paragraphs[0].length,700);
+ assert.equal(presentFortune(f.row).chapters[2].shortDelivery,undefined,'the operator flag is not public');
+});
+
+test('D8: a failed repair delivers the kept draft; an empty or cut-off reply with nothing kept is still held back',async()=>{
+ let f=reset(prior());f.shortChars=[650];
+ await assert.rejects(generateNextChapter(env,'owner',f.row._id));
+ f.failOnce=true;
+ assert.equal((await generateNextChapter(env,'owner',f.row._id)).state,'COMPLETED');
+ assert.equal(f.row.chapters[2].blocks[0].paragraphs[0].length,650);assert.equal(f.row.chapters[2].shortDelivery,true);
+ f=reset(prior());f.shortChars=[-1,-1,-1];
+ for(let i=0;i<3;i++)await assert.rejects(generateNextChapter(env,'owner',f.row._id),/empty reply/);
+ assert.equal(f.row.chapters.length,2);assert.equal(f.finishes.length,0);assert.equal(f.row.generationCheckpoint?.shortDrafts,undefined);
+ assert.deepEqual(f.failures.map(x=>x.attempt),[1,2,3]);
+});
+
+test('D8: the last attempt delivers a short reply with nothing kept, and a full repair replaces a kept short draft',async()=>{
+ let f=reset(prior());f.row.chapterAttempts[2]=2;f.shortChars=[500];
+ assert.equal((await generateNextChapter(env,'owner',f.row._id)).state,'COMPLETED');
+ assert.equal(f.row.chapters[2].shortDelivery,true);assert.equal(f.row.chapters[2].blocks[0].paragraphs[0].length,500);
+ f=reset(prior());f.shortChars=[500,0];
+ await assert.rejects(generateNextChapter(env,'owner',f.row._id));
+ await generateNextChapter(env,'owner',f.row._id);
+ assert.equal(f.row.chapters[2].shortDelivery,undefined);assert.deepEqual(f.row.chapters[2].blocks,[]);
+});
+
+test('D8: the chapter call gets the tier timeout only when the order carries the timeout policy',async()=>{
+ for(const [policy,fishId,ms] of [['chapter-timeout-20261010','mackerel',120000],['chapter-timeout-20261010','flounder',180000],[undefined,'mackerel',240000]]){
+  const f=reset([]);f.row.snapshot.product.fishId=fishId;if(policy)f.row.snapshot.chapterTimeoutPolicy=policy;
+  await generateNextChapter(env,'owner',f.row._id);
+  assert.equal(f.timeoutMs,ms,fishId);
+ }
 });

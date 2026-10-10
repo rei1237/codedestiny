@@ -12,6 +12,7 @@ const YEAR_MONTH = /(20\d{2})\s*년\s*(\d{1,2})\s*(?:월\s*)?(?:(?:[~～–-]|�
 const RELATIVE_MONTH = /(올해|금년|이번\s*해|내년|다음\s*해|명년)\s*(\d{1,2})\s*(?:월\s*)?(?:(?:[~～–-]|부터)\s*(\d{1,2})\s*)?월(?:까지)?/gu;
 const BARE_MONTH = /(?<![\d년])(\d{1,2})\s*(?:월\s*)?(?:(?:[~～–-]|부터)\s*(\d{1,2})\s*)?월(?:까지)?(?!\s*\d)/gu;
 const BARE_MONTH_DAY = /(?<![\d년])(\d{1,2})\s*월\s*\d{1,2}\s*일/gu;
+const HALF_QUARTER = /(?:(20\d{2})\s*년\s*|(올해|금년|이번\s*해|내년|다음\s*해|명년)\s*)?(?:(상|하)반기|([1-4])\s*분기)/gu;
 
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
 const utc = (asOf: string) => new Date(`${asOf}T00:00:00Z`);
@@ -46,6 +47,12 @@ export function resolveAskPeriods(question: string, asOf: string, resolveYears: 
       return ' '.repeat(m[0].length);
     });
   };
+  // '2026년 4분기', '내년 상반기': calendar halves and quarters. Without a year, the next time it comes, counting now.
+  take(HALF_QUARTER, m => {
+    const [a, b] = m[3] ? (m[3] === '상' ? [1, 6] : [7, 12]) : [Number(m[4]) * 3 - 2, Number(m[4]) * 3];
+    const y = m[1] ? Number(m[1]) : m[2] ? base + (/내년|다음\s*해|명년/.test(m[2]) ? 1 : 0) : namedYear ?? (b >= currentMonth ? base : base + 1);
+    return { scale: 'month', label: m[0].replace(/\s+/g, ' '), ...months(y, a, b)! };
+  });
   take(YEAR_MONTH, m => { const r = months(Number(m[1]), Number(m[2]), m[3] ? Number(m[3]) : undefined);
     return r && { scale: 'month', label: m[0].replace(/\s+/g, ' '), ...r }; });
   take(RELATIVE_MONTH, m => { const offset = /내년|다음\s*해|명년/.test(m[1]) ? 1 : 0;

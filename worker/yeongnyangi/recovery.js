@@ -10,7 +10,7 @@ import { enqueueConsultation } from './queue.js';
 
 const ABANDONED_MS = 5 * 60 * 1000;
 const BUDGET_MS = CHAPTER_LEASE_MS + 30000;
-const CHAPTER_RESERVE_MS = CHAPTER_LEASE_MS; // provider + analysis, validation and persisted commit
+const CHAPTER_RESERVE_MS = CHAPTER_LEASE_MS; // provider + analysis, validation and persisted commit; the largest tier lease (chapterLeaseMs)
 const MAX_REQUESTS = 3;
 const TRANSIENT_HOLD_MS = 5 * 60 * 1000; // lands on the next ten-minute tick
 const PERMANENT_HOLD_MS = 24 * 60 * 60 * 1000;

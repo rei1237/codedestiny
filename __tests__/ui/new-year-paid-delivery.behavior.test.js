@@ -62,7 +62,7 @@ function fixture(accessType = 'pass', currentSections = null) {
     loginRequired: () => new Response('', { status: 401 }), notFound: () => new Response('', { status: 404 }), invalidInput: (_message, status = 422) => new Response('', { status }),
     paymentVerifyFailed: () => new Response('', { status: 402 }), serverError: () => new Response('server', { status: 500 }),
     NEW_YEAR_AI_GENERATING_FRESH_MS: 120000, NEW_YEAR_AI_LLM_BUDGET_MS: 82000, NEW_YEAR_AI_SECTION_TIMEOUT_MS: 52000,
-    NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS: 18000, NEW_YEAR_AI_MIN_TOTAL_CHARS: 20000, NEW_YEAR_AI_MAX_TOTAL_CHARS: currentSections ? 33000 : 26000,
+    NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS: 18000, NEW_YEAR_AI_SECTION_MAX_ATTEMPTS: 2, NEW_YEAR_AI_SECTION_MIN_LENGTH: 300, NEW_YEAR_AI_MIN_TOTAL_CHARS: 20000, NEW_YEAR_AI_MAX_TOTAL_CHARS: currentSections ? 33000 : 26000,
     NEW_YEAR_AI_SECTIONS: plan, LLM_ERROR_MESSAGE: 'generation failed', SERVER_ERROR_MESSAGE: 'server error',
     publicSession: row => ({ ok: true, sessionId: row.id, status: row.status, saved: row.status === 'completed', messages: row.messages }),
     callDeferredUsageRoute: async ({ path, idempotencyKey }) => {
@@ -83,8 +83,9 @@ function fixture(accessType = 'pass', currentSections = null) {
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
   load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
+  load(ctx, 'worker/lib/master-love-codex-quality.js', ['dedupeCodexBody']);
   load(ctx, 'worker/lib/paid-report-length.js', ['trimPaidReportText']);
-  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'generateNewYearWave', 'assembleConsultationSections', 'saveNewYearState', 'finishNewYearDelivery']);
+  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery']);
   ctx.generateConsultationText = ctx.generateNewYearWave;
   const post = (body = {}) => ctx.handleNewYearAiRoutes(new Request('https://mock.test/api/new-year-ai/start', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),

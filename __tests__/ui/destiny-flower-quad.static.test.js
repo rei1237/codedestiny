@@ -170,3 +170,48 @@ test("상세에 '왜 이 꽃일까요?' 근거 목록이 배선돼 있다", () =
   assert.match(why.slice(0, 900), /_dfEscapeHtml/, "근거 문장을 이스케이프하지 않는다");
   assert.match(why.slice(0, 900), /wrap\.hidden = points\.length === 0;/, "근거가 없을 때 섹션을 숨기지 않는다");
 });
+
+/** 런타임에서 이름으로 함수·상수 정의를 잘라 vm 에서 돌린다(실제 코드 그대로). */
+function loadRuntimePieces(names) {
+  const vm = require("node:vm");
+  const src = names.map((name) => {
+    const head = name.startsWith("_DF_") ? "var " + name + " = {" : "function " + name + "(";
+    const at = runtime.indexOf("\n" + head);
+    assert.ok(at >= 0, name + " 정의를 찾지 못했다");
+    const end = runtime.indexOf(name.startsWith("_DF_") ? "\n};" : "\n}\n", at + 1);
+    return runtime.slice(at, end + 3);
+  }).join("\n");
+  const ctx = {};
+  vm.runInNewContext(src, ctx);
+  return ctx;
+}
+
+test("닫기 버튼은 꽃잎 로제트지만 닫기 히트테스트가 기대는 클래스·액션·라벨은 그대로다", () => {
+  const close = shell.match(/<button class="df-studio-close"[^>]*>[\s\S]*?<\/button>/);
+  assert.ok(close, "닫기 버튼이 없다");
+  assert.match(close[0], /data-action="closeDestinyFlowerStudio"/);
+  assert.match(close[0], /aria-label="운명의 꽃 아틀리에 닫기"/);
+  assert.match(close[0], /class="df-close-rosette"/, "로제트 SVG 가 없다");
+  assert.equal((close[0].match(/<ellipse /g) || []).length, 5, "꽃잎은 다섯 장");
+  assert.doesNotMatch(close[0], /✕/, "글자 ✕ 가 남아 있다");
+});
+
+test("개화 타임라인은 bloom_story 를 쓰고, 없으면 rationale_points 를 단계로 옮긴다", () => {
+  const ctx = loadRuntimePieces(["_dfToArray", "_DF_BLOOM_STAGE_ICON", "_dfBloomStage", "_dfBloomSteps"]);
+  const story = ctx._dfBloomSteps({ matched: {
+    bloom_story: [{ stage: "seed", label: "씨앗", text: "갑목" }, { stage: "season", label: "계절", text: " " }, { stage: "bloom", label: "꽃", text: "목련" }],
+    rationale_points: [{ key: "x", text: "무시" }]
+  } });
+  assert.deepEqual(story.map((s) => s.stage), ["seed", "bloom"], "빈 단계는 버리고 서사를 우선한다");
+  const legacy = ctx._dfBloomSteps({ matched: { rationale_points: [{ key: "a", text: "일간" }, { key: "b", text: "용신" }, { key: "astro.verdict", text: "결론" }] } });
+  assert.deepEqual(legacy.map((s) => s.stage), ["seed", "light", "bloom"]);
+});
+
+test("운명 꽃다발 해석은 같은 꽃 > 공통 오행 > 다채로운 결 순이고 조사가 맞다", () => {
+  const ctx = loadRuntimePieces(["_dfToArray", "_dfElementLabelKo", "_dfHasBatchim", "_dfJoinSourceSubject", "_dfBouquetReading"]);
+  const item = (label, id, elements) => ({ label, selection: { flower: { id, name: id === "magnolia" ? "목련" : id, elements } } });
+  assert.equal(ctx._dfBouquetReading([item("사주", "magnolia", ["Wood"]), item("점성술", "rose", ["Wood", "Fire"])]), "사주와 점성술이 모두 목(木) 기운을 가리켰어요.");
+  assert.match(ctx._dfBouquetReading([item("점성술", "magnolia", ["Wood"]), item("숙요점", "magnolia", ["Wood"])]), /^점성술과 숙요점이 같은 꽃, 목련을 골랐어요/);
+  assert.match(ctx._dfBouquetReading([item("사주", "a", ["Fire"]), item("자미두수", "b", ["Water"])]), /^서로 다른 결/);
+  assert.equal(ctx._dfJoinSourceSubject(["사주", "점성술", "자미두수", "숙요점"]), "네 갈래 점술이");
+});

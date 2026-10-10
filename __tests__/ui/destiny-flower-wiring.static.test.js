@@ -182,3 +182,83 @@ test("점성술 브리지는 실재하는 Swiss 차트 함수를 부른다", () 
   assert.match(runtime, /window\.calcAstroSwissChartOrThrow\(/);
   assert.match(sajuEngine, /window\.calcAstroSwissChartOrThrow\s*=\s*calcAstroSwissChartOrThrow/);
 });
+
+/* ── 꽃 공유(5단계): 친구 링크·꽃 궁합 ──
+   공유 블록을 실제로 실행해 본다. 링크에 생일·이름이 새지 않는지, 궁합 갈래가 오행 관계를 따르는지. */
+const SHARE_REL = "js/share.js";
+const shareJs = read(SHARE_REL);
+
+function topLevelFn(name) {
+  const at = runtime.indexOf(`\nfunction ${name}(`);
+  assert.ok(at > 0, `${RUNTIME_REL}: ${name} 를 찾지 못했다`);
+  return runtime.slice(at, runtime.indexOf("\n}\n", at) + 3);
+}
+
+function loadShareBlock(search) {
+  const vm = require("node:vm");
+  const start = runtime.indexOf("var _DF_FLOWER_ID_RE");
+  const end = runtime.indexOf("_dfCaptureFriendFlowerParam();\n", start);
+  assert.ok(start > 0 && end > start, `${RUNTIME_REL}: 꽃 공유 블록을 찾지 못했다`);
+  const store = new Map();
+  const ctx = {
+    URLSearchParams,
+    JSON,
+    Date,
+    window: {
+      location: { search, origin: "https://code-destiny.com" },
+      sessionStorage: { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)) }
+    },
+    _dfNormalizeSource: (s) => (["saju", "astrology", "jamidusu", "sukuyo"].includes(s) ? s : "saju"),
+    _dfStudioState: {}
+  };
+  vm.createContext(ctx);
+  vm.runInContext(
+    ["_dfHasBatchim", "_dfElementLabelKo", "_dfToArray"].map(topLevelFn).join("\n")
+      + runtime.slice(start, end + "_dfCaptureFriendFlowerParam();\n".length),
+    ctx
+  );
+  return { ctx, store };
+}
+
+test("꽃 링크는 flower 액션으로 열리고 꽃 id·체계만 싣는다", () => {
+  assert.match(shareJs, /CD_SHARE_ACTION_MAP = \{[\s\S]*?flower: 'openDestinyFlowerStudio'/);
+  assert.match(shareJs, /function cdBuildShareUrl\(contentId, extraParams\)/);
+  assert.match(shell, /data-action="openDestinyFlowerShareSheet"/);
+  assert.match(runtime, /window\.openDestinyFlowerShareSheet = openDestinyFlowerShareSheet;/);
+  const { ctx } = loadShareBlock("");
+  const url = ctx._dfFlowerShareUrl("magnolia", "astrology");
+  assert.equal(url, "https://code-destiny.com/ggulggul/?action=openDestinyFlowerStudio&fl=magnolia&fs=astrology");
+  assert.ok(!/fl=/.test(ctx._dfFlowerShareUrl("../etc", "saju")), "검증 못 한 id 를 링크에 싣는다");
+});
+
+test("공유 훅 문구는 해시태그·링크를 담고 생일 정보는 담지 않는다", () => {
+  const { ctx } = loadShareBlock("");
+  const text = ctx._dfFlowerHookText({ name: "목련", language: "숭고한 정신", rarity: "갑목 일간의 사주가 89송이 가운데 고른 한 송이", url: "https://x.test/?fl=magnolia" });
+  assert.match(text, /^🌸 내 운명의 꽃은 '목련'이래/);
+  assert.match(text, /너는 무슨 꽃일까\? → https:\/\/x\.test\/\?fl=magnolia/);
+  assert.match(text, /#운명의꽃 #나의꽃은목련$/);
+  assert.equal(ctx._dfFlowerHookText({ name: "장미", url: "u" }).split("\n")[0], "🌸 내 운명의 꽃은 '장미'래");
+  assert.doesNotMatch(text, /\d{4}[-.]\d{1,2}[-.]\d{1,2}|생년월일/);
+});
+
+test("친구 꽃 파라미터는 유효한 id 만 세션에 남긴다", () => {
+  for (const bad of ["?fl=", "?fl=..%2Fadmin", "?fl=" + "a".repeat(41), "?fl=<script>"]) {
+    const { ctx } = loadShareBlock(bad);
+    assert.equal(ctx._dfReadFriendFlower(), null, `${bad} 를 받아들였다`);
+  }
+  const { ctx } = loadShareBlock("?action=openDestinyFlowerStudio&fl=Magnolia&fs=jamidusu");
+  assert.deepEqual({ ...ctx._dfReadFriendFlower() }, { id: "magnolia", source: "jamidusu" });
+});
+
+test("꽃 궁합은 두 꽃 주 오행의 상생·상극·비화를 따른다", () => {
+  const { ctx } = loadShareBlock("");
+  const f = (id, el) => ({ id, name: id, elements: [el] });
+  const type = (a, b) => ctx._dfFlowerCompat(a, b).type;
+  assert.equal(type(f("a", "wood"), f("a", "wood")), "twin");
+  assert.equal(type(f("a", "wood"), f("b", "wood")), "same");
+  assert.equal(type(f("a", "wood"), f("b", "fire")), "give");
+  assert.equal(type(f("a", "fire"), f("b", "wood")), "receive");
+  assert.equal(type(f("a", "wood"), f("b", "earth")), "shape");
+  assert.equal(type(f("a", "earth"), f("b", "wood")), "spark");
+  assert.equal(type(f("a", "wood"), f("b", "")), "blend");
+});

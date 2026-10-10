@@ -142,3 +142,18 @@ test('배선: 실제 차트 context 에 품위·섹트·하우스 주인·원소
   assert.ok(foreign('tension',stray).length>0,'섹트는 행성만 열고 하우스 번호는 열지 않는다');
  }
 });
+
+test('D5: 프롬프트 값만 품위·섹트를 한국어로 바꾸고 저장되는 사실은 코드 그대로', ()=>{
+ const ps=planets({Sun:[0,10],Mars:[3,1],Jupiter:[8,6]});
+ const shown=m.astrologyPromptValue('planets',ps);
+ assert.equal(shown.Mars.dignity,'추락(폴)');
+ assert.equal(shown.Jupiter.dignity,'자기 별자리(룰러십)');
+ assert.equal(ps.Mars.dignity,'fall','입력은 바뀌지 않는다');
+ const rows=m.buildAstrologyHouseRulers(planets({Moon:[11,10],Jupiter:[8,6],Saturn:[0,10]}),cusps(3));
+ assert.deepEqual(m.astrologyPromptValue('houseRulers',rows).map(r=>r.dignity),['중립(페레그린)','자기 별자리(룰러십)','추락(폴)','중립(페레그린)']);
+ assert.equal(rows[2].dignity,'fall');
+ const sect=m.buildAstrologySect(ps),s=m.astrologyPromptValue('chartSect',sect);
+ assert.deepEqual([s.chart,s.light,s.beneficOfSect,s.maleficOfSect,s.contraryMalefic],['주간','태양','목성','토성','화성']);
+ assert.deepEqual(s.lines,sect.lines);assert.equal(sect.chart,'day');
+ assert.equal(m.astrologyPromptValue('aspects',ps),ps);
+});

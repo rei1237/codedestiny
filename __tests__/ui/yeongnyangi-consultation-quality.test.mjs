@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {build} from 'esbuild';
 const Module=createRequire(import.meta.url)('node:module');
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/prompts/domain/consultation-quality'; export * from './worker/yeongnyangi/prompts/domain/reader-counsel'; export * from './worker/yeongnyangi/prompts/domain/recognition'; export {questionManifest,QUESTION_POLICY_VERSION} from './worker/yeongnyangi/fortune/ask/question-policy'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {domains} from './worker/yeongnyangi/fortune/index'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {readingManifestV7} from './worker/yeongnyangi/fortune/reading-v7'; export {resolveV7Ledger} from './worker/yeongnyangi/fortune/reading-v7-ledger';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/prompts/domain/consultation-quality'; export * from './worker/yeongnyangi/prompts/domain/reader-counsel'; export * from './worker/yeongnyangi/prompts/domain/recognition'; export {questionManifest,QUESTION_POLICY_VERSION} from './worker/yeongnyangi/fortune/ask/question-policy'; export {questionPeriodTiming,questionEvidence} from './worker/yeongnyangi/fortune/ask/question-evidence'; export {consultationPeriod,consultationClock} from './worker/yeongnyangi/fortune/consultation'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {domains} from './worker/yeongnyangi/fortune/index'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,consultationManifest,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {readingManifestV7} from './worker/yeongnyangi/fortune/reading-v7'; export {resolveV7Ledger} from './worker/yeongnyangi/fortune/reading-v7-ledger';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const filename=path.resolve('consultation-quality.test.cjs'),loaded=new Module(filename);
 loaded.filename=filename;loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,filename);
 const m=loaded.exports;
@@ -162,4 +162,99 @@ test('strength advice follows only final own-chart strength with ordinary-patter
  assert.deepEqual(advice([{id:'saju.partnerChart',label:'partnerChart',value:{strengthHeuristic:{isStrong:false},jong:{isJong:false},usefulGod:['wood']}}]),[]);
  assert.deepEqual(advice(complete.map(f=>({...f,id:f.id.replace('saju.','vedic.')}))),[]);
  assert.deepEqual(advice(complete,['tarot']),[]);
+});
+
+test('ziwei question chapters carry recalculated annual sihua for every asked year, never the natal copy',async()=>{
+ const decision={version:m.QUESTION_POLICY_VERSION,category:'job_change',target:'self',horizon:'current',situation:'이직 고민',options:'남기 / 옮기기',period:'2026년 4분기부터 2027년 상반기',constraints:'',confirmed:true};
+ const before=JSON.stringify(contexts.ziwei);
+ const period=m.consultationPeriod('이직할까? '+decision.period,m.consultationClock('Asia/Seoul',new Date('2026-09-29T03:00:00Z')),true);
+ const ziwei=await m.questionPeriodTiming(contexts.ziwei,decision,period,'2026-09-29',async()=>assert.fail('ziwei needs no recalculation'));
+ assert.deepEqual(ziwei.facts.find(f=>f.label==='yearlyTimeline').value.map(r=>r.year),[2026,2027],'only the asked years');
+ const rows=m.questionManifest('ziwei','salmon',decision,undefined,'이직할까?');
+ const chapters=rows.filter(c=>c.factSelectors?.ziwei?.includes('yearlyTimeline'));
+ assert.ok(chapters.length);
+ for(const chapter of chapters){
+  let sent;
+  const provider=new m.StructuredChapterProvider({generate:async request=>{sent=request;return {result:{},provider:'mock',model:'fixture'};}});
+  await provider.generateChapter({chapter,analysis:{contexts:{ziwei},question:'이직할까?',themes:[],signals:[]},previous:[]});
+  const [y2026,y2027]=sent.calculatedData.facts.find(f=>f.label==='yearlyTimeline').value;
+  assert.ok([y2026,y2027].every(y=>y.transformations===undefined),'natal palace transformations must not ride on yearly luck');
+  // 丙年 유년사화: 천동 록 · 천기 권 · 문창 과 · 염정 기 / 丁年: 태음 록 · 천동 권 · 천기 과 · 거문 기
+  assert.equal(y2026.annualStem,'병');
+  assert.deepEqual(y2026.annualTransformations.map(t=>t.transformation+':'+t.star),['화록:천동','화권:천기','화과:문창','화기:염정']);
+  assert.equal(y2027.annualStem,'정');
+  assert.deepEqual(y2027.annualTransformations.map(t=>t.transformation+':'+t.star),['화록:태음','화권:천동','화과:천기','화기:거문']);
+  assert.ok([y2026,y2027].flatMap(y=>y.annualTransformations).every(t=>t.palaceName.endsWith('궁')));
+ }
+ assert.equal(JSON.stringify(contexts.ziwei),before,'stored context stays untouched');
+});
+
+test('saju question month rows run to the end of the asked period from the same engine',async()=>{
+ const decision={version:m.QUESTION_POLICY_VERSION,category:'job_change',target:'self',horizon:'current',situation:'이직 고민',options:'남기 / 옮기기',period:'2026년 4분기부터 2027년 상반기',constraints:'',confirmed:true};
+ const period=m.consultationPeriod('내년 상반기에 이직할까? '+decision.period,m.consultationClock('Asia/Seoul',new Date('2026-09-29T03:00:00Z')),true);
+ assert.deepEqual([period.start,period.end],['2026-10-01','2027-06-30']);
+ const engine=m.domains.saju,input=engine.validateInput({personA:birth,readingMode:'personal'}),years=[];
+ const saju=await m.questionPeriodTiming(contexts.saju,decision,period,'2026-09-29',async year=>{years.push(year);
+  return (await engine.calculate(input,{asOf:`${year}-07-01`})).facts.find(f=>f.label==='monthlyLuck').value;});
+ assert.deepEqual(years,[2027]);
+ const months=saju.facts.find(f=>f.label==='monthlyLuck').value.map(r=>`${r.start.year}-${r.start.month} ${r.pillar}`);
+ // 절입 월: 2026-12 대설 庚子 → 2027-01 소한 辛丑 … 2027-06 망종 丙午. The 2027-07 소서 row is past the period end.
+ assert.deepEqual(months.slice(-7),['2026-12 庚子','2027-1 辛丑','2027-2 壬寅','2027-3 癸卯','2027-4 甲辰','2027-5 乙巳','2027-6 丙午']);
+ assert.equal(contexts.saju.facts.find(f=>f.label==='monthlyLuck').value.at(-1).start.year,2026,'stored context stays untouched');
+ // A transition question reads 대운 only; nothing is recalculated.
+ assert.equal(await m.questionPeriodTiming(contexts.saju,{...decision,horizon:'transition'},period,'2026-09-29',async()=>assert.fail()),contexts.saju);
+});
+
+test('vedic transition evidence lists every remaining antardasha of the current mahadasha, ending with its true last one',()=>{
+ const decision={version:m.QUESTION_POLICY_VERSION,category:'timing',target:'self',horizon:'transition',situation:'이직 고민',options:'',period:'2026년 4분기부터 2027년 상반기',constraints:'',confirmed:true};
+ const timing=ctx=>m.questionEvidence(ctx,decision,'언제 옮길까?','2026-09-29').facts.find(f=>f.label==='questionTiming').value;
+ const dasha=contexts.vedic.facts.find(f=>f.label==='vimshottariDasha').value;
+ const list=timing(contexts.vedic).periods[0].remainingAntardashas;
+ assert.deepEqual(list[0],dasha.currentAntardasha);
+ assert.equal(list.at(-1).endDate,dasha.currentMahadasha.endDate);
+ for(let i=1;i<list.length;i++)assert.equal(list[i].startDate,list[i-1].endDate);
+ assert.match(timing(contexts.vedic).rule,/목록에 없는 안타르다샤를 마지막이라고 부르지 않는다/);
+ // Y3: Moon MD whose current AD is Venus. Its last AD is Sun, not Venus. Dates are cut from the engine's full-precision MD.
+ const moon={lord:'Moon',start:'2018-01-21T05:00:00.000Z',end:'2028-01-22T05:00:00.000Z',startDate:'2018-01-21',endDate:'2028-01-22'};
+ const mars={lord:'Mars',start:moon.end,end:'2035-01-22T00:00:00.000Z',startDate:'2028-01-22',endDate:'2035-01-22'};
+ const y3={...contexts.vedic,facts:[{id:'vedic.dasha',label:'dasha',value:{timeline:[moon,mars]}},
+  {id:'vedic.vimshottariDasha',label:'vimshottariDasha',value:{currentMahadasha:{lord:'Moon',startDate:moon.startDate,endDate:moon.endDate},currentAntardasha:{lord:'Venus',startDate:'2025-11-21',endDate:'2027-07-23'},periods:[moon,mars]}}]};
+ const value=timing(y3);
+ assert.deepEqual(value.periods[0].remainingAntardashas,[{lord:'Venus',startDate:'2025-11-21',endDate:'2027-07-23'},{lord:'Sun',startDate:'2027-07-23',endDate:'2028-01-22'}]);
+ // Without the engine's precise MD the list is left out rather than rebuilt from day-truncated dates.
+ assert.equal(timing({...y3,facts:y3.facts.slice(1)}).periods[0].remainingAntardashas,undefined);
+ assert.equal(value.periods[1].lord,'Mars');
+});
+
+test('astrology question chapters are told up front that a birth chart cannot rank the asked period',async()=>{
+ const decision={version:m.QUESTION_POLICY_VERSION,category:'job_change',target:'self',horizon:'current',situation:'이직 고민',options:'남기 / 옮기기',period:'2026년 4분기부터 2027년 상반기',constraints:'',confirmed:true};
+ const sent=async(domain,chapter)=>{let request;
+  const provider=new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:{},provider:'mock',model:'fixture'};}});
+  await provider.generateChapter({chapter,analysis:{contexts:{[domain]:contexts[domain]},question:'이직할까?',themes:[],signals:[]},previous:[]});
+  return request.domainRules;};
+ for(const chapter of m.questionManifest('astrology','salmon',decision,undefined,'이직할까?'))
+  assert.match(await sent('astrology',chapter),/출생 차트만으로는 요청 기간 안의 좋은 시기를 특정할 수 없다/,chapter.id);
+ for(const chapter of m.questionManifest('saju','salmon',decision,undefined,'이직할까?'))
+  assert.doesNotMatch(await sent('saju',chapter),/timingLimit/,chapter.id);
+});
+
+test('later chapters receive the question chapter answers as settled conclusions',async()=>{
+ const decision={version:m.QUESTION_POLICY_VERSION,category:'job_change',target:'self',horizon:'current',situation:'이직 고민',options:'남기 / 옮기기',period:'2026년 4분기부터 2027년 상반기',constraints:'',confirmed:true};
+ const [,chapter]=m.questionManifest('saju','salmon',decision,undefined,'이직할까?');
+ const sent=async previous=>{let request;
+  const provider=new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:{},provider:'mock',model:'fixture'};}});
+  await provider.generateChapter({chapter,analysis:{contexts:{saju:contexts.saju},question:'이직할까?',themes:[],signals:[]},previous});
+  return JSON.parse(request.domainRules);};
+ // T: Q1 said the move is the better side, ch4 later said staying matters more.
+ const q1={summary:'이직 준비 쪽이 더 긍정적이야.',example:'',topics:[],questionAnswers:[{questionId:'Q1',answer:'이직 준비 쪽이 더 긍정적이야. 다만 수입 공백은 줄여야 해.',reason:'',timing:'',action:''}]};
+ const rules=await sent([q1]);
+ assert.deepEqual(rules.fixedConclusions.answers,[{questionId:'Q1',answer:q1.questionAnswers[0].answer}]);
+ assert.match(rules.fixedConclusions.rule,/바꾸거나 반대 방향으로 쓰지 않는다/);
+ assert.match(rules.fixedConclusions.rule,/summary에는 이 결론 문장을 다시 쓰지 않는다/);
+ assert.equal((await sent([{summary:'s',example:'',topics:[]}])).fixedConclusions,undefined);
+ // D4: evidence already explained is listed once so the next chapter refers back instead of re-explaining it.
+ const explained=(await sent([{...q1,sources:['saju.pillars','saju.dayMaster']},{summary:'t',example:'',topics:[],sources:['saju.pillars']}])).explainedEvidence;
+ assert.deepEqual(explained.ids,['saju.pillars','saju.dayMaster']);
+ assert.match(explained.rule,/한 줄로만 짚고/);
+ assert.equal((await sent([{summary:'s',example:'',topics:[]}])).explainedEvidence,undefined);
 });

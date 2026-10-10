@@ -487,7 +487,8 @@ var CD_SHARE_ACTION_MAP = {
   ziwei: 'openZiweiModal',
   pastlifeface: 'openPastLifeFaceApp',
   lovesecret: '',
-  lifebook: ''
+  lifebook: '',
+  flower: 'openDestinyFlowerStudio'
 };
 var CD_SHARE_REFERRAL_SESSION_KEY = 'cd_share_referral_v1';
 var __cdShareReferral = null; // { ref, rs, via } | {} (없음)
@@ -518,7 +519,7 @@ function cdPrimeReferralParams(){
       .then(function(res){ return res.ok ? res.json() : null; })
       .then(function(data){
         if (data && data.ok && data.referralCode) {
-          __cdShareReferral = { ref: data.referralCode, rs: data.referralShareToken || '', via: 'kakao_reward' };
+          __cdShareReferral = { ref: data.referralCode, rs: data.referralShareToken || '', via: 'kakao_reward', kk: data.kakaoJavascriptKey || '' };
           try { sessionStorage.setItem(CD_SHARE_REFERRAL_SESSION_KEY, JSON.stringify(__cdShareReferral)); } catch (_) {}
         } else {
           __cdShareReferral = {};
@@ -568,7 +569,8 @@ if (typeof window !== 'undefined') {
 }
 
 // contentId 로 "결제 유도 지점" 딥링크 URL을 만든다(리퍼럴 파라미터 자동 부착).
-function cdBuildShareUrl(contentId){
+// extraParams 는 딥링크가 읽을 값(예: 운명의 꽃 fl·fs)만 넣는다 — 생년월일 같은 개인정보는 넣지 않는다.
+function cdBuildShareUrl(contentId, extraParams){
   var origin = 'https://code-destiny.com';
   try {
     if (window.location && window.location.origin && /^https?:/.test(window.location.origin)) origin = window.location.origin;
@@ -578,6 +580,12 @@ function cdBuildShareUrl(contentId){
   var qs = [];
   if (target.query) qs.push(target.query);
   if (action) qs.push('action=' + encodeURIComponent(action));
+  if (extraParams) {
+    Object.keys(extraParams).forEach(function(key){
+      var value = extraParams[key];
+      if (value != null && String(value) !== '') qs.push(encodeURIComponent(key) + '=' + encodeURIComponent(String(value)));
+    });
+  }
   var r = cdReadCachedReferral() || {};
   if (r.ref) {
     qs.push('ref=' + encodeURIComponent(r.ref));
@@ -587,7 +595,14 @@ function cdBuildShareUrl(contentId){
   return origin + target.path + (qs.length ? ('?' + qs.join('&')) : '');
 }
 
+function cdReadShareKakaoKey(){
+  var r = cdReadCachedReferral() || {};
+  return r.kk || '';
+}
+
 if (typeof window !== 'undefined') {
+  window.cdBuildShareUrl = cdBuildShareUrl;
+  window.cdReadShareKakaoKey = cdReadShareKakaoKey;
   if (document.readyState === 'complete') {
     cdPrimeReferralParams();
   } else {
@@ -1095,6 +1110,44 @@ function cdShareResultCardImage(options){
   }, contentId);
 }
 
+// 요소를 PNG Blob 으로 미리 그려 둔다. 공유 버튼을 누른 순간 바로 파일을 넘겨야
+// navigator.share 의 사용자 활성화가 살아 있으므로, 캡처는 공유 시트를 여는 시점에 한다. 실패하면 null.
+function cdRenderElementToPngBlob(element, cb){
+  var done = typeof cb === 'function' ? cb : function(){};
+  if (!element) { done(null); return; }
+  _cdEnsureHtml2Canvas(function(h2c){
+    if (!h2c) { done(null); return; }
+    h2c(element, { backgroundColor: null, scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0 }).then(function(canvas){
+      try { canvas.toBlob(function(blob){ done(blob || null); }, 'image/png'); } catch (_) { done(null); }
+    }).catch(function(){ done(null); });
+  });
+}
+
+// 미리 그린 이미지 공유: 파일 공유가 되면 시스템 공유 시트, 안 되거나 막히면 저장 + 문구 복사.
+// options: { fileName, title, text, savedMessage }
+function cdShareImageBlob(blob, options){
+  var opts = options || {};
+  if (!blob) return;
+  var name = opts.fileName || 'code-destiny-result.png';
+  var text = opts.text || '';
+  var download = function(){
+    var dl = document.createElement('a');
+    dl.href = URL.createObjectURL(blob);
+    dl.download = name;
+    document.body.appendChild(dl); dl.click(); document.body.removeChild(dl);
+    setTimeout(function(){ try { URL.revokeObjectURL(dl.href); } catch (_) {} }, 4000);
+    if (text) copyToClipboard(text, opts.savedMessage || '카드 이미지를 저장했어요. 공유 문구도 함께 복사됐어요.');
+  };
+  var file = null;
+  try { file = new File([blob], name, { type: 'image/png' }); } catch (_) {}
+  if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+    navigator.share({ files: [file], title: opts.title || _shareText('share.001'), text: text })
+      .catch(function(err){ if (!err || err.name !== 'AbortError') download(); });
+    return;
+  }
+  download();
+}
+
 /* 숙요 궁합초대 확장 — saju 궁합초대와 동일 cp(base64url 생일) 재사용하되, 대상이 React 라우트라
    레거시 DOM 프리필 대신 /sukuyo-compatibility-ai?cp= 딥링크로 보내고 React 클라가 personB를 채운다.
    (점성술 시나스트리는 리포에 존재하지 않아 대상 없음.) 기존 saju 궁합초대는 무변경(회귀 0). */
@@ -1146,6 +1199,8 @@ function shareSajuResultImage() {
 if (typeof window !== 'undefined') {
   window.cdShareFortuneKakao = cdShareFortuneKakao;
   window.cdShareResultCardImage = cdShareResultCardImage;
+  window.cdRenderElementToPngBlob = cdRenderElementToPngBlob;
+  window.cdShareImageBlob = cdShareImageBlob;
   window.shareSajuResultImage = shareSajuResultImage;
   window.shareStoryKakao = shareStoryKakao;
   window.cdAppendReferralQuery = cdAppendReferralQuery;

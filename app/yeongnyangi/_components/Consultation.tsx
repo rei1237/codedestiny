@@ -3,7 +3,7 @@ import {getQuestionGuide,questionScopeEntry} from "@/lib/fortune/question-journe
 import IntakeChat,{type PreparationStep} from './IntakeChat';
 import {emptyIntakeDecision,type IntakeValue} from '../_lib/intake-chat';
 import {PREVENTION_TITLE} from '@/worker/lib/fortune-prevention.js';
-import {consultationBudget,fusionConsultationManifest} from '@/worker/yeongnyangi/fortune/consultation-budget';
+import {consultationBudget,fusionConsultationManifest,a4Label,A4_PAGE_NOTE} from '@/worker/yeongnyangi/fortune/consultation-budget';
 import {QUESTION_POLICY_VERSION,questionTopics,questionDecision,questionManifest,recommendQuestion,FOLLOWUP_LIMITS,type QuestionDecision,type QuestionFish} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import RelationshipJourney from './RelationshipJourney';
 import {additionalKindDescription} from '../_lib/consultation-kind-copy';
@@ -123,7 +123,7 @@ export default function Consultation(){
   const target=rows.every(row=>row.targetChars?.every(n=>Number.isFinite(n)&&n>0))
    ?[0,1].map(i=>rows.reduce((sum,row)=>sum+(row.targetChars?.[i]||0),0))
    :policyForReading(item.fishId,item.manifestVersion).target;
-  return target.map(n=>n.toLocaleString(siteLocale)).join('~');
+  return siteLocale==='ko'?a4Label(target as [number,number]):target.map(n=>n.toLocaleString(siteLocale)).join('~');
  };
  const choices=products.filter(p=>domain==='fusion'?p.readingKind!=='single':p.readingKind==='single'&&p.domain===domain).filter(p=>supportsKind(p,kind));
  const tarotOnly=product.domain==='tarot'&&product.readingKind==='single';
@@ -353,13 +353,13 @@ export default function Consultation(){
    {kind.id==='ask'&&siteLocale==='ko'&&<AskPeriodPicker question={question} onQuestion={setQuestion} disabled={busy}/>}
    </section>}
   {!questionActive&&<><h2 className={styles.selectionHeading} lang={siteLocale}>{ui.depth}</h2>
-  <p lang={siteLocale}>{ui.depthHint} {kind.question&&ui.questionHint}</p>
+  <p lang={siteLocale}>{ui.depthHint} {kind.question&&ui.questionHint}{siteLocale==='ko'&&domain!=='fusion'&&<small> {A4_PAGE_NOTE}</small>}</p>
   {domain!=='fusion'&&<p lang={siteLocale} data-reading-depth-note>{readingDepthCopy(siteLocale).sharedTopics}</p>}
   <div className={`${styles.fishes} ${domain==='fusion'?styles.fusionChoices:''}`} role="group" aria-label={siteLocale==='ko'?'생선 상품':ui.depth}>{choices.map(item=><button key={item.id} onClick={()=>{setProductId(item.id);setTierNotice('');}} aria-pressed={productId===item.id} disabled={!!tarotSpread&&!tierAllowsSpread(item.fishId,tarotSpread)}>
    <img src={siteLocale==='ko'?item.image:item.reactionAsset} alt="" width={240} height={108}/><strong>{tierLabel(item)}</strong><span className={styles.fishPrice}>{siteLocale==='ko'&&<LaunchPlannedPrice amount={plannedPriceFor(item.fishId,item.priceKRW)}/>}{siteLocale==='ko'&&plannedPriceFor(item.fishId,item.priceKRW)!==null&&<span className={styles.srOnly}>, 체험가 </span>}{price(item.priceKRW)}</span><span className={styles.fishScope}>{siteLocale==='ko'&&item.readingKind!=='single'?fusionConsultationManifest(item,topicId).length+1:consultationManifest(item,kind,topicId).length} {ui.chapters}{productId===item.id&&<b>{ui.selected}</b>}</span>{domain!=='fusion'&&<small>{targetRange(item)} {ui.target}</small>}{tarotSpread&&!tierAllowsSpread(item.fishId,tarotSpread)&&tarotSpread.minTier&&<small>{tarotSpreadCopy.tierLocked(tarotSpread.cardCount,fishName(tarotSpread.minTier,siteLocale))}</small>}{readingTierDepth(item.fishId,siteLocale)?<small data-reading-tier-depth={item.fishId}>{readingTierDepth(item.fishId,siteLocale)}</small>:siteLocale==='ko'&&<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>}
   </button>)}</div>
   </>}
-   {siteLocale==='ko'&&(questionActive||product.readingKind!=='single')&&<p>기본 상담과 추가 질문 {consultationBudget(product.fishId).followups}회를 합쳐 약 {consultationBudget(product.fishId).total.map(n=>n.toLocaleString('ko-KR')).join('~')}자 목표로 구성해요. 실제 분량은 질문과 근거에 따라 달라질 수 있어요.</p>}
+   {siteLocale==='ko'&&(questionActive||product.readingKind!=='single')&&<p>기본 상담과 추가 질문 {consultationBudget(product.fishId).followups}회를 합쳐 {a4Label(consultationBudget(product.fishId).total)} 분량으로 구성해요. 실제 분량은 질문과 근거에 따라 달라질 수 있어요. <small>{A4_PAGE_NOTE}</small></p>}
    <details className={styles.manifestPreview}><summary>{questionActive?question.trim()||preview[0]?.part:tarotSpreadView?.title||kindLabel(kind.id)} · {previewCount} {ui.chapters} · {ui.contents}</summary><ol>{preview.map((chapter,i)=>{
     const head=v7PartHead(preview,i,siteLocale);
     return <li key={chapter.id}>{head&&<b className={styles.partHeading}>{head}</b>}{v7Label(chapter.titleKey,siteLocale)||(siteLocale==='ko'?chapter.title:`${localizedKind(kind.id,siteLocale)} · ${i+1}`)}{questionActive&&chapter.sections&&<ul>{chapter.sections.map(section=><li key={section.id}>{section.title}</li>)}</ul>}</li>;
