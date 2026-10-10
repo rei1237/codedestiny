@@ -51,7 +51,7 @@ test.each(['single', 'excess'])('matrix %s paragraphs are saved and reopened wit
 });
 beforeEach(()=>{docs=[];revoked=false;userId=owner;fault=null;lost=false;mode='pass';proofs=[];authError=null;
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
- const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)[1],label=prompt.match(/\[이번 부분 ([^\]]+)\]/)[1].replaceAll('.', '-');
+ const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)?.[1],label=prompt.match(/\[이번 부분 ([^\]]+)\]/)[1].replaceAll('.', '-');
  const lines=Array.from({length:65},(_,i)=>`${label} ${i}번째 해석은 세 형상의 관계에 비추어 지금의 선택을 검토하는 과정이며 확정된 사건을 예언하지 않습니다. ${label} ${i}번째 관찰에서는 생활 속 조건과 실천의 결과를 기록하며 자신에게 맞는 방향을 선택할 수 있습니다.`);const body=label.startsWith('matrix-')?Array.from({length:4},(_,g)=>lines.slice(g*17,(g+1)*17).join(' ')).filter(Boolean).join('\n\n'):lines.join('\n\n');return {ok:true,provider:'gemini',text:JSON.stringify({evidenceHash,body})};
  });external=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('external fetch forbidden');});
 });
@@ -79,7 +79,7 @@ test('all six original cards and directions retain generated meanings and advice
 test('foreign generated prose survives checkpoint, rendering and reopening without default padding',async()=>{
  const {runWithAiLocale}=await import('../../worker/lib/ai-locale-context.js');
  provider.mockImplementation(async(_env,prompt)=>{
-  const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)[1],label=prompt.match(/\[이번 부분 ([^\]]+)\]/)[1];
+  const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)?.[1],label=prompt.match(/\[이번 부분 ([^\]]+)\]/)[1];
   const lines=Array.from({length:65},(_,i)=>`${label} observation ${i}: Compare the card position with the practical information available about your relationship before deciding what to ask. ${label} reflection ${i}: Describe a small reversible step and record how both people respond without treating a possible pattern as a certain prediction.`);
   const body=label.startsWith('matrix-')?Array.from({length:4},(_,g)=>lines.slice(g*17,(g+1)*17).join(' ')).join('\n\n'):lines.join('\n\n');
   return {ok:true,provider:'gemini',text:JSON.stringify({evidenceHash,body})};

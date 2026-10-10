@@ -35,7 +35,8 @@ export function normalizeNarrativeEndings(body, locale = 'ko') {
   if (typeof body !== 'string' || !body.trim()) return body;
   const mark = /^(ja|zh)(?:-|$)/i.test(locale) ? '。' : '.';
   return paragraphs(body).map(part => {
-    if (/[.!?。？！]["'”’)\]」』]*$/u.test(part)) return part;
+    // A label ending in a colon introduces the next paragraph; a period after it reads as "**…:**.".
+    if (/[.!?。？！]["'”’)\]」』]*$/u.test(part) || /[:：](?:\*\*|__)?$/u.test(part)) return part;
     // Insert before closing quotation marks. Provider truncation is checked by
     // the caller before this cosmetic correction; no missing words are supplied.
     return part.replace(/(["'”’)\]」』]*)$/u, `${mark}$1`);

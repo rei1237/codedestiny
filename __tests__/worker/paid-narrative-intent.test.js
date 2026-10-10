@@ -57,7 +57,7 @@ beforeAll(async()=>{
  intent=await import('../../worker/lib/paid-narrative-intent.js');adapters=await import('../../worker/lib/paid-narrative-adapters.js');
 });
 beforeEach(()=>{docs=[];serial=0;revoked=false;paid=false;fault=null;proofs=[];security=[];writes=[];
- provider=jest.fn(async(_env,prompt)=>{const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)[1],label=prompt.split('[이번 호출]\n')[1].split('\n')[0].replace(/[.!?]/g,'');
+ provider=jest.fn(async(_env,prompt)=>{const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)?.[1],label=prompt.split('[이번 호출]\n')[1].split('\n')[0].replace(/[.!?]/g,'');
   return {ok:true,provider:'gemini',text:JSON.stringify({evidenceHash,body:Array.from({length:25},(_,i)=>`${label} ${i}번째 관찰에서는 꿈의 장면과 마음의 리듬을 함께 살펴보며 안정과 회복의 조건을 확인할 수 있습니다. ${label} ${i}번째 성찰은 현실에서 경험한 감정과 꿈속 표현의 차이를 기록하고 여러 가능한 의미를 비교해 보는 방법입니다.`).join('\n\n')})};});
  logs=jest.spyOn(console,'log').mockImplementation(()=>{});warns=jest.spyOn(console,'warn').mockImplementation(()=>{});
  external=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('external fetch forbidden');});
