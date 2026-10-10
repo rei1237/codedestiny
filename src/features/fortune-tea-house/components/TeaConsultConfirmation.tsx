@@ -5,7 +5,9 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { getAuthState } from "@/app/_lib/auth-store";
 import { teaSpreads, recommendTeaSpread } from "@/lib/fortune-tea-house/tarot-contract.mjs";
 import { teaSpreadCopy } from "../data/teaSpreadCopy";
-import { getFortuneTeaHouseConsultPriceLabel } from "../data/consultPricing";
+import { getFortuneTeaHouseConsultPriceLabel, getFortuneTeaHouseConsultFeatureKey } from "../data/consultPricing";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { useLocale } from "@/lib/i18n/useT";
 import type { FortuneTeaHouseQuestionInput } from "../data/consult";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 import TeaHouseButton from "./TeaHouseButton";
@@ -25,6 +27,7 @@ const KO = {
 type Draft={attemptId:string;status:string;deckSize:number;cards?:unknown[];spread:{cardCount:number;title:string;positions:{id:string;label:string}[]}};
 export default function TeaConsultConfirmation({input,cupId,onConfirm,onBack,busy=false}:{input:FortuneTeaHouseQuestionInput;cupId:string;onConfirm:(input:FortuneTeaHouseQuestionInput)=>void;onBack:()=>void;busy?:boolean}){
  const copy=useTeaHouseCopy("confirmation",KO);
+ const locale=useLocale();
  const spreadsCopy=useTeaHouseCopy("spreadV2",teaSpreadCopy);
  const isTarot=input.consultationMode==="tarot";
  const [spreadId,setSpreadId]=useState(()=>teaSpreads.find(s=>s.id===input.tarotSpreadId)?.id||recommendTeaSpread(input.question,input.tarotSpread)?.id||"yn_knot_three");
@@ -57,6 +60,7 @@ export default function TeaConsultConfirmation({input,cupId,onConfirm,onBack,bus
  return <section className={styles.confirm} aria-labelledby="tea-confirm-title">
   <h2 id="tea-confirm-title">{copy.titleKo}</h2><p>{copy.question}</p><blockquote>{input.question}</blockquote>
   <p>{copy.scope}</p><p>{copy.price}: <strong>{getFortuneTeaHouseConsultPriceLabel(input.consultationMode,isTarot?size:undefined)}</strong></p><p>{copy.policy}</p>
+  {locale==="ko"&&<CraftedProductDisclosure featureKey={getFortuneTeaHouseConsultFeatureKey(input.consultationMode,isTarot?size:undefined)}/>}
   {!isTarot&&<div><h3>{copy.information}</h3><ul>{people.map((person,index)=>person&&<li key={index}>{[
     "name" in person ? person.name : input.nickname,person.birthDate,
     person.calendarType==="lunar" ? copy.lunar : copy.solar,person.isLeapMonth ? copy.leap : "",

@@ -27,7 +27,7 @@ catch {
     await page.goto(origin + '/source/editable-layout.html');
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(() => Promise.all([...document.images].map(i => i.decode())));
-    const bounds = await page.locator('.panel').evaluateAll(ps => ps.map(p => { const b = p.getBoundingClientRect(); return { panel: p.dataset.num, overflow: [...p.querySelectorAll('h1,h2,h3,p,blockquote')].filter(e => { const r = e.getBoundingClientRect(); return r.bottom > b.bottom - 55 || r.left < b.left + 75 || r.right > b.right - 75; }).map(e => ({ text: e.textContent, top: Math.round(e.getBoundingClientRect().top - b.top), bottom: Math.round(e.getBoundingClientRect().bottom - b.top) })) }; }));
+    const bounds = await page.locator('.panel').evaluateAll(ps => ps.map(p => { const b = p.getBoundingClientRect(); return { panel: p.dataset.num, overflow: [...p.querySelectorAll('h1,h2,h3,p,blockquote,dt,dd,li')].filter(e => { const r = e.getBoundingClientRect(); return r.bottom > b.bottom - 55 || r.left < b.left + 75 || r.right > b.right - 75; }).map(e => ({ text: e.textContent, top: Math.round(e.getBoundingClientRect().top - b.top), bottom: Math.round(e.getBoundingClientRect().bottom - b.top) })) }; }));
     if (bounds.some(p => p.overflow.length))
         throw Error(JSON.stringify(bounds));
     const texts = await page.locator('.panel').allInnerTexts();

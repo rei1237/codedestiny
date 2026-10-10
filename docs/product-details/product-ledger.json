@@ -953,51 +953,180 @@
     },
     {
       "productId": "fortune-tea-house-tarot-consultation",
-      "displayName": "운명의 찻집",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "displayName": "운명의 찻집 · 타로 3장",
+      "saleStatus": "현재 찻집 선택/확인/가격/결과 계약 확인",
       "entry": [
-        "/fortune-tea-house/"
+        "/fortune-tea-house/ → 타로 → 질문 → 상담 확인 → 배열 선택"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "상황과 질문; 출생정보 불필요",
+        "찻잔 주제 선택 또는 진입에서 기본찻잔 적용",
+        "배열 선택 후 로그인하여 카드 선택·확정"
+      ],
+      "resultRenderer": [
+        "src/features/fortune-tea-house/components/TeaHouseResultSheet.tsx"
+      ],
+      "actualContents": [
+        "핵심 답변과 우선 조언",
+        "3장 각각 핵심 의미/현재 상황/질문 연결/조언/주의점",
+        "카드 연결",
+        "종합 해석",
+        "연이 해설",
+        "선택 시나리오",
+        "행동 조언",
+        "마지막 메시지"
+      ],
+      "conditionalItems": [
+        "카드 연결/선택 시나리오/행동은 해당 내용 존재시",
+        "tea-v2는 구형 감정퍼센트·향기·찻잔종합효과 영역 제외",
+        "배열 한 개 선택; 3장과5장별도가격"
+      ],
+      "separatePurchase": [
+        "사주·사주궁합·숙요궁합 별도상품",
+        "꿀편지 별도조건; 기본상담자동포함아님",
+        "달빛타로앨범별도조건; 기본PDF혜택으로광고안함"
+      ],
+      "reviewSource": [
+        "고객후기없음; 편집예시"
+      ],
+      "images": [
+        "기존 moonlight-tarot-card-back.webp",
+        "기존 flower-pig-tea.webp",
+        "기존 premium-tea-house-mobile.webp",
+        "공식 캐릭터 기준 C:/Users/user/Desktop/CodeDestiny-Build/연이 프로필1.png 직접확인"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "src/features/fortune-tea-house/components/TeaConsultConfirmation.tsx"
+      ],
+      "verification": [
+        "docs/product-details/verification/tea-tarot-three/render.json",
+        "docs/product-details/verification/tea-tarot-three/mobile.json"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "실제 LLM 결과 미검증",
+        "main 미병합/운영 미배포"
       ],
       "detailAliases": [
         "fortune-tea-house"
+      ],
+      "actualSpreads": [
+        {
+          "id": "yn_knot_three",
+          "title": "막힌 상황을 푸는 실마리",
+          "positions": [
+            "현재의 매듭",
+            "활용할 자원",
+            "다음 행동"
+          ]
+        },
+        {
+          "id": "trad_past_present_future",
+          "title": "과거·현재·미래",
+          "positions": [
+            "과거",
+            "현재",
+            "미래"
+          ]
+        }
       ]
     },
     {
       "productId": "fortune-tea-house-tarot-five-consultation",
-      "displayName": "운명 찻집 타로 프리미엄 상담 (5카드)",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "displayName": "운명의 찻집 · 타로 5장",
+      "saleStatus": "현재 찻집 선택/확인/가격/결과 계약 확인",
+      "entry": [
+        "/fortune-tea-house/ → 타로 → 질문 → 상담 확인 → 배열 선택"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 5000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
-      "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+      "inputRequirements": [
+        "상황과 질문; 출생정보 불필요",
+        "찻잔 주제 선택 또는 진입에서 기본찻잔 적용",
+        "배열 선택 후 로그인하여 카드 선택·확정"
       ],
-      "detailAliases": []
+      "resultRenderer": [
+        "src/features/fortune-tea-house/components/TeaHouseResultSheet.tsx"
+      ],
+      "actualContents": [
+        "핵심 답변과 우선 조언",
+        "5장 각각 핵심 의미/현재 상황/질문 연결/조언/주의점",
+        "카드 연결",
+        "종합 해석",
+        "연이 해설",
+        "선택 시나리오",
+        "행동 조언",
+        "마지막 메시지"
+      ],
+      "conditionalItems": [
+        "카드 연결/선택 시나리오/행동은 해당 내용 존재시",
+        "tea-v2는 구형 감정퍼센트·향기·찻잔종합효과 영역 제외",
+        "배열 한 개 선택; 3장과5장별도가격"
+      ],
+      "separatePurchase": [
+        "사주·사주궁합·숙요궁합 별도상품",
+        "꿀편지 별도조건; 기본상담자동포함아님",
+        "달빛타로앨범별도조건; 기본PDF혜택으로광고안함"
+      ],
+      "reviewSource": [
+        "고객후기없음; 편집예시"
+      ],
+      "images": [
+        "기존 moonlight-tarot-card-back.webp",
+        "기존 flower-pig-tea.webp",
+        "기존 premium-tea-house-mobile.webp",
+        "공식 캐릭터 기준 C:/Users/user/Desktop/CodeDestiny-Build/연이 프로필1.png 직접확인"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "src/features/fortune-tea-house/components/TeaConsultConfirmation.tsx"
+      ],
+      "verification": [
+        "docs/product-details/verification/tea-tarot-five/render.json",
+        "docs/product-details/verification/tea-tarot-five/mobile.json"
+      ],
+      "unconfirmed": [
+        "실제 LLM 결과 미검증",
+        "main 미병합/운영 미배포"
+      ],
+      "detailAliases": [],
+      "actualSpreads": [
+        {
+          "id": "yn_contact_first",
+          "title": "먼저 연락해도 괜찮을까?",
+          "positions": [
+            "내가 바라는 것",
+            "현재 소통 양상",
+            "접근의 걸림돌",
+            "존중할 경계",
+            "연락을 선택했을 때의 흐름"
+          ]
+        },
+        {
+          "id": "yn_new_bond_five",
+          "title": "새로운 인연을 맞이하는 문",
+          "positions": [
+            "현재 준비 상태",
+            "드러낼 매력",
+            "내려놓을 패턴",
+            "만남을 넓힐 행동",
+            "관계를 시작할 때의 조언"
+          ]
+        },
+        {
+          "id": "yn_money_pattern_five",
+          "title": "돈을 대하는 내 패턴",
+          "positions": [
+            "현재 태도",
+            "자원 활용",
+            "소모 패턴",
+            "놓친 관리 과제",
+            "실천할 습관"
+          ]
+        }
+      ]
     },
     {
       "productId": "fun.quantumLotto.ritualReport",
