@@ -172,6 +172,18 @@ test("상세에 '왜 이 꽃일까요?' 근거 목록이 배선돼 있다", () =
 });
 
 /** 런타임에서 이름으로 함수·상수 정의를 잘라 vm 에서 돌린다(실제 코드 그대로). */
+/** ko 페이지의 cdTranslate 와 같은 동작: ko 원문에 변수를 넣고, `@경로` 변수는 ko 사전에서 푼다. */
+const koDict = JSON.parse(read("public/i18n/ko.json"));
+function koTranslate(_key, vars, ko) {
+  const lookup = (p) => p.split(".").reduce((node, k) => (node && typeof node === "object" ? node[k] : undefined), koDict);
+  return String(ko).replace(/{(w+)}/g, (m, name) => {
+    const raw = vars && vars[name];
+    if (raw == null) return m;
+    const looked = typeof raw === "string" && raw.startsWith("@") ? lookup(raw.slice(1)) : undefined;
+    return typeof looked === "string" ? looked : String(raw);
+  });
+}
+
 function loadRuntimePieces(names) {
   const vm = require("node:vm");
   const src = names.map((name) => {
@@ -181,7 +193,7 @@ function loadRuntimePieces(names) {
     const end = runtime.indexOf(name.startsWith("_DF_") ? "\n};" : "\n}\n", at + 1);
     return runtime.slice(at, end + 3);
   }).join("\n");
-  const ctx = {};
+  const ctx = { window: { cdTranslate: koTranslate } };
   vm.runInNewContext(src, ctx);
   return ctx;
 }
@@ -208,7 +220,7 @@ test("개화 타임라인은 bloom_story 를 쓰고, 없으면 rationale_points 
 });
 
 test("운명 꽃다발 해석은 같은 꽃 > 공통 오행 > 다채로운 결 순이고 조사가 맞다", () => {
-  const ctx = loadRuntimePieces(["_dfToArray", "_dfElementLabelKo", "_dfHasBatchim", "_dfJoinSourceSubject", "_dfBouquetReading"]);
+  const ctx = loadRuntimePieces(["_dfToArray", "_dfElementLabelKo", "_dfHasBatchim", "_dfJoinSourceSubject", "_dfUiText", "_dfSourceListText", "_dfElementVar", "_dfBouquetReading"]);
   const item = (label, id, elements) => ({ label, selection: { flower: { id, name: id === "magnolia" ? "목련" : id, elements } } });
   assert.equal(ctx._dfBouquetReading([item("사주", "magnolia", ["Wood"]), item("점성술", "rose", ["Wood", "Fire"])]), "사주와 점성술이 모두 목(木) 기운을 가리켰어요.");
   assert.match(ctx._dfBouquetReading([item("점성술", "magnolia", ["Wood"]), item("숙요점", "magnolia", ["Wood"])]), /^점성술과 숙요점이 같은 꽃, 목련을 골랐어요/);

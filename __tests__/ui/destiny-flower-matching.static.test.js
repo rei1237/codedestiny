@@ -21,10 +21,12 @@ const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
 
 const ENGINE_REL = "worker/lib/destiny-flower-engine.js";
 const TRAITS_REL = "worker/lib/destiny-flower-traits.js";
+const I18N_REL = "worker/lib/destiny-flower-i18n.generated.js";
 const CALC_REL = "js/saju-engine-tarot-sukuyo-quantum.js";
 
 const engineSource = read(ENGINE_REL);
 const traitsSource = read(TRAITS_REL);
+const i18nSource = read(I18N_REL);
 const calcSource = read(CALC_REL);
 
 /**
@@ -35,8 +37,11 @@ let enginePromise = null;
 function loadEngine() {
   if (!enginePromise) {
     const traitsUrl = "data:text/javascript;base64," + Buffer.from(traitsSource, "utf8").toString("base64");
-    const patched = engineSource.replace(/from '\.\/destiny-flower-traits\.js[^']*'/, `from '${traitsUrl}'`);
-    assert.ok(patched !== engineSource, `${ENGINE_REL}: traits 모듈 import 를 찾지 못했다`);
+    const i18nUrl = "data:text/javascript;base64," + Buffer.from(i18nSource, "utf8").toString("base64");
+    const patched = engineSource
+      .replace(/from '\.\/destiny-flower-traits\.js[^']*'/, `from '${traitsUrl}'`)
+      .replace(/from '\.\/destiny-flower-i18n\.generated\.js'/, `from '${i18nUrl}'`);
+    assert.ok(!/from '\.\//.test(patched), `${ENGINE_REL}: 풀지 못한 상대 import 가 남았다`);
     enginePromise = import("data:text/javascript;base64," + Buffer.from(patched, "utf8").toString("base64"));
   }
   return enginePromise;
