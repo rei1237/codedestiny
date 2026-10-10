@@ -29,7 +29,7 @@ import {EDGE_RESPONSE_DEADLINE_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/syn
 import { MasterLoveCodexSession, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { recoverCodexSession } from "../lib/master-love-codex-session-access.js";
-import { assertCodexChapterQuality, codexChapterFloor, codexDedupedChapterFloor, dedupeCodexBody, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter, parseChapterJson } from "../lib/master-love-codex-quality.js";
+import { assertCodexChapterQuality, codexChapterRepairFloor, codexDedupedChapterFloor, dedupeCodexBody, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter, parseChapterJson } from "../lib/master-love-codex-quality.js";
 import { buildCodexEvidence, formatCodexEvidence, stripCodexEvidenceIds, CODEX_EVIDENCE_VERSION } from "../lib/master-love-codex-evidence.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -784,7 +784,10 @@ function codexTotalReady(expected, saved) {
  * 🔴 이 판정이 두 벌이 되면 화면과 DB 가 갈라진다 — 웨이브·조회·크론 재개가 같은 함수를 본다.
  */
 function splitPendingChapters(expected, readyIds, attempts = {}, saved = new Map()) {
-  const pending = expected.filter(spec => !readyIds.has(spec.id));
+  // A saved length draft gets its one repair (rule L2) only while the shared cap has room.
+  // It is never "exhausted": the draft itself is deliverable, so it cannot close or refund the book.
+  const pending = expected.filter(spec => !readyIds.has(spec.id)
+    || (saved.get(spec.id)?.lengthDraft === true && !attempts[`${spec.id}:lengthRepair`] && Number(attempts[spec.id] || 0) < CHAPTER_ATTEMPT_LIMIT));
   return {
     pending,
     actionable: pending.filter(spec => Number(attempts[spec.id] || 0) < CHAPTER_ATTEMPT_LIMIT),
@@ -1442,7 +1445,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
         const content = normalizeChapterContent(cached.parsed, "", cachedContract);
         const recovered = dedupeChapterAgainst({ id: chapter.id, order: chapter.order, title: chapter.title, symbol: chapter.symbol,
           body: content.body, content, provider: clean(cached.chapter.provider, 40), ok: true }, [...byId.values()]);
-        recovered.lengthDraft = content.body.length < codexChapterFloor(chapter) || recovered.body.length < chapterFloor.get(chapter.id);
+        recovered.lengthDraft = content.body.length < codexChapterRepairFloor(chapter) || recovered.body.length < chapterFloor.get(chapter.id);
         if (!countPaidReportBodyChars(recovered.body)
             || hasRepeatedReportPassage([...byId.values()].filter(row => row.id !== chapter.id).map(row => row.body).concat(recovered.body).join("\n"))) continue;
         if (byId.has(chapter.id) && countPaidReportBodyChars(byId.get(chapter.id).body) >= countPaidReportBodyChars(recovered.body)) continue;
@@ -1510,7 +1513,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
             && !hasRepeatedReportPassage(priorRows.map(row => row.body).concat(result.chapter.body).join("\n"));
           const selected = valid && (!byId.has(chapter.id) || countPaidReportBodyChars(result.chapter.body) > countPaidReportBodyChars(byId.get(chapter.id).body));
           if (valid) {
-            result.chapter.lengthDraft = rawChars < codexChapterFloor(chapter) || result.chapter.body.length < chapterFloor.get(chapter.id);
+            result.chapter.lengthDraft = rawChars < codexChapterRepairFloor(chapter) || result.chapter.body.length < chapterFloor.get(chapter.id);
             if (selected) byId.set(chapter.id, result.chapter);
             delete errors[chapter.id];
           }

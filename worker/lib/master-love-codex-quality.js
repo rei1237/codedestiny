@@ -66,6 +66,17 @@ export function codexChapterFloor(chapter) {
 }
 
 /**
+ * A draft under minChars earns exactly one length repair inside the existing attempt cap (rule L2,
+ * docs/handoff/2026-09-27-llm-length-never-fatal.md). It is a repair trigger, never a rejection:
+ * the 0.7 acceptance floor above stays, so a repair (or a last attempt) is delivered at any length
+ * and the longest valid candidate wins. Without it, R3/R4 (2026-10-09) shipped 10~11 of 20 chapters
+ * at 73~76% of minChars with no repair, because 0.7 alone let them through silently.
+ */
+export function codexChapterRepairFloor(chapter) {
+  return Number(chapter?.minChars) || 2400;
+}
+
+/**
  * Floor for a chapter after sentences shared with earlier chapters are cut. The model's own output
  * must still clear codexChapterFloor; judging the cut body by that floor failed chapter 2 on every
  * retry (shared chart facts) and closed the whole paid book after three waves (production, 2026-09-17).
@@ -169,7 +180,12 @@ export async function generateCodexChapterResponse(call, prompt, { chapter, metr
   for (let attempt = 0; attempt < Math.min(2, Math.max(1, maxAttempts)); attempt += 1) {
     const remaining = deadlineAt - Date.now();
     if (remaining < minBudgetMs) throw failure || new Error("GENERATION_BUDGET_EXCEEDED");
-    const instruction = failure ? `\n[재작성] 이전 응답은 ${failure.message} 기준을 통과하지 못했다. JSON 문자열을 올바르게 닫고, body의 최소 분량·계산 근거·필수 필드를 지켜 완성된 새 응답을 작성하라.` : "";
+    const minChars = Number(chapter?.minChars) || 2400;
+    const instruction = !failure ? ""
+      : failure.message === "LLM_OUTPUT_TOO_SHORT"
+        // A length repair must name the target; a generic rewrite returned the same ~75% length.
+        ? `\n[재작성] 이전 응답은 LLM_OUTPUT_TOO_SHORT: body가 최소 ${minChars}자에 못 미쳤다. 앞의 근거와 같은 문장을 반복하지 말고 생활 장면·대화 예시·대응 기준을 새로 더해 body를 ${minChars + 300}~${minChars + 900}자로 완성하라. 나머지 필드와 JSON 형식은 그대로 지켜라.`
+        : `\n[재작성] 이전 응답은 ${failure.message} 기준을 통과하지 못했다. JSON 문자열을 올바르게 닫고, body의 최소 분량·계산 근거·필수 필드를 지켜 완성된 새 응답을 작성하라.`;
     const ai = await call(prompt + instruction, {
       ...options, attempts: 1, maxProviderAttempts: 1, baseTokens: Math.max(failure?.message === "LLM_OUTPUT_TRUNCATED" ? 11000 : 8000, tokensRequiredForChars((chapter.minChars || 2400) + 900)), capTokens: 14000, thinkingBudget: 0,
       timeoutMs: Math.min(Number(options.timeoutMs) || remaining, remaining),
