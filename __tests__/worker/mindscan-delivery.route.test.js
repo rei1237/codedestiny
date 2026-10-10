@@ -116,3 +116,17 @@ test('every part carries the shared tarot rules and each section part pins its o
   expect(pin).toContain(`보조 ${section.subCard.nameKo}`);
  }});
 });
+const inject=(id,sentence,times)=>{const base=provider.getMockImplementation();let left=times;
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args);if(!args[1].includes(`[이번 부분 ${id}]`)||left<=0)return ai;left-=1;
+  const value=JSON.parse(ai.text);value.body=`${sentence}\n\n${value.body}`;return {...ai,text:JSON.stringify(value)};});};
+const callsFor=id=>provider.mock.calls.filter(call=>call[1].includes(`[이번 부분 ${id}]`)).length;
+// 마법사 is dealt only reversed; 전차 is dealt upright in one derived position and reversed in another.
+test.each([['TAROT_UNDRAWN_CARD','탑 카드가 이 마음의 결말을 말합니다.'],['TAROT_ORIENTATION_MISMATCH','마법사 정방향이 상대의 태도를 보여 줍니다.']])('a %s answer is bought once more and never saved',async(_code,sentence)=>{
+ inject('section-0-meaning',sentence,1);await start();expect((await finish()).status).toBe(200);
+ expect(callsFor('section-0-meaning')).toBe(2);expect(docs[0].metadata.paidNarrative.parts['section-0-meaning']).not.toContain(sentence);
+});
+test('a card dealt in both orientations may be named in either',async()=>{
+ const sentence='전차 정방향과 달리 이 자리의 전차 역방향은 속도를 늦추라고 말합니다.';
+ inject('intro',sentence,1);await start();expect((await finish()).status).toBe(200);
+ expect(callsFor('intro')).toBe(1);expect(docs[0].metadata.paidNarrative.parts.intro).toContain(sentence);
+});

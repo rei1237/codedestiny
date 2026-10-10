@@ -4,7 +4,7 @@ import { buildLoveConsultingHighlights } from '../../lib/tarot/love-reading-norm
 import { buildOutputLanguageDirective } from '../../lib/i18n/ai-locale.js';
 import { runPaidNarrativeDelivery } from './paid-narrative-delivery.js';
 import { bindPaidTarotDraw } from './paid-tarot-draw.js';
-import { buildTarotPositionPin, TAROT_SHARED_RULE_BLOCK } from '../../lib/tarot/paid-reading-contract.mjs';
+import { buildTarotPositionPin, findTarotProseViolation, TAROT_SHARED_RULE_BLOCK } from '../../lib/tarot/paid-reading-contract.mjs';
 import { getTarotCardByAnyId } from '../../lib/tarot/tarot-cards.mjs';
 import { getAmbientAiLocale } from './ai-locale-context.js';
 import { callGeminiText } from './gemini.js';
@@ -33,6 +33,12 @@ async function seed(env, userId, body, buildBase) {
     prompt: `정확히 여덟 문단으로 ${MATRIX_SCOPE.join(', ')}을 순서대로 해설한다. 고정 입력의 카드와 방향을 바꾸지 않는다.` });
   return { base, tasks, minBodyChars: 20000,
     prompt: `${buildOutputLanguageDirective(locale)}\n${buildLoveReadingPrompt(base.reading, locale, { userQuestion: body.userQuestion }).split('[리딩 작성 형식]')[0]}\n${TAROT_SHARED_RULE_BLOCK}` };
+}
+// The stored cards a part may name. Naming another card, flipping an orientation or moving a card
+// to another position title makes the answer a failed attempt within the two-attempt cap.
+function drawnEvidence(state) {
+  const rows = state.base.reading.positionBreakdown, name = row => getTarotCardByAnyId(row.cardId)?.nameKo || row.cardName;
+  return { drawn: rows.map(row => ({ name: name(row), orientation: row.orientation })), positions: new Map(rows.map(row => [row.positionTitle, name(row)])) };
 }
 // Records started before the 9-part layout keep rendering from their 21 part ids.
 function render(state) {
@@ -81,6 +87,7 @@ export function loveTarotNarrativeAdapter(env) {
       else if (legacyCard && paragraphs(value.body).length < 2) value.body = normalizeNarrativeParagraphs(value.body, 2);
       const found = paragraphs(value.body).length;
       if ((count && found !== count) || (legacyCard && found < 2)) return null;
+      if (findTarotProseViolation(value.body, drawnEvidence(state))) return null;
       return value;
     },
   };

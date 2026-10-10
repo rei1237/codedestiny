@@ -9,7 +9,8 @@ import { connectDb } from './db.js';
 import { getAmbientAiLocale } from './ai-locale-context.js';
 import { callGeminiText } from './gemini.js';
 import { createHttpError, json } from './http.js';
-import { buildTarotPositionPin, TAROT_SHARED_RULE_BLOCK } from '../../lib/tarot/paid-reading-contract.mjs';
+import { buildTarotPositionPin, findTarotProseViolation, TAROT_SHARED_RULE_BLOCK } from '../../lib/tarot/paid-reading-contract.mjs';
+import { getTarotCardByAnyId } from '../../lib/tarot/tarot-cards.mjs';
 
 const GENERAL = [
   ['coreQuestion', '질문을 해석하는 기준', 1200], ['bigPicture', '전체 배열의 흐름', 2500],
@@ -103,6 +104,10 @@ export function tarotOracleNarrativeAdapter(env) {
       value.body = dropRepeatedReportSentences(normalizeNarrativeBody(value.body), prior);
       if (task.cardIndex !== undefined && paragraphs(value.body).length < 2) value.body = normalizeNarrativeParagraphs(value.body, 2);
       if (task.cardIndex !== undefined && paragraphs(value.body).length < 2) return null;
+      // Naming an undrawn card or flipping an orientation is a failed attempt within the cap. Position
+      // labels are free text (과거, 현재, 미래) that prose uses as plain words, so they are not checked.
+      const drawn = state.input.cards.map(card => ({ name: getTarotCardByAnyId(card.card?.code)?.nameKo || card.card?.nameKo, orientation: card.orientation }));
+      if (findTarotProseViolation(value.body, { drawn })) return null;
       return value;
     },
   };

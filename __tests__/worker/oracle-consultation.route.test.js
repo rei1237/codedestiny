@@ -102,3 +102,16 @@ test('every part carries the shared tarot rules and each card part pins its own 
   expect(pin.match(/[정역]방향/g)).toHaveLength(1);
  });
 });
+const inject=(id,sentence,times)=>{const base=provider.getMockImplementation();let left=times;
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args);if(!args[1].includes(`[이번 부분 ${id}]`)||left<=0)return ai;left-=1;
+  const value=JSON.parse(ai.text);value.body=`${sentence}\n\n${value.body}`;return {...ai,text:JSON.stringify(value)};});};
+const callsFor=id=>provider.mock.calls.filter(call=>call[1].includes(`[이번 부분 ${id}]`)).length;
+test.each([['TAROT_UNDRAWN_CARD','탑 카드가 이 선택의 결말을 말합니다.'],['TAROT_ORIENTATION_MISMATCH','바보 정방향이 지금의 선택을 보여 줍니다.']])('a %s answer is bought once more and never saved',async(_code,sentence)=>{
+ inject('card.0.0',sentence,1);await start();expect((await finish()).status).toBe(200);
+ expect(callsFor('card.0.0')).toBe(2);expect(docs[0].metadata.paidNarrative.parts['card.0.0']).not.toContain(sentence);
+});
+test('a generic position word next to a drawn card is not a violation',async()=>{
+ const sentence='미래를 생각할 때 바보 역방향은 서두르지 말라고 말합니다.';
+ inject('card.0.0',sentence,1);await start();expect((await finish()).status).toBe(200);
+ expect(callsFor('card.0.0')).toBe(1);expect(docs[0].metadata.paidNarrative.parts['card.0.0']).toContain(sentence);
+});

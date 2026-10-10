@@ -7,7 +7,7 @@ import { normalizeNarrativeParagraphs } from './narrative-format.js';
 import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from './paid-report-quality.js';
 import { createHttpError } from './http.js';
 import { bindPaidTarotDraw } from './paid-tarot-draw.js';
-import { buildTarotPositionPin, TAROT_SHARED_RULE_BLOCK } from '../../lib/tarot/paid-reading-contract.mjs';
+import { buildTarotPositionPin, findTarotProseViolation, TAROT_SHARED_RULE_BLOCK } from '../../lib/tarot/paid-reading-contract.mjs';
 
 const paragraphs = value => String(value || '').split(/\n\s*\n/).map(text => text.trim()).filter(Boolean);
 const SUMMARY = ['emotionalTemperatureText', 'corePsychology', 'contactChance', 'relationFlow', 'reApproachChance',
@@ -32,6 +32,16 @@ async function seed(env, userId, body) {
     { id: 'masterAdvice', title: '현실적인 실천 계획', prompt: '지금의 관계에서 실행할 계획과 중단/재검토 기준을 설명한다.', minChars: 1200 },
     { id: 'closing', title: '마지막 상담 편지', prompt: '전체 조건을 종합해 질문에 답하고 선택의 여지를 남기는 상담 편지를 쓴다.', minChars: 800 });
   return { ...facts, prompt: `${facts.prompt}\n${TAROT_SHARED_RULE_BLOCK}`, tasks, minBodyChars: 20000 };
+}
+// The stored cards a part may name. The seven derived positions reuse cards, so a card dealt both
+// ways is checked for presence only. Positions hold a main and a sub card and are not checked.
+function drawnEvidence(state) {
+  const seen = new Map();
+  for (const section of state.sectionInputs) for (const card of [section.mainCard, section.subCard]) {
+    const before = seen.get(card?.nameKo);
+    if (card?.nameKo) seen.set(card.nameKo, before === undefined || before === section.orientation ? section.orientation : 'either');
+  }
+  return { drawn: [...seen].map(([name, orientation]) => ({ name, orientation })) };
 }
 function render(state) {
   const text = id => state.parts[id] || '';
@@ -78,6 +88,7 @@ export function mindscanNarrativeAdapter(env) {
       else if (task.sectionIndex !== undefined && paragraphs(value.body).length < 2) value.body = normalizeNarrativeParagraphs(value.body, 2);
       const count = paragraphs(value.body).length;
       if ((task.sectionIndex !== undefined && count < 2) || (task.id === 'summary' && count !== 10)) return null;
+      if (findTarotProseViolation(value.body, drawnEvidence(state))) return null;
       return value;
     },
   };

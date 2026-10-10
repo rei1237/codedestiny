@@ -45,3 +45,10 @@ test('the shared prose check names an undrawn card, a flipped orientation and a 
   const context={facts:[{id:'tarot.cards',label:'cards',value:[{cardId:'M00',orientation:'upright'}]}]};
   assert.throws(()=>yn.validateTarotChapter({title:'',summary:'탑 카드',persona:'',analysis:[],highlights:[],topics:[]},context),e=>e.code==='TAROT_UNDRAWN_CARD');
 });
+
+test('a card dealt in both orientations is checked for presence only',()=>{
+  const drawn=[{name:'바보',orientation:'either'}];
+  assert.equal(findTarotProseViolation('바보 정방향',{drawn}),null);
+  assert.equal(findTarotProseViolation('바보 카드 역방향',{drawn}),null);
+  assert.equal(findTarotProseViolation('탑 카드',{drawn}),'TAROT_UNDRAWN_CARD');
+});

@@ -150,3 +150,18 @@ test('every part carries the shared tarot rules and each card part pins its own 
   expect(pin.match(/[정역]방향/g)).toHaveLength(1);
  });
 });
+// A part that names an undrawn card, flips an orientation or moves a card to another position is a
+// failed attempt: it is bought once more within the two-attempt cap, never saved.
+const inject=(id,sentence,times)=>{const base=provider.getMockImplementation();let left=times;
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args);if(!args[1].includes(`[이번 부분 ${id}]`)||left<=0)return ai;left-=1;
+  const value=JSON.parse(ai.text);value.body=`${sentence}\n\n${value.body}`;return {...ai,text:JSON.stringify(value)};});};
+const callsFor=id=>provider.mock.calls.filter(call=>call[1].includes(`[이번 부분 ${id}]`)).length;
+test.each([['TAROT_UNDRAWN_CARD','탑 카드가 이 관계의 결말을 말합니다.'],['TAROT_ORIENTATION_MISMATCH','마법사 정방향이 상대의 시선을 보여 줍니다.'],
+ ['TAROT_POSITION_MISMATCH','상대가 나를 바라보는 마음의 바보 카드가 말합니다.']])('a %s answer is bought once more and never saved',async(_code,sentence)=>{
+ inject('card-0',sentence,1);await start();expect((await finish()).status).toBe(200);
+ expect(callsFor('card-0')).toBe(2);expect(provider).toHaveBeenCalledTimes(10);expect(docs[0].metadata.paidNarrative.parts['card-0']).not.toContain(sentence);
+});
+test('a part whose two answers both name an undrawn card stops at the cap without saving it',async()=>{
+ inject('card-0','탑 카드가 이 관계의 결말을 말합니다.',Infinity);await start();await finish();
+ const state=docs[0].metadata.paidNarrative;expect(callsFor('card-0')).toBe(2);expect(state.parts['card-0']).toBeUndefined();expect(state.attempts['card-0']).toBe(2);expect(docs[0].status).not.toBe('success');
+});
