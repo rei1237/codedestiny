@@ -246,3 +246,30 @@ it("does not accept non-string required bodies as short content", async () => {
   });
   expect((await start()).status).toBe(202); expect(docs[0].llmMeta.groups).toEqual({});
 });
+
+// R8 2026-10-10: 영문 품위, 0 점수, 이름 자리표시, 결론에 다음 안타르다샤·고차라 누락.
+const r8Chart = () => ({
+  lagna: { rashiKo: "양자리", sign: "Aries" }, moon: { sign: "Aries" }, moonNakshatra: { name: "Ashwini" }, bhavas: [], calculationMeta: {},
+  grahas: [{ name: "Jupiter", nameKo: "목성", rashiKo: "게자리", house: 4, dignity: "exalted" }, { name: "Mars", nameKo: "화성", rashiKo: "게자리", house: 4, dignity: "enemy sign" }],
+  vimshottariDasha: { currentMahadasha: { lord: "Moon", startDate: "2020-07-23", endDate: "2030-07-23" }, currentAntardasha: { lord: "Venus", startDate: "2025-11-23", endDate: "2027-07-23" } },
+  transits: { gochara: { Saturn: { sign: "Pisces" }, Jupiter: { sign: "Cancer" } } },
+});
+it("states the next antardasha and Moon-based gochara as calculated facts", () => {
+  const facts = utils.buildCanonicalFactsLine(r8Chart());
+  expect(facts).toContain("다음 안타르다샤=태양(2027-07-23부터)");
+  expect(facts).toContain("고차라=토성 물고기자리(달 기준 12번째), 목성 게자리(달 기준 4번째)");
+  const last = r8Chart(); last.vimshottariDasha.currentAntardasha = { lord: "Sun", startDate: "2029-01-23", endDate: "2030-07-23" };
+  expect(utils.buildCanonicalFactsLine(last)).toContain("다음 안타르다샤=화성(2030-07-23부터·새 마하다샤 시작)");
+});
+it("writes dignity in Korean and asks for nonzero scores without a placeholder name", () => {
+  const { input } = utils.normalizeConsultationInput({ ...body, name: "" });
+  const group = utils.VEDIC_SECTION_GROUPS.find(row => row.includeScores);
+  const prompt = utils.buildGroupPrompt(input, r8Chart(), group);
+  expect(prompt).not.toMatch(/"dignity":"(?:exalted|enemy sign)"|닉네임: 미입력/u);
+  expect(prompt).toContain('"dignity":"고양"');
+  expect(prompt).not.toMatch(/"dharma":0/u);
+  expect(prompt).toContain("0 은 쓰지 마세요");
+  const basis = JSON.stringify(utils.buildVedicAnalysisBasis(r8Chart()));
+  expect(basis).not.toMatch(/exalted|enemy sign|"Aries"/u);
+  expect(basis).toContain("\"달의 라시\",\"value\":\"양자리\"");
+});
