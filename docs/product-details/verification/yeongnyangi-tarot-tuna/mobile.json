@@ -1,0 +1,275 @@
+{
+  "rows": [
+    {
+      "flow": "legacy",
+      "width": 360,
+      "scrollWidth": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        }
+      ]
+    },
+    {
+      "flow": "legacy",
+      "width": 390,
+      "scrollWidth": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        }
+      ]
+    },
+    {
+      "flow": "legacy",
+      "width": 430,
+      "scrollWidth": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        }
+      ]
+    },
+    {
+      "flow": "legacy",
+      "width": 1280,
+      "scrollWidth": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        }
+      ]
+    }
+  ],
+  "missingImageOpensTranscript": true,
+  "mode": "mock; no payment or LLM",
+  "captureExclusion": "Production-omitted DevPaymentTester button hidden; product UI unchanged"
+}
