@@ -268,6 +268,37 @@ function findSajuAIUnsupportedAdvice(text) {
   const normalized = normalizeSajuAIResultText(text);
   return SAJU_AI_RESULT_UNSUPPORTED_PATTERNS.find(({ pattern }) => pattern.test(normalized)) || null;
 }
+
+// A paid draft that fails only on one claim keeps the rest: drop each sentence that matches by itself.
+// Claims spread over several sentences stay, so the section validator still rejects them.
+function dropSajuAIUnsupportedSentences(text) {
+  let summary = false;
+  return normalizeSajuAIResultText(text).split("\n").map((line) => {
+    if (line.includes(SAJU_AI_PERSONA_SUMMARY_START)) summary = true;
+    const keep = summary || /^\s*(?:#{1,6}\s*)?(?:\*\*)?\d+[.)]\s/.test(line);
+    if (line.includes(SAJU_AI_PERSONA_SUMMARY_END)) summary = false;
+    if (keep) return line;
+    const sentences = line.match(/[^.!?]+(?:[.!?]+["'”’)\]]*|$)\s*/g) || [line];
+    const kept = sentences.filter((sentence) => !SAJU_AI_RESULT_UNSUPPORTED_PATTERNS.some(({ pattern }) => pattern.test(sentence)));
+    if (kept.length === sentences.length) return line;
+    const rest = kept.join("").trimEnd();
+    return /^[\s\-*>]*$/.test(rest) ? null : rest;
+  }).filter((line) => line !== null).join("\n");
+}
+
+function buildSajuAIUnsupportedRepairLines(key) {
+  return [
+    `현재 이 부분에 ${key} 유형의 근거 밖 인과·조언이 포함되어 품질 기준을 통과하지 못했습니다.`,
+    "해당 연결을 삭제하고, 명식은 해석 가설로만 다루며 실제 기록으로 확인할 조건과 되돌릴 수 있는 행동으로 처음부터 다시 쓰세요.",
+  ];
+}
+
+// The paid path makes one call per request, so the reason a draft was rejected travels in the checkpoint.
+function buildSajuAISectionRetryLines(lastFailure) {
+  if (!lastFailure) return [];
+  if (lastFailure !== "rejected") return buildSajuAIUnsupportedRepairLines(lastFailure);
+  return ["직전 초안은 챕터 구조나 명식 근거 검증을 통과하지 못했습니다. 챕터 제목은 지정된 번호와 제목 그대로 한 번씩만 쓰고, 그 밖의 소제목에는 번호를 붙이지 말고 굵은 글씨만 쓰세요."];
+}
 const SAJU_AI_PROGRESS_STEPS = Object.freeze([
   { progress: 0, key: "payment", message: "결제/이용권 확인 중" },
   { progress: 15, key: "chart", message: "사주 명식 불러오는 중" },
@@ -621,7 +652,7 @@ function isSajuAISectionRowShort(row) {
  *
  * 제공자 오류는 그룹 결과로 반환한다. 체크포인트 저장 오류는 호출부로 전달해 환불과 분리한다.
  */
-async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, deadlineAt, requestId, promptVersion, groups = SAJU_AI_SECTION_GROUPS, onSection = async (row) => row, onRepair = async () => {}, lengthRepair = false, allowRepair = true } = {}) {
+async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, deadlineAt, requestId, promptVersion, groups = SAJU_AI_SECTION_GROUPS, onSection = async (row) => row, onRepair = async () => {}, lengthRepair = false, allowRepair = true, initialRepairLines = [] } = {}) {
   // 그룹 5개가 문자까지 같은 접두사를 각자 정가로 싣던 것을, Gemini 쪽에 한 벌만 올려 두고
   // 참조한다(명시적 컨텍스트 캐싱). null 이면 아무 일도 일어나지 않고 지금까지처럼 전체
   // 프롬프트가 나간다 — 웨이브1 직전에 채워지고, 웨이브가 끝나면 finally 에서 지운다.
@@ -679,6 +710,7 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
         systemPrompt,
       });
       sectionResults = await Promise.all(groups.map((group) => runSectionGroup(group, {
+        repairLines: initialRepairLines,
         attempt: 0,
         timeoutMs: wave1TimeoutMs,
         maxOutputTokens: SAJU_AI_SECTION_MAX_OUTPUT_TOKENS,
@@ -702,10 +734,7 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
           // 🔴 보강 지시는 형용사가 아니라 숫자로 준다. "더 길게"로는 분량이 늘지 않는다.
           const repairLines = row.ok && currentChars > 0
             ? [
-              ...(unsupported ? [
-                `현재 이 부분에 ${unsupported.key} 유형의 근거 밖 인과·조언이 포함되어 품질 기준을 통과하지 못했습니다.`,
-                "해당 연결을 삭제하고, 명식은 해석 가설로만 다루며 실제 기록으로 확인할 조건과 되돌릴 수 있는 행동으로 처음부터 다시 쓰세요.",
-              ] : []),
+              ...(unsupported ? buildSajuAIUnsupportedRepairLines(unsupported.key) : []),
               ...(currentChars < row.group.minChars ? [
               `현재 이 부분은 공백 제외 ${currentChars.toLocaleString("ko-KR")}자로 목표에 못 미칩니다.`,
               `${row.group.minChars.toLocaleString("ko-KR")}자 이상이 되도록 아직 쓰지 않은 근거와 장면, 판단 기준을 새로 더해 처음부터 다시 쓰세요.`,
@@ -1319,8 +1348,11 @@ async function saveSajuAISectionCheckpoint({ executionId, leaseToken, sections, 
 
 function validateSajuAISection(text, group, factSnapshot, { lengthRepair = false } = {}) {
   const normalized = extractSajuAIPersonaSummaries(text).resultText;
-  const chapters = [...normalized.matchAll(/^\s*(?:#{1,6}\s*)?(?:\*\*)?(\d+)[.)]\s*([^\n]+)\n/gm)];
-  const matching = chapters.filter((match) => group.chapters.some((chapter) => chapter.no === Number(match[1]) && match[2].replace(/\*/g, "").trim() === chapter.title));
+  const isChapter = (match, list) => list.some((chapter) => chapter.no === Number(match[1]) && match[2].replace(/\*/g, "").trim() === chapter.title);
+  // Only canonical headings count, as in the client renderer; "**1) 일(직업) 리듬**" is a sub-heading (B4 004).
+  const chapters = [...normalized.matchAll(/^\s*(?:#{1,6}\s*)?(?:\*\*)?(\d+)[.)]\s*([^\n]+)\n/gm)]
+    .filter((match) => isChapter(match, SAJU_AI_SECTION_GROUPS.flatMap((item) => item.chapters)));
+  const matching = chapters.filter((match) => isChapter(match, group.chapters));
   if (matching.length !== group.chapters.length || chapters.length !== matching.length) return false;
   for (let index = 0; index < matching.length; index += 1) {
     if (Number(matching[index][1]) !== group.chapters[index].no) return false;
@@ -4948,12 +4980,18 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
         groups: [group],
         lengthRepair: true,
         allowRepair: false,
+        initialRepairLines: buildSajuAISectionRetryLines(next.lastFailure),
         onRepair: async () => {
           next.lengthRepair = true;
           next.valid = !next.qualityRepair && validateSajuAISection(next.text, group, builtPrompt.factSnapshot, { lengthRepair: true });
           await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections });
         },
-        onSection: async (row) => {
+        onSection: async (generated) => {
+          let row = generated;
+          if (row.ok && !validateSajuAISection(row.text, group, builtPrompt.factSnapshot, { lengthRepair: true }) && findSajuAIUnsupportedAdvice(row.text)) {
+            const salvaged = dropSajuAIUnsupportedSentences(row.text);
+            if (validateSajuAISection(salvaged, group, builtPrompt.factSnapshot, { lengthRepair: true })) row = { ...row, text: salvaged };
+          }
           const candidateText = extractSajuAIPersonaSummaries(
             sections.map(section => section.key === next.key ? row.text : section.text).join("\n\n"),
           ).resultText;
@@ -4968,6 +5006,8 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
             next.model = row.ai?.model; next.provider = row.ai?.provider;
             next.qualityRepair = false;
           }
+          if (usable) delete next.lastFailure;
+          else if (row.ok) next.lastFailure = findSajuAIUnsupportedAdvice(row.text)?.key || "rejected";
           next.valid = !next.qualityRepair && validateSajuAISection(next.text, group, builtPrompt.factSnapshot, { lengthRepair: true });
           await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections });
           return row;
