@@ -95,6 +95,14 @@
       directResumeCardOpen: '「{feature}」 지금 열기',
       directResumeCardOpenGeneric: '지금 열기',
       directResumeCardDismiss: '닫기',
+      // 프로필 선택 지급(출생 기반 전환 전 주문의 지급 보류 해소). {name} 은 프로필 이름.
+      birthClaimTitle: '결제한 콘텐츠를 열 프로필을 골라 주세요',
+      birthClaimDesc: '결제는 확인됐어요. 고른 프로필의 생년월일로 열람 권한을 드려요. 다시 결제하지 않아도 돼요.',
+      birthClaimPickPartner: '상대 프로필도 골라 주세요.',
+      birthClaimNoProfile: '저장된 프로필이 없어요. 프로필을 먼저 저장한 뒤 다시 들어와 주세요.',
+      birthClaimConfirm: '「{name}」 프로필의 생년월일로 열람 권한을 적용할까요?\n적용한 뒤에는 바꿀 수 없어요.',
+      birthClaimDone: '선택한 프로필로 열람 권한을 적용했어요.',
+      birthClaimFailed: '열람 권한을 적용하지 못했어요. 잠시 후 다시 시도해 주세요.',
       directResumeFailed: '{method} 결제가 완료되지 않았습니다. 다시 시도해 주세요.',
       directResumeFailedGeneric: '결제가 완료되지 않았습니다. 다시 시도해 주세요.',
       directResumeError: '결제 확인 중 오류가 발생했습니다.\n잠시 후 이 화면을 새로고침하면 다시 확인합니다.',
@@ -138,6 +146,13 @@
       directResumeCardOpen: 'Open “{feature}” now',
       directResumeCardOpenGeneric: 'Open now',
       directResumeCardDismiss: 'Close',
+      birthClaimTitle: 'Choose a profile for your purchase',
+      birthClaimDesc: 'Your payment is confirmed. Access is granted for the birth date of the profile you choose. No need to pay again.',
+      birthClaimPickPartner: 'Now choose the partner profile.',
+      birthClaimNoProfile: 'No saved profiles yet. Save a profile first, then come back.',
+      birthClaimConfirm: 'Apply access using the birth date of “{name}”?\nThis cannot be changed later.',
+      birthClaimDone: 'Access applied to the selected profile.',
+      birthClaimFailed: 'Could not apply access. Please try again shortly.',
       directResumeFailed: 'Your {method} payment was not completed. Please try again.',
       directResumeFailedGeneric: 'Your payment was not completed. Please try again.',
       directResumeError: 'Something went wrong while confirming your payment.\nRefresh this page in a moment to check again.',
@@ -181,6 +196,13 @@
       directResumeCardOpen: '「{feature}」を今すぐ開く',
       directResumeCardOpenGeneric: '今すぐ開く',
       directResumeCardDismiss: '閉じる',
+      birthClaimTitle: '購入したコンテンツを開くプロフィールを選んでください',
+      birthClaimDesc: '決済は確認済みです。選んだプロフィールの生年月日で閲覧権限を付与します。再度お支払いいただく必要はありません。',
+      birthClaimPickPartner: 'お相手のプロフィールも選んでください。',
+      birthClaimNoProfile: '保存されたプロフィールがありません。プロフィールを保存してから再度お越しください。',
+      birthClaimConfirm: '「{name}」の生年月日で閲覧権限を適用しますか？\n適用後は変更できません。',
+      birthClaimDone: '選んだプロフィールに閲覧権限を適用しました。',
+      birthClaimFailed: '閲覧権限を適用できませんでした。しばらくしてから再度お試しください。',
       directResumeFailed: '{method}の決済が完了しませんでした。もう一度お試しください。',
       directResumeFailedGeneric: '決済が完了しませんでした。もう一度お試しください。',
       directResumeError: '決済確認中にエラーが発生しました。\nしばらくしてこの画面を再読み込みすると再確認します。',
@@ -224,6 +246,13 @@
       directResumeCardOpen: '立即打开「{feature}」',
       directResumeCardOpenGeneric: '立即打开',
       directResumeCardDismiss: '关闭',
+      birthClaimTitle: '请选择用于打开已购内容的档案',
+      birthClaimDesc: '付款已确认。将按所选档案的出生日期授予查看权限，无需再次付款。',
+      birthClaimPickPartner: '请再选择对方的档案。',
+      birthClaimNoProfile: '还没有保存的档案。请先保存档案后再回来。',
+      birthClaimConfirm: '要按「{name}」的出生日期授予查看权限吗？\n授予后无法更改。',
+      birthClaimDone: '已为所选档案授予查看权限。',
+      birthClaimFailed: '未能授予查看权限，请稍后再试。',
       directResumeFailed: '{method}支付未完成。请重试。',
       directResumeFailedGeneric: '支付未完成。请重试。',
       directResumeError: '确认支付时发生错误。\n请稍后刷新此页面再次确认。',
@@ -267,6 +296,13 @@
       directResumeCardOpen: '立即開啟「{feature}」',
       directResumeCardOpenGeneric: '立即開啟',
       directResumeCardDismiss: '關閉',
+      birthClaimTitle: '請選擇用於開啟已購內容的檔案',
+      birthClaimDesc: '付款已確認。將依所選檔案的出生日期授予檢視權限，無需再次付款。',
+      birthClaimPickPartner: '請再選擇對方的檔案。',
+      birthClaimNoProfile: '尚無已儲存的檔案。請先儲存檔案後再回來。',
+      birthClaimConfirm: '要依「{name}」的出生日期授予檢視權限嗎？\n授予後無法變更。',
+      birthClaimDone: '已為所選檔案授予檢視權限。',
+      birthClaimFailed: '未能授予檢視權限，請稍後再試。',
       directResumeFailed: '{method}付款未完成。請重試。',
       directResumeFailedGeneric: '付款未完成。請重試。',
       directResumeError: '確認付款時發生錯誤。\n請稍後重新整理此頁面再次確認。',
@@ -4558,6 +4594,136 @@
     try { (openBtn || dismissBtn).focus({ preventScroll: true }); } catch (_focusError) {}
   }
 
+  /* 프로필 선택 지급 — 출생 기반 해금 전환 전 주문은 스냅샷에 생년월일이 없어, 그 프로필이 지워졌으면
+     서버가 지급을 보류한다(worker/payments/birth-profile-claim.js). 환불하지 않고 사용자가 저장 프로필을
+     고르면 그 출생 정보로 열람 권한을 준다. 🔴 활성 프로필(dpSelectProfile)은 바꾸지 않는다 — 지급
+     대상만 고른다. 조회는 GET 이라 결제 게이트의 profileId 요구(verify:paid-gate-profile-scope)와 무관하다. */
+  var _dpBirthProfilePendingProbe = null;
+  function _dpProbeBirthProfilePending(force) {
+    if (_dpBirthProfilePendingProbe && !force) return _dpBirthProfilePendingProbe;
+    if (!_dpHasAuthToken() || _dpIsPointsShopPath()) return Promise.resolve([]);
+    _dpBirthProfilePendingProbe = _dpPaymentFetchJson('/api/payments/birth-profile-pending', { method: 'GET' }, { retryOn401: true })
+      .then(function (res) {
+        var orders = (res && res.ok && res.payload && Array.isArray(res.payload.orders)) ? res.payload.orders : [];
+        // 복귀 카드가 떠 있으면 덮지 않는다(그 주문의 안내가 우선). 강제 조회는 그 복귀가 부른 것이다.
+        if (orders.length && (force || !document.getElementById('cdDirectResumeCard'))) {
+          _dpWhenProfilesReady(function (profiles) { _dpShowBirthProfileClaimCard(orders[0], profiles); });
+        }
+        return orders;
+      })
+      .catch(function () { return []; });
+    return _dpBirthProfilePendingProbe;
+  }
+
+  // 로그인 사용자의 프로필은 서버 동기화 뒤에 채워진다 — 비어 있으면 공개 신호를 한 번(최대 8초) 기다린다.
+  function _dpWhenProfilesReady(fn) {
+    var read = function () {
+      try {
+        var list = typeof window.__cdListDestinyProfiles === 'function' ? window.__cdListDestinyProfiles() : [];
+        return (list || []).filter(function (profile) { return _dpGetProfileId(profile); });
+      } catch (_) { return []; }
+    };
+    var ready = read();
+    if (ready.length) { fn(ready); return; }
+    var done = false;
+    var finish = function () {
+      if (done) return;
+      done = true;
+      document.removeEventListener('cd:profile-card-published', finish);
+      fn(read());
+    };
+    document.addEventListener('cd:profile-card-published', finish);
+    window.setTimeout(finish, 8000);
+  }
+
+  function _dpShowBirthProfileClaimCard(order, profiles) {
+    if (typeof document === 'undefined' || !document.body || !order || !order.orderId) return;
+    _dpDismissDirectResumeCard();
+    _dpEnsureDirectResumeCardStyle();
+    var card = document.createElement('div');
+    card.id = 'cdDirectResumeCard';
+    card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-live', 'polite');
+    var title = document.createElement('p');
+    title.className = 'cd-direct-resume-title';
+    title.textContent = _dpText('birthClaimTitle');
+    var desc = document.createElement('p');
+    desc.className = 'cd-direct-resume-desc';
+    desc.style.whiteSpace = 'pre-line';
+    // 🔴 textContent 로만 넣는다 — 상품명·프로필 이름은 사용자·주문 데이터다.
+    var lead = String(order.productName || '').trim();
+    var setDesc = function (text) { desc.textContent = (lead ? lead + '\n' : '') + text; };
+    setDesc(profiles.length ? _dpText('birthClaimDesc') : _dpText('birthClaimNoProfile'));
+    var actions = document.createElement('div');
+    actions.className = 'cd-direct-resume-actions';
+    actions.style.flexWrap = 'wrap';
+    var buttons = [];
+    var first = null; // 궁합처럼 상대 프로필이 필요한 주문의 첫 선택
+    var reset = function (text) {
+      first = null;
+      setDesc(text);
+      buttons.forEach(function (btn) { btn.disabled = false; });
+    };
+    var claim = async function (profile, partner) {
+      var label = String(profile.name || '') + (partner ? ' · ' + String(partner.name || '') : '');
+      if (!window.confirm(_dpInterpolateText(_dpText('birthClaimConfirm'), { name: label }))) {
+        reset(_dpText('birthClaimDesc'));
+        return;
+      }
+      buttons.forEach(function (btn) { btn.disabled = true; });
+      var res = null;
+      try {
+        res = await _dpPaymentFetchJson('/api/payments/birth-profile-pending/' + encodeURIComponent(order.orderId) + '/claim', {
+          method: 'POST',
+          body: JSON.stringify({ profileId: _dpGetProfileId(profile), partnerProfileId: partner ? _dpGetProfileId(partner) : '' }),
+        }, { retryOn401: true, refreshOn401: true });
+      } catch (_) { res = null; }
+      if (!res || !res.ok) {
+        reset(_dpReadBillingMessage(res && res.payload, _dpText('birthClaimFailed')));
+        return;
+      }
+      _dpDismissDirectResumeCard();
+      try {
+        var accessCache = window.CodeDestinyUserAccessCache;
+        if (accessCache && typeof accessCache.refreshUserAccessAfterPayment === 'function') {
+          Promise.resolve(accessCache.refreshUserAccessAfterPayment()).catch(function () {});
+        }
+      } catch (_accessRefreshError) {}
+      _dpShowDirectResumeNotice(_dpText('birthClaimDone'), 'unlock-saving', 4000);
+      // 대기 주문이 더 있으면 안내가 걷힌 뒤 다음 것을 이어서 띄운다.
+      window.setTimeout(function () { void _dpProbeBirthProfilePending(true); }, 4200);
+    };
+    profiles.forEach(function (profile) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cd-direct-resume-open';
+      btn.textContent = String(profile.name || '').trim() || _dpGetProfileId(profile);
+      btn.addEventListener('click', function () {
+        if (!order.requiresPartner) { void claim(profile, null); return; }
+        if (!first) {
+          first = profile;
+          btn.disabled = true;
+          setDesc(_dpText('birthClaimPickPartner'));
+          return;
+        }
+        void claim(first, profile);
+      });
+      buttons.push(btn);
+      actions.appendChild(btn);
+    });
+    var dismissBtn = document.createElement('button');
+    dismissBtn.type = 'button';
+    dismissBtn.className = 'cd-direct-resume-dismiss';
+    dismissBtn.textContent = _dpText('directResumeCardDismiss');
+    dismissBtn.addEventListener('click', _dpDismissDirectResumeCard);
+    actions.appendChild(dismissBtn);
+    card.appendChild(title);
+    card.appendChild(desc);
+    card.appendChild(actions);
+    document.body.appendChild(card);
+    try { (buttons[0] || dismissBtn).focus({ preventScroll: true }); } catch (_focusError) {}
+  }
+
   /**
    * @param {{pollingPaymentId?: string}} [options]
    *   pollingPaymentId 가 있으면 **폴링 안전망**(_dpStartDirectOrderPoll)이 서버로부터 승인을
@@ -4710,6 +4876,12 @@
       var resumePending = resumeCode === 'GRANT_PENDING' || resumeCode === 'PENDING_CONFIRMATION'
         || resumePayload.recoveryRequired === true || Number(confirmRes.status) === 202;
       if (resumePending) {
+        // 생년월일을 몰라 지급이 보류된 주문 — 새로고침으로는 풀리지 않는다. 프로필 선택 카드를 바로 연다.
+        if (resumePayload.profileSelectionRequired === true) {
+          _dpSetPaymentPending(false);
+          void _dpProbeBirthProfilePending(true);
+          return;
+        }
         var resumePendingMessage = resumePayload.message ? String(resumePayload.message) : _dpText('directResumePending');
         _dpShowDirectResumeNotice(resumePendingMessage, 'unlock-saving', 4000);
         return;
@@ -13488,7 +13660,12 @@
   // 리다이렉트 복귀 확정은 한 번만 시도한다(같은 페이지에 이 스크립트가 두 번 주입되는 경우 대비).
   if (!window.__cdDirectPaymentResumeStarted) {
     window.__cdDirectPaymentResumeStarted = true;
-    try { void _dpResumeDirectPaymentAfterRedirect(); } catch (_) {}
+    try {
+      // 복귀 확정이 끝난 뒤에 본다 — 같은 고정 카드 자리를 두고 다투지 않게.
+      Promise.resolve(_dpResumeDirectPaymentAfterRedirect()).catch(function () {}).then(function () {
+        return _dpProbeBirthProfilePending(false);
+      }).catch(function () {});
+    } catch (_) {}
     // Mobile app switches and bfcache restores do not reload this script. Resume
     // the owned order poll on activation; approval is still verified server-side.
     var recoverDirectOrder = function () {
