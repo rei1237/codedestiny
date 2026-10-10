@@ -16,3 +16,4 @@ export type VisualDetail = {
 };
 export function renderFeatureDetailPanels(detail: VisualDetail, options?: {headingLevel?: number; conversionPrompt?: boolean; startPriceLabel?: string}): string;
 export function loadFeatureDetail(keys: (string | undefined)[]): Promise<VisualDetail | null>;
+export function renderCraftedDetail(detail: { panels: { src: string; text: string; title: string; width?: number; height?: number }[]; notice: string }): string;

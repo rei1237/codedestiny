@@ -5,6 +5,8 @@ import {questionScopes,FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/q
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import SampleExposure from './SampleExposure';
 import styles from './yeongnyangi-guide.module.css';
+import CraftedProductDetail from '@/app/components/CraftedProductDetail';
+import craftedOverview from '@/content/product-details/yeongnyangi-overview/manifest.json';
 
 // Server-rendered guide for the indexed /yeongnyangi/ landing ("사주 보는 고양이" brand query).
 // 🔴 Prices come from the payment catalog; scope and followups from the question policy — never type them here.
@@ -27,6 +29,10 @@ export const YEONGNYANGI_FAQS=[
 
 export default function YeongnyangiGuide(){
  return <article className={styles.guide} aria-labelledby="yn-guide-title">
+  <details className={styles.craftedOverview}>
+   <summary>영냥이 상담, 글과 그림으로 자세히 보기</summary>
+   <CraftedProductDetail detail={craftedOverview}/>
+  </details>
   <section>
    <figure className={styles.introPanel}>
     <Image

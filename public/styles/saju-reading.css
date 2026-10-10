@@ -297,3 +297,17 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
   .saju-rich__block,.saju-rich > .saju-gauge,.saju-rich__gauges .saju-gauge {padding:16px 14px;}
   .saju-rich > .saju-rich__more,.saju-rich > .saju-rich__note {padding-inline:14px;}
 }
+
+/* The authored 1080px essay stays fluid; the existing price and unlock controls retain ownership. */
+.saju-crafted-offer .craftedDetail {width:100%;max-width:540px;margin:16px auto;}
+.saju-crafted-offer .craftedDetail img {display:block;width:100%;height:auto;}
+.saju-crafted-offer .craftedDetailNotice {font-size:16px;line-height:1.75;margin:20px 0;}
+.saju-crafted-offer .craftedDetailTranscript p {white-space:pre-line;font-size:16px;line-height:1.75;}
+.saju-crafted-offer .craftedDetailTranscript section {margin:24px 0;}
+.saju-crafted-offer summary {min-height:44px;}
+@media (max-width:600px) {
+  .saju-crafted-offer .craftedDetail > div {
+    width:calc(100vw - 30px);
+    margin-inline:calc((100% - (100vw - 30px)) / 2);
+  }
+}

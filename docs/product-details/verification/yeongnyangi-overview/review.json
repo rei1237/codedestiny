@@ -1,0 +1,16 @@
+{
+  "id": "yeongnyangi-overview",
+  "status": "local visual verified; repository gate pending",
+  "evidence": [
+    "mobile.json",
+    "fallback.json or mobile.json missingImageOpensTranscript",
+    "transcript.png"
+  ],
+  "independentReview": "content ship; viewport recapture verified by primary",
+  "excludes": [
+    "real payment",
+    "paid LLM",
+    "production deployment"
+  ],
+  "noPricingPolicyChange": true
+}
