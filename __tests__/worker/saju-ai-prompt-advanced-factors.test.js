@@ -406,6 +406,14 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
     }
   });
 
+  test("생활 영역 그룹은 오행-연봉·장기 연결과 번호 소제목을 막는다 (B4 실측)", () => {
+    const group = sajuPrompt.SAJU_AI_SECTION_GROUPS.find(item => item.key === "life_domains");
+    const prompt = fortuneRoute.__sajuAiSectionTestUtils.buildSajuAISectionPrompt(buildCareerPrompt(), group);
+    expect(prompt).toContain("연봉·승진·재물의 증감이나 특정 장기·질환과 연결하지 마세요");
+    expect(prompt).toContain("불편이 이어지면 의료 확인을 권하는 데서 멈춥니다");
+    expect(prompt).toContain("소제목은 번호 없이 굵은 글씨로만");
+  });
+
   test.each([
     ["element-causality", "화 오행이 없어 재정 통제력이 약하고 충동 소비를 유발합니다."],
     ["element-causality", "화(火) 기운은 드러나 있지 않아 재물 관리가 즉흥적으로 흐를 수 있습니다."],
