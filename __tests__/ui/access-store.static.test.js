@@ -10,6 +10,7 @@ const birthScopeSource = fs.readFileSync(path.join(root, "js/core/birth-scope-un
 
 function loadStore(fetchImpl, { setTimeoutImpl = () => 1, authUser = null, BroadcastChannelImpl, storageMap, birthScope = false } = {}) {
   const listeners = new Map();
+  const dispatched = [];
   const storage = storageMap || new Map();
   const sandbox = {
     console,
@@ -40,7 +41,7 @@ function loadStore(fetchImpl, { setTimeoutImpl = () => 1, authUser = null, Broad
     },
     addEventListener: (name, listener) => listeners.set(name, listener),
     removeEventListener: (name) => listeners.delete(name),
-    dispatchEvent: () => true,
+    dispatchEvent: (event) => { dispatched.push(event); return true; },
     CustomEvent: function CustomEvent(name, init) {
       this.type = name;
       this.detail = init && init.detail;
@@ -53,6 +54,7 @@ function loadStore(fetchImpl, { setTimeoutImpl = () => 1, authUser = null, Broad
   if (birthScope) vm.runInNewContext(birthScopeSource, sandbox, { filename: "birth-scope-unlocks.js" });
   vm.runInNewContext(storeSource, sandbox, { filename: "access-store.js" });
   sandbox.CodeDestinyAccessStore.__testListeners = listeners;
+  sandbox.CodeDestinyAccessStore.__testDispatched = dispatched;
   return sandbox.CodeDestinyAccessStore;
 }
 
@@ -385,6 +387,39 @@ test("a real destinyProfileChanged event switches context and loads one complete
   assert.deepEqual(urls, ["/api/me/access-state?profileId=profile-2"]);
   assert.equal(store.getSnapshot().profileId, "profile-2");
   assert.equal(store.isUnlocked("section_compat"), true);
+});
+
+test("출생 기반: P→Q→P 복귀는 신선 캐시로 P 의 해금을 다시 그리게 알린다(재조회 없음)", async () => {
+  const urls = [];
+  const store = loadStore(async (url) => {
+    urls.push(String(url));
+    const profileId = new URL(String(url), "https://x.test").searchParams.get("profileId");
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        data: {
+          userId: "user-1",
+          currentProfileId: profileId,
+          unlockedFeatureIds: profileId === "profile-1" ? ["section_summary"] : [],
+          completeness: "full",
+          authority: "server",
+        },
+      }),
+    };
+  }, { authUser: { id: "user-1" }, birthScope: true });
+
+  await store.ensureLoaded({ userId: "user-1", profileId: "profile-1", authenticated: true });
+  await store.ensureLoaded({ userId: "user-1", profileId: "profile-2", authenticated: true });
+  assert.equal(store.isUnlocked("section_summary"), false);
+  store.__testDispatched.length = 0;
+
+  await store.ensureLoaded({ userId: "user-1", profileId: "profile-1", authenticated: true });
+  assert.equal(urls.length, 2);
+  assert.equal(store.isUnlocked("section_summary"), true);
+  const changed = store.__testDispatched.filter((event) => event.type === "cd:unlocks-changed");
+  assert.deepEqual(changed.map((event) => ({ ...event.detail })), [{ source: "access-store-context", profileId: "profile-1" }]);
 });
 
 test("BroadcastChannel propagates an optimistic payment unlock to another tab", async () => {

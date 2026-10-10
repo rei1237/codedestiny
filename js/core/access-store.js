@@ -526,6 +526,7 @@
     }
     syncLegacyFeatureMap();
     notify();
+    return Boolean(restored);
   }
 
   function ensureContext(options) {
@@ -534,11 +535,16 @@
     var serviceKeys = normalizeServiceKeys(options || {});
     var key = makeCacheKey(userId, profileId);
     if (key !== contextKey) {
+      var previousKey = contextKey;
       abortCurrent('context-changed');
       contextKey = key;
       bootEpoch += 1;
       loadedEpoch = Object.create(null);
-      restoreCache(key, userId, profileId);
+      /* 프로필 전환 복귀(P→Q→P): 신선 캐시면 서버를 다시 묻지 않으므로, 화면이 Q 기준으로 그린 관문을
+         P 의 캐시로 다시 그리게 알린다. 첫 진입(이전 키 없음)은 부팅 경로가 그린다. */
+      if (restoreCache(key, userId, profileId) && previousKey) {
+        dispatch('cd:unlocks-changed', { source: 'access-store-context', profileId: profileId });
+      }
     }
     return { key: key, userId: userId, profileId: profileId, serviceKeys: serviceKeys };
   }
