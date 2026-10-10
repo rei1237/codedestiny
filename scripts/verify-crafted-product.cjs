@@ -14,13 +14,15 @@ const fish = process.argv[2] || 'mackerel', id = 'yeongnyangi-saju-' + fish, out
         if (flow === 'legacy') {
             await page.getByText('질문 없이 전체 성향 리포트 고르기', { exact: true }).click();
             if (fish !== 'mackerel')
-                await page.getByRole('group', { name: '성향 리포트 구성' }).getByRole('button', { name: new RegExp(fish === 'salmon' ? '연어' : '광어') }).click();
+                await page.getByRole('group', { name: '성향 리포트 구성' }).getByRole('button', { name: new RegExp(fish === 'salmon' ? '연어' : fish === 'tuna' ? '참치' : '광어') }).click();
         }
         else {
-            await page.getByRole('button', { name: fish === 'salmon' ? '이직' : fish === 'flounder' ? '두 사람의 궁합' : '성향·자기이해·일상', exact: true }).click();
+            await page.getByRole('button', { name: fish === 'salmon' ? '이직' : fish === 'flounder' ? '두 사람의 궁합' : fish === 'tuna' ? '현재 시기·장기 흐름' : '성향·자기이해·일상', exact: true }).click();
             await page.getByRole('button', { name: '답장 보내기', exact: true }).click();
-            for (let n = 0; n < 3; n++)
+            for (let n = 0; n < 3; n++) {
+                if (fish === 'tuna' && n === 2) await page.getByRole('button', {name:'현재와 다음 장기 시기',exact:true}).click();
                 await page.getByRole('button', { name: '선택 확인하고 계속하기', exact: true }).click();
+            }
             await page.getByRole('button', { name: '앞에서 말한 내용으로 충분해', exact: true }).click();
             await page.getByRole('button', { name: '답장 보내기', exact: true }).click();
             if (fish === 'salmon') {
@@ -28,7 +30,9 @@ const fish = process.argv[2] || 'mackerel', id = 'yeongnyangi-saju-' + fish, out
                 await page.getByRole('button', { name: '답장 보내기', exact: true }).click();
                 await page.getByRole('button', { name: '특별한 조건은 없어', exact: true }).click();
                 await page.getByRole('button', { name: '답장 보내기', exact: true }).click();
-                await page.locator('textarea').fill('앞으로 6개월');
+            }
+            if (fish === 'salmon' || fish === 'tuna') {
+                await page.locator('textarea').fill(fish === 'salmon' ? '앞으로 6개월' : '현재와 다음 대운');
                 await page.getByRole('button', { name: '답장 보내기', exact: true }).click();
             }
             else {

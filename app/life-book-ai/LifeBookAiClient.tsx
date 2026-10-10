@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import intro from "@/app/components/expert-consulting/PremiumConsultationIntro.module.css";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { toDisplayText } from "@/lib/llm-text";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
@@ -1770,6 +1771,7 @@ export default function LifeBookAiClient() {
             </div>
           </div>
         </header>
+        {copy === LIFE_BOOK_CLIENT_COPY.ko && <CraftedProductDisclosure featureKey={MODE_FEATURE_KEY[form.mode]} />}
         <div className={intro.formLayout}>
           <aside className={intro.preparation}>
             <div className="flex items-start justify-between gap-3">

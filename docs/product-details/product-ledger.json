@@ -1375,24 +1375,102 @@
     {
       "productId": "life-book-ai-consultation",
       "displayName": "인생의 책",
-      "saleStatus": "진입 확인·구성 대조 중",
+      "saleStatus": "판매 진입 및 결과 계약 확인",
       "entry": [
         "/life-book-ai/"
       ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 10000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "생년월일, 양력/음력, 성별, 출생 시간 또는 모름",
+        "강조할 영역; 성별 비공개 선택 가능"
+      ],
+      "resultRenderer": [
+        "app/life-book-ai/result/LifeBookAiResultClient.tsx"
+      ],
+      "actualContents": {
+        "chapters": [
+          "타고난 사주의 원형",
+          "성격과 내면의 작동 방식",
+          "재능과 일의 방향",
+          "사랑과 인연",
+          "재물과 현실 기반",
+          "인간관계와 가족의 장",
+          "건강과 조후의 균형",
+          "대운으로 보는 인생의 큰 장면",
+          "가까운 시기의 세운 조언",
+          "인생의 책 마지막 문장"
+        ],
+        "expertReadings": [
+          {
+            "title": "일간과 월지가 여는 중심 기질",
+            "evidenceRefs": [
+              "dayMaster",
+              "seasonalBalance",
+              "pillarDetails.month"
+            ]
+          },
+          {
+            "title": "오행과 조후가 청하는 보완",
+            "evidenceRefs": [
+              "fiveElements",
+              "seasonalBalance",
+              "usefulGod"
+            ]
+          },
+          {
+            "title": "십성으로 읽는 관계와 일의 방식",
+            "evidenceRefs": [
+              "tenGods",
+              "tenGodsByPillar",
+              "fortuneFacts.strongestTenGods"
+            ]
+          },
+          {
+            "title": "대운과 세운이 비추는 선택의 시기",
+            "evidenceRefs": [
+              "majorLuck",
+              "yearlyLuck",
+              "relationSummary"
+            ]
+          }
+        ]
+      },
+      "conditionalItems": [
+        "요약·조언·심화 내용은 결과에 존재할 때만 표시",
+        "집필 중 완성된 내용과 완성 결과를 구분",
+        "시각 미상일 때 시주를 제외한 계산 근거"
+      ],
+      "separatePurchase": [
+        "인생의 책과 인생 총운은 별도 상품이며 결과를 합산 제공하지 않음"
+      ],
+      "reviewSource": [
+        "lib/brand/customer-reviews.mjs kakao-077 공개동의 직접1:1상담 원문 일부; 디지털 구매 후기 아님"
+      ],
+      "images": [
+        "/feature-details/crafted/life-book/01-my-story.webp",
+        "/feature-details/crafted/life-book/02-repeated-scene.webp",
+        "/feature-details/crafted/life-book/03-grounded-story.webp",
+        "/feature-details/crafted/life-book/04-first-chapters.webp",
+        "/feature-details/crafted/life-book/05-next-chapters.webp",
+        "/feature-details/crafted/life-book/06-deeper-reading.webp",
+        "/feature-details/crafted/life-book/07-paragraph.webp",
+        "/feature-details/crafted/life-book/08-digital-book.webp",
+        "/feature-details/crafted/life-book/09-author.webp",
+        "/feature-details/crafted/life-book/10-next-page.webp"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/life-book-ai/LifeBookAiClient.tsx"
+      ],
+      "verification": [
+        "docs/product-details/verification/life-book/render.json",
+        "docs/product-details/verification/life-book/mobile.json",
+        "docs/product-details/verification/life-book/review.json"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main 전달 및 해당 SHA CI 미완료",
+        "실결제·과금 LLM·운영 배포는 범위 밖"
       ],
       "detailAliases": [
         "life-book-ai"
@@ -1401,22 +1479,104 @@
     {
       "productId": "life-fortune-ai-consultation",
       "displayName": "인생 총운 전문가 상담",
-      "saleStatus": "판매 진입 확인 필요",
-      "entry": [],
+      "saleStatus": "판매 진입 및 결과 계약 확인",
+      "entry": [
+        "/premium-unlock/",
+        "/life-book-ai/ 내 인생 총운 선택"
+      ],
       "priceSource": "worker/lib/paid-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
-      "resultRenderer": [],
-      "actualContents": [],
-      "conditionalItems": [],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
-      "verification": [],
+      "inputRequirements": [
+        "생년월일, 양력/음력, 성별, 출생 시간 또는 모름",
+        "대운 계산을 위한 성별 선택"
+      ],
+      "resultRenderer": [
+        "app/premium-unlock/PremiumSalesContent.tsx"
+      ],
+      "actualContents": {
+        "chapters": [
+          "타고난 명식의 중심",
+          "성격과 마음의 결",
+          "재능과 일의 방향",
+          "재물과 생활 기반",
+          "사랑과 인연의 흐름",
+          "관계와 가족의 장",
+          "건강과 생활 리듬",
+          "대운으로 보는 큰 전환",
+          "가까운 세운의 흐름",
+          "앞으로 열릴 선택"
+        ],
+        "expertReadings": [
+          {
+            "title": "일간과 월지가 여는 중심 기질",
+            "evidenceRefs": [
+              "dayMaster",
+              "seasonalBalance",
+              "pillarDetails.month"
+            ]
+          },
+          {
+            "title": "오행과 조후가 청하는 보완",
+            "evidenceRefs": [
+              "fiveElements",
+              "seasonalBalance",
+              "usefulGod"
+            ]
+          },
+          {
+            "title": "십성으로 읽는 관계와 일의 방식",
+            "evidenceRefs": [
+              "tenGods",
+              "tenGodsByPillar",
+              "fortuneFacts.strongestTenGods"
+            ]
+          },
+          {
+            "title": "대운과 세운이 비추는 선택의 시기",
+            "evidenceRefs": [
+              "majorLuck",
+              "yearlyLuck",
+              "relationSummary"
+            ]
+          }
+        ]
+      },
+      "conditionalItems": [
+        "요약·조언·심화 내용은 결과에 존재할 때만 표시",
+        "집필 중 완성된 내용과 완성 결과를 구분",
+        "시각 미상일 때 시주를 제외한 계산 근거"
+      ],
+      "separatePurchase": [
+        "인생의 책과 인생 총운은 별도 상품이며 결과를 합산 제공하지 않음"
+      ],
+      "reviewSource": [
+        "상품 귀속 후기 미사용; 제작자 방법론으로 대체"
+      ],
+      "images": [
+        "/feature-details/crafted/life-fortune/01-wide-map.webp",
+        "/feature-details/crafted/life-fortune/02-priority.webp",
+        "/feature-details/crafted/life-fortune/03-foundation-chapters.webp",
+        "/feature-details/crafted/life-fortune/04-life-chapters.webp",
+        "/feature-details/crafted/life-fortune/05-time-evidence.webp",
+        "/feature-details/crafted/life-fortune/06-expert.webp",
+        "/feature-details/crafted/life-fortune/07-practical-example.webp",
+        "/feature-details/crafted/life-fortune/08-how-to-read.webp",
+        "/feature-details/crafted/life-fortune/09-method.webp",
+        "/feature-details/crafted/life-fortune/10-prepare.webp"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/premium-unlock/PremiumSalesContent.tsx",
+        "app/life-book-ai/LifeBookAiClient.tsx"
+      ],
+      "verification": [
+        "docs/product-details/verification/life-fortune/render.json",
+        "docs/product-details/verification/life-fortune/mobile.json",
+        "docs/product-details/verification/life-fortune/review.json"
+      ],
       "unconfirmed": [
-        "실제 판매 여부 및 결과 렌더러 개별 대조"
+        "main 전달 및 해당 SHA CI 미완료",
+        "실결제·과금 LLM·운영 배포는 범위 밖"
       ],
       "detailAliases": []
     },
@@ -4686,273 +4846,511 @@
     {
       "productId": "yeongnyangi-saju-tuna",
       "displayName": "영냥이 사주 참치",
-      "saleStatus": "카탈로그 enabled·상품 안내 진입 확인",
+      "saleStatus": "판매 진입 및 결과 계약 확인",
       "entry": [
         "/yeongnyangi/readings/saju/",
-        "/yeongnyangi/fortune/?domain=saju",
-        "/yeongnyangi/fortune/?flow=legacy&domain=saju&fish=tuna"
+        "/yeongnyangi/fortune/?domain=saju"
       ],
       "priceSource": "worker/yeongnyangi/payments/catalog.ts → worker/lib/billing-feature-registry.js",
       "priceSnapshotKRW": 30000,
-      "inputRequirements": [],
+      "inputRequirements": [
+        "자신의 질문과 현재 상황, 대상, 살펴볼 장기 기간, 출생 정보"
+      ],
       "resultRenderer": [
-        "app/yeongnyangi/_components/Result.tsx",
         "app/yeongnyangi/_components/ReadingBook.tsx"
       ],
-      "actualContents": [
-        {
-          "id": "personal",
-          "partner": false,
-          "chapters": [
-            "타고난 중심과 힘의 균형",
-            "넘치는 기운과 모자란 기운",
-            "타고난 연애 스타일",
-            "다정하게 전하는 마음(식신)",
-            "날이 선 매력(상관)",
-            "결혼운과 배우자 자리",
-            "지키고 쌓는 돈(정재)",
-            "굴리고 불리는 돈(편재)",
-            "조직과 책임(정관)",
-            "압박과 돌파(편관)",
-            "정석의 배움(정인)",
-            "직관과 비주류 배움(편인)",
-            "나란히 걷는 사람(비견)",
-            "겨루는 사람(겁재)",
-            "부모와 뿌리",
-            "자녀와 인생 후반",
-            "몸의 리듬과 회복",
-            "귀인과 강한 기운의 신호",
-            "나를 살리는 기운(용신·종격 판정)",
-            "대운으로 보는 인생의 굴곡",
-            "지금의 대운",
-            "다음 대운과 준비",
-            "올해와 내년",
-            "앞으로 12개월",
-            "앞으로 8년의 세운",
-            "연애운의 흐름",
-            "결혼운이 움직이는 시기",
-            "이동수와 해외운"
-          ]
-        },
-        {
-          "id": "compatibility",
-          "partner": true,
-          "chapters": [
-            "두 사람의 기질과 관계의 바탕",
-            "관계 유형과 서로 다른 역할",
-            "끌림과 기대의 차이",
-            "서로에게 편안한 표현",
-            "가까워지는 속도와 거리",
-            "갈등이 시작되는 반응",
-            "일상과 책임의 조율",
-            "돈과 자원을 대하는 차이",
-            "경계와 신뢰의 조건",
-            "어긋난 뒤 회복의 선택",
-            "각자가 느끼는 부담의 차이",
-            "양보와 자기 보호의 선택",
-            "오래 함께하기 위한 합의",
-            "관계를 다시 점검할 신호",
-            "궁합 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "timing",
-          "partner": false,
-          "chapters": [
-            "현재 시기의 핵심 과제",
-            "현재 흐름과 타고난 기질",
-            "현재 강점이 살아나는 조건",
-            "현재 부담이 커지는 조건",
-            "현재 시기의 일과 책임",
-            "현재 시기의 재물과 자원",
-            "현재 시기의 관계 조율",
-            "큰 흐름과 가까운 시기의 연결",
-            "현재와 다음 시기의 차이",
-            "다음 전환 전에 준비할 조건",
-            "시기 근거가 상충하는 지점",
-            "서두르기와 기다리기의 조건",
-            "계산된 기간과 예측의 한계",
-            "현실에서 확인할 변화",
-            "대운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "love",
-          "partner": false,
-          "chapters": [
-            "사랑할 때 드러나는 기질",
-            "마음이 움직이는 조건",
-            "표현과 기대의 차이",
-            "끌림과 편안함의 차이",
-            "관계에서 반복되는 선택",
-            "가까워지는 속도",
-            "갈등이 시작되는 조건",
-            "관계의 경계를 지키기",
-            "신뢰를 쌓는 행동",
-            "관계의 소진과 회복",
-            "끌림과 부담이 엇갈리는 근거",
-            "관계를 대하는 두 선택",
-            "오래 유지할 관계의 합의",
-            "판단을 다시 살필 현실 신호",
-            "연애와 인연 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "work",
-          "partner": false,
-          "chapters": [
-            "재능과 일하는 방식",
-            "역량이 살아나는 환경",
-            "책임을 맡는 방식",
-            "협력에서 드러나는 강점",
-            "반복되는 업무 패턴",
-            "강점이 부담이 되는 조건",
-            "성장에 필요한 조건",
-            "현재 역할을 발전시키는 선택",
-            "다른 환경을 준비하는 선택",
-            "업무 소진과 회복",
-            "직업 신호가 엇갈리는 이유",
-            "시간과 자원의 배분",
-            "변화 전에 갖출 조건",
-            "선택을 점검할 현실 기준",
-            "일과 적성 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "money",
-          "partner": false,
-          "chapters": [
-            "수입과 자원의 바탕",
-            "일과 재물의 연결",
-            "쌓고 지키는 습관",
-            "지출이 늘어나는 조건",
-            "안정을 선택할 조건",
-            "확장을 선택할 조건",
-            "협력과 자원의 책임",
-            "반복되는 금전 판단",
-            "부담을 줄이는 방법",
-            "자원 배분의 두 선택",
-            "재물 근거의 상충과 예외",
-            "생활 기반과 자원의 균형",
-            "해석으로 알 수 없는 부분",
-            "현실에서 점검할 기록과 기준",
-            "재물 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "health",
-          "partner": false,
-          "chapters": [
-            "타고난 몸의 리듬",
-            "무리가 쌓이는 조건",
-            "계절과 환경에 따른 컨디션",
-            "회복을 돕는 생활 습관",
-            "에너지를 쓰고 채우는 방식",
-            "마음의 긴장이 몸에 남는 방식",
-            "컨디션을 흔드는 반복 습관",
-            "일의 강도와 쉼의 균형",
-            "관계와 환경이 주는 부담",
-            "컨디션이 떨어질 때의 신호",
-            "건강 근거가 엇갈리는 지점",
-            "생활을 바꾸는 두 가지 방식",
-            "해석으로 알 수 없는 부분",
-            "생활에서 점검할 기록과 기준",
-            "건강운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "marriage",
-          "partner": false,
-          "chapters": [
-            "배우자 자리로 보는 결혼관",
-            "끌리고 편안한 배우자상",
-            "함께 살 때의 표현과 기대",
-            "생활과 책임의 분담",
-            "결혼 생활에서 반복되는 선택",
-            "살림과 자원을 대하는 방식",
-            "갈등이 시작되는 조건",
-            "올해 결혼운의 흐름",
-            "가족과의 경계를 조율하기",
-            "신뢰를 쌓는 생활 습관",
-            "현재 대운과 결혼의 시기",
-            "결혼 근거가 엇갈리는 지점",
-            "오래 함께하기 위한 합의",
-            "결정을 다시 살필 현실 신호",
-            "결혼운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "movement",
-          "partner": false,
-          "chapters": [
-            "타고난 이동 기질",
-            "원국의 충이 만드는 변화",
-            "해외와 먼 곳의 인연",
-            "맞는 환경과 거처",
-            "일로 생기는 이동과 변화",
-            "관계와 가족이 이동에 주는 영향",
-            "떠나고 머무르는 반복 선택",
-            "올해 이동수의 흐름",
-            "이동이 부담이 되는 조건",
-            "이동 전에 준비할 조건",
-            "현재 대운의 이동과 정착",
-            "이동 신호가 엇갈리는 지점",
-            "떠나기와 머무르기의 조건",
-            "결정을 점검할 현실 기준",
-            "이동수·해외운 · 실천과 점검"
-          ]
-        },
-        {
-          "id": "ask",
-          "partner": false,
-          "chapters": [
-            "타고난 중심과 힘의 균형",
-            "넘치는 기운과 모자란 기운",
-            "타고난 연애 스타일",
-            "다정하게 전하는 마음(식신)",
-            "날이 선 매력(상관)",
-            "결혼운과 배우자 자리",
-            "지키고 쌓는 돈(정재)",
-            "굴리고 불리는 돈(편재)",
-            "조직과 책임(정관)",
-            "압박과 돌파(편관)",
-            "정석의 배움(정인)",
-            "직관과 비주류 배움(편인)",
-            "나란히 걷는 사람(비견)",
-            "겨루는 사람(겁재)",
-            "부모와 뿌리",
-            "자녀와 인생 후반",
-            "몸의 리듬과 회복",
-            "귀인과 강한 기운의 신호",
-            "나를 살리는 기운(용신·종격 판정)",
-            "대운으로 보는 인생의 굴곡",
-            "지금의 대운",
-            "다음 대운과 준비",
-            "올해와 내년",
-            "앞으로 12개월",
-            "앞으로 8년의 세운",
-            "연애운의 흐름",
-            "결혼운이 움직이는 시기",
-            "이동수와 해외운"
-          ]
-        }
-      ],
+      "actualContents": {
+        "legacyKinds": [
+          {
+            "id": "personal",
+            "partner": false,
+            "chapters": [
+              "타고난 중심과 힘의 균형",
+              "넘치는 기운과 모자란 기운",
+              "타고난 연애 스타일",
+              "다정하게 전하는 마음(식신)",
+              "날이 선 매력(상관)",
+              "결혼운과 배우자 자리",
+              "지키고 쌓는 돈(정재)",
+              "굴리고 불리는 돈(편재)",
+              "조직과 책임(정관)",
+              "압박과 돌파(편관)",
+              "정석의 배움(정인)",
+              "직관과 비주류 배움(편인)",
+              "나란히 걷는 사람(비견)",
+              "겨루는 사람(겁재)",
+              "부모와 뿌리",
+              "자녀와 인생 후반",
+              "몸의 리듬과 회복",
+              "귀인과 강한 기운의 신호",
+              "나를 살리는 기운(용신·종격 판정)",
+              "대운으로 보는 인생의 굴곡",
+              "지금의 대운",
+              "다음 대운과 준비",
+              "올해와 내년",
+              "앞으로 12개월",
+              "앞으로 8년의 세운",
+              "연애운의 흐름",
+              "결혼운이 움직이는 시기",
+              "이동수와 해외운"
+            ]
+          },
+          {
+            "id": "compatibility",
+            "partner": true,
+            "chapters": [
+              "두 사람의 기질과 관계의 바탕",
+              "관계 유형과 서로 다른 역할",
+              "끌림과 기대의 차이",
+              "서로에게 편안한 표현",
+              "가까워지는 속도와 거리",
+              "갈등이 시작되는 반응",
+              "일상과 책임의 조율",
+              "돈과 자원을 대하는 차이",
+              "경계와 신뢰의 조건",
+              "어긋난 뒤 회복의 선택",
+              "각자가 느끼는 부담의 차이",
+              "양보와 자기 보호의 선택",
+              "오래 함께하기 위한 합의",
+              "관계를 다시 점검할 신호",
+              "궁합 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "timing",
+            "partner": false,
+            "chapters": [
+              "현재 시기의 핵심 과제",
+              "현재 흐름과 타고난 기질",
+              "현재 강점이 살아나는 조건",
+              "현재 부담이 커지는 조건",
+              "현재 시기의 일과 책임",
+              "현재 시기의 재물과 자원",
+              "현재 시기의 관계 조율",
+              "큰 흐름과 가까운 시기의 연결",
+              "현재와 다음 시기의 차이",
+              "다음 전환 전에 준비할 조건",
+              "시기 근거가 상충하는 지점",
+              "서두르기와 기다리기의 조건",
+              "계산된 기간과 예측의 한계",
+              "현실에서 확인할 변화",
+              "대운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "love",
+            "partner": false,
+            "chapters": [
+              "사랑할 때 드러나는 기질",
+              "마음이 움직이는 조건",
+              "표현과 기대의 차이",
+              "끌림과 편안함의 차이",
+              "관계에서 반복되는 선택",
+              "가까워지는 속도",
+              "갈등이 시작되는 조건",
+              "관계의 경계를 지키기",
+              "신뢰를 쌓는 행동",
+              "관계의 소진과 회복",
+              "끌림과 부담이 엇갈리는 근거",
+              "관계를 대하는 두 선택",
+              "오래 유지할 관계의 합의",
+              "판단을 다시 살필 현실 신호",
+              "연애와 인연 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "work",
+            "partner": false,
+            "chapters": [
+              "재능과 일하는 방식",
+              "역량이 살아나는 환경",
+              "책임을 맡는 방식",
+              "협력에서 드러나는 강점",
+              "반복되는 업무 패턴",
+              "강점이 부담이 되는 조건",
+              "성장에 필요한 조건",
+              "현재 역할을 발전시키는 선택",
+              "다른 환경을 준비하는 선택",
+              "업무 소진과 회복",
+              "직업 신호가 엇갈리는 이유",
+              "시간과 자원의 배분",
+              "변화 전에 갖출 조건",
+              "선택을 점검할 현실 기준",
+              "일과 적성 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "money",
+            "partner": false,
+            "chapters": [
+              "수입과 자원의 바탕",
+              "일과 재물의 연결",
+              "쌓고 지키는 습관",
+              "지출이 늘어나는 조건",
+              "안정을 선택할 조건",
+              "확장을 선택할 조건",
+              "협력과 자원의 책임",
+              "반복되는 금전 판단",
+              "부담을 줄이는 방법",
+              "자원 배분의 두 선택",
+              "재물 근거의 상충과 예외",
+              "생활 기반과 자원의 균형",
+              "해석으로 알 수 없는 부분",
+              "현실에서 점검할 기록과 기준",
+              "재물 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "health",
+            "partner": false,
+            "chapters": [
+              "타고난 몸의 리듬",
+              "무리가 쌓이는 조건",
+              "계절과 환경에 따른 컨디션",
+              "회복을 돕는 생활 습관",
+              "에너지를 쓰고 채우는 방식",
+              "마음의 긴장이 몸에 남는 방식",
+              "컨디션을 흔드는 반복 습관",
+              "일의 강도와 쉼의 균형",
+              "관계와 환경이 주는 부담",
+              "컨디션이 떨어질 때의 신호",
+              "건강 근거가 엇갈리는 지점",
+              "생활을 바꾸는 두 가지 방식",
+              "해석으로 알 수 없는 부분",
+              "생활에서 점검할 기록과 기준",
+              "건강운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "marriage",
+            "partner": false,
+            "chapters": [
+              "배우자 자리로 보는 결혼관",
+              "끌리고 편안한 배우자상",
+              "함께 살 때의 표현과 기대",
+              "생활과 책임의 분담",
+              "결혼 생활에서 반복되는 선택",
+              "살림과 자원을 대하는 방식",
+              "갈등이 시작되는 조건",
+              "올해 결혼운의 흐름",
+              "가족과의 경계를 조율하기",
+              "신뢰를 쌓는 생활 습관",
+              "현재 대운과 결혼의 시기",
+              "결혼 근거가 엇갈리는 지점",
+              "오래 함께하기 위한 합의",
+              "결정을 다시 살필 현실 신호",
+              "결혼운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "movement",
+            "partner": false,
+            "chapters": [
+              "타고난 이동 기질",
+              "원국의 충이 만드는 변화",
+              "해외와 먼 곳의 인연",
+              "맞는 환경과 거처",
+              "일로 생기는 이동과 변화",
+              "관계와 가족이 이동에 주는 영향",
+              "떠나고 머무르는 반복 선택",
+              "올해 이동수의 흐름",
+              "이동이 부담이 되는 조건",
+              "이동 전에 준비할 조건",
+              "현재 대운의 이동과 정착",
+              "이동 신호가 엇갈리는 지점",
+              "떠나기와 머무르기의 조건",
+              "결정을 점검할 현실 기준",
+              "이동수·해외운 · 실천과 점검"
+            ]
+          },
+          {
+            "id": "ask",
+            "partner": false,
+            "chapters": [
+              "타고난 중심과 힘의 균형",
+              "넘치는 기운과 모자란 기운",
+              "타고난 연애 스타일",
+              "다정하게 전하는 마음(식신)",
+              "날이 선 매력(상관)",
+              "결혼운과 배우자 자리",
+              "지키고 쌓는 돈(정재)",
+              "굴리고 불리는 돈(편재)",
+              "조직과 책임(정관)",
+              "압박과 돌파(편관)",
+              "정석의 배움(정인)",
+              "직관과 비주류 배움(편인)",
+              "나란히 걷는 사람(비견)",
+              "겨루는 사람(겁재)",
+              "부모와 뿌리",
+              "자녀와 인생 후반",
+              "몸의 리듬과 회복",
+              "귀인과 강한 기운의 신호",
+              "나를 살리는 기운(용신·종격 판정)",
+              "대운으로 보는 인생의 굴곡",
+              "지금의 대운",
+              "다음 대운과 준비",
+              "올해와 내년",
+              "앞으로 12개월",
+              "앞으로 8년의 세운",
+              "연애운의 흐름",
+              "결혼운이 움직이는 시기",
+              "이동수와 해외운"
+            ]
+          }
+        ],
+        "questionExample": [
+          {
+            "title": "내 사주의 바탕 · 기질과 오행의 균형",
+            "role": "foundation",
+            "sections": [
+              "나를 움직이는 기질",
+              "이 고민이 마음에 남는 이유",
+              "지금 지나고 있는 운의 흐름",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "나의 강점과 부담이 되는 순간",
+            "role": "foundation",
+            "sections": [
+              "살려 쓸 수 있는 강점",
+              "강점의 그림자와 조정할 점",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "검수용 질문 · 지금과 다음 시기, 달라지는 과제",
+            "role": "answer",
+            "sections": [
+              "지금과 다음 시기, 달라지는 과제",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "현재 시기·장기 흐름 · 판단의 근거와 달라지는 조건",
+            "role": "question",
+            "sections": [
+              "그렇게 읽는 이유",
+              "판단을 바꾸는 조건"
+            ]
+          },
+          {
+            "title": "현재 · 기회와 주의 조건",
+            "role": "question",
+            "sections": [
+              "활용할 기회",
+              "부담과 조정할 부분",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "현재 시기·장기 흐름 · 지금 지나는 주기",
+            "role": "question",
+            "sections": [
+              "현재 주기의 과제",
+              "이 주기를 쓰는 방법",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "현재 시기·장기 흐름 · 전환점",
+            "role": "question",
+            "sections": [
+              "흐름이 바뀌는 지점",
+              "전환 전에 준비할 것",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "현재 시기·장기 흐름 · 몸과 마음의 리듬",
+            "role": "question",
+            "sections": [
+              "힘이 나는 리듬",
+              "소진되는 리듬",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "현재 시기·장기 흐름 · 무리하지 않을 시기",
+            "role": "question",
+            "sections": [
+              "속도를 줄일 때",
+              "그때 대신 할 일",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "현재 시기·장기 흐름 · 회복의 루틴",
+            "role": "question",
+            "sections": [
+              "매일의 작은 루틴",
+              "점검의 기준",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "현재 시기·장기 흐름 · 시나리오별 대응",
+            "role": "question",
+            "sections": [
+              "흐름이 순조로울 때",
+              "흐름이 막힐 때",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "인생 전반 · 성향이 삶 전체에 미치는 영향",
+            "role": "life",
+            "sections": [
+              "삶의 큰 줄기",
+              "성향을 쓰는 방향",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "인생 전반 · 재물",
+            "role": "life",
+            "sections": [
+              "돈을 버는 방식과 모으는 방식",
+              "재물에서 조심할 점",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "인생 전반 · 직업과 적성",
+            "role": "life",
+            "sections": [
+              "잘 맞는 일과 역할",
+              "오래 성장하는 방법",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "인생 전반 · 연애와 결혼",
+            "role": "life",
+            "sections": [
+              "사랑의 방식",
+              "오래 함께하기 위한 조건",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "인생 전반 · 가족과 대인 관계",
+            "role": "life",
+            "sections": [
+              "가족과의 관계",
+              "사람 사이의 협력과 경계",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "인생 전반 · 건강 리듬",
+            "role": "life",
+            "sections": [
+              "에너지의 리듬",
+              "소진을 막는 습관",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "인생 전반 · 10년 주기의 흐름",
+            "role": "life",
+            "sections": [
+              "지금의 10년",
+              "다음 10년의 준비",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "인생 전반 · 올해의 월별 흐름",
+            "role": "life",
+            "sections": [
+              "올해의 구간별 흐름",
+              "올해 힘을 실을 일",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "인생 전반 · 내년 예고",
+            "role": "life",
+            "sections": [
+              "내년의 흐름",
+              "올해 안에 준비할 것",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "인생 전반 · 강점을 활용하는 법",
+            "role": "life",
+            "sections": [
+              "삶에서 강점을 쓰는 자리",
+              "강점을 키우는 계획",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "인생 전반 · 주의할 시기",
+            "role": "life",
+            "sections": [
+              "조심할 구간",
+              "그때의 대처",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "인생 전반 · 운을 여는 실행",
+            "role": "life",
+            "sections": [
+              "운을 돕는 생활 습관",
+              "오늘 시작할 한 가지",
+              "이 해석의 근거"
+            ]
+          },
+          {
+            "title": "현재 시기·장기 흐름 · 종합 해석과 실행 계획",
+            "role": "synthesis",
+            "sections": [
+              "생활 속에서 적용해 보기",
+              "선택과 다음 행동",
+              "이 해석의 근거"
+            ]
+          }
+        ]
+      },
       "conditionalItems": [
-        "질문 상담과 전체 성향 리포트의 manifest가 다름",
-        "차트·요약·행동·추가 질문은 저장된 결과 및 선택한 계약에 따라 표시",
-        "참치 장기 질문은 사주·자미두수·베다만 지원"
+        "요약·조언·심화 내용은 결과에 존재할 때만 표시",
+        "질문 주제·시기 근거·상담 종류에 따라 목차가 달라짐"
       ],
-      "separatePurchase": [],
-      "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
+      "separatePurchase": [
+        "질문 상담과 기본 성향 리포트는 별도 구성"
+      ],
+      "reviewSource": [
+        "상품 귀속 후기 미사용; 제작자 방법론으로 대체"
+      ],
+      "images": [
+        "/feature-details/crafted/yeongnyangi-saju-tuna/01-next-season.webp",
+        "/feature-details/crafted/yeongnyangi-saju-tuna/02-time-map.webp",
+        "/feature-details/crafted/yeongnyangi-saju-tuna/03-transition-question.webp",
+        "/feature-details/crafted/yeongnyangi-saju-tuna/04-question-life.webp",
+        "/feature-details/crafted/yeongnyangi-saju-tuna/05-personal-foundation.webp",
+        "/feature-details/crafted/yeongnyangi-saju-tuna/06-personal-relations.webp",
+        "/feature-details/crafted/yeongnyangi-saju-tuna/07-personal-timing.webp",
+        "/feature-details/crafted/yeongnyangi-saju-tuna/08-scenario.webp",
+        "/feature-details/crafted/yeongnyangi-saju-tuna/09-reading-method.webp",
+        "/feature-details/crafted/yeongnyangi-saju-tuna/10-ready.webp"
+      ],
+      "status": "적용",
+      "appliedAt": [
+        "app/yeongnyangi/_components/ProductGuide.tsx",
+        "app/yeongnyangi/_components/IntakeChat.tsx"
+      ],
       "verification": [
-        "docs/product-details/yeongnyangi-contract-snapshot.json"
+        "docs/product-details/verification/yeongnyangi-saju-tuna/render.json",
+        "docs/product-details/verification/yeongnyangi-saju-tuna/mobile.json",
+        "docs/product-details/verification/yeongnyangi-saju-tuna/review.json"
       ],
       "unconfirmed": [
-        "개별 상품 원고·이미지·모바일 적용 미완료",
-        "각 체계별 입력 조건의 개별 대조 미완료"
+        "main 전달 및 해당 SHA CI 미완료",
+        "실결제·과금 LLM·운영 배포는 범위 밖"
       ],
       "detailAliases": []
     },

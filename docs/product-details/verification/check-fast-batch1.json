@@ -1,0 +1,20 @@
+{
+  "command": "npm run check:fast",
+  "exitCode": 0,
+  "paidGates": "88/88 passed",
+  "jest": {
+    "suites": 373,
+    "tests": 5683,
+    "passed": true
+  },
+  "scope": "Initial plan covered first batch. Subsequent authoring continued during the run; this is not an immutable final SHA proof. Later edits have separate targeted checks and require final gate/CI.",
+  "stages": [
+    "npm test",
+    "lint",
+    "typecheck",
+    "test:node",
+    "billing and payment guards",
+    "worker build dry-run",
+    "test:jest"
+  ]
+}
