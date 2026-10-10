@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP all8; cover balanced into2 lines",
+  "mobile": "Independent SHIP all8 native panels,3 mobile CTA/notice pairs,2 transcript viewports; internal billing-key wording removed",
+  "checks": "4 widths load/bounds/fallback PASS; free horary excluded; mock writes0; question-sky node tests12 PASS; ESLint0 errors/2 preexisting warnings",
+  "limits": "No real payment, LLM or production writes. Main delivery pending."
+}

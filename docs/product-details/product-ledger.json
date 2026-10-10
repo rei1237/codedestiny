@@ -9180,15 +9180,20 @@
       ],
       "separatePurchase": [],
       "reviewSource": [],
-      "images": [],
-      "status": "조사",
-      "appliedAt": [],
+      "images": [
+        "/feature-details/crafted/yeongnyangi-prashna/manifest.json"
+      ],
+      "status": "로컬 제작·적용·모바일 검수 완료",
+      "appliedAt": [
+        "app/yeongnyangi/_components/QuestionSkyConsultation.tsx"
+      ],
       "verification": [
-        "Experience.tsx routes spirit/prashna to QuestionSkyConsultation",
-        "QuestionSkyConsultation horary is free; old SpiritConsultation unused by Experience"
+        "8 original panels independent SHIP",
+        "360/390/430/1280 mock native load/bounds/fallback PASS; POST 0; free horary excluded",
+        "node --test __tests__/ui/yeongnyangi-question-sky.test.mjs: 12 PASS"
       ],
       "unconfirmed": [
-        "상세개별제작·모바일검수"
+        "main 병합·push·CI 및 실제운영 노출 미확인; 실결제/LLM 미실행"
       ],
       "detailAliases": []
     }

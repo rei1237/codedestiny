@@ -126,3 +126,8 @@ status: active
 - 공개읽기전용GET /api/yeongnyangi/products 200,28개 enabled/available=true. DB/LLM쓰기가없는handler확인후호출. 가격숫자이미지하드코딩없음.
 - 별도영냥신점(prashna)은사주광어결제키재사용하지만다른2단계상품구성임을발견해별도대장행추가. 호라리는현재무료,옛SpiritConsultation은현재진입미사용으로분리.
 - 유료기본구성25종+공통소개1종254패널 로컬검수완료. 영냥신점등남은구성과main전달미완료. 다음별도신점및베다광어·참치.
+
+## 영냥 신점 · 질문 순간 프라슈나
+- 별도8패널 개별편집, 실제첫답3항목/심화4항목과요청1회구성 반영. 출생사주·무료호라리분리. 표지2행과고지내부용어수정후독립원본/모바일SHIP.
+- prashna 유료입력화면에기존Disclosure variant 연결2줄. 360/390/430/1280 load/bounds/fallback PASS,무료호라리미노출,모든API mock·POST0. 기존12검사PASS,ESLint0error/기존2warning. 가격·결제·인증·API·DB계약변경없음.
+- acba5eb01 clean pre-push PASS. sitemap955 PASS. 유료기본26종+공통소개1종262패널 로컬검수완료. 남은상품과main전달은계속진행.

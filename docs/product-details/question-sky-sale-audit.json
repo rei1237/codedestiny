@@ -13,7 +13,8 @@
     ],
     "productId": "saju_flounder",
     "presentation": "Two-stage first answer and buyer-requested deepening; not natal Saju",
-    "detailPending": true
+    "detailPending": false,
+    "detailId": "yeongnyangi-prashna"
   },
   "free": {
     "mode": "horary-v1",
