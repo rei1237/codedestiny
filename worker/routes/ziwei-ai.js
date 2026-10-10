@@ -2,6 +2,7 @@ import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { trimPaidReportSections } from "../lib/paid-report-length.js";
+import { SYSTEM_INSTRUCTION_TERM_PATTERN } from "../lib/system-instruction-term.js";
 import { createHash, randomUUID } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
@@ -1605,7 +1606,7 @@ function cleanForbiddenResult(text) {
     .replace(/\bprogress\b/gi, "흐름")
     .replace(/\bjob\b/gi, "상담")
     .replace(/프롬프트/g, "질문")
-    .replace(/시스템/g, "상담 흐름");
+    .replace(SYSTEM_INSTRUCTION_TERM_PATTERN, "상담 흐름");
 }
 
 function bodyCharRangeProblem(bodyChars, minBodyChars, maxBodyChars) {

@@ -2,6 +2,7 @@ import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { trimPaidReportSections } from "../lib/paid-report-length.js";
+import { SYSTEM_INSTRUCTION_TERM_PATTERN } from "../lib/system-instruction-term.js";
 import { createHash, randomUUID } from "node:crypto";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
@@ -1066,7 +1067,7 @@ function sanitizeAssistantText(value) {
   text = text.replace(/\bjob\b/gi, "상담");
   text = text.replace(/\bprogress\b/gi, "진행");
   text = text.replace(/프롬프트/g, "질문");
-  text = text.replace(/시스템/g, "상담 기준");
+  text = text.replace(SYSTEM_INSTRUCTION_TERM_PATTERN, "상담 기준");
   return text.trim();
 }
 

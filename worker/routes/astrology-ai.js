@@ -1,5 +1,6 @@
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { trimPaidReportText } from "../lib/paid-report-length.js";
+import { SYSTEM_INSTRUCTION_TERM_PATTERN } from "../lib/system-instruction-term.js";
 import { createHash, randomUUID } from "node:crypto";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
@@ -111,7 +112,7 @@ const PLANET_LABELS = {
 const MAJOR_PLANETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
 const TIMING_TRANSIT_PLANETS = ["Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
 const TRANSIT_TARGETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"];
-const FORBIDDEN_RESULT_PATTERNS = [/\bPDF\b/gi, /챕터|chapter/gi, /\bjob\b/gi, /\bprogress\b/gi, /\bprompt\b/gi, /프롬프트/g, /시스템/g, /\bAI\b/g, /이 기능은|이 결과는|분석 결과는/g];
+const FORBIDDEN_RESULT_PATTERNS = [/\bPDF\b/gi, /챕터|chapter/gi, /\bjob\b/gi, /\bprogress\b/gi, /\bprompt\b/gi, /프롬프트/g, SYSTEM_INSTRUCTION_TERM_PATTERN, /\bAI\b/g, /이 기능은|이 결과는|분석 결과는/g];
 const BROKEN_RESULT_TEXT_PATTERN = /\uFFFD|\\uFFFD|Ã|Â|ì|í|ê|ë|ð/;
 const ASTROLOGY_EXPERT_PARTS = [
   { id: "core_identity", label: "태양·달·상승궁의 중심축", pattern: /(태양[\s\S]{0,1400}달|달[\s\S]{0,1400}태양|상승궁|Ascendant|출생시간 미상)/ },
