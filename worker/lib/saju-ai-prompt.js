@@ -1622,6 +1622,26 @@ export function validateSajuMyeongsikTenGodText(text, factSnapshot) {
   };
 }
 
+// The model reads the computed chart, not the birth clock. calculationMeta, daewunBridge and the profile
+// copies carried the date, time, instant and place even with the birth hidden (B4 2026-10-11).
+// The header line above the JSON is the only place a birth date may appear.
+const SAJU_PROMPT_CALCULATION_META_KEYS = Object.freeze(["engineVersion", "policyVersion", "timeUnknown", "termTimeAssumed", "nightZiPolicy", "dayBoundaryRule"]);
+const SAJU_PROMPT_BIRTH_KEYS = new Set(["birth", "birthCivilYear", "birthDate", "birthTime", "birthPlace", "_astroBirth"]);
+function stripSajuPromptBirth(value) {
+  if (Array.isArray(value)) return value.map(stripSajuPromptBirth);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value)
+    .filter(([key]) => !SAJU_PROMPT_BIRTH_KEYS.has(key))
+    .map(([key, item]) => [key, key === "calculationMeta" && item && typeof item === "object"
+      ? Object.fromEntries(SAJU_PROMPT_CALCULATION_META_KEYS.filter((field) => field in item).map((field) => [field, item[field]]))
+      : stripSajuPromptBirth(item)]));
+}
+
+// Number(null) is 0, so a missing hour used to reach the prompt as "00:00".
+function readBirthClockField(value) {
+  return value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? null : Number(value);
+}
+
 function normalizeBirthInfo(profile, snapshot) {
   const p = profile && typeof profile === "object" ? profile : {};
   const s = snapshot && typeof snapshot === "object" ? snapshot : {};
@@ -1631,8 +1651,8 @@ function normalizeBirthInfo(profile, snapshot) {
     year: Number(pb.year || sb.year || 0) || null,
     month: Number(pb.month || sb.month || 0) || null,
     day: Number(pb.day || sb.day || 0) || null,
-    hour: Number.isFinite(Number(pb.hour ?? sb.hour)) ? Number(pb.hour ?? sb.hour) : null,
-    minute: Number.isFinite(Number(pb.minute ?? sb.minute)) ? Number(pb.minute ?? sb.minute) : null,
+    hour: readBirthClockField(pb.hour ?? sb.hour),
+    minute: readBirthClockField(pb.minute ?? sb.minute),
     calType: String(pb.calType || "solar").trim() || "solar",
   };
 
@@ -2243,14 +2263,14 @@ export function buildSajuAIPromptWithDomain({
     const { daewun: duplicatedDaewun, ...quantumRest } = promptEngineContext.quantumMyeongli;
     promptEngineContext.quantumMyeongli = quantumRest;
   }
-  const canonicalSajuResult = {
+  const canonicalSajuResult = stripSajuPromptBirth({
     ...promptSource,
     factSnapshot: promptFactSnapshot,
     advancedFactors: promptAdvancedFactors,
     engineContext: {
       ...promptEngineContext,
     },
-  };
+  });
   const questionFocusAngles = buildSajuQuestionFocusAngles(questionType, resolvedDomain);
   const engineContextLines = buildSajuEngineContextLines(engineContext);
   const advancedFactorLines = buildSajuAdvancedFactorLines(advancedFactors, questionType);

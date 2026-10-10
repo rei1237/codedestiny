@@ -449,6 +449,40 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
 });
 
 
+test("analysisResult sent to the model carries no birth clock, instant or place (B4)", () => {
+  const birth = { year: 1990, month: 3, day: 18, hour: 7, minute: 20 };
+  const meta = {
+    engineVersion: "saju-natal-v2", timeUnknown: false, termTimeAssumed: false, nightZiPolicy: "shift-day",
+    original: birth, civil: birth, corrected: { ...birth, minute: 48 }, termClock: birth, dayPillarCivilDate: "1990-03-18",
+    instant: { timestamp: 637707600000, iso: "1990-03-17T22:20:00.000Z" }, location: { latitude: 37.5665, longitude: 126.978 },
+  };
+  const base = makeSajuResult();
+  const input = {
+    ...base,
+    calculationMeta: meta,
+    snapshot: { ...base.snapshot, calculationMeta: meta },
+    analysisProfile: { ...base.profile, hour: null, minute: null },
+    bazi: { daewunBridge: { source: "korean-calendar-core-daeun", birthCivilYear: 1990, birth } },
+  };
+  const built = sajuPrompt.buildSajuAIPromptWithDomain({ question: "내 재물의 흐름을 알려 주세요", domain: "money", sajuResult: input });
+  const jsonLine = built.generatedPrompt.split("\n").find(line => line.startsWith('{"fortuneType":'));
+  const sent = JSON.parse(jsonLine).analysisResult;
+  const text = JSON.stringify(sent);
+  for (const raw of ["1990", "637707600000", "1990-03-17T", "37.5665", '"minute":48']) expect(text).not.toContain(raw);
+  expect(sent.calculationMeta).toEqual({ engineVersion: "saju-natal-v2", timeUnknown: false, termTimeAssumed: false, nightZiPolicy: "shift-day" });
+  expect(sent.snapshot.calculationMeta).toEqual(sent.calculationMeta);
+  expect(sent.bazi.daewunBridge).toEqual({ source: "korean-calendar-core-daeun" });
+  expect(input.calculationMeta.original).toBe(birth);
+});
+
+test("a birth profile without hour and minute is not sent as 00:00", () => {
+  const base = makeSajuResult();
+  const input = { ...base, profile: { ...base.profile, birth: { ...base.profile.birth, hour: null, minute: null } }, snapshot: { ...base.snapshot, birth: { ...base.snapshot.birth, hour: null, minute: null } } };
+  const built = sajuPrompt.buildSajuAIPromptWithDomain({ question: "내 재물의 흐름을 알려 주세요", domain: "money", sajuResult: input });
+  expect(built.generatedPrompt).not.toContain("00:00");
+  expect(built.generatedPrompt).toContain("생년월일/시간: 1990-03-18 제공되지 않음");
+});
+
 test("generation JSON preserves all computed opening rows while sending shared structures once", () => {
   const input = makeSajuResult({ daewun: [
     { age: 20, gan: "甲", zhi: "戌", score: 81, label: "최고의 운" },
