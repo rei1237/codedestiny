@@ -133,7 +133,6 @@ const POSITIONS: TarotPos[] = [
   { id: "bottom", icon: "⚖️", col: 2, row: 3 },
 ];
 
-const DECK_SIZE = 78;
 const GRID_COUNT = 24;
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 const COSMIC_PANEL = "rounded-[1.6rem] border border-indigo-300/20 bg-slate-950/45 backdrop-blur-xl shadow-[0_18px_65px_rgba(76,29,149,0.45)]";
@@ -233,11 +232,10 @@ function buildMindscanAiPromptText({
   ].join("\n");
 }
 
-function pickRandom(used: Set<number>): number {
-  const pool: number[] = [];
-  for (let i = 0; i < DECK_SIZE; i++) if (!used.has(i)) pool.push(i);
-  if (!pool.length) return Math.floor(Math.random() * DECK_SIZE);
-  return pool[Math.floor(Math.random() * pool.length)];
+function newDrawId(): string {
+  let random = "";
+  try { random = crypto.randomUUID(); } catch { /* Older browsers fall back below. */ }
+  return `tarot-mindscan:draw:${random || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`}`;
 }
 
 // ── STAR FIELD ─────────────────────────────────────────────────────────────────
@@ -1427,7 +1425,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef,
   );
 }
 
-type MindscanRecovery = { body: { pairs: ReadingPair[]; question: string; requestId: string; locale: string }; resultId?: string };
+type MindscanRecovery = { body: { pairs: ReadingPair[]; question: string; requestId: string; drawId?: string; locale: string }; resultId?: string };
 const mindscanOwner = () => { const user = getAuthState().user; return String(user?.id || user?.userId || user?._id || user?.uid || ''); };
 const mindscanRecoveryKey = (owner: string) => `cd:mindscan-delivery:v1:${owner}`;
 
@@ -1459,13 +1457,14 @@ export default function MindScanTarot() {
   const [subPicks, setSubPicks] = useState<number[]>([]);
   const [drawn, setDrawn] = useState<Record<string, number>>({});
   const [drawnSub, setDrawnSub] = useState<Record<string, number>>({});
-  const [usedCardIds, setUsedCardIds] = useState<Set<number>>(new Set());
   const [revealedCount, setRevealedCount] = useState(0);
   const [reading, setReading] = useState<ReadingResult | null>(null);
   const [readingLoading, setReadingLoading] = useState(false);
   const [readingError, setReadingError] = useState("");
   const reportRef = useRef<HTMLDivElement>(null);
-  const usedRef = useRef<Set<number>>(new Set());
+  // The server draw the pairs came from (worker/lib/paid-tarot-draw.js); the paid body names it.
+  const drawIdRef = useRef("");
+  const dealingRef = useRef(false);
   const drawnRef = useRef<Record<string, number>>({});
   const drawnSubRef = useRef<Record<string, number>>({});
   // 결제 확인이 끝난 뒤 리딩 생성이 실패했을 때, 재시도에서 중복 과금을 막는 세션 플래그.
@@ -1489,7 +1488,6 @@ export default function MindScanTarot() {
     };
   }, []);
 
-  useEffect(() => { usedRef.current = usedCardIds; }, [usedCardIds]);
   useEffect(() => { drawnRef.current = drawn; }, [drawn]);
   useEffect(() => { drawnSubRef.current = drawnSub; }, [drawnSub]);
 
@@ -1502,35 +1500,45 @@ export default function MindScanTarot() {
     return () => clearInterval(t);
   }, [stage]);
 
+  // 🔴 유료 리딩은 서버가 나눠 준 카드만 읽는다. 고른 열 자리를 보내면 서버가 덱을 섞어 drawId 로 저장하고
+  //    (worker/lib/paid-tarot-draw.js), 결제 후 요청의 카드가 그 기록과 다르면 거절한다. 실패하면 다시 고른다.
+  const dealPicks = useCallback(async (picks: number[]) => {
+    dealingRef.current = true;
+    const run = runRef.current, drawId = newDrawId();
+    try {
+      const { authFetch } = await import('../_lib/auth-client');
+      const response = await authFetch('/api/tarot/paid-draw', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ featureKey: 'tarot-mindscan', drawId, picks }) });
+      const data = await response.json().catch(() => null);
+      if (run !== runRef.current) return;
+      const cards: { numericId?: unknown }[] = Array.isArray(data?.cards) ? data.cards : [];
+      if (!response.ok || cards.length !== POSITIONS.length * 2 || cards.some(card => !Number.isInteger(card?.numericId))) throw new Error('paid draw');
+      const main: Record<string, number> = {}, sub: Record<string, number> = {};
+      POSITIONS.forEach((pos, idx) => { main[pos.id] = Number(cards[idx].numericId); sub[pos.id] = Number(cards[idx + POSITIONS.length].numericId); });
+      drawIdRef.current = drawId;
+      drawnRef.current = main; drawnSubRef.current = sub; setDrawn(main); setDrawnSub(sub);
+      setTimeout(() => { if (run === runRef.current) setStage("spread"); }, 900);
+    } catch {
+      if (run !== runRef.current) return;
+      showToast(copy.drawUnavailable, "info");
+      setMainPicks([]); setSubPicks([]); setPickRound("main");
+    } finally { dealingRef.current = false; }
+  }, [copy]);
+
   const handlePick = useCallback((gridIdx: number) => {
+    if (dealingRef.current) return;
     if (pickRound === "main") {
       if (mainPicks.includes(gridIdx) || mainPicks.length >= 5) return;
-      const cardId = pickRandom(usedRef.current);
-      const newUsed = new Set([...usedRef.current, cardId]);
       const newPicks = [...mainPicks, gridIdx];
-      const posId = POSITIONS[newPicks.length - 1].id;
-      usedRef.current = newUsed;
-      setUsedCardIds(newUsed);
       setMainPicks(newPicks);
-      const newDrawn = { ...drawnRef.current, [posId]: cardId };
-      setDrawn(newDrawn);
-      drawnRef.current = newDrawn;
       if (newPicks.length === 5) setTimeout(() => setPickRound("sub"), 900);
     } else {
       if (mainPicks.includes(gridIdx) || subPicks.includes(gridIdx) || subPicks.length >= 5) return;
-      const cardId = pickRandom(usedRef.current);
-      const newUsed = new Set([...usedRef.current, cardId]);
       const newPicks = [...subPicks, gridIdx];
-      const posId = POSITIONS[newPicks.length - 1].id;
-      usedRef.current = newUsed;
-      setUsedCardIds(newUsed);
       setSubPicks(newPicks);
-      const newDrawnSub = { ...drawnSubRef.current, [posId]: cardId };
-      setDrawnSub(newDrawnSub);
-      drawnSubRef.current = newDrawnSub;
-      if (newPicks.length === 5) setTimeout(() => setStage("spread"), 900);
+      if (newPicks.length === 5) void dealPicks([...mainPicks, ...newPicks]);
     }
-  }, [pickRound, mainPicks, subPicks]);
+  }, [pickRound, mainPicks, subPicks, dealPicks]);
 
   // 게이트 없는 리딩 코어. 결제 게이트 뒤에서도, 리다이렉트 복귀 재개에서도 같은 요청을 쓴다.
   const remember = useCallback((entry: MindscanRecovery, expectedOwner = mindscanOwner()) => {
@@ -1544,7 +1552,7 @@ export default function MindScanTarot() {
     const expectedOwner = mindscanOwner();
     if (!expectedOwner) throw new Error(copy.loginRequiredError);
     const entry = recoveryRef.current?.body.requestId === requestId ? recoveryRef.current
-      : { body: { pairs, question: askedQuestion, requestId, locale: detectLocale() } };
+      : { body: { pairs, question: askedQuestion, requestId, drawId: drawIdRef.current, locale: detectLocale() } };
     remember(entry, expectedOwner);
     const run = ++runRef.current;
     const active = () => run === runRef.current && expectedOwner === mindscanOwner();
@@ -1584,7 +1592,7 @@ export default function MindScanTarot() {
         else if ([401, 403].includes(response.status)) return;
       } catch { /* Local original payment request survives transport failure. */ }
       if (!active() || !entry?.body?.requestId || !Array.isArray(entry.body.pairs)) return;
-      remember(entry, owner); paidRequestIdRef.current = entry.body.requestId; paidAccessGrantedRef.current = true;
+      remember(entry, owner); paidRequestIdRef.current = entry.body.requestId; drawIdRef.current = entry.body.drawId || ''; paidAccessGrantedRef.current = true;
       const main: Record<string, number> = {}, sub: Record<string, number> = {};
       entry.body.pairs.forEach(pair => { main[pair.positionId] = pair.mainCardId; sub[pair.positionId] = pair.subCardId; });
       drawnRef.current = main; drawnSubRef.current = sub; setDrawn(main); setDrawnSub(sub); setQuestion(entry.body.question); setDelivery(data);
@@ -1614,6 +1622,7 @@ export default function MindScanTarot() {
     const pairs = unpackPaidResumeArg<ReadingPair[]>(args.pairs);
     const askedQuestion = String(args.question || "");
     const requestId = String(args.requestId || "");
+    drawIdRef.current = String(args.drawId || "");
     if (!Array.isArray(pairs) || pairs.length === 0 || !requestId) return false;
     const nextDrawn: Record<string, number> = {};
     const nextDrawnSub: Record<string, number> = {};
@@ -1681,7 +1690,7 @@ export default function MindScanTarot() {
         paidRequestIdRef.current = `tarot-mindscan:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
       }
 
-      if (!recoveryRef.current || recoveryRef.current.body.requestId !== paidRequestIdRef.current) remember({ body: { pairs, question: trimmedQuestion, requestId: paidRequestIdRef.current, locale: detectLocale() } });
+      if (!recoveryRef.current || recoveryRef.current.body.requestId !== paidRequestIdRef.current) remember({ body: { pairs, question: trimmedQuestion, requestId: paidRequestIdRef.current, drawId: drawIdRef.current, locale: detectLocale() } });
       const executeReading = () => performReading(pairs, trimmedQuestion, paidRequestIdRef.current);
 
       if (isFlowerAdminMode) {
@@ -1706,6 +1715,7 @@ export default function MindScanTarot() {
           pairs: packPaidResumeArg(pairs),
           question: trimmedQuestion,
           requestId: paidRequestIdRef.current,
+          drawId: drawIdRef.current,
         }),
         // 이용권/결제 확인 단계에서는 과금 안내만 처리한다 — LLM 생성은 게이트가 닫힌 뒤 진행.
         onPaid: ({ chargedCoins, accessSource, monthlyCreditsSpent, monthlyBalanceAfter, balanceAfter }) => {
@@ -1770,9 +1780,9 @@ export default function MindScanTarot() {
     setStage("intro"); setPickRound("main");
     setQuestion("");
     setMainPicks([]); setSubPicks([]);
-    setDrawn({}); setDrawnSub({}); setUsedCardIds(new Set());
+    setDrawn({}); setDrawnSub({}); drawIdRef.current = '';
     setRevealedCount(0); setReading(null); setReadingError("");
-    drawnRef.current = {}; drawnSubRef.current = {}; usedRef.current = new Set();
+    drawnRef.current = {}; drawnSubRef.current = {};
   }, []);
 
   return (

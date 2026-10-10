@@ -3,6 +3,7 @@ import { buildLoveReadingPrompt } from '../../lib/tarot/love-reading-llm.mjs';
 import { buildLoveConsultingHighlights } from '../../lib/tarot/love-reading-normalizer.mjs';
 import { buildOutputLanguageDirective } from '../../lib/i18n/ai-locale.js';
 import { runPaidNarrativeDelivery } from './paid-narrative-delivery.js';
+import { bindPaidTarotDraw } from './paid-tarot-draw.js';
 import { getAmbientAiLocale } from './ai-locale-context.js';
 import { callGeminiText } from './gemini.js';
 import { normalizeNarrativeParagraphs } from './narrative-format.js';
@@ -14,7 +15,9 @@ const MATRIX_SCOPE = ['내가 보는 관계와 상대가 보는 관계의 차이
 const FINAL = ['instantMission', 'conversationTip', 'relationshipBoundary', 'nextSevenDays'];
 // One call per card, overview, final advice and matrix: 9 parts, the same 26,400-char floor
 // as the former 21. Each part returns fixed paragraphs that render splits into reading fields.
-function seed(body, buildBase) {
+// The cards must be the server draw the body names (paid-tarot-draw.js), checked before any build.
+async function seed(env, userId, body, buildBase) {
+  await bindPaidTarotDraw(env, { featureKey: 'tarot-love-relationship', owner: userId, body });
   const locale = getAmbientAiLocale() || body.locale || 'ko';
   const base = buildBase(body, locale);
   const tasks = base.reading.positionBreakdown.map((card, index) => ({ id: `card-${index}`, title: card.positionTitle, cardIndex: index, paragraphs: 4, minChars: 3000,
@@ -53,7 +56,7 @@ function render(state) {
 // The paid-intent task seeds a proven intent with the same function.
 export { seed as seedLoveTarot };
 export function deliverLoveTarot(request, env, auth, body, verify, buildBase) {
-  return runPaidNarrativeDelivery(request, env, auth, body, { ...loveTarotNarrativeAdapter(env), seed: original => seed(original, buildBase), verify });
+  return runPaidNarrativeDelivery(request, env, auth, body, { ...loveTarotNarrativeAdapter(env), seed: original => seed(env, auth.userId, original, buildBase), verify });
 }
 // The route and the server resume task share render and produce.
 export function loveTarotNarrativeAdapter(env) {

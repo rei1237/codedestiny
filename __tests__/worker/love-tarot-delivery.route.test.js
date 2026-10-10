@@ -4,7 +4,7 @@ import { jest } from '@jest/globals';
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
-let route,docs,provider,revoked,userId,fault,lost,external,kind,mode,authError;
+let draws,paidTarotDrawKey,route,docs,provider,revoked,userId,fault,lost,external,kind,mode,authError;
 let owner='64b7f2a1c3d4e5f601234567',clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
 function matches(doc,filter){return Object.entries(filter).every(([key,value])=>{
@@ -19,6 +19,8 @@ const model={findOne:filter=>{if(lost){lost=false;return query(null);}return que
   if(fault&&(fault.metadata?Boolean(update.$set?.metadata):update.$set?.premiumStatus==='completed')){const failure=fault;fault=null;if(failure.kind==='throw')throw Error('storage');if(failure.kind==='null')return query(null);if(failure.kind==='confirm')lost=true;}
   let doc=docs.find(doc=>matches(doc,filter));if(!doc&&options.upsert){doc={...clone(update.$setOnInsert),_id:'record'};docs.push(doc);}if(doc)patch(doc,update.$set||{});return query(doc||null);
  },updateOne:async(filter,update)=>{const doc=docs.find(doc=>matches(doc,filter));if(doc)patch(doc,update.$set||{});return {modifiedCount:doc?1:0};}};
+// The server-held draws (worker/lib/paid-tarot-draw-store.js) in memory.
+const drawStore={findOne:async filter=>clone(draws.find(doc=>matches(doc,filter))||null),updateOne:async(filter,update,options={})=>{let doc=draws.find(doc=>matches(doc,filter));if(!doc&&options.upsert){doc=clone(update.$setOnInsert);draws.push(doc);}else if(doc)patch(doc,update.$set||{});return {matchedCount:doc?1:0};}};
 beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
@@ -26,8 +28,10 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/paid-feature-access.js',()=>({PAID_FEATURE_ACCESS_USER_PROJECTION:{},canAccessPaidFeature:async()=>({allowed:mode==='pass'})}));
  jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({logPerUsePaymentProof:()=>{},verifyPerUsePayment:async(_env,body)=>{proofs.push(body);return {proven:mode==='unavailable'?null:mode!=='denied',source:mode};}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));
+ jest.unstable_mockModule('../../worker/lib/paid-tarot-draw-store.js',()=>({paidTarotDrawCollection:async()=>drawStore}));
  jest.unstable_mockModule('../../worker/lib/gemini.js',()=>({callGeminiText:(...args)=>provider(...args)}));
  ({handleTarotRoutes:route}=await import('../../worker/routes/tarot.js'));
+ ({paidTarotDrawKey}=await import('../../worker/lib/paid-tarot-draw.js'));
 });
 let proofs=[];
 test.each(['single', 'excess'])('matrix %s paragraphs are saved and reopened without an extra call',async format=>{
@@ -49,14 +53,16 @@ test.each(['single', 'excess'])('matrix %s paragraphs are saved and reopened wit
  expect((await (await resume()).json()).reading).toEqual(data.reading);
  expect(provider).toHaveBeenCalledTimes(9);
 });
-beforeEach(()=>{docs=[];revoked=false;userId=owner;fault=null;lost=false;mode='pass';proofs=[];authError=null;
+beforeEach(()=>{docs=[];draws=[{_id:paidTarotDrawKey('tarot-love-relationship','original-love-draw'),featureKey:'tarot-love-relationship',drawId:'original-love-draw',owner:'',cards:DRAWN}];revoked=false;userId=owner;fault=null;lost=false;mode='pass';proofs=[];authError=null;
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
  const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)?.[1],label=prompt.match(/\[이번 부분 ([^\]]+)\]/)[1].replaceAll('.', '-');
  const lines=Array.from({length:65},(_,i)=>`${label} ${i}번째 해석은 세 형상의 관계에 비추어 지금의 선택을 검토하는 과정이며 확정된 사건을 예언하지 않습니다. ${label} ${i}번째 관찰에서는 생활 속 조건과 실천의 결과를 기록하며 자신에게 맞는 방향을 선택할 수 있습니다.`);const body=label==='matrix'?Array.from({length:8},(_,g)=>lines.slice(g*8,(g+1)*8).join(' ')).filter(Boolean).join('\n\n'):lines.join('\n\n');return {ok:true,provider:'gemini',text:JSON.stringify({evidenceHash,body})};
  });external=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('external fetch forbidden');});
 });
 afterEach(()=>{expect(external).not.toHaveBeenCalled();external.mockRestore();});
-const original=()=>({requestId:'original-paid-love-tarot',transactionId:'paid-'+mode,userQuestion:'두 사람의 관계를 어떻게 이해하면 좋을까요?',cards:Array.from({length:6},(_,i)=>({cardId:`M${String(i).padStart(2,'0')}`,position:`position_${i+1}`,orientation:i%2?'reversed':'upright'}))});
+// The paid body names the server draw its cards came from (worker/lib/paid-tarot-draw.js).
+const DRAWN=Array.from({length:6},(_,i)=>({cardId:`M${String(i).padStart(2,'0')}`,orientation:i%2?'reversed':'upright'}));
+const original=()=>({requestId:'original-paid-love-tarot',drawId:'original-love-draw',transactionId:'paid-'+mode,userQuestion:'두 사람의 관계를 어떻게 이해하면 좋을까요?',cards:Array.from({length:6},(_,i)=>({cardId:`M${String(i).padStart(2,'0')}`,position:`position_${i+1}`,orientation:i%2?'reversed':'upright'}))});
 const post=body=>route(new Request('https://mock.test/api/tarot/love-reading',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}),{});
 const start=()=>post(original()),resume=()=>post({resumeResultId:docs[0].executionKey});
 const finish=async()=>{let result;for(let i=0;i<8;i++){result=await resume();if(result.status!==202)return result;}return result;};
@@ -69,6 +75,22 @@ test('concurrent original requests share a lease and retain original locale',asy
 test('provider interruptions have two attempts per part without false refund or completion',async()=>{provider.mockResolvedValue({ok:false});await start();for(let i=0;i<20;i++)await resume();expect(provider).toHaveBeenCalledTimes(18);expect(docs[0].status).toBe('pending');expect(Object.values(docs[0].metadata.paidNarrative.attempts).every(n=>n===2)).toBe(true);});
 
 test('invalid card is rejected before provider and storage',async()=>{expect((await post({...original(),cards:original().cards.map((card,i)=>i?card:{...card,cardId:'INVALID'})})).status).toBe(400);expect(docs).toHaveLength(0);expect(provider).not.toHaveBeenCalled();});
+test.each([
+ ['a swapped card',body=>{body.cards[0]={...body.cards[0],cardId:'M21'};},400,'TAROT_CARDS_FORGED'],
+ ['a flipped orientation',body=>{body.cards[1]={...body.cards[1],orientation:'upright'};},400,'TAROT_CARDS_FORGED'],
+ ['no draw id',body=>{delete body.drawId;},409,'TAROT_DRAW_REQUIRED'],
+ ['an unknown draw',body=>{body.drawId='never-dealt-draw';},409,'TAROT_DRAW_REQUIRED'],
+ ['a draw another account used',()=>{draws[0].owner='someone-else';},403,'TAROT_DRAW_OWNER_MISMATCH'],
+])('%s is refused before the provider and storage',async(_name,change,status,reason)=>{const body=original();change(body);const response=await post(body);expect(response.status).toBe(status);expect((await response.json()).reason).toBe(reason);expect(docs).toHaveLength(0);expect(provider).not.toHaveBeenCalled();});
+test('the paid draw deals six server cards once, and the reading binds them to its owner',async()=>{
+ const deal=body=>route(new Request('https://mock.test/api/tarot/paid-draw',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({featureKey:'tarot-love-relationship',...body})}),{});
+ const first=await (await deal({drawId:'fresh-love-draw',auto:true})).json();expect(first.cards).toHaveLength(6);
+ expect(first.cards.every((card,i)=>card.position==='self_view_of_other'||i)).toBe(true);
+ expect((await (await deal({drawId:'fresh-love-draw',picks:[0,1,2,3,4,5]})).json()).cards).toEqual(first.cards);
+ for(const body of [{drawId:'short',auto:true},{drawId:'repeat-love-draw',picks:[1,1,2,3,4,5]},{featureKey:'tarot-oracle',drawId:'oracle-love-draw',auto:true}])expect((await deal(body)).status).toBe(400);
+ expect((await post({...original(),drawId:'fresh-love-draw',cards:first.cards.map(({cardId,position,orientation})=>({cardId,position,orientation}))})).status).toBe(202);
+ expect(draws.find(draw=>draw.drawId==='fresh-love-draw').owner).toBe(owner);
+});
 test('unavailable payment lookup is 503 and never generates',async()=>{mode='unavailable';expect((await start()).status).toBe(503);expect(provider).not.toHaveBeenCalled();});
 
 test.each([401,403,503])('authentication status %s prevents provider calls',async status=>{authError=Object.assign(Error('auth'),{status});expect((await start()).status).toBe(status);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);});

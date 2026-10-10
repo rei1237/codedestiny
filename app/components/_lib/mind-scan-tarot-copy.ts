@@ -129,6 +129,7 @@ export interface MindScanTarotCopy {
   loginRequiredError: string;
   insufficientCoinsErrorTemplate: (amount: string) => string;
   refundedToast: string;
+  drawUnavailable: string;
   paymentNotConfirmedError: string;
   requestFailedTemplate: (status: number) => string;
 }
@@ -250,6 +251,7 @@ const MIND_SCAN_TAROT_COPY_EN: MindScanTarotCopy = {
   loginRequiredError: "Login required. Please log in and try again.",
   insufficientCoinsErrorTemplate: (amount) => `Insufficient balance for payment. ${amount} is required.`,
   refundedToast: "The reading couldn't be completed, so this payment was refunded.",
+  drawUnavailable: "The cards could not be dealt. Please pick them again.",
   paymentNotConfirmedError: "Payment confirmation was not completed.",
   requestFailedTemplate: (status) => `Request failed (${status})`,
 };
@@ -372,6 +374,7 @@ const MIND_SCAN_TAROT_COPY: Partial<Record<LoadingLocale, MindScanTarotCopy>> = 
     loginRequiredError: "로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
     insufficientCoinsErrorTemplate: (amount) => `결제 가능 금액이 부족합니다. ${amount}원 결제가 필요합니다.`,
     refundedToast: "리딩 생성이 완료되지 않아 이번 결제가 환불되었습니다.",
+    drawUnavailable: "카드를 받아오지 못했습니다. 다시 골라 주세요.",
     paymentNotConfirmedError: "결제 확인이 완료되지 않았습니다.",
     requestFailedTemplate: (status) => `요청 실패 (${status})`,
   },
@@ -492,6 +495,7 @@ const MIND_SCAN_TAROT_COPY: Partial<Record<LoadingLocale, MindScanTarotCopy>> = 
     loginRequiredError: "ログインが必要です。ログイン後にもう一度お試しください。",
     insufficientCoinsErrorTemplate: (amount) => `決済可能な金額が不足しています。${amount}の決済が必要です。`,
     refundedToast: "リーディングが完了しなかったため、この決済は返金されました。",
+    drawUnavailable: "カードを受け取れませんでした。もう一度選んでください。",
     paymentNotConfirmedError: "決済確認が完了していません。",
     requestFailedTemplate: (status) => `リクエスト失敗 (${status})`,
   },
@@ -612,6 +616,7 @@ const MIND_SCAN_TAROT_COPY: Partial<Record<LoadingLocale, MindScanTarotCopy>> = 
     loginRequiredError: "需要登录，请登录后重试。",
     insufficientCoinsErrorTemplate: (amount) => `可用支付余额不足，需支付 ${amount}。`,
     refundedToast: "解读未能完成生成，本次付款已退还。",
+    drawUnavailable: "未能取得卡牌，请重新选择。",
     paymentNotConfirmedError: "支付确认尚未完成。",
     requestFailedTemplate: (status) => `请求失败 (${status})`,
   },
@@ -732,6 +737,7 @@ const MIND_SCAN_TAROT_COPY: Partial<Record<LoadingLocale, MindScanTarotCopy>> = 
     loginRequiredError: "需要登入，請登入後重試。",
     insufficientCoinsErrorTemplate: (amount) => `可用支付餘額不足，需支付 ${amount}。`,
     refundedToast: "解讀未能完成產生，本次付款已退還。",
+    drawUnavailable: "未能取得卡牌，請重新選擇。",
     paymentNotConfirmedError: "付款確認尚未完成。",
     requestFailedTemplate: (status) => `請求失敗 (${status})`,
   },

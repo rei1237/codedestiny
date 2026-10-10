@@ -6,6 +6,7 @@ import { callGeminiText } from './gemini.js';
 import { normalizeNarrativeParagraphs } from './narrative-format.js';
 import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from './paid-report-quality.js';
 import { createHttpError } from './http.js';
+import { bindPaidTarotDraw } from './paid-tarot-draw.js';
 
 const paragraphs = value => String(value || '').split(/\n\s*\n/).map(text => text.trim()).filter(Boolean);
 const SUMMARY = ['emotionalTemperatureText', 'corePsychology', 'contactChance', 'relationFlow', 'reApproachChance',
@@ -15,7 +16,9 @@ const FIELDS = [
   ['emotion', '생활에서 드러나는 감정과 반대 조건', 'emotionalReading', 'hiddenMessage'],
   ['action', '주의점과 현실적인 행동', 'caution', 'advice'],
 ];
-function seed(body) {
+// The pairs must be the server draw the body names (paid-tarot-draw.js), checked before any build.
+async function seed(env, userId, body) {
+  await bindPaidTarotDraw(env, { featureKey: 'tarot-mindscan', owner: userId, body });
   const facts = buildMindscanDeliveryFacts(body.pairs, body.question, getAmbientAiLocale() || body.locale || 'ko');
   if (!facts.ok) throw createHttpError(400, '질문과 카드 5쌍을 확인해 주세요.', { reason: facts.reason });
   const tasks = facts.sectionInputs.flatMap((section, index) => FIELDS.map(([key, title]) => ({
@@ -52,7 +55,7 @@ function render(state) {
 // The paid-intent task seeds a proven intent with the same function.
 export { seed as seedMindscanNarrative };
 export function deliverMindscan(request, env, auth, body, verify) {
-  return runPaidNarrativeDelivery(request, env, auth, body, { ...mindscanNarrativeAdapter(env), seed, verify });
+  return runPaidNarrativeDelivery(request, env, auth, body, { ...mindscanNarrativeAdapter(env), seed: original => seed(env, auth.userId, original), verify });
 }
 // The route and the server resume task share render and produce.
 export function mindscanNarrativeAdapter(env) {

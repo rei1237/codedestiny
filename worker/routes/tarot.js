@@ -1860,8 +1860,9 @@ export async function handleTarotRoutes(request, env = {}) {
     //    같은 요청에 requireAuth Mongo 왕복이 두 번 돈다(중첩 사전검사). 인증의 주인은 그 게이트다.
     //    `/mindscan` 도 원래 여기서 빠져 있었는데 예전에는 **아무도** 인증을 안 봤다 —
     //    2026-08-24 감사에서 발견해 자기 게이트를 달았다.
+    // `/paid-draw` deals the paid love/mindscan cards before login; the paid route binds them later.
     if (path !== "/mindscan" && path !== "/crystal-soul" && path !== "/ijik-reading"
-      && path !== "/draw" && !isYearReadingRequest) {
+      && path !== "/draw" && path !== "/paid-draw" && !isYearReadingRequest) {
       try {
         await requireAuth(request, env);
       } catch (authErr) {
@@ -1876,6 +1877,11 @@ export async function handleTarotRoutes(request, env = {}) {
           throw authErr;
         }
       }
+    }
+
+    if (path === "/paid-draw") {
+      const { createPaidTarotDraw } = await import("../lib/paid-tarot-draw.js");
+      return json(await createPaidTarotDraw(env, body), { headers: { "Cache-Control": "no-store" } });
     }
 
     if (path === "/draw") {
