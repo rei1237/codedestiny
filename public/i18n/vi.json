@@ -2707,7 +2707,22 @@
   "fortune": {
     "destinyFlower": {
       "common": {
-        "unknown": "Không xác định"
+        "unknown": "Không xác định",
+        "bloomLabel": {
+          "seed": "Hạt giống · Nhật chủ",
+          "season": "Mùa · Thời điểm sinh",
+          "bloom": "Bông hoa đã nở"
+        },
+        "bloom": {
+          "verdict": "Và thế là nở thành — {title}."
+        },
+        "flowerLanguage": {
+          "anchor": "'{language}' — lời bông hoa này gửi đến bạn qua {anchor}.",
+          "plain": "'{language}' — lời bông hoa này gửi đến bạn lúc này."
+        },
+        "shareHook": {
+          "rarityAnchor": "Bông hoa duy nhất được đọc qua {anchor}"
+        }
       },
       "astro": {
         "elements": {
@@ -2958,11 +2973,11 @@
           "fallback": "Logic điều chỉnh: {note}"
         },
         "elements": {
-          "wood": "Gỗ",
-          "fire": "Lửa",
-          "earth": "Trái Đất",
-          "metal": "Kim loại",
-          "water": "Nước"
+          "wood": "Mộc",
+          "fire": "Hỏa",
+          "earth": "Thổ",
+          "metal": "Kim",
+          "water": "Thủy"
         },
         "seasons": {
           "Spring": "mùa xuân",
@@ -3017,6 +3032,18 @@
           "Earth": "Hoạt động, quản lý và xây dựng hệ thống phát huy thế mạnh của bạn.",
           "Metal": "Phân tích, lập kế hoạch và kiểm soát chất lượng biến độ chính xác thành kết quả.",
           "Water": "Nghiên cứu, điều tra và thiết kế nội dung giúp bạn tỏa sáng về chiều sâu."
+        },
+        "bloom": {
+          "season": "Như bạn sinh vào {season}, loài hoa này cũng nở rực rỡ nhất vào {season}."
+        },
+        "flowerLanguage": {
+          "yongshin": "'{language}' — lời nhắn bông hoa mang khí {elements} của dụng thần gửi đến bạn.",
+          "dayMaster": "'{language}' — lời bông hoa này gửi đến bạn, người có nhật chủ {dayMasterBadge}."
+        },
+        "shareHook": {
+          "raritySeason": "Một bông trong {total} bông, do lá số nhật chủ {dayMasterBadge}, sinh vào {season} chọn",
+          "rarityDayMaster": "Một bông trong {total} bông, do lá số nhật chủ {dayMasterBadge} chọn",
+          "rarityPlain": "Bông hoa lá số của mình chọn trong {total} bông"
         }
       },
       "flowers": {
@@ -3030,7 +3057,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự mong đợi, sự chân thật"
         },
         "aster": {
           "name": "Aster",
@@ -3042,7 +3070,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự kiên nhẫn, lòng biết ơn"
         },
         "astro_lavender": {
           "name": "Tinh vân Hoa oải hương",
@@ -3054,7 +3083,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lời chúc phúc, tình yêu chung thủy"
         },
         "azalea": {
           "name": "Đỗ quyên",
@@ -3066,7 +3096,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Kỷ niệm ngọt ngào, sự ôn hòa, nhã nhặn"
         },
         "begonia": {
           "name": "Thu hải đường",
@@ -3078,7 +3109,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự quan tâm thầm lặng"
         },
         "bellflower": {
           "name": "Hoa chuông",
@@ -3090,7 +3122,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình yêu vĩnh cửu"
         },
         "bird_of_paradise": {
           "name": "Chim thiên đường",
@@ -3102,7 +3135,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự tự do, sự thành công"
         },
         "black_rose": {
           "name": "Hoa hồng đen",
@@ -3114,7 +3148,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự tái sinh, sự bí ẩn"
         },
         "blue_iris": {
           "name": "Hoa diên vĩ xanh",
@@ -3126,7 +3161,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tin vui, người bí ẩn"
         },
         "blue_lotus": {
           "name": "Hoa sen xanh",
@@ -3138,7 +3174,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự hồi sinh, cảm hứng thiêng liêng"
         },
         "bluebell": {
           "name": "Chuông xanh",
@@ -3150,7 +3187,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Khiêm nhường, tấm lòng không đổi thay"
         },
         "cactus_flower": {
           "name": "Hoa xương rồng",
@@ -3162,7 +3200,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự bền bỉ, sức sống mãnh liệt"
         },
         "camellia": {
           "name": "Hoa trà",
@@ -3174,7 +3213,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Duyên dáng, cao thượng, lòng can đảm"
         },
         "carnation": {
           "name": "Hoa cẩm chướng",
@@ -3186,7 +3226,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lòng biết ơn, sự ngưỡng mộ"
         },
         "cherry_blossom": {
           "name": "Hoa anh đào",
@@ -3198,7 +3239,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thanh xuân tươi đẹp, sự khởi đầu mới"
         },
         "chrysanthemum_gold": {
           "name": "Cúc Vàng",
@@ -3210,7 +3252,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sung túc, sức khỏe, trường thọ"
         },
         "cornflower": {
           "name": "Hoa ngô",
@@ -3222,7 +3265,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự dịu dàng, tế nhị"
         },
         "cosmos": {
           "name": "Vũ trụ",
@@ -3234,7 +3278,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tấm lòng thuần khiết, sự hài hòa"
         },
         "crocus": {
           "name": "Cây nghệ",
@@ -3246,7 +3291,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự vui mừng, tươi tắn"
         },
         "dahlia": {
           "name": "Thược dược",
@@ -3258,7 +3304,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sung túc, tài lộc"
         },
         "daisy": {
           "name": "Cúc",
@@ -3270,7 +3317,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình bạn chân thành, tình yêu ngây thơ"
         },
         "delicate_willow": {
           "name": "Hoa Liễu",
@@ -3282,7 +3330,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sức sống bền bỉ, tình yêu chân thành"
         },
         "delphinium": {
           "name": "Phi yến",
@@ -3294,7 +3343,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Nhẹ nhàng, thanh thoát"
         },
         "edelweiss": {
           "name": "Edelweiss",
@@ -3306,7 +3356,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Kỷ niệm quý giá, lòng dũng cảm cao quý"
         },
         "flame_tulip": {
           "name": "Hoa Tulip Ngọn Lửa",
@@ -3318,7 +3369,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Đam mê, tình yêu hoàn hảo"
         },
         "forsythia": {
           "name": "Forsythia",
@@ -3330,7 +3382,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Hy vọng, tình cảm sâu đậm"
         },
         "foxglove": {
           "name": "Găng Tay Cáo",
@@ -3342,7 +3395,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình yêu nồng nhiệt, tấm lòng không che giấu"
         },
         "freesia": {
           "name": "Lan Nam Phi",
@@ -3354,7 +3408,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Khởi đầu mới, sự ngây thơ trong sáng"
         },
         "gardenia": {
           "name": "Cây dành dành",
@@ -3366,7 +3421,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Niềm vui vô hạn, hạnh phúc"
         },
         "gentian": {
           "name": "cây khổ sâm",
@@ -3378,7 +3434,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lẽ phải, yêu thương khi bạn buồn"
         },
         "geranium": {
           "name": "Phong lữ",
@@ -3390,7 +3447,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự ưu ái"
         },
         "glacier_bloom": {
           "name": "Sông băng nở hoa",
@@ -3402,7 +3460,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lời hứa được giữ gìn dưới lớp băng"
         },
         "heliotrope": {
           "name": "Hoa vòi voi",
@@ -3414,7 +3473,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự tận tụy, tình yêu vĩnh cửu"
         },
         "hibiscus": {
           "name": "Dâm bụt",
@@ -3426,7 +3486,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sắc đẹp rực rỡ của người phụ nữ, tình yêu nồng cháy"
         },
         "honeysuckle": {
           "name": "Kim ngân hoa",
@@ -3438,7 +3499,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lòng trung thành, tình yêu gắn bó"
         },
         "hydrangea": {
           "name": "Hoa cẩm tú cầu",
@@ -3450,7 +3512,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lòng biết ơn, tình yêu chân thành"
         },
         "iris": {
           "name": "Iris",
@@ -3462,7 +3525,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tin vui, hy vọng"
         },
         "ivy_bloom": {
           "name": "Hoa thường xuân",
@@ -3474,7 +3538,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình bạn không đổi thay"
         },
         "jasmine": {
           "name": "Hoa Nhài",
@@ -3486,7 +3551,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Vẻ đẹp của người con gái, may mắn"
         },
         "larkspur": {
           "name": "Larkspur",
@@ -3498,7 +3564,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Nhẹ nhàng, thanh thoát"
         },
         "lavender": {
           "name": "Hoa oải hương",
@@ -3510,7 +3577,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự bình yên, sự may mắn"
         },
         "lily": {
           "name": "hoa huệ",
@@ -3522,7 +3590,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thuần khiết, hy vọng, hòa bình"
         },
         "lotus": {
           "name": "Hoa sen",
@@ -3534,7 +3603,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Cốt cách thanh cao, vẻ đẹp thuần khiết"
         },
         "lotus_golden": {
           "name": "Sen Vàng",
@@ -3546,7 +3616,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Ý chí kiên trì vượt khó"
         },
         "lotus_pink": {
           "name": "Sen hồng",
@@ -3558,7 +3629,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Hân hoan, tươi vui"
         },
         "lotus_white": {
           "name": "Sen trắng",
@@ -3570,7 +3642,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thanh cao, thuần khiết, tôn nghiêm"
         },
         "magnolia": {
           "name": "Hoa mộc lan",
@@ -3582,7 +3655,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "May mắn, sắc đẹp, đức hạnh"
         },
         "marigold": {
           "name": "Cúc vạn thọ",
@@ -3594,7 +3668,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sức khỏe, sự trường tồn, thịnh vượng"
         },
         "moon_lily": {
           "name": "Hoa huệ trăng",
@@ -3606,7 +3681,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Trong trắng, đức hạnh"
         },
         "moon_narcissus": {
           "name": "Hoa thủy tiên mặt trăng",
@@ -3618,7 +3694,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thuần khiết, khởi đầu mới"
         },
         "moonflower": {
           "name": "Hoa trăng",
@@ -3630,7 +3707,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình yêu thầm lặng"
         },
         "morning_glory": {
           "name": "Hoa Vinh Quang",
@@ -3642,7 +3720,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tin vui"
         },
         "mugunghwa": {
           "name": "Mugunghwa",
@@ -3654,7 +3733,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lòng son sắt, sự vĩnh cửu"
         },
         "narcissus": {
           "name": "Hoa thủy tiên",
@@ -3666,7 +3746,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "May mắn, tài lộc, phồn thịnh"
         },
         "nemophila": {
           "name": "Nemophila",
@@ -3678,7 +3759,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thành công ở mọi nơi"
         },
         "night_cereus": {
           "name": "Cereus nở đêm",
@@ -3690,7 +3772,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sắc đẹp hoàn hảo, sự kiên nhẫn"
         },
         "orange_trumpet": {
           "name": "Hoa Kèn Cam",
@@ -3702,7 +3785,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Danh dự, nỗi nhớ mong"
         },
         "orchid": {
           "name": "Hoa Lan",
@@ -3714,7 +3798,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thanh cao, phú quý, tài lộc"
         },
         "orchid_tanlang": {
           "name": "Lan Tan Lang",
@@ -3726,7 +3811,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "May mắn, khởi đầu mới thuận lợi"
         },
         "passionflower": {
           "name": "Hoa lạc tiên",
@@ -3738,7 +3824,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình yêu thiêng liêng"
         },
         "peony": {
           "name": "Hoa mẫu đơn",
@@ -3750,7 +3837,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Vương giả, phú quý, giàu sang"
         },
         "peony_ziwei": {
           "name": "Hoa mẫu đơn Tử Vi",
@@ -3762,7 +3850,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Hạnh phúc, hoàn mỹ, thịnh vượng"
         },
         "persian_buttercup": {
           "name": "Bơ Ba Tư",
@@ -3774,7 +3863,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Quyến rũ, hấp dẫn"
         },
         "plum_blossom": {
           "name": "Hoa mận",
@@ -3786,7 +3876,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Cốt cách thanh cao, tâm hồn cao thượng"
         },
         "poppy": {
           "name": "Cây anh túc",
@@ -3798,7 +3889,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Vẻ đẹp hoàn hảo, thành công và sang trọng"
         },
         "primrose": {
           "name": "Hoa anh thảo",
@@ -3810,7 +3902,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Mối tình đầu, chìa khóa hạnh phúc"
         },
         "queen_anne_lace": {
           "name": "Ren Nữ hoàng Anne",
@@ -3822,7 +3915,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tấm lòng sâu lắng, lòng biết ơn"
         },
         "ranunculus": {
           "name": "Cây mao lương",
@@ -3834,7 +3928,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự quyến rũ, sự thành công"
         },
         "red_lycoris": {
           "name": "Lycoris đỏ",
@@ -3846,7 +3941,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Nhung nhớ"
         },
         "red_spider_lily": {
           "name": "Hoa huệ nhện đỏ",
@@ -3858,7 +3954,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Ưu mỹ, thuần khiết"
         },
         "resilient_rose": {
           "name": "Hoa hồng cổ điển",
@@ -3870,7 +3967,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Lòng ái mộ, hạnh phúc vinh dự"
         },
         "rose": {
           "name": "Hoa hồng",
@@ -3882,7 +3980,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình yêu lãng mạn, vẻ đẹp hoàn hảo"
         },
         "snapdragon": {
           "name": "Snapdragon",
@@ -3894,7 +3993,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Vẻ đẹp đầy đặn, người hay chuyện"
         },
         "sunflower": {
           "name": "Hướng dương",
@@ -3906,7 +4006,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "May mắn và hạnh phúc, tình bạn chân thành"
         },
         "sunflower_ziwei": {
           "name": "Hoa hướng dương Ziwei",
@@ -3918,7 +4019,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Niềm tin và hy vọng"
         },
         "sweet_pea": {
           "name": "Đậu Ngọt",
@@ -3930,7 +4032,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Kỷ niệm vui, tình bạn"
         },
         "thorny_rose": {
           "name": "Hoa Hồng Có Gai",
@@ -3942,7 +4045,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình yêu mãnh liệt và đậm đà"
         },
         "tiger_lily": {
           "name": "Hoa Huệ Hổ",
@@ -3954,7 +4058,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thịnh vượng, vương giả"
         },
         "tulip": {
           "name": "Hoa Tulip",
@@ -3966,7 +4071,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thịnh vượng, sự yêu thương"
         },
         "violet": {
           "name": "Tím",
@@ -3978,7 +4084,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Hãy giữ kín tình yêu của chúng ta"
         },
         "violet_wisteria": {
           "name": "Hoa Tử Đằng Tím",
@@ -3990,7 +4097,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tình yêu vĩnh cửu"
         },
         "water_anemone": {
           "name": "Hải quỳ nước",
@@ -4002,7 +4110,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự mong đợi, sự chân thật dịu dàng"
         },
         "water_lily": {
           "name": "Hoa súng",
@@ -4014,7 +4123,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Tâm hồn trong trắng"
         },
         "water_narcissus": {
           "name": "Hoa thủy tiên nước",
@@ -4026,7 +4136,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Vương giả, thanh cao"
         },
         "white_baby_breath": {
           "name": "Hơi thở trắng trẻo",
@@ -4038,7 +4149,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Trong sáng, tinh khôi, tình yêu vĩnh cửu"
         },
         "wild_chrysanthemum": {
           "name": "Cúc Dại",
@@ -4050,7 +4162,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Thanh cao, khí tiết người quân tử"
         },
         "winter_plum": {
           "name": "Mận mùa đông",
@@ -4062,7 +4175,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Khí phách kiên cường, niềm hy vọng"
         },
         "wisteria": {
           "name": "Hoa Tử Đằng",
@@ -4074,7 +4188,8 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
-          }
+          },
+          "flowerLanguage": "Sự chào đón, hạnh phúc"
         },
         "yarrow": {
           "name": "cỏ thi",
@@ -4086,6 +4201,135 @@
             "0": "Hoa nở",
             "1": "Hoà âm",
             "2": "Luồng"
+          },
+          "flowerLanguage": "Sự chữa lành, khả năng lãnh đạo"
+        }
+      },
+      "ui": {
+        "source": {
+          "saju": "Saju",
+          "astrology": "Chiêm tinh",
+          "jamidusu": "Tử Vi",
+          "sukuyo": "Túc Diệu"
+        },
+        "specimen": {
+          "language": "Ý nghĩa hoa",
+          "system": "Hệ thống",
+          "mark": {
+            "saju": {
+              "primary": "Nhật chủ",
+              "secondary": "Mùa"
+            },
+            "astrology": {
+              "primary": "Cung",
+              "secondary": "Cung mọc"
+            },
+            "jamidusu": {
+              "primary": "Chính tinh",
+              "secondary": "Độ sáng"
+            },
+            "sukuyo": {
+              "primary": "Bản mệnh tú",
+              "secondary": "Trăng"
+            }
+          },
+          "yongshin": "Dụng thần"
+        },
+        "bouquet": {
+          "sourcesAll": "Cả bốn hệ",
+          "sourcesPair": "{a} và {b}",
+          "sourcesTrio": "{a}, {b} và {c}",
+          "sameFlower": "{sources} cùng chọn một loài hoa: {name}. Nét riêng của bạn rõ ràng đến thế.",
+          "sameElement": "{sources} đều chỉ về khí {element}.",
+          "diverse": "Những bông hoa khác nét hội tụ, gói trọn nhiều gương mặt của bạn trong một bó.",
+          "title": "Bó hoa định mệnh",
+          "sub": "Những bông hoa do {count} hệ luận giải chọn, gói thành một bó."
+        },
+        "share": {
+          "preparing": "Đang chuẩn bị kết quả hoa định mệnh của bạn.",
+          "hookTitle": "🌸 Hoa định mệnh của mình là '{name}' đó",
+          "hookLanguage": "Ý nghĩa hoa: {language}",
+          "hookAsk": "Còn bạn là hoa gì? → {url}",
+          "hashtagsNamed": "#HoaĐịnhMệnh #HoaCủaMìnhLà{tag}",
+          "hashtag": "#HoaĐịnhMệnh",
+          "languageDot": "Ý nghĩa hoa · {language}",
+          "ogTitle": "{name}, hoa định mệnh của mình",
+          "ogAsk": "Hoa của bạn là gì nhỉ?",
+          "title": "Hoa định mệnh",
+          "copiedText": "Đã sao chép nội dung chia sẻ. Hãy dán vào tin nhắn để gửi.",
+          "preparedText": "Nội dung chia sẻ đã sẵn sàng. Nếu ứng dụng nhắn tin không mở, hãy dán để gửi.",
+          "kakaoTitle": "Hoa định mệnh của mình là '{name}'",
+          "bloomMine": "Cho hoa của tôi nở",
+          "kakaoOpened": "Đã mở cửa sổ chia sẻ KakaoTalk.",
+          "kakaoPrepared": "Đã chuẩn bị nội dung gửi qua KakaoTalk. Nếu không mở được, hãy dán để gửi."
+        },
+        "card": {
+          "kicker": "Hoa định mệnh của tôi",
+          "ask": "Còn hoa của bạn?",
+          "failed": "Không tạo được ảnh thẻ nên sẽ gửi nội dung chia sẻ thay thế.",
+          "saved": "Đã lưu thẻ story. Nội dung chia sẻ cũng đã được sao chép.",
+          "ready": "Thẻ story đã sẵn sàng. Hãy đăng lên story Instagram nhé.",
+          "drawing": "Đang vẽ thẻ. Vui lòng đợi một chút."
+        },
+        "sheet": {
+          "story": "Thẻ story",
+          "storyHint": "Lưu hoặc chia sẻ ảnh 9:16",
+          "kakao": "KakaoTalk",
+          "kakaoHint": "Gửi hoa của tôi cho bạn bè",
+          "link": "Sao chép liên kết",
+          "linkHint": "Sao chép kèm ý nghĩa hoa",
+          "compat": "Độ hợp hoa với bạn bè",
+          "compatHint": "Gửi liên kết xem độ hợp cho bạn bè",
+          "compatHintFriend": "Xem độ hợp với hoa của bạn bè",
+          "title": "Chia sẻ hoa",
+          "close": "Đóng",
+          "linkCopied": "Đã sao chép ý nghĩa hoa và liên kết. Hãy dán để gửi cho bạn bè.",
+          "notReady": "Khi hoa của bạn nở, bạn có thể chia sẻ.",
+          "sub": "{name} · Ý nghĩa hoa '{language}'"
+        },
+        "compatShare": {
+          "inviteTitle": "🌸 Hoa định mệnh của mình là '{name}' nè",
+          "inviteAsk": "Bạn cũng cho hoa của mình nở rồi xem tụi mình có hợp hoa không nhé",
+          "hashtags": "#HoaĐịnhMệnh #HợpHoa",
+          "title": "Độ hợp hoa định mệnh",
+          "pair": "🌸 Mình là '{mine}', bạn mình là '{friend}'",
+          "result": "Độ hợp hoa của tụi mình là '{title}' đó",
+          "ask": "Bạn cũng thử xem độ hợp với hoa của mình nhé → {url}"
+        },
+        "friend": {
+          "kicker": "Hoa định mệnh bạn bè gửi đến",
+          "shareCompat": "Chia sẻ độ hợp hoa",
+          "note": "Khi hoa của bạn nở, chúng tôi sẽ cho xem ngay độ hợp hoa của hai người.",
+          "birthToast": "Nhập ngày sinh để hoa của bạn nở. Sau đó chúng tôi sẽ cho xem độ hợp với hoa của bạn bè."
+        },
+        "compat": {
+          "twin": {
+            "title": "Một cặp hoa giống nhau",
+            "line": "Cả hai đều là {name}. Không cần nói ra, hai người vẫn sống cùng một mùa."
+          },
+          "blend": {
+            "title": "Hoa khác nét",
+            "line": "Hai bông hoa khác màu gặp nhau, khiến bó hoa thêm đầy đặn."
+          },
+          "same": {
+            "title": "Hoa cùng nét",
+            "line": "Cả hai đều là hoa mang khí {mine}. Hai người hiểu nhịp của nhau hơn ai hết."
+          },
+          "give": {
+            "title": "Bông hoa mình giúp nở",
+            "line": "Khí {mine} trong hoa của mình nuôi dưỡng khí {friend} trong hoa của bạn ấy. Ở bên mình, bạn ấy nở rực rỡ hơn."
+          },
+          "receive": {
+            "title": "Bông hoa giúp mình nở",
+            "line": "Khí {friend} trong hoa của bạn ấy tiếp sức cho khí {mine} trong hoa của mình. Ở bên nhau, hoa của mình nở rộ hơn."
+          },
+          "shape": {
+            "title": "Hoa mài giũa nhau",
+            "line": "Khí {mine} trong hoa của mình mài giũa khí {friend} trong hoa của bạn ấy. Càng đồng điệu, hai người càng vững vàng."
+          },
+          "spark": {
+            "title": "Hoa tiếp lửa cho nhau",
+            "line": "Khí {friend} trong hoa của bạn ấy giúp khí {mine} trong hoa của mình vững vàng hơn. Hai người là động lực tốt cho nhau."
           }
         }
       }

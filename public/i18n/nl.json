@@ -2707,7 +2707,22 @@
   "fortune": {
     "destinyFlower": {
       "common": {
-        "unknown": "Onbekend"
+        "unknown": "Onbekend",
+        "bloomLabel": {
+          "seed": "Zaad · Dagmeester",
+          "season": "Seizoen · Geboorte",
+          "bloom": "De bloem die opbloeide"
+        },
+        "bloom": {
+          "verdict": "En zo bloeide — {title}."
+        },
+        "flowerLanguage": {
+          "anchor": "'{language}' — dit zegt deze bloem tegen je, gelezen vanuit {anchor}.",
+          "plain": "'{language}' — dit zegt deze bloem nu tegen je."
+        },
+        "shareHook": {
+          "rarityAnchor": "De enige bloem, gelezen vanuit {anchor}"
+        }
       },
       "astro": {
         "elements": {
@@ -2959,7 +2974,7 @@
         },
         "elements": {
           "wood": "Hout",
-          "fire": "Brand",
+          "fire": "Vuur",
           "earth": "Aarde",
           "metal": "Metaal",
           "water": "Water"
@@ -3017,6 +3032,18 @@
           "Earth": "Operations, management en systeemopbouw brengen uw sterke punten naar voren.",
           "Metal": "Analyse, planning en kwaliteitscontrole zetten precisie om in resultaten.",
           "Water": "Onderzoek, onderzoek en inhoudontwerp laten uw diepgang stralen."
+        },
+        "bloom": {
+          "season": "Net als jij, geboren in de {season}, bloeit deze bloem het mooist in de {season}."
+        },
+        "flowerLanguage": {
+          "yongshin": "'{language}' — dit zegt deze bloem, die je nuttige element {elements} in zich draagt, tegen je.",
+          "dayMaster": "'{language}' — dit zegt deze bloem tegen jou, met dagmeester {dayMasterBadge}."
+        },
+        "shareHook": {
+          "raritySeason": "Eén bloem uit {total}, gekozen door een Saju met dagmeester {dayMasterBadge}, geboren in de {season}",
+          "rarityDayMaster": "Eén bloem uit {total}, gekozen door een Saju met dagmeester {dayMasterBadge}",
+          "rarityPlain": "De ene bloem die mijn Saju uit {total} koos"
         }
       },
       "flowers": {
@@ -3030,7 +3057,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Anticipatie, bescherming"
         },
         "aster": {
           "name": "Aster",
@@ -3042,7 +3070,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Liefde, herinnering, geduld"
         },
         "astro_lavender": {
           "name": "Nevel Lavendel",
@@ -3054,7 +3083,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Sereniteit, kalmte"
         },
         "azalea": {
           "name": "Azalea",
@@ -3066,7 +3096,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Liefde, zachtheid, vrouwelijkheid"
         },
         "begonia": {
           "name": "Begonia",
@@ -3078,7 +3109,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vriendelijkheid, beleefdheid"
         },
         "bellflower": {
           "name": "Klokjebloem",
@@ -3090,7 +3122,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Eeuwige liefde"
         },
         "bird_of_paradise": {
           "name": "Paradijsvogel",
@@ -3102,7 +3135,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vrijheid, succes, pracht"
         },
         "black_rose": {
           "name": "Zwarte roos",
@@ -3114,7 +3148,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Jij bent voor altijd van mij"
         },
         "blue_iris": {
           "name": "Blauwe iris",
@@ -3126,7 +3161,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Wijsheid, communicatie, optimisme"
         },
         "blue_lotus": {
           "name": "Blauwe Lotus",
@@ -3138,7 +3174,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Wedergeboorte, spiritueel ontwaken"
         },
         "bluebell": {
           "name": "Klokje",
@@ -3150,7 +3187,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Nederigheid, standvastigheid"
         },
         "cactus_flower": {
           "name": "Cactusbloem",
@@ -3162,7 +3200,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Brandend hart, passie"
         },
         "camellia": {
           "name": "Camellia",
@@ -3174,7 +3213,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Bewondering, perfectie"
         },
         "carnation": {
           "name": "Anjer",
@@ -3186,7 +3226,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Liefde, fascinatie, bewondering"
         },
         "cherry_blossom": {
           "name": "Kersenbloesem",
@@ -3198,7 +3239,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Schoonheid, verjonging"
         },
         "chrysanthemum_gold": {
           "name": "Gouden Chrysant",
@@ -3210,7 +3252,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Lang leven, vreugde, eer"
         },
         "cornflower": {
           "name": "Korenbloem",
@@ -3222,7 +3265,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Gelukzaligheid, verfijning"
         },
         "cosmos": {
           "name": "Kosmos",
@@ -3234,7 +3278,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Zuivere liefde, harmonie"
         },
         "crocus": {
           "name": "Krokus",
@@ -3246,7 +3291,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Jeugdige vreugde"
         },
         "dahlia": {
           "name": "Dahlia",
@@ -3258,7 +3304,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Kracht, creativiteit, elegantie"
         },
         "daisy": {
           "name": "Madeliefje",
@@ -3270,7 +3317,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Onschuld, zuiverheid, nieuw begin"
         },
         "delicate_willow": {
           "name": "Wilgenbloem",
@@ -3282,7 +3330,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Openhartigheid, vrijheid"
         },
         "delphinium": {
           "name": "Delphinium",
@@ -3294,7 +3343,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Waardigheid, elegantie"
         },
         "edelweiss": {
           "name": "Edelweiss",
@@ -3306,7 +3356,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Moed, zuiverheid, liefde"
         },
         "flame_tulip": {
           "name": "Vlamtulp",
@@ -3318,7 +3369,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Schoonheid"
         },
         "forsythia": {
           "name": "Forsythia",
@@ -3330,7 +3382,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Hoop, diepe genegenheid"
         },
         "foxglove": {
           "name": "Vingerhoedskruid",
@@ -3342,7 +3395,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vurige liefde, een open hart"
         },
         "freesia": {
           "name": "Freesia",
@@ -3354,7 +3408,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vriendschap, vertrouwen, onschuld"
         },
         "gardenia": {
           "name": "Gardenia",
@@ -3366,7 +3421,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Grenzeloze vreugde, geluk"
         },
         "gentian": {
           "name": "Gentiaan",
@@ -3378,7 +3434,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Rechtvaardigheid, ik hou van je als je verdrietig bent"
         },
         "geranium": {
           "name": "Geranium",
@@ -3390,7 +3447,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Ik ben gelukkig omdat jij er bent"
         },
         "glacier_bloom": {
           "name": "Gletsjerbloei",
@@ -3402,7 +3460,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Een belofte bewaard onder het ijs"
         },
         "heliotrope": {
           "name": "Heliotroop",
@@ -3414,7 +3473,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Toewijding, eeuwige liefde"
         },
         "hibiscus": {
           "name": "Hibiscus",
@@ -3426,7 +3486,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Delicate schoonheid, frisse liefde"
         },
         "honeysuckle": {
           "name": "Kamperfoelie",
@@ -3438,7 +3499,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Liefdesband, toegewijde liefde"
         },
         "hydrangea": {
           "name": "Hortensia",
@@ -3450,7 +3512,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Dankbaarheid, gratie, oprechte emoties"
         },
         "iris": {
           "name": "Iris",
@@ -3462,7 +3525,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Geloof, wijsheid, hoop"
         },
         "ivy_bloom": {
           "name": "Klimop bloei",
@@ -3474,7 +3538,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Onveranderlijke vriendschap"
         },
         "jasmine": {
           "name": "Jasmijn",
@@ -3486,7 +3551,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Gratie, elegantie"
         },
         "larkspur": {
           "name": "Ridderspoor",
@@ -3498,7 +3564,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Waardigheid, openheid, positiviteit"
         },
         "lavender": {
           "name": "Lavendel",
@@ -3510,7 +3577,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Sereniteit, kalmte"
         },
         "lily": {
           "name": "Lelie",
@@ -3522,7 +3590,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Zuiverheid, deugd, toewijding"
         },
         "lotus": {
           "name": "Lotus",
@@ -3534,7 +3603,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Verlichting, zuiverheid, wedergeboorte"
         },
         "lotus_golden": {
           "name": "Gouden Lotus",
@@ -3546,7 +3616,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Wedergeboorte, spiritueel ontwaken"
         },
         "lotus_pink": {
           "name": "Roze Lotus",
@@ -3558,7 +3629,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Verlichting, wedergeboorte"
         },
         "lotus_white": {
           "name": "Witte lotus",
@@ -3570,7 +3642,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Zuiverheid, verlichting"
         },
         "magnolia": {
           "name": "Magnolia",
@@ -3582,7 +3655,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Edelheid, verheven geest"
         },
         "marigold": {
           "name": "Goudsbloem",
@@ -3594,7 +3668,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vreugde, warmte, creativiteit"
         },
         "moon_lily": {
           "name": "Maanlelie",
@@ -3606,7 +3681,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Zuiverheid, vernieuwing, toewijding"
         },
         "moon_narcissus": {
           "name": "Maannarcis",
@@ -3618,7 +3694,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Hoop, wedergeboorte"
         },
         "moonflower": {
           "name": "Maanbloem",
@@ -3630,7 +3707,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Wachten, magie"
         },
         "morning_glory": {
           "name": "Ochtendglorie",
@@ -3642,7 +3720,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Blij nieuws"
         },
         "mugunghwa": {
           "name": "Mugunghwa",
@@ -3654,7 +3733,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Onwankelbare trouw, eeuwigheid"
         },
         "narcissus": {
           "name": "Narcis",
@@ -3666,7 +3746,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Wedergeboorte, nieuw begin"
         },
         "nemophila": {
           "name": "Nemophila",
@@ -3678,7 +3759,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Overal succes"
         },
         "night_cereus": {
           "name": "Nachtbloeiende Cereus",
@@ -3690,7 +3772,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Eén enkele ontmoeting, vergankelijke schoonheid"
         },
         "orange_trumpet": {
           "name": "Oranje trompetbloem",
@@ -3702,7 +3785,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Eer, verlangen"
         },
         "orchid": {
           "name": "Orchidee",
@@ -3714,7 +3798,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Luxe, zeldzame schoonheid"
         },
         "orchid_tanlang": {
           "name": "Tanlang-orchidee",
@@ -3726,7 +3811,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Exotische schoonheid, kracht"
         },
         "passionflower": {
           "name": "Passiebloem",
@@ -3738,7 +3824,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Heilige liefde"
         },
         "peony": {
           "name": "Pioenroos",
@@ -3750,7 +3837,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Romantiek, voorspoed, geluk"
         },
         "peony_ziwei": {
           "name": "Ziwei-pioen",
@@ -3762,7 +3850,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Rijkdom, eer"
         },
         "persian_buttercup": {
           "name": "Perzische Boterbloem",
@@ -3774,7 +3863,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Charme, betovering"
         },
         "plum_blossom": {
           "name": "Pruimenbloesem",
@@ -3786,7 +3876,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Edel hart, gratie"
         },
         "poppy": {
           "name": "Papaver",
@@ -3798,7 +3889,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Rustige slaap, troost"
         },
         "primrose": {
           "name": "Sleutelbloem",
@@ -3810,7 +3902,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Jonge liefde, eeuwige liefde"
         },
         "queen_anne_lace": {
           "name": "Koningin Anne's kant",
@@ -3822,7 +3915,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Diepe genegenheid, dankbaarheid"
         },
         "ranunculus": {
           "name": "Ranonkel",
@@ -3834,7 +3928,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Charme, aantrekkingskracht, bewondering"
         },
         "red_lycoris": {
           "name": "Rode Lycoris",
@@ -3846,7 +3941,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Passie, de belofte van een weerzien"
         },
         "red_spider_lily": {
           "name": "Rode spinlelie",
@@ -3858,7 +3954,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Wachten op het weerzien"
         },
         "resilient_rose": {
           "name": "Klassieke roos",
@@ -3870,7 +3967,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Romantiek"
         },
         "rose": {
           "name": "Roos",
@@ -3882,7 +3980,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Liefde, passie, schoonheid"
         },
         "snapdragon": {
           "name": "Leeuwebek",
@@ -3894,7 +3993,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Gracieusheid, kracht"
         },
         "sunflower": {
           "name": "Zonnebloem",
@@ -3906,7 +4006,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Aanbidding, trouw"
         },
         "sunflower_ziwei": {
           "name": "Ziwei Zonnebloem",
@@ -3918,7 +4019,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vreugde, kracht, optimisme"
         },
         "sweet_pea": {
           "name": "Zoete erwt",
@@ -3930,7 +4032,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Plezier, dankbaarheid"
         },
         "thorny_rose": {
           "name": "Doornroos",
@@ -3942,7 +4045,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Liefde, passie"
         },
         "tiger_lily": {
           "name": "Tijgerlelie",
@@ -3954,7 +4058,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Zelfvertrouwen, voorspoed"
         },
         "tulip": {
           "name": "Tulp",
@@ -3966,7 +4071,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Volmaakte liefde, elegantie"
         },
         "violet": {
           "name": "Paars",
@@ -3978,7 +4084,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Bescheidenheid, nederigheid"
         },
         "violet_wisteria": {
           "name": "Violette blauweregen",
@@ -3990,7 +4097,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Welkom, dronken van liefde"
         },
         "water_anemone": {
           "name": "Wateranemoon",
@@ -4002,7 +4110,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Anticipatie, bescherming"
         },
         "water_lily": {
           "name": "Waterlelie",
@@ -4014,7 +4123,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Zuiver hart"
         },
         "water_narcissus": {
           "name": "Waternarcis",
@@ -4026,7 +4136,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vernieuwing, hoop, voorspoed"
         },
         "white_baby_breath": {
           "name": "Witte gipskruid",
@@ -4038,7 +4149,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Zuiverheid, onschuld, eeuwige liefde"
         },
         "wild_chrysanthemum": {
           "name": "Wilde chrysant",
@@ -4050,7 +4162,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Vriendschap, vreugde, eerlijkheid"
         },
         "winter_plum": {
           "name": "Winterpruim",
@@ -4062,7 +4175,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Edel hart, volharding"
         },
         "wisteria": {
           "name": "Blauweregen",
@@ -4074,7 +4188,8 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
-          }
+          },
+          "flowerLanguage": "Welkom, dronken van liefde"
         },
         "yarrow": {
           "name": "Duizendblad",
@@ -4086,6 +4201,135 @@
             "0": "Bloei",
             "1": "Harmonie",
             "2": "Stroom"
+          },
+          "flowerLanguage": "Genezing, leiderschap"
+        }
+      },
+      "ui": {
+        "source": {
+          "saju": "Saju",
+          "astrology": "Astrologie",
+          "jamidusu": "Ziwei",
+          "sukuyo": "Sukuyo"
+        },
+        "specimen": {
+          "language": "Bloementaal",
+          "system": "Systeem",
+          "mark": {
+            "saju": {
+              "primary": "Dagmeester",
+              "secondary": "Seizoen"
+            },
+            "astrology": {
+              "primary": "Teken",
+              "secondary": "Ascendant"
+            },
+            "jamidusu": {
+              "primary": "Hoofdster",
+              "secondary": "Helderheid"
+            },
+            "sukuyo": {
+              "primary": "Maanhuis",
+              "secondary": "Maan"
+            }
+          },
+          "yongshin": "Nuttig element"
+        },
+        "bouquet": {
+          "sourcesAll": "Alle vier systemen",
+          "sourcesPair": "{a} en {b}",
+          "sourcesTrio": "{a}, {b} en {c}",
+          "sameFlower": "{sources} kozen dezelfde bloem: {name}. Zo helder is jouw aard.",
+          "sameElement": "{sources} wijzen naar dezelfde energie: {element}.",
+          "diverse": "Bloemen van verschillende aard bundelen je vele kanten in één boeket.",
+          "title": "Lotsboeket",
+          "sub": "De bloemen van {count} systemen, samen in één boeket."
+        },
+        "share": {
+          "preparing": "Je resultaat voor de lotsbloem wordt voorbereid.",
+          "hookTitle": "🌸 Mijn lotsbloem is blijkbaar '{name}'",
+          "hookLanguage": "Bloementaal: {language}",
+          "hookAsk": "En welke bloem ben jij? → {url}",
+          "hashtagsNamed": "#Lotsbloem #MijnBloemIs{tag}",
+          "hashtag": "#Lotsbloem",
+          "languageDot": "Bloementaal · {language}",
+          "ogTitle": "{name}, mijn lotsbloem",
+          "ogAsk": "Welke bloem ben jij?",
+          "title": "Lotsbloem",
+          "copiedText": "Tekst gekopieerd. Plak hem in een bericht om te versturen.",
+          "preparedText": "De tekst is klaar. Opent je berichtenapp niet, plak hem dan om te versturen.",
+          "kakaoTitle": "Mijn lotsbloem is '{name}'",
+          "bloomMine": "Mijn bloem laten bloeien",
+          "kakaoOpened": "Het KakaoTalk-deelvenster is geopend.",
+          "kakaoPrepared": "Je KakaoTalk-bericht is klaar. Opent het niet, plak het dan om te versturen."
+        },
+        "card": {
+          "kicker": "Mijn lotsbloem",
+          "ask": "En de jouwe?",
+          "failed": "De kaartafbeelding kon niet worden gemaakt, dus we sturen de tekst.",
+          "saved": "Storykaart opgeslagen. De tekst is ook gekopieerd.",
+          "ready": "Je storykaart is klaar. Deel hem in je Instagram-story.",
+          "drawing": "Je kaart wordt getekend. Een ogenblik geduld."
+        },
+        "sheet": {
+          "story": "Storykaart",
+          "storyHint": "Opslaan of delen als 9:16-afbeelding",
+          "kakao": "KakaoTalk",
+          "kakaoHint": "Stuur mijn bloem naar een vriend",
+          "link": "Link kopiëren",
+          "linkHint": "Kopiëren met bloementaal",
+          "compat": "Bloemenmatch met een vriend",
+          "compatHint": "Stuur een matchlink naar een vriend",
+          "compatHintFriend": "Bekijk de match met de bloem van je vriend",
+          "title": "Bloem delen",
+          "close": "Sluiten",
+          "linkCopied": "Bloementaal en link gekopieerd. Plak ze om naar een vriend te sturen.",
+          "notReady": "Je kunt delen zodra je bloem bloeit.",
+          "sub": "{name} · Bloementaal '{language}'"
+        },
+        "compatShare": {
+          "inviteTitle": "🌸 Mijn lotsbloem is '{name}'",
+          "inviteAsk": "Laat die van jou ook bloeien en kijk hoe goed onze bloemen matchen",
+          "hashtags": "#Lotsbloem #Bloemenmatch",
+          "title": "Lotsbloemmatch",
+          "pair": "🌸 Ik ben '{mine}', mijn vriend is '{friend}'",
+          "result": "Onze bloemenmatch: '{title}'",
+          "ask": "Bekijk ook de match van jouw bloem → {url}"
+        },
+        "friend": {
+          "kicker": "Een lotsbloem van je vriend",
+          "shareCompat": "Bloemenmatch delen",
+          "note": "Zodra je bloem bloeit, laten we meteen jullie bloemenmatch zien.",
+          "birthToast": "Vul je geboortedatum in en je bloem gaat bloeien. Daarna zie je de match met de bloem van je vriend."
+        },
+        "compat": {
+          "twin": {
+            "title": "Een paar van dezelfde bloem",
+            "line": "Jullie zijn allebei {name}. Zonder woorden leven jullie in hetzelfde seizoen."
+          },
+          "blend": {
+            "title": "Bloemen van verschillende aard",
+            "line": "Twee bloemen in verschillende kleuren maken samen het boeket rijker."
+          },
+          "same": {
+            "title": "Verwante bloemen",
+            "line": "Beide bloemen dragen {mine}-energie. Jullie begrijpen elkaars tempo het best."
+          },
+          "give": {
+            "title": "De bloem die ik laat bloeien",
+            "line": "De {mine}-energie van mijn bloem voedt de {friend}-energie van de bloem van mijn vriend. Naast mij bloeit die stralender."
+          },
+          "receive": {
+            "title": "De bloem die mij laat bloeien",
+            "line": "De {friend}-energie van de bloem van mijn vriend versterkt de {mine}-energie van mijn bloem. Samen bloeit mijn bloem voller."
+          },
+          "shape": {
+            "title": "Bloemen die elkaar vormen",
+            "line": "De {mine}-energie van mijn bloem vormt de {friend}-energie van de bloem van mijn vriend. Hoe beter jullie je tempo afstemmen, hoe sterker jullie worden."
+          },
+          "spark": {
+            "title": "Bloemen die elkaar prikkelen",
+            "line": "De {friend}-energie van de bloem van mijn vriend houdt de {mine}-energie van mijn bloem in balans. Jullie zijn een goede prikkel voor elkaar."
           }
         }
       }

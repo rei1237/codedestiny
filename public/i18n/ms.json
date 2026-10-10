@@ -2707,7 +2707,22 @@
   "fortune": {
     "destinyFlower": {
       "common": {
-        "unknown": "Tidak diketahui"
+        "unknown": "Tidak diketahui",
+        "bloomLabel": {
+          "seed": "Benih · Day master",
+          "season": "Musim · Waktu lahir",
+          "bloom": "Bunga yang mekar"
+        },
+        "bloom": {
+          "verdict": "Maka mekarlah — {title}."
+        },
+        "flowerLanguage": {
+          "anchor": "'{language}' — pesanan bunga ini untuk anda, dibaca melalui {anchor}.",
+          "plain": "'{language}' — pesanan bunga ini untuk anda saat ini."
+        },
+        "shareHook": {
+          "rarityAnchor": "Satu-satunya bunga yang dibaca melalui {anchor}"
+        }
       },
       "astro": {
         "elements": {
@@ -2959,8 +2974,8 @@
         },
         "elements": {
           "wood": "Kayu",
-          "fire": "Kebakaran",
-          "earth": "Bumi",
+          "fire": "Api",
+          "earth": "Tanah",
           "metal": "Logam",
           "water": "Air"
         },
@@ -3017,6 +3032,18 @@
           "Earth": "Operasi, pengurusan dan pembinaan sistem menunjukkan kekuatan anda.",
           "Metal": "Analisis, perancangan dan kawalan kualiti menukar ketepatan kepada keputusan.",
           "Water": "Penyelidikan, penyiasatan dan reka bentuk kandungan membolehkan kedalaman anda bersinar."
+        },
+        "bloom": {
+          "season": "Seperti anda yang lahir pada {season}, bunga ini juga mekar paling cerah pada {season}."
+        },
+        "flowerLanguage": {
+          "yongshin": "'{language}' — pesanan bunga yang membawa unsur berguna {elements} ini untuk anda.",
+          "dayMaster": "'{language}' — pesanan bunga ini untuk anda dengan day master {dayMasterBadge}."
+        },
+        "shareHook": {
+          "raritySeason": "Sekuntum daripada {total}, dipilih oleh Saju day master {dayMasterBadge} yang lahir pada {season}",
+          "rarityDayMaster": "Sekuntum daripada {total}, dipilih oleh Saju day master {dayMasterBadge}",
+          "rarityPlain": "Sekuntum yang dipilih Saju aku daripada {total}"
         }
       },
       "flowers": {
@@ -3030,7 +3057,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Penantian, kebenaran"
         },
         "aster": {
           "name": "Aster",
@@ -3042,7 +3070,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesetiaan, kesabaran"
         },
         "astro_lavender": {
           "name": "Nebula Lavender",
@@ -3054,7 +3083,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Ketenangan"
         },
         "azalea": {
           "name": "Azalea",
@@ -3066,7 +3096,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kegembiraan cinta"
         },
         "begonia": {
           "name": "Begonia",
@@ -3078,7 +3109,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebaikan hati, kesopanan"
         },
         "bellflower": {
           "name": "Bunga loceng",
@@ -3090,7 +3122,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta abadi"
         },
         "bird_of_paradise": {
           "name": "Burung Syurga",
@@ -3102,7 +3135,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kegembiraan"
         },
         "black_rose": {
           "name": "Mawar Hitam",
@@ -3114,7 +3148,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Awak milikku selamanya"
         },
         "blue_iris": {
           "name": "Iris Biru",
@@ -3126,7 +3161,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kehidupan, hidup semula"
         },
         "blue_lotus": {
           "name": "Teratai Biru",
@@ -3138,7 +3174,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebangkitan semula, ilham suci"
         },
         "bluebell": {
           "name": "Loceng biru",
@@ -3150,7 +3187,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Rendah hati, hati yang tidak berubah"
         },
         "cactus_flower": {
           "name": "Bunga Kaktus",
@@ -3162,7 +3200,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Hati yang membara, semangat"
         },
         "camellia": {
           "name": "Camellia",
@@ -3174,7 +3213,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Keanggunan, cinta abadi"
         },
         "carnation": {
           "name": "Carnation",
@@ -3186,7 +3226,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta abadi"
         },
         "cherry_blossom": {
           "name": "Bunga Sakura",
@@ -3198,7 +3239,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Nostalgia, permulaan baru"
         },
         "chrysanthemum_gold": {
           "name": "Golden Chrysanthemum",
@@ -3210,7 +3252,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Umur yang panjang, kelahiran semula"
         },
         "cornflower": {
           "name": "Bunga jagung",
@@ -3222,7 +3265,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Rasa bahagia, kehalusan"
         },
         "cosmos": {
           "name": "Kosmos",
@@ -3234,7 +3278,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Ketulusan hati, keharmonian"
         },
         "crocus": {
           "name": "Crocus",
@@ -3246,7 +3291,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kegembiraan masa muda"
         },
         "dahlia": {
           "name": "Dahlia",
@@ -3258,7 +3304,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Mencari kekuatan dalaman"
         },
         "daisy": {
           "name": "Daisy",
@@ -3270,7 +3317,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesucian, keharmonian, cinta sejati"
         },
         "delicate_willow": {
           "name": "Bunga Willow",
@@ -3282,7 +3330,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Keterusterangan, kebebasan"
         },
         "delphinium": {
           "name": "Delphinium",
@@ -3294,7 +3343,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Saya akan membahagiakan awak"
         },
         "edelweiss": {
           "name": "Edelweiss",
@@ -3306,7 +3356,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kenangan berharga, keberanian yang mulia"
         },
         "flame_tulip": {
           "name": "Tulip Api",
@@ -3318,7 +3369,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Perasaan romantik"
         },
         "forsythia": {
           "name": "Forsythia",
@@ -3330,7 +3382,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Harapan, kasih yang mendalam"
         },
         "foxglove": {
           "name": "Foxglove",
@@ -3342,7 +3395,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta yang membara, hati yang tidak disembunyikan"
         },
         "freesia": {
           "name": "Freesia",
@@ -3354,7 +3408,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Persahabatan, keikhlasan, ingatan berkekalan"
         },
         "gardenia": {
           "name": "Gardenia",
@@ -3366,7 +3421,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Keceriaan, cinta rahsia"
         },
         "gentian": {
           "name": "Gentian",
@@ -3378,7 +3434,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Keadilan, menyayangi awak ketika awak bersedih"
         },
         "geranium": {
           "name": "Geranium",
@@ -3390,7 +3447,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Bahagia kerana adanya awak"
         },
         "glacier_bloom": {
           "name": "Glasier Bloom",
@@ -3402,7 +3460,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Janji yang dijaga di bawah ais"
         },
         "heliotrope": {
           "name": "Heliotrope",
@@ -3414,7 +3473,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Pengabdian, cinta abadi"
         },
         "hibiscus": {
           "name": "Bunga raya",
@@ -3426,7 +3486,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Keberanian, perpaduan"
         },
         "honeysuckle": {
           "name": "Honeysuckle",
@@ -3438,7 +3499,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Ikatan cinta, cinta yang setia"
         },
         "hydrangea": {
           "name": "Hydrangea",
@@ -3450,7 +3512,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Penghargaan yang tulus, emosi sejati, pemahaman"
         },
         "iris": {
           "name": "Iris",
@@ -3462,7 +3525,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kehidupan, hidup semula"
         },
         "ivy_bloom": {
           "name": "Ivy Bloom",
@@ -3474,7 +3538,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Persahabatan yang kekal"
         },
         "jasmine": {
           "name": "Jasmine",
@@ -3486,7 +3551,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesucian, kehalusan budi, kecantikan"
         },
         "larkspur": {
           "name": "Larkspur",
@@ -3498,7 +3564,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebebasan, hati yang terbuka"
         },
         "lavender": {
           "name": "Lavender",
@@ -3510,7 +3577,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Ketenangan"
         },
         "lily": {
           "name": "Lily",
@@ -3522,7 +3590,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesucian, kesopanan, kemurnian"
         },
         "lotus": {
           "name": "Teratai",
@@ -3534,7 +3603,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kejujuran, kebaikan, kesucian"
         },
         "lotus_golden": {
           "name": "Teratai Emas",
@@ -3546,7 +3616,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesempurnaan, kesucian"
         },
         "lotus_pink": {
           "name": "Teratai Merah Jambu",
@@ -3558,7 +3629,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebaikan, kecantikan"
         },
         "lotus_white": {
           "name": "Teratai Putih",
@@ -3570,7 +3642,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesucian"
         },
         "magnolia": {
           "name": "Magnolia",
@@ -3582,7 +3655,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kemuliaan, jiwa yang luhur"
         },
         "marigold": {
           "name": "Marigold",
@@ -3594,7 +3668,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebahagiaan yang pasti akan tiba"
         },
         "moon_lily": {
           "name": "Moon Lily",
@@ -3606,7 +3681,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesucian, kehormatan"
         },
         "moon_narcissus": {
           "name": "Moon Narcissus",
@@ -3618,7 +3694,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kelahiran semula, permulaan baru"
         },
         "moonflower": {
           "name": "Bunga bulan",
@@ -3630,7 +3707,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Penantian, keajaiban"
         },
         "morning_glory": {
           "name": "Morning Glory",
@@ -3642,7 +3720,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Berita gembira"
         },
         "mugunghwa": {
           "name": "Mugunghwa",
@@ -3654,7 +3733,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesetiaan yang tidak berbelah bahagi, keabadian"
         },
         "narcissus": {
           "name": "Narcissus",
@@ -3666,7 +3746,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebahagiaan, permulaan baru"
         },
         "nemophila": {
           "name": "Nemophila",
@@ -3678,7 +3759,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kejayaan di mana-mana"
         },
         "night_cereus": {
           "name": "Cereus Mekar Malam",
@@ -3690,7 +3772,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Pertemuan sekali seumur hidup, keindahan yang sekejap"
         },
         "orange_trumpet": {
           "name": "Bunga Sangkakala Jingga",
@@ -3702,7 +3785,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kemuliaan, kerinduan"
         },
         "orchid": {
           "name": "Orkid",
@@ -3714,7 +3798,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kemewahan, kecantikan yang halus, keanggunan"
         },
         "orchid_tanlang": {
           "name": "Orkid Tanlang",
@@ -3726,7 +3811,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta, keindahan, kekuatan"
         },
         "passionflower": {
           "name": "Bunga nafsu",
@@ -3738,7 +3824,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta yang suci"
         },
         "peony": {
           "name": "Peony",
@@ -3750,7 +3837,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kemakmuran, tuah, kehormatan"
         },
         "peony_ziwei": {
           "name": "Ziwei Peony",
@@ -3762,7 +3850,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta, kasih sayang"
         },
         "persian_buttercup": {
           "name": "Parsi Buttercup",
@@ -3774,7 +3863,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Daya tarikan, pesona yang bersinar"
         },
         "plum_blossom": {
           "name": "Bunga Plum",
@@ -3786,7 +3876,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kecantikan, umur yang panjang"
         },
         "poppy": {
           "name": "Popi",
@@ -3798,7 +3889,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Menyenangkan hati"
         },
         "primrose": {
           "name": "Primrose",
@@ -3810,7 +3902,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta pertama, kunci kebahagiaan"
         },
         "queen_anne_lace": {
           "name": "Renda Ratu Anne",
@@ -3822,7 +3915,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Hati yang mendalam, kesyukuran"
         },
         "ranunculus": {
           "name": "Ranunculus",
@@ -3834,7 +3928,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Daya tarikan, hati yang berseri"
         },
         "red_lycoris": {
           "name": "Lycoris Merah",
@@ -3846,7 +3941,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Semangat membara, janji untuk bertemu kembali"
         },
         "red_spider_lily": {
           "name": "Red Spider Lily",
@@ -3858,7 +3954,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Menanti hari bertemu kembali"
         },
         "resilient_rose": {
           "name": "Mawar Klasik",
@@ -3870,7 +3967,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta, keberanian, semangat yang tidak pernah padam"
         },
         "rose": {
           "name": "Mawar",
@@ -3882,7 +3980,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta"
         },
         "snapdragon": {
           "name": "Snapdragon",
@@ -3894,7 +3993,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Menawan, peramah"
         },
         "sunflower": {
           "name": "Bunga matahari",
@@ -3906,7 +4006,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kesetiaan, kekaguman, kegembiraan murni"
         },
         "sunflower_ziwei": {
           "name": "Bunga Matahari Ziwei",
@@ -3918,7 +4019,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebahagiaan yang kekal, panjang umur"
         },
         "sweet_pea": {
           "name": "Kacang Manis",
@@ -3930,7 +4032,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kenangan manis, persahabatan"
         },
         "thorny_rose": {
           "name": "Mawar Berduri",
@@ -3942,7 +4045,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta, asmara"
         },
         "tiger_lily": {
           "name": "Tiger Lily",
@@ -3954,7 +4058,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Keyakinan, kebanggaan diri"
         },
         "tulip": {
           "name": "Tulip",
@@ -3966,7 +4071,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta yang sempurna dan mendalam"
         },
         "violet": {
           "name": "Violet",
@@ -3978,7 +4084,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kerendahan hati, kejujuran"
         },
         "violet_wisteria": {
           "name": "Violet Wisteria",
@@ -3990,7 +4097,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Selamat datang, mabuk cinta"
         },
         "water_anemone": {
           "name": "Anemon Air",
@@ -4002,7 +4110,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Penantian, kebenaran yang lembut"
         },
         "water_lily": {
           "name": "Water Lily",
@@ -4014,7 +4123,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Hati yang suci murni"
         },
         "water_narcissus": {
           "name": "Narcissus Air",
@@ -4026,7 +4136,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kebahagiaan, permulaan baru"
         },
         "white_baby_breath": {
           "name": "Nafas Bayi Putih",
@@ -4038,7 +4149,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Cinta abadi, kesucian"
         },
         "wild_chrysanthemum": {
           "name": "Kekwa Liar",
@@ -4050,7 +4162,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Optimis, keceriaan"
         },
         "winter_plum": {
           "name": "Plum Musim Sejuk",
@@ -4062,7 +4175,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Kecantikan, umur yang panjang"
         },
         "wisteria": {
           "name": "Wisteria",
@@ -4074,7 +4188,8 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
-          }
+          },
+          "flowerLanguage": "Selamat datang, mabuk cinta"
         },
         "yarrow": {
           "name": "Yarrow",
@@ -4086,6 +4201,135 @@
             "0": "Mekar",
             "1": "Harmoni",
             "2": "Aliran"
+          },
+          "flowerLanguage": "Penyembuhan, kepimpinan"
+        }
+      },
+      "ui": {
+        "source": {
+          "saju": "Saju",
+          "astrology": "Astrologi",
+          "jamidusu": "Ziwei",
+          "sukuyo": "Sukuyo"
+        },
+        "specimen": {
+          "language": "Maksud bunga",
+          "system": "Sistem",
+          "mark": {
+            "saju": {
+              "primary": "Day master",
+              "secondary": "Musim"
+            },
+            "astrology": {
+              "primary": "Zodiak",
+              "secondary": "Ascendan"
+            },
+            "jamidusu": {
+              "primary": "Bintang utama",
+              "secondary": "Kecerahan"
+            },
+            "sukuyo": {
+              "primary": "Rumah bulan",
+              "secondary": "Bulan"
+            }
+          },
+          "yongshin": "Unsur berguna"
+        },
+        "bouquet": {
+          "sourcesAll": "Keempat-empat sistem",
+          "sourcesPair": "{a} dan {b}",
+          "sourcesTrio": "{a}, {b} dan {c}",
+          "sameFlower": "{sources} memilih bunga yang sama, {name}. Begitu jelasnya sifat anda.",
+          "sameElement": "{sources} sama-sama menunjuk kepada tenaga {element}.",
+          "diverse": "Bunga-bunga berlainan sifat berkumpul, menghimpunkan pelbagai sisi diri anda dalam satu jambak.",
+          "title": "Jambak takdir",
+          "sub": "Bunga pilihan {count} sistem, diikat menjadi satu jambak."
+        },
+        "share": {
+          "preparing": "Keputusan bunga takdir anda sedang disediakan.",
+          "hookTitle": "🌸 Rupanya bunga takdir aku '{name}'",
+          "hookLanguage": "Maksud bunga: {language}",
+          "hookAsk": "Kau pula bunga apa? → {url}",
+          "hashtagsNamed": "#BungaTakdir #BungaAkuIalah{tag}",
+          "hashtag": "#BungaTakdir",
+          "languageDot": "Maksud bunga · {language}",
+          "ogTitle": "{name}, bunga takdir aku",
+          "ogAsk": "Apa bunga kau?",
+          "title": "Bunga takdir",
+          "copiedText": "Teks telah disalin. Tampalkan dalam mesej untuk dihantar.",
+          "preparedText": "Teks sudah sedia. Jika aplikasi mesej tidak terbuka, tampalkan untuk dihantar.",
+          "kakaoTitle": "Bunga takdir aku ialah '{name}'",
+          "bloomMine": "Mekarkan bunga saya",
+          "kakaoOpened": "Tetingkap perkongsian KakaoTalk telah dibuka.",
+          "kakaoPrepared": "Mesej KakaoTalk anda sudah sedia. Jika tidak terbuka, tampalkan untuk dihantar."
+        },
+        "card": {
+          "kicker": "Bunga takdir saya",
+          "ask": "Bunga kau?",
+          "failed": "Imej kad tidak dapat dibuat, jadi teks perkongsian akan dihantar.",
+          "saved": "Kad cerita disimpan. Teks perkongsian juga telah disalin.",
+          "ready": "Kad cerita anda sudah sedia. Kongsikan di cerita Instagram anda.",
+          "drawing": "Kad sedang dilukis. Sila tunggu sebentar."
+        },
+        "sheet": {
+          "story": "Kad cerita",
+          "storyHint": "Simpan atau kongsi sebagai imej 9:16",
+          "kakao": "KakaoTalk",
+          "kakaoHint": "Hantar bunga saya kepada rakan",
+          "link": "Salin pautan",
+          "linkHint": "Salin bersama maksud bunga",
+          "compat": "Keserasian bunga dengan rakan",
+          "compatHint": "Hantar pautan keserasian kepada rakan",
+          "compatHintFriend": "Lihat keserasian dengan bunga rakan",
+          "title": "Kongsi bunga",
+          "close": "Tutup",
+          "linkCopied": "Maksud bunga dan pautan telah disalin. Tampalkan untuk dihantar kepada rakan.",
+          "notReady": "Anda boleh berkongsi selepas bunga anda mekar.",
+          "sub": "{name} · Maksud bunga '{language}'"
+        },
+        "compatShare": {
+          "inviteTitle": "🌸 Bunga takdir aku ialah '{name}'",
+          "inviteAsk": "Mekarkan bunga kau juga dan tengok keserasian bunga kita",
+          "hashtags": "#BungaTakdir #KeserasianBunga",
+          "title": "Keserasian bunga takdir",
+          "pair": "🌸 Aku '{mine}', kawan aku '{friend}'",
+          "result": "Keserasian bunga kita: '{title}'",
+          "ask": "Kau pun cubalah keserasian bunga kau → {url}"
+        },
+        "friend": {
+          "kicker": "Bunga takdir daripada rakan anda",
+          "shareCompat": "Kongsi keserasian bunga",
+          "note": "Sebaik bunga anda mekar, kami akan terus tunjukkan keserasian bunga kalian.",
+          "birthToast": "Masukkan tarikh lahir anda dan bunga anda akan mekar. Kemudian kami tunjukkan keserasian dengan bunga rakan."
+        },
+        "compat": {
+          "twin": {
+            "title": "Sepasang bunga yang sama",
+            "line": "Kalian berdua {name}. Tanpa perlu berkata, kalian hidup dalam musim yang sama."
+          },
+          "blend": {
+            "title": "Bunga berlainan sifat",
+            "line": "Dua bunga berlainan warna bertemu dan menjadikan jambak lebih mekar."
+          },
+          "same": {
+            "title": "Bunga sejiwa",
+            "line": "Kedua-dua bunga membawa tenaga {mine}. Kalian paling memahami rentak satu sama lain."
+          },
+          "give": {
+            "title": "Bunga yang saya mekarkan",
+            "line": "Tenaga {mine} bunga saya menyuburkan tenaga {friend} bunga rakan. Di sisi saya, bunga rakan mekar lebih cerah."
+          },
+          "receive": {
+            "title": "Bunga yang memekarkan saya",
+            "line": "Tenaga {friend} bunga rakan menguatkan tenaga {mine} bunga saya. Bersama, bunga saya mekar lebih penuh."
+          },
+          "shape": {
+            "title": "Bunga yang saling membentuk",
+            "line": "Tenaga {mine} bunga saya membentuk tenaga {friend} bunga rakan. Semakin seirama, semakin kukuh hubungan kalian."
+          },
+          "spark": {
+            "title": "Bunga yang saling menyuntik semangat",
+            "line": "Tenaga {friend} bunga rakan mengimbangi tenaga {mine} bunga saya. Kalian pendorong yang baik antara satu sama lain."
           }
         }
       }

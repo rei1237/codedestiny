@@ -10080,5 +10080,444 @@
       "detailNote": "저장된 결과예요. 다시 열어도 AI를 새로 부르지 않고 추가 결제도 없어요.",
       "duplicate": "같은 조건(내 사주·상대 이름·궁합 유형)으로 저장된 사주 궁합 결과가 보관함에 이미 있어요.\n\n[확인] 새로 결제하고 다시 보기\n[취소] 보관함에서 저장된 결과 열기"
     }
+  },
+  "fortune": {
+    "destinyFlower": {
+      "common": {
+        "bloomLabel": {
+          "seed": "씨앗 · 일간",
+          "season": "계절 · 태어난 때",
+          "bloom": "그래서 피어난 꽃"
+        },
+        "bloom": {
+          "verdict": "그래서 피어난 꽃 — {title}."
+        },
+        "flowerLanguage": {
+          "anchor": "'{language}' — {anchor}의 당신에게 이 꽃이 건네는 말이에요.",
+          "plain": "'{language}' — 지금의 당신에게 이 꽃이 건네는 말이에요."
+        },
+        "shareHook": {
+          "rarityAnchor": "{anchor}(으)로 읽어 낸 단 한 송이"
+        }
+      },
+      "saju": {
+        "bloom": {
+          "season": "{season}에 태어난 당신처럼, 이 꽃도 {season}에 가장 환하게 피어나요."
+        },
+        "flowerLanguage": {
+          "yongshin": "'{language}' — 용신 {elements} 기운을 머금은 이 꽃이 당신에게 건네는 말이에요.",
+          "dayMaster": "'{language}' — {dayMasterBadge} 일간인 당신에게 이 꽃이 건네는 말이에요."
+        },
+        "shareHook": {
+          "raritySeason": "{dayMasterBadge} 일간 · {season} 태생의 사주가 {total}송이 가운데 고른 한 송이",
+          "rarityDayMaster": "{dayMasterBadge} 일간의 사주가 {total}송이 가운데 고른 한 송이",
+          "rarityPlain": "내 사주가 {total}송이 가운데 고른 한 송이"
+        },
+        "elements": {
+          "wood": "목(木)",
+          "fire": "화(火)",
+          "earth": "토(土)",
+          "metal": "금(金)",
+          "water": "수(水)"
+        }
+      },
+      "ui": {
+        "source": {
+          "saju": "사주",
+          "astrology": "점성술",
+          "jamidusu": "자미두수",
+          "sukuyo": "숙요점"
+        },
+        "specimen": {
+          "language": "꽃말",
+          "system": "체계",
+          "mark": {
+            "saju": {
+              "primary": "일간",
+              "secondary": "계절"
+            },
+            "astrology": {
+              "primary": "별자리",
+              "secondary": "상승"
+            },
+            "jamidusu": {
+              "primary": "주성",
+              "secondary": "밝기"
+            },
+            "sukuyo": {
+              "primary": "본명숙",
+              "secondary": "달"
+            }
+          },
+          "yongshin": "용신"
+        },
+        "bouquet": {
+          "sourcesAll": "네 갈래 점술",
+          "sourcesPair": "{a}·{b}",
+          "sourcesTrio": "{a}·{b}·{c}",
+          "sameFlower": "{sources} 모두 같은 꽃, {name}을(를) 골랐어요. 그만큼 또렷한 당신의 결이에요.",
+          "sameElement": "{sources} 모두 {element} 기운을 가리켰어요.",
+          "diverse": "서로 다른 결의 꽃이 모여, 여러 얼굴의 당신을 한 다발에 담았어요.",
+          "title": "운명 꽃다발",
+          "sub": "{count}갈래 점술이 고른 꽃을 한 다발로 묶었어요."
+        },
+        "share": {
+          "preparing": "운명의 꽃 결과를 준비 중이에요.",
+          "hookTitle": "🌸 내 운명의 꽃은 '{name}'이래",
+          "hookLanguage": "꽃말: {language}",
+          "hookAsk": "너는 무슨 꽃일까? → {url}",
+          "hashtagsNamed": "#운명의꽃 #나의꽃은{tag}",
+          "hashtag": "#운명의꽃",
+          "languageDot": "꽃말 · {language}",
+          "ogTitle": "{name}, 나의 운명의 꽃",
+          "ogAsk": "너의 꽃은 무엇일까?",
+          "title": "운명의 꽃",
+          "copiedText": "공유 문구를 복사했어요. 카카오톡에 붙여넣어 보내 보세요.",
+          "preparedText": "공유 문구를 준비했어요. 카카오톡이 열리지 않으면 붙여넣어 보내 보세요.",
+          "kakaoTitle": "나의 운명의 꽃은 '{name}'",
+          "bloomMine": "내 꽃 피워보기",
+          "kakaoOpened": "카카오톡 공유 창을 열었어요.",
+          "kakaoPrepared": "카카오톡으로 보낼 문구를 준비했어요. 열리지 않으면 붙여넣어 보내 보세요."
+        },
+        "card": {
+          "kicker": "나의 운명의 꽃",
+          "ask": "너의 꽃은?",
+          "failed": "카드 이미지를 만들지 못해 공유 문구로 대신 보낼게요.",
+          "saved": "스토리 카드를 저장했어요. 공유 문구도 함께 복사됐어요.",
+          "ready": "스토리 카드를 준비했어요. 인스타그램·카카오톡 스토리에 올려 보세요.",
+          "drawing": "카드를 그리는 중이에요. 잠시만 기다려 주세요."
+        },
+        "sheet": {
+          "story": "스토리 카드",
+          "storyHint": "9:16 이미지로 저장·공유",
+          "kakao": "카카오톡",
+          "kakaoHint": "친구에게 내 꽃 보내기",
+          "link": "링크 복사",
+          "linkHint": "꽃말과 함께 복사",
+          "compat": "친구와 꽃 궁합",
+          "compatHint": "친구에게 궁합 링크 보내기",
+          "compatHintFriend": "친구 꽃과의 궁합 보기",
+          "title": "꽃 공유하기",
+          "close": "닫기",
+          "linkCopied": "꽃말과 링크를 복사했어요. 친구에게 붙여넣어 보내 보세요.",
+          "notReady": "내 꽃이 피면 공유할 수 있어요.",
+          "sub": "{name} · 꽃말 '{language}'"
+        },
+        "compatShare": {
+          "inviteTitle": "🌸 내 운명의 꽃은 '{name}'이야",
+          "inviteAsk": "너도 네 꽃 피워 보고 우리 꽃 궁합 확인해 봐",
+          "hashtags": "#운명의꽃 #꽃궁합",
+          "title": "운명의 꽃 궁합",
+          "pair": "🌸 나는 '{mine}', 친구는 '{friend}'",
+          "result": "우리 꽃 궁합은 '{title}'이래",
+          "ask": "너도 네 꽃이랑 궁합 봐 → {url}"
+        },
+        "friend": {
+          "kicker": "친구가 보낸 운명의 꽃",
+          "shareCompat": "꽃 궁합 공유하기",
+          "note": "내 꽃이 피면 둘의 꽃 궁합을 바로 보여 드려요.",
+          "birthToast": "생년월일을 넣으면 내 꽃이 피어나요. 친구 꽃과의 궁합도 이어서 보여 드려요."
+        },
+        "compat": {
+          "twin": {
+            "title": "같은 꽃 한 쌍",
+            "line": "둘 다 {name}이에요. 말하지 않아도 같은 계절을 사는 사이예요."
+          },
+          "blend": {
+            "title": "서로 다른 결의 꽃",
+            "line": "서로 다른 빛깔의 두 꽃이 만나 한 다발이 더 풍성해지는 사이예요."
+          },
+          "same": {
+            "title": "닮은 결의 꽃",
+            "line": "둘 다 {mine} 기운을 품은 꽃이에요. 서로의 속도를 가장 잘 알아보는 사이예요."
+          },
+          "give": {
+            "title": "내가 피워 주는 꽃",
+            "line": "내 꽃의 {mine} 기운이 친구 꽃의 {friend} 기운을 키워 줘요. 곁에 있으면 친구가 더 환하게 피어나요."
+          },
+          "receive": {
+            "title": "나를 피워 주는 꽃",
+            "line": "친구 꽃의 {friend} 기운이 내 꽃의 {mine} 기운을 북돋아요. 함께 있으면 내가 더 활짝 피어나요."
+          },
+          "shape": {
+            "title": "서로를 다듬는 꽃",
+            "line": "내 꽃의 {mine} 기운이 친구 꽃의 {friend} 기운을 다듬어요. 속도를 맞춰 갈수록 단단해지는 사이예요."
+          },
+          "spark": {
+            "title": "자극이 되는 꽃",
+            "line": "친구 꽃의 {friend} 기운이 내 꽃의 {mine} 기운을 다잡아 줘요. 서로에게 좋은 자극이 되는 사이예요."
+          }
+        }
+      },
+      "flowers": {
+        "lotus": {
+          "flowerLanguage": "청결, 깨끗한 마음"
+        },
+        "cactus_flower": {
+          "flowerLanguage": "불타는 마음, 열정"
+        },
+        "winter_plum": {
+          "flowerLanguage": "고결한 마음, 인내"
+        },
+        "hibiscus": {
+          "flowerLanguage": "섬세한 아름다움, 신선한 사랑"
+        },
+        "edelweiss": {
+          "flowerLanguage": "소중한 추억, 고귀한 용기"
+        },
+        "wild_chrysanthemum": {
+          "flowerLanguage": "순수한 사랑, 상쾌함"
+        },
+        "peony": {
+          "flowerLanguage": "부귀, 왕자의 품격"
+        },
+        "rose": {
+          "flowerLanguage": "사랑, 아름다움"
+        },
+        "sunflower": {
+          "flowerLanguage": "당신만을 바라봅니다"
+        },
+        "orchid": {
+          "flowerLanguage": "청초한 아름다움, 우아함"
+        },
+        "camellia": {
+          "flowerLanguage": "누구보다 그대를 사랑합니다"
+        },
+        "magnolia": {
+          "flowerLanguage": "고귀함, 숭고한 정신"
+        },
+        "lily": {
+          "flowerLanguage": "순결, 변함없는 사랑"
+        },
+        "tulip": {
+          "flowerLanguage": "사랑의 고백"
+        },
+        "daisy": {
+          "flowerLanguage": "평화, 희망"
+        },
+        "hydrangea": {
+          "flowerLanguage": "진심"
+        },
+        "lavender": {
+          "flowerLanguage": "침묵, 기대"
+        },
+        "narcissus": {
+          "flowerLanguage": "자기애, 고결"
+        },
+        "iris": {
+          "flowerLanguage": "좋은 소식, 희망"
+        },
+        "anemone": {
+          "flowerLanguage": "기대, 진실"
+        },
+        "cosmos": {
+          "flowerLanguage": "순정, 조화"
+        },
+        "carnation": {
+          "flowerLanguage": "사랑, 존경"
+        },
+        "azalea": {
+          "flowerLanguage": "사랑의 기쁨"
+        },
+        "forsythia": {
+          "flowerLanguage": "희망, 깊은 정"
+        },
+        "gardenia": {
+          "flowerLanguage": "한없는 즐거움, 행복"
+        },
+        "jasmine": {
+          "flowerLanguage": "사랑스러움, 상냥함"
+        },
+        "cherry_blossom": {
+          "flowerLanguage": "정신의 아름다움"
+        },
+        "ranunculus": {
+          "flowerLanguage": "매력, 눈부신 마음"
+        },
+        "poppy": {
+          "flowerLanguage": "위로, 위안"
+        },
+        "bluebell": {
+          "flowerLanguage": "겸손, 변하지 않는 마음"
+        },
+        "water_lily": {
+          "flowerLanguage": "청순한 마음"
+        },
+        "glacier_bloom": {
+          "flowerLanguage": "얼음 아래 지켜 온 약속"
+        },
+        "marigold": {
+          "flowerLanguage": "반드시 오고야 말 행복"
+        },
+        "dahlia": {
+          "flowerLanguage": "감사, 화려함"
+        },
+        "snapdragon": {
+          "flowerLanguage": "탐스러움, 수다쟁이"
+        },
+        "freesia": {
+          "flowerLanguage": "새로운 시작, 천진난만"
+        },
+        "violet": {
+          "flowerLanguage": "겸양, 성실"
+        },
+        "aster": {
+          "flowerLanguage": "추억, 믿는 사랑"
+        },
+        "begonia": {
+          "flowerLanguage": "친절, 정중함"
+        },
+        "geranium": {
+          "flowerLanguage": "그대가 있어 행복해요"
+        },
+        "heliotrope": {
+          "flowerLanguage": "헌신, 영원한 사랑"
+        },
+        "yarrow": {
+          "flowerLanguage": "치유, 지도력"
+        },
+        "foxglove": {
+          "flowerLanguage": "열애, 숨기지 않는 마음"
+        },
+        "honeysuckle": {
+          "flowerLanguage": "사랑의 인연, 헌신적인 사랑"
+        },
+        "bellflower": {
+          "flowerLanguage": "영원한 사랑"
+        },
+        "crocus": {
+          "flowerLanguage": "청춘의 기쁨"
+        },
+        "primrose": {
+          "flowerLanguage": "첫사랑, 행복의 열쇠"
+        },
+        "larkspur": {
+          "flowerLanguage": "자유, 열린 마음"
+        },
+        "queen_anne_lace": {
+          "flowerLanguage": "그윽한 마음, 감사"
+        },
+        "wisteria": {
+          "flowerLanguage": "환영, 사랑에 취함"
+        },
+        "moonflower": {
+          "flowerLanguage": "기다림, 마법"
+        },
+        "passionflower": {
+          "flowerLanguage": "성스러운 사랑"
+        },
+        "blue_lotus": {
+          "flowerLanguage": "부활, 신성한 영감"
+        },
+        "red_spider_lily": {
+          "flowerLanguage": "다시 만날 날을 기다리며"
+        },
+        "morning_glory": {
+          "flowerLanguage": "기쁜 소식"
+        },
+        "sweet_pea": {
+          "flowerLanguage": "기쁜 추억, 우정"
+        },
+        "chrysanthemum_gold": {
+          "flowerLanguage": "장수, 고결한 지조"
+        },
+        "persian_buttercup": {
+          "flowerLanguage": "매력, 빛나는 매혹"
+        },
+        "plum_blossom": {
+          "flowerLanguage": "고결한 마음, 기품"
+        },
+        "cornflower": {
+          "flowerLanguage": "행복감, 섬세함"
+        },
+        "lotus_pink": {
+          "flowerLanguage": "자비로운 사랑"
+        },
+        "mugunghwa": {
+          "flowerLanguage": "일편단심, 영원"
+        },
+        "gentian": {
+          "flowerLanguage": "정의, 당신이 슬플 때 사랑해요"
+        },
+        "nemophila": {
+          "flowerLanguage": "어디서나 성공"
+        },
+        "lotus_white": {
+          "flowerLanguage": "깨끗한 마음"
+        },
+        "delphinium": {
+          "flowerLanguage": "당신을 행복하게 해 줄게요"
+        },
+        "lotus_golden": {
+          "flowerLanguage": "번영의 약속"
+        },
+        "flame_tulip": {
+          "flowerLanguage": "열정의 고백"
+        },
+        "tiger_lily": {
+          "flowerLanguage": "자부심, 깨끗한 마음"
+        },
+        "ivy_bloom": {
+          "flowerLanguage": "변치 않는 우정"
+        },
+        "resilient_rose": {
+          "flowerLanguage": "고전적인 아름다움, 사랑"
+        },
+        "astro_lavender": {
+          "flowerLanguage": "기대, 맑은 생각"
+        },
+        "bird_of_paradise": {
+          "flowerLanguage": "영원히 사랑하는 멋쟁이"
+        },
+        "water_narcissus": {
+          "flowerLanguage": "고결, 신비"
+        },
+        "water_anemone": {
+          "flowerLanguage": "기대, 다정한 진실"
+        },
+        "peony_ziwei": {
+          "flowerLanguage": "부귀, 왕자의 품격"
+        },
+        "thorny_rose": {
+          "flowerLanguage": "열렬한 사랑"
+        },
+        "delicate_willow": {
+          "flowerLanguage": "솔직, 자유"
+        },
+        "sunflower_ziwei": {
+          "flowerLanguage": "당신만을 바라봅니다"
+        },
+        "night_cereus": {
+          "flowerLanguage": "단 한 번의 만남, 덧없는 아름다움"
+        },
+        "orchid_tanlang": {
+          "flowerLanguage": "미인, 청초한 아름다움"
+        },
+        "white_baby_breath": {
+          "flowerLanguage": "맑은 마음, 깨끗한 마음"
+        },
+        "moon_lily": {
+          "flowerLanguage": "순결, 변함없는 사랑"
+        },
+        "red_lycoris": {
+          "flowerLanguage": "정열, 다시 만날 날을 기약하며"
+        },
+        "black_rose": {
+          "flowerLanguage": "당신은 영원한 나의 것"
+        },
+        "violet_wisteria": {
+          "flowerLanguage": "환영, 사랑에 취함"
+        },
+        "orange_trumpet": {
+          "flowerLanguage": "명예, 그리움"
+        },
+        "blue_iris": {
+          "flowerLanguage": "좋은 소식, 신비로운 사람"
+        },
+        "moon_narcissus": {
+          "flowerLanguage": "자존심, 고결"
+        }
+      }
+    }
   }
 }

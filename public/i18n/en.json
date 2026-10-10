@@ -2707,7 +2707,22 @@
   "fortune": {
     "destinyFlower": {
       "common": {
-        "unknown": "Unknown"
+        "unknown": "Unknown",
+        "bloomLabel": {
+          "seed": "Seed · Day master",
+          "season": "Season · Birth time",
+          "bloom": "The flower that bloomed"
+        },
+        "bloom": {
+          "verdict": "And so it bloomed — {title}."
+        },
+        "flowerLanguage": {
+          "anchor": "'{language}' — the words this flower offers you, read through {anchor}.",
+          "plain": "'{language}' — the words this flower offers you right now."
+        },
+        "shareHook": {
+          "rarityAnchor": "The single bloom read through {anchor}"
+        }
       },
       "astro": {
         "elements": {
@@ -3017,6 +3032,18 @@
           "Earth": "Operations, management, and system-building bring out your strengths.",
           "Metal": "Analysis, planning, and quality control turn precision into results.",
           "Water": "Research, investigation, and content design let your depth shine."
+        },
+        "bloom": {
+          "season": "Like you, born in {season}, this flower blooms brightest in {season}."
+        },
+        "flowerLanguage": {
+          "yongshin": "'{language}' — the words this flower, steeped in your useful element {elements}, offers you.",
+          "dayMaster": "'{language}' — the words this flower offers you, a {dayMasterBadge} day master."
+        },
+        "shareHook": {
+          "raritySeason": "One bloom out of {total}, chosen by a {dayMasterBadge} day master born in {season}",
+          "rarityDayMaster": "One bloom out of {total}, chosen by a {dayMasterBadge} day master",
+          "rarityPlain": "The one bloom my Saju chose out of {total}"
         }
       },
       "flowers": {
@@ -3030,7 +3057,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Expectation"
         },
         "aster": {
           "name": "Aster",
@@ -3042,7 +3070,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Love, daintiness"
         },
         "astro_lavender": {
           "name": "Nebula Lavender",
@@ -3054,7 +3083,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Devotion, serenity"
         },
         "azalea": {
           "name": "Azalea",
@@ -3066,7 +3096,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Temperance"
         },
         "begonia": {
           "name": "Begonia",
@@ -3078,7 +3109,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Deep thoughts"
         },
         "bellflower": {
           "name": "Bellflower",
@@ -3090,7 +3122,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Eternal love"
         },
         "bird_of_paradise": {
           "name": "Bird of Paradise",
@@ -3102,7 +3135,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Joyfulness"
         },
         "black_rose": {
           "name": "Black Rose",
@@ -3114,7 +3148,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Mystery, rebirth"
         },
         "blue_iris": {
           "name": "Blue Iris",
@@ -3126,7 +3161,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Message"
         },
         "blue_lotus": {
           "name": "Blue Lotus",
@@ -3138,7 +3174,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Purity of heart"
         },
         "bluebell": {
           "name": "Bluebell",
@@ -3150,7 +3187,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Constancy"
         },
         "cactus_flower": {
           "name": "Cactus Flower",
@@ -3162,7 +3200,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Warmth"
         },
         "camellia": {
           "name": "Camellia",
@@ -3174,7 +3213,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Unpretending excellence"
         },
         "carnation": {
           "name": "Carnation",
@@ -3186,7 +3226,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Woman's love"
         },
         "cherry_blossom": {
           "name": "Cherry Blossom",
@@ -3198,7 +3239,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Good education"
         },
         "chrysanthemum_gold": {
           "name": "Golden Chrysanthemum",
@@ -3210,7 +3252,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Optimism, joy"
         },
         "cornflower": {
           "name": "Cornflower",
@@ -3222,7 +3265,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Delicacy"
         },
         "cosmos": {
           "name": "Cosmos",
@@ -3234,7 +3278,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Order, peace"
         },
         "crocus": {
           "name": "Crocus",
@@ -3246,7 +3291,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Youthful gladness"
         },
         "dahlia": {
           "name": "Dahlia",
@@ -3258,7 +3304,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Good taste"
         },
         "daisy": {
           "name": "Daisy",
@@ -3270,7 +3317,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Innocence"
         },
         "delicate_willow": {
           "name": "Willow Flower",
@@ -3282,7 +3330,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Freedom"
         },
         "delphinium": {
           "name": "Delphinium",
@@ -3294,7 +3343,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Cheerfulness, goodwill"
         },
         "edelweiss": {
           "name": "Edelweiss",
@@ -3306,7 +3356,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Courage, devotion"
         },
         "flame_tulip": {
           "name": "Flame Tulip",
@@ -3318,7 +3369,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Beautiful eyes"
         },
         "forsythia": {
           "name": "Forsythia",
@@ -3330,7 +3382,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Anticipation"
         },
         "foxglove": {
           "name": "Foxglove",
@@ -3342,7 +3395,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Youth"
         },
         "freesia": {
           "name": "Freesia",
@@ -3354,7 +3408,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Innocence, friendship"
         },
         "gardenia": {
           "name": "Gardenia",
@@ -3366,7 +3421,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Transport of joy"
         },
         "gentian": {
           "name": "Gentian",
@@ -3378,7 +3434,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Justice, I love you when you are sad"
         },
         "geranium": {
           "name": "Geranium",
@@ -3390,7 +3447,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Comfort"
         },
         "glacier_bloom": {
           "name": "Glacier Bloom",
@@ -3402,7 +3460,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "A promise kept beneath the ice"
         },
         "heliotrope": {
           "name": "Heliotrope",
@@ -3414,7 +3473,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Devotion, faithfulness"
         },
         "hibiscus": {
           "name": "Hibiscus",
@@ -3426,7 +3486,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Delicate beauty"
         },
         "honeysuckle": {
           "name": "Honeysuckle",
@@ -3438,7 +3499,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Generous and devoted affection"
         },
         "hydrangea": {
           "name": "Hydrangea",
@@ -3450,7 +3512,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Gratitude for being understood"
         },
         "iris": {
           "name": "Iris",
@@ -3462,7 +3525,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Message"
         },
         "ivy_bloom": {
           "name": "Ivy Bloom",
@@ -3474,7 +3538,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Fidelity, marriage"
         },
         "jasmine": {
           "name": "Jasmine",
@@ -3486,7 +3551,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Amiability"
         },
         "larkspur": {
           "name": "Larkspur",
@@ -3498,7 +3564,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Beautiful spirit"
         },
         "lavender": {
           "name": "Lavender",
@@ -3510,7 +3577,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Devotion, serenity"
         },
         "lily": {
           "name": "Lily",
@@ -3522,7 +3590,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Purity, sweetness"
         },
         "lotus": {
           "name": "Lotus",
@@ -3534,7 +3603,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Eloquence"
         },
         "lotus_golden": {
           "name": "Golden Lotus",
@@ -3546,7 +3616,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Eloquence"
         },
         "lotus_pink": {
           "name": "Pink Lotus",
@@ -3558,7 +3629,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Eloquence"
         },
         "lotus_white": {
           "name": "White Lotus",
@@ -3570,7 +3642,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Eloquence"
         },
         "magnolia": {
           "name": "Magnolia",
@@ -3582,7 +3655,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Love of nature"
         },
         "marigold": {
           "name": "Marigold",
@@ -3594,7 +3668,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Passion, creativity"
         },
         "moon_lily": {
           "name": "Moon Lily",
@@ -3606,7 +3681,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Purity, sweetness"
         },
         "moon_narcissus": {
           "name": "Moon Narcissus",
@@ -3618,7 +3694,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Good wishes, faithfulness"
         },
         "moonflower": {
           "name": "Moonflower",
@@ -3630,7 +3707,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Waiting, magic"
         },
         "morning_glory": {
           "name": "Morning Glory",
@@ -3642,7 +3720,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Affection"
         },
         "mugunghwa": {
           "name": "Mugunghwa",
@@ -3654,7 +3733,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Persuasion"
         },
         "narcissus": {
           "name": "Narcissus",
@@ -3666,7 +3746,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Regard, unequalled love"
         },
         "nemophila": {
           "name": "Nemophila",
@@ -3678,7 +3759,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Success everywhere"
         },
         "night_cereus": {
           "name": "Night-Blooming Cereus",
@@ -3690,7 +3772,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Transient beauty"
         },
         "orange_trumpet": {
           "name": "Orange Trumpet Flower",
@@ -3702,7 +3785,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Fame"
         },
         "orchid": {
           "name": "Orchid",
@@ -3714,7 +3798,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "A belle"
         },
         "orchid_tanlang": {
           "name": "Tanlang Orchid",
@@ -3726,7 +3811,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "A belle"
         },
         "passionflower": {
           "name": "Passionflower",
@@ -3738,7 +3824,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Passion"
         },
         "peony": {
           "name": "Peony",
@@ -3750,7 +3837,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Happy life"
         },
         "peony_ziwei": {
           "name": "Ziwei Peony",
@@ -3762,7 +3850,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Romance, prosperity"
         },
         "persian_buttercup": {
           "name": "Persian Buttercup",
@@ -3774,7 +3863,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "You are rich in attractions"
         },
         "plum_blossom": {
           "name": "Plum Blossom",
@@ -3786,7 +3876,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Fidelity"
         },
         "poppy": {
           "name": "Poppy",
@@ -3798,7 +3889,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Consolation"
         },
         "primrose": {
           "name": "Primrose",
@@ -3810,7 +3902,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Early youth"
         },
         "queen_anne_lace": {
           "name": "Queen Anne's Lace",
@@ -3822,7 +3915,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Delicate femininity"
         },
         "ranunculus": {
           "name": "Ranunculus",
@@ -3834,7 +3928,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "You are radiant with charms"
         },
         "red_lycoris": {
           "name": "Red Lycoris",
@@ -3846,7 +3941,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Rebirth"
         },
         "red_spider_lily": {
           "name": "Red Spider Lily",
@@ -3858,7 +3954,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Rebirth"
         },
         "resilient_rose": {
           "name": "Classic Rose",
@@ -3870,7 +3967,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Love"
         },
         "rose": {
           "name": "Rose",
@@ -3882,7 +3980,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Love"
         },
         "snapdragon": {
           "name": "Snapdragon",
@@ -3894,7 +3993,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Strength, grace"
         },
         "sunflower": {
           "name": "Sunflower",
@@ -3906,7 +4006,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Adoration"
         },
         "sunflower_ziwei": {
           "name": "Ziwei Sunflower",
@@ -3918,7 +4019,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Adoration"
         },
         "sweet_pea": {
           "name": "Sweet Pea",
@@ -3930,7 +4032,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Delicate pleasures"
         },
         "thorny_rose": {
           "name": "Thorned Rose",
@@ -3942,7 +4045,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Love"
         },
         "tiger_lily": {
           "name": "Tiger Lily",
@@ -3954,7 +4058,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Wealth, pride"
         },
         "tulip": {
           "name": "Tulip",
@@ -3966,7 +4071,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Declaration of love"
         },
         "violet": {
           "name": "Violet",
@@ -3978,7 +4084,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Faithfulness"
         },
         "violet_wisteria": {
           "name": "Violet Wisteria",
@@ -3990,7 +4097,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Steadfast"
         },
         "water_anemone": {
           "name": "Water Anemone",
@@ -4002,7 +4110,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Expectation"
         },
         "water_lily": {
           "name": "Water Lily",
@@ -4014,7 +4123,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Purity of heart"
         },
         "water_narcissus": {
           "name": "Water Narcissus",
@@ -4026,7 +4136,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Good wishes, faithfulness"
         },
         "white_baby_breath": {
           "name": "White Baby's Breath",
@@ -4038,7 +4149,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Everlasting love"
         },
         "wild_chrysanthemum": {
           "name": "Wild Chrysanthemum",
@@ -4050,7 +4162,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Cheerfulness under adversity"
         },
         "winter_plum": {
           "name": "Winter Plum",
@@ -4062,7 +4175,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Fidelity"
         },
         "wisteria": {
           "name": "Wisteria",
@@ -4074,7 +4188,8 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
-          }
+          },
+          "flowerLanguage": "Steadfast"
         },
         "yarrow": {
           "name": "Yarrow",
@@ -4086,6 +4201,135 @@
             "0": "Bloom",
             "1": "Harmony",
             "2": "Flow"
+          },
+          "flowerLanguage": "Good health"
+        }
+      },
+      "ui": {
+        "source": {
+          "saju": "Saju",
+          "astrology": "Astrology",
+          "jamidusu": "Ziwei",
+          "sukuyo": "Sukuyo"
+        },
+        "specimen": {
+          "language": "Flower language",
+          "system": "System",
+          "mark": {
+            "saju": {
+              "primary": "Day master",
+              "secondary": "Season"
+            },
+            "astrology": {
+              "primary": "Sign",
+              "secondary": "Rising"
+            },
+            "jamidusu": {
+              "primary": "Main star",
+              "secondary": "Brightness"
+            },
+            "sukuyo": {
+              "primary": "Natal mansion",
+              "secondary": "Moon"
+            }
+          },
+          "yongshin": "Useful element"
+        },
+        "bouquet": {
+          "sourcesAll": "All four systems",
+          "sourcesPair": "{a} and {b}",
+          "sourcesTrio": "{a}, {b} and {c}",
+          "sameFlower": "{sources} chose the same flower, {name}. That is how clear your nature is.",
+          "sameElement": "{sources} pointed to the same {element} energy.",
+          "diverse": "Flowers of different natures gathered to hold the many sides of you in one bouquet.",
+          "title": "Destiny bouquet",
+          "sub": "The flowers chosen by {count} systems, tied into one bouquet."
+        },
+        "share": {
+          "preparing": "Preparing your Destiny Flower result.",
+          "hookTitle": "🌸 Apparently my destiny flower is '{name}'",
+          "hookLanguage": "Flower language: {language}",
+          "hookAsk": "What's your flower? → {url}",
+          "hashtagsNamed": "#DestinyFlower #MyFlowerIs{tag}",
+          "hashtag": "#DestinyFlower",
+          "languageDot": "Flower language · {language}",
+          "ogTitle": "{name}, my destiny flower",
+          "ogAsk": "What's your flower?",
+          "title": "Destiny Flower",
+          "copiedText": "Share text copied. Paste it into a message to send.",
+          "preparedText": "Share text is ready. If your messaging app doesn't open, paste it to send.",
+          "kakaoTitle": "My destiny flower is '{name}'",
+          "bloomMine": "Bloom my flower",
+          "kakaoOpened": "Opened the KakaoTalk share window.",
+          "kakaoPrepared": "Your KakaoTalk message is ready. If it doesn't open, paste it to send."
+        },
+        "card": {
+          "kicker": "My destiny flower",
+          "ask": "What's yours?",
+          "failed": "Couldn't create the card image, so the share text will be sent instead.",
+          "saved": "Story card saved. The share text was copied too.",
+          "ready": "Your story card is ready. Post it to your Instagram story.",
+          "drawing": "Drawing your card. One moment, please."
+        },
+        "sheet": {
+          "story": "Story card",
+          "storyHint": "Save or share as a 9:16 image",
+          "kakao": "KakaoTalk",
+          "kakaoHint": "Send my flower to a friend",
+          "link": "Copy link",
+          "linkHint": "Copy with the flower language",
+          "compat": "Flower match with a friend",
+          "compatHint": "Send a match link to a friend",
+          "compatHintFriend": "See the match with your friend's flower",
+          "title": "Share your flower",
+          "close": "Close",
+          "linkCopied": "Copied the link with the flower language. Paste it to send to a friend.",
+          "notReady": "You can share once your flower blooms.",
+          "sub": "{name} · Flower language '{language}'"
+        },
+        "compatShare": {
+          "inviteTitle": "🌸 My destiny flower is '{name}'",
+          "inviteAsk": "Bloom yours too and check our flower match",
+          "hashtags": "#DestinyFlower #FlowerMatch",
+          "title": "Destiny Flower match",
+          "pair": "🌸 I'm '{mine}', my friend is '{friend}'",
+          "result": "Our flower match: '{title}'",
+          "ask": "Check your own flower match → {url}"
+        },
+        "friend": {
+          "kicker": "A destiny flower from your friend",
+          "shareCompat": "Share flower match",
+          "note": "Once your flower blooms, we'll show your flower match right away.",
+          "birthToast": "Enter your birth date and your flower will bloom. We'll show the match with your friend's flower next."
+        },
+        "compat": {
+          "twin": {
+            "title": "A matching pair",
+            "line": "You're both {name}. Without a word, you live in the same season."
+          },
+          "blend": {
+            "title": "Flowers of different natures",
+            "line": "Two flowers of different colors meet and make the bouquet richer."
+          },
+          "same": {
+            "title": "Kindred flowers",
+            "line": "Both flowers carry {mine} energy. You recognize each other's pace best."
+          },
+          "give": {
+            "title": "The flower I help bloom",
+            "line": "My flower's {mine} energy nourishes my friend's {friend} energy. Beside me, my friend blooms brighter."
+          },
+          "receive": {
+            "title": "The flower that helps me bloom",
+            "line": "My friend's {friend} energy lifts my flower's {mine} energy. Together, my flower opens fuller."
+          },
+          "shape": {
+            "title": "Flowers that refine each other",
+            "line": "My flower's {mine} energy shapes my friend's {friend} energy. The more you match your pace, the stronger you grow."
+          },
+          "spark": {
+            "title": "Flowers that spark each other",
+            "line": "My friend's {friend} energy steadies my flower's {mine} energy. You're a good spark for each other."
           }
         }
       }

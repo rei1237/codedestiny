@@ -12,6 +12,7 @@ import {
   ziweiStarElement,
   flowerLanguageKo
 } from './destiny-flower-traits.js';
+import { DESTINY_FLOWER_SERVER_DICTIONARIES } from './destiny-flower-i18n.generated.js';
 
 const ELEMENT_KEYS = ['wood', 'fire', 'earth', 'metal', 'water'];
 
@@ -303,6 +304,50 @@ function interpolateDestinyFlowerText(value, vars) {
   });
 }
 
+/**
+ * 서버 번역 로케일. 매칭은 워커에서만 도는데 엔진 문구 함수들은 로케일을 인자로 받지 않으므로,
+ * `withDestinyFlowerLocale` 가 동기 매칭 호출 동안만 사전을 걸어 둔다.
+ * 🔴 동기 구간에서만 건다 — 워커 한 isolate 가 여러 요청을 받아도 await 없는 구간은 끼어들 수 없다.
+ */
+let activeServerDictionary = null;
+
+function normalizeDestinyFlowerLang(lang) {
+  const raw = String(lang || '').trim().toLowerCase();
+  if (!raw) return '';
+  return Object.keys(DESTINY_FLOWER_SERVER_DICTIONARIES).find((code) => code.toLowerCase() === raw)
+    || Object.keys(DESTINY_FLOWER_SERVER_DICTIONARIES).find((code) => code.toLowerCase() === raw.split('-')[0])
+    || '';
+}
+
+export function withDestinyFlowerLocale(lang, run) {
+  const code = normalizeDestinyFlowerLang(lang);
+  const previous = activeServerDictionary;
+  activeServerDictionary = code ? DESTINY_FLOWER_SERVER_DICTIONARIES[code] : null;
+  try {
+    return run();
+  } finally {
+    activeServerDictionary = previous;
+  }
+}
+
+function serverDictionaryValue(dictionary, path) {
+  const value = String(path || '').split('.').reduce((acc, part) => (acc && part ? acc[part] : acc), dictionary);
+  return typeof value === 'string' ? value : null;
+}
+
+/** cd-lang-native 의 resolveVars 와 같은 동작 — `@경로` 변수값은 사전에서 풀어 준다. */
+function resolveServerVars(dictionary, vars) {
+  const prefix = '@' + DESTINY_FLOWER_I18N_NAMESPACE + '.';
+  const out = {};
+  for (const [name, raw] of Object.entries(vars || {})) {
+    const looked = typeof raw === 'string' && raw.startsWith(prefix)
+      ? serverDictionaryValue(dictionary, raw.slice(prefix.length))
+      : null;
+    out[name] = looked !== null ? looked : raw;
+  }
+  return out;
+}
+
 function destinyFlowerText(path, vars, fallback) {
   const key = DESTINY_FLOWER_I18N_NAMESPACE + '.' + path;
   const localFallback = typeof fallback === 'string' ? fallback : (DESTINY_FLOWER_KO_TEXT[path] || '');
@@ -312,6 +357,12 @@ function destinyFlowerText(path, vars, fallback) {
   const browserGlobal = globalThis.window;
   if (browserGlobal && typeof browserGlobal.cdTranslate === 'function') {
     return browserGlobal.cdTranslate(key, vars || {}, localFallback);
+  }
+  if (activeServerDictionary) {
+    // 로케일 사전에 없으면 en 으로 — 한국어 원문을 다른 로케일에 내보내지 않는다.
+    const translated = serverDictionaryValue(activeServerDictionary, path)
+      ?? serverDictionaryValue(DESTINY_FLOWER_SERVER_DICTIONARIES.en, path);
+    if (translated !== null) return interpolateDestinyFlowerText(translated, resolveServerVars(activeServerDictionary, vars));
   }
   return localFallback ? interpolateDestinyFlowerText(localFallback, vars || {}) : key;
 }
@@ -4277,7 +4328,7 @@ function buildSourceViralExtras(flower, rationalePoints, anchor) {
     share_hook: {
       headline: flower.title || flower.name,
       one_liner: flower.vibe_message || '',
-      rarity_line: anchor ? destinyFlowerText('common.shareHook.rarityAnchor', { anchorWith: withJosa(anchor, '으로', '로') }) : ''
+      rarity_line: anchor ? destinyFlowerText('common.shareHook.rarityAnchor', { anchor, anchorWith: withJosa(anchor, '으로', '로') }) : ''
     }
   };
 }

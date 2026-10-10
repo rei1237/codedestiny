@@ -4928,7 +4928,12 @@ var _dfServerMatch = {
   status: 'idle'
 };
 
-/** 같은 프로필로 두 번 묻지 않기 위한 지문. 생년월일과 네 도메인의 핵심 값만 본다. */
+/** 서버가 꽃 이름·꽃말·근거 문장을 번역할 로케일. */
+function _dfServerMatchLang() {
+  try { return typeof window.cdGetCurrentLanguage === 'function' ? String(window.cdGetCurrentLanguage() || 'ko') : 'ko'; } catch (_) { return 'ko'; }
+}
+
+/** 같은 프로필로 두 번 묻지 않기 위한 지문. 생년월일과 네 도메인의 핵심 값, 그리고 번역 로케일을 본다. */
 function _dfServerMatchFingerprint(payload) {
   if (!payload || typeof payload !== 'object') return '';
   var birth = payload.birth || {};
@@ -4939,7 +4944,7 @@ function _dfServerMatchFingerprint(payload) {
     birth.year, birth.month, birth.day, birth.hour, birth.minute, birth.calType,
     ziwei.main_star || ziwei.mainStar, ziwei.palace, ziwei.brightness,
     astro.sun_sign || astro.sunSign, astro.moon_sign || astro.moonSign, astro.rising_sign || astro.risingSign,
-    sukuyo.mansion, sukuyo.phase
+    sukuyo.mansion, sukuyo.phase, _dfServerMatchLang()
   ].join('|');
 }
 
@@ -4967,7 +4972,7 @@ function _dfRequestServerMatch(payload, onSettled) {
     method: 'POST',
     headers: headers,
     credentials: 'include',
-    body: JSON.stringify({ profile: payload })
+    body: JSON.stringify({ profile: payload, lang: _dfServerMatchLang() })
   }).then(function(res) {
     return res.json().then(function(data) { return { status: res.status, data: data }; });
   }).then(function(result) {
@@ -6670,11 +6675,17 @@ function _dfRenderStudioSpecimen(selection, sourceLabel, badges, flowerData) {
   var el = document.getElementById('dfStudioSpecimen');
   if (!el) return;
   var source = _dfNormalizeSource(selection.source || 'saju');
-  var marks = _DF_SPECIMEN_MARK_LABELS[source] || _DF_SPECIMEN_MARK_LABELS.saju;
+  var markSource = _DF_SPECIMEN_MARK_LABELS[source] ? source : 'saju';
+  var marks = _DF_SPECIMEN_MARK_LABELS[markSource];
   var flower = selection.flower || {};
   var language = flower.flower_language || (selection.matched && selection.matched.flower && selection.matched.flower.flower_language) || '';
-  var rows = [['꽃말', language], ['체계', sourceLabel], [marks[0], flowerData.day_master_badge], [marks[1], flowerData.season_label]];
-  if (badges && badges.mode === 'saju' && badges.yongshin && badges.yongshin !== '판정 대기') rows.push(['용신', badges.yongshin]);
+  var rows = [
+    [_dfUiText('specimen.language', '꽃말'), language],
+    [_dfUiText('specimen.system', '체계'), sourceLabel],
+    [_dfUiText('specimen.mark.' + markSource + '.primary', marks[0]), flowerData.day_master_badge],
+    [_dfUiText('specimen.mark.' + markSource + '.secondary', marks[1]), flowerData.season_label]
+  ];
+  if (badges && badges.mode === 'saju' && badges.yongshin && badges.yongshin !== '판정 대기') rows.push([_dfUiText('specimen.yongshin', '용신'), badges.yongshin]);
   rows = rows.filter(function(row) { return String(row[1] || '').trim(); });
   el.innerHTML = rows.map(function(row) {
     return '<div class="df-specimen-row"><dt>' + _dfEscapeHtml(row[0]) + '</dt><dd>' + _dfEscapeHtml(String(row[1]).trim()) + '</dd></div>';
@@ -6685,6 +6696,34 @@ function _dfRenderStudioSpecimen(selection, sourceLabel, badges, flowerData) {
 function _dfHasBatchim(word) {
   var code = String(word || '').charCodeAt(String(word || '').length - 1) - 0xAC00;
   return code >= 0 && code <= 11171 && code % 28 !== 0;
+}
+
+/**
+ * 꽃 스튜디오·공유 문구. ko 는 조사까지 맞춘 원문(ko)을 그대로 쓰고,
+ * 다른 로케일은 fortune.destinyFlower.ui.<key> 템플릿에 vars 를 넣는다.
+ */
+function _dfUiText(key, ko, vars) {
+  try {
+    if (typeof window.cdTranslate === 'function') return window.cdTranslate('fortune.destinyFlower.ui.' + key, vars || {}, ko);
+  } catch (_) {}
+  return ko;
+}
+
+function _dfSourceLabelText(source) {
+  var key = _dfNormalizeSource(source || 'saju');
+  return _dfUiText('source.' + key, _dfGetSourceLabel(key));
+}
+
+/** 다른 로케일용 체계 나열(조사 없음). ko 는 _dfJoinSourceSubject 가 조사까지 붙인다. */
+function _dfSourceListText(labels) {
+  if (labels.length >= 4) return _dfUiText('bouquet.sourcesAll', '네 갈래 점술');
+  if (labels.length === 2) return _dfUiText('bouquet.sourcesPair', labels.join('·'), { a: labels[0], b: labels[1] });
+  return _dfUiText('bouquet.sourcesTrio', labels.join('·'), { a: labels[0], b: labels[1], c: labels[2] });
+}
+
+/** 오행 이름은 사전에서 바로 푼다(@키). ko 는 원문을 쓰므로 이 값이 쓰이지 않는다. */
+function _dfElementVar(element) {
+  return '@fortune.destinyFlower.saju.elements.' + String(element || '').toLowerCase();
 }
 
 /** '사주와 점성술이' · '사주·점성술·숙요점이' · '네 갈래 점술이' */
@@ -6709,7 +6748,11 @@ function _dfBouquetReading(items) {
     .filter(function(group) { return group.length >= 2; })
     .sort(function(a, b) { return b.length - a.length; })[0];
   if (same) {
-    return _dfJoinSourceSubject(same.map(function(item) { return item.label; })) + ' 같은 꽃, ' + same[0].selection.flower.name + (_dfHasBatchim(same[0].selection.flower.name) ? '을' : '를') + ' 골랐어요. 그만큼 또렷한 당신의 결이에요.';
+    var sameLabels = same.map(function(item) { return item.label; });
+    var sameName = same[0].selection.flower.name;
+    return _dfUiText('bouquet.sameFlower',
+      _dfJoinSourceSubject(sameLabels) + ' 같은 꽃, ' + sameName + (_dfHasBatchim(sameName) ? '을' : '를') + ' 골랐어요. 그만큼 또렷한 당신의 결이에요.',
+      { sources: _dfSourceListText(sameLabels), name: sameName });
   }
   var order = ['wood', 'fire', 'earth', 'metal', 'water'];
   var best = null;
@@ -6719,8 +6762,12 @@ function _dfBouquetReading(items) {
     }).map(function(item) { return item.label; });
     if (labels.length >= 2 && (!best || labels.length > best.labels.length)) best = { element: element, labels: labels };
   });
-  if (best) return _dfJoinSourceSubject(best.labels) + ' 모두 ' + _dfElementLabelKo(best.element) + ' 기운을 가리켰어요.';
-  return '서로 다른 결의 꽃이 모여, 여러 얼굴의 당신을 한 다발에 담았어요.';
+  if (best) {
+    return _dfUiText('bouquet.sameElement',
+      _dfJoinSourceSubject(best.labels) + ' 모두 ' + _dfElementLabelKo(best.element) + ' 기운을 가리켰어요.',
+      { sources: _dfSourceListText(best.labels), element: _dfElementVar(best.element) });
+  }
+  return _dfUiText('bouquet.diverse', '서로 다른 결의 꽃이 모여, 여러 얼굴의 당신을 한 다발에 담았어요.');
 }
 
 /** 운명 꽃다발: 4-up 카드가 판정한 꽃을 한 다발로 묶는다. 두 송이 이상일 때만 보인다. */
@@ -6730,7 +6777,7 @@ function _dfRenderStudioBouquet(resolved) {
   var items = ['saju', 'astrology', 'jamidusu', 'sukuyo'].map(function(source) {
     var entry = resolved && resolved[source];
     return entry && entry.selection && entry.selection.flower
-      ? { source: source, label: _dfGetSourceLabel(source), selection: entry.selection, image: entry.image }
+      ? { source: source, label: _dfSourceLabelText(source), selection: entry.selection, image: entry.image }
       : null;
   }).filter(Boolean);
   _dfStudioState.bouquet = items.length >= 2 ? items : [];
@@ -6739,8 +6786,8 @@ function _dfRenderStudioBouquet(resolved) {
     wrap.innerHTML = '';
     return;
   }
-  wrap.innerHTML = '<h4 class="df-bouquet-title">운명 꽃다발</h4>'
-    + '<p class="df-bouquet-sub">' + items.length + '갈래 점술이 고른 꽃을 한 다발로 묶었어요.</p>'
+  wrap.innerHTML = '<h4 class="df-bouquet-title">' + _dfEscapeHtml(_dfUiText('bouquet.title', '운명 꽃다발')) + '</h4>'
+    + '<p class="df-bouquet-sub">' + _dfEscapeHtml(_dfUiText('bouquet.sub', items.length + '갈래 점술이 고른 꽃을 한 다발로 묶었어요.', { count: items.length })) + '</p>'
     + '<ul class="df-bouquet-stems">' + items.map(function(item) {
       return '<li class="df-bouquet-stem" data-df-bouquet="' + item.source + '"><span class="df-bouquet-bloom"><img alt="" width="72" height="72" decoding="async"></span>'
         + '<b>' + _dfEscapeHtml(item.selection.flower.name || '') + '</b><small>' + _dfEscapeHtml(item.label) + '</small></li>';
@@ -7294,7 +7341,7 @@ function _dfEscapeHtml(s) {
 }
 
 function _dfBuildShareText(snapshot) {
-  if (!snapshot) return '운명의 꽃 결과를 준비 중이에요.';
+  if (!snapshot) return _dfUiText('share.preparing', '운명의 꽃 결과를 준비 중이에요.');
   return _dfFlowerHookText({
     name: snapshot.name,
     language: snapshot.flower_language,
@@ -7776,7 +7823,7 @@ function _dfApplyStudioSelection(selection) {
   }
   if (keywordsEl) keywordsEl.textContent = sourceLabel + ' 키워드 · ' + _dfToArray(selection.keywords).join(' • ');
   _dfRenderStudioWhy(selection);
-  _dfRenderStudioSpecimen(selection, sourceLabel, badges, flowerData);
+  _dfRenderStudioSpecimen(selection, _dfSourceLabelText(selection.source), badges, flowerData);
   if (narrativeEl) {
     narrativeEl.textContent = (selection.matched && selection.matched.narrative)
       || (sajuVerdict + ' ' + sourceShort + ' 균형을 기준으로 지금의 개화 포인트를 정렬했습니다.');
@@ -8375,22 +8422,30 @@ function _dfFlowerShareUrl(flowerId, source) {
 /** 카톡·스토리에 붙는 짧은 훅. 희소성 문장은 엔진이 실제 조건으로 만든 rarity_line 만 쓴다. */
 function _dfFlowerHookText(opts) {
   var name = String(opts.name || '').trim();
-  var tag = name.replace(/\s+/g, '');
+  // 해시태그는 공백·하이픈·따옴표에서 끊기므로 이어 붙인다(Night-Blooming Cereus → NightBloomingCereus).
+  var tag = name.replace(/[\s\-'’·.()]+/g, '');
   return [
-    '🌸 내 운명의 꽃은 \'' + name + '\'' + _dfJosa(name, '이래', '래'),
-    opts.language ? '꽃말: ' + opts.language : '',
+    _dfUiText('share.hookTitle', '🌸 내 운명의 꽃은 \'' + name + '\'' + _dfJosa(name, '이래', '래'), { name: name }),
+    opts.language ? _dfUiText('share.hookLanguage', '꽃말: ' + opts.language, { language: opts.language }) : '',
     opts.rarity || '',
-    '너는 무슨 꽃일까? → ' + opts.url,
-    '#운명의꽃' + (tag ? ' #나의꽃은' + tag : '')
+    _dfUiText('share.hookAsk', '너는 무슨 꽃일까? → ' + opts.url, { url: opts.url }),
+    tag ? _dfUiText('share.hashtagsNamed', '#운명의꽃 #나의꽃은' + tag, { tag: tag }) : _dfUiText('share.hashtag', '#운명의꽃')
   ].filter(Boolean).join('\n');
+}
+
+/** 꽃말 한 줄(꽃말 · …). OG 설명·카카오 설명·친구 꽃 카드가 같이 쓴다. */
+function _dfLanguageDotText(language) {
+  return _dfUiText('share.languageDot', '꽃말 · ' + language, { language: language });
 }
 
 function _dfFlowerOgImage(url, name, language) {
   var origin = 'https://code-destiny.com';
   try { origin = new URL(url).origin; } catch (_) {}
-  return origin + '/api/og?title=' + encodeURIComponent(name + ', 나의 운명의 꽃')
-    + '&desc=' + encodeURIComponent(language ? '꽃말 · ' + language : '너의 꽃은 무엇일까?')
-    + '&badge=flower&theme=light';
+  var lang = '';
+  try { lang = typeof window.cdGetCurrentLanguage === 'function' ? String(window.cdGetCurrentLanguage() || '') : ''; } catch (_) {}
+  return origin + '/api/og?title=' + encodeURIComponent(_dfUiText('share.ogTitle', name + ', 나의 운명의 꽃', { name: name }))
+    + '&desc=' + encodeURIComponent(language ? _dfLanguageDotText(language) : _dfUiText('share.ogAsk', '너의 꽃은 무엇일까?'))
+    + '&badge=flower&theme=light' + (lang && lang !== 'ko' ? '&lang=' + encodeURIComponent(lang) : '');
 }
 
 function _dfShareContext(selection) {
@@ -8432,14 +8487,14 @@ function _dfShareCopy(text, message) {
 /** 시스템 공유 시트가 있으면 그걸로, 없으면 카카오톡 앱 → 클립보드 순으로. */
 function _dfSendShareText(text, title) {
   if (navigator.share) {
-    navigator.share({ title: title || '운명의 꽃', text: text }).catch(function(err) {
+    navigator.share({ title: title || _dfUiText('share.title', '운명의 꽃'), text: text }).catch(function(err) {
       if (err && err.name === 'AbortError') return;
-      _dfShareCopy(text, '공유 문구를 복사했어요. 카카오톡에 붙여넣어 보내 보세요.');
+      _dfShareCopy(text, _dfUiText('share.copiedText', '공유 문구를 복사했어요. 카카오톡에 붙여넣어 보내 보세요.'));
     });
     return;
   }
   _dfShareSnapshot(null, text);
-  _dfShareNote('공유 문구를 준비했어요. 카카오톡이 열리지 않으면 붙여넣어 보내 보세요.');
+  _dfShareNote(_dfUiText('share.preparedText', '공유 문구를 준비했어요. 카카오톡이 열리지 않으면 붙여넣어 보내 보세요.'));
 }
 
 /* ── 9:16 스토리 카드(540×960 → 2배 캡처 1080×1920) ── */
@@ -8448,12 +8503,12 @@ function _dfShareCardMarkup(ctx) {
   var lines = steps.filter(function(step) { return step.stage !== 'bloom'; }).slice(0, 2)
     .concat(steps.filter(function(step) { return step.stage === 'bloom'; }).slice(-1));
   var bouquet = _dfToArray(_dfStudioState.bouquet).slice(0, 4);
-  return '<p class="df-sc-kicker">나의 운명의 꽃</p>'
+  return '<p class="df-sc-kicker">' + _dfEscapeHtml(_dfUiText('card.kicker', '나의 운명의 꽃')) + '</p>'
     + '<span class="df-sc-bloom"><img alt="" width="232" height="232"></span>'
     + '<h3 class="df-sc-name">' + _dfEscapeHtml(ctx.name) + '</h3>'
     + (ctx.latin ? '<p class="df-sc-latin">' + _dfEscapeHtml(ctx.latin) + '</p>' : '')
     + (ctx.rarity ? '<p class="df-sc-rarity">' + _dfEscapeHtml(_dfClip(ctx.rarity, 44)) + '</p>' : '')
-    + (ctx.language ? '<p class="df-sc-lang"><span>꽃말</span>' + _dfEscapeHtml(_dfClip(ctx.language, 24)) + '</p>' : '')
+    + (ctx.language ? '<p class="df-sc-lang"><span>' + _dfEscapeHtml(_dfUiText('specimen.language', '꽃말')) + '</span>' + _dfEscapeHtml(_dfClip(ctx.language, 24)) + '</p>' : '')
     + (lines.length ? '<ol class="df-sc-story">' + lines.map(function(step) {
       return '<li data-stage="' + _dfEscapeHtml(step.stage) + '">' + _dfEscapeHtml(_dfClip(step.text, 62)) + '</li>';
     }).join('') + '</ol>' : '')
@@ -8462,7 +8517,8 @@ function _dfShareCardMarkup(ctx) {
       return '<li data-df-bouquet="' + _dfEscapeHtml(item.source) + '"><span><img alt="" width="58" height="58"></span><b>'
         + _dfEscapeHtml(_dfClip(item.selection.flower.name, 8)) + '</b><small>' + _dfEscapeHtml(item.label) + '</small></li>';
     }).join('') + '</ul>' : '')
-    + '<p class="df-sc-foot"><b>너의 꽃은?</b><span>code-destiny.com</span><span>#운명의꽃</span></p>';
+    + '<p class="df-sc-foot"><b>' + _dfEscapeHtml(_dfUiText('card.ask', '너의 꽃은?')) + '</b><span>code-destiny.com</span><span>'
+    + _dfEscapeHtml(_dfUiText('share.hashtag', '#운명의꽃')) + '</span></p>';
 }
 
 function _dfRenderShareCard(ctx, done) {
@@ -8508,10 +8564,10 @@ function _dfEnsureShareSheet() {
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   if (!overlay) return null;
   var actions = [
-    ['story', '스토리 카드', '9:16 이미지로 저장·공유'],
-    ['kakao', '카카오톡', '친구에게 내 꽃 보내기'],
-    ['link', '링크 복사', '꽃말과 함께 복사'],
-    ['compat', '친구와 꽃 궁합', '친구에게 궁합 링크 보내기']
+    ['story', _dfUiText('sheet.story', '스토리 카드'), _dfUiText('sheet.storyHint', '9:16 이미지로 저장·공유')],
+    ['kakao', _dfUiText('sheet.kakao', '카카오톡'), _dfUiText('sheet.kakaoHint', '친구에게 내 꽃 보내기')],
+    ['link', _dfUiText('sheet.link', '링크 복사'), _dfUiText('sheet.linkHint', '꽃말과 함께 복사')],
+    ['compat', _dfUiText('sheet.compat', '친구와 꽃 궁합'), _dfUiText('sheet.compatHint', '친구에게 궁합 링크 보내기')]
   ];
   layer = document.createElement('div');
   layer.id = 'dfShareSheet';
@@ -8520,15 +8576,15 @@ function _dfEnsureShareSheet() {
   layer.innerHTML = '<div class="df-share-scrim" data-df-share="close"></div>'
     + '<section class="df-share-panel" role="dialog" aria-modal="true" aria-labelledby="dfShareTitle">'
     + '<span class="df-share-grip" aria-hidden="true"></span>'
-    + '<h4 id="dfShareTitle" class="df-share-title">꽃 공유하기</h4>'
+    + '<h4 id="dfShareTitle" class="df-share-title">' + _dfEscapeHtml(_dfUiText('sheet.title', '꽃 공유하기')) + '</h4>'
     + '<p id="dfShareSub" class="df-share-sub"></p>'
     + '<div class="df-share-actions">' + actions.map(function(action) {
       return '<button type="button" class="df-share-action" data-df-share="' + action[0] + '">'
         + '<span class="df-share-action-ico">' + _dfShareIco(action[0]) + '</span>'
-        + '<span class="df-share-action-text"><b>' + action[1] + '</b><small data-df-share-hint="' + action[0] + '">' + action[2] + '</small></span></button>';
+        + '<span class="df-share-action-text"><b>' + _dfEscapeHtml(action[1]) + '</b><small data-df-share-hint="' + action[0] + '">' + _dfEscapeHtml(action[2]) + '</small></span></button>';
     }).join('') + '</div>'
     + '<p id="dfShareNote" class="df-share-note" aria-live="polite"></p>'
-    + '<button type="button" class="df-share-cancel" data-df-share="close">닫기</button>'
+    + '<button type="button" class="df-share-cancel" data-df-share="close">' + _dfEscapeHtml(_dfUiText('sheet.close', '닫기')) + '</button>'
     + '</section>';
   // 오버레이의 닫기 히트테스트·전역 data-action 위임이 이 시트의 탭을 가져가지 않도록 여기서 끝낸다.
   layer.addEventListener('click', function(e) {
@@ -8553,7 +8609,7 @@ function _dfRunShareAction(action) {
   if (!st) return;
   if (action === 'story') _dfShareStoryCard(st);
   else if (action === 'kakao') _dfShareKakao(st.ctx);
-  else if (action === 'link') _dfShareCopy(st.ctx.text, '꽃말과 링크를 복사했어요. 친구에게 붙여넣어 보내 보세요.');
+  else if (action === 'link') _dfShareCopy(st.ctx.text, _dfUiText('sheet.linkCopied', '꽃말과 링크를 복사했어요. 친구에게 붙여넣어 보내 보세요.'));
   else if (action === 'compat') _dfShareCompatInvite(st.ctx);
 }
 
@@ -8567,16 +8623,22 @@ function _dfPrimeKakaoSdk() {
 function openDestinyFlowerShareSheet() {
   var ctx = _dfShareContext();
   if (!ctx) {
-    _dfSetStudioStatus('내 꽃이 피면 공유할 수 있어요.');
+    _dfSetStudioStatus(_dfUiText('sheet.notReady', '내 꽃이 피면 공유할 수 있어요.'));
     return;
   }
   var layer = _dfEnsureShareSheet();
   if (!layer) return;
   var st = { ctx: ctx, blob: null, rendering: true, waiters: [], trigger: document.activeElement };
   _dfShareState = st;
-  document.getElementById('dfShareSub').textContent = ctx.name + (ctx.language ? ' · 꽃말 \'' + ctx.language + '\'' : '');
+  document.getElementById('dfShareSub').textContent = ctx.language
+    ? _dfUiText('sheet.sub', ctx.name + ' · 꽃말 \'' + ctx.language + '\'', { name: ctx.name, language: ctx.language })
+    : ctx.name;
   var compatHint = layer.querySelector('[data-df-share-hint="compat"]');
-  if (compatHint) compatHint.textContent = _dfStudioState.friendCompat ? '친구 꽃과의 궁합 보기' : '친구에게 궁합 링크 보내기';
+  if (compatHint) {
+    compatHint.textContent = _dfStudioState.friendCompat
+      ? _dfUiText('sheet.compatHintFriend', '친구 꽃과의 궁합 보기')
+      : _dfUiText('sheet.compatHint', '친구에게 궁합 링크 보내기');
+  }
   _dfShareNote('');
   layer.hidden = false;
   var first = layer.querySelector('.df-share-action');
@@ -8624,20 +8686,20 @@ function closeDestinyFlowerShareSheet() {
 function _dfShareStoryCard(st) {
   var run = function(blob) {
     if (!blob || typeof window.cdShareImageBlob !== 'function') {
-      _dfShareNote('카드 이미지를 만들지 못해 공유 문구로 대신 보낼게요.');
-      _dfSendShareText(st.ctx.text, '나의 운명의 꽃');
+      _dfShareNote(_dfUiText('card.failed', '카드 이미지를 만들지 못해 공유 문구로 대신 보낼게요.'));
+      _dfSendShareText(st.ctx.text, _dfUiText('card.kicker', '나의 운명의 꽃'));
       return;
     }
     window.cdShareImageBlob(blob, {
       fileName: 'destiny-flower-' + (st.ctx.id || 'card') + '.png',
-      title: '나의 운명의 꽃',
+      title: _dfUiText('card.kicker', '나의 운명의 꽃'),
       text: st.ctx.text,
-      savedMessage: '스토리 카드를 저장했어요. 공유 문구도 함께 복사됐어요.'
+      savedMessage: _dfUiText('card.saved', '스토리 카드를 저장했어요. 공유 문구도 함께 복사됐어요.')
     });
-    _dfShareNote('스토리 카드를 준비했어요. 인스타그램·카카오톡 스토리에 올려 보세요.');
+    _dfShareNote(_dfUiText('card.ready', '스토리 카드를 준비했어요. 인스타그램·카카오톡 스토리에 올려 보세요.'));
   };
   if (!st.rendering) { run(st.blob); return; }
-  _dfShareNote('카드를 그리는 중이에요. 잠시만 기다려 주세요.');
+  _dfShareNote(_dfUiText('card.drawing', '카드를 그리는 중이에요. 잠시만 기다려 주세요.'));
   st.waiters.push(run);
 }
 
@@ -8649,19 +8711,19 @@ function _dfShareKakao(ctx) {
       K.Share.sendDefault({
         objectType: 'feed',
         content: {
-          title: '나의 운명의 꽃은 \'' + ctx.name + '\'',
-          description: ctx.language ? '꽃말 · ' + ctx.language : ctx.oneLiner,
+          title: _dfUiText('share.kakaoTitle', '나의 운명의 꽃은 \'' + ctx.name + '\'', { name: ctx.name }),
+          description: ctx.language ? _dfLanguageDotText(ctx.language) : ctx.oneLiner,
           imageUrl: ctx.ogImage,
           link: link
         },
-        buttons: [{ title: '내 꽃 피워보기', link: link }]
+        buttons: [{ title: _dfUiText('share.bloomMine', '내 꽃 피워보기'), link: link }]
       });
-      _dfShareNote('카카오톡 공유 창을 열었어요.');
+      _dfShareNote(_dfUiText('share.kakaoOpened', '카카오톡 공유 창을 열었어요.'));
       return;
     } catch (_) {}
   }
   _dfShareSnapshot(null, ctx.text);
-  _dfShareNote('카카오톡으로 보낼 문구를 준비했어요. 열리지 않으면 붙여넣어 보내 보세요.');
+  _dfShareNote(_dfUiText('share.kakaoPrepared', '카카오톡으로 보낼 문구를 준비했어요. 열리지 않으면 붙여넣어 보내 보세요.'));
 }
 
 function _dfShareCompatInvite(ctx) {
@@ -8672,11 +8734,11 @@ function _dfShareCompatInvite(ctx) {
     return;
   }
   _dfSendShareText([
-    '🌸 내 운명의 꽃은 \'' + ctx.name + '\'' + _dfJosa(ctx.name, '이야', '야'),
-    '너도 네 꽃 피워 보고 우리 꽃 궁합 확인해 봐',
+    _dfUiText('compatShare.inviteTitle', '🌸 내 운명의 꽃은 \'' + ctx.name + '\'' + _dfJosa(ctx.name, '이야', '야'), { name: ctx.name }),
+    _dfUiText('compatShare.inviteAsk', '너도 네 꽃 피워 보고 우리 꽃 궁합 확인해 봐'),
     '→ ' + ctx.url,
-    '#운명의꽃 #꽃궁합'
-  ].join('\n'), '운명의 꽃 궁합');
+    _dfUiText('compatShare.hashtags', '#운명의꽃 #꽃궁합')
+  ].join('\n'), _dfUiText('compatShare.title', '운명의 꽃 궁합'));
 }
 
 /* ── 받는 쪽: 친구 꽃 미리보기 → 내 꽃 피우기 → 꽃 궁합 ── */
@@ -8710,25 +8772,29 @@ function _dfFlowerCompat(mine, friend) {
   var b = _dfMainElement(friend);
   var A = _dfElementLabelKo(a);
   var B = _dfElementLabelKo(b);
+  var vars = { name: mine.name, mine: _dfElementVar(a), friend: _dfElementVar(b) };
+  var pick = function(type, title, line) {
+    return { type: type, title: _dfUiText('compat.' + type + '.title', title), line: _dfUiText('compat.' + type + '.line', line, vars) };
+  };
   if (mine.id && mine.id === friend.id) {
-    return { type: 'twin', title: '같은 꽃 한 쌍', line: '둘 다 ' + mine.name + _dfJosa(mine.name, '이에요', '예요') + '. 말하지 않아도 같은 계절을 사는 사이예요.' };
+    return pick('twin', '같은 꽃 한 쌍', '둘 다 ' + mine.name + _dfJosa(mine.name, '이에요', '예요') + '. 말하지 않아도 같은 계절을 사는 사이예요.');
   }
   if (!_DF_ELEMENT_GENERATES[a] || !_DF_ELEMENT_GENERATES[b]) {
-    return { type: 'blend', title: '서로 다른 결의 꽃', line: '서로 다른 빛깔의 두 꽃이 만나 한 다발이 더 풍성해지는 사이예요.' };
+    return pick('blend', '서로 다른 결의 꽃', '서로 다른 빛깔의 두 꽃이 만나 한 다발이 더 풍성해지는 사이예요.');
   }
   if (a === b) {
-    return { type: 'same', title: '닮은 결의 꽃', line: '둘 다 ' + A + ' 기운을 품은 꽃이에요. 서로의 속도를 가장 잘 알아보는 사이예요.' };
+    return pick('same', '닮은 결의 꽃', '둘 다 ' + A + ' 기운을 품은 꽃이에요. 서로의 속도를 가장 잘 알아보는 사이예요.');
   }
   if (_DF_ELEMENT_GENERATES[a] === b) {
-    return { type: 'give', title: '내가 피워 주는 꽃', line: '내 꽃의 ' + A + ' 기운이 친구 꽃의 ' + B + ' 기운을 키워 줘요. 곁에 있으면 친구가 더 환하게 피어나요.' };
+    return pick('give', '내가 피워 주는 꽃', '내 꽃의 ' + A + ' 기운이 친구 꽃의 ' + B + ' 기운을 키워 줘요. 곁에 있으면 친구가 더 환하게 피어나요.');
   }
   if (_DF_ELEMENT_GENERATES[b] === a) {
-    return { type: 'receive', title: '나를 피워 주는 꽃', line: '친구 꽃의 ' + B + ' 기운이 내 꽃의 ' + A + ' 기운을 북돋아요. 함께 있으면 내가 더 활짝 피어나요.' };
+    return pick('receive', '나를 피워 주는 꽃', '친구 꽃의 ' + B + ' 기운이 내 꽃의 ' + A + ' 기운을 북돋아요. 함께 있으면 내가 더 활짝 피어나요.');
   }
   if (_DF_ELEMENT_CONTROLS[a] === b) {
-    return { type: 'shape', title: '서로를 다듬는 꽃', line: '내 꽃의 ' + A + ' 기운이 친구 꽃의 ' + B + ' 기운을 다듬어요. 속도를 맞춰 갈수록 단단해지는 사이예요.' };
+    return pick('shape', '서로를 다듬는 꽃', '내 꽃의 ' + A + ' 기운이 친구 꽃의 ' + B + ' 기운을 다듬어요. 속도를 맞춰 갈수록 단단해지는 사이예요.');
   }
-  return { type: 'spark', title: '자극이 되는 꽃', line: '친구 꽃의 ' + B + ' 기운이 내 꽃의 ' + A + ' 기운을 다잡아 줘요. 서로에게 좋은 자극이 되는 사이예요.' };
+  return pick('spark', '자극이 되는 꽃', '친구 꽃의 ' + B + ' 기운이 내 꽃의 ' + A + ' 기운을 다잡아 줘요. 서로에게 좋은 자극이 되는 사이예요.');
 }
 
 function _dfLoadFriendFlower(friend, done) {
@@ -8777,10 +8843,10 @@ function _dfRenderFriendFlower() {
     var mine = _dfStudioState.selection && _dfStudioState.selection.flower ? _dfStudioState.selection : null;
     var compat = mine ? _dfFlowerCompat(mine.flower, card) : null;
     _dfStudioState.friendCompat = compat ? { mine: mine, friend: friendSel, result: compat } : null;
-    el.innerHTML = '<p class="df-friend-kicker">친구가 보낸 운명의 꽃</p>'
+    el.innerHTML = '<p class="df-friend-kicker">' + _dfEscapeHtml(_dfUiText('friend.kicker', '친구가 보낸 운명의 꽃')) + '</p>'
       + '<div class="df-friend-row"><span class="df-friend-bloom"><img alt="" width="84" height="84" decoding="async"></span>'
       + '<div class="df-friend-text"><h4 id="dfFriendName" class="df-friend-name">' + _dfEscapeHtml(card.name) + '</h4>'
-      + (card.flower_language ? '<p class="df-friend-lang">꽃말 · ' + _dfEscapeHtml(card.flower_language) + '</p>' : '')
+      + (card.flower_language ? '<p class="df-friend-lang">' + _dfEscapeHtml(_dfLanguageDotText(card.flower_language)) + '</p>' : '')
       + (card.title && card.title !== card.name ? '<p class="df-friend-title">' + _dfEscapeHtml(card.title) + '</p>' : '')
       + '</div></div>'
       + (compat
@@ -8788,10 +8854,10 @@ function _dfRenderFriendFlower() {
           + '<p class="df-compat-pair"><b>' + _dfEscapeHtml(mine.flower.name) + '</b><span aria-hidden="true">×</span><b>' + _dfEscapeHtml(card.name) + '</b></p>'
           + '<h5 class="df-compat-title">' + _dfEscapeHtml(compat.title) + '</h5>'
           + '<p class="df-compat-line">' + _dfEscapeHtml(compat.line) + '</p>'
-          + '<button class="df-studio-chip df-studio-chip--share" type="button" data-action="shareDestinyFlowerCompat">' + _dfShareIco('compat') + '<span>꽃 궁합 공유하기</span></button>'
+          + '<button class="df-studio-chip df-studio-chip--share" type="button" data-action="shareDestinyFlowerCompat">' + _dfShareIco('compat') + '<span>' + _dfEscapeHtml(_dfUiText('friend.shareCompat', '꽃 궁합 공유하기')) + '</span></button>'
           + '</div>'
-        : '<p class="df-friend-note">내 꽃이 피면 둘의 꽃 궁합을 바로 보여 드려요.</p>'
-          + '<button class="df-studio-btn df-studio-btn--primary df-friend-cta" type="button" data-action="bloomMyDestinyFlower">내 꽃 피워보기</button>');
+        : '<p class="df-friend-note">' + _dfEscapeHtml(_dfUiText('friend.note', '내 꽃이 피면 둘의 꽃 궁합을 바로 보여 드려요.')) + '</p>'
+          + '<button class="df-studio-btn df-studio-btn--primary df-friend-cta" type="button" data-action="bloomMyDestinyFlower">' + _dfEscapeHtml(_dfUiText('share.bloomMine', '내 꽃 피워보기')) + '</button>');
     _dfApplyGeneratedFlowerImage(el.querySelector('.df-friend-bloom img'), friendSel, friend.source);
     el.hidden = false;
   });
@@ -8806,20 +8872,23 @@ function bloomMyDestinyFlower() {
   }
   // 생년월일이 없으면 홈 입력으로. 친구 꽃은 세션에 남아 있어 다시 들어오면 궁합이 이어진다.
   goHomeFromDestinyFlower();
-  if (typeof window.showToast === 'function') window.showToast('생년월일을 넣으면 내 꽃이 피어나요. 친구 꽃과의 궁합도 이어서 보여 드려요.');
+  if (typeof window.showToast === 'function') window.showToast(_dfUiText('friend.birthToast', '생년월일을 넣으면 내 꽃이 피어나요. 친구 꽃과의 궁합도 이어서 보여 드려요.'));
 }
 
 function shareDestinyFlowerCompat() {
   var compat = _dfStudioState.friendCompat;
   if (!compat) return;
   var title = compat.result.title;
+  var mineName = compat.mine.flower.name;
+  var friendName = compat.friend.flower.name;
+  var url = _dfFlowerShareUrl(compat.mine.flower.id, compat.mine.source);
   _dfSendShareText([
-    '🌸 나는 \'' + compat.mine.flower.name + '\', 친구는 \'' + compat.friend.flower.name + '\'',
-    '우리 꽃 궁합은 \'' + title + '\'' + _dfJosa(title, '이래', '래'),
+    _dfUiText('compatShare.pair', '🌸 나는 \'' + mineName + '\', 친구는 \'' + friendName + '\'', { mine: mineName, friend: friendName }),
+    _dfUiText('compatShare.result', '우리 꽃 궁합은 \'' + title + '\'' + _dfJosa(title, '이래', '래'), { title: title }),
     compat.result.line,
-    '너도 네 꽃이랑 궁합 봐 → ' + _dfFlowerShareUrl(compat.mine.flower.id, compat.mine.source),
-    '#운명의꽃 #꽃궁합'
-  ].join('\n'), '운명의 꽃 궁합');
+    _dfUiText('compatShare.ask', '너도 네 꽃이랑 궁합 봐 → ' + url, { url: url }),
+    _dfUiText('compatShare.hashtags', '#운명의꽃 #꽃궁합')
+  ].join('\n'), _dfUiText('compatShare.title', '운명의 꽃 궁합'));
 }
 
 _dfCaptureFriendFlowerParam();
