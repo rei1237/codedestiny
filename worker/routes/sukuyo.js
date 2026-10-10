@@ -2506,6 +2506,14 @@ export async function handleSukuyoRoutes(request, env = {}, ctx = null) {
       return await handleSukuyoPastLifeReading(request, env);
     }
 
+    // 회당 결제 결과(기본·정밀 궁합)의 보관함 저장 — worker/routes/sukuyo-archive.js
+    const archiveMatch = /^\/(compat|compat-precision)\/archive$/.exec(path);
+    if (archiveMatch) {
+      if (method !== "POST") return methodNotAllowed();
+      const { handleSukuyoResultArchive } = await import("./sukuyo-archive.js");
+      return await handleSukuyoResultArchive(request, env, archiveMatch[1]);
+    }
+
     if (path === "/compatibility-ai-consultation" || path === "/ai-compatibility") {
       if (method !== "POST") return methodNotAllowed();
       return sukuyoCompatibilityAiMovedResponse();

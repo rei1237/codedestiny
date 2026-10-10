@@ -187,6 +187,16 @@ test('partial shared deliveries expose accepted parts and stored cards, without 
   const detail=await library.readRecord(owner,'executions','part-fixture');expect(detail.content.chapters[0].body).toBe('저장된 첫 장');expect(detail.content.cards[0].nameKo).toBe('바보');expect(JSON.stringify(detail.content)).not.toContain('never expose');
   revoked=true;expect((await route(request('/detail?source=executions&id=part-fixture'))).status).toBe(403);
 });
+test('sukuyo per-use compat archives are listed by product name and reopen with the saved sections',async()=>{
+  // worker/routes/sukuyo-archive.js 가 쓰는 저장 모양.
+  const result={title:'숙요점 궁합',summary:'안괴 · 근거리',sukuyoResult:{mansion:'나 각숙 · 상대 항숙',relation:'안괴'},sections:[{title:'인연 요약',body:'저장된 궁합 본문'}]};
+  stores.serviceexecutiontransactions=[seed('1','01',{featureKey:'compat-sukuyo-compatibility',executionKey:'compat:owner:card-a:sig',status:'success',premiumStatus:'completed',profileId:'card-a',idempotencyKey:'sukuyo-paid:compat-sukuyo-compatibility|card-a',metadata:{accessType:'payment',archive:{reportType:'sukuyo-compatibility',title:'숙요점 궁합',result,payload:{}}}})];
+  const listed=await library.listRecords(owner,new URLSearchParams());
+  expect(listed.items.map(row=>[row.serviceId,row.serviceName,row.title])).toEqual([['compat-sukuyo-compatibility','숙요점 궁합','숙요점 궁합']]);
+  const detail=await library.readRecord(owner,'executions','compat:owner:card-a:sig');
+  expect(JSON.stringify(detail.content)).toContain('저장된 궁합 본문');
+  revoked=true;expect((await route(request('/detail?source=executions&id='+encodeURIComponent('compat:owner:card-a:sig')))).status).toBe(403);
+});
 test('saved HTML preserves tables and removes script, handlers and unsafe URLs',async()=>{
   const {sanitizePublicInsightHtml}=await import('../../app/insights/_lib/sanitizePublicHtml.js');
   const safe=sanitizePublicInsightHtml('<table onclick="danger()"><tr><td>저장된 표</td></tr></table><script>danger()</script><a href="javascript:danger()">링크</a><img src="/fixture.webp" onerror="danger()">',{tables:true});

@@ -8365,6 +8365,90 @@ function syRequirePaidSukuyoFeature(feature, onGranted, resume) {
   return true;
 }
 
+/* ── 회당 결제 결과(기본·정밀 궁합)의 보관함 저장 ───────────────────────────────
+   결과는 이 파일이 계산해 그리므로 서버에는 남지 않았다. 렌더가 끝나면 계산된 사실과 화면의 글(텍스트만)을
+   POST /api/sukuyo/<compat|compat-precision>/archive 로 보낸다. 서버가 이 카드의 결제 기록을 직접 찾아
+   확인한 뒤에만 저장한다(worker/routes/sukuyo-archive.js) — 여기서 결제 여부를 판단하지 않는다.
+   🔴 저장 실패가 결과 표시를 막으면 안 된다. 조용히 한 번 더 시도하고 콘솔에만 남긴다
+   (이용권 즉시 적용은 서버 기록이 뒤따라 써지므로 첫 시도가 403 일 수 있다). */
+var SY_ARCHIVE_RETRY_MS = 4000;
+
+function syArchiveText(value, max) {
+  // 서버는 '<' 가 든 글을 HTML 로 보고 거절한다 — 화면 글자 그대로의 부등호는 비슷한 모양으로 바꾼다.
+  return String(value == null ? '' : value).replace(/</g, '‹').replace(/[ \t ]+/g, ' ').replace(/\n\s*\n\s*\n+/g, '\n\n').trim().slice(0, max);
+}
+
+function syArchiveSectionsFrom(root, skipSelector) {
+  var out = [];
+  if (!root || typeof root.querySelectorAll !== 'function') return out;
+  var nodes = root.querySelectorAll('section, .sy-sec');
+  for (var i = 0; i < nodes.length && out.length < 40; i += 1) {
+    var node = nodes[i];
+    if (skipSelector && node.closest && node.closest(skipSelector)) continue;
+    // 바깥 섹션만 — 안쪽 섹션의 글은 바깥 섹션 본문에 이미 들어 있다.
+    var parent = node.parentElement && node.parentElement.closest ? node.parentElement.closest('section, .sy-sec') : null;
+    if (parent && root.contains(parent)) continue;
+    var head = node.firstElementChild;
+    var title = syArchiveText(head ? head.textContent : '', 120);
+    var whole = syArchiveText(node.innerText || node.textContent || '', 4000);
+    var body = title && whole.indexOf(title) === 0 ? whole.slice(title.length).trim() : whole;
+    if (body) out.push({ title: title || '상세 해석', body: body });
+  }
+  return out;
+}
+
+function syArchiveFactsFromCompat(compat, myMansionName) {
+  var c = compat && typeof compat === 'object' ? compat : {};
+  return {
+    myMansion: String(myMansionName || ''),
+    partnerMansion: c.partnerMansion || '',
+    relationType: c.relationType || '',
+    relationTypeHan: c.relationTypeHan || '',
+    myRole: c.myRole || '',
+    partnerRole: c.partnerRole || '',
+    distanceLabel: c.distanceLabel || '',
+    partnerGender: c.partnerGender || '',
+    stamp: c.stamp || '',
+    score: c.score,
+    compatibilityIndex: c.compatibilityIndex,
+    temperature: c.temperature,
+    magnetism: c.magnetism,
+    forwardDistance: c.forwardDistance,
+    reverseDistance: c.reverseDistance
+  };
+}
+
+function sySaveSukuyoResultArchive(featureSlug, payload, attempt) {
+  try {
+    if (typeof fetch !== 'function' || !payload) return;
+    var profileId = syResolveCurrentProfileIdForPaidGate();
+    if (!profileId) return;
+    var headers = { 'Content-Type': 'application/json' };
+    try {
+      var token = localStorage.getItem('fortune_auth_token') || '';
+      if (token) headers.Authorization = 'Bearer ' + token;
+    } catch (_) {}
+    var body = JSON.stringify({ profileId: profileId, facts: payload.facts, partner: payload.partner, sections: payload.sections });
+    var retry = function(reason) {
+      if ((attempt || 0) >= 1) {
+        try { console.warn('[sukuyo-archive] 보관함 저장 실패', featureSlug, reason); } catch (_) {}
+        return;
+      }
+      setTimeout(function() { sySaveSukuyoResultArchive(featureSlug, payload, 1); }, SY_ARCHIVE_RETRY_MS);
+    };
+    fetch('/api/sukuyo/' + featureSlug + '/archive', { method: 'POST', headers: headers, credentials: 'include', body: body })
+      .then(function(res) {
+        // 400·413 은 다시 보내도 같다.
+        if (!res || res.ok || res.status === 400 || res.status === 413) {
+          if (res && !res.ok) { try { console.warn('[sukuyo-archive] 저장 거절', featureSlug, res.status); } catch (_) {} }
+          return;
+        }
+        retry(res.status);
+      })
+      .catch(function(error) { retry(error && error.message ? error.message : 'network'); });
+  } catch (_) {}
+}
+
 function syPaidFeatureUserScope() {
   var user = null;
   var root = typeof window !== 'undefined' ? window : {};
@@ -17312,6 +17396,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       const calType = document.getElementById('sy3CalType').value || "solar";
       const partnerGender = (document.getElementById('sy3PartnerGender') || {}).value || 'OTHER';
       const partnerGenderLabel = partnerGender === 'M' ? '남성' : (partnerGender === 'F' ? '여성' : '기타');
+      // 보관함 기록의 '같은 입력' 판정에 쓰는 상대 입력(서버가 이 값으로 기록 키를 만든다).
+      const compatArchivePartner = { y: String(yVal || ''), m: String(mVal || ''), d: String(dVal || ''), time: timeStr, cal: calType, gender: partnerGender };
 
       if(!dateStr) {
           clearTimeout(_sy3Guard);
@@ -18425,6 +18511,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               precisionContent.style.display = 'block';
               if (precisionBtn) precisionBtn.style.display = 'none';
               if (precisionStatus) precisionStatus.textContent = '정밀 궁합 확장이 열렸습니다.';
+              // 결제 후(또는 결제 복귀 후)에만 열리는 확장 — 열린 글을 보관함에 남긴다.
+              sySaveSukuyoResultArchive('compat-precision', {
+                facts: syArchiveFactsFromCompat(window._syLastCompat, myMansionName),
+                partner: compatArchivePartner,
+                sections: syArchiveSectionsFrom(precisionContent, '')
+              });
             };
             /* 결제 후 재개가 부를 '게이트 없는 열기 코어'. 확장 내용은 이 렌더의 클로저(precisionExtensionSections)
                안에만 있어서 보고서를 다시 그릴 때마다 새 함수로 갱신된다. */
@@ -18452,6 +18544,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           try {
             syHighlightRelationMiniMap(enhanced.relationTypeKo || rel.typeLabel || rel.type);
           } catch (_relMapErr) {}
+
+          // 이 코어는 결제 게이트(또는 결제 복귀) 뒤에서만 불린다 — 그린 기본 궁합을 보관함에 남긴다.
+          // 정밀 확장·AI 상담 카드는 각자 따로 결제하므로 여기서 빼고 저장한다.
+          sySaveSukuyoResultArchive('compat', {
+            facts: syArchiveFactsFromCompat(window._syLastCompat, myMansionName),
+            partner: compatArchivePartner,
+            sections: syArchiveSectionsFrom(rd, '#syCompatPrecisionGate, #syCompatAiPromptCard')
+          });
 
           // 온도 바 애니메이션 (인라인 결과)
           setTimeout(function() {
