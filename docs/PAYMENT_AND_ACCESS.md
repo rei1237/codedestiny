@@ -227,6 +227,8 @@
 - Content routes compute from the saved `ProfileCard` birth, not the request body. Saved `/records/` results stay free to reopen.
 - Clients never persist birth-scoped unlocks in localStorage and treat only the server response for the current profileId as authoritative.
 - Existing purchases are copied to BIRTH rows by `scripts/migrations/20261010-birth-scope-unlocks.mjs` (dry-run default). It must be applied to production before production promotion.
+- Paid orders created before the switch carry no `pricingSnapshot.birthKey`. When their saved profile still exists they are granted with the profile's **current** birth. When the profile is missing or deleted the grant is held, not refunded: the legacy single-payment path and Google Play leave `failureCode:"delivery_failed_manual_review"`, and the V2 regrant cron marks the same code (`failureStage:"birth_profile_required"`) on `MISSING_PROFILE_ID`/`INVALID_PROFILE` instead of retrying forever. Confirm responses keep `GRANT_PENDING` and add `profileSelectionRequired:true`; the legacy 202 no longer claims access was granted.
+- Held orders are resolved by the user: `GET /api/payments/birth-profile-pending` lists them and `POST /api/payments/birth-profile-pending/:id/claim {profileId, partnerProfileId?}` grants a `BIRTH` row for the chosen saved profile, then clears the marker (`worker/payments/birth-profile-claim.js`). The first chosen birthKey is reserved on the order so one order never grants two births. Admins filter them with `/api/admin/orders?failureCode=delivery_failed_manual_review`; `scripts/audit-birth-scope-pending-orders.mjs --db <name>` counts them read-only.
 
 ## Feature route boundary
 

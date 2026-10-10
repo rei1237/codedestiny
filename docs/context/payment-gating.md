@@ -14,6 +14,8 @@
 - 브라우저: 출생 기반 키는 localStorage(`cd_tile_locks` 등 계정 키·프로필 키 모두)에 저장하지도 읽지도 않는다. 서버가 **현재 profileId**에 대해 돌려준 응답만 해금 근거이며, 프로필 전환·생년월일 수정 때 해금 상태와 렌더 래치를 비우고 다시 조회한다. 잠금 문구는 "이 생년월일은 별도 구매가 필요합니다".
 - 저장된 결과(`/records/`) 재열람은 이 정책과 무관하게 무료다.
 - 기존 구매 이관: `scripts/migrations/20261010-birth-scope-unlocks.mjs`(기본 dry-run, `--apply`, `--create-index`). 구매 프로필의 **현재** 출생 정보로 BIRTH 행을 복사 생성하고 원본은 고치지 않는다. 구매 프로필을 알 수 없는 USER 행·삭제된 프로필·상대를 모르는 궁합 행은 `birthScopeExcludedAt`으로 표시만 한다. 🔴 운영 승격 전에 운영 DB `--apply`가 먼저다.
+- 소급 주문(출생 기반 전환 전 결제, 스냅샷 생년월일 없음): 저장 프로필이 살아 있으면 그 프로필의 **현재** 생년월일로 지급한다. 프로필이 없거나 지워졌으면 **환불하지 않고** 지급을 보류한다(`failureCode:"delivery_failed_manual_review"`; V2 크론은 `MISSING_PROFILE_ID`·`INVALID_PROFILE` 에서 재시도를 멈추고 같은 표식을 단다). 확정 응답은 `GRANT_PENDING` 에 `profileSelectionRequired:true` 를 싣고 "권한 정상 처리" 류 문구를 내지 않는다.
+- 보류 해소는 사용자가 한다: 로그인 뒤 `GET /api/payments/birth-profile-pending` 이 있으면 "결제한 콘텐츠를 열 프로필을 골라 주세요" 카드가 뜨고, 고른 저장 프로필로 `POST /api/payments/birth-profile-pending/:id/claim` 이 BIRTH 행을 지급한다(정본 `worker/payments/birth-profile-claim.js`). 한 주문은 처음 고른 생년월일 하나로만 지급된다. 관리자 주문 목록의 "지급 보류 · 프로필 선택 대기" 필터, 집계는 `scripts/audit-birth-scope-pending-orders.mjs --db <이름>`(읽기 전용).
 
 ## 2026-10-09 가격·과금 유형 확정
 
