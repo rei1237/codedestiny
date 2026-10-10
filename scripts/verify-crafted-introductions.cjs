@@ -28,14 +28,14 @@ async function capture(page,id,surface,detail,cta){
  await detail.locator('.craftedDetailTranscript>summary').click();
  await detail.locator('.craftedDetailTranscript section').nth(7).evaluate(el=>el.scrollIntoView({block:'center'}));await page.screenshot({path:out+'/transcript-360.png'});
  await detail.locator('.craftedDetailTranscript>summary').click();
- await detail.locator('img').first().evaluate(img=>{img.loading='eager';img.src='/missing-crafted-test.webp';});
+ await page.route('**/missing-crafted-test.webp',r=>r.fulfill({status:404,body:''}));await detail.locator('img').first().evaluate(img=>{img.loading='eager';img.src='/missing-crafted-test.webp';});
  await detail.locator('.craftedDetailTranscript[open]').waitFor();
  const result={id,surface,rows,missingImageOpensTranscript:true,mode:'Local mock; prices from local registry; no external traffic, payment, or LLM',entryEvidence:surface==='popup'&&id==='love-secret'?'Existing popup entry invoked directly; render evidence, not isolated click evidence':'Existing UI'};fs.writeFileSync(out+'/verification.json',JSON.stringify(result,null,2)+'\n');
  if(rows.some(r=>r.scrollWidth>r.width||r.images.some(i=>!i.loaded||i.left<0||i.right>r.width)))throw Error(id+' '+surface+' bounds');
  console.log(id,surface,rows.map(r=>[r.width,r.images[0].width]));
 }
 (async()=>{const browser=await chromium.launch();try{
- for(const [slug,ids] of (process.argv.includes('--popups-only')?[]:[['life-book-ai',['life-book']],['love-secret-ai',['love-secret']],['master-love-codex',['master-love-codex','master-love-codex-compat']],['fusion-fortune',['fusion-fortune']]])){
+ for(const [slug,ids] of (process.argv.includes('--popups-only')?[]:[['life-book-ai',['life-book']],['love-secret-ai',['love-secret']],['master-love-codex',['master-love-codex','master-love-codex-compat']],['fusion-fortune',['fusion-fortune']],['fortune-tea-house',['tea-saju','tea-saju-compat','tea-sukuyo','tea-tarot-three','tea-tarot-five']]])){
   for(const [index,id] of ids.entries()){
    if(requested&&requested!==id)continue;
    const p=await setup(browser);await p.goto(origin+'/features/'+slug+'/',{timeout:120000});

@@ -11,10 +11,15 @@
     "life-fortune-ai-consultation": "life-fortune",
     "master-love-codex": "master-love-codex",
     "master-love-codex-compat": "master-love-codex-compat",
-    "love-secret-ai-consultation": "love-secret"
+    "love-secret-ai-consultation": "love-secret",
+    "fortune-tea-house-saju-consultation": "tea-saju",
+    "fortune-tea-house-saju-compatibility-consultation": "tea-saju-compat",
+    "fortune-tea-house-sukuyo-compatibility-consultation": "tea-sukuyo"
   },
   "introductions": {
-    "fusion-fortune": ["fusion-fortune"],
+    "fusion-fortune": [
+      "fusion-fortune"
+    ],
     "life-book-ai": [
       "life-book"
     ],
@@ -24,6 +29,13 @@
     "master-love-codex": [
       "master-love-codex",
       "master-love-codex-compat"
+    ],
+    "fortune-tea-house": [
+      "tea-saju",
+      "tea-saju-compat",
+      "tea-sukuyo",
+      "tea-tarot-three",
+      "tea-tarot-five"
     ]
   }
 }
