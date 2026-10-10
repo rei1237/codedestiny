@@ -6203,17 +6203,197 @@ var _SE_SAJU_COMPAT_RESUME_KIND = 'saju-engine-saju-compat';
    라우트·렌더러·보관함이 모두 배포된 뒤에만 켠다. 꺼져 있으면 runCompat/runCompatCore 는 기존 결정론 경로 그대로다. */
 var _SE_SAJU_COMPAT_LLM_ENABLED = true;
 
-function _seBuildAstroCelebResumeDescriptor(name, birth, hour) {
+/* ── 점성술·자미두수 궁합(회당 결제) 결과의 보관함 저장 ───────────────────────────
+   결제마다 새 requestId 를 만들어 게이트에 넘기고, 같은 값을 복귀 서술자에도 담는다. 게이트가 열린 뒤
+   (또는 결제 복귀 뒤) 코어가 결과를 그리면 그 requestId 로 POST /api/compat-archive/<slug> 에 글만 보낸다.
+   서버가 이 결제를 확인한 뒤에만 남긴다(worker/routes/compat-result-archive.js).
+   🔴 저장은 게이트를 지난 실행 한 번에만 일어난다 — 컨텍스트는 코어가 꺼내는 순간 지운다.
+   🔴 이용권 즉시 사용은 사용 기록이 늦게 쓰일 수 있어 403 이면 다시 보내고, accessMethod:'pass' 로
+      서버가 같은 requestId 로 이용권 사용을 확정하게 한다. 저장 실패가 결과 표시를 막지 않는다. */
+var _SE_COMPAT_ARCHIVE_SLUGS = {
+  'compat-astro-synastry': 'astro-synastry',
+  'compat-astro-direct-synastry': 'astro-direct-synastry',
+  'compat-ziwei-compatibility': 'ziwei-compat'
+};
+var _SE_COMPAT_ARCHIVE_RETRY_DELAYS_MS = [4000, 12000, 30000];
+var _SE_COMPAT_ARCHIVE_SECTION_MAX = 2400;
+var _SE_COMPAT_ARCHIVE_TOTAL_MAX = 16000;
+var _seCompatArchiveContext = Object.create(null);
+
+function _seNewCompatArchiveRequestId(featureKey) {
+  return 'compat-archive:' + String(featureKey || '') + ':' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+}
+
+function _seCompatGateAccessMethod(grant) {
+  var gate = grant && typeof grant === 'object' ? grant : {};
+  var payload = gate.payload && typeof gate.payload === 'object' ? gate.payload : gate;
+  var data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
+  var status = String(gate.status || payload.status || '').toLowerCase();
+  var accessType = String(data.accessType || payload.accessType || '').toLowerCase();
+  if (payload.__cdOptimisticPass === true || payload.__cdPassGateResolved === true) return 'pass';
+  if (status === 'pass' || status === 'pass_applied' || accessType === 'membership_pass' || accessType === 'pass_applied') return 'pass';
+  return '';
+}
+
+function _seSetCompatArchiveContext(featureKey, requestId, profileId, grant) {
+  if (!requestId) return;
+  _seCompatArchiveContext[featureKey] = {
+    requestId: String(requestId),
+    profileId: String(profileId || _sajuPromptResolveProfileId() || ''),
+    accessMethod: _seCompatGateAccessMethod(grant)
+  };
+}
+
+function _seTakeCompatArchiveContext(featureKey) {
+  var context = _seCompatArchiveContext[featureKey] || null;
+  delete _seCompatArchiveContext[featureKey];
+  return context;
+}
+
+function _seCompatArchiveText(value, max) {
+  return String(value == null ? '' : value).replace(/<[^>]*>/g, ' ').replace(/</g, '‹').replace(/[ \t]+/g, ' ').trim().slice(0, max || 200);
+}
+
+/* 블록의 글을 줄 단위로 모은다(접힌 details 도 담도록 textContent). 버튼·입력·목차는 뺀다. */
+function _seCompatArchiveBlockText(node, dropSelector) {
+  if (!node || typeof node.cloneNode !== 'function') return '';
+  var clone = node.cloneNode(true);
+  var drop = clone.querySelectorAll('button, script, style, textarea, input, select' + (dropSelector ? ', ' + dropSelector : ''));
+  for (var i = 0; i < drop.length; i += 1) { if (drop[i].parentNode) drop[i].parentNode.removeChild(drop[i]); }
+  var blocks = clone.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li, div, tr, summary, br');
+  for (var j = 0; j < blocks.length; j += 1) blocks[j].appendChild(document.createTextNode('\n'));
+  return String(clone.textContent || '').split('\n').map(function(line) { return line.replace(/\s+/g, ' ').trim(); }).filter(Boolean).join('\n');
+}
+
+/* 섹션 글을 서버 상한(64KB) 아래로 맞춘다 — 한글은 3바이트라 글자 수로 넉넉히 자른다. */
+function _seCompatArchiveSections(rows) {
+  var out = [];
+  var total = 0;
+  for (var i = 0; i < rows.length && out.length < 40; i += 1) {
+    var row = rows[i] || {};
+    var title = _seCompatArchiveText(row.title, 120);
+    var body = String(row.body == null ? '' : row.body).replace(/<[^>]*>/g, ' ').replace(/</g, '‹').replace(/[ \t]+/g, ' ').trim();
+    body = body.slice(0, Math.min(_SE_COMPAT_ARCHIVE_SECTION_MAX, _SE_COMPAT_ARCHIVE_TOTAL_MAX - total));
+    if (!body) continue;
+    total += body.length;
+    out.push({ title: title || '상세 해석', body: body });
+    if (total >= _SE_COMPAT_ARCHIVE_TOTAL_MAX) break;
+  }
+  return out;
+}
+
+function _seSaveCompatArchive(featureKey, context, facts, sections, attempt) {
+  try {
+    var slug = _SE_COMPAT_ARCHIVE_SLUGS[featureKey];
+    if (!slug || !context || !context.requestId || typeof fetch !== 'function') return;
+    if (!sections || !sections.length || !facts || !isFinite(Number(facts.score))) return;
+    var tries = Number(attempt || 0);
+    var headers = { 'Content-Type': 'application/json' };
+    try {
+      var token = localStorage.getItem('fortune_auth_token') || '';
+      if (token) headers.Authorization = 'Bearer ' + token;
+    } catch (_) {}
+    var body = JSON.stringify({
+      requestId: context.requestId,
+      profileId: context.profileId || undefined,
+      accessMethod: context.accessMethod || undefined,
+      facts: facts,
+      sections: sections
+    });
+    var retry = function(reason) {
+      if (tries >= _SE_COMPAT_ARCHIVE_RETRY_DELAYS_MS.length) {
+        try { console.warn('[compat-archive] 보관함 저장 실패', slug, reason); } catch (_) {}
+        return;
+      }
+      setTimeout(function() { _seSaveCompatArchive(featureKey, context, facts, sections, tries + 1); }, _SE_COMPAT_ARCHIVE_RETRY_DELAYS_MS[tries]);
+    };
+    fetch('/api/compat-archive/' + slug, { method: 'POST', headers: headers, credentials: 'include', body: body })
+      .then(function(res) {
+        // 400·401·404·413 은 다시 보내도 같다. 403(결제 기록이 아직 안 씀)·503·5xx 는 다시 본다.
+        if (!res || res.ok || res.status === 400 || res.status === 401 || res.status === 404 || res.status === 413) {
+          if (res && !res.ok) { try { console.warn('[compat-archive] 저장 거절', slug, res.status); } catch (_) {} }
+          return;
+        }
+        retry(res.status);
+      })
+      .catch(function(error) { retry(error && error.message ? error.message : 'network'); });
+  } catch (_) {}
+}
+
+/* 점성술 궁합은 구조화 결과(astroLatestCompatibilityResult)에서 글을 만들고, 화면의 '빛과 그림자'만 덧붙인다.
+   결과 안의 AI 프롬프트 카드는 담지 않는다. */
+function _seArchiveAstroSynastry(featureKey, context, result, resultDiv) {
+  if (!context || !result || typeof result !== 'object') return;
+  var partner = result.partner && typeof result.partner === 'object' ? result.partner : {};
+  var t = function(v) { return _seCompatArchiveText(v, 200); };
+  var facts = {
+    partnerName: t(partner.name),
+    relationType: t(result.relationType),
+    partnerSun: t(partner.sun),
+    partnerMoon: t(partner.moon),
+    partnerVenus: t(partner.venus),
+    partnerMars: t(partner.mars),
+    bestSupport: t(result.bestSupport),
+    bestChallenge: t(result.bestChallenge),
+    score: Number(result.score)
+  };
+  var overlay = result.houseOverlay && typeof result.houseOverlay === 'object' ? result.houseOverlay : {};
+  var overlayLabels = [
+    ['mySunInPartnerHouse', '내 태양 → 상대 차트'], ['partnerSunInMyHouse', '상대 태양 → 내 차트'],
+    ['myMoonInPartnerHouse', '내 달 → 상대 차트'], ['partnerMoonInMyHouse', '상대 달 → 내 차트'],
+    ['myVenusInPartnerHouse', '내 금성 → 상대 차트'], ['partnerVenusInMyHouse', '상대 금성 → 내 차트'],
+    ['myMarsInPartnerHouse', '내 화성 → 상대 차트'], ['partnerMarsInMyHouse', '상대 화성 → 내 차트']
+  ];
+  var overlayLines = overlayLabels.map(function(pair) {
+    return overlay[pair[0]] ? pair[1] + ': ' + overlay[pair[0]] : '';
+  }).filter(Boolean);
+  var shadow = resultDiv && resultDiv.querySelector ? resultDiv.querySelector('.astro-syn-shadow') : null;
+  var sections = _seCompatArchiveSections([
+    { title: '관계 요약', body: [
+      facts.relationType ? '현재 관계 결: ' + facts.relationType : '',
+      isFinite(facts.score) ? '시나스트리 점수: ' + facts.score + '/100' : '',
+      facts.bestSupport ? '강점 각도: ' + facts.bestSupport : '',
+      facts.bestChallenge ? '보완 포인트: ' + facts.bestChallenge : ''
+    ].filter(Boolean).join('\n') },
+    { title: '상대의 별자리', body: [
+      facts.partnerSun ? '태양: ' + facts.partnerSun : '',
+      facts.partnerMoon ? '달: ' + facts.partnerMoon : '',
+      facts.partnerVenus ? '금성: ' + facts.partnerVenus : '',
+      facts.partnerMars ? '화성: ' + facts.partnerMars : ''
+    ].filter(Boolean).join('\n') },
+    { title: '사랑', body: result.loveDesc },
+    { title: '일과 협력', body: result.workDesc },
+    { title: '관계의 성장', body: result.spiritDesc },
+    { title: '하우스 겹침', body: overlayLines.join('\n') },
+    { title: '빛과 그림자', body: _seCompatArchiveBlockText(shadow, '.astro-syn-shadow-title') },
+    { title: '정확도 메모', body: Array.isArray(result.accuracyNotes) ? result.accuracyNotes.join('\n') : '' }
+  ]);
+  _seSaveCompatArchive(featureKey, context, facts, sections);
+}
+
+// 보관함 저장용 결제 requestId·카드는 서술자 인자로 복귀까지 넘긴다(인자는 원시값만 통과한다).
+function _seWithCompatArchiveArgs(descriptor, requestId, profileId) {
+  if (!descriptor) return null;
+  if (requestId) descriptor.args.requestId = String(requestId);
+  if (profileId) descriptor.args.profileId = String(profileId);
+  return descriptor;
+}
+
+function _seResumeCompatArchiveContext(featureKey, args, grant) {
+  if (args && args.requestId) _seSetCompatArchiveContext(featureKey, String(args.requestId), args.profileId, grant);
+}
+
+function _seBuildAstroCelebResumeDescriptor(name, birth, hour, requestId, profileId) {
   if (!name || !birth) return null;
-  return {
+  return _seWithCompatArchiveArgs({
     kind: _SE_ASTRO_CELEB_RESUME_KIND,
     // 셸의 기존 딥링크. 새 라우팅을 만들지 않는다(index.html 의 data-action="openAstroModal").
     action: 'openAstroModal',
     args: { name: String(name), birth: String(birth), hour: String(hour == null ? 12 : hour) }
-  };
+  }, requestId, profileId);
 }
 
-function _seRunAstroCelebResume(descriptor) {
+function _seRunAstroCelebResume(descriptor, grant) {
   var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
   if (!args.name || !args.birth) return false;
   return _seWaitForResumeTarget(function() {
@@ -6221,16 +6401,17 @@ function _seRunAstroCelebResume(descriptor) {
   }, _SE_RESUME_WAIT_MS).then(function(ready) {
     if (!ready) return false;
     var hour = parseInt(args.hour, 10);
+    _seResumeCompatArchiveContext('compat-astro-synastry', args, grant);
     window._astroPickCelebCore(String(args.name), String(args.birth), isFinite(hour) ? hour : 12);
     return true;
   });
 }
 
-function _seBuildAstroDirectResumeDescriptor() {
+function _seBuildAstroDirectResumeDescriptor(requestId, profileId) {
   if (typeof document === 'undefined') return null;
   var date = _cdReadBirthDateInput('asDirect_date');
   if (!date) return null;
-  return {
+  return _seWithCompatArchiveArgs({
     kind: _SE_ASTRO_DIRECT_RESUME_KIND,
     action: 'openAstroModal',
     args: {
@@ -6240,10 +6421,10 @@ function _seBuildAstroDirectResumeDescriptor() {
       gender: _seFieldValue('asDirect_gender') || 'OTHER',
       city: _seFieldValue('asDirect_city')
     }
-  };
+  }, requestId, profileId);
 }
 
-function _seRunAstroDirectResume(descriptor) {
+function _seRunAstroDirectResume(descriptor, grant) {
   var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
   if (!args.date) return false;
   return _seWaitForResumeTarget(function() {
@@ -6256,17 +6437,18 @@ function _seRunAstroDirectResume(descriptor) {
     _seSetFieldValue('asDirect_gender', args.gender || 'OTHER');
     // 도시 select 의 옵션이 아직 없으면 값이 안 붙고 코어가 기본 좌표(서울)로 계산한다 — 결과는 나온다.
     _seSetFieldValue('asDirect_city', args.city);
+    _seResumeCompatArchiveContext('compat-astro-direct-synastry', args, grant);
     window._astroDirectSynastryCore();
     return true;
   });
 }
 
-function _seBuildZiweiCompatResumeDescriptor() {
+function _seBuildZiweiCompatResumeDescriptor(requestId, profileId) {
   if (typeof document === 'undefined') return null;
   var date = _seFieldValue('zwCompatBirthDate');
   var time = _seFieldValue('zwCompatBirthTime');
   if (!date || !time) return null;
-  return {
+  return _seWithCompatArchiveArgs({
     kind: _SE_ZIWEI_COMPAT_RESUME_KIND,
     action: 'openZiweiModal',
     args: {
@@ -6275,10 +6457,10 @@ function _seBuildZiweiCompatResumeDescriptor() {
       gender: _seFieldValue('zwCompatGender') || 'OTHER',
       city: _seFieldValue('zwCompatBirthCity')
     }
-  };
+  }, requestId, profileId);
 }
 
-function _seRunZiweiCompatResume(descriptor) {
+function _seRunZiweiCompatResume(descriptor, grant) {
   var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
   if (!args.date || !args.time) return false;
   return _seWaitForResumeTarget(function() {
@@ -6289,6 +6471,7 @@ function _seRunZiweiCompatResume(descriptor) {
     _seSetFieldValue('zwCompatBirthTime', args.time);
     _seSetFieldValue('zwCompatGender', args.gender || 'OTHER');
     _seSetFieldValue('zwCompatBirthCity', args.city);
+    _seResumeCompatArchiveContext('compat-ziwei-compatibility', args, grant);
     window._runZwCompatibilityCore();
     return true;
   });
@@ -14933,13 +15116,19 @@ function renderAstroInsightLegacyNeon() {
     window._astroPickCeleb = function(name, birth, hour) {
         /* 5,000원 퍼유즈 게이트 */
         if (typeof window._cdCoinGatePerUse === 'function') {
-          window._cdCoinGatePerUse(30, '점성술 셜럭 시나스트리 궁합', function() {
+          // 결제마다 새 requestId — 같은 값으로 결제를 확인해 보관함에 남긴다(상대가 매번 바뀐다).
+          var celebArchiveRequestId = _seNewCompatArchiveRequestId('compat-astro-synastry');
+          var celebArchiveProfileId = _sajuPromptResolveProfileId();
+          window._cdCoinGatePerUse(30, '점성술 셜럭 시나스트리 궁합', function(_txId, grant) {
+            _seSetCompatArchiveContext('compat-astro-synastry', celebArchiveRequestId, celebArchiveProfileId, grant);
             window._astroPickCelebCore(name, birth, hour);
           }, {
             featureKey: 'compat-astro-synastry',
+            requestId: celebArchiveRequestId,
+            profileId: celebArchiveProfileId || undefined,
             // 모바일 리다이렉트 복귀용. 서술자를 게이트 열기 '전에' 만든다(복귀 후에는 이 값이 없다).
             action: 'openAstroModal',
-            resume: _seBuildAstroCelebResumeDescriptor(name, birth, hour) || undefined
+            resume: _seBuildAstroCelebResumeDescriptor(name, birth, hour, celebArchiveRequestId, celebArchiveProfileId) || undefined
           });
           return;
         }
@@ -14957,6 +15146,7 @@ function renderAstroInsightLegacyNeon() {
     };
     window._astroPickCelebCore = function(name, birth, hour) {
         var resultDiv = document.getElementById('astroSyResult');
+        var archiveContext = _seTakeCompatArchiveContext('compat-astro-synastry');
         if (!resultDiv) return;
       astroLatestCompatibilityResult = null;
         resultDiv.style.display = 'block';
@@ -15187,6 +15377,7 @@ function renderAstroInsightLegacyNeon() {
 
                 resultDiv.innerHTML = html2;
                 _astroWireIncludedSynastryPrompt(resultDiv);
+                _seArchiveAstroSynastry('compat-astro-synastry', archiveContext, astroLatestCompatibilityResult, resultDiv);
                 resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             } catch(e) {
               astroLatestCompatibilityResult = null;
@@ -15199,12 +15390,17 @@ function renderAstroInsightLegacyNeon() {
     window._astroDirectSynastry = function() {
         /* 5,000원 퍼유즈 게이트 */
         if (typeof window._cdCoinGatePerUse === 'function') {
-          window._cdCoinGatePerUse(30, '점성술 직접 입력 시나스트리 궁합', function() {
+          var directArchiveRequestId = _seNewCompatArchiveRequestId('compat-astro-direct-synastry');
+          var directArchiveProfileId = _sajuPromptResolveProfileId();
+          window._cdCoinGatePerUse(30, '점성술 직접 입력 시나스트리 궁합', function(_txId, grant) {
+            _seSetCompatArchiveContext('compat-astro-direct-synastry', directArchiveRequestId, directArchiveProfileId, grant);
             window._astroDirectSynastryCore();
           }, {
             featureKey: 'compat-astro-direct-synastry',
+            requestId: directArchiveRequestId,
+            profileId: directArchiveProfileId || undefined,
             action: 'openAstroModal',
-            resume: _seBuildAstroDirectResumeDescriptor() || undefined
+            resume: _seBuildAstroDirectResumeDescriptor(directArchiveRequestId, directArchiveProfileId) || undefined
           });
           return;
         }
@@ -15222,6 +15418,7 @@ function renderAstroInsightLegacyNeon() {
     };
     window._astroDirectSynastryCore = function() {
         var resultDiv = document.getElementById('asDirectResult');
+        var archiveContext = _seTakeCompatArchiveContext('compat-astro-direct-synastry');
         if (!resultDiv) return;
       astroLatestCompatibilityResult = null;
 
@@ -15492,6 +15689,7 @@ function renderAstroInsightLegacyNeon() {
 
                 resultDiv.innerHTML = h;
                 _astroWireIncludedSynastryPrompt(resultDiv);
+                _seArchiveAstroSynastry('compat-astro-direct-synastry', archiveContext, astroLatestCompatibilityResult, resultDiv);
                 resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 try {
                   var wHost = document.createElement('div');
@@ -22334,10 +22532,17 @@ function renderZiwei(p, natal, targetId) {
 
     window._runZwCompatibility = function() {
       if (typeof window._cdCoinGatePerUse === 'function') {
-        window._cdCoinGatePerUse(ZW_COMPAT_COST, '자미두수 궁합 분석', function() { window._runZwCompatibilityCore(); }, {
+        var zwArchiveRequestId = _seNewCompatArchiveRequestId('compat-ziwei-compatibility');
+        var zwArchiveProfileId = _sajuPromptResolveProfileId();
+        window._cdCoinGatePerUse(ZW_COMPAT_COST, '자미두수 궁합 분석', function(_txId, grant) {
+          _seSetCompatArchiveContext('compat-ziwei-compatibility', zwArchiveRequestId, zwArchiveProfileId, grant);
+          window._runZwCompatibilityCore();
+        }, {
           featureKey: 'compat-ziwei-compatibility',
+          requestId: zwArchiveRequestId,
+          profileId: zwArchiveProfileId || undefined,
           action: 'openZiweiModal',
-          resume: _seBuildZiweiCompatResumeDescriptor() || undefined
+          resume: _seBuildZiweiCompatResumeDescriptor(zwArchiveRequestId, zwArchiveProfileId) || undefined
         });
         return;
       }
@@ -22359,6 +22564,7 @@ function renderZiwei(p, natal, targetId) {
       var genderEl = document.getElementById('zwCompatGender');
       var cityEl = document.getElementById('zwCompatBirthCity');
       var outEl = document.getElementById('zwCompatResult');
+      var archiveContext = _seTakeCompatArchiveContext('compat-ziwei-compatibility');
       var corrEl = document.getElementById('zwCompatTimeCorrectionInfo');
       var partnerGender = genderEl ? (genderEl.value || 'OTHER') : 'OTHER';
       if (!dateEl || !timeEl || !outEl) return;
@@ -23308,6 +23514,33 @@ function renderZiwei(p, natal, targetId) {
           target.focus({ preventScroll: true });
         });
       });
+
+      if (archiveContext) {
+        try {
+          var zwArchiveSections = [];
+          var zwChapters = outEl.querySelectorAll('section.fr-compat-chapter');
+          for (var zci = 0; zci < zwChapters.length; zci += 1) {
+            var zwHead = zwChapters[zci].querySelector('h3');
+            zwArchiveSections.push({ title: zwHead ? zwHead.textContent : '', body: _seCompatArchiveBlockText(zwChapters[zci], 'h3') });
+          }
+          _seSaveCompatArchive('compat-ziwei-compatibility', archiveContext, {
+            partnerName: _seCompatArchiveText('상대방 · ' + bDate + ' ' + bTime, 200),
+            myMingPalace: _seCompatArchiveText(starsTxt(mePal.meng.main, '주성 없음'), 200),
+            partnerMingPalace: _seCompatArchiveText(starsTxt(youPal.meng.main, '주성 없음'), 200),
+            mySpousePalace: _seCompatArchiveText(starsTxt(mePal.spouse.main, '주성 없음'), 200),
+            partnerSpousePalace: _seCompatArchiveText(starsTxt(youPal.spouse.main, '주성 없음'), 200),
+            score: overallScore,
+            loveScore: loveScore,
+            marriageScore: marriageScore,
+            friendScore: friendScore,
+            workScore: workScore,
+            businessScore: businessScore,
+            pastLifeScore: pastLifeScore
+          }, _seCompatArchiveSections(zwArchiveSections));
+        } catch (zwArchiveErr) {
+          console.warn('[compat-archive ziwei]', zwArchiveErr);
+        }
+      }
 
       try {
         var zwLlm = document.createElement('div');

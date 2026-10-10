@@ -148,6 +148,14 @@ describe("회당 결제 증빙 — 5경로", () => {
       .resolves.toMatchObject({ proven: false, reason: "NO_RECORD" });
   });
 
+  // 이용권 사용 증빙(recordPassUsageEvidence, delta 0)도 PointHistory deduct 행이다. 코인으로 보고하면
+  // 결제 기록이 코인 차감으로 남고, 영냥이 재시도의 이용권 한도 복원(source==="pass")도 빠진다.
+  it.each(["membership_pass", "family"])("이용권 사용 증빙(accessType=%s)은 코인이 아니라 이용권으로 보고한다", async (accessType) => {
+    pointHistoryFindOne.mockReturnValue(query({ _id: "ph-3", metadata: { accessType, requestId: REQUEST_ID } }));
+    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: CHAT_FEATURE_KEY, coinPrice: 50, requestId: REQUEST_ID }))
+      .resolves.toMatchObject({ proven: true, source: "pass", transactionId: "ph-3" });
+  });
+
   it("admin 은 차감 기록 없이 통과한다", async () => {
     userFindById.mockReturnValue(query({ _id: USER_ID, role: "admin" }));
     await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 500, requestId: REQUEST_ID }))
@@ -160,6 +168,12 @@ describe("이용권 커버 — 가격에 따라 등급이 갈린다", () => {
     _id: USER_ID,
     role: "user",
     profileSubscription: { tier, status: "active", expiresAt: "2099-01-01T00:00:00.000Z" },
+  });
+
+  it("이용권 소비에 결제한 카드(profileId)를 넘겨 사용 기록에 남긴다", async () => {
+    userFindById.mockReturnValue(query(activePass("standard")));
+    await verifyPerUsePayment({}, { userId: USER_ID, featureKey: CHAT_FEATURE_KEY, coinPrice: 30, requestId: REQUEST_ID, profileId: "card-a" });
+    expect(consumePassForFeatureMock).toHaveBeenCalledWith(expect.objectContaining({ requestId: REQUEST_ID, profileId: "card-a" }));
   });
 
   // 50코인 경계값: standard 적용 범위(50코인)와 정확히 같아 전 등급 커버되는지 검증하는

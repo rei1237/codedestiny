@@ -1623,6 +1623,12 @@ const app = {
         return withCorsHeaders(request, env, await handleZiweiDaehanRoutes(request, env));
       }
 
+      // 점성술·자미두수 궁합(브라우저 계산 회당 결제 결과)의 보관함 저장 — 결제 확인 뒤에만 남긴다.
+      if (url.pathname.startsWith("/api/compat-archive/")) {
+        const { handleCompatResultArchiveRoutes } = await import("./routes/compat-result-archive.js");
+        return withCorsHeaders(request, env, await handleCompatResultArchiveRoutes(request, env));
+      }
+
       // 운명의 섬 청사진 (무인증·무DB 순수 계산 — /api/ziwei 툼스톤보다 먼저 매칭될 필요는 없으나 ziwei 계열과 함께 둔다)
       if (url.pathname === "/api/ziwei-island-ai" || url.pathname.startsWith("/api/ziwei-island-ai/")) {
         return runAiRouteWithSecurity(request, env, "ziwei-island-ai", handleZiweiIslandAiRoutes, ctx);

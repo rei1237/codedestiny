@@ -106,6 +106,7 @@ Entry: `worker/index.js`
 - Pet/compass: `/api/pet-saju-ai/*`, `/api/pet-saju/*`, `/api/destiny-compass-ai/*`, `/api/destiny-compass/*`
 - 상담 캐릭터: `/api/fortune-tea-house/*`, `/api/neo-operation-room/*`
 - Astrology/Vedic/Sukuyo/Nakshatra: `/api/astro/*`, `/api/astrology/*`, `/api/astrology-ai/*`, `/api/vedic/*`, `/api/vedic-ai/*`, `/api/sukuyo/*`, `/api/sukyo/*`, `/api/sukuyo-compatibility-ai/*`, `/api/nakshatra/*`, `/api/nakshatra-ai/*`, `/api/nakshatra-premium/*`
+- 유료 결과 보관함 저장(브라우저 계산 결과): `POST /api/sukuyo/<compat|compat-precision|nature-deep-dive|extreme-t>/archive`, `POST /api/compat-archive/<astro-synastry|astro-direct-synastry|ziwei-compat>` — 서버가 결제·잠금 해제를 확인한 뒤에만 저장
 - Music/RPG: `/api/music/*`, `/api/rpg/*`
 
 ## 더 이상 쓰지 않는 것으로 보이는 라우트

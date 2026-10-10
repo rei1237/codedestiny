@@ -163,7 +163,7 @@ export async function hasConsumedPassFeature(user, featureKey, requestId, db = n
   return Boolean(await findPassUsageEvidence(db, user?._id || user?.id, featureKey, requestId));
 }
 
-export async function consumePassForFeature({ user, entitlement, userId, featureKey, requestId = "", coinCost = 0, db = nativeDb }) {
+export async function consumePassForFeature({ user, entitlement, userId, featureKey, requestId = "", coinCost = 0, profileId = "", db = nativeDb }) {
   if(String(featureKey || '').startsWith('yeongnyangi-'))return consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requestId,coinCost,db});
   const { buildPassConsumeMarker, consumePassCoverage, evaluatePassCoverage, recordPassUsageEvidence } = await loadPassPolicy();
   const cost = Math.max(0, Math.floor(Number(coinCost) || 0));
@@ -173,7 +173,7 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
   const markers = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];
   const marker = buildPassConsumeMarker(featureKey, requestId);
   if (await hasConsumedPassFeature(user, featureKey, requestId, db)) {
-    await recordPassUsageEvidence(db, { userId, product: { featureKey, priceCoins: cost }, requestId, coverage, user });
+    await recordPassUsageEvidence(db, { userId, product: { featureKey, priceCoins: cost }, requestId, profileId, coverage, user });
     return {
       covered: true,
       reason: "",
@@ -190,7 +190,8 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
   // even after the bounded recent-marker array has rotated out this request.
   const updated = await db.transaction(async tx => {
     const result = await consumePassCoverage(tx, { userId, coverage, marker, existingMarkers: markers });
-    if (result) await recordPassUsageEvidence(tx, { userId, product: { featureKey, priceCoins: cost }, requestId, coverage, user: result });
+    // profileId 는 결제 기록(어느 카드로 썼는가)용이다 — 열람 판정에는 쓰지 않는다.
+    if (result) await recordPassUsageEvidence(tx, { userId, product: { featureKey, priceCoins: cost }, requestId, profileId, coverage, user: result });
     return result;
   });
   if (!updated) {

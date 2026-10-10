@@ -4951,7 +4951,11 @@ function renderTTest(p, natal, johu, pw) {
   function bindExtremeTRelationshipUnlock(area, renderArgs) {
     // 결제 후 리다이렉트 복귀는 이 클로저를 잃으므로, 렌더할 때마다 최신 것을 전역에 걸어 둔다.
     // 🔴 버튼 유무와 무관하게 먼저 건다 — 아래 early return 뒤에 두면 재개가 코어를 못 찾는다.
-    window._syRenderTTestCore = function() { renderTTest.apply(null, renderArgs); };
+    // 복귀 재개는 인자 없이 부른다(= 결제 직후라 보관함에 저장). 잠금 해제 이벤트로 다시 그릴 때만 {archive:false}.
+    window._syRenderTTestCore = function(options) {
+      if (!(options && options.archive === false)) window.__syExtremeTArchiveNext = true;
+      renderTTest.apply(null, renderArgs);
+    };
     var buttons = area.querySelectorAll('[data-extreme-t-lock-button]');
     if (!buttons.length) return;
     for (var i = 0; i < buttons.length; i += 1) {
@@ -4964,6 +4968,7 @@ function renderTTest(p, natal, johu, pw) {
           : { key: 'extreme-t-relationship-circuit', cost: 30, reason: '극T 관계 회로 잠금 해제' };
         syRequirePaidSukuyoFeature(feature, function() {
           syMarkPaidSukuyoFeatureUnlocked(feature.key);
+          window.__syExtremeTArchiveNext = true;
           renderTTest.apply(null, renderArgs);
         }, syBuildUnlockResumeDescriptor(SY_EXTREME_T_RESUME_KIND, 'cdSajuTabEntry'));
       });
@@ -5091,6 +5096,27 @@ function renderTTest(p, natal, johu, pw) {
 
       area.innerHTML = builderHtml;
       bindExtremeTRelationshipUnlock(area, [p, natal, johu, pw]);
+      // 결제(또는 결제 복귀) 직후 연 렌더만 보관함에 남긴다 — 평소 열람마다 저장하지 않는다.
+      if (hasExtremeTRelationshipAccess && window.__syExtremeTArchiveNext === true) {
+        window.__syExtremeTArchiveNext = false;
+        try {
+          sySaveSukuyoResultArchive('extreme-t', {
+            facts: {
+              typeName: syArchiveFactText(builtResult.typeName),
+              tTier: syArchiveFactText(builtResult.tTier),
+              headline: syArchiveFactText(builtResult.headline),
+              catchphrase: syArchiveFactText(builtResult.catchphrase),
+              summaryMood: syArchiveFactText(builtResult.summaryMood),
+              emotionSpeed: syArchiveFactText(builtResult.emotionSpeed),
+              toneRisk: syArchiveFactText(builtResult.toneRisk),
+              loveDifficulty: syArchiveFactText(builtResult.loveDifficulty),
+              summaryTip: syArchiveFactText(builtResult.summaryTip),
+              finalScore: Number(builtResult.finalScore)
+            },
+            sections: syArchiveCardSections(area, '.t-hero-card, .t-panel, .t-mission-card, .t-summary-card', '.t-panel-title, .t-mission-title, .t-summary-title')
+          });
+        } catch (_syExtremeTArchiveError) {}
+      }
       card.style.display = 'block';
       if (typeof syncReportHeightFromNode === 'function') {
         syncReportHeightFromNode(card);
@@ -8333,6 +8359,7 @@ function syOpenPaidSukuyoFeature(feature, onGranted, resume) {
   }
   if (resume && typeof resume === 'object') gateOptions.resume = resume;
   window._cdOpenPaidServiceGate(gateOptions).then(function(result) {
+    if (syIsPaidGateGranted(result)) syRememberPaidGateAccess(featureKey, profileId, result);
     if (syIsPaidGateGranted(result) && typeof onGranted === 'function') onGranted(result);
   }).catch(function(error) {
     var message = error && error.message ? String(error.message) : '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
@@ -8365,13 +8392,105 @@ function syRequirePaidSukuyoFeature(feature, onGranted, resume) {
   return true;
 }
 
-/* ── 회당 결제 결과(기본·정밀 궁합)의 보관함 저장 ───────────────────────────────
-   결과는 이 파일이 계산해 그리므로 서버에는 남지 않았다. 렌더가 끝나면 계산된 사실과 화면의 글(텍스트만)을
-   POST /api/sukuyo/<compat|compat-precision>/archive 로 보낸다. 서버가 이 카드의 결제 기록을 직접 찾아
-   확인한 뒤에만 저장한다(worker/routes/sukuyo-archive.js) — 여기서 결제 여부를 판단하지 않는다.
-   🔴 저장 실패가 결과 표시를 막으면 안 된다. 조용히 한 번 더 시도하고 콘솔에만 남긴다
-   (이용권 즉시 적용은 서버 기록이 뒤따라 써지므로 첫 시도가 403 일 수 있다). */
-var SY_ARCHIVE_RETRY_MS = 4000;
+/* ── 유료 결과의 보관함 저장 ─────────────────────────────────────────────────
+   기본·정밀 궁합(회당 결제)과 본성 심화·극T(출생 기준 잠금 해제)는 이 파일이 계산해 그리므로 서버에는
+   남지 않았다. 결제(또는 결제 복귀) 뒤 렌더가 끝나면 계산된 사실과 화면의 글(텍스트만)을
+   POST /api/sukuyo/<slug>/archive 로 보낸다. 서버가 이 카드의 결제·잠금 해제 기록을 직접 찾아 확인한
+   뒤에만 저장한다(worker/routes/sukuyo-archive.js) — 여기서 결제 여부를 판단하지 않는다.
+   🔴 저장 실패가 결과 표시를 막으면 안 된다. 조용히 다시 시도하고 콘솔에만 남긴다.
+   🔴 이용권 즉시 적용은 셸이 먼저 열고 서버 기록(pass-check)을 뒤에서 쓴다 — 그 기록보다 저장이 먼저
+      도착하면 403 이다. 그래서 (1) 이용권으로 열었다는 사실(accessMethod:'pass')을 함께 보내 서버가 같은
+      requestId 로 이용권 사용을 직접 확정할 수 있게 하고, (2) 403·503·네트워크 실패는 간격을 늘려 재시도한다. */
+var SY_ARCHIVE_RETRY_DELAYS_MS = [4000, 12000, 30000];
+var SY_ARCHIVE_FEATURE_KEYS = {
+  'compat': 'compat-sukuyo-compatibility',
+  'compat-precision': 'premium-sukuyo-compat-extra',
+  'nature-deep-dive': 'sukuyo-nature-deep-dive',
+  'extreme-t': 'sukuyo-extreme-t-relationship'
+};
+// 기능키 → 마지막으로 열린 게이트의 카드·결제 방식. 저장이 결제한 그 카드로 증빙을 찾게 한다.
+var _syPaidGateAccess = Object.create(null);
+var SY_PAID_GATE_ACCESS_TTL_MS = 30 * 60 * 1000;
+
+function syPaidGateAccessMethod(result) {
+  var gate = result && typeof result === 'object' ? result : {};
+  var payload = gate.payload && typeof gate.payload === 'object' ? gate.payload : gate;
+  var data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
+  var status = String(gate.status || '').toLowerCase();
+  var accessType = String(data.accessType || payload.accessType || '').toLowerCase();
+  if (payload.__cdOptimisticPass === true || data.__cdOptimisticPass === true) return 'pass';
+  if (status === 'pass' || status === 'pass_applied' || accessType === 'membership_pass' || accessType === 'pass_applied') return 'pass';
+  return '';
+}
+
+function syRememberPaidGateAccess(featureKey, profileId, result) {
+  try {
+    _syPaidGateAccess[String(featureKey || '')] = {
+      profileId: String(profileId || ''),
+      accessMethod: syPaidGateAccessMethod(result),
+      at: Date.now()
+    };
+  } catch (_) {}
+}
+
+function syRecentPaidGateAccess(featureKey) {
+  var row = _syPaidGateAccess[String(featureKey || '')];
+  if (!row || (Date.now() - Number(row.at || 0)) > SY_PAID_GATE_ACCESS_TTL_MS) return null;
+  return row;
+}
+
+/* 블록의 글을 줄 단위로 모은다. 탭으로 가려진 패널도 담아야 하므로 innerText 가 아니라 textContent 를
+   쓰고, 블록 요소 끝마다 줄을 바꿔 문단을 살린다. 버튼·입력 영역은 뺀다. */
+function syArchiveBlockText(node, dropSelector) {
+  if (!node || typeof node.cloneNode !== 'function') return '';
+  var clone = node.cloneNode(true);
+  var drop = clone.querySelectorAll('button, script, style, textarea, input, select' + (dropSelector ? ', ' + dropSelector : ''));
+  for (var i = 0; i < drop.length; i += 1) { if (drop[i].parentNode) drop[i].parentNode.removeChild(drop[i]); }
+  var blocks = clone.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li, div, article, section, br');
+  for (var j = 0; j < blocks.length; j += 1) blocks[j].appendChild(document.createTextNode('\n'));
+  return String(clone.textContent || '').split('\n').map(function(line) { return line.replace(/\s+/g, ' ').trim(); }).filter(Boolean).join('\n');
+}
+
+/* 카드 단위로 섹션을 만든다. 카드 안에 탭 패널이 있으면 패널마다 '카드 제목 · 탭 이름' 섹션으로 나눈다. */
+function syArchiveCardSections(root, cardSelector, titleSelector) {
+  var out = [];
+  if (!root || typeof root.querySelectorAll !== 'function') return out;
+  var cards = root.querySelectorAll(cardSelector);
+  for (var i = 0; i < cards.length && out.length < 40; i += 1) {
+    var card = cards[i];
+    var outer = card.parentElement && card.parentElement.closest ? card.parentElement.closest(cardSelector) : null;
+    if (outer && root.contains(outer)) continue;
+    var head = card.querySelector(titleSelector);
+    var cardTitle = syArchiveText(head ? head.textContent : '', 120);
+    var panels = card.querySelectorAll('[role="tabpanel"], [data-rel-panel]');
+    if (!panels.length) {
+      var body = syArchiveText(syArchiveBlockText(card, titleSelector), 4000);
+      if (body) out.push({ title: cardTitle || '상세 해석', body: body });
+      continue;
+    }
+    for (var k = 0; k < panels.length && out.length < 40; k += 1) {
+      var panel = panels[k];
+      var tabId = panel.getAttribute('aria-labelledby');
+      var relKey = panel.getAttribute('data-rel-panel');
+      var tab = tabId ? card.querySelector('[id="' + tabId + '"]') : (relKey ? card.querySelector('[data-rel-tab="' + relKey + '"]') : null);
+      var tabTitle = syArchiveText(tab ? tab.textContent : '', 60);
+      var panelBody = syArchiveText(syArchiveBlockText(panel), 4000);
+      if (panelBody) out.push({ title: [cardTitle, tabTitle].filter(Boolean).join(' · ').slice(0, 120) || '상세 해석', body: panelBody });
+    }
+  }
+  return out;
+}
+
+// 사실표 값 — 화면 조립용 문자열에 태그가 섞여 있을 수 있어 글자만 남긴다.
+function syArchiveFactText(value) {
+  if (typeof value === 'number') return value;
+  return typeof value === 'string' ? syArchiveText(value.replace(/<[^>]*>/g, ''), 200) : '';
+}
+
+function syTodayKey() {
+  var now = new Date();
+  return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+}
 
 function syArchiveText(value, max) {
   // 서버는 '<' 가 든 글을 HTML 로 보고 거절한다 — 화면 글자 그대로의 부등호는 비슷한 모양으로 바꾼다.
@@ -8421,25 +8540,39 @@ function syArchiveFactsFromCompat(compat, myMansionName) {
 function sySaveSukuyoResultArchive(featureSlug, payload, attempt) {
   try {
     if (typeof fetch !== 'function' || !payload) return;
-    var profileId = syResolveCurrentProfileIdForPaidGate();
-    if (!profileId) return;
+    var tries = Number(attempt || 0);
+    // 게이트에서 기억한 카드·결제 방식을 첫 시도 때 굳힌다(재시도 사이에 카드를 바꿔도 결제한 카드로 보낸다).
+    if (!tries) {
+      var gateAccess = syRecentPaidGateAccess(SY_ARCHIVE_FEATURE_KEYS[featureSlug]);
+      payload = Object.assign({}, payload, {
+        profileId: (gateAccess && gateAccess.profileId) || syResolveCurrentProfileIdForPaidGate(),
+        accessMethod: (gateAccess && gateAccess.accessMethod) || ''
+      });
+    }
+    if (!payload.profileId) return;
     var headers = { 'Content-Type': 'application/json' };
     try {
       var token = localStorage.getItem('fortune_auth_token') || '';
       if (token) headers.Authorization = 'Bearer ' + token;
     } catch (_) {}
-    var body = JSON.stringify({ profileId: profileId, facts: payload.facts, partner: payload.partner, sections: payload.sections });
+    var body = JSON.stringify({
+      profileId: payload.profileId,
+      accessMethod: payload.accessMethod || undefined,
+      facts: payload.facts,
+      partner: payload.partner,
+      sections: payload.sections
+    });
     var retry = function(reason) {
-      if ((attempt || 0) >= 1) {
+      if (tries >= SY_ARCHIVE_RETRY_DELAYS_MS.length) {
         try { console.warn('[sukuyo-archive] 보관함 저장 실패', featureSlug, reason); } catch (_) {}
         return;
       }
-      setTimeout(function() { sySaveSukuyoResultArchive(featureSlug, payload, 1); }, SY_ARCHIVE_RETRY_MS);
+      setTimeout(function() { sySaveSukuyoResultArchive(featureSlug, payload, tries + 1); }, SY_ARCHIVE_RETRY_DELAYS_MS[tries]);
     };
     fetch('/api/sukuyo/' + featureSlug + '/archive', { method: 'POST', headers: headers, credentials: 'include', body: body })
       .then(function(res) {
-        // 400·413 은 다시 보내도 같다.
-        if (!res || res.ok || res.status === 400 || res.status === 413) {
+        // 400·401·404·413 은 다시 보내도 같다. 403(기록이 아직 안 씀)·503·5xx 는 다시 본다.
+        if (!res || res.ok || res.status === 400 || res.status === 401 || res.status === 404 || res.status === 413) {
           if (res && !res.ok) { try { console.warn('[sukuyo-archive] 저장 거절', featureSlug, res.status); } catch (_) {} }
           return;
         }
@@ -8685,6 +8818,39 @@ function syRunSukuyoAiPromptResume(descriptor, grant) {
     return syRunUnlockResume('_syRevealEncyclopediaCore', SY_PAID_FEATURES.relationshipEncyclopedia.key);
   });
   syRegisterUnlockResumeHandler(SY_AI_PROMPT_RESUME_KIND, syRunSukuyoAiPromptResume);
+})();
+
+/* 잠금 해제 상태가 늦게 도착하면(접근 상태 동기화·이용권 백그라운드 기록·카드 전환) 이미 그린 잠금 카드가
+   그대로 남았다. 출생 기준 잠금 해제 3종(인연 도감·본성 심화·극T)은 해제 이벤트 때 다시 확인해 연다.
+   결제 직후가 아니므로 보관함에는 저장하지 않는다({archive:false}). 재잠금은 다음 렌더가 맡는다. */
+(function syBindBirthUnlockRefresh() {
+  if (typeof window === 'undefined' || window.__syBirthUnlockRefreshBound) return;
+  window.__syBirthUnlockRefreshBound = true;
+  var timer = 0;
+  function refresh() {
+    timer = 0;
+    try { if (typeof window._syRefreshEncyclopediaUnlock === 'function') window._syRefreshEncyclopediaUnlock(); } catch (_) {}
+    try {
+      if (document.querySelector('[data-sy-nature-deep-dive-unlock]')
+        && typeof window._syRevealNatureDeepDiveCore === 'function'
+        && syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.natureDeepDive.key)) {
+        window._syRevealNatureDeepDiveCore({ archive: false });
+      }
+    } catch (_) {}
+    try {
+      if (document.querySelector('[data-extreme-t-lock-button]')
+        && typeof window._syRenderTTestCore === 'function'
+        && syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.extremeTRelationshipCircuit.key)) {
+        window._syRenderTTestCore({ archive: false });
+      }
+    } catch (_) {}
+  }
+  function schedule() {
+    if (timer) return;
+    timer = setTimeout(refresh, 120);
+  }
+  window.addEventListener('cd:unlocks-changed', schedule);
+  window.addEventListener('cd:tile-locks-updated', schedule);
 })();
 
 function syPaidPriceLabel(feature) {
@@ -10846,8 +11012,25 @@ function syBindSukuyoNatureDeepDiveInteractions(host) {
   });
 }
 
+function syArchiveNatureDeepDive(host, sData, dailyFlow, lunarObj) {
+  var tr = (sData && sData.traits) || {};
+  var daily = null;
+  try { daily = dailyFlow || (lunarObj ? getDailyKarmicGuidance(lunarObj, sData.mansion) : null); } catch (_) {}
+  sySaveSukuyoResultArchive('nature-deep-dive', {
+    facts: {
+      myMansion: syArchiveFactText(String((sData && sData.mansion) || '')),
+      moonTone: syArchiveFactText(daily && daily.moon && daily.moon.label ? String(daily.moon.label) : ''),
+      mantra: syArchiveFactText(String(tr.mantra || '')),
+      // 일상 적용 탭은 그날의 달 흐름으로 바뀐다 — 어느 날 본 글인지 함께 남긴다.
+      dailyDate: syTodayKey()
+    },
+    sections: syArchiveCardSections(host, '.sy-card', 'h4')
+  });
+}
+
 function syBindSukuyoNatureDeepDiveUnlock(sData, reading, dailyFlow, lunarObj) {
-  function revealNatureDeepDive() {
+  // options.archive === false 는 잠금 해제 이벤트로 다시 그릴 때다(결제 직후가 아니므로 저장하지 않는다).
+  function revealNatureDeepDive(options) {
     var host = document.getElementById('syNatureDeepDiveHost');
     if (!host) return;
     host.innerHTML = syBuildSukuyoNatureDeepDiveHtml(sData, reading, dailyFlow, lunarObj);
@@ -10857,6 +11040,9 @@ function syBindSukuyoNatureDeepDiveUnlock(sData, reading, dailyFlow, lunarObj) {
         syHighlightRelationMiniMap(window._syLastCompat.relationType);
       }
     } catch (_) {}
+    if (!(options && options.archive === false)) {
+      try { syArchiveNatureDeepDive(host, sData, dailyFlow, lunarObj); } catch (_) {}
+    }
   }
   // 결제 후 리다이렉트 복귀는 이 클로저를 잃으므로, 렌더할 때마다 최신 것을 전역에 걸어 둔다.
   // 🔴 아래 early return 앞에 둔다 — 뒤에 두면 재바인딩이 없는 렌더에서 재개가 코어를 못 찾는다.
@@ -14106,6 +14292,18 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     // 결제 후 리다이렉트 복귀는 이 클로저를 잃으므로, 렌더할 때마다 최신 것을 전역에 걸어 둔다.
     // 🔴 아래 중복 바인딩 가드 앞에 둔다 — 뒤에 두면 같은 버튼 노드가 살아남은 렌더에서 코어가 낡는다.
     window._syRevealEncyclopediaCore = function() { renderResult(true); };
+    /* 도감은 보관함이 아니라 잠금 해제로 보는 기능이다. 바인딩 시점엔 접근 상태가 아직 안 와서 잠김으로
+       보였다가 뒤늦게 풀리는 일이 있다 — 잠금 해제 이벤트 때 표시를 고치고, 미리보기를 펼쳐 둔 상태면 전체로 다시 그린다. */
+    window._syRefreshEncyclopediaUnlock = function() {
+      if (!syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.relationshipEncyclopedia.key)) return;
+      if (statusPill && !statusPill.classList.contains('is-unlocked')) {
+        statusPill.textContent = '해금 완료';
+        statusPill.classList.add('is-unlocked');
+      }
+      if (resultHost && resultHost.innerHTML.trim()) {
+        try { renderResult(true); } catch (_) {}
+      }
+    };
     if (button.__syDogamBound) return;
     button.__syDogamBound = true;
     button.addEventListener('click', function() {

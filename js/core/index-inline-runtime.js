@@ -2283,11 +2283,11 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-d4cf99d47672',
+    '/js/saju-engine.js?v=build-031b8e9c2bd3',
       '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-b869803bba36',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-2ff4268c90c8',
     '/js/core/saju/basicFortunePresentation.js?v=build-eb8d27ea0abf',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
     '/js/core/saju/reportDashboard.js?v=build-926a44c5f6a1',
@@ -9323,9 +9323,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-d4cf99d47672',
+      '/js/saju-engine.js?v=build-031b8e9c2bd3',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-b869803bba36'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-2ff4268c90c8'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일

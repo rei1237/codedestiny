@@ -490,3 +490,17 @@ describe("Family 회귀 — 실제 문제 기능·캐시·동시성", () => {
     }
   });
 });
+
+test("이용권 사용 기록(PointHistory deduct)에 결제한 카드를 남긴다", async () => {
+  const db = makeFakePaymentDb();
+  const at = expiresAt();
+  const user = seed(db, { spent: 0, at });
+  const result = await consumePassForFeature({
+    db, user, entitlement: entitlement(at), userId: USER,
+    featureKey: FEATURE, requestId: "card-evidence", coinCost: 10, profileId: "card-a",
+  });
+
+  expect(result.covered).toBe(true);
+  const evidence = db.rows.find((row) => row.kind === "deduct");
+  expect(evidence.metadata).toMatchObject({ accessType: "membership_pass", requestId: "card-evidence", profileId: "card-a" });
+});

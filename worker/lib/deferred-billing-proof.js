@@ -15,10 +15,11 @@
  *   · **월정석**: 원장 쿼리를 사본으로 들고 있었다. 미정산 예약행(settledAt 없음)을 배제하지
  *     못해, 차감은 끝났는데 정산 write 가 안 내려앉은 창에서 402 가 났다. 이 사고 계열은
  *     이미 `worker/lib/moonstone-spend-proof.js` 로 한 번 정리됐는데 여기만 못 받았다.
- *   · **이용권**: `worker/payments/index.js` 의 pass-check 는 멱등 재시도(같은 requestId)를
- *     `recentConsumeRequestIds` 마커로 먼저 걸러 **`recordPassUsageEvidence` 를 건너뛴다.**
- *     그래서 재시도 경로에는 PointHistory 행이 없고, 이용권을 이미 소비하고도 402 가 났다.
- *     (`recordPassUsageEvidence` 자신도 실패를 삼키므로 첫 시도에서 행이 없을 수 있다.)
+ *   · **이용권**: (당시) pass-check 의 멱등 재시도가 `recentConsumeRequestIds` 마커로 먼저 걸러져
+ *     `recordPassUsageEvidence` 를 건너뛰었고, 그 함수도 실패를 삼켰다. 그래서 이용권을 이미
+ *     소비하고도 PointHistory 행이 없어 402 가 났다. 지금은 `worker/lib/pass-consumption.js`
+ *     `consumePassForFeature` 가 재생 경로에서도 증빙을 남기고, 신규 소비는 차감과 증빙을 한
+ *     트랜잭션으로 묶으며, 증빙 쓰기 실패는 삼키지 않는다. 마커 조회는 하위호환으로 남긴다.
  *   · **이미 만들어진 지급행**: `PaidExecutionRecord` 를 아예 안 봤다. 같은 요청을 다시 내면
  *     첫 등록의 결과물이 눈앞에 있는데도 처음부터 다시 증빙을 찾다가 떨어졌다.
  *
