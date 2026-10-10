@@ -90,6 +90,7 @@ const UNWIRED_BY_DESIGN = [
   ["verify:truncate-consume-ids", "마이그레이션 --check — 수동 실행이 본래 용도"],
   ["verify:phone-encryption-key", "실 DB 암호화 키 회전 점검 — MONGO_URI 필요"],
   ["verify:birth-scope-unlock-index", "마이그레이션 --check(출생 기반 해금 인덱스) — MONGO_URI 필요, 수동 실행이 본래 용도"],
+  ["verify:birth-scope-migrated-user", "출생 기반 이관 표본 열림 확인(실 DB 읽기) — MONGO_URI 필요, 마이그레이션 --apply 뒤 수동"],
 
   // ── 실네트워크·실브라우저. CI 러너에서 못 돌거나, 돌면 외부 과금·쿼터를 태운다.
   ["verify:mobile-cdp-smoke", "실브라우저 CDP — 로컬 개발 서버 필요"],

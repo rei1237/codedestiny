@@ -8,6 +8,8 @@
  *   ① pending  — 지금 프로필 선택 대기인 주문(서버 목록과 같은 정의 isBirthProfilePendingOrder)
  *   ② atRisk   — 아직 표식은 없지만 지급되면 보류될 주문: 출생 기반 + 스냅샷 생년월일 없음 + 미지급
  *                (V2 paid·entitlementGrantedAt 없음, 구 단건 processing) + 프로필 id 없음 또는 그 프로필이 지워짐
+ *   ③ legacyClaims — 마이그레이션(20261010-birth-scope-unlocks.mjs)이 남긴 레거시 해금 프로필 선택 대기
+ *                (birth_scope_legacy_claims): 대기·지급 건수와 사유 분포
  *
  * 🔴 find/count 외의 연산을 넣지 말 것. 판정을 다시 구현하지 않는다 — 서버 정의를 그대로 부른다.
  * 🔴 개인정보 무출력: userId·주문번호·프로필·생년월일을 내지 않는다. 건수와 경로·상태 분포만 낸다.
@@ -54,6 +56,18 @@ const bump = (bucket, order) => {
 };
 const emptyBucket = () => ({ total: 0, byPathStatus: {}, byFeature: {}, users: new Set() });
 
+async function legacyClaimCounts(db) {
+  const claims = db.collection("birth_scope_legacy_claims");
+  const [pendingCount, grantedCount, reasons] = await Promise.all([
+    claims.countDocuments({ "claim.grantedAt": { $exists: false } }, OPTS),
+    claims.countDocuments({ "claim.grantedAt": { $exists: true } }, OPTS),
+    claims.distinct("reason", {}, OPTS),
+  ]);
+  const byReason = {};
+  for (const reason of reasons) byReason[String(reason || "")] = await claims.countDocuments({ reason }, OPTS);
+  return { pending: pendingCount, granted: grantedCount, byReason };
+}
+
 const client = new MongoClient(uri, { maxPoolSize: 1, serverSelectionTimeoutMS: 10000, socketTimeoutMS: 70000, retryWrites: false });
 try {
   await client.connect();
@@ -97,6 +111,7 @@ try {
     scannedBirthScopedWithoutBirthKey: scannedBirthScoped,
     pending: view(pending),
     atRisk: view(atRisk),
+    legacyClaims: await legacyClaimCounts(db),
     note: "pending = 지금 프로필 선택 대기. atRisk = 미지급 + 프로필 없음/삭제 — 지급 시도 때 보류된다. 프로필이 살아 있는 소급 주문은 현재 생년월일로 지급된다(대상 아님). 쓰기 없음.",
   };
   if (process.argv.includes("--json")) console.log(JSON.stringify(report));

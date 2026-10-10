@@ -154,3 +154,60 @@ test("🔴 한 주문을 서로 다른 생년월일로 두 번 지급하지 않�
   expect(blocked.status).toBe(409);
   expect(db.rows.some((row) => row.grantType === "permanent_unlock")).toBe(false);
 });
+
+/* 레거시 해금(BirthScopeLegacyClaim) — 구매 프로필을 모르는 기존 해금. 마이그레이션이 남긴 대기를 같은 카드·API 로 고른다. */
+const LEGACY_ID = "c".repeat(24);
+const legacyClaim = (overrides = {}) => ({
+  claimId: LEGACY_ID,
+  userId: String(USER),
+  sourceKind: "entitlement",
+  sourceId: "src-user-row",
+  reason: "user_scope",
+  featureKey: "section_summary",
+  serviceKey: "saju",
+  contentKey: "saju.fullReading",
+  orderId: "cd-single-old-0001",
+  paymentId: "pay_old_0001",
+  priceKRW: 4900,
+  priceCoins: 49,
+  paidAt: new Date("2025-01-01T00:00:00Z"),
+  ...overrides,
+});
+const sourceRow = (overrides = {}) => ({ _id: "src-user-row", userId: String(USER), scope: "USER", featureKey: "section_summary", status: "ACTIVE", ...overrides });
+
+test("🔴 레거시 해금: 같은 모양으로 목록에 뜨고, 고른 프로필의 생년월일로만 열린다(BACKFILL·원 주문 근거 유지)", async () => {
+  db.rows.push(sourceRow(), legacyClaim());
+  const list = await call("GET", "/birth-profile-pending");
+  expect(list.payload.orders).toEqual([expect.objectContaining({ orderId: `legacy-${LEGACY_ID}`, featureKey: "section_summary", amountKRW: 4900, requiresPartner: false })]);
+  expect(JSON.stringify(list.payload)).not.toContain("src-user-row");
+
+  const claim = await call("POST", `/birth-profile-pending/legacy-${LEGACY_ID}/claim`, { profileId: "p1" });
+  expect(claim.status).toBe(200);
+  expect(claim.payload).toMatchObject({ ok: true, orderId: `legacy-${LEGACY_ID}`, replayed: false });
+  expect(await opens("p1")).toBe(true);
+  expect(await opens("p2")).toBe(false);
+
+  // 환불 회수(revokeBackfilledBirthUnlocks)가 원 주문으로 이 행을 찾을 수 있어야 한다.
+  expect(db.rows.find((row) => row.grantType === "permanent_unlock")).toMatchObject({
+    source: "BACKFILL", scope: "BIRTH", orderId: "cd-single-old-0001", amountKRW: 4900,
+    mergedOrderIds: ["cd-single-old-0001", "pay_old_0001"],
+  });
+  expect((await call("GET", "/birth-profile-pending")).payload.orders).toEqual([]);
+  const again = await call("POST", `/birth-profile-pending/legacy-${LEGACY_ID}/claim`, { profileId: "p2" });
+  expect(again.payload).toMatchObject({ ok: true, replayed: true });
+  expect(await opens("p2")).toBe(false); // 재생은 다른 생년월일을 열지 않는다
+});
+
+test("레거시 해금: 다른 생년월일 선점·환불된 원 구매·남의 claim 은 지급하지 않는다", async () => {
+  db.rows.push(sourceRow(), legacyClaim({ claim: { profileId: "p2", birthKey: "b".repeat(64) } }));
+  expect((await call("POST", `/birth-profile-pending/legacy-${LEGACY_ID}/claim`, { profileId: "p1" })).status).toBe(409);
+
+  db = makeFakePaymentDb({ profileCards: CARDS });
+  db.rows.push(sourceRow({ status: "REFUNDED" }), legacyClaim());
+  expect((await call("POST", `/birth-profile-pending/legacy-${LEGACY_ID}/claim`, { profileId: "p1" })).status).toBe(409);
+
+  db = makeFakePaymentDb({ profileCards: CARDS });
+  db.rows.push(legacyClaim({ userId: String(OTHER_USER_ID), sourceKind: "user_array", sourceId: "section_summary" }));
+  expect((await call("POST", `/birth-profile-pending/legacy-${LEGACY_ID}/claim`, { profileId: "p1" })).status).toBe(403);
+  expect(db.rows.some((row) => row.grantType === "permanent_unlock")).toBe(false);
+});

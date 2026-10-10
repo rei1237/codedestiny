@@ -6,7 +6,8 @@
  *   --dry-run (기본)  원천을 읽어 계획과 수치만 찍는다. 쓰기 없음.
  *   --apply           BIRTH 행을 upsert 로 **복사 생성**하고, 구매 프로필을 모르는 행에 birthScopeExcludedAt 을 표시한다.
  *                     원본 행은 지우거나 고치지 않는다(profileId 는 감사용으로 남는다). 다시 돌려도 같은 결과다.
- *   --create-index    birth_unlock_identity 인덱스를 만든다(중복 사전 스캔 통과 시에만).
+ *                     구매 프로필을 몰라 옮기지 못한 해금은 BirthScopeLegacyClaim(프로필 선택 지급 대기)으로 남긴다.
+ *   --create-index    birth_unlock_identity·legacy_claim_* 인덱스를 만든다(중복 사전 스캔 통과 시에만).
  *   --check           인덱스 존재·중복만 확인한다.
  *
  * 알려진 한계: 구매 후 출생 정보를 고쳤는지는 알 수 없다 — 구매 프로필의 **현재** 출생 정보로 birthKey 를 만든다.
@@ -16,7 +17,8 @@
  */
 import { config } from "dotenv";
 import { connectDb, mongoose } from "../../worker/lib/db.js";
-import { ContentEntitlement, Payment, PointHistory, ProfileCard, User } from "../../worker/lib/models.js";
+import { BirthScopeLegacyClaim, ContentEntitlement, Payment, PointHistory, ProfileCard, User } from "../../worker/lib/models.js";
+import { isBirthProfilePendingOrder } from "../../worker/payments/birth-profile-claim.js";
 import {
   birthScopedFeatureKeyVariants,
   canonicalBirthFeatureKey,
@@ -121,9 +123,12 @@ async function loadSources() {
   const evidence = [];
   const paidPayments = await Payment.find({
     featureKey: { $in: featureKeys },
-    status: { $in: PAID_PAYMENT_STATUSES },
-  }).select("userId featureKey merchantUid impUid pricingSnapshot metadata paidAt createdAt").lean();
+    // processing = 구 단건의 "결제 확인·해금 보류". P0-1 대기 주문으로 덮음 판정에만 쓴다.
+    status: { $in: [...PAID_PAYMENT_STATUSES, "processing"] },
+  }).select("userId featureKey merchantUid impUid status purchaseType failureCode entitlementGrantedAt paymentAmount coinPrice expectedChargedPoints pricingSnapshot metadata paidAt createdAt").lean();
   for (const payment of paidPayments) {
+    const heldForProfileClaim = isBirthProfilePendingOrder(payment) || Boolean(payment.metadata?.birthProfileClaim?.birthKey);
+    if (payment.status === "processing" && !heldForProfileClaim) continue;
     noteVariant(payment.featureKey);
     evidence.push({
       userId: str(payment.userId),
@@ -133,13 +138,20 @@ async function loadSources() {
       contentKey: str(payment.pricingSnapshot?.contentKey),
       orderId: str(payment.merchantUid || payment.impUid || payment._id),
       at: payment.paidAt || payment.createdAt,
+      sourceKind: "payment",
+      sourceId: str(payment._id),
+      paymentId: str(payment.impUid),
+      priceKRW: payment.paymentAmount,
+      priceCoins: payment.coinPrice || payment.expectedChargedPoints,
+      // P0-1 프로필 선택 대기·지급 주문은 그 목록이 다룬다 — 레거시 지급 대기를 따로 만들지 않는다.
+      heldForProfileClaim,
     });
   }
 
   const pointRows = await PointHistory.find({
     kind: { $in: ["deduct", "refund"] },
     featureKey: { $in: featureKeys },
-  }).select("_id userId kind featureKey metadata createdAt").lean();
+  }).select("_id userId kind featureKey delta metadata createdAt").lean();
   // 환불은 짝지은 차감만 근거에서 뺀다 — 같은 키의 다른 구매까지 지우지 않는다.
   const pointByKind = (kind) => pointRows
     .filter((row) => row.kind === kind)
@@ -154,6 +166,9 @@ async function loadSources() {
       profileId: profileIdFrom(row.metadata),
       orderId: str(row.metadata?.requestId || row._id),
       at: row.createdAt,
+      sourceKind: "point_history",
+      sourceId: row._id,
+      priceCoins: Math.abs(Number(row.delta || 0)),
     });
   }
 
@@ -215,6 +230,35 @@ async function applyPlan(plan) {
     );
     console.log(`MARKED_EXCLUDED ${reason} ${result.modifiedCount}`);
   }
+
+  // 프로필 선택 지급 대기. 이미 있으면 그대로 둔다(지급 기록 claim.* 를 덮지 않는다).
+  let claimsInserted = 0;
+  let claimsPresent = 0;
+  for (const claim of plan.claims) {
+    const { userId, sourceKind, sourceId } = claim;
+    const result = await BirthScopeLegacyClaim.collection.updateOne(
+      { userId, sourceKind, sourceId },
+      { $setOnInsert: { ...claim, createdAt: now, updatedAt: now } },
+      { upsert: true },
+    );
+    if (result.upsertedCount) claimsInserted += 1;
+    else claimsPresent += 1;
+  }
+  console.log(`APPLIED_LEGACY_CLAIMS inserted=${claimsInserted} alreadyPresent=${claimsPresent}`);
+}
+
+// worker/lib/models.js birthScopeLegacyClaimSchema 의 선언과 일치해야 한다.
+const CLAIM_INDEXES = [
+  { spec: { userId: 1, sourceKind: 1, sourceId: 1 }, options: { unique: true, name: "legacy_claim_source" } },
+  { spec: { claimId: 1 }, options: { unique: true, name: "legacy_claim_id" } },
+];
+
+async function claimIndexesPresent() {
+  const names = new Set((await BirthScopeLegacyClaim.collection.indexes().catch(() => [])).map((index) => index.name));
+  return CLAIM_INDEXES.map(({ options: { name } }) => {
+    console.log(`${names.has(name) ? "OK" : "MISSING"} ${name}`);
+    return names.has(name);
+  }).every(Boolean);
 }
 
 async function scanIndexDuplicates() {
@@ -243,8 +287,10 @@ async function migrate() {
 
   if (CHECK || CREATE_INDEX) {
     const indexes = await ContentEntitlement.collection.indexes();
-    const present = indexes.some((index) => index.name === options.name);
-    console.log(`${present ? "OK" : "MISSING"} ${options.name}`);
+    const birthPresent = indexes.some((index) => index.name === options.name);
+    console.log(`${birthPresent ? "OK" : "MISSING"} ${options.name}`);
+    const claimsPresent = await claimIndexesPresent();
+    const present = birthPresent && claimsPresent;
     const duplicates = await scanIndexDuplicates();
     if (duplicates > 0) {
       console.log("RESULT DUPLICATES");
@@ -256,8 +302,15 @@ async function migrate() {
       if (CHECK && !present) process.exitCode = 1;
       return;
     }
-    await ContentEntitlement.collection.createIndex(spec, options);
-    console.log(`CREATED ${options.name}`);
+    if (!birthPresent) {
+      await ContentEntitlement.collection.createIndex(spec, options);
+      console.log(`CREATED ${options.name}`);
+    }
+    // 대기 컬렉션은 --apply 의 upsert 필터가 곧 유일 키라 중복이 생기지 않는다(재실행도 같은 문서).
+    for (const index of CLAIM_INDEXES) {
+      await BirthScopeLegacyClaim.collection.createIndex(index.spec, index.options);
+      console.log(`CREATED ${index.options.name}`);
+    }
     console.log("RESULT OK");
     return;
   }
@@ -275,6 +328,9 @@ async function migrate() {
   }
   for (const item of plan.excludes.slice(0, SAMPLE_LIMIT)) {
     console.log(`PLAN_EXCLUDE ${item.userId} ${item._id} ${item.reason}`);
+  }
+  for (const item of plan.claims.slice(0, SAMPLE_LIMIT)) {
+    console.log(`PLAN_CLAIM ${item.userId} ${item.featureKey} ${item.contentKey} ${item.sourceKind} ${item.reason}`);
   }
   if (!APPLY) {
     console.log("RESULT DRY_RUN (no writes). Re-run with --apply after review.");

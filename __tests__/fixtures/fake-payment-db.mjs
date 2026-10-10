@@ -5,7 +5,7 @@
  * CAS 필터에 실려 있다. 그 필터가 맞는지는 인프라가 아니라 **연산자 의미**를 확인해야 알 수 있으므로,
  * 여기서는 실제로 쓰는 연산자를 전부 구현한다. 통과시켜 주는 스텁이면 검증하는 게 없다.
  *
- * 지원: $nin · $in · $ne · $lt · $exists · $or · $and · $nor · $set · $inc · $unset · $setOnInsert · $addToSet
+ * 지원: $nin · $in · $ne · $lt · $exists · $or · $and · $nor · $set · $inc · $unset · $setOnInsert · $addToSet($each)
  *       · $push($each/$slice) · upsert · returnDocument(before|after) · dot notation(필터·$set·$inc·$push)
  * 미구현 연산자를 만나면 **조용히 통과시키지 않고 던진다** — 조용한 통과가 가짜 초록불을 만든다.
  */
@@ -136,7 +136,8 @@ export function applyUpdate(doc, update) {
   if (update.$addToSet) {
     for (const [k, v] of Object.entries(update.$addToSet)) {
       const list = Array.isArray(getPath(doc, k)) ? getPath(doc, k) : [];
-      if (!list.includes(v)) list.push(v);
+      const values = v && typeof v === "object" && Array.isArray(v.$each) ? v.$each : [v];
+      for (const value of values) if (!list.includes(value)) list.push(value);
       setPath(doc, k, list);
     }
   }

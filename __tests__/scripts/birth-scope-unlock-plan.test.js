@@ -177,3 +177,44 @@ test("coin refunds cancel only the deduction they pair with", () => {
   expect(kept.map((row) => row._id)).toEqual(["d3", "d6"]);
   expect(stats).toMatchObject({ byFlag: 1, byLink: 1, byRequestId: 1, byFallback: 1, unmatched: 0 });
 });
+
+test("purchases with an unknown profile become profile-selection claims instead of disappearing", () => {
+  const userRow = row({ scope: "USER", profileId: "__user__", orderId: "o-user", amountKRW: 4900 });
+  const deleted = row({ profileId: "gone", featureKey: "sukyo_yearly_fortune_unlock:2027", serviceKey: "", contentKey: "", orderId: "o-gone" });
+  const { claims, stats } = planBirthScopeMigration({
+    entitlements: [userRow, deleted],
+    profiles: [card(U1, "p1")],
+    users: [{ _id: U1, unlockedFeatures: ["section_summary", "openSajuGuardianPage"] }],
+  });
+  const byKind = Object.fromEntries(claims.map((claim) => [`${claim.sourceKind}:${claim.featureKey}`, claim]));
+  expect(Object.keys(byKind).sort()).toEqual([
+    "entitlement:section_summary",
+    "entitlement:sukyo_yearly_fortune_unlock:2027",
+    "user_array:saju-guardian-unlock",
+  ]);
+  expect(byKind["entitlement:section_summary"]).toMatchObject({
+    userId: U1, sourceId: userRow._id, orderId: "o-user", priceKRW: 4900, serviceKey: "saju", contentKey: "saju.fullReading",
+    reason: EXCLUDE_REASONS.UNKNOWN_PURCHASE_PROFILE,
+  });
+  expect(byKind["entitlement:sukyo_yearly_fortune_unlock:2027"].contentKey).toBe("sukyo_yearly_fortune_unlock:2027");
+  expect(byKind["user_array:saju-guardian-unlock"].claimId).toMatch(/^[a-f0-9]{24}$/);
+  expect(stats.claimsPlanned).toBe(3);
+});
+
+test("claims skip orders already copied to a BIRTH row, held P0-1 orders and duplicate sources", () => {
+  const { claims, stats } = planBirthScopeMigration({
+    entitlements: [
+      row({ profileId: "p1", orderId: "o-copied" }),
+      row({ scope: "USER", profileId: "__user__", featureKey: "section_daewun", contentKey: "saju.daeunAnalysis", orderId: "o-copied" }),
+      row({ scope: "USER", profileId: "__user__", featureKey: "rpt_villainCard", contentKey: "rpt_villainCard", orderId: "o-dup" }),
+    ],
+    evidence: [
+      { userId: U1, featureKey: "rpt_villainCard", orderId: "o-dup", sourceKind: "payment", sourceId: "pay-dup" },
+      { userId: U1, featureKey: "travelDestiny", orderId: "o-held", heldForProfileClaim: true },
+    ],
+    profiles: [card(U1, "p1")],
+    users: [{ _id: U1, unlockedFeatures: ["travelDestiny"] }],
+  });
+  expect(claims.map((claim) => claim.orderId)).toEqual(["o-dup"]);
+  expect(stats).toMatchObject({ claimsCoveredByBirthRow: 1, claimsDeduplicated: 1, claimsSkippedHeldOrder: 1 });
+});
